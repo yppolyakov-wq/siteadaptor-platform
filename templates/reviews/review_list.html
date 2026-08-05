@@ -30,8 +30,24 @@
     <a href="?art={{ kind }}" class="px-3 py-1.5 rounded-full border {% if active_kind == kind %}bg-indigo-600 text-white border-indigo-600{% else %}border-gray-300 hover:border-indigo-400{% endif %}">{{ label }}</a>
   {% endfor %}
   <a href="?status=hidden" class="px-3 py-1.5 rounded-full border {% if active_status == 'hidden' %}bg-indigo-600 text-white border-indigo-600{% else %}border-gray-300 hover:border-indigo-400{% endif %}">{% trans "Hidden" %}</a>
+  {# W11-3: отзывы о бизнесе с портала /entdecken — владелец их раньше не видел #}
+  <a href="?typ=betrieb" class="px-3 py-1.5 rounded-full border {% if betrieb %}bg-indigo-600 text-white border-indigo-600{% else %}border-gray-300 hover:border-indigo-400{% endif %}">{% trans "Über den Betrieb" %}</a>
 </div>
 
+{% if betrieb %}
+<p class="text-xs text-gray-400 mb-3">{% trans "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb — Antworten folgen." %}</p>
+<div class="bg-white rounded-2xl shadow-sm p-4 space-y-1">
+  {% for r in business_reviews %}
+    <div class="border-b border-gray-100 last:border-0 py-3 {% if r.status == 'hidden' %}opacity-60{% endif %}">
+      <p class="text-sm"><span class="text-amber-500">{{ r.stars }}</span>
+        <span class="text-xs text-gray-400">· {{ r.created_at|date:"d.m.Y" }}{% if r.status == 'hidden' %} · {% trans "Hidden" %}{% endif %}</span></p>
+      {% if r.comment %}<p class="text-sm mt-1 whitespace-pre-line">{{ r.comment }}</p>{% endif %}
+    </div>
+  {% empty %}
+    <p class="text-sm text-gray-400 py-4">{% trans "No reviews yet." %}</p>
+  {% endfor %}
+</div>
+{% else %}
 <div class="bg-white rounded-2xl shadow-sm p-4 space-y-1">
   {% for r in reviews %}
     <div class="border-b border-gray-100 last:border-0 py-3 {% if not r.is_published %}opacity-60{% endif %}">
@@ -60,4 +76,5 @@
     <p class="text-sm text-gray-400 py-4">{% trans "No reviews yet." %}</p>
   {% endfor %}
 </div>
+{% endif %}
 {% endblock %}

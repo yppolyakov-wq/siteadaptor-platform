@@ -18,6 +18,33 @@ _KINDS = [k for k, _label in Review.ENTITY_KINDS]
 
 @login_required
 def review_list(request):
+    # W11-3: вкладка «Über den Betrieb» — отзывы о бизнесе с портала /entdecken
+    # (SHARED BusinessReview; витрина их уже рендерит — теперь видит и владелец;
+    # автор не раскрывается — как на портале). Ответ владельца требует миграции
+    # поля — отдельным решением (план W11 §2, W11-3).
+    if request.GET.get("typ") == "betrieb":
+        from django.db import connection
+
+        from apps.aggregator.models import BusinessReview
+
+        biz = list(
+            BusinessReview.objects.filter(tenant_schema=connection.schema_name).order_by(
+                "-created_at"
+            )[:200]
+        )
+        return render(
+            request,
+            "reviews/review_list.html",
+            {
+                "nav": "reviews",
+                "betrieb": True,
+                "business_reviews": biz,
+                "overview": services.owner_overview(),
+                "kinds": Review.ENTITY_KINDS,
+                "active_kind": "",
+                "active_status": "",
+            },
+        )
     reviews = Review.objects.all()
     kind = request.GET.get("art", "")
     if kind in _KINDS:

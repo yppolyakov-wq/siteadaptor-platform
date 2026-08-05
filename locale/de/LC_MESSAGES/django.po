@@ -17283,3 +17283,9 @@ msgstr "Nichts für heute."
 
 msgid "Sendungsnummer (optional)"
 msgstr "Sendungsnummer (optional)"
+
+msgid "Über den Betrieb"
+msgstr "Über den Betrieb"
+
+msgid "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb — Antworten folgen."
+msgstr "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb — Antworten folgen."

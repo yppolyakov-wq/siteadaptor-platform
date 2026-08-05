@@ -17244,3 +17244,9 @@ msgstr "Bugün için bir şey yok."
 
 msgid "Sendungsnummer (optional)"
 msgstr "Kargo takip numarası (isteğe bağlı)"
+
+msgid "Über den Betrieb"
+msgstr "İşletme hakkında"
+
+msgid "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb — Antworten folgen."
+msgstr "Şehir portalından (/entdecken) işletmeniz hakkında değerlendirmeler — yanıtlar yakında."

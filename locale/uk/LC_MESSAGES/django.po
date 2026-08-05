@@ -17309,3 +17309,9 @@ msgstr "На сьогодні нічого."
 
 msgid "Sendungsnummer (optional)"
 msgstr "Трек-номер (необов'язково)"
+
+msgid "Über den Betrieb"
+msgstr "Про бізнес"
+
+msgid "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb — Antworten folgen."
+msgstr "Відгуки про ваш бізнес із міського порталу (/entdecken) — відповіді з'являться згодом."

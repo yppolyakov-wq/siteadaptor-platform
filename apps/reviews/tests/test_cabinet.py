@@ -101,3 +101,39 @@ def test_reply_saved_and_rendered_on_storefront():
     views.review_reply(_req("post", {"reply_text": "  "}), pk=r.pk)
     r.refresh_from_db()
     assert r.reply_text == "" and r.replied_at is None
+
+
+# --- W11-3: вкладка «Über den Betrieb» (BusinessReview с портала) ---------------
+def test_betrieb_tab_shows_only_own_schema_reviews():
+    """Владелец видит отзывы о СВОЁМ бизнесе с портала (раньше — никак);
+    чужая схема не подмешивается; автор не раскрывается (как на портале)."""
+    from django.db import connection
+
+    from apps.aggregator.models import BusinessReview, PortalUser
+
+    author = PortalUser.objects.create(email="gast@portal.de")
+    BusinessReview.objects.create(
+        tenant_schema=connection.schema_name,
+        tenant_slug="mein",
+        author=author,
+        rating=5,
+        comment="Toller Laden am Markt",
+    )
+    other = PortalUser.objects.create(email="fremd@portal.de")
+    BusinessReview.objects.create(
+        tenant_schema="fremde_schema",
+        tenant_slug="fremd",
+        author=other,
+        rating=1,
+        comment="Fremder Kommentar XYZ",
+    )
+    body = views.review_list(_req(data={"typ": "betrieb"})).content.decode()
+    assert "Toller Laden am Markt" in body
+    assert "Fremder Kommentar XYZ" not in body
+    assert "gast@portal.de" not in body  # автор не раскрывается
+    assert "Über den Betrieb" in body
+
+    # дефолтный список (entity-отзывы) не тронут — чип виден, портальных нет
+    body = views.review_list(_req()).content.decode()
+    assert "Toller Laden am Markt" not in body
+    assert "Über den Betrieb" in body

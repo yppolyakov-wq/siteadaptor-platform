@@ -17132,3 +17132,9 @@ msgstr "Nothing for today."
 
 msgid "Sendungsnummer (optional)"
 msgstr "Tracking number (optional)"
+
+msgid "Über den Betrieb"
+msgstr "About the business"
+
+msgid "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb — Antworten folgen."
+msgstr "Reviews from the city portal (/entdecken) about your business — replies coming soon."
