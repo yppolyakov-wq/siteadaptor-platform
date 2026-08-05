@@ -171,11 +171,31 @@ def _month_grid_context(request, day):
 
 
 @login_required
+def booking_detail(request, pk):
+    """Фидбэк 2026-08-05 («перекидывает на непонятную страницу»): карточка брони
+    услуги — клиент/услуга/время/цена/статус + действия FSM и перенос. Зеркало
+    stays booking-detail (FB-11); сюда ведут доска/списки продаж и Tagesplan."""
+    booking = get_object_or_404(
+        Booking.objects.select_related("customer", "service", "resource"), pk=pk
+    )
+    return render(
+        request,
+        "booking/booking_detail.html",
+        {"b": booking, "nav": "booking"},
+    )
+
+
+@login_required
 @require_POST
 def booking_action(request, pk):
     booking = get_object_or_404(Booking, pk=pk)
     action = request.POST.get("action", "")
     back = f"{reverse('booking:calendar')}?tag={booking.start.date().isoformat()}"
+    # Карточка брони шлёт next= — после действия остаёмся на ней (только
+    # внутренние пути; чужие/абсолютные URL игнорируем).
+    _next = request.POST.get("next", "")
+    if _next.startswith("/") and not _next.startswith("//"):
+        back = _next
     if action == "move":
         tz = timezone.get_current_timezone()
         try:

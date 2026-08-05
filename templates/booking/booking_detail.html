@@ -1,0 +1,77 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{{ b.reference_code }}{% endblock %}
+
+{% block dash_content %}
+{% comment %}Фидбэк 2026-08-05: карточка брони услуги (зеркало stays booking-detail,
+FB-11) — раньше клик по сделке вёл на общий календарь без деталей.{% endcomment %}
+<div class="max-w-2xl mx-auto">
+  <div class="flex items-center justify-between gap-3 flex-wrap mb-4">
+    <h1 class="text-2xl font-bold">{% if b.service %}{{ b.service.name }}{% else %}{% trans "Booking" %}{% endif %} · <span class="text-gray-400 font-mono text-lg">{{ b.reference_code }}</span></h1>
+    <a href="{% url 'booking:calendar' %}?tag={{ b.start|date:'Y-m-d' }}" class="text-sm text-indigo-600 hover:underline">📅 {% trans "Kalender" %} →</a>
+  </div>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
+    <div class="flex items-center gap-2 flex-wrap">
+      <span class="text-xs font-medium px-2 py-0.5 rounded-full
+        {% if b.status == 'confirmed' %}bg-green-100 text-green-800
+        {% elif b.status == 'pending' %}bg-amber-100 text-amber-800
+        {% elif b.status == 'fulfilled' %}bg-gray-100 text-gray-600
+        {% else %}bg-red-50 text-red-600{% endif %}">{% status_label b "booking" %}</span>
+      {% if b.payment_state == 'paid' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">💶 {% trans "Paid" %}</span>
+      {% elif b.payment_state == 'pending' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">{% trans "Deposit pending" %}</span>
+      {% elif b.payment_state == 'refunded' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{% trans "Refunded" %}</span>{% endif %}
+      {% if b.group_code %}<span class="text-xs text-gray-400">🔗 {% trans "Part of a multi-slot booking" %}</span>{% endif %}
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+      <div>
+        <p class="text-xs text-gray-400">{% trans "Date" %}</p>
+        <p class="font-medium">{{ b.start|date:"l, d.m.Y" }} · {{ b.start|time:"H:i" }}–{{ b.end|time:"H:i" }}</p>
+      </div>
+      <div>
+        <p class="text-xs text-gray-400">{% trans "Resource" %}</p>
+        <p class="font-medium">{{ b.resource.name }}</p>
+      </div>
+      <div>
+        <p class="text-xs text-gray-400">{% trans "Customer" %}</p>
+        <p class="font-medium">{{ b.customer|default:"—" }}{% if b.party_size > 1 %} · {{ b.party_size }} {% trans "guests" %}{% endif %}</p>
+        {% if b.customer.email %}<p class="text-gray-500">{{ b.customer.email }}</p>{% endif %}
+        {% if b.customer.phone %}<p class="text-gray-500">{{ b.customer.phone }}</p>{% endif %}
+      </div>
+      <div>
+        <p class="text-xs text-gray-400">{% trans "Price" %}</p>
+        <p class="font-medium">{% if b.price_cents %}{{ b.price_eur|floatformat:2 }} €{% else %}—{% endif %}{% if b.voucher_code %} · 🎟 {{ b.voucher_code }}{% endif %}</p>
+      </div>
+      {% if b.source_channel %}
+      <div>
+        <p class="text-xs text-gray-400">{% trans "Source" %}</p>
+        <p class="font-medium">{{ b.source_channel }}</p>
+      </div>
+      {% endif %}
+      {% if b.note %}
+      <div class="sm:col-span-2">
+        <p class="text-xs text-gray-400">📝 {% trans "Note" %}</p>
+        <p class="whitespace-pre-line">{{ b.note }}</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <form method="post" action="{% url 'booking:booking-action' b.pk %}" class="flex items-center gap-2 flex-wrap border-t border-gray-100 pt-4">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{% url 'booking:booking-detail' b.pk %}">
+      {% include "core/_status_actions.html" with kind="booking" obj=b %}
+      {% if b.status == 'pending' or b.status == 'confirmed' %}
+        <input type="datetime-local" name="start" value="{{ b.start|date:'Y-m-d\TH:i' }}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
+        <button name="action" value="move" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Move" %}</button>
+      {% endif %}
+    </form>
+  </div>
+</div>
+{% endblock %}

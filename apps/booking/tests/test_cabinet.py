@@ -113,6 +113,39 @@ def test_calendar_month_grid_counts_and_navigation():
     assert f'tag={local_day.isoformat()}"' in body
 
 
+def test_booking_detail_card_and_manage_url():
+    """Фидбэк 2026-08-05: клик по сделке услуги ведёт на КАРТОЧКУ брони
+    (детали + действия), а не на общий календарь; действия возвращают на
+    карточку (next=), доска/списки ссылаются туда же."""
+    from apps.core.transactions import transaction_for
+
+    booking = _booking()
+    body = views.booking_detail(_req(), pk=booking.pk).content.decode()
+    assert booking.reference_code in body
+    assert booking.resource.name in body
+    assert f"/dashboard/booking/termin/{booking.pk}/" in body  # next= формы действий
+    assert transaction_for("booking", booking).manage_url == (
+        f"/dashboard/booking/termin/{booking.pk}/"
+    )
+    # действие со страницы карточки возвращает на карточку (внутренний next)
+    resp = views.booking_action(
+        _req(
+            "post",
+            data={"action": "confirmed", "next": f"/dashboard/booking/termin/{booking.pk}/"},
+        ),
+        pk=booking.pk,
+    )
+    assert resp.status_code == 302 and resp.url.endswith(f"/termin/{booking.pk}/")
+    booking.refresh_from_db()
+    assert booking.status == "confirmed"
+    # чужой/абсолютный next игнорируется (open-redirect guard)
+    resp = views.booking_action(
+        _req("post", data={"action": "cancelled", "next": "https://evil.example/x"}),
+        pk=booking.pk,
+    )
+    assert resp.url.startswith("/dashboard/booking/")
+
+
 def test_availability_range_block_and_reopen():
     """Фидбэк 2026-08-04: «зарезервировать даты решением владельца» — блок
     диапазона одной формой (идемпотентно), «wieder öffnen» снимает его."""

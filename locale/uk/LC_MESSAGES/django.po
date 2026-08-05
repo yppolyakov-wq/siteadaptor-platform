@@ -17073,3 +17073,6 @@ msgstr "Заблокувати"
 
 msgid "Wieder öffnen"
 msgstr "Знову відкрити"
+
+msgid "Source"
+msgstr "Джерело"
