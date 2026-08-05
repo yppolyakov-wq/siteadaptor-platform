@@ -17107,3 +17107,19 @@ msgstr "Поиск по разделам и настройкам…"
 # W8-4 (палитра Ctrl+K)
 msgid "Suche (Strg+K)"
 msgstr "Поиск (Ctrl+K)"
+
+# W9-1 (Settings-хаб)
+msgid "Zahlung & Lieferung"
+msgstr "Оплата и доставка"
+
+# W9-1 (Settings-хаб)
+msgid "Benachrichtigungen & Kanäle"
+msgstr "Уведомления и каналы"
+
+# W9-1 (Settings-хаб)
+msgid "Abo & Rechnung"
+msgstr "Подписка и счета"
+
+# W9-1 (Settings-хаб)
+msgid "Recht & Steuern"
+msgstr "Право и налоги"

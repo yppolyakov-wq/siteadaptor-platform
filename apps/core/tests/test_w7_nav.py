@@ -50,7 +50,7 @@ def test_settings_hub_gates_finance_and_analytics_by_module():
     html = _render("settings", "settings", _tenant(disabled=["finance", "analytics"]))
     assert "Finanzen" not in html
     assert "Auswertungen" not in html
-    assert "Abrechnung" in html  # billing — core, виден всегда
+    assert "Abo &amp; Rechnung" in html  # billing — core, виден всегда (W9-1 лейбл)
 
 
 def test_marketing_hub_gained_blog_and_newsletter():

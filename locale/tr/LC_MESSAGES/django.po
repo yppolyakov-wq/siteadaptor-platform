@@ -17027,3 +17027,19 @@ msgstr "Bölüm ve ayarlarda ara…"
 # W8-4 (палитра Ctrl+K)
 msgid "Suche (Strg+K)"
 msgstr "Ara (Ctrl+K)"
+
+# W9-1 (Settings-хаб)
+msgid "Zahlung & Lieferung"
+msgstr "Ödeme ve teslimat"
+
+# W9-1 (Settings-хаб)
+msgid "Benachrichtigungen & Kanäle"
+msgstr "Bildirimler ve kanallar"
+
+# W9-1 (Settings-хаб)
+msgid "Abo & Rechnung"
+msgstr "Abonelik ve fatura"
+
+# W9-1 (Settings-хаб)
+msgid "Recht & Steuern"
+msgstr "Hukuk ve vergiler"

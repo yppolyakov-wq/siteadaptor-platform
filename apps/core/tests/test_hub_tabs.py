@@ -102,19 +102,19 @@ def test_settings_nav_collapsed_to_website_plus_hub():
 
 
 def test_settings_hub_primary_and_advanced_tabs():
+    # W9-1: «базовые + по типам» — целевой порядок табов Settings-хаба.
     html = _render_settings("settings")
-    # прямые (частые) вкладки (Sprachen — прямой таб: доп. языки видны без «Erweitert»)
     for lbl in (
-        "Einstellungen",
-        "Benachrichtigungen",
-        "Rechtstexte",
-        "Zusatzleistungen",
+        "Mein Geschäft",
         "Sprachen",
+        "Recht &amp; Steuern",
+        "Zahlung &amp; Lieferung",
+        "Benachrichtigungen &amp; Kanäle",
     ):
         assert lbl in html, lbl
-    # ящик «Erweitert» + его (редкие) вкладки
+    # ящик «Erweitert» + его (редкие) вкладки (Zusatzleistungen/Finder переехали сюда)
     assert "Erweitert" in html
-    for lbl in ("Medien", "Domains", "Funktionen", "Hilfe"):
+    for lbl in ("Zusatzleistungen", "Medien", "Domains", "Funktionen", "Finder", "Hilfe"):
         assert lbl in html, lbl
 
 

@@ -17066,3 +17066,19 @@ msgstr "Bereiche & Einstellungen suchen…"
 # W8-4 (палитра Ctrl+K)
 msgid "Suche (Strg+K)"
 msgstr "Suche (Strg+K)"
+
+# W9-1 (Settings-хаб)
+msgid "Zahlung & Lieferung"
+msgstr "Zahlung & Lieferung"
+
+# W9-1 (Settings-хаб)
+msgid "Benachrichtigungen & Kanäle"
+msgstr "Benachrichtigungen & Kanäle"
+
+# W9-1 (Settings-хаб)
+msgid "Abo & Rechnung"
+msgstr "Abo & Rechnung"
+
+# W9-1 (Settings-хаб)
+msgid "Recht & Steuern"
+msgstr "Recht & Steuern"

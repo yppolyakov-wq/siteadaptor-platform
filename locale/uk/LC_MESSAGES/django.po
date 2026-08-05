@@ -17092,3 +17092,19 @@ msgstr "Пошук розділів і налаштувань…"
 # W8-4 (палитра Ctrl+K)
 msgid "Suche (Strg+K)"
 msgstr "Пошук (Ctrl+K)"
+
+# W9-1 (Settings-хаб)
+msgid "Zahlung & Lieferung"
+msgstr "Оплата й доставка"
+
+# W9-1 (Settings-хаб)
+msgid "Benachrichtigungen & Kanäle"
+msgstr "Сповіщення й канали"
+
+# W9-1 (Settings-хаб)
+msgid "Abo & Rechnung"
+msgstr "Підписка й рахунки"
+
+# W9-1 (Settings-хаб)
+msgid "Recht & Steuern"
+msgstr "Право й податки"
