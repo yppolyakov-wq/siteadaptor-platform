@@ -3166,7 +3166,11 @@ def verkaeufe(request):
 
         ctx["orders"] = Order.objects.select_related("customer").prefetch_related("items")[:200]
     else:  # generic Liste по нормализованным транзакциям kind
-        sections = transactions.manage_sections_for(tenant, limit=200, only=active)
+        # W7c: список — по дате СОБЫТИЯ (заезд/начало), не по дате создания:
+        # «сегодняшние брони» иначе тонули под старыми, созданными позже.
+        sections = transactions.manage_sections_for(
+            tenant, limit=200, only=active, event_order=True
+        )
         ctx["section"] = sections[0] if sections else None
     return render(request, "core/verkaeufe.html", ctx)
 
@@ -3305,13 +3309,19 @@ def kanban_action(request, kind, pk):
     obj = get_object_or_404(transactions.model_for(kind), pk=pk)
     target = request.POST.get("action", "")
     is_fetch = request.headers.get("X-Requested-With") == "fetch"
+    # W7c: тот же канбан встроен на главную и Verkäufe — non-fetch POST (без JS/
+    # сбой fetch) возвращаемся на исходную поверхность (только внутренний путь),
+    # а не выбрасываем владельца на легаси /dashboard/board/.
+    back = request.POST.get("next", "")
+    if not (back.startswith("/") and not back.startswith("//")):
+        back = reverse("board") + f"?kind={kind}"
     try:
         transactions.sm_for(kind).apply(obj, target, actor=request.user)
     except IllegalTransition:
         if is_fetch:
             return HttpResponse(status=409)
         messages.error(request, _("Dieser Schritt ist im aktuellen Status nicht möglich."))
-        return redirect(reverse("board") + f"?kind={kind}")
+        return redirect(back)
     obj.refresh_from_db()
     # FB-4a/b имена + FB-3 правила переходов — на перерисованной карточке (доска кабинета).
     from apps.core import status_labels, transition_rules
@@ -3324,8 +3334,14 @@ def kanban_action(request, kind, pk):
         transition_rules.subset_for(tenant, kind),
     )
     if is_fetch:
-        return render(request, "core/_kanban_card.html", {"tx": tx, "kind": kind})
-    return redirect(reverse("board") + f"?kind={kind}")
+        # kanban_next: сохранить исходный next в перерисованной карточке (иначе
+        # hidden-поле указывало бы на URL самого action-эндпоинта).
+        return render(
+            request,
+            "core/_kanban_card.html",
+            {"tx": tx, "kind": kind, "kanban_next": request.POST.get("next", "")},
+        )
+    return redirect(back)
 
 
 @login_required

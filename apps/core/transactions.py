@@ -230,13 +230,25 @@ def kinds_with_sales(tenant) -> set[str]:
     return out
 
 
-def allowed_actions_for(kind: str, status: str, subset: dict | None = None) -> list[dict]:
+def allowed_actions_for(kind: str, status: str, subset: dict | None = None, obj=None) -> list[dict]:
     """Переходы FSM из `status`: ``[{target, label, stage}]`` (читает allowed_targets,
     подписи — из pipeline; логику переходов не дублирует). FB-3: `subset` (правила
     переходов владельца {src: [dst]}) СКРЫВАЕТ не-danger переходы для отображения —
     FSM/apply() при этом не трогаются (жёсткий пол)."""
     from apps.core import transition_rules
 
+    targets = [
+        t
+        for t in sm_for(kind).allowed_targets(status)
+        if subset is None or transition_rules.keep_target(status, t, subset)
+    ]
+    # W7c (аудит 2026-08-05): заказ — picked_up/shipped взаимоисключающие по способу
+    # получения. Карточка заказа это фильтровала, доска — нет: владельцу доставочного
+    # заказа предлагалось «Abgeholt» (и письмо о самовывозе клиенту). Зеркалим
+    # фильтр order_detail.html здесь — для всех канбан-поверхностей.
+    if kind == "order" and obj is not None:
+        drop = "picked_up" if getattr(obj, "is_delivery", False) else "shipped"
+        targets = [t for t in targets if t != drop]
     return [
         {
             "target": t,
@@ -244,8 +256,7 @@ def allowed_actions_for(kind: str, status: str, subset: dict | None = None) -> l
             "stage": pipeline.stage_for(kind, t),
             "danger": pipeline.is_danger(t),
         }
-        for t in sm_for(kind).allowed_targets(status)
-        if subset is None or transition_rules.keep_target(status, t, subset)
+        for t in targets
     ]
 
 
@@ -333,7 +344,7 @@ def transaction_for(
         created_at=obj.created_at,
         detail_url_customer=_customer_url(kind, obj),
         manage_url=_manage_url(kind, obj),
-        allowed_actions=allowed_actions_for(kind, obj.status, transitions),
+        allowed_actions=allowed_actions_for(kind, obj.status, transitions, obj=obj),
     )
 
 
@@ -350,12 +361,21 @@ _SELECT_RELATED = {
 }
 
 
-def _managed_queryset(kind):
-    """Базовый queryset kind для кабинета: свежие сверху, с select_related."""
-    return model_for(kind).objects.select_related(*_SELECT_RELATED[kind]).order_by("-created_at")
+# W7c: поле «даты события» для сортировки списков (вид Liste на Verkäufe) —
+# бронь на завтра, созданная месяц назад, важнее прошлогодней, созданной вчера.
+_EVENT_ORDER = {"stay": "-arrival", "booking": "-start"}
 
 
-def manage_sections_for(tenant, limit: int = BOARD_LIMIT, only: str | None = None) -> list[dict]:
+def _managed_queryset(kind, event_order: bool = False):
+    """Базовый queryset kind для кабинета: свежие сверху, с select_related.
+    `event_order` — сортировка по дате СОБЫТИЯ (W7c, только kind'ы из _EVENT_ORDER)."""
+    order = _EVENT_ORDER.get(kind, "-created_at") if event_order else "-created_at"
+    return model_for(kind).objects.select_related(*_SELECT_RELATED[kind]).order_by(order)
+
+
+def manage_sections_for(
+    tenant, limit: int = BOARD_LIMIT, only: str | None = None, event_order: bool = False
+) -> list[dict]:
     """Секции доски по активным транзакционным модулям тенанта.
 
     Одна секция на активный kind (`is_module_active`): последние `limit`
@@ -382,7 +402,10 @@ def manage_sections_for(tenant, limit: int = BOARD_LIMIT, only: str | None = Non
         # FB-4a/b: свои имена статусов + FB-3: правила переходов — только доска кабинета.
         labels = status_labels.custom_labels(tenant, kind)
         trans = transition_rules.subset_for(tenant, kind)
-        txs = [transaction_for(kind, obj, labels, trans) for obj in _managed_queryset(kind)[:limit]]
+        txs = [
+            transaction_for(kind, obj, labels, trans)
+            for obj in _managed_queryset(kind, event_order)[:limit]
+        ]
         # LS-6: «⚠️ Problem»-полоса — открытые high-треды с ref на карточки секции.
         # ОДИН запрос на секцию по множеству кодов (не per-card — N+1); ключ =
         # reference_code (то же кладёт problem-кнопка витрины). Fail-safe.

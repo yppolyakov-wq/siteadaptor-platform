@@ -5,6 +5,7 @@
 вьюха board не меняется. Правила переходов карт (FSM) — только через kanban_action.{% endcomment %}
 {% if sections %}
   <div class="flex items-center justify-between gap-3 flex-wrap border-b border-gray-200 mb-4">
+    {% if sections|length > 1 %}{# W7c: на Verkäufe секция одна — таб из одной кнопки не рисуем #}
     <div class="flex gap-1 flex-wrap" role="tablist">
       {% for s in sections %}
         <button type="button" data-board-tab="{{ s.kind }}"
@@ -13,6 +14,7 @@
         </button>
       {% endfor %}
     </div>
+    {% endif %}
     {% comment %}T4: Archiv — abgeschlossene Spalte standardmäßig ausgeblendet{% endcomment %}
     <label class="flex items-center gap-1.5 text-xs text-gray-500 pb-1 cursor-pointer">
       <input type="checkbox" id="board-show-closed" class="rounded border-gray-300"> {% trans "Abgeschlossene anzeigen" %}

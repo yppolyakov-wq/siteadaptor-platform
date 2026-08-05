@@ -56,6 +56,20 @@ class ReservationSM(StateMachine):
     ]
 
     def on_transition(self, instance, t, **kw):
+        # W7c (аудит 2026-08-05): таймстемпы статуса — в FSM. Сервисы confirm/
+        # fulfill/cancel ставят их ДО apply (тогда тут no-op), но доска зовёт
+        # apply() напрямую — и брони теряли confirmed_at/fulfilled_at/cancelled_at.
+        ts_field = {
+            "confirmed": "confirmed_at",
+            "fulfilled": "fulfilled_at",
+            "cancelled": "cancelled_at",
+        }.get(t.dst)
+        if ts_field and getattr(instance, ts_field, "") is None:
+            from django.utils import timezone
+
+            setattr(instance, ts_field, timezone.now())
+            instance.save(update_fields=[ts_field])
+
         # Возврат остатка при отмене/истечении — в той же транзакции, что и смена
         # статуса (см. anti-oversell.md::cancel). Только у акций с лимитом.
         if t.dst in ("cancelled", "expired"):

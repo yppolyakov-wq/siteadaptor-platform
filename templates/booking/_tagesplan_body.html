@@ -51,6 +51,8 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
       </div>
       <form method="post" action="{% url 'booking:booking-action' b.pk %}" class="flex items-center gap-2 flex-wrap">
         {% csrf_token %}
+        {# W7c: Tagesplan встроен в Verkäufe — после действия остаёмся там же. #}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
         {# UD2-1: FSM-Statusaktionen generisch aus allowed_targets (statt hardcodiert) #}
         {% include "core/_status_actions.html" with kind="booking" obj=b %}
         {% if b.status == 'pending' or b.status == 'confirmed' %}

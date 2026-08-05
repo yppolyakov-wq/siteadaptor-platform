@@ -30,7 +30,7 @@ walk-in+JS) — извлечено из calendar.html 1:1 для переисп�
   {% if active_kind %}<input type="hidden" name="tab" value="{{ active_kind }}">{% endif %}
   <input type="search" name="q" value="{{ search_q }}" placeholder="{% trans 'Gast, E-Mail oder Buchungsnummer suchen…' %}"
          class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-  {% if search_q %}<a href="{% url 'stays:calendar' %}" class="text-sm text-gray-400 hover:text-gray-600 shrink-0" aria-label="{% trans 'Reset' %}">✕</a>{% endif %}
+  {% if search_q %}<a href="?{% if active_kind %}tab={{ active_kind }}{% endif %}" class="text-sm text-gray-400 hover:text-gray-600 shrink-0" aria-label="{% trans 'Reset' %}">✕</a>{% endif %}
 </form>
 {% if search_q %}
 <div class="mb-4 bg-white rounded-2xl shadow-sm divide-y divide-gray-100 max-w-3xl">

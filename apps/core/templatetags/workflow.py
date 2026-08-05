@@ -20,4 +20,4 @@ def status_actions(context, kind, obj):
 
     tenant = getattr(context.get("request"), "tenant", None)
     subset = transition_rules.subset_for(tenant, kind) if tenant is not None else None
-    return transactions.allowed_actions_for(kind, obj.status, subset)
+    return transactions.allowed_actions_for(kind, obj.status, subset, obj=obj)

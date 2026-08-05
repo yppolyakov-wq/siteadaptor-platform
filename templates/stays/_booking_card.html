@@ -17,14 +17,14 @@ fetch ?buchung=<pk>&box=1). Контекст: b, can_delete, registration, units
 {# Действия статуса — тот же FSM-путь, что календарь/доска (UD2) #}
 <div class="bg-white rounded-2xl shadow-sm p-4 mb-4 flex items-center justify-between gap-3 flex-wrap">
   <form method="post" action="{% url 'stays:stay-action' b.pk %}" class="flex items-center gap-2 flex-wrap">
-    {% csrf_token %}
+    {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
     {% include "core/_status_actions.html" with kind="stay" obj=b %}
   </form>
   {% comment %}Батч C (решение владельца): hard-delete только для ручных броней
   без денег (manual + не оплачено + без счёта) — GoBD; прочие лишь отменяются.{% endcomment %}
   {% if can_delete %}
   <form method="post" action="{% url 'stays:booking-delete' b.pk %}" onsubmit="return confirm('{% trans 'Delete this booking permanently?' %}')">
-    {% csrf_token %}
+    {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
     <button type="submit" class="text-sm text-red-600 border border-red-200 rounded-lg px-3 py-1.5 hover:bg-red-50">🗑 {% trans "Delete booking" %}</button>
   </form>
   {% endif %}
@@ -59,7 +59,7 @@ fetch ?buchung=<pk>&box=1). Контекст: b, can_delete, registration, units
 <div class="bg-white rounded-2xl shadow-sm p-4 mb-4">
   <h2 class="font-semibold mb-2">✏️ {% trans "Buchung bearbeiten" %}</h2>
   <form method="post" action="{% url 'stays:stay-action' b.pk %}" class="grid sm:grid-cols-2 gap-3">
-    {% csrf_token %}
+    {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
     <input type="hidden" name="action" value="update">
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Anreise" %}</label>
@@ -152,7 +152,7 @@ fetch ?buchung=<pk>&box=1). Контекст: b, can_delete, registration, units
   {# PMS-A3: оплата на стойке (наличные/EC) — тот же stay-action, что статусы. #}
   {% if b.payment_state != 'paid' and b.payment_state != 'refunded' and b.status != 'cancelled' %}
   <form method="post" action="{% url 'stays:stay-action' b.pk %}" class="mt-2">
-    {% csrf_token %}
+    {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
     <input type="hidden" name="action" value="mark_paid">
     <button type="submit" class="text-sm border border-emerald-300 text-emerald-700 rounded-lg px-3 py-1.5 hover:bg-emerald-50">💶 {% trans "Als bezahlt markieren" %}</button>
   </form>

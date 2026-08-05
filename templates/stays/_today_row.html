@@ -16,7 +16,7 @@
     {% if b.total_cents %} · {{ b.total_eur|floatformat:2 }} €{% endif %}
   </p>
   <form method="post" action="{% url 'stays:stay-action' b.pk %}" class="mt-1.5 flex items-center gap-1.5 flex-wrap">
-    {% csrf_token %}
+    {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
     {% include "core/_status_actions.html" with kind="stay" obj=b %}
   </form>
 </div>

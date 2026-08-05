@@ -24,6 +24,16 @@ class OrderSM(StateMachine):
     ]
 
     def on_transition(self, instance, t, **kw):
+        # W7c (аудит 2026-08-05): момент отправки фиксируем в FSM — доска зовёт
+        # apply() напрямую, минуя вьюху карточки заказа (единственное место, где
+        # ставился shipped_at), и заказ уходил «отправленным» с shipped_at=NULL.
+        # Вьюха ставит его ДО apply (вместе с трек-номером) — тогда тут no-op.
+        if t.dst == "shipped" and getattr(instance, "shipped_at", None) is None:
+            from django.utils import timezone
+
+            instance.shipped_at = timezone.now()
+            instance.save(update_fields=["shipped_at"])
+
         from .notifications import enqueue_order_email
 
         enqueue_order_email(instance, t.dst)

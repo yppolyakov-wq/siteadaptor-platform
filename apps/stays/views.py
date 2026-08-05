@@ -333,6 +333,12 @@ def stay_action(request, pk):
     booking = get_object_or_404(StayBooking, pk=pk)
     action = request.POST.get("action", "")
     back = f"{reverse('stays:calendar')}?von={booking.arrival.isoformat()}"
+    # W7c: Belegungsplan/карточка встроены в Verkäufe — форма шлёт next=, после
+    # действия остаёмся на той же поверхности (только внутренние пути; зеркало
+    # booking_action).
+    _next = request.POST.get("next", "")
+    if _next.startswith("/") and not _next.startswith("//"):
+        back = _next
     if action == "invoice":  # A5: черновик Rechnung из брони (модуль finance)
         if not _finance_active(request):
             messages.error(request, _("Enable the Finance module first."))
@@ -516,16 +522,20 @@ def stay_create(request):
     UnitBlock на выбранный диапазон (ремонт/своё проживание); поле имени служит
     причиной. departure эксклюзивен → end_date = departure − 1 (включителен)."""
     unit = get_object_or_404(StayUnit, pk=request.POST.get("unit"), is_active=True)
+    # W7c: walk-in-форма встроена и в Verkäufe — next= возвращает туда же
+    # (только внутренние пути); без next — прежний stays:calendar.
+    _next = request.POST.get("next", "")
+    back = _next if (_next.startswith("/") and not _next.startswith("//")) else None
     try:
         arrival = date.fromisoformat(request.POST.get("arrival", ""))
         departure = date.fromisoformat(request.POST.get("departure", ""))
     except ValueError:
         messages.error(request, _("Invalid dates."))
-        return redirect("stays:calendar")
+        return redirect(back or "stays:calendar")
     if request.POST.get("mode") == "block":
         if departure <= arrival:
             messages.error(request, _("Invalid dates."))
-            return redirect("stays:calendar")
+            return redirect(back or "stays:calendar")
         UnitBlock.objects.create(
             unit=unit,
             start_date=arrival,
@@ -533,7 +543,7 @@ def stay_create(request):
             reason=request.POST.get("name", "").strip()[:120],
         )
         messages.success(request, _("Dates blocked."))
-        return redirect(f"{reverse('stays:calendar')}?von={arrival.isoformat()}")
+        return redirect(back or f"{reverse('stays:calendar')}?von={arrival.isoformat()}")
     name = request.POST.get("name", "").strip() or _("Walk-in")
     # PMS-A1: паритет со витриной — взрослые/дети (Kurtaxe по взрослым!), тариф,
     # extras, несколько номеров, промокод. Легаси-поле guests остаётся фолбэком
@@ -570,22 +580,22 @@ def stay_create(request):
         )
     except services.MinStay:
         messages.error(request, _("Below the minimum number of nights."))
-        return redirect("stays:calendar")
+        return redirect(back or "stays:calendar")
     except services.MaxGuests:
         messages.error(request, _("Too many guests for this unit."))
-        return redirect("stays:calendar")
+        return redirect(back or "stays:calendar")
     except services.StayUnavailable:
         messages.error(request, _("Those dates are no longer available."))
-        return redirect("stays:calendar")
+        return redirect(back or "stays:calendar")
     except services.PromoInvalid:
         # Раньше неверный промокод на стойке ронял 500 — теперь честная ошибка.
         messages.error(request, _("This promo code is not valid for this booking."))
-        return redirect("stays:calendar")
+        return redirect(back or "stays:calendar")
     except ValueError:
         messages.error(request, _("Invalid dates."))
-        return redirect("stays:calendar")
+        return redirect(back or "stays:calendar")
     messages.success(request, _("Stay created."))
-    return redirect(f"{reverse('stays:calendar')}?von={booking.arrival.isoformat()}")
+    return redirect(back or f"{reverse('stays:calendar')}?von={booking.arrival.isoformat()}")
 
 
 @login_required

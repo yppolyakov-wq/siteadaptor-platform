@@ -73,6 +73,12 @@ def visible_kinds(tenant) -> list[str]:
     """Вкладки страницы: primary-kind всегда первым, дальше — kind'ы с
     продажами в порядке `_PRIORITY`. reservation — только как primary (§4.4)."""
     primary = _MODULE_KIND.get(archetypes.primary_module(tenant))
+    # W7c (аудит 2026-08-05): маппинг catalog→order кросс-модульный (catalog core,
+    # orders может быть выключен) — без гейта у тенанта business_type=other
+    # открывалась вкладка «Bestellungen» при выключенном модуле заказов, а её
+    # «Alte Ansicht» вела в 404.
+    if primary and not tenant.is_module_active(transactions.KIND_MODULE[primary]):
+        primary = None
     with_sales = transactions.kinds_with_sales(tenant)
     out = []
     if primary:
