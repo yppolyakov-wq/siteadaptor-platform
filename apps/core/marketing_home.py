@@ -132,7 +132,11 @@ def results_panel(tenant):
         return {
             "label": _("Aufrufe aktiver Aktionen"),
             "value": n or 0,
-            "url": reverse("promotions:analytics"),
+            # W7b: /promotions/analytics/ гейтится модулем analytics (по умолчанию
+            # выключен) — без него ссылка вела в 404; ведём на список акций.
+            "url": reverse("promotions:analytics")
+            if tenant.is_module_active("analytics")
+            else reverse("promotions:promotion-list"),
         }
 
     def _featured():

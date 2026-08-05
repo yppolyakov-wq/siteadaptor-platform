@@ -228,7 +228,12 @@ def home_widgets(tenant) -> list[dict]:
                 "value": str(views),
                 "hint": _t("Aufrufe aktiver Angebote · %(n)s Gutscheine eingelöst")
                 % {"n": redeemed},
-                "url_name": "promotions:analytics",
+                # W7b: /promotions/analytics/ гейтится СВОИМ модулем analytics
+                # (по умолчанию выключен) — ссылка вела в 404; без модуля ведём
+                # на список акций.
+                "url_name": "promotions:analytics"
+                if tenant.is_module_active("analytics")
+                else "promotions:promotion-list",
                 "url_query": "",
                 "sparkline": "",
             }
@@ -265,6 +270,7 @@ def hub_tiles(tenant) -> list[dict]:
     гейты по модулям — плитка выключенного модуля не показывается."""
     from django.utils.translation import gettext as _t
 
+    from apps.core import modules as _mod
     from apps.core import orders_view as ov
 
     tiles = [
@@ -310,4 +316,9 @@ def hub_tiles(tenant) -> list[dict]:
             "wide": True,
         },
     ]
+    # W7b: гейт по докстрингу — раньше список был безусловным, и плитка
+    # «Marketing» при выключенном promotions вела на пустой лендинг, хотя якорь
+    # в сайдбаре уже был скрыт («сайдбар говорит одно, главная — другое»).
+    if not _mod.is_module_active(tenant, "promotions"):
+        tiles = [t for t in tiles if t["key"] != "marketing"]
     return tiles

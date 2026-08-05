@@ -231,15 +231,17 @@
       var navEl = document.getElementById("dash-nav");
       if (navEl) navEl.classList.toggle("searching", !!q);
       var anyShown = false;
+      // W7b: компакт-сайдбар (ST-4b) рендерит плоские .nav-link БЕЗ обёрток
+      // .nav-group — фильтруем ссылки напрямую (иначе поиск ничего не скрывал и
+      // всегда показывал «Nothing found.»); группы классик-ветки прячем по
+      // отсутствию видимых совпадений внутри.
+      document.querySelectorAll("#dash-nav .nav-link").forEach(function (a) {
+        var hit = !q || (a.getAttribute("data-label") || "").toLowerCase().indexOf(q) > -1;
+        a.classList.toggle("hidden", !hit);
+        if (hit) anyShown = true;
+      });
       document.querySelectorAll("#dash-nav .nav-group").forEach(function (g) {
-        var groupShown = false;
-        g.querySelectorAll(".nav-link").forEach(function (a) {
-          var hit = !q || (a.getAttribute("data-label") || "").indexOf(q) > -1;
-          a.classList.toggle("hidden", !hit);
-          if (hit) groupShown = true;
-        });
-        g.classList.toggle("hidden", !groupShown);
-        if (groupShown) anyShown = true;
+        g.classList.toggle("hidden", !g.querySelector(".nav-link:not(.hidden)"));
       });
       if (empty) empty.classList.toggle("hidden", anyShown);
     });

@@ -124,6 +124,7 @@ def dashboard(request):
     kinds = [s["kind"] for s in sections]
     # Фидбэк владельца 2026-07-28: у отеля (orders_view=calendar) главный вид
     # продаж — Belegungsplan; встроенный канбан остаётся дополнением.
+    from apps.core import archetypes
     from apps.core import orders_view as ov
 
     sales_view = ov.resolve_view(request.tenant)
@@ -145,6 +146,9 @@ def dashboard(request):
             "active_kind": kinds[0] if kinds else "",
             # Отель/услуги: календарь — главный вид продаж (вход первым).
             "sales_is_calendar": sales_view == "calendar",
+            # W7b: гостиничная лексика CTA («Belegungsplan/Anreisen & Zimmer») —
+            # только когда primary действительно stays; салону — «Kalender».
+            "sales_primary_is_stays": archetypes.primary_module(request.tenant) == "stays",
             "sales_entry_url": ov.entry_url(request.tenant),
             # LS-2: карточка присутствия «Jetzt erreichbar» (режим + живой статус).
             "presence_mode": presence.mode(request.tenant),

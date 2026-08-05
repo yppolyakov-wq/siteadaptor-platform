@@ -276,7 +276,15 @@ def test_post_purchase_email_has_mood_fork(monkeypatch):
     assert f"problem=1&ref_kind=order&ref_id={order.reference_code}" in body
 
 
-def test_marketing_hub_has_care_tab():
+def test_care_settings_reachable_from_marketing_landing():
+    # W7b (осознанное обновление замка): дубль-таб «Care-Zyklus» из Marketing-хаба
+    # удалён (его nav_key "care" не производила ни одна вьюха — таб не подсвечивался
+    # и молча подменял таб-бар на Einstellungen). Вход из Marketing — карточка
+    # лендинга «Erinnerungen & Care-Zyklus»; сам экран — таб хаба Einstellungen.
+    from apps.core.marketing_home import cards
     from apps.core.templatetags.cabinet import HUB_TABS
 
-    assert any(t[0] == "notifications-settings" for t in HUB_TABS["marketing"])
+    assert not any(t[0] == "notifications-settings" for t in HUB_TABS["marketing"])
+    assert any(t[0] == "notifications-settings" for t in HUB_TABS["settings"])
+    tenant = TenantFactory.build(disabled_modules=[])
+    assert any(c["url_name"] == "notifications-settings" for c in cards(tenant))

@@ -1,8 +1,9 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block dash_title %}{% trans "Collections" %}{% endblock %}
 
 {% block dash_content %}
+{% hub_tabs "catalog" %}
 {% comment %}UB3-2: подборки (коллекции) услуг/номеров — на витрине это чипы-фасет
 листинга (?kollektion=). Создание/переименование/состав — простыми POST-формами.{% endcomment %}
 <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">

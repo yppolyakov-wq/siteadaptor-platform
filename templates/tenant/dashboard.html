@@ -108,8 +108,15 @@ st4-admin-home-plan §1). classic_ui → widgets/hubs пустые (Р7).{% endc
 {% if sales_is_calendar and not classic_ui %}
 {# Фидбэк 2026-07-28: отель — Belegungsplan главный (вход первым), канбан ниже лишь дополнение. #}
 <a href="{{ sales_entry_url }}" class="flex items-center justify-between gap-3 bg-indigo-600 text-white rounded-2xl shadow-sm px-5 py-4 mb-4 hover:bg-indigo-700">
+  {% comment %}W7b: гостиничная лексика («Anreisen & Zimmer») — только отелю; салону/
+  ресторану с календарным primary показываем нейтральный «Kalender/Termine».{% endcomment %}
+  {% if sales_primary_is_stays %}
   <span class="font-semibold">📅 {% trans "Belegungsplan" %}</span>
   <span class="text-sm opacity-90">{% trans "Anreisen, Buchungen & Zimmer auf einen Blick" %} →</span>
+  {% else %}
+  <span class="font-semibold">📅 {% trans "Kalender" %}</span>
+  <span class="text-sm opacity-90">{% trans "Termine & Buchungen auf einen Blick" %} →</span>
+  {% endif %}
 </a>
 {% endif %}
 {% if sections %}

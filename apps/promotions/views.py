@@ -1005,7 +1005,7 @@ def newsletter_campaigns(request):
         request,
         "promotions/newsletter.html",
         {
-            "nav": "promotions",
+            "nav": "newsletter",  # W7b: своя вкладка в Marketing-хабе
             "campaigns": list(NewsletterCampaign.objects.all()[:100]),
             "consented": consented_customers().count(),
         },

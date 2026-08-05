@@ -456,6 +456,9 @@ _OFFER_CTA = {
     "stays": (_l("Add your first room"), "stays:units"),
     "events": (_l("Add your first event"), "events:list"),
     "booking": (_l("Add your first service"), "booking:services"),
+    # W7b: Handwerker (primary=jobs) вёл в чужой каталог товаров — фолбэк
+    # срабатывал из-за отсутствия ключа.
+    "jobs": (_l("Describe your first service offer"), "jobs:list"),
     "promotions": (_l("Create your first offer"), "promotions:promotion-list"),
 }
 

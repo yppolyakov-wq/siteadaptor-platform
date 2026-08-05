@@ -239,7 +239,7 @@ def blog_list(request):
         request,
         "events/blog_list.html",
         {
-            "nav": "events",
+            "nav": "blog",  # W7b: своя вкладка в Marketing-хабе (была "events")
             "posts": BlogPost.objects.all(),
             # CM-3: кнопка «Teilen» видна только при активном модуле publishing.
             "can_share": getattr(request, "tenant", None) is not None

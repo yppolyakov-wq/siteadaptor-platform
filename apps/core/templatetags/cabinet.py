@@ -51,6 +51,9 @@ def nav_task_label(nav_key):
 HUB_TABS = {
     # Sortiment: под-страницы каталога (модуль core → всегда, module_key=None).
     "catalog": (
+        # W7b: обратный путь в хаб «Angebote» — раньше переход Angebote → Produkte
+        # был односторонним (в catalog-баре входа «Angebote» не было).
+        ("sellable-manage", _("Angebote"), "sellables", None, False),
         ("catalog:product-list", _("Produkte"), "catalog", None, False),
         ("catalog:category-list", _("Kategorien"), "categories", None, False),
         ("stock", _("Lager"), "stock", None, False),
@@ -58,6 +61,8 @@ HUB_TABS = {
         ("purchasing", _("Einkauf"), "purchasing", None, True),
         ("catalog:combo-list", _("Kombi"), "combos", None, False),
         ("imports:start", _("Import"), "imports", None, False),
+        # W7b: подборки (UB3-2) — раньше без входа в хабах (только мелкие ссылки).
+        ("collections:list", _("Kollektionen"), "collections", None, True),
     ),
     # Verkäufe: доска (kanban, core) + продажные списки/календари. Табы продаж
     # гейтятся по своему модулю — Friseur без Übernachtung/Tickets их не покажет.
@@ -85,10 +90,17 @@ HUB_TABS = {
         ("crm:customer-list", _("Kontakte"), "crm", "crm", True),
         ("inbox:list", _("Nachrichten"), "inbox", "inbox", True),
         ("telegram-settings", _("Telegram"), "telegram", "telegram", True),
-        # LS-5: Care-цикл — управление касаниями сделки (матрица UD4-2).
-        ("notifications-settings", _("Care-Zyklus"), "care", None, True),
+        # W7b: таб «Care-Zyklus» удалён — тот же URL живёт в хабе Einstellungen под
+        # именем «Benachrichtigungen» (nav_key "care" не производила ни одна вьюха —
+        # таб не мог подсветиться и молча подменял таб-бар); вход из Marketing —
+        # карточка «Erinnerungen & Care-Zyklus» на лендинге.
         ("channels", _("Kanäle"), "channels", "publishing", True),
         ("publishing-posts", _("Beiträge"), "posts", "publishing", True),
+        # W7b: Blog & News — модуль включён всем архетипам, но в новом кабинете не
+        # имел ни одного входа (NavItem рендерился только в классик-сайдбаре).
+        ("blog-list", _("Blog & News"), "blog", "blog", True),
+        # W7b (решение Р-5): Newsletter-рассылки — отдельной вкладкой (был 0 входов).
+        ("promotions:newsletter", _("Newsletter"), "newsletter", "promotions", True),
         # FD-3: Finder «вопросы → 3 предложения» — опция витрины (тумблер+превью).
         ("finder-settings", _("Finder"), "finder", None, True),
     ),
@@ -103,6 +115,7 @@ HUB_TABS = {
         ("purchasing", _("Einkauf"), "purchasing", None, True),
         ("catalog:combo-list", _("Kombi"), "combos", None, True),
         ("imports:start", _("Import"), "imports", None, True),
+        ("collections:list", _("Kollektionen"), "collections", None, True),  # W7b
     ),
     # Kunden (S4b): контакты + общение. Якорь-пункт «Kunden» на модуле crm; вкладки
     # Nachrichten/Telegram гейтятся по своему модулю.
@@ -124,6 +137,13 @@ HUB_TABS = {
         # Sprachen — прямой таб (не в «Erweitert»): владелец включает доп. языки витрины
         # и переключатель. Прежде был спрятан в ящике → «не видно настроек языка».
         ("languages", _("Sprachen"), "languages", None, False),
+        # W7b: входы-сироты нового кабинета (аудит 2026-08-05). Finanzen/Auswertungen
+        # обещаны search-строкой якоря «Einstellungen», но хаб их не содержал (в
+        # Простом режиме Finanzen пропадал совсем); «Abrechnung» (подписка/счета
+        # SaaS) не имел входа нигде. Гейт — свой модуль; billing — core, всегда.
+        ("finance:journal", _("Finanzen"), "finance", "finance", False),
+        ("promotions:analytics", _("Auswertungen"), "analytics", "analytics", False),
+        ("billing", _("Abrechnung"), "billing", None, False),
         ("media-library", _("Medien"), "media", None, True),
         ("domains", _("Domains"), "domains", None, True),
         ("modules", _("Funktionen"), "modules", None, True),
