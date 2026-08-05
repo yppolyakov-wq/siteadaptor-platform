@@ -1,9 +1,8 @@
 """Шаблонные теги кабинета (AB1 язык задач + анти-Битрикс v2 хаб-табы)."""
 
 from django import template
-from django.utils.translation import gettext_lazy as _
 
-from apps.core import modules
+from apps.core import modules, nav_registry
 
 register = template.Library()
 
@@ -35,110 +34,11 @@ def status_label(context, obj, kind="order"):
     return node.get(obj.status) or default
 
 
-# S1/S2/S3 (упрощение кабинета): под-страницы хаба = tab-bar над контентом. Один пункт
-# сайдбара → страница-хаб с табами. Кортеж (url_name, метка, nav_key, module_key, advanced):
-# активный таб по context["nav"]; module_key (или None) — таб виден только при
-# is_module_active(tenant, module_key), None = всегда (под-страница ядра); advanced=True —
-# таб уходит в свёрнутый ящик «Erweitert» (реже нужные настройки). Расширяется по мере
-# сведения хабов (Marketing/Kunden — след. инкременты).
-HUB_TABS = {
-    # Sortiment: под-страницы каталога (модуль core → всегда, module_key=None).
-    "catalog": (
-        # W7b: обратный путь в хаб «Angebote» — раньше переход Angebote → Produkte
-        # был односторонним (в catalog-баре входа «Angebote» не было).
-        ("sellable-manage", _("Angebote"), "sellables", None, False),
-        ("catalog:product-list", _("Produkte"), "catalog", "catalog", False),
-        ("catalog:category-list", _("Kategorien"), "categories", "catalog", False),
-        ("stock", _("Lager"), "stock", "catalog", False),
-        # Склад-2 E3: закупки — в «Erweitert» (нужны еде/ритейлу, не захламляем прочих).
-        ("purchasing", _("Einkauf"), "purchasing", "catalog", True),
-        ("catalog:combo-list", _("Kombi"), "combos", "catalog", False),
-        ("imports:start", _("Import"), "imports", "catalog", False),
-        # W7b: подборки (UB3-2) — раньше без входа в хабах (только мелкие ссылки).
-        ("collections:list", _("Kollektionen"), "collections", None, True),
-    ),
-    # Verkäufe (W-CL): board/календари/список покрыты сегментом ST-5b и единой
-    # страницей — в реестре остаются только Tickets/Aufträge (уйдут в W10).
-    "board": (
-        ("events:list", _("Tickets"), "events", "events", False),
-        ("jobs:list", _("Aufträge"), "jobs", "jobs", False),
-    ),
-    # Marketing (S4a): акции/отзывы/лояльность/публикация. Якорь-пункт «Marketing»
-    # на модуле promotions; каждая вкладка гейтится по своему модулю (Friseur без
-    # publishing не покажет Kanäle/Beiträge). Часто нужные — прямые, редкие — в Erweitert.
-    "marketing": (
-        ("promotions:promotion-list", _("Aktionen"), "promotions", "promotions", False),
-        ("reviews:list", _("Bewertungen"), "reviews", "reviews", False),
-        ("promotions:coupon-campaigns", _("Kampagnen"), "campaigns", "crm", False),
-        ("promotions:voucher-list", _("Gutscheine"), "vouchers", "loyalty", False),
-        ("promotions:reservation-list", _("Reservierungen"), "reservations", "promotions", True),
-        ("promotions:redeem", _("Einlösen"), "redeem", "promotions", True),
-        ("promotions:loyalty-list", _("Treuepunkte"), "loyalty", "loyalty", True),
-        # ST-4b: якорь «Kunden» ушёл из сайдбара — контакты/общение достижимы
-        # из Marketing-хаба (страницы Kunden-хаба и их tab-bar целы).
-        ("crm:customer-list", _("Kontakte"), "crm", "crm", True),
-        ("inbox:list", _("Nachrichten"), "inbox", "inbox", True),
-        ("telegram-settings", _("Telegram"), "telegram", "telegram", True),
-        # W7b: таб «Care-Zyklus» удалён — тот же URL живёт в хабе Einstellungen под
-        # именем «Benachrichtigungen» (nav_key "care" не производила ни одна вьюха —
-        # таб не мог подсветиться и молча подменял таб-бар); вход из Marketing —
-        # карточка «Erinnerungen & Care-Zyklus» на лендинге.
-        ("channels", _("Kanäle"), "channels", "publishing", True),
-        ("publishing-posts", _("Beiträge"), "posts", "publishing", True),
-        # W7b: Blog & News — модуль включён всем архетипам, но в новом кабинете не
-        # имел ни одного входа (NavItem рендерился только в классик-сайдбаре).
-        ("blog-list", _("Blog & News"), "blog", "blog", True),
-        # W7b (решение Р-5): Newsletter-рассылки — отдельной вкладкой (был 0 входов).
-        ("promotions:newsletter", _("Newsletter"), "newsletter", "promotions", True),
-        # FD-3: Finder «вопросы → 3 предложения» — опция витрины (тумблер+превью).
-        ("finder-settings", _("Finder"), "finder", None, True),
-    ),
-    # ST-4b: «Angebote» — хаб продаваемого; Sortiment-страницы в «Erweitert»
-    # (якорь «Sortiment» ушёл из компакт-сайдбара; catalog-хаб на самих
-    # страницах каталога цел — это дубль-вход, не перенос).
-    "sellables": (
-        ("sellable-manage", _("Angebote"), "sellables", None, False),
-        ("catalog:product-list", _("Produkte"), "catalog", "catalog", True),
-        ("catalog:category-list", _("Kategorien"), "categories", "catalog", True),
-        ("stock", _("Lager"), "stock", "catalog", True),
-        ("purchasing", _("Einkauf"), "purchasing", "catalog", True),
-        ("catalog:combo-list", _("Kombi"), "combos", "catalog", True),
-        ("imports:start", _("Import"), "imports", "catalog", True),
-        ("collections:list", _("Kollektionen"), "collections", None, True),  # W7b
-    ),
-    # Kunden (S4b): контакты + общение. Якорь-пункт «Kunden» на модуле crm; вкладки
-    # Nachrichten/Telegram гейтятся по своему модулю.
-    "kunden": (
-        ("crm:customer-list", _("Kontakte"), "crm", "crm", False),
-        ("inbox:list", _("Nachrichten"), "inbox", "inbox", False),
-        ("telegram-settings", _("Telegram"), "telegram", "telegram", False),
-    ),
-    # Einstellungen: часто нужные настройки — прямые табы; реже нужные — в «Erweitert».
-    # Модуль settings core → всё всегда видно (module_key=None). «Website» (визуальный
-    # билдер) остаётся ОТДЕЛЬНЫМ пунктом сайдбара, в хаб не входит.
-    "settings": (
-        ("settings", _("Einstellungen"), "settings", None, False),
-        # W4-3: единый экран оплаты/доставки (свод billing-Zahlarten + orders-Versand).
-        ("payment-settings", _("Zahlung & Versand"), "payments", None, False),
-        ("notifications-settings", _("Benachrichtigungen"), "notifications", None, False),
-        ("legal-docs", _("Rechtstexte"), "legal-docs", None, False),
-        ("extras", _("Zusatzleistungen"), "extras", None, False),
-        # Sprachen — прямой таб (не в «Erweitert»): владелец включает доп. языки витрины
-        # и переключатель. Прежде был спрятан в ящике → «не видно настроек языка».
-        ("languages", _("Sprachen"), "languages", None, False),
-        # W7b: входы-сироты нового кабинета (аудит 2026-08-05). Finanzen/Auswertungen
-        # обещаны search-строкой якоря «Einstellungen», но хаб их не содержал (в
-        # Простом режиме Finanzen пропадал совсем); «Abrechnung» (подписка/счета
-        # SaaS) не имел входа нигде. Гейт — свой модуль; billing — core, всегда.
-        ("finance:journal", _("Finanzen"), "finance", "finance", False),
-        ("promotions:analytics", _("Auswertungen"), "analytics", "analytics", False),
-        ("billing", _("Abrechnung"), "billing", None, False),
-        ("media-library", _("Medien"), "media", None, True),
-        ("domains", _("Domains"), "domains", None, True),
-        ("modules", _("Funktionen"), "modules", None, True),
-        ("support:help", _("Hilfe"), "support", None, True),
-    ),
-}
+# S1/S2/S3 → W8: реестр табов переехал в apps/core/nav_registry.py (ЕДИНЫЙ
+# источник навигации: якоря, табы, подсветка, палитра). HUB_TABS — производная
+# в прежней форме кортежей (url_name, label, nav_key, module_key, advanced):
+# потребители и замки целы, источник правды один.
+HUB_TABS = nav_registry.legacy_hub_tabs()
 
 
 @register.inclusion_tag("tenant/_hub_tabs.html", takes_context=True)
@@ -164,6 +64,39 @@ def hub_tabs(context, hub):
         entry = {"url_name": u, "label": lbl, "nav_key": k, "active": k == cur}
         (more if advanced else tabs).append(entry)
     return {"tabs": tabs, "more_tabs": more, "more_active": any(t["active"] for t in more)}
+
+
+@register.inclusion_tag("tenant/_nav_palette.html", takes_context=True)
+def nav_palette(context):
+    """W8-4: палитра Ctrl+K — гейтнутый индекс реестра (модуль активен, Простой
+    режим уважается). haystack = label+search в нижнем регистре (клиентский фильтр)."""
+    request = context.get("request")
+    tenant = getattr(request, "tenant", None) if request is not None else None
+    hidden = modules.simple_hidden_modules(tenant) if tenant is not None else frozenset()
+    area_by_hub = {hub: a.label for a in nav_registry.ANCHORS for hub in a.hubs}
+    entries = []
+    for e in nav_registry.palette_entries():
+        mod = e["module_key"]
+        if mod is not None and mod in hidden:
+            continue
+        if mod is not None and tenant is not None and not modules.is_module_active(tenant, mod):
+            continue
+        entries.append(
+            {
+                "url_name": e["url_name"],
+                "label": e["label"],
+                "area": area_by_hub.get(e["hub"], ""),
+                "haystack": f"{e['label']} {e['search']}".lower(),
+            }
+        )
+    return {"entries": entries}
+
+
+@register.filter
+def nav_anchor(nav_key):
+    """W8: nav_key страницы → nav_key якоря сайдбара (карта из nav_registry) —
+    подсветка «где я» работает на ВСЕХ экранах кабинета, а не на 7 якорных."""
+    return nav_registry.anchor_for(nav_key or "")
 
 
 @register.simple_tag

@@ -1,0 +1,20 @@
+{% load i18n %}
+{% comment %}W8-4: палитра Ctrl+K — быстрый прыжок в раздел/настройку кабинета.
+Индекс = nav_registry (гейты модулей/Простого применил тег nav_palette);
+фильтрация на клиенте, Enter = первый видимый пункт, Esc/фон = закрыть.{% endcomment %}
+<div id="navpal" class="hidden fixed inset-0 z-50 bg-black/30 p-4 pt-16 md:pt-24" role="dialog" aria-modal="true" aria-label="{% trans 'Bereiche & Einstellungen suchen…' %}">
+  <div class="mx-auto max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden">
+    <input id="navpal-q" type="search" placeholder="{% trans 'Bereiche & Einstellungen suchen…' %}" autocomplete="off"
+           class="w-full px-4 py-3 text-sm border-b border-gray-200 outline-none">
+    <div id="navpal-list" class="max-h-80 overflow-y-auto">
+      {% for e in entries %}
+      <a href="{% url e.url_name %}" data-pal="{{ e.haystack }}"
+         class="navpal-item flex items-center justify-between gap-3 px-4 py-2.5 text-sm hover:bg-indigo-50">
+        <span class="truncate">{{ e.label }}</span>
+        {% if e.area %}<span class="text-xs text-gray-400 shrink-0">{{ e.area }}</span>{% endif %}
+      </a>
+      {% endfor %}
+      <p id="navpal-empty" class="hidden px-4 py-3 text-xs text-gray-400">{% trans "Nothing found." %}</p>
+    </div>
+  </div>
+</div>

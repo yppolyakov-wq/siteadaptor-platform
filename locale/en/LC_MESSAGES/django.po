@@ -16907,3 +16907,11 @@ msgstr "Collections"
 # W7b (аудит кабинета 2026-08-05)
 msgid "Termine & Buchungen auf einen Blick"
 msgstr "Appointments & bookings at a glance"
+
+# W8-4 (палитра Ctrl+K)
+msgid "Bereiche & Einstellungen suchen…"
+msgstr "Search sections & settings…"
+
+# W8-4 (палитра Ctrl+K)
+msgid "Suche (Strg+K)"
+msgstr "Search (Ctrl+K)"

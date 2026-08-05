@@ -17019,3 +17019,11 @@ msgstr "Koleksiyonlar"
 # W7b (аудит кабинета 2026-08-05)
 msgid "Termine & Buchungen auf einen Blick"
 msgstr "Randevular ve rezervasyonlar bir bakışta"
+
+# W8-4 (палитра Ctrl+K)
+msgid "Bereiche & Einstellungen suchen…"
+msgstr "Bölüm ve ayarlarda ara…"
+
+# W8-4 (палитра Ctrl+K)
+msgid "Suche (Strg+K)"
+msgstr "Ara (Ctrl+K)"

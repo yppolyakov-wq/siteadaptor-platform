@@ -17084,3 +17084,11 @@ msgstr "Добірки"
 # W7b (аудит кабинета 2026-08-05)
 msgid "Termine & Buchungen auf einen Blick"
 msgstr "Записи та бронювання — одним поглядом"
+
+# W8-4 (палитра Ctrl+K)
+msgid "Bereiche & Einstellungen suchen…"
+msgstr "Пошук розділів і налаштувань…"
+
+# W8-4 (палитра Ctrl+K)
+msgid "Suche (Strg+K)"
+msgstr "Пошук (Ctrl+K)"

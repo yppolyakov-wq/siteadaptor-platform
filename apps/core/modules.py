@@ -567,76 +567,25 @@ NAV_TASK_LABELS: dict[str, str] = {
 # ST-4b: компактный сайдбар «хабы + Website» — плоский список якорей.
 # Sortiment/Kunden/Finanzen/Auswertungen достижимы через хаб-табы и
 # «Funktion hinzufügen». W-CL (2026-08-05): классик-сайдбар снесён.
-def _sales_nav_item(tenant) -> dict:
-    """Якорь «Verkäufe» → единая страница продаж (W-CL: всегда verkaeufe;
-    вкладка/вид внутри — архетип-дефолт sales_page). nav_key "board" — его
-    отдают и legacy-страницы продаж (подсветка актива сохраняется)."""
-    return {
-        "url_name": "verkaeufe",
-        "nav_key": "board",
-        "icon": "🗂️",
-        "label": NAV_TASK_LABELS["board"],
-        "search": "verkäufe bestellungen termine board kalender belegungsplan",
-    }
-
-
 def sidebar_nav(tenant) -> list[dict]:
-    """Якоря компактного сайдбара. Гейты — по активным модулям;
-    nav_key = значение `nav` целевой страницы (подсветка актива)."""
-    items = [
-        {
-            "url_name": "dashboard",
-            "nav_key": "dashboard",
-            "icon": "🏠",
-            "label": NAV_TASK_LABELS["dashboard"],
-            "search": "übersicht dashboard heute",
-        },
-        _sales_nav_item(tenant),
-    ]
-    if any(is_module_active(tenant, m) for m in ("catalog", "booking", "stays", "events")):
-        items.append(
-            {
-                "url_name": "sellable-manage",
-                "nav_key": "sellables",
-                "icon": "📦",
-                "label": _("Angebote"),
-                "search": "angebote sortiment produkte leistungen zimmer",
-            }
-        )
-    if is_module_active(tenant, "promotions"):
-        items.append(
-            {
-                "url_name": "marketing-home",
-                "nav_key": "promotions",
-                "icon": "📣",
-                "label": NAV_TASK_LABELS["promotions"],
-                "badge": "inbox",  # бейдж непрочитанного переезжает с «Kunden»
-                "search": "marketing aktionen kunden kampagnen nachrichten bewertungen",
-            }
-        )
-    items += [
-        {
-            "url_name": "integrations-home",
-            "nav_key": "integrations",
-            "icon": "🔌",
-            "label": _("Integrationen"),
-            "search": "integrationen kanäle telegram zahlung",
-        },
-        {
-            "url_name": "site",
-            "nav_key": "site",
-            "icon": "✏️",
-            "label": _("Website"),
-            "search": "website gestalten studio design",
-        },
-        {
-            "url_name": "settings",
-            "nav_key": "settings",
-            "icon": "⚙️",
-            "label": NAV_TASK_LABELS["settings"],
-            "search": "einstellungen finanzen auswertungen funktionen",
-        },
-    ]
+    """Якоря компактного сайдбара — из ЕДИНОГО реестра (W8, nav_registry.ANCHORS).
+    Гейты — по активным модулям; nav_key = значение `nav` целевой страницы."""
+    from apps.core import nav_registry
+
+    items = []
+    for a in nav_registry.ANCHORS:
+        if a.module_key and not is_module_active(tenant, a.module_key):
+            continue
+        it = {
+            "url_name": a.url_name,
+            "nav_key": a.nav_key,
+            "icon": a.icon,
+            "label": a.label,
+            "search": a.search,
+        }
+        if a.badge:
+            it["badge"] = a.badge
+        items.append(it)
     return items
 
 

@@ -17099,3 +17099,11 @@ msgstr "Подборки"
 # W7b (аудит кабинета 2026-08-05)
 msgid "Termine & Buchungen auf einen Blick"
 msgstr "Записи и брони — одним взглядом"
+
+# W8-4 (палитра Ctrl+K)
+msgid "Bereiche & Einstellungen suchen…"
+msgstr "Поиск по разделам и настройкам…"
+
+# W8-4 (палитра Ctrl+K)
+msgid "Suche (Strg+K)"
+msgstr "Поиск (Ctrl+K)"
