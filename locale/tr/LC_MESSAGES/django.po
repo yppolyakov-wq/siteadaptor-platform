@@ -17011,3 +17011,11 @@ msgstr "Yeniden aç"
 
 msgid "Source"
 msgstr "Kaynak"
+
+# W7b (аудит кабинета 2026-08-05)
+msgid "Kollektionen"
+msgstr "Koleksiyonlar"
+
+# W7b (аудит кабинета 2026-08-05)
+msgid "Termine & Buchungen auf einen Blick"
+msgstr "Randevular ve rezervasyonlar bir bakışta"

@@ -17050,3 +17050,11 @@ msgstr "Wieder öffnen"
 
 msgid "Source"
 msgstr "Quelle"
+
+# W7b (аудит кабинета 2026-08-05)
+msgid "Kollektionen"
+msgstr "Kollektionen"
+
+# W7b (аудит кабинета 2026-08-05)
+msgid "Termine & Buchungen auf einen Blick"
+msgstr "Termine & Buchungen auf einen Blick"

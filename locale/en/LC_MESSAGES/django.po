@@ -16899,3 +16899,11 @@ msgstr "Reopen"
 
 msgid "Source"
 msgstr "Source"
+
+# W7b (аудит кабинета 2026-08-05)
+msgid "Kollektionen"
+msgstr "Collections"
+
+# W7b (аудит кабинета 2026-08-05)
+msgid "Termine & Buchungen auf einen Blick"
+msgstr "Appointments & bookings at a glance"

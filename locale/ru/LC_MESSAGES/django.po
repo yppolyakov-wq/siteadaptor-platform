@@ -17091,3 +17091,11 @@ msgstr "Снова открыть"
 
 msgid "Source"
 msgstr "Источник"
+
+# W7b (аудит кабинета 2026-08-05)
+msgid "Kollektionen"
+msgstr "Подборки"
+
+# W7b (аудит кабинета 2026-08-05)
+msgid "Termine & Buchungen auf einen Blick"
+msgstr "Записи и брони — одним взглядом"
