@@ -257,6 +257,15 @@ ENTRIES: tuple[NavEntry, ...] = (
         "notifications",
         search="care e-mail telegram erinnerung",
     ),
+    # W9-8: настройки процессов продаж (статусы/переходы/колонки) — раньше панели
+    # были разбросаны по спискам (аудит 2026-08-05).
+    _e(
+        "settings",
+        "ablaeufe",
+        _("Abläufe"),
+        "ablaeufe",
+        search="status übergänge spalten workflow prozesse",
+    ),
     _e("settings", "domains", _("Website & Domains"), "domains", search="eigene domain seo theme"),
     _e(
         "settings",

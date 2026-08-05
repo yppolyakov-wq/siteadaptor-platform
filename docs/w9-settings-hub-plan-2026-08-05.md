@@ -101,6 +101,21 @@ W9-10 обязан включить per-роль-гейт минимум на bi
   из BusinessSettingsForm поля изъяты целиком (один писатель; плоские правовые
   тексты редактируются только как LegalDoc-фолбэк). settings_view.update_fields
   сузился автоматически (*Meta.fields).
-- Очередь: W9-6 (Mein Geschäft — уже фактически «урезанная» форма; осталась
-  склейка часов) → W9-7 (пресеты уведомлений + Telegram-блок) → W9-8 (Abläufe)
-  → W9-9 (Integrationen) → W9-10 (Team) → W9-11 хвост.
+- **W9-6 ✅ прежней работой (W4-1)**: fieldset «Öffnungszeiten» в settings.html уже
+  сводит структурные времена (oh_*) и свободный текст в один блок — делать нечего.
+- **W9-7 ✅**: пресеты над матрицей клиента — «Alle Kanäle aktivieren» / «Nur E-Mail»
+  (JS проставляет чекбоксы, сохранение прежнее). Отклонение от плана: флага
+  «важное событие» в реестре prefs нет → пресет «Nur Wichtiges» был бы враньём,
+  не делаем (кандидат при появлении флага). + read-only статус бизнес-бота
+  (active_bot: @username + ссылка «Bot verwalten» → telegram-settings).
+- **W9-8 ✅**: экран `/dashboard/ablaeufe/` (nav "ablaeufe" в реестре, прямой таб
+  settings-хаба) — kind-селектор (order/booking/stay по активным модулям) +
+  панели `_status_labels_panel`/`_transition_rules_panel` + W5-панель колонок
+  доски (общий билдер `_board_stage_rows`) + вход в status-manager; сохранение —
+  прежние эндпоинты через next= (board_settings научился next, локальный путь).
+  Легаси-копия формы статусов в order_list удалена (мостик «Abläufe»), ветка
+  status_labels в orders:order-settings удалена (no-op редирект), мёртвые
+  status_label_rows/transition_rows из контекста stays-календаря сняты.
+  Панели booking/resources оставлены (живая настройка booking; свод — W10/W11).
+- Очередь: W9-9 (Integrationen-таб) → W9-10 (Team) → W9-11 хвост (Finder
+  перенесён в W9-1a, site_seo hub_tabs в W9-4 — осталась только сверка).

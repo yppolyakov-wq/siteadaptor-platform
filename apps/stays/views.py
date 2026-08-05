@@ -158,20 +158,6 @@ def _refund_deposit(request, booking):
         messages.error(request, _("Refund failed — please check Stripe."))
 
 
-def _status_rows(request):
-    """FB-4b: [(status, дефолт, своё-имя)] для панели переименования статусов брони."""
-    from apps.core import status_labels
-
-    return status_labels.label_rows(getattr(request, "tenant", None), "stay", StayBooking.STATUSES)
-
-
-def _transition_rows(request):
-    """FB-3: строки панели правил переходов статусов брони."""
-    from apps.core import transition_rules
-
-    return transition_rules.editor_rows(getattr(request, "tenant", None), "stay")
-
-
 @login_required
 def calendar(request):
     """Belegungsplan-страница. Тело собирает `calendar_context` — оно же питает
@@ -319,10 +305,8 @@ def calendar_context(request):
             # PMS-A1: паритет walk-in формы с витриной — тарифы и доп-услуги.
             "rate_plans": list(RatePlan.objects.filter(is_active=True)),
             "walkin_extras": _extras_for_walkin(),
-            # FB-4b: строки панели «Status-Namen» брони (status, дефолт, своё имя).
-            "status_label_rows": _status_rows(request),
-            # FB-3: строки панели «Statusübergänge» (правила переходов).
-            "transition_rows": _transition_rows(request),
+            # W9-8: мёртвые status_label_rows/transition_rows убраны (шаблон их не
+            # рендерил — аудит 2026-08-05); настройки статусов — экран «Abläufe».
         },
     }
 

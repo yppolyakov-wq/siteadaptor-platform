@@ -59,9 +59,11 @@ def test_legacy_delivery_form_no_longer_wipes_fields():
     assert tenant.orders_prepay is True
 
 
-def test_status_labels_branch_still_works():
+def test_status_labels_branch_removed():
+    """W9-8: ветка status_labels переехала на generic status-labels-save («Abläufe») —
+    легаси-POST сюда больше НИЧЕГО не пишет (no-op редирект)."""
     tenant = TenantFactory(business_type="bakery")
     resp = views.order_settings(_post({"form": "status_labels", "label_ready": "Fertig!"}, tenant))
     assert resp.status_code == 302
     tenant.refresh_from_db()
-    assert tenant.site_config.get("status_labels", {}).get("order", {}).get("ready") == "Fertig!"
+    assert "status_labels" not in (tenant.site_config or {})

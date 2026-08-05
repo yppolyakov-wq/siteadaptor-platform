@@ -27,31 +27,15 @@
   {% endfor %}
 {% endif %}
 
-{% comment %}FB-4a: свои имена статусов заказа (кабинет-отображение; правила
-переходов/письма не меняются) — паттерн W5 «Customize columns».{% endcomment %}
-<details class="mb-4 bg-white border border-gray-200 rounded-2xl px-4 py-3">
-  <summary class="cursor-pointer text-sm font-medium text-gray-700">⚙️ {% trans "Status-Namen anpassen" %}</summary>
-  <form method="post" action="{% url 'orders:order-settings' %}" class="mt-3 space-y-2 max-w-md">
-    {% csrf_token %}
-    <input type="hidden" name="form" value="status_labels">
-    <p class="text-xs text-gray-400">{% trans "Eigene Namen für die Bestell-Status (nur Anzeige im Dashboard). Leer = Standard." %}</p>
-    {% for st, default, custom in status_label_rows %}
-      <div class="flex items-center gap-2 text-sm">
-        <span class="w-28 text-xs text-gray-400">{{ default }}</span>
-        <input type="text" name="label_{{ st }}" value="{{ custom }}" placeholder="{{ default }}" maxlength="40" class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5">
-      </div>
-    {% endfor %}
-    <button type="submit" class="mt-1 bg-indigo-600 text-white rounded-lg px-4 py-2 text-xs font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
-  </form>
-</details>
-
-{# FB-3: правила переходов статусов заказа (какие следующие статусы показывать) #}
-{% include "tenant/_transition_rules_panel.html" with rows=transition_rows kind="order" next_path=request.path %}
-
-{# W4-3: настройки оплаты/Vorkasse/Lieferung/Abholung сведены в единый экран. #}
+{% comment %}W9-8: панели «Status-Namen»/«Statusübergänge» переехали на экран
+«Abläufe» (была своя копия формы — аудит 2026-08-05); тут остаются мостики.{% endcomment %}
 <div class="mb-4 bg-white rounded-2xl shadow-sm p-4 text-sm flex items-center justify-between gap-3 flex-wrap">
   <span class="text-gray-700">{% trans "Prepayment, bank transfer, delivery &amp; pickup are set in one place:" %}</span>
   <a href="{% url 'payment-settings' %}" class="font-medium text-indigo-600 hover:underline whitespace-nowrap">💳 {% trans "Payment &amp; shipping" %} →</a>
+</div>
+<div class="mb-4 bg-white rounded-2xl shadow-sm p-4 text-sm flex items-center justify-between gap-3 flex-wrap">
+  <span class="text-gray-700">{% trans "Status-Namen, Übergänge und Board-Spalten:" %}</span>
+  <a href="{% url 'ablaeufe' %}?kind=order" class="font-medium text-indigo-600 hover:underline whitespace-nowrap">🔁 {% trans "Abläufe" %} →</a>
 </div>
 
 {% include "orders/_order_rows.html" %}

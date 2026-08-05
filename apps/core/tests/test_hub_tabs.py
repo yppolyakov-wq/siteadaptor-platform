@@ -110,6 +110,7 @@ def test_settings_hub_primary_and_advanced_tabs():
         "Recht &amp; Steuern",
         "Zahlung &amp; Lieferung",
         "Benachrichtigungen &amp; Kanäle",
+        "Abläufe",  # W9-8
     ):
         assert lbl in html, lbl
     # ящик «Erweitert» + его (редкие) вкладки (Zusatzleistungen/Finder переехали сюда)

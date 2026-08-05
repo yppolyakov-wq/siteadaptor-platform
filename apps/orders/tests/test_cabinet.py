@@ -141,19 +141,17 @@ def test_nav_includes_orders_when_active():
 
 
 def test_status_labels_save_render_and_reset():
-    """Сохранение своих имён (targeted-write, прочие ключи целы) + рендер в
-    списке/детали; пустая форма снимает ключ (presence-minimal)."""
+    """Сохранение своих имён через generic status-labels-save (W9-8: экран «Abläufe»;
+    targeted-write, прочие ключи целы) + рендер в списке/детали; пустая форма снимает
+    ключ (presence-minimal)."""
+    from apps.core import views as core_views
     from apps.tenants.tests.factories import TenantFactory
 
     tenant = TenantFactory(site_config={"ui_mode": "simple"})
     order = _order()
-    req = _req(
-        "post",
-        "/dashboard/orders/settings/",
-        {"form": "status_labels", "label_new": "Eingegangen 📥"},
-    )
+    req = _req("post", "/dashboard/status-labels/order/", {"label_new": "Eingegangen 📥"})
     req.tenant = tenant
-    views.order_settings(req)
+    core_views.status_labels_save(req, "order")
     tenant.refresh_from_db()
     assert tenant.site_config["status_labels"]["order"]["new"] == "Eingegangen 📥"
     assert tenant.site_config["ui_mode"] == "simple"  # прочие ключи целы (урок W0)
@@ -172,9 +170,9 @@ def test_status_labels_save_render_and_reset():
     default_label = str(dict(Order.STATUSES)[Order.STATUS_NEW])
     assert default_label in views.order_list(req).content.decode()
 
-    req = _req("post", "/dashboard/orders/settings/", {"form": "status_labels"})
+    req = _req("post", "/dashboard/status-labels/order/", {})
     req.tenant = tenant
-    views.order_settings(req)
+    core_views.status_labels_save(req, "order")
     tenant.refresh_from_db()
     assert "status_labels" not in tenant.site_config
 

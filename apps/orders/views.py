@@ -35,20 +35,6 @@ def _refund_order(request, order):
         messages.error(request, _("Refund failed — please check Stripe."))
 
 
-def _status_label_rows(tenant):
-    """FB-4a: [(status, default_label, custom)] для панели переименования статусов."""
-    from apps.core import status_labels
-
-    return status_labels.label_rows(tenant, "order", Order.STATUSES)
-
-
-def _transition_rows(tenant):
-    """FB-3: строки панели правил переходов статусов заказа."""
-    from apps.core import transition_rules
-
-    return transition_rules.editor_rows(tenant, "order")
-
-
 def auftragsbuch_context(request):
     """V3 (план unified-sales-page-plan-2026-08-03): Auftragsbuch — заказы по
     ДНЯМ выдачи (DACH-традиция книги заказов пекарни). Ось — `Order.pickup_slot`
@@ -106,10 +92,7 @@ def order_list(request):
             "orders": qs[:200],
             "statuses": Order.STATUSES,
             "status": status,
-            # FB-4a: строки панели «Status-Namen» (status, дефолт, своё имя)
-            "status_label_rows": _status_label_rows(tenant),
-            # FB-3: строки панели «Statusübergänge» (правила переходов заказа)
-            "transition_rows": _transition_rows(tenant),
+            # W9-8: панели статусов/переходов переехали на «Abläufe» (мостик в шаблоне).
             "orders_prepay": getattr(tenant, "orders_prepay", False),
             "payments_enabled": getattr(tenant, "payments_enabled", False),
             # E-7: Vorkasse/Überweisung — тумблер + реквизиты бизнеса.
@@ -398,21 +381,10 @@ def save_prepay(tenant, request) -> None:
 @login_required
 @require_POST
 def order_settings(request):
-    """Настройки заказов из списка заказов: сейчас — только имена статусов (FB-4a).
+    """Легаси-приёмник настроек заказов — все ветки переехали и УДАЛЕНЫ.
 
-    W7a (аудит 2026-08-05): ветки delivery/vorkasse/prepay удалены — их UI переехал
-    на единый экран «Zahlung & Versand» (core.payment_settings, W4-3), а мёртвый
-    приёмник обнулял delivery_*/bank_*/orders_prepay пустым POST. save_* остаются —
-    их зовёт payment_settings по сентинелам."""
-    if request.POST.get("form") == "status_labels":
-        save_status_labels(request.tenant, request)  # FB-4a
-        messages.success(request, _("Settings saved."))
+    W7a (аудит 2026-08-05): delivery/vorkasse/prepay → «Zahlung & Versand»
+    (core.payment_settings, W4-3; save_* зовутся оттуда по сентинелам). W9-8:
+    status_labels → generic status-labels-save (экран «Abläufe»). Остался
+    безопасный no-op редирект: устаревший POST ничего не пишет и не обнуляет."""
     return redirect("orders:order-list")
-
-
-def save_status_labels(tenant, request) -> None:
-    """FB-4a: свои имена статусов заказа (кабинет-отображение). Делегирует в generic
-    core.status_labels (targeted-write, presence-minimal, golden-паритет). FSM не трогается."""
-    from apps.core import status_labels
-
-    status_labels.save_labels(tenant, "order", [st for st, _ in Order.STATUSES], request)

@@ -3206,27 +3206,18 @@ def verkaeufe_view_set(request):
     return redirect(reverse("verkaeufe") + f"?tab={kind}")
 
 
-@login_required
-def board(request):
-    """UD2-3: единая доска входящих транзакций (заказы/брони/проживание/билеты/
-    заявки/резервы). Вкладки — активные транзакционные модули, колонки — стадии
-    конвейера; карточки тащатся между колонками или двигаются кнопками. Статус
-    меняется ТОЛЬКО через FSM (kanban_action). Per-app экраны остаются (D2)."""
-    from apps.core import pipeline, transactions
+def _board_stage_rows(tenant):
+    """W5: строки панели «Spalten anpassen» (переименование/порядок/скрытие) —
+    общие для доски и экрана «Abläufe» (W9-8)."""
+    from apps.core import pipeline
     from apps.tenants import siteconfig
 
-    sections = transactions.manage_sections_for(request.tenant)
-    kinds = [s["kind"] for s in sections]
-    active = request.GET.get("kind", "")
-    if active not in kinds:
-        active = kinds[0] if kinds else ""
-    # W5: строки для панели «Spalten anpassen» (переименование/порядок/скрытие).
-    board_cfg = siteconfig.normalize_board((request.tenant.site_config or {}).get("board"))
+    board_cfg = siteconfig.normalize_board((tenant.site_config or {}).get("board"))
     labels = board_cfg.get("labels", {})
     hidden = set(board_cfg.get("hidden", []))
     order = board_cfg.get("order") or list(pipeline.STAGES)
     order = order + [s for s in pipeline.STAGES if s not in order]
-    board_stage_rows = [
+    return [
         {
             "stage": s,
             "default_label": str(pipeline.STAGE_LABELS[s]),
@@ -3236,14 +3227,37 @@ def board(request):
         }
         for i, s in enumerate(order)
     ]
-    # Фидбэк 2026-07-28: панели статусов ушли с календаря stays — настройки
-    # статусов достижимы отсюда (ящик «⚙️ Spalten»), по активным kind'ам.
+
+
+def _status_kinds_for(tenant):
+    """Активные kind'ы с настраиваемыми статусами: [(kind, label)] (order/booking/stay)."""
+    from apps.core import transactions
+
     _kind_modules = (("order", "orders"), ("booking", "booking"), ("stay", "stays"))
-    status_kinds = [
+    return [
         (k, transactions.KIND_LABEL.get(k, k))
         for k, m in _kind_modules
-        if request.tenant.is_module_active(m)
+        if tenant.is_module_active(m)
     ]
+
+
+@login_required
+def board(request):
+    """UD2-3: единая доска входящих транзакций (заказы/брони/проживание/билеты/
+    заявки/резервы). Вкладки — активные транзакционные модули, колонки — стадии
+    конвейера; карточки тащатся между колонками или двигаются кнопками. Статус
+    меняется ТОЛЬКО через FSM (kanban_action). Per-app экраны остаются (D2)."""
+    from apps.core import transactions
+
+    sections = transactions.manage_sections_for(request.tenant)
+    kinds = [s["kind"] for s in sections]
+    active = request.GET.get("kind", "")
+    if active not in kinds:
+        active = kinds[0] if kinds else ""
+    board_stage_rows = _board_stage_rows(request.tenant)
+    # Фидбэк 2026-07-28: панели статусов ушли с календаря stays — настройки
+    # статусов достижимы отсюда (ящик «⚙️ Spalten»), по активным kind'ам.
+    status_kinds = _status_kinds_for(request.tenant)
     return render(
         request,
         "core/board.html",
@@ -3292,6 +3306,11 @@ def board_settings(request):
     tenant.site_config = cfg
     tenant.save(update_fields=["site_config", "updated_at"])
     messages.success(request, _("Gespeichert."))
+    # W9-8: панель колонок теперь и на «Abläufe» — next= возвращает туда (только
+    # внутренний путь; паттерн status_labels_save).
+    nxt = request.POST.get("next", "")
+    if nxt.startswith("/") and not nxt.startswith("//"):
+        return redirect(nxt)
     return redirect("board")
 
 
@@ -3394,6 +3413,53 @@ def transitions_save(request, kind):
     if not nxt.startswith("/"):
         nxt = reverse("board")
     return redirect(nxt)
+
+
+@login_required
+def ablaeufe_view(request):
+    """W9-8: «Abläufe» — настройки процессов продаж в ОДНОМ месте: имена статусов
+    (FB-4a/b), правила переходов (FB-3), свои статусы (status-manager) и колонки
+    доски (W5). Раньше панели были разбросаны (список заказов/ресурсы booking, у
+    stays — мёртвый контекст) — аудит 2026-08-05. Сохранение — прежние эндпоинты
+    (status-labels-save/transitions-save/board-settings) через next= сюда."""
+    from apps.core import status_labels, transition_rules
+
+    tenant = request.tenant
+    kinds = _status_kinds_for(tenant)
+    active = request.GET.get("kind", "")
+    if active not in [k for k, _label in kinds]:
+        active = kinds[0][0] if kinds else ""
+    label_rows, transition_rows = [], []
+    if active:
+        label_rows = status_labels.label_rows(tenant, active, _status_choices(active))
+        transition_rows = transition_rules.editor_rows(tenant, active)
+    return render(
+        request,
+        "tenant/ablaeufe.html",
+        {
+            "nav": "ablaeufe",
+            "kinds": kinds,
+            "active_kind": active,
+            "status_label_rows": label_rows,
+            "transition_rows": transition_rows,
+            "board_stage_rows": _board_stage_rows(tenant),
+        },
+    )
+
+
+def _status_choices(kind):
+    """Дефолт-choices статусов kind для панели имён (ленивые импорты моделей)."""
+    if kind == "order":
+        from apps.orders.models import Order
+
+        return Order.STATUSES
+    if kind == "booking":
+        from apps.booking.models import Booking
+
+        return Booking.STATUSES
+    from apps.stays.models import StayBooking
+
+    return StayBooking.STATUSES
 
 
 # --- FB-3 Вариант B Phase 5: редактор кастом-статусов -------------------------
@@ -3579,7 +3645,13 @@ def notifications_settings(request):
     Telegram владельца. Хранение — Tenant.site_config['notify'] (без миграции);
     owner_chat_id/owner_link_token в том же узле НЕ затираем при сохранении."""
     from apps.notifications import prefs
-    from apps.telegram.notify import _notify_node, _save_notify_node, owner_chat_id, owner_deep_link
+    from apps.telegram.notify import (
+        _notify_node,
+        _save_notify_node,
+        active_bot,
+        owner_chat_id,
+        owner_deep_link,
+    )
 
     tenant = request.tenant
     if request.method == "POST":
@@ -3628,6 +3700,9 @@ def notifications_settings(request):
             # FB-10: КУДА идут owner-письма (и предупреждение, если адрес пуст —
             # частая причина «уведомления не приходят»).
             "owner_email": tenant.owner_email,
+            # W9-7: read-only статус бизнес-бота — Telegram-строки матрицы бессмысленны
+            # без активного бота, владелец должен видеть это ЗДЕСЬ, не гадая.
+            "bot": active_bot(),
         },
     )
 

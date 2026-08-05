@@ -8470,3 +8470,29 @@ W9-5: «Recht & Steuern» — налоговые реквизиты переех
 textarea (тексты — только LegalDoc; плоские поля остаются фолбэком витрины);
 секция ③ settings.html удалена, хинт Простого режима переформулирован.
 9 msgid × 5 .po (USt-IdNr./Steuernummer — identity, правило I18N-7b). 934 зелёных.
+
+
+## 2026-08-05 — W9-6..W9-8: Öffnungszeiten-сверка + пресеты уведомлений + экран «Abläufe»
+
+W9-6 закрыт сверкой: W4-1 уже свёл структурные времена (oh_*) и свободный текст
+в один fieldset «Öffnungszeiten» — кода не потребовалось. W9-7: над матрицей
+клиента — пресеты «Alle Kanäle aktivieren»/«Nur E-Mail» (JS проставляет чекбоксы,
+делегирование на document — урок Ф1/M22b; сохранение прежнее через Speichern);
+отклонение от плана: флага «важное событие» в prefs нет → пресет «Nur Wichtiges»
+был бы враньём, не делаем. + read-only статус бизнес-бота на экране уведомлений
+(active_bot: @username + «Bot verwalten» → telegram-settings) — Telegram-колонки
+без бота не доставляются, теперь это видно на месте. W9-8: НОВЫЙ экран
+`/dashboard/ablaeufe/` (nav "ablaeufe" в nav_registry, прямой таб настроек) —
+kind-селектор (order/booking/stay по активным модулям, хелпер _status_kinds_for)
++ обе панели статусов/переходов + W5-панель колонок доски (общий билдер
+_board_stage_rows извлечён из board) + вход в status-manager; сохранение —
+ПРЕЖНИЕ эндпоинты через next= (board_settings научился next; только локальный
+путь). Разбросанность снята: копия формы статусов в order_list удалена (мостик
+«🔁 Abläufe»), ветка status_labels в orders:order-settings удалена (теперь no-op
+редирект — легаси-POST ничего не пишет), мёртвые status_label_rows/
+transition_rows из контекста stays-календаря сняты; «⚙️ Abläufe» добавлен в
+шапку Verkäufe. Панели booking/resources оставлены осознанно (живая настройка
+booking; свод — W10/W11). 9 msgid × 5 .po. Замки: test_w9_ablaeufe (8: панели/
+next-возврат/гейт kind/фолбэк/удаление легаси-формы/пресеты/бот), test_hub_tabs
++= Abläufe; тест ветки order-settings перевёрнут в «branch removed». Локально
+56+29+480+998 зелёных; CSS без изменений (классы существующие).

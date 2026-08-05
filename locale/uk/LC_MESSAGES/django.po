@@ -17144,3 +17144,30 @@ msgstr "USt-IdNr."
 # W9-5 (термины DE-права не переводятся — правило I18N-7b)
 msgid "Steuernummer"
 msgstr "Steuernummer"
+
+msgid "Aktiver Bot:"
+msgstr "Активний бот:"
+
+msgid "Bot verwalten"
+msgstr "Керувати ботом"
+
+msgid "Schnellauswahl:"
+msgstr "Швидкий вибір:"
+
+msgid "Alle Kanäle aktivieren"
+msgstr "Увімкнути всі канали"
+
+msgid "Nur E-Mail"
+msgstr "Лише e-mail"
+
+msgid "Setzt die Häkchen unten — dann „Speichern“."
+msgstr "Проставить галочки нижче — потім «Зберегти»."
+
+msgid "Abläufe"
+msgstr "Процеси"
+
+msgid "Status-Namen, Statusübergänge und Board-Spalten für Ihre Verkäufe — an einem Ort."
+msgstr "Назви статусів, переходи та колонки дошки для ваших продажів — в одному місці."
+
+msgid "Status-Namen, Übergänge und Board-Spalten:"
+msgstr "Назви статусів, переходи та колонки дошки:"

@@ -17079,3 +17079,30 @@ msgstr "USt-IdNr."
 # W9-5 (термины DE-права не переводятся — правило I18N-7b)
 msgid "Steuernummer"
 msgstr "Steuernummer"
+
+msgid "Aktiver Bot:"
+msgstr "Aktif bot:"
+
+msgid "Bot verwalten"
+msgstr "Botu yönet"
+
+msgid "Schnellauswahl:"
+msgstr "Hızlı seçim:"
+
+msgid "Alle Kanäle aktivieren"
+msgstr "Tüm kanalları etkinleştir"
+
+msgid "Nur E-Mail"
+msgstr "Yalnızca e-posta"
+
+msgid "Setzt die Häkchen unten — dann „Speichern“."
+msgstr "Aşağıdaki onay kutularını ayarlar — ardından „Kaydet“."
+
+msgid "Abläufe"
+msgstr "Süreçler"
+
+msgid "Status-Namen, Statusübergänge und Board-Spalten für Ihre Verkäufe — an einem Ort."
+msgstr "Satışlarınız için durum adları, durum geçişleri ve pano sütunları — tek bir yerde."
+
+msgid "Status-Namen, Übergänge und Board-Spalten:"
+msgstr "Durum adları, geçişler ve pano sütunları:"
