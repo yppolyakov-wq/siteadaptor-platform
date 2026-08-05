@@ -125,5 +125,22 @@ W9-10 обязан включить per-роль-гейт минимум на bi
   Inhaber-линк; console-EMAIL_BACKEND → честный warn «Mails gehen nicht raus»),
   CustomDomain (active/pending/нет), publishing-Channels (счёт включённых),
   OTA-Channels (счёт). 11 msgid × 5 .po.
-- Очередь: W9-10 (Team & Zugriff) → W9-11 хвост (Finder перенесён в W9-1a,
-  site_seo hub_tabs в W9-4 — осталась только сверка).
+- **W9-10 ✅**: «Team & Zugriff» (Р-7, БЕЗ миграции). Ролевой гейт — в
+  CabinetOwnerAccessMiddleware (owner-only префиксы /dashboard/billing/ ·
+  /dashboard/recht/ · /dashboard/settings/team/; per-view декоратор сломал бы
+  десятки тестов с фейк-юзерами — HTTP-слой закрыт fail-closed, прямые вызовы
+  вьюх в тестах идут мимо, что осознанно). Экран `/dashboard/settings/team/`
+  (таб; nav "team"): список членств + смена роли + отзыв + инвайт
+  (`apps/core/team.py`: Redis-токен sha256, TTL 7 дней, одноразовый, неймспейс
+  по схеме — паттерн magic-link CA1); принятие `/team/beitreten/<token>/`
+  (публичный путь): пароль-форма для нового User (существующий User с паролем
+  НЕ перезаписывается — только членство), login → dashboard. Guard'ы: последний
+  owner неудаляем/непонижаем, self-revoke запрещён; AuditEvent на
+  invite/role/revoke; письмо-инвайт fail-safe (ссылка всегда на экране).
+  Ограничение v1: admin ≡ staff (честный хинт в UI); диференциация ролей —
+  по мере появления зон. 29 msgid × 5 .po; 8 замков test_w9_team.
+- **W9-11 ✅ сверкой**: Finder в Einstellungen/Erweitert — сделано в W9-1a;
+  site_seo с hub_tabs — сделано в W9-4. Отдельного кода не потребовалось.
+- **ВОЛНА W9 ЗАКРЫТА ЦЕЛИКОМ (W9-1..W9-11, всё БЕЗ миграций).** Дальше по плану
+  унификации: W10 (Verkäufe единственной поверхностью) → W11 (Marketing+Kunden,
+  Р-2) → W12 (честные режимы).

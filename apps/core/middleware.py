@@ -11,7 +11,7 @@ from django.http import Http404, HttpResponseForbidden
 
 from . import modules
 from .i18n_cabinet import CABINET_PREFIXES, resolve_cabinet_locale
-from .roles import has_cabinet_access
+from .roles import has_cabinet_access, is_owner
 from .session_schema import SESSION_SCHEMA_KEY
 
 
@@ -89,6 +89,11 @@ class CabinetOwnerAccessMiddleware:
     # Кабинет-пути владельца: CABINET_PREFIXES (dashboard + корневые разделы) плюс
     # алиас мастера онбординга. Витрину/публичные пути/логин НЕ трогаем.
     _PREFIXES = (*CABINET_PREFIXES, "/willkommen/")
+    # W9-10: owner-only зона — Abo/Stripe-Connect, правовые тексты/реквизиты,
+    # Team. Приглашённый admin/staff сюда не попадает («пригласить сотрудника»
+    # ≠ «отдать бизнес»). Прямые вызовы вьюх в тестах идут мимо middleware —
+    # реальный HTTP закрыт здесь fail-closed.
+    _OWNER_ONLY = ("/dashboard/billing/", "/dashboard/recht/", "/dashboard/settings/team/")
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -100,9 +105,11 @@ class CabinetOwnerAccessMiddleware:
             on_tenant
             and request.path.startswith(self._PREFIXES)
             and getattr(request.user, "is_authenticated", False)
-            and not has_cabinet_access(request.user)
         ):
-            return HttpResponseForbidden("Kein Zugriff auf dieses Konto.")
+            if not has_cabinet_access(request.user):
+                return HttpResponseForbidden("Kein Zugriff auf dieses Konto.")
+            if request.path.startswith(self._OWNER_ONLY) and not is_owner(request.user):
+                return HttpResponseForbidden("Nur für Inhaber.")
         return self.get_response(request)
 
 

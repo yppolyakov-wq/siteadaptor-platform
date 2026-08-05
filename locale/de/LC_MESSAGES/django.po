@@ -17178,3 +17178,90 @@ msgstr "Verbunden:"
 
 msgid "Keine Kanäle verbunden"
 msgstr "Keine Kanäle verbunden"
+
+msgid "E-Mail oder Rolle ungültig."
+msgstr "E-Mail oder Rolle ungültig."
+
+msgid "Einladung erstellt — Link ist 7 Tage gültig (einmalig):"
+msgstr "Einladung erstellt — Link ist 7 Tage gültig (einmalig):"
+
+msgid "Mitglied nicht gefunden."
+msgstr "Mitglied nicht gefunden."
+
+msgid "Der letzte Inhaber kann nicht entfernt werden."
+msgstr "Der letzte Inhaber kann nicht entfernt werden."
+
+msgid "Sich selbst entfernen ist nicht möglich."
+msgstr "Sich selbst entfernen ist nicht möglich."
+
+msgid "Zugriff entzogen."
+msgstr "Zugriff entzogen."
+
+msgid "Der letzte Inhaber kann nicht herabgestuft werden."
+msgstr "Der letzte Inhaber kann nicht herabgestuft werden."
+
+msgid "Rolle geändert."
+msgstr "Rolle geändert."
+
+msgid "Einladung ins Team"
+msgstr "Einladung ins Team"
+
+msgid "Sie wurden ins Team eingeladen. Zugriff einrichten:"
+msgstr "Sie wurden ins Team eingeladen. Zugriff einrichten:"
+
+msgid "Team & Zugriff"
+msgstr "Team & Zugriff"
+
+msgid "Mitarbeiter einladen und Rollen verwalten. Abo, Recht & Steuern und diese Seite bleiben dem Inhaber vorbehalten."
+msgstr "Mitarbeiter einladen und Rollen verwalten. Abo, Recht & Steuern und diese Seite bleiben dem Inhaber vorbehalten."
+
+msgid "Mitglieder"
+msgstr "Mitglieder"
+
+msgid "letzter Inhaber"
+msgstr "letzter Inhaber"
+
+msgid "Zugriff wirklich entziehen?"
+msgstr "Zugriff wirklich entziehen?"
+
+msgid "Entfernen"
+msgstr "Entfernen"
+
+msgid "Mitarbeiter einladen"
+msgstr "Mitarbeiter einladen"
+
+msgid "Einladung erzeugt einen einmaligen Link (7 Tage gültig). Admin und Mitarbeiter unterscheiden sich derzeit nicht — beide ohne Zugriff auf Abo, Recht und Team."
+msgstr "Einladung erzeugt einen einmaligen Link (7 Tage gültig). Admin und Mitarbeiter unterscheiden sich derzeit nicht — beide ohne Zugriff auf Abo, Recht und Team."
+
+msgid "Rolle"
+msgstr "Rolle"
+
+msgid "Einladen"
+msgstr "Einladen"
+
+msgid "Team beitreten"
+msgstr "Team beitreten"
+
+msgid "Dieser Einladungslink ist ungültig oder abgelaufen. Bitten Sie den Inhaber um eine neue Einladung."
+msgstr "Dieser Einladungslink ist ungültig oder abgelaufen. Bitten Sie den Inhaber um eine neue Einladung."
+
+msgid "Dieses Konto ist bereits Mitglied des Teams."
+msgstr "Dieses Konto ist bereits Mitglied des Teams."
+
+msgid "Sie treten dem Team bei als:"
+msgstr "Sie treten dem Team bei als:"
+
+msgid "Passwörter stimmen nicht überein oder sind kürzer als 8 Zeichen."
+msgstr "Passwörter stimmen nicht überein oder sind kürzer als 8 Zeichen."
+
+msgid "Passwort wählen"
+msgstr "Passwort wählen"
+
+msgid "Passwort wiederholen"
+msgstr "Passwort wiederholen"
+
+msgid "Ihr bestehendes Passwort bleibt unverändert."
+msgstr "Ihr bestehendes Passwort bleibt unverändert."
+
+msgid "Beitreten"
+msgstr "Beitreten"

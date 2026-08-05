@@ -17204,3 +17204,90 @@ msgstr "Підключено:"
 
 msgid "Keine Kanäle verbunden"
 msgstr "Канали не підключено"
+
+msgid "E-Mail oder Rolle ungültig."
+msgstr "Некоректний e-mail або роль."
+
+msgid "Einladung erstellt — Link ist 7 Tage gültig (einmalig):"
+msgstr "Запрошення створено — посилання діє 7 днів (одноразове):"
+
+msgid "Mitglied nicht gefunden."
+msgstr "Учасника не знайдено."
+
+msgid "Der letzte Inhaber kann nicht entfernt werden."
+msgstr "Останнього власника не можна видалити."
+
+msgid "Sich selbst entfernen ist nicht möglich."
+msgstr "Не можна видалити самого себе."
+
+msgid "Zugriff entzogen."
+msgstr "Доступ відкликано."
+
+msgid "Der letzte Inhaber kann nicht herabgestuft werden."
+msgstr "Останнього власника не можна понизити в ролі."
+
+msgid "Rolle geändert."
+msgstr "Роль змінено."
+
+msgid "Einladung ins Team"
+msgstr "Запрошення до команди"
+
+msgid "Sie wurden ins Team eingeladen. Zugriff einrichten:"
+msgstr "Вас запросили до команди. Налаштуйте доступ:"
+
+msgid "Team & Zugriff"
+msgstr "Команда та доступ"
+
+msgid "Mitarbeiter einladen und Rollen verwalten. Abo, Recht & Steuern und diese Seite bleiben dem Inhaber vorbehalten."
+msgstr "Запрошуйте співробітників і керуйте ролями. Підписка, «Право та податки» і ця сторінка доступні лише власнику."
+
+msgid "Mitglieder"
+msgstr "Учасники"
+
+msgid "letzter Inhaber"
+msgstr "останній власник"
+
+msgid "Zugriff wirklich entziehen?"
+msgstr "Справді відкликати доступ?"
+
+msgid "Entfernen"
+msgstr "Видалити"
+
+msgid "Mitarbeiter einladen"
+msgstr "Запросити співробітника"
+
+msgid "Einladung erzeugt einen einmaligen Link (7 Tage gültig). Admin und Mitarbeiter unterscheiden sich derzeit nicht — beide ohne Zugriff auf Abo, Recht und Team."
+msgstr "Запрошення створює одноразове посилання (діє 7 днів). Ролі адміна та співробітника поки не відрізняються — обидві без доступу до підписки, права та команди."
+
+msgid "Rolle"
+msgstr "Роль"
+
+msgid "Einladen"
+msgstr "Запросити"
+
+msgid "Team beitreten"
+msgstr "Приєднатися до команди"
+
+msgid "Dieser Einladungslink ist ungültig oder abgelaufen. Bitten Sie den Inhaber um eine neue Einladung."
+msgstr "Це посилання-запрошення недійсне або протерміноване. Попросіть власника про нове запрошення."
+
+msgid "Dieses Konto ist bereits Mitglied des Teams."
+msgstr "Цей акаунт уже є учасником команди."
+
+msgid "Sie treten dem Team bei als:"
+msgstr "Ви приєднуєтеся до команди як:"
+
+msgid "Passwörter stimmen nicht überein oder sind kürzer als 8 Zeichen."
+msgstr "Паролі не збігаються або коротші за 8 символів."
+
+msgid "Passwort wählen"
+msgstr "Виберіть пароль"
+
+msgid "Passwort wiederholen"
+msgstr "Повторіть пароль"
+
+msgid "Ihr bestehendes Passwort bleibt unverändert."
+msgstr "Ваш наявний пароль не змінюється."
+
+msgid "Beitreten"
+msgstr "Приєднатися"

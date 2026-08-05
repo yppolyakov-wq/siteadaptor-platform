@@ -1157,6 +1157,23 @@ Python 3.12, менеджер uv.
   W7+W-CL смержены в main (`ce69b78`, БЕЗ миграций). Дальше: **W9 (Settings-хаб
   «базовые + по типам в табах» + Team)** → W10 → W11 → W12. Ветка
   `claude/cabinet-audit-optimization-vkcxs4`.
+- **Самое свежее (2026-08-05, продолжение): ВОЛНА W9 (Settings-хаб) ЗАКРЫТА ЦЕЛИКОМ
+  W9-1..W9-11, всё БЕЗ миграций** (план `w9-settings-hub-plan-2026-08-05.md §4`).
+  Табы Einstellungen «базовые + по типам»: Mein Geschäft · Sprachen · Recht & Steuern
+  (W9-5: налоговые реквизиты переехали из формы бизнеса, единственный писатель) ·
+  Zahlung & Lieferung · Benachrichtigungen & Kanäle (W9-7: пресеты «Alle Kanäle»/«Nur
+  E-Mail» + read-only статус бизнес-бота) · **Abläufe (W9-8: НОВЫЙ экран
+  `/dashboard/ablaeufe/` — имена статусов/переходы/колонки доски в одном месте;
+  копия формы в order_list и ветка orders:order-settings удалены, мёртвый stays-
+  контекст снят)** · Website & Domains (W9-4) · **Integrationen (W9-9, Р-3: якорь
+  ушёл из сайдбара 7→6, карточки со статусами Stripe/бот/домен/каналы fail-safe)** ·
+  Finanzen · Auswertungen · Abo & Rechnung · **Team & Zugriff (W9-10, Р-7: инвайт
+  Redis-токеном одноразовым TTL 7 дней, принятие `/team/beitreten/<token>/`,
+  guard'ы последнего owner; РОЛЕВОЙ ГЕЙТ ВПЕРВЫЕ РАБОТАЕТ — owner-only префиксы
+  billing/recht/team в CabinetOwnerAccessMiddleware)** + Erweitert (Zusatzleistungen/
+  Medien/Funktionen/Finder/Hilfe). Предохранители W9-3: SEO/Finder — targeted-write.
+  Дальше по плану унификации: **W10** (Verkäufe единственной поверхностью) → W11
+  (Marketing+Kunden, Р-2) → W12 (честные режимы).
 - Миграции: **ПРОВЕРЕНО 2026-08-01 по `showmigrations` на проде** — очередь в этом файле была устаревшей примерно на три недели: она числила ~30 миграций «ожидающими», тогда как владелец деплоил регулярно. Фактическое состояние прод-схемы: `catalog` [X] по `0022`, `stays` [X] по `0030`, `booking` [X] по `0020`, `inventory` [X] по `0004`, `tenants` [X] по `0027` — то есть применено ВСЁ, включая миграции, смерженные 2026-08-01. Прежние записи «последний полный деплой 08.07» + «деплой очереди сделан владельцем (19.07)» были верны; неверен был список ожидающих. **Не подтверждено этой проверкой** (не входили в запрос, все TENANT-апп): `core/0006` (data-миграция backfill_owner_membership), `promotions/0024`, `orders/0015`/`0016`, `crm/0002`, `promotions/0022`/`0023`, `collections/0002`, `finance/0006`, `jobs/0012`. **Нюанс django-tenants:** `manage.py showmigrations` без tenant-контекста читает `django_migrations` схемы **public**; у TENANT-апп (catalog/stays/booking/inventory/promotions/…) своя таблица в КАЖДОЙ схеме тенанта, поэтому строгая проверка — по схемам (`migrate_schemas` в `deploy.sh` их и гоняет). Команда полной сверки — в build-log записи 2026-08-01 «аудит месяца». **Правило впредь:** очередь в этом файле — гипотеза до сверки с `showmigrations`; не помечать миграции «ожидающими» дольше одного деплой-цикла.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,

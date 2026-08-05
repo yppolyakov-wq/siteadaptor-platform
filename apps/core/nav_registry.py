@@ -292,6 +292,14 @@ ENTRIES: tuple[NavEntry, ...] = (
         "billing",
         search="abo tarif subscription rechnung",
     ),
+    # W9-10 (Р-7): членства/роли/инвайт — owner-only (middleware).
+    _e(
+        "settings",
+        "team",
+        _("Team & Zugriff"),
+        "team",
+        search="team mitarbeiter rollen zugriff einladen",
+    ),
     _e("settings", "extras", _("Zusatzleistungen"), "extras", None, True),
     _e("settings", "media-library", _("Medien"), "media", None, True, "bilder fotos bibliothek"),
     _e("settings", "modules", _("Funktionen"), "modules", None, True, "module aktivieren ansicht"),

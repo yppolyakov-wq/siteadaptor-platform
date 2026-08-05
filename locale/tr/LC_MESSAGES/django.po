@@ -17139,3 +17139,90 @@ msgstr "Bağlı:"
 
 msgid "Keine Kanäle verbunden"
 msgstr "Bağlı kanal yok"
+
+msgid "E-Mail oder Rolle ungültig."
+msgstr "E-posta veya rol geçersiz."
+
+msgid "Einladung erstellt — Link ist 7 Tage gültig (einmalig):"
+msgstr "Davet oluşturuldu — bağlantı 7 gün geçerli (tek kullanımlık):"
+
+msgid "Mitglied nicht gefunden."
+msgstr "Üye bulunamadı."
+
+msgid "Der letzte Inhaber kann nicht entfernt werden."
+msgstr "Son sahip kaldırılamaz."
+
+msgid "Sich selbst entfernen ist nicht möglich."
+msgstr "Kendinizi kaldıramazsınız."
+
+msgid "Zugriff entzogen."
+msgstr "Erişim kaldırıldı."
+
+msgid "Der letzte Inhaber kann nicht herabgestuft werden."
+msgstr "Son sahibin rolü düşürülemez."
+
+msgid "Rolle geändert."
+msgstr "Rol değiştirildi."
+
+msgid "Einladung ins Team"
+msgstr "Ekibe davet"
+
+msgid "Sie wurden ins Team eingeladen. Zugriff einrichten:"
+msgstr "Ekibe davet edildiniz. Erişiminizi ayarlayın:"
+
+msgid "Team & Zugriff"
+msgstr "Ekip ve erişim"
+
+msgid "Mitarbeiter einladen und Rollen verwalten. Abo, Recht & Steuern und diese Seite bleiben dem Inhaber vorbehalten."
+msgstr "Çalışan davet edin ve rolleri yönetin. Abonelik, Hukuk ve Vergiler ile bu sayfa yalnızca sahibine açıktır."
+
+msgid "Mitglieder"
+msgstr "Üyeler"
+
+msgid "letzter Inhaber"
+msgstr "son sahip"
+
+msgid "Zugriff wirklich entziehen?"
+msgstr "Erişim gerçekten kaldırılsın mı?"
+
+msgid "Entfernen"
+msgstr "Kaldır"
+
+msgid "Mitarbeiter einladen"
+msgstr "Çalışan davet et"
+
+msgid "Einladung erzeugt einen einmaligen Link (7 Tage gültig). Admin und Mitarbeiter unterscheiden sich derzeit nicht — beide ohne Zugriff auf Abo, Recht und Team."
+msgstr "Davet, tek kullanımlık bir bağlantı oluşturur (7 gün geçerli). Admin ve çalışan şu an farklı değildir — ikisi de abonelik, hukuk ve ekibe erişemez."
+
+msgid "Rolle"
+msgstr "Rol"
+
+msgid "Einladen"
+msgstr "Davet et"
+
+msgid "Team beitreten"
+msgstr "Ekibe katıl"
+
+msgid "Dieser Einladungslink ist ungültig oder abgelaufen. Bitten Sie den Inhaber um eine neue Einladung."
+msgstr "Bu davet bağlantısı geçersiz veya süresi dolmuş. Sahibinden yeni bir davet isteyin."
+
+msgid "Dieses Konto ist bereits Mitglied des Teams."
+msgstr "Bu hesap zaten ekibin üyesi."
+
+msgid "Sie treten dem Team bei als:"
+msgstr "Ekibe şu hesapla katılıyorsunuz:"
+
+msgid "Passwörter stimmen nicht überein oder sind kürzer als 8 Zeichen."
+msgstr "Parolalar eşleşmiyor veya 8 karakterden kısa."
+
+msgid "Passwort wählen"
+msgstr "Parola seçin"
+
+msgid "Passwort wiederholen"
+msgstr "Parolayı tekrarlayın"
+
+msgid "Ihr bestehendes Passwort bleibt unverändert."
+msgstr "Mevcut parolanız değişmeden kalır."
+
+msgid "Beitreten"
+msgstr "Katıl"

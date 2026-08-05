@@ -17027,3 +17027,90 @@ msgstr "Connected:"
 
 msgid "Keine Kanäle verbunden"
 msgstr "No channels connected"
+
+msgid "E-Mail oder Rolle ungültig."
+msgstr "E-mail or role invalid."
+
+msgid "Einladung erstellt — Link ist 7 Tage gültig (einmalig):"
+msgstr "Invitation created — the link is valid for 7 days (single use):"
+
+msgid "Mitglied nicht gefunden."
+msgstr "Member not found."
+
+msgid "Der letzte Inhaber kann nicht entfernt werden."
+msgstr "The last owner cannot be removed."
+
+msgid "Sich selbst entfernen ist nicht möglich."
+msgstr "You cannot remove yourself."
+
+msgid "Zugriff entzogen."
+msgstr "Access revoked."
+
+msgid "Der letzte Inhaber kann nicht herabgestuft werden."
+msgstr "The last owner cannot be demoted."
+
+msgid "Rolle geändert."
+msgstr "Role changed."
+
+msgid "Einladung ins Team"
+msgstr "Invitation to the team"
+
+msgid "Sie wurden ins Team eingeladen. Zugriff einrichten:"
+msgstr "You have been invited to the team. Set up your access:"
+
+msgid "Team & Zugriff"
+msgstr "Team & access"
+
+msgid "Mitarbeiter einladen und Rollen verwalten. Abo, Recht & Steuern und diese Seite bleiben dem Inhaber vorbehalten."
+msgstr "Invite staff and manage roles. Subscription, Legal & taxes and this page remain owner-only."
+
+msgid "Mitglieder"
+msgstr "Members"
+
+msgid "letzter Inhaber"
+msgstr "last owner"
+
+msgid "Zugriff wirklich entziehen?"
+msgstr "Really revoke access?"
+
+msgid "Entfernen"
+msgstr "Remove"
+
+msgid "Mitarbeiter einladen"
+msgstr "Invite staff"
+
+msgid "Einladung erzeugt einen einmaligen Link (7 Tage gültig). Admin und Mitarbeiter unterscheiden sich derzeit nicht — beide ohne Zugriff auf Abo, Recht und Team."
+msgstr "The invitation creates a single-use link (valid 7 days). Admin and staff currently do not differ — both without access to subscription, legal and team."
+
+msgid "Rolle"
+msgstr "Role"
+
+msgid "Einladen"
+msgstr "Invite"
+
+msgid "Team beitreten"
+msgstr "Join the team"
+
+msgid "Dieser Einladungslink ist ungültig oder abgelaufen. Bitten Sie den Inhaber um eine neue Einladung."
+msgstr "This invitation link is invalid or has expired. Ask the owner for a new invitation."
+
+msgid "Dieses Konto ist bereits Mitglied des Teams."
+msgstr "This account is already a member of the team."
+
+msgid "Sie treten dem Team bei als:"
+msgstr "You are joining the team as:"
+
+msgid "Passwörter stimmen nicht überein oder sind kürzer als 8 Zeichen."
+msgstr "Passwords do not match or are shorter than 8 characters."
+
+msgid "Passwort wählen"
+msgstr "Choose a password"
+
+msgid "Passwort wiederholen"
+msgstr "Repeat password"
+
+msgid "Ihr bestehendes Passwort bleibt unverändert."
+msgstr "Your existing password stays unchanged."
+
+msgid "Beitreten"
+msgstr "Join"

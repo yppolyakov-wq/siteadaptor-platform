@@ -13,6 +13,7 @@ from apps.billing import views as billing_views
 from apps.booking import public_views as booking_public
 from apps.collections import public_views as collections_public
 from apps.core import health
+from apps.core.team import team_join, team_view
 from apps.core.views import (
     ablaeufe_view,
     board,
@@ -103,6 +104,9 @@ urlpatterns = [
     path("dashboard/recht/", legal_docs_view, name="legal-docs"),
     # W9-8: «Abläufe» — имена статусов/переходы/колонки доски в одном месте.
     path("dashboard/ablaeufe/", ablaeufe_view, name="ablaeufe"),
+    # W9-10: «Team & Zugriff» (owner-only через middleware) + публичное принятие инвайта.
+    path("dashboard/settings/team/", team_view, name="team"),
+    path("team/beitreten/<str:token>/", team_join, name="team-join"),
     path("dashboard/extras/", extras_view, name="extras"),
     # Конструктор витрины v1 (Track C2).
     path("dashboard/site/", site_view, name="site"),
