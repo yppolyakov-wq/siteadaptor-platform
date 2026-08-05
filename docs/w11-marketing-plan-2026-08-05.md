@@ -44,4 +44,13 @@
 
 ## §3. Статус
 
-- (не начато — план создан 2026-08-05 после закрытия W10)
+- **W11-1 ✅** (2026-08-05): Kunden влит в Marketing (Р-2). Хаб kunden удалён из
+  реестра (HUBS/ENTRIES/Anchor.hubs); Kontakte/Nachrichten — прямые табы
+  Marketing, Telegram в Erweitert (дубли схлопнуты); 4 шаблона (crm×2/inbox/
+  telegram) рендерят marketing-хаб. Замки kunden-секции переписаны осознанно.
+- **W11-2 ✅** (2026-08-05): marketing_home слим — карточки-дубли табов хаба
+  (Gutscheine/Bewertungen/Aktionen/Kampagnen/Kanäle) убраны; остаются обзор
+  авто-касаний + панель результатов + один кросс-вход «Erinnerungen &
+  Care-Zyklus» (живёт в Einstellungen — правило §1.5). Замки обновлены.
+- Дальше: W11-3 (BusinessReview — сначала разведка модели/поля ответа) →
+  W11-4 (акция на услугу/номер/комбо из UI) → W11-5 (Website-свод).

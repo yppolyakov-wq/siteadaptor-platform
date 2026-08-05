@@ -20,7 +20,9 @@ def _safe(fn, default):
 
 
 def cards(tenant):
-    """Карточки-входы в ROI-порядке ТЗ; показываются только доступные по модулям."""
+    """W11-2: карточки-дубли табов хаба убраны (правило §1.5 плана унификации —
+    лендинг несёт ТОЛЬКО состояние). Остаётся один кросс-вход вне хаба:
+    Care-Zyklus живёт в Einstellungen/Benachrichtigungen."""
     items = [
         {
             "icon": "⏰",
@@ -28,41 +30,6 @@ def cards(tenant):
             "hint": _("Zahlungs-/Termin-Erinnerungen, «Wie war's?»-Mails"),
             "url_name": "notifications-settings",
             "show": True,
-        },
-        {
-            "icon": "🎟️",
-            "label": _("Treue & Gutscheine"),
-            "hint": _("Gutscheine, Treuepunkte, Geschenkgutscheine"),
-            "url_name": "promotions:voucher-list",
-            "show": tenant.is_module_active("loyalty"),
-        },
-        {
-            "icon": "⭐",
-            "label": _("Bewertungen"),
-            "hint": _("Antworten, verwalten, um Bewertungen bitten"),
-            "url_name": "reviews:list",
-            "show": tenant.is_module_active("reviews"),
-        },
-        {
-            "icon": "📣",
-            "label": _("Aktion überall teilen"),
-            "hint": _("Kanäle, ★ Anzeige und E-Mail — von der Aktion aus"),
-            "url_name": "promotions:promotion-list",
-            "show": tenant.is_module_active("promotions"),
-        },
-        {
-            "icon": "✉️",
-            "label": _("Kampagnen"),
-            "hint": _("Coupon-Kampagnen nach Kundensegmenten"),
-            "url_name": "promotions:coupon-campaigns",
-            "show": tenant.is_module_active("crm"),
-        },
-        {
-            "icon": "📡",
-            "label": _("Kanäle & Beiträge"),
-            "hint": _("Google/Facebook/Instagram/Telegram verbinden"),
-            "url_name": "channels",
-            "show": tenant.is_module_active("publishing"),
         },
     ]
     return [c for c in items if c["show"]]

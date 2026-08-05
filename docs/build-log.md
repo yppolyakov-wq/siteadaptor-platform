@@ -8688,3 +8688,15 @@ hub_tabs "marketing". Замки kunden-секции test_hub_tabs перепи�
 «хаб мёртв + пустой рендер не 500», «Kontakte/Nachrichten прямые, Telegram в
 ящике», гейт по модулю на новом хабе. Подсветка якоря цела (записи marketing).
 Локально crm+inbox+telegram+core 967 зелёных.
+
+
+## 2026-08-05 — W11-2: marketing_home слим — лендинг несёт только состояние
+
+Карточки-дубли табов хаба (Treue&Gutscheine/Bewertungen/Aktion teilen/
+Kampagnen/Kanäle&Beiträge) убраны из cards() — по правилу §1.5 плана
+унификации лендинг оставляет ТОЛЬКО состояние: обзор авто-касаний
+(reminder-матрица UD4-2 + win-back) и панель результатов. Единственная
+карточка-остаток — кросс-вход «Erinnerungen & Care-Zyklus» (его экран живёт
+в Einstellungen/Benachrichtigungen, в хабе Marketing таба нет). Замки
+test_marketing_home переписаны (labels == ровно один Care-вход). Локально
+core 877 зелёных.

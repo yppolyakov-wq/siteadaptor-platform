@@ -38,22 +38,21 @@ def _req(tenant=None):
     return req
 
 
-def test_landing_renders_cards_and_reminders():
+def test_landing_renders_state_and_care_link():
+    """W11-2: лендинг = состояние (обзор авто-касаний + результаты) + один
+    кросс-вход Care-Zyklus; карточки-дубли табов хаба убраны."""
     t = TenantFactory(slug="mh1", name="Mh1")
     body = core_views.marketing_home(_req(tenant=t)).content.decode()
     assert "Erinnerungen &amp; Care-Zyklus" in body or "Erinnerungen & Care-Zyklus" in body
-    assert "Bewertungen" in body and "Kampagnen" in body
     # обзор авто-касаний: строки reminder-событий матрицы UD4-2 с индикаторами
     assert "Aktive Erinnerungen" in body and "Zahlungserinnerung" in body
     assert "E-Mail" in body and "Telegram" in body
 
 
-def test_cards_gate_by_module():
+def test_cards_only_care_cross_link_remains():
     t = TenantFactory(slug="mh2", name="Mh2", disabled_modules=["loyalty", "reviews"])
-    labels = [c["label"] for c in mh.cards(t)]
-    assert not any("Treue" in str(lbl) for lbl in labels)
-    assert not any("Bewertungen" in str(lbl) for lbl in labels)
-    assert any("Erinnerungen" in str(lbl) for lbl in labels)  # всегда
+    labels = [str(c["label"]) for c in mh.cards(t)]
+    assert labels == ["Erinnerungen & Care-Zyklus"]  # дубли табов убраны (W11-2)
 
 
 def test_results_panel_reads_ready_sources():
