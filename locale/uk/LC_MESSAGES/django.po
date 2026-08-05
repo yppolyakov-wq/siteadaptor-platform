@@ -17291,3 +17291,6 @@ msgstr "Ваш наявний пароль не змінюється."
 
 msgid "Beitreten"
 msgstr "Приєднатися"
+
+msgid "Suche: Code, Name, E-Mail"
+msgstr "Пошук: код, ім'я, e-mail"

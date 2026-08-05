@@ -12,6 +12,10 @@
 <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
   <h1 class="text-2xl font-bold">{% trans "Verkäufe" %}</h1>
   <div class="flex items-center gap-2 flex-wrap">
+  {# W10-3: «＋» из любого вида (цель создания по kind — walk-in/stay-new) #}
+  {% if create_target %}
+    <a href="{{ create_target }}" class="text-sm font-medium text-white bg-indigo-600 rounded-lg px-3 py-1.5 hover:bg-indigo-700">＋ {% if active_kind == "stay" %}{% trans "New booking" %}{% else %}{% trans "New appointment" %}{% endif %}</a>
+  {% endif %}
   {# W9-8: настройки статусов/переходов/колонок — на своём экране «Abläufe» #}
   <a href="{% url 'ablaeufe' %}{% if active_kind %}?kind={{ active_kind }}{% endif %}" class="text-sm font-medium text-gray-500 bg-white border border-gray-200 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">⚙️ {% trans "Abläufe" %}</a>
   <div class="flex gap-1" data-sales-view-switch>
@@ -43,6 +47,22 @@
 {% elif active_view == "board" %}
   {% include "core/_board_body.html" %}
 {% elif active_kind == "order" %}
+  {# W10-3: паритет с легаси-списком — фильтр статуса, поиск, входы KDS/QR #}
+  <div class="flex flex-wrap items-center gap-2 mb-3">
+    <form method="get" class="flex flex-wrap items-center gap-2">
+      <input type="hidden" name="tab" value="order">
+      <select name="status" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <option value="">{% trans "All statuses" %}</option>
+        {% for value, label in order_statuses %}
+          <option value="{{ value }}" {% if order_status == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <input type="search" name="q" value="{{ order_q }}" placeholder="{% trans 'Suche: Code, Name, E-Mail' %}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm w-56">
+      <button type="submit" class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
+    </form>
+    <a href="{% url 'orders:kitchen' %}" class="rounded-lg bg-gray-800 text-white px-3 py-2 text-sm font-medium hover:bg-gray-900">🍳 {% trans "Kitchen Display" %}</a>
+    <a href="{% url 'orders:table-qr' %}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium hover:bg-gray-50">🪑 {% trans "Table QR codes" %}</a>
+  </div>
   {% include "orders/_order_rows.html" %}
   <p class="mt-3 text-sm text-gray-400"><a href="{% url 'orders:order-list' %}" class="hover:underline">{% trans "Alte Ansicht" %} →</a></p>
 {% else %}

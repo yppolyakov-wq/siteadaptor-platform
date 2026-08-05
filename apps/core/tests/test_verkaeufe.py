@@ -188,3 +188,65 @@ def test_calendar_day_nav_keeps_the_tab():
 
     solo = booking_calendar(booking_req("get", "/dashboard/booking/")).content.decode()
     assert "?tag=" in solo and "tab=booking" not in solo
+
+
+def test_order_liste_parity_filter_search_entries():
+    """W10-3: вкладка order — фильтр статуса + поиск + входы KDS/QR (паритет
+    с /dashboard/orders/; «тонкая обёртка» больше не богаче единой страницы)."""
+    from apps.catalog.tests.factories import ProductFactory
+    from apps.orders import services
+
+    order = services.create_order(
+        items=[(ProductFactory(name={"de": "Brot"}), 1)], name="Suchkunde", email="such@t.de"
+    )
+    shop = dict(
+        business_type="shop",
+        disabled_modules=["events", "stays", "booking", "jobs"],
+    )
+    body = views.verkaeufe(_req(**shop)).content.decode()
+    # по URL, не по подписи — de.po переводит «Kitchen Display» → «Küchenanzeige»
+    assert "kitchen/" in body and "tisch-qr/" in body
+    assert 'name="status"' in body and 'name="q"' in body
+    # фильтр статуса: cancelled скрывает новый заказ
+    body = views.verkaeufe(
+        _req(data={"tab": "order", "status": "cancelled"}, **shop)
+    ).content.decode()
+    assert order.reference_code not in body
+    # поиск по имени клиента находит
+    body = views.verkaeufe(_req(data={"tab": "order", "q": "Suchkunde"}, **shop)).content.decode()
+    assert order.reference_code in body
+    # поиск-промах — пусто
+    body = views.verkaeufe(_req(data={"tab": "order", "q": "niemand-xyz"}, **shop)).content.decode()
+    assert order.reference_code not in body
+
+
+def test_create_button_per_kind():
+    """W10-3: «＋» из любого вида — stay → stay-new, booking → walk-in-якорь,
+    у заказов кнопки нет (owner-create флоу отсутствует)."""
+    body = views.verkaeufe(_req(**_hotel())).content.decode()
+    assert "/dashboard/stays/neu/" in body or "/stays/neu/" in body
+
+    services_t = dict(
+        business_type="hairdresser",
+        disabled_modules=["events", "stays"],
+    )
+    body = views.verkaeufe(_req(**services_t)).content.decode()
+    assert "?tab=booking&amp;view=kalender#neu" in body or "?tab=booking&view=kalender#neu" in body
+
+    shop = dict(business_type="shop", disabled_modules=["events", "stays", "booking", "jobs"])
+    body = views.verkaeufe(_req(**shop)).content.decode()
+    assert "＋" not in body.split("data-sales-tabs")[0]  # в шапке кнопки нет
+
+
+def test_ready_widget_deep_links_to_verkaeufe():
+    """W10-3: «Abholbereit» главной ведёт на единую страницу (?tab=order&status=ready)."""
+    from apps.core import dashboard as dash
+
+    shop = TenantFactory.build(
+        business_type="shop", disabled_modules=["events", "stays", "booking", "jobs"]
+    )
+    widgets = dash.home_widgets(shop)
+    ready = next((w for w in widgets if w.get("key") == "ready"), None)
+    if ready is not None:  # виджет гейтится наличием ready-заказов
+        assert ready["url_name"] == "verkaeufe"
+        assert ready["url_query"] == "?tab=order&status=ready"

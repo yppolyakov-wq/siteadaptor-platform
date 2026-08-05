@@ -3136,6 +3136,8 @@ def verkaeufe(request):
     прочие — при наличии продаж), в каждой — переключатель видов
     Kalender/Board/Liste. Переключение вкладки = обычная навигация `?tab=`
     (неактивные вкладки не запрашиваются вовсе)."""
+    from django.urls import reverse
+
     from apps.core import sales_page, transactions
 
     tenant = request.tenant
@@ -3144,12 +3146,20 @@ def verkaeufe(request):
     if active not in kinds:
         active = kinds[0]
     view = sales_page.resolve_view(tenant, active, request.GET.get("view", ""))
+    # W10-3: «＋» из любого вида — цель создания по kind (есть только у
+    # календарных движков: walk-in формы живут в их телах/на stay-new).
+    create_target = ""
+    if active == "stay":
+        create_target = reverse("stays:stay-new")
+    elif active == "booking":
+        create_target = reverse("verkaeufe") + "?tab=booking&view=kalender#neu"
     ctx = {
         "nav": "board",
         "sales_tabs": sales_page.tab_descriptors(tenant, active),
         "sales_views": sales_page.view_descriptors(tenant, active, view),
         "active_kind": active,
         "active_view": view,
+        "create_target": create_target,
     }
     if view == "kalender" and active == "stay":
         from apps.stays.views import calendar_context as stays_calendar_context
@@ -3169,9 +3179,27 @@ def verkaeufe(request):
     elif view == "board":
         ctx["sections"] = transactions.manage_sections_for(tenant, only=active)
     elif active == "order":  # Liste заказов — богатые строки списка orders
+        from django.db.models import Q
+
         from apps.orders.models import Order
 
-        ctx["orders"] = Order.objects.select_related("customer").prefetch_related("items")[:200]
+        # W10-3: паритет с /dashboard/orders/ — фильтр статуса + поиск (код/имя/
+        # email); deep-link «Abholbereit» главной ведёт сюда (?status=ready).
+        qs = Order.objects.select_related("customer").prefetch_related("items")
+        status = request.GET.get("status", "")
+        if status:
+            qs = qs.filter(status=status)
+        q = (request.GET.get("q") or "").strip()
+        if q:
+            qs = qs.filter(
+                Q(reference_code__icontains=q)
+                | Q(customer__name__icontains=q)
+                | Q(customer__email__icontains=q)
+            )
+        ctx["orders"] = qs[:200]
+        ctx["order_statuses"] = Order.STATUSES
+        ctx["order_status"] = status
+        ctx["order_q"] = q
     else:  # generic Liste по нормализованным транзакциям kind
         # W7c: список — по дате СОБЫТИЯ (заезд/начало), не по дате создания:
         # «сегодняшние брони» иначе тонули под старыми, созданными позже.

@@ -17265,3 +17265,6 @@ msgstr "Ihr bestehendes Passwort bleibt unverändert."
 
 msgid "Beitreten"
 msgstr "Beitreten"
+
+msgid "Suche: Code, Name, E-Mail"
+msgstr "Suche: Code, Name, E-Mail"

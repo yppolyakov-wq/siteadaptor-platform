@@ -79,3 +79,11 @@ CI → FF-merge. Характеризационные замки ДО перен
   с первой продажей» (`visible_kinds` перестал вырезать kind; тело Board/Liste
   уже было generic — kod вьюхи не менялся). Вход из Marketing остаётся дублем
   до W11. Замок переписан: появление вкладки с первым резервом.
+- **W10-3a ✅** (2026-08-05): паритет order-Liste + «＋». Вкладка order на
+  Verkäufe: фильтр статуса + поиск `?q=` (код/имя/email через FK customer) +
+  входы KDS/Table-QR; «＋» в шапке из любого вида (stay → stay-new, booking →
+  `?tab=booking&view=kalender#neu`; у заказов owner-create флоу нет — кнопки
+  нет); deep-link «Abholbereit» главной → `verkaeufe?tab=order&status=ready`.
+  Урок: замки по URL, не по подписи — de.po переводит английские msgid
+  («Kitchen Display» → «Küchenanzeige»). 1 msgid × 5 .po. Остаток W10-3b:
+  events/jobs-вкладочные входы + смерть hub_tabs["board"]-огрызка.

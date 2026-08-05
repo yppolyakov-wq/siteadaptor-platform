@@ -8583,3 +8583,18 @@ _KIND_MODEL включает reservation изначально). Вход из Ma
 дублем до W11. Замок test_reservation_never_a_secondary_tab перевёрнут в
 test_reservation_tab_follows_first_sale_rule (нет продаж → вкладки нет;
 первый резерв → вкладка есть). Локально core+promotions 1155 зелёных.
+
+
+## 2026-08-05 — W10-3a: паритет order-Liste на Verkäufe + «＋» из любого вида
+
+Вкладка order единой страницы: фильтр статуса (?status=, паритет с легаси-
+списком) + поиск ?q= по reference_code/имени/email клиента (FK customer, не
+Offer-снимок) + входы Kitchen Display и Table-QR; «＋» в шапке страницы (stay →
+stays:stay-new, booking → ?tab=booking&view=kalender#neu — walk-in-якорь
+Tagesplan; у order/ticket/job/reservation owner-create флоу нет — кнопка не
+рисуется); deep-link виджета «Abholbereit» главной ведёт на
+verkaeufe?tab=order&status=ready (легаси-список для этого больше не нужен).
+Урок замков: ассертить URL, не подпись — de.po существует и переводит
+английские msgid («Kitchen Display» → «Küchенanzeige»); поймано первым же
+прогоном. 1 msgid × 5 .po. Локально: verkaeufe 12, core+orders 1013 зелёные.
+Остаток W10-3b: events/jobs-вкладочные входы + смерть hub_tabs["board"]-огрызка.

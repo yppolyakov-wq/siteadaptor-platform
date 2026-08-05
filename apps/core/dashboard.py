@@ -169,8 +169,10 @@ def home_widgets(tenant) -> list[dict]:
                 "label": _t("Abholbereit"),
                 "value": str(_safe(_ready, 0)),
                 "hint": _t("Bestellungen fertig zur Abholung"),
-                "url_name": "orders:order-list",
-                "url_query": "?status=ready",
+                # W10-3: deep-link на единую страницу (Liste заказов понимает
+                # ?status= — легаси-список больше не нужен для этого).
+                "url_name": "verkaeufe",
+                "url_query": "?tab=order&status=ready",
                 "sparkline": "",
             }
         )

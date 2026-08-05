@@ -17226,3 +17226,6 @@ msgstr "Mevcut parolanız değişmeden kalır."
 
 msgid "Beitreten"
 msgstr "Katıl"
+
+msgid "Suche: Code, Name, E-Mail"
+msgstr "Ara: kod, ad, e-posta"

@@ -17306,3 +17306,6 @@ msgstr "Ваш существующий пароль не меняется."
 
 msgid "Beitreten"
 msgstr "Присоединиться"
+
+msgid "Suche: Code, Name, E-Mail"
+msgstr "Поиск: код, имя, e-mail"
