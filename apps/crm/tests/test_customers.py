@@ -199,7 +199,7 @@ def test_export_csv_respects_filter():
 
 
 def test_list_cards_show_batch_ltv():
-    """ST-5c: карточный грид (без classic_ui) + LTV батчем на страницу —
+    """ST-5c: карточный грид + LTV батчем на страницу —
     сумма и число покупок на карточке; клиент без выручки — без LTV-строки."""
     from decimal import Decimal
 
@@ -214,15 +214,3 @@ def test_list_cards_show_batch_ltv():
     assert "grid sm:grid-cols-2" in body  # карточный грид
     assert ("42,50" in body or "42.50" in body) and "2×" in body
     assert body.count("×") == 1  # у Boris LTV-строки нет
-
-
-def test_list_classic_keeps_row_list():
-    """ST-5c: classic_ui=True — прежний divide-y список (Р7)."""
-    from apps.tenants.tests.factories import TenantFactory
-
-    Customer.objects.create(name="Anna Schmidt", email="anna@test.de")
-    req = _req()
-    req.tenant = TenantFactory(slug="crmcls", name="CrmCls", site_config={"classic_ui": True})
-    body = views.customer_list(req).content.decode()
-    assert "divide-y divide-gray-100" in body
-    assert "grid sm:grid-cols-2" not in body

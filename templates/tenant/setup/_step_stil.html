@@ -7,11 +7,10 @@
 <p class="text-sm text-gray-500 mb-4">{% trans "Wähle einen fertigen Look — Layout, Texte und Farbe werden gesetzt. Alles später frei anpassbar." %}</p>
 <form method="post" class="space-y-2">
   {% csrf_token %}
-  {% if looks and not looks_classic %}
+  {% if looks %}
   {% comment %}ST-1b: 3 Look'а АРХЕТИПА — живые мини-превью = scaled-iframe СВОЕГО
   сайта под ?preview=1&look=<family> (stateless-оверлей, ничего не пишет). Ленивая
-  загрузка: src ставится IntersectionObserver'ом из data-src. classic_ui → блока
-  нет, работает только легаси-галерея ниже (железное правило §8b).{% endcomment %}
+  загрузка: src ставится IntersectionObserver'ом из data-src.{% endcomment %}
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4" id="look-gallery">
     {% for lk in looks %}
       <label class="border border-gray-200 rounded-xl p-3 flex flex-col cursor-pointer bg-white hover:ring-1 hover:ring-indigo-300 has-[:checked]:ring-2 has-[:checked]:ring-indigo-500">

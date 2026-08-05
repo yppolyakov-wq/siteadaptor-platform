@@ -248,25 +248,17 @@ def modules_nav(request):
     else:
         bottom_nav = _storefront_bottom_nav(request, tenant)
     # Кабинет: плоский список первых пунктов для мобильного таб-бара (нативно).
-    # ST-4b: в компактном виде таб-бар = первая четвёрка якорей сайдбара.
-    _active = modules.active_modules(tenant)
+    # ST-4b/W-CL: таб-бар = первая четвёрка якорей компакт-сайдбара (безусловно).
     _compact = modules.sidebar_nav(tenant)
-    if _compact:
-        nav_primary = [
-            {
-                "url_name": it["url_name"],
-                "nav_key": it["nav_key"],
-                "label": it["label"],
-                "icon": it["icon"],
-            }
-            for it in _compact[:4]
-        ]
-    else:
-        nav_primary = [
-            {"url_name": it.url_name, "nav_key": it.nav_key, "label": it.label, "icon": m.icon}
-            for m in _active
-            for it in m.nav_items
-        ][:4]
+    nav_primary = [
+        {
+            "url_name": it["url_name"],
+            "nav_key": it["nav_key"],
+            "label": it["label"],
+            "icon": it["icon"],
+        }
+        for it in _compact[:4]
+    ]
     # L1 (Волна L): языки переключателя витрины — по `active_locales` тенанта (N
     # локалей, генерик). Метка — короткий код (DE/EN/…) для пилюли + родное имя
     # («Deutsch»/«English») для выпадающего блока. Переключатель скрывается при
@@ -278,16 +270,8 @@ def modules_nav(request):
         for code in tenant.active_locales
     ]
     return {
-        "nav_modules": _active,
-        "nav_groups": modules.grouped_active_modules(tenant),  # AB1: сайдбар по задачам
-        # ST-4b: компактный сайдбар «хабы + Website» (classic_ui → [] → шаблон
-        # рендерит прежние группы AB1).
+        # ST-4b/W-CL: компактный сайдбар «хабы + Website» — единственный.
         "nav_compact": _compact,
-        # FB-8: «Angebote» — единый обзор продаваемых сущностей; виден при любом активном
-        # sellable-модуле (в т.ч. отелю в Простом, где хаб catalog скрыт).
-        "has_sellables": any(
-            modules.is_module_active(tenant, m) for m in ("catalog", "booking", "stays", "events")
-        ),
         "nav_primary": nav_primary,  # мобильный таб-бар кабинета
         # S1: витринные «лица» активных архетипов — для тизеров главной (S2) и
         # конструктора меню (S7). Источник правды — реестр модулей.
@@ -363,10 +347,6 @@ def modules_nav(request):
         # W3-fix (видимость): режим кабинета (Einfach/Experte) — тумблер в шапке
         # (_base_dashboard), чтобы был всегда виден (раньше только на «Funktionen»).
         "ui_simple": modules.is_simple(tenant),
-        # Страховка редизайна (трек ST): «Klassische Ansicht» — прежний интерфейс
-        # там, где вышел новый (тумблер на «Funktionen»); каждый ST-инкремент
-        # ОБЯЗАН уважать флаг (легаси-шаблоны не удаляются, гейт только флагом).
-        "classic_ui": modules.classic_ui(tenant),
         # #4 (ясность режима): что Простой режим убирает из меню (человекочит. названия,
         # независимо от текущего режима) — для подсказки у тумблера/на «Funktionen».
         "ui_simple_hidden": modules.simple_hidden_labels(tenant),

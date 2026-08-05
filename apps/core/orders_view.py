@@ -83,20 +83,9 @@ def entry_url(tenant):
 
 
 def entry_url_name(tenant):
-    """Имя маршрута входа «Verkäufe». V4 (2026-08-03): не-classic ведёт на
-    единую страницу продаж; classic — прежний архетип-дефолт (страховка ST)."""
-    from apps.core import modules  # ленивый: modules импортирует нас же
-
-    if not modules.classic_ui(tenant):
-        return "verkaeufe"
-    view = resolve_view(tenant)
-    if view == "feed":
-        return "orders:order-list"
-    if view == "calendar":
-        for module, url_name in _calendar_order(tenant):
-            if tenant.is_module_active(module):
-                return url_name
-    return "board"
+    """Имя маршрута входа «Verkäufe» — единая страница продаж (W-CL: классик-
+    ветка с архетип-дефолтом снесена; вкладка/вид внутри — sales_page)."""
+    return "verkaeufe"
 
 
 def create_option(tenant, active=False):

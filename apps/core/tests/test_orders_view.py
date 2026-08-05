@@ -4,7 +4,6 @@
 календарь, магазин → лента, прочее → канбан), недостижимое → kanban-фолбэк;
 сегмент-контрол — чистая навигация ссылками (персист удалён, легаси-ключ
 orders_view дропается нормализацией) + «＋ Buchung/Termin» третьим пунктом;
-в classic_ui сегмент не рендерится.
 """
 
 from uuid import uuid4
@@ -65,11 +64,9 @@ def test_unreachable_choice_falls_back_to_kanban():
         slug="ovf",
         name="OvF",
         disabled_modules=["booking", "stays"],  # календарь недостижим
-        site_config={"orders_view": "calendar", "classic_ui": True},
+        site_config={"orders_view": "calendar"},
     )
     assert ov.resolve_view(t) == "kanban"
-    # V4: легаси-маппинг проверяем под classic_ui; не-classic входит на verkaeufe.
-    assert ov.entry_url_name(t) == "board"
 
 
 def test_stored_choice_is_ignored_fixed_mapping():
@@ -79,24 +76,18 @@ def test_stored_choice_is_ignored_fixed_mapping():
         slug="ovp",
         name="OvP",
         disabled_modules=["events", "booking"],
-        site_config={"orders_view": "kanban", "classic_ui": True},
+        site_config={"orders_view": "kanban"},
     )
     assert ov.resolve_view(t) == "calendar"
-    assert ov.entry_url_name(t) == "stays:calendar"
 
 
 def test_hotel_with_both_calendar_modules_enters_belegungsplan():
     # Демо-отель: booking И stays активны, primary = stays → «Verkäufe» обязан
     # открывать Belegungsplan (не booking-календарь), «＋» ведёт на walk-in.
-    t = TenantFactory(
-        slug="ovb2", name="OvB2", disabled_modules=["events"], site_config={"classic_ui": True}
-    )
+    t = TenantFactory(slug="ovb2", name="OvB2", disabled_modules=["events"])
     assert t.is_module_active("booking") and t.is_module_active("stays")
-    assert ov.entry_url_name(t) == "stays:calendar"
+    assert ov.entry_url_name(t) == "verkaeufe"  # W-CL: вход всегда единая страница
     assert ov.create_option(t)["url"].endswith("/stays/neu/")
-    # V4: не-classic входит на единую страницу продаж.
-    t.site_config = {}
-    assert ov.entry_url_name(t) == "verkaeufe"
 
 
 def test_create_option_third_in_switch():
@@ -117,30 +108,16 @@ def test_create_option_third_in_switch():
     assert all(o["view"] != "create" for o in ov.switch_options(shop, "feed"))
 
 
-def test_switch_renders_on_board_and_hidden_in_classic():
+def test_switch_renders_on_board():
     t = TenantFactory(slug="ovr", name="OvR", enabled_modules=["catalog", "orders"])
     body = core_views.board(_req(tenant=t)).content.decode()
     assert "data-ov-switch" in body and "Liste" in body
-    classic = TenantFactory(
-        slug="ovc",
-        name="OvC",
-        enabled_modules=["catalog", "orders"],
-        site_config={"classic_ui": True},
-    )
-    body_c = core_views.board(_req(tenant=classic)).content.decode()
-    assert "data-ov-switch" not in body_c
 
 
-def test_hub_tile_orders_uses_archetype_default():
-    # Чистый магазин (календарные модули выключены) → архетип-дефолт «лента».
+def test_hub_tile_orders_always_unified_page():
+    # W-CL: плитка «Bestellungen» всегда ведёт на единую страницу продаж.
     t = TenantFactory(
-        slug="ovh",
-        name="OvH",
-        disabled_modules=["events", "stays", "booking", "jobs"],
-        site_config={"classic_ui": True},
+        slug="ovh", name="OvH", disabled_modules=["events", "stays", "booking", "jobs"]
     )
     tiles = dash.hub_tiles(t)
-    assert tiles[0]["key"] == "orders" and tiles[0]["url_name"] == "orders:order-list"
-    # V4: не-classic плитка ведёт на единую страницу.
-    t.site_config = {}
-    assert dash.hub_tiles(t)[0]["url_name"] == "verkaeufe"
+    assert tiles[0]["key"] == "orders" and tiles[0]["url_name"] == "verkaeufe"

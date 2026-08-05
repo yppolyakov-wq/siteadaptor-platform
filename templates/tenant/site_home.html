@@ -11,7 +11,7 @@
   <div class="shrink-0 flex items-center justify-between gap-2 bg-white border-b border-gray-200 px-3 py-1">
     <div class="flex items-center gap-2 min-w-0">
       <a href="{% url 'site' %}" class="text-sm text-gray-600 hover:text-indigo-700 flex items-center gap-1 shrink-0">←<span class="hidden sm:inline">{% trans "Website" %}</span></a>
-      {% if not classic_ui %}<span class="hidden md:inline text-sm font-semibold text-gray-800 shrink-0 select-none">Studio</span>{% endif %}
+      <span class="hidden md:inline text-sm font-semibold text-gray-800 shrink-0 select-none">Studio</span>
       {% comment %}UC6-9: Undo/Redo + статус + подсказка правки — в верхней строке (полоса
          над канвой убрана). Те же id → JS не тронут.{% endcomment %}
       <span class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-xs bg-white shrink-0">
@@ -96,7 +96,6 @@
   (#bld-editor-pane, оверлей слева) + канвас (#bld-preview-pane). Одна область за раз →
   без перегруза; свернул → рейл, сайт на всю ширину. Все id/логика сохранены.{% endcomment %}
   <div class="relative flex-1 min-h-0 flex">
-   {% if not classic_ui %}
    {% comment %}ST-3a: рейка УРОВНЕЙ Studio (Look/Seiten/Blöcke/Medien) — тонкие обёртки
       над существующими вызовами (showArea/инсертер/медиа-области); id НОВЫЕ, чтобы не
       трогать замки старого хрома. Desktop-only (мобайл — прежние кнопки тулбара).{% endcomment %}
@@ -113,7 +112,6 @@
        <button type="button" class="st-page-btn inline-block text-xs border rounded-full px-3 py-1 mr-1 border-gray-200 text-gray-600 hover:border-indigo-400" data-st-page="{{ p.url }}">{{ p.label }}</button>
      {% endfor %}
    </div>
-   {% endif %}
    {% comment %}W1: левый рейл областей удалён — его кнопки переехали в горизонтальный
       переключатель в шапке выпадающего листа (#bld-area-tabs). toggleRail сам становится
       no-op (railNav отсутствует). Канва занимает всю ширину.{% endcomment %}
@@ -157,12 +155,12 @@
         </select>
       </fieldset>
 
-      {% if looks and not classic_ui %}
+      {% if looks %}
       {% comment %}ST-1b: Look'и архетипа — клик выставляет ВСЕ контролы дизайна ниже
       (accent/font/typo/карточки/тема) и шлёт change → живой draft-канал перекрашивает
       канву без перезагрузки; Undo — обычный стек; Save персистит как всегда. Секции
       в билдере НЕ трогаем (их владелец курирует канвой; полный Look — слайд мастера).
-      classic_ui → блока нет (железное правило §8b).{% endcomment %}
+      {% endcomment %}
       <fieldset class="bg-white rounded-2xl shadow-sm p-6">
         <legend class="font-semibold mb-1">✨ Look</legend>
         <p class="text-xs text-gray-400 mb-3">{% trans "Fertige Design-Pakete für deine Branche — ein Klick färbt die Vorschau um." %}</p>
@@ -3394,7 +3392,6 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
 })();
 </script>
 
-{% if not classic_ui %}
 <script>
 (function () {
   // ST-3a/b: рейка уровней Studio + page-лента — тонкие обёртки над существующим
@@ -3440,5 +3437,4 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   });
 })();
 </script>
-{% endif %}
 {% endblock %}

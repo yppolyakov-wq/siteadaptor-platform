@@ -1,4 +1,4 @@
-"""ST-3: Studio-оболочка — рейка уровней + page-лента + брендинг (гейт classic_ui).
+"""ST-3: Studio-оболочка — рейка уровней + page-лента + брендинг.
 
 План st3-studio-shell-plan-2026-07-19.md: переупаковка существующего хрома —
 существующие id/классы билдера НЕ переименованы (их держат замки
@@ -43,17 +43,3 @@ def test_studio_rail_and_pages_strip_render():
     # существующие якоря хрома целы (замки старого билдера)
     assert 'id="bld-root"' in html and 'id="bld-area-tabs"' in html
     assert 'id="home-prev-frame"' in html
-
-
-def test_studio_chrome_hidden_in_classic():
-    tenant = TenantFactory(
-        slug="stshc",
-        name="StShC",
-        business_type="bakery",
-        site_config={"classic_ui": True},
-    )
-    html = _html(tenant)
-    assert 'id="st-rail"' not in html and 'id="st-pages"' not in html
-    assert ">Studio</span>" not in html
-    # прежний билдер жив
-    assert 'id="bld-root"' in html and 'id="bld-area-tabs"' in html

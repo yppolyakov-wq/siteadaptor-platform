@@ -1,7 +1,7 @@
 """Единая страница продаж /dashboard/verkaeufe/ (2026-08-03).
 
 Решения владельца: вкладки по kind (primary всегда, прочие при наличии продаж),
-виды Kalender/Board/Liste per-kind с persist'ом, classic_ui — прежнее поведение.
+виды Kalender/Board/Liste per-kind с persist'ом.
 """
 
 import pytest
@@ -103,14 +103,6 @@ def test_saved_view_resolves_and_bad_saved_value_falls_back():
     assert sales_page.resolve_view(tenant, "stay") == "liste"
     tenant.site_config = {"sales_views": {"stay": "kaputt"}}
     assert sales_page.resolve_view(tenant, "stay") == "kalender"  # архетипный дефолт
-
-
-def test_classic_ui_redirects_to_legacy_entry():
-    """Страховка редизайна: classic живёт на прежних страницах (правило ST)."""
-    req = _req(**_hotel(site_config={"classic_ui": True}))
-    resp = views.verkaeufe(req)
-    assert resp.status_code == 302
-    assert "/dashboard/stays/" in resp["Location"]
 
 
 def test_normalize_sales_views_is_presence_minimal():

@@ -1,7 +1,7 @@
 """ST-4a: админ-хоум — виджеты «что сегодня» + 5 хаб-плиток + SVG-иконсет.
 
 План st4-admin-home-plan-2026-07-19.md §1: виджеты уважают модульные гейты и
-simple_hidden; classic_ui — прежний вид (Р7); все плитки ведут на живые URL.
+simple_hidden; все плитки ведут на живые URL.
 """
 
 import uuid
@@ -68,14 +68,6 @@ def test_home_renders_widgets_hubs_and_sprite():
     assert "Umsatz heute" in html and "<polyline" in html  # спарклайн
     assert 'href="#ic-orders"' in html and "ic-website" in html  # SVG-иконки хабов
     assert 'id="ic-orders"' in html  # спрайт подключён
-
-
-def test_classic_home_unchanged():
-    cfg = {"onboarding": dict(_TOUCHED), "classic_ui": True}
-    tenant = _tenant(slug="st4d", name="St4d", site_config=cfg)
-    html = core_views.dashboard(_req(tenant)).content.decode()
-    assert "Umsatz heute" not in html and 'href="#ic-orders"' not in html
-    assert "Klassische Ansicht ist aktiv" in html
 
 
 def test_sparkline_points_safe():

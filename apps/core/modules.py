@@ -540,7 +540,7 @@ def is_module_active(tenant, key: str) -> bool:
         return True
     if not is_entitled(tenant, spec):
         return False
-    if key in (tenant.disabled_modules or []):
+    if key in (getattr(tenant, "disabled_modules", None) or []):
         return False
     return all(is_module_active(tenant, dep) for dep in spec.depends_on)
 
@@ -549,101 +549,31 @@ def active_modules(tenant) -> list[ModuleSpec]:
     return [spec for spec in REGISTRY if is_module_active(tenant, spec.key)]
 
 
-# AB1 (анти-Битрикс): группировка меню кабинета по задачам, а не по техническим
-# модулям. Порядок групп = порядок показа; внутри группы — порядок ключей. Модули
-# вне карты падают в группу «sell» (бизнес-функции) как безопасный дефолт.
-NAV_GROUPS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
-    ("shop", _("Mein Geschäft"), ("dashboard",)),
-    ("sell", _("Verkaufen"), ("board", "catalog", "orders", "booking", "stays", "events", "jobs")),
-    (
-        "marketing",
-        _("Kunden & Marketing"),
-        ("crm", "reviews", "promotions", "loyalty", "publishing", "inbox", "telegram"),
-    ),
-    (
-        "settings",
-        _("Einstellungen"),
-        ("analytics", "finance", "customer_account", "settings", "billing"),
-    ),
-)
-_GROUP_BY_KEY = {mk: gkey for gkey, _label, keys in NAV_GROUPS for mk in keys}
-
 # AB1 (анти-Битрикс §0.1 «меню на языке задач, не сущностей»): подпись пункта
 # сайдбара в языке задач/по-немецки (nav_key → метка). Фолбэк — NavItem.label
 # (англ. msgid). Отдельный реестр, а не поле NavItem: все формулировки в одном
 # читаемом месте, владельцу удобно править словом. T1-b: значения в gettext_lazy —
 # msgid = немецкий (DE-рендер прежний), en/tr/ru/uk из .po; тип значений — lazy-строки.
+# W-CL: реестр сжат до якорей компакт-сайдбара (полный «язык задач» AB1 жил
+# в снесённом классик-сайдбаре; подписи табов — литералы HUB_TABS).
 NAV_TASK_LABELS: dict[str, str] = {
     "dashboard": _("Übersicht"),
-    # S2: пункт-хаб «Verkäufe» (доска + продажные списки/календари под tab-bar).
     "board": _("Verkäufe"),
-    "catalog": _("Sortiment"),
-    "stock": _("Lager"),
-    "categories": _("Kategorien"),
-    "combos": _("Kombi-Angebote"),
-    "imports": _("Import"),
-    "orders": _("Bestellungen"),
-    "booking": _("Termine"),
-    "stays": _("Übernachtungen"),
-    "events": _("Veranstaltungen"),
-    "jobs": _("Aufträge"),
-    "crm": _("Kunden"),
-    "campaigns": _("Kampagnen"),
-    "reviews": _("Bewertungen"),
-    # S4a: пункт-хаб «Marketing» (акции/отзывы/лояльность/публикация под tab-bar).
     "promotions": _("Marketing"),
-    "reservations": _("Reservierungen"),
-    "redeem": _("Einlösen"),
-    "vouchers": _("Gutscheine"),
-    "loyalty": _("Treuepunkte"),
-    "channels": _("Kanäle"),
-    "posts": _("Beiträge"),
-    "blog": _("Blog & News"),
-    "inbox": _("Nachrichten"),
-    "telegram": _("Telegram"),
-    "analytics": _("Auswertungen"),
-    "finance": _("Finanzen"),
-    "site": _("Website gestalten"),
     "settings": _("Einstellungen"),
-    "notifications": _("Benachrichtigungen"),
-    "languages": _("Sprachen"),
-    "legal-docs": _("Rechtstexte"),
-    "extras": _("Zusatzleistungen"),
-    "media": _("Medien"),
-    "domains": _("Domains"),
-    "modules": _("Funktionen"),
-    "support": _("Hilfe"),
-    "billing": _("Abrechnung"),
 }
 
 
-def nav_task_label(nav_key: str) -> str:
-    """AB1: подпись пункта сайдбара в языке задач по nav_key ("" → фолбэк на label)."""
-    return NAV_TASK_LABELS.get(nav_key, "")
-
-
-# ST-4b (одобрено владельцем 2026-07-19): компактный сайдбар «хабы + Website» —
-# плоский список якорей вместо групп AB1. Sortiment/Kunden/Finanzen/Auswertungen
-# достижимы через хаб-табы и «Funktion hinzufügen» — из первого уровня убраны.
-# classic_ui → пусто (шаблон рендерит прежний группированный сайдбар, Р7).
+# ST-4b: компактный сайдбар «хабы + Website» — плоский список якорей.
+# Sortiment/Kunden/Finanzen/Auswertungen достижимы через хаб-табы и
+# «Funktion hinzufügen». W-CL (2026-08-05): классик-сайдбар снесён.
 def _sales_nav_item(tenant) -> dict:
-    """Якорь «Verkäufe»: ведёт в представление ST-5b (архетип-дефолт/выбор
-    владельца) — у отеля это Belegungsplan (календарь = главная доска, запрос
-    владельца 2026-07-27), у магазина — лента заказов; Board открывается
-    дополнительно сегмент-контролом на самой странице. nav_key = nav целевой
-    страницы (подсветка актива)."""
-    from apps.core import orders_view as ov
-
-    url_name = ov.entry_url_name(tenant)
-    nav_key = {
-        "board": "board",
-        "orders:order-list": "orders",
-        "booking:calendar": "booking",
-        "stays:calendar": "stays",
-    }.get(url_name, "board")
+    """Якорь «Verkäufe» → единая страница продаж (W-CL: всегда verkaeufe;
+    вкладка/вид внутри — архетип-дефолт sales_page). nav_key "board" — его
+    отдают и legacy-страницы продаж (подсветка актива сохраняется)."""
     return {
-        "url_name": url_name,
-        "nav_key": nav_key,
+        "url_name": "verkaeufe",
+        "nav_key": "board",
         "icon": "🗂️",
         "label": NAV_TASK_LABELS["board"],
         "search": "verkäufe bestellungen termine board kalender belegungsplan",
@@ -651,10 +581,8 @@ def _sales_nav_item(tenant) -> dict:
 
 
 def sidebar_nav(tenant) -> list[dict]:
-    """Якоря компактного сайдбара (не-classic). Гейты — по активным модулям;
+    """Якоря компактного сайдбара. Гейты — по активным модулям;
     nav_key = значение `nav` целевой страницы (подсветка актива)."""
-    if classic_ui(tenant):
-        return []
     items = [
         {
             "url_name": "dashboard",
@@ -728,17 +656,6 @@ def is_simple(tenant) -> bool:
     return ui_mode(tenant) == "simple"
 
 
-# Страховка редизайна (запрос владельца 2026-07-18, трек ST): пер-тенантный флаг
-# «классический интерфейс». Дефолт — новый вид; True возвращает прежний хром там,
-# где вышел редизайн (сегодня: главная кабинета AB7 → классический дашборд; далее
-# ОБЯЗАТЕЛЕН для каждого ST-инкремента — легаси-шаблоны не удаляются, гейт флагом).
-# Хранение — плоский ключ site_config["classic_ui"] (сохраняется в normalize).
-def classic_ui(tenant) -> bool:
-    """True — владелец выбрал «Klassische Ansicht» (site_config["classic_ui"])."""
-    cfg = getattr(tenant, "site_config", None)
-    return isinstance(cfg, dict) and bool(cfg.get("classic_ui"))
-
-
 # Модули, скрываемые из сайдбара в Простом режиме (продвинутые отчёты/инструменты).
 # Скрытие — только из меню; страницы остаются доступны по URL. Расширяемо по фидбэку.
 SIMPLE_HIDDEN_MODULES: frozenset[str] = frozenset({"finance", "analytics"})
@@ -773,28 +690,6 @@ def simple_hidden_labels(tenant) -> list[str]:
     bt = getattr(tenant, "business_type", "") or ""
     hidden = SIMPLE_HIDDEN_MODULES | ARCHETYPE_SIMPLE_HIDDEN.get(bt, frozenset())
     return [spec.label_de for spec in active_modules(tenant) if spec.key in hidden]
-
-
-def grouped_active_modules(tenant) -> list[dict]:
-    """AB1: активные модули, сгруппированные по задачам (для сайдбара кабинета).
-
-    → [{"key", "label", "modules": [ModuleSpec, …]}] в порядке NAV_GROUPS; пустые
-    группы опускаются. Модуль без явной группы попадает в «sell» (бизнес-функции).
-    S5/S6b: в Простом режиме скрыты продвинутые (SIMPLE_HIDDEN_MODULES) и нерелевантные
-    архетипу (ARCHETYPE_SIMPLE_HIDDEN) модули — см. simple_hidden_modules()."""
-    hidden = simple_hidden_modules(tenant)
-    buckets: dict[str, list[ModuleSpec]] = {gkey: [] for gkey, _l, _k in NAV_GROUPS}
-    order = {mk: i for _g, _l, keys in NAV_GROUPS for i, mk in enumerate(keys)}
-    for spec in active_modules(tenant):
-        if spec.key in hidden:
-            continue
-        buckets[_GROUP_BY_KEY.get(spec.key, "sell")].append(spec)
-    groups = []
-    for gkey, label, _keys in NAV_GROUPS:
-        mods = sorted(buckets[gkey], key=lambda s: order.get(s.key, 99))
-        if mods:
-            groups.append({"key": gkey, "label": label, "modules": mods})
-    return groups
 
 
 def optional_modules() -> list[ModuleSpec]:

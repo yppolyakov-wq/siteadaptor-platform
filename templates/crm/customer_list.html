@@ -36,24 +36,6 @@
 </form>
 
 {% if page.items %}
-{% if classic_ui %}
-<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
-  {% for c in page.items %}
-    <a href="{% url 'crm:customer-detail' c.pk %}" class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
-      <div class="min-w-0">
-        <p class="font-medium truncate">{{ c }}</p>
-        <p class="text-xs text-gray-400 truncate">{{ c.email }}{% if c.phone %} · {{ c.phone }}{% endif %}</p>
-      </div>
-      <div class="flex items-center gap-1 shrink-0">
-        {% if c.company %}<span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">🏢 {{ c.company.name }}</span>{% endif %}
-        {% for t in c.tags %}
-          <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">{{ t }}</span>
-        {% endfor %}
-      </div>
-    </a>
-  {% endfor %}
-</div>
-{% else %}
 {% comment %}ST-5c: CRM-карточки — аватар-инициал, контакты, теги, LTV (батч из
 вьюхи; нет записей выручки → строка не показывается).{% endcomment %}
 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -76,7 +58,6 @@
     </a>
   {% endfor %}
 </div>
-{% endif %}
 
 {% if page.has_more %}
 <div class="mt-6 text-center">

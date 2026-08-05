@@ -127,10 +127,14 @@ def test_nav_includes_orders_when_active():
     tenant = TenantFactory.build()
     keys = [s.key for s in modules.active_modules(tenant)]
     assert "orders" in keys
-    # S2: заказы больше не отдельный пункт сайдбара — доступны вкладкой хаба «Verkäufe».
+    # S2/W-CL: заказы — не пункт сайдбара и не таб board-хаба; вход — единая
+    # страница продаж (vkладка kind=order у primary=catalog).
     spec = modules.get_module("orders")
     assert spec.nav_items == ()
-    assert any(t[0] == "orders:order-list" for t in HUB_TABS["board"])
+    assert not any(t[0] == "orders:order-list" for t in HUB_TABS["board"])
+    from apps.core import orders_view as ov
+
+    assert ov.entry_url_name(tenant) == "verkaeufe"
 
 
 # --- FB-4a: свои имена статусов заказа (кабинет-отображение) -----------------------

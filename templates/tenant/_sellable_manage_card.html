@@ -1,7 +1,7 @@
 {% load i18n %}
 {% comment %}ST-5a: карточка обзора продаваемой сущности (`it` = ManagedSellable) —
 фото 16:9 (фолбэк — эмодзи-плейсхолдер), имя/цена/статус, тот же тумблер
-видимости и «Bearbeiten», что у строки. classic_ui → _sellable_manage_row.{% endcomment %}
+видимости и «Bearbeiten», что у строки.{% endcomment %}
 <div class="bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col">
   <div class="aspect-video bg-gray-100 flex items-center justify-center overflow-hidden">
     {% if it.image_url %}<img src="{{ it.image_url }}" alt="" class="w-full h-full object-cover" loading="lazy">{% else %}<span class="text-4xl text-gray-300">🏷️</span>{% endif %}

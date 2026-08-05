@@ -2204,9 +2204,8 @@ def _normalize_impl(config) -> dict:
     # (дефолт expert → ключа нет → golden-паритет старых конфигов сохранён).
     if config.get("ui_mode") == "simple":
         normalized["ui_mode"] = "simple"
-    # Страховка редизайна (трек ST): «классический интерфейс» — ключ только при True.
-    if config.get("classic_ui"):
-        normalized["classic_ui"] = True
+    # W-CL (2026-08-05, решение владельца Р-1): режим «Klassische Ansicht» снесён —
+    # ключ classic_ui дропается нормализацией (паттерн retired-ключа orders_view ниже).
     # ST-1: тёмный Look витрины — ключ ТОЛЬКО при "dark" (presence-minimal,
     # golden-паритет; светлая = отсутствие ключа). Посетительский тумблер
     # sf-theme (localStorage) остаётся сильнее — это лишь ДЕФОЛТ сайта.

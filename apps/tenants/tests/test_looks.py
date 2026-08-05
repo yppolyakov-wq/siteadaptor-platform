@@ -171,20 +171,12 @@ def test_wizard_stil_slide_looks_gallery_and_apply():
 
     ctx = setup_steps._ctx_template(_req())
     assert [lk["key"] for lk in ctx["looks"]] == ["klar", "warm", "nacht"]
-    assert ctx["looks_classic"] is False
 
     # POST с look → применяется семейство (serif у warm), template игнорируется.
     setup_steps._post_template(_req("post", {"look": "warm", "template": "laden"}))
     tenant.refresh_from_db()
     assert tenant.site_config["font"] == "serif"
     assert tenant.primary_color == sitetemplates.look_accent("friseur", "warm")
-
-    # classic_ui → в контексте флаг classic (галерея Look'ов скрыта шаблоном).
-    cfg = dict(tenant.site_config)
-    cfg["classic_ui"] = True
-    tenant.site_config = cfg
-    tenant.save(update_fields=["site_config"])
-    assert setup_steps._ctx_template(_req())["looks_classic"] is True
 
 
 def test_wizard_stil_template_renders_lazy_iframes():
@@ -197,22 +189,11 @@ def test_wizard_stil_template_renders_lazy_iframes():
         {
             "templates": st.template_cards("bakery"),
             "looks": st.looks_for("bakery"),
-            "looks_classic": False,
         },
     )
     assert 'data-src="/?preview=1&look=klar"' in html
     assert 'data-src="/?preview=1&look=nacht"' in html
-    # classic: галереи Look'ов нет, легаси-галерея живёт
-    html_classic = render_to_string(
-        "tenant/setup/_step_stil.html",
-        {
-            "templates": st.template_cards("bakery"),
-            "looks": st.looks_for("bakery"),
-            "looks_classic": True,
-        },
-    )
-    assert "look-gallery" not in html_classic
-    assert 'name="template"' in html_classic
+    assert 'name="template"' in html  # легаси-галерея шаблонов живёт рядом
 
 
 # --- ST-1b: билдер — Look-карточки + round-trip темы -------------------------------
@@ -256,13 +237,9 @@ def test_builder_theme_roundtrip_and_look_cards():
     tenant.refresh_from_db()
     assert tenant.site_config["theme"] == "dark"
 
-    # classic_ui → карточек Look'ов нет (железное правило §8b).
-    cfg = dict(tenant.site_config)
-    cfg["classic_ui"] = True
-    tenant.site_config = cfg
-    tenant.save(update_fields=["site_config"])
+    # W-CL: карточки Look'ов в билдере — всегда (classic-гейт снесён).
     html = core_views.home_builder_view(_req()).content.decode()
-    assert "bld-look" not in html
+    assert "bld-look" in html
 
 
 def test_preview_draft_accepts_theme():

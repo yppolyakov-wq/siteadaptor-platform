@@ -53,13 +53,9 @@ def _filtered_customers(request):
 def customer_list(request):
     customers, query, firma = _filtered_customers(request)
     page = paginate(customers, order_field="created_at", limit=25, cursor=request.GET.get("cursor"))
-    # ST-5c: карточный грид (classic_ui → прежний список). LTV — ОДНИМ батч-
-    # запросом на страницу (25), не per-row (агрегация RevenueEntry как в
-    # customer360.kpis, но values+annotate по customer__in).
-    from apps.core import modules
-
-    classic = modules.classic_ui(getattr(request, "tenant", None))
-    if not classic and page.items:
+    # ST-5c: карточный грид. LTV — ОДНИМ батч-запросом на страницу (25), не
+    # per-row (агрегация RevenueEntry как в customer360.kpis, values+annotate).
+    if page.items:
         from django.db.models import Count, Sum
 
         from apps.finance.models import RevenueEntry
@@ -75,7 +71,7 @@ def customer_list(request):
     return render(
         request,
         "crm/customer_list.html",
-        {"nav": "crm", "page": page, "query": query, "firma": firma, "classic_ui": classic},
+        {"nav": "crm", "page": page, "query": query, "firma": firma},
     )
 
 

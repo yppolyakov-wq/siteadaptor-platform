@@ -38,15 +38,9 @@
     Навигация из реестра модулей (Track D / D0a): только активные модули тенанта.
     Каждый модуль — группа (data-group) для фильтра; пункт несёт data-label.
     {% endcomment %}
-    {% comment %}AB1 (анти-Битрикс): сайдбар сгруппирован по задачам (Mein Geschäft /
-    Verkaufen / Kunden & Marketing / Einstellungen), а не плоским тех-списком. Группы —
-    `nav_groups` (apps.core.modules.grouped_active_modules). Поиск по пунктам сохраняется
-    (data-label), пустые группы скрываются при фильтрации через JS.{% endcomment %}
     <nav id="dash-nav" class="space-y-0.5 text-sm px-5 pb-5 overflow-y-auto overscroll-contain flex-1 min-h-0">
-      {% if nav_compact %}
-      {% comment %}ST-4b (одобрено 2026-07-19): компактный сайдбар «хабы + Website» —
-      плоские якоря без групп; Sortiment/Kunden/Finanzen достижимы через хаб-табы.
-      classic_ui → nav_compact пуст → прежний группированный сайдбар ниже (Р7).{% endcomment %}
+      {% comment %}ST-4b: компактный сайдбар «хабы + Website» — плоские якоря;
+      Sortiment/Kunden/Finanzen достижимы через хаб-табы. W-CL: классик-ветка снесена.{% endcomment %}
       {% for it in nav_compact %}
       <a href="{% url it.url_name %}" data-label="{{ it.search }}"
          class="nav-link flex items-center gap-2.5 px-3 py-2 rounded-lg {% if nav == it.nav_key %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
@@ -62,52 +56,6 @@
         <span class="w-5 shrink-0 text-center text-base leading-none">➕</span>
         <span class="truncate">{% trans "Funktion hinzufügen" %}</span>
       </a>
-      {% else %}
-      {% comment %}FB-8: «Angebote» — единый обзор всех продаваемых сущностей (товар/услуга/
-      номер/событие). Кросс-катящий пункт над группами; виден при любом активном sellable-
-      модуле, поэтому находится и когда хаб «Sortiment» скрыт (отель в Простом режиме).{% endcomment %}
-      {% if has_sellables %}
-      <a href="{% url 'sellable-manage' %}" data-label="angebote produkte leistungen zimmer veranstaltungen alle sortiment"
-         class="nav-link flex items-center gap-2.5 px-3 py-2 mb-2 rounded-lg {% if nav == 'sellables' %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
-        <span class="w-5 shrink-0 text-center text-base leading-none">📦</span>
-        <span class="truncate">{% trans "Angebote" %}</span>
-      </a>
-      {% endif %}
-      {% for group in nav_groups %}
-        <div class="nav-group" data-nav-group>
-          {% comment %}#6: заголовок группы — кнопка-аккордеон (сворачивает пункты, состояние в
-             localStorage, активная группа всегда развёрнута; при поиске группы раскрываются).{% endcomment %}
-          <button type="button" data-nav-group-toggle aria-expanded="true"
-                  class="w-full flex items-center justify-between gap-2 px-3 pt-4 pb-1 hover:opacity-80">
-            <span class="text-[11px] font-semibold uppercase tracking-wider text-gray-400" data-nav-group-label>{{ group.label }}</span>
-            <span data-nav-group-chev class="text-gray-400 text-[10px] leading-none">▾</span>
-          </button>
-          <div data-nav-group-items class="space-y-0.5">
-          {% for module in group.modules %}
-            {% for item in module.nav_items %}
-              {% comment %}AB1: подпись в языке задач (nav_task_label по nav_key) с фолбэком
-                 на item.label; поиск ищет и по task-метке, и по прежней.{% endcomment %}
-              {% nav_task_label item.nav_key as task_label %}
-              <a href="{% url item.url_name %}" data-label="{{ task_label|lower }} {{ item.label|lower }} {{ module.label_de|lower }} {{ group.label|lower }}"
-                 class="nav-link flex items-center gap-2.5 px-3 py-2 rounded-lg {% if nav == item.nav_key %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
-                <span class="w-5 shrink-0 text-center text-base leading-none">{{ module.icon }}</span>
-                <span class="truncate">{{ task_label|default:item.label }}</span>
-                {% if item.url_name == 'crm:customer-list' %}{# M22b/S4b: бейдж непрочитанного на хабе «Kunden» (inbox — вкладка хаба; JS скрывает, если модуль выкл.) #}
-                <span data-inbox-badge data-url="{% url 'inbox:unread-count' %}" class="ml-auto hidden min-w-[1.25rem] text-center bg-rose-500 text-white text-[11px] font-semibold rounded-full px-1.5 py-0.5"></span>{% endif %}
-              </a>
-            {% endfor %}
-          {% endfor %}
-          </div>
-        </div>
-      {% endfor %}
-      <p id="nav-empty" class="hidden px-3 py-3 text-xs text-gray-400">{% trans "Nothing found." %}</p>
-      {# AB1: добавить функцию → страница «Module». #}
-      <a href="{% url 'modules' %}" class="nav-link flex items-center gap-2.5 px-3 py-2 mt-4 rounded-lg border border-dashed border-gray-300 text-gray-500 hover:border-indigo-400 hover:text-indigo-700"
-         data-label="{% trans 'add function module' %}">
-        <span class="w-5 shrink-0 text-center text-base leading-none">➕</span>
-        <span class="truncate">{% trans "Funktion hinzufügen" %}</span>
-      </a>
-      {% endif %}
     </nav>
   </aside>
 
@@ -226,61 +174,16 @@
     var empty = document.getElementById("nav-empty");
     filter.addEventListener("input", function () {
       var q = filter.value.trim().toLowerCase();
-      // #6: во время поиска временно раскрываем все группы (override .nav-collapsed),
-      // чтобы совпадения в свёрнутых группах показывались.
-      var navEl = document.getElementById("dash-nav");
-      if (navEl) navEl.classList.toggle("searching", !!q);
       var anyShown = false;
-      // W7b: компакт-сайдбар (ST-4b) рендерит плоские .nav-link БЕЗ обёрток
-      // .nav-group — фильтруем ссылки напрямую (иначе поиск ничего не скрывал и
-      // всегда показывал «Nothing found.»); группы классик-ветки прячем по
-      // отсутствию видимых совпадений внутри.
+      // W7b/W-CL: плоские .nav-link компакт-сайдбара — фильтруем напрямую.
       document.querySelectorAll("#dash-nav .nav-link").forEach(function (a) {
         var hit = !q || (a.getAttribute("data-label") || "").toLowerCase().indexOf(q) > -1;
         a.classList.toggle("hidden", !hit);
         if (hit) anyShown = true;
       });
-      document.querySelectorAll("#dash-nav .nav-group").forEach(function (g) {
-        g.classList.toggle("hidden", !g.querySelector(".nav-link:not(.hidden)"));
-      });
       if (empty) empty.classList.toggle("hidden", anyShown);
     });
   }
-})();
-</script>
-<style>
-/* #6: аккордеон-группы меню кабинета. */
-[data-nav-group-chev] { transition: transform .15s; }
-.nav-group.nav-collapsed [data-nav-group-items] { display: none; }
-.nav-group.nav-collapsed [data-nav-group-chev] { transform: rotate(-90deg); }
-#dash-nav.searching .nav-group [data-nav-group-items] { display: block !important; }
-</style>
-<script>
-(function () {
-  // #6: сворачиваемые группы меню кабинета — клик по заголовку, состояние в localStorage,
-  // группа с активным пунктом всегда развёрнута.
-  var nav = document.getElementById("dash-nav");
-  if (!nav) return;
-  var KEY = "dash_nav_collapsed";
-  function load() { try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) { return []; } }
-  function save(a) { try { localStorage.setItem(KEY, JSON.stringify(a)); } catch (e) {} }
-  function labelOf(g) { var l = g.querySelector("[data-nav-group-label]"); return l ? l.textContent.trim() : ""; }
-  var stored = load();
-  nav.querySelectorAll(".nav-group").forEach(function (g) {
-    var active = !!g.querySelector(".nav-link.bg-indigo-50");  // активная группа — не сворачиваем
-    if (!active && stored.indexOf(labelOf(g)) > -1) g.classList.add("nav-collapsed");
-    var btn = g.querySelector("[data-nav-group-toggle]");
-    if (!btn) return;
-    btn.setAttribute("aria-expanded", g.classList.contains("nav-collapsed") ? "false" : "true");
-    btn.addEventListener("click", function () {
-      var collapsed = g.classList.toggle("nav-collapsed");
-      btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
-      var a = load(), lab = labelOf(g), i = a.indexOf(lab);
-      if (collapsed && i < 0) a.push(lab);
-      if (!collapsed && i > -1) a.splice(i, 1);
-      save(a);
-    });
-  });
 })();
 </script>
 {% endblock %}

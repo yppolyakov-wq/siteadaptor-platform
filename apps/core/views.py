@@ -111,16 +111,12 @@ def dashboard(request):
         return redirect("setup")
 
     from apps.core import dashboard as dash
-    from apps.core import modules as modules_registry
     from apps.core import transactions
 
     setup_done, setup_total = onboarding.progress(request.tenant)
-    # Страховка редизайна: «Klassische Ansicht» — дашборд без плиток/канбана AB7
-    # (только прогресс мастера + чек-лист готовности; тумблер — на «Funktionen»).
-    classic = modules_registry.classic_ui(request.tenant)
     # AB7-B2: блочная главная — плитки задач + встроенный канбан (тот же партиал/DnD,
     # что на /dashboard/board/). Секции = активные транзакционные каналы (≤20 карт).
-    sections = [] if classic else transactions.manage_sections_for(request.tenant, limit=20)
+    sections = transactions.manage_sections_for(request.tenant, limit=20)
     kinds = [s["kind"] for s in sections]
     # Фидбэк владельца 2026-07-28: у отеля (orders_view=calendar) главный вид
     # продаж — Belegungsplan; встроенный канбан остаётся дополнением.
@@ -133,15 +129,14 @@ def dashboard(request):
         "tenant/dashboard.html",
         {
             "nav": "dashboard",
-            "classic_ui": classic,
             "setup_done": setup_done,
             "setup_total": setup_total,
             "setup_completed": onboarding.get_state(request.tenant)["completed"],
             "readiness": onboarding.completeness(request.tenant),  # AB4: чек-лист готовности
-            # ST-4a: виджеты «что сегодня» + 5 хаб-плиток (classic → пусто, Р7).
+            # ST-4a: виджеты «что сегодня» + 5 хаб-плиток.
             # Прежние task-плитки AB7 заменены (dashboard_tiles остаётся для истории).
-            "widgets": [] if classic else dash.home_widgets(request.tenant),
-            "hubs": [] if classic else dash.hub_tiles(request.tenant),
+            "widgets": dash.home_widgets(request.tenant),
+            "hubs": dash.hub_tiles(request.tenant),
             "sections": sections,  # AB7-B2: канбан на главной
             "active_kind": kinds[0] if kinds else "",
             # Отель/услуги: календарь — главный вид продаж (вход первым).
@@ -2958,30 +2953,10 @@ def set_ui_mode_view(request):
 
 
 @login_required
-@require_POST
-def set_classic_ui_view(request):
-    """Страховка редизайна (владелец 2026-07-18): тумблер «Klassische Ansicht».
-
-    Логика записи 1:1 с set_ui_mode_view: True — ключ classic_ui в site_config,
-    новый вид = отсутствие ключа (normalize сохраняет). Сегодня возвращает
-    классический дашборд (без плиток/канбана AB7); каждый следующий редизайн
-    (трек ST) обязан уважать флаг — легаси-шаблоны не удаляются."""
-    tenant = request.tenant
-    cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
-    if request.POST.get("classic_ui"):
-        cfg["classic_ui"] = True
-    else:
-        cfg.pop("classic_ui", None)
-    tenant.site_config = cfg
-    tenant.save(update_fields=["site_config", "updated_at"])
-    return redirect(_safe_dashboard_referer(request))
-
-
-@login_required
 def set_presence_view(request):
     """LS-2: режим присутствия «Jetzt erreichbar» (auto/on/off).
 
-    Targeted-write: правит ТОЛЬКО ключ presence (паттерн set-classic-ui) —
+    Targeted-write: правит ТОЛЬКО ключ presence —
     остальной site_config цел. auto = отсутствие ключа (presence-minimal)."""
     tenant = request.tenant
     cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
@@ -3125,13 +3100,10 @@ def verkaeufe(request):
     """Единая страница продаж (2026-08-03): вкладки по kind (primary всегда,
     прочие — при наличии продаж), в каждой — переключатель видов
     Kalender/Board/Liste. Переключение вкладки = обычная навигация `?tab=`
-    (неактивные вкладки не запрашиваются вовсе). classic_ui живёт на прежних
-    страницах — страховка редизайна (правило трека ST)."""
-    from apps.core import modules, orders_view, sales_page, transactions
+    (неактивные вкладки не запрашиваются вовсе)."""
+    from apps.core import sales_page, transactions
 
     tenant = request.tenant
-    if modules.classic_ui(tenant):
-        return redirect(orders_view.entry_url(tenant))
     kinds = sales_page.visible_kinds(tenant) or ["order"]
     active = request.GET.get("tab", "")
     if active not in kinds:
@@ -3533,7 +3505,6 @@ def sellable_manage(request):
     """FB-8: «Angebote» — один экран со всеми продаваемыми сущностями (товар/услуга/
     номер/событие/комбо): обзор + видимость + переход к РОДНОЙ форме. Единый CRUD НЕ
     делаем — родные формы остаются авторитетными."""
-    from apps.core import modules as modules_registry
     from apps.core import sellable_manage as sm
 
     tenant = request.tenant
@@ -3544,9 +3515,8 @@ def sellable_manage(request):
             "nav": "sellables",
             "sections": sm.sellable_manage_sections_for(tenant),
             "add_options": sm.add_options(tenant),
-            # ST-5a: карточный грид; classic_ui → прежний divide-y список (Р7).
+            # ST-5a: карточный грид.
             # Во вьюхе (не processor) — как dashboard: работает и на public-схеме.
-            "classic_ui": modules_registry.classic_ui(tenant),
         },
     )
 
@@ -3631,7 +3601,7 @@ def notifications_settings(request):
 def marketing_home(request):
     """ST-6a: Marketing-центр — лендинг с карточками в ROI-порядке ТЗ, read-only
     обзором авто-напоминаний и панелью результатов (готовые источники, только
-    чтение). Новая страница (ничего не заменяет) — classic-гейт не нужен
+    чтение). Новая страница (ничего не заменяет)
     (прецедент integrations_home)."""
     from apps.core import marketing_home as mh
 

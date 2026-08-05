@@ -43,7 +43,7 @@ def test_dashboard_nav_shows_icons_and_group_headers(rf, settings):
     # Иконка модуля рядом с пунктом (Angebote).
     assert "📦" in html
     # ST-4b (осознанная замена AB1-групп, одобрено 2026-07-19): компактный
-    # сайдбар — плоские якоря хабов; группы AB1 остаются в classic_ui (замок в
+    # сайдбар — плоские якоря хабов (замок в
     # test_sidebar_st4b). Здесь — состав компакт-вида.
     assert "Mein Geschäft" not in html
     assert 'href="/dashboard/marketing/"' in html
@@ -56,7 +56,7 @@ def test_dashboard_nav_shows_icons_and_group_headers(rf, settings):
     # теперь вкладки хаба на его страницах, а не отдельные пункты сайдбара).
     assert "Verkäufe" in html  # свод продаж, язык задач
     # ST-4b: якорь «Website» (короткая метка компакт-вида; «Website gestalten»
-    # остаётся в classic-группах).
+    # свёрнут в хабы).
     assert "Website" in html
     # S4a→ST-4b: «Marketing» — якорь компакт-сайдбара (ведёт в центр ST-6).
     assert "Marketing" in html

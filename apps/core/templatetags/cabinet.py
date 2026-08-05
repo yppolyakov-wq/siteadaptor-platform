@@ -35,13 +35,6 @@ def status_label(context, obj, kind="order"):
     return node.get(obj.status) or default
 
 
-@register.simple_tag
-def nav_task_label(nav_key):
-    """AB1: подпись пункта сайдбара в языке задач (nav_key → DE-метка) или "" —
-    тогда шаблон берёт фолбэк NavItem.label. Реестр — modules.NAV_TASK_LABELS."""
-    return modules.nav_task_label(nav_key or "")
-
-
 # S1/S2/S3 (упрощение кабинета): под-страницы хаба = tab-bar над контентом. Один пункт
 # сайдбара → страница-хаб с табами. Кортеж (url_name, метка, nav_key, module_key, advanced):
 # активный таб по context["nav"]; module_key (или None) — таб виден только при
@@ -54,23 +47,19 @@ HUB_TABS = {
         # W7b: обратный путь в хаб «Angebote» — раньше переход Angebote → Produkte
         # был односторонним (в catalog-баре входа «Angebote» не было).
         ("sellable-manage", _("Angebote"), "sellables", None, False),
-        ("catalog:product-list", _("Produkte"), "catalog", None, False),
-        ("catalog:category-list", _("Kategorien"), "categories", None, False),
-        ("stock", _("Lager"), "stock", None, False),
+        ("catalog:product-list", _("Produkte"), "catalog", "catalog", False),
+        ("catalog:category-list", _("Kategorien"), "categories", "catalog", False),
+        ("stock", _("Lager"), "stock", "catalog", False),
         # Склад-2 E3: закупки — в «Erweitert» (нужны еде/ритейлу, не захламляем прочих).
-        ("purchasing", _("Einkauf"), "purchasing", None, True),
-        ("catalog:combo-list", _("Kombi"), "combos", None, False),
-        ("imports:start", _("Import"), "imports", None, False),
+        ("purchasing", _("Einkauf"), "purchasing", "catalog", True),
+        ("catalog:combo-list", _("Kombi"), "combos", "catalog", False),
+        ("imports:start", _("Import"), "imports", "catalog", False),
         # W7b: подборки (UB3-2) — раньше без входа в хабах (только мелкие ссылки).
         ("collections:list", _("Kollektionen"), "collections", None, True),
     ),
-    # Verkäufe: доска (kanban, core) + продажные списки/календари. Табы продаж
-    # гейтятся по своему модулю — Friseur без Übernachtung/Tickets их не покажет.
+    # Verkäufe (W-CL): board/календари/список покрыты сегментом ST-5b и единой
+    # страницей — в реестре остаются только Tickets/Aufträge (уйдут в W10).
     "board": (
-        ("board", _("Board"), "board", "board", False),
-        ("orders:order-list", _("Bestellungen"), "orders", "orders", False),
-        ("booking:calendar", _("Termine"), "booking", "booking", False),
-        ("stays:calendar", _("Übernachtungen"), "stays", "stays", False),
         ("events:list", _("Tickets"), "events", "events", False),
         ("jobs:list", _("Aufträge"), "jobs", "jobs", False),
     ),
@@ -109,12 +98,12 @@ HUB_TABS = {
     # страницах каталога цел — это дубль-вход, не перенос).
     "sellables": (
         ("sellable-manage", _("Angebote"), "sellables", None, False),
-        ("catalog:product-list", _("Produkte"), "catalog", None, True),
-        ("catalog:category-list", _("Kategorien"), "categories", None, True),
-        ("stock", _("Lager"), "stock", None, True),
-        ("purchasing", _("Einkauf"), "purchasing", None, True),
-        ("catalog:combo-list", _("Kombi"), "combos", None, True),
-        ("imports:start", _("Import"), "imports", None, True),
+        ("catalog:product-list", _("Produkte"), "catalog", "catalog", True),
+        ("catalog:category-list", _("Kategorien"), "categories", "catalog", True),
+        ("stock", _("Lager"), "stock", "catalog", True),
+        ("purchasing", _("Einkauf"), "purchasing", "catalog", True),
+        ("catalog:combo-list", _("Kombi"), "combos", "catalog", True),
+        ("imports:start", _("Import"), "imports", "catalog", True),
         ("collections:list", _("Kollektionen"), "collections", None, True),  # W7b
     ),
     # Kunden (S4b): контакты + общение. Якорь-пункт «Kunden» на модуле crm; вкладки
@@ -162,15 +151,13 @@ def hub_tabs(context, hub):
     cur = context.get("nav")
     request = context.get("request")
     tenant = getattr(request, "tenant", None) if request is not None else None
-    # Фидбэк 2026-07-28: в хабе «Verkäufe» сегмент Kalender/Board/＋ (ST-5b)
-    # покрывает доску/календари/ленту — дублирующие hub-табы прячем (classic_ui
-    # без сегмента держит полный tab-bar).
-    covered = set()
-    if hub == "board" and tenant is not None and not modules.classic_ui(tenant):
-        covered = {"board", "orders:order-list", "booking:calendar", "stays:calendar"}
+    # W-CL (перенос §3.1): Простой режим прячет табы «продвинутых» модулей
+    # (finance/analytics) и нерелевантных архетипу (catalog у салона/отеля) —
+    # раньше это скрытие жило только в снесённом классик-сайдбаре.
+    hidden = modules.simple_hidden_modules(tenant) if tenant is not None else frozenset()
     tabs, more = [], []
     for u, lbl, k, mod, advanced in HUB_TABS.get(hub, ()):
-        if u in covered:
+        if mod is not None and mod in hidden:
             continue
         if mod is not None and tenant is not None and not modules.is_module_active(tenant, mod):
             continue
@@ -190,10 +177,10 @@ def icon(name, css="w-6 h-6"):
 @register.inclusion_tag("core/_orders_view_switch.html", takes_context=True)
 def orders_view_switch(context, active):
     """ST-5b: сегмент-контрол Канбан⇄Календарь⇄Лента на поверхностях хаба
-    «Verkäufe» (board/календари/список заказов). classic_ui → пусто (Р7)."""
+    «Verkäufe» (board/календари/список заказов)."""
     request = context.get("request")
     tenant = getattr(request, "tenant", None)
-    if tenant is None or modules.classic_ui(tenant):
+    if tenant is None:
         return {"options": []}
     from apps.core import orders_view as ov
 

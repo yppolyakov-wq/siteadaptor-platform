@@ -8382,3 +8382,39 @@ generic-Liste stay/booking сортируется по дате события; 
 Локальная валидация: полные прогоны затронутых app-суитов до/после — наборы
 фейлов идентичны (все — пред-существующий локальный класс «.mo не скомпилированы»,
 на CI зелёные). Коммиты 195f973 / 7fc3dea / 2862224.
+
+
+## 2026-08-05 — W-CL: снос classic_ui целиком (решение владельца Р-1 «удалить»)
+
+По плану `wcl-classic-ui-removal-plan-2026-08-05.md` (разведка — фоновый агент,
+полная карта; ловушка «nav_style=classic» витрины НЕ тронута). Снесено: тумблер
+«Klassische Ansicht» + endpoint set-classic-ui + маршрут; классик-сайдбар
+(_base_dashboard else-ветка, группы AB1) + аккордеон-JS/CSS + grouped_active_modules/
+NAV_GROUPS/_GROUP_BY_KEY/nav_task_label(тег и функция); classic-ветки dashboard/
+verkaeufe/sellable_manage/crm-списка/мастера(looks_classic)/Studio(рейка/брендинг/
+скрипт ST-3 теперь безусловны); orders_view.entry_url_name → константа "verkaeufe"
+(switch_options/resolve_view живут — их держат легаси-страницы и CTA главной);
+covered-логика hub_tabs упразднена — реестр board-хаба урезан до Tickets/Aufträge;
+NAV_TASK_LABELS сужен до 4 живых якорей; context: nav_groups/has_sellables/
+nav_modules удалены, nav_primary безусловен; normalize ДРОПАЕТ ключ classic_ui
+(паттерн retired-ключа orders_view); _sellable_manage_row.html удалён; правило §8b
+в studio-concept официально отменено.
+
+**Перенос §3.1 (не потерять функцию):** simple-скрытие меню жило ТОЛЬКО в
+классик-сайдбаре → перенесено в hub_tabs (гейт module_key ∈ simple_hidden_modules;
+каталожным табам обоих хабов проставлен module_key="catalog") — Простой режим
+ВПЕРВЫЕ работает в новом UI: прячет табы Finanzen/Auswertungen и каталожные табы
+нерелевантных архетипов (friseur/handwerker/events/hotel), подсказка тумблера
+стала правдой. Замки test_ui_mode переориентированы с grouped_active_modules на
+hub_tabs/simple_hidden_modules.
+
+**Тесты:** test_classic_ui.py удалён; classic-замки сняты ОСОЗНАННО
+(sidebar_st4b/st4_home/studio_shell/verkaeufe/sellable_manage/crm/hub_tabs/looks/
+orders_view/presence/modules — по карте разведки §4); board-хаб-замок в
+orders/test_cabinet обновлён (вход = verkaeufe). Попутные фиксы для fake-тенантов:
+is_module_active читает disabled_modules через getattr (W7b-табы с module_key
+падали на SimpleNamespace-тенантах test_media_registry).
+
+Грабля сессии: срез if/else/endif в шаблонах НЕЛЬЗЯ делать поиском первого
+{% else %} — внутри ветки бывают вложенные if со своими else (customer_list и
+_base_dashboard пришлось резать заново depth-aware по строкам).

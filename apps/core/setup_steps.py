@@ -365,15 +365,12 @@ def _ctx_business(request):
 def _ctx_template(request):
     # AB6.2b: шаблоны витрины как визуальные карточки с мини-мокапом раскладки
     # (акцент + стек секций) — рекомендованные типу сверху; выбор одним кликом.
-    # ST-1b: + 3 Look'а архетипа (живые scaled-iframe ?preview=1&look=) — в новом
-    # виде; classic_ui показывает только легаси-галерею (железное правило §8b).
-    from apps.core import modules as modules_registry
+    # ST-1b: + 3 Look'а архетипа (живые scaled-iframe ?preview=1&look=).
     from apps.tenants import sitetemplates
 
     return {
         "templates": sitetemplates.template_cards(request.tenant.business_type),
         "looks": sitetemplates.looks_for(request.tenant.business_type),
-        "looks_classic": modules_registry.classic_ui(request.tenant),
     }
 
 

@@ -1,6 +1,6 @@
 """ST-4b (одобрено 2026-07-19): компактный сайдбар «хабы + Website».
 
-Замки: состав/гейты якорей, classic_ui → прежний группированный сайдбар
+Замки: состав/гейты якорей
 (легаси-разметка цела), мобильный таб-бар = первая четвёрка, все url резолвятся.
 """
 
@@ -58,7 +58,7 @@ def test_sidebar_nav_composition_and_urls():
 
 def test_sidebar_nav_gates():
     # promotions выключен → нет якоря Marketing; «Angebote» остаётся всегда
-    # (catalog — core-модуль, гейт совпадает с прежним has_sellables FB-8).
+    # (catalog — core-модуль).
     t = TenantFactory(
         slug="sb2",
         name="Sb2",
@@ -67,20 +67,6 @@ def test_sidebar_nav_gates():
     keys = [it["url_name"] for it in modules.sidebar_nav(t)]
     assert "marketing-home" not in keys
     assert "verkaeufe" in keys and "settings" in keys and "sellable-manage" in keys
-
-
-def test_classic_keeps_grouped_sidebar():
-    # схема НЕ public: сайдбар собирает context-processor modules_nav (урок ST-3).
-    classic = TenantFactory(
-        schema_name="tenant_sb3",
-        slug="sb3",
-        name="Sb3",
-        business_type="bakery",
-        site_config={"onboarding": dict(_TOUCHED), "classic_ui": True},
-    )
-    assert modules.sidebar_nav(classic) == []
-    html = core_views.dashboard(_req(classic, "/dashboard/")).content.decode()
-    assert "Mein Geschäft" in html  # заголовок группы AB1 — легаси цел
 
 
 def test_compact_sidebar_renders_on_dashboard():
@@ -101,7 +87,7 @@ def test_compact_sidebar_renders_on_dashboard():
 def test_sales_anchor_respects_orders_view_default():
     """V4 (2026-08-03): якорь «Verkäufe» сайдбара ведёт на единую страницу
     продаж для ЛЮБОГО архетипа; легаси-маппинг (отель→Belegungsplan, магазин→
-    список) живёт под classic_ui и закреплён в test_orders_view. classic-сайдбар
+    список) закреплён в test_orders_view. Сайдбар
     рендерится легаси-веткой AB1 и якоря verkaeufe не несёт."""
     hotel = TenantFactory(
         slug="sbho", name="SbHo", business_type="hotel", disabled_modules=["events", "booking"]

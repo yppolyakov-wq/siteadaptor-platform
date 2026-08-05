@@ -34,7 +34,7 @@
 </form>
 
 {% comment %}ST-4a: виджеты «что сегодня» — хоум отвечает без кликов (план
-st4-admin-home-plan §1). classic_ui → widgets/hubs пустые (Р7).{% endcomment %}
+st4-admin-home-plan §1).{% endcomment %}
 {% if widgets %}
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
   {% for w in widgets %}
@@ -92,20 +92,10 @@ st4-admin-home-plan §1). classic_ui → widgets/hubs пустые (Р7).{% endc
 </div>
 {% endif %}
 
-{% comment %}Страховка редизайна: в «Klassische Ansicht» плитки/канбан скрыты (пустые
-списки из вьюхи) — подсказка, как вернуть новый вид (тумблер на «Funktionen»).{% endcomment %}
-{% if classic_ui %}
-  <p class="text-xs text-gray-400 mb-4">{% trans "Klassische Ansicht ist aktiv." %} <a href="{% url 'modules' %}" class="text-indigo-600 hover:underline">{% trans "Neue Startseite wieder einschalten" %} →</a></p>
-  <div class="grid sm:grid-cols-3 gap-3 mb-6">
-    <a href="{% url 'board' %}" class="bg-white rounded-xl shadow-sm px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">🗂️ {% trans "Tasks" %} →</a>
-    <a href="{% url 'site' %}" class="bg-white rounded-xl shadow-sm px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">🌐 {% trans "Your site" %} →</a>
-    <a href="{% url 'settings' %}" class="bg-white rounded-xl shadow-sm px-4 py-3 text-sm font-medium hover:ring-1 hover:ring-indigo-300">⚙️ {% trans "Settings" %} →</a>
-  </div>
-{% endif %}
 
 {% comment %}AB7-B2: канбан входящих задач прямо на главной — тот же партиал/DnD, что на
 /dashboard/board/ (полнофункциональный). Показываем только при активных каналах.{% endcomment %}
-{% if sales_is_calendar and not classic_ui %}
+{% if sales_is_calendar %}
 {# Фидбэк 2026-07-28: отель — Belegungsplan главный (вход первым), канбан ниже лишь дополнение. #}
 <a href="{{ sales_entry_url }}" class="flex items-center justify-between gap-3 bg-indigo-600 text-white rounded-2xl shadow-sm px-5 py-4 mb-4 hover:bg-indigo-700">
   {% comment %}W7b: гостиничная лексика («Anreisen & Zimmer») — только отелю; салону/

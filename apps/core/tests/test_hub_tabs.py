@@ -18,7 +18,6 @@ def test_catalog_nav_collapsed_to_one_hub():
     cat = modules.get_module("catalog")
     assert len(cat.nav_items) == 1  # 5 пунктов → 1 хаб
     assert cat.nav_items[0].nav_key == "catalog"
-    assert modules.nav_task_label("catalog") == "Sortiment"
 
 
 def _render(nav):
@@ -58,16 +57,15 @@ def _render_board(nav, tenant=None):
 
 
 def test_sales_nav_collapsed_into_verkauefe():
-    # 5 продажных пунктов сайдбара убраны (доступны табами хаба «Verkäufe»).
+    # 5 продажных пунктов сайдбара убраны (доступны через единую страницу продаж).
     for key in ("orders", "booking", "stays", "events", "jobs"):
         assert modules.get_module(key).nav_items == (), key
-    assert modules.nav_task_label("board") == "Verkäufe"
+    assert str(modules.NAV_TASK_LABELS["board"]) == "Verkäufe"
 
 
-def test_board_hub_hides_tabs_covered_by_segment():
-    """Фидбэк 2026-07-28: сегмент Kalender/Board/＋ (ST-5b) покрывает доску/
-    календари/ленту — дублирующие hub-табы скрыты; Tickets/Aufträge (не в
-    сегменте) остаются."""
+def test_board_hub_only_uncovered_tabs():
+    """W-CL: board/календари/список покрыты сегментом ST-5b и единой страницей —
+    в реестре board-хаба остались только Tickets/Aufträge."""
     html = _render_board("board", _fake_tenant())  # ничего не выключено
     for lbl in ("Board", "Bestellungen", "Termine", "Übernachtungen"):
         assert lbl not in html, lbl
@@ -75,32 +73,19 @@ def test_board_hub_hides_tabs_covered_by_segment():
         assert lbl in html, lbl
 
 
-def test_board_hub_full_in_classic_ui():
-    # classic_ui без сегмента → полный tab-bar как раньше.
-    tenant = _fake_tenant()
-    tenant.site_config = {"classic_ui": True}
-    html = _render_board("board", tenant)
-    for lbl in ("Board", "Bestellungen", "Termine", "Übernachtungen", "Tickets", "Aufträge"):
-        assert lbl in html, lbl
-    assert html.count('aria-selected="true"') == 1  # активна вкладка Board
-
-
 def test_board_hub_gates_inactive_modules():
-    # Классика, тенант без Übernachtung/Tickets — эти вкладки скрыты, остальные видны.
-    tenant = _fake_tenant(disabled=["stays", "events"])
-    tenant.site_config = {"classic_ui": True}
-    html = _render_board("orders", tenant)
-    assert "Übernachtungen" not in html
+    # Тенант без Tickets — вкладка скрыта, Aufträge видна.
+    tenant = _fake_tenant(disabled=["events"])
+    html = _render_board("jobs", tenant)
     assert "Tickets" not in html
-    for lbl in ("Board", "Bestellungen", "Termine", "Aufträge"):
-        assert lbl in html, lbl
-    assert html.count('aria-selected="true"') == 1  # активна вкладка Bestellungen
+    assert "Aufträge" in html
+    assert html.count('aria-selected="true"') == 1  # активна вкладка Aufträge
 
 
 def test_board_hub_fail_open_without_request():
-    # Без request/tenant в контексте (простой рендер) — гейт fail-open, все вкладки.
+    # Без request/tenant в контексте (простой рендер) — гейт fail-open.
     html = _render_board("board")
-    for lbl in ("Board", "Bestellungen", "Termine", "Übernachtungen", "Tickets", "Aufträge"):
+    for lbl in ("Tickets", "Aufträge"):
         assert lbl in html, lbl
 
 
@@ -113,8 +98,7 @@ def test_settings_nav_collapsed_to_website_plus_hub():
     # 10 пунктов настроек → 2: «Website» (билдер) + хаб «Einstellungen».
     keys = [n.nav_key for n in modules.get_module("settings").nav_items]
     assert keys == ["site", "settings"]
-    assert modules.nav_task_label("site") == "Website gestalten"
-    assert modules.nav_task_label("settings") == "Einstellungen"
+    assert str(modules.NAV_TASK_LABELS["settings"]) == "Einstellungen"
 
 
 def test_settings_hub_primary_and_advanced_tabs():
@@ -159,7 +143,7 @@ def _render_marketing(nav, tenant=None):
 def test_marketing_nav_collapsed_to_hub():
     # промо/отзывы/лояльность/публикация убраны из сайдбара → якорь «Marketing».
     assert modules.get_module("promotions").nav_items != ()  # якорь остаётся
-    assert modules.nav_task_label("promotions") == "Marketing"
+    assert str(modules.NAV_TASK_LABELS["promotions"]) == "Marketing"
     for key in ("reviews", "loyalty", "publishing"):
         assert modules.get_module(key).nav_items == (), key
     # «Kampagnen» переехали из CRM в хаб → у CRM остался один пункт-якорь.
@@ -198,7 +182,6 @@ def test_kunden_nav_collapsed_to_hub():
     # Nachrichten/Telegram убраны из сайдбара → вкладки хаба «Kunden» (якорь CRM).
     for key in ("inbox", "telegram"):
         assert modules.get_module(key).nav_items == (), key
-    assert modules.nav_task_label("crm") == "Kunden"
 
 
 def test_kunden_hub_all_tabs_when_active():
