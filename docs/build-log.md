@@ -8614,3 +8614,23 @@ events/jobs. Вкладки ticket/job на единой странице пол
 Замки: скан templates «никто не рендерит hub_tabs board» + входы с вкладок
 (test_verkaeufe 14). Локально core+events+jobs 1165, смежные шаблонные 50 —
 зелёные. W10-3 закрыт целиком (a+b).
+
+
+## 2026-08-05 — W10-4: вид «Heute» — kind-агностичные операционные колонки
+
+Единая страница продаж получила четвёртый вид «📆 Heute» (?view=heute — ссылка
+первой в ряду переключателя; сознательно НЕ персистится и не входит в
+KIND_VIEWS: это срез дня поверх любой вкладки, а не представление kind).
+`sales_page.heute_columns(tenant)`: Anreisen heute (arrival=today,
+ACTIVE_STATUSES — семантика 1:1 с виджетом PMS-A2) · Abreisen heute
+(departure=today, confirmed) · Termine heute (start__date=today, по времени) ·
+Abholbereit (ready, не доставка) · Lieferungen heute (ready + is_delivery;
+колонка видна при delivery_enabled или наличии позиций). Колонки гейтятся
+модулями, каждая fail-safe (_safe — сломанный блок не валит страницу), карточка
+ведёт на родную деталь (stays:booking-detail / booking:booking-detail /
+orders:order-detail). Виджет «Anreisen heute» главной deep-link'ается на
+verkaeufe?view=heute (stays:today остаётся легаси с мостиком W10-3b).
+Партиал `core/_sales_heute.html`: счётчик в шапке колонки, «Nichts für heute.»
+пустым состоянием. 4 msgid × 5 .po. Замки: рендер колонок отель/магазин
+(гость в Anreisen + ready-заказ в Abholbereit), кнопка в ряду видов,
+deep-link виджета. Локально verkaeufe 17, полный core 869 — зелёные.

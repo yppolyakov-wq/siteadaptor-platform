@@ -106,6 +106,128 @@ def resolve_view(tenant, kind: str, requested: str = "") -> str:
     return allowed[0]
 
 
+def heute_columns(tenant) -> list[dict]:
+    """W10-4: kind-агностичный вид «Heute» — операционный ответ на «что сегодня»:
+    заезды/выезды (stays, семантика = виджет PMS-A2), записи (booking), выдача/
+    доставка (orders, status=ready). Колонки гейтятся модулями и fail-safe
+    (сломанный блок не валит страницу); карточка ведёт на родную деталь."""
+    from django.urls import reverse
+    from django.utils import timezone
+
+    today = timezone.localdate()
+    cols = []
+
+    def _safe(fn):
+        try:
+            return fn()
+        except Exception:  # noqa: BLE001 — колонка одного модуля не валит «Heute»
+            return []
+
+    if tenant.is_module_active("stays"):
+        from apps.stays.models import StayBooking
+
+        def _stay_items(qs):
+            return [
+                {
+                    "title": s.customer.name or s.customer.email,
+                    "subtitle": str(s.unit),
+                    "url": reverse("stays:booking-detail", args=[s.pk]),
+                }
+                for s in qs.select_related("customer", "unit")[:50]
+            ]
+
+        cols.append(
+            {
+                "key": "anreise",
+                "icon": "🛎",
+                "label": _("Anreisen heute"),
+                "items": _safe(
+                    lambda: _stay_items(
+                        StayBooking.objects.filter(
+                            arrival=today, status__in=StayBooking.ACTIVE_STATUSES
+                        )
+                    )
+                ),
+            }
+        )
+        cols.append(
+            {
+                "key": "abreise",
+                "icon": "🧳",
+                "label": _("Abreisen heute"),
+                "items": _safe(
+                    lambda: _stay_items(
+                        StayBooking.objects.filter(
+                            departure=today, status=StayBooking.STATUS_CONFIRMED
+                        )
+                    )
+                ),
+            }
+        )
+    if tenant.is_module_active("booking"):
+        from apps.booking.models import Booking
+
+        def _termine():
+            out = []
+            qs = (
+                Booking.objects.filter(start__date=today, status__in=Booking.ACTIVE_STATUSES)
+                .select_related("customer", "resource", "service")
+                .order_by("start")[:50]
+            )
+            for b in qs:
+                when = timezone.localtime(b.start).strftime("%H:%M")
+                what = str(b.service) if b.service_id else str(b.resource)
+                out.append(
+                    {
+                        "title": f"{when} · {b.customer.name or b.customer.email}",
+                        "subtitle": what,
+                        "url": reverse("booking:booking-detail", args=[b.pk]),
+                    }
+                )
+            return out
+
+        cols.append(
+            {"key": "termine", "icon": "📅", "label": _("Termine heute"), "items": _safe(_termine)}
+        )
+    if tenant.is_module_active("orders"):
+        from apps.orders.models import Order
+
+        def _ready(delivery: bool):
+            out = []
+            qs = Order.objects.filter(status="ready").select_related("customer")[:100]
+            for o in qs:
+                if bool(o.is_delivery) is not delivery:
+                    continue
+                out.append(
+                    {
+                        "title": o.reference_code,
+                        "subtitle": o.customer.name if o.customer_id else "",
+                        "url": reverse("orders:order-detail", args=[o.pk]),
+                    }
+                )
+            return out[:50]
+
+        cols.append(
+            {
+                "key": "abholung",
+                "icon": "📦",
+                "label": _("Abholbereit"),
+                "items": _safe(lambda: _ready(delivery=False)),
+            }
+        )
+        lieferungen = _safe(lambda: _ready(delivery=True))
+        if lieferungen or getattr(tenant, "delivery_enabled", False):
+            cols.append(
+                {
+                    "key": "lieferung",
+                    "icon": "🚚",
+                    "label": _("Lieferungen heute"),
+                    "items": lieferungen,
+                }
+            )
+    return cols
+
+
 def tab_descriptors(tenant, active_kind: str) -> list[dict]:
     return [
         {

@@ -276,3 +276,58 @@ def test_board_hub_bar_not_rendered_in_templates():
         if 'hub_tabs "board"' in p.read_text(encoding="utf-8", errors="ignore")
     ]
     assert hits == []
+
+
+def test_heute_view_columns_by_archetype():
+    """W10-4: «Heute» — kind-агностичные колонки по активным модулям; карточки
+    ведут на родные детали; пустые колонки — честное «Nichts für heute»."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    # Отель: заезд сегодня → колонка Anreisen с именем гостя.
+    from apps.stays.models import Customer as StayCustomer
+    from apps.stays.models import StayBooking, StayUnit
+
+    today = timezone.localdate()
+    unit = StayUnit.objects.create(name="Doppelzimmer")
+    stay = StayBooking.objects.create(
+        unit=unit,
+        arrival=today,
+        departure=today + timedelta(days=2),
+        customer=StayCustomer.objects.create(name="Frau Ankunft", email="an@t.de"),
+        status="confirmed",
+    )
+    body = views.verkaeufe(_req(data={"view": "heute"}, **_hotel())).content.decode()
+    assert "data-sales-heute" in body
+    assert "Frau Ankunft" in body
+    assert f"/dashboard/stays/buchung/{stay.pk}/" in body
+    assert "Nichts für heute." in body  # выезды пусты — честное пустое состояние
+
+    # Магазин: ready-заказ в «Abholbereit».
+    from apps.catalog.tests.factories import ProductFactory
+    from apps.orders import services as order_services
+    from apps.orders.state_machine import OrderSM
+
+    order = order_services.create_order(
+        items=[(ProductFactory(name={"de": "Kuchen"}), 1)], name="Abholer", email="ab@t.de"
+    )
+    OrderSM().apply(order, "confirmed")
+    OrderSM().apply(order, "ready")
+    shop = dict(business_type="shop", disabled_modules=["events", "stays", "booking", "jobs"])
+    body = views.verkaeufe(_req(data={"view": "heute"}, **shop)).content.decode()
+    assert order.reference_code in body
+
+
+def test_heute_button_in_switch_row():
+    body = views.verkaeufe(_req(**_hotel())).content.decode()
+    assert "view=heute" in body  # кнопка «Heute» рядом с переключателем видов
+
+
+def test_stays_today_widget_deep_links_to_heute():
+    from apps.core import dashboard as dash
+
+    hotel = TenantFactory.build(**_hotel())
+    w = next((x for x in dash.home_widgets(hotel) if x.get("key") == "stays_today"), None)
+    if w is not None:
+        assert w["url_name"] == "verkaeufe" and w["url_query"] == "?view=heute"

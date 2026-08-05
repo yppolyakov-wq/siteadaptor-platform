@@ -17309,3 +17309,15 @@ msgstr "Присоединиться"
 
 msgid "Suche: Code, Name, E-Mail"
 msgstr "Поиск: код, имя, e-mail"
+
+msgid "Abreisen heute"
+msgstr "Выезды сегодня"
+
+msgid "Termine heute"
+msgstr "Записи на сегодня"
+
+msgid "Lieferungen heute"
+msgstr "Доставки сегодня"
+
+msgid "Nichts für heute."
+msgstr "На сегодня ничего."

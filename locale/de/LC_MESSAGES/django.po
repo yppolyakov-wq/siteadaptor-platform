@@ -17268,3 +17268,15 @@ msgstr "Beitreten"
 
 msgid "Suche: Code, Name, E-Mail"
 msgstr "Suche: Code, Name, E-Mail"
+
+msgid "Abreisen heute"
+msgstr "Abreisen heute"
+
+msgid "Termine heute"
+msgstr "Termine heute"
+
+msgid "Lieferungen heute"
+msgstr "Lieferungen heute"
+
+msgid "Nichts für heute."
+msgstr "Nichts für heute."

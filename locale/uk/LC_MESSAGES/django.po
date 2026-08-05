@@ -17294,3 +17294,15 @@ msgstr "Приєднатися"
 
 msgid "Suche: Code, Name, E-Mail"
 msgstr "Пошук: код, ім'я, e-mail"
+
+msgid "Abreisen heute"
+msgstr "Виїзди сьогодні"
+
+msgid "Termine heute"
+msgstr "Записи на сьогодні"
+
+msgid "Lieferungen heute"
+msgstr "Доставки сьогодні"
+
+msgid "Nichts für heute."
+msgstr "На сьогодні нічого."

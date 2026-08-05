@@ -17229,3 +17229,15 @@ msgstr "Katıl"
 
 msgid "Suche: Code, Name, E-Mail"
 msgstr "Ara: kod, ad, e-posta"
+
+msgid "Abreisen heute"
+msgstr "Bugünkü çıkışlar"
+
+msgid "Termine heute"
+msgstr "Bugünkü randevular"
+
+msgid "Lieferungen heute"
+msgstr "Bugünkü teslimatlar"
+
+msgid "Nichts für heute."
+msgstr "Bugün için bir şey yok."

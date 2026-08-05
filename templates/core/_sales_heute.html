@@ -1,0 +1,26 @@
+{% load i18n %}
+{% comment %}W10-4: вид «Heute» единой страницы продаж — операционные колонки
+«что сегодня» (заезды/выезды/записи/выдача/доставка). Колонки гейтятся модулями
+во вьюхе (sales_page.heute_columns); карточка ведёт на родную деталь.{% endcomment %}
+<div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4" data-sales-heute>
+  {% for col in heute_columns %}
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between">
+        <span class="text-sm font-semibold text-gray-700">{{ col.icon }} {{ col.label }}</span>
+        <span class="text-xs rounded-full px-2 py-0.5 {% if col.items %}bg-indigo-50 text-indigo-700{% else %}bg-gray-100 text-gray-400{% endif %}">{{ col.items|length }}</span>
+      </div>
+      <div class="divide-y divide-gray-50">
+        {% for it in col.items %}
+          <a href="{{ it.url }}" class="block px-4 py-2.5 hover:bg-gray-50">
+            <span class="block text-sm font-medium text-gray-800">{{ it.title }}</span>
+            {% if it.subtitle %}<span class="block text-xs text-gray-400 mt-0.5">{{ it.subtitle }}</span>{% endif %}
+          </a>
+        {% empty %}
+          <p class="px-4 py-4 text-sm text-gray-400">{% trans "Nichts für heute." %}</p>
+        {% endfor %}
+      </div>
+    </div>
+  {% empty %}
+    <p class="text-sm text-gray-400">{% trans "Keine aktiven Verkaufsmodule." %}</p>
+  {% endfor %}
+</div>

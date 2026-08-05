@@ -3146,6 +3146,10 @@ def verkaeufe(request):
     if active not in kinds:
         active = kinds[0]
     view = sales_page.resolve_view(tenant, active, request.GET.get("view", ""))
+    # W10-4: kind-агностичный вид «Heute» (?view=heute) — не персистится и не
+    # входит в KIND_VIEWS (переключатель видов остаётся per-kind).
+    if request.GET.get("view") == "heute":
+        view = "heute"
     # W10-3: «＋» из любого вида — цель создания по kind (есть только у
     # календарных движков: walk-in формы живут в их телах/на stay-new).
     create_target = ""
@@ -3161,7 +3165,9 @@ def verkaeufe(request):
         "active_view": view,
         "create_target": create_target,
     }
-    if view == "kalender" and active == "stay":
+    if view == "heute":
+        ctx["heute_columns"] = sales_page.heute_columns(tenant)
+    elif view == "kalender" and active == "stay":
         from apps.stays.views import calendar_context as stays_calendar_context
 
         sub = stays_calendar_context(request)

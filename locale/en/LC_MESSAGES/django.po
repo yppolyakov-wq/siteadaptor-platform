@@ -17117,3 +17117,15 @@ msgstr "Join"
 
 msgid "Suche: Code, Name, E-Mail"
 msgstr "Search: code, name, e-mail"
+
+msgid "Abreisen heute"
+msgstr "Departures today"
+
+msgid "Termine heute"
+msgstr "Appointments today"
+
+msgid "Lieferungen heute"
+msgstr "Deliveries today"
+
+msgid "Nichts für heute."
+msgstr "Nothing for today."

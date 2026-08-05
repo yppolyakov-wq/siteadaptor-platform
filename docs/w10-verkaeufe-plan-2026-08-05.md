@@ -93,3 +93,10 @@ CI → FF-merge. Характеризационные замки ДО перен
   einer Seite»; вкладки ticket/job на Verkäufe получили вход в полные
   управляющие экраны (events:list/jobs:list). Замки: «ни один шаблон не рендерит
   board-бар» (скан) + входы с вкладок. W10-3 закрыт целиком.
+- **W10-4 ✅** (2026-08-05): «Heute» — kind-агностичный вид (`?view=heute`,
+  кнопка-ссылка первой в ряду переключателя; НЕ персистится и не в KIND_VIEWS).
+  `sales_page.heute_columns`: Anreisen/Abreisen (семантика = виджет PMS-A2) ·
+  Termine heute · Abholbereit · Lieferungen heute (колонка при delivery_enabled
+  или наличии) — гейты модулями, каждая колонка fail-safe, карточки ведут на
+  родные детали. Виджет «Anreisen heute» главной → `verkaeufe?view=heute`
+  (stays:today — легаси с мостиком W10-3b). 4 msgid × 5 .po; 3 замка.
