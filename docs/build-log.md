@@ -8675,3 +8675,16 @@ Verkäufe убрана (вела бы в редирект-петлю); «📋 He
 test_w10_redirects (302+GET-carry ×4, «нет петли» — цель рендерится 200,
 полные страницы не 302); test_today_view_sections проверяет все секции
 (вкл. Im Haus) на виде «Heute». ВОЛНА W10 (W10-1..W10-6) ЗАКРЫТА — без миграций.
+
+
+## 2026-08-05 — W11-1: Kunden влит в Marketing (Р-2)
+
+Хаб «kunden» удалён из nav_registry (HUBS/ENTRIES; Marketing-якорь без
+hubs="kunden") — «молчаливая подмена таб-бара» между crm/inbox/telegram и
+остальным маркетингом умерла. Kontakte/Nachrichten — ПРЯМЫЕ табы Marketing
+(группа «Ruf & Dialog» плана §2.5; дубли-записи Erweitert схлопнуты), Telegram
+остаётся в Erweitert. 4 шаблона (crm×2/inbox/telegram) рендерят
+hub_tabs "marketing". Замки kunden-секции test_hub_tabs переписаны осознанно:
+«хаб мёртв + пустой рендер не 500», «Kontakte/Nachrichten прямые, Telegram в
+ящике», гейт по модулю на новом хабе. Подсветка якоря цела (записи marketing).
+Локально crm+inbox+telegram+core 967 зелёных.

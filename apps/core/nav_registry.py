@@ -76,7 +76,7 @@ ANCHORS: tuple[Anchor, ...] = (
         "marketing aktionen kunden kampagnen nachrichten bewertungen",
         module_key="promotions",
         badge="inbox",
-        hubs=("marketing", "kunden"),
+        hubs=("marketing",),
     ),
     # W9-9 (Р-3): «Integrationen» ушёл из якорей сайдбара — вкладка Einstellungen.
     Anchor("site", _("Website"), "site", "✏️", "website gestalten studio design"),
@@ -167,6 +167,10 @@ ENTRIES: tuple[NavEntry, ...] = (
         search="coupon winback",
     ),
     _e("marketing", "promotions:voucher-list", _("Gutscheine"), "vouchers", "loyalty"),
+    # W11-1 (Р-2): Kunden влит в Marketing — Kontakte/Nachrichten прямыми табами
+    # («Ruf & Dialog»), Telegram остаётся в Erweitert.
+    _e("marketing", "crm:customer-list", _("Kontakte"), "crm", "crm", search="kunden crm"),
+    _e("marketing", "inbox:list", _("Nachrichten"), "inbox", "inbox", search="chat posteingang"),
     _e(
         "marketing",
         "promotions:reservation-list",
@@ -185,8 +189,6 @@ ENTRIES: tuple[NavEntry, ...] = (
         True,
         "bonus",
     ),
-    _e("marketing", "crm:customer-list", _("Kontakte"), "crm", "crm", True, "kunden crm"),
-    _e("marketing", "inbox:list", _("Nachrichten"), "inbox", "inbox", True, "chat posteingang"),
     _e("marketing", "telegram-settings", _("Telegram"), "telegram", "telegram", True, "bot"),
     _e(
         "marketing",
@@ -217,10 +219,8 @@ ENTRIES: tuple[NavEntry, ...] = (
     _e("sellables", "catalog:combo-list", _("Kombi"), "combos", "catalog", True),
     _e("sellables", "imports:start", _("Import"), "imports", "catalog", True),
     _e("sellables", "collections:list", _("Kollektionen"), "collections", None, True),
-    # Kunden (страницы crm/inbox/telegram; слияние с Marketing — W11).
-    _e("kunden", "crm:customer-list", _("Kontakte"), "crm", "crm"),
-    _e("kunden", "inbox:list", _("Nachrichten"), "inbox", "inbox"),
-    _e("kunden", "telegram-settings", _("Telegram"), "telegram", "telegram"),
+    # W11-1: хаб «Kunden» удалён (Р-2) — страницы crm/inbox/telegram рендерят
+    # marketing-хаб («молчаливая подмена таб-бара» умерла).
     # Einstellungen (W9-1: «базовые + по типам»; порядок = целевая структура §2.3).
     _e(
         "settings",
@@ -307,7 +307,7 @@ ENTRIES: tuple[NavEntry, ...] = (
     _e("settings", "support:help", _("Hilfe"), "support", None, True, "anleitung hilfe"),
 )
 
-HUBS: tuple[str, ...] = ("catalog", "board", "marketing", "sellables", "kunden", "settings")
+HUBS: tuple[str, ...] = ("catalog", "board", "marketing", "sellables", "settings")
 
 
 def legacy_hub_tabs() -> dict:

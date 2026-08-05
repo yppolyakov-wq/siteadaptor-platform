@@ -171,29 +171,37 @@ def test_marketing_hub_gates_by_module():
     assert "Aktionen" in html  # promotions активен
 
 
-# --- S4b: хаб «Kunden» (контакты + общение) ----------------------------------
-def _render_kunden(nav, tenant=None):
-    ctx = {"nav": nav}
-    if tenant is not None:
-        ctx["request"] = SimpleNamespace(tenant=tenant)
-    return Template('{% load cabinet %}{% hub_tabs "kunden" %}').render(Context(ctx))
+# --- W11-1 (Р-2): хаб «Kunden» влит в Marketing --------------------------------
+def test_kunden_hub_is_gone_pages_render_marketing():
+    """Kunden-хаб удалён из реестра; crm/inbox/telegram — вкладки Marketing
+    («молчаливая подмена таб-бара» умерла)."""
+    from apps.core import nav_registry
+    from apps.core.templatetags.cabinet import HUB_TABS
 
-
-def test_kunden_nav_collapsed_to_hub():
-    # Nachrichten/Telegram убраны из сайдбара → вкладки хаба «Kunden» (якорь CRM).
+    assert "kunden" not in nav_registry.HUBS
+    assert "kunden" not in HUB_TABS
+    assert not any(e.hub == "kunden" for e in nav_registry.ENTRIES)
+    # Пустой рендер бывшего хаба — не 500 (unknown hub → "")
+    out = Template('{% load cabinet %}{% hub_tabs "kunden" %}').render(Context({"nav": "crm"}))
+    assert out.strip() == ""
     for key in ("inbox", "telegram"):
         assert modules.get_module(key).nav_items == (), key
 
 
-def test_kunden_hub_all_tabs_when_active():
-    html = _render_kunden("crm", _fake_tenant())
-    for lbl in ("Kontakte", "Nachrichten", "Telegram"):
-        assert lbl in html, lbl
+def test_kontakte_nachrichten_are_direct_marketing_tabs():
+    # Прямые табы (не Erweitert): группа «Ruf & Dialog»; Telegram — в ящике.
+    html = _render_marketing("crm", _fake_tenant())
     assert html.count('aria-selected="true"') == 1  # активна Kontakte
+    from apps.core.templatetags.cabinet import HUB_TABS
+
+    direct = {str(t[1]) for t in HUB_TABS["marketing"] if not t[4]}
+    assert {"Kontakte", "Nachrichten"} <= direct
+    advanced = {str(t[1]) for t in HUB_TABS["marketing"] if t[4]}
+    assert "Telegram" in advanced
 
 
-def test_kunden_hub_gates_by_module():
-    # Без inbox — вкладка Nachrichten скрыта.
-    html = _render_kunden("crm", _fake_tenant(disabled=["inbox"]))
+def test_kunden_pages_gate_by_module_on_marketing_hub():
+    # Без inbox — вкладка Nachrichten скрыта; Kontakte видна.
+    html = _render_marketing("crm", _fake_tenant(disabled=["inbox"]))
     assert "Nachrichten" not in html
     assert "Kontakte" in html

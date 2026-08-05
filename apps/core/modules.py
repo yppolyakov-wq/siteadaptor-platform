@@ -396,7 +396,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         key="inbox",
         label_de=_("Nachrichten (Chat & Support)"),
         icon="💬",
-        # S4b: вкладка хаба «Kunden» (cabinet.HUB_TABS["kunden"]); url_prefix = гейт.
+        # S4b: вкладка Marketing-хаба (W11-1: Kunden влит); url_prefix = гейт.
         nav_items=(),
         url_prefixes=("/dashboard/inbox/",),
         # Коммуникация — универсальный блок, включён из коробки у всех вертикалей
@@ -438,7 +438,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         key="telegram",
         label_de=_("Telegram-Bot"),
         icon="✈️",
-        # S4b: вкладка хаба «Kunden» (cabinet.HUB_TABS["kunden"]); url_prefix = гейт.
+        # S4b: вкладка Marketing-хаба (W11-1: Kunden влит); url_prefix = гейт.
         nav_items=(),
         url_prefixes=("/dashboard/telegram/",),
         # Универсальный opt-in (как finance/jobs) — выключен по умолчанию у всех.
