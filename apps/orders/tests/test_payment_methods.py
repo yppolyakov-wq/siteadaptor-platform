@@ -230,7 +230,9 @@ def test_vorkasse_settings_save_and_normalize():
         }
     )
     request.tenant = tenant
-    views.order_settings(request)
+    # W7a: легаси-ветка vorkasse в order_settings удалена — семантику сохранения
+    # держит helper (его зовёт единый экран «Zahlung & Versand»).
+    views.save_vorkasse(tenant, request)
     tenant.refresh_from_db()
     assert tenant.vorkasse_enabled is True
     assert tenant.bank_holder == "Bäckerei Sonne GmbH"
@@ -242,7 +244,7 @@ def test_vorkasse_settings_do_not_clobber_prepay():
     tenant = TenantFactory(orders_prepay=True)
     request = _cab_req({"form": "vorkasse", "vorkasse_enabled": "on", "bank_iban": "DE1"})
     request.tenant = tenant
-    views.order_settings(request)
+    views.save_vorkasse(tenant, request)  # W7a: см. комментарий выше
     tenant.refresh_from_db()
     assert tenant.orders_prepay is True  # соседняя форма не сброшена
     assert tenant.vorkasse_enabled is True

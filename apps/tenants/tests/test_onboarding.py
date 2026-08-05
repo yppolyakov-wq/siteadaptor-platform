@@ -183,9 +183,9 @@ def test_completeness_offer_is_archetype_aware(settings):
 
 
 def test_completeness_offer_safe_for_jobs_primary(settings):
-    """W3: у Handwerker (jobs primary, booking выкл) пункт «offer» ведёт в БЕЗОПАСНЫЙ
-    список (catalog — core, всегда активен), а НЕ в /dashboard/booking/ (Http404-гейт
-    при выключенном booking). jobs — CTA-архетип без «добавь товар»-флоу → generic-фолбэк."""
+    """W7b (обновление замка W3): у Handwerker (jobs primary) пункт «offer» ведёт
+    в Aufträge (jobs:list — модуль jobs у него активен, Http404 нет), а не в чужой
+    каталог товаров, как делал прежний generic-фолбэк."""
     from django.urls import reverse
 
     from apps.core import modules
@@ -201,5 +201,5 @@ def test_completeness_offer_safe_for_jobs_primary(settings):
 
     assert archetypes.primary_module(t) == "jobs"  # jobs primary, не catalog
     offer = next(i for i in onboarding.completeness(t)["items"] if i["key"] == "offer")
-    assert offer["url_name"] == "catalog:product-list"  # core → без Http404
+    assert offer["url_name"] == "jobs:list"  # jobs primary и активен → без Http404
     assert reverse(offer["url_name"])
