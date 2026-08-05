@@ -17017,3 +17017,33 @@ msgstr "Art.-Nr."
 
 msgid "Tick two or more products first — they become one card with variants."
 msgstr "Zuerst zwei oder mehr Produkte anhaken — sie werden zu einer Karte mit Varianten."
+
+msgid "Zeitraum wieder geöffnet."
+msgstr "Zeitraum wieder geöffnet."
+
+msgid "Zeitraum blockiert — diese Tage sind nicht mehr buchbar."
+msgstr "Zeitraum blockiert — diese Tage sind nicht mehr buchbar."
+
+msgid "Tage blockieren (Urlaub, Ruhetage)"
+msgstr "Tage blockieren (Urlaub, Ruhetage)"
+
+msgid "Tage blockieren"
+msgstr "Tage blockieren"
+
+msgid "Zeitraum blockieren"
+msgstr "Zeitraum blockieren"
+
+msgid "z. B. Urlaub — Termine sind dann nicht buchbar"
+msgstr "z. B. Urlaub — Termine sind dann nicht buchbar"
+
+msgid "Until"
+msgstr "Bis"
+
+msgid "Urlaub"
+msgstr "Urlaub"
+
+msgid "Blockieren"
+msgstr "Blockieren"
+
+msgid "Wieder öffnen"
+msgstr "Wieder öffnen"

@@ -25,4 +25,6 @@ tab= (вкладка Verkäufe) — паттерн навигации _tagesplan
       </a>
     {% endfor %}
   </div>
+  {# Фидбэк 2026-08-04: блок дат решением владельца — прямой вход с календаря. #}
+  <a href="{% url 'booking:availability' %}" class="block mt-2 text-xs text-indigo-600 hover:underline">🚫 {% trans "Tage blockieren (Urlaub, Ruhetage)" %} →</a>
 </div>

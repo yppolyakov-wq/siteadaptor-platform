@@ -113,6 +113,27 @@ def test_calendar_month_grid_counts_and_navigation():
     assert f'tag={local_day.isoformat()}"' in body
 
 
+def test_availability_range_block_and_reopen():
+    """Фидбэк 2026-08-04: «зарезервировать даты решением владельца» — блок
+    диапазона одной формой (идемпотентно), «wieder öffnen» снимает его."""
+    from apps.booking.models import ClosedDate
+
+    _resource()
+    von = timezone.localdate() + timedelta(days=10)
+    bis = von + timedelta(days=3)
+    data = {"action": "range", "von": von.isoformat(), "bis": bis.isoformat(), "reason": "Urlaub"}
+    resp = views.availability_calendar(_req("post", data=data))
+    assert resp.status_code == 302
+    assert ClosedDate.objects.filter(resource__isnull=True).count() == 4
+    assert ClosedDate.objects.filter(date=von, reason="Urlaub").exists()
+    # повторный блок того же диапазона дубликатов не плодит
+    views.availability_calendar(_req("post", data=data))
+    assert ClosedDate.objects.count() == 4
+    # wieder öffnen — диапазон снят
+    views.availability_calendar(_req("post", data={**data, "mode": "open"}))
+    assert ClosedDate.objects.count() == 0
+
+
 def test_action_confirm_and_move_conflict():
     resource = _resource()
     slot_a = _slot(days_ahead=7, hour=12)

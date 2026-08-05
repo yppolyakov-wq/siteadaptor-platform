@@ -269,6 +269,37 @@ def availability_calendar(request):
     resources_qs = list(Resource.objects.filter(is_active=True))
     chosen = next((r for r in resources_qs if str(r.pk) == request.GET.get("resource", "")), None)
 
+    if request.method == "POST" and request.POST.get("action") == "range":
+        # Фидбэк 2026-08-04: «зарезервировать даты решением владельца» — блок
+        # ЦЕЛОГО диапазона (отпуск/санитарные дни) одной формой, не кликами по
+        # дням. Идемпотентно; «wieder öffnen» снимает блок того же диапазона.
+        von = _parse_day_or_none(request.POST.get("von"))
+        bis = _parse_day_or_none(request.POST.get("bis"))
+        if von is None or bis is None or bis < von or (bis - von).days > 366:
+            messages.error(request, _("Invalid date."))
+        else:
+            span = [von + timedelta(days=i) for i in range((bis - von).days + 1)]
+            if request.POST.get("mode") == "open":
+                ClosedDate.objects.filter(date__in=span, resource=chosen).delete()
+                messages.success(request, _("Zeitraum wieder geöffnet."))
+            else:
+                existing = set(
+                    ClosedDate.objects.filter(date__in=span, resource=chosen).values_list(
+                        "date", flat=True
+                    )
+                )
+                reason = request.POST.get("reason", "").strip()[:120]
+                ClosedDate.objects.bulk_create(
+                    [
+                        ClosedDate(date=d, resource=chosen, reason=reason)
+                        for d in span
+                        if d not in existing
+                    ]
+                )
+                messages.success(
+                    request, _("Zeitraum blockiert — diese Tage sind nicht mehr buchbar.")
+                )
+        return redirect(_calendar_url(first, chosen))
     if request.method == "POST":
         day = _parse_day_or_none(request.POST.get("date"))
         if day is None:

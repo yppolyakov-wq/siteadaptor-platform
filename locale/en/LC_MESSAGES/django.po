@@ -16866,3 +16866,33 @@ msgstr "Item no."
 
 msgid "Tick two or more products first — they become one card with variants."
 msgstr "Tick two or more products first — they become one card with variants."
+
+msgid "Zeitraum wieder geöffnet."
+msgstr "Date range reopened."
+
+msgid "Zeitraum blockiert — diese Tage sind nicht mehr buchbar."
+msgstr "Date range blocked — these days can no longer be booked."
+
+msgid "Tage blockieren (Urlaub, Ruhetage)"
+msgstr "Block days (vacation, days off)"
+
+msgid "Tage blockieren"
+msgstr "Block days"
+
+msgid "Zeitraum blockieren"
+msgstr "Block a date range"
+
+msgid "z. B. Urlaub — Termine sind dann nicht buchbar"
+msgstr "e.g. vacation — appointments can no longer be booked"
+
+msgid "Until"
+msgstr "Until"
+
+msgid "Urlaub"
+msgstr "Vacation"
+
+msgid "Blockieren"
+msgstr "Block"
+
+msgid "Wieder öffnen"
+msgstr "Reopen"

@@ -179,6 +179,30 @@ def test_slots_page_renders_and_selects():
     assert 'name="start"' in body and "Jetzt buchen" in body
 
 
+def test_specialist_picker_only_for_staff_resources():
+    """Фидбэк 2026-08-04 («зачем отелю выбор специалиста?»): пикер ресурсов на
+    странице услуги — только когда ресурсы — люди с профилем (фото/должность/
+    био). Технические (Wellnessbereich/Rezeption) гость не выбирает."""
+    from apps.booking.models import Service
+
+    first, second = _resource(), _resource()
+    service = Service.objects.create(name="Massage T", price_cents=5000, duration_minutes=60)
+
+    def _body():
+        return public_views.service_slots(
+            _req(path=f"/termin/leistung/{service.pk}/", data={"tag": DAY.isoformat()}),
+            pk=service.pk,
+        ).content.decode()
+
+    # пикер = ссылки ?resource=<pk> (тексты локализованы — ассертим структуру)
+    assert f"resource={second.pk}" not in _body()  # оба ресурса технические
+    first.title = "Masseurin"
+    first.save(update_fields=["title"])
+    body = _body()
+    assert f"resource={first.pk}" in body  # появился staff-профиль → пикер виден
+    assert f"resource={second.pk}" in body  # пикер перечисляет всех
+
+
 # --- G9: групповые курсы (видимая вместимость) ------------------------------------
 
 

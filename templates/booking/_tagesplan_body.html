@@ -7,7 +7,8 @@ walk-in #neu) — извлечено из booking/calendar.html 1:1 для ед�
   <div class="flex flex-wrap gap-x-4 gap-y-2">
     <a href="{% url 'booking:services' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Services" %} →</a>
     <a href="{% url 'booking:passes' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Passes" %} →</a>
-    <a href="{% url 'booking:availability' %}" class="text-sm text-indigo-600 hover:underline">📅 {% trans "Availability" %} →</a>
+    {# Фидбэк 2026-08-04: «где заблокировать даты?» — говорящий вход вместо «Availability». #}
+    <a href="{% url 'booking:availability' %}" class="text-sm text-indigo-600 hover:underline">🚫 {% trans "Tage blockieren" %} →</a>
     <a href="{% url 'booking:resources' %}" class="text-sm text-indigo-600 hover:underline">⚙️ {% trans "Einstellungen" %} →</a>
   </div>
 </div>

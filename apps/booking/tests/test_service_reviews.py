@@ -118,11 +118,12 @@ def test_service_detail_section_order_parity():
     s.attributes = ["Inklusive Material", "Vor-Ort-Service"]
     s.faq = [{"q": "Wie lange dauert es?", "a": "Etwa 30 Minuten."}]
     s.save()
-    # team: нужно ≥2 активных ресурса, чтобы секция «Our team» отрендерилась
+    # team: нужно ≥2 активных ресурса СО staff-профилем (фидбэк 2026-08-04:
+    # технические ресурсы секцию «Team» и пикер больше не показывают)
     from apps.booking.models import Resource
 
-    Resource.objects.create(name="Anna", capacity=1, is_active=True)
-    Resource.objects.create(name="Ben", capacity=1, is_active=True)
+    Resource.objects.create(name="Anna", capacity=1, is_active=True, title="Stylistin")
+    Resource.objects.create(name="Ben", capacity=1, is_active=True, title="Barbier")
     Review.objects.create(
         entity_kind="service", entity_id=s.pk, rating=5, author_name="Kunde", email="k@t.de"
     )

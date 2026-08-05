@@ -469,7 +469,15 @@ def service_slots(request, pk):
         "total_minutes": total_minutes,
         "unit_options": _unit_options(day, chosen, service, units, embed=_is_embed(request)),
         "max_group_slots": services.MAX_GROUP_SLOTS,
-        "resources": resources if len(resources) > 1 else [],  # пикер только при >1
+        # Пикер «Choose your specialist» — только при >1 ресурсе И когда ресурсы
+        # — ЛЮДИ с профилем (фото/должность/био, A3). Технические ресурсы отеля/
+        # мастерской (Wellnessbereich, Bühne) гость не выбирает — назначение
+        # автоматическое (фидбэк владельца 2026-08-04).
+        "resources": (
+            resources
+            if len(resources) > 1 and any(r.photo_url or r.title or r.bio for r in resources)
+            else []
+        ),
         "chosen_resource": chosen,
         "extras": extras_engine.active_for("booking"),  # #7 доп-услуги
         "deposit_required": service.deposit_cents > 0
@@ -552,7 +560,15 @@ def _service_rich_context(request, service, tenant) -> dict:
     ):
         _raw = request.session["site_preview_draft"]
     _hidden = siteconfig.detail_section_hidden(_raw, "booking")
-    _team = resources if len(resources) > 1 else []
+    # Фидбэк 2026-08-04: пикер «выбор специалиста» и секция «Team» — только когда
+    # ресурсы — ЛЮДИ с профилем (фото/должность/био, A3). Технические ресурсы
+    # отеля/мастерской (Wellnessbereich, Rezeption, Bühne) гость не выбирает —
+    # назначение автоматическое. Тот же гейт — во фрагменте ?box=1 (основной ctx).
+    _team = (
+        resources
+        if len(resources) > 1 and any(r.photo_url or r.title or r.bio for r in resources)
+        else []
+    )
     # UA4-2: data-driven секции тела детали — порядок из реестра (booking), видимость =
     # (контент присутствует) И (не скрыта в билдере). Шаблон рендерит их циклом
     # (вместо per-template if/elif); замок — снапшот-паритет тест порядка секций.

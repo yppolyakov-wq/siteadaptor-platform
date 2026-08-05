@@ -16978,3 +16978,33 @@ msgstr "Ürün no"
 
 msgid "Tick two or more products first — they become one card with variants."
 msgstr "Önce iki veya daha fazla ürünü işaretleyin — tek bir varyantlı karta dönüşürler."
+
+msgid "Zeitraum wieder geöffnet."
+msgstr "Tarih aralığı yeniden açıldı."
+
+msgid "Zeitraum blockiert — diese Tage sind nicht mehr buchbar."
+msgstr "Tarih aralığı engellendi — bu günlerde artık randevu alınamaz."
+
+msgid "Tage blockieren (Urlaub, Ruhetage)"
+msgstr "Günleri engelle (tatil, kapalı günler)"
+
+msgid "Tage blockieren"
+msgstr "Günleri engelle"
+
+msgid "Zeitraum blockieren"
+msgstr "Tarih aralığını engelle"
+
+msgid "z. B. Urlaub — Termine sind dann nicht buchbar"
+msgstr "örn. tatil — bu günlerde randevu alınamaz"
+
+msgid "Until"
+msgstr "Bitiş"
+
+msgid "Urlaub"
+msgstr "Tatil"
+
+msgid "Blockieren"
+msgstr "Engelle"
+
+msgid "Wieder öffnen"
+msgstr "Yeniden aç"

@@ -17058,3 +17058,33 @@ msgstr "Артикул"
 
 msgid "Tick two or more products first — they become one card with variants."
 msgstr "Отметьте два и более товара — они станут одной карточкой с вариантами."
+
+msgid "Zeitraum wieder geöffnet."
+msgstr "Период снова открыт."
+
+msgid "Zeitraum blockiert — diese Tage sind nicht mehr buchbar."
+msgstr "Период заблокирован — эти дни больше недоступны для записи."
+
+msgid "Tage blockieren (Urlaub, Ruhetage)"
+msgstr "Заблокировать дни (отпуск, выходные)"
+
+msgid "Tage blockieren"
+msgstr "Заблокировать дни"
+
+msgid "Zeitraum blockieren"
+msgstr "Заблокировать период"
+
+msgid "z. B. Urlaub — Termine sind dann nicht buchbar"
+msgstr "например, отпуск — записи будут недоступны"
+
+msgid "Until"
+msgstr "По"
+
+msgid "Urlaub"
+msgstr "Отпуск"
+
+msgid "Blockieren"
+msgstr "Заблокировать"
+
+msgid "Wieder öffnen"
+msgstr "Снова открыть"

@@ -36,6 +36,28 @@
   </form>
   {% endif %}
 
+  {% comment %}Фидбэк 2026-08-04: блок дат «решением владельца» — диапазон одной
+  формой (отпуск/санитарные дни), не кликами по дням. Ресурс — селектор выше.{% endcomment %}
+  <form method="post" class="bg-white rounded-2xl shadow-sm p-4 mb-4 flex flex-wrap items-end gap-2 text-sm">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="range">
+    <p class="w-full font-medium mb-1">🚫 {% trans "Zeitraum blockieren" %} <span class="font-normal text-gray-400">({% trans "z. B. Urlaub — Termine sind dann nicht buchbar" %})</span></p>
+    <label class="block">
+      <span class="block text-xs text-gray-500 mb-0.5">{% trans "From" %}</span>
+      <input name="von" type="date" required class="rounded-lg border border-gray-300 px-3 py-1.5">
+    </label>
+    <label class="block">
+      <span class="block text-xs text-gray-500 mb-0.5">{% trans "Until" %}</span>
+      <input name="bis" type="date" required class="rounded-lg border border-gray-300 px-3 py-1.5">
+    </label>
+    <label class="block flex-1 min-w-[10rem]">
+      <span class="block text-xs text-gray-500 mb-0.5">{% trans "Reason (optional)" %}</span>
+      <input name="reason" type="text" placeholder="{% trans 'Urlaub' %}" class="w-full rounded-lg border border-gray-300 px-3 py-1.5">
+    </label>
+    <button class="bg-indigo-600 text-white rounded-lg px-3 py-2 font-medium hover:bg-indigo-700">{% trans "Blockieren" %}</button>
+    <button name="mode" value="open" class="rounded-lg px-3 py-2 border border-gray-300 hover:border-indigo-400">{% trans "Wieder öffnen" %}</button>
+  </form>
+
   <div class="bg-white rounded-2xl shadow-sm p-4 md:p-5">
     <div class="flex items-center justify-between mb-3">
       <a href="{{ prev_url }}" aria-label="{% trans 'Previous month' %}" class="w-11 h-11 flex items-center justify-center rounded-lg text-lg text-gray-600 hover:bg-gray-100">‹</a>
