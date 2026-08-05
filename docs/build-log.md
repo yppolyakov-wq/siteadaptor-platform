@@ -8571,3 +8571,15 @@ msgid — строки существующие). Создание не поте
 `entry_url_name` (якорь/плитка). test_orders_view переписан (8 замков, вкл.
 «API удалён, не забыт» и «next сохраняет GET / внешний отбрасывается»).
 Локально: core+orders 1010, stays/booking календарные 27 — зелёные.
+
+
+## 2026-08-05 — W10-2: Reservierungen — вкладка Verkäufe (решение Р-4)
+
+`sales_page.visible_kinds` перестал вырезать kind reservation — заявки клиентов
+подчиняются общему правилу «вкладка появляется с первой продажей»
+(kinds_with_sales уже гейтит по модулю promotions + exists). Тело вкладки
+менять не пришлось: Board/Liste на Verkäufe generic по transactions (реестр
+_KIND_MODEL включает reservation изначально). Вход из Marketing остаётся
+дублем до W11. Замок test_reservation_never_a_secondary_tab перевёрнут в
+test_reservation_tab_follows_first_sale_rule (нет продаж → вкладки нет;
+первый резерв → вкладка есть). Локально core+promotions 1155 зелёных.

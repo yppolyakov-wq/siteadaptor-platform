@@ -116,20 +116,22 @@ def test_normalize_sales_views_is_presence_minimal():
     assert "sales_views" not in cfg
 
 
-def test_reservation_never_a_secondary_tab():
-    """Решение владельца §4.4: резервы живут в Marketing — вкладкой не
-    становятся даже при наличии продаж (у не-promotions-primary тенанта).
-    Проверяем на реестре: visible_kinds фильтрует reservation до запросов."""
-    from apps.promotions.models import Reservation
-    from apps.promotions.tests.factories import CustomerFactory, PromotionFactory
-
-    Reservation.objects.create(promotion=PromotionFactory(), customer=CustomerFactory(), quantity=1)
+def test_reservation_tab_follows_first_sale_rule():
+    """W10-2 (решение Р-4, 2026-08-05): reservation подчиняется ОБЩЕМУ правилу
+    «вкладка с первой продажей» — заявки клиентов видны на Verkäufe (раньше
+    вырезались всегда и жили только в Marketing/Erweitert)."""
     from apps.core.modules import default_disabled_for
 
     tenant = TenantFactory.build(
         business_type="bakery", disabled_modules=list(default_disabled_for("bakery"))
     )
-    assert "reservation" not in sales_page.visible_kinds(tenant)
+    assert "reservation" not in sales_page.visible_kinds(tenant)  # продаж нет
+
+    from apps.promotions.models import Reservation
+    from apps.promotions.tests.factories import CustomerFactory, PromotionFactory
+
+    Reservation.objects.create(promotion=PromotionFactory(), customer=CustomerFactory(), quantity=1)
+    assert "reservation" in sales_page.visible_kinds(tenant)
 
 
 def test_auftragsbuch_groups_orders_by_pickup_day():

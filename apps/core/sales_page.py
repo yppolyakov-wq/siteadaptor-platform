@@ -3,10 +3,10 @@
 Решения владельца (план `docs/unified-sales-page-plan-2026-08-03.md §4`):
 вкладки (не стек); полные виды, неактивные вкладки не грузятся (переключение —
 обычная навигация `?tab=`); первая вкладка = kind primary-модуля и видна
-ВСЕГДА, прочие — только при наличии продаж (`transactions.kinds_with_sales`);
-`reservation` остаётся в Marketing и сюда не попадает НИКОГДА — кроме
-aktionsmarkt-подобных тенантов, где promotions и есть primary-модуль (тогда
-секция резервов появляется сама по правилу primary).
+ВСЕГДА, прочие — только при наличии продаж (`transactions.kinds_with_sales`).
+W10-2 (решение Р-4, 2026-08-05): `reservation` подчиняется ОБЩЕМУ правилу
+«вкладка с первой продажей» — заявки клиентов больше не спрятаны в Marketing
+(вход оттуда остаётся дублем до W11).
 
 Дефолтный вид зависит от АРХЕТИПА, не от kind (рыночная норма: салону —
 календарь, Handwerker'у — пайплайн, магазину — список; план §1).
@@ -71,7 +71,7 @@ def default_view(tenant, kind: str) -> str:
 
 def visible_kinds(tenant) -> list[str]:
     """Вкладки страницы: primary-kind всегда первым, дальше — kind'ы с
-    продажами в порядке `_PRIORITY`. reservation — только как primary (§4.4)."""
+    продажами в порядке `_PRIORITY` (W10-2/Р-4: reservation — тем же правилом)."""
     primary = _MODULE_KIND.get(archetypes.primary_module(tenant))
     # W7c (аудит 2026-08-05): маппинг catalog→order кросс-модульный (catalog core,
     # orders может быть выключен) — без гейта у тенанта business_type=other
@@ -86,8 +86,6 @@ def visible_kinds(tenant) -> list[str]:
     for module in archetypes._PRIORITY:
         kind = _MODULE_KIND[module]
         if kind in out or kind not in with_sales:
-            continue
-        if kind == "reservation":  # решение владельца: резервы живут в Marketing
             continue
         out.append(kind)
     return out
