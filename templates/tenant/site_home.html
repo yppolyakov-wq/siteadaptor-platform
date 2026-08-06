@@ -10,7 +10,9 @@
   {% comment %}Топ-бар: выход · заголовок · Простой/Эксперт · тоггл шторки · Save.{% endcomment %}
   <div class="shrink-0 flex items-center justify-between gap-2 bg-white border-b border-gray-200 px-3 py-1">
     <div class="flex items-center gap-2 min-w-0">
-      <a href="{% url 'site' %}" class="text-sm text-gray-600 hover:text-indigo-700 flex items-center gap-1 shrink-0">←<span class="hidden sm:inline">{% trans "Website" %}</span></a>
+      {% comment %}W11-5: «Website» = Studio (страница-лендинг умерла) → выход ведёт
+         в кабинет, иначе кнопка возвращала бы на редирект в саму себя.{% endcomment %}
+      <a href="{% url 'dashboard' %}" class="text-sm text-gray-600 hover:text-indigo-700 flex items-center gap-1 shrink-0">←<span class="hidden sm:inline">{% trans "Übersicht" %}</span></a>
       <span class="hidden md:inline text-sm font-semibold text-gray-800 shrink-0 select-none">Studio</span>
       {% comment %}UC6-9: Undo/Redo + статус + подсказка правки — в верхней строке (полоса
          над канвой убрана). Те же id → JS не тронут.{% endcomment %}
@@ -996,6 +998,19 @@
       </div>
       {% endif %}
     </form>
+    {% comment %}W11-5: страница «Site» умирает — её навигационные карточки жили только
+       там. Отдельные экраны (обложки разделов / раскладки страниц / SEO / превью)
+       получают вход отсюда, иначе остались бы сиротами (принцип W7b).{% endcomment %}
+    <div class="bg-white rounded-2xl shadow-sm p-5 space-y-2">
+      <span class="text-sm font-medium">{% trans "More tools" %}:</span>
+      <div class="flex flex-col gap-2 text-sm">
+        <a href="{% url 'site-seo' %}" class="text-indigo-600 hover:underline">🔎 {% trans "SEO" %} — {% trans "Titles & descriptions for Google, with live preview." %}</a>
+        <a href="{% url 'site-sections' %}" class="text-indigo-600 hover:underline">🖼️ {% trans "Section covers" %} — {% trans "Intro text & banner on each part of the site." %}</a>
+        <a href="{% url 'site-pages' %}" class="text-indigo-600 hover:underline">📄 {% trans "Pages" %} — {% trans "Grid layout of catalog, rooms and events pages." %}</a>
+        <a href="{% url 'site-preview' %}" class="text-indigo-600 hover:underline">👁 {% trans "Preview" %} — {% trans "Live site in desktop / tablet / mobile." %}</a>
+        <a href="{% url 'site-menu' %}" class="text-indigo-600 hover:underline">🧭 {% trans "Navigation menu" %} — {% trans "Header & bottom menu, sub-menus, links." %}</a>
+      </div>
+    </div>
     </div>{% comment %}/область 📚 Шаблоны/История{% endcomment %}
 
     {% comment %}W11-5: «Schnellstart» — шаблоны витрины + демо-контент (перенос со страницы

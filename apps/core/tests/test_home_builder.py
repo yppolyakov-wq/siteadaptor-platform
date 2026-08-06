@@ -1924,3 +1924,20 @@ def test_home_builder_saves_gallery_video_without_touching_sections():
     cfg = siteconfig.normalize(tenant.site_config)
     assert cfg["gallery_video"] == "https://youtu.be/xyz"
     assert cfg["sections"] == before
+
+
+def test_home_builder_links_to_sibling_site_screens():
+    """W11-5 (И-3): страница «Site» умирает — её навигационные карточки жили только
+    там; экраны SEO/обложки/раскладки/превью достижимы из Studio (принцип W7b)."""
+    tenant = TenantFactory(schema_name="public", slug="hbnav", name="HBNAV")
+    html = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", None, tenant)
+    ).content.decode()
+    for path in (
+        "/dashboard/site/seo/",
+        "/dashboard/site/sections/",
+        "/dashboard/site/pages/",
+        "/dashboard/site/preview/",
+        "/dashboard/site/menu/",
+    ):
+        assert path in html, path
