@@ -274,6 +274,10 @@ class BusinessReview(models.Model):
     author = models.ForeignKey(PortalUser, on_delete=models.CASCADE, related_name="reviews")
     rating = models.PositiveSmallIntegerField()  # 1..5 (валидируется во вьюхе)
     comment = models.TextField(blank=True)
+    # Решение 1а (2026-08-06): публичный ответ владельца — как у entity-отзывов
+    # (CM-6.2); пишется из кабинета (вкладка «Über den Betrieb»), виден на портале.
+    reply_text = models.TextField(blank=True, default="")
+    replied_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=10, choices=STATUSES, default=STATUS_PUBLISHED)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

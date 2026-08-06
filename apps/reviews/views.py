@@ -7,6 +7,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
@@ -70,6 +71,29 @@ def review_list(request):
             "active_status": status,
         },
     )
+
+
+@login_required
+@require_POST
+def business_review_reply(request, pk):
+    """Решение 1а (2026-08-06): публичный ответ владельца на портальный отзыв о
+    бизнесе (вкладка «Über den Betrieb»). SHARED-модель → фильтр по СВОЕЙ схеме
+    обязателен (анти-кросс-тенант: чужой pk = 404). Пусто = убрать ответ."""
+    from django.db import connection
+    from django.http import Http404
+    from django.utils import timezone
+
+    from apps.aggregator.models import BusinessReview
+
+    review = BusinessReview.objects.filter(pk=pk, tenant_schema=connection.schema_name).first()
+    if review is None:
+        raise Http404("not this tenant's review")
+    text = (request.POST.get("reply_text") or "").strip()[:2000]
+    review.reply_text = text
+    review.replied_at = timezone.now() if text else None
+    review.save(update_fields=["reply_text", "replied_at", "updated_at"])
+    messages.success(request, _("Reply saved.") if text else _("Reply removed."))
+    return redirect(f"{reverse('reviews:list')}?typ=betrieb")
 
 
 @login_required

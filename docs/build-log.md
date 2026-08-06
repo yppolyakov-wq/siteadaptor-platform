@@ -8785,3 +8785,15 @@ nav "reservations" → якорь board через _EXTRA_NAV_ANCHORS (замо�
 зависимости строго из uv.lock (`uv sync --locked --extra dev`) — свежий релиз
 на PyPI больше не роняет CI (прецедент pytest-django 4.13.0); обновление
 зависимостей — осознанный `uv lock` в коммите.
+
+
+## 2026-08-06 — Решение 1а: ответ владельца на портальные отзывы о бизнесе (⚠️ миграция aggregator/0016)
+
+BusinessReview (SHARED) += reply_text/replied_at (миграция
+`aggregator/0016`, аддитивная). Кабинет: форма ответа на каждой строке вкладки
+«Über den Betrieb» (паттерн CM-6.2; endpoint `reviews:business-reply` с
+ОБЯЗАТЕЛЬНЫМ фильтром по своей схеме — чужой pk = 404, замок анти-кросс-тенант);
+пусто = снять ответ. Портал: ответ виден под отзывом («Reply from the business» —
+msgid переиспользован с entity-отзывов). Хинт «Antworten folgen» заменён честным
+описанием (1 msgid × 5 .po). Замки: save/clear + рендер в кабинете + 404 на
+чужую схему. ⚠️ ops: деплой с миграцией — `./scripts/deploy.sh single`.

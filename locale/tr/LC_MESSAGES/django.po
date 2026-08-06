@@ -17271,3 +17271,6 @@ msgstr "Hiçbir şey — tüm etkin bölümleriniz Basit modda da görünür."
 
 msgid "Zusätzlich verbirgt Einfach die Schublade „Erweitert“ der Tab-Leisten und Profi-Felder in Formularen. Alle Seiten bleiben per direktem Link erreichbar."
 msgstr "Basit ayrıca sekme çubuklarındaki „Gelişmiş“ çekmecesini ve formlardaki profesyonel alanları gizler. Tüm sayfalara doğrudan bağlantıyla erişilebilir."
+
+msgid "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb. Ihre Antwort erscheint öffentlich auf dem Portal."
+msgstr "Şehir portalından (/entdecken) işletmeniz hakkında değerlendirmeler. Yanıtınız portalda herkese açık görünür."

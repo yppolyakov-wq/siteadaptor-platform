@@ -137,3 +137,52 @@ def test_betrieb_tab_shows_only_own_schema_reviews():
     body = views.review_list(_req()).content.decode()
     assert "Toller Laden am Markt" not in body
     assert "Über den Betrieb" in body
+
+
+# --- 1а (2026-08-06): ответ владельца на портальный отзыв ------------------------
+def test_business_review_reply_saves_and_shows_on_portal():
+    from django.db import connection
+
+    from apps.aggregator.models import BusinessReview, PortalUser
+
+    author = PortalUser.objects.create(email="antw@portal.de")
+    review = BusinessReview.objects.create(
+        tenant_schema=connection.schema_name,
+        tenant_slug="mein",
+        author=author,
+        rating=4,
+        comment="Gutes Brot",
+    )
+    resp = views.business_review_reply(
+        _req("post", data={"reply_text": "  Danke für Ihren Besuch!  "}), pk=review.pk
+    )
+    assert resp.status_code == 302 and "typ=betrieb" in resp["Location"]
+    review.refresh_from_db()
+    assert review.reply_text == "Danke für Ihren Besuch!"
+    assert review.replied_at is not None
+    # кабинет показывает ответ в форме; пустой POST снимает ответ
+    body = views.review_list(_req(data={"typ": "betrieb"})).content.decode()
+    assert "Danke für Ihren Besuch!" in body
+    views.business_review_reply(_req("post", data={"reply_text": ""}), pk=review.pk)
+    review.refresh_from_db()
+    assert review.reply_text == "" and review.replied_at is None
+
+
+def test_business_review_reply_cross_tenant_404():
+    """SHARED-модель: ответить на отзыв ЧУЖОЙ схемы нельзя (404, не запись)."""
+    import pytest as _pytest
+    from django.http import Http404
+
+    from apps.aggregator.models import BusinessReview, PortalUser
+
+    foreign = BusinessReview.objects.create(
+        tenant_schema="fremde_schema",
+        tenant_slug="fremd",
+        author=PortalUser.objects.create(email="f2@portal.de"),
+        rating=1,
+        comment="Fremd",
+    )
+    with _pytest.raises(Http404):
+        views.business_review_reply(_req("post", data={"reply_text": "hack"}), pk=foreign.pk)
+    foreign.refresh_from_db()
+    assert foreign.reply_text == ""

@@ -17351,3 +17351,6 @@ msgstr "Ничего — все ваши активные разделы вид�
 
 msgid "Zusätzlich verbirgt Einfach die Schublade „Erweitert“ der Tab-Leisten und Profi-Felder in Formularen. Alle Seiten bleiben per direktem Link erreichbar."
 msgstr "Режим «Просто» также скрывает ящик «Erweitert» в таб-барах и профи-поля в формах. Все страницы остаются доступны по прямой ссылке."
+
+msgid "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb. Ihre Antwort erscheint öffentlich auf dem Portal."
+msgstr "Отзывы о вашем бизнесе с городского портала (/entdecken). Ваш ответ виден на портале публично."

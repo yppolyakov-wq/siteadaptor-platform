@@ -35,13 +35,18 @@
 </div>
 
 {% if betrieb %}
-<p class="text-xs text-gray-400 mb-3">{% trans "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb — Antworten folgen." %}</p>
+<p class="text-xs text-gray-400 mb-3">{% trans "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb. Ihre Antwort erscheint öffentlich auf dem Portal." %}</p>
 <div class="bg-white rounded-2xl shadow-sm p-4 space-y-1">
   {% for r in business_reviews %}
     <div class="border-b border-gray-100 last:border-0 py-3 {% if r.status == 'hidden' %}opacity-60{% endif %}">
       <p class="text-sm"><span class="text-amber-500">{{ r.stars }}</span>
         <span class="text-xs text-gray-400">· {{ r.created_at|date:"d.m.Y" }}{% if r.status == 'hidden' %} · {% trans "Hidden" %}{% endif %}</span></p>
       {% if r.comment %}<p class="text-sm mt-1 whitespace-pre-line">{{ r.comment }}</p>{% endif %}
+      {# 1а: публичный ответ владельца — паттерн CM-6.2 #}
+      <form method="post" action="{% url 'reviews:business-reply' r.pk %}" class="mt-2 flex items-start gap-2">{% csrf_token %}
+        <textarea name="reply_text" rows="1" placeholder="{% trans 'Reply publicly…' %}" class="flex-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs">{{ r.reply_text }}</textarea>
+        <button class="text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 hover:border-indigo-400">{% trans "Reply" %}</button>
+      </form>
     </div>
   {% empty %}
     <p class="text-sm text-gray-400 py-4">{% trans "No reviews yet." %}</p>

@@ -70,6 +70,13 @@
             {% if r.author.email|lower in verified_emails %}<span class="text-xs text-green-700 bg-green-50 rounded-full px-2 py-0.5 ml-1 align-middle">✓ {% trans "Verified guest" %}</span>{% endif %}
             <span class="text-xs text-gray-400 ml-1">{{ r.created_at|date:"d.m.Y" }}</span></p>
           {% if r.comment %}<p class="text-sm text-gray-700 mt-1 whitespace-pre-line">{{ r.comment }}</p>{% endif %}
+          {# 1а (2026-08-06): публичный ответ владельца — как у entity-отзывов #}
+          {% if r.reply_text %}
+            <div class="mt-2 ml-3 border-l-2 border-indigo-100 pl-3">
+              <p class="text-xs font-medium text-gray-500">{% trans "Reply from the business" %}</p>
+              <p class="text-sm text-gray-600 whitespace-pre-line">{{ r.reply_text }}</p>
+            </div>
+          {% endif %}
         </div>
       {% endfor %}
     </div>
