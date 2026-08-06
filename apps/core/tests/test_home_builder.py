@@ -1779,3 +1779,93 @@ def test_home_builder_save_preserves_site_page_scalars():
     assert cfg["hero_image"] == "https://cdn.example/bg.jpg"
     assert cfg["quick_add"] is False
     assert cfg["gallery_video"] == "https://youtu.be/abc123"
+
+
+def test_home_builder_apply_template_switches_sections_and_keeps_builder_keys():
+    """W11-5 (И-1): apply_template из Studio — 302, секции сменились, builder-only
+    ключи целы (класс W6: _apply-база ST-1a стартует с полной копии)."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbtpl",
+        name="HBTPL",
+        business_type="cafe",
+        site_config={
+            "ui_mode": "simple",
+            "board": {"labels": {"intake": "Posteingang"}, "hidden": ["terminal"]},
+            "seo": {"templates": {"home": {"title": "Mein Titel"}}},
+        },
+    )
+    resp = views.home_builder_view(
+        _request(
+            "post",
+            "/dashboard/site/home/",
+            {"action": "apply_template", "template": "gastro"},
+            tenant,
+        )
+    )
+    assert resp.status_code == 302
+
+    cfg = siteconfig.normalize(tenant.site_config)
+    enabled = [s["key"] for s in cfg["sections"] if s["enabled"]]
+    assert enabled == ["hero", "products", "promotions", "contact"]
+    raw = tenant.site_config
+    assert raw.get("ui_mode") == "simple"
+    assert raw.get("board", {}).get("labels", {}).get("intake") == "Posteingang"
+    assert raw.get("seo", {}).get("templates", {}).get("home", {}).get("title") == "Mein Titel"
+
+
+def test_home_builder_apply_unknown_template_keeps_config():
+    """W11-5 (И-1): неизвестный ключ шаблона — редирект с ошибкой, конфиг цел."""
+    tenant = TenantFactory(
+        schema_name="public", slug="hbtpl2", name="HBTPL2", site_config={"hero_title": "Alt"}
+    )
+    before = siteconfig.normalize(tenant.site_config)["sections"]
+    resp = views.home_builder_view(
+        _request(
+            "post",
+            "/dashboard/site/home/",
+            {"action": "apply_template", "template": "nope"},
+            tenant,
+        )
+    )
+    assert resp.status_code == 302
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["sections"] == before
+    assert cfg["hero_title"] == "Alt"
+
+
+def test_home_builder_demo_actions_early_return_keep_sections():
+    """W11-5 (И-1): load/clear demo из Studio — early-return: пустая форма действия
+    НЕ пересобирает секции (анти-fall-through в main-save)."""
+    from apps.tenants import demo
+
+    tenant = TenantFactory(
+        schema_name="public", slug="hbdemo", name="HBDemo", business_type="bakery"
+    )
+    before = siteconfig.normalize(tenant.site_config)["sections"]
+
+    resp = views.home_builder_view(
+        _request("post", "/dashboard/site/home/", {"action": "load_demo"}, tenant)
+    )
+    assert resp.status_code == 302
+    assert demo.has_demo(tenant) is True
+    assert siteconfig.normalize(tenant.site_config)["sections"] == before
+
+    resp = views.home_builder_view(
+        _request("post", "/dashboard/site/home/", {"action": "clear_demo"}, tenant)
+    )
+    assert resp.status_code == 302
+    assert demo.has_demo(tenant) is False
+
+
+def test_home_builder_renders_quickstart_area():
+    """W11-5 (И-1): в Studio есть область «Schnellstart» — рейка + карточки шаблонов
+    + кнопка демо (порт замка галереи со страницы «Site»)."""
+    tenant = TenantFactory(schema_name="public", slug="hbqsr", name="HBQSR", business_type="bakery")
+    html = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", None, tenant)
+    ).content.decode()
+    assert 'data-bld-area="quickstart"' in html
+    assert 'data-st-level="quickstart"' in html
+    assert "Klassischer Laden" in html  # карточка шаблона в галерее
+    assert 'value="load_demo"' in html  # свежий тенант — демо ещё не загружено

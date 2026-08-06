@@ -1232,7 +1232,7 @@ def home_builder_view(request):
     текущий site_config (остальные настройки не затрагиваются).
     """
     from apps.core.seo import _dumps as _safe_json  # LOW: инлайн-<script>-safe JSON
-    from apps.tenants import siteconfig, sitetemplates, storefront
+    from apps.tenants import demo, siteconfig, sitetemplates, storefront
 
     if request.method == "POST":
         # M20e: медиа галереи — отдельные multipart-формы (upload/delete), общие
@@ -1263,6 +1263,27 @@ def home_builder_view(request):
         # M3: обложка раздела (archetypes[key].hero_image) — загрузка прямо из билдера.
         if request.POST.get("action") == "upload_cover_hero":
             _upload_cover_hero(request, request.POST.get("archetype", ""))
+            return redirect("site-home")
+        # W11-5 (Website-свод): quick-start со страницы «Site» — шаблоны витрины
+        # и демо-контент теперь в Studio (область «Schnellstart»). Те же библиотеки,
+        # что у мастера; early-return ДО main-save (fall-through стёр бы секции).
+        if request.POST.get("action") == "apply_template":
+            if sitetemplates.apply_template(request.tenant, request.POST.get("template", "")):
+                messages.success(request, _("Vorlage übernommen."))
+            else:
+                messages.error(request, _("Unbekannte Vorlage."))
+            return redirect("site-home")
+        if request.POST.get("action") == "load_demo":
+            if demo.load_demo(request.tenant):
+                messages.success(request, _("Demo-Inhalte geladen."))
+            else:
+                messages.info(request, _("Demo-Inhalte sind bereits vorhanden."))
+            return redirect("site-home")
+        if request.POST.get("action") == "clear_demo":
+            if demo.clear_demo(request.tenant):
+                messages.success(request, _("Demo-Inhalte gelöscht."))
+            else:
+                messages.info(request, _("Keine Demo-Inhalte vorhanden."))
             return redirect("site-home")
         # D.2b: добавить пустой C-блок (text/image/…) — появится в списке для правки.
         # E.3: необязательный `add_after` (ключ фикс-секции или id C-блока) — вставить
@@ -2165,6 +2186,9 @@ def home_builder_view(request):
             ),
             "trust_marks_text": "\n".join(config["trust"]["marks"]),
             "usp_text": siteconfig.usp_to_text(config["usp_bar"]),
+            # W11-5: quick-start (шаблоны витрины + демо) — перенос со страницы «Site».
+            "site_templates": sitetemplates.template_cards(request.tenant.business_type),
+            "has_demo": demo.has_demo(request.tenant),
         },
     )
 
