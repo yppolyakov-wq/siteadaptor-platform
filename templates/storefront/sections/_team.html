@@ -1,7 +1,10 @@
 {% load i18n siteui %}{# Секция «Команда» (P4): имя/роль/фото из site_config. #}
 {% if site.team %}
 <section data-reveal class="mb-10">
-  <h2 class="text-xl md:text-2xl font-bold mb-6">{% trans "Our team" %}</h2>
+  <div class="flex items-baseline justify-between gap-3 mb-6">
+    <h2 class="text-xl md:text-2xl font-bold">{% trans "Our team" %}</h2>
+    {% if site.team %}<a href="{% url 'storefront-team' %}" class="text-sm text-indigo-600 hover:underline shrink-0">{% trans "Ganzes Team" %} →</a>{% endif %}
+  </div>
   {% comment %}UC6-6f/UC6-8: 5 видов по section_row.style — "" карточки | circles |
      list | compact | duo (широкие карточки, фото сбоку).{% endcomment %}
   {% if section_row.style == "duo" %}

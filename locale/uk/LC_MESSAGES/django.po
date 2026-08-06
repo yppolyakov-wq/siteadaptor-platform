@@ -17347,3 +17347,35 @@ msgstr "Інші інструменти"
 #: templates/tenant/site_home.html
 msgid "YouTube, Vimeo or direct .mp4. Loaded only on click (GDPR-friendly)."
 msgstr "YouTube, Vimeo або прямий .mp4. Завантажується лише після кліку (без стеження)."
+
+#: templates/storefront/gallery.html
+msgid "Unser Team"
+msgstr "Наша команда"
+
+#: templates/storefront/gallery.html
+msgid "Meister"
+msgstr "Майстри"
+
+#: templates/storefront/gallery.html
+msgid "Referenzen"
+msgstr "Наші роботи"
+
+#: templates/storefront/gallery.html
+msgid "Impressionen aus unserem Betrieb."
+msgstr "Як у нас усе влаштовано — у фотографіях."
+
+#: templates/storefront/gallery.html
+msgid "Die Menschen, die Sie bei uns betreuen."
+msgstr "Люди, які вас обслуговують."
+
+#: templates/storefront/gallery.html
+msgid "Alle Fotos"
+msgstr "Усі фото"
+
+#: templates/storefront/gallery.html
+msgid "Ganzes Team"
+msgstr "Уся команда"
+
+#: templates/storefront/gallery.html
+msgid "Alle Bewertungen"
+msgstr "Усі відгуки"

@@ -18,7 +18,34 @@ _PAGE_URL_NAMES = {
     "home": "storefront-home",
     "offers": "storefront-home",
     "about": "storefront-about",
+    # ST-8: отдельные страницы. Ссылка ставится ТОЛЬКО при наличии контента —
+    # см. _page_has_content: пустая страница отдаёт 404, поэтому и пункт меню
+    # на неё вести не должен.
+    "gallery": "storefront-gallery",
+    "team": "storefront-team",
+    "reviews": "storefront-reviews",
 }
+
+# ST-8: чем «наполнена» страница (ключ site_config или запрос) — гейт пункта меню.
+_PAGE_CONTENT_GATES = ("gallery", "team", "reviews")
+
+
+def _page_has_content(tenant, target: str) -> bool:
+    """Есть ли что показать на странице ST-8 (иначе пункт меню гасим)."""
+    if target not in _PAGE_CONTENT_GATES:
+        return True
+    cfg = siteconfig.normalize(tenant.site_config)
+    if target == "gallery":
+        return bool(cfg.get("gallery") or cfg.get("gallery_video"))
+    if target == "team":
+        return bool(cfg.get("team"))
+    # reviews: два источника — портальные отзывы (SHARED-модель, читаем тем же
+    # тегом: он сам гасит ошибки и не роняет меню) и кураторские `testimonials`.
+    if cfg.get("testimonials"):
+        return True
+    from apps.core.templatetags.seo import storefront_reviews
+
+    return bool(storefront_reviews(1))
 
 
 def _reverse(name: str):
@@ -73,7 +100,9 @@ def _node_url(tenant, node: dict):
         return _promo_group_url(tenant, target)
     if ntype == "page":
         name = _PAGE_URL_NAMES.get(target)
-        return _reverse(name) if name else None
+        if not name or not _page_has_content(tenant, target):
+            return None
+        return _reverse(name)
     if ntype == "url":
         return target or None
     if ntype == "anchor":
@@ -115,6 +144,10 @@ _MENU_LABEL_ANCHORS = (
     _("Termine"),
     _("Leistungen"),
     _("Anfahrt"),
+    # ST-8: подписи новых страниц (галерея/отзывы/команда) в демо-меню.
+    _("Unser Team"),
+    _("Meister"),
+    _("Referenzen"),
 )
 
 

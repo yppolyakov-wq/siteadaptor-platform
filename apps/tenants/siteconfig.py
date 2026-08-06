@@ -1294,6 +1294,13 @@ NAV_ITEMS = [
     ("promotions", _("Aktionen"), "storefront-aktionen", "promotions"),
     ("blog", _("News"), "storefront-blog", "blog"),
     ("about", _("About us"), "storefront-about", None),
+    # ST-8 (запрос владельца «не разделы на главной, а отдельные страницы»):
+    # галерея/отзывы/команда как самостоятельные пункты. Модуля у них нет —
+    # гейт по НАЛИЧИЮ контента живёт в menu._page_has_content (пустая страница
+    # отдаёт 404, поэтому и пункт не должен вести в никуда).
+    ("gallery", _("Galerie"), "storefront-gallery", None),
+    ("team", _("Unser Team"), "storefront-team", None),
+    ("reviews", _("Bewertungen"), "storefront-reviews", None),
 ]
 _NAV_KNOWN = {key for key, _l, _u, _m in NAV_ITEMS}
 # Стиль шапки: classic (лого слева + ссылки справа, как было), centered (лого
@@ -1324,6 +1331,9 @@ _NAV_KEY_TO_NODE = {
     "promotions": ("archetype", "promotions"),  # HF-1
     "blog": ("archetype", "blog"),  # HF-1
     "about": ("page", "about"),  # HF-1
+    "gallery": ("page", "gallery"),  # ST-8
+    "team": ("page", "team"),  # ST-8
+    "reviews": ("page", "reviews"),  # ST-8
 }
 
 

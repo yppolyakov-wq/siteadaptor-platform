@@ -17282,3 +17282,35 @@ msgstr "Diğer araçlar"
 #: templates/tenant/site_home.html
 msgid "YouTube, Vimeo or direct .mp4. Loaded only on click (GDPR-friendly)."
 msgstr "YouTube, Vimeo veya doğrudan .mp4. Yalnızca tıklamayla yüklenir (KVKK/DSGVO uyumlu)."
+
+#: templates/storefront/gallery.html
+msgid "Unser Team"
+msgstr "Ekibimiz"
+
+#: templates/storefront/gallery.html
+msgid "Meister"
+msgstr "Ustalarımız"
+
+#: templates/storefront/gallery.html
+msgid "Referenzen"
+msgstr "Referanslar"
+
+#: templates/storefront/gallery.html
+msgid "Impressionen aus unserem Betrieb."
+msgstr "İşletmemizden kareler."
+
+#: templates/storefront/gallery.html
+msgid "Die Menschen, die Sie bei uns betreuen."
+msgstr "Size hizmet veren ekip."
+
+#: templates/storefront/gallery.html
+msgid "Alle Fotos"
+msgstr "Tüm fotoğraflar"
+
+#: templates/storefront/gallery.html
+msgid "Ganzes Team"
+msgstr "Tüm ekip"
+
+#: templates/storefront/gallery.html
+msgid "Alle Bewertungen"
+msgstr "Tüm değerlendirmeler"

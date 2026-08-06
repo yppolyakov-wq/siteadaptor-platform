@@ -293,6 +293,65 @@ def about_page(request):
     return render(request, "storefront/about.html", {"site": site, "sections": []})
 
 
+def _site_ctx(request):
+    """ST-8: локализованный site_config для отдельных страниц витрины."""
+    from django.utils.translation import get_language
+
+    from apps.tenants import siteconfig
+
+    return siteconfig.localize(siteconfig.normalize(request.tenant.site_config), get_language())
+
+
+def gallery_page(request):
+    """ST-8: отдельная страница «Галерея» /galerie/.
+
+    Гейт — по НАЛИЧИЮ контента (пустая галерея → 404, пункт меню гаснет сам):
+    так «нужный раздел для нужных китов» получается из данных, без whitelist
+    архетипов, который врал бы владельцу, наполнившему раздел вручную.
+    """
+    site = _site_ctx(request)
+    if not (site.get("gallery") or site.get("gallery_video")):
+        raise Http404
+    return render(request, "storefront/gallery.html", {"site": site, "sections": []})
+
+
+def team_page(request):
+    """ST-8: отдельная страница «Команда/Мастера» /team/ (404 без команды)."""
+    site = _site_ctx(request)
+    if not site.get("team"):
+        raise Http404
+    return render(request, "storefront/team.html", {"site": site, "sections": []})
+
+
+def reviews_page(request):
+    """ST-8: отдельная страница «Отзывы» /bewertungen/.
+
+    Показывает отзывы о бизнесе с портала (те же, что тизером на главной), но
+    полным списком. 404, если отзывов нет.
+    """
+    from apps.core.templatetags.seo import business_rating, storefront_reviews
+
+    site = _site_ctx(request)
+    # Два источника: отзывы с портала (BusinessReview) и кураторские отзывы
+    # владельца из site_config (`testimonials` — секция главной). Страница
+    # существует, если есть хоть что-то; иначе 404 (пустых страниц не плодим).
+    reviews = storefront_reviews(50)
+    testimonials = site.get("testimonials") or []
+    if not reviews and not testimonials:
+        raise Http404
+    return render(
+        request,
+        "storefront/reviews.html",
+        {
+            "site": site,
+            "sections": [],
+            "page_reviews": reviews,
+            "page_testimonials": testimonials,
+            "business_rating_value": business_rating(),
+        },
+    )
+
+
 def finder_page(request):
     """FD-1: Finder «вопросы → 3 предложения» (/finder/).
 

@@ -1,0 +1,11 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% comment %}ST-8: отдельная страница галереи (не якорь на секцию главной).
+Переиспользует партиал секции — один источник разметки/видов.{% endcomment %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl md:text-3xl font-bold">{% trans "Galerie" %}</h1>
+  <p class="text-gray-500 mt-1">{% trans "Impressionen aus unserem Betrieb." %}</p>
+</div>
+{% include "storefront/sections/_gallery.html" %}
+{% endblock %}

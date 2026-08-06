@@ -17170,3 +17170,35 @@ msgstr "More tools"
 #: templates/tenant/site_home.html
 msgid "YouTube, Vimeo or direct .mp4. Loaded only on click (GDPR-friendly)."
 msgstr "YouTube, Vimeo or direct .mp4. Loaded only on click (GDPR-friendly)."
+
+#: templates/storefront/gallery.html
+msgid "Unser Team"
+msgstr "Our team"
+
+#: templates/storefront/gallery.html
+msgid "Meister"
+msgstr "Our stylists"
+
+#: templates/storefront/gallery.html
+msgid "Referenzen"
+msgstr "Our work"
+
+#: templates/storefront/gallery.html
+msgid "Impressionen aus unserem Betrieb."
+msgstr "Impressions from our business."
+
+#: templates/storefront/gallery.html
+msgid "Die Menschen, die Sie bei uns betreuen."
+msgstr "The people who look after you."
+
+#: templates/storefront/gallery.html
+msgid "Alle Fotos"
+msgstr "All photos"
+
+#: templates/storefront/gallery.html
+msgid "Ganzes Team"
+msgstr "Whole team"
+
+#: templates/storefront/gallery.html
+msgid "Alle Bewertungen"
+msgstr "All reviews"
