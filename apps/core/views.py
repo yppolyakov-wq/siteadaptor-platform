@@ -1243,6 +1243,15 @@ def home_builder_view(request):
         if request.POST.get("action") == "delete_gallery_image":
             _delete_gallery_image(request, request.POST.get("image_id", ""))
             return redirect("site-home")
+        # W11-5: видео галереи (перенос со страницы «Site») — targeted-write одним
+        # ключом; early-return, чтобы форма области не проваливалась в main-save.
+        if request.POST.get("action") == "save_gallery_video":
+            cfg = siteconfig.normalize(request.tenant.site_config)
+            cfg["gallery_video"] = request.POST.get("gallery_video", "").strip()
+            request.tenant.site_config = siteconfig.normalize(cfg)
+            request.tenant.save(update_fields=["site_config", "updated_at"])
+            messages.success(request, _("Gespeichert."))
+            return redirect("site-home")
         # M1: лого бизнеса (multipart) — в шапку витрины.
         if request.POST.get("action") == "upload_logo":
             _save_logo(request)
@@ -1775,6 +1784,13 @@ def home_builder_view(request):
         if "hero_title" in request.POST:
             config["hero_title"] = request.POST.get("hero_title", "").strip()
             config["hero_text"] = request.POST.get("hero_text", "").strip()
+        # W11-5: фон баннера по URL (перенос со страницы «Site») — presence-guard.
+        if "hero_image" in request.POST:
+            config["hero_image"] = request.POST.get("hero_image", "").strip()
+        # W11-5: быстрый заказ на карточках — чекбокс, поэтому сентинел присутствия
+        # (unchecked не шлётся; без сентинела любое иное сохранение гасило бы тумблер).
+        if request.POST.get("quick_add_present") == "1":
+            config["quick_add"] = request.POST.get("quick_add") == "on"
         # M20f: дизайн — шрифт + стиль hero (site_config); акцент — поле Tenant.
         config["font"] = request.POST.get("font", config.get("font", "system"))
         config["hero_style"] = "accent" if request.POST.get("hero_accent") == "on" else "plain"
@@ -2434,6 +2450,12 @@ def site_preview_draft(request):
         cfg["hero_title"] = data["hero_title"].strip()
     if isinstance(data.get("hero_text"), str):
         cfg["hero_text"] = data["hero_text"].strip()
+    # W11-5: фон баннера (URL) и быстрый заказ на карточках — перенесены со страницы
+    # «Site» в билдер; в превью, иначе правка видна только после Save.
+    if isinstance(data.get("hero_image"), str):
+        cfg["hero_image"] = data["hero_image"].strip()
+    if isinstance(data.get("quick_add"), bool):
+        cfg["quick_add"] = data["quick_add"]
     # M20d: контент-секции — отражаем в превью, только если присланы (иначе не трём).
     if any(k in data for k in siteconfig.CONTENT_FIELDS):
         cfg.update(siteconfig.parse_content_sections(data.get))

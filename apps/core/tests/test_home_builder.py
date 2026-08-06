@@ -1869,3 +1869,58 @@ def test_home_builder_renders_quickstart_area():
     assert 'data-st-level="quickstart"' in html
     assert "Klassischer Laden" in html  # карточка шаблона в галерее
     assert 'value="load_demo"' in html  # свежий тенант — демо ещё не загружено
+
+
+def test_home_builder_saves_hero_image_and_quick_add():
+    """W11-5 (И-2): поля со страницы «Site» сохраняются из билдера…"""
+    tenant = TenantFactory(schema_name="public", slug="hbf", name="HBF")
+    data = {
+        "order_hero": "1",
+        "enabled_hero": "on",
+        "hero_title": "Hallo",
+        "hero_image": " https://cdn.example/bg.jpg ",
+        "quick_add_present": "1",  # чекбокс снят → тумблер выключается
+    }
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["hero_image"] == "https://cdn.example/bg.jpg"  # обрезан
+    assert cfg["quick_add"] is False
+
+
+def test_home_builder_save_without_new_fields_keeps_them():
+    """…и НЕ гаснут, когда форма их не прислала (presence-guard + сентинел, W0)."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbf2",
+        name="HBF2",
+        site_config={"hero_image": "https://cdn.example/keep.jpg", "quick_add": False},
+    )
+    data = {"order_hero": "1", "enabled_hero": "on"}  # ни hero_image, ни сентинела
+    views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["hero_image"] == "https://cdn.example/keep.jpg"
+    assert cfg["quick_add"] is False
+
+
+def test_home_builder_saves_gallery_video_without_touching_sections():
+    """W11-5 (И-2): видео галереи — своя форма области Medien: targeted-write,
+    секции не пересобираются (early-return ДО main-save)."""
+    tenant = TenantFactory(schema_name="public", slug="hbv", name="HBV")
+    before = siteconfig.normalize(tenant.site_config)["sections"]
+
+    resp = views.home_builder_view(
+        _request(
+            "post",
+            "/dashboard/site/home/",
+            {"action": "save_gallery_video", "gallery_video": " https://youtu.be/xyz "},
+            tenant,
+        )
+    )
+    assert resp.status_code == 302
+
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["gallery_video"] == "https://youtu.be/xyz"
+    assert cfg["sections"] == before

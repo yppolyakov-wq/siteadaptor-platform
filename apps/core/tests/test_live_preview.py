@@ -726,3 +726,27 @@ def test_draft_endpoint_accepts_page_blocks():
     pb = req.session["site_preview_draft"]["page_blocks"]
     assert set(pb) == {"services"}
     assert [b["data"].get("title", b["data"].get("label")) for b in pb["services"]] == ["Neu", "M"]
+
+
+def test_draft_endpoint_includes_hero_image_and_quick_add():
+    """W11-5 (И-2): фон баннера и тумблер быстрого заказа переехали со страницы «Site»
+    в билдер → идут в черновик, иначе правка была бы видна только после Save."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="dw11",
+        name="DW11",
+        site_config={"hero_image": "https://cdn.example/alt.jpg", "quick_add": True},
+    )
+    body = json.dumps({"hero_image": "https://cdn.example/neu.jpg", "quick_add": False})
+    req = _session(
+        RequestFactory().post(
+            "/dashboard/site/preview/draft/", body, content_type="application/json"
+        )
+    )
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+
+    assert views.site_preview_draft(req).status_code == 204
+    draft = req.session["site_preview_draft"]
+    assert draft["hero_image"] == "https://cdn.example/neu.jpg"
+    assert draft["quick_add"] is False
