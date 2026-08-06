@@ -173,6 +173,18 @@
    {
     "enabled": true,
     "key": "about"
+   },
+   {
+    "enabled": true,
+    "key": "gallery"
+   },
+   {
+    "enabled": true,
+    "key": "team"
+   },
+   {
+    "enabled": true,
+    "key": "reviews"
    }
   ],
   "sticky": false,

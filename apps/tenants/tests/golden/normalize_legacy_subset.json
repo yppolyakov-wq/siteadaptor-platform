@@ -145,6 +145,30 @@
      "label": "About us",
      "target": "about",
      "type": "page"
+    },
+    {
+     "children": [],
+     "enabled": true,
+     "icon": "",
+     "label": "Galerie",
+     "target": "gallery",
+     "type": "page"
+    },
+    {
+     "children": [],
+     "enabled": true,
+     "icon": "",
+     "label": "Unser Team",
+     "target": "team",
+     "type": "page"
+    },
+    {
+     "children": [],
+     "enabled": true,
+     "icon": "",
+     "label": "Bewertungen",
+     "target": "reviews",
+     "type": "page"
     }
    ],
    "sticky": true,
@@ -192,6 +216,18 @@
    {
     "enabled": true,
     "key": "about"
+   },
+   {
+    "enabled": true,
+    "key": "gallery"
+   },
+   {
+    "enabled": true,
+    "key": "team"
+   },
+   {
+    "enabled": true,
+    "key": "reviews"
    }
   ],
   "sticky": true,
