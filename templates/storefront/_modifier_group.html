@@ -10,7 +10,7 @@
 Контекст: g (ModifierGroup), product.{% endcomment %}
 {% with style=g.display_style %}
 <div>
-  <p class="text-sm font-medium text-gray-700">{{ g.name }}{% if g.is_required %} <span class="text-red-500">*</span>{% endif %}</p>
+  <p class="text-sm font-medium text-gray-700">{{ g.name_localized }}{% if g.is_required %} <span class="text-red-500">*</span>{% endif %}</p>
   {% if g.is_multi %}
     {% if style == "tiles" %}
       <div class="mt-1 grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -18,7 +18,7 @@
           <label class="cursor-pointer rounded-xl border border-gray-200 p-2 text-center hover:border-indigo-400 has-[:checked]:border-indigo-500 has-[:checked]:ring-1 has-[:checked]:ring-indigo-500">
             <input type="checkbox" name="mod" value="{{ o.pk }}" class="sr-only">
             {% if o.image_url %}<img src="{{ o.image_url }}" alt="" class="w-full aspect-square rounded-lg object-cover mb-1">{% endif %}
-            <span class="block text-xs font-medium leading-tight">{{ o.label }}</span>
+            <span class="block text-xs font-medium leading-tight">{{ o.label_localized }}</span>
             {% if o.price_delta %}<span class="block text-xs text-gray-500">+{{ o.price_delta }} {{ product.currency|cursym }}</span>{% endif %}
           </label>
         {% endfor %}
@@ -28,7 +28,7 @@
         {% for o in g.active_options %}
           <label class="cursor-pointer rounded-full border border-gray-300 px-3 py-1.5 text-sm hover:border-indigo-400 has-[:checked]:bg-gray-900 has-[:checked]:text-white has-[:checked]:border-gray-900">
             <input type="checkbox" name="mod" value="{{ o.pk }}" class="sr-only">
-            {{ o.label }}{% if o.price_delta %} +{{ o.price_delta }} {{ product.currency|cursym }}{% endif %}
+            {{ o.label_localized }}{% if o.price_delta %} +{{ o.price_delta }} {{ product.currency|cursym }}{% endif %}
           </label>
         {% endfor %}
       </div>
@@ -38,7 +38,7 @@
           <label class="flex items-center gap-2 text-sm text-gray-700">
             <input type="checkbox" name="mod" value="{{ o.pk }}">
             {% if style == "list" and o.image_url %}<img src="{{ o.image_url }}" alt="" class="w-8 h-8 rounded object-cover">{% endif %}
-            {{ o.label }}{% if o.price_delta %} <span class="text-gray-500">+{{ o.price_delta }} {{ product.currency|cursym }}</span>{% endif %}
+            {{ o.label_localized }}{% if o.price_delta %} <span class="text-gray-500">+{{ o.price_delta }} {{ product.currency|cursym }}</span>{% endif %}
           </label>
         {% endfor %}
       </div>
@@ -50,16 +50,16 @@
           <button type="button" data-pick data-pick-value="{{ o.pk }}"
                   class="{% if style == 'chips' %}rounded-full border border-gray-300 px-3 py-1.5 text-sm hover:border-indigo-400{% elif style == 'list' %}flex w-full items-center gap-3 py-2 text-left border-b border-gray-100{% else %}rounded-xl border border-gray-200 p-2 text-center hover:border-indigo-400{% endif %}">
             {% if o.image_url and style != "chips" %}<img src="{{ o.image_url }}" alt="" class="{% if style == 'list' %}w-10 h-10 shrink-0{% else %}w-full aspect-square mb-1{% endif %} rounded-lg object-cover">{% endif %}
-            <span class="{% if style == 'list' %}flex-1 text-sm{% else %}block text-xs font-medium leading-tight{% endif %}">{{ o.label }}</span>
+            <span class="{% if style == 'list' %}flex-1 text-sm{% else %}block text-xs font-medium leading-tight{% endif %}">{{ o.label_localized }}</span>
             {% if o.price_delta %}<span class="{% if style == 'list' %}text-sm{% else %}block text-xs{% endif %} text-gray-500">+{{ o.price_delta }} {{ product.currency|cursym }}</span>{% endif %}
           </button>
         {% endfor %}
       </div>
     {% endif %}
-    <select name="mod" data-pick-select {% if g.is_required %}required{% endif %} class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5" aria-label="{{ g.name }}">
+    <select name="mod" data-pick-select {% if g.is_required %}required{% endif %} class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5" aria-label="{{ g.name_localized }}">
       {% if g.is_required %}<option value="" disabled selected>— {% trans "please choose" %} —</option>{% else %}<option value="">— {% trans "none" %} —</option>{% endif %}
       {% for o in g.active_options %}
-        <option value="{{ o.pk }}">{{ o.label }}{% if o.price_delta %} (+{{ o.price_delta }} {{ product.currency|cursym }}){% endif %}</option>
+        <option value="{{ o.pk }}">{{ o.label_localized }}{% if o.price_delta %} (+{{ o.price_delta }} {{ product.currency|cursym }}){% endif %}</option>
       {% endfor %}
     </select>
   {% endif %}

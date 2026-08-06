@@ -107,7 +107,7 @@
         <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
         {% if anprobe_variants %}
         <select name="variant" aria-label="{% trans 'Größe' %}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
-          {% for v in anprobe_variants %}<option value="{{ v.pk }}">{{ v.label }}</option>{% endfor %}
+          {% for v in anprobe_variants %}<option value="{{ v.pk }}">{{ v.label_localized }}</option>{% endfor %}
         </select>
         {% endif %}
         <input type="text" name="name" required placeholder="{% trans 'Name' %}" aria-label="{% trans 'Name' %}" class="w-32 rounded-lg border border-gray-300 px-3 py-2 text-sm">
@@ -126,7 +126,7 @@
         <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
         {% if waitlist_variants %}
         <select name="variant" aria-label="{% trans 'Größe' %}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
-          {% for v in waitlist_variants %}<option value="{{ v.pk }}">{{ v.label }}</option>{% endfor %}
+          {% for v in waitlist_variants %}<option value="{{ v.pk }}">{{ v.label_localized }}</option>{% endfor %}
         </select>
         {% endif %}
         <input type="email" name="email" required placeholder="ihre@mail.de" aria-label="E-Mail" class="flex-1 min-w-[180px] rounded-lg border border-gray-300 px-3 py-2 text-sm">
