@@ -8797,3 +8797,14 @@ BusinessReview (SHARED) += reply_text/replied_at (миграция
 msgid переиспользован с entity-отзывов). Хинт «Antworten folgen» заменён честным
 описанием (1 msgid × 5 .po). Замки: save/clear + рендер в кабинете + 404 на
 чужую схему. ⚠️ ops: деплой с миграцией — `./scripts/deploy.sh single`.
+
+
+## 2026-08-06 — Фикс-форвард 5а: uv.lock снят с .gitignore (CI не находил лок)
+
+Первый прогон 5а упал за ~30с: `Unable to find lockfile at 'uv.lock', but
+'--locked' was provided` — uv.lock числился в .gitignore (строка 54, «lockfiles
+for tools we don't commit») и в репо не попадал; setup-uv это же подсказывал
+warning'ом «No file matched to [**/uv.lock…]». Урок: переключая CI на
+`--locked`, коммит лока — часть того же инкремента; `git check-ignore -v` —
+первая диагностика «файл есть локально, а в CI нет». Лок закоммичен (115
+пакетов, pytest-django 4.12.0 под пином `<4.13`), `uv lock --check` зелёный.

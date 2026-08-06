@@ -50,8 +50,8 @@ nano.*.save
 .DS_Store
 Thumbs.db
 
-# Build / lockfiles for tools we don't commit
-uv.lock
+# Build-каталоги CI-инструментов (uv.lock НЕ игнорируем: решение 5а —
+# CI ставит зависимости строго `uv sync --locked`, лок обязан жить в репо)
 .venv-ci/
 
 # Redis dump from local test runs
