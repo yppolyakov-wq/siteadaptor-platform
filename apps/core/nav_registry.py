@@ -79,7 +79,9 @@ ANCHORS: tuple[Anchor, ...] = (
         hubs=("marketing",),
     ),
     # W9-9 (Р-3): «Integrationen» ушёл из якорей сайдбара — вкладка Einstellungen.
-    Anchor("site", _("Website"), "site", "✏️", "website gestalten studio design"),
+    # W11-5: якорь ведёт прямо в Studio — страница-лендинг «Site» умерла (302).
+    # url_name → site-home, nav_key остаётся "site" (его эмитят 6 экранов сайта).
+    Anchor("site-home", _("Website"), "site", "✏️", "website gestalten studio design"),
     Anchor(
         "settings",
         _("Einstellungen"),

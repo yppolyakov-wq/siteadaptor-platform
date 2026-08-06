@@ -8808,3 +8808,52 @@ warning'ом «No file matched to [**/uv.lock…]». Урок: переключ�
 `--locked`, коммит лока — часть того же инкремента; `git check-ignore -v` —
 первая диагностика «файл есть локально, а в CI нет». Лок закоммичен (115
 пакетов, pytest-django 4.12.0 под пином `<4.13`), `uv lock --check` зелёный.
+
+
+## 2026-08-06 — W11-5: Website-свод в Studio (страница «Site» умерла) — БЕЗ миграций
+
+Решение владельца 2а: полный свод, «Website» = один вход. План
+`w11-5-website-studio-plan-2026-08-06.md` (карта переноса, риски двойной
+буферизации/draft-канала, замки ДО правок, Playwright-стенд §5).
+
+Разведка отделила ДУБЛИ от гэпа: галерея фото (тот же `_upload_gallery_images`),
+hero_title/hero_text, контент-секции (`_section_fields.html` — один партиал и
+общий `parse_content_sections`) в Studio уже были; about_* правятся на канве
+(вторую форму НЕ заводим — второй write-путь = класс W6-граблей). Честный гэп —
+quick-start, `hero_image`, `quick_add`, `gallery_video` + сироты-экраны.
+
+**И-1** область `quickstart` (рейка «⚡ Start» → `__sfShowArea`): карточки
+шаблонов + демо-кнопка; ветки `apply_template`/`load_demo`/`clear_demo` —
+early-return ДО main-save (fall-through пересобрал бы `sections` из `order_*`).
+Библиотеки те же, что у мастера. **И-2** `hero_image` (область Banner) и
+`quick_add` (Theme) — в `#home-form` с presence-guard/сентинелом + `collect()` +
+whitelist `site_preview_draft` (правка видна вживую, не только после Save);
+`gallery_video` — своя форма области «Медиа» с targeted-write и early-return.
+**И-3** соседние экраны (SEO/обложки/раскладки/превью/меню) получили вход из
+области «Шаблоны» — их карточки жили только на умирающей странице (принцип W7b);
+back-links соседей → Studio, выход из Studio → кабинет (иначе петля на редирект).
+**И-4** `site_view` = 302 на `site-home` с переносом GET (прецедент W10-6,
+`?page=` deep-link жив), `templates/tenant/site.html` удалён, консумеры
+переведены: карандаш шапки, `Anchor` реестра W8, чек-лист онбординга,
+`NavItem` спеки модуля (url_name — Studio, nav_key "site" цел: его эмитят
+6 живых экранов).
+
+**Стенд поймал дефект, невидимый серверным тестам:** `quick_add` попал внутрь
+`data-expert="1"`-блока настроек карточек → в Простом режиме владелец не смог бы
+выключить быстрый заказ (на «Site» настройка была доступна всегда). Вынесен из
+expert-блока, добавлен замок `test_quick_add_toggle_is_not_expert_only`.
+Playwright 28/28 (редирект+GET-carry, рейка, live-черновик hero_image, Save
+round-trip, видео галереи без пересборки секций, Undo/Redo, входы к соседям).
+Грабли стенда: Django кэширует шаблоны и в DEBUG (рестарт runserver), панель
+после входа схлопнута (канва-first W1) — клик по вкладке требует ⚙️ Template.
+
+**Замки переписаны осознанно** (ветка save site_view умерла): `test_w6_theme`
+переехал на save билдера — уточнено, что инвариант касается ЧУЖИХ ключей
+(ui_mode/board/seo/page_blocks), а typography/site_defaults/font билдер ВЛАДЕЕТ
+(его форма всегда их несёт, W0); `test_sitetemplates` apply_template/галерея →
+builder; `test_siteconfig` → редирект + save билдера; `test_menu_builder`,
+`test_onboarding_wizard` — на билдер; `test_home_builder` — site_view убран из
+цикла GET-200 (он редирект), prod-500-регрессия repeatable-блока проверяется на
+живом экране; `test_sidebar_st4b` — url_name якоря `site` → `site-home`.
+Новый файл `test_w11_5_redirect.py` (5): 302, GET-carry, end-to-end рендер цели,
+паритет функций, якорь. 2 новых msgid × 5 .po; `app.css` пересобран.

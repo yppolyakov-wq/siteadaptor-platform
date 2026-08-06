@@ -17162,3 +17162,11 @@ msgstr "Simple also hides the “Advanced” drawer of the tab bars and pro fiel
 
 msgid "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb. Ihre Antwort erscheint öffentlich auf dem Portal."
 msgstr "Reviews from the city portal (/entdecken) about your business. Your reply appears publicly on the portal."
+
+#: templates/tenant/site_home.html
+msgid "More tools"
+msgstr "More tools"
+
+#: templates/tenant/site_home.html
+msgid "YouTube, Vimeo or direct .mp4. Loaded only on click (GDPR-friendly)."
+msgstr "YouTube, Vimeo or direct .mp4. Loaded only on click (GDPR-friendly)."

@@ -502,7 +502,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         # (cabinet.HUB_TABS["settings"] + «Erweitert»-ящик). url_prefixes ниже сохраняют
         # middleware-гейт всех путей — под-страницы доступны табами хаба.
         nav_items=(
-            NavItem("site", _("Site"), "site"),
+            NavItem("site-home", _("Site"), "site"),  # W11-5: url → Studio, nav_key цел
             NavItem("settings", _("Settings"), "settings"),
         ),
         url_prefixes=(

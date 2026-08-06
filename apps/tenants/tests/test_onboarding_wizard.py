@@ -865,10 +865,12 @@ def test_fresh_setup_snaps_to_first_visible_step():
     assert "Mit Beispielen starten" in html  # приглашение добавить демо
 
 
-def test_site_view_save_keeps_wizard_state():
+def test_builder_save_keeps_wizard_state():
+    # W11-5: сохранение витрины (единственное — конструктор главной) не роняет
+    # состояние мастера, лежащее в том же JSON.
     tenant = TenantFactory(business_type="bakery")
     onboarding.save_state(tenant, {"v": 2, "step": "stil", "completed": False})
-    response = core_views.site_view(_req("post", {"hero_title": "Hallo"}, tenant))
+    response = core_views.home_builder_view(_req("post", {"hero_title": "Hallo"}, tenant))
     assert response.status_code == 302
     tenant.refresh_from_db()
     assert tenant.site_config["hero_title"] == "Hallo"

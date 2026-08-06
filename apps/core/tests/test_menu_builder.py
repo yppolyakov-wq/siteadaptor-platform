@@ -92,8 +92,9 @@ def test_menu_builder_get_renders_with_targets():
     assert "menus_json" in body  # скрытое поле сериализации
 
 
-def test_site_view_does_not_touch_legacy_nav():
-    # S7b: «Site» переносит nav как есть (меню правится в билдере).
+def test_builder_save_does_not_touch_legacy_nav_without_menu_area():
+    # S7b/W11-5: пункты меню правятся в билдере меню; сохранение конструктора
+    # главной БЕЗ области «Меню» (нет nav_style) переносит nav как есть.
     tenant = TenantFactory(
         schema_name="public",
         slug="sv2",
@@ -108,7 +109,9 @@ def test_site_view_does_not_touch_legacy_nav():
             }
         },
     )
-    resp = views.site_view(_request("post", "/dashboard/site/", {"font": "serif"}, tenant))
+    resp = views.home_builder_view(
+        _request("post", "/dashboard/site/home/", {"font": "serif"}, tenant)
+    )
     assert resp.status_code == 302
     cfg = siteconfig.normalize(tenant.site_config)
     assert cfg["nav"]["style"] == "minimal"  # не сброшен в classic

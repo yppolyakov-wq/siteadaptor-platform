@@ -983,142 +983,18 @@ def _delete_gallery_image(request, image_id: str) -> None:
 
 @login_required
 def site_view(request):
-    """Конструктор витрины v1 (Track C2): секции главной + тексты hero/about.
+    """W11-5 (Website-свод): страница «Site» умерла — Studio единственный вход.
 
-    Сверху — галерея шаблонов (ранний срез M20, apps.tenants.sitetemplates):
-    выбор готовой раскладки в один клик поверх того же секционного движка.
+    Её функции переехали в билдер: quick-start (шаблоны + демо) — область
+    «Schnellstart» рейки, фон баннера/быстрый заказ — форма билдера, видео
+    галереи — область «Медиа», контент-секции и галерея были общими и раньше.
+    Остаётся 302 с переносом GET (прецедент W10-6): старые ссылки/закладки живы.
     """
-    from apps.tenants import demo, siteconfig, sitetemplates, storefront
+    from django.http import HttpResponseRedirect
+    from django.urls import reverse
 
-    if request.method == "POST":
-        # Применение шаблона витрины (галерея).
-        if request.POST.get("action") == "apply_template":
-            if sitetemplates.apply_template(request.tenant, request.POST.get("template", "")):
-                messages.success(request, _("Vorlage übernommen."))
-            else:
-                messages.error(request, _("Unbekannte Vorlage."))
-            return redirect("site")
-        # Демо-контент (M20): отдельные кнопки загрузки/удаления.
-        if request.POST.get("action") == "load_demo":
-            if demo.load_demo(request.tenant):
-                messages.success(request, _("Demo-Inhalte geladen."))
-            else:
-                messages.info(request, _("Demo-Inhalte sind bereits vorhanden."))
-            return redirect("site")
-        if request.POST.get("action") == "clear_demo":
-            if demo.clear_demo(request.tenant):
-                messages.success(request, _("Demo-Inhalte gelöscht."))
-            else:
-                messages.info(request, _("Keine Demo-Inhalte vorhanden."))
-            return redirect("site")
-        # Галерея (M20 ⑤b): загрузка/удаление фото (multipart, отдельно от save).
-        if request.POST.get("action") == "upload_gallery":
-            _upload_gallery_images(request)
-            return redirect("site")
-        if request.POST.get("action") == "delete_gallery_image":
-            _delete_gallery_image(request, request.POST.get("image_id", ""))
-            return redirect("site")
-        # S2b: композиция главной (порядок/видимость секций + тизеры архетипов)
-        # живёт на отдельной странице «Startseite» (home_builder_view). Здесь —
-        # дизайн/контент/навигация; секции и оверрайды тизеров переносим как есть.
-        current = siteconfig.normalize(request.tenant.site_config)
-        # Фикс потери данных: стартуем с ПОЛНОЙ копии конфига (как home_builder_view),
-        # иначе сохранение «Site» роняет ключи, которых нет в этой форме — ui_mode (S5),
-        # board (W5), seo, типографику, стиль карточек и др. Ниже — только правки формы.
-        config = dict(current)
-        for field in siteconfig.TEXT_FIELDS:
-            # presence-safe: поля нет в форме → сохраняем текущее (не затираем в "").
-            config[field] = request.POST.get(field, current.get(field, ""))
-        config["hero_image"] = request.POST.get("hero_image", current.get("hero_image", "")).strip()
-        # W6: цвет/шрифт/стиль баннера — ЕДИНЫЙ источник в конструкторе главной (Theme).
-        # Здесь не редактируем; presence-guard шрифта на случай легаси-POST.
-        if "font" in request.POST:
-            config["font"] = request.POST.get("font") or "system"
-        # S7b: навигация витрины правится в билдере меню (/dashboard/site/menu/).
-        # Легаси-nav здесь только переносим (из него выводится menus для тенантов,
-        # ещё не трогавших билдер) — пустая форма «Site» не должна его гасить.
-        config["nav"] = current["nav"]
-        # Контент-секции (M20 ⑤a/M20d): CTA / отзывы / FAQ / process / team / trust.
-        # Единый парсер — общий с конструктором главной и live-preview-черновиком.
-        config.update(siteconfig.parse_content_sections(request.POST.get))
-        # T1: видео в галерее — один URL (YouTube/Vimeo/файл).
-        config["gallery_video"] = request.POST.get("gallery_video", "").strip()
-        # T2c: быстрый заказ («+»/модалка) на карточках — тумблер владельца.
-        config["quick_add"] = request.POST.get("quick_add") == "on"
-        # Не затираем состояние Onboarding-Wizard (D0c) и реестр демо — тот же JSON.
-        previous = (
-            request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
-        )
-        if isinstance(previous.get("onboarding"), dict):
-            config["onboarding"] = previous["onboarding"]
-        if isinstance(previous.get("demo"), dict):
-            config["demo"] = previous["demo"]
-        if isinstance(previous.get("gallery"), list):
-            config["gallery"] = previous["gallery"]  # фото грузятся отдельной формой
-        request.tenant.site_config = siteconfig.normalize(config)
-        # W6: акцент/шрифт/стиль баннера — ЕДИНЫЙ источник в конструкторе главной
-        # (home_builder_view). Здесь тему не пишем (primary_color не трогаем).
-        request.tenant.save(update_fields=["site_config", "updated_at"])
-        messages.success(request, _("Gespeichert."))
-        return redirect("site")
-
-    config = siteconfig.normalize(request.tenant.site_config)
-    labels = {key: label for key, label, _default in siteconfig.SECTIONS}
-    # Защита (prod 500): config["sections"] может содержать repeatable-блоки
-    # (text/image/…, добавленные инсертером «+») и неизвестные ключи — их нет в
-    # labels. Пропускаем их, как делает home_builder_view (иначе KeyError → 500).
-    sections = [
-        {
-            "key": s["key"],
-            "label": labels[s["key"]],
-            "enabled": s["enabled"],
-            "order": index,
-        }
-        for index, s in enumerate(config["sections"], start=1)
-        if s["key"] in labels
-    ]
-    business_type = request.tenant.business_type
-    # AB6.2b: карточки шаблонов с мини-превью — общий хелпер (реюз в слайде «Stil»).
-    site_templates = sitetemplates.template_cards(business_type)
-    # Навигация витрины (M20 ④): пункты в порядке владельца + метки/гейтинг.
-    nav_labels = {key: label for key, label, _u, _m in siteconfig.NAV_ITEMS}
-    nav_modules_map = {key: mod for key, _l, _u, mod in siteconfig.NAV_ITEMS}
-    nav_items = [
-        {
-            "key": item["key"],
-            "label": nav_labels[item["key"]],
-            "enabled": item["enabled"],
-            "order": index,
-            "module": nav_modules_map[item["key"]] or "",
-        }
-        for index, item in enumerate(config["nav"]["items"], start=1)
-    ]
-    return render(
-        request,
-        "tenant/site.html",
-        {
-            "nav": "site",
-            "sections": sections,
-            "config": config,
-            "site_templates": site_templates,
-            # S2: тизер-архетипы для блока «Unsere Bereiche» (заголовок/описание/видимость).
-            "archetype_specs": storefront.teaser_specs(request.tenant),
-            "nav_items": nav_items,
-            "nav_style": config["nav"]["style"],
-            "nav_sticky": config["nav"]["sticky"],
-            "nav_styles": siteconfig.NAV_STYLES,
-            "font_choices": list(siteconfig.FONTS),
-            "faq_text": siteconfig.pairs_to_text(config["faq"], "q", "a"),
-            "testimonials_text": siteconfig.pairs_to_text(config["testimonials"], "name", "text"),
-            "trust_marks_text": "\n".join(config["trust"]["marks"]),
-            "process_text": siteconfig.pairs_to_text(config["process"], "title", "text"),
-            "team_text": "\n".join(
-                f"{m['name']} | {m['role']}".rstrip(" |") for m in config["team"]
-            ),
-            "usp_text": siteconfig.usp_to_text(config["usp_bar"]),
-            "has_demo": demo.has_demo(request.tenant),
-        },
-    )
+    qs = request.GET.urlencode()
+    return HttpResponseRedirect(reverse("site-home") + (f"?{qs}" if qs else ""))
 
 
 # SE-9c → UC1-3: иконки секций переехали в реестр (siteconfig.SECTION_ICONS —

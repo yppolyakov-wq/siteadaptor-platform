@@ -495,7 +495,7 @@ def completeness(tenant) -> dict:
             "key": "banner",
             "label": _t("Add a banner or photo"),
             "done": has_photo,
-            "url_name": "site",
+            "url_name": "site-home",  # W11-5: Studio (страница «Site» умерла)
         },
         {
             "key": "hours",

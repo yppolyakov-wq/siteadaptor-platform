@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 
-from apps.core.views import site_view
+from apps.core.views import home_builder_view
 from apps.promotions import public_views
 from apps.tenants import siteconfig, sitetemplates
 from apps.tenants.tests.factories import TenantFactory
@@ -19,7 +19,7 @@ def _enabled(tenant):
 
 
 def _request(rf, method, user, tenant, data=None):
-    request = getattr(rf, method)("/dashboard/site/", data or {})
+    request = getattr(rf, method)("/dashboard/site/home/", data or {})
     SessionMiddleware(lambda r: None).process_request(request)
     MessageMiddleware(lambda r: None).process_request(request)
     request.user = user
@@ -238,12 +238,14 @@ def test_apply_unknown_template_is_noop():
     assert sitetemplates.apply_template(tenant, "does-not-exist") is False
 
 
-def test_site_view_apply_template(rf, settings):
+def test_builder_apply_template(rf, settings):
+    # W11-5: галерея шаблонов переехала со страницы «Site» в Studio (область
+    # «Schnellstart»); ветка apply_template — та же библиотека.
     settings.ROOT_URLCONF = "config.urls_tenant"
     tenant = TenantFactory(schema_name="t_view", business_type="cafe", site_config={})
     user = get_user_model().objects.create_user("u", "u@test.de", "pw12345678")
 
-    resp = site_view(
+    resp = home_builder_view(
         _request(rf, "post", user, tenant, {"action": "apply_template", "template": "gastro"})
     )
     assert resp.status_code in (301, 302)
@@ -251,44 +253,25 @@ def test_site_view_apply_template(rf, settings):
     assert _enabled(tenant) == ["hero", "products", "promotions", "contact"]
 
 
-def test_site_view_gallery_renders(rf, settings):
+def test_builder_template_gallery_renders(rf, settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
     tenant = TenantFactory(schema_name="t_view2", business_type="bakery", disabled_modules=[])
     user = get_user_model().objects.create_user("u2", "u2@test.de", "pw12345678")
 
-    html = site_view(_request(rf, "get", user, tenant)).content.decode()
+    html = home_builder_view(_request(rf, "get", user, tenant)).content.decode()
     assert "Klassischer Laden" in html  # карточка шаблона в галерее
     assert "Café &amp; Restaurant" in html
 
 
-def test_site_view_no_longer_touches_theme(rf, settings):
-    """W6: тема (акцент/шрифт/стиль баннера) — единый источник в конструкторе главной.
-    Сохранение «Site» темы НЕ трогает, даже если легаси-поля пришли в POST."""
-    settings.ROOT_URLCONF = "config.urls_tenant"
-    tenant = TenantFactory(
-        schema_name="t_acc",
-        business_type="bakery",
-        primary_color="#123456",
-        site_config={"hero_style": "plain"},
-    )
-    user = get_user_model().objects.create_user("ua", "ua@test.de", "pw12345678")
-    data = {"hero_accent": "on", "accent_color": "#0e7490", "enabled_hero": "on", "order_hero": "1"}
-
-    resp = site_view(_request(rf, "post", user, tenant, data))
-    assert resp.status_code in (301, 302)
-    tenant.refresh_from_db()
-    assert tenant.primary_color == "#123456"  # site_view тему не пишет (единый источник)
-    assert siteconfig.normalize(tenant.site_config)["hero_style"] == "plain"
-
-
-def test_site_view_rejects_invalid_accent(rf, settings):
+def test_builder_ignores_invalid_accent(rf, settings):
+    """W6/W11-5: акцент пишется только валидным hex (единый источник — билдер)."""
     settings.ROOT_URLCONF = "config.urls_tenant"
     tenant = TenantFactory(
         schema_name="t_acc2", business_type="bakery", primary_color="#123456", site_config={}
     )
     user = get_user_model().objects.create_user("ub", "ub@test.de", "pw12345678")
 
-    site_view(_request(rf, "post", user, tenant, {"accent_color": "rot"}))
+    home_builder_view(_request(rf, "post", user, tenant, {"accent": "rot"}))
     tenant.refresh_from_db()
     assert tenant.primary_color == "#123456"  # невалидный hex проигнорирован
 

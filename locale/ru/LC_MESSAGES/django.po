@@ -17354,3 +17354,11 @@ msgstr "Режим «Просто» также скрывает ящик «Erwei
 
 msgid "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb. Ihre Antwort erscheint öffentlich auf dem Portal."
 msgstr "Отзывы о вашем бизнесе с городского портала (/entdecken). Ваш ответ виден на портале публично."
+
+#: templates/tenant/site_home.html
+msgid "More tools"
+msgstr "Другие инструменты"
+
+#: templates/tenant/site_home.html
+msgid "YouTube, Vimeo or direct .mp4. Loaded only on click (GDPR-friendly)."
+msgstr "YouTube, Vimeo или прямой .mp4. Загружается только по клику (без слежки)."

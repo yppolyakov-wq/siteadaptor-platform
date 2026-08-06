@@ -144,30 +144,27 @@ def test_home_contact_section_shows_tenant_data():
     assert "Mo–Fr 7–18" in body
 
 
-# --- кабинет «Site» ------------------------------------------------------------
+# --- кабинет: конструктор витрины (W11-5: страница «Site» умерла → 302 на Studio) --
 
 
-def test_site_view_get_links_to_homepage_builder():
-    # S2b: композиция секций уехала на /dashboard/site/home/ — на «Site»
-    # остаётся ссылка-карточка на конструктор главной.
-    body = core_views.site_view(_req("get", "/dashboard/site/", user=_owner())).content.decode()
-    assert "Homepage-Baukasten" in body
-    assert "site/home/" in body
+def test_site_url_redirects_to_studio():
+    # W11-5: старый адрес «Site» жив как редирект (закладки/письма не ломаются).
+    resp = core_views.site_view(_req("get", "/dashboard/site/", user=_owner()))
+    assert resp.status_code == 302
+    assert resp["Location"] == "/dashboard/site/home/"
 
 
-def test_site_view_post_saves_texts_and_preserves_sections():
-    # S2b: site_view сохраняет тексты/дизайн, но НЕ перестраивает секции из
-    # своей формы — композицию ведёт home_builder. Пустые order_/enabled_ не
-    # должны гасить блоки.
+def test_builder_save_preserves_sections_not_in_form():
+    # S2b: композицию ведёт форма билдера; ключи, которых в POST нет, не гаснут.
     tenant = TenantFactory(site_config={"sections": [{"key": "promotions", "enabled": True}]})
     data = {
+        "order_promotions": "1",
+        "enabled_promotions": "on",
         "hero_title": "Willkommen!",
         "hero_text": "  Schön, dass Sie da sind.  ",
-        "about_title": "",
-        "about_text": "Familienbetrieb.",
     }
-    resp = core_views.site_view(
-        _req("post", "/dashboard/site/", data, tenant=tenant, user=_owner())
+    resp = core_views.home_builder_view(
+        _req("post", "/dashboard/site/home/", data, tenant=tenant, user=_owner())
     )
     assert resp.status_code == 302
     tenant.refresh_from_db()
@@ -175,7 +172,7 @@ def test_site_view_post_saves_texts_and_preserves_sections():
     assert config["hero_title"] == "Willkommen!"
     assert config["hero_text"] == "Schön, dass Sie da sind."  # trim
     enabled = {s["key"] for s in config["sections"] if s["enabled"]}
-    assert "promotions" in enabled  # секция не погашена пустой формой
+    assert "promotions" in enabled
 
 
 def test_normalize_primary_module_presence_minimal():

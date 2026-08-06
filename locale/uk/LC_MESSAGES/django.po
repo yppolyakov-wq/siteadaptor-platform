@@ -17339,3 +17339,11 @@ msgstr "Режим «Просто» також приховує шухляду �
 
 msgid "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb. Ihre Antwort erscheint öffentlich auf dem Portal."
 msgstr "Відгуки про ваш бізнес із міського порталу (/entdecken). Ваша відповідь публічно видима на порталі."
+
+#: templates/tenant/site_home.html
+msgid "More tools"
+msgstr "Інші інструменти"
+
+#: templates/tenant/site_home.html
+msgid "YouTube, Vimeo or direct .mp4. Loaded only on click (GDPR-friendly)."
+msgstr "YouTube, Vimeo або прямий .mp4. Завантажується лише після кліку (без стеження)."

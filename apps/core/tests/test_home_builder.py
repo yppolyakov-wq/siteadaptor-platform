@@ -1192,9 +1192,10 @@ def test_home_builder_get_renders_global_card_style():
     assert 'name="sd_card_shadow"' in body
 
 
-def test_site_view_does_not_wipe_homepage_composition():
-    """Регрессия S2b: форма «Site» не присылает order_/enabled_ → секции и
-    оверрайды тизеров должны сохраниться (раньше site_view строил их из POST)."""
+def test_site_url_is_redirect_to_studio_and_touches_nothing():
+    """W11-5: страница «Site» умерла — её POST-ветки сохранения тоже. Старый адрес
+    остаётся 302 на Studio и конфиг не трогает (раньше форма «Site» могла погасить
+    композицию — регрессия S2b, теперь пути записи там просто нет)."""
     tenant = TenantFactory(
         schema_name="public",
         slug="sv",
@@ -1204,12 +1205,11 @@ def test_site_view_does_not_wipe_homepage_composition():
             "archetypes": {"catalog": {"label": "Speisekarte", "blurb": "", "hidden": False}},
         },
     )
+    before = dict(tenant.site_config)
     resp = views.site_view(_request("post", "/dashboard/site/", {}, tenant))
     assert resp.status_code == 302
-    cfg = siteconfig.normalize(tenant.site_config)
-    enabled = {s["key"] for s in cfg["sections"] if s["enabled"]}
-    assert "archetypes" in enabled  # не погашено пустой формой
-    assert cfg["archetypes"]["catalog"]["label"] == "Speisekarte"  # оверрайд цел
+    assert resp["Location"] == "/dashboard/site/home/"
+    assert tenant.site_config == before
 
 
 def test_all_editor_entrypoints_survive_freely_edited_config():
@@ -1238,8 +1238,8 @@ def test_all_editor_entrypoints_survive_freely_edited_config():
             "faq": [{"q": "Frage?", "a": "Antwort"}],
         },
     )
+    # W11-5: site_view — редирект (не страница), в цикле GET-200 ему не место.
     for view in (
-        views.site_view,
         views.home_builder_view,
         views.menu_builder_view,
         views.pages_view,
@@ -1249,11 +1249,11 @@ def test_all_editor_entrypoints_survive_freely_edited_config():
         assert resp.status_code == 200, f"{view.__name__} → {resp.status_code}"
 
 
-def test_site_view_survives_repeatable_block_in_config():
-    """Регрессия (prod 500): site_view («Site») строил sections как labels[s['key']]
+def test_builder_survives_repeatable_block_in_config():
+    """Регрессия (prod 500): страница редактора строила sections как labels[s['key']]
     БЕЗ защиты. Если в config['sections'] есть repeatable-блок (text/image/…, добавлен
-    инсертером «+») — ключа нет в SECTIONS → KeyError → 500 на /dashboard/site/.
-    После фикса неизвестные/repeatable ключи пропускаются → 200."""
+    инсертером «+») — ключа нет в SECTIONS → KeyError → 500. Неизвестные/repeatable
+    ключи должны пропускаться → 200 (W11-5: проверяем на живом экране — Studio)."""
     tenant = TenantFactory(
         schema_name="public",
         slug="svrb",
@@ -1265,7 +1265,7 @@ def test_site_view_survives_repeatable_block_in_config():
             ],
         },
     )
-    resp = views.site_view(_request("get", "/dashboard/site/", tenant=tenant))
+    resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
     assert resp.status_code == 200
 
 
@@ -1941,3 +1941,21 @@ def test_home_builder_links_to_sibling_site_screens():
         "/dashboard/site/menu/",
     ):
         assert path in html, path
+
+
+def test_quick_add_toggle_is_not_expert_only():
+    """W11-5 (стенд поймал): тумблер быстрого заказа на странице «Site» был доступен
+    ВСЕГДА. В Studio он не должен оказаться внутри expert-блока — иначе в Простом
+    режиме владелец не может его выключить (инвариант W0: скрытие только CSS, но
+    базовая настройка не должна быть под expert-гейтом)."""
+    tenant = TenantFactory(schema_name="public", slug="hbqa", name="HBQA")
+    html = views.home_builder_view(
+        _request("get", "/dashboard/site/home/", None, tenant)
+    ).content.decode()
+
+    idx = html.index('name="quick_add"')
+    # Ближайший предшествующий открывающий тег контейнера expert-блока не должен
+    # обрамлять тумблер: проверяем, что между ним и полем закрылся его div.
+    expert_open = html.rfind('data-expert="1"', 0, idx)
+    assert expert_open != -1  # expert-блоки на странице есть (иначе тест бессмыслен)
+    assert "</div>" in html[expert_open:idx], "тумблер оказался внутри expert-блока"

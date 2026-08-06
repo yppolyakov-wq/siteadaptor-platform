@@ -17274,3 +17274,11 @@ msgstr "Basit ayrıca sekme çubuklarındaki „Gelişmiş“ çekmecesini ve fo
 
 msgid "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb. Ihre Antwort erscheint öffentlich auf dem Portal."
 msgstr "Şehir portalından (/entdecken) işletmeniz hakkında değerlendirmeler. Yanıtınız portalda herkese açık görünür."
+
+#: templates/tenant/site_home.html
+msgid "More tools"
+msgstr "Diğer araçlar"
+
+#: templates/tenant/site_home.html
+msgid "YouTube, Vimeo or direct .mp4. Loaded only on click (GDPR-friendly)."
+msgstr "YouTube, Vimeo veya doğrudan .mp4. Yalnızca tıklamayla yüklenir (KVKK/DSGVO uyumlu)."

@@ -44,12 +44,14 @@ def test_sidebar_nav_composition_and_urls():
     keys = [it["url_name"] for it in modules.sidebar_nav(t)]
     # V4 (2026-08-03): якорь «Verkäufe» ведёт на единую страницу продаж.
     # W9-9 (Р-3): «Integrationen» ушёл из сайдбара — вкладка Einstellungen.
+    # W11-5: якорь «Website» ведёт прямо в Studio (site-home) — страница-лендинг
+    # «Site» умерла и осталась только редиректом (nav_key "site" при этом цел).
     assert keys == [
         "dashboard",
         "verkaeufe",
         "sellable-manage",
         "marketing-home",
-        "site",
+        "site-home",
         "settings",
     ]
     for it in modules.sidebar_nav(t):

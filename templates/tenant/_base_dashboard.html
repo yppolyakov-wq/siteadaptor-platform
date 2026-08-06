@@ -89,7 +89,8 @@
         (включить доп. языки → на витрине появляется переключатель DE/EN/…).{% endcomment %}
         <button type="button" id="navpal-open" class="text-gray-500 hover:text-gray-900" title="{% trans 'Suche (Strg+K)' %}" aria-label="{% trans 'Suche (Strg+K)' %}">🔍</button>
         <a href="{% url 'languages' %}" class="inline-flex items-center gap-1 text-gray-500 hover:text-gray-900" title="{% trans 'Website languages' %}">🌐 <span class="hidden lg:inline">{% trans "Sprachen" %}</span>{% if cabinet_locale_count > 1 %}<span class="text-[11px] font-semibold text-indigo-600">{{ cabinet_locale_count }}</span>{% endif %}</a>
-        <a href="{% url 'site' %}" class="hidden md:inline-flex items-center gap-1 text-gray-500 hover:text-gray-900" title="{% trans 'View / edit site' %}">✏️ <span class="hidden lg:inline">{% trans "Website" %}</span></a>
+        {% comment %}W11-5: «Website» = Studio (страница-лендинг умерла, /dashboard/site/ → 302).{% endcomment %}
+        <a href="{% url 'site-home' %}" class="hidden md:inline-flex items-center gap-1 text-gray-500 hover:text-gray-900" title="{% trans 'View / edit site' %}">✏️ <span class="hidden lg:inline">{% trans "Website" %}</span></a>
         <span class="text-gray-600 hidden xl:inline truncate max-w-[140px]">{{ user.email }}</span>
         <a href="{% url 'account_logout' %}" class="text-indigo-600 hover:underline whitespace-nowrap">{% trans "Sign out" %}</a>
       </div>
