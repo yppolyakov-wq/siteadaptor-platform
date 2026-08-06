@@ -9,7 +9,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.models import I18nMixin, SoftDeleteMixin, TimestampedModel
+from apps.core.models import I18nMixin, SoftDeleteMixin, TimestampedModel, resolve_overlay
 
 # Ф3: переводимые метки бейджа для витрины. BADGE_CHOICES на модели остаётся
 # немецким (форма кабинета/БД/миграции не трогаем) — здесь тот же msgid, но
@@ -45,6 +45,9 @@ class Category(SoftDeleteMixin, I18nMixin):
     # строка = заголовки, ячейки через «|»); карточка товара показывает модалку
     # «📏 Größentabelle» при непустой таблице категории.
     size_table = models.TextField(blank=True)
+    # I18N-10: перевод таблицы (заголовки «Größe/Brust/Taille» осмысленны для
+    # покупателя). База — плоское поле; при отсутствии перевода показываем её.
+    size_table_i18n = models.JSONField(default=dict, blank=True)
 
     class Meta:
         verbose_name_plural = "Categories"
@@ -78,9 +81,13 @@ class Category(SoftDeleteMixin, I18nMixin):
 
     @property
     def size_table_rows(self) -> list[list[str]]:
-        """M2: разобранная Größentabelle — [[ячейки], …]; пусто при отсутствии."""
+        """M2: разобранная Größentabelle — [[ячейки], …]; пусто при отсутствии.
+
+        I18N-10: разбираем ЛОКАЛИЗОВАННЫЙ текст (перевод при наличии, иначе база)
+        — таблица целиком показная, в учёте не участвует.
+        """
         rows = []
-        for line in (self.size_table or "").splitlines():
+        for line in (resolve_overlay(self.size_table, self.size_table_i18n) or "").splitlines():
             cells = [c.strip() for c in line.split("|")]
             if any(cells):
                 rows.append(cells)
@@ -329,6 +336,13 @@ class ProductVariant(TimestampedModel):
     # пять подсистем. Обе оси пусты = поведение ровно как раньше.
     size = models.CharField(max_length=40, blank=True)  # «S», «38», «100 g»
     color = models.CharField(max_length=40, blank=True)  # «Blau», «Anthrazit»
+    # I18N-10: переводы МЕТОК для показа на витрине (overlay-семантика L3: база —
+    # в плоском поле, переводы неосновных локалей — здесь). Плоские поля остаются
+    # ключами учёта: склад-леджер, позиции заказа, CSV-импорт (match по label /
+    # (size,color)) и оси фасета читают ИХ, поэтому перевод не рвёт подсистемы.
+    label_i18n = models.JSONField(default=dict, blank=True)
+    size_i18n = models.JSONField(default=dict, blank=True)
+    color_i18n = models.JSONField(default=dict, blank=True)
     # Фото варианта (FileRef-конверт как Product.images): при выборе подменяет
     # главное фото на витрине; галерея товара не трогается.
     images = models.JSONField(default=list, blank=True)
@@ -359,6 +373,25 @@ class ProductVariant(TimestampedModel):
     def axis_label(self) -> str:
         """Подпись из осей («S · Blau»); пусто, если ни одна ось не задана."""
         return " · ".join(p for p in (self.size, self.color) if p)
+
+    # I18N-10: показ на языке посетителя. Учёт (склад/заказ/импорт/фасет) читает
+    # ПЛОСКИЕ поля — эти свойства только для рендера витрины.
+    @property
+    def label_localized(self) -> str:
+        return resolve_overlay(self.label, self.label_i18n)
+
+    @property
+    def size_localized(self) -> str:
+        return resolve_overlay(self.size, self.size_i18n)
+
+    @property
+    def color_localized(self) -> str:
+        return resolve_overlay(self.color, self.color_i18n)
+
+    @property
+    def axis_label_localized(self) -> str:
+        """Подпись из ПЕРЕВЕДЁННЫХ осей — для показа рядом с фото/в списке."""
+        return " · ".join(p for p in (self.size_localized, self.color_localized) if p)
 
     def save(self, *args, **kwargs):
         """label — производный ключ: заполняем из осей ТОЛЬКО когда он пуст.
@@ -436,6 +469,8 @@ class ModifierGroup(TimestampedModel):
 
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="modifier_groups")
     name = models.CharField(max_length=100)  # «Größe», «Extras»
+    # I18N-10: перевод названия группы для витрины (база — в плоском `name`).
+    name_i18n = models.JSONField(default=dict, blank=True)
     # Вид выбора на витрине (реестр option_styles.MODIFIER_STYLES). Per-группа,
     # потому что «Größe» и «Beilage» просят разного; "" = как раньше.
     display_style = models.CharField(max_length=12, blank=True, default="")
@@ -449,6 +484,11 @@ class ModifierGroup(TimestampedModel):
 
     def __str__(self):
         return f"{self.product} · {self.name}"
+
+    @property
+    def name_localized(self) -> str:
+        """I18N-10: название группы на языке посетителя (показ, не учёт)."""
+        return resolve_overlay(self.name, self.name_i18n)
 
     @property
     def active_options(self):
@@ -473,6 +513,9 @@ class ModifierOption(TimestampedModel):
 
     group = models.ForeignKey(ModifierGroup, on_delete=models.CASCADE, related_name="options")
     label = models.CharField(max_length=100)
+    # I18N-10: перевод метки опции. В ЗАКАЗ уходит снимок плоского `label`
+    # (что заказано — то и зафиксировано), переводится только показ на витрине.
+    label_i18n = models.JSONField(default=dict, blank=True)
     # Фидбэк 2026-08-04: артикул опции — справочный (у опций нет складского
     # остатка); печатается в заказе/документах рядом с меткой.
     sku = models.CharField(max_length=100, blank=True)
@@ -488,6 +531,11 @@ class ModifierOption(TimestampedModel):
 
     def __str__(self):
         return f"{self.label} (+{self.price_delta})"
+
+    @property
+    def label_localized(self) -> str:
+        """I18N-10: метка опции на языке посетителя (в заказ уходит плоская)."""
+        return resolve_overlay(self.label, self.label_i18n)
 
     @property
     def image_url(self) -> str:
