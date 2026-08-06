@@ -52,7 +52,9 @@ dev = [
     "django-debug-toolbar>=4.4",
     "django-extensions>=3.2",
     "pytest>=8.3",
-    "pytest-django>=4.9",
+    # <4.13: 4.13.0 (2026-08-05) ломает прогон с xdist («_pre_setup_ran_eagerly»);
+    # CI ставит unpinned latest (uv pip install -e .[dev]) — поймано CI 2026-08-06.
+    "pytest-django>=4.9,<4.13",
     "pytest-xdist>=3.6",  # параллельные тесты на CI (−время; django-tenants: БД на воркер)
     "factory-boy>=3.3",
     "faker>=30.0",

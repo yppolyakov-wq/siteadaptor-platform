@@ -8763,3 +8763,14 @@ BUSINESS_TYPES. Честно: «автоматика из recommended_for» (§2
 booking; restaurant — Speisekarte) → знание курируется в спеке модуля, один
 источник вместо параллельной карты. 4 msgid × 5 .po. Замки test_w12_modes (6);
 test_ui_mode/hub_tabs/W8 целы. Локально core+wizard 946 зелёных, без миграций.
+
+
+## 2026-08-06 — CI-фикс: pytest-django 4.13.0 сломал прогон (пин <4.13)
+
+Красный CI на f2e2475 — НЕ код: ночью вышел pytest-django 4.13.0, а CI ставит
+зависимости unpinned (`uv pip install -e ".[dev]"`, не uv.lock) → массовые
+ERROR «PytestDjangoTestCase has no attribute '_pre_setup_ran_eagerly'» (конфликт
+с xdist/pytest 9.1; локально 4.12.0 — зелёно). Фикс: `pytest-django>=4.9,<4.13`
+в pyproject + uv lock (остаётся 4.12.0). Класс грабли известный (CI ставит
+latest — как msgfmt/локали ранее); системное решение (CI на uv sync --locked) —
+кандидат отдельным решением.
