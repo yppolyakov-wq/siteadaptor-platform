@@ -17,9 +17,9 @@ test_cart_form_variants_and_modifiers_fields (regex по name= во всём HTM
     <p class="text-xs text-gray-500 mb-1">{% trans "Colour" %}</p>
     <div data-pick-ui data-pick-axis="color" class="mb-3">
       {% for c in variant_colors %}
-        <button type="button" data-pick data-pick-value="{{ c.name }}" title="{{ c.name }}"
+        <button type="button" data-pick data-pick-value="{{ c.name }}" title="{{ c.label }}"
                 class="sf-swatch"{% if c.hex %} style="background:{{ c.hex }}"{% elif c.image %} style="background-image:url('{{ c.image }}')"{% endif %}>
-          {% if not c.hex and not c.image %}<span class="text-[10px]">{{ c.name|slice:":1" }}</span>{% endif %}
+          {% if not c.hex and not c.image %}<span class="text-[10px]">{{ c.label|slice:":1" }}</span>{% endif %}
         </button>
       {% endfor %}
     </div>
@@ -28,8 +28,8 @@ test_cart_form_variants_and_modifiers_fields (regex по name= во всём HTM
     <p class="text-xs text-gray-500 mb-1">{% trans "Size" %}</p>
     <div data-pick-ui data-pick-axis="size" class="mb-2">
       {% for s in variant_sizes %}
-        <button type="button" data-pick data-pick-value="{{ s }}"
-                class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm hover:border-indigo-400">{{ s }}</button>
+        <button type="button" data-pick data-pick-value="{{ s.name }}"
+                class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm hover:border-indigo-400">{{ s.label }}</button>
       {% endfor %}
     </div>
   {% endif %}

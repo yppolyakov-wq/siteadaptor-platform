@@ -93,11 +93,18 @@ def variant_picker(context, product):
     colors, sizes = [], []
     for v in variants:
         if v.color and all(c["name"] != v.color for c in colors):
+            # I18N-10: `name` — КЛЮЧ сопоставления осей (его читает скрипт и
+            # data-color опций), `label` — подпись для покупателя на его языке.
             colors.append(
-                {"name": v.color, "hex": option_styles.color_hex(v.color), "image": v.image_url}
+                {
+                    "name": v.color,
+                    "label": v.color_localized,
+                    "hex": option_styles.color_hex(v.color),
+                    "image": v.image_url,
+                }
             )
-        if v.size and v.size not in sizes:
-            sizes.append(v.size)
+        if v.size and all(s["name"] != v.size for s in sizes):
+            sizes.append({"name": v.size, "label": v.size_localized})
     # Вид «две оси» без обеих осей выродился бы в один ряд — честно падаем в кнопки.
     if style == "axes" and not (colors and sizes):
         style = "buttons"

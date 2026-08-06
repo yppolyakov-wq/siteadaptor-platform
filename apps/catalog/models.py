@@ -378,7 +378,20 @@ class ProductVariant(TimestampedModel):
     # ПЛОСКИЕ поля — эти свойства только для рендера витрины.
     @property
     def label_localized(self) -> str:
-        return resolve_overlay(self.label, self.label_i18n)
+        """Метка на языке посетителя.
+
+        Порядок: свой перевод метки → сборка из ПЕРЕВЕДЁННЫХ осей → плоский label.
+        Второй шаг важен для одежды: метка «S · Blau» производна от осей (save()
+        собирает её), отдельного перевода у неё нет — иначе на любой локали
+        оставалось бы немецкое «Blau».
+        """
+        own = resolve_overlay(self.label, self.label_i18n)
+        if own != self.label:
+            return own
+        from_axes = self.axis_label_localized
+        if from_axes and from_axes != self.axis_label():
+            return from_axes
+        return self.label or ""
 
     @property
     def size_localized(self) -> str:

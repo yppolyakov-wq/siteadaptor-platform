@@ -234,7 +234,14 @@ def translate_tenant_content(tenant, locales) -> None:
         return
 
     from apps.booking.models import Service
-    from apps.catalog.models import Category, Combo, Product
+    from apps.catalog.models import (
+        Category,
+        Combo,
+        ModifierGroup,
+        ModifierOption,
+        Product,
+        ProductVariant,
+    )
     from apps.events.models import Event
     from apps.stays.models import RatePlan, StaySettings, StayUnit
 
@@ -242,10 +249,43 @@ def translate_tenant_content(tenant, locales) -> None:
         changed = _fill_full(prod, "name", locales) | _fill_full(prod, "description", locales)
         if changed:
             prod.save(update_fields=["name", "description"])
+        # I18N-10: характеристики товара — overlay-поля (Herkunft/Zutaten с Ф2,
+        # Material/Pflegehinweise с M1 Boutique). Витрина их показывает, но обход
+        # их не заполнял → на не-немецкой витрине они оставались немецкими.
+        char_changed = [
+            f
+            for f in ("origin", "ingredients", "material", "care")
+            if _fill_overlay(prod, f, f"{f}_i18n", locales)
+        ]
+        if char_changed:
+            prod.save(update_fields=[f"{f}_i18n" for f in char_changed])
 
     for cat in Category.objects.all():
-        if _fill_full(cat, "name", locales):
-            cat.save(update_fields=["name"])
+        cat_fields = ["name"] if _fill_full(cat, "name", locales) else []
+        # I18N-10: Größentabelle («Größe | Brust») — показная таблица.
+        if _fill_overlay(cat, "size_table", "size_table_i18n", locales):
+            cat_fields.append("size_table_i18n")
+        if cat_fields:
+            cat.save(update_fields=cat_fields)
+
+    # I18N-10: метки вариантов и модификаторов («Klein», «Teig», «Pommes»).
+    # Плоские поля — ключи учёта (склад/заказ/импорт), переводим только показ.
+    for var in ProductVariant.objects.all():
+        var_fields = [
+            f"{f}_i18n"
+            for f in ("label", "size", "color")
+            if _fill_overlay(var, f, f"{f}_i18n", locales)
+        ]
+        if var_fields:
+            var.save(update_fields=var_fields)
+
+    for grp in ModifierGroup.objects.all():
+        if _fill_overlay(grp, "name", "name_i18n", locales):
+            grp.save(update_fields=["name_i18n"])
+
+    for opt in ModifierOption.objects.all():
+        if _fill_overlay(opt, "label", "label_i18n", locales):
+            opt.save(update_fields=["label_i18n"])
 
     for svc in Service.objects.all():
         changed = _fill_overlay(svc, "name", "name_i18n", locales) | _fill_overlay(

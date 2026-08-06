@@ -288,3 +288,27 @@ def test_modifier_option_update_saves_translation():
     )
     o.refresh_from_db()
     assert o.label_i18n == {"ru": "Тонкое"} and o.label == "Dünn"
+
+
+def test_axis_swatch_label_translated_but_key_flat():
+    """Двухосевой пикер: подпись свотча — на языке посетителя, значение (ключ
+    сопоставления вариантов) остаётся плоским, иначе выбор перестанет работать."""
+    from django.template import Context, Template
+
+    p = Product.objects.create(name={"de": "Shirt"}, base_price="19.90", is_active=True)
+    for size in ("S", "M"):
+        ProductVariant.objects.create(
+            product=p,
+            label=f"{size} · Schwarz",
+            size=size,
+            color="Schwarz",
+            color_i18n={"ru": "Чёрный"},
+        )
+    p.variant_style = "axes"
+    p.save(update_fields=["variant_style"])
+
+    tpl = Template("{% load sellable_ui %}{% variant_picker product %}")
+    with translation.override("ru"):
+        html = tpl.render(Context({"product": p}))
+    assert 'title="Чёрный"' in html  # подпись переведена
+    assert 'data-pick-value="Schwarz"' in html  # ключ оси плоский
