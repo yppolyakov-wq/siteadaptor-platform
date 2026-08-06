@@ -171,14 +171,8 @@ ENTRIES: tuple[NavEntry, ...] = (
     # («Ruf & Dialog»), Telegram остаётся в Erweitert.
     _e("marketing", "crm:customer-list", _("Kontakte"), "crm", "crm", search="kunden crm"),
     _e("marketing", "inbox:list", _("Nachrichten"), "inbox", "inbox", search="chat posteingang"),
-    _e(
-        "marketing",
-        "promotions:reservation-list",
-        _("Reservierungen"),
-        "reservations",
-        "promotions",
-        True,
-    ),
+    # W10-2+решение 4а (2026-08-06): Reservierungen — вкладка Verkäufe («с первой
+    # продажей»); дубль из Marketing/Erweitert убран (одна поверхность).
     _e("marketing", "promotions:redeem", _("Einlösen"), "redeem", "promotions", True, "qr scan"),
     _e(
         "marketing",
@@ -333,6 +327,8 @@ _EXTRA_NAV_ANCHORS: dict[str, str] = {
     "orders": "board",
     "booking": "board",
     "stays": "board",
+    # решение 4а: список резервов — поверхность продаж (вкладка Verkäufe)
+    "reservations": "board",
     # якоря-лендинги (W9-9: integrations теперь запись settings-хаба — маппится сам)
     "dashboard": "dashboard",
     "site": "site",

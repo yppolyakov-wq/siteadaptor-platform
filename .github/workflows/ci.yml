@@ -66,9 +66,11 @@ jobs:
         run: uv python install 3.12
 
       - name: Install dependencies
-        run: |
-          uv venv
-          uv pip install -e ".[dev]"
+        # Решение 5а (2026-08-06): строго из uv.lock (--locked падает при
+        # рассинхроне лока) — свежий релиз на PyPI больше не может уронить CI
+        # (прецедент: pytest-django 4.13.0, 2026-08-06). Обновление зависимостей —
+        # осознанный `uv lock` в коммите.
+        run: uv sync --locked --extra dev
 
       - name: Set up Node
         uses: actions/setup-node@v4

@@ -8774,3 +8774,14 @@ ERROR «PytestDjangoTestCase has no attribute '_pre_setup_ran_eagerly'» (кон
 в pyproject + uv lock (остаётся 4.12.0). Класс грабли известный (CI ставит
 latest — как msgfmt/локали ранее); системное решение (CI на uv sync --locked) —
 кандидат отдельным решением.
+
+
+## 2026-08-06 — Решения владельца 4а+5а: дубль Reservierungen убран + CI на uv.lock
+
+**4а:** запись Reservierungen удалена из Marketing/Erweitert (nav_registry) —
+одна поверхность: вкладка Verkäufe (появляется с первым резервом, W10-2);
+nav "reservations" → якорь board через _EXTRA_NAV_ANCHORS (замок W8 цел);
+замок marketing-хаба обновлён осознанно (assert absent). **5а:** CI ставит
+зависимости строго из uv.lock (`uv sync --locked --extra dev`) — свежий релиз
+на PyPI больше не роняет CI (прецедент pytest-django 4.13.0); обновление
+зависимостей — осознанный `uv lock` в коммите.

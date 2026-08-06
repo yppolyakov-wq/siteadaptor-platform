@@ -157,8 +157,10 @@ def test_marketing_hub_all_tabs_when_active():
     for lbl in ("Aktionen", "Bewertungen", "Kampagnen", "Gutscheine"):  # прямые
         assert lbl in html, lbl
     assert "Erweitert" in html
-    for lbl in ("Reservierungen", "Einlösen", "Treuepunkte", "Kanäle", "Beiträge"):  # ящик
+    for lbl in ("Einlösen", "Treuepunkte", "Kanäle", "Beiträge"):  # ящик
         assert lbl in html, lbl
+    # решение 4а (2026-08-06): Reservierungen — только вкладка Verkäufe, дубль убран
+    assert "Reservierungen" not in html
     assert html.count('aria-selected="true"') == 1  # активна Aktionen
 
 
