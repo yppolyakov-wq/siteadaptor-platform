@@ -1753,3 +1753,29 @@ def test_named_version_save_and_rename(settings):
         _request("get", "/dashboard/site/home/", None, tenant)
     ).content.decode()
     assert "Basis" in body and "Version speichern" in body
+
+
+# --- W11-5 (Website-свод в Studio): замки ДО переноса форм «Site» -------------
+
+
+def test_home_builder_save_preserves_site_page_scalars():
+    """W11-5 (замок ДО свода): main-save билдера переносит поля страницы «Site»
+    (hero_image/quick_add/gallery_video) как есть, пока их нет в его форме."""
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="hbw11",
+        name="HBW11",
+        site_config={
+            "hero_image": "https://cdn.example/bg.jpg",
+            "quick_add": False,
+            "gallery_video": "https://youtu.be/abc123",
+        },
+    )
+    data = {"order_hero": "1", "enabled_hero": "on"}
+    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
+    assert resp.status_code == 302
+
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["hero_image"] == "https://cdn.example/bg.jpg"
+    assert cfg["quick_add"] is False
+    assert cfg["gallery_video"] == "https://youtu.be/abc123"
