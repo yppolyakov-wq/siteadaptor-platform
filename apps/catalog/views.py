@@ -325,6 +325,12 @@ def variant_update(request, pk, vid):
     if new_image or request.POST.get("remove_image"):
         variant.images = [new_image] if new_image else []
         fields.append("images")
+    # I18N-10: переводы МЕТОК (label/size/color) для витрины. Плоские поля выше
+    # остаются ключами учёта; apply_i18n_overlay сам presence-guard'ит (поля нет
+    # в POST → перевод не трогаем).
+    fields += apply_i18n_overlay(
+        variant, request.POST, getattr(request, "tenant", None), fields=("label", "size", "color")
+    )
     variant.save(
         update_fields=fields
         + [
@@ -400,6 +406,10 @@ def modifier_group_update(request, pk, gid):
         style = (request.POST.get("display_style") or "").strip()
         group.display_style = style if style in MODIFIER_STYLE_KEYS else ""
         fields.append("display_style")
+    # I18N-10: перевод названия группы («Teig» → «Тесто») для витрины.
+    fields += apply_i18n_overlay(
+        group, request.POST, getattr(request, "tenant", None), fields=("name",)
+    )
     group.save(update_fields=fields)
     messages.success(request, _("Modifier group updated."))
     return redirect("catalog:product-edit", pk=pk)
@@ -448,6 +458,10 @@ def modifier_option_update(request, pk, gid, oid):
     if new_image or request.POST.get("remove_image"):
         option.image = new_image or {}
         opt_fields.append("image")
+    # I18N-10: перевод метки опции; в заказ по-прежнему уходит плоский снимок.
+    opt_fields += apply_i18n_overlay(
+        option, request.POST, getattr(request, "tenant", None), fields=("label",)
+    )
     option.save(update_fields=opt_fields)
     messages.success(request, _("Option updated."))
     return redirect("catalog:product-edit", pk=pk)

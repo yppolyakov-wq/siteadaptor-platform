@@ -1,0 +1,9 @@
+{% comment %}I18N-10: инпуты переводов overlay-полей (метки вариантов/опций и т.п.).
+Поля неосновных локалей всегда в DOM и скрыты — показывает свитчер языка Ф1
+(инвариант W0). Пустой список (один язык) → ничего не рендерим.{% endcomment %}
+{% for inp in inputs %}
+  <input data-i18n-loc="{{ inp.locale }}" class="hidden {% if compact %}w-24{% else %}w-36{% endif %} rounded-lg border border-gray-300 px-2 py-1.5"
+         name="{{ inp.input_name }}" type="text" value="{{ inp.value }}"
+         placeholder="{{ inp.field }} ({{ inp.locale|upper }})"
+         aria-label="{{ inp.field }} ({{ inp.locale|upper }})">
+{% endfor %}

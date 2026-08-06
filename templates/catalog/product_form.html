@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n widget_tweaks %}
+{% load i18n widget_tweaks cabinet %}
 {% block dash_title %}{% if is_create %}{% trans "New product" %}{% else %}{% trans "Edit product" %}{% endif %}{% endblock %}
 
 {% block dash_content %}
@@ -178,6 +178,9 @@
           <input type="hidden" name="axes_present" value="1">
           <input name="size" type="text" value="{{ v.size }}" placeholder="{% trans 'Größe' %}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Größe' %}">
           <input name="color" type="text" value="{{ v.color }}" placeholder="{% trans 'Farbe' %}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Farbe' %}">
+          {% comment %}I18N-10: переводы метки/осей для витрины — скрыты, показывает
+          свитчер языка (учётные поля выше остаются немецкими).{% endcomment %}
+          {% overlay_i18n_inputs v "label,size,color" compact=True %}
           <input name="price" type="text" inputmode="decimal" value="{{ v.price|default_if_none:'' }}" placeholder="{{ product.base_price }}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Price' %}">
           <input name="content" type="text" inputmode="decimal" value="{{ v.content_amount|default_if_none:'' }}" placeholder="{% trans 'Content' %}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Content' %}">
           <input name="stock" type="number" value="{{ v.stock_quantity|default_if_none:'' }}" placeholder="∞" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Stock' %}">
@@ -228,6 +231,7 @@
                 class="flex flex-wrap items-center gap-2 text-sm {% if not g.is_active %}opacity-50{% endif %}">
             {% csrf_token %}
             <input name="name" type="text" value="{{ g.name }}" class="w-36 rounded-lg border border-gray-300 px-2 py-1.5 font-medium" aria-label="{% trans 'Group name' %}">
+            {% overlay_i18n_inputs g "name" compact=True %}
             <label class="text-gray-500">{% trans "min" %} <input name="min" type="number" min="0" value="{{ g.min_select }}" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5"></label>
             <label class="text-gray-500">{% trans "max" %} <input name="max" type="number" min="0" value="{{ g.max_select }}" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5"></label>
             <input name="sort" type="number" value="{{ g.sort_order }}" class="w-14 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Order' %}">
@@ -253,6 +257,7 @@
                 </label>
                 {% if o.image_url %}<label class="text-xs text-gray-400" title="{% trans 'Remove photo' %}"><input type="checkbox" name="remove_image" value="1"> 🗑</label>{% endif %}
                 <input name="label" type="text" value="{{ o.label }}" class="w-36 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Option' %}">
+                {% overlay_i18n_inputs o "label" compact=True %}
                 {# Фидбэк 2026-08-04: артикул опции (справочный — печатается в заказе). #}
                 <input name="sku" type="text" value="{{ o.sku }}" placeholder="{% trans 'Art.-Nr.' %}" class="w-24 rounded-lg border border-gray-300 px-2 py-1.5" aria-label="{% trans 'Art.-Nr.' %}">
                 <span class="text-gray-400">+</span>

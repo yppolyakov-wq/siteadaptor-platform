@@ -129,3 +129,21 @@ def doc_langs(context, url):
         "url": url,
         "doc_languages": [{"code": code} for code in allowed_languages(tenant)],
     }
+
+
+@register.inclusion_tag("tenant/_overlay_i18n_inputs.html", takes_context=True)
+def overlay_i18n_inputs(context, obj, fields, compact=False):
+    """I18N-10: per-locale инпуты overlay-переводов объекта (`<field>_<loc>`).
+
+    Механика Ф1: поля неосновных локалей ЕСТЬ в DOM, но скрыты — свитчер языка
+    показывает нужную (инвариант W0: скрытие только CSS). `fields` — строка
+    «label,size,color». Один язык у тенанта → тег ничего не рендерит.
+    """
+    from apps.core.i18n_input import i18n_inputs_for
+
+    request = context.get("request")
+    names = tuple(f.strip() for f in fields.split(",") if f.strip())
+    return {
+        "inputs": i18n_inputs_for(obj, getattr(request, "tenant", None), fields=names),
+        "compact": compact,
+    }

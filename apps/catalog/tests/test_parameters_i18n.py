@@ -202,3 +202,89 @@ def test_size_table_translated_for_visitor():
         assert cat.size_table_rows[0] == ["Размер", "Грудь"]
     with translation.override("de"):
         assert cat.size_table_rows[0] == ["Größe", "Brust"]
+
+
+# --- P3: ввод переводов из кабинета ------------------------------------------
+
+
+def _cabinet_post(path, data, tenant):
+    from types import SimpleNamespace
+
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    req = RequestFactory().post(path, data)
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    return req
+
+
+def _tenant_with_ru():
+    from apps.tenants.tests.factories import TenantFactory
+
+    return TenantFactory.build(name="Laden", enabled_locales=["de", "ru"], default_locale="de")
+
+
+def test_variant_update_saves_translation_and_keeps_flat_key():
+    from apps.catalog import views
+
+    p = _product("Kleid")
+    v = ProductVariant.objects.create(product=p, label="Klein", size="S", color="Weiß")
+    views.variant_update(
+        _cabinet_post(
+            f"/catalog/{p.pk}/variants/{v.pk}/",
+            {
+                "axes_present": "1",
+                "size": "S",
+                "color": "Weiß",
+                "is_active": "on",
+                "label_ru": "Маленький",
+                "color_ru": "Белый",
+            },
+            _tenant_with_ru(),
+        ),
+        pk=p.pk,
+        vid=v.pk,
+    )
+    v.refresh_from_db()
+    assert v.label_i18n == {"ru": "Маленький"}
+    assert v.color_i18n == {"ru": "Белый"}
+    assert (v.label, v.size, v.color) == ("Klein", "S", "Weiß")  # ключи учёта целы
+
+
+def test_variant_update_without_locale_inputs_keeps_translation():
+    """Presence-guard: форма без per-locale полей не стирает уже введённый перевод."""
+    from apps.catalog import views
+
+    p = _product("Kleid")
+    v = ProductVariant.objects.create(product=p, label="Klein", label_i18n={"ru": "Маленький"})
+    views.variant_update(
+        _cabinet_post(f"/catalog/{p.pk}/variants/{v.pk}/", {"is_active": "on"}, _tenant_with_ru()),
+        pk=p.pk,
+        vid=v.pk,
+    )
+    v.refresh_from_db()
+    assert v.label_i18n == {"ru": "Маленький"}
+
+
+def test_modifier_option_update_saves_translation():
+    from apps.catalog import views
+
+    p = _product("Pizza")
+    g = ModifierGroup.objects.create(product=p, name="Teig")
+    o = ModifierOption.objects.create(group=g, label="Dünn", price_delta="0.00")
+    views.modifier_option_update(
+        _cabinet_post(
+            f"/catalog/{p.pk}/mods/{g.pk}/{o.pk}/",
+            {"label": "Dünn", "delta": "0", "is_active": "on", "label_ru": "Тонкое"},
+            _tenant_with_ru(),
+        ),
+        pk=p.pk,
+        gid=g.pk,
+        oid=o.pk,
+    )
+    o.refresh_from_db()
+    assert o.label_i18n == {"ru": "Тонкое"} and o.label == "Dünn"
