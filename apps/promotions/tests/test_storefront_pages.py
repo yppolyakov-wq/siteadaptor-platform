@@ -216,3 +216,33 @@ def test_finder_menu_entry_requires_enabled_finder():
         assert _resolve(tenant, "finder") == "/finder/"
     else:  # без primary-сущности Finder не показывается — и пункта тоже нет
         assert _resolve(tenant, "finder") is None
+
+
+# --- фидбэк 2026-08-07: дропдауны шапки открываются на тач-экране --------------
+
+
+def test_more_dropdown_is_clickable_not_hover_only():
+    """«Mehr ▾» раскрывалась ТОЛЬКО по hover/focus-within. На тач-экране hover
+    нет, а Safari/iOS не отдаёт кнопке фокус по тапу — панель не открывалась
+    («не работает и пустая при нажатии»). Группам меню клик добавили ещё
+    2026-07-30; кнопке overflow — этим фиксом."""
+    from django.template.loader import render_to_string
+
+    html = render_to_string("storefront/_header_nav.html", {"storefront_menu": []})
+    more = html[html.index('id="sf-nav-more"') :]
+    assert "data-nav-group" in more, "кнопка Mehr без клик-обработчика"
+    assert "data-nav-panel" in more, "панель Mehr не подключена к обработчику"
+
+
+def test_nav_click_handler_restores_hidden_on_close():
+    """Клик вне панели снимал только `block`, не возвращая `hidden` — у div
+    остаётся display:block по умолчанию, поэтому панель не закрывалась."""
+    from pathlib import Path
+
+    base = Path("templates/storefront/_base.html").read_text(encoding="utf-8")
+    # Срез от обработчика групп; «NAV-v2» как конец не годится — эта строка есть
+    # и в комментарии выше по файлу (первая версия замка ловила пустой срез).
+    start = base.index('e.target.closest("[data-nav-group]")')
+    handler = base[start : start + 1200]
+    assert 'classList.add("hidden")' in handler, "при закрытии не возвращается hidden"
+    assert ".blur()" in handler, "фокус не снимается — group-focus-within держит панель"

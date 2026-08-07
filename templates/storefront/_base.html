@@ -138,7 +138,12 @@
       var g = e.target.closest("[data-nav-group]");
       document.querySelectorAll("[data-nav-panel].nav-open").forEach(function (p) {
         if (!g || p !== g.parentNode.querySelector("[data-nav-panel]")) {
+          // Фидбэк 2026-08-07: `hidden` НАДО вернуть — без него у div остаётся
+          // display:block по умолчанию, и клик вне панель не закрывал.
           p.classList.remove("nav-open", "block");
+          p.classList.add("hidden");
+          var opener = p.parentNode.querySelector("[data-nav-group]");
+          if (opener) opener.blur();  // иначе group-focus-within держит панель
         }
       });
       if (!g) return;
@@ -147,6 +152,7 @@
       var open = panel.classList.toggle("nav-open");
       panel.classList.toggle("block", open);
       panel.classList.toggle("hidden", !open);
+      if (!open) g.blur();  // повторный клик закрывает (фокус бы не дал)
     });
     // NAV-v2: overflow «Mehr ▾» — не влезающие пункты ряда прячем, показываем их
     // копии в панели (рендер двойной, JS только переключает видимость).
