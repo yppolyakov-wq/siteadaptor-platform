@@ -85,27 +85,27 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
 {% endif %}{% endfor %}
 {% endif %}
 
-{% comment %}A4: фасет-фильтр по диете (vegan/vegetarisch/…) — чипы только тех диет,
-что встречаются в каталоге; сохраняем выбранную категорию и остальные фасеты
-(цена/бейдж/наличие/сорт через diet_carry_qs).{% endcomment %}
-{% if diet_chips and catalog_show_filters %}
-<div class="flex flex-wrap gap-2 mb-6">
-  <a href="{% url 'storefront-products' %}?{% if current_category %}kategorie={{ current_category.slug }}&{% endif %}{{ diet_carry_qs }}"
-     class="px-3 py-1.5 rounded-full text-sm border {% if not active_diet %}bg-emerald-600 text-white border-emerald-600{% else %}bg-white border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{% trans "All diets" %}</a>
-  {% for d in diet_chips %}
-    <a href="{% url 'storefront-products' %}?diet={{ d.code }}{% if current_category %}&kategorie={{ current_category.slug }}{% endif %}{% if diet_carry_qs %}&{{ diet_carry_qs }}{% endif %}"
-       class="px-3 py-1.5 rounded-full text-sm border {% if active_diet == d.code %}bg-emerald-600 text-white border-emerald-600{% else %}bg-white border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{{ d.icon }} {{ d.label }}</a>
-  {% endfor %}
-</div>
-{% endif %}
+{% comment %}Доп. фасеты каталога (диета/цена/бейдж/наличие) — одна GET-форма с явным
+«Anwenden». Гейтятся тумблером catalog_show_filters И наличием данных: разброс цен /
+присутствующие бейджи / есть распроданное. Нерелевантные фильтры само-скрываются.
 
-{% comment %}Доп. фасеты каталога (цена/бейдж/наличие) — одна GET-форма с явным «Anwenden».
-Гейтятся тумблером catalog_show_filters И наличием данных: разброс цен / присутствующие
-бейджи / есть распроданное. Нерелевантные фильтры само-скрываются.{% endcomment %}
-{% if catalog_show_filters and show_price_filter or catalog_show_filters and badge_chips or catalog_show_filters and show_stock_filter or catalog_show_filters and origin_chips or catalog_show_filters and show_rating_filter or catalog_show_filters and size_chips %}
+Фидбэк владельца 2026-08-07 («диеты это часть параметров, которые должны быть в
+фильтрах»): диета жила ОТДЕЛЬНОЙ строкой чипов над кнопкой «Filter», хотя цена,
+наличие, размер и происхождение — внутри панели. Теперь она такой же фасет формы;
+ссылки `?diet=<code>` из писем и поиска продолжают работать — вьюха читает GET.{% endcomment %}
+{% if catalog_show_filters and show_price_filter or catalog_show_filters and badge_chips or catalog_show_filters and show_stock_filter or catalog_show_filters and origin_chips or catalog_show_filters and show_rating_filter or catalog_show_filters and size_chips or catalog_show_filters and diet_chips %}
 {% include "storefront/_filter_toggle.html" with filter_key="catalog" %}
 <form method="get" data-catalog-filters data-filter-panel="catalog" class="mb-6 flex flex-wrap items-end gap-x-4 gap-y-3 bg-white rounded-2xl shadow-sm p-4">
   {% for name, value in filter_form_hidden %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+  {% if diet_chips %}
+  <div>
+    <label class="block text-xs text-gray-500 mb-1" for="id_diet">{% trans "Diet" %}</label>
+    <select id="id_diet" name="diet" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+      <option value="">{% trans "All diets" %}</option>
+      {% for d in diet_chips %}<option value="{{ d.code }}" {% if active_diet == d.code %}selected{% endif %}>{{ d.icon }} {{ d.label }}</option>{% endfor %}
+    </select>
+  </div>
+  {% endif %}
   {% if show_price_filter %}
   <div>
     <label class="block text-xs text-gray-500 mb-1">{% trans "Price" %} <span class="text-gray-400">({{ price_lo|floatformat:0 }}–{{ price_hi|floatformat:0 }} €)</span></label>

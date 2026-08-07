@@ -17498,3 +17498,7 @@ msgstr "Проживание"
 #: templates/storefront/products.html
 msgid "Lookbook ansehen"
 msgstr "Смотреть лукбук"
+
+#: templates/storefront/products.html
+msgid "Diet"
+msgstr "Питание"

@@ -583,7 +583,6 @@ def product_list(request):
     #  • filter_hidden / filter_qs — все активные фасеты КРОМЕ sort (для формы сорта и
     #    ссылки «Show more», которая сама добавляет sort+cursor);
     #  • filter_form_hidden — нефасетные параметры (для формы цены/бейджа/наличия);
-    #  • diet_carry_qs — фасеты для href диет-чипов (диета/категория ставятся в шаблоне).
     _facets = {
         "kategorie": category.slug if category else "",
         "diet": diet,
@@ -600,28 +599,18 @@ def product_list(request):
     }
     filter_hidden = [(k, v) for k, v in _facets.items() if v]
     filter_qs = _carry_qs(_facets)
+    # Фидбэк 2026-08-07: диета переехала В панель фильтров (видимый селект), так
+    # что скрытым полем её больше не носим — иначе в форме было бы два `diet`.
     filter_form_hidden = [
         (k, v)
         for k, v in (
             ("kategorie", _facets["kategorie"]),
-            ("diet", diet),
             ("q", q),
             ("sort", sort if sort != "newest" else ""),
             ("preview", _facets["preview"]),
         )
         if v
     ]
-    diet_carry_qs = _carry_qs(
-        {
-            "badge": badge,
-            "preis_von": price_min_val,
-            "preis_bis": price_max_val,
-            "nur_verfuegbar": _facets["nur_verfuegbar"],
-            "q": q,
-            "sort": sort if sort != "newest" else "",
-            "preview": _facets["preview"],
-        }
-    )
     return render(
         request,
         "storefront/products.html",
@@ -639,7 +628,6 @@ def product_list(request):
             "combos_teaser": combos_teaser,  # A4: тизер-карточки Kombo/Tagesgericht
             "diet_chips": diet_chips,  # A4: фасет-чипы диет (только встречающиеся)
             "active_diet": diet,
-            "diet_carry_qs": diet_carry_qs,
             "catalog_grid": catalog_grid,
             # Билдер: показывать ли фильтры на странице каталога (group=catalog).
             "catalog_show_filters": cfg.get("catalog_show_filters", True),

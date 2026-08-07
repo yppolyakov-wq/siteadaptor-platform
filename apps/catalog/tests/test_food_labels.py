@@ -183,13 +183,40 @@ def test_card_shows_diet_icons():
 
 
 def test_product_list_diet_filter():
-    """A4: ?diet=vegan фильтрует товары; чип активен."""
+    """A4: ?diet=vegan фильтрует товары; выбор виден в фасете.
+
+    Осознанно обновлено 2026-08-07 (фидбэк «диеты — часть параметров, должны быть
+    в фильтрах»): диета переехала из отдельной строки чипов в панель фильтров,
+    поэтому активность проверяем по выбранной опции селекта, а не по классу чипа.
+    Прямая ссылка `?diet=` продолжает работать — это и есть предмет теста."""
     veg = ProductFactory(diets=["vegan"], is_active=True)
     meat = ProductFactory(diets=[], is_active=True)
     body = public_views.product_list(_req("/sortiment/?diet=vegan")).content.decode()
     assert str(veg.pk) in body  # веган-товар показан
     assert str(meat.pk) not in body  # не-веган отфильтрован
-    assert "bg-emerald-600" in body  # активный диет-чип
+    assert 'value="vegan" selected' in body  # выбор виден в селекте фасета
+
+
+def test_diet_facet_lives_inside_the_filter_panel():
+    """Фидбэк владельца: цена/наличие/размер были внутри панели «Filter», а диета
+    — отдельной строкой чипов над ней. Теперь это обычный фасет той же формы."""
+    ProductFactory(diets=["vegan"], is_active=True)
+    body = public_views.product_list(_req("/sortiment/")).content.decode()
+    form = body[
+        body.index("data-catalog-filters") : body.index(
+            "</form>", body.index("data-catalog-filters")
+        )
+    ]
+    assert 'id="id_diet"' in form, "селект диеты не внутри формы фильтров"
+    assert body.count('name="diet"') == 1, "поле diet задвоилось (осталось скрытое)"
+
+
+def test_filter_panel_shows_when_diet_is_the_only_facet():
+    """У гастро-тенанта может не быть ни разброса цен, ни бейджей, ни остатков —
+    без диеты в условии показа панель бы не отрисовалась и фильтр исчез бы."""
+    ProductFactory(diets=["vegan"], is_active=True, base_price="5.00")
+    body = public_views.product_list(_req("/sortiment/")).content.decode()
+    assert 'id="id_diet"' in body
 
 
 def test_product_list_invalid_diet_ignored():

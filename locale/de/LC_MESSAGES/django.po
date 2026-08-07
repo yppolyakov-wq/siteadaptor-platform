@@ -17457,3 +17457,7 @@ msgstr "Unterkunft"
 #: templates/storefront/products.html
 msgid "Lookbook ansehen"
 msgstr "Lookbook ansehen"
+
+#: templates/storefront/products.html
+msgid "Diet"
+msgstr "Ernährung"

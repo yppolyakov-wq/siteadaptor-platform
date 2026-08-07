@@ -17418,3 +17418,7 @@ msgstr "Konaklama"
 #: templates/storefront/products.html
 msgid "Lookbook ansehen"
 msgstr "Lookbook'u görüntüle"
+
+#: templates/storefront/products.html
+msgid "Diet"
+msgstr "Beslenme"

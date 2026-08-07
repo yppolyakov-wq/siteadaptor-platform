@@ -17306,3 +17306,7 @@ msgstr "Accommodation"
 #: templates/storefront/products.html
 msgid "Lookbook ansehen"
 msgstr "View lookbook"
+
+#: templates/storefront/products.html
+msgid "Diet"
+msgstr "Diet"

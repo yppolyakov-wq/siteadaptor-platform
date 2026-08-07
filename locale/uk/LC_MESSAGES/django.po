@@ -17483,3 +17483,7 @@ msgstr "Проживання"
 #: templates/storefront/products.html
 msgid "Lookbook ansehen"
 msgstr "Переглянути лукбук"
+
+#: templates/storefront/products.html
+msgid "Diet"
+msgstr "Харчування"
