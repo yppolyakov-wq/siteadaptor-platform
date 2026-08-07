@@ -66,17 +66,25 @@ def test_promo_card_flags_show_mechanics():
 
 
 def test_promotion_list_grouped_sections_and_filter():
-    """Группы — секциями с заголовками (безгрупповые в конце под «Weitere
-    Angebote»); выбранный фильтр — плоская сетка без секций."""
-    _flags_promo(title={"de": "A1"}, group="Wochenangebote")
-    _flags_promo(title={"de": "B1"}, group="Räumung")
+    """Группы — секциями с заголовками (остаток в конце под «Weitere Angebote»);
+    выбранный фильтр — плоская сетка без секций.
+
+    Осознанно обновлено 2026-08-07 (фидбэк «страница выглядит незаполненной»):
+    секцию получает только группа от MIN_GROUP_SECTION акций, поэтому в тесте
+    группы наполнены. Одиночные группы теперь идут в общий блок — это проверяет
+    `test_single_item_group_does_not_get_its_own_section` в test_promotion_groups.
+    """
+    for i in range(2):
+        _flags_promo(title={"de": f"A{i}"}, group="Wochenangebote")
+    for i in range(2):
+        _flags_promo(title={"de": f"B{i}"}, group="Räumung")
     _flags_promo(title={"de": "C1"})  # без группы
     body = promotion_list(_req()).content.decode()
     assert "Wochenangebote" in body and "Räumung" in body
     assert "Weitere Angebote" in body  # безгрупповая секция
     assert body.index("Weitere Angebote") > body.index("Räumung")  # в конце
     flat = promotion_list(_req(data={"gruppe": "Räumung"})).content.decode()
-    assert "Weitere Angebote" not in flat and "B1" in flat and "A1" not in flat
+    assert "Weitere Angebote" not in flat and "B0" in flat and "A0" not in flat
 
 
 def test_promotion_detail_shows_savings():

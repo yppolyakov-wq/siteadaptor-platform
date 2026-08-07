@@ -110,3 +110,42 @@ def test_group_chips_keep_labels_of_other_groups_when_filtered():
             _get("/aktionen/", {"gruppe": "Wochenangebote"}, tenant)
         ).content.decode()
     assert "Clearance" in body and "Weekly" in body
+
+
+# --- фидбэк 2026-08-07: страница акций не должна выглядеть пустой -------------
+# Характеризация ДО правки: сейчас КАЖДАЯ группа получает свою секцию, поэтому
+# группа из одной акции занимает целую строку сетки (3 колонки) — у демо-
+# ресторана 6 акций разложены на 5 групп, из них 4 одиночные.
+
+
+def test_single_item_group_does_not_get_its_own_section():
+    """Группа из ОДНОЙ акции не заслуживает секции: заголовок + строка на три
+    колонки ради одной карточки и есть та самая «незаполненность»."""
+    tenant = _tenant(slug="pgs1")
+    for i in range(2):
+        Promotion.objects.create(title={"de": f"Big{i}"}, status="active", group="Gross")
+    Promotion.objects.create(title={"de": "Solo"}, status="active", group="Klein")
+
+    body = public_views.promotion_list(_get("/aktionen/", tenant=tenant)).content.decode()
+    # Заголовок секции — <h2>; у группы из одной акции его быть не должно.
+    assert "<h2" in body and "Gross" in body, "группа из двух акций осталась секцией"
+    import re
+
+    headings = re.findall(r"<h2[^>]*>(.*?)</h2>", body, re.S)
+    assert not any("Klein" in h for h in headings), f"одиночная группа получила секцию: {headings}"
+    assert "Solo" in body, "акция из одиночной группы пропала со страницы"
+
+
+def test_grouping_survives_for_kits_with_full_groups():
+    """Регрессия для aktionsmarkt (4 группы по 8/4/3/2): там группировка — смысл
+    страницы, и порог её ломать не должен."""
+    tenant = _tenant(slug="pgs2")
+    for grp, n in (("A", 4), ("B", 3), ("C", 2)):
+        for i in range(n):
+            Promotion.objects.create(title={"de": f"{grp}{i}"}, status="active", group=grp)
+    body = public_views.promotion_list(_get("/aktionen/", tenant=tenant)).content.decode()
+    import re
+
+    headings = " ".join(re.findall(r"<h2[^>]*>(.*?)</h2>", body, re.S))
+    for grp in ("A", "B", "C"):
+        assert grp in headings, f"группа {grp} потеряла секцию"

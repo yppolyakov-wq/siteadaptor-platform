@@ -237,6 +237,12 @@ def storefront_home(request):
     )
 
 
+#: Сколько акций должно быть в группе, чтобы она получила СВОЮ секцию с
+#: заголовком. Сетка страницы — 3 колонки, поэтому группа из одной карточки
+#: оставляет две трети строки пустыми (фидбэк владельца 2026-08-07).
+MIN_GROUP_SECTION = 2
+
+
 def promotion_list(request):
     """Публичный список акций /aktionen/ (S6) с фильтром по группе/направлению."""
     from apps.core import modules
@@ -270,7 +276,23 @@ def promotion_list(request):
                 order.append(key)
             by_group[key].append(promo)
         order.sort(key=lambda g: g == "")  # безгрупповые в конец
-        grouped = [(g, group_labels.get(g, g), by_group[g]) for g in order]
+        # Фидбэк 2026-08-07 («страница выглядит незаполненной»): группа из ОДНОЙ
+        # акции занимала целую строку сетки (3 колонки) — у демо-ресторана 6
+        # акций дробились на 5 групп, из них 4 одиночные. Секцию получает только
+        # группа, которой хватает на осмысленный блок; остальные акции идут одним
+        # блоком в конце. Чипы-фильтры по группам сверху не трогаем: там видны
+        # ВСЕ группы, включая одиночные.
+        sections, rest = [], []
+        for key in order:
+            items = by_group[key]
+            if key and len(items) >= MIN_GROUP_SECTION:
+                sections.append((key, group_labels.get(key, key), items))
+            else:
+                rest.extend(items)
+        if not sections:
+            grouped = []  # группировать нечего → плоская сетка (ветка шаблона)
+        else:
+            grouped = sections + ([("", "", rest)] if rest else [])
     return render(
         request,
         "storefront/promotions_list.html",
