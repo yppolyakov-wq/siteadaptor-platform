@@ -88,3 +88,33 @@ def test_about_and_legal_pages_render():
         resp = platform_legal(RequestFactory().get(f"/{kind}/"), kind)
         assert resp.status_code == 200
         assert "noindex" in resp.content.decode()  # правовые не индексируем
+
+
+def test_every_module_appears_on_some_industry_page():
+    """Аудит 2026-08-07 (вопрос владельца «описание функционала добавлено?»):
+    сетка модулей строится из `recommended_for`, поэтому отраслево-нейтральные
+    модули (Auswertung, Veröffentlichung, Finanzen, Telegram-Bot — у них
+    `recommended_for` пуст) не показывались НИ НА ОДНОЙ странице, хотя доступны
+    каждому бизнесу. Витрина обязана описывать весь функционал."""
+    from apps.core import modules
+    from apps.tenants import archetype_pages
+
+    non_core = {m.label_de for m in modules.REGISTRY if not m.core}
+    shown = set()
+    for slug in archetype_pages.SLUGS:
+        shown |= {f["label"] for f in archetype_pages._module_features(slug)}
+    assert not (non_core - shown), f"нет ни на одной странице отрасли: {sorted(non_core - shown)}"
+
+
+def test_neutral_modules_are_mixed_in_not_appended():
+    """Решение владельца: нейтральные модули идут СРЕДИ прочих, а не отдельным
+    блоком «есть у всех». Порядок карточек = порядок реестра, поэтому они и
+    оказываются между профильными — замок держит это свойство."""
+    from apps.tenants import archetype_pages
+
+    labels = [f["label"] for f in archetype_pages._module_features("hotel")]
+    neutral = {"Auswertung", "Veröffentlichung (Kanäle)", "Finanzen (Umsatz)", "Telegram-Bot"}
+    positions = [i for i, lb in enumerate(labels) if lb in neutral]
+    assert positions, "нейтральных модулей нет в сетке"
+    # Не сгруппированы в хвосте: хотя бы один профильный модуль идёт ПОСЛЕ них.
+    assert max(positions) < len(labels) - 1, f"нейтральные съехали в конец: {labels}"

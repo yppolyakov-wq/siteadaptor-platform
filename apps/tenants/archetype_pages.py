@@ -774,13 +774,20 @@ def is_valid(slug: str) -> bool:
 
 
 def _module_features(slug: str) -> list[dict]:
-    """Empfohlene Module dieses Archetyps als Feature-Karten (Icon/Name/Beschreibung)
-    — deterministisch aus dem Modul-Register (Quelle der Wahrheit, deutsch)."""
+    """Module dieses Archetyps als Feature-Karten (Icon/Name/Beschreibung)
+    — deterministisch aus dem Modul-Register (Quelle der Wahrheit, deutsch).
+
+    Gezeigt werden die für den Archetyp empfohlenen Module UND die branchen-
+    neutralen (leeres ``recommended_for``: Auswertung, Veröffentlichung,
+    Finanzen, Telegram-Bot). Letztere fehlten sonst auf JEDER Branchenseite,
+    obwohl jeder Betrieb sie hat (Audit 2026-08-07). Reihenfolge = Register,
+    also stehen sie zwischen den übrigen Karten und nicht als Extra-Block.
+    """
     feats = []
     for m in modules.REGISTRY:
         if m.core:
             continue
-        if slug in m.recommended_for:
+        if slug in m.recommended_for or not m.recommended_for:
             feats.append({"icon": m.icon, "label": m.label_de, "desc": m.description_de})
     return feats
 
