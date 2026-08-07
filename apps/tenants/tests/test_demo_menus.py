@@ -207,3 +207,61 @@ def test_demo_dictionary_translates_usp_and_roles():
     assert len(untranslated) < len(strings) * 0.4, (
         f"не переведено {len(untranslated)} из {len(strings)}: {untranslated[:8]}"
     )
+
+
+# --- фидбэк 2026-08-07: строка меню не должна переполняться -------------------
+
+
+@pytest.mark.parametrize("key", _kit_ids())
+def test_top_menu_fits_one_row(key):
+    """«Mehr ▾» появляется, когда пункты не влезают в ~788 px (контейнер шапки
+    max-w-7xl, ширина не растёт даже на 1920 px). Владелец резонно считает эту
+    кнопку лишней: разделы прячет автоматика, а не замысел. Поэтому меню кита
+    обязано укладываться в строку — второстепенное сворачивается под «Über uns»."""
+    kit = demo_kits.KITS[key]
+    items = (demo_kits._compact_menu(kit.menus) or {}).get("top", {}).get("items", [])
+    width = demo_kits._menu_row_width(i.get("label", "") for i in items)
+    # 788 px — измеренная ширина строки на широком экране. Бюджет сворачивания
+    # (620) строже: он держит запас и для ноутбучных 1024 px. Здесь проверяем
+    # именно жёсткий предел: за ним «Mehr» появляется гарантированно.
+    assert width <= 788, f"{key}: строка меню ≈{width:.0f} px — хвост уедет в «Mehr»"
+
+
+@pytest.mark.parametrize("key", _kit_ids())
+def test_compacting_loses_no_menu_entries(key):
+    """Сворачивание ПЕРЕМЕЩАЕТ пункты в подменю, а не выбрасывает их: иначе
+    разделы исчезли бы из навигации совсем."""
+    kit = demo_kits.KITS[key]
+
+    def targets(menus):
+        out = []
+
+        def walk(items):
+            for i in items:
+                out.append((i.get("type"), i.get("target")))
+                walk(i.get("children") or [])
+
+        walk((menus or {}).get("top", {}).get("items", []))
+        return sorted(out)
+
+    assert targets(demo_kits._compact_menu(kit.menus)) == targets(kit.menus)
+
+
+def test_compacting_keeps_selling_entries_in_the_row():
+    """В подменю уезжают только разделы «о нас». То, что бизнес продаёт
+    (каталог/бронь/акции/события), обязано остаться в строке.
+
+    Сравниваем ДО и ПОСЛЕ: часть китов кладёт архетипы в подменю осознанно
+    (у pranasy `loyalty` — ребёнок группы «Treue & Aktionen»), и это не наше дело.
+    Наше — не утащить туда ничего сверх того."""
+    for key, kit in demo_kits.KITS.items():
+
+        def row_targets(menus):
+            items = (menus or {}).get("top", {}).get("items", [])
+            return {i.get("target") for i in items if i.get("type") in ("archetype", "category")}
+
+        before = row_targets(kit.menus)
+        after = row_targets(demo_kits._compact_menu(kit.menus))
+        assert before <= after, (
+            f"{key}: продающий раздел уехал из строки — {sorted(before - after)}"
+        )

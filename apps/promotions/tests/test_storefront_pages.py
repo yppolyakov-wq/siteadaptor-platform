@@ -246,3 +246,16 @@ def test_nav_click_handler_restores_hidden_on_close():
     handler = base[start : start + 1200]
     assert 'classList.add("hidden")' in handler, "при закрытии не возвращается hidden"
     assert ".blur()" in handler, "фокус не снимается — group-focus-within держит панель"
+
+
+def test_menu_editor_offers_every_page_target():
+    """Аудит 2026-08-07: список страниц в редакторе меню был захардкожен как
+    {home, about}. Узел с любой другой целью не находил себя в селекте, браузер
+    выбирал первый пункт — и после Save «Galerie» начинала вести на главную.
+    Реестр целей теперь один: новая страница появляется в редакторе сама."""
+    from apps.tenants import menu as menu_mod
+
+    choices = {c["value"] for c in menu_mod.page_target_choices()}
+    targets = set(menu_mod._PAGE_URL_NAMES) - {"offers"}  # offers = легаси-алиас home
+    assert targets <= choices, f"нет в редакторе меню: {sorted(targets - choices)}"
+    assert all(c["label"] for c in menu_mod.page_target_choices()), "цель без подписи"

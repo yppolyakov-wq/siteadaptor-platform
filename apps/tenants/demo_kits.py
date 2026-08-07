@@ -6840,6 +6840,77 @@ KITS = {
 }
 
 
+#: Бюджет ширины строки меню в пикселях. Контейнер шапки — `max-w-7xl`, и на меню
+#: приходится ~788 px на широком экране (замер 1280/1440/1920), но на 1024 px
+#: остаётся заметно меньше. Берём с запасом, чтобы `fitNav` не уводил хвост в
+#: дропдаун «Mehr» и на ноутбучных ширинах (фидбэк владельца 2026-08-07).
+#: Считаем ШИРИНУ, а не число пунктов: «Veranstaltungen» и «Shop» стоят по-разному.
+_MENU_ROW_BUDGET_PX = 620
+#: Оценка ширины пункта: text-sm ≈ 8.2 px на символ + горизонтальные паддинги.
+_MENU_ITEM_PADDING_PX = 24
+_MENU_CHAR_PX = 8.2
+
+
+def _menu_row_width(labels) -> float:
+    return sum(len(str(x)) * _MENU_CHAR_PX + _MENU_ITEM_PADDING_PX for x in labels)
+
+
+#: Что уезжает под «Über uns», когда пунктов слишком много: это разделы «о нас»,
+#: а не то, что мы продаём. Продающие пункты (каталог/бронь/акции) остаются в
+#: строке всегда.
+_SECONDARY_PAGE_TARGETS = ("gallery", "reviews", "team")
+_SECONDARY_URLS = ("/hausordnung/", "/lehrer/")
+
+
+def _is_secondary(node: dict) -> bool:
+    kind, target = node.get("type"), str(node.get("target") or "")
+    if kind == "page":
+        return target in _SECONDARY_PAGE_TARGETS
+    if kind == "anchor":
+        return "kontakt" in target
+    if kind == "url":
+        return target in _SECONDARY_URLS
+    return False
+
+
+def _compact_menu(menus: dict | None) -> dict | None:
+    """Свернуть второстепенные пункты верхнего меню под «Über uns».
+
+    Меню кита — данные; чем богаче кит, тем длиннее строка. Вместо того чтобы
+    полагаться на автоматический overflow, складываем «о нас»-разделы в подменю
+    у пункта «Über uns»: он остаётся ССЫЛКОЙ на /ueber-uns/ (узел `page` с
+    детьми), а наведение/тап раскрывает остальное. Нижнее меню не трогаем — там
+    свой набор из 3-4 иконок.
+    """
+    if not menus or "top" not in menus:
+        return menus
+    items = list(menus["top"].get("items") or [])
+    if _menu_row_width(i.get("label", "") for i in items) <= _MENU_ROW_BUDGET_PX:
+        return menus
+    about = next((i for i in items if i.get("type") == "page" and i.get("target") == "about"), None)
+    if about is None:
+        return menus  # некуда складывать — оставляем как есть
+
+    # Сворачиваем ровно столько, сколько нужно, чтобы уложиться в бюджет: берём
+    # с конца (ближе к «Über uns»), чтобы не рвать смысловой порядок строки.
+    movable = [i for i in items if i is not about and _is_secondary(i)]
+    remaining, chosen = list(items), []
+    for node in reversed(movable):
+        if _menu_row_width(i.get("label", "") for i in remaining) <= _MENU_ROW_BUDGET_PX:
+            break
+        remaining.remove(node)
+        chosen.append(node)
+    chosen.reverse()
+    if not chosen:
+        return menus
+
+    kept = [i for i in items if i is not about and i not in chosen]
+    grouped = dict(about)
+    grouped["children"] = [dict(c, children=[]) for c in chosen] + list(about.get("children") or [])
+    top = dict(menus["top"], items=[*kept, grouped])
+    return dict(menus, top=top)
+
+
 def _kit_sections(kit: DemoKit) -> list[dict]:
     """Раскладка секций кита: фото-hero, меню, акции, галерея, отзывы, FAQ, CTA, контакты."""
     rows = [
@@ -7250,7 +7321,9 @@ def apply_kit(tenant, key: str) -> bool:
         {
             "sections": _kit_sections(kit),
             "archetypes": archetypes_cfg,  # S3 обложки разделов
-            "menus": kit.menus or None,  # S7 меню (пусто → выводится из nav, без регрессии)
+            # _compact_menu: длинную строку сворачиваем под «Über uns», иначе
+            # хвост уводит автоматический overflow-дропдаун «Mehr».
+            "menus": _compact_menu(kit.menus) or None,  # S7 (пусто → из nav)
             "storefront_root": kit.storefront_root,  # S4 стартовая страница
             "primary_module": kit.primary_module,  # явный primary (пусто → эвристика)
             "anprobe": kit.enable_anprobe,  # M3 Click&Reserve (presence-minimal)

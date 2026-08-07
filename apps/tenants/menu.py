@@ -37,6 +37,36 @@ _PAGE_URL_NAMES = {
     "contact": "storefront-message",  # /nachricht/ — форма связи
 }
 
+# Подписи целей для редактора меню в кабинете. Список страниц там был захардкожен
+# как {home, about} — селект строится из него, поэтому узел с ЛЮБОЙ другой целью
+# терял выбор и после Save превращался в «Startseite» (аудит 2026-08-07). Реестр
+# один, чтобы новая страница появлялась в редакторе сама.
+PAGE_TARGET_LABELS = {
+    "home": _("Startseite"),
+    "about": _("Über uns"),
+    "gallery": _("Galerie"),
+    "team": _("Unser Team"),
+    "reviews": _("Bewertungen"),
+    "loyalty": _("Treue"),
+    "gift": _("Geschenkgutschein"),
+    "combos": _("Kombi-Angebote"),
+    "finder": _("Finder"),
+    "wishlist": _("Merkzettel"),
+    "account": _("Mein Konto"),
+    "contact": _("Kontakt"),
+}
+
+
+def page_target_choices() -> list[dict]:
+    """[{value, label}] всех страниц-целей меню — для селекта в редакторе.
+    `offers` не показываем: это легаси-алиас главной."""
+    return [
+        {"value": key, "label": str(PAGE_TARGET_LABELS[key])}
+        for key in _PAGE_URL_NAMES
+        if key in PAGE_TARGET_LABELS
+    ]
+
+
 # Гейт по МОДУЛЮ для страниц, у которых он есть (пункт гаснет при выключенном
 # модуле — как у archetype-узлов). Ключ = target страницы.
 _PAGE_MODULE_GATES = {

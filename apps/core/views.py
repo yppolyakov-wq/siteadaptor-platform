@@ -2656,6 +2656,8 @@ def menu_builder_view(request):
         messages.success(request, _("Gespeichert."))
         return redirect("site-menu")
 
+    from apps.tenants import menu as menu_mod
+
     tenant = request.tenant
     menus = siteconfig.normalize(tenant.site_config)["menus"]
     # Доступные цели для выпадашек редактора.
@@ -2672,10 +2674,11 @@ def menu_builder_view(request):
             {"value": c.slug, "label": c.name}
             for c in Category.objects.filter(is_active=True).order_by("name")
         ]
-    page_targets = [
-        {"value": "home", "label": "Startseite"},
-        {"value": "about", "label": "Über uns"},
-    ]
+    # Аудит 2026-08-07: список был захардкожен как {home, about}, поэтому узел с
+    # любой другой целью (Galerie/Bewertungen/Team/Treue/…) не находил себя в
+    # селекте, браузер выбирал первый пункт, и после Save пункт вёл на главную.
+    # Источник — реестр страниц меню: новая страница появляется здесь сама.
+    page_targets = menu_mod.page_target_choices()
     promo_group_targets = []
     if modules.is_module_active(tenant, "promotions"):
         from apps.promotions.models import Promotion
