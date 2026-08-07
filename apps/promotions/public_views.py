@@ -312,7 +312,13 @@ def gallery_page(request):
     site = _site_ctx(request)
     if not (site.get("gallery") or site.get("gallery_video")):
         raise Http404
-    return render(request, "storefront/gallery.html", {"site": site, "sections": []})
+    return render(
+        request,
+        "storefront/gallery.html",
+        # as_page: партиал секции не рисует свою шапку и ссылку «Все фото»
+        # (заголовок уже на странице, ссылка вела бы сюда же).
+        {"site": site, "sections": [], "as_page": True},
+    )
 
 
 def team_page(request):
@@ -320,7 +326,11 @@ def team_page(request):
     site = _site_ctx(request)
     if not site.get("team"):
         raise Http404
-    return render(request, "storefront/team.html", {"site": site, "sections": []})
+    return render(
+        request,
+        "storefront/team.html",
+        {"site": site, "sections": [], "as_page": True},
+    )
 
 
 def reviews_page(request):

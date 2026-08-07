@@ -1,11 +1,15 @@
 {% load i18n siteui %}{# Секция «галерея фото/видео» (M20 ⑤b + T1): сетка изображений + опц. видео. #}
 {% if site.gallery or site.gallery_video %}
 <section data-reveal class="mb-10">
+  {% comment %}ST-8: секция — тизер (свой заголовок + ссылка «Все …»). На самой
+  странице /galerie/ партиал включается с as_page=True: там заголовок уже стоит
+  выше, а ссылка вела бы на эту же страницу.{% endcomment %}
+  {% if not as_page %}
   <div class="flex items-baseline justify-between gap-3 mb-4">
     <h2 class="text-xl md:text-2xl font-bold">{% trans "Gallery" %}</h2>
-    {% comment %}ST-8: секция — тизер, полный набор живёт на отдельной странице.{% endcomment %}
     {% if site.gallery %}<a href="{% url 'storefront-gallery' %}" class="text-sm text-indigo-600 hover:underline shrink-0">{% trans "Alle Fotos" %} →</a>{% endif %}
   </div>
+  {% endif %}
   {% comment %}UC6-6f: 5 видов по section_row.style — "" сетка | strip | large | polaroid | soft.{% endcomment %}
   {% if site.gallery %}
   {% if section_row.style == "strip" %}

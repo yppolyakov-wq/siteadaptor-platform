@@ -152,3 +152,58 @@ def test_primary_sellable_modules_are_reachable(key):
         m for m in filled if m not in reached and not (m == "catalog" and has_category_node)
     )
     assert not missing, f"{key}: наполнено, но не выведено в меню — {missing}"
+
+
+# --- аудит 2026-08-06: переводы демо не должны лежать мёртвым грузом ----------
+
+# Ключ site_config → поле кита, которое его наполняет. Имя ключа КОНФИГА, а не
+# поля кита: обход переводов ходит по конфигу (полоса преимуществ — `usp_bar`,
+# хотя у кита поле называется `usp`; промах на этом имени и был дефектом).
+_TEXT_CONFIG_SOURCES = {
+    "usp_bar": lambda k: k.usp,
+    "team": lambda k: k.team,
+    "faq": lambda k: k.faq,
+    "testimonials": lambda k: k.testimonials,
+    "trust": lambda k: k.trust,
+    "process": lambda k: k.process,
+    "cta": lambda k: k.cta,
+    "heroes": lambda k: k.heroes,
+}
+
+
+def test_all_text_keys_kits_fill_are_translated():
+    """Класс дефектов «перевод есть в словаре, но не доезжает до витрины».
+
+    Обход демо-переводов идёт по СПИСКУ ключей (`_TRANSLATABLE_CONFIG_KEYS`).
+    Ключ, который кит заполняет текстом, но которого нет в списке, молча
+    остаётся немецким на всех локалях — так было с `usp_bar` (полоса
+    преимуществ) и `team` (роли), хотя переводы для них в словарях лежали.
+    """
+    from apps.tenants import demo_i18n
+    from apps.tenants.demo_kits import KITS
+
+    covered = set(demo_i18n._TRANSLATABLE_CONFIG_KEYS)
+    missing = sorted(
+        key
+        for key, getter in _TEXT_CONFIG_SOURCES.items()
+        if key not in covered and any(getter(kit) for kit in KITS.values())
+    )
+    assert not missing, f"киты заполняют, а обход переводов не знает: {missing}"
+
+
+def test_demo_dictionary_translates_usp_and_roles():
+    """Обратная сторона: ключ в обходе есть, а переводов в словаре нет — витрина
+    всё равно останется немецкой. Проверяем на реальных строках китов."""
+    from apps.tenants import demo_i18n
+    from apps.tenants.demo_kits import KITS
+
+    strings = set()
+    for kit in KITS.values():
+        strings.update(label for _icon, label in (kit.usp or []))
+        strings.update(role for _name, role, *_rest in (kit.team or []) if role)
+    assert strings, "у китов нет ни usp, ни ролей — проверять нечего"
+
+    untranslated = sorted(s for s in strings if demo_i18n.t(s, "en") is None)
+    assert len(untranslated) < len(strings) * 0.4, (
+        f"не переведено {len(untranslated)} из {len(strings)}: {untranslated[:8]}"
+    )
