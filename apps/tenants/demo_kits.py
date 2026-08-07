@@ -7117,6 +7117,13 @@ def apply_kit(tenant, key: str) -> bool:
             is_active=True,
             parent=parent,
             size_table=kit.size_tables.get(slug, ""),  # M2 Größentabelle
+            # Фидбэк 2026-08-07 («категории картинками»): фото категории брали
+            # только вручную в кабинете, поэтому у ВСЕХ демо `images` был пуст и
+            # витрина откатывалась на текстовые чипы. Ключ фото — slug категории
+            # (тематичный демо-генератор), lock от сортировки → стабильно.
+            images=[
+                _image_ref(slug.replace("-", ","), 400 + sort, str(_i18n_text(name).get("de", "")))
+            ],
         )
         refs["categories"].append(str(category.pk))
         first_in_cat = True

@@ -17502,3 +17502,15 @@ msgstr "Смотреть лукбук"
 #: templates/storefront/products.html
 msgid "Diet"
 msgstr "Питание"
+
+#: apps/tenants/siteconfig.py
+msgid "Quadratisch"
+msgstr "Квадрат"
+
+#: apps/tenants/siteconfig.py
+msgid "Hochformat"
+msgstr "Вертикальный"
+
+#: apps/tenants/siteconfig.py
+msgid "Breitbild"
+msgstr "Широкий"

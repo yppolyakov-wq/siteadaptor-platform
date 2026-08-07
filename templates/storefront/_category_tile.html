@@ -1,0 +1,39 @@
+{% load i18n %}
+{% comment %}Единая плитка категории: секция главной, страница каталога и
+подкатегории. Раньше главная рисовала плитки с фото, а /sortiment/ — текстовые
+чипы; фидбэк владельца 2026-08-07 «категории сделай картинками».
+
+Размер задаётся стилем секции `categories` (SECTION_STYLES): "" — 4:3,
+square — 1:1, tall — 3:4, wide — 16:9. Колонки берутся из раскладки секции, то
+есть «размер картинок» настраивается из Studio без новых ключей конфига.
+
+Фолбэк обязателен: у всех демо-китов и у большинства тенантов `Category.images`
+пуст — без него сетка выродилась бы в серые прямоугольники. Нет фото → прежняя
+текстовая плитка.
+
+В режиме редактора подпись — ОТДЕЛЬНЫЙ элемент ВНЕ ссылки: обработчик
+`data-cat-edit` делает её contenteditable и НЕ гасит клик (в отличие от
+`data-edit-model`), поэтому внутри `<a>` правка уводила бы канву на страницу
+категории.
+
+Параметры include: c (категория), cat_aspect (класс аспекта), is_preview.{% endcomment %}
+{% if is_preview %}
+  <div class="sf-card block bg-white rounded-xl shadow-sm overflow-hidden border border-transparent">
+    {% if c.image_url %}
+      <span class="block {{ cat_aspect|default:'aspect-[4/3]' }} bg-gray-100"><img src="{{ c.image_url }}" alt="{{ c }}" loading="lazy" class="w-full h-full object-cover"></span>
+    {% endif %}
+    <span class="flex items-center justify-center gap-1 p-3 text-center font-medium {% if not c.image_url %}min-h-[5rem]{% endif %}">
+      <span data-cat-edit="{{ c.pk }}">{{ c }}</span>
+      <a href="{% url 'catalog:category-edit' c.pk %}" target="_blank" rel="noopener"
+         title="{% trans 'Edit category' %}" class="text-indigo-600 hover:text-indigo-800 text-sm">✎</a>
+    </span>
+  </div>
+{% else %}
+  <a href="{% url 'storefront-products' %}?kategorie={{ c.slug }}"
+     class="sf-card block bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md hover:border-indigo-300 border {% if cat_active %}border-indigo-400{% else %}border-transparent{% endif %} transition">
+    {% if c.image_url %}
+      <span class="block {{ cat_aspect|default:'aspect-[4/3]' }} bg-gray-100"><img src="{{ c.image_url }}" alt="{{ c }}" loading="lazy" class="w-full h-full object-cover"></span>
+    {% endif %}
+    <span class="flex items-center justify-center p-3 text-center font-medium {% if not c.image_url %}min-h-[5rem]{% endif %}">{{ c }}</span>
+  </a>
+{% endif %}

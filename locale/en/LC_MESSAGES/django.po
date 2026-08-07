@@ -17310,3 +17310,15 @@ msgstr "View lookbook"
 #: templates/storefront/products.html
 msgid "Diet"
 msgstr "Diet"
+
+#: apps/tenants/siteconfig.py
+msgid "Quadratisch"
+msgstr "Square"
+
+#: apps/tenants/siteconfig.py
+msgid "Hochformat"
+msgstr "Portrait"
+
+#: apps/tenants/siteconfig.py
+msgid "Breitbild"
+msgstr "Widescreen"

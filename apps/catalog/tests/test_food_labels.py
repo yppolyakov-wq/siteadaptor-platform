@@ -268,3 +268,48 @@ def test_product_badge_label_translatable():
         assert str(p.badge_label) == "Dish of the day"
     # форма/БД: choices на модели не тронуты (немецкие) — без миграции
     assert dict(p.BADGE_CHOICES)["tagesgericht"] == "Tagesgericht"
+
+
+# --- фидбэк 2026-08-07: категории картинками, комбо не первым блоком -----------
+
+
+def test_categories_render_as_tiles_when_photos_exist():
+    """«Категории сделай картинками»: при наличии фото — сетка плиток."""
+    from apps.catalog.models import Category
+
+    cat = Category.objects.create(
+        name={"de": "Vorspeisen"},
+        slug="vorspeisen",
+        is_active=True,
+        images=[{"id": "c1", "url": "/medien/demo.svg?kw=x", "is_primary": True}],
+    )
+    ProductFactory(category=cat, is_active=True)
+    body = public_views.product_list(_req("/sortiment/")).content.decode()
+    assert 'data-grid="categories"' in body, "плитки категорий не отрисовались"
+    assert "/medien/demo.svg?kw=x" in body
+
+
+def test_categories_fall_back_to_chips_without_photos():
+    """Фолбэк обязателен: у большинства тенантов `Category.images` пуст — сетка
+    серых прямоугольников была бы хуже прежних текстовых чипов."""
+    from apps.catalog.models import Category
+
+    cat = Category.objects.create(name={"de": "Ohne Foto"}, slug="ohne-foto", is_active=True)
+    ProductFactory(category=cat, is_active=True)
+    body = public_views.product_list(_req("/sortiment/")).content.decode()
+    assert 'data-grid="categories"' not in body
+    assert "rounded-full text-sm border" in body  # прежние чипы
+
+
+def test_combo_teaser_is_not_the_first_block_of_the_catalog():
+    """«Откуда-то взялось комбо-меню»: карточки наборов стояли ПЕРВЫМ блоком —
+    раньше категорий и товаров. Теперь наверху только компактная ссылка."""
+    from apps.catalog.models import Combo
+
+    Combo.objects.create(name={"de": "Familien-Paket"}, price="24.90", is_active=True)
+    ProductFactory(is_active=True)
+    body = public_views.product_list(_req("/sortiment/")).content.decode()
+    if "Familien-Paket" in body:  # тизер выводится только на 1-й странице
+        assert body.index("Familien-Paket") > body.index("data-grid"), (
+            "карточки наборов всё ещё выше сетки товаров"
+        )

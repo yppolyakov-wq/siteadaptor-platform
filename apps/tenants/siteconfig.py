@@ -857,6 +857,18 @@ def section_show_all(config, key) -> bool:
     return True
 
 
+def section_style(config, key) -> str:
+    """Вид отображения секции `key` ("" — стандартный).
+
+    Внутри рендера секций стиль приходит в `section_row.style`, но СТРАНИЦЫ
+    (например /sortiment/) рисуются вне `render_block` — им нужен прямой ридер.
+    """
+    for item in (config or {}).get("sections", []):
+        if isinstance(item, dict) and item.get("key") == key:
+            return str(item.get("style") or "")
+    return ""
+
+
 _HEX_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
 
 
@@ -1762,6 +1774,17 @@ SECTION_STYLES = {
     "about": ("plain", "accent", "single"),  # "" = белая карточка
     "usp_bar": ("plain", "cards", "compact"),  # "" = карточка-полоса
     "reviews": ("quotes", "list", "single"),  # "" = сетка карточек
+    # Фидбэк 2026-08-07 («категории картинками + размер из Studio»): форма плитки
+    # категории. Ширину даёт раскладка секции (колонки), высоту — этот стиль.
+    # "" = 4:3, как рисовала секция главной до правки.
+    "categories": ("square", "tall", "wide"),
+}
+#: Класс аспекта плитки категории по стилю секции (см. _category_tile.html).
+CATEGORY_TILE_ASPECTS = {
+    "": "aspect-[4/3]",
+    "square": "aspect-square",
+    "tall": "aspect-[3/4]",
+    "wide": "aspect-video",
 }
 # Лейблы вариантов для селекта билдера (DE — как прочий канва-контент).
 SECTION_STYLE_LABELS = {
@@ -1787,6 +1810,10 @@ SECTION_STYLE_LABELS = {
     "duo": _("Foto seitlich"),  # UC6-8: team — широкие карточки
     "split": _("Karte seitlich"),  # ST-2: contact
     "map_first": _("Karte zuerst"),
+    # Формы плитки категории (2026-08-07).
+    "square": _("Quadratisch"),
+    "tall": _("Hochformat"),
+    "wide": _("Breitbild"),
 }
 
 # UC6-6f: подсказка стиля скидки у промо-БЛОКА (фидбэк владельца «пресеты промо-

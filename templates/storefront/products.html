@@ -14,35 +14,34 @@
   {% if catalog_intro or is_preview %}<p class="mt-2 text-gray-600 whitespace-pre-line max-w-2xl" data-edit="catalog_intro">{{ catalog_intro }}</p>{% endif %}
   {# «Категории с описанием»: описание выбранной категории (правится в кабинете: Catalog → Categories). #}
   {% if category_description %}<p class="mt-2 text-gray-700 whitespace-pre-line max-w-2xl">{{ category_description }}</p>{% endif %}
-  {% if has_combos and not combos_teaser %}
+  {% comment %}Фидбэк 2026-08-07 («откуда-то взялось комбо-меню»): карточки
+  наборов стояли ПЕРВЫМ блоком каталога, раньше категорий и товаров. Наверху
+  остаётся компактная ссылка, а сами карточки — под сеткой товаров.{% endcomment %}
+  {% if has_combos %}
     <a href="{% url 'storefront-combos' %}" class="inline-block mt-2 text-sm font-medium" style="color: var(--accent);">🍔 {% trans "See our combos & menus" %} &rarr;</a>
   {% endif %}
 </div>
 
-{% comment %}A4: тизер комбо/меню-сетов вверху каталога (карточками, не только ссылкой) —
-Kombo/Tagesgericht на виду. Только на 1-й странице без выбранной категории.{% endcomment %}
-{% if combos_teaser %}
-<section data-reveal class="mb-8">
-  <div class="flex items-end justify-between mb-3">
-    <h2 class="text-lg md:text-xl font-bold">🍔 {% trans "Combos & menus" %}</h2>
-    <a href="{% url 'storefront-combos' %}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>
-  </div>
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    {% for c in combos_teaser %}
-      <a href="{% url 'storefront-combo' c.pk %}" class="flex flex-col bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition motion-safe:hover:-translate-y-1">
-        <h3 class="font-bold">{{ c.name }}</h3>
-        {% if c.description %}<p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ c.description }}</p>{% endif %}
-        <p class="mt-3 font-bold text-lg">{{ c.price }} {{ c.currency|cursym }}</p>
-        <span class="inline-block mt-1 text-sm font-medium" style="color: var(--accent);">{% trans "Configure" %} &rarr;</span>
-      </a>
-    {% endfor %}
-  </div>
-</section>
-{% endif %}
 {% endblock %}
 
 {% block listing_facets %}
 {% if categories %}
+{% comment %}Фидбэк владельца 2026-08-07: «категории сделай картинками». Когда у
+категорий есть фото — сетка плиток (общий партиал с секцией главной, форма и
+колонки настраиваются из Studio); нет ни одного фото — прежние чипы-таблетки,
+иначе у тенантов без фотографий страница стала бы хуже, чем была.{% endcomment %}
+{% if categories_have_images %}
+<div class="mb-6">
+  <div data-grid="categories" class="{% grid_classes site 'categories' %}">
+    {% for c in categories %}
+      {% include "storefront/_category_tile.html" with c=c cat_aspect=category_tile_aspect cat_active=False %}
+    {% endfor %}
+  </div>
+  {% if current_category %}
+    <a href="{% url 'storefront-products' %}" class="inline-block mt-3 text-sm text-indigo-600 hover:underline">← {% trans "All" %}</a>
+  {% endif %}
+</div>
+{% else %}
 <div class="flex flex-wrap gap-2 mb-6">
   <a href="{% url 'storefront-products' %}"
      class="px-3 py-1.5 rounded-full text-sm border {% if not current_category %}bg-gray-900 text-white border-gray-900{% else %}bg-white border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{% trans "All" %}</a>
@@ -64,6 +63,7 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
     {% endif %}
   {% endfor %}
 </div>
+{% endif %}
 {% endif %}
 
 {% comment %}M4-B Lookbook: чипы подборок владельца (?kollektion=<slug>) — как у
@@ -217,4 +217,25 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
 {% endif %}
 {% endblock %}
 
-{% block listing_after %}{% page_blocks "catalog" %}{% endblock %}
+{% block listing_after %}
+{% comment %}A4: тизер комбо/меню-сетов ПОД сеткой товаров (карточками, не только ссылкой) —
+Kombo/Tagesgericht на виду. Только на 1-й странице без выбранной категории.{% endcomment %}
+{% if combos_teaser %}
+<section data-reveal class="mb-8">
+  <div class="flex items-end justify-between mb-3">
+    <h2 class="text-lg md:text-xl font-bold">🍔 {% trans "Combos & menus" %}</h2>
+    <a href="{% url 'storefront-combos' %}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for c in combos_teaser %}
+      <a href="{% url 'storefront-combo' c.pk %}" class="flex flex-col bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition motion-safe:hover:-translate-y-1">
+        <h3 class="font-bold">{{ c.name }}</h3>
+        {% if c.description %}<p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ c.description }}</p>{% endif %}
+        <p class="mt-3 font-bold text-lg">{{ c.price }} {{ c.currency|cursym }}</p>
+        <span class="inline-block mt-1 text-sm font-medium" style="color: var(--accent);">{% trans "Configure" %} &rarr;</span>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% page_blocks "catalog" %}{% endblock %}

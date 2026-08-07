@@ -17422,3 +17422,15 @@ msgstr "Lookbook'u görüntüle"
 #: templates/storefront/products.html
 msgid "Diet"
 msgstr "Beslenme"
+
+#: apps/tenants/siteconfig.py
+msgid "Quadratisch"
+msgstr "Kare"
+
+#: apps/tenants/siteconfig.py
+msgid "Hochformat"
+msgstr "Dikey"
+
+#: apps/tenants/siteconfig.py
+msgid "Breitbild"
+msgstr "Geniş ekran"

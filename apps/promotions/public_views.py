@@ -226,6 +226,9 @@ def storefront_home(request):
             "promotions": promos,
             "products_preview": products_preview,
             "categories": categories,
+            "category_tile_aspect": siteconfig.CATEGORY_TILE_ASPECTS.get(
+                siteconfig.section_style(site, "categories"), "aspect-[4/3]"
+            ),
             "archetype_teasers": archetype_teasers,
             "stay_rooms": stay_rooms,
             "events_preview": events_preview,
@@ -504,6 +507,10 @@ def product_list(request):
         products = products.filter(badge=badge)
 
     categories = Category.objects.filter(is_active=True, products__is_active=True).distinct()
+    # Фидбэк 2026-08-07: плитки с фото — только когда фото ЕСТЬ; иначе прежние
+    # чипы (у большинства тенантов Category.images пуст, сетка серых
+    # прямоугольников была бы хуже текста).
+    categories_have_images = any(c.image_url for c in categories)
     # M20U-3: подкатегории выбранной категории — выводим карточками первыми.
     subcategories = (
         list(category.children.filter(is_active=True).order_by("sort_order", "slug"))
@@ -617,6 +624,10 @@ def product_list(request):
         {
             "page": page,
             "categories": categories,
+            "categories_have_images": categories_have_images,
+            "category_tile_aspect": siteconfig.CATEGORY_TILE_ASPECTS.get(
+                siteconfig.section_style(cfg, "categories"), "aspect-[4/3]"
+            ),
             "current_category": category,
             # «Категории с описанием»: i18n-описание выбранной категории (или "").
             "category_description": category.get_i18n("description") if category else "",
