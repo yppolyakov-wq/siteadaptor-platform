@@ -111,3 +111,31 @@ def test_kits_have_first_screen():
 
     missing = [k for k, kit in KITS.items() if not kit.heroes and not kit.hero_widget]
     assert missing == [], f"без первого экрана: {missing}"
+
+
+# --- аудит 2026-08-06: видимый вход не должен вести в 404 ---------------------
+
+
+def test_no_tile_leads_to_404_when_its_module_is_off():
+    """Плитка первого экрана — ссылка на страницу, у которой свой гейт. Если
+    гейт плитки слабее гейта страницы, посетитель кликает и попадает в 404.
+    Так было у «Rückruf» (вьюха требует jobs, гейта не было) и у «Geschenk-
+    gutschein» (страница требует ещё и настроенной оплаты)."""
+    from django.urls import reverse
+
+    from apps.core import hero_tiles
+
+    # Тенант без единого дополнительного модуля и без онлайн-оплаты.
+    tenant = _tenant(
+        disabled_modules=["jobs", "gift", "loyalty", "events", "stays", "booking", "promotions"]
+    )
+    tenant.payments_enabled = False
+
+    # Открыты всегда: каталог (core-модуль) и подписка на рассылку (без гейта).
+    known_open = {reverse("storefront-newsletter"), reverse("storefront-products")}
+    for widget in hero_tiles.HERO_TILE_WIDGETS:
+        for tile in hero_tiles.tiles_for(widget, tenant, deal=object()):
+            href = tile["href"]
+            assert href in known_open, (
+                f"{widget}: плитка «{tile['label']}» → {href} при выключенных модулях"
+            )

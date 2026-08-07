@@ -103,7 +103,10 @@ HERO_TILE_SETS = {
             "label": _("Rückruf anfordern"),
             "sub": _("Wir melden uns zurück"),
             "url": "storefront-rueckruf",
-            "gate": "",
+            # Аудит 2026-08-06: гейта не было, а вьюха требует модуль jobs
+            # (`_require_jobs_active` → 404) — плитка вела в 404 при выключенном
+            # модуле. GET там всё равно редиректит на /anfrage/, это нормально.
+            "gate": "jobs",
         },
         {
             "icon": "🔥",
@@ -152,7 +155,8 @@ HERO_TILE_SETS = {
             "icon": "🔥",
             "label": _("Aktuelle Deals"),
             "url": "storefront-aktionen",
-            "gate": "",
+            # Аудит 2026-08-06: /aktionen/ гейтится модулем promotions (иначе 404).
+            "gate": "promotions",
             "deal_sub": True,
             "highlight": True,
         },
@@ -292,7 +296,10 @@ def tiles_for(widget: str, tenant, deal=None) -> list[dict]:
     for tile in spec:
         gate = tile.get("gate", "")
         if gate == "deal":
-            if deal is None:
+            # Плитка ведёт на /aktionen/, а страница гейтится модулем promotions:
+            # живая акция в БД сама по себе не гарантирует, что модуль включён
+            # (аудит 2026-08-06 — иначе клик по «горячей» плитке давал 404).
+            if deal is None or not modules.is_module_active(tenant, "promotions"):
                 continue
         elif gate and not modules.is_module_active(tenant, gate):
             continue
