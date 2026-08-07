@@ -185,6 +185,18 @@
    {
     "enabled": true,
     "key": "reviews"
+   },
+   {
+    "enabled": true,
+    "key": "loyalty"
+   },
+   {
+    "enabled": true,
+    "key": "gift"
+   },
+   {
+    "enabled": true,
+    "key": "combos"
    }
   ],
   "sticky": false,

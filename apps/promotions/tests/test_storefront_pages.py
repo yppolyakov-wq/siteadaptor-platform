@@ -124,7 +124,6 @@ def test_orphan_pages_reachable_from_menu_when_module_active():
     tenant.disabled_modules = []
     assert _resolve(tenant, "loyalty") == "/treue/"
     assert _resolve(tenant, "gift") == "/gutschein/"
-    assert _resolve(tenant, "combos") == "/kombi/"
     assert _resolve(tenant, "account") == "/konto/"
 
 
@@ -134,6 +133,22 @@ def test_orphan_menu_entries_gated_by_module():
     tenant.disabled_modules = ["loyalty", "gift", "orders", "customer_account"]
     for target in ("loyalty", "gift", "combos", "account"):
         assert _resolve(tenant, target) is None, target
+
+
+def test_combos_entry_needs_actual_combos():
+    """Модуль orders активен почти у всех, а наборы есть у единиц: без гейта по
+    контенту пункт «Kombi-Angebote» встал бы в шапку каждого тенанта и вёл на
+    пустую страницу."""
+    tenant = _tenant()
+    tenant.disabled_modules = []
+    assert _resolve(tenant, "combos") is None  # наборов нет → пункта нет
+
+
+def test_header_icon_pages_are_not_duplicated_in_nav():
+    """У «Мой аккаунт» и «Merkzettel» уже есть иконки в шапке
+    (_header_icons.html 👤/♥) — пункт меню был бы вторым входом в то же место."""
+    keys = {key for key, _l, _u, _m in siteconfig.NAV_ITEMS}
+    assert "account" not in keys and "wishlist" not in keys
 
 
 def test_finder_menu_entry_requires_enabled_finder():

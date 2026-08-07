@@ -32,6 +32,9 @@ _PAGE_URL_NAMES = {
     "finder": "storefront-finder",  # /finder/ — подбор «3 вопроса»
     "wishlist": "storefront-wishlist",  # /merkzettel/ — избранное
     "account": "account-home",  # /konto/ — личный кабинет клиента
+    # Кит TOURS ссылался на страницу "contact" — цели с таким именем не было,
+    # и пункт молча выпадал из меню (узел без ссылки отбрасывается).
+    "contact": "storefront-message",  # /nachricht/ — форма связи
 }
 
 # Гейт по МОДУЛЮ для страниц, у которых он есть (пункт гаснет при выключенном
@@ -44,16 +47,24 @@ _PAGE_MODULE_GATES = {
     # (is_module_active("finder") всегда False и гасил бы пункт).
     "wishlist": "orders",
     "account": "customer_account",
+    "contact": "inbox",
 }
 
 # ST-8: чем «наполнена» страница (ключ site_config или запрос) — гейт пункта меню.
-_PAGE_CONTENT_GATES = ("gallery", "team", "reviews")
+_PAGE_CONTENT_GATES = ("gallery", "team", "reviews", "combos")
 
 
 def _page_has_content(tenant, target: str) -> bool:
     """Есть ли что показать на странице ST-8 (иначе пункт меню гасим)."""
     if target not in _PAGE_CONTENT_GATES:
         return True
+    if target == "combos":
+        # Модуль orders активен почти у всех, но наборы есть у единиц — без этого
+        # гейта пункт «Kombi-Angebote» встал бы в шапку каждого тенанта и вёл на
+        # пустую страницу.
+        from apps.catalog.combos import active_combos
+
+        return bool(active_combos())
     cfg = siteconfig.normalize(tenant.site_config)
     if target == "gallery":
         return bool(cfg.get("gallery") or cfg.get("gallery_video"))
@@ -201,6 +212,8 @@ _MENU_LABEL_ANCHORS = (
     _("Dauertiefpreis"),
     _("Anti-Food-Waste"),
     _("Räumung"),
+    # Аудит 2026-08-06: размещение ретрита в меню (номера/места в общей комнате).
+    _("Unterkunft"),
 )
 
 

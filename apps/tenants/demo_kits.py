@@ -464,7 +464,38 @@ _RETREAT_LANDING = {
 }
 _RETREAT_PHOTOS = ["yoga,forest", "meditation,nature", "lake,forest", "campfire,night"]
 
+# Аудит 2026-08-06: у ресторана НЕ БЫЛО своего меню — шапка выводилась из
+# легаси-`nav` (плоский список активных модулей), поэтому ни галереи, ни отзывов,
+# ни команды в навигации не было, хотя контент у кита есть.
+RESTAURANT_MENUS = {
+    "top": {
+        "style": "classic",
+        "sticky": True,
+        "items": [
+            {"label": "Speisekarte", "type": "archetype", "target": "catalog"},
+            {"label": "Angebote", "type": "archetype", "target": "promotions"},
+            {"label": "Veranstaltungen", "type": "archetype", "target": "events"},
+            {"label": "Catering", "type": "archetype", "target": "jobs"},
+            {"label": "Galerie", "type": "page", "target": "gallery"},
+            {"label": "Bewertungen", "type": "page", "target": "reviews"},
+            {"label": "Unser Team", "type": "page", "target": "team"},
+            {"label": "Über uns", "type": "page", "target": "about"},
+            {"label": "Kontakt", "type": "anchor", "target": "/#kontakt"},
+        ],
+    },
+    "bottom": {
+        "enabled": True,
+        "items": [
+            {"label": "Speisekarte", "type": "archetype", "target": "catalog", "icon": "🍝"},
+            {"label": "Angebote", "type": "archetype", "target": "promotions", "icon": "🔥"},
+            {"label": "Veranstaltungen", "type": "archetype", "target": "events", "icon": "🎫"},
+            {"label": "Korb", "type": "archetype", "target": "orders", "icon": "🧺"},
+        ],
+    },
+}
+
 RESTAURANT = DemoKit(
+    menus=RESTAURANT_MENUS,
     promotions_spec=[
         # Angebot des Tages: recurrence="daily" → плитка hero «Angebot des Tages»
         # (тег deal_of_day ставит daily первой). Фикс-цена + festpreis + лимит порций.
@@ -1788,7 +1819,10 @@ HOTEL_MENUS = {
             {"label": "Zimmer", "type": "archetype", "target": "stays", "icon": "🛏"},
             {"label": "Galerie", "type": "page", "target": "gallery", "icon": "📷"},
             {"label": "Bewertungen", "type": "page", "target": "reviews", "icon": "⭐"},
-            {"label": "Buchen", "type": "anchor", "target": "/#buchen", "icon": "📅"},
+            # Аудит 2026-08-06: якорь `/#buchen` вёл в никуда — секция поиска дат
+            # у отеля ВЫКЛЮЧЕНА (hero_widget="stays" держит поиск внутри hero, см.
+            # _kit_sections), то есть id="buchen" на главной не рендерится.
+            {"label": "Buchen", "type": "archetype", "target": "stays", "icon": "📅"},
         ],
     },
 }
@@ -2381,13 +2415,16 @@ AKTIONSMARKT_MENUS = {
             {"label": "Sortiment", "type": "archetype", "target": "catalog"},
             {"label": "Treue", "type": "archetype", "target": "loyalty"},
             {"label": "Galerie", "type": "page", "target": "gallery"},
+            {"label": "Bewertungen", "type": "page", "target": "reviews"},
             {"label": "Über uns", "type": "page", "target": "about"},
         ],
     },
     "bottom": {
         "enabled": True,
         "items": [
-            {"label": "Aktionen", "type": "anchor", "target": "aktionen", "icon": "🔥"},
+            # Аудит 2026-08-06: был якорь `/#aktionen` — прокрутка главной. Страница
+            # всех акций работает с любой страницы витрины, а не только с главной.
+            {"label": "Aktionen", "type": "archetype", "target": "promotions", "icon": "🔥"},
             {"label": "Sortiment", "type": "archetype", "target": "catalog", "icon": "🛒"},
             {"label": "Korb", "type": "archetype", "target": "orders", "icon": "🧺"},
             {"label": "Treue", "type": "archetype", "target": "loyalty", "icon": "💝"},
@@ -2772,6 +2809,7 @@ BAKERY_MENUS = {
             {"label": "Treue", "type": "archetype", "target": "loyalty"},
             {"label": "Galerie", "type": "page", "target": "gallery"},
             {"label": "Bewertungen", "type": "page", "target": "reviews"},
+            {"label": "Unser Team", "type": "page", "target": "team"},
             {"label": "Über uns", "type": "page", "target": "about"},
         ],
     },
@@ -2779,7 +2817,7 @@ BAKERY_MENUS = {
         "enabled": True,
         "items": [
             {"label": "Sortiment", "type": "archetype", "target": "catalog", "icon": "🥨"},
-            {"label": "Aktionen", "type": "anchor", "target": "aktionen", "icon": "🔥"},
+            {"label": "Aktionen", "type": "archetype", "target": "promotions", "icon": "🔥"},
             {"label": "Party", "type": "archetype", "target": "jobs", "icon": "🎉"},
             {"label": "Korb", "type": "archetype", "target": "orders", "icon": "🧺"},
         ],
@@ -3233,6 +3271,7 @@ BUTCHER_MENUS = {
             {"label": "Partyservice", "type": "archetype", "target": "jobs"},
             {"label": "Galerie", "type": "page", "target": "gallery"},
             {"label": "Bewertungen", "type": "page", "target": "reviews"},
+            {"label": "Unser Team", "type": "page", "target": "team"},
             {"label": "Über uns", "type": "page", "target": "about"},
         ],
     },
@@ -3240,7 +3279,7 @@ BUTCHER_MENUS = {
         "enabled": True,
         "items": [
             {"label": "Sortiment", "type": "archetype", "target": "catalog", "icon": "🥩"},
-            {"label": "Aktionen", "type": "anchor", "target": "aktionen", "icon": "🔥"},
+            {"label": "Aktionen", "type": "archetype", "target": "promotions", "icon": "🔥"},
             {"label": "Party", "type": "archetype", "target": "jobs", "icon": "🎉"},
             {"label": "Korb", "type": "archetype", "target": "orders", "icon": "🧺"},
         ],
@@ -3644,8 +3683,12 @@ CAFE_MENUS = {
             {"label": "Karte", "type": "archetype", "target": "catalog"},
             {"label": "Reservieren", "type": "archetype", "target": "booking"},
             {"label": "Treue", "type": "archetype", "target": "loyalty"},
+            # Аудит 2026-08-06 (фидбэк владельца «не везде есть акции»): акции
+            # у кита засеяны, но пути к ним из меню не было.
+            {"label": "Angebote", "type": "archetype", "target": "promotions"},
             {"label": "Galerie", "type": "page", "target": "gallery"},
             {"label": "Bewertungen", "type": "page", "target": "reviews"},
+            {"label": "Unser Team", "type": "page", "target": "team"},
             {"label": "Über uns", "type": "page", "target": "about"},
         ],
     },
@@ -4015,6 +4058,7 @@ CLOTHING_MENUS = {
             {"label": "Sale", "type": "promo_group", "target": "Sale"},
             {"label": "Galerie", "type": "page", "target": "gallery"},
             {"label": "Bewertungen", "type": "page", "target": "reviews"},
+            {"label": "Unser Team", "type": "page", "target": "team"},
             {"label": "Über uns", "type": "page", "target": "about"},
         ],
     },
@@ -4022,7 +4066,7 @@ CLOTHING_MENUS = {
         "enabled": True,
         "items": [
             {"label": "Shop", "type": "archetype", "target": "catalog", "icon": "👗"},
-            {"label": "Sale", "type": "anchor", "target": "aktionen", "icon": "🔥"},
+            {"label": "Sale", "type": "archetype", "target": "promotions", "icon": "🔥"},
             {"label": "Korb", "type": "archetype", "target": "orders", "icon": "🧺"},
         ],
     },
@@ -4507,8 +4551,12 @@ TOURS_MENUS = {
         "items": [
             {"label": "Touren", "type": "archetype", "target": "booking"},
             {"label": "Events & Ausflüge", "type": "archetype", "target": "events"},
+            # Аудит 2026-08-06 (фидбэк владельца «не везде есть акции»): акции
+            # у кита засеяны, но пути к ним из меню не было.
+            {"label": "Angebote", "type": "archetype", "target": "promotions"},
             {"label": "Galerie", "type": "page", "target": "gallery"},
             {"label": "Bewertungen", "type": "page", "target": "reviews"},
+            {"label": "Unser Team", "type": "page", "target": "team"},
             {"label": "Über uns", "type": "page", "target": "about"},
         ],
     },
@@ -4841,6 +4889,9 @@ FRISEUR_MENUS = {
             {"label": "Produkte", "type": "archetype", "target": "catalog"},
             {"label": "Treue", "type": "archetype", "target": "loyalty"},
             {"label": "News", "type": "url", "target": "/blog/"},
+            # Аудит 2026-08-06 (фидбэк владельца «не везде есть акции»): акции
+            # у кита засеяны, но пути к ним из меню не было.
+            {"label": "Angebote", "type": "archetype", "target": "promotions"},
             {"label": "Meister", "type": "page", "target": "team"},
             {"label": "Galerie", "type": "page", "target": "gallery"},
             {"label": "Bewertungen", "type": "page", "target": "reviews"},
@@ -5186,7 +5237,11 @@ WERKSTATT_MENUS = {
             {"label": "Termin", "type": "archetype", "target": "booking"},
             {"label": "Kostenvoranschlag", "type": "archetype", "target": "jobs"},
             {"label": "Teile & Zubehör", "type": "archetype", "target": "catalog"},
+            # Аудит 2026-08-06 (фидбэк владельца «не везде есть акции»): акции
+            # у кита засеяны, но пути к ним из меню не было.
+            {"label": "Angebote", "type": "archetype", "target": "promotions"},
             {"label": "Unser Team", "type": "page", "target": "team"},
+            {"label": "Galerie", "type": "page", "target": "gallery"},
             {"label": "Bewertungen", "type": "page", "target": "reviews"},
             {"label": "Über uns", "type": "page", "target": "about"},
         ],
@@ -5537,6 +5592,9 @@ HANDWERKER_MENUS = {
         "items": [
             {"label": "Angebot", "type": "archetype", "target": "jobs"},
             {"label": "Leistungen", "type": "archetype", "target": "booking"},
+            # Аудит 2026-08-06 (фидбэк владельца «не везде есть акции»): акции
+            # у кита засеяны, но пути к ним из меню не было.
+            {"label": "Angebote", "type": "archetype", "target": "promotions"},
             {"label": "Referenzen", "type": "page", "target": "gallery"},
             {"label": "Unser Team", "type": "page", "target": "team"},
             {"label": "Bewertungen", "type": "page", "target": "reviews"},
@@ -5855,10 +5913,18 @@ RETREAT_MENUS = {
         "sticky": True,
         "items": [
             {"label": "Events", "type": "archetype", "target": "events"},
+            # Аудит 2026-08-06: у ретрита есть НОЧЁВКА (8 мест в общей комнате,
+            # Doppel-/Einzelzimmer) и заявки, но ни того ни другого не было в меню —
+            # гость не мог дойти до размещения иначе как из карточки события.
+            {"label": "Unterkunft", "type": "archetype", "target": "stays"},
             {"label": "Lehrer", "type": "url", "target": "/lehrer/"},  # R3
             {"label": "Einzelsitzung", "type": "archetype", "target": "booking"},
+            {"label": "Anfrage", "type": "archetype", "target": "jobs"},
             {"label": "Blog", "type": "url", "target": "/blog/"},  # RT4
             {"label": "Shop", "type": "archetype", "target": "catalog"},
+            # Аудит 2026-08-06 (фидбэк владельца «не везде есть акции»): акции
+            # у кита засеяны, но пути к ним из меню не было.
+            {"label": "Angebote", "type": "archetype", "target": "promotions"},
             {"label": "Galerie", "type": "page", "target": "gallery"},
             {"label": "Bewertungen", "type": "page", "target": "reviews"},
             {"label": "Über uns", "type": "page", "target": "about"},
@@ -5868,6 +5934,7 @@ RETREAT_MENUS = {
         "enabled": True,
         "items": [
             {"label": "Events", "type": "archetype", "target": "events", "icon": "🎫"},
+            {"label": "Unterkunft", "type": "archetype", "target": "stays", "icon": "🛏"},
             {"label": "Sitzung", "type": "archetype", "target": "booking", "icon": "🧘"},
             {"label": "Shop", "type": "archetype", "target": "catalog", "icon": "🛍"},
         ],
@@ -6391,6 +6458,7 @@ SHOP_MENUS = {
             {"label": "Sortiment", "type": "archetype", "target": "catalog"},
             {"label": "Aktionen", "type": "archetype", "target": "promotions"},
             {"label": "Galerie", "type": "page", "target": "gallery"},
+            {"label": "Bewertungen", "type": "page", "target": "reviews"},
             {"label": "Über uns", "type": "page", "target": "about"},
         ],
     },

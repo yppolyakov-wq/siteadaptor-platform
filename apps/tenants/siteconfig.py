@@ -1303,10 +1303,13 @@ NAV_ITEMS = [
     ("reviews", _("Bewertungen"), "storefront-reviews", None),
     # 2026-08-06 (аудит демо): страницы, до которых из меню не было пути.
     # 4-й элемент — требуемый модуль: пункт гаснет, если модуль выключен.
+    # НЕ добавляем сюда `account`/`wishlist`: у них уже есть иконки в шапке
+    # (_header_icons.html 👤/♥) — пункт меню был бы вторым входом в то же место.
+    # `combos` дополнительно гейтится наличием наборов (menu._page_has_content):
+    # модуль orders включён почти у всех, а пустая страница набора — не пункт меню.
     ("loyalty", _("Treue"), "storefront-loyalty", "loyalty"),
     ("gift", _("Geschenkgutschein"), "storefront-gutschein", "gift"),
     ("combos", _("Kombi-Angebote"), "storefront-combos", "orders"),
-    ("account", _("Mein Konto"), "account-home", "customer_account"),
 ]
 _NAV_KNOWN = {key for key, _l, _u, _m in NAV_ITEMS}
 # Стиль шапки: classic (лого слева + ссылки справа, как было), centered (лого
@@ -1343,6 +1346,8 @@ _NAV_KEY_TO_NODE = {
     "loyalty": ("page", "loyalty"),
     "gift": ("page", "gift"),
     "combos": ("page", "combos"),
+    # `account` в NAV_ITEMS не входит (иконка 👤 в шапке), но маппинг оставляем:
+    # владелец может добавить текстовый пункт вручную в конструкторе меню.
     "account": ("page", "account"),
 }
 

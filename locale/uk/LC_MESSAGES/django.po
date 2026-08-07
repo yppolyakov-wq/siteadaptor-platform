@@ -17475,3 +17475,11 @@ msgstr "Спа та додатки"
 #: apps/tenants/menu.py
 msgid "Wochenangebote"
 msgstr "Пропозиції тижня"
+
+#: apps/tenants/menu.py
+msgid "Unterkunft"
+msgstr "Проживання"
+
+#: templates/storefront/products.html
+msgid "Lookbook ansehen"
+msgstr "Переглянути лукбук"

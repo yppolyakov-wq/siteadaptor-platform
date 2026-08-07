@@ -17410,3 +17410,11 @@ msgstr "Wellness ve ekstralar"
 #: apps/tenants/menu.py
 msgid "Wochenangebote"
 msgstr "Haftanın fırsatları"
+
+#: apps/tenants/menu.py
+msgid "Unterkunft"
+msgstr "Konaklama"
+
+#: templates/storefront/products.html
+msgid "Lookbook ansehen"
+msgstr "Lookbook'u görüntüle"

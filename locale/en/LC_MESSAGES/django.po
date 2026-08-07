@@ -17298,3 +17298,11 @@ msgstr "Wellness & extras"
 #: apps/tenants/menu.py
 msgid "Wochenangebote"
 msgstr "Weekly offers"
+
+#: apps/tenants/menu.py
+msgid "Unterkunft"
+msgstr "Accommodation"
+
+#: templates/storefront/products.html
+msgid "Lookbook ansehen"
+msgstr "View lookbook"

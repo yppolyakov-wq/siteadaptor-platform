@@ -17490,3 +17490,11 @@ msgstr "Спа и дополнения"
 #: apps/tenants/menu.py
 msgid "Wochenangebote"
 msgstr "Предложения недели"
+
+#: apps/tenants/menu.py
+msgid "Unterkunft"
+msgstr "Проживание"
+
+#: templates/storefront/products.html
+msgid "Lookbook ansehen"
+msgstr "Смотреть лукбук"

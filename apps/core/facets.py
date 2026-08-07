@@ -46,14 +46,20 @@ def collection_chips(relation: str, items) -> list:
     есть сущности из ПЕРЕДАННОГО QuerySet (present-values фасета).
 
     `relation` — related_name M2M на Collection ("services" | "stay_units").
-    Возвращает [{"slug", "label"}] на текущей локали, в порядке sort_order/name."""
+    Возвращает [{"slug", "label", "lookbook"}] на текущей локали, в порядке
+    sort_order/name. `lookbook` — есть ли у подборки фото (M4-B): страница
+    /lookbook/<slug>/ существовала, но ссылки на неё с витрины не было ни одной
+    (аудит 2026-08-06), посетитель попадал туда только по прямому адресу."""
     from django.utils.translation import get_language
 
     from apps.collections.models import Collection
 
     locale = get_language()
     chips = Collection.objects.filter(is_active=True, **{relation + "__in": items}).distinct()
-    return [{"slug": c.slug, "label": c.name_localized(locale)} for c in chips]
+    return [
+        {"slug": c.slug, "label": c.name_localized(locale), "lookbook": bool(c.images)}
+        for c in chips
+    ]
 
 
 class FacetProvider:

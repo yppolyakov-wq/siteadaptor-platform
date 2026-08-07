@@ -186,6 +186,30 @@
      "label": "Bewertungen",
      "target": "reviews",
      "type": "page"
+    },
+    {
+     "children": [],
+     "enabled": true,
+     "icon": "",
+     "label": "Treue",
+     "target": "loyalty",
+     "type": "page"
+    },
+    {
+     "children": [],
+     "enabled": true,
+     "icon": "",
+     "label": "Geschenkgutschein",
+     "target": "gift",
+     "type": "page"
+    },
+    {
+     "children": [],
+     "enabled": true,
+     "icon": "",
+     "label": "Kombi-Angebote",
+     "target": "combos",
+     "type": "page"
     }
    ],
    "sticky": true,
@@ -245,6 +269,18 @@
    {
     "enabled": true,
     "key": "reviews"
+   },
+   {
+    "enabled": true,
+    "key": "loyalty"
+   },
+   {
+    "enabled": true,
+    "key": "gift"
+   },
+   {
+    "enabled": true,
+    "key": "combos"
    }
   ],
   "sticky": true,
