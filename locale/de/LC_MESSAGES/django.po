@@ -17353,3 +17353,99 @@ msgstr "Ganzes Team"
 #: templates/storefront/gallery.html
 msgid "Alle Bewertungen"
 msgstr "Alle Bewertungen"
+
+#: apps/tenants/menu.py
+msgid "Treue"
+msgstr "Treue"
+
+#: apps/tenants/menu.py
+msgid "Accessoires"
+msgstr "Accessoires"
+
+#: apps/tenants/menu.py
+msgid "Anti-Food-Waste"
+msgstr "Anti-Food-Waste"
+
+#: apps/tenants/menu.py
+msgid "Catering"
+msgstr "Catering"
+
+#: apps/tenants/menu.py
+msgid "Damen"
+msgstr "Damen"
+
+#: apps/tenants/menu.py
+msgid "Dauertiefpreis"
+msgstr "Dauertiefpreis"
+
+#: apps/tenants/menu.py
+msgid "Einzelsitzung"
+msgstr "Einzelsitzung"
+
+#: apps/tenants/menu.py
+msgid "Events & Ausflüge"
+msgstr "Events & Ausflüge"
+
+#: apps/tenants/menu.py
+msgid "Hausmacher-Wochen"
+msgstr "Hausmacher-Wochen"
+
+#: apps/tenants/menu.py
+msgid "Herren"
+msgstr "Herren"
+
+#: apps/tenants/menu.py
+msgid "Korb"
+msgstr "Korb"
+
+#: apps/tenants/menu.py
+msgid "Lehrer"
+msgstr "Lehrer"
+
+#: apps/tenants/menu.py
+msgid "Party"
+msgstr "Party"
+
+#: apps/tenants/menu.py
+msgid "Partyservice"
+msgstr "Partyservice"
+
+#: apps/tenants/menu.py
+msgid "Retreats"
+msgstr "Retreats"
+
+#: apps/tenants/menu.py
+msgid "Räumung"
+msgstr "Räumung"
+
+#: apps/tenants/menu.py
+msgid "Shop"
+msgstr "Shop"
+
+#: apps/tenants/menu.py
+msgid "Sitzung"
+msgstr "Sitzung"
+
+#: apps/tenants/menu.py
+msgid "Teile"
+msgstr "Teile"
+
+#: apps/tenants/menu.py
+msgid "Touren"
+msgstr "Touren"
+
+#: apps/tenants/menu.py
+msgid "Treue & Aktionen"
+msgstr "Treue & Aktionen"
+
+#: apps/tenants/menu.py
+msgid "Vorbestellung"
+msgstr "Vorbestellung"
+
+#: apps/tenants/menu.py
+msgid "Wellness & Extras"
+msgstr "Wellness & Extras"
+
+#: apps/tenants/menu.py
+msgid "Wochenangebote"
+msgstr "Wochenangebote"

@@ -10,7 +10,11 @@ day (выбранный). Дни со слотами кликабельны (?ta
     {% if cal_show_next %}<a href="?cal={{ cal_next|date:'Y-m' }}&amp;tag={{ day|date:'Y-m-d' }}{{ cal_qs }}{{ embed_qs }}" class="px-2 py-1 rounded-lg hover:bg-gray-100 text-gray-500" aria-label="{% trans 'Next month' %}">›</a>{% else %}<span class="px-2"></span>{% endif %}
   </div>
   <div class="grid grid-cols-7 gap-1 text-center text-[11px] text-gray-400 mb-1">
-    <span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span>
+    {# I18N: дни недели были зашиты по-немецки — на витрине посетителя это
+       единственный немецкий элемент календаря. Msgid — те же, что в календаре
+       номеров (_stay_calendar.html), переводы уже есть во всех 5 локалях. #}
+    <span>{% trans "Mo" %}</span><span>{% trans "Tu" %}</span><span>{% trans "We" %}</span>
+    <span>{% trans "Th" %}</span><span>{% trans "Fr" %}</span><span>{% trans "Sa" %}</span><span>{% trans "Su" %}</span>
   </div>
   <div class="grid grid-cols-7 gap-1 text-center text-sm">
     {% for _ in cal_lead_blanks %}<span></span>{% endfor %}

@@ -228,7 +228,9 @@ def test_apply_restaurant_kit_builds_full_site():
     assert ProductVariant.objects.count() >= 6
     assert products.filter(allergens__contains=["gluten"]).exists()
     # акции (4 — сетка кратна 2)
-    assert Promotion.objects.filter(metadata__demo=True).count() == 4
+    # 2026-08-06: у кита появился собственный promotions_spec (6 акций всех типов
+    # вместо авто-ветки «−20 % на первые товары») — ассерт обновлён осознанно.
+    assert Promotion.objects.filter(metadata__demo=True).count() == 6
 
     # site_config: фото-hero, акцент, галерея, контент-секции
     cfg = tenant.site_config
@@ -693,7 +695,11 @@ def test_apply_handwerker_kit_jobs_services_no_shop():
     assert tenant.primary_color == "#ea580c"
     enabled = {s["key"] for s in cfg["sections"] if s["enabled"]}
     assert {"hero", "services", "usp_bar", "reviews", "cta", "faq", "before_after"} <= enabled
-    assert "products" not in enabled and "promotions" not in enabled
+    # 2026-08-06: у Handwerker появились собственные акции (Festpreis-Aktionen на
+    # услуги/монтаж) → секция promotions включается автоматически, модуль добавлен
+    # в enable_modules. Каталога товаров у кита по-прежнему нет.
+    assert "products" not in enabled
+    assert "promotions" in enabled
     assert cfg["cta"]["button_url"] == "/anfrage/"  # primary CTA = Angebot anfordern
     # A7: кейсы «Vorher / Nachher» — слайдер с before/after-фото и текстом
     ba = cfg["before_after"]

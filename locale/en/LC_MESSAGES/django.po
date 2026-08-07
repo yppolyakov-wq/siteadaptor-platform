@@ -679,7 +679,7 @@ msgstr "Cart"
 #: apps/core/context.py:56 apps/tenants/siteconfig.py:1197
 #: templates/storefront/service_detail.html:62
 msgid "Book"
-msgstr "Book"
+msgstr "Book now"
 
 #: apps/core/context.py:58 apps/tenants/siteconfig.py:1198
 msgid "Stay"
@@ -13089,7 +13089,7 @@ msgid "Leistung"
 msgstr "Service"
 
 msgid "Termin"
-msgstr "Time"
+msgstr "Appointment"
 
 msgid "Auswahl"
 msgstr "Selection"
@@ -14330,7 +14330,7 @@ msgstr "Prepayment (bank transfer)"
 
 #. I18N-1 choices 2026-07-30
 msgid "Karte"
-msgstr "Card"
+msgstr "Menu"
 
 #. I18N-1 choices 2026-07-30
 msgid "Klarna (u. a. Kauf auf Rechnung)"
@@ -17202,3 +17202,99 @@ msgstr "Whole team"
 #: templates/storefront/gallery.html
 msgid "Alle Bewertungen"
 msgstr "All reviews"
+
+#: apps/tenants/menu.py
+msgid "Treue"
+msgstr "Loyalty"
+
+#: apps/tenants/menu.py
+msgid "Accessoires"
+msgstr "Accessories"
+
+#: apps/tenants/menu.py
+msgid "Anti-Food-Waste"
+msgstr "Anti food waste"
+
+#: apps/tenants/menu.py
+msgid "Catering"
+msgstr "Catering"
+
+#: apps/tenants/menu.py
+msgid "Damen"
+msgstr "Women"
+
+#: apps/tenants/menu.py
+msgid "Dauertiefpreis"
+msgstr "Everyday low price"
+
+#: apps/tenants/menu.py
+msgid "Einzelsitzung"
+msgstr "Single session"
+
+#: apps/tenants/menu.py
+msgid "Events & Ausflüge"
+msgstr "Events & trips"
+
+#: apps/tenants/menu.py
+msgid "Hausmacher-Wochen"
+msgstr "Homemade weeks"
+
+#: apps/tenants/menu.py
+msgid "Herren"
+msgstr "Men"
+
+#: apps/tenants/menu.py
+msgid "Korb"
+msgstr "Box"
+
+#: apps/tenants/menu.py
+msgid "Lehrer"
+msgstr "Teachers"
+
+#: apps/tenants/menu.py
+msgid "Party"
+msgstr "Party"
+
+#: apps/tenants/menu.py
+msgid "Partyservice"
+msgstr "Party service"
+
+#: apps/tenants/menu.py
+msgid "Retreats"
+msgstr "Retreats"
+
+#: apps/tenants/menu.py
+msgid "Räumung"
+msgstr "Clearance"
+
+#: apps/tenants/menu.py
+msgid "Shop"
+msgstr "Shop"
+
+#: apps/tenants/menu.py
+msgid "Sitzung"
+msgstr "Session"
+
+#: apps/tenants/menu.py
+msgid "Teile"
+msgstr "Parts"
+
+#: apps/tenants/menu.py
+msgid "Touren"
+msgstr "Tours"
+
+#: apps/tenants/menu.py
+msgid "Treue & Aktionen"
+msgstr "Loyalty & offers"
+
+#: apps/tenants/menu.py
+msgid "Vorbestellung"
+msgstr "Pre-order"
+
+#: apps/tenants/menu.py
+msgid "Wellness & Extras"
+msgstr "Wellness & extras"
+
+#: apps/tenants/menu.py
+msgid "Wochenangebote"
+msgstr "Weekly offers"

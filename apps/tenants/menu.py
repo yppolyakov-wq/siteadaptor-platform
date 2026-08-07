@@ -24,6 +24,26 @@ _PAGE_URL_NAMES = {
     "gallery": "storefront-gallery",
     "team": "storefront-team",
     "reviews": "storefront-reviews",
+    # 2026-08-06 (аудит демо): существующие страницы витрины, до которых не было
+    # НИ ОДНОГО пути из меню — посетитель мог попасть только по прямой ссылке.
+    "loyalty": "storefront-loyalty",  # /treue/ — бонусная программа
+    "gift": "storefront-gutschein",  # /gutschein/ — подарочные сертификаты
+    "combos": "storefront-combos",  # /kombi/ — наборы
+    "finder": "storefront-finder",  # /finder/ — подбор «3 вопроса»
+    "wishlist": "storefront-wishlist",  # /merkzettel/ — избранное
+    "account": "account-home",  # /konto/ — личный кабинет клиента
+}
+
+# Гейт по МОДУЛЮ для страниц, у которых он есть (пункт гаснет при выключенном
+# модуле — как у archetype-узлов). Ключ = target страницы.
+_PAGE_MODULE_GATES = {
+    "loyalty": "loyalty",
+    "gift": "gift",
+    "combos": "orders",
+    # finder — ОПЦИЯ, а не модуль реестра: у него свой гейт finder.enabled ниже
+    # (is_module_active("finder") всегда False и гасил бы пункт).
+    "wishlist": "orders",
+    "account": "customer_account",
 }
 
 # ST-8: чем «наполнена» страница (ключ site_config или запрос) — гейт пункта меню.
@@ -102,6 +122,14 @@ def _node_url(tenant, node: dict):
         name = _PAGE_URL_NAMES.get(target)
         if not name or not _page_has_content(tenant, target):
             return None
+        gate = _PAGE_MODULE_GATES.get(target)
+        if gate and not modules.is_module_active(tenant, gate):
+            return None
+        if target == "finder":
+            from apps.core import finder as _finder
+
+            if not _finder.enabled(tenant):
+                return None
         return _reverse(name)
     if ntype == "url":
         return target or None
@@ -148,6 +176,31 @@ _MENU_LABEL_ANCHORS = (
     _("Unser Team"),
     _("Meister"),
     _("Referenzen"),
+    # 2026-08-06 (аудит демо): 23 подписи демо-меню не были объявлены здесь и
+    # потому оставались немецкими на всех языках витрины.
+    _("Damen"),
+    _("Herren"),
+    _("Accessoires"),
+    _("Shop"),
+    _("Catering"),
+    _("Retreats"),
+    _("Touren"),
+    _("Events & Ausflüge"),
+    _("Wellness & Extras"),
+    _("Treue & Aktionen"),
+    _("Einzelsitzung"),
+    _("Sitzung"),
+    _("Lehrer"),
+    _("Teile"),
+    _("Partyservice"),
+    _("Party"),
+    _("Korb"),
+    _("Vorbestellung"),
+    _("Wochenangebote"),
+    _("Hausmacher-Wochen"),
+    _("Dauertiefpreis"),
+    _("Anti-Food-Waste"),
+    _("Räumung"),
 )
 
 

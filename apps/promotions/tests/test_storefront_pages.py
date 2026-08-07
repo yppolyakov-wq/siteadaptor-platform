@@ -112,3 +112,41 @@ def test_demo_kits_use_pages_not_anchors():
         assert not anchors, f"{name}: галерея всё ещё якорь"
         targets = {i.get("target") for i in items if i.get("type") == "page"}
         assert "gallery" in targets or "reviews" in targets
+
+
+# --- аудит 2026-08-06: страницы-сироты получили путь из меню -------------------
+
+
+def test_orphan_pages_reachable_from_menu_when_module_active():
+    """До аудита /treue/, /gutschein/, /kombi/, /konto/ существовали, но НИ ОДИН
+    пункт меню на них не вёл — посетитель попадал только по прямой ссылке."""
+    tenant = _tenant()
+    tenant.disabled_modules = []
+    assert _resolve(tenant, "loyalty") == "/treue/"
+    assert _resolve(tenant, "gift") == "/gutschein/"
+    assert _resolve(tenant, "combos") == "/kombi/"
+    assert _resolve(tenant, "account") == "/konto/"
+
+
+def test_orphan_menu_entries_gated_by_module():
+    """Выключен модуль — пункт гаснет (иначе меню вело бы на 404)."""
+    tenant = _tenant()
+    tenant.disabled_modules = ["loyalty", "gift", "orders", "customer_account"]
+    for target in ("loyalty", "gift", "combos", "account"):
+        assert _resolve(tenant, target) is None, target
+
+
+def test_finder_menu_entry_requires_enabled_finder():
+    """Finder — опция: пункт появляется только когда он включён владельцем
+    (finder.enabled требует и флага, и primary_kind — см. apps/core/finder.py)."""
+    from apps.core import finder
+
+    tenant = _tenant()
+    tenant.disabled_modules = []
+    assert _resolve(tenant, "finder") is None  # по умолчанию выключен
+
+    tenant.site_config = {"finder": {"enabled": True}}
+    if finder.enabled(tenant):  # у типа есть primary-сущность
+        assert _resolve(tenant, "finder") == "/finder/"
+    else:  # без primary-сущности Finder не показывается — и пункта тоже нет
+        assert _resolve(tenant, "finder") is None

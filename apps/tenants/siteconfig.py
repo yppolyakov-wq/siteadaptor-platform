@@ -1301,6 +1301,12 @@ NAV_ITEMS = [
     ("gallery", _("Galerie"), "storefront-gallery", None),
     ("team", _("Unser Team"), "storefront-team", None),
     ("reviews", _("Bewertungen"), "storefront-reviews", None),
+    # 2026-08-06 (аудит демо): страницы, до которых из меню не было пути.
+    # 4-й элемент — требуемый модуль: пункт гаснет, если модуль выключен.
+    ("loyalty", _("Treue"), "storefront-loyalty", "loyalty"),
+    ("gift", _("Geschenkgutschein"), "storefront-gutschein", "gift"),
+    ("combos", _("Kombi-Angebote"), "storefront-combos", "orders"),
+    ("account", _("Mein Konto"), "account-home", "customer_account"),
 ]
 _NAV_KNOWN = {key for key, _l, _u, _m in NAV_ITEMS}
 # Стиль шапки: classic (лого слева + ссылки справа, как было), centered (лого
@@ -1334,6 +1340,10 @@ _NAV_KEY_TO_NODE = {
     "gallery": ("page", "gallery"),  # ST-8
     "team": ("page", "team"),  # ST-8
     "reviews": ("page", "reviews"),  # ST-8
+    "loyalty": ("page", "loyalty"),
+    "gift": ("page", "gift"),
+    "combos": ("page", "combos"),
+    "account": ("page", "account"),
 }
 
 

@@ -692,11 +692,11 @@ msgstr "Кошик"
 #: apps/core/context.py:56 apps/tenants/siteconfig.py:1197
 #: templates/storefront/service_detail.html:62
 msgid "Book"
-msgstr "Книга"
+msgstr "Записатися"
 
 #: apps/core/context.py:58 apps/tenants/siteconfig.py:1198
 msgid "Stay"
-msgstr "Залишатися"
+msgstr "Проживання"
 
 #: apps/core/context.py:60 apps/tenants/siteconfig.py:46
 #: apps/tenants/siteconfig.py:1199 templates/events/event_list.html:3
@@ -13261,7 +13261,7 @@ msgid "Leistung"
 msgstr "Послуга"
 
 msgid "Termin"
-msgstr "Час"
+msgstr "Запис"
 
 msgid "Auswahl"
 msgstr "Вибір"
@@ -14497,7 +14497,7 @@ msgstr "Передоплата (переказ)"
 
 #. I18N-1 choices 2026-07-30
 msgid "Karte"
-msgstr "Картка"
+msgstr "Меню"
 
 #. I18N-1 choices 2026-07-30
 msgid "Klarna (u. a. Kauf auf Rechnung)"
@@ -17379,3 +17379,99 @@ msgstr "Уся команда"
 #: templates/storefront/gallery.html
 msgid "Alle Bewertungen"
 msgstr "Усі відгуки"
+
+#: apps/tenants/menu.py
+msgid "Treue"
+msgstr "Бонуси"
+
+#: apps/tenants/menu.py
+msgid "Accessoires"
+msgstr "Аксесуари"
+
+#: apps/tenants/menu.py
+msgid "Anti-Food-Waste"
+msgstr "Проти харчових відходів"
+
+#: apps/tenants/menu.py
+msgid "Catering"
+msgstr "Кейтеринг"
+
+#: apps/tenants/menu.py
+msgid "Damen"
+msgstr "Жінкам"
+
+#: apps/tenants/menu.py
+msgid "Dauertiefpreis"
+msgstr "Завжди низька ціна"
+
+#: apps/tenants/menu.py
+msgid "Einzelsitzung"
+msgstr "Індивідуальний сеанс"
+
+#: apps/tenants/menu.py
+msgid "Events & Ausflüge"
+msgstr "Події та екскурсії"
+
+#: apps/tenants/menu.py
+msgid "Hausmacher-Wochen"
+msgstr "Тижні домашніх делікатесів"
+
+#: apps/tenants/menu.py
+msgid "Herren"
+msgstr "Чоловікам"
+
+#: apps/tenants/menu.py
+msgid "Korb"
+msgstr "Кошик фермера"
+
+#: apps/tenants/menu.py
+msgid "Lehrer"
+msgstr "Викладачі"
+
+#: apps/tenants/menu.py
+msgid "Party"
+msgstr "Свято"
+
+#: apps/tenants/menu.py
+msgid "Partyservice"
+msgstr "Обслуговування свят"
+
+#: apps/tenants/menu.py
+msgid "Retreats"
+msgstr "Ретрити"
+
+#: apps/tenants/menu.py
+msgid "Räumung"
+msgstr "Розпродаж"
+
+#: apps/tenants/menu.py
+msgid "Shop"
+msgstr "Магазин"
+
+#: apps/tenants/menu.py
+msgid "Sitzung"
+msgstr "Сеанс"
+
+#: apps/tenants/menu.py
+msgid "Teile"
+msgstr "Запчастини"
+
+#: apps/tenants/menu.py
+msgid "Touren"
+msgstr "Тури"
+
+#: apps/tenants/menu.py
+msgid "Treue & Aktionen"
+msgstr "Бонуси та акції"
+
+#: apps/tenants/menu.py
+msgid "Vorbestellung"
+msgstr "Передзамовлення"
+
+#: apps/tenants/menu.py
+msgid "Wellness & Extras"
+msgstr "Спа та додатки"
+
+#: apps/tenants/menu.py
+msgid "Wochenangebote"
+msgstr "Пропозиції тижня"

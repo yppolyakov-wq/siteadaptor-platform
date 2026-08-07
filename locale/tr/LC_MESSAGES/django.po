@@ -694,11 +694,11 @@ msgstr "Sepet"
 #: apps/core/context.py:56 apps/tenants/siteconfig.py:1197
 #: templates/storefront/service_detail.html:62
 msgid "Book"
-msgstr "Kitap"
+msgstr "Randevu al"
 
 #: apps/core/context.py:58 apps/tenants/siteconfig.py:1198
 msgid "Stay"
-msgstr "Kal"
+msgstr "Konaklama"
 
 #: apps/core/context.py:60 apps/tenants/siteconfig.py:46
 #: apps/tenants/siteconfig.py:1199 templates/events/event_list.html:3
@@ -14445,7 +14445,7 @@ msgstr "Ön ödeme (havale)"
 
 #. I18N-1 choices 2026-07-30
 msgid "Karte"
-msgstr "Kart"
+msgstr "Menü"
 
 #. I18N-1 choices 2026-07-30
 msgid "Klarna (u. a. Kauf auf Rechnung)"
@@ -17314,3 +17314,99 @@ msgstr "Tüm ekip"
 #: templates/storefront/gallery.html
 msgid "Alle Bewertungen"
 msgstr "Tüm değerlendirmeler"
+
+#: apps/tenants/menu.py
+msgid "Treue"
+msgstr "Sadakat"
+
+#: apps/tenants/menu.py
+msgid "Accessoires"
+msgstr "Aksesuarlar"
+
+#: apps/tenants/menu.py
+msgid "Anti-Food-Waste"
+msgstr "Gıda israfına karşı"
+
+#: apps/tenants/menu.py
+msgid "Catering"
+msgstr "Catering"
+
+#: apps/tenants/menu.py
+msgid "Damen"
+msgstr "Kadın"
+
+#: apps/tenants/menu.py
+msgid "Dauertiefpreis"
+msgstr "Her zaman düşük fiyat"
+
+#: apps/tenants/menu.py
+msgid "Einzelsitzung"
+msgstr "Bireysel seans"
+
+#: apps/tenants/menu.py
+msgid "Events & Ausflüge"
+msgstr "Etkinlikler ve geziler"
+
+#: apps/tenants/menu.py
+msgid "Hausmacher-Wochen"
+msgstr "Ev yapımı haftaları"
+
+#: apps/tenants/menu.py
+msgid "Herren"
+msgstr "Erkek"
+
+#: apps/tenants/menu.py
+msgid "Korb"
+msgstr "Sepet"
+
+#: apps/tenants/menu.py
+msgid "Lehrer"
+msgstr "Eğitmenler"
+
+#: apps/tenants/menu.py
+msgid "Party"
+msgstr "Parti"
+
+#: apps/tenants/menu.py
+msgid "Partyservice"
+msgstr "Parti servisi"
+
+#: apps/tenants/menu.py
+msgid "Retreats"
+msgstr "İnzivalar"
+
+#: apps/tenants/menu.py
+msgid "Räumung"
+msgstr "Stok temizliği"
+
+#: apps/tenants/menu.py
+msgid "Shop"
+msgstr "Mağaza"
+
+#: apps/tenants/menu.py
+msgid "Sitzung"
+msgstr "Seans"
+
+#: apps/tenants/menu.py
+msgid "Teile"
+msgstr "Parçalar"
+
+#: apps/tenants/menu.py
+msgid "Touren"
+msgstr "Turlar"
+
+#: apps/tenants/menu.py
+msgid "Treue & Aktionen"
+msgstr "Sadakat ve fırsatlar"
+
+#: apps/tenants/menu.py
+msgid "Vorbestellung"
+msgstr "Ön sipariş"
+
+#: apps/tenants/menu.py
+msgid "Wellness & Extras"
+msgstr "Wellness ve ekstralar"
+
+#: apps/tenants/menu.py
+msgid "Wochenangebote"
+msgstr "Haftanın fırsatları"

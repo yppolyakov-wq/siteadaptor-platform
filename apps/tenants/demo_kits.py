@@ -465,6 +465,91 @@ _RETREAT_LANDING = {
 _RETREAT_PHOTOS = ["yoga,forest", "meditation,nature", "lake,forest", "campfire,night"]
 
 RESTAURANT = DemoKit(
+    promotions_spec=[
+        # Angebot des Tages: recurrence="daily" → плитка hero «Angebot des Tages»
+        # (тег deal_of_day ставит daily первой). Фикс-цена + festpreis + лимит порций.
+        {
+            "title": "Mittagstisch: Lasagne für 8,90 €",
+            "desc": "Jeden Mittag bis 15 Uhr: hausgemachte Lasagne mit kleinem Salat.",
+            "product": 11,  # Lasagne 12,90 € (badge «tagesgericht»)
+            "new_price": "8.90",
+            "compare_at": "12.90",
+            "discount_style": "festpreis",
+            "recurrence": "daily",
+            "ends_in_days": 1,
+            "limit": 25,  # лимит кампании → «Nur noch N» на карточке/детали
+            "new": True,
+            "group": "Mittagstisch",
+            "image": "lasagne",
+        },
+        # Классическая процент-скидка (Happy Hour). Окно часов — В ТЕКСТЕ: target_rules
+        # движок проверяет только для service/stay, товарная акция действует всегда.
+        {
+            "title": "Happy Hour: Aperol Spritz −30 %",
+            "desc": "Montag bis Freitag von 17 bis 19 Uhr an der Bar und auf der Terrasse.",
+            "product": 22,  # Aperol Spritz 7,50 € → 5,25 €
+            "percent": 30,
+            "discount_style": "percent",
+            "recurrence": "daily",
+            "ends_in_days": 1,
+            "group": "Happy Hour",
+            "image": "aperol,spritz",
+        },
+        # Комбо-меню БЕЗ цели-товара («свободная» акция): чекаут /p/<uuid>/kaufen/ =
+        # обычный Order через custom_lines (модуль orders у кита включён).
+        {
+            "title": "Weinabend-Kombi: Pasta & Hauswein für 14,90 €",
+            "desc": "Pasta Bolognese und ein Glas Hauswein — freitags zum Weinabend.",
+            "new_price": "14.90",
+            "compare_at": "17.40",  # 11,90 € Pasta + 5,50 € Hauswein
+            "discount_style": "strikethrough",
+            "recurrence": "weekly",
+            "ends_in_days": 7,
+            "group": "Kombi-Menüs",
+            "image": "wine,restaurant",
+        },
+        # Стиль «ab»: у пиццы есть варианты klein/groß → «ab 7,50 €» честнее фикс-цены.
+        {
+            "title": "Familien-Sonntag: Pizza Margherita ab 7,50 €",
+            "desc": "Jeden Sonntag für die ganze Familie — auch zum Mitnehmen.",
+            "product": 7,  # Pizza Margherita 9,50 € (klein/groß)
+            "new_price": "7.50",
+            "compare_at": "9.50",
+            "discount_style": "ab",
+            "recurrence": "weekly",
+            "ends_in_days": 7,
+            "group": "Familien-Sonntag",
+            "image": "pizza,margherita",
+        },
+        # Резервируемая акция (anti-oversell) + countdown-стиль: ограниченные порции.
+        {
+            "title": "Trüffelwochen: Risotto Funghi −20 % — nur 12 Portionen",
+            "desc": "Mit frischem Trüffel aus dem Piemont, solange der Vorrat reicht.",
+            "product": 12,  # Risotto Funghi 13,50 € → 10,80 €
+            "type": "reservation",
+            "percent": 20,
+            "available_quantity": 12,
+            "discount_style": "countdown",
+            "countdown": True,
+            "ends_in_days": 5,
+            "group": "Limitierte Angebote",
+            "image": "risotto",
+        },
+        # Сюрприз-блюдо (surprise) + галерея миниатюр + остаток порций.
+        {
+            "title": "Feierabend-Überraschung: Antipasti-Teller 6,90 € statt 12,90 €",
+            "desc": "Ab 21 Uhr: unser Antipasti-Teller mit der Auswahl des Abends.",
+            "surprise": True,
+            "product": 3,  # Antipasti-Teller 12,90 €
+            "new_price": "6.90",
+            "compare_at": "12.90",
+            "discount_style": "surprise",
+            "limit": 8,
+            "ends_in_days": 3,
+            "group": "Limitierte Angebote",
+            "images": ["antipasti", "restaurant,table", "restaurant,food"],
+        },
+    ],
     key="restaurant",
     section_styles={"contact": "map_first", "reviews": "quotes", "about": "accent"},  # ST-2c/7b
     label="Restaurant «Bella Vista»",
@@ -934,6 +1019,89 @@ PRANASY_MENUS = {
 }
 
 PRANASY = DemoKit(
+    promotions_spec=[
+        # Angebot des Tages (daily → плитка hero) + стиль «ab»: у бургера есть
+        # варианты Single/Double. Лимит кампании даёт «Nur noch N».
+        {
+            "title": "Mittagsangebot: Veganer Burger ab 6,90 €",
+            "desc": "Montag bis Freitag bis 15 Uhr — mit hausgemachter Sauce und Salat.",
+            "product": 0,  # Veganer Burger 8,90 € (Single/Double)
+            "new_price": "6.90",
+            "compare_at": "8.90",
+            "discount_style": "ab",
+            "recurrence": "daily",
+            "ends_in_days": 1,
+            "limit": 20,
+            "new": True,
+            "group": "Restaurant",  # ⚠️ группу «Restaurant» требует пункт меню promo_group
+            "image": "vegan,burger",
+        },
+        # Процент-скидка с недельным ритмом (8,40 € → 6,30 €).
+        {
+            "title": "Ayurveda-Dienstag: Alaputra −25 %",
+            "desc": "Jeden Dienstag: ayurvedisch gewürzte Kartoffeln mit Kreuzkümmel und Kurkuma.",
+            "product": 4,  # Alaputra 8,40 €
+            "percent": 25,
+            "discount_style": "percent",
+            "recurrence": "weekly",
+            "ends_in_days": 7,
+            "group": "Restaurant",
+            "image": "spiced,potato",
+        },
+        # Комбо-теллер БЕЗ цели-товара («свободная» акция) → обычный заказ custom_lines.
+        {
+            "title": "Kombi-Teller: Vegane Pita & Nori-Pakora für 12,90 €",
+            "desc": "Warme Pita mit Falafel und Hummus plus knusprige Nori-Pakora.",
+            "new_price": "12.90",
+            "compare_at": "14.30",  # 7,50 € Pita + 6,80 € Pakora
+            "discount_style": "strikethrough",
+            "ends_in_days": 10,
+            "group": "Restaurant",
+            "image": "vegan,pita",
+        },
+        # Shop: резервируемый набор с отсчётом (anti-oversell, 15 пакетов).
+        {
+            "title": "Grillpaket: Bratwurst, Wiener & Currywurst für 12,90 €",
+            "desc": "Drei Sorten vegane Wurst im Paket — vorbestellen und abholen.",
+            "product": 8,  # Vegane Bratwurst 4,90 € (якорь набора)
+            "type": "reservation",
+            "new_price": "12.90",
+            "compare_at": "14.80",  # 4,90 + 4,50 + 5,40 €
+            "available_quantity": 15,
+            "discount_style": "countdown",
+            "countdown": True,
+            "ends_in_days": 5,
+            "group": "Shop",
+            "image": "vegan,currywurst",
+        },
+        # Anti-Food-Waste: Überraschungstüte (surprise) с галереей и остатком.
+        {
+            "title": "Konditorei-Überraschungstüte 4,90 € statt 12,00 €",
+            "desc": "Was vom Tag übrig bleibt: Kuchen, Cookies und Zimtschnecken.",
+            "surprise": True,
+            "new_price": "4.90",
+            "compare_at": "12.00",
+            "discount_style": "surprise",
+            "limit": 8,
+            "ends_in_days": 3,
+            "group": "Shop",
+            "images": ["vegan,cake", "vegan,cookie", "vegan,cinnamon,roll"],
+        },
+        # Mystery: цена скрыта до клика-раскрытия (единственный стиль с этим эффектом).
+        {
+            "title": "Mystery-Dessert der Woche",
+            "desc": "Jede Woche ein anderes Dessert aus unserer Konditorei — "
+            "Preis erst beim Aufdecken.",
+            "product": 18,  # Veganer Käsekuchen 3,90 €
+            "new_price": "2.50",
+            "compare_at": "3.90",
+            "discount_style": "mystery",
+            "ends_in_days": 7,
+            "new": True,
+            "group": "Shop",
+            "image": "vegan,cheesecake",
+        },
+    ],
     key="pranasy",
     label="Pranasy — Vegan & Ayurveda",
     business_type="restaurant",
@@ -1724,39 +1892,97 @@ HOTEL = DemoKit(
     # HF-1: promotions у типа hotel только suited_for (по умолчанию выключен) —
     # включаем явно, иначе пункт меню «Angebote» и секция акций отпадают по гейту.
     enable_modules=["stays", "promotions"],
-    # HF-1 (фидбэк владельца, п. 7): акции для НОМЕРОВ и пакетные предложения —
-    # без привязки к товару (у отеля каталога нет).
     promotions_spec=[
         {
-            # P6 «ценовой слой»: цель = первый номер (Doppelzimmer Seeblick) —
-            # скидка сама применяется в штатной броне (auto_discount-кандидат),
-            # лимит кампании 10 броней списывается в той же транзакции.
-            "title": "Frühbucher: 10 % im Doppelzimmer Seeblick",
-            "percent": 10,
+            # P6 «ценовой слой»: цель = первый номер (Doppelzimmer Seeblick) — скидка
+            # применяется в штатной броне, лимит кампании списывается в той же
+            # транзакции. Правил НЕТ намеренно: акция действует всегда, поэтому
+            # демо-брони её честно списывают (инвариант ките-теста).
+            "title": "Frühbucher: Doppelzimmer Seeblick −10 %",
+            "desc": "Direkt online buchen und pro Nacht 10 % sparen — der Aktionspreis "
+            "wird bei der Buchung automatisch abgezogen.",
             "stay_unit": 0,
+            "percent": 10,
+            "compare_at": "89",  # Basispreis/Nacht → durchgestrichen + Prozent-Pille
+            "discount_style": "percent",
             "limit": 10,
-            "images": ["hotel,room", "lake,view"],
-            "desc": "Direkt online buchen und 10 % sparen — solange verfügbar.",
             "group": "Zimmer-Angebote",
             "ends_in_days": 45,
-            "discount_style": "badge",
+            "images": ["hotel,room", "lake,view"],
         },
         {
-            "title": "3 Nächte zum Preis von 2",
-            "new": True,
-            "images": ["hotel,bed", "hotel,interior"],
-            "desc": "Sonntag bis Donnerstag, in allen Doppelzimmern mit Seeblick.",
+            # Раннее бронирование с ОКНОМ ПРОЖИВАНИЯ (target_rules): матчер проверяет
+            # дату ЗАЕЗДА. Даты статические — как SeasonRate этого же кита.
+            "title": "Frühbucher Herbst & Winter: Familienzimmer −12 %",
+            "desc": "Für Anreisen vom 1. September bis 20. Dezember: jetzt buchen und "
+            "12 % pro Nacht sparen — solange die Aktionskontingente reichen.",
+            "stay_unit": 2,
+            "percent": 12,
+            "rules": {"stay_from": "2026-09-01", "stay_to": "2026-12-20"},
+            "limit": 8,
             "group": "Zimmer-Angebote",
-            "ends_in_days": 21,
-            "countdown": True,
+            "ends_in_days": 60,
+            "images": ["family,hotel,room", "kids,room"],
         },
         {
-            "title": "Wellness-Paket: Sauna + Massage",
-            "desc": "Private Sauna (60 Min.) und Wellness-Massage im Paket — 15 % günstiger.",
-            "images": ["terrace", "hotel,bathroom"],
+            "title": "Last-Minute: Einzelzimmer Komfort −15 %",
+            "desc": "Kurzentschlossen ans Wasser: 58,65 € statt 69 € pro Nacht, "
+            "Frühstück inklusive. Nur diese Woche und nur solange Zimmer frei sind.",
+            "stay_unit": 1,
             "percent": 15,
-            "group": "Pakete",
+            "compare_at": "69",
+            "discount_style": "countdown",
+            "countdown": True,
+            "new": True,
+            "limit": 5,
+            "group": "Zimmer-Angebote",
+            "ends_in_days": 5,
+            "images": ["hotel,single,room", "hotel,bathroom"],
+        },
+        {
+            # Ценовой слой на УСЛУГУ: у цели-услуги нет базовой цены внутри акции —
+            # new_price/compare_at обязательны (иначе new_price=None и промо-цена
+            # к слоту не применяется).
+            "title": "Sauna am Nachmittag: 29 € statt 39 €",
+            "desc": "Montag bis Donnerstag zwischen 14 und 18 Uhr gehört die "
+            "Panorama-Sauna 90 Minuten Ihnen allein — freie Zeit wählen, der "
+            "Aktionspreis gilt automatisch.",
+            "service": 1,
+            "new_price": "29",
+            "compare_at": "39",
+            "discount_style": "festpreis",
+            "rules": {"weekdays": [0, 1, 2, 3], "hour_from": 14, "hour_to": 18},
+            "limit": 25,
+            "group": "Wellness & Extras",
             "ends_in_days": 60,
+            "images": ["sauna,wellness", "hotel,bathroom"],
+        },
+        {
+            "title": "Wochenend-Frühstück am Zimmer −20 %",
+            "desc": "Samstags und sonntags servieren wir das Seeblick-Frühstück für "
+            "19,20 € statt 24 € pro Person — Bestellung bis 20 Uhr am Vorabend.",
+            "service": 2,
+            "percent": 20,
+            "compare_at": "24",
+            "discount_style": "strikethrough",
+            "rules": {"weekdays": [5, 6], "hour_from": 8, "hour_to": 11},
+            "limit": 30,
+            "group": "Wellness & Extras",
+            "ends_in_days": 45,
+            "images": ["breakfast,hotel", "terrace"],
+        },
+        {
+            # «Свободная» акция (без цели): CTA ведёт в штатный заказ (P5).
+            "title": "Kurzurlaub-Paket: 2 Nächte mit Halbpension",
+            "desc": "Zwei Nächte im Doppelzimmer Seeblick mit Frühstücksbuffet und "
+            "Abendessen — ab 199 € für zwei Personen statt 234 €.",
+            "new_price": "199",
+            "compare_at": "234",
+            "discount_style": "ab",
+            "limit": 12,
+            "group": "Pakete",
+            "ends_in_days": 90,
+            "images": ["hotel,bed", "hotel,interior", "garden,terrace"],
         },
     ],
     # HF-1 (п. 14): новости пансиона — лента на главной и страница /blog/.
@@ -2403,6 +2629,55 @@ AKTIONSMARKT = DemoKit(
             "ends_in_days": 7,
             "desc": "Ein Überraschungs-Artikel zum halben Preis — Preis erst beim Klick.",
         },
+        # Дополнение: закрывает три недостающих стиля (percent/ab/surprise) и
+        # механику «limit» (лимит кампании на ОБЫЧНОЙ скидке, не reservation).
+        {
+            "title": "Tomaten 500 g −25 %",
+            "product": 2,  # Tomaten 500 g 2,99 € → 2,24 €
+            "percent": 25,
+            "discount_style": "percent",  # ← стиля percent в ките не было
+            "group": "Wochenangebote",
+            "ends_in_days": 7,
+            "image": "tomatoes",  # ← первое использование одиночного image в ките
+            "desc": "Sonnengereift aus der Region — nur diese Woche.",
+        },
+        {
+            "title": "Bananen — dauerhaft ab 1,29 €",
+            "product": 1,  # Bananen 1 kg 1,79 €
+            "new_price": "1.29",
+            "discount_style": "ab",  # ← «ab»-Preis (kg-Ware: цена «ab» читается честно)
+            "group": "Dauertiefpreis",
+            "ends_in_days": 30,
+            "image": "bananas",
+            "desc": "Fair gehandelt, dauerhaft günstig — ohne Kleingedrucktes.",
+        },
+        {
+            "title": "Orangensaft −20 % — nur 40 Flaschen",
+            "new": True,
+            "product": 7,  # Orangensaft 1 L 2,49 € → 1,99 €
+            "percent": 20,
+            "limit": 40,  # ← лимит кампании: «Nur noch N» + стоп после 40 продаж
+            "group": "Wochenangebote",
+            "ends_in_days": 5,
+            "image": "orange,juice",
+            "desc": "100 % Direktsaft — die Aktionsmenge ist begrenzt.",
+        },
+        {
+            # СВОБОДНАЯ акция (без товара-цели) — поддержано P2:
+            # promotions/services.purchase → create_order(custom_lines) без склада.
+            # Стиль surprise: бейдж скрыт, акцент на «Überraschung» + зелёный чип
+            # is_surprise; вместе с new_price/compare_at даёт цену 9,99 € vs 25 €.
+            "title": "Sparfuchs-Überraschungskiste 9,99 € statt 25 €",
+            "surprise": True,
+            "discount_style": "surprise",  # ← стиля surprise в ките не было
+            "new_price": "9.99",
+            "compare_at": "25.00",
+            "group": "Anti-Food-Waste",
+            "ends_in_days": 3,
+            "images": ["grocery,bag", "shopping,cart", "market,stall"],
+            "desc": "Bunt gemischt aus allen Abteilungen — der Inhalt bleibt eine "
+            "Überraschung, der Warenwert liegt bei rund 25 €.",
+        },
     ],
     categories=[
         (
@@ -2668,47 +2943,75 @@ BAKERY = DemoKit(
         {"code": "BROT10", "label": "−10 % für Neukunden", "percent": 10, "max_uses": 200},
     ],
     promotions_spec=[
+        # Angebot der Woche: Prozent-Badge + wöchentliche Wiederholung + Galerie.
         {
             "title": "Bauernbrot −15 % (Angebot der Woche)",
             "product": 1,
             "percent": 15,
+            "discount_style": "percent",
             "recurrence": "weekly",
             "ends_in_days": 7,
             "group": "Wochenangebote",
+            "images": ["bread,loaf", "bakery,oven", "sourdough"],
             "desc": "Jede Woche ein anderes Brot im Angebot.",
         },
+        # «3 für 2» über Festpreis: alter Preis durchgestrichen (3×1,20 = 3,60 → 2,40),
+        # Vorrat über limit begrenzt («Nur noch X»).
+        {
+            "title": "3 Laugenbrezeln zum Preis von 2",
+            "product": 6,
+            "new_price": "2.40",
+            "compare_at": "3.60",
+            "discount_style": "strikethrough",
+            "limit": 40,
+            "ends_in_days": 7,
+            "group": "Wochenangebote",
+            "desc": "Dreierpack vorbestellen, zwei bezahlen — solange der Vorrat reicht.",
+        },
+        # Tagesaktion: Countdown-Banner (endet heute) + «🆕 Neu»-Chip.
+        {
+            "title": "Butter-Croissant −30 % – nur heute",
+            "product": 8,
+            "percent": 30,
+            "discount_style": "countdown",
+            "countdown": True,
+            "new": True,
+            "ends_in_days": 1,
+            "group": "Wochenangebote",
+            "desc": "Frisch aus dem Ofen — nur heute zum Aktionspreis.",
+        },
+        # Abendverkauf, täglich wiederkehrend (Anti-Food-Waste).
         {
             "title": "Brötchen ab 17 Uhr −50 %",
             "product": 4,
             "percent": 50,
+            "discount_style": "percent",
             "recurrence": "daily",
             "ends_in_days": 1,
             "group": "Anti-Food-Waste",
             "desc": "Jeden Abend vor Ladenschluss — retten statt wegwerfen.",
         },
+        # Überraschungstüte: Festpreis + Surprise-Stil (Badge aus, 🌱-Chip an) + Kontingent.
         {
             "title": "Feierabendtüte 4,50 € statt 9 €",
             "product": 13,
             "surprise": True,
+            "discount_style": "surprise",
             "new_price": "4.50",
             "compare_at": "9.00",
+            "limit": 12,
+            "ends_in_days": 7,
             "group": "Anti-Food-Waste",
             "desc": "Gerettete Backwaren vom Tag — der Inhalt ist eine Überraschung.",
         },
-        {
-            "title": "Butter-Croissant −30 % – nur heute",
-            "product": 8,
-            "percent": 30,
-            "countdown": True,
-            "ends_in_days": 1,
-            "group": "Wochenangebote",
-        },
+        # Reservierung: 📦-Chip «online sichern, im Laden abholen», bei 0 → Warteliste.
         {
             "title": "Bienenstich −20 % (nur 8 Stück)",
             "product": 11,
             "type": "reservation",
             "percent": 20,
             "available_quantity": 8,
+            "ends_in_days": 14,
             "group": "Wochenangebote",
             "desc": "Online sichern, nachmittags abholen.",
         },
@@ -3072,38 +3375,76 @@ BUTCHER = DemoKit(
         },
     ],
     promotions_spec=[
+        # ⚠️ ЗАМОК: единственная акция группы «Vorbestellung» и available_quantity == 20
+        # (test_apply_butcher_kit_dedicated_metzgerei делает Promotion.objects.get(group=…)).
+        # Ни группу, ни тип, ни количество не менять; вторую акцию в эту группу НЕ добавлять.
         {
             "title": "Grillpaket Familie — jetzt fürs Wochenende vorbestellen",
             "product": 10,
             "type": "reservation",
             "percent": 10,
             "available_quantity": 20,
+            "images": ["bbq,family", "grill,bbq", "grill,plate"],
             "group": "Vorbestellung",
             "desc": "Online sichern, samstags frisch abholen — nur 20 Pakete pro Woche.",
         },
+        # Angebot der Woche: Prozent-Badge + wöchentliche Wiederholung.
         {
             "title": "Schweineschnitzel −15 % (Angebot der Woche)",
             "product": 1,
             "percent": 15,
+            "discount_style": "percent",
             "recurrence": "weekly",
             "ends_in_days": 7,
             "group": "Wochenangebote",
+            "desc": "Jede Woche ein anderer Thekenklassiker im Angebot.",
         },
+        # Grillsaison: Countdown-Stil + Banner mit Tage|Std|Min|Sek, «🆕 Neu»-Chip.
         {
             "title": "Marinierte Nackensteaks −20 % – Grillsaison",
             "product": 11,
             "percent": 20,
+            "discount_style": "countdown",
             "countdown": True,
+            "new": True,
             "ends_in_days": 2,
             "group": "Wochenangebote",
+            "desc": "Paprika oder Kräuter — frisch mariniert, nur dieses Wochenende.",
         },
+        # Festpreis: nur der neue Preis im Fokus (alter Preis als Referenz).
         {
             "title": "Hausmacher Leberwurst zum Festpreis 2,49 €",
             "product": 4,
             "new_price": "2.49",
             "compare_at": "3.20",
+            "discount_style": "festpreis",
+            "ends_in_days": 14,
             "group": "Hausmacher-Wochen",
             "desc": "Aus der eigenen Wurstküche.",
+        },
+        # «3 für 2» über Bündelpreis (3×5,50 = 16,50 → 11,00), Vorrat über limit.
+        {
+            "title": "3 Pakete Bratwurst zum Preis von 2",
+            "product": 6,
+            "new_price": "11.00",
+            "compare_at": "16.50",
+            "discount_style": "strikethrough",
+            "limit": 25,
+            "ends_in_days": 10,
+            "group": "Hausmacher-Wochen",
+            "desc": "12 Bratwürste aus eigener Herstellung — ein Paket geht aufs Haus.",
+        },
+        # Abendverkauf: täglich wiederkehrend, Betrag-Badge (−2,97 €) + Countdown-Banner.
+        {
+            "title": "Feierabend-Theke: Rinderhack −30 % ab 17 Uhr",
+            "product": 0,
+            "percent": 30,
+            "discount_style": "badge",
+            "countdown": True,
+            "recurrence": "daily",
+            "ends_in_days": 1,
+            "group": "Wochenangebote",
+            "desc": "Was am Abend in der Theke bleibt, geben wir günstiger ab.",
         },
     ],
     categories=[
@@ -3451,6 +3792,8 @@ CAFE = DemoKit(
         },
     ],
     promotions_spec=[
+        # (существующая) Mittagstisch — reservation + weekly: замок теста кита
+        # test_apply_cafe_kit… требует именно эту комбинацию. НЕ трогаем.
         {
             "title": "Mittagstisch — freitags 12–14 Uhr",
             "product": 5,
@@ -3462,6 +3805,8 @@ CAFE = DemoKit(
             "group": "Mittagstisch",
             "desc": "Wechselndes Gericht zum Sonderpreis — online reservieren.",
         },
+        # (существующая) Happy Hour — recurrence="daily": питает плитку hero
+        # «Angebot des Tages» и замок теста кита. НЕ трогаем.
         {
             "title": "Kuchen-Happy-Hour ab 16 Uhr −30 %",
             "product": 9,
@@ -3471,13 +3816,56 @@ CAFE = DemoKit(
             "group": "Happy Hour",
             "desc": "Jeden Tag ab 16 Uhr auf Kuchen des Tages.",
         },
+        # (существующая) + discount_style="countdown" — у акции уже был countdown=True,
+        # стиль лишь делает отсчёт акцентом блока цены. Единственная правка старых.
         {
             "title": "Zimtschnecken-Tag −25 % – nur heute",
             "product": 11,
             "percent": 25,
+            "discount_style": "countdown",
             "countdown": True,
             "ends_in_days": 1,
             "group": "Happy Hour",
+        },
+        # НОВОЕ: комбо-завтрак БЕЗ цели-товара («свободная» акция) — фикс-цена,
+        # стиль festpreis (старая цена не зачёркивается, показывается только новая).
+        {
+            "title": "Frühstücks-Kombo: Teller & Kaffee für 9,90 €",
+            "desc": "Frühstücksteller mit großem Cappuccino — jeden Morgen bis 14 Uhr.",
+            "new_price": "9.90",
+            "compare_at": "12.40",  # 8,50 € Teller + 3,90 € Cappuccino groß
+            "discount_style": "festpreis",
+            "new": True,
+            "ends_in_days": 14,
+            "group": "Frühstück & Kombi",
+            "image": "breakfast",
+        },
+        # НОВОЕ: фикс-цена с зачёркнутой старой + дневной лимит чашек (scarcity).
+        {
+            "title": "Espresso-Stunde: Espresso für 1,50 €",
+            "desc": "Montag bis Freitag von 15 bis 17 Uhr — Espresso aus eigener Röstung.",
+            "product": 2,  # Espresso 2,20 €
+            "new_price": "1.50",
+            "compare_at": "2.20",
+            "discount_style": "strikethrough",
+            "recurrence": "daily",
+            "ends_in_days": 1,
+            "limit": 40,
+            "group": "Happy Hour",
+            "image": "espresso",
+        },
+        # НОВОЕ: сюрприз-набор (surprise) с галереей миниатюр и остатком пакетов.
+        {
+            "title": "Kuchen-Überraschungstüte 3,90 € statt 9,00 €",
+            "desc": "Kurz vor Ladenschluss: bunte Auswahl vom Kuchenblech.",
+            "surprise": True,
+            "new_price": "3.90",
+            "compare_at": "9.00",
+            "discount_style": "surprise",
+            "limit": 6,
+            "ends_in_days": 3,
+            "group": "Feierabend-Retter",
+            "images": ["cake", "cheesecake", "cinnamon,roll"],
         },
     ],
     categories=[
@@ -3784,28 +4172,87 @@ CLOTHING = DemoKit(
         {"code": "NORDWIND10", "label": "−10 % für Neukunden", "percent": 10, "max_uses": 200},
     ],
     promotions_spec=[
+        # Sale-Ядро: %-скидка на hero-товар. Заголовок/desc СОХРАНЕНЫ дословно —
+        # у них уже есть переводы в demo_i18n_{en,ru,tr,uk}.json.
         {
             "title": "Schlussverkauf: Sommerkleider −30 %",
-            "product": 0,
+            "product": 0,  # Sommerkleid Nordlicht 45,00 € (было 0 — верно)
             "percent": 30,
-            "ends_in_days": 14,
+            "discount_style": "percent",
             "group": "Sale",
+            "ends_in_days": 14,
+            "image": "summer,dress",
             "desc": "Nur solange die Größen reichen.",
         },
+        # ФИКС индекса: 1 → 2 (после вставки «Seidentuch Aurora» акция висела на платке).
+        # Направление «sale со strikethrough+compare_at»: 39,90 → 31,90 = ровно −20 %,
+        # поэтому прежний заголовок остаётся честным (и сохраняет свои 4 перевода).
         {
             "title": "Style der Woche: Leinenbluse −20 %",
-            "product": 1,
-            "percent": 20,
+            "product": 2,  # Leinenbluse Küste 39,90 €
+            "new_price": "31.90",
+            "compare_at": "39.90",
+            "discount_style": "strikethrough",
             "recurrence": "weekly",
             "ends_in_days": 7,
             "group": "Sale",
+            "image": "linen,blouse",
+            "desc": "Jede Woche ein Lieblingsteil reduziert — diese Woche die Leinenbluse Küste.",
         },
+        # ФИКС индекса: 4 → 5 (акция «Festpreis 14,90 €» стояла на джинсах за 59,90 €).
+        # + limit: лимит кампании на обычной скидке («Nur noch N», стоп после 50 продаж).
         {
             "title": "Basic T-Shirt zum Festpreis 14,90 €",
-            "product": 4,
+            "product": 5,  # Basic T-Shirt Bio-Baumwolle 19,90 €
             "new_price": "14.90",
             "compare_at": "19.90",
+            "discount_style": "festpreis",
+            "limit": 50,
+            "ends_in_days": 21,
             "group": "Sale",
+            "image": "tshirt",
+            "desc": "Weiß und Schwarz, Größen S–XL — solange der Aktionsvorrat reicht.",
+        },
+        # НОВОЕ: резервирование + Anprobe im Showroom (кит уже с enable_anprobe=True).
+        # У кардигана размер M ausverkauft (stock 0) → история «letzte Größen» честна.
+        {
+            "title": "Letzte Größen: Strickcardigan Wolke −40 %",
+            "product": 3,  # Strickcardigan Wolke 54,90 € → 32,94 €
+            "type": "reservation",
+            "percent": 40,
+            "available_quantity": 4,
+            "ends_in_days": 10,
+            "group": "Sale",
+            "images": ["cardigan", "knitwear", "clothing,rack"],
+            "desc": "Nur noch S und L — online sichern und im Showroom anprobieren.",
+        },
+        # НОВОЕ: «ab»-цена. Носитель выбран осознанно — у платка варианты стоят
+        # по-разному (Dessin Uni 22,90 €, übrige 24,90 €), поэтому «ab» читается честно.
+        {
+            "title": "Seidentuch Aurora — Aktionspreis ab 19,90 €",
+            "product": 1,  # Seidentuch Aurora 24,90 €
+            "new_price": "19.90",
+            "discount_style": "ab",
+            "recurrence": "weekly",
+            "ends_in_days": 7,
+            "group": "Accessoire-Deals",
+            "image": "accessories",
+            "desc": "Drei Dessins — Blüte, Streifen und Uni — im Aktionspreis ab 19,90 €.",
+        },
+        # НОВОЕ: mystery — цена скрыта до клика (UE2-3) + таймер. Заголовок намеренно
+        # нейтральный (как Mystery-Deal у aktionsmarkt), товар-носитель не называется.
+        {
+            "title": "Mystery-Accessoire der Woche",
+            "new": True,
+            "product": 12,  # Canvas-Tasche 16,90 € (Lager 25)
+            "new_price": "9.90",
+            "compare_at": "16.90",
+            "discount_style": "mystery",
+            "countdown": True,
+            "ends_in_days": 3,
+            "group": "Accessoire-Deals",
+            "image": "fashion",
+            "desc": "Ein Überraschungs-Accessoire aus dem Sale — der Preis erscheint erst beim Klick.",
         },
     ],
     categories=[
@@ -4081,6 +4528,91 @@ TOURS_MENUS = {
 # товар); таймслот-модель «product → слоты дня» — гэп T6 в roadmap, демо честно на
 # текущем движке (слот = booking-услуга, дата = событие).
 TOURS = DemoKit(
+    promotions_spec=[
+        {
+            # Ценовой слой на УСЛУГУ + «счастливые часы» (Mo–Do 10–14).
+            "title": "Werktags-Special: Stadtführung für 14 €",
+            "desc": "Montag bis Donnerstag zwischen 10 und 14 Uhr führen wir für 14 € "
+            "statt 19 € durch die Altstadt — freie Zeit wählen, der Aktionspreis "
+            "gilt automatisch.",
+            "service": 0,
+            "new_price": "14",
+            "compare_at": "19",
+            "discount_style": "festpreis",
+            "rules": {"weekdays": [0, 1, 2, 3], "hour_from": 10, "hour_to": 14},
+            "limit": 30,
+            "group": "Stadtführungen",
+            "ends_in_days": 45,
+            "images": ["old,town", "city,tour"],
+        },
+        {
+            "title": "Last-Minute: Fahrradtour am Fluss −20 %",
+            "desc": "Kurzentschlossen aufs Rad: Halbtagestour für 28 € statt 35 €, "
+            "Rad und Guide inklusive — solange Plätze in der Gruppe frei sind.",
+            "service": 1,
+            "percent": 20,
+            "compare_at": "35",
+            "discount_style": "countdown",
+            "countdown": True,
+            "new": True,
+            "limit": 8,
+            "group": "Radtouren",
+            "ends_in_days": 5,
+            "images": ["bike,tour", "bicycle,city"],
+        },
+        {
+            "title": "Private Gruppenführung: 129 € statt 149 €",
+            "desc": "Firmenevent oder Familienfeier: Wunschtermin, Wunschthema, bis "
+            "15 Personen — aktuell 20 € günstiger.",
+            "service": 2,
+            "new_price": "129",
+            "compare_at": "149",
+            "discount_style": "badge",
+            "limit": 5,
+            "group": "Gruppen & Firmen",
+            "ends_in_days": 60,
+            "images": ["group,guide", "tour,guide,woman"],
+        },
+        {
+            # События не могут быть целью акции — «свободная» акция-витрина ведёт
+            # в штатный заказ (P5).
+            "title": "Frühbucher: Tagesausflug Moseltal & Burg Eltz",
+            "desc": "Wer früh bucht, zahlt 79 € statt 89 € — Bus, Burgführung, "
+            "Mittagessen im Weindorf und Weinprobe inklusive.",
+            "new_price": "79",
+            "compare_at": "89",
+            "discount_style": "strikethrough",
+            "limit": 10,
+            "group": "Events & Ausflüge",
+            "ends_in_days": 20,
+            "images": ["castle", "city,tour"],
+        },
+        {
+            "title": "Kombi-Ticket: Altstadt-Führung + Weinprobe",
+            "desc": "Nachmittags durch die Altstadt, abends in den Gewölbekeller — "
+            "beides zusammen ab 49 € statt 58 €.",
+            "new_price": "49",
+            "compare_at": "58",
+            "discount_style": "ab",
+            "limit": 20,
+            "group": "Events & Ausflüge",
+            "ends_in_days": 30,
+            "images": ["wine,cellar", "old,town"],
+        },
+        {
+            "title": "Mystery-Tour: Ziel wird am Treffpunkt verraten",
+            "desc": "Jeden Freitag um 18 Uhr: 90 Minuten mit unbekanntem Ziel — der "
+            "Preis wird erst beim Klick verraten.",
+            "new_price": "19",
+            "compare_at": "25",
+            "discount_style": "mystery",
+            "recurrence": "weekly",
+            "limit": 16,
+            "group": "Stadtführungen",
+            "ends_in_days": 7,
+            "images": ["lantern,night", "old,town"],
+        },
+    ],
     key="tours",
     label="Stadtgold Touren",
     business_type="tour_operator",
@@ -4199,7 +4731,7 @@ TOURS = DemoKit(
         "button_label": "Touren ansehen",
         "button_url": "/termin/",
     },
-    enable_modules=["events", "booking", "customer_account"],
+    enable_modules=["events", "booking", "customer_account", "promotions"],
     enable_archetypes_section=True,
     hide_archetypes=["catalog"],
     storefront_root="home",
@@ -4460,6 +4992,62 @@ FRISEUR = DemoKit(
             "group": "Produkte",
             "image": "hair,products",
         },
+        {
+            # P6: второй ценовой слой — «тихий» день недели (салон открыт Di–Sa,
+            # поэтому weekday 1 = Dienstag). Стиль festpreis: цена-якорь без %.
+            "title": "Farb-Dienstag: Färben zum Festpreis 55 €",
+            "desc": "Jeden Dienstag von 9 bis 14 Uhr — der Aktionspreis wird bei "
+            "der Terminbuchung automatisch angewendet.",
+            "service": 3,  # Färben (69 €)
+            "new_price": "55",
+            "compare_at": "69",
+            "rules": {"weekdays": [1], "hour_from": 9, "hour_to": 14},
+            "discount_style": "festpreis",
+            "limit": 15,
+            "group": "Salon-Aktionen",
+            "image": "hair,color",
+        },
+        {
+            # Сезонная акция без правил времени — действует на любой слот, но
+            # ограничена сроком (30 дней) и контингентом.
+            "title": "Balayage-Wochen: Strähnen für 79 € statt 89 €",
+            "desc": "Natürliche Highlights zum Aktionspreis — Farbberatung "
+            "vorab auch per Video möglich.",
+            "service": 4,  # Strähnen / Highlights (89 €)
+            "new_price": "79",
+            "compare_at": "89",
+            "discount_style": "countdown",
+            "countdown": True,
+            "ends_in_days": 30,
+            "limit": 10,
+            "new": True,
+            "group": "Saison-Aktionen",
+            "images": ["hair,highlights", "hair,color", "hairstyle"],
+        },
+        {
+            "title": "Haaröl-Aktion: −25 % — nur 12 Stück",
+            "desc": "Pflege für die Spitzen — solange der Vorrat reicht.",
+            "product": 2,  # Haaröl 50 ml (16,90 €)
+            "type": "reservation",
+            "percent": 25,
+            "available_quantity": 12,
+            "group": "Produkte",
+            "images": ["hair,oil", "hair,products"],
+        },
+        {
+            # Свободная акция (без цели) — чекаут штатным заказом; стиль mystery
+            # прячет цену до клика-раскрытия.
+            "title": "Mystery-Beautybag: 19 € statt 35 €",
+            "desc": "Drei Pflegeprodukte im Wert von 35 € — welche, verraten wir erst im Salon.",
+            "new_price": "19",
+            "compare_at": "35",
+            "discount_style": "mystery",
+            "limit": 8,
+            "ends_in_days": 21,
+            "new": True,
+            "group": "Produkte",
+            "image": "hair,products",
+        },
     ],
     extras=[  # #7 доп-услуги к термину (scope booking, разово)
         ("Haarkur Intensiv", "12", "booking", False),
@@ -4614,6 +5202,80 @@ WERKSTATT_MENUS = {
 }
 
 WERKSTATT = DemoKit(
+    promotions_spec=[
+        {
+            # P6 «ценовой слой»: разгружаем утро будней — промо-цена сама
+            # применяется в штатной записи (Mo–Do, 8–12; мастерская Mo–Fr 8–17).
+            "title": "Werkstatt-Vormittag: Ölwechsel für 39 €",
+            "desc": "Montag bis Donnerstag zwischen 8 und 12 Uhr — freie Zeit "
+            "wählen, der Aktionspreis gilt automatisch.",
+            "service": 0,  # Ölwechsel (49 €)
+            "new_price": "39",
+            "compare_at": "49",
+            "rules": {"weekdays": [0, 1, 2, 3], "hour_from": 8, "hour_to": 12},
+            "limit": 30,
+            "new": True,
+            "group": "Wochen-Aktionen",
+            "image": "motor,oil",
+        },
+        {
+            # Сезон переобувки: Festpreis-стиль (цена-якорь без процентов).
+            "title": "Reifenwechsel-Wochen: Festpreis 29 €",
+            "desc": "Räder umstecken, wuchten auf Wunsch, Reifendruck prüfen — "
+            "zum Aktionspreis während der Wechselsaison.",
+            "service": 2,  # Reifenwechsel (39 €)
+            "new_price": "29",
+            "compare_at": "39",
+            "discount_style": "festpreis",
+            "limit": 40,
+            "ends_in_days": 30,
+            "group": "Saison-Aktionen",
+            "images": ["tire,change", "car,workshop"],
+        },
+        {
+            "title": "HU/AU-Aktionswoche: 79 € statt 89 €",
+            "desc": "Hauptuntersuchung & Abgasuntersuchung direkt vor Ort — "
+            "nur in dieser Woche zum Aktionspreis.",
+            "service": 3,  # HU/AU (TÜV) (89 €)
+            "new_price": "79",
+            "compare_at": "89",
+            "discount_style": "countdown",
+            "countdown": True,
+            "ends_in_days": 7,
+            "limit": 15,
+            "new": True,
+            "group": "Wochen-Aktionen",
+            "image": "car,inspection",
+        },
+        {
+            "title": "Bremsbeläge vorne −20 %",
+            "desc": "Markenqualität — Einbau auf Wunsch im gleichen Termin.",
+            "product": 2,  # Bremsbeläge vorne (44,90 €)
+            "percent": 20,
+            "group": "Teile-Angebote",
+            "image": "brake,pad",
+        },
+        {
+            "title": "Motoröl 5W-30 zum Festpreis 29,90 €",
+            "desc": "Vollsynthetisch, 5-Liter-Kanister — Dauertiefpreis.",
+            "product": 0,  # Motoröl 5W-30 5 L (39,90 €)
+            "new_price": "29.90",
+            "compare_at": "39.90",
+            "discount_style": "strikethrough",
+            "group": "Teile-Angebote",
+            "image": "motor,oil",
+        },
+        {
+            "title": "Winter-Vorrat: Scheibenfrostschutz −25 % — nur 20 Stück",
+            "desc": "Bis −20 °C. Online sichern, im Betrieb abholen.",
+            "product": 4,  # Scheibenfrostschutz 3 L (8,90 €)
+            "type": "reservation",
+            "percent": 25,
+            "available_quantity": 20,
+            "group": "Saison-Aktionen",
+            "image": "antifreeze",
+        },
+    ],
     key="werkstatt",
     whatsapp_number="+49 170 2000002",  # LS-1: видео-смета
     label="KFZ-Werkstatt Dreyer",
@@ -4722,7 +5384,7 @@ WERKSTATT = DemoKit(
         "button_label": "Termin buchen",
         "button_url": "/termin/",
     },
-    enable_modules=["booking", "jobs", "orders", "customer_account"],
+    enable_modules=["booking", "jobs", "orders", "customer_account", "promotions"],
     enable_archetypes_section=True,
     storefront_root="home",
     seed_records=True,
@@ -4895,6 +5557,66 @@ HANDWERKER_MENUS = {
 # = jobs (Anfrage → unverbindliches Angebot/Festpreis); booking liefert Leistungen mit
 # Festpreisen + kostenlose Vor-Ort-Beratung. Kein Shop (keine catalog/products-Sektion).
 HANDWERKER = DemoKit(
+    promotions_spec=[
+        {
+            # Контингент сезона: chip «reservieren» + счётчик остатка; цель —
+            # услуга, поэтому CTA ведёт в штатную запись (заказов у кита нет).
+            "title": "Frühjahrs-Aktion: Zimmer streichen zum Festpreis 249 €",
+            "desc": "Bis 20 m², inkl. Abkleben und zweifachem Anstrich — nur "
+            "10 Termine im Aktionszeitraum.",
+            "service": 1,  # Maler: Zimmer streichen (bis 20 m²) — 290 €
+            "new_price": "249",
+            "compare_at": "290",
+            "type": "reservation",
+            "available_quantity": 10,
+            "discount_style": "festpreis",
+            "ends_in_days": 45,
+            "group": "Saison-Aktionen",
+            "images": ["painting,room", "painter,wall"],
+        },
+        {
+            # P6 «ценовой слой»: окно будних утренних часов (бригада Mo–Fr 7–17).
+            "title": "Werktags-Bonus: −20 % auf Steckdosen & Schalter",
+            "desc": "Montag bis Donnerstag zwischen 7 und 12 Uhr — der "
+            "Aktionspreis wird beim Termin automatisch angewendet.",
+            "service": 2,  # Elektro: Steckdose/Schalter setzen (75 €)
+            "percent": 20,
+            "compare_at": "75",  # без базовой цены процент не даёт промо-цены
+            "rules": {"weekdays": [0, 1, 2, 3], "hour_from": 7, "hour_to": 12},
+            "discount_style": "badge",
+            "limit": 25,
+            "new": True,
+            "group": "Wochen-Aktionen",
+            "image": "electrician,work",
+        },
+        {
+            "title": "Bad-Wochen: Armatur tauschen ab 99 €",
+            "desc": "Alte Armatur demontieren, neue montieren, Dichtheit prüfen "
+            "— Material nach Aufwand.",
+            "service": 3,  # Sanitär: Armatur tauschen (120 €)
+            "new_price": "99",
+            "compare_at": "120",
+            "discount_style": "ab",
+            "limit": 15,
+            "ends_in_days": 30,
+            "group": "Bad & Sanitär",
+            "images": ["bathroom,renovation", "tiles,bathroom"],
+        },
+        {
+            "title": "Aktionswoche: Notdienst-Anfahrt 45 € statt 89 €",
+            "desc": "Rohrbruch oder Stromausfall? In dieser Woche zum halben Anfahrtspreis.",
+            "service": 4,  # Notdienst-Einsatz (Anfahrt) (89 €)
+            "new_price": "45",
+            "compare_at": "89",
+            "discount_style": "countdown",
+            "countdown": True,
+            "ends_in_days": 7,
+            "limit": 20,
+            "new": True,
+            "group": "Wochen-Aktionen",
+            "image": "handyman,tools",
+        },
+    ],
     key="handwerker",
     label="Meisterbetrieb Krause",
     business_type="handwerker",  # S6: реальный архетип
@@ -5023,7 +5745,7 @@ HANDWERKER = DemoKit(
         "button_label": "Angebot anfordern",
         "button_url": "/anfrage/",
     },
-    enable_modules=["jobs", "booking", "customer_account"],
+    enable_modules=["jobs", "booking", "customer_account", "promotions"],
     enable_archetypes_section=True,
     storefront_root="home",
     seed_records=True,
@@ -5153,6 +5875,90 @@ RETREAT_MENUS = {
 }
 
 RETREAT = DemoKit(
+    promotions_spec=[
+        {
+            # Ценовой слой на НОЧЁВКУ + окно проживания (проверяется дата заезда).
+            "title": "Frühbucher Herbst: Doppelzimmer −15 %",
+            "desc": "Wer sein Zimmer für die Herbst-Retreats (1. September bis "
+            "30. November) jetzt bucht, zahlt 59,50 € statt 70 € pro Nacht.",
+            "stay_unit": 1,
+            "percent": 15,
+            "compare_at": "70",
+            "discount_style": "percent",
+            "rules": {"stay_from": "2026-09-01", "stay_to": "2026-11-30"},
+            "limit": 8,
+            "group": "Übernachtung",
+            "ends_in_days": 60,
+            "images": ["forest,retreat", "lake,forest"],
+        },
+        {
+            "title": "Last-Minute: Einzelzimmer −20 %",
+            "desc": "Spontan ausklinken: das letzte Einzelzimmer für 76 € statt 95 € "
+            "pro Nacht — nur wenige Tage buchbar.",
+            "stay_unit": 2,
+            "percent": 20,
+            "compare_at": "95",
+            "discount_style": "countdown",
+            "countdown": True,
+            "new": True,
+            "limit": 3,
+            "group": "Übernachtung",
+            "ends_in_days": 4,
+            "images": ["forest,path", "campfire,night"],
+        },
+        {
+            # «Свободная» акция-пакет с фикс-ценой (89 € Workshop + 18 € Mittagessen).
+            "title": "Tagesworkshop-Paket: Workshop + Bio-Mittagessen",
+            "desc": "Yoga & Achtsamkeit den ganzen Tag, dazu das warme Bio-Mittagessen "
+            "aus unserer Küche — 99 € statt 107 €.",
+            "new_price": "99",
+            "compare_at": "107",
+            "discount_style": "festpreis",
+            "limit": 12,
+            "group": "Kurse & Workshops",
+            "ends_in_days": 45,
+            "images": ["yoga,nature", "meditation", "tea,ceremony"],
+        },
+        {
+            "title": "Vormittags-Special: Einzel-Yogastunde 44 €",
+            "desc": "Montag bis Freitag zwischen 10 und 13 Uhr: die 1:1-Stunde bei Mara "
+            "für 44 € statt 55 € — freie Zeit wählen, der Preis gilt automatisch.",
+            "service": 0,
+            "new_price": "44",
+            "compare_at": "55",
+            "discount_style": "strikethrough",
+            "rules": {"weekdays": [0, 1, 2, 3, 4], "hour_from": 10, "hour_to": 13},
+            "limit": 20,
+            "group": "Einzeltermine",
+            "ends_in_days": 45,
+            "images": ["yoga,studio", "yoga,forest"],
+        },
+        {
+            "title": "Achtsamkeits-Coaching: Erstgespräch 49 €",
+            "desc": "Das erste 60-Minuten-Gespräch mit Felix zum Kennenlernpreis: "
+            "49 € statt 75 €, einmal pro Person.",
+            "service": 1,
+            "new_price": "49",
+            "compare_at": "75",
+            "discount_style": "badge",
+            "limit": 10,
+            "group": "Einzeltermine",
+            "ends_in_days": 60,
+            "images": ["meditation,man", "candles"],
+        },
+        {
+            "title": "Yogamatte Natur −20 % — online reservieren",
+            "desc": "Rutschfeste Naturkautschuk-Matte für 39,20 € statt 49 € — online "
+            "reservieren und beim nächsten Besuch mitnehmen.",
+            "product": 0,
+            "type": "reservation",
+            "percent": 20,
+            "available_quantity": 6,
+            "group": "Shop",
+            "ends_in_days": 30,
+            "image": "yoga,mat",
+        },
+    ],
     key="retreat",
     spacers=[{"after": "gallery", "height": "lg"}],  # ST-7a
     label="Waldlicht Retreat",
@@ -5600,6 +6406,79 @@ SHOP_MENUS = {
 # Retail-кит «Hofladen Sonnenfeld» — интернет-магазин: варианты (R1),
 # Grundpreis €/kg|l (R2), остаток (R3), GTIN/EAN (A1), доставка с PLZ-зонами (A2).
 SHOP = DemoKit(
+    promotions_spec=[
+        # Angebot der Woche: Prozent-Badge + wöchentliche Wiederholung + Galerie.
+        {
+            "title": "Äpfel 'Elstar' −20 % (Angebot der Woche)",
+            "product": 0,
+            "percent": 20,
+            "discount_style": "percent",
+            "recurrence": "weekly",
+            "ends_in_days": 7,
+            "group": "Wochenangebote",
+            "images": ["apples", "farm,vegetables", "market,stall"],
+            "desc": "Jede Woche ein anderes Hofprodukt im Angebot.",
+        },
+        # «3 für 2» über Bündelpreis (3×5,90 = 17,70 → 11,80), Vorrat über limit.
+        {
+            "title": "3 Gläser Bio-Honig zum Preis von 2",
+            "product": 4,
+            "new_price": "11.80",
+            "compare_at": "17.70",
+            "discount_style": "strikethrough",
+            "limit": 15,
+            "ends_in_days": 21,
+            "group": "Vorratspakete",
+            "desc": "Drei Gläser aus eigener Imkerei — das dritte geht aufs Haus.",
+        },
+        # Abendverkauf: täglich wiederkehrend, Countdown-Stil + «🆕 Neu»-Chip.
+        {
+            "title": "Feierabend-Frische: Bio-Tomaten −40 % ab 17 Uhr",
+            "product": 2,
+            "percent": 40,
+            "discount_style": "countdown",
+            "countdown": True,
+            "recurrence": "daily",
+            "new": True,
+            "ends_in_days": 1,
+            "group": "Feierabend-Frische",
+            "desc": "Was am Abend übrig ist, geben wir günstig ab — täglich neu.",
+        },
+        # Freie Aktion OHNE Produkt (Muster: HOTEL-Kit): Bild kommt aus "image",
+        # der Kauf erzeugt eine Bestellzeile ohne Lagerbuchung. Kontingent 12.
+        {
+            "title": "Gemüsekiste der Woche 19,90 € statt 27 €",
+            "type": "reservation",
+            "available_quantity": 12,
+            "new_price": "19.90",
+            "compare_at": "27.00",
+            "image": "vegetable,box",
+            "ends_in_days": 7,
+            "group": "Vorbestellung",
+            "desc": "Was gerade reif ist, bunt gemischt — online sichern, donnerstags abholen.",
+        },
+        # Restposten reservieren: Kontingent = tatsächlicher Bestand (6 Gläser).
+        {
+            "title": "Erdbeer-Marmelade −25 % — nur noch 6 Gläser",
+            "product": 7,
+            "type": "reservation",
+            "percent": 25,
+            "available_quantity": 6,
+            "ends_in_days": 14,
+            "group": "Wochenangebote",
+            "desc": "Letzte Gläser der Sommerernte — online sichern, im Hofladen abholen.",
+        },
+        # «ab»-Preis: Produkt mit Varianten (150 g / 300 g) → «ab 3,83 €».
+        {
+            "title": "Landwurst −15 % (150 g und 300 g)",
+            "product": 9,
+            "percent": 15,
+            "discount_style": "ab",
+            "ends_in_days": 10,
+            "group": "Wochenangebote",
+            "desc": "Luftgetrocknet nach Hausrezept — Preis je nach Stückgröße.",
+        },
+    ],
     key="shop",
     page_presets=[("cart", "vertrauen"), ("info", "geschichte")],  # ST-2
     label="Hofladen Sonnenfeld",
