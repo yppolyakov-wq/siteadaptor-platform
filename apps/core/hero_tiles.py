@@ -263,6 +263,23 @@ def needs_deal(widget: str) -> bool:
     )
 
 
+def _gift_reachable(tenant) -> bool:
+    """Страница `/gutschein/` требует НЕ ТОЛЬКО модуль gift, но и настроенную
+    онлайн-оплату (`gift_purchase_active`) — иначе отдаёт 404. Гейт плитки был
+    только по модулю, поэтому на первом экране висел вход в 404 (аудит
+    2026-08-06). Ошибки гасим: первый экран важнее плитки."""
+    try:
+        from apps.loyalty.public_views import gift_purchase_active
+
+        return gift_purchase_active(tenant)
+    except Exception:  # noqa: BLE001
+        return False
+
+
+# Гейты, которым мало «модуль активен»: страница за плиткой ставит доп. условие.
+_EXTRA_GATES = {"gift": _gift_reachable}
+
+
 def tiles_for(widget: str, tenant, deal=None) -> list[dict]:
     """Плитки первого экрана для архетипа. Неизвестный widget → [] (шаблон
     ничего не рендерит). `deal` — живая акция (`siteui.deal_of_day`)."""
@@ -278,6 +295,8 @@ def tiles_for(widget: str, tenant, deal=None) -> list[dict]:
             if deal is None:
                 continue
         elif gate and not modules.is_module_active(tenant, gate):
+            continue
+        elif gate and gate in _EXTRA_GATES and not _EXTRA_GATES[gate](tenant):
             continue
         href = _href(tile)
         if not href:

@@ -54,29 +54,70 @@ _PAGE_MODULE_GATES = {
 _PAGE_CONTENT_GATES = ("gallery", "team", "reviews", "combos")
 
 
+def _content_probe(tenant, target: str) -> bool:
+    """Проверка наполненности. Запросы — fail-closed: сбой чтения прячет ПУНКТ
+    МЕНЮ, но не роняет страницу (то же правило, что у `storefront_reviews`)."""
+    if target != "combos":
+        cfg = siteconfig.normalize(tenant.site_config)
+        if target == "gallery":
+            return bool(cfg.get("gallery") or cfg.get("gallery_video"))
+        if target == "team":
+            return bool(cfg.get("team"))
+        # reviews: кураторские `testimonials` отвечают без запроса.
+        if cfg.get("testimonials"):
+            return True
+    try:
+        if target == "combos":
+            # Модуль orders активен почти у всех, но наборы есть у единиц — без
+            # гейта пункт «Kombi-Angebote» встал бы в шапку каждого тенанта и вёл
+            # на пустую страницу.
+            from apps.catalog.models import Combo
+
+            return Combo.objects.filter(is_active=True).exists()
+        # reviews: портальные BusinessReview — SHARED-модель, читаем по schema_name.
+        from django.db import connection
+
+        from apps.aggregator.models import BusinessReview
+
+        return BusinessReview.objects.filter(
+            tenant_schema=connection.schema_name, status=BusinessReview.STATUS_PUBLISHED
+        ).exists()
+    except Exception:  # noqa: BLE001 — гейт пункта меню не должен ронять страницу
+        return False
+
+
 def _page_has_content(tenant, target: str) -> bool:
-    """Есть ли что показать на странице ST-8 (иначе пункт меню гасим)."""
+    """Есть ли что показать на странице ST-8 (иначе пункт меню гасим).
+
+    Результат мемоизируется на объекте тенанта: `resolve_menu` вызывается на
+    КАЖДЫЙ рендер (шапка + нижнее меню витрины, контекст-процессор кабинета), а
+    гейты `reviews`/`combos` ходят в БД — без мемо это лишние запросы на каждой
+    странице. Живёт ровно столько, сколько живёт tenant-объект запроса.
+    """
     if target not in _PAGE_CONTENT_GATES:
         return True
-    if target == "combos":
-        # Модуль orders активен почти у всех, но наборы есть у единиц — без этого
-        # гейта пункт «Kombi-Angebote» встал бы в шапку каждого тенанта и вёл на
-        # пустую страницу.
-        from apps.catalog.combos import active_combos
+    memo = getattr(tenant, "_menu_content_memo", None)
+    if memo is None:
+        memo = {}
+        try:
+            tenant._menu_content_memo = memo
+        except AttributeError:  # объект без __dict__ — просто считаем каждый раз
+            return _content_probe(tenant, target)
+    if target not in memo:
+        memo[target] = _content_probe(tenant, target)
+    return memo[target]
 
-        return bool(active_combos())
-    cfg = siteconfig.normalize(tenant.site_config)
-    if target == "gallery":
-        return bool(cfg.get("gallery") or cfg.get("gallery_video"))
-    if target == "team":
-        return bool(cfg.get("team"))
-    # reviews: два источника — портальные отзывы (SHARED-модель, читаем тем же
-    # тегом: он сам гасит ошибки и не роняет меню) и кураторские `testimonials`.
-    if cfg.get("testimonials"):
-        return True
-    from apps.core.templatetags.seo import storefront_reviews
 
-    return bool(storefront_reviews(1))
+def _gift_reachable(tenant) -> bool:
+    """`/gutschein/` живёт не только на модуле gift: без настроенной онлайн-оплаты
+    страница отдаёт 404 (`gift_purchase_active`). Тот же гейт, что у ссылки в
+    футере (`seo.gift_link_active`) и у плитки первого экрана."""
+    try:
+        from apps.loyalty.public_views import gift_purchase_active
+
+        return gift_purchase_active(tenant)
+    except Exception:  # noqa: BLE001
+        return False
 
 
 def _reverse(name: str):
@@ -141,6 +182,8 @@ def _node_url(tenant, node: dict):
 
             if not _finder.enabled(tenant):
                 return None
+        if target == "gift" and not _gift_reachable(tenant):
+            return None
         return _reverse(name)
     if ntype == "url":
         return target or None

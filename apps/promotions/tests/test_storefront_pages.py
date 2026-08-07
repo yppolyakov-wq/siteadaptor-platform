@@ -123,8 +123,8 @@ def test_orphan_pages_reachable_from_menu_when_module_active():
     tenant = _tenant()
     tenant.disabled_modules = []
     assert _resolve(tenant, "loyalty") == "/treue/"
-    assert _resolve(tenant, "gift") == "/gutschein/"
     assert _resolve(tenant, "account") == "/konto/"
+    # gift дополнительно требует настроенной оплаты — см. отдельный замок ниже.
 
 
 def test_orphan_menu_entries_gated_by_module():
@@ -142,6 +142,57 @@ def test_combos_entry_needs_actual_combos():
     tenant = _tenant()
     tenant.disabled_modules = []
     assert _resolve(tenant, "combos") is None  # наборов нет → пункта нет
+
+
+def test_gift_entry_requires_configured_payments():
+    """`/gutschein/` отдаёт 404 не только без модуля, но и без настроенной
+    онлайн-оплаты (`gift_purchase_active`). Гейт «только модуль» ставил в меню и
+    на первый экран вход в 404 — у демо и у любого тенанта без Stripe."""
+    tenant = _tenant()
+    tenant.disabled_modules = []
+    tenant.payments_enabled = False
+    assert _resolve(tenant, "gift") is None
+
+
+def test_gift_hero_tile_uses_the_same_gate_as_the_page():
+    from apps.core import hero_tiles
+
+    tenant = _tenant()
+    tenant.disabled_modules = []
+    tenant.payments_enabled = False
+    for widget in ("friseur", "touren"):
+        hrefs = [t["href"] for t in hero_tiles.tiles_for(widget, tenant)]
+        assert "/gutschein/" not in hrefs, widget
+
+
+def test_content_gates_query_once_per_request():
+    """`resolve_menu` зовётся на КАЖДЫЙ рендер (шапка витрины, нижнее меню,
+    контекст-процессор кабинета), а гейты reviews/combos ходят в БД. Без мемо это
+    лишние запросы на каждой странице — считаем обращения к пробнику."""
+    from apps.tenants import menu as menu_mod
+
+    tenant = _tenant()
+    calls = []
+    original = menu_mod._content_probe
+    menu_mod._content_probe = lambda t, target: (calls.append(target), False)[1]
+    try:
+        for _ in range(3):  # три резолва одного и того же тенанта
+            menu_mod._page_has_content(tenant, "reviews")
+            menu_mod._page_has_content(tenant, "combos")
+    finally:
+        menu_mod._content_probe = original
+    assert calls == ["reviews", "combos"], calls
+
+
+def test_content_gate_failure_hides_entry_instead_of_breaking_page():
+    """Сбой чтения обязан гасить ПУНКТ, а не страницу (правило storefront_reviews)."""
+    from unittest.mock import patch
+
+    from apps.tenants import menu as menu_mod
+
+    with patch("apps.catalog.models.Combo.objects") as objects:
+        objects.filter.side_effect = RuntimeError("db down")
+        assert menu_mod._content_probe(_tenant(), "combos") is False
 
 
 def test_header_icon_pages_are_not_duplicated_in_nav():
