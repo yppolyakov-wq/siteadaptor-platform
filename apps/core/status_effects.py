@@ -124,11 +124,33 @@ def record_reversal_for(kind: str, instance) -> None:
             )
 
 
+def commit_stock_for(kind: str, instance) -> None:
+    """SM-3 (зеркало G11): вход в done-роль для job списывает Teile — builtin вешает
+    commit_stock на литерал t.dst=='done', кастом-статус миновал бы списание.
+    commit_stock идемпотентен (гард stock_committed) — повторный builtin-done
+    безопасен. Прочие kind склад на done не двигают."""
+    if kind == "job":
+        from apps.jobs.services import commit_stock
+
+        commit_stock(instance)
+
+
 def restore_stock_for(kind: str, instance) -> None:
     """Вернуть складской остаток/ёмкость при кастом-cancel. order — позиции заказа
-    (тот же `_restore_stock` + леджер); reservation — остаток акции + waitlist; прочие
-    kinds ёмкость освобождают сами (по blocks_capacity), склад не двигают."""
-    if kind == "order":
+    (тот же `_restore_stock` + леджер); reservation — остаток акции + waitlist;
+    ticket — стоп активной рассрочки (зеркало R10e: не деньги, но тот же «возврат
+    при отмене» — иначе beat продолжит off-session списания по отменённому билету);
+    прочие kinds ёмкость освобождают сами (по blocks_capacity), склад не двигают.
+    Возврат склада job при cancel НЕ делаем — builtin-отмена его тоже не делает
+    (обратной функции к commit_stock нет; паритет)."""
+    if kind == "ticket":
+        from apps.events.models import InstallmentPlan
+
+        plan = getattr(instance, "installment_plan", None)
+        if plan is not None and plan.status == InstallmentPlan.STATUS_ACTIVE:
+            plan.status = InstallmentPlan.STATUS_CANCELLED
+            plan.save(update_fields=["status", "updated_at"])
+    elif kind == "order":
         from apps.orders.state_machine import _restore_stock
 
         _restore_stock(instance)
@@ -168,12 +190,21 @@ def apply_custom_effects(kind: str, instance, src_desc, dst_desc) -> None:
     revenue_recognized → запись выручки; роль cancelled → возврат склада + un-redeem +
     (если покидаемый `src_desc` был revenue_recognized) сторно. Идемпотентность finance
     защищает от двойного, если путь проходит и через встроенный revenue-статус.
+
+    SM-3: cancel-блок пропускается, если `src_desc` ТОЖЕ cancelled-роли — сделка уже
+    отменена, склад/лимит/ваучер вернулись при входе туда (эти возвраты, в отличие от
+    finance, НЕ идемпотентны). Второй слой той же защиты — custom_edges дропает
+    cancel↔cancel рёбра.
     """
     if dst_desc is None:
         return
     if dst_desc.revenue_recognized:
         record_revenue_for(kind, instance)
+    if dst_desc.role == "done":
+        commit_stock_for(kind, instance)
     if dst_desc.role == "cancelled":
+        if src_desc is not None and src_desc.role == "cancelled":
+            return
         restore_stock_for(kind, instance)
         unredeem_for(instance)
         if src_desc is not None and src_desc.revenue_recognized:

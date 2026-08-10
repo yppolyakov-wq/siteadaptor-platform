@@ -320,6 +320,93 @@ def test_custom_edges_requires_known_endpoints_and_custom():
     assert edges == {("confirmed", "beim_lieferanten"), ("beim_lieferanten", "fulfilled")}
 
 
+@pytest.mark.django_db
+def test_custom_edges_drop_edges_out_of_cancelled_role():
+    """SM-3: рёбер ИЗ cancelled-роли не бывает — терминальный статус терминален,
+    как в builtin-графе. Закрывает ДВА пути двойного возврата склада/лимита
+    (возвраты не идемпотентны, on_transition диспатчит по t.dst): прямое ребро
+    cancel→cancel и двухшаговый обход cancel→кастом-active→cancel (un-cancel не
+    ре-декрементит счётчики; найден адверсариальной сверкой). Слой чтения лечит
+    и уже сохранённые конфиги."""
+    from apps.tenants.tests.factories import TenantFactory
+
+    t = TenantFactory(
+        site_config={
+            "status_defs": {
+                "reservation": [
+                    {"code": "abgesagt_kulanz", "role": "cancelled", "stage": "terminal"},
+                    {"code": "warte_zahlung", "role": "active", "stage": "in_progress"},
+                ]
+            },
+            "status_edges": {
+                "reservation": [
+                    # ИЗ cancelled-роли (custom и builtin) → отброшены
+                    {"src": "abgesagt_kulanz", "dst": "cancelled"},  # cancel → cancel
+                    {
+                        "src": "cancelled",
+                        "dst": "abgesagt_kulanz",
+                    },  # builtin-danger → custom-cancel
+                    {"src": "expired", "dst": "abgesagt_kulanz"},  # второй builtin-danger
+                    {"src": "cancelled", "dst": "warte_zahlung"},  # un-cancel (двухшаговый обход)
+                    # легальные остаются: active-кастом → отмена, вход в кастом-cancel
+                    {"src": "warte_zahlung", "dst": "cancelled"},
+                    {"src": "pending", "dst": "abgesagt_kulanz"},
+                ]
+            },
+        }
+    )
+    edges = status_registry.custom_edges(t, "reservation")
+    assert edges == {("warte_zahlung", "cancelled"), ("pending", "abgesagt_kulanz")}
+
+
+# --- SM-3: кламп кода, kind-aware роли, cancelled-набор ------------------------
+
+
+def test_def_from_role_ticket_done_blocks_capacity():
+    """SM-3: done-роль у БИЛЕТА держит место (паритет с builtin attended);
+    у остальных kind done место освобождает (как picked_up/fulfilled)."""
+    d = status_registry.def_from_role("vip_teilnahme", "VIP", "done", kind="ticket")
+    assert d["blocks_capacity"] is True
+    assert status_registry.def_from_role("verpackt", "V", "done", kind="order").get(
+        "blocks_capacity"
+    ) in (None, False)
+    assert status_registry.def_from_role("x", "X", "done").get("blocks_capacity") in (None, False)
+
+
+def test_normalize_status_defs_clamps_code_to_field_limit():
+    """SM-3: у ВСЕХ шести моделей status = varchar(20), а кламп normalize был 40 —
+    длинный код («warten_auf_ersatzteile») сохранялся в конфиг и ронял apply()
+    DataError'ом. Код и рёбра клампятся согласованно (продолжают матчиться)."""
+    from apps.tenants import siteconfig
+
+    long_code = "warten_auf_ersatzteile_lieferung"  # 32 символа
+    defs = siteconfig.normalize_status_defs(
+        {"job": [{"code": long_code, "label": "Warten", "role": "active", "stage": "in_progress"}]}
+    )
+    code = defs["job"][0]["code"]
+    assert len(code) <= 20
+    edges = siteconfig.normalize_status_edges({"job": [{"src": "accepted", "dst": long_code}]})
+    assert edges["job"][0]["dst"] == code  # ребро матчится с дефом после клампа
+
+
+@pytest.mark.django_db
+def test_cancelled_statuses_for_includes_custom():
+    """SM-3: набор «отменённых» (для исключений вида «неотменённый билет» в
+    верификации отзывов) = builtin danger ∪ кастом-cancel тенанта."""
+    from apps.tenants.tests.factories import TenantFactory
+
+    t = TenantFactory(
+        site_config={
+            "status_defs": {
+                "ticket": [{"code": "abgesagt_kulanz", "role": "cancelled", "stage": "terminal"}]
+            }
+        }
+    )
+    codes = status_registry.cancelled_statuses_for("ticket", t)
+    assert "cancelled" in codes and "abgesagt_kulanz" in codes
+    assert "attended" not in codes
+
+
 # --- Phase 6: отображение (stage_for / action_label / status_label custom-aware) ---
 
 

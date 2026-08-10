@@ -47,6 +47,33 @@ def test_collect_digest_metrics_and_empty_day():
     assert data["orders_new"] == 1
 
 
+def test_digest_counts_custom_active_booking(monkeypatch):
+    """SM-3: запись в КАСТОМ-active статусе владельца видна в bookings_today —
+    до фикса литерал Booking.ACTIVE_STATUSES прятал её из дайджеста/«Heute»."""
+    from apps.booking.models import Booking
+    from apps.core import status_registry
+
+    tenant = _tenant(
+        site_config={
+            "status_defs": {
+                "booking": [
+                    {
+                        "code": "warte_zahlung",
+                        "role": "active",
+                        "stage": "in_progress",
+                        "blocks_capacity": True,
+                    }
+                ]
+            }
+        }
+    )
+    monkeypatch.setattr(status_registry, "_current_tenant", lambda: tenant)
+    _seed_activity()
+    Booking.objects.update(status="warte_zahlung")
+    data = digest.collect_digest(tenant)
+    assert data["bookings_today"] == 1
+
+
 def test_send_digest_email_content_and_dedupe():
     tenant = _tenant()
     _seed_activity()

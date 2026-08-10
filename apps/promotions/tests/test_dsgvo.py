@@ -45,6 +45,39 @@ def test_purge_skips_active_reservation():
 
 
 @pytest.mark.django_db
+def test_purge_skips_custom_active_reservation(monkeypatch):
+    """SM-3: резерв в КАСТОМ-active статусе владельца — живая сделка; клиент не
+    обезличивается. До SM-3 фильтр активных держал литерал pending/confirmed —
+    кастом-статус выпадал, и PII стирался при живой сделке."""
+    from apps.core import status_registry
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(
+        site_config={
+            "status_defs": {
+                "reservation": [
+                    {
+                        "code": "warte_zahlung",
+                        "role": "active",
+                        "stage": "in_progress",
+                        "blocks_capacity": True,
+                    }
+                ]
+            }
+        }
+    )
+    monkeypatch.setattr(status_registry, "_current_tenant", lambda: tenant)
+
+    promo = PromotionFactory(available_quantity=5)
+    res = reserve(promo, name="Eva", email="eva@test.de")
+    Reservation.objects.filter(pk=res.pk).update(status="warte_zahlung")
+    _age_reservation(res, 200)
+
+    assert purge_due_customers() == 0
+    assert Customer.objects.get(pk=res.customer_id).email == "eva@test.de"
+
+
+@pytest.mark.django_db
 def test_purge_skips_recent():
     promo = PromotionFactory(available_quantity=5)
     res = reserve(promo, name="Cara", email="cara@test.de")

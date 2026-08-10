@@ -122,11 +122,15 @@ def book_ticket(
     if not event.is_published:
         raise EventNotBookable()
 
+    # SM-3: занятость через реестр (built-in ∪ кастом-active тенанта) — билет в
+    # кастом-статусе владельца продолжает держать место (иначе двойная продажа).
+    from apps.core import status_registry
+
     if event.capacity:
         sold = (
-            event.tickets.filter(status__in=Ticket.ACTIVE_STATUSES).aggregate(
-                n=models.Sum("quantity")
-            )["n"]
+            event.tickets.filter(
+                status__in=status_registry.active_statuses_for("ticket")
+            ).aggregate(n=models.Sum("quantity"))["n"]
             or 0
         )
         available = event.capacity - sold
@@ -142,7 +146,8 @@ def book_ticket(
     if tier_cap:
         tier_sold = (
             event.tickets.filter(
-                status__in=Ticket.ACTIVE_STATUSES, tier_label=matched_tier["label"]
+                status__in=status_registry.active_statuses_for("ticket"),
+                tier_label=matched_tier["label"],
             ).aggregate(n=models.Sum("quantity"))["n"]
             or 0
         )

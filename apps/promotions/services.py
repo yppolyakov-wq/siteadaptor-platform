@@ -85,11 +85,15 @@ def reserve(promotion, *, name, email="", phone="", quantity=1, note="", source_
     # его держит атомарный UPDATE ниже). Лок клиента здесь ломал anti-oversell-инвариант
     # (см. test_concurrency) — фикс выносится в отдельную, аккуратно оттестированную задачу.
     if promotion.max_per_customer:
+        # SM-3: «активные» через реестр — резерв в кастом-active статусе владельца
+        # тоже считается (литерал позволял обойти лимит на клиента).
+        from apps.core import status_registry
+
         active_qty = (
             Reservation.objects.filter(
                 promotion=promotion,
                 customer=customer,
-                status__in=["pending", "confirmed"],
+                status__in=status_registry.active_statuses_for("reservation"),
             ).aggregate(n=Sum("quantity"))["n"]
             or 0
         )

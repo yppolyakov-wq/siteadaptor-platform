@@ -37,15 +37,22 @@ ROLE_LABELS = {
 }
 
 
-def def_from_role(code: str, label: str, role: str) -> dict:
-    """Кастом-определение статуса из code+label+role: стадия и флаги выводятся по роли."""
+def def_from_role(code: str, label: str, role: str, kind: str | None = None) -> dict:
+    """Кастом-определение статуса из code+label+role: стадия и флаги выводятся по роли.
+
+    SM-3: kind-aware асимметрия — done-роль у БИЛЕТА держит место (паритет с builtin
+    `attended`, который done, но blocks_capacity; см. BUILTIN["ticket"]). У остальных
+    kind done место освобождает (picked_up/fulfilled)."""
     role = role if role in ROLES else "active"
+    flags = dict(ROLE_DEFAULT_FLAGS.get(role, {}))
+    if kind == "ticket" and role == "done":
+        flags["blocks_capacity"] = True
     return {
         "code": code,
         "label": label,
         "role": role,
         "stage": ROLE_STAGE[role],
-        **ROLE_DEFAULT_FLAGS.get(role, {}),
+        **flags,
     }
 
 
@@ -250,6 +257,12 @@ def counted_statuses_for(kind: str, tenant=None) -> tuple[str, ...]:
     return tuple(dict.fromkeys(codes))
 
 
+def cancelled_statuses_for(kind: str, tenant=None) -> tuple[str, ...]:
+    """SM-3: коды cancelled-роли — builtin danger ∪ кастом-cancel тенанта. Для
+    исключений вида «неотменённый билет» (верификация отзывов и т.п.)."""
+    return tuple(c for c, d in all_descriptors(kind, tenant).items() if d.role == "cancelled")
+
+
 def stage_of(kind: str, status: str, tenant=None) -> str:
     """Стадия доски для (kind, status): дескриптор или фолбэк intake (как pipeline.stage_for)."""
     d = resolve(kind, status, tenant)
@@ -259,12 +272,26 @@ def stage_of(kind: str, status: str, tenant=None) -> str:
 def custom_edges(tenant, kind: str) -> set:
     """FB-3 Вариант B Phase 4: валидные кастом-переходы тенанта {(src, dst)}. Оба статуса
     ДОЛЖНЫ быть известны (built-in ∪ кастом kind) и ≥1 эндпоинт — кастомный (built-in↔built-in
-    shortcut запрещён: встроенный граф FSM — жёсткий пол). Мусор/невалидное отброшено."""
+    shortcut запрещён: встроенный граф FSM — жёсткий пол). Мусор/невалидное отброшено.
+
+    SM-3: рёбра ИЗ cancelled-роли отброшены ЦЕЛИКОМ — терминальный статус терминален,
+    как в builtin-графе (из cancelled/returned/no_show выходов нет). Причина не только
+    смысловая: возвраты склада/лимита НЕ идемпотентны (`_restore_stock`/`return_units` —
+    F()+qty), on_transition диспатчит по t.dst, а un-cancel не ре-декрементит счётчики →
+    и прямое ребро cancel→cancel, и двухшаговый обход cancel→кастом-active→cancel
+    (найден адверсариальной сверкой) давали бы двойной возврат. Фильтр на СЛОЕ ЧТЕНИЯ
+    лечит и уже сохранённые конфиги."""
     cfg = getattr(tenant, "site_config", None)
     node = cfg.get("status_edges") if isinstance(cfg, dict) else None
     edges_raw = node.get(kind, []) if isinstance(node, dict) else []
-    custom_codes = set(custom_descriptors(tenant, kind))
-    known = set(BUILTIN.get(kind, {})) | custom_codes
+    custom = custom_descriptors(tenant, kind)
+    builtin = BUILTIN.get(kind, {})
+    known = set(builtin) | set(custom)
+
+    def _role(code):
+        d = builtin.get(code) or custom.get(code)
+        return d.role if d else ""
+
     out = set()
     for e in edges_raw:
         src, dst = e.get("src"), e.get("dst")
@@ -272,7 +299,8 @@ def custom_edges(tenant, kind: str) -> set:
             src in known
             and dst in known
             and src != dst
-            and (src in custom_codes or dst in custom_codes)
+            and (src in custom or dst in custom)
+            and _role(src) != "cancelled"
         ):
             out.add((src, dst))
     return out

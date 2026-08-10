@@ -196,9 +196,14 @@ class Event(I18nMixin, TimestampedModel):
         return bool(self.tier_list)
 
     def tier_sold_map(self) -> dict:
-        """{tier_label: проданных мест} активных билетов (R11, один запрос)."""
+        """{tier_label: проданных мест} активных билетов (R11, один запрос).
+
+        SM-3: «активные» — через реестр (built-in ∪ кастом-active тенанта), иначе
+        билет в кастом-статусе владельца выпадал бы из занятости."""
+        from apps.core import status_registry
+
         rows = (
-            self.tickets.filter(status__in=Ticket.ACTIVE_STATUSES)
+            self.tickets.filter(status__in=status_registry.active_statuses_for("ticket"))
             .values("tier_label")
             .annotate(n=models.Sum("quantity"))
         )
@@ -262,9 +267,12 @@ class Event(I18nMixin, TimestampedModel):
 
     @property
     def seats_sold(self) -> int:
-        agg = self.tickets.filter(status__in=Ticket.ACTIVE_STATUSES).aggregate(
-            n=models.Sum("quantity")
-        )
+        # SM-3: как tier_sold_map — кастом-active статусы тоже держат места.
+        from apps.core import status_registry
+
+        agg = self.tickets.filter(
+            status__in=status_registry.active_statuses_for("ticket")
+        ).aggregate(n=models.Sum("quantity"))
         return agg["n"] or 0
 
     @property

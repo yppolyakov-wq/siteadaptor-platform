@@ -14,11 +14,14 @@ def has_ticket(event, email: str) -> bool:
     if not email:
         return False
     try:
+        from apps.core import status_registry
         from apps.events.models import Ticket
 
+        # SM-3: «отменённые» через реестр — билет в кастом-cancel статусе тоже
+        # не даёт статуса верифицированного покупателя.
         return (
             Ticket.objects.filter(event=event, customer__email__iexact=email)
-            .exclude(status=Ticket.STATUS_CANCELLED)
+            .exclude(status__in=status_registry.cancelled_statuses_for("ticket"))
             .exists()
         )
     except Exception:  # noqa: BLE001 — events может быть выключен; тогда верификации нет

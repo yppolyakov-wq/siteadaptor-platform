@@ -82,6 +82,17 @@ _RESERVATION_STATUS_LABELS = {
     "fulfilled": "Eingelöst",
 }
 
+
+def builtin_status_labels(kind: str) -> dict:
+    """{code: подпись} ВСТРОЕННЫХ статусов kind: choices модели, у Reservation
+    (без choices) — словарь выше. SM-3: общий фолбэк панелей статусов
+    (status_manager / transition_rules) — иначе reservation показывал сырые коды."""
+    labels = dict(getattr(model_for(kind), "STATUSES", []) or [])
+    if not labels and kind == "reservation":
+        return dict(_RESERVATION_STATUS_LABELS)
+    return labels
+
+
 # kind → короткая немецкая подпись вкладки доски (= заголовки разделов ЛК).
 KIND_LABEL = {
     "order": _("Bestellungen"),
@@ -243,7 +254,7 @@ def allowed_actions_for(kind: str, status: str, subset: dict | None = None, obj=
     targets = [
         t
         for t in sm_for(kind).allowed_targets(status)
-        if subset is None or transition_rules.keep_target(status, t, subset)
+        if subset is None or transition_rules.keep_target(status, t, subset, kind=kind)
     ]
     # W7c (аудит 2026-08-05): заказ — picked_up/shipped взаимоисключающие по способу
     # получения. Карточка заказа это фильтровала, доска — нет: владельцу доставочного
@@ -252,12 +263,22 @@ def allowed_actions_for(kind: str, status: str, subset: dict | None = None, obj=
     if kind == "order" and obj is not None:
         drop = "picked_up" if getattr(obj, "is_delivery", False) else "shipped"
         targets = [t for t in targets if t != drop]
+
+    # SM-3: danger кастом-цели — из дескриптора (роль cancelled → красная кнопка,
+    # как builtin-отмена); pipeline.DANGER_TARGETS заморожен на импорте и кастомов
+    # не знает.
+    def _danger(t):
+        from apps.core import status_registry
+
+        d = status_registry.resolve(kind, t)
+        return d.is_danger if d is not None else pipeline.is_danger(t)
+
     return [
         {
             "target": t,
             "label": pipeline.action_label(kind, t),
             "stage": pipeline.stage_for(kind, t),
-            "danger": pipeline.is_danger(t),
+            "danger": _danger(t),
         }
         for t in targets
     ]

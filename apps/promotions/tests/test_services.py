@@ -57,6 +57,37 @@ def test_max_per_customer_enforced():
 
 
 @pytest.mark.django_db
+def test_max_per_customer_counts_custom_active_reservation(monkeypatch):
+    """SM-3: резерв в кастом-active статусе владельца остаётся «активным» для
+    лимита на клиента — до фикса литерал pending/confirmed позволял обойти кап."""
+    from apps.core import status_registry
+    from apps.promotions.models import Reservation
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(
+        site_config={
+            "status_defs": {
+                "reservation": [
+                    {
+                        "code": "warte_zahlung",
+                        "role": "active",
+                        "stage": "in_progress",
+                        "blocks_capacity": True,
+                    }
+                ]
+            }
+        }
+    )
+    monkeypatch.setattr(status_registry, "_current_tenant", lambda: tenant)
+
+    promo = PromotionFactory(available_quantity=10, max_per_customer=2)
+    res = reserve(promo, name="Dana", email="dana@test.de", quantity=2)
+    Reservation.objects.filter(pk=res.pk).update(status="warte_zahlung")
+    with pytest.raises(ReservationLimitReached):
+        reserve(promo, name="Dana", email="dana@test.de", quantity=1)
+
+
+@pytest.mark.django_db
 def test_cancel_returns_stock_and_is_idempotent():
     promo = PromotionFactory(available_quantity=5)
     res = reserve(promo, name="Dan", email="dan@test.de", quantity=2)

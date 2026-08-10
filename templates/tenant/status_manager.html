@@ -47,21 +47,24 @@
     <div class="bg-white rounded-2xl shadow-sm p-4">
       <h2 class="font-semibold mb-1">{% trans "Übergänge" %}</h2>
       <p class="text-xs text-gray-400 mb-3">{% trans "Von welchen Status ist er erreichbar und wohin führt er weiter?" %}</p>
+      {# SM-3: sources/targets раздельно — из cancelled-роли рёбер не бывает #}
       {% for row in trans_rows %}
         <div class="mb-4">
           <p class="font-medium text-sm mb-1">{{ row.label }}</p>
           <p class="text-xs text-gray-500 mb-1">{% trans "Erreichbar aus:" %}</p>
           <div class="flex flex-wrap gap-2 mb-2 pl-2">
-            {% for o in row.others %}
-              <label class="flex items-center gap-1 text-xs"><input type="checkbox" name="edge" value="{{ o.code }}|{{ row.code }}" {% if o.from_checked %}checked{% endif %}> {{ o.label }}</label>
+            {% for o in row.sources %}
+              <label class="flex items-center gap-1 text-xs"><input type="checkbox" name="edge" value="{{ o.code }}|{{ row.code }}" {% if o.checked %}checked{% endif %}> {{ o.label }}</label>
             {% endfor %}
           </div>
+          {% if row.targets %}
           <p class="text-xs text-gray-500 mb-1">{% trans "Führt zu:" %}</p>
           <div class="flex flex-wrap gap-2 pl-2">
-            {% for o in row.others %}
-              <label class="flex items-center gap-1 text-xs"><input type="checkbox" name="edge" value="{{ row.code }}|{{ o.code }}" {% if o.to_checked %}checked{% endif %}> {{ o.label }}</label>
+            {% for o in row.targets %}
+              <label class="flex items-center gap-1 text-xs"><input type="checkbox" name="edge" value="{{ row.code }}|{{ o.code }}" {% if o.checked %}checked{% endif %}> {{ o.label }}</label>
             {% endfor %}
           </div>
+          {% endif %}
         </div>
       {% endfor %}
     </div>

@@ -1986,14 +1986,16 @@ def normalize_status_defs(raw) -> dict:
     """FB-3 Вариант B: пользовательские определения статусов {kind: [def,...]}.
 
     def = {code, label, role, stage, blocks_capacity, counts_in_reports, revenue_recognized}.
-    Whitelist: kind ∈ order/booking/stay; code — slug [a-z0-9_] ≤40, НЕ совпадает со
-    встроенным статусом и не дублируется в kind; role ∈ ROLES; stage ∈ STAGES; флаги — bool.
+    Whitelist: kind ∈ _STATUS_LABEL_KINDS (SM-2b/SM-3: все шесть направлений); code — slug
+    [a-z0-9_] ≤20 (SM-3: status у всех шести моделей — varchar(20); длиннее ронял бы
+    apply() DataError'ом), НЕ совпадает со встроенным статусом и не дублируется в kind;
+    role ∈ ROLES; stage ∈ STAGES; флаги — bool.
     Presence-minimal → {} (golden). Реестр core импортируем лениво (слой tenants → core)."""
     raw = raw if isinstance(raw, dict) else {}
     from apps.core.status_registry import BUILTIN, ROLES, STAGES
 
     out = {}
-    for kind in _STATUS_LABEL_KINDS:  # order/booking/stay
+    for kind in _STATUS_LABEL_KINDS:
         node = raw.get(kind)
         if not isinstance(node, list):
             continue
@@ -2002,7 +2004,8 @@ def normalize_status_defs(raw) -> dict:
         for d in node:
             if not isinstance(d, dict):
                 continue
-            code = re.sub(r"[^a-z0-9_]+", "_", _s(d.get("code")).strip().lower()).strip("_")[:40]
+            # SM-3: кламп 20 = max_length поля status всех шести моделей
+            code = re.sub(r"[^a-z0-9_]+", "_", _s(d.get("code")).strip().lower()).strip("_")[:20]
             role, stage = _s(d.get("role")), _s(d.get("stage"))
             if not code or code in builtin_codes or code in seen:
                 continue
@@ -2028,17 +2031,18 @@ def normalize_status_defs(raw) -> dict:
 def normalize_status_edges(raw) -> dict:
     """FB-3 Вариант B: кастом-переходы {kind: [{src, dst}]} (граф тенанта поверх FSM).
 
-    Структурный whitelist: kind ∈ order/booking/stay; src/dst — непустые слаги, src≠dst;
+    Структурный whitelist: kind ∈ _STATUS_LABEL_KINDS (все шесть); src/dst — непустые слаги, src≠dst;
     дубли отброшены. Семантику (оба статуса известны + ≥1 кастом-эндпоинт, чтобы не
     добавить built-in↔built-in shortcut в обход FSM) проверяет СЛОЙ ЧТЕНИЯ
     (status_registry.custom_edges) + apply(). Presence-minimal → {} (golden)."""
     raw = raw if isinstance(raw, dict) else {}
 
     def _code(v):
-        return re.sub(r"[^a-z0-9_]+", "_", _s(v).strip().lower()).strip("_")[:40]
+        # SM-3: кламп согласован с normalize_status_defs (рёбра матчатся с дефами)
+        return re.sub(r"[^a-z0-9_]+", "_", _s(v).strip().lower()).strip("_")[:20]
 
     out = {}
-    for kind in _STATUS_LABEL_KINDS:  # order/booking/stay
+    for kind in _STATUS_LABEL_KINDS:
         node = raw.get(kind)
         if not isinstance(node, list):
             continue

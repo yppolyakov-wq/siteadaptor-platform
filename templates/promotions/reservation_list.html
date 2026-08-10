@@ -50,7 +50,7 @@
           <td class="py-2">{{ r.promotion }}</td>
           <td class="py-2">{{ r.customer }}<div class="text-xs text-gray-400">{{ r.customer.email }} {{ r.customer.phone }}</div></td>
           <td class="py-2">{{ r.quantity }}</td>
-          <td class="py-2"><span class="px-2 py-0.5 rounded-full bg-gray-100">{{ r.status }}</span></td>
+          <td class="py-2"><span class="px-2 py-0.5 rounded-full bg-gray-100">{% status_label r "reservation" %}</span></td>
           <td class="py-2 text-gray-500">{{ r.expires_at|default:"—" }}</td>
           <td class="py-2 text-right whitespace-nowrap">
             {% if r.status == 'pending' %}

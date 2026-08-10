@@ -3444,8 +3444,9 @@ def _set_status_config(cfg, top_key, kind, value):
 
 @login_required
 def status_manager(request, kind):
-    """FB-3 Вариант B Phase 5: редактор своих статусов + переходов (order/booking/stay).
-    Владелец выбирает роль — стадия/поведение следуют; переходы — чекбоксами."""
+    """FB-3 Вариант B Phase 5 (+SM-3: все шесть направлений): редактор своих
+    статусов + переходов. Владелец выбирает роль — стадия/поведение следуют;
+    переходы — чекбоксами."""
     from django.http import Http404
 
     from apps.core import status_registry, transactions
@@ -3457,26 +3458,38 @@ def status_manager(request, kind):
     builtin = status_registry.descriptors(kind)
     custom = status_registry.custom_descriptors(tenant, kind)
     edges = status_registry.custom_edges(tenant, kind)
-    blabels = dict(getattr(transactions.model_for(kind), "STATUSES", []))
+    blabels = transactions.builtin_status_labels(kind)
 
     def label_of(code):
         d = custom.get(code)
         return d.label if d else blabels.get(code, code)
 
+    def role_of(code):
+        d = builtin.get(code) or custom.get(code)
+        return d.role if d else ""
+
     all_codes = list(builtin) + list(custom)
     trans_rows = []
     for c, d in custom.items():
-        others = [
-            {
-                "code": o,
-                "label": label_of(o),
-                "from_checked": (o, c) in edges,
-                "to_checked": (c, o) in edges,
-            }
+        # SM-3: рёбер ИЗ cancelled-роли не бывает (терминальный статус терминален,
+        # как в builtin-графе; слой чтения custom_edges их отбросит) → источником
+        # не предлагаем отменённые, а у cancel-роли кастома нет блока «Führt zu».
+        # Молчаливо-мёртвая галочка хуже отсутствующей.
+        sources = [
+            {"code": o, "label": label_of(o), "checked": (o, c) in edges}
             for o in all_codes
-            if o != c
+            if o != c and role_of(o) != "cancelled"
         ]
-        trans_rows.append({"code": c, "label": d.label, "others": others})
+        targets = (
+            [
+                {"code": o, "label": label_of(o), "checked": (c, o) in edges}
+                for o in all_codes
+                if o != c
+            ]
+            if d.role != "cancelled"
+            else []
+        )
+        trans_rows.append({"code": c, "label": d.label, "sources": sources, "targets": targets})
     return render(
         request,
         "tenant/status_manager.html",
@@ -3497,8 +3510,10 @@ def status_manager(request, kind):
 @login_required
 @require_POST
 def status_manager_save(request, kind):
-    """FB-3 Вариант B Phase 5: сохранить свои статусы (def_from_role) + переходы. Targeted-
-    write status_defs/status_edges; normalize + presence-minimal. FSM built-in не трогаем."""
+    """FB-3 Вариант B Phase 5 (+SM-3): сохранить свои статусы (def_from_role) + переходы.
+    Targeted-write status_defs/status_edges; normalize + presence-minimal. FSM built-in
+    не трогаем. Существующий код с НЕИЗМЕНЁННОЙ ролью сохраняет свой деф (продвинутые
+    флаги вроде counts_in_reports, выставленные через site_config, не слетают)."""
     from django.http import Http404
     from django.urls import reverse
 
@@ -3509,9 +3524,15 @@ def status_manager_save(request, kind):
         raise Http404("unknown status kind")
     tenant = request.tenant
     builtin_codes = set(status_registry.descriptors(kind))
+    cfg_now = tenant.site_config if isinstance(tenant.site_config, dict) else {}
+    stored = {
+        d["code"]: d
+        for d in siteconfig.normalize_status_defs(cfg_now.get("status_defs")).get(kind, [])
+    }
 
     def _slug(v):
-        return re.sub(r"[^a-z0-9_]+", "_", (v or "").strip().lower()).strip("_")[:40]
+        # SM-3: кламп 20 = max_length поля status (согласован с normalize)
+        return re.sub(r"[^a-z0-9_]+", "_", (v or "").strip().lower()).strip("_")[:20]
 
     defs, seen = [], set()
     for code in request.POST.getlist("custom_code"):
@@ -3521,14 +3542,18 @@ def status_manager_save(request, kind):
         role = request.POST.get(f"role_{code}") or "active"
         if code and label and code not in seen:
             seen.add(code)
-            defs.append(status_registry.def_from_role(code, label, role))
+            old = stored.get(code)
+            if old is not None and old.get("role") == role:
+                defs.append({**old, "label": label})  # роль та же → флаги целы
+            else:
+                defs.append(status_registry.def_from_role(code, label, role, kind=kind))
     new_label = (request.POST.get("new_label") or "").strip()[:40]
     if new_label:
         new_code = _slug(new_label)
         if new_code and new_code not in builtin_codes and new_code not in seen:
             defs.append(
                 status_registry.def_from_role(
-                    new_code, new_label, request.POST.get("new_role") or "active"
+                    new_code, new_label, request.POST.get("new_role") or "active", kind=kind
                 )
             )
             seen.add(new_code)
@@ -3541,11 +3566,20 @@ def status_manager_save(request, kind):
         if "|" not in val:
             continue
         src, dst = val.split("|", 1)
+        # SM-3: рёбра ИЗ cancelled-роли не сохраняем (слой чтения их отбросил бы —
+        # мёртвый конфиг); роль src: builtin-дескриптор или только что валидированный деф.
+        src_desc = status_registry.descriptors(kind).get(src)
+        src_role = (
+            src_desc.role
+            if src_desc
+            else next((d["role"] for d in valid_defs if d["code"] == src), "")
+        )
         if (
             src in known
             and dst in known
             and src != dst
             and (src in valid_codes or dst in valid_codes)
+            and src_role != "cancelled"
         ):
             edges.append({"src": src, "dst": dst})
     valid_edges = siteconfig.normalize_status_edges({kind: edges}).get(kind, [])

@@ -16,10 +16,12 @@ def has_booked(service, email: str) -> bool:
         return False
     try:
         from apps.booking.models import Booking
+        from apps.core import status_registry
 
+        # SM-3: «отменённые» через реестр (builtin danger ∪ кастом-cancel тенанта).
         return (
             Booking.objects.filter(service=service, customer__email__iexact=email)
-            .exclude(status__in=[Booking.STATUS_CANCELLED, Booking.STATUS_NO_SHOW])
+            .exclude(status__in=status_registry.cancelled_statuses_for("booking"))
             .exists()
         )
     except Exception:  # noqa: BLE001 — booking может быть выключен; тогда верификации нет

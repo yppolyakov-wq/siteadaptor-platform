@@ -43,10 +43,13 @@ def collect_digest(tenant) -> dict | None:
 
     if modules.is_module_active(tenant, "booking"):
         from apps.booking.models import Booking
+        from apps.core import status_registry
 
+        # SM-3: «активные» через реестр — запись в кастом-статусе видна в дайджесте.
         data["bookings_today"] = _safe(
             lambda: Booking.objects.filter(
-                start__date=today, status__in=Booking.ACTIVE_STATUSES
+                start__date=today,
+                status__in=status_registry.active_statuses_for("booking", tenant),
             ).count()
         )
         data["bookings_pending"] = _safe(
@@ -56,11 +59,13 @@ def collect_digest(tenant) -> dict | None:
         )
 
     if modules.is_module_active(tenant, "stays"):
+        from apps.core import status_registry
         from apps.stays.models import StayBooking
 
         data["arrivals_today"] = _safe(
             lambda: StayBooking.objects.filter(
-                arrival=today, status__in=StayBooking.ACTIVE_STATUSES
+                arrival=today,
+                status__in=status_registry.active_statuses_for("stay", tenant),
             ).count()
         )
         data["stays_pending"] = _safe(

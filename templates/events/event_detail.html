@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block dash_title %}{{ event.title }}{% endblock %}
 
 {% block dash_content %}
@@ -71,7 +71,7 @@
           <td class="py-2 px-3 font-mono text-xs">{{ t.reference_code }}</td>
           <td class="px-3">{{ t.customer.name }}<div class="text-xs text-gray-400">{{ t.customer.email }}</div></td>
           <td class="px-3">{{ t.quantity }}</td>
-          <td class="px-3">{{ t.get_status_display }}</td>
+          <td class="px-3">{% status_label t "ticket" %}</td>
           <td class="px-3">{% if t.payment_state == 'paid' %}<span class="text-green-600">✓</span>{% else %}{{ t.get_payment_state_display }}{% endif %}
             {% with p=t.installment_plan %}{% if p %}<div class="text-xs {% if p.status == 'failed' %}text-red-600{% else %}text-gray-400{% endif %}">{% blocktrans with paid=p.paid_count n=p.count %}Rate {{ paid }}/{{ n }}{% endblocktrans %}{% if p.status == 'failed' %} · ⚠{% elif p.status == 'cancelled' %} · ✕{% endif %}</div>{% endif %}{% endwith %}
           </td>

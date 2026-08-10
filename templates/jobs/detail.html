@@ -18,7 +18,7 @@
       {% elif job.status == 'quoted' %}bg-blue-100 text-blue-800
       {% elif job.status == 'new' %}bg-amber-100 text-amber-800
       {% elif job.status == 'done' or job.status == 'invoiced' %}bg-gray-100 text-gray-600
-      {% else %}bg-red-50 text-red-600{% endif %}">{{ job.get_status_display }}</span>
+      {% else %}bg-red-50 text-red-600{% endif %}">{% status_label job "job" %}</span>
   </h1>
   <span class="flex flex-wrap items-center gap-1">
     <a href="{% url 'jobs:pdf' job.pk %}" target="_blank" class="text-sm text-indigo-600 hover:underline">{% trans "Angebot PDF" %} ↗</a>

@@ -14,11 +14,13 @@ def has_stayed(unit, email: str) -> bool:
     if not email:
         return False
     try:
+        from apps.core import status_registry
         from apps.stays.models import StayBooking
 
+        # SM-3: «отменённые» через реестр (builtin danger ∪ кастом-cancel тенанта).
         return (
             StayBooking.objects.filter(unit=unit, customer__email__iexact=email)
-            .exclude(status__in=[StayBooking.STATUS_CANCELLED, StayBooking.STATUS_NO_SHOW])
+            .exclude(status__in=status_registry.cancelled_statuses_for("stay"))
             .exists()
         )
     except Exception:  # noqa: BLE001 — stays может быть выключен; тогда верификации нет

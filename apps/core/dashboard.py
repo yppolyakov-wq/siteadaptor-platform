@@ -180,11 +180,13 @@ def home_widgets(tenant) -> list[dict]:
         def _stays_today():
             from django.utils import timezone as _tz
 
+            from apps.core import status_registry
             from apps.stays.models import StayBooking
 
             today = _tz.localdate()
+            # SM-3: «активные» через реестр — бронь в кастом-статусе видна в виджете.
             arrivals = StayBooking.objects.filter(
-                arrival=today, status__in=StayBooking.ACTIVE_STATUSES
+                arrival=today, status__in=status_registry.active_statuses_for("stay", tenant)
             ).count()
             departures = StayBooking.objects.filter(
                 departure=today, status=StayBooking.STATUS_CONFIRMED

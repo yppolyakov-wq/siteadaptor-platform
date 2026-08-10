@@ -21,7 +21,10 @@ def status_label(context, obj, kind="order"):
     elif hasattr(obj, "get_status_display"):
         default = obj.get_status_display()
     else:
-        default = str(obj.status)
+        # SM-3: у Reservation choices нет — словарь builtin-подписей, не сырой код.
+        from apps.core import transactions
+
+        default = transactions.builtin_status_labels(kind).get(obj.status, str(obj.status))
     cfg = getattr(tenant_obj, "site_config", None)
     if not isinstance(cfg, dict):
         return default

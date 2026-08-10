@@ -29,11 +29,20 @@ def subset_for(tenant, kind: str) -> dict:
     return {}
 
 
-def keep_target(status: str, target: str, subset: dict) -> bool:
-    """Показывать ли переход `target` из `status`. Danger — всегда; иначе: нет правила
-    для status → да; есть → только если target в списке разрешённых."""
+def keep_target(status: str, target: str, subset: dict, kind: str = "") -> bool:
+    """Показывать ли переход `target` из `status`. Danger — всегда; КАСТОМ-цели (SM-3,
+    при известном kind) — всегда: их видимость курирует status-manager (Вариант B),
+    правила Варианта A управляют только builtin-целями (иначе правило, сохранённое ДО
+    создания кастома, и normalize_transitions, вычищающий кастом-коды, прятали бы
+    кнопку кастом-статуса с доски). Иначе: нет правила для status → да; есть → только
+    если target в списке разрешённых."""
     if pipeline.is_danger(target):
         return True
+    if kind:
+        from apps.core import status_registry
+
+        if target not in status_registry.descriptors(kind):
+            return True  # кастом-цель — не предмет правил Варианта A
     rule = subset.get(status)
     if rule is None:
         return True
@@ -41,13 +50,13 @@ def keep_target(status: str, target: str, subset: dict) -> bool:
 
 
 def _status_display(kind: str, status: str, custom: dict) -> str:
-    """Подпись статуса-источника: своё имя владельца (FB-4a/b) или дефолт из модели."""
+    """Подпись статуса-источника: своё имя владельца (FB-4a/b) или дефолт из модели
+    (SM-3: через builtin_status_labels — у Reservation choices нет, словарь)."""
     if custom.get(status):
         return custom[status]
     from apps.core import transactions
 
-    model = transactions.model_for(kind)
-    return dict(getattr(model, "STATUSES", [])).get(status, status)
+    return transactions.builtin_status_labels(kind).get(status, status)
 
 
 def editor_rows(tenant, kind: str) -> list[dict]:
@@ -56,15 +65,19 @@ def editor_rows(tenant, kind: str) -> list[dict]:
     [{src, src_label, targets: [{dst, label, enabled, danger}]}]. danger-цели показываем
     как всегда-вкл (в UI — disabled-чекбокс). enabled = текущее правило (или всё по дефолту).
     """
-    from apps.core import status_labels
+    from apps.core import status_labels, status_registry
     from apps.tenants import siteconfig
 
     sm = _sm_for(kind)
     subset = subset_for(tenant, kind)
     custom = status_labels.custom_labels(tenant, kind)
+    builtin = status_registry.descriptors(kind)
     rows = []
     for src in siteconfig.status_label_statuses(kind) or ():
-        legal = list(sm.allowed_targets(src))
+        # SM-3: панель правил управляет ТОЛЬКО builtin-целями — кастом-рёбра
+        # курирует status-manager (чекбокс здесь дублировал бы его и терялся
+        # normalize_transitions'ом при каждом save настроек).
+        legal = [d for d in sm.allowed_targets(src) if d in builtin]
         if not any(not pipeline.is_danger(d) for d in legal):
             continue  # из src нечего скрывать (только danger/терминал)
         targets = [
@@ -72,7 +85,7 @@ def editor_rows(tenant, kind: str) -> list[dict]:
                 "dst": d,
                 "label": pipeline.action_label(kind, d),
                 "danger": pipeline.is_danger(d),
-                "enabled": keep_target(src, d, subset),
+                "enabled": keep_target(src, d, subset, kind=kind),
             }
             for d in legal
         ]
@@ -88,12 +101,17 @@ def save(tenant, kind: str, request) -> None:
     Пишем правило src ТОЛЬКО когда владелец скрыл хотя бы один не-danger переход (иначе
     дефолт — presence-minimal). Danger не хранится/не прячется. Прочие kind/ключи целы.
     """
+    from apps.core import status_registry
     from apps.tenants import siteconfig
 
     sm = _sm_for(kind)
+    builtin = status_registry.descriptors(kind)
     rules = {}
     for src in siteconfig.status_label_statuses(kind) or ():
-        nd = [d for d in sm.allowed_targets(src) if not pipeline.is_danger(d)]
+        # SM-3: правила хранят только builtin-цели (кастомы всегда видимы,
+        # см. keep_target) — иначе кастом-код в правиле стирался бы
+        # normalize_transitions при любом сохранении настроек.
+        nd = [d for d in sm.allowed_targets(src) if not pipeline.is_danger(d) and d in builtin]
         if not nd:
             continue
         enabled = [d for d in nd if request.POST.get(f"t_{src}_{d}")]

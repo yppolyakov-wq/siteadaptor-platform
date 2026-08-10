@@ -14,7 +14,7 @@ W10-2 (решение Р-4, 2026-08-05): `reservation` подчиняется О
 
 from django.utils.translation import gettext_lazy as _
 
-from . import archetypes, transactions
+from . import archetypes, status_registry, transactions
 
 # Модуль → kind сделки. `_PRIORITY` архетипов оперирует модулями; продажи
 # каталога живут в модуле orders (catalog в _PRIORITY — это ОН).
@@ -145,10 +145,12 @@ def heute_columns(tenant) -> list[dict]:
                 "key": "anreise",
                 "icon": "🛎",
                 "label": _("Anreisen heute"),
+                # SM-3: «активные» через реестр — заезд в кастом-статусе виден в Heute.
                 "items": _safe(
                     lambda: _stay_items(
                         StayBooking.objects.filter(
-                            arrival=today, status__in=StayBooking.ACTIVE_STATUSES
+                            arrival=today,
+                            status__in=status_registry.active_statuses_for("stay", tenant),
                         )
                     )
                 ),
@@ -192,7 +194,10 @@ def heute_columns(tenant) -> list[dict]:
         def _termine():
             out = []
             qs = (
-                Booking.objects.filter(start__date=today, status__in=Booking.ACTIVE_STATUSES)
+                Booking.objects.filter(
+                    start__date=today,
+                    status__in=status_registry.active_statuses_for("booking", tenant),
+                )
                 .select_related("customer", "resource", "service")
                 .order_by("start")[:50]
             )

@@ -201,8 +201,10 @@ def purge_due_customers(now=None) -> int:
     now = now or timezone.now()
     cutoff = now - timedelta(days=settings.RESERVATION_PII_RETENTION_DAYS)
 
+    # SM-3: активность через реестр (как stays строкой ниже) — резерв в кастом-
+    # active статусе владельца тоже живая сделка, его клиента не обезличиваем.
     active_customer_ids = Reservation.objects.filter(
-        status__in=["pending", "confirmed"]
+        status__in=status_registry.active_statuses_for("reservation")
     ).values_list("customer_id", flat=True)
     active_stay_ids = StayBooking.objects.filter(
         status__in=status_registry.active_statuses_for("stay")

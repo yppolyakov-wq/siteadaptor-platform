@@ -147,6 +147,57 @@ def test_dispatch_cancel_after_revenue_reverses(_capture):
     assert _capture == [("stock", "order"), "unredeem", ("reversal", "order")]
 
 
+def test_dispatch_skips_cancel_effects_when_src_already_cancelled(_capture):
+    """SM-3: сделка, УЖЕ стоящая в cancelled-роли, при входе в другой cancelled-статус
+    не возвращает склад/лимит/ваучер второй раз (возвраты не идемпотентны). Второй
+    слой той же защиты — custom_edges дропает cancel↔cancel рёбра."""
+    src = StatusDescriptor(code="storniert_alt", role="cancelled", stage="terminal", builtin=False)
+    status_effects.apply_custom_effects("reservation", object(), src, _desc("cancelled"))
+    assert _capture == []
+
+
+def test_dispatch_job_done_role_commits_stock(monkeypatch):
+    """SM-3 (зеркало G11): вход job в кастом done-роль списывает Teile — builtin
+    вешает commit_stock на литерал t.dst=='done', кастом-статус его миновал бы
+    (счёт выставлен, склад не тронут). commit_stock идемпотентен (stock_committed)."""
+    calls = []
+    monkeypatch.setattr("apps.jobs.services.commit_stock", lambda j: calls.append(j))
+    status_effects.apply_custom_effects("job", object(), None, _desc("done"))
+    assert len(calls) == 1
+    # для других kind done-роль склад не трогает
+    calls.clear()
+    status_effects.apply_custom_effects("order", object(), None, _desc("done"))
+    assert calls == []
+
+
+@pytest.mark.django_db
+def test_dispatch_ticket_cancel_stops_installment_plan():
+    """SM-3 (зеркало R10e): кастом-отмена билета стопит активную рассрочку —
+    иначе beat продолжил бы off-session списания по отменённому билету."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.events.models import Event, InstallmentPlan
+    from apps.events.services import book_ticket
+
+    event = Event.objects.create(
+        title="Kurs",
+        starts_at=timezone.now() + timedelta(days=7),
+        status=Event.STATUS_PUBLISHED,
+        price_cents=30000,
+        capacity=10,
+    )
+    ticket = book_ticket(event, name="A", email="a@test.de", quantity=1)
+    plan = InstallmentPlan.objects.create(ticket=ticket, total_cents=30000, count=3)
+
+    src = _desc("active")
+    dst = StatusDescriptor(code="abgesagt", role="cancelled", stage="terminal", builtin=False)
+    status_effects.apply_custom_effects("ticket", ticket, src, dst)
+    plan.refresh_from_db()
+    assert plan.status == InstallmentPlan.STATUS_CANCELLED
+
+
 # --- Phase 3b: хук apply() — эффекты ТОЛЬКО для кастом-статуса -----------------
 
 
@@ -345,3 +396,245 @@ def test_status_manager_editor_save_and_render(settings):
     body = status_manager(_mgr_req("get", {}, t), "booking").content.decode()
     assert "Beim Lieferanten" in body
     assert 'value="confirmed|beim_lieferanten"' in body
+
+
+# --- SM-3: редактор и apply() для job/ticket/reservation ----------------------
+
+
+@pytest.mark.parametrize("kind", ["job", "ticket", "reservation"])
+def test_status_manager_open_for_all_six_kinds(settings, kind):
+    """SM-3 (решение владельца 2026-08-10): свои статусы работают на всех шести
+    направлениях — редактор отвечает 200 и сохраняет деф+ребро."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    from apps.core import status_registry
+    from apps.core.views import status_manager, status_manager_save
+    from apps.tenants.tests.factories import TenantFactory
+
+    t = TenantFactory(site_config={})
+    first_builtin = next(iter(status_registry.descriptors(kind)))
+    resp = status_manager_save(
+        _mgr_req(
+            "post",
+            {
+                "new_label": "Mein Status",
+                "new_role": "active",
+                "edge": [f"{first_builtin}|mein_status"],
+            },
+            t,
+        ),
+        kind,
+    )
+    assert resp.status_code == 302
+    t.refresh_from_db()
+    d = t.site_config["status_defs"][kind][0]
+    assert d["code"] == "mein_status" and d["role"] == "active"
+    assert {"src": first_builtin, "dst": "mein_status"} in t.site_config["status_edges"][kind]
+    body = status_manager(_mgr_req("get", {}, t), kind).content.decode()
+    assert "Mein Status" in body
+
+
+def test_status_manager_reservation_builtin_labels_readable(settings):
+    """SM-3: у Reservation нет choices — подписи встроенных статусов в редакторе
+    берутся из словаря transactions (не сырые коды `pending`/`fulfilled`)."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    from apps.core.views import status_manager
+    from apps.tenants.tests.factories import TenantFactory
+
+    t = TenantFactory(
+        site_config={
+            "status_defs": {
+                "reservation": [{"code": "warte_zahlung", "role": "active", "stage": "in_progress"}]
+            }
+        }
+    )
+    body = status_manager(_mgr_req("get", {}, t), "reservation").content.decode()
+    assert "Reserviert" in body  # pending
+    assert "Eingelöst" in body  # fulfilled
+
+
+def test_status_manager_cancel_role_hides_danger_edges(settings):
+    """SM-3 (UX-честность): рёбер ИЗ cancelled-роли не бывает (слой чтения их
+    отбросит) — редактор не рисует ни блок «Führt zu» у кастом-отмены, ни
+    отменённые источники (включая un-cancel в active-кастом)."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    from apps.core.views import status_manager
+    from apps.tenants.tests.factories import TenantFactory
+
+    t = TenantFactory(
+        site_config={
+            "status_defs": {
+                "booking": [
+                    {"code": "abgesagt_kulanz", "role": "cancelled", "stage": "terminal"},
+                    {"code": "warte_zahlung", "role": "active", "stage": "in_progress"},
+                ]
+            }
+        }
+    )
+    body = status_manager(_mgr_req("get", {}, t), "booking").content.decode()
+    assert 'value="abgesagt_kulanz|cancelled"' not in body  # из кастом-отмены выхода нет
+    assert 'value="abgesagt_kulanz|warte_zahlung"' not in body
+    assert 'value="cancelled|abgesagt_kulanz"' not in body  # из builtin-danger тоже
+    assert 'value="cancelled|warte_zahlung"' not in body  # un-cancel не предлагается
+    # легальные рёбра предлагаются: вход в кастомы из живых статусов, выход в отмену
+    assert 'value="pending|abgesagt_kulanz"' in body
+    assert 'value="warte_zahlung|cancelled"' in body
+
+
+def test_editor_ticket_done_role_holds_seat(settings):
+    """SM-3: свой «завершённый» статус БИЛЕТА держит место (асимметрия attended:
+    done-роль у ticket = blocks_capacity, в отличие от booking/stay.fulfilled)."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    from apps.core.views import status_manager_save
+    from apps.tenants.tests.factories import TenantFactory
+
+    t = TenantFactory(site_config={})
+    status_manager_save(
+        _mgr_req("post", {"new_label": "Teilgenommen VIP", "new_role": "done"}, t), "ticket"
+    )
+    t.refresh_from_db()
+    d = t.site_config["status_defs"]["ticket"][0]
+    assert d["role"] == "done" and d["blocks_capacity"] is True
+    # у order done-роль место не держит (как builtin picked_up)
+    t2 = TenantFactory(site_config={})
+    status_manager_save(
+        _mgr_req("post", {"new_label": "Verpackt", "new_role": "done"}, t2), "order"
+    )
+    t2.refresh_from_db()
+    assert t2.site_config["status_defs"]["order"][0]["blocks_capacity"] is False
+
+
+def test_editor_resave_preserves_advanced_flags(settings):
+    """SM-3: пере-сохранение редактора НЕ теряет продвинутые флаги существующего
+    статуса (counts_in_reports ставится только через site_config API — PMS-кейс
+    отеля), пока роль не менялась; смена роли → дефолты новой роли."""
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    from apps.core.views import status_manager_save
+    from apps.tenants.tests.factories import TenantFactory
+
+    t = TenantFactory(
+        site_config={
+            "status_defs": {
+                "stay": [
+                    {
+                        "code": "anzahlung",
+                        "label": "Anzahlung erhalten",
+                        "role": "active",
+                        "stage": "in_progress",
+                        "blocks_capacity": True,
+                        "counts_in_reports": True,
+                    }
+                ]
+            }
+        }
+    )
+    status_manager_save(
+        _mgr_req(
+            "post",
+            {
+                "custom_code": ["anzahlung"],
+                "label_anzahlung": "Anzahlung da",
+                "role_anzahlung": "active",
+            },
+            t,
+        ),
+        "stay",
+    )
+    t.refresh_from_db()
+    d = t.site_config["status_defs"]["stay"][0]
+    assert d["label"] == "Anzahlung da"  # label обновился
+    assert d["counts_in_reports"] is True  # флаг НЕ потерян
+    # смена роли → дефолты новой роли (counts сброшен осознанно)
+    status_manager_save(
+        _mgr_req(
+            "post",
+            {
+                "custom_code": ["anzahlung"],
+                "label_anzahlung": "Anzahlung da",
+                "role_anzahlung": "done",
+            },
+            t,
+        ),
+        "stay",
+    )
+    t.refresh_from_db()
+    d = t.site_config["status_defs"]["stay"][0]
+    assert d["role"] == "done" and d["counts_in_reports"] is False
+
+
+@pytest.mark.django_db
+def test_transition_rule_saved_before_custom_does_not_hide_it(monkeypatch):
+    """SM-3: правило переходов (Вариант A), сохранённое ДО создания кастом-статуса,
+    НЕ прячет его кнопку с доски — кастом-цели вне правил (их курирует
+    status-manager), а normalize_transitions вычищал бы кастом-код из правила при
+    каждом сохранении настроек. Кастом-отмена — danger (красная кнопка)."""
+    from apps.core import status_registry, transactions, transition_rules
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(
+        site_config={
+            "status_defs": {
+                "booking": [
+                    {"code": "warte_zahlung", "role": "active", "stage": "in_progress"},
+                    {"code": "abgesagt_kulanz", "role": "cancelled", "stage": "terminal"},
+                ]
+            },
+            "status_edges": {
+                "booking": [
+                    {"src": "confirmed", "dst": "warte_zahlung"},
+                    {"src": "confirmed", "dst": "abgesagt_kulanz"},
+                ]
+            },
+            # правило создано «до» кастома: из confirmed показывать только fulfilled
+            "transitions": {"booking": {"confirmed": ["fulfilled"]}},
+        }
+    )
+    monkeypatch.setattr(status_registry, "_current_tenant", lambda: tenant)
+
+    subset = transition_rules.subset_for(tenant, "booking")
+    actions = transactions.allowed_actions_for("booking", "confirmed", subset)
+    by_target = {a["target"]: a for a in actions}
+    assert "warte_zahlung" in by_target  # кастом-цель видима вопреки правилу
+    assert "abgesagt_kulanz" in by_target
+    assert by_target["abgesagt_kulanz"]["danger"] is True  # кастом-отмена красная
+    assert "no_show" in by_target  # builtin danger — всегда
+    assert "fulfilled" in by_target
+    # панель правил предлагает ТОЛЬКО builtin-цели (кастомы — в status-manager)
+    rows = transition_rules.editor_rows(tenant, "booking")
+    all_dsts = {t["dst"] for r in rows for t in r["targets"]}
+    assert "warte_zahlung" not in all_dsts and "abgesagt_kulanz" not in all_dsts
+
+
+@pytest.mark.django_db
+def test_job_custom_status_reachable_via_apply(monkeypatch):
+    """SM-3 e2e: свой статус job («Beim Lieferanten») достижим через apply()
+    (путь доски/kanban_action) и возвращается в builtin-граф дальше."""
+    from apps.core import status_registry
+    from apps.jobs import services as job_services
+    from apps.jobs.state_machine import JobSM
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(
+        site_config={
+            "status_defs": {
+                "job": [{"code": "beim_lieferanten", "role": "active", "stage": "in_progress"}]
+            },
+            "status_edges": {
+                "job": [
+                    {"src": "accepted", "dst": "beim_lieferanten"},
+                    {"src": "beim_lieferanten", "dst": "done"},
+                ]
+            },
+        }
+    )
+    monkeypatch.setattr(status_registry, "_current_tenant", lambda: tenant)
+
+    job = job_services.create_job(title="Zaun", name="Kunde", email="k@test.de")
+    JobSM().apply(job, "quoted")
+    JobSM().apply(job, "accepted")
+    JobSM().apply(job, "beim_lieferanten")  # кастом-ребро
+    job.refresh_from_db()
+    assert job.status == "beim_lieferanten"
+    assert "done" in JobSM().allowed_targets("beim_lieferanten")
+    JobSM().apply(job, "done")  # обратно в builtin-граф (commit_stock и пр. — on_transition)
+    job.refresh_from_db()
+    assert job.status == "done"
