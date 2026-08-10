@@ -199,10 +199,10 @@ def home_widgets(tenant) -> list[dict]:
                 "label": _t("Anreisen heute"),
                 "value": str(arrivals_n),
                 "hint": _t("Abreisen heute: %(n)s") % {"n": departures_n},
-                # W10-4: deep-link на «Heute» единой страницы (stays:today —
-                # легаси с мостиком).
+                # SM-2 (2026-08-10): сводка «Heute» живёт на самой главной —
+                # виджет ведёт во вкладку броней (детальная работа — там).
                 "url_name": "verkaeufe",
-                "url_query": "?view=heute",
+                "url_query": "?tab=stay",
                 "sparkline": "",
             }
         )

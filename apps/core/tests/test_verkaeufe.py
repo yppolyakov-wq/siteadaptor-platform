@@ -48,27 +48,13 @@ def test_hotel_first_tab_is_stay_and_default_view_is_kalender():
     assert "Übernachtungen" in body
 
 
-def test_secondary_tab_hidden_without_sales_and_appears_with_first_sale():
-    """«Показывать раздел, только если есть продажи»: booking-вкладка отеля
-    прячется, пока нет ни одной записи, и появляется с первой."""
-    from datetime import timedelta
-
-    from django.utils import timezone
-
-    from apps.booking.models import Booking, Customer, Resource
-
+def test_tab_per_active_module_even_without_sales():
+    """SM-2 (решение владельца 2026-08-10, осознанная замена правила W10-2):
+    вкладка на КАЖДЫЙ активный модуль сразу — верхний уровень продаж = модули
+    бизнеса, а не «что уже продавалось». У отеля booking активен → вкладка
+    «Termine» видна и без единой записи."""
     body = views.verkaeufe(_req(**_hotel())).content.decode()
-    assert "?tab=booking" not in body  # продаж услуг нет — вкладки нет
-
-    start = timezone.now() + timedelta(days=1)
-    Booking.objects.create(
-        resource=Resource.objects.create(name="Spa"),
-        start=start,
-        end=start + timedelta(hours=1),
-        customer=Customer.objects.create(name="Gast", email="g@t.de"),
-    )
-    body = views.verkaeufe(_req(**_hotel())).content.decode()
-    assert "?tab=booking" in body
+    assert "?tab=booking" in body  # модуль активен — вкладка есть, продаж ноль
 
 
 def test_primary_tab_visible_even_with_zero_sales():
@@ -116,22 +102,22 @@ def test_normalize_sales_views_is_presence_minimal():
     assert "sales_views" not in cfg
 
 
-def test_reservation_tab_follows_first_sale_rule():
-    """W10-2 (решение Р-4, 2026-08-05): reservation подчиняется ОБЩЕМУ правилу
-    «вкладка с первой продажей» — заявки клиентов видны на Verkäufe (раньше
-    вырезались всегда и жили только в Marketing/Erweitert)."""
+def test_reservation_tab_follows_active_module():
+    """SM-2 (2026-08-10, осознанная замена Р-4): reservation — тем же правилом
+    «вкладка на активный модуль»: promotions включён → вкладка есть сразу,
+    promotions выключен → вкладки нет (и продажи прошлого её не воскрешают)."""
     from apps.core.modules import default_disabled_for
 
     tenant = TenantFactory.build(
         business_type="bakery", disabled_modules=list(default_disabled_for("bakery"))
     )
-    assert "reservation" not in sales_page.visible_kinds(tenant)  # продаж нет
+    assert "reservation" in sales_page.visible_kinds(tenant)  # promotions активен
 
-    from apps.promotions.models import Reservation
-    from apps.promotions.tests.factories import CustomerFactory, PromotionFactory
-
-    Reservation.objects.create(promotion=PromotionFactory(), customer=CustomerFactory(), quantity=1)
-    assert "reservation" in sales_page.visible_kinds(tenant)
+    off = TenantFactory.build(
+        business_type="bakery",
+        disabled_modules=list(default_disabled_for("bakery")) + ["promotions"],
+    )
+    assert "reservation" not in sales_page.visible_kinds(off)
 
 
 def test_auftragsbuch_groups_orders_by_pickup_day():
@@ -314,15 +300,39 @@ def test_heute_view_columns_by_archetype():
     assert order.reference_code in body
 
 
-def test_heute_button_in_switch_row():
-    body = views.verkaeufe(_req(**_hotel())).content.decode()
-    assert "view=heute" in body  # кнопка «Heute» рядом с переключателем видов
-
-
-def test_stays_today_widget_deep_links_to_heute():
+def test_stays_today_widget_deep_links_to_stay_tab():
     from apps.core import dashboard as dash
 
     hotel = TenantFactory.build(**_hotel())
     w = next((x for x in dash.home_widgets(hotel) if x.get("key") == "stays_today"), None)
     if w is not None:
-        assert w["url_name"] == "verkaeufe" and w["url_query"] == "?view=heute"
+        # SM-2: сводка Heute живёт на самой главной — виджет ведёт во вкладку.
+        assert w["url_name"] == "verkaeufe" and w["url_query"] == "?tab=stay"
+
+
+def test_toolbar_lives_inside_the_tab_not_above():
+    """SM-2 (фидбэк владельца 2026-08-10): «кнопки идут как будто над верхним
+    уровнем, а должны быть частью каждого внутри» — переключатель видов и
+    «⚙️ Abläufe» стоят ПОСЛЕ ряда вкладок; «📆 Heute» из ряда видов ушёл
+    (он живёт на Übersicht)."""
+    body = views.verkaeufe(_req(**_hotel())).content.decode()
+    assert body.index("data-sales-tabs") < body.index("data-sales-view-switch")
+    assert body.index("data-sales-tabs") < body.index("Abläufe")
+    assert "view=heute" not in body  # кнопки Heute на странице продаж больше нет
+
+
+def test_heute_lives_on_the_dashboard():
+    """SM-2: сводка дня — часть Übersicht. Deep-link ?view=heute остаётся
+    рабочим (виджеты главной ссылаются на колонки)."""
+    from apps.core.views import dashboard as dashboard_view
+
+    body = dashboard_view(
+        _req(
+            "/dashboard/",
+            **_hotel(site_config={"onboarding": {"step": 7, "skipped": [], "completed": True}}),
+        )
+    ).content.decode()
+    assert "Heute" in body
+
+    resp = views.verkaeufe(_req(data={"view": "heute"}, **_hotel()))
+    assert resp.status_code == 200

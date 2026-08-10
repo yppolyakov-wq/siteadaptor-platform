@@ -124,6 +124,9 @@ def dashboard(request):
     from apps.core import orders_view as ov
 
     sales_view = ov.resolve_view(request.tenant)
+    from apps.core import sales_page
+
+    _heute = sales_page.heute_columns(request.tenant)
     return render(
         request,
         "tenant/dashboard.html",
@@ -149,6 +152,10 @@ def dashboard(request):
             "presence_mode": presence.mode(request.tenant),
             "presence_now": presence.available_now(request.tenant),
             "presence_number": getattr(request.tenant, "whatsapp_number", ""),
+            # SM-2 (фидбэк владельца 2026-08-10): «📆 Heute» — часть Übersicht,
+            # а не вид страницы продаж. Колонки те же, что были на ?view=heute.
+            "heute_columns": _heute,
+            "heute_has_items": any(col["items"] for col in _heute),
         },
     )
 

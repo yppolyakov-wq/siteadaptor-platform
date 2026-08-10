@@ -93,6 +93,21 @@ st4-admin-home-plan §1).{% endcomment %}
 {% endif %}
 
 
+{% comment %}SM-2 (фидбэк владельца 2026-08-10): «📆 Heute» — сводка дня по всем
+модулям продаж — живёт на Übersicht, а не видом на странице Verkäufe. Пустой
+день — слим-строка вместо сетки пустых колонок.{% endcomment %}
+{% if heute_columns %}
+  {% if heute_has_items %}
+    <div class="flex items-baseline justify-between gap-3 mb-3">
+      <h2 class="text-lg font-bold">📆 {% trans "Heute" %}</h2>
+      <a href="{% url 'verkaeufe' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Verkäufe" %} →</a>
+    </div>
+    <div class="mb-6">{% include "core/_sales_heute.html" %}</div>
+  {% else %}
+    <p class="mb-6 text-sm text-gray-400">📆 {% trans "Heute" %}: {% trans "Nichts für heute." %} <a href="{% url 'verkaeufe' %}" class="text-indigo-600 hover:underline">{% trans "Verkäufe" %} →</a></p>
+  {% endif %}
+{% endif %}
+
 {% comment %}AB7-B2: канбан входящих задач прямо на главной — тот же партиал/DnD, что на
 /dashboard/board/ (полнофункциональный). Показываем только при активных каналах.{% endcomment %}
 {% if sales_is_calendar %}

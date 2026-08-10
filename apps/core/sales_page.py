@@ -70,8 +70,13 @@ def default_view(tenant, kind: str) -> str:
 
 
 def visible_kinds(tenant) -> list[str]:
-    """Вкладки страницы: primary-kind всегда первым, дальше — kind'ы с
-    продажами в порядке `_PRIORITY` (W10-2/Р-4: reservation — тем же правилом)."""
+    """Вкладки страницы: primary-kind первым, дальше — kind КАЖДОГО активного
+    модуля в порядке `_PRIORITY`.
+
+    SM-2 (решение владельца 2026-08-10): вкладка на каждый активный модуль
+    СРАЗУ, не «с первой продажей» — верхний уровень продаж = модули бизнеса.
+    Прежний гейт «kinds_with_sales» прятал направление, пока не пришла первая
+    продажа, и владелец не видел, куда она придёт."""
     primary = _MODULE_KIND.get(archetypes.primary_module(tenant))
     # W7c (аудит 2026-08-05): маппинг catalog→order кросс-модульный (catalog core,
     # orders может быть выключен) — без гейта у тенанта business_type=other
@@ -79,13 +84,12 @@ def visible_kinds(tenant) -> list[str]:
     # «Alte Ansicht» вела в 404.
     if primary and not tenant.is_module_active(transactions.KIND_MODULE[primary]):
         primary = None
-    with_sales = transactions.kinds_with_sales(tenant)
     out = []
     if primary:
         out.append(primary)
     for module in archetypes._PRIORITY:
         kind = _MODULE_KIND[module]
-        if kind in out or kind not in with_sales:
+        if kind in out or not tenant.is_module_active(transactions.KIND_MODULE[kind]):
             continue
         out.append(kind)
     return out
