@@ -80,7 +80,9 @@ def _user(n):
 @pytest.mark.django_db
 def test_board_settings_saves_and_preserves_other_keys(settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
-    tenant = TenantFactory(disabled_modules=[], site_config={"ui_mode": "simple"})
+    tenant = TenantFactory(
+        disabled_modules=[], site_config={"notify": {"customer": {"email": True}}}
+    )
     data = {
         "label_intake": "Posteingang",
         "hidden_terminal": "on",
@@ -95,7 +97,9 @@ def test_board_settings_saves_and_preserves_other_keys(settings):
     assert tenant.site_config["board"]["labels"]["intake"] == "Posteingang"
     assert "terminal" in tenant.site_config["board"]["hidden"]
     assert "order" not in tenant.site_config["board"]  # дефолтный порядок не материализуем
-    assert tenant.site_config["ui_mode"] == "simple"  # чужой ключ цел (targeted write)
+    assert tenant.site_config["notify"] == {
+        "customer": {"email": True}
+    }  # чужой ключ цел (targeted write)
 
 
 @pytest.mark.django_db

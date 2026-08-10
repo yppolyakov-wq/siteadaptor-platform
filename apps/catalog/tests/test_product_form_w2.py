@@ -31,15 +31,13 @@ def _render(user, tenant):
 @pytest.mark.parametrize(
     ("business_type", "cfg"),
     [
-        ("bakery", {}),  # еда, эксперт
-        ("bakery", {"ui_mode": "simple"}),  # еда, простой
-        ("friseur", {}),  # не-еда, эксперт
-        ("friseur", {"ui_mode": "simple"}),  # не-еда, простой
+        ("bakery", {}),  # еда
+        ("friseur", {}),  # не-еда
     ],
 )
 def test_all_fields_stay_in_dom(user, business_type, cfg):
-    """W0-урок: скрытие (Простой/не-еда) — только CSS; поля обязаны быть в DOM, иначе Save
-    придёт без них и затрёт значения."""
+    """W0-урок: скрытие (не-еда) — только CSS; поля обязаны быть в DOM, иначе Save
+    придёт без них и затрёт значения. (SM-1: режим Простой/Эксперт снесён.)"""
     tenant = TenantFactory(business_type=business_type, site_config=cfg)
     body = _render(user, tenant)
     form = ProductForm(tenant=tenant)
@@ -80,12 +78,14 @@ def test_labeling_tab_hidden_for_nonfood(user):
 
 
 @pytest.mark.django_db
-def test_simple_mode_hides_advanced_keeps_fields(user):
-    """Ф1: в Простом режиме продвинутые ТАБЫ скрыты, но их поля остаются в DOM."""
-    body = _render(user, TenantFactory(business_type="bakery", site_config={"ui_mode": "simple"}))
-    assert "id_stock_quantity" in body and "id_cost_price" in body  # поля в DOM
-    i = body.find('data-pf-tab="preis"')
-    assert i != -1 and "hidden" in body[i : i + 80]  # продвинутый таб скрыт
+def test_advanced_tabs_visible_for_everyone(user):
+    """SM-1 (2026-08-10): режим Простой/Эксперт снесён — продвинутые табы формы
+    (Preis & Lager / Marketing) видны каждому владельцу без переключателей."""
+    body = _render(user, TenantFactory(business_type="bakery"))
+    assert "id_stock_quantity" in body and "id_cost_price" in body
+    for tab in ("preis", "markt"):
+        i = body.find(f'data-pf-tab="{tab}"')
+        assert i != -1 and "hidden" not in body[i : i + 80], tab
 
 
 # --- Ф1: переключатель языка (per-language ввод) ----------------------------

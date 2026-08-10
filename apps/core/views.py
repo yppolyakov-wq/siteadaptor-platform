@@ -2815,19 +2815,6 @@ def modules_view(request):
     tenant = request.tenant
     optional = registry.optional_modules()
     if request.method == "POST":
-        # S5: отдельная форма-тумблер режима кабинета (Простой/Эксперт). Пишем ui_mode
-        # ПРЯМО в site_config (без normalize — чтобы не задеть прочие ключи); дефолт
-        # expert = отсутствие ключа. normalize сохранит ui_mode при билдер-записи.
-        if "ui_mode" in request.POST:
-            cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
-            if request.POST.get("ui_mode") == "simple":
-                cfg["ui_mode"] = "simple"
-            else:
-                cfg.pop("ui_mode", None)
-            tenant.site_config = cfg
-            tenant.save(update_fields=["site_config", "updated_at"])
-            messages.success(request, _("Gespeichert."))
-            return redirect("modules")
         enabled_keys = set(request.POST.getlist("modules"))
         previously_disabled = set(tenant.disabled_modules or [])
         tenant.disabled_modules = [spec.key for spec in optional if spec.key not in enabled_keys]
@@ -2887,29 +2874,8 @@ def modules_view(request):
             "rows": recommended,
             "other_rows": other,
             "premium_rows": premium,
-            "ui_simple": registry.is_simple(tenant),  # S5: тумблер режима
         },
     )
-
-
-@login_required
-@require_POST
-def set_ui_mode_view(request):
-    """W3-fix (видимость режима): переключатель Einfach/Experte из ШАПКИ кабинета —
-    работает с любой страницы (форма-POST в _base_dashboard), возвращает назад.
-
-    Логика записи 1:1 с modules_view (ui_mode в site_config; expert = отсутствие
-    ключа; normalize сохраняет). Раньше тумблер жил только на «Funktionen» (в ящике
-    «Erweitert» → его было не найти); теперь всегда виден в шапке."""
-    tenant = request.tenant
-    cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
-    if request.POST.get("ui_mode") == "simple":
-        cfg["ui_mode"] = "simple"
-    else:
-        cfg.pop("ui_mode", None)
-    tenant.site_config = cfg
-    tenant.save(update_fields=["site_config", "updated_at"])
-    return redirect(_safe_dashboard_referer(request))
 
 
 @login_required
@@ -3240,7 +3206,7 @@ def board(request):
 def board_settings(request):
     """W5: сохранить настройки Kanban-доски (переименование/порядок/скрытие колонок)
     в site_config['board']. Правила переходов (FSM) НЕ трогаем (V4). Targeted-write
-    (как set_ui_mode) — прочие ключи site_config целы."""
+    — прочие ключи site_config целы."""
     from apps.core import pipeline
     from apps.tenants import siteconfig
 
@@ -3426,29 +3392,6 @@ def _status_choices(kind):
     from apps.stays.models import StayBooking
 
     return StayBooking.STATUSES
-
-
-@login_required
-def ansicht_view(request):
-    """W12-1: «Ansicht» — режим кабинета одним экраном: выбор Einfach/Experte
-    (тот же endpoint set-ui-mode) + честный список «что именно скрыто у вас»
-    (simple_hidden_labels) + принцип S5 (страницы доступны по прямой ссылке).
-    Раньше настройка вида была размазана по шапке/Funktionen (аудит §2.7)."""
-    from apps.core import modules as _mod
-
-    tenant = request.tenant
-    return render(
-        request,
-        "tenant/ansicht.html",
-        {
-            "nav": "ansicht",
-            "mode": _mod.ui_mode(tenant),
-            "hidden_labels": _mod.simple_hidden_labels(tenant),
-        },
-    )
-
-
-# --- FB-3 Вариант B Phase 5: редактор кастом-статусов -------------------------
 
 
 def _set_status_config(cfg, top_key, kind, value):

@@ -300,7 +300,6 @@ ENTRIES: tuple[NavEntry, ...] = (
     _e("settings", "media-library", _("Medien"), "media", None, True, "bilder fotos bibliothek"),
     _e("settings", "modules", _("Funktionen"), "modules", None, True, "module aktivieren"),
     # W12-1: режим кабинета одним экраном (Einfach/Experte + «что скрыто»).
-    _e("settings", "ansicht", _("Ansicht"), "ansicht", None, True, "einfach experte modus ansicht"),
     _e("settings", "finder-settings", _("Finder"), "finder", None, True, "fragen empfehlung"),
     _e("settings", "support:help", _("Hilfe"), "support", None, True, "anleitung hilfe"),
 )

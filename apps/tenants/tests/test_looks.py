@@ -45,7 +45,7 @@ def test_every_look_survives_apply_and_normalize(business_type):
             business_type=business_type,
             site_config={
                 "hero_title": "Mein Titel",  # текст владельца — не затирается
-                "ui_mode": "simple",
+                "notify": {"customer": {"email": True}},
                 "board": {"labels": {"intake": "Neu!"}},
                 "presence": {"mode": "on"},
             },
@@ -68,7 +68,7 @@ def test_every_look_survives_apply_and_normalize(business_type):
         assert tenant.primary_color == sitetemplates.look_accent(business_type, family["key"])
         # чужие ключи и тексты владельца целы (латентный баг W6-класса исправлен)
         assert cfg["hero_title"] == "Mein Titel"
-        assert cfg["ui_mode"] == "simple"
+        assert cfg["notify"] == {"customer": {"email": True}}
         assert cfg["board"]["labels"]["intake"] == "Neu!"
         assert cfg["presence"] == {"mode": "on"}
         # повторное применение — идемпотентно
@@ -81,10 +81,10 @@ def test_apply_template_preserves_foreign_keys_too():
     """Фикс распространяется и на старый apply_template (та же _apply-база)."""
     tenant = TenantFactory(
         business_type="bakery",
-        site_config={"ui_mode": "simple", "seo": {"allow_ai": False}},
+        site_config={"notify": {"customer": {"email": True}}, "seo": {"allow_ai": False}},
     )
     assert sitetemplates.apply_template(tenant, "laden") is True
-    assert tenant.site_config["ui_mode"] == "simple"
+    assert tenant.site_config["notify"] == {"customer": {"email": True}}
     assert tenant.site_config["seo"]["allow_ai"] is False
 
 

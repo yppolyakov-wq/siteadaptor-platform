@@ -802,15 +802,8 @@ def test_dashboard_shows_task_tiles_gated_by_module():
     # остаётся; его гейты — выше). Рендер проверяем по новым хабам.
     html = core_views.dashboard(_req(tenant=tenant)).content.decode()
     assert "ic-orders" in html and "Einstellungen" in html
-    # В Простом режиме у friseur (ARCHETYPE_SIMPLE_HIDDEN) catalog скрыт → нет плитки
-    # Kategorien (тот же гейт simple_hidden_modules, что у сайдбара).
-    simple_friseur = TenantFactory.build(
-        business_type="friseur",
-        disabled_modules=modules.default_disabled_for("friseur"),
-        site_config={"ui_mode": "simple"},
-    )
-    hidden_urls = {t["url_name"] for t in dash.dashboard_tiles(simple_friseur)}
-    assert "catalog:category-list" not in hidden_urls
+    # SM-1 (2026-08-10): режим Простой/Эксперт снесён — плитки одинаковы для всех,
+    # отдельного скрытия по режиму больше нет.
 
 
 def test_dashboard_tile_badge_links_to_incomplete_step():

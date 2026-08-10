@@ -74,26 +74,19 @@ def test_settings_page_renders_all_form_fields():
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    "cfg",
-    [
-        {},  # Expert (дефолт)
-        {"ui_mode": "simple"},  # Простой — продвинутые секции hidden, поля в DOM
-    ],
-)
-def test_settings_all_fields_in_dom_any_mode(cfg, settings):
-    """W4: аккордеоны + Простой/Эксперт скрывают ТОЛЬКО CSS — все поля формы обязаны
-    быть в DOM в любом режиме (иначе Save затрёт, урок W0)."""
+def test_settings_all_fields_in_dom_any_mode(settings):
+    """W4: аккордеоны скрывают ТОЛЬКО CSS — все поля формы обязаны быть в DOM
+    (иначе Save затрёт, урок W0). SM-1: режим Простой/Эксперт снесён."""
     settings.ROOT_URLCONF = "config.urls_tenant"
     from apps.tenants.forms import BusinessSettingsForm
 
-    tenant = TenantFactory(disabled_modules=[], site_config=cfg)
+    tenant = TenantFactory(disabled_modules=[], site_config={})
     user = get_user_model().objects.create_user("m", "m@test.de", "pw12345678")
     req = _attach(RequestFactory().get("/dashboard/settings/"), user)
     req.tenant = tenant
     html = core_views.settings_view(req).content.decode()
     missing = [f for f in BusinessSettingsForm.Meta.fields if f"id_{f}" not in html]
-    assert not missing, f"поля не в DOM ({cfg}): {missing}"
+    assert not missing, f"поля не в DOM: {missing}"
 
 
 @pytest.mark.django_db

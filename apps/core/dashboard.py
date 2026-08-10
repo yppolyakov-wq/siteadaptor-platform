@@ -4,7 +4,7 @@
 «Nicht ausgefüllt», взятым из ЕДИНОГО реестра шагов мастера
 (`onboarding.steps_with_status`): клик по бейджу ведёт на конкретный слайд
 (`setup?step=<key>`), чтобы дозаполнить пропущенное. Гейты — по активным модулям
-и `simple_hidden_modules` (как сайдбар кабинета), чтобы плитки совпадали с тем, что
+(как сайдбар кабинета), чтобы плитки совпадали с тем, что
 владельцу вообще доступно.
 """
 
@@ -19,10 +19,8 @@ def dashboard_tiles(tenant) -> list[dict]:
     """
     from django.utils.translation import gettext as _t
 
-    from apps.core import modules as _mod
     from apps.tenants import onboarding
 
-    hidden = _mod.simple_hidden_modules(tenant)
     status = {s["key"]: s["status"] for s in onboarding.steps_with_status(tenant)}
     offer_label, offer_url = onboarding.offer_cta(tenant)
 
@@ -42,7 +40,7 @@ def dashboard_tiles(tenant) -> list[dict]:
         },
     ]
     # 📁 Категории — только при активном catalog и не спрятанном в Простом режиме.
-    if tenant.is_module_active("catalog") and "catalog" not in hidden:
+    if tenant.is_module_active("catalog"):
         tiles.append(
             {
                 "icon": "📁",
@@ -107,7 +105,7 @@ def _sparkline_points(days, width=120, height=32) -> str:
 def home_widgets(tenant) -> list[dict]:
     """ST-4a: виджеты «что сегодня» главной кабинета (план st4-admin-home-plan §1).
 
-    Паттерн digest.collect_digest: per-module гейты + simple_hidden + fail-safe —
+    Паттерн digest.collect_digest: per-module гейты + fail-safe —
     упавший источник не роняет главную. → [{key, icon, label, value, hint,
     url_name, url_query, sparkline}] (sparkline — только у Umsatz)."""
     from datetime import timedelta
@@ -116,15 +114,13 @@ def home_widgets(tenant) -> list[dict]:
     from django.utils import timezone
     from django.utils.translation import gettext as _t
 
-    from apps.core import modules as _mod
     from apps.core.digest import _safe
 
-    hidden = _mod.simple_hidden_modules(tenant)
     today = timezone.localdate()
     widgets: list[dict] = []
 
     # 💶 Umsatz heute + 7-дневный спарклайн (finance; в Простом finance скрыт).
-    if tenant.is_module_active("finance") and "finance" not in hidden:
+    if tenant.is_module_active("finance"):
 
         def _revenue_days():
             from django.db.models import Sum
@@ -155,7 +151,7 @@ def home_widgets(tenant) -> list[dict]:
         )
 
     # 📦 Abholbereit (orders ready) — «заказы к выдаче».
-    if tenant.is_module_active("orders") and "orders" not in hidden:
+    if tenant.is_module_active("orders"):
 
         def _ready():
             from apps.orders.models import Order
@@ -179,7 +175,7 @@ def home_widgets(tenant) -> list[dict]:
 
     # 🛎 Anreisen heute (PMS-A2): стойка отеля/пансиона — сегодняшние заезды,
     # в hint выезды; клик ведёт на экран «Heute».
-    if tenant.is_module_active("stays") and "stays" not in hidden:
+    if tenant.is_module_active("stays"):
 
         def _stays_today():
             from django.utils import timezone as _tz
@@ -212,7 +208,7 @@ def home_widgets(tenant) -> list[dict]:
         )
 
     # 📣 Marketing-Puls (v1): Σ просмотров активных акций + погашения кампаний.
-    if tenant.is_module_active("promotions") and "promotions" not in hidden:
+    if tenant.is_module_active("promotions"):
 
         def _puls():
             from django.db.models import Sum
@@ -244,7 +240,7 @@ def home_widgets(tenant) -> list[dict]:
         )
 
     # ⭐ Bewertungen — owner_overview (avg/count/unanswered — честный прокси).
-    if tenant.is_module_active("reviews") and "reviews" not in hidden:
+    if tenant.is_module_active("reviews"):
 
         def _reviews():
             from apps.reviews.services import owner_overview

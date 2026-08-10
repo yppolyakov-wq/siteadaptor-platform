@@ -167,14 +167,16 @@ def test_status_labels_save_render_and_reset():
     from apps.core import views as core_views
     from apps.tenants.tests.factories import TenantFactory
 
-    tenant = TenantFactory(site_config={"ui_mode": "simple"})
+    tenant = TenantFactory(site_config={"notify": {"customer": {"email": True}}})
     order = _order()
     req = _req("post", "/dashboard/status-labels/order/", {"label_new": "Eingegangen 📥"})
     req.tenant = tenant
     core_views.status_labels_save(req, "order")
     tenant.refresh_from_db()
     assert tenant.site_config["status_labels"]["order"]["new"] == "Eingegangen 📥"
-    assert tenant.site_config["ui_mode"] == "simple"  # прочие ключи целы (урок W0)
+    assert tenant.site_config["notify"] == {
+        "customer": {"email": True}
+    }  # прочие ключи целы (урок W0)
 
     # W10-6: рендер списка — на Verkäufe (легаси-вьюха теперь 302).
     from apps.core import views as core_views

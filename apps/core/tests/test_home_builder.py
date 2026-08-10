@@ -1790,7 +1790,7 @@ def test_home_builder_apply_template_switches_sections_and_keeps_builder_keys():
         name="HBTPL",
         business_type="cafe",
         site_config={
-            "ui_mode": "simple",
+            "notify": {"customer": {"email": True}},
             "board": {"labels": {"intake": "Posteingang"}, "hidden": ["terminal"]},
             "seo": {"templates": {"home": {"title": "Mein Titel"}}},
         },
@@ -1809,7 +1809,7 @@ def test_home_builder_apply_template_switches_sections_and_keeps_builder_keys():
     enabled = [s["key"] for s in cfg["sections"] if s["enabled"]]
     assert enabled == ["hero", "products", "promotions", "contact"]
     raw = tenant.site_config
-    assert raw.get("ui_mode") == "simple"
+    assert raw.get("notify") == {"customer": {"email": True}}
     assert raw.get("board", {}).get("labels", {}).get("intake") == "Posteingang"
     assert raw.get("seo", {}).get("templates", {}).get("home", {}).get("title") == "Mein Titel"
 

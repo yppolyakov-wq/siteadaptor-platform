@@ -2252,10 +2252,8 @@ def _normalize_impl(config) -> dict:
     seo = normalize_seo(config.get("seo"))
     if seo:
         normalized["seo"] = seo
-    # S5: режим кабинета «Простой/Эксперт». Ключ материализуется ТОЛЬКО при "simple"
-    # (дефолт expert → ключа нет → golden-паритет старых конфигов сохранён).
-    if config.get("ui_mode") == "simple":
-        normalized["ui_mode"] = "simple"
+    # SM-1 (2026-08-10): ключ ui_mode (режим Простой/Эксперт) снесён вместе с
+    # механизмом — normalize его ДРОПАЕТ, как classic_ui (W-CL).
     # W-CL (2026-08-05, решение владельца Р-1): режим «Klassische Ansicht» снесён —
     # ключ classic_ui дропается нормализацией (паттерн retired-ключа orders_view ниже).
     # ST-1: тёмный Look витрины — ключ ТОЛЬКО при "dark" (presence-minimal,

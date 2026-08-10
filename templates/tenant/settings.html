@@ -49,12 +49,8 @@
       </div>
     </fieldset>
 
-    {% comment %}Продвинутые секции: в Простом режиме скрыты (поля в DOM — Save не
-    затрёт). W9-5: Recht & Steuern переехали на свой таб (LegalDoc + реквизиты).{% endcomment %}
-    {% if ui_simple %}
-      <p class="text-xs text-gray-400">{% trans "Betriebs-Einstellungen erscheinen im Experten-Modus (Schalter oben)." %}</p>
-    {% endif %}
-    <div class="space-y-4{% if ui_simple %} hidden{% endif %}">
+    {% comment %}W9-5: Recht & Steuern переехали на свой таб (LegalDoc + реквизиты).{% endcomment %}
+    <div class="space-y-4">
 
       {# ④ Betrieb & Extras — зона обслуживания (гейт), дайджест, лояльность (гейт) #}
       <details class="bg-white border border-gray-200 rounded-2xl px-6 py-4">

@@ -50,11 +50,6 @@ class ModuleSpec:
     core: bool = False  # выключить нельзя, entitlement не применяется
     premium: bool = False  # требует key в Tenant.enabled_modules (тариф)
     # --- W12-3: ось Простого режима живёт В СПЕКЕ модуля (не в параллельной карте) --
-    # simple_hidden: продвинутый модуль — в Простом прячется из меню у ВСЕХ типов.
-    # simple_hidden_for: CORE-модуль (выключить нельзя) прячется из меню в Простом
-    # у перечисленных типов (нерелевантен архетипу). Страницы доступны по URL (S5).
-    simple_hidden: bool = False
-    simple_hidden_for: tuple[str, ...] = ()
     description_de: str = ""  # «что это даёт» — пояснение на странице «Module» (D0b)
     # --- Витринный (storefront) презентационный слой (S1) ----------------------
     # «Лицо» архетипа для ПОСЕТИТЕЛЯ сайта (не кабинета). Источник правды и для
@@ -104,7 +99,6 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         core=True,
         # W12-3 (бывш. S6b-карта): товары не primary у этих архетипов — в Простом
         # хаб «Sortiment» прячется (werkstatt держит — Teile; restaurant — Speisekarte).
-        simple_hidden_for=("friseur", "handwerker", "events", "hotel"),
         description_de=_("Produkte und Kategorien pflegen, Import aus CSV/Excel."),
         storefront_label=_("Sortiment"),
         storefront_blurb=_("Stöbern Sie in unserem Angebot."),
@@ -313,7 +307,6 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         nav_items=(NavItem("promotions:analytics", _("Analytics"), "analytics"),),
         url_prefixes=("/promotions/analytics/",),
         depends_on=("promotions",),
-        simple_hidden=True,  # W12-3 (бывш. SIMPLE_HIDDEN_MODULES)
         description_de=_("Auswertung Ihrer Aktionen: Aufrufe, Reservierungen, Einlösungen."),
     ),
     ModuleSpec(
@@ -441,7 +434,6 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         icon="💶",
         nav_items=(NavItem("finance:journal", _("Finance"), "finance"),),
         url_prefixes=("/dashboard/finance/",),
-        simple_hidden=True,  # W12-3 (бывш. SIMPLE_HIDDEN_MODULES)
         # «добавь, когда дорастёшь» (ТЗ D0b) — по умолчанию выключен у всех вертикалей
         description_de=_("Umsatzjournal: Einnahmen aus Bestellungen, Reservierungen und manuell."),
     ),
@@ -600,54 +592,10 @@ def sidebar_nav(tenant) -> list[dict]:
     return items
 
 
-# S5 (упрощение кабинета): режим отображения на весь кабинет. «simple» прячет
-# продвинутое (оставляя доступным по URL), «expert» — всё. Хранение — плоский ключ
-# site_config["ui_mode"] (без миграции; ДОЛЖЕН сохраняться в siteconfig.normalize —
-# иначе билдер-сохранение сотрёт). Дефолт — expert (не ломает привычный вид).
-def ui_mode(tenant) -> str:
-    """Режим кабинета: "simple" | "expert" (дефолт expert). Читает site_config."""
-    cfg = getattr(tenant, "site_config", None)
-    if isinstance(cfg, dict) and cfg.get("ui_mode") == "simple":
-        return "simple"
-    return "expert"
-
-
-def is_simple(tenant) -> bool:
-    return ui_mode(tenant) == "simple"
-
-
-# W12-3: ось Простого режима живёт в СПЕКАХ модулей (simple_hidden /
-# simple_hidden_for) — параллельные константы SIMPLE_HIDDEN_MODULES и
-# ARCHETYPE_SIMPLE_HIDDEN (S5/S6b) удалены; паритет 1:1 держит замок.
-
-
-def _simple_hidden_for_type(business_type: str) -> frozenset[str]:
-    """Производная из REGISTRY: продвинутые (simple_hidden) ∪ core-нерелевантные
-    архетипу (simple_hidden_for). Скрытие — только из меню; страницы остаются
-    доступны по URL (принцип S5)."""
-    return frozenset(
-        spec.key
-        for spec in REGISTRY
-        if spec.simple_hidden or business_type in spec.simple_hidden_for
-    )
-
-
-def simple_hidden_modules(tenant) -> frozenset[str]:
-    """S5+S6b→W12-3: ключи модулей, скрываемые из меню в Простом режиме этого
-    тенанта. В Эксперт-режиме — пусто."""
-    if not is_simple(tenant):
-        return frozenset()
-    return _simple_hidden_for_type(getattr(tenant, "business_type", "") or "")
-
-
-def simple_hidden_labels(tenant) -> list[str]:
-    """#4 (ясность режима, фидбэк владельца «непонятно, что упрощает Einfach»):
-    человекочитаемые названия разделов, которые Простой режим убирает из меню у ЭТОГО
-    тенанта — НЕЗАВИСИМО от текущего режима (чтобы показать «что скрывается» и в
-    Эксперт-режиме). Только реально активные разделы (не перечисляем то, чего нет).
-    Порядок — как в реестре."""
-    hidden = _simple_hidden_for_type(getattr(tenant, "business_type", "") or "")
-    return [spec.label_de for spec in active_modules(tenant) if spec.key in hidden]
+# SM-1 (решение владельца 2026-08-10): режим Простой/Эксперт снесён ЦЕЛИКОМ —
+# функционал один для всех. История: S5 (ui_mode/тумблер) → S6b (скрытие по
+# архетипу) → W12 (экран «Ansicht», ось в ModuleSpec). Ключ site_config["ui_mode"]
+# больше не читается и не переживает normalize (прецедент W-CL / classic_ui).
 
 
 def optional_modules() -> list[ModuleSpec]:

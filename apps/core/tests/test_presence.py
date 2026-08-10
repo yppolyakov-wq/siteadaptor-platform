@@ -106,7 +106,7 @@ def test_set_presence_targeted_write(settings):
         schema_name="public",
         slug="prs",
         name="Prs",
-        site_config={"ui_mode": "simple", "hero_title": "Hallo"},
+        site_config={"notify": {"customer": {"email": True}}, "hero_title": "Hallo"},
     )
 
     def _req(mode_value):
@@ -123,7 +123,7 @@ def test_set_presence_targeted_write(settings):
     core_views.set_presence_view(_req("on"))
     tenant.refresh_from_db()
     assert tenant.site_config["presence"] == {"mode": "on"}
-    assert tenant.site_config["ui_mode"] == "simple"  # чужие ключи целы
+    assert tenant.site_config["notify"] == {"customer": {"email": True}}  # чужие ключи целы
     assert tenant.site_config["hero_title"] == "Hallo"
 
     core_views.set_presence_view(_req("auto"))

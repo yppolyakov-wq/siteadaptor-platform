@@ -1,7 +1,7 @@
 """W6: единый источник темы + фикс потери данных при сохранении конфига витрины.
 
 Исторически site_view пересобирал config из подмножества → сохранение «Your site»
-роняло ui_mode (S5), board (W5), seo, типографику, стиль карточек. W11-5: страница
+роняло чужие ключи: notify, board (W5), seo, типографику, стиль карточек. W11-5: страница
 «Site» умерла (302 на Studio), её сохранение — тоже; инвариант «save не роняет
 чужие ключи» переехал на единственный оставшийся save — конструктор главной.
 Тема (цвет/шрифт/стиль баннера) — его же единый источник.
@@ -34,7 +34,7 @@ def _user(n):
 
 def test_builder_save_preserves_foreign_keys():
     """Фикс потери: сохранение витрины НЕ роняет ЧУЖИЕ ключи конфига — те, которыми
-    билдер не владеет (ui_mode S5 / board W5 / seo / page_blocks).
+    билдер не владеет (notify / board W5 / seo / page_blocks).
 
     Своими ключами (typography, site_defaults, font, hero_style) билдер владеет:
     его форма всегда несёт эти контролы (W0-инвариант «все поля в DOM»), поэтому
@@ -43,7 +43,7 @@ def test_builder_save_preserves_foreign_keys():
     tenant = TenantFactory(
         disabled_modules=[],
         site_config={
-            "ui_mode": "simple",
+            "notify": {"customer": {"email": True}},
             "board": {"labels": {"intake": "Posteingang"}, "hidden": ["terminal"]},
             "seo": {"templates": {"home": {"title": "Mein Titel"}}},
             "page_blocks": {"info": [{"id": "pb-x", "key": "text", "text": "Hi"}]},
@@ -55,7 +55,7 @@ def test_builder_save_preserves_foreign_keys():
     assert resp.status_code in (301, 302)
     tenant.refresh_from_db()
     cfg = tenant.site_config
-    assert cfg.get("ui_mode") == "simple"  # S5 не слетел
+    assert cfg.get("notify") == {"customer": {"email": True}}  # чужой ключ не слетел
     assert cfg.get("board", {}).get("labels", {}).get("intake") == "Posteingang"  # W5 цел
     assert cfg.get("board", {}).get("hidden") == ["terminal"]
     assert cfg.get("seo", {}).get("templates", {}).get("home", {}).get("title") == "Mein Titel"

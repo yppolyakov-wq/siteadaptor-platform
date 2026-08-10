@@ -68,9 +68,9 @@ def test_dashboard_nav_shows_icons_and_group_headers(rf, settings):
 
 
 @pytest.mark.django_db
-def test_header_shows_mode_toggle_and_language_link(rf, settings):
-    """W3-fix (видимость): режим Einfach/Experte и «Sprachen» — прямо в шапке
-    кабинета (были не найдены: режим в «Erweitert», языки в табах настроек)."""
+def test_header_shows_language_link_without_mode_toggle(rf, settings):
+    """W3-fix: «Sprachen» — прямо в шапке кабинета. SM-1 (2026-08-10): тумблер
+    Einfach/Experte снесён вместе с режимом — в шапке его быть НЕ должно."""
     settings.ROOT_URLCONF = "config.urls_tenant"
     tenant = TenantFactory(
         schema_name="t_hdr",
@@ -81,9 +81,22 @@ def test_header_shows_mode_toggle_and_language_link(rf, settings):
     user = get_user_model().objects.create_user("oh", "oh@test.de", "pw12345678")
     html = dashboard(_request(rf, user, tenant)).content.decode()
 
-    # Тумблер режима в шапке (POST на set-ui-mode).
-    assert "/dashboard/ui-mode/" in html
-    assert "Einfach" in html and "Experte" in html
+    assert "/dashboard/ui-mode/" not in html  # режима больше нет
     # Ссылка на «Sprachen» (языки витрины) в шапке.
     assert "/dashboard/settings/languages/" in html
     assert "Sprachen" in html
+
+
+@pytest.mark.django_db
+def test_simple_expert_mode_is_gone(rf, settings):
+    """SM-1 (решение владельца 2026-08-10): функционал один для всех.
+
+    Замок держит снос: ни функций режима в реестре модулей, ни ключа ui_mode
+    после normalize, ни экрана Ansicht в реестре навигации."""
+    from apps.core import modules, nav_registry
+    from apps.tenants import siteconfig
+
+    for name in ("ui_mode", "is_simple", "simple_hidden_modules", "simple_hidden_labels"):
+        assert not hasattr(modules, name), f"механизм режима вернулся: modules.{name}"
+    assert "ui_mode" not in siteconfig.normalize({"ui_mode": "simple"})
+    assert all(e.nav_key != "ansicht" for e in nav_registry.ENTRIES)

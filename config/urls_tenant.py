@@ -16,7 +16,6 @@ from apps.core import health
 from apps.core.team import team_join, team_view
 from apps.core.views import (
     ablaeufe_view,
-    ansicht_view,
     board,
     board_settings,
     dashboard,
@@ -44,7 +43,6 @@ from apps.core.views import (
     seo_settings_view,
     set_cabinet_lang_view,
     set_presence_view,
-    set_ui_mode_view,
     settings_view,
     setup_view,
     share_preview_issue,
@@ -106,7 +104,6 @@ urlpatterns = [
     # W9-8: «Abläufe» — имена статусов/переходы/колонки доски в одном месте.
     path("dashboard/ablaeufe/", ablaeufe_view, name="ablaeufe"),
     # W12-1: «Ansicht» — режим кабинета (Einfach/Experte + что скрыто).
-    path("dashboard/ansicht/", ansicht_view, name="ansicht"),
     # W9-10: «Team & Zugriff» (owner-only через middleware) + публичное принятие инвайта.
     path("dashboard/settings/team/", team_view, name="team"),
     path("team/beitreten/<str:token>/", team_join, name="team-join"),
@@ -128,7 +125,6 @@ urlpatterns = [
     # Модули кабинета (Track D / D0b): тумблеры опциональных блоков.
     path("dashboard/modules/", modules_view, name="modules"),
     # W3-fix: переключатель Einfach/Experte из шапки (работает с любой страницы).
-    path("dashboard/ui-mode/", set_ui_mode_view, name="set-ui-mode"),
     # Страховка редизайна (трек ST): тумблер «Klassische Ansicht» (на «Funktionen»).
     # LS-2: режим присутствия «Jetzt erreichbar» (auto/on/off, targeted-write).
     path("dashboard/presence/", set_presence_view, name="set-presence"),

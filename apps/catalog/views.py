@@ -14,7 +14,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from apps.core import modules
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
 from apps.inventory.services import log_catalog_change
 
@@ -49,7 +48,6 @@ def _product_form_flags(request):
     show_food = bt in FOOD_BUSINESS_TYPES
     show_textile = bt in TEXTILE_BUSINESS_TYPES
     return {
-        "ui_simple": modules.is_simple(tenant) if tenant is not None else False,
         "show_food_labeling": show_food,
         "show_textile_labeling": show_textile,
         "show_labeling_tab": show_food or show_textile,
