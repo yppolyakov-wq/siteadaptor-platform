@@ -3167,10 +3167,21 @@ def _board_stage_rows(tenant):
 
 
 def _status_kinds_for(tenant):
-    """Активные kind'ы с настраиваемыми статусами: [(kind, label)] (order/booking/stay)."""
+    """Активные kind'ы с настраиваемыми статусами: [(kind, label)].
+
+    SM-2 (2026-08-10): паритет всем шести направлениям — имена статусов и
+    правила переходов настраиваются у каждого модуля продаж, не только у
+    order/booking/stay."""
     from apps.core import transactions
 
-    _kind_modules = (("order", "orders"), ("booking", "booking"), ("stay", "stays"))
+    _kind_modules = (
+        ("order", "orders"),
+        ("booking", "booking"),
+        ("stay", "stays"),
+        ("job", "jobs"),
+        ("ticket", "events"),
+        ("reservation", "promotions"),
+    )
     return [
         (k, transactions.KIND_LABEL.get(k, k))
         for k, m in _kind_modules
@@ -3396,6 +3407,23 @@ def _status_choices(kind):
         from apps.booking.models import Booking
 
         return Booking.STATUSES
+    if kind == "job":
+        from apps.jobs.models import Job
+
+        return Job.STATUSES
+    if kind == "ticket":
+        from apps.events.models import Ticket
+
+        return Ticket.STATUSES
+    if kind == "reservation":
+        # У Reservation модельных choices нет (UD1) — подписи из реестра ролей.
+        return [
+            ("pending", _("Offen")),
+            ("confirmed", _("Bestätigt")),
+            ("fulfilled", _("Eingelöst")),
+            ("cancelled", _("Storniert")),
+            ("expired", _("Abgelaufen")),
+        ]
     from apps.stays.models import StayBooking
 
     return StayBooking.STATUSES

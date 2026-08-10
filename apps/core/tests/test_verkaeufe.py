@@ -336,3 +336,25 @@ def test_heute_lives_on_the_dashboard():
 
     resp = views.verkaeufe(_req(data={"view": "heute"}, **_hotel()))
     assert resp.status_code == 200
+
+
+def test_status_settings_parity_for_all_six_kinds():
+    """SM-2 (решение владельца 2026-08-10): имена статусов и правила переходов
+    доступны КАЖДОМУ направлению продаж, не только order/booking/stay.
+
+    Реестр кодов обязан совпадать со status_registry.BUILTIN один-в-один: имя,
+    сохранённое для несуществующего кода, молча бы не показывалось."""
+    from apps.core import status_registry
+    from apps.core.views import _status_choices, _status_kinds_for
+    from apps.tenants import siteconfig
+
+    for kind in ("order", "booking", "stay", "job", "ticket", "reservation"):
+        codes = siteconfig.status_label_statuses(kind)
+        assert codes is not None, f"{kind}: нет в реестре имён статусов"
+        assert set(codes) == set(status_registry.BUILTIN[kind]), kind
+        # у панели есть дефолт-подпись для каждого кода
+        assert {c for c, _l in _status_choices(kind)} >= set(codes), kind
+
+    tenant = TenantFactory.build(business_type="hotel", disabled_modules=[])
+    kinds = {k for k, _l in _status_kinds_for(tenant)}
+    assert {"order", "booking", "stay", "job", "ticket", "reservation"} <= kinds

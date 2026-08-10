@@ -1925,6 +1925,11 @@ _STATUS_LABEL_KINDS = {
     "order": ("new", "confirmed", "ready", "picked_up", "shipped", "cancelled", "returned"),
     "booking": ("pending", "confirmed", "fulfilled", "cancelled", "no_show"),
     "stay": ("pending", "confirmed", "fulfilled", "cancelled", "no_show"),
+    # SM-2 (решение владельца 2026-08-10, паритет всем шести направлениям):
+    # коды 1:1 с status_registry.BUILTIN — замок в test_ablaeufe_parity.
+    "job": ("new", "quoted", "accepted", "done", "invoiced", "declined", "cancelled"),
+    "ticket": ("pending", "confirmed", "attended", "cancelled"),
+    "reservation": ("pending", "confirmed", "fulfilled", "cancelled", "expired"),
 }
 _STATUS_LABEL_MAX = 40
 
