@@ -61,19 +61,36 @@ restaurant/other + jobs primary + orders off), и по SEO/право/consent о
 
 ## 3. Пробелы (все верифицированы вторым проходом)
 
+**Уточнение (владелец, 2026-08-11: «у нас же есть вроде catering»).** Верно:
+кейтеринг как ПУТЬ на платформе есть — «Catering»/«Partyservice» в китах
+restaurant, bakery, butcher и pranasy (пункт меню `_("Catering")` в
+tenants/menu.py:269, hero-плитка «Partyservice anfragen» в `_hero_widget.html:97`,
+job_samples «Catering Firmenfeier (25 Personen)», карточка «Events &
+Catering-Anfragen» на /branchen/restaurant). Но ВСЕ эти входы — `type=archetype,
+target=jobs`, т.е. ссылки на одну и ту же универсальную `/anfrage/` без
+событийных полей («там только форма заявки у pranasy» — именно так). Спека
+**MB-3** (`archetype-behavior-specs-2026-07-23.md`) уже требовала мини-форму
+«дата события · гостей · пожелания» на главной как дефолт — реализован был
+фолбэк-вариант (карточка-переход на /anfrage/), мини-форма не построена.
+Пробелы C-1/C-2 — это «кейтеринг как ОСНОВНОЙ бизнес» + закрытие MB-3, а не
+«кейтеринга нет вовсе».
+
 ### Tier 1 — ядро конверсии кейтеринга (блокируют «такой же сайт»)
 
-- **C-1. Нет архетипа «Catering»** [подтверждено]. BUSINESS_TYPES (15 шт.) и 14
-  демо-китов не содержат catering; нет карточки мастера, `/branchen/`-страницы,
-  JSON-LD `FoodEstablishment`/`CateringService` (grep = 0; добавить в `_SCHEMA_TYPES`
-  — 2 строки по прецеденту AutoRepair, но только после появления типа). Паттерн
-  готов: bakery/butcher уже делают Partyservice через jobs; S6a показал, как
-  добавлять типы (⚠️ миграция choices).
-- **C-2. В `/anfrage/` нет событийных полей** [partial]. Форма jobs: title/описание/
-  имя/контакты/адрес/фото — **нет Wunschdatum, нет Anzahl Personen, нет дропдауна
-  «Art der Veranstaltung», нет бюджета**. Для кейтеринга это главный инструмент
-  продажи. Плюс: CTA «Angebot anfordern» из детали услуги идёт на /anfrage/ БЕЗ
-  `?betreff=` — префилл-механика есть, но не подключена (apps/jobs/public_views.py:95).
+- **C-1. Нет архетипа «Catering» как основного бизнеса** [подтверждено].
+  Кейтеринг существует только как побочное предложение гастро-архетипов (см.
+  уточнение выше); для ЧИСТОГО кейтеринг-бизнеса типа Good Karma нет:
+  business_type в BUSINESS_TYPES (15 шт.), карточки мастера, `/branchen/`-страницы,
+  демо-кита (14 шт.), JSON-LD `FoodEstablishment`/`CateringService` (grep = 0;
+  добавить в `_SCHEMA_TYPES` — 2 строки по прецеденту AutoRepair, но только после
+  появления типа). S6a показал, как добавлять типы (⚠️ миграция choices).
+- **C-2. В `/anfrage/` нет событийных полей** [partial; = закрытие MB-3].
+  Форма jobs: title/описание/имя/контакты/адрес/фото — **нет Wunschdatum, нет
+  Anzahl Personen, нет дропдауна «Art der Veranstaltung», нет бюджета**
+  (проверено чтением anfrage.html построчно). Для кейтеринга это главный
+  инструмент продажи. Плюс: CTA «Angebot anfordern» из детали услуги идёт на
+  /anfrage/ БЕЗ `?betreff=` — префилл-механика есть, но не подключена
+  (apps/jobs/public_views.py:95).
 - **C-3. Форму заявки нельзя встроить блоком на страницы** [partial]. У референса
   форма — внизу КАЖДОГО лендинга. У нас REPEATABLE_BLOCKS = text/image/image_text/
   button/spacer/promo, PAGE_REF_BLOCKS = faq/team/gallery/testimonials — form-блока
