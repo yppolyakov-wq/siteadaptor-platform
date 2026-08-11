@@ -17550,3 +17550,17 @@ msgstr "Seit Jahr"
 
 msgid "Berichte"
 msgstr "Berichte"
+
+# GK-8: C-блок подписки newsletter
+msgid "News and offers — no spam, unsubscribe anytime."
+msgstr "Neuigkeiten und Angebote — kein Spam, jederzeit abbestellbar."
+
+msgid "By subscribing you agree to our"
+msgstr "Mit der Anmeldung stimmen Sie unserer"
+
+msgid "privacy policy"
+msgstr "Datenschutzerklärung zu"
+
+msgid "Signup form with double opt-in"
+msgstr "Anmeldeformular mit Double-Opt-In"
+

@@ -17511,3 +17511,17 @@ msgstr "Kuruluş yılından beri"
 
 msgid "Berichte"
 msgstr "Raporlar"
+
+# GK-8: C-блок подписки newsletter
+msgid "News and offers — no spam, unsubscribe anytime."
+msgstr "Haberler ve fırsatlar — spam yok, istediğiniz zaman abonelikten çıkın."
+
+msgid "By subscribing you agree to our"
+msgstr "Abone olarak şunu kabul etmiş olursunuz:"
+
+msgid "privacy policy"
+msgstr "gizlilik politikası"
+
+msgid "Signup form with double opt-in"
+msgstr "Çift onaylı kayıt formu"
+

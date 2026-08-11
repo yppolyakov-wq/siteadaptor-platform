@@ -17399,3 +17399,17 @@ msgstr "Since year"
 
 msgid "Berichte"
 msgstr "Reports"
+
+# GK-8: C-блок подписки newsletter
+msgid "News and offers — no spam, unsubscribe anytime."
+msgstr "News and offers — no spam, unsubscribe anytime."
+
+msgid "By subscribing you agree to our"
+msgstr "By subscribing you agree to our"
+
+msgid "privacy policy"
+msgstr "privacy policy"
+
+msgid "Signup form with double opt-in"
+msgstr "Signup form with double opt-in"
+

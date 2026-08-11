@@ -17591,3 +17591,17 @@ msgstr "С года основания"
 
 msgid "Berichte"
 msgstr "Отчёты"
+
+# GK-8: C-блок подписки newsletter
+msgid "News and offers — no spam, unsubscribe anytime."
+msgstr "Новости и акции — без спама, отписка в любой момент."
+
+msgid "By subscribing you agree to our"
+msgstr "Подписываясь, вы соглашаетесь с нашей"
+
+msgid "privacy policy"
+msgstr "политикой конфиденциальности"
+
+msgid "Signup form with double opt-in"
+msgstr "Форма подписки с двойным подтверждением"
+

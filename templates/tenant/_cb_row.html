@@ -121,6 +121,12 @@ collect()/save работают без переименований. data-cb-id 
       </select>
     {% endif %}
   {% endif %}
+  {% if b.type == "newsletter" %}
+    {% comment %}GK-8: все поля опциональны — пусто = дефолтные подписи формы.{% endcomment %}
+    <input type="text" name="cb_{{ b.id }}_title" value="{{ b.data.title }}" maxlength="80" placeholder="{% trans 'Title' %} ({% trans 'optional' %})" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+    <textarea name="cb_{{ b.id }}_body" rows="2" maxlength="200" placeholder="{% trans 'Text' %} ({% trans 'optional' %})" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">{{ b.data.body }}</textarea>
+    <input type="text" name="cb_{{ b.id }}_button_label" value="{{ b.data.button_label }}" maxlength="40" placeholder="{% trans 'Button label (optional)' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+  {% endif %}
   {% if b.type == "stats" %}
     {% comment %}GK-4: полоса цифр — textarea «wert | label» построчно (паттерн
        usp_text); парс в canonical rows — строковая ветка _clean_cblock_data.{% endcomment %}
@@ -152,7 +158,7 @@ collect()/save работают без переименований. data-cb-id 
     </label>
     <label class="flex items-center gap-1"><input type="checkbox" name="newline_cb_{{ b.id }}" {% if b.newline %}checked{% endif %} class="rounded border-gray-300">{% trans "Start new row" %}</label>
   </div>
-  {% if b.type == "text" or b.type == "image" or b.type == "image_text" or b.type == "button" or b.type == "stats" %}
+  {% if b.type == "text" or b.type == "image" or b.type == "image_text" or b.type == "button" or b.type == "stats" or b.type == "newsletter" %}
     {% comment %}UC6-6b: visual блока — тень (Просто) + радиус/отступ/фон (Эксперт);
        применяется к .cb-box через --sf-* переменные обёртки.{% endcomment %}
     <div class="flex flex-wrap items-center gap-3 text-xs text-gray-600">

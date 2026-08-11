@@ -1,0 +1,20 @@
+{% load i18n %}
+{% comment %}GK-8 C-блок «подписка на новости»: форма рендерится ВСЕГДА (данные блока —
+лишь оверрайды заголовка/текста/кнопки). POST → штатный DOI-флоу /newsletter/
+(роут безусловный, honeypot website, согласие = клик по DOI-ссылке, UWG §7).
+Осознанное ограничение v1: сабмит уводит на /newsletter/ (PRG/next у вьюхи нет).{% endcomment %}
+<section class="my-8">
+  <div class="cb-box max-w-2xl mx-auto px-4">
+    <div class="bg-white rounded-2xl shadow-sm p-6 text-center">
+      <h2 class="text-xl md:text-2xl font-bold mb-1">{% if block.title %}{{ block.title }}{% else %}{% trans "Newsletter" %}{% endif %}</h2>
+      <p class="text-gray-500 text-sm mb-4">{% if block.body %}{{ block.body }}{% else %}{% trans "News and offers — no spam, unsubscribe anytime." %}{% endif %}</p>
+      <form method="post" action="{% url 'storefront-newsletter' %}" class="flex flex-col sm:flex-row gap-2 justify-center">
+        {% csrf_token %}
+        <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
+        <input type="email" name="email" required placeholder="{% trans 'Your email' %}" class="w-full sm:w-72 rounded-lg border border-gray-300 px-3 py-2">
+        <button type="submit" class="text-white rounded-lg px-4 py-2 font-medium" style="background: var(--accent, #4f46e5);">{% if block.button_label %}{{ block.button_label }}{% else %}{% trans "Subscribe" %}{% endif %}</button>
+      </form>
+      <p class="text-[11px] text-gray-400 mt-2">{% trans "By subscribing you agree to our" %} <a href="{% url 'storefront-privacy' %}" class="underline">{% trans "privacy policy" %}</a>.</p>
+    </div>
+  </div>
+</section>

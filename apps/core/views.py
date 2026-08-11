@@ -296,6 +296,9 @@ def _read_cblock_data(post, bid: str, btype: str) -> dict:
             "button_label": f("button_label"),
             "style_hint": f("style_hint"),  # UC6-6f (normalize валидирует)
         }
+    if btype == "newsletter":
+        # GK-8: оверрайды заголовка/текста/кнопки (normalize держит непустые).
+        return {"title": f("title"), "body": f("body"), "button_label": f("button_label")}
     if btype == "stats":
         # GK-4: textarea «wert | label» построчно — канонизацию в rows-список
         # делает строковая ветка _clean_cblock_data (normalize).
@@ -1960,6 +1963,12 @@ def home_builder_view(request):
                     "icon": "🔢",
                     "hint": _("2–4 key figures with captions"),
                 },  # GK-4
+                {
+                    "value": "newsletter",
+                    "label": _("Newsletter"),
+                    "icon": "📧",
+                    "hint": _("Signup form with double opt-in"),
+                },  # GK-8
                 # UC2-3(b): ссылочные секции-справочники — ТОЛЬКО на страницах
                 # (page_only → JS прячет на главной; контент общий с главной).
                 {

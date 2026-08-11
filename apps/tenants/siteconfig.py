@@ -128,7 +128,16 @@ _KNOWN = {key for key, _label, _on in SECTIONS}
 # D.2 (анти-Битрикс Phase 2): повторяемые «простые блоки» (C-блоки) — НЕ в SECTIONS
 # (множественные, с собственным `id` и `data`). Владелец собирает из них контент
 # («собрать сайт из кубиков»). Живут в той же `site_config["sections"]`.
-REPEATABLE_BLOCKS = ("text", "image", "image_text", "button", "spacer", "promo", "stats")
+REPEATABLE_BLOCKS = (
+    "text",
+    "image",
+    "image_text",
+    "button",
+    "spacer",
+    "promo",
+    "stats",
+    "newsletter",
+)
 _MAX_CBLOCKS = 30
 _MAX_STAT_ITEMS = 4  # GK-4: пар «число+подпись» в полосе цифр (больше — шум)
 
@@ -194,6 +203,19 @@ def _clean_cblock_data(key: str, raw) -> dict:
         # ST-7a: высота отступа — только НЕ-дефолтные валидные значения
         # ("" = py-6 как раньше → ключа нет, старые конфиги байт-в-байт).
         return {"height": d["height"]} if d.get("height") in ("sm", "lg", "xl") else {}
+    if key == "newsletter":
+        # GK-8: блок подписки — форма рендерится ВСЕГДА (дефолтные msgid), данные
+        # лишь оверрайды заголовка/текста/кнопки; всё пустое → {} (presence-minimal).
+        out = {
+            k: v
+            for k, v in {
+                "title": _s(d.get("title"))[:80],
+                "body": _s(d.get("body"))[:200],
+                "button_label": _s(d.get("button_label"))[:40],
+            }.items()
+            if v
+        }
+        return out
     if key == "stats":
         # GK-4: полоса цифр — rows = [{value, label}] (НЕ "items": у dict в Django-
         # шаблоне .items — метод). Принимает и текст textarea «wert | label» построчно
@@ -278,6 +300,11 @@ CBLOCK_DEMO_DATA = {
         "side": "left",
     },
     "button": {"label": "Mehr erfahren", "url": "/ueber-uns/"},
+    # GK-8: демо-оверрайды блока подписки (round-trip замок builder).
+    "newsletter": {
+        "title": "Bleiben Sie auf dem Laufenden",
+        "body": "Neuigkeiten und Angebote — kein Spam, jederzeit abbestellbar.",
+    },
     # GK-4: демо ОБЯЗАНО быть байт-в-байт равно _clean_cblock_data("stats", demo)
     # (замок test_cblocks_builder: round-trip demo-данных).
     "stats": {
