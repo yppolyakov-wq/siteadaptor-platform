@@ -17499,3 +17499,6 @@ msgstr "Вертикальний"
 #: apps/tenants/siteconfig.py
 msgid "Breitbild"
 msgstr "Широкий"
+
+msgid "Berichte"
+msgstr "Звіти"

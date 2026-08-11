@@ -42,13 +42,32 @@
       {% comment %}ST-4b: компактный сайдбар «хабы + Website» — плоские якоря;
       Sortiment/Kunden/Finanzen достижимы через хаб-табы. W-CL: классик-ветка снесена.{% endcomment %}
       {% for it in nav_compact %}
-      <a href="{% url it.url_name %}" data-label="{{ it.search }}"
-         class="nav-link flex items-center gap-2.5 px-3 py-2 rounded-lg {% if nav|nav_anchor == it.nav_key %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
-        <span class="w-5 shrink-0 text-center text-base leading-none">{{ it.icon }}</span>
-        <span class="truncate">{{ it.label }}</span>
-        {% if it.badge == "inbox" %}{# ST-4b: бейдж непрочитанного — на якоре Marketing #}
-        <span data-inbox-badge data-url="{% url 'inbox:unread-count' %}" class="ml-auto hidden min-w-[1.25rem] text-center bg-rose-500 text-white text-[11px] font-semibold rounded-full px-1.5 py-0.5"></span>{% endif %}
-      </a>
+      {% comment %}SM-4: якорь с подпунктами (advanced его хабов) — раскрытие
+      слайдером: шеврон-кнопка справа; активный раздел раскрыт с сервера.
+      Строка-якорь остаётся ссылкой (клик = переход, не тумблер).{% endcomment %}
+      <div class="flex items-center gap-0.5">
+        <a href="{% url it.url_name %}" data-label="{{ it.search }}"
+           class="nav-link flex-1 min-w-0 flex items-center gap-2.5 px-3 py-2 rounded-lg {% if nav|nav_anchor == it.nav_key %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
+          <span class="w-5 shrink-0 text-center text-base leading-none">{{ it.icon }}</span>
+          <span class="truncate">{{ it.label }}</span>
+          {% if it.badge == "inbox" %}{# ST-4b: бейдж непрочитанного — на якоре Marketing #}
+          <span data-inbox-badge data-url="{% url 'inbox:unread-count' %}" class="ml-auto hidden min-w-[1.25rem] text-center bg-rose-500 text-white text-[11px] font-semibold rounded-full px-1.5 py-0.5"></span>{% endif %}
+        </a>
+        {% if it.children %}
+        <button type="button" data-nav-toggle="{{ it.nav_key }}" aria-expanded="{% if nav|nav_anchor == it.nav_key %}true{% else %}false{% endif %}"
+                class="shrink-0 w-6 h-8 grid place-items-center rounded-md text-gray-400 hover:text-indigo-600 hover:bg-gray-50">
+          <span class="text-[10px] leading-none transition-transform {% if nav|nav_anchor == it.nav_key %}rotate-90{% endif %}">▶</span>
+        </button>
+        {% endif %}
+      </div>
+      {% if it.children %}
+      <div data-nav-children="{{ it.nav_key }}" class="pl-9 pr-1 space-y-0.5{% if nav|nav_anchor != it.nav_key %} hidden{% endif %}">
+        {% for c in it.children %}
+        <a href="{% url c.url_name %}" data-label="{{ c.search }} {{ c.label|lower }}"
+           class="nav-link block px-2.5 py-1.5 rounded-md text-[13px] truncate {% if nav == c.nav_key %}text-indigo-700 font-medium bg-indigo-50{% else %}text-gray-500 hover:text-gray-800 hover:bg-gray-50{% endif %}">{{ c.label }}</a>
+        {% endfor %}
+      </div>
+      {% endif %}
       {% endfor %}
       <p id="nav-empty" class="hidden px-3 py-3 text-xs text-gray-400">{% trans "Nothing found." %}</p>
       <a href="{% url 'modules' %}" class="nav-link flex items-center gap-2.5 px-3 py-2 mt-4 rounded-lg border border-dashed border-gray-300 text-gray-500 hover:border-indigo-400 hover:text-indigo-700"
@@ -165,6 +184,18 @@
   var tb = document.getElementById("tabbar-menu");
   if (tb) tb.addEventListener("click", open);
 
+  // SM-4: слайдер подпунктов раздела — шеврон-кнопка тумблерит блок children.
+  document.addEventListener("click", function (ev) {
+    var btn = ev.target.closest("[data-nav-toggle]");
+    if (!btn) return;
+    var box = document.querySelector('[data-nav-children="' + btn.getAttribute("data-nav-toggle") + '"]');
+    if (!box) return;
+    var opened = box.classList.toggle("hidden");
+    btn.setAttribute("aria-expanded", opened ? "false" : "true");
+    var ch = btn.querySelector("span");
+    if (ch) ch.classList.toggle("rotate-90", !opened);
+  });
+
   // Быстрый фильтр пунктов меню (нативный поиск по разделам).
   var filter = document.getElementById("nav-filter");
   if (filter) {
@@ -177,6 +208,20 @@
         var hit = !q || (a.getAttribute("data-label") || "").toLowerCase().indexOf(q) > -1;
         a.classList.toggle("hidden", !hit);
         if (hit) anyShown = true;
+      });
+      // SM-4: при поиске раскрываем блоки с совпавшими подпунктами (иначе
+      // найденный пункт остался бы внутри свёрнутого слайдера); пустой запрос
+      // возвращает свёртку по shown-состоянию активного раздела.
+      document.querySelectorAll("#dash-nav [data-nav-children]").forEach(function (box) {
+        var key = box.getAttribute("data-nav-children");
+        var btn = document.querySelector('[data-nav-toggle="' + key + '"]');
+        if (q) {
+          var hasHit = !!box.querySelector(".nav-link:not(.hidden)");
+          box.classList.toggle("hidden", !hasHit);
+        } else {
+          var active = btn && btn.getAttribute("aria-expanded") === "true";
+          box.classList.toggle("hidden", !active);
+        }
       });
       if (empty) empty.classList.toggle("hidden", anyShown);
     });

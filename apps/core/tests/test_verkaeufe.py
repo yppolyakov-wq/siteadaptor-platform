@@ -312,12 +312,15 @@ def test_stays_today_widget_deep_links_to_stay_tab():
 
 def test_toolbar_lives_inside_the_tab_not_above():
     """SM-2 (фидбэк владельца 2026-08-10): «кнопки идут как будто над верхним
-    уровнем, а должны быть частью каждого внутри» — переключатель видов и
-    «⚙️ Abläufe» стоят ПОСЛЕ ряда вкладок; «📆 Heute» из ряда видов ушёл
-    (он живёт на Übersicht)."""
+    уровнем, а должны быть частью каждого внутри» — переключатель видов стоит
+    ПОСЛЕ ряда вкладок; «📆 Heute» из ряда видов ушёл (живёт на Übersicht).
+    SM-4 (решение владельца 2026-08-11): «⚙️ Abläufe» ушла и из тулбара —
+    подпункт раздела «Verkäufe» в сайдбаре; тулбар = виды + «＋»."""
     body = views.verkaeufe(_req(**_hotel())).content.decode()
     assert body.index("data-sales-tabs") < body.index("data-sales-view-switch")
-    assert body.index("data-sales-tabs") < body.index("Abläufe")
+    # тулбарная ссылка вела на ablaeufe с ?kind= — её больше нет (подпункт
+    # сайдбара ведёт на /dashboard/ablaeufe/ без querystring)
+    assert "ablaeufe/?kind=" not in body
     assert "view=heute" not in body  # кнопки Heute на странице продаж больше нет
 
 

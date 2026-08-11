@@ -17434,3 +17434,6 @@ msgstr "Dikey"
 #: apps/tenants/siteconfig.py
 msgid "Breitbild"
 msgstr "Geniş ekran"
+
+msgid "Berichte"
+msgstr "Raporlar"

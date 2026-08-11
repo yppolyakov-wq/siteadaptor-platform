@@ -17322,3 +17322,6 @@ msgstr "Portrait"
 #: apps/tenants/siteconfig.py
 msgid "Breitbild"
 msgstr "Widescreen"
+
+msgid "Berichte"
+msgstr "Reports"

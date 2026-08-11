@@ -2799,7 +2799,9 @@ def seo_settings_view(request):
         request,
         "tenant/site_seo.html",
         {
-            "nav": "site",
+            # SM-4: свой nav-ключ — подсветка подпункта «SEO» раздела Website
+            # (якорь мапится через site-хаб; раньше был общий "site").
+            "nav": "seo",
             "rows": rows,
             "placeholders": ["{tenant}", "{city}", "{heading}", "{name}", "{category}"],
             "title_max": seo_meta.TITLE_MAX,

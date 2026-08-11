@@ -40,8 +40,8 @@
     {% if create_target %}
       <a href="{{ create_target }}" class="text-sm font-medium text-white bg-indigo-600 rounded-lg px-3 py-1.5 hover:bg-indigo-700">＋ {% if active_kind == "stay" %}{% trans "New booking" %}{% else %}{% trans "New appointment" %}{% endif %}</a>
     {% endif %}
-    {# W9-8: настройки статусов/переходов/колонок ЭТОГО направления — «Abläufe» #}
-    <a href="{% url 'ablaeufe' %}{% if active_kind %}?kind={{ active_kind }}{% endif %}" class="text-sm font-medium text-gray-500 bg-white border border-gray-200 rounded-lg px-3 py-1.5 hover:border-indigo-400 hover:text-indigo-700">⚙️ {% trans "Abläufe" %}</a>
+    {% comment %}SM-4 (решение владельца): «Abläufe» ушла из тулбара — подпункт
+    раздела «Verkäufe» в сайдбаре; тулбар вкладки = виды + «＋».{% endcomment %}
   </div>
 </div>
 {% endif %}
