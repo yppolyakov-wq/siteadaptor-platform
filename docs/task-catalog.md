@@ -172,6 +172,8 @@ B3 ✅, **A4 ✅ (share-превью)**, **C1 ✅ email-MVP (дайджест)**
 
 | **GK** | **Goodkarma-гэпы, продолжение (отмашка владельца 2026-08-11 «делаем C-1 и далее»): GK-1 архетип «Catering» (business_type + пресеты модулей jobs-primary + карточка мастера + `/branchen/catering` + JSON-LD FoodEstablishment + демо-кит; ⚠️ миграция choices) · GK-4 C-блок «полоса цифр» (stats: пары число+подпись, главная и страницы) · GK-5..9 Tier 2 (usp-pillars с текстом · фото/рейтинг testimonials · founder-пресет · inline-newsletter · соцссылки)** | ✅ ЦЕЛИКОМ GK-1+GK-4 (⚠️ `tenants/0028`) + GK-5..9 Tier 2 (2026-08-11; ⚠️ `tenants/0029` соцссылки; ops: `seed_demo_tenants --kit catering --recreate` после деплоя — pillars/5★-отзывы кита) | `goodkarma-catering-gap-analysis-2026-08-11.md` §3-4 + план-док GK-1 |
 
+| **GK-11** | **Google-рейтинг через Places API (= C-11 анализа; отмашка владельца 2026-08-11 «делай»): per-tenant Place ID + кэш rating/count (⚠️ миграция tenants/0030) + beat-обновление + карточка в Einstellungen→Integrationen + честная плашка «★ X,X · N Google-Bewertungen» в trust/на странице отзывов. ⚠️ EXTERNAL-блокер владельца: Google-API-ключ (Places API, billing) в env — без ключа фича молчит (fail-safe)** | 🚧 в работе | план-док + build-log |
+
 **Конвенция поддержки:** закрыл задачу → перенеси строку в §2 (или пометь ✅),
 подзадачи добавляй углублением. Каталог обновляется в том же коммите, что и
 build-log-строка инкремента.
