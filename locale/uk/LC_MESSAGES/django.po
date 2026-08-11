@@ -17595,3 +17595,11 @@ msgstr "Форма підписки з подвійним підтверджен
 msgid "Gründer-Zitat"
 msgstr "Цитата засновника"
 
+
+# GK-5: usp-столпы (pillars)
+msgid "Säulen"
+msgstr "Стовпи"
+
+msgid "One per line: icon | title | description (optional, for the “Pillars” style)."
+msgstr "По одному в рядку: іконка | заголовок | опис (необов’язково, для стилю «Стовпи»)."
+

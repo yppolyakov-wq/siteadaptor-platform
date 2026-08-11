@@ -36,9 +36,9 @@ trust_marks_text, faq_text. Парсинг на сервере — siteconfig.pa
 </div>
 <div class="space-y-2 border-t border-gray-100 pt-4">
   <p class="text-sm font-medium">{% trans "Trust bar (under banner)" %}</p>
-  <p class="text-xs text-gray-400">{% trans "One per line: icon | text." %}
+  <p class="text-xs text-gray-400">{% trans "One per line: icon | title | description (optional, for the “Pillars” style)." %}
     {% trans "Icons:" %} shipping · returns · payment · secure · local · meister · support · quality · bio · clock · check</p>
-  <textarea name="usp_text" rows="4" placeholder="shipping | Versand ab 4,90 €&#10;returns | 14 Tage Widerruf&#10;payment | Sichere Zahlung" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ usp_text }}</textarea>
+  <textarea name="usp_text" rows="4" placeholder="shipping | Versand ab 4,90 €&#10;bio | 100 % Bio | Zutaten von Höfen aus der Region&#10;payment | Sichere Zahlung" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ usp_text }}</textarea>
 </div>
 <div class="space-y-2 border-t border-gray-100 pt-4">
   <p class="text-sm font-medium">{% trans "FAQ" %}</p>

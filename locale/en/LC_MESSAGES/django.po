@@ -17418,3 +17418,11 @@ msgstr "Signup form with double opt-in"
 msgid "Gründer-Zitat"
 msgstr "Founder quote"
 
+
+# GK-5: usp-столпы (pillars)
+msgid "Säulen"
+msgstr "Pillars"
+
+msgid "One per line: icon | title | description (optional, for the “Pillars” style)."
+msgstr "One per line: icon | title | description (optional, for the “Pillars” style)."
+

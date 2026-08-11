@@ -1721,7 +1721,13 @@ def clean_usp(value) -> list[dict]:
         if not label:
             continue
         icon = item.get("icon")
-        out.append({"icon": icon if icon in USP_ICONS else "check", "label": label})
+        entry = {"icon": icon if icon in USP_ICONS else "check", "label": label}
+        # GK-5: опциональное описание столпа — presence-minimal (без text старые
+        # конфиги байт-в-байт, golden целы; паттерн _text_style).
+        text = _s(item.get("text"))[:200]
+        if text:
+            entry["text"] = text
+        out.append(entry)
         if len(out) >= _MAX_USP:
             break
     return out
@@ -1734,8 +1740,16 @@ def stats_to_text(rows) -> str:
 
 
 def usp_to_text(items) -> str:
-    """Сериализация usp_bar в textarea кабинета: «icon | label» по строке."""
-    return "\n".join(f"{i.get('icon', 'check')} | {i.get('label', '')}" for i in items or [])
+    """Сериализация usp_bar в textarea кабинета: «icon | label[ | text]» по строке
+    (GK-5: третья часть — только при непустом описании; 2-частный round-trip
+    байт-в-байт — замок test_usp_bar)."""
+    lines = []
+    for i in items or []:
+        line = f"{i.get('icon', 'check')} | {i.get('label', '')}"
+        if i.get("text"):
+            line += f" | {i['text']}"
+        lines.append(line)
+    return "\n".join(lines)
 
 
 def text_to_usp(text: str) -> list[dict]:
@@ -1745,8 +1759,14 @@ def text_to_usp(text: str) -> list[dict]:
         line = line.strip()
         if not line:
             continue
-        icon, _sep, label = line.partition("|")
-        items.append({"icon": icon.strip(), "label": label.strip()})
+        parts = [p.strip() for p in line.split("|", 2)]  # GK-5: 3-я часть = описание
+        items.append(
+            {
+                "icon": parts[0],
+                "label": parts[1] if len(parts) > 1 else "",
+                "text": parts[2] if len(parts) > 2 else "",
+            }
+        )
     return clean_usp(items)
 
 
@@ -1897,7 +1917,7 @@ SECTION_STYLES = {
     # ST-7b: стили простых секций — ключи-лейблы реюзятся из реестра выше.
     "cta": ("cards", "minimal", "left"),  # "" = акцент-band по центру
     "about": ("plain", "accent", "single"),  # "" = белая карточка
-    "usp_bar": ("plain", "cards", "compact"),  # "" = карточка-полоса
+    "usp_bar": ("plain", "cards", "compact", "pillars"),  # "" = карточка-полоса; GK-5
     "reviews": ("quotes", "list", "single"),  # "" = сетка карточек
     # Фидбэк 2026-08-07 («категории картинками + размер из Studio»): форма плитки
     # категории. Ширину даёт раскладка секции (колонки), высоту — этот стиль.
@@ -1936,6 +1956,7 @@ SECTION_STYLE_LABELS = {
     "split": _("Karte seitlich"),  # ST-2: contact
     "map_first": _("Karte zuerst"),
     # Формы плитки категории (2026-08-07).
+    "pillars": _("Säulen"),  # GK-5: usp_bar — икона+заголовок+абзац
     "square": _("Quadratisch"),
     "tall": _("Hochformat"),
     "wide": _("Breitbild"),

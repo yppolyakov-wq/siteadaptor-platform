@@ -6190,11 +6190,13 @@ CATERING = DemoKit(
         ("Jonas Weber", "Eventleitung", "waiter,man"),
     ],
     trust={"since": "2012", "marks": ["Bio-Zutaten", "Regionale Höfe", "Festpreis-Angebot"]},
+    # GK-5: «3 столпа философии» (референс goodkarma) — стиль pillars ниже.
     usp=[
-        ("bio", "100 % frisch gekocht"),
-        ("local", "Regionale Zutaten"),
-        ("quality", "Festpreis-Angebot"),
+        ("bio", "100 % frisch gekocht", "Alles aus unserer Küche — ohne Fertigprodukte."),
+        ("local", "Regionale Zutaten", "Gemüse und Kräuter von Höfen aus der Umgebung."),
+        ("quality", "Festpreis-Angebot", "Klarer Preis vor der Zusage — keine Überraschungen."),
     ],
+    section_styles={"usp_bar": "pillars"},
     reviews_seed=[
         (
             5,
@@ -7739,7 +7741,11 @@ def apply_kit(tenant, key: str) -> bool:
                 for i, (n, r, kw) in enumerate(kit.team)
             ],
             "trust": kit.trust or {"since": "", "marks": []},
-            "usp_bar": [{"icon": ic, "label": lbl} for ic, lbl in kit.usp],
+            # GK-5: кортежи (icon, label[, text]) — text presence-minimal (clean_usp).
+            "usp_bar": [
+                {"icon": u[0], "label": u[1], **({"text": u[2]} if len(u) > 2 and u[2] else {})}
+                for u in kit.usp
+            ],
             "gallery": [
                 {"url": demo_image(kw, lock=500 + i), "alt": {"de": kit.label}}
                 for i, kw in enumerate(kit.gallery_kw)

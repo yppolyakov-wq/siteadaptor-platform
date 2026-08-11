@@ -17569,3 +17569,11 @@ msgstr "Anmeldeformular mit Double-Opt-In"
 msgid "Gründer-Zitat"
 msgstr "Gründer-Zitat"
 
+
+# GK-5: usp-столпы (pillars)
+msgid "Säulen"
+msgstr "Säulen"
+
+msgid "One per line: icon | title | description (optional, for the “Pillars” style)."
+msgstr "Eine Zeile pro Punkt: Icon | Titel | Beschreibung (optional, für den Stil „Säulen“)."
+

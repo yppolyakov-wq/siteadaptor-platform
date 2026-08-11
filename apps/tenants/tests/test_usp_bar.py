@@ -74,3 +74,48 @@ def test_usp_bar_renders_items():
 def test_usp_bar_empty_renders_nothing():
     html = render_to_string("storefront/sections/_usp_bar.html", {"site": {"usp_bar": []}})
     assert html.strip() == ""
+
+
+# --- GK-5: столпы с описанием (3-part «icon | label | text») ----------------------
+
+
+def test_clean_usp_text_presence_minimal():
+    out = siteconfig.clean_usp(
+        [
+            {"icon": "bio", "label": "Bio", "text": "  Zutaten vom Hof.  "},
+            {"icon": "local", "label": "Regional", "text": ""},
+        ]
+    )
+    assert out[0] == {"icon": "bio", "label": "Bio", "text": "Zutaten vom Hof."}
+    assert out[1] == {"icon": "local", "label": "Regional"}  # без text — ключа нет
+
+
+def test_usp_text_three_part_round_trip():
+    text = "bio | Bio | Zutaten vom Hof.\nlocal | Regional"
+    items = siteconfig.text_to_usp(text)
+    assert items == [
+        {"icon": "bio", "label": "Bio", "text": "Zutaten vom Hof."},
+        {"icon": "local", "label": "Regional"},
+    ]
+    assert siteconfig.usp_to_text(items) == text
+
+
+def test_usp_pillars_style_renders_text():
+    html = render_to_string(
+        "storefront/sections/_usp_bar.html",
+        {
+            "site": {"usp_bar": [{"icon": "bio", "label": "Bio", "text": "Vom Hof."}]},
+            "section_row": {"key": "usp_bar", "style": "pillars"},
+        },
+    )
+    assert "Vom Hof." in html and "<h3" in html
+    assert "pillars" in siteconfig.SECTION_STYLES["usp_bar"]
+
+
+def test_usp_other_styles_ignore_text():
+    # прочие стили рендерят только label — классы-замки/вид старых конфигов целы.
+    html = render_to_string(
+        "storefront/sections/_usp_bar.html",
+        {"site": {"usp_bar": [{"icon": "bio", "label": "Bio", "text": "Vom Hof."}]}},
+    )
+    assert "Vom Hof." not in html

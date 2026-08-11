@@ -17,6 +17,18 @@ ST-7b: стили — "" карточка-полоса | plain — без кар
       </li>
     {% endfor %}
   </ul>
+  {% elif section_row.style == "pillars" %}
+  {% comment %}GK-5: «столпы» — крупная иконка + заголовок + абзац (u.text опционален;
+  без text столп рендерит только заголовок — честно и не пусто).{% endcomment %}
+  <div class="grid gap-6 sm:grid-cols-3 text-center">
+    {% for u in site.usp_bar %}
+      <div class="bg-white rounded-2xl shadow-sm px-5 py-6">
+        <span aria-hidden="true" class="text-3xl leading-none">{% usp_icon u.icon %}</span>
+        <h3 class="mt-2 font-bold">{{ u.label }}</h3>
+        {% if u.text %}<p class="mt-1 text-sm text-gray-500 leading-relaxed">{{ u.text }}</p>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
   {% elif section_row.style == "compact" %}
   <ul class="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-xs text-gray-500">
     {% for u in site.usp_bar %}

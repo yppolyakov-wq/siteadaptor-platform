@@ -17530,3 +17530,11 @@ msgstr "Çift onaylı kayıt formu"
 msgid "Gründer-Zitat"
 msgstr "Kurucu alıntısı"
 
+
+# GK-5: usp-столпы (pillars)
+msgid "Säulen"
+msgstr "Sütunlar"
+
+msgid "One per line: icon | title | description (optional, for the “Pillars” style)."
+msgstr "Her satıra bir öğe: simge | başlık | açıklama (isteğe bağlı, “Sütunlar” stili için)."
+
