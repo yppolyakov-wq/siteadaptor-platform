@@ -17590,3 +17590,44 @@ msgstr "Zufriedene Kunden"
 msgid "Handle oder vollständige URL (z. B. @meinladen). Gefüllte Profile erscheinen als Icons im Footer Ihrer Website."
 msgstr "Handle oder vollständige URL (z. B. @meinladen). Gefüllte Profile erscheinen als Icons im Footer Ihrer Website."
 
+
+# GK-11: Google-рейтинг (Places API)
+msgid "Google Bewertungen"
+msgstr "Google Bewertungen"
+
+msgid "Bewertung und Anzahl von Google auf der Website anzeigen"
+msgstr "Bewertung und Anzahl von Google auf der Website anzeigen"
+
+msgid "Nicht verbunden"
+msgstr "Nicht verbunden"
+
+msgid "Wartet auf erste Aktualisierung"
+msgstr "Wartet auf erste Aktualisierung"
+
+msgid "Die Place ID Ihres Google-Unternehmensprofils (z. B. ChIJ…). Zu finden über den Google Place ID Finder oder im Business-Profil."
+msgstr "Die Place ID Ihres Google-Unternehmensprofils (z. B. ChIJ…). Zu finden über den Google Place ID Finder oder im Business-Profil."
+
+msgid "Aktualisierung fehlgeschlagen — Place ID prüfen; der Plattform-API-Schlüssel muss konfiguriert sein."
+msgstr "Aktualisierung fehlgeschlagen — Place ID prüfen; der Plattform-API-Schlüssel muss konfiguriert sein."
+
+msgid "Aktualisiert."
+msgstr "Aktualisiert."
+
+msgid "Jetzt aktualisieren"
+msgstr "Jetzt aktualisieren"
+
+msgid "Zeigt Bewertung und Anzahl Ihres Google-Unternehmensprofils auf der Website (Vertrauensleiste und Bewertungsseite)."
+msgstr "Zeigt Bewertung und Anzahl Ihres Google-Unternehmensprofils auf der Website (Vertrauensleiste und Bewertungsseite)."
+
+msgid "Zuletzt aktualisiert"
+msgstr "Zuletzt aktualisiert"
+
+msgid "Automatische Aktualisierung alle paar Tage"
+msgstr "Automatische Aktualisierung alle paar Tage"
+
+
+msgid "%(n)s Google-Bewertung"
+msgid_plural "%(n)s Google-Bewertungen"
+msgstr[0] "%(n)s Google-Bewertung"
+msgstr[1] "%(n)s Google-Bewertungen"
+

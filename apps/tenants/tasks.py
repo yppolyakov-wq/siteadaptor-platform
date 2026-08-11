@@ -84,3 +84,51 @@ def recheck_pending_custom_domains():
         if domains.verify(custom):
             activated += 1
     return activated
+
+
+@shared_task
+def refresh_google_ratings():
+    """GK-11 (beat): обновить кэш Google-рейтингов. Tenant — SHARED (public),
+    один проход без schema_context (прецедент recheck_pending_custom_domains).
+    Берём тенантов с place_id и кэшем старше GOOGLE_RATING_REFRESH_DAYS;
+    ошибка одного тенанта (сеть/квота/битый id) не роняет проход — кэш просто
+    остаётся прежним. Возвращает число обновлённых."""
+    from datetime import timedelta
+
+    from django.conf import settings
+    from django.db.models import Q
+    from django.utils import timezone
+
+    from . import google_places
+    from .models import Tenant
+
+    if not google_places.api_key():
+        return 0  # ключ не настроен — фича молчит (external-integrations-backlog)
+
+    stale_before = timezone.now() - timedelta(days=settings.GOOGLE_RATING_REFRESH_DAYS)
+    tenants = (
+        Tenant.objects.exclude(schema_name="public")
+        .exclude(google_place_id="")
+        .filter(
+            Q(google_rating_updated_at__isnull=True) | Q(google_rating_updated_at__lt=stale_before)
+        )
+    )
+    updated = 0
+    for tenant in tenants:
+        try:
+            rating, count = google_places.fetch_rating(tenant.google_place_id)
+        except Exception:
+            continue  # держим прежний кэш; следующий проход попробует снова
+        tenant.google_rating = rating
+        tenant.google_rating_count = count
+        tenant.google_rating_updated_at = timezone.now()
+        tenant.save(
+            update_fields=[
+                "google_rating",
+                "google_rating_count",
+                "google_rating_updated_at",
+                "updated_at",
+            ]
+        )
+        updated += 1
+    return updated

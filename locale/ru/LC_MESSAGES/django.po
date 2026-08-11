@@ -17631,3 +17631,46 @@ msgstr "Довольные клиенты"
 msgid "Handle oder vollständige URL (z. B. @meinladen). Gefüllte Profile erscheinen als Icons im Footer Ihrer Website."
 msgstr "Ник или полная ссылка (например, @meinladen). Заполненные профили появятся иконками в подвале сайта."
 
+
+# GK-11: Google-рейтинг (Places API)
+msgid "Google Bewertungen"
+msgstr "Отзывы Google"
+
+msgid "Bewertung und Anzahl von Google auf der Website anzeigen"
+msgstr "Показывать рейтинг и число отзывов Google на сайте"
+
+msgid "Nicht verbunden"
+msgstr "Не подключено"
+
+msgid "Wartet auf erste Aktualisierung"
+msgstr "Ожидает первого обновления"
+
+msgid "Die Place ID Ihres Google-Unternehmensprofils (z. B. ChIJ…). Zu finden über den Google Place ID Finder oder im Business-Profil."
+msgstr "Place ID вашего профиля Google Business (например, ChIJ…). Найти можно через Google Place ID Finder или в профиле компании."
+
+msgid "Aktualisierung fehlgeschlagen — Place ID prüfen; der Plattform-API-Schlüssel muss konfiguriert sein."
+msgstr "Обновление не удалось — проверьте Place ID; на платформе должен быть настроен API-ключ."
+
+msgid "Aktualisiert."
+msgstr "Обновлено."
+
+msgid "Jetzt aktualisieren"
+msgstr "Обновить сейчас"
+
+msgid "Zeigt Bewertung und Anzahl Ihres Google-Unternehmensprofils auf der Website (Vertrauensleiste und Bewertungsseite)."
+msgstr "Показывает рейтинг и число отзывов вашего профиля Google Business на сайте (полоса доверия и страница отзывов)."
+
+msgid "Zuletzt aktualisiert"
+msgstr "Последнее обновление"
+
+msgid "Automatische Aktualisierung alle paar Tage"
+msgstr "Автообновление раз в несколько дней"
+
+
+msgid "%(n)s Google-Bewertung"
+msgid_plural "%(n)s Google-Bewertungen"
+msgstr[0] "%(n)s отзыв Google"
+msgstr[1] "%(n)s отзыва Google"
+msgstr[2] "%(n)s отзывов Google"
+msgstr[3] "%(n)s отзыва Google"
+

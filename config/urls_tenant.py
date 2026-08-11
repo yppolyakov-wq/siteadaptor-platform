@@ -25,6 +25,7 @@ from apps.core.views import (
     domains_view,
     extras_view,
     finder_settings,
+    google_reviews_settings,
     home_builder_view,
     integrations_home,
     kanban_action,
@@ -99,6 +100,12 @@ urlpatterns = [
     path("dashboard/finder/", finder_settings, name="finder-settings"),
     # W4-3: единый экран «Zahlung & Versand» (свод оплаты/доставки).
     path("dashboard/settings/payments/", payment_settings, name="payment-settings"),
+    # GK-11: Place ID + кэш Google-рейтинга (карточка Integrationen).
+    path(
+        "dashboard/settings/google-bewertungen/",
+        google_reviews_settings,
+        name="google-reviews-settings",
+    ),
     # L5/E-2: кабинет «Recht» — правовые тексты per-locale (LegalDoc) + AGB.
     path("dashboard/recht/", legal_docs_view, name="legal-docs"),
     # W9-8: «Abläufe» — имена статусов/переходы/колонки доски в одном месте.

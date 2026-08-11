@@ -1,0 +1,34 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "Google Bewertungen" %}{% endblock %}
+
+{% block dash_content %}
+{% hub_tabs "settings" %}
+<h1 class="text-2xl font-bold mb-1">⭐ {% trans "Google Bewertungen" %}</h1>
+<p class="text-sm text-gray-500 mb-4">{% trans "Zeigt Bewertung und Anzahl Ihres Google-Unternehmensprofils auf der Website (Vertrauensleiste und Bewertungsseite)." %}</p>
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<form method="post" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
+  {% csrf_token %}
+  {% include "tenant/_settings_field.html" with field=form.google_place_id %}
+  <div class="flex flex-wrap items-center gap-3">
+    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+    {% if request.tenant.google_place_id %}
+      <button type="submit" name="action" value="refresh" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:border-indigo-400">🔄 {% trans "Jetzt aktualisieren" %}</button>
+    {% endif %}
+  </div>
+</form>
+
+{% if request.tenant.google_rating %}
+<div class="mt-4 bg-white rounded-2xl shadow-sm p-6 max-w-xl text-sm">
+  <p class="text-2xl text-amber-500 font-bold">★ {{ request.tenant.google_rating }}</p>
+  <p class="text-gray-500 mt-1">{% blocktrans count n=request.tenant.google_rating_count %}{{ n }} Google-Bewertung{% plural %}{{ n }} Google-Bewertungen{% endblocktrans %}</p>
+  <p class="text-xs text-gray-400 mt-2">{% trans "Zuletzt aktualisiert" %}: {{ request.tenant.google_rating_updated_at|date:"d.m.Y H:i" }} · {% trans "Automatische Aktualisierung alle paar Tage" %}</p>
+</div>
+{% endif %}
+{% endblock %}

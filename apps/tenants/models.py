@@ -143,6 +143,15 @@ class Tenant(TenantMixin):
     linkedin = models.CharField(max_length=120, blank=True, verbose_name="LinkedIn")
     tiktok = models.CharField(max_length=120, blank=True, verbose_name="TikTok")
     youtube = models.CharField(max_length=120, blank=True, verbose_name="YouTube")
+    # GK-11: Google-рейтинг бизнеса (Places API). place_id вводит владелец
+    # (Einstellungen → Integrationen); rating/count — КЭШ (ToS Google: контент
+    # не кэшировать дольше 30 дней → beat refresh_google_ratings, при ошибке
+    # API держим последнее значение). updated_at свой — Tenant.updated_at
+    # auto_now и не годится как маркер свежести кэша.
+    google_place_id = models.CharField(max_length=255, blank=True)
+    google_rating = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True)
+    google_rating_count = models.PositiveIntegerField(default=0)
+    google_rating_updated_at = models.DateTimeField(null=True, blank=True)
     opening_hours = models.TextField(blank=True)  # свободный текст / по строкам
     # Структурные часы работы (P1b): {"0":["09:00","18:00"], …} по дням недели
     # (0=Пн … 6=Вс, как date.weekday()); один интервал на день в v1. Источник

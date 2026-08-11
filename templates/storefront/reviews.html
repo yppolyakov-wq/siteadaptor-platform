@@ -9,6 +9,11 @@
     <p class="text-amber-500 mt-1">★ {{ business_rating_value.0|floatformat:1 }}
       <span class="text-gray-400 text-sm">({{ business_rating_value.1 }})</span></p>
   {% endif %}
+  {% if request.tenant.google_rating %}
+    {# GK-11: кэш Google-рейтинга — второй строкой, источник назван честно #}
+    <p class="text-amber-500 mt-0.5">★ {{ request.tenant.google_rating }}
+      <span class="text-gray-400 text-sm">{% blocktrans count n=request.tenant.google_rating_count %}{{ n }} Google-Bewertung{% plural %}{{ n }} Google-Bewertungen{% endblocktrans %}</span></p>
+  {% endif %}
 </div>
 <div class="grid gap-4 sm:grid-cols-2">
   {% comment %}Кураторские отзывы владельца (site_config.testimonials) идут рядом

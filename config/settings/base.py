@@ -446,6 +446,12 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.tenants.tasks.recheck_pending_custom_domains",
         "schedule": 300.0,  # каждые 5 минут — авто-подтверждение кастомных доменов по DNS
     },
+    # GK-11: обновление Google-рейтингов (кэш ≤30 дней по ToS; свежесть — env
+    # GOOGLE_RATING_REFRESH_DAYS, дефолт 7). SHARED-обход, без schema_context.
+    "refresh-google-ratings": {
+        "task": "apps.tenants.tasks.refresh_google_ratings",
+        "schedule": 86400.0,
+    },
 }
 
 # За сколько часов до начала записи слать напоминание (Track D / D3c).
@@ -525,6 +531,13 @@ BILLING_APPLICATION_FEE_PERCENT = env.dict("BILLING_APPLICATION_FEE_PERCENT", de
 # ---------------------------------------------------------------------------
 GOOGLE_OAUTH_CLIENT_ID = env("GOOGLE_OAUTH_CLIENT_ID", default="")
 GOOGLE_OAUTH_CLIENT_SECRET = env("GOOGLE_OAUTH_CLIENT_SECRET", default="")
+
+# ---------------------------------------------------------------------------
+# Google Places API (GK-11: рейтинг бизнеса на витрине; ключ платформенный,
+# шифрованный стор имеет приоритет — apps.secrets.store.get_or_setting)
+# ---------------------------------------------------------------------------
+GOOGLE_PLACES_API_KEY = env("GOOGLE_PLACES_API_KEY", default="")
+GOOGLE_RATING_REFRESH_DAYS = env.int("GOOGLE_RATING_REFRESH_DAYS", default=7)
 
 # ---------------------------------------------------------------------------
 # Meta Graph API (соц-постинг Facebook/Instagram, M23a)

@@ -59,6 +59,21 @@ class BusinessSignupForm(forms.Form):
         return cleaned
 
 
+class GoogleRatingForm(forms.ModelForm):
+    """GK-11: Place ID для Google-рейтинга (Einstellungen → Integrationen)."""
+
+    class Meta:
+        model = Tenant
+        fields = ["google_place_id"]
+        labels = {"google_place_id": "Google Place ID"}
+        help_texts = {
+            "google_place_id": _(
+                "Die Place ID Ihres Google-Unternehmensprofils (z. B. ChIJ…). "
+                "Zu finden über den Google Place ID Finder oder im Business-Profil."
+            ),
+        }
+
+
 class BusinessSettingsForm(forms.ModelForm):
     """Настройки бизнеса: контакты + правовые тексты (редактирует владелец)."""
 

@@ -317,6 +317,14 @@ ENTRIES: tuple[NavEntry, ...] = (
         "integrations",
         search="integrationen stripe telegram publishing ota kanäle verbindungen",
     ),
+    # GK-11: Google-рейтинг (Places API) — экран в кластере настроек.
+    _e(
+        "settings",
+        "google-reviews-settings",
+        _("Google Bewertungen"),
+        "integrations",
+        search="google bewertungen sterne rating place id",
+    ),
     _e(
         "settings",
         "billing",

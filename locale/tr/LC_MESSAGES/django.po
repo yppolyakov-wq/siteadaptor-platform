@@ -17551,3 +17551,44 @@ msgstr "Mutlu müşteriler"
 msgid "Handle oder vollständige URL (z. B. @meinladen). Gefüllte Profile erscheinen als Icons im Footer Ihrer Website."
 msgstr "Kullanıcı adı veya tam URL (ör. @meinladen). Doldurulan profiller sitenizin alt bilgisinde simge olarak görünür."
 
+
+# GK-11: Google-рейтинг (Places API)
+msgid "Google Bewertungen"
+msgstr "Google yorumları"
+
+msgid "Bewertung und Anzahl von Google auf der Website anzeigen"
+msgstr "Google puanınızı ve yorum sayınızı web sitesinde gösterin"
+
+msgid "Nicht verbunden"
+msgstr "Bağlı değil"
+
+msgid "Wartet auf erste Aktualisierung"
+msgstr "İlk güncelleme bekleniyor"
+
+msgid "Die Place ID Ihres Google-Unternehmensprofils (z. B. ChIJ…). Zu finden über den Google Place ID Finder oder im Business-Profil."
+msgstr "Google İşletme Profilinizin Place ID'si (ör. ChIJ…). Google Place ID Finder üzerinden veya işletme profilinizde bulabilirsiniz."
+
+msgid "Aktualisierung fehlgeschlagen — Place ID prüfen; der Plattform-API-Schlüssel muss konfiguriert sein."
+msgstr "Güncelleme başarısız — Place ID'yi kontrol edin; platform API anahtarı yapılandırılmış olmalı."
+
+msgid "Aktualisiert."
+msgstr "Güncellendi."
+
+msgid "Jetzt aktualisieren"
+msgstr "Şimdi güncelle"
+
+msgid "Zeigt Bewertung und Anzahl Ihres Google-Unternehmensprofils auf der Website (Vertrauensleiste und Bewertungsseite)."
+msgstr "Google İşletme Profilinizin puanını ve yorum sayısını web sitesinde gösterir (güven şeridi ve yorumlar sayfası)."
+
+msgid "Zuletzt aktualisiert"
+msgstr "Son güncelleme"
+
+msgid "Automatische Aktualisierung alle paar Tage"
+msgstr "Birkaç günde bir otomatik güncellenir"
+
+
+msgid "%(n)s Google-Bewertung"
+msgid_plural "%(n)s Google-Bewertungen"
+msgstr[0] "%(n)s Google yorumu"
+msgstr[1] "%(n)s Google yorumu"
+

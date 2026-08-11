@@ -1,6 +1,6 @@
-{% load i18n seo %}{# Секция доверия (P3): рейтинг Google + год основания + знаки качества. #}
+{% load i18n seo %}{# Секция доверия (P3): ВНУТРЕННИЙ рейтинг (BusinessRating портала) + GK-11 Google-рейтинг (кэш Places API) + год основания + знаки качества. #}
 {% business_rating as rating %}
-{% if rating or site.trust.since or site.trust.marks %}
+{% if rating or request.tenant.google_rating or site.trust.since or site.trust.marks %}
 {% comment %}UC6-6f/UC6-8: 5 видов по section_row.style — "" карточка-центр | left |
    badges | plain | cards (каждый показатель в своей рамке).{% endcomment %}
 <section data-reveal class="mb-10 {% if section_row.style != "plain" %}bg-white rounded-2xl shadow-sm p-6 md:p-8{% endif %}">
@@ -9,6 +9,14 @@
       <div{% if section_row.style == "cards" %} class="border border-gray-200 rounded-xl px-5 py-3"{% endif %}>
         <div class="text-amber-500 text-2xl leading-none">★ {{ rating.0 }}</div>
         <p class="text-xs text-gray-500 mt-1">{% blocktrans count n=rating.1 %}{{ n }} review{% plural %}{{ n }} reviews{% endblocktrans %}</p>
+      </div>
+    {% endif %}
+    {% if request.tenant.google_rating %}
+      {% comment %}GK-11: кэш Google-рейтинга (beat, Places API) — источник назван
+      честно; в JSON-LD НЕ кладём (политика Google: разметка только своих отзывов).{% endcomment %}
+      <div{% if section_row.style == "cards" %} class="border border-gray-200 rounded-xl px-5 py-3"{% endif %}>
+        <div class="text-amber-500 text-2xl leading-none">★ {{ request.tenant.google_rating }}</div>
+        <p class="text-xs text-gray-500 mt-1">{% blocktrans count n=request.tenant.google_rating_count %}{{ n }} Google-Bewertung{% plural %}{{ n }} Google-Bewertungen{% endblocktrans %}</p>
       </div>
     {% endif %}
     {% if site.testimonials %}

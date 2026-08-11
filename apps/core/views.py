@@ -3768,6 +3768,15 @@ def marketing_home(request):
 
 
 @login_required
+def _google_rating_status(tenant):
+    """GK-11: ok = кэш есть; warn = ID задан, но ещё не обновлялось; muted = выкл."""
+    if not tenant.google_place_id:
+        return (_("Nicht verbunden"), "muted")
+    if tenant.google_rating is None:
+        return (_("Wartet auf erste Aktualisierung"), "warn")
+    return (f"★ {tenant.google_rating} · {tenant.google_rating_count}", "ok")
+
+
 def integrations_home(request):
     """ST-4a → W9-9 (Р-3): «Integrationen» — вкладка Einstellungen-хаба с
     read-only статусами подключений на карточках (fail-safe: сломанный блок
@@ -3869,6 +3878,16 @@ def integrations_home(request):
             "status": _safe(_publishing_status),
         },
         {
+            # GK-11: Google-рейтинг (Places API) — плашка «★ X,X · N Google-
+            # Bewertungen» на витрине; ключ платформенный (env/секрет-стор).
+            "icon": "⭐",
+            "label": _("Google Bewertungen"),
+            "hint": _("Bewertung und Anzahl von Google auf der Website anzeigen"),
+            "url_name": "google-reviews-settings",
+            "show": True,
+            "status": _safe(_google_rating_status),
+        },
+        {
             "icon": "🏨",
             "label": _("Channel Manager (OTA)"),
             "hint": _("Buchungen aus Portalen importieren"),
@@ -3882,4 +3901,50 @@ def integrations_home(request):
         "tenant/integrations_home.html",
         # nav-ключ прежний — подсветку на якорь «Einstellungen» ведёт реестр W8.
         {"nav": "integrations", "cards": [c for c in cards if c["show"]]},
+    )
+
+
+@login_required
+def google_reviews_settings(request):
+    """GK-11: Place ID + кэш Google-рейтинга. Targeted-save (W7a: голый save()
+    затирал бы конкурентные записи site_config/Stripe); «Jetzt aktualisieren» —
+    синхронный fetch с честной ошибкой (без ключа/битый ID)."""
+    from apps.tenants import google_places
+    from apps.tenants.forms import GoogleRatingForm
+
+    tenant = request.tenant
+    form = GoogleRatingForm(request.POST or None, instance=tenant)
+    if request.method == "POST":
+        if request.POST.get("action") == "refresh" and tenant.google_place_id:
+            try:
+                rating, count = google_places.fetch_rating(tenant.google_place_id)
+            except Exception:
+                messages.error(
+                    request,
+                    _(
+                        "Aktualisierung fehlgeschlagen — Place ID prüfen; "
+                        "der Plattform-API-Schlüssel muss konfiguriert sein."
+                    ),
+                )
+            else:
+                tenant.google_rating = rating
+                tenant.google_rating_count = count
+                tenant.google_rating_updated_at = timezone.now()
+                tenant.save(
+                    update_fields=[
+                        "google_rating",
+                        "google_rating_count",
+                        "google_rating_updated_at",
+                        "updated_at",
+                    ]
+                )
+                messages.success(request, _("Aktualisiert."))
+            return redirect("google-reviews-settings")
+        if form.is_valid():
+            form.save(commit=False)
+            tenant.save(update_fields=[*GoogleRatingForm.Meta.fields, "updated_at"])
+            messages.success(request, _("Gespeichert."))
+            return redirect("google-reviews-settings")
+    return render(
+        request, "tenant/google_reviews_settings.html", {"nav": "integrations", "form": form}
     )
