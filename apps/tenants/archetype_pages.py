@@ -29,6 +29,7 @@ DISPLAY_NAME = {
     "handwerker": _("Handwerksbetriebe"),
     "werkstatt": _("KFZ-Werkstätten"),
     "events": _("Veranstalter"),
+    "catering": _("Catering & Partyservice"),  # GK-1
 }
 
 # Reihenfolge = Modell-Reihenfolge (ohne "other").
@@ -762,6 +763,63 @@ CONTENT: dict[str, dict] = {
                 "title": _("Haftungsausschluss & flexible Stornierung"),
                 "text": _(
                     "Bei Bedarf unterschreiben Gäste einen Haftungsausschluss bei der Buchung; die Stornoregel wählst du je Event — kostenlose Selbststornierung bis X Tage vorher mit Online-Rückerstattung oder nicht erstattbar."
+                ),
+            },
+        ],
+    },
+    # GK-1 (2026-08-11): каждый highlight сверен с кодом — AF-1 (событийные поля
+    # Anfrage), jobs-Angebot+Anzahlung, catalog/food.py (Diäten/Allergene),
+    # AF-2 (anfrage_ref), promotions, reviews.
+    "catering": {
+        "headline": _("Die Catering-Website: Event-Anfragen, Angebote & Speisekarte online"),
+        "intro": _(
+            "Als Caterer oder Partyservice baust du hier deine eigene Website — ohne Technikwissen. Gäste senden ihre Event-Anfrage mit Wunschdatum, Gästezahl und Anlass, du antwortest mit einem klaren Angebot. Deine Menüs zeigst du als Speisekarte mit Diät-Hinweisen und Allergenen."
+        ),
+        "seo_title": _("Catering-Website mit Event-Anfrage & Angebot online"),
+        "seo_desc": _(
+            "Website für Catering & Partyservice: Event-Anfragen mit Datum und Gästezahl, Angebote mit Positionen und Anzahlung, Speisekarte mit Allergenen — alles online."
+        ),
+        "highlights": [
+            {
+                "icon": "📋",
+                "title": _("Event-Anfrage mit Datum & Gästezahl"),
+                "text": _(
+                    "Interessenten fragen mit Wunschdatum, Personenzahl und Anlass an — die Auswahlliste der Veranstaltungsarten bestimmst du selbst im Dashboard."
+                ),
+            },
+            {
+                "icon": "✅",
+                "title": _("Angebot online freigeben"),
+                "text": _(
+                    "Erstelle Angebote mit Positionen, Mengen und MwSt; Kunden nehmen sie über einen privaten Link an — optional mit Anzahlung per Stripe."
+                ),
+            },
+            {
+                "icon": "🥗",
+                "title": _("Speisekarte mit Diät-Hinweisen"),
+                "text": _(
+                    "Zeige Menüs, Buffets und Pakete mit Fotos, vegan/vegetarisch-Labels und Allergenen nach LMIV — ohne Warenkorb, als appetitliche Übersicht."
+                ),
+            },
+            {
+                "icon": "📝",
+                "title": _("Anfrage-Formular auf jeder Seite"),
+                "text": _(
+                    "Baue das Anfrage-Formular als Block auf beliebige Seiten deiner Website ein — Besucher fragen an, ohne die Seite zu wechseln."
+                ),
+            },
+            {
+                "icon": "🔥",
+                "title": _("Aktionen & Frühbucher-Rabatte"),
+                "text": _(
+                    "Lege Aktionen wie Frühbucher- oder Saison-Rabatte an — mit Countdown, Aktionsseite und Teilen auf deinen Kanälen."
+                ),
+            },
+            {
+                "icon": "⭐",
+                "title": _("Bewertungen sammeln & beantworten"),
+                "text": _(
+                    "Nach dem Event bittet die Plattform automatisch um eine Bewertung; du antwortest öffentlich und baust Vertrauen für die nächste Anfrage auf."
                 ),
             },
         ],

@@ -126,6 +126,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "other",
             "friseur",  # S6: салон делает Aktionen
             "events",  # S6: организатор — промо-акции
+            "catering",  # GK-1: акции на пакеты/сезон
         ),
         # S6: handwerker/werkstatt — suited (не вкл по умолчанию, но подходит) →
         # promotions покрывает все типы → suited_label остаётся «Für alle Geschäftstypen».
@@ -147,7 +148,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         # Пункт CRM остаётся якорем будущего хаба «Kunden» (S4b). url_prefix кампаний цел.
         nav_items=(NavItem("crm:customer-list", _("Customers"), "crm"),),
         url_prefixes=("/crm/", "/promotions/kampagnen/"),
-        recommended_for=("hotel", "tour_operator"),
+        recommended_for=("hotel", "tour_operator", "catering"),  # GK-1: событийные клиенты
         suited_for=(
             "bakery",
             "butcher",
@@ -189,6 +190,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "handwerker",  # S6
             "werkstatt",  # S6
             "events",  # S6
+            "catering",  # GK-1
             "other",
         ),
         description_de=_(
@@ -206,7 +208,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         url_prefixes=("/dashboard/orders/",),
         recommended_for=("bakery", "butcher", "grocery", "retail", "clothing", "online_shop"),
         # S6: friseur (Pflegeprodukte) / werkstatt (Teile) — розница как доп-канал.
-        suited_for=("cafe", "restaurant", "other", "friseur", "werkstatt"),
+        suited_for=("cafe", "restaurant", "other", "friseur", "werkstatt", "catering"),
         description_de=_("Kunden bestellen online und holen im Laden ab."),
         storefront_label=_("Online bestellen"),
         storefront_blurb=_("Bestellen und im Laden abholen oder liefern lassen."),
@@ -222,7 +224,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         url_prefixes=("/dashboard/booking/",),
         # S6: Friseur/Werkstatt — услуги по времени (Termin) primary; Handwerker — suited.
         recommended_for=("cafe", "restaurant", "hotel", "tour_operator", "friseur", "werkstatt"),
-        suited_for=("retail", "clothing", "other", "handwerker"),
+        suited_for=("retail", "clothing", "other", "handwerker", "catering"),
         description_de=_("Tische, Termine oder Zimmer nach Uhrzeit reservieren lassen."),
         storefront_label=_("Termin buchen"),
         storefront_blurb=_("Reservieren Sie online Ihren Tisch oder Termin."),
@@ -287,6 +289,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "handwerker",  # S6
             "werkstatt",  # S6
             "events",  # S6
+            "catering",  # GK-1
             "other",
         ),
         description_de=_(
@@ -332,7 +335,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         # предупреждения; suited НЕ влияет на пресет (default_disabled читает recommended).
         # Bäckerei/Metzgerei: Partyservice (Kuchenbuffets/Platten) — классика, демо-киты
         # включают jobs (2026-07-30, запрос владельца «bakery: Partyservice»).
-        recommended_for=("handwerker", "werkstatt"),
+        recommended_for=("handwerker", "werkstatt", "catering"),  # GK-1: primary кейтеринга
         suited_for=("restaurant", "cafe", "bakery", "butcher", "other"),
         description_de=_(
             "Anfragen annehmen, Angebote/Kostenvoranschläge erstellen, Aufträge abrechnen."
@@ -352,7 +355,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         # S6: архетип «Veranstalter/Events» — билеты его primary (default-ON). Сверх
         # пресета подходит гидам/студиям (tour_operator/other).
         recommended_for=("events",),
-        suited_for=("tour_operator", "other"),
+        suited_for=("tour_operator", "other", "catering"),
         description_de=_("Veranstaltungen mit bezahlten Tickets und Teilnehmerliste."),
         storefront_label=_("Veranstaltungen"),
         storefront_blurb=_("Tickets für unsere Events sichern."),
@@ -384,6 +387,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "handwerker",  # S6
             "werkstatt",  # S6
             "events",  # S6
+            "catering",  # GK-1 (замок test_blog: блог у всех типов)
             "other",
         ),
         description_de=_(
@@ -419,6 +423,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "handwerker",  # S6
             "werkstatt",  # S6
             "events",  # S6
+            "catering",  # GK-1
             "other",
         ),
         description_de=_("Kundennachrichten und Support-Tickets an einem Ort beantworten."),
@@ -473,6 +478,7 @@ REGISTRY: tuple[ModuleSpec, ...] = (
             "handwerker",  # S6: Aufträge/Rechnungen
             "werkstatt",  # S6: Termine/Aufträge
             "events",  # S6: Tickets
+            "catering",  # GK-1: заявки/заказы клиента
         ),
         suited_for=("other",),
         description_de=_(

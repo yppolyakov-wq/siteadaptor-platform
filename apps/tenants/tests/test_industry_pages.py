@@ -13,7 +13,7 @@ def test_industries_index_lists_all_archetypes():
     for slug in archetype_pages.SLUGS:
         assert f"/branchen/{slug}/" in body  # Karte verlinkt jede Branche
     assert "other" not in [s for s in archetype_pages.SLUGS]  # neutraler Typ ausgeschlossen
-    assert len(archetype_pages.SLUGS) == 14
+    assert len(archetype_pages.SLUGS) == 15  # GK-1: += catering
 
 
 @pytest.mark.parametrize("slug", archetype_pages.SLUGS)

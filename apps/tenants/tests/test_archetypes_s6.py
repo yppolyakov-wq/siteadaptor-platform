@@ -56,6 +56,34 @@ def test_demo_kits_mapped_to_new_types(kit_key, expected_type):
     assert KITS[kit_key].business_type == expected_type
 
 
+# --- catering (GK-1, 2026-08-11): кейтеринг как основной бизнес --------------
+def test_catering_type_registered_and_wired():
+    from apps.core.hero_tiles import HERO_TILE_SETS
+    from apps.core.seo import _SCHEMA_TYPES
+    from apps.tenants.onboarding import BUSINESS_TYPE_META, DEMO_KIT_HOST
+
+    assert "catering" in dict(Tenant.BUSINESS_TYPES)
+    assert BUSINESS_TYPE_META["catering"][0]  # иконка карточки мастера
+    assert DEMO_KIT_HOST["catering"] == "catering"
+    disabled = set(modules.default_disabled_for("catering"))
+    assert "jobs" not in disabled  # primary
+    assert "promotions" not in disabled and "crm" not in disabled
+    for universal in ("reviews", "gift", "blog", "inbox", "customer_account"):
+        assert universal not in disabled
+    assert "orders" in disabled and "booking" in disabled  # Speisekarte browse-only
+    assert KITS["catering"].business_type == "catering"
+    assert KITS["catering"].anfrage_form["fields"]  # AF-1 в демо из коробки
+    assert KITS["catering"].primary_module == "jobs"
+    assert _SCHEMA_TYPES["catering"] == "FoodEstablishment"
+    assert "catering" in HERO_TILE_SETS
+
+
+def test_catering_promo_presets_exist():
+    from apps.promotions.presets import PRESETS
+
+    assert any(p["key"] == "fruehbucher" for p in PRESETS["catering"])
+
+
 # --- online_shop (решение владельца 2026-07-10): «просто онлайн-магазин» -----
 def test_online_shop_type_registered_and_wired():
     """Тип в choices; карточка с иконкой/blurb; демо-маппинг на shop; primary=orders

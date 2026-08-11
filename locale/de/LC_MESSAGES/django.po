@@ -17502,3 +17502,26 @@ msgstr "Zusätzliche Felder auf der öffentlichen Anfrage-Seite (z. B. für Cate
 msgid "Auswahlliste (eine Option pro Zeile)"
 msgstr "Auswahlliste (eine Option pro Zeile)"
 
+
+# GK-1: архетип Catering (тип/карточка/hero-плитки/feature-demo)
+msgid "Catering / Partyservice"
+msgstr "Catering / Partyservice"
+
+msgid "Catering & Partyservice — Anfragen, Angebote & Event-Planung"
+msgstr "Catering & Partyservice — Anfragen, Angebote & Event-Planung"
+
+msgid "Datum, Gäste & Wünsche — unverbindlich"
+msgstr "Datum, Gäste & Wünsche — unverbindlich"
+
+msgid "Menüs & Pakete"
+msgstr "Menüs & Pakete"
+
+msgid "Unsere Speisekarte"
+msgstr "Unsere Speisekarte"
+
+msgid "Event-Anfrage fürs Catering"
+msgstr "Event-Anfrage fürs Catering"
+
+msgid "Wunschdatum, Gästezahl und Anlass — Angebot kommt per E-Mail."
+msgstr "Wunschdatum, Gästezahl und Anlass — Angebot kommt per E-Mail."
+

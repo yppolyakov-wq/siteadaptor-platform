@@ -43,7 +43,7 @@ def test_sitemap_has_index_cities_and_types():
     assert "<loc>http://testserver/</loc>" in body
     assert "/branchen/hotel/" in body and "/ueber-uns/" in body
     # 16 платформенных + index + 2 города + 2 (город,тип) = 21
-    assert body.count("<url>") == 21
+    assert body.count("<url>") == 22  # GK-1: += /branchen/catering
 
 
 @override_settings(ROOT_URLCONF="config.urls_public")

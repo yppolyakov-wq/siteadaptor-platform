@@ -5931,6 +5931,354 @@ HANDWERKER = DemoKit(
     ],
 )
 
+CATERING_MENUS = {
+    "top": {
+        "style": "centered",
+        "sticky": True,
+        "items": [
+            {"label": "Anfrage", "type": "archetype", "target": "jobs"},
+            {"label": "Speisekarte", "type": "archetype", "target": "catalog"},
+            {"label": "Angebote", "type": "archetype", "target": "promotions"},
+            {"label": "Galerie", "type": "page", "target": "gallery"},
+            {"label": "Unser Team", "type": "page", "target": "team"},
+            {"label": "Bewertungen", "type": "page", "target": "reviews"},
+            {"label": "Über uns", "type": "page", "target": "about"},
+        ],
+    },
+    "bottom": {
+        "enabled": True,
+        "items": [
+            {"label": "Anfrage", "type": "archetype", "target": "jobs", "icon": "📋"},
+            {"label": "Speisekarte", "type": "archetype", "target": "catalog", "icon": "🥗"},
+            {"label": "Kontakt", "type": "page", "target": "contact", "icon": "📞"},
+        ],
+    },
+}
+
+# GK-1 Catering: кейтеринг как ОСНОВНОЙ бизнес (референс-анализ goodkarma-catering.de,
+# docs/goodkarma-catering-gap-analysis-2026-08-11.md). Ядро = jobs (Event-Anfrage с
+# полями AF-1 → Angebot); Speisekarte browse-only (catalog core, orders выключен
+# пресетом типа); вегетарианский профиль — диет-метки и Bio-USP видны сразу.
+CATERING = DemoKit(
+    promotions_spec=[
+        {
+            "title": "Frühbucher-Rabatt: −10 % auf Buffets",
+            "desc": "Bei Buchung mindestens 8 Wochen im Voraus — gilt für alle Buffet-Pakete.",
+            "product": 0,  # Buffet Vegetarisch (24 € p. P.)
+            "percent": 10,
+            "compare_at": "24.00",
+            "discount_style": "badge",
+            "limit": 20,
+            "new": True,
+            "group": "Frühbucher",
+            "image": "buffet,catering",
+        },
+        {
+            "title": "Saison-Aktion: Suppenstation 4,50 € statt 5,50 €",
+            "desc": "Saisonale Suppe im Glas mit Brot — perfekt für Herbst-Veranstaltungen.",
+            "product": 2,  # Suppenstation (5,50 € p. P.)
+            "new_price": "4.50",
+            "compare_at": "5.50",
+            "discount_style": "strikethrough",
+            "ends_in_days": 30,
+            "group": "Saison-Aktionen",
+            "image": "soup,bowl",
+        },
+        {
+            "title": "Probier-Paket: Fingerfood für 10 Personen zum Festpreis 79 €",
+            "desc": "Fingerfood-Platte Klassik für 10 Gäste — einmal probieren, "
+            "dann fürs große Event buchen.",
+            "product": 3,  # Fingerfood-Platte Klassik (8,50 € p. P.)
+            "new_price": "79",
+            "compare_at": "85",
+            "discount_style": "festpreis",
+            "limit": 10,
+            "group": "Probier-Pakete",
+            "images": ["fingerfood,platter", "canapes,catering"],
+        },
+        {
+            "title": "Letzte Grill-Termine der Saison: −15 % aufs Grillbuffet",
+            "desc": "BBQ mit Beilagen, vor Ort zubereitet — nur noch wenige Termine frei.",
+            "product": 1,  # Grillbuffet (28 € p. P.)
+            "percent": 15,
+            "compare_at": "28.00",
+            "discount_style": "countdown",
+            "countdown": True,
+            "ends_in_days": 14,
+            "limit": 8,
+            "group": "Saison-Aktionen",
+            "image": "bbq,grill",
+        },
+    ],
+    key="catering",
+    label="Grüne Tafel Catering",
+    business_type="catering",
+    subdomain="catering",
+    hero_widget="catering",  # GK-1: плитки Anfrage/Speisekarte/Rückruf/Aktionen
+    heroes=[
+        {
+            "image_kw": "catering,buffet",
+            "title": "Grüne Tafel Catering",
+            "text": "Frisch gekocht, liebevoll angerichtet — Catering für Feiern, Büro und Events.",
+            "button_label": "Angebot anfordern",
+            "button_url": "/anfrage/",
+        },
+        {
+            "image_kw": "wedding,catering",
+            "title": "Hochzeits-Catering",
+            "text": "Vom Sektempfang bis zum Mitternachtssnack — wir begleiten Ihren großen Tag.",
+            "button_label": "Termin anfragen",
+            "button_url": "/anfrage/",
+        },
+        {
+            "image_kw": "fingerfood,platter",
+            "title": "Fingerfood fürs Büro",
+            "text": "Platten und Buffets für Meetings und Firmenfeiern — geliefert und aufgebaut.",
+            "button_label": "Speisekarte ansehen",
+            "button_url": "/sortiment/",
+        },
+    ],
+    accent="#15803d",  # frisch/bio-грин (ARCHETYPE_LOOK_ACCENTS)
+    hero_image_kw="catering,buffet",
+    hero_title="Grüne Tafel Catering",
+    hero_text="Vegetarisches Catering für Feiern, Büro und Events — sagen Sie uns "
+    "Datum und Gästezahl, wir schicken ein unverbindliches Angebot.",
+    about_title="Über uns",
+    about_text="Seit 2012 kochen wir für Feste, Firmen und Familien: frisch, "
+    "saisonal und mit Zutaten von Höfen aus der Region. Vom Fingerfood bis zum "
+    "Hochzeitsbuffet — Sie feiern, wir kümmern uns um den Rest.",
+    nav_style="classic",
+    address="Gartenstraße 21, 40479 Düsseldorf",
+    opening_hours_text="Mo–Sa 9:00–18:00",
+    opening_hours={d: ("09:00", "18:00") for d in range(6)},
+    service_area_note="Düsseldorf, Köln und Umgebung — auf Anfrage deutschlandweit",
+    # AF-1: событийные поля публичной заявки — витрина архетипа.
+    anfrage_form={
+        "fields": ["date", "guests", "event_type"],
+        "event_types": [
+            "Hochzeit",
+            "Firmenfeier",
+            "Geburtstag",
+            "Messe",
+            "Privatfeier",
+            "Sonstiges",
+        ],
+    },
+    primary_module="jobs",  # страховка: hero-CTA → Anfrage (не каталог)
+    categories=[
+        (
+            "Buffets & Menüs",
+            "buffets",
+            [
+                _p(
+                    "Buffet Vegetarisch",
+                    "24.00",
+                    "Warmes Buffet mit drei Hauptgerichten, Salaten und Brot — pro Person.",
+                    "buffet,vegetarian",
+                    diets=["vegetarisch"],
+                    badge="beliebt",
+                ),
+                _p(
+                    "Grillbuffet",
+                    "28.00",
+                    "BBQ mit Gemüse, Halloumi und Saucen, vor Ort zubereitet — pro Person.",
+                    "bbq,grill",
+                    diets=["vegetarisch"],
+                ),
+                _p(
+                    "Suppenstation",
+                    "5.50",
+                    "Saisonale Suppe im Glas mit Brot — pro Person.",
+                    "soup,bowl",
+                    diets=["vegan"],
+                    allergens=["gluten"],
+                ),
+            ],
+        ),
+        (
+            "Fingerfood & Platten",
+            "fingerfood",
+            [
+                _p(
+                    "Fingerfood-Platte Klassik",
+                    "8.50",
+                    "Mini-Quiches, Wraps und Gemüsesticks mit Dips — pro Person.",
+                    "fingerfood,platter",
+                    diets=["vegetarisch"],
+                    allergens=["gluten", "milch"],
+                    badge="empfehlung",
+                ),
+                _p(
+                    "Wrap-Platte Vegan",
+                    "7.50",
+                    "Gefüllte Wraps mit Hummus, Gemüse und Kräutern — pro Person.",
+                    "wraps,platter",
+                    diets=["vegan"],
+                    allergens=["gluten", "sesam"],
+                ),
+                _p(
+                    "Dessertauswahl",
+                    "6.00",
+                    "Mousse, Kuchen und Obst im Glas — pro Person.",
+                    "dessert,glass",
+                    diets=["vegetarisch"],
+                    allergens=["milch", "eier"],
+                ),
+            ],
+        ),
+        (
+            "Getränke",
+            "getraenke",
+            [
+                _p(
+                    "Getränkepaket",
+                    "9.00",
+                    "Wasser, Säfte und Kaffee für die ganze Veranstaltung — pro Person.",
+                    "drinks,juice",
+                    diets=["vegan"],
+                ),
+            ],
+        ),
+    ],
+    gallery_kw=[
+        "catering,buffet",
+        "fingerfood,platter",
+        "wedding,catering",
+        "canapes,catering",
+        "dessert,glass",
+        "salad,bowl",
+    ],
+    faq=[
+        (
+            "Wie bekomme ich ein Angebot?",
+            "Über «Angebot anfordern» nennen Sie Wunschdatum, Gästezahl und "
+            "Anlass — Sie erhalten ein unverbindliches Angebot, meist innerhalb "
+            "von 24 Stunden.",
+        ),
+        (
+            "Kocht ihr auch vegan?",
+            "Ja — ein Großteil unserer Karte ist vegan oder lässt sich vegan "
+            "zubereiten. Allergene kennzeichnen wir zu jedem Gericht.",
+        ),
+        (
+            "Liefert ihr auch außerhalb der Stadt?",
+            "Wir sind in Düsseldorf, Köln und Umgebung unterwegs — auf Anfrage "
+            "auch deutschlandweit.",
+        ),
+        (
+            "Ab wie vielen Personen liefert ihr?",
+            "Fingerfood und Platten ab 10 Personen, Buffets ab 20 Personen.",
+        ),
+    ],
+    testimonials=[
+        (
+            "Familie Sommer",
+            "Hochzeitsbuffet für 80 Gäste — alles frisch, pünktlich und wunderschön angerichtet.",
+        ),
+        (
+            "Miriam K.",
+            "Fingerfood für unsere Firmenfeier — unkompliziert angefragt, Angebot am nächsten Tag.",
+        ),
+    ],
+    process=[
+        ("Anfrage stellen", "Datum, Gästezahl und Anlass online nennen — unverbindlich."),
+        ("Angebot erhalten", "Wir planen Menü und Ablauf und schicken ein Festpreis-Angebot."),
+        ("Entspannt feiern", "Wir liefern, bauen auf und kümmern uns um den Rest."),
+    ],
+    team=[
+        ("Lena Berger", "Küchenchefin", "chef,woman"),
+        ("Jonas Weber", "Eventleitung", "waiter,man"),
+    ],
+    trust={"since": "2012", "marks": ["Bio-Zutaten", "Regionale Höfe", "Festpreis-Angebot"]},
+    usp=[
+        ("bio", "100 % frisch gekocht"),
+        ("local", "Regionale Zutaten"),
+        ("quality", "Festpreis-Angebot"),
+    ],
+    reviews_seed=[
+        (
+            5,
+            "Firmenfeier für 40 Personen — großartiges Buffet, alle waren begeistert.",
+            "ct.mueller@example.de",
+        ),
+        (
+            5,
+            "Anfrage abends gestellt, Angebot am Morgen — so einfach kann Catering sein.",
+            "ct.krause@example.de",
+        ),
+        (
+            4,
+            "Leckeres veganes Fingerfood, pünktliche Lieferung. Gerne wieder.",
+            "ct.lorenz@example.de",
+        ),
+    ],
+    cta={
+        "title": "Planen Sie Ihr nächstes Event?",
+        "text": "Datum, Gästezahl, Anlass — Sie erhalten ein unverbindliches "
+        "Angebot innerhalb von 24 Stunden.",
+        "button_label": "Angebot anfordern",
+        "button_url": "/anfrage/",
+    },
+    # Явный список для apply_kit (снимает из disabled; тип-пресет — на сидинге).
+    enable_modules=[
+        "jobs",
+        "promotions",
+        "crm",
+        "inbox",
+        "reviews",
+        "gift",
+        "blog",
+        "customer_account",
+    ],
+    enable_archetypes_section=True,
+    storefront_root="home",
+    seed_records=True,
+    menus=CATERING_MENUS,
+    page_presets=[("info", "team")],  # ST-2: «Über uns» с командой
+    job_samples=[
+        {
+            "title": "Catering Hochzeit (80 Personen)",
+            "name": "Anna Sommer",
+            "email": "sommer@example.de",
+            "phone": "0211 5551234",
+            "description": "Sektempfang, warmes Buffet und Dessertbar für 80 "
+            "Gäste, Scheune in Ratingen. Bitte vegetarisch mit veganen Optionen.",
+            "lines": [
+                {"text": "Buffet Vegetarisch (80 P.)", "qty": 80, "unit_price": "24.00"},
+                {"text": "Dessertauswahl (80 P.)", "qty": 80, "unit_price": "6.00"},
+                {"text": "Personal & Aufbau (Pauschale)", "qty": 1, "unit_price": "480.00"},
+            ],
+            "vat_rate": 19,
+        },
+        {
+            "title": "Fingerfood Firmenfeier (25 Personen)",
+            "name": "Miriam Klein",
+            "email": "klein@example.de",
+            "description": "Sommerfest im Büro, Fingerfood und Getränke für 25 "
+            "Personen, Lieferung bis 17 Uhr.",
+            "lines": [
+                {"text": "Fingerfood-Platte Klassik (25 P.)", "qty": 25, "unit_price": "8.50"},
+                {"text": "Getränkepaket (25 P.)", "qty": 25, "unit_price": "9.00"},
+                {"text": "Lieferung & Abholung", "qty": 1, "unit_price": "60.00"},
+            ],
+            "vat_rate": 19,
+        },
+    ],
+    archetype_covers={
+        "jobs": {
+            "intro": "Nennen Sie Wunschdatum, Gästezahl und Anlass — Sie erhalten "
+            "ein unverbindliches Angebot.",
+            "hero_kw": "catering,buffet",
+            "gallery_kw": ["fingerfood,platter", "wedding,catering", "buffet,vegetarian"],
+        },
+        "catalog": {
+            "intro": "Unsere Speisekarte: Buffets, Fingerfood und Getränke — "
+            "alles pro Person kalkuliert.",
+            "hero_kw": "fingerfood,platter",
+        },
+    },
+)
+
 RETREAT_MENUS = {
     "top": {
         "style": "centered",
@@ -6859,6 +7207,7 @@ KITS = {
     FRISEUR.key: FRISEUR,
     WERKSTATT.key: WERKSTATT,
     HANDWERKER.key: HANDWERKER,
+    CATERING.key: CATERING,  # GK-1
     RETREAT.key: RETREAT,
     SHOP.key: SHOP,
 }

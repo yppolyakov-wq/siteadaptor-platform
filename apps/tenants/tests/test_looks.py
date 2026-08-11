@@ -21,7 +21,7 @@ def test_registry_shape_three_looks_per_archetype():
     assert len(sitetemplates.LOOK_FAMILIES) == 3
     keys = [f["key"] for f in sitetemplates.LOOK_FAMILIES]
     assert len(set(keys)) == 3
-    assert len(ARCHETYPES) == 14  # 3 × 14 = 42 Look'а
+    assert len(ARCHETYPES) == 15  # GK-1: 3 × 15 = 45 Look'ов
     for bt in ARCHETYPES:
         looks = sitetemplates.looks_for(bt)
         assert [lk["key"] for lk in looks] == keys

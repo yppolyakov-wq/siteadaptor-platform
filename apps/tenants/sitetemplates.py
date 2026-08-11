@@ -131,6 +131,24 @@ TEMPLATES = [
         "hero_style": "accent",
     },
     {
+        # GK-1: Catering/Partyservice — jobs-primary (Anfrage → Angebot); Speisekarte
+        # browse-only (catalog core, orders выключен пресетом), доверие/процесс/FAQ.
+        "key": "catering",
+        "label": "Catering & Partyservice",
+        "description_de": "Anfrage, Angebot und Event-Planung — für Catering, Partyservice und Foodtrucks.",
+        "recommended_for": ("catering",),
+        "sections": ["hero", "usp_bar", "products", "process", "testimonials", "faq", "contact"],
+        "texts": {
+            "hero_title": "Catering für Ihr Event",
+            "hero_text": "Sagen Sie uns Datum und Gästezahl — Sie erhalten ein unverbindliches Angebot.",
+            "about_title": "Über uns",
+            "about_text": "",
+        },
+        "accent": "#15803d",  # frisch/bio-грин
+        "hero_style": "accent",
+        "site_defaults": {"hero_widget": "catering"},
+    },
+    {
         # S6: Veranstalter/Events — Tickets/Termine (events) im Fokus.
         "key": "veranstaltung",
         "label": "Veranstaltungen & Tickets",
@@ -229,6 +247,7 @@ ARCHETYPE_LOOK_ACCENTS = {
     "handwerker": ("#ea580c", "#9a3412", "#fb923c"),
     "werkstatt": ("#1e40af", "#374151", "#60a5fa"),
     "events": ("#7c3aed", "#6d28d9", "#c084fc"),
+    "catering": ("#15803d", "#b45309", "#4ade80"),  # GK-1: frisch/bio-грин + тёплый warm
 }
 _DEFAULT_ACCENTS = ARCHETYPE_LOOK_ACCENTS["retail"]
 

@@ -1212,3 +1212,36 @@ def test_cafe_seeds_active_winback_campaign():
     assert demo_kits.apply_kit(t, "cafe")
     wb = CouponCampaign.objects.get(kind=CouponCampaign.KIND_AUTO_WINBACK)
     assert wb.status == CouponCampaign.STATUS_ACTIVE and wb.discount_percent == 10
+
+
+def test_apply_catering_kit_jobs_speisekarte_browse_only():
+    """GK-1 Catering: ядро jobs (Event-Anfrage AF-1 → Angebot) + Speisekarte
+    browse-only (catalog core, orders у типа выключен) + пресеты AF в конфиге."""
+    from apps.jobs.models import Job
+    from apps.tenants import siteconfig
+
+    tenant = TenantFactory(schema_name="public", slug="ct", name="CT", business_type="other")
+    assert demo_kits.apply_kit(tenant, "catering") is True
+
+    # модули: jobs/promotions/crm активны (business_type и выключение orders —
+    # тип-пресет на СИДИНГЕ, замок в test_archetypes_s6, не в apply_kit)
+    for m in ("jobs", "promotions", "crm", "inbox", "reviews"):
+        assert tenant.is_module_active(m)
+
+    # Speisekarte: товары с диет-метками (browse-only)
+    p = Product.objects.filter(name__de="Buffet Vegetarisch").first()
+    assert p is not None and "vegetarisch" in (p.diets or [])
+    # jobs: демо-заявки кейтеринга с суммами
+    jobs = Job.objects.all()
+    assert jobs.count() >= 2 and jobs.filter(gross__gt=0).exists()
+
+    cfg = siteconfig.normalize(tenant.site_config)
+    # AF-1: событийные поля формы заявки включены пресетом кита
+    assert cfg["anfrage"]["fields"] == ["date", "guests", "event_type"]
+    assert "Hochzeit" in cfg["anfrage"]["event_types"]
+    # primary = jobs (hero-CTA → Anfrage), несмотря на активный catalog
+    assert tenant.site_config.get("primary_module") == "jobs"
+    assert tenant.primary_color == "#15803d"
+    enabled = {s["key"] for s in cfg["sections"] if s["enabled"]}
+    assert {"hero", "usp_bar", "products", "process", "faq", "cta"} <= enabled
+    assert cfg["cta"]["button_url"] == "/anfrage/"

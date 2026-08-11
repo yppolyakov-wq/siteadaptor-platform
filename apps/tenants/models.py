@@ -27,6 +27,10 @@ class Tenant(TenantMixin):
         ("handwerker", _("Handwerker")),
         ("werkstatt", _("Werkstatt / KFZ")),
         ("events", _("Veranstalter / Events")),
+        # GK-1 (2026-08-11, по gap-анализу goodkarma-catering.de): кейтеринг как
+        # ОСНОВНОЙ бизнес (jobs-primary: Anfrage с событийными полями → Angebot),
+        # а не побочка ресторана/пекарни.
+        ("catering", _("Catering / Partyservice")),
         ("other", _("Other")),
     ]
 

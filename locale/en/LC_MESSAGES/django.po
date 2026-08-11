@@ -17351,3 +17351,26 @@ msgstr "Additional fields on the public request page (e.g. for catering / party 
 msgid "Auswahlliste (eine Option pro Zeile)"
 msgstr "Choice list (one option per line)"
 
+
+# GK-1: архетип Catering (тип/карточка/hero-плитки/feature-demo)
+msgid "Catering / Partyservice"
+msgstr "Catering / party service"
+
+msgid "Catering & Partyservice — Anfragen, Angebote & Event-Planung"
+msgstr "Catering & party service — requests, quotes & event planning"
+
+msgid "Datum, Gäste & Wünsche — unverbindlich"
+msgstr "Date, guests & wishes — no obligation"
+
+msgid "Menüs & Pakete"
+msgstr "Menus & packages"
+
+msgid "Unsere Speisekarte"
+msgstr "Our menu"
+
+msgid "Event-Anfrage fürs Catering"
+msgstr "Event request for catering"
+
+msgid "Wunschdatum, Gästezahl und Anlass — Angebot kommt per E-Mail."
+msgstr "Preferred date, number of guests and occasion — the quote arrives by email."
+

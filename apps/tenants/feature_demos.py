@@ -76,6 +76,15 @@ FEATURE_DEMOS = [
         "path": "/anfrage/",
     },
     {
+        # GK-1: событийная заявка кейтеринга (AF-1 поля даты/гостей/типа).
+        "key": "catering_anfrage",
+        "icon": "🍽",
+        "title": _("Event-Anfrage fürs Catering"),
+        "blurb": _("Wunschdatum, Gästezahl und Anlass — Angebot kommt per E-Mail."),
+        "host": "catering",
+        "path": "/anfrage/",
+    },
+    {
         "key": "finder",
         "icon": "🧭",
         "title": _("Produktfinder"),

@@ -117,6 +117,39 @@ HERO_TILE_SETS = {
             "highlight": True,
         },
     ],
+    # GK-1 Catering/Partyservice: заявка на событие первична (jobs-primary, поля
+    # AF-1: дата/гости/тип), Speisekarte browse-only (catalog core, без гейта).
+    "catering": [
+        {
+            "icon": "📋",
+            "label": _("Angebot anfordern"),
+            "sub": _("Datum, Gäste & Wünsche — unverbindlich"),
+            "url": "storefront-anfrage",
+            "gate": "jobs",
+        },
+        {
+            "icon": "🍽",
+            "label": _("Menüs & Pakete"),
+            "sub": _("Unsere Speisekarte"),
+            "url": "storefront-products",
+            "gate": "",
+        },
+        {
+            "icon": "☎",
+            "label": _("Rückruf anfordern"),
+            "sub": _("Wir melden uns zurück"),
+            "url": "storefront-rueckruf",
+            "gate": "jobs",
+        },
+        {
+            "icon": "🔥",
+            "label": _("Aktionen & Angebote"),
+            "url": "storefront-aktionen",
+            "gate": "deal",
+            "deal_sub": True,
+            "highlight": True,
+        },
+    ],
     # A1 Hofladen/Retail: акция ловит первым, дальше каталог и предзаказ.
     "shop": [
         {

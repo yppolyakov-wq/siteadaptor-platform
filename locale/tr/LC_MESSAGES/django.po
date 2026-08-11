@@ -17463,3 +17463,26 @@ msgstr "Herkese açık talep sayfasındaki ek alanlar (ör. Catering / parti ser
 msgid "Auswahlliste (eine Option pro Zeile)"
 msgstr "Seçenek listesi (her satıra bir seçenek)"
 
+
+# GK-1: архетип Catering (тип/карточка/hero-плитки/feature-demo)
+msgid "Catering / Partyservice"
+msgstr "Catering / parti servisi"
+
+msgid "Catering & Partyservice — Anfragen, Angebote & Event-Planung"
+msgstr "Catering ve parti servisi — talepler, teklifler ve etkinlik planlama"
+
+msgid "Datum, Gäste & Wünsche — unverbindlich"
+msgstr "Tarih, misafirler ve istekler — bağlayıcı değildir"
+
+msgid "Menüs & Pakete"
+msgstr "Menüler ve paketler"
+
+msgid "Unsere Speisekarte"
+msgstr "Yemek listemiz"
+
+msgid "Event-Anfrage fürs Catering"
+msgstr "Catering için etkinlik talebi"
+
+msgid "Wunschdatum, Gästezahl und Anlass — Angebot kommt per E-Mail."
+msgstr "Tarih, misafir sayısı ve vesile — teklif e-postayla gelir."
+

@@ -118,6 +118,28 @@ PRESETS = {
             },
         },
     ],
+    # GK-1 Catering: раннее бронирование даты + сезонное предложение.
+    "catering": [
+        {
+            "key": "fruehbucher",
+            "label": "Frühbucher-Rabatt",
+            "initial": {
+                "title_de": "Frühbucher-Rabatt: 10 % bei Buchung 8 Wochen im Voraus",
+                "promo_type": "discount",
+                "discount_percent": 10,
+            },
+        },
+        {
+            "key": "saison",
+            "label": "Saison-Angebot",
+            "initial": {
+                "title_de": "Saison-Menü zum Aktionspreis",
+                "promo_type": "discount",
+                "discount_percent": 15,
+                "recurrence": "weekly",
+            },
+        },
+    ],
     "online_shop": [
         {
             "key": "sale",

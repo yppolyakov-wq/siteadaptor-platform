@@ -17543,3 +17543,26 @@ msgstr "Дополнительные поля на публичной стран
 msgid "Auswahlliste (eine Option pro Zeile)"
 msgstr "Список вариантов (по одному в строке)"
 
+
+# GK-1: архетип Catering (тип/карточка/hero-плитки/feature-demo)
+msgid "Catering / Partyservice"
+msgstr "Кейтеринг / выездное обслуживание"
+
+msgid "Catering & Partyservice — Anfragen, Angebote & Event-Planung"
+msgstr "Кейтеринг — заявки, предложения и планирование событий"
+
+msgid "Datum, Gäste & Wünsche — unverbindlich"
+msgstr "Дата, гости и пожелания — ни к чему не обязывает"
+
+msgid "Menüs & Pakete"
+msgstr "Меню и пакеты"
+
+msgid "Unsere Speisekarte"
+msgstr "Наше меню"
+
+msgid "Event-Anfrage fürs Catering"
+msgstr "Заявка на кейтеринг для события"
+
+msgid "Wunschdatum, Gästezahl und Anlass — Angebot kommt per E-Mail."
+msgstr "Дата, число гостей и повод — предложение придёт на почту."
+

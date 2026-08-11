@@ -184,6 +184,21 @@ def test_gating_skips_public_schema():
             },
         ),
         (
+            # GK-1: кейтеринг — jobs-primary; promotions/crm вкл, продажи-движки выкл.
+            "catering",
+            {
+                "orders",
+                "booking",
+                "stays",
+                "events",
+                "loyalty",
+                "analytics",
+                "publishing",
+                "finance",
+                "telegram",
+            },
+        ),
+        (
             "restaurant",
             {
                 "crm",

@@ -34,7 +34,9 @@ from .option_styles import MODIFIER_STYLE_KEYS, MODIFIER_STYLES, VARIANT_STYLES
 # W2: пищевая маркировка (аллергены/добавки/диеты/происхождение) осмысленна только у
 # гастро/еды — секция формы товара показывается только этим архетипам (у прочих скрыта
 # CSS-ом, поля остаются в форме → Save их не стирает).
-FOOD_BUSINESS_TYPES = frozenset({"bakery", "butcher", "grocery", "restaurant", "cafe"})
+FOOD_BUSINESS_TYPES = frozenset(
+    {"bakery", "butcher", "grocery", "restaurant", "cafe", "catering"}  # GK-1: Speisekarte
+)
 # M1 Boutique: типы с текстильной маркировкой (Textilkennzeichnung EU 1007/2011).
 TEXTILE_BUSINESS_TYPES = frozenset({"clothing"})
 

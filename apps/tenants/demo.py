@@ -34,6 +34,7 @@ _HERO_TEXT = {
     "handwerker": "Handwerk vom Meister — Anfrage stellen, Angebot erhalten.",
     "werkstatt": "Service und Reparatur — Termin und Kostenvoranschlag online.",
     "events": "Kommende Veranstaltungen — Tickets sichern.",
+    "catering": "Catering für Feiern, Büro und Events — Anfrage stellen, Angebot erhalten.",
 }
 _HERO_TEXT_FALLBACK = "Willkommen — schön, dass du da bist."
 
@@ -155,6 +156,23 @@ _SERVICES = {
         ("Färben & Strähnen", 90, "69.00"),
         ("Waschen, Schneiden, Föhnen", 60, "45.00"),
     ],
+    # GK-1 Catering: Speisekarte (browse-only — orders выключен пресетом).
+    "catering": [
+        (
+            "Fingerfood-Platte Klassik",
+            "8.50",
+            "Mini-Quiches, Wraps und Gemüsesticks mit Dips — pro Person.",
+        ),
+        (
+            "Buffet Vegetarisch",
+            "24.00",
+            "Warmes Buffet mit drei Hauptgerichten und Salaten — pro Person.",
+        ),
+        ("Suppenstation", "5.50", "Saisonale Suppe im Glas mit Brot — pro Person."),
+        ("Dessertauswahl", "6.00", "Mousse, Kuchen und Obst im Glas — pro Person."),
+        ("Getränkepaket", "9.00", "Wasser, Säfte und Kaffee für die Veranstaltung — pro Person."),
+        ("Grillbuffet", "28.00", "BBQ mit Beilagen und Saucen, vor Ort zubereitet — pro Person."),
+    ],
     "werkstatt": [
         ("Inspektion", 90, "129.00"),
         ("Ölwechsel", 45, "69.00"),
@@ -250,6 +268,7 @@ _ABOUT_TEXT = {
     "handwerker": "{name} steht für Handwerk aus {city}: sauber geplant, zuverlässig umgesetzt.",
     "werkstatt": "{name} ist deine Werkstatt in {city} — ehrliche Diagnose, faire Preise, schnelle Termine.",
     "events": "{name} bringt besondere Veranstaltungen nach {city} — gute Momente, gut organisiert.",
+    "catering": "{name} ist Catering aus {city} — frisch gekocht, liebevoll angerichtet, zuverlässig geliefert.",
 }
 _ABOUT_TEXT_FALLBACK = "{name} ist ein lokales Geschäft in {city}. Wir freuen uns auf Sie!"
 

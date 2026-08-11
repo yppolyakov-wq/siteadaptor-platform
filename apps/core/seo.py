@@ -21,6 +21,8 @@ _SCHEMA_TYPES = {
     "retail": "Store",
     "online_shop": "OnlineStore",
     "hotel": "Hotel",
+    # GK-1: кейтеринг — FoodEstablishment (в schema.org нет CateringService).
+    "catering": "FoodEstablishment",
 }
 
 

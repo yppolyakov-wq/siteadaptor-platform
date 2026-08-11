@@ -182,6 +182,8 @@ BUSINESS_TYPE_META = {
     "handwerker": ("🔧", _l("Handwerk — Anfragen, Angebote & Kostenvoranschläge")),
     "werkstatt": ("🚗", _l("KFZ-Werkstatt — Termine & Kostenvoranschläge")),
     "events": ("🎟️", _l("Veranstalter — Tickets, Termine & Teilnehmerlisten")),
+    # GK-1: кейтеринг как основной бизнес (Anfrage → Angebot → Event).
+    "catering": ("🍽️", _l("Catering & Partyservice — Anfragen, Angebote & Event-Planung")),
     "other": ("✨", _l("Etwas anderes — frei konfigurierbar")),
 }
 
@@ -207,6 +209,7 @@ DEMO_KIT_HOST = {
     "handwerker": "handwerker",
     "werkstatt": "werkstatt",
     "events": "retreat",
+    "catering": "catering",  # GK-1: dedicated «Grüne Tafel» (кейтеринг)
     # other → без демо (нейтральный тип)
 }
 
