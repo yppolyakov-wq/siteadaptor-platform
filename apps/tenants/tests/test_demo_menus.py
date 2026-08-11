@@ -199,7 +199,9 @@ def test_demo_dictionary_translates_usp_and_roles():
 
     strings = set()
     for kit in KITS.values():
-        strings.update(label for _icon, label in (kit.usp or []))
+        # GK-5: usp-кортежи теперь (icon, label[, text]) — тексты столпов тоже в замке.
+        strings.update(u[1] for u in (kit.usp or []))
+        strings.update(u[2] for u in (kit.usp or []) if len(u) > 2 and u[2])
         strings.update(role for _name, role, *_rest in (kit.team or []) if role)
     assert strings, "у китов нет ни usp, ни ролей — проверять нечего"
 
