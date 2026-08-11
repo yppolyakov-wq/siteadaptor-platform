@@ -105,3 +105,86 @@ def test_sales_anchor_respects_orders_view_default():
     )
     item = next(it for it in modules.sidebar_nav(shop) if it["url_name"] == "verkaeufe")
     assert item["nav_key"] == "board"
+
+
+# --- SM-4 (решение владельца 2026-08-11): подпункты разделов «слайдером» -------
+
+
+def test_sidebar_children_composition():
+    """Подпункты якоря = advanced-состав его хабов (единый реестр W8).
+    Verkäufe получил отчёты (Auswertungen/Finanzen/Berichte) + Abläufe;
+    Website — SEO/Domains/Medien (переезды из settings); Angebote — семь
+    каталожных страниц (скрин владельца); Übersicht — без подпунктов."""
+    t = TenantFactory(slug="sbc1", name="SbC", business_type="hotel", disabled_modules=[])
+    by_anchor = {it["url_name"]: it["children"] for it in modules.sidebar_nav(t)}
+
+    assert by_anchor["dashboard"] == []
+    verk = [c["url_name"] for c in by_anchor["verkaeufe"]]
+    assert verk == ["promotions:analytics", "finance:journal", "stays:reports", "ablaeufe"]
+    site = [c["url_name"] for c in by_anchor["site-home"]]
+    assert site == ["site-seo", "domains", "media-library"]
+    ang = [c["url_name"] for c in by_anchor["sellable-manage"]]
+    assert ang == [
+        "catalog:product-list",
+        "catalog:category-list",
+        "stock",
+        "purchasing",
+        "catalog:combo-list",
+        "imports:start",
+        "collections:list",
+    ]
+    sett = [c["url_name"] for c in by_anchor["settings"]]
+    assert sett == ["extras", "modules", "finder-settings", "support:help"]
+    # каждый подпункт резолвится (инвариант W8 держит и это, но локально быстрее)
+    for children in by_anchor.values():
+        for c in children:
+            reverse(c["url_name"])
+
+
+def test_sidebar_children_module_gates():
+    """Гейты подпунктов: без модуля stays нет «Berichte», без finance —
+    «Finanzen», без analytics — «Auswertungen»; Abläufe остаётся всегда."""
+    t = TenantFactory(
+        slug="sbc2",
+        name="SbG",
+        business_type="bakery",
+        disabled_modules=["stays", "finance", "analytics"],
+    )
+    verk = {
+        c["url_name"]
+        for it in modules.sidebar_nav(t)
+        if it["url_name"] == "verkaeufe"
+        for c in it["children"]
+    }
+    assert "stays:reports" not in verk
+    assert "finance:journal" not in verk
+    assert "promotions:analytics" not in verk
+    assert "ablaeufe" in verk
+
+
+def test_sidebar_renders_children_slider():
+    """Рендер: блок подпунктов свёрнут (hidden) у неактивного раздела, раскрыт
+    у активного; шеврон-кнопка с data-nav-toggle; подпункты несут data-label
+    (фильтр поиска меню их находит)."""
+    t = TenantFactory(
+        slug="sbc3",
+        name="SbR",
+        business_type="hotel",
+        disabled_modules=[],
+        site_config={"onboarding": {"step": 7, "skipped": [], "completed": True}},
+    )
+    html = core_views.dashboard(_req(t)).content.decode()
+    # на Übersicht раздел Verkäufe неактивен → его блок подпунктов hidden
+    assert 'data-nav-children="board"' in html
+    import re as _re
+
+    m = _re.search(r'data-nav-children="board"[^>]*class="([^"]+)"', html)
+    assert m and "hidden" in m.group(1)
+    assert 'data-nav-toggle="board"' in html
+    # подпункт с data-label — участвует в поиске меню
+    assert "Auswertungen" in html
+    # активный раздел (сама Übersicht подпунктов не имеет — проверяем на
+    # странице продаж: её блок раскрыт)
+    html2 = core_views.verkaeufe(_req(t, "/dashboard/verkaeufe/")).content.decode()
+    m2 = _re.search(r'data-nav-children="board"[^>]*class="([^"]+)"', html2)
+    assert m2 and "hidden" not in m2.group(1)

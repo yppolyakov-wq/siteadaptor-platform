@@ -17589,3 +17589,5 @@ msgstr "2 цифры"
 msgid "Seit Jahr"
 msgstr "С года основания"
 
+msgid "Berichte"
+msgstr "Отчёты"

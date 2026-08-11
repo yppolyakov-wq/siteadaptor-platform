@@ -81,7 +81,15 @@ ANCHORS: tuple[Anchor, ...] = (
     # W9-9 (Р-3): «Integrationen» ушёл из якорей сайдбара — вкладка Einstellungen.
     # W11-5: якорь ведёт прямо в Studio — страница-лендинг «Site» умерла (302).
     # url_name → site-home, nav_key остаётся "site" (его эмитят 6 экранов сайта).
-    Anchor("site-home", _("Website"), "site", "✏️", "website gestalten studio design"),
+    # SM-4: хаб "site" — подпункты сайдбара (SEO/Domains/Medien).
+    Anchor(
+        "site-home",
+        _("Website"),
+        "site",
+        "✏️",
+        "website gestalten studio design",
+        hubs=("site",),
+    ),
     Anchor(
         "settings",
         _("Einstellungen"),
@@ -112,7 +120,17 @@ ENTRIES: tuple[NavEntry, ...] = (
         search="artikel waren sortiment",
     ),
     _e("catalog", "catalog:category-list", _("Kategorien"), "categories", "catalog"),
-    _e("catalog", "stock", _("Lager"), "stock", "catalog", search="bestand inventur meldebestand"),
+    # SM-4 (решение владельца): каталожные страницы — тот же компакт-бар, что на
+    # «Angebote»: main Angebote·Produkte·Kategorien, остальное — в «Erweitert».
+    _e(
+        "catalog",
+        "stock",
+        _("Lager"),
+        "stock",
+        "catalog",
+        True,
+        "bestand inventur meldebestand",
+    ),
     _e(
         "catalog",
         "purchasing",
@@ -122,8 +140,8 @@ ENTRIES: tuple[NavEntry, ...] = (
         True,
         "lieferanten bestellung",
     ),
-    _e("catalog", "catalog:combo-list", _("Kombi"), "combos", "catalog"),
-    _e("catalog", "imports:start", _("Import"), "imports", "catalog", search="csv excel"),
+    _e("catalog", "catalog:combo-list", _("Kombi"), "combos", "catalog", True),
+    _e("catalog", "imports:start", _("Import"), "imports", "catalog", True, "csv excel"),
     _e(
         "catalog",
         "collections:list",
@@ -143,6 +161,39 @@ ENTRIES: tuple[NavEntry, ...] = (
         "jobs",
         search="anfragen kostenvoranschlag angebote",
     ),
+    # SM-4 (решение владельца 2026-08-11): отчёты и настройки процессов — подпункты
+    # раздела «Verkäufe» в сайдбаре (advanced board-хаба; сам hub_tabs "board" не
+    # рендерится). Auswertungen/Finanzen ПЕРЕЕХАЛИ из settings-хаба; Berichte —
+    # бывший сирота stays:reports; Abläufe — дубль-запись (таб Einstellungen жив,
+    # прецедент sellables/catalog; палитра дедупит по url_name).
+    _e(
+        "board",
+        "promotions:analytics",
+        _("Auswertungen"),
+        "analytics",
+        "analytics",
+        True,
+        "statistik analytics",
+    ),
+    _e(
+        "board",
+        "finance:journal",
+        _("Finanzen"),
+        "finance",
+        "finance",
+        True,
+        "umsatz rechnungen datev",
+    ),
+    _e(
+        "board",
+        "stays:reports",
+        _("Berichte"),
+        "stays",
+        "stays",
+        True,
+        "belegung adr revpar auslastung",
+    ),
+    _e("board", "ablaeufe", _("Abläufe"), "ablaeufe", None, True, "status übergänge spalten"),
     # Marketing.
     _e(
         "marketing",
@@ -256,7 +307,8 @@ ENTRIES: tuple[NavEntry, ...] = (
         "ablaeufe",
         search="status übergänge spalten workflow prozesse",
     ),
-    _e("settings", "domains", _("Website & Domains"), "domains", search="eigene domain seo theme"),
+    # SM-4: «Website & Domains» переехал в site-хаб (подпункт раздела Website);
+    # Finanzen/Auswertungen — в board-хаб (подпункты «Verkäufe»). Настройки слимятся.
     # W9-9 (Р-3): Integrationen — вкладка настроек (был якорь сайдбара).
     _e(
         "settings",
@@ -264,22 +316,6 @@ ENTRIES: tuple[NavEntry, ...] = (
         _("Integrationen"),
         "integrations",
         search="integrationen stripe telegram publishing ota kanäle verbindungen",
-    ),
-    _e(
-        "settings",
-        "finance:journal",
-        _("Finanzen"),
-        "finance",
-        "finance",
-        search="umsatz rechnungen datev",
-    ),
-    _e(
-        "settings",
-        "promotions:analytics",
-        _("Auswertungen"),
-        "analytics",
-        "analytics",
-        search="statistik analytics",
     ),
     _e(
         "settings",
@@ -297,14 +333,27 @@ ENTRIES: tuple[NavEntry, ...] = (
         search="team mitarbeiter rollen zugriff einladen",
     ),
     _e("settings", "extras", _("Zusatzleistungen"), "extras", None, True),
-    _e("settings", "media-library", _("Medien"), "media", None, True, "bilder fotos bibliothek"),
     _e("settings", "modules", _("Funktionen"), "modules", None, True, "module aktivieren"),
     # W12-1: режим кабинета одним экраном (Einfach/Experte + «что скрыто»).
     _e("settings", "finder-settings", _("Finder"), "finder", None, True, "fragen empfehlung"),
     _e("settings", "support:help", _("Hilfe"), "support", None, True, "anleitung hilfe"),
+    # SM-4: хаб "site" — подпункты раздела Website в сайдбаре (страницы хаба нет:
+    # раздел ведёт в Studio; hub_tabs "site" нигде не рендерится, как board).
+    # Domains переехал из main-табов settings, Medien — из advanced settings.
+    _e("site", "site-seo", _("SEO"), "seo", None, True, "meta titel beschreibung robots"),
+    _e(
+        "site",
+        "domains",
+        _("Website & Domains"),
+        "domains",
+        None,
+        True,
+        "eigene domain hinzufügen theme",
+    ),
+    _e("site", "media-library", _("Medien"), "media", None, True, "bilder fotos bibliothek"),
 )
 
-HUBS: tuple[str, ...] = ("catalog", "board", "marketing", "sellables", "settings")
+HUBS: tuple[str, ...] = ("catalog", "board", "marketing", "sellables", "settings", "site")
 
 
 def legacy_hub_tabs() -> dict:
@@ -356,6 +405,20 @@ ANCHOR_BY_NAV: dict[str, str] = {
 def anchor_for(nav_key: str) -> str:
     """nav_key якоря сайдбара для страницы с данным context["nav"] ("" — нет)."""
     return ANCHOR_BY_NAV.get(nav_key or "", "")
+
+
+def sidebar_children(anchor) -> list[NavEntry]:
+    """SM-4: подпункты якоря в сайдбаре = advanced-записи его хабов (единый
+    реестр W8: гейты/подсветка/палитра — те же). Дедуп по url_name (Angebote
+    собирает sellables+catalog — состав одинаков). Гейты модулей применяет
+    вызывающий (modules.sidebar_nav)."""
+    seen, out = set(), []
+    for hub in anchor.hubs:
+        for e in ENTRIES:
+            if e.hub == hub and e.advanced and e.url_name not in seen:
+                seen.add(e.url_name)
+                out.append(e)
+    return out
 
 
 def palette_entries() -> list[dict]:

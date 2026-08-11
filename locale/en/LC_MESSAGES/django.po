@@ -17397,3 +17397,5 @@ msgstr "2 numbers"
 msgid "Seit Jahr"
 msgstr "Since year"
 
+msgid "Berichte"
+msgstr "Reports"

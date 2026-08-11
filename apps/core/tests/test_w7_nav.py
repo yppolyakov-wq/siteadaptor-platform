@@ -39,18 +39,30 @@ def _render(hub, nav, tenant=None):
 
 
 # --- сироты получили входы -----------------------------------------------------
-def test_settings_hub_gained_finance_analytics_billing():
-    urls = [t[0] for t in HUB_TABS["settings"]]
-    assert "finance:journal" in urls
-    assert "promotions:analytics" in urls
-    assert "billing" in urls  # подписка/счета — раньше без единого входа
+def test_finance_analytics_billing_have_registry_entries():
+    """W7b: у Finanzen/Auswertungen/Abrechnung есть вход в реестре. SM-4
+    (осознанная переписка): отчёты переехали в board-хаб — подпункты раздела
+    «Verkäufe» в сайдбаре; billing остался вкладкой Einstellungen."""
+    board_urls = [t[0] for t in HUB_TABS["board"]]
+    assert "finance:journal" in board_urls
+    assert "promotions:analytics" in board_urls
+    assert "billing" in [t[0] for t in HUB_TABS["settings"]]
 
 
-def test_settings_hub_gates_finance_and_analytics_by_module():
-    html = _render("settings", "settings", _tenant(disabled=["finance", "analytics"]))
-    assert "Finanzen" not in html
-    assert "Auswertungen" not in html
-    assert "Abo &amp; Rechnung" in html  # billing — core, виден всегда (W9-1 лейбл)
+def test_sidebar_gates_finance_and_analytics_by_module():
+    """SM-4: гейты модулей действуют на подпункты сайдбара (бывший гейт табов)."""
+    from apps.core import modules
+    from apps.tenants.tests.factories import TenantFactory
+
+    t = TenantFactory(slug="w7g", name="W7g", disabled_modules=["finance", "analytics"])
+    verk = {
+        c["url_name"]
+        for it in modules.sidebar_nav(t)
+        if it["url_name"] == "verkaeufe"
+        for c in it["children"]
+    }
+    assert "finance:journal" not in verk
+    assert "promotions:analytics" not in verk
 
 
 def test_marketing_hub_gained_blog_and_newsletter():

@@ -30,6 +30,31 @@ def test_hub_tabs_renders_all_five_subpages():
         assert lbl in html
 
 
+def test_catalog_hub_compact_after_sm4():
+    """SM-4 (решение владельца): каталожные страницы — тот же компакт-бар, что
+    «Angebote»: main Angebote·Produkte·Kategorien, остальное в «Erweitert»
+    (ящик идёт после основных табов — Lager/Kombi/Import внутри него)."""
+    html = _render("catalog")
+    assert "Erweitert" in html
+    for lbl in ("Lager", "Kombi", "Import", "Einkauf", "Kollektionen"):
+        assert html.index("Erweitert") < html.index(lbl), lbl
+    for lbl in ("Produkte", "Kategorien"):
+        assert html.index(lbl) < html.index("Erweitert"), lbl
+
+
+def test_moved_pages_anchor_mapping():
+    """SM-4: подсветка якоря следует за переездами — отчёты под Verkäufe,
+    site-страницы под Website; Abläufe остаётся вкладкой настроек."""
+    from apps.core import nav_registry
+
+    assert nav_registry.anchor_for("finance") == "board"
+    assert nav_registry.anchor_for("analytics") == "board"
+    assert nav_registry.anchor_for("seo") == "site"
+    assert nav_registry.anchor_for("domains") == "site"
+    assert nav_registry.anchor_for("media") == "site"
+    assert nav_registry.anchor_for("ablaeufe") == "settings"
+
+
 def test_hub_tabs_marks_exactly_one_active():
     html = _render("stock")  # Lager активен
     assert html.count('aria-selected="true"') == 1
@@ -103,6 +128,9 @@ def test_settings_nav_collapsed_to_website_plus_hub():
 
 def test_settings_hub_primary_and_advanced_tabs():
     # W9-1: «базовые + по типам» — целевой порядок табов Settings-хаба.
+    # SM-4 (решение владельца 2026-08-11, осознанная переписка): Finanzen/
+    # Auswertungen — подпункты «Verkäufe», Domains/Medien — подпункты «Website»
+    # в сайдбаре; из settings-хаба ушли.
     html = _render_settings("settings")
     for lbl in (
         "Mein Geschäft",
@@ -113,9 +141,11 @@ def test_settings_hub_primary_and_advanced_tabs():
         "Abläufe",  # W9-8
     ):
         assert lbl in html, lbl
-    # ящик «Erweitert» + его (редкие) вкладки (Zusatzleistungen/Finder переехали сюда)
+    for gone in ("Finanzen", "Auswertungen", "Domains", "Medien"):
+        assert gone not in html, gone
+    # ящик «Erweitert» + его (редкие) вкладки
     assert "Erweitert" in html
-    for lbl in ("Zusatzleistungen", "Medien", "Domains", "Funktionen", "Finder", "Hilfe"):
+    for lbl in ("Zusatzleistungen", "Funktionen", "Finder", "Hilfe"):
         assert lbl in html, lbl
 
 
@@ -127,8 +157,9 @@ def test_settings_hub_erweitert_closed_on_primary_active():
 
 
 def test_settings_hub_erweitert_open_on_advanced_active():
-    # Активна вкладка из «Erweitert» (Medien) → ящик раскрыт (open), подсвечен.
-    html = _render_settings("media")
+    # Активна вкладка из «Erweitert» (Funktionen; SM-4: Medien переехал в
+    # site-хаб) → ящик раскрыт (open), подсвечен.
+    html = _render_settings("modules")
     assert " open>" in html
     assert html.count('aria-selected="true"') == 1  # активна одна вкладка (в ящике)
 

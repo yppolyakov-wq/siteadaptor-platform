@@ -17509,3 +17509,5 @@ msgstr "2 sayı"
 msgid "Seit Jahr"
 msgstr "Kuruluş yılından beri"
 
+msgid "Berichte"
+msgstr "Raporlar"

@@ -578,7 +578,8 @@ NAV_TASK_LABELS: dict[str, str] = {
 # «Funktion hinzufügen». W-CL (2026-08-05): классик-сайдбар снесён.
 def sidebar_nav(tenant) -> list[dict]:
     """Якоря компактного сайдбара — из ЕДИНОГО реестра (W8, nav_registry.ANCHORS).
-    Гейты — по активным модулям; nav_key = значение `nav` целевой страницы."""
+    Гейты — по активным модулям; nav_key = значение `nav` целевой страницы.
+    SM-4: у якоря — `children` (advanced-состав его хабов, раскрытие слайдером)."""
     from apps.core import nav_registry
 
     items = []
@@ -591,6 +592,16 @@ def sidebar_nav(tenant) -> list[dict]:
             "icon": a.icon,
             "label": a.label,
             "search": a.search,
+            "children": [
+                {
+                    "url_name": e.url_name,
+                    "nav_key": e.nav_key,
+                    "label": e.label,
+                    "search": e.search,
+                }
+                for e in nav_registry.sidebar_children(a)
+                if not e.module_key or is_module_active(tenant, e.module_key)
+            ],
         }
         if a.badge:
             it["badge"] = a.badge
