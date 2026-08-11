@@ -128,8 +128,9 @@ _KNOWN = {key for key, _label, _on in SECTIONS}
 # D.2 (анти-Битрикс Phase 2): повторяемые «простые блоки» (C-блоки) — НЕ в SECTIONS
 # (множественные, с собственным `id` и `data`). Владелец собирает из них контент
 # («собрать сайт из кубиков»). Живут в той же `site_config["sections"]`.
-REPEATABLE_BLOCKS = ("text", "image", "image_text", "button", "spacer", "promo")
+REPEATABLE_BLOCKS = ("text", "image", "image_text", "button", "spacer", "promo", "stats")
 _MAX_CBLOCKS = 30
+_MAX_STAT_ITEMS = 4  # GK-4: пар «число+подпись» в полосе цифр (больше — шум)
 
 
 def _text_style(d: dict) -> dict:
@@ -193,6 +194,25 @@ def _clean_cblock_data(key: str, raw) -> dict:
         # ST-7a: высота отступа — только НЕ-дефолтные валидные значения
         # ("" = py-6 как раньше → ключа нет, старые конфиги байт-в-байт).
         return {"height": d["height"]} if d.get("height") in ("sm", "lg", "xl") else {}
+    if key == "stats":
+        # GK-4: полоса цифр — rows = [{value, label}] (НЕ "items": у dict в Django-
+        # шаблоне .items — метод). Принимает и текст textarea «wert | label» построчно
+        # (live-draft канал шлёт сырое поле формы) — канонизируем в список.
+        raw_rows = d.get("rows")
+        if isinstance(raw_rows, str):
+            raw_rows = [
+                {"value": v.strip(), "label": lbl.strip()}
+                for v, _, lbl in (line.partition("|") for line in raw_rows.splitlines())
+                if v.strip()
+            ]
+        rows = []
+        for item in raw_rows if isinstance(raw_rows, list) else []:
+            if not isinstance(item, dict) or not _s(item.get("value")):
+                continue
+            rows.append({"value": _s(item.get("value"))[:12], "label": _s(item.get("label"))[:40]})
+            if len(rows) >= _MAX_STAT_ITEMS:
+                break
+        return {"rows": rows} if rows else {}
     return {}
 
 
@@ -258,6 +278,15 @@ CBLOCK_DEMO_DATA = {
         "side": "left",
     },
     "button": {"label": "Mehr erfahren", "url": "/ueber-uns/"},
+    # GK-4: демо ОБЯЗАНО быть байт-в-байт равно _clean_cblock_data("stats", demo)
+    # (замок test_cblocks_builder: round-trip demo-данных).
+    "stats": {
+        "rows": [
+            {"value": "12", "label": "Jahre Erfahrung"},
+            {"value": "500+", "label": "zufriedene Kunden"},
+            {"value": "4,9 ★", "label": "Bewertung"},
+        ]
+    },
 }
 
 
@@ -452,6 +481,44 @@ CBLOCK_VARIANTS = {
         {"key": "standard", "label": _("Standard")},
         {"key": "gross", "label": _("Groß"), "data": {"height": "lg"}},
         {"key": "sehr_gross", "label": _("Sehr groß"), "data": {"height": "xl"}},
+    ],
+    # GK-4: варианты полосы цифр — только data-оси (каждый обязан пережить
+    # normalize — замок variants). update() заменяет rows целиком, не доливает.
+    "stats": [
+        {"key": "drei", "label": _("3 Zahlen")},
+        {
+            "key": "vier",
+            "label": _("4 Zahlen"),
+            "data": {
+                "rows": [
+                    {"value": "12", "label": "Jahre Erfahrung"},
+                    {"value": "500+", "label": "zufriedene Kunden"},
+                    {"value": "10.000+", "label": "Gäste bewirtet"},
+                    {"value": "4,9 ★", "label": "Bewertung"},
+                ]
+            },
+        },
+        {
+            "key": "zwei",
+            "label": _("2 Zahlen"),
+            "data": {
+                "rows": [
+                    {"value": "500+", "label": "zufriedene Kunden"},
+                    {"value": "4,9 ★", "label": "Bewertung"},
+                ]
+            },
+        },
+        {
+            "key": "seit",
+            "label": _("Seit Jahr"),
+            "data": {
+                "rows": [
+                    {"value": "Seit 2012", "label": "für Sie da"},
+                    {"value": "100 %", "label": "frisch gekocht"},
+                    {"value": "4,9 ★", "label": "Bewertung"},
+                ]
+            },
+        },
     ],
 }
 
@@ -1615,6 +1682,12 @@ def clean_usp(value) -> list[dict]:
         if len(out) >= _MAX_USP:
             break
     return out
+
+
+def stats_to_text(rows) -> str:
+    """GK-4: сериализация полосы цифр в textarea редактора: «wert | label» по строке
+    (обратный путь — строковая ветка rows в _clean_cblock_data)."""
+    return "\n".join(f"{r.get('value', '')} | {r.get('label', '')}" for r in rows or [])
 
 
 def usp_to_text(items) -> str:

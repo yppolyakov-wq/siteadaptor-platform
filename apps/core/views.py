@@ -296,6 +296,10 @@ def _read_cblock_data(post, bid: str, btype: str) -> dict:
             "button_label": f("button_label"),
             "style_hint": f("style_hint"),  # UC6-6f (normalize валидирует)
         }
+    if btype == "stats":
+        # GK-4: textarea «wert | label» построчно — канонизацию в rows-список
+        # делает строковая ветка _clean_cblock_data (normalize).
+        return {"rows": post.get(f"cb_{bid}_rows", "")}
     return {}
 
 
@@ -1950,6 +1954,12 @@ def home_builder_view(request):
                     "icon": "🏷️",
                     "hint": _("Live promotion"),
                 },  # UE1
+                {
+                    "value": "stats",
+                    "label": _("Numbers"),
+                    "icon": "🔢",
+                    "hint": _("2–4 key figures with captions"),
+                },  # GK-4
                 # UC2-3(b): ссылочные секции-справочники — ТОЛЬКО на страницах
                 # (page_only → JS прячет на главной; контент общий с главной).
                 {
@@ -2028,6 +2038,8 @@ def home_builder_view(request):
                             "hint": (v.get("data") or {}).get("style_hint", ""),
                             # ST-7a: высота spacer-варианта для миниатюры.
                             "height": (v.get("data") or {}).get("height", ""),
+                            # GK-4: число пар полосы цифр (0 = демо-набор из 3).
+                            "count": len((v.get("data") or {}).get("rows", []) or []),
                         }
                         for v in vs
                     ]

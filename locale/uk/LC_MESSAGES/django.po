@@ -17551,3 +17551,26 @@ msgstr "Заявка на кейтеринг для події"
 msgid "Wunschdatum, Gästezahl und Anlass — Angebot kommt per E-Mail."
 msgstr "Дата, кількість гостей і привід — пропозиція надійде на пошту."
 
+
+# GK-4: C-блок «полоса цифр» (stats)
+msgid "Numbers"
+msgstr "Цифри"
+
+msgid "2–4 key figures with captions"
+msgstr "2–4 показники з підписами"
+
+msgid "One line per figure: value | caption (max 4)"
+msgstr "Один рядок на показник: значення | підпис (макс. 4)"
+
+msgid "3 Zahlen"
+msgstr "3 цифри"
+
+msgid "4 Zahlen"
+msgstr "4 цифри"
+
+msgid "2 Zahlen"
+msgstr "2 цифри"
+
+msgid "Seit Jahr"
+msgstr "З року заснування"
+

@@ -1,0 +1,15 @@
+{# GK-4 C-блок «полоса цифр»: 2–4 пары «крупное число + подпись» (block.rows). Пусто → ничего. #}
+{% if block.rows %}
+<section class="my-8">
+  <div class="cb-box max-w-4xl mx-auto px-4">
+    <div class="grid gap-6 text-center {% if block.rows|length == 2 %}grid-cols-2{% elif block.rows|length == 4 %}grid-cols-2 sm:grid-cols-4{% else %}grid-cols-3{% endif %}">
+      {% for r in block.rows %}
+      <div>
+        <p class="text-3xl md:text-4xl font-bold" style="color: var(--accent, #4f46e5);">{{ r.value }}</p>
+        {% if r.label %}<p class="mt-1 text-sm text-gray-500">{{ r.label }}</p>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% elif is_preview %}{% include "storefront/sections/_block_placeholder.html" with label="Zahlen-Block — klicken zum Bearbeiten" %}{% endif %}

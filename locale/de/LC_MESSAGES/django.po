@@ -17525,3 +17525,26 @@ msgstr "Event-Anfrage fürs Catering"
 msgid "Wunschdatum, Gästezahl und Anlass — Angebot kommt per E-Mail."
 msgstr "Wunschdatum, Gästezahl und Anlass — Angebot kommt per E-Mail."
 
+
+# GK-4: C-блок «полоса цифр» (stats)
+msgid "Numbers"
+msgstr "Zahlen"
+
+msgid "2–4 key figures with captions"
+msgstr "2–4 Kennzahlen mit Beschriftung"
+
+msgid "One line per figure: value | caption (max 4)"
+msgstr "Eine Zeile pro Kennzahl: Wert | Beschriftung (max. 4)"
+
+msgid "3 Zahlen"
+msgstr "3 Zahlen"
+
+msgid "4 Zahlen"
+msgstr "4 Zahlen"
+
+msgid "2 Zahlen"
+msgstr "2 Zahlen"
+
+msgid "Seit Jahr"
+msgstr "Seit Jahr"
+

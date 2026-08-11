@@ -68,6 +68,7 @@ CBLOCK_TEMPLATES = {
     "button": "storefront/sections/_block_button.html",
     "spacer": "storefront/sections/_block_spacer.html",
     "promo": "storefront/sections/_block_promo.html",  # UE1: LIVE-промо по promo_pk
+    "stats": "storefront/sections/_block_stats.html",  # GK-4: полоса цифр
 }
 
 

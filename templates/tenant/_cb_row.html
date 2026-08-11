@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n cabinet %}
 {% comment %}UC6-7b: строка настроек C-блока — ЕДИНАЯ для блоков главной (cblocks,
 маркер cb_id) и блоков страниц (page_blocks, маркер pb_id + pb_page_<id>=хост).
 Вынесена из site_home.html 1:1; имена полей глобально уникальны по b.id, поэтому
@@ -121,6 +121,12 @@ collect()/save работают без переименований. data-cb-id 
       </select>
     {% endif %}
   {% endif %}
+  {% if b.type == "stats" %}
+    {% comment %}GK-4: полоса цифр — textarea «wert | label» построчно (паттерн
+       usp_text); парс в canonical rows — строковая ветка _clean_cblock_data.{% endcomment %}
+    <textarea name="cb_{{ b.id }}_rows" rows="4" placeholder="12 | Jahre Erfahrung&#10;500+ | zufriedene Kunden&#10;4,9 ★ | Bewertung" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">{{ b.data.rows|stats_text }}</textarea>
+    <p class="text-[11px] text-gray-400">{% trans "One line per figure: value | caption (max 4)" %}</p>
+  {% endif %}
   {% comment %}UC6-3/3a/3b: ширина блока (доли контейнера до 1/6) + положение.
      Узкие блоки подряд автоматически встают В РЯД; чекбокс «с новой
      строки» разрывает ряд. pos влияет только на узкие (дефолт — центр).{% endcomment %}
@@ -146,7 +152,7 @@ collect()/save работают без переименований. data-cb-id 
     </label>
     <label class="flex items-center gap-1"><input type="checkbox" name="newline_cb_{{ b.id }}" {% if b.newline %}checked{% endif %} class="rounded border-gray-300">{% trans "Start new row" %}</label>
   </div>
-  {% if b.type == "text" or b.type == "image" or b.type == "image_text" or b.type == "button" %}
+  {% if b.type == "text" or b.type == "image" or b.type == "image_text" or b.type == "button" or b.type == "stats" %}
     {% comment %}UC6-6b: visual блока — тень (Просто) + радиус/отступ/фон (Эксперт);
        применяется к .cb-box через --sf-* переменные обёртки.{% endcomment %}
     <div class="flex flex-wrap items-center gap-3 text-xs text-gray-600">

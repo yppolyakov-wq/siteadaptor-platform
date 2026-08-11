@@ -17486,3 +17486,26 @@ msgstr "Catering için etkinlik talebi"
 msgid "Wunschdatum, Gästezahl und Anlass — Angebot kommt per E-Mail."
 msgstr "Tarih, misafir sayısı ve vesile — teklif e-postayla gelir."
 
+
+# GK-4: C-блок «полоса цифр» (stats)
+msgid "Numbers"
+msgstr "Sayılar"
+
+msgid "2–4 key figures with captions"
+msgstr "Açıklamalı 2–4 önemli rakam"
+
+msgid "One line per figure: value | caption (max 4)"
+msgstr "Her rakam için bir satır: değer | açıklama (en fazla 4)"
+
+msgid "3 Zahlen"
+msgstr "3 sayı"
+
+msgid "4 Zahlen"
+msgstr "4 sayı"
+
+msgid "2 Zahlen"
+msgstr "2 sayı"
+
+msgid "Seit Jahr"
+msgstr "Kuruluş yılından beri"
+

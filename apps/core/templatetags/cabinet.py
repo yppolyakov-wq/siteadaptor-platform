@@ -7,6 +7,14 @@ from apps.core import modules, nav_registry
 register = template.Library()
 
 
+@register.filter
+def stats_text(rows):
+    """GK-4: rows полосы цифр → textarea «wert | label» (обратный парс — normalize)."""
+    from apps.tenants import siteconfig
+
+    return siteconfig.stats_to_text(rows)
+
+
 @register.simple_tag(takes_context=True)
 def status_label(context, obj, kind="order"):
     """FB-4a: имя статуса в кабинете — своё имя владельца (site_config["status_labels"])
