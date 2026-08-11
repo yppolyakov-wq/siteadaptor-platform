@@ -72,6 +72,12 @@ class BusinessSettingsForm(forms.ModelForm):
             "contact_phone",
             "whatsapp_number",
             "website_url",
+            # GK-9: соцпрофили («handle или URL») — иконки в футере витрины + sameAs.
+            "instagram",
+            "facebook",
+            "linkedin",
+            "tiktok",
+            "youtube",
             "opening_hours",
             "map_url",
             "service_area_plz",
@@ -97,6 +103,11 @@ class BusinessSettingsForm(forms.ModelForm):
             "whatsapp_number": _(
                 "Im internationalen Format, z. B. +49 171 1234567. Für Video-Beratung "
                 "und Sofort-Kontakt; leer = WhatsApp-Buttons werden nicht angezeigt."
+            ),
+            # GK-9: один hint на все соцполя (у остальных — placeholder-семантика та же).
+            "instagram": _(
+                "Handle oder vollständige URL (z. B. @meinladen). Gefüllte Profile "
+                "erscheinen als Icons im Footer Ihrer Website."
             ),
             "service_area_plz": _(
                 "Postal codes you serve, comma-separated (e.g. 40724, 42697). "

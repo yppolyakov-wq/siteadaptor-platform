@@ -100,6 +100,22 @@ def test_localbusiness_ld_includes_logo_and_sameas():
     assert data["sameAs"] == ["https://shop.example.com"]
 
 
+def test_localbusiness_ld_sameas_includes_socials():
+    # GK-9: соцпрофили (handle или URL) дописываются в sameAs после сайта.
+    t = TenantFactory.build(
+        name="X",
+        website_url="https://shop.example.com",
+        instagram="@meinladen",
+        youtube="https://www.youtube.com/@meinkanal",
+    )
+    data = json.loads(localbusiness_ld(t, url="https://x.de/"))
+    assert data["sameAs"] == [
+        "https://shop.example.com",
+        "https://instagram.com/meinladen",
+        "https://www.youtube.com/@meinkanal",
+    ]
+
+
 def test_localbusiness_ld_explicit_image_beats_logo():
     t = TenantFactory.build(name="X", logo_url="https://x.de/logo.png")
     data = json.loads(localbusiness_ld(t, url="https://x.de/", image="https://x.de/photo.jpg"))

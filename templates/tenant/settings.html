@@ -26,6 +26,12 @@
       {% include "tenant/_settings_field.html" with field=form.whatsapp_number %}
       {% include "tenant/_settings_field.html" with field=form.website_url %}
       {% include "tenant/_settings_field.html" with field=form.map_url %}
+      {# GK-9: соцпрофили — иконки в футере витрины + sameAs (W0: всегда в DOM) #}
+      {% include "tenant/_settings_field.html" with field=form.instagram %}
+      {% include "tenant/_settings_field.html" with field=form.facebook %}
+      {% include "tenant/_settings_field.html" with field=form.linkedin %}
+      {% include "tenant/_settings_field.html" with field=form.tiktok %}
+      {% include "tenant/_settings_field.html" with field=form.youtube %}
     </fieldset>
 
     {# ② Öffnungszeiten — структурный редактор (бейдж «Открыто») + свободный текст (свод обоих) #}

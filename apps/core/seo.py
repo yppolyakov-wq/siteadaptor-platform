@@ -118,8 +118,13 @@ def localbusiness_ld(
         data["logo"] = logo
         data.setdefault("image", logo)
     website = getattr(tenant, "website_url", "") or ""
-    if website:
-        data["sameAs"] = [website]
+    # GK-9: соцпрофили → sameAs (после сайта; дубли схлопываем; fail-safe для
+    # тест-стабов без метода — класс CI 1145).
+    links_fn = getattr(tenant, "social_links", None)
+    socials = [url for _k, _lbl, url in links_fn()] if callable(links_fn) else []
+    same_as = [u for u in [website, *socials] if u]
+    if same_as:
+        data["sameAs"] = list(dict.fromkeys(same_as))
     if aggregate_rating is not None:
         value, count = aggregate_rating
         if count:

@@ -135,6 +135,14 @@ class Tenant(TenantMixin):
     # erreichbar»). Пусто = видео-CTA нигде не показывается (opt-in владельца).
     whatsapp_number = models.CharField(max_length=30, blank=True)
     website_url = models.URLField(blank=True)
+    # GK-9: соцпрофили бизнеса — «handle или URL» (идиома events.Teacher.instagram;
+    # колонки, не site_config — прецедент whatsapp_number: обычный контакт бизнеса).
+    # Витрина: иконки-ряд в футере (_social_icons.html) + sameAs в JSON-LD.
+    instagram = models.CharField(max_length=120, blank=True, verbose_name="Instagram")
+    facebook = models.CharField(max_length=120, blank=True, verbose_name="Facebook")
+    linkedin = models.CharField(max_length=120, blank=True, verbose_name="LinkedIn")
+    tiktok = models.CharField(max_length=120, blank=True, verbose_name="TikTok")
+    youtube = models.CharField(max_length=120, blank=True, verbose_name="YouTube")
     opening_hours = models.TextField(blank=True)  # свободный текст / по строкам
     # Структурные часы работы (P1b): {"0":["09:00","18:00"], …} по дням недели
     # (0=Пн … 6=Вс, как date.weekday()); один интервал на день в v1. Источник
@@ -295,6 +303,27 @@ class Tenant(TenantMixin):
         plz = (plz or "").strip()
         allowed = self.service_area_plz_list
         return True if not allowed else plz in allowed
+
+    # GK-9: базовые URL соцсетей — handle дописывается справа (URL проходит как есть).
+    _SOCIAL_BASES = (
+        ("instagram", "Instagram", "https://instagram.com/"),
+        ("facebook", "Facebook", "https://facebook.com/"),
+        ("linkedin", "LinkedIn", "https://www.linkedin.com/in/"),
+        ("tiktok", "TikTok", "https://www.tiktok.com/@"),
+        ("youtube", "YouTube", "https://www.youtube.com/@"),
+    )
+
+    def social_links(self) -> list:
+        """GK-9: [(key, label, url)] заполненных соцпрофилей — «handle или URL»
+        (идиома Teacher.instagram_url); пусто → []. Футер/JSON-LD sameAs."""
+        out = []
+        for key, label, base in self._SOCIAL_BASES:
+            raw = (getattr(self, key, "") or "").strip()
+            if not raw:
+                continue
+            url = raw if raw.startswith("http") else base + raw.lstrip("@")
+            out.append((key, label, url))
+        return out
 
     def open_status(self) -> dict | None:
         """Live-статус «открыто сейчас» из структурных часов (P1b). None — не заданы."""
