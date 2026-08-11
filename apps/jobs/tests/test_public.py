@@ -596,3 +596,20 @@ def test_job_cancel_returns_voucher_balance():
     JobSM().apply(job, "cancelled")
     v = Voucher.objects.get(code="GS-JC")
     assert v.balance_cents == 5000 and v.used_count == 0  # остаток вернулся
+
+
+def test_anfrage_form_structural_markers():
+    """AF-2a: характеризационный замок разметки формы ДО извлечения партиала
+    (_anfrage_form.html) — структурные маркеры обязаны пережить извлечение."""
+    body = public_views.anfrage(_req()).content.decode()
+    for marker in (
+        'method="post"',
+        'enctype="multipart/form-data"',
+        'name="website"',
+        'name="title"',
+        'name="description"',
+        'name="site_address"',
+        'name="photos"',
+        "csrfmiddlewaretoken",
+    ):
+        assert marker in body, marker

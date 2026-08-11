@@ -209,3 +209,20 @@ def test_typing_ping_gated_when_module_off():
     req.tenant.disabled_modules = ["inbox"]
     with _pytest.raises(Http404):
         public_views.thread_typing(req, token=conv.public_token)
+
+
+def test_contact_form_renders_fields():
+    """AF-2a: характеризационный замок разметки формы ДО извлечения партиала
+    (_message_form.html) — поля/honeypot/csrf обязаны пережить извлечение."""
+    body = public_views.contact(_pub("get")).content.decode()
+    for marker in (
+        'name="subject"',
+        'name="body"',
+        'name="name"',
+        'name="email"',
+        'name="phone"',  # AF-2a: вьюха принимала phone, инпута не было — закрыто
+        'name="website"',
+        "csrfmiddlewaretoken",
+        'action="/nachricht/"',
+    ):
+        assert marker in body, marker

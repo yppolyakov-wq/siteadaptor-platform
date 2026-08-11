@@ -36,6 +36,10 @@ BLOCK_TEMPLATES = {
     "gallery": "storefront/sections/_gallery.html",
     "before_after": "storefront/sections/_before_after.html",
     "contact": "storefront/sections/_contact.html",
+    # AF-2b: базы ТОЛЬКО для ref-блоков страниц (в SECTIONS главной их нет) —
+    # anfrage_ref → форма заявки (гейт jobs), message_ref → контакт-форма (inbox).
+    "anfrage": "storefront/sections/_anfrage.html",
+    "message": "storefront/sections/_message.html",
 }
 # Якорь-id обёртки секции (scroll-mt-24) — пункты меню типа «anchor» ведут на #id.
 _BLOCK_ANCHOR_ID = {

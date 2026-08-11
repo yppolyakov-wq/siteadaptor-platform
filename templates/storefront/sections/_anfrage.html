@@ -1,0 +1,12 @@
+{% load i18n %}
+{% comment %}AF-2b: встраиваемый блок формы заявки (anfrage_ref) — на любой из
+PAGE_BLOCK_HOSTS-страниц. Гейт по модулю jobs: выключен → пусто (паттерн «пустой
+референс рендерит ничего»). Состав событийных полей — глобальный site.anfrage
+(панель «⚙️ Anfrage-Formular» кабинета); POST идёт в /anfrage/ (action партиала).{% endcomment %}
+{% if storefront_jobs_enabled %}
+<div class="max-w-2xl mx-auto">
+  <h2 class="text-xl md:text-2xl font-bold mb-1">{% trans "Request a quote" %}</h2>
+  <p class="text-gray-500 mb-4">{% trans "Tell us what you need — we'll send you a quote." %}</p>
+  {% include "storefront/_anfrage_form.html" with anfrage_cfg=site.anfrage jobs_vehicle=site.jobs_vehicle has_service_area=request.tenant.has_service_area betreff="" %}
+</div>
+{% endif %}

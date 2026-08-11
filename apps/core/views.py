@@ -1980,6 +1980,22 @@ def home_builder_view(request):
                     "hint": "Kundenstimmen der Startseite — auch auf dieser Seite",
                     "page_only": True,
                 },
+                # AF-2b: встраиваемые формы (заявка/контакт) — на страницах;
+                # рендер гейтится модулем (jobs/inbox выключен → блок пуст).
+                {
+                    "value": "anfrage_ref",
+                    "label": "Anfrage-Formular",
+                    "icon": "📝",
+                    "hint": "Angebot-Anfrage direkt auf dieser Seite (Modul Aufträge)",
+                    "page_only": True,
+                },
+                {
+                    "value": "message_ref",
+                    "label": "Kontaktformular",
+                    "icon": "✉️",
+                    "hint": "Frage-stellen-Formular direkt auf dieser Seite (Modul Nachrichten)",
+                    "page_only": True,
+                },
             ],
             "preset_options": preset_options,
             "source_options": source_options,

@@ -9160,3 +9160,44 @@ builtin-отмена билета не сторнирует выручку, ка
 чекбокса нет) → кнопка на доске → перевод карточки → подпись в Liste; после
 пробника демо-конфиг очищен. Грабля стенда: слаг «Warte auf Zahlung» —
 `warte_auf_zahlung`, скрипт искал сокращённый. Broad-гейт 2903 passed.
+
+## 2026-08-11 — AF-волна: событийные поля /anfrage/ + встраиваемые блоки форм (гэпы C-2/C-3 goodkarma-анализа)
+
+Контекст: gap-анализ goodkarma-catering.de (`docs/goodkarma-catering-gap-analysis-2026-08-11.md`,
+воркфлоу 14 агентов + адверсариальная верификация 24 пробелов) показал: кейтеринг-путь
+(jobs Anfrage→Angebot) есть у 4 китов, но форма везде без событийных полей (спека MB-3
+не была реализована в дефолт-варианте), а форму нельзя встроить на страницы. Отмашка
+владельца: «делаем C-2+C-3, свободное добавление в другие архетипы + индивидуальное
+наполнение». План — `docs/af-inquiry-wave-plan-2026-08-11.md`. Ветка
+`claude/goodkarma-catering-analysis-fea071` (параллельная сессия SM-4 — пересечений кода нет).
+
+**AF-1 (⚠️ миграция `jobs/0013`, аддитивная):** `Job` += `event_date`/`guest_count`/
+`event_type` (прецедент vehicle 0007/0008); `normalize_anfrage` —
+`site_config["anfrage"]` = {fields ⊆ date|guests|event_type, event_types ≤12×60}
+**presence-minimal** (ключ только при непустом fields; golden целы — антипример
+jobs_vehicle, который always-present); вьюха: fail-soft дата/гости (битое поле не
+роняет заявку), тип — ТОЛЬКО из списка владельца (fail-closed), без конфига POST-поля
+игнорируются целиком; форма — fieldset за гейтом. Кабинет: карточка job detail
+(🎉 тип · 📅 дата · 👥 гости) + строка списка + `job_new.txt`; панель
+«⚙️ Anfrage-Formular» на списке Aufträge (targeted-write по образцу board_settings,
+probe-замок notify) — ЛЮБОЙ архетип включает поля и наполняет варианты индивидуально.
+Префилл `?betreff=` из buybox-CTA (механика R6 была, но не подключена; замок точных
+href обновлён осознанно). Пресеты 4 демо-китов restaurant/pranasy/bakery/butcher
+(`DemoKit.anfrage_form`, dead-config-замок «пресет переживает normalize»);
+handwerker/werkstatt намеренно без — демонстрация opt-in. 9 msgid × 5 .po.
+Грабля: `sellable.title` вместо `sellable.name` — шаблон молчит, betreff был бы пуст
+(поймано сверкой контракта); polib пересохранил .po с переформатированием ~400 строк
+(конфликт-риск с параллельной сессией) → откат + чистый текстовый append.
+
+**AF-2 (без миграций):** характеризационные замки разметки ДО извлечения → общие
+партиалы `_anfrage_form.html`/`_message_form.html` (form 1:1 + `action=` — встроенная
+форма постит в штатный приёмник с любой страницы; попутно закрыта пред-существующая
+дыра: контакт-вьюха принимала `phone`, инпута в шаблоне не было). Ref-блоки
+`anfrage_ref`/`message_ref` в `PAGE_REF_BLOCKS` (данные {}, blanket-ветка не тронута;
+base «message», НЕ «contact» — коллизия с home-секцией контактов в BLOCK_TEMPLATES);
+секции-обёртки `sections/_anfrage.html`/`_message.html` с гейтами
+`storefront_jobs_enabled`/`storefront_inbox_enabled` (модуль выключен → пусто);
+библиотека блоков билдера += 2 записи page_only (📝/✉️). csrf во встроенном рендере
+работает из коробки (page_blocks/render_block рендерят с request=). Замки — зеркала
+test_page_ref_blocks (`test_form_ref_blocks.py`: normalize page-only, рендер с
+csrf+событийными полями, гейты модулей, add_block, маркеры инсертера).

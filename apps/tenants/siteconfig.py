@@ -525,7 +525,16 @@ PAGE_BLOCK_HOSTS = (
 # готовый партиал секции с ГЛОБАЛЬНЫМ справочником site.<key> (контент один на
 # весь сайт, правится в конструкторе главной — честная семантика «показать
 # этот блок и здесь»).
-PAGE_REF_BLOCKS = ("faq_ref", "team_ref", "gallery_ref", "testimonials_ref")
+# AF-2b: + формы (anfrage_ref — заявка, гейт jobs; message_ref — контакт-форма,
+# гейт inbox) — рендер общих партиалов форм, POST в штатные приёмники.
+PAGE_REF_BLOCKS = (
+    "faq_ref",
+    "team_ref",
+    "gallery_ref",
+    "testimonials_ref",
+    "anfrage_ref",
+    "message_ref",
+)
 
 
 def normalize_page_blocks(raw) -> dict:

@@ -1354,8 +1354,31 @@ Python 3.12, менеджер uv.
   через реестр · читаемые подписи Reservation (`builtin_status_labels`) + `status_label`
   на per-app экранах. Замки ДО фиксов (18 красных на дырах); стенд Playwright 13/13
   (touren, полный цикл создать→рёбра→доска→перевод); broad 2903 passed. Квирки — план §2.
+- **Самое свежее (2026-08-11): gap-анализ goodkarma-catering.de + ВОЛНА AF (AF-1+AF-2) ✅.**
+  Анализ `docs/goodkarma-catering-gap-analysis-2026-08-11.md` (14 агентов, 24 пробела
+  адверсариально верифицированы): сайт-референс собирается уже сегодня; реальные гэпы —
+  Tier 1 C-1..C-4. По отмашке владельца («C-2+C-3, свободно в другие архетипы,
+  индивидуально наполнять») закрыта **волна AF** (план `af-inquiry-wave-plan-2026-08-11.md`,
+  ветка `claude/goodkarma-catering-analysis-fea071`): **AF-1** (⚠️ миграция `jobs/0013`,
+  аддитивная) — `Job` += event_date/guest_count/event_type; `normalize_anfrage`
+  (`site_config["anfrage"]` presence-minimal: fields ⊆ date|guests|event_type +
+  event_types ≤12); форма /anfrage/ — fieldset за гейтом (fail-soft дата/гости,
+  тип fail-closed из списка владельца); панель «⚙️ Anfrage-Formular» на списке Aufträge
+  (targeted-write) — любой архетип включает и наполняет сам; префилл `?betreff=` из
+  buybox-CTA; пресеты китов restaurant/pranasy/bakery/butcher; карточка/список/письмо
+  владельцу; 9 msgid × 5 .po. **AF-2** (без миграций) — общие партиалы
+  `_anfrage_form`/`_message_form` (характеризационные замки ДО извлечения; `action=` →
+  форма постит в штатный приёмник с любой страницы; попутно закрыта дыра «вьюха
+  принимала phone, инпута не было») + ref-блоки `anfrage_ref`/`message_ref` в
+  PAGE_REF_BLOCKS (гейты jobs/inbox, base «message» — НЕ «contact», коллизия с
+  home-секцией) + 2 записи библиотеки блоков билдера. Замки: `test_anfrage_config`,
+  `test_form_ref_blocks`, +6 витринных, panel probe-notify, dead-config китов.
+  Остальные гэпы анализа (C-1 архетип Catering · C-4 полоса цифр · Tier 2 usp-pillars/
+  testimonials-фото/inline-newsletter/соцссылки) — за решением владельца.
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ: `catalog/0024`** (I18N-10, аддитивная — оверлеи переводов
-  параметров). После деплоя — `seed_demo_tenants --recreate` (демо-акции/меню/переводы).
+  параметров) **+ `jobs/0013`** (AF-1, аддитивная — событийные поля заявки; после деплоя
+  `seed_demo_tenants --kit restaurant|pranasy|baeckerei|metzgerei --recreate` для
+  демо-пресетов Anfrage-Formular). После деплоя — `seed_demo_tenants --recreate` (демо-акции/меню/переводы).
   **ПРОВЕРЕНО 2026-08-01 по `showmigrations` на проде** — очередь в этом файле была устаревшей примерно на три недели: она числила ~30 миграций «ожидающими», тогда как владелец деплоил регулярно. Фактическое состояние прод-схемы: `catalog` [X] по `0022`, `stays` [X] по `0030`, `booking` [X] по `0020`, `inventory` [X] по `0004`, `tenants` [X] по `0027` — то есть применено ВСЁ, включая миграции, смерженные 2026-08-01. Прежние записи «последний полный деплой 08.07» + «деплой очереди сделан владельцем (19.07)» были верны; неверен был список ожидающих. **Не подтверждено этой проверкой** (не входили в запрос, все TENANT-апп): `core/0006` (data-миграция backfill_owner_membership), `promotions/0024`, `orders/0015`/`0016`, `crm/0002`, `promotions/0022`/`0023`, `collections/0002`, `finance/0006`, `jobs/0012`. **Нюанс django-tenants:** `manage.py showmigrations` без tenant-контекста читает `django_migrations` схемы **public**; у TENANT-апп (catalog/stays/booking/inventory/promotions/…) своя таблица в КАЖДОЙ схеме тенанта, поэтому строгая проверка — по схемам (`migrate_schemas` в `deploy.sh` их и гоняет). Команда полной сверки — в build-log записи 2026-08-01 «аудит месяца». **Правило впредь:** очередь в этом файле — гипотеза до сверки с `showmigrations`; не помечать миграции «ожидающими» дольше одного деплой-цикла.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
