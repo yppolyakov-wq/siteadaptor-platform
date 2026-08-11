@@ -17434,3 +17434,8 @@ msgstr "One per line: Name | Text | Stars 1–5 | Photo URL (both optional)."
 msgid "Happy customers"
 msgstr "Happy customers"
 
+
+# GK-9: help-текст соцполей
+msgid "Handle oder vollständige URL (z. B. @meinladen). Gefüllte Profile erscheinen als Icons im Footer Ihrer Website."
+msgstr "Handle or full URL (e.g. @meinladen). Filled-in profiles appear as icons in your website footer."
+

@@ -17585,3 +17585,8 @@ msgstr "Eine Zeile pro Stimme: Name | Text | Sterne 1–5 | Foto-URL (beides opt
 msgid "Happy customers"
 msgstr "Zufriedene Kunden"
 
+
+# GK-9: help-текст соцполей
+msgid "Handle oder vollständige URL (z. B. @meinladen). Gefüllte Profile erscheinen als Icons im Footer Ihrer Website."
+msgstr "Handle oder vollständige URL (z. B. @meinladen). Gefüllte Profile erscheinen als Icons im Footer Ihrer Website."
+

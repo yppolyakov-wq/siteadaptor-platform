@@ -17611,3 +17611,8 @@ msgstr "По одному в рядку: Ім’я | Текст | Зірки 1�
 msgid "Happy customers"
 msgstr "Задоволені клієнти"
 
+
+# GK-9: help-текст соцполей
+msgid "Handle oder vollständige URL (z. B. @meinladen). Gefüllte Profile erscheinen als Icons im Footer Ihrer Website."
+msgstr "Нік або повне посилання (наприклад, @meinladen). Заповнені профілі з’являться іконками в підвалі сайту."
+

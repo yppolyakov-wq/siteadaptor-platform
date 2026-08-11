@@ -17546,3 +17546,8 @@ msgstr "Her satıra bir yorum: Ad | Metin | Yıldız 1–5 | Foto URL (ikisi de 
 msgid "Happy customers"
 msgstr "Mutlu müşteriler"
 
+
+# GK-9: help-текст соцполей
+msgid "Handle oder vollständige URL (z. B. @meinladen). Gefüllte Profile erscheinen als Icons im Footer Ihrer Website."
+msgstr "Kullanıcı adı veya tam URL (ör. @meinladen). Doldurulan profiller sitenizin alt bilgisinde simge olarak görünür."
+
