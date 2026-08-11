@@ -9298,3 +9298,35 @@ Finanzen, 7 подпунктов Angebote, компакт-бар каталог�
 комментария; правило: гнать его в КАЖДОМ шаблонном батче перед стендом.
 Новый msgid «Berichte» × 5 .po. app.css пересобран (новые Tailwind-классы
 шеврона/подпунктов).
+
+## 2026-08-11 — GK-5..9 «Tier 2 витринная косметика» (закрытие goodkarma-гэпов)
+
+Отмашка «продолжай GK-5..9»; план `docs/gk59-tier2-plan-2026-08-11.md` (2 Explore-
+разведки, чек-листы file:line). Порядок от дешёвого к дорогому.
+
+**GK-9 (⚠️ миграция `tenants/0029`, аддитивная):** Tenant += instagram/facebook/
+linkedin/tiktok/youtube («handle или URL», идиома Teacher.instagram_url; колонки
+по прецеденту whatsapp_number — «обычный контакт бизнеса живёт колонкой») +
+`social_links()`; поля в BusinessSettingsForm/settings.html (W0); НОВЫЙ партиал
+`_social_icons.html` (инлайн mono-SVG — спрайта на витрине нет, GDPR-safe) в
+футере; `sameAs` = сайт + соцссылки (fail-safe для стабов — класс CI 1145;
+замок test_seo расширен). **GK-8 (без миграций):** C-блок `newsletter` — форма
+подписки рендерится ВСЕГДА (данные — presence-minimal оверрайды title/body/
+button_label; «body» реюзает collect()-список live-канала без правки JS), POST →
+штатный /newsletter/ (DOI, honeypot; осознанное ограничение v1 — сабмит уводит
+на /newsletter/, PRG/next у вьюхи нет). **GK-7:** пресет «Gründer-Zitat» —
+11-й вариант image_text БЕЗ новых data-ключей (фото 3xl справа + крупная
+приглушённая цитата; вариант-замки целы). **GK-5:** clean_usp += `text`
+presence-minimal + textarea 3-part «icon | label | text» (2-частный round-trip
+байт-в-байт — замок цел) + стиль `pillars` (крупная иконка + h3 + абзац);
+кит catering — «3 столпа философии» с текстами и стилем pillars; сборка китов
+терпит 2/3-кортежи usp. **GK-6:** отдельный `clean_testimonials` (общий
+_clean_pairs НЕ расширен — его делят faq/process; stars 1..5 + photo
+presence-minimal → golden rich_home байт-в-байт), textarea 4-part, фильтр
+`stars` (строка звёзд считается на рендере — конфиг не раздут), звёзды+аватар
+во всех 5 стилях, trust получил аватар-ряд «Zufriedene Kunden» (фото отзыва
+или инициал; гейт секции не менялся), кит-сборка терпит 2/3/4-кортежи,
+catering 5★. app.css пересобран (-space-x-2 — новый класс). Суммарно 9 msgid ×
+5 .po + 3 строки demo_i18n × 4. Грабля повторилась: анкоры авто-замен по
+файлу, переформатированному ruff, не совпадают — сверять фактические строки
+grep'ом до замены.

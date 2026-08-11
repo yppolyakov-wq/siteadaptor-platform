@@ -1408,12 +1408,26 @@ Python 3.12, менеджер uv.
   двухстрочный `{# #}` утёк текстом на страницу (пойман скриншотом стенда; гнать
   template_comments в каждом шаблонном батче). +msgid «Berichte» ×5 .po; app.css
   пересобран. План `docs/sm4-sidebar-children-plan-2026-08-11.md`.
+- **Самое свежее (2026-08-11, поздний вечер): GK-5..9 «Tier 2 витринная косметика» ✅ —
+  ВСЕ гэпы goodkarma-анализа закрыты** (план `gk59-tier2-plan-2026-08-11.md`; детали —
+  build-log). **GK-9** (⚠️ миграция `tenants/0029`, аддитивная): Tenant += 5 соцпрофилей
+  («handle или URL», прецедент whatsapp_number) + `social_links()` → иконки-ряд в футере
+  (`_social_icons.html`, инлайн mono-SVG) + `sameAs` в JSON-LD. **GK-8**: C-блок
+  `newsletter` (форма всегда, данные — presence-minimal оверрайды; POST → штатный DOI
+  /newsletter/; v1 уводит на /newsletter/ — PRG/next нет). **GK-7**: пресет
+  «Gründer-Zitat» image_text (11-й вариант, без новых data-ключей). **GK-5**: usp_bar +=
+  optional `text` + стиль `pillars` (3-part textarea «icon | label | text»; кит catering
+  — «3 столпа философии»). **GK-6**: `clean_testimonials` (stars 1..5 + photo
+  presence-minimal; общий _clean_pairs НЕ тронут — faq/process), 4-part textarea, фильтр
+  `stars`, звёзды+аватары в 5 стилях, trust — аватар-ряд «Zufriedene Kunden»
+  (фото/инициалы). app.css пересобран (-space-x-2). Голдены целы во всех пяти.
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ: `catalog/0024`** (I18N-10, аддитивная — оверлеи переводов
   параметров) **+ `jobs/0013`** (AF-1, аддитивная — событийные поля заявки) **+
-  `tenants/0028`** (GK-1, choices-only). После деплоя: `seed_demo_tenants --kit
+  `tenants/0028`** (GK-1, choices-only) **+ `tenants/0029`** (GK-9, аддитивная —
+  соцпрофили). После деплоя: `seed_demo_tenants --kit
   restaurant|pranasy|baeckerei|metzgerei --recreate` (демо-пресеты Anfrage-Formular) +
-  `seed_demo_tenants --kit catering` (новый демо-тенант «Grüne Tafel», включает кнопки
-  «Demo ansehen» карточки Catering). После деплоя — `seed_demo_tenants --recreate` (демо-акции/меню/переводы).
+  `seed_demo_tenants --kit catering --recreate` (демо «Grüne Tafel»: pillars, 5★-отзывы,
+  включает кнопку «Demo ansehen» карточки Catering). После деплоя — `seed_demo_tenants --recreate` (демо-акции/меню/переводы).
   **ПРОВЕРЕНО 2026-08-01 по `showmigrations` на проде** — очередь в этом файле была устаревшей примерно на три недели: она числила ~30 миграций «ожидающими», тогда как владелец деплоил регулярно. Фактическое состояние прод-схемы: `catalog` [X] по `0022`, `stays` [X] по `0030`, `booking` [X] по `0020`, `inventory` [X] по `0004`, `tenants` [X] по `0027` — то есть применено ВСЁ, включая миграции, смерженные 2026-08-01. Прежние записи «последний полный деплой 08.07» + «деплой очереди сделан владельцем (19.07)» были верны; неверен был список ожидающих. **Не подтверждено этой проверкой** (не входили в запрос, все TENANT-апп): `core/0006` (data-миграция backfill_owner_membership), `promotions/0024`, `orders/0015`/`0016`, `crm/0002`, `promotions/0022`/`0023`, `collections/0002`, `finance/0006`, `jobs/0012`. **Нюанс django-tenants:** `manage.py showmigrations` без tenant-контекста читает `django_migrations` схемы **public**; у TENANT-апп (catalog/stays/booking/inventory/promotions/…) своя таблица в КАЖДОЙ схеме тенанта, поэтому строгая проверка — по схемам (`migrate_schemas` в `deploy.sh` их и гоняет). Команда полной сверки — в build-log записи 2026-08-01 «аудит месяца». **Правило впредь:** очередь в этом файле — гипотеза до сверки с `showmigrations`; не помечать миграции «ожидающими» дольше одного деплой-цикла.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
