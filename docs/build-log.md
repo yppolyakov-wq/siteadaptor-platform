@@ -9330,3 +9330,46 @@ catering 5★. app.css пересобран (-space-x-2 — новый клас�
 5 .po + 3 строки demo_i18n × 4. Грабля повторилась: анкоры авто-замен по
 файлу, переформатированному ruff, не совпадают — сверять фактические строки
 grep'ом до замены.
+
+## 2026-08-11 — GK-11 «Google-рейтинг через Places API» + GK-13 «PDF-Speisekarte»
+
+Отмашка владельца «Делай Google-рейтинг через Places API» + «GK-13 делай».
+План GK-11 — `docs/gk11-google-rating-plan-2026-08-11.md` (Explore-разведка).
+
+**GK-11 (⚠️ миграция `tenants/0030`, аддитивная):** Tenant += `google_place_id` +
+кэш `google_rating` (Decimal 3,2, зеркало BusinessRating) / `google_rating_count` /
+`google_rating_updated_at` (свой таймстемп — auto_now updated_at не годится:
+ToS Google требует кэш ≤30 дней, обновляем беатом). Сервис
+`apps/tenants/google_places.py` — Places API (New): GET
+`places.googleapis.com/v1/places/{id}`, `X-Goog-FieldMask: rating,userRatingCount`
+(2 поля = дешёвый Basic-SKU); ключ ПЛАТФОРМЕННЫЙ через
+`secrets.store.get_or_setting("google_places_api_key", "GOOGLE_PLACES_API_KEY")`.
+Beat `refresh_google_ratings` (сутки; фильтр stale по GOOGLE_RATING_REFRESH_DAYS,
+дефолт 7; per-tenant try/except — одна ошибка не роняет проход; без ключа — тихий
+0, фича молчит). Кабинет: карточка «⭐ Google Bewertungen» в Integrationen →
+экран `/dashboard/settings/google-bewertungen/` (GoogleRatingForm только
+place_id + «Jetzt aktualisieren» синхронно + read-only кэш; targeted-save W7a;
+Ctrl+K-запись). Витрина: `_trust.html` — Google-строка РЯДОМ с внутренним
+рейтингом (чтение из `request.tenant.google_rating`, честная подпись
+«N Google-Bewertungen», плюрал с 4-формами ru/uk) + гейт секции расширен;
+попутно исправлен вводящий в заблуждение комментарий «рейтинг Google» у
+ВНУТРЕННЕГО BusinessRating (находка gap-анализа). **В JSON-LD Google-рейтинг
+НЕ кладём** (политика Google: aggregateRating — только собственные отзывы).
+site_config не тронут → golden целы. 17 тестов (fetch/кэш/скип свежих/beat-
+изоляция/форма/витрина). **⚠️ EXTERNAL-блокер владельца:** ключ с включённым
+Places API + billing в `.env.prod` (`GOOGLE_PLACES_API_KEY`) или в шифрованный
+стор — без него фича молчит (fail-safe).
+
+**GK-13 (без миграций):** генератор `apps/catalog/pdf.py::build_menu_pdf`
+поверх documents-слоя (fonts/money — язык и валюта по локали, DejaVu для
+кириллицы/турецких): шапка бизнеса → категории → позиции (цена справа,
+аллергены БУКВЕННЫМИ сносками + легенда только встретившихся — LMIV-стиль,
+диеты локализованными метками, описание ≤2 обёрнутых строк), многостраничность.
+Публичный `/speisekarte.pdf`: гейт «FOOD-тип + есть активные товары» (иначе
+404), язык через `document_language` (?lang= → язык витрины) +
+translation.override, группировка по Category.sort_order (безкатегорийные →
+«Sonstiges»), inline-показ в браузере. Кнопка «📄 Speisekarte als PDF» на
+каталоге под intro (гейт зеркалит вьюху). Живые данные = ноль ручной работы
+владельца (в отличие от загруженного файла). 5 тестов; 1 msgid × 5 .po.
+Грабля: module-import, вставленный НЕ в шапку файла, дал IndentationError —
+импорты только в import-блок + `ruff check --fix`.

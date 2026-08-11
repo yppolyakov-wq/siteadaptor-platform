@@ -1421,10 +1421,25 @@ Python 3.12, менеджер uv.
   presence-minimal; общий _clean_pairs НЕ тронут — faq/process), 4-part textarea, фильтр
   `stars`, звёзды+аватары в 5 стилях, trust — аватар-ряд «Zufriedene Kunden»
   (фото/инициалы). app.css пересобран (-space-x-2). Голдены целы во всех пяти.
+- **Самое свежее (2026-08-11, ночь): GK-11 «Google-рейтинг» + GK-13 «PDF-Speisekarte» ✅ —
+  goodkarma-трек ИСЧЕРПАН ЦЕЛИКОМ (AF + GK-1..13).** **GK-11** (⚠️ миграция `tenants/0030`,
+  аддитивная; план `gk11-google-rating-plan-2026-08-11.md`): Tenant += `google_place_id` +
+  кэш rating/count/updated_at (ToS ≤30 дней → beat `refresh_google_ratings`, stale-фильтр
+  7 дней, per-tenant try/except); сервис `apps/tenants/google_places.py` (Places API New,
+  FieldMask 2 поля = Basic-SKU; ПЛАТФОРМЕННЫЙ ключ через secrets-стор/env); кабинет —
+  карточка ⭐ в Integrationen + `/dashboard/settings/google-bewertungen/` («Jetzt
+  aktualisieren»); витрина — честная строка «★ X,X · N Google-Bewertungen» в trust РЯДОМ
+  с внутренним рейтингом; **в JSON-LD Google-рейтинг НЕ кладём** (политика Google).
+  **⚠️ EXTERNAL-блокер: без `GOOGLE_PLACES_API_KEY` (Places API + billing) фича молчит.**
+  **GK-13** (без миграций): `apps/catalog/pdf.py::build_menu_pdf` поверх documents-слоя
+  (язык/деньги по локали, аллергены буквенными сносками + LMIV-легенда, диеты, ≤2 строки
+  описания, многостраничность) + публичный `/speisekarte.pdf` (гейт FOOD-тип+активные
+  товары, `?lang=`) + кнопка «📄 Speisekarte als PDF» на каталоге. Живые данные — ноль
+  ручной работы владельца. 22 теста суммарно; детали — build-log.
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ: `catalog/0024`** (I18N-10, аддитивная — оверлеи переводов
   параметров) **+ `jobs/0013`** (AF-1, аддитивная — событийные поля заявки) **+
   `tenants/0028`** (GK-1, choices-only) **+ `tenants/0029`** (GK-9, аддитивная —
-  соцпрофили). После деплоя: `seed_demo_tenants --kit
+  соцпрофили) **+ `tenants/0030`** (GK-11, аддитивная — Google-рейтинг). После деплоя: `seed_demo_tenants --kit
   restaurant|pranasy|baeckerei|metzgerei --recreate` (демо-пресеты Anfrage-Formular) +
   `seed_demo_tenants --kit catering --recreate` (демо «Grüne Tafel»: pillars, 5★-отзывы,
   включает кнопку «Demo ansehen» карточки Catering). После деплоя — `seed_demo_tenants --recreate` (демо-акции/меню/переводы).
