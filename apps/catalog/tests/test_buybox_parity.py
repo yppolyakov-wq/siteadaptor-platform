@@ -4,6 +4,7 @@ docs/ua3-1-buybox-plan-2026-07-02.md §4). Написаны на ТЕКУЩЕМ 
 оставить их зелёными байт-в-байт."""
 
 import re
+from urllib.parse import quote
 
 import pytest
 from django.contrib.messages.middleware import MessageMiddleware
@@ -67,7 +68,19 @@ def test_sold_out_hides_form_and_buybar():
 
 
 def test_orders_module_off_hides_buybox_entirely():
+    # GK-14: с активным jobs тупика больше нет — вместо корзины Anfrage-CTA
+    # (browse-only Speisekarte у catering); формы корзины по-прежнему нет.
     p = ProductFactory()
     body = _detail(p, tenant=TenantFactory.build(disabled_modules=["orders"]))
     assert "/warenkorb/add/" not in body
     assert "Ausverkauft" not in body  # блока нет целиком, не sold-out-ветка
+    # Product.name — i18n-dict; в контракте sellable.name — локализованная строка.
+    assert f"/anfrage/?betreff={quote(p.get_i18n('name'))}" in body  # префилл AF-1
+
+
+def test_orders_and_jobs_off_no_cta_at_all():
+    # Оба модуля выключены → как раньше: buy-box пуст (нет и Anfrage-ссылки).
+    p = ProductFactory()
+    body = _detail(p, tenant=TenantFactory.build(disabled_modules=["orders", "jobs"]))
+    assert "/warenkorb/add/" not in body
+    assert "/anfrage/" not in body

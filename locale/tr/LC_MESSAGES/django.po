@@ -17559,9 +17559,6 @@ msgstr "Google yorumları"
 msgid "Bewertung und Anzahl von Google auf der Website anzeigen"
 msgstr "Google puanınızı ve yorum sayınızı web sitesinde gösterin"
 
-msgid "Nicht verbunden"
-msgstr "Bağlı değil"
-
 msgid "Wartet auf erste Aktualisierung"
 msgstr "İlk güncelleme bekleniyor"
 
@@ -17597,3 +17594,7 @@ msgstr[1] "%(n)s Google yorumu"
 msgid "Menu as PDF"
 msgstr "PDF olarak menü"
 
+
+# GK-14: Anfrage-CTA на browse-only каталоге
+msgid "Unverbindlich — wir melden uns mit einem Angebot."
+msgstr "Bağlayıcı değildir — size bir teklifle geri döneriz."

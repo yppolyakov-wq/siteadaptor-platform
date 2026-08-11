@@ -17639,9 +17639,6 @@ msgstr "Отзывы Google"
 msgid "Bewertung und Anzahl von Google auf der Website anzeigen"
 msgstr "Показывать рейтинг и число отзывов Google на сайте"
 
-msgid "Nicht verbunden"
-msgstr "Не подключено"
-
 msgid "Wartet auf erste Aktualisierung"
 msgstr "Ожидает первого обновления"
 
@@ -17679,3 +17676,7 @@ msgstr[3] "%(n)s отзыва Google"
 msgid "Menu as PDF"
 msgstr "Меню в PDF"
 
+
+# GK-14: Anfrage-CTA на browse-only каталоге
+msgid "Unverbindlich — wir melden uns mit einem Angebot."
+msgstr "Ни к чему не обязывает — мы свяжемся с вами с предложением."

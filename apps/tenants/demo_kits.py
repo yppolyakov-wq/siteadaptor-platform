@@ -6073,7 +6073,7 @@ CATERING = DemoKit(
                 _p(
                     "Buffet Vegetarisch",
                     "24.00",
-                    "Warmes Buffet mit drei Hauptgerichten, Salaten und Brot — pro Person.",
+                    "Warmes Buffet mit drei Hauptgerichten, Salaten und Brot — pro Person, ab 20 Personen.",
                     "buffet,vegetarian",
                     diets=["vegetarisch"],
                     badge="beliebt",
@@ -6081,14 +6081,14 @@ CATERING = DemoKit(
                 _p(
                     "Grillbuffet",
                     "28.00",
-                    "BBQ mit Gemüse, Halloumi und Saucen, vor Ort zubereitet — pro Person.",
+                    "BBQ mit Gemüse, Halloumi und Saucen, vor Ort zubereitet — pro Person, ab 20 Personen.",
                     "bbq,grill",
                     diets=["vegetarisch"],
                 ),
                 _p(
                     "Suppenstation",
                     "5.50",
-                    "Saisonale Suppe im Glas mit Brot — pro Person.",
+                    "Saisonale Suppe im Glas mit Brot — pro Person, ab 20 Personen.",
                     "soup,bowl",
                     diets=["vegan"],
                     allergens=["gluten"],
@@ -6102,7 +6102,7 @@ CATERING = DemoKit(
                 _p(
                     "Fingerfood-Platte Klassik",
                     "8.50",
-                    "Mini-Quiches, Wraps und Gemüsesticks mit Dips — pro Person.",
+                    "Mini-Quiches, Wraps und Gemüsesticks mit Dips — pro Person, ab 10 Personen.",
                     "fingerfood,platter",
                     diets=["vegetarisch"],
                     allergens=["gluten", "milch"],
@@ -6111,7 +6111,7 @@ CATERING = DemoKit(
                 _p(
                     "Wrap-Platte Vegan",
                     "7.50",
-                    "Gefüllte Wraps mit Hummus, Gemüse und Kräutern — pro Person.",
+                    "Gefüllte Wraps mit Hummus, Gemüse und Kräutern — pro Person, ab 10 Personen.",
                     "wraps,platter",
                     diets=["vegan"],
                     allergens=["gluten", "sesam"],
@@ -6119,7 +6119,7 @@ CATERING = DemoKit(
                 _p(
                     "Dessertauswahl",
                     "6.00",
-                    "Mousse, Kuchen und Obst im Glas — pro Person.",
+                    "Mousse, Kuchen und Obst im Glas — pro Person, ab 10 Personen.",
                     "dessert,glass",
                     diets=["vegetarisch"],
                     allergens=["milch", "eier"],
@@ -6133,7 +6133,7 @@ CATERING = DemoKit(
                 _p(
                     "Getränkepaket",
                     "9.00",
-                    "Wasser, Säfte und Kaffee für die ganze Veranstaltung — pro Person.",
+                    "Wasser, Säfte und Kaffee für die ganze Veranstaltung — pro Person, ab 10 Personen.",
                     "drinks,juice",
                     diets=["vegan"],
                 ),

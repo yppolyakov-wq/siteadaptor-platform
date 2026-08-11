@@ -779,6 +779,8 @@ def product_detail(request, pk):
             "related_grid": related_grid,
             # Кнопка «Zur Abholung bestellen» (D2a) — только при активном модуле.
             "orders_enabled": request.tenant.is_module_active("orders"),
+            # GK-14: browse-only каталог (orders off) — buy-box падает в Anfrage-CTA.
+            "jobs_active": request.tenant.is_module_active("jobs"),
             # A1/A2: отзывы о товаре (только верифицированные покупатели).
             "reviews": list(product_reviews.published_for(product)),
             "review_summary": product_reviews.summary(product),
