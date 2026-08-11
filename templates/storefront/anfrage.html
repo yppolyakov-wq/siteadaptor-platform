@@ -33,6 +33,34 @@ PLZ; показываем только если бизнес её задал (Ha
     <label class="block text-sm font-medium mb-1" for="id_desc">{% trans "Details (optional)" %}</label>
     <textarea id="id_desc" name="description" rows="3" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
   </div>
+  {% if anfrage_cfg %}
+  {% comment %}AF-1: событийные поля (Catering/Partyservice) — состав из
+  site_config["anfrage"] (панель «⚙️ Anfrage-Formular» кабинета); все опциональны,
+  Art der Veranstaltung — только из списка владельца.{% endcomment %}
+  <div class="grid sm:grid-cols-3 gap-3">
+    {% if "date" in anfrage_cfg.fields %}
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_event_date">{% trans "Event date (optional)" %}</label>
+      <input id="id_event_date" name="event_date" type="date" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    {% endif %}
+    {% if "guests" in anfrage_cfg.fields %}
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_guest_count">{% trans "Number of guests (optional)" %}</label>
+      <input id="id_guest_count" name="guest_count" type="number" min="1" max="100000" inputmode="numeric" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    {% endif %}
+    {% if "event_type" in anfrage_cfg.fields and anfrage_cfg.event_types %}
+    <div>
+      <label class="block text-sm font-medium mb-1" for="id_event_type">{% trans "Type of event (optional)" %}</label>
+      <select id="id_event_type" name="event_type" class="w-full rounded-lg border border-gray-300 px-3 py-2 bg-white">
+        <option value="">—</option>
+        {% for t in anfrage_cfg.event_types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+      </select>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
   <div class="flex gap-3">
     <div class="flex-1">
       <label class="block text-sm font-medium mb-1" for="id_addr">{% trans "Job address (optional)" %}</label>

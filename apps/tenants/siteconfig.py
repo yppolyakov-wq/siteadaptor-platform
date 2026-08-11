@@ -2149,6 +2149,36 @@ def normalize_presence(raw) -> dict:
     return {"mode": mode} if mode in ("on", "off") else {}
 
 
+_ANFRAGE_FIELDS = ("date", "guests", "event_type")  # канонический порядок
+_MAX_EVENT_TYPES = 12
+
+
+def normalize_anfrage(raw) -> dict:
+    """AF-1: событийные поля формы заявки /anfrage/ (Catering/Partyservice).
+
+    {"fields": ["date","guests","event_type"], "event_types": ["Hochzeit", …]}.
+    Ключ `anfrage` материализуется ТОЛЬКО при непустом fields (presence-minimal,
+    golden-паритет; отсутствие = форма прежняя). fields — подмножество
+    _ANFRAGE_FIELDS в каноническом порядке; event_types — строки владельца
+    (кап 12 × 60), сохраняются и без поля event_type (черновик наполнения)."""
+    raw = raw if isinstance(raw, dict) else {}
+    chosen = raw.get("fields")
+    chosen = {f for f in (chosen if isinstance(chosen, list) else []) if isinstance(f, str)}
+    fields = [f for f in _ANFRAGE_FIELDS if f in chosen]
+    if not fields:
+        return {}
+    out = {"fields": fields}
+    types = []
+    for item in raw.get("event_types") if isinstance(raw.get("event_types"), list) else []:
+        if isinstance(item, str) and item.strip():
+            types.append(item.strip()[:60])
+        if len(types) >= _MAX_EVENT_TYPES:
+            break
+    if types:
+        out["event_types"] = types
+    return out
+
+
 CARD_AMENITIES_MAX = 6  # больше пиктограмм на карточке — уже шум, не информация
 
 
@@ -2290,6 +2320,10 @@ def _normalize_impl(config) -> dict:
     presence = normalize_presence(config.get("presence"))
     if presence:
         normalized["presence"] = presence
+    # AF-1: событийные поля формы /anfrage/; ключ ТОЛЬКО при непустом (golden-паритет).
+    anfrage = normalize_anfrage(config.get("anfrage"))
+    if anfrage:
+        normalized["anfrage"] = anfrage
     # HF-2: какие удобства показывать на карточке номера; ключ ТОЛЬКО при выборе
     # владельца (пусто = дефолт «первые несколько удобств номера») — golden-паритет.
     ca = normalize_card_amenities(config.get("stay_card_amenities"))

@@ -31,8 +31,44 @@ def _require_jobs_active(request):
         raise Http404
 
 
+def _anfrage_config(tenant) -> dict:
+    """AF-1: конфиг событийных полей формы (site_config["anfrage"], presence-minimal)."""
+    from apps.tenants import siteconfig
+
+    return siteconfig.normalize(tenant.site_config).get("anfrage") or {}
+
+
+def _parse_event_fields(post, cfg) -> dict:
+    """AF-1: разбор событийных полей POST — fail-soft (битое поле не роняет заявку),
+    тип мероприятия — ТОЛЬКО из настроенного владельцем списка (fail-closed).
+    Поля вне конфига игнорируются целиком (форма их не показывала)."""
+    from datetime import date
+
+    fields = cfg.get("fields") or []
+    out = {"event_date": None, "guest_count": None, "event_type": ""}
+    if "date" in fields:
+        raw = (post.get("event_date") or "").strip()
+        try:
+            out["event_date"] = date.fromisoformat(raw) if raw else None
+        except ValueError:
+            pass
+    if "guests" in fields:
+        try:
+            n = int((post.get("guest_count") or "").strip())
+        except ValueError:
+            n = 0
+        if 1 <= n <= 100000:
+            out["guest_count"] = n
+    if "event_type" in fields:
+        val = (post.get("event_type") or "").strip()
+        if val in (cfg.get("event_types") or []):
+            out["event_type"] = val
+    return out
+
+
 def anfrage(request):
     _require_jobs_active(request)
+    anfrage_cfg = _anfrage_config(request.tenant)  # AF-1: событийные поля
     if request.method == "POST":
         if request.POST.get("website"):  # honeypot
             return redirect("storefront-anfrage")
@@ -58,6 +94,8 @@ def anfrage(request):
             vehicle_plate=request.POST.get("vehicle_plate", "").strip(),
             vehicle_hsn=request.POST.get("vehicle_hsn", "").strip(),
             vehicle_tsn=request.POST.get("vehicle_tsn", "").strip(),
+            # AF-1: событийные поля (Wunschdatum/Personen/Art) — только из конфига.
+            **_parse_event_fields(request.POST, anfrage_cfg),
         )
         services.add_job_photos(job, request.FILES.getlist("photos"))  # A7b
         enqueue_job_email(job, "new")  # владельцу — новый лид
@@ -93,6 +131,7 @@ def anfrage(request):
         "storefront/anfrage.html",
         {
             "betreff": (request.GET.get("betreff") or "")[:200],
+            "anfrage_cfg": anfrage_cfg,  # AF-1: событийные поля (Wunschdatum/Personen/Art)
             "jobs_vehicle": jobs_vehicle,  # A9: структурные поля авто
             "autorepair_ld": autorepair_ld,  # A9: schema.org AutoRepair (SEO)
             # A7: зона обслуживания — баннер + поле PLZ (показываем, если задана).

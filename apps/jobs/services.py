@@ -51,6 +51,9 @@ def create_job(
     vehicle_plate="",
     vehicle_hsn="",
     vehicle_tsn="",
+    event_date=None,
+    guest_count=None,
+    event_type="",
 ) -> Job:
     """Создать заявку (Anfrage). Customer переиспускается по email."""
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
@@ -67,6 +70,11 @@ def create_job(
         vehicle_plate=(vehicle_plate or "").strip().upper()[:15],
         vehicle_hsn=(vehicle_hsn or "").strip().upper()[:4],
         vehicle_tsn=(vehicle_tsn or "").strip().upper()[:3],
+        # AF-1: событийные поля — валидация (fail-soft дата/гости, whitelist типа)
+        # на вызывающей стороне (public_views.anfrage); сервис хранит как есть.
+        event_date=event_date,
+        guest_count=guest_count,
+        event_type=(event_type or "").strip()[:100],
     )
 
 

@@ -138,6 +138,81 @@ def test_anfrage_no_warning_when_plz_in_area():
     assert not any("outside" in t for t in texts)
 
 
+# --- AF-1: событийные поля (Catering/Partyservice) --------------------------------
+_AF_CFG = {"fields": ["date", "guests", "event_type"], "event_types": ["Hochzeit", "Firmenfeier"]}
+
+
+def test_anfrage_hides_event_fields_by_default():
+    body = public_views.anfrage(_req()).content.decode()  # ключа "anfrage" нет
+    assert 'name="event_date"' not in body
+    assert 'name="guest_count"' not in body
+    assert 'name="event_type"' not in body
+
+
+def test_anfrage_shows_event_fields_when_configured():
+    tenant = _tenant(site_config={"anfrage": _AF_CFG})
+    body = public_views.anfrage(_req(tenant=tenant)).content.decode()
+    assert 'name="event_date"' in body and 'name="guest_count"' in body
+    assert 'name="event_type"' in body and "Firmenfeier" in body
+
+
+def test_anfrage_event_type_select_hidden_without_options():
+    tenant = _tenant(site_config={"anfrage": {"fields": ["date", "event_type"]}})
+    body = public_views.anfrage(_req(tenant=tenant)).content.decode()
+    assert 'name="event_date"' in body
+    assert 'name="event_type"' not in body  # список пуст → селект не рисуем
+
+
+def test_anfrage_stores_event_fields():
+    tenant = _tenant(site_config={"anfrage": _AF_CFG})
+    request = _req(
+        "post",
+        data={
+            "title": "Catering Sommerfest",
+            "name": "Frau Beck",
+            "event_date": "2026-09-12",
+            "guest_count": "40",
+            "event_type": "Firmenfeier",
+        },
+        tenant=tenant,
+    )
+    public_views.anfrage(request)
+    job = Job.objects.get(title="Catering Sommerfest")
+    assert str(job.event_date) == "2026-09-12"
+    assert job.guest_count == 40
+    assert job.event_type == "Firmenfeier"
+
+
+def test_anfrage_event_fields_fail_soft_on_junk():
+    """Битая дата/гости не роняют заявку; тип вне списка владельца → пусто."""
+    tenant = _tenant(site_config={"anfrage": _AF_CFG})
+    request = _req(
+        "post",
+        data={
+            "title": "Buffet",
+            "name": "X",
+            "event_date": "kein-datum",
+            "guest_count": "-5",
+            "event_type": "<script>alert(1)</script>",
+        },
+        tenant=tenant,
+    )
+    public_views.anfrage(request)
+    job = Job.objects.get(title="Buffet")
+    assert job.event_date is None and job.guest_count is None and job.event_type == ""
+
+
+def test_anfrage_event_fields_ignored_without_config():
+    """Fail-closed: без конфига POST-мусор в событийные поля не сохраняется."""
+    request = _req(
+        "post",
+        data={"title": "Zaun", "name": "X", "event_date": "2026-09-12", "guest_count": "10"},
+    )
+    public_views.anfrage(request)
+    job = Job.objects.get(title="Zaun")
+    assert job.event_date is None and job.guest_count is None and job.event_type == ""
+
+
 # --- A7: Rückruf-Anfrage (обратный звонок) ----------------------------------------
 def test_rueckruf_creates_lead_job():
     request = _req("post", path="/rueckruf/", data={"name": "Herr B", "phone": "0151 222"})

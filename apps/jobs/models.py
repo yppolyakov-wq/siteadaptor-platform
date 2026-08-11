@@ -50,6 +50,12 @@ class Job(TimestampedModel):
     vehicle_plate = models.CharField(max_length=15, blank=True)  # Kennzeichen «M-AB 1234»
     vehicle_hsn = models.CharField(max_length=4, blank=True)  # Herstellerschlüsselnummer
     vehicle_tsn = models.CharField(max_length=3, blank=True)  # Typschlüsselnummer
+    # AF-1: событийная заявка (Catering/Partyservice) — поля видны на форме только
+    # при site_config["anfrage"] (per-tenant, presence-minimal); event_type хранит
+    # значение из настроенного владельцем списка (валидация fail-closed во вьюхе).
+    event_date = models.DateField(null=True, blank=True)  # Wunschdatum
+    guest_count = models.PositiveIntegerField(null=True, blank=True)  # Anzahl Personen
+    event_type = models.CharField(max_length=100, blank=True)  # Art der Veranstaltung
     status = models.CharField(max_length=20, choices=STATUSES, default=STATUS_NEW)
     source_channel = models.CharField(max_length=50, blank=True)
     # Публичная Angebot-страница: клиент принимает/отклоняет смету онлайн (F3).
