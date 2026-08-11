@@ -30,6 +30,7 @@
 | Анти-Битрикс кабинет | AB1…AB5 | `anti-bitrix-admin-plan.md` |
 | Витринный этап (заверш.) | Спринты A–F; D1…D10 completeness | `archetype-ux-execution-plan.md`, `archetype-completeness-audit` |
 | Anfrage-волна (goodkarma) | AF-1, AF-2 (гэпы C-2/C-3 анализа) | `goodkarma-catering-gap-analysis-2026-08-11.md` + `af-inquiry-wave-plan-2026-08-11.md` |
+| Goodkarma-гэпы (прочие) | GK-1 (архетип Catering = C-1 анализа), GK-4 (полоса цифр = C-4), GK-5…GK-9 (Tier 2: usp-pillars/testimonials-фото/founder-пресет/inline-newsletter/соцссылки = C-5…C-9) | `goodkarma-catering-gap-analysis-2026-08-11.md` §3 |
 
 ## §2. Закрыто (верхний уровень; хронология — build-log)
 
@@ -168,6 +169,8 @@ B3 ✅, **A4 ✅ (share-превью)**, **C1 ✅ email-MVP (дайджест)**
 | **SM** | **Один функционал для всех + Verkäufe по модулям (решения владельца 2026-08-10)** | ✅ SM-1 (режим Простой/Эксперт снесён целиком; замки переведены на probe-ключ notify) · ✅ SM-2a (вкладки модулей первыми, виды внутри вкладки, Heute на Übersicht, вкладка на каждый активный модуль) · ✅ SM-2b (имена статусов + правила переходов всем шести kind) · ✅ **SM-3** (кастом-статусы FB-3 B всем шести: anti-oversell ticket через реестр · правило «рёбер из cancelled-роли не бывает» (двойной возврат, вкл. un-cancel-обход) · зеркала эффектов job commit_stock/ticket рассрочка · done-роль билета держит место · кламп кода 20 · re-save хранит флаги · правила Варианта A только для builtin-целей · purge/max_per_customer/дайджест/Heute/отзывы через реестр · подписи Reservation) | `sm-single-mode-plan-2026-08-10.md`, `sm3-custom-status-all-kinds-plan-2026-08-10.md` |
 
 | **AF** | **Anfrage-волна (по gap-анализу goodkarma-catering.de; отмашка владельца 2026-08-11 «делаем C-2+C-3»): AF-1 событийные поля `/anfrage/` (Wunschdatum · Anzahl Personen · Art der Veranstaltung; конфиг `site_config["anfrage"]` presence-minimal + панель «⚙️ Anfrage-Formular» + пресеты 4 демо-китов + префилл `?betreff=` из buybox; закрывает дефолт MB-3) · AF-2 встраиваемые ref-блоки форм `anfrage_ref`/`message_ref` на страницах (PAGE_REF_BLOCKS, гейты jobs/inbox, общий партиал формы + phone-инпут в контакт-форме)** | ✅ AF-1+AF-2 (2026-08-11; ⚠️ миграция `jobs/0013`, аддитивная — деплой + `seed_demo_tenants --kit restaurant\|pranasy\|baeckerei\|metzgerei --recreate` для демо-пресетов). Остальные гэпы анализа (C-1 архетип Catering, C-4 полоса цифр, Tier 2) — за решением владельца | `af-inquiry-wave-plan-2026-08-11.md` + build-log 2026-08-11 |
+
+| **GK** | **Goodkarma-гэпы, продолжение (отмашка владельца 2026-08-11 «делаем C-1 и далее»): GK-1 архетип «Catering» (business_type + пресеты модулей jobs-primary + карточка мастера + `/branchen/catering` + JSON-LD FoodEstablishment + демо-кит; ⚠️ миграция choices) · GK-4 C-блок «полоса цифр» (stats: пары число+подпись, главная и страницы) · GK-5..9 Tier 2 (usp-pillars с текстом · фото/рейтинг testimonials · founder-пресет · inline-newsletter · соцссылки)** | 🚧 в работе (порядок: GK-1 → GK-4 → Tier 2) | `goodkarma-catering-gap-analysis-2026-08-11.md` §3-4 + план-док GK-1 |
 
 **Конвенция поддержки:** закрыл задачу → перенеси строку в §2 (или пометь ✅),
 подзадачи добавляй углублением. Каталог обновляется в том же коммите, что и
