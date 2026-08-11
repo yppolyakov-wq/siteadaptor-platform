@@ -17605,3 +17605,8 @@ msgstr "политикой конфиденциальности"
 msgid "Signup form with double opt-in"
 msgstr "Форма подписки с двойным подтверждением"
 
+
+# GK-7: founder-пресет image_text
+msgid "Gründer-Zitat"
+msgstr "Цитата основателя"
+

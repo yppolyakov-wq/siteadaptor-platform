@@ -17413,3 +17413,8 @@ msgstr "privacy policy"
 msgid "Signup form with double opt-in"
 msgstr "Signup form with double opt-in"
 
+
+# GK-7: founder-пресет image_text
+msgid "Gründer-Zitat"
+msgstr "Founder quote"
+

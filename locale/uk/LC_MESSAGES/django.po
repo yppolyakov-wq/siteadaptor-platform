@@ -17590,3 +17590,8 @@ msgstr "політикою конфіденційності"
 msgid "Signup form with double opt-in"
 msgstr "Форма підписки з подвійним підтвердженням"
 
+
+# GK-7: founder-пресет image_text
+msgid "Gründer-Zitat"
+msgstr "Цитата засновника"
+

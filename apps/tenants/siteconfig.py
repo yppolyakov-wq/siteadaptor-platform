@@ -441,6 +441,22 @@ CBLOCK_VARIANTS = {
             "data": {"side": "right"},
             "visual": {"background": "#f9fafb", "padding": 32},
         },
+        {
+            # GK-7: цитата основателя — фото сбоку, приглушённая крупная цитата;
+            # только существующие data-ключи (санитайзер не расширяем).
+            "key": "founder",
+            "label": _("Gründer-Zitat"),
+            "data": {
+                "side": "right",
+                "size": "lg",
+                "color": "muted",
+                "title": "— Anna Muster, Gründerin",
+                "body": "„Wir kochen, wie wir selbst am liebsten essen: frisch, "
+                "saisonal und mit Zeit für die Details.“",
+                "rounded": "3xl",
+            },
+            "visual": {"shadow": True},
+        },
     ],
     "button": [
         {

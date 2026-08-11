@@ -17525,3 +17525,8 @@ msgstr "gizlilik politikası"
 msgid "Signup form with double opt-in"
 msgstr "Çift onaylı kayıt formu"
 
+
+# GK-7: founder-пресет image_text
+msgid "Gründer-Zitat"
+msgstr "Kurucu alıntısı"
+

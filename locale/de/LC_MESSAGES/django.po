@@ -17564,3 +17564,8 @@ msgstr "Datenschutzerklärung zu"
 msgid "Signup form with double opt-in"
 msgstr "Anmeldeformular mit Double-Opt-In"
 
+
+# GK-7: founder-пресет image_text
+msgid "Gründer-Zitat"
+msgstr "Gründer-Zitat"
+
