@@ -9373,3 +9373,19 @@ translation.override, группировка по Category.sort_order (безк�
 владельца (в отличие от загруженного файла). 5 тестов; 1 msgid × 5 .po.
 Грабля: module-import, вставленный НЕ в шапку файла, дал IndentationError —
 импорты только в import-блок + `ruff check --fix`.
+
+## 2026-08-11 — GK-14 (фидбэк владельца): Anfrage-CTA на browse-only каталоге + инфо-меню
+
+Фидбэк: «на catering.…/sortiment/<pk>/ непонятно как заказать; меню референса
+информативнее (для скольких/от скольких)». Диагноз: cart-ветка `_buybox.html`
+целиком за `orders_enabled` — у catering orders выключен ОСОЗНАННО (Speisekarte
+browse-only) → деталь товара вообще без CTA. Фикс generic: при выключенном
+orders и активном jobs ветка падает в Anfrage-CTA («Request a quote» →
+`/anfrage/?betreff=<название>` — префилл AF-1) + поясняющая строка; оба модуля
+выключены → как раньше пусто (замок). Любой архетип с browse-only каталогом
+получает выход в заявку бесплатно. Демо catering: 7 описаний += «ab 10/20
+Personen» (минимумы, которые уже были в FAQ кита). Попутно CI #1939: msgid
+«Nicht verbunden» задублировался (был с W9-9) — polib дубль МОЛЧА терпит,
+msgfmt fatal; дедуп в 5 .po. **Правило: после ручных правок .po гнать
+`msgfmt --check` локально** (gettext теперь установлен) — polib-компиляция
+дубль не ловит.
