@@ -44,6 +44,10 @@
   {% if job.customer.email %}<p class="text-gray-500">✉ {{ job.customer.email }}</p>{% endif %}
   {% if job.customer.phone %}<p class="text-gray-500">📞 {{ job.customer.phone }}</p>{% endif %}
   {% if job.site_address %}<p class="text-gray-500">📍 {{ job.site_address }}</p>{% endif %}
+  {% if job.event_date or job.guest_count or job.event_type %}
+    {# AF-1: событийная заявка (Catering/Partyservice) — тип · дата · гости #}
+    <p class="text-gray-500">🎉 {% if job.event_type %}{{ job.event_type }}{% else %}{% trans "Event" %}{% endif %}{% if job.event_date %} · 📅 {{ job.event_date|date:"d.m.Y" }}{% endif %}{% if job.guest_count %} · 👥 {{ job.guest_count }} {% trans "guests" %}{% endif %}</p>
+  {% endif %}
   {% if job.vehicle or job.vehicle_plate %}
     <p class="text-gray-500">🚗 {{ job.vehicle }}{% if job.vehicle_plate %} · <span class="font-medium">{{ job.vehicle_plate }}</span>{% endif %}{% if job.vehicle_hsn or job.vehicle_tsn %} · HSN/TSN {{ job.vehicle_hsn }}/{{ job.vehicle_tsn }}{% endif %}</p>
   {% endif %}

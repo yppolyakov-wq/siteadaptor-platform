@@ -34,3 +34,16 @@ def test_anfrage_idempotent():
     raw = {"anfrage": {"fields": ["guests", "date"], "event_types": ["Hochzeit"]}}
     once = siteconfig.normalize(raw)
     assert siteconfig.normalize(once)["anfrage"] == once["anfrage"]
+
+
+def test_demo_kits_anfrage_presets_survive_normalize():
+    """AF-1e: пресеты китов с Catering/Partyservice переживают normalize
+    (dead-config prevention: опечатка в ките не должна молча гаснуть)."""
+    from apps.tenants.demo_kits import KITS
+
+    with_form = {key for key, kit in KITS.items() if kit.anfrage_form}
+    assert {"restaurant", "pranasy", "bakery", "butcher"} <= with_form
+    for key in with_form:
+        out = siteconfig.normalize({"anfrage": KITS[key].anfrage_form})
+        assert out["anfrage"]["fields"], key
+        assert out["anfrage"]["event_types"], key

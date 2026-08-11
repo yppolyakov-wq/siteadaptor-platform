@@ -213,6 +213,29 @@ def test_anfrage_event_fields_ignored_without_config():
     assert job.event_date is None and job.guest_count is None and job.event_type == ""
 
 
+def test_job_new_email_contains_event_fields():
+    """AF-1: письмо владельцу «Neue Anfrage» несёт дату/гостей/тип мероприятия.
+    Рендерим шаблон напрямую — enqueue_job_email резолвит тенанта по схеме
+    соединения, недоступной в юнит-тесте."""
+    from datetime import date
+
+    from apps.promotions.notifications import _render
+
+    job = services.create_job(
+        title="Catering Jubiläum",
+        name="Frau Beck",
+        event_date=date(2026, 9, 12),
+        guest_count=40,
+        event_type="Firmenfeier",
+    )
+    _subject, body, _html = _render(
+        "job_new",
+        {"job": job, "customer": job.customer, "angebot_url": "", "status_url": ""},
+        locale="de",
+    )
+    assert "12.09.2026" in body and "40" in body and "Firmenfeier" in body
+
+
 # --- A7: Rückruf-Anfrage (обратный звонок) ----------------------------------------
 def test_rueckruf_creates_lead_job():
     request = _req("post", path="/rueckruf/", data={"name": "Herr B", "phone": "0151 222"})

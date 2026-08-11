@@ -453,7 +453,8 @@ def test_service_detail_buybox_exact_ctas():
     ).content.decode()
     aside = body[body.find('id="buchen"') :]
     assert f'href="/termin/leistung/{service.pk}/"' in aside
-    assert 'href="/anfrage/"' in aside
+    # AF-1: CTA несёт префилл темы заявки названием услуги (?betreff=, механика R6).
+    assert 'href="/anfrage/?betreff=' in aside
 
 
 def test_service_detail_renders_attributes_and_faq():

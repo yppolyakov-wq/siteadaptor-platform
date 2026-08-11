@@ -17434,3 +17434,32 @@ msgstr "Dikey"
 #: apps/tenants/siteconfig.py
 msgid "Breitbild"
 msgstr "Geniş ekran"
+
+# AF-1: событийные поля формы заявки (Anfrage-Formular)
+msgid "Event date (optional)"
+msgstr "Etkinlik tarihi (isteğe bağlı)"
+
+msgid "Number of guests (optional)"
+msgstr "Kişi sayısı (isteğe bağlı)"
+
+msgid "Type of event (optional)"
+msgstr "Etkinlik türü (isteğe bağlı)"
+
+msgid "Wunschdatum"
+msgstr "Tercih edilen tarih"
+
+msgid "Anzahl Personen"
+msgstr "Kişi sayısı"
+
+msgid "Art der Veranstaltung"
+msgstr "Etkinlik türü"
+
+msgid "Anfrage-Formular"
+msgstr "Talep formu"
+
+msgid "Zusätzliche Felder auf der öffentlichen Anfrage-Seite (z. B. für Catering / Partyservice)."
+msgstr "Herkese açık talep sayfasındaki ek alanlar (ör. Catering / parti servisi için)."
+
+msgid "Auswahlliste (eine Option pro Zeile)"
+msgstr "Seçenek listesi (her satıra bir seçenek)"
+

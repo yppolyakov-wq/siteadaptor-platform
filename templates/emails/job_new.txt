@@ -3,6 +3,9 @@
 {{ job.title }}
 {% trans "Kunde" %}: {{ customer.name }}{% if customer.phone %} · {{ customer.phone }}{% endif %}{% if customer.email %} · {{ customer.email }}{% endif %}
 {% if job.site_address %}{% trans "Adresse" %}: {{ job.site_address }}
+{% endif %}{% if job.event_date %}{% trans "Wunschdatum" %}: {{ job.event_date|date:"d.m.Y" }}
+{% endif %}{% if job.guest_count %}{% trans "Anzahl Personen" %}: {{ job.guest_count }}
+{% endif %}{% if job.event_type %}{% trans "Art der Veranstaltung" %}: {{ job.event_type }}
 {% endif %}{% if job.description %}
 {{ job.description }}
 {% endif %}{% trans "Code" %}: {{ job.reference_code }}

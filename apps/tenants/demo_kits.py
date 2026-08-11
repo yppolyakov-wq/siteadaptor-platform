@@ -209,6 +209,10 @@ class DemoKit:
     # A9: режим Kfz-Werkstatt — Anfrage запрашивает структурные данные авто
     # (Kennzeichen/HSN/TSN) + AutoRepair-разметка. Пишется в site_config.jobs_vehicle.
     jobs_vehicle: bool = False
+    # AF-1: событийные поля формы /anfrage/ (Catering/Partyservice) —
+    # {"fields": ["date","guests","event_type"], "event_types": [...]}.
+    # Пусто = форма прежняя. Пишется в site_config.anfrage (presence-minimal).
+    anfrage_form: dict = field(default_factory=dict)
     # A7: зона обслуживания (Handwerker/Werkstatt) — PLZ через запятую + текст. Пусто =
     # не показываем Einzugsgebiet. Пишется в Tenant.service_area_plz/service_area_note.
     service_area_plz: str = ""
@@ -691,6 +695,11 @@ RESTAURANT = DemoKit(
     # онлайн-заказ+доставка (orders), события (events), кейтеринг-Anfrage (jobs)
     enable_modules=["orders", "events", "jobs"],
     promo_count=4,  # 4 акции — сетка кратна 2 (красивее)
+    # AF-1: кейтеринг-Anfrage с событийными полями (Wunschdatum/Personen/Art).
+    anfrage_form={
+        "fields": ["date", "guests", "event_type"],
+        "event_types": ["Firmenfeier", "Hochzeit", "Geburtstag", "Familienfeier", "Sonstiges"],
+    },
     seed_records=True,  # наполнить кабинет (заказы/кейтеринг/брони/билеты)
     loyalty={"label": "Stempelkarte", "stamps": 10, "reward": "1 Gratis-Pizza"},
     events=[
@@ -1203,6 +1212,11 @@ PRANASY = DemoKit(
     loyalty={"label": "Pranasy-Stempelkarte", "stamps": 10, "reward": "1 Gratis-Gericht"},
     enable_archetypes_section=True,
     storefront_root="home",
+    # AF-1: веган-кейтеринг «Catering» (jobs) — событийные поля заявки.
+    anfrage_form={
+        "fields": ["date", "guests", "event_type"],
+        "event_types": ["Firmenfeier", "Geburtstag", "Retreat", "Büro-Catering", "Sonstiges"],
+    },
     seed_records=True,
     menus=PRANASY_MENUS,
     # M20U-2: слайдер баннеров — единая главная ведёт к ключевым действиям.
@@ -2974,6 +2988,11 @@ BAKERY = DemoKit(
     enable_archetypes_section=False,
     storefront_root="home",
     primary_module="catalog",  # hero-CTA → Sortiment (jobs — дополнение, не primary)
+    # AF-1: Partyservice-Anfrage (Kuchenbuffets) — событийные поля заявки.
+    anfrage_form={
+        "fields": ["date", "guests", "event_type"],
+        "event_types": ["Geburtstag", "Hochzeit", "Firmenfrühstück", "Sonstiges"],
+    },
     seed_records=True,
     menus=BAKERY_MENUS,
     loyalty={"label": "Brot-Stempelkarte", "stamps": 10, "reward": "1× Brot gratis"},
@@ -3402,6 +3421,11 @@ BUTCHER = DemoKit(
     enable_archetypes_section=False,
     storefront_root="home",
     primary_module="catalog",  # hero-CTA → Sortiment (Partyservice — дополнение)
+    # AF-1: Partyservice-Anfrage (Platten/Buffets/Grill) — событийные поля заявки.
+    anfrage_form={
+        "fields": ["date", "guests", "event_type"],
+        "event_types": ["Grillfest", "Firmenfeier", "Familienfeier", "Hochzeit", "Sonstiges"],
+    },
     seed_records=True,
     menus=BUTCHER_MENUS,
     loyalty={"label": "Theken-Stempelkarte", "stamps": 10, "reward": "1× Bratwurst gratis"},
@@ -7373,6 +7397,7 @@ def apply_kit(tenant, key: str) -> bool:
             ],
             "gallery_video": kit.gallery_video,
             "jobs_vehicle": kit.jobs_vehicle,  # A9: Kfz-Werkstatt — структурные авто-поля
+            "anfrage": kit.anfrage_form,  # AF-1: событийные поля (normalize дропнет пустое)
             "before_after": [
                 {
                     "before": demo_image(bk, w=600, h=450, lock=560 + i),

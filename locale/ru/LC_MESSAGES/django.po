@@ -17514,3 +17514,32 @@ msgstr "Вертикальный"
 #: apps/tenants/siteconfig.py
 msgid "Breitbild"
 msgstr "Широкий"
+
+# AF-1: событийные поля формы заявки (Anfrage-Formular)
+msgid "Event date (optional)"
+msgstr "Дата мероприятия (необязательно)"
+
+msgid "Number of guests (optional)"
+msgstr "Количество гостей (необязательно)"
+
+msgid "Type of event (optional)"
+msgstr "Тип мероприятия (необязательно)"
+
+msgid "Wunschdatum"
+msgstr "Желаемая дата"
+
+msgid "Anzahl Personen"
+msgstr "Количество гостей"
+
+msgid "Art der Veranstaltung"
+msgstr "Тип мероприятия"
+
+msgid "Anfrage-Formular"
+msgstr "Форма заявки"
+
+msgid "Zusätzliche Felder auf der öffentlichen Anfrage-Seite (z. B. für Catering / Partyservice)."
+msgstr "Дополнительные поля на публичной странице заявки (например, для кейтеринга)."
+
+msgid "Auswahlliste (eine Option pro Zeile)"
+msgstr "Список вариантов (по одному в строке)"
+

@@ -272,3 +272,54 @@ def test_link_and_unlink_booking():
     views.job_detail(_req("post", data={"action": "unlink_booking"}), pk=job.pk)
     job.refresh_from_db()
     assert job.booking_id is None
+
+
+# --- AF-1: панель «⚙️ Anfrage-Formular» (событийные поля публичной заявки) --------
+
+
+def test_anfrage_form_settings_saves_and_preserves_other_keys():
+    tenant = TenantFactory(
+        disabled_modules=[], site_config={"notify": {"customer": {"email": True}}}
+    )
+    resp = views.anfrage_form_settings(
+        _req(
+            "post",
+            path="/dashboard/auftraege/anfrage-formular/",
+            data={
+                "af_date": "on",
+                "af_event_type": "on",
+                "af_event_types": "Hochzeit\nFirmenfeier\n\n  Geburtstag  ",
+            },
+            tenant=tenant,
+        )
+    )
+    assert resp.status_code == 302
+    tenant.refresh_from_db()
+    assert tenant.site_config["anfrage"] == {
+        "fields": ["date", "event_type"],
+        "event_types": ["Hochzeit", "Firmenfeier", "Geburtstag"],
+    }
+    # probe-ключ: targeted-write не затирает чужие ключи (инвариант W6)
+    assert tenant.site_config["notify"] == {"customer": {"email": True}}
+
+
+def test_anfrage_form_settings_unchecking_all_drops_key():
+    tenant = TenantFactory(
+        disabled_modules=[],
+        site_config={"anfrage": {"fields": ["date"], "event_types": ["Hochzeit"]}},
+    )
+    views.anfrage_form_settings(
+        _req("post", path="/dashboard/auftraege/anfrage-formular/", data={}, tenant=tenant)
+    )
+    tenant.refresh_from_db()
+    assert "anfrage" not in tenant.site_config  # presence-minimal: выкл = ключа нет
+
+
+def test_list_renders_anfrage_form_panel_with_current_state():
+    tenant = TenantFactory.build(
+        disabled_modules=[],
+        site_config={"anfrage": {"fields": ["guests"], "event_types": ["Grillfest"]}},
+    )
+    body = views.job_list(_req(tenant=tenant)).content.decode()
+    assert 'name="af_guests" checked' in body
+    assert "Grillfest" in body

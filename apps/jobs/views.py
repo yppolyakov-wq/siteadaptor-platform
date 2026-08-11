@@ -99,6 +99,8 @@ def job_list(request):
     jobs = Job.objects.select_related("customer")
     if status in dict(Job.STATUSES):
         jobs = jobs.filter(status=status)
+    from apps.tenants import siteconfig
+
     return render(
         request,
         "jobs/list.html",
@@ -107,8 +109,35 @@ def job_list(request):
             "jobs": jobs[:300],
             "statuses": Job.STATUSES,
             "active_status": status,
+            # AF-1: текущий конфиг событийных полей — панель «⚙️ Anfrage-Formular».
+            "anfrage_cfg": siteconfig.normalize(request.tenant.site_config).get("anfrage") or {},
         },
     )
+
+
+@login_required
+@require_POST
+def anfrage_form_settings(request):
+    """AF-1: сохранить состав событийных полей формы /anfrage/ + список
+    «Art der Veranstaltung» (site_config["anfrage"], presence-minimal).
+    Targeted-write — прочие ключи site_config целы (паттерн board_settings)."""
+    from apps.tenants import siteconfig
+
+    tenant = request.tenant
+    fields = [f for f in ("date", "guests", "event_type") if request.POST.get(f"af_{f}")]
+    types = [t.strip() for t in (request.POST.get("af_event_types") or "").splitlines()]
+    anfrage = siteconfig.normalize_anfrage(
+        {"fields": fields, "event_types": [t for t in types if t]}
+    )
+    cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
+    if anfrage:
+        cfg["anfrage"] = anfrage
+    else:
+        cfg.pop("anfrage", None)
+    tenant.site_config = cfg
+    tenant.save(update_fields=["site_config", "updated_at"])
+    messages.success(request, _("Gespeichert."))
+    return redirect("jobs:list")
 
 
 @login_required
