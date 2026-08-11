@@ -17631,3 +17631,8 @@ msgid_plural "%(n)s Google-Bewertungen"
 msgstr[0] "%(n)s Google-Bewertung"
 msgstr[1] "%(n)s Google-Bewertungen"
 
+
+# GK-13: Speisekarte-PDF
+msgid "Menu as PDF"
+msgstr "Speisekarte als PDF"
+

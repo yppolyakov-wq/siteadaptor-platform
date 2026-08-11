@@ -20,6 +20,7 @@ from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
+from apps.catalog.views import FOOD_BUSINESS_TYPES as _FOOD_TYPES
 from apps.core import ratelimit
 from apps.core.models import resolve_overlay
 from apps.core.pagecache import cache_storefront_page
@@ -325,6 +326,41 @@ def _site_ctx(request):
     from apps.tenants import siteconfig
 
     return siteconfig.localize(siteconfig.normalize(request.tenant.site_config), get_language())
+
+
+def speisekarte_pdf(request):
+    """GK-13: печатная Speisekarte из каталога (PDF, язык = ?lang=/язык витрины).
+
+    catalog — core (модульного гейта нет); без активных товаров → 404 (пустой
+    документ бесполезен, и кнопка на каталоге в этом случае не рендерится)."""
+    from django.utils import translation
+
+    from apps.catalog.models import Category, Product
+    from apps.catalog.pdf import build_menu_pdf
+    from apps.core.documents import document_language
+
+    products = list(
+        Product.objects.filter(is_active=True).select_related("category").order_by("created_at")
+    )
+    if not products:
+        raise Http404
+    lang = document_language(request, tenant=request.tenant)
+    with translation.override(lang):
+        groups: dict = {}
+        for prod in products:
+            key = prod.category_id
+            groups.setdefault(key, []).append(prod)
+        ordered = []
+        for cat in Category.objects.order_by("sort_order", "id"):
+            if cat.id in groups:
+                ordered.append((cat.get_i18n("name"), groups.pop(cat.id)))
+        if groups:  # без категории — в конец
+            rest = [p for items in groups.values() for p in items]
+            ordered.append((str(_("Other")), rest))
+        pdf = build_menu_pdf(request.tenant, ordered)
+    response = HttpResponse(pdf, content_type="application/pdf")
+    response["Content-Disposition"] = 'inline; filename="speisekarte.pdf"'
+    return response
 
 
 def gallery_page(request):
@@ -638,6 +674,12 @@ def product_list(request):
             "has_combos": has_combos,
             "combos_teaser": combos_teaser,  # A4: тизер-карточки Kombo/Tagesgericht
             "diet_chips": diet_chips,  # A4: фасет-чипы диет (только встречающиеся)
+            # GK-13: кнопка «Speisekarte (PDF)» — гастро-типам, при непустом каталоге
+            # (по ВСЕМ товарам, не по текущему фильтру — карта всегда полная).
+            "menu_pdf_available": (
+                request.tenant.business_type in _FOOD_TYPES
+                and Product.objects.filter(is_active=True).exists()
+            ),
             "active_diet": diet,
             "catalog_grid": catalog_grid,
             # Билдер: показывать ли фильтры на странице каталога (group=catalog).

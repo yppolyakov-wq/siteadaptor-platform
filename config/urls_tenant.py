@@ -266,6 +266,8 @@ urlpatterns = [
     # ST-8: отдельные страницы (запрос владельца «не разделы на главной»).
     # Гейт — наличие контента: пусто → 404, пункт меню гаснет сам.
     path("galerie/", public_views.gallery_page, name="storefront-gallery"),
+    # GK-13: печатная Speisekarte из живого каталога (404 без товаров).
+    path("speisekarte.pdf", public_views.speisekarte_pdf, name="storefront-speisekarte-pdf"),
     path("team/", public_views.team_page, name="storefront-team"),
     path("bewertungen/", public_views.reviews_page, name="storefront-reviews"),
     # FD-1: Finder «вопросы → 3 предложения» (опция; 404 пока не включён).

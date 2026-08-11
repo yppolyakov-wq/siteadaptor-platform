@@ -17659,3 +17659,8 @@ msgstr[1] "%(n)s відгуки Google"
 msgstr[2] "%(n)s відгуків Google"
 msgstr[3] "%(n)s відгуку Google"
 
+
+# GK-13: Speisekarte-PDF
+msgid "Menu as PDF"
+msgstr "Меню у PDF"
+
