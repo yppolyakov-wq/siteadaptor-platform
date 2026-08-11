@@ -1375,10 +1375,27 @@ Python 3.12, менеджер uv.
   `test_form_ref_blocks`, +6 витринных, panel probe-notify, dead-config китов.
   Остальные гэпы анализа (C-1 архетип Catering · C-4 полоса цифр · Tier 2 usp-pillars/
   testimonials-фото/inline-newsletter/соцссылки) — за решением владельца.
+- **Самое свежее (2026-08-11, продолжение): GK-1 «архетип Catering» + GK-4 «полоса цифр» ✅**
+  (отмашка «делаем C-1 и далее»; план `gk1-catering-archetype-plan-2026-08-11.md`, та же ветка).
+  **GK-1** (⚠️ миграция `tenants/0028`, choices-only): BUSINESS_TYPES += catering; пресеты
+  модулей (jobs primary + promotions/crm + универсальные; orders/booking выкл — Speisekarte
+  browse-only); FOOD_BUSINESS_TYPES += catering; JSON-LD FoodEstablishment; Look-акценты +
+  шаблон витрины + hero-плитки + карточка мастера; /branchen/catering (6 реальных фич) +
+  feature_demos; демо-кит «Grüne Tafel Catering» (jobs-primary, anfrage_form AF-1, Speisekarte
+  с диетами, 4 акции, 2 сметы, 27 переводов × 4 словаря); счётчики-замки обновлены осознанно
+  (SLUGS 15, Looks 45, sitemap 22). **GK-4** (без миграций): C-блок `stats` — 2–4 пары
+  «число+подпись» (ключ данных `rows`, НЕ items — метод dict; санитайзер ест и textarea
+  «wert | label» — этим живёт live-draft, collect() += rows), рендер/редактор/демо/варианты/
+  variantThumb; 15 msgid × 5 .po суммарно. Уроки среды: два pytest параллельно на одной
+  reuse-db → ложные падения (гонять серийно); фоновые прогоны НЕ обрезать `| tail`.
+  **Дальше: GK-5..9 Tier 2** (usp-pillars · testimonials фото/рейтинг · founder-пресет ·
+  inline-newsletter · соцссылки).
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ: `catalog/0024`** (I18N-10, аддитивная — оверлеи переводов
-  параметров) **+ `jobs/0013`** (AF-1, аддитивная — событийные поля заявки; после деплоя
-  `seed_demo_tenants --kit restaurant|pranasy|baeckerei|metzgerei --recreate` для
-  демо-пресетов Anfrage-Formular). После деплоя — `seed_demo_tenants --recreate` (демо-акции/меню/переводы).
+  параметров) **+ `jobs/0013`** (AF-1, аддитивная — событийные поля заявки) **+
+  `tenants/0028`** (GK-1, choices-only). После деплоя: `seed_demo_tenants --kit
+  restaurant|pranasy|baeckerei|metzgerei --recreate` (демо-пресеты Anfrage-Formular) +
+  `seed_demo_tenants --kit catering` (новый демо-тенант «Grüne Tafel», включает кнопки
+  «Demo ansehen» карточки Catering). После деплоя — `seed_demo_tenants --recreate` (демо-акции/меню/переводы).
   **ПРОВЕРЕНО 2026-08-01 по `showmigrations` на проде** — очередь в этом файле была устаревшей примерно на три недели: она числила ~30 миграций «ожидающими», тогда как владелец деплоил регулярно. Фактическое состояние прод-схемы: `catalog` [X] по `0022`, `stays` [X] по `0030`, `booking` [X] по `0020`, `inventory` [X] по `0004`, `tenants` [X] по `0027` — то есть применено ВСЁ, включая миграции, смерженные 2026-08-01. Прежние записи «последний полный деплой 08.07» + «деплой очереди сделан владельцем (19.07)» были верны; неверен был список ожидающих. **Не подтверждено этой проверкой** (не входили в запрос, все TENANT-апп): `core/0006` (data-миграция backfill_owner_membership), `promotions/0024`, `orders/0015`/`0016`, `crm/0002`, `promotions/0022`/`0023`, `collections/0002`, `finance/0006`, `jobs/0012`. **Нюанс django-tenants:** `manage.py showmigrations` без tenant-контекста читает `django_migrations` схемы **public**; у TENANT-апп (catalog/stays/booking/inventory/promotions/…) своя таблица в КАЖДОЙ схеме тенанта, поэтому строгая проверка — по схемам (`migrate_schemas` в `deploy.sh` их и гоняет). Команда полной сверки — в build-log записи 2026-08-01 «аудит месяца». **Правило впредь:** очередь в этом файле — гипотеза до сверки с `showmigrations`; не помечать миграции «ожидающими» дольше одного деплой-цикла.
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,

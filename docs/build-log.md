@@ -9201,3 +9201,52 @@ base «message», НЕ «contact» — коллизия с home-секцией �
 работает из коробки (page_blocks/render_block рендерят с request=). Замки — зеркала
 test_page_ref_blocks (`test_form_ref_blocks.py`: normalize page-only, рендер с
 csrf+событийными полями, гейты модулей, add_block, маркеры инсертера).
+
+## 2026-08-11 — GK-1 «архетип Catering» + GK-4 «полоса цифр» (продолжение goodkarma-гэпов)
+
+Отмашка владельца «делаем C-1 и далее». План `docs/gk1-catering-archetype-plan-2026-08-11.md`
+(2 Explore-разведки: полный чек-лист S6a-прецедента + чек-лист нового C-блока). Та же ветка.
+
+**GK-1 (⚠️ миграция `tenants/0028`, AlterField choices-only):** BUSINESS_TYPES +=
+`catering` перед other; карточка мастера (🍽️, язык задач) + DEMO_KIT_HOST;
+пресеты модулей — jobs primary + promotions/crm + универсальный набор (blog —
+замок «у всех типов»), orders/booking по умолчанию выкл (Speisekarte
+browse-only, catalog core); suited_for: booking/orders/events/loyalty;
+FOOD_BUSINESS_TYPES += catering (LMIV-маркировка); `_SCHEMA_TYPES["catering"]
+= "FoodEstablishment"` (CateringService в schema.org НЕТ); Look-акценты
+(грин/warm/эмеральд) + шаблон витрины «Catering & Partyservice»
+(hero_widget=catering); hero-плитки (Anfrage/Speisekarte/Rückruf/Aktionen —
+гейты сверены с вьюхами, замок «плитка не ведёт в 404»); /branchen/catering
+(6 highlights — только реальные фичи: AF-1 поля, Angebot+Anzahlung, диеты/
+аллергены, AF-2 form-блок, акции, отзывы; копия в i18n-allowlist по файлу);
+feature_demos «Event-Anfrage»; пресеты акций (Frühbucher/Saison) + тексты
+лёгкого демо мастера (hero/about/6 позиций). **Демо-кит «Grüne Tafel
+Catering»** (jobs-primary, `anfrage_form` AF-1 из коробки, Speisekarte 7
+позиций с диетами/аллергенами по 3 категориям, 4 акции разных стилей с целями
+PL, 2 сметы-примера, меню top+bottom, 3 hero-слайда, FAQ/команда/отзывы/
+process/trust/USP) + 27 переводов × 4 словаря demo_i18n (нормализация
+отступов хвоста файлов — прошлые сессии аппендили без indent) + 7 msgid × 5
+.po. Замки-счётчики обновлены ОСОЗНАННО: SLUGS 14→15, Looks 14→15 (45),
+sitemap 21→22; + параметр test_modules, блок test_archetypes_s6, apply-тест
+кита (Product.name — i18n-JSON → фильтр name__de). Открытие apply_kit: тип и
+тип-пресет модулей ставит СИД-команда, apply_kit лишь снимает kit.enable_modules
+из disabled — кит несёт явный список.
+
+**GK-4 (без миграций):** REPEATABLE_BLOCKS += `stats` — 2–4 пары «число+подпись»,
+валиден на главной И страницах автоматически. Ключ данных **`rows`, не items**
+(«.items» у dict в Django-шаблоне — метод; находка разведки). Санитайзер
+принимает канонический список И сырую textarea «wert | label» построчно — тем
+же путём живёт live-draft (collect() шлёт сырое поле; в жёсткий список полей
+collect() дописан `rows` — вторая находка разведки: без этого правки видны
+только после Save). Рендер `_block_stats.html` (cb-box → visual-оси действуют,
+литеральные grid-классы — purge-safe, акцент из темы); редактор — textarea
+(паттерн usp_text, прецедента списочных полей у C-блоков не было) + фильтр
+`stats_text` + гейт visual-контролов; демо-данные байт-в-байт (round-trip
+замок билдера) + 4 data-only варианта + проекция `count` в variantThumb.
+
+**Урок среды:** два pytest ПАРАЛЛЕЛЬНО на одной `--reuse-db` тест-БД дают
+ложные падения (schema-creation тесты + errors всего файла) — широкий фон-гейт
+и точечный форграунд-прогон пересеклись; серийный перегон тех же тестов зелёный.
+Впредь: локальные прогоны — строго по одному. Вторая грабля: фоновый прогон
+был обёрнут `| tail -3` — имена части падений потерялись; полный вывод писать
+в файл без обрезки.
