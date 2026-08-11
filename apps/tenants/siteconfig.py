@@ -1693,6 +1693,66 @@ def _clean_pairs(value, key_a: str, key_b: str) -> list[dict]:
     return out
 
 
+def clean_testimonials(value) -> list[dict]:
+    """GK-6: отзывы-витрина — {name, text} + presence-minimal `stars` (1..5) и
+    `photo` (URL-строка, как team.photo). Общий _clean_pairs не расширяем — его
+    делят faq/process (golden целы: без extras выход байт-в-байт прежний)."""
+    out = []
+    for item in value if isinstance(value, list) else []:
+        if not isinstance(item, dict):
+            continue
+        name, text = _s(item.get("name")), _s(item.get("text"))
+        if not name:
+            continue
+        entry = {"name": name, "text": text}
+        try:
+            stars = int(str(item.get("stars", "")).strip() or 0)
+        except (TypeError, ValueError):
+            stars = 0
+        if 1 <= stars <= 5:
+            entry["stars"] = stars
+        photo = _s(item.get("photo"))[:500]
+        if photo:
+            entry["photo"] = photo
+        out.append(entry)
+        if len(out) >= _MAX_ITEMS:
+            break
+    return out
+
+
+def testimonials_to_text(items) -> str:
+    """GK-6: сериализация отзывов в textarea: «Name | Text[ | Sterne][ | Foto-URL]»
+    (хвостовые части — только при заполненных; 2-частный round-trip байт-в-байт)."""
+    lines = []
+    for i in items or []:
+        line = f"{i.get('name', '')} | {i.get('text', '')}".rstrip(" |")
+        if i.get("stars") or i.get("photo"):
+            line += f" | {i.get('stars') or ''}"
+        if i.get("photo"):
+            line += f" | {i['photo']}"
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def text_to_testimonials(text: str) -> list[dict]:
+    """GK-6: парс «Name | Text | Sterne | Foto-URL» (валидация в clean_testimonials)."""
+    items = []
+    for line in (text or "").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        parts = [p.strip() for p in line.split("|", 3)]
+        items.append(
+            {
+                "name": parts[0],
+                "text": parts[1] if len(parts) > 1 else "",
+                "stars": parts[2] if len(parts) > 2 else "",
+                "photo": parts[3] if len(parts) > 3 else "",
+            }
+        )
+    return clean_testimonials(items)
+
+
 def pairs_to_text(items, key_a: str, key_b: str) -> str:
     """Сериализация пар в textarea кабинета: «A | B» по строке."""
     return "\n".join(f"{i.get(key_a, '')} | {i.get(key_b, '')}".rstrip(" |") for i in items or [])
@@ -1805,7 +1865,7 @@ def parse_content_sections(get) -> dict:
             "button_url": g("cta_button_url"),
         },
         "faq": text_to_pairs(g("faq_text"), "q", "a"),
-        "testimonials": text_to_pairs(g("testimonials_text"), "name", "text"),
+        "testimonials": text_to_testimonials(g("testimonials_text")),  # GK-6: 4-part
         "process": text_to_pairs(g("process_text"), "title", "text"),
         "team": [
             {"name": p["name"], "role": p["text"], "photo": ""}
@@ -2541,7 +2601,8 @@ def _normalize_impl(config) -> dict:
     normalized["menus"] = _normalize_menus(config.get("menus"), normalized["nav"])
     # Контент-секции (M20 ⑤a): FAQ, отзывы, CTA. Все опциональны; пустое — пропуск.
     normalized["faq"] = _clean_pairs(config.get("faq"), "q", "a")
-    normalized["testimonials"] = _clean_pairs(config.get("testimonials"), "name", "text")
+    # GK-6: свой клинер (stars/photo presence-minimal; пары — байт-в-байт прежние).
+    normalized["testimonials"] = clean_testimonials(config.get("testimonials"))
     # P4: шаги «как мы работаем» (заголовок|текст) и команда (имя/роль/фото).
     normalized["process"] = _clean_pairs(config.get("process"), "title", "text")
     team = []

@@ -9,7 +9,8 @@ section_row.style — "" карточки-сетка (текущий) | quotes |
       {% for t in site.testimonials %}
         <figure>
           <blockquote class="text-xl md:text-2xl text-gray-800 leading-relaxed whitespace-pre-line">“{{ t.text }}”</blockquote>
-          {% if t.name %}<figcaption class="mt-2 text-sm font-medium" style="color:var(--accent);">— {{ t.name }}</figcaption>{% endif %}
+          {% if t.stars %}<div class="text-amber-500 mt-2 text-sm" aria-hidden="true">{{ t.stars|stars }}</div>{% endif %}
+          {% if t.name %}<figcaption class="mt-2 text-sm font-medium" style="color:var(--accent);">{% if t.photo %}<img src="{{ t.photo }}" alt="" class="w-8 h-8 rounded-full object-cover inline-block align-middle mr-2">{% endif %}— {{ t.name }}</figcaption>{% endif %}
         </figure>
       {% endfor %}
     </div>
@@ -18,7 +19,8 @@ section_row.style — "" карточки-сетка (текущий) | quotes |
       {% for t in site.testimonials %}
         <figure class="py-3">
           <blockquote class="text-gray-700 whitespace-pre-line">“{{ t.text }}”</blockquote>
-          {% if t.name %}<figcaption class="mt-1 text-sm text-gray-500">— {{ t.name }}</figcaption>{% endif %}
+          {% if t.stars %}<div class="text-amber-500 mt-2 text-sm" aria-hidden="true">{{ t.stars|stars }}</div>{% endif %}
+          {% if t.name %}<figcaption class="mt-1 text-sm text-gray-500">{% if t.photo %}<img src="{{ t.photo }}" alt="" class="w-8 h-8 rounded-full object-cover inline-block align-middle mr-2">{% endif %}— {{ t.name }}</figcaption>{% endif %}
         </figure>
       {% endfor %}
     </div>
@@ -27,7 +29,8 @@ section_row.style — "" карточки-сетка (текущий) | quotes |
       {% for t in site.testimonials %}
         <figure class="bg-white rounded-r-2xl shadow-sm p-5" style="border-left:4px solid var(--accent);">
           <blockquote class="text-gray-700 whitespace-pre-line">“{{ t.text }}”</blockquote>
-          {% if t.name %}<figcaption class="mt-3 text-sm font-medium text-gray-500">— {{ t.name }}</figcaption>{% endif %}
+          {% if t.stars %}<div class="text-amber-500 mt-2 text-sm" aria-hidden="true">{{ t.stars|stars }}</div>{% endif %}
+          {% if t.name %}<figcaption class="mt-3 text-sm font-medium text-gray-500">{% if t.photo %}<img src="{{ t.photo }}" alt="" class="w-8 h-8 rounded-full object-cover inline-block align-middle mr-2">{% endif %}— {{ t.name }}</figcaption>{% endif %}
         </figure>
       {% endfor %}
     </div>
@@ -36,7 +39,8 @@ section_row.style — "" карточки-сетка (текущий) | quotes |
       {% for t in site.testimonials %}
         <figure class="bg-white rounded-2xl shadow-sm p-6 text-center">
           <blockquote class="text-lg text-gray-800 whitespace-pre-line">“{{ t.text }}”</blockquote>
-          {% if t.name %}<figcaption class="mt-3 text-sm font-medium text-gray-500">— {{ t.name }}</figcaption>{% endif %}
+          {% if t.stars %}<div class="text-amber-500 mt-2 text-sm" aria-hidden="true">{{ t.stars|stars }}</div>{% endif %}
+          {% if t.name %}<figcaption class="mt-3 text-sm font-medium text-gray-500">{% if t.photo %}<img src="{{ t.photo }}" alt="" class="w-8 h-8 rounded-full object-cover inline-block align-middle mr-2">{% endif %}— {{ t.name }}</figcaption>{% endif %}
         </figure>
       {% endfor %}
     </div>
@@ -45,7 +49,8 @@ section_row.style — "" карточки-сетка (текущий) | quotes |
       {% for t in site.testimonials %}
         <figure class="bg-white rounded-2xl shadow-sm p-5">
           <blockquote class="text-gray-700 whitespace-pre-line">“{{ t.text }}”</blockquote>
-          {% if t.name %}<figcaption class="mt-3 text-sm font-medium text-gray-500">— {{ t.name }}</figcaption>{% endif %}
+          {% if t.stars %}<div class="text-amber-500 mt-2 text-sm" aria-hidden="true">{{ t.stars|stars }}</div>{% endif %}
+          {% if t.name %}<figcaption class="mt-3 text-sm font-medium text-gray-500">{% if t.photo %}<img src="{{ t.photo }}" alt="" class="w-8 h-8 rounded-full object-cover inline-block align-middle mr-2">{% endif %}— {{ t.name }}</figcaption>{% endif %}
         </figure>
       {% endfor %}
     </div>

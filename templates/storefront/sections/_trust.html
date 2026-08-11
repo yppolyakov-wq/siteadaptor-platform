@@ -11,6 +11,18 @@
         <p class="text-xs text-gray-500 mt-1">{% blocktrans count n=rating.1 %}{{ n }} review{% plural %}{{ n }} reviews{% endblocktrans %}</p>
       </div>
     {% endif %}
+    {% if site.testimonials %}
+      {% comment %}GK-6: аватар-ряд клиентов (фото отзыва или инициал) — «40+ Kunden»-
+      паттерн; честный источник — кураторские отзывы сайта.{% endcomment %}
+      <div{% if section_row.style == "cards" %} class="border border-gray-200 rounded-xl px-5 py-3"{% endif %}>
+        <div class="flex -space-x-2 justify-center">
+          {% for t in site.testimonials|slice:":4" %}
+            {% if t.photo %}<img src="{{ t.photo }}" alt="" class="w-9 h-9 rounded-full object-cover ring-2 ring-white">{% else %}<span class="w-9 h-9 rounded-full ring-2 ring-white inline-flex items-center justify-center text-xs font-semibold text-white" style="background: var(--accent, #4f46e5);">{{ t.name|first|upper }}</span>{% endif %}
+          {% endfor %}
+        </div>
+        <p class="text-xs text-gray-500 mt-1">{% trans "Happy customers" %}</p>
+      </div>
+    {% endif %}
     {% if site.trust.since %}
       <div{% if section_row.style == "cards" %} class="border border-gray-200 rounded-xl px-5 py-3"{% endif %}>
         <div class="text-2xl font-bold" style="color: var(--accent);">{% blocktrans with y=site.trust.since %}Since {{ y }}{% endblocktrans %}</div>

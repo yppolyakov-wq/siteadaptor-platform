@@ -2115,7 +2115,7 @@ def home_builder_view(request):
             # M20d: контент-секции — те же поля/партиал, что на «Site».
             "config": config,
             "faq_text": siteconfig.pairs_to_text(config["faq"], "q", "a"),
-            "testimonials_text": siteconfig.pairs_to_text(config["testimonials"], "name", "text"),
+            "testimonials_text": siteconfig.testimonials_to_text(config["testimonials"]),
             "process_text": siteconfig.pairs_to_text(config["process"], "title", "text"),
             "team_text": "\n".join(
                 f"{m['name']} | {m['role']}".rstrip(" |") for m in config["team"]

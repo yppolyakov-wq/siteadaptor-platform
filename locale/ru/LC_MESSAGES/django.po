@@ -17618,3 +17618,11 @@ msgstr "Столпы"
 msgid "One per line: icon | title | description (optional, for the “Pillars” style)."
 msgstr "По одному в строке: иконка | заголовок | описание (необязательно, для стиля «Столпы»)."
 
+
+# GK-6: testimonials рейтинг/фото + аватар-ряд trust
+msgid "One per line: Name | Text | Stars 1–5 | Photo URL (both optional)."
+msgstr "По одному в строке: Имя | Текст | Звёзды 1–5 | URL фото (последние два — необязательно)."
+
+msgid "Happy customers"
+msgstr "Довольные клиенты"
+

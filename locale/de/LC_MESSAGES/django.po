@@ -17577,3 +17577,11 @@ msgstr "Säulen"
 msgid "One per line: icon | title | description (optional, for the “Pillars” style)."
 msgstr "Eine Zeile pro Punkt: Icon | Titel | Beschreibung (optional, für den Stil „Säulen“)."
 
+
+# GK-6: testimonials рейтинг/фото + аватар-ряд trust
+msgid "One per line: Name | Text | Stars 1–5 | Photo URL (both optional)."
+msgstr "Eine Zeile pro Stimme: Name | Text | Sterne 1–5 | Foto-URL (beides optional)."
+
+msgid "Happy customers"
+msgstr "Zufriedene Kunden"
+

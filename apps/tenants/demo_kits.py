@@ -6174,10 +6174,12 @@ CATERING = DemoKit(
         (
             "Familie Sommer",
             "Hochzeitsbuffet für 80 Gäste — alles frisch, pünktlich und wunderschön angerichtet.",
+            5,  # GK-6: звёзды отзыва (фото — за владельцем; trust покажет инициалы)
         ),
         (
             "Miriam K.",
             "Fingerfood für unsere Firmenfeier — unkompliziert angefragt, Angebot am nächsten Tag.",
+            5,
         ),
     ],
     process=[
@@ -7734,7 +7736,16 @@ def apply_kit(tenant, key: str) -> bool:
             "about_text": kit.about_text,
             "cta": kit.cta,
             "faq": [{"q": q, "a": a} for q, a in kit.faq],
-            "testimonials": [{"name": n, "text": t} for n, t in kit.testimonials],
+            # GK-6: кортежи (name, text[, stars[, photo]]) — extras presence-minimal.
+            "testimonials": [
+                {
+                    "name": u[0],
+                    "text": u[1],
+                    **({"stars": u[2]} if len(u) > 2 and u[2] else {}),
+                    **({"photo": u[3]} if len(u) > 3 and u[3] else {}),
+                }
+                for u in kit.testimonials
+            ],
             "process": [{"title": t, "text": x} for t, x in kit.process],
             "team": [
                 {"name": n, "role": r, "photo": demo_image(kw, w=600, h=600, lock=700 + i)}

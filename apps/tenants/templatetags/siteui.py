@@ -73,6 +73,17 @@ CBLOCK_TEMPLATES = {
 }
 
 
+@register.filter(name="stars")
+def stars_filter(n):
+    """GK-6: 1..5 → «★★★★☆»; мусор/вне диапазона → '' (конфиг не раздуваем —
+    строка считается на рендере, golden целы)."""
+    try:
+        n = int(n)
+    except (TypeError, ValueError):
+        return ""
+    return "★" * n + "☆" * (5 - n) if 1 <= n <= 5 else ""
+
+
 @register.filter(name="safe_href")
 def safe_href(url):
     """Разрешить только http(s)/mailto/tel/относительные ссылки; иначе '#'.
