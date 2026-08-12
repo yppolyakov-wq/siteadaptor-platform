@@ -327,6 +327,19 @@
      "enabled": false,
      "font": "",
      "hidden_on": [],
+     "key": "anfrage",
+     "visual": {
+      "background": "",
+      "padding": 0,
+      "radius": 0,
+      "shadow": false
+     },
+     "width": "contained"
+    },
+    {
+     "enabled": false,
+     "font": "",
+     "hidden_on": [],
      "key": "categories",
      "layout": {
       "cols": 4,
@@ -813,6 +826,19 @@
     "tablet": 0,
     "width": "contained"
    },
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": false,
+   "font": "",
+   "hidden_on": [],
+   "key": "anfrage",
    "visual": {
     "background": "",
     "padding": 0,

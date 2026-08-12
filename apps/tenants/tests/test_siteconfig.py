@@ -62,6 +62,7 @@ def test_normalize_empty_gives_defaults():
         "stay_rooms",
         "services",
         "promotions",
+        "anfrage",  # DS-3b: мини-форма заявки (Fokus; выкл по умолчанию)
         "categories",
         "products",
         "events",

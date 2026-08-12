@@ -1,8 +1,32 @@
 {% load i18n seo %}{# Секция доверия (P3): ВНУТРЕННИЙ рейтинг (BusinessRating портала) + GK-11 Google-рейтинг (кэш Places API) + год основания + знаки качества. #}
 {% business_rating as rating %}
 {% if rating or request.tenant.google_rating or site.trust.since or site.trust.marks %}
-{% comment %}UC6-6f/UC6-8: 5 видов по section_row.style — "" карточка-центр | left |
-   badges | plain | cards (каждый показатель в своей рамке).{% endcomment %}
+{% comment %}UC6-6f/UC6-8: виды по section_row.style — "" карточка-центр | left |
+   badges | plain | cards (каждый показатель в своей рамке) | compact (DS-3b:
+   рейтинг + 2 цитаты + marks одной полосой — «одно доверие вместо четырёх»).{% endcomment %}
+{% if section_row.style == "compact" %}
+<section data-reveal class="mb-10 bg-white rounded-2xl shadow-sm p-6 md:p-8">
+  <div class="grid md:grid-cols-3 gap-6 items-start">
+    <div>
+      {% if rating %}<div class="text-3xl font-extrabold leading-none">{{ rating.0 }}<span class="text-amber-500">★</span></div>
+      <p class="text-xs text-gray-500 mt-1">{% blocktrans count n=rating.1 %}{{ n }} review{% plural %}{{ n }} reviews{% endblocktrans %}</p>{% endif %}
+      {% if request.tenant.google_rating %}<p class="text-sm text-gray-600 mt-2"><b>★ {{ request.tenant.google_rating|floatformat:1 }}</b> · {% blocktrans count n=request.tenant.google_rating_count %}{{ n }} Google-Bewertung{% plural %}{{ n }} Google-Bewertungen{% endblocktrans %}</p>{% endif %}
+      {% if site.trust.since %}<p class="text-sm text-gray-500 mt-1">{% blocktrans with y=site.trust.since %}Since {{ y }}{% endblocktrans %}</p>{% endif %}
+    </div>
+    {% for t in site.testimonials|slice:":2" %}
+    <blockquote class="border-l-2 pl-4 text-sm text-gray-700" style="border-color: var(--accent, #4f46e5);">
+      „{{ t.text }}“
+      <footer class="mt-2 text-xs text-gray-400 not-italic">— {{ t.name }}</footer>
+    </blockquote>
+    {% endfor %}
+  </div>
+  {% if site.trust.marks %}
+  <div class="mt-5 pt-4 border-t border-gray-100 flex flex-wrap gap-2">
+    {% for m in site.trust.marks %}<span class="inline-flex items-center gap-1 rounded-full bg-gray-100 text-gray-700 text-sm font-medium px-3 py-1.5">✓ {{ m }}</span>{% endfor %}
+  </div>
+  {% endif %}
+</section>
+{% else %}
 <section data-reveal class="mb-10 {% if section_row.style != "plain" %}bg-white rounded-2xl shadow-sm p-6 md:p-8{% endif %}">
   <div class="flex flex-wrap items-center {% if section_row.style == "cards" %}gap-4{% else %}gap-x-8 gap-y-4{% endif %} {% if section_row.style == "left" %}justify-start text-left{% else %}justify-center text-center{% endif %}">
     {% if rating %}
@@ -50,4 +74,5 @@
     {% endif %}
   </div>
 </section>
+{% endif %}
 {% endif %}

@@ -440,7 +440,8 @@ def test_gallery_team_trust_styles_render():
 def test_team_trust_five_styles_registry():
     """UC6-8: team/trust дотянуты до 5 видов (Standard + 4 в реестре)."""
     for key in ("team", "trust"):
-        assert len(siteconfig.SECTION_STYLES[key]) == 4, key  # +Standard = 5
+        # DS-3b: trust получил шестой вид «compact» (рейтинг+цитаты+marks в полосе).
+        assert len(siteconfig.SECTION_STYLES[key]) == (5 if key == "trust" else 4), key
         for st in siteconfig.SECTION_STYLES[key]:
             assert st in siteconfig.SECTION_STYLE_LABELS, (key, st)
 

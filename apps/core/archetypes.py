@@ -103,6 +103,7 @@ SECTION_ARCHETYPE_MODULE = {
     "categories": "catalog",
     "events": "events",
     "before_after": "jobs",
+    "anfrage": "jobs",  # DS-3b: мини-форма заявки на главной (Fokus)
     "blog": "blog",  # HF-1: секция новостей — только при активном модуле блога
 }
 

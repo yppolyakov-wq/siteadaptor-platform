@@ -259,6 +259,26 @@ def modules_nav(request):
         }
         for it in _compact[:4]
     ]
+    # DS-3b (Fokus): CTA primary-действия в шапке (nav.cta) — метка/URL из
+    # реестра primary_item (как hero-CTA); нерезолвимый лендинг → кнопки нет.
+    storefront_nav_cta = None
+    if (cfg.get("nav") or {}).get("cta"):
+        from django.urls import NoReverseMatch, reverse
+
+        from apps.core import archetypes as _archetypes
+
+        _pi = _archetypes.primary_item(tenant)
+        if _pi and _pi.get("landing"):
+            try:
+                storefront_nav_cta = {"label": _pi["label"], "url": reverse(_pi["landing"])}
+            except NoReverseMatch:
+                storefront_nav_cta = None
+    if storefront_nav_cta:
+        # Мобильно вторая липкая кнопка = перегруз (таб-бар уже есть) — вместо
+        # этого акцентируем совпадающий пункт таб-бара (kind=primary, как корзина).
+        for item in bottom_nav:
+            if item.get("url") == storefront_nav_cta["url"]:
+                item["kind"] = "primary"
     # L1 (Волна L): языки переключателя витрины — по `active_locales` тенанта (N
     # локалей, генерик). Метка — короткий код (DE/EN/…) для пилюли + родное имя
     # («Deutsch»/«English») для выпадающего блока. Переключатель скрывается при
@@ -305,6 +325,8 @@ def modules_nav(request):
         "storefront_nav_sticky": nav_sticky,
         # P1→T2b: липкий мобильный таб-бар — кастомный (menus.bottom) или авто.
         "storefront_bottom_nav": bottom_nav,
+        # DS-3b (Fokus): кнопка primary-действия в шапке (None = как раньше).
+        "storefront_nav_cta": storefront_nav_cta,
         # P2a: системные шрифт-стеки витрины (тело/заголовки).
         "storefront_font_body": font_body,
         "storefront_font_head": font_head,

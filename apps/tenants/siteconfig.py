@@ -61,6 +61,10 @@ SECTIONS = [
     # и наличии услуг (Service). Карточка ведёт к выбору времени.
     ("services", _("Services & prices"), False),
     ("promotions", _("Current offers"), True),
+    # DS-3b (Fokus): мини-форма заявки НА ГЛАВНОЙ (поля AF-1; партиал AF-2,
+    # гейт модуля jobs внутри). Выкл по умолчанию; включение — Studio/сборка.
+    # ⚠️ Новая известная секция = осознанная регенерация golden-эталонов.
+    ("anfrage", _("Anfrage"), False),
     # M20U-2: сетка категорий каталога (товары). Выкл по умолчанию — показываем,
     # только если включена и есть активные категории.
     ("categories", _("Categories"), False),
@@ -1245,6 +1249,7 @@ def page_section_labels(page_type: str) -> dict:
 # UC1-3 (SE-9c): эмодзи-иконки секций ГЛАВНОЙ для рейла билдера (перенос из
 # apps/core/views.py — реестр держит KEYS+LABELS+ICONS вместе). Дефолт — 🧩.
 SECTION_ICONS = {
+    "anfrage": "📝",  # DS-3b: мини-форма заявки на главной
     "hero": "🖼",
     "usp_bar": "✨",
     "finder": "🧭",  # FD-2: CTA «вопросы → 3 предложения»
@@ -1419,7 +1424,9 @@ NESTED_TEXT_FIELDS = ["cta.title", "cta.text"]
 # фон акцентным цветом (Tenant.primary_color). Гейтим цветной фон флагом, а не
 # самим primary_color: у легаси-тенантов он "#000000" и без флага витрина
 # выглядит как раньше.
-HERO_STYLES = ("plain", "accent")
+# DS-3b (Fokus): "split" — текст слева на чистом поле, фото справа (hero_image
+# или первый слайд heroes; слайдер при split не крутится — ограничение v1).
+HERO_STYLES = ("plain", "accent", "split")
 
 # Навигация витрины (M20 ④): пункты шапки, их порядок и стиль.
 # (key, подпись, url_name, требуемый модуль | None). offers/products — всегда
@@ -1990,7 +1997,8 @@ SECTION_STYLES = {
     "gallery": ("strip", "large", "polaroid", "soft"),  # "" = квадратная сетка
     # UC6-8: team/trust дотянуты до 5 видов (Standard + 4) — как faq/подобные.
     "team": ("circles", "list", "compact", "duo"),  # "" = карточки-сетка
-    "trust": ("left", "badges", "plain", "cards"),  # "" = карточка по центру
+    "trust": ("left", "badges", "plain", "cards", "compact"),  # "" = карточка по центру;
+    # DS-3b compact: рейтинг + 2 цитаты + marks одной полосой (вместо 4 секций)
     # ST-2: контакт-секция — 4 вида ("" = карточка 2 колонки + карта снизу).
     "contact": ("split", "map_first", "compact"),
     # ST-7b: стили простых секций — ключи-лейблы реюзятся из реестра выше.
@@ -2617,6 +2625,10 @@ def _normalize_impl(config) -> dict:
         "sticky": bool(nav_in.get("sticky", True)),
         "items": nav_items,
     }
+    # DS-3b (Fokus): CTA primary-действия в шапке (+акцент пункта таб-бара).
+    # Presence-minimal: ключ только при включении — golden целы.
+    if nav_in.get("cta"):
+        normalized["nav"]["cta"] = True
     # S7: многоуровневое меню (top + bottom). Дерево узлов с привязкой к
     # архетипам/категориям/страницам/URL/якорям; глубина 2. Легаси без `menus`
     # → top выводим из `nav` (та же плоская шапка, без регрессии), bottom —

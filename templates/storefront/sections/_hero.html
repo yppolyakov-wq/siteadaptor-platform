@@ -1,5 +1,29 @@
 {% load i18n %}{# Секция hero (Track C2 / M20U-2): баннер или слайдер баннеров из site_config. #}
-{% if site.heroes %}
+{% if site.hero_style == "split" %}
+{% comment %}DS-3b (Fokus): сплит-композиция — текст слева на чистом поле (читается
+без тёмной вуали), фото справа как есть. Фото: hero_image или первый слайд heroes
+(слайдер при split не крутится — ограничение v1, см. план DS-3). Приоритет ветки
+выше слайдера ОСОЗНАННО: split выбирают явно (hero_style), plain/accent — как были.{% endcomment %}
+{% firstof site.hero_image site.heroes.0.image as split_photo %}
+<section class="mb-10 grid md:grid-cols-2 gap-6 md:gap-10 items-center" data-hero-split>
+  <div class="py-4 md:py-10">
+    <h1 class="text-3xl md:text-5xl font-bold leading-tight" data-edit="hero_title">{{ site.hero_title|default:request.tenant.name }}</h1>
+    {% if site.hero_text %}<p class="mt-4 text-gray-600 max-w-md whitespace-pre-line" data-edit="hero_text">{{ site.hero_text }}</p>{% endif %}
+    {% include "storefront/sections/_hero_cta.html" %}
+    {% if request.tenant.google_rating or site.trust.since %}
+    <p class="mt-4 text-sm text-gray-500">
+      {% if request.tenant.google_rating %}<b class="text-gray-900">★ {{ request.tenant.google_rating|floatformat:1 }}</b> · {% blocktrans count n=request.tenant.google_rating_count %}{{ n }} Google-Bewertung{% plural %}{{ n }} Google-Bewertungen{% endblocktrans %}{% endif %}
+      {% if request.tenant.google_rating and site.trust.since %} · {% endif %}
+      {% if site.trust.since %}{% blocktrans with y=site.trust.since %}Since {{ y }}{% endblocktrans %}{% endif %}
+    </p>
+    {% endif %}
+    {% if site.site_defaults.hero_widget %}<div class="mt-5">{% include "storefront/sections/_hero_widget.html" with hero_widget=site.site_defaults.hero_widget %}</div>{% endif %}
+  </div>
+  <div class="relative min-h-[240px] md:min-h-[360px] rounded-2xl overflow-hidden bg-gray-100">
+    {% if split_photo %}<img src="{{ split_photo }}" alt="" class="absolute inset-0 w-full h-full object-cover">{% endif %}
+  </div>
+</section>
+{% elif site.heroes %}
 {# M20U-2: слайдер главных баннеров (full-bleed). Один слайд — без автопрокрутки. #}
 <section class="relative left-1/2 -translate-x-1/2 w-screen -mt-6 md:-mt-10 mb-10" data-hero-slider>
   <div class="relative min-h-[38vh] md:min-h-[46vh] bg-gray-800 overflow-hidden">
