@@ -1064,6 +1064,11 @@ def normalize_site_defaults(raw) -> dict:
     # golden целы; существующие сайты не затрагиваются).
     if sd.get("hero_widget") in HERO_WIDGETS:
         out["hero_widget"] = sd["hero_widget"]
+    # DS-1: фон СТРАНИЦЫ (тёплая подложка Look-семейств: крем/песок). Ключ ТОЛЬКО
+    # при валидном hex ("" = bg-gray-50 как раньше → golden целы); в тёмной теме
+    # не применяется (правило в _base.html скоуплено html:not(.dark)).
+    if _clean_bg(sd.get("page_bg")):
+        out["page_bg"] = _clean_bg(sd.get("page_bg"))
     return out
 
 
@@ -1588,6 +1593,11 @@ FONTS = {
     "system": (_SANS, _SANS),  # дефолт — как было
     "serif": (_SANS, _SERIF),  # элегантные serif-заголовки + sans-тело
     "rounded": (_ROUNDED, _ROUNDED),  # мягкий округлый
+    # DS-1: self-hosted WOFF2 (static/fonts, OFL; @font-face в app.css с
+    # unicode-range latin/latin-ext/cyrillic) — грузятся лениво, только когда
+    # семейство реально в --font-head. Тело остаётся системным (скорость/CLS).
+    "editorial": (_SANS, '"Playfair Display", Georgia, Cambria, serif'),
+    "organic": (_SANS, '"Nunito", ui-rounded, system-ui, sans-serif'),
 }
 
 

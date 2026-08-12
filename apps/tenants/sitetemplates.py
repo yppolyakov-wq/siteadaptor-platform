@@ -226,28 +226,71 @@ LOOK_FAMILIES = [
         "hero_style": "accent",
         "theme": "dark",  # ST-1: site_config["theme"]="dark" (посетитель может переключить)
     },
+    # DS-1 (2026-08-12): семейства с ХАРАКТЕРОМ — self-hosted шрифт заголовков
+    # (FONTS editorial/organic) + тёплая подложка страницы (site_defaults.page_bg).
+    {
+        "key": "fein",
+        "label": "Fein",
+        "description_de": "Elegante Serif-Überschriften auf Creme — edel und ruhig.",
+        "font": "editorial",  # Playfair Display 600 (latin/latin-ext/cyrillic)
+        "typography": {"weight_head": 600, "line_height": 1.65},
+        "site_defaults": {
+            "card_radius": 20,
+            "card_shadow": True,
+            "card_bg": "#ffffff",
+            "card_padding": 0,
+            "page_bg": "#faf7f2",  # крем
+        },
+        "nav_style": "centered",
+        "hero_style": "plain",
+        "theme": "",
+    },
+    {
+        "key": "natur",
+        "label": "Natur",
+        "description_de": "Runde Formen und warme Erdtöne — freundlich und bodenständig.",
+        "font": "organic",  # Nunito 800 (latin/latin-ext/cyrillic)
+        "typography": {"weight_head": 800, "line_height": 1.6},
+        "site_defaults": {
+            "card_radius": 24,
+            "card_shadow": True,
+            "card_bg": "#ffffff",
+            "card_padding": 0,
+            "page_bg": "#f6f2e7",  # тёплый песок
+        },
+        "nav_style": "classic",
+        "hero_style": "accent",
+        "theme": "",
+    },
 ]
 
 _FAMILY_BY_KEY = {f["key"]: f for f in LOOK_FAMILIES}
 
-# Акценты per-архетип: {business_type: (klar, warm, nacht)}. Nacht-тона светлее
-# (контраст на тёмном фоне). Неизвестный тип → retail-палитра.
+# Акценты per-архетип: {business_type: (klar, warm, nacht, fein, natur)}. Nacht-тона
+# светлее (контраст на тёмном фоне); fein — глубокие благородные, natur —
+# травяные/земляные (DS-1). Неизвестный тип → retail-палитра.
 ARCHETYPE_LOOK_ACCENTS = {
-    "bakery": ("#b45309", "#9a3412", "#f59e0b"),
-    "butcher": ("#b91c1c", "#7f1d1d", "#f87171"),
-    "grocery": ("#15803d", "#166534", "#4ade80"),
-    "clothing": ("#111827", "#9d174d", "#e879f9"),
-    "restaurant": ("#b45309", "#7c2d12", "#fbbf24"),
-    "cafe": ("#92400e", "#78350f", "#fbbf24"),
-    "retail": ("#4f46e5", "#1e40af", "#818cf8"),
-    "online_shop": ("#4f46e5", "#0f766e", "#a78bfa"),
-    "tour_operator": ("#0e7490", "#155e75", "#22d3ee"),
-    "hotel": ("#0e7490", "#1e3a8a", "#38bdf8"),
-    "friseur": ("#0f766e", "#9d174d", "#f472b6"),
-    "handwerker": ("#ea580c", "#9a3412", "#fb923c"),
-    "werkstatt": ("#1e40af", "#374151", "#60a5fa"),
-    "events": ("#7c3aed", "#6d28d9", "#c084fc"),
-    "catering": ("#15803d", "#b45309", "#4ade80"),  # GK-1: frisch/bio-грин + тёплый warm
+    "bakery": ("#b45309", "#9a3412", "#f59e0b", "#7c2d12", "#a16207"),
+    "butcher": ("#b91c1c", "#7f1d1d", "#f87171", "#7f1d1d", "#92400e"),
+    "grocery": ("#15803d", "#166534", "#4ade80", "#14532d", "#4d7c0f"),
+    "clothing": ("#111827", "#9d174d", "#e879f9", "#1c1917", "#78716c"),
+    "restaurant": ("#b45309", "#7c2d12", "#fbbf24", "#7c2d12", "#4d7c0f"),
+    "cafe": ("#92400e", "#78350f", "#fbbf24", "#713f12", "#a16207"),
+    "retail": ("#4f46e5", "#1e40af", "#818cf8", "#312e81", "#0f766e"),
+    "online_shop": ("#4f46e5", "#0f766e", "#a78bfa", "#312e81", "#0f766e"),
+    "tour_operator": ("#0e7490", "#155e75", "#22d3ee", "#164e63", "#15803d"),
+    "hotel": ("#0e7490", "#1e3a8a", "#38bdf8", "#1e3a8a", "#166534"),
+    "friseur": ("#0f766e", "#9d174d", "#f472b6", "#831843", "#0f766e"),
+    "handwerker": ("#ea580c", "#9a3412", "#fb923c", "#7c2d12", "#92400e"),
+    "werkstatt": ("#1e40af", "#374151", "#60a5fa", "#1e3a8a", "#374151"),
+    "events": ("#7c3aed", "#6d28d9", "#c084fc", "#581c87", "#6d28d9"),
+    "catering": (
+        "#15803d",
+        "#b45309",
+        "#4ade80",
+        "#166534",
+        "#4d7c0f",
+    ),  # GK-1: frisch/bio-грин + тёплый warm
 }
 _DEFAULT_ACCENTS = ARCHETYPE_LOOK_ACCENTS["retail"]
 

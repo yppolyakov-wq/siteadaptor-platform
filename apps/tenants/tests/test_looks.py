@@ -17,16 +17,21 @@ pytestmark = pytest.mark.django_db
 ARCHETYPES = [k for k, _ in Tenant.BUSINESS_TYPES if k != "other"]
 
 
-def test_registry_shape_three_looks_per_archetype():
-    assert len(sitetemplates.LOOK_FAMILIES) == 3
+def test_registry_shape_five_looks_per_archetype():
+    # DS-1 (2026-08-12): +Fein/Natur — 5 семейств × 15 типов = 75 Look'ов.
+    assert len(sitetemplates.LOOK_FAMILIES) == 5
     keys = [f["key"] for f in sitetemplates.LOOK_FAMILIES]
-    assert len(set(keys)) == 3
-    assert len(ARCHETYPES) == 15  # GK-1: 3 × 15 = 45 Look'ов
+    assert keys == ["klar", "warm", "nacht", "fein", "natur"]
+    assert len(ARCHETYPES) == 15
     for bt in ARCHETYPES:
         looks = sitetemplates.looks_for(bt)
         assert [lk["key"] for lk in looks] == keys
         for lk in looks:
             assert lk["accent"].startswith("#")
+    # DS-1: кортежи акцентов индексируются позицией семейства — у КАЖДОГО типа
+    # ровно 5 колонок (рассинхрон дал бы IndexError/чужой акцент молча).
+    for bt, accents in sitetemplates.ARCHETYPE_LOOK_ACCENTS.items():
+        assert len(accents) == 5, bt
 
 
 def test_normalize_theme_presence_minimal():
@@ -170,7 +175,7 @@ def test_wizard_stil_slide_looks_gallery_and_apply():
         return request
 
     ctx = setup_steps._ctx_template(_req())
-    assert [lk["key"] for lk in ctx["looks"]] == ["klar", "warm", "nacht"]
+    assert [lk["key"] for lk in ctx["looks"]] == ["klar", "warm", "nacht", "fein", "natur"]
 
     # POST с look → применяется семейство (serif у warm), template игнорируется.
     setup_steps._post_template(_req("post", {"look": "warm", "template": "laden"}))
@@ -275,3 +280,12 @@ def test_preview_draft_accepts_theme():
     assert _post({"theme": "dark"}).get("theme") == "dark"
     assert "theme" not in _post({"theme": ""})
     assert "theme" not in _post({})  # не прислан → не трогаем
+
+
+def test_page_bg_presence_minimal():
+    """DS-1: фон страницы — ключ только при валидном hex (golden целы)."""
+    assert "page_bg" not in siteconfig.normalize({})["site_defaults"]
+    junk = siteconfig.normalize({"site_defaults": {"page_bg": "red"}})
+    assert "page_bg" not in junk["site_defaults"]
+    ok = siteconfig.normalize({"site_defaults": {"page_bg": "#faf7f2"}})
+    assert ok["site_defaults"]["page_bg"] == "#faf7f2"

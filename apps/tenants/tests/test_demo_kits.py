@@ -1241,7 +1241,8 @@ def test_apply_catering_kit_jobs_speisekarte_browse_only():
     assert "Hochzeit" in cfg["anfrage"]["event_types"]
     # primary = jobs (hero-CTA → Anfrage), несмотря на активный catalog
     assert tenant.site_config.get("primary_module") == "jobs"
-    assert tenant.primary_color == "#15803d"
+    # DS-2: кит несёт look="fein" → акцент из ARCHETYPE_LOOK_ACCENTS (fein/catering)
+    assert tenant.primary_color == "#166534"
     enabled = {s["key"] for s in cfg["sections"] if s["enabled"]}
     assert {"hero", "usp_bar", "products", "process", "faq", "cta"} <= enabled
     assert cfg["cta"]["button_url"] == "/anfrage/"

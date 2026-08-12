@@ -322,6 +322,9 @@ def modules_nav(request):
         "storefront_card_shadow": cfg["site_defaults"]["card_shadow"],
         "storefront_card_bg": cfg["site_defaults"]["card_bg"],
         "storefront_card_padding": cfg["site_defaults"]["card_padding"],
+        # DS-1: фон страницы Look-семейства (крем/песок; "" = bg-gray-50 как
+        # раньше; тёмная тема правило не видит — скоуп html:not(.dark)).
+        "storefront_page_bg": cfg["site_defaults"].get("page_bg", ""),
         # ST-7c: глобальная ФОРМА карточки ("" | overlay | compact; draft-aware).
         "storefront_card_style": cfg["site_defaults"].get("card_style", ""),
         # O-2: дефолтный вид выбора вариантов ("" = выпадающий список). Товар

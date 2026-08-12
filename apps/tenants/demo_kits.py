@@ -1161,6 +1161,7 @@ PRANASY = DemoKit(
     label="Pranasy — Vegan & Ayurveda",
     business_type="restaurant",
     subdomain="pranasy",  # → pranasy.<base> (а не pranasy-demo)
+    look="natur",  # DS-2: organic-дизайн (Nunito на песке, листовой акцент)
     hero_widget="gastro",  # 2026-07-30: плитки Reservieren/Speisekarte/Angebot des Tages
     accent="#16a34a",  # frisches Grün
     hero_image_kw="vegan,food",
@@ -5997,7 +5998,7 @@ CATERING = DemoKit(
             "discount_style": "strikethrough",
             "ends_in_days": 30,
             "group": "Saison-Aktionen",
-            "image": "soup,bowl",
+            "image": "minestrone,soup",
         },
         {
             "title": "Probier-Paket: Fingerfood für 10 Personen zum Festpreis 79 €",
@@ -6009,7 +6010,7 @@ CATERING = DemoKit(
             "discount_style": "festpreis",
             "limit": 10,
             "group": "Probier-Pakete",
-            "images": ["fingerfood,platter", "canapes,catering"],
+            "images": ["antipasti", "caprese,salad"],
         },
         {
             "title": "Letzte Grill-Termine der Saison: −15 % aufs Grillbuffet",
@@ -6039,14 +6040,14 @@ CATERING = DemoKit(
             "button_url": "/anfrage/",
         },
         {
-            "image_kw": "wedding,catering",
+            "image_kw": "vegan,cake",
             "title": "Hochzeits-Catering",
             "text": "Vom Sektempfang bis zum Mitternachtssnack — wir begleiten Ihren großen Tag.",
             "button_label": "Termin anfragen",
             "button_url": "/anfrage/",
         },
         {
-            "image_kw": "fingerfood,platter",
+            "image_kw": "antipasti",
             "title": "Fingerfood fürs Büro",
             "text": "Platten und Buffets für Meetings und Firmenfeiern — geliefert und aufgebaut.",
             "button_label": "Speisekarte ansehen",
@@ -6080,6 +6081,7 @@ CATERING = DemoKit(
         ],
     },
     primary_module="jobs",  # страховка: hero-CTA → Anfrage (не каталог)
+    look="fein",  # DS-2: editorial-дизайн (Playfair на креме, глубокий лес)
     enable_categories_section=True,  # GK-15: сетка 6 направлений на главной
     categories=[
         (
@@ -6090,7 +6092,7 @@ CATERING = DemoKit(
                     "Buffet Vegetarisch",
                     "24.00",
                     "Warmes Buffet mit drei Hauptgerichten, Salaten und Brot — pro Person, ab 20 Personen.",
-                    "buffet,vegetarian",
+                    "catering,buffet",
                     diets=["vegetarisch"],
                     badge="beliebt",
                 ),
@@ -6105,11 +6107,12 @@ CATERING = DemoKit(
                     "Suppenstation",
                     "5.50",
                     "Saisonale Suppe im Glas mit Brot — pro Person, ab 20 Personen.",
-                    "soup,bowl",
+                    "minestrone,soup",
                     diets=["vegan"],
                     allergens=["gluten"],
                 ),
             ],
+            "catering,buffet",  # DS-2: фото плитки (реальный файл, не SVG)
         ),
         (
             "Fingerfood & Platten",
@@ -6119,7 +6122,7 @@ CATERING = DemoKit(
                     "Fingerfood-Platte Klassik",
                     "8.50",
                     "Mini-Quiches, Wraps und Gemüsesticks mit Dips — pro Person, ab 10 Personen.",
-                    "fingerfood,platter",
+                    "antipasti",
                     diets=["vegetarisch"],
                     allergens=["gluten", "milch"],
                     badge="empfehlung",
@@ -6128,7 +6131,7 @@ CATERING = DemoKit(
                     "Wrap-Platte Vegan",
                     "7.50",
                     "Gefüllte Wraps mit Hummus, Gemüse und Kräutern — pro Person, ab 10 Personen.",
-                    "wraps,platter",
+                    "salad,bowl",
                     diets=["vegan"],
                     allergens=["gluten", "sesam"],
                 ),
@@ -6148,7 +6151,7 @@ CATERING = DemoKit(
                     "11.50",
                     "6 Häppchen p. P., dazu warme Snacks und zwei Dips — "
                     "pro Person, ab 10 Personen.",
-                    "canapes,catering",
+                    "caprese,salad",
                     diets=["vegetarisch"],
                     allergens=["gluten", "milch"],
                 ),
@@ -6163,6 +6166,7 @@ CATERING = DemoKit(
                     badge="empfehlung",
                 ),
             ],
+            "antipasti",  # DS-2: фото плитки (реальный файл, не SVG)
         ),
         # GK-15: сетка категорий как у референса (6 направлений-событий) —
         # каждое со своими пакетами «€ p. P. + ab N Personen».
@@ -6175,7 +6179,7 @@ CATERING = DemoKit(
                     "39.00",
                     "Drei Gänge als Buffet, Salatbar und Dessertauswahl — "
                     "pro Person, ab 50 Personen.",
-                    "wedding,catering",
+                    "vegan,cake",
                     diets=["vegetarisch"],
                     badge="beliebt",
                 ),
@@ -6191,11 +6195,12 @@ CATERING = DemoKit(
                     "12.00",
                     "Begrüßungssekt, alkoholfreie Alternativen und Canapés — "
                     "pro Person, ab 30 Personen.",
-                    "canapes,catering",
+                    "lemonade",
                     diets=["vegetarisch"],
                     allergens=["gluten"],
                 ),
             ],
+            "vegan,cake",  # DS-2: фото плитки (реальный файл, не SVG)
         ),
         (
             "Business & Seminar",
@@ -6206,7 +6211,7 @@ CATERING = DemoKit(
                     "16.50",
                     "Zwei warme Gerichte, Salate und Dessert im Büro serviert — "
                     "pro Person, ab 10 Personen.",
-                    "business,lunch",
+                    "caesar,salad",
                     diets=["vegetarisch"],
                 ),
                 _p(
@@ -6214,11 +6219,12 @@ CATERING = DemoKit(
                     "24.00",
                     "Zwei Kaffeepausen mit Gebäck und Obst plus Mittagsbuffet — "
                     "pro Person, ab 15 Personen.",
-                    "coffee,break",
+                    "coffee,cafe",
                     diets=["vegetarisch"],
                     allergens=["gluten", "milch"],
                 ),
             ],
+            "coffee,cafe",  # DS-2: фото плитки (реальный файл, не SVG)
         ),
         (
             "Private Feiern & Messe",
@@ -6229,7 +6235,7 @@ CATERING = DemoKit(
                     "22.00",
                     "Herzhafte Klassiker, Fingerfood und Kuchen nach Wahl — "
                     "pro Person, ab 20 Personen.",
-                    "party,food",
+                    "potato,salad",
                     diets=["vegetarisch"],
                     allergens=["gluten"],
                 ),
@@ -6238,10 +6244,11 @@ CATERING = DemoKit(
                     "18.00",
                     "Standversorgung ganztägig: Snacks, Getränke und Service — "
                     "pro Person, ab 25 Personen.",
-                    "event,buffet",
+                    "smoothie",
                     diets=["vegetarisch"],
                 ),
             ],
+            "grill,plate",  # DS-2: фото плитки (реальный файл, не SVG)
         ),
         (
             "Getränke",
@@ -6251,18 +6258,19 @@ CATERING = DemoKit(
                     "Getränkepaket",
                     "9.00",
                     "Wasser, Säfte und Kaffee für die ganze Veranstaltung — pro Person, ab 10 Personen.",
-                    "drinks,juice",
+                    "orange,juice",
                     diets=["vegan"],
                 ),
             ],
+            "lemonade",  # DS-2: фото плитки (реальный файл, не SVG)
         ),
     ],
     gallery_kw=[
         "catering,buffet",
-        "fingerfood,platter",
-        "wedding,catering",
-        "canapes,catering",
-        "dessert,glass",
+        "antipasti",
+        "caprese,salad",
+        "grill,plate",
+        "dessert",
         "salad,bowl",
     ],
     faq=[
@@ -6293,19 +6301,19 @@ CATERING = DemoKit(
             "Familie Sommer",
             "Hochzeitsbuffet für 80 Gäste — alles frisch, pünktlich und wunderschön angerichtet.",
             5,
-            demo_image("portrait,woman", w=200, h=200, lock=871),
+            demo_image("ayurveda,woman", w=200, h=200, lock=871),
         ),
         (
             "Miriam K.",
             "Fingerfood für unsere Firmenfeier — unkompliziert angefragt, Angebot am nächsten Tag.",
             5,
-            demo_image("portrait,man", w=200, h=200, lock=872),
+            demo_image("barista,woman", w=200, h=200, lock=872),
         ),
         (
             "Thomas B.",
             "Seminar-Catering über zwei Tage — heiß geliefert, freundliches Team, faire Preise.",
             5,
-            demo_image("portrait,man", w=200, h=200, lock=873),
+            demo_image("cook,man", w=200, h=200, lock=873),
         ),
     ],
     process=[
@@ -6448,7 +6456,7 @@ CATERING = DemoKit(
         "catalog": {
             "intro": "Unsere Speisekarte: Buffets, Fingerfood und Getränke — "
             "alles pro Person kalkuliert.",
-            "hero_kw": "fingerfood,platter",
+            "hero_kw": "catering,buffet",  # DS-2: реальный файл (не SVG)
         },
     },
 )
@@ -7668,11 +7676,15 @@ def apply_kit(tenant, key: str) -> bool:
         return product
 
     def _make_category(entry, sort, parent=None):
-        # entry: (name, slug, items) ИЛИ (name, slug, items, children). name —
-        # строка (de) или {de,en}. children — подкатегории той же формы (1 уровень,
-        # магазин→подкатегории). Первый товар категории — в category_firsts (S6).
+        # entry: (name, slug, items) ИЛИ (name, slug, items, children) ИЛИ
+        # (name, slug, items, "photo,kw") — DS-2: 4-й элемент-СТРОКА задаёт ключ
+        # фото плитки (иначе ключ = slug; немецкие слоги давали SVG-фолбэк).
+        # children — подкатегории той же формы (1 уровень). Первый товар
+        # категории — в category_firsts (S6).
         name, slug, items = entry[0], entry[1], entry[2]
-        children = entry[3] if len(entry) > 3 else []
+        extra = entry[3] if len(entry) > 3 else []
+        photo_kw = extra if isinstance(extra, str) else ""
+        children = extra if isinstance(extra, list) else []
         category = Category.objects.create(
             name=_i18n_text(name),
             slug=f"demo-{slug}",
@@ -7685,7 +7697,11 @@ def apply_kit(tenant, key: str) -> bool:
             # витрина откатывалась на текстовые чипы. Ключ фото — slug категории
             # (тематичный демо-генератор), lock от сортировки → стабильно.
             images=[
-                _image_ref(slug.replace("-", ","), 400 + sort, str(_i18n_text(name).get("de", "")))
+                _image_ref(
+                    photo_kw or slug.replace("-", ","),
+                    400 + sort,
+                    str(_i18n_text(name).get("de", "")),
+                )
             ],
         )
         refs["categories"].append(str(category.pk))

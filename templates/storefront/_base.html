@@ -39,6 +39,8 @@
       {% if storefront_font_weight_head %}--fw-head: {{ storefront_font_weight_head }};{% endif %}
       {% if storefront_line_height %}--lh-body: {{ storefront_line_height|unlocalize }};{% endif %}
     }
+    {# DS-1: тёплая подложка Look'а (hex из normalize); тёмную тему красит .dark #}
+    {% if storefront_page_bg %}html:not(.dark) body { background-color: {{ storefront_page_bg }}; }{% endif %}
     body { font-family: var(--font-body); line-height: var(--lh-body, inherit); }
     h1, h2, h3, h4, .font-head { font-family: var(--font-head); font-weight: var(--fw-head, inherit); }
     /* SE-3d/SE-2d: визуальные параметры карточек (.sf-card). Переопределяем
