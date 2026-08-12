@@ -510,15 +510,10 @@ def category_landing(request, slug):
     )
     if not (description or photos):
         raise Http404
-    # Галерея: фото категории, ДОБРАННЫЕ фото товаров направления (до 6,
-    # без дублей) — у большинства категорий одно фото, секция бы пряталась.
-    gallery = list(photos)
-    for prod in products:
-        pimg = prod.primary_image
-        url = pimg.get("url", "") if pimg else ""
-        if url and url not in gallery:
-            gallery.append(url)
-    gallery = gallery[:6]
+    # Галерея: ТОЛЬКО собственные фото категории (≥2 — иначе секция прячется;
+    # DS-7c: визуал блюд несут мини-плитки примеров — добор фото товаров в
+    # галерею дублировал их же картинки друг над другом).
+    gallery = photos[:6]
     return render(
         request,
         "storefront/category_landing.html",

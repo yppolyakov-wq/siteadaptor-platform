@@ -61,9 +61,19 @@ def test_landing_gates_and_content():
     assert "data-landing-hero" in html and "Hochzeits-Catering" in html
     assert "Ihr Buffet ohne Stress." in html
     assert "Hochzeitsbuffet Klassik" in html
-    examples = html[html.find("data-landing-examples") :]
-    assert "39,00" not in examples and "€" not in examples.split("</section>")[0]
+    # DS-7c (фидбэк): блюда мини-плитками, цена по тумблеру меню — дефолт ПОКАЗАТЬ
+    examples = html[html.find("data-landing-examples") :].split("</section>")[0]
+    assert "39,00" in examples
     assert "betreff=Hochzeits-Catering" in html
+    # тумблер выключен + browse-only → цены на плитках скрыты («с ценой и без»)
+    off_prices = _req()
+    off_prices.tenant = TenantFactory.build(
+        site_config={"category_landings": True, "menu_show_prices": False},
+        disabled_modules=["orders"],
+    )
+    html2 = public_views.category_landing(off_prices, cat.slug).content.decode()
+    ex2 = html2[html2.find("data-landing-examples") :].split("</section>")[0]
+    assert "39,00" not in ex2 and "Hochzeitsbuffet Klassik" in ex2
     # пустая категория (без описания и фото) → 404 (контент-гейт)
     empty = Category.objects.create(name={"de": "Leer"}, slug="cl-leer")
     with pytest.raises(Http404):

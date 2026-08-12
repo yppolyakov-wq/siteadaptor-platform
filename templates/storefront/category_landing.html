@@ -40,12 +40,20 @@
 <section class="mb-10 sf-card bg-white rounded-2xl p-6 md:p-8" data-landing-examples>
   <h2 class="text-xl md:text-2xl font-bold mb-1">{% trans "Beispiele aus der Küche" %}</h2>
   <p class="text-sm text-gray-500 mb-4">{% trans "Jedes Event wird individuell zusammengestellt — fragen Sie unverbindlich an." %}</p>
-  <div class="grid sm:grid-cols-2 gap-x-8 gap-y-2 max-w-3xl">
+  {% comment %}DS-7c (фидбэк владельца): блюда направления МИНИ-ПЛИТКАМИ (фото +
+  имя + состав); цена — по тому же тумблеру, что и меню («с ценой и без»:
+  menu_show_prices, PAngV-гейт как в _price_list).{% endcomment %}
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
     {% for p in landing_products %}
-      {% comment %}БЕЗ цен (решение владельца): имя + состав, ссылка на деталь.{% endcomment %}
-      <a href="{% url 'storefront-product' p.pk %}" class="group py-1.5 border-b border-dotted border-gray-300">
-        <span class="font-medium group-hover:underline">{{ p }}</span>
-        {% with d=p.description_text %}{% if d %}<span class="block text-sm text-gray-500">{{ d|truncatechars:70 }}</span>{% endif %}{% endwith %}
+      <a href="{% url 'storefront-product' p.pk %}" class="group rounded-xl border border-gray-200 overflow-hidden hover:border-gray-300 bg-white">
+        {% with pimg=p.primary_image %}{% if pimg.url %}<span class="block aspect-[4/3] bg-gray-100"><img src="{{ pimg.url }}" alt="{{ p }}" loading="lazy" class="w-full h-full object-cover"></span>{% endif %}{% endwith %}
+        <span class="block p-2.5">
+          <span class="block font-medium text-sm leading-tight group-hover:underline">{{ p }}</span>
+          {% with d=p.description_text %}{% if d %}<span class="block text-xs text-gray-500 mt-0.5">{{ d|truncatechars:55 }}</span>{% endif %}{% endwith %}
+          {% if storefront_orders_active or site.menu_show_prices != False %}
+          <span class="block text-sm font-bold mt-1" style="font-variant-numeric: tabular-nums;">{% if p.has_variants %}<span class="text-xs font-normal text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% else %}{{ p.base_price }}{% endif %} {{ p.currency|cursym }}</span>
+          {% endif %}
+        </span>
       </a>
     {% endfor %}
   </div>
