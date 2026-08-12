@@ -39,7 +39,7 @@ def test_layout_clamps_and_sanitizes_garbage():
         {"preset": "cols4"},
     )
     assert lay["preset"] == "cols4"  # неизвестный пресет → дефолт
-    assert lay["cols"] == 5 and lay["mobile"] == 2  # клампы
+    assert lay["cols"] == 6 and lay["mobile"] == 2  # клампы (DS-5: потолок 6)
     assert lay["gap"] == "md" and lay["width"] == "contained"
 
 
@@ -115,7 +115,7 @@ def test_section_limit_default_override_and_clamp():
     assert siteconfig.section_limit({"sections": [{"key": "events", "limit": "x"}]}, "events") == 6
     assert (
         siteconfig.section_limit({"sections": [{"key": "products", "limit": 999}]}, "products")
-        == 24
+        == 30  # DS-5: потолок Anzahl 24→30
     )
 
 

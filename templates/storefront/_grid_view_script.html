@@ -65,9 +65,22 @@
     return n;
   }
 
+  function backdrop(key, open) {
+    // DS-6: панель — левый ящик; фон-затемнение закрывает по клику.
+    var bd = document.querySelector(".sf-drawer-backdrop");
+    if (open && !bd) {
+      bd = document.createElement("div");
+      bd.className = "sf-drawer-backdrop";
+      bd.addEventListener("click", function () { apply(key, false); });
+      document.body.appendChild(bd);
+    } else if (!open && bd) bd.remove();
+    document.body.style.overflow = open ? "hidden" : "";
+  }
+
   function apply(key, open) {
     var box = panel(key);
     if (box) box.classList.toggle("hidden", !open);
+    backdrop(key, open);
     var count = activeCount(box);
     document.querySelectorAll('[data-filter-toggle="' + key + '"]').forEach(function (b) {
       b.setAttribute("aria-expanded", open ? "true" : "false");
@@ -88,11 +101,10 @@
       var key = b.getAttribute("data-filter-toggle");
       if (seen[key]) return;
       seen[key] = 1;
-      var wide = window.matchMedia && window.matchMedia("(min-width: 640px)").matches;
-      var saved = null;
-      try { saved = localStorage.getItem(PREFIX + key); } catch (e) {}
-      // Применённый фильтр не прячем — иначе выдача «сузилась без причины».
-      var open = saved === null ? (wide || activeCount(panel(key)) > 0) : saved === "1";
+      // DS-6: ящик всегда стартует закрытым (бейдж на кнопке показывает,
+      // что фильтр применён); сохранённое «открыто» не восстанавливаем —
+      // всплывающий при загрузке ящик перекрывал бы контент.
+      var open = false;
       apply(key, open);
     });
   }
@@ -103,6 +115,12 @@
     e.preventDefault();
     var key = b.getAttribute("data-filter-toggle");
     apply(key, b.getAttribute("aria-expanded") !== "true");
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    document.querySelectorAll("[data-filter-panel]:not(.hidden)").forEach(function (box) {
+      apply(box.getAttribute("data-filter-panel"), false);
+    });
   });
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();

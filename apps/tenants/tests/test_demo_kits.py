@@ -1263,7 +1263,9 @@ def test_apply_catering_kit_reference_parity_gk15():
     assert demo_kits.apply_kit(tenant, "catering") is True
 
     # 6 категорий-направлений (сетка как у референса); пакеты-тиры Fingerfood
-    assert Category.objects.filter(parent__isnull=True).count() == 6
+    assert (
+        Category.objects.filter(parent__isnull=True).count() == 8
+    )  # DS-6: 8 направлений (фидбэк «лучше 8 плиток»)
     for name in ("Hochzeits-Catering", "Business & Seminar", "Private Feiern & Messe"):
         assert Category.objects.filter(name__de=name).exists()
     for pkg in ("Fingerfood-Paket Plus", "Fingerfood-Paket Premium"):

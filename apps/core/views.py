@@ -1893,6 +1893,8 @@ def home_builder_view(request):
         ("cols2", _("2 per row")),
         ("cols3", _("3 per row")),
         ("cols4", _("4 per row")),
+        ("cols5", _("5 per row")),  # DS-6
+        ("cols6", _("6 per row")),  # DS-6
         ("gallery", _("Gallery")),
     ]
     source_options = [
@@ -2678,6 +2680,8 @@ def pages_view(request):
         ("cols2", _("2 per row")),
         ("cols3", _("3 per row")),
         ("cols4", _("4 per row")),
+        ("cols5", _("5 per row")),  # DS-6
+        ("cols6", _("6 per row")),  # DS-6
         ("gallery", _("Gallery")),
     ]
     # DS-3a: страничный extra-вид каталога — «Preisliste» (только его пикер).

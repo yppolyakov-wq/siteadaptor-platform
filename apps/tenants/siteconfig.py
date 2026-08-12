@@ -748,6 +748,10 @@ LAYOUT_PRESETS = {
     "cols2": {"cols": 2, "mobile": 1, "gap": "md"},
     "cols3": {"cols": 3, "mobile": 2, "gap": "md"},
     "cols4": {"cols": 4, "mobile": 2, "gap": "md"},
+    # DS-6: плитка до 6 в ряд (владелец: «плитка по 2–6 шт») — доступно всем
+    # страничным пикерам раскладки.
+    "cols5": {"cols": 5, "mobile": 2, "gap": "sm"},
+    "cols6": {"cols": 6, "mobile": 2, "gap": "sm"},
     "gallery": {"cols": 4, "mobile": 2, "gap": "sm"},  # плотная сетка
 }
 LAYOUT_PRESET_KEYS = list(LAYOUT_PRESETS)

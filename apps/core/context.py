@@ -273,6 +273,17 @@ def modules_nav(request):
                 storefront_nav_cta = {"label": _pi["label"], "url": reverse(_pi["landing"])}
             except NoReverseMatch:
                 storefront_nav_cta = None
+    # DS-6: глобальный поиск в шапке (владелец: «поиск перенести в шапку») —
+    # ведёт в каталожный листинг ?q= (поиск UB); без каталога — иконки нет.
+    storefront_search_url = ""
+    if modules.is_module_active(tenant, "catalog"):
+        from django.urls import NoReverseMatch as _NRM
+        from django.urls import reverse as _rev
+
+        try:
+            storefront_search_url = _rev("storefront-products")
+        except _NRM:
+            storefront_search_url = ""
     if storefront_nav_cta:
         # Мобильно вторая липкая кнопка = перегруз (таб-бар уже есть) — вместо
         # этого акцентируем совпадающий пункт таб-бара (kind=primary, как корзина).
@@ -327,6 +338,8 @@ def modules_nav(request):
         "storefront_bottom_nav": bottom_nav,
         # DS-3b (Fokus): кнопка primary-действия в шапке (None = как раньше).
         "storefront_nav_cta": storefront_nav_cta,
+        # DS-6: поиск в шапке ("" = иконки нет).
+        "storefront_search_url": storefront_search_url,
         # P2a: системные шрифт-стеки витрины (тело/заголовки).
         "storefront_font_body": font_body,
         "storefront_font_head": font_head,

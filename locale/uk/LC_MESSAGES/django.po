@@ -17717,3 +17717,13 @@ msgid "Produktanzahl"
 msgstr "Кількість товарів"
 msgid "Preisliste mit Fotos"
 msgstr "Прайс-лист із фото"
+
+# DS-6: поиск в шапке
+msgid "Suchen…"
+msgstr "Пошук…"
+
+# DS-6: пресеты 5/6 в ряд
+msgid "5 per row"
+msgstr "5 у ряд"
+msgid "6 per row"
+msgstr "6 у ряд"

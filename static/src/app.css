@@ -211,8 +211,36 @@ input[type="datetime-local"] {
 /* Переключатель вида «список ↔ плитка» (фидбэк владельца 2026-08-01): один класс
    поверх ЛЮБОЙ сетки витрины — layout-движок задаёт grid-cols-* per-секция, а
    режим списка перебивает их одной колонкой независимо от раскладки. */
-[data-grid].is-list {
-  grid-template-columns: 1fr !important;
+/* DS-6: «список» — только мобильный вид (решение владельца 2026-08-12);
+   на десктопе плитки 2–6, кнопка списка скрыта в _grid_view.html. */
+@media (max-width: 767px) {
+  [data-grid].is-list {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* DS-6: панель фасетов = выезжающий СЛЕВА ящик (фидбэк владельца). Открытие —
+   снятие .hidden прежним тумблером; фон затемняет .sf-drawer-backdrop (скрипт). */
+[data-filter-panel]:not(.hidden) {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 20rem;
+  max-width: 85vw;
+  z-index: 70;
+  overflow-y: auto;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.25);
+  flex-direction: column;
+  align-items: stretch;
+}
+.sf-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 69;
+  background: rgba(0, 0, 0, 0.35);
 }
 
 /* Свотчи вариантов и опций (O-2, 2026-08-01). Разметка выбора всегда идёт ПЕРЕД

@@ -1740,7 +1740,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   // Прячем <select data-thumb>, рисуем кликабельные мини-диаграммы, управляющие им
   // (вся логика/POST/quick-styles читают тот же select → без правок бэкенда).
   function presetDiagram(val) {
-    var cols = { list: 1, cols2: 2, cols3: 3, cols4: 4, gallery: 3 }[val] || 1;
+    var cols = { list: 1, cols2: 2, cols3: 3, cols4: 4, cols5: 5, cols6: 6, gallery: 3 }[val] || 1;
     var rows = val === "gallery" ? 2 : 1;
     var cells = "";
     for (var i = 0; i < cols * rows; i++) cells += '<i style="background:currentColor;border-radius:1px;"></i>';

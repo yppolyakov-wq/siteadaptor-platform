@@ -8,9 +8,10 @@
 
 Параметр include: grid_key — совпадает с `data-grid` у сетки.{% endcomment %}
 <div class="flex items-center gap-1 shrink-0" role="group" aria-label="{% trans 'View' %}">
+  {# DS-6: список — мобильный вид; на десктопе только плитки (кнопка скрыта). #}
   <button type="button" data-grid-view="list" data-grid-key="{{ grid_key }}" aria-pressed="false"
           aria-label="{% trans 'List view' %}" title="{% trans 'List view' %}"
-          class="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600">
+          class="md:hidden w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="5" width="16" height="6" rx="1"/><rect x="4" y="13" width="16" height="6" rx="1"/></svg>
   </button>
   <button type="button" data-grid-view="grid" data-grid-key="{{ grid_key }}" aria-pressed="false"

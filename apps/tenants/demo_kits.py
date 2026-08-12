@@ -6315,6 +6315,54 @@ CATERING = DemoKit(
             ],
             "lemonade",  # DS-2: фото плитки (реальный файл, не SVG)
         ),
+        # DS-6 (фидбэк «хотя бы 4, лучше 8 плиток»): направления до 8 —
+        # сетка «Was wir für Sie kochen» полная при любой раскладке 3–4.
+        (
+            "Frühstück & Brunch",
+            "fruehstueck",
+            [
+                _p(
+                    "Brunch-Buffet",
+                    "18.50",
+                    "Brötchen, Aufstriche, Obst, Müsli und warme Kleinigkeiten — "
+                    "pro Person, ab 10 Personen.",
+                    "breakfast,brunch",
+                    diets=["vegetarisch"],
+                    allergens=["gluten"],
+                ),
+                _p(
+                    "Kaffee & Kuchen",
+                    "9.50",
+                    "Filterkaffee satt und Kuchenauswahl vom Blech — pro Person.",
+                    "coffee,cake",
+                    diets=["vegetarisch"],
+                    allergens=["gluten"],
+                ),
+            ],
+            "croissant",
+        ),
+        (
+            "Desserts & Süßes",
+            "desserts",
+            [
+                _p(
+                    "Dessertbuffet",
+                    "12.00",
+                    "Mousse, Tiramisu, Obstsalat und Mini-Törtchen — pro Person, ab 15 Personen.",
+                    "dessert,tiramisu",
+                    diets=["vegetarisch"],
+                ),
+                _p(
+                    "Hochzeitstorte",
+                    "180.00",
+                    "Dreistöckig nach Absprache — Festpreis inkl. Lieferung und Aufbau.",
+                    "cake,wedding",
+                    diets=["vegetarisch"],
+                    allergens=["gluten"],
+                ),
+            ],
+            "cheesecake",
+        ),
     ],
     gallery_kw=[
         "catering,buffet",

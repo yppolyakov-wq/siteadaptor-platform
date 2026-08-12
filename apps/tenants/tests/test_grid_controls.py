@@ -117,9 +117,7 @@ def test_categories_limit_and_tile_info_render():
 def test_products_scroll_mode_renders_strip():
     _seed_categories(2)
     tenant = TenantFactory.build(
-        site_config={
-            "sections": [{"key": "products", "enabled": True, "layout": {"scroll": True}}]
-        }
+        site_config={"sections": [{"key": "products", "enabled": True, "layout": {"scroll": True}}]}
     )
     html = _home(tenant)
     assert "sf-scroll-grid" in html
@@ -131,9 +129,7 @@ def test_preisliste_foto_variant():
     cfg = siteconfig.normalize(
         {"sections": [{"key": "products", "enabled": True, "style": "preisliste_foto"}]}
     )
-    assert (
-        next(s for s in cfg["sections"] if s["key"] == "products")["style"] == "preisliste_foto"
-    )
+    assert next(s for s in cfg["sections"] if s["key"] == "products")["style"] == "preisliste_foto"
     tenant = TenantFactory.build(site_config=cfg)
     assert "data-price-list" in _home(tenant)
     # страничный пресет каталога принимает второй вариант

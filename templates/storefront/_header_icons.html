@@ -2,6 +2,19 @@
 {% comment %}NAV-v2: правый блок шапки — тема/язык/аккаунт/корзина/бургер
 (вынесен из _base — две ветки стилей). Ожидает style в контексте.{% endcomment %}
 {# P5c: переключатель тёмной темы (иконка проставляется скриптом _base). #}
+{% if storefront_search_url %}
+{% comment %}DS-6: глобальный поиск в шапке (details-дропдаун, без JS) — GET ?q=
+в каталожный листинг (движок поиска UB2-2).{% endcomment %}
+<details class="sf-hsearch relative">
+  <summary aria-label="{% trans 'Search' %}" title="{% trans 'Search' %}" class="list-none cursor-pointer select-none inline-flex items-center justify-center w-9 h-9 rounded-full text-gray-600 hover:bg-gray-100">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+  </summary>
+  <form method="get" action="{{ storefront_search_url }}" class="absolute right-0 mt-1 z-30 flex items-center gap-1 bg-white rounded-xl shadow-lg border border-gray-100 p-2">
+    <input type="search" name="q" value="{{ request.GET.q }}" placeholder="{% trans 'Suchen…' %}" class="w-44 rounded-lg border border-gray-300 px-2 py-1.5 text-sm" autofocus>
+    <button type="submit" class="rounded-lg px-3 py-1.5 text-sm font-medium text-white" style="background: var(--accent, #4f46e5);">{% trans "Search" %}</button>
+  </form>
+</details>
+{% endif %}
 <button id="sf-theme-toggle" type="button" aria-label="{% trans 'Toggle dark mode' %}" aria-pressed="false"
         class="text-lg leading-none w-9 h-9 rounded-full text-gray-600 hover:bg-gray-100">🌙</button>
 {% if storefront_locales|length > 1 %}
