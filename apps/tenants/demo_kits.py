@@ -92,6 +92,9 @@ class DemoKit:
     nav_style: str = "classic"
     promo_count: int = 3
     address: str = ""
+    # DS-4b: город тенанта (сидер по умолчанию ставит Hilden — киты с другим
+    # адресом переопределяют; город виден в eyebrow split-hero и SEO).
+    city: str = ""
     opening_hours_text: str = ""
     # Структурные часы для live-статуса: {weekday(0-6): ("HH:MM","HH:MM")}.
     opening_hours: dict = field(default_factory=dict)
@@ -275,6 +278,12 @@ class DemoKit:
     google_rating: dict = field(default_factory=dict)
     # DS-4 (Fokus): секция anfrage на главной (реестр DS-3b; гейт jobs в партиале).
     enable_anfrage_section: bool = False
+    # DS-4b: принудительно ВЫКЛЮЧИТЬ секции главной (контент кита остаётся —
+    # страницы /galerie/ /team/ живы; главная = курированный макет).
+    sections_off: list = field(default_factory=list)
+    # DS-4b: per-секционный visual ({key: {"background": "#hex", ...}}) —
+    # тонированные полосы макета (ось SE-3d, normalize валидирует).
+    section_visuals: dict = field(default_factory=dict)
     # DS-4: точечные top-level оси конфига (hero_style/nav/catalog_layout…) —
     # shallow-merge ПОСЛЕ look-оверлея (dict-значения мержатся по ключам).
     config_patch: dict = field(default_factory=dict)
@@ -5954,7 +5963,7 @@ HANDWERKER = DemoKit(
 
 CATERING_MENUS = {
     "top": {
-        "style": "centered",
+        "style": "classic",  # DS-4b: «лого | меню | иконки» одной строкой (макет)
         "sticky": True,
         "items": [
             {"label": "Anfrage", "type": "archetype", "target": "jobs"},
@@ -6063,15 +6072,17 @@ CATERING = DemoKit(
     ],
     accent="#15803d",  # frisch/bio-грин (ARCHETYPE_LOOK_ACCENTS)
     hero_image_kw="catering,buffet",
-    hero_title="Grüne Tafel Catering",
-    hero_text="Vegetarisches Catering für Feiern, Büro und Events — sagen Sie uns "
-    "Datum und Gästezahl, wir schicken ein unverbindliches Angebot.",
+    # DS-4b: заголовок-оффер (не дубль названия из шапки) — как в макете.
+    hero_title="Ihr Fest. Unser Buffet.",
+    hero_text="Frisch gekocht für Feiern, Büro und Events — Sie erhalten ein "
+    "Festpreis-Angebot innerhalb von 24 Stunden.",
     about_title="Über uns",
     about_text="Seit 2012 kochen wir für Feste, Firmen und Familien: frisch, "
     "saisonal und mit Zutaten von Höfen aus der Region. Vom Fingerfood bis zum "
     "Hochzeitsbuffet — Sie feiern, wir kümmern uns um den Rest.",
     nav_style="classic",
     address="Gartenstraße 21, 40479 Düsseldorf",
+    city="Düsseldorf",
     opening_hours_text="Mo–Sa 9:00–18:00",
     opening_hours={d: ("09:00", "18:00") for d in range(6)},
     service_area_note="Düsseldorf, Köln und Umgebung — auf Anfrage deutschlandweit",
@@ -6097,6 +6108,30 @@ CATERING = DemoKit(
         "hero_style": "split",
         "nav": {"cta": True},
         "catalog_layout": {"preset": "preisliste"},
+    },
+    # DS-4b «в точности как макет»: главная = 6 блоков (hero → направления →
+    # Speisekarte → шаги → доверие+цифры → форма); остальной контент кита жив
+    # на своих страницах (/galerie/ /team/ /bewertungen/ /aktionen/).
+    sections_off=[
+        "usp_bar",
+        "promotions",
+        "team",
+        "gallery",
+        "reviews",
+        "faq",
+        "testimonials",
+        "cta",  # роль CTA несёт anfrage-банда (иначе две зелёные полосы подряд)
+        "archetypes",  # «Unsere Bereiche» — дубль путей шапки, в макете нет
+        "contact",
+    ],
+    section_visuals={
+        "products": {"background": "#f2f5f0"},
+        "trust": {"background": "#f2f5f0"},
+    },
+    section_titles={
+        "categories": "Was wir für Sie kochen",
+        "products": "Speisekarte",
+        "process": "So funktioniert's",
     },
     enable_categories_section=True,  # GK-15: сетка 6 направлений на главной
     categories=[
@@ -6348,12 +6383,19 @@ CATERING = DemoKit(
         ("local", "Regionale Zutaten", "Gemüse und Kräuter von Höfen aus der Umgebung."),
         ("quality", "Festpreis-Angebot", "Klarer Preis vor der Zusage — keine Überraschungen."),
     ],
-    section_styles={"usp_bar": "pillars", "products": "preisliste", "trust": "compact"},
+    section_styles={
+        "usp_bar": "pillars",
+        "products": "preisliste",
+        "trust": "compact",
+        "categories": "compact",  # DS-4b: строки-плитки с «ab €»
+        "anfrage": "band",  # DS-4b: слим-форма на акцент-полосе
+        "process": "row",
+    },
     # GK-15: главная в структуре референса — цифры-полоса после отзывов, цитата
     # основателя (данные пресета «Gründer-Zitat» GK-7) после trust, newsletter в конце.
     home_blocks=[
         {
-            "after": "testimonials",
+            "after": "trust",
             "key": "stats",
             "data": {
                 "rows": [
@@ -6362,29 +6404,6 @@ CATERING = DemoKit(
                     {"value": "10.000+", "label": "zufriedene Gäste"},
                     {"value": "seit 2012", "label": "aus Düsseldorf"},
                 ]
-            },
-        },
-        {
-            "after": "trust",
-            "key": "image_text",
-            "data": {
-                "url": demo_image("chef,woman", w=800, h=600, lock=870),
-                "side": "right",
-                "size": "lg",
-                "color": "muted",
-                "title": "— Lena Berger, Gründerin & Küchenchefin",
-                "body": "„Wir kochen, wie wir selbst am liebsten essen: frisch, "
-                "saisonal und mit Zeit für die Details.“",
-                "rounded": "3xl",
-            },
-            "visual": {"shadow": True},
-        },
-        {
-            "after": "contact",
-            "key": "newsletter",
-            "data": {
-                "title": "Ideen & Saison-Menüs per E-Mail",
-                "body": "Neue Menüs, Aktionen und Catering-Tipps — etwa einmal im Monat.",
             },
         },
     ],
@@ -7503,8 +7522,6 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
         # HF-1: акции бывают и без каталога (отель: «3 Nächte zum Preis von 2») —
         # секция включается и по наличию промо-спеки.
         {"key": "promotions", "enabled": bool(kit.categories or kit.promotions_spec)},
-        # DS-4 (Fokus): мини-форма заявки на главной (выкл, если кит не включил).
-        {"key": "anfrage", "enabled": kit.enable_anfrage_section},
         {"key": "products", "enabled": bool(kit.categories)},
         # HF-1: лента новостей — если у кита есть посты (иначе секция была бы пустой).
         {"key": "blog", "enabled": bool(kit.blog_posts)},
@@ -7515,6 +7532,9 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
         {"key": "before_after", "enabled": bool(kit.before_after)},
         {"key": "testimonials", "enabled": bool(kit.testimonials)},
         {"key": "trust", "enabled": bool(kit.trust)},
+        # DS-4/4b (Fokus): мини-форма заявки — в КОНЦЕ страницы (макет: доверие →
+        # форма → футер); выкл, если кит не включил.
+        {"key": "anfrage", "enabled": kit.enable_anfrage_section},
         {"key": "reviews", "enabled": bool(kit.reviews_seed)},  # G8/#6: отзывы клиентов
         {"key": "faq", "enabled": bool(kit.faq)},
         {"key": "cta", "enabled": bool(kit.cta)},
@@ -7526,6 +7546,13 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
         style = kit.section_styles.get(s["key"])
         if style:
             s["style"] = style
+        # DS-4b: тонированные полосы макета (visual чистит normalize) + принуди-
+        # тельное выключение секций (контент кита жив — страницы ST-8 работают).
+        vis = kit.section_visuals.get(s["key"])
+        if vis:
+            s["visual"] = dict(vis)
+        if s["key"] in kit.sections_off:
+            s["enabled"] = False
     # GK-15: C-блоки главной из спеки кита (stats/founder-цитата/newsletter…) —
     # тот же принцип якоря «после секции», данные чистит normalize.
     for i, spec in enumerate(kit.home_blocks):
@@ -8097,6 +8124,9 @@ def apply_kit(tenant, key: str) -> bool:
     if kit.whatsapp_number:  # LS-1/LS-2: гейт видео-CTA и presence-пилюли
         tenant.whatsapp_number = kit.whatsapp_number
         update_fields.append("whatsapp_number")
+    if kit.city:  # DS-4b: город кита сильнее дефолта сидера (eyebrow/SEO)
+        tenant.city = kit.city
+        update_fields.append("city")
     if kit.socials:  # GK-15: иконки футера (GK-9) — whitelist полей Tenant
         for f in ("instagram", "facebook", "linkedin", "tiktok", "youtube"):
             if kit.socials.get(f):

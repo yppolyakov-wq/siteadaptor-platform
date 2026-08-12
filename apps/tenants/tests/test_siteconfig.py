@@ -62,7 +62,6 @@ def test_normalize_empty_gives_defaults():
         "stay_rooms",
         "services",
         "promotions",
-        "anfrage",  # DS-3b: мини-форма заявки (Fokus; выкл по умолчанию)
         "categories",
         "products",
         "events",
@@ -78,6 +77,7 @@ def test_normalize_empty_gives_defaults():
         "faq",
         "gallery",
         "before_after",
+        "anfrage",  # DS-4b: мини-форма заявки в КОНЦЕ (доверие → форма → футер)
         "contact",
     ]
     enabled = {s["key"] for s in config["sections"] if s["enabled"]}

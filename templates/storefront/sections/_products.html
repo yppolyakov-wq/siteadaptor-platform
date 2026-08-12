@@ -13,10 +13,12 @@
     {% comment %}DS-3a (Fokus): вид «прайс-лист» — группы по категориям строками;
     свой запрос шире карточного лимита (прайс сканируется, а не листается).{% endcomment %}
     {% price_list_groups as price_groups %}
+    <div class="sf-card bg-white rounded-2xl p-5 md:p-7">
     {% include "storefront/_price_list.html" %}
     <div class="mt-4 flex gap-2">
       <a href="{% url 'storefront-products' %}" class="inline-block rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:border-gray-400">{% trans "Ganze Speisekarte" %} →</a>
       {% speisekarte_pdf_available as pdf_ok %}{% if pdf_ok %}<a href="{% url 'storefront-speisekarte-pdf' %}" target="_blank" rel="noopener" class="inline-block rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:border-gray-400">📄 {% trans "Menu as PDF" %}</a>{% endif %}
+    </div>
     </div>
   {% else %}
   <div data-grid="products" class="{% grid_classes site 'products' %}">

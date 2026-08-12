@@ -4,9 +4,46 @@ PAGE_BLOCK_HOSTS-страниц. Гейт по модулю jobs: выключе
 референс рендерит ничего»). Состав событийных полей — глобальный site.anfrage
 (панель «⚙️ Anfrage-Formular» кабинета); POST идёт в /anfrage/ (action партиала).{% endcomment %}
 {% if storefront_jobs_enabled %}
+{% if section_row.style == "band" %}
+{% comment %}DS-4b (Fokus): «банда» — слим-форма на акцент-полосе (концепт-макет):
+дата/гости/повод (только поля, включённые в site.anfrage) + имя/почта в одну
+строку; POST в штатный приёмник /anfrage/ (title обязателен — hidden). Полная
+форма (фото/адрес/детали) остаётся на /anfrage/.{% endcomment %}
+<section class="mb-10 rounded-2xl p-6 md:p-8 text-white" style="background: var(--accent, #4f46e5);" data-anfrage-band>
+  <h2 class="text-xl md:text-2xl font-bold">{% trans "Planen Sie Ihr nächstes Event?" %}</h2>
+  <p class="text-white/80 text-sm mb-4">{% trans "Tell us what you need — we'll send you a quote." %}</p>
+  <form method="post" action="{% url 'storefront-anfrage' %}" class="flex flex-wrap items-end gap-3">
+    {% csrf_token %}
+    <input type="hidden" name="title" value="{% trans 'Event-Anfrage' %}">
+    <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">
+    {% if "date" in site.anfrage.fields %}
+    <label class="block grow basis-32"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">{% trans "Wunschdatum" %}</span>
+      <input type="date" name="event_date" class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>
+    {% endif %}
+    {% if "guests" in site.anfrage.fields %}
+    <label class="block grow basis-24"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">{% trans "Anzahl Personen" %}</span>
+      <input type="number" name="guest_count" min="1" class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>
+    {% endif %}
+    {% if "event_type" in site.anfrage.fields and site.anfrage.event_types %}
+    <label class="block grow basis-32"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">{% trans "Art der Veranstaltung" %}</span>
+      <select name="event_type" class="w-full rounded-lg border-0 px-3 py-2 text-gray-900">
+        <option value="">—</option>
+        {% for t in site.anfrage.event_types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+      </select></label>
+    {% endif %}
+    <label class="block grow basis-32"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">{% trans "Name" %}</span>
+      <input type="text" name="name" required class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>
+    <label class="block grow basis-40"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">{% trans "Email" %}</span>
+      <input type="email" name="email" class="w-full rounded-lg border-0 px-3 py-2 text-gray-900"></label>
+    <button type="submit" class="rounded-lg bg-white px-5 py-2 font-semibold" style="color: var(--accent, #4f46e5);">{% trans "Request a quote" %}</button>
+    <p class="basis-full text-[11px] text-white/70 m-0">{% trans "Unverbindlich — wir melden uns mit einem Angebot." %}</p>
+  </form>
+</section>
+{% else %}
 <div class="max-w-2xl mx-auto">
   <h2 class="text-xl md:text-2xl font-bold mb-1">{% trans "Request a quote" %}</h2>
   <p class="text-gray-500 mb-4">{% trans "Tell us what you need — we'll send you a quote." %}</p>
   {% include "storefront/_anfrage_form.html" with anfrage_cfg=site.anfrage jobs_vehicle=site.jobs_vehicle has_service_area=request.tenant.has_service_area betreff="" %}
 </div>
+{% endif %}
 {% endif %}

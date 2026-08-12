@@ -9498,3 +9498,30 @@ section_styles += preisliste/compact, hero_widget="" — плитки убран
 Проверено стендом: **сборка CSS обязательна при новых arbitrary-классах** —
 `min-h-[240px]` без пересборки app.css дал невидимое hero-фото (высота 0);
 кнопка формы заявки была фикс-индиго → в акцент тенанта. 2 msgid × 5 .po.
+
+## 2026-08-12 — DS-4b: пилот Fokus «в точности как макет» (фидбэк владельца)
+
+Владелец: «в твоём Фокусе было красивее — повтори в точности как в Look Fokus».
+Разрыв пилот↔макет закрыт: (1) шапка одной строкой — у кита в `menus.top.style`
+стоял "centered" (не nav_style!) → "classic"; (2) split-hero += eyebrow
+«тип · город» (генерик, без ключа; попутно найдено: сидер хардкодит city=Hilden
+для всех демо → НОВОЕ поле `DemoKit.city`, catering=Düsseldorf) + ghost-кнопка
+«Menu» (гейт: primary ≠ catalog) + заголовок-оффер «Ihr Fest. Unser Buffet.»
+(не дубль названия из шапки); (3) НОВЫЙ стиль категорий **compact** — строки-
+плитки «фото 46px + имя + ab-цена + стрелка», ab-цена = Min(base_price) активных
+товаров категории ОДНИМ агрегатом (`categories_with_min_price`); (4) НОВЫЙ стиль
+anfrage **band** — слим-форма на акцент-полосе (Wunschdatum/Gäste/Anlass из
+site.anfrage + Name/E-Mail в одну строку; hidden title «Event-Anfrage» — POST в
+штатный /anfrage/, полная форма живёт там); (5) тонированные полосы Speisekarte/
+доверия — per-секционный `visual.background` (ось SE-3d; новые ветки получили
+класс `sf-card`, чтобы --sf-bg их красил); (6) главная = 6 блоков макета: НОВЫЕ
+generic-поля кита `sections_off` (принудительное выключение — контент жив на
+страницах ST-8) и `section_visuals`; выключены usp_bar/promotions/team/gallery/
+reviews/faq/testimonials/cta (роль CTA несёт форма — иначе две зелёные полосы)/
+archetypes/contact; из C-блоков остался stats после trust (founder/newsletter —
+вне макета); (7) секция anfrage ПЕРЕЕХАЛА в конец реестра SECTIONS (доверие →
+форма → футер; ⚠️ вторая осознанная golden-регенерация за день + правка
+order-замка); (8) кнопка полной формы AF-2 — в акцент тенанта (была фикс-индиго).
+Грабля-повтор: стенд `--noreload` кэширует шаблоны — после template-правок
+РЕСТАРТ (полчаса ловли «стиль не применяется»). Замки demo_kits переписаны
+под макет-состав; 2 msgid × 5 .po.

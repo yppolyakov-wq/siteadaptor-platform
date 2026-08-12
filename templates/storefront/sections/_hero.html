@@ -7,9 +7,17 @@
 {% firstof site.hero_image site.heroes.0.image as split_photo %}
 <section class="mb-10 grid md:grid-cols-2 gap-6 md:gap-10 items-center" data-hero-split>
   <div class="py-4 md:py-10">
+    {% comment %}DS-4b: eyebrow «тип · город» (генерик, без нового ключа) — как в
+    концепт-макете; пустой город → только тип.{% endcomment %}
+    <p class="text-[11px] font-bold tracking-[0.13em] uppercase mb-2" style="color: var(--accent, #4f46e5);">{{ request.tenant.get_business_type_display }}{% if request.tenant.city %} · {{ request.tenant.city }}{% endif %}</p>
     <h1 class="text-3xl md:text-5xl font-bold leading-tight" data-edit="hero_title">{{ site.hero_title|default:request.tenant.name }}</h1>
     {% if site.hero_text %}<p class="mt-4 text-gray-600 max-w-md whitespace-pre-line" data-edit="hero_text">{{ site.hero_text }}</p>{% endif %}
+    <span class="flex flex-wrap items-center gap-2">
     {% include "storefront/sections/_hero_cta.html" %}
+    {% comment %}DS-4b: ghost-кнопка «Speisekarte/Menu» — вторая дорога первого
+    экрана (макет); только когда primary НЕ каталог (иначе дубль CTA).{% endcomment %}
+    {% if primary_item and primary_item.module != "catalog" %}<a href="{% url 'storefront-products' %}" class="inline-block mt-5 rounded-lg px-6 py-2.5 font-medium border border-gray-300 hover:border-gray-400">{% trans "Menu" %}</a>{% endif %}
+    </span>
     {% if request.tenant.google_rating or site.trust.since %}
     <p class="mt-4 text-sm text-gray-500">
       {% if request.tenant.google_rating %}<b class="text-gray-900">★ {{ request.tenant.google_rating|floatformat:1 }}</b> · {% blocktrans count n=request.tenant.google_rating_count %}{{ n }} Google-Bewertung{% plural %}{{ n }} Google-Bewertungen{% endblocktrans %}{% endif %}

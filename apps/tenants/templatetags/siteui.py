@@ -477,3 +477,21 @@ def speisekarte_pdf_available(context):
         )
     except Exception:  # noqa: BLE001 — витринная секция не должна падать
         return False
+
+
+@register.simple_tag
+def categories_with_min_price(categories):
+    """DS-4b (Fokus): компакт-плитки направлений — «ab X €» из самого дешёвого
+    активного товара категории (ОДИН запрос агрегатом на все категории)."""
+    from django.db.models import Min
+
+    from apps.catalog.models import Product
+
+    pks = [c.pk for c in categories]
+    mins = dict(
+        Product.objects.filter(is_active=True, category_id__in=pks)
+        .values_list("category_id")
+        .annotate(m=Min("base_price"))
+        .values_list("category_id", "m")
+    )
+    return [{"c": c, "min_price": mins.get(c.pk)} for c in categories]

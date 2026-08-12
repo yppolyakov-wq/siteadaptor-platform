@@ -17500,3 +17500,13 @@ msgid "Startpaket"
 msgstr "Starter pack"
 msgid "Startpaket angewendet."
 msgstr "Starter pack applied."
+
+# DS-4b: anfrage-банда на главной (Fokus)
+msgid "Planen Sie Ihr nächstes Event?"
+msgstr "Planning your next event?"
+msgid "Event-Anfrage"
+msgstr "Event enquiry"
+
+# DS-4b: стиль anfrage-секции
+msgid "Farbband"
+msgstr "Color band"

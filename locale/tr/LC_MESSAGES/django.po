@@ -17612,3 +17612,13 @@ msgid "Startpaket"
 msgstr "Başlangıç paketi"
 msgid "Startpaket angewendet."
 msgstr "Başlangıç paketi uygulandı."
+
+# DS-4b: anfrage-банда на главной (Fokus)
+msgid "Planen Sie Ihr nächstes Event?"
+msgstr "Bir etkinlik mi planlıyorsunuz?"
+msgid "Event-Anfrage"
+msgstr "Etkinlik talebi"
+
+# DS-4b: стиль anfrage-секции
+msgid "Farbband"
+msgstr "Renkli şerit"

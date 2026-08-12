@@ -1244,8 +1244,12 @@ def test_apply_catering_kit_jobs_speisekarte_browse_only():
     # DS-4: пилот Fokus — look="klar" → акцент klar/catering из реестра.
     assert tenant.primary_color == "#15803d"
     enabled = {s["key"] for s in cfg["sections"] if s["enabled"]}
-    assert {"hero", "usp_bar", "products", "process", "faq", "cta"} <= enabled
-    assert cfg["cta"]["button_url"] == "/anfrage/"
+    # DS-4b: главная = 6 блоков макета Fokus (usp/faq/cta/testimonials/contact
+    # выключены sections_off — их контент жив на своих страницах ST-8).
+    assert {"hero", "categories", "products", "process", "trust", "anfrage"} <= enabled
+    for off in ("usp_bar", "faq", "cta", "testimonials", "contact", "promotions"):
+        assert off not in enabled, off
+    assert cfg["cta"]["button_url"] == "/anfrage/"  # данные целы (секция скрыта)
 
 
 def test_apply_catering_kit_reference_parity_gk15():
@@ -1270,18 +1274,15 @@ def test_apply_catering_kit_reference_parity_gk15():
     cats_row = next(s for s in cfg["sections"] if s["key"] == "categories")
     assert cats_row["enabled"] is True
     blocks = {s["key"]: s for s in cfg["sections"] if s.get("id", "").startswith("demo-block-")}
-    # stats: 4 пары «число+подпись» пережили _clean_cblock_data
+    # DS-4b «в точности макет»: из C-блоков остаётся ТОЛЬКО полоса цифр —
+    # сразу после доверия (founder/newsletter в макете Fokus нет).
     rows = blocks["stats"]["data"]["rows"]
     assert len(rows) == 4 and rows[0] == {"value": "200+", "label": "Events pro Jahr"}
-    # цитата основателя: данные пресета «Gründer-Zitat» (image_text)
-    founder = blocks["image_text"]["data"]
-    assert founder["side"] == "right" and "Gründerin" in founder["title"]
-    # newsletter-блок в конце главной
-    assert blocks["newsletter"]["data"]["title"] == "Ideen & Saison-Menüs per E-Mail"
-    # порядок: stats после testimonials, newsletter — после contact (хвост)
+    assert "image_text" not in blocks and "newsletter" not in blocks
     keys = [s["key"] for s in cfg["sections"]]
-    assert keys.index("stats") == keys.index("testimonials") + 1
-    assert keys.index("newsletter") == keys.index("contact") + 1
+    assert keys.index("stats") == keys.index("trust") + 1
+    # форма заявки — после цифр (доверие → цифры → форма → футер)
+    assert keys.index("anfrage") == keys.index("stats") + 1
 
     # GK-6: у отзывов демо — звёзды и фото (аватар-ряд trust)
     t0 = cfg["testimonials"][0]
