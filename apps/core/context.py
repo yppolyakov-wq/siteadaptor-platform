@@ -340,6 +340,9 @@ def modules_nav(request):
         "storefront_nav_cta": storefront_nav_cta,
         # DS-6: поиск в шапке ("" = иконки нет).
         "storefront_search_url": storefront_search_url,
+        # DS-7b: активна ли продажа (orders) — при ней цены в меню скрывать
+        # нельзя (PAngV), тумблер menu_show_prices игнорируется рендером.
+        "storefront_orders_active": modules.is_module_active(tenant, "orders"),
         # P2a: системные шрифт-стеки витрины (тело/заголовки).
         "storefront_font_body": font_body,
         "storefront_font_head": font_head,

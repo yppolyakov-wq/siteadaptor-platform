@@ -148,6 +148,22 @@ def test_all_price_styles_valid_and_render(style):
     assert page["catalog_layout"]["preset"] == style
 
 
+def test_preisliste_foto_renders_thumbs():
+    # Фикс DS-7: p.image_url не существовал у Product — фото молча пропадали.
+    _seed_products()
+    prod = Product.objects.get(name__de="Buffet Vegetarisch")
+    prod.images = [{"id": "i1", "url": "/media/buffet.jpg", "is_primary": True}]
+    prod.save(update_fields=["images"])
+    html = _render_home(
+        TenantFactory.build(
+            site_config={
+                "sections": [{"key": "products", "enabled": True, "style": "preisliste_foto"}]
+            }
+        )
+    )
+    assert 'src="/media/buffet.jpg"' in html
+
+
 def test_price_style_variants_differ():
     _seed_products()
 

@@ -1,0 +1,75 @@
+{% extends "storefront/_base.html" %}
+{% load i18n siteui %}
+{% block title %}{{ category }} — {{ request.tenant.name }}{% endblock %}
+{% block meta_description %}{{ landing_description|truncatechars:160 }}{% endblock %}
+{% comment %}DS-7a: целевой лендинг направления (Fokus-композиция): split-шапка →
+галерея → примеры БЕЗ цен (решение владельца: лендинг продаёт направление, цены
+живут в Speisekarte) → цитаты → форма заявки (гейт jobs) с прицелом на
+направление (?betreff=). План docs/ds7-category-landings-plan-2026-08-12.md.{% endcomment %}
+{% block content %}
+<nav class="mb-4 text-sm text-gray-400"><a href="{% url 'storefront-home' %}" class="hover:underline">{{ request.tenant.name }}</a> · <span class="text-gray-600">{{ category }}</span></nav>
+
+<section class="mb-10 grid md:grid-cols-2 gap-6 md:gap-10 items-center" data-landing-hero>
+  <div class="py-2 md:py-8">
+    <p class="text-[11px] font-bold tracking-[0.13em] uppercase mb-2" style="color: var(--accent, #4f46e5);">{{ request.tenant.get_business_type_display }}{% if request.tenant.city %} · {{ request.tenant.city }}{% endif %}</p>
+    <h1 class="text-3xl md:text-5xl font-bold leading-tight">{{ category }}</h1>
+    {% if landing_description %}<p class="mt-4 text-gray-600 max-w-md whitespace-pre-line">{{ landing_description }}</p>{% endif %}
+    <span class="flex flex-wrap items-center gap-2">
+      {% if storefront_jobs_enabled %}
+      <a href="{% url 'storefront-anfrage' %}?betreff={{ category|urlencode }}" class="inline-block mt-5 rounded-lg px-6 py-2.5 font-medium text-white hover:opacity-90" style="background: var(--accent, #4f46e5);">{% trans "Request a quote" %}</a>
+      {% endif %}
+      <a href="{% url 'storefront-products' %}?kategorie={{ category.slug }}" class="inline-block mt-5 rounded-lg px-6 py-2.5 font-medium border border-gray-300 hover:border-gray-400">{% trans "Menu" %}</a>
+    </span>
+  </div>
+  <div class="relative min-h-[240px] md:min-h-[360px] rounded-2xl overflow-hidden bg-gray-100">
+    {% if landing_photo %}<img src="{{ landing_photo }}" alt="{{ category }}" class="absolute inset-0 w-full h-full object-cover">{% endif %}
+  </div>
+</section>
+
+{% if landing_gallery|length > 1 %}
+<section class="mb-10" data-landing-gallery>
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+    {% for url in landing_gallery %}
+      <div class="aspect-[4/3] rounded-xl overflow-hidden bg-gray-100"><img src="{{ url }}" alt="" loading="lazy" class="w-full h-full object-cover"></div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if landing_products %}
+<section class="mb-10 sf-card bg-white rounded-2xl p-6 md:p-8" data-landing-examples>
+  <h2 class="text-xl md:text-2xl font-bold mb-1">{% trans "Beispiele aus der Küche" %}</h2>
+  <p class="text-sm text-gray-500 mb-4">{% trans "Jedes Event wird individuell zusammengestellt — fragen Sie unverbindlich an." %}</p>
+  <div class="grid sm:grid-cols-2 gap-x-8 gap-y-2 max-w-3xl">
+    {% for p in landing_products %}
+      {% comment %}БЕЗ цен (решение владельца): имя + состав, ссылка на деталь.{% endcomment %}
+      <a href="{% url 'storefront-product' p.pk %}" class="group py-1.5 border-b border-dotted border-gray-300">
+        <span class="font-medium group-hover:underline">{{ p }}</span>
+        {% with d=p.description_text %}{% if d %}<span class="block text-sm text-gray-500">{{ d|truncatechars:70 }}</span>{% endif %}{% endwith %}
+      </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if testimonials %}
+<section class="mb-10 sf-card bg-white rounded-2xl shadow-sm p-6 md:p-8" data-landing-quotes>
+  <div class="grid md:grid-cols-2 gap-6">
+    {% for t in testimonials %}
+    <blockquote class="border-l-2 pl-4 text-sm text-gray-700" style="border-color: var(--accent, #4f46e5);">
+      „{{ t.text }}“
+      <footer class="mt-2 text-xs text-gray-400 not-italic">— {{ t.name }}</footer>
+    </blockquote>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if storefront_jobs_enabled %}
+<section class="mb-10 rounded-2xl p-6 md:p-8 text-white" style="background: var(--accent, #4f46e5);" data-landing-anfrage>
+  <h2 class="text-xl md:text-2xl font-bold">{% trans "Planen Sie Ihr nächstes Event?" %}</h2>
+  <p class="text-white/80 text-sm mb-4">{% trans "Tell us what you need — we'll send you a quote." %}</p>
+  <a href="{% url 'storefront-anfrage' %}?betreff={{ category|urlencode }}" class="inline-block rounded-lg bg-white px-5 py-2 font-semibold" style="color: var(--accent, #4f46e5);">{% trans "Request a quote" %}</a>
+</section>
+{% endif %}
+{% endblock %}

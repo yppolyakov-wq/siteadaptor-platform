@@ -17,11 +17,13 @@
   {% categories_with_min_price categories as cat_rows %}
   <div data-grid="categories" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
     {% for r in cat_rows %}
-    <a href="{% url 'storefront-products' %}?kategorie={{ r.c.slug }}" class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-2.5 hover:border-gray-300">
+    {% comment %}DS-7a: при включённых лендингах направление ведёт на свой
+    /bereich/<slug>/ (fail-safe — фильтр каталога).{% endcomment %}
+    <a href="{% if site.category_landings and r.c.landing_ready %}{% url 'storefront-bereich' r.c.slug %}{% else %}{% url 'storefront-products' %}?kategorie={{ r.c.slug }}{% endif %}" class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-2.5 hover:border-gray-300">
       {% with img=r.c.images.0 %}{% if img.url %}<img src="{{ img.url }}" alt="" class="w-12 h-12 rounded-lg object-cover shrink-0">{% endif %}{% endwith %}
       <span class="min-w-0">
         <span class="block font-semibold text-sm leading-tight truncate">{{ r.c }}</span>
-        {% if r.min_price %}<span class="block text-xs text-gray-500" style="font-variant-numeric: tabular-nums;">{% trans "from" %} {{ r.min_price }} €</span>{% endif %}
+        {% if r.min_price %}{% if storefront_orders_active or site.menu_show_prices != False %}<span class="block text-xs text-gray-500" style="font-variant-numeric: tabular-nums;">{% trans "from" %} {{ r.min_price }} €</span>{% endif %}{% endif %}
       </span>
       <span class="ml-auto font-bold" style="color: var(--accent, #4f46e5);">→</span>
     </a>

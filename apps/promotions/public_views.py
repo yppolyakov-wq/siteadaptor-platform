@@ -483,6 +483,57 @@ def _carry_qs(params: dict) -> str:
     return urlencode({k: v for k, v in params.items() if v not in (None, "", False)})
 
 
+def category_landing(request, slug):
+    """DS-7a: целевой лендинг направления (категории) — /bereich/<slug>/.
+
+    Fokus-композиция: split-шапка (описание + CTA с прицелом на направление) +
+    галерея + примеры БЕЗ цен + цитаты + форма заявки. Двойной гейт (класс
+    ST-8): общий тумблер `category_landings` И контент у категории (description
+    или фото) — иначе 404 (пустой лендинг хуже фильтра каталога).
+    """
+    from django.http import Http404
+    from django.utils.translation import get_language
+
+    from apps.catalog.models import Category, Product
+    from apps.tenants import siteconfig
+
+    site = siteconfig.localize(siteconfig.normalize(request.tenant.site_config), get_language())
+    if not site.get("category_landings"):
+        raise Http404
+    category = get_object_or_404(Category, slug=slug, is_active=True, parent__isnull=True)
+    description = category.get_i18n("description")
+    photos = [img.get("url") for img in (category.images or []) if img.get("url")]
+    products = list(
+        Product.objects.filter(is_active=True, category=category).order_by(
+            "-is_featured", "created_at"
+        )[:8]
+    )
+    if not (description or photos):
+        raise Http404
+    # Галерея: фото категории, ДОБРАННЫЕ фото товаров направления (до 6,
+    # без дублей) — у большинства категорий одно фото, секция бы пряталась.
+    gallery = list(photos)
+    for prod in products:
+        pimg = prod.primary_image
+        url = pimg.get("url", "") if pimg else ""
+        if url and url not in gallery:
+            gallery.append(url)
+    gallery = gallery[:6]
+    return render(
+        request,
+        "storefront/category_landing.html",
+        {
+            "site": site,
+            "category": category,
+            "landing_description": description,
+            "landing_gallery": gallery,
+            "landing_products": products,
+            "landing_photo": (photos[:1] or gallery[:1] or [""])[0],
+            "testimonials": (site.get("testimonials") or [])[:2],
+        },
+    )
+
+
 def product_list(request):
     """Публичный каталог витрины (Track C1): активные товары + фасет-фильтры + сортировка.
 

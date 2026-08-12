@@ -17666,3 +17666,13 @@ msgid "Preisliste zweispaltig"
 msgstr "İki sütunlu fiyat listesi"
 msgid "Speisekarte klassisch"
 msgstr "Klasik menü kartı"
+
+# DS-7: лендинги направлений + цены в меню
+msgid "Bereichs-Landingpages"
+msgstr "Kategori açılış sayfaları"
+msgid "Preise in der Speisekarte anzeigen"
+msgstr "Menüde fiyatları göster"
+msgid "Beispiele aus der Küche"
+msgstr "Mutfağımızdan örnekler"
+msgid "Jedes Event wird individuell zusammengestellt — fragen Sie unverbindlich an."
+msgstr "Her etkinlik size özel hazırlanır — bağlayıcı olmayan bir talep gönderin."

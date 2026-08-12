@@ -29,7 +29,9 @@ square — 1:1, tall — 3:4, wide — 16:9. Колонки берутся из 
     </span>
   </div>
 {% else %}
-  <a href="{% url 'storefront-products' %}?kategorie={{ c.slug }}"
+  {% comment %}DS-7a: лендинг направления вместо фильтра — когда включён тумблер
+  и у категории есть контент (описание/фото).{% endcomment %}
+  <a href="{% if site.category_landings and c.landing_ready %}{% url 'storefront-bereich' c.slug %}{% else %}{% url 'storefront-products' %}?kategorie={{ c.slug }}{% endif %}"
      class="sf-card block bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md hover:border-indigo-300 border {% if cat_active %}border-indigo-400{% else %}border-transparent{% endif %} transition">
     {% if c.image_url %}
       {% comment %}DS-5: заданная высота фото (px из Studio) сильнее аспекта.{% endcomment %}
@@ -39,7 +41,7 @@ square — 1:1, tall — 3:4, wide — 16:9. Колонки берутся из 
       <span class="font-medium">{{ c }}</span>
       {% if cat_info %}{# DS-5: инфо-строка плитки — ab-цена и/или число товаров #}
       <span class="block text-xs text-gray-500 mt-0.5" style="font-variant-numeric: tabular-nums;">
-        {% if "price" in cat_info and cat_min_price %}{% trans "from" %} {{ cat_min_price }} €{% endif %}{% if "price" in cat_info and cat_min_price and "count" in cat_info %} · {% endif %}{% if "count" in cat_info %}{% blocktrans count n=cat_count %}{{ n }} Produkt{% plural %}{{ n }} Produkte{% endblocktrans %}{% endif %}
+        {% if "price" in cat_info and cat_min_price %}{% if storefront_orders_active or site.menu_show_prices != False %}{% trans "from" %} {{ cat_min_price }} €{% endif %}{% endif %}{% if "price" in cat_info and cat_min_price and "count" in cat_info %} · {% endif %}{% if "count" in cat_info %}{% blocktrans count n=cat_count %}{{ n }} Produkt{% plural %}{{ n }} Produkte{% endblocktrans %}{% endif %}
       </span>
       {% endif %}
     </span>

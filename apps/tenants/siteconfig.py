@@ -2697,6 +2697,16 @@ def _normalize_impl(config) -> dict:
     # Presence-minimal: ключ только при включении — golden целы.
     if nav_in.get("cta"):
         normalized["nav"]["cta"] = True
+    # DS-7a: лендинги направлений /bereich/<slug>/ (presence-minimal, дефолт
+    # ВЫКЛ — описания категорий у существующих тенантов не должны внезапно
+    # рождать страницы и перенаправлять плитки).
+    if config.get("category_landings"):
+        normalized["category_landings"] = True
+    # DS-7b: цены в меню (прайс-виды/плитки). Дефолт ПОКАЗЫВАТЬ; ключ
+    # материализуется только при False. PAngV-гейт применяет вьюха/форма
+    # (скрытие только для browse-only меню) — normalize хранит намерение.
+    if config.get("menu_show_prices") is False:
+        normalized["menu_show_prices"] = False
     # S7: многоуровневое меню (top + bottom). Дерево узлов с привязкой к
     # архетипам/категориям/страницам/URL/якорям; глубина 2. Легаси без `menus`
     # → top выводим из `nav` (та же плоская шапка, без регрессии), bottom —

@@ -2658,6 +2658,15 @@ def pages_view(request):
     if request.method == "POST":
         config = siteconfig.normalize(request.tenant.site_config)
         config["catalog_layout"] = {"preset": request.POST.get("catalog_preset", "")}
+        # DS-7: тумблеры каталожного блока (сентинел cl_present — чужой POST не
+        # роняет ключи, класс W0). Скрытие цен — только browse-only (PAngV);
+        # при активном orders чекбокс не рендерится и ключ не трогаем.
+        if request.POST.get("cl_present"):
+            config["category_landings"] = request.POST.get("category_landings") == "on"
+            from apps.core import modules as _modules
+
+            if not _modules.is_module_active(request.tenant, "orders"):
+                config["menu_show_prices"] = request.POST.get("menu_show_prices") == "on"
         config["detail_related_layout"] = {"preset": request.POST.get("related_preset", "")}
         config["stay_index_layout"] = {
             "preset": request.POST.get("stay_index_preset", ""),
@@ -2725,6 +2734,10 @@ def pages_view(request):
             "preset_options": preset_options,
             "catalog_preset_options": catalog_preset_options,  # DS-3a
             "catalog_preset": config["catalog_layout"]["preset"],
+            # DS-7: текущие значения тумблеров каталожного блока.
+            "category_landings_on": bool(config.get("category_landings")),
+            "menu_prices_on": config.get("menu_show_prices") is not False,
+            "orders_active_for_prices": modules.is_module_active(request.tenant, "orders"),
             "related_preset": config["detail_related_layout"]["preset"],
             "stay_index_preset": config["stay_index_layout"]["preset"],
             "events_index_preset": config["events_index_layout"]["preset"],

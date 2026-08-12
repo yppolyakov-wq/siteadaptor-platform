@@ -17735,3 +17735,13 @@ msgid "Preisliste zweispaltig"
 msgstr "Прайс у дві колонки"
 msgid "Speisekarte klassisch"
 msgstr "Класичне меню"
+
+# DS-7: лендинги направлений + цены в меню
+msgid "Bereichs-Landingpages"
+msgstr "Лендинги напрямів"
+msgid "Preise in der Speisekarte anzeigen"
+msgstr "Показувати ціни в меню"
+msgid "Beispiele aus der Küche"
+msgstr "Приклади з нашої кухні"
+msgid "Jedes Event wird individuell zusammengestellt — fragen Sie unverbindlich an."
+msgstr "Кожен захід збирається індивідуально — надішліть запит без зобов’язань."

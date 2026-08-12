@@ -277,6 +277,8 @@ urlpatterns = [
     path("sortiment/", public_views.product_list, name="storefront-products"),
     # M4-B Lookbook: страница образа (подборка товаров с фото).
     path("lookbook/<slug:slug>/", collections_public.lookbook, name="storefront-lookbook"),
+    # DS-7a: целевой лендинг направления (категории) — «Hochzeits-Catering» и т.п.
+    path("bereich/<slug:slug>/", public_views.category_landing, name="storefront-bereich"),
     path("sortiment/<uuid:pk>/", public_views.product_detail, name="storefront-product"),
     # M2 Boutique: Warteliste товара/размера («ausverkauft → benachrichtigen»).
     path(

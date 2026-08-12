@@ -17554,3 +17554,13 @@ msgid "Preisliste zweispaltig"
 msgstr "Two-column price list"
 msgid "Speisekarte klassisch"
 msgstr "Classic menu card"
+
+# DS-7: лендинги направлений + цены в меню
+msgid "Bereichs-Landingpages"
+msgstr "Category landing pages"
+msgid "Preise in der Speisekarte anzeigen"
+msgstr "Show prices in the menu"
+msgid "Beispiele aus der Küche"
+msgstr "Examples from our kitchen"
+msgid "Jedes Event wird individuell zusammengestellt — fragen Sie unverbindlich an."
+msgstr "Every event is put together individually — send us a no-obligation enquiry."

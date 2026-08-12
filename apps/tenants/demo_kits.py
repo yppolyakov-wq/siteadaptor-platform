@@ -6119,6 +6119,7 @@ CATERING = DemoKit(
         "hero_style": "split",
         "nav": {"cta": True},
         "catalog_layout": {"preset": "preisliste"},
+        "category_landings": True,  # DS-7: плитки направлений → /bereich/<slug>/
     },
     # DS-4b «в точности как макет»: главная = 6 блоков (hero → направления →
     # Speisekarte → шаги → доверие+цифры → форма); остальной контент кита жив
@@ -6175,6 +6176,7 @@ CATERING = DemoKit(
                 ),
             ],
             "catering,buffet",  # DS-2: фото плитки (реальный файл, не SVG)
+            "Warme Buffets und Menüs für 20 bis 200 Gäste — saisonal, vegetarisch und vor Ort frisch angerichtet. Wir planen Menge, Ablauf und Aufbau gemeinsam mit Ihnen.",
         ),
         (
             "Fingerfood & Platten",
@@ -6229,6 +6231,7 @@ CATERING = DemoKit(
                 ),
             ],
             "antipasti",  # DS-2: фото плитки (реальный файл, не SVG)
+            "Fingerfood-Platten und Häppchen für Empfang, Vernissage oder Stehparty — pro Person kalkuliert, geliefert und hübsch angerichtet.",
         ),
         # GK-15: сетка категорий как у референса (6 направлений-событий) —
         # каждое со своими пакетами «€ p. P. + ab N Personen».
@@ -6263,6 +6266,7 @@ CATERING = DemoKit(
                 ),
             ],
             "vegan,cake",  # DS-2: фото плитки (реальный файл, не SVG)
+            "Ihr Hochzeitsbuffet ohne Stress: Probeessen, Menüplanung, Sektempfang und Mitternachtssnack — wir begleiten den ganzen Abend.",
         ),
         (
             "Business & Seminar",
@@ -6287,6 +6291,7 @@ CATERING = DemoKit(
                 ),
             ],
             "coffee,cafe",  # DS-2: фото плитки (реальный файл, не SVG)
+            "Business-Lunch, Seminar-Pausen und Konferenz-Catering — pünktlich ins Büro geliefert, inklusive Geschirr und Aufbau.",
         ),
         (
             "Private Feiern & Messe",
@@ -6311,6 +6316,7 @@ CATERING = DemoKit(
                 ),
             ],
             "grill,plate",  # DS-2: фото плитки (реальный файл, не SVG)
+            "Geburtstage, Jubiläen und Messen: herzhafte Klassiker und Fingerfood nach Wahl, Standversorgung ganztägig.",
         ),
         (
             "Getränke",
@@ -6325,6 +6331,7 @@ CATERING = DemoKit(
                 ),
             ],
             "lemonade",  # DS-2: фото плитки (реальный файл, не SVG)
+            "Getränkepakete zur Feier: Wasser, Säfte, Kaffee und mehr — kalkuliert pro Person, geliefert und gekühlt.",
         ),
         # DS-6 (фидбэк «хотя бы 4, лучше 8 плиток»): направления до 8 —
         # сетка «Was wir für Sie kochen» полная при любой раскладке 3–4.
@@ -6351,6 +6358,7 @@ CATERING = DemoKit(
                 ),
             ],
             "croissant",
+            "Brunch-Buffets und Kaffee-Pausen für Vormittags-Events: Brötchen, Aufstriche, Obst und warme Kleinigkeiten.",
         ),
         (
             "Desserts & Süßes",
@@ -6373,6 +6381,7 @@ CATERING = DemoKit(
                 ),
             ],
             "cheesecake",
+            "Dessertbuffets, Torten und Süßes vom Blech — vom Mini-Törtchen bis zur mehrstöckigen Hochzeitstorte nach Absprache.",
         ),
     ],
     gallery_kw=[
@@ -7789,8 +7798,11 @@ def apply_kit(tenant, key: str) -> bool:
         extra = entry[3] if len(entry) > 3 else []
         photo_kw = extra if isinstance(extra, str) else ""
         children = extra if isinstance(extra, list) else []
+        # DS-7a: 5-й элемент — описание направления (лендинг /bereich/<slug>/).
+        landing_desc = entry[4] if len(entry) > 4 else ""
         category = Category.objects.create(
             name=_i18n_text(name),
+            description={"de": landing_desc} if landing_desc else {},
             slug=f"demo-{slug}",
             sort_order=sort,
             is_active=True,

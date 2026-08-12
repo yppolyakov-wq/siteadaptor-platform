@@ -20,6 +20,19 @@
       <select name="catalog_preset" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
         {% for pk, plabel in catalog_preset_options|default:preset_options %}<option value="{{ pk }}" {% if pk == catalog_preset %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
       </select>
+      {% comment %}DS-7: лендинги направлений + цены в меню (сентинел cl_present —
+      W0-инвариант; скрытие цен только browse-only, PAngV).{% endcomment %}
+      <input type="hidden" name="cl_present" value="1">
+      <label class="mt-2 flex items-center gap-2 text-sm text-gray-600">
+        <input type="checkbox" name="category_landings" {% if category_landings_on %}checked{% endif %} class="rounded border-gray-300">
+        {% trans "Bereichs-Landingpages" %} <span class="text-xs text-gray-400">(/bereich/…)</span>
+      </label>
+      {% if not orders_active_for_prices %}
+      <label class="mt-1 flex items-center gap-2 text-sm text-gray-600">
+        <input type="checkbox" name="menu_show_prices" {% if menu_prices_on %}checked{% endif %} class="rounded border-gray-300">
+        {% trans "Preise in der Speisekarte anzeigen" %}
+      </label>
+      {% endif %}
     </label>
     <label class="block text-sm">
       <span class="block font-medium mb-1">{% trans "Related products grid" %}</span>

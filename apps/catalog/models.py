@@ -80,6 +80,13 @@ class Category(SoftDeleteMixin, I18nMixin):
         return img.get("url", "") if img else ""
 
     @property
+    def landing_ready(self) -> bool:
+        """DS-7a: есть ли контент для лендинга направления /bereich/<slug>/
+        (описание с текстом или фото) — плитки ссылаются на лендинг только
+        тогда (пустой лендинг хуже фильтра каталога)."""
+        return any((self.description or {}).values()) or bool(self.images)
+
+    @property
     def size_table_rows(self) -> list[list[str]]:
         """M2: разобранная Größentabelle — [[ячейки], …]; пусто при отсутствии.
 
