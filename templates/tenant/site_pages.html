@@ -18,7 +18,7 @@
       <span class="block font-medium mb-1">{% trans "Catalog grid" %}</span>
       <span class="block text-xs text-gray-400 mb-1.5">{% trans "Products page (/sortiment/)." %}</span>
       <select name="catalog_preset" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-        {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if pk == catalog_preset %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+        {% for pk, plabel in catalog_preset_options|default:preset_options %}<option value="{{ pk }}" {% if pk == catalog_preset %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
       </select>
     </label>
     <label class="block text-sm">

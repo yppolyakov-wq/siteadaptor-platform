@@ -17637,3 +17637,11 @@ msgstr "Speisekarte als PDF"
 # GK-14: Anfrage-CTA на browse-only каталоге
 msgid "Unverbindlich — wir melden uns mit einem Angebot."
 msgstr "Unverbindlich — wir melden uns mit einem Angebot."
+
+# DS-3a: прайс-лист каталога (Fokus)
+msgid "Ganze Speisekarte"
+msgstr "Ganze Speisekarte"
+msgid "Weitere"
+msgstr "Weitere"
+msgid "Preisliste"
+msgstr "Preisliste"

@@ -4,6 +4,7 @@ from django import template
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.utils.translation import get_language
+from django.utils.translation import gettext as _
 
 from apps.tenants import siteconfig, video
 
@@ -417,3 +418,62 @@ def lang_badge(code):
     from apps.core.langs import badge
 
     return badge(code)
+
+
+# ── DS-3a (Fokus): «прайс-лист» — вид вывода товаров ────────────────────────
+
+
+def _price_group_rows(products):
+    """Сгруппировать товары по категории (порядок sort_order, безкатегорийные в
+    конце). Продукты идут в исходном порядке внутри группы."""
+    groups: dict = {}
+    for p in products:
+        cat = getattr(p, "category", None)
+        key = cat.pk if cat is not None else None
+        if key not in groups:
+            name = cat.get_i18n("name") if cat is not None else _("Weitere")
+            sort = getattr(cat, "sort_order", 10**6) if cat is not None else 10**6
+            groups[key] = {"name": name, "sort": sort, "items": []}
+        groups[key]["items"].append(p)
+    return sorted(groups.values(), key=lambda g: g["sort"])
+
+
+@register.simple_tag
+def price_list_groups(limit=40):
+    """Секция главной в стиле «preisliste»: активные товары группами по
+    категориям (собственный запрос — выполняется ТОЛЬКО при выбранном стиле;
+    лимит секции-превью намеренно шире карточного — прайс сканируется)."""
+    from apps.catalog.models import Product
+
+    qs = (
+        Product.objects.filter(is_active=True)
+        .select_related("category")
+        .order_by("category__sort_order", "-is_featured", "created_at")[:limit]
+    )
+    return _price_group_rows(qs)
+
+
+@register.simple_tag
+def price_groups_from(items):
+    """Страница каталога в пресете «preisliste»: группировка ТЕКУЩЕЙ выдачи
+    листинга (фасеты/поиск/пагинация уже применены провайдером UB)."""
+    return _price_group_rows(list(items))
+
+
+@register.simple_tag(takes_context=True)
+def speisekarte_pdf_available(context):
+    """GK-13-гейт для мест вне вьюхи каталога (секция главной): FOOD-тип и есть
+    активные товары — зеркало условия storefront-speisekarte-pdf (fail-closed)."""
+    try:
+        from apps.catalog.models import Product
+        from apps.catalog.views import FOOD_BUSINESS_TYPES
+
+        request = context.get("request")
+        tenant = getattr(request, "tenant", None)
+        return (
+            tenant is not None
+            and getattr(tenant, "business_type", "") in FOOD_BUSINESS_TYPES
+            and Product.objects.filter(is_active=True).exists()
+        )
+    except Exception:  # noqa: BLE001 — витринная секция не должна падать
+        return False

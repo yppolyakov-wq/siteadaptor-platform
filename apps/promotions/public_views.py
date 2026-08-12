@@ -682,6 +682,8 @@ def product_list(request):
             ),
             "active_diet": diet,
             "catalog_grid": catalog_grid,
+            # DS-3a (Fokus): вид «прайс-лист» — шаблон ветвится по пресету.
+            "catalog_preset": cfg["catalog_layout"]["preset"],
             # Билдер: показывать ли фильтры на странице каталога (group=catalog).
             "catalog_show_filters": cfg.get("catalog_show_filters", True),
             # Фасет цены (диапазон base_price) — показываем при разбросе цен.

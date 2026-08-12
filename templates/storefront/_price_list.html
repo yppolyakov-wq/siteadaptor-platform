@@ -1,0 +1,23 @@
+{% load i18n %}{% load siteui %}
+{% comment %}DS-3a (Fokus): «прайс-лист» — вид вывода товаров строками. Ожидает
+`price_groups` = [{name, items}] (теги price_list_groups / price_groups_from).
+Строка ведёт на деталь; состав — первой строкой описания серым; цена справа
+tabular-nums. Используется секцией главной (style=preisliste) и страницей
+каталога (catalog_layout.preset=preisliste).{% endcomment %}
+<div class="max-w-2xl" data-price-list>
+  {% for g in price_groups %}
+    <div class="mt-5 first:mt-0">
+      <div class="text-[11px] font-bold tracking-[0.12em] uppercase mb-1.5" style="color: var(--accent, #4f46e5);">{{ g.name }}</div>
+      {% for p in g.items %}
+        <a href="{% url 'storefront-product' p.pk %}" class="group flex items-baseline gap-2 py-1.5 border-b border-dotted border-gray-300 last:border-0">
+          <span class="min-w-0">
+            <span class="font-medium group-hover:underline">{{ p }}</span>
+            {% with d=p.description_text %}{% if d %}<span class="text-sm text-gray-500"> — {{ d|truncatechars:60 }}</span>{% endif %}{% endwith %}
+          </span>
+          <span class="flex-1 min-w-4"></span>
+          <span class="font-bold whitespace-nowrap" style="font-variant-numeric: tabular-nums;">{% if p.has_variants %}<span class="text-xs font-normal text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% else %}{{ p.base_price }}{% endif %} {{ p.currency|cursym }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  {% endfor %}
+</div>

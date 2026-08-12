@@ -1563,7 +1563,11 @@ def home_builder_view(request):
             ("service_preset", "service_index_layout"),
         ):
             preset = request.POST.get(fld, "")
-            if preset in siteconfig.LAYOUT_PRESETS:
+            # DS-3a: страничные extra-виды (напр. «preisliste» каталога) валидны
+            # только для СВОЕЙ страницы (PAGE_EXTRA_PRESETS).
+            if preset in siteconfig.LAYOUT_PRESETS or preset in siteconfig.PAGE_EXTRA_PRESETS.get(
+                cfg_key, ()
+            ):
                 config[cfg_key] = {"preset": preset}
             elif cfg_key == "service_index_layout" and fld in request.POST and not preset:
                 # UB1-1: «Standard» (пустой выбор) удаляет ключ → легаси-грид услуг
@@ -2635,6 +2639,8 @@ def pages_view(request):
         ("cols4", _("4 per row")),
         ("gallery", _("Gallery")),
     ]
+    # DS-3a: страничный extra-вид каталога — «Preisliste» (только его пикер).
+    catalog_preset_options = preset_options + [("preisliste", _("Preisliste"))]
     from apps.core import modules
 
     # M20U-4: секции детальной события в текущем порядке + видимость.
@@ -2658,6 +2664,7 @@ def pages_view(request):
         {
             "nav": "site",
             "preset_options": preset_options,
+            "catalog_preset_options": catalog_preset_options,  # DS-3a
             "catalog_preset": config["catalog_layout"]["preset"],
             "related_preset": config["detail_related_layout"]["preset"],
             "stay_index_preset": config["stay_index_layout"]["preset"],

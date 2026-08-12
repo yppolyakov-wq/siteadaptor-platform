@@ -747,6 +747,8 @@ LAYOUT_PRESETS = {
     "gallery": {"cols": 4, "mobile": 2, "gap": "sm"},  # плотная сетка
 }
 LAYOUT_PRESET_KEYS = list(LAYOUT_PRESETS)
+# DS-3a: НЕ-сеточные виды вывода конкретных страниц (валидны только там).
+PAGE_EXTRA_PRESETS = {"catalog_layout": ("preisliste",)}
 _LAYOUT_WIDTHS = ("contained", "full")
 _LAYOUT_GAPS = ("sm", "md", "lg")
 
@@ -850,19 +852,26 @@ def _clamp(value, lo, hi, default):
         return default
 
 
-def normalize_layout(raw, default=None) -> dict:
+def normalize_layout(raw, default=None, extra_presets=()) -> dict:
     """Привести layout секции к канону {preset, width, cols, mobile, gap}.
 
     Старт — пресет (из default или raw), затем ручные override. Значения клампятся;
     мусор → дефолт. Back-compat: пустой raw → раскладка из default-пресета секции.
+    DS-3a: `extra_presets` — НЕ-сеточные виды конкретной страницы (напр.
+    "preisliste" у каталога); grid-параметры для них берутся из "list" (шаблон
+    ветвится сам), в общий реестр LAYOUT_PRESETS они не попадают — пикеры других
+    страниц их не видят.
     """
     default = default or {"preset": "cols3"}
     base_preset = default.get("preset", "cols3")
     raw = raw if isinstance(raw, dict) else {}
     preset = raw.get("preset", base_preset)
-    if preset not in LAYOUT_PRESETS:
+    if preset not in LAYOUT_PRESETS and preset not in extra_presets:
         preset = base_preset
-    eff = {**LAYOUT_PRESETS[preset], **{k: v for k, v in default.items() if k != "preset"}}
+    eff = {
+        **LAYOUT_PRESETS.get(preset, LAYOUT_PRESETS["list"]),
+        **{k: v for k, v in default.items() if k != "preset"},
+    }
     cols = _clamp(raw.get("cols", eff["cols"]), 1, 5, eff["cols"])
     mobile = _clamp(raw.get("mobile", eff["mobile"]), 1, 2, eff["mobile"])
     # SE-3c: явный пер-девайс планшет (1..4). 0 = «авто» (вывод из cols/mobile, как было) —
@@ -1993,6 +2002,9 @@ SECTION_STYLES = {
     # категории. Ширину даёт раскладка секции (колонки), высоту — этот стиль.
     # "" = 4:3, как рисовала секция главной до правки.
     "categories": ("square", "tall", "wide"),
+    # DS-3a (Fokus): вид вывода товаров — «прайс-лист» (группы по категориям,
+    # строка с отточием и ценой; "" = сетка карточек, как было).
+    "products": ("preisliste",),
 }
 #: Класс аспекта плитки категории по стилю секции (см. _category_tile.html).
 CATEGORY_TILE_ASPECTS = {
@@ -2030,6 +2042,7 @@ SECTION_STYLE_LABELS = {
     "square": _("Quadratisch"),
     "tall": _("Hochformat"),
     "wide": _("Breitbild"),
+    "preisliste": _("Preisliste"),  # DS-3a: товары строками с ценой
 }
 
 # UC6-6f: подсказка стиля скидки у промо-БЛОКА (фидбэк владельца «пресеты промо-
@@ -2718,7 +2731,9 @@ def _normalize_impl(config) -> dict:
     # M20U-7 (per-page): раскладка сетки страницы каталога /sortiment/. Дефолт cols3
     # воспроизводит прежнюю захардкоженную сетку (grid-cols-2 lg:grid-cols-3).
     normalized["catalog_layout"] = normalize_layout(
-        config.get("catalog_layout"), {"preset": "cols3"}
+        config.get("catalog_layout"),
+        {"preset": "cols3"},
+        extra_presets=PAGE_EXTRA_PRESETS["catalog_layout"],
     )
     # Показывать ли фасет-фильтры (диеты) на странице каталога. Дефолт True (как было).
     normalized["catalog_show_filters"] = bool(config.get("catalog_show_filters", True))

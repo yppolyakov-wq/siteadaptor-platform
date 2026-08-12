@@ -17665,3 +17665,11 @@ msgstr "Меню у PDF"
 # GK-14: Anfrage-CTA на browse-only каталоге
 msgid "Unverbindlich — wir melden uns mit einem Angebot."
 msgstr "Ні до чого не зобов'язує — ми зв'яжемося з вами з пропозицією."
+
+# DS-3a: прайс-лист каталога (Fokus)
+msgid "Ganze Speisekarte"
+msgstr "Усе меню"
+msgid "Weitere"
+msgstr "Інше"
+msgid "Preisliste"
+msgstr "Прайс-лист"
