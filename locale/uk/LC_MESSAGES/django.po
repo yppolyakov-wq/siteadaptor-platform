@@ -17673,3 +17673,9 @@ msgid "Weitere"
 msgstr "Інше"
 msgid "Preisliste"
 msgstr "Прайс-лист"
+
+# DS-3c: сборки (Startpakete)
+msgid "Startpaket"
+msgstr "Стартовий набір"
+msgid "Startpaket angewendet."
+msgstr "Стартовий набір застосовано."

@@ -1308,6 +1308,15 @@ def home_builder_view(request):
         # use_page_preset:<host>:<id> — идемпотентная замена посеянных блоков
         # page_blocks[host] + плоские ключи; блоки владельца целы. Редирект
         # через _redirect_builder — канва остаётся на настраиваемой странице.
+        # DS-3c: сборка (Startpaket) — Look + виды вывода одним кликом (серверное
+        # применение: виды вывода живут вне draft-канала Look-кнопок).
+        if action.startswith("use_bundle:"):
+            from apps.tenants import sitetemplates
+
+            _verb, _sep, bkey = action.partition(":")
+            if sitetemplates.apply_bundle(request.tenant, bkey):
+                messages.success(request, _("Startpaket angewendet."))
+            return _redirect_builder(request)
         if action.startswith("use_page_preset:"):
             from apps.core import page_presets
 
@@ -2092,6 +2101,7 @@ def home_builder_view(request):
             # ST-1b: Look-карточки архетипа (клик выставляет контролы формы) +
             # текущая тема (hidden-input `theme` — round-trip при Save).
             "looks": sitetemplates.looks_for(request.tenant.business_type),
+            "bundles": sitetemplates.bundles_for(request.tenant.business_type),  # DS-3c
             "theme": config.get("theme", ""),
             # SE-3b: типографика — текущие значения + варианты для селекторов.
             "typo_weight_head": config["typography"]["weight_head"],

@@ -273,6 +273,11 @@ class DemoKit:
     # GK-15: демо-кэш Google-рейтинга (GK-11) — {"rating": "4.9", "count": 41}.
     # Фикция как и отзывы демо; place_id НЕ задаётся → beat/API не трогаются.
     google_rating: dict = field(default_factory=dict)
+    # DS-4 (Fokus): секция anfrage на главной (реестр DS-3b; гейт jobs в партиале).
+    enable_anfrage_section: bool = False
+    # DS-4: точечные top-level оси конфига (hero_style/nav/catalog_layout…) —
+    # shallow-merge ПОСЛЕ look-оверлея (dict-значения мержатся по ключам).
+    config_patch: dict = field(default_factory=dict)
     # LS-3/4/6: демо-треды «Прямой линии» (вопрос + staff-ответ + открытое
     # Sofort-Angebot; second — high-тред «Etwas stimmt nicht?»). Без писем.
     seed_inbox: bool = False
@@ -6030,7 +6035,9 @@ CATERING = DemoKit(
     label="Grüne Tafel Catering",
     business_type="catering",
     subdomain="catering",
-    hero_widget="catering",  # GK-1: плитки Anfrage/Speisekarte/Rückruf/Aktionen
+    # DS-4: плитки hero убраны — их работу несут CTA шапки + форма на главной
+    # (мокап Fokus); сплит-hero рисует строку доверия и primary-CTA сам.
+    hero_widget="",
     heroes=[
         {
             "image_kw": "catering,buffet",
@@ -6081,7 +6088,16 @@ CATERING = DemoKit(
         ],
     },
     primary_module="jobs",  # страховка: hero-CTA → Anfrage (не каталог)
-    look="fein",  # DS-2: editorial-дизайн (Playfair на креме, глубокий лес)
+    # DS-4: пилот сборки «Fokus» (одобренный концепт-макет 2026-08-12) —
+    # klar-кожа + split-hero + CTA в шапке + прайс + форма заявки на главной.
+    # «Fein» остаётся семейством в галерее Look'ов (выбор владельца сайта).
+    look="klar",
+    enable_anfrage_section=True,
+    config_patch={
+        "hero_style": "split",
+        "nav": {"cta": True},
+        "catalog_layout": {"preset": "preisliste"},
+    },
     enable_categories_section=True,  # GK-15: сетка 6 направлений на главной
     categories=[
         (
@@ -6332,7 +6348,7 @@ CATERING = DemoKit(
         ("local", "Regionale Zutaten", "Gemüse und Kräuter von Höfen aus der Umgebung."),
         ("quality", "Festpreis-Angebot", "Klarer Preis vor der Zusage — keine Überraschungen."),
     ],
-    section_styles={"usp_bar": "pillars"},
+    section_styles={"usp_bar": "pillars", "products": "preisliste", "trust": "compact"},
     # GK-15: главная в структуре референса — цифры-полоса после отзывов, цитата
     # основателя (данные пресета «Gründer-Zitat» GK-7) после trust, newsletter в конце.
     home_blocks=[
@@ -7487,6 +7503,8 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
         # HF-1: акции бывают и без каталога (отель: «3 Nächte zum Preis von 2») —
         # секция включается и по наличию промо-спеки.
         {"key": "promotions", "enabled": bool(kit.categories or kit.promotions_spec)},
+        # DS-4 (Fokus): мини-форма заявки на главной (выкл, если кит не включил).
+        {"key": "anfrage", "enabled": kit.enable_anfrage_section},
         {"key": "products", "enabled": bool(kit.categories)},
         # HF-1: лента новостей — если у кита есть посты (иначе секция была бы пустой).
         {"key": "blog", "enabled": bool(kit.blog_posts)},
@@ -8022,6 +8040,12 @@ def apply_kit(tenant, key: str) -> bool:
         sd = dict(cfg.get("site_defaults") or {})
         sd["hero_widget"] = kit.hero_widget
         cfg["site_defaults"] = sd
+    if kit.config_patch:  # DS-4 (Fokus): точечные оси сборки поверх look-оверлея
+        for _k, _v in kit.config_patch.items():
+            if isinstance(_v, dict) and isinstance(cfg.get(_k), dict):
+                cfg[_k] = {**cfg[_k], **_v}
+            else:
+                cfg[_k] = _v
     if kit.presence_mode in ("on", "off"):  # LS-2: «Jetzt erreichbar»
         cfg["presence"] = {"mode": kit.presence_mode}
     if kit.page_presets:  # ST-2: пресеты страниц (блоки выживают normalize — замок)

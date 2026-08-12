@@ -17606,3 +17606,9 @@ msgid "Weitere"
 msgstr "Diğer"
 msgid "Preisliste"
 msgstr "Fiyat listesi"
+
+# DS-3c: сборки (Startpakete)
+msgid "Startpaket"
+msgstr "Başlangıç paketi"
+msgid "Startpaket angewendet."
+msgstr "Başlangıç paketi uygulandı."

@@ -7,6 +7,38 @@
 <p class="text-sm text-gray-500 mb-4">{% trans "Wähle einen fertigen Look — Layout, Texte und Farbe werden gesetzt. Alles später frei anpassbar." %}</p>
 <form method="post" class="space-y-2">
   {% csrf_token %}
+  {% if bundles %}
+  {% comment %}DS-3c: сборки (Startpakete) — Look + виды вывода одним кликом
+  (сплит-баннер, прайс-меню, форма заявки на главной…). Выбор сборки снимает
+  выбор Look'а (bundle приоритетнее на POST — _post_template).{% endcomment %}
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2" id="bundle-gallery">
+    {% for b in bundles %}
+      <label class="border-2 border-emerald-200 rounded-xl p-3 flex flex-col cursor-pointer bg-white hover:ring-1 hover:ring-emerald-300 has-[:checked]:ring-2 has-[:checked]:ring-emerald-500">
+        <span class="flex items-center gap-2 mb-1">
+          <input type="radio" name="bundle" value="{{ b.key }}" class="border-gray-300">
+          <span class="font-medium text-sm">✨ {{ b.label }}</span>
+          <span class="text-[11px] bg-emerald-100 text-emerald-800 rounded-full px-2 py-0.5">{% trans "Startpaket" %}</span>
+        </span>
+        <span class="block text-xs text-gray-500">{{ b.description_de }}</span>
+      </label>
+    {% endfor %}
+  </div>
+  <script>
+    (function () {
+      // Выбор сборки снимает Look/Vorlage и наоборот (на POST победил бы bundle).
+      document.querySelectorAll('#bundle-gallery input[name="bundle"]').forEach(function (r) {
+        r.addEventListener('change', function () {
+          document.querySelectorAll('input[name="look"]:checked, input[name="template"]:checked').forEach(function (o) { o.checked = false; });
+        });
+      });
+      document.addEventListener('change', function (e) {
+        if (e.target.name === 'look' || e.target.name === 'template') {
+          document.querySelectorAll('#bundle-gallery input[name="bundle"]:checked').forEach(function (o) { o.checked = false; });
+        }
+      });
+    })();
+  </script>
+  {% endif %}
   {% if looks %}
   {% comment %}ST-1b: 3 Look'а АРХЕТИПА — живые мини-превью = scaled-iframe СВОЕГО
   сайта под ?preview=1&look=<family> (stateless-оверлей, ничего не пишет). Ленивая

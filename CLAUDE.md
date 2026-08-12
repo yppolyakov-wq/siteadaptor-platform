@@ -1436,6 +1436,31 @@ Python 3.12, менеджер uv.
   описания, многостраничность) + публичный `/speisekarte.pdf` (гейт FOOD-тип+активные
   товары, `?lang=`) + кнопка «📄 Speisekarte als PDF» на каталоге. Живые данные — ноль
   ручной работы владельца. 22 теста суммарно; детали — build-log.
+- **Самое свежее (2026-08-12): ВОЛНА DS «дизайн-шаблоны» — DS-1..DS-4 ЦЕЛИКОМ (без миграций).**
+  **DS-1/2:** первые self-hosted шрифты (Playfair 600/Nunito 800, OFL, latin+ext+cyrillic,
+  лениво) + `site_defaults.page_bg` (фон страницы, html:not(.dark)) + семейства **Fein**
+  (Playfair на креме) и **Natur** (Nunito на песке) — 5 семейств × 15 типов = 75 Look'ов
+  (акцент-кортежи 15×5, замок «ровно 5»); пилоты catering=fein → pranasy=natur.
+  **Решения владельца:** «Look = кожа · ВИД ВЫВОДА per-модуль · в мастере готовые СБОРКИ»;
+  концепт-артефакт «Look Fokus» одобрен. **DS-3a:** вид «Preisliste» — товары строками
+  (секция главной `SECTION_STYLES["products"]` + страничный пресет `catalog_layout`
+  через НОВЫЙ `PAGE_EXTRA_PRESETS`/`normalize_layout(extra_presets)` — только каталог,
+  LAYOUT_PRESETS не раздут; фасеты/поиск UB целы). **DS-3b:** `HERO_STYLES += "split"`
+  (текст слева + фото справа + строка доверия ★ Google/Seit; слайдер при split не
+  крутится v1) · `nav.cta` presence-minimal (CTA шапки из primary_item; мобильно —
+  акцент пункта таб-бара, НЕ вторая липкая кнопка) · секция **anfrage** в SECTIONS
+  (выкл дефолт, jobs-гейт, ⚠️ осознанная golden-регенерация +строка) · trust +=
+  "compact" (рейтинг+2 цитаты+marks одной полосой). **DS-3c:** `BUNDLES`/`apply_bundle`
+  (сборка «Fokus» для сервисных типов; идемпотентность — адверсариальный замок 15×) +
+  карточки Startpaket в мастере «Stil» и области «✨ Look» билдера (action `use_bundle:`).
+  **DS-4:** кит catering → Fokus-пилот (kit-generic `enable_anfrage_section`/`config_patch`;
+  hero-плитки убраны — их работу несут CTA шапки + форма на главной); «Fein» остаётся в
+  галерее. Проверено стендом (скриншоты = одобренный макет). Уроки: hero в SECTIONS
+  выключен по умолчанию (тесты главной включают явно); новые arbitrary Tailwind-классы
+  ТРЕБУЮТ пересборки app.css (невидимое hero-фото). Планы: `ds1-design-templates-plan`
+  + `ds3-fokus-output-views-plan` (2026-08-12). Дальше по треку — виды вывода услуг/
+  номеров/событий (прайс-с-длительностью · пакеты-колонки · полоса-разворот · афиша) —
+  за отмашкой владельца; ops: `seed_demo_tenants --kit catering|pranasy --recreate`.
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ: `catalog/0024`** (I18N-10, аддитивная — оверлеи переводов
   параметров) **+ `jobs/0013`** (AF-1, аддитивная — событийные поля заявки) **+
   `tenants/0028`** (GK-1, choices-only) **+ `tenants/0029`** (GK-9, аддитивная —

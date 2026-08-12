@@ -168,6 +168,21 @@
       <fieldset class="bg-white rounded-2xl shadow-sm p-6">
         <legend class="font-semibold mb-1">✨ Look</legend>
         <p class="text-xs text-gray-400 mb-3">{% trans "Fertige Design-Pakete für deine Branche — ein Klick färbt die Vorschau um." %}</p>
+        {% if bundles %}
+        {% comment %}DS-3c: сборки (Startpakete) — Look + виды вывода одним кликом.
+        В отличие от Look-кнопок ниже это СЕРВЕРНОЕ применение (виды вывода живут
+        вне draft-канала) — обычный POST-action с подтверждением через messages.{% endcomment %}
+        <div class="grid gap-2 mb-3">
+          {% for b in bundles %}
+          <button type="submit" name="action" value="use_bundle:{{ b.key }}"
+                  class="rounded-xl border-2 border-emerald-200 p-3 text-left hover:ring-1 hover:ring-emerald-300">
+            <span class="flex items-center gap-2"><span class="text-sm font-medium">✨ {{ b.label }}</span>
+              <span class="text-[10px] bg-emerald-100 text-emerald-800 rounded-full px-1.5 py-0.5">{% trans "Startpaket" %}</span></span>
+            <span class="block text-[11px] text-gray-400 mt-1">{{ b.description_de }}</span>
+          </button>
+          {% endfor %}
+        </div>
+        {% endif %}
         <div class="grid grid-cols-3 gap-2">
           {% for lk in looks %}
             <button type="button" class="bld-look rounded-xl border border-gray-200 p-3 text-left hover:ring-1 hover:ring-indigo-300"

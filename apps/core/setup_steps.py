@@ -142,6 +142,10 @@ def _post_template(request):
     # ST-1b: выбор Look'а (семейство × архетип) — приоритетнее шаблона.
     from apps.tenants import sitetemplates
 
+    # DS-3c: сборка (Startpaket) — Look + виды вывода одним кликом (приоритетнее).
+    bundle = request.POST.get("bundle", "")
+    if bundle and sitetemplates.apply_bundle(request.tenant, bundle):
+        return
     look = request.POST.get("look", "")
     if look and sitetemplates.apply_look(request.tenant, look):
         return
@@ -371,6 +375,8 @@ def _ctx_template(request):
     return {
         "templates": sitetemplates.template_cards(request.tenant.business_type),
         "looks": sitetemplates.looks_for(request.tenant.business_type),
+        # DS-3c: сборки (Startpakete) — карточки НАД Look-галереей.
+        "bundles": sitetemplates.bundles_for(request.tenant.business_type),
     }
 
 

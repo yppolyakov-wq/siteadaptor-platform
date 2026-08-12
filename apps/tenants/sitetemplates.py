@@ -430,6 +430,71 @@ def apply_template(tenant, key) -> bool:
     return True
 
 
+# DS-3c (Fokus): СБОРКИ (Startpakete) — «Look + виды вывода одним кликом».
+# Сборка = данные поверх осей: кожа (look) + композиция (hero_style/nav.cta) +
+# виды вывода (стили секций, страничные пресеты) + включение секций. Владелец
+# дальше меняет любую ось по отдельности — сборка лишь стартовая комбинация.
+BUNDLES = [
+    {
+        "key": "fokus",
+        "label": "Fokus",
+        "description_de": (
+            "Ein Hauptziel pro Bildschirm: Split-Banner, Preisliste, "
+            "Anfrage direkt auf der Startseite."
+        ),
+        # Сервисные архетипы «цена+заявка» — концепт-макет владельца 2026-08-12.
+        "recommended_for": ("catering", "restaurant", "cafe", "friseur", "handwerker", "werkstatt"),
+        "look": "klar",
+        "config": {
+            "hero_style": "split",
+            "nav_cta": True,
+            "catalog_layout": {"preset": "preisliste"},
+            "section_styles": {"products": "preisliste", "trust": "compact"},
+            "sections_on": ("products", "trust", "anfrage"),
+        },
+    },
+]
+_BUNDLE_BY_KEY = {b["key"]: b for b in BUNDLES}
+
+
+def bundles_for(business_type) -> list[dict]:
+    """Сборки для архетипа: рекомендованные — первыми (пусто у сборки = всем)."""
+    rec = [b for b in BUNDLES if business_type in b["recommended_for"]]
+    rest = [b for b in BUNDLES if b not in rec]
+    return rec + rest
+
+
+def apply_bundle(tenant, key) -> bool:
+    """DS-3c: применить сборку — apply_look (полная копия конфига, W6-инвариант)
+    + таргетные оси поверх. Идемпотентно (двойной normalize); False — неизвестный
+    ключ. Секция anfrage включается, но её рендер остаётся за гейтом модуля jobs
+    (fail-closed в партиале) — сборка безопасна любому архетипу."""
+    bundle = _BUNDLE_BY_KEY.get(key)
+    if bundle is None:
+        return False
+    apply_look(tenant, bundle["look"])
+    config = siteconfig.normalize(tenant.site_config)
+    over = bundle["config"]
+    if over.get("hero_style"):
+        config["hero_style"] = over["hero_style"]
+    if over.get("nav_cta"):
+        nav = dict(config.get("nav") or {})
+        nav["cta"] = True
+        config["nav"] = nav
+    if over.get("catalog_layout"):
+        config["catalog_layout"] = dict(over["catalog_layout"])
+    styles = over.get("section_styles", {})
+    on = set(over.get("sections_on", ()))
+    for row in config["sections"]:
+        if row["key"] in styles:
+            row["style"] = styles[row["key"]]
+        if row["key"] in on:
+            row["enabled"] = True
+    tenant.site_config = siteconfig.normalize(config)
+    tenant.save(update_fields=["site_config", "updated_at"])
+    return True
+
+
 def apply_look(tenant, family_key) -> bool:
     """ST-1: применить Look (семейство × архетипный акцент × секции шаблона
     архетипа). False — неизвестное семейство. Идемпотентно (двойной normalize);

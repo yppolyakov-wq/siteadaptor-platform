@@ -108,5 +108,6 @@ anfrage_cfg (site_config["anfrage"]), jobs_vehicle, has_service_area; POST
     <input id="id_photos" name="photos" type="file" accept="image/*" multiple class="w-full text-sm text-gray-600">
     <p class="text-xs text-gray-400 mt-1">{% trans "A photo of the job helps us quote faster." %}</p>
   </div>
-  <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% trans "Send request" %}</button>
+  {# DS-4: кнопка в акценте тенанта (была фикс-индиго — выбивалась из любого Look'а). #}
+  <button type="submit" class="w-full text-white rounded-lg px-4 py-3 font-medium hover:opacity-90" style="background: var(--accent, #4f46e5);">{% trans "Send request" %}</button>
 </form>

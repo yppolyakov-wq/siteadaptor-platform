@@ -1241,8 +1241,8 @@ def test_apply_catering_kit_jobs_speisekarte_browse_only():
     assert "Hochzeit" in cfg["anfrage"]["event_types"]
     # primary = jobs (hero-CTA → Anfrage), несмотря на активный catalog
     assert tenant.site_config.get("primary_module") == "jobs"
-    # DS-2: кит несёт look="fein" → акцент из ARCHETYPE_LOOK_ACCENTS (fein/catering)
-    assert tenant.primary_color == "#166534"
+    # DS-4: пилот Fokus — look="klar" → акцент klar/catering из реестра.
+    assert tenant.primary_color == "#15803d"
     enabled = {s["key"] for s in cfg["sections"] if s["enabled"]}
     assert {"hero", "usp_bar", "products", "process", "faq", "cta"} <= enabled
     assert cfg["cta"]["button_url"] == "/anfrage/"
@@ -1286,6 +1286,15 @@ def test_apply_catering_kit_reference_parity_gk15():
     # GK-6: у отзывов демо — звёзды и фото (аватар-ряд trust)
     t0 = cfg["testimonials"][0]
     assert t0["stars"] == 5 and t0["photo"]
+
+    # DS-4: пилот Fokus — композиция сборки материализована в конфиге кита
+    assert cfg["hero_style"] == "split"
+    assert cfg["nav"]["cta"] is True
+    assert cfg["catalog_layout"]["preset"] == "preisliste"
+    prow = next(s2 for s2 in cfg["sections"] if s2["key"] == "products")
+    assert prow["style"] == "preisliste"
+    arow = next(s2 for s2 in cfg["sections"] if s2["key"] == "anfrage")
+    assert arow["enabled"] is True
 
     tenant.refresh_from_db()
     # GK-9: соцссылки — только корневые URL соцсетей (не чужие handle)
