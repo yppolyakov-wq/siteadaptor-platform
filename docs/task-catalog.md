@@ -178,6 +178,8 @@ B3 ✅, **A4 ✅ (share-превью)**, **C1 ✅ email-MVP (дайджест)**
 
 | **GK-14** | **Фидбэк владельца 2026-08-11 «непонятно как заказать» (catering-деталь): Anfrage-CTA в cart-ветке _buybox при выключенном orders (jobs-гейт, ?betreff=префилл) + описания демо-меню catering «ab N Personen»** | ✅ (2026-08-11, без миграций) | build-log 2026-08-11 |
 
+| **GK-15** | **Демо catering в структуре референса (запрос владельца 2026-08-12): generic `home_blocks`/`socials`/`google_rating`/`enable_categories_section` у DemoKit + наполнение «Grüne Tafel» (6 направлений, тиры пакетов, цифры, цитата основателя, newsletter, аватары отзывов, 4,9★)** | ✅ (2026-08-12, без миграций; ops: `seed_demo_tenants --kit catering --recreate`) | `gk15-catering-demo-parity-plan-2026-08-12.md` + build-log 2026-08-12 |
+
 **Конвенция поддержки:** закрыл задачу → перенеси строку в §2 (или пометь ✅),
 подзадачи добавляй углублением. Каталог обновляется в том же коммите, что и
 build-log-строка инкремента.

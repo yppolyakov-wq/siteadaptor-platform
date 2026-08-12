@@ -132,6 +132,9 @@ class DemoKit:
     loyalty: dict = field(default_factory=dict)
     # --- Конструктор витрины (S1–S8): новые возможности демо ------------------
     enable_archetypes_section: bool = False  # секция «Unsere Bereiche» (тизеры)
+    # GK-15: сетка категорий каталога НА ГЛАВНОЙ (фото-плитки, как у референса
+    # catering: 6 направлений сразу под первым экраном). Опт-ин на кит.
+    enable_categories_section: bool = False
     # Обложки разделов (S3): key архетипа → {"intro","hero_kw","gallery_kw":[...]}.
     archetype_covers: dict = field(default_factory=dict)
     # M20U-2: слайдер баннеров главной. Список dict'ов
@@ -258,6 +261,18 @@ class DemoKit:
     enable_anprobe: bool = False
     # ST-7a: демо-spacer'ы [{"after": "<section_key>", "height": "sm|lg|xl"}].
     spacers: list = field(default_factory=list)
+    # GK-15: C-блоки главной в раскладке кита — [{"after": "<section_key>",
+    # "key": "stats|image_text|newsletter|…" (REPEATABLE_BLOCKS), "data": {...},
+    # "visual": {...}}]. Вставка по образцу spacers; данные санитайзит normalize
+    # (_clean_cblock_data). Любой кит наполняет индивидуально.
+    home_blocks: list = field(default_factory=list)
+    # GK-15: соцпрофили футера (GK-9) — {"instagram"|"facebook"|"linkedin"|
+    # "tiktok"|"youtube": "url|handle"}. Для демо ТОЛЬКО корневые URL соцсетей
+    # (фиктивный handle мог бы указать на ЧУЖОЙ реальный аккаунт).
+    socials: dict = field(default_factory=dict)
+    # GK-15: демо-кэш Google-рейтинга (GK-11) — {"rating": "4.9", "count": 41}.
+    # Фикция как и отзывы демо; place_id НЕ задаётся → beat/API не трогаются.
+    google_rating: dict = field(default_factory=dict)
     # LS-3/4/6: демо-треды «Прямой линии» (вопрос + staff-ответ + открытое
     # Sofort-Angebot; second — high-тред «Etwas stimmt nicht?»). Без писем.
     seed_inbox: bool = False
@@ -6065,6 +6080,7 @@ CATERING = DemoKit(
         ],
     },
     primary_module="jobs",  # страховка: hero-CTA → Anfrage (не каталог)
+    enable_categories_section=True,  # GK-15: сетка 6 направлений на главной
     categories=[
         (
             "Buffets & Menüs",
@@ -6124,6 +6140,107 @@ CATERING = DemoKit(
                     diets=["vegetarisch"],
                     allergens=["milch", "eier"],
                 ),
+                # GK-15: тиры пакетов Klassik/Plus/Premium (референс: 3 пакета
+                # Fingerfood). НОВЫЕ товары строго ХВОСТОМ категории — индексы
+                # promotions_spec (0–3) считают первые позиции первых категорий.
+                _p(
+                    "Fingerfood-Paket Plus",
+                    "11.50",
+                    "6 Häppchen p. P., dazu warme Snacks und zwei Dips — "
+                    "pro Person, ab 10 Personen.",
+                    "canapes,catering",
+                    diets=["vegetarisch"],
+                    allergens=["gluten", "milch"],
+                ),
+                _p(
+                    "Fingerfood-Paket Premium",
+                    "14.50",
+                    "8 Häppchen p. P. inkl. Mini-Desserts und Antipasti — "
+                    "pro Person, ab 10 Personen.",
+                    "antipasti,platter",
+                    diets=["vegetarisch"],
+                    allergens=["gluten", "milch", "eier"],
+                    badge="empfehlung",
+                ),
+            ],
+        ),
+        # GK-15: сетка категорий как у референса (6 направлений-событий) —
+        # каждое со своими пакетами «€ p. P. + ab N Personen».
+        (
+            "Hochzeits-Catering",
+            "hochzeit",
+            [
+                _p(
+                    "Hochzeitsbuffet Klassik",
+                    "39.00",
+                    "Drei Gänge als Buffet, Salatbar und Dessertauswahl — "
+                    "pro Person, ab 50 Personen.",
+                    "wedding,catering",
+                    diets=["vegetarisch"],
+                    badge="beliebt",
+                ),
+                _p(
+                    "Hochzeitsbuffet Premium",
+                    "49.00",
+                    "Fünf Gänge, Live-Station und Mitternachtssnack — pro Person, ab 50 Personen.",
+                    "wedding,catering",
+                    diets=["vegetarisch"],
+                ),
+                _p(
+                    "Sektempfang & Canapés",
+                    "12.00",
+                    "Begrüßungssekt, alkoholfreie Alternativen und Canapés — "
+                    "pro Person, ab 30 Personen.",
+                    "canapes,catering",
+                    diets=["vegetarisch"],
+                    allergens=["gluten"],
+                ),
+            ],
+        ),
+        (
+            "Business & Seminar",
+            "business-seminar",
+            [
+                _p(
+                    "Business-Lunch",
+                    "16.50",
+                    "Zwei warme Gerichte, Salate und Dessert im Büro serviert — "
+                    "pro Person, ab 10 Personen.",
+                    "business,lunch",
+                    diets=["vegetarisch"],
+                ),
+                _p(
+                    "Seminar-Tagespauschale",
+                    "24.00",
+                    "Zwei Kaffeepausen mit Gebäck und Obst plus Mittagsbuffet — "
+                    "pro Person, ab 15 Personen.",
+                    "coffee,break",
+                    diets=["vegetarisch"],
+                    allergens=["gluten", "milch"],
+                ),
+            ],
+        ),
+        (
+            "Private Feiern & Messe",
+            "feiern-messe",
+            [
+                _p(
+                    "Geburtstags-Buffet",
+                    "22.00",
+                    "Herzhafte Klassiker, Fingerfood und Kuchen nach Wahl — "
+                    "pro Person, ab 20 Personen.",
+                    "party,food",
+                    diets=["vegetarisch"],
+                    allergens=["gluten"],
+                ),
+                _p(
+                    "Messe-Catering-Paket",
+                    "18.00",
+                    "Standversorgung ganztägig: Snacks, Getränke und Service — "
+                    "pro Person, ab 25 Personen.",
+                    "event,buffet",
+                    diets=["vegetarisch"],
+                ),
             ],
         ),
         (
@@ -6171,15 +6288,24 @@ CATERING = DemoKit(
         ),
     ],
     testimonials=[
+        # GK-15: фото (GK-6) → аватар-ряд в trust как у референса (4.9★ + лица).
         (
             "Familie Sommer",
             "Hochzeitsbuffet für 80 Gäste — alles frisch, pünktlich und wunderschön angerichtet.",
-            5,  # GK-6: звёзды отзыва (фото — за владельцем; trust покажет инициалы)
+            5,
+            demo_image("portrait,woman", w=200, h=200, lock=871),
         ),
         (
             "Miriam K.",
             "Fingerfood für unsere Firmenfeier — unkompliziert angefragt, Angebot am nächsten Tag.",
             5,
+            demo_image("portrait,man", w=200, h=200, lock=872),
+        ),
+        (
+            "Thomas B.",
+            "Seminar-Catering über zwei Tage — heiß geliefert, freundliches Team, faire Preise.",
+            5,
+            demo_image("portrait,man", w=200, h=200, lock=873),
         ),
     ],
     process=[
@@ -6199,6 +6325,50 @@ CATERING = DemoKit(
         ("quality", "Festpreis-Angebot", "Klarer Preis vor der Zusage — keine Überraschungen."),
     ],
     section_styles={"usp_bar": "pillars"},
+    # GK-15: главная в структуре референса — цифры-полоса после отзывов, цитата
+    # основателя (данные пресета «Gründer-Zitat» GK-7) после trust, newsletter в конце.
+    home_blocks=[
+        {
+            "after": "testimonials",
+            "key": "stats",
+            "data": {
+                "rows": [
+                    {"value": "200+", "label": "Events pro Jahr"},
+                    {"value": "50.000+", "label": "Gerichte serviert"},
+                    {"value": "10.000+", "label": "zufriedene Gäste"},
+                    {"value": "seit 2012", "label": "aus Düsseldorf"},
+                ]
+            },
+        },
+        {
+            "after": "trust",
+            "key": "image_text",
+            "data": {
+                "url": demo_image("chef,woman", w=800, h=600, lock=870),
+                "side": "right",
+                "size": "lg",
+                "color": "muted",
+                "title": "— Lena Berger, Gründerin & Küchenchefin",
+                "body": "„Wir kochen, wie wir selbst am liebsten essen: frisch, "
+                "saisonal und mit Zeit für die Details.“",
+                "rounded": "3xl",
+            },
+            "visual": {"shadow": True},
+        },
+        {
+            "after": "contact",
+            "key": "newsletter",
+            "data": {
+                "title": "Ideen & Saison-Menüs per E-Mail",
+                "body": "Neue Menüs, Aktionen und Catering-Tipps — etwa einmal im Monat.",
+            },
+        },
+    ],
+    # GK-15: иконки футера — ТОЛЬКО корневые URL (не фиктивные handle: те могли
+    # бы указать на чужой реальный аккаунт).
+    socials={"instagram": "https://www.instagram.com/", "facebook": "https://www.facebook.com/"},
+    # GK-15: демо-кэш Google-строки в trust (референс: 4.9★/40+); фикция демо.
+    google_rating={"rating": "4.9", "count": 41},
     reviews_seed=[
         (
             5,
@@ -7292,6 +7462,9 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
     """Раскладка секций кита: фото-hero, меню, акции, галерея, отзывы, FAQ, CTA, контакты."""
     rows = [
         {"key": "hero", "enabled": True},
+        # GK-15: фото-плитки категорий сразу после первого экрана (референс
+        # catering: сетка направлений ПЕРЕД «столпами»). Опт-ин китом.
+        {"key": "categories", "enabled": kit.enable_categories_section},
         # A.3 (T-B): полоса доверия сразу под hero (если заданы пункты).
         {"key": "usp_bar", "enabled": bool(kit.usp)},
         # H2/E4: поиск размещения по датам. При hero_widget="stays" поиск живёт
@@ -7327,6 +7500,19 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
         style = kit.section_styles.get(s["key"])
         if style:
             s["style"] = style
+    # GK-15: C-блоки главной из спеки кита (stats/founder-цитата/newsletter…) —
+    # тот же принцип якоря «после секции», данные чистит normalize.
+    for i, spec in enumerate(kit.home_blocks):
+        idx = next((j for j, s in enumerate(rows) if s["key"] == spec.get("after")), None)
+        block = {
+            "key": spec.get("key", ""),
+            "id": f"demo-block-{i + 1}",
+            "enabled": True,
+            "data": spec.get("data") or {},
+        }
+        if spec.get("visual"):
+            block["visual"] = spec["visual"]
+        rows.insert(idx + 1 if idx is not None else len(rows), block)
     # ST-7a: демо-spacer'ы между секциями (высота presence-minimal; "" = py-6).
     for i, spec in enumerate(kit.spacers):
         idx = next((j for j, s in enumerate(rows) if s["key"] == spec.get("after")), None)
@@ -7871,6 +8057,16 @@ def apply_kit(tenant, key: str) -> bool:
     if kit.whatsapp_number:  # LS-1/LS-2: гейт видео-CTA и presence-пилюли
         tenant.whatsapp_number = kit.whatsapp_number
         update_fields.append("whatsapp_number")
+    if kit.socials:  # GK-15: иконки футера (GK-9) — whitelist полей Tenant
+        for f in ("instagram", "facebook", "linkedin", "tiktok", "youtube"):
+            if kit.socials.get(f):
+                setattr(tenant, f, kit.socials[f])
+                update_fields.append(f)
+    if kit.google_rating:  # GK-15: демо-кэш GK-11 (place_id пуст → beat молчит)
+        tenant.google_rating = Decimal(str(kit.google_rating.get("rating", "0")))
+        tenant.google_rating_count = int(kit.google_rating.get("count", 0))
+        tenant.google_rating_updated_at = timezone.now()
+        update_fields += ["google_rating", "google_rating_count", "google_rating_updated_at"]
     if kit.enabled_locales:  # DL-1: языки витрины (переключатель в шапке демо)
         # Только валидные коды из реестра LANGUAGES; первый — default_locale.
         valid = [c for c in kit.enabled_locales if c in dict(settings.LANGUAGES)]

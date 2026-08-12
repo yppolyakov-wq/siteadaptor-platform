@@ -1245,3 +1245,51 @@ def test_apply_catering_kit_jobs_speisekarte_browse_only():
     enabled = {s["key"] for s in cfg["sections"] if s["enabled"]}
     assert {"hero", "usp_bar", "products", "process", "faq", "cta"} <= enabled
     assert cfg["cta"]["button_url"] == "/anfrage/"
+
+
+def test_apply_catering_kit_reference_parity_gk15():
+    """GK-15: демо в структуре референса goodkarma — 6 категорий-направлений,
+    C-блоки главной (цифры/цитата основателя/newsletter) переживают normalize,
+    аватары+звёзды отзывов, соцссылки и Google-кэш на Tenant."""
+    from apps.catalog.models import Category
+    from apps.tenants import siteconfig
+
+    tenant = TenantFactory(schema_name="public", slug="ct2", name="CT2", business_type="other")
+    assert demo_kits.apply_kit(tenant, "catering") is True
+
+    # 6 категорий-направлений (сетка как у референса); пакеты-тиры Fingerfood
+    assert Category.objects.filter(parent__isnull=True).count() == 6
+    for name in ("Hochzeits-Catering", "Business & Seminar", "Private Feiern & Messe"):
+        assert Category.objects.filter(name__de=name).exists()
+    for pkg in ("Fingerfood-Paket Plus", "Fingerfood-Paket Premium"):
+        assert Product.objects.filter(name__de=pkg).exists()
+
+    cfg = siteconfig.normalize(tenant.site_config)
+    # сетка категорий на главной (фото-плитки направлений, как у референса)
+    cats_row = next(s for s in cfg["sections"] if s["key"] == "categories")
+    assert cats_row["enabled"] is True
+    blocks = {s["key"]: s for s in cfg["sections"] if s.get("id", "").startswith("demo-block-")}
+    # stats: 4 пары «число+подпись» пережили _clean_cblock_data
+    rows = blocks["stats"]["data"]["rows"]
+    assert len(rows) == 4 and rows[0] == {"value": "200+", "label": "Events pro Jahr"}
+    # цитата основателя: данные пресета «Gründer-Zitat» (image_text)
+    founder = blocks["image_text"]["data"]
+    assert founder["side"] == "right" and "Gründerin" in founder["title"]
+    # newsletter-блок в конце главной
+    assert blocks["newsletter"]["data"]["title"] == "Ideen & Saison-Menüs per E-Mail"
+    # порядок: stats после testimonials, newsletter — после contact (хвост)
+    keys = [s["key"] for s in cfg["sections"]]
+    assert keys.index("stats") == keys.index("testimonials") + 1
+    assert keys.index("newsletter") == keys.index("contact") + 1
+
+    # GK-6: у отзывов демо — звёзды и фото (аватар-ряд trust)
+    t0 = cfg["testimonials"][0]
+    assert t0["stars"] == 5 and t0["photo"]
+
+    tenant.refresh_from_db()
+    # GK-9: соцссылки — только корневые URL соцсетей (не чужие handle)
+    assert tenant.instagram == "https://www.instagram.com/"
+    assert tenant.social_links()  # иконки футера рендерятся
+    # GK-11: демо-кэш рейтинга; place_id пуст → beat/API не трогают демо
+    assert float(tenant.google_rating) == 4.9 and tenant.google_rating_count == 41
+    assert tenant.google_rating_updated_at is not None and tenant.google_place_id == ""
