@@ -615,7 +615,15 @@ RESTAURANT = DemoKit(
         },
     ],
     key="restaurant",
-    section_styles={"contact": "map_first", "reviews": "quotes", "about": "accent"},  # ST-2c/7b
+    # DS-5c: Speisekarte как в печатных меню — «классическая карта» на главной
+    # и на странице /sortiment/ (config_patch).
+    section_styles={
+        "contact": "map_first",
+        "reviews": "quotes",
+        "about": "accent",
+        "products": "preisliste_karte",
+    },  # ST-2c/7b
+    config_patch={"catalog_layout": {"preset": "preisliste_karte"}},
     label="Restaurant «Bella Vista»",
     # 2026-07-30: слайдер над гастро-плитками (первый экран).
     heroes=[
@@ -3765,7 +3773,10 @@ CAFE = DemoKit(
     card_style="compact",  # ST-7c: строка-прайс (меню)
     variant_style="buttons",  # O-2: размеры/объёмы кнопками
     winback={"inactive_days": 60, "percent": 10},  # B4/LS-5
-    section_styles={"cta": "cards", "usp_bar": "cards"},  # ST-7b
+    # DS-5c: компактный прайс на главной (много позиций у кофейни), страница
+    # меню — прайс с мини-фото (config_patch).
+    section_styles={"cta": "cards", "usp_bar": "cards", "products": "preisliste_kompakt"},  # ST-7b
+    config_patch={"catalog_layout": {"preset": "preisliste_foto"}},
     label="Café Morgenrot",
     business_type="cafe",
     subdomain="cafe",

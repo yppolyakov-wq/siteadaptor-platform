@@ -64,8 +64,14 @@ def test_normalize_catalog_accepts_preisliste_only_there():
     )
     # LAYOUT_PRESETS не раздут — «preisliste» живёт только в PAGE_EXTRA_PRESETS
     assert "preisliste" not in siteconfig.LAYOUT_PRESETS
-    # DS-5b добавил второй вариант «с мини-фото»
-    assert siteconfig.PAGE_EXTRA_PRESETS["catalog_layout"] == ("preisliste", "preisliste_foto")
+    # DS-5b/5c: семейство из пяти прайс-видов
+    assert siteconfig.PAGE_EXTRA_PRESETS["catalog_layout"] == (
+        "preisliste",
+        "preisliste_foto",
+        "preisliste_kompakt",
+        "preisliste_2sp",
+        "preisliste_karte",
+    )
 
 
 def test_products_section_style_survives_normalize():
@@ -122,3 +128,52 @@ def test_catalog_page_default_grid_unchanged():
     html = _render_catalog(tenant)
     assert 'data-grid="catalog"' in html
     assert "data-price-list" not in html
+
+
+# ── DS-5c: семейство прайс-видов (компакт / две колонки / классическая карта) ──
+
+
+@pytest.mark.parametrize(
+    "style",
+    ["preisliste", "preisliste_foto", "preisliste_kompakt", "preisliste_2sp", "preisliste_karte"],
+)
+def test_all_price_styles_valid_and_render(style):
+    _seed_products()
+    cfg = siteconfig.normalize({"sections": [{"key": "products", "enabled": True, "style": style}]})
+    assert next(s for s in cfg["sections"] if s["key"] == "products")["style"] == style
+    html = _render_home(TenantFactory.build(site_config=cfg))
+    assert f'data-pl-style="{style}"' in html
+    # и как страничный пресет каталога
+    page = siteconfig.normalize({"catalog_layout": {"preset": style}})
+    assert page["catalog_layout"]["preset"] == style
+
+
+def test_price_style_variants_differ():
+    _seed_products()
+
+    def render(style):
+        return _render_home(
+            TenantFactory.build(
+                site_config={"sections": [{"key": "products", "enabled": True, "style": style}]}
+            )
+        )
+
+    kompakt = render("preisliste_kompakt")
+    assert "Drei Gänge" not in kompakt  # компакт прячет описания
+    zwei = render("preisliste_2sp")
+    assert "md:columns-2" in zwei and "break-inside-avoid" in zwei
+    karte = render("preisliste_karte")
+    assert "Drei Gänge" in karte  # карта держит описание (курсивом под блюдом)
+    assert "tracking-[0.18em]" in karte  # центр-заголовок группы
+
+
+def test_review_findings_locks():
+    """DS-5c: замки на находки адверсариального ревью (2026-08-12)."""
+    # (1) draft-путь билдера принимает страничные extra-пресеты — паритет с Save
+    cfg = siteconfig.normalize({})
+    siteconfig.apply_page_payload(cfg, {"catalog_layout": {"preset": "preisliste_karte"}})
+    assert cfg["catalog_layout"]["preset"] == "preisliste_karte"
+    # (2) у каждого extra-пресета есть метка — селект канвы строит опции из
+    # SECTION_STYLE_LABELS (HIGH: без опции браузер слал "list" → откат вида)
+    for k in siteconfig.PAGE_EXTRA_PRESETS["catalog_layout"]:
+        assert k in siteconfig.SECTION_STYLE_LABELS, k

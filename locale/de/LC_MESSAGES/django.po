@@ -17697,3 +17697,11 @@ msgid "5 per row"
 msgstr "5 pro Reihe"
 msgid "6 per row"
 msgstr "6 pro Reihe"
+
+# DS-5c: семейство прайс-видов
+msgid "Preisliste kompakt"
+msgstr "Preisliste kompakt"
+msgid "Preisliste zweispaltig"
+msgstr "Preisliste zweispaltig"
+msgid "Speisekarte klassisch"
+msgstr "Speisekarte klassisch"

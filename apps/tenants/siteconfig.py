@@ -756,7 +756,15 @@ LAYOUT_PRESETS = {
 }
 LAYOUT_PRESET_KEYS = list(LAYOUT_PRESETS)
 # DS-3a: НЕ-сеточные виды вывода конкретных страниц (валидны только там).
-PAGE_EXTRA_PRESETS = {"catalog_layout": ("preisliste", "preisliste_foto")}
+PAGE_EXTRA_PRESETS = {
+    "catalog_layout": (
+        "preisliste",
+        "preisliste_foto",
+        "preisliste_kompakt",
+        "preisliste_2sp",
+        "preisliste_karte",
+    )
+}
 _LAYOUT_WIDTHS = ("contained", "full")
 _LAYOUT_GAPS = ("sm", "md", "lg")
 
@@ -1406,7 +1414,12 @@ def apply_page_payload(cfg: dict, data: dict) -> None:
             cfg[key] = data[key]
     for key in _PAGE_LAYOUT_KEYS:
         lay = data.get(key)
-        if isinstance(lay, dict) and lay.get("preset") in LAYOUT_PRESETS:
+        # DS-5c (находка адверсариального ревью): страничные extra-пресеты
+        # (прайс-виды каталога) валидны и в драфте — паритет с Save-путём.
+        if isinstance(lay, dict) and (
+            lay.get("preset") in LAYOUT_PRESETS
+            or lay.get("preset") in PAGE_EXTRA_PRESETS.get(key, ())
+        ):
             cfg[key] = {"preset": lay["preset"]}
     for key in _PAGE_BOOL_KEYS:
         if isinstance(data.get(key), bool):
@@ -2038,8 +2051,17 @@ SECTION_STYLES = {
     # DS-3a (Fokus): вид вывода товаров — «прайс-лист» (группы по категориям,
     # строка с отточием и ценой; "" = сетка карточек, как было). DS-4b: у
     # категорий compact = строка-плитка «фото 46px + имя + ab-цена + стрелка».
-    # DS-5b (фидбэк 2026-08-12): вариант «с мини-фото» — строки те же + превью 40px.
-    "products": ("preisliste", "preisliste_foto"),
+    # DS-5b/5c (фидбэк 2026-08-12): семейство прайс-видов — с фото 40px, компакт
+    # (без описаний, плотные строки), двухколоночный (колонки md+, группы целые),
+    # «классическая карта» (центр-заголовки групп, описание курсивом под блюдом —
+    # как печатные меню кафе/ресторанов).
+    "products": (
+        "preisliste",
+        "preisliste_foto",
+        "preisliste_kompakt",
+        "preisliste_2sp",
+        "preisliste_karte",
+    ),
     # DS-4b (Fokus): форма заявки на главной — «band» (акцент-полоса со слим-
     # полями в строку, как в концепт-макете); "" = обычная карточка-форма AF-2.
     "anfrage": ("band",),
@@ -2082,6 +2104,9 @@ SECTION_STYLE_LABELS = {
     "wide": _("Breitbild"),
     "preisliste": _("Preisliste"),  # DS-3a: товары строками с ценой
     "preisliste_foto": _("Preisliste mit Fotos"),  # DS-5b: + мини-фото 40px
+    "preisliste_kompakt": _("Preisliste kompakt"),  # DS-5c: без описаний, плотно
+    "preisliste_2sp": _("Preisliste zweispaltig"),  # DS-5c: колонки md+
+    "preisliste_karte": _("Speisekarte klassisch"),  # DS-5c: печатная карта
     "band": _("Farbband"),  # DS-4b: anfrage — слим-форма на акцент-полосе
 }
 

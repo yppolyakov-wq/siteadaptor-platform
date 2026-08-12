@@ -1,26 +1,51 @@
 {% load i18n %}{% load siteui %}
-{% comment %}DS-3a (Fokus): «прайс-лист» — вид вывода товаров строками. Ожидает
-`price_groups` = [{name, items}] (теги price_list_groups / price_groups_from).
-Строка ведёт на деталь; состав — первой строкой описания серым; цена справа
-tabular-nums. Используется секцией главной (style=preisliste) и страницей
-каталога (catalog_layout.preset=preisliste).{% endcomment %}
-<div class="max-w-2xl" data-price-list>
+{% comment %}DS-3a/5b/5c (Fokus): «прайс-лист» — вид вывода товаров строками.
+Ожидает `price_groups` = [{name, items}] (теги price_list_groups /
+price_groups_from) и `pl_style`:
+  "preisliste" / ""      — стандарт (имя — состав … цена, отточие);
+  "preisliste_foto"      — + мини-фото 40px;
+  "preisliste_kompakt"   — без описаний, плотные строки (много позиций);
+  "preisliste_2sp"       — две колонки на md+, группы не рвутся;
+  "preisliste_karte"     — «печатная карта»: центр-заголовок группы с чертой,
+                            описание курсивом ПОД блюдом (кафе/рестораны).
+Используется секцией главной (style) и страницей каталога (catalog_layout).{% endcomment %}
+{% with st=pl_style|default:"" %}
+<div class="{% if st == 'preisliste_2sp' %}md:columns-2 md:gap-10{% else %}max-w-2xl{% endif %}" data-price-list data-pl-style="{{ st|default:'std' }}">
   {% for g in price_groups %}
-    <div class="mt-5 first:mt-0">
+    <div class="mt-5 first:mt-0{% if st == 'preisliste_2sp' %} break-inside-avoid{% endif %}">
+      {% if st == 'preisliste_karte' %}
+      <div class="text-center mb-2 mt-1">
+        <div class="text-[11px] font-bold tracking-[0.18em] uppercase" style="color: var(--accent, #4f46e5);">{{ g.name }}</div>
+        <div class="mx-auto mt-1.5 w-10 border-b-2" style="border-color: var(--accent, #4f46e5);"></div>
+      </div>
+      {% else %}
       <div class="text-[11px] font-bold tracking-[0.12em] uppercase mb-1.5" style="color: var(--accent, #4f46e5);">{{ g.name }}</div>
+      {% endif %}
       {% for p in g.items %}
-        <a href="{% url 'storefront-product' p.pk %}" class="group flex {% if price_thumbs %}items-center{% else %}items-baseline{% endif %} gap-2 py-1.5 border-b border-dotted border-gray-300 last:border-0">
-          {% if price_thumbs and p.image_url %}{# DS-5b: мини-фото — вариант оформления #}
+        {% if st == 'preisliste_karte' %}
+        <a href="{% url 'storefront-product' p.pk %}" class="group block py-2 border-b border-dotted border-gray-300 last:border-0">
+          <span class="flex items-baseline gap-2">
+            <span class="font-medium group-hover:underline">{{ p }}</span>
+            <span class="flex-1 min-w-4"></span>
+            <span class="font-bold whitespace-nowrap" style="font-variant-numeric: tabular-nums;">{% if p.has_variants %}<span class="text-xs font-normal text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% else %}{{ p.base_price }}{% endif %} {{ p.currency|cursym }}</span>
+          </span>
+          {% with d=p.description_text %}{% if d %}<span class="block text-sm text-gray-500 italic mt-0.5">{{ d|truncatechars:90 }}</span>{% endif %}{% endwith %}
+        </a>
+        {% else %}
+        <a href="{% url 'storefront-product' p.pk %}" class="group flex {% if st == 'preisliste_foto' %}items-center{% else %}items-baseline{% endif %} gap-2 {% if st == 'preisliste_kompakt' %}py-1{% else %}py-1.5{% endif %} border-b border-dotted border-gray-300 last:border-0">
+          {% if st == 'preisliste_foto' and p.image_url %}{# DS-5b: мини-фото — вариант оформления #}
           <img src="{{ p.image_url }}" alt="" loading="lazy" class="w-10 h-10 rounded-lg object-cover shrink-0">
           {% endif %}
           <span class="min-w-0">
-            <span class="font-medium group-hover:underline">{{ p }}</span>
-            {% with d=p.description_text %}{% if d %}<span class="text-sm text-gray-500"> — {{ d|truncatechars:60 }}</span>{% endif %}{% endwith %}
+            <span class="font-medium group-hover:underline{% if st == 'preisliste_kompakt' %} text-sm{% endif %}">{{ p }}</span>
+            {% if st != 'preisliste_kompakt' %}{% with d=p.description_text %}{% if d %}<span class="text-sm text-gray-500"> — {{ d|truncatechars:60 }}</span>{% endif %}{% endwith %}{% endif %}
           </span>
           <span class="flex-1 min-w-4"></span>
-          <span class="font-bold whitespace-nowrap" style="font-variant-numeric: tabular-nums;">{% if p.has_variants %}<span class="text-xs font-normal text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% else %}{{ p.base_price }}{% endif %} {{ p.currency|cursym }}</span>
+          <span class="font-bold whitespace-nowrap{% if st == 'preisliste_kompakt' %} text-sm{% endif %}" style="font-variant-numeric: tabular-nums;">{% if p.has_variants %}<span class="text-xs font-normal text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% else %}{{ p.base_price }}{% endif %} {{ p.currency|cursym }}</span>
         </a>
+        {% endif %}
       {% endfor %}
     </div>
   {% endfor %}
 </div>
+{% endwith %}

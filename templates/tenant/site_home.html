@@ -622,7 +622,8 @@
           <div class="page-block flex flex-wrap items-center gap-3" data-page-key="catalog">
             <span class="text-sm font-medium flex-1">{% trans "Catalog: grid layout" %}</span>
             <select name="catalog_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
-              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if catalog_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+              {# DS-5c: + прайс-виды — иначе сохранённый preisliste* не матчился и Save откатывал в "list" (W0) #}
+              {% for pk, plabel in catalog_preset_options|default:preset_options %}<option value="{{ pk }}" {% if catalog_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
             </select>
             {# Дефолтная сортировка каталога (покупатель может сменить дропдауном на витрине). #}
             <label class="flex items-center gap-1.5 text-xs text-gray-600 w-full" title="{% trans 'Default product sorting' %}">

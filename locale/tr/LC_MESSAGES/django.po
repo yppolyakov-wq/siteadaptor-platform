@@ -17658,3 +17658,11 @@ msgid "5 per row"
 msgstr "Sırada 5"
 msgid "6 per row"
 msgstr "Sırada 6"
+
+# DS-5c: семейство прайс-видов
+msgid "Preisliste kompakt"
+msgstr "Kompakt fiyat listesi"
+msgid "Preisliste zweispaltig"
+msgstr "İki sütunlu fiyat listesi"
+msgid "Speisekarte klassisch"
+msgstr "Klasik menü kartı"

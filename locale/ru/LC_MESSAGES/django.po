@@ -17742,3 +17742,11 @@ msgid "5 per row"
 msgstr "5 в ряд"
 msgid "6 per row"
 msgstr "6 в ряд"
+
+# DS-5c: семейство прайс-видов
+msgid "Preisliste kompakt"
+msgstr "Компактный прайс"
+msgid "Preisliste zweispaltig"
+msgstr "Прайс в две колонки"
+msgid "Speisekarte klassisch"
+msgstr "Классическое меню"

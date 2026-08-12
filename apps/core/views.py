@@ -1897,6 +1897,13 @@ def home_builder_view(request):
         ("cols6", _("6 per row")),  # DS-6
         ("gallery", _("Gallery")),
     ]
+    # DS-5c (HIGH-находка ревью): селект каталога канвы обязан знать прайс-виды —
+    # иначе сохранённый preisliste* не матчится ни одной опцией, браузер шлёт
+    # первую ("list") и Save молча откатывает вид (класс W0).
+    catalog_preset_options = preset_options + [
+        (k, siteconfig.SECTION_STYLE_LABELS.get(k, k))
+        for k in siteconfig.PAGE_EXTRA_PRESETS["catalog_layout"]
+    ]
     source_options = [
         ("featured_first", _("Featured first")),
         ("newest", _("Newest")),
@@ -2053,6 +2060,7 @@ def home_builder_view(request):
                 },
             ],
             "preset_options": preset_options,
+            "catalog_preset_options": catalog_preset_options,  # DS-5c: канва-селект каталога
             "source_options": source_options,
             "archetype_specs": storefront.teaser_specs(request.tenant),
             "archetypes_enabled": archetypes_enabled,
@@ -2688,6 +2696,9 @@ def pages_view(request):
     catalog_preset_options = preset_options + [
         ("preisliste", _("Preisliste")),
         ("preisliste_foto", _("Preisliste mit Fotos")),  # DS-5b
+        ("preisliste_kompakt", _("Preisliste kompakt")),  # DS-5c
+        ("preisliste_2sp", _("Preisliste zweispaltig")),  # DS-5c
+        ("preisliste_karte", _("Speisekarte klassisch")),  # DS-5c
     ]
     from apps.core import modules
 
