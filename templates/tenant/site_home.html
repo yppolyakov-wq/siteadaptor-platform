@@ -458,12 +458,32 @@
                 <span class="flex items-center gap-1 text-xs text-gray-500" data-expert="1" data-device-ctl="1" title="{% trans 'Columns per device' %}">
                   📱<input type="number" name="mobile_{{ s.key }}" value="{{ s.layout_mobile }}" min="1" max="2" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on phone' %}">
                   ▭<input type="number" name="tablet_{{ s.key }}" value="{% if s.layout_tablet %}{{ s.layout_tablet }}{% endif %}" min="1" max="4" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on tablet' %}">
-                  🖥<input type="number" name="cols_{{ s.key }}" value="{{ s.layout_cols }}" min="1" max="5" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on desktop' %}">
+                  🖥<input type="number" name="cols_{{ s.key }}" value="{{ s.layout_cols }}" min="1" max="6" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on desktop' %}">
                 </span>
+                {% comment %}DS-5: симметрия неполного ряда / горизонтальная лента.
+                Scroll побеждает balance (grid_class_string).{% endcomment %}
+                <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap" data-expert="1" title="{% trans 'Unvollständige Reihe zentrieren' %}">
+                  <input type="checkbox" name="balance_{{ s.key }}" {% if s.layout_balance %}checked{% endif %} class="rounded border-gray-300"> {% trans "Ausgleichen" %}
+                </label>
+                <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap" data-expert="1" title="{% trans 'Kacheln in einer Reihe mit seitlichem Scrollen' %}">
+                  <input type="checkbox" name="scroll_{{ s.key }}" {% if s.layout_scroll %}checked{% endif %} class="rounded border-gray-300"> {% trans "Scrollen" %}
+                </label>
+              {% endif %}
+              {% if s.key == "categories" %}
+                {% comment %}DS-5: высота фото плитки (пусто = аспект по стилю) и
+                инфо-строка (ab-цена / число товаров).{% endcomment %}
+                <input type="number" name="img_h_categories" value="{% if s.img_h %}{{ s.img_h }}{% endif %}" min="80" max="480" step="10" placeholder="{% trans 'Bildhöhe' %}" data-expert="1"
+                       class="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Bildhöhe (px)' %}" title="{% trans 'Bildhöhe (px)' %}">
+                <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap" data-expert="1">
+                  <input type="checkbox" name="tile_price_categories" {% if "price" in s.tile_info %}checked{% endif %} class="rounded border-gray-300"> {% trans "ab-Preis" %}
+                </label>
+                <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap" data-expert="1">
+                  <input type="checkbox" name="tile_count_categories" {% if "count" in s.tile_info %}checked{% endif %} class="rounded border-gray-300"> {% trans "Produktanzahl" %}
+                </label>
               {% endif %}
               {% if s.has_limit %}
                 {# M20U-7: число элементов секции-превью на главной #}
-                <input type="number" name="limit_{{ s.key }}" value="{{ s.limit }}" min="1" max="24" data-expert="1"
+                <input type="number" name="limit_{{ s.key }}" value="{{ s.limit }}" min="1" max="30" data-expert="1"
                        class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'How many to show' %}" title="{% trans 'How many to show' %}">
               {% endif %}
               {% if s.has_title %}
@@ -2008,7 +2028,23 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         var el = form.querySelector("input[name='" + f + "_" + r.key + "']");
         if (el && el.value !== "") lay[f] = parseInt(el.value, 10) || 0;
       });
+      // DS-5: симметрия/лента → в превью (ключ только при включении).
+      ["balance", "scroll"].forEach(function (f) {
+        var box = form.querySelector("input[name='" + f + "_" + r.key + "']");
+        if (box && box.checked) lay[f] = true;
+      });
       if (Object.keys(lay).length) sec.layout = lay;
+      // DS-5: плитка категорий (высота фото + инфо-строка) → в превью.
+      if (r.key === "categories") {
+        var ih = form.querySelector("input[name='img_h_categories']");
+        if (ih && ih.value) sec.img_h = parseInt(ih.value, 10) || 0;
+        var ti = [];
+        var tp = form.querySelector("input[name='tile_price_categories']");
+        var tc = form.querySelector("input[name='tile_count_categories']");
+        if (tp && tp.checked) ti.push("price");
+        if (tc && tc.checked) ti.push("count");
+        if (ti.length) sec.tile_info = ti;
+      }
       // M20U-7: число элементов секции-превью → в превью.
       var lim = form.querySelector("input[name='limit_" + r.key + "']");
       if (lim && lim.value) sec.limit = parseInt(lim.value, 10);

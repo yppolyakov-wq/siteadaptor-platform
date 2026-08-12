@@ -481,17 +481,21 @@ def speisekarte_pdf_available(context):
 
 @register.simple_tag
 def categories_with_min_price(categories):
-    """DS-4b (Fokus): компакт-плитки направлений — «ab X €» из самого дешёвого
-    активного товара категории (ОДИН запрос агрегатом на все категории)."""
-    from django.db.models import Min
+    """DS-4b/DS-5: данные плитки направления — «ab X €» (Min base_price) и число
+    активных товаров категории (ОДИН запрос агрегатом на все категории)."""
+    from django.db.models import Count, Min
 
     from apps.catalog.models import Product
 
     pks = [c.pk for c in categories]
-    mins = dict(
-        Product.objects.filter(is_active=True, category_id__in=pks)
+    agg = {
+        row[0]: (row[1], row[2])
+        for row in Product.objects.filter(is_active=True, category_id__in=pks)
         .values_list("category_id")
-        .annotate(m=Min("base_price"))
-        .values_list("category_id", "m")
-    )
-    return [{"c": c, "min_price": mins.get(c.pk)} for c in categories]
+        .annotate(m=Min("base_price"), n=Count("id"))
+        .values_list("category_id", "m", "n")
+    }
+    return [
+        {"c": c, "min_price": agg.get(c.pk, (None, 0))[0], "count": agg.get(c.pk, (None, 0))[1]}
+        for c in categories
+    ]

@@ -188,12 +188,12 @@
 
 {% block listing_grid %}
 {% if page.items %}
-{% if catalog_preset == "preisliste" %}
+{% if catalog_preset == "preisliste" or catalog_preset == "preisliste_foto" %}
 {% comment %}DS-3a (Fokus): пресет «прайс-лист» — текущая ВЫДАЧА листинга (фасеты/
 поиск/пагинация провайдера UB уже применены) группируется по категориям строками.{% endcomment %}
 <div data-sf-section="catalog">
   {% price_groups_from page.items as price_groups %}
-  {% include "storefront/_price_list.html" %}
+  {% if catalog_preset == "preisliste_foto" %}{% include "storefront/_price_list.html" with price_thumbs=1 %}{% else %}{% include "storefront/_price_list.html" %}{% endif %}
 </div>
 {% else %}
 {# SE-2a-2: маркер секции для on-canvas редактора (клик → инспектор раскладки каталога) #}

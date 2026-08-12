@@ -64,7 +64,8 @@ def test_normalize_catalog_accepts_preisliste_only_there():
     )
     # LAYOUT_PRESETS не раздут — «preisliste» живёт только в PAGE_EXTRA_PRESETS
     assert "preisliste" not in siteconfig.LAYOUT_PRESETS
-    assert siteconfig.PAGE_EXTRA_PRESETS["catalog_layout"] == ("preisliste",)
+    # DS-5b добавил второй вариант «с мини-фото»
+    assert siteconfig.PAGE_EXTRA_PRESETS["catalog_layout"] == ("preisliste", "preisliste_foto")
 
 
 def test_products_section_style_survives_normalize():

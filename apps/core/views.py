@@ -1452,6 +1452,22 @@ def home_builder_view(request):
                     v = request.POST.get(f"{fld}_{key}", "")
                     if v != "":
                         lay[fld] = v
+                # DS-5: симметрия/лента (чекбокс не прислан = выкл — presence).
+                if request.POST.get(f"balance_{key}") == "on":
+                    lay["balance"] = True
+                if request.POST.get(f"scroll_{key}") == "on":
+                    lay["scroll"] = True
+                # DS-5: плитка категорий — высота фото + инфо-строка.
+                if key == "categories":
+                    if request.POST.get("img_h_categories", ""):
+                        entry["img_h"] = request.POST.get("img_h_categories")
+                    ti = []
+                    if request.POST.get("tile_price_categories") == "on":
+                        ti.append("price")
+                    if request.POST.get("tile_count_categories") == "on":
+                        ti.append("count")
+                    if ti:
+                        entry["tile_info"] = ti
                 if lay:
                     entry["layout"] = lay
             if key in siteconfig.GRID_SECTION_LIMITS:
@@ -1840,6 +1856,11 @@ def home_builder_view(request):
                 "layout_cols": (s.get("layout") or {}).get("cols", ""),
                 "layout_mobile": (s.get("layout") or {}).get("mobile", ""),
                 "layout_tablet": (s.get("layout") or {}).get("tablet", 0),
+                # DS-5: симметрия/лента + плитка категорий (высота фото, инфо).
+                "layout_balance": bool((s.get("layout") or {}).get("balance")),
+                "layout_scroll": bool((s.get("layout") or {}).get("scroll")),
+                "img_h": s.get("img_h", 0),
+                "tile_info": s.get("tile_info", []),
                 "has_limit": s["key"] in siteconfig.GRID_SECTION_LIMITS,
                 "limit": s.get("limit", ""),
                 "has_title": s["key"] in siteconfig.SECTION_TITLE_KEYS,
@@ -2275,8 +2296,18 @@ def site_preview_draft(request):
                     for fld in ("cols", "mobile", "tablet"):
                         if isinstance(lay.get(fld), (int, str)):
                             sub[fld] = lay[fld]
+                    # DS-5: симметрия/лента → в превью (только truthy).
+                    for fld in ("balance", "scroll"):
+                        if lay.get(fld):
+                            sub[fld] = True
                     if sub:
                         row["layout"] = sub
+                # DS-5: плитка категорий → в превью (normalize клампит/whitelist).
+                if key == "categories":
+                    if isinstance(item.get("img_h"), (int, str)):
+                        row["img_h"] = item["img_h"]
+                    if isinstance(item.get("tile_info"), list):
+                        row["tile_info"] = item["tile_info"]
                 # M20U-7: лимит секции-превью → в черновик (normalize клампит).
                 if key in siteconfig.GRID_SECTION_LIMITS and isinstance(
                     item.get("limit"), (int, str)
@@ -2650,7 +2681,10 @@ def pages_view(request):
         ("gallery", _("Gallery")),
     ]
     # DS-3a: страничный extra-вид каталога — «Preisliste» (только его пикер).
-    catalog_preset_options = preset_options + [("preisliste", _("Preisliste"))]
+    catalog_preset_options = preset_options + [
+        ("preisliste", _("Preisliste")),
+        ("preisliste_foto", _("Preisliste mit Fotos")),  # DS-5b
+    ]
     from apps.core import modules
 
     # M20U-4: секции детальной события в текущем порядке + видимость.

@@ -163,10 +163,11 @@ def storefront_home(request):
     if "categories" in sections:
         from apps.catalog.models import Category
 
+        # DS-5: владелец задаёт число плиток (Anzahl в Studio; было — все).
         categories = list(
             Category.objects.filter(is_active=True, parent__isnull=True).order_by(
                 "sort_order", "slug"
-            )
+            )[: siteconfig.section_limit(site, "categories")]
         )
     # S2: сетка тизеров активных архетипов («Наши разделы»).
     archetype_teasers = []

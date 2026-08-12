@@ -336,6 +336,7 @@
       "tablet": 0,
       "width": "contained"
      },
+     "limit": 30,
      "show_all": true,
      "visual": {
       "background": "",
@@ -847,6 +848,7 @@
     "tablet": 0,
     "width": "contained"
    },
+   "limit": 30,
    "show_all": true,
    "visual": {
     "background": "",

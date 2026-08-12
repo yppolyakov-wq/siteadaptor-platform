@@ -9,7 +9,10 @@ tabular-nums. Используется секцией главной (style=prei
     <div class="mt-5 first:mt-0">
       <div class="text-[11px] font-bold tracking-[0.12em] uppercase mb-1.5" style="color: var(--accent, #4f46e5);">{{ g.name }}</div>
       {% for p in g.items %}
-        <a href="{% url 'storefront-product' p.pk %}" class="group flex items-baseline gap-2 py-1.5 border-b border-dotted border-gray-300 last:border-0">
+        <a href="{% url 'storefront-product' p.pk %}" class="group flex {% if price_thumbs %}items-center{% else %}items-baseline{% endif %} gap-2 py-1.5 border-b border-dotted border-gray-300 last:border-0">
+          {% if price_thumbs and p.image_url %}{# DS-5b: мини-фото — вариант оформления #}
+          <img src="{{ p.image_url }}" alt="" loading="lazy" class="w-10 h-10 rounded-lg object-cover shrink-0">
+          {% endif %}
           <span class="min-w-0">
             <span class="font-medium group-hover:underline">{{ p }}</span>
             {% with d=p.description_text %}{% if d %}<span class="text-sm text-gray-500"> — {{ d|truncatechars:60 }}</span>{% endif %}{% endwith %}

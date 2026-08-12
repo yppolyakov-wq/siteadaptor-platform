@@ -752,7 +752,7 @@ LAYOUT_PRESETS = {
 }
 LAYOUT_PRESET_KEYS = list(LAYOUT_PRESETS)
 # DS-3a: НЕ-сеточные виды вывода конкретных страниц (валидны только там).
-PAGE_EXTRA_PRESETS = {"catalog_layout": ("preisliste",)}
+PAGE_EXTRA_PRESETS = {"catalog_layout": ("preisliste", "preisliste_foto")}
 _LAYOUT_WIDTHS = ("contained", "full")
 _LAYOUT_GAPS = ("sm", "md", "lg")
 
@@ -819,8 +819,12 @@ GRID_SECTION_DEFAULTS = {
 # M20U-7: секции-превью на главной с настраиваемым числом элементов (source.limit).
 # Ключ → дефолт (воспроизводит текущее поведение storefront_home). Прочие секции-
 # сетки (categories/stay_rooms/team/…) показывают всё — лимит к ним не применяем.
-GRID_SECTION_LIMITS = {"products": 8, "events": 6, "blog": 3}
-_SECTION_LIMIT_MAX = 24
+# DS-5: + categories (владелец задаёт число плиток; ⚠️ материализация limit —
+# осознанная golden-регенерация 2026-08-12).
+GRID_SECTION_LIMITS = {"products": 8, "events": 6, "blog": 3, "categories": 30}
+# ^ дефолт categories = максимум: раньше секция выводила ВСЕ категории —
+#   меньший дефолт молча отрезал бы плитки существующим сайтам (регрессия).
+_SECTION_LIMIT_MAX = 30  # DS-5: было 24
 
 # M20U-7: источник товаров секции products. featured_first — текущее поведение
 # (избранные вперёд, затем новые); newest — только по дате; featured_only —
@@ -843,10 +847,11 @@ _GRID_LG = {
     3: "lg:grid-cols-3",
     4: "lg:grid-cols-4",
     5: "lg:grid-cols-5",
+    6: "lg:grid-cols-6",  # DS-5
 }
 _GRID_GAP = {"sm": "gap-3", "md": "gap-4 md:gap-6", "lg": "gap-6 md:gap-8"}
 # Планшетный (sm) шаг по числу колонок десктопа — плавный спуск вниз.
-_SM_FROM_COLS = {1: 1, 2: 2, 3: 2, 4: 3, 5: 3}
+_SM_FROM_COLS = {1: 1, 2: 2, 3: 2, 4: 3, 5: 3, 6: 3}  # DS-5: +6
 
 
 def _clamp(value, lo, hi, default):
@@ -876,7 +881,7 @@ def normalize_layout(raw, default=None, extra_presets=()) -> dict:
         **LAYOUT_PRESETS.get(preset, LAYOUT_PRESETS["list"]),
         **{k: v for k, v in default.items() if k != "preset"},
     }
-    cols = _clamp(raw.get("cols", eff["cols"]), 1, 5, eff["cols"])
+    cols = _clamp(raw.get("cols", eff["cols"]), 1, 6, eff["cols"])  # DS-5: до 6
     mobile = _clamp(raw.get("mobile", eff["mobile"]), 1, 2, eff["mobile"])
     # SE-3c: явный пер-девайс планшет (1..4). 0 = «авто» (вывод из cols/mobile, как было) —
     # back-compat: legacy без tablet → прежний планшетный шаг (_SM_FROM_COLS).
@@ -887,7 +892,7 @@ def normalize_layout(raw, default=None, extra_presets=()) -> dict:
     width = raw.get("width", "contained")
     if width not in _LAYOUT_WIDTHS:
         width = "contained"
-    return {
+    out = {
         "preset": preset,
         "width": width,
         "cols": cols,
@@ -895,12 +900,28 @@ def normalize_layout(raw, default=None, extra_presets=()) -> dict:
         "tablet": tablet,
         "gap": gap,
     }
+    # DS-5: симметрия неполного ряда / горизонтальный скролл — presence-minimal
+    # (ключ только при True; golden целы). scroll побеждает balance в рендере.
+    if raw.get("balance"):
+        out["balance"] = True
+    if raw.get("scroll"):
+        out["scroll"] = True
+    return out
 
 
 def grid_class_string(layout) -> str:
-    """Готовая Tailwind-строка грида из layout (purge-safe, из статических таблиц)."""
+    """Готовая Tailwind-строка грида из layout (purge-safe, из статических таблиц).
+
+    DS-5: режимы scroll (горизонтальная лента со snap) и balance (flex-wrap с
+    центрированием неполного ряда) подменяют grid-классы целиком — работает у
+    всех секций-сеток без правок шаблонов (классы генерятся здесь центрально).
+    """
     lay = normalize_layout(layout if isinstance(layout, dict) else None)
     cols, mobile, gap = lay["cols"], lay["mobile"], lay["gap"]
+    if lay.get("scroll"):
+        return " ".join(["sf-scroll-grid", _GRID_GAP[gap]])
+    if lay.get("balance"):
+        return " ".join(["sf-balance-grid", f"sf-bal-{cols}", _GRID_GAP[gap]])
     # SE-3c: явный планшет (tablet>0) побеждает; иначе авто-вывод (как было).
     tablet = lay.get("tablet", 0)
     sm = tablet if tablet else max(mobile, _SM_FROM_COLS[cols])
@@ -2013,7 +2034,8 @@ SECTION_STYLES = {
     # DS-3a (Fokus): вид вывода товаров — «прайс-лист» (группы по категориям,
     # строка с отточием и ценой; "" = сетка карточек, как было). DS-4b: у
     # категорий compact = строка-плитка «фото 46px + имя + ab-цена + стрелка».
-    "products": ("preisliste",),
+    # DS-5b (фидбэк 2026-08-12): вариант «с мини-фото» — строки те же + превью 40px.
+    "products": ("preisliste", "preisliste_foto"),
     # DS-4b (Fokus): форма заявки на главной — «band» (акцент-полоса со слим-
     # полями в строку, как в концепт-макете); "" = обычная карточка-форма AF-2.
     "anfrage": ("band",),
@@ -2055,6 +2077,7 @@ SECTION_STYLE_LABELS = {
     "tall": _("Hochformat"),
     "wide": _("Breitbild"),
     "preisliste": _("Preisliste"),  # DS-3a: товары строками с ценой
+    "preisliste_foto": _("Preisliste mit Fotos"),  # DS-5b: + мини-фото 40px
     "band": _("Farbband"),  # DS-4b: anfrage — слим-форма на акцент-полосе
 }
 
@@ -2094,6 +2117,17 @@ def _section_entry(key, enabled, raw_item):
     # M20U-7: видимость ссылки «View all» (по умолчанию показана).
     if key in SECTION_VIEWALL_KEYS:
         entry["show_all"] = bool(raw_item.get("show_all", True))
+    # DS-5: плитка категорий — высота фото (px; отсутствие = аспект по стилю) и
+    # состав инфо-строки (ab-цена / счётчик товаров). Presence-minimal.
+    if key == "categories":
+        img_h = _clamp(raw_item.get("img_h"), 80, 480, 0)
+        if img_h:
+            entry["img_h"] = img_h
+        ti = raw_item.get("tile_info")
+        if isinstance(ti, list):
+            ti = [t for t in ("price", "count") if t in ti]
+            if ti:
+                entry["tile_info"] = ti
     # SE-3d: визуальные параметры (radius/shadow/background/padding) — для всех
     # секций кроме C-блоков. Пустые = текущий облик (без регрессии для legacy).
     entry["visual"] = _clean_visual(raw_item.get("visual"))
