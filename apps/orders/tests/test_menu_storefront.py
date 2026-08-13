@@ -59,10 +59,13 @@ def test_combo_detail_visible_without_orders_with_anfrage_cta():
     body = public_views.combo_detail_public(
         _req(method="get", tenant=_browse_only()), pk=combo.pk
     ).content.decode()
-    assert "data-combo-form" not in body  # формы корзины нет
+    assert 'action="/kombi/add/"' not in body  # формы корзины нет
     assert "Unverbindlich anfragen" in body
     assert "/anfrage/?betreff=" in body
     assert "Dessert" in body  # состав показан и без orders
+    # MEN-7 (находка стенда): выбор состава доступен и БЕЗ корзины — гость
+    # собирает меню и отправляет заявку с ним (раньше контролов не было вовсе).
+    assert 'name="opt-' in body and "data-anfrage-cta" in body
 
 
 def test_combo_list_visible_without_orders():
@@ -268,3 +271,16 @@ def test_landing_shows_menu_sets_block():
     body = promo_views.category_landing(req, slug="men4-landing").content.decode()
     assert "Menü-Pakete" in body and "Hochzeitsmenü Klassik" in body
     assert "ab 20 Personen" in body
+
+
+def test_browse_only_pick_controls_and_person_field():
+    """MEN-7: у browse-only набора есть контролы выбора, поле персон с минимумом
+    и CTA-заявка; POST-форма корзины при этом не рендерится."""
+    combo, g, opt = _wedding_set(price_per_person=True, min_persons=20)
+    body = public_views.combo_detail_public(
+        _req(method="get", tenant=_browse_only()), pk=combo.pk
+    ).content.decode()
+    assert f'name="opt-{g.pk}"' in body
+    assert f'data-delta="{opt.price_delta}"' in body
+    assert 'name="qty"' in body and 'min="20"' in body
+    assert "<form" not in body.split("data-combo-form")[1].split("</div>")[0]

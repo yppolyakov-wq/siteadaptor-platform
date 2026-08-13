@@ -45,40 +45,69 @@
         <button type="submit" class="flex-1 text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent);">{% trans "Add to order" %}</button>
       </div>
     </form>
-    <script>
-    (function () {
-      // MEN-1: live-пересчёт для показа; истина цены остаётся серверной
-      // (combo_price в combo_add/cart/checkout — клиент цен не шлёт).
-      var form = document.querySelector('[data-combo-form]');
-      if (!form || form.dataset.init) return;
-      form.dataset.init = '1';
-      var out = form.querySelector('[data-combo-total]');
-      function recalc() {
-        var total = parseFloat(form.dataset.base || '0') || 0;
-        form.querySelectorAll('input[data-delta]:checked').forEach(function (i) {
-          total += parseFloat(i.dataset.delta || '0') || 0;
-        });
-        var qtyInput = form.querySelector('input[name="qty"]');
-        var qty = qtyInput ? parseInt(qtyInput.value, 10) : 1;
-        total *= qty > 0 ? qty : 1;
-        if (out) {
-          out.textContent = total.toLocaleString(document.documentElement.lang || 'de',
-            { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + (form.dataset.cur || '€');
-        }
-      }
-      form.addEventListener('change', recalc);
-      form.addEventListener('input', recalc);
-      recalc();
-    })();
-    </script>
+    {% elif combo_anfrage_active %}
+    {% comment %}MEN-7 (находка стенда): у browse-only кейтеринга корзины нет, но
+    ВЫБОР состава ему нужен больше всех — гость собирает меню и отправляет заявку
+    с этим составом. Контролы те же (data-delta), обёртка — div: без JS уедет
+    только название набора (прежнее поведение MEN-3), с JS — состав и персоны
+    дописываются в ?betreff= (тот же приёмник AF-1, новых эндпоинтов нет).{% endcomment %}
+    <div data-combo-form data-base="{{ combo.price|unlocalize }}" data-cur="{{ combo.currency|cursym }}"
+         data-set-name="{{ combo.name_localized }}" data-persons-label="{% trans 'Personen' %}">
+      {% if combo.free_pool %}{% include "storefront/_combo_pool.html" with show_inputs=True %}{% else %}{% include "storefront/_combo_groups.html" with show_inputs=True %}{% endif %}
+      {% if show_prices %}<p class="mt-5 text-sm text-gray-600">{% trans "Total" %}: <b data-combo-total>{{ combo.price }} {{ combo.currency|cursym }}</b></p>{% endif %}
+      <div class="mt-2 flex items-center gap-3">
+        <label class="flex items-center gap-2 text-sm text-gray-600">{% trans "Personen" %}
+          <input type="number" name="qty" value="{{ min_qty }}" min="{{ min_qty }}" max="1000" class="w-24 rounded-lg border border-gray-300 px-3 py-2.5">
+        </label>
+        <a data-anfrage-cta href="{% url 'storefront-anfrage' %}?betreff={{ combo.name_localized|urlencode }}"
+           class="flex-1 text-center text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent);">{% trans "Unverbindlich anfragen" %}</a>
+      </div>
+    </div>
     {% else %}
     {% if combo.free_pool %}{% include "storefront/_combo_pool.html" with show_inputs=False %}{% else %}{% include "storefront/_combo_groups.html" with show_inputs=False %}{% endif %}
-    {% if combo_anfrage_active %}
-    {% comment %}MEN-3 (класс GK-14): browse-only кейтеринг — вместо корзины заявка с префиллом набора (AF-1 ?betreff=).{% endcomment %}
-    <a href="{% url 'storefront-anfrage' %}?betreff={{ combo.name_localized|urlencode }}"
-       class="mt-6 inline-block w-full text-center text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent);">{% trans "Unverbindlich anfragen" %}</a>
-    {% endif %}
     {% endif %}
   </div>
 </div>
+
+<script>
+(function () {
+  // MEN-1/MEN-7: живой итог для ПОКАЗА (истина цены серверная — combo_price в
+  // combo_add/cart/checkout, клиент цен не шлёт) + у browse-only витрины состав
+  // и число персон дописываются в ссылку заявки (?betreff=, приёмник AF-1).
+  var box = document.querySelector('[data-combo-form]');
+  if (!box || box.dataset.init) return;
+  box.dataset.init = '1';
+  var out = box.querySelector('[data-combo-total]');
+  var cta = box.querySelector('[data-anfrage-cta]');
+  var ctaBase = cta ? cta.getAttribute('href').split('?')[0] : '';
+  function qtyValue() {
+    var input = box.querySelector('input[name="qty"]');
+    var n = input ? parseInt(input.value, 10) : 1;
+    return n > 0 ? n : 1;
+  }
+  function recalc() {
+    var total = parseFloat(box.dataset.base || '0') || 0;
+    var picked = [];
+    box.querySelectorAll('input[data-delta]:checked').forEach(function (i) {
+      total += parseFloat(i.dataset.delta || '0') || 0;
+      var label = i.closest('label');
+      if (label) picked.push(label.textContent.trim().replace(/\s+/g, ' '));
+    });
+    total *= qtyValue();
+    if (out) {
+      out.textContent = total.toLocaleString(document.documentElement.lang || 'de',
+        { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + (box.dataset.cur || '€');
+    }
+    if (cta) {
+      var subject = box.dataset.setName || '';
+      subject += ' — ' + qtyValue() + ' ' + (box.dataset.personsLabel || 'Personen');
+      if (picked.length) subject += ': ' + picked.join(', ');
+      cta.setAttribute('href', ctaBase + '?betreff=' + encodeURIComponent(subject));
+    }
+  }
+  box.addEventListener('change', recalc);
+  box.addEventListener('input', recalc);
+  recalc();
+})();
+</script>
 {% endblock %}
