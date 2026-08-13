@@ -18203,3 +18203,77 @@ msgstr "Тур збережено."
 
 msgid "Tour deleted."
 msgstr "Тур видалено."
+
+# --- MT-2: Dokumente der Teilnehmer ---
+
+msgid "Reisepass"
+msgstr "Закордонний паспорт"
+
+msgid "Führerschein"
+msgstr "Посвідчення водія"
+
+msgid "Versicherung"
+msgstr "Страховка"
+
+msgid "Visum"
+msgstr "Віза"
+
+msgid "Teilnehmer"
+msgstr "Учасник"
+
+msgid "Die Datei ist zu groß (maximal 50 MB)."
+msgstr "Файл завеликий (максимум 50 МБ)."
+
+msgid "Erlaubt sind Fotos, PDF, GPX und MP4."
+msgstr "Дозволено фото, PDF, GPX та MP4."
+
+msgid "Bitte eine Datei auswählen."
+msgstr "Оберіть файл."
+
+msgid "Bitte der Speicherung zustimmen."
+msgstr "Підтвердіть згоду на зберігання."
+
+msgid "Dokument gespeichert."
+msgstr "Документ збережено."
+
+msgid "Dokument gelöscht."
+msgstr "Документ видалено."
+
+msgid "Documents"
+msgstr "Документи"
+
+msgid "Back to event"
+msgstr "До події"
+
+msgid "Participant"
+msgstr "Учасник"
+
+msgid "Files are stored encrypted; opening one is logged as a download by you."
+msgstr "Файли зберігаються зашифрованими; відкриття фіксується як ваше завантаження."
+
+msgid "No participants yet."
+msgstr "Учасників поки немає."
+
+msgid "My documents"
+msgstr "Мої документи"
+
+msgid "Your files are stored encrypted and can only be opened by you and the organiser."
+msgstr "Ваші файли зберігаються зашифрованими — відкрити їх можете лише ви та організатор."
+
+msgid "They are deleted automatically %(days)s days after the trip."
+msgstr "Вони видаляються автоматично через %(days)s днів після подорожі."
+
+msgid "Document type"
+msgstr "Тип документа"
+
+msgid "File (photo, PDF, GPX or MP4 — up to 50 MB)"
+msgstr "Файл (фото, PDF, GPX або MP4 — до 50 МБ)"
+
+msgid "I agree that the organiser may store this document for the trip."
+msgstr "Я погоджуюсь, що організатор зберігає цей документ для подорожі."
+
+msgid "deleted on %(date)s"
+msgstr "видалення %(date)s"
+
+msgid "No documents uploaded yet."
+msgstr "Документи поки не завантажено."

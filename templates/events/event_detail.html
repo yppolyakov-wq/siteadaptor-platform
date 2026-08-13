@@ -55,6 +55,7 @@
 <div class="flex items-center justify-between mb-2">
   <h2 class="text-lg font-semibold">{% trans "Attendees" %}</h2>
   <a href="{% url 'events:roster-csv' event.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Export CSV" %}</a>
+  <a href="{% url 'events:documents' event.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Documents" %}</a>
 </div>
 
 {% if tickets %}

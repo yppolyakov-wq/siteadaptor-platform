@@ -18014,3 +18014,77 @@ msgstr "Tour saved."
 
 msgid "Tour deleted."
 msgstr "Tour deleted."
+
+# --- MT-2: Dokumente der Teilnehmer ---
+
+msgid "Reisepass"
+msgstr "Passport"
+
+msgid "Führerschein"
+msgstr "Driving licence"
+
+msgid "Versicherung"
+msgstr "Insurance"
+
+msgid "Visum"
+msgstr "Visa"
+
+msgid "Teilnehmer"
+msgstr "Participant"
+
+msgid "Die Datei ist zu groß (maximal 50 MB)."
+msgstr "The file is too large (50 MB maximum)."
+
+msgid "Erlaubt sind Fotos, PDF, GPX und MP4."
+msgstr "Allowed: photos, PDF, GPX and MP4."
+
+msgid "Bitte eine Datei auswählen."
+msgstr "Please choose a file."
+
+msgid "Bitte der Speicherung zustimmen."
+msgstr "Please agree to the storage."
+
+msgid "Dokument gespeichert."
+msgstr "Document saved."
+
+msgid "Dokument gelöscht."
+msgstr "Document deleted."
+
+msgid "Documents"
+msgstr "Documents"
+
+msgid "Back to event"
+msgstr "Back to event"
+
+msgid "Participant"
+msgstr "Participant"
+
+msgid "Files are stored encrypted; opening one is logged as a download by you."
+msgstr "Files are stored encrypted; opening one is logged as a download by you."
+
+msgid "No participants yet."
+msgstr "No participants yet."
+
+msgid "My documents"
+msgstr "My documents"
+
+msgid "Your files are stored encrypted and can only be opened by you and the organiser."
+msgstr "Your files are stored encrypted and can only be opened by you and the organiser."
+
+msgid "They are deleted automatically %(days)s days after the trip."
+msgstr "They are deleted automatically %(days)s days after the trip."
+
+msgid "Document type"
+msgstr "Document type"
+
+msgid "File (photo, PDF, GPX or MP4 — up to 50 MB)"
+msgstr "File (photo, PDF, GPX or MP4 — up to 50 MB)"
+
+msgid "I agree that the organiser may store this document for the trip."
+msgstr "I agree that the organiser may store this document for the trip."
+
+msgid "deleted on %(date)s"
+msgstr "deleted on %(date)s"
+
+msgid "No documents uploaded yet."
+msgstr "No documents uploaded yet."

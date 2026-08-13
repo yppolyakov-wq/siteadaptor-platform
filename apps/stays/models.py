@@ -13,6 +13,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import I18nMixin, TimestampedModel
 from apps.promotions.models import Customer
+from apps.secrets.fields import EncryptedTextField
 
 # H3: каталог удобств номера (key, метка DE, эмодзи) — чек-лист на юните,
 # иконки на витрине. Узкий фиксированный список под малый отель DACH.
@@ -664,7 +665,12 @@ class GuestRegistration(TimestampedModel):
     country = models.CharField(max_length=80, blank=True)
     # Для иностранных гостей (по §30 BMG) — тип/номер документа, опционально.
     doc_type = models.CharField(max_length=40, blank=True)
-    doc_number = models.CharField(max_length=60, blank=True)
+    # MT-2: номер документа шифруется в БД (Fernet) — это самая чувствительная
+    # строка Meldeschein, и до сих пор она лежала открытым текстом. Поле терпит
+    # легаси-плейнтекст (читается как есть, шифруется при следующей записи), но
+    # ФИЛЬТРОВАТЬ по нему нельзя — Fernet недетерминирован. Проверено: нигде не
+    # фильтруется, только запись во вьюхе чек-ина и вывод в списке заездов.
+    doc_number = EncryptedTextField(blank=True)
     accompanying = models.PositiveSmallIntegerField(default=0)  # Mitreisende
     # Простая подпись: печатное Ф.И.О. + подтверждение, отметка времени/IP.
     signed_name = models.CharField(max_length=200)

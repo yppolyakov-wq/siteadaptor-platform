@@ -18154,3 +18154,77 @@ msgstr "Reise gespeichert."
 
 msgid "Tour deleted."
 msgstr "Reise gelöscht."
+
+# --- MT-2: Dokumente der Teilnehmer ---
+
+msgid "Reisepass"
+msgstr "Reisepass"
+
+msgid "Führerschein"
+msgstr "Führerschein"
+
+msgid "Versicherung"
+msgstr "Versicherung"
+
+msgid "Visum"
+msgstr "Visum"
+
+msgid "Teilnehmer"
+msgstr "Teilnehmer"
+
+msgid "Die Datei ist zu groß (maximal 50 MB)."
+msgstr "Die Datei ist zu groß (maximal 50 MB)."
+
+msgid "Erlaubt sind Fotos, PDF, GPX und MP4."
+msgstr "Erlaubt sind Fotos, PDF, GPX und MP4."
+
+msgid "Bitte eine Datei auswählen."
+msgstr "Bitte eine Datei auswählen."
+
+msgid "Bitte der Speicherung zustimmen."
+msgstr "Bitte der Speicherung zustimmen."
+
+msgid "Dokument gespeichert."
+msgstr "Dokument gespeichert."
+
+msgid "Dokument gelöscht."
+msgstr "Dokument gelöscht."
+
+msgid "Documents"
+msgstr "Dokumente"
+
+msgid "Back to event"
+msgstr "Zurück zur Veranstaltung"
+
+msgid "Participant"
+msgstr "Teilnehmer"
+
+msgid "Files are stored encrypted; opening one is logged as a download by you."
+msgstr "Dateien liegen verschlüsselt; das Öffnen wird als Ihr Download protokolliert."
+
+msgid "No participants yet."
+msgstr "Noch keine Teilnehmer."
+
+msgid "My documents"
+msgstr "Meine Dokumente"
+
+msgid "Your files are stored encrypted and can only be opened by you and the organiser."
+msgstr "Ihre Dateien liegen verschlüsselt und lassen sich nur von Ihnen und dem Veranstalter öffnen."
+
+msgid "They are deleted automatically %(days)s days after the trip."
+msgstr "Sie werden %(days)s Tage nach der Reise automatisch gelöscht."
+
+msgid "Document type"
+msgstr "Art des Dokuments"
+
+msgid "File (photo, PDF, GPX or MP4 — up to 50 MB)"
+msgstr "Datei (Foto, PDF, GPX oder MP4 — bis 50 MB)"
+
+msgid "I agree that the organiser may store this document for the trip."
+msgstr "Ich stimme zu, dass der Veranstalter dieses Dokument für die Reise speichert."
+
+msgid "deleted on %(date)s"
+msgstr "Löschung am %(date)s"
+
+msgid "No documents uploaded yet."
+msgstr "Noch keine Dokumente hochgeladen."

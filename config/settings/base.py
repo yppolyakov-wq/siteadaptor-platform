@@ -72,6 +72,7 @@ TENANT_APPS = [
     "apps.reviews",  # UA4-4a — generic-отзывы о продаваемой сущности (TENANT)
     "apps.collections",  # UB3-2 — M2M-подборки (коллекции) услуг/номеров (TENANT)
     "apps.inventory",  # U-D3 — склад-леджер StockMovement (append-only) (TENANT)
+    "apps.documents",  # MT-2 — досье участника: файлы шифруются в storage (TENANT)
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
@@ -431,6 +432,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.stays.tasks.purge_old_registrations",
         "schedule": 86400.0,  # раз в сутки — удаление Meldescheine >1 года (G6/DSGVO)
     },
+    "purge-expired-documents": {
+        "task": "apps.documents.tasks.purge_expired_documents",
+        "schedule": 86400.0,  # раз в сутки — досье участников после поездки (MT-2)
+    },
     "send-event-reminders": {
         "task": "apps.events.tasks.send_event_reminders",
         "schedule": 86400.0,  # раз в сутки — pre-event напоминание участникам (R9)
@@ -471,6 +476,8 @@ STAY_REMINDER_DAYS = env.int("STAY_REMINDER_DAYS", default=1)
 # DSGVO: через сколько дней после последней активности обезличивать контакты
 # клиентов без активных броней (см. apps/promotions/tasks.py::purge_due_customers).
 RESERVATION_PII_RETENTION_DAYS = env.int("RESERVATION_PII_RETENTION_DAYS", default=90)
+# MT-2: сколько дней документы участника живут ПОСЛЕ окончания поездки.
+DOCUMENT_RETENTION_DAYS = env.int("DOCUMENT_RETENTION_DAYS", default=90)
 
 # ---------------------------------------------------------------------------
 # Email (Resend через django-anymail)

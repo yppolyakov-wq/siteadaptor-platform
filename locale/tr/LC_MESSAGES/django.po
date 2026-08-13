@@ -18126,3 +18126,77 @@ msgstr "Tur kaydedildi."
 
 msgid "Tour deleted."
 msgstr "Tur silindi."
+
+# --- MT-2: Dokumente der Teilnehmer ---
+
+msgid "Reisepass"
+msgstr "Pasaport"
+
+msgid "Führerschein"
+msgstr "Ehliyet"
+
+msgid "Versicherung"
+msgstr "Sigorta"
+
+msgid "Visum"
+msgstr "Vize"
+
+msgid "Teilnehmer"
+msgstr "Katılımcı"
+
+msgid "Die Datei ist zu groß (maximal 50 MB)."
+msgstr "Dosya çok büyük (en fazla 50 MB)."
+
+msgid "Erlaubt sind Fotos, PDF, GPX und MP4."
+msgstr "İzin verilenler: fotoğraf, PDF, GPX ve MP4."
+
+msgid "Bitte eine Datei auswählen."
+msgstr "Lütfen bir dosya seçin."
+
+msgid "Bitte der Speicherung zustimmen."
+msgstr "Lütfen saklanmasını onaylayın."
+
+msgid "Dokument gespeichert."
+msgstr "Belge kaydedildi."
+
+msgid "Dokument gelöscht."
+msgstr "Belge silindi."
+
+msgid "Documents"
+msgstr "Belgeler"
+
+msgid "Back to event"
+msgstr "Etkinliğe dön"
+
+msgid "Participant"
+msgstr "Katılımcı"
+
+msgid "Files are stored encrypted; opening one is logged as a download by you."
+msgstr "Dosyalar şifreli saklanır; açmanız indirme olarak kaydedilir."
+
+msgid "No participants yet."
+msgstr "Henüz katılımcı yok."
+
+msgid "My documents"
+msgstr "Belgelerim"
+
+msgid "Your files are stored encrypted and can only be opened by you and the organiser."
+msgstr "Dosyalarınız şifreli saklanır; yalnızca siz ve organizatör açabilir."
+
+msgid "They are deleted automatically %(days)s days after the trip."
+msgstr "Yolculuktan %(days)s gün sonra otomatik silinir."
+
+msgid "Document type"
+msgstr "Belge türü"
+
+msgid "File (photo, PDF, GPX or MP4 — up to 50 MB)"
+msgstr "Dosya (fotoğraf, PDF, GPX veya MP4 — 50 MB'a kadar)"
+
+msgid "I agree that the organiser may store this document for the trip."
+msgstr "Organizatörün bu belgeyi yolculuk için saklamasını kabul ediyorum."
+
+msgid "deleted on %(date)s"
+msgstr "%(date)s tarihinde silinir"
+
+msgid "No documents uploaded yet."
+msgstr "Henüz belge yüklenmedi."

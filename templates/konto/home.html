@@ -5,6 +5,7 @@
 <div class="flex items-center justify-between mb-2">
   <h1 class="text-2xl md:text-3xl font-bold">{% trans "My account" %}</h1>
   <div class="flex items-center gap-4">
+    <a href="{% url 'account-documents' %}" class="text-sm text-gray-500 hover:text-gray-800">{% trans "My documents" %}</a>
     <a href="{% url 'account-profile' %}" class="text-sm text-gray-500 hover:text-gray-800">{% trans "Profile & data" %}</a>
     <form method="post" action="{% url 'account-logout' %}">{% csrf_token %}
       <button class="text-sm text-gray-500 hover:text-gray-800">{% trans "Log out" %}</button>

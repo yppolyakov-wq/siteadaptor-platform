@@ -86,3 +86,36 @@ def test_purge_removes_old_registrations_only():
     assert deleted == 1
     assert GuestRegistration.objects.filter(booking=recent).exists()
     assert not GuestRegistration.objects.filter(booking=old).exists()
+
+
+def test_doc_number_is_encrypted_at_rest():
+    """MT-2: номер документа гостя не должен лежать в БД открытым текстом."""
+    from django.db import connection
+
+    booking = _booking(reference_code="S-ENC001")
+    reg = GuestRegistration.objects.create(
+        booking=booking, first_name="Ravi", last_name="Sharma", signed_name="Ravi Sharma"
+    )
+    reg.doc_number = "P4711XYZ"
+    reg.save(update_fields=["doc_number"])
+    with connection.cursor() as cur:
+        cur.execute("SELECT doc_number FROM stays_guestregistration WHERE id = %s", [reg.pk])
+        stored = cur.fetchone()[0]
+    assert "P4711XYZ" not in stored
+    assert GuestRegistration.objects.get(pk=reg.pk).doc_number == "P4711XYZ"
+
+
+def test_legacy_plaintext_doc_number_still_readable():
+    """Ленивая миграция: старые незашифрованные значения читаются как есть."""
+    from django.db import connection
+
+    booking = _booking(reference_code="S-ENC002")
+    reg = GuestRegistration.objects.create(
+        booking=booking, first_name="Alt", last_name="Wert", signed_name="Alt Wert"
+    )
+    with connection.cursor() as cur:
+        cur.execute(
+            "UPDATE stays_guestregistration SET doc_number = %s WHERE id = %s",
+            ["ALT-PLAIN-1", reg.pk],
+        )
+    assert GuestRegistration.objects.get(pk=reg.pk).doc_number == "ALT-PLAIN-1"

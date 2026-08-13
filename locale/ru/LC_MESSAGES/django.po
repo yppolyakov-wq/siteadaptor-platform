@@ -18218,3 +18218,77 @@ msgstr "Тур сохранён."
 
 msgid "Tour deleted."
 msgstr "Тур удалён."
+
+# --- MT-2: Dokumente der Teilnehmer ---
+
+msgid "Reisepass"
+msgstr "Загранпаспорт"
+
+msgid "Führerschein"
+msgstr "Водительское удостоверение"
+
+msgid "Versicherung"
+msgstr "Страховка"
+
+msgid "Visum"
+msgstr "Виза"
+
+msgid "Teilnehmer"
+msgstr "Участник"
+
+msgid "Die Datei ist zu groß (maximal 50 MB)."
+msgstr "Файл слишком большой (максимум 50 МБ)."
+
+msgid "Erlaubt sind Fotos, PDF, GPX und MP4."
+msgstr "Разрешены фото, PDF, GPX и MP4."
+
+msgid "Bitte eine Datei auswählen."
+msgstr "Выберите файл."
+
+msgid "Bitte der Speicherung zustimmen."
+msgstr "Подтвердите согласие на хранение."
+
+msgid "Dokument gespeichert."
+msgstr "Документ сохранён."
+
+msgid "Dokument gelöscht."
+msgstr "Документ удалён."
+
+msgid "Documents"
+msgstr "Документы"
+
+msgid "Back to event"
+msgstr "К событию"
+
+msgid "Participant"
+msgstr "Участник"
+
+msgid "Files are stored encrypted; opening one is logged as a download by you."
+msgstr "Файлы хранятся зашифрованными; открытие фиксируется как ваша загрузка."
+
+msgid "No participants yet."
+msgstr "Участников пока нет."
+
+msgid "My documents"
+msgstr "Мои документы"
+
+msgid "Your files are stored encrypted and can only be opened by you and the organiser."
+msgstr "Ваши файлы хранятся в зашифрованном виде — открыть их можете только вы и организатор."
+
+msgid "They are deleted automatically %(days)s days after the trip."
+msgstr "Они удаляются автоматически через %(days)s дней после поездки."
+
+msgid "Document type"
+msgstr "Тип документа"
+
+msgid "File (photo, PDF, GPX or MP4 — up to 50 MB)"
+msgstr "Файл (фото, PDF, GPX или MP4 — до 50 МБ)"
+
+msgid "I agree that the organiser may store this document for the trip."
+msgstr "Я согласен, что организатор хранит этот документ для поездки."
+
+msgid "deleted on %(date)s"
+msgstr "удаление %(date)s"
+
+msgid "No documents uploaded yet."
+msgstr "Документы пока не загружены."

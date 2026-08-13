@@ -39,6 +39,25 @@ def decrypt(token: str) -> str:
         return ""
 
 
+def encrypt_bytes(raw: bytes) -> bytes:
+    """Шифротекст для БИНАРНОГО содержимого (MT-2: документы участников).
+
+    Отдельная пара функций, а не encode/decode поверх строковых: файл может быть
+    чем угодно, и превращать его в str по пути было бы ошибкой.
+    """
+    return _fernet().encrypt(raw)
+
+
+def decrypt_bytes(token: bytes) -> bytes:
+    """Расшифровать бинарь; чужой ключ/битый шифротекст → b'' (как decrypt)."""
+    if not token:
+        return b""
+    try:
+        return _fernet().decrypt(token)
+    except (InvalidToken, ValueError):
+        return b""
+
+
 def try_decrypt(token: str) -> str | None:
     """Расшифровать или None, если значение не является нашим шифротекстом.
 

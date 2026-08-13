@@ -1,0 +1,63 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% comment %}MT-2: раздел «Документы» в ЛК участника — загрузка и свои файлы.{% endcomment %}
+{% block title %}{% trans "My documents" %} — {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <a href="{% url 'account-home' %}" class="text-sm text-gray-500 hover:underline">← {% trans "My account" %}</a>
+  <h1 class="text-2xl font-semibold mt-2 mb-1">{% trans "My documents" %}</h1>
+  <p class="text-sm text-gray-600 mb-6">
+    {% blocktrans %}Your files are stored encrypted and can only be opened by you and the organiser.{% endblocktrans %}
+    {% blocktrans with days=retention_days %}They are deleted automatically {{ days }} days after the trip.{% endblocktrans %}
+  </p>
+
+  <form method="post" enctype="multipart/form-data" class="rounded-2xl border p-4 mb-6 space-y-3">
+    {% csrf_token %}
+    <label class="block text-sm">
+      <span class="text-gray-600">{% trans "Document type" %}</span>
+      <select name="kind" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        {% for value, label in kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+    <label class="block text-sm">
+      <span class="text-gray-600">{% trans "File (photo, PDF, GPX or MP4 — up to 50 MB)" %}</span>
+      <input type="file" name="file" required class="mt-1 block w-full text-sm text-gray-600">
+    </label>
+    <label class="block text-sm">
+      <span class="text-gray-600">{% trans "Note (optional)" %}</span>
+      <input type="text" name="note" maxlength="500" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </label>
+    <label class="flex items-start gap-2 text-sm text-gray-600">
+      <input type="checkbox" name="consent" value="1" class="mt-1">
+      <span>{% trans "I agree that the organiser may store this document for the trip." %}</span>
+    </label>
+    <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">{% trans "Upload" %}</button>
+  </form>
+
+  {% if documents %}
+    <ul class="divide-y rounded-2xl border">
+      {% for doc in documents %}
+        <li class="flex flex-wrap items-center justify-between gap-3 p-4">
+          <div>
+            <p class="font-medium">{{ doc.get_kind_display }}</p>
+            <p class="text-sm text-gray-500">
+              {{ doc.original_name }} · {{ doc.size_kb }} KB
+              {% if doc.expires_at %} · {% blocktrans with date=doc.expires_at|date:"d.m.Y" %}deleted on {{ date }}{% endblocktrans %}{% endif %}
+            </p>
+          </div>
+          <div class="flex items-center gap-3">
+            <a href="{% url 'account-document-download' doc.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Download" %}</a>
+            <form method="post" action="{% url 'account-document-delete' doc.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="text-sm text-red-600 hover:underline">{% trans "Delete" %}</button>
+            </form>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-gray-600">{% trans "No documents uploaded yet." %}</p>
+  {% endif %}
+</div>
+{% endblock %}

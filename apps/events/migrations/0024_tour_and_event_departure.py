@@ -9,7 +9,8 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("events", "0022_ticket_payment_reminder_sent_at"),
+        # Перенумеровано при ребейзе: main параллельно добавил 0023 (I18N-12).
+        ("events", "0023_blogpost_body_i18n_blogpost_excerpt_i18n_and_more"),
     ]
 
     operations = [
