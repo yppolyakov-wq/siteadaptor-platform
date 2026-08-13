@@ -316,6 +316,8 @@ urlpatterns = [
     path("kombi/", orders_public.combo_list_public, name="storefront-combos"),
     path("kombi/add/", orders_public.combo_add, name="storefront-combo-add"),
     path("kombi/<uuid:pk>/", orders_public.combo_detail_public, name="storefront-combo"),
+    # MEN-3: попап блюда (состав набора → крупное фото/описание/аллергены)
+    path("gericht/<uuid:pk>/info/", orders_public.dish_info, name="storefront-dish-info"),
     path("warenkorb/bestellen/", orders_public.checkout, name="storefront-checkout"),
     path("bestellung/<str:code>/", orders_public.order_confirmation, name="storefront-order"),
     # B2.1: повторная Stripe-оплата неоплаченного заказа (Checkout на лету).

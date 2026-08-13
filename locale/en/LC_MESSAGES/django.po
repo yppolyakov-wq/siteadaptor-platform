@@ -17656,3 +17656,23 @@ msgstr "In set"
 #: templates/catalog/combo_form.html
 msgid "Shown as part of the set — guests do not choose; cost is in the fixed price."
 msgstr "Shown as part of the set — guests do not choose; cost is in the fixed price."
+
+#: apps/orders/public_views.py
+msgid "Minimum for this set: %(n)s persons."
+msgstr "Minimum for this set: %(n)s persons."
+
+#: templates/storefront/combo_detail.html
+msgid "Person"
+msgstr "person"
+
+#: templates/storefront/combo_detail.html
+msgid "ab %(n)s Personen"
+msgstr "from %(n)s persons"
+
+#: templates/storefront/combo_detail.html
+msgid "Personen"
+msgstr "Persons"
+
+#: templates/storefront/combo_detail.html
+msgid "Unverbindlich anfragen"
+msgstr "Send a non-binding inquiry"

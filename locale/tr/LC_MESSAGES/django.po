@@ -17768,3 +17768,23 @@ msgstr "Sette"
 #: templates/catalog/combo_form.html
 msgid "Shown as part of the set — guests do not choose; cost is in the fixed price."
 msgstr "Setin sabit parçası olarak gösterilir — konuklar seçmez; maliyet sabit fiyata dahildir."
+
+#: apps/orders/public_views.py
+msgid "Minimum for this set: %(n)s persons."
+msgstr "Bu set için minimum: %(n)s kişi."
+
+#: templates/storefront/combo_detail.html
+msgid "Person"
+msgstr "kişi"
+
+#: templates/storefront/combo_detail.html
+msgid "ab %(n)s Personen"
+msgstr "%(n)s kişiden itibaren"
+
+#: templates/storefront/combo_detail.html
+msgid "Personen"
+msgstr "Kişi"
+
+#: templates/storefront/combo_detail.html
+msgid "Unverbindlich anfragen"
+msgstr "Bağlayıcı olmayan talep gönder"

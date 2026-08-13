@@ -170,3 +170,28 @@ def test_buybox_ready_flag_defaults_false_and_passes_through():
     s = Service(name="Beratung")
     assert sellable_for("service", s).buybox_ready is False
     assert sellable_for("service", s, buybox_ready=True).buybox_ready is True
+
+
+@pytest.mark.django_db
+def test_combo_menu_set_adapter_photo_ab_and_per_person():
+    """MEN-3: сохранённый набор — фото из галереи, честная «ab»-цена (минимальная
+    сборка) и суффикс per-person; замок test_combo_cart_mode_no_image (несохранённый,
+    без фото/групп) остаётся прежним поведением."""
+    from apps.catalog.models import Combo, ComboGroup, ComboOption
+    from apps.catalog.tests.factories import ProductFactory
+
+    c = Combo.objects.create(
+        name="Hochzeitsmenü",
+        price=Decimal("42.00"),
+        price_per_person=True,
+        images=[{"id": "a", "url": "/media/combos/a.webp", "is_primary": True}],
+    )
+    g = ComboGroup.objects.create(combo=c, label="Dessert", min_select=1, max_select=1)
+    ComboOption.objects.create(group=g, product=ProductFactory(), price_delta=Decimal("2.00"))
+    ComboOption.objects.create(group=g, product=ProductFactory(), price_delta=Decimal("0"))
+    e = sellable_for("combo", c)
+    assert e.image_url == "/media/combos/a.webp"
+    assert e.gallery == ["/media/combos/a.webp"]
+    assert e.price_display == "ab 42,00 € / Person"  # min сборка = 42,00 + 0,00
+    # price_value живёт в слое display_fields (адаптер), не в контракте sellable_for
+    assert sellable.display_fields("combo", c)["price_value"] == Decimal("42.00")

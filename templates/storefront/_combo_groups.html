@@ -1,0 +1,40 @@
+{% load i18n %}{% load l10n %}{% load siteui %}
+{% comment %}MEN-3: состав набора мини-плитками (фото → попап блюда, строка — выбор).
+Ожидает: combo, show_inputs (форма корзины или browse-only), show_prices (PAngV/
+menu_show_prices). included-группы — фикс-состав без контролов; группы выбора —
+radio/checkbox с data-delta (имена opt-<g.pk> — MEN-1). Фото кликом открывает
+generic-модалку #quick-modal (storefront-dish-info) — у выбора клик по фото
+НЕ переключает инпут (кнопка вне label).{% endcomment %}
+{% for g in combo.groups_active %}
+  <div class="mt-5">
+    <p class="font-medium text-gray-800">{{ g.label }}
+      {% if not g.included and show_inputs %}{% if g.is_required %}<span class="text-red-500">*</span>{% endif %}
+      {% if g.max_select > 1 %}<span class="text-xs text-gray-400">({% blocktrans with n=g.max_select %}up to {{ n }}{% endblocktrans %})</span>{% endif %}{% endif %}
+    </p>
+    <div class="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2">
+      {% for o in g.options_active %}
+        <div class="rounded-xl border border-gray-200 overflow-hidden bg-white {% if not g.included and show_inputs %}has-[:checked]:ring-2 has-[:checked]:ring-indigo-500{% endif %}" data-dish-tile>
+          <button type="button" class="relative block w-full aspect-[4/3] bg-gray-100 overflow-hidden cursor-zoom-in"
+                  data-quick-url="{% url 'storefront-dish-info' o.product.pk %}" aria-label="{{ o.product }}">
+            {% with img=o.product.primary_image %}{% if img %}
+              <img src="{{ img.url }}" alt="" class="w-full h-full object-cover" loading="lazy">
+            {% else %}<span class="w-full h-full flex items-center justify-center text-2xl" aria-hidden="true">🍽</span>{% endif %}{% endwith %}
+            <span class="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-white/90 shadow text-[11px] text-gray-500 flex items-center justify-center" aria-hidden="true">ⓘ</span>
+          </button>
+          {% if g.included or not show_inputs %}
+            <p class="px-2 py-1.5 text-sm text-gray-700">{{ o.product }}{% if show_prices and o.price_delta and not g.included %} <span class="text-gray-500">+{{ o.price_delta }} {{ combo.currency|cursym }}</span>{% endif %}</p>
+          {% else %}
+            <label class="flex items-center gap-2 px-2 py-1.5 text-sm text-gray-700 cursor-pointer">
+              {% if g.is_multi %}
+                <input type="checkbox" name="opt-{{ g.pk }}" value="{{ o.pk }}" data-delta="{{ o.price_delta|unlocalize }}" class="rounded border-gray-300">
+              {% else %}
+                <input type="radio" name="opt-{{ g.pk }}" value="{{ o.pk }}" data-delta="{{ o.price_delta|unlocalize }}" {% if g.is_required and forloop.first %}required{% endif %} class="border-gray-300">
+              {% endif %}
+              <span>{{ o.product }}{% if show_prices and o.price_delta %} <span class="text-gray-500">+{{ o.price_delta }} {{ combo.currency|cursym }}</span>{% endif %}</span>
+            </label>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endfor %}

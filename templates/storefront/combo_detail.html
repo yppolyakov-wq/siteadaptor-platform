@@ -1,70 +1,79 @@
 {% extends "storefront/_base.html" %}
 {% load i18n %}{% load l10n %}{% load siteui %}
-{% block title %}{{ combo.name }} · {{ request.tenant.name }}{% endblock %}
+{% block title %}{{ combo.name_localized }} · {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
 <a href="{% url 'storefront-combos' %}" class="text-sm text-gray-500">&larr; {% trans "Combos" %}</a>
-<h1 class="text-2xl md:text-3xl font-bold mt-2 mb-2">{{ combo.name }}</h1>
-{% if combo.description %}<p class="text-gray-600 mb-4">{{ combo.description }}</p>{% endif %}
-<p class="text-xl font-bold mb-6">{% trans "from" %} {{ combo.price }} {{ combo.currency|cursym }}</p>
 
 {% if messages %}
   {% for m in messages %}
-    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    <div class="mt-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
   {% endfor %}
 {% endif %}
 
-{% comment %}MEN-1: имена полей выбора скоуплены per-группа (`opt-<g.pk>`) — с общим `name="opt"` браузер схлопывал radio ВСЕХ групп в один выбор («закуска + горячее» было несобираемо). Сервер принимает opt И opt-* (combo_add).{% endcomment %}
-<form method="post" action="{% url 'storefront-combo-add' %}" class="bg-white rounded-2xl shadow-sm p-6 space-y-5 max-w-lg mx-auto" data-combo-form data-base="{{ combo.price|unlocalize }}" data-cur="{{ combo.currency|cursym }}">
-  {% csrf_token %}
-  <input type="hidden" name="combo" value="{{ combo.pk }}">
-  {% for g in combo.groups_active %}
-    <div>
-      <p class="font-medium text-gray-800">{{ g.label }}{% if g.is_required %} <span class="text-red-500">*</span>{% endif %}
-        {% if g.max_select > 1 %}<span class="text-xs text-gray-400">({% blocktrans with n=g.max_select %}up to {{ n }}{% endblocktrans %})</span>{% endif %}</p>
-      <div class="mt-2 space-y-1.5">
-        {% for o in g.options_active %}
-          <label class="flex items-center gap-2 text-sm text-gray-700">
-            {% if g.is_multi %}
-              <input type="checkbox" name="opt-{{ g.pk }}" value="{{ o.pk }}" data-delta="{{ o.price_delta|unlocalize }}" class="rounded border-gray-300">
-            {% else %}
-              <input type="radio" name="opt-{{ g.pk }}" value="{{ o.pk }}" data-delta="{{ o.price_delta|unlocalize }}" {% if g.is_required and forloop.first %}required{% endif %} class="border-gray-300">
-            {% endif %}
-            {{ o.product }}{% if o.price_delta %} <span class="text-gray-500">+{{ o.price_delta }} {{ combo.currency|cursym }}</span>{% endif %}
-          </label>
-        {% endfor %}
+<div class="mt-3 grid gap-8 {% if combo.images %}lg:grid-cols-2 items-start{% endif %}">
+  {% if combo.images %}
+    <div>{% include "storefront/_media_gallery.html" with images=combo.images alt=combo.name_localized %}</div>
+  {% endif %}
+  <div>
+    <h1 class="text-2xl md:text-3xl font-bold">{{ combo.name_localized }}</h1>
+    {% if combo.description_localized %}<p class="mt-2 text-gray-600 whitespace-pre-line">{{ combo.description_localized }}</p>{% endif %}
+    {% if show_prices %}
+    <p class="mt-3 text-xl font-bold">
+      {% if from_price != combo.price %}{% trans "from" %} {% endif %}{{ from_price }} {{ combo.currency|cursym }}{% if combo.price_per_person %} <span class="text-sm font-medium text-gray-500">/ {% trans "Person" %}</span>{% endif %}
+    </p>
+    <p class="mt-0.5 text-xs text-gray-400">{% trans "inkl. MwSt." %}</p>
+    {% endif %}
+    {% if combo.min_persons %}<p class="mt-1 text-sm text-gray-500">{% blocktrans with n=combo.min_persons %}ab {{ n }} Personen{% endblocktrans %}</p>{% endif %}
+
+    {% if combo_orders_active %}
+    {% comment %}MEN-1: имена полей выбора скоуплены per-группа (`opt-<g.pk>`) — с общим `name="opt"` браузер схлопывал radio ВСЕХ групп в один выбор. Сервер принимает opt И opt-* (combo_add).{% endcomment %}
+    <form method="post" action="{% url 'storefront-combo-add' %}" data-combo-form data-base="{{ combo.price|unlocalize }}" data-cur="{{ combo.currency|cursym }}">
+      {% csrf_token %}
+      <input type="hidden" name="combo" value="{{ combo.pk }}">
+      {% include "storefront/_combo_groups.html" with show_inputs=True %}
+      {% if show_prices %}<p class="mt-5 text-sm text-gray-600">{% trans "Total" %}: <b data-combo-total>{{ combo.price }} {{ combo.currency|cursym }}</b></p>{% endif %}
+      <div class="mt-2 flex items-center gap-3">
+        <label class="flex items-center gap-2 text-sm text-gray-600">{% if combo.price_per_person %}{% trans "Personen" %}{% else %}{% trans "Quantity" %}{% endif %}
+          <input type="number" name="qty" value="{{ min_qty }}" min="{{ min_qty }}" max="{% if combo.price_per_person %}1000{% else %}50{% endif %}" class="w-24 rounded-lg border border-gray-300 px-3 py-2.5">
+        </label>
+        <button type="submit" class="flex-1 text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent);">{% trans "Add to order" %}</button>
       </div>
-    </div>
-  {% endfor %}
-  <p class="text-sm text-gray-600 pt-2">{% trans "Total" %}: <b data-combo-total>{{ combo.price }} {{ combo.currency|cursym }}</b></p>
-  <div class="flex items-center gap-3">
-    <input type="number" name="qty" value="1" min="1" max="50" class="w-20 rounded-lg border border-gray-300 px-3 py-2.5" aria-label="{% trans 'Quantity' %}">
-    <button type="submit" class="flex-1 text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent);">{% trans "Add to order" %}</button>
+    </form>
+    <script>
+    (function () {
+      // MEN-1: live-пересчёт для показа; истина цены остаётся серверной
+      // (combo_price в combo_add/cart/checkout — клиент цен не шлёт).
+      var form = document.querySelector('[data-combo-form]');
+      if (!form || form.dataset.init) return;
+      form.dataset.init = '1';
+      var out = form.querySelector('[data-combo-total]');
+      function recalc() {
+        var total = parseFloat(form.dataset.base || '0') || 0;
+        form.querySelectorAll('input[data-delta]:checked').forEach(function (i) {
+          total += parseFloat(i.dataset.delta || '0') || 0;
+        });
+        var qtyInput = form.querySelector('input[name="qty"]');
+        var qty = qtyInput ? parseInt(qtyInput.value, 10) : 1;
+        total *= qty > 0 ? qty : 1;
+        if (out) {
+          out.textContent = total.toLocaleString(document.documentElement.lang || 'de',
+            { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + (form.dataset.cur || '€');
+        }
+      }
+      form.addEventListener('change', recalc);
+      form.addEventListener('input', recalc);
+      recalc();
+    })();
+    </script>
+    {% else %}
+    {% include "storefront/_combo_groups.html" with show_inputs=False %}
+    {% if combo_anfrage_active %}
+    {% comment %}MEN-3 (класс GK-14): browse-only кейтеринг — вместо корзины заявка с префиллом набора (AF-1 ?betreff=).{% endcomment %}
+    <a href="{% url 'storefront-anfrage' %}?betreff={{ combo.name_localized|urlencode }}"
+       class="mt-6 inline-block w-full text-center text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent);">{% trans "Unverbindlich anfragen" %}</a>
+    {% endif %}
+    {% endif %}
   </div>
-</form>
-<script>
-(function () {
-  // MEN-1: live-пересчёт для показа; истина цены остаётся серверной
-  // (combo_price в combo_add/cart/checkout — клиент цен не шлёт).
-  var form = document.querySelector('[data-combo-form]');
-  if (!form || form.dataset.init) return;
-  form.dataset.init = '1';
-  var out = form.querySelector('[data-combo-total]');
-  function recalc() {
-    var total = parseFloat(form.dataset.base || '0') || 0;
-    form.querySelectorAll('input[data-delta]:checked').forEach(function (i) {
-      total += parseFloat(i.dataset.delta || '0') || 0;
-    });
-    var qtyInput = form.querySelector('input[name="qty"]');
-    var qty = qtyInput ? parseInt(qtyInput.value, 10) : 1;
-    total *= qty > 0 ? qty : 1;
-    if (out) {
-      out.textContent = total.toLocaleString(document.documentElement.lang || 'de',
-        { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + (form.dataset.cur || '€');
-    }
-  }
-  form.addEventListener('change', recalc);
-  form.addEventListener('input', recalc);
-})();
-</script>
+</div>
 {% endblock %}

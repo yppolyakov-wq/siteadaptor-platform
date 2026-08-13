@@ -17837,3 +17837,23 @@ msgstr "У наборі"
 #: templates/catalog/combo_form.html
 msgid "Shown as part of the set — guests do not choose; cost is in the fixed price."
 msgstr "Показується як фіксована частина набору — гість не обирає; вартість входить у фіксовану ціну."
+
+#: apps/orders/public_views.py
+msgid "Minimum for this set: %(n)s persons."
+msgstr "Мінімум для цього набору: %(n)s осіб."
+
+#: templates/storefront/combo_detail.html
+msgid "Person"
+msgstr "особу"
+
+#: templates/storefront/combo_detail.html
+msgid "ab %(n)s Personen"
+msgstr "від %(n)s осіб"
+
+#: templates/storefront/combo_detail.html
+msgid "Personen"
+msgstr "Осіб"
+
+#: templates/storefront/combo_detail.html
+msgid "Unverbindlich anfragen"
+msgstr "Запит без зобов'язань"

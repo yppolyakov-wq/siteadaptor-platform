@@ -145,14 +145,27 @@ def _event(obj, locale):
 def _combo(obj, locale):
     # Комбо (A4 Gastro): фикс-цена + надбавки опций; i18n — L3-оверлей (база в
     # плоских name/description, переводы в *_i18n) — i18n для 5/5 kind.
-    # Богатая деталь/варианты — позже.
+    # MEN-3: фото из галереи набора; «ab»-цена честная (минимальная сборка,
+    # combos.combo_price_from); per-person суффикс «/ Person» (кейтеринг).
+    price_value = obj.price
+    prefix = ""
+    # UUID-pk назначается в __init__ → несохранённость определяет _state.adding
+    # (у несохранённого набора related-менеджер недоступен, БД не трогаем).
+    if not obj._state.adding:
+        from apps.catalog.combos import combo_price_from
+
+        price_value = combo_price_from(obj)
+        prefix = "ab " if any(not g.included for g in obj.groups_active) else ""
+    price = prefix + _price_str(price_value, obj.currency)
+    if obj.price_per_person and price:
+        price += " / Person"
     return {
         "name": obj.name_localized(locale),
         "description": obj.description_localized(locale),
-        "price_display": _price_str(obj.price, obj.currency),
-        "image_url": "",
-        "gallery": [],
-        "price_value": obj.price,
+        "price_display": price,
+        "image_url": obj.primary_image_url,
+        "gallery": _gallery_urls(obj.images),
+        "price_value": price_value,
         "price_currency": obj.currency,
     }
 

@@ -72,7 +72,9 @@ def page_target_choices() -> list[dict]:
 _PAGE_MODULE_GATES = {
     "loyalty": "loyalty",
     "gift": "gift",
-    "combos": "orders",
+    # MEN-3: у "combos" модульного гейта больше НЕТ — страница видна по каталогу
+    # (core-модуль, всегда активен), browse-only кейтеринг показывает наборы как
+    # Speisekarte; пункт меню держит контент-гейт (наборы существуют) ниже.
     # finder — ОПЦИЯ, а не модуль реестра: у него свой гейт finder.enabled ниже
     # (is_module_active("finder") всегда False и гасил бы пункт).
     "wishlist": "orders",

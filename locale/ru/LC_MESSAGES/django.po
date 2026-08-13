@@ -17852,3 +17852,23 @@ msgstr "В наборе"
 #: templates/catalog/combo_form.html
 msgid "Shown as part of the set — guests do not choose; cost is in the fixed price."
 msgstr "Показывается как фиксированная часть набора — гость не выбирает; стоимость входит в фикс-цену."
+
+#: apps/orders/public_views.py
+msgid "Minimum for this set: %(n)s persons."
+msgstr "Минимум для этого набора: %(n)s персон."
+
+#: templates/storefront/combo_detail.html
+msgid "Person"
+msgstr "чел."
+
+#: templates/storefront/combo_detail.html
+msgid "ab %(n)s Personen"
+msgstr "от %(n)s персон"
+
+#: templates/storefront/combo_detail.html
+msgid "Personen"
+msgstr "Персон"
+
+#: templates/storefront/combo_detail.html
+msgid "Unverbindlich anfragen"
+msgstr "Запрос без обязательств"

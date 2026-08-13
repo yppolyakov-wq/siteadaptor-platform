@@ -165,23 +165,67 @@ def quick_add_form(request, pk):
     return render(request, "storefront/_quick_add.html", {"product": product})
 
 
+def _require_combos_visible(request):
+    """MEN-3: наборы ВИДНЫ по видимости каталога — browse-only кейтеринг (orders
+    выключен) показывает /kombi/ как Speisekarte. Каталог — core-модуль (всегда
+    активен), поэтому страницы наборов доступны всем тенантам; ДЕЙСТВИЕ
+    «в корзину» остаётся за orders (combo_add/_remove — прежний гейт)."""
+    if getattr(request, "tenant", None) is None:
+        raise Http404
+
+
 def combo_list_public(request):
-    """Витрина комбо-наборов (A4): /kombi/. Гейтинг orders → 404."""
-    _require_orders_active(request)
+    """Витрина комбо-наборов (A4): /kombi/. MEN-3: гейт по видимости каталога."""
+    _require_combos_visible(request)
     from apps.catalog.combos import active_combos
 
     return render(request, "storefront/combos.html", {"combos": active_combos()})
 
 
 def combo_detail_public(request, pk):
-    """Конфигуратор набора (выбор напитка/гарнира) → POST в combo_add."""
-    _require_orders_active(request)
-    from apps.catalog.combos import get_active
+    """Конфигуратор набора (выбор напитка/гарнира) → POST в combo_add.
+
+    MEN-3: видим по каталогу; при выключенном orders форма корзины заменяется
+    CTA «Unverbindlich anfragen» (jobs) — префилл названия набора в /anfrage/.
+    """
+    _require_combos_visible(request)
+    from apps.catalog.combos import combo_price_from, get_active
 
     combo = get_active(pk)
     if combo is None:
         raise Http404
-    return render(request, "storefront/combo_detail.html", {"combo": combo})
+    tenant = getattr(request, "tenant", None)
+    orders_active = tenant is not None and tenant.is_module_active("orders")
+    from apps.tenants import siteconfig
+
+    site_cfg = siteconfig.normalize(tenant.site_config) if tenant is not None else {}
+    return render(
+        request,
+        "storefront/combo_detail.html",
+        {
+            "combo": combo,
+            "from_price": combo_price_from(combo),
+            "min_qty": combo.min_persons or 1,
+            "combo_orders_active": orders_active,
+            # DS-7 menu_show_prices: browse-only витрина может скрывать цены (PAngV —
+            # где заказ есть, цена обязана быть видна → orders_active всегда True-ветка).
+            "show_prices": orders_active or site_cfg.get("menu_show_prices") is not False,
+            "combo_anfrage_active": (
+                not orders_active and tenant is not None and tenant.is_module_active("jobs")
+            ),
+        },
+    )
+
+
+def dish_info(request, pk):
+    """MEN-3: попап блюда (мини-плитка состава набора → крупное фото + описание +
+    аллергены/диеты). Read-only фрагмент для generic-модалки #quick-modal —
+    БЕЗ orders-гейта (видимость как у наборов)."""
+    _require_combos_visible(request)
+    from apps.catalog.models import Product
+
+    product = get_object_or_404(Product, pk=pk, is_active=True)
+    return render(request, "storefront/_dish_info.html", {"product": product})
 
 
 @require_POST
@@ -204,13 +248,22 @@ def combo_add(request):
     if error:
         messages.error(request, error)
         return redirect("storefront-combo", pk=combo.pk)
+    # MEN-3: per-person набор (кейтеринг) — qty = персоны: кап выше (80 гостей >
+    # MAX_QTY=50), минимум владельца валидируется на сервере.
+    qty_cap = 1000 if combo.price_per_person else MAX_QTY
     try:
-        qty = max(1, min(int(request.POST.get("qty", "1")), MAX_QTY))
+        qty = max(1, min(int(request.POST.get("qty", "1")), qty_cap))
     except (TypeError, ValueError):
         qty = 1
+    if combo.min_persons and qty < combo.min_persons:
+        messages.error(
+            request,
+            _("Minimum for this set: %(n)s persons.") % {"n": combo.min_persons},
+        )
+        return redirect("storefront-combo", pk=combo.pk)
     key = _combo_key(combo, options)
     cc = _combo_cart(request)
-    cc[key] = min(cc.get(key, 0) + qty, MAX_QTY)
+    cc[key] = min(cc.get(key, 0) + qty, qty_cap)
     request.session[COMBO_SESSION_KEY] = cc
     messages.success(request, _("Added to your order."))
     return redirect("storefront-cart")
@@ -540,9 +593,24 @@ def checkout(request):
     from decimal import Decimal
 
     items = _cart_items(request)
-    from apps.catalog.combos import combo_price
+    from apps.catalog.combos import combo_price, validate_selection
 
     combo_items = _combo_items(request)
+    # MEN-3 (предохранитель плана §2): ревалидация состава на чекауте — между
+    # add и checkout опция могла умереть/группа измениться; options_from_ids
+    # молча выкинула бы её, и заказ ушёл бы ДЕШЕВЛЕ и без позиции. Честно
+    # отправляем гостя пересобрать набор. Минимум персон — тем же путём.
+    for combo, options, qty in combo_items:
+        _sel, sel_error = validate_selection(combo, [str(o.pk) for o in options])
+        if sel_error:
+            messages.error(request, sel_error)
+            return redirect("storefront-combo", pk=combo.pk)
+        if combo.min_persons and qty < combo.min_persons:
+            messages.error(
+                request,
+                _("Minimum for this set: %(n)s persons.") % {"n": combo.min_persons},
+            )
+            return redirect("storefront-combo", pk=combo.pk)
     subtotal = sum((_line_price(p, v, o) * q for p, v, o, q in items), Decimal("0"))
     subtotal += sum((combo_price(c, o) * q for c, o, q in combo_items), Decimal("0"))
     subtotal_cents = int(subtotal * 100)
