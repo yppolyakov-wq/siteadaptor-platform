@@ -17857,3 +17857,23 @@ msgstr "Осіб"
 #: templates/storefront/combo_detail.html
 msgid "Unverbindlich anfragen"
 msgstr "Запит без зобов'язань"
+
+#: apps/catalog/combos.py
+msgid "Please choose at least one dish."
+msgstr "Оберіть хоча б одну страву."
+
+#: apps/catalog/combos.py
+msgid "Please review your selection — some dishes are unavailable."
+msgstr "Перевірте вибір — частина страв недоступна."
+
+#: templates/storefront/category_landing.html
+msgid "Menü-Pakete"
+msgstr "Пакети меню"
+
+#: templates/storefront/category_landing.html
+msgid "Fertige Menüs — fix oder mit Auswahl. Preise pro Person."
+msgstr "Готові меню — фіксовані або з вибором. Ціни за особу."
+
+#: templates/storefront/category_landing.html
+msgid "Grundpreis"
+msgstr "Базова ціна"

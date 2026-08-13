@@ -138,6 +138,8 @@ def _combo_items(request):
     out = []
     for key, qty in _combo_cart(request).items():
         cid, opt_ids = _split_combo_key(key)
+        if opt_ids and opt_ids[0].startswith("d:"):
+            continue  # MEN-4: свободная сборка — _pool_items (id опций — UUID, "d:" не коллидирует)
         try:
             combo = get_active(cid)
         except (ValueError, ValidationError):
@@ -145,6 +147,34 @@ def _combo_items(request):
         if combo is None:
             continue
         out.append((combo, options_from_ids(combo, opt_ids), qty))
+    return out
+
+
+def _pool_items(request):
+    """MEN-4: [(combo, [product], qty, complete, key)] свободных сборок из сессии
+    (ключи `cid|d:p1,p2`). complete=False — блюдо умерло после add: корзина
+    покажет остаток, чекаут честно отправит пересобрать (цена молча не падает).
+    key — ИСХОДНЫЙ ключ сессии (кнопка ✕ обязана попадать и по неполной строке)."""
+    from apps.catalog.combos import get_active
+    from apps.catalog.models import Product
+
+    out = []
+    for key, qty in _combo_cart(request).items():
+        cid, opt_ids = _split_combo_key(key)
+        if not (opt_ids and opt_ids[0].startswith("d:")):
+            continue
+        try:
+            combo = get_active(cid)
+        except (ValueError, ValidationError):
+            combo = None
+        if combo is None:
+            continue
+        ids = [opt_ids[0][2:], *opt_ids[1:]]
+        try:
+            dishes = list(Product.objects.filter(pk__in=ids, is_active=True))
+        except (ValueError, ValidationError):
+            dishes = []
+        out.append((combo, dishes, qty, len(dishes) == len(ids), key))
     return out
 
 
@@ -199,11 +229,25 @@ def combo_detail_public(request, pk):
     from apps.tenants import siteconfig
 
     site_cfg = siteconfig.normalize(tenant.site_config) if tenant is not None else {}
+    # MEN-4: свободная сборка — пул блюд категории, сгруппирован по Gang'ам
+    # (порядок реестра COURSES; без Gang'а — в конец).
+    pool_courses = []
+    if combo.free_pool:
+        from apps.catalog.combos import pool_products
+        from apps.catalog.food import COURSES
+
+        by_course: dict[str, list] = {}
+        for p in pool_products(combo):
+            by_course.setdefault(p.course or "", []).append(p)
+        pool_courses = [(label, by_course[code]) for code, label in COURSES if code in by_course]
+        if "" in by_course:
+            pool_courses.append((_("Weitere"), by_course[""]))
     return render(
         request,
         "storefront/combo_detail.html",
         {
             "combo": combo,
+            "pool_courses": pool_courses,
             "from_price": combo_price_from(combo),
             "min_qty": combo.min_persons or 1,
             "combo_orders_active": orders_active,
@@ -236,18 +280,6 @@ def combo_add(request):
     combo = get_active(request.POST.get("combo"))
     if combo is None:
         raise Http404
-    # MEN-1: radio-группы конфигуратора скоуплены per-группа (`opt-<g.pk>`),
-    # иначе браузер схлопывал ВСЕ radio набора в один выбор («закуска +
-    # горячее» было несобираемо). Голый `opt` принимаем по-прежнему
-    # (чекауты/старые формы); validate_selection чужие id игнорирует.
-    opt_ids = list(request.POST.getlist("opt"))
-    for field in request.POST:
-        if field.startswith("opt-"):
-            opt_ids.extend(request.POST.getlist(field))
-    options, error = validate_selection(combo, opt_ids)
-    if error:
-        messages.error(request, error)
-        return redirect("storefront-combo", pk=combo.pk)
     # MEN-3: per-person набор (кейтеринг) — qty = персоны: кап выше (80 гостей >
     # MAX_QTY=50), минимум владельца валидируется на сервере.
     qty_cap = 1000 if combo.price_per_person else MAX_QTY
@@ -261,7 +293,30 @@ def combo_add(request):
             _("Minimum for this set: %(n)s persons.") % {"n": combo.min_persons},
         )
         return redirect("storefront-combo", pk=combo.pk)
-    key = _combo_key(combo, options)
+    if combo.free_pool:
+        # MEN-4: свободная сборка — блюда категории (name="dish"), строгая
+        # валидация по пулу; ключ корзины с маркером "d:".
+        from apps.catalog.combos import validate_pool
+
+        dishes, error = validate_pool(combo, request.POST.getlist("dish"))
+        if error:
+            messages.error(request, error)
+            return redirect("storefront-combo", pk=combo.pk)
+        key = f"{combo.pk}|d:" + ",".join(sorted(str(d.pk) for d in dishes))
+    else:
+        # MEN-1: radio-группы конфигуратора скоуплены per-группа (`opt-<g.pk>`),
+        # иначе браузер схлопывал ВСЕ radio набора в один выбор («закуска +
+        # горячее» было несобираемо). Голый `opt` принимаем по-прежнему
+        # (чекауты/старые формы); validate_selection чужие id игнорирует.
+        opt_ids = list(request.POST.getlist("opt"))
+        for field in request.POST:
+            if field.startswith("opt-"):
+                opt_ids.extend(request.POST.getlist(field))
+        options, error = validate_selection(combo, opt_ids)
+        if error:
+            messages.error(request, error)
+            return redirect("storefront-combo", pk=combo.pk)
+        key = _combo_key(combo, options)
     cc = _combo_cart(request)
     cc[key] = min(cc.get(key, 0) + qty, qty_cap)
     request.session[COMBO_SESSION_KEY] = cc
@@ -483,12 +538,12 @@ def cart_view(request):
         for product, variant, options, qty in items
     ]
     # Комбо-наборы (A4): отдельные строки корзины со снимком состава.
-    from apps.catalog.combos import combo_price
+    from apps.catalog.combos import combo_price, pool_price
 
     combo_rows = [
         {
             "combo": combo,
-            "options": options,
+            "labels": [str(o.product) for o in options if o.product_id],
             "qty": qty,
             "key": _combo_key(combo, options),
             "unit_price": combo_price(combo, options),
@@ -496,6 +551,18 @@ def cart_view(request):
         }
         for combo, options, qty in _combo_items(request)
     ]
+    # MEN-4: свободные сборки — та же форма строки (labels = выбранные блюда).
+    for combo, dishes, qty, _complete, key in _pool_items(request):
+        combo_rows.append(
+            {
+                "combo": combo,
+                "labels": [str(d) for d in dishes],
+                "qty": qty,
+                "key": key,
+                "unit_price": pool_price(combo, dishes),
+                "line_total": pool_price(combo, dishes) * qty,
+            }
+        )
     total = sum((r["line_total"] for r in rows + combo_rows), start=Decimal("0"))
     tenant = getattr(request, "tenant", None)
     delivery_enabled = getattr(tenant, "delivery_enabled", False)
@@ -593,9 +660,24 @@ def checkout(request):
     from decimal import Decimal
 
     items = _cart_items(request)
-    from apps.catalog.combos import combo_price, validate_selection
+    from apps.catalog.combos import combo_price, pool_price, validate_selection
 
     combo_items = _combo_items(request)
+    pool_items = _pool_items(request)
+    # MEN-4: свободные сборки — умершее блюдо/пустой выбор → честный редирект
+    # пересобрать (цена НЕ падает молча); минимум персон — как у обычных наборов.
+    for combo, dishes, qty, complete, _key in pool_items:
+        if not complete or not dishes:
+            messages.error(
+                request, _("Please review your selection — some dishes are unavailable.")
+            )
+            return redirect("storefront-combo", pk=combo.pk)
+        if combo.min_persons and qty < combo.min_persons:
+            messages.error(
+                request,
+                _("Minimum for this set: %(n)s persons.") % {"n": combo.min_persons},
+            )
+            return redirect("storefront-combo", pk=combo.pk)
     # MEN-3 (предохранитель плана §2): ревалидация состава на чекауте — между
     # add и checkout опция могла умереть/группа измениться; options_from_ids
     # молча выкинула бы её, и заказ ушёл бы ДЕШЕВЛЕ и без позиции. Честно
@@ -613,6 +695,7 @@ def checkout(request):
             return redirect("storefront-combo", pk=combo.pk)
     subtotal = sum((_line_price(p, v, o) * q for p, v, o, q in items), Decimal("0"))
     subtotal += sum((combo_price(c, o) * q for c, o, q in combo_items), Decimal("0"))
+    subtotal += sum((pool_price(c, d) * q for c, d, q, _ok, _k in pool_items), Decimal("0"))
     subtotal_cents = int(subtotal * 100)
     delivery = request.POST.get("fulfillment") == "delivery" and getattr(
         tenant, "delivery_enabled", False
@@ -677,9 +760,23 @@ def checkout(request):
     order_items = [(p, v, q, o) for p, v, o, q in _cart_items(request)]
     order_combos = [(c, o, q) for c, o, q in combo_items]
     try:
+        # MEN-4: свободная сборка → custom_lines (цена заморожена сервером ЗДЕСЬ,
+        # состав — снимком в modifiers; OrderItem.combo не ставим — строка кастомная).
+        pool_lines = [
+            (
+                str(combo.name)[:200],
+                pool_price(combo, dishes),
+                qty,
+                None,
+                None,
+                [{"label": str(d), "delta": str(d.base_price)} for d in dishes],
+            )
+            for combo, dishes, qty, _ok, _k in pool_items
+        ]
         order = create_order(
             items=order_items,
             combos=order_combos,
+            custom_lines=pool_lines,
             name=name,
             email=request.POST.get("email", "").strip(),
             phone=request.POST.get("phone", "").strip(),

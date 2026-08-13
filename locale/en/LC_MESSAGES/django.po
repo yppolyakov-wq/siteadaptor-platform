@@ -17676,3 +17676,23 @@ msgstr "Persons"
 #: templates/storefront/combo_detail.html
 msgid "Unverbindlich anfragen"
 msgstr "Send a non-binding inquiry"
+
+#: apps/catalog/combos.py
+msgid "Please choose at least one dish."
+msgstr "Please choose at least one dish."
+
+#: apps/catalog/combos.py
+msgid "Please review your selection — some dishes are unavailable."
+msgstr "Please review your selection — some dishes are unavailable."
+
+#: templates/storefront/category_landing.html
+msgid "Menü-Pakete"
+msgstr "Menu packages"
+
+#: templates/storefront/category_landing.html
+msgid "Fertige Menüs — fix oder mit Auswahl. Preise pro Person."
+msgstr "Ready-made menus — fixed or with choices. Prices per person."
+
+#: templates/storefront/category_landing.html
+msgid "Grundpreis"
+msgstr "Base price"

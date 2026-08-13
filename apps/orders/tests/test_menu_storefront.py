@@ -171,3 +171,100 @@ def test_browse_only_hides_prices_when_menu_show_prices_false():
         _req(method="get", tenant=_browse_only()), pk=combo.pk
     ).content.decode()
     assert "44,50" in body2
+
+
+# --- MEN-4: свободная сборка (free_pool) -------------------------------------------
+
+
+def _pool_setup():
+    from apps.catalog.models import Category
+
+    cat = Category.objects.create(name={"de": "Hochzeit"}, slug="men4-hochzeit")
+    soup = ProductFactory(
+        name={"de": "Kürbissuppe"}, base_price=Decimal("6.50"), category=cat, course="suppe"
+    )
+    main = ProductFactory(
+        name={"de": "Rinderfilet"}, base_price=Decimal("18.00"), category=cat, course="hauptgang"
+    )
+    combo = Combo.objects.create(
+        name="Freie Auswahl",
+        price=Decimal("0.00"),
+        free_pool=True,
+        category=cat,
+        price_per_person=True,
+    )
+    return combo, cat, soup, main
+
+
+def test_free_pool_detail_grouped_by_course():
+    combo, _cat, _soup, _main = _pool_setup()
+    body = public_views.combo_detail_public(_req(method="get"), pk=combo.pk).content.decode()
+    assert 'name="dish"' in body
+    assert "Suppe" in body and "Hauptgericht" in body  # заголовки Gang'ов
+    i_soup, i_main = body.find("Kürbissuppe"), body.find("Rinderfilet")
+    assert 0 < i_soup < i_main  # порядок реестра COURSES
+    assert 'data-delta="6.50"' in body and 'data-delta="18.00"' in body
+
+
+def test_free_pool_add_validates_and_checkout_prices_server_side():
+    combo, _cat, soup, main = _pool_setup()
+    foreign = ProductFactory()  # блюдо ЧУЖОЙ категории — строгий отказ, не молчаливый дроп
+    bad = _req(data={"combo": str(combo.pk), "dish": [str(foreign.pk)], "qty": "1"})
+    public_views.combo_add(bad)
+    assert bad.session.get("combo_cart", {}) == {}
+
+    ok = _req(data={"combo": str(combo.pk), "dish": [str(soup.pk), str(main.pk)], "qty": "20"})
+    public_views.combo_add(ok)
+    cc = ok.session["combo_cart"]
+    key = f"{combo.pk}|d:" + ",".join(sorted([str(soup.pk), str(main.pk)]))
+    assert cc == {key: 20}
+
+    public_views.checkout(_req(data={"name": "K"}, session={"combo_cart": cc}))
+    order = Order.objects.get()
+    item = order.items.get()
+    assert item.unit_price == Decimal("24.50")  # 6,50 + 18,00 + базовая 0
+    assert item.qty == 20 and order.total == Decimal("490.00")
+    assert item.combo_id is None and item.product_id is None  # custom line
+    assert len(item.modifiers) == 2  # снимок состава (блюдо + цена)
+
+
+def test_free_pool_dead_dish_blocks_checkout():
+    combo, _cat, soup, _main = _pool_setup()
+    add = _req(data={"combo": str(combo.pk), "dish": [str(soup.pk)], "qty": "1"})
+    public_views.combo_add(add)
+    cc = add.session["combo_cart"]
+    soup.is_active = False
+    soup.save(update_fields=["is_active"])
+    public_views.checkout(_req(data={"name": "K"}, session={"combo_cart": cc}))
+    assert Order.objects.count() == 0
+
+
+def test_cart_shows_pool_row_with_labels():
+    combo, _cat, soup, main = _pool_setup()
+    add = _req(data={"combo": str(combo.pk), "dish": [str(soup.pk), str(main.pk)], "qty": "20"})
+    public_views.combo_add(add)
+    body = public_views.cart_view(
+        _req(method="get", session={"combo_cart": add.session["combo_cart"]})
+    ).content.decode()
+    assert "Freie Auswahl" in body and "Kürbissuppe" in body
+
+
+def test_landing_shows_menu_sets_block():
+    """MEN-4: лендинг направления (DS-7) — блок «Menü-Pakete» с бейджем минимума."""
+    from apps.catalog.models import Category
+    from apps.promotions import public_views as promo_views
+
+    cat = Category.objects.create(
+        name={"de": "Hochzeit"}, slug="men4-landing", description={"de": "Feiern mit Stil"}
+    )
+    Combo.objects.create(
+        name="Hochzeitsmenü Klassik",
+        price=Decimal("42.00"),
+        category=cat,
+        price_per_person=True,
+        min_persons=20,
+    )
+    req = _req(method="get", tenant=TenantFactory.build(site_config={"category_landings": True}))
+    body = promo_views.category_landing(req, slug="men4-landing").content.decode()
+    assert "Menü-Pakete" in body and "Hochzeitsmenü Klassik" in body
+    assert "ab 20 Personen" in body

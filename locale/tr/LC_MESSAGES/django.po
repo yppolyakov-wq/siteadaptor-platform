@@ -17788,3 +17788,23 @@ msgstr "Kişi"
 #: templates/storefront/combo_detail.html
 msgid "Unverbindlich anfragen"
 msgstr "Bağlayıcı olmayan talep gönder"
+
+#: apps/catalog/combos.py
+msgid "Please choose at least one dish."
+msgstr "Lütfen en az bir yemek seçin."
+
+#: apps/catalog/combos.py
+msgid "Please review your selection — some dishes are unavailable."
+msgstr "Lütfen seçiminizi kontrol edin — bazı yemekler artık mevcut değil."
+
+#: templates/storefront/category_landing.html
+msgid "Menü-Pakete"
+msgstr "Menü paketleri"
+
+#: templates/storefront/category_landing.html
+msgid "Fertige Menüs — fix oder mit Auswahl. Preise pro Person."
+msgstr "Hazır menüler — sabit veya seçimli. Fiyatlar kişi başıdır."
+
+#: templates/storefront/category_landing.html
+msgid "Grundpreis"
+msgstr "Taban fiyat"

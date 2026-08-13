@@ -46,8 +46,8 @@
       {% for cr in combo_rows %}
         <div class="flex items-center justify-between gap-3 px-4 py-2.5">
           <div class="min-w-0">
-            <p class="font-medium truncate">🍔 {{ cr.combo.name }}</p>
-            {% if cr.options %}<p class="text-xs text-gray-500">{% for o in cr.options %}{{ o.product }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+            <p class="font-medium truncate">🍔 {{ cr.combo.name_localized }}</p>
+            {% if cr.labels %}<p class="text-xs text-gray-500">{{ cr.labels|join:", " }}</p>{% endif %}
             <p class="text-xs text-gray-400">{{ cr.qty }}× {{ cr.unit_price }} {{ currency|cursym }}</p>
           </div>
           <div class="flex items-center gap-3 shrink-0">

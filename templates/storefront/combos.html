@@ -6,13 +6,21 @@
 <h1 class="text-2xl md:text-3xl font-bold mb-6">{% trans "Combos & menus" %}</h1>
 
 {% if combos %}
+{% comment %}MEN-4: карточки с фото (MEN-2) и бейджами набора; цены — по menu_show_prices (browse-only, DS-7).{% endcomment %}
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
   {% for c in combos %}
-    <a href="{% url 'storefront-combo' c.pk %}" class="block bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition motion-safe:hover:-translate-y-1">
-      <h2 class="font-bold text-lg">{{ c.name }}</h2>
-      {% if c.description %}<p class="text-sm text-gray-500 mt-1 line-clamp-3">{{ c.description }}</p>{% endif %}
-      <p class="mt-3 font-bold text-xl">{{ c.price }} {{ c.currency|cursym }}</p>
-      <span class="inline-block mt-2 text-sm font-medium" style="color: var(--accent);">{% trans "Configure" %} &rarr;</span>
+    <a href="{% url 'storefront-combo' c.pk %}" class="group block bg-white sf-card rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition motion-safe:hover:-translate-y-1">
+      {% if c.primary_image_url %}<span class="block aspect-[4/3] bg-gray-100"><img src="{{ c.primary_image_url }}" alt="{{ c.name_localized }}" loading="lazy" class="w-full h-full object-cover"></span>{% endif %}
+      <span class="block p-5">
+        <h2 class="font-bold text-lg group-hover:underline">{{ c.name_localized }}</h2>
+        {% if c.free_pool %}<span class="inline-block mt-1 text-[11px] font-medium rounded-full bg-gray-100 text-gray-600 px-2 py-0.5">{% trans "Free choice from category" %}</span>
+        {% elif c.min_persons %}<span class="inline-block mt-1 text-[11px] font-medium rounded-full bg-gray-100 text-gray-600 px-2 py-0.5">{% blocktrans with n=c.min_persons %}ab {{ n }} Personen{% endblocktrans %}</span>{% endif %}
+        {% if c.description_localized %}<span class="block text-sm text-gray-500 mt-1 line-clamp-3">{{ c.description_localized }}</span>{% endif %}
+        {% if storefront_orders_active or site.menu_show_prices != False %}
+        <span class="block mt-3 font-bold text-xl">{{ c.price }} {{ c.currency|cursym }}{% if c.price_per_person %} <span class="text-sm font-medium text-gray-500">/ {% trans "Person" %}</span>{% endif %}</span>
+        {% endif %}
+        <span class="inline-block mt-2 text-sm font-medium" style="color: var(--accent);">{% trans "Configure" %} &rarr;</span>
+      </span>
     </a>
   {% endfor %}
 </div>

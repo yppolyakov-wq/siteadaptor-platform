@@ -36,6 +36,30 @@
 </section>
 {% endif %}
 
+{% if landing_menu_sets %}
+{% comment %}MEN-4: наборы меню направления (Combo.category) — карточки над примерами блюд; клик = конфигуратор набора. Цена карточки — из адаптера (ab €/Gast).{% endcomment %}
+<section class="mb-10" data-landing-menu-sets>
+  <h2 class="text-xl md:text-2xl font-bold mb-1">{% trans "Menü-Pakete" %}</h2>
+  <p class="text-sm text-gray-500 mb-4">{% trans "Fertige Menüs — fix oder mit Auswahl. Preise pro Person." %}</p>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for c in landing_menu_sets %}
+      <a href="{% url 'storefront-combo' c.pk %}" class="group block bg-white sf-card rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
+        {% if c.primary_image_url %}<span class="block aspect-[4/3] bg-gray-100"><img src="{{ c.primary_image_url }}" alt="{{ c.name_localized }}" loading="lazy" class="w-full h-full object-cover"></span>{% endif %}
+        <span class="block p-4">
+          <span class="block font-bold group-hover:underline">{{ c.name_localized }}</span>
+          {% if c.free_pool %}<span class="inline-block mt-1 text-[11px] font-medium rounded-full bg-gray-100 text-gray-600 px-2 py-0.5">{% trans "Free choice from category" %}</span>
+          {% elif c.min_persons %}<span class="inline-block mt-1 text-[11px] font-medium rounded-full bg-gray-100 text-gray-600 px-2 py-0.5">{% blocktrans with n=c.min_persons %}ab {{ n }} Personen{% endblocktrans %}</span>{% endif %}
+          {% if c.description_localized %}<span class="block text-xs text-gray-500 mt-1">{{ c.description_localized|truncatechars:80 }}</span>{% endif %}
+          {% if storefront_orders_active or site.menu_show_prices != False %}
+          <span class="block text-sm font-bold mt-2" style="font-variant-numeric: tabular-nums;">{{ c.price }} {{ c.currency|cursym }}{% if c.price_per_person %} <span class="text-xs font-normal text-gray-400">/ {% trans "Person" %}</span>{% endif %}</span>
+          {% endif %}
+        </span>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
 {% if landing_products %}
 <section class="mb-10 sf-card bg-white rounded-2xl p-6 md:p-8" data-landing-examples>
   <h2 class="text-xl md:text-2xl font-bold mb-1">{% trans "Beispiele aus der Küche" %}</h2>

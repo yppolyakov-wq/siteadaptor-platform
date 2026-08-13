@@ -494,13 +494,20 @@ def category_landing(request, slug):
     from django.http import Http404
     from django.utils.translation import get_language
 
-    from apps.catalog.models import Category, Product
+    from apps.catalog.models import Category, Combo, Product
     from apps.tenants import siteconfig
 
     site = siteconfig.localize(siteconfig.normalize(request.tenant.site_config), get_language())
     if not site.get("category_landings"):
         raise Http404
     category = get_object_or_404(Category, slug=slug, is_active=True, parent__isnull=True)
+    # MEN-4: наборы меню направления (Combo.category) — блок «Menü-Pakete»
+    # карточками выше примеров блюд; пусто → блок не рендерится.
+    menu_sets = list(
+        Combo.objects.filter(is_active=True, category=category)
+        .prefetch_related("groups__options")
+        .order_by("sort_order", "created_at")[:6]
+    )
     description = category.get_i18n("description")
     photos = [img.get("url") for img in (category.images or []) if img.get("url")]
     products = list(
@@ -523,6 +530,7 @@ def category_landing(request, slug):
             "landing_description": description,
             "landing_gallery": gallery,
             "landing_products": products,
+            "landing_menu_sets": menu_sets,  # MEN-4
             "landing_photo": (photos[:1] or gallery[:1] or [""])[0],
             "testimonials": (site.get("testimonials") or [])[:2],
         },

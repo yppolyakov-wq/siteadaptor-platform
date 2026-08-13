@@ -86,6 +86,36 @@ def combo_snapshot(combo, options):
     return snap
 
 
+def pool_products(combo):
+    """MEN-4: пул «свободной сборки» — активные блюда категории набора."""
+    from .models import Product
+
+    if not (combo.free_pool and combo.category_id):
+        return []
+    return list(Product.objects.filter(is_active=True, category_id=combo.category_id))
+
+
+def validate_pool(combo, dish_ids):
+    """MEN-4: (products, error) — выбор свободной сборки, СТРОГО.
+
+    Чужой/протухший id — честная ошибка (молчаливый дроп менял бы цену заказа);
+    минимум — одно блюдо. Дубли схлопываются, порядок = порядок пула.
+    """
+    ids = {str(i) for i in dish_ids}
+    if not ids:
+        return [], _("Please choose at least one dish.")
+    pool = {str(p.pk): p for p in pool_products(combo)}
+    if ids - set(pool):
+        return [], _("Please review your selection — some dishes are unavailable.")
+    return [p for k, p in pool.items() if k in ids], ""
+
+
+def pool_price(combo, dishes) -> Decimal:
+    """MEN-4: цена свободной сборки = базовая цена набора (обычно 0) + Σ à la
+    carte (Product.base_price) — «свободное ≥ наборного» держится ценами блюд."""
+    return combo.price + sum((d.base_price for d in dishes), Decimal("0"))
+
+
 def active_combos():
     """Активные комбо с предзагруженными группами/опциями/товарами."""
     return (

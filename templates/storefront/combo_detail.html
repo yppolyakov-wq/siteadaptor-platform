@@ -19,9 +19,14 @@
     <h1 class="text-2xl md:text-3xl font-bold">{{ combo.name_localized }}</h1>
     {% if combo.description_localized %}<p class="mt-2 text-gray-600 whitespace-pre-line">{{ combo.description_localized }}</p>{% endif %}
     {% if show_prices %}
+    {% if combo.free_pool %}
+      {% comment %}MEN-4: у свободной сборки итог складывается из блюд — крупная цена = базовая только если она задана (сервисный сбор).{% endcomment %}
+      {% if combo.price %}<p class="mt-3 text-sm text-gray-600">{% trans "Grundpreis" %}: <b>{{ combo.price }} {{ combo.currency|cursym }}</b>{% if combo.price_per_person %} / {% trans "Person" %}{% endif %}</p>{% endif %}
+    {% else %}
     <p class="mt-3 text-xl font-bold">
       {% if from_price != combo.price %}{% trans "from" %} {% endif %}{{ from_price }} {{ combo.currency|cursym }}{% if combo.price_per_person %} <span class="text-sm font-medium text-gray-500">/ {% trans "Person" %}</span>{% endif %}
     </p>
+    {% endif %}
     <p class="mt-0.5 text-xs text-gray-400">{% trans "inkl. MwSt." %}</p>
     {% endif %}
     {% if combo.min_persons %}<p class="mt-1 text-sm text-gray-500">{% blocktrans with n=combo.min_persons %}ab {{ n }} Personen{% endblocktrans %}</p>{% endif %}
@@ -31,7 +36,7 @@
     <form method="post" action="{% url 'storefront-combo-add' %}" data-combo-form data-base="{{ combo.price|unlocalize }}" data-cur="{{ combo.currency|cursym }}">
       {% csrf_token %}
       <input type="hidden" name="combo" value="{{ combo.pk }}">
-      {% include "storefront/_combo_groups.html" with show_inputs=True %}
+      {% if combo.free_pool %}{% include "storefront/_combo_pool.html" with show_inputs=True %}{% else %}{% include "storefront/_combo_groups.html" with show_inputs=True %}{% endif %}
       {% if show_prices %}<p class="mt-5 text-sm text-gray-600">{% trans "Total" %}: <b data-combo-total>{{ combo.price }} {{ combo.currency|cursym }}</b></p>{% endif %}
       <div class="mt-2 flex items-center gap-3">
         <label class="flex items-center gap-2 text-sm text-gray-600">{% if combo.price_per_person %}{% trans "Personen" %}{% else %}{% trans "Quantity" %}{% endif %}
@@ -67,7 +72,7 @@
     })();
     </script>
     {% else %}
-    {% include "storefront/_combo_groups.html" with show_inputs=False %}
+    {% if combo.free_pool %}{% include "storefront/_combo_pool.html" with show_inputs=False %}{% else %}{% include "storefront/_combo_groups.html" with show_inputs=False %}{% endif %}
     {% if combo_anfrage_active %}
     {% comment %}MEN-3 (класс GK-14): browse-only кейтеринг — вместо корзины заявка с префиллом набора (AF-1 ?betreff=).{% endcomment %}
     <a href="{% url 'storefront-anfrage' %}?betreff={{ combo.name_localized|urlencode }}"
