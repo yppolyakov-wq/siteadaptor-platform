@@ -439,6 +439,12 @@ def apply_template(tenant, key) -> bool:
 _FOKUS_BASE = {
     "hero_style": "split",
     "nav_cta": True,
+    # DS-9: плитки задач в баннере снимаются ("none" = явное снятие; отель и
+    # сервисные архетипы переопределяют своим ФУНКЦИОНАЛЬНЫМ виджетом —
+    # поиск дат / топ-услуги с кнопкой записи).
+    "hero_widget": "none",
+    # DS-9: шапка Fokus — одной строкой «лого | меню | CTA».
+    "nav_style": "classic",
     "section_styles": {"trust": "compact"},
     "sections_on": ("trust",),
     # Отключаем «шумные» секции — у Fokus главная ведёт к ОДНОМУ действию;
@@ -467,14 +473,14 @@ def _fokus(extra: dict) -> dict:
 
 BUNDLES = [
     {
+        # Сервисный «цена + заявка» — прайс и форма прямо на главной (catering).
         "key": "fokus",
         "label": "Fokus",
         "description_de": (
             "Ein Hauptziel pro Bildschirm: Split-Banner, Preisliste, "
             "Anfrage direkt auf der Startseite."
         ),
-        # Сервисные архетипы «цена+заявка» — концепт-макет владельца 2026-08-12.
-        "recommended_for": ("catering", "friseur", "handwerker", "werkstatt"),
+        "recommended_for": ("catering",),
         "look": "klar",
         "config": _fokus(
             {
@@ -485,8 +491,7 @@ BUNDLES = [
         ),
     },
     {
-        # DS-8: отель — главное действие «свободно ли на мои даты»; поиск дат
-        # ВНУТРИ сплит-баннера (hero_widget=stays), под ним карточки номеров.
+        # DS-8: отель — «свободно ли на мои даты»: поиск ВНУТРИ баннера.
         "key": "fokus_hotel",
         "label": "Fokus",
         "description_de": (
@@ -499,13 +504,12 @@ BUNDLES = [
             {
                 "hero_widget": "stays",
                 "sections_on": ("stay_rooms",),
-                # stay_search жил бы дублем к поиску в баннере.
                 "sections_off": ("stay_search",),
             }
         ),
     },
     {
-        # DS-8: ресторан — печатная карта (Speisekarte klassisch) + бронь стола.
+        # DS-8: ресторан — печатная карта + бронь стола.
         "key": "fokus_gastro",
         "label": "Fokus",
         "description_de": (
@@ -516,8 +520,6 @@ BUNDLES = [
         "look": "klar",
         "config": _fokus(
             {
-                # Плитки задач в баннере не ставим: Fokus = одно действие
-                # (CTA шапки + кнопка hero); плитки живут в других Look'ах.
                 "catalog_layout": {"preset": "preisliste_karte"},
                 "section_styles": {"products": "preisliste_karte"},
                 "sections_on": ("products",),
@@ -543,15 +545,14 @@ BUNDLES = [
         ),
     },
     {
-        # DS-8: пекарня — витрина «купить сегодня»: направления плитками +
-        # прайс с фото (глазами выбирают выпечку), корзина в шапке.
+        # DS-8: пекарня — направления плитками + прайс с фото («глазами выбирают»).
         "key": "fokus_bakery",
         "label": "Fokus",
         "description_de": (
             "Ein Hauptziel pro Bildschirm: Split-Banner, Sortiment-Kacheln und "
             "Preisliste mit Fotos."
         ),
-        "recommended_for": ("bakery", "butcher"),
+        "recommended_for": ("bakery",),
         "look": "klar",
         "config": _fokus(
             {
@@ -561,7 +562,172 @@ BUNDLES = [
             }
         ),
     },
+    {
+        # DS-9: мясная лавка — витрина «прилавок»: направления + прайс с фото +
+        # Partyservice-заявка (jobs у Metzgerei активен) прямо на главной.
+        "key": "fokus_theke",
+        "label": "Fokus",
+        "description_de": (
+            "Ein Hauptziel pro Bildschirm: Theken-Sortiment mit Fotos und "
+            "Partyservice-Anfrage direkt auf der Startseite."
+        ),
+        "recommended_for": ("butcher",),
+        "look": "klar",
+        "config": _fokus(
+            {
+                "catalog_layout": {"preset": "preisliste_foto"},
+                "section_styles": {"products": "preisliste_foto", "categories": "compact"},
+                "sections_on": ("categories", "products", "anfrage"),
+            }
+        ),
+    },
+    {
+        # DS-9: Friseur — «Termin-Fokus»: топ-услуги В баннере, прайс услуг,
+        # МАСТЕРА остаются (у салона доверие — это люди), затем доверие.
+        "key": "fokus_termin",
+        "label": "Fokus",
+        "description_de": (
+            "Ein Hauptziel pro Bildschirm: Leistungen mit Preisen im Banner, "
+            "Team und Termin-Buchung immer sichtbar."
+        ),
+        "recommended_for": ("friseur",),
+        "look": "klar",
+        "config": _fokus(
+            {
+                "hero_widget": "services",
+                "sections_on": ("services", "team"),
+            }
+        ),
+    },
+    {
+        # DS-9: Werkstatt — «Ablauf-Fokus»: услуги с фикс-ценой + понятный
+        # процесс (Termin → Diagnose → Abholung) + заявка на смету.
+        "key": "fokus_werkstatt",
+        "label": "Fokus",
+        "description_de": (
+            "Ein Hauptziel pro Bildschirm: Festpreis-Leistungen, klarer Ablauf "
+            "und Kostenvoranschlag-Anfrage."
+        ),
+        "recommended_for": ("werkstatt",),
+        "look": "klar",
+        "config": _fokus(
+            {
+                "hero_widget": "services",
+                "section_styles": {"process": "row"},
+                "sections_on": ("services", "process", "anfrage"),
+            }
+        ),
+    },
+    {
+        # DS-9: Handwerker — «Referenz-Fokus»: доверие через РАБОТЫ (до/после),
+        # затем ход работы и заявка. Прайса нет — цена всегда индивидуальна.
+        "key": "fokus_referenz",
+        "label": "Fokus",
+        "description_de": (
+            "Ein Hauptziel pro Bildschirm: Referenzen vorher/nachher, klarer "
+            "Ablauf und Angebots-Anfrage."
+        ),
+        "recommended_for": ("handwerker",),
+        "look": "klar",
+        "config": _fokus(
+            {
+                "section_styles": {"process": "timeline"},
+                "sections_on": ("before_after", "process", "anfrage"),
+            }
+        ),
+    },
+    {
+        # DS-9: продуктовый/акционный магазин — «Angebots-Fokus»: скидки ПЕРВЫМИ
+        # (магазин у дома живёт предложениями), затем направления.
+        "key": "fokus_angebote",
+        "label": "Fokus",
+        "description_de": (
+            "Ein Hauptziel pro Bildschirm: aktuelle Angebote ganz oben, Sortiment-Kacheln darunter."
+        ),
+        "recommended_for": ("grocery",),
+        "look": "klar",
+        "config": _fokus(
+            {
+                "section_styles": {"categories": "compact"},
+                "sections_on": ("promotions", "categories"),
+            }
+        ),
+    },
+    {
+        # DS-9: розница/онлайн-магазин — «Sortiment-Fokus»: направления крупными
+        # плитками + товары КАРТОЧКАМИ (фото+цена+кнопка) + полоса преимуществ
+        # (доставка/оплата/возврат — конверсия онлайн-покупки).
+        "key": "fokus_sortiment",
+        "label": "Fokus",
+        "description_de": (
+            "Ein Hauptziel pro Bildschirm: Sortiment-Kacheln, Produkte als Karten "
+            "und Versand-Vorteile auf einen Blick."
+        ),
+        "recommended_for": ("retail", "online_shop", "other"),
+        "look": "klar",
+        "config": _fokus(
+            {
+                "section_styles": {"categories": "square", "usp_bar": "compact"},
+                "sections_on": ("categories", "products", "usp_bar"),
+            }
+        ),
+    },
+    {
+        # DS-9: мода — «Lookbook-Fokus»: картинка правит. Вертикальные плитки
+        # направлений, карточки-оверлеи, галерея образов остаётся.
+        "key": "fokus_lookbook",
+        "label": "Fokus",
+        "description_de": (
+            "Ein Hauptziel pro Bildschirm: große Bilder, Kollektionen als Kacheln "
+            "und Lookbook-Galerie."
+        ),
+        "recommended_for": ("clothing",),
+        "look": "klar",
+        "config": _fokus(
+            {
+                "card_style": "overlay",
+                "section_styles": {"categories": "tall", "gallery": "large"},
+                "sections_on": ("categories", "products", "gallery"),
+            }
+        ),
+    },
+    {
+        # DS-9: события/ретриты — «Programm-Fokus»: ближайшие даты афишей,
+        # затем «как проходит» и доверие.
+        "key": "fokus_programm",
+        "label": "Fokus",
+        "description_de": (
+            "Ein Hauptziel pro Bildschirm: kommende Termine als Programm, "
+            "Ablauf und Stimmen der Gäste."
+        ),
+        "recommended_for": ("events",),
+        "look": "klar",
+        "config": _fokus(
+            {
+                "section_styles": {"process": "timeline"},
+                "sections_on": ("events", "process"),
+            }
+        ),
+    },
+    {
+        # DS-9: туры — «Touren-Fokus»: даты + ФОТО маршрутов (галерея продаёт
+        # тур сильнее текста).
+        "key": "fokus_touren",
+        "label": "Fokus",
+        "description_de": (
+            "Ein Hauptziel pro Bildschirm: kommende Touren, Bilder der Route und Stimmen der Gäste."
+        ),
+        "recommended_for": ("tour_operator",),
+        "look": "klar",
+        "config": _fokus(
+            {
+                "section_styles": {"gallery": "strip"},
+                "sections_on": ("events", "gallery"),
+            }
+        ),
+    },
 ]
+
 _BUNDLE_BY_KEY = {b["key"]: b for b in BUNDLES}
 
 
@@ -574,6 +740,19 @@ def bundles_for(business_type) -> list[dict]:
     return rec + [b for b in universal if b not in rec]
 
 
+def apply_bundle_config(config: dict, key: str) -> bool:
+    """DS-9: применить ОСИ сборки к готовому конфигу (без Look и без записи в БД).
+
+    Выделено из `apply_bundle`, чтобы демо-киты собирали ту же композицию, что
+    получает владелец кнопкой «Startpaket» — один источник правды вместо
+    девяти копий полей в китах. Мутирует `config` на месте."""
+    bundle = _BUNDLE_BY_KEY.get(key)
+    if bundle is None:
+        return False
+    _apply_bundle_axes(config, bundle["config"])
+    return True
+
+
 def apply_bundle(tenant, key) -> bool:
     """DS-3c: применить сборку — apply_look (полная копия конфига, W6-инвариант)
     + таргетные оси поверх. Идемпотентно (двойной normalize); False — неизвестный
@@ -584,7 +763,14 @@ def apply_bundle(tenant, key) -> bool:
         return False
     apply_look(tenant, bundle["look"])
     config = siteconfig.normalize(tenant.site_config)
-    over = bundle["config"]
+    _apply_bundle_axes(config, bundle["config"])
+    tenant.site_config = siteconfig.normalize(config)
+    tenant.save(update_fields=["site_config", "updated_at"])
+    return True
+
+
+def _apply_bundle_axes(config: dict, over: dict) -> None:
+    """Оси сборки поверх конфига (общее тело apply_bundle/apply_bundle_config)."""
     if over.get("hero_style"):
         config["hero_style"] = over["hero_style"]
     if over.get("nav_cta"):
@@ -593,11 +779,27 @@ def apply_bundle(tenant, key) -> bool:
         config["nav"] = nav
     if over.get("catalog_layout"):
         config["catalog_layout"] = dict(over["catalog_layout"])
-    # DS-8: виджет первого экрана (поиск дат/плитки) — часть композиции сборки.
+    # DS-9: форма карточек (мода — фото во всю плитку).
+    if over.get("card_style"):
+        sd = dict(config.get("site_defaults") or {})
+        sd["card_style"] = over["card_style"]
+        config["site_defaults"] = sd
+    # DS-8/9: виджет первого экрана — часть композиции ("none" = снять плитки).
     if over.get("hero_widget"):
         sd = dict(config.get("site_defaults") or {})
-        sd["hero_widget"] = over["hero_widget"]
+        sd["hero_widget"] = "" if over["hero_widget"] == "none" else over["hero_widget"]
         config["site_defaults"] = sd
+    # DS-9: шапка одной строкой — и легаси-ключ nav, и дерево меню S7 (шапку
+    # рисует menus.top.style; без него Fokus оставался бы двухэтажным).
+    if over.get("nav_style"):
+        nav = dict(config.get("nav") or {})
+        nav["style"] = over["nav_style"]
+        config["nav"] = nav
+        menus = config.get("menus")
+        if isinstance(menus, dict) and isinstance(menus.get("top"), dict):
+            top = dict(menus["top"])
+            top["style"] = over["nav_style"]
+            config["menus"] = {**menus, "top": top}
     styles = over.get("section_styles", {})
     on = set(over.get("sections_on", ()))
     off = set(over.get("sections_off", ())) - on
@@ -608,9 +810,6 @@ def apply_bundle(tenant, key) -> bool:
             row["enabled"] = True
         elif row["key"] in off:
             row["enabled"] = False
-    tenant.site_config = siteconfig.normalize(config)
-    tenant.save(update_fields=["site_config", "updated_at"])
-    return True
 
 
 def apply_look(tenant, family_key) -> bool:

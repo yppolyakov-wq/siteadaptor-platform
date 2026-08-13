@@ -239,7 +239,7 @@ license=cc0,pdm) и Wikimedia Commons (haswbstatement CC0/Public domain);
 - `latte-art.webp` — AI-generated, FLUX.1-schnell
 - `leather-belt.webp` — AI-generated, FLUX.1-schnell
 - `linen-blouse.webp` — AI-generated, FLUX.1-schnell
-- `linen-shirt.webp` — AI-generated, FLUX.1-schnell
+- `linen-shirt.webp` — AI-generated, FLUX.1-schnell ⚠️ БРАК НАБОРА: на снимке выпечка, не рубашка (найдено DS-9, 2026-08-13) — не использовать для одежды
 - `mechanic.webp` — AI-generated, FLUX.1-schnell
 - `mechanic-man.webp` — AI-generated, FLUX.1-schnell
 - `motor-oil.webp` — AI-generated, FLUX.1-schnell

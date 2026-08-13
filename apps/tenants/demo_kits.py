@@ -278,6 +278,9 @@ class DemoKit:
     google_rating: dict = field(default_factory=dict)
     # DS-4 (Fokus): секция anfrage на главной (реестр DS-3b; гейт jobs в партиале).
     enable_anfrage_section: bool = False
+    # DS-9: сборка Fokus (реестр sitetemplates.BUNDLES) — один источник правды
+    # композиции: демо получает ровно то, что владелец жмёт кнопкой «Startpaket».
+    bundle: str = ""
     # DS-4b: принудительно ВЫКЛЮЧИТЬ секции главной (контент кита остаётся —
     # страницы /galerie/ /team/ живы; главная = курированный макет).
     sections_off: list = field(default_factory=list)
@@ -2513,6 +2516,10 @@ AKTIONSMARKT = DemoKit(
     key="aktionsmarkt",
     label="Aktionsmarkt Sparfuchs",
     business_type="grocery",
+    # DS-9: дизайн «Fokus» для архетипа — своя композиция (реестр BUNDLES).
+    bundle="fokus_angebote",
+    look="klar",
+    config_patch={"hero_style": "split", "nav": {"cta": True}},
     subdomain="aktionsmarkt",
     # 2026-07-30: слайдер + плитки hero_widget="aktionsmarkt"
     # (Deals/Sortiment/Treuepunkte/Newsletter).
@@ -2803,6 +2810,7 @@ AKTIONSMARKT = DemoKit(
                 _p("Tomaten 500 g", "2.99", "Sonnengereift.", "tomatoes"),
                 _p("Bio-Gemüsekiste", "24.90", "Bunte Auswahl der Saison.", "vegetable,box"),
             ],
+            "fresh-fruit",  # DS-9: фото плитки (было SVG)
         ),
         (
             "Backwaren",
@@ -2830,6 +2838,7 @@ AKTIONSMARKT = DemoKit(
                     allergens=["gluten", "milch"],
                 ),
             ],
+            "bread-rolls",  # DS-9: фото плитки (было SVG)
         ),
         (
             "Getränke",
@@ -2840,6 +2849,7 @@ AKTIONSMARKT = DemoKit(
                 _p("Cola 1,5 L", "1.49", "Eisgekühlt am besten.", "cola,bottle"),
                 _p("Gemahlener Kaffee 500 g", "6.90", "Kräftige Röstung.", "coffee,ground"),
             ],
+            "red-wine",  # DS-9: фото плитки (было SVG)
         ),
         (
             "Haushalt",
@@ -2849,6 +2859,7 @@ AKTIONSMARKT = DemoKit(
                 _p("Toilettenpapier 10er", "4.99", "Weich und ergiebig.", "toilet,paper"),
                 _p("Waschmittel 2 kg", "8.99", "Für 40 Wäschen.", "laundry,detergent"),
             ],
+            "dish-soap",  # DS-9: фото плитки (было SVG)
         ),
         (
             "Überraschungstüten",
@@ -2859,6 +2870,7 @@ AKTIONSMARKT = DemoKit(
                     "Obst & Gemüse-Tüte", "12.00", "Wert ca. 12 € — Anti-Food-Waste.", "grocery,bag"
                 ),
             ],
+            "grocery-bag",  # DS-9: фото плитки (было SVG)
         ),
     ],
 )
@@ -3390,6 +3402,10 @@ BUTCHER = DemoKit(
     key="butcher",
     label="Metzgerei Bergmann",
     business_type="butcher",
+    # DS-9: дизайн «Fokus» для архетипа — своя композиция (реестр BUNDLES).
+    bundle="fokus_theke",
+    look="warm",  # DS-9: своя «кожа» семейства
+    config_patch={"hero_style": "split", "nav": {"cta": True}},
     subdomain="metzgerei",
     enable_lots=True,  # E1.5: Chargen/MHD (Fleisch/Wurst mit kurzer Haltbarkeit)
     accent="#991b1b",  # dunkles Metzger-Rot
@@ -4202,6 +4218,9 @@ CLOTHING = DemoKit(
     variant_style="axes",  # O-2: цвет кружками + размеры кнопками
     label="Studio Nordwind",
     business_type="clothing",
+    # DS-9: дизайн «Fokus» для архетипа — своя композиция (реестр BUNDLES).
+    bundle="fokus_lookbook",
+    config_patch={"hero_style": "split", "nav": {"cta": True}},
     subdomain="mode",
     accent="#1e293b",  # Fashion-Navy
     hero_image_kw="fashion,boutique",
@@ -4550,6 +4569,7 @@ CLOTHING = DemoKit(
                     care="30 °C, auf links waschen, nicht trocknergeeignet",
                 ),
             ],
+            "summer-dress",  # DS-9: фото плитки (было SVG)
         ),
         (
             "Herren",
@@ -4611,6 +4631,7 @@ CLOTHING = DemoKit(
                     care="30 °C, auf links waschen",
                 ),
             ],
+            "sweater",  # DS-9: фото плитки (linen-shirt.webp — брак набора: выпечка)
         ),
         (
             "Accessoires",
@@ -4654,6 +4675,7 @@ CLOTHING = DemoKit(
                     badge="neu",
                 ),
             ],
+            "canvas-bag",  # DS-9: фото плитки (было SVG)
         ),
     ],
     product_reviews=[
@@ -4784,6 +4806,10 @@ TOURS = DemoKit(
     key="tours",
     label="Stadtgold Touren",
     business_type="tour_operator",
+    # DS-9: дизайн «Fokus» для архетипа — своя композиция (реестр BUNDLES).
+    bundle="fokus_touren",
+    look="natur",  # DS-9: своя «кожа» семейства
+    config_patch={"hero_style": "split", "nav": {"cta": True}},
     subdomain="touren",
     # 2026-07-30: слайдер + плитки hero_widget="touren"
     # (Touren & Termine / Private Führung / Gutschein / Aktionen).
@@ -5036,6 +5062,9 @@ FRISEUR = DemoKit(
     presence_mode="on",  # LS-2: «Jetzt erreichbar» видна всегда
     label="Salon Schöngut",
     business_type="friseur",  # S6: реальный архетип
+    # DS-9: дизайн «Fokus» для архетипа — своя композиция (реестр BUNDLES).
+    bundle="fokus_termin",
+    config_patch={"hero_style": "split", "nav": {"cta": True}},
     subdomain="friseur",
     # Фидбэк 2026-07-30: первый экран «ловит направления» — слайдер (3 слайда) +
     # плитки hero_widget="friseur" (Termin/Aktionen/Pflege/Gutschein).
@@ -5473,6 +5502,10 @@ WERKSTATT = DemoKit(
         ]
     },
     business_type="werkstatt",  # S6: реальный архетип
+    # DS-9: дизайн «Fokus» для архетипа — своя композиция (реестр BUNDLES).
+    bundle="fokus_werkstatt",
+    look="klar",
+    config_patch={"hero_style": "split", "nav": {"cta": True}},
     subdomain="werkstatt",
     # 2026-07-30: слайдер + плитки hero_widget="werkstatt"
     # (Termin/Kostenvoranschlag/Teile/Aktionen).
@@ -5798,6 +5831,10 @@ HANDWERKER = DemoKit(
     key="handwerker",
     label="Meisterbetrieb Krause",
     business_type="handwerker",  # S6: реальный архетип
+    # DS-9: дизайн «Fokus» для архетипа — своя композиция (реестр BUNDLES).
+    bundle="fokus_referenz",
+    look="warm",  # DS-9: своя «кожа» семейства
+    config_patch={"hero_style": "split", "nav": {"cta": True}},
     subdomain="handwerker",
     # 2026-07-30: слайдер + плитки hero_widget="handwerker"
     # (Angebot/Termin/Rückruf/Aktionen).
@@ -6742,6 +6779,10 @@ RETREAT = DemoKit(
     spacers=[{"after": "gallery", "height": "lg"}],  # ST-7a
     label="Waldlicht Retreat",
     business_type="events",  # S6: архетип «Veranstalter/Events» (билеты primary)
+    # DS-9: дизайн «Fokus» для архетипа — своя композиция (реестр BUNDLES).
+    bundle="fokus_programm",
+    look="natur",  # DS-9: своя «кожа» семейства
+    config_patch={"hero_style": "split", "nav": {"cta": True}},
     subdomain="retreat",
     # 2026-07-30: слайдер + плитки hero_widget="retreat"
     # (Kurse / Übernachtung / Einzeltermin / Anfrage).
@@ -7263,6 +7304,10 @@ SHOP = DemoKit(
     page_presets=[("cart", "vertrauen"), ("info", "geschichte")],  # ST-2
     label="Hofladen Sonnenfeld",
     business_type="retail",
+    # DS-9: дизайн «Fokus» для архетипа — своя композиция (реестр BUNDLES).
+    bundle="fokus_sortiment",
+    look="klar",
+    config_patch={"hero_style": "split", "nav": {"cta": True}},
     subdomain="shop",
     # 2026-07-30: слайдер + плитки hero_widget="shop"
     # (Aktionen/Sortiment/Wunschzeit/Treuepunkte).
@@ -8193,6 +8238,10 @@ def apply_kit(tenant, key: str) -> bool:
         sd = dict(cfg.get("site_defaults") or {})
         sd["hero_widget"] = kit.hero_widget
         cfg["site_defaults"] = sd
+    if kit.bundle:  # DS-9: композиция сборки Fokus (реестр BUNDLES)
+        from apps.tenants import sitetemplates as _sitetemplates
+
+        _sitetemplates.apply_bundle_config(cfg, kit.bundle)
     if kit.config_patch:  # DS-4 (Fokus): точечные оси сборки поверх look-оверлея
         for _k, _v in kit.config_patch.items():
             if isinstance(_v, dict) and isinstance(cfg.get(_k), dict):

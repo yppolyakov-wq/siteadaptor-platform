@@ -701,9 +701,14 @@ def test_apply_handwerker_kit_jobs_services_no_shop():
 
     # витрина: услуги + отзывы + Trust/USP + контент-секции, без products/promotions
     cfg = tenant.site_config
-    assert tenant.primary_color == "#ea580c"
+    # DS-9: Look кита — «warm» (тёплая ремесленная палитра), акцент из реестра
+    # ARCHETYPE_LOOK_ACCENTS[warm][handwerker]; прежний #ea580c — klar-акцент.
+    assert tenant.primary_color == "#9a3412"
     enabled = {s["key"] for s in cfg["sections"] if s["enabled"]}
-    assert {"hero", "services", "usp_bar", "reviews", "cta", "faq", "before_after"} <= enabled
+    # DS-9 (Fokus «Referenz»): главная ведёт к заявке — работы до/после, ход
+    # работы, форма; usp_bar/reviews выключены (контент жив на страницах ST-8).
+    assert {"hero", "services", "cta", "faq", "before_after", "process", "anfrage"} <= enabled
+    assert "usp_bar" not in enabled and "reviews" not in enabled
     # 2026-08-06: у Handwerker появились собственные акции (Festpreis-Aktionen на
     # услуги/монтаж) → секция promotions включается автоматически, модуль добавлен
     # в enable_modules. Каталога товаров у кита по-прежнему нет.
