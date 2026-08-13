@@ -7,11 +7,12 @@
 from decimal import Decimal, InvalidOperation
 
 from django import forms
+from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
 from . import details as details_mod
-from . import registration, taxonomy
-from .models import Event, Teacher
+from . import landing, registration, taxonomy
+from .models import Event, Teacher, Tour
 
 
 def _ta(rows=3, ph=""):
@@ -59,79 +60,13 @@ class EventForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple,
         label=_("Anmelde-Felder (Vorlagen — zusätzlich zu freien Fragen)"),
     )
-    # --- Retreat-Landing (alles optional) ---------------------------------
-    promise = forms.CharField(required=False, label=_("Kurzversprechen (Hero)"))
-    for_whom_text = forms.CharField(
-        required=False, widget=_ta(4), label=_("Für wen (eine Zeile pro Punkt)")
-    )
-    idea = forms.CharField(required=False, widget=_ta(3), label=_("Idee / Atmosphäre"))
-    includes_text = forms.CharField(
-        required=False,
-        widget=_ta(5, "Yoga | Sanfte Praxis morgens & abends"),
-        label=_("Was ist dabei (Titel | Text)"),
-    )
-    venue = forms.CharField(required=False, widget=_ta(3), label=_("Ort / Veranstaltungsort"))
-    accommodation_text = forms.CharField(
-        required=False, widget=_ta(4), label=_("Unterkunft (eine Zeile pro Punkt)")
-    )
-    food = forms.CharField(required=False, widget=_ta(3), label=_("Verpflegung"))
-    hosts_text = forms.CharField(
-        required=False,
-        widget=_ta(3, "Mara Lind | Yogalehrerin | https://…/foto.jpg"),
-        label=_("Leitung (Name | Rolle | Foto-URL)"),
-    )
-    price_includes_text = forms.CharField(
-        required=False, widget=_ta(4), label=_("Im Preis enthalten (eine Zeile pro Punkt)")
-    )
-    price_excludes_text = forms.CharField(
-        required=False, widget=_ta(3), label=_("Nicht enthalten (eine Zeile pro Punkt)")
-    )
-    price_note = forms.CharField(required=False, label=_("Preis-Hinweis (Frühbucher, Varianten …)"))
-    bring_text = forms.CharField(
-        required=False, widget=_ta(4), label=_("Mitbringen (eine Zeile pro Punkt)")
-    )
-    faq_text = forms.CharField(
-        required=False,
-        widget=_ta(5, "Für Anfänger geeignet? | Ja, alle Level willkommen."),
-        label=_("FAQ (Frage | Antwort)"),
-    )
-    testimonials_text = forms.CharField(
-        required=False,
-        widget=_ta(4, "Johanna | Köln | Hat mich geerdet. | https://…/foto.jpg | 5"),
-        label=_("Stimmen (Name | Stadt | Text | Foto-URL | Sterne 1–5)"),
-    )
-    # R13: истории «до/после» (Bild-URLs + Text) и значки сертификации.
-    before_after_text = forms.CharField(
-        required=False,
-        widget=_ta(3, "https://…/vorher.jpg | https://…/nachher.jpg | 3 Tage Detox"),
-        label=_("Vorher/Nachher (Vorher-URL | Nachher-URL | Text)"),
-    )
-    certifications_text = forms.CharField(
-        required=False,
-        widget=_ta(3, "Yoga Alliance RYT-500 | Yoga Alliance | https://…/logo.svg"),
-        label=_("Zertifikate / Auszeichnungen (Name | Aussteller | Logo-URL)"),
-    )
-
-    # form-field → (details-key, record-keys|None)
-    _LIST_FIELDS = {
-        "for_whom_text": ("for_whom", None),
-        "accommodation_text": ("accommodation", None),
-        "price_includes_text": ("price_includes", None),
-        "price_excludes_text": ("price_excludes", None),
-        "bring_text": ("bring", None),
-        "includes_text": ("includes", ("title", "text")),
-        "hosts_text": ("hosts", ("name", "role", "photo")),
-        "faq_text": ("faq", ("q", "a")),
-        "testimonials_text": ("testimonials", ("name", "city", "text", "photo", "rating")),
-        "before_after_text": ("before_after", ("before", "after", "text")),
-        "certifications_text": ("certifications", ("name", "issuer", "icon")),
-    }
-    _SCALAR_FIELDS = ("promise", "idea", "venue", "food", "price_note")
 
     class Meta:
         model = Event
         fields = (
             "title",
+            # MT-1: событие как заезд тур-продукта (пусто = самостоятельное событие).
+            "tour",
             "description",
             "location",
             "city",
@@ -154,6 +89,7 @@ class EventForm(forms.ModelForm):
         labels = {
             "cancellation": "Stornierung",
             "free_cancel_days": "Kostenlose Stornierung bis (Tage vor Beginn)",
+            "tour": _("Gehört zur Reise (optional)"),
         }
         widgets = {
             "starts_at": forms.DateTimeInput(
@@ -168,6 +104,8 @@ class EventForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Блоки богатой страницы — общий редактор с туром (apps/events/landing.py).
+        self.fields.update(landing.form_fields())
         self.fields["starts_at"].input_formats = ["%Y-%m-%dT%H:%M", "%Y-%m-%d %H:%M:%S"]
         self.fields["ends_at"].input_formats = ["%Y-%m-%dT%H:%M", "%Y-%m-%d %H:%M:%S"]
         # R5: выбор типов номеров для проживания — только активные юниты stays.
@@ -190,15 +128,7 @@ class EventForm(forms.ModelForm):
             for f in ("category", "level", "language"):
                 self.fields[f].initial = getattr(self.instance, f, "")
             self.fields["deposit_percent"].initial = self.instance.deposit_percent
-            d = self.instance.landing
-            for key in self._SCALAR_FIELDS:
-                self.fields[key].initial = d.get(key, "")
-            for fname, (key, rec) in self._LIST_FIELDS.items():
-                self.fields[fname].initial = (
-                    details_mod.records_to_text(d.get(key), rec)
-                    if rec
-                    else details_mod.list_to_text(d.get(key))
-                )
+            landing.fill_initial(self, self.instance.landing)
 
     def save(self, commit=True):
         event = super().save(commit=False)
@@ -216,10 +146,7 @@ class EventForm(forms.ModelForm):
             for p in (self.cleaned_data.get("program_text") or "").splitlines()
             if p.strip()
         ]
-        raw = {key: self.cleaned_data.get(key, "") for key in self._SCALAR_FIELDS}
-        for fname, (key, _rec) in self._LIST_FIELDS.items():
-            raw[key] = (self.cleaned_data.get(fname) or "").splitlines()
-        event.details = details_mod.normalize(raw)
+        event.details = landing.collect(self.cleaned_data)
         event.tiers = details_mod.normalize_tiers(
             (self.cleaned_data.get("tiers_text") or "").splitlines()
         )
@@ -242,6 +169,83 @@ class EventForm(forms.ModelForm):
 
     def clean_free_cancel_days(self):
         return self.cleaned_data.get("free_cancel_days") or 0
+
+
+class TourForm(forms.ModelForm):
+    """MT-1: форма тур-продукта. Блоки богатой страницы — тот же редактор, что
+    у события (apps/events/landing.py); маршрут редактируется отдельно (строки
+    таблицы, парсит `itinerary.from_post`)."""
+
+    class Meta:
+        model = Tour
+        fields = (
+            "title",
+            "summary",
+            "description",
+            "region",
+            "difficulty",
+            "duration_days",
+            "distance_km",
+            "teachers",
+            "is_published",
+            "sort_order",
+        )
+        labels = {
+            "title": _("Titel"),
+            "summary": _("Kurzbeschreibung (Karte)"),
+            "description": _("Beschreibung"),
+            "region": _("Region (z. B. Himalaya, Indien)"),
+            "difficulty": _("Schwierigkeit"),
+            "duration_days": _("Dauer (Tage, 0 = ausblenden)"),
+            "distance_km": _("Distanz (km, 0 = ausblenden)"),
+            "teachers": _("Guides"),
+            "is_published": _("Veröffentlicht"),
+            "sort_order": _("Sortierung"),
+        }
+        widgets = {
+            "summary": forms.Textarea(attrs={"rows": 2}),
+            "description": forms.Textarea(attrs={"rows": 5}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields.update(landing.form_fields())
+        self.fields["teachers"].queryset = Teacher.objects.filter(is_active=True)
+        self.fields["teachers"].required = False
+        if self.instance and self.instance.pk:
+            landing.fill_initial(self, self.instance.landing)
+
+    # Числовые «шапки» необязательны: пустое поле = 0, а не ошибка формы
+    # (иначе пустая «Дистанция» роняла бы сохранение описания целиком).
+    def clean_duration_days(self):
+        return self.cleaned_data.get("duration_days") or 0
+
+    def clean_distance_km(self):
+        return self.cleaned_data.get("distance_km") or 0
+
+    def clean_sort_order(self):
+        return self.cleaned_data.get("sort_order") or 0
+
+    def save(self, commit=True):
+        tour = super().save(commit=False)
+        tour.details = landing.collect(self.cleaned_data)
+        if not tour.slug:
+            tour.slug = unique_tour_slug(tour.title)
+        if commit:
+            tour.save()
+            self.save_m2m()
+        return tour
+
+
+def unique_tour_slug(title: str, *, exclude_pk=None) -> str:
+    """Свободный slug из заголовка (как у записей блога): «tour», «tour-2», …"""
+    base = slugify(title or "")[:200] or "tour"
+    qs = Tour.objects.exclude(pk=exclude_pk) if exclude_pk else Tour.objects.all()
+    slug, n = base, 1
+    while qs.filter(slug=slug).exists():
+        n += 1
+        slug = f"{base[:196]}-{n}"
+    return slug
 
 
 class TeacherForm(forms.ModelForm):

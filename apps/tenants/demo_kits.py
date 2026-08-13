@@ -126,6 +126,12 @@ class DemoKit:
     #   {title, in_days, hour, duration_days|duration_hours, capacity, price,
     #    description, location, program:[...], questions:[...]}.
     events: list = field(default_factory=list)
+    # MT-1: тур-продукты (events.Tour) — контент+маршрут, даты живут в заездах.
+    #   {title, summary, description, region, difficulty, duration_days, distance_km,
+    #    photos:[kw,…], details:{...}, itinerary:[{day,time_from,…,visibility}],
+    #    teachers:[индексы в kit.teachers], published}. Событие привязывается к туру
+    #   ключом "tour": <индекс в kit.tours>.
+    tours: list = field(default_factory=list)
     # R3: преподаватели/ведущие (структурная сущность events.Teacher) — (name,
     # title, photo_kw, bio). Засеваются и линкуются ко всем событиям кита.
     teachers: list = field(default_factory=list)
@@ -5036,6 +5042,398 @@ TOURS = DemoKit(
 )
 
 
+MOTO_MENUS = {
+    "top": {
+        "style": "classic",
+        "sticky": True,
+        "items": [
+            # MT-1: тур-продукт — своя страница (контент+маршрут), заезды ведут на события.
+            {"label": "Reisen", "type": "url", "target": "/touren/"},
+            {"label": "Termine", "type": "archetype", "target": "events"},
+            {"label": "Reiseberichte", "type": "url", "target": "/blog/"},
+            {"label": "Galerie", "type": "page", "target": "gallery"},
+            {"label": "Bewertungen", "type": "page", "target": "reviews"},
+            {"label": "Über uns", "type": "page", "target": "about"},
+        ],
+    },
+    "bottom": {
+        "enabled": True,
+        "items": [
+            {"label": "Reisen", "type": "url", "target": "/touren/", "icon": "🏍"},
+            {"label": "Termine", "type": "archetype", "target": "events", "icon": "🎟️"},
+            {"label": "Kontakt", "type": "page", "target": "contact", "icon": "📞"},
+        ],
+    },
+}
+
+
+# MT-1: мото/квадро-туры (Индия/Непал) — многодневный тур-продукт с заездами.
+# Демонстрирует то, чего нет у городских туров: маршрут по дням с ХРОНОМЕТРАЖЕМ и
+# ПОУРОВНЕВОЙ ВИДИМОСТЬЮ (публичные ключевые места, отели — только участникам,
+# наработка гида — закрыта), тиры «своя техника / аренда / пассажир», депозит,
+# waiver и анкету допуска к технике.
+MOTO = DemoKit(
+    key="moto",
+    label="Himalaya Riders",
+    business_type="tour_operator",
+    subdomain="moto",
+    accent="#c2410c",  # пыль и закат
+    hero_image_kw="motorcycle,mountain",
+    hero_title="Himalaya Riders",
+    hero_text="Geführte Motorradreisen durch Indien und Nepal — kleine Gruppen, "
+    "Royal Enfield, Begleitfahrzeug und Mechaniker. Anzahlung online, Rest vor dem Start.",
+    menus=MOTO_MENUS,
+    heroes=[
+        {
+            "image_kw": "motorcycle,mountain",
+            "title": "Manali – Leh",
+            "text": "12 Tage über fünf Pässe bis 5.328 m. Kleine Gruppe, Begleitfahrzeug, "
+            "Mechaniker.",
+            "button_label": "Reise ansehen",
+            "button_url": "/touren/",
+        },
+        {
+            "image_kw": "nepal,mountains",
+            "title": "Nepal: Mustang-Enduro",
+            "text": "9 Tage Schotter, Hängebrücken und Klöster — leichte Enduros.",
+            "button_label": "Termine ansehen",
+            "button_url": "/veranstaltung/",
+        },
+        {
+            "image_kw": "motorcycle,camp",
+            "title": "Erst 25 % anzahlen",
+            "text": "Platz sichern, Rest 30 Tage vor dem Start — mit Rücktrittsregeln.",
+            "button_label": "Reisen vergleichen",
+            "button_url": "/touren/",
+        },
+    ],
+    about_title="Wer wir sind",
+    about_text="Wir fahren den Himalaya seit 2014 — erst privat, seit 2018 mit Gästen. "
+    "Unsere Routen entstehen im Winter am Kartentisch und im Sommer im Sattel: welche "
+    "Piste nach der Schneeschmelze hält, wo es sauberes Wasser gibt, welche Lodge auf "
+    "4.000 m wirklich heizt. Deshalb zeigen wir die Höhepunkte öffentlich — die "
+    "komplette Route bekommen unsere Teilnehmer.",
+    enable_modules=["events", "customer_account", "blog", "inbox"],
+    hide_archetypes=["catalog"],
+    teachers=[
+        (
+            "Vikram Singh",
+            "Guide & Routenplaner",
+            "motorcycle,portrait",
+            "Fährt den Himalaya seit 20 Jahren, kennt jede Werkstatt zwischen Manali und Leh.",
+        ),
+        (
+            "Anne Kessler",
+            "Tourleitung & Mechanikerin",
+            "mechanic,portrait",
+            "Enduro-Trainerin, schraubt selbst und übersetzt zwischen Gruppe und Guides.",
+        ),
+    ],
+    tours=[
+        {
+            "title": "Himalaya-Klassiker: Manali – Leh",
+            "summary": "12 Tage über fünf Pässe bis auf 5.328 m — Royal Enfield, "
+            "Begleitfahrzeug und Sauerstoff an Bord.",
+            "region": "Himalaya, Indien",
+            "difficulty": "hard",
+            "duration_days": 12,
+            "distance_km": 1450,
+            "photos": ["motorcycle,mountain", "himalaya,road", "motorcycle,camp"],
+            "description": "Die Königsetappe des indischen Himalaya: Rohtang, Baralacha La, "
+            "Nakee La, Lachulung La und das Tanglang La. Kleine Gruppen, erfahrene lokale "
+            "Guides, Mechaniker und Begleitfahrzeug — das Gepäck fährt mit, du fährst frei.",
+            "details": {
+                "for_whom": [
+                    "Fahrer mit Führerschein A und Offroad-Grundgefühl",
+                    "Sozius willkommen (eigener Tarif)",
+                    "Kein Rennen — wir fahren im Tempo der Gruppe",
+                ],
+                "price_includes": [
+                    "Royal Enfield Himalayan 411 inkl. Sprit",
+                    "11 Übernachtungen (Hotel/Camp) mit Frühstück",
+                    "Begleitfahrzeug, Mechaniker, Ersatzteile",
+                    "Inner-Line-Permits und Sauerstoff an Bord",
+                ],
+                "price_excludes": [
+                    "Flüge nach Delhi und zurück",
+                    "Reise- und Auslandskrankenversicherung",
+                    "Mittag- und Abendessen unterwegs",
+                ],
+                "bring": [
+                    "Helm (ECE) und Motorradhandschuhe",
+                    "Protektorenjacke, Nierengurt",
+                    "Sonnenschutz LSF 50, Lippenbalsam",
+                    "Kopie von Führerschein und Reisepass",
+                ],
+                "faq": [
+                    (
+                        "Welchen Führerschein brauche ich?",
+                        "Klasse A plus internationalen Führerschein — beides prüfen wir vor "
+                        "der Anzahlung.",
+                    ),
+                    (
+                        "Wie gehen Sie mit der Höhe um?",
+                        "Zwei Tage Akklimatisierung in Manali, langsame Passanfahrten, "
+                        "Sauerstoff im Begleitfahrzeug.",
+                    ),
+                    (
+                        "Kann ich mein eigenes Motorrad mitbringen?",
+                        "Ja — dann buchst du den Tarif «Eigenes Motorrad»; Route, Permits "
+                        "und Support bleiben gleich.",
+                    ),
+                ],
+            },
+            # Показательно смешанная видимость — витрина покажет только public.
+            "itinerary": [
+                {
+                    "day": 1,
+                    "time_from": "09:00",
+                    "title": "Ankunft Manali, Bike-Übergabe",
+                    "text": "Technik-Check, Probefahrt im Tal, Briefing am Abend.",
+                    "overnight": "Manali",
+                    "lat": "32.2432",
+                    "lng": "77.1892",
+                    "visibility": "public",
+                },
+                {
+                    "day": 3,
+                    "time_from": "07:00",
+                    "time_to": "17:00",
+                    "title": "Rohtang-Pass (3.978 m) nach Jispa",
+                    "text": "Erster großer Pass, Schotter und Wasserdurchfahrten.",
+                    "km": 140,
+                    "overnight": "Jispa",
+                    "lat": "32.6400",
+                    "lng": "77.2460",
+                    "visibility": "public",
+                },
+                {
+                    "day": 4,
+                    "time_from": "08:00",
+                    "title": "Hotel Ibex, Jispa — Zimmerverteilung",
+                    "text": "Doppelzimmer mit Heizung, Einzelzimmer gegen Aufpreis.",
+                    "overnight": "Hotel Ibex",
+                    "visibility": "participants",
+                },
+                {
+                    "day": 6,
+                    "time_from": "06:30",
+                    "title": "Unser Geheimtipp-Abstecher",
+                    "text": "Nebenroute abseits der Hauptpiste — Details vor Ort.",
+                    "km": 60,
+                    "visibility": "private",
+                },
+                {
+                    "day": 9,
+                    "time_from": "07:30",
+                    "time_to": "18:00",
+                    "title": "Tanglang La (5.328 m) nach Leh",
+                    "text": "Höchster Punkt der Reise, danach Abfahrt ins Indus-Tal.",
+                    "km": 210,
+                    "overnight": "Leh",
+                    "lat": "34.1526",
+                    "lng": "77.5771",
+                    "visibility": "public",
+                },
+            ],
+            "teachers": [0, 1],
+        },
+        {
+            "title": "Nepal Enduro: Kathmandu – Mustang",
+            "summary": "9 Tage Schotter, Hängebrücken und Klöster — kleine Gruppe, "
+            "leichte Enduros.",
+            "region": "Mustang, Nepal",
+            "difficulty": "medium",
+            "duration_days": 9,
+            "distance_km": 890,
+            "photos": ["nepal,mountains", "enduro,motorcycle"],
+            "description": "Vom Kathmandu-Tal ins alte Königreich Mustang: Pisten entlang "
+            "des Kali Gandaki, Lodges statt Hotels, Klosterbesuch in Lo Manthang.",
+            "details": {
+                "for_whom": [
+                    "Fahrer mit Enduro-Erfahrung auf Schotter",
+                    "Gute Grundkondition — sechs Stunden Fahrzeit sind normal",
+                ],
+                "price_includes": [
+                    "Enduro 250–300 ccm inkl. Sprit",
+                    "8 Nächte in Lodges mit Frühstück",
+                    "Guide, Mechaniker, Permits für Upper Mustang",
+                ],
+                "bring": ["Helm und Brille", "Regenkombi", "Warme Schicht für die Lodges"],
+                "faq": [
+                    (
+                        "Wie schwer ist die Strecke?",
+                        "Mittel: viel Schotter, wenige technische Passagen — Enduro-"
+                        "Erfahrung reicht aus.",
+                    ),
+                ],
+            },
+            "itinerary": [
+                {
+                    "day": 1,
+                    "time_from": "10:00",
+                    "title": "Kathmandu: Übergabe und Stadtrunde",
+                    "km": 30,
+                    "overnight": "Kathmandu",
+                    "lat": "27.7172",
+                    "lng": "85.3240",
+                    "visibility": "public",
+                },
+                {
+                    "day": 4,
+                    "title": "Kali-Gandaki-Piste nach Kagbeni",
+                    "km": 120,
+                    "overnight": "Kagbeni",
+                    "lat": "28.8370",
+                    "lng": "83.7800",
+                    "visibility": "public",
+                },
+                {
+                    "day": 6,
+                    "title": "Lodge in Lo Manthang",
+                    "text": "Einfache Zimmer, warmes Wasser am Abend.",
+                    "overnight": "Lo Manthang",
+                    "visibility": "participants",
+                },
+            ],
+            "teachers": [1],
+        },
+    ],
+    events=[
+        {
+            "title": "Manali – Leh · Juni-Gruppe",
+            "tour": 0,
+            "in_days": 60,
+            "hour": 9,
+            "duration_days": 12,
+            "capacity": 10,
+            "price": "2490",
+            "deposit_percent": 25,
+            "tiers": [
+                ("Eigenes Motorrad", "1990", 3),
+                ("Royal Enfield 411", "2490", 6),
+                ("Sozius (ohne Bike)", "1490", 4),
+            ],
+            "city": "Manali",
+            "location": "Treffpunkt Hotel Snow Valley, Manali",
+            "language": "de",
+            "waiver_required": True,
+            "registration_fields": [
+                "license_class",
+                "riding_experience",
+                "height_cm",
+                "own_bike",
+                "emergency_contact",
+            ],
+            "description": "Klassische Route über fünf Pässe. Maximal zehn Fahrer, "
+            "ein Guide und ein Mechaniker.",
+        },
+        {
+            "title": "Manali – Leh · August-Gruppe",
+            "tour": 0,
+            "in_days": 115,
+            "hour": 9,
+            "duration_days": 12,
+            "capacity": 10,
+            "price": "2490",
+            "deposit_percent": 25,
+            "tiers": [("Eigenes Motorrad", "1990", 3), ("Royal Enfield 411", "2490", 7)],
+            "city": "Manali",
+            "language": "de",
+            "waiver_required": True,
+        },
+        {
+            "title": "Nepal Mustang · Oktober",
+            "tour": 1,
+            "in_days": 150,
+            "hour": 8,
+            "duration_days": 9,
+            "capacity": 8,
+            "price": "1890",
+            "deposit_percent": 25,
+            "city": "Kathmandu",
+            "language": "de",
+            "waiver_required": True,
+        },
+    ],
+    blog_posts=[
+        (
+            "Rohtang im Juni: Schnee an der Passhöhe",
+            "Warum wir die Etappe nach Jispa in diesem Jahr eine Stunde früher starten.",
+            "Der Rohtang war Anfang Juni noch beidseitig von Schneewänden gesäumt. "
+            "Die Piste taut ab zehn Uhr auf und wird dann tief — deshalb starten wir "
+            "die Etappe nach Jispa künftig um sieben statt um acht.\n\n"
+            "Für die Gruppe heißt das: früher aufstehen, dafür trockene Kehren und "
+            "eine Stunde mehr Licht am Nachmittag.",
+            "himalaya,road",
+        ),
+        (
+            "Werkstatt-Tag in Leh: was wir an den Enfields tauschen",
+            "Nach 1.400 km auf Schotter ist die Halbzeit-Wartung Pflicht.",
+            "In Leh steht ein voller Tag Technik an: Ölwechsel, Kettenspiel, "
+            "Bremsbeläge und Speichen nachziehen. Wer will, schraubt mit — unser "
+            "Mechaniker erklärt jeden Handgriff.\n\n"
+            "Ersatzteile führen wir im Begleitfahrzeug mit, damit niemand wegen "
+            "eines Lagers stehenbleibt.",
+            "mechanic,motorcycle",
+        ),
+    ],
+    faq=[
+        (
+            "Wie läuft die Anzahlung?",
+            "25 % online bei der Buchung, der Rest 30 Tage vor dem Start — "
+            "die Zahlungserinnerung kommt automatisch.",
+        ),
+        (
+            "Bekomme ich die komplette Route vorab?",
+            "Die Höhepunkte stehen öffentlich auf der Reiseseite. Die Tagesroute mit "
+            "Unterkünften erhalten Teilnehmer nach der Buchung.",
+        ),
+        (
+            "Was ist, wenn ich unterwegs nicht weiterfahren kann?",
+            "Das Begleitfahrzeug nimmt Fahrer und Motorrad auf — deshalb fährt es immer mit.",
+        ),
+    ],
+    usp=[
+        "Kleine Gruppen: maximal zehn Motorräder",
+        "Begleitfahrzeug, Mechaniker und Ersatzteile inklusive",
+        "Permits und Sauerstoff organisieren wir",
+    ],
+    trust={
+        "title": "Warum mit uns",
+        "items": [
+            "Seit 2014 im Himalaya unterwegs",
+            "Lokale Guides mit Lizenz",
+            "Anzahlung 25 %, Rest erst vor dem Start",
+        ],
+    },
+    event_reviews=[
+        (
+            0,
+            5,
+            "Markus B.",
+            "moto.rev1@example.de",
+            "Tanglang La bei Sonnenaufgang — und die Organisation lief wie ein Uhrwerk.",
+        ),
+        (
+            2,
+            5,
+            "Silke H.",
+            "moto.rev2@example.de",
+            "Nepal war staubig, anstrengend und das Beste, was ich je gefahren bin.",
+        ),
+    ],
+    reviews_seed=[
+        (
+            5,
+            "Beste Reiseorganisation, die ich kenne. Alles hielt, was versprochen war.",
+            "moto.rev3@example.de",
+        ),
+        (5, "Guides mit echtem Wissen — nicht nur Vorfahren und Winken.", "moto.rev4@example.de"),
+    ],
+)
+
+
 FRISEUR_MENUS = {
     "top": {
         "style": "centered",
@@ -7797,6 +8195,7 @@ KITS = {
     CAFE.key: CAFE,
     CLOTHING.key: CLOTHING,
     TOURS.key: TOURS,
+    MOTO.key: MOTO,  # MT-1: мото/квадро-туры
     FRISEUR.key: FRISEUR,
     WERKSTATT.key: WERKSTATT,
     HANDWERKER.key: HANDWERKER,
@@ -9087,6 +9486,47 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     is_active=True,
                 )
                 refs["teachers"].append(str(teacher.pk))
+        # MT-1: тур-продукты создаём ДО заездов — событие ссылается на тур индексом.
+        refs["tours"] = []
+        if kit.tours:
+            from django.utils.text import slugify
+
+            from apps.events import details as _tourdetails
+            from apps.events import itinerary as _itinerary
+            from apps.events.models import Tour
+
+            for tidx, spec in enumerate(kit.tours):
+                photos = [
+                    _image_ref(kw, 9600 + tidx * 10 + j, spec["title"])
+                    for j, kw in enumerate(spec.get("photos", []))
+                ]
+                for j, ref in enumerate(photos):
+                    ref["is_primary"] = j == 0
+                    ref["sort_order"] = j
+                tour = Tour.objects.create(
+                    title=spec["title"],
+                    slug=slugify(spec["title"])[:200] or f"tour-{tidx + 1}",
+                    summary=spec.get("summary", ""),
+                    description=spec.get("description", ""),
+                    region=spec.get("region", ""),
+                    difficulty=spec.get("difficulty", ""),
+                    duration_days=spec.get("duration_days", 0),
+                    distance_km=spec.get("distance_km", 0),
+                    images=photos,
+                    details=_tourdetails.normalize(spec.get("details") or {}),
+                    itinerary=_itinerary.normalize(spec.get("itinerary") or []),
+                    is_published=spec.get("published", True),
+                    sort_order=tidx,
+                )
+                picked = spec.get("teachers")
+                if refs.get("teachers"):
+                    ids = (
+                        [refs["teachers"][i] for i in picked if i < len(refs["teachers"])]
+                        if picked is not None
+                        else refs["teachers"]
+                    )
+                    tour.teachers.set(Teacher.objects.filter(pk__in=ids))
+                refs["tours"].append(str(tour.pk))
         for idx, spec in enumerate(kit.events):
             # Поддерживаем и краткий кортеж (title, in_days, capacity, price), и
             # богатый dict (с Programm/анкетой/описанием/длительностью).
@@ -9164,6 +9604,14 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     registration_fields=list(spec.get("registration_fields", [])),  # R1 анкета
                     offers_accommodation=spec.get("offers_accommodation", False),  # R5
                     status=Event.STATUS_PUBLISHED,
+                    # MT-1: событие как заезд тура (индекс в kit.tours; вне диапазона —
+                    # просто самостоятельное событие, сид не падает).
+                    tour_id=(
+                        refs["tours"][spec["tour"]]
+                        if spec.get("tour") is not None
+                        and spec["tour"] < len(refs.get("tours") or [])
+                        else None
+                    ),
                 )
                 # R5: привязать все засеянные типы номеров как варианты проживания.
                 if spec.get("offers_accommodation") and refs.get("stay_units"):

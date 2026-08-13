@@ -17948,3 +17948,181 @@ msgstr "{tenant}{city_sfx} işletmesinde {name}."
 #: apps/core/seo_meta.py
 msgid "{category} bei {tenant}{city_sfx}."
 msgstr "{tenant}{city_sfx} işletmesinde {category}."
+# --- MT-1: Reisen (Tour-Produkt, Route) ---
+
+msgid "Reisen"
+msgstr "Turlar"
+
+msgid "Gehört zur Reise (optional)"
+msgstr "Tura ait (isteğe bağlı)"
+
+msgid "Kurzbeschreibung (Karte)"
+msgstr "Kısa açıklama (kart)"
+
+msgid "Region (z. B. Himalaya, Indien)"
+msgstr "Bölge (ör. Himalaya, Hindistan)"
+
+msgid "Schwierigkeit"
+msgstr "Zorluk"
+
+msgid "Dauer (Tage, 0 = ausblenden)"
+msgstr "Süre (gün, 0 = gizle)"
+
+msgid "Distanz (km, 0 = ausblenden)"
+msgstr "Mesafe (km, 0 = gizle)"
+
+msgid "Guides"
+msgstr "Rehberler"
+
+msgid "Veröffentlicht"
+msgstr "Yayınlandı"
+
+msgid "Sortierung"
+msgstr "Sıralama"
+
+msgid "Nur für mich"
+msgstr "Yalnızca benim için"
+
+msgid "Für Teilnehmer"
+msgstr "Katılımcılar için"
+
+msgid "Öffentlich"
+msgstr "Herkese açık"
+
+msgid "Leicht"
+msgstr "Kolay"
+
+msgid "Anspruchsvoll"
+msgstr "Zorlu"
+
+msgid "Edit tour"
+msgstr "Turu düzenle"
+
+msgid "View page"
+msgstr "Sayfayı gör"
+
+msgid "All tours"
+msgstr "Tüm turlar"
+
+msgid "Route (day by day)"
+msgstr "Rota (gün gün)"
+
+msgid "Visibility is set per stop: keep your route private, share selected highlights publicly or with participants only."
+msgstr "Görünürlük her durak için ayrı: rotanızı gizli tutun, seçili noktaları herkese açık veya yalnızca katılımcılara gösterin."
+
+msgid "Day"
+msgstr "Gün"
+
+msgid "Time"
+msgstr "Saat"
+
+msgid "Overnight"
+msgstr "Konaklama"
+
+msgid "Visible to"
+msgstr "Şunlara görünür"
+
+msgid "Latitude"
+msgstr "Enlem"
+
+msgid "Longitude"
+msgstr "Boylam"
+
+msgid "Empty rows are ignored. Save to get three more."
+msgstr "Boş satırlar yok sayılır. Kaydedince üç satır daha gelir."
+
+msgid "Delete this tour?"
+msgstr "Bu tur silinsin mi?"
+
+msgid "Departures"
+msgstr "Hareket tarihleri"
+
+msgid "New departure"
+msgstr "Yeni hareket"
+
+msgid "No departures yet — create an event and pick this tour in the form."
+msgstr "Henüz hareket yok — bir etkinlik oluşturup formda bu turu seçin."
+
+msgid "Tours"
+msgstr "Turlar"
+
+msgid "A tour holds the content and the route; each date is a departure (event) with its own prices and seats."
+msgstr "Tur içeriği ve rotayı taşır; her tarih kendi fiyat ve kontenjanı olan bir harekettir."
+
+msgid "New tour"
+msgstr "Yeni tur"
+
+msgid "e.g. Himalaya: Manali – Leh"
+msgstr "ör. Himalaya: Manali – Leh"
+
+msgid "No tours yet."
+msgstr "Henüz tur yok."
+
+msgid "Route"
+msgstr "Rota"
+
+msgid "Day %(n)s"
+msgstr "%(n)s. gün"
+
+msgid "The detailed route is part of our guides' know-how — participants receive it after booking."
+msgstr "Ayrıntılı rota rehberlerimizin birikimidir — katılımcılara rezervasyondan sonra verilir."
+
+msgid "Duration"
+msgstr "Süre"
+
+msgid "Distance"
+msgstr "Mesafe"
+
+msgid "Difficulty"
+msgstr "Zorluk"
+
+msgid "See dates"
+msgstr "Tarihleri gör"
+
+msgid "Ask for dates"
+msgstr "Tarih sor"
+
+msgid "Dates & prices"
+msgstr "Tarihler ve fiyatlar"
+
+msgid "Places available"
+msgstr "Yer var"
+
+msgid "No dates published yet — get in touch and we will plan one."
+msgstr "Henüz tarih yayınlanmadı — bize yazın, birlikte planlayalım."
+
+msgid "No tours published yet."
+msgstr "Henüz yayınlanmış tur yok."
+
+#, python-format
+msgid "%(n)s departure"
+msgid_plural "%(n)s departures"
+msgstr[0] "%(n)s hareket"
+msgstr[1] "%(n)s hareket"
+
+#, python-format
+msgid "%(days)s day"
+msgid_plural "%(days)s days"
+msgstr[0] "%(days)s gün"
+msgstr[1] "%(days)s gün"
+
+#, python-format
+msgid "One more stop is shown after booking."
+msgid_plural "%(n)s more stops are shown after booking."
+msgstr[0] "Rezervasyondan sonra bir durak daha görünür."
+msgstr[1] "Rezervasyondan sonra %(n)s durak daha görünür."
+
+#, python-format
+msgid "%(n)s seat left"
+msgid_plural "%(n)s seats left"
+msgstr[0] "%(n)s yer kaldı"
+msgstr[1] "%(n)s yer kaldı"
+
+msgid "Tour created."
+msgstr "Tur oluşturuldu."
+
+msgid "Tour saved."
+msgstr "Tur kaydedildi."
+
+msgid "Tour deleted."
+msgstr "Tur silindi."

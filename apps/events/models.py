@@ -25,6 +25,167 @@ DEFAULT_WAIVER_TEXT = (
 )
 
 
+class Tour(I18nMixin, TimestampedModel):
+    """Тур-продукт: контент один, дат продажи много (MT-1, закрывает гэп T6).
+
+    Раньше каждый заезд был отдельным `Event` с продублированным описанием. Тур
+    держит то, что не меняется от даты к дате (описание, галерея, лендинг-блоки,
+    маршрут, гиды), а `Event.tour` делает событие ЗАЕЗДОМ этого тура: даты,
+    цены/тиры, вместимость, депозит и весь движок продажи билетов остаются на
+    событии и не меняются.
+
+    Маршрут (`itinerary`) — разработка гида: видимость хранится на каждой
+    остановке, фильтрует `apps/events/itinerary.py::visible`. Публичные «шапки»
+    (`distance_km`, `duration_days`) заданы отдельными полями специально: их
+    показывают в рекламе даже когда сам маршрут закрыт.
+    """
+
+    DIFFICULTY_EASY = "easy"
+    DIFFICULTY_MEDIUM = "medium"
+    DIFFICULTY_HARD = "hard"
+    DIFFICULTIES = [
+        (DIFFICULTY_EASY, _("Leicht")),
+        (DIFFICULTY_MEDIUM, _("Mittel")),
+        (DIFFICULTY_HARD, _("Anspruchsvoll")),
+    ]
+
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique=True)
+    # i18n по схеме ОВЕРЛЕЯ Волны L (а НЕ старой схеме Event): базовая локаль —
+    # источник правды в плоском поле, переводы прочих локалей — в JSON. Именно
+    # эту семантику ждут адаптеры единого слоя (`*_localized`), поэтому новая
+    # сущность заводится сразу правильно.
+    title_i18n = models.JSONField(default=dict, blank=True)
+    summary = models.CharField(max_length=300, blank=True)  # тизер карточки
+    summary_i18n = models.JSONField(default=dict, blank=True)
+    description = models.TextField(blank=True)
+    description_i18n = models.JSONField(default=dict, blank=True)
+    # Фото тура: FileRef-список (как Event.images / catalog.Product.images).
+    images = models.JSONField(default=list, blank=True)
+    # Блоки богатой страницы — та же схема, что у события (apps/events/details.py),
+    # чтобы кабинет и шаблоны переиспользовались без развилок.
+    details = models.JSONField(default=dict, blank=True)
+    # Маршрут по дням с хронометражем и per-остановочной видимостью
+    # (схема и фильтры — apps/events/itinerary.py).
+    itinerary = models.JSONField(default=list, blank=True)
+    teachers = models.ManyToManyField("Teacher", blank=True, related_name="tours")
+    region = models.CharField(max_length=120, blank=True)  # «Himalaya, Indien»
+    difficulty = models.CharField(max_length=20, choices=DIFFICULTIES, blank=True)
+    # Публичные «шапки» тура. 0 = не задано (витрина блок скрывает); заданы
+    # руками, а не выведены из маршрута, — маршрут может быть закрыт целиком.
+    # blank=True: в форме это необязательные поля (пусто → 0), владельца не
+    # заставляем вбивать нули, чтобы сохранить описание.
+    distance_km = models.PositiveIntegerField(default=0, blank=True)
+    duration_days = models.PositiveSmallIntegerField(default=0, blank=True)
+    is_published = models.BooleanField(default=False)
+    sort_order = models.IntegerField(default=0, blank=True)
+
+    class Meta:
+        ordering = ["sort_order", "title"]
+        indexes = [
+            models.Index(fields=["is_published", "sort_order"], name="tour_pub_sort_idx"),
+        ]
+
+    def __str__(self):
+        return self.title
+
+    def title_localized(self, locale: str | None = None) -> str:
+        return self.get_overlay("title", "title_i18n", locale)
+
+    def summary_localized(self, locale: str | None = None) -> str:
+        return self.get_overlay("summary", "summary_i18n", locale)
+
+    def description_localized(self, locale: str | None = None) -> str:
+        return self.get_overlay("description", "description_i18n", locale)
+
+    # Свойства-обёртки для шаблонов (в шаблоне метод с аргументом не вызвать).
+    @property
+    def title_text(self) -> str:
+        return self.title_localized()
+
+    @property
+    def summary_text(self) -> str:
+        return self.summary_localized()
+
+    @property
+    def description_text(self) -> str:
+        return self.description_localized()
+
+    @property
+    def image_url(self) -> str:
+        """URL обложки (primary или первое фото); пусто, если фото нет."""
+        if not self.images:
+            return ""
+        primary = next((i for i in self.images if i.get("is_primary")), self.images[0])
+        return primary.get("url", "")
+
+    @property
+    def landing(self) -> dict:
+        """Нормализованные блоки лендинга (см. apps/events/details.py)."""
+        from . import details
+
+        return details.normalize(self.details)
+
+    @property
+    def difficulty_label(self) -> str:
+        return self.get_difficulty_display() if self.difficulty else ""
+
+    # --- маршрут ------------------------------------------------------------
+    def route(self, audience: str) -> list[dict]:
+        """Остановки маршрута, доступные аудитории (owner/participant/public)."""
+        from . import itinerary
+
+        return itinerary.visible(self.itinerary, audience)
+
+    def route_hidden_count(self, audience: str) -> int:
+        from . import itinerary
+
+        return itinerary.hidden_count(self.itinerary, audience)
+
+    # --- заезды -------------------------------------------------------------
+    #: Имя to_attr для Prefetch будущих заездов (листинг туров — без N+1).
+    UPCOMING_ATTR = "_upcoming_departures"
+
+    @classmethod
+    def upcoming_prefetch(cls):
+        """Prefetch будущих заездов: листинг считает «ab X €» без запроса на тур."""
+        from django.db.models import Prefetch
+        from django.utils import timezone
+
+        return Prefetch(
+            "departures",
+            queryset=Event.objects.filter(
+                status=Event.STATUS_PUBLISHED, starts_at__gte=timezone.now()
+            ).order_by("starts_at"),
+            to_attr=cls.UPCOMING_ATTR,
+        )
+
+    def upcoming_departures(self):
+        """Опубликованные будущие заезды (по возрастанию даты).
+
+        Если queryset пришёл с `upcoming_prefetch()`, отдаём предзагруженный
+        список — иначе на листинге был бы запрос на каждый тур.
+        """
+        cached = getattr(self, self.UPCOMING_ATTR, None)
+        if cached is not None:
+            return cached
+        from django.utils import timezone
+
+        return self.departures.filter(
+            status=Event.STATUS_PUBLISHED, starts_at__gte=timezone.now()
+        ).order_by("starts_at")
+
+    @property
+    def from_price_cents(self) -> int:
+        """«ab X €» — минимальная цена среди будущих заездов (0 = нет заездов)."""
+        prices = [d.from_price_cents for d in self.upcoming_departures()]
+        return min(prices) if prices else 0
+
+    @property
+    def from_price_eur(self):
+        return Decimal(self.from_price_cents) / 100
+
+
 class Event(I18nMixin, TimestampedModel):
     STATUS_DRAFT = "draft"
     STATUS_PUBLISHED = "published"
@@ -138,6 +299,17 @@ class Event(I18nMixin, TimestampedModel):
     # RT3: recurring-серия — общий id у всех повторов (еженедельно/раз в 2 недели/
     # ежемесячно). Пусто = одиночное событие. Группирует копии для управления.
     series_id = models.UUIDField(null=True, blank=True, db_index=True)
+    # MT-1: событие как ЗАЕЗД тур-продукта. Пусто = самостоятельное событие
+    # (весь существующий движок событий работает как раньше). Заполнено — контент
+    # (описание/галерея/маршрут) берётся со страницы тура, здесь остаются даты и
+    # деньги. SET_NULL: удаление тура не должно уносить проданные билеты.
+    tour = models.ForeignKey(
+        "Tour",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="departures",
+    )
 
     class Meta:
         ordering = ["starts_at"]

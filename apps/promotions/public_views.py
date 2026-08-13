@@ -1430,6 +1430,17 @@ def sitemap_xml(request):
                 request.build_absolute_uri(reverse("storefront-blog-post", args=[slug]))
                 for slug in blog_slugs
             ]
+    # MT-1: тур-продукты — самостоятельные посадочные страницы (модуль events).
+    if tenant is not None and tenant.is_module_active("events"):
+        from apps.events.models import Tour
+
+        tour_slugs = list(Tour.objects.filter(is_published=True).values_list("slug", flat=True))
+        if tour_slugs:
+            urls.append(request.build_absolute_uri(reverse("storefront-tours")))
+            urls += [
+                request.build_absolute_uri(reverse("storefront-tour", args=[slug]))
+                for slug in tour_slugs
+            ]
     body = "".join(f"<url><loc>{escape(u)}</loc></url>" for u in urls)
     xml = (
         '<?xml version="1.0" encoding="UTF-8"?>'

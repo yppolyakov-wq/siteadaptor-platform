@@ -18017,3 +18017,189 @@ msgstr "{name} у {tenant}{city_sfx}."
 #: apps/core/seo_meta.py
 msgid "{category} bei {tenant}{city_sfx}."
 msgstr "{category} у {tenant}{city_sfx}."
+# --- MT-1: Reisen (Tour-Produkt, Route) ---
+
+msgid "Reisen"
+msgstr "Тури"
+
+msgid "Gehört zur Reise (optional)"
+msgstr "Належить до туру (необов'язково)"
+
+msgid "Kurzbeschreibung (Karte)"
+msgstr "Короткий опис (картка)"
+
+msgid "Region (z. B. Himalaya, Indien)"
+msgstr "Регіон (наприклад, Гімалаї, Індія)"
+
+msgid "Schwierigkeit"
+msgstr "Складність"
+
+msgid "Dauer (Tage, 0 = ausblenden)"
+msgstr "Тривалість (днів, 0 = сховати)"
+
+msgid "Distanz (km, 0 = ausblenden)"
+msgstr "Дистанція (км, 0 = сховати)"
+
+msgid "Guides"
+msgstr "Гіди"
+
+msgid "Veröffentlicht"
+msgstr "Опубліковано"
+
+msgid "Sortierung"
+msgstr "Сортування"
+
+msgid "Nur für mich"
+msgstr "Тільки для мене"
+
+msgid "Für Teilnehmer"
+msgstr "Для учасників"
+
+msgid "Öffentlich"
+msgstr "Публічно"
+
+msgid "Leicht"
+msgstr "Легкий"
+
+msgid "Anspruchsvoll"
+msgstr "Складний"
+
+msgid "Edit tour"
+msgstr "Редагувати тур"
+
+msgid "View page"
+msgstr "Відкрити сторінку"
+
+msgid "All tours"
+msgstr "Усі тури"
+
+msgid "Route (day by day)"
+msgstr "Маршрут (по днях)"
+
+msgid "Visibility is set per stop: keep your route private, share selected highlights publicly or with participants only."
+msgstr "Видимість задається для кожної точки: тримайте маршрут закритим, а окремі місця відкривайте публічно або лише учасникам."
+
+msgid "Day"
+msgstr "День"
+
+msgid "Time"
+msgstr "Час"
+
+msgid "Overnight"
+msgstr "Ночівля"
+
+msgid "Visible to"
+msgstr "Видно кому"
+
+msgid "Latitude"
+msgstr "Широта"
+
+msgid "Longitude"
+msgstr "Довгота"
+
+msgid "Empty rows are ignored. Save to get three more."
+msgstr "Порожні рядки ігноруються. Після збереження з'являться ще три."
+
+msgid "Delete this tour?"
+msgstr "Видалити цей тур?"
+
+msgid "Departures"
+msgstr "Заїзди"
+
+msgid "New departure"
+msgstr "Новий заїзд"
+
+msgid "No departures yet — create an event and pick this tour in the form."
+msgstr "Заїздів поки немає — створіть подію та оберіть у формі цей тур."
+
+msgid "Tours"
+msgstr "Тури"
+
+msgid "A tour holds the content and the route; each date is a departure (event) with its own prices and seats."
+msgstr "Тур зберігає опис і маршрут; кожна дата — це заїзд (подія) зі своїми цінами та місцями."
+
+msgid "New tour"
+msgstr "Новий тур"
+
+msgid "e.g. Himalaya: Manali – Leh"
+msgstr "наприклад, Гімалаї: Манали – Лех"
+
+msgid "No tours yet."
+msgstr "Турів поки немає."
+
+msgid "Route"
+msgstr "Маршрут"
+
+msgid "Day %(n)s"
+msgstr "День %(n)s"
+
+msgid "The detailed route is part of our guides' know-how — participants receive it after booking."
+msgstr "Докладний маршрут — напрацювання наших гідів, учасники отримують його після бронювання."
+
+msgid "Duration"
+msgstr "Тривалість"
+
+msgid "Distance"
+msgstr "Дистанція"
+
+msgid "Difficulty"
+msgstr "Складність"
+
+msgid "See dates"
+msgstr "Дивитися дати"
+
+msgid "Ask for dates"
+msgstr "Запитати про дати"
+
+msgid "Dates & prices"
+msgstr "Дати та ціни"
+
+msgid "Places available"
+msgstr "Є місця"
+
+msgid "No dates published yet — get in touch and we will plan one."
+msgstr "Дат поки немає — напишіть нам, і ми заплануємо заїзд."
+
+msgid "No tours published yet."
+msgstr "Опублікованих турів поки немає."
+
+#, python-format
+msgid "%(n)s departure"
+msgid_plural "%(n)s departures"
+msgstr[0] "%(n)s заїзд"
+msgstr[1] "%(n)s заїзди"
+msgstr[2] "%(n)s заїздів"
+msgstr[3] "%(n)s заїзду"
+
+#, python-format
+msgid "%(days)s day"
+msgid_plural "%(days)s days"
+msgstr[0] "%(days)s день"
+msgstr[1] "%(days)s дні"
+msgstr[2] "%(days)s днів"
+msgstr[3] "%(days)s дня"
+
+#, python-format
+msgid "One more stop is shown after booking."
+msgid_plural "%(n)s more stops are shown after booking."
+msgstr[0] "Ще одна точка відкриється після бронювання."
+msgstr[1] "Ще %(n)s точки відкриються після бронювання."
+msgstr[2] "Ще %(n)s точок відкриються після бронювання."
+msgstr[3] "Ще %(n)s точки відкриються після бронювання."
+
+#, python-format
+msgid "%(n)s seat left"
+msgid_plural "%(n)s seats left"
+msgstr[0] "залишилося %(n)s місце"
+msgstr[1] "залишилося %(n)s місця"
+msgstr[2] "залишилося %(n)s місць"
+msgstr[3] "залишилося %(n)s місця"
+
+msgid "Tour created."
+msgstr "Тур створено."
+
+msgid "Tour saved."
+msgstr "Тур збережено."
+
+msgid "Tour deleted."
+msgstr "Тур видалено."

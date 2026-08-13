@@ -17976,3 +17976,181 @@ msgstr ""
 #: apps/core/seo_meta.py
 msgid "{category} bei {tenant}{city_sfx}."
 msgstr ""
+# --- MT-1: Reisen (Tour-Produkt, Route) ---
+
+msgid "Reisen"
+msgstr "Reisen"
+
+msgid "Gehört zur Reise (optional)"
+msgstr "Gehört zur Reise (optional)"
+
+msgid "Kurzbeschreibung (Karte)"
+msgstr "Kurzbeschreibung (Karte)"
+
+msgid "Region (z. B. Himalaya, Indien)"
+msgstr "Region (z. B. Himalaya, Indien)"
+
+msgid "Schwierigkeit"
+msgstr "Schwierigkeit"
+
+msgid "Dauer (Tage, 0 = ausblenden)"
+msgstr "Dauer (Tage, 0 = ausblenden)"
+
+msgid "Distanz (km, 0 = ausblenden)"
+msgstr "Distanz (km, 0 = ausblenden)"
+
+msgid "Guides"
+msgstr "Guides"
+
+msgid "Veröffentlicht"
+msgstr "Veröffentlicht"
+
+msgid "Sortierung"
+msgstr "Sortierung"
+
+msgid "Nur für mich"
+msgstr "Nur für mich"
+
+msgid "Für Teilnehmer"
+msgstr "Für Teilnehmer"
+
+msgid "Öffentlich"
+msgstr "Öffentlich"
+
+msgid "Leicht"
+msgstr "Leicht"
+
+msgid "Anspruchsvoll"
+msgstr "Anspruchsvoll"
+
+msgid "Edit tour"
+msgstr "Reise bearbeiten"
+
+msgid "View page"
+msgstr "Seite ansehen"
+
+msgid "All tours"
+msgstr "Alle Reisen"
+
+msgid "Route (day by day)"
+msgstr "Route (Tag für Tag)"
+
+msgid "Visibility is set per stop: keep your route private, share selected highlights publicly or with participants only."
+msgstr "Die Sichtbarkeit gilt je Stopp: Route privat halten, einzelne Highlights öffentlich zeigen oder nur Teilnehmern."
+
+msgid "Day"
+msgstr "Tag"
+
+msgid "Time"
+msgstr "Uhrzeit"
+
+msgid "Overnight"
+msgstr "Übernachtung"
+
+msgid "Visible to"
+msgstr "Sichtbar für"
+
+msgid "Latitude"
+msgstr "Breitengrad"
+
+msgid "Longitude"
+msgstr "Längengrad"
+
+msgid "Empty rows are ignored. Save to get three more."
+msgstr "Leere Zeilen werden ignoriert. Nach dem Speichern gibt es drei weitere."
+
+msgid "Delete this tour?"
+msgstr "Diese Reise löschen?"
+
+msgid "Departures"
+msgstr "Termine"
+
+msgid "New departure"
+msgstr "Neuer Termin"
+
+msgid "No departures yet — create an event and pick this tour in the form."
+msgstr "Noch keine Termine — legen Sie eine Veranstaltung an und wählen Sie dort diese Reise."
+
+msgid "Tours"
+msgstr "Reisen"
+
+msgid "A tour holds the content and the route; each date is a departure (event) with its own prices and seats."
+msgstr "Die Reise trägt Inhalt und Route; jeder Termin ist ein Start (Veranstaltung) mit eigenen Preisen und Plätzen."
+
+msgid "New tour"
+msgstr "Neue Reise"
+
+msgid "e.g. Himalaya: Manali – Leh"
+msgstr "z. B. Himalaya: Manali – Leh"
+
+msgid "No tours yet."
+msgstr "Noch keine Reisen."
+
+msgid "Route"
+msgstr "Route"
+
+msgid "Day %(n)s"
+msgstr "Tag %(n)s"
+
+msgid "The detailed route is part of our guides' know-how — participants receive it after booking."
+msgstr "Die ausführliche Route gehört zum Know-how unserer Guides — Teilnehmer erhalten sie nach der Buchung."
+
+msgid "Duration"
+msgstr "Dauer"
+
+msgid "Distance"
+msgstr "Distanz"
+
+msgid "Difficulty"
+msgstr "Schwierigkeit"
+
+msgid "See dates"
+msgstr "Termine ansehen"
+
+msgid "Ask for dates"
+msgstr "Nach Terminen fragen"
+
+msgid "Dates & prices"
+msgstr "Termine & Preise"
+
+msgid "Places available"
+msgstr "Plätze frei"
+
+msgid "No dates published yet — get in touch and we will plan one."
+msgstr "Noch keine Termine veröffentlicht — schreiben Sie uns, wir planen einen."
+
+msgid "No tours published yet."
+msgstr "Noch keine Reisen veröffentlicht."
+
+#, python-format
+msgid "%(n)s departure"
+msgid_plural "%(n)s departures"
+msgstr[0] "%(n)s Termin"
+msgstr[1] "%(n)s Termine"
+
+#, python-format
+msgid "%(days)s day"
+msgid_plural "%(days)s days"
+msgstr[0] "%(days)s Tag"
+msgstr[1] "%(days)s Tage"
+
+#, python-format
+msgid "One more stop is shown after booking."
+msgid_plural "%(n)s more stops are shown after booking."
+msgstr[0] "Ein weiterer Stopp wird nach der Buchung sichtbar."
+msgstr[1] "%(n)s weitere Stopps werden nach der Buchung sichtbar."
+
+#, python-format
+msgid "%(n)s seat left"
+msgid_plural "%(n)s seats left"
+msgstr[0] "noch %(n)s Platz"
+msgstr[1] "noch %(n)s Plätze"
+
+msgid "Tour created."
+msgstr "Reise angelegt."
+
+msgid "Tour saved."
+msgstr "Reise gespeichert."
+
+msgid "Tour deleted."
+msgstr "Reise gelöscht."

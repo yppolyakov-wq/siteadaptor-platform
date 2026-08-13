@@ -388,6 +388,10 @@ urlpatterns = [
     path("stays/ical/<str:token>.ics", stays_public.unterkunft_ical, name="storefront-stay-ical"),
     # G8: фид цен/наличия для метапоиска (Google Hotel Center / channel).
     path("stays/feed.json", stays_public.stays_feed, name="storefront-stay-feed"),
+    # MT-1: тур-продукт (контент + заезды). Продажа остаётся на событии-заезде,
+    # поэтому маршруты живут рядом с событиями и гейтятся тем же модулем.
+    path("touren/", events_public.touren_index, name="storefront-tours"),
+    path("tour/<slug:slug>/", events_public.tour_detail, name="storefront-tour"),
     # События/билеты (A6c): список → событие → покупка → подтверждение.
     path("veranstaltung/", events_public.veranstaltung_index, name="storefront-events"),
     # R3b: календарь ретритов + iCal-фид (до <uuid:pk>, чтобы не перехватывались).

@@ -10,6 +10,9 @@ urlpatterns = [
     path("teachers/new/", views.teacher_create, name="teacher-create"),
     path("teachers/<uuid:pk>/edit/", views.teacher_edit, name="teacher-edit"),
     path("teachers/<uuid:pk>/delete/", views.teacher_delete, name="teacher-delete"),
+    # MT-1: тур-продукты (контент + маршрут); заезды — обычные события.
+    path("touren/", views.tour_list, name="tour-list"),
+    path("touren/<uuid:pk>/", views.tour_edit, name="tour-edit"),
     path("new/", views.event_create, name="create"),
     # H1.2: инлайн-правка заголовка/описания события на детальной витрине (?preview=1).
     path("inline-edit/", views.event_inline_edit, name="event-inline-edit"),

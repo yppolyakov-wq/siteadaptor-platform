@@ -15,13 +15,14 @@ from django.core.files.storage import default_storage
 def _iter_gallery_fields():
     """(queryset, поле-СПИСОК FileRef) — галереи сущностей."""
     from apps.catalog.models import Product
-    from apps.events.models import Event
+    from apps.events.models import Event, Tour
     from apps.promotions.models import Promotion
     from apps.stays.models import StayUnit
 
     yield Product.objects.all(), "images"
     yield Promotion.objects.all(), "images"
     yield Event.objects.all(), "images"
+    yield Tour.objects.all(), "images"  # MT-1: галерея тур-продукта
     yield StayUnit.objects.all(), "images"
 
 

@@ -17836,3 +17836,181 @@ msgstr "{name} at {tenant}{city_sfx}."
 #: apps/core/seo_meta.py
 msgid "{category} bei {tenant}{city_sfx}."
 msgstr "{category} at {tenant}{city_sfx}."
+# --- MT-1: Reisen (Tour-Produkt, Route) ---
+
+msgid "Reisen"
+msgstr "Tours"
+
+msgid "Gehört zur Reise (optional)"
+msgstr "Belongs to tour (optional)"
+
+msgid "Kurzbeschreibung (Karte)"
+msgstr "Short description (card)"
+
+msgid "Region (z. B. Himalaya, Indien)"
+msgstr "Region (e.g. Himalaya, India)"
+
+msgid "Schwierigkeit"
+msgstr "Difficulty"
+
+msgid "Dauer (Tage, 0 = ausblenden)"
+msgstr "Duration (days, 0 = hide)"
+
+msgid "Distanz (km, 0 = ausblenden)"
+msgstr "Distance (km, 0 = hide)"
+
+msgid "Guides"
+msgstr "Guides"
+
+msgid "Veröffentlicht"
+msgstr "Published"
+
+msgid "Sortierung"
+msgstr "Sort order"
+
+msgid "Nur für mich"
+msgstr "Only for me"
+
+msgid "Für Teilnehmer"
+msgstr "For participants"
+
+msgid "Öffentlich"
+msgstr "Public"
+
+msgid "Leicht"
+msgstr "Easy"
+
+msgid "Anspruchsvoll"
+msgstr "Demanding"
+
+msgid "Edit tour"
+msgstr "Edit tour"
+
+msgid "View page"
+msgstr "View page"
+
+msgid "All tours"
+msgstr "All tours"
+
+msgid "Route (day by day)"
+msgstr "Route (day by day)"
+
+msgid "Visibility is set per stop: keep your route private, share selected highlights publicly or with participants only."
+msgstr "Visibility is set per stop: keep your route private, share selected highlights publicly or with participants only."
+
+msgid "Day"
+msgstr "Day"
+
+msgid "Time"
+msgstr "Time"
+
+msgid "Overnight"
+msgstr "Overnight"
+
+msgid "Visible to"
+msgstr "Visible to"
+
+msgid "Latitude"
+msgstr "Latitude"
+
+msgid "Longitude"
+msgstr "Longitude"
+
+msgid "Empty rows are ignored. Save to get three more."
+msgstr "Empty rows are ignored. Save to get three more."
+
+msgid "Delete this tour?"
+msgstr "Delete this tour?"
+
+msgid "Departures"
+msgstr "Departures"
+
+msgid "New departure"
+msgstr "New departure"
+
+msgid "No departures yet — create an event and pick this tour in the form."
+msgstr "No departures yet — create an event and pick this tour in the form."
+
+msgid "Tours"
+msgstr "Tours"
+
+msgid "A tour holds the content and the route; each date is a departure (event) with its own prices and seats."
+msgstr "A tour holds the content and the route; each date is a departure (event) with its own prices and seats."
+
+msgid "New tour"
+msgstr "New tour"
+
+msgid "e.g. Himalaya: Manali – Leh"
+msgstr "e.g. Himalaya: Manali – Leh"
+
+msgid "No tours yet."
+msgstr "No tours yet."
+
+msgid "Route"
+msgstr "Route"
+
+msgid "Day %(n)s"
+msgstr "Day %(n)s"
+
+msgid "The detailed route is part of our guides' know-how — participants receive it after booking."
+msgstr "The detailed route is part of our guides' know-how — participants receive it after booking."
+
+msgid "Duration"
+msgstr "Duration"
+
+msgid "Distance"
+msgstr "Distance"
+
+msgid "Difficulty"
+msgstr "Difficulty"
+
+msgid "See dates"
+msgstr "See dates"
+
+msgid "Ask for dates"
+msgstr "Ask for dates"
+
+msgid "Dates & prices"
+msgstr "Dates & prices"
+
+msgid "Places available"
+msgstr "Places available"
+
+msgid "No dates published yet — get in touch and we will plan one."
+msgstr "No dates published yet — get in touch and we will plan one."
+
+msgid "No tours published yet."
+msgstr "No tours published yet."
+
+#, python-format
+msgid "%(n)s departure"
+msgid_plural "%(n)s departures"
+msgstr[0] "%(n)s departure"
+msgstr[1] "%(n)s departures"
+
+#, python-format
+msgid "%(days)s day"
+msgid_plural "%(days)s days"
+msgstr[0] "%(days)s day"
+msgstr[1] "%(days)s days"
+
+#, python-format
+msgid "One more stop is shown after booking."
+msgid_plural "%(n)s more stops are shown after booking."
+msgstr[0] "One more stop is shown after booking."
+msgstr[1] "%(n)s more stops are shown after booking."
+
+#, python-format
+msgid "%(n)s seat left"
+msgid_plural "%(n)s seats left"
+msgstr[0] "%(n)s seat left"
+msgstr[1] "%(n)s seats left"
+
+msgid "Tour created."
+msgstr "Tour created."
+
+msgid "Tour saved."
+msgstr "Tour saved."
+
+msgid "Tour deleted."
+msgstr "Tour deleted."

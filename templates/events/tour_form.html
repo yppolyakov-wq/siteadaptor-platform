@@ -1,0 +1,125 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n widget_tweaks %}
+{% comment %}
+MT-1: правка тура. Маршрут — таблица строк (без JS: пустые слоты дорастают после
+сохранения, как в редакторе Finder). У каждой остановки свой уровень видимости —
+это и есть контроль гида над своей разработкой.
+{% endcomment %}
+{% block dash_title %}{% trans "Edit tour" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+  <h1 class="text-2xl font-bold">{{ tour.title }}</h1>
+  <div class="flex items-center gap-3">
+    {% if tour.is_published %}<a href="/tour/{{ tour.slug }}/" target="_blank" rel="noopener" class="text-sm text-indigo-600 hover:underline">{% trans "View page" %} ↗</a>{% endif %}
+    <a href="{% url 'events:tour-list' %}" class="text-sm text-gray-500 hover:underline">{% trans "All tours" %}</a>
+  </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="bg-white p-6 rounded-2xl shadow-sm max-w-3xl space-y-4">
+  {% csrf_token %}
+  {% for field in form %}
+    <div>
+      <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {% if field.name == 'teachers' %}
+        <div class="grid sm:grid-cols-2 gap-1 text-sm text-gray-700">
+          {% for c in field %}<label class="flex items-center gap-2">{{ c.tag }} {{ c.choice_label }}</label>{% endfor %}
+        </div>
+      {% else %}
+        {{ field|add_class:"w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" }}
+      {% endif %}
+      {% for e in field.errors %}<p class="text-xs text-red-600 mt-1">{{ e }}</p>{% endfor %}
+    </div>
+  {% endfor %}
+
+  <div>
+    <label class="block text-sm font-medium mb-1">{% trans "Photos" %}</label>
+    <input type="file" name="photos" accept="image/*" multiple class="block w-full text-sm text-gray-600">
+    {% if tour.images %}
+      <div class="mt-2 flex flex-wrap gap-2">
+        {% for img in tour.images %}
+          <label class="relative cursor-pointer" title="{% trans 'Tick to remove on save' %}">
+            <img src="{{ img.url }}" alt="" class="w-16 h-16 object-cover rounded-lg border border-gray-200">
+            <input type="radio" name="delete_image" value="{{ img.id }}" class="absolute -top-2 -right-2">
+          </label>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  {# Маршрут. it_present — сентинел: без него частичная форма не тронет наполнение. #}
+  <input type="hidden" name="it_present" value="1">
+  <fieldset class="border-t pt-4">
+    <legend class="text-sm font-semibold mb-1">{% trans "Route (day by day)" %}</legend>
+    <p class="text-xs text-gray-500 mb-3">{% trans "Visibility is set per stop: keep your route private, share selected highlights publicly or with participants only." %}</p>
+    <div class="space-y-3">
+      {% for stop in stops %}
+        <div class="grid gap-2 sm:grid-cols-12 items-start rounded-xl bg-gray-50 p-3">
+          <label class="sm:col-span-1 text-xs text-gray-500">{% trans "Day" %}
+            <input type="number" min="1" name="it_day_{{ forloop.counter0 }}" value="{{ stop.day|default_if_none:'' }}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+          </label>
+          <label class="sm:col-span-2 text-xs text-gray-500">{% trans "Time" %}
+            <span class="flex gap-1">
+              <input type="text" name="it_time_from_{{ forloop.counter0 }}" value="{{ stop.time_from|default:'' }}" placeholder="09:00" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+              <input type="text" name="it_time_to_{{ forloop.counter0 }}" value="{{ stop.time_to|default:'' }}" placeholder="13:00" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+            </span>
+          </label>
+          <label class="sm:col-span-3 text-xs text-gray-500">{% trans "Stop" %}
+            <input type="text" name="it_title_{{ forloop.counter0 }}" value="{{ stop.title|default:'' }}" maxlength="200" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+          </label>
+          <label class="sm:col-span-1 text-xs text-gray-500">km
+            <input type="number" min="0" name="it_km_{{ forloop.counter0 }}" value="{{ stop.km|default_if_none:'' }}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+          </label>
+          <label class="sm:col-span-2 text-xs text-gray-500">{% trans "Overnight" %}
+            <input type="text" name="it_overnight_{{ forloop.counter0 }}" value="{{ stop.overnight|default:'' }}" maxlength="200" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+          </label>
+          <label class="sm:col-span-3 text-xs text-gray-500">{% trans "Visible to" %}
+            <select name="it_visibility_{{ forloop.counter0 }}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+              {% for value, label in visibility_choices %}
+                <option value="{{ value }}"{% if stop.visibility == value %} selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="sm:col-span-8 text-xs text-gray-500">{% trans "Notes" %}
+            <input type="text" name="it_text_{{ forloop.counter0 }}" value="{{ stop.text|default:'' }}" maxlength="2000" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+          </label>
+          <label class="sm:col-span-2 text-xs text-gray-500">{% trans "Latitude" %}
+            <input type="text" name="it_lat_{{ forloop.counter0 }}" value="{{ stop.lat|default:'' }}" placeholder="32.2432" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+          </label>
+          <label class="sm:col-span-2 text-xs text-gray-500">{% trans "Longitude" %}
+            <input type="text" name="it_lng_{{ forloop.counter0 }}" value="{{ stop.lng|default:'' }}" placeholder="77.1892" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+          </label>
+        </div>
+      {% endfor %}
+    </div>
+    <p class="text-xs text-gray-400 mt-2">{% trans "Empty rows are ignored. Save to get three more." %}</p>
+  </fieldset>
+
+  <div class="flex items-center gap-3 border-t pt-4">
+    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+    <button type="submit" name="action" value="delete" class="text-sm text-red-600 hover:underline" onclick="return confirm('{% trans "Delete this tour?" %}')">{% trans "Delete" %}</button>
+  </div>
+</form>
+
+<section class="max-w-3xl mt-8">
+  <div class="flex items-center justify-between gap-3 mb-3">
+    <h2 class="text-lg font-semibold">{% trans "Departures" %}</h2>
+    <a href="{% url 'events:create' %}" class="text-sm text-indigo-600 hover:underline">+ {% trans "New departure" %}</a>
+  </div>
+  {% if departures %}
+    <ul class="bg-white rounded-2xl shadow-sm divide-y">
+      {% for d in departures %}
+        <li class="flex items-center justify-between gap-3 p-4">
+          <div>
+            <a href="{% url 'events:detail' d.pk %}" class="font-medium hover:text-indigo-700">{{ d.starts_at|date:"d.m.Y" }}{% if d.ends_at %} – {{ d.ends_at|date:"d.m.Y" }}{% endif %}</a>
+            <p class="text-sm text-gray-500">{{ d.get_status_display }} · {{ d.seats_sold }}{% if d.capacity %}/{{ d.capacity }}{% endif %} {% trans "seats" %}</p>
+          </div>
+          <a href="{% url 'events:edit' d.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Edit" %}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-gray-600 text-sm">{% trans "No departures yet — create an event and pick this tour in the form." %}</p>
+  {% endif %}
+</section>
+{% endblock %}

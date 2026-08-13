@@ -153,6 +153,8 @@ ENTRIES: tuple[NavEntry, ...] = (
     ),
     # Verkäufe (W-CL): board/календари/список покрыты единой страницей — остаток W10.
     _e("board", "events:list", _("Tickets"), "events", "events", search="veranstaltungen"),
+    # MT-1: тур-продукт (контент + маршрут + заезды) — рядом с билетами, тот же модуль.
+    _e("board", "events:tour-list", _("Reisen"), "tours", "events", search="touren reisen route"),
     _e(
         "board",
         "jobs:list",

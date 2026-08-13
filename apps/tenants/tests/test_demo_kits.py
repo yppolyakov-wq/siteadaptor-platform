@@ -1118,6 +1118,36 @@ def test_apply_tours_kit_dedicated_tour_operator():
     assert Product.objects.count() == 0
 
 
+def test_apply_moto_kit_seeds_tours_with_departures_and_route_visibility():
+    """MT-1: мото-кит — тур-продукт с заездами и маршрутом трёх уровней видимости."""
+    from apps.events import itinerary
+    from apps.events.models import Event, Tour
+
+    tenant = TenantFactory(
+        schema_name="public", slug="moto", name="Himalaya Riders", business_type="tour_operator"
+    )
+    assert demo_kits.apply_kit(tenant, "moto") is True
+
+    assert Tour.objects.count() == 2
+    manali = Tour.objects.get(title__startswith="Himalaya-Klassiker")
+    # заезды привязаны к туру, а не висят отдельными событиями
+    assert manali.departures.count() == 2
+    assert Event.objects.filter(tour__isnull=True).count() == 0
+    # тиры «своя техника / аренда / пассажир» с собственными лимитами
+    juni = manali.departures.order_by("starts_at").first()
+    assert len(juni.tier_list) == 3
+    assert juni.deposit_percent == 25 and juni.waiver_required
+    # анкета допуска к технике (мото-пресеты)
+    assert "license_class" in juni.registration_fields
+    # маршрут: у гостя видны только публичные точки, закрытые не утекают
+    public_titles = [s["title"] for s in manali.route(itinerary.GUEST)]
+    assert "Tanglang La (5.328 m) nach Leh" in public_titles
+    assert not any("Geheimtipp" in t for t in public_titles)
+    assert manali.route_hidden_count(itinerary.GUEST) == 2
+    # владелец видит маршрут целиком
+    assert len(manali.route(itinerary.OWNER)) == 5
+
+
 def test_kit_custom_statuses_applied_and_resolve():
     """FB-3 Вариант B: демо-киты заводят кастом-статусы в site_config; резолвятся end-to-end."""
     from apps.core import status_registry

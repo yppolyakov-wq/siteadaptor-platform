@@ -1,0 +1,38 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% comment %}MT-1: список тур-продуктов кабинета.{% endcomment %}
+{% block dash_title %}{% trans "Tours" %}{% endblock %}
+
+{% block dash_content %}
+<h1 class="text-2xl font-bold mb-2">{% trans "Tours" %}</h1>
+<p class="text-sm text-gray-500 mb-6">{% trans "A tour holds the content and the route; each date is a departure (event) with its own prices and seats." %}</p>
+
+<form method="post" class="bg-white p-4 rounded-2xl shadow-sm mb-6 flex flex-wrap gap-3 items-end">
+  {% csrf_token %}
+  <label class="grow">
+    <span class="block text-sm font-medium mb-1">{% trans "New tour" %}</span>
+    <input type="text" name="title" required maxlength="200" placeholder="{% trans 'e.g. Himalaya: Manali – Leh' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+  </label>
+  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Create" %}</button>
+</form>
+
+{% if tours %}
+  <ul class="bg-white rounded-2xl shadow-sm divide-y">
+    {% for tour in tours %}
+      <li class="flex flex-wrap items-center justify-between gap-3 p-4">
+        <div>
+          <a href="{% url 'events:tour-edit' tour.pk %}" class="font-medium hover:text-indigo-700">{{ tour.title }}</a>
+          <p class="text-sm text-gray-500">
+            {% if tour.is_published %}<span class="text-green-700">● {% trans "Published" %}</span>{% else %}<span class="text-gray-400">● {% trans "Draft" %}</span>{% endif %}
+            · {% blocktrans count n=tour.departures.count %}{{ n }} departure{% plural %}{{ n }} departures{% endblocktrans %}
+            {% if tour.region %} · {{ tour.region }}{% endif %}
+          </p>
+        </div>
+        <a href="{% url 'events:tour-edit' tour.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Edit" %}</a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="text-gray-600">{% trans "No tours yet." %}</p>
+{% endif %}
+{% endblock %}

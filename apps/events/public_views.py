@@ -21,7 +21,7 @@ from apps.core import ratelimit
 from apps.stays.services import StayUnavailable
 
 from . import installments, payments, services
-from .models import Event, Teacher, Ticket
+from .models import Event, Teacher, Ticket, Tour
 
 RL_LIMIT = 5
 RL_WINDOW = 600
@@ -586,6 +586,55 @@ def veranstaltung_confirmation(request, code):
             "telegram_link": deep_link(ticket.customer),
             "cancel_state": services.cancellation_state(ticket),
             "cancel_url": cancel_url(ticket),
+        },
+    )
+
+
+def touren_index(request):
+    """MT-1: публичный список туров (тур = контент, заезды = даты продажи)."""
+    _require_events_active(request)
+    tours = list(
+        Tour.objects.filter(is_published=True).prefetch_related(
+            "teachers", Tour.upcoming_prefetch()
+        )
+    )
+    return render(request, "storefront/tour_index.html", {"tours": tours})
+
+
+def tour_detail(request, slug):
+    """MT-1: страница тура — контент, маршрут (по видимости) и список заездов.
+
+    Маршрут отдаётся УЖЕ отфильтрованным под аудиторию запроса: закрытые гидом
+    остановки не доходят до шаблона, поэтому их нельзя случайно раскрыть
+    разметкой (см. apps/events/access.py и itinerary.visible).
+    """
+    _require_events_active(request)
+    tour = get_object_or_404(
+        Tour.objects.prefetch_related("teachers"), slug=slug, is_published=True
+    )
+    from apps.tenants import siteconfig
+
+    from . import itinerary as itinerary_mod
+    from .access import route_audience
+
+    audience = route_audience(request, tour)
+    stops = tour.route(audience)
+    tenant = getattr(request, "tenant", None)
+    return render(
+        request,
+        "storefront/tour_detail.html",
+        {
+            "tour": tour,
+            "audience": audience,
+            "route_days": itinerary_mod.by_day(stops),
+            "route_points": itinerary_mod.map_points(stops),
+            "route_km": itinerary_mod.total_km(stops),
+            "route_hidden": tour.route_hidden_count(audience),
+            "departures": list(tour.upcoming_departures()),
+            # Порядок/скрытие тематических блоков — общий с событиями (M20U-4).
+            "event_detail_order": siteconfig.event_detail_order(
+                getattr(tenant, "site_config", {}) or {}
+            ),
         },
     )
 

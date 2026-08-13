@@ -11,9 +11,9 @@ from django.views.decorators.http import require_POST
 
 from apps.core.csv_safe import csv_safe
 
-from . import registration
-from .forms import EventForm, TeacherForm
-from .models import Event, Teacher, Ticket
+from . import itinerary, registration
+from .forms import EventForm, TeacherForm, TourForm, unique_tour_slug
+from .models import Event, Teacher, Ticket, Tour
 from .services import book_ticket, notify_event_waitlist
 from .state_machine import EventSM, TicketSM
 
@@ -195,6 +195,93 @@ def ticket_action(request, pk, tid):
         except Exception:  # noqa: BLE001
             messages.error(request, _("Action not allowed."))
     return redirect("events:detail", pk=pk)
+
+
+@login_required
+def tour_list(request):
+    """MT-1: список тур-продуктов + быстрое создание (заголовок → slug)."""
+    if request.method == "POST":
+        title = (request.POST.get("title") or "").strip()
+        if title:
+            tour = Tour.objects.create(title=title[:200], slug=unique_tour_slug(title))
+            messages.success(request, _("Tour created."))
+            return redirect("events:tour-edit", pk=tour.pk)
+        return redirect("events:tour-list")
+    tours = Tour.objects.prefetch_related("departures")
+    return render(request, "events/tour_list.html", {"tours": tours, "nav": "events"})
+
+
+@login_required
+def tour_edit(request, pk):
+    """MT-1: правка тура — поля, блоки лендинга, маршрут, фото, удаление.
+
+    Маршрут приходит отдельными строками (`it_*_<i>`), поэтому сохраняется
+    только когда редактор реально был на странице: сентинел `it_present`
+    защищает наполнение от затирания частичной формой (инвариант W0).
+    """
+    tour = get_object_or_404(Tour, pk=pk)
+    if request.method == "POST" and request.POST.get("action") == "delete":
+        tour.delete()
+        messages.success(request, _("Tour deleted."))
+        return redirect("events:tour-list")
+    form = TourForm(request.POST or None, instance=tour)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        if request.POST.get("it_present"):
+            tour.itinerary = itinerary.from_post(request.POST)
+            tour.save(update_fields=["itinerary"])
+        _add_tour_photos(tour, request.FILES.getlist("photos"))
+        if request.POST.get("delete_image"):
+            _delete_tour_photo(tour, request.POST["delete_image"])
+        messages.success(request, _("Tour saved."))
+        return redirect("events:tour-edit", pk=tour.pk)
+    stops = itinerary.normalize(tour.itinerary)
+    return render(
+        request,
+        "events/tour_form.html",
+        {
+            "form": form,
+            "tour": tour,
+            "nav": "events",
+            # Запас пустых строк, чтобы маршрут дорастал без JS (паттерн FD-3).
+            "stops": stops + [{}] * 3,
+            "visibility_choices": itinerary.visibility_choices(),
+            "departures": tour.departures.order_by("starts_at"),
+        },
+    )
+
+
+def _add_tour_photos(tour, uploaded) -> None:
+    """Фото тура — тем же конвейером, что фото события (Pillow + storage)."""
+    from apps.catalog.images import save_product_image
+
+    if not uploaded:
+        return
+    images = list(tour.images or [])
+    for f in uploaded[:12]:
+        try:
+            ref = save_product_image(
+                f, is_primary=not images, sort_order=len(images), folder="tours"
+            )
+        except Exception:
+            continue
+        images.append(ref)
+    if images != list(tour.images or []):
+        tour.images = images[:24]
+        tour.save(update_fields=["images"])
+
+
+def _delete_tour_photo(tour, ref_id) -> None:
+    from apps.catalog.images import delete_stored_image
+
+    keep = [i for i in tour.images if str(i.get("id")) != str(ref_id)]
+    for i in tour.images:
+        if str(i.get("id")) == str(ref_id):
+            delete_stored_image(i)
+    if keep and not any(i.get("is_primary") for i in keep):
+        keep[0]["is_primary"] = True
+    tour.images = keep
+    tour.save(update_fields=["images"])
 
 
 @login_required

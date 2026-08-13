@@ -34,6 +34,27 @@ FIELDS = [
     },
     {"key": "allergies", "label": "Allergien / Unverträglichkeiten", "type": "text"},
     {"key": "medical", "label": "Gesundheitliche Hinweise", "type": "textarea"},
+    # MT-1: мото/квадро-туры — то, что организатор обязан знать до старта
+    # (допуск к технике, реальный опыт, подбор мотоцикла по росту).
+    {"key": "license_class", "label": "Führerscheinklasse", "type": "text"},
+    {
+        "key": "riding_experience",
+        "label": "Fahrpraxis",
+        "type": "select",
+        "options": [
+            "Bis 5.000 km",
+            "5.000–20.000 km",
+            "Über 20.000 km",
+            "Offroad-erfahren",
+        ],
+    },
+    {"key": "height_cm", "label": "Körpergröße (cm)", "type": "text"},
+    {
+        "key": "own_bike",
+        "label": "Eigenes Motorrad oder Mietmaschine",
+        "type": "select",
+        "options": ["Mietmaschine", "Eigenes Motorrad"],
+    },
 ]
 
 _BY_KEY = {f["key"]: f for f in FIELDS}

@@ -1,0 +1,39 @@
+{% extends "storefront/listing.html" %}
+{% load i18n %}
+{% comment %}MT-1: листинг тур-продуктов на едином каркасе (UB1-1).{% endcomment %}
+
+{% block title %}{% trans "Tours" %} — {{ request.tenant.name }}{% endblock %}
+{% block listing_width %}max-w-5xl mx-auto{% endblock %}
+
+{% block listing_header %}
+  <h1 class="text-2xl font-semibold mb-6">{% trans "Tours" %}</h1>
+{% endblock %}
+
+{% block listing_grid %}
+  <div class="grid gap-6 sm:grid-cols-2" data-sf-section="tours">
+    {% for tour in tours %}
+      <a href="{% url 'storefront-tour' tour.slug %}" class="sf-card group block overflow-hidden rounded-2xl border hover:shadow-md transition">
+        {% if tour.image_url %}
+          <img src="{{ tour.image_url }}" alt="{{ tour.title_text }}" loading="lazy" decoding="async" class="w-full aspect-video object-cover">
+        {% endif %}
+        <div class="p-4">
+          <h2 class="font-semibold group-hover:text-indigo-700">{{ tour.title_text }}</h2>
+          {% if tour.region %}<p class="text-sm text-gray-500 mt-0.5">📍 {{ tour.region }}</p>{% endif %}
+          {% if tour.summary_text %}<p class="text-sm text-gray-600 mt-2">{{ tour.summary_text|truncatechars:120 }}</p>{% endif %}
+          <p class="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-500">
+            {% if tour.duration_days %}<span>{% blocktrans count days=tour.duration_days %}{{ days }} day{% plural %}{{ days }} days{% endblocktrans %}</span>{% endif %}
+            {% if tour.distance_km %}<span>{{ tour.distance_km }} km</span>{% endif %}
+            {% if tour.difficulty %}<span>{{ tour.difficulty_label }}</span>{% endif %}
+          </p>
+          {% if tour.from_price_cents %}
+            <p class="mt-2 font-semibold">{% trans "from" %} {{ tour.from_price_eur|floatformat:2 }} €</p>
+          {% endif %}
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+{% endblock %}
+
+{% block listing_empty %}
+  {% if not tours %}<p class="text-gray-600">{% trans "No tours published yet." %}</p>{% endif %}
+{% endblock %}

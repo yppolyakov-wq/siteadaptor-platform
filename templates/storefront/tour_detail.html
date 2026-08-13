@@ -1,0 +1,91 @@
+{% extends "storefront/detail.html" %}
+{% load i18n %}
+{% comment %}
+MT-1: страница тур-продукта. Контент живёт здесь, продажа — на заездах (Event),
+поэтому buy-box не дублируется: каждый заезд ведёт на свою страницу события с
+готовым движком билетов (тиры, депозит, рассрочка, waiver).
+{% endcomment %}
+
+{% block title %}{{ tour.title_text }} — {{ request.tenant.name }}{% endblock %}
+{% block meta_description %}{{ tour.summary_text|default:tour.description_text|truncatechars:160 }}{% endblock %}
+
+{% block detail_back %}<a href="{% url 'storefront-tours' %}" class="text-sm text-gray-500 hover:underline">← {% trans "All tours" %}</a>{% endblock %}
+
+{% block detail_gallery %}{% include "storefront/_media_gallery.html" with images=tour.images alt=tour.title_text %}{% endblock %}
+
+{% block detail_aside %}
+  <h1 class="text-2xl font-semibold mb-2">{{ tour.title_text }}</h1>
+  {% if tour.region %}<p class="text-sm text-gray-500 mb-3">📍 {{ tour.region }}</p>{% endif %}
+  {% if tour.summary_text %}<p class="text-gray-700 mb-4">{{ tour.summary_text }}</p>{% endif %}
+
+  <dl class="grid grid-cols-2 gap-3 mb-5 text-sm">
+    {% if tour.duration_days %}
+      <div class="rounded-xl bg-gray-50 p-3"><dt class="text-gray-500">{% trans "Duration" %}</dt>
+      <dd class="font-medium">{% blocktrans count days=tour.duration_days %}{{ days }} day{% plural %}{{ days }} days{% endblocktrans %}</dd></div>
+    {% endif %}
+    {% if tour.distance_km %}
+      <div class="rounded-xl bg-gray-50 p-3"><dt class="text-gray-500">{% trans "Distance" %}</dt>
+      <dd class="font-medium">{{ tour.distance_km }} km</dd></div>
+    {% endif %}
+    {% if tour.difficulty %}
+      <div class="rounded-xl bg-gray-50 p-3"><dt class="text-gray-500">{% trans "Difficulty" %}</dt>
+      <dd class="font-medium">{{ tour.difficulty_label }}</dd></div>
+    {% endif %}
+    {% if tour.from_price_cents %}
+      <div class="rounded-xl bg-gray-50 p-3"><dt class="text-gray-500">{% trans "Price" %}</dt>
+      <dd class="font-medium">{% trans "from" %} {{ tour.from_price_eur|floatformat:2 }} €</dd></div>
+    {% endif %}
+  </dl>
+
+  {% if departures %}
+    <a href="#termine" class="block text-center bg-indigo-600 text-white rounded-lg px-5 py-3 font-medium hover:bg-indigo-700">{% trans "See dates" %}</a>
+  {% else %}
+    <a href="{% url 'storefront-message' %}?kind=tour&id={{ tour.pk }}&label={{ tour.title_text|urlencode }}" class="block text-center bg-indigo-600 text-white rounded-lg px-5 py-3 font-medium hover:bg-indigo-700">💬 {% trans "Ask for dates" %}</a>
+  {% endif %}
+{% endblock %}
+
+{% block detail_body %}{% with L=tour.landing %}
+  {% if tour.description_text %}
+    <div class="prose max-w-none mb-8"><p class="whitespace-pre-line">{{ tour.description_text }}</p></div>
+  {% endif %}
+
+  {% include "storefront/_route.html" %}
+
+  {% comment %}Тематические блоки — общий партиал с событием: тур несёт те же
+  images/teachers/landing, поэтому реестр секций и их порядок переиспользуются.{% endcomment %}
+  {% for k in event_detail_order %}
+    <div data-ed-section="{{ k }}">{% include "storefront/_event_thematic.html" with k=k event=tour %}</div>
+  {% endfor %}
+
+  <section id="termine" class="mb-8">
+    <h2 class="text-xl font-semibold mb-3">{% trans "Dates & prices" %}</h2>
+    {% if departures %}
+      <ul class="divide-y rounded-2xl border">
+        {% for d in departures %}
+          <li class="flex flex-wrap items-center justify-between gap-3 p-4">
+            <div>
+              <p class="font-medium">{{ d.starts_at|date:"d.m.Y" }}{% if d.ends_at %} – {{ d.ends_at|date:"d.m.Y" }}{% endif %}</p>
+              <p class="text-sm text-gray-500">
+                {% if d.is_sold_out %}
+                  {% trans "Sold out" %}
+                {% elif d.seats_left %}
+                  {% blocktrans count n=d.seats_left %}{{ n }} seat left{% plural %}{{ n }} seats left{% endblocktrans %}
+                {% else %}
+                  {% trans "Places available" %}
+                {% endif %}
+              </p>
+            </div>
+            <div class="flex items-center gap-3">
+              {% if d.from_price_cents %}<span class="font-semibold">{% trans "from" %} {{ d.from_price_eur|floatformat:2 }} €</span>{% endif %}
+              <a href="{% url 'storefront-event' d.pk %}" class="rounded-lg px-4 py-2 text-sm font-medium {% if d.is_sold_out %}border border-amber-500 text-amber-700 hover:bg-amber-50{% else %}bg-indigo-600 text-white hover:bg-indigo-700{% endif %}">
+                {% if d.is_sold_out %}{% trans "Join waitlist" %}{% else %}{% trans "Book" %}{% endif %}
+              </a>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-gray-600">{% trans "No dates published yet — get in touch and we will plan one." %}</p>
+    {% endif %}
+  </section>
+{% endwith %}{% endblock %}
