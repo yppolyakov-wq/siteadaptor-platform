@@ -140,3 +140,41 @@ def test_category_description_gets_translated(fake_map):
     cat = SimpleNamespace(description={"de": "Fingerfood für Ihre Feier."})
     assert demo_i18n._fill_full(cat, "description", ["ru"]) is True
     assert cat.description["ru"] == "Фингерфуд для вашего праздника."
+
+
+def test_every_overlay_field_is_reachable_by_the_seeder():
+    """Замок класса дефектов «поле есть, а обход его не заполняет» (I18N-12).
+
+    Стенд поймал это дважды за одну волну: `BusinessReview.comment_i18n` (SHARED —
+    не попадал в цикл по TENANT-моделям) и `Tenant.opening_hours_i18n`. Тест
+    проверяет намерение статически: у каждой модели проекта, где ЕСТЬ пара
+    «плоское поле + `<поле>_i18n`», имя этого оверлея должно упоминаться в
+    `apps/tenants/demo_i18n.py` — либо прямо, либо через кортеж полей цикла.
+    Новое поле без обхода = красный тест, а не немецкая витрина в проде.
+    """
+    import pathlib
+
+    from django.apps import apps as django_apps
+
+    source = pathlib.Path("apps/tenants/demo_i18n.py").read_text(encoding="utf-8")
+    unreachable = []
+    for model in django_apps.get_models():
+        if not model._meta.app_label.startswith(("catalog", "booking", "stays", "events")) and (
+            model._meta.app_label
+            not in ("core", "loyalty", "reviews", "aggregator", "jobs", "tenants", "promotions", "collections")
+        ):
+            continue
+        names = {f.name for f in model._meta.get_fields() if hasattr(f, "name")}
+        for name in sorted(names):
+            if not name.endswith("_i18n"):
+                continue
+            base = name[: -len("_i18n")]
+            if base not in names:  # full-JSON поля (Product.name) — другая схема
+                continue
+            # обход упоминает либо сам оверлей, либо базовое имя в кортеже полей
+            if name in source or f'"{base}"' in source:
+                continue
+            unreachable.append(f"{model._meta.label}.{name}")
+    assert not unreachable, (
+        "оверлеи не заполняются demo_i18n (перевод ляжет мёртвым грузом): " + ", ".join(unreachable)
+    )

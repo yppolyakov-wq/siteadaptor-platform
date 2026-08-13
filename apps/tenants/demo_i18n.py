@@ -513,6 +513,16 @@ def translate_tenant_content(tenant, locales) -> None:
 
     _translate_side_models(locales)
 
+    # Показные тексты САМОГО бизнеса (часы работы строкой, заметка о зоне выезда):
+    # поля живут на Tenant (SHARED), поэтому идут не общим циклом моделей, а здесь.
+    tenant_fields = [
+        f"{f}_i18n"
+        for f in ("opening_hours", "service_area_note")
+        if _fill_overlay(tenant, f, f"{f}_i18n", locales)
+    ]
+    if tenant_fields:
+        tenant.save(update_fields=tenant_fields)
+
     # Collection — TENANT-апп, но может быть отключён в тест-настройках; мягкий импорт.
     try:
         from apps.collections.models import Collection
@@ -563,3 +573,14 @@ def _translate_side_models(locales) -> None:
         ]
         if touched:
             prog.save(update_fields=touched)
+
+    # Портальные отзывы о бизнесе живут в SHARED-таблице, поэтому фильтруем по
+    # схеме тенанта (стенд поймал: без этого прохода оверлей оставался пустым и
+    # секция отзывов демо была немецкой на любой локали).
+    from django.db import connection
+
+    from apps.aggregator.models import BusinessReview
+
+    for review in BusinessReview.objects.filter(tenant_schema=connection.schema_name):
+        if _fill_overlay(review, "comment", "comment_i18n", locales):
+            review.save(update_fields=["comment_i18n"])
