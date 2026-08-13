@@ -329,6 +329,27 @@ def _site_ctx(request):
     return siteconfig.localize(siteconfig.normalize(request.tenant.site_config), get_language())
 
 
+def _pdf_course_groups(cat_title, products):
+    """MEN-6: внутри категории — подгруппы по Gang'ам («Bäckerei · Vorspeise»).
+
+    Порядок реестра COURSES; товары без Gang'а идут ОДНОЙ группой с названием
+    категории (пекарня/ретейл ничего не заполняли — их карта не меняется).
+    """
+    from apps.catalog.food import COURSES
+
+    by_course: dict[str, list] = {}
+    for p in products:
+        by_course.setdefault(p.course or "", []).append(p)
+    if set(by_course) <= {""}:  # Gang не заполнен — прежний вид (байт-в-байт)
+        return [(cat_title, products)]
+    out = [
+        (f"{cat_title} · {label}", by_course[code]) for code, label in COURSES if code in by_course
+    ]
+    if "" in by_course:
+        out.append((cat_title, by_course[""]))
+    return out
+
+
 def speisekarte_pdf(request):
     """GK-13: печатная Speisekarte из каталога (PDF, язык = ?lang=/язык витрины).
 
@@ -354,10 +375,10 @@ def speisekarte_pdf(request):
         ordered = []
         for cat in Category.objects.order_by("sort_order", "id"):
             if cat.id in groups:
-                ordered.append((cat.get_i18n("name"), groups.pop(cat.id)))
+                ordered.extend(_pdf_course_groups(cat.get_i18n("name"), groups.pop(cat.id)))
         if groups:  # без категории — в конец
             rest = [p for items in groups.values() for p in items]
-            ordered.append((str(_("Other")), rest))
+            ordered.extend(_pdf_course_groups(str(_("Other")), rest))
         pdf = build_menu_pdf(request.tenant, ordered)
     response = HttpResponse(pdf, content_type="application/pdf")
     response["Content-Disposition"] = 'inline; filename="speisekarte.pdf"'

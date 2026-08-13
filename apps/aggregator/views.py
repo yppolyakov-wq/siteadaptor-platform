@@ -22,10 +22,38 @@ _KIND_LABELS = [
     (AggregatorListing.KIND_PROMOTION, "Angebote"),
     (AggregatorListing.KIND_STAY, "Übernachten"),
     (AggregatorListing.KIND_EVENT, "Events"),
+    (AggregatorListing.KIND_MENU, "Menüs & Pakete"),  # MEN-5
 ]
 
 
-def listings_for(*, city=None, business_type=None, q=None, kind=None, category=None, month=None):
+def _money(raw):
+    """MEN-5: «45» / «45,50» → Decimal (мусор → None). Образец — CatalogFacets."""
+    from decimal import Decimal, InvalidOperation
+
+    raw = (raw or "").strip().replace(",", ".")
+    if not raw:
+        return None
+    try:
+        value = Decimal(raw)
+    except (InvalidOperation, ValueError):
+        return None
+    return value if value >= 0 else None
+
+
+def listings_for(
+    *,
+    city=None,
+    business_type=None,
+    q=None,
+    kind=None,
+    category=None,
+    month=None,
+    guests=None,
+    diet=None,
+    event_type=None,
+    price_from=None,
+    price_to=None,
+):
     """Активные листинги по фильтру. Переиспользуется порталами Phase 2.
 
     q — текстовый поиск (P2.7) по названию бизнеса, заголовку акции и городу;
@@ -53,8 +81,30 @@ def listings_for(*, city=None, business_type=None, q=None, kind=None, category=N
         year, mon = month.split("-", 1)
         if year.isdigit() and mon.isdigit():
             qs = qs.filter(starts_at__year=int(year), starts_at__month=int(mon))
+    # MEN-5: фильтры наборов меню (решения владельца: гости/цена-с-человека/
+    # диеты/повод). Радиус выезда — v2 (у тенантов нет надёжных координат).
+    if guests:
+        try:
+            qs = qs.filter(min_persons__lte=int(guests))
+        except (TypeError, ValueError):
+            pass
+    if diet:
+        qs = qs.filter(diets__contains=[diet])
+    if event_type:
+        qs = qs.filter(event_types__contains=[event_type])
+    lo, hi = _money(price_from), _money(price_to)
+    if lo is not None:
+        qs = qs.filter(new_price__gte=lo)
+    if hi is not None:
+        qs = qs.filter(new_price__lte=hi)
     if q:
-        qs = qs.filter(Q(business_name__icontains=q) | Q(title__icontains=q) | Q(city__icontains=q))
+        qs = qs.filter(
+            Q(business_name__icontains=q)
+            | Q(title__icontains=q)
+            | Q(city__icontains=q)
+            # MEN-5 «блюда наружу»: `?q=Rinderfilet` находит карточку набора.
+            | Q(dish_names__icontains=q)
+        )
     # Истёкшие события вон (у прочих видов starts_at либо null, либо окно акции).
     qs = qs.exclude(listing_kind=AggregatorListing.KIND_EVENT, starts_at__lt=timezone.now())
     return qs
@@ -247,9 +297,27 @@ def discover_index(request):
     kind = (request.GET.get("kind") or "").strip()
     cat = (request.GET.get("cat") or "").strip()  # R2b направление
     month = (request.GET.get("month") or "").strip()  # R2b месяц (YYYY-MM)
+    # MEN-5: фильтры наборов меню (гости/повод/диета/цена с человека).
+    guests = (request.GET.get("gaeste") or "").strip()
+    anlass = (request.GET.get("anlass") or "").strip()
+    diet = (request.GET.get("diet") or "").strip()
+    preis_von = (request.GET.get("preis_von") or "").strip()
+    preis_bis = (request.GET.get("preis_bis") or "").strip()
     if kind not in dict(AggregatorListing.KINDS):
         kind = ""
-    if q or city or btype or kind or cat or month:
+    if (
+        q
+        or city
+        or btype
+        or kind
+        or cat
+        or month
+        or guests
+        or anlass
+        or diet
+        or preis_von
+        or preis_bis
+    ):
         from urllib.parse import urlencode
 
         from . import reviews
@@ -261,6 +329,11 @@ def discover_index(request):
             kind=kind or None,
             category=cat or None,
             month=month or None,
+            guests=guests or None,
+            event_type=anlass or None,
+            diet=diet or None,
+            price_from=preis_von or None,
+            price_to=preis_bis or None,
         )
         cursor = request.GET.get("cursor")
         featured, rest = split_featured(pool, first_page=not cursor)
@@ -277,6 +350,11 @@ def discover_index(request):
                     ("kind", kind),
                     ("cat", cat),
                     ("month", month),
+                    ("gaeste", guests),
+                    ("anlass", anlass),
+                    ("diet", diet),
+                    ("preis_von", preis_von),
+                    ("preis_bis", preis_bis),
                 )
                 if v
             ]
@@ -291,6 +369,11 @@ def discover_index(request):
                 "kind": kind,
                 "cat": cat,
                 "month": month,
+                "gaeste": guests,
+                "anlass": anlass,
+                "diet": diet,
+                "preis_von": preis_von,
+                "preis_bis": preis_bis,
                 "kinds": _KIND_LABELS,
                 "cities": _distinct_cities(),
                 "types": _distinct_types(),

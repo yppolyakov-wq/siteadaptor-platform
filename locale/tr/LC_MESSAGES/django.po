@@ -17808,3 +17808,7 @@ msgstr "Hazır menüler — sabit veya seçimli. Fiyatlar kişi başıdır."
 #: templates/storefront/category_landing.html
 msgid "Grundpreis"
 msgstr "Taban fiyat"
+
+#: templates/catalog/combo_list.html
+msgid "Promote in the directory"
+msgstr "Dizinde öne çıkar"

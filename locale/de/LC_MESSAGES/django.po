@@ -17847,3 +17847,7 @@ msgstr "Fertige Menüs — fix oder mit Auswahl. Preise pro Person."
 #: templates/storefront/category_landing.html
 msgid "Grundpreis"
 msgstr "Grundpreis"
+
+#: templates/catalog/combo_list.html
+msgid "Promote in the directory"
+msgstr "Im Verzeichnis bewerben"

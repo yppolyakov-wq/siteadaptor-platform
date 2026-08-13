@@ -17696,3 +17696,7 @@ msgstr "Ready-made menus — fixed or with choices. Prices per person."
 #: templates/storefront/category_landing.html
 msgid "Grundpreis"
 msgstr "Base price"
+
+#: templates/catalog/combo_list.html
+msgid "Promote in the directory"
+msgstr "Promote in the directory"

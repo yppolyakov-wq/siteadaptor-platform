@@ -87,12 +87,20 @@ def combo_snapshot(combo, options):
 
 
 def pool_products(combo):
-    """MEN-4: пул «свободной сборки» — активные блюда категории набора."""
+    """MEN-4: пул «свободной сборки» — активные БЛЮДА категории набора.
+
+    Блюдо = товар с указанным Gang'ом (`course`): в кейтеринг-категории рядом с
+    блюдами лежат пакеты («Hochzeitsbuffet, 39 €/Gast») — предлагать их внутри
+    конструктора блюд неверно. Если Gang не задан НИ У КОГО — берём всё
+    (иначе конструктор был бы пуст у того, кто поля ещё не заполнил).
+    """
     from .models import Product
 
     if not (combo.free_pool and combo.category_id):
         return []
-    return list(Product.objects.filter(is_active=True, category_id=combo.category_id))
+    products = list(Product.objects.filter(is_active=True, category_id=combo.category_id))
+    dishes = [p for p in products if p.course]
+    return dishes or products
 
 
 def validate_pool(combo, dish_ids):

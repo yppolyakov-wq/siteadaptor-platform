@@ -17892,3 +17892,7 @@ msgstr "Готовые меню — фиксированные или с выб�
 #: templates/storefront/category_landing.html
 msgid "Grundpreis"
 msgstr "Базовая цена"
+
+#: templates/catalog/combo_list.html
+msgid "Promote in the directory"
+msgstr "Продвигать в каталоге"

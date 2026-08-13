@@ -9780,3 +9780,39 @@ DS-7: блок «Menü-Pakete» (карточки наборов категор�
 «ab N Personen»/цена per-person; пусто → блока нет, нового ключа НЕТ — golden
 целы). /kombi/: карточки с фото MEN-2 + бейджи + гейт цен menu_show_prices.
 5 msgid × 5 .po. Замки: +6 в test_menu_storefront (15 всего), смежные 211.
+
+## 2026-08-13 — MEN-6 + MEN-5: демо трёх режимов + наборы меню в агрегаторе (⚠️ aggregator/0017, SHARED)
+
+**MEN-6 (без миграций).** Спека китов расширена под MEN-2: `photos`/`category`/
+`per_person`/`min_persons`/`event_types`/`free_pool` у набора, `included`/`min`/
+`max` у группы, опция кортежем `("Имя", "надбавка")`; новый `DemoKit.
+product_courses` проставляет Gang блюдам. Кит catering: 10 БЛЮД в направление
+«Hochzeits-Catering» (à la carte) + три набора — «Klassik» (фикс, included-группы,
+45 €/Gast, ab 20), «Wahl» (выбор по курсам + надбавки, 52 €/Gast), «Freie Auswahl»
+(free_pool). Инвариант владельца в замке: те же три блюда à la carte (48,00) дороже
+фикс-набора (45,00). **PDF-Speisekarte** группирует внутри категории по Gang'ам
+(`_pdf_course_groups`; Gang не заполнен → карта прежняя байт-в-байт — пекарня/ретейл
+не задеты). 28 строк × 4 демо-словаря (identity-записи не заводим; файлы НЕ
+пересортировываем — polib/sorted дал бы диф на 3,7k строк).
+
+**Продуктовая правка MEN-4 по ходу:** пул «свободной сборки» = товары С Gang'ом
+(в кейтеринг-категории рядом лежат пакеты «Hochzeitsbuffet 39 €/Gast» — предлагать
+их в конструкторе блюд неверно); если Gang не заполнен ни у кого — берём всё
+(иначе конструктор пуст у того, кто поля не трогал).
+
+**MEN-5 (⚠️ миграция `aggregator/0017`, SHARED, аддитивная).** По решениям владельца:
+`KIND_MENU` + поля листинга `price_per_person`/`min_persons`/`event_types`/`diets`/
+`dish_names`. `_menu_snapshot` + `sync_menu_listing` по образцу stay-синка; цена =
+БАЗОВАЯ сборка (`combo_price_from`; у free_pool — самое дешёвое блюдо пула, пустая
+сборка не продаётся), диеты = объединение состава («Vegan möglich»), блюда →
+`dish_names` (решение №4 «отдаём»: `?q=Rinderfilet` находит карточку набора, отдельный
+kind="dish" не плодим). Сигналы: Combo save/delete + части состава (ComboGroup/
+ComboOption) пересинкают РОДИТЕЛЯ с dedupe по id набора (гранулярный CRUD иначе дал бы
+шторм задач); ветка в `reconcile_schema`. Витрина `/entdecken/`: чип «Menüs & Pakete»,
+карточка 🍽 «ab X €/Gast» + **«ab N Personen» прямо в карточке** (решение №3), фильтры
+`?gaeste=`/`?anlass=`/`?diet=`/`?preis_von|bis=` (`_money` — образец CatalogFacets).
+Featured «из коробки»: `combo_feature`/`combo_feature_checkout` (generic `featuring`)
++ вход ★ в списке Kombis. Радиус выезда и дата — v2 (у тенантов нет надёжных
+координат; у кейтеринга нет календаря занятости — дата уходит в заявку AF-1).
+Замок гейта переписан осознанно: `catalog` — core-модуль, «выключить витрину меню»
+через модули нельзя, публикацию снимает деактивация набора. 6 замков + 1 msgid × 5 .po.

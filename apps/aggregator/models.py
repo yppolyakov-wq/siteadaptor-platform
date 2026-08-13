@@ -20,10 +20,12 @@ class AggregatorListing(I18nMixin, models.Model):
     KIND_PROMOTION = "promotion"
     KIND_STAY = "stay"
     KIND_EVENT = "event"
+    KIND_MENU = "menu"  # MEN-5: набор меню (кейтеринг/гастро) — Combo
     KINDS = [
         (KIND_PROMOTION, _("Promotion")),
         (KIND_STAY, _("Stay")),
         (KIND_EVENT, _("Event")),
+        (KIND_MENU, _("Menu")),
     ]
 
     # --- источник (тенант + объект) ---
@@ -57,6 +59,17 @@ class AggregatorListing(I18nMixin, models.Model):
     # Гео (G8c): denorm координат бизнеса из Tenant (для карты + «рядом»).
     latitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
     longitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
+
+    # MEN-5 (kind=menu): атрибуты набора меню для карточки и фильтров агрегатора.
+    # Решения владельца 2026-08-13: цена = базовая сборка «ab X €/Gast», мин.
+    # заказ ПОКАЗЫВАЕМ прямо в карточке, блюда отдаём в поиск.
+    price_per_person = models.BooleanField(default=False)
+    min_persons = models.PositiveSmallIntegerField(default=0)
+    event_types = models.JSONField(default=list, blank=True)  # поводы («Hochzeit»)
+    diets = models.JSONField(default=list, blank=True)  # объединение диет состава
+    # Названия блюд состава — «блюда наружу»: `?q=Rinderfilet` находит карточку
+    # набора, не плодя отдельный kind="dish".
+    dish_names = models.JSONField(default=list, blank=True)
 
     is_surprise = models.BooleanField(default=False)  # Überraschungstüte (Track B2)
     # Платное продвижение (P2.4a): до этого момента листинг закреплён сверху

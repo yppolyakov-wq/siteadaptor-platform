@@ -17877,3 +17877,7 @@ msgstr "Готові меню — фіксовані або з вибором. �
 #: templates/storefront/category_landing.html
 msgid "Grundpreis"
 msgstr "Базова ціна"
+
+#: templates/catalog/combo_list.html
+msgid "Promote in the directory"
+msgstr "Просувати в каталозі"

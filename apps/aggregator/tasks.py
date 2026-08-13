@@ -442,4 +442,152 @@ def reconcile_schema(tenant_schema) -> int:
     ).exclude(source_ref__in=event_ids).delete()
     total += len(event_ids)
 
+    # --- MEN-5: наборы меню (Combo) — каталог core, гейт как в sync_menu_listing ---
+    menu_ids = []
+    if tenant is not None and tenant.is_module_active("catalog"):
+        from apps.catalog.models import Combo
+
+        with schema_context(tenant_schema):
+            menu_ids = [
+                str(cid)
+                for cid in Combo.objects.filter(is_active=True).values_list("id", flat=True)
+            ]
+        for combo_id in menu_ids:
+            sync_menu_listing(tenant_schema, combo_id)
+    AggregatorListing.objects.filter(
+        tenant_schema=tenant_schema, listing_kind=AggregatorListing.KIND_MENU
+    ).exclude(source_ref__in=menu_ids).delete()
+    total += len(menu_ids)
+
     return total
+
+
+def _menu_snapshot(combo_id):
+    """MEN-5: снимок набора меню (Combo) в ТЕКУЩЕЙ схеме → dict или None.
+
+    Цена — БАЗОВАЯ сборка (`combo_price_from`, «ab X»); у свободной сборки
+    считаем минимум как самое дешёвое блюдо пула (пустая сборка не продаётся).
+    Диеты — объединение по составу (решение: «Vegan möglich» = в наборе ЕСТЬ
+    веганские позиции; чекпоинт MEN-5 у владельца). Блюда — в dish_names.
+    """
+    from apps.catalog.combos import combo_price_from, pool_products
+    from apps.catalog.models import Combo
+
+    combo = Combo.objects.filter(id=combo_id).prefetch_related("groups__options__product").first()
+    if combo is None or not combo.is_active:
+        return None
+    if combo.free_pool:
+        dishes = pool_products(combo)
+        price = combo.price + (min((d.base_price for d in dishes), default=0) if dishes else 0)
+    else:
+        dishes = [o.product for g in combo.groups_active for o in g.options_active if o.product_id]
+        price = combo_price_from(combo)
+    seen, names, diets = set(), [], set()
+    for dish in dishes:
+        label = str(dish)
+        if label not in seen:
+            seen.add(label)
+            names.append(label)
+        diets.update(dish.diets or [])
+    return {
+        "title": {"de": combo.name, **(combo.name_i18n or {})},
+        "teaser": ({"de": combo.description[:300]} if combo.description else {}),
+        "new_price": price or None,
+        "currency": combo.currency or "EUR",
+        "image": (combo.images or [{}])[0] if combo.images else {},
+        "price_per_person": combo.price_per_person,
+        "min_persons": combo.min_persons,
+        "event_types": list(combo.event_types or []),
+        "diets": sorted(diets),
+        "dish_names": names[:40],
+    }
+
+
+def sync_menu_listing(tenant_schema, combo_id) -> str:
+    """MEN-5: upsert/remove листинга набора меню в агрегаторе."""
+    from apps.tenants.models import Tenant
+
+    from .models import AggregatorListing
+
+    with schema_context(tenant_schema):
+        snap = _menu_snapshot(combo_id)
+
+    tenant = Tenant.objects.filter(schema_name=tenant_schema).first()
+    key = {
+        "tenant_schema": tenant_schema,
+        "listing_kind": AggregatorListing.KIND_MENU,
+        "source_ref": str(combo_id),
+    }
+    # Набор исчез/выключен, нет тенанта или каталог недоступен → нет листинга.
+    if snap is None or tenant is None or not tenant.is_module_active("catalog"):
+        AggregatorListing.objects.filter(**key).delete()
+        return "removed"
+
+    base = getattr(settings, "TENANT_DOMAIN_BASE", "siteadaptor.de")
+    AggregatorListing.objects.update_or_create(
+        **key,
+        defaults={
+            **_tenant_base_defaults(tenant),
+            "promo_uuid": None,
+            "title": snap["title"],
+            "teaser": snap["teaser"],
+            "image": snap["image"] or _logo_image(tenant),
+            "currency": snap["currency"],
+            "new_price": snap["new_price"],
+            "old_price": None,
+            "discount_percent": None,
+            "starts_at": None,
+            "ends_at": None,
+            "detail_url": f"{_scheme()}://{tenant.slug}.{base}/kombi/{combo_id}/",
+            "price_per_person": snap["price_per_person"],
+            "min_persons": snap["min_persons"],
+            "event_types": snap["event_types"],
+            "diets": snap["diets"],
+            "dish_names": snap["dish_names"],
+            "is_surprise": False,
+            "is_active": True,
+        },
+    )
+    return "upserted"
+
+
+@idempotent_task()
+def sync_aggregator_menu(*, tenant_schema, combo_id):
+    """Beat/hook: материализовать листинг набора меню в агрегаторе."""
+    return {"result": sync_menu_listing(tenant_schema, combo_id)}
+
+
+def resync_on_combo_save(sender, instance, **kwargs):
+    """post_save Combo: правка/включение/выключение → обновить листинг."""
+    from django.db import connection, transaction
+
+    schema = connection.schema_name
+    dedupe = f"agg-menu:{instance.id}:save:{instance.updated_at.timestamp()}"
+    transaction.on_commit(
+        lambda: sync_aggregator_menu.delay(
+            dedupe_key=dedupe, tenant_schema=schema, combo_id=str(instance.id)
+        )
+    )
+
+
+def resync_on_combo_part_save(sender, instance, **kwargs):
+    """post_save/-delete группы или опции: пересинк РОДИТЕЛЬСКОГО набора.
+
+    Состав правится гранулярно (N опций = N сигналов), поэтому dedupe — по id
+    набора и метке времени части: пачка правок схлопывается в одну задачу.
+    """
+    from django.db import connection, transaction
+
+    combo_id = getattr(instance, "combo_id", None) or getattr(
+        getattr(instance, "group", None), "combo_id", None
+    )
+    if not combo_id:
+        return
+    schema = connection.schema_name
+    stamp = getattr(instance, "updated_at", None)
+    dedupe = f"agg-menu:{combo_id}:part:{stamp.timestamp() if stamp else ''}"
+    transaction.on_commit(
+        lambda: sync_aggregator_menu.delay(
+            dedupe_key=dedupe, tenant_schema=schema, combo_id=str(combo_id)
+        )
+    )

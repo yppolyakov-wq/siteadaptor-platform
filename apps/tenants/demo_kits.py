@@ -78,7 +78,13 @@ class DemoKit:
     before_after: list = field(default_factory=list)
     # L3d.3: комбо-наборы (Kombo-тизер A4): [{"name": str|i18n-dict, "description",
     # "price", "groups": [{"label", "products": [имена]}]}]. Пусто → не сеются.
+    # MEN-6: + поля «набора меню» — photos/category(slug)/per_person/min_persons/
+    # event_types/free_pool; у группы — included/min/max; элемент products может
+    # быть кортежем ("Имя", "надбавка").
     combos: list = field(default_factory=list)
+    # MEN-6: тип подачи (Gang) блюдам — {"Имя товара": "hauptgang"}; питает
+    # «свободную сборку» меню и группировку PDF-Speisekarte.
+    product_courses: dict = field(default_factory=dict)
     faq: list = field(default_factory=list)
     testimonials: list = field(default_factory=list)
     process: list = field(default_factory=list)  # (title, text) — «как мы работаем»
@@ -6356,6 +6362,83 @@ CATERING = DemoKit(
                     diets=["vegetarisch"],
                     allergens=["gluten"],
                 ),
+                # MEN-6: БЛЮДА (à-la-carte-Preise) — состав фикс/Wahl-Menüs и пул
+                # «freie Auswahl». Цены выше, чем im Menü (владелец: «в свободном
+                # наборе блюдо дороже»): Carpaccio+Filet+Mousse = 48,00 > 45,00.
+                _p(
+                    "Rote-Bete-Carpaccio",
+                    "12.50",
+                    "Dünn gehobelte Bete, Walnusskrokant, Kräuteröl — kalte Vorspeise.",
+                    "beet,salad",
+                    diets=["vegan"],
+                    allergens=["schalenfruechte"],
+                ),
+                _p(
+                    "Ziegenkäse-Tartelette",
+                    "13.50",
+                    "Blätterteig, Ziegenkäse, karamellisierte Zwiebeln, Thymian.",
+                    "tartlet,cheese",
+                    diets=["vegetarisch"],
+                    allergens=["gluten", "milch"],
+                ),
+                _p(
+                    "Kürbiscremesuppe",
+                    "8.50",
+                    "Hokkaido, Ingwer, geröstete Kerne — im Glas oder am Tisch serviert.",
+                    "minestrone,soup",
+                    diets=["vegan"],
+                ),
+                _p(
+                    "Rinderfilet mit Rotweinjus",
+                    "26.00",
+                    "Rosa gebraten, Rotweinjus, Wintergemüse — vom Hof aus der Region.",
+                    "steak,beef",
+                ),
+                _p(
+                    "Skrei auf Fenchelgemüse",
+                    "24.00",
+                    "Winterkabeljau, Fenchel, Zitrone — leicht und festlich.",
+                    "fish,plate",
+                    allergens=["fisch"],
+                ),
+                _p(
+                    "Gefüllte Aubergine",
+                    "19.50",
+                    "Mit Hirse, Tomaten und Kräutern gefüllt, dazu Tahin-Creme.",
+                    "eggplant,vegan",
+                    diets=["vegan"],
+                ),
+                _p(
+                    "Kartoffelgratin",
+                    "6.50",
+                    "Sahnegratin mit Bergkäse — klassische Beilage.",
+                    "gratin,potato",
+                    diets=["vegetarisch"],
+                    allergens=["milch"],
+                ),
+                _p(
+                    "Schokoladenmousse",
+                    "9.50",
+                    "Zartbitter-Mousse mit Sauerkirschen und Minze.",
+                    "chocolate,mousse",
+                    diets=["vegetarisch"],
+                    allergens=["milch", "eier"],
+                ),
+                _p(
+                    "Panna Cotta mit Beeren",
+                    "8.50",
+                    "Vanille-Panna-Cotta, Beerenragout, Baiserbruch.",
+                    "pannacotta,dessert",
+                    diets=["vegetarisch"],
+                    allergens=["milch"],
+                ),
+                _p(
+                    "Aperitif Hugo",
+                    "7.50",
+                    "Holunderblüte, Prosecco, Minze — zum Empfang.",
+                    "lemonade",
+                    diets=["vegetarisch"],
+                ),
             ],
             "vegan,cake",  # DS-2: фото плитки (реальный файл, не SVG)
             "Ihr Hochzeitsbuffet ohne Stress: Probeessen, Menüplanung, Sektempfang und Mitternachtssnack — wir begleiten den ganzen Abend.",
@@ -6612,6 +6695,113 @@ CATERING = DemoKit(
     seed_records=True,
     menus=CATERING_MENUS,
     page_presets=[("info", "team")],  # ST-2: «Über uns» с командой
+    # MEN-6: типы подачи блюдам свадебного направления — питают «свободную
+    # сборку» (группы по Gang'ам) и группировку PDF-Speisekarte.
+    product_courses={
+        "Rote-Bete-Carpaccio": "vorspeise",
+        "Ziegenkäse-Tartelette": "vorspeise",
+        "Kürbiscremesuppe": "suppe",
+        "Rinderfilet mit Rotweinjus": "hauptgang",
+        "Skrei auf Fenchelgemüse": "hauptgang",
+        "Gefüllte Aubergine": "hauptgang",
+        "Kartoffelgratin": "beilage",
+        "Schokoladenmousse": "dessert",
+        "Panna Cotta mit Beeren": "dessert",
+        "Aperitif Hugo": "getraenk",
+    },
+    # MEN-6: три режима набора меню на одном направлении «Hochzeits-Catering».
+    combos=[
+        {
+            "name": {"de": "Hochzeitsmenü Klassik", "en": "Wedding menu Classic"},
+            "description": {
+                "de": "Drei Gänge, fest zusammengestellt — Vorspeise, Hauptgang "
+                "und Dessert. Service und Aufbau inklusive.",
+                "en": "Three fixed courses — starter, main and dessert. Service included.",
+            },
+            "price": "45.00",
+            "per_person": True,
+            "min_persons": 20,
+            "category": "hochzeit",
+            "event_types": ["Hochzeit"],
+            "photos": ["wedding,catering", "steak,beef"],
+            "groups": [
+                {
+                    "label": "Vorspeise",
+                    "included": True,
+                    "products": ["Rote-Bete-Carpaccio"],
+                },
+                {
+                    "label": "Hauptgang",
+                    "included": True,
+                    "products": ["Rinderfilet mit Rotweinjus"],
+                },
+                {"label": "Dessert", "included": True, "products": ["Schokoladenmousse"]},
+            ],
+        },
+        {
+            "name": {"de": "Hochzeitsmenü Wahl", "en": "Wedding menu Choice"},
+            "description": {
+                "de": "Sie stellen das Menü zusammen: je ein Gericht pro Gang, "
+                "Extras optional. Preis passt sich Ihrer Auswahl an.",
+                "en": "You compose the menu: one dish per course, extras optional.",
+            },
+            "price": "52.00",
+            "per_person": True,
+            "min_persons": 20,
+            "category": "hochzeit",
+            "event_types": ["Hochzeit", "Privatfeier"],
+            "photos": ["vegan,cake", "tartlet,cheese"],
+            "groups": [
+                {
+                    "label": "Vorspeise",
+                    "min": 1,
+                    "max": 1,
+                    "products": [
+                        "Rote-Bete-Carpaccio",
+                        ("Ziegenkäse-Tartelette", "2.00"),
+                        "Kürbiscremesuppe",
+                    ],
+                },
+                {
+                    "label": "Hauptgang",
+                    "min": 1,
+                    "max": 1,
+                    "products": [
+                        "Gefüllte Aubergine",
+                        ("Skrei auf Fenchelgemüse", "4.00"),
+                        ("Rinderfilet mit Rotweinjus", "6.00"),
+                    ],
+                },
+                {
+                    "label": "Dessert",
+                    "min": 1,
+                    "max": 1,
+                    "products": ["Panna Cotta mit Beeren", ("Schokoladenmousse", "1.50")],
+                },
+                {
+                    "label": "Extras",
+                    "min": 0,
+                    "max": 2,
+                    "products": [("Kartoffelgratin", "3.50"), ("Aperitif Hugo", "5.00")],
+                },
+            ],
+        },
+        {
+            "name": {"de": "Freie Auswahl Hochzeit", "en": "Free choice wedding"},
+            "description": {
+                "de": "Stellen Sie Ihr Menü frei zusammen — alle Gerichte des "
+                "Bereichs, nach Gängen sortiert. Preise à la carte.",
+                "en": "Compose your menu freely — all dishes of the area, by course.",
+            },
+            "price": "0.00",
+            "per_person": True,
+            "min_persons": 20,
+            "free_pool": True,
+            "category": "hochzeit",
+            "event_types": ["Hochzeit", "Privatfeier", "Firmenfeier"],
+            "photos": ["antipasti"],
+        },
+    ],
     job_samples=[
         {
             "title": "Catering Hochzeit (80 Personen)",
@@ -8609,30 +8799,70 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
             refs["services"].append(str(svc.pk))
     if kit.combos and is_active("catalog"):
         # L3d.3: комбо-наборы с i18n (дыра master-track §7.0 — combo в демо не было).
-        from apps.catalog.models import Combo, ComboGroup, ComboOption, Product
+        # MEN-6: спека += поля «набора меню» (photos/category/per_person/min_persons/
+        # event_types/free_pool; группы — included/min/max; опция может нести
+        # надбавку кортежем ("Name", "6.00")).
+        from apps.catalog.models import Category, Combo, ComboGroup, ComboOption, Product
 
         for ci, cspec in enumerate(kit.combos):
             cname, cname_ov = _split_i18n(cspec.get("name", ""))
             cdesc, cdesc_ov = _split_i18n(cspec.get("description", ""))
+            category = None
+            if cspec.get("category"):
+                # Слаги демо-категорий префиксуются («demo-hochzeit»).
+                category = Category.objects.filter(slug=f"demo-{cspec['category']}").first()
             combo = Combo.objects.create(
                 name=cname,
                 name_i18n=cname_ov,
                 description=cdesc,
                 description_i18n=cdesc_ov,
                 price=Decimal(str(cspec.get("price", "0"))),
+                images=[
+                    _image_ref(kw, 8700 + ci * 10 + j, cname)
+                    for j, kw in enumerate(cspec.get("photos", []))
+                ],
+                category=category,
+                price_per_person=bool(cspec.get("per_person")),
+                min_persons=int(cspec.get("min_persons", 0)),
+                event_types=list(cspec.get("event_types", [])),
+                free_pool=bool(cspec.get("free_pool")),
                 sort_order=ci,
                 is_active=True,
             )
             for gi, gspec in enumerate(cspec.get("groups", [])):
+                entries = [
+                    (p, "0") if isinstance(p, str) else (p[0], str(p[1]))
+                    for p in gspec.get("products", [])
+                ]
                 # Product.name — i18n-JSONField: матчим по базовой de-строке.
-                products = list(Product.objects.filter(name__de__in=gspec.get("products", [])))
-                if not products:  # fail-soft: без товаров группа не нужна
+                by_name = {
+                    p.get_i18n("name"): p
+                    for p in Product.objects.filter(name__de__in=[n for n, _d in entries])
+                }
+                if not by_name:  # fail-soft: без товаров группа не нужна
                     continue
                 group = ComboGroup.objects.create(
-                    combo=combo, label=gspec.get("label", ""), sort_order=gi
+                    combo=combo,
+                    label=gspec.get("label", ""),
+                    included=bool(gspec.get("included")),
+                    min_select=int(gspec.get("min", 1)),
+                    max_select=int(gspec.get("max", 1)),
+                    sort_order=gi,
                 )
-                for oi, product in enumerate(products):
-                    ComboOption.objects.create(group=group, product=product, sort_order=oi)
+                for oi, (pname, delta) in enumerate(entries):
+                    if pname in by_name:
+                        ComboOption.objects.create(
+                            group=group,
+                            product=by_name[pname],
+                            price_delta=Decimal(delta),
+                            sort_order=oi,
+                        )
+    if kit.product_courses and is_active("catalog"):
+        # MEN-6: тип подачи (Gang) блюдам — питает «свободную сборку» и PDF.
+        from apps.catalog.models import Product
+
+        for pname, course in kit.product_courses.items():
+            Product.objects.filter(name__de=pname).update(course=course)
     if kit.pass_plans and is_active("booking"):  # A3/G9b: тарифы Mehrfachkarte
         from apps.booking.models import PassPlan, Service
 

@@ -13,14 +13,19 @@
 {% if combos %}
 <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
   {% for c in combos %}
-    <a href="{% url 'catalog:combo-edit' c.pk %}" class="flex items-center justify-between p-4 hover:bg-gray-50">
-      <div>
+    {# MEN-5: строка + вход «★ Feature» (продвижение набора в агрегаторе, D2.4) #}
+    <div class="flex items-center justify-between p-4 hover:bg-gray-50">
+      <a href="{% url 'catalog:combo-edit' c.pk %}" class="flex-1 min-w-0">
         <span class="font-medium">{{ c.name }}</span>
         {% if not c.is_active %}<span class="ml-2 text-xs text-gray-400">({% trans "inactive" %})</span>{% endif %}
-        <span class="block text-xs text-gray-400">{{ c.groups.count }} {% trans "groups" %}</span>
+        {% if c.free_pool %}<span class="ml-2 text-[11px] rounded-full bg-gray-100 text-gray-600 px-2 py-0.5">{% trans "Free choice from category" %}</span>{% endif %}
+        <span class="block text-xs text-gray-400">{{ c.groups.count }} {% trans "groups" %}{% if c.min_persons %} · {% blocktrans with n=c.min_persons %}ab {{ n }} Personen{% endblocktrans %}{% endif %}</span>
+      </a>
+      <div class="flex items-center gap-3 shrink-0">
+        <span class="font-bold">{{ c.price }} {{ c.currency }}{% if c.price_per_person %} <span class="text-xs font-normal text-gray-400">/ {% trans "Person" %}</span>{% endif %}</span>
+        <a href="{% url 'catalog:combo-feature' c.pk %}" class="text-sm text-amber-600 hover:text-amber-700" title="{% trans 'Promote in the directory' %}">★</a>
       </div>
-      <span class="font-bold">{{ c.price }} {{ c.currency }}</span>
-    </a>
+    </div>
   {% endfor %}
 </div>
 {% else %}

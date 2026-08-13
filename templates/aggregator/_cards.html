@@ -33,6 +33,8 @@
         {% if l.listing_kind == 'stay' %}<span class="inline-block mb-1 bg-sky-100 text-sky-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🛏 {% trans "Übernachten" %}</span>{% endif %}
         {% if l.room_count and l.room_count > 1 %}<span class="inline-block mb-1 ml-1 text-[11px] text-gray-500">· {% blocktrans count n=l.room_count %}{{ n }} room type{% plural %}{{ n }} room types{% endblocktrans %}</span>{% endif %}
         {% if l.listing_kind == 'event' %}<span class="inline-block mb-1 bg-violet-100 text-violet-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🎫 {% trans "Event" %}</span>{% endif %}
+        {% comment %}MEN-5: набор меню — бейдж вида + минимальный заказ ПРЯМО в карточке (решение владельца: гость не должен открывать страницу, чтобы узнать «ab 20 Personen»).{% endcomment %}
+        {% if l.listing_kind == 'menu' %}<span class="inline-block mb-1 bg-emerald-100 text-emerald-800 text-[11px] font-medium px-2 py-0.5 rounded-full">🍽 {% trans "Menü" %}</span>{% if l.min_persons %}<span class="inline-block mb-1 ml-1 text-[11px] text-gray-500">· {% blocktrans with n=l.min_persons %}ab {{ n }} Personen{% endblocktrans %}</span>{% endif %}{% endif %}
         <h2 class="font-semibold leading-tight line-clamp-2">{{ l.title_text }}</h2>
         {% if l.listing_kind == 'event' and l.starts_at %}
           <p class="text-xs text-gray-500 mt-1">{{ l.starts_at|date:"D, d.m.Y · H:i" }}</p>
@@ -47,6 +49,9 @@
             {% if l.listing_kind == 'stay' %}
               <span class="font-bold">{% trans "from" %} {{ l.new_price }} {{ l.currency }}</span>
               <span class="text-xs text-gray-400">/ {% trans "night" %}</span>
+            {% elif l.listing_kind == 'menu' %}
+              <span class="font-bold">{% trans "from" %} {{ l.new_price }} {{ l.currency }}</span>
+              {% if l.price_per_person %}<span class="text-xs text-gray-400">/ {% trans "Gast" %}</span>{% endif %}
             {% else %}
               <span class="font-bold">{{ l.new_price }} {{ l.currency }}</span>
               {% if l.old_price and l.old_price > l.new_price %}

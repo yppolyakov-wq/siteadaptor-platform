@@ -1320,3 +1320,56 @@ def test_apply_catering_kit_reference_parity_gk15():
     # GK-11: демо-кэш рейтинга; place_id пуст → beat/API не трогают демо
     assert float(tenant.google_rating) == 4.9 and tenant.google_rating_count == 41
     assert tenant.google_rating_updated_at is not None and tenant.google_place_id == ""
+
+
+@pytest.mark.django_db
+def test_catering_menu_sets_seeded_with_three_modes():
+    """MEN-6: кит catering несёт три режима набора на одном направлении —
+    фикс (included-группы), выбор (надбавки), свободная сборка (пул по Gang'ам);
+    à la carte дороже наборной (инвариант владельца)."""
+    from decimal import Decimal
+
+    from apps.catalog.combos import combo_price_from, pool_products
+    from apps.catalog.models import Combo, Product
+
+    assert demo_kits.apply_kit(_tenant(), "catering") is True
+
+    combos = {c.name: c for c in Combo.objects.all()}
+    assert set(combos) == {
+        "Hochzeitsmenü Klassik",
+        "Hochzeitsmenü Wahl",
+        "Freie Auswahl Hochzeit",
+    }
+
+    # 1) фикс: все группы included → выбирать нечего, «ab»-цена = фикс-цена
+    klassik = combos["Hochzeitsmenü Klassik"]
+    assert klassik.price_per_person and klassik.min_persons == 20
+    assert klassik.category is not None and klassik.images
+    assert all(g.included for g in klassik.groups_active)
+    assert combo_price_from(klassik) == Decimal("45.00")
+
+    # 2) выбор: обязательные группы + надбавки; «ab» = минимальная сборка
+    wahl = combos["Hochzeitsmenü Wahl"]
+    labels = {g.label: g for g in wahl.groups_active}
+    assert not any(g.included for g in wahl.groups_active)
+    assert labels["Extras"].min_select == 0 and labels["Extras"].max_select == 2
+    assert combo_price_from(wahl) == Decimal("52.00")  # дешёвые опции = 0
+    deltas = {str(o.product): o.price_delta for o in labels["Hauptgang"].options_active}
+    assert deltas["Rinderfilet mit Rotweinjus"] == Decimal("6.00")
+
+    # 3) свободная сборка: пул = БЛЮДА категории (пакеты-буфеты без Gang'а не
+    #    попадают), сгруппирован по Gang'ам
+    frei = combos["Freie Auswahl Hochzeit"]
+    assert frei.free_pool and frei.category_id == klassik.category_id
+    pool = pool_products(frei)
+    names = {str(p) for p in pool}
+    assert "Rinderfilet mit Rotweinjus" in names
+    assert "Hochzeitsbuffet Klassik" not in names  # пакет — не блюдо
+    assert all(p.course for p in pool)
+
+    # инвариант владельца: те же три блюда à la carte дороже, чем в фикс-наборе
+    a_la_carte = sum(
+        Product.objects.get(name__de=n).base_price
+        for n in ("Rote-Bete-Carpaccio", "Rinderfilet mit Rotweinjus", "Schokoladenmousse")
+    )
+    assert a_la_carte > klassik.price

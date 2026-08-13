@@ -42,3 +42,21 @@ class AggregatorConfig(AppConfig):
             resync_on_stay_delete, sender=StayUnit, dispatch_uid="agg_resync_stay_delete"
         )
         post_save.connect(resync_on_event_save, sender=Event, dispatch_uid="agg_resync_event_save")
+
+        # MEN-5: наборы меню (Combo) — правка самого набора И его состава
+        # (группы/опции правятся гранулярно → пересинк родителя, dedupe по id).
+        from apps.catalog.models import Combo, ComboGroup, ComboOption
+
+        from .tasks import resync_on_combo_part_save, resync_on_combo_save
+
+        post_save.connect(resync_on_combo_save, sender=Combo, dispatch_uid="agg_resync_combo_save")
+        post_delete.connect(
+            resync_on_combo_save, sender=Combo, dispatch_uid="agg_resync_combo_delete"
+        )
+        for model, uid in ((ComboGroup, "group"), (ComboOption, "option")):
+            post_save.connect(
+                resync_on_combo_part_save, sender=model, dispatch_uid=f"agg_resync_combo_{uid}_save"
+            )
+            post_delete.connect(
+                resync_on_combo_part_save, sender=model, dispatch_uid=f"agg_resync_combo_{uid}_del"
+            )

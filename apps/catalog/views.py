@@ -11,6 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
@@ -1076,3 +1077,48 @@ def products_merge(request):
             _("“%(name)s” already has variants or extras — skipped.") % {"name": name},
         )
     return redirect("catalog:product-edit", pk=main.pk)
+
+
+@login_required
+def combo_feature(request, pk):
+    """MEN-5: продвижение набора меню в агрегаторе (generic self-serve featured —
+    зеркало unit_feature/event_feature, apps.aggregator.featuring)."""
+    from apps.aggregator import featuring
+    from apps.aggregator.models import AggregatorListing
+
+    combo = get_object_or_404(Combo, pk=pk)
+    return featuring.render_feature_page(
+        request,
+        obj_title=combo.name,
+        kind=AggregatorListing.KIND_MENU,
+        source_ref=str(combo.pk),
+        listable=combo.is_active,
+        not_listed_hint=(
+            "Nur aktive Menü-Sets erscheinen im Verzeichnis und können beworben "
+            "werden. Aktivieren Sie das Set zuerst."
+        ),
+        back_url=reverse("catalog:combo-list"),
+        checkout_url=reverse("catalog:combo-feature-checkout", args=[combo.pk]),
+        nav="combos",
+    )
+
+
+@login_required
+@require_POST
+def combo_feature_checkout(request, pk):
+    """MEN-5: разовый Stripe-Checkout за продвижение набора → редирект на оплату."""
+    from apps.aggregator import featuring
+    from apps.aggregator.models import AggregatorListing
+    from apps.aggregator.tasks import sync_menu_listing
+
+    combo = get_object_or_404(Combo, pk=pk)
+    return featuring.start_feature_checkout(
+        request,
+        kind=AggregatorListing.KIND_MENU,
+        source_ref=str(combo.pk),
+        title=combo.name,
+        listable=combo.is_active,
+        not_listable_msg="Nur aktive Menü-Sets können beworben werden.",
+        sync=sync_menu_listing,
+        feature_page_url=reverse("catalog:combo-feature", args=[combo.pk]),
+    )

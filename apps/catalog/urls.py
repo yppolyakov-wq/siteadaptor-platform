@@ -100,6 +100,13 @@ urlpatterns = [
         name="combo-image-primary",
     ),
     path("combos/<uuid:pk>/delete/", views.combo_delete, name="combo-delete"),
+    # MEN-5: продвижение набора в агрегаторе (generic featured, D2.4)
+    path("combos/<uuid:pk>/feature/", views.combo_feature, name="combo-feature"),
+    path(
+        "combos/<uuid:pk>/feature/checkout/",
+        views.combo_feature_checkout,
+        name="combo-feature-checkout",
+    ),
     path("combos/<uuid:pk>/groups/add/", views.combo_group_add, name="combo-group-add"),
     path(
         "combos/<uuid:pk>/groups/<uuid:gid>/update/",
