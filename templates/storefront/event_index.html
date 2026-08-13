@@ -76,7 +76,7 @@
   {% endif %}
 {% endblock %}
 
-{% block listing_view %}<div class="flex justify-end mb-3">{% include "storefront/_grid_view.html" with grid_key="events" %}</div>{% endblock %}
+{% block listing_bar_view %}{% include "storefront/_grid_view.html" with grid_key="events" %}{% endblock %}
 
 {% block listing_grid %}
   {% if events %}

@@ -7474,6 +7474,7 @@ SHOP = DemoKit(
                     gtin="4012345000040",
                 ),
             ],
+            "farm-vegetables",  # DS-10: фото плитки (было SVG)
         ),
         (
             "Hofladen-Spezialitäten",
@@ -7535,6 +7536,7 @@ SHOP = DemoKit(
                     gtin="4012345000095",
                 ),
             ],
+            "honey-jar",  # DS-10: фото плитки (было SVG)
         ),
         (
             "Käse & Wurst",
@@ -7575,6 +7577,7 @@ SHOP = DemoKit(
                     allergens=["milk"],
                 ),
             ],
+            "cheese-wheel",  # DS-10: фото плитки (было SVG)
         ),
     ],
 )

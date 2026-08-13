@@ -28,7 +28,7 @@
 {% endif %}
 {% endblock %}
 
-{% block listing_view %}<div class="flex justify-end mb-3">{% include "storefront/_grid_view.html" with grid_key="services" %}</div>{% endblock %}
+{% block listing_bar_view %}{% include "storefront/_grid_view.html" with grid_key="services" %}{% endblock %}
 
 {% block listing_grid %}
 {# UB1-1: грид из layout-движка (service_index_layout); ключ не задан → легаси-классы. #}

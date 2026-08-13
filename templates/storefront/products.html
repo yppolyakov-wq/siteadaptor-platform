@@ -96,8 +96,11 @@
 наличие, размер и происхождение — внутри панели. Теперь она такой же фасет формы;
 ссылки `?diet=<code>` из писем и поиска продолжают работать — вьюха читает GET.{% endcomment %}
 {% if catalog_show_filters and show_price_filter or catalog_show_filters and badge_chips or catalog_show_filters and show_stock_filter or catalog_show_filters and origin_chips or catalog_show_filters and show_rating_filter or catalog_show_filters and size_chips or catalog_show_filters and diet_chips %}
-{% include "storefront/_filter_toggle.html" with filter_key="catalog" %}
-<form method="get" data-catalog-filters data-filter-panel="catalog" class="mb-6 flex flex-wrap items-end gap-x-4 gap-y-3 bg-white rounded-2xl shadow-sm p-4">
+{% comment %}DS-10: панель отдаётся УЖЕ скрытой — CSS DS-6 делает видимую панель
+fixed-ящиком, и до инициализации JS она вспыхивала поверх контента. Без JS её
+показывает правило в <noscript> ниже (прогрессивное улучшение сохранено).{% endcomment %}
+<noscript><style>[data-filter-panel]{display:flex !important;position:static !important;width:auto !important;box-shadow:none !important;}</style></noscript>
+<form method="get" data-catalog-filters data-filter-panel="catalog" class="hidden mb-6 flex-wrap items-end gap-x-4 gap-y-3 bg-white rounded-2xl shadow-sm p-4">
   {% for name, value in filter_form_hidden %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
   {% if diet_chips %}
   <div>
@@ -184,7 +187,17 @@
 {# UB2-2: сортировка (и поиск ?q=) переехали в единый тулбар каркаса listing_toolbar. #}
 {% endblock %}
 
-{% block listing_view %}<div class="flex justify-end mb-3">{% include "storefront/_grid_view.html" with grid_key="catalog" %}</div>{% endblock %}
+{% comment %}DS-10: кнопка «Фильтры» — в единой строке инструментов; гейт ТОТ ЖЕ,
+что у панели (кнопка без [data-filter-panel] дала бы затемнение без ящика).{% endcomment %}
+{% block listing_bar_filters %}
+{% if catalog_show_filters and show_price_filter or catalog_show_filters and badge_chips or catalog_show_filters and show_stock_filter or catalog_show_filters and origin_chips or catalog_show_filters and show_rating_filter or catalog_show_filters and size_chips or catalog_show_filters and diet_chips %}
+{% include "storefront/_filter_toggle.html" with filter_key="catalog" bar=1 %}
+{% endif %}
+{% endblock %}
+
+{% comment %}DS-10: в прайс-виде (DS-3a preisliste) сетки data-grid нет —
+переключатель вида был бы мёртвыми кнопками.{% endcomment %}
+{% block listing_bar_view %}{% if catalog_preset|slice:":10" != "preisliste" %}{% include "storefront/_grid_view.html" with grid_key="catalog" %}{% endif %}{% endblock %}
 
 {% block listing_grid %}
 {% if page.items %}

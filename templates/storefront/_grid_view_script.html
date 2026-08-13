@@ -44,9 +44,9 @@
   else init();
 })();
 
-/* Кнопка «Фильтры»: сворачивает панель фасетов. На узком экране панель закрыта по
-   умолчанию (фидбэк: занимала весь первый экран), на широком — открыта; выбор
-   гостя запоминается. Счётчик активных фильтров виден и при закрытой панели. */
+/* Кнопка «Фильтры» (DS-6/DS-10): открывает панель фасетов ЛЕВЫМ ящиком. Панель
+   всегда стартует закрытой (всплывающий при загрузке ящик перекрывал бы
+   контент); что фильтр применён, показывает счётчик активных на кнопке. */
 (function () {
   if (window.__sfFilterToggleBound) return;
   window.__sfFilterToggleBound = true;
@@ -79,7 +79,15 @@
 
   function apply(key, open) {
     var box = panel(key);
-    if (box) box.classList.toggle("hidden", !open);
+    // DS-10: панели с таким ключом нет — прячем осиротевшую кнопку и выходим.
+    // Иначе бекдроп затемнил бы экран и залочил скролл при отсутствующем ящике.
+    if (!box) {
+      document.querySelectorAll('[data-filter-toggle="' + key + '"]').forEach(function (b) {
+        b.hidden = true;
+      });
+      return;
+    }
+    box.classList.toggle("hidden", !open);
     backdrop(key, open);
     var count = activeCount(box);
     document.querySelectorAll('[data-filter-toggle="' + key + '"]').forEach(function (b) {

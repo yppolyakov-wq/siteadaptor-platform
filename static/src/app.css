@@ -222,6 +222,7 @@ input[type="datetime-local"] {
 /* DS-6: панель фасетов = выезжающий СЛЕВА ящик (фидбэк владельца). Открытие —
    снятие .hidden прежним тумблером; фон затемняет .sf-drawer-backdrop (скрипт). */
 [data-filter-panel]:not(.hidden) {
+  display: flex; /* DS-10: панель отдаётся с .hidden — открываем её явным display */
   position: fixed;
   top: 0;
   left: 0;
@@ -235,6 +236,22 @@ input[type="datetime-local"] {
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.25);
   flex-direction: column;
   align-items: stretch;
+}
+/* DS-10: строка инструментов листинга. Пустая (нет фильтров/сортировки, а
+   переключатель вида скрыт на десктопе) не должна давать фантомный отступ. */
+[data-listing-bar]:not(:has(> *)) {
+  display: none;
+}
+/* Тёмная тема: карта .dark покрывала только gray-100/200 — рамки строки
+   (кнопка «Фильтры», селект сорта, кнопки вида) светились почти белым. */
+.dark [data-listing-bar] .border-gray-300,
+.dark [data-filter-panel] .border-gray-300 {
+  border-color: #374151;
+}
+/* Активная кнопка вида в тёмной теме сливалась с фоном карточки (bg-gray-900). */
+.dark [data-grid-view][aria-pressed="true"] {
+  background: var(--sf-primary, #4f46e5);
+  color: #fff;
 }
 .sf-drawer-backdrop {
   position: fixed;

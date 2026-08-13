@@ -99,6 +99,27 @@ def _storefront_bottom_nav(request, tenant):
     return items[:5]
 
 
+#: DS-10: листинги, поддерживающие ?q= (движок поиска UB2-2) — куда ведёт 🔍 шапки.
+_SEARCH_ROUTES = {
+    "catalog": "storefront-products",
+    "booking": "storefront-termin",
+    "stays": "storefront-unterkunft",
+    "events": "storefront-events",
+}
+
+
+def _primary_search_module(tenant) -> str | None:
+    """Модуль, чей листинг ищет поиск шапки: главный архетип тенанта, если у
+    него есть листинг с ?q=; иначе None (фолбэк на каталог у вызывающего)."""
+    try:
+        from apps.core import archetypes
+
+        key = archetypes.primary_module(tenant)
+    except Exception:  # noqa: BLE001 — шапка не должна падать из-за резолвера
+        return None
+    return key if key in _SEARCH_ROUTES else None
+
+
 def _storefront_nav(tenant):
     """Готовые пункты шапки витрины (M20 ④): порядок владельца, только
     включённые и с активным модулем. Возвращает (items, style, sticky)."""
@@ -273,17 +294,28 @@ def modules_nav(request):
                 storefront_nav_cta = {"label": _pi["label"], "url": reverse(_pi["landing"])}
             except NoReverseMatch:
                 storefront_nav_cta = None
-    # DS-6: глобальный поиск в шапке (владелец: «поиск перенести в шапку») —
-    # ведёт в каталожный листинг ?q= (поиск UB); без каталога — иконки нет.
+    # DS-6/DS-10: глобальный поиск в шапке. Ведёт в листинг ГЛАВНОГО модуля
+    # архетипа (номера у отеля, услуги у салона, события у организатора, иначе
+    # каталог) — DS-10 убрал поле поиска из тулбаров листингов, и жёсткая
+    # привязка к каталогу оставила бы эти архетипы вовсе без поиска.
     storefront_search_url = ""
-    if modules.is_module_active(tenant, "catalog"):
-        from django.urls import NoReverseMatch as _NRM
-        from django.urls import reverse as _rev
+    from django.urls import NoReverseMatch as _NRM
+    from django.urls import reverse as _rev
 
+    for _mod, _route in (
+        (_primary_search_module(tenant), None),
+        ("catalog", "storefront-products"),
+    ):
+        if not _mod:
+            continue
+        _name = _route or _SEARCH_ROUTES.get(_mod)
+        if not _name or not modules.is_module_active(tenant, _mod):
+            continue
         try:
-            storefront_search_url = _rev("storefront-products")
+            storefront_search_url = _rev(_name)
+            break
         except _NRM:
-            storefront_search_url = ""
+            continue
     if storefront_nav_cta:
         # Мобильно вторая липкая кнопка = перегруз (таб-бар уже есть) — вместо
         # этого акцентируем совпадающий пункт таб-бара (kind=primary, как корзина).

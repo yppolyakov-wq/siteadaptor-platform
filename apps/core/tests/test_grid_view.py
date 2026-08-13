@@ -77,3 +77,18 @@ def test_product_card_badge_clears_the_wishlist_heart():
     body = (TEMPLATES / "_product_card.html").read_text(encoding="utf-8")
     assert body.count('{% if storefront_wishlist_enabled %}{% firstof "left-12"') == 2
     assert "top-3 left-3 bg-amber-400" not in body  # жёсткой позиции не осталось
+
+
+def test_listing_bar_view_block_present_in_all_listings():
+    """DS-10: переключатель вида переехал из `listing_view` в `listing_bar_view`.
+
+    Django МОЛЧА отбрасывает блок наследника, имени которого нет в родителе —
+    забытый шаблон потерял бы переключатель без единой ошибки.
+    """
+    for name in ("products.html", "service_index.html", "stay_index.html", "event_index.html"):
+        body = (TEMPLATES / name).read_text(encoding="utf-8")
+        assert "{% block listing_bar_view %}" in body, name
+        assert "{% block listing_view %}" not in body, f"{name}: осиротевший блок"
+    scaffold = (TEMPLATES / "listing.html").read_text(encoding="utf-8")
+    assert "{% block listing_bar_view %}" in scaffold
+    assert "{% block listing_bar_filters %}" in scaffold
