@@ -88,6 +88,17 @@ urlpatterns = [
     path("combos/", views.combo_list, name="combo-list"),
     path("combos/new/", views.combo_create, name="combo-create"),
     path("combos/<uuid:pk>/edit/", views.combo_edit, name="combo-edit"),
+    # MEN-2: фото набора — удалить/сделать главным (паттерн category-image-*)
+    path(
+        "combos/<uuid:pk>/images/<str:image_id>/delete/",
+        views.combo_image_delete,
+        name="combo-image-delete",
+    ),
+    path(
+        "combos/<uuid:pk>/images/<str:image_id>/primary/",
+        views.combo_image_primary,
+        name="combo-image-primary",
+    ),
     path("combos/<uuid:pk>/delete/", views.combo_delete, name="combo-delete"),
     path("combos/<uuid:pk>/groups/add/", views.combo_group_add, name="combo-group-add"),
     path(

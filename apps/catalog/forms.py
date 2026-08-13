@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core.i18n_input import DynamicI18nFormMixin
 
-from .food import ADDITIVES, ALLERGENS, DIETS
+from .food import ADDITIVES, ALLERGENS, COURSES, DIETS
 from .models import Category, Product
 from .option_styles import VARIANT_STYLES
 
@@ -158,6 +158,7 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             "ingredients",
             "material",
             "care",
+            "course",
             "is_active",
             "is_featured",
             "badge",
@@ -206,6 +207,13 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             choices=[(key, label) for key, label, _hint in VARIANT_STYLES],
             help_text=_("Leer = wie in den Website-Einstellungen eingestellt."),
         )
+        # MEN-2: тип подачи (Gang) — реестр food.COURSES; ChoiceField валидирует код.
+        self.fields["course"] = forms.ChoiceField(
+            label=_("Gang"),
+            required=False,
+            choices=[("", _("— kein Gang —"))] + list(COURSES),
+            help_text=_("Für Menü-Baukasten und Speisekarte: Vorspeise, Hauptgericht …"),
+        )
         if self.instance and self.instance.pk:
             self.fields["allergens"].initial = list(self.instance.allergens or [])
             self.fields["additives"].initial = list(self.instance.additives or [])
@@ -232,6 +240,7 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
                 "reorder_target",
                 "sku",
                 "gtin",
+                "course",
                 "allergens",
                 "additives",
                 "diets",

@@ -93,6 +93,8 @@
     <div data-pf-panel="kennz" class="space-y-3 pt-2 hidden">
       <div data-food-section class="space-y-3{% if not show_food_labeling %} hidden{% endif %}">
         <p class="text-sm font-medium">{% trans "Food labeling" %}</p>
+        {# MEN-2: Gang (тип подачи) — обычный селект, до чекбокс-реестров #}
+        {% for field in form %}{% if field.name == 'course' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
         {% for field in form %}{% if field.name == 'allergens' or field.name == 'additives' or field.name == 'diets' %}
           <div>
             <label class="block text-sm font-medium mb-1">{{ field.label }}</label>

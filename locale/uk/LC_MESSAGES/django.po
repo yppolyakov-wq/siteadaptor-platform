@@ -17745,3 +17745,95 @@ msgid "Beispiele aus der Küche"
 msgstr "Приклади з нашої кухні"
 msgid "Jedes Event wird individuell zusammengestellt — fragen Sie unverbindlich an."
 msgstr "Кожен захід збирається індивідуально — надішліть запит без зобов’язань."
+
+#: apps/catalog/food.py
+msgid "Vorspeise"
+msgstr "Закуска"
+
+#: apps/catalog/food.py
+msgid "Suppe"
+msgstr "Суп"
+
+#: apps/catalog/food.py
+msgid "Hauptgericht"
+msgstr "Основна страва"
+
+#: apps/catalog/food.py
+msgid "Beilage"
+msgstr "Гарнір"
+
+#: apps/catalog/food.py
+msgid "Dessert"
+msgstr "Десерт"
+
+#: apps/catalog/food.py
+msgid "Getränk"
+msgstr "Напій"
+
+#: apps/catalog/food.py
+msgid "Snack / Fingerfood"
+msgstr "Закуски / фінгерфуд"
+
+#: apps/catalog/forms.py
+msgid "Gang"
+msgstr "Подача"
+
+#: apps/catalog/forms.py
+msgid "— kein Gang —"
+msgstr "— без подачі —"
+
+#: apps/catalog/forms.py
+msgid "Für Menü-Baukasten und Speisekarte: Vorspeise, Hauptgericht …"
+msgstr "Для конструктора меню та карти страв: закуска, основна страва …"
+
+#: templates/catalog/combo_form.html
+msgid "Shown on the menu card and in the gallery of the set page."
+msgstr "Показується на картці меню та в галереї сторінки набору."
+
+#: templates/catalog/combo_form.html
+msgid "Menu set"
+msgstr "Набір меню"
+
+#: templates/catalog/combo_form.html
+msgid "Category (direction)"
+msgstr "Категорія (напрям)"
+
+#: templates/catalog/combo_form.html
+msgid "Shows the set on the category page (e.g. wedding catering)."
+msgstr "Показує набір на сторінці категорії (напр. весільний кейтеринг)."
+
+#: templates/catalog/combo_form.html
+msgid "Minimum (persons)"
+msgstr "Мінімум (осіб)"
+
+#: templates/catalog/combo_form.html
+msgid "0 = no minimum"
+msgstr "0 = без мінімуму"
+
+#: templates/catalog/combo_form.html
+msgid "Price per person"
+msgstr "Ціна за особу"
+
+#: templates/catalog/combo_form.html
+msgid "Occasions"
+msgstr "Приводи"
+
+#: templates/catalog/combo_form.html
+msgid "Comma-separated; same wording as your inquiry form. Used for filters."
+msgstr "Через кому; ті самі формулювання, що у формі запиту. Використовується для фільтрів."
+
+#: templates/catalog/combo_form.html
+msgid "Free choice from category"
+msgstr "Вільний вибір із категорії"
+
+#: templates/catalog/combo_form.html
+msgid "Guests pick any dishes of the category at à la carte prices — choice groups below are ignored."
+msgstr "Гості обирають будь-які страви категорії за цінами à la carte — групи вибору нижче ігноруються."
+
+#: templates/catalog/combo_form.html
+msgid "In set"
+msgstr "У наборі"
+
+#: templates/catalog/combo_form.html
+msgid "Shown as part of the set — guests do not choose; cost is in the fixed price."
+msgstr "Показується як фіксована частина набору — гість не обирає; вартість входить у фіксовану ціну."

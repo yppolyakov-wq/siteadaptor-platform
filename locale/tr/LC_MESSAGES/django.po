@@ -17676,3 +17676,95 @@ msgid "Beispiele aus der Küche"
 msgstr "Mutfağımızdan örnekler"
 msgid "Jedes Event wird individuell zusammengestellt — fragen Sie unverbindlich an."
 msgstr "Her etkinlik size özel hazırlanır — bağlayıcı olmayan bir talep gönderin."
+
+#: apps/catalog/food.py
+msgid "Vorspeise"
+msgstr "Başlangıç"
+
+#: apps/catalog/food.py
+msgid "Suppe"
+msgstr "Çorba"
+
+#: apps/catalog/food.py
+msgid "Hauptgericht"
+msgstr "Ana yemek"
+
+#: apps/catalog/food.py
+msgid "Beilage"
+msgstr "Garnitür"
+
+#: apps/catalog/food.py
+msgid "Dessert"
+msgstr "Tatlı"
+
+#: apps/catalog/food.py
+msgid "Getränk"
+msgstr "İçecek"
+
+#: apps/catalog/food.py
+msgid "Snack / Fingerfood"
+msgstr "Atıştırmalık / Fingerfood"
+
+#: apps/catalog/forms.py
+msgid "Gang"
+msgstr "Menü bölümü"
+
+#: apps/catalog/forms.py
+msgid "— kein Gang —"
+msgstr "— bölüm yok —"
+
+#: apps/catalog/forms.py
+msgid "Für Menü-Baukasten und Speisekarte: Vorspeise, Hauptgericht …"
+msgstr "Menü oluşturucu ve menü kartı için: başlangıç, ana yemek …"
+
+#: templates/catalog/combo_form.html
+msgid "Shown on the menu card and in the gallery of the set page."
+msgstr "Menü kartında ve set sayfasının galerisinde gösterilir."
+
+#: templates/catalog/combo_form.html
+msgid "Menu set"
+msgstr "Menü seti"
+
+#: templates/catalog/combo_form.html
+msgid "Category (direction)"
+msgstr "Kategori (alan)"
+
+#: templates/catalog/combo_form.html
+msgid "Shows the set on the category page (e.g. wedding catering)."
+msgstr "Seti kategori sayfasında gösterir (örn. düğün cateringi)."
+
+#: templates/catalog/combo_form.html
+msgid "Minimum (persons)"
+msgstr "Minimum (kişi)"
+
+#: templates/catalog/combo_form.html
+msgid "0 = no minimum"
+msgstr "0 = minimum yok"
+
+#: templates/catalog/combo_form.html
+msgid "Price per person"
+msgstr "Kişi başı fiyat"
+
+#: templates/catalog/combo_form.html
+msgid "Occasions"
+msgstr "Etkinlik türleri"
+
+#: templates/catalog/combo_form.html
+msgid "Comma-separated; same wording as your inquiry form. Used for filters."
+msgstr "Virgülle ayrılır; talep formundaki ifadelerle aynı. Filtreler için kullanılır."
+
+#: templates/catalog/combo_form.html
+msgid "Free choice from category"
+msgstr "Kategoriden serbest seçim"
+
+#: templates/catalog/combo_form.html
+msgid "Guests pick any dishes of the category at à la carte prices — choice groups below are ignored."
+msgstr "Konuklar kategorideki istedikleri yemekleri alakart fiyatlarla seçer — aşağıdaki seçim grupları yok sayılır."
+
+#: templates/catalog/combo_form.html
+msgid "In set"
+msgstr "Sette"
+
+#: templates/catalog/combo_form.html
+msgid "Shown as part of the set — guests do not choose; cost is in the fixed price."
+msgstr "Setin sabit parçası olarak gösterilir — konuklar seçmez; maliyet sabit fiyata dahildir."

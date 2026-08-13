@@ -17760,3 +17760,95 @@ msgid "Beispiele aus der Küche"
 msgstr "Примеры из нашей кухни"
 msgid "Jedes Event wird individuell zusammengestellt — fragen Sie unverbindlich an."
 msgstr "Каждое мероприятие собирается индивидуально — отправьте запрос без обязательств."
+
+#: apps/catalog/food.py
+msgid "Vorspeise"
+msgstr "Закуска"
+
+#: apps/catalog/food.py
+msgid "Suppe"
+msgstr "Суп"
+
+#: apps/catalog/food.py
+msgid "Hauptgericht"
+msgstr "Основное блюдо"
+
+#: apps/catalog/food.py
+msgid "Beilage"
+msgstr "Гарнир"
+
+#: apps/catalog/food.py
+msgid "Dessert"
+msgstr "Десерт"
+
+#: apps/catalog/food.py
+msgid "Getränk"
+msgstr "Напиток"
+
+#: apps/catalog/food.py
+msgid "Snack / Fingerfood"
+msgstr "Закуски / фингерфуд"
+
+#: apps/catalog/forms.py
+msgid "Gang"
+msgstr "Подача"
+
+#: apps/catalog/forms.py
+msgid "— kein Gang —"
+msgstr "— без подачи —"
+
+#: apps/catalog/forms.py
+msgid "Für Menü-Baukasten und Speisekarte: Vorspeise, Hauptgericht …"
+msgstr "Для конструктора меню и карты блюд: закуска, основное блюдо …"
+
+#: templates/catalog/combo_form.html
+msgid "Shown on the menu card and in the gallery of the set page."
+msgstr "Показывается на карточке меню и в галерее страницы набора."
+
+#: templates/catalog/combo_form.html
+msgid "Menu set"
+msgstr "Набор меню"
+
+#: templates/catalog/combo_form.html
+msgid "Category (direction)"
+msgstr "Категория (направление)"
+
+#: templates/catalog/combo_form.html
+msgid "Shows the set on the category page (e.g. wedding catering)."
+msgstr "Показывает набор на странице категории (напр. свадебный кейтеринг)."
+
+#: templates/catalog/combo_form.html
+msgid "Minimum (persons)"
+msgstr "Минимум (персон)"
+
+#: templates/catalog/combo_form.html
+msgid "0 = no minimum"
+msgstr "0 = без минимума"
+
+#: templates/catalog/combo_form.html
+msgid "Price per person"
+msgstr "Цена за человека"
+
+#: templates/catalog/combo_form.html
+msgid "Occasions"
+msgstr "Поводы"
+
+#: templates/catalog/combo_form.html
+msgid "Comma-separated; same wording as your inquiry form. Used for filters."
+msgstr "Через запятую; те же формулировки, что в форме заявки. Используется для фильтров."
+
+#: templates/catalog/combo_form.html
+msgid "Free choice from category"
+msgstr "Свободный выбор из категории"
+
+#: templates/catalog/combo_form.html
+msgid "Guests pick any dishes of the category at à la carte prices — choice groups below are ignored."
+msgstr "Гости выбирают любые блюда категории по ценам à la carte — группы выбора ниже игнорируются."
+
+#: templates/catalog/combo_form.html
+msgid "In set"
+msgstr "В наборе"
+
+#: templates/catalog/combo_form.html
+msgid "Shown as part of the set — guests do not choose; cost is in the fixed price."
+msgstr "Показывается как фиксированная часть набора — гость не выбирает; стоимость входит в фикс-цену."

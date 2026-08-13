@@ -180,6 +180,9 @@ class Product(SoftDeleteMixin, I18nMixin):
     # A4: диет-теги (vegan/vegetarisch/glutenfrei/…) — иконки на карточке + фильтр меню.
     # Коды из catalog.food.DIETS; на витрине показываются только при наличии.
     diets = models.JSONField(default=list, blank=True)
+    # MEN-2: тип подачи (Gang) — коды из catalog.food.COURSES ("" = не задан).
+    # Группирует блюда в «свободной сборке» меню и в PDF-Speisekarte.
+    course = models.CharField(max_length=20, blank=True, default="")
     origin = models.CharField(max_length=120, blank=True)
     ingredients = models.TextField(blank=True)
     # Ф2 (per-language): переводы неосновных локалей для origin/ingredients (overlay —
@@ -581,6 +584,24 @@ class Combo(I18nMixin, SoftDeleteMixin):
     description_i18n = models.JSONField(default=dict, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=3, default="EUR")
+    # MEN-2 (волна Menü-Sets): галерея набора — FileRef-конверты, как Product.images.
+    images = models.JSONField(default=list, blank=True)
+    # Привязка к направлению (категории): блок «Menü-Pakete» на лендинге DS-7 и
+    # пул блюд режима «свободная сборка». SET_NULL — набор переживает категорию.
+    category = models.ForeignKey(
+        Category, on_delete=models.SET_NULL, null=True, blank=True, related_name="combos"
+    )
+    # Кейтеринг: цена «pro Person» — qty в корзине трактуется как число персон.
+    price_per_person = models.BooleanField(default=False)
+    # Минимальный заказ в персонах (0 = без минимума); показывается в карточке,
+    # детали и агрегаторе, валидируется на сервере (combo_add/checkout).
+    min_persons = models.PositiveSmallIntegerField(default=0)
+    # Поводы («Hochzeit», «Firmenfeier»…): свободные строки владельца — один
+    # словарь с формой заявки AF-1 (site_config["anfrage"]["event_types"]).
+    event_types = models.JSONField(default=list, blank=True)
+    # Режим «свободная сборка»: состав = все активные блюда category по Gang'ам,
+    # группы игнорируются, цены à la carte (Product.base_price). Витрина — MEN-4.
+    free_pool = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     sort_order = models.IntegerField(default=0)
 
@@ -589,6 +610,18 @@ class Combo(I18nMixin, SoftDeleteMixin):
 
     def __str__(self):
         return self.name
+
+    @property
+    def primary_image_url(self) -> str:
+        """URL главного фото галереи ('' если фото нет) — карточки/адаптер."""
+        imgs = self.images if isinstance(self.images, list) else []
+        for img in imgs:
+            if isinstance(img, dict) and img.get("is_primary") and img.get("url"):
+                return img["url"]
+        for img in imgs:
+            if isinstance(img, dict) and img.get("url"):
+                return img["url"]
+        return ""
 
     def name_localized(self, locale: str | None = None) -> str:
         """L3: имя комбо на локали (перевод из name_i18n, иначе базовое name)."""
@@ -608,6 +641,10 @@ class ComboGroup(TimestampedModel):
 
     combo = models.ForeignKey(Combo, on_delete=models.CASCADE, related_name="groups")
     label = models.CharField(max_length=100)
+    # MEN-2: «Im Set enthalten» — фикс-состав (режим 1): опции рендерятся
+    # плитками без выбора и в валидации/цене НЕ участвуют (их стоимость уже
+    # заложена в Combo.price). Гость их не отправляет.
+    included = models.BooleanField(default=False)
     min_select = models.PositiveSmallIntegerField(default=1)
     max_select = models.PositiveSmallIntegerField(default=1)
     sort_order = models.IntegerField(default=0)

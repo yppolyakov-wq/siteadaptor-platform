@@ -66,6 +66,21 @@ _ADDITIVE_LABELS = dict(ADDITIVES)
 VALID_ADDITIVES = frozenset(_ADDITIVE_LABELS)
 
 
+# MEN-2: типы подачи (Gang) — группировка блюд в «свободной сборке» меню и в
+# PDF-Speisekarte. Коды стабильны (храним в Product.course), подписи переводимы.
+COURSES: list[tuple[str, str]] = [
+    ("vorspeise", _("Vorspeise")),
+    ("suppe", _("Suppe")),
+    ("hauptgang", _("Hauptgericht")),
+    ("beilage", _("Beilage")),
+    ("dessert", _("Dessert")),
+    ("getraenk", _("Getränk")),
+    ("snack", _("Snack / Fingerfood")),
+]
+COURSE_LABELS = dict(COURSES)
+VALID_COURSES = frozenset(COURSE_LABELS)
+
+
 def allergen_labels(codes) -> list[str]:
     """Коды → подписи DE. Неизвестные коды отбрасываем, порядок — как в ALLERGENS."""
     wanted = set(codes or [])

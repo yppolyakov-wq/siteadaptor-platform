@@ -126,3 +126,104 @@ def test_product_list_combos_teaser_hidden_in_category(settings):
     req.tenant = TenantFactory.build(name="Bistro")
     body = promo_views.product_list(req).content.decode()
     assert "Menü 1" not in body  # тизер скрыт в категории
+
+
+# --- MEN-2: поля «набора меню» + included-группы -----------------------------------
+
+
+def _combo_with_included():
+    """Фикс-состав (included) + одна группа выбора."""
+    combo = Combo.objects.create(name="Hochzeitsmenü", price=Decimal("45.00"))
+    inc = ComboGroup.objects.create(
+        combo=combo, label="Im Menü", included=True, min_select=1, max_select=1
+    )
+    inc_opt = ComboOption.objects.create(
+        group=inc, product=ProductFactory(), price_delta=Decimal("5.00")
+    )
+    choice = ComboGroup.objects.create(combo=combo, label="Dessert", min_select=1, max_select=1)
+    tarte = ComboOption.objects.create(group=choice, product=ProductFactory(), price_delta=0)
+    return combo, inc_opt, tarte
+
+
+def test_included_group_not_validated_and_not_priced():
+    """MEN-2: included-группа не требует выбора, а id её опций из POST не меняют
+    цену — стоимость фикс-состава уже заложена в Combo.price."""
+    combo, inc_opt, tarte = _combo_with_included()
+    options, error = combos.validate_selection(combo, [str(tarte.pk)])
+    assert error == "" and [o.pk for o in options] == [tarte.pk]
+    # злонамеренный POST с id included-опции — надбавка НЕ прибавляется
+    picked = combos.options_from_ids(combo, [str(inc_opt.pk), str(tarte.pk)])
+    assert [o.pk for o in picked] == [tarte.pk]
+    assert combos.combo_price(combo, picked) == Decimal("45.00")
+
+
+def test_combo_price_from_min_deltas():
+    """MEN-2: «ab»-цена = фикс + min_select наименьших надбавок обязательных групп;
+    опциональные (min=0) и included-группы не входят."""
+    combo = Combo.objects.create(name="Wahl", price=Decimal("30.00"))
+    g = ComboGroup.objects.create(combo=combo, label="Hauptgang", min_select=2, max_select=2)
+    for delta in ("4.00", "1.00", "2.00"):
+        ComboOption.objects.create(group=g, product=ProductFactory(), price_delta=Decimal(delta))
+    extra = ComboGroup.objects.create(combo=combo, label="Extra", min_select=0, max_select=1)
+    ComboOption.objects.create(group=extra, product=ProductFactory(), price_delta=Decimal("9.00"))
+    assert combos.combo_price_from(combo) == Decimal("33.00")  # 30 + (1,00 + 2,00)
+
+
+def test_combo_edit_saves_menu_set_fields(user):
+    from apps.catalog.models import Category
+
+    cat = Category.objects.create(name={"de": "Hochzeit"}, slug="men2-hochzeit")
+    combo = Combo.objects.create(name="Menü", price=Decimal("42.00"))
+    views.combo_edit(
+        _post(
+            user,
+            {
+                "name": "Menü",
+                "price": "42,00",
+                "is_active": "on",
+                "category": str(cat.pk),
+                "price_per_person": "on",
+                "min_persons": "20",
+                "event_types": "Hochzeit, Firmenfeier,\nHochzeit",  # дубль схлопывается
+                "free_pool": "on",
+            },
+        ),
+        pk=combo.pk,
+    )
+    combo.refresh_from_db()
+    assert combo.category_id == cat.pk
+    assert combo.price_per_person is True and combo.min_persons == 20
+    assert combo.event_types == ["Hochzeit", "Firmenfeier"]
+    assert combo.free_pool is True
+
+
+def test_combo_group_included_saved(user):
+    combo = Combo.objects.create(name="Menü", price=Decimal("10.00"))
+    views.combo_group_add(
+        _post(user, {"label": "Im Menü", "included": "on", "min": "1", "max": "1"}), pk=combo.pk
+    )
+    group = combo.groups.get()
+    assert group.included is True
+    views.combo_group_update(
+        _post(user, {"label": "Im Menü", "min": "1", "max": "1"}), pk=combo.pk, gid=group.pk
+    )
+    group.refresh_from_db()
+    assert group.included is False  # чекбокс снят → False (не залип)
+
+
+def test_product_form_course_choice():
+    """MEN-2: Gang сохраняется; чужой код отвергается ChoiceField'ом."""
+    from apps.catalog.forms import ProductForm
+
+    product = ProductFactory()
+    base = {
+        "name_de": "Suppe",
+        "base_price": "4.00",
+        "currency": "EUR",
+        "course": "vorspeise",
+    }
+    form = ProductForm(base, instance=product)
+    assert form.is_valid(), form.errors
+    assert form.save().course == "vorspeise"
+    bad = ProductForm({**base, "course": "nachtisch"}, instance=product)
+    assert not bad.is_valid() and "course" in bad.errors

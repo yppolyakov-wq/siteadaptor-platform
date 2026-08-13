@@ -17715,3 +17715,95 @@ msgid "Beispiele aus der Küche"
 msgstr "Beispiele aus der Küche"
 msgid "Jedes Event wird individuell zusammengestellt — fragen Sie unverbindlich an."
 msgstr "Jedes Event wird individuell zusammengestellt — fragen Sie unverbindlich an."
+
+#: apps/catalog/food.py
+msgid "Vorspeise"
+msgstr "Vorspeise"
+
+#: apps/catalog/food.py
+msgid "Suppe"
+msgstr "Suppe"
+
+#: apps/catalog/food.py
+msgid "Hauptgericht"
+msgstr "Hauptgericht"
+
+#: apps/catalog/food.py
+msgid "Beilage"
+msgstr "Beilage"
+
+#: apps/catalog/food.py
+msgid "Dessert"
+msgstr "Dessert"
+
+#: apps/catalog/food.py
+msgid "Getränk"
+msgstr "Getränk"
+
+#: apps/catalog/food.py
+msgid "Snack / Fingerfood"
+msgstr "Snack / Fingerfood"
+
+#: apps/catalog/forms.py
+msgid "Gang"
+msgstr "Gang"
+
+#: apps/catalog/forms.py
+msgid "— kein Gang —"
+msgstr "— kein Gang —"
+
+#: apps/catalog/forms.py
+msgid "Für Menü-Baukasten und Speisekarte: Vorspeise, Hauptgericht …"
+msgstr "Für Menü-Baukasten und Speisekarte: Vorspeise, Hauptgericht …"
+
+#: templates/catalog/combo_form.html
+msgid "Shown on the menu card and in the gallery of the set page."
+msgstr "Wird auf der Menü-Karte und in der Galerie der Set-Seite gezeigt."
+
+#: templates/catalog/combo_form.html
+msgid "Menu set"
+msgstr "Menü-Set"
+
+#: templates/catalog/combo_form.html
+msgid "Category (direction)"
+msgstr "Kategorie (Bereich)"
+
+#: templates/catalog/combo_form.html
+msgid "Shows the set on the category page (e.g. wedding catering)."
+msgstr "Zeigt das Set auf der Kategorieseite (z. B. Hochzeitscatering)."
+
+#: templates/catalog/combo_form.html
+msgid "Minimum (persons)"
+msgstr "Mindestbestellung (Personen)"
+
+#: templates/catalog/combo_form.html
+msgid "0 = no minimum"
+msgstr "0 = kein Minimum"
+
+#: templates/catalog/combo_form.html
+msgid "Price per person"
+msgstr "Preis pro Person"
+
+#: templates/catalog/combo_form.html
+msgid "Occasions"
+msgstr "Anlässe"
+
+#: templates/catalog/combo_form.html
+msgid "Comma-separated; same wording as your inquiry form. Used for filters."
+msgstr "Kommagetrennt; gleiche Begriffe wie im Anfrage-Formular. Wird für Filter genutzt."
+
+#: templates/catalog/combo_form.html
+msgid "Free choice from category"
+msgstr "Freie Auswahl aus der Kategorie"
+
+#: templates/catalog/combo_form.html
+msgid "Guests pick any dishes of the category at à la carte prices — choice groups below are ignored."
+msgstr "Gäste wählen beliebige Gerichte der Kategorie zu À-la-carte-Preisen — die Auswahlgruppen unten werden ignoriert."
+
+#: templates/catalog/combo_form.html
+msgid "In set"
+msgstr "Im Set"
+
+#: templates/catalog/combo_form.html
+msgid "Shown as part of the set — guests do not choose; cost is in the fixed price."
+msgstr "Wird als fester Bestandteil des Sets gezeigt — Gäste wählen nicht; die Kosten stecken im Festpreis."

@@ -13,10 +13,16 @@ from .models import Combo, ComboOption
 
 
 def options_from_ids(combo, option_ids):
-    """[ComboOption] по списку id среди активных опций комбо (порядок групп)."""
+    """[ComboOption] по списку id среди активных опций комбо (порядок групп).
+
+    MEN-2: included-группы («Im Set enthalten») пропускаются — их стоимость уже
+    заложена в Combo.price, и id их опций из POST не должны прибавлять надбавку.
+    """
     ids = {str(i) for i in option_ids}
     out = []
     for group in combo.groups_active:
+        if group.included:
+            continue
         for opt in group.options_active:
             if str(opt.pk) in ids:
                 out.append(opt)
@@ -32,6 +38,21 @@ def combo_price(combo, options=()) -> Decimal:
     return combo.price + options_delta(options)
 
 
+def combo_price_from(combo) -> Decimal:
+    """MEN-2: минимально возможная цена сборки («ab …») для карточек/агрегатора.
+
+    Фикс-цена + по каждой ОБЯЗАТЕЛЬНОЙ группе выбора (min_select ≥ 1, не
+    included) — min_select наименьших надбавок её опций.
+    """
+    total = combo.price
+    for group in combo.groups_active:
+        if group.included or group.min_select < 1:
+            continue
+        deltas = sorted(o.price_delta for o in group.options_active)
+        total += sum(deltas[: group.min_select], Decimal("0"))
+    return total
+
+
 def validate_selection(combo, option_ids):
     """Проверить выбор по группам комбо. Возвращает (options, error_str).
 
@@ -41,6 +62,9 @@ def validate_selection(combo, option_ids):
     chosen = set(str(i) for i in option_ids)
     selected = []
     for group in combo.groups_active:
+        # MEN-2: фикс-состав («Im Set enthalten») — показывается, но не выбирается.
+        if group.included:
+            continue
         opt_ids = {str(o.pk) for o in group.options_active}
         picked = [o for o in group.options_active if str(o.pk) in chosen]
         n = len(picked)

@@ -805,6 +805,46 @@ def combo_list(request):
     return render(request, "catalog/combo_list.html", {"combos": combos, "nav": "combos"})
 
 
+def _apply_combo_extras(combo, request) -> list[str]:
+    """MEN-2: поля «набора меню» из POST (create+edit). Возвращает имена полей.
+
+    Форма выводит все поля всегда (W0-инвариант) — presence-сентинелы не нужны.
+    """
+    raw_cat = (request.POST.get("category") or "").strip()
+    category = None
+    if raw_cat:
+        try:
+            category = Category.objects.filter(pk=raw_cat).first()
+        except (ValueError, ValidationError):
+            category = None
+    combo.category = category
+    combo.price_per_person = bool(request.POST.get("price_per_person"))
+    # PositiveSmallIntegerField: кламп, чтобы кривой ввод не ронял save (DataError).
+    combo.min_persons = min(_parse_int(request.POST.get("min_persons")) or 0, 5000)
+    types: list[str] = []
+    for part in (request.POST.get("event_types") or "").replace("\n", ",").split(","):
+        p = part.strip()[:40]
+        if p and p not in types:
+            types.append(p)
+    combo.event_types = types[:12]  # кап как у anfrage.event_types (AF-1)
+    combo.free_pool = bool(request.POST.get("free_pool"))
+    return ["category", "price_per_person", "min_persons", "event_types", "free_pool"]
+
+
+def _combo_form_ctx(request):
+    """MEN-2: категории для привязки + подсказки поводов из словаря AF-1."""
+    site = getattr(getattr(request, "tenant", None), "site_config", None) or {}
+    anfrage = site.get("anfrage") if isinstance(site.get("anfrage"), dict) else {}
+    raw_types = anfrage.get("event_types")
+    suggestions = (
+        [s for s in raw_types if isinstance(s, str)] if isinstance(raw_types, list) else []
+    )
+    return {
+        "categories": Category.objects.order_by("sort_order", "slug"),
+        "event_type_suggestions": suggestions,
+    }
+
+
 @login_required
 def combo_create(request):
     if request.method == "POST":
@@ -821,7 +861,9 @@ def combo_create(request):
                 is_active=bool(request.POST.get("is_active")),
             )
             apply_i18n_overlay(combo, request.POST, getattr(request, "tenant", None))  # L3d
+            _apply_combo_extras(combo, request)  # MEN-2
             combo.save()
+            _handle_uploads(request, combo, folder="combos")  # MEN-2: галерея набора
             return redirect("catalog:combo-edit", pk=combo.pk)
     return render(
         request,
@@ -830,6 +872,7 @@ def combo_create(request):
             "combo": None,
             "nav": "combos",
             "extra_locales": extra_locales(getattr(request, "tenant", None)),
+            **_combo_form_ctx(request),
         },
     )
 
@@ -846,8 +889,10 @@ def combo_edit(request, pk):
         combo.sort_order = _parse_int(request.POST.get("sort")) or 0
         combo.is_active = bool(request.POST.get("is_active"))
         _uf = ["name", "price", "description", "sort_order", "is_active", "updated_at"]
+        _uf += _apply_combo_extras(combo, request)  # MEN-2
         _uf += apply_i18n_overlay(combo, request.POST, getattr(request, "tenant", None))  # L3d
         combo.save(update_fields=_uf)
+        _handle_uploads(request, combo, folder="combos")  # MEN-2: галерея набора
         messages.success(request, _("Saved."))
         return redirect("catalog:combo-edit", pk=pk)
     products = Product.objects.filter(is_active=True).order_by("name")
@@ -860,8 +905,41 @@ def combo_edit(request, pk):
             "products": products,
             "nav": "combos",
             "extra_locales": extra_locales(getattr(request, "tenant", None)),
+            **_combo_form_ctx(request),
         },
     )
+
+
+@login_required
+def combo_image_delete(request, pk, image_id):
+    """MEN-2: удаляет одно фото набора (из списка и из storage) — как у категории."""
+    combo = get_object_or_404(Combo, pk=pk)
+    if request.method == "POST":
+        kept, removed_primary = [], False
+        for img in list(combo.images or []):
+            if img.get("id") == image_id:
+                delete_stored_image(img)
+                removed_primary = img.get("is_primary", False)
+            else:
+                kept.append(img)
+        if removed_primary and kept:
+            kept[0]["is_primary"] = True
+        combo.images = kept
+        combo.save(update_fields=["images", "updated_at"])
+    return redirect("catalog:combo-edit", pk=pk)
+
+
+@login_required
+def combo_image_primary(request, pk, image_id):
+    """MEN-2: делает фото набора главным (карточка/агрегатор)."""
+    combo = get_object_or_404(Combo, pk=pk)
+    if request.method == "POST":
+        images = list(combo.images or [])
+        for img in images:
+            img["is_primary"] = img.get("id") == image_id
+        combo.images = images
+        combo.save(update_fields=["images", "updated_at"])
+    return redirect("catalog:combo-edit", pk=pk)
 
 
 @login_required
@@ -884,6 +962,7 @@ def combo_group_add(request, pk):
         ComboGroup.objects.create(
             combo=combo,
             label=label,
+            included=bool(request.POST.get("included")),  # MEN-2
             min_select=_parse_int(request.POST.get("min")) or 0,
             max_select=_parse_int(request.POST.get("max")) or 0,
             sort_order=_parse_int(request.POST.get("sort")) or 0,
@@ -897,12 +976,21 @@ def combo_group_add(request, pk):
 def combo_group_update(request, pk, gid):
     group = get_object_or_404(ComboGroup, pk=gid, combo_id=pk)
     group.label = (request.POST.get("label") or group.label).strip()
+    group.included = bool(request.POST.get("included"))  # MEN-2
     group.min_select = _parse_int(request.POST.get("min")) or 0
     group.max_select = _parse_int(request.POST.get("max")) or 0
     group.sort_order = _parse_int(request.POST.get("sort")) or 0
     group.is_active = bool(request.POST.get("is_active"))
     group.save(
-        update_fields=["label", "min_select", "max_select", "sort_order", "is_active", "updated_at"]
+        update_fields=[
+            "label",
+            "included",
+            "min_select",
+            "max_select",
+            "sort_order",
+            "is_active",
+            "updated_at",
+        ]
     )
     messages.success(request, _("Group updated."))
     return redirect("catalog:combo-edit", pk=pk)

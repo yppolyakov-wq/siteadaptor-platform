@@ -6,9 +6,36 @@
 <div class="max-w-3xl space-y-6">
   <a href="{% url 'catalog:combo-list' %}" class="text-sm text-gray-500">&larr; {% trans "Combos" %}</a>
 
-  {# Основные поля комбо #}
-  <form method="post" class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+  {% comment %}MEN-2: галерея набора — плитка «＋ Foto» + превью с ★/✕ (паттерн категории FB-6). Файлы уходят при Save (input[name=images] в multipart-форме ниже).{% endcomment %}
+  <div>
+    <p class="text-sm font-medium mb-2">{% trans "Images" %}</p>
+    <div class="flex flex-wrap gap-3">
+      {% include "catalog/_photo_add_tile.html" %}
+      {% if combo %}{% for img in combo.images %}
+        <div class="relative w-24 border rounded-lg overflow-hidden {% if img.is_primary %}ring-2 ring-indigo-500{% endif %}">
+          <img src="{{ img.url }}" alt="" class="w-24 h-24 object-cover">
+          <div class="flex text-xs">
+            {% if not img.is_primary %}
+            <form method="post" action="{% url 'catalog:combo-image-primary' combo.pk img.id %}" class="flex-1">
+              {% csrf_token %}<button class="w-full py-1 text-indigo-600 hover:bg-indigo-50">★</button>
+            </form>
+            {% else %}
+            <span class="flex-1 py-1 text-center text-indigo-600">{% trans "Main" %}</span>
+            {% endif %}
+            <form method="post" action="{% url 'catalog:combo-image-delete' combo.pk img.id %}">
+              {% csrf_token %}<button class="px-2 py-1 text-red-600 hover:bg-red-50">✕</button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}{% endif %}
+    </div>
+    <p class="text-xs text-gray-400 mt-1">{% trans "Shown on the menu card and in the gallery of the set page." %}</p>
+  </div>
+
+  {# Основные поля комбо. MEN-2: multipart — фото уходят при Save (плитка «＋ Foto»). #}
+  <form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
     {% csrf_token %}
+    <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple class="hidden">
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Name" %}</label>
       <input name="name" value="{{ combo.name|default:'' }}" required class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
@@ -46,6 +73,42 @@
         {% trans "Active" %}
       </label>
     </div>
+    {% comment %}MEN-2 «Menü-Sets»: направление + цена за человека + мин. заказ + поводы + свободная сборка. Поля видны всегда (W0-инвариант — сентинелы не нужны).{% endcomment %}
+    <div class="border-t border-gray-100 pt-4 space-y-4">
+      <p class="text-sm font-semibold">{% trans "Menu set" %}</p>
+      <div class="flex flex-wrap gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">{% trans "Category (direction)" %}</label>
+          <select name="category" class="rounded-lg border border-gray-300 px-3 py-2.5">
+            <option value="">— {% trans "none" %} —</option>
+            {% for c in categories %}<option value="{{ c.pk }}" {% if combo.category_id == c.pk %}selected{% endif %}>{% if c.parent_id %}&nbsp;&nbsp;↳ {% endif %}{{ c }}</option>{% endfor %}
+          </select>
+          <p class="text-xs text-gray-400 mt-1">{% trans "Shows the set on the category page (e.g. wedding catering)." %}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">{% trans "Minimum (persons)" %}</label>
+          <input name="min_persons" type="number" min="0" value="{{ combo.min_persons|default:0 }}" class="w-28 rounded-lg border border-gray-300 px-3 py-2.5">
+          <p class="text-xs text-gray-400 mt-1">{% trans "0 = no minimum" %}</p>
+        </div>
+        <label class="flex items-end gap-2 text-sm font-medium pb-2.5">
+          <input type="checkbox" name="price_per_person" {% if combo.price_per_person %}checked{% endif %} class="rounded border-gray-300">
+          {% trans "Price per person" %}
+        </label>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">{% trans "Occasions" %}</label>
+        <input name="event_types" list="combo-event-types" value="{{ combo.event_types|join:', ' }}" placeholder="Hochzeit, Firmenfeier, Geburtstag" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
+        <datalist id="combo-event-types">
+          {% for t in event_type_suggestions %}<option value="{{ t }}"></option>{% endfor %}
+        </datalist>
+        <p class="text-xs text-gray-400 mt-1">{% trans "Comma-separated; same wording as your inquiry form. Used for filters." %}</p>
+      </div>
+      <label class="flex items-center gap-2 text-sm font-medium">
+        <input type="checkbox" name="free_pool" {% if combo.free_pool %}checked{% endif %} class="rounded border-gray-300">
+        {% trans "Free choice from category" %}
+      </label>
+      <p class="text-xs text-gray-400 -mt-2">{% trans "Guests pick any dishes of the category at à la carte prices — choice groups below are ignored." %}</p>
+    </div>
     <button class="rounded-lg bg-indigo-600 text-white px-4 py-2 font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
   </form>
 
@@ -67,6 +130,8 @@
               <input name="max" type="number" value="{{ g.max_select }}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
             <div><label class="block text-[11px] text-gray-500">{% trans "Order" %}</label>
               <input name="sort" type="number" value="{{ g.sort_order }}" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
+            {% comment %}MEN-2: фикс-состав — показывается плитками, гость не выбирает.{% endcomment %}
+            <label class="flex items-center gap-1 text-sm pb-1.5" title="{% trans 'Shown as part of the set — guests do not choose; cost is in the fixed price.' %}"><input type="checkbox" name="included" {% if g.included %}checked{% endif %} class="rounded border-gray-300">{% trans "In set" %}</label>
             <label class="flex items-center gap-1 text-sm pb-1.5"><input type="checkbox" name="is_active" {% if g.is_active %}checked{% endif %} class="rounded border-gray-300">{% trans "Active" %}</label>
             <button class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-50">{% trans "Save" %}</button>
           </form>
@@ -112,6 +177,7 @@
           <input name="label" placeholder="{% trans 'e.g. Drink' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
         <div><label class="block text-[11px] text-gray-500">min</label><input name="min" type="number" value="1" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
         <div><label class="block text-[11px] text-gray-500">max</label><input name="max" type="number" value="1" class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"></div>
+        <label class="flex items-center gap-1 text-sm pb-1.5" title="{% trans 'Shown as part of the set — guests do not choose; cost is in the fixed price.' %}"><input type="checkbox" name="included" class="rounded border-gray-300">{% trans "In set" %}</label>
         <button class="rounded-lg bg-gray-800 text-white px-3 py-1.5 text-sm hover:bg-gray-900">+ {% trans "Group" %}</button>
       </form>
     </div>
