@@ -467,8 +467,11 @@ def _menu_snapshot(combo_id):
 
     Цена — БАЗОВАЯ сборка (`combo_price_from`, «ab X»); у свободной сборки
     считаем минимум как самое дешёвое блюдо пула (пустая сборка не продаётся).
-    Диеты — объединение по составу (решение: «Vegan möglich» = в наборе ЕСТЬ
-    веганские позиции; чекпоинт MEN-5 у владельца). Блюда — в dish_names.
+    Диеты — СТРОГО (решение владельца 2026-08-13): чип «vegan» стоит только у
+    набора, где веганское КАЖДОЕ блюдо (пересечение по составу) — гость по
+    фильтру «vegan» не должен получить меню с мясным горячим. У свободной
+    сборки пересечение считается по пулу: гость волен взять любое блюдо, так
+    что обещать диету можно, лишь когда её держит весь пул. Блюда — в dish_names.
     """
     from apps.catalog.combos import combo_price_from, pool_products
     from apps.catalog.models import Combo
@@ -482,13 +485,15 @@ def _menu_snapshot(combo_id):
     else:
         dishes = [o.product for g in combo.groups_active for o in g.options_active if o.product_id]
         price = combo_price_from(combo)
-    seen, names, diets = set(), [], set()
+    seen, names = set(), []
+    diets: set | None = None  # None = блюд ещё не было (пустой состав → без чипов)
     for dish in dishes:
         label = str(dish)
         if label not in seen:
             seen.add(label)
             names.append(label)
-        diets.update(dish.diets or [])
+        dish_diets = set(dish.diets or ())
+        diets = dish_diets if diets is None else (diets & dish_diets)
     return {
         "title": {"de": combo.name, **(combo.name_i18n or {})},
         "teaser": ({"de": combo.description[:300]} if combo.description else {}),
@@ -498,7 +503,7 @@ def _menu_snapshot(combo_id):
         "price_per_person": combo.price_per_person,
         "min_persons": combo.min_persons,
         "event_types": list(combo.event_types or []),
-        "diets": sorted(diets),
+        "diets": sorted(diets or ()),
         "dish_names": names[:40],
     }
 

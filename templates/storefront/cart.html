@@ -194,9 +194,17 @@
         <p class="text-[11px] text-gray-400">{% trans "inkl. MwSt." %}</p>
       </div>
 
+      {% if quote_cart %}
+      {% comment %}MEN-9: режим просчёта (кейтеринг) — заказа-покупки нет, значит §312j
+      не применяется и «Zahlungspflichtig bestellen» было бы ЛОЖЬЮ: гость отправляет
+      необязывающий запрос, владелец отвечает предложением.{% endcomment %}
+      <button type="submit" form="checkout-form" class="w-full text-white rounded-lg px-4 py-3 font-semibold shadow-sm" style="background: var(--accent);">{% trans "Unverbindlich anfragen" %}</button>
+      <p class="text-xs text-gray-400 text-center">{% trans "Unverbindlich — keine Zahlungspflicht. Wir melden uns mit einem Angebot." %}</p>
+      {% else %}
       {# E-2/§312j BGB: кнопка заказа обязана явно называть платёжную обязанность. #}
       <button type="submit" form="checkout-form" class="w-full text-white rounded-lg px-4 py-3 font-semibold shadow-sm" style="background: var(--accent);">{% trans "Zahlungspflichtig bestellen" %}</button>
       <p class="text-xs text-gray-400 text-center">🔒 {% trans "Secure order — your data stays private." %}</p>
+      {% endif %}
       {% if delivery_enabled and not storefront_table %}
         <script>
           // R5: переключение Abholung/Lieferung — адрес и стоимость доставки в итоге.

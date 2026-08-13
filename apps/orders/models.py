@@ -129,6 +129,12 @@ class Order(TimestampedModel):
         return self.reserve_expires_at is not None
 
     @property
+    def is_quote(self) -> bool:
+        """MEN-9: заказ-ЗАПРОС на просчёт (кейтеринг): собран корзиной, но без
+        платёжной обязанности — свои тексты подтверждения и письма."""
+        return self.source_channel == "quote"
+
+    @property
     def shipping_eur(self):
         from decimal import Decimal
 

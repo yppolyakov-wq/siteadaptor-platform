@@ -1,0 +1,10 @@
+{% load i18n %}{% blocktrans with name=order.customer.name %}Hallo {{ name }},{% endblocktrans %}
+
+{% trans "vielen Dank für Ihre Anfrage! Wir haben folgende Wünsche notiert:" %}
+{% for item in items %}- {{ item.qty }}× {{ item.title_snapshot }}{% if item.modifiers_label %} ({{ item.modifiers_label }}){% endif %}
+{% endfor %}
+{% blocktrans with total=order.total %}Unverbindliche Kalkulation: {{ total }} €{% endblocktrans %}
+
+{% trans "Wichtig: Das ist eine unverbindliche Anfrage — KEIN Kaufvertrag und keine Zahlungspflicht. Wir prüfen Termin und Details und melden uns mit einem verbindlichen Angebot bei Ihnen." %}
+
+{% trans "Bis gleich!" %}

@@ -17881,3 +17881,35 @@ msgstr "Базова ціна"
 #: templates/catalog/combo_list.html
 msgid "Promote in the directory"
 msgstr "Просувати в каталозі"
+
+#: templates/emails/order_quote_created.txt
+msgid "vielen Dank für Ihre Anfrage! Wir haben folgende Wünsche notiert:"
+msgstr "дякуємо за запит! Ми записали такі побажання:"
+
+#: templates/emails/order_quote_created.txt
+msgid "Unverbindliche Kalkulation: %(total)s €"
+msgstr "Попередній розрахунок: %(total)s €"
+
+#: templates/emails/order_quote_created.txt
+msgid "Wichtig: Das ist eine unverbindliche Anfrage — KEIN Kaufvertrag und keine Zahlungspflicht. Wir prüfen Termin und Details und melden uns mit einem verbindlichen Angebot bei Ihnen."
+msgstr "Важливо: це незобов'язувальний запит — НЕ договір купівлі-продажу та без обов'язку оплати. Ми перевіримо дату й деталі та повернемося з обов'язковою пропозицією."
+
+#: templates/emails/order_quote_created.txt
+msgid "Bis gleich!"
+msgstr "До зв'язку!"
+
+#: templates/emails/order_quote_created.txt
+msgid "Ihre Anfrage ist da — %(code)s"
+msgstr "Ваш запит отримано — %(code)s"
+
+#: templates/storefront/cart.html
+msgid "Unverbindlich — keine Zahlungspflicht. Wir melden uns mit einem Angebot."
+msgstr "Без зобов'язань — оплата не потрібна. Ми повернемося з пропозицією."
+
+#: templates/storefront/order_confirmation.html
+msgid "Danke! Ihre Anfrage ist da."
+msgstr "Дякуємо! Ваш запит отримано."
+
+#: templates/storefront/order_confirmation.html
+msgid "Wir prüfen Termin und Details und melden uns mit einem Angebot. Ihre Anfrage-Nummer:"
+msgstr "Ми перевіримо дату й деталі та повернемося з пропозицією. Номер вашого запиту:"

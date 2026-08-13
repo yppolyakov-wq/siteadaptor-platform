@@ -17812,3 +17812,35 @@ msgstr "Taban fiyat"
 #: templates/catalog/combo_list.html
 msgid "Promote in the directory"
 msgstr "Dizinde öne çıkar"
+
+#: templates/emails/order_quote_created.txt
+msgid "vielen Dank für Ihre Anfrage! Wir haben folgende Wünsche notiert:"
+msgstr "talebiniz için teşekkürler! Şu istekleri not ettik:"
+
+#: templates/emails/order_quote_created.txt
+msgid "Unverbindliche Kalkulation: %(total)s €"
+msgstr "Bağlayıcı olmayan hesaplama: %(total)s €"
+
+#: templates/emails/order_quote_created.txt
+msgid "Wichtig: Das ist eine unverbindliche Anfrage — KEIN Kaufvertrag und keine Zahlungspflicht. Wir prüfen Termin und Details und melden uns mit einem verbindlichen Angebot bei Ihnen."
+msgstr "Önemli: bu bağlayıcı olmayan bir taleptir — satış sözleşmesi DEĞİLDİR ve ödeme yükümlülüğü doğurmaz. Tarihi ve ayrıntıları kontrol edip bağlayıcı bir teklifle size döneceğiz."
+
+#: templates/emails/order_quote_created.txt
+msgid "Bis gleich!"
+msgstr "Yakında görüşmek üzere!"
+
+#: templates/emails/order_quote_created.txt
+msgid "Ihre Anfrage ist da — %(code)s"
+msgstr "Talebiniz bize ulaştı — %(code)s"
+
+#: templates/storefront/cart.html
+msgid "Unverbindlich — keine Zahlungspflicht. Wir melden uns mit einem Angebot."
+msgstr "Bağlayıcı değildir — ödeme yükümlülüğü yoktur. Size bir teklifle döneceğiz."
+
+#: templates/storefront/order_confirmation.html
+msgid "Danke! Ihre Anfrage ist da."
+msgstr "Teşekkürler! Talebiniz bize ulaştı."
+
+#: templates/storefront/order_confirmation.html
+msgid "Wir prüfen Termin und Details und melden uns mit einem Angebot. Ihre Anfrage-Nummer:"
+msgstr "Tarihi ve ayrıntıları kontrol edip bir teklifle döneceğiz. Talep numaranız:"

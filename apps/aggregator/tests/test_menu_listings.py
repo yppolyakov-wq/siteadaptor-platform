@@ -75,8 +75,9 @@ def test_sync_menu_listing_upsert_and_remove():
     assert listing.price_per_person is True and listing.min_persons == 20
     assert listing.event_types == ["Hochzeit"]
     assert listing.detail_url.endswith(f"/kombi/{combo.id}/")
-    # диеты — объединение по составу («Vegan möglich»); блюда — наружу
-    assert listing.diets == ["vegan", "vegetarisch"]
+    # MEN-8 (решение владельца «строгий набор»): смешанный состав (мясное
+    # горячее + веган-десерт) диет-чипов НЕ получает — пересечение пусто.
+    assert listing.diets == []
     assert "Rinderfilet mit Rotweinjus" in listing.dish_names
 
     combo.is_active = False
@@ -124,8 +125,8 @@ def test_menu_filters_guests_diet_event_type_and_price():
     assert not views.listings_for(guests="10").exists()
     assert views.listings_for(guests="abc").exists()  # мусор не роняет выдачу
 
-    assert views.listings_for(diet="vegan").exists()
-    assert not views.listings_for(diet="halal").exists()
+    # диеты у смешанного набора пусты (MEN-8 строгий) — отдельные замки ниже
+    assert not views.listings_for(diet="vegan").exists()
     assert views.listings_for(event_type="Hochzeit").exists()
     assert not views.listings_for(event_type="Messe").exists()
 
@@ -161,3 +162,52 @@ def test_reconcile_syncs_and_prunes_menu_listings():
         )
     )
     assert refs == {str(combo.id)}
+
+
+def test_diets_strict_intersection_over_composition():
+    """MEN-8: чип диеты — только если ЕЁ держит каждое блюдо набора.
+
+    Гость, отфильтровавший «vegan», не должен получить меню с мясным горячим.
+    """
+    _tenant()
+    cat = Category.objects.create(name={"de": "Hochzeit"}, slug="men8-vegan")
+    combo = Combo.objects.create(name="Veganes Menü", price=Decimal("39.00"), category=cat)
+    g = ComboGroup.objects.create(combo=combo, label="Menü", included=True)
+    ComboOption.objects.create(
+        group=g,
+        product=ProductFactory(name={"de": "Bete"}, diets=["vegan", "glutenfrei"]),
+    )
+    ComboOption.objects.create(
+        group=g,
+        product=ProductFactory(name={"de": "Aubergine"}, diets=["vegan", "vegetarisch"]),
+    )
+    tasks.sync_menu_listing("public", str(combo.id))
+    listing = AggregatorListing.objects.get(source_ref=str(combo.id))
+    # vegan держат ОБА блюда; glutenfrei/vegetarisch — только по одному
+    assert listing.diets == ["vegan"]
+    assert views.listings_for(diet="vegan").exists()
+    assert not views.listings_for(diet="glutenfrei").exists()
+
+    # одно не-веганское блюдо снимает чип со всего набора
+    ComboOption.objects.create(group=g, product=ProductFactory(name={"de": "Filet"}, diets=[]))
+    tasks.sync_menu_listing("public", str(combo.id))
+    listing.refresh_from_db()
+    assert listing.diets == []
+
+
+def test_free_pool_diets_strict_over_pool():
+    """MEN-8: у свободной сборки гость волен взять любое блюдо → диету обещаем,
+    только если её держит ВЕСЬ пул."""
+    _tenant()
+    cat = Category.objects.create(name={"de": "Vegan"}, slug="men8-pool")
+    ProductFactory(name={"de": "Suppe"}, category=cat, course="suppe", diets=["vegan"])
+    ProductFactory(name={"de": "Curry"}, category=cat, course="hauptgang", diets=["vegan"])
+    combo = Combo.objects.create(
+        name="Freie Auswahl", price=Decimal("0.00"), free_pool=True, category=cat
+    )
+    tasks.sync_menu_listing("public", str(combo.id))
+    assert AggregatorListing.objects.get(source_ref=str(combo.id)).diets == ["vegan"]
+
+    ProductFactory(name={"de": "Schnitzel"}, category=cat, course="hauptgang", diets=[])
+    tasks.sync_menu_listing("public", str(combo.id))
+    assert AggregatorListing.objects.get(source_ref=str(combo.id)).diets == []

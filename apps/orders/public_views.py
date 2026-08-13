@@ -632,8 +632,13 @@ def cart_view(request):
     # форма байт-в-байт прежняя, замок test_checkout_form_parity_single_method).
     _methods = order_payments.available_methods(tenant)
     _labels = dict(Order.PAYMENT_METHODS)
+    # MEN-9: в режиме «корзина = запрос на просчёт» оплаты нет вовсе — пикер
+    # способов не рендерим (выбирать нечего), кнопка не §312j (см. cart.html).
+    ctx["quote_cart"] = _cfg.get("quote_cart", False)
     ctx["payment_methods"] = (
-        [{"code": m, "label": _labels[m]} for m in _methods] if len(_methods) > 1 else []
+        []
+        if ctx["quote_cart"]
+        else ([{"code": m, "label": _labels[m]} for m in _methods] if len(_methods) > 1 else [])
     )
     return render(request, "storefront/cart.html", ctx)
 
@@ -754,6 +759,16 @@ def checkout(request):
     chosen_method = request.POST.get("payment") or methods[0]
     if chosen_method not in methods:
         chosen_method = methods[0]
+    # MEN-9: режим просчёта — платить нечего и нечем (пикера нет); фиксируем
+    # on_site и метим заказ каналом «quote» (по прецеденту anprobe: тот же
+    # Order, но другие тексты/письма и никакой платёжной обязанности).
+    from apps.tenants import siteconfig as _siteconfig
+
+    quote_mode = bool(
+        _siteconfig.normalize(getattr(tenant, "site_config", None) or {}).get("quote_cart")
+    )
+    if quote_mode:
+        chosen_method = Order.METHOD_ON_SITE
 
     # _cart_items даёт (product, variant, options, qty); create_order ждёт
     # (product, variant, qty, options) — переставляем.
@@ -783,7 +798,7 @@ def checkout(request):
             note=request.POST.get("note", "").strip()[:2000],
             table_number="" if delivery else request.session.get("table", ""),
             pickup_location=pickup_location,
-            source_channel=(request.GET.get("ch") or "")[:50],
+            source_channel=("quote" if quote_mode else (request.GET.get("ch") or "")[:50]),
             fulfillment=Order.FULFILLMENT_DELIVERY if delivery else Order.FULFILLMENT_PICKUP,
             shipping_address=shipping_address,
             shipping_cents=shipping_cents,

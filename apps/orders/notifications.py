@@ -27,6 +27,9 @@ _CUSTOMER_TEMPLATES = {
     # KEIN Kaufvertrag; Kauf erst im Geschäft) вместо языка договора купли-продажи.
     "anprobe_created": "order_anprobe_created",
     "anprobe_cancelled": "order_anprobe_cancelled",
+    # MEN-9: заказ-запрос на просчёт (кейтеринг) — «Anfrage eingegangen, wir
+    # melden uns mit einem Angebot» вместо языка договора купли-продажи.
+    "quote_created": "order_quote_created",
 }
 
 
@@ -37,6 +40,9 @@ def enqueue_order_email(order, event):
     # штатные (confirmed/ready уместны и для резерва).
     if getattr(order, "is_anprobe", False) and event in ("created", "cancelled"):
         event = f"anprobe_{event}"
+    # MEN-9: у заказа-запроса своё письмо о создании (без Kaufvertrag/Widerruf).
+    elif getattr(order, "is_quote", False) and event == "created":
+        event = "quote_created"
     schema = connection.schema_name
     customer = order.customer
     tenant = _tenant(schema)

@@ -6218,6 +6218,10 @@ CATERING = DemoKit(
         "nav": {"cta": True},
         "catalog_layout": {"preset": "preisliste"},
         "category_landings": True,  # DS-7: плитки направлений → /bereich/<slug>/
+        # MEN-9/MEN-10: корзина работает, но собирает ЗАПРОС НА ПРОСЧЁТ —
+        # кнопка «Unverbindlich anfragen» (не §312j), оплаты нет, письмо и
+        # подтверждение говорят языком заявки, AGB §2 описывает этот флоу.
+        "quote_cart": True,
     },
     # DS-4b «в точности как макет»: главная = 6 блоков (hero → направления →
     # Speisekarte → шаги → доверие+цифры → форма); остальной контент кита жив
@@ -6682,6 +6686,10 @@ CATERING = DemoKit(
     # Явный список для apply_kit (снимает из disabled; тип-пресет — на сидинге).
     enable_modules=[
         "jobs",
+        # MEN-10 (решение владельца): «продавать сразу не нужно, но через корзину
+        # прогонять как заказ на просчёт» — orders включён, но в режиме
+        # quote_cart (config_patch): корзина собирает ЗАПРОС, не покупку.
+        "orders",
         "promotions",
         "crm",
         "inbox",
@@ -8548,14 +8556,25 @@ def _agb_template(tenant, kit: DemoKit) -> str:
     блоки по модулям (Abholung/Lieferung, Termine, Übernachtung, Tickets)."""
     mods = set(kit.enable_modules or [])
     kontakt = tenant.public_email or tenant.name
+    # MEN-9: в режиме просчёта корзина НЕ заключает договор — §2 обязан описывать
+    # реальный флоу (запрос → предложение → подтверждение), иначе AGB врёт.
+    quote_mode = bool((kit.config_patch or {}).get("quote_cart"))
+    vertragsschluss = (
+        "§ 2 Vertragsschluss\nDie Darstellung unserer Leistungen ist kein bindendes "
+        "Angebot. Über den Warenkorb senden Sie eine UNVERBINDLICHE Anfrage — daraus "
+        "entsteht keine Zahlungspflicht. Wir prüfen Termin und Details und senden ein "
+        "verbindliches Angebot; der Vertrag kommt mit Ihrer Annahme zustande."
+        if quote_mode
+        else "§ 2 Vertragsschluss\nDie Darstellung unserer Produkte und Leistungen ist "
+        "kein bindendes Angebot. Mit Klick auf «Zahlungspflichtig bestellen» bzw. "
+        "Absenden einer Buchung geben Sie ein verbindliches Angebot ab; der Vertrag "
+        "kommt mit unserer Bestätigung zustande."
+    )
     parts = [
         "Allgemeine Geschäftsbedingungen (AGB)\n",
         f"§ 1 Geltungsbereich\nDiese AGB gelten für alle Bestellungen und Buchungen "
         f"über die Website von {tenant.name}.",
-        "§ 2 Vertragsschluss\nDie Darstellung unserer Produkte und Leistungen ist "
-        "kein bindendes Angebot. Mit Klick auf «Zahlungspflichtig bestellen» bzw. "
-        "Absenden einer Buchung geben Sie ein verbindliches Angebot ab; der Vertrag "
-        "kommt mit unserer Bestätigung zustande.",
+        vertragsschluss,
         "§ 3 Preise und Zahlung\nAlle Preise verstehen sich in Euro inkl. der "
         "gesetzlichen MwSt. Es gelten die beim jeweiligen Angebot ausgewiesenen "
         "Zahlungsarten.",

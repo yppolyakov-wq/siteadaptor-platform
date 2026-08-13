@@ -1,0 +1,1 @@
+{% load i18n %}{% blocktrans with code=order.reference_code %}Ihre Anfrage ist da — {{ code }}{% endblocktrans %}

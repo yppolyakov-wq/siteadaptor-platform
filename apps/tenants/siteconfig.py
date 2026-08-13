@@ -2818,6 +2818,12 @@ def _normalize_impl(config) -> dict:
     # при True; выключено = ключа нет, golden целы).
     if config.get("anprobe"):
         normalized["anprobe"] = True
+    # MEN-9 (кейтеринг, решение владельца «продавать сразу не нужно, но через
+    # корзину прогонять как заказ на просчёт»): корзина и чекаут работают, но
+    # заказ — НЕОБЯЗЫВАЮЩИЙ запрос: без оплаты, без §312j-кнопки, письма
+    # говорят «Anfrage». Presence-minimal (ключ только при True — golden целы).
+    if config.get("quote_cart"):
+        normalized["quote_cart"] = True
     # M20U-7 (per-page): раскладка сетки страницы каталога /sortiment/. Дефолт cols3
     # воспроизводит прежнюю захардкоженную сетку (grid-cols-2 lg:grid-cols-3).
     normalized["catalog_layout"] = normalize_layout(
