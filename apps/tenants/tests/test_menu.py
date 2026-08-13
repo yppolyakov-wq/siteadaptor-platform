@@ -183,3 +183,126 @@ def test_resolve_category_requires_existing_category():
     Category.objects.create(name="Fastfood", slug="fastfood", is_active=True)
     items = menu.resolve_menu(tenant, "top")
     assert items and items[0]["url"] == "/sortiment/?kategorie=fastfood"
+
+
+# --- MEN-15: авто-подменю категорий с картинками -------------------------------
+
+
+def _menu_with_categories(target: str = "", **cfg):
+    return {
+        "menus": {
+            "top": {"items": [{"label": "Speisekarte", "type": "categories", "target": target}]}
+        },
+        **cfg,
+    }
+
+
+def test_categories_node_survives_normalize():
+    cfg = siteconfig.normalize(_menu_with_categories())
+    node = cfg["menus"]["top"]["items"][0]
+    assert node["type"] == "categories" and node["children"] == []
+
+
+@pytest.mark.django_db
+def test_categories_node_builds_children_from_live_catalog():
+    from apps.catalog.models import Category
+
+    tenant = TenantFactory(
+        schema_name="public", slug="mc", name="MC", site_config=_menu_with_categories()
+    )
+    # категорий нет — но сам пункт ведёт в каталог, поэтому остаётся
+    items = menu.resolve_menu(tenant, "top")
+    assert items and items[0]["url"] == "/sortiment/" and items[0]["children"] == []
+
+    Category.objects.create(name={"de": "Buffets"}, slug="mc-buffets", sort_order=1)
+    Category.objects.create(name={"de": "Getränke"}, slug="mc-drinks", sort_order=2)
+    Category.objects.create(name={"de": "Aus"}, slug="mc-off", is_active=False)
+    tenant._menu_categories_memo = None  # мемо живёт на объекте запроса
+    kids = menu.resolve_menu(tenant, "top")[0]["children"]
+    assert [k["label"] for k in kids] == ["Buffets", "Getränke"]  # выключенной нет
+    assert kids[0]["url"] == "/sortiment/?kategorie=mc-buffets"
+
+
+@pytest.mark.django_db
+def test_categories_children_are_one_query_and_memoized():
+    """Риск №1 плана MEN-15: меню резолвится на каждый рендер (шапка, нижнее
+    меню, контекст кабинета) — построение детей обязано быть однозапросным."""
+    from django.db import connection
+    from django.test.utils import CaptureQueriesContext
+
+    from apps.catalog.models import Category
+
+    for i in range(5):
+        Category.objects.create(name={"de": f"Kat {i}"}, slug=f"q-kat-{i}", sort_order=i)
+    tenant = TenantFactory(
+        schema_name="public", slug="mq", name="MQ", site_config=_menu_with_categories()
+    )
+    with CaptureQueriesContext(connection) as ctx:
+        menu.resolve_menu(tenant, "top")
+    assert len(ctx.captured_queries) == 1, [q["sql"] for q in ctx.captured_queries]
+    with CaptureQueriesContext(connection) as ctx2:
+        menu.resolve_menu(tenant, "top")  # второй рендер — из мемо
+    assert ctx2.captured_queries == []
+
+
+@pytest.mark.django_db
+def test_categories_children_follow_landing_setting_like_tiles():
+    """Ссылка в меню обязана совпадать с плиткой категории (_category_tile.html):
+    до MEN-15 меню всегда вело на фильтр, а плитка — на лендинг направления."""
+    from apps.catalog.models import Category
+
+    Category.objects.create(
+        name={"de": "Hochzeit"},
+        description={"de": "Für den großen Tag"},  # landing_ready
+        slug="ml-wedding",
+    )
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="ml",
+        name="ML",
+        site_config=_menu_with_categories(category_landings=True),
+    )
+    kids = menu.resolve_menu(tenant, "top")[0]["children"]
+    assert kids[0]["url"] == "/bereich/ml-wedding/"
+
+    tenant.site_config = _menu_with_categories()  # тумблер выключен
+    tenant._menu_categories_memo = None
+    kids = menu.resolve_menu(tenant, "top")[0]["children"]
+    assert kids[0]["url"] == "/sortiment/?kategorie=ml-wedding"
+
+
+@pytest.mark.django_db
+def test_categories_panel_uses_photos_only_when_they_exist():
+    """Фолбэк обязателен: у большинства тенантов Category.images пуст — без
+    флага панель выродилась бы в серые прямоугольники."""
+    from apps.catalog.models import Category
+
+    cat = Category.objects.create(name={"de": "Buffets"}, slug="mp-buffets")
+    tenant = TenantFactory(
+        schema_name="public", slug="mp", name="MP", site_config=_menu_with_categories()
+    )
+    assert menu.resolve_menu(tenant, "top")[0]["has_images"] is False
+
+    cat.images = [{"id": "i1", "url": "/media/buffet.jpg", "is_primary": True}]
+    cat.save(update_fields=["images"])
+    tenant._menu_categories_memo = None
+    item = menu.resolve_menu(tenant, "top")[0]
+    assert item["has_images"] is True
+    assert item["children"][0]["image"] == "/media/buffet.jpg"
+
+
+@pytest.mark.django_db
+def test_categories_node_can_show_subcategories_of_one_parent():
+    from apps.catalog.models import Category
+
+    parent = Category.objects.create(name={"de": "Essen"}, slug="ms-food")
+    Category.objects.create(name={"de": "Suppen"}, slug="ms-soups", parent=parent)
+    Category.objects.create(name={"de": "Getränke"}, slug="ms-drinks")  # корневая
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="ms",
+        name="MS",
+        site_config=_menu_with_categories(target="ms-food"),
+    )
+    kids = menu.resolve_menu(tenant, "top")[0]["children"]
+    assert [k["label"] for k in kids] == ["Suppen"]

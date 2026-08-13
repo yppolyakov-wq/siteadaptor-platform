@@ -96,7 +96,7 @@
         <div class="flex items-center gap-2">{% include "storefront/_header_icons.html" %}</div>
       </div>
       {# NAV-v2: десктоп-меню одной строкой (overflow → «Mehr ▾», партиал). #}
-      <nav id="sf-nav-desktop" class="text-sm hidden sm:flex items-center gap-1 justify-center w-full min-w-0 overflow-hidden">
+      <nav id="sf-nav-desktop" class="text-sm hidden sm:flex items-center gap-1 justify-center w-full min-w-0 overflow-hidden hover:overflow-visible focus-within:overflow-visible">
         {% include "storefront/_header_nav.html" %}
       </nav>
     </div>
@@ -104,7 +104,7 @@
     {# NAV-v2 (референс UniTheme): classic/minimal — «лого | меню | иконки» одной строкой. #}
     <div class="max-w-7xl mx-auto px-4 h-14 flex items-center gap-2">
       {% include "storefront/_header_logo.html" %}
-      <nav id="sf-nav-desktop" class="text-sm {% if style == 'minimal' %}hidden{% else %}hidden sm:flex{% endif %} items-center gap-1 flex-1 min-w-0 overflow-hidden px-2">
+      <nav id="sf-nav-desktop" class="text-sm {% if style == 'minimal' %}hidden{% else %}hidden sm:flex{% endif %} items-center gap-1 flex-1 min-w-0 overflow-hidden hover:overflow-visible focus-within:overflow-visible px-2">
         {% include "storefront/_header_nav.html" %}
       </nav>
       <div class="flex items-center gap-2 shrink-0 ml-auto">{% include "storefront/_header_icons.html" %}</div>
@@ -118,8 +118,10 @@
         {% else %}
           <div class="pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-400">{{ item.label }}</div>
         {% endif %}
+        {% comment %}MEN-15: у категорий — мини-фото 32px в строке (плитки на
+        телефоне съели бы весь экран); без фото строка прежняя.{% endcomment %}
         {% for c in item.children %}
-          <a href="{{ c.url }}" class="block py-2 pl-4 text-gray-600 hover:text-gray-900">{{ c.label }}</a>
+          <a href="{{ c.url }}" class="flex items-center gap-2 py-2 pl-4 text-gray-600 hover:text-gray-900">{% if c.image %}<img src="{{ c.image }}" alt="" loading="lazy" class="w-8 h-8 rounded object-cover shrink-0">{% endif %}{{ c.label }}</a>
         {% endfor %}
       {% endfor %}
     </nav>

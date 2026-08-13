@@ -296,3 +296,15 @@ def test_kits_with_menu_sets_link_them_in_navigation():
         assert kit.menus is None or "combos" in targets, (
             f"{key}: у кита {len(kit.combos)} набор(ов) меню, но в навигации на них нет пункта"
         )
+
+
+@pytest.mark.parametrize("key", _kit_ids())
+def test_categories_node_requires_catalog_module(key):
+    """MEN-15: узел «Kategorien» строит подменю из каталога — у кита без
+    активного catalog он молча выродится в одинокую ссылку на /sortiment/."""
+    kit = demo_kits.KITS[key]
+    if not any(n.get("type") == "categories" for n in _nodes(kit)):
+        pytest.skip("кит не использует авто-подменю категорий")
+    assert "catalog" in _active_modules(kit), f"{key}: узел категорий без модуля catalog"
+    # и категории в ките должны быть — иначе подменю пустое
+    assert kit.categories, f"{key}: узел категорий, но кит не засевает категории"

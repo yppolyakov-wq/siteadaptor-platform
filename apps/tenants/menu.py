@@ -14,6 +14,9 @@ from apps.core import modules
 
 from . import siteconfig
 
+#: MEN-15: сколько категорий максимум уезжает в подменю (панель шапки не резиновая).
+_MAX_MENU_CATEGORIES = 12
+
 _PAGE_URL_NAMES = {
     "home": "storefront-home",
     "offers": "storefront-home",
@@ -159,6 +162,13 @@ def _reverse(name: str):
         return None
 
 
+def _reverse_args(name: str, *args):
+    try:
+        return reverse(name, args=args)
+    except NoReverseMatch:
+        return None
+
+
 def _archetype_url(tenant, key: str):
     spec = modules.get_module(key)
     if spec is None or not spec.storefront_landing:
@@ -177,6 +187,65 @@ def _category_url(tenant, slug: str):
         return None
     base = _reverse("storefront-products")
     return f"{base}?kategorie={slug}" if base else None
+
+
+def _category_children(tenant, parent_slug: str):
+    """MEN-15: дети узла «Kategorien» — живые категории каталога, ОДНИМ запросом.
+
+    Запрос владельца (2026-08-13): «настройка выводить категории во 2-й уровень
+    меню с картинками». Список не ведётся руками: добавил категорию — она в
+    меню. `parent_slug` пуст → корневые категории; иначе подкатегории названной.
+
+    Ссылка обязана совпадать с плиткой категории (`_category_tile.html`):
+    лендинг направления при включённом тумблере и готовом контенте, иначе
+    фильтр каталога. Иначе меню и главная вели бы в разные места.
+
+    Мемо на объекте тенанта — как `_page_has_content`: меню резолвится на каждый
+    рендер (шапка, нижнее меню, контекст-процессор), а это запрос в БД.
+    """
+    if not modules.is_module_active(tenant, "catalog"):
+        return []
+    memo = getattr(tenant, "_menu_categories_memo", None)
+    if memo is None:
+        memo = {}
+        try:
+            tenant._menu_categories_memo = memo
+        except AttributeError:
+            memo = None
+    if memo is not None and parent_slug in memo:
+        return memo[parent_slug]
+
+    try:
+        from apps.catalog.models import Category
+
+        qs = Category.objects.filter(is_active=True)
+        qs = qs.filter(parent__slug=parent_slug) if parent_slug else qs.filter(parent__isnull=True)
+        rows = list(qs.order_by("sort_order", "slug")[:_MAX_MENU_CATEGORIES])
+    except Exception:  # noqa: BLE001 — узел меню не должен ронять страницу
+        rows = []
+
+    landings = bool(siteconfig.normalize(tenant.site_config).get("category_landings"))
+    base = _reverse("storefront-products")
+    out = []
+    for cat in rows:
+        if landings and cat.landing_ready:
+            url = _reverse_args("storefront-bereich", cat.slug)
+        else:
+            url = f"{base}?kategorie={cat.slug}" if base else None
+        if not url:
+            continue
+        out.append(
+            {
+                "label": cat.get_i18n("name"),
+                "url": url,
+                "icon": cat.icon or "",
+                "image": cat.image_url,
+                "children": [],
+            }
+        )
+    if memo is not None:
+        memo[parent_slug] = out
+    return out
 
 
 def _promo_group_url(tenant, group: str):
@@ -200,6 +269,11 @@ def _node_url(tenant, node: dict):
         return _archetype_url(tenant, target)
     if ntype == "category":
         return _category_url(tenant, target)
+    if ntype == "categories":
+        # MEN-15: сам пункт ведёт в каталог (клик осмысленен), подменю — категории.
+        return (
+            _reverse("storefront-products") if modules.is_module_active(tenant, "catalog") else None
+        )
     if ntype == "promo_group":
         return _promo_group_url(tenant, target)
     if ntype == "page":
@@ -308,6 +382,10 @@ def _resolve(tenant, node: dict):
     if not node.get("enabled", True):
         return None
     children = [c for c in (_resolve(tenant, k) for k in node.get("children", [])) if c]
+    if node["type"] == "categories":
+        # MEN-15: дети собираются из живых категорий (владелец список не ведёт).
+        # Ручные дети, если их положили, остаются впереди авто-списка.
+        children = children + _category_children(tenant, node["target"])
     url = _node_url(tenant, node)
     if url is None and not children:
         return None
@@ -316,6 +394,10 @@ def _resolve(tenant, node: dict):
         "url": url,
         "icon": node.get("icon", ""),
         "children": children,
+        # MEN-15: подсказка рендеру — рисовать подменю плитками с фото. Считаем
+        # здесь, а не в шаблоне: у категории без фото плитка выродится в серый
+        # прямоугольник, поэтому сетку включаем только если фото ЕСТЬ.
+        "has_images": any(c.get("image") for c in children),
     }
 
 

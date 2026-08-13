@@ -116,3 +116,37 @@ def test_builder_save_does_not_touch_legacy_nav_without_menu_area():
     cfg = siteconfig.normalize(tenant.site_config)
     assert cfg["nav"]["style"] == "minimal"  # не сброшен в classic
     assert cfg["font"] == "serif"  # дизайн-поле сохранилось
+
+
+def test_builder_offers_categories_node_with_readable_targets():
+    """MEN-15: тип «Kategorien» и его цели доступны редактору; подпись категории
+    — локализованное имя (раньше в селект уезжал сырой JSONField-словарь)."""
+    from apps.catalog.models import Category
+
+    parent = Category.objects.create(name={"de": "Buffets"}, slug="mb4-buffets")
+    Category.objects.create(name={"de": "Suppen"}, slug="mb4-soups", parent=parent)
+    tenant = TenantFactory(schema_name="public", slug="mb4", name="MB4")
+    body = views.menu_builder_view(
+        _request("get", "/dashboard/site/menu/", tenant=tenant)
+    ).content.decode()
+    data = json.loads(body.split('id="builder-data"', 1)[1].split(">", 1)[1].split("</script>")[0])
+    assert "categories" in data["types"]
+    assert {"value": "mb4-buffets", "label": "Buffets"} in data["categories"]
+    # корневая первой, её подкатегория следом с отступом (а не вперемешку)
+    assert [row["label"] for row in data["categories"]] == ["Buffets", "— Suppen"]
+    parents = [row["value"] for row in data["category_parents"]]
+    assert parents[0] == "" and "mb4-buffets" in parents  # «все корневые» + корневые
+    assert "mb4-soups" not in parents  # подкатегория родителем не предлагается
+
+
+def test_builder_saves_categories_node():
+    tenant = TenantFactory(schema_name="public", slug="mb5", name="MB5")
+    menus = {
+        "top": {"items": [{"label": "Speisekarte", "type": "categories", "target": ""}]},
+        "bottom": {"enabled": False, "items": []},
+    }
+    views.menu_builder_view(
+        _request("post", "/dashboard/site/menu/", {"menus_json": json.dumps(menus)}, tenant)
+    )
+    node = siteconfig.normalize(tenant.site_config)["menus"]["top"]["items"][0]
+    assert node["type"] == "categories" and node["target"] == ""

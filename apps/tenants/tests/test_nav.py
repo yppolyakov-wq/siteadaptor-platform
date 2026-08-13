@@ -93,3 +93,19 @@ def test_storefront_header_does_not_leak_template_comment():
     body = public_views.storefront_home(req).content.decode()
     assert "classic/centered/minimal" not in body  # текст комментария не виден
     assert "M20" not in body
+
+
+def test_header_dropdowns_are_not_clipped_by_nav_row():
+    """Регресс MEN-15: строка меню имеет `overflow-hidden` (страховка от
+    расползания до отработки fitNav) — и она РЕЗАЛА все выпадающие подменю:
+    на десктопе ни одно не открывалось, хотя разметка и hover были корректны
+    (поймано скриншотом стенда, тесты видимости этого не ловят). Клип снимается
+    на hover/focus-within — ровно тогда, когда панель и открывается."""
+    from pathlib import Path
+
+    html = Path("templates/storefront/_base.html").read_text(encoding="utf-8")
+    rows = [line for line in html.splitlines() if 'id="sf-nav-desktop"' in line]
+    assert rows, "строка десктоп-меню не найдена"
+    for row in rows:
+        assert "overflow-hidden" in row  # страховка без JS сохранена
+        assert "hover:overflow-visible" in row and "focus-within:overflow-visible" in row

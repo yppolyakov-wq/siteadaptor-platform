@@ -2790,13 +2790,30 @@ def menu_builder_view(request):
         if s.storefront_landing
     ]
     category_targets = []
+    parent_targets = []
     if modules.is_module_active(tenant, "catalog"):
         from apps.catalog.models import Category
 
-        category_targets = [
-            {"value": c.slug, "label": c.name}
-            for c in Category.objects.filter(is_active=True).order_by("name")
-        ]
+        # MEN-15: подпись — локализованное имя. Раньше в селект уезжал сырой
+        # JSONField ({'de': 'Buffets'}), поэтому владелец выбирал цель вслепую.
+        # Порядок — как в каталоге (sort_order), а не по строке словаря.
+        cats = list(Category.objects.filter(is_active=True).order_by("sort_order", "slug"))
+        roots = [c for c in cats if c.parent_id is None]
+        kids = {}
+        for c in cats:
+            if c.parent_id is not None:
+                kids.setdefault(c.parent_id, []).append(c)
+        # Порядок селекта — как в каталоге: корневая, под ней её подкатегории с
+        # отступом (плоский список вперемешку читался как случайный).
+        category_targets = []
+        for root in roots:
+            category_targets.append({"value": root.slug, "label": root.get_i18n("name")})
+            for kid in kids.get(root.pk, []):
+                category_targets.append({"value": kid.slug, "label": f"— {kid.get_i18n('name')}"})
+        # Цели для узла «Kategorien»: пусто = корневые, иначе подкатегории этой.
+        parent_targets = [
+            {"value": "", "label": str(_("Alle Hauptkategorien"))},
+        ] + [{"value": c.slug, "label": c.get_i18n("name")} for c in roots]
     # Аудит 2026-08-07: список был захардкожен как {home, about}, поэтому узел с
     # любой другой целью (Galerie/Bewertungen/Team/Treue/…) не находил себя в
     # селекте, браузер выбирал первый пункт, и после Save пункт вёл на главную.
@@ -2818,6 +2835,7 @@ def menu_builder_view(request):
         "types": list(siteconfig.MENU_NODE_TYPES),
         "archetypes": archetype_targets,
         "categories": category_targets,
+        "category_parents": parent_targets,
         "pages": page_targets,
         "promo_groups": promo_group_targets,
         "styles": list(siteconfig.NAV_STYLES),

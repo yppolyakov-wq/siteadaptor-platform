@@ -1522,8 +1522,20 @@ NAV_STYLES = ("classic", "centered", "minimal")
 #   page       → target = спец-страница витрины (home/offers; loyalty — S5);
 #   url        → target = произвольный URL (внешний/относительный);
 #   anchor     → target = якорь секции главной (#aktionen);
-#   group      → без своей ссылки, только родитель выпадающего подменю.
-MENU_NODE_TYPES = ("archetype", "category", "promo_group", "page", "url", "anchor", "group")
+#   group      → без своей ссылки, только родитель выпадающего подменю;
+#   categories → MEN-15: авто-подменю категорий каталога с картинками. target
+#                пуст = корневые категории, иначе slug родителя (его подкатегории).
+#                Список НЕ ведётся руками: добавил категорию — она в меню.
+MENU_NODE_TYPES = (
+    "archetype",
+    "category",
+    "categories",
+    "promo_group",
+    "page",
+    "url",
+    "anchor",
+    "group",
+)
 _MAX_MENU_ITEMS = 20  # потолок пунктов на уровень
 _MENU_MAX_DEPTH = 2  # глубина вложенности (родитель + дети)
 # Соответствие легаси-пунктов nav → узлы меню (для вывода menus.top из nav).
