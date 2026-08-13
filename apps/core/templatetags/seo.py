@@ -135,7 +135,10 @@ def storefront_reviews(limit=6):
                 "name": name,
                 "rating": r.rating,
                 "stars": "★" * r.rating + "☆" * (5 - r.rating),
-                "comment": r.comment,
+                # I18N-12: секция отдаёт ПЛОСКИЕ dict'ы, поэтому локализуем здесь —
+                # в шаблоне аксессора модели уже нет (демо-перевод, у живых отзывов
+                # оверлей пуст → возвращается подлинный текст гостя).
+                "comment": r.comment_localized(),
                 "created_at": r.created_at,
             }
         )

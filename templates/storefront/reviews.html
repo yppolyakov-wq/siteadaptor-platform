@@ -27,7 +27,7 @@
   {% for r in page_reviews %}
     <figure class="sf-card p-5">
       <p class="text-amber-500 text-sm mb-2" aria-label="{{ r.rating }}/5">{{ r.stars }}</p>
-      {% if r.comment %}<blockquote class="text-gray-700 leading-relaxed whitespace-pre-line">{{ r.comment_localized }}</blockquote>{% endif %}
+      {% if r.comment %}<blockquote class="text-gray-700 leading-relaxed whitespace-pre-line">{{ r.comment }}</blockquote>{% endif %}
       <figcaption class="text-sm text-gray-500 mt-3">{{ r.name }}{% if r.created_at %} · {{ r.created_at|date:"d.m.Y" }}{% endif %}</figcaption>
     </figure>
   {% endfor %}
