@@ -118,6 +118,37 @@ def test_dish_tiles_and_popup_urls_in_detail():
     assert f"/gericht/{opt.product.pk}/info/" in body
 
 
+def test_dish_popup_shows_thumbstrip_only_for_multiple_photos():
+    """MEN-17: у блюда с несколькими фото — лента миниатюр; с одним фото её нет
+    (лишняя строка под картинкой). Подмена главного фото — делегированный
+    обработчик в _base.html: <script> внутри innerHTML не исполняется."""
+    one = ProductFactory(images=[{"id": "a", "url": "/media/a.jpg", "is_primary": True}])
+    body = public_views.dish_info(_req(method="get"), pk=one.pk).content.decode()
+    assert "data-dish-photo" in body and "data-dish-thumb" not in body
+
+    many = ProductFactory(
+        images=[
+            {"id": "a", "url": "/media/a.jpg", "is_primary": True},
+            {"id": "b", "url": "/media/b.jpg"},
+        ]
+    )
+    body = public_views.dish_info(_req(method="get"), pk=many.pk).content.decode()
+    assert body.count("data-dish-thumb") == 2
+    assert 'data-dish-thumb="/media/b.jpg"' in body
+
+
+def test_long_group_hides_tail_behind_details():
+    """MEN-17 (фидбэк «портянка при большом количестве блюд»): первые 12 блюд
+    видны, остальные — в <details>, но ВСЕ остаются в DOM (выбор возможен)."""
+    combo = Combo.objects.create(name="Große Auswahl", price=Decimal("30.00"))
+    group = ComboGroup.objects.create(combo=combo, label="Hauptgang", min_select=1, max_select=1)
+    for i in range(15):
+        ComboOption.objects.create(group=group, product=ProductFactory(name={"de": f"Gericht {i}"}))
+    body = public_views.combo_detail_public(_req(method="get"), pk=combo.pk).content.decode()
+    assert body.count("data-dish-tile") == 15  # ничего не потеряно
+    assert "<details" in body and "Weitere 3" in body
+
+
 # --- per-person + минимум персон ---------------------------------------------------
 
 

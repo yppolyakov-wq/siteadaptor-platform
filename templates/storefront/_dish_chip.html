@@ -1,0 +1,41 @@
+{% load i18n %}{% load siteui %}
+{% comment %}MEN-17 (фидбэк владельца «немного меньше иконки, а то портянка при
+большом количестве блюд»): блюдо компактной строкой — мини-фото 56px + название
++ цена + контрол выбора. Общий партиал для состава набора (_combo_groups) и
+свободной сборки (_combo_pool): вид блюда правится в ОДНОМ месте.
+
+Фото — кнопка ВНЕ label: клик по фото открывает попап блюда и НЕ переключает
+выбор (инвариант MEN-3).
+
+Из контекста страницы берутся `show_inputs` (продажа/просто показ) и
+`show_prices` (PAngV / menu_show_prices). Параметры include:
+  p                     — Product;
+  readonly              — блюдо без выбора (included-группа набора);
+  multi                 — checkbox вместо radio;
+  in_name + in_name_id  — имя поля собирается конкатенацией ("opt-" + pk у групп,
+                          "dish" у свободной сборки);
+  in_value / in_delta   — значение и дельта цены для live-итога;
+  in_required + is_first — required ставится первому radio обязательной группы;
+  amount / prefix       — цена ("+" у доплаты); 0 и «цены скрыты» не рисуются;
+  ring                  — подсвечивать выбранную строку.{% endcomment %}
+<div class="flex items-center gap-2 rounded-xl border border-gray-200 bg-white overflow-hidden{% if ring %} has-[:checked]:ring-2 has-[:checked]:ring-indigo-500{% endif %}" data-dish-tile>
+  <button type="button" class="relative w-14 h-14 shrink-0 bg-gray-100 overflow-hidden cursor-zoom-in"
+          data-quick-url="{% url 'storefront-dish-info' p.pk %}" aria-label="{{ p }}">
+    {% with img=p.primary_image %}{% if img %}
+      <img src="{{ img.url }}" alt="" class="w-full h-full object-cover" loading="lazy">
+    {% else %}<span class="w-full h-full flex items-center justify-center text-xl" aria-hidden="true">🍽</span>{% endif %}{% endwith %}
+    <span class="absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full bg-white/90 shadow text-[9px] text-gray-500 flex items-center justify-center" aria-hidden="true">ⓘ</span>
+  </button>
+  {% if show_inputs and not readonly %}
+    <label class="flex flex-1 min-w-0 items-center gap-2 py-1.5 pr-2 text-sm text-gray-700 cursor-pointer">
+      <span class="flex-1 min-w-0">{{ p }}{% if show_prices and amount %} <span class="text-gray-500 whitespace-nowrap">{{ prefix }}{{ amount }} {{ cur }}</span>{% endif %}</span>
+      {% if multi %}
+        <input type="checkbox" name="{{ in_name }}{{ in_name_id }}" value="{{ in_value }}" data-delta="{{ in_delta }}" class="shrink-0 rounded border-gray-300">
+      {% else %}
+        <input type="radio" name="{{ in_name }}{{ in_name_id }}" value="{{ in_value }}" data-delta="{{ in_delta }}"{% if in_required and is_first %} required{% endif %} class="shrink-0 border-gray-300">
+      {% endif %}
+    </label>
+  {% else %}
+    <p class="flex-1 min-w-0 py-1.5 pr-2 text-sm text-gray-700">{{ p }}{% if show_prices and amount %} <span class="text-gray-500 whitespace-nowrap">{{ prefix }}{{ amount }} {{ cur }}</span>{% endif %}</p>
+  {% endif %}
+</div>

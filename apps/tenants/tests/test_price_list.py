@@ -64,13 +64,16 @@ def test_normalize_catalog_accepts_preisliste_only_there():
     )
     # LAYOUT_PRESETS не раздут — «preisliste» живёт только в PAGE_EXTRA_PRESETS
     assert "preisliste" not in siteconfig.LAYOUT_PRESETS
-    # DS-5b/5c: семейство из пяти прайс-видов
+    # DS-5b/5c + MEN-14: семейство прайс-видов (две последние — фотосписок в колонки)
     assert siteconfig.PAGE_EXTRA_PRESETS["catalog_layout"] == (
         "preisliste",
         "preisliste_foto",
         "preisliste_kompakt",
         "preisliste_2sp",
+        "preisliste_foto_2sp",
+        "preisliste_foto_3sp",
         "preisliste_karte",
+        "preisliste_buch",
     )
 
 
@@ -135,7 +138,16 @@ def test_catalog_page_default_grid_unchanged():
 
 @pytest.mark.parametrize(
     "style",
-    ["preisliste", "preisliste_foto", "preisliste_kompakt", "preisliste_2sp", "preisliste_karte"],
+    [
+        "preisliste",
+        "preisliste_foto",
+        "preisliste_kompakt",
+        "preisliste_2sp",
+        "preisliste_karte",
+        "preisliste_foto_2sp",
+        "preisliste_foto_3sp",
+        "preisliste_buch",
+    ],
 )
 def test_all_price_styles_valid_and_render(style):
     _seed_products()
@@ -181,6 +193,69 @@ def test_price_style_variants_differ():
     karte = render("preisliste_karte")
     assert "Drei Gänge" in karte  # карта держит описание (курсивом под блюдом)
     assert "tracking-[0.18em]" in karte  # центр-заголовок группы
+
+
+def test_photo_price_lists_in_columns():
+    """MEN-14: фотосписок в 2/3 колонки — фото на месте, мобильный в одну колонку."""
+    _seed_products()
+    prod = Product.objects.get(name__de="Buffet Vegetarisch")
+    prod.images = [{"id": "i1", "url": "/media/buffet.jpg", "is_primary": True}]
+    prod.save(update_fields=["images"])
+
+    def render(style):
+        return _render_home(
+            TenantFactory.build(
+                site_config={"sections": [{"key": "products", "enabled": True, "style": style}]}
+            )
+        )
+
+    zwei = render("preisliste_foto_2sp")
+    assert 'src="/media/buffet.jpg"' in zwei  # фото не теряются в колоночном виде
+    assert "grid md:grid-cols-2" in zwei
+    drei = render("preisliste_foto_3sp")
+    assert 'src="/media/buffet.jpg"' in drei
+    assert "xl:grid-cols-3" in drei
+    # мобильный — одна колонка: сетка включается только с md+ (строка «фото +
+    # название + цена» в две колонки на телефоне нечитаема)
+    for html in (zwei, drei):
+        block = html.split("data-price-list")[0].rsplit("<div", 1)[-1]
+        assert "grid-cols-2" not in block.replace("md:grid-cols-2", "")
+
+
+def test_menu_book_pages_and_progressive_enhancement():
+    """MEN-16: «меню-книга» — каждая группа страницей, навигация листания есть,
+    но БЕЗ JS все страницы видны (атрибут hidden только на навигации)."""
+    _seed_products()
+    html = _render_home(
+        TenantFactory.build(
+            site_config={
+                "sections": [{"key": "products", "enabled": True, "style": "preisliste_buch"}]
+            }
+        )
+    )
+    assert "data-price-book" in html
+    assert html.count("data-book-page") >= 3  # три группы = три страницы
+    assert "data-book-nav" in html and "data-book-prev" in html and "data-book-next" in html
+    # содержимое доступно без скрипта: страницы не помечены hidden в разметке
+    assert "data-book-page hidden" not in html
+    assert "Buffet Vegetarisch" in html and "Saftpaket" in html
+    # скрипт листания подключается ТОЛЬКО этим видом
+    assert "__sfPriceBookBound" in html
+    plain = _render_home(
+        TenantFactory.build(
+            site_config={"sections": [{"key": "products", "enabled": True, "style": "preisliste"}]}
+        )
+    )
+    assert "__sfPriceBookBound" not in plain and "data-price-book" not in plain
+
+
+def test_mobile_never_exceeds_two_columns():
+    """MEN-14 (требование владельца): на телефоне максимум 2 колонки — у ЛЮБОЙ
+    сетки, включая ручной override и плитку в 6 колонок."""
+    for preset in siteconfig.LAYOUT_PRESETS:
+        lay = siteconfig.normalize_layout({"preset": preset, "mobile": 4})
+        assert lay["mobile"] <= 2, preset
+        assert "grid-cols-3" not in siteconfig.grid_class_string(lay).split("sm:")[0]
 
 
 def test_review_findings_locks():

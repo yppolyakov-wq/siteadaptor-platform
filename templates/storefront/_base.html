@@ -364,6 +364,14 @@
           return;
         }
         if (e.target.closest("[data-quick-close]")) { close(); }
+        // MEN-17: миниатюры блюда с несколькими фото. Обработчик живёт ЗДЕСЬ, а
+        // не в _dish_info.html: разметку попапа кладёт innerHTML, а он не
+        // исполняет вложенные <script>.
+        var thumb = e.target.closest("[data-dish-thumb]");
+        if (thumb) {
+          var photo = modal.querySelector("[data-dish-photo]");
+          if (photo) photo.src = thumb.getAttribute("data-dish-thumb");
+        }
       });
       document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
     })();

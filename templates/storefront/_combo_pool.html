@@ -2,30 +2,28 @@
 {% comment %}MEN-4: «свободная сборка» — все блюда категории набора по Gang'ам
 (pool_courses из вьюхи). Чекбокс name="dish" + data-delta=à la carte цена (live-итог
 тем же скриптом MEN-1); фото → попап блюда. Ожидает: combo, pool_courses,
-show_inputs, show_prices.{% endcomment %}
+show_inputs, show_prices.
+
+MEN-17: блюда рисует общий `_dish_chip.html`; хвост длинного Gang'а — в
+<details> (свободная сборка выводит ВЕСЬ каталог категории, там портянка
+набиралась быстрее всего).{% endcomment %}
 {% for course_label, dishes in pool_courses %}
   <div class="mt-5">
     <p class="font-medium text-gray-800">{{ course_label }}</p>
-    <div class="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2">
-      {% for p in dishes %}
-        <div class="rounded-xl border border-gray-200 overflow-hidden bg-white {% if show_inputs %}has-[:checked]:ring-2 has-[:checked]:ring-indigo-500{% endif %}" data-dish-tile>
-          <button type="button" class="relative block w-full aspect-[4/3] bg-gray-100 overflow-hidden cursor-zoom-in"
-                  data-quick-url="{% url 'storefront-dish-info' p.pk %}" aria-label="{{ p }}">
-            {% with img=p.primary_image %}{% if img %}
-              <img src="{{ img.url }}" alt="" class="w-full h-full object-cover" loading="lazy">
-            {% else %}<span class="w-full h-full flex items-center justify-center text-2xl" aria-hidden="true">🍽</span>{% endif %}{% endwith %}
-            <span class="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-white/90 shadow text-[11px] text-gray-500 flex items-center justify-center" aria-hidden="true">ⓘ</span>
-          </button>
-          {% if show_inputs %}
-            <label class="flex items-center gap-2 px-2 py-1.5 text-sm text-gray-700 cursor-pointer">
-              <input type="checkbox" name="dish" value="{{ p.pk }}" data-delta="{{ p.base_price|unlocalize }}" class="rounded border-gray-300">
-              <span>{{ p }}{% if show_prices %} <span class="text-gray-500">{{ p.base_price }} {{ p.currency|cursym }}</span>{% endif %}</span>
-            </label>
-          {% else %}
-            <p class="px-2 py-1.5 text-sm text-gray-700">{{ p }}{% if show_prices %} <span class="text-gray-500">{{ p.base_price }} {{ p.currency|cursym }}</span>{% endif %}</p>
-          {% endif %}
-        </div>
+    <div class="mt-2 grid sm:grid-cols-2 xl:grid-cols-3 gap-2">
+      {% for p in dishes|slice:":12" %}
+        {% include "storefront/_dish_chip.html" with p=p readonly=0 multi=1 in_name="dish" in_value=p.pk in_delta=p.base_price|unlocalize amount=p.base_price prefix="" cur=p.currency|cursym ring=1 %}
       {% endfor %}
     </div>
+    {% if dishes|length > 12 %}
+      <details class="mt-2">
+        <summary class="cursor-pointer text-sm text-gray-500">{% blocktrans with n=dishes|length|add:"-12" %}Weitere {{ n }} anzeigen{% endblocktrans %}</summary>
+        <div class="mt-2 grid sm:grid-cols-2 xl:grid-cols-3 gap-2">
+          {% for p in dishes|slice:"12:" %}
+            {% include "storefront/_dish_chip.html" with p=p readonly=0 multi=1 in_name="dish" in_value=p.pk in_delta=p.base_price|unlocalize amount=p.base_price prefix="" cur=p.currency|cursym ring=1 %}
+          {% endfor %}
+        </div>
+      </details>
+    {% endif %}
   </div>
 {% endfor %}

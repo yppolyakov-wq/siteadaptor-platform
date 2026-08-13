@@ -762,7 +762,15 @@ PAGE_EXTRA_PRESETS = {
         "preisliste_foto",
         "preisliste_kompakt",
         "preisliste_2sp",
+        # MEN-14 (запрос владельца 2026-08-13 «список с картинками в 2 и 3 колонки»):
+        # те же строки с мини-фото, но сеткой — на мобильном всегда 1 колонка
+        # (строка с фото и ценой в две колонки на телефоне нечитаема).
+        "preisliste_foto_2sp",
+        "preisliste_foto_3sp",
         "preisliste_karte",
+        # MEN-16 (запрос владельца «визуализировать меню как книгу в 2 столбца
+        # с листанием»): тот же прайс, но страницами-разворотами.
+        "preisliste_buch",
     )
 }
 _LAYOUT_WIDTHS = ("contained", "full")
@@ -2060,7 +2068,10 @@ SECTION_STYLES = {
         "preisliste_foto",
         "preisliste_kompakt",
         "preisliste_2sp",
+        "preisliste_foto_2sp",  # MEN-14: строки с фото в 2 колонки
+        "preisliste_foto_3sp",  # MEN-14: то же в 3 колонки (широкий экран)
         "preisliste_karte",
+        "preisliste_buch",  # MEN-16: разворот книги с перелистыванием
     ),
     # DS-4b (Fokus): форма заявки на главной — «band» (акцент-полоса со слим-
     # полями в строку, как в концепт-макете); "" = обычная карточка-форма AF-2.
@@ -2106,7 +2117,10 @@ SECTION_STYLE_LABELS = {
     "preisliste_foto": _("Preisliste mit Fotos"),  # DS-5b: + мини-фото 40px
     "preisliste_kompakt": _("Preisliste kompakt"),  # DS-5c: без описаний, плотно
     "preisliste_2sp": _("Preisliste zweispaltig"),  # DS-5c: колонки md+
+    "preisliste_foto_2sp": _("Fotoliste zweispaltig"),  # MEN-14
+    "preisliste_foto_3sp": _("Fotoliste dreispaltig"),  # MEN-14
     "preisliste_karte": _("Speisekarte klassisch"),  # DS-5c: печатная карта
+    "preisliste_buch": _("Speisekarte zum Blättern"),  # MEN-16: книга-разворот
     "band": _("Farbband"),  # DS-4b: anfrage — слим-форма на акцент-полосе
 }
 

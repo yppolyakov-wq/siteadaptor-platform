@@ -1,0 +1,77 @@
+{% comment %}MEN-16: листание «меню-книги» (_price_list.html, стиль
+preisliste_buch). Подключается ТОЛЬКО этим видом — на обычных страницах скрипта
+нет. Гард от повторного включения: вид может стоять и в секции главной, и на
+странице каталога.
+
+Прогрессивное улучшение: без JS видны все страницы подряд и навигация скрыта
+атрибутом hidden — меню читается всегда.{% endcomment %}
+<script>
+(function () {
+  if (window.__sfPriceBookBound) return;
+  window.__sfPriceBookBound = true;
+
+  function setup(book) {
+    var pages = [].slice.call(book.querySelectorAll("[data-book-page]"));
+    var nav = book.querySelector("[data-book-nav]");
+    if (!nav || pages.length <= 1) return;  // одна группа — листать нечего
+    var prev = nav.querySelector("[data-book-prev]");
+    var next = nav.querySelector("[data-book-next]");
+    var status = nav.querySelector("[data-book-status]");
+    var idx = 0;
+
+    // На телефоне разворот вырождается в одну страницу (две колонки блюд с
+    // ценой там нечитаемы) — то же правило, что у сеток (мобильный кап).
+    function per() {
+      return window.matchMedia("(min-width: 768px)").matches ? 2 : 1;
+    }
+
+    function render() {
+      var n = per();
+      idx = Math.max(0, Math.min(idx, pages.length - n));
+      pages.forEach(function (p, i) {
+        p.hidden = !(i >= idx && i < idx + n);
+      });
+      var last = Math.min(idx + n, pages.length);
+      if (status) {
+        var range = last > idx + 1 ? idx + 1 + "–" + last : String(idx + 1);
+        status.textContent =
+          nav.getAttribute("data-book-label") + " " + range + " " +
+          nav.getAttribute("data-book-of") + " " + pages.length;
+      }
+      if (prev) prev.disabled = idx <= 0;
+      if (next) next.disabled = idx + n >= pages.length;
+    }
+
+    function move(dir) {
+      idx += dir * per();
+      render();
+    }
+
+    if (prev) prev.addEventListener("click", function () { move(-1); });
+    if (next) next.addEventListener("click", function () { move(1); });
+    window.addEventListener("resize", render);
+
+    // Свайп по развороту (владелец: «с листанием») — порог, чтобы обычная
+    // вертикальная прокрутка страницу не перелистывала.
+    var x0 = null;
+    book.addEventListener("touchstart", function (e) {
+      x0 = e.touches[0].clientX;
+    }, { passive: true });
+    book.addEventListener("touchend", function (e) {
+      if (x0 === null) return;
+      var dx = e.changedTouches[0].clientX - x0;
+      x0 = null;
+      if (Math.abs(dx) > 60) move(dx < 0 ? 1 : -1);
+    }, { passive: true });
+
+    nav.hidden = false;
+    render();
+  }
+
+  function init() {
+    document.querySelectorAll("[data-price-book]").forEach(setup);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
