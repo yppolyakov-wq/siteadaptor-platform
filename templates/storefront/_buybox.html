@@ -115,7 +115,7 @@ test_public (порядок CTA/точные href). Двухшаговость (
     {% else %}
       <a href="{{ sellable.select_url }}" class="block w-full text-center text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent, #4f46e5);">{% purchase_label "booking" %}</a>
       {% if jobs_active %}
-        <a href="{% url 'storefront-anfrage' %}?betreff={{ sellable.name|urlencode }}" class="block w-full text-center rounded-lg px-4 py-3 font-medium border border-gray-300 hover:border-indigo-400">{% trans "Request a quote" %}</a>
+        <button type="button" data-quick-url="{% url 'storefront-anfrage-modal' %}?betreff={{ sellable.name|urlencode }}" class="block w-full text-center rounded-lg px-4 py-3 font-medium border border-gray-300 hover:border-indigo-400">{% trans "Request a quote" %}</button>
       {% endif %}
     {% endif %}
   </div>

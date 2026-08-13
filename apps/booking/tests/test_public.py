@@ -454,7 +454,9 @@ def test_service_detail_buybox_exact_ctas():
     aside = body[body.find('id="buchen"') :]
     assert f'href="/termin/leistung/{service.pk}/"' in aside
     # AF-1: CTA несёт префилл темы заявки названием услуги (?betreff=, механика R6).
-    assert 'href="/anfrage/?betreff=' in aside
+    # MEN-11: заявка открывается ПОПАПОМ (фрагмент /anfrage/formular/), а не
+    # уводит на отдельную страницу — запрос владельца 2026-08-13.
+    assert 'data-quick-url="/anfrage/formular/?betreff=' in aside
 
 
 def test_service_detail_renders_attributes_and_faq():

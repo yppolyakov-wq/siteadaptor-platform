@@ -75,7 +75,8 @@ def test_orders_module_off_hides_buybox_entirely():
     assert "/warenkorb/add/" not in body
     assert "Ausverkauft" not in body  # блока нет целиком, не sold-out-ветка
     # Product.name — i18n-dict; в контракте sellable.name — локализованная строка.
-    assert f"/anfrage/?betreff={quote(p.get_i18n('name'))}" in body  # префилл AF-1
+    # MEN-11: CTA открывает попап с формой (фрагмент /anfrage/formular/), префилл AF-1 тот же.
+    assert f"/anfrage/formular/?betreff={quote(p.get_i18n('name'))}" in body
 
 
 def test_orders_and_jobs_off_no_cta_at_all():

@@ -54,7 +54,7 @@
   {% comment %}HF-7: у A7/A9 (активен jobs) вторичное действие — запрос сметы. Раньше
   жило в паре CTA старой детали; пикер её заменил, но сама возможность нужна.{% endcomment %}
   {% if jobs_active %}
-    <a href="{% url 'storefront-anfrage' %}" class="block w-full text-center rounded-lg px-4 py-3 font-medium border border-gray-300 hover:border-indigo-400">{% trans "Request a quote" %}</a>
+    <button type="button" data-quick-url="{% url 'storefront-anfrage-modal' %}" class="block w-full text-center rounded-lg px-4 py-3 font-medium border border-gray-300 hover:border-indigo-400">{% trans "Request a quote" %}</button>
   {% endif %}
 </div>
 {# Попап формы: скрипт вне #svc-box, иначе fetch-своп его теряет. #}

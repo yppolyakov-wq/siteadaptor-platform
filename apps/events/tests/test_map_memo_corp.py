@@ -64,14 +64,15 @@ def test_no_map_without_coords():
 def test_corporate_block_when_jobs_active():
     ev = _event()
     body = public_views.veranstaltung_detail(_store(), pk=ev.pk).content.decode()
-    assert "/anfrage/?betreff=" in body  # jobs активен у дефолтного тенанта
+    # MEN-11: корпоративный запрос тоже открывается попапом (не уводит со страницы).
+    assert "/anfrage/formular/?betreff=" in body  # jobs активен у дефолтного тенанта
 
 
 def test_no_corporate_block_when_jobs_disabled():
     ev = _event()
     tenant = TenantFactory.build(disabled_modules=["jobs"])
     body = public_views.veranstaltung_detail(_store(tenant=tenant), pk=ev.pk).content.decode()
-    assert "/anfrage/?betreff=" not in body
+    assert "/anfrage/formular/?betreff=" not in body
 
 
 def test_anfrage_prefills_betreff():

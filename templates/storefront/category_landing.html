@@ -16,7 +16,7 @@
     {% if landing_description %}<p class="mt-4 text-gray-600 max-w-md whitespace-pre-line">{{ landing_description }}</p>{% endif %}
     <span class="flex flex-wrap items-center gap-2">
       {% if storefront_jobs_enabled %}
-      <a href="{% url 'storefront-anfrage' %}?betreff={{ category|urlencode }}" class="inline-block mt-5 rounded-lg px-6 py-2.5 font-medium text-white hover:opacity-90" style="background: var(--accent, #4f46e5);">{% trans "Request a quote" %}</a>
+      <button type="button" data-quick-url="{% url 'storefront-anfrage-modal' %}?betreff={{ category|urlencode }}" class="inline-block mt-5 rounded-lg px-6 py-2.5 font-medium text-white hover:opacity-90" style="background: var(--accent, #4f46e5);">{% trans "Request a quote" %}</button>
       {% endif %}
       <a href="{% url 'storefront-products' %}?kategorie={{ category.slug }}" class="inline-block mt-5 rounded-lg px-6 py-2.5 font-medium border border-gray-300 hover:border-gray-400">{% trans "Menu" %}</a>
     </span>
