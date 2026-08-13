@@ -19,8 +19,10 @@ hover + focus-within (клавиатура/тап по chevron-пункту бе
         <div class="bg-white rounded-xl shadow-lg ring-1 ring-black/5 p-3 grid grid-cols-2 gap-2 w-[420px]">
           {% for c in item.children %}
             <a href="{{ c.url }}" class="flex items-center gap-2 rounded-lg p-1.5 hover:bg-gray-50">
-              {% if c.image %}<img src="{{ c.image }}" alt="" loading="lazy" class="w-14 h-14 rounded-lg object-cover shrink-0">
-              {% else %}<span class="w-14 h-14 rounded-lg bg-gray-100 shrink-0"></span>{% endif %}
+              {% comment %}Ревью MEN-15: у категории без фото НЕ рисуем серый
+              квадрат — в смешанном каталоге (фото есть у части направлений)
+              панель превращалась в ряд пустых плашек.{% endcomment %}
+              {% if c.image %}<img src="{{ c.image }}" alt="" loading="lazy" class="w-14 h-14 rounded-lg object-cover shrink-0">{% endif %}
               <span class="min-w-0 text-sm font-medium text-gray-700 break-words">{{ c.label }}</span>
             </a>
           {% endfor %}
@@ -55,9 +57,11 @@ hover + focus-within (клавиатура/тап по chevron-пункту бе
           <div data-nav-p="{{ forloop.counter0 }}" class="hidden px-4 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-400 whitespace-nowrap">{{ item.label }}</div>
         {% endif %}
         {% comment %}MEN-15: в overflow-панели плитки не помещаются — мини-фото
-        32px в строке; без фото строка прежняя.{% endcomment %}
+        32px в строке; без фото строка прежняя. Ревью: выравнивать через flex
+        нельзя — видимость строк переключает общий JS («hidden» ↔ «block»),
+        поэтому фото выравниваем как inline-элемент.{% endcomment %}
         {% for c in item.children %}
-          <a href="{{ c.url }}" data-nav-p="{{ forloop.parentloop.counter0 }}" class="hidden items-center gap-2 px-4 py-2 pl-7 whitespace-nowrap text-gray-600 hover:bg-gray-50">{% if c.image %}<img src="{{ c.image }}" alt="" loading="lazy" class="w-8 h-8 rounded object-cover shrink-0">{% endif %}{{ c.label }}</a>
+          <a href="{{ c.url }}" data-nav-p="{{ forloop.parentloop.counter0 }}" class="hidden px-4 py-2 pl-7 whitespace-nowrap text-gray-600 hover:bg-gray-50">{% if c.image %}<img src="{{ c.image }}" alt="" loading="lazy" class="inline-block align-middle mr-2 w-8 h-8 rounded object-cover">{% endif %}{{ c.label }}</a>
         {% endfor %}
       {% endfor %}
     </div>

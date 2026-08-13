@@ -2803,13 +2803,30 @@ def menu_builder_view(request):
         for c in cats:
             if c.parent_id is not None:
                 kids.setdefault(c.parent_id, []).append(c)
-        # Порядок селекта — как в каталоге: корневая, под ней её подкатегории с
-        # отступом (плоский список вперемешку читался как случайный).
+        # Порядок селекта — как в каталоге: корневая, под ней её ветка с
+        # отступами по уровню (плоский список вперемешку читался как случайный).
+        # Ревью MEN-15: обход обязан покрыть ВСЕ живые категории. Первая версия
+        # выводила только корни и их прямых детей — категория 3-го уровня и
+        # активный ребёнок ВЫКЛЮЧЕННОГО родителя пропадали из селекта, и Save
+        # молча переставлял такой пункт меню на первую опцию (класс W0).
         category_targets = []
+        seen = set()
+
+        def _walk(node, depth):
+            if node.pk in seen:
+                return
+            seen.add(node.pk)
+            prefix = "— " * depth
+            category_targets.append(
+                {"value": node.slug, "label": f"{prefix}{node.get_i18n('name')}"}
+            )
+            for child in kids.get(node.pk, []):
+                _walk(child, depth + 1)
+
         for root in roots:
-            category_targets.append({"value": root.slug, "label": root.get_i18n("name")})
-            for kid in kids.get(root.pk, []):
-                category_targets.append({"value": kid.slug, "label": f"— {kid.get_i18n('name')}"})
+            _walk(root, 0)
+        for cat in cats:  # осиротевшие ветки (родитель выключен/удалён) — в конце
+            _walk(cat, 0)
         # Цели для узла «Kategorien»: пусто = корневые, иначе подкатегории этой.
         parent_targets = [
             {"value": "", "label": str(_("Alle Hauptkategorien"))},

@@ -203,6 +203,8 @@ def _category_children(tenant, parent_slug: str):
     Мемо на объекте тенанта — как `_page_has_content`: меню резолвится на каждый
     рендер (шапка, нижнее меню, контекст-процессор), а это запрос в БД.
     """
+    # catalog — core-модуль (всегда активен): проверка защищает лишь от будущей
+    # смены спеки, реальным гейтом служит пустой список категорий.
     if not modules.is_module_active(tenant, "catalog"):
         return []
     memo = getattr(tenant, "_menu_categories_memo", None)
@@ -219,7 +221,17 @@ def _category_children(tenant, parent_slug: str):
         from apps.catalog.models import Category
 
         qs = Category.objects.filter(is_active=True)
-        qs = qs.filter(parent__slug=parent_slug) if parent_slug else qs.filter(parent__isnull=True)
+        if parent_slug:
+            # Ревью MEN-15: JOIN по родителю не наследует ни is_active, ни
+            # soft-delete менеджера — без явных условий в подменю попадали дети
+            # выключенной и даже удалённой ветки (slug переиспользуем).
+            qs = qs.filter(
+                parent__slug=parent_slug,
+                parent__is_active=True,
+                parent__deleted_at__isnull=True,
+            )
+        else:
+            qs = qs.filter(parent__isnull=True)
         rows = list(qs.order_by("sort_order", "slug")[:_MAX_MENU_CATEGORIES])
     except Exception:  # noqa: BLE001 — узел меню не должен ронять страницу
         rows = []
@@ -270,10 +282,12 @@ def _node_url(tenant, node: dict):
     if ntype == "category":
         return _category_url(tenant, target)
     if ntype == "categories":
-        # MEN-15: сам пункт ведёт в каталог (клик осмысленен), подменю — категории.
-        return (
-            _reverse("storefront-products") if modules.is_module_active(tenant, "catalog") else None
-        )
+        # MEN-15: сам пункт кликабелен, подменю — категории. При заданном
+        # target узел означает КОНКРЕТНУЮ ветку, поэтому и ведёт в неё (ревью:
+        # раньше «Essen» с подменю своих подкатегорий открывал весь каталог).
+        if not modules.is_module_active(tenant, "catalog"):
+            return None
+        return _category_url(tenant, target) or _reverse("storefront-products")
     if ntype == "promo_group":
         return _promo_group_url(tenant, target)
     if ntype == "page":

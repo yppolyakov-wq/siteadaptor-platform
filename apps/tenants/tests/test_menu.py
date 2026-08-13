@@ -306,3 +306,77 @@ def test_categories_node_can_show_subcategories_of_one_parent():
     )
     kids = menu.resolve_menu(tenant, "top")[0]["children"]
     assert [k["label"] for k in kids] == ["Suppen"]
+
+
+# --- MEN-15: находки адверсариального ревью (2026-08-13) ------------------------
+
+
+@pytest.mark.django_db
+def test_subcategory_never_links_to_landing_page():
+    """HIGH: вьюха лендинга `/bereich/<slug>/` требует КОРНЕВУЮ категорию
+    (parent__isnull=True), поэтому подкатегория с описанием получала ссылку,
+    ведущую на 404. Инвариант живёт в `Category.landing_ready` — им пользуются
+    и подменю шапки, и плитки категорий на /sortiment/."""
+    from apps.catalog.models import Category
+
+    parent = Category.objects.create(
+        name={"de": "Essen"}, description={"de": "Alles Warme"}, slug="ml2-food"
+    )
+    kid = Category.objects.create(
+        name={"de": "Suppen"},
+        description={"de": "Löffelbar"},  # контент есть, но это НЕ корень
+        slug="ml2-soups",
+        parent=parent,
+    )
+    assert parent.landing_ready is True and kid.landing_ready is False
+
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="ml2",
+        name="ML2",
+        site_config=_menu_with_categories(target="ml2-food", category_landings=True),
+    )
+    kids = menu.resolve_menu(tenant, "top")[0]["children"]
+    assert kids[0]["url"] == "/sortiment/?kategorie=ml2-soups"  # фильтр, не лендинг
+
+
+@pytest.mark.django_db
+def test_categories_node_with_target_leads_into_that_branch():
+    """Пункт с target=<slug> означает КОНКРЕТНУЮ ветку — клик по нему должен
+    вести в неё, а не во весь каталог."""
+    from apps.catalog.models import Category
+
+    parent = Category.objects.create(name={"de": "Essen"}, slug="mt-food")
+    Category.objects.create(name={"de": "Suppen"}, slug="mt-soups", parent=parent)
+    tenant = TenantFactory(
+        schema_name="public", slug="mt", name="MT", site_config=_menu_with_categories("mt-food")
+    )
+    item = menu.resolve_menu(tenant, "top")[0]
+    assert item["url"] == "/sortiment/?kategorie=mt-food"
+    # без target — весь каталог (прежнее поведение)
+    tenant.site_config = _menu_with_categories()
+    tenant._menu_categories_memo = None
+    assert menu.resolve_menu(tenant, "top")[0]["url"] == "/sortiment/"
+
+
+@pytest.mark.django_db
+def test_children_of_disabled_or_deleted_parent_stay_out_of_menu():
+    """JOIN по родителю не наследует ни is_active, ни soft-delete-менеджер:
+    без явных условий в подменю попадали дети выключенной/удалённой ветки."""
+    from apps.catalog.models import Category
+
+    dead = Category.objects.create(name={"de": "Alt"}, slug="mx-branch", is_active=False)
+    Category.objects.create(name={"de": "Kind"}, slug="mx-kid", parent=dead)
+    tenant = TenantFactory(
+        schema_name="public", slug="mx", name="MX", site_config=_menu_with_categories("mx-branch")
+    )
+    assert menu.resolve_menu(tenant, "top")[0]["children"] == []
+
+    dead.is_active = True
+    dead.save(update_fields=["is_active"])
+    tenant._menu_categories_memo = None
+    assert [k["label"] for k in menu.resolve_menu(tenant, "top")[0]["children"]] == ["Kind"]
+
+    dead.delete()  # SoftDeleteMixin: проставляет deleted_at, строка остаётся
+    tenant._menu_categories_memo = None
+    assert menu.resolve_menu(tenant, "top")[0]["children"] == []

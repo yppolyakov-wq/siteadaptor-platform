@@ -16,7 +16,12 @@
                           "dish" у свободной сборки);
   in_value / in_delta   — значение и дельта цены для live-итога;
   in_required + is_first — required ставится первому radio обязательной группы;
-  amount / prefix       — цена ("+" у доплаты); 0 и «цены скрыты» не рисуются;
+  amount / prefix       — цена ("+" у доплаты). Паритет со старой разметкой
+                          (ревью MEN-17): у included-группы надбавка НЕ рисуется
+                          вовсе (её не берут с гостя), нулевая доплата тоже
+                          молчит, а свободная сборка передаёт `zero_ok=1` —
+                          там цена блюда показывается всегда, включая 0,00 €;
+  zero_ok               — показывать цену даже когда она равна нулю;
   ring                  — подсвечивать выбранную строку.{% endcomment %}
 <div class="flex items-center gap-2 rounded-xl border border-gray-200 bg-white overflow-hidden{% if ring %} has-[:checked]:ring-2 has-[:checked]:ring-indigo-500{% endif %}" data-dish-tile>
   <button type="button" class="relative w-14 h-14 shrink-0 bg-gray-100 overflow-hidden cursor-zoom-in"
@@ -28,7 +33,7 @@
   </button>
   {% if show_inputs and not readonly %}
     <label class="flex flex-1 min-w-0 items-center gap-2 py-1.5 pr-2 text-sm text-gray-700 cursor-pointer">
-      <span class="flex-1 min-w-0 break-words">{{ p }}{% if show_prices and amount %} <span class="text-gray-500 whitespace-nowrap">{{ prefix }}{{ amount }} {{ cur }}</span>{% endif %}</span>
+      <span class="flex-1 min-w-0 break-words">{{ p }}{% if show_prices and not readonly %}{% if amount or zero_ok %} <span class="text-gray-500 whitespace-nowrap">{{ prefix }}{{ amount }} {{ cur }}</span>{% endif %}{% endif %}</span>
       {% if multi %}
         <input type="checkbox" name="{{ in_name }}{{ in_name_id }}" value="{{ in_value }}" data-delta="{{ in_delta }}" class="shrink-0 rounded border-gray-300">
       {% else %}
@@ -36,6 +41,6 @@
       {% endif %}
     </label>
   {% else %}
-    <p class="flex-1 min-w-0 py-1.5 pr-2 text-sm text-gray-700">{{ p }}{% if show_prices and amount %} <span class="text-gray-500 whitespace-nowrap">{{ prefix }}{{ amount }} {{ cur }}</span>{% endif %}</p>
+    <p class="flex-1 min-w-0 py-1.5 pr-2 text-sm text-gray-700">{{ p }}{% if show_prices and not readonly %}{% if amount or zero_ok %} <span class="text-gray-500 whitespace-nowrap">{{ prefix }}{{ amount }} {{ cur }}</span>{% endif %}{% endif %}</p>
   {% endif %}
 </div>

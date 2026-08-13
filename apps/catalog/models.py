@@ -81,9 +81,17 @@ class Category(SoftDeleteMixin, I18nMixin):
 
     @property
     def landing_ready(self) -> bool:
-        """DS-7a: есть ли контент для лендинга направления /bereich/<slug>/
-        (описание с текстом или фото) — плитки ссылаются на лендинг только
-        тогда (пустой лендинг хуже фильтра каталога)."""
+        """DS-7a: ведёт ли ссылка на лендинг направления /bereich/<slug>/.
+
+        Условие — ЗЕРКАЛО гейтов вьюхи `category_landing`: корневая категория
+        (вьюха требует `parent__isnull=True`) и есть что показать (описание или
+        фото; иначе вьюха отдаёт 404). Ревью MEN-15 нашло, что без проверки
+        корня подкатегория с описанием получала ссылку на лендинг — и клик
+        приводил на 404. Инвариант нужен ОДНОМУ месту: им пользуются и плитки
+        (`_category_tile.html`, подкатегории на /sortiment/), и подменю шапки.
+        """
+        if self.parent_id is not None:
+            return False
         return any((self.description or {}).values()) or bool(self.images)
 
     @property

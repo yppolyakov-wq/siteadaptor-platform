@@ -34,9 +34,11 @@ preisliste_buch). Подключается ТОЛЬКО этим видом — 
       var last = Math.min(idx + n, pages.length);
       if (status) {
         var range = last > idx + 1 ? idx + 1 + "–" + last : String(idx + 1);
-        status.textContent =
-          nav.getAttribute("data-book-label") + " " + range + " " +
-          nav.getAttribute("data-book-of") + " " + pages.length;
+        // Целая переведённая фраза с плейсхолдерами (см. _price_list.html):
+        // сборка из отдельных слов давала «Seite 1–2 откуда 8».
+        status.textContent = (nav.getAttribute("data-book-pattern") || "__R__ / __N__")
+          .replace("__R__", range)
+          .replace("__N__", pages.length);
       }
       if (prev) prev.disabled = idx <= 0;
       if (next) next.disabled = idx + n >= pages.length;

@@ -12,7 +12,7 @@ MEN-17: блюда рисует общий `_dish_chip.html`; хвост дли�
     <p class="font-medium text-gray-800">{{ course_label }}</p>
     <div class="mt-2 grid gap-2 grid-cols-[repeat(auto-fill,minmax(220px,1fr))]">
       {% for p in dishes|slice:":12" %}
-        {% include "storefront/_dish_chip.html" with p=p readonly=0 multi=1 in_name="dish" in_value=p.pk in_delta=p.base_price|unlocalize amount=p.base_price prefix="" cur=p.currency|cursym ring=1 %}
+        {% include "storefront/_dish_chip.html" with p=p readonly=0 multi=1 in_name="dish" in_value=p.pk in_delta=p.base_price|unlocalize amount=p.base_price prefix="" zero_ok=1 cur=p.currency|cursym ring=1 %}
       {% endfor %}
     </div>
     {% if dishes|length > 12 %}
@@ -20,7 +20,7 @@ MEN-17: блюда рисует общий `_dish_chip.html`; хвост дли�
         <summary class="cursor-pointer text-sm text-gray-500">{% blocktrans with n=dishes|length|add:"-12" %}Weitere {{ n }} anzeigen{% endblocktrans %}</summary>
         <div class="mt-2 grid gap-2 grid-cols-[repeat(auto-fill,minmax(220px,1fr))]">
           {% for p in dishes|slice:"12:" %}
-            {% include "storefront/_dish_chip.html" with p=p readonly=0 multi=1 in_name="dish" in_value=p.pk in_delta=p.base_price|unlocalize amount=p.base_price prefix="" cur=p.currency|cursym ring=1 %}
+            {% include "storefront/_dish_chip.html" with p=p readonly=0 multi=1 in_name="dish" in_value=p.pk in_delta=p.base_price|unlocalize amount=p.base_price prefix="" zero_ok=1 cur=p.currency|cursym ring=1 %}
           {% endfor %}
         </div>
       </details>

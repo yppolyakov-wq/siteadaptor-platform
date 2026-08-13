@@ -18,13 +18,16 @@ price_groups_from) и `pl_style`:
 {% comment %}MEN-14: у фото-видов группы раскладываются СЕТКОЙ (grid), а не
 columns — иначе строка с картинкой рвётся между колонками. Мобильный всегда
 одна колонка (строка «фото + название + цена» в две колонки нечитаема).{% endcomment %}
-<div class="{% if st == 'preisliste_2sp' %}md:columns-2 md:gap-10{% elif st == 'preisliste_foto_2sp' %}grid md:grid-cols-2 gap-x-10{% elif st == 'preisliste_foto_3sp' %}grid md:grid-cols-2 xl:grid-cols-3 gap-x-8{% elif st == 'preisliste_buch' %}max-w-4xl{% else %}max-w-2xl{% endif %}" data-price-list data-pl-style="{{ st|default:'std' }}"{% if st == 'preisliste_buch' %} data-price-book{% endif %}>
+<div class="{% if st == 'preisliste_2sp' %}md:columns-2 md:gap-10{% elif st == 'preisliste_foto_2sp' %}grid md:grid-cols-2 gap-x-10 gap-y-6{% elif st == 'preisliste_foto_3sp' %}grid md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-6{% elif st == 'preisliste_buch' %}max-w-4xl{% else %}max-w-2xl{% endif %}" data-price-list data-pl-style="{{ st|default:'std' }}"{% if st == 'preisliste_buch' %} data-price-book{% endif %}>
   {% if st == 'preisliste_buch' %}{% book_pages price_groups as price_groups %}{% comment %}MEN-16: разворот. Обёртка страниц
   открывается и закрывается в разных if-ветках — так один цикл групп служит всем
   видам (дублировать его ради книги дороже, чем несимметричные теги).{% endcomment %}
   <div class="grid md:grid-cols-2 gap-x-10 md:gap-x-14 md:divide-x md:divide-dashed md:divide-gray-300" data-book-pages>{% endif %}
   {% for g in price_groups %}
-    <div class="{% if st == 'preisliste_buch' %}md:px-5{% else %}mt-5 first:mt-0{% endif %}{% if st == 'preisliste_2sp' %} break-inside-avoid{% endif %}"{% if st == 'preisliste_buch' %} data-book-page{% endif %}>
+    {% comment %}Ревью MEN-14: в СЕТКЕ `first:mt-0` гасит отступ только у самого
+    первого элемента, поэтому вторая колонка первой строки съезжала вниз на
+    mt-5. У фото-видов вертикальный ритм задаёт gap-y контейнера.{% endcomment %}
+    <div class="{% if st == 'preisliste_buch' %}md:px-5{% elif st == 'preisliste_foto_2sp' or st == 'preisliste_foto_3sp' %}{% else %}mt-5 first:mt-0{% endif %}{% if st == 'preisliste_2sp' %} break-inside-avoid{% endif %}"{% if st == 'preisliste_buch' %} data-book-page{% endif %}>
       {% if st == 'preisliste_karte' or st == 'preisliste_buch' %}
       <div class="text-center mb-2 mt-1">
         <div class="text-[11px] font-bold tracking-[0.18em] uppercase" style="color: var(--accent, #4f46e5);">{{ g.name }}{% if g.cont %} <span class="font-normal normal-case tracking-normal text-gray-400">({% trans "Fortsetzung" %})</span>{% endif %}</div>
@@ -65,14 +68,20 @@ columns — иначе строка с картинкой рвётся межд�
   {% comment %}Навигация скрыта в разметке: без JS все страницы просто идут
   подряд (прогрессивное улучшение), скрипт её показывает и берёт листание на
   себя. Подписи — в data-атрибутах: JS не умеет gettext.{% endcomment %}
+  {% comment %}Ревью MEN-16: пагинатор собирался из отдельных msgid «Seite» и
+  «von» — а «von» в каталогах переведено как предлог места («from where»,
+  «откуда»), и строка выходила «Страница 1–2 откуда 8». Даём переводчику ЦЕЛУЮ
+  фразу с плейсхолдерами; JS подставляет числа.{% endcomment %}
+  {% with r="__R__" n="__N__" %}
   <div class="mt-5 flex items-center justify-center gap-3 text-sm" data-book-nav hidden
-       data-book-label="{% trans 'Seite' %}" data-book-of="{% trans 'von' %}">
+       data-book-pattern="{% blocktrans %}Seite {{ r }} von {{ n }}{% endblocktrans %}">
     <button type="button" data-book-prev aria-label="{% trans 'Zurückblättern' %}"
             class="w-9 h-9 rounded-full border border-gray-300 text-gray-600 disabled:opacity-30">‹</button>
     <span data-book-status class="text-gray-500" style="font-variant-numeric: tabular-nums;"></span>
     <button type="button" data-book-next aria-label="{% trans 'Weiterblättern' %}"
             class="w-9 h-9 rounded-full border border-gray-300 text-gray-600 disabled:opacity-30">›</button>
   </div>
+  {% endwith %}
   {% endif %}
 </div>
 {% if st == 'preisliste_buch' %}{% include "storefront/_price_book_script.html" %}{% endif %}

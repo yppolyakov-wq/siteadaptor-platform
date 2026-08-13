@@ -240,8 +240,14 @@ def combo_detail_public(request, pk):
         for p in pool_products(combo):
             by_course.setdefault(p.course or "", []).append(p)
         pool_courses = [(label, by_course[code]) for code, label in COURSES if code in by_course]
-        if "" in by_course:
-            pool_courses.append((_("Weitere"), by_course[""]))
+        # Ревью MEN-17: блюдо с НЕИЗВЕСТНЫМ Gang'ом (импорт/старые данные) молча
+        # выпадало из конструктора — `pool_products` считает его блюдом, а этот
+        # цикл ходит только по реестру. Остаток уезжает в «Weitere» вместе с
+        # блюдами без Gang'а: конструктор обязан показывать ВЕСЬ пул.
+        known = {code for code, _label in COURSES}
+        rest = [p for code, items in by_course.items() if code not in known for p in items]
+        if rest:
+            pool_courses.append((_("Weitere"), rest))
     return render(
         request,
         "storefront/combo_detail.html",

@@ -317,3 +317,45 @@ def test_browse_only_pick_controls_and_person_field():
     assert f'data-delta="{opt.price_delta}"' in body
     assert 'name="qty"' in body and 'min="20"' in body
     assert "<form" not in body.split("data-combo-form")[1].split("</div>")[0]
+
+
+def test_included_group_never_shows_surcharge_and_pool_keeps_zero_price():
+    """Ревью MEN-17: при своде плиток в общий чип потерялись два условия старой
+    разметки — у included-группы надбавка не показывается (её не берут с гостя),
+    а свободная сборка печатала цену ВСЕГДА, включая 0,00 €."""
+    combo = Combo.objects.create(name="Menü", price=Decimal("30.00"), free_pool=False)
+    inc = ComboGroup.objects.create(
+        combo=combo, label="Inklusive", min_select=1, max_select=1, included=True
+    )
+    ComboOption.objects.create(
+        group=inc, product=ProductFactory(name={"de": "Brot"}), price_delta=Decimal("2.50")
+    )
+    body = public_views.combo_detail_public(_req(method="get"), pk=combo.pk).content.decode()
+    assert "Brot" in body and "+2,50" not in body and "+2.50" not in body
+
+    from apps.catalog.models import Category
+
+    cat = Category.objects.create(name={"de": "Getränke"}, slug="zc-drinks")
+    ProductFactory(
+        name={"de": "Leitungswasser"}, base_price=Decimal("0.00"), category=cat, course="getraenk"
+    )
+    pool = Combo.objects.create(
+        name="Freie Wahl", price=Decimal("0.00"), free_pool=True, category=cat
+    )
+    body = public_views.combo_detail_public(_req(method="get"), pk=pool.pk).content.decode()
+    assert "Leitungswasser" in body and "0,00" in body
+
+
+def test_pool_shows_dishes_with_unknown_course():
+    """Ревью MEN-17: блюдо с Gang'ом вне реестра (импорт/старые данные) молча
+    выпадало из конструктора — `pool_products` считает его блюдом, а группировка
+    ходила только по COURSES. Такие блюда уезжают в «Weitere»."""
+    from apps.catalog.models import Category
+
+    cat = Category.objects.create(name={"de": "Speisen"}, slug="zc-unknown")
+    ProductFactory(name={"de": "Mystery-Teller"}, category=cat, course="fantasie")
+    combo = Combo.objects.create(
+        name="Freie Wahl", price=Decimal("0.00"), free_pool=True, category=cat
+    )
+    body = public_views.combo_detail_public(_req(method="get"), pk=combo.pk).content.decode()
+    assert "Mystery-Teller" in body

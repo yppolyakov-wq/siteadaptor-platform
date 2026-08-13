@@ -150,3 +150,28 @@ def test_builder_saves_categories_node():
     )
     node = siteconfig.normalize(tenant.site_config)["menus"]["top"]["items"][0]
     assert node["type"] == "categories" and node["target"] == ""
+
+
+def test_builder_targets_cover_deep_and_orphan_categories():
+    """Ревью MEN-15: селект целей обязан содержать ВСЕ живые категории. Первая
+    версия выводила только корни и их прямых детей — 3-й уровень и активный
+    ребёнок выключенного родителя пропадали, и Save молча переставлял такой
+    пункт меню на первую опцию (класс W0)."""
+    from apps.catalog.models import Category
+
+    root = Category.objects.create(name={"de": "Essen"}, slug="d1-food")
+    warm = Category.objects.create(name={"de": "Warm"}, slug="d1-warm", parent=root)
+    Category.objects.create(name={"de": "Suppen"}, slug="d1-soups", parent=warm)  # 3-й уровень
+    off = Category.objects.create(name={"de": "Aus"}, slug="d1-off", is_active=False)
+    Category.objects.create(name={"de": "Waise"}, slug="d1-orphan", parent=off)  # сирота
+
+    tenant = TenantFactory(schema_name="public", slug="d1", name="D1")
+    body = views.menu_builder_view(
+        _request("get", "/dashboard/site/menu/", tenant=tenant)
+    ).content.decode()
+    data = json.loads(body.split('id="builder-data"', 1)[1].split(">", 1)[1].split("</script>")[0])
+    values = [row["value"] for row in data["categories"]]
+    assert values == ["d1-food", "d1-warm", "d1-soups", "d1-orphan"]
+    labels = {row["value"]: row["label"] for row in data["categories"]}
+    assert labels["d1-warm"].startswith("— ") and labels["d1-soups"].startswith("— — ")
+    assert "d1-off" not in values  # выключенная категория целью не предлагается
