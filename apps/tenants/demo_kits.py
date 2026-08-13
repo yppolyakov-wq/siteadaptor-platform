@@ -515,6 +515,8 @@ RESTAURANT_MENUS = {
         "sticky": True,
         "items": [
             {"label": "Speisekarte", "type": "archetype", "target": "catalog"},
+            # MEN-13: комбо-наборы ресторана тоже были недостижимы из шапки.
+            {"label": "Menüs", "type": "page", "target": "combos"},
             {"label": "Angebote", "type": "archetype", "target": "promotions"},
             {"label": "Veranstaltungen", "type": "archetype", "target": "events"},
             {"label": "Catering", "type": "archetype", "target": "jobs"},
@@ -6077,6 +6079,10 @@ CATERING_MENUS = {
         "items": [
             {"label": "Anfrage", "type": "archetype", "target": "jobs"},
             {"label": "Speisekarte", "type": "archetype", "target": "catalog"},
+            # MEN-13 (фидбэк владельца «где посмотреть варианты блюд в комплекте»):
+            # наборы меню существовали, но в шапку выведены НЕ были — до /kombi/
+            # нельзя было дойти по навигации.
+            {"label": "Menüs", "type": "page", "target": "combos"},
             {"label": "Angebote", "type": "archetype", "target": "promotions"},
             {"label": "Galerie", "type": "page", "target": "gallery"},
             {"label": "Unser Team", "type": "page", "target": "team"},

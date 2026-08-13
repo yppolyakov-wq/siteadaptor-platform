@@ -267,3 +267,32 @@ def test_compacting_keeps_selling_entries_in_the_row():
         assert before <= after, (
             f"{key}: продающий раздел уехал из строки — {sorted(before - after)}"
         )
+
+
+def test_kits_with_menu_sets_link_them_in_navigation():
+    """MEN-13 (фидбэк владельца «где посмотреть варианты блюд в комплекте»):
+    наборы меню были засеяны, но в шапку кита не выведены — до /kombi/ нельзя
+    было дойти навигацией. Тот же класс, что «наполненный модуль без пункта
+    меню»: контент есть, пути к нему нет."""
+
+    def menu_targets(menus):
+        out = set()
+
+        def walk(items):
+            for item in items or []:
+                out.add(item.get("target"))
+                walk(item.get("children"))
+
+        walk((menus or {}).get("top", {}).get("items", []))
+        walk((menus or {}).get("bottom", {}).get("items", []))
+        return out
+
+    for key, kit in demo_kits.KITS.items():
+        if not kit.combos:
+            continue
+        targets = menu_targets(kit.menus)
+        # Либо прямой пункт «Kombi/Menüs», либо кит вообще без своего меню
+        # (тогда шапка выводится авто-резолвером и combos попадает по гейту).
+        assert kit.menus is None or "combos" in targets, (
+            f"{key}: у кита {len(kit.combos)} набор(ов) меню, но в навигации на них нет пункта"
+        )
