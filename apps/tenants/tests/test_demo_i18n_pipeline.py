@@ -161,7 +161,16 @@ def test_every_overlay_field_is_reachable_by_the_seeder():
     for model in django_apps.get_models():
         if not model._meta.app_label.startswith(("catalog", "booking", "stays", "events")) and (
             model._meta.app_label
-            not in ("core", "loyalty", "reviews", "aggregator", "jobs", "tenants", "promotions", "collections")
+            not in (
+                "core",
+                "loyalty",
+                "reviews",
+                "aggregator",
+                "jobs",
+                "tenants",
+                "promotions",
+                "collections",
+            )
         ):
             continue
         names = {f.name for f in model._meta.get_fields() if hasattr(f, "name")}
