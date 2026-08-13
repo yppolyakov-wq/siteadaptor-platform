@@ -240,8 +240,13 @@ def test_apply_restaurant_kit_builds_full_site():
     assert cfg["faq"] and cfg["testimonials"] and cfg["cta"]["button_url"] == "/sortiment/"
     assert cfg["gallery_video"].startswith("https://")  # T1: видео в галерее
     enabled = {s["key"] for s in cfg["sections"] if s["enabled"]}
-    assert {"hero", "products", "promotions", "gallery", "faq", "cta"} <= enabled
-    assert cfg["nav"]["style"] == "centered"
+    # DS-8 (Fokus для ресторана): главная ведёт к одному действию — gallery/team/
+    # reviews выключены (контент жив на своих страницах ST-8), карта и доверие
+    # остаются. Данные секций (cfg["gallery"] и т.п.) не тронуты — ассерты выше.
+    assert {"hero", "products", "promotions", "faq", "cta"} <= enabled
+    assert "gallery" not in enabled and "archetypes" not in enabled
+    # DS-8 (Fokus): шапка одной строкой — «лого | меню | CTA» (как в макете).
+    assert cfg["nav"]["style"] == "classic"
 
 
 def test_restaurant_kit_seeds_pizza_modifiers():
@@ -448,7 +453,11 @@ def test_apply_hotel_kit_builds_stays_site():
 
     assert BusinessReview.objects.filter(tenant_schema="public").count() == 3
     assert BusinessRating.objects.get(tenant_schema="public").review_count == 3
-    assert {s["key"] for s in tenant.site_config["sections"] if s["enabled"]} >= {"reviews"}
+    # DS-8 (Fokus для отеля): секция отзывов на главной выключена (доверие несёт
+    # компакт-полоса trust; полные отзывы — на своей странице ST-8). Проверяем,
+    # что ДАННЫЕ засеяны и доступны тегом, а на главной есть доверие.
+    _enabled = {s["key"] for s in tenant.site_config["sections"] if s["enabled"]}
+    assert "trust" in _enabled and "reviews" not in _enabled
     revs = storefront_reviews(6)  # тег читает SHARED по connection.schema_name (public)
     assert len(revs) == 3 and revs[0]["stars"].count("★") >= 4
 

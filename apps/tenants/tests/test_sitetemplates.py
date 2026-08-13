@@ -327,13 +327,17 @@ def test_hero_widget_bakery_renders_direction_tiles(settings):
 
 
 def test_bakery_kit_slider_plus_widget_and_no_archetypes_section():
-    """Кит BAKERY: слайдер (3 слайда) + hero_widget="bakery"; секция архетипов
-    выключена; виджет не теряется при слайдере (включение в _hero.html)."""
+    """Кит BAKERY: 3 слайда баннера, секция архетипов выключена; механизм
+    hero_widget цел (normalize держит ключ).
+
+    DS-8: сам кит переведён на Fokus — плитки задач в баннере СНЯТЫ
+    (hero_widget=""), их работу несут CTA шапки + компакт-плитки направлений;
+    первый экран ведёт к ОДНОМУ действию."""
     from apps.tenants import siteconfig
     from apps.tenants.demo_kits import KITS
 
     kit = KITS["bakery"]
-    assert kit.hero_widget == "bakery"
+    assert kit.hero_widget == ""
     assert len(kit.heroes) == 3
     assert kit.enable_archetypes_section is False
     cfg = siteconfig.normalize({"site_defaults": {"hero_widget": "bakery"}, "heroes": kit.heroes})

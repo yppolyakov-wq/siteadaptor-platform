@@ -63,3 +63,44 @@ def test_unknown_bundle_false():
 def test_bundles_for_recommended_first():
     keys = [b["key"] for b in sitetemplates.bundles_for("catering")]
     assert "fokus" in keys
+
+
+def test_every_archetype_sees_exactly_one_fokus():
+    """DS-8: у каждого архетипа своя вариация Fokus — и ровно одна карточка
+    (иначе владелец видит пять одинаковых «Fokus»)."""
+    for bt in ARCHETYPES:
+        got = [b for b in sitetemplates.bundles_for(bt) if b["label"] == "Fokus"]
+        assert len(got) <= 1, (bt, [b["key"] for b in got])
+    for bt in ("hotel", "restaurant", "cafe", "bakery", "catering"):
+        keys = [b["key"] for b in sitetemplates.bundles_for(bt)]
+        assert len(keys) == 1, (bt, keys)
+
+
+def test_fokus_variants_carry_archetype_output_views():
+    """Каждая вариация несёт ДНК Fokus + свои виды вывода."""
+    by_key = {b["key"]: b for b in sitetemplates.BUNDLES}
+    for key in ("fokus", "fokus_hotel", "fokus_gastro", "fokus_cafe", "fokus_bakery"):
+        cfg = by_key[key]["config"]
+        assert cfg["hero_style"] == "split" and cfg["nav_cta"] is True
+        assert cfg["section_styles"]["trust"] == "compact"
+        # sections_off и sections_on не пересекаются (иначе гонка вкл/выкл)
+        assert not (set(cfg["sections_on"]) & set(cfg["sections_off"])), key
+    assert by_key["fokus_hotel"]["config"]["hero_widget"] == "stays"
+    assert "stay_rooms" in by_key["fokus_hotel"]["config"]["sections_on"]
+    assert by_key["fokus_gastro"]["config"]["section_styles"]["products"] == "preisliste_karte"
+    assert by_key["fokus_cafe"]["config"]["section_styles"]["products"] == "preisliste_kompakt"
+    assert by_key["fokus_bakery"]["config"]["section_styles"]["categories"] == "compact"
+
+
+def test_bundle_applies_sections_off_and_hero_widget():
+    tenant = TenantFactory(
+        business_type="hotel",
+        site_config={"sections": [{"key": "archetypes", "enabled": True}]},
+    )
+    assert sitetemplates.apply_bundle(tenant, "fokus_hotel") is True
+    cfg = tenant.site_config
+    rows = {s["key"]: s for s in cfg["sections"]}
+    assert rows["archetypes"]["enabled"] is False  # шумная секция выключена
+    assert rows["stay_rooms"]["enabled"] is True
+    assert rows["stay_search"]["enabled"] is False  # дубль поиска в баннере
+    assert cfg["site_defaults"]["hero_widget"] == "stays"

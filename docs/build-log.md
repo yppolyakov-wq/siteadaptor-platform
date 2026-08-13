@@ -9604,3 +9604,31 @@ CTA `?betreff=<имя>` + ghost «Menu») → галерея (фото кате�
 вскрыла), замок-регрессия добавлен. Грабля yesno: `''|yesno:"a,b,c"` идёт по
 falsy-ветке — прямое сравнение `!= False` вместо фильтра. 4 msgid × 5 .po.
 Кандидаты дальше (по спросу): butcher «Partyservice», bakery «Hochzeitstorten».
+
+## 2026-08-12 — DS-8: Fokus для отеля, ресторана, кафе и пекарни (запрос владельца)
+
+«Создай такие же дизайны Fokus для отеля, ресторана, кафе, Bäckerei». Реестр
+BUNDLES вместо одной записи держит СЕМЕЙСТВО: общая ДНК `_FOKUS_BASE`
+(split-hero · CTA в шапке · trust compact · выключенные «шумные» секции
+archetypes/usp_bar/team/gallery/reviews/testimonials — контент жив на страницах
+ST-8) + хелпер `_fokus(extra)` (мерж стилей/секций, sections_on всегда сильнее
+sections_off — иначе гонка вкл/выкл). Вариации: `fokus` (сервисные: прайс +
+форма заявки) · `fokus_hotel` (поиск дат ВНУТРИ баннера hero_widget=stays,
+номера сразу под ним, stay_search гасится как дубль) · `fokus_gastro`
+(печатная карта preisliste_karte) · `fokus_cafe` (компакт на главной, фото-прайс
+на странице) · `fokus_bakery` (направления компакт-плитками + фото-прайс; +
+butcher). `apply_bundle` научен `sections_off` и `hero_widget`; `bundles_for`
+отдаёт рекомендованные + универсальные (иначе владелец видел бы пять карточек
+«Fokus»). **Засев 4 китов** (hotel/restaurant/cafe/bakery): look=klar,
+config_patch hero_style/nav.cta/catalog_layout, section_styles, sections_off.
+**Стенд вскрыл 4 вещи, невидимые тестам:** (1) trust compact ДУБЛИРОВАЛ секцию
+testimonials (одни цитаты дважды) → testimonials в sections_off; (2) у ресторана
+CTA вёл на «Events» (эвристика `_PRIORITY` ставит events выше booking) →
+`primary_module="booking"` (бронь стола); (3) плитки задач в баннере + CTA шапки
++ ghost = пять действий на первом экране → hero_widget снят у ресторана/кафе
+(у кафе плитки приходили из ШАБЛОНА «gastro» — снимаются патчем site_defaults),
+у отеля поиск дат оставлен (функция, не дубль); (4) плитки направлений пекарни
+рисовались SVG-фолбэком — 4 категории получили реальные фото набора.
+Осознанно обновлены 4 замка состава демо (gallery/reviews/nav.style centered→
+classic — шапка Fokus одной строкой). Замки: +3 в test_bundles (одна карточка
+на архетип, ДНК всех вариаций, sections_off/hero_widget применяются).

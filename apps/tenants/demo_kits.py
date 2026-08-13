@@ -617,13 +617,24 @@ RESTAURANT = DemoKit(
     key="restaurant",
     # DS-5c: Speisekarte как в печатных меню — «классическая карта» на главной
     # и на странице /sortiment/ (config_patch).
+    # DS-8 (Fokus для ресторана): сплит-баннер с плитками задач, печатная карта,
+    # компакт-доверие, CTA «Tisch reservieren» в шапке.
+    look="klar",
     section_styles={
         "contact": "map_first",
         "reviews": "quotes",
         "about": "accent",
         "products": "preisliste_karte",
+        "trust": "compact",
     },  # ST-2c/7b
-    config_patch={"catalog_layout": {"preset": "preisliste_karte"}},
+    config_patch={
+        "catalog_layout": {"preset": "preisliste_karte"},
+        "hero_style": "split",
+        "nav": {"cta": True},
+        # DS-8: CTA шапки/hero — бронь стола (эвристика _PRIORITY ставила events).
+        "primary_module": "booking",
+    },
+    sections_off=["archetypes", "usp_bar", "team", "gallery", "reviews", "testimonials"],
     label="Restaurant «Bella Vista»",
     # 2026-07-30: слайдер над гастро-плитками (первый экран).
     heroes=[
@@ -656,8 +667,8 @@ RESTAURANT = DemoKit(
     hero_text="Italienische Küche mit Herz — frische Pasta, knusprige Pizza und mehr.",
     about_title="Über uns",
     about_text="Seit 1998 kochen wir mit Leidenschaft und frischen Zutaten aus der Region.",
-    nav_style="centered",
-    hero_widget="gastro",  # батч A: плитки Reservieren/Speisekarte/Angebot des Tages
+    nav_style="classic",  # DS-8 (Fokus): шапка одной строкой
+    hero_widget="",  # DS-8 (Fokus): одно действие — CTA шапки + кнопка hero
     address="Hauptstraße 12, 40721 Hilden",
     opening_hours_text="Mo–So 11:00–22:00",
     opening_hours={d: ("11:00", "22:00") for d in range(7)},
@@ -1847,7 +1858,7 @@ PRANASY = DemoKit(
 # созданы обёртками секций в home.html; target с «/#…» работает с любой страницы.
 HOTEL_MENUS = {
     "top": {
-        "style": "centered",
+        "style": "classic",  # DS-8 (Fokus): шапка одной строкой,
         "sticky": True,
         "items": [
             {"label": "Start", "type": "page", "target": "home"},
@@ -1883,6 +1894,20 @@ HOTEL = DemoKit(
     key="hotel",
     label="Pension Seeblick",
     hero_widget="stays",  # E4 «задача-первым»: поиск дат ВНУТРИ hero (первый экран)
+    # DS-8 (Fokus для отеля): сплит-баннер с поиском дат, номера сразу под ним,
+    # компакт-полоса доверия, CTA «Buchen» в шапке; шумные секции — на страницах.
+    look="klar",
+    config_patch={"hero_style": "split", "nav": {"cta": True}},
+    section_styles={"trust": "compact"},
+    sections_off=[
+        "archetypes",
+        "usp_bar",
+        "team",
+        "gallery",
+        "reviews",
+        "testimonials",
+        "stay_search",
+    ],
     # FB-3 Вариант B демо: свой статус «Anzahlung erhalten» между Anfrage и Bestätigt (держит номер).
     status_defs={
         "stay": [
@@ -2911,7 +2936,18 @@ BAKERY = DemoKit(
     "Online vorbestellen und ohne Warten abholen.",
     # Фидбэк 2026-07-30: главная «ловит направления» — слайдер (3 слайда) +
     # плитки hero_widget="bakery" (Aktionen/Sortiment/Wunschzeit/Partyservice).
-    hero_widget="bakery",
+    # DS-8 (Fokus для пекарни): направления плитками + прайс с фото; плитки
+    # hero заменяет CTA шапки + компакт-направления (иначе три ряда действий).
+    hero_widget="",
+    look="klar",
+    enable_categories_section=True,  # DS-8: Fokus ведёт через направления
+    config_patch={
+        "hero_style": "split",
+        "nav": {"cta": True},
+        "catalog_layout": {"preset": "preisliste_foto"},
+    },
+    section_styles={"products": "preisliste_foto", "categories": "compact", "trust": "compact"},
+    sections_off=["archetypes", "usp_bar", "team", "gallery", "reviews", "testimonials"],
     heroes=[
         {
             "image_kw": "bread,bakery",
@@ -3156,6 +3192,7 @@ BAKERY = DemoKit(
                     badge="empfehlung",
                 ),
             ],
+            "bread-loaf",  # DS-8: реальное фото плитки (было SVG-фолбэк)
         ),
         (
             "Brötchen & Kleingebäck",
@@ -3191,6 +3228,7 @@ BAKERY = DemoKit(
                     allergens=["gluten", "milch"],
                 ),
             ],
+            "bread-rolls",  # DS-8: реальное фото плитки (было SVG-фолбэк)
         ),
         (
             "Feingebäck & Kuchen",
@@ -3239,6 +3277,7 @@ BAKERY = DemoKit(
                     allergens=["gluten"],
                 ),
             ],
+            "apple-pastry",  # DS-8: реальное фото плитки (было SVG-фолбэк)
         ),
         (
             "Torten auf Vorbestellung",
@@ -3267,6 +3306,7 @@ BAKERY = DemoKit(
                     badge="neu",
                 ),
             ],
+            "black-forest-cake",  # DS-8: реальное фото плитки (было SVG-фолбэк)
         ),
     ],
     job_samples=[
@@ -3775,8 +3815,23 @@ CAFE = DemoKit(
     winback={"inactive_days": 60, "percent": 10},  # B4/LS-5
     # DS-5c: компактный прайс на главной (много позиций у кофейни), страница
     # меню — прайс с мини-фото (config_patch).
-    section_styles={"cta": "cards", "usp_bar": "cards", "products": "preisliste_kompakt"},  # ST-7b
-    config_patch={"catalog_layout": {"preset": "preisliste_foto"}},
+    # DS-8 (Fokus для кафе): сплит-баннер, компакт-карта на главной, фото-прайс
+    # на странице меню, компакт-доверие.
+    look="klar",
+    section_styles={
+        "cta": "cards",
+        "usp_bar": "cards",
+        "products": "preisliste_kompakt",
+        "trust": "compact",
+    },  # ST-7b
+    config_patch={
+        "catalog_layout": {"preset": "preisliste_foto"},
+        "hero_style": "split",
+        "nav": {"cta": True},
+        # DS-8: плитки задач приходят из шаблона «gastro» — Fokus их снимает.
+        "site_defaults": {"hero_widget": ""},
+    },
+    sections_off=["archetypes", "usp_bar", "team", "gallery", "reviews", "testimonials"],
     label="Café Morgenrot",
     business_type="cafe",
     subdomain="cafe",

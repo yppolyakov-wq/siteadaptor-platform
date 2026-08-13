@@ -434,6 +434,37 @@ def apply_template(tenant, key) -> bool:
 # Сборка = данные поверх осей: кожа (look) + композиция (hero_style/nav.cta) +
 # виды вывода (стили секций, страничные пресеты) + включение секций. Владелец
 # дальше меняет любую ось по отдельности — сборка лишь стартовая комбинация.
+# Общая ДНК всех сборок «Fokus» (DS-3c → DS-8): одно главное действие на экран —
+# сплит-баннер, CTA-кнопка в шапке, компакт-полоса доверия, чистая главная.
+_FOKUS_BASE = {
+    "hero_style": "split",
+    "nav_cta": True,
+    "section_styles": {"trust": "compact"},
+    "sections_on": ("trust",),
+    # Отключаем «шумные» секции — у Fokus главная ведёт к ОДНОМУ действию;
+    # контент остаётся на своих страницах (галерея/команда/отзывы — ST-8).
+    "sections_off": ("archetypes", "usp_bar", "team", "gallery", "reviews", "testimonials"),
+}
+
+
+def _fokus(extra: dict) -> dict:
+    """Сборка Fokus: общая ДНК + архетипные отличия (виды вывода/виджет hero)."""
+    cfg = {
+        **_FOKUS_BASE,
+        **{
+            k: v
+            for k, v in extra.items()
+            if k not in ("section_styles", "sections_on", "sections_off")
+        },
+    }
+    cfg["section_styles"] = {**_FOKUS_BASE["section_styles"], **extra.get("section_styles", {})}
+    cfg["sections_on"] = tuple(_FOKUS_BASE["sections_on"]) + tuple(extra.get("sections_on", ()))
+    cfg["sections_off"] = tuple(
+        k for k in _FOKUS_BASE["sections_off"] if k not in cfg["sections_on"]
+    ) + tuple(extra.get("sections_off", ()))
+    return cfg
+
+
 BUNDLES = [
     {
         "key": "fokus",
@@ -443,25 +474,104 @@ BUNDLES = [
             "Anfrage direkt auf der Startseite."
         ),
         # Сервисные архетипы «цена+заявка» — концепт-макет владельца 2026-08-12.
-        "recommended_for": ("catering", "restaurant", "cafe", "friseur", "handwerker", "werkstatt"),
+        "recommended_for": ("catering", "friseur", "handwerker", "werkstatt"),
         "look": "klar",
-        "config": {
-            "hero_style": "split",
-            "nav_cta": True,
-            "catalog_layout": {"preset": "preisliste"},
-            "section_styles": {"products": "preisliste", "trust": "compact"},
-            "sections_on": ("products", "trust", "anfrage"),
-        },
+        "config": _fokus(
+            {
+                "catalog_layout": {"preset": "preisliste"},
+                "section_styles": {"products": "preisliste"},
+                "sections_on": ("products", "anfrage"),
+            }
+        ),
+    },
+    {
+        # DS-8: отель — главное действие «свободно ли на мои даты»; поиск дат
+        # ВНУТРИ сплит-баннера (hero_widget=stays), под ним карточки номеров.
+        "key": "fokus_hotel",
+        "label": "Fokus",
+        "description_de": (
+            "Ein Hauptziel pro Bildschirm: Split-Banner mit Datumssuche, "
+            "Zimmer direkt darunter, kompaktes Vertrauensband."
+        ),
+        "recommended_for": ("hotel",),
+        "look": "klar",
+        "config": _fokus(
+            {
+                "hero_widget": "stays",
+                "sections_on": ("stay_rooms",),
+                # stay_search жил бы дублем к поиску в баннере.
+                "sections_off": ("stay_search",),
+            }
+        ),
+    },
+    {
+        # DS-8: ресторан — печатная карта (Speisekarte klassisch) + бронь стола.
+        "key": "fokus_gastro",
+        "label": "Fokus",
+        "description_de": (
+            "Ein Hauptziel pro Bildschirm: Split-Banner, klassische Speisekarte, "
+            "Tisch-Reservierung immer sichtbar."
+        ),
+        "recommended_for": ("restaurant",),
+        "look": "klar",
+        "config": _fokus(
+            {
+                # Плитки задач в баннере не ставим: Fokus = одно действие
+                # (CTA шапки + кнопка hero); плитки живут в других Look'ах.
+                "catalog_layout": {"preset": "preisliste_karte"},
+                "section_styles": {"products": "preisliste_karte"},
+                "sections_on": ("products",),
+            }
+        ),
+    },
+    {
+        # DS-8: кафе — много позиций: компакт на главной, фото-прайс на странице.
+        "key": "fokus_cafe",
+        "label": "Fokus",
+        "description_de": (
+            "Ein Hauptziel pro Bildschirm: Split-Banner, kompakte Karte auf der "
+            "Startseite, Speisekarte mit Fotos."
+        ),
+        "recommended_for": ("cafe",),
+        "look": "klar",
+        "config": _fokus(
+            {
+                "catalog_layout": {"preset": "preisliste_foto"},
+                "section_styles": {"products": "preisliste_kompakt"},
+                "sections_on": ("products",),
+            }
+        ),
+    },
+    {
+        # DS-8: пекарня — витрина «купить сегодня»: направления плитками +
+        # прайс с фото (глазами выбирают выпечку), корзина в шапке.
+        "key": "fokus_bakery",
+        "label": "Fokus",
+        "description_de": (
+            "Ein Hauptziel pro Bildschirm: Split-Banner, Sortiment-Kacheln und "
+            "Preisliste mit Fotos."
+        ),
+        "recommended_for": ("bakery", "butcher"),
+        "look": "klar",
+        "config": _fokus(
+            {
+                "catalog_layout": {"preset": "preisliste_foto"},
+                "section_styles": {"products": "preisliste_foto", "categories": "compact"},
+                "sections_on": ("categories", "products"),
+            }
+        ),
     },
 ]
 _BUNDLE_BY_KEY = {b["key"]: b for b in BUNDLES}
 
 
 def bundles_for(business_type) -> list[dict]:
-    """Сборки для архетипа: рекомендованные — первыми (пусто у сборки = всем)."""
+    """Сборки для архетипа: рекомендованные + универсальные (пустой
+    recommended_for = всем). DS-8: у каждого архетипа своя вариация «Fokus» —
+    показывать ЧУЖИЕ было бы шумом (пять одинаковых карточек «Fokus»)."""
     rec = [b for b in BUNDLES if business_type in b["recommended_for"]]
-    rest = [b for b in BUNDLES if b not in rec]
-    return rec + rest
+    universal = [b for b in BUNDLES if not b["recommended_for"]]
+    return rec + [b for b in universal if b not in rec]
 
 
 def apply_bundle(tenant, key) -> bool:
@@ -483,13 +593,21 @@ def apply_bundle(tenant, key) -> bool:
         config["nav"] = nav
     if over.get("catalog_layout"):
         config["catalog_layout"] = dict(over["catalog_layout"])
+    # DS-8: виджет первого экрана (поиск дат/плитки) — часть композиции сборки.
+    if over.get("hero_widget"):
+        sd = dict(config.get("site_defaults") or {})
+        sd["hero_widget"] = over["hero_widget"]
+        config["site_defaults"] = sd
     styles = over.get("section_styles", {})
     on = set(over.get("sections_on", ()))
+    off = set(over.get("sections_off", ())) - on
     for row in config["sections"]:
         if row["key"] in styles:
             row["style"] = styles[row["key"]]
         if row["key"] in on:
             row["enabled"] = True
+        elif row["key"] in off:
+            row["enabled"] = False
     tenant.site_config = siteconfig.normalize(config)
     tenant.save(update_fields=["site_config", "updated_at"])
     return True
