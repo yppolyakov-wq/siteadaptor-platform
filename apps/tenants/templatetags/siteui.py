@@ -195,7 +195,10 @@ def page_blocks(context, page_key):
                 raw = draft
     except Exception:  # noqa: BLE001 — превью не должно ронять витрину
         pass
-    site = siteconfig.normalize(raw)
+    # Аудит переводов 2026-08-13: блоки берём из ЛОКАЛИЗОВАННОГО конфига — раньше
+    # тег читал их из голого normalize, и текст C-блоков страниц («Über uns»,
+    # корзина) оставался немецким на любой локали даже при готовом оверлее.
+    site = siteconfig.localize(siteconfig.normalize(raw), get_language())
     blocks = [
         b for b in (site.get("page_blocks") or {}).get(page_key, []) if b.get("enabled", True)
     ]
@@ -205,11 +208,35 @@ def page_blocks(context, page_key):
     rows = siteconfig.group_block_rows(blocks)
     ctx = {**context.flatten(), "pb_rows": rows, "pb_page_key": page_key}
     # UC2-3(b): ссылочным секциям (faq_ref/…) нужен глобальный `site` — на
-    # страницах его нет в контексте (в отличие от главной); отдаём локализованный
-    # normalize-конфиг, НЕ переопределяя, если вьюха уже положила свой.
-    ctx.setdefault("site", siteconfig.localize(site, get_language()))
+    # страницах его нет в контексте (в отличие от главной); отдаём тот же
+    # локализованный конфиг, НЕ переопределяя, если вьюха уже положила свой.
+    ctx.setdefault("site", site)
     html = render_to_string("storefront/_page_blocks.html", ctx, request=request)
     return mark_safe(html)
+
+
+@register.simple_tag(takes_context=True)
+def anfrage_event_choices(context):
+    """AF-1 + аудит переводов 2026-08-13: пары (value, подпись) для «Art der
+    Veranstaltung».
+
+    value ОСТАЁТСЯ немецким (базовый список): вьюха `/anfrage/` валидирует
+    присланное значение по `site_config["anfrage"]["event_types"]` fail-closed и
+    кладёт его в `Job.event_type` — запись бизнеса, как и снимок заказа в I18N-10,
+    живёт на базовом языке. Переводится ТОЛЬКО показ (оверлей i18n, позиционно).
+    """
+    request = context.get("request")
+    tenant = getattr(request, "tenant", None)
+    if tenant is None:
+        return []
+    cfg = siteconfig.normalize(tenant.site_config)
+    base = (cfg.get("anfrage") or {}).get("event_types") or []
+    shown = (siteconfig.localize(cfg, get_language()).get("anfrage") or {}).get("event_types") or []
+    out = []
+    for i, value in enumerate(base):
+        label = shown[i] if i < len(shown) and isinstance(shown[i], str) and shown[i] else value
+        out.append((value, label))
+    return out
 
 
 @register.simple_tag(takes_context=True)

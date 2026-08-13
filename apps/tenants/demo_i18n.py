@@ -75,7 +75,27 @@ _TRANSLATABLE_CONFIG_KEYS = (
     # останется как есть.
     "usp_bar",
     "team",
+    # Аудит переводов демо 2026-08-13: ещё два ключа с немецким текстом, которые
+    # обход пропускал. `anfrage` — виды мероприятия формы заявки (AF-1); ПОКАЗ
+    # локализуется, а value <option> остаётся немецким (тег `anfrage_event_choices`
+    # в siteui) — иначе POST не прошёл бы валидацию по базовому списку.
+    # `before_after` — подписи кейсов «Vorher/Nachher» (ключи фото — URL, в словаре
+    # их нет, `t()` вернёт None и они останутся как есть).
+    "anfrage",
+    "before_after",
 )
+
+# Аудит 2026-08-13: C-блоки (UC6/GK-15) живут внутри `sections` (главная) и
+# `page_blocks` (прочие страницы). Гонять по ним общий `_tr_node` нельзя: там
+# лежат служебные токены (ключ блока, стиль, выравнивание), и совпадение такого
+# токена со словарной записью молча сломало бы структуру. Поэтому обходим ТОЛЬКО
+# поля данных, которые санитайзер `_clean_cblock_data` объявляет текстовыми.
+_CBLOCK_TEXT_FIELDS = ("title", "body", "caption", "label", "button_label")
+# Списки внутри данных блока: ключ → переводимые поля элемента. `value` у stats
+# обычно число («200+»), но бывает и текстом («seit 2012») — берём его тоже:
+# перевод подставляется ТОЛЬКО при точном совпадении со словарной записью,
+# поэтому числа остаются числами. URL/иконки не трогаем.
+_CBLOCK_LIST_FIELDS = {"rows": ("label", "value"), "items": ("title", "text", "label")}
 
 
 def _tr_node(node, locale: str):
@@ -135,6 +155,63 @@ def _deep_merge_prefer_b(a: dict, b: dict) -> dict:
     return out
 
 
+def _tr_cblock_data(data, locale: str):
+    """Оверлей ДАННЫХ одного C-блока: только текстовые поля (см. `_CBLOCK_TEXT_FIELDS`
+    и `_CBLOCK_LIST_FIELDS`). ``None`` — переводить нечего."""
+    if not isinstance(data, dict):
+        return None
+    out = {}
+    for field in _CBLOCK_TEXT_FIELDS:
+        tr = t(data.get(field), locale) if isinstance(data.get(field), str) else None
+        if tr:
+            out[field] = tr
+    for field, item_keys in _CBLOCK_LIST_FIELDS.items():
+        rows = data.get(field)
+        if not isinstance(rows, list):
+            continue
+        tr_rows, any_tr = [], False
+        for row in rows:
+            row_ov = {}
+            if isinstance(row, dict):
+                for key in item_keys:
+                    tr = t(row.get(key), locale) if isinstance(row.get(key), str) else None
+                    if tr:
+                        row_ov[key] = tr
+            tr_rows.append(row_ov)  # {} = no-op merge, индекс строки цел
+            any_tr = any_tr or bool(row_ov)
+        if any_tr:
+            out[field] = tr_rows
+    return out or None
+
+
+def _tr_blocks(rows, locale: str):
+    """Оверлей СПИСКА блоков/секций: позиционный, у каждого — только `data`."""
+    if not isinstance(rows, list):
+        return None
+    out, any_tr = [], False
+    for row in rows:
+        row_ov = {}
+        if isinstance(row, dict):
+            data_ov = _tr_cblock_data(row.get("data"), locale)
+            if data_ov:
+                row_ov["data"] = data_ov
+        out.append(row_ov)
+        any_tr = any_tr or bool(row_ov)
+    return out if any_tr else None
+
+
+def _tr_page_blocks(page_blocks, locale: str):
+    """Оверлей `page_blocks` ({хост: [блок, …]}) — теми же правилами, что секции."""
+    if not isinstance(page_blocks, dict):
+        return None
+    out = {}
+    for host, rows in page_blocks.items():
+        blocks_ov = _tr_blocks(rows, locale)
+        if blocks_ov:
+            out[host] = blocks_ov
+    return out or None
+
+
 def overlay_config(cfg: dict, locales) -> None:
     """Добавить/дополнить ``cfg["i18n"][loc]`` сгенерированным оверлеем site_config
     для каждой локали из ``locales``. Изменяет ``cfg`` на месте. Существующий ручной
@@ -143,8 +220,22 @@ def overlay_config(cfg: dict, locales) -> None:
         return
     source = {k: cfg.get(k) for k in _TRANSLATABLE_CONFIG_KEYS if k in cfg}
     i18n = dict(cfg.get("i18n") or {})
+    # C-блоки оверлеятся ПОЗИЦИОННО (`_deep_overlay` мерджит списки по индексу), а
+    # витрина рендерит НОРМАЛИЗОВАННЫЙ конфиг: `normalize_sections` дедупит фикс-секции,
+    # дописывает недостающие в конец и режет длинные строки. Поэтому индексы и значения
+    # для словаря берём из нормализованной формы — иначе перевод сел бы не на тот блок.
+    from . import siteconfig
+
+    norm_sections = siteconfig.normalize_sections(cfg.get("sections"))
+    norm_pages = siteconfig.normalize_page_blocks(cfg.get("page_blocks"))
     for loc in locales:
         generated = _tr_node(source, loc) or {}
+        blocks_ov = _tr_blocks(norm_sections, loc)
+        if blocks_ov:
+            generated["sections"] = blocks_ov
+        pages_ov = _tr_page_blocks(norm_pages, loc)
+        if pages_ov:
+            generated["page_blocks"] = pages_ov
         existing = i18n.get(loc) if isinstance(i18n.get(loc), dict) else {}
         merged = _deep_merge_prefer_b(generated, existing)
         if merged:
@@ -270,6 +361,10 @@ def translate_tenant_content(tenant, locales) -> None:
 
     for cat in Category.objects.all():
         cat_fields = ["name"] if _fill_full(cat, "name", locales) else []
+        # Аудит 2026-08-13: описание направления (DS-7a) — единственный текст
+        # лендинга `/bereich/<slug>/`; поле полноценно i18n, но обход его не брал.
+        if _fill_full(cat, "description", locales):
+            cat_fields.append("description")
         # I18N-10: Größentabelle («Größe | Brust») — показная таблица.
         if _fill_overlay(cat, "size_table", "size_table_i18n", locales):
             cat_fields.append("size_table_i18n")

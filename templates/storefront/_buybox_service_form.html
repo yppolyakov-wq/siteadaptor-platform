@@ -12,7 +12,7 @@ storefront/_buybox.html при sellable.buybox_ready (= выбранный ?slot
   каждое. Одно время = ровно прежняя разметка (паритет-замки целы). Набор с
   РАЗНЫХ дней подписываем датами, иначе заголовок «01.08 · 08:00, 09:00» врал бы
   про день второго периода.{% endcomment %}
-  <h2 class="font-semibold">{% if cross_day %}{% for sp in booking_spans %}{{ sp.start|date:"d.m." }} {{ sp.start|time:"H:i" }}{% if units > 1 %}–{{ sp.end|time:"H:i" }}{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}{{ day|date:"d.m.Y" }} · {% for sp in selected_spans %}{{ sp.start|time:"H:i" }}{% if units > 1 %}–{{ sp.end|time:"H:i" }}{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %} · {{ service.name }}{% if chosen_resource %} · {{ chosen_resource.name }}{% endif %}</h2>
+  <h2 class="font-semibold">{% if cross_day %}{% for sp in booking_spans %}{{ sp.start|date:"d.m." }} {{ sp.start|time:"H:i" }}{% if units > 1 %}–{{ sp.end|time:"H:i" }}{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}{{ day|date:"d.m.Y" }} · {% for sp in selected_spans %}{{ sp.start|time:"H:i" }}{% if units > 1 %}–{{ sp.end|time:"H:i" }}{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %} · {{ service.name_localized }}{% if chosen_resource %} · {{ chosen_resource.name }}{% endif %}</h2>
   {% comment %}P6 «ценовой слой»: промо-цена выбранного времени — ровно та сумма,
   которую спишет service_book (зеркальный расчёт во вьюхе слотов).{% endcomment %}
   {% if promo_price_eur %}

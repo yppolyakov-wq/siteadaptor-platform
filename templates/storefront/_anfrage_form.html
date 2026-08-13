@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n siteui %}
 {% comment %}AF-2a: форма заявки — общий партиал страницы /anfrage/ и
 встраиваемого блока anfrage_ref (sections/_anfrage.html). Контекст: betreff,
 anfrage_cfg (site_config["anfrage"]), jobs_vehicle, has_service_area; POST
@@ -36,7 +36,7 @@ anfrage_cfg (site_config["anfrage"]), jobs_vehicle, has_service_area; POST
       <label class="block text-sm font-medium mb-1" for="id_event_type">{% trans "Type of event (optional)" %}</label>
       <select id="id_event_type" name="event_type" class="w-full rounded-lg border border-gray-300 px-3 py-2 bg-white">
         <option value="">—</option>
-        {% for t in anfrage_cfg.event_types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+        {% anfrage_event_choices as ev_choices %}{% for value, label in ev_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
       </select>
     </div>
     {% endif %}

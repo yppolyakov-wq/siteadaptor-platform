@@ -14,7 +14,7 @@
         <h2 class="font-semibold">{{ plan.label }}</h2>
         <p class="text-sm text-gray-500 mt-1">
           {% blocktrans count credits=plan.credits %}{{ credits }} visit{% plural %}{{ credits }} visits{% endblocktrans %}
-          {% if plan.service %} · {{ plan.service.name }}{% endif %}
+          {% if plan.service %} · {{ plan.service.name_localized }}{% endif %}
           {% if plan.valid_days %} · {% blocktrans count days=plan.valid_days %}{{ days }} day valid{% plural %}{{ days }} days valid{% endblocktrans %}{% endif %}
         </p>
         <p class="text-lg font-bold mt-2">{{ plan.price_eur|floatformat:2 }} €</p>

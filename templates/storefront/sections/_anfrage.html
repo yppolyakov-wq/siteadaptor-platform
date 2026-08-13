@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n siteui %}
 {% comment %}AF-2b: встраиваемый блок формы заявки (anfrage_ref) — на любой из
 PAGE_BLOCK_HOSTS-страниц. Гейт по модулю jobs: выключен → пусто (паттерн «пустой
 референс рендерит ничего»). Состав событийных полей — глобальный site.anfrage
@@ -28,7 +28,7 @@ PAGE_BLOCK_HOSTS-страниц. Гейт по модулю jobs: выключе
     <label class="block grow basis-32"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">{% trans "Art der Veranstaltung" %}</span>
       <select name="event_type" class="w-full rounded-lg border-0 px-3 py-2 text-gray-900">
         <option value="">—</option>
-        {% for t in site.anfrage.event_types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+        {% anfrage_event_choices as ev_choices %}{% for value, label in ev_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
       </select></label>
     {% endif %}
     <label class="block grow basis-32"><span class="block text-[10px] tracking-wider uppercase text-white/70 mb-1">{% trans "Name" %}</span>

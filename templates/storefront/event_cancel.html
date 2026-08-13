@@ -12,7 +12,7 @@
 
   <div class="bg-white rounded-2xl shadow-sm p-6 md:p-8">
     <h1 class="text-2xl font-bold mb-2">{% trans "Cancel your ticket" %}</h1>
-    <p class="text-gray-600">{{ event.title }}</p>
+    <p class="text-gray-600">{{ event.title_text }}</p>
     <p class="text-sm text-gray-500 mt-1">{{ event.starts_at|date:"d.m.Y H:i" }}{% if event.location %} · {{ event.location }}{% endif %} · {{ ticket.reference_code }}</p>
 
     {% if ticket.status == 'cancelled' %}

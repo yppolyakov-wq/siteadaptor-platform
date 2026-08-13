@@ -9,7 +9,7 @@
     <h1 class="text-2xl font-bold mb-2">{% trans "Thank you! Your booking is in." %} 🎉</h1>
     {% comment %}Цена: у группы — итог по ВСЕМ периодам (иначе страница называла N
     времён и стоимость одного); одиночная бронь — как раньше.{% endcomment %}
-    <p class="text-gray-600">{% if booking.service %}{{ booking.service.name }}{% if booking.price_cents %} · {% if group_total_eur %}{{ group_total_eur|floatformat:2 }}{% else %}{{ booking.price_eur|floatformat:2 }}{% endif %} €{% endif %}{% else %}{{ booking.resource.name }}{% endif %}</p>
+    <p class="text-gray-600">{% if booking.service %}{{ booking.service.name_localized }}{% if booking.price_cents %} · {% if group_total_eur %}{{ group_total_eur|floatformat:2 }}{% else %}{{ booking.price_eur|floatformat:2 }}{% endif %} €{% endif %}{% else %}{{ booking.resource.name }}{% endif %}</p>
     {% comment %}HF-6d: бронь из нескольких периодов — перечисляем все времена;
     одиночная бронь рендерится ровно как раньше (замки на разметку целы).{% endcomment %}
     {% if group_bookings %}

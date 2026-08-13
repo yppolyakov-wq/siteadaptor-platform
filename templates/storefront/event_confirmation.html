@@ -7,7 +7,7 @@
   {% funnel_steps "event" 3 %}
   <div class="bg-white rounded-2xl shadow-sm p-6 md:p-8">
     <h1 class="text-2xl font-bold mb-2">{% trans "You're in!" %} 🎉</h1>
-    <p class="text-gray-600 mb-1">{{ event.title }}</p>
+    <p class="text-gray-600 mb-1">{{ event.title_text }}</p>
     <p class="text-gray-500 mb-4">{{ event.starts_at|date:"d.m.Y H:i" }}{% if event.is_online %} · 🖥 {% trans "Online" %}{% elif event.location %} · {{ event.location }}{% endif %}</p>
     {% comment %}RT2: ссылка доступа к онлайн-событию — только участнику, после брони.{% endcomment %}
     {% if event.is_online and event.online_url %}
