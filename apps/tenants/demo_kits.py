@@ -639,7 +639,9 @@ RESTAURANT = DemoKit(
         "trust": "compact",
     },  # ST-2c/7b
     config_patch={
-        "catalog_layout": {"preset": "preisliste_karte"},
+        # MEN-16: на главной — «печатная карта» тизером, на полной Speisekarte
+        # разворот книги с листанием (демо показывает оба вида семейства).
+        "catalog_layout": {"preset": "preisliste_buch"},
         "hero_style": "split",
         "nav": {"cta": True},
         # DS-8: CTA шапки/hero — бронь стола (эвристика _PRIORITY ставила events).

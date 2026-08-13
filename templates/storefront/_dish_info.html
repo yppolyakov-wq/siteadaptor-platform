@@ -17,7 +17,7 @@ MEN-17 (фидбэк владельца «сделай окно просмотр
     <div class="sm:flex">
       {% with img=product.primary_image %}{% if img %}
         <div class="sm:w-1/2 shrink-0">
-          <img src="{{ img.url }}" alt="{{ product }}" class="w-full aspect-[4/3] sm:aspect-square object-cover" decoding="async" data-dish-photo>
+          <img src="{{ img.url }}" alt="{{ product }}" class="w-full aspect-[4/3] object-cover" decoding="async" data-dish-photo>
           {% if product.images|length > 1 %}
             <div class="flex gap-2 overflow-x-auto p-2">
               {% for i in product.images %}

@@ -28,7 +28,7 @@
   </button>
   {% if show_inputs and not readonly %}
     <label class="flex flex-1 min-w-0 items-center gap-2 py-1.5 pr-2 text-sm text-gray-700 cursor-pointer">
-      <span class="flex-1 min-w-0">{{ p }}{% if show_prices and amount %} <span class="text-gray-500 whitespace-nowrap">{{ prefix }}{{ amount }} {{ cur }}</span>{% endif %}</span>
+      <span class="flex-1 min-w-0 break-words">{{ p }}{% if show_prices and amount %} <span class="text-gray-500 whitespace-nowrap">{{ prefix }}{{ amount }} {{ cur }}</span>{% endif %}</span>
       {% if multi %}
         <input type="checkbox" name="{{ in_name }}{{ in_name_id }}" value="{{ in_value }}" data-delta="{{ in_delta }}" class="shrink-0 rounded border-gray-300">
       {% else %}

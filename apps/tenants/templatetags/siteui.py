@@ -460,6 +460,29 @@ def price_groups_from(items):
     return _price_group_rows(list(items))
 
 
+@register.simple_tag
+def book_pages(groups, per_page=8):
+    """MEN-16: страницы «меню-книги» из групп прайса.
+
+    Страница = группа, но длинная группа режется на несколько страниц: иначе
+    разворот выходит кривым (слева два блюда, справа четырнадцать). Продолжение
+    несёт то же название и флаг `cont` — заголовок помечается «Fortsetzung».
+    Форма элемента та же ({name, items}), поэтому цикл рендера один на все виды.
+    """
+    out = []
+    for group in groups or []:
+        items = list(group.get("items") or [])
+        for start in range(0, len(items), per_page):
+            out.append(
+                {
+                    "name": group.get("name"),
+                    "items": items[start : start + per_page],
+                    "cont": start > 0,
+                }
+            )
+    return out
+
+
 @register.simple_tag(takes_context=True)
 def speisekarte_pdf_available(context):
     """GK-13-гейт для мест вне вьюхи каталога (секция главной): FOOD-тип и есть
