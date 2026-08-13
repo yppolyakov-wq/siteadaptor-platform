@@ -62,6 +62,18 @@
         {% endif %}
       </div>
     </a>
+    {% comment %}MEN-12: «Merken» без аккаунта (сессия) — на главном домене
+    /entdecken/, где логина нет; на порталах под логином остаётся персональное
+    избранное (сердечко ниже), поэтому кнопки не дублируются.{% endcomment %}
+    {% if not portal_user and shortlist_enabled %}
+      <form method="post" action="{% url 'aggregator-shortlist-toggle' %}" class="absolute top-3 right-3 z-10">
+        {% csrf_token %}
+        <input type="hidden" name="listing" value="{{ l.pk }}">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" aria-label="{% if l.pk in shortlist_ids %}{% trans 'Von der Merkliste entfernen' %}{% else %}{% trans 'Zum Vergleich merken' %}{% endif %}"
+                class="w-9 h-9 rounded-full bg-white/90 shadow flex items-center justify-center hover:scale-110 transition {% if l.pk in shortlist_ids %}text-indigo-600{% else %}text-gray-400 hover:text-indigo-600{% endif %}">{% if l.pk in shortlist_ids %}★{% else %}☆{% endif %}</button>
+      </form>
+    {% endif %}
     {% if portal_user %}
       <form method="post" action="{% url 'portal-favorite-toggle' %}" class="absolute top-3 right-3 z-10">
         {% csrf_token %}

@@ -17913,3 +17913,67 @@ msgstr "Дякуємо! Ваш запит отримано."
 #: templates/storefront/order_confirmation.html
 msgid "Wir prüfen Termin und Details und melden uns mit einem Angebot. Ihre Anfrage-Nummer:"
 msgstr "Ми перевіримо дату й деталі та повернемося з пропозицією. Номер вашого запиту:"
+
+#: apps/aggregator/shortlist.py
+msgid "Anbieter"
+msgstr "Постачальник"
+
+#: apps/aggregator/shortlist.py
+msgid "Ort"
+msgstr "Місто"
+
+#: apps/aggregator/shortlist.py
+msgid "Mindestbestellung"
+msgstr "Мінімальне замовлення"
+
+#: apps/aggregator/shortlist.py
+msgid "Anlässe"
+msgstr "Приводи"
+
+#: apps/aggregator/shortlist.py
+msgid "Ernährung"
+msgstr "Харчування"
+
+#: apps/aggregator/shortlist.py
+msgid "Bewertung"
+msgstr "Рейтинг"
+
+#: templates/aggregator/shortlist.html
+msgid "Merkliste"
+msgstr "Відкладене"
+
+#: templates/aggregator/shortlist.html
+msgid "Von der Merkliste entfernen"
+msgstr "Прибрати з відкладеного"
+
+#: templates/aggregator/shortlist.html
+msgid "Zum Vergleich merken"
+msgstr "Відкласти для порівняння"
+
+#: templates/aggregator/shortlist.html
+msgid "Merkliste — Angebote vergleichen"
+msgstr "Відкладене — порівняння пропозицій"
+
+#: templates/aggregator/shortlist.html
+msgid "Ihre Merkliste"
+msgstr "Ваше відкладене"
+
+#: templates/aggregator/shortlist.html
+msgid "Gemerkte Angebote nebeneinander vergleichen — Preis, Mindestbestellung, Anlässe und Ernährung auf einen Blick."
+msgstr "Порівняйте відкладені пропозиції поруч — ціна, мінімальне замовлення, приводи та харчування з одного погляду."
+
+#: templates/aggregator/shortlist.html
+msgid "entfernen"
+msgstr "прибрати"
+
+#: templates/aggregator/shortlist.html
+msgid "Noch nichts gemerkt. Tippen Sie bei einem Angebot auf «Merken» — hier vergleichen Sie dann die Varianten."
+msgstr "Поки нічого не відкладено. Натисніть «Відкласти» біля пропозиції — і порівняйте варіанти тут."
+
+#: templates/aggregator/shortlist.html
+msgid "Angebote entdecken"
+msgstr "Переглянути пропозиції"
+
+#: templates/storefront/_anfrage_modal.html
+msgid "Wir melden uns mit einem Angebot — ohne Kosten und ohne Verpflichtung."
+msgstr "Ми повернемося з пропозицією — безкоштовно та без зобов'язань."

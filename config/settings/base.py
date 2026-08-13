@@ -196,6 +196,7 @@ TEMPLATES = [
                 "apps.core.context.modules_nav",
                 # Клиент портала (P2.3a): portal_user в шаблонах портальных хостов.
                 "apps.aggregator.context.portal_user",
+                "apps.aggregator.context.shortlist",  # MEN-12: отложенное/сравнение
                 # SEO-1: title/description витрины из движка мета-заготовок.
                 "apps.core.context_processors.seo",
             ],

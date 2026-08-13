@@ -5,8 +5,9 @@
 """
 
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.views.decorators.http import require_POST
 
 from apps.core.pagecache import cache_public_page
 from apps.core.pagination import paginate
@@ -545,3 +546,31 @@ def robots_txt(request):
     """robots.txt основного домена: всё открыто + ссылка на sitemap агрегатора."""
     sitemap = request.build_absolute_uri(reverse("aggregator-sitemap"))
     return HttpResponse(f"User-agent: *\nAllow: /\nSitemap: {sitemap}\n", content_type="text/plain")
+
+
+@require_POST
+def shortlist_toggle(request):
+    """MEN-12: отложить/убрать предложение (сессия, без аккаунта). POST + next."""
+    from . import shortlist
+
+    shortlist.toggle(request, request.POST.get("listing"))
+    nxt = request.POST.get("next") or ""
+    return redirect(nxt if nxt.startswith("/") else reverse("aggregator-index"))
+
+
+def shortlist_compare(request):
+    """MEN-12 (запрос владельца «где потом можно сравнить варианты»): страница
+    сравнения отложенных предложений — таблица «характеристика × вариант»."""
+    from . import reviews, shortlist
+
+    items = shortlist.listings(request)
+    reviews.attach_ratings(items)  # рейтинг бизнеса — строкой сравнения
+    return render(
+        request,
+        "aggregator/shortlist.html",
+        {
+            "items": items,
+            "rows": shortlist.compare_rows(items),
+            "shortlist_ids": set(shortlist.ids(request)),
+        },
+    )

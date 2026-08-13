@@ -61,7 +61,9 @@ def test_combo_detail_visible_without_orders_with_anfrage_cta():
     ).content.decode()
     assert 'action="/kombi/add/"' not in body  # формы корзины нет
     assert "Unverbindlich anfragen" in body
-    assert "/anfrage/?betreff=" in body
+    # MEN-11: заявка открывается ПОПАПОМ (фрагмент формы), а не уводит на страницу
+    assert "/anfrage/formular/?betreff=" in body
+    assert "/anfrage/?betreff=" not in body
     assert "Dessert" in body  # состав показан и без orders
     # MEN-7 (находка стенда): выбор состава доступен и БЕЗ корзины — гость
     # собирает меню и отправляет заявку с ним (раньше контролов не было вовсе).

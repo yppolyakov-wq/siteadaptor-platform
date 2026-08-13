@@ -17844,3 +17844,67 @@ msgstr "Teşekkürler! Talebiniz bize ulaştı."
 #: templates/storefront/order_confirmation.html
 msgid "Wir prüfen Termin und Details und melden uns mit einem Angebot. Ihre Anfrage-Nummer:"
 msgstr "Tarihi ve ayrıntıları kontrol edip bir teklifle döneceğiz. Talep numaranız:"
+
+#: apps/aggregator/shortlist.py
+msgid "Anbieter"
+msgstr "Sağlayıcı"
+
+#: apps/aggregator/shortlist.py
+msgid "Ort"
+msgstr "Yer"
+
+#: apps/aggregator/shortlist.py
+msgid "Mindestbestellung"
+msgstr "Minimum sipariş"
+
+#: apps/aggregator/shortlist.py
+msgid "Anlässe"
+msgstr "Etkinlik türleri"
+
+#: apps/aggregator/shortlist.py
+msgid "Ernährung"
+msgstr "Beslenme"
+
+#: apps/aggregator/shortlist.py
+msgid "Bewertung"
+msgstr "Değerlendirme"
+
+#: templates/aggregator/shortlist.html
+msgid "Merkliste"
+msgstr "Kayıtlılar"
+
+#: templates/aggregator/shortlist.html
+msgid "Von der Merkliste entfernen"
+msgstr "Kayıtlılardan çıkar"
+
+#: templates/aggregator/shortlist.html
+msgid "Zum Vergleich merken"
+msgstr "Karşılaştırmak için kaydet"
+
+#: templates/aggregator/shortlist.html
+msgid "Merkliste — Angebote vergleichen"
+msgstr "Kayıtlılar — teklifleri karşılaştır"
+
+#: templates/aggregator/shortlist.html
+msgid "Ihre Merkliste"
+msgstr "Kayıtlılarınız"
+
+#: templates/aggregator/shortlist.html
+msgid "Gemerkte Angebote nebeneinander vergleichen — Preis, Mindestbestellung, Anlässe und Ernährung auf einen Blick."
+msgstr "Kaydedilen teklifleri yan yana karşılaştırın — fiyat, minimum sipariş, etkinlik türü ve beslenme tek bakışta."
+
+#: templates/aggregator/shortlist.html
+msgid "entfernen"
+msgstr "kaldır"
+
+#: templates/aggregator/shortlist.html
+msgid "Noch nichts gemerkt. Tippen Sie bei einem Angebot auf «Merken» — hier vergleichen Sie dann die Varianten."
+msgstr "Henüz kayıt yok. Bir teklifte «Kaydet»e dokunun — seçenekleri burada karşılaştırırsınız."
+
+#: templates/aggregator/shortlist.html
+msgid "Angebote entdecken"
+msgstr "Teklifleri keşfet"
+
+#: templates/storefront/_anfrage_modal.html
+msgid "Wir melden uns mit einem Angebot — ohne Kosten und ohne Verpflichtung."
+msgstr "Size bir teklifle döneceğiz — ücretsiz ve yükümlülük olmadan."

@@ -20,7 +20,13 @@
   <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-gray-100">
     <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
       <a href="{% url 'aggregator-index' %}" class="text-lg font-bold tracking-tight">siteadaptor</a>
+      {% comment %}MEN-12: вход в сравнение — только когда что-то отложено (пустая
+      «Merkliste» в шапке зашумляла бы каждую страницу).{% endcomment %}
+      {% if shortlist_count %}
+      <a href="{% url 'aggregator-shortlist' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-700">★ {% trans "Merkliste" %} <span class="ml-0.5 rounded-full bg-indigo-600 text-white text-xs px-1.5 py-0.5">{{ shortlist_count }}</span></a>
+      {% else %}
       <span class="text-sm text-gray-500">{% trans "Local offers" %}</span>
+      {% endif %}
     </div>
   </header>
 

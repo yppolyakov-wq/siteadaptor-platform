@@ -54,6 +54,18 @@ urlpatterns = [
     path("entdecken/", aggregator_views.discover_index, name="aggregator-index"),
     # FD-4: платформенный Finder — ВЫШЕ catch-all города (иначе «finder» = city).
     path("entdecken/finder/", aggregator_views.platform_finder, name="aggregator-finder"),
+    # MEN-12: отложенные предложения и их сравнение (сессия, без аккаунта) —
+    # ВЫШЕ catch-all города, иначе «merkliste» распознаётся как город.
+    path(
+        "entdecken/merkliste/",
+        aggregator_views.shortlist_compare,
+        name="aggregator-shortlist",
+    ),
+    path(
+        "entdecken/merkliste/toggle/",
+        aggregator_views.shortlist_toggle,
+        name="aggregator-shortlist-toggle",
+    ),
     # D2.3: клик-счётчик featured (имя дублируется в urls_portal — {% url %} везде).
     path(
         "entdecken/klick/<int:pk>/",

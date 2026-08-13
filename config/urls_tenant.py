@@ -442,6 +442,8 @@ urlpatterns = [
     path("lehrer/<uuid:pk>/", events_public.lehrer_detail, name="storefront-teacher"),
     # Handwerker: заявка + публичное Angebot (G6 / F3).
     path("anfrage/", jobs_public.anfrage, name="storefront-anfrage"),
+    # MEN-11: та же форма фрагментом для попапа (generic #quick-modal)
+    path("anfrage/formular/", jobs_public.anfrage_modal, name="storefront-anfrage-modal"),
     path("rueckruf/", jobs_public.rueckruf, name="storefront-rueckruf"),
     path("auftrag/<uuid:token>/", jobs_public.auftrag_status, name="storefront-auftrag"),
     path("angebot/<uuid:token>/", jobs_public.angebot, name="storefront-angebot"),

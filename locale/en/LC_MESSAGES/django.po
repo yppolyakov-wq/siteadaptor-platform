@@ -17732,3 +17732,67 @@ msgstr "Thank you! Your inquiry has arrived."
 #: templates/storefront/order_confirmation.html
 msgid "Wir prüfen Termin und Details und melden uns mit einem Angebot. Ihre Anfrage-Nummer:"
 msgstr "We will check the date and details and get back to you with an offer. Your inquiry number:"
+
+#: apps/aggregator/shortlist.py
+msgid "Anbieter"
+msgstr "Provider"
+
+#: apps/aggregator/shortlist.py
+msgid "Ort"
+msgstr "Location"
+
+#: apps/aggregator/shortlist.py
+msgid "Mindestbestellung"
+msgstr "Minimum order"
+
+#: apps/aggregator/shortlist.py
+msgid "Anlässe"
+msgstr "Occasions"
+
+#: apps/aggregator/shortlist.py
+msgid "Ernährung"
+msgstr "Diet"
+
+#: apps/aggregator/shortlist.py
+msgid "Bewertung"
+msgstr "Rating"
+
+#: templates/aggregator/shortlist.html
+msgid "Merkliste"
+msgstr "Shortlist"
+
+#: templates/aggregator/shortlist.html
+msgid "Von der Merkliste entfernen"
+msgstr "Remove from shortlist"
+
+#: templates/aggregator/shortlist.html
+msgid "Zum Vergleich merken"
+msgstr "Save for comparison"
+
+#: templates/aggregator/shortlist.html
+msgid "Merkliste — Angebote vergleichen"
+msgstr "Shortlist — compare offers"
+
+#: templates/aggregator/shortlist.html
+msgid "Ihre Merkliste"
+msgstr "Your shortlist"
+
+#: templates/aggregator/shortlist.html
+msgid "Gemerkte Angebote nebeneinander vergleichen — Preis, Mindestbestellung, Anlässe und Ernährung auf einen Blick."
+msgstr "Compare saved offers side by side — price, minimum order, occasions and diet at a glance."
+
+#: templates/aggregator/shortlist.html
+msgid "entfernen"
+msgstr "remove"
+
+#: templates/aggregator/shortlist.html
+msgid "Noch nichts gemerkt. Tippen Sie bei einem Angebot auf «Merken» — hier vergleichen Sie dann die Varianten."
+msgstr "Nothing saved yet. Tap «Save» on an offer — then compare the options here."
+
+#: templates/aggregator/shortlist.html
+msgid "Angebote entdecken"
+msgstr "Discover offers"
+
+#: templates/storefront/_anfrage_modal.html
+msgid "Wir melden uns mit einem Angebot — ohne Kosten und ohne Verpflichtung."
+msgstr "We will get back to you with an offer — free and without obligation."

@@ -1,0 +1,19 @@
+{% load i18n %}
+{% comment %}MEN-11: форма заявки В ПОПАПЕ (запрос владельца «не уводить на
+дополнительную страницу, заполнять сразу в попапе»). Грузится generic-модалкой
+`#quick-modal` (fetch по data-quick-url) и содержит ТОТ ЖЕ партиал формы, что
+страница /anfrage/ — приёмник/honeypot/rate-limit штатные.{% endcomment %}
+<div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+  <div class="absolute inset-0 bg-black/50" data-quick-close></div>
+  <div class="relative w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl"
+       role="dialog" aria-modal="true" aria-label="{% trans 'Unverbindlich anfragen' %}" data-anfrage-modal>
+    <button type="button" data-quick-close
+            class="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-white/95 shadow text-gray-500 hover:text-gray-800 text-2xl leading-none"
+            aria-label="{% trans 'Close' %}">&times;</button>
+    <div class="bg-white rounded-t-2xl sm:rounded-2xl px-5 pt-5">
+      <h2 class="text-xl font-bold pr-10">{% trans "Unverbindlich anfragen" %}</h2>
+      <p class="text-sm text-gray-500 mt-1">{% trans "Wir melden uns mit einem Angebot — ohne Kosten und ohne Verpflichtung." %}</p>
+    </div>
+    {% include "storefront/_anfrage_form.html" %}
+  </div>
+</div>

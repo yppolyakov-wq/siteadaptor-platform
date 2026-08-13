@@ -1,0 +1,53 @@
+{% extends "aggregator/_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Merkliste — Angebote vergleichen" %}{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl md:text-3xl font-bold mb-2">{% trans "Ihre Merkliste" %}</h1>
+<p class="text-gray-500 mb-6">{% trans "Gemerkte Angebote nebeneinander vergleichen — Preis, Mindestbestellung, Anlässe und Ernährung auf einen Blick." %}</p>
+
+{% if items %}
+{% comment %}MEN-12: таблица «характеристика × вариант». Ряды, пустые у ВСЕХ
+вариантов, не рендерятся (compare_rows) — сравнивать нечего.{% endcomment %}
+<div class="overflow-x-auto bg-white rounded-2xl shadow-sm">
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="border-b border-gray-100">
+        <th class="text-left p-3 text-gray-400 font-medium w-40">{% trans "Angebot" %}</th>
+        {% for l in items %}
+        <th class="text-left p-3 align-top min-w-[190px]">
+          <a href="{{ l.detail_url }}" class="block font-semibold hover:underline">{{ l.title_text }}</a>
+          {% if l.image.url %}<img src="{{ l.image.url }}" alt="" loading="lazy" class="mt-2 w-full aspect-[4/3] object-cover rounded-lg">{% endif %}
+          <form method="post" action="{% url 'aggregator-shortlist-toggle' %}" class="mt-2">
+            {% csrf_token %}
+            <input type="hidden" name="listing" value="{{ l.pk }}">
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="text-xs text-gray-400 hover:text-red-500">✕ {% trans "entfernen" %}</button>
+          </form>
+        </th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for label, values in rows %}
+      <tr class="border-b border-gray-50">
+        <th class="text-left p-3 text-gray-500 font-medium align-top">{{ label }}</th>
+        {% for v in values %}<td class="p-3 align-top">{% if v %}{{ v }}{% else %}<span class="text-gray-300">—</span>{% endif %}</td>{% endfor %}
+      </tr>
+      {% endfor %}
+      <tr>
+        <th class="p-3"></th>
+        {% for l in items %}
+        <td class="p-3">
+          <a href="{{ l.detail_url }}" class="inline-block rounded-lg bg-gray-900 text-white px-3 py-2 text-sm font-medium hover:bg-gray-800">{% trans "Zum Angebot" %}</a>
+        </td>
+        {% endfor %}
+      </tr>
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="text-gray-500">{% trans "Noch nichts gemerkt. Tippen Sie bei einem Angebot auf «Merken» — hier vergleichen Sie dann die Varianten." %}</p>
+<a href="{% url 'aggregator-index' %}" class="inline-block mt-4 rounded-lg bg-gray-900 text-white px-4 py-2.5 font-medium">{% trans "Angebote entdecken" %}</a>
+{% endif %}
+{% endblock %}

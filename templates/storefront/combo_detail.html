@@ -59,8 +59,10 @@
         <label class="flex items-center gap-2 text-sm text-gray-600">{% trans "Personen" %}
           <input type="number" name="qty" value="{{ min_qty }}" min="{{ min_qty }}" max="1000" class="w-24 rounded-lg border border-gray-300 px-3 py-2.5">
         </label>
-        <a data-anfrage-cta href="{% url 'storefront-anfrage' %}?betreff={{ combo.name_localized|urlencode }}"
-           class="flex-1 text-center text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent);">{% trans "Unverbindlich anfragen" %}</a>
+        {% comment %}MEN-11: заявка заполняется В ПОПАПЕ (generic #quick-modal),
+        без ухода на /anfrage/; состав и персоны подставляются в поле темы.{% endcomment %}
+        <button type="button" data-anfrage-cta data-quick-url="{% url 'storefront-anfrage-modal' %}?betreff={{ combo.name_localized|urlencode }}"
+           class="flex-1 text-center text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent);">{% trans "Unverbindlich anfragen" %}</button>
       </div>
     </div>
     {% else %}
@@ -79,7 +81,7 @@
   box.dataset.init = '1';
   var out = box.querySelector('[data-combo-total]');
   var cta = box.querySelector('[data-anfrage-cta]');
-  var ctaBase = cta ? cta.getAttribute('href').split('?')[0] : '';
+  var ctaBase = cta ? (cta.dataset.quickUrl || '').split('?')[0] : '';
   function qtyValue() {
     var input = box.querySelector('input[name="qty"]');
     var n = input ? parseInt(input.value, 10) : 1;
@@ -102,7 +104,7 @@
       var subject = box.dataset.setName || '';
       subject += ' — ' + qtyValue() + ' ' + (box.dataset.personsLabel || 'Personen');
       if (picked.length) subject += ': ' + picked.join(', ');
-      cta.setAttribute('href', ctaBase + '?betreff=' + encodeURIComponent(subject));
+      cta.dataset.quickUrl = ctaBase + '?betreff=' + encodeURIComponent(subject);
     }
   }
   box.addEventListener('change', recalc);

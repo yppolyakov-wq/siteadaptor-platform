@@ -293,3 +293,30 @@ def angebot(request, token):
             ),
         },
     )
+
+
+def anfrage_modal(request):
+    """MEN-11 (запрос владельца «не уводить на страницу, заполнять в попапе»):
+    фрагмент формы заявки для generic-модалки `#quick-modal`.
+
+    Только GET: отдаёт ТУ ЖЕ форму (`_anfrage_form.html`), что и `/anfrage/`, —
+    приёмник, honeypot и rate-limit остаются штатными (форма постит в
+    `storefront-anfrage`, новых анонимных эндпоинтов не заводим).
+    """
+    _require_jobs_active(request)
+    from apps.tenants import siteconfig
+
+    return render(
+        request,
+        "storefront/_anfrage_modal.html",
+        {
+            "betreff": (request.GET.get("betreff") or "")[:200],
+            "anfrage_cfg": _anfrage_config(request.tenant),
+            "jobs_vehicle": siteconfig.normalize(request.tenant.site_config).get(
+                "jobs_vehicle", False
+            ),
+            "has_service_area": request.tenant.has_service_area,
+            "service_area_note": request.tenant.service_area_note,
+            "service_area_plz_list": request.tenant.service_area_plz_list,
+        },
+    )
