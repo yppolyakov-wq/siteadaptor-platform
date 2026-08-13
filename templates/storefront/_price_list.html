@@ -73,7 +73,11 @@ columns — иначе строка с картинкой рвётся межд�
   «откуда»), и строка выходила «Страница 1–2 откуда 8». Даём переводчику ЦЕЛУЮ
   фразу с плейсхолдерами; JS подставляет числа.{% endcomment %}
   {% with r="__R__" n="__N__" %}
-  <div class="mt-5 flex items-center justify-center gap-3 text-sm" data-book-nav hidden
+  {% comment %}Ревью MEN-16: атрибут `hidden` НЕ прятал навигацию — утилита
+  Tailwind `.flex` идёт в CSS позже правила `[hidden]{display:none}` и побеждает
+  при равной специфичности. Поэтому стартовое состояние задаёт класс `hidden`, а
+  скрипт меняет его на `flex` (без JS навигации нет, страницы идут подряд).{% endcomment %}
+  <div class="mt-5 hidden items-center justify-center gap-3 text-sm" data-book-nav
        data-book-pattern="{% blocktrans %}Seite {{ r }} von {{ n }}{% endblocktrans %}">
     <button type="button" data-book-prev aria-label="{% trans 'Zurückblättern' %}"
             class="w-9 h-9 rounded-full border border-gray-300 text-gray-600 disabled:opacity-30">‹</button>

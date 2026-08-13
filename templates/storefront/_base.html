@@ -157,7 +157,38 @@
       panel.classList.toggle("block", open);
       panel.classList.toggle("hidden", !open);
       if (!open) g.blur();  // повторный клик закрывает (фокус бы не дал)
+      // MEN-15 (ревью): строку меню от расползания страхует overflow-hidden, а
+      // снимается он только на :hover/:focus-within. Открытая КЛИКОМ панель
+      // (тач, где hover'а нет) оставалась обрезанной — снимаем клип явно.
+      var row = document.getElementById("sf-nav-desktop");
+      if (row) {
+        row.classList.toggle(
+          "overflow-visible",
+          !!document.querySelector("[data-nav-panel].nav-open"),
+        );
+      }
+      if (open) fitPanel(panel);
     });
+    // MEN-15 (ревью): широкая панель категорий у правого пункта вылезала за
+    // вьюпорт — правая колонка обрезалась и не нажималась. Сдвигаем панель
+    // влево ровно на выступ (ширину уже клампит max-w в разметке).
+    function fitPanel(panel) {
+      panel.style.transform = "";
+      var box = panel.getBoundingClientRect();
+      var over = box.right - (document.documentElement.clientWidth - 8);
+      if (over > 0) panel.style.transform = "translateX(" + -Math.round(over) + "px)";
+    }
+    document.addEventListener(
+      "pointerenter",
+      function (e) {
+        var t = e.target;
+        if (!t || !t.closest) return;
+        var host = t.closest("[data-nav-i]");
+        var panel = host && host.querySelector("[data-nav-panel]");
+        if (panel) fitPanel(panel);
+      },
+      true,
+    );
     // NAV-v2: overflow «Mehr ▾» — не влезающие пункты ряда прячем, показываем их
     // копии в панели (рендер двойной, JS только переключает видимость).
     var dnav = document.getElementById("sf-nav-desktop");

@@ -2701,13 +2701,14 @@ def pages_view(request):
         ("cols6", _("6 per row")),  # DS-6
         ("gallery", _("Gallery")),
     ]
-    # DS-3a: страничный extra-вид каталога — «Preisliste» (только его пикер).
+    # DS-3a: страничные extra-виды каталога (прайс-листы) — только его пикер.
+    # Ревью MEN-14/16: список был ЗАХАРДКОЖЕН и отстал на три новых вида —
+    # сохранённый preisliste_buch не совпадал ни с одной опцией, браузер слал
+    # первую («list») и Save молча откатывал вид (тот же класс, что DS-5c на
+    # канве). Источник опций — реестр: новый вид появляется здесь сам.
     catalog_preset_options = preset_options + [
-        ("preisliste", _("Preisliste")),
-        ("preisliste_foto", _("Preisliste mit Fotos")),  # DS-5b
-        ("preisliste_kompakt", _("Preisliste kompakt")),  # DS-5c
-        ("preisliste_2sp", _("Preisliste zweispaltig")),  # DS-5c
-        ("preisliste_karte", _("Speisekarte klassisch")),  # DS-5c
+        (key, siteconfig.SECTION_STYLE_LABELS.get(key, key))
+        for key in siteconfig.PAGE_EXTRA_PRESETS["catalog_layout"]
     ]
     from apps.core import modules
 

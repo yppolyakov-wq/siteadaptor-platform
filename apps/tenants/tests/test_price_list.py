@@ -268,3 +268,32 @@ def test_review_findings_locks():
     # SECTION_STYLE_LABELS (HIGH: без опции браузер слал "list" → откат вида)
     for k in siteconfig.PAGE_EXTRA_PRESETS["catalog_layout"]:
         assert k in siteconfig.SECTION_STYLE_LABELS, k
+
+
+def test_pages_picker_offers_every_price_view():
+    """Ревью MEN-14/16 (HIGH): список опций экрана «Pages» был захардкожен и
+    отстал от реестра — сохранённый вид не совпадал ни с одной опцией, браузер
+    слал первую («list»), и Save молча откатывал раскладку каталога."""
+    import re
+    from types import SimpleNamespace
+
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+
+    from apps.core import views
+
+    request = RequestFactory().get("/dashboard/site/pages/")
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.user = SimpleNamespace(is_authenticated=True)
+    request.tenant = TenantFactory(
+        schema_name="public",
+        slug="pp",
+        name="PP",
+        site_config={"catalog_layout": {"preset": "preisliste_buch"}},
+    )
+    body = views.pages_view(request).content.decode()
+    for key in siteconfig.PAGE_EXTRA_PRESETS["catalog_layout"]:
+        assert f'value="{key}"' in body, key
+    # сохранённый вид отмечен selected — иначе браузер отправит первую опцию
+    assert re.search(r'value="preisliste_buch"[^>]*selected', body)

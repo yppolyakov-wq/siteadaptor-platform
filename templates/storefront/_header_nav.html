@@ -16,7 +16,11 @@ hover + focus-within (клавиатура/тап по chevron-пункту бе
         сетка плиток; иначе прежний текстовый столбец. Фолбэк обязателен: у
         большинства тенантов Category.images пуст.{% endcomment %}
         {% if item.has_images %}
-        <div class="bg-white rounded-xl shadow-lg ring-1 ring-black/5 p-3 grid grid-cols-2 gap-2 w-[420px]">
+        {% comment %}Ревью MEN-15: фиксированные 420px у пункта справа вылезали
+        за вьюпорт — правая колонка обрезалась и была некликабельна. Ширина
+        клампится по экрану, а положение при нехватке места подвинет JS
+        (`_base.html`, data-nav-panel).{% endcomment %}
+        <div class="bg-white rounded-xl shadow-lg ring-1 ring-black/5 p-3 grid grid-cols-2 gap-2 w-[420px] max-w-[calc(100vw-2rem)]">
           {% for c in item.children %}
             <a href="{{ c.url }}" class="flex items-center gap-2 rounded-lg p-1.5 hover:bg-gray-50">
               {% comment %}Ревью MEN-15: у категории без фото НЕ рисуем серый

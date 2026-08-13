@@ -262,7 +262,11 @@
   if (addCats) addCats.addEventListener("click", function () {
     syncFromDom();
     M.top.items.push({
-      label: "{% trans 'Categories' %}", type: "categories", target: "",
+      // Ревью MEN-15: подпись пункта — ДАННЫЕ витрины, а её базовый язык
+      // немецкий (`menu._node_label` переводит известные подписи на язык
+      // посетителя). Перевод на язык КАБИНЕТА записал бы в конфиг, например,
+      // русское слово, и витрина показывала бы его всем языкам.
+      label: "Kategorien", type: "categories", target: "",
       enabled: true, icon: "", children: []
     });
     render();
