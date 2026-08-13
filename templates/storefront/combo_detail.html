@@ -1,5 +1,5 @@
 {% extends "storefront/_base.html" %}
-{% load i18n %}{% load siteui %}
+{% load i18n %}{% load l10n %}{% load siteui %}
 {% block title %}{{ combo.name }} · {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
@@ -14,7 +14,8 @@
   {% endfor %}
 {% endif %}
 
-<form method="post" action="{% url 'storefront-combo-add' %}" class="bg-white rounded-2xl shadow-sm p-6 space-y-5 max-w-lg mx-auto">
+{% comment %}MEN-1: имена полей выбора скоуплены per-группа (`opt-<g.pk>`) — с общим `name="opt"` браузер схлопывал radio ВСЕХ групп в один выбор («закуска + горячее» было несобираемо). Сервер принимает opt И opt-* (combo_add).{% endcomment %}
+<form method="post" action="{% url 'storefront-combo-add' %}" class="bg-white rounded-2xl shadow-sm p-6 space-y-5 max-w-lg mx-auto" data-combo-form data-base="{{ combo.price|unlocalize }}" data-cur="{{ combo.currency|cursym }}">
   {% csrf_token %}
   <input type="hidden" name="combo" value="{{ combo.pk }}">
   {% for g in combo.groups_active %}
@@ -25,9 +26,9 @@
         {% for o in g.options_active %}
           <label class="flex items-center gap-2 text-sm text-gray-700">
             {% if g.is_multi %}
-              <input type="checkbox" name="opt" value="{{ o.pk }}" class="rounded border-gray-300">
+              <input type="checkbox" name="opt-{{ g.pk }}" value="{{ o.pk }}" data-delta="{{ o.price_delta|unlocalize }}" class="rounded border-gray-300">
             {% else %}
-              <input type="radio" name="opt" value="{{ o.pk }}" {% if g.is_required and forloop.first %}required{% endif %} class="border-gray-300">
+              <input type="radio" name="opt-{{ g.pk }}" value="{{ o.pk }}" data-delta="{{ o.price_delta|unlocalize }}" {% if g.is_required and forloop.first %}required{% endif %} class="border-gray-300">
             {% endif %}
             {{ o.product }}{% if o.price_delta %} <span class="text-gray-500">+{{ o.price_delta }} {{ combo.currency|cursym }}</span>{% endif %}
           </label>
@@ -35,9 +36,35 @@
       </div>
     </div>
   {% endfor %}
-  <div class="flex items-center gap-3 pt-2">
+  <p class="text-sm text-gray-600 pt-2">{% trans "Total" %}: <b data-combo-total>{{ combo.price }} {{ combo.currency|cursym }}</b></p>
+  <div class="flex items-center gap-3">
     <input type="number" name="qty" value="1" min="1" max="50" class="w-20 rounded-lg border border-gray-300 px-3 py-2.5" aria-label="{% trans 'Quantity' %}">
     <button type="submit" class="flex-1 text-white rounded-lg px-4 py-3 font-medium" style="background: var(--accent);">{% trans "Add to order" %}</button>
   </div>
 </form>
+<script>
+(function () {
+  // MEN-1: live-пересчёт для показа; истина цены остаётся серверной
+  // (combo_price в combo_add/cart/checkout — клиент цен не шлёт).
+  var form = document.querySelector('[data-combo-form]');
+  if (!form || form.dataset.init) return;
+  form.dataset.init = '1';
+  var out = form.querySelector('[data-combo-total]');
+  function recalc() {
+    var total = parseFloat(form.dataset.base || '0') || 0;
+    form.querySelectorAll('input[data-delta]:checked').forEach(function (i) {
+      total += parseFloat(i.dataset.delta || '0') || 0;
+    });
+    var qtyInput = form.querySelector('input[name="qty"]');
+    var qty = qtyInput ? parseInt(qtyInput.value, 10) : 1;
+    total *= qty > 0 ? qty : 1;
+    if (out) {
+      out.textContent = total.toLocaleString(document.documentElement.lang || 'de',
+        { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + (form.dataset.cur || '€');
+    }
+  }
+  form.addEventListener('change', recalc);
+  form.addEventListener('input', recalc);
+})();
+</script>
 {% endblock %}

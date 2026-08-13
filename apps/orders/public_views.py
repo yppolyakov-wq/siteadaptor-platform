@@ -192,7 +192,15 @@ def combo_add(request):
     combo = get_active(request.POST.get("combo"))
     if combo is None:
         raise Http404
-    options, error = validate_selection(combo, request.POST.getlist("opt"))
+    # MEN-1: radio-группы конфигуратора скоуплены per-группа (`opt-<g.pk>`),
+    # иначе браузер схлопывал ВСЕ radio набора в один выбор («закуска +
+    # горячее» было несобираемо). Голый `opt` принимаем по-прежнему
+    # (чекауты/старые формы); validate_selection чужие id игнорирует.
+    opt_ids = list(request.POST.getlist("opt"))
+    for field in request.POST:
+        if field.startswith("opt-"):
+            opt_ids.extend(request.POST.getlist(field))
+    options, error = validate_selection(combo, opt_ids)
     if error:
         messages.error(request, error)
         return redirect("storefront-combo", pk=combo.pk)

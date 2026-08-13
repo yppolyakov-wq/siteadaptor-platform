@@ -152,6 +152,55 @@ def test_combo_add_missing_required_choice_blocks():
     assert add.session.get("combo_cart", {}) == {}  # не добавлено
 
 
+def _combo_two_courses():
+    """Набор с ДВУМЯ одиночными выборами (закуска + горячее) — кейс MEN-1."""
+    from apps.catalog.models import Combo, ComboGroup, ComboOption
+
+    combo = Combo.objects.create(name="Menü 2", price=Decimal("20.00"))
+    g1 = ComboGroup.objects.create(combo=combo, label="Vorspeise", min_select=1, max_select=1)
+    o1 = ComboOption.objects.create(group=g1, product=ProductFactory(), price_delta=Decimal("0"))
+    g2 = ComboGroup.objects.create(combo=combo, label="Hauptgang", min_select=1, max_select=1)
+    o2 = ComboOption.objects.create(group=g2, product=ProductFactory(), price_delta=Decimal("2.50"))
+    return combo, g1, o1, g2, o2
+
+
+def test_combo_radio_names_scoped_per_group():
+    """MEN-1: инпуты выбора скоуплены per-группа (`opt-<g.pk>`). С общим
+    name="opt" браузер схлопывал radio всех групп в ОДИН выбор — «закуска +
+    горячее» было физически несобираемо."""
+    combo, g1, _o1, g2, _o2 = _combo_two_courses()
+    body = public_views.combo_detail_public(_req(method="get"), pk=combo.pk).content.decode()
+    assert f'name="opt-{g1.pk}"' in body
+    assert f'name="opt-{g2.pk}"' in body
+    assert 'name="opt"' not in body  # голого общего имени больше нет
+    # live-пересчёт: сумма для показа (истина цены — серверная)
+    assert 'data-delta="2.50"' in body
+    assert "data-combo-total" in body
+
+
+def test_combo_add_accepts_scoped_fields_across_groups():
+    """MEN-1: выбор из обеих групп доезжает до корзины и до цены."""
+    combo, g1, o1, g2, o2 = _combo_two_courses()
+    add = _req(
+        data={
+            "combo": str(combo.pk),
+            f"opt-{g1.pk}": [str(o1.pk)],
+            f"opt-{g2.pk}": [str(o2.pk)],
+            "qty": "1",
+        }
+    )
+    public_views.combo_add(add)
+    cc = add.session["combo_cart"]
+    expected_key = f"{combo.pk}|" + ",".join(sorted([str(o1.pk), str(o2.pk)]))
+    assert cc == {expected_key: 1}
+
+    public_views.checkout(_req(data={"name": "Kunde"}, session={"combo_cart": cc}))
+    order = Order.objects.get()
+    item = order.items.get()
+    assert item.unit_price == Decimal("22.50")  # 20,00 + 2,50 (Hauptgang)
+    assert len(item.modifiers) == 2  # обе позиции в снимке состава
+
+
 # --- A4 промокод на чекауте --------------------------------------------------------
 
 
