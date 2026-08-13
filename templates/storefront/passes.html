@@ -11,7 +11,7 @@
   <div class="grid gap-4 sm:grid-cols-2">
     {% for plan in plans %}
       <div class="bg-white rounded-2xl shadow-sm p-5">
-        <h2 class="font-semibold">{{ plan.label }}</h2>
+        <h2 class="font-semibold">{{ plan.label_localized }}</h2>
         <p class="text-sm text-gray-500 mt-1">
           {% blocktrans count credits=plan.credits %}{{ credits }} visit{% plural %}{{ credits }} visits{% endblocktrans %}
           {% if plan.service %} · {{ plan.service.name_localized }}{% endif %}

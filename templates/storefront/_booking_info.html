@@ -31,7 +31,7 @@ wa.me строится хелпером LS-1.{% endcomment %}
     {% if tenant.opening_hours %}
     <div class="sf-card bg-white rounded-2xl shadow-sm p-5">
       <h3 class="font-semibold mb-2">🕒 {% trans "Opening hours" %}</h3>
-      <p class="text-sm text-gray-600 whitespace-pre-line">{{ tenant.opening_hours }}</p>
+      <p class="text-sm text-gray-600 whitespace-pre-line">{{ tenant.opening_hours_localized }}</p>
     </div>
     {% endif %}
     {% if tenant.address %}

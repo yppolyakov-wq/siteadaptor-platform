@@ -287,6 +287,8 @@ class BusinessReview(models.Model):
     author = models.ForeignKey(PortalUser, on_delete=models.CASCADE, related_name="reviews")
     rating = models.PositiveSmallIntegerField()  # 1..5 (валидируется во вьюхе)
     comment = models.TextField(blank=True)
+    # I18N-12: перевод ПОКАЗА (только демо; отзывы реальных гостей не переводим).
+    comment_i18n = models.JSONField(default=dict, blank=True)
     # Решение 1а (2026-08-06): публичный ответ владельца — как у entity-отзывов
     # (CM-6.2); пишется из кабинета (вкладка «Über den Betrieb»), виден на портале.
     reply_text = models.TextField(blank=True, default="")
@@ -308,6 +310,12 @@ class BusinessReview(models.Model):
 
     def __str__(self):
         return f"{self.business_name or self.tenant_slug}: {self.rating}★"
+
+    def comment_localized(self, locale: str | None = None) -> str:
+        """I18N-12: показ отзыва на локали (заполняет только демо-сидер)."""
+        from apps.core.models import resolve_overlay
+
+        return resolve_overlay(self.comment, self.comment_i18n, locale)
 
     @property
     def stars(self) -> str:

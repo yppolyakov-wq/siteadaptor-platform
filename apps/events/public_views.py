@@ -288,7 +288,7 @@ def veranstaltung_detail(request, pk):
         "review_summary": review_services.summary("event", event.pk),
         "review_form_token": uuid.uuid4().hex,
         "review_action": reverse("storefront-event-review", args=[event.pk]),
-        "agenda": _parse_agenda(event.program),  # RV2: тайм-лайн программы
+        "agenda": _parse_agenda(event.program_localized()),  # RV2: тайм-лайн программы (I18N-12)
         "extras": extras_engine.active_for("events"),  # #7 доп-услуги
         "accommodation": services.accommodation_options(event),  # R5 типы номеров
         "jobs_active": jobs_active,  # R6 корп-запрос (Angebot)

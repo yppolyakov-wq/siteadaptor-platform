@@ -17820,3 +17820,19 @@ msgstr "Discover offers"
 #: templates/storefront/_anfrage_modal.html
 msgid "Wir melden uns mit einem Angebot — ohne Kosten und ohne Verpflichtung."
 msgstr "We will get back to you with an offer — free and without obligation."
+
+#: apps/core/seo_meta.py
+msgid "{tenant}{city_sfx} — online ansehen, reservieren & bestellen."
+msgstr "{tenant}{city_sfx} — browse, reserve & order online."
+
+#: apps/core/seo_meta.py
+msgid "{heading} bei {tenant}{city_sfx}."
+msgstr "{heading} at {tenant}{city_sfx}."
+
+#: apps/core/seo_meta.py
+msgid "{name} bei {tenant}{city_sfx}."
+msgstr "{name} at {tenant}{city_sfx}."
+
+#: apps/core/seo_meta.py
+msgid "{category} bei {tenant}{city_sfx}."
+msgstr "{category} at {tenant}{city_sfx}."

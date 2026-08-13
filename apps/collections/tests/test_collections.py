@@ -223,7 +223,7 @@ def test_cabinet_renders_checkbox_rows_and_gates_modules():
     body_catalog_only = views.collections_view(
         _dash_req(disabled=["booking", "stays"])
     ).content.decode()
-    assert "Products in this collection" in body_catalog_only or col.name in body_catalog_only
+    assert "Produkte in dieser Kollektion" in body_catalog_only or col.name in body_catalog_only
     tenant_stub = _dash_req(disabled=["booking", "stays"]).tenant
     with pytest.raises(Http404):
         request = _dash_req(disabled=["booking", "stays"])

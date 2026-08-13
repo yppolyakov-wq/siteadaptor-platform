@@ -139,7 +139,10 @@
             <input name="email" type="email" placeholder="{% trans 'Email' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5">
             <input name="phone" placeholder="{% trans 'Phone (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2.5 sm:col-span-2">
           </div>
-          {% for q in event.questions %}
+          {% comment %}I18N-12: показываем вопрос на локали гостя, но имя поля
+          остаётся индексным (q0, q1…) — ключом ответа во вьюхе служит БАЗОВЫЙ
+          немецкий вопрос из event.questions (как value у видов мероприятия).{% endcomment %}
+          {% for q in event.questions_localized %}
             <label class="block text-sm text-gray-600">{{ q }}
               <input name="q{{ forloop.counter0 }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5">
             </label>

@@ -16,7 +16,7 @@ from apps.core.models import I18nMixin, TimestampedModel
 from apps.promotions.models import Customer
 
 
-class Resource(TimestampedModel):
+class Resource(I18nMixin, TimestampedModel):
     TYPE_TABLE = "table"
     TYPE_STAFF = "staff"
     TYPE_ROOM = "room"
@@ -46,6 +46,12 @@ class Resource(TimestampedModel):
     # A3: профиль мастера (для type=staff) — должность, био и фото; пусто = как раньше.
     title = models.CharField(max_length=120, blank=True)  # «Stylistin», «SHK-Meister»
     bio = models.TextField(blank=True)
+    # I18N-12: показ мастера/ресурса на локали. Имя переводим тоже: у ресторана
+    # это «Terrasse»/«Fensterplatz» (не имя человека), а у мастера в демо — имя,
+    # которого в словаре нет → `t()` вернёт None и строка останется как есть.
+    name_i18n = models.JSONField(default=dict, blank=True)
+    title_i18n = models.JSONField(default=dict, blank=True)
+    bio_i18n = models.JSONField(default=dict, blank=True)
     photo = models.JSONField(default=dict, blank=True)  # FileRef-конверт {url, …}
 
     class Meta:
@@ -53,6 +59,18 @@ class Resource(TimestampedModel):
 
     def __str__(self):
         return self.name
+
+    def name_localized(self, locale: str | None = None) -> str:
+        """I18N-12: показное имя ресурса (стол/мастер/зал) на локали."""
+        return self.get_overlay("name", "name_i18n", locale)
+
+    def title_localized(self, locale: str | None = None) -> str:
+        """I18N-12: должность мастера на локали."""
+        return self.get_overlay("title", "title_i18n", locale)
+
+    def bio_localized(self, locale: str | None = None) -> str:
+        """I18N-12: описание мастера на локали."""
+        return self.get_overlay("bio", "bio_i18n", locale)
 
     @property
     def photo_url(self) -> str:
@@ -293,13 +311,14 @@ class Pass(TimestampedModel):
         return self.valid_until is None or self.valid_until >= timezone.localdate()
 
 
-class PassPlan(TimestampedModel):
+class PassPlan(I18nMixin, TimestampedModel):
     """A3: покупаемый онлайн тариф Mehrfachkarte (бизнес задаёт в кабинете).
 
     Покупка через Stripe Connect выпускает клиенту Pass с этими параметрами
     (credits/срок/привязка к услуге)."""
 
     label = models.CharField(max_length=120, default="Mehrfachkarte")
+    label_i18n = models.JSONField(default=dict, blank=True)  # I18N-12
     credits = models.PositiveSmallIntegerField(default=10)
     price_cents = models.PositiveIntegerField(default=0)
     valid_days = models.PositiveSmallIntegerField(default=0)  # 0 = бессрочно
@@ -313,6 +332,10 @@ class PassPlan(TimestampedModel):
 
     def __str__(self):
         return f"{self.label} ({self.credits}× / {self.price_cents / 100:.2f})"
+
+    def label_localized(self, locale: str | None = None) -> str:
+        """I18N-12: название абонемента на локали (база — плоское `label`)."""
+        return self.get_overlay("label", "label_i18n", locale)
 
     @property
     def price_eur(self):

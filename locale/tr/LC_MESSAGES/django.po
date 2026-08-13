@@ -17932,3 +17932,19 @@ msgstr "Teklifleri keşfet"
 #: templates/storefront/_anfrage_modal.html
 msgid "Wir melden uns mit einem Angebot — ohne Kosten und ohne Verpflichtung."
 msgstr "Size bir teklifle döneceğiz — ücretsiz ve yükümlülük olmadan."
+
+#: apps/core/seo_meta.py
+msgid "{tenant}{city_sfx} — online ansehen, reservieren & bestellen."
+msgstr "{tenant}{city_sfx} — online inceleyin, rezervasyon yapın ve sipariş verin."
+
+#: apps/core/seo_meta.py
+msgid "{heading} bei {tenant}{city_sfx}."
+msgstr "{tenant}{city_sfx} işletmesinde {heading}."
+
+#: apps/core/seo_meta.py
+msgid "{name} bei {tenant}{city_sfx}."
+msgstr "{tenant}{city_sfx} işletmesinde {name}."
+
+#: apps/core/seo_meta.py
+msgid "{category} bei {tenant}{city_sfx}."
+msgstr "{tenant}{city_sfx} işletmesinde {category}."

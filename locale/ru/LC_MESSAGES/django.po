@@ -18016,3 +18016,19 @@ msgstr "Смотреть предложения"
 #: templates/storefront/_anfrage_modal.html
 msgid "Wir melden uns mit einem Angebot — ohne Kosten und ohne Verpflichtung."
 msgstr "Мы вернёмся с предложением — бесплатно и без обязательств."
+
+#: apps/core/seo_meta.py
+msgid "{tenant}{city_sfx} — online ansehen, reservieren & bestellen."
+msgstr "{tenant}{city_sfx} — смотрите, бронируйте и заказывайте онлайн."
+
+#: apps/core/seo_meta.py
+msgid "{heading} bei {tenant}{city_sfx}."
+msgstr "{heading} в {tenant}{city_sfx}."
+
+#: apps/core/seo_meta.py
+msgid "{name} bei {tenant}{city_sfx}."
+msgstr "{name} в {tenant}{city_sfx}."
+
+#: apps/core/seo_meta.py
+msgid "{category} bei {tenant}{city_sfx}."
+msgstr "{category} в {tenant}{city_sfx}."

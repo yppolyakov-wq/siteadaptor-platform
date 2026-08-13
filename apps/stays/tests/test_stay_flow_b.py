@@ -55,7 +55,9 @@ def test_no_dates_calendar_first_selector():
     body = _detail(unit)
     assert "Wählen Sie Ihre Reisedaten aus" in body
     assert 'id="stay-cal"' in body  # календарь — главный селектор
-    assert "Enter dates manually" in body  # ручной ввод — мелкий фолбэк
+    assert (
+        "Zeitraum manuell eingeben" in body
+    )  # ручной ввод — мелкий фолбэк (I18N-12: строка переведена на de)
     assert 'name="von"' in body  # контракт селектора цел (паритет-замок)
     assert not re.search(r'<div id="stay-dateselect"[^>]*\bhidden\b', body)  # виден
 

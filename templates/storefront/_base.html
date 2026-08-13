@@ -224,7 +224,7 @@
           {% if request.tenant.public_phone %}<a href="tel:{{ request.tenant.public_phone }}" class="hover:underline">📞 {{ request.tenant.public_phone }}</a>{% endif %}
           {% if request.tenant.map_url %}<a href="{{ request.tenant.map_url }}" target="_blank" rel="noopener" class="hover:underline">🗺 {% trans "Map" %}</a>{% endif %}
         </div>
-        {% if request.tenant.opening_hours %}<div class="whitespace-pre-line text-gray-400">🕒 {{ request.tenant.opening_hours }}</div>{% endif %}
+        {% if request.tenant.opening_hours %}<div class="whitespace-pre-line text-gray-400">🕒 {{ request.tenant.opening_hours_localized }}</div>{% endif %}
         {# GK-9: соцпрофили бизнеса — иконки-ряд (пусто → ничего) #}
         {% include "storefront/_social_icons.html" with links=request.tenant.social_links %}
       {% endif %}

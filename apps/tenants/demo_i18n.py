@@ -23,6 +23,8 @@ from __future__ import annotations
 import json
 import os
 
+from apps.core import i18n_json
+
 # Целевые локали демо-перевода (кроме базовой de). Каждой соответствует файл
 # ``demo_i18n_<loc>.json`` рядом с этим модулем. Порядок = порядок пилюль свитчера
 # (после de) для новых демо-китов.
@@ -323,6 +325,32 @@ def _fill_seq_overlay(obj, base_list, overlay_field, locales, keys=None) -> bool
     return changed
 
 
+def _base_landing(event) -> dict:
+    """Нормализованный ретрит-лендинг БЕЗ перевода — база для оверлея (I18N-12)."""
+    from apps.events import details as details_mod
+
+    return details_mod.normalize(event.details)
+
+
+def _fill_json_overlay(obj, base, overlay_field: str, locales) -> bool:
+    """Оверлей вложенного JSON (`core.i18n_json`): та же форма, переведены листья."""
+    if not base:
+        return False
+    ov = getattr(obj, overlay_field, None)
+    ov = dict(ov) if isinstance(ov, dict) else {}
+    changed = False
+    for loc in locales:
+        if ov.get(loc):
+            continue  # идемпотентность: перевод локали уже есть
+        built = i18n_json.build_overlay(base, lambda s, loc=loc: t(s, loc))
+        if built:
+            ov[loc] = built
+            changed = True
+    if changed:
+        setattr(obj, overlay_field, ov)
+    return changed
+
+
 def translate_tenant_content(tenant, locales) -> None:
     """Проставить переводы (для всех ``locales``) на весь демо-контент тенанта
     (вызывать В СХЕМЕ тенанта, после сидинга). Идемпотентно: существующий перевод
@@ -341,7 +369,7 @@ def translate_tenant_content(tenant, locales) -> None:
         Product,
         ProductVariant,
     )
-    from apps.events.models import Event
+    from apps.events.models import BlogPost, Event, Teacher
     from apps.stays.models import RatePlan, StaySettings, StayUnit
 
     for prod in Product.objects.all():
@@ -438,8 +466,38 @@ def translate_tenant_content(tenant, locales) -> None:
         changed = _fill_overlay(ev, "title", "title_i18n", locales) | _fill_overlay(
             ev, "description", "description_i18n", locales
         )
+        # I18N-12: ретрит-лендинг (вложенный JSON), программа и анкета. Оверлей
+        # строится по НОРМАЛИЗОВАННОЙ форме (`ev.landing` без перевода = база),
+        # иначе позиционный merge разъедется.
+        changed |= _fill_json_overlay(ev, _base_landing(ev), "details_i18n", locales)
+        changed |= _fill_seq_overlay(ev, list(ev.program or []), "program_i18n", locales)
+        changed |= _fill_seq_overlay(ev, list(ev.questions or []), "questions_i18n", locales)
         if changed:
-            ev.save(update_fields=["title_i18n", "description_i18n"])
+            ev.save(
+                update_fields=[
+                    "title_i18n",
+                    "description_i18n",
+                    "details_i18n",
+                    "program_i18n",
+                    "questions_i18n",
+                ]
+            )
+
+    for teacher in Teacher.objects.all():
+        fields = [
+            f"{f}_i18n" for f in ("title", "bio") if _fill_overlay(teacher, f, f"{f}_i18n", locales)
+        ]
+        if fields:
+            teacher.save(update_fields=fields)
+
+    for post in BlogPost.objects.all():
+        fields = [
+            f"{f}_i18n"
+            for f in ("title", "excerpt", "body")
+            if _fill_overlay(post, f, f"{f}_i18n", locales)
+        ]
+        if fields:
+            post.save(update_fields=fields)
 
     for rp in RatePlan.objects.all():
         changed = _fill_overlay(rp, "name", "name_i18n", locales) | _fill_overlay(
@@ -453,6 +511,8 @@ def translate_tenant_content(tenant, locales) -> None:
     if settings_obj and _fill_overlay(settings_obj, "house_rules", "house_rules_i18n", locales):
         settings_obj.save(update_fields=["house_rules_i18n"])
 
+    _translate_side_models(locales)
+
     # Collection — TENANT-апп, но может быть отключён в тест-настройках; мягкий импорт.
     try:
         from apps.collections.models import Collection
@@ -461,3 +521,45 @@ def translate_tenant_content(tenant, locales) -> None:
     for coll in Collection.objects.all():
         if _fill_overlay(coll, "name", "name_i18n", locales):
             coll.save(update_fields=["name_i18n"])
+
+
+def _translate_side_models(locales) -> None:
+    """I18N-12: остальной демо-контент, у которого до аудита 2026-08-13 не было
+    i18n-полей вовсе — мастера/ресурсы, абонементы, Extras, лояльность, ваучеры,
+    шаги набора, отзывы, заявки-сметы кабинета.
+
+    Отзывы и заявки — записи КЛИЕНТОВ: их «перевод» допустим только потому, что
+    заполняет его демо-сидер по своему же словарю. У живого тенанта оверлей
+    остаётся пустым, и витрина показывает подлинный текст гостя.
+    """
+    from apps.booking.models import PassPlan, Resource
+    from apps.catalog.models import ComboGroup
+    from apps.core.models import Extra
+    from apps.jobs.models import Job, JobLine
+    from apps.loyalty.models import LoyaltyProgram, Voucher
+    from apps.reviews.models import Review
+
+    simple = (
+        (Resource, ("name", "title", "bio")),
+        (PassPlan, ("label",)),
+        (Extra, ("label",)),
+        (ComboGroup, ("label",)),
+        (Voucher, ("label",)),
+        (Review, ("comment",)),
+        (Job, ("title", "description")),
+        (JobLine, ("text",)),
+    )
+    for model, fields in simple:
+        for obj in model.objects.all():
+            touched = [f"{f}_i18n" for f in fields if _fill_overlay(obj, f, f"{f}_i18n", locales)]
+            if touched:
+                obj.save(update_fields=touched)
+
+    for prog in LoyaltyProgram.objects.all():
+        touched = [
+            f"{f}_i18n"
+            for f in ("label", "reward_label")
+            if _fill_overlay(prog, f, f"{f}_i18n", locales)
+        ]
+        if touched:
+            prog.save(update_fields=touched)

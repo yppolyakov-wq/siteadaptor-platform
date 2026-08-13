@@ -153,6 +153,9 @@ class Tenant(TenantMixin):
     google_rating_count = models.PositiveIntegerField(default=0)
     google_rating_updated_at = models.DateTimeField(null=True, blank=True)
     opening_hours = models.TextField(blank=True)  # свободный текст / по строкам
+    # I18N-12: перевод показных текстов бизнеса (часы работы строкой и заметка о
+    # зоне выезда) — на витрине их видит гость на своей локали.
+    opening_hours_i18n = models.JSONField(default=dict, blank=True)
     # Структурные часы работы (P1b): {"0":["09:00","18:00"], …} по дням недели
     # (0=Пн … 6=Вс, как date.weekday()); один интервал на день в v1. Источник
     # для live-статуса «Jetzt geöffnet» и JSON-LD openingHoursSpecification.
@@ -164,6 +167,7 @@ class Tenant(TenantMixin):
     # предупреждает клиента, если его PLZ вне списка. Пусто → блок не показываем.
     service_area_plz = models.CharField(max_length=500, blank=True)
     service_area_note = models.CharField(max_length=200, blank=True)
+    service_area_note_i18n = models.JSONField(default=dict, blank=True)  # I18N-12
 
     # Если включено — залогиненный сотрудник, открыв QR-ссылку погашения,
     # гасит бронь/ваучер сразу (без кнопки подтверждения).
@@ -341,6 +345,18 @@ class Tenant(TenantMixin):
         from . import openinghours
 
         return openinghours.open_status(self.opening_hours_structured, timezone.localtime())
+
+    def opening_hours_localized(self, locale: str | None = None) -> str:
+        """I18N-12: часы работы строкой на локали гостя (база — плоское поле)."""
+        from apps.core.models import resolve_overlay
+
+        return resolve_overlay(self.opening_hours, self.opening_hours_i18n, locale)
+
+    def service_area_note_localized(self, locale: str | None = None) -> str:
+        """I18N-12: заметка о зоне выезда на локали гостя."""
+        from apps.core.models import resolve_overlay
+
+        return resolve_overlay(self.service_area_note, self.service_area_note_i18n, locale)
 
     def todays_hours(self) -> str:
         from django.utils import timezone

@@ -18,10 +18,10 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.models import TimestampedModel
+from apps.core.models import I18nMixin, TimestampedModel
 
 
-class Voucher(TimestampedModel):
+class Voucher(I18nMixin, TimestampedModel):
     """Ваучер/промокод: код, который владелец раздаёт и гасит при выдаче.
 
     max_uses=0 — безлимит. Гашение атомарно (см. promotions.services.redeem_voucher).
@@ -29,6 +29,7 @@ class Voucher(TimestampedModel):
 
     code = models.CharField(max_length=12, unique=True)
     label = models.CharField(max_length=120)  # что даёт ваучер ("−10 %", "Gratis Kaffee")
+    label_i18n = models.JSONField(default=dict, blank=True)  # I18N-12 (код остаётся ключом)
     max_uses = models.PositiveIntegerField(default=1)
     used_count = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
@@ -70,6 +71,10 @@ class Voucher(TimestampedModel):
 
     def __str__(self):
         return self.code
+
+    def label_localized(self, locale: str | None = None) -> str:
+        """I18N-12: показное описание ваучера (код — ключ, остаётся базовым)."""
+        return self.get_overlay("label", "label_i18n", locale)
 
     @property
     def uses_left(self):
@@ -157,12 +162,15 @@ class GiftVoucher(TimestampedModel):
         return self.amount_cents / 100
 
 
-class LoyaltyProgram(TimestampedModel):
+class LoyaltyProgram(I18nMixin, TimestampedModel):
     """Программа лояльности (штампы): N штампов → награда."""
 
     label = models.CharField(max_length=120)  # "Kaffee-Karte"
     stamps_required = models.PositiveSmallIntegerField(default=10)
     reward_label = models.CharField(max_length=120)  # "Gratis Kaffee"
+    # I18N-12: публичная страница лояльности на локали гостя.
+    label_i18n = models.JSONField(default=dict, blank=True)
+    reward_label_i18n = models.JSONField(default=dict, blank=True)
     is_active = models.BooleanField(default=True)
 
     class Meta:
@@ -171,6 +179,14 @@ class LoyaltyProgram(TimestampedModel):
 
     def __str__(self):
         return self.label
+
+    def label_localized(self, locale: str | None = None) -> str:
+        """I18N-12: название программы лояльности на локали."""
+        return self.get_overlay("label", "label_i18n", locale)
+
+    def reward_localized(self, locale: str | None = None) -> str:
+        """I18N-12: название награды на локали."""
+        return self.get_overlay("reward_label", "reward_label_i18n", locale)
 
 
 class LoyaltyCard(TimestampedModel):

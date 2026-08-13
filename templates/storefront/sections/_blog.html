@@ -17,7 +17,7 @@
         {% if post.cover_url %}<img src="{{ post.cover_url }}" alt="" loading="lazy" decoding="async" class="w-full h-40 object-cover">{% endif %}
         <div class="p-4 flex flex-col gap-1">
           {% if post.published_at %}<p class="text-xs text-gray-400">{{ post.published_at|date:"d.m.Y" }}</p>{% endif %}
-          <h3 class="font-semibold leading-snug">{{ post.title }}</h3>
+          <h3 class="font-semibold leading-snug">{{ post.title_localized }}</h3>
           {% if post.excerpt %}<p class="text-sm text-gray-600 line-clamp-3">{{ post.excerpt }}</p>{% endif %}
           <span class="mt-2 inline-flex items-center gap-1 text-sm font-medium" style="color: var(--accent, #4f46e5);">{% trans "Read" %} →</span>
         </div>

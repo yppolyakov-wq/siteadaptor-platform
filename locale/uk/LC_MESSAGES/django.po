@@ -18001,3 +18001,19 @@ msgstr "Переглянути пропозиції"
 #: templates/storefront/_anfrage_modal.html
 msgid "Wir melden uns mit einem Angebot — ohne Kosten und ohne Verpflichtung."
 msgstr "Ми повернемося з пропозицією — безкоштовно та без зобов'язань."
+
+#: apps/core/seo_meta.py
+msgid "{tenant}{city_sfx} — online ansehen, reservieren & bestellen."
+msgstr "{tenant}{city_sfx} — дивіться, бронюйте та замовляйте онлайн."
+
+#: apps/core/seo_meta.py
+msgid "{heading} bei {tenant}{city_sfx}."
+msgstr "{heading} у {tenant}{city_sfx}."
+
+#: apps/core/seo_meta.py
+msgid "{name} bei {tenant}{city_sfx}."
+msgstr "{name} у {tenant}{city_sfx}."
+
+#: apps/core/seo_meta.py
+msgid "{category} bei {tenant}{city_sfx}."
+msgstr "{category} у {tenant}{city_sfx}."

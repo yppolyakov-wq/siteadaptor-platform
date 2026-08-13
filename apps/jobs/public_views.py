@@ -136,7 +136,7 @@ def anfrage(request):
             "autorepair_ld": autorepair_ld,  # A9: schema.org AutoRepair (SEO)
             # A7: зона обслуживания — баннер + поле PLZ (показываем, если задана).
             "has_service_area": request.tenant.has_service_area,
-            "service_area_note": request.tenant.service_area_note,
+            "service_area_note": request.tenant.service_area_note_localized(),
             "service_area_plz_list": request.tenant.service_area_plz_list,
         },
     )
@@ -316,7 +316,7 @@ def anfrage_modal(request):
                 "jobs_vehicle", False
             ),
             "has_service_area": request.tenant.has_service_area,
-            "service_area_note": request.tenant.service_area_note,
+            "service_area_note": request.tenant.service_area_note_localized(),
             "service_area_plz_list": request.tenant.service_area_plz_list,
         },
     )

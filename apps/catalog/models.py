@@ -636,11 +636,12 @@ class Combo(I18nMixin, SoftDeleteMixin):
         return [g for g in self.groups.all() if g.is_active]
 
 
-class ComboGroup(TimestampedModel):
+class ComboGroup(I18nMixin, TimestampedModel):
     """Группа выбора внутри комбо: «Getränk» (выбери 1), «Hauptgericht» (фикс)."""
 
     combo = models.ForeignKey(Combo, on_delete=models.CASCADE, related_name="groups")
     label = models.CharField(max_length=100)
+    label_i18n = models.JSONField(default=dict, blank=True)  # I18N-12: заголовок шага
     # MEN-2: «Im Set enthalten» — фикс-состав (режим 1): опции рендерятся
     # плитками без выбора и в валидации/цене НЕ участвуют (их стоимость уже
     # заложена в Combo.price). Гость их не отправляет.
@@ -655,6 +656,10 @@ class ComboGroup(TimestampedModel):
 
     def __str__(self):
         return self.label
+
+    def label_localized(self, locale: str | None = None) -> str:
+        """I18N-12: заголовок шага конфигуратора набора на локали."""
+        return self.get_overlay("label", "label_i18n", locale)
 
     @property
     def is_required(self) -> bool:

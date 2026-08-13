@@ -13,11 +13,11 @@ from decimal import Decimal
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.models import TimestampedModel
+from apps.core.models import I18nMixin, TimestampedModel
 from apps.promotions.models import Customer
 
 
-class Job(TimestampedModel):
+class Job(I18nMixin, TimestampedModel):
     STATUS_NEW = "new"  # Anfrage eingegangen
     STATUS_QUOTED = "quoted"  # Angebot gesendet
     STATUS_ACCEPTED = "accepted"  # beauftragt / angenommen
@@ -41,6 +41,10 @@ class Job(TimestampedModel):
     reference_code = models.CharField(max_length=12, unique=True)  # "A-XXXXXX"
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
+    # I18N-12: перевод ПОКАЗА демо-заявок в кабинете (реальные заявки клиентов
+    # остаются как есть — оверлей заполняет только демо-сидер).
+    title_i18n = models.JSONField(default=dict, blank=True)
+    description_i18n = models.JSONField(default=dict, blank=True)
     site_address = models.TextField(blank=True)  # адрес работ (может ≠ адрес клиента)
     site_plz = models.CharField(max_length=10, blank=True)  # A7: PLZ объекта (Einzugsgebiet-чек)
     # A9 Werkstatt: автомобиль клиента — свободный текст марки/модели («VW Golf 1.6 TDI»).
@@ -123,6 +127,14 @@ class Job(TimestampedModel):
     def __str__(self):
         return f"{self.reference_code} {self.title}"
 
+    def title_localized(self, locale: str | None = None) -> str:
+        """I18N-12: показ темы заявки на локали (демо-записи кабинета)."""
+        return self.get_overlay("title", "title_i18n", locale)
+
+    def description_localized(self, locale: str | None = None) -> str:
+        """I18N-12: показ описания заявки на локали."""
+        return self.get_overlay("description", "description_i18n", locale)
+
     @property
     def discount_eur(self):
         """B1.6: скидка Gutschein в евро (Decimal)."""
@@ -136,7 +148,7 @@ class Job(TimestampedModel):
         return max(self.gross - self.discount_eur, 0)
 
 
-class JobLine(TimestampedModel):
+class JobLine(I18nMixin, TimestampedModel):
     """Позиция сметы (Angebot): текст, количество, цена за единицу нетто.
 
     qty — Decimal (A7a): дробные часы/единицы Handwerker (3,5 Std). Суммы сметы и
@@ -145,6 +157,7 @@ class JobLine(TimestampedModel):
     job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="lines")
     position = models.PositiveSmallIntegerField(default=0)  # порядок отображения
     text = models.CharField(max_length=300)
+    text_i18n = models.JSONField(default=dict, blank=True)  # I18N-12 (демо-сметы)
     qty = models.DecimalField(max_digits=7, decimal_places=2, default=1)  # дробное (A7a)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # нетто за ед.
 
@@ -171,6 +184,10 @@ class JobLine(TimestampedModel):
 
     def __str__(self):
         return f"{self.text} ×{self.qty}"
+
+    def text_localized(self, locale: str | None = None) -> str:
+        """I18N-12: показ строки сметы на локали (демо)."""
+        return self.get_overlay("text", "text_i18n", locale)
 
     @property
     def line_total(self) -> Decimal:

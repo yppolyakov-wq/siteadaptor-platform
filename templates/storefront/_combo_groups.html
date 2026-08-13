@@ -9,7 +9,7 @@ MEN-17: блюдо рисует общий `_dish_chip.html` (компактна
 перестала быть портянкой.{% endcomment %}
 {% for g in combo.groups_active %}
   <div class="mt-5">
-    <p class="font-medium text-gray-800">{{ g.label }}
+    <p class="font-medium text-gray-800">{{ g.label_localized }}
       {% if not g.included and show_inputs %}{% if g.is_required %}<span class="text-red-500">*</span>{% endif %}
       {% if g.max_select > 1 %}<span class="text-xs text-gray-400">({% blocktrans with n=g.max_select %}up to {{ n }}{% endblocktrans %})</span>{% endif %}{% endif %}
     </p>

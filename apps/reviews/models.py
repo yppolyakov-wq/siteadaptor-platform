@@ -8,10 +8,10 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.models import TimestampedModel
+from apps.core.models import I18nMixin, TimestampedModel
 
 
-class Review(TimestampedModel):
+class Review(I18nMixin, TimestampedModel):
     """Отзыв о продаваемой сущности (TENANT-схема).
 
     Generic по (`entity_kind`, `entity_id`) вместо FK на конкретную модель, чтобы
@@ -40,6 +40,9 @@ class Review(TimestampedModel):
     author_name = models.CharField(max_length=120)
     email = models.EmailField()
     comment = models.TextField(blank=True)
+    # I18N-12: перевод ПОКАЗА отзыва. Заполняет ТОЛЬКО демо-сидер: слова реального
+    # клиента переводить за него нельзя, у живых отзывов оверлей остаётся пустым.
+    comment_i18n = models.JSONField(default=dict, blank=True)
     verified = models.BooleanField(default=True)  # был верифицированным покупателем при подаче
     is_published = models.BooleanField(default=True)
     # CM-6.2: ответ владельца (1:1, отдельная модель избыточна). Пусто = нет.
@@ -63,6 +66,10 @@ class Review(TimestampedModel):
 
     def __str__(self):
         return f"{self.entity_kind}:{self.entity_id}: {self.rating}★ ({self.author_name})"
+
+    def comment_localized(self, locale: str | None = None) -> str:
+        """I18N-12: показ отзыва на локали (только демо; живые отзывы без оверлея)."""
+        return self.get_overlay("comment", "comment_i18n", locale)
 
     @property
     def stars(self) -> str:

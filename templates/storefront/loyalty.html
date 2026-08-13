@@ -12,9 +12,9 @@
           <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-2xl"
                 style="background: color-mix(in srgb, var(--accent) 14%, transparent);">💝</span>
           <div>
-            <h2 class="font-semibold">{{ p.label }}</h2>
+            <h2 class="font-semibold">{{ p.label_localized }}</h2>
             <p class="text-sm text-gray-600 mt-1">
-              {% blocktrans count n=p.stamps_required with reward=p.reward_label %}{{ n }} stamp → {{ reward }}{% plural %}{{ n }} stamps → {{ reward }}{% endblocktrans %}
+              {% blocktrans count n=p.stamps_required with reward=p.reward_localized %}{{ n }} stamp → {{ reward }}{% plural %}{{ n }} stamps → {{ reward }}{% endblocktrans %}
             </p>
           </div>
         </div>

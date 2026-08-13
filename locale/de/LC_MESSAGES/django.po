@@ -457,7 +457,7 @@ msgstr "Diäten"
 
 #: apps/catalog/forms.py:155
 msgid "EAN / GTIN (barcode)"
-msgstr "EAN / GTIN (barcode)"
+msgstr "EAN / GTIN (Barcode)"
 
 #: apps/catalog/forms.py:156 templates/tenant/_cb_row.html:105
 msgid "Badge"
@@ -11413,7 +11413,7 @@ msgstr "Überschrift"
 
 #: templates/tenant/site_home.html:993 templates/tenant/site_home.html:1010
 msgid "Button link (e.g. /sortiment/)"
-msgstr "Button link (e.g. /sortiment/)"
+msgstr "Button-Link (z. B. /sortiment/)"
 
 #: templates/tenant/site_home.html:996
 msgid "Save slide"
@@ -11554,7 +11554,7 @@ msgstr "Raumraster"
 
 #: templates/tenant/site_pages.html:35
 msgid "Accommodation page (/unterkunft/)."
-msgstr "Accommodation page (/unterkunft/)."
+msgstr "Übernachtungsseite (/unterkunft/)."
 
 #: templates/tenant/site_pages.html:43
 msgid "Events layout"
@@ -11562,7 +11562,7 @@ msgstr "Veranstaltungsübersicht"
 
 #: templates/tenant/site_pages.html:44
 msgid "Events page (/veranstaltung/) — list or card grid."
-msgstr "Events page (/veranstaltung/) — list or card grid."
+msgstr "Veranstaltungsseite (/veranstaltung/) — Liste oder Kachelraster."
 
 #: templates/tenant/site_pages.html:51
 msgid "Event page sections"
@@ -12244,7 +12244,7 @@ msgid "Custom-Domain verbinden"
 msgstr "Custom-Domain verbinden"
 
 msgid "Publishing (Google/Facebook/Instagram)"
-msgstr "Publishing (Google/Facebook/Instagram)"
+msgstr "Veröffentlichung (Google/Facebook/Instagram)"
 
 msgid "Kanäle verbinden und Beiträge planen"
 msgstr "Kanäle verbinden und Beiträge planen"
@@ -13245,7 +13245,7 @@ msgid "Fortschritt"
 msgstr "Fortschritt"
 
 msgid "Earliest free time"
-msgstr "Earliest free time"
+msgstr "Frühester freier Termin"
 
 msgid "Galerie"
 msgstr "Galerie"
@@ -13365,23 +13365,21 @@ msgid "Name (reason when blocking)"
 msgstr "Name (Grund beim Blockieren)"
 
 msgid "Block dates"
-msgstr "Block dates"
+msgstr "Zeitraum sperren"
 
 msgid "Blocked"
-msgstr "Blocked"
+msgstr "Blockiert"
 
 msgid ""
 "Drag a booking to move it (price is kept) · click a free cell to add a "
 "booking"
-msgstr ""
-"Drag a booking to move it (price is kept) · click a free cell to add a "
-"booking"
+msgstr "Buchung ziehen, um sie zu verschieben (Preis bleibt erhalten) · freie Zelle anklicken, um eine Buchung anzulegen"
 
 msgid "Delete this booking permanently?"
 msgstr "Diese Buchung endgültig löschen?"
 
 msgid "Delete booking"
-msgstr "Delete booking"
+msgstr "Buchung löschen"
 
 msgid "Booking deleted."
 msgstr "Buchung gelöscht."
@@ -13396,7 +13394,7 @@ msgid "Change dates"
 msgstr "Reisedaten ändern"
 
 msgid "Enter dates manually"
-msgstr "Enter dates manually"
+msgstr "Zeitraum manuell eingeben"
 
 msgid "Best price"
 msgstr "Bestpreis"
@@ -13419,15 +13417,12 @@ msgstr "Für diese Reisedaten gilt ein Höchstaufenthalt von %(n)s Nächten."
 
 msgid ""
 "Check-in is not possible on this weekday — please pick another arrival day."
-msgstr ""
-"Check-in is not possible on this weekday — please pick another arrival day."
+msgstr "Check-in ist an diesem Wochentag nicht möglich — bitte wählen Sie einen anderen Anreisetag."
 
 msgid ""
 "Check-out is not possible on this weekday — please pick another departure "
 "day."
-msgstr ""
-"Check-out is not possible on this weekday — please pick another departure "
-"day."
+msgstr "Check-out ist an diesem Wochentag nicht möglich — bitte wählen Sie einen anderen Abreisetag."
 
 msgid "Sales rules"
 msgstr "Verkaufsregeln"
@@ -13536,23 +13531,19 @@ msgstr "Geprüft"
 msgid ""
 "Email me news and offers (optional) — a confirmation email follows, "
 "unsubscribe anytime."
-msgstr ""
-"Email me news and offers (optional) — a confirmation email follows, "
-"unsubscribe anytime."
+msgstr "Neuigkeiten und Angebote per E-Mail (optional) — es folgt eine Bestätigungsmail, Abmeldung jederzeit möglich."
 
 msgid "Market position"
-msgstr "Market position"
+msgstr "Marktposition"
 
 #, python-format
 msgid ""
 "Your base price ranks %(p)s of %(n)s hotels in your city (platform listings,"
 " “from €/night”)."
-msgstr ""
-"Your base price ranks %(p)s of %(n)s hotels in your city (platform listings,"
-" “from €/night”)."
+msgstr "Ihr Grundpreis liegt auf Platz %(p)s von %(n)s Hotels in Ihrer Stadt (Einträge der Plattform, „ab €/Nacht“)."
 
 msgid "median"
-msgstr "median"
+msgstr "Median"
 
 msgid "you"
 msgstr "Sie"
@@ -13560,9 +13551,7 @@ msgstr "Sie"
 msgid ""
 "Public base prices of hotels on this platform in your city — for orientation"
 " only."
-msgstr ""
-"Public base prices of hotels on this platform in your city — for orientation"
-" only."
+msgstr "Öffentliche Grundpreise der Hotels dieser Plattform in Ihrer Stadt — nur zur Orientierung."
 
 msgid "Company"
 msgstr "Firma"
@@ -14203,11 +14192,11 @@ msgstr "Übernachtung"
 
 #. M4-B lookbook 2026-07-30
 msgid "All collections"
-msgstr "All collections"
+msgstr "Alle Kollektionen"
 
 #. M4-B lookbook 2026-07-30
 msgid "Products in this collection"
-msgstr "Products in this collection"
+msgstr "Produkte in dieser Kollektion"
 
 #. M4-B lookbook 2026-07-30
 msgid "Lookbook-Fotos"
@@ -17971,3 +17960,19 @@ msgstr "Angebote entdecken"
 #: templates/storefront/_anfrage_modal.html
 msgid "Wir melden uns mit einem Angebot — ohne Kosten und ohne Verpflichtung."
 msgstr "Wir melden uns mit einem Angebot — ohne Kosten und ohne Verpflichtung."
+
+#: apps/core/seo_meta.py
+msgid "{tenant}{city_sfx} — online ansehen, reservieren & bestellen."
+msgstr ""
+
+#: apps/core/seo_meta.py
+msgid "{heading} bei {tenant}{city_sfx}."
+msgstr ""
+
+#: apps/core/seo_meta.py
+msgid "{name} bei {tenant}{city_sfx}."
+msgstr ""
+
+#: apps/core/seo_meta.py
+msgid "{category} bei {tenant}{city_sfx}."
+msgstr ""

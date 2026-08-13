@@ -79,7 +79,7 @@ M20U-4: одна тематическая секция детальной соб
           {% if t.photo_url %}<img src="{{ t.photo_url }}" alt="{{ t.name }}" loading="lazy" class="w-14 h-14 rounded-full object-cover">{% endif %}
           <div>
             <p class="font-semibold">{{ t.name }}</p>
-            {% if t.title %}<p class="text-sm text-gray-500">{{ t.title }}</p>{% endif %}
+            {% if t.title %}<p class="text-sm text-gray-500">{{ t.title_localized }}</p>{% endif %}
           </div>
         </a>
       {% endfor %}

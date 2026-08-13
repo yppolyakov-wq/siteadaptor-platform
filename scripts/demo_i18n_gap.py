@@ -209,8 +209,12 @@ def _collect_models(kit, c: Collector, kk: str) -> None:
 
 
 def _collect_gaps(kit, c: Collector, kk: str) -> None:
-    """Контент БЕЗ пути перевода (аудит 2026-08-13): модели без i18n-полей и
-    прочее, что ни один обход не берёт. Пополняется по мере закрытия дыр."""
+    """Контент, дошедший до обхода поздно (I18N-12) или не имеющий пути до сих пор.
+
+    После I18N-12 (миграции `*_i18n` у Event.details/Teacher/BlogPost/Resource/
+    PassPlan/Extra/LoyaltyProgram/Voucher/ComboGroup/Review/Job/Tenant) почти всё
+    отсюда переехало в ROUTED — здесь остаётся только то, что переводить не нужно
+    либо путь ещё не заведён."""
     for i, ev in enumerate(kit.events or []):
         if not isinstance(ev, dict):
             continue
@@ -219,9 +223,7 @@ def _collect_gaps(kit, c: Collector, kk: str) -> None:
             for field, val in details.items():
                 for row in val if isinstance(val, list) else [val]:
                     if isinstance(row, str):
-                        c.add(
-                            "event_details", row, f"{kk}:events[{i}].details.{field}", routed=False
-                        )
+                        c.add("event_details", row, f"{kk}:events[{i}].details.{field}")
                     elif isinstance(row, dict):
                         for key, sub in row.items():
                             if key not in ("photo", "image", "url", "rating"):
@@ -229,72 +231,66 @@ def _collect_gaps(kit, c: Collector, kk: str) -> None:
                                     "event_details",
                                     sub,
                                     f"{kk}:events[{i}].details.{field}",
-                                    routed=False,
                                 )
         for q in ev.get("questions") or []:
             if isinstance(q, dict):
-                c.add(
-                    "event_questions", q.get("label"), f"{kk}:events[{i}].questions", routed=False
-                )
+                c.add("event_questions", q.get("label"), f"{kk}:events[{i}].questions")
         for step in ev.get("program") or []:
             if isinstance(step, dict):
                 for field in ("title", "text"):
-                    c.add(
-                        "event_program", step.get(field), f"{kk}:events[{i}].program", routed=False
-                    )
+                    c.add("event_program", step.get(field), f"{kk}:events[{i}].program")
     for i, post in enumerate(kit.blog_posts or []):
         for part in post[:3] if isinstance(post, (tuple, list)) else []:
-            c.add("blog_posts", part, f"{kk}:blog_posts[{i}]", routed=False)
+            c.add("blog_posts", part, f"{kk}:blog_posts[{i}]")
     for i, job in enumerate(kit.job_samples or []):
         if isinstance(job, dict):
             for field in ("title", "description"):
-                c.add("job_samples", job.get(field), f"{kk}:job_samples[{i}].{field}", routed=False)
+                c.add("job_samples", job.get(field), f"{kk}:job_samples[{i}].{field}")
             for line in job.get("lines") or []:
                 if isinstance(line, dict):
                     c.add(
                         "job_samples",
                         line.get("text"),
                         f"{kk}:job_samples[{i}].lines",
-                        routed=False,
                     )
     for i, teacher in enumerate(kit.teachers or []):
         if isinstance(teacher, (tuple, list)) and len(teacher) >= 2:
-            c.add("teachers", teacher[1], f"{kk}:teachers[{i}].title", routed=False)
+            c.add("teachers", teacher[1], f"{kk}:teachers[{i}].title")
             if len(teacher) >= 4:
-                c.add("teachers", teacher[3], f"{kk}:teachers[{i}].bio", routed=False)
+                c.add("teachers", teacher[3], f"{kk}:teachers[{i}].bio")
     for i, res in enumerate(kit.resources or []):
         if isinstance(res, dict):
             for field in ("name", "title", "bio"):
-                c.add("resources", res.get(field), f"{kk}:resources[{i}].{field}", routed=False)
+                c.add("resources", res.get(field), f"{kk}:resources[{i}].{field}")
     for i, extra in enumerate(kit.extras or []):
         label = extra[0] if isinstance(extra, (tuple, list)) and extra else None
-        c.add("extras", label, f"{kk}:extras[{i}]", routed=False)
+        c.add("extras", label, f"{kk}:extras[{i}]")
     for field in ("label", "reward"):
-        c.add("loyalty", (kit.loyalty or {}).get(field), f"{kk}:loyalty.{field}", routed=False)
+        c.add("loyalty", (kit.loyalty or {}).get(field), f"{kk}:loyalty.{field}")
     for i, voucher in enumerate(kit.vouchers or []):
         if isinstance(voucher, dict):
-            c.add("vouchers", voucher.get("label"), f"{kk}:vouchers[{i}]", routed=False)
+            c.add("vouchers", voucher.get("label"), f"{kk}:vouchers[{i}]")
     for i, plan in enumerate(kit.pass_plans or []):
         if isinstance(plan, dict):
-            c.add("pass_plans", plan.get("label"), f"{kk}:pass_plans[{i}]", routed=False)
+            c.add("pass_plans", plan.get("label"), f"{kk}:pass_plans[{i}]")
     for i, combo in enumerate(kit.combos or []):
         for grp in (combo.get("groups") or []) if isinstance(combo, dict) else []:
             if isinstance(grp, dict):
-                c.add("combo_groups", grp.get("label"), f"{kk}:combos[{i}].groups", routed=False)
-    c.add("opening_hours_text", kit.opening_hours_text, f"{kk}:opening_hours_text", routed=False)
-    c.add("service_area_note", kit.service_area_note, f"{kk}:service_area_note", routed=False)
-    c.add("stay_promo", (kit.stay_promo or {}).get("label"), f"{kk}:stay_promo", routed=False)
+                c.add("combo_groups", grp.get("label"), f"{kk}:combos[{i}].groups")
+    c.add("opening_hours_text", kit.opening_hours_text, f"{kk}:opening_hours_text")
+    c.add("service_area_note", kit.service_area_note, f"{kk}:service_area_note")
+    c.add("stay_promo", (kit.stay_promo or {}).get("label"), f"{kk}:stay_promo")
     for kind, defs in (kit.status_defs or {}).items():
         for row in defs or []:
             if isinstance(row, dict):
-                c.add("status_defs", row.get("label"), f"{kk}:status_defs.{kind}", routed=False)
+                c.add("status_defs", row.get("label"), f"{kk}:status_defs.{kind}")
     for i, item in enumerate(kit.reviews_seed or []):
         if isinstance(item, (tuple, list)) and len(item) >= 2:
-            c.add("reviews", item[1], f"{kk}:reviews_seed[{i}]", routed=False)
+            c.add("reviews", item[1], f"{kk}:reviews_seed[{i}]")
     for name in ("product_reviews", "service_reviews", "stay_reviews", "event_reviews"):
         for i, item in enumerate(getattr(kit, name, None) or []):
             if isinstance(item, (tuple, list)) and len(item) >= 5:
-                c.add("reviews", item[4], f"{kk}:{name}[{i}]", routed=False)
+                c.add("reviews", item[4], f"{kk}:{name}[{i}]")
 
 
 def measure():

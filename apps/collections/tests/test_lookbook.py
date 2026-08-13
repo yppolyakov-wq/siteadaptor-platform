@@ -145,7 +145,7 @@ def test_cabinet_page_open_for_catalog_only_tenant(settings):
     Collection.objects.create(name="Herbst", slug="herbst")
     _product()
     body = collections_view(_req("/dashboard/collections/", tenant=tenant)).content.decode()
-    assert "Products in this collection" in body
+    assert "Produkte in dieser Kollektion" in body
     assert "Wollmantel" in body
 
 

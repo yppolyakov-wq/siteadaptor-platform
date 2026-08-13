@@ -173,7 +173,7 @@ class Membership(TimestampedModel):
         return f"{self.user} · {self.role}"
 
 
-class Extra(TimestampedModel):
+class Extra(I18nMixin, TimestampedModel):
     """Универсальная платная доп-услуга к брони (#7, TENANT).
 
     Одна механика на все движки записи: бизнес задаёт Extras (Frühstück, Parkplatz,
@@ -194,6 +194,7 @@ class Extra(TimestampedModel):
     ]
 
     label = models.CharField(max_length=120)
+    label_i18n = models.JSONField(default=dict, blank=True)  # I18N-12: показ на локали
     price_cents = models.PositiveIntegerField(default=0)
     scope = models.CharField(max_length=10, choices=SCOPES, default=SCOPE_ALL)
     # Для stays: цена за ночь (× кол-во ночей), иначе разовая за бронь.
@@ -209,6 +210,10 @@ class Extra(TimestampedModel):
 
     def __str__(self):
         return f"{self.label} (+{self.price_cents / 100:.2f})"
+
+    def label_localized(self, locale: str | None = None) -> str:
+        """I18N-12: показ доп-услуги в buy-box на локали (снимок в брони — базовый)."""
+        return self.get_overlay("label", "label_i18n", locale)
 
     @property
     def price_eur(self):

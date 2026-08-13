@@ -8,27 +8,32 @@
 
 import re
 
+from django.utils.translation import gettext_lazy as _
+
 PAGE_TYPES = ("home", "listing", "detail", "category")
 
 # Разумные дефолты per-тип. Суффиксы (…_sfx) вычисляются в resolve() и пусты, если
 # источник пуст → без висячих разделителей. Плоские плейсхолдеры (owner-шаблоны) —
 # подчищаются render_template (схлопывание разделителей).
+# I18N-12: тексты дефолтов — переводимые (в `<title>`/`meta description` их видит
+# и гость на своей локали, и поисковик). Плейсхолдеры в фигурных скобках должны
+# сохраниться в переводе; шаблоны владельца (site_config) остаются его текстом.
 DEFAULTS = {
     "home": {
         "title": "{tenant}{city_sfx}",
-        "description": "{tenant}{city_sfx} — online ansehen, reservieren & bestellen.",
+        "description": _("{tenant}{city_sfx} — online ansehen, reservieren & bestellen."),
     },
     "listing": {
         "title": "{heading}{tenant_sfx}",
-        "description": "{heading} bei {tenant}{city_sfx}.",
+        "description": _("{heading} bei {tenant}{city_sfx}."),
     },
     "detail": {
         "title": "{name}{tenant_sfx}",
-        "description": "{name} bei {tenant}{city_sfx}.",
+        "description": _("{name} bei {tenant}{city_sfx}."),
     },
     "category": {
         "title": "{category}{tenant_sfx}",
-        "description": "{category} bei {tenant}{city_sfx}.",
+        "description": _("{category} bei {tenant}{city_sfx}."),
     },
 }
 
@@ -46,7 +51,8 @@ def render_template(template: str, ctx: dict) -> str:
     возникшие после удаления пустых плейсхолдеров."""
     if not template:
         return ""
-    out = _PLACEHOLDER.sub(lambda m: str(ctx.get(m.group(1), "") or ""), template)
+    # I18N-12: дефолты — lazy-переводы, приводим к строке перед регексами.
+    out = _PLACEHOLDER.sub(lambda m: str(ctx.get(m.group(1), "") or ""), str(template))
     out = re.sub(r"\s{2,}", " ", out)
     # сдвоенные разделители в середине («A ·  · B» → «A · B») и висячие по краям
     out = re.sub(r"\s*([" + _SEP + r"])\s*(?:[" + _SEP + r"]\s*)+", r" \1 ", out)

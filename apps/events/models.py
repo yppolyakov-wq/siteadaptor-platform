@@ -115,6 +115,13 @@ class Event(I18nMixin, TimestampedModel):
     # входит, проживание, питание, ведущие, что взять, отзывы …). Схема и
     # санитайз — apps/events/details.py. Пусто = старая короткая страница.
     details = models.JSONField(default=dict, blank=True)
+    # I18N-12: переводы лендинга/программы/анкеты. Оверлеи повторяют форму базы
+    # (см. `core.i18n_json`): база владельца — источник правды, перевод заменяет
+    # только листья-строки. Заполняются демо-сидером; у реального тенанта пусто,
+    # пока переводы не заведены в кабинете.
+    details_i18n = models.JSONField(default=dict, blank=True)
+    program_i18n = models.JSONField(default=dict, blank=True)
+    questions_i18n = models.JSONField(default=dict, blank=True)
     # R5 проживание: многодневный ретрит может предлагать выбор номера через
     # архетип «Отель» (apps.stays). offers_accommodation включает шаг выбора;
     # accommodation_units — курируемый набор типов номеров на даты ретрита
@@ -165,10 +172,33 @@ class Event(I18nMixin, TimestampedModel):
 
     @property
     def landing(self) -> dict:
-        """Нормализованные блоки ретрит-лендинга (см. apps/events/details.py)."""
+        """Нормализованные блоки ретрит-лендинга (см. apps/events/details.py).
+
+        I18N-12: на неосновной локали поверх базы кладётся `details_i18n` — та же
+        форма, переведены только листья-строки (фото/ссылки базовые). Оверлей
+        мерджится ПО ИНДЕКСУ, поэтому и строится он по нормализованной форме.
+        """
+        from apps.core.i18n_json import overlay_json
+
         from . import details
 
-        return details.normalize(self.details)
+        return overlay_json(details.normalize(self.details), self.details_i18n)
+
+    def program_localized(self, locale: str | None = None) -> list:
+        """I18N-12: пункты программы на локали (список строк; база — `program`)."""
+        from apps.core.i18n_seq import overlay_seq
+
+        return overlay_seq(list(self.program or []), self.program_i18n, locale)
+
+    def questions_localized(self, locale: str | None = None) -> list:
+        """I18N-12: ПОКАЗ вопросов анкеты на локали.
+
+        Ключом ответа (`Ticket.answers`) остаётся базовый немецкий вопрос — вьюха
+        собирает ответы по `event.questions`, как `Job.event_type` в I18N-11.
+        """
+        from apps.core.i18n_seq import overlay_seq
+
+        return overlay_seq(list(self.questions or []), self.questions_i18n, locale)
 
     @property
     def landing_testimonials(self) -> list:
@@ -501,13 +531,16 @@ class EventWaitlistEntry(TimestampedModel):
         return f"{self.email} → {self.event_id}"
 
 
-class Teacher(TimestampedModel):
+class Teacher(I18nMixin, TimestampedModel):
     """R3: ведущий/преподаватель ретрита (фото, био, соцсети). Связь M2M с Event;
     даёт фильтр каталога по преподавателю и страницы учителей на витрине."""
 
     name = models.CharField(max_length=120)
     title = models.CharField(max_length=160, blank=True)  # «Yogalehrerin & Coach»
     bio = models.TextField(blank=True)
+    # I18N-12: роль и био переводимы (имя — нет, это имя человека).
+    title_i18n = models.JSONField(default=dict, blank=True)
+    bio_i18n = models.JSONField(default=dict, blank=True)
     photo_url = models.URLField(max_length=500, blank=True)
     website = models.URLField(max_length=500, blank=True)
     instagram = models.CharField(max_length=120, blank=True)  # handle или URL
@@ -519,6 +552,14 @@ class Teacher(TimestampedModel):
 
     def __str__(self):
         return self.name
+
+    def title_localized(self, locale: str | None = None) -> str:
+        """I18N-12: роль ведущего на локали (база — плоское `title`)."""
+        return self.get_overlay("title", "title_i18n", locale)
+
+    def bio_localized(self, locale: str | None = None) -> str:
+        """I18N-12: био ведущего на локали (база — плоское `bio`)."""
+        return self.get_overlay("bio", "bio_i18n", locale)
 
     @property
     def instagram_url(self) -> str:
@@ -646,7 +687,7 @@ class InstallmentCharge(TimestampedModel):
         return f"Charge {self.plan_id} #{self.sequence} ({self.status})"
 
 
-class BlogPost(TimestampedModel):
+class BlogPost(I18nMixin, TimestampedModel):
     """RT4: запись блога/новостей бизнеса (TENANT). Лёгкий контент-тип: новости
     ретрита, статьи, анонсы. Публичный список /blog/ + детальная /blog/<slug>/."""
 
@@ -654,6 +695,10 @@ class BlogPost(TimestampedModel):
     slug = models.SlugField(max_length=220, unique=True)
     excerpt = models.CharField(max_length=300, blank=True)  # короткий анонс (в списке)
     body = models.TextField(blank=True)  # текст (line-breaks → абзацы на витрине)
+    # I18N-12: переводы записи (slug остаётся базовым — это адрес страницы).
+    title_i18n = models.JSONField(default=dict, blank=True)
+    excerpt_i18n = models.JSONField(default=dict, blank=True)
+    body_i18n = models.JSONField(default=dict, blank=True)
     cover = models.JSONField(default=dict, blank=True)  # FileRef-конверт обложки
     is_published = models.BooleanField(default=False)
     published_at = models.DateTimeField(null=True, blank=True)
@@ -664,6 +709,18 @@ class BlogPost(TimestampedModel):
 
     def __str__(self):
         return self.title
+
+    def title_localized(self, locale: str | None = None) -> str:
+        """I18N-12: заголовок записи на локали (slug остаётся базовым — это адрес)."""
+        return self.get_overlay("title", "title_i18n", locale)
+
+    def excerpt_localized(self, locale: str | None = None) -> str:
+        """I18N-12: анонс записи на локали."""
+        return self.get_overlay("excerpt", "excerpt_i18n", locale)
+
+    def body_localized(self, locale: str | None = None) -> str:
+        """I18N-12: текст записи на локали."""
+        return self.get_overlay("body", "body_i18n", locale)
 
     @property
     def cover_url(self) -> str:

@@ -12,8 +12,8 @@
           {% if t.photo_url %}<img src="{{ t.photo_url }}" alt="" loading="lazy" class="w-16 h-16 rounded-full object-cover flex-shrink-0">{% endif %}
           <div class="min-w-0">
             <div class="font-semibold truncate">{{ t.name }}</div>
-            {% if t.title %}<div class="text-sm text-gray-500">{{ t.title }}</div>{% endif %}
-            {% if t.bio %}<p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ t.bio }}</p>{% endif %}
+            {% if t.title %}<div class="text-sm text-gray-500">{{ t.title_localized }}</div>{% endif %}
+            {% if t.bio %}<p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ t.bio_localized }}</p>{% endif %}
           </div>
         </a>
       {% endfor %}
