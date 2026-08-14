@@ -18200,3 +18200,89 @@ msgstr "%(date)s tarihinde silinir"
 
 msgid "No documents uploaded yet."
 msgstr "Henüz belge yüklenmedi."
+
+# --- MT-3: Reisegruppe (Feed, Chat, Telegram-Brücke) ---
+
+msgid "Beitrag"
+msgstr "Gönderi"
+
+msgid "Zu viele Beiträge — bitte kurz warten."
+msgstr "Çok fazla gönderi — lütfen biraz bekleyin."
+
+msgid "Einstellungen gespeichert."
+msgstr "Ayarlar kaydedildi."
+
+msgid "Neuer Beitrag in der Reisegruppe"
+msgstr "Gezi grubunda yeni gönderi"
+
+msgid "Reisegruppe"
+msgstr "Gezi grubu"
+
+msgid "Travel group"
+msgstr "Gezi grubu"
+
+msgid "Open group"
+msgstr "Grubu aç"
+
+msgid "Group is open (new posts allowed)"
+msgstr "Grup açık (yeni gönderilere izin var)"
+
+msgid "Participants may post themselves"
+msgstr "Katılımcılar kendileri paylaşabilir"
+
+msgid "Telegram group"
+msgstr "Telegram grubu"
+
+msgid "Connected — posts sync both ways."
+msgstr "Bağlandı — gönderiler iki yönde akıyor."
+
+msgid "Add your bot to the tour's Telegram group and write there:"
+msgstr "Botunuzu turun Telegram grubuna ekleyin ve orada yazın:"
+
+msgid "In @BotFather the bot's privacy mode must be disabled, otherwise Telegram only forwards commands to it."
+msgstr "@BotFather'da botun gizlilik modu kapalı olmalı, aksi halde Telegram yalnızca komutları iletir."
+
+msgid "Invite link"
+msgstr "Davet bağlantısı"
+
+msgid "For companions without a ticket (partner, mechanic)."
+msgstr "Biletsiz refakatçiler için (eş, tamirci)."
+
+msgid "Latest posts"
+msgstr "Son gönderiler"
+
+msgid "Space for everyone travelling on this date."
+msgstr "Bu tarihte yola çıkan herkes için alan."
+
+msgid "Feed"
+msgstr "Akış"
+
+msgid "Chat"
+msgstr "Sohbet"
+
+msgid "Share something with the group…"
+msgstr "Grupla bir şey paylaşın…"
+
+msgid "Post"
+msgstr "Paylaş"
+
+msgid "This space is read-only now."
+msgstr "Bu alan artık salt okunur."
+
+msgid "Guide"
+msgstr "Rehber"
+
+msgid "Attached file"
+msgstr "Ekli dosya"
+
+msgid "Comment…"
+msgstr "Yorum…"
+
+msgid "Show again"
+msgstr "Tekrar göster"
+
+msgid "Hide from group"
+msgstr "Gruptan gizle"
+
+msgid "Nothing posted yet."
+msgstr "Henüz bir şey paylaşılmadı."

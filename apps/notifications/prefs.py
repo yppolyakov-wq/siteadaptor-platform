@@ -62,6 +62,11 @@ CUSTOMER_EVENTS = {
         ("cancelled", _("Storniert")),
         ("expired", _("Abgelaufen")),
     ],
+    # MT-3: пространство поездки. Рассылаем только объявления гида — реплики
+    # чата читают в самом чате, иначе поездка утонет в письмах.
+    "community": [
+        ("new_post", _("Neuer Beitrag in der Reisegruppe")),
+    ],
 }
 
 # Домен → ключ модуля (гейтинг строк матрицы по активным модулям бизнеса).
@@ -72,6 +77,7 @@ DOMAIN_MODULE = {
     "ticket": "events",
     "job": "jobs",
     "reservation": "promotions",
+    "community": "events",
 }
 
 # Домен → короткая DE-подпись группы (для матрицы).
@@ -82,6 +88,7 @@ DOMAIN_LABEL = {
     "ticket": _("Tickets"),
     "job": _("Aufträge"),
     "reservation": _("Reservierungen"),
+    "community": _("Reisegruppe"),
 }
 
 

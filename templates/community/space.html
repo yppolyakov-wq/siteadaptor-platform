@@ -1,0 +1,143 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% comment %}
+MT-3: пространство поездки — лента объявлений и чат группы.
+Поллинг чата — vanilla fetch + setInterval(5s), как в треде inbox: сервер отдаёт
+хвост, клиент дедупит по data-msg-id и строит DOM через textContent (не innerHTML).
+{% endcomment %}
+{% block title %}{{ space.title }} — {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-2xl font-semibold mb-1">{{ space.title }}</h1>
+  <p class="text-sm text-gray-500 mb-5">{% trans "Space for everyone travelling on this date." %}</p>
+
+  <div class="mb-5 flex gap-2 text-sm">
+    <a href="?tab=feed" class="rounded-lg px-3 py-1.5 {% if tab == 'feed' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-700{% endif %}">{% trans "Feed" %}</a>
+    <a href="?tab=chat" class="rounded-lg px-3 py-1.5 {% if tab == 'chat' %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-700{% endif %}">{% trans "Chat" %}</a>
+  </div>
+
+  {% if tab == 'chat' %}
+    <div id="chat-list" data-poll-url="{% url 'community-space-poll' space.pk %}" class="space-y-2 mb-4 max-h-[26rem] overflow-y-auto rounded-2xl border p-4">
+      {% for post in posts %}
+        <div data-msg-id="{{ post.pk }}" class="text-sm">
+          <span class="font-medium {% if post.by_staff %}text-indigo-700{% endif %}">{{ post.author_label }}</span>
+          <span class="text-xs text-gray-400">{{ post.created_at|date:"H:i" }}</span>
+          <p class="whitespace-pre-line">{{ post.body }}</p>
+        </div>
+      {% empty %}
+        <p class="text-sm text-gray-500">{% trans "No messages yet." %}</p>
+      {% endfor %}
+    </div>
+    {% if can_post %}
+      <form method="post" action="{% url 'community-space-post' space.pk %}" class="flex gap-2">
+        {% csrf_token %}
+        <input type="hidden" name="kind" value="message">
+        <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off">
+        <input type="text" name="body" required maxlength="4000" placeholder="{% trans 'Write a message…' %}" class="grow rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">{% trans "Send" %}</button>
+      </form>
+    {% endif %}
+  {% else %}
+    {% if can_post %}
+      <form method="post" action="{% url 'community-space-post' space.pk %}" enctype="multipart/form-data" class="rounded-2xl border p-4 mb-6 space-y-3">
+        {% csrf_token %}
+        <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off">
+        <textarea name="body" rows="3" maxlength="4000" placeholder="{% trans 'Share something with the group…' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <input type="file" name="photos" accept="image/*" multiple class="text-sm text-gray-600">
+          <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">{% trans "Post" %}</button>
+        </div>
+      </form>
+    {% elif not space.is_open %}
+      <p class="mb-6 rounded-2xl bg-gray-50 p-4 text-sm text-gray-600">{% trans "This space is read-only now." %}</p>
+    {% endif %}
+
+    <div class="space-y-5">
+      {% for post in posts %}
+        <article class="rounded-2xl border p-4 {% if post.is_hidden %}opacity-50{% endif %}">
+          <div class="flex items-baseline justify-between gap-3">
+            <p class="font-medium {% if post.by_staff %}text-indigo-700{% endif %}">
+              {{ post.author_label }}{% if post.by_staff %} · {% trans "Guide" %}{% endif %}
+            </p>
+            <span class="text-xs text-gray-400">{{ post.created_at|date:"d.m. H:i" }}</span>
+          </div>
+          {% if post.body %}<p class="mt-2 whitespace-pre-line">{{ post.body }}</p>{% endif %}
+          {% if post.images %}
+            <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {% for img in post.images %}<img src="{{ img.url }}" alt="" loading="lazy" decoding="async" class="w-full aspect-video rounded-lg object-cover">{% endfor %}
+            </div>
+          {% endif %}
+          {% if post.document_id %}
+            <p class="mt-2 text-sm"><a href="{% url 'account-document-download' post.document_id %}" class="text-indigo-600 hover:underline">📎 {% trans "Attached file" %}</a></p>
+          {% endif %}
+
+          {% for comment in post.comments.all %}
+            {% if not comment.is_hidden %}
+              <div class="mt-3 border-l-2 border-gray-200 pl-3 text-sm">
+                <span class="font-medium {% if comment.by_staff %}text-indigo-700{% endif %}">{{ comment.author_label }}</span>
+                <p class="whitespace-pre-line">{{ comment.body }}</p>
+              </div>
+            {% endif %}
+          {% endfor %}
+
+          {% if can_post %}
+            <form method="post" action="{% url 'community-space-comment' space.pk post.pk %}" class="mt-3 flex gap-2">
+              {% csrf_token %}
+              <input type="text" name="body" required maxlength="4000" placeholder="{% trans 'Comment…' %}" class="grow rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
+              <button type="submit" class="text-sm text-indigo-600 hover:underline">{% trans "Reply" %}</button>
+            </form>
+          {% endif %}
+          {% if is_staff %}
+            <form method="post" action="{% url 'community-post-toggle' space.pk post.pk %}" class="mt-2">
+              {% csrf_token %}
+              <button type="submit" class="text-xs text-gray-500 hover:underline">{% if post.is_hidden %}{% trans "Show again" %}{% else %}{% trans "Hide from group" %}{% endif %}</button>
+            </form>
+          {% endif %}
+        </article>
+      {% empty %}
+        <p class="text-gray-600">{% trans "Nothing posted yet." %}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+
+<script>
+(function () {
+  var list = document.getElementById("chat-list");
+  if (!list) return;
+  var url = list.getAttribute("data-poll-url");
+  function add(m) {
+    if (list.querySelector('[data-msg-id="' + m.id + '"]')) return;
+    var wrap = document.createElement("div");
+    wrap.setAttribute("data-msg-id", m.id);
+    wrap.className = "text-sm";
+    var who = document.createElement("span");
+    who.className = "font-medium" + (m.staff ? " text-indigo-700" : "");
+    who.textContent = m.author;
+    var when = document.createElement("span");
+    when.className = "text-xs text-gray-400";
+    when.textContent = " " + m.time;
+    var body = document.createElement("p");
+    body.className = "whitespace-pre-line";
+    body.textContent = m.body;
+    wrap.appendChild(who);
+    wrap.appendChild(when);
+    wrap.appendChild(body);
+    list.appendChild(wrap);
+  }
+  function poll() {
+    fetch(url, { headers: { "X-Requested-With": "fetch" } })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var before = list.childElementCount;
+        (d.items || []).forEach(add);
+        if (list.childElementCount > before) list.scrollTop = list.scrollHeight;
+      })
+      .catch(function () {});
+  }
+  list.scrollTop = list.scrollHeight;
+  setInterval(poll, 5000);
+})();
+</script>
+{% endblock %}

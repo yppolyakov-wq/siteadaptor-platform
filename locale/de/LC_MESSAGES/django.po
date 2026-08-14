@@ -18228,3 +18228,89 @@ msgstr "Löschung am %(date)s"
 
 msgid "No documents uploaded yet."
 msgstr "Noch keine Dokumente hochgeladen."
+
+# --- MT-3: Reisegruppe (Feed, Chat, Telegram-Brücke) ---
+
+msgid "Beitrag"
+msgstr "Beitrag"
+
+msgid "Zu viele Beiträge — bitte kurz warten."
+msgstr "Zu viele Beiträge — bitte kurz warten."
+
+msgid "Einstellungen gespeichert."
+msgstr "Einstellungen gespeichert."
+
+msgid "Neuer Beitrag in der Reisegruppe"
+msgstr "Neuer Beitrag in der Reisegruppe"
+
+msgid "Reisegruppe"
+msgstr "Reisegruppe"
+
+msgid "Travel group"
+msgstr "Reisegruppe"
+
+msgid "Open group"
+msgstr "Gruppe öffnen"
+
+msgid "Group is open (new posts allowed)"
+msgstr "Gruppe ist offen (neue Beiträge erlaubt)"
+
+msgid "Participants may post themselves"
+msgstr "Teilnehmer dürfen selbst posten"
+
+msgid "Telegram group"
+msgstr "Telegram-Gruppe"
+
+msgid "Connected — posts sync both ways."
+msgstr "Verbunden — Beiträge laufen in beide Richtungen."
+
+msgid "Add your bot to the tour's Telegram group and write there:"
+msgstr "Fügen Sie Ihren Bot der Telegram-Gruppe der Reise hinzu und schreiben Sie dort:"
+
+msgid "In @BotFather the bot's privacy mode must be disabled, otherwise Telegram only forwards commands to it."
+msgstr "In @BotFather muss der Privacy-Modus des Bots deaktiviert sein, sonst leitet Telegram nur Befehle an ihn weiter."
+
+msgid "Invite link"
+msgstr "Einladungslink"
+
+msgid "For companions without a ticket (partner, mechanic)."
+msgstr "Für Begleiter ohne Ticket (Partner, Mechaniker)."
+
+msgid "Latest posts"
+msgstr "Neueste Beiträge"
+
+msgid "Space for everyone travelling on this date."
+msgstr "Der Raum für alle, die an diesem Termin mitfahren."
+
+msgid "Feed"
+msgstr "Feed"
+
+msgid "Chat"
+msgstr "Chat"
+
+msgid "Share something with the group…"
+msgstr "Etwas mit der Gruppe teilen …"
+
+msgid "Post"
+msgstr "Veröffentlichen"
+
+msgid "This space is read-only now."
+msgstr "Dieser Raum ist jetzt schreibgeschützt."
+
+msgid "Guide"
+msgstr "Guide"
+
+msgid "Attached file"
+msgstr "Angehängte Datei"
+
+msgid "Comment…"
+msgstr "Kommentieren …"
+
+msgid "Show again"
+msgstr "Wieder einblenden"
+
+msgid "Hide from group"
+msgstr "Vor der Gruppe ausblenden"
+
+msgid "Nothing posted yet."
+msgstr "Noch nichts veröffentlicht."

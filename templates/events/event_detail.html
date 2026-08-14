@@ -56,6 +56,7 @@
   <h2 class="text-lg font-semibold">{% trans "Attendees" %}</h2>
   <a href="{% url 'events:roster-csv' event.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Export CSV" %}</a>
   <a href="{% url 'events:documents' event.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Documents" %}</a>
+  <a href="{% url 'community:event-space' event.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Travel group" %}</a>
 </div>
 
 {% if tickets %}

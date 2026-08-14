@@ -18277,3 +18277,89 @@ msgstr "видалення %(date)s"
 
 msgid "No documents uploaded yet."
 msgstr "Документи поки не завантажено."
+
+# --- MT-3: Reisegruppe (Feed, Chat, Telegram-Brücke) ---
+
+msgid "Beitrag"
+msgstr "Запис"
+
+msgid "Zu viele Beiträge — bitte kurz warten."
+msgstr "Забагато записів — зачекайте трохи."
+
+msgid "Einstellungen gespeichert."
+msgstr "Налаштування збережено."
+
+msgid "Neuer Beitrag in der Reisegruppe"
+msgstr "Новий запис у групі подорожі"
+
+msgid "Reisegruppe"
+msgstr "Група подорожі"
+
+msgid "Travel group"
+msgstr "Група подорожі"
+
+msgid "Open group"
+msgstr "Відкрити групу"
+
+msgid "Group is open (new posts allowed)"
+msgstr "Група відкрита (можна писати)"
+
+msgid "Participants may post themselves"
+msgstr "Учасники можуть писати самі"
+
+msgid "Telegram group"
+msgstr "Telegram-група"
+
+msgid "Connected — posts sync both ways."
+msgstr "Підключено — записи йдуть в обидва боки."
+
+msgid "Add your bot to the tour's Telegram group and write there:"
+msgstr "Додайте свого бота до Telegram-групи туру та напишіть там:"
+
+msgid "In @BotFather the bot's privacy mode must be disabled, otherwise Telegram only forwards commands to it."
+msgstr "У @BotFather у бота має бути вимкнено privacy mode, інакше Telegram передає йому лише команди."
+
+msgid "Invite link"
+msgstr "Посилання-запрошення"
+
+msgid "For companions without a ticket (partner, mechanic)."
+msgstr "Для супровідників без квитка (партнер, механік)."
+
+msgid "Latest posts"
+msgstr "Останні записи"
+
+msgid "Space for everyone travelling on this date."
+msgstr "Простір для всіх, хто їде в цю дату."
+
+msgid "Feed"
+msgstr "Стрічка"
+
+msgid "Chat"
+msgstr "Чат"
+
+msgid "Share something with the group…"
+msgstr "Поділіться з групою…"
+
+msgid "Post"
+msgstr "Опублікувати"
+
+msgid "This space is read-only now."
+msgstr "Простір тепер лише для читання."
+
+msgid "Guide"
+msgstr "Гід"
+
+msgid "Attached file"
+msgstr "Прикріплений файл"
+
+msgid "Comment…"
+msgstr "Коментар…"
+
+msgid "Show again"
+msgstr "Показати знову"
+
+msgid "Hide from group"
+msgstr "Сховати від групи"
+
+msgid "Nothing posted yet."
+msgstr "Поки нічого не опубліковано."

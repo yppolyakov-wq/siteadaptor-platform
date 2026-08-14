@@ -18292,3 +18292,89 @@ msgstr "удаление %(date)s"
 
 msgid "No documents uploaded yet."
 msgstr "Документы пока не загружены."
+
+# --- MT-3: Reisegruppe (Feed, Chat, Telegram-Brücke) ---
+
+msgid "Beitrag"
+msgstr "Запись"
+
+msgid "Zu viele Beiträge — bitte kurz warten."
+msgstr "Слишком много записей — подождите немного."
+
+msgid "Einstellungen gespeichert."
+msgstr "Настройки сохранены."
+
+msgid "Neuer Beitrag in der Reisegruppe"
+msgstr "Новая запись в группе поездки"
+
+msgid "Reisegruppe"
+msgstr "Группа поездки"
+
+msgid "Travel group"
+msgstr "Группа поездки"
+
+msgid "Open group"
+msgstr "Открыть группу"
+
+msgid "Group is open (new posts allowed)"
+msgstr "Группа открыта (можно писать)"
+
+msgid "Participants may post themselves"
+msgstr "Участники могут писать сами"
+
+msgid "Telegram group"
+msgstr "Telegram-группа"
+
+msgid "Connected — posts sync both ways."
+msgstr "Подключено — записи идут в обе стороны."
+
+msgid "Add your bot to the tour's Telegram group and write there:"
+msgstr "Добавьте своего бота в Telegram-группу тура и напишите там:"
+
+msgid "In @BotFather the bot's privacy mode must be disabled, otherwise Telegram only forwards commands to it."
+msgstr "В @BotFather у бота должен быть выключен privacy mode, иначе Telegram передаёт ему только команды."
+
+msgid "Invite link"
+msgstr "Ссылка-приглашение"
+
+msgid "For companions without a ticket (partner, mechanic)."
+msgstr "Для сопровождающих без билета (партнёр, механик)."
+
+msgid "Latest posts"
+msgstr "Последние записи"
+
+msgid "Space for everyone travelling on this date."
+msgstr "Пространство для всех, кто едет в эту дату."
+
+msgid "Feed"
+msgstr "Лента"
+
+msgid "Chat"
+msgstr "Чат"
+
+msgid "Share something with the group…"
+msgstr "Поделитесь с группой…"
+
+msgid "Post"
+msgstr "Опубликовать"
+
+msgid "This space is read-only now."
+msgstr "Пространство теперь только для чтения."
+
+msgid "Guide"
+msgstr "Гид"
+
+msgid "Attached file"
+msgstr "Прикреплённый файл"
+
+msgid "Comment…"
+msgstr "Комментарий…"
+
+msgid "Show again"
+msgstr "Показать снова"
+
+msgid "Hide from group"
+msgstr "Скрыть от группы"
+
+msgid "Nothing posted yet."
+msgstr "Пока ничего не опубликовано."

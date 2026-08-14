@@ -12,6 +12,7 @@ from django.views.static import serve
 from apps.billing import views as billing_views
 from apps.booking import public_views as booking_public
 from apps.collections import public_views as collections_public
+from apps.community import views as community_views
 from apps.core import health
 from apps.core.team import team_join, team_view
 from apps.core.views import (
@@ -220,6 +221,8 @@ urlpatterns = [
     path("dashboard/collections/", include("apps.collections.urls")),
     # Кабинет событий/билетов (A6).
     path("dashboard/events/", include("apps.events.urls")),
+    # MT-3: пространство поездки в кабинете (по заезду).
+    path("dashboard/reisegruppe/", include("apps.community.urls")),
     # CM-1: блог — свой модуль (не events): кабинет на /dashboard/blog/,
     # вьюхи организационно остаются в apps/events (модель самостоятельна).
     path("dashboard/blog/", events_views.blog_list, name="blog-list"),
@@ -388,6 +391,34 @@ urlpatterns = [
     path("stays/ical/<str:token>.ics", stays_public.unterkunft_ical, name="storefront-stay-ical"),
     # G8: фид цен/наличия для метапоиска (Google Hotel Center / channel).
     path("stays/feed.json", stays_public.stays_feed, name="storefront-stay-feed"),
+    # MT-3: пространство поездки (лента + чат группы заезда). Доступ решает
+    # apps/community/access.py; посторонний получает 404.
+    path("reisegruppe/<uuid:pk>/", community_views.space_view, name="community-space"),
+    path(
+        "reisegruppe/<uuid:pk>/beitrag/",
+        community_views.space_post,
+        name="community-space-post",
+    ),
+    path(
+        "reisegruppe/<uuid:pk>/poll/",
+        community_views.space_poll,
+        name="community-space-poll",
+    ),
+    path(
+        "reisegruppe/<uuid:pk>/<uuid:post_id>/kommentar/",
+        community_views.space_comment,
+        name="community-space-comment",
+    ),
+    path(
+        "reisegruppe/<uuid:pk>/<uuid:post_id>/ausblenden/",
+        community_views.post_toggle,
+        name="community-post-toggle",
+    ),
+    path(
+        "reisegruppe/einladung/<uuid:token>/",
+        community_views.space_join,
+        name="community-space-join",
+    ),
     # MT-1: тур-продукт (контент + заезды). Продажа остаётся на событии-заезде,
     # поэтому маршруты живут рядом с событиями и гейтятся тем же модулем.
     path("touren/", events_public.touren_index, name="storefront-tours"),

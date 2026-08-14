@@ -18,6 +18,11 @@ def handle_update(bot, update: dict, request) -> str:
     if not chat_id:
         return "skip"
 
+    # MT-3b: в ГРУППЕ бот ведёт себя иначе — там он мост пространства поездки,
+    # а не витрина. Обрабатываем до общей ветки, чтобы группе не слать Mini App.
+    if (chat.get("type") or "") in ("group", "supergroup"):
+        return _handle_group(bot, message, chat_id)
+
     shop_url = request.build_absolute_uri(reverse("storefront-home"))
     markup = {"inline_keyboard": [[{"text": _("🛍 Open shop"), "web_app": {"url": shop_url}}]]}
     # /start <token> — привязка к боту: owner-<token> = владелец (UD4c), иначе
@@ -39,3 +44,18 @@ def handle_update(bot, update: dict, request) -> str:
         body = _("Tap below to open the shop.")
     services.send_message(bot.token, chat_id, body, reply_markup=markup)
     return "sent"
+
+
+def _handle_group(bot, message: dict, chat_id) -> str:
+    """Групповой апдейт: команда привязки или сообщение в ленту (MT-3b).
+
+    Мост живёт в apps/community — телеграм-слой только маршрутизирует, чтобы
+    знание о пространствах поездки не растекалось по обоим приложениям.
+    """
+    from apps.community.telegram_bridge import ingest_group_message, try_link
+
+    reply = try_link(bot, message)
+    if reply:
+        services.send_message(bot.token, chat_id, reply)
+        return "linked"
+    return "ingested" if ingest_group_message(bot, message) else "skip"

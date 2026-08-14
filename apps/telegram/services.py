@@ -32,10 +32,31 @@ def send_message(token: str, chat_id, text: str, reply_markup=None) -> dict:
     return response.json().get("result", {})
 
 
+def get_file_url(token: str, file_id: str) -> str:
+    """Ссылка на скачивание файла из Telegram (MT-3b: фото/документы из группы).
+
+    Bot API отдаёт файлы до 20 МБ; на больший файл вернём "" — вызывающий
+    сохранит запись без вложения, а не потеряет сообщение целиком.
+    """
+    try:
+        response = requests.get(
+            _endpoint(token, "getFile"), params={"file_id": file_id}, timeout=20
+        )
+        response.raise_for_status()
+        path = (response.json().get("result") or {}).get("file_path") or ""
+    except Exception:  # noqa: BLE001 — мост не должен ронять приём апдейта
+        return ""
+    return f"{_API}/file/bot{token}/{path}" if path else ""
+
+
 def set_webhook(token: str, url: str, secret_token: str) -> dict:
     response = requests.post(
         _endpoint(token, "setWebhook"),
-        data={"url": url, "secret_token": secret_token, "allowed_updates": '["message"]'},
+        data={
+            "url": url,
+            "secret_token": secret_token,
+            "allowed_updates": '["message", "my_chat_member"]',
+        },
         timeout=20,
     )
     response.raise_for_status()

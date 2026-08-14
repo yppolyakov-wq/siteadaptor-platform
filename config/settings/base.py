@@ -73,6 +73,7 @@ TENANT_APPS = [
     "apps.collections",  # UB3-2 — M2M-подборки (коллекции) услуг/номеров (TENANT)
     "apps.inventory",  # U-D3 — склад-леджер StockMovement (append-only) (TENANT)
     "apps.documents",  # MT-2 — досье участника: файлы шифруются в storage (TENANT)
+    "apps.community",  # MT-3 — пространство поездки: лента/чат группы (TENANT)
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]

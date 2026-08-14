@@ -18088,3 +18088,89 @@ msgstr "deleted on %(date)s"
 
 msgid "No documents uploaded yet."
 msgstr "No documents uploaded yet."
+
+# --- MT-3: Reisegruppe (Feed, Chat, Telegram-Brücke) ---
+
+msgid "Beitrag"
+msgstr "Post"
+
+msgid "Zu viele Beiträge — bitte kurz warten."
+msgstr "Too many posts — please wait a moment."
+
+msgid "Einstellungen gespeichert."
+msgstr "Settings saved."
+
+msgid "Neuer Beitrag in der Reisegruppe"
+msgstr "New post in the travel group"
+
+msgid "Reisegruppe"
+msgstr "Travel group"
+
+msgid "Travel group"
+msgstr "Travel group"
+
+msgid "Open group"
+msgstr "Open group"
+
+msgid "Group is open (new posts allowed)"
+msgstr "Group is open (new posts allowed)"
+
+msgid "Participants may post themselves"
+msgstr "Participants may post themselves"
+
+msgid "Telegram group"
+msgstr "Telegram group"
+
+msgid "Connected — posts sync both ways."
+msgstr "Connected — posts sync both ways."
+
+msgid "Add your bot to the tour's Telegram group and write there:"
+msgstr "Add your bot to the tour's Telegram group and write there:"
+
+msgid "In @BotFather the bot's privacy mode must be disabled, otherwise Telegram only forwards commands to it."
+msgstr "In @BotFather the bot's privacy mode must be disabled, otherwise Telegram only forwards commands to it."
+
+msgid "Invite link"
+msgstr "Invite link"
+
+msgid "For companions without a ticket (partner, mechanic)."
+msgstr "For companions without a ticket (partner, mechanic)."
+
+msgid "Latest posts"
+msgstr "Latest posts"
+
+msgid "Space for everyone travelling on this date."
+msgstr "Space for everyone travelling on this date."
+
+msgid "Feed"
+msgstr "Feed"
+
+msgid "Chat"
+msgstr "Chat"
+
+msgid "Share something with the group…"
+msgstr "Share something with the group…"
+
+msgid "Post"
+msgstr "Post"
+
+msgid "This space is read-only now."
+msgstr "This space is read-only now."
+
+msgid "Guide"
+msgstr "Guide"
+
+msgid "Attached file"
+msgstr "Attached file"
+
+msgid "Comment…"
+msgstr "Comment…"
+
+msgid "Show again"
+msgstr "Show again"
+
+msgid "Hide from group"
+msgstr "Hide from group"
+
+msgid "Nothing posted yet."
+msgstr "Nothing posted yet."
