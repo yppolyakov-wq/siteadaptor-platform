@@ -154,6 +154,42 @@ license=cc0,pdm) и Wikimedia Commons (haswbstatement CC0/Public domain);
 - `yoga-nature.webp` — https://stocksnap.io/photo/landscape-mountains-RKS9M8PY0X — CC0 1.0 (stocksnap, автор: Julia Caesar)
 - `yoga-products.webp` — https://www.rawpixel.com/image/11524267/rolled-teal-yoga-mat-standing-up — CC0 1.0 (rawpixel)
 
+Набор 2026-08-14 (мото/квадро-архетип, волна MT-D): Openverse API,
+фильтр license=cc0,pdm; лицензия каждого файла сверена по метаданным ответа,
+каждый кадр просмотрен глазами (отбракованы водяные знаки, узнаваемые лица,
+нерелевантные сюжеты). Портреты гидов — не реальные люди: карточки гидов
+используют кадры мотоциклистов в шлемах.
+
+- `annapurna-trail.webp` — https://wordpress.org/photos/photo/6496a102b2/ — CC0 1.0 (wordpress, автор: Sakin Shrestha)
+- `desert-dunes.webp` — https://www.flickr.com/photos/132795455@N08/18689730905 — CC0 1.0 (flickr, автор: Image Catalog)
+- `enduro-motorcycle.webp` — https://www.flickr.com/photos/88123769@N02/12064590743 — CC0 1.0 (flickr, автор: Bernard Spragg)
+- `everest-view.webp` — https://www.flickr.com/photos/186869255@N02/52492068903 — Public Domain Mark (flickr, автор: alixlee.com (Ali Speakman))
+- `guide-motorcycle.webp` — https://www.rawpixel.com/image/3304100/free-photo-image-motorcycle-helmet-apparel-cc0 — CC0 1.0 (rawpixel)
+- `guide-nepal.webp` — https://wordpress.org/photos/photo/9106a2ae09/ — CC0 1.0 (wordpress, автор: aashik69)
+- `himalaya-monastery.webp` — https://commons.wikimedia.org/w/index.php?curid=183467294 — CC0 1.0 (wikimedia, автор: Prof Ranga Sai)
+- `himalaya-road.webp` — https://wordpress.org/photos/photo/75765c5b43/ — CC0 1.0 (wordpress, автор: Chetan Prajapati)
+- `india-street.webp` — https://www.rawpixel.com/image/6113770/street-india-date-unknown — CC0 1.0 (rawpixel)
+- `jungle-river.webp` — https://wordpress.org/photos/photo/2556811041/ — CC0 1.0 (wordpress, автор: shirishpoudel07)
+- `ladakh-lake.webp` — https://wordpress.org/photos/photo/59564f826c/ — CC0 1.0 (wordpress, автор: FARAZFRANK)
+- `motorcycle-camp.webp` — https://www.rawpixel.com/image/3285625/free-photo-image-travel-camping-cc0 — CC0 1.0 (rawpixel)
+- `motorcycle-group.webp` — https://www.flickr.com/photos/62309569@N03/51207441469 — Public Domain Mark (flickr, автор: Fort Drum & 10th Mountain Division (LI))
+- `motorcycle-mountain.webp` — https://stocksnap.io/photo/motorcycle-mountain-AXWHXYDRA0 — CC0 1.0 (stocksnap, автор: Free Nature Stock)
+- `motorcycle-road.webp` — https://www.flickr.com/photos/69053086@N00/26280867094 — Public Domain Mark (flickr, автор: jackyp1951)
+- `mountain-pass.webp` — https://www.flickr.com/photos/88123769@N02/16749497692 — CC0 1.0 (flickr, автор: Bernard Spragg)
+- `mountain-trail.webp` — https://www.flickr.com/photos/50976304@N07/36550243166 — Public Domain Mark (flickr, автор: blmcalifornia)
+- `mountain-village.webp` — https://www.flickr.com/photos/53106173@N05/15836355577 — Public Domain Mark (flickr, автор: Raini4)
+- `mustang-cliffs.webp` — https://wordpress.org/photos/photo/99467ef965/ — CC0 1.0 (wordpress, автор: bijaydewan)
+- `nepal-mountains.webp` — https://wordpress.org/photos/photo/722692fd31/ — CC0 1.0 (wordpress, автор: Bikash Pun)
+- `nubra-dunes.webp` — https://www.flickr.com/photos/76340031@N02/26817305056 — Public Domain Mark (flickr, автор: BLMUtah)
+- `pokhara-lake.webp` — https://wordpress.org/photos/photo/1564064ffc/ — CC0 1.0 (wordpress, автор: Bigul Malayi)
+- `prayer-flags.webp` — https://www.flickr.com/photos/71401718@N00/11015035146 — CC0 1.0 (flickr, автор: Wonderlane)
+- `quad-bike.webp` — https://www.flickr.com/photos/144005112@N07/32798824113 — CC0 1.0 (flickr, автор: josefotoquad)
+- `quad-safari.webp` — https://www.flickr.com/photos/76340031@N02/26817304396 — Public Domain Mark (flickr, автор: BLMUtah)
+- `rajasthan-fort.webp` — https://www.flickr.com/photos/131830853@N05/30511801153 — Public Domain Mark (flickr, автор: didier.camus)
+- `spiti-valley.webp` — https://wordpress.org/photos/photo/32161f5255/ — CC0 1.0 (wordpress, автор: malkum)
+- `suspension-bridge.webp` — https://wordpress.org/photos/photo/925633693e/ — CC0 1.0 (wordpress, автор: KafleG)
+- `terai-jungle.webp` — https://www.flickr.com/photos/59703310@N00/9928494095 — Public Domain Mark (flickr, автор: tcy3282)
+
 <!-- AI-SET:BEGIN -->
 
 ## AI-набор (Replicate FLUX.1-schnell, 2026-07-10)

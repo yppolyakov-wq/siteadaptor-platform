@@ -1128,7 +1128,12 @@ def test_apply_moto_kit_seeds_tours_with_departures_and_route_visibility():
     )
     assert demo_kits.apply_kit(tenant, "moto") is True
 
-    assert Tour.objects.count() == 2
+    # MT-D4: витрина показывает несколько поездок на страну (фидбэк владельца
+    # «больше туров, по 4 примера на страну»).
+    assert Tour.objects.count() == 8
+    assert Tour.objects.filter(country="Indien").count() == 4
+    assert Tour.objects.filter(country="Nepal").count() == 4
+    assert not Tour.objects.filter(images=[]).exists(), "тур без фотографий"
     manali = Tour.objects.get(title__startswith="Himalaya-Klassiker")
     # заезды привязаны к туру, а не висят отдельными событиями
     assert manali.departures.count() == 2
@@ -1146,6 +1151,57 @@ def test_apply_moto_kit_seeds_tours_with_departures_and_route_visibility():
     assert manali.route_hidden_count(itinerary.GUEST) == 2
     # владелец видит маршрут целиком
     assert len(manali.route(itinerary.OWNER)) == 5
+
+
+def test_moto_kit_offers_private_tours_and_guides():
+    """MT-D3/D4: приватный выезд (jobs + форма заявки) и гиды с биографиями."""
+    from apps.events.models import Teacher
+    from apps.jobs.models import Job
+    from apps.tenants import siteconfig
+
+    tenant = TenantFactory(
+        schema_name="public", slug="moto3", name="Himalaya Riders", business_type="tour_operator"
+    )
+    assert demo_kits.apply_kit(tenant, "moto") is True
+    tenant.refresh_from_db()
+
+    assert tenant.is_module_active("jobs"), "без jobs заявку на приватный выезд не отправить"
+    anfrage = siteconfig.normalize(tenant.site_config)["anfrage"]
+    assert anfrage["fields"] == ["date", "guests", "event_type"]
+    assert "Eigene Route (Wunschtermin)" in anfrage["event_types"]
+    assert Job.objects.count() == 2, "демо-заявки на приватные выезды не засеяны"
+
+    guides = Teacher.objects.all()
+    assert guides.count() == 3
+    assert all(g.bio and g.photo_url for g in guides), "у гида нет биографии или фото"
+
+
+def test_moto_kit_storefront_groups_countries_and_shows_photos(settings):
+    """MT-D2/D4 на витрине демо: страны разделены, у туров реальные фото, из
+    списка есть путь к приватному выезду."""
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.events import public_views
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = TenantFactory(
+        schema_name="public", slug="moto4", name="Himalaya Riders", business_type="tour_operator"
+    )
+    assert demo_kits.apply_kit(tenant, "moto") is True
+
+    request = RequestFactory().get("/touren/")
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.tenant = tenant
+    body = public_views.touren_index(request).content.decode()
+
+    assert 'id="land-indien"' in body and 'id="land-nepal"' in body
+    assert "Ladakh-Runde" in body and "Chitwan Quad-Safari" in body
+    # фото — реальные файлы набора, а не SVG-заглушка
+    assert "demo/photos/motorcycle-mountain.webp" in body
+    assert "/anfrage/" in body
 
 
 def test_moto_kit_seeds_group_logistics_and_checklist():

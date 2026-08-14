@@ -34,10 +34,16 @@ def kit_keywords(kit) -> list[tuple[str, str]]:
         add(t[2] if len(t) > 2 else "", "преподаватель (400×400)")
 
     def add_category(entry):
-        # (name, slug, items) ИЛИ (name, slug, items, children) — как _make_category
+        # (name, slug, items) ИЛИ (name, slug, items, children|"photo,kw") — как
+        # `_make_category`. 4-й элемент-СТРОКА (DS-2, фото плитки) ронял отчёт:
+        # строка итерировалась как список подкатегорий.
         for p in entry[2]:
             add(p.get("img"), "товар (800×600)")
-        for child in entry[3] if len(entry) > 3 else []:
+        extra = entry[3] if len(entry) > 3 else []
+        if isinstance(extra, str):
+            add(extra, "плитка категории (800×600)")
+            return
+        for child in extra:
             add_category(child)
 
     for entry in kit.categories:
@@ -53,6 +59,10 @@ def kit_keywords(kit) -> list[tuple[str, str]]:
         if isinstance(e, dict):
             for kw in e.get("photos", []):
                 add(kw, "событие (800×600)")
+    for t in kit.tours:  # MT-1: галерея тур-продукта
+        if isinstance(t, dict):
+            for kw in t.get("photos", []):
+                add(kw, "тур (800×600)")
     for b in kit.blog_posts:
         add(b[3] if len(b) > 3 else "", "блог-обложка (800×450)")
     for cover in kit.archetype_covers.values():

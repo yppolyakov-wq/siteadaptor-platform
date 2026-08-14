@@ -5053,6 +5053,10 @@ MOTO_MENUS = {
             # MT-1: тур-продукт — своя страница (контент+маршрут), заезды ведут на события.
             {"label": "Reisen", "type": "url", "target": "/touren/"},
             {"label": "Termine", "type": "archetype", "target": "events"},
+            # MT-D3/D4: приватный выезд и гиды — обе страницы существуют только
+            # при активных модулях (jobs / events), поэтому пункт не «мёртвый».
+            {"label": "Privat", "type": "url", "target": "/anfrage/"},
+            {"label": "Guides", "type": "url", "target": "/lehrer/"},
             {"label": "Reiseberichte", "type": "url", "target": "/blog/"},
             {"label": "Galerie", "type": "page", "target": "gallery"},
             {"label": "Bewertungen", "type": "page", "target": "reviews"},
@@ -5064,6 +5068,7 @@ MOTO_MENUS = {
         "items": [
             {"label": "Reisen", "type": "url", "target": "/touren/", "icon": "🏍"},
             {"label": "Termine", "type": "archetype", "target": "events", "icon": "🎟️"},
+            {"label": "Privat", "type": "url", "target": "/anfrage/", "icon": "✍️"},
             {"label": "Kontakt", "type": "page", "target": "contact", "icon": "📞"},
         ],
     },
@@ -5109,27 +5114,90 @@ MOTO = DemoKit(
             "button_label": "Reisen vergleichen",
             "button_url": "/touren/",
         },
+        {
+            "image_kw": "quad,bike",
+            "title": "Chitwan auf vier Rädern",
+            "text": "Quad-Safari im Terai — Autoführerschein genügt, Einweisung inklusive.",
+            "button_label": "Quad-Reise ansehen",
+            "button_url": "/touren/",
+        },
+        {
+            "image_kw": "motorcycle,group",
+            "title": "Eigene Gruppe, eigener Termin",
+            "text": "Ab vier Fahrern fahren wir jede Route privat — sagen Sie uns Wunschdatum "
+            "und Gruppengröße.",
+            "button_label": "Private Reise anfragen",
+            "button_url": "/anfrage/",
+        },
     ],
     about_title="Wer wir sind",
     about_text="Wir fahren den Himalaya seit 2014 — erst privat, seit 2018 mit Gästen. "
     "Unsere Routen entstehen im Winter am Kartentisch und im Sommer im Sattel: welche "
     "Piste nach der Schneeschmelze hält, wo es sauberes Wasser gibt, welche Lodge auf "
     "4.000 m wirklich heizt. Deshalb zeigen wir die Höhepunkte öffentlich — die "
-    "komplette Route bekommen unsere Teilnehmer.",
-    enable_modules=["events", "customer_account", "blog", "inbox"],
+    "komplette Route bekommen unsere Teilnehmer.\n\n"
+    "Angefangen hat alles mit Vikram: aufgewachsen in Manali, seit zwanzig Jahren "
+    "im Sattel, erst als Mechaniker, dann als Guide. Er fährt jede neue Route vor der "
+    "Saison allein ab — mit Zelt, Werkzeug und ohne Zeitplan. Anne kam 2016 als "
+    "Teilnehmerin dazu und blieb als Tourleiterin; Pemba führt seit 2019 unsere "
+    "Reisen in Nepal. Zu dritt sind wir das ganze Team: Wer bucht, fährt mit einem "
+    "von uns — nicht mit einer Agentur, die den Auftrag weitergibt.",
+    # MT-D3: jobs = структурированная заявка на ПРИВАТНЫЙ выезд (своя группа,
+    # свои даты) — из неё владелец шлёт Sofort-Angebot и доводит до продажи.
+    enable_modules=["events", "customer_account", "blog", "inbox", "jobs"],
+    anfrage_form={
+        "fields": ["date", "guests", "event_type"],
+        "event_types": [
+            "Himalaya-Klassiker: Manali – Leh",
+            "Ladakh-Runde",
+            "Spiti Valley",
+            "Rajasthan",
+            "Nepal Mustang",
+            "Annapurna-Trails",
+            "Chitwan Quad-Safari",
+            "Solukhumbu",
+            "Eigene Route (Wunschtermin)",
+        ],
+    },
+    gallery_kw=[
+        "motorcycle,mountain",
+        "himalaya,road",
+        "mountain,pass",
+        "ladakh,lake",
+        "nubra,dunes",
+        "himalaya,monastery",
+        "motorcycle,camp",
+        "prayer,flags",
+        "suspension,bridge",
+        "quad,bike",
+        "everest,view",
+        "motorcycle,group",
+    ],
     hide_archetypes=["catalog"],
     teachers=[
         (
             "Vikram Singh",
             "Guide & Routenplaner",
-            "motorcycle,portrait",
-            "Fährt den Himalaya seit 20 Jahren, kennt jede Werkstatt zwischen Manali und Leh.",
+            "guide,motorcycle",
+            "Fährt den Himalaya seit 20 Jahren und kennt jede Werkstatt zwischen Manali "
+            "und Leh. Plant unsere Routen im Winter am Kartentisch und fährt sie im "
+            "Frühjahr allein ab, bevor die erste Gruppe kommt.",
         ),
         (
             "Anne Kessler",
             "Tourleitung & Mechanikerin",
             "mechanic,portrait",
-            "Enduro-Trainerin, schraubt selbst und übersetzt zwischen Gruppe und Guides.",
+            "Enduro-Trainerin aus Kempten, schraubt selbst und übersetzt zwischen Gruppe "
+            "und lokalen Guides. Fährt seit 2016 jede Saison mit — und bringt jedem bei, "
+            "wie man eine Kette im Feld nachspannt.",
+        ),
+        (
+            "Pemba Sherpa",
+            "Guide Nepal",
+            "guide,nepal",
+            "In Solukhumbu aufgewachsen, seit zwölf Jahren auf Enduros in Nepal unterwegs. "
+            "Kennt die Lodges, die im Oktober wirklich heizen, und spricht mit jedem "
+            "Checkpoint auf dem Weg nach Mustang.",
         ),
     ],
     tours=[
@@ -5141,7 +5209,14 @@ MOTO = DemoKit(
             "difficulty": "hard",
             "duration_days": 12,
             "distance_km": 1450,
-            "photos": ["motorcycle,mountain", "himalaya,road", "motorcycle,camp"],
+            "country": "Indien",
+            "photos": [
+                "motorcycle,mountain",
+                "himalaya,road",
+                "mountain,pass",
+                "motorcycle,camp",
+                "prayer,flags",
+            ],
             "description": "Die Königsetappe des indischen Himalaya: Rohtang, Baralacha La, "
             "Nakee La, Lachulung La und das Tanglang La. Kleine Gruppen, erfahrene lokale "
             "Guides, Mechaniker und Begleitfahrzeug — das Gepäck fährt mit, du fährst frei.",
@@ -5246,10 +5321,16 @@ MOTO = DemoKit(
             "summary": "9 Tage Schotter, Hängebrücken und Klöster — kleine Gruppe, "
             "leichte Enduros.",
             "region": "Mustang, Nepal",
+            "country": "Nepal",
             "difficulty": "medium",
             "duration_days": 9,
             "distance_km": 890,
-            "photos": ["nepal,mountains", "enduro,motorcycle"],
+            "photos": [
+                "nepal,mountains",
+                "enduro,motorcycle",
+                "mustang,cliffs",
+                "suspension,bridge",
+            ],
             "description": "Vom Kathmandu-Tal ins alte Königreich Mustang: Pisten entlang "
             "des Kali Gandaki, Lodges statt Hotels, Klosterbesuch in Lo Manthang.",
             "details": {
@@ -5299,7 +5380,582 @@ MOTO = DemoKit(
                     "visibility": "participants",
                 },
             ],
-            "teachers": [1],
+            "teachers": [1, 2],
+        },
+        {
+            "title": "Ladakh-Runde: Khardung La und Pangong",
+            "summary": "10 Tage ab Leh — der höchste befahrbare Pass, die Dünen von Nubra "
+            "und der türkise Pangong-See auf 4.350 m.",
+            "region": "Ladakh, Indien",
+            "country": "Indien",
+            "difficulty": "hard",
+            "duration_days": 10,
+            "distance_km": 980,
+            "photos": [
+                "ladakh,lake",
+                "mountain,pass",
+                "nubra,dunes",
+                "himalaya,monastery",
+                "motorcycle,group",
+            ],
+            "description": "Eine Runde ohne lange Anfahrt: Wir starten und enden in Leh, "
+            "fahren über den Khardung La ins Nubra-Tal, reiten Kamele zwischen den Dünen "
+            "von Hunder und stehen am dritten Tag am Pangong. Kurze Etappen, viel Höhe — "
+            "ideal, wenn der Urlaub keine zwei Wochen hergibt.",
+            "details": {
+                "promise": "Die drei Postkartenmotive Ladakhs in zehn Tagen — ohne Hetze.",
+                "for_whom": [
+                    "Fahrer mit Führerschein A, Schotter-Erfahrung hilfreich",
+                    "Wer wenig Urlaubstage, aber große Bilder will",
+                    "Sozius willkommen — die Etappen sind kurz",
+                ],
+                "price_includes": [
+                    "Royal Enfield Himalayan 411 inkl. Sprit",
+                    "9 Übernachtungen (Hotel in Leh, Camp in Nubra) mit Frühstück",
+                    "Begleitfahrzeug, Mechaniker, Sauerstoff",
+                    "Inner-Line-Permits für Nubra und Pangong",
+                ],
+                "price_excludes": [
+                    "Flüge nach Leh oder Delhi",
+                    "Reise- und Auslandskrankenversicherung",
+                    "Mittag- und Abendessen",
+                ],
+                "bring": [
+                    "Helm (ECE) und Motorradhandschuhe",
+                    "Warme Schicht für 4.000 m — auch im Juli",
+                    "Sonnenschutz LSF 50 und Lippenbalsam",
+                ],
+                "faq": [
+                    (
+                        "Reichen zwei Tage Akklimatisierung?",
+                        "Leh liegt schon auf 3.500 m. Wir bleiben zwei Nächte im Tal, "
+                        "bevor der erste Pass kommt — das reicht für die meisten.",
+                    ),
+                    (
+                        "Wie kalt wird es am Pangong?",
+                        "Nachts um den Gefrierpunkt, tagsüber 15–20 °C. Die Unterkunft "
+                        "am See ist ein festes Camp mit Decken und Ofen.",
+                    ),
+                ],
+            },
+            "itinerary": [
+                {
+                    "day": 1,
+                    "time_from": "10:00",
+                    "title": "Ankunft Leh, Bike-Übergabe",
+                    "text": "Papiere, Technik-Check, kurze Eingewöhnungsrunde im Indus-Tal.",
+                    "overnight": "Leh",
+                    "lat": "34.1526",
+                    "lng": "77.5771",
+                    "visibility": "public",
+                },
+                {
+                    "day": 3,
+                    "time_from": "07:00",
+                    "time_to": "16:00",
+                    "title": "Khardung La (5.359 m) ins Nubra-Tal",
+                    "text": "Der Klassiker: Schnee an der Passhöhe, Sand im Tal.",
+                    "km": 120,
+                    "overnight": "Hunder",
+                    "lat": "34.2780",
+                    "lng": "77.6045",
+                    "visibility": "public",
+                },
+                {
+                    "day": 4,
+                    "time_from": "09:00",
+                    "title": "Camp in Hunder — Zeltverteilung",
+                    "text": "Feste Zelte mit Bad, Abendessen im Gemeinschaftszelt.",
+                    "overnight": "Wüstencamp Hunder",
+                    "visibility": "participants",
+                },
+                {
+                    "day": 6,
+                    "time_from": "06:30",
+                    "title": "Unsere Abkürzung übers Hochtal",
+                    "text": "Piste abseits der Touristenroute — Details am Vorabend.",
+                    "km": 70,
+                    "visibility": "private",
+                },
+                {
+                    "day": 7,
+                    "time_from": "08:00",
+                    "time_to": "17:00",
+                    "title": "Pangong Tso (4.350 m)",
+                    "text": "Der See wechselt im Tagesverlauf fünfmal die Farbe.",
+                    "km": 160,
+                    "overnight": "Spangmik",
+                    "lat": "33.7500",
+                    "lng": "78.7500",
+                    "visibility": "public",
+                },
+            ],
+            "teachers": [0, 1],
+        },
+        {
+            "title": "Spiti Valley: Klöster über 4.000 m",
+            "summary": "11 Tage durch das trockenste Tal Indiens — Kloster Key, Chandratal "
+            "und das Dorf Komic auf 4.587 m.",
+            "region": "Spiti, Indien",
+            "country": "Indien",
+            "difficulty": "medium",
+            "duration_days": 11,
+            "distance_km": 1180,
+            "photos": [
+                "spiti,valley",
+                "himalaya,monastery",
+                "mountain,village",
+                "motorcycle,camp",
+            ],
+            "description": "Spiti ist Ladakhs stillere Schwester: dieselbe Mondlandschaft, "
+            "halb so viele Motorräder. Wir fahren von Shimla hinauf, schlafen in Kloster-"
+            "Gästehäusern und im Zelt am Chandratal und kommen über den Kunzum La zurück.",
+            "details": {
+                "promise": "Tausendjährige Klöster, in denen wirklich noch gelebt wird.",
+                "for_whom": [
+                    "Fahrer mit etwas Schotter-Erfahrung",
+                    "Wer Kultur mag und nicht nur Pässe zählt",
+                    "Gruppen bis acht Motorräder",
+                ],
+                "price_includes": [
+                    "Royal Enfield Himalayan 411 inkl. Sprit",
+                    "10 Übernachtungen (Gästehaus, Homestay, ein Zeltcamp)",
+                    "Begleitfahrzeug und Mechaniker",
+                    "Spenden und Eintritte in den Klöstern",
+                ],
+                "price_excludes": [
+                    "Anreise nach Shimla",
+                    "Versicherungen",
+                ],
+                "bring": [
+                    "Schlafsack-Inlett für die Homestays",
+                    "Stirnlampe — Strom fällt regelmäßig aus",
+                    "Kleidung, die Schultern und Knie bedeckt (Klosterbesuche)",
+                ],
+                "faq": [
+                    (
+                        "Wie sind die Unterkünfte?",
+                        "Einfach und sauber: Gästehäuser mit heißem Wasser im Eimer, "
+                        "zwei Homestays bei Familien, eine Nacht im Zelt am See.",
+                    ),
+                    (
+                        "Gibt es unterwegs Handyempfang?",
+                        "In Kaza ja, dazwischen oft tagelang nicht. Wir geben Angehörigen "
+                        "vor dem Start eine Satellitennummer für Notfälle.",
+                    ),
+                ],
+            },
+            "itinerary": [
+                {
+                    "day": 2,
+                    "time_from": "08:00",
+                    "title": "Shimla nach Sangla",
+                    "text": "Apfelplantagen, enge Kurven, erster Kontakt mit dem Sutlej.",
+                    "km": 220,
+                    "overnight": "Sangla",
+                    "lat": "31.4270",
+                    "lng": "78.2660",
+                    "visibility": "public",
+                },
+                {
+                    "day": 5,
+                    "time_from": "09:00",
+                    "title": "Kloster Key und Komic",
+                    "text": "Morgengebet im Kloster, danach das höchste Dorf mit Straße.",
+                    "km": 60,
+                    "overnight": "Kaza",
+                    "lat": "32.2980",
+                    "lng": "78.0120",
+                    "visibility": "public",
+                },
+                {
+                    "day": 7,
+                    "title": "Homestay in Langza",
+                    "text": "Zwei Familien, Buchweizen-Pfannkuchen zum Frühstück.",
+                    "overnight": "Langza",
+                    "visibility": "participants",
+                },
+                {
+                    "day": 9,
+                    "time_from": "07:30",
+                    "title": "Zeltnacht am Chandratal",
+                    "text": "Der «Mondsee» auf 4.250 m — Anfahrt nur bei trockenem Wetter.",
+                    "km": 95,
+                    "overnight": "Chandratal",
+                    "lat": "32.4780",
+                    "lng": "77.6180",
+                    "visibility": "public",
+                },
+            ],
+            "teachers": [0],
+        },
+        {
+            "title": "Rajasthan: Wüstenfahrt zu den Festungen",
+            "summary": "9 Tage auf Asphalt und Sandpisten — Jaipur, Jodhpur, Jaisalmer und "
+            "eine Nacht in den Dünen.",
+            "region": "Rajasthan, Indien",
+            "country": "Indien",
+            "difficulty": "easy",
+            "duration_days": 9,
+            "distance_km": 1320,
+            "photos": [
+                "rajasthan,fort",
+                "desert,dunes",
+                "india,street",
+                "motorcycle,road",
+            ],
+            "description": "Die Einsteigerreise: keine Höhe, kein Sauerstoff, dafür Farbe "
+            "im Übermaß. Gute Straßen zwischen den Städten, kurze Sandetappen in der Thar, "
+            "abends Festungen, Märkte und Dachterrassen.",
+            "details": {
+                "promise": "Alles, was Indien laut und schön macht — ohne Höhenkrankheit.",
+                "for_whom": [
+                    "Einsteiger und Wiedereinsteiger",
+                    "Paare — die Etappen sind Sozius-tauglich",
+                    "Wer im Winter fahren will (November bis Februar)",
+                ],
+                "price_includes": [
+                    "Royal Enfield Classic 350 inkl. Sprit",
+                    "8 Übernachtungen in Havelis und ein Wüstencamp",
+                    "Frühstück, zwei Abendessen mit Musik",
+                    "Begleitfahrzeug, Mechaniker, Eintritte in drei Forts",
+                ],
+                "price_excludes": [
+                    "Flüge nach Delhi oder Jaipur",
+                    "Versicherungen und Trinkgelder",
+                ],
+                "bring": [
+                    "Leichte Motorradjacke — tagsüber wird es warm",
+                    "Halstuch gegen Staub",
+                    "Bargeld für Märkte",
+                ],
+                "faq": [
+                    (
+                        "Muss ich Sand fahren können?",
+                        "Nein. Die Sandpassage vor dem Camp ist kurz; wer will, fährt "
+                        "im Begleitfahrzeug mit und lässt sein Bike überführen.",
+                    ),
+                    (
+                        "Wie ist der Verkehr in den Städten?",
+                        "Lebhaft. Wir fahren in Zweierreihen, mit Funk im ersten und "
+                        "letzten Bike, und umgehen die Innenstädte zur Rushhour.",
+                    ),
+                ],
+            },
+            "itinerary": [
+                {
+                    "day": 1,
+                    "time_from": "11:00",
+                    "title": "Jaipur: Übergabe und Amber Fort",
+                    "text": "Eingewöhnungsrunde und erster Festungsbesuch am Nachmittag.",
+                    "km": 40,
+                    "overnight": "Jaipur",
+                    "lat": "26.9124",
+                    "lng": "75.7873",
+                    "visibility": "public",
+                },
+                {
+                    "day": 4,
+                    "time_from": "08:00",
+                    "time_to": "15:00",
+                    "title": "Jodhpur, die blaue Stadt",
+                    "text": "Mehrangarh über den Dächern, abends Markt am Uhrturm.",
+                    "km": 290,
+                    "overnight": "Jodhpur",
+                    "lat": "26.2389",
+                    "lng": "73.0243",
+                    "visibility": "public",
+                },
+                {
+                    "day": 6,
+                    "time_from": "16:00",
+                    "title": "Wüstencamp in der Thar",
+                    "text": "Zelte mit Bad, Abendessen am Feuer, Sonnenaufgang auf der Düne.",
+                    "overnight": "Camp bei Sam",
+                    "visibility": "participants",
+                },
+                {
+                    "day": 7,
+                    "time_from": "09:00",
+                    "title": "Jaisalmer: Fort aus Sandstein",
+                    "text": "Die letzte bewohnte Festung Indiens — wir schlafen darin.",
+                    "km": 60,
+                    "overnight": "Jaisalmer",
+                    "lat": "26.9157",
+                    "lng": "70.9083",
+                    "visibility": "public",
+                },
+            ],
+            "teachers": [0, 1],
+        },
+        {
+            "title": "Annapurna-Trails: Pokhara und Ghorepani",
+            "summary": "8 Tage leichte Enduro rund um Pokhara — Terrassenfelder, "
+            "Hängebrücken und der Blick auf den Machapuchare.",
+            "region": "Annapurna, Nepal",
+            "country": "Nepal",
+            "difficulty": "medium",
+            "duration_days": 8,
+            "distance_km": 640,
+            "photos": [
+                "annapurna,trail",
+                "pokhara,lake",
+                "suspension,bridge",
+                "mountain,village",
+            ],
+            "description": "Nepal im Kleinen: jeden Tag Schotter, jeden Abend eine warme "
+            "Dusche. Wir fahren die Trails über Ghorepani und Sarangkot, baden im "
+            "Phewa-See und sehen bei gutem Wetter drei Achttausender auf einmal.",
+            "details": {
+                "promise": "Die schönsten Pisten Nepals ohne Höhenlager.",
+                "for_whom": [
+                    "Fahrer mit Grundkenntnissen auf Schotter",
+                    "Wer Nepal zum ersten Mal fährt",
+                    "Gruppen bis acht Enduros",
+                ],
+                "price_includes": [
+                    "Enduro 250 ccm inkl. Sprit",
+                    "7 Nächte in Lodges und einem Hotel in Pokhara",
+                    "Guide, Mechaniker, alle Trail-Permits",
+                ],
+                "price_excludes": [
+                    "Flüge nach Kathmandu",
+                    "Versicherungen",
+                ],
+                "bring": [
+                    "Enduro-Stiefel und Brille",
+                    "Regenkombi — der Monsun endet spät",
+                    "Badezeug für den Phewa-See",
+                ],
+                "faq": [
+                    (
+                        "Wann ist die beste Zeit?",
+                        "Oktober bis Dezember: klare Sicht, trockene Pisten. Im Frühjahr "
+                        "blüht der Rhododendron, dafür ist es diesiger.",
+                    ),
+                ],
+            },
+            "itinerary": [
+                {
+                    "day": 1,
+                    "time_from": "09:00",
+                    "title": "Pokhara: Übergabe am Phewa-See",
+                    "text": "Technik-Check, Trail-Test auf dem Weg nach Sarangkot.",
+                    "km": 45,
+                    "overnight": "Pokhara",
+                    "lat": "28.2096",
+                    "lng": "83.9856",
+                    "visibility": "public",
+                },
+                {
+                    "day": 3,
+                    "time_from": "08:00",
+                    "title": "Trail nach Ghorepani",
+                    "text": "Steinpisten durch Rhododendronwald, Aussicht am Poon Hill.",
+                    "km": 70,
+                    "overnight": "Ghorepani",
+                    "lat": "28.4020",
+                    "lng": "83.6930",
+                    "visibility": "public",
+                },
+                {
+                    "day": 5,
+                    "title": "Lodge in Ghandruk",
+                    "text": "Gurung-Dorf mit Steintreppen — Zimmer mit Bergblick.",
+                    "overnight": "Ghandruk",
+                    "visibility": "participants",
+                },
+                {
+                    "day": 6,
+                    "time_from": "07:00",
+                    "title": "Unsere Hausstrecke zurück",
+                    "text": "Wenig befahrene Variante über die Grate — wird vor Ort gezeigt.",
+                    "km": 85,
+                    "visibility": "private",
+                },
+            ],
+            "teachers": [2],
+        },
+        {
+            "title": "Chitwan Quad-Safari: Terai und Dschungel",
+            "summary": "6 Tage auf Quads durch das Tiefland — Flussfurten, Elefantengras "
+            "und Nashörner am Rapti.",
+            "region": "Terai, Nepal",
+            "country": "Nepal",
+            "difficulty": "easy",
+            "duration_days": 6,
+            "distance_km": 420,
+            "photos": [
+                "quad,bike",
+                "jungle,river",
+                "terai,jungle",
+                "quad,safari",
+            ],
+            "description": "Unsere Quad-Reise: vier Räder, kein Balancieren, dafür Sand, "
+            "Wasser und Staub. Wir fahren die Pisten am Rand des Chitwan-Nationalparks, "
+            "übernachten in Lodges am Fluss und gehen zweimal mit Ranger ins Gras.",
+            "details": {
+                "promise": "Die Reise für alle, die nie Motorrad gefahren sind.",
+                "for_whom": [
+                    "Fahranfänger — Quad fahren lernt man in einer Stunde",
+                    "Familien mit Jugendlichen ab 16 (Sozius-Quad)",
+                    "Wer Tiere sehen und trotzdem fahren will",
+                ],
+                "price_includes": [
+                    "Quad 450 ccm inkl. Sprit und Einweisung",
+                    "5 Nächte in Dschungel-Lodges mit Vollpension",
+                    "Zwei Ranger-Touren im Nationalpark",
+                    "Begleitfahrzeug und Mechaniker",
+                ],
+                "price_excludes": [
+                    "Flüge nach Kathmandu",
+                    "Versicherungen",
+                ],
+                "bring": [
+                    "Lange, helle Kleidung gegen Mücken",
+                    "Fernglas",
+                    "Wechselkleidung für die Flussdurchfahrten",
+                ],
+                "faq": [
+                    (
+                        "Brauche ich einen Motorradführerschein?",
+                        "Nein — Klasse B reicht. Die Einweisung machen wir am ersten "
+                        "Nachmittag auf einer abgesperrten Piste.",
+                    ),
+                    (
+                        "Sieht man wirklich Nashörner?",
+                        "Fast immer. Chitwan hat über 600 Panzernashörner; garantieren "
+                        "kann sie niemand — versprechen tun wir es deshalb nicht.",
+                    ),
+                ],
+            },
+            "itinerary": [
+                {
+                    "day": 1,
+                    "time_from": "14:00",
+                    "title": "Sauraha: Quad-Einweisung",
+                    "text": "Bremsen, Kurven, Flussfurt — erst üben, dann fahren.",
+                    "km": 25,
+                    "overnight": "Sauraha",
+                    "lat": "27.5800",
+                    "lng": "84.4950",
+                    "visibility": "public",
+                },
+                {
+                    "day": 3,
+                    "time_from": "08:00",
+                    "title": "Pisten am Rapti entlang",
+                    "text": "Sandbänke, Dörfer, Mittagspause bei einer Tharu-Familie.",
+                    "km": 90,
+                    "overnight": "Meghauli",
+                    "lat": "27.5700",
+                    "lng": "84.2200",
+                    "visibility": "public",
+                },
+                {
+                    "day": 4,
+                    "title": "Lodge am Flussufer",
+                    "text": "Bungalows mit Moskitonetz, Abendessen auf der Terrasse.",
+                    "overnight": "Riverside Lodge",
+                    "visibility": "participants",
+                },
+            ],
+            "teachers": [2],
+        },
+        {
+            "title": "Solukhumbu: Everest-Vorland auf zwei Rädern",
+            "summary": "11 Tage bis dorthin, wo die Straße endet — Steilstücke, "
+            "Hängebrücken und der erste Blick auf den Everest.",
+            "region": "Solukhumbu, Nepal",
+            "country": "Nepal",
+            "difficulty": "hard",
+            "duration_days": 11,
+            "distance_km": 720,
+            "photos": [
+                "everest,view",
+                "mountain,trail",
+                "suspension,bridge",
+                "prayer,flags",
+            ],
+            "description": "Die anspruchsvollste Reise im Programm: Pisten mit 20 % "
+            "Steigung, Geröll, Flussquerungen und Tage, an denen 60 km sechs Stunden "
+            "dauern. Belohnung ist Sherpa-Land — und der Blick, wegen dem alle kommen.",
+            "details": {
+                "promise": "Für Fahrer, die schon einmal einen Tag lang gefallen sind.",
+                "for_whom": [
+                    "Erfahrene Enduro-Fahrer mit Geröll-Praxis",
+                    "Gute Kondition — Schieben gehört dazu",
+                    "Kein Sozius auf dieser Reise",
+                ],
+                "price_includes": [
+                    "Enduro 300 ccm inkl. Sprit",
+                    "10 Nächte in Lodges mit Frühstück",
+                    "Guide, Mechaniker, Begleitjeep bis Phaplu",
+                    "Nationalpark-Permits",
+                ],
+                "price_excludes": [
+                    "Flüge nach Kathmandu",
+                    "Versicherung inkl. Hubschrauber-Rettung (Pflicht)",
+                ],
+                "bring": [
+                    "Vollständige Protektoren-Ausrüstung",
+                    "Handschuhe zum Wechseln",
+                    "Daunenjacke für die Abende",
+                ],
+                "faq": [
+                    (
+                        "Ist eine Rettungsversicherung wirklich Pflicht?",
+                        "Ja. Ohne Nachweis einer Bergrettungs-Police mit Helikopter "
+                        "starten wir nicht — das prüfen wir vor der Restzahlung.",
+                    ),
+                    (
+                        "Wie viele Fahrer nehmt ihr mit?",
+                        "Maximal sechs, plus Guide und Mechaniker. Auf diesen Pisten "
+                        "kann eine große Gruppe niemanden mehr einsammeln.",
+                    ),
+                ],
+            },
+            "itinerary": [
+                {
+                    "day": 2,
+                    "time_from": "07:00",
+                    "title": "Kathmandu nach Jiri",
+                    "text": "Letzter Asphalt der Reise, ab hier wird es einspurig.",
+                    "km": 180,
+                    "overnight": "Jiri",
+                    "lat": "27.6330",
+                    "lng": "86.2300",
+                    "visibility": "public",
+                },
+                {
+                    "day": 5,
+                    "time_from": "07:30",
+                    "time_to": "17:00",
+                    "title": "Geröllpiste nach Phaplu",
+                    "text": "Sechs Stunden für 55 km — der Tag, von dem alle erzählen.",
+                    "km": 55,
+                    "overnight": "Phaplu",
+                    "lat": "27.5170",
+                    "lng": "86.5850",
+                    "visibility": "public",
+                },
+                {
+                    "day": 7,
+                    "title": "Lodge in Ringmo",
+                    "text": "Sherpa-Familie, Ofen im Gastraum, Strom aus Solarzellen.",
+                    "overnight": "Ringmo",
+                    "visibility": "participants",
+                },
+                {
+                    "day": 8,
+                    "time_from": "06:00",
+                    "title": "Aussichtsgrat vor Sonnenaufgang",
+                    "text": "Unser Platz für den Everest-Blick — Standort bleibt intern.",
+                    "km": 30,
+                    "visibility": "private",
+                },
+            ],
+            "teachers": [1, 2],
         },
     ],
     events=[
@@ -5357,6 +6013,105 @@ MOTO = DemoKit(
             "city": "Kathmandu",
             "language": "de",
             "waiver_required": True,
+        },
+        {
+            "title": "Ladakh-Runde · Juli-Gruppe",
+            "tour": 2,
+            "in_days": 75,
+            "hour": 10,
+            "duration_days": 10,
+            "capacity": 8,
+            "price": "2190",
+            "deposit_percent": 25,
+            "tiers": [("Eigenes Motorrad", "1790", 2), ("Royal Enfield 411", "2190", 6)],
+            "city": "Leh",
+            "location": "Treffpunkt Hotel Ladakh Palace, Leh",
+            "language": "de",
+            "waiver_required": True,
+            "description": "Kurze Etappen, drei Höhepunkte: Khardung La, Nubra und Pangong.",
+        },
+        {
+            "title": "Ladakh-Runde · September-Gruppe",
+            "tour": 2,
+            "in_days": 135,
+            "hour": 10,
+            "duration_days": 10,
+            "capacity": 8,
+            "price": "2190",
+            "deposit_percent": 25,
+            "city": "Leh",
+            "language": "de",
+            "waiver_required": True,
+        },
+        {
+            "title": "Rajasthan · November-Gruppe",
+            "tour": 4,
+            "in_days": 200,
+            "hour": 9,
+            "duration_days": 9,
+            "capacity": 12,
+            "price": "1690",
+            "deposit_percent": 25,
+            "tiers": [
+                ("Royal Enfield Classic 350", "1690", 8),
+                ("Sozius (ohne Bike)", "990", 4),
+            ],
+            "city": "Jaipur",
+            "location": "Treffpunkt Haveli Jaipur",
+            "language": "de",
+            "description": "Winterreise ohne Höhe: Forts, Märkte und eine Nacht in den Dünen.",
+        },
+        {
+            "title": "Annapurna-Trails · Oktober-Gruppe",
+            "tour": 5,
+            "in_days": 160,
+            "hour": 9,
+            "duration_days": 8,
+            "capacity": 8,
+            "price": "1590",
+            "deposit_percent": 25,
+            "city": "Pokhara",
+            "language": "de",
+            "waiver_required": True,
+            "description": "Beste Sicht des Jahres: klare Luft nach dem Monsun.",
+        },
+        {
+            "title": "Chitwan Quad-Safari · Februar",
+            "tour": 6,
+            "in_days": 240,
+            "hour": 11,
+            "duration_days": 6,
+            "capacity": 10,
+            "price": "1290",
+            "deposit_percent": 25,
+            "tiers": [
+                ("Eigenes Quad fahren", "1290", 8),
+                ("Mitfahrer auf dem Quad", "890", 4),
+            ],
+            "city": "Sauraha",
+            "language": "de",
+            "description": "Familienfreundlich: Einweisung am ersten Tag, kein "
+            "Motorradführerschein nötig.",
+        },
+        {
+            "title": "Solukhumbu · Oktober-Gruppe",
+            "tour": 7,
+            "in_days": 165,
+            "hour": 7,
+            "duration_days": 11,
+            "capacity": 6,
+            "price": "2790",
+            "deposit_percent": 25,
+            "city": "Kathmandu",
+            "language": "de",
+            "waiver_required": True,
+            "registration_fields": [
+                "license_class",
+                "riding_experience",
+                "emergency_contact",
+            ],
+            "description": "Sechs Fahrer, ein Guide, ein Mechaniker — mehr geht auf "
+            "diesen Pisten nicht.",
         },
     ],
     blog_posts=[
@@ -5441,11 +6196,57 @@ MOTO = DemoKit(
             {"title": "Teilnehmer-Briefing verschicken", "in_days": 14, "done": True},
         ],
     },
+    # Кабинет демо наполняем сделками (билеты заездов + заявки ниже), иначе доска
+    # и «Verkäufe» у мото-демо пустые.
+    seed_records=True,
+    # MT-D3: демо приватных выездов — заявки уже лежат на доске, из них можно
+    # прямо в демо отправить смету (Sofort-Angebot).
+    job_samples=[
+        {
+            "title": "Private Reise Ladakh für 5 Freunde (eigene Termine)",
+            "name": "Team Rostock",
+            "email": "moto.job1@example.de",
+            "phone": "0381 445566",
+            "description": "Wir sind fünf Fahrer mit eigener Erfahrung und würden die "
+            "Ladakh-Runde gern zwei Wochen früher fahren als die Juli-Gruppe. Zwei von "
+            "uns bringen eigene Maschinen mit.",
+            "lines": [
+                {"text": "Guide und Mechaniker (10 Tage)", "qty": 1, "unit_price": "2400.00"},
+                {"text": "Royal Enfield Himalayan inkl. Sprit", "qty": 3, "unit_price": "690.00"},
+                {"text": "Begleitfahrzeug mit Fahrer", "qty": 1, "unit_price": "1250.00"},
+                {"text": "Permits und Camp-Zuschlag", "qty": 5, "unit_price": "140.00"},
+            ],
+            "vat_rate": 19,
+        },
+        {
+            "title": "Firmen-Incentive Rajasthan (12 Personen, November)",
+            "name": "Hartmann Werkzeuge GmbH",
+            "email": "moto.job2@example.de",
+            "description": "Incentive-Reise für Vertriebspartner: sechs Fahrer, sechs "
+            "Sozius, gehobene Havelis und ein Abend mit Musik im Wüstencamp.",
+            "lines": [
+                {"text": "Reisepaket Rajasthan (Fahrer)", "qty": 6, "unit_price": "1690.00"},
+                {"text": "Reisepaket Rajasthan (Sozius)", "qty": 6, "unit_price": "990.00"},
+                {"text": "Abendprogramm im Wüstencamp", "qty": 1, "unit_price": "850.00"},
+            ],
+            "vat_rate": 19,
+        },
+    ],
     faq=[
         (
             "Wie läuft die Anzahlung?",
             "25 % online bei der Buchung, der Rest 30 Tage vor dem Start — "
             "die Zahlungserinnerung kommt automatisch.",
+        ),
+        (
+            "Können wir eine Reise privat buchen?",
+            "Ja. Sagen Sie uns Wunschtermin und Gruppengröße über das Anfrage-Formular — "
+            "ab vier Fahrern fahren wir jede Route auch als geschlossene Gruppe.",
+        ),
+        (
+            "Fahrt ihr auch Quad statt Motorrad?",
+            "Im Terai in Nepal ja: die Chitwan-Safari fahren wir komplett auf Quads, "
+            "dafür reicht der Autoführerschein.",
         ),
         (
             "Bekomme ich die komplette Route vorab?",
@@ -5484,6 +6285,30 @@ MOTO = DemoKit(
             "Silke H.",
             "moto.rev2@example.de",
             "Nepal war staubig, anstrengend und das Beste, was ich je gefahren bin.",
+        ),
+        (
+            3,
+            5,
+            "Jens W.",
+            "moto.rev6@example.de",
+            "Ladakh in zehn Tagen klingt nach Hetze, war es aber nie — kurze Etappen, "
+            "viel Zeit für Fotos.",
+        ),
+        (
+            5,
+            4,
+            "Carola T.",
+            "moto.rev7@example.de",
+            "Rajasthan als Sozius: warm, laut, wunderschön. Nur die Havelis waren "
+            "unterschiedlich gut.",
+        ),
+        (
+            7,
+            5,
+            "Familie Brenner",
+            "moto.rev8@example.de",
+            "Unsere Tochter (17) durfte selbst Quad fahren — für sie war das die Reise "
+            "ihres Lebens.",
         ),
     ],
     reviews_seed=[
@@ -9572,6 +10397,7 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                     summary=spec.get("summary", ""),
                     description=spec.get("description", ""),
                     region=spec.get("region", ""),
+                    country=spec.get("country", ""),  # MT-D2: ключ группировки листинга
                     difficulty=spec.get("difficulty", ""),
                     duration_days=spec.get("duration_days", 0),
                     distance_km=spec.get("distance_km", 0),
