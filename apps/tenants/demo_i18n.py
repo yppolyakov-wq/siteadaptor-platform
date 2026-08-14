@@ -45,6 +45,43 @@ def _map(locale: str) -> dict[str, str]:
     return _MAPS[locale]
 
 
+# MT-D6: имена собственные демо, которые не переводятся НИ на одной локали —
+# топонимы маршрутов и названия лоджей/отелей. В словари они попасть не могут
+# (замок проекта запрещает identity-записи: «Leh» → «Leh»), поэтому объявлены
+# здесь явно, иначе замер покрытия вечно считал бы их непереведёнными.
+PROPER_NAMES = frozenset(
+    {
+        # Индия
+        "Manali",
+        "Jispa",
+        "Leh",
+        "Hotel Ibex",
+        "Hunder",
+        "Spangmik",
+        "Sangla",
+        "Kaza",
+        "Langza",
+        "Chandratal",
+        "Jaipur",
+        "Jodhpur",
+        "Jaisalmer",
+        # Непал
+        "Kathmandu",
+        "Kagbeni",
+        "Lo Manthang",
+        "Pokhara",
+        "Ghorepani",
+        "Ghandruk",
+        "Sauraha",
+        "Meghauli",
+        "Riverside Lodge",
+        "Jiri",
+        "Phaplu",
+        "Ringmo",
+    }
+)
+
+
 def t(de: str, locale: str) -> str | None:
     """Перевод немецкой строки на локаль (``None``, если перевода нет)."""
     if not isinstance(de, str):
@@ -332,6 +369,13 @@ def _base_landing(event) -> dict:
     return details_mod.normalize(event.details)
 
 
+def _base_itinerary(tour) -> list:
+    """Нормализованный маршрут тура БЕЗ перевода — база оверлея (MT-D1)."""
+    from apps.events import itinerary as itinerary_mod
+
+    return itinerary_mod.normalize(tour.itinerary)
+
+
 def _fill_json_overlay(obj, base, overlay_field: str, locales) -> bool:
     """Оверлей вложенного JSON (`core.i18n_json`): та же форма, переведены листья."""
     if not base:
@@ -488,9 +532,15 @@ def translate_tenant_content(tenant, locales) -> None:
     for tour in Tour.objects.all():
         fields = [
             f"{f}_i18n"
-            for f in ("title", "summary", "description")
+            for f in ("title", "summary", "description", "region", "country")
             if _fill_overlay(tour, f, f"{f}_i18n", locales)
         ]
+        # MT-D1: богатая страница и маршрут — вложенный JSON, оверлей по
+        # НОРМАЛИЗОВАННОЙ форме (иначе позиционный merge сядет на чужие строки).
+        if _fill_json_overlay(tour, _base_landing(tour), "details_i18n", locales):
+            fields.append("details_i18n")
+        if _fill_json_overlay(tour, _base_itinerary(tour), "itinerary_i18n", locales):
+            fields.append("itinerary_i18n")
         if fields:
             tour.save(update_fields=fields)
 

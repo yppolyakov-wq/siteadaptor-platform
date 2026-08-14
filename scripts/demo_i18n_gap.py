@@ -253,6 +253,32 @@ def _collect_gaps(kit, c: Collector, kk: str) -> None:
                         line.get("text"),
                         f"{kk}:job_samples[{i}].lines",
                     )
+    # MT-D6: тур-продукт (events.Tour). До этой правки контент туров не попадал
+    # в замер ВООБЩЕ — отчёт по киту `moto` был занижен в разы. Операционные
+    # данные (`tour_operations`: лента группы, закупки, чек-лист) сюда НЕ идут:
+    # они живут в кабинете и в закрытом пространстве участников, а скрипт меряет
+    # ВИТРИНУ.
+    for i, tour in enumerate(kit.tours or []):
+        if not isinstance(tour, dict):
+            continue
+        where = f"{kk}:tours[{i}]"
+        for field in ("title", "summary", "description", "region", "country"):
+            c.add("tours", tour.get(field), f"{where}.{field}")
+        for field, val in (tour.get("details") or {}).items():
+            for row in val if isinstance(val, list) else [val]:
+                if isinstance(row, str):
+                    c.add("tour_details", row, f"{where}.details.{field}")
+                elif isinstance(row, (tuple, list)):  # («вопрос», «ответ»)
+                    for part in row:
+                        c.add("tour_details", part, f"{where}.details.{field}")
+                elif isinstance(row, dict):
+                    for key, sub in row.items():
+                        if key not in ("photo", "image", "url", "rating"):
+                            c.add("tour_details", sub, f"{where}.details.{field}")
+        for stop in tour.get("itinerary") or []:
+            if isinstance(stop, dict):
+                for key in ("title", "text", "overnight"):
+                    c.add("tour_route", stop.get(key), f"{where}.itinerary.{key}")
     for i, teacher in enumerate(kit.teachers or []):
         if isinstance(teacher, (tuple, list)) and len(teacher) >= 2:
             c.add("teachers", teacher[1], f"{kk}:teachers[{i}].title")
@@ -293,12 +319,14 @@ def _collect_gaps(kit, c: Collector, kk: str) -> None:
                 c.add("reviews", item[4], f"{kk}:{name}[{i}]")
 
 
-def measure():
+def measure(only: str = ""):
     per_kit, routed_all, gap_all, skip_all = [], {}, {}, {}
     for key, kit in demo_kits.KITS.items():
+        if only and key != only:
+            continue
         # Имена собственные кита: название заведения (оно же hero_title), имена
         # людей команды и авторов отзывов, имена преподавателей.
-        names = {_text(kit.label)}
+        names = {_text(kit.label)} | set(demo_i18n.PROPER_NAMES)
         for item in (kit.team or []) + (kit.testimonials or []) + (kit.teachers or []):
             if isinstance(item, (tuple, list)) and item:
                 names.add(_text(item[0]))
@@ -321,7 +349,10 @@ def measure():
 
 
 def main() -> int:
-    per_kit, routed_all, gap_all, skip_all = measure()
+    # `--kit <key>` — замер одного кита (иначе список «нет перевода» смешивает
+    # все витрины и по нему нельзя доводить конкретный архетип).
+    only = sys.argv[sys.argv.index("--kit") + 1] if "--kit" in sys.argv else ""
+    per_kit, routed_all, gap_all, skip_all = measure(only)
 
     print("ПОКРЫТИЕ ПЕРЕВОДА ДЕМО-ВИТРИН (строки с путём перевода)\n")
     header = f"{'демо-кит':<14}{'строк':>7}{'без пути':>10}" + "".join(
