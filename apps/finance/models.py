@@ -133,3 +133,8 @@ class Invoice(TimestampedModel):
     @property
     def is_editable(self) -> bool:
         return self.status == self.STATUS_DRAFT
+
+
+# MT-5: журнал расходов — зеркало RevenueEntry в отдельном модуле; импорт нужен,
+# чтобы Django зарегистрировал модель этого приложения.
+from .expenses import ExpenseEntry  # noqa: E402,F401

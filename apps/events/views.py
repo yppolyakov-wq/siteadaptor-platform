@@ -668,3 +668,104 @@ def event_feature_checkout(request, pk):
         sync=sync_event_listing,
         feature_page_url=reverse("events:feature", args=[event.pk]),
     )
+
+
+@login_required
+def event_logistics(request, pk):
+    """MT-4/5/6: логистика заезда, экономика и чек-лист подготовки в одном месте.
+
+    Закупочные цены здесь показываются гиду и НИКОГДА не уезжают на витрину
+    (участнику отдаётся `SupplierBooking.participant_view`).
+    """
+    from django.utils import timezone
+
+    from .logistics import SupplierBooking, TourTask
+    from .tour_finance import event_margin, sync_expense
+
+    event = get_object_or_404(Event, pk=pk)
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+        if action == "add_booking":
+            _add_supplier_booking(request, event)
+        elif action == "booking_status":
+            booking = get_object_or_404(SupplierBooking, pk=request.POST.get("id"), event=event)
+            target = request.POST.get("status", "")
+            if target in dict(SupplierBooking.STATUSES):
+                booking.status = target
+                booking.save(update_fields=["status", "updated_at"])
+                # Расход появляется/исчезает вместе со статусом «Bezahlt».
+                sync_expense(booking)
+        elif action == "booking_visibility":
+            booking = get_object_or_404(SupplierBooking, pk=request.POST.get("id"), event=event)
+            booking.visible_to_participants = not booking.visible_to_participants
+            booking.save(update_fields=["visible_to_participants", "updated_at"])
+        elif action == "add_task":
+            title = (request.POST.get("title") or "").strip()
+            if title:
+                TourTask.objects.create(
+                    event=event,
+                    title=title[:200],
+                    due_date=request.POST.get("due_date") or None,
+                )
+        elif action == "toggle_task":
+            task = get_object_or_404(TourTask, pk=request.POST.get("id"), event=event)
+            task.done_at = None if task.done_at else timezone.now()
+            task.save(update_fields=["done_at", "updated_at"])
+        messages.success(request, _("Saved."))
+        return redirect("events:logistics", pk=event.pk)
+    return render(
+        request,
+        "events/event_logistics.html",
+        {
+            "event": event,
+            "bookings": event.supplier_bookings.select_related("supplier"),
+            "tasks": event.prep_tasks.all(),
+            "finance": event_margin(event),
+            "kinds": SupplierBooking.KINDS,
+            "statuses": SupplierBooking.STATUSES,
+            "suppliers": _active_suppliers(),
+            "nav": "events",
+        },
+    )
+
+
+def _active_suppliers():
+    from apps.inventory.models import Lieferant
+
+    return Lieferant.objects.filter(is_active=True)
+
+
+def _add_supplier_booking(request, event) -> None:
+    """Новая строка книги логистики (цена — в евро, оригинал опционально)."""
+    from decimal import Decimal, InvalidOperation
+
+    from .logistics import SupplierBooking
+
+    def _cents(raw):
+        try:
+            return max(0, int(Decimal(str(raw or "0").replace(",", ".")) * 100))
+        except (InvalidOperation, TypeError, ValueError):
+            return 0
+
+    supplier_id = request.POST.get("supplier") or None
+    SupplierBooking.objects.create(
+        event=event,
+        kind=request.POST.get("kind") or SupplierBooking.KIND_HOTEL,
+        supplier_id=supplier_id,
+        supplier_name=(request.POST.get("supplier_name") or "").strip()[:200],
+        day=_int_or_zero(request.POST.get("day")),
+        date=request.POST.get("date") or None,
+        stop=(request.POST.get("stop") or "").strip()[:200],
+        qty=max(1, _int_or_zero(request.POST.get("qty")) or 1),
+        cost_cents=_cents(request.POST.get("cost_eur")),
+        currency=(request.POST.get("currency") or "").strip()[:3].upper(),
+        amount_original=request.POST.get("amount_original") or None,
+        note=(request.POST.get("note") or "").strip()[:300],
+    )
+
+
+def _int_or_zero(raw) -> int:
+    try:
+        return max(0, int(str(raw).strip()))
+    except (TypeError, ValueError):
+        return 0

@@ -31,6 +31,8 @@ urlpatterns = [
     path("<uuid:pk>/roster.csv", views.roster_csv, name="roster-csv"),
     # MT-2: кто из участников заезда сдал документы.
     path("<uuid:pk>/dokumente/", document_views.event_documents, name="documents"),
+    # MT-4/5/6: логистика по точкам, экономика заезда и чек-лист подготовки.
+    path("<uuid:pk>/logistik/", views.event_logistics, name="logistics"),
     path("<uuid:pk>/waitlist/notify/", views.waitlist_notify, name="waitlist-notify"),
     # RT1: Check-in билета по QR (организатор сканирует камерой → отмечает гостя).
     path("checkin/<str:code>/", views.checkin, name="checkin"),

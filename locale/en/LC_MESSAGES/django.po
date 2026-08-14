@@ -18174,3 +18174,98 @@ msgstr "Hide from group"
 
 msgid "Nothing posted yet."
 msgstr "Nothing posted yet."
+
+# --- MT-4/5/6: Logistik, Kosten, Checkliste ---
+
+msgid "Transport / Tickets"
+msgstr "Transport / tickets"
+
+msgid "Ausflug"
+msgstr "Excursion"
+
+msgid "Permit / Genehmigung"
+msgstr "Permit"
+
+msgid "Guide vor Ort"
+msgstr "Local guide"
+
+msgid "Zu buchen"
+msgstr "To book"
+
+msgid "Angefragt"
+msgstr "Requested"
+
+msgid "Ohne Anbieter"
+msgstr "No supplier"
+
+msgid "Anbieter-Buchung"
+msgstr "Supplier booking"
+
+msgid "Transport"
+msgstr "Transport"
+
+msgid "Gebühren / Permits"
+msgstr "Fees / permits"
+
+msgid "Personal vor Ort"
+msgstr "Local staff"
+
+msgid "Wareneinkauf"
+msgstr "Goods purchase"
+
+msgid "Logistics & costs"
+msgstr "Logistics & costs"
+
+msgid "Costs paid"
+msgstr "Costs paid"
+
+msgid "Still to pay"
+msgstr "Still to pay"
+
+msgid "Margin (after all costs)"
+msgstr "Margin (after all costs)"
+
+msgid "Bookings with suppliers"
+msgstr "Bookings with suppliers"
+
+msgid "Supplier"
+msgstr "Supplier"
+
+msgid "Cost"
+msgstr "Cost"
+
+msgid "For participants"
+msgstr "For participants"
+
+msgid "Internal"
+msgstr "Internal"
+
+msgid "Purchase prices stay internal — participants only ever see the fact and the status."
+msgstr "Purchase prices stay internal — participants only ever see the fact and the status."
+
+msgid "Nothing booked with suppliers yet."
+msgstr "Nothing booked with suppliers yet."
+
+msgid "or name"
+msgstr "or name"
+
+msgid "Cost (€)"
+msgstr "Cost (€)"
+
+msgid "Original"
+msgstr "Original"
+
+msgid "Currency"
+msgstr "Currency"
+
+msgid "Preparation checklist"
+msgstr "Preparation checklist"
+
+msgid "e.g. Apply for Inner Line permits"
+msgstr "e.g. Apply for Inner Line permits"
+
+#, python-format
+msgid "%(n)s still open"
+msgid_plural "%(n)s still open"
+msgstr[0] "%(n)s still open"
+msgstr[1] "%(n)s still open"

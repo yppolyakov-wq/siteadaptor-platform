@@ -18363,3 +18363,100 @@ msgstr "Сховати від групи"
 
 msgid "Nothing posted yet."
 msgstr "Поки нічого не опубліковано."
+
+# --- MT-4/5/6: Logistik, Kosten, Checkliste ---
+
+msgid "Transport / Tickets"
+msgstr "Транспорт / квитки"
+
+msgid "Ausflug"
+msgstr "Екскурсія"
+
+msgid "Permit / Genehmigung"
+msgstr "Перміт / дозвіл"
+
+msgid "Guide vor Ort"
+msgstr "Локальний гід"
+
+msgid "Zu buchen"
+msgstr "До бронювання"
+
+msgid "Angefragt"
+msgstr "Запитано"
+
+msgid "Ohne Anbieter"
+msgstr "Без постачальника"
+
+msgid "Anbieter-Buchung"
+msgstr "Бронь у постачальника"
+
+msgid "Transport"
+msgstr "Транспорт"
+
+msgid "Gebühren / Permits"
+msgstr "Збори та перміти"
+
+msgid "Personal vor Ort"
+msgstr "Персонал на місці"
+
+msgid "Wareneinkauf"
+msgstr "Закупівля товару"
+
+msgid "Logistics & costs"
+msgstr "Логістика та витрати"
+
+msgid "Costs paid"
+msgstr "Оплачено"
+
+msgid "Still to pay"
+msgstr "Ще сплатити"
+
+msgid "Margin (after all costs)"
+msgstr "Маржа (після всіх витрат)"
+
+msgid "Bookings with suppliers"
+msgstr "Броні в постачальників"
+
+msgid "Supplier"
+msgstr "Постачальник"
+
+msgid "Cost"
+msgstr "Вартість"
+
+msgid "For participants"
+msgstr "Учасникам"
+
+msgid "Internal"
+msgstr "Внутрішнє"
+
+msgid "Purchase prices stay internal — participants only ever see the fact and the status."
+msgstr "Закупівельні ціни лишаються внутрішніми — учасник бачить лише факт і статус."
+
+msgid "Nothing booked with suppliers yet."
+msgstr "У постачальників поки нічого не заброньовано."
+
+msgid "or name"
+msgstr "або ім'я"
+
+msgid "Cost (€)"
+msgstr "Вартість (€)"
+
+msgid "Original"
+msgstr "Оригінал"
+
+msgid "Currency"
+msgstr "Валюта"
+
+msgid "Preparation checklist"
+msgstr "Чек-лист підготовки"
+
+msgid "e.g. Apply for Inner Line permits"
+msgstr "наприклад, оформити перміти Inner Line"
+
+#, python-format
+msgid "%(n)s still open"
+msgid_plural "%(n)s still open"
+msgstr[0] "%(n)s не закрито"
+msgstr[1] "%(n)s не закрито"
+msgstr[2] "%(n)s не закрито"
+msgstr[3] "%(n)s не закрито"

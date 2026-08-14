@@ -897,3 +897,8 @@ class BlogPost(I18nMixin, TimestampedModel):
     @property
     def cover_url(self) -> str:
         return self.cover.get("url", "") if isinstance(self.cover, dict) else ""
+
+
+# MT-4: закупка услуг по точкам маршрута живёт в отдельном модуле (models.py и так
+# большой), но должна импортироваться отсюда — иначе Django не зарегистрирует модель.
+from .logistics import SupplierBooking, TourTask  # noqa: E402,F401

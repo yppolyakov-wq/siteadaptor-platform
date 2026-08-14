@@ -18286,3 +18286,98 @@ msgstr "Gruptan gizle"
 
 msgid "Nothing posted yet."
 msgstr "Henüz bir şey paylaşılmadı."
+
+# --- MT-4/5/6: Logistik, Kosten, Checkliste ---
+
+msgid "Transport / Tickets"
+msgstr "Ulaşım / biletler"
+
+msgid "Ausflug"
+msgstr "Gezi"
+
+msgid "Permit / Genehmigung"
+msgstr "İzin belgesi"
+
+msgid "Guide vor Ort"
+msgstr "Yerel rehber"
+
+msgid "Zu buchen"
+msgstr "Rezervasyon yapılacak"
+
+msgid "Angefragt"
+msgstr "Talep edildi"
+
+msgid "Ohne Anbieter"
+msgstr "Tedarikçi yok"
+
+msgid "Anbieter-Buchung"
+msgstr "Tedarikçi rezervasyonu"
+
+msgid "Transport"
+msgstr "Ulaşım"
+
+msgid "Gebühren / Permits"
+msgstr "Ücretler / izinler"
+
+msgid "Personal vor Ort"
+msgstr "Yerel personel"
+
+msgid "Wareneinkauf"
+msgstr "Mal alımı"
+
+msgid "Logistics & costs"
+msgstr "Lojistik ve maliyetler"
+
+msgid "Costs paid"
+msgstr "Ödenen maliyetler"
+
+msgid "Still to pay"
+msgstr "Ödenecek"
+
+msgid "Margin (after all costs)"
+msgstr "Marj (tüm maliyetlerden sonra)"
+
+msgid "Bookings with suppliers"
+msgstr "Tedarikçi rezervasyonları"
+
+msgid "Supplier"
+msgstr "Tedarikçi"
+
+msgid "Cost"
+msgstr "Maliyet"
+
+msgid "For participants"
+msgstr "Katılımcılar için"
+
+msgid "Internal"
+msgstr "Dahili"
+
+msgid "Purchase prices stay internal — participants only ever see the fact and the status."
+msgstr "Alış fiyatları dahilidir — katılımcılar yalnızca rezervasyonu ve durumunu görür."
+
+msgid "Nothing booked with suppliers yet."
+msgstr "Henüz tedarikçilerde rezervasyon yok."
+
+msgid "or name"
+msgstr "veya isim"
+
+msgid "Cost (€)"
+msgstr "Maliyet (€)"
+
+msgid "Original"
+msgstr "Orijinal"
+
+msgid "Currency"
+msgstr "Para birimi"
+
+msgid "Preparation checklist"
+msgstr "Hazırlık kontrol listesi"
+
+msgid "e.g. Apply for Inner Line permits"
+msgstr "ör. Inner Line izinleri için başvur"
+
+#, python-format
+msgid "%(n)s still open"
+msgid_plural "%(n)s still open"
+msgstr[0] "%(n)s açık"
+msgstr[1] "%(n)s açık"

@@ -18378,3 +18378,100 @@ msgstr "Скрыть от группы"
 
 msgid "Nothing posted yet."
 msgstr "Пока ничего не опубликовано."
+
+# --- MT-4/5/6: Logistik, Kosten, Checkliste ---
+
+msgid "Transport / Tickets"
+msgstr "Транспорт / билеты"
+
+msgid "Ausflug"
+msgstr "Экскурсия"
+
+msgid "Permit / Genehmigung"
+msgstr "Пермит / разрешение"
+
+msgid "Guide vor Ort"
+msgstr "Локальный гид"
+
+msgid "Zu buchen"
+msgstr "К бронированию"
+
+msgid "Angefragt"
+msgstr "Запрошено"
+
+msgid "Ohne Anbieter"
+msgstr "Без поставщика"
+
+msgid "Anbieter-Buchung"
+msgstr "Бронь у поставщика"
+
+msgid "Transport"
+msgstr "Транспорт"
+
+msgid "Gebühren / Permits"
+msgstr "Сборы и пермиты"
+
+msgid "Personal vor Ort"
+msgstr "Персонал на месте"
+
+msgid "Wareneinkauf"
+msgstr "Закупка товара"
+
+msgid "Logistics & costs"
+msgstr "Логистика и расходы"
+
+msgid "Costs paid"
+msgstr "Оплачено"
+
+msgid "Still to pay"
+msgstr "Ещё оплатить"
+
+msgid "Margin (after all costs)"
+msgstr "Маржа (после всех расходов)"
+
+msgid "Bookings with suppliers"
+msgstr "Брони у поставщиков"
+
+msgid "Supplier"
+msgstr "Поставщик"
+
+msgid "Cost"
+msgstr "Стоимость"
+
+msgid "For participants"
+msgstr "Участникам"
+
+msgid "Internal"
+msgstr "Внутреннее"
+
+msgid "Purchase prices stay internal — participants only ever see the fact and the status."
+msgstr "Закупочные цены остаются внутренними — участник видит только факт и статус."
+
+msgid "Nothing booked with suppliers yet."
+msgstr "У поставщиков пока ничего не забронировано."
+
+msgid "or name"
+msgstr "или имя"
+
+msgid "Cost (€)"
+msgstr "Стоимость (€)"
+
+msgid "Original"
+msgstr "Оригинал"
+
+msgid "Currency"
+msgstr "Валюта"
+
+msgid "Preparation checklist"
+msgstr "Чек-лист подготовки"
+
+msgid "e.g. Apply for Inner Line permits"
+msgstr "например, оформить пермиты Inner Line"
+
+#, python-format
+msgid "%(n)s still open"
+msgid_plural "%(n)s still open"
+msgstr[0] "%(n)s не закрыт"
+msgstr[1] "%(n)s не закрыто"
+msgstr[2] "%(n)s не закрыто"
+msgstr[3] "%(n)s не закрыто"

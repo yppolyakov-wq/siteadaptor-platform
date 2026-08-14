@@ -1,0 +1,152 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% comment %}MT-4/5/6: логистика заезда, экономика и чек-лист подготовки.{% endcomment %}
+{% block dash_title %}{% trans "Logistics & costs" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+  <div>
+    <h1 class="text-2xl font-bold">{% trans "Logistics & costs" %}</h1>
+    <p class="text-sm text-gray-500">{{ event.title }} · {{ event.starts_at|date:"d.m.Y" }}</p>
+  </div>
+  <a href="{% url 'events:detail' event.pk %}" class="text-sm text-gray-500 hover:underline">← {% trans "Back to event" %}</a>
+</div>
+
+<div class="grid gap-4 sm:grid-cols-4 mb-8 max-w-4xl">
+  <div class="rounded-2xl bg-white p-4 shadow-sm">
+    <p class="text-xs text-gray-500">{% trans "Revenue" %}</p>
+    <p class="text-lg font-semibold">{{ finance.revenue|floatformat:2 }} €</p>
+  </div>
+  <div class="rounded-2xl bg-white p-4 shadow-sm">
+    <p class="text-xs text-gray-500">{% trans "Costs paid" %}</p>
+    <p class="text-lg font-semibold">{{ finance.spent|floatformat:2 }} €</p>
+  </div>
+  <div class="rounded-2xl bg-white p-4 shadow-sm">
+    <p class="text-xs text-gray-500">{% trans "Still to pay" %}</p>
+    <p class="text-lg font-semibold">{{ finance.planned|floatformat:2 }} €</p>
+  </div>
+  <div class="rounded-2xl bg-white p-4 shadow-sm">
+    <p class="text-xs text-gray-500">{% trans "Margin (after all costs)" %}</p>
+    <p class="text-lg font-semibold {% if finance.margin_after_planned < 0 %}text-red-600{% endif %}">{{ finance.margin_after_planned|floatformat:2 }} €</p>
+  </div>
+</div>
+
+<section class="max-w-5xl mb-8">
+  <h2 class="text-lg font-semibold mb-3">
+    {% trans "Bookings with suppliers" %}
+    {% if finance.open_items %}<span class="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">{% blocktrans count n=finance.open_items %}{{ n }} still open{% plural %}{{ n }} still open{% endblocktrans %}</span>{% endif %}
+  </h2>
+
+  {% if bookings %}
+    <div class="overflow-x-auto rounded-2xl bg-white shadow-sm mb-4">
+      <table class="w-full text-sm">
+        <thead class="text-left text-gray-500"><tr class="border-b">
+          <th class="p-3">{% trans "Day" %}</th>
+          <th class="p-3">{% trans "Type" %}</th>
+          <th class="p-3">{% trans "Supplier" %}</th>
+          <th class="p-3">{% trans "Cost" %}</th>
+          <th class="p-3">{% trans "Status" %}</th>
+          <th class="p-3">{% trans "Visible" %}</th>
+        </tr></thead>
+        <tbody>
+          {% for b in bookings %}
+            <tr class="border-b last:border-0">
+              <td class="p-3">{% if b.day %}{{ b.day }}{% endif %}{% if b.stop %} · {{ b.stop }}{% endif %}</td>
+              <td class="p-3">{{ b.get_kind_display }}</td>
+              <td class="p-3">{{ b.supplier_label }}{% if b.confirmation_ref %}<span class="block text-xs text-gray-400">{{ b.confirmation_ref }}</span>{% endif %}</td>
+              <td class="p-3">{{ b.cost_eur|floatformat:2 }} €{% if b.amount_original %}<span class="block text-xs text-gray-400">{{ b.amount_original|floatformat:2 }} {{ b.currency }}</span>{% endif %}</td>
+              <td class="p-3">
+                <form method="post" class="flex items-center gap-1">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="booking_status">
+                  <input type="hidden" name="id" value="{{ b.pk }}">
+                  <select name="status" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-2 py-1 text-xs">
+                    {% for value, label in statuses %}<option value="{{ value }}"{% if b.status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+                  </select>
+                </form>
+              </td>
+              <td class="p-3">
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="booking_visibility">
+                  <input type="hidden" name="id" value="{{ b.pk }}">
+                  <button type="submit" class="text-xs {% if b.visible_to_participants %}text-green-700{% else %}text-gray-400{% endif %} hover:underline">
+                    {% if b.visible_to_participants %}👁 {% trans "For participants" %}{% else %}🔒 {% trans "Internal" %}{% endif %}
+                  </button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="text-xs text-gray-500 mb-4">{% trans "Purchase prices stay internal — participants only ever see the fact and the status." %}</p>
+  {% else %}
+    <p class="text-gray-600 text-sm mb-4">{% trans "Nothing booked with suppliers yet." %}</p>
+  {% endif %}
+
+  <form method="post" class="rounded-2xl bg-white p-4 shadow-sm grid gap-3 sm:grid-cols-6 items-end">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="add_booking">
+    <label class="text-xs text-gray-500 sm:col-span-1">{% trans "Day" %}
+      <input type="number" min="0" name="day" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+    </label>
+    <label class="text-xs text-gray-500 sm:col-span-1">{% trans "Type" %}
+      <select name="kind" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        {% for value, label in kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+    <label class="text-xs text-gray-500 sm:col-span-2">{% trans "Supplier" %}
+      <select name="supplier" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        <option value="">—</option>
+        {% for s in suppliers %}<option value="{{ s.pk }}">{{ s.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label class="text-xs text-gray-500 sm:col-span-2">{% trans "or name" %}
+      <input type="text" name="supplier_name" maxlength="200" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+    </label>
+    <label class="text-xs text-gray-500 sm:col-span-2">{% trans "Stop" %}
+      <input type="text" name="stop" maxlength="200" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+    </label>
+    <label class="text-xs text-gray-500 sm:col-span-1">{% trans "Cost (€)" %}
+      <input type="text" name="cost_eur" inputmode="decimal" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+    </label>
+    <label class="text-xs text-gray-500 sm:col-span-1">{% trans "Original" %}
+      <input type="text" name="amount_original" inputmode="decimal" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+    </label>
+    <label class="text-xs text-gray-500 sm:col-span-1">{% trans "Currency" %}
+      <input type="text" name="currency" maxlength="3" placeholder="INR" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+    </label>
+    <button type="submit" class="sm:col-span-1 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">{% trans "Add" %}</button>
+  </form>
+</section>
+
+<section class="max-w-3xl">
+  <h2 class="text-lg font-semibold mb-3">{% trans "Preparation checklist" %}</h2>
+  {% if tasks %}
+    <ul class="divide-y rounded-2xl bg-white shadow-sm mb-4">
+      {% for t in tasks %}
+        <li class="flex items-center justify-between gap-3 p-3">
+          <form method="post" class="flex items-center gap-2">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="toggle_task">
+            <input type="hidden" name="id" value="{{ t.pk }}">
+            <button type="submit" class="text-sm">{% if t.is_done %}✅{% else %}⬜{% endif %}</button>
+            <span class="text-sm {% if t.is_done %}line-through text-gray-400{% endif %}">{{ t.title }}</span>
+          </form>
+          {% if t.due_date %}
+            <span class="text-xs {% if t.is_overdue %}text-red-600 font-medium{% else %}text-gray-500{% endif %}">{{ t.due_date|date:"d.m.Y" }}</span>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  <form method="post" class="flex flex-wrap gap-2 items-end">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="add_task">
+    <input type="text" name="title" required maxlength="200" placeholder="{% trans 'e.g. Apply for Inner Line permits' %}" class="grow rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    <input type="date" name="due_date" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">{% trans "Add" %}</button>
+  </form>
+</section>
+{% endblock %}
