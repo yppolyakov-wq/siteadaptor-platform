@@ -41,8 +41,11 @@ PAGE_BLOCK_HOSTS-страниц. Гейт по модулю jobs: выключе
 </section>
 {% else %}
 <div class="max-w-2xl mx-auto">
-  <h2 class="text-xl md:text-2xl font-bold mb-1">{% trans "Request a quote" %}</h2>
-  <p class="text-gray-500 mb-4">{% trans "Tell us what you need — we'll send you a quote." %}</p>
+  {% comment %}MT-F3: заголовок/подпись — из настроек секции (у тур-оператора это
+  «приватный выезд», а не «смета на работы»); пусто → прежний текст.{% endcomment %}
+  {% section_title site 'anfrage' as at %}{% section_intro site 'anfrage' as ai %}
+  <h2 class="text-xl md:text-2xl font-bold mb-1" data-edit="section_titles.anfrage">{% if at %}{{ at }}{% else %}{% trans "Request a quote" %}{% endif %}</h2>
+  <p class="text-gray-500 mb-4" data-edit="section_intros.anfrage">{% if ai %}{{ ai }}{% else %}{% trans "Tell us what you need — we'll send you a quote." %}{% endif %}</p>
   {% include "storefront/_anfrage_form.html" with anfrage_cfg=site.anfrage jobs_vehicle=site.jobs_vehicle has_service_area=request.tenant.has_service_area betreff="" %}
 </div>
 {% endif %}

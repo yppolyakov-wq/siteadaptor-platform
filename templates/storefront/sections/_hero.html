@@ -16,7 +16,9 @@
     {% include "storefront/sections/_hero_cta.html" %}
     {% comment %}DS-4b: ghost-кнопка «Speisekarte/Menu» — вторая дорога первого
     экрана (макет); только когда primary НЕ каталог (иначе дубль CTA).{% endcomment %}
-    {% if primary_item and primary_item.module != "catalog" %}<a href="{% url 'storefront-products' %}" class="inline-block mt-5 rounded-lg px-6 py-2.5 font-medium border border-gray-300 hover:border-gray-400">{% trans "Menu" %}</a>{% endif %}
+    {% comment %}MT-F3: ведёт на каталог ТОЛЬКО когда он наполнен — у тур-оператора
+    товаров нет, и кнопка открывала пустую страницу (класс «мёртвая ссылка»).{% endcomment %}
+    {% if primary_item and primary_item.module != "catalog" and has_products %}<a href="{% url 'storefront-products' %}" class="inline-block mt-5 rounded-lg px-6 py-2.5 font-medium border border-gray-300 hover:border-gray-400">{% trans "Menu" %}</a>{% endif %}
     </span>
     {% if request.tenant.google_rating or site.trust.since %}
     <p class="mt-4 text-sm text-gray-500">

@@ -18456,3 +18456,15 @@ msgstr "Unsere Guides"
 
 msgid "All guides"
 msgstr "Alle Guides"
+
+msgid "Our tours"
+msgstr "Unsere Reisen"
+
+msgid "Open the group"
+msgstr "Gruppe öffnen"
+
+msgid "Sign in to your account"
+msgstr "Im Konto anmelden"
+
+msgid "News from the guide, packing tips and the chat with your group — all in one place."
+msgstr "Infos vom Guide, Packliste und der Chat mit eurer Gruppe — alles an einem Ort."

@@ -482,6 +482,29 @@
    "enabled": false,
    "font": "",
    "hidden_on": [],
+   "key": "tours",
+   "layout": {
+    "cols": 2,
+    "gap": "md",
+    "mobile": 1,
+    "preset": "cols2",
+    "tablet": 0,
+    "width": "contained"
+   },
+   "limit": 6,
+   "show_all": true,
+   "visual": {
+    "background": "",
+    "padding": 0,
+    "radius": 0,
+    "shadow": false
+   },
+   "width": "contained"
+  },
+  {
+   "enabled": false,
+   "font": "",
+   "hidden_on": [],
    "key": "blog",
    "layout": {
     "cols": 3,

@@ -1,0 +1,16 @@
+{% load i18n siteui %}{# MT-F1: тур-продукты на главной (главный товар тур-оператора). #}
+{% if tours_preview %}
+<section data-reveal class="mb-10">
+  <div class="flex items-center justify-between mb-4">
+    {% section_title site 'tours' as st %}
+    <h2 class="text-xl md:text-2xl font-bold" data-edit="section_titles.tours">{% if st %}{{ st }}{% else %}{% trans "Our tours" %}{% endif %}</h2>
+    {% section_show_all site 'tours' as sa %}{% if sa %}<a href="{% url 'storefront-tours' %}" class="text-sm font-medium text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
+    {% include "storefront/_grid_view.html" with grid_key="tours" %}
+  </div>
+  {% section_intro site 'tours' as si %}
+  {% if si or is_preview %}<p class="mb-4 text-gray-600 whitespace-pre-line max-w-2xl" data-edit="section_intros.tours">{{ si }}</p>{% endif %}
+  <div data-grid="tours" class="{% grid_classes site 'tours' %}">
+    {% for tour in tours_preview %}{% include "storefront/_tour_card.html" %}{% endfor %}
+  </div>
+</section>
+{% endif %}

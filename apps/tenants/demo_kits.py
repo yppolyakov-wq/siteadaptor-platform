@@ -160,6 +160,8 @@ class DemoKit:
     heroes: list = field(default_factory=list)
     # M20U-7: кастомные заголовки секций главной (key→строка); пусто → дефолты.
     section_titles: dict = field(default_factory=dict)
+    # H1/MT-F3: вводный текст под заголовком секции (key→строка); пусто → нет.
+    section_intros: dict = field(default_factory=dict)
     # i18n (двуязычная витрина): оверлей переводов site_config, {locale: {<зеркало
     # текстовых полей>}}. Пусто → одноязычно (DE). siteconfig.localize накладывает
     # перед рендером. Пример: {"en": {"hero_title": "...", "faq": [{"q":..,"a":..}],
@@ -5086,6 +5088,21 @@ MOTO = DemoKit(
     business_type="tour_operator",
     subdomain="moto",
     accent="#c2410c",  # пыль и закат
+    # MT-F3: главная в формате «Fokus» под туры — сплит-баннер, CTA в шапке,
+    # поездки сразу под ним, заявка на приватный выезд и компакт-полоса доверия.
+    # Шумные секции уходят на свои страницы (ST-8): галерея, отзывы, команда.
+    bundle="fokus_touren",
+    look="klar",
+    enable_anfrage_section=True,
+    section_titles={
+        "tours": "Unsere Reisen",
+        # Форма на главной — про приватный выезд, а не про смету на работы.
+        "anfrage": "Eigene Gruppe, eigener Termin",
+    },
+    section_intros={
+        "anfrage": "Ab vier Fahrern fahren wir jede Route privat. Sagen Sie uns "
+        "Wunschtermin und Gruppengröße — wir melden uns mit einem Angebot.",
+    },
     hero_image_kw="motorcycle,mountain",
     hero_title="Himalaya Riders",
     hero_text="Geführte Motorradreisen durch Indien und Nepal — kleine Gruppen, "
@@ -6143,6 +6160,30 @@ MOTO = DemoKit(
             "Packliste ist online: Helm, Protektoren, warme Schicht für die Pässe. "
             "Wer eine Maschine mietet, schickt mir bitte den Führerschein ins Dokumente-Fach.",
             "Wetterlage am Rohtang ist stabil — wir starten wie geplant um 07:00 in Manali.",
+        ],
+        # MT-F5: разговор в группе — иначе вкладка «Chat» в демо пустая.
+        "comments": [
+            (1, "Jens W.", "Reicht eine normale Softshell oder braucht es die Daunenjacke?"),
+            (
+                1,
+                "Vikram Singh",
+                "Softshell plus dünne Daune reicht. Am Baralacha La war es letztes Jahr "
+                "morgens bei −4 °C.",
+            ),
+            (2, "Silke H.", "Perfekt, dann sind wir um 06:30 am Treffpunkt. 👍"),
+        ],
+        "chat": [
+            ("Silke H.", "Bin gerade in Delhi gelandet, Anschlussflug nach Kullu läuft."),
+            ("Jens W.", "Ich komme mit dem Nachtbus, morgen früh gegen 8 in Manali."),
+            (
+                "Vikram Singh",
+                "Super. Ich hole euch am Busbahnhof ab, die Maschinen stehen ab 10 Uhr bereit.",
+            ),
+            ("Carola T.", "Gibt es unterwegs Wäsche-Möglichkeiten oder besser mehr mitnehmen?"),
+            (
+                "Anne Kessler",
+                "In Leh haben wir einen ganzen Tag — dort geht Wäsche problemlos.",
+            ),
         ],
         "supplier_bookings": [
             {
@@ -9180,6 +9221,8 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
         {"key": "stay_rooms", "enabled": bool(kit.stay_units)},
         # A3: блок услуг «Leistungen & Preise» — если у кита есть услуги (booking).
         {"key": "services", "enabled": bool(kit.services)},
+        # MT-F1: поездки (тур-продукт) — главный товар тур-оператора.
+        {"key": "tours", "enabled": bool(kit.tours)},
         {"key": "archetypes", "enabled": kit.enable_archetypes_section},  # S2: «Unsere Bereiche»
         # Акции/товары — только если у кита есть каталог (иначе пустые секции).
         # HF-1: акции бывают и без каталога (отель: «3 Nächte zum Preis von 2») —
@@ -9640,6 +9683,7 @@ def apply_kit(tenant, key: str) -> bool:
                 for i, h in enumerate(kit.heroes)
             ],
             "section_titles": kit.section_titles or {},
+            "section_intros": kit.section_intros or {},
             # M20U-7 (per-page): раскладки страниц-листингов (пусто → дефолт страницы).
             "catalog_layout": {"preset": kit.page_layouts.get("catalog", "")},
             "stay_index_layout": {"preset": kit.page_layouts.get("stay_index", ""), "mobile": 1},
@@ -10525,6 +10569,29 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
         _seed_tour_operations(kit, refs)
 
 
+def _seed_group_chat(kit: DemoKit, space, event) -> None:
+    """MT-F5: реплики чата и комментарии к объявлениям гида.
+
+    Авторы — имена (`author_name`): чат сеется вместе с пространством, то есть
+    ДО билетов (`_seed_kit_records`), поэтому связать реплику с реальным
+    Customer нечем. Для демо важно, что видно имя и разговор — а не чей это id.
+    Текст остаётся немецким: у `FeedPost` нет i18n-оверлея (закрытая зона
+    участников), словарь демо туда не доезжает — врать переводом не будем.
+    """
+    from apps.community.models import FeedPost
+    from apps.community.services import add_comment, add_post
+
+    ops = kit.tour_operations or {}
+    posts = list(
+        FeedPost.objects.filter(space=space, kind=FeedPost.KIND_POST).order_by("created_at")
+    )
+    for idx, name, text in ops.get("comments", []):
+        if idx < len(posts):
+            add_comment(posts[idx], body=text, name=name)
+    for name, text in ops.get("chat", []):
+        add_post(space, body=text, kind=FeedPost.KIND_MESSAGE, name=name)
+
+
 def _seed_tour_operations(kit: DemoKit, refs: dict) -> None:
     """MT-3/4/6 в демо: пространство поездки, закупки по точкам и чек-лист.
 
@@ -10548,6 +10615,10 @@ def _seed_tour_operations(kit: DemoKit, refs: dict) -> None:
     space = space_for_event(event)
     for text in kit.tour_operations.get("posts", []):
         add_post(space, body=text)
+    # MT-F5: вкладка «Chat» была пустой — засеваем реплики участников и
+    # комментарии к объявлениям гида. Авторы — реальные клиенты этого заезда
+    # (билеты уже созданы seed_records), иначе просто имя.
+    _seed_group_chat(kit, space, event)
     for spec in kit.tour_operations.get("supplier_bookings", []):
         SupplierBooking.objects.create(
             event=event,

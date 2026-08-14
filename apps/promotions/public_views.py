@@ -195,6 +195,18 @@ def storefront_home(request):
                 status=Event.STATUS_PUBLISHED, starts_at__gte=timezone.now()
             ).order_by("starts_at")[: siteconfig.section_limit(site, "events")]
         )
+    # MT-F1: поездки (тур-продукты) — главный товар тур-оператора. Гейт по
+    # ДАННЫМ, а не по типу бизнеса: у ретрит-кита туров нет, и его главная
+    # остаётся прежней даже при включённой секции.
+    tours_preview = []
+    if "tours" in sections and modules.is_module_active(request.tenant, "events"):
+        from apps.events.models import Tour
+
+        tours_preview = list(
+            Tour.objects.filter(is_published=True).prefetch_related(Tour.upcoming_prefetch())[
+                : siteconfig.section_limit(site, "tours")
+            ]
+        )
     # HF-1: лента новостей (модуль blog). Черновики и запланированные посты сюда
     # не попадают — на главную идёт только опубликованное.
     blog_preview = []
@@ -218,6 +230,12 @@ def storefront_home(request):
     from apps.core import archetypes
 
     primary_item = archetypes.primary_item(request.tenant)
+    # MT-F3: вторая кнопка первого экрана («Menu» → каталог) показывается только
+    # при наполненном каталоге — иначе она вела на пустую страницу. Модель
+    # импортируем здесь: выше она есть лишь внутри ветки секции products.
+    from apps.catalog.models import Product as _Product
+
+    has_products = bool(products_preview) or _Product.objects.filter(is_active=True).exists()
     return render(
         request,
         "storefront/home.html",
@@ -234,6 +252,8 @@ def storefront_home(request):
             "archetype_teasers": archetype_teasers,
             "stay_rooms": stay_rooms,
             "events_preview": events_preview,
+            "tours_preview": tours_preview,
+            "has_products": has_products,
             "blog_preview": blog_preview,  # HF-1: секция новостей
             "services_preview": services_preview,
             "services_festpreis": services_festpreis,

@@ -711,18 +711,23 @@ BUNDLES = [
     },
     {
         # DS-9: туры — «Touren-Fokus»: даты + ФОТО маршрутов (галерея продаёт
-        # тур сильнее текста).
+        # тур сильнее текста). MT-F2: главный товар тур-оператора — ПОЕЗДКА
+        # (`tours`): даты видны прямо в её карточке («2 Termine · ab 1490 €»),
+        # поэтому отдельную секцию заездов сборка НЕ включает — это был бы тот
+        # же список дат второй раз, но без маршрута и фото. Заявка на приватный
+        # выезд — сразу на главной (гейт модуля jobs внутри партиала).
         "key": "fokus_touren",
         "label": "Fokus",
         "description_de": (
-            "Ein Hauptziel pro Bildschirm: kommende Touren, Bilder der Route und Stimmen der Gäste."
+            "Ein Hauptziel pro Bildschirm: Reisen mit Bildern, Termine und "
+            "Anfrage für die eigene Gruppe."
         ),
         "recommended_for": ("tour_operator",),
         "look": "klar",
         "config": _fokus(
             {
                 "section_styles": {"gallery": "strip"},
-                "sections_on": ("events", "gallery"),
+                "sections_on": ("tours", "gallery", "anfrage"),
             }
         ),
     },

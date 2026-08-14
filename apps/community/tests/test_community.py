@@ -306,3 +306,45 @@ class TestHardening:
 
         bodies = [i["body"] for i in json.loads(response.content)["items"]]
         assert bodies == ["m0", "m1", "m2"]
+
+
+# --- MT-F4: путь в группу со страницы билета --------------------------------
+
+
+class TestTicketPageEntry:
+    """Владелец спрашивал «где посмотреть ленту/чат» — со своего билета.
+
+    Ссылку показываем только тому, кто действительно вправе читать: без входа
+    в личный кабинет она вела бы в 404 (доступ решает access.role_of).
+    """
+
+    def _ticket_with_code(self, event, customer, code="E-TEST01", **kwargs):
+        return _ticket(event, customer, reference_code=code, **kwargs)
+
+    def _confirmation(self, ticket, customer=None):
+        from apps.events import public_views as events_public
+
+        request = _request(customer=customer)
+        return events_public.veranstaltung_confirmation(
+            request, code=ticket.reference_code
+        ).content.decode()
+
+    def test_participant_sees_link_to_group(self):
+        event = _event()
+        space = services.space_for_event(event)
+        customer = _customer()
+        ticket = self._ticket_with_code(event, customer)
+        html = self._confirmation(ticket, customer=customer)
+        assert f"/reisegruppe/{space.pk}/" in html
+
+    def test_visitor_without_account_is_invited_to_sign_in(self):
+        event = _event()
+        space = services.space_for_event(event)
+        ticket = self._ticket_with_code(event, _customer(), code="E-TEST02")
+        html = self._confirmation(ticket)
+        assert f"/reisegruppe/{space.pk}/" not in html  # мёртвой ссылки в 404 не даём
+        assert "/konto/" in html
+
+    def test_no_block_without_space(self):
+        ticket = self._ticket_with_code(_event(), _customer(), code="E-TEST03")
+        assert "Reisegruppe" not in self._confirmation(ticket)

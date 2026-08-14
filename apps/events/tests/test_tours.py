@@ -259,6 +259,45 @@ class TestCountryGrouping:
         assert groups[0]["key"] == "Indien" and groups[0]["label"] == "India"
 
 
+class TestHomeSection:
+    """MT-F1: поездки на главной — секция `tours` (главная тур-оператора была пустой)."""
+
+    def _home(self, tenant):
+        from apps.promotions import public_views as promo_views
+
+        request = _pub("/", tenant=tenant)
+        return promo_views.storefront_home(request).content.decode()
+
+    def _tenant_with_section(self, **kwargs):
+        return _tenant(
+            site_config={
+                "sections": [{"key": "hero", "enabled": True}, {"key": "tours", "enabled": True}]
+            },
+            **kwargs,
+        )
+
+    def test_enabled_section_shows_tour_cards(self):
+        _tour(title="Ladakh-Runde", country="Indien")
+        html = self._home(self._tenant_with_section())
+        assert "Ladakh-Runde" in html
+        assert 'id="reisen"' in html  # якорь для пункта меню
+
+    def test_no_tours_no_section(self):
+        """Секция включена, туров нет → пустого блока на главной не появляется."""
+        html = self._home(self._tenant_with_section())
+        assert 'data-grid="tours"' not in html
+
+    def test_unpublished_tour_stays_off_home(self):
+        _tour(title="Versteckt", is_published=False)
+        assert "Versteckt" not in self._home(self._tenant_with_section())
+
+    def test_section_off_by_default(self):
+        """Легаси-витрины не затронуты: без включения секции туров на главной нет."""
+        _tour(title="Ladakh-Runde")
+        html = self._home(_tenant(site_config={"sections": [{"key": "hero", "enabled": True}]}))
+        assert "Ladakh-Runde" not in html
+
+
 class TestPrivateTourRequest:
     """MT-D3: заявка на приватный выезд (вне общих дат)."""
 

@@ -24,6 +24,7 @@ BLOCK_TEMPLATES = {
     "categories": "storefront/sections/_categories.html",
     "products": "storefront/sections/_products.html",
     "events": "storefront/sections/_events.html",
+    "tours": "storefront/sections/_tours.html",  # MT-F1: поездки на главной
     "blog": "storefront/sections/_blog.html",  # HF-1: лента новостей
     "archetypes": "storefront/sections/_archetypes.html",
     "about": "storefront/sections/_about.html",
@@ -54,6 +55,7 @@ _BLOCK_ANCHOR_ID = {
     "faq": "faq",
     "gallery": "galerie",
     "blog": "neuigkeiten",  # HF-1: якорь для пункта меню типа anchor
+    "tours": "reisen",  # MT-F1: пункт меню «Reisen» может вести на секцию главной
     "before_after": "referenzen",
     "contact": "kontakt",
 }

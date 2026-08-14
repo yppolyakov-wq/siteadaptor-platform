@@ -606,8 +606,25 @@ def veranstaltung_confirmation(request, code):
             "telegram_link": deep_link(ticket.customer),
             "cancel_state": services.cancellation_state(ticket),
             "cancel_url": cancel_url(ticket),
+            # MT-F4: путь в группу поездки со страницы своего билета. Роль
+            # считает тот же fail-closed резолвер, что и сама лента: без входа
+            # в личный кабинет ссылка вела бы в 404, поэтому там показываем
+            # приглашение войти.
+            **_group_context(request, ticket.event),
         },
     )
+
+
+def _group_context(request, event) -> dict:
+    """MT-F4: {group_space, group_open} — пространство заезда и вправе ли смотреть."""
+    from apps.community import access as community_access
+    from apps.community.models import FeedSpace
+
+    space = FeedSpace.objects.filter(ref_kind="event", ref_id=str(event.pk)).first()
+    if space is None:
+        return {"group_space": None, "group_open": False}
+    role = community_access.role_of(request, space)
+    return {"group_space": space, "group_open": community_access.can_read(role)}
 
 
 def group_tours_by_country(tours) -> list[dict]:

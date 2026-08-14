@@ -18316,3 +18316,15 @@ msgstr "Our guides"
 
 msgid "All guides"
 msgstr "All guides"
+
+msgid "Our tours"
+msgstr "Our tours"
+
+msgid "Open the group"
+msgstr "Open the group"
+
+msgid "Sign in to your account"
+msgstr "Sign in to your account"
+
+msgid "News from the guide, packing tips and the chat with your group — all in one place."
+msgstr "News from the guide, packing tips and the chat with your group — all in one place."

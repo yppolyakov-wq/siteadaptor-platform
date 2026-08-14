@@ -211,13 +211,40 @@ def primary_section(tenant) -> str | None:
     return PRIMARY_SECTION.get(module) if module else None
 
 
+def has_tours(tenant) -> bool:
+    """MT-F3: у тенанта есть опубликованные поездки (тур-продукт MT-1).
+
+    Признак берём из ДАННЫХ, а не из типа бизнеса: у городских туров и ретритов
+    тур-продукта нет, и их первый экран остаётся прежним. Результат мемоизируем
+    на объекте тенанта — `primary_item` зовут и шапка, и hero, и карточки.
+    """
+    cached = getattr(tenant, "_has_tours", None)
+    if cached is not None:
+        return cached
+    value = False
+    if tenant is not None and tenant.is_module_active("events"):
+        from apps.events.models import Tour
+
+        try:
+            value = Tour.objects.filter(is_published=True).exists()
+        except Exception:  # noqa: BLE001
+            # Витринная деталь: без доступа к схеме тенанта (внесхемные вызовы,
+            # лёгкие стенды) ведём себя как раньше — CTA остаётся на «Termine».
+            value = False
+    try:
+        tenant._has_tours = value
+    except AttributeError:  # объекты со слотами — просто не кэшируем
+        pass
+    return value
+
+
 def primary_item(tenant) -> dict | None:
     """Дескриптор главного товара: {module, section, landing, label} или None."""
     module = primary_module(tenant)
     if not module:
         return None
     spec = modules.get_module(module)
-    return {
+    item = {
         "module": module,
         # jobs — primary-архетип без секции-грида (Anfrage-CTA, не список товаров) →
         # section=None; hero-CTA ведёт по landing (storefront-anfrage), а не по секции.
@@ -226,6 +253,18 @@ def primary_item(tenant) -> dict | None:
         "label": getattr(spec, "storefront_label", "") if spec else "",
         "mode": purchase_mode(module),
     }
+    # MT-F3: у тур-оператора главный товар — ПОЕЗДКА, а не отдельная дата. CTA
+    # первого экрана вёл на список заездов («Termine»), то есть мимо маршрута,
+    # фото и цены — их держит страница поездки.
+    if module == "events" and has_tours(tenant):
+        item.update(
+            {
+                "section": "tours",
+                "landing": "storefront-tours",
+                "label": _("Tours"),
+            }
+        )
+    return item
 
 
 def aggregate_primary_sections(tenant) -> list[dict]:

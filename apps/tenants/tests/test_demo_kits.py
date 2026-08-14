@@ -1217,7 +1217,12 @@ def test_moto_kit_seeds_group_logistics_and_checklist():
     assert demo_kits.apply_kit(tenant, "moto") is True
 
     space = FeedSpace.objects.get()
-    assert FeedPost.objects.filter(space=space).count() == 3
+    # MT-F5: три объявления гида + чат группы (иначе вкладка «Chat» пустая)
+    assert FeedPost.objects.filter(space=space, kind=FeedPost.KIND_POST).count() == 3
+    assert FeedPost.objects.filter(space=space, kind=FeedPost.KIND_MESSAGE).count() == 5
+    from apps.community.models import FeedComment
+
+    assert FeedComment.objects.count() == 3
     assert space.tg_link_code  # код для привязки Telegram-группы готов
 
     event = Event.objects.get(pk=space.ref_id)

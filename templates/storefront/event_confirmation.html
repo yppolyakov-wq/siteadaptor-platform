@@ -65,6 +65,20 @@
       </div>
     {% endif %}
   </div>
+  {% if group_space %}
+    {% comment %}MT-F4: путь в ленту/чат поездки. Право читать решает тот же
+    fail-closed резолвер, что и сама лента, — без входа в личный кабинет ссылка
+    привела бы в 404, поэтому там зовём войти.{% endcomment %}
+    <div class="mt-4 rounded-2xl bg-white p-6 shadow-sm">
+      <h2 class="font-semibold">💬 {% trans "Travel group" %}</h2>
+      <p class="mt-1 text-sm text-gray-600">{% trans "News from the guide, packing tips and the chat with your group — all in one place." %}</p>
+      {% if group_open %}
+        <a href="{% url 'community-space' group_space.pk %}" class="mt-3 inline-block rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">{% trans "Open the group" %}</a>
+      {% else %}
+        <a href="{% url 'account-home' %}" class="mt-3 inline-block rounded-lg border px-4 py-2 text-sm font-medium hover:bg-gray-50">{% trans "Sign in to your account" %}</a>
+      {% endif %}
+    </div>
+  {% endif %}
   {% include "storefront/_telegram_cta.html" %}
   {% include "storefront/_problem_cta.html" with pc_kind="ticket" pc_id=ticket.reference_code %}
 </div>

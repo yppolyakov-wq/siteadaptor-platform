@@ -68,6 +68,12 @@ SECTIONS = [
     # M20U-2: ближайшие мероприятия/ретриты (primary items архетипа events).
     # Выкл по умолчанию; показываем при активном модуле events и наличии событий.
     ("events", _("Events"), False),
+    # MT-F1: тур-продукты (мото/квадро-туры). Главный товар тур-оператора жил
+    # только на /touren/, поэтому его главная выглядела пустой. Выкл по
+    # умолчанию; рендер дополнительно гейтится модулем events И наличием
+    # опубликованных туров. ⚠️ Осознанная регенерация golden (новая известная
+    # секция дописывается normalize'ом — прецедент FD-2/DS-3b).
+    ("tours", _("Tours"), False),
     # S2: сетка тизеров активных архетипов («Наши разделы / Unsere Bereiche»).
     # По умолчанию выкл — легаси-витрины не затронуты; включают в кабинете/демо.
     # HF-1 (фидбэк владельца 2026-07-31, п. 14): лента новостей/блога на главной.
@@ -824,6 +830,7 @@ def micro_templates() -> list[dict]:
 GRID_SECTION_DEFAULTS = {
     "categories": {"preset": "cols4"},  # M20U-2: карточки категорий
     "events": {"preset": "cols3"},  # M20U-2: карточки ближайших мероприятий
+    "tours": {"preset": "cols2", "mobile": 1},  # MT-F1: карточка поездки — крупная
     "blog": {"preset": "cols3"},  # HF-1: карточки новостей
     "services": {"preset": "cols2"},  # A3: услуги (как service_index sm:grid-cols-2)
     "products": {"preset": "cols4"},  # было grid-cols-2 lg:grid-cols-4 (mobile 2)
@@ -841,7 +848,7 @@ GRID_SECTION_DEFAULTS = {
 # сетки (categories/stay_rooms/team/…) показывают всё — лимит к ним не применяем.
 # DS-5: + categories (владелец задаёт число плиток; ⚠️ материализация limit —
 # осознанная golden-регенерация 2026-08-12).
-GRID_SECTION_LIMITS = {"products": 8, "events": 6, "blog": 3, "categories": 30}
+GRID_SECTION_LIMITS = {"products": 8, "events": 6, "blog": 3, "categories": 30, "tours": 6}
 # ^ дефолт categories = максимум: раньше секция выводила ВСЕ категории —
 #   меньший дефолт молча отрезал бы плитки существующим сайтам (регрессия).
 _SECTION_LIMIT_MAX = 30  # DS-5: было 24
@@ -981,6 +988,10 @@ SECTION_TITLE_KEYS = {
     "categories",
     "products",
     "events",
+    "tours",
+    # MT-F3: заголовок/подпись формы заявки на главной — у тур-оператора это
+    # «приватный выезд», а не «смета на работы».
+    "anfrage",
     "stay_rooms",
     "services",
     "blog",
@@ -994,7 +1005,15 @@ SECTION_INTRO_KEYS = SECTION_TITLE_KEYS
 _SECTION_INTRO_MAX = 300
 
 # M20U-7: секции с ссылкой «View all» → её можно скрыть (show_all=False).
-SECTION_VIEWALL_KEYS = {"categories", "products", "events", "stay_rooms", "services", "blog"}
+SECTION_VIEWALL_KEYS = {
+    "categories",
+    "products",
+    "events",
+    "stay_rooms",
+    "services",
+    "blog",
+    "tours",
+}
 
 
 def section_title(config, key) -> str:
@@ -1301,6 +1320,7 @@ SECTION_ICONS = {
     "categories": "🗂️",
     "products": "🛍️",
     "events": "📅",
+    "tours": "🏍",  # MT-F1: поездки (тур-продукт)
     "blog": "📰",  # HF-1: лента новостей
     "archetypes": "🧭",
     "about": "ℹ️",

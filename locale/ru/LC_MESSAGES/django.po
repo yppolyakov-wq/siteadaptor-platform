@@ -18524,3 +18524,15 @@ msgstr "Наши гиды"
 
 msgid "All guides"
 msgstr "Все гиды"
+
+msgid "Our tours"
+msgstr "Наши поездки"
+
+msgid "Open the group"
+msgstr "Открыть группу"
+
+msgid "Sign in to your account"
+msgstr "Войти в личный кабинет"
+
+msgid "News from the guide, packing tips and the chat with your group — all in one place."
+msgstr "Новости от гида, список вещей и чат вашей группы — всё в одном месте."

@@ -18428,3 +18428,15 @@ msgstr "Rehberlerimiz"
 
 msgid "All guides"
 msgstr "Tüm rehberler"
+
+msgid "Our tours"
+msgstr "Turlarımız"
+
+msgid "Open the group"
+msgstr "Grubu aç"
+
+msgid "Sign in to your account"
+msgstr "Hesabınıza giriş yapın"
+
+msgid "News from the guide, packing tips and the chat with your group — all in one place."
+msgstr "Rehberden haberler, hazırlık listesi ve grubunuzla sohbet — hepsi tek yerde."
