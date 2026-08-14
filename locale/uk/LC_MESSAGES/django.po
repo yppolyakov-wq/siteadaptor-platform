@@ -18521,3 +18521,15 @@ msgstr "Увійти в особистий кабінет"
 
 msgid "News from the guide, packing tips and the chat with your group — all in one place."
 msgstr "Новини від гіда, список речей і чат вашої групи — усе в одному місці."
+
+msgid "Costs"
+msgstr "Витрати"
+
+msgid "Hotels, transport, permits — spend and margin"
+msgstr "Готелі, транспорт, перміти — витрати й маржа"
+
+msgid "Feed, chat and the Telegram bridge"
+msgstr "Стрічка, чат і міст у Telegram"
+
+msgid "Licences and IDs of the participants"
+msgstr "Права й документи учасників"

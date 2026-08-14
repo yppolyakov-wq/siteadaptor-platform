@@ -18328,3 +18328,15 @@ msgstr "Sign in to your account"
 
 msgid "News from the guide, packing tips and the chat with your group — all in one place."
 msgstr "News from the guide, packing tips and the chat with your group — all in one place."
+
+msgid "Costs"
+msgstr "Costs"
+
+msgid "Hotels, transport, permits — spend and margin"
+msgstr "Hotels, transport, permits — spend and margin"
+
+msgid "Feed, chat and the Telegram bridge"
+msgstr "Feed, chat and the Telegram bridge"
+
+msgid "Licences and IDs of the participants"
+msgstr "Licences and IDs of the participants"

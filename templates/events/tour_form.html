@@ -114,7 +114,12 @@ MT-1: правка тура. Маршрут — таблица строк (бе�
             <a href="{% url 'events:detail' d.pk %}" class="font-medium hover:text-indigo-700">{{ d.starts_at|date:"d.m.Y" }}{% if d.ends_at %} – {{ d.ends_at|date:"d.m.Y" }}{% endif %}</a>
             <p class="text-sm text-gray-500">{{ d.get_status_display }} · {{ d.seats_sold }}{% if d.capacity %}/{{ d.capacity }}{% endif %} {% trans "seats" %}</p>
           </div>
-          <a href="{% url 'events:edit' d.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Edit" %}</a>
+          <div class="flex items-center gap-3">
+            {% comment %}MT-F6: затраты живут на ЗАЕЗДЕ — прямой вход со страницы
+            тура, чтобы не искать через список участников.{% endcomment %}
+            <a href="{% url 'events:logistics' d.pk %}" class="text-sm text-indigo-600 hover:underline">💶 {% trans "Costs" %}</a>
+            <a href="{% url 'events:edit' d.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Edit" %}</a>
+          </div>
         </li>
       {% endfor %}
     </ul>

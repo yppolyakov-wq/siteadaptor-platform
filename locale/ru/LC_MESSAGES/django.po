@@ -18536,3 +18536,15 @@ msgstr "Войти в личный кабинет"
 
 msgid "News from the guide, packing tips and the chat with your group — all in one place."
 msgstr "Новости от гида, список вещей и чат вашей группы — всё в одном месте."
+
+msgid "Costs"
+msgstr "Затраты"
+
+msgid "Hotels, transport, permits — spend and margin"
+msgstr "Отели, транспорт, пермиты — расходы и маржа"
+
+msgid "Feed, chat and the Telegram bridge"
+msgstr "Лента, чат и мост в Telegram"
+
+msgid "Licences and IDs of the participants"
+msgstr "Права и документы участников"

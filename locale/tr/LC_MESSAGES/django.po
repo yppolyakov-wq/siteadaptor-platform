@@ -18440,3 +18440,15 @@ msgstr "Hesabınıza giriş yapın"
 
 msgid "News from the guide, packing tips and the chat with your group — all in one place."
 msgstr "Rehberden haberler, hazırlık listesi ve grubunuzla sohbet — hepsi tek yerde."
+
+msgid "Costs"
+msgstr "Maliyetler"
+
+msgid "Hotels, transport, permits — spend and margin"
+msgstr "Oteller, ulaşım, izinler — harcama ve marj"
+
+msgid "Feed, chat and the Telegram bridge"
+msgstr "Akış, sohbet ve Telegram köprüsü"
+
+msgid "Licences and IDs of the participants"
+msgstr "Katılımcıların ehliyet ve kimlikleri"

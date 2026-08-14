@@ -18,6 +18,24 @@
   {% if event.capacity %}· {{ event.seats_sold }}/{{ event.capacity }} {% trans "seats" %}{% else %}· {{ event.seats_sold }} {% trans "tickets" %}{% endif %}
 </p>
 
+{% comment %}MT-F6 (фидбэк «не вижу настройки затрат»): инструменты заезда были
+мелкими текст-ссылками в строке заголовка «Teilnehmer» — владелец их не находил.
+Теперь — заметная панель карточками сразу под шапкой.{% endcomment %}
+<div class="grid gap-3 sm:grid-cols-3 mb-6 max-w-3xl">
+  <a href="{% url 'events:logistics' event.pk %}" class="rounded-2xl bg-white p-4 shadow-sm hover:shadow-md transition">
+    <p class="font-semibold">💶 {% trans "Logistics & costs" %}</p>
+    <p class="mt-0.5 text-xs text-gray-500">{% trans "Hotels, transport, permits — spend and margin" %}</p>
+  </a>
+  <a href="{% url 'community:event-space' event.pk %}" class="rounded-2xl bg-white p-4 shadow-sm hover:shadow-md transition">
+    <p class="font-semibold">💬 {% trans "Travel group" %}</p>
+    <p class="mt-0.5 text-xs text-gray-500">{% trans "Feed, chat and the Telegram bridge" %}</p>
+  </a>
+  <a href="{% url 'events:documents' event.pk %}" class="rounded-2xl bg-white p-4 shadow-sm hover:shadow-md transition">
+    <p class="font-semibold">🗂 {% trans "Documents" %}</p>
+    <p class="mt-0.5 text-xs text-gray-500">{% trans "Licences and IDs of the participants" %}</p>
+  </a>
+</div>
+
 {# Статус события + действия #}
 <form method="post" action="{% url 'events:action' event.pk %}" class="flex flex-wrap items-center gap-2 mb-6">
   {% csrf_token %}
@@ -55,9 +73,6 @@
 <div class="flex items-center justify-between mb-2">
   <h2 class="text-lg font-semibold">{% trans "Attendees" %}</h2>
   <a href="{% url 'events:roster-csv' event.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Export CSV" %}</a>
-  <a href="{% url 'events:documents' event.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Documents" %}</a>
-  <a href="{% url 'community:event-space' event.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Travel group" %}</a>
-  <a href="{% url 'events:logistics' event.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Logistics & costs" %}</a>
 </div>
 
 {% if tickets %}

@@ -18468,3 +18468,15 @@ msgstr "Im Konto anmelden"
 
 msgid "News from the guide, packing tips and the chat with your group — all in one place."
 msgstr "Infos vom Guide, Packliste und der Chat mit eurer Gruppe — alles an einem Ort."
+
+msgid "Costs"
+msgstr "Kosten"
+
+msgid "Hotels, transport, permits — spend and margin"
+msgstr "Hotels, Transport, Permits — Ausgaben und Marge"
+
+msgid "Feed, chat and the Telegram bridge"
+msgstr "Feed, Chat und die Telegram-Brücke"
+
+msgid "Licences and IDs of the participants"
+msgstr "Führerscheine und Ausweise der Teilnehmer"
