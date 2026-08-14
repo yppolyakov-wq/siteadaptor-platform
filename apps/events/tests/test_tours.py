@@ -197,6 +197,28 @@ class TestStorefrontContent:
         )
 
 
+class TestDetailWording:
+    """Дефекты, найденные на стенде: страница тура за 1490 € писала «Kostenlos»,
+    а строка места печатала страну дважды («Ladakh, Indien · Indien»)."""
+
+    def test_price_block_shows_cheapest_departure_not_free(self):
+        tour = _tour(details={"price_includes": ["Motorrad"]})
+        _departure(tour, price_cents=149000)
+        body = public_views.tour_detail(
+            _pub(f"/tour/{tour.slug}/"), slug=tour.slug
+        ).content.decode()
+        assert "1490" in body
+        assert "Kostenlos" not in body and ">Free<" not in body
+
+    def test_place_line_does_not_repeat_country(self):
+        tour = _tour(region="Ladakh, Indien", country="Indien")
+        body = public_views.tour_detail(
+            _pub(f"/tour/{tour.slug}/"), slug=tour.slug
+        ).content.decode()
+        assert body.count("📍 Ladakh, Indien") == 1
+        assert "Ladakh, Indien · Indien" not in body
+
+
 class TestCountryGrouping:
     """MT-D2: разбивка листинга по странам."""
 

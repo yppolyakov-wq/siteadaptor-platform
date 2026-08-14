@@ -18450,3 +18450,9 @@ msgid "%(n)s date"
 msgid_plural "%(n)s dates"
 msgstr[0] "%(n)s Termin"
 msgstr[1] "%(n)s Termine"
+
+msgid "Our guides"
+msgstr "Unsere Guides"
+
+msgid "All guides"
+msgstr "Alle Guides"

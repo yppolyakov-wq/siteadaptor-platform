@@ -15,8 +15,12 @@ MT-1: страница тур-продукта. Контент живёт зде
 
 {% block detail_aside %}
   <h1 class="text-2xl font-semibold mb-2">{{ tour.title_text }}</h1>
-  {% if tour.region_text or tour.country_text %}
-    <p class="text-sm text-gray-500 mb-3">📍 {{ tour.region_text|default:tour.country_text }}{% if tour.region_text and tour.country_text %} · {{ tour.country_text }}{% endif %}</p>
+  {% comment %}Регион у мото-китов уже содержит страну («Ladakh, Indien») —
+  печатать её второй раз незачем.{% endcomment %}
+  {% if tour.region_text %}
+    <p class="text-sm text-gray-500 mb-3">📍 {{ tour.region_text }}</p>
+  {% elif tour.country_text %}
+    <p class="text-sm text-gray-500 mb-3">📍 {{ tour.country_text }}</p>
   {% endif %}
   {% if tour.summary_text %}<p class="text-gray-700 mb-4">{{ tour.summary_text }}</p>{% endif %}
 

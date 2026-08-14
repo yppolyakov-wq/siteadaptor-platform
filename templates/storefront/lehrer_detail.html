@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="max-w-2xl mx-auto">
-  <a href="{% url 'storefront-teachers' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "All teachers" %}</a>
+  <a href="{% url 'storefront-teachers' %}" class="text-sm text-indigo-600 hover:underline">← {% if as_guides %}{% trans "All guides" %}{% else %}{% trans "All teachers" %}{% endif %}</a>
   <div class="flex items-center gap-4 mt-3 mb-4">
     {% if teacher.photo_url %}<img src="{{ teacher.photo_url }}" alt="" class="w-24 h-24 rounded-full object-cover">{% endif %}
     <div>

@@ -18422,3 +18422,9 @@ msgid "%(n)s date"
 msgid_plural "%(n)s dates"
 msgstr[0] "%(n)s tarih"
 msgstr[1] "%(n)s tarih"
+
+msgid "Our guides"
+msgstr "Rehberlerimiz"
+
+msgid "All guides"
+msgstr "Tüm rehberler"

@@ -18518,3 +18518,9 @@ msgstr[0] "%(n)s дата"
 msgstr[1] "%(n)s даты"
 msgstr[2] "%(n)s дат"
 msgstr[3] "%(n)s даты"
+
+msgid "Our guides"
+msgstr "Наши гиды"
+
+msgid "All guides"
+msgstr "Все гиды"

@@ -222,11 +222,24 @@ def veranstaltung_ical_feed(request):
     return _ical_response(events, request, "retreats.ics")
 
 
+def _guides_wording() -> bool:
+    """MT-D4: бизнес с поездками называет людей гидами, а не преподавателями.
+
+    Признак берём из данных (есть опубликованные туры), а не из типа бизнеса:
+    список архетипов пришлось бы поддерживать вручную.
+    """
+    return Tour.objects.filter(is_published=True).exists()
+
+
 def lehrer_index(request):
     """Витрина: список преподавателей/ведущих (R3). Гейтится модулем events."""
     _require_events_active(request)
     teachers = Teacher.objects.filter(is_active=True)
-    return render(request, "storefront/lehrer_index.html", {"teachers": teachers})
+    return render(
+        request,
+        "storefront/lehrer_index.html",
+        {"teachers": teachers, "as_guides": _guides_wording()},
+    )
 
 
 def lehrer_detail(request, pk):
@@ -241,6 +254,7 @@ def lehrer_detail(request, pk):
             "events": teacher.upcoming_events(),
             # MT-D4 («немного про гида»): какие поездки ведёт именно он.
             "tours": teacher.tours.filter(is_published=True),
+            "as_guides": _guides_wording(),
         },
     )
 
