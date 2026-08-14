@@ -1148,6 +1148,33 @@ def test_apply_moto_kit_seeds_tours_with_departures_and_route_visibility():
     assert len(manali.route(itinerary.OWNER)) == 5
 
 
+def test_moto_kit_seeds_group_logistics_and_checklist():
+    """MT-3/4/6: демо показывает волны вживую — лента, закупки, чек-лист, маржа."""
+    from apps.community.models import FeedPost, FeedSpace
+    from apps.events.logistics import SupplierBooking, TourTask
+    from apps.events.models import Event
+    from apps.events.tour_finance import event_margin
+
+    tenant = TenantFactory(
+        schema_name="public", slug="moto2", name="Himalaya Riders", business_type="tour_operator"
+    )
+    assert demo_kits.apply_kit(tenant, "moto") is True
+
+    space = FeedSpace.objects.get()
+    assert FeedPost.objects.filter(space=space).count() == 3
+    assert space.tg_link_code  # код для привязки Telegram-группы готов
+
+    event = Event.objects.get(pk=space.ref_id)
+    assert SupplierBooking.objects.filter(event=event).count() == 4
+    # закупочные цены заведены, но наружу отдаётся только факт
+    paid = SupplierBooking.objects.get(status=SupplierBooking.STATUS_PAID)
+    assert paid.cost_cents == 54000
+    assert "540" not in str(paid.participant_view())
+    assert TourTask.objects.filter(event=event, done_at__isnull=False).count() == 1
+    # экономика заезда считается (расход появится после отметки «оплачено» в кабинете)
+    assert event_margin(event)["open_items"] == 1
+
+
 def test_kit_custom_statuses_applied_and_resolve():
     """FB-3 Вариант B: демо-киты заводят кастом-статусы в site_config; резолвятся end-to-end."""
     from apps.core import status_registry

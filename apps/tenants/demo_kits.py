@@ -132,6 +132,9 @@ class DemoKit:
     #    teachers:[индексы в kit.teachers], published}. Событие привязывается к туру
     #   ключом "tour": <индекс в kit.tours>.
     tours: list = field(default_factory=list)
+    # MT-3/4/6: наполнение ПЕРВОГО заезда — лента группы, закупки, чек-лист.
+    #   {posts:[текст], supplier_bookings:[{kind,supplier,day,stop,cost,…}], tasks:[{title,in_days,done}]}
+    tour_operations: dict = field(default_factory=dict)
     # R3: преподаватели/ведущие (структурная сущность events.Teacher) — (name,
     # title, photo_kw, bio). Засеваются и линкуются ко всем событиям кита.
     teachers: list = field(default_factory=list)
@@ -5378,6 +5381,66 @@ MOTO = DemoKit(
             "mechanic,motorcycle",
         ),
     ],
+    tour_operations={
+        "posts": [
+            "Servus zusammen! Hier laufen alle Infos zur Juni-Gruppe. "
+            "Fragen bitte direkt hier stellen — dann haben alle die Antwort.",
+            "Packliste ist online: Helm, Protektoren, warme Schicht für die Pässe. "
+            "Wer eine Maschine mietet, schickt mir bitte den Führerschein ins Dokumente-Fach.",
+            "Wetterlage am Rohtang ist stabil — wir starten wie geplant um 07:00 in Manali.",
+        ],
+        "supplier_bookings": [
+            {
+                "kind": "hotel",
+                "supplier": "Hotel Snow Valley, Manali",
+                "day": 1,
+                "stop": "Manali",
+                "qty": 6,
+                "cost": "540",
+                "currency": "INR",
+                "original": 49000,
+                "status": "paid",
+                "visible": True,
+                "note": "2 Nächte Akklimatisierung",
+            },
+            {
+                "kind": "hotel",
+                "supplier": "Hotel Ibex, Jispa",
+                "day": 4,
+                "stop": "Jispa",
+                "qty": 6,
+                "cost": "390",
+                "currency": "INR",
+                "original": 35500,
+                "status": "confirmed",
+                "visible": True,
+            },
+            {
+                "kind": "transport",
+                "supplier": "Sharma Logistics",
+                "day": 1,
+                "stop": "Begleitfahrzeug",
+                "cost": "1250",
+                "status": "confirmed",
+            },
+            {
+                "kind": "permit",
+                "supplier": "Inner Line Permit Office",
+                "day": 2,
+                "stop": "Keylong",
+                "qty": 10,
+                "cost": "180",
+                "status": "to_book",
+                "note": "Pässe aller Teilnehmer nötig",
+            },
+        ],
+        "tasks": [
+            {"title": "Inner-Line-Permits beantragen", "in_days": 21},
+            {"title": "Maschinen: Ölwechsel und Ketten prüfen", "in_days": 30},
+            {"title": "Sauerstoffflaschen auffüllen", "in_days": 35},
+            {"title": "Teilnehmer-Briefing verschicken", "in_days": 14, "done": True},
+        ],
+    },
     faq=[
         (
             "Wie läuft die Anzahlung?",
@@ -9633,6 +9696,56 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
             if refs.get("teachers"):
                 event.teachers.set(Teacher.objects.filter(pk__in=refs["teachers"]))
             refs["events"].append(str(event.pk))
+        _seed_tour_operations(kit, refs)
+
+
+def _seed_tour_operations(kit: DemoKit, refs: dict) -> None:
+    """MT-3/4/6 в демо: пространство поездки, закупки по точкам и чек-лист.
+
+    Наполняем ПЕРВЫЙ заезд кита — так демо показывает волны вживую, а не пустыми
+    экранами. Всё через штатные сервисы, чтобы демо ходило тем же путём, что и
+    живой тенант.
+    """
+    if not kit.tour_operations or not refs.get("events"):
+        return
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.community.services import add_post, space_for_event
+    from apps.events.logistics import SupplierBooking, TourTask
+    from apps.events.models import Event
+
+    event = Event.objects.filter(pk=refs["events"][0]).first()
+    if event is None:
+        return
+    space = space_for_event(event)
+    for text in kit.tour_operations.get("posts", []):
+        add_post(space, body=text)
+    for spec in kit.tour_operations.get("supplier_bookings", []):
+        SupplierBooking.objects.create(
+            event=event,
+            kind=spec.get("kind", SupplierBooking.KIND_HOTEL),
+            supplier_name=spec.get("supplier", ""),
+            day=spec.get("day", 0),
+            stop=spec.get("stop", ""),
+            qty=spec.get("qty", 1),
+            cost_cents=int(Decimal(str(spec.get("cost", "0"))) * 100),
+            currency=spec.get("currency", ""),
+            amount_original=spec.get("original"),
+            status=spec.get("status", SupplierBooking.STATUS_TO_BOOK),
+            visible_to_participants=bool(spec.get("visible")),
+            note=spec.get("note", ""),
+        )
+    today = timezone.localdate()
+    for idx, spec in enumerate(kit.tour_operations.get("tasks", [])):
+        TourTask.objects.create(
+            event=event,
+            title=spec.get("title", ""),
+            due_date=today + timedelta(days=spec.get("in_days", 7)),
+            done_at=timezone.now() if spec.get("done") else None,
+            sort_order=idx,
+        )
 
 
 def _seed_demo_lots(kit: DemoKit, products: list) -> None:
