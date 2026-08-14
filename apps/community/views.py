@@ -170,7 +170,9 @@ def space_poll(request, pk):
             "body": p.body,
             "time": p.created_at.strftime("%H:%M"),
         }
-        for p in list(qs)[-CHAT_TAIL:]
+        # Хвост берём запросом (не грузим всю историю ради 50 строк) и
+        # разворачиваем обратно в хронологический порядок.
+        for p in reversed(list(qs.order_by("-created_at")[:CHAT_TAIL]))
     ]
     return JsonResponse({"items": items})
 

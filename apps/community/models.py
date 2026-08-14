@@ -80,8 +80,10 @@ class FeedPost(TimestampedModel):
     body = models.TextField(blank=True)
     # Фото — обычные FileRef (публикуются внутри группы, не документы).
     images = models.JSONField(default=list, blank=True)
-    # Приватный файл (паспорт/страховка) прикладывается через досье MT-2:
-    # он остаётся зашифрованным и выдаётся своей proxy-вьюхой.
+    # Шов под приватное вложение (досье MT-2). UI пока НЕТ намеренно: показывать
+    # ссылку было бы нечестно — `can_access` пускает владельца и гида, а остальные
+    # участники получили бы 404. Правило доступа «члены пространства видят файл,
+    # приложенный гидом» — отдельное решение (v2), а не побочный эффект вёрстки.
     document = models.ForeignKey(
         "documents.SecureDocument", null=True, blank=True, on_delete=models.SET_NULL
     )

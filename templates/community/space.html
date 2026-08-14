@@ -68,9 +68,6 @@ MT-3: пространство поездки — лента объявлени�
               {% for img in post.images %}<img src="{{ img.url }}" alt="" loading="lazy" decoding="async" class="w-full aspect-video rounded-lg object-cover">{% endfor %}
             </div>
           {% endif %}
-          {% if post.document_id %}
-            <p class="mt-2 text-sm"><a href="{% url 'account-document-download' post.document_id %}" class="text-indigo-600 hover:underline">📎 {% trans "Attached file" %}</a></p>
-          {% endif %}
 
           {% for comment in post.comments.all %}
             {% if not comment.is_hidden %}

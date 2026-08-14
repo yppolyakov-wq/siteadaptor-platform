@@ -267,3 +267,42 @@ class TestSpaceLifecycle:
     def test_link_code_is_generated(self):
         space = services.space_for_event(_event())
         assert space.tg_link_code
+
+
+class TestHardening:
+    """Правки самопроверки волны: перепривязка группы и хвост поллинга."""
+
+    def _group(self, chat_id, code):
+        return {
+            "message_id": 1,
+            "chat": {"id": chat_id, "type": "supergroup"},
+            "from": {"id": 1, "first_name": "X"},
+            "text": f"/link {code}",
+        }
+
+    def test_bound_space_cannot_be_hijacked_by_another_group(self):
+        space = services.space_for_event(_event())
+        telegram_bridge.try_link(None, self._group("-100", space.tg_link_code))
+        reply = telegram_bridge.try_link(None, self._group("-200", space.tg_link_code))
+        space.refresh_from_db()
+        assert space.tg_chat_id == "-100"
+        assert "bereits" in reply
+
+    def test_same_group_may_relink(self):
+        space = services.space_for_event(_event())
+        telegram_bridge.try_link(None, self._group("-100", space.tg_link_code))
+        reply = telegram_bridge.try_link(None, self._group("-100", space.tg_link_code))
+        assert "✅" in reply
+
+    def test_poll_returns_chronological_tail(self):
+        event = _event()
+        space = services.space_for_event(event)
+        customer = _customer()
+        _ticket(event, customer)
+        for i in range(3):
+            services.add_post(space, body=f"m{i}", kind=FeedPost.KIND_MESSAGE, customer=customer)
+        response = views.space_poll(_request(customer=customer), pk=space.pk)
+        import json
+
+        bodies = [i["body"] for i in json.loads(response.content)["items"]]
+        assert bodies == ["m0", "m1", "m2"]
