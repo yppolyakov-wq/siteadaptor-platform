@@ -1,37 +1,50 @@
 {% extends "storefront/listing.html" %}
 {% load i18n %}
-{% comment %}MT-1: листинг тур-продуктов на едином каркасе (UB1-1).{% endcomment %}
+{% comment %}MT-1: листинг тур-продуктов на едином каркасе (UB1-1).
+MT-D2: при нескольких странах — секции по странам с якорь-чипами.{% endcomment %}
 
 {% block title %}{% trans "Tours" %} — {{ request.tenant.name }}{% endblock %}
 {% block listing_width %}max-w-5xl mx-auto{% endblock %}
 
 {% block listing_header %}
-  <h1 class="text-2xl font-semibold mb-6">{% trans "Tours" %}</h1>
+  <h1 class="text-2xl font-semibold mb-4">{% trans "Tours" %}</h1>
+  {% if grouped %}
+    <nav class="mb-6 flex flex-wrap gap-2" aria-label="{% trans "Countries" %}">
+      {% for g in country_groups %}
+        {% if g.key %}
+          <a href="#land-{{ g.anchor }}" class="rounded-full border px-3 py-1 text-sm hover:bg-gray-50">{{ g.label }} <span class="text-gray-500">{{ g.tours|length }}</span></a>
+        {% endif %}
+      {% endfor %}
+    </nav>
+  {% endif %}
 {% endblock %}
 
 {% block listing_grid %}
-  <div class="grid gap-6 sm:grid-cols-2" data-sf-section="tours">
-    {% for tour in tours %}
-      <a href="{% url 'storefront-tour' tour.slug %}" class="sf-card group block overflow-hidden rounded-2xl border hover:shadow-md transition">
-        {% if tour.image_url %}
-          <img src="{{ tour.image_url }}" alt="{{ tour.title_text }}" loading="lazy" decoding="async" class="w-full aspect-video object-cover">
-        {% endif %}
-        <div class="p-4">
-          <h2 class="font-semibold group-hover:text-indigo-700">{{ tour.title_text }}</h2>
-          {% if tour.region %}<p class="text-sm text-gray-500 mt-0.5">📍 {{ tour.region }}</p>{% endif %}
-          {% if tour.summary_text %}<p class="text-sm text-gray-600 mt-2">{{ tour.summary_text|truncatechars:120 }}</p>{% endif %}
-          <p class="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-500">
-            {% if tour.duration_days %}<span>{% blocktrans count days=tour.duration_days %}{{ days }} day{% plural %}{{ days }} days{% endblocktrans %}</span>{% endif %}
-            {% if tour.distance_km %}<span>{{ tour.distance_km }} km</span>{% endif %}
-            {% if tour.difficulty %}<span>{{ tour.difficulty_label }}</span>{% endif %}
-          </p>
-          {% if tour.from_price_cents %}
-            <p class="mt-2 font-semibold">{% trans "from" %} {{ tour.from_price_eur|floatformat:2 }} €</p>
-          {% endif %}
+  {% if grouped %}
+    {% for g in country_groups %}
+      <section id="land-{{ g.anchor }}" class="mb-10">
+        <h2 class="text-xl font-semibold mb-4">{% if g.label %}{{ g.label }}{% else %}{% trans "More tours" %}{% endif %}</h2>
+        <div class="grid gap-6 sm:grid-cols-2" data-sf-section="tours">
+          {% for tour in g.tours %}{% include "storefront/_tour_card.html" %}{% endfor %}
         </div>
-      </a>
+      </section>
     {% endfor %}
-  </div>
+  {% else %}
+    <div class="grid gap-6 sm:grid-cols-2" data-sf-section="tours">
+      {% for tour in tours %}{% include "storefront/_tour_card.html" %}{% endfor %}
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block listing_after %}
+  {% if private_tour_url and tours %}
+    {% comment %}MT-D3: приватный выезд — заявка с датой и числом участников.{% endcomment %}
+    <section class="mt-4 rounded-2xl border bg-gray-50 p-6 text-center">
+      <h2 class="text-lg font-semibold">{% trans "None of the dates fit?" %}</h2>
+      <p class="mt-1 text-gray-600">{% trans "We also ride private tours: your group, your dates, route on request." %}</p>
+      <a href="{{ private_tour_url }}" class="mt-4 inline-block rounded-lg bg-indigo-600 px-5 py-3 font-medium text-white hover:bg-indigo-700">{% trans "Request a private tour" %}</a>
+    </section>
+  {% endif %}
 {% endblock %}
 
 {% block listing_empty %}

@@ -18,6 +18,22 @@
   </div>
   {% if teacher.bio %}<p class="text-gray-700 whitespace-pre-line mb-6">{{ teacher.bio_localized }}</p>{% endif %}
 
+  {% if tours %}
+    {% comment %}MT-D4: поездки, которые ведёт этот гид.{% endcomment %}
+    <h2 class="text-lg font-bold mb-3">{% trans "Tours with this guide" %}</h2>
+    <div class="space-y-2 mb-6">
+      {% for t in tours %}
+        <a href="{% url 'storefront-tour' t.slug %}" class="block bg-white rounded-xl shadow-sm p-4 hover:shadow-md transition">
+          <div class="font-medium">{{ t.title_text }}</div>
+          <div class="text-sm text-gray-500">
+            {% if t.region_text %}📍 {{ t.region_text }}{% endif %}
+            {% if t.duration_days %} · {% blocktrans count days=t.duration_days %}{{ days }} day{% plural %}{{ days }} days{% endblocktrans %}{% endif %}
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
+
   {% if events %}
     <h2 class="text-lg font-bold mb-3">{% trans "Upcoming retreats" %}</h2>
     <div class="space-y-2">

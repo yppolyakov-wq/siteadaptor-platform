@@ -68,8 +68,18 @@ class Tour(I18nMixin, TimestampedModel):
     # Маршрут по дням с хронометражем и per-остановочной видимостью
     # (схема и фильтры — apps/events/itinerary.py).
     itinerary = models.JSONField(default=list, blank=True)
+    # MT-D1: переводы вложенного JSON — той же семантики, что `Event.details_i18n`
+    # (I18N-12): база задаёт форму, оверлей заменяет только листья-строки.
+    details_i18n = models.JSONField(default=dict, blank=True)
+    itinerary_i18n = models.JSONField(default=dict, blank=True)
     teachers = models.ManyToManyField("Teacher", blank=True, related_name="tours")
     region = models.CharField(max_length=120, blank=True)  # «Himalaya, Indien»
+    region_i18n = models.JSONField(default=dict, blank=True)
+    # MT-D2: страна — ЯВНЫЙ ключ группировки листинга. Не выводим её из `region`
+    # (свободный текст владельца): группировка по догадке о формате врала бы.
+    # Группируем по БАЗОВОМУ значению, показываем `country_localized`.
+    country = models.CharField(max_length=80, blank=True)
+    country_i18n = models.JSONField(default=dict, blank=True)
     difficulty = models.CharField(max_length=20, choices=DIFFICULTIES, blank=True)
     # Публичные «шапки» тура. 0 = не задано (витрина блок скрывает); заданы
     # руками, а не выведены из маршрута, — маршрут может быть закрыт целиком.
@@ -98,6 +108,12 @@ class Tour(I18nMixin, TimestampedModel):
     def description_localized(self, locale: str | None = None) -> str:
         return self.get_overlay("description", "description_i18n", locale)
 
+    def region_localized(self, locale: str | None = None) -> str:
+        return self.get_overlay("region", "region_i18n", locale)
+
+    def country_localized(self, locale: str | None = None) -> str:
+        return self.get_overlay("country", "country_i18n", locale)
+
     # Свойства-обёртки для шаблонов (в шаблоне метод с аргументом не вызвать).
     @property
     def title_text(self) -> str:
@@ -112,6 +128,14 @@ class Tour(I18nMixin, TimestampedModel):
         return self.description_localized()
 
     @property
+    def region_text(self) -> str:
+        return self.region_localized()
+
+    @property
+    def country_text(self) -> str:
+        return self.country_localized()
+
+    @property
     def image_url(self) -> str:
         """URL обложки (primary или первое фото); пусто, если фото нет."""
         if not self.images:
@@ -121,10 +145,17 @@ class Tour(I18nMixin, TimestampedModel):
 
     @property
     def landing(self) -> dict:
-        """Нормализованные блоки лендинга (см. apps/events/details.py)."""
+        """Нормализованные блоки лендинга (см. apps/events/details.py).
+
+        MT-D1: на неосновной локали поверх базы кладётся `details_i18n` — как у
+        `Event.landing` (оверлей строится по НОРМАЛИЗОВАННОЙ форме, иначе
+        позиционный мердж списков разъедется).
+        """
+        from apps.core.i18n_json import overlay_json
+
         from . import details
 
-        return details.normalize(self.details)
+        return overlay_json(details.normalize(self.details), self.details_i18n)
 
     @property
     def difficulty_label(self) -> str:
@@ -132,10 +163,19 @@ class Tour(I18nMixin, TimestampedModel):
 
     # --- маршрут ------------------------------------------------------------
     def route(self, audience: str) -> list[dict]:
-        """Остановки маршрута, доступные аудитории (owner/participant/public)."""
+        """Остановки маршрута, доступные аудитории (owner/participant/public).
+
+        Порядок операций важен: нормализация → ПЕРЕВОД → фильтр видимости.
+        Оверлей мерджит списки позиционно, а фильтр выкидывает закрытые
+        остановки — переводить после фильтра значит сажать тексты на чужие
+        строки.
+        """
+        from apps.core.i18n_json import overlay_json
+
         from . import itinerary
 
-        return itinerary.visible(self.itinerary, audience)
+        stops = overlay_json(itinerary.normalize(self.itinerary), self.itinerary_i18n)
+        return itinerary.visible(stops, audience)
 
     def route_hidden_count(self, audience: str) -> int:
         from . import itinerary

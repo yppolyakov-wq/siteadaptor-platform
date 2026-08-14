@@ -28,7 +28,27 @@ def _resolved_locale(locale: str | None) -> str:
 
 # Ключи, которые НИКОГДА не переводятся, даже если содержат строку: это адреса
 # картинок и служебные значения (в базе они рядом с текстом — напр. hosts.photo).
-SKIP_KEYS = frozenset({"photo", "image", "url", "src", "href", "icon", "id", "key", "rating"})
+# MT-D1: к ним добавлены управляющие значения маршрута тура — уровень доступа
+# (`visibility`), время и координаты остановки. Это не показной текст: перевод
+# `public` сломал бы фильтр видимости, а «09:00»/«32.2432» переводить нечего.
+SKIP_KEYS = frozenset(
+    {
+        "photo",
+        "image",
+        "url",
+        "src",
+        "href",
+        "icon",
+        "id",
+        "key",
+        "rating",
+        "visibility",
+        "time_from",
+        "time_to",
+        "lat",
+        "lng",
+    }
+)
 
 
 def _merge(base, ov):

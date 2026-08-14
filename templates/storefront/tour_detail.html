@@ -15,7 +15,9 @@ MT-1: страница тур-продукта. Контент живёт зде
 
 {% block detail_aside %}
   <h1 class="text-2xl font-semibold mb-2">{{ tour.title_text }}</h1>
-  {% if tour.region %}<p class="text-sm text-gray-500 mb-3">📍 {{ tour.region }}</p>{% endif %}
+  {% if tour.region_text or tour.country_text %}
+    <p class="text-sm text-gray-500 mb-3">📍 {{ tour.region_text|default:tour.country_text }}{% if tour.region_text and tour.country_text %} · {{ tour.country_text }}{% endif %}</p>
+  {% endif %}
   {% if tour.summary_text %}<p class="text-gray-700 mb-4">{{ tour.summary_text }}</p>{% endif %}
 
   <dl class="grid grid-cols-2 gap-3 mb-5 text-sm">
@@ -39,8 +41,13 @@ MT-1: страница тур-продукта. Контент живёт зде
 
   {% if departures %}
     <a href="#termine" class="block text-center bg-indigo-600 text-white rounded-lg px-5 py-3 font-medium hover:bg-indigo-700">{% trans "See dates" %}</a>
+  {% elif private_tour_url %}
+    <a href="{{ private_tour_url }}" class="block text-center bg-indigo-600 text-white rounded-lg px-5 py-3 font-medium hover:bg-indigo-700">{% trans "Request a private tour" %}</a>
   {% else %}
     <a href="{% url 'storefront-message' %}?kind=tour&id={{ tour.pk }}&label={{ tour.title_text|urlencode }}" class="block text-center bg-indigo-600 text-white rounded-lg px-5 py-3 font-medium hover:bg-indigo-700">💬 {% trans "Ask for dates" %}</a>
+  {% endif %}
+  {% if departures and private_tour_url %}
+    <a href="{{ private_tour_url }}" class="mt-2 block text-center rounded-lg border px-5 py-3 font-medium hover:bg-gray-50">{% trans "Request your own dates" %}</a>
   {% endif %}
 {% endblock %}
 
@@ -86,6 +93,14 @@ MT-1: страница тур-продукта. Контент живёт зде
       </ul>
     {% else %}
       <p class="text-gray-600">{% trans "No dates published yet — get in touch and we will plan one." %}</p>
+    {% endif %}
+    {% if private_tour_url %}
+      {% comment %}MT-D3: приватный выезд — тот же тур вне общих дат/группы.{% endcomment %}
+      <div class="mt-4 rounded-2xl border bg-gray-50 p-5">
+        <p class="font-medium">{% trans "Prefer your own group?" %}</p>
+        <p class="mt-1 text-sm text-gray-600">{% trans "Tell us your dates and how many of you are riding — we will plan this tour privately for your group." %}</p>
+        <a href="{{ private_tour_url }}" class="mt-3 inline-block rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">{% trans "Request a private tour" %}</a>
+      </div>
     {% endif %}
   </section>
 {% endwith %}{% endblock %}

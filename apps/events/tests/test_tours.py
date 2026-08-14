@@ -197,6 +197,123 @@ class TestStorefrontContent:
         )
 
 
+class TestCountryGrouping:
+    """MT-D2: разбивка листинга по странам."""
+
+    def test_tours_are_grouped_by_country_in_order_of_appearance(self):
+        tours = [
+            _tour(title="Ladakh", country="Indien", sort_order=1),
+            _tour(title="Mustang", country="Nepal", sort_order=2),
+            _tour(title="Spiti", country="Indien", sort_order=3),
+        ]
+        groups = public_views.group_tours_by_country(tours)
+        assert [g["key"] for g in groups] == ["Indien", "Nepal"]
+        assert [t.title for t in groups[0]["tours"]] == ["Ladakh", "Spiti"]
+
+    def test_two_countries_render_section_headings(self):
+        _tour(title="Ladakh", country="Indien")
+        _tour(title="Mustang", country="Nepal")
+        body = public_views.touren_index(_pub()).content.decode()
+        assert 'id="land-indien"' in body and 'id="land-nepal"' in body
+
+    def test_single_country_renders_flat_list(self):
+        """Заголовок над единственной группой — шум, а не структура."""
+        _tour(title="Ladakh", country="Indien")
+        _tour(title="Spiti", country="Indien")
+        assert 'id="land-indien"' not in public_views.touren_index(_pub()).content.decode()
+
+    def test_group_label_is_localized_but_key_stays_base(self):
+        """Группируем по БАЗОВОМУ значению, показываем перевод — иначе на другой
+        локали одна страна распалась бы на несколько групп."""
+        tours = [
+            _tour(title="Ladakh", country="Indien", country_i18n={"en": "India"}),
+            _tour(title="Spiti", country="Indien"),  # без перевода
+        ]
+        from django.utils import translation
+
+        with translation.override("en"):
+            groups = public_views.group_tours_by_country(tours)
+        assert len(groups) == 1
+        assert groups[0]["key"] == "Indien" and groups[0]["label"] == "India"
+
+
+class TestPrivateTourRequest:
+    """MT-D3: заявка на приватный выезд (вне общих дат)."""
+
+    def test_link_appears_when_jobs_module_is_active(self):
+        tour = _tour(title="Ladakh")
+        response = public_views.tour_detail(_pub(f"/tour/{tour.slug}/"), slug=tour.slug)
+        assert "/anfrage/?betreff=Ladakh" in response.content.decode()
+
+    def test_no_link_without_jobs_module(self):
+        """Гейт — активность модуля (disabled_modules), а не витринная разметка."""
+        tour = _tour(title="Ladakh")
+        request = _pub(f"/tour/{tour.slug}/", tenant=_tenant(disabled_modules=["jobs"]))
+        body = public_views.tour_detail(request, slug=tour.slug).content.decode()
+        assert "/anfrage/?betreff=" not in body
+
+    def test_index_offers_private_tour_when_module_active(self):
+        _tour(title="Ladakh")
+        body = public_views.touren_index(_pub()).content.decode()
+        assert "Individuelle Reise" in body or "private tour" in body.lower()
+
+
+class TestLocalizedContent:
+    """MT-D1: оверлеи региона/страны/лендинга/маршрута."""
+
+    def test_region_and_country_fall_back_to_base(self):
+        tour = _tour(region="Ladakh, Indien", country="Indien")
+        from django.utils import translation
+
+        with translation.override("en"):
+            assert tour.region_text == "Ladakh, Indien"  # перевода нет — база
+        tour.region_i18n = {"en": "Ladakh, India"}
+        with translation.override("en"):
+            assert tour.region_text == "Ladakh, India"
+
+    def test_landing_overlay_translates_only_leaves(self):
+        tour = _tour(
+            details={"promise": "Fünf Pässe", "price_includes": ["Motorrad", "Hotels"]},
+            details_i18n={"en": {"promise": "Five passes", "price_includes": ["Motorcycle", ""]}},
+        )
+        from django.utils import translation
+
+        with translation.override("en"):
+            landing = tour.landing
+        assert landing["promise"] == "Five passes"
+        assert landing["price_includes"] == ["Motorcycle", "Hotels"]  # пустой → база
+
+    def test_route_is_translated_before_it_is_filtered(self):
+        """Оверлей мерджит списки ПОЗИЦИОННО: если переводить после фильтра,
+        тексты сядут на чужие остановки, а закрытая — вообще может утечь."""
+        tour = _tour(
+            itinerary_i18n={
+                "en": [
+                    {"title": "Start in Manali"},
+                    {"title": "Hotel in Jispa"},
+                    {"title": "Secret pass"},
+                ]
+            }
+        )
+        from django.utils import translation
+
+        with translation.override("en"):
+            stops = tour.route(itinerary.GUEST)
+            body = public_views.tour_detail(
+                _pub(f"/tour/{tour.slug}/"), slug=tour.slug
+            ).content.decode()
+        assert [s["title"] for s in stops] == ["Start in Manali"]
+        assert "Hotel in Jispa" not in body and "Secret pass" not in body
+
+    def test_visibility_is_never_translated(self):
+        """`visibility` — управляющее значение: перевод сломал бы фильтр."""
+        tour = _tour(itinerary_i18n={"en": [{"visibility": "public"}, {"visibility": "public"}]})
+        from django.utils import translation
+
+        with translation.override("en"):
+            assert len(tour.route(itinerary.GUEST)) == 1
+
+
 class TestCabinet:
     def test_create_tour_generates_unique_slug(self):
         views.tour_list(_cab(method="post", data={"title": "Manali – Leh"}))

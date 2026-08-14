@@ -7,6 +7,7 @@
 """
 
 import uuid
+from urllib.parse import quote
 
 import stripe
 from django.contrib import messages
@@ -235,7 +236,12 @@ def lehrer_detail(request, pk):
     return render(
         request,
         "storefront/lehrer_detail.html",
-        {"teacher": teacher, "events": teacher.upcoming_events()},
+        {
+            "teacher": teacher,
+            "events": teacher.upcoming_events(),
+            # MT-D4 («немного про гида»): какие поездки ведёт именно он.
+            "tours": teacher.tours.filter(is_published=True),
+        },
     )
 
 
@@ -590,6 +596,44 @@ def veranstaltung_confirmation(request, code):
     )
 
 
+def group_tours_by_country(tours) -> list[dict]:
+    """MT-D2: [{key,label,anchor,tours}] в порядке появления туров.
+
+    Группируем по БАЗОВОМУ значению `country` (ключ владельца), а показываем
+    `country_text` — иначе на en/ru одна и та же страна разъехалась бы на
+    несколько групп. Туры без страны собираются в безымянную группу.
+    """
+    from django.utils.text import slugify
+
+    order: list[str] = []
+    buckets: dict[str, list] = {}
+    for tour in tours:
+        key = (tour.country or "").strip()
+        if key not in buckets:
+            buckets[key] = []
+            order.append(key)
+        buckets[key].append(tour)
+    return [
+        {
+            "key": key,
+            "label": buckets[key][0].country_text if key else "",
+            "anchor": slugify(key) or "weitere",
+            "tours": buckets[key],
+        }
+        for key in order
+    ]
+
+
+def _private_tour_url(request, subject: str = "") -> str:
+    """MT-D3: ссылка на структурированную заявку (jobs) или пусто, если модуль
+    выключен — тогда витрина оставляет обычное сообщение."""
+    tenant = getattr(request, "tenant", None)
+    if tenant is None or not tenant.is_module_active("jobs"):
+        return ""
+    url = reverse("storefront-anfrage")
+    return f"{url}?betreff={quote(subject)}" if subject else url
+
+
 def touren_index(request):
     """MT-1: публичный список туров (тур = контент, заезды = даты продажи)."""
     _require_events_active(request)
@@ -598,7 +642,20 @@ def touren_index(request):
             "teachers", Tour.upcoming_prefetch()
         )
     )
-    return render(request, "storefront/tour_index.html", {"tours": tours})
+    groups = group_tours_by_country(tours)
+    named = [g for g in groups if g["key"]]
+    return render(
+        request,
+        "storefront/tour_index.html",
+        {
+            "tours": tours,
+            "country_groups": groups,
+            # Разбивка по странам имеет смысл только когда стран НЕСКОЛЬКО —
+            # иначе это лишний заголовок над единственным списком.
+            "grouped": len(named) > 1,
+            "private_tour_url": _private_tour_url(request),
+        },
+    )
 
 
 def tour_detail(request, slug):
@@ -631,6 +688,9 @@ def tour_detail(request, slug):
             "route_km": itinerary_mod.total_km(stops),
             "route_hidden": tour.route_hidden_count(audience),
             "departures": list(tour.upcoming_departures()),
+            # MT-D3: «не подходит ни одна дата» — заявка на приватный выезд с
+            # темой этого тура (форма jobs); без модуля jobs ссылки нет.
+            "private_tour_url": _private_tour_url(request, tour.title_text),
             # Порядок/скрытие тематических блоков — общий с событиями (M20U-4).
             "event_detail_order": siteconfig.event_detail_order(
                 getattr(tenant, "site_config", {}) or {}

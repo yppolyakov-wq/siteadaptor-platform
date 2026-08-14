@@ -18460,3 +18460,46 @@ msgstr[0] "%(n)s не закрито"
 msgstr[1] "%(n)s не закрито"
 msgstr[2] "%(n)s не закрито"
 msgstr[3] "%(n)s не закрито"
+
+# --- MT-D: витрина мото-архетипа (страны, приватный выезд, гиды) ---
+
+msgid "Land (gruppiert die Reise-Übersicht)"
+msgstr "Країна (групує список подорожей)"
+
+msgid "Countries"
+msgstr "Країни"
+
+msgid "More tours"
+msgstr "Інші подорожі"
+
+msgid "on request"
+msgstr "на запит"
+
+msgid "None of the dates fit?"
+msgstr "Жодна дата не підходить?"
+
+msgid "We also ride private tours: your group, your dates, route on request."
+msgstr "Ми проводимо будь-який маршрут приватно: ваша група, ваші дати, маршрут за домовленістю."
+
+msgid "Request a private tour"
+msgstr "Запитати приватну подорож"
+
+msgid "Request your own dates"
+msgstr "Запитати власні дати"
+
+msgid "Prefer your own group?"
+msgstr "Хочете їхати своєю групою?"
+
+msgid "Tell us your dates and how many of you are riding — we will plan this tour privately for your group."
+msgstr "Назвіть бажані дати й кількість учасників — ми проведемо цю подорож приватно для вашої групи."
+
+msgid "Tours with this guide"
+msgstr "Подорожі з цим гідом"
+
+#, python-format
+msgid "%(n)s date"
+msgid_plural "%(n)s dates"
+msgstr[0] "%(n)s дата"
+msgstr[1] "%(n)s дати"
+msgstr[2] "%(n)s дат"
+msgstr[3] "%(n)s дати"

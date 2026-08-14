@@ -18269,3 +18269,44 @@ msgid "%(n)s still open"
 msgid_plural "%(n)s still open"
 msgstr[0] "%(n)s still open"
 msgstr[1] "%(n)s still open"
+
+# --- MT-D: витрина мото-архетипа (страны, приватный выезд, гиды) ---
+
+msgid "Land (gruppiert die Reise-Übersicht)"
+msgstr "Country (groups the tour overview)"
+
+msgid "Countries"
+msgstr "Countries"
+
+msgid "More tours"
+msgstr "More tours"
+
+msgid "on request"
+msgstr "on request"
+
+msgid "None of the dates fit?"
+msgstr "None of the dates fit?"
+
+msgid "We also ride private tours: your group, your dates, route on request."
+msgstr "We also ride private tours: your group, your dates, route on request."
+
+msgid "Request a private tour"
+msgstr "Request a private tour"
+
+msgid "Request your own dates"
+msgstr "Request your own dates"
+
+msgid "Prefer your own group?"
+msgstr "Prefer your own group?"
+
+msgid "Tell us your dates and how many of you are riding — we will plan this tour privately for your group."
+msgstr "Tell us your dates and how many of you are riding — we will plan this tour privately for your group."
+
+msgid "Tours with this guide"
+msgstr "Tours with this guide"
+
+#, python-format
+msgid "%(n)s date"
+msgid_plural "%(n)s dates"
+msgstr[0] "%(n)s date"
+msgstr[1] "%(n)s dates"
