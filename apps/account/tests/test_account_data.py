@@ -64,3 +64,46 @@ def test_reservations_section_renders_via_transaction_adapter():
     resv = next((s for s in sections if s["key"] == "reservations"), None)
     assert resv and resv["items"]
     assert resv["items"][0]["status"]  # читаемая подпись, не падение
+
+
+def test_travel_groups_section_links_active_ticket_holder(settings):
+    """MT-F4b: раздел «Reisegruppen» в ЛК — постоянный вход в ленту/чат поездки."""
+    from django.utils import timezone
+
+    from apps.community.services import space_for_event
+    from apps.events.models import Event, Ticket
+
+    event = Event.objects.create(
+        title="Manali – Leh · Juni",
+        starts_at=timezone.now() + timezone.timedelta(days=30),
+    )
+    space = space_for_event(event)
+    customer = Customer.objects.create(name="Rider", email="rider@test.de")
+    Ticket.objects.create(event=event, customer=customer, quantity=1, reference_code="E-KONTO1")
+
+    sections = account_data.sections_for(_req(), customer)
+    groups = next((s for s in sections if s["key"] == "groups"), None)
+    assert groups and f"/reisegruppe/{space.pk}/" in groups["items"][0]["url"]
+
+
+def test_travel_groups_hide_cancelled_ticket(settings):
+    """Отменённый билет доступа не даёт — раздел не обещает группу, где будет 404."""
+    from django.utils import timezone
+
+    from apps.community.services import space_for_event
+    from apps.events.models import Event, Ticket
+
+    event = Event.objects.create(
+        title="Storniert", starts_at=timezone.now() + timezone.timedelta(days=30)
+    )
+    space_for_event(event)
+    customer = Customer.objects.create(name="Ex", email="ex@test.de")
+    Ticket.objects.create(
+        event=event,
+        customer=customer,
+        quantity=1,
+        reference_code="E-KONTO2",
+        status=Ticket.STATUS_CANCELLED,
+    )
+    sections = account_data.sections_for(_req(), customer)
+    assert not any(s["key"] == "groups" for s in sections)

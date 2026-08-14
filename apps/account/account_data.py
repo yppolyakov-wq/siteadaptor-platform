@@ -44,6 +44,9 @@ def sections_for(request, customer):
     # --- Tickets (events) ---
     if active("events"):
         out.append(_safe(lambda: _tickets(customer)))
+        # MT-F4b: группы поездок (лента+чат) — владелец дважды не нашёл чат;
+        # ЛК — постоянный раздел, страница билета — разовый вход.
+        out.append(_safe(lambda: _travel_groups(customer)))
 
     # --- Angebote/Aufträge (jobs) ---
     if active("jobs"):
@@ -168,6 +171,34 @@ def _tickets(customer):
             }
         )
     return {"key": "tickets", "title": "Tickets", "icon": "🎟️", "items": items}
+
+
+def _travel_groups(customer):
+    """MT-F4b: пространства заездов, куда у клиента есть действующий билет.
+
+    Тот же критерий, что у `community.access._has_ticket` (отменённый билет
+    доступа не даёт) — раздел ЛК не должен обещать группу, которую вьюха
+    встретит 404-м.
+    """
+    from apps.community.models import FeedSpace
+    from apps.core import status_registry
+    from apps.events.models import Ticket
+
+    event_ids = [
+        str(pk)
+        for pk in Ticket.objects.filter(customer=customer)
+        .exclude(status__in=status_registry.cancelled_statuses_for("ticket"))
+        .values_list("event_id", flat=True)
+    ]
+    items = [
+        {
+            "title": str(space),
+            "sub": "Neuigkeiten vom Guide & Gruppen-Chat",
+            "url": reverse("community-space", args=[space.pk]),
+        }
+        for space in FeedSpace.objects.filter(ref_kind="event", ref_id__in=event_ids)[:LIMIT]
+    ]
+    return {"key": "groups", "title": "Reisegruppen", "icon": "💬", "items": items}
 
 
 def _jobs(customer):
