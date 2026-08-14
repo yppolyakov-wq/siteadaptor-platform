@@ -369,7 +369,7 @@ def translate_tenant_content(tenant, locales) -> None:
         Product,
         ProductVariant,
     )
-    from apps.events.models import BlogPost, Event, Teacher
+    from apps.events.models import BlogPost, Event, Teacher, Tour
     from apps.stays.models import RatePlan, StaySettings, StayUnit
 
     for prod in Product.objects.all():
@@ -482,6 +482,17 @@ def translate_tenant_content(tenant, locales) -> None:
                     "questions_i18n",
                 ]
             )
+
+    # MT-1: тур-продукт — те же оверлеи, что у события, плюс тизер карточки.
+    # Без этого прохода переводы тура лягут мёртвым грузом (инвариант I18N-12).
+    for tour in Tour.objects.all():
+        fields = [
+            f"{f}_i18n"
+            for f in ("title", "summary", "description")
+            if _fill_overlay(tour, f, f"{f}_i18n", locales)
+        ]
+        if fields:
+            tour.save(update_fields=fields)
 
     for teacher in Teacher.objects.all():
         fields = [
