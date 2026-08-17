@@ -1425,7 +1425,9 @@ def test_apply_catering_kit_reference_parity_gk15():
     # DS-4: пилот Fokus — композиция сборки материализована в конфиге кита
     assert cfg["hero_style"] == "split"
     assert cfg["nav"]["cta"] is True
-    assert cfg["catalog_layout"]["preset"] == "preisliste"
+    # MEN-20: полная Speisekarte — «печатной картой»; тизер главной остаётся
+    # плоским preisliste из одобренного макета Fokus.
+    assert cfg["catalog_layout"]["preset"] == "preisliste_karte"
     prow = next(s2 for s2 in cfg["sections"] if s2["key"] == "products")
     assert prow["style"] == "preisliste"
     arow = next(s2 for s2 in cfg["sections"] if s2["key"] == "anfrage")

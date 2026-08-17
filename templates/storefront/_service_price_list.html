@@ -1,0 +1,34 @@
+{% load i18n %}{% load l10n %}
+{% comment %}MEN-18 (фидбэк владельца 2026-08-17 «виды нужны везде, где есть
+товары и услуги»): прайс-виды листинга УСЛУГ. Ожидает `services` (выдача
+листинга — фасеты/поиск уже применены) и `pl_style`:
+  "preisliste"           — строка «имя — описание … цена», отточие;
+  "preisliste_foto"      — + мини-фото 40px;
+  "preisliste_2sp"       — две колонки на md+ (CSS-columns, строки не рвутся);
+  "preisliste_foto_2sp"  — строки с фото СЕТКОЙ в 2 колонки (columns рвал бы
+                            строку с картинкой между колонками — урок MEN-14).
+Отдельный партиал, а не общий `_price_list.html`: у Service другие поля
+(name_localized/price_eur/image_url/duration_minutes, валюты нет) и другая
+деталь; продуктовый шаблон переплетён с buch/karte/variants — генерализация
+дороже дубля разметки строки. Группировки нет: услуги живут без категорий
+(Collections — фасет-чипы над списком, они уже фильтруют выдачу).{% endcomment %}
+{% with st=pl_style|default:"" %}
+<div class="{% if st == 'preisliste_2sp' %}md:columns-2 md:gap-10{% elif st == 'preisliste_foto_2sp' %}grid md:grid-cols-2 gap-x-10 gap-y-1{% else %}max-w-2xl{% endif %}" data-service-price-list data-pl-style="{{ st|default:'std' }}">
+  {% for s in services %}
+    <a href="{% url 'storefront-service-detail' s.pk %}" class="group flex {% if st == 'preisliste_foto' or st == 'preisliste_foto_2sp' %}items-center{% else %}items-baseline{% endif %} gap-2 py-1.5 border-b border-dotted border-gray-300 last:border-0{% if st == 'preisliste_2sp' %} break-inside-avoid{% endif %}">
+      {% if st == 'preisliste_foto' or st == 'preisliste_foto_2sp' %}{% if s.image_url %}
+      <img src="{{ s.image_url }}" alt="" loading="lazy" class="w-10 h-10 rounded-lg object-cover shrink-0">
+      {% endif %}{% endif %}
+      <span class="min-w-0">
+        <span class="font-medium group-hover:underline">{{ s.name_localized }}</span>
+        {% with d=s.description_localized %}{% if d %}<span class="text-sm text-gray-500"> — {{ d|truncatechars:60 }}</span>{% endif %}{% endwith %}
+      </span>
+      <span class="flex-1 min-w-4"></span>
+      <span class="shrink-0 text-right">
+        {% if s.price_cents %}<span class="font-bold whitespace-nowrap" style="font-variant-numeric: tabular-nums;">{{ s.price_eur|floatformat:2 }} €</span>{% endif %}
+        {% if s.duration_minutes %}<span class="block text-xs text-gray-400 whitespace-nowrap">{{ s.duration_minutes }} {% trans "Min." %}</span>{% endif %}
+      </span>
+    </a>
+  {% endfor %}
+</div>
+{% endwith %}

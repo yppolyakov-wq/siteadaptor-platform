@@ -667,7 +667,7 @@
             <span class="text-sm font-medium flex-1">{% trans "Services: grid layout" %}</span>
             <select name="service_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               <option value="">{% trans "Standard" %}</option>
-              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if service_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+              {% for pk, plabel in service_preset_options|default:preset_options %}<option value="{{ pk }}" {% if service_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
             </select>
           </div>
           {% endif %}

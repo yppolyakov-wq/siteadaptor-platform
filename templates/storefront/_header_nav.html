@@ -20,14 +20,19 @@ hover + focus-within (клавиатура/тап по chevron-пункту бе
         за вьюпорт — правая колонка обрезалась и была некликабельна. Ширина
         клампится по экрану, а положение при нехватке места подвинет JS
         (`_base.html`, data-nav-panel).{% endcomment %}
-        <div class="bg-white rounded-xl shadow-lg ring-1 ring-black/5 p-3 grid grid-cols-2 gap-2 w-[420px] max-w-[calc(100vw-2rem)]">
+        {% comment %}MEN-20 (фидбэк «субменю разнообразить»): панель шире, под
+        названием — короткое описание категории (если владелец его заполнил).{% endcomment %}
+        <div class="bg-white rounded-xl shadow-lg ring-1 ring-black/5 p-3 grid grid-cols-2 gap-2 w-[560px] max-w-[calc(100vw-2rem)]">
           {% for c in item.children %}
-            <a href="{{ c.url }}" class="flex items-center gap-2 rounded-lg p-1.5 hover:bg-gray-50">
+            <a href="{{ c.url }}" class="flex items-center gap-2.5 rounded-lg p-2 hover:bg-gray-50">
               {% comment %}Ревью MEN-15: у категории без фото НЕ рисуем серый
               квадрат — в смешанном каталоге (фото есть у части направлений)
               панель превращалась в ряд пустых плашек.{% endcomment %}
               {% if c.image %}<img src="{{ c.image }}" alt="" loading="lazy" class="w-14 h-14 rounded-lg object-cover shrink-0">{% endif %}
-              <span class="min-w-0 text-sm font-medium text-gray-700 break-words">{{ c.label }}</span>
+              <span class="min-w-0">
+                <span class="block text-sm font-medium text-gray-700 break-words">{{ c.label }}</span>
+                {% if c.desc %}<span class="block text-xs text-gray-500 leading-snug">{{ c.desc|truncatechars:60 }}</span>{% endif %}
+              </span>
             </a>
           {% endfor %}
         </div>

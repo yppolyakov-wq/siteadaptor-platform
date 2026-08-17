@@ -697,3 +697,41 @@ def test_contact_link_gated_by_inbox_module():
         business_type="friseur", contact_phone="+49 761 1", disabled_modules=["inbox"]
     )
     assert "/nachricht/" not in public_views.termin_index(_req(tenant=off)).content.decode()
+
+
+def test_service_index_price_views_render_rows():
+    """MEN-18 (фидбэк 2026-08-17): прайс-виды услуг — строки с ценой и
+    длительностью вместо карточек; переключатель «список/плитка» спрятан
+    (он ищет data-grid, которой у прайс-листа нет)."""
+    _service()
+    for preset, marker in (
+        ("preisliste", 'data-pl-style="preisliste"'),
+        ("preisliste_foto", 'data-pl-style="preisliste_foto"'),
+        ("preisliste_2sp", "md:columns-2"),
+        ("preisliste_foto_2sp", "grid md:grid-cols-2"),
+    ):
+        request = _req()
+        request.tenant.site_config = {"service_index_layout": {"preset": preset}}
+        body = public_views.termin_index(request).content.decode()
+        assert "data-service-price-list" in body, preset
+        assert marker in body, preset
+        assert "Ölwechsel" in body and "49,00" in body and "30 Min." in body
+        assert 'data-grid="services"' not in body, preset
+        # кнопки переключателя несут data-grid-key="services" (общий скрипт в
+        # _base упоминает голые атрибуты в селекторах — по ним матчить нельзя)
+        assert 'data-grid-key="services"' not in body, preset
+
+
+def test_service_index_price_view_shows_photo_and_keeps_facets():
+    """Фото-вид рисует мини-фото услуги; фасет-чипы/поиск каркаса живы."""
+    svc = _service(image=[{"id": "a", "url": "/media/cut.jpg", "is_primary": True}])
+    request = _req()
+    request.tenant.site_config = {"service_index_layout": {"preset": "preisliste_foto"}}
+    body = public_views.termin_index(request).content.decode()
+    assert 'src="/media/cut.jpg"' in body
+    assert f"/leistung/{svc.pk}/" in body  # строка ведёт на деталь услуги
+    # поиск каркаса UB продолжает фильтровать выдачу
+    request = _req(data={"q": "Nichtda"})
+    request.tenant.site_config = {"service_index_layout": {"preset": "preisliste"}}
+    body = public_views.termin_index(request).content.decode()
+    assert "Ölwechsel" not in body

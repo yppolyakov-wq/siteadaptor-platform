@@ -7407,14 +7407,17 @@ CATERING_MENUS = {
         "sticky": True,
         "items": [
             {"label": "Anfrage", "type": "archetype", "target": "jobs"},
-            # MEN-15: тот же пункт «Speisekarte» ведёт в каталог, но раскрывается
-            # подменю направлений С ФОТО (дети собираются из живых категорий) —
-            # ширина строки шапки не меняется, а путь к направлениям появляется.
-            {"label": "Speisekarte", "type": "categories", "target": ""},
-            # MEN-13 (фидбэк владельца «где посмотреть варианты блюд в комплекте»):
-            # наборы меню существовали, но в шапку выведены НЕ были — до /kombi/
-            # нельзя было дойти по навигации.
-            {"label": "Menüs", "type": "page", "target": "combos"},
+            # MEN-15 → MEN-20 (фидбэк владельца «в меню два пункта — оставить
+            # только выпадающий с картинками»): «Speisekarte» раскрывает подменю
+            # направлений С ФОТО (дети собираются из живых категорий), а наборы
+            # меню (MEN-13) переехали РУЧНЫМ первым ребёнком того же подменю —
+            # отдельный пункт «Menüs» из строки шапки убран как дубль.
+            {
+                "label": "Speisekarte",
+                "type": "categories",
+                "target": "",
+                "children": [{"label": "Menüs & Pakete", "type": "page", "target": "combos"}],
+            },
             {"label": "Angebote", "type": "archetype", "target": "promotions"},
             {"label": "Galerie", "type": "page", "target": "gallery"},
             {"label": "Unser Team", "type": "page", "target": "team"},
@@ -7554,7 +7557,11 @@ CATERING = DemoKit(
     config_patch={
         "hero_style": "split",
         "nav": {"cta": True},
-        "catalog_layout": {"preset": "preisliste"},
+        # MEN-20 (фидбэк «не увидел меню кейтерингов в виде меню»): полная
+        # Speisekarte — «печатной картой» (центр-заголовки, описание под блюдом);
+        # тизер на главной остаётся плоским preisliste из макета Fokus, книга
+        # с листанием живёт у ресторана — демо показывают разные виды семейства.
+        "catalog_layout": {"preset": "preisliste_karte"},
         "category_landings": True,  # DS-7: плитки направлений → /bereich/<slug>/
     },
     # DS-4b «в точности как макет»: главная = 6 блоков (hero → направления →

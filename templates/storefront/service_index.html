@@ -28,9 +28,20 @@
 {% endif %}
 {% endblock %}
 
-{% block listing_bar_view %}{% include "storefront/_grid_view.html" with grid_key="services" %}{% endblock %}
+{% comment %}MEN-18: в прайс-виде переключатель «список/плитка» прячем — он ищет
+сетку по data-grid, которой у прайс-листа нет (кнопки были бы мёртвыми; тот же
+гейт, что у каталога).{% endcomment %}
+{% block listing_bar_view %}{% if service_preset|slice:":10" != "preisliste" %}{% include "storefront/_grid_view.html" with grid_key="services" %}{% endif %}{% endblock %}
 
 {% block listing_grid %}
+{% if service_preset|slice:":10" == "preisliste" %}
+{% comment %}MEN-18 (фидбэк «для услуг плюс список, список с картинками и в
+2 колонки»): прайс-вид услуг — строки с ценой и длительностью; фасет-чипы и
+поиск выше продолжают фильтровать ту же выдачу.{% endcomment %}
+<div data-sf-section="services" class="sf-card bg-white rounded-2xl p-5 md:p-7">
+  {% include "storefront/_service_price_list.html" with pl_style=service_preset %}
+</div>
+{% else %}
 {# UB1-1: грид из layout-движка (service_index_layout); ключ не задан → легаси-классы. #}
 <div data-grid="services" data-sf-section="services" class="{{ services_grid|default:'grid sm:grid-cols-2 lg:grid-cols-3 gap-4' }}">
   {% for s in services %}
@@ -38,6 +49,7 @@
     {% else %}{% sellable_card 'service' s h2=True %}{% endif %}
   {% endfor %}
 </div>
+{% endif %}
 {% endblock %}
 
 {% block listing_empty %}

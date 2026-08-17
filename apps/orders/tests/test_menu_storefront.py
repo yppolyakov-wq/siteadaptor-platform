@@ -359,3 +359,27 @@ def test_pool_shows_dishes_with_unknown_course():
     )
     body = public_views.combo_detail_public(_req(method="get"), pk=combo.pk).content.decode()
     assert "Mystery-Teller" in body
+
+
+def test_pool_courses_collapse_into_accordion():
+    """MEN-19 (фидбэк «портянка при большом ассортименте»): каждый Gang —
+    <details> со счётчиком, открыт только первый; ВСЕ блюда остаются в DOM
+    (чекбоксы в закрытых details отправляются с формой)."""
+    from apps.catalog.models import Category
+
+    cat = Category.objects.create(name={"de": "Speisen"}, slug="ac-cat")
+    for i in range(4):
+        ProductFactory(name={"de": f"Vorspeise {i}"}, category=cat, course="vorspeise")
+    for i in range(4):
+        ProductFactory(name={"de": f"Hauptgang {i}"}, category=cat, course="hauptgang")
+    combo = Combo.objects.create(
+        name="Freie Wahl", price=Decimal("0.00"), free_pool=True, category=cat
+    )
+    body = public_views.combo_detail_public(_req(method="get"), pk=combo.pk).content.decode()
+    assert body.count("data-dish-tile") == 8  # ничего не спрятано из DOM
+    # гармошки Gang'ов помечены классом group/gang (в шапке есть свой details)
+    gangs = body.split('class="mt-3 group/gang')[1:]
+    assert len(gangs) == 2 and body.count("(4)") == 2
+    # открыт ровно первый Gang: атрибут open стоит у первой гармошки и только у неё
+    assert " open>" in "<details " + gangs[0].split(">", 1)[0] + ">"
+    assert body.count('rounded-xl border border-gray-200" open>') == 1

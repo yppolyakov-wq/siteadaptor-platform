@@ -252,6 +252,10 @@ def _category_children(tenant, parent_slug: str):
                 "url": url,
                 "icon": cat.icon or "",
                 "image": cat.image_url,
+                # MEN-20 (фидбэк «субменю разнообразить, добавить описания»):
+                # короткое описание категории под названием плитки. Обрезает
+                # шаблон (truncatechars) — здесь данные без вёрстки.
+                "desc": cat.get_i18n("description"),
                 "children": [],
             }
         )
@@ -377,6 +381,8 @@ _MENU_LABEL_ANCHORS = (
     _("Räumung"),
     # Аудит 2026-08-06: размещение ретрита в меню (номера/места в общей комнате).
     _("Unterkunft"),
+    # MEN-20: наборы меню — ручной ребёнок подменю «Speisekarte» кита catering.
+    _("Menüs & Pakete"),
 )
 
 

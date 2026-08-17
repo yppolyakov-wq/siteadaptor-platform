@@ -380,3 +380,21 @@ def test_children_of_disabled_or_deleted_parent_stay_out_of_menu():
     dead.delete()  # SoftDeleteMixin: проставляет deleted_at, строка остаётся
     tenant._menu_categories_memo = None
     assert menu.resolve_menu(tenant, "top")[0]["children"] == []
+
+
+@pytest.mark.django_db
+def test_category_children_carry_description_for_submenu():
+    """MEN-20 (фидбэк «субменю разнообразить, добавить описания»): резолвер
+    отдаёт описание категории — панель шапки рисует его под названием."""
+    from apps.catalog.models import Category
+
+    Category.objects.create(
+        name={"de": "Buffets"},
+        description={"de": "Warm und kalt, ab 10 Personen"},
+        slug="md-buffets",
+    )
+    tenant = TenantFactory(
+        schema_name="public", slug="md", name="MD", site_config=_menu_with_categories()
+    )
+    kid = menu.resolve_menu(tenant, "top")[0]["children"][0]
+    assert kid["desc"] == "Warm und kalt, ab 10 Personen"

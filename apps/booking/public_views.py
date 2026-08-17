@@ -225,9 +225,13 @@ def termin_index(request):
         ):
             raw_cfg = request.session["site_preview_draft"]
         services_grid = None
+        service_preset = ""
         if isinstance((raw_cfg or {}).get("service_index_layout"), dict):
             cfg = siteconfig.normalize(raw_cfg)
             services_grid = siteconfig.grid_class_string(cfg["service_index_layout"])
+            # MEN-18: прайс-вид услуг — шаблон ветвится по префиксу "preisliste"
+            # (как каталог по catalog_preset); сеточные пресеты идут через grid.
+            service_preset = cfg["service_index_layout"]["preset"]
         return _render_embed(
             request,
             "storefront/service_index.html",
@@ -235,6 +239,7 @@ def termin_index(request):
                 "services": services_qs,
                 "has_pass_plans": has_pass_plans,
                 "services_grid": services_grid,
+                "service_preset": service_preset,
                 # UB2-2: тулбар каркаса (поиск + сортировка); embed/подборку несём в carry.
                 "show_listing_toolbar": True,
                 "q": q,

@@ -777,7 +777,16 @@ PAGE_EXTRA_PRESETS = {
         # MEN-16 (запрос владельца «визуализировать меню как книгу в 2 столбца
         # с листанием»): тот же прайс, но страницами-разворотами.
         "preisliste_buch",
-    )
+    ),
+    # MEN-18 (фидбэк 2026-08-17 «для услуг плюс список, список с картинками и
+    # в 2 колонки»): прайс-виды листинга услуг /termin/. Подмножество семейства:
+    # kompakt/karte/buch — гастро-виды каталога, услугам не предлагаем.
+    "service_index_layout": (
+        "preisliste",
+        "preisliste_foto",
+        "preisliste_2sp",
+        "preisliste_foto_2sp",
+    ),
 }
 _LAYOUT_WIDTHS = ("contained", "full")
 _LAYOUT_GAPS = ("sm", "md", "lg")
@@ -2902,7 +2911,10 @@ def _normalize_impl(config) -> dict:
     # выбрал пресет на канве; выбор «Standard» удаляет ключ (home_builder POST).
     if isinstance(config.get("service_index_layout"), dict):
         normalized["service_index_layout"] = normalize_layout(
-            config["service_index_layout"], {"preset": "cols2"}
+            config["service_index_layout"],
+            {"preset": "cols2"},
+            # MEN-18: прайс-виды услуг (список/с фото/2 колонки) — как у каталога.
+            extra_presets=PAGE_EXTRA_PRESETS["service_index_layout"],
         )
     # M20U-4: порядок/видимость тематических секций детальной события.
     normalized["event_detail"] = normalize_event_detail(config.get("event_detail"))

@@ -1904,6 +1904,12 @@ def home_builder_view(request):
         (k, siteconfig.SECTION_STYLE_LABELS.get(k, k))
         for k in siteconfig.PAGE_EXTRA_PRESETS["catalog_layout"]
     ]
+    # MEN-18: у листинга услуг — свои прайс-виды (тот же класс W0: опция обязана
+    # существовать, иначе Save молча откатывает сохранённый вид).
+    service_preset_options = preset_options + [
+        (k, siteconfig.SECTION_STYLE_LABELS.get(k, k))
+        for k in siteconfig.PAGE_EXTRA_PRESETS["service_index_layout"]
+    ]
     source_options = [
         ("featured_first", _("Featured first")),
         ("newest", _("Newest")),
@@ -2061,6 +2067,7 @@ def home_builder_view(request):
             ],
             "preset_options": preset_options,
             "catalog_preset_options": catalog_preset_options,  # DS-5c: канва-селект каталога
+            "service_preset_options": service_preset_options,  # MEN-18: прайс-виды услуг
             "source_options": source_options,
             "archetype_specs": storefront.teaser_specs(request.tenant),
             "archetypes_enabled": archetypes_enabled,
@@ -2668,6 +2675,16 @@ def pages_view(request):
             if not _modules.is_module_active(request.tenant, "orders"):
                 config["menu_show_prices"] = request.POST.get("menu_show_prices") == "on"
         config["detail_related_layout"] = {"preset": request.POST.get("related_preset", "")}
+        # MEN-18 (фидбэк «не нашёл, где изменить вид услуг»): листинг услуг
+        # настраивается и отсюда, не только с канвы. Семантика — как у канвы
+        # (home_builder): пустой выбор «Standard» УДАЛЯЕТ ключ (легаси-грид),
+        # сентинел присутствия — чужой POST ключ не трогает (класс W0).
+        if "service_index_preset" in request.POST:
+            svc_preset = request.POST.get("service_index_preset", "")
+            if svc_preset:
+                config["service_index_layout"] = {"preset": svc_preset}
+            else:
+                config.pop("service_index_layout", None)
         config["stay_index_layout"] = {
             "preset": request.POST.get("stay_index_preset", ""),
             "mobile": 1,
@@ -2700,6 +2717,11 @@ def pages_view(request):
         ("cols5", _("5 per row")),  # DS-6
         ("cols6", _("6 per row")),  # DS-6
         ("gallery", _("Gallery")),
+    ]
+    # MEN-18: прайс-виды листинга услуг (список / с фото / 2 колонки).
+    service_preset_options = preset_options + [
+        (key, siteconfig.SECTION_STYLE_LABELS.get(key, key))
+        for key in siteconfig.PAGE_EXTRA_PRESETS["service_index_layout"]
     ]
     # DS-3a: страничные extra-виды каталога (прайс-листы) — только его пикер.
     # Ревью MEN-14/16: список был ЗАХАРДКОЖЕН и отстал на три новых вида —
@@ -2742,11 +2764,15 @@ def pages_view(request):
             "related_preset": config["detail_related_layout"]["preset"],
             "stay_index_preset": config["stay_index_layout"]["preset"],
             "events_index_preset": config["events_index_layout"]["preset"],
+            # MEN-18: раскладка услуг (ключ presence-minimal: нет = «Standard»).
+            "service_index_preset": config.get("service_index_layout", {}).get("preset", ""),
+            "service_preset_options": service_preset_options,
             "event_sections": event_sections,
             # Показываем настройку страницы, только если её модуль активен.
             "has_catalog": modules.is_module_active(request.tenant, "catalog"),
             "has_stays": modules.is_module_active(request.tenant, "stays"),
             "has_events": modules.is_module_active(request.tenant, "events"),
+            "has_booking": modules.is_module_active(request.tenant, "booking"),
         },
     )
 

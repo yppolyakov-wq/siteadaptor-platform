@@ -297,3 +297,57 @@ def test_pages_picker_offers_every_price_view():
         assert f'value="{key}"' in body, key
     # сохранённый вид отмечен selected — иначе браузер отправит первую опцию
     assert re.search(r'value="preisliste_buch"[^>]*selected', body)
+
+
+def test_pages_screen_offers_and_saves_service_layout():
+    """MEN-18 («не нашёл, где изменить вид услуг»): экран Pages настраивает и
+    листинг услуг; пустой выбор «Standard» удаляет ключ (легаси-грид), чужой
+    POST без селекта ключ не трогает (класс W0)."""
+    from types import SimpleNamespace
+
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+
+    from apps.core import views
+
+    def _request(method="get", data=None, tenant=None):
+        request = getattr(RequestFactory(), method)("/dashboard/site/pages/", data or {})
+        SessionMiddleware(lambda r: None).process_request(request)
+        MessageMiddleware(lambda r: None).process_request(request)
+        request.user = SimpleNamespace(is_authenticated=True)
+        request.tenant = tenant
+        return request
+
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="ps",
+        name="PS",
+        site_config={"service_index_layout": {"preset": "preisliste_foto"}},
+    )
+    body = views.pages_view(_request(tenant=tenant)).content.decode()
+    assert 'name="service_index_preset"' in body
+    import re
+
+    assert re.search(r'value="preisliste_foto"[^>]*selected', body)
+
+    # Save с выбранным видом — ключ пишется
+    views.pages_view(
+        _request(
+            "post",
+            {"catalog_preset": "cols3", "service_index_preset": "preisliste_2sp"},
+            tenant,
+        )
+    )
+    cfg = siteconfig.normalize(tenant.site_config)
+    assert cfg["service_index_layout"]["preset"] == "preisliste_2sp"
+    # «Standard» (пустое значение) удаляет ключ
+    views.pages_view(
+        _request("post", {"catalog_preset": "cols3", "service_index_preset": ""}, tenant)
+    )
+    assert "service_index_layout" not in siteconfig.normalize(tenant.site_config)
+    # POST без селекта (модуль booking выключен у другого тенанта) ключ не трогает
+    tenant.site_config = {"service_index_layout": {"preset": "preisliste"}}
+    views.pages_view(_request("post", {"catalog_preset": "cols3"}, tenant))
+    assert siteconfig.normalize(tenant.site_config)["service_index_layout"]["preset"] == (
+        "preisliste"
+    )

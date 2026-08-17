@@ -687,3 +687,22 @@ def test_normalize_drops_draft_keys_from_served_config():
     # SE-5b-2: `_draft`/`_draft_ts` — служебные, не попадают в нормализованную выдачу
     cfg = siteconfig.normalize({"hero_title": "X", "_draft": {"y": 1}, "_draft_ts": "t"})
     assert "_draft" not in cfg and "_draft_ts" not in cfg
+
+
+def test_service_index_accepts_its_price_views_only():
+    """MEN-18: прайс-виды услуг валидны у service_index_layout; гастро-виды
+    каталога (karte/buch/kompakt) услугам не предлагаются и падают в дефолт."""
+    assert siteconfig.PAGE_EXTRA_PRESETS["service_index_layout"] == (
+        "preisliste",
+        "preisliste_foto",
+        "preisliste_2sp",
+        "preisliste_foto_2sp",
+    )
+    for preset in siteconfig.PAGE_EXTRA_PRESETS["service_index_layout"]:
+        cfg = siteconfig.normalize({"service_index_layout": {"preset": preset}})
+        assert cfg["service_index_layout"]["preset"] == preset, preset
+    karte = siteconfig.normalize({"service_index_layout": {"preset": "preisliste_karte"}})
+    assert karte["service_index_layout"]["preset"] == "cols2"
+    # у каждого пресета есть метка — селекты канвы/Pages строят опции из реестра
+    for key in siteconfig.PAGE_EXTRA_PRESETS["service_index_layout"]:
+        assert key in siteconfig.SECTION_STYLE_LABELS, key
