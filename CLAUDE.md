@@ -1578,7 +1578,28 @@ Python 3.12, менеджер uv.
   тур-оператора теперь ведёт на `/touren/` (по данным + мемоизация); кнопка «Menu» открывала
   ПУСТОЙ каталог у любого не-каталожного архетипа → гейт по наличию товаров; секция заявки
   была «Request a quote» → заголовок/подпись `anfrage` настраиваемые.
-- Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary)** — все аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
+- **Самое свежее (2026-08-16/17): ВОЛНА MEN «меню-наборы кейтеринга» ЦЕЛИКОМ (MEN-1..23) —
+  серия фидбэков владельца, всё в main по зелёным CI.** Хронология — build-log 2026-08-16/17.
+  Ядро: конфигуратор набора (radio per-группа, живой итог, browse-only собирает состав в
+  `?betreff=` попапа заявки), «свободная сборка» пулом категории по Gang'ам с гармошкой
+  (MEN-19), попап блюда (MEN-3/17), прайс-виды услуг + Pages-блок услуг (MEN-18), меню
+  кейтеринга одним пунктом с расширенным подменю (MEN-20, панель 560px, описания, пункт
+  без фото — акцент-строкой). **MEN-21 (2026-08-17):** карточка `/kombi/<pk>/` — отзывы
+  (generic kind **"combo"**, ⚠️ миграция `reviews/0005` choices-only; верификатор
+  `has_bought_combo` по FK `OrderItem.combo`, free_pool-покупатель fail-closed),
+  «Beispiele unserer Arbeit» из галереи сайта, CTA-полоса «Sie planen eine Veranstaltung?»
+  (попап заявки, гейт jobs), слайдер наборов той же категории; демо catering — 9 отзывов
+  (`DemoKit.combo_reviews`+`refs["combos"]`). **MEN-22:** посетительский переключатель
+  прайс-листа (список/с фото/2 колонки; class-swap `data-cls-*` purge-safe, фото всегда в
+  DOM, localStorage per-ключ products≠catalog; kompakt/karte/buch — авторские, без
+  переключателя); демо-главная кейтеринга → `preisliste_foto_2sp`. **MEN-23:** галерея
+  «сетка ↔ крупно 3:2» (дефолт-вид секции + `/galerie/`; авторские стили не переключаем).
+  Стенд 22/22 (catering); грабля-класс: негативные замки на голые маркеры ловят строки
+  селекторов нового JS — замки переведены на маркап-форму (`data-price-list
+  data-pl-style` и т.п.); `ml-auto` партиала внутри `justify-between`-шапки секции
+  клеил ссылку к заголовку → правая группа (паттерн `_gallery`). ⚠️ ops:
+  `seed_demo_tenants --kit catering --recreate`.
+- Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет)** — все аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».

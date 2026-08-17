@@ -5,10 +5,17 @@
   странице /galerie/ партиал включается с as_page=True: там заголовок уже стоит
   выше, а ссылка вела бы на эту же страницу.{% endcomment %}
   {% if not as_page %}
-  <div class="flex items-baseline justify-between gap-3 mb-4">
+  <div class="flex items-center justify-between gap-3 mb-4">
     <h2 class="text-xl md:text-2xl font-bold">{% trans "Gallery" %}</h2>
-    {% if site.gallery %}<a href="{% url 'storefront-gallery' %}" class="text-sm text-indigo-600 hover:underline shrink-0">{% trans "Alle Fotos" %} →</a>{% endif %}
+    <span class="flex items-center gap-3">
+      {% if section_row.style == "" or section_row.style == None %}{% include "storefront/_gallery_view_toggle.html" %}{% endif %}
+      {% if site.gallery %}<a href="{% url 'storefront-gallery' %}" class="text-sm text-indigo-600 hover:underline shrink-0">{% trans "Alle Fotos" %} →</a>{% endif %}
+    </span>
   </div>
+  {% else %}
+  {% comment %}MEN-23 (фидбэк «в галерее так же нужно сделать»): на странице
+  /galerie/ переключатель «сетка ↔ крупно» — заголовок там выше партиала.{% endcomment %}
+  <div class="flex justify-end mb-4">{% include "storefront/_gallery_view_toggle.html" %}</div>
   {% endif %}
   {% comment %}UC6-6f: 5 видов по section_row.style — "" сетка | strip | large | polaroid | soft.{% endcomment %}
   {% if site.gallery %}
@@ -55,7 +62,11 @@
     {% endfor %}
   </div>
   {% else %}
-  <div class="{% grid_classes site 'gallery' %}">
+  {% comment %}MEN-23: посетительский переключатель «⊞ Raster ↔ ▤ Groß» — тот же
+  class-swap, что у прайс-листа (обработчик в _grid_view_script.html); крупный
+  вид = 2 колонки 3:2 (aspect правит CSS-правило [data-galv="gross"]).{% endcomment %}
+  <div class="{% grid_classes site 'gallery' %}" data-galv="raster"
+       data-cls-raster="{% grid_classes site 'gallery' %}" data-cls-gross="grid gap-4 sm:grid-cols-2">
     {% for img in site.gallery %}
       <button type="button" data-lightbox="{{ img.url }}"
               class="aspect-square rounded-xl overflow-hidden bg-gray-100 block cursor-zoom-in group">

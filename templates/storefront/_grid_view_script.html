@@ -133,4 +133,116 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
 })();
+
+/* MEN-22: посетительский переключатель прайс-листа (список / с фото / 2 колонки).
+   Контейнер несёт целевые классы в data-cls-* (purge-safe), фото — .plv-img
+   (в «plain» скрыты). Выбор живёт в localStorage на ключ; стартовое состояние
+   задаёт владелец стилем секции/страницы. */
+(function () {
+  if (window.__sfPlvBound) return;
+  window.__sfPlvBound = true;
+  var PREFIX = "sf_plv:";
+
+  function paint(key, view) {
+    document.querySelectorAll('[data-plv-btn][data-plv-key="' + key + '"]').forEach(function (b) {
+      var on = b.getAttribute("data-plv-btn") === view;
+      b.classList.toggle("bg-gray-900", on);
+      b.classList.toggle("text-white", on);
+      b.classList.toggle("text-gray-600", !on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+
+  function apply(key, view, persist) {
+    document.querySelectorAll('[data-plv-key="' + key + '"][data-price-list]').forEach(function (c) {
+      c.setAttribute("data-plv", view);
+      var cls = c.getAttribute("data-cls-" + view);
+      if (cls !== null) c.className = cls;
+      var gcls = c.getAttribute(view === "cols" ? "data-gcls-cols" : "data-gcls-stack") || "";
+      c.querySelectorAll("[data-pl-group]").forEach(function (g) {
+        g.className = gcls + (view === "cols" ? "" : "");
+      });
+      c.querySelectorAll(".plv-img").forEach(function (im) {
+        im.classList.toggle("hidden", view === "plain");
+      });
+    });
+    paint(key, view);
+    if (persist) { try { localStorage.setItem(PREFIX + key, view); } catch (e) {} }
+  }
+
+  function init() {
+    var seen = {};
+    document.querySelectorAll("[data-plv-key][data-price-list]").forEach(function (c) {
+      var key = c.getAttribute("data-plv-key");
+      if (seen[key]) return;
+      seen[key] = 1;
+      var current = c.getAttribute("data-plv") || "plain";
+      var saved = null;
+      try { saved = localStorage.getItem(PREFIX + key); } catch (e) {}
+      if (saved && ["plain", "foto", "cols"].indexOf(saved) >= 0 && saved !== current) {
+        apply(key, saved, false);
+      } else {
+        paint(key, current);
+      }
+    });
+  }
+
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-plv-btn]");
+    if (!b) return;
+    e.preventDefault();
+    apply(b.getAttribute("data-plv-key"), b.getAttribute("data-plv-btn"), true);
+  });
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+
+/* MEN-23: переключатель галереи «сетка ↔ крупно» — тот же механизм class-swap
+   (data-cls-raster/data-cls-gross на контейнере), aspect крупного вида задаёт
+   CSS-правило по атрибуту data-galv в app.css (значение в кавычках здесь не
+   пишем — негативные замки ищут маркап-форму атрибута). */
+(function () {
+  if (window.__sfGalvBound) return;
+  window.__sfGalvBound = true;
+  var PREFIX = "sf_galv:";
+
+  function paint(view) {
+    document.querySelectorAll("[data-galv-btn]").forEach(function (b) {
+      var on = b.getAttribute("data-galv-btn") === view;
+      b.classList.toggle("bg-gray-900", on);
+      b.classList.toggle("text-white", on);
+      b.classList.toggle("text-gray-600", !on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+
+  function apply(view, persist) {
+    document.querySelectorAll("[data-galv]").forEach(function (c) {
+      c.setAttribute("data-galv", view);
+      var cls = c.getAttribute("data-cls-" + view);
+      if (cls !== null) c.className = cls;
+    });
+    paint(view);
+    if (persist) { try { localStorage.setItem(PREFIX + "gallery", view); } catch (e) {} }
+  }
+
+  function init() {
+    var c = document.querySelector("[data-galv]");
+    if (!c) return;
+    var current = c.getAttribute("data-galv") || "raster";
+    var saved = null;
+    try { saved = localStorage.getItem(PREFIX + "gallery"); } catch (e) {}
+    if (saved && ["raster", "gross"].indexOf(saved) >= 0 && saved !== current) apply(saved, false);
+    else paint(current);
+  }
+
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-galv-btn]");
+    if (!b) return;
+    e.preventDefault();
+    apply(b.getAttribute("data-galv-btn"), true);
+  });
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
 </script>

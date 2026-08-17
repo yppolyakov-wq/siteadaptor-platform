@@ -248,6 +248,22 @@ def combo_detail_public(request, pk):
         rest = [p for code, items in by_course.items() if code not in known for p in items]
         if rest:
             pool_courses.append((_("Weitere"), rest))
+    # MEN-21: блоки ПОД основным — отзывы (generic kind="combo"), примеры работ
+    # (тизер галереи сайта), слайдер других наборов той же категории, CTA
+    # «Планируете мероприятие» (попап заявки — гейт jobs).
+    import uuid as _uuid
+
+    from apps.reviews import services as review_services
+
+    related_combos = []
+    if combo.category_id:
+        from apps.catalog.models import Combo
+
+        related_combos = list(
+            Combo.objects.filter(is_active=True, category_id=combo.category_id)
+            .exclude(pk=combo.pk)
+            .order_by("sort_order", "created_at")[:8]
+        )
     return render(
         request,
         "storefront/combo_detail.html",
@@ -263,7 +279,35 @@ def combo_detail_public(request, pk):
             "combo_anfrage_active": (
                 not orders_active and tenant is not None and tenant.is_module_active("jobs")
             ),
+            "reviews": list(review_services.published_for("combo", combo.pk)),
+            "review_summary": review_services.summary("combo", combo.pk),
+            "review_form_token": _uuid.uuid4().hex,
+            "review_action": reverse("storefront-combo-review", args=[combo.pk]),
+            "gallery_examples": (site_cfg.get("gallery") or [])[:6],
+            "related_combos": related_combos,
+            "event_cta_active": tenant is not None and tenant.is_module_active("jobs"),
         },
+    )
+
+
+def combo_review_submit(request, pk):
+    """MEN-21: приём отзыва на набор меню — generic-движок, kind="combo".
+
+    Верификация fail-closed: только покупатель набора (FK OrderItem.combo);
+    у browse-only витрин заказов нет → форма честно откажет."""
+    _require_combos_visible(request)
+    from apps.catalog.combos import get_active
+
+    combo = get_active(pk)
+    if combo is None:
+        raise Http404
+    from apps.reviews.submit import handle_review_submit
+
+    return handle_review_submit(
+        request,
+        entity_kind="combo",
+        obj=combo,
+        detail_url=reverse("storefront-combo", args=[combo.pk]),
     )
 
 

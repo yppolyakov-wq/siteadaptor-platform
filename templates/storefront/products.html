@@ -197,7 +197,7 @@ fixed-ящиком, и до инициализации JS она вспыхив�
 
 {% comment %}DS-10: в прайс-виде (DS-3a preisliste) сетки data-grid нет —
 переключатель вида был бы мёртвыми кнопками.{% endcomment %}
-{% block listing_bar_view %}{% if catalog_preset|slice:":10" != "preisliste" %}{% include "storefront/_grid_view.html" with grid_key="catalog" %}{% endif %}{% endblock %}
+{% block listing_bar_view %}{% if catalog_preset|slice:":10" != "preisliste" %}{% include "storefront/_grid_view.html" with grid_key="catalog" %}{% else %}{% include "storefront/_price_view_toggle.html" with pl_style=catalog_preset plv_key="catalog" %}{% endif %}{% endblock %}
 
 {% block listing_grid %}
 {% if page.items %}
@@ -206,7 +206,7 @@ fixed-ящиком, и до инициализации JS она вспыхив�
 поиск/пагинация провайдера UB уже применены) группируется по категориям строками.{% endcomment %}
 <div data-sf-section="catalog">
   {% price_groups_from page.items as price_groups %}
-  {% include "storefront/_price_list.html" with pl_style=catalog_preset %}
+  {% include "storefront/_price_list.html" with pl_style=catalog_preset plv_key="catalog" %}
 </div>
 {% else %}
 {# SE-2a-2: маркер секции для on-canvas редактора (клик → инспектор раскладки каталога) #}

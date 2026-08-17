@@ -108,9 +108,8 @@ msgstr "Fiyat: düşükten yükseğe"
 msgid "Price: high to low"
 msgstr "Fiyat: yüksekten düşüğe"
 
-#: apps/booking/facets.py:58 apps/catalog/facets.py:152
-#: apps/core/views.py:1676 templates/aggregator/listing.html:46
-#: templates/tenant/site_home.html:478
+#: apps/booking/facets.py:58 apps/catalog/facets.py:152 apps/core/views.py:1676
+#: templates/aggregator/listing.html:46 templates/tenant/site_home.html:478
 msgid "Newest"
 msgstr "En yeni"
 
@@ -133,8 +132,7 @@ msgstr "Lütfen adınızı ve e-posta adresinizi girin."
 #: apps/booking/public_views.py:242
 msgid "Online purchase isn't available — please buy on site."
 msgstr ""
-"Çevrimiçi satın alma işlemi yapılamamaktadır — lütfen mağazadan satın "
-"alınız."
+"Çevrimiçi satın alma işlemi yapılamamaktadır — lütfen mağazadan satın alınız."
 
 #: apps/booking/public_views.py:253 apps/jobs/public_views.py:208
 msgid "Payment could not be started — please try again."
@@ -482,8 +480,8 @@ msgstr "Varsayılan: EUR."
 #: apps/catalog/forms.py:166
 msgid "Nur intern — für die Margen-Anzeige, nicht öffentlich."
 msgstr ""
-"Yalnızca şirket içi kullanım içindir — kâr marjı gösterimi için, kamuya açık"
-" değildir."
+"Yalnızca şirket içi kullanım içindir — kâr marjı gösterimi için, kamuya açık "
+"değildir."
 
 #: apps/catalog/forms.py:167
 msgid "Ab diesem Bestand meldet der Shop „nachbestellen“."
@@ -676,9 +674,8 @@ msgstr "Promosyon sayfası"
 #: apps/core/context.py:48 templates/storefront/_action_bar.html:10
 #: templates/storefront/_base.html:115
 #: templates/tenant/_base_dashboard.html:131
-#: templates/tenant/_base_dashboard.html:143
-#: templates/tenant/site_home.html:61 templates/tenant/site_home.html:108
-#: templates/tenant/site_menu.html:3
+#: templates/tenant/_base_dashboard.html:143 templates/tenant/site_home.html:61
+#: templates/tenant/site_home.html:108 templates/tenant/site_menu.html:3
 msgid "Menu"
 msgstr "Menü"
 
@@ -774,13 +771,11 @@ msgstr "İlgili ürünler"
 msgid "For whom"
 msgstr "Kimler için"
 
-#: apps/core/detail_sections.py:62
-#: templates/storefront/_event_thematic.html:15
+#: apps/core/detail_sections.py:62 templates/storefront/_event_thematic.html:15
 msgid "The idea"
 msgstr "Fikir"
 
-#: apps/core/detail_sections.py:63
-#: templates/storefront/_event_thematic.html:20
+#: apps/core/detail_sections.py:63 templates/storefront/_event_thematic.html:20
 msgid "What's included"
 msgstr "Paket içeriği"
 
@@ -789,19 +784,16 @@ msgstr "Paket içeriği"
 msgid "Schedule"
 msgstr "Program"
 
-#: apps/core/detail_sections.py:65
-#: templates/storefront/_event_thematic.html:48
+#: apps/core/detail_sections.py:65 templates/storefront/_event_thematic.html:48
 msgid "Venue"
 msgstr "Yer"
 
-#: apps/core/detail_sections.py:66
-#: templates/storefront/_event_thematic.html:64
+#: apps/core/detail_sections.py:66 templates/storefront/_event_thematic.html:64
 #: templates/storefront/event_detail.html:113
 msgid "Accommodation"
 msgstr "Konaklama"
 
-#: apps/core/detail_sections.py:67
-#: templates/storefront/_event_thematic.html:71
+#: apps/core/detail_sections.py:67 templates/storefront/_event_thematic.html:71
 msgid "Food"
 msgstr "Yiyecek"
 
@@ -1326,8 +1318,7 @@ msgid "4 per row"
 msgstr "Satır başına 4"
 
 #: apps/core/views.py:1672 apps/core/views.py:2354
-#: apps/tenants/siteconfig.py:603
-#: templates/storefront/sections/_gallery.html:4
+#: apps/tenants/siteconfig.py:603 templates/storefront/sections/_gallery.html:4
 msgid "Gallery"
 msgstr "Galeri"
 
@@ -1454,8 +1445,7 @@ msgstr "Ekmek ve Unlu Mamuller"
 
 #: apps/core/views.py:2597
 #, python-format
-msgid ""
-"Note: %(modules)s is untypical for your business type — enabled anyway."
+msgid "Note: %(modules)s is untypical for your business type — enabled anyway."
 msgstr ""
 "Not: %(modules)s, işletme türünüz için alışılmadık bir durumdur — yine de "
 "etkinleştirilmiştir."
@@ -1553,8 +1543,7 @@ msgid "Marketing consent"
 msgstr "Pazarlama izni"
 
 #: apps/crm/forms.py:22
-msgid ""
-"Only tick if the customer explicitly agreed to receive offers (UWG §7)."
+msgid "Only tick if the customer explicitly agreed to receive offers (UWG §7)."
 msgstr ""
 "Yalnızca müşteri teklif almayı açıkça kabul etmişse bu kutucuğu işaretleyin "
 "(UWG §7)."
@@ -1646,8 +1635,7 @@ msgstr "Bekleme listesindeki %(n)s kişiye bildirim gönderildi."
 
 #: apps/events/views.py:122
 msgid "No one to notify (no free spots or empty waitlist)."
-msgstr ""
-"Bildirilecek kimse yok (boş yer ya da bekleme listesinde boş yer yok)."
+msgstr "Bildirilecek kimse yok (boş yer ya da bekleme listesinde boş yer yok)."
 
 #: apps/events/views.py:134
 msgid "Event updated."
@@ -1861,8 +1849,8 @@ msgstr "Lütfen bize adınızı ve neye ihtiyacınız olduğunu belirtin."
 
 #: apps/jobs/public_views.py:70
 msgid ""
-"Your postal code is outside our usual service area — we'll still review your"
-" request and get back to you."
+"Your postal code is outside our usual service area — we'll still review your "
+"request and get back to you."
 msgstr ""
 "Posta kodunuz normal hizmet alanımızın dışında yer alıyor — yine de "
 "talebinizi inceleyeceğiz ve size geri dönüş yapacağız."
@@ -2128,17 +2116,17 @@ msgid ""
 "How the discount looks on your storefront — badge, struck-through price, "
 "fixed price, from-price or countdown accent."
 msgstr ""
-"İndirim, mağaza sayfanızda nasıl görünecek — rozet, üstü çizili fiyat, sabit"
-" fiyat, “başlangıç fiyatı” veya geri sayım efekti."
+"İndirim, mağaza sayfanızda nasıl görünecek — rozet, üstü çizili fiyat, sabit "
+"fiyat, “başlangıç fiyatı” veya geri sayım efekti."
 
 #: apps/promotions/forms.py:89
 msgid ""
 "Optional. Groups offers into sections (e.g. „Fastfood“, „Fertiggerichte“) — "
 "shown as filters on /aktionen/ and selectable in the menu builder."
 msgstr ""
-"İsteğe bağlı. Teklifleri bölümlere ayırır (örn. „Fastfood“, „Hazır "
-"Yemekler“) — bunlar /aktionen/ sayfasında filtreler olarak gösterilir ve "
-"menü oluşturucuda seçilebilir."
+"İsteğe bağlı. Teklifleri bölümlere ayırır (örn. „Fastfood“, „Hazır Yemekler“)"
+" — bunlar /aktionen/ sayfasında filtreler olarak gösterilir ve menü "
+"oluşturucuda seçilebilir."
 
 #: apps/promotions/forms.py:104
 msgid "End must be after start."
@@ -2153,17 +2141,15 @@ msgid "Your name"
 msgstr "Adınız"
 
 #: apps/promotions/forms.py:124 apps/promotions/forms.py:136
-#: templates/aggregator/portal_login.html:13
-#: templates/booking/calendar.html:90 templates/booking/passes.html:52
-#: templates/events/event_detail.html:109
+#: templates/aggregator/portal_login.html:13 templates/booking/calendar.html:90
+#: templates/booking/passes.html:52 templates/events/event_detail.html:109
 #: templates/events/event_detail.html:131 templates/jobs/list.html:54
 #: templates/stays/calendar.html:132
 #: templates/storefront/_buybox_service_form.html:21
 #: templates/storefront/_buybox_stay_form.html:78
 #: templates/storefront/anfrage.html:89
 #: templates/storefront/booking_slots.html:73
-#: templates/storefront/cart.html:130
-#: templates/storefront/event_detail.html:73
+#: templates/storefront/cart.html:130 templates/storefront/event_detail.html:73
 #: templates/storefront/event_detail.html:141
 #: templates/storefront/message_contact.html:36
 #: templates/storefront/newsletter.html:32 templates/storefront/passes.html:26
@@ -2301,8 +2287,8 @@ msgid ""
 "Nur verifizierte Käufer können bewerten — wir haben keine Bestellung mit "
 "dieser E-Mail gefunden."
 msgstr ""
-"Yalnızca doğrulanmış alıcılar değerlendirme yapabilir — bu e-posta adresiyle"
-" ilgili herhangi bir sipariş bulamadık."
+"Yalnızca doğrulanmış alıcılar değerlendirme yapabilir — bu e-posta adresiyle "
+"ilgili herhangi bir sipariş bulamadık."
 
 #: apps/promotions/public_views.py:602 apps/reviews/submit.py:60
 msgid "Danke für Ihre Bewertung!"
@@ -2948,8 +2934,7 @@ msgid "Forgot password?"
 msgstr "Şifrenizi mi unuttunuz?"
 
 #: templates/account/logout.html:3 templates/account/logout.html:4
-#: templates/account/logout.html:14
-#: templates/aggregator/portal_account.html:29
+#: templates/account/logout.html:14 templates/aggregator/portal_account.html:29
 #: templates/tenant/_base_dashboard.html:109
 msgid "Sign out"
 msgstr "Çıkış yap"
@@ -3037,8 +3022,7 @@ msgstr[1] "%(n)s oda türleri"
 #: templates/storefront/_quick_add.html:14
 #: templates/storefront/combo_detail.html:9
 #: templates/storefront/product_detail.html:34
-#: templates/storefront/products.html:98
-#: templates/storefront/products.html:136
+#: templates/storefront/products.html:98 templates/storefront/products.html:136
 #: templates/storefront/stay_detail.html:31
 msgid "from"
 msgstr "kaynak:"
@@ -3100,9 +3084,8 @@ msgstr "Tüm teklifler"
 msgid "All directions"
 msgstr "Tüm yönler"
 
-#: templates/aggregator/_search_form.html:27
-#: templates/aggregator/search.html:5 templates/storefront/listing.html:30
-#: templates/storefront/listing.html:31
+#: templates/aggregator/_search_form.html:27 templates/aggregator/search.html:5
+#: templates/storefront/listing.html:30 templates/storefront/listing.html:31
 #: templates/storefront/sections/_stay_search.html:28
 msgid "Search"
 msgstr "Arama"
@@ -3131,8 +3114,7 @@ msgstr "%(city)s’daki teklifler"
 #: templates/aggregator/listing.html:20
 #: templates/aggregator/portal_home.html:41 templates/inbox/list.html:12
 #: templates/jobs/list.html:16 templates/reviews/review_list.html:28
-#: templates/storefront/products.html:50
-#: templates/storefront/products.html:108
+#: templates/storefront/products.html:50 templates/storefront/products.html:108
 #: templates/storefront/products.html:126
 #: templates/storefront/products.html:135
 #: templates/storefront/promotions_list.html:10
@@ -3154,8 +3136,7 @@ msgstr "Herhangi bir puan"
 msgid "up"
 msgstr "yukarı"
 
-#: templates/aggregator/listing.html:41
-#: templates/storefront/_open_badge.html:5
+#: templates/aggregator/listing.html:41 templates/storefront/_open_badge.html:5
 msgid "Open now"
 msgstr "Şu anda açık"
 
@@ -3169,8 +3150,8 @@ msgid "Name (A–Z)"
 msgstr "Ad (A–Z)"
 
 #: templates/aggregator/listing.html:62
-#: templates/aggregator/portal_home.html:57
-#: templates/crm/customer_list.html:48 templates/storefront/products.html:176
+#: templates/aggregator/portal_home.html:57 templates/crm/customer_list.html:48
+#: templates/storefront/products.html:176
 msgid "Show more"
 msgstr "Daha fazlasını göster"
 
@@ -3205,8 +3186,8 @@ msgid ""
 "You are unsubscribed from marketing emails of all businesses. Booking "
 "confirmations are always sent."
 msgstr ""
-"Tüm işletmelerin pazarlama e-postaları listesinden çıkarıldınız. Rezervasyon"
-" onayları her zaman gönderilir."
+"Tüm işletmelerin pazarlama e-postaları listesinden çıkarıldınız. Rezervasyon "
+"onayları her zaman gönderilir."
 
 #: templates/aggregator/portal_account.html:15
 msgid ""
@@ -3240,8 +3221,8 @@ msgstr "Endişelerim"
 
 #: templates/aggregator/portal_account.html:64
 msgid ""
-"No reservations yet. Book any offer — no account needed, it will show up "
-"here by email."
+"No reservations yet. Book any offer — no account needed, it will show up here"
+" by email."
 msgstr ""
 "Henüz rezervasyon yok. İstediğiniz teklifi rezerve edin — hesap açmanıza "
 "gerek yok, e-posta yoluyla buraya yansıtılacaktır."
@@ -3319,8 +3300,7 @@ msgstr "Gelen kutunuzu kontrol edin"
 
 #: templates/aggregator/portal_check_inbox.html:9
 msgid ""
-"If this address exists, we’ve sent a sign-in link. It’s valid for 15 "
-"minutes."
+"If this address exists, we’ve sent a sign-in link. It’s valid for 15 minutes."
 msgstr ""
 "Bu adres mevcut ise, size bir oturum açma bağlantısı gönderdik. Bu bağlantı "
 "15 dakika boyunca geçerlidir."
@@ -3381,8 +3361,8 @@ msgstr "Yeni bir bağlantı isteyin"
 #: templates/aggregator/portal_login.html:8
 msgid "No password needed. We’ll email you a one-time sign-in link."
 msgstr ""
-"Şifre gerekmez. Size tek kullanımlık bir oturum açma bağlantısını e-posta "
-"ile göndereceğiz."
+"Şifre gerekmez. Size tek kullanımlık bir oturum açma bağlantısını e-posta ile"
+" göndereceğiz."
 
 #: templates/aggregator/portal_login.html:20
 msgid "Email me a sign-in link"
@@ -3392,8 +3372,7 @@ msgstr "Bana bir giriş bağlantısı gönderin"
 msgid "More"
 msgstr "Daha fazla"
 
-#: templates/aggregator/search.html:17
-#: templates/tenant/_base_dashboard.html:65
+#: templates/aggregator/search.html:17 templates/tenant/_base_dashboard.html:65
 msgid "Nothing found."
 msgstr "Hiçbir şey bulunamadı."
 
@@ -3425,8 +3404,8 @@ msgstr "Aboneliği yönet"
 #: templates/billing/billing.html:37
 msgid "Update your card, view invoices or cancel in the Stripe portal."
 msgstr ""
-"Stripe portalında kart bilgilerinizi güncelleyin, faturalarınızı "
-"görüntüleyin veya iptal edin."
+"Stripe portalında kart bilgilerinizi güncelleyin, faturalarınızı görüntüleyin"
+" veya iptal edin."
 
 #: templates/billing/billing.html:43
 msgid "Activate subscription — €39/mo"
@@ -3502,8 +3481,8 @@ msgid ""
 "Paste this code into your existing site to embed the booking form (no "
 "header/footer)."
 msgstr ""
-"Rezervasyon formunu sitenize eklemek için bu kodu mevcut sitenize yapıştırın"
-" (başlık/altbilgi içermez)."
+"Rezervasyon formunu sitenize eklemek için bu kodu mevcut sitenize yapıştırın "
+"(başlık/altbilgi içermez)."
 
 #: templates/booking/calendar.html:46 templates/events/event_detail.html:67
 #: templates/events/event_detail.html:84 templates/promotions/vouchers.html:63
@@ -3557,8 +3536,7 @@ msgstr "Tutanak"
 #: templates/catalog/combo_form.html:13 templates/catalog/combo_form.html:23
 #: templates/catalog/combo_form.html:29 templates/catalog/product_list.html:42
 #: templates/collections/list.html:30 templates/collections/list.html:46
-#: templates/events/event_detail.html:65
-#: templates/events/event_detail.html:109
+#: templates/events/event_detail.html:65 templates/events/event_detail.html:109
 #: templates/events/event_detail.html:130 templates/jobs/list.html:52
 #: templates/konto/profile.html:19 templates/stays/calendar.html:127
 #: templates/stays/units.html:132
@@ -3566,8 +3544,7 @@ msgstr "Tutanak"
 #: templates/storefront/_buybox_stay_form.html:74
 #: templates/storefront/anfrage.html:85 templates/storefront/anfrage.html:115
 #: templates/storefront/booking_slots.html:63
-#: templates/storefront/cart.html:126
-#: templates/storefront/event_detail.html:72
+#: templates/storefront/cart.html:126 templates/storefront/event_detail.html:72
 #: templates/storefront/event_detail.html:140
 #: templates/storefront/message_contact.html:32
 msgid "Name"
@@ -3724,9 +3701,8 @@ msgid "Count per person (group course)"
 msgstr "Kişi başına ücret (grup kursu)"
 
 #: templates/booking/resources.html:55 templates/booking/services.html:63
-#: templates/catalog/category_form.html:32
-#: templates/catalog/combo_form.html:49 templates/catalog/combo_form.html:71
-#: templates/catalog/combo_form.html:84
+#: templates/catalog/category_form.html:32 templates/catalog/combo_form.html:49
+#: templates/catalog/combo_form.html:71 templates/catalog/combo_form.html:84
 #: templates/catalog/product_form.html:128
 #: templates/catalog/product_form.html:171
 #: templates/catalog/product_form.html:206
@@ -3737,8 +3713,7 @@ msgstr "Kişi başına ücret (grup kursu)"
 #: templates/promotions/coupon_campaigns.html:47
 #: templates/promotions/promotion_form.html:139
 #: templates/publishing/channels.html:50 templates/publishing/channels.html:76
-#: templates/publishing/channels.html:98
-#: templates/publishing/channels.html:120
+#: templates/publishing/channels.html:98 templates/publishing/channels.html:120
 #: templates/publishing/channels.html:147 templates/stays/units.html:54
 #: templates/stays/units.html:258 templates/tenant/languages.html:40
 #: templates/tenant/legal_docs.html:42 templates/tenant/modules.html:70
@@ -4008,8 +3983,7 @@ msgid "New category"
 msgstr "Yeni kategori"
 
 #: templates/catalog/category_form.html:3
-#: templates/catalog/category_form.html:8
-#: templates/storefront/products.html:61
+#: templates/catalog/category_form.html:8 templates/storefront/products.html:61
 msgid "Edit category"
 msgstr "Kategoriyi düzenle"
 
@@ -4017,9 +3991,8 @@ msgstr "Kategoriyi düzenle"
 msgid "Slug"
 msgstr "Slug"
 
-#: templates/catalog/category_list.html:27
-#: templates/catalog/combo_form.html:46 templates/catalog/combo_form.html:70
-#: templates/catalog/combo_form.html:83
+#: templates/catalog/category_list.html:27 templates/catalog/combo_form.html:46
+#: templates/catalog/combo_form.html:70 templates/catalog/combo_form.html:83
 #: templates/catalog/product_form.html:170
 #: templates/catalog/product_form.html:205
 #: templates/catalog/product_form.html:219
@@ -4044,8 +4017,8 @@ msgid "New combo"
 msgstr "Yeni kombinasyon"
 
 #: templates/catalog/combo_form.html:7 templates/catalog/combo_list.html:3
-#: templates/catalog/combo_list.html:8
-#: templates/storefront/combo_detail.html:6 templates/storefront/combos.html:3
+#: templates/catalog/combo_list.html:8 templates/storefront/combo_detail.html:6
+#: templates/storefront/combos.html:3
 msgid "Combos"
 msgstr "Kombinasyonlar"
 
@@ -4083,8 +4056,7 @@ msgstr "Grup"
 msgid "product"
 msgstr "ürün"
 
-#: templates/catalog/combo_form.html:97
-#: templates/catalog/product_form.html:215
+#: templates/catalog/combo_form.html:97 templates/catalog/product_form.html:215
 #: templates/storefront/_add_to_cart_form.html:6
 msgid "Option"
 msgstr "Seçenek"
@@ -4155,8 +4127,7 @@ msgstr "Fiyat ve stok durumu"
 msgid "Labeling"
 msgstr "Etiketleme"
 
-#: templates/catalog/product_form.html:59
-#: templates/crm/customer_detail.html:13
+#: templates/catalog/product_form.html:59 templates/crm/customer_detail.html:13
 msgid "Marketing"
 msgstr "Pazarlama"
 
@@ -4254,8 +4225,8 @@ msgid ""
 "(max 0 = no limit, 1 = single choice). Surcharge adds to the item price."
 msgstr ""
 "Örneğin: porsiyon büyüklüğü, yan yemek, ek seçenekler. Min/maks = misafirin "
-"kaç seçenek seçebileceği (maks. 0 = sınır yok, 1 = tek seçim). Ek ücret, "
-"ürün fiyatına eklenir."
+"kaç seçenek seçebileceği (maks. 0 = sınır yok, 1 = tek seçim). Ek ücret, ürün"
+" fiyatına eklenir."
 
 #: templates/catalog/product_form.html:201
 msgid "Group name"
@@ -4373,9 +4344,9 @@ msgid ""
 "Bestellungen, Termine, Buchungen, Tickets & Anfragen an einem Ort — Karten "
 "per Drag & Drop zwischen den Spalten bewegen oder die Buttons nutzen."
 msgstr ""
-"Siparişler, randevular, rezervasyonlar, biletler ve talepler tek bir yerde —"
-" Kartları sütunlar arasında sürükle ve bırak yöntemiyle taşıyın veya "
-"düğmeleri kullanın."
+"Siparişler, randevular, rezervasyonlar, biletler ve talepler tek bir yerde — "
+"Kartları sütunlar arasında sürükle ve bırak yöntemiyle taşıyın veya düğmeleri"
+" kullanın."
 
 #: templates/core/board.html:16
 msgid "Customize columns"
@@ -4383,8 +4354,8 @@ msgstr "Sütunları özelleştir"
 
 #: templates/core/board.html:19
 msgid ""
-"Rename, reorder (number) or hide the columns. The rules for moving cards "
-"stay the same."
+"Rename, reorder (number) or hide the columns. The rules for moving cards stay"
+" the same."
 msgstr ""
 "Sütunların adını değiştirin, sıralayın (numaralandırın) veya gizleyin. "
 "Kartları taşıma kuralları aynı kalır."
@@ -4411,11 +4382,11 @@ msgstr "Geçiş mümkün değil."
 
 #: templates/core/board.html:188
 msgid ""
-"Noch keine Verkaufskanäle aktiv — sobald Bestellungen, Termine oder Anfragen"
-" eingehen, erscheinen sie hier."
+"Noch keine Verkaufskanäle aktiv — sobald Bestellungen, Termine oder Anfragen "
+"eingehen, erscheinen sie hier."
 msgstr ""
-"Henüz aktif satış kanalları yok — siparişler, randevular veya talepler gelir"
-" gelmez burada görünecektir."
+"Henüz aktif satış kanalları yok — siparişler, randevular veya talepler gelir "
+"gelmez burada görünecektir."
 
 #: templates/crm/customer_detail.html:12
 msgid "unsubscribed"
@@ -4445,8 +4416,7 @@ msgstr "Not ekle"
 msgid "No notes yet."
 msgstr "Henüz not yok."
 
-#: templates/crm/customer_detail.html:66
-#: templates/promotions/analytics.html:15
+#: templates/crm/customer_detail.html:66 templates/promotions/analytics.html:15
 #: templates/promotions/promotion_form.html:149
 #: templates/promotions/reservation_list.html:3
 #: templates/promotions/reservation_list.html:8
@@ -4481,8 +4451,7 @@ msgstr "Henüz sadakat kartı yok."
 msgid "Vouchers"
 msgstr "Kuponlar"
 
-#: templates/crm/customer_detail.html:130
-#: templates/promotions/vouchers.html:51
+#: templates/crm/customer_detail.html:130 templates/promotions/vouchers.html:51
 msgid "No vouchers yet."
 msgstr "Henüz kupon yok."
 
@@ -4543,16 +4512,14 @@ msgstr "Miktar"
 msgid "Bitte zeigen Sie diesen Code bei der Abholung vor."
 msgstr "Lütfen teslim alırken bu kodu gösterin."
 
-#: templates/emails/base_email.html:17
-#: templates/emails/booking_cancelled.txt:7
+#: templates/emails/base_email.html:17 templates/emails/booking_cancelled.txt:7
 #: templates/emails/booking_confirmed.txt:10
 #: templates/emails/booking_created.txt:10
 #: templates/emails/booking_payment_reminder.txt:14
 #: templates/emails/booking_post_visit.txt:12
 #: templates/emails/booking_reminder.txt:11
 #: templates/emails/order_cancelled.txt:7
-#: templates/emails/order_confirmed.txt:8
-#: templates/emails/order_created.txt:19
+#: templates/emails/order_confirmed.txt:8 templates/emails/order_created.txt:19
 #: templates/emails/order_payment_reminder.txt:12
 #: templates/emails/order_picked_up.txt:6
 #: templates/emails/order_post_purchase.txt:12
@@ -4565,8 +4532,7 @@ msgstr "Lütfen teslim alırken bu kodu gösterin."
 #: templates/emails/stay_cancelled.txt:12
 #: templates/emails/stay_confirmed.txt:12 templates/emails/stay_created.txt:12
 #: templates/emails/stay_payment_reminder.txt:14
-#: templates/emails/stay_post_stay.txt:12
-#: templates/emails/stay_reminder.txt:13
+#: templates/emails/stay_post_stay.txt:12 templates/emails/stay_reminder.txt:13
 #: templates/emails/ticket_post_event.txt:10
 #: templates/emails/ticket_reminder.txt:18
 msgid "Keine E-Mails mehr erhalten"
@@ -4753,8 +4719,8 @@ msgid ""
 "Ihre Bestellung wurde bestätigt. Wir geben Bescheid, sobald sie abholbereit "
 "ist."
 msgstr ""
-"Siparişiniz onaylandı. Siparişiniz teslim alınmaya hazır olduğunda size "
-"haber vereceğiz."
+"Siparişiniz onaylandı. Siparişiniz teslim alınmaya hazır olduğunda size haber"
+" vereceğiz."
 
 #: templates/emails/order_confirmed.txt:5 templates/emails/order_created.txt:7
 msgid "Abhol-Code"
@@ -4804,8 +4770,8 @@ msgstr "%(code)s adresinden verdiğiniz siparişiniz henüz ödeme bekliyor."
 
 #: templates/emails/order_payment_reminder.txt:9
 msgid ""
-"Wenn Sie die Bestellung nicht mehr benötigen, können Sie diese E-Mail "
-"einfach ignorieren."
+"Wenn Sie die Bestellung nicht mehr benötigen, können Sie diese E-Mail einfach"
+" ignorieren."
 msgstr ""
 "Siparişe artık ihtiyacınız yoksa, bu e-postayı görmezden gelebilirsiniz."
 
@@ -5123,8 +5089,8 @@ msgstr "“%(title)s” etkinliğine yaptığınız kayıt, henüz ödemeniz bek
 
 #: templates/emails/ticket_payment_reminder.txt:9
 msgid ""
-"Wenn Sie die Anmeldung nicht mehr benötigen, können Sie diese E-Mail einfach"
-" ignorieren."
+"Wenn Sie die Anmeldung nicht mehr benötigen, können Sie diese E-Mail einfach "
+"ignorieren."
 msgstr "Kayıt artık size gerekmiyorsa, bu e-postayı görmezden gelebilirsiniz."
 
 #: templates/emails/ticket_payment_reminder_subject.txt:1
@@ -5134,8 +5100,8 @@ msgstr "Kayıt işleminiz ödemeyi bekliyor"
 #: templates/emails/ticket_post_event.txt:3
 #, python-format
 msgid ""
-"vielen Dank, dass Sie bei „%(title)s“ dabei waren — wir hoffen, es hat Ihnen"
-" gutgetan!"
+"vielen Dank, dass Sie bei „%(title)s“ dabei waren — wir hoffen, es hat Ihnen "
+"gutgetan!"
 msgstr ""
 "“%(title)s” etkinliğine katıldığınız için çok teşekkür ederiz — umarız "
 "keyifli bir deneyim olmuştur!"
@@ -5172,8 +5138,7 @@ msgstr "Ne zaman"
 msgid "Wo"
 msgstr "Ne"
 
-#: templates/emails/ticket_reminder.txt:8
-#: templates/events/event_detail.html:65
+#: templates/emails/ticket_reminder.txt:8 templates/events/event_detail.html:65
 #: templates/promotions/reservation_list.html:36
 #: templates/promotions/vouchers.html:36 templates/promotions/vouchers.html:63
 msgid "Code"
@@ -5216,11 +5181,10 @@ msgstr "Acele etmekte fayda var — stoklar sınırlıdır."
 
 #: templates/emails/waitlist_available.html:20
 #: templates/emails/waitlist_available.txt:9
-msgid ""
-"Dies ist eine einmalige Benachrichtigung auf Ihren Wunsch (Warteliste)."
+msgid "Dies ist eine einmalige Benachrichtigung auf Ihren Wunsch (Warteliste)."
 msgstr ""
-"Bu, sizin talebiniz üzerine gönderilen tek seferlik bir bildirimdir (bekleme"
-" listesi)."
+"Bu, sizin talebiniz üzerine gönderilen tek seferlik bir bildirimdir (bekleme "
+"listesi)."
 
 #: templates/emails/waitlist_available.txt:3
 #, python-format
@@ -5284,9 +5248,8 @@ msgid "New post"
 msgstr "Yeni gönderi"
 
 #: templates/events/blog_list.html:28
-#: templates/promotions/promotion_list.html:46
-#: templates/tenant/_cb_row.html:26 templates/tenant/site_home.html:656
-#: templates/tenant/site_menu.html:124
+#: templates/promotions/promotion_list.html:46 templates/tenant/_cb_row.html:26
+#: templates/tenant/site_home.html:656 templates/tenant/site_menu.html:124
 msgid "Title"
 msgstr "Başlık"
 
@@ -5384,8 +5347,7 @@ msgstr "Bu etkinlik bir dizi etkinliğin parçasıdır."
 msgid "Attendees"
 msgstr "Katılımcılar"
 
-#: templates/events/event_detail.html:66
-#: templates/events/event_detail.html:110
+#: templates/events/event_detail.html:66 templates/events/event_detail.html:110
 #: templates/events/event_detail.html:133
 #: templates/storefront/event_confirmation.html:31
 #: templates/storefront/event_detail.html:75
@@ -5393,8 +5355,7 @@ msgstr "Katılımcılar"
 msgid "Seats"
 msgstr "Koltuklar"
 
-#: templates/events/event_detail.html:66
-#: templates/imports/_status_card.html:13
+#: templates/events/event_detail.html:66 templates/imports/_status_card.html:13
 #: templates/imports/import_preview.html:26
 #: templates/imports/import_start.html:46 templates/inventory/stock.html:190
 #: templates/promotions/analytics.html:13
@@ -5538,8 +5499,8 @@ msgstr "KDV"
 #: templates/finance/invoices.html:72 templates/finance/journal.html:77
 #: templates/storefront/_buybox_service_form.html:30
 #: templates/storefront/_buybox_stay_form.html:87
-#: templates/storefront/booking_slots.html:82
-#: templates/storefront/cart.html:70 templates/storefront/cart.html:138
+#: templates/storefront/booking_slots.html:82 templates/storefront/cart.html:70
+#: templates/storefront/cart.html:138
 msgid "Note (optional)"
 msgstr "Not (isteğe bağlı)"
 
@@ -5607,8 +5568,8 @@ msgstr "CSV ayırıcısı"
 
 #: templates/imports/import_map.html:20
 msgid ""
-"CSV only — ignored for Excel files. If columns look wrong, pick the "
-"delimiter and reload via Start preview."
+"CSV only — ignored for Excel files. If columns look wrong, pick the delimiter"
+" and reload via Start preview."
 msgstr ""
 "Yalnızca CSV — Excel dosyalarında dikkate alınmaz. Sütunlar yanlış "
 "görünüyorsa, sınırlayıcıyı seçin ve “Önizlemeyi başlat” seçeneğiyle yeniden "
@@ -5838,12 +5799,12 @@ msgstr "Sayaç ↔ Defter Arasındaki Fark"
 #: templates/inventory/stock.html:86
 msgid ""
 "Der Bestandszähler weicht von der Summe der Ledger-Bewegungen ab (meist ein "
-"noch nicht gebuchter Startbestand). „Startbestand buchen“ gleicht den Ledger"
-" an, ohne den Zähler zu ändern."
+"noch nicht gebuchter Startbestand). „Startbestand buchen“ gleicht den Ledger "
+"an, ohne den Zähler zu ändern."
 msgstr ""
-"Stok sayacı, defter hareketlerinin toplamından farklılık gösterir "
-"(genellikle henüz kaydedilmemiş başlangıç stoğu). “Başlangıç stoğunu kaydet”"
-" seçeneği, sayacı değiştirmeden defteri dengeler."
+"Stok sayacı, defter hareketlerinin toplamından farklılık gösterir (genellikle"
+" henüz kaydedilmemiş başlangıç stoğu). “Başlangıç stoğunu kaydet” seçeneği, "
+"sayacı değiştirmeden defteri dengeler."
 
 #: templates/inventory/stock.html:93 templates/inventory/stock.html:158
 #: templates/inventory/stock.html:186
@@ -5903,8 +5864,8 @@ msgid ""
 "Gezählten Bestand eintragen; leere Felder bleiben unverändert. Differenzen "
 "werden als Inventur gebucht."
 msgstr ""
-"Sayılan stok miktarını girin; boş alanlar olduğu gibi kalır. Farklar "
-"envanter kaydı olarak kaydedilir."
+"Sayılan stok miktarını girin; boş alanlar olduğu gibi kalır. Farklar envanter"
+" kaydı olarak kaydedilir."
 
 #: templates/inventory/stock.html:175
 msgid "Meldebestand ≤"
@@ -6117,11 +6078,10 @@ msgstr "E-postanı kontrol et"
 
 #: templates/konto/check_inbox.html:8
 msgid ""
-"If an account exists, we've sent you a login link. It's valid for 15 "
-"minutes."
+"If an account exists, we've sent you a login link. It's valid for 15 minutes."
 msgstr ""
-"Eğer bir hesabınız varsa, size bir giriş bağlantısı gönderdik. Bu bağlantı "
-"15 dakika boyunca geçerlidir."
+"Eğer bir hesabınız varsa, size bir giriş bağlantısı gönderdik. Bu bağlantı 15"
+" dakika boyunca geçerlidir."
 
 #: templates/konto/home.html:8 templates/konto/profile.html:3
 #: templates/konto/profile.html:6
@@ -6148,8 +6108,8 @@ msgstr "Bu rezervasyonu iptal etmek ister misiniz?"
 #: templates/konto/home.html:49
 msgid "No activity yet. Your orders and bookings will appear here."
 msgstr ""
-"Henüz herhangi bir etkinlik yok. Siparişleriniz ve rezervasyonlarınız burada"
-" görünecektir."
+"Henüz herhangi bir etkinlik yok. Siparişleriniz ve rezervasyonlarınız burada "
+"görünecektir."
 
 #: templates/konto/link_invalid.html:6
 msgid "Link expired or already used"
@@ -6350,11 +6310,11 @@ msgstr "Yazdır"
 
 #: templates/orders/table_qr.html:19
 msgid ""
-"Print, cut out and place a QR code on each table. Guests scan it to open the"
-" menu and order — the order is linked to the table."
+"Print, cut out and place a QR code on each table. Guests scan it to open the "
+"menu and order — the order is linked to the table."
 msgstr ""
-"QR kodunu yazdırın, kesin ve her masaya yerleştirin. Konuklar kodu tarayarak"
-" menüyü açıp sipariş verebilir — sipariş, ilgili masaya bağlanır."
+"QR kodunu yazdırın, kesin ve her masaya yerleştirin. Konuklar kodu tarayarak "
+"menüyü açıp sipariş verebilir — sipariş, ilgili masaya bağlanır."
 
 #: templates/partners/dashboard.html:10
 msgid "Your referral link"
@@ -6378,8 +6338,7 @@ msgstr "Yargılanıyor"
 
 #: templates/partners/dashboard.html:34
 msgid ""
-"Estimate based on currently active subscriptions. Payout is settled "
-"manually."
+"Estimate based on currently active subscriptions. Payout is settled manually."
 msgstr ""
 "Tahmin, şu anda aktif olan aboneliklere dayanmaktadır. Ödeme manuel olarak "
 "gerçekleştirilir."
@@ -6457,9 +6416,9 @@ msgid ""
 "Customers with no purchase for N days automatically get a personal code — "
 "opt-in subscribers only, at most one code per window."
 msgstr ""
-"N gün boyunca alışveriş yapmayan müşterilere otomatik olarak kişisel bir kod"
-" verilir — yalnızca kayıtlı aboneler için geçerlidir; her dönem en fazla bir"
-" kod verilir."
+"N gün boyunca alışveriş yapmayan müşterilere otomatik olarak kişisel bir kod "
+"verilir — yalnızca kayıtlı aboneler için geçerlidir; her dönem en fazla bir "
+"kod verilir."
 
 #: templates/promotions/coupon_campaigns.html:35
 #: templates/promotions/coupon_campaigns.html:80 templates/stays/units.html:93
@@ -6536,8 +6495,7 @@ msgstr[1] "%(n)s şu anda segmentteki alıcılar"
 #: templates/promotions/coupon_campaigns.html:133
 #, python-format
 msgid "%(issued)s codes issued · %(redeemed)s redeemed"
-msgstr ""
-"%(issued)s verilen kodlar · %(redeemed)s adresinden kullanılmış kodlar"
+msgstr "%(issued)s verilen kodlar · %(redeemed)s adresinden kullanılmış kodlar"
 
 #: templates/promotions/coupon_campaigns.html:139
 msgid "Send personal codes to this segment?"
@@ -6651,8 +6609,7 @@ msgid "Boost visibility"
 msgstr "Görünürlüğü artırın"
 
 #: templates/promotions/promotion_feature.html:66
-#: templates/storefront/passes.html:27
-#: templates/tenant/listing_feature.html:67
+#: templates/storefront/passes.html:27 templates/tenant/listing_feature.html:67
 msgid "Buy"
 msgstr "Satın al"
 
@@ -6774,8 +6731,7 @@ msgstr "Mevcut"
 msgid "Window"
 msgstr "Pencere"
 
-#: templates/promotions/redeem.html:3
-#: templates/promotions/redeem_detail.html:3
+#: templates/promotions/redeem.html:3 templates/promotions/redeem_detail.html:3
 #: templates/promotions/voucher_redeem.html:30
 #: templates/promotions/voucher_redeem.html:43
 #: templates/promotions/vouchers.html:9
@@ -6944,15 +6900,13 @@ msgid "Enable"
 msgstr "Etkinleştir"
 
 #: templates/publishing/channels.html:32 templates/publishing/channels.html:58
-#: templates/publishing/channels.html:84
-#: templates/publishing/channels.html:106
+#: templates/publishing/channels.html:84 templates/publishing/channels.html:106
 #: templates/publishing/channels.html:128
 msgid "Configuration"
 msgstr "Yapılandırma"
 
 #: templates/publishing/channels.html:33 templates/publishing/channels.html:59
-#: templates/publishing/channels.html:85
-#: templates/publishing/channels.html:107
+#: templates/publishing/channels.html:85 templates/publishing/channels.html:107
 #: templates/publishing/channels.html:129
 msgid "connected"
 msgstr "bağlı"
@@ -6970,8 +6924,7 @@ msgid "Refresh token (leave blank to keep current)"
 msgstr "Güncelleme jetonu (mevcut jetonu korumak için boş bırakın)"
 
 #: templates/publishing/channels.html:51 templates/publishing/channels.html:77
-#: templates/publishing/channels.html:99
-#: templates/publishing/channels.html:121
+#: templates/publishing/channels.html:99 templates/publishing/channels.html:121
 #: templates/publishing/channels.html:148
 msgid "Setup guide"
 msgstr "Kurulum kılavuzu"
@@ -6996,8 +6949,7 @@ msgstr "Sayfa erişim jetonu (mevcut jetonu korumak için boş bırakın)"
 msgid "Instagram Business account ID"
 msgstr "Instagram İşletme hesabı kimliği"
 
-#: templates/publishing/channels.html:94
-#: templates/publishing/channels.html:143
+#: templates/publishing/channels.html:94 templates/publishing/channels.html:143
 msgid "Access token (leave blank to keep current)"
 msgstr "Erişim jetonu (mevcut olanı korumak için boş bırakın)"
 
@@ -7152,13 +7104,11 @@ msgstr "Raporlar"
 msgid "Units & blocked dates"
 msgstr "Birimler ve rezerve edilmiş tarihler"
 
-#: templates/stays/calendar.html:25
-#: templates/storefront/_media_gallery.html:43
+#: templates/stays/calendar.html:25 templates/storefront/_media_gallery.html:43
 msgid "Previous"
 msgstr "Önceki"
 
-#: templates/stays/calendar.html:27
-#: templates/storefront/_media_gallery.html:45
+#: templates/stays/calendar.html:27 templates/storefront/_media_gallery.html:45
 msgid "Next"
 msgstr "Sonraki"
 
@@ -7200,8 +7150,8 @@ msgstr "Satış kanalları"
 
 #: templates/stays/channels.html:11
 msgid ""
-"Track your OTA channels and import their reservations into your calendar (no"
-" double bookings). Availability import via iCal is on the Units page; live "
+"Track your OTA channels and import their reservations into your calendar (no "
+"double bookings). Availability import via iCal is on the Units page; live "
 "2-way sync needs OTA partner keys."
 msgstr ""
 "OTA kanallarınızı takip edin ve bu kanallardaki rezervasyonları takviminize "
@@ -7231,8 +7181,8 @@ msgstr "Rezervasyonu içe aktar"
 
 #: templates/stays/channels.html:62
 msgid ""
-"Enter an OTA booking to block those dates in your calendar. Re-importing the"
-" same reference does nothing (idempotent)."
+"Enter an OTA booking to block those dates in your calendar. Re-importing the "
+"same reference does nothing (idempotent)."
 msgstr ""
 "Takviminizde bu tarihleri bloke etmek için bir OTA rezervasyonu girin. Aynı "
 "referansı yeniden içe aktarmak hiçbir etki yaratmaz (idempotent)."
@@ -7278,8 +7228,8 @@ msgid ""
 "Digital registration forms completed by guests. Kept for one year after "
 "departure, then deleted automatically (DSGVO)."
 msgstr ""
-"Konuklar tarafından doldurulan dijital kayıt formları. Ayrılmalarından sonra"
-" bir yıl süreyle saklanır, ardından otomatik olarak silinir (DSGVO)."
+"Konuklar tarafından doldurulan dijital kayıt formları. Ayrılmalarından sonra "
+"bir yıl süreyle saklanır, ardından otomatik olarak silinir (DSGVO)."
 
 #: templates/stays/checkins.html:19
 #, python-format
@@ -7354,13 +7304,13 @@ msgstr "Meta arama ve Google (fiyat verisi)"
 #: templates/stays/units.html:31
 msgid ""
 "Machine-readable availability & prices for metasearch and channel partners. "
-"Connect it in Google Hotel Center to get free booking links straight to your"
-" direct booking."
+"Connect it in Google Hotel Center to get free booking links straight to your "
+"direct booking."
 msgstr ""
 "Meta arama motorları ve kanal ortakları için makine tarafından okunabilir "
-"müsaitlik ve fiyat bilgileri. Google Hotel Center’da entegre ederek, "
-"doğrudan rezervasyon sisteminize yönlendiren ücretsiz rezervasyon "
-"bağlantılarını alın."
+"müsaitlik ve fiyat bilgileri. Google Hotel Center’da entegre ederek, doğrudan"
+" rezervasyon sisteminize yönlendiren ücretsiz rezervasyon bağlantılarını "
+"alın."
 
 #: templates/stays/units.html:37
 msgid "Kurtaxe & house rules"
@@ -7372,8 +7322,8 @@ msgid ""
 "free. House rules appear as a public page when filled."
 msgstr ""
 "Her rezervasyona yetişkin başına gecelik konaklama vergisi eklenir (0 = "
-"uygulanmaz). Çocuklar ücretsizdir. Ev kuralları, doldurulduğunda herkese "
-"açık bir sayfa olarak görüntülenir."
+"uygulanmaz). Çocuklar ücretsizdir. Ev kuralları, doldurulduğunda herkese açık"
+" bir sayfa olarak görüntülenir."
 
 #: templates/stays/units.html:43
 msgid "Amount / adult / night (€)"
@@ -7387,8 +7337,8 @@ msgstr ""
 
 #: templates/stays/units.html:52
 msgid ""
-"Check-in ab 15:00, Check-out bis 11:00; Haustiere auf Anfrage; Nichtraucher;"
-" Ruhezeiten 22–7 Uhr; Kaution …"
+"Check-in ab 15:00, Check-out bis 11:00; Haustiere auf Anfrage; Nichtraucher; "
+"Ruhezeiten 22–7 Uhr; Kaution …"
 msgstr ""
 "Giriş saat 15:00'ten itibaren, çıkış saat 11:00'e kadar; evcil hayvanlar "
 "talep üzerine kabul edilir; sigara içilmez; sessizlik saatleri 22:00–07:00; "
@@ -7577,8 +7527,8 @@ msgstr "Takvim senkronizasyonu (iCal)"
 
 #: templates/stays/units.html:325
 msgid ""
-"Export this unit's availability — paste this link into Booking.com / Airbnb "
-"/ Google:"
+"Export this unit's availability — paste this link into Booking.com / Airbnb /"
+" Google:"
 msgstr ""
 "Bu birimin müsaitlik durumunu dışa aktarın — bu bağlantıyı Booking.com / "
 "Airbnb / Google’a yapıştırın:"
@@ -7681,8 +7631,7 @@ msgstr "Şartlar"
 msgid "House rules"
 msgstr "Ev kuralları"
 
-#: templates/storefront/_base.html:212
-#: templates/storefront/gift_voucher.html:3
+#: templates/storefront/_base.html:212 templates/storefront/gift_voucher.html:3
 #: templates/storefront/gift_voucher.html:7
 msgid "Gift voucher"
 msgstr "Hediye çeki"
@@ -7780,8 +7729,8 @@ msgstr "İndirim kodu (isteğe bağlı)"
 #: templates/storefront/booking_slots.html:94
 #, python-format
 msgid ""
-"A deposit of %(deposit_eur)s € is required — you'll pay securely in the next"
-" step."
+"A deposit of %(deposit_eur)s € is required — you'll pay securely in the next "
+"step."
 msgstr ""
 "%(deposit_eur)s€ tutarında bir depozito gereklidir — bir sonraki adımda "
 "güvenli bir şekilde ödeme yapacaksınız."
@@ -7872,8 +7821,8 @@ msgstr "örn. SOMMER10"
 
 #: templates/storefront/_buybox_stay_form.html:91
 msgid ""
-"A payment is required for this booking — you'll pay securely in the next "
-"step (amount depends on the chosen rate)."
+"A payment is required for this booking — you'll pay securely in the next step"
+" (amount depends on the chosen rate)."
 msgstr ""
 "Bu rezervasyon için ödeme yapılması gerekmektedir — bir sonraki adımda "
 "güvenli bir şekilde ödeme yapacaksınız (tutar, seçilen tarifeye göre "
@@ -7961,8 +7910,7 @@ msgstr "Bir yorum yazın"
 
 #: templates/storefront/_entity_reviews.html:43
 msgid ""
-"Only verified customers can review. Use the e-mail address from your "
-"booking."
+"Only verified customers can review. Use the e-mail address from your booking."
 msgstr ""
 "Yalnızca doğrulanmış müşteriler yorum yapabilir. Rezervasyonunuzda "
 "kullandığınız e-posta adresini kullanın."
@@ -8227,8 +8175,8 @@ msgstr "TSN (2.2)"
 
 #: templates/storefront/anfrage.html:75
 msgid ""
-"HSN/TSN are in your vehicle registration (fields 2.1 and 2.2) — helps us "
-"find the exact parts."
+"HSN/TSN are in your vehicle registration (fields 2.1 and 2.2) — helps us find"
+" the exact parts."
 msgstr ""
 "HSN/TSN kodları araç ruhsatınızda yer almaktadır (2.1 ve 2.2 numaralı "
 "alanlar) — bu, doğru parçaları bulmamıza yardımcı olur."
@@ -8609,11 +8557,9 @@ msgid "Your online payment will be refunded."
 msgstr "Çevrimiçi ödemeniz iade edilecektir."
 
 #: templates/storefront/event_cancel.html:25
-msgid ""
-"This ticket is non-refundable — cancelling will not refund any payment."
+msgid "This ticket is non-refundable — cancelling will not refund any payment."
 msgstr ""
-"Bu bilet iade edilemez — iptal edilmesi durumunda yapılan ödeme geri "
-"ödenmez."
+"Bu bilet iade edilemez — iptal edilmesi durumunda yapılan ödeme geri ödenmez."
 
 #: templates/storefront/event_cancel.html:30
 msgid "Keep ticket"
@@ -8770,8 +8716,8 @@ msgid ""
 "Pay in %(n)s instalments — about %(f)s € now, the rest is charged "
 "automatically."
 msgstr ""
-"%(n)s’da taksitli ödeme yapın — şu anda yaklaşık %(f)s € ödeyin, geri kalanı"
-" otomatik olarak tahsil edilir."
+"%(n)s’da taksitli ödeme yapın — şu anda yaklaşık %(f)s € ödeyin, geri kalanı "
+"otomatik olarak tahsil edilir."
 
 #: templates/storefront/event_detail.html:180
 msgid "Waiver"
@@ -8810,8 +8756,8 @@ msgstr "Gruplar ve şirketler"
 #: templates/storefront/event_detail.html:256
 msgid "Booking for a team or a private group? Request an individual offer."
 msgstr ""
-"Bir takım veya özel bir grup için rezervasyon mu yapıyorsunuz? Size özel bir"
-" teklif isteyin."
+"Bir takım veya özel bir grup için rezervasyon mu yapıyorsunuz? Size özel bir "
+"teklif isteyin."
 
 #: templates/storefront/event_detail.html:257
 msgid "Group inquiry"
@@ -8868,8 +8814,8 @@ msgstr "Yaklaşan etkinlik yok."
 msgid ""
 "Give a stay as a gift — pay securely online and receive the code by email."
 msgstr ""
-"Bir konaklama hediye edin — çevrimiçi olarak güvenli bir şekilde ödeme yapın"
-" ve kodu e-posta yoluyla alın."
+"Bir konaklama hediye edin — çevrimiçi olarak güvenli bir şekilde ödeme yapın "
+"ve kodu e-posta yoluyla alın."
 
 #: templates/storefront/gift_voucher.html:19
 msgid "Amount (€)"
@@ -8901,8 +8847,8 @@ msgid ""
 "Your gift voucher code will arrive by email shortly. You can use it as a "
 "promo code when booking on this site."
 msgstr ""
-"Hediye çeki kodunuz kısa süre içinde e-posta yoluyla size gönderilecektir. "
-"Bu sitede rezervasyon yaparken bunu promosyon kodu olarak kullanabilirsiniz."
+"Hediye çeki kodunuz kısa süre içinde e-posta yoluyla size gönderilecektir. Bu"
+" sitede rezervasyon yaparken bunu promosyon kodu olarak kullanabilirsiniz."
 
 #: templates/storefront/gift_voucher_ok.html:10
 msgid "Back to home"
@@ -8974,8 +8920,8 @@ msgstr "Neredeyse bitti!"
 
 #: templates/storefront/newsletter.html:10
 msgid ""
-"We've sent you a confirmation email. Please click the link inside to "
-"complete your subscription (double opt-in)."
+"We've sent you a confirmation email. Please click the link inside to complete"
+" your subscription (double opt-in)."
 msgstr ""
 "Size bir onay e-postası gönderdik. Aboneliğinizi tamamlamak için lütfen "
 "e-postadaki bağlantıya tıklayın (çift onay)."
@@ -8998,19 +8944,16 @@ msgstr "Zaten abonesiniz"
 
 #: templates/storefront/newsletter.html:16
 msgid "This email is already on our newsletter list."
-msgstr ""
-"Bu e-posta adresi halihazırda haber bülteni listemizde yer almaktadır."
+msgstr "Bu e-posta adresi halihazırda haber bülteni listemizde yer almaktadır."
 
 #: templates/storefront/newsletter.html:18
-#: templates/tenants/provisioning.html:3
-#: templates/tenants/provisioning.html:13
+#: templates/tenants/provisioning.html:3 templates/tenants/provisioning.html:13
 msgid "Something went wrong"
 msgstr "Bir sorun oluştu"
 
 #: templates/storefront/newsletter.html:19
 msgid ""
-"The link is invalid or expired, or the email was not valid. Please try "
-"again."
+"The link is invalid or expired, or the email was not valid. Please try again."
 msgstr ""
 "Bağlantı geçersiz veya süresi dolmuş ya da e-posta adresi geçerli değil. "
 "Lütfen tekrar deneyin."
@@ -9041,8 +8984,8 @@ msgstr "Abone ol"
 
 #: templates/storefront/newsletter.html:36
 msgid ""
-"By subscribing you agree to receive marketing emails. See our privacy policy"
-" for details."
+"By subscribing you agree to receive marketing emails. See our privacy policy "
+"for details."
 msgstr ""
 "Abone olarak pazarlama amaçlı e-postalar almayı kabul etmiş olursunuz. "
 "Ayrıntılar için gizlilik politikamıza göz atın."
@@ -9406,11 +9349,11 @@ msgstr "Adres"
 
 #: templates/storefront/stay_checkin.html:30
 msgid ""
-"Please complete your registration (Meldeschein) before arrival — it speeds "
-"up your check-in."
+"Please complete your registration (Meldeschein) before arrival — it speeds up"
+" your check-in."
 msgstr ""
-"Lütfen varıştan önce kayıt işleminizi (Meldeschein) tamamlayın — bu, check-"
-"in işleminizi hızlandıracaktır."
+"Lütfen varıştan önce kayıt işleminizi (Meldeschein) tamamlayın — bu, check-in"
+" işleminizi hızlandıracaktır."
 
 #: templates/storefront/stay_checkin.html:35
 msgid "First name"
@@ -9581,8 +9524,7 @@ msgstr "Telegram botu"
 
 #: templates/telegram/settings.html:8
 msgid "Your customers open your shop right inside Telegram (Mini App)."
-msgstr ""
-"Müşterileriniz, Telegram’ın içinden (Mini Uygulama) mağazanızı açıyor."
+msgstr "Müşterileriniz, Telegram’ın içinden (Mini Uygulama) mağazanızı açıyor."
 
 #: templates/telegram/settings.html:15
 msgid "Connected"
@@ -9666,8 +9608,7 @@ msgstr "Uzman"
 msgid "Cabinet language"
 msgstr "Kabine dili"
 
-#: templates/tenant/_base_dashboard.html:106
-#: templates/tenant/languages.html:21
+#: templates/tenant/_base_dashboard.html:106 templates/tenant/languages.html:21
 msgid "Website languages"
 msgstr "Web sitesi dilleri"
 
@@ -9684,8 +9625,8 @@ msgid ""
 "Your subscription is inactive — the dashboard is read-only. Please activate "
 "it to continue."
 msgstr ""
-"Aboneliğiniz etkin değil — kontrol paneli salt okunur durumdadır. Devam "
-"etmek için lütfen aboneliğinizi etkinleştirin."
+"Aboneliğiniz etkin değil — kontrol paneli salt okunur durumdadır. Devam etmek"
+" için lütfen aboneliğinizi etkinleştirin."
 
 #: templates/tenant/_cb_row.html:21
 msgid "Visible"
@@ -9814,8 +9755,7 @@ msgstr "Düğme etiketi (isteğe bağlı)"
 
 #: templates/tenant/_cb_row.html:121
 msgid "Discount style (used until the promotion sets its own)"
-msgstr ""
-"İndirim türü (kampanya kendi kurallarını belirleyene kadar geçerlidir)"
+msgstr "İndirim türü (kampanya kendi kurallarını belirleyene kadar geçerlidir)"
 
 #: templates/tenant/_cb_row.html:122
 msgid "Discount style: automatic"
@@ -9924,8 +9864,8 @@ msgstr "Gerekli olanlar:"
 msgid "Headline"
 msgstr "Başlık"
 
-#: templates/tenant/_section_fields.html:10
-#: templates/tenant/site_home.html:992 templates/tenant/site_home.html:1009
+#: templates/tenant/_section_fields.html:10 templates/tenant/site_home.html:992
+#: templates/tenant/site_home.html:1009
 msgid "Button text"
 msgstr "Düğme metni"
 
@@ -10044,14 +9984,14 @@ msgstr "Değer:"
 
 #: templates/tenant/domains.html:40
 msgid ""
-"Once the DNS record points to us, the domain activates automatically within "
-"a few minutes (or click “Verify” to check now). The HTTPS certificate is "
+"Once the DNS record points to us, the domain activates automatically within a"
+" few minutes (or click “Verify” to check now). The HTTPS certificate is "
 "issued automatically on the first visit."
 msgstr ""
 "DNS kaydı bize yönlendirildiğinde, alan adı birkaç dakika içinde otomatik "
 "olarak etkinleşir (ya da hemen kontrol etmek için “Doğrula” düğmesine "
-"tıklayabilirsiniz). HTTPS sertifikası, ilk ziyaret sırasında otomatik olarak"
-" verilir."
+"tıklayabilirsiniz). HTTPS sertifikası, ilk ziyaret sırasında otomatik olarak "
+"verilir."
 
 #: templates/tenant/domains.html:42
 msgid "Domain verification is currently unavailable. Please contact support."
@@ -10085,8 +10025,8 @@ msgstr "Ekstra Özellikler"
 
 #: templates/tenant/extras.html:9
 msgid ""
-"Optional paid add-ons guests can pick when booking (breakfast, parking, late"
-" checkout …). One engine for all booking types; “scope” limits where it "
+"Optional paid add-ons guests can pick when booking (breakfast, parking, late "
+"checkout …). One engine for all booking types; “scope” limits where it "
 "applies. Currently shown on Übernachtung."
 msgstr ""
 "Konukların rezervasyon sırasında seçebilecekleri isteğe bağlı ücretli ek "
@@ -10121,8 +10061,8 @@ msgstr "Şunlar için geçerlidir"
 #: templates/tenant/extras.html:71
 msgid "Price per night (Übernachtung) — otherwise once per booking"
 msgstr ""
-"Gecelik fiyat (Übernachtung) — aksi belirtilmedikçe her rezervasyon için bir"
-" kez"
+"Gecelik fiyat (Übernachtung) — aksi belirtilmedikçe her rezervasyon için bir "
+"kez"
 
 #: templates/tenant/extras.html:77
 msgid "Add extra"
@@ -10161,8 +10101,8 @@ msgid ""
 "Legal pages of your website — per language. Leave a field empty to use the "
 "automatic text from your business data."
 msgstr ""
-"Web sitenizin yasal sayfaları — dil bazında. İşletme verilerinizdeki "
-"otomatik metni kullanmak için ilgili alanı boş bırakın."
+"Web sitenizin yasal sayfaları — dil bazında. İşletme verilerinizdeki otomatik"
+" metni kullanmak için ilgili alanı boş bırakın."
 
 #: templates/tenant/legal_docs.html:23
 msgid ""
@@ -10172,8 +10112,7 @@ msgstr ""
 "girildiğinde görünür."
 
 #: templates/tenant/legal_docs.html:25
-msgid ""
-"Empty = automatic text generated from your business data (shown below)."
+msgid "Empty = automatic text generated from your business data (shown below)."
 msgstr ""
 "Boş = işletme verilerinizden otomatik olarak oluşturulan metin (aşağıda "
 "gösterilmiştir)."
@@ -10195,8 +10134,8 @@ msgid ""
 "All uploaded photos in one place — edit alt texts (SEO & accessibility), "
 "delete unused files."
 msgstr ""
-"Yüklenen tüm fotoğraflar tek bir yerde — alternatif metinleri düzenleyin "
-"(SEO ve erişilebilirlik), kullanılmayan dosyaları silin."
+"Yüklenen tüm fotoğraflar tek bir yerde — alternatif metinleri düzenleyin (SEO"
+" ve erişilebilirlik), kullanılmayan dosyaları silin."
 
 #: templates/tenant/media_library.html:28
 msgid "in use"
@@ -10217,8 +10156,7 @@ msgstr "Dosyayı sil"
 #: templates/tenant/media_library.html:47
 msgid "No media yet — photos appear here as soon as you upload them."
 msgstr ""
-"Henüz medya içeriği yok — fotoğrafları yüklediğiniz anda burada "
-"görünecektir."
+"Henüz medya içeriği yok — fotoğrafları yüklediğiniz anda burada görünecektir."
 
 #: templates/tenant/modules.html:3 templates/tenant/modules.html:8
 msgid "Modules"
@@ -10226,8 +10164,8 @@ msgstr "Modüller"
 
 #: templates/tenant/modules.html:9
 msgid ""
-"Switch dashboard blocks on or off. Disabled modules disappear from the menu "
-"— your data stays."
+"Switch dashboard blocks on or off. Disabled modules disappear from the menu —"
+" your data stays."
 msgstr ""
 "Kontrol paneli bloklarını etkinleştirin veya devre dışı bırakın. Devre dışı "
 "bırakılan modüller menüden kaybolur — verileriniz ise korunur."
@@ -10250,8 +10188,8 @@ msgid ""
 "erreichbar). Experte zeigt alles."
 msgstr ""
 "\"Basit\" seçeneği, menüden profesyonel araçları gizler (sayfalara "
-"bağlantılar aracılığıyla erişilebilir olmaya devam eder). \"Uzman\" seçeneği"
-" ise her şeyi gösterir."
+"bağlantılar aracılığıyla erişilebilir olmaya devam eder). \"Uzman\" seçeneği "
+"ise her şeyi gösterir."
 
 #: templates/tenant/modules.html:29
 msgid "Simple mode hides these menu items:"
@@ -10429,8 +10367,8 @@ msgid ""
 "Leave empty for a single pickup at your address. Several lines = customer "
 "chooses in cart."
 msgstr ""
-"Adresinizden tek bir teslimat için bu alanı boş bırakın. Birden fazla satır "
-"= müşteri sepetinde seçim yapar."
+"Adresinizden tek bir teslimat için bu alanı boş bırakın. Birden fazla satır ="
+" müşteri sepetinde seçim yapar."
 
 #: templates/tenant/payment_settings.html:123
 msgid "Delivery zones by postal code"
@@ -10438,8 +10376,7 @@ msgstr "Posta koduna göre teslimat bölgeleri"
 
 #: templates/tenant/payment_settings.html:124
 msgid ""
-"Optional. A matching PLZ zone overrides the flat fee / free-from / min "
-"above."
+"Optional. A matching PLZ zone overrides the flat fee / free-from / min above."
 msgstr ""
 "İsteğe bağlı. Eşleşen bir PLZ bölgesi, yukarıda belirtilen sabit ücret / "
 "ücretsiz teslimat / minimum tutarı geçersiz kılar."
@@ -10512,8 +10449,8 @@ msgstr "Hukuk ve vergi"
 
 #: templates/tenant/settings.html:75
 msgid ""
-"Tip: per-language legal texts (also AGB) are managed in the “Rechtstexte” "
-"tab above."
+"Tip: per-language legal texts (also AGB) are managed in the “Rechtstexte” tab"
+" above."
 msgstr ""
 "İpucu: Dille ilgili yasal metinler (AGB dahil) yukarıdaki “Rechtstexte” "
 "sekmesinde yönetilmektedir."
@@ -10564,8 +10501,8 @@ msgid ""
 "Build, preview and fill your storefront. Layout & menu have their own "
 "builders; texts and content are below."
 msgstr ""
-"Mağaza sayfanızı oluşturun, önizleyin ve içeriğini doldurun. Sayfa düzeni ve"
-" menü için ayrı oluşturucular mevcuttur; metinler ve içerik ise aşağıda yer "
+"Mağaza sayfanızı oluşturun, önizleyin ve içeriğini doldurun. Sayfa düzeni ve "
+"menü için ayrı oluşturucular mevcuttur; metinler ve içerik ise aşağıda yer "
 "almaktadır."
 
 #: templates/tenant/site.html:20
@@ -10651,8 +10588,7 @@ msgstr "Şablonlar"
 
 #: templates/tenant/site.html:79
 msgid ""
-"Pick a ready-made layout. Your texts are kept — only empty fields are "
-"filled."
+"Pick a ready-made layout. Your texts are kept — only empty fields are filled."
 msgstr ""
 "Hazır bir şablon seçin. Metinleriniz korunur — yalnızca boş alanlar "
 "doldurulur."
@@ -10727,8 +10663,8 @@ msgid ""
 "CTA, testimonials, how it works, team, trust, FAQ. Each shows when its "
 "section is enabled in the Homepage builder."
 msgstr ""
-"CTA, müşteri yorumları, nasıl çalışır, ekip, güven, SSS. Her biri, Ana Sayfa"
-" Oluşturucu’da ilgili bölüm etkinleştirildiğinde görüntülenir."
+"CTA, müşteri yorumları, nasıl çalışır, ekip, güven, SSS. Her biri, Ana Sayfa "
+"Oluşturucu’da ilgili bölüm etkinleştirildiğinde görüntülenir."
 
 #: templates/tenant/site.html:213 templates/tenant/site_seo.html:77
 msgid "Save changes"
@@ -10816,8 +10752,8 @@ msgid ""
 "What visitors see first. \"Combined homepage\" shows the blocks below; or "
 "jump straight into one section."
 msgstr ""
-"Ziyaretçilerin ilk gördüğü şey. “Birleştirilmiş ana sayfa” aşağıdaki "
-"blokları gösterir; ya da doğrudan bir bölüme geçebilirsiniz."
+"Ziyaretçilerin ilk gördüğü şey. “Birleştirilmiş ana sayfa” aşağıdaki blokları"
+" gösterir; ya da doğrudan bir bölüme geçebilirsiniz."
 
 #: templates/tenant/site_home.html:133
 msgid "Design"
@@ -10928,8 +10864,8 @@ msgid ""
 "Photo + heading + text + button per slide; multiple slides rotate. Slides "
 "override the single banner above."
 msgstr ""
-"Her slaytta bir fotoğraf + başlık + metin + düğme; birden fazla slayt "
-"sırayla gösterilir. Slaytlar, üst kısımdaki tek bir afişin yerine geçer."
+"Her slaytta bir fotoğraf + başlık + metin + düğme; birden fazla slayt sırayla"
+" gösterilir. Slaytlar, üst kısımdaki tek bir afişin yerine geçer."
 
 #: templates/tenant/site_home.html:244 templates/tenant/site_home.html:1025
 #: templates/tenant/site_home.html:1423
@@ -10941,16 +10877,15 @@ msgid "Cover photos"
 msgstr "Kapak fotoğrafları"
 
 #: templates/tenant/site_home.html:246
-msgid ""
-"Banner photo on each section's landing page (catalog, events, rooms …)."
+msgid "Banner photo on each section's landing page (catalog, events, rooms …)."
 msgstr ""
 "Her bölümün ana sayfasında (katalog, etkinlikler, odalar…) yer alan başlık "
 "fotoğrafı."
 
 #: templates/tenant/site_home.html:249
 msgid ""
-"Banner background image: click the banner on the canvas. Accent background "
-"is in"
+"Banner background image: click the banner on the canvas. Accent background is"
+" in"
 msgstr ""
 "Afiş arka plan resmi: Tuval üzerindeki afişe tıklayın. Vurgu arka planı "
 "şurada yer almaktadır:"
@@ -10962,8 +10897,8 @@ msgstr "Ana sayfa blokları"
 #: templates/tenant/site_home.html:280
 msgid "Drag ⠿ to reorder, or type a number. Untick to hide a block."
 msgstr ""
-"Sırayı değiştirmek için ⠿ simgesini sürükleyin veya bir sayı girin. Bir "
-"bloğu gizlemek için işaretini kaldırın."
+"Sırayı değiştirmek için ⠿ simgesini sürükleyin veya bir sayı girin. Bir bloğu"
+" gizlemek için işaretini kaldırın."
 
 #: templates/tenant/site_home.html:285
 msgid ""
@@ -11156,8 +11091,8 @@ msgid ""
 "Cards linking to each part of your site. Leave a field empty to use the "
 "default text."
 msgstr ""
-"Sitenizin her bir bölümüne bağlantı veren kartlar. Varsayılan metni "
-"kullanmak için bir alanı boş bırakın."
+"Sitenizin her bir bölümüne bağlantı veren kartlar. Varsayılan metni kullanmak"
+" için bir alanı boş bırakın."
 
 #: templates/tenant/site_home.html:672
 msgid ""
@@ -11172,11 +11107,11 @@ msgstr "İçerik blokları"
 
 #: templates/tenant/site_home.html:688
 msgid ""
-"Free building blocks (text, image, button). Reorder via position, remove "
-"with the checkbox."
+"Free building blocks (text, image, button). Reorder via position, remove with"
+" the checkbox."
 msgstr ""
-"Ücretsiz yapı taşları (metin, resim, düğme). Konumlarına göre sıralayın, "
-"onay kutusunu işaretleyerek kaldırın."
+"Ücretsiz yapı taşları (metin, resim, düğme). Konumlarına göre sıralayın, onay"
+" kutusunu işaretleyerek kaldırın."
 
 #: templates/tenant/site_home.html:705
 msgid "Page template name"
@@ -11216,8 +11151,7 @@ msgstr "menü oluşturucu"
 
 #: templates/tenant/site_home.html:797
 msgid ""
-"The footer shows your contact, opening hours and legal links. Edit them "
-"here:"
+"The footer shows your contact, opening hours and legal links. Edit them here:"
 msgstr ""
 "Altbilgide iletişim bilgileriniz, çalışma saatleriniz ve yasal bağlantılar "
 "yer almaktadır. Bunları buradan düzenleyebilirsiniz:"
@@ -11312,8 +11246,8 @@ msgid ""
 "JPEG/PNG/WEBP, max 5 MB. Enable the \"Photo gallery\" block above to show "
 "them."
 msgstr ""
-"JPEG/PNG/WEBP, en fazla 5 MB. Bunları görüntülemek için yukarıdaki “Fotoğraf"
-" galerisi” bloğunu etkinleştirin."
+"JPEG/PNG/WEBP, en fazla 5 MB. Bunları görüntülemek için yukarıdaki “Fotoğraf "
+"galerisi” bloğunu etkinleştirin."
 
 #: templates/tenant/site_home.html:949
 msgid "JPEG/PNG/WEBP, max 5 MB. Replaces the text site name in the header."
@@ -11329,11 +11263,11 @@ msgstr "Afiş slaytları"
 
 #: templates/tenant/site_home.html:973
 msgid ""
-"Up to 6 slides — photo, heading, text and a button. Two or more slides "
-"rotate automatically. JPEG/PNG/WEBP, max 5 MB."
+"Up to 6 slides — photo, heading, text and a button. Two or more slides rotate"
+" automatically. JPEG/PNG/WEBP, max 5 MB."
 msgstr ""
-"En fazla 6 slayt — fotoğraf, başlık, metin ve bir düğme. İki veya daha fazla"
-" slayt otomatik olarak döner. JPEG/PNG/WEBP, en fazla 5 MB."
+"En fazla 6 slayt — fotoğraf, başlık, metin ve bir düğme. İki veya daha fazla "
+"slayt otomatik olarak döner. JPEG/PNG/WEBP, en fazla 5 MB."
 
 #: templates/tenant/site_home.html:979 templates/tenant/site_home.html:1032
 msgid "No photo"
@@ -11405,8 +11339,7 @@ msgstr "Yalnızca geçerli sayfadaki bloklar gösteriliyor."
 
 #: templates/tenant/site_home.html:2340
 msgid ""
-"This page is edited directly on the canvas — click a heading, price or "
-"photo."
+"This page is edited directly on the canvas — click a heading, price or photo."
 msgstr ""
 "Bu sayfa doğrudan düzenleme alanında düzenlenir — bir başlığa, fiyata veya "
 "fotoğrafa tıklayın."
@@ -11420,8 +11353,8 @@ msgid ""
 "Build your header and bottom menu. Drag-free: use ↑/↓ to reorder. Sub-items "
 "appear as a dropdown on desktop."
 msgstr ""
-"Üst ve alt menünüzü oluşturun. Sürükleme gerektirmez: sırayı değiştirmek "
-"için ↑/↓ tuşlarını kullanın. Alt öğeler masaüstü bilgisayarında açılır menü "
+"Üst ve alt menünüzü oluşturun. Sürükleme gerektirmez: sırayı değiştirmek için"
+" ↑/↓ tuşlarını kullanın. Alt öğeler masaüstü bilgisayarında açılır menü "
 "olarak görünür."
 
 #: templates/tenant/site_menu.html:29
@@ -11462,8 +11395,7 @@ msgid "Add sub-item"
 msgstr "Alt madde ekle"
 
 #: templates/tenant/site_pages.html:11
-msgid ""
-"Layout of your listing pages. Only pages for active features are shown."
+msgid "Layout of your listing pages. Only pages for active features are shown."
 msgstr ""
 "İlan sayfalarınızın düzeni. Yalnızca aktif özelliklere ait sayfalar "
 "gösterilmektedir."
@@ -11507,8 +11439,8 @@ msgstr "Etkinlik sayfası bölümleri"
 #: templates/tenant/site_pages.html:52
 msgid "Number = order; untick to hide. Empty sections never show."
 msgstr ""
-"Numara = sıra numarası; gizlemek için işaretini kaldırın. Boş bölümler "
-"hiçbir zaman gösterilmez."
+"Numara = sıra numarası; gizlemek için işaretini kaldırın. Boş bölümler hiçbir"
+" zaman gösterilmez."
 
 #: templates/tenant/site_pages.html:70
 msgid ""
@@ -11581,9 +11513,9 @@ msgid ""
 "How your pages appear in Google & when shared. Leave a field empty to use a "
 "smart default. Placeholders are filled automatically per page."
 msgstr ""
-"Sayfalarınızın Google'da nasıl göründüğü ve paylaşıldığında nasıl göründüğü."
-" Akıllı varsayılan ayarı kullanmak için bir alanı boş bırakın. Yer tutucular"
-" sayfa bazında otomatik olarak doldurulur."
+"Sayfalarınızın Google'da nasıl göründüğü ve paylaşıldığında nasıl göründüğü. "
+"Akıllı varsayılan ayarı kullanmak için bir alanı boş bırakın. Yer tutucular "
+"sayfa bazında otomatik olarak doldurulur."
 
 #: templates/tenant/site_seo.html:21
 msgid "Placeholders"
@@ -11646,8 +11578,8 @@ msgstr "\"%(name)s\" kuruluyor…"
 
 #: templates/tenants/provisioning.html:18
 msgid ""
-"This takes about a minute. The page refreshes automatically — you'll also "
-"get an email with your sign-in link."
+"This takes about a minute. The page refreshes automatically — you'll also get"
+" an email with your sign-in link."
 msgstr ""
 "Bu işlem yaklaşık bir dakika sürer. Sayfa otomatik olarak yenilenir; ayrıca "
 "giriş bağlantınızın yer aldığı bir e-posta da alacaksınız."
@@ -11791,8 +11723,8 @@ msgid ""
 "Mit der Erstellung stimmst du unseren Bedingungen zu. Du kannst während der "
 "Testphase jederzeit kündigen."
 msgstr ""
-"Bir işletme oluşturarak koşullarımızı kabul edersiniz. Deneme süresi boyunca"
-" istediğiniz zaman iptal edebilirsiniz."
+"Bir işletme oluşturarak koşullarımızı kabul edersiniz. Deneme süresi boyunca "
+"istediğiniz zaman iptal edebilirsiniz."
 
 msgid "Name des Geschäfts"
 msgstr "İşletme adı"
@@ -11847,8 +11779,8 @@ msgstr "Neredeyse bitti — lütfen e-postanı onayla"
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 #, python-format
 msgid ""
-"Wir haben eine E-Mail an <strong>%(email)s</strong> geschickt. Klicke auf "
-"den Link darin — erst dann wird deine Website eingerichtet."
+"Wir haben eine E-Mail an <strong>%(email)s</strong> geschickt. Klicke auf den"
+" Link darin — erst dann wird deine Website eingerichtet."
 msgstr ""
 "<strong>%(email)s</strong> adresine bir e-posta gönderdik. İçindeki "
 "bağlantıya tıkla — web siten ancak o zaman kurulur."
@@ -11941,15 +11873,14 @@ msgid ""
 "du möchtest „%(name)s“ auf SiteAdaptor erstellen. Bitte bestätige deine "
 "E-Mail-Adresse mit einem Klick:"
 msgstr ""
-"SiteAdaptor'da “%(name)s” oluşturmak istiyorsun. Lütfen e-posta adresini tek"
-" tıkla onayla:"
+"SiteAdaptor'da “%(name)s” oluşturmak istiyorsun. Lütfen e-posta adresini tek "
+"tıkla onayla:"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid ""
-"Der Link ist 72 Stunden gültig. Erst nach der Bestätigung wird deine Website"
-" eingerichtet."
-msgstr ""
-"Bağlantı 72 saat geçerlidir. Web siten yalnızca onaydan sonra kurulur."
+"Der Link ist 72 Stunden gültig. Erst nach der Bestätigung wird deine Website "
+"eingerichtet."
+msgstr "Bağlantı 72 saat geçerlidir. Web siten yalnızca onaydan sonra kurulur."
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid "Wenn du das nicht warst, kannst du diese E-Mail einfach ignorieren."
@@ -11975,8 +11906,8 @@ msgstr "Sayfadaki bölümler"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid ""
-"Lege im vorherigen Schritt deine erste Position an — dann siehst du hier "
-"ihre Seite."
+"Lege im vorherigen Schritt deine erste Position an — dann siehst du hier ihre"
+" Seite."
 msgstr "Önceki adımda ilk ürününü ekle — sonra sayfasını burada görürsün."
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
@@ -12034,8 +11965,7 @@ msgstr "Lütfen fiyatı olan en az bir kalem girin."
 msgid "Bitte überweisen Sie den Betrag im Voraus:"
 msgstr "Lütfen tutarı önceden havale edin:"
 
-msgid ""
-"Dieses Angebot ist abgelaufen. Schreiben Sie uns für ein neues Angebot."
+msgid "Dieses Angebot ist abgelaufen. Schreiben Sie uns für ein neues Angebot."
 msgstr "Bu teklifin süresi doldu. Yeni bir teklif için bize yazın."
 
 msgid "Dieses Angebot wurde zurückgezogen."
@@ -12075,8 +12005,8 @@ msgid "Persönliches Angebot"
 msgstr "Kişisel teklif"
 
 msgid ""
-"Persönliches Angebot für %(who)s — Positionen wählen oder frei eintragen; "
-"der Kunde nimmt es per Link an und bezahlt."
+"Persönliches Angebot für %(who)s — Positionen wählen oder frei eintragen; der"
+" Kunde nimmt es per Link an und bezahlt."
 msgstr ""
 "%(who)s için kişisel teklif — kalemleri seçin veya serbestçe girin; müşteri "
 "bağlantı üzerinden kabul eder ve öder."
@@ -12136,8 +12066,7 @@ msgid "Per Video zeigen lassen"
 msgstr "Video ile göster"
 
 msgid ""
-"Lassen Sie es sich per WhatsApp-Video zeigen — direkt vom Team, ohne "
-"Anfahrt."
+"Lassen Sie es sich per WhatsApp-Video zeigen — direkt vom Team, ohne Anfahrt."
 msgstr "Ekip size WhatsApp video üzerinden göstersin — yol zahmeti olmadan."
 
 msgid ""
@@ -12268,16 +12197,15 @@ msgstr "Bir sorun mu var? Bize doğrudan hat:"
 msgid "Ist jetzt alles wieder gut? Wenn nicht, antworten Sie einfach hier:"
 msgstr "Şimdi her şey yolunda mı? Değilse, buradan yanıtlayın:"
 
-msgid ""
-"Und wenn Sie zufrieden waren, freuen wir uns über eine kurze Bewertung."
+msgid "Und wenn Sie zufrieden waren, freuen wir uns über eine kurze Bewertung."
 msgstr "Memnun kaldıysanız kısa bir değerlendirmeye seviniriz."
 
 msgid "Alles wieder gut? — %(business)s"
 msgstr "Her şey yolunda mı? — %(business)s"
 
 msgid ""
-"danke für Ihre Geduld — wir hoffen, wir konnten Ihr Anliegen bei "
-"%(business)s lösen."
+"danke für Ihre Geduld — wir hoffen, wir konnten Ihr Anliegen bei %(business)s"
+" lösen."
 msgstr ""
 "sabrınız için teşekkürler — %(business)s ile ilgili sorununuzu "
 "çözebildiğimizi umuyoruz."
@@ -12291,8 +12219,7 @@ msgid "Care-Zyklus"
 msgstr "Bakım döngüsü"
 
 #. LS-5 Care (2026-07-19)
-msgid ""
-"Nicht ganz zufrieden? Sagen Sie es uns direkt — wir kümmern uns sofort:"
+msgid "Nicht ganz zufrieden? Sagen Sie es uns direkt — wir kümmern uns sofort:"
 msgstr "Tam memnun değil misiniz? Doğrudan bize söyleyin — hemen ilgileniriz:"
 
 msgid "Your own blocks stay — only template blocks are replaced."
@@ -12414,8 +12341,7 @@ msgid "Unsere Treffer für dich"
 msgstr "Senin için bulduklarımız"
 
 msgid ""
-"In dieser Stadt gibt es gerade nichts Passendes — dafür ist das hier "
-"beliebt:"
+"In dieser Stadt gibt es gerade nichts Passendes — dafür ist das hier beliebt:"
 msgstr "Bu şehirde şu an uygun bir şey yok — ama şunlar popüler:"
 
 msgid "Noch mal suchen"
@@ -12437,10 +12363,9 @@ msgid "Unsere Vorschläge für dich"
 msgstr "Senin için önerilerimiz"
 
 msgid ""
-"Nichts Exaktes gefunden — hier ist unser Beliebtestes. Oder frag uns einfach"
-" direkt!"
-msgstr ""
-"Tam eşleşme bulunamadı — işte en popülerimiz. Ya da bize doğrudan sor!"
+"Nichts Exaktes gefunden — hier ist unser Beliebtestes. Oder frag uns einfach "
+"direkt!"
+msgstr "Tam eşleşme bulunamadı — işte en popülerimiz. Ya da bize doğrudan sor!"
 
 msgid "Ausgewählt nach deinen Antworten — der mittlere ist unser Favorit."
 msgstr "Cevaplarına göre seçildi — ortadaki bizim favorimiz."
@@ -12448,8 +12373,7 @@ msgstr "Cevaplarına göre seçildi — ortadaki bizim favorimiz."
 msgid "Unser Vorschlag"
 msgstr "Önerimiz"
 
-msgid ""
-"Noch keine Angebote online — schreib uns, wir helfen persönlich weiter."
+msgid "Noch keine Angebote online — schreib uns, wir helfen persönlich weiter."
 msgstr "Henüz çevrimiçi teklif yok — bize yaz, sana bizzat yardımcı olalım."
 
 msgid "Beantworte 2–3 Fragen — wir schlagen dir das Passende vor."
@@ -12465,8 +12389,8 @@ msgid ""
 "Besucher beantworten 2–3 Fragen und bekommen 3 passende Vorschläge — statt "
 "lange im Katalog zu suchen."
 msgstr ""
-"Ziyaretçiler 2–3 soruyu yanıtlar ve katalogda uzun uzun aramak yerine 3 "
-"uygun öneri alır."
+"Ziyaretçiler 2–3 soruyu yanıtlar ve katalogda uzun uzun aramak yerine 3 uygun"
+" öneri alır."
 
 msgid ""
 "Für diese Branche gibt es noch keine Finder-Angebote (kein passendes "
@@ -12633,8 +12557,7 @@ msgstr ""
 "Kampanyaları kanallarda otomatik yayınlayın (Google, Facebook, Instagram)."
 
 msgid ""
-"Anfragen annehmen, Angebote/Kostenvoranschläge erstellen, Aufträge "
-"abrechnen."
+"Anfragen annehmen, Angebote/Kostenvoranschläge erstellen, Aufträge abrechnen."
 msgstr "Talepleri alın, teklif/keşif oluşturun, işleri faturalandırın."
 
 msgid ""
@@ -12809,8 +12732,8 @@ msgid "Widerruf erklären"
 msgstr "Cayma bildir"
 
 msgid ""
-"Füllen Sie das Formular aus, um Ihren Kauf zu widerrufen. Pflichtfelder: "
-"Name und Ware."
+"Füllen Sie das Formular aus, um Ihren Kauf zu widerrufen. Pflichtfelder: Name"
+" und Ware."
 msgstr ""
 "Satın alımınızdan caymak için formu doldurun. Zorunlu alanlar: ad ve ürün."
 
@@ -12831,8 +12754,8 @@ msgstr "Cayma gönder"
 
 #, python-format
 msgid ""
-"Vielen Dank, %(name)s. Ihr Widerruf wurde an uns übermittelt. Sie erhalten "
-"in Kürze eine Bestätigung."
+"Vielen Dank, %(name)s. Ihr Widerruf wurde an uns übermittelt. Sie erhalten in"
+" Kürze eine Bestätigung."
 msgstr ""
 "Teşekkürler, %(name)s. Cayma talebiniz bize iletildi. Kısa süre içinde bir "
 "onay alacaksınız."
@@ -12887,13 +12810,12 @@ msgid ""
 "Angeboten. Danach passt du alles Schritt für Schritt an. Beispiele lassen "
 "sich jederzeit wieder entfernen."
 msgstr ""
-"En hızlı başlangıç hazır örneklerle olur — fotoğraflar, afiş ve tekliflerle."
-" Sonra her şeyi adım adım uyarlarsın. Örnekler istediğin zaman "
-"kaldırılabilir."
+"En hızlı başlangıç hazır örneklerle olur — fotoğraflar, afiş ve tekliflerle. "
+"Sonra her şeyi adım adım uyarlarsın. Örnekler istediğin zaman kaldırılabilir."
 
 msgid ""
-"Beispiel-Inhalte sind geladen — schau dir rechts deine Seite an und passe "
-"sie in den nächsten Schritten an."
+"Beispiel-Inhalte sind geladen — schau dir rechts deine Seite an und passe sie"
+" in den nächsten Schritten an."
 msgstr "Örnek içerik yüklendi — sağda sitene bak ve sonraki adımlarda uyarla."
 
 msgid "Beispiele wieder entfernen"
@@ -12929,8 +12851,8 @@ msgid "Überspringen"
 msgstr "Atla"
 
 msgid ""
-"Mit Beispielen füllen wir deinen Shop mit Muster-Angeboten, Banner und "
-"Texten — du änderst sie einfach ab."
+"Mit Beispielen füllen wir deinen Shop mit Muster-Angeboten, Banner und Texten"
+" — du änderst sie einfach ab."
 msgstr ""
 "Örneklerle mağazanı örnek teklifler, afiş ve metinlerle doldururuz — sen "
 "sadece düzenlersin."
@@ -13042,11 +12964,11 @@ msgid "Foto (optional)"
 msgstr "Fotoğraf (isteğe bağlı)"
 
 msgid ""
-"„Über uns\" schafft Vertrauen. Wähle eine Seitenvorlage und erzähl kurz, wer"
-" ihr seid."
+"„Über uns\" schafft Vertrauen. Wähle eine Seitenvorlage und erzähl kurz, wer "
+"ihr seid."
 msgstr ""
-"“Hakkımızda” güven oluşturur. Bir sayfa şablonu seç ve kim olduğunuzu kısaca"
-" anlat."
+"“Hakkımızda” güven oluşturur. Bir sayfa şablonu seç ve kim olduğunuzu kısaca "
+"anlat."
 
 msgid "Über uns — Titel"
 msgstr "Hakkımızda — başlık"
@@ -13074,19 +12996,18 @@ msgid ""
 msgstr ""
 "Ürünlerin nasıl listeleniyor? Bir düzen seç — sonra serbestçe uyarlanabilir."
 
-msgid ""
-"Auch für andere Listen übernehmen (Leistungen, Zimmer, Veranstaltungen)"
+msgid "Auch für andere Listen übernehmen (Leistungen, Zimmer, Veranstaltungen)"
 msgstr "Diğer listelere de uygula (hizmetler, odalar, etkinlikler)"
 
 msgid "Kategorien verwalten"
 msgstr "Kategorileri yönet"
 
 msgid ""
-"Wie soll die Seite eines einzelnen Angebots aussehen? Stil wählen, "
-"Abschnitte ein- oder ausblenden — rechts siehst du es sofort."
+"Wie soll die Seite eines einzelnen Angebots aussehen? Stil wählen, Abschnitte"
+" ein- oder ausblenden — rechts siehst du es sofort."
 msgstr ""
-"Tek bir teklifin sayfası nasıl görünmeli? Bir stil seç, bölümleri göster "
-"veya gizle — sağda anında görürsün."
+"Tek bir teklifin sayfası nasıl görünmeli? Bir stil seç, bölümleri göster veya"
+" gizle — sağda anında görürsün."
 
 msgid "Wie sieht dein Menü aus?"
 msgstr "Menün nasıl görünüyor?"
@@ -13095,8 +13016,7 @@ msgid ""
 "Wähle den Stil deiner Kopfzeile. Welche Menüpunkte erscheinen, legst du "
 "danach fest."
 msgstr ""
-"Başlığının stilini seç. Hangi menü öğelerinin görüneceğini sonra "
-"belirlersin."
+"Başlığının stilini seç. Hangi menü öğelerinin görüneceğini sonra belirlersin."
 
 msgid "Menüpunkte"
 msgstr "Menü öğeleri"
@@ -13111,23 +13031,23 @@ msgid ""
 "Wähle die Standardsprache (vorausgewählt: Deutsch) und weitere Sprachen. "
 "Inhalte füllst du in den nächsten Schritten pro Sprache aus."
 msgstr ""
-"Varsayılan dili (önceden seçili: Almanca) ve ek dilleri seç. İçeriği sonraki"
-" adımlarda her dil için doldurursun."
+"Varsayılan dili (önceden seçili: Almanca) ve ek dilleri seç. İçeriği sonraki "
+"adımlarda her dil için doldurursun."
 
 msgid ""
 "Die Standardsprache sehen Besucher zuerst; weitere Sprachen erscheinen als "
 "Umschalter in der Kopfzeile. Später änderbar unter „Sprachen\" in den "
 "Einstellungen."
 msgstr ""
-"Ziyaretçiler önce varsayılan dili görür; ek diller başlıkta bir geçiş "
-"düğmesi olarak görünür. Sonra ayarlarda “Diller” altından değiştirilebilir."
+"Ziyaretçiler önce varsayılan dili görür; ek diller başlıkta bir geçiş düğmesi"
+" olarak görünür. Sonra ayarlarda “Diller” altından değiştirilebilir."
 
 msgid ""
 "Wie bezahlen und erhalten deine Kund:innen? Alles an einem Ort — jederzeit "
 "änderbar."
 msgstr ""
-"Müşterilerin nasıl ödüyor ve teslim alıyor? Hepsi tek yerde — istediğin "
-"zaman değiştirilebilir."
+"Müşterilerin nasıl ödüyor ve teslim alıyor? Hepsi tek yerde — istediğin zaman"
+" değiştirilebilir."
 
 msgid ""
 "Nothing to set up here yet — you can enable online payment for this later."
@@ -13413,8 +13333,8 @@ msgid ""
 "limited."
 msgstr ""
 "ONLINE rezervasyonları sınırlayın: sezonluk min/maks konaklama, giriş/çıkış "
-"yapılamayan günler, rezervasyon penceresi. Takvimdeki kendi kayıtlarınız "
-"asla sınırlanmaz."
+"yapılamayan günler, rezervasyon penceresi. Takvimdeki kendi kayıtlarınız asla"
+" sınırlanmaz."
 
 msgid "Bookable up to … days ahead (0 = no limit)"
 msgstr "En fazla … gün önceden rezerve edilebilir (0 = sınırsız)"
@@ -13511,16 +13431,16 @@ msgid ""
 "Email me news and offers (optional) — a confirmation email follows, "
 "unsubscribe anytime."
 msgstr ""
-"Bana haber ve teklifler gönderin (isteğe bağlı) — önce onay e-postası gelir,"
-" istediğiniz an çıkabilirsiniz."
+"Bana haber ve teklifler gönderin (isteğe bağlı) — önce onay e-postası gelir, "
+"istediğiniz an çıkabilirsiniz."
 
 msgid "Market position"
 msgstr "Pazar konumu"
 
 #, python-format
 msgid ""
-"Your base price ranks %(p)s of %(n)s hotels in your city (platform listings,"
-" “from €/night”)."
+"Your base price ranks %(p)s of %(n)s hotels in your city (platform listings, "
+"“from €/night”)."
 msgstr ""
 "Baz fiyatınız şehrinizdeki %(n)s otel arasında %(p)s. sırada (platform "
 "ilanları, «gecelik €'dan»)."
@@ -13532,8 +13452,8 @@ msgid "you"
 msgstr "siz"
 
 msgid ""
-"Public base prices of hotels on this platform in your city — for orientation"
-" only."
+"Public base prices of hotels on this platform in your city — for orientation "
+"only."
 msgstr ""
 "Şehrinizdeki bu platform otellerinin herkese açık baz fiyatları — yalnızca "
 "fikir vermesi için."
@@ -13655,17 +13575,16 @@ msgid ""
 "own bookings at the desk keep the base price. The strictest matching rule "
 "wins."
 msgstr ""
-"Talep gören geceler daha pahalı, boş geceler daha ucuz: bir gecenin doluluğu"
-" eşiğe ulaştığında ONLINE fiyatı belirtilen yüzde kadar değişir. "
-"Resepsiyondaki kendi kayıtlarınız temel fiyatta kalır. En katı eşleşen kural"
-" geçerlidir."
+"Talep gören geceler daha pahalı, boş geceler daha ucuz: bir gecenin doluluğu "
+"eşiğe ulaştığında ONLINE fiyatı belirtilen yüzde kadar değişir. "
+"Resepsiyondaki kendi kayıtlarınız temel fiyatta kalır. En katı eşleşen kural "
+"geçerlidir."
 
 #, python-format
 msgid "Occupancy ≥ %(n)s"
 msgstr "Doluluk ≥ %(n)s"
 
-msgid ""
-"No dynamic price rules yet — online prices always match the base price."
+msgid "No dynamic price rules yet — online prices always match the base price."
 msgstr ""
 "Henüz dinamik fiyat kuralı yok — online fiyatlar her zaman temel fiyata "
 "eşittir."
@@ -13689,8 +13608,8 @@ msgid "Only used for a birthday greeting — leave empty if you prefer."
 msgstr "Yalnızca doğum günü tebriği için kullanılır — isterseniz boş bırakın."
 
 msgid ""
-"Subscribers get a personal code on their birthday — once a year, opt-in "
-"only. Birthdays come from the customer card or the guest's own account."
+"Subscribers get a personal code on their birthday — once a year, opt-in only."
+" Birthdays come from the customer card or the guest's own account."
 msgstr ""
 "Aboneler doğum günlerinde kişisel bir kod alır — yılda bir kez, yalnızca "
 "izinli. Doğum günleri müşteri kartından veya misafirin kendi hesabından "
@@ -13728,12 +13647,12 @@ msgstr "Boşluk fırsatı"
 msgid ""
 "Kurze freie Lücken zwischen Buchungen (z. B. 2–3 Nächte) verkaufen sich "
 "schwer — bieten Sie sie automatisch mit Rabatt an. Gilt, wenn der gesamte "
-"Aufenthalt in eine solche Lücke passt; wie bei den Automatik-Rabatten "
-"gewinnt die beste Ermäßigung (wird nicht addiert)."
+"Aufenthalt in eine solche Lücke passt; wie bei den Automatik-Rabatten gewinnt"
+" die beste Ermäßigung (wird nicht addiert)."
 msgstr ""
 "Rezervasyonlar arasındaki kısa boşluklar (örn. 2–3 gece) zor satılır — "
-"bunları otomatik indirimle sunun. Tüm konaklama böyle bir boşluğa sığdığında"
-" geçerlidir; otomatik indirimlerde olduğu gibi en iyi indirim kazanır "
+"bunları otomatik indirimle sunun. Tüm konaklama böyle bir boşluğa sığdığında "
+"geçerlidir; otomatik indirimlerde olduğu gibi en iyi indirim kazanır "
 "(toplanmaz)."
 
 msgid "Lücke bis … Nächte"
@@ -13743,8 +13662,8 @@ msgid "Rabatt %"
 msgstr "İndirim %"
 
 msgid ""
-"Wir haben kurze Lücken zwischen Buchungen gefunden — solche Nächte verkaufen"
-" sich schwer. Lücken-Rabatt aktivieren?"
+"Wir haben kurze Lücken zwischen Buchungen gefunden — solche Nächte verkaufen "
+"sich schwer. Lücken-Rabatt aktivieren?"
 msgstr ""
 "Rezervasyonlar arasında kısa boşluklar bulduk — bu geceler zor satılır. "
 "Boşluk indirimi etkinleştirilsin mi?"
@@ -13756,8 +13675,8 @@ msgid ""
 "Lücken-Rabatt aktivieren: kurze Lücken zwischen Buchungen (bis 3 Nächte) "
 "automatisch mit −25 % anbieten. Später unter „Units“ anpassbar."
 msgstr ""
-"Boşluk indirimini etkinleştir: rezervasyonlar arası kısa boşlukları (3 "
-"geceye kadar) otomatik olarak −%25 ile sun. Daha sonra “Units” altında "
+"Boşluk indirimini etkinleştir: rezervasyonlar arası kısa boşlukları (3 geceye"
+" kadar) otomatik olarak −%25 ile sun. Daha sonra “Units” altında "
 "ayarlanabilir."
 
 #: templates/stays/units.html:0
@@ -13968,11 +13887,11 @@ msgid "In der Anprobe zurücklegen"
 msgstr "Mağazada prova için ayırt"
 
 msgid ""
-"Unverbindlich reservieren — wir legen es 48 Stunden für Sie zurück. Kauf und"
-" Bezahlung erst im Geschäft."
+"Unverbindlich reservieren — wir legen es 48 Stunden für Sie zurück. Kauf und "
+"Bezahlung erst im Geschäft."
 msgstr ""
-"Bağlayıcı olmayan rezervasyon — 48 saat sizin için ayırıyoruz. Satın alma ve"
-" ödeme yalnızca mağazada."
+"Bağlayıcı olmayan rezervasyon — 48 saat sizin için ayırıyoruz. Satın alma ve "
+"ödeme yalnızca mağazada."
 
 msgid "Bitte Name und eine gültige E-Mail angeben."
 msgstr "Lütfen adınızı ve geçerli bir e-posta girin."
@@ -14165,8 +14084,8 @@ msgstr "Henüz çalışma saati girilmedi."
 
 #. hero-tiles / price-nav 2026-07-30
 msgid ""
-"Ohne Arbeitszeiten zeigt die Website «keine freien Termine» — unabhängig von"
-" der Leistung."
+"Ohne Arbeitszeiten zeigt die Website «keine freien Termine» — unabhängig von "
+"der Leistung."
 msgstr ""
 "Çalışma saatleri olmadan site, hizmetten bağımsız olarak “boş randevu yok” "
 "gösterir."
@@ -14955,14 +14874,13 @@ msgid ""
 "Mit einer Empfehlung steht Ihre Aktion im Stadt-Verzeichnis ganz oben — mit "
 "dem Hinweis"
 msgstr ""
-"Öne çıkarma ile kampanyanız şehir rehberinin en üstünde görünür — şu "
-"etiketle"
+"Öne çıkarma ile kampanyanız şehir rehberinin en üstünde görünür — şu etiketle"
 
 #. I18N-3 cabinet templates 2026-07-30
 msgid ""
-"Nehmen Sie Zahlungen Ihrer Kunden direkt auf Ihr eigenes Stripe-Konto an (z."
-" B. Anzahlung für Reservierungen, Vorkasse bei Abholung). Das Geld geht "
-"direkt an Sie."
+"Nehmen Sie Zahlungen Ihrer Kunden direkt auf Ihr eigenes Stripe-Konto an (z. "
+"B. Anzahlung für Reservierungen, Vorkasse bei Abholung). Das Geld geht direkt"
+" an Sie."
 msgstr ""
 "Müşterilerinizden ödemeleri doğrudan kendi Stripe hesabınıza alın (ör. "
 "rezervasyon kaporası, teslim alma için ön ödeme). Para doğrudan size gelir."
@@ -15530,8 +15448,8 @@ msgid ""
 "Bitte den Gast kontaktieren bzw. die Zahlung manuell klären (ggf. "
 "Rückerstattung bereits gezahlter Raten im Dashboard)."
 msgstr ""
-"Lütfen misafirle iletişime geçin veya ödemeyi manuel olarak çözün (gerekirse"
-" ödenmiş taksitleri panelden iade edin)."
+"Lütfen misafirle iletişime geçin veya ödemeyi manuel olarak çözün (gerekirse "
+"ödenmiş taksitleri panelden iade edin)."
 
 #. I18N-7a emails 2026-07-31
 msgid ""
@@ -15595,11 +15513,11 @@ msgstr "Bugün:"
 
 #. I18N-7a emails 2026-07-31
 msgid ""
-"Hinweis: Die Ratenzahlung zu Ticket %(code)s („%(title)s“, %(name)s) ist "
-"nach %(n)s Versuchen fehlgeschlagen — der Plan wurde auf „failed“ gesetzt."
+"Hinweis: Die Ratenzahlung zu Ticket %(code)s („%(title)s“, %(name)s) ist nach"
+" %(n)s Versuchen fehlgeschlagen — der Plan wurde auf „failed“ gesetzt."
 msgstr ""
-"Not: %(code)s numaralı bilet için taksit planı (“%(title)s”, %(name)s) %(n)s"
-" denemeden sonra başarısız oldu — plan “failed” olarak ayarlandı."
+"Not: %(code)s numaralı bilet için taksit planı (“%(title)s”, %(name)s) %(n)s "
+"denemeden sonra başarısız oldu — plan “failed” olarak ayarlandı."
 
 #. I18N-7a emails 2026-07-31
 msgid "Ihr Angebot %(code)s"
@@ -15833,16 +15751,16 @@ msgstr "Rezervasyonu %(until)s tarihine kadar sizin için tutacağız."
 
 #. I18N-7a emails 2026-07-31
 msgid ""
-"Wir konnten die Zahlung nach mehreren Versuchen nicht abbuchen. Bitte melden"
-" Sie sich bei uns, um die Ratenzahlung fortzusetzen."
+"Wir konnten die Zahlung nach mehreren Versuchen nicht abbuchen. Bitte melden "
+"Sie sich bei uns, um die Ratenzahlung fortzusetzen."
 msgstr ""
 "Birkaç denemeden sonra ödemeyi tahsil edemedik. Taksit planına devam etmek "
 "için lütfen bizimle iletişime geçin."
 
 #. I18N-7a emails 2026-07-31
 msgid ""
-"Wir versuchen es in den nächsten Tagen erneut. Sie können Ihre Zahlungsdaten"
-" auch hier prüfen:"
+"Wir versuchen es in den nächsten Tagen erneut. Sie können Ihre Zahlungsdaten "
+"auch hier prüfen:"
 msgstr ""
 "Önümüzdeki günlerde tekrar deneyeceğiz. Ödeme bilgilerinizi buradan da "
 "kontrol edebilirsiniz:"
@@ -15861,8 +15779,8 @@ msgstr "%(due)s tarihinde"
 
 #. I18N-7a emails 2026-07-31
 msgid ""
-"die %(n)s. Rate (%(amount)s €) für „%(title)s“ konnte leider nicht "
-"eingezogen werden"
+"die %(n)s. Rate (%(amount)s €) für „%(title)s“ konnte leider nicht eingezogen"
+" werden"
 msgstr ""
 "“%(title)s” için %(n)s. taksit (%(amount)s €) maalesef tahsil edilemedi"
 
@@ -15882,8 +15800,7 @@ msgstr "iyi haber — işiniz tamamlandı:"
 
 #. I18N-7a emails 2026-07-31
 msgid ""
-"gute Nachrichten: für <strong>„%(title)s“</strong> ist wieder ein Platz "
-"frei."
+"gute Nachrichten: für <strong>„%(title)s“</strong> ist wieder ein Platz frei."
 msgstr "iyi haber: <strong>“%(title)s”</strong> için bir yer tekrar boşaldı."
 
 #. I18N-7a emails 2026-07-31
@@ -15974,11 +15891,18 @@ msgstr "Renk"
 msgid "Variante (leer = aus Größe/Farbe)"
 msgstr "Varyant (boş = beden/renkten)"
 
-msgid "Für Mode: Größe und Farbe getrennt eintragen — die Bezeichnung entsteht daraus automatisch."
-msgstr "Moda için: beden ve rengi ayrı girin — etiket bunlardan otomatik oluşur."
+msgid ""
+"Für Mode: Größe und Farbe getrennt eintragen — die Bezeichnung entsteht "
+"daraus automatisch."
+msgstr ""
+"Moda için: beden ve rengi ayrı girin — etiket bunlardan otomatik oluşur."
 
-msgid "Optional (Mode/Schuhe): eine Zeile pro Größe, Spalten mit „|“ — erste Zeile = Überschriften. Beispiel: „Größe | Brust (cm)“."
-msgstr "İsteğe bağlı (moda/ayakkabı): her beden için bir satır, sütunlar „|“ ile — ilk satır = başlıklar. Örnek: „Beden | Göğüs (cm)“."
+msgid ""
+"Optional (Mode/Schuhe): eine Zeile pro Größe, Spalten mit „|“ — erste Zeile ="
+" Überschriften. Beispiel: „Größe | Brust (cm)“."
+msgstr ""
+"İsteğe bağlı (moda/ayakkabı): her beden için bir satır, sütunlar „|“ ile — "
+"ilk satır = başlıklar. Örnek: „Beden | Göğüs (cm)“."
 
 msgid "Material / Zusammensetzung"
 msgstr "Malzeme / bileşim"
@@ -15986,8 +15910,12 @@ msgstr "Malzeme / bileşim"
 msgid "Pflegehinweise"
 msgstr "Bakım talimatları"
 
-msgid "Textilkennzeichnung: offizielle Fasernamen, z. B. „95 % Baumwolle, 5 % Elasthan“ — Pflichtangabe bei Kleidung."
-msgstr "Tekstil etiketi: resmî elyaf adları, örn. „%95 pamuk, %5 elastan“ — giyimde zorunlu."
+msgid ""
+"Textilkennzeichnung: offizielle Fasernamen, z. B. „95 % Baumwolle, 5 % "
+"Elasthan“ — Pflichtangabe bei Kleidung."
+msgstr ""
+"Tekstil etiketi: resmî elyaf adları, örn. „%95 pamuk, %5 elastan“ — giyimde "
+"zorunlu."
 
 msgid "z. B. „30 °C Schonwäsche, nicht trocknergeeignet“ — optional."
 msgstr "örn. „30 °C hassas yıkama, kurutucuya uygun değil“ — isteğe bağlı."
@@ -16094,8 +16022,12 @@ msgstr "Durumlar ve geçişler"
 msgid "einem Gast"
 msgstr "bir misafir"
 
-msgid "Bestellungen an Lieferanten — Entwurf, Bestellung, Wareneingang. Der Eingang bucht Bestand & Ledger."
-msgstr "Tedarikçilere siparişler — taslak, sipariş, mal kabulü. Kabul, stok ve defteri günceller."
+msgid ""
+"Bestellungen an Lieferanten — Entwurf, Bestellung, Wareneingang. Der Eingang "
+"bucht Bestand & Ledger."
+msgstr ""
+"Tedarikçilere siparişler — taslak, sipariş, mal kabulü. Kabul, stok ve "
+"defteri günceller."
 
 msgid "— Lieferant (optional) —"
 msgstr "— Tedarikçi (isteğe bağlı) —"
@@ -16106,8 +16038,12 @@ msgstr "Taslak oluştur"
 msgid "Aus Bestellvorschlägen"
 msgstr "Sipariş önerilerinden"
 
-msgid "Erstellt einen Entwurf mit allen Artikeln unter Meldebestand (Menge = Sollbestand − Bestand)."
-msgstr "Sipariş noktasının altındaki tüm ürünlerle bir taslak oluşturur (miktar = hedef − stok)."
+msgid ""
+"Erstellt einen Entwurf mit allen Artikeln unter Meldebestand (Menge = "
+"Sollbestand − Bestand)."
+msgstr ""
+"Sipariş noktasının altındaki tüm ürünlerle bir taslak oluşturur (miktar = "
+"hedef − stok)."
 
 msgid "Entwurf erstellen"
 msgstr "Taslak oluştur"
@@ -16166,8 +16102,12 @@ msgstr "Raf ömrü / partiler"
 msgid "kritisch"
 msgstr "kritik"
 
-msgid "Chargen mit MHD, frühestes Datum zuerst (FEFO). Abgelaufene/bald ablaufende Chargen abschreiben (Verderb)."
-msgstr "SKT’li partiler, en erken tarih önce (FEFO). Süresi dolan veya dolmak üzere olan partileri zayi yazın."
+msgid ""
+"Chargen mit MHD, frühestes Datum zuerst (FEFO). Abgelaufene/bald ablaufende "
+"Chargen abschreiben (Verderb)."
+msgstr ""
+"SKT’li partiler, en erken tarih önce (FEFO). Süresi dolan veya dolmak üzere "
+"olan partileri zayi yazın."
 
 msgid "Stk"
 msgstr "adet"
@@ -16187,8 +16127,12 @@ msgstr "Konumlar"
 msgid "Hauptlager"
 msgstr "Ana depo"
 
-msgid "Mehrere Standorte (Laden, Lager, Wagen …)? Zweiten Standort anlegen — dann werden Umlagerung und Standort-Auswahl beim Wareneingang aktiv."
-msgstr "Birden fazla konum (dükkân, depo, araç …)? İkinci bir konum oluşturun — transfer ve mal kabulünde konum seçimi etkinleşir."
+msgid ""
+"Mehrere Standorte (Laden, Lager, Wagen …)? Zweiten Standort anlegen — dann "
+"werden Umlagerung und Standort-Auswahl beim Wareneingang aktiv."
+msgstr ""
+"Birden fazla konum (dükkân, depo, araç …)? İkinci bir konum oluşturun — "
+"transfer ve mal kabulünde konum seçimi etkinleşir."
 
 msgid "z. B. Lager hinten"
 msgstr "örn. arka depo"
@@ -16208,8 +16152,12 @@ msgstr "Transfer et"
 msgid "Nach Standort:"
 msgstr "Konuma göre:"
 
-msgid "Eigene Namen für die Bestell-Status (nur Anzeige im Dashboard). Leer = Standard."
-msgstr "Sipariş durumları için kendi adlarınız (yalnızca panelde gösterim). Boş = varsayılan."
+msgid ""
+"Eigene Namen für die Bestell-Status (nur Anzeige im Dashboard). Leer = "
+"Standard."
+msgstr ""
+"Sipariş durumları için kendi adlarınız (yalnızca panelde gösterim). Boş = "
+"varsayılan."
 
 msgid "Aktiv beworben bis %(until)s"
 msgstr "%(until)s tarihine kadar öne çıkarılıyor"
@@ -16370,29 +16318,46 @@ msgstr "Şu anda: Klasik"
 msgid "Currently: New"
 msgstr "Şu anda: Yeni"
 
-msgid "Falls dir das neue Design nicht liegt: schalte hier auf die bisherige Oberfläche um — jederzeit umkehrbar, Daten und Funktionen bleiben gleich."
-msgstr "Yeni tasarım size uymuyorsa buradan eski arayüze geçin — istediğiniz zaman geri alınabilir, veriler ve özellikler aynı kalır."
+msgid ""
+"Falls dir das neue Design nicht liegt: schalte hier auf die bisherige "
+"Oberfläche um — jederzeit umkehrbar, Daten und Funktionen bleiben gleich."
+msgstr ""
+"Yeni tasarım size uymuyorsa buradan eski arayüze geçin — istediğiniz zaman "
+"geri alınabilir, veriler ve özellikler aynı kalır."
 
 msgid "Klassisch"
 msgstr "Klasik"
 
-msgid "Keine Inhaber-E-Mail hinterlegt — E-Mail-Benachrichtigungen an Sie können nicht zugestellt werden."
-msgstr "İşletme sahibi e-postası girilmemiş — size e-posta bildirimi gönderilemez."
+msgid ""
+"Keine Inhaber-E-Mail hinterlegt — E-Mail-Benachrichtigungen an Sie können "
+"nicht zugestellt werden."
+msgstr ""
+"İşletme sahibi e-postası girilmemiş — size e-posta bildirimi gönderilemez."
 
 msgid "In den Einstellungen ergänzen"
 msgstr "Ayarlarda ekleyin"
 
-msgid "Alle verkäuflichen Artikel an einem Ort — Sichtbarkeit umschalten oder zum Bearbeiten öffnen."
-msgstr "Sattığınız her şey tek yerde — görünürlüğü değiştirin ya da düzenlemek için açın."
+msgid ""
+"Alle verkäuflichen Artikel an einem Ort — Sichtbarkeit umschalten oder zum "
+"Bearbeiten öffnen."
+msgstr ""
+"Sattığınız her şey tek yerde — görünürlüğü değiştirin ya da düzenlemek için "
+"açın."
 
 msgid "Noch keine Angebote — oben „＋“ wählen, um dein erstes anzulegen."
-msgstr "Henüz teklif yok — ilkini oluşturmak için yukarıdaki „＋“ düğmesini kullanın."
+msgstr ""
+"Henüz teklif yok — ilkini oluşturmak için yukarıdaki „＋“ düğmesini kullanın."
 
 msgid "Drag to resize · double-click to reset"
 msgstr "Genişliği değiştirmek için sürükleyin · sıfırlamak için çift tıklayın"
 
-msgid "Lücken-Rabatt aktivieren: kurze Lücken zwischen Buchungen (bis 3 Nächte) automatisch mit −25 %% anbieten. Später unter „Units“ anpassbar."
-msgstr "Boşluk indirimini etkinleştirin: rezervasyonlar arasındaki kısa boşluklar (3 geceye kadar) otomatik olarak −%%25 ile sunulur. Daha sonra „Units“ altında değiştirilebilir."
+msgid ""
+"Lücken-Rabatt aktivieren: kurze Lücken zwischen Buchungen (bis 3 Nächte) "
+"automatisch mit −25 %% anbieten. Später unter „Units“ anpassbar."
+msgstr ""
+"Boşluk indirimini etkinleştirin: rezervasyonlar arasındaki kısa boşluklar (3 "
+"geceye kadar) otomatik olarak −%%25 ile sunulur. Daha sonra „Units“ altında "
+"değiştirilebilir."
 
 msgid "Compact inspector — denser fields, all controls kept"
 msgstr "Kompakt denetleyici — daha sık alanlar, tüm kontroller korunur"
@@ -16409,8 +16374,13 @@ msgstr "Düğme bağlantısı"
 msgid "Eigene Status"
 msgstr "Özel durumlar"
 
-msgid "Eigene Zwischenstatus anlegen und mit bestehenden verbinden. Die Rolle bestimmt das Verhalten (Kapazität, Umsatz). Built-in-Status bleiben unverändert."
-msgstr "Kendi ara durumlarınızı oluşturup mevcut olanlara bağlayın. Rol, davranışı belirler (kapasite, ciro). Yerleşik durumlar değişmez."
+msgid ""
+"Eigene Zwischenstatus anlegen und mit bestehenden verbinden. Die Rolle "
+"bestimmt das Verhalten (Kapazität, Umsatz). Built-in-Status bleiben "
+"unverändert."
+msgstr ""
+"Kendi ara durumlarınızı oluşturup mevcut olanlara bağlayın. Rol, davranışı "
+"belirler (kapasite, ciro). Yerleşik durumlar değişmez."
 
 msgid "Löschen"
 msgstr "Sil"
@@ -16430,8 +16400,11 @@ msgstr "Şuradan erişilebilir:"
 msgid "Führt zu:"
 msgstr "Şuraya götürür:"
 
-msgid "Zuerst einen Status anlegen und speichern — danach erscheinen hier die Übergänge."
-msgstr "Önce bir durum oluşturup kaydedin — geçişler daha sonra burada görünür."
+msgid ""
+"Zuerst einen Status anlegen und speichern — danach erscheinen hier die "
+"Übergänge."
+msgstr ""
+"Önce bir durum oluşturup kaydedin — geçişler daha sonra burada görünür."
 
 msgid "Branchen"
 msgstr "Sektörler"
@@ -16439,32 +16412,66 @@ msgstr "Sektörler"
 msgid "Jetzt starten"
 msgstr "Hemen başla"
 
-msgid "SiteAdaptor: Website, Buchungen, Bestellungen und Marketing für lokale Betriebe — aus einer Hand, DSGVO-freundlich."
-msgstr "SiteAdaptor: yerel işletmeler için web sitesi, rezervasyon, sipariş ve pazarlama — tek elden, KVKK/GDPR dostu."
+msgid ""
+"SiteAdaptor: Website, Buchungen, Bestellungen und Marketing für lokale "
+"Betriebe — aus einer Hand, DSGVO-freundlich."
+msgstr ""
+"SiteAdaptor: yerel işletmeler için web sitesi, rezervasyon, sipariş ve "
+"pazarlama — tek elden, KVKK/GDPR dostu."
 
-msgid "SiteAdaptor ist eine Plattform für lokale Betriebe im DACH-Raum: Bäckereien, Salons, Werkstätten, Hotels, Restaurants und viele mehr. Unsere Idee ist einfach — ein kleines Geschäft soll in Minuten online sein, ohne Agentur, ohne Technik-Stress und ohne Baukasten-Frust."
-msgstr "SiteAdaptor, Almanca konuşulan Avrupa’daki yerel işletmeler için bir platformdur: fırınlar, kuaförler, atölyeler, oteller, restoranlar ve daha fazlası. Fikrimiz basit — küçük bir işletme dakikalar içinde çevrimiçi olmalı; ajans olmadan, teknik stres olmadan ve site kurucu çilesi olmadan."
+msgid ""
+"SiteAdaptor ist eine Plattform für lokale Betriebe im DACH-Raum: Bäckereien, "
+"Salons, Werkstätten, Hotels, Restaurants und viele mehr. Unsere Idee ist "
+"einfach — ein kleines Geschäft soll in Minuten online sein, ohne Agentur, "
+"ohne Technik-Stress und ohne Baukasten-Frust."
+msgstr ""
+"SiteAdaptor, Almanca konuşulan Avrupa’daki yerel işletmeler için bir "
+"platformdur: fırınlar, kuaförler, atölyeler, oteller, restoranlar ve daha "
+"fazlası. Fikrimiz basit — küçük bir işletme dakikalar içinde çevrimiçi "
+"olmalı; ajans olmadan, teknik stres olmadan ve site kurucu çilesi olmadan."
 
 msgid "Was wir anders machen"
 msgstr "Neyi farklı yapıyoruz"
 
-msgid "Statt eines leeren Baukastens bekommst du eine fertige Lösung für deine Branche: passende Seiten, passende Funktionen (Vorbestellung, Termine, Zimmerbuchung, Angebote, Tickets), passende Beispiele. Du tauschst Texte und Fotos — fertig."
-msgstr "Boş bir site kurucu yerine sektörünüze hazır bir çözüm alırsınız: uygun sayfalar, uygun özellikler (ön sipariş, randevu, oda rezervasyonu, teklifler, biletler) ve uygun örnekler. Metin ve fotoğrafları değiştirirsiniz — bu kadar."
+msgid ""
+"Statt eines leeren Baukastens bekommst du eine fertige Lösung für deine "
+"Branche: passende Seiten, passende Funktionen (Vorbestellung, Termine, "
+"Zimmerbuchung, Angebote, Tickets), passende Beispiele. Du tauschst Texte und "
+"Fotos — fertig."
+msgstr ""
+"Boş bir site kurucu yerine sektörünüze hazır bir çözüm alırsınız: uygun "
+"sayfalar, uygun özellikler (ön sipariş, randevu, oda rezervasyonu, teklifler,"
+" biletler) ve uygun örnekler. Metin ve fotoğrafları değiştirirsiniz — bu "
+"kadar."
 
 msgid "Alles an einem Ort"
 msgstr "Her şey tek yerde"
 
-msgid "Website, Katalog, Buchungen und Bestellungen, Aktionen, Gutscheine und Stammkunden-Programme, Bewertungen und Kundennachrichten — ein Login, ein Werkzeug. Ohne Provisionen pro Bestellung."
-msgstr "Web sitesi, katalog, rezervasyon ve siparişler, kampanyalar, hediye çekleri ve sadakat programları, değerlendirmeler ve müşteri mesajları — tek giriş, tek araç. Sipariş başına komisyon yok."
+msgid ""
+"Website, Katalog, Buchungen und Bestellungen, Aktionen, Gutscheine und "
+"Stammkunden-Programme, Bewertungen und Kundennachrichten — ein Login, ein "
+"Werkzeug. Ohne Provisionen pro Bestellung."
+msgstr ""
+"Web sitesi, katalog, rezervasyon ve siparişler, kampanyalar, hediye çekleri "
+"ve sadakat programları, değerlendirmeler ve müşteri mesajları — tek giriş, "
+"tek araç. Sipariş başına komisyon yok."
 
 msgid "Datenschutz von Anfang an"
 msgstr "İlk günden veri koruma"
 
-msgid "Gehostet in Europa, keine Tracking-Cookies auf deiner Website, Double-Opt-In für Newsletter, Gäste buchen ohne Konto. DSGVO ist bei uns Grundeinstellung, kein Add-on."
-msgstr "Avrupa’da barındırılır, sitenizde takip çerezi yok, bültenler için çift onay, misafirler hesapsız rezervasyon yapar. GDPR bizde varsayılan, eklenti değil."
+msgid ""
+"Gehostet in Europa, keine Tracking-Cookies auf deiner Website, Double-Opt-In "
+"für Newsletter, Gäste buchen ohne Konto. DSGVO ist bei uns Grundeinstellung, "
+"kein Add-on."
+msgstr ""
+"Avrupa’da barındırılır, sitenizde takip çerezi yok, bültenler için çift onay,"
+" misafirler hesapsız rezervasyon yapar. GDPR bizde varsayılan, eklenti değil."
 
-msgid "Fragen, Feedback, Partnerschaften? Schreib uns — die Kontaktdaten findest du im Impressum."
-msgstr "Soru, geri bildirim, iş birliği? Bize yazın — iletişim bilgileri künyede."
+msgid ""
+"Fragen, Feedback, Partnerschaften? Schreib uns — die Kontaktdaten findest du "
+"im Impressum."
+msgstr ""
+"Soru, geri bildirim, iş birliği? Bize yazın — iletişim bilgileri künyede."
 
 msgid "Jetzt kostenlos starten"
 msgstr "Ücretsiz başla"
@@ -16475,11 +16482,19 @@ msgstr "Sektörlere göz at"
 msgid "Lösungen für deine Branche"
 msgstr "Sektörünüz için çözümler"
 
-msgid "Website, Buchungen, Bestellungen, Aktionen und Treue — passend für deine Branche. 14 Tage kostenlos testen."
-msgstr "Web sitesi, rezervasyon, sipariş, kampanya ve sadakat — sektörünüze uygun. 14 gün ücretsiz deneyin."
+msgid ""
+"Website, Buchungen, Bestellungen, Aktionen und Treue — passend für deine "
+"Branche. 14 Tage kostenlos testen."
+msgstr ""
+"Web sitesi, rezervasyon, sipariş, kampanya ve sadakat — sektörünüze uygun. 14"
+" gün ücretsiz deneyin."
 
-msgid "Website, Buchungen, Bestellungen, Aktionen und Treue — abgestimmt auf dein Geschäft. Wähle deine Branche und sieh, was möglich ist."
-msgstr "Web sitesi, rezervasyon, sipariş, kampanya ve sadakat — işinize göre. Sektörünüzü seçin ve nelerin mümkün olduğunu görün."
+msgid ""
+"Website, Buchungen, Bestellungen, Aktionen und Treue — abgestimmt auf dein "
+"Geschäft. Wähle deine Branche und sieh, was möglich ist."
+msgstr ""
+"Web sitesi, rezervasyon, sipariş, kampanya ve sadakat — işinize göre. "
+"Sektörünüzü seçin ve nelerin mümkün olduğunu görün."
 
 msgid "Mehr erfahren"
 msgstr "Daha fazla bilgi"
@@ -16598,13 +16613,13 @@ msgstr "Oda kartındaki olanaklar"
 
 #: templates/stays/units.html
 msgid ""
-"Which icons guests see on the room cards (list and home page). Only "
-"amenities the room actually has are shown. Leave everything "
-"unchecked to show the room's first few amenities."
+"Which icons guests see on the room cards (list and home page). Only amenities"
+" the room actually has are shown. Leave everything unchecked to show the "
+"room's first few amenities."
 msgstr ""
-"Misafirlerin oda kartlarında (liste ve ana sayfa) gördüğü simgeler. "
-"Yalnızca odada gerçekten bulunan olanaklar gösterilir. Hiçbirini "
-"işaretlemezseniz odanın ilk birkaç olanağı gösterilir."
+"Misafirlerin oda kartlarında (liste ve ana sayfa) gördüğü simgeler. Yalnızca "
+"odada gerçekten bulunan olanaklar gösterilir. Hiçbirini işaretlemezseniz "
+"odanın ilk birkaç olanağı gösterilir."
 
 #: apps/booking/views.py templates/booking/availability.html
 msgid "Day reopened."
@@ -16620,12 +16635,11 @@ msgstr "Çalışma saatleri ve kaynaklar"
 
 #: apps/booking/views.py templates/booking/availability.html
 msgid ""
-"No opening hours yet — that is why the website shows no free "
-"appointments. Add weekly hours under “Opening hours & resources”."
+"No opening hours yet — that is why the website shows no free appointments. "
+"Add weekly hours under “Opening hours & resources”."
 msgstr ""
-"Henüz çalışma saati yok — bu yüzden web sitesi boş randevu "
-"göstermiyor. „Çalışma saatleri ve kaynaklar“ altında haftalık "
-"saatleri ekleyin."
+"Henüz çalışma saati yok — bu yüzden web sitesi boş randevu göstermiyor. "
+"„Çalışma saatleri ve kaynaklar“ altında haftalık saatleri ekleyin."
 
 #: apps/booking/views.py templates/booking/availability.html
 msgid "Whole business"
@@ -16645,11 +16659,11 @@ msgstr "Açık — satışı kapatmak için tıklayın"
 
 #: apps/booking/views.py templates/booking/availability.html
 msgid ""
-"A closed day disappears from the website for all services (or for "
-"the selected resource only)."
+"A closed day disappears from the website for all services (or for the "
+"selected resource only)."
 msgstr ""
-"Kapatılan gün web sitesinde tüm hizmetler için (veya yalnızca seçili "
-"kaynak için) görünmez olur."
+"Kapatılan gün web sitesinde tüm hizmetler için (veya yalnızca seçili kaynak "
+"için) görünmez olur."
 
 #: templates/booking/availability.html
 msgid "Bookable"
@@ -16705,7 +16719,8 @@ msgid "Continue to booking"
 msgstr "Rezervasyona devam et"
 
 msgid "Tap several times to book them together (up to %(n)s)."
-msgstr "Birlikte rezerve etmek için birden fazla saate dokunun (en fazla %(n)s)."
+msgstr ""
+"Birlikte rezerve etmek için birden fazla saate dokunun (en fazla %(n)s)."
 
 msgid "Overlaps a time you already picked"
 msgstr "Zaten seçtiğiniz bir saatle çakışıyor"
@@ -16730,8 +16745,12 @@ msgstr "Kutu görünümü"
 msgid "Beispiele nach Funktion"
 msgstr "Özelliğe göre örnekler"
 
-msgid "Jede Kachel öffnet die passende Seite einer echten Demo-Website — kein Video, kein Screenshot."
-msgstr "Her kutu gerçek bir demo sitesinin ilgili sayfasını açar — video yok, ekran görüntüsü yok."
+msgid ""
+"Jede Kachel öffnet die passende Seite einer echten Demo-Website — kein Video,"
+" kein Screenshot."
+msgstr ""
+"Her kutu gerçek bir demo sitesinin ilgili sayfasını açar — video yok, ekran "
+"görüntüsü yok."
 
 msgid "Live ansehen"
 msgstr "Canlı gör"
@@ -16739,8 +16758,12 @@ msgstr "Canlı gör"
 msgid "Aktionen & Rabatte"
 msgstr "Kampanyalar ve indirimler"
 
-msgid "Prozent, Festpreis, Mystery-Deal, Countdown, begrenzte Stückzahl — alle Aktionstypen auf einer Seite."
-msgstr "Yüzde, sabit fiyat, gizemli fırsat, geri sayım, sınırlı adet — tüm kampanya türleri tek sayfada."
+msgid ""
+"Prozent, Festpreis, Mystery-Deal, Countdown, begrenzte Stückzahl — alle "
+"Aktionstypen auf einer Seite."
+msgstr ""
+"Yüzde, sabit fiyat, gizemli fırsat, geri sayım, sınırlı adet — tüm kampanya "
+"türleri tek sayfada."
 
 msgid "Termine online buchen"
 msgstr "Randevuları çevrimiçi al"
@@ -16764,7 +16787,8 @@ msgid "Größen & Farben"
 msgstr "Bedenler ve renkler"
 
 msgid "Varianten mit eigenem Foto, Größentabelle, Warteliste bei Ausverkauf."
-msgstr "Kendi fotoğrafı olan varyantlar, beden tablosu, tükendiğinde bekleme listesi."
+msgstr ""
+"Kendi fotoğrafı olan varyantlar, beden tablosu, tükendiğinde bekleme listesi."
 
 msgid "Veranstaltungen & Tickets"
 msgstr "Etkinlikler ve biletler"
@@ -16806,7 +16830,8 @@ msgid "Answer"
 msgstr "Cevap"
 
 msgid "Clearing a question removes it. A new empty pair appears after saving."
-msgstr "Boş bırakılan soru silinir. Kaydettikten sonra yeni bir boş çift belirir."
+msgstr ""
+"Boş bırakılan soru silinir. Kaydettikten sonra yeni bir boş çift belirir."
 
 msgid "How to show the options"
 msgstr "Seçim nasıl gösterilsin"
@@ -16967,8 +16992,13 @@ msgstr "Birleştir"
 msgid "Als Varianten zusammenführen"
 msgstr "Varyant olarak birleştir"
 
-msgid "Choose the main product — the others become its variants (name, price, stock, Art.-Nr., EAN and photo move along) and disappear from the storefront. Past orders keep their history."
-msgstr "Ana ürünü seçin — diğerleri onun varyantları olur (ad, fiyat, stok, ürün no, EAN ve fotoğraf taşınır) ve mağazadan kaldırılır. Geçmiş siparişler korunur."
+msgid ""
+"Choose the main product — the others become its variants (name, price, stock,"
+" Art.-Nr., EAN and photo move along) and disappear from the storefront. Past "
+"orders keep their history."
+msgstr ""
+"Ana ürünü seçin — diğerleri onun varyantları olur (ad, fiyat, stok, ürün no, "
+"EAN ve fotoğraf taşınır) ve mağazadan kaldırılır. Geçmiş siparişler korunur."
 
 msgid "The selected product stays — the rest become its variants."
 msgstr "Seçilen ürün kalır — diğerleri onun varyantları olur."
@@ -16977,7 +17007,9 @@ msgid "Art.-Nr."
 msgstr "Ürün no"
 
 msgid "Tick two or more products first — they become one card with variants."
-msgstr "Önce iki veya daha fazla ürünü işaretleyin — tek bir varyantlı karta dönüşürler."
+msgstr ""
+"Önce iki veya daha fazla ürünü işaretleyin — tek bir varyantlı karta "
+"dönüşürler."
 
 msgid "Zeitraum wieder geöffnet."
 msgstr "Tarih aralığı yeniden açıldı."
@@ -17101,8 +17133,12 @@ msgstr "Aşağıdaki onay kutularını ayarlar — ardından „Kaydet“."
 msgid "Abläufe"
 msgstr "Süreçler"
 
-msgid "Status-Namen, Statusübergänge und Board-Spalten für Ihre Verkäufe — an einem Ort."
-msgstr "Satışlarınız için durum adları, durum geçişleri ve pano sütunları — tek bir yerde."
+msgid ""
+"Status-Namen, Statusübergänge und Board-Spalten für Ihre Verkäufe — an einem "
+"Ort."
+msgstr ""
+"Satışlarınız için durum adları, durum geçişleri ve pano sütunları — tek bir "
+"yerde."
 
 msgid "Status-Namen, Übergänge und Board-Spalten:"
 msgstr "Durum adları, geçişler ve pano sütunları:"
@@ -17173,8 +17209,12 @@ msgstr "Ekibe davet edildiniz. Erişiminizi ayarlayın:"
 msgid "Team & Zugriff"
 msgstr "Ekip ve erişim"
 
-msgid "Mitarbeiter einladen und Rollen verwalten. Abo, Recht & Steuern und diese Seite bleiben dem Inhaber vorbehalten."
-msgstr "Çalışan davet edin ve rolleri yönetin. Abonelik, Hukuk ve Vergiler ile bu sayfa yalnızca sahibine açıktır."
+msgid ""
+"Mitarbeiter einladen und Rollen verwalten. Abo, Recht & Steuern und diese "
+"Seite bleiben dem Inhaber vorbehalten."
+msgstr ""
+"Çalışan davet edin ve rolleri yönetin. Abonelik, Hukuk ve Vergiler ile bu "
+"sayfa yalnızca sahibine açıktır."
 
 msgid "Mitglieder"
 msgstr "Üyeler"
@@ -17191,8 +17231,13 @@ msgstr "Kaldır"
 msgid "Mitarbeiter einladen"
 msgstr "Çalışan davet et"
 
-msgid "Einladung erzeugt einen einmaligen Link (7 Tage gültig). Admin und Mitarbeiter unterscheiden sich derzeit nicht — beide ohne Zugriff auf Abo, Recht und Team."
-msgstr "Davet, tek kullanımlık bir bağlantı oluşturur (7 gün geçerli). Admin ve çalışan şu an farklı değildir — ikisi de abonelik, hukuk ve ekibe erişemez."
+msgid ""
+"Einladung erzeugt einen einmaligen Link (7 Tage gültig). Admin und "
+"Mitarbeiter unterscheiden sich derzeit nicht — beide ohne Zugriff auf Abo, "
+"Recht und Team."
+msgstr ""
+"Davet, tek kullanımlık bir bağlantı oluşturur (7 gün geçerli). Admin ve "
+"çalışan şu an farklı değildir — ikisi de abonelik, hukuk ve ekibe erişemez."
 
 msgid "Rolle"
 msgstr "Rol"
@@ -17203,8 +17248,12 @@ msgstr "Davet et"
 msgid "Team beitreten"
 msgstr "Ekibe katıl"
 
-msgid "Dieser Einladungslink ist ungültig oder abgelaufen. Bitten Sie den Inhaber um eine neue Einladung."
-msgstr "Bu davet bağlantısı geçersiz veya süresi dolmuş. Sahibinden yeni bir davet isteyin."
+msgid ""
+"Dieser Einladungslink ist ungültig oder abgelaufen. Bitten Sie den Inhaber um"
+" eine neue Einladung."
+msgstr ""
+"Bu davet bağlantısı geçersiz veya süresi dolmuş. Sahibinden yeni bir davet "
+"isteyin."
 
 msgid "Dieses Konto ist bereits Mitglied des Teams."
 msgstr "Bu hesap zaten ekibin üyesi."
@@ -17248,32 +17297,55 @@ msgstr "Kargo takip numarası (isteğe bağlı)"
 msgid "Über den Betrieb"
 msgstr "İşletme hakkında"
 
-msgid "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb — Antworten folgen."
-msgstr "Şehir portalından (/entdecken) işletmeniz hakkında değerlendirmeler — yanıtlar yakında."
+msgid ""
+"Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb — Antworten "
+"folgen."
+msgstr ""
+"Şehir portalından (/entdecken) işletmeniz hakkında değerlendirmeler — "
+"yanıtlar yakında."
 
 msgid "Aktion für dieses Angebot erstellen"
 msgstr "Bu teklif için kampanya oluştur"
 
-msgid "Aktion gilt für diese Leistung — Aktionspreis greift automatisch bei der Buchung."
-msgstr "Kampanya bu hizmet için geçerlidir — kampanya fiyatı rezervasyonda otomatik uygulanır."
+msgid ""
+"Aktion gilt für diese Leistung — Aktionspreis greift automatisch bei der "
+"Buchung."
+msgstr ""
+"Kampanya bu hizmet için geçerlidir — kampanya fiyatı rezervasyonda otomatik "
+"uygulanır."
 
-msgid "Aktion gilt für dieses Zimmer — wirkt als Preis-Kandidat bei der Buchung."
-msgstr "Kampanya bu oda için geçerlidir — rezervasyonda fiyat adayı olarak etki eder."
+msgid ""
+"Aktion gilt für dieses Zimmer — wirkt als Preis-Kandidat bei der Buchung."
+msgstr ""
+"Kampanya bu oda için geçerlidir — rezervasyonda fiyat adayı olarak etki eder."
 
-msgid "Einfach zeigt nur das Wesentliche; Experte zeigt alles. Der Schalter oben in der Kopfzeile tut dasselbe."
-msgstr "Basit yalnızca temel olanı gösterir; Uzman her şeyi gösterir. Üstteki başlık çubuğu anahtarı aynısını yapar."
+msgid ""
+"Einfach zeigt nur das Wesentliche; Experte zeigt alles. Der Schalter oben in "
+"der Kopfzeile tut dasselbe."
+msgstr ""
+"Basit yalnızca temel olanı gösterir; Uzman her şeyi gösterir. Üstteki başlık "
+"çubuğu anahtarı aynısını yapar."
 
 msgid "Was der Einfach-Modus bei Ihnen ausblendet"
 msgstr "Basit modun sizde neleri gizlediği"
 
-msgid "Nichts — alle Ihre aktiven Bereiche sind auch im Einfach-Modus sichtbar."
+msgid ""
+"Nichts — alle Ihre aktiven Bereiche sind auch im Einfach-Modus sichtbar."
 msgstr "Hiçbir şey — tüm etkin bölümleriniz Basit modda da görünür."
 
-msgid "Zusätzlich verbirgt Einfach die Schublade „Erweitert“ der Tab-Leisten und Profi-Felder in Formularen. Alle Seiten bleiben per direktem Link erreichbar."
-msgstr "Basit ayrıca sekme çubuklarındaki „Gelişmiş“ çekmecesini ve formlardaki profesyonel alanları gizler. Tüm sayfalara doğrudan bağlantıyla erişilebilir."
+msgid ""
+"Zusätzlich verbirgt Einfach die Schublade „Erweitert“ der Tab-Leisten und "
+"Profi-Felder in Formularen. Alle Seiten bleiben per direktem Link erreichbar."
+msgstr ""
+"Basit ayrıca sekme çubuklarındaki „Gelişmiş“ çekmecesini ve formlardaki "
+"profesyonel alanları gizler. Tüm sayfalara doğrudan bağlantıyla erişilebilir."
 
-msgid "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb. Ihre Antwort erscheint öffentlich auf dem Portal."
-msgstr "Şehir portalından (/entdecken) işletmeniz hakkında değerlendirmeler. Yanıtınız portalda herkese açık görünür."
+msgid ""
+"Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb. Ihre Antwort "
+"erscheint öffentlich auf dem Portal."
+msgstr ""
+"Şehir portalından (/entdecken) işletmeniz hakkında değerlendirmeler. "
+"Yanıtınız portalda herkese açık görünür."
 
 #: templates/tenant/site_home.html
 msgid "More tools"
@@ -17281,7 +17353,9 @@ msgstr "Diğer araçlar"
 
 #: templates/tenant/site_home.html
 msgid "YouTube, Vimeo or direct .mp4. Loaded only on click (GDPR-friendly)."
-msgstr "YouTube, Vimeo veya doğrudan .mp4. Yalnızca tıklamayla yüklenir (KVKK/DSGVO uyumlu)."
+msgstr ""
+"YouTube, Vimeo veya doğrudan .mp4. Yalnızca tıklamayla yüklenir (KVKK/DSGVO "
+"uyumlu)."
 
 #: templates/storefront/gallery.html
 msgid "Unser Team"
@@ -17457,12 +17531,15 @@ msgstr "Etkinlik türü"
 msgid "Anfrage-Formular"
 msgstr "Talep formu"
 
-msgid "Zusätzliche Felder auf der öffentlichen Anfrage-Seite (z. B. für Catering / Partyservice)."
-msgstr "Herkese açık talep sayfasındaki ek alanlar (ör. Catering / parti servisi için)."
+msgid ""
+"Zusätzliche Felder auf der öffentlichen Anfrage-Seite (z. B. für Catering / "
+"Partyservice)."
+msgstr ""
+"Herkese açık talep sayfasındaki ek alanlar (ör. Catering / parti servisi "
+"için)."
 
 msgid "Auswahlliste (eine Option pro Zeile)"
 msgstr "Seçenek listesi (her satıra bir seçenek)"
-
 
 # GK-1: архетип Catering (тип/карточка/hero-плитки/feature-demo)
 msgid "Catering / Partyservice"
@@ -17485,7 +17562,6 @@ msgstr "Catering için etkinlik talebi"
 
 msgid "Wunschdatum, Gästezahl und Anlass — Angebot kommt per E-Mail."
 msgstr "Tarih, misafir sayısı ve vesile — teklif e-postayla gelir."
-
 
 # GK-4: C-блок «полоса цифр» (stats)
 msgid "Numbers"
@@ -17525,32 +17601,36 @@ msgstr "gizlilik politikası"
 msgid "Signup form with double opt-in"
 msgstr "Çift onaylı kayıt formu"
 
-
 # GK-7: founder-пресет image_text
 msgid "Gründer-Zitat"
 msgstr "Kurucu alıntısı"
-
 
 # GK-5: usp-столпы (pillars)
 msgid "Säulen"
 msgstr "Sütunlar"
 
-msgid "One per line: icon | title | description (optional, for the “Pillars” style)."
-msgstr "Her satıra bir öğe: simge | başlık | açıklama (isteğe bağlı, “Sütunlar” stili için)."
-
+msgid ""
+"One per line: icon | title | description (optional, for the “Pillars” style)."
+msgstr ""
+"Her satıra bir öğe: simge | başlık | açıklama (isteğe bağlı, “Sütunlar” stili"
+" için)."
 
 # GK-6: testimonials рейтинг/фото + аватар-ряд trust
 msgid "One per line: Name | Text | Stars 1–5 | Photo URL (both optional)."
-msgstr "Her satıra bir yorum: Ad | Metin | Yıldız 1–5 | Foto URL (ikisi de isteğe bağlı)."
+msgstr ""
+"Her satıra bir yorum: Ad | Metin | Yıldız 1–5 | Foto URL (ikisi de isteğe "
+"bağlı)."
 
 msgid "Happy customers"
 msgstr "Mutlu müşteriler"
 
-
 # GK-9: help-текст соцполей
-msgid "Handle oder vollständige URL (z. B. @meinladen). Gefüllte Profile erscheinen als Icons im Footer Ihrer Website."
-msgstr "Kullanıcı adı veya tam URL (ör. @meinladen). Doldurulan profiller sitenizin alt bilgisinde simge olarak görünür."
-
+msgid ""
+"Handle oder vollständige URL (z. B. @meinladen). Gefüllte Profile erscheinen "
+"als Icons im Footer Ihrer Website."
+msgstr ""
+"Kullanıcı adı veya tam URL (ör. @meinladen). Doldurulan profiller sitenizin "
+"alt bilgisinde simge olarak görünür."
 
 # GK-11: Google-рейтинг (Places API)
 msgid "Google Bewertungen"
@@ -17562,11 +17642,19 @@ msgstr "Google puanınızı ve yorum sayınızı web sitesinde gösterin"
 msgid "Wartet auf erste Aktualisierung"
 msgstr "İlk güncelleme bekleniyor"
 
-msgid "Die Place ID Ihres Google-Unternehmensprofils (z. B. ChIJ…). Zu finden über den Google Place ID Finder oder im Business-Profil."
-msgstr "Google İşletme Profilinizin Place ID'si (ör. ChIJ…). Google Place ID Finder üzerinden veya işletme profilinizde bulabilirsiniz."
+msgid ""
+"Die Place ID Ihres Google-Unternehmensprofils (z. B. ChIJ…). Zu finden über "
+"den Google Place ID Finder oder im Business-Profil."
+msgstr ""
+"Google İşletme Profilinizin Place ID'si (ör. ChIJ…). Google Place ID Finder "
+"üzerinden veya işletme profilinizde bulabilirsiniz."
 
-msgid "Aktualisierung fehlgeschlagen — Place ID prüfen; der Plattform-API-Schlüssel muss konfiguriert sein."
-msgstr "Güncelleme başarısız — Place ID'yi kontrol edin; platform API anahtarı yapılandırılmış olmalı."
+msgid ""
+"Aktualisierung fehlgeschlagen — Place ID prüfen; der Plattform-API-Schlüssel "
+"muss konfiguriert sein."
+msgstr ""
+"Güncelleme başarısız — Place ID'yi kontrol edin; platform API anahtarı "
+"yapılandırılmış olmalı."
 
 msgid "Aktualisiert."
 msgstr "Güncellendi."
@@ -17574,8 +17662,12 @@ msgstr "Güncellendi."
 msgid "Jetzt aktualisieren"
 msgstr "Şimdi güncelle"
 
-msgid "Zeigt Bewertung und Anzahl Ihres Google-Unternehmensprofils auf der Website (Vertrauensleiste und Bewertungsseite)."
-msgstr "Google İşletme Profilinizin puanını ve yorum sayısını web sitesinde gösterir (güven şeridi ve yorumlar sayfası)."
+msgid ""
+"Zeigt Bewertung und Anzahl Ihres Google-Unternehmensprofils auf der Website "
+"(Vertrauensleiste und Bewertungsseite)."
+msgstr ""
+"Google İşletme Profilinizin puanını ve yorum sayısını web sitesinde gösterir "
+"(güven şeridi ve yorumlar sayfası)."
 
 msgid "Zuletzt aktualisiert"
 msgstr "Son güncelleme"
@@ -17583,17 +17675,14 @@ msgstr "Son güncelleme"
 msgid "Automatische Aktualisierung alle paar Tage"
 msgstr "Birkaç günde bir otomatik güncellenir"
 
-
 msgid "%(n)s Google-Bewertung"
 msgid_plural "%(n)s Google-Bewertungen"
 msgstr[0] "%(n)s Google yorumu"
 msgstr[1] "%(n)s Google yorumu"
 
-
 # GK-13: Speisekarte-PDF
 msgid "Menu as PDF"
 msgstr "PDF olarak menü"
-
 
 # GK-14: Anfrage-CTA на browse-only каталоге
 msgid "Unverbindlich — wir melden uns mit einem Angebot."
@@ -17602,20 +17691,24 @@ msgstr "Bağlayıcı değildir — size bir teklifle geri döneriz."
 # DS-3a: прайс-лист каталога (Fokus)
 msgid "Ganze Speisekarte"
 msgstr "Tüm menü"
+
 msgid "Weitere"
 msgstr "Diğer"
+
 msgid "Preisliste"
 msgstr "Fiyat listesi"
 
 # DS-3c: сборки (Startpakete)
 msgid "Startpaket"
 msgstr "Başlangıç paketi"
+
 msgid "Startpaket angewendet."
 msgstr "Başlangıç paketi uygulandı."
 
 # DS-4b: anfrage-банда на главной (Fokus)
 msgid "Planen Sie Ihr nächstes Event?"
 msgstr "Bir etkinlik mi planlıyorsunuz?"
+
 msgid "Event-Anfrage"
 msgstr "Etkinlik talebi"
 
@@ -17632,20 +17725,28 @@ msgstr[1] "%(n)s ürün"
 # DS-5/5b: сеточные контролы Studio + прайс с фото
 msgid "Ausgleichen"
 msgstr "Dengele"
+
 msgid "Scrollen"
 msgstr "Kaydırma"
+
 msgid "Unvollständige Reihe zentrieren"
 msgstr "Eksik sırayı ortala"
+
 msgid "Kacheln in einer Reihe mit seitlichem Scrollen"
 msgstr "Yana kaydırmalı tek sıra karo"
+
 msgid "Bildhöhe"
 msgstr "Görsel yüksekliği"
+
 msgid "Bildhöhe (px)"
 msgstr "Görsel yüksekliği (px)"
+
 msgid "ab-Preis"
 msgstr "Başlangıç fiyatı"
+
 msgid "Produktanzahl"
 msgstr "Ürün sayısı"
+
 msgid "Preisliste mit Fotos"
 msgstr "Fotoğraflı fiyat listesi"
 
@@ -17656,58 +17757,86 @@ msgstr "Ara…"
 # DS-6: пресеты 5/6 в ряд
 msgid "5 per row"
 msgstr "Sırada 5"
+
 msgid "6 per row"
 msgstr "Sırada 6"
 
 # DS-5c: семейство прайс-видов
 msgid "Preisliste kompakt"
 msgstr "Kompakt fiyat listesi"
+
 msgid "Preisliste zweispaltig"
 msgstr "İki sütunlu fiyat listesi"
+
 msgid "Min."
 msgstr "dk"
+
 msgid "Services layout"
 msgstr "Hizmet görünümü"
+
 msgid "Services page (/termin/) — grid or price list."
 msgstr "Hizmetler sayfası (/termin/) — kutucuk veya fiyat listesi."
+
 msgid "Seite %(r)s von %(n)s"
 msgstr "Sayfa %(r)s / %(n)s"
+
 msgid "Alle Hauptkategorien"
 msgstr "Tüm ana kategoriler"
+
 msgid "Categories submenu"
 msgstr "Kategoriler alt menüsü"
-msgid "The categories submenu fills itself from your catalogue. Categories with a photo are shown as picture tiles."
-msgstr "Kategoriler alt menüsü kataloğunuzdan otomatik dolar. Fotoğrafı olan kategoriler görsel kutucuk olarak gösterilir."
+
+msgid ""
+"The categories submenu fills itself from your catalogue. Categories with a "
+"photo are shown as picture tiles."
+msgstr ""
+"Kategoriler alt menüsü kataloğunuzdan otomatik dolar. Fotoğrafı olan "
+"kategoriler görsel kutucuk olarak gösterilir."
+
 msgid "Manage category photos"
 msgstr "Kategori fotoğraflarını yönet"
+
 msgid "Fortsetzung"
 msgstr "devamı"
+
 msgid "Speisekarte zum Blättern"
 msgstr "Sayfa çevirmeli menü"
+
 msgid "Weitere %(n)s anzeigen"
 msgstr "%(n)s tane daha göster"
+
 msgid "Seite"
 msgstr "Sayfa"
+
 msgid "Zurückblättern"
 msgstr "Önceki sayfa"
+
 msgid "Weiterblättern"
 msgstr "Sonraki sayfa"
+
 msgid "Fotoliste zweispaltig"
 msgstr "İki sütunlu fotoğraflı liste"
+
 msgid "Fotoliste dreispaltig"
 msgstr "Üç sütunlu fotoğraflı liste"
+
 msgid "Speisekarte klassisch"
 msgstr "Klasik menü kartı"
 
 # DS-7: лендинги направлений + цены в меню
 msgid "Bereichs-Landingpages"
 msgstr "Kategori açılış sayfaları"
+
 msgid "Preise in der Speisekarte anzeigen"
 msgstr "Menüde fiyatları göster"
+
 msgid "Beispiele aus der Küche"
 msgstr "Mutfağımızdan örnekler"
-msgid "Jedes Event wird individuell zusammengestellt — fragen Sie unverbindlich an."
-msgstr "Her etkinlik size özel hazırlanır — bağlayıcı olmayan bir talep gönderin."
+
+msgid ""
+"Jedes Event wird individuell zusammengestellt — fragen Sie unverbindlich an."
+msgstr ""
+"Her etkinlik size özel hazırlanır — bağlayıcı olmayan bir talep gönderin."
 
 #: apps/catalog/food.py
 msgid "Vorspeise"
@@ -17783,23 +17912,32 @@ msgstr "Etkinlik türleri"
 
 #: templates/catalog/combo_form.html
 msgid "Comma-separated; same wording as your inquiry form. Used for filters."
-msgstr "Virgülle ayrılır; talep formundaki ifadelerle aynı. Filtreler için kullanılır."
+msgstr ""
+"Virgülle ayrılır; talep formundaki ifadelerle aynı. Filtreler için "
+"kullanılır."
 
 #: templates/catalog/combo_form.html
 msgid "Free choice from category"
 msgstr "Kategoriden serbest seçim"
 
 #: templates/catalog/combo_form.html
-msgid "Guests pick any dishes of the category at à la carte prices — choice groups below are ignored."
-msgstr "Konuklar kategorideki istedikleri yemekleri alakart fiyatlarla seçer — aşağıdaki seçim grupları yok sayılır."
+msgid ""
+"Guests pick any dishes of the category at à la carte prices — choice groups "
+"below are ignored."
+msgstr ""
+"Konuklar kategorideki istedikleri yemekleri alakart fiyatlarla seçer — "
+"aşağıdaki seçim grupları yok sayılır."
 
 #: templates/catalog/combo_form.html
 msgid "In set"
 msgstr "Sette"
 
 #: templates/catalog/combo_form.html
-msgid "Shown as part of the set — guests do not choose; cost is in the fixed price."
-msgstr "Setin sabit parçası olarak gösterilir — konuklar seçmez; maliyet sabit fiyata dahildir."
+msgid ""
+"Shown as part of the set — guests do not choose; cost is in the fixed price."
+msgstr ""
+"Setin sabit parçası olarak gösterilir — konuklar seçmez; maliyet sabit fiyata"
+" dahildir."
 
 #: apps/orders/public_views.py
 msgid "Minimum for this set: %(n)s persons."
@@ -17854,8 +17992,14 @@ msgid "Unverbindliche Kalkulation: %(total)s €"
 msgstr "Bağlayıcı olmayan hesaplama: %(total)s €"
 
 #: templates/emails/order_quote_created.txt
-msgid "Wichtig: Das ist eine unverbindliche Anfrage — KEIN Kaufvertrag und keine Zahlungspflicht. Wir prüfen Termin und Details und melden uns mit einem verbindlichen Angebot bei Ihnen."
-msgstr "Önemli: bu bağlayıcı olmayan bir taleptir — satış sözleşmesi DEĞİLDİR ve ödeme yükümlülüğü doğurmaz. Tarihi ve ayrıntıları kontrol edip bağlayıcı bir teklifle size döneceğiz."
+msgid ""
+"Wichtig: Das ist eine unverbindliche Anfrage — KEIN Kaufvertrag und keine "
+"Zahlungspflicht. Wir prüfen Termin und Details und melden uns mit einem "
+"verbindlichen Angebot bei Ihnen."
+msgstr ""
+"Önemli: bu bağlayıcı olmayan bir taleptir — satış sözleşmesi DEĞİLDİR ve "
+"ödeme yükümlülüğü doğurmaz. Tarihi ve ayrıntıları kontrol edip bağlayıcı bir "
+"teklifle size döneceğiz."
 
 #: templates/emails/order_quote_created.txt
 msgid "Bis gleich!"
@@ -17866,16 +18010,21 @@ msgid "Ihre Anfrage ist da — %(code)s"
 msgstr "Talebiniz bize ulaştı — %(code)s"
 
 #: templates/storefront/cart.html
-msgid "Unverbindlich — keine Zahlungspflicht. Wir melden uns mit einem Angebot."
-msgstr "Bağlayıcı değildir — ödeme yükümlülüğü yoktur. Size bir teklifle döneceğiz."
+msgid ""
+"Unverbindlich — keine Zahlungspflicht. Wir melden uns mit einem Angebot."
+msgstr ""
+"Bağlayıcı değildir — ödeme yükümlülüğü yoktur. Size bir teklifle döneceğiz."
 
 #: templates/storefront/order_confirmation.html
 msgid "Danke! Ihre Anfrage ist da."
 msgstr "Teşekkürler! Talebiniz bize ulaştı."
 
 #: templates/storefront/order_confirmation.html
-msgid "Wir prüfen Termin und Details und melden uns mit einem Angebot. Ihre Anfrage-Nummer:"
-msgstr "Tarihi ve ayrıntıları kontrol edip bir teklifle döneceğiz. Talep numaranız:"
+msgid ""
+"Wir prüfen Termin und Details und melden uns mit einem Angebot. Ihre Anfrage-"
+"Nummer:"
+msgstr ""
+"Tarihi ve ayrıntıları kontrol edip bir teklifle döneceğiz. Talep numaranız:"
 
 #: apps/aggregator/shortlist.py
 msgid "Anbieter"
@@ -17922,16 +18071,24 @@ msgid "Ihre Merkliste"
 msgstr "Kayıtlılarınız"
 
 #: templates/aggregator/shortlist.html
-msgid "Gemerkte Angebote nebeneinander vergleichen — Preis, Mindestbestellung, Anlässe und Ernährung auf einen Blick."
-msgstr "Kaydedilen teklifleri yan yana karşılaştırın — fiyat, minimum sipariş, etkinlik türü ve beslenme tek bakışta."
+msgid ""
+"Gemerkte Angebote nebeneinander vergleichen — Preis, Mindestbestellung, "
+"Anlässe und Ernährung auf einen Blick."
+msgstr ""
+"Kaydedilen teklifleri yan yana karşılaştırın — fiyat, minimum sipariş, "
+"etkinlik türü ve beslenme tek bakışta."
 
 #: templates/aggregator/shortlist.html
 msgid "entfernen"
 msgstr "kaldır"
 
 #: templates/aggregator/shortlist.html
-msgid "Noch nichts gemerkt. Tippen Sie bei einem Angebot auf «Merken» — hier vergleichen Sie dann die Varianten."
-msgstr "Henüz kayıt yok. Bir teklifte «Kaydet»e dokunun — seçenekleri burada karşılaştırırsınız."
+msgid ""
+"Noch nichts gemerkt. Tippen Sie bei einem Angebot auf «Merken» — hier "
+"vergleichen Sie dann die Varianten."
+msgstr ""
+"Henüz kayıt yok. Bir teklifte «Kaydet»e dokunun — seçenekleri burada "
+"karşılaştırırsınız."
 
 #: templates/aggregator/shortlist.html
 msgid "Angebote entdecken"
@@ -17943,7 +18100,8 @@ msgstr "Size bir teklifle döneceğiz — ücretsiz ve yükümlülük olmadan."
 
 #: apps/core/seo_meta.py
 msgid "{tenant}{city_sfx} — online ansehen, reservieren & bestellen."
-msgstr "{tenant}{city_sfx} — online inceleyin, rezervasyon yapın ve sipariş verin."
+msgstr ""
+"{tenant}{city_sfx} — online inceleyin, rezervasyon yapın ve sipariş verin."
 
 #: apps/core/seo_meta.py
 msgid "{heading} bei {tenant}{city_sfx}."
@@ -17956,8 +18114,8 @@ msgstr "{tenant}{city_sfx} işletmesinde {name}."
 #: apps/core/seo_meta.py
 msgid "{category} bei {tenant}{city_sfx}."
 msgstr "{tenant}{city_sfx} işletmesinde {category}."
-# --- MT-1: Reisen (Tour-Produkt, Route) ---
 
+# --- MT-1: Reisen (Tour-Produkt, Route) ---
 msgid "Reisen"
 msgstr "Turlar"
 
@@ -18015,8 +18173,12 @@ msgstr "Tüm turlar"
 msgid "Route (day by day)"
 msgstr "Rota (gün gün)"
 
-msgid "Visibility is set per stop: keep your route private, share selected highlights publicly or with participants only."
-msgstr "Görünürlük her durak için ayrı: rotanızı gizli tutun, seçili noktaları herkese açık veya yalnızca katılımcılara gösterin."
+msgid ""
+"Visibility is set per stop: keep your route private, share selected "
+"highlights publicly or with participants only."
+msgstr ""
+"Görünürlük her durak için ayrı: rotanızı gizli tutun, seçili noktaları "
+"herkese açık veya yalnızca katılımcılara gösterin."
 
 msgid "Day"
 msgstr "Gün"
@@ -18054,8 +18216,12 @@ msgstr "Henüz hareket yok — bir etkinlik oluşturup formda bu turu seçin."
 msgid "Tours"
 msgstr "Turlar"
 
-msgid "A tour holds the content and the route; each date is a departure (event) with its own prices and seats."
-msgstr "Tur içeriği ve rotayı taşır; her tarih kendi fiyat ve kontenjanı olan bir harekettir."
+msgid ""
+"A tour holds the content and the route; each date is a departure (event) with"
+" its own prices and seats."
+msgstr ""
+"Tur içeriği ve rotayı taşır; her tarih kendi fiyat ve kontenjanı olan bir "
+"harekettir."
 
 msgid "New tour"
 msgstr "Yeni tur"
@@ -18072,8 +18238,12 @@ msgstr "Rota"
 msgid "Day %(n)s"
 msgstr "%(n)s. gün"
 
-msgid "The detailed route is part of our guides' know-how — participants receive it after booking."
-msgstr "Ayrıntılı rota rehberlerimizin birikimidir — katılımcılara rezervasyondan sonra verilir."
+msgid ""
+"The detailed route is part of our guides' know-how — participants receive it "
+"after booking."
+msgstr ""
+"Ayrıntılı rota rehberlerimizin birikimidir — katılımcılara rezervasyondan "
+"sonra verilir."
 
 msgid "Duration"
 msgstr "Süre"
@@ -18136,7 +18306,6 @@ msgid "Tour deleted."
 msgstr "Tur silindi."
 
 # --- MT-2: Dokumente der Teilnehmer ---
-
 msgid "Reisepass"
 msgstr "Pasaport"
 
@@ -18188,7 +18357,9 @@ msgstr "Henüz katılımcı yok."
 msgid "My documents"
 msgstr "Belgelerim"
 
-msgid "Your files are stored encrypted and can only be opened by you and the organiser."
+msgid ""
+"Your files are stored encrypted and can only be opened by you and the "
+"organiser."
 msgstr "Dosyalarınız şifreli saklanır; yalnızca siz ve organizatör açabilir."
 
 msgid "They are deleted automatically %(days)s days after the trip."
@@ -18210,7 +18381,6 @@ msgid "No documents uploaded yet."
 msgstr "Henüz belge yüklenmedi."
 
 # --- MT-3: Reisegruppe (Feed, Chat, Telegram-Brücke) ---
-
 msgid "Beitrag"
 msgstr "Gönderi"
 
@@ -18247,8 +18417,12 @@ msgstr "Bağlandı — gönderiler iki yönde akıyor."
 msgid "Add your bot to the tour's Telegram group and write there:"
 msgstr "Botunuzu turun Telegram grubuna ekleyin ve orada yazın:"
 
-msgid "In @BotFather the bot's privacy mode must be disabled, otherwise Telegram only forwards commands to it."
-msgstr "@BotFather'da botun gizlilik modu kapalı olmalı, aksi halde Telegram yalnızca komutları iletir."
+msgid ""
+"In @BotFather the bot's privacy mode must be disabled, otherwise Telegram "
+"only forwards commands to it."
+msgstr ""
+"@BotFather'da botun gizlilik modu kapalı olmalı, aksi halde Telegram yalnızca"
+" komutları iletir."
 
 msgid "Invite link"
 msgstr "Davet bağlantısı"
@@ -18296,7 +18470,6 @@ msgid "Nothing posted yet."
 msgstr "Henüz bir şey paylaşılmadı."
 
 # --- MT-4/5/6: Logistik, Kosten, Checkliste ---
-
 msgid "Transport / Tickets"
 msgstr "Ulaşım / biletler"
 
@@ -18360,8 +18533,12 @@ msgstr "Katılımcılar için"
 msgid "Internal"
 msgstr "Dahili"
 
-msgid "Purchase prices stay internal — participants only ever see the fact and the status."
-msgstr "Alış fiyatları dahilidir — katılımcılar yalnızca rezervasyonu ve durumunu görür."
+msgid ""
+"Purchase prices stay internal — participants only ever see the fact and the "
+"status."
+msgstr ""
+"Alış fiyatları dahilidir — katılımcılar yalnızca rezervasyonu ve durumunu "
+"görür."
 
 msgid "Nothing booked with suppliers yet."
 msgstr "Henüz tedarikçilerde rezervasyon yok."
@@ -18391,7 +18568,6 @@ msgstr[0] "%(n)s açık"
 msgstr[1] "%(n)s açık"
 
 # --- MT-D: витрина мото-архетипа (страны, приватный выезд, гиды) ---
-
 msgid "Land (gruppiert die Reise-Übersicht)"
 msgstr "Ülke (tur listesini gruplar)"
 
@@ -18408,7 +18584,9 @@ msgid "None of the dates fit?"
 msgstr "Hiçbir tarih uymuyor mu?"
 
 msgid "We also ride private tours: your group, your dates, route on request."
-msgstr "Her rotayı özel de sürüyoruz: sizin grubunuz, sizin tarihleriniz, rota görüşmeye bağlı."
+msgstr ""
+"Her rotayı özel de sürüyoruz: sizin grubunuz, sizin tarihleriniz, rota "
+"görüşmeye bağlı."
 
 msgid "Request a private tour"
 msgstr "Özel tur talep edin"
@@ -18419,8 +18597,12 @@ msgstr "Kendi tarihinizi talep edin"
 msgid "Prefer your own group?"
 msgstr "Kendi grubunuzla mı sürmek istersiniz?"
 
-msgid "Tell us your dates and how many of you are riding — we will plan this tour privately for your group."
-msgstr "İstediğiniz tarihi ve kaç kişi olduğunuzu söyleyin — bu turu grubunuza özel planlayalım."
+msgid ""
+"Tell us your dates and how many of you are riding — we will plan this tour "
+"privately for your group."
+msgstr ""
+"İstediğiniz tarihi ve kaç kişi olduğunuzu söyleyin — bu turu grubunuza özel "
+"planlayalım."
 
 msgid "Tours with this guide"
 msgstr "Bu rehberle turlar"
@@ -18446,8 +18628,11 @@ msgstr "Grubu aç"
 msgid "Sign in to your account"
 msgstr "Hesabınıza giriş yapın"
 
-msgid "News from the guide, packing tips and the chat with your group — all in one place."
-msgstr "Rehberden haberler, hazırlık listesi ve grubunuzla sohbet — hepsi tek yerde."
+msgid ""
+"News from the guide, packing tips and the chat with your group — all in one "
+"place."
+msgstr ""
+"Rehberden haberler, hazırlık listesi ve grubunuzla sohbet — hepsi tek yerde."
 
 msgid "Costs"
 msgstr "Maliyetler"
@@ -18460,3 +18645,28 @@ msgstr "Akış, sohbet ve Telegram köprüsü"
 
 msgid "Licences and IDs of the participants"
 msgstr "Katılımcıların ehliyet ve kimlikleri"
+
+msgid "Raster"
+msgstr "Izgara"
+
+msgid "Große Fotos"
+msgstr "Büyük fotoğraflar"
+
+msgid "Liste mit Fotos"
+msgstr "Fotoğraflı liste"
+
+msgid "Beispiele unserer Arbeit"
+msgstr "Çalışmalarımızdan örnekler"
+
+msgid "Sie planen eine Veranstaltung?"
+msgstr "Bir etkinlik mi planlıyorsunuz?"
+
+msgid ""
+"Erzählen Sie uns von Ihrem Anlass — wir stellen ein passendes Menü zusammen "
+"und melden uns mit einem unverbindlichen Angebot."
+msgstr ""
+"Bize etkinliğinizden bahsedin — uygun bir menü hazırlayıp bağlayıcı olmayan "
+"bir teklifle size geri dönelim."
+
+msgid "Weitere Menüs aus dieser Kategorie"
+msgstr "Bu kategoriden diğer menüler"

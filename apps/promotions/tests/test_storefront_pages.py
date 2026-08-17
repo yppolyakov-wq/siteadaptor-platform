@@ -43,6 +43,31 @@ def test_gallery_page_renders_photos():
     assert "https://img.test/a.jpg" in html
 
 
+def test_gallery_page_renders_visitor_toggle_men23():
+    """MEN-23: на /galerie/ — переключатель «сетка ↔ крупно» (class-swap,
+    обработчик в _grid_view_script.html); контейнер несёт data-galv +
+    целевые классы в data-cls-* (purge-safe)."""
+    tenant = _tenant(gallery=[{"id": "g1", "url": "https://img.test/a.jpg"}])
+    html = public_views.gallery_page(_req("/galerie/", tenant)).content.decode()
+    assert 'data-galv="raster"' in html and 'data-galv-btn="gross"' in html
+    assert 'data-cls-gross="grid gap-4 sm:grid-cols-2"' in html
+
+
+def test_home_gallery_toggle_only_for_default_grid():
+    """MEN-23: на главной переключатель — только у дефолт-сетки; авторские
+    стили (strip/large/polaroid/soft) не переключаем."""
+    from apps.promotions.public_views import storefront_home
+
+    base = {"gallery": [{"id": "g1", "url": "https://img.test/a.jpg"}]}
+    plain = _tenant(sections=[{"key": "gallery", "enabled": True}], **base)
+    html = storefront_home(_req("/", plain)).content.decode()
+    assert 'data-galv="raster"' in html and 'data-galv-btn="gross"' in html
+
+    strip = _tenant(sections=[{"key": "gallery", "enabled": True, "style": "strip"}], **base)
+    html2 = storefront_home(_req("/", strip)).content.decode()
+    assert 'data-galv-btn="' not in html2 and 'data-galv="' not in html2
+
+
 def test_team_page_renders_members():
     tenant = _tenant(team=[{"name": "Anna Berg", "role": "Meisterin", "photo": ""}])
     html = public_views.team_page(_req("/team/", tenant)).content.decode()

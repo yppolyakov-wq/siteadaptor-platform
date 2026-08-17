@@ -27,11 +27,13 @@ class Review(I18nMixin, TimestampedModel):
     KIND_SERVICE = "service"
     KIND_STAY = "stay"
     KIND_EVENT = "event"
+    KIND_COMBO = "combo"  # MEN-21: отзывы на наборы меню (карточка /kombi/<pk>/)
     ENTITY_KINDS = [
         (KIND_PRODUCT, _("Product")),
         (KIND_SERVICE, _("Service")),
         (KIND_STAY, _("Stay")),
         (KIND_EVENT, _("Event")),
+        (KIND_COMBO, _("Menu set")),
     ]
 
     entity_kind = models.CharField(max_length=16, choices=ENTITY_KINDS)

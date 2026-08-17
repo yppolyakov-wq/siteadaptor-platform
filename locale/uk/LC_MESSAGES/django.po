@@ -108,9 +108,8 @@ msgstr "Ціна: від найнижчої до найвищої"
 msgid "Price: high to low"
 msgstr "Ціна: від найбільшої до найменшої"
 
-#: apps/booking/facets.py:58 apps/catalog/facets.py:152
-#: apps/core/views.py:1676 templates/aggregator/listing.html:46
-#: templates/tenant/site_home.html:478
+#: apps/booking/facets.py:58 apps/catalog/facets.py:152 apps/core/views.py:1676
+#: templates/aggregator/listing.html:46 templates/tenant/site_home.html:478
 msgid "Newest"
 msgstr "Найновіші"
 
@@ -674,9 +673,8 @@ msgstr "Сторінка акції"
 #: apps/core/context.py:48 templates/storefront/_action_bar.html:10
 #: templates/storefront/_base.html:115
 #: templates/tenant/_base_dashboard.html:131
-#: templates/tenant/_base_dashboard.html:143
-#: templates/tenant/site_home.html:61 templates/tenant/site_home.html:108
-#: templates/tenant/site_menu.html:3
+#: templates/tenant/_base_dashboard.html:143 templates/tenant/site_home.html:61
+#: templates/tenant/site_home.html:108 templates/tenant/site_menu.html:3
 msgid "Menu"
 msgstr "Меню"
 
@@ -772,13 +770,11 @@ msgstr "Пов’язані товари"
 msgid "For whom"
 msgstr "Для кого"
 
-#: apps/core/detail_sections.py:62
-#: templates/storefront/_event_thematic.html:15
+#: apps/core/detail_sections.py:62 templates/storefront/_event_thematic.html:15
 msgid "The idea"
 msgstr "Ідея"
 
-#: apps/core/detail_sections.py:63
-#: templates/storefront/_event_thematic.html:20
+#: apps/core/detail_sections.py:63 templates/storefront/_event_thematic.html:20
 msgid "What's included"
 msgstr "Що входить до комплекту"
 
@@ -787,19 +783,16 @@ msgstr "Що входить до комплекту"
 msgid "Schedule"
 msgstr "Розклад"
 
-#: apps/core/detail_sections.py:65
-#: templates/storefront/_event_thematic.html:48
+#: apps/core/detail_sections.py:65 templates/storefront/_event_thematic.html:48
 msgid "Venue"
 msgstr "Місце проведення"
 
-#: apps/core/detail_sections.py:66
-#: templates/storefront/_event_thematic.html:64
+#: apps/core/detail_sections.py:66 templates/storefront/_event_thematic.html:64
 #: templates/storefront/event_detail.html:113
 msgid "Accommodation"
 msgstr "Проживання"
 
-#: apps/core/detail_sections.py:67
-#: templates/storefront/_event_thematic.html:71
+#: apps/core/detail_sections.py:67 templates/storefront/_event_thematic.html:71
 msgid "Food"
 msgstr "Їжа"
 
@@ -1325,8 +1318,7 @@ msgid "4 per row"
 msgstr "4 у рядку"
 
 #: apps/core/views.py:1672 apps/core/views.py:2354
-#: apps/tenants/siteconfig.py:603
-#: templates/storefront/sections/_gallery.html:4
+#: apps/tenants/siteconfig.py:603 templates/storefront/sections/_gallery.html:4
 msgid "Gallery"
 msgstr "Галерея"
 
@@ -1453,11 +1445,10 @@ msgstr "Хліб та хлібобулочні вироби"
 
 #: apps/core/views.py:2597
 #, python-format
-msgid ""
-"Note: %(modules)s is untypical for your business type — enabled anyway."
+msgid "Note: %(modules)s is untypical for your business type — enabled anyway."
 msgstr ""
-"Примітка: Параметр «%(modules)s» не є типовим для вашого виду бізнесу — "
-"проте він все одно увімкнено."
+"Примітка: Параметр «%(modules)s» не є типовим для вашого виду бізнесу — проте"
+" він все одно увімкнено."
 
 #: apps/core/views.py:2712
 msgid "Domain added. Set the DNS A record, then verify."
@@ -1552,11 +1543,10 @@ msgid "Marketing consent"
 msgstr "Згода на маркетингові повідомлення"
 
 #: apps/crm/forms.py:22
-msgid ""
-"Only tick if the customer explicitly agreed to receive offers (UWG §7)."
+msgid "Only tick if the customer explicitly agreed to receive offers (UWG §7)."
 msgstr ""
-"Поставте галочку лише в тому випадку, якщо клієнт прямо погодився отримувати"
-" рекламні пропозиції (UWG §7)."
+"Поставте галочку лише в тому випадку, якщо клієнт прямо погодився отримувати "
+"рекламні пропозиції (UWG §7)."
 
 #: apps/crm/views.py:88
 msgid "Customer created."
@@ -1860,11 +1850,11 @@ msgstr "Будь ласка, вкажіть своє ім’я та те, що �
 
 #: apps/jobs/public_views.py:70
 msgid ""
-"Your postal code is outside our usual service area — we'll still review your"
-" request and get back to you."
+"Your postal code is outside our usual service area — we'll still review your "
+"request and get back to you."
 msgstr ""
-"Ваш поштовий індекс знаходиться за межами нашої звичайної зони "
-"обслуговування — проте ми все одно розглянемо ваш запит і зв’яжемося з вами."
+"Ваш поштовий індекс знаходиться за межами нашої звичайної зони обслуговування"
+" — проте ми все одно розглянемо ваш запит і зв’яжемося з вами."
 
 #: apps/jobs/public_views.py:75
 msgid "Thank you! Your request has arrived — we'll get back to you soon."
@@ -2115,8 +2105,8 @@ msgstr "Або відсоток, або нова ціна — решта обч�
 msgid ""
 "Shows an „Überraschungstüte“ badge on your storefront and the aggregator."
 msgstr ""
-"Показує значок «Сюрпризний пакет» на головній сторінці вашого магазину та на"
-" агрегаторі."
+"Показує значок «Сюрпризний пакет» на головній сторінці вашого магазину та на "
+"агрегаторі."
 
 #: apps/promotions/forms.py:82
 msgid "When it ends, a copy is scheduled for the next day/week automatically."
@@ -2154,17 +2144,15 @@ msgid "Your name"
 msgstr "Ваше ім'я"
 
 #: apps/promotions/forms.py:124 apps/promotions/forms.py:136
-#: templates/aggregator/portal_login.html:13
-#: templates/booking/calendar.html:90 templates/booking/passes.html:52
-#: templates/events/event_detail.html:109
+#: templates/aggregator/portal_login.html:13 templates/booking/calendar.html:90
+#: templates/booking/passes.html:52 templates/events/event_detail.html:109
 #: templates/events/event_detail.html:131 templates/jobs/list.html:54
 #: templates/stays/calendar.html:132
 #: templates/storefront/_buybox_service_form.html:21
 #: templates/storefront/_buybox_stay_form.html:78
 #: templates/storefront/anfrage.html:89
 #: templates/storefront/booking_slots.html:73
-#: templates/storefront/cart.html:130
-#: templates/storefront/event_detail.html:73
+#: templates/storefront/cart.html:130 templates/storefront/event_detail.html:73
 #: templates/storefront/event_detail.html:141
 #: templates/storefront/message_contact.html:36
 #: templates/storefront/newsletter.html:32 templates/storefront/passes.html:26
@@ -2302,8 +2290,8 @@ msgid ""
 "Nur verifizierte Käufer können bewerten — wir haben keine Bestellung mit "
 "dieser E-Mail gefunden."
 msgstr ""
-"Лише перевірені покупці можуть залишати відгуки — ми не знайшли замовлення з"
-" цією електронною адресою."
+"Лише перевірені покупці можуть залишати відгуки — ми не знайшли замовлення з "
+"цією електронною адресою."
 
 #: apps/promotions/public_views.py:602 apps/reviews/submit.py:60
 msgid "Danke für Ihre Bewertung!"
@@ -2418,8 +2406,8 @@ msgid ""
 "Nur verifizierte Kund:innen können bewerten — wir haben keine Buchung mit "
 "dieser E-Mail gefunden."
 msgstr ""
-"Лише перевірені клієнти можуть залишати відгуки — ми не знайшли бронювання з"
-" цією електронною адресою."
+"Лише перевірені клієнти можуть залишати відгуки — ми не знайшли бронювання з "
+"цією електронною адресою."
 
 #: apps/reviews/views.py:59
 msgid "Reply saved."
@@ -2526,8 +2514,7 @@ msgstr "Дати заблоковано."
 
 #: apps/stays/views.py:350
 msgid "Calendar source added — will sync shortly."
-msgstr ""
-"Додано джерело календаря — синхронізація відбудеться найближчим часом."
+msgstr "Додано джерело календаря — синхронізація відбудеться найближчим часом."
 
 #: apps/stays/views.py:352
 msgid "Please enter the calendar URL."
@@ -2703,24 +2690,24 @@ msgstr ""
 msgid ""
 "When on, opening a redemption QR as logged-in staff redeems immediately."
 msgstr ""
-"Якщо ця функція увімкнена, при відкритті QR-коду для обміну співробітник, що"
-" увійшов у систему, одразу ж здійснює обмін."
+"Якщо ця функція увімкнена, при відкритті QR-коду для обміну співробітник, що "
+"увійшов у систему, одразу ж здійснює обмін."
 
 #: apps/tenants/forms.py:103
 msgid ""
 "A short morning email: yesterday's revenue, today's bookings and what needs "
 "your attention."
 msgstr ""
-"Короткий ранковий лист: вчорашні доходи, сьогоднішні замовлення та те, на що"
-" варто звернути увагу."
+"Короткий ранковий лист: вчорашні доходи, сьогоднішні замовлення та те, на що "
+"варто звернути увагу."
 
 #: apps/tenants/forms.py:107
 msgid ""
 "0 = no limit. Caps discount/promo codes only — sold gift vouchers are never "
 "limited."
 msgstr ""
-"0 = без обмежень. Обмеження стосуються лише кодів на знижки та промо-кодів —"
-" продані подарункові сертифікати ніколи не мають обмежень."
+"0 = без обмежень. Обмеження стосуються лише кодів на знижки та промо-кодів — "
+"продані подарункові сертифікати ніколи не мають обмежень."
 
 #: apps/tenants/forms.py:110
 msgid "Leave blank to generate from the fields above."
@@ -2954,8 +2941,7 @@ msgid "Forgot password?"
 msgstr "Забули пароль?"
 
 #: templates/account/logout.html:3 templates/account/logout.html:4
-#: templates/account/logout.html:14
-#: templates/aggregator/portal_account.html:29
+#: templates/account/logout.html:14 templates/aggregator/portal_account.html:29
 #: templates/tenant/_base_dashboard.html:109
 msgid "Sign out"
 msgstr "Вийти"
@@ -3046,8 +3032,7 @@ msgstr[3] "%(n)s типи номерів"
 #: templates/storefront/_quick_add.html:14
 #: templates/storefront/combo_detail.html:9
 #: templates/storefront/product_detail.html:34
-#: templates/storefront/products.html:98
-#: templates/storefront/products.html:136
+#: templates/storefront/products.html:98 templates/storefront/products.html:136
 #: templates/storefront/stay_detail.html:31
 msgid "from"
 msgstr "з"
@@ -3111,9 +3096,8 @@ msgstr "Усі пропозиції"
 msgid "All directions"
 msgstr "Усі напрямки"
 
-#: templates/aggregator/_search_form.html:27
-#: templates/aggregator/search.html:5 templates/storefront/listing.html:30
-#: templates/storefront/listing.html:31
+#: templates/aggregator/_search_form.html:27 templates/aggregator/search.html:5
+#: templates/storefront/listing.html:30 templates/storefront/listing.html:31
 #: templates/storefront/sections/_stay_search.html:28
 msgid "Search"
 msgstr "Пошук"
@@ -3142,8 +3126,7 @@ msgstr "Пропозиції в «%(city)s»"
 #: templates/aggregator/listing.html:20
 #: templates/aggregator/portal_home.html:41 templates/inbox/list.html:12
 #: templates/jobs/list.html:16 templates/reviews/review_list.html:28
-#: templates/storefront/products.html:50
-#: templates/storefront/products.html:108
+#: templates/storefront/products.html:50 templates/storefront/products.html:108
 #: templates/storefront/products.html:126
 #: templates/storefront/products.html:135
 #: templates/storefront/promotions_list.html:10
@@ -3165,8 +3148,7 @@ msgstr "Будь-яка оцінка"
 msgid "up"
 msgstr "вгору"
 
-#: templates/aggregator/listing.html:41
-#: templates/storefront/_open_badge.html:5
+#: templates/aggregator/listing.html:41 templates/storefront/_open_badge.html:5
 msgid "Open now"
 msgstr "Зараз відкрито"
 
@@ -3180,8 +3162,8 @@ msgid "Name (A–Z)"
 msgstr "Ім'я (А–Я)"
 
 #: templates/aggregator/listing.html:62
-#: templates/aggregator/portal_home.html:57
-#: templates/crm/customer_list.html:48 templates/storefront/products.html:176
+#: templates/aggregator/portal_home.html:57 templates/crm/customer_list.html:48
+#: templates/storefront/products.html:176
 msgid "Show more"
 msgstr "Показати більше"
 
@@ -3224,9 +3206,8 @@ msgid ""
 "Businesses you booked with may email you about offers. Unsubscribe from all "
 "of them at once here."
 msgstr ""
-"Компанії, у яких ви робили бронювання, можуть надсилати вам електронні листи"
-" з пропозиціями. Тут ви можете одночасно відмовитися від усіх таких "
-"розсилок."
+"Компанії, у яких ви робили бронювання, можуть надсилати вам електронні листи "
+"з пропозиціями. Тут ви можете одночасно відмовитися від усіх таких розсилок."
 
 #: templates/aggregator/portal_account.html:20
 msgid "Subscribe again"
@@ -3251,11 +3232,11 @@ msgstr "Мої застереження"
 
 #: templates/aggregator/portal_account.html:64
 msgid ""
-"No reservations yet. Book any offer — no account needed, it will show up "
-"here by email."
+"No reservations yet. Book any offer — no account needed, it will show up here"
+" by email."
 msgstr ""
-"Поки що немає бронювань. Забронюйте будь-яку пропозицію — обліковий запис не"
-" потрібен, інформація з’явиться тут у листі на вашу електронну адресу."
+"Поки що немає бронювань. Забронюйте будь-яку пропозицію — обліковий запис не "
+"потрібен, інформація з’явиться тут у листі на вашу електронну адресу."
 
 #: templates/aggregator/portal_business.html:11
 #: templates/storefront/sections/_archetypes.html:15
@@ -3332,11 +3313,10 @@ msgstr "Перевірте свою поштову скриньку"
 
 #: templates/aggregator/portal_check_inbox.html:9
 msgid ""
-"If this address exists, we’ve sent a sign-in link. It’s valid for 15 "
-"minutes."
+"If this address exists, we’ve sent a sign-in link. It’s valid for 15 minutes."
 msgstr ""
-"Якщо ця адреса існує, ми надіслали посилання для входу. Воно дійсне протягом"
-" 15 хвилин."
+"Якщо ця адреса існує, ми надіслали посилання для входу. Воно дійсне протягом "
+"15 хвилин."
 
 #: templates/aggregator/portal_home.html:21 templates/stays/calendar.html:118
 #: templates/stays/channels.html:80
@@ -3396,8 +3376,8 @@ msgstr "Замовити нове посилання"
 #: templates/aggregator/portal_login.html:8
 msgid "No password needed. We’ll email you a one-time sign-in link."
 msgstr ""
-"Пароль не потрібен. Ми надішлемо вам на електронну пошту одноразове "
-"посилання для входу."
+"Пароль не потрібен. Ми надішлемо вам на електронну пошту одноразове посилання"
+" для входу."
 
 #: templates/aggregator/portal_login.html:20
 msgid "Email me a sign-in link"
@@ -3407,8 +3387,7 @@ msgstr "Надішліть мені посилання для входу на е
 msgid "More"
 msgstr "Більше"
 
-#: templates/aggregator/search.html:17
-#: templates/tenant/_base_dashboard.html:65
+#: templates/aggregator/search.html:17 templates/tenant/_base_dashboard.html:65
 msgid "Nothing found."
 msgstr "Нічого не знайдено."
 
@@ -3442,8 +3421,8 @@ msgstr "Керування підпискою"
 #: templates/billing/billing.html:37
 msgid "Update your card, view invoices or cancel in the Stripe portal."
 msgstr ""
-"Оновіть дані своєї картки, перегляньте рахунки-фактури або скасуйте операцію"
-" на порталі Stripe."
+"Оновіть дані своєї картки, перегляньте рахунки-фактури або скасуйте операцію "
+"на порталі Stripe."
 
 #: templates/billing/billing.html:43
 msgid "Activate subscription — €39/mo"
@@ -3575,8 +3554,7 @@ msgstr "Протокол"
 #: templates/catalog/combo_form.html:13 templates/catalog/combo_form.html:23
 #: templates/catalog/combo_form.html:29 templates/catalog/product_list.html:42
 #: templates/collections/list.html:30 templates/collections/list.html:46
-#: templates/events/event_detail.html:65
-#: templates/events/event_detail.html:109
+#: templates/events/event_detail.html:65 templates/events/event_detail.html:109
 #: templates/events/event_detail.html:130 templates/jobs/list.html:52
 #: templates/konto/profile.html:19 templates/stays/calendar.html:127
 #: templates/stays/units.html:132
@@ -3584,8 +3562,7 @@ msgstr "Протокол"
 #: templates/storefront/_buybox_stay_form.html:74
 #: templates/storefront/anfrage.html:85 templates/storefront/anfrage.html:115
 #: templates/storefront/booking_slots.html:63
-#: templates/storefront/cart.html:126
-#: templates/storefront/event_detail.html:72
+#: templates/storefront/cart.html:126 templates/storefront/event_detail.html:72
 #: templates/storefront/event_detail.html:140
 #: templates/storefront/message_contact.html:32
 msgid "Name"
@@ -3607,8 +3584,8 @@ msgid ""
 "Multi-visit passes: issue a card, the customer redeems online with the code "
 "or you punch it here at each visit."
 msgstr ""
-"Абонементи на кілька відвідувань: видайте картку, клієнт активує її онлайн "
-"за допомогою коду або ви пробиваєте її тут під час кожного відвідування."
+"Абонементи на кілька відвідувань: видайте картку, клієнт активує її онлайн за"
+" допомогою коду або ви пробиваєте її тут під час кожного відвідування."
 
 #: templates/booking/passes.html:25
 msgid "valid until"
@@ -3740,9 +3717,8 @@ msgid "Count per person (group course)"
 msgstr "Кількість осіб (груповий курс)"
 
 #: templates/booking/resources.html:55 templates/booking/services.html:63
-#: templates/catalog/category_form.html:32
-#: templates/catalog/combo_form.html:49 templates/catalog/combo_form.html:71
-#: templates/catalog/combo_form.html:84
+#: templates/catalog/category_form.html:32 templates/catalog/combo_form.html:49
+#: templates/catalog/combo_form.html:71 templates/catalog/combo_form.html:84
 #: templates/catalog/product_form.html:128
 #: templates/catalog/product_form.html:171
 #: templates/catalog/product_form.html:206
@@ -3753,8 +3729,7 @@ msgstr "Кількість осіб (груповий курс)"
 #: templates/promotions/coupon_campaigns.html:47
 #: templates/promotions/promotion_form.html:139
 #: templates/publishing/channels.html:50 templates/publishing/channels.html:76
-#: templates/publishing/channels.html:98
-#: templates/publishing/channels.html:120
+#: templates/publishing/channels.html:98 templates/publishing/channels.html:120
 #: templates/publishing/channels.html:147 templates/stays/units.html:54
 #: templates/stays/units.html:258 templates/tenant/languages.html:40
 #: templates/tenant/legal_docs.html:42 templates/tenant/modules.html:70
@@ -3928,8 +3903,7 @@ msgstr "Видалити категорію"
 #: templates/catalog/product_confirm_delete.html:9
 #, python-format
 msgid "Delete “%(name)s”? It can be restored from the admin."
-msgstr ""
-"Видалити «%(name)s»? Його можна відновити через панель адміністратора."
+msgstr "Видалити «%(name)s»? Його можна відновити через панель адміністратора."
 
 #: templates/catalog/category_confirm_delete.html:16
 #: templates/catalog/category_confirm_delete.html:46
@@ -4031,8 +4005,7 @@ msgid "New category"
 msgstr "Нова категорія"
 
 #: templates/catalog/category_form.html:3
-#: templates/catalog/category_form.html:8
-#: templates/storefront/products.html:61
+#: templates/catalog/category_form.html:8 templates/storefront/products.html:61
 msgid "Edit category"
 msgstr "Редагувати категорію"
 
@@ -4040,9 +4013,8 @@ msgstr "Редагувати категорію"
 msgid "Slug"
 msgstr "Слуг"
 
-#: templates/catalog/category_list.html:27
-#: templates/catalog/combo_form.html:46 templates/catalog/combo_form.html:70
-#: templates/catalog/combo_form.html:83
+#: templates/catalog/category_list.html:27 templates/catalog/combo_form.html:46
+#: templates/catalog/combo_form.html:70 templates/catalog/combo_form.html:83
 #: templates/catalog/product_form.html:170
 #: templates/catalog/product_form.html:205
 #: templates/catalog/product_form.html:219
@@ -4067,8 +4039,8 @@ msgid "New combo"
 msgstr "Нова комбінація"
 
 #: templates/catalog/combo_form.html:7 templates/catalog/combo_list.html:3
-#: templates/catalog/combo_list.html:8
-#: templates/storefront/combo_detail.html:6 templates/storefront/combos.html:3
+#: templates/catalog/combo_list.html:8 templates/storefront/combo_detail.html:6
+#: templates/storefront/combos.html:3
 msgid "Combos"
 msgstr "Комбінації"
 
@@ -4106,8 +4078,7 @@ msgstr "Група"
 msgid "product"
 msgstr "товар"
 
-#: templates/catalog/combo_form.html:97
-#: templates/catalog/product_form.html:215
+#: templates/catalog/combo_form.html:97 templates/catalog/product_form.html:215
 #: templates/storefront/_add_to_cart_form.html:6
 msgid "Option"
 msgstr "Варіант"
@@ -4129,8 +4100,8 @@ msgid ""
 "Fixed-price meal deals (e.g. Burger + fries + drink). Choice groups let "
 "guests pick a drink or side."
 msgstr ""
-"Комплексні пропозиції за фіксованою ціною (наприклад, бургер + картопля фрі "
-"+ напій). Групи на вибір дозволяють гостям вибрати напій або гарнір."
+"Комплексні пропозиції за фіксованою ціною (наприклад, бургер + картопля фрі +"
+" напій). Групи на вибір дозволяють гостям вибрати напій або гарнір."
 
 #: templates/catalog/combo_list.html:20
 msgid "groups"
@@ -4178,8 +4149,7 @@ msgstr "Ціна та наявність на складі"
 msgid "Labeling"
 msgstr "Маркування"
 
-#: templates/catalog/product_form.html:59
-#: templates/crm/customer_detail.html:13
+#: templates/catalog/product_form.html:59 templates/crm/customer_detail.html:13
 msgid "Marketing"
 msgstr "Маркетинг"
 
@@ -4380,8 +4350,7 @@ msgstr "Колекцій ще немає — створіть першу з ни
 
 #: templates/collections/list.html:99
 msgid "Tip: add services or rooms first, then group them here."
-msgstr ""
-"Порада: спочатку додайте послуги або номери, а потім згрупуйте їх тут."
+msgstr "Порада: спочатку додайте послуги або номери, а потім згрупуйте їх тут."
 
 #: templates/core/_kanban_card.html:11
 msgid "Ziehen zum Verschieben"
@@ -4406,8 +4375,8 @@ msgstr "Налаштування стовпців"
 
 #: templates/core/board.html:19
 msgid ""
-"Rename, reorder (number) or hide the columns. The rules for moving cards "
-"stay the same."
+"Rename, reorder (number) or hide the columns. The rules for moving cards stay"
+" the same."
 msgstr ""
 "Перейменуйте, змініть порядок (нумерацію) або приховайте стовпці. Правила "
 "переміщення карток залишаються незмінними."
@@ -4434,8 +4403,8 @@ msgstr "Перехід неможливий."
 
 #: templates/core/board.html:188
 msgid ""
-"Noch keine Verkaufskanäle aktiv — sobald Bestellungen, Termine oder Anfragen"
-" eingehen, erscheinen sie hier."
+"Noch keine Verkaufskanäle aktiv — sobald Bestellungen, Termine oder Anfragen "
+"eingehen, erscheinen sie hier."
 msgstr ""
 "Канали продажу ще не активні — щойно надійдуть замовлення, дати або запити, "
 "вони з’являться тут."
@@ -4468,8 +4437,7 @@ msgstr "Додати примітку"
 msgid "No notes yet."
 msgstr "Поки що немає коментарів."
 
-#: templates/crm/customer_detail.html:66
-#: templates/promotions/analytics.html:15
+#: templates/crm/customer_detail.html:66 templates/promotions/analytics.html:15
 #: templates/promotions/promotion_form.html:149
 #: templates/promotions/reservation_list.html:3
 #: templates/promotions/reservation_list.html:8
@@ -4504,8 +4472,7 @@ msgstr "Карток лояльності поки що немає."
 msgid "Vouchers"
 msgstr "Ваучери"
 
-#: templates/crm/customer_detail.html:130
-#: templates/promotions/vouchers.html:51
+#: templates/crm/customer_detail.html:130 templates/promotions/vouchers.html:51
 msgid "No vouchers yet."
 msgstr "Поки що немає ваучерів."
 
@@ -4566,16 +4533,14 @@ msgstr "Кількість"
 msgid "Bitte zeigen Sie diesen Code bei der Abholung vor."
 msgstr "Будь ласка, пред’явіть цей код під час отримання."
 
-#: templates/emails/base_email.html:17
-#: templates/emails/booking_cancelled.txt:7
+#: templates/emails/base_email.html:17 templates/emails/booking_cancelled.txt:7
 #: templates/emails/booking_confirmed.txt:10
 #: templates/emails/booking_created.txt:10
 #: templates/emails/booking_payment_reminder.txt:14
 #: templates/emails/booking_post_visit.txt:12
 #: templates/emails/booking_reminder.txt:11
 #: templates/emails/order_cancelled.txt:7
-#: templates/emails/order_confirmed.txt:8
-#: templates/emails/order_created.txt:19
+#: templates/emails/order_confirmed.txt:8 templates/emails/order_created.txt:19
 #: templates/emails/order_payment_reminder.txt:12
 #: templates/emails/order_picked_up.txt:6
 #: templates/emails/order_post_purchase.txt:12
@@ -4588,8 +4553,7 @@ msgstr "Будь ласка, пред’явіть цей код під час �
 #: templates/emails/stay_cancelled.txt:12
 #: templates/emails/stay_confirmed.txt:12 templates/emails/stay_created.txt:12
 #: templates/emails/stay_payment_reminder.txt:14
-#: templates/emails/stay_post_stay.txt:12
-#: templates/emails/stay_reminder.txt:13
+#: templates/emails/stay_post_stay.txt:12 templates/emails/stay_reminder.txt:13
 #: templates/emails/ticket_post_event.txt:10
 #: templates/emails/ticket_reminder.txt:18
 msgid "Keine E-Mails mehr erhalten"
@@ -4805,8 +4769,7 @@ msgstr "Всього"
 #: templates/emails/order_created.txt:9
 #, python-format
 msgid "Bitte überweisen Sie %(total)s %(cur)s im Voraus:"
-msgstr ""
-"Будь ласка, заздалегідь перекажіть кошти на рахунок %(total)s %(cur)s:"
+msgstr "Будь ласка, заздалегідь перекажіть кошти на рахунок %(total)s %(cur)s:"
 
 #: templates/emails/order_created.txt:10
 msgid "Kontoinhaber"
@@ -4831,11 +4794,11 @@ msgstr "Ваше замовлення %(code)s ще очікує на оплат
 
 #: templates/emails/order_payment_reminder.txt:9
 msgid ""
-"Wenn Sie die Bestellung nicht mehr benötigen, können Sie diese E-Mail "
-"einfach ignorieren."
+"Wenn Sie die Bestellung nicht mehr benötigen, können Sie diese E-Mail einfach"
+" ignorieren."
 msgstr ""
-"Якщо вам більше не потрібне це замовлення, ви можете просто проігнорувати "
-"цей лист."
+"Якщо вам більше не потрібне це замовлення, ви можете просто проігнорувати цей"
+" лист."
 
 #: templates/emails/order_payment_reminder_subject.txt:1
 #, python-format
@@ -4860,8 +4823,8 @@ msgid ""
 "Wir freuen uns auf Ihren nächsten Einkauf — am besten direkt über unsere "
 "Website."
 msgstr ""
-"Ми з нетерпінням чекаємо на вашу наступну покупку — найкраще безпосередньо "
-"на нашому веб-сайті."
+"Ми з нетерпінням чекаємо на вашу наступну покупку — найкраще безпосередньо на"
+" нашому веб-сайті."
 
 #: templates/emails/order_post_purchase_subject.txt:1
 msgid "Wie war Ihr Einkauf?"
@@ -5028,8 +4991,8 @@ msgid ""
 "Wenn Sie die Buchung nicht mehr benötigen, können Sie diese E-Mail einfach "
 "ignorieren."
 msgstr ""
-"Якщо вам більше не потрібне це бронювання, ви можете просто проігнорувати "
-"цей електронний лист."
+"Якщо вам більше не потрібне це бронювання, ви можете просто проігнорувати цей"
+" електронний лист."
 
 #: templates/emails/stay_payment_reminder_subject.txt:1
 msgid "Ihre Buchung wartet auf die Anzahlung"
@@ -5150,8 +5113,8 @@ msgstr "Ваша реєстрація на «%(title)s» ще очікує на 
 
 #: templates/emails/ticket_payment_reminder.txt:9
 msgid ""
-"Wenn Sie die Anmeldung nicht mehr benötigen, können Sie diese E-Mail einfach"
-" ignorieren."
+"Wenn Sie die Anmeldung nicht mehr benötigen, können Sie diese E-Mail einfach "
+"ignorieren."
 msgstr ""
 "Якщо вам більше не потрібна реєстрація, ви можете просто проігнорувати цей "
 "лист."
@@ -5163,8 +5126,8 @@ msgstr "Ваша реєстрація очікує на оплату"
 #: templates/emails/ticket_post_event.txt:3
 #, python-format
 msgid ""
-"vielen Dank, dass Sie bei „%(title)s“ dabei waren — wir hoffen, es hat Ihnen"
-" gutgetan!"
+"vielen Dank, dass Sie bei „%(title)s“ dabei waren — wir hoffen, es hat Ihnen "
+"gutgetan!"
 msgstr ""
 "Щиро дякуємо, що ви взяли участь у програмі «%(title)s» — сподіваємося, вам "
 "сподобалося!"
@@ -5178,8 +5141,8 @@ msgid ""
 "Und wenn Sie wieder auftanken möchten: unsere nächsten Termine finden Sie "
 "jederzeit"
 msgstr ""
-"А якщо ви захочете знову заправитися: наші найближчі дати ви можете "
-"дізнатися в будь-який час"
+"А якщо ви захочете знову заправитися: наші найближчі дати ви можете дізнатися"
+" в будь-який час"
 
 #: templates/emails/ticket_post_event.txt:5
 msgid "auf"
@@ -5201,8 +5164,7 @@ msgstr "Коли"
 msgid "Wo"
 msgstr "Що"
 
-#: templates/emails/ticket_reminder.txt:8
-#: templates/events/event_detail.html:65
+#: templates/emails/ticket_reminder.txt:8 templates/events/event_detail.html:65
 #: templates/promotions/reservation_list.html:36
 #: templates/promotions/vouchers.html:36 templates/promotions/vouchers.html:63
 msgid "Code"
@@ -5244,8 +5206,7 @@ msgstr "Варто поспішати — кількість обмежена."
 
 #: templates/emails/waitlist_available.html:20
 #: templates/emails/waitlist_available.txt:9
-msgid ""
-"Dies ist eine einmalige Benachrichtigung auf Ihren Wunsch (Warteliste)."
+msgid "Dies ist eine einmalige Benachrichtigung auf Ihren Wunsch (Warteliste)."
 msgstr ""
 "Це одноразове повідомлення, надіслане на вашу прохання (лист очікування)."
 
@@ -5311,9 +5272,8 @@ msgid "New post"
 msgstr "Новий допис"
 
 #: templates/events/blog_list.html:28
-#: templates/promotions/promotion_list.html:46
-#: templates/tenant/_cb_row.html:26 templates/tenant/site_home.html:656
-#: templates/tenant/site_menu.html:124
+#: templates/promotions/promotion_list.html:46 templates/tenant/_cb_row.html:26
+#: templates/tenant/site_home.html:656 templates/tenant/site_menu.html:124
 msgid "Title"
 msgstr "Назва"
 
@@ -5411,8 +5371,7 @@ msgstr "Цей захід є частиною серії заходів."
 msgid "Attendees"
 msgstr "Учасники"
 
-#: templates/events/event_detail.html:66
-#: templates/events/event_detail.html:110
+#: templates/events/event_detail.html:66 templates/events/event_detail.html:110
 #: templates/events/event_detail.html:133
 #: templates/storefront/event_confirmation.html:31
 #: templates/storefront/event_detail.html:75
@@ -5420,8 +5379,7 @@ msgstr "Учасники"
 msgid "Seats"
 msgstr "Місця"
 
-#: templates/events/event_detail.html:66
-#: templates/imports/_status_card.html:13
+#: templates/events/event_detail.html:66 templates/imports/_status_card.html:13
 #: templates/imports/import_preview.html:26
 #: templates/imports/import_start.html:46 templates/inventory/stock.html:190
 #: templates/promotions/analytics.html:13
@@ -5519,8 +5477,8 @@ msgstr "Доступно на веб-сайті"
 #: templates/events/teacher_list.html:9
 msgid "Hosts and teachers — shown on retreats and as a filter in the catalog."
 msgstr ""
-"Організатори та викладачі — відображаються на сторінках ретритів та у "
-"фільтрі каталогу."
+"Організатори та викладачі — відображаються на сторінках ретритів та у фільтрі"
+" каталогу."
 
 #: templates/events/teacher_list.html:21 templates/reviews/review_list.html:23
 msgid "hidden"
@@ -5565,8 +5523,8 @@ msgstr "ПДВ"
 #: templates/finance/invoices.html:72 templates/finance/journal.html:77
 #: templates/storefront/_buybox_service_form.html:30
 #: templates/storefront/_buybox_stay_form.html:87
-#: templates/storefront/booking_slots.html:82
-#: templates/storefront/cart.html:70 templates/storefront/cart.html:138
+#: templates/storefront/booking_slots.html:82 templates/storefront/cart.html:70
+#: templates/storefront/cart.html:138
 msgid "Note (optional)"
 msgstr "Примітка (необов’язкова)"
 
@@ -5634,8 +5592,8 @@ msgstr "Роздільник у файлі CSV"
 
 #: templates/imports/import_map.html:20
 msgid ""
-"CSV only — ignored for Excel files. If columns look wrong, pick the "
-"delimiter and reload via Start preview."
+"CSV only — ignored for Excel files. If columns look wrong, pick the delimiter"
+" and reload via Start preview."
 msgstr ""
 "Тільки CSV — ігнорується для файлів Excel. Якщо стовпці відображаються "
 "неправильно, виберіть роздільник і перезавантажте файл, натиснувши «Почати "
@@ -5803,8 +5761,8 @@ msgid ""
 "Wareneingänge, Korrekturen & Inventur — mit Bewegungshistorie und Abgleich "
 "gegen den Bestandszähler."
 msgstr ""
-"Прийом товарів, коригування та інвентаризація — з історією рухів та "
-"звіренням із лічильником запасів."
+"Прийом товарів, коригування та інвентаризація — з історією рухів та звіренням"
+" із лічильником запасів."
 
 #: templates/inventory/stock.html:21
 msgid "Warenwert (Einkauf)"
@@ -5865,13 +5823,13 @@ msgstr "Розбіжність між лічильником ↔ реєстро�
 #: templates/inventory/stock.html:86
 msgid ""
 "Der Bestandszähler weicht von der Summe der Ledger-Bewegungen ab (meist ein "
-"noch nicht gebuchter Startbestand). „Startbestand buchen“ gleicht den Ledger"
-" an, ohne den Zähler zu ändern."
+"noch nicht gebuchter Startbestand). „Startbestand buchen“ gleicht den Ledger "
+"an, ohne den Zähler zu ändern."
 msgstr ""
 "Показник залишку відрізняється від суми операцій у головному реєстрі "
-"(зазвичай це початковий залишок, який ще не було занесено до обліку). "
-"Функція «Занести початковий залишок» вирівнює дані головного реєстру, не "
-"змінюючи показник."
+"(зазвичай це початковий залишок, який ще не було занесено до обліку). Функція"
+" «Занести початковий залишок» вирівнює дані головного реєстру, не змінюючи "
+"показник."
 
 #: templates/inventory/stock.html:93 templates/inventory/stock.html:158
 #: templates/inventory/stock.html:186
@@ -6146,11 +6104,10 @@ msgstr "Перевірте свою електронну пошту"
 
 #: templates/konto/check_inbox.html:8
 msgid ""
-"If an account exists, we've sent you a login link. It's valid for 15 "
-"minutes."
+"If an account exists, we've sent you a login link. It's valid for 15 minutes."
 msgstr ""
-"Якщо обліковий запис існує, ми надіслали вам посилання для входу. Воно "
-"дійсне протягом 15 хвилин."
+"Якщо обліковий запис існує, ми надіслали вам посилання для входу. Воно дійсне"
+" протягом 15 хвилин."
 
 #: templates/konto/home.html:8 templates/konto/profile.html:3
 #: templates/konto/profile.html:6
@@ -6194,8 +6151,8 @@ msgstr "Повернутися до входу"
 #: templates/konto/login.html:7
 msgid "Enter your e-mail — we'll send you a login link. No password needed."
 msgstr ""
-"Введіть свою електронну адресу — ми надішлемо вам посилання для входу. "
-"Пароль не потрібен."
+"Введіть свою електронну адресу — ми надішлемо вам посилання для входу. Пароль"
+" не потрібен."
 
 #: templates/konto/login.html:12
 msgid "Your e-mail"
@@ -6353,8 +6310,8 @@ msgstr "Усі статуси"
 #: templates/orders/order_list.html:31
 msgid "Prepayment, bank transfer, delivery &amp; pickup are set in one place:"
 msgstr ""
-"Попередня оплата, банківський переказ, доставка та самовивіз налаштовуються "
-"в одному місці:"
+"Попередня оплата, банківський переказ, доставка та самовивіз налаштовуються в"
+" одному місці:"
 
 #: templates/orders/order_list.html:32
 msgid "Payment &amp; shipping"
@@ -6380,8 +6337,8 @@ msgstr "Друк"
 
 #: templates/orders/table_qr.html:19
 msgid ""
-"Print, cut out and place a QR code on each table. Guests scan it to open the"
-" menu and order — the order is linked to the table."
+"Print, cut out and place a QR code on each table. Guests scan it to open the "
+"menu and order — the order is linked to the table."
 msgstr ""
 "Роздрукуйте, виріжте та розмістіть QR-код на кожному столі. Гості сканують "
 "його, щоб відкрити меню та зробити замовлення — замовлення прив’язане до "
@@ -6393,8 +6350,7 @@ msgstr "Ваше реферальне посилання"
 
 #: templates/partners/dashboard.html:12
 msgid "New businesses signing up via this link are attributed to you."
-msgstr ""
-"Нові клієнти, які зареєструються за цим посиланням, зараховуються вам."
+msgstr "Нові клієнти, які зареєструються за цим посиланням, зараховуються вам."
 
 #: templates/partners/dashboard.html:18
 msgid "Clients"
@@ -6410,11 +6366,9 @@ msgstr "На суді"
 
 #: templates/partners/dashboard.html:34
 msgid ""
-"Estimate based on currently active subscriptions. Payout is settled "
-"manually."
+"Estimate based on currently active subscriptions. Payout is settled manually."
 msgstr ""
-"Оцінка базується на поточних активних підписках. Виплата здійснюється "
-"вручну."
+"Оцінка базується на поточних активних підписках. Виплата здійснюється вручну."
 
 #: templates/partners/dashboard.html:51
 msgid "No clients yet — share your referral link."
@@ -6645,8 +6599,8 @@ msgstr "Знайти картку за електронною адресою"
 #: templates/promotions/loyalty_stamp.html:42
 msgid "Or scan the customer's loyalty QR with your phone camera."
 msgstr ""
-"Або відскануйте QR-код програми лояльності клієнта за допомогою камери свого"
-" телефону."
+"Або відскануйте QR-код програми лояльності клієнта за допомогою камери свого "
+"телефону."
 
 #: templates/promotions/newsletter.html:3 templates/storefront/_base.html:210
 #: templates/storefront/newsletter.html:3
@@ -6690,8 +6644,7 @@ msgid "Boost visibility"
 msgstr "Підвищити видимість"
 
 #: templates/promotions/promotion_feature.html:66
-#: templates/storefront/passes.html:27
-#: templates/tenant/listing_feature.html:67
+#: templates/storefront/passes.html:27 templates/tenant/listing_feature.html:67
 msgid "Buy"
 msgstr "Купити"
 
@@ -6743,8 +6696,8 @@ msgid ""
 "JPEG, PNG or WEBP, max 5 MB each. If empty, the linked product's photo is "
 "used."
 msgstr ""
-"JPEG, PNG або WEBP, розмір кожного файлу — не більше 5 МБ. Якщо поле "
-"залишено порожнім, використовується фотографія пов’язаного товару."
+"JPEG, PNG або WEBP, розмір кожного файлу — не більше 5 МБ. Якщо поле залишено"
+" порожнім, використовується фотографія пов’язаного товару."
 
 #: templates/promotions/promotion_form.html:146
 msgid "Statistics"
@@ -6813,8 +6766,7 @@ msgstr "У наявності"
 msgid "Window"
 msgstr "Вікно"
 
-#: templates/promotions/redeem.html:3
-#: templates/promotions/redeem_detail.html:3
+#: templates/promotions/redeem.html:3 templates/promotions/redeem_detail.html:3
 #: templates/promotions/voucher_redeem.html:30
 #: templates/promotions/voucher_redeem.html:43
 #: templates/promotions/vouchers.html:9
@@ -6924,8 +6876,8 @@ msgstr "Або відскануйте QR-код ваучера за допомо
 #: templates/promotions/voucher_redeem.html:63
 msgid "In-app scanner not supported here — use the code field above."
 msgstr ""
-"Сканер у додатку тут не підтримується — скористайтеся полем для введення "
-"коду вище."
+"Сканер у додатку тут не підтримується — скористайтеся полем для введення коду"
+" вище."
 
 #: templates/promotions/vouchers.html:29
 msgid "Generate"
@@ -6984,15 +6936,13 @@ msgid "Enable"
 msgstr "Увімкнути"
 
 #: templates/publishing/channels.html:32 templates/publishing/channels.html:58
-#: templates/publishing/channels.html:84
-#: templates/publishing/channels.html:106
+#: templates/publishing/channels.html:84 templates/publishing/channels.html:106
 #: templates/publishing/channels.html:128
 msgid "Configuration"
 msgstr "Налаштування"
 
 #: templates/publishing/channels.html:33 templates/publishing/channels.html:59
-#: templates/publishing/channels.html:85
-#: templates/publishing/channels.html:107
+#: templates/publishing/channels.html:85 templates/publishing/channels.html:107
 #: templates/publishing/channels.html:129
 msgid "connected"
 msgstr "підключений"
@@ -7010,8 +6960,7 @@ msgid "Refresh token (leave blank to keep current)"
 msgstr "Токен оновлення (залиште поле порожнім, щоб зберегти поточний токен)"
 
 #: templates/publishing/channels.html:51 templates/publishing/channels.html:77
-#: templates/publishing/channels.html:99
-#: templates/publishing/channels.html:121
+#: templates/publishing/channels.html:99 templates/publishing/channels.html:121
 #: templates/publishing/channels.html:148
 msgid "Setup guide"
 msgstr "Інструкція з налаштування"
@@ -7038,8 +6987,7 @@ msgstr ""
 msgid "Instagram Business account ID"
 msgstr "Ідентифікатор бізнес-профілю в Instagram"
 
-#: templates/publishing/channels.html:94
-#: templates/publishing/channels.html:143
+#: templates/publishing/channels.html:94 templates/publishing/channels.html:143
 msgid "Access token (leave blank to keep current)"
 msgstr "Токен доступу (залиште поле порожнім, щоб зберегти поточний токен)"
 
@@ -7106,8 +7054,8 @@ msgid ""
 "Plan posts ahead — they are sent to all enabled channels at the scheduled "
 "time."
 msgstr ""
-"Плануйте публікації заздалегідь — вони надсилаються на всі активовані канали"
-" у визначений час."
+"Плануйте публікації заздалегідь — вони надсилаються на всі активовані канали "
+"у визначений час."
 
 #: templates/publishing/posts.html:12
 msgid "No channels enabled yet."
@@ -7194,13 +7142,11 @@ msgstr "Звіти"
 msgid "Units & blocked dates"
 msgstr "Номери та дати, на які бронювання неможливе"
 
-#: templates/stays/calendar.html:25
-#: templates/storefront/_media_gallery.html:43
+#: templates/stays/calendar.html:25 templates/storefront/_media_gallery.html:43
 msgid "Previous"
 msgstr "Попередня"
 
-#: templates/stays/calendar.html:27
-#: templates/storefront/_media_gallery.html:45
+#: templates/stays/calendar.html:27 templates/storefront/_media_gallery.html:45
 msgid "Next"
 msgstr "Далі"
 
@@ -7242,8 +7188,8 @@ msgstr "Канали збуту"
 
 #: templates/stays/channels.html:11
 msgid ""
-"Track your OTA channels and import their reservations into your calendar (no"
-" double bookings). Availability import via iCal is on the Units page; live "
+"Track your OTA channels and import their reservations into your calendar (no "
+"double bookings). Availability import via iCal is on the Units page; live "
 "2-way sync needs OTA partner keys."
 msgstr ""
 "Відстежуйте свої канали OTA та імпортуйте бронювання з них у свій календар "
@@ -7273,12 +7219,12 @@ msgstr "Імпортувати бронювання"
 
 #: templates/stays/channels.html:62
 msgid ""
-"Enter an OTA booking to block those dates in your calendar. Re-importing the"
-" same reference does nothing (idempotent)."
+"Enter an OTA booking to block those dates in your calendar. Re-importing the "
+"same reference does nothing (idempotent)."
 msgstr ""
 "Введіть бронювання через OTA, щоб заблокувати ці дати у вашому календарі. "
-"Повторне імпортування того самого ідентифікатора не призводить до жодних "
-"змін (ідемпотентність)."
+"Повторне імпортування того самого ідентифікатора не призводить до жодних змін"
+" (ідемпотентність)."
 
 #: templates/stays/channels.html:74
 msgid "Room"
@@ -7375,8 +7321,8 @@ msgid ""
 "prorated by nights. Room revenue excludes extras and Kurtaxe."
 msgstr ""
 "Підраховує кількість очікуючих, підтверджених та виконаних бронювань; дохід "
-"за місяці розподіляється пропорційно за кількістю ночей. Дохід від номерів "
-"не включає додаткові послуги та Kurtaxe."
+"за місяці розподіляється пропорційно за кількістю ночей. Дохід від номерів не"
+" включає додаткові послуги та Kurtaxe."
 
 #: templates/stays/units.html:23
 msgid "Booking widget for your website"
@@ -7397,13 +7343,13 @@ msgstr "Метапошук та Google (канал цін)"
 #: templates/stays/units.html:31
 msgid ""
 "Machine-readable availability & prices for metasearch and channel partners. "
-"Connect it in Google Hotel Center to get free booking links straight to your"
-" direct booking."
+"Connect it in Google Hotel Center to get free booking links straight to your "
+"direct booking."
 msgstr ""
 "Інформація про наявність місць та ціни у форматі, придатному для машинного "
-"зчитування, для метапошукових систем та партнерів з продажу. Підключіть її в"
-" Google Hotel Center, щоб отримувати безкоштовні посилання на бронювання, "
-"які ведуть безпосередньо на вашу систему прямого бронювання."
+"зчитування, для метапошукових систем та партнерів з продажу. Підключіть її в "
+"Google Hotel Center, щоб отримувати безкоштовні посилання на бронювання, які "
+"ведуть безпосередньо на вашу систему прямого бронювання."
 
 #: templates/stays/units.html:37
 msgid "Kurtaxe & house rules"
@@ -7430,11 +7376,11 @@ msgstr ""
 
 #: templates/stays/units.html:52
 msgid ""
-"Check-in ab 15:00, Check-out bis 11:00; Haustiere auf Anfrage; Nichtraucher;"
-" Ruhezeiten 22–7 Uhr; Kaution …"
+"Check-in ab 15:00, Check-out bis 11:00; Haustiere auf Anfrage; Nichtraucher; "
+"Ruhezeiten 22–7 Uhr; Kaution …"
 msgstr ""
-"Реєстрація заїзду — з 15:00, реєстрація виїзду — до 11:00; домашні тварини —"
-" за попереднім запитом; куріння заборонено; час тиші — з 22:00 до 7:00; "
+"Реєстрація заїзду — з 15:00, реєстрація виїзду — до 11:00; домашні тварини — "
+"за попереднім запитом; куріння заборонено; час тиші — з 22:00 до 7:00; "
 "застава …"
 
 #: templates/stays/units.html:60
@@ -7446,9 +7392,9 @@ msgid ""
 "Applied to the room price (not extras/Kurtaxe). Add several rules — if more "
 "than one applies, the highest discount wins."
 msgstr ""
-"Застосовується до вартості номера (не до додаткових послуг/курортного "
-"збору). Додайте кілька правил — якщо застосовується більше одного, діє "
-"найбільша знижка."
+"Застосовується до вартості номера (не до додаткових послуг/курортного збору)."
+" Додайте кілька правил — якщо застосовується більше одного, діє найбільша "
+"знижка."
 
 #: templates/stays/units.html:67
 #, python-format
@@ -7618,8 +7564,8 @@ msgstr "Синхронізація календаря (iCal)"
 
 #: templates/stays/units.html:325
 msgid ""
-"Export this unit's availability — paste this link into Booking.com / Airbnb "
-"/ Google:"
+"Export this unit's availability — paste this link into Booking.com / Airbnb /"
+" Google:"
 msgstr ""
 "Експортувати інформацію про наявність місць у цьому помешканні — вставте це "
 "посилання на Booking.com / Airbnb / Google:"
@@ -7723,8 +7669,7 @@ msgstr "Умови"
 msgid "House rules"
 msgstr "Правила поведінки"
 
-#: templates/storefront/_base.html:212
-#: templates/storefront/gift_voucher.html:3
+#: templates/storefront/_base.html:212 templates/storefront/gift_voucher.html:3
 #: templates/storefront/gift_voucher.html:7
 msgid "Gift voucher"
 msgstr "Подарунковий сертифікат"
@@ -7824,8 +7769,8 @@ msgstr "Код купона (не обов’язково)"
 #: templates/storefront/booking_slots.html:94
 #, python-format
 msgid ""
-"A deposit of %(deposit_eur)s € is required — you'll pay securely in the next"
-" step."
+"A deposit of %(deposit_eur)s € is required — you'll pay securely in the next "
+"step."
 msgstr ""
 "Необхідно внести заставу в розмірі %(deposit_eur)s € — ви зможете безпечно "
 "здійснити оплату на наступному кроці."
@@ -7918,8 +7863,8 @@ msgstr "наприклад, SOMMER10"
 
 #: templates/storefront/_buybox_stay_form.html:91
 msgid ""
-"A payment is required for this booking — you'll pay securely in the next "
-"step (amount depends on the chosen rate)."
+"A payment is required for this booking — you'll pay securely in the next step"
+" (amount depends on the chosen rate)."
 msgstr ""
 "За це бронювання необхідно здійснити оплату — ви зможете безпечно оплатити "
 "його на наступному кроці (сума залежить від обраного тарифу)."
@@ -8005,8 +7950,7 @@ msgstr "Написати відгук"
 
 #: templates/storefront/_entity_reviews.html:43
 msgid ""
-"Only verified customers can review. Use the e-mail address from your "
-"booking."
+"Only verified customers can review. Use the e-mail address from your booking."
 msgstr ""
 "Лише перевірені клієнти можуть залишати відгуки. Вкажіть адресу електронної "
 "пошти, вказану під час бронювання."
@@ -8271,8 +8215,8 @@ msgstr "TSN (2.2)"
 
 #: templates/storefront/anfrage.html:75
 msgid ""
-"HSN/TSN are in your vehicle registration (fields 2.1 and 2.2) — helps us "
-"find the exact parts."
+"HSN/TSN are in your vehicle registration (fields 2.1 and 2.2) — helps us find"
+" the exact parts."
 msgstr ""
 "HSN/TSN вказані у реєстраційному свідоцтві вашого автомобіля (поля 2.1 та "
 "2.2) — це допомагає нам знайти саме ті запчастини, які потрібні."
@@ -8652,11 +8596,9 @@ msgid "Your online payment will be refunded."
 msgstr "Кошти за ваш онлайн-платіж будуть повернені."
 
 #: templates/storefront/event_cancel.html:25
-msgid ""
-"This ticket is non-refundable — cancelling will not refund any payment."
+msgid "This ticket is non-refundable — cancelling will not refund any payment."
 msgstr ""
-"Цей квиток не підлягає поверненню — у разі скасування оплата не "
-"повертається."
+"Цей квиток не підлягає поверненню — у разі скасування оплата не повертається."
 
 #: templates/storefront/event_cancel.html:30
 msgid "Keep ticket"
@@ -8759,8 +8701,8 @@ msgid ""
 "Limited spots — only %(n)s left. We keep groups small for a personal "
 "atmosphere."
 msgstr ""
-"Кількість місць обмежена — залишилося лише %(n)s. Ми формуємо невеликі "
-"групи, щоб створити затишну атмосферу."
+"Кількість місць обмежена — залишилося лише %(n)s. Ми формуємо невеликі групи,"
+" щоб створити затишну атмосферу."
 
 #: templates/storefront/event_detail.html:61
 msgid "Reserve your spot"
@@ -8811,8 +8753,8 @@ msgid ""
 "Pay in %(n)s instalments — about %(f)s € now, the rest is charged "
 "automatically."
 msgstr ""
-"Сплачуйте частинами за програмою «%(n)s» — зараз приблизно %(f)s євро, решта"
-" суми списується автоматично."
+"Сплачуйте частинами за програмою «%(n)s» — зараз приблизно %(f)s євро, решта "
+"суми списується автоматично."
 
 #: templates/storefront/event_detail.html:180
 msgid "Waiver"
@@ -9017,11 +8959,11 @@ msgstr "Майже готово!"
 
 #: templates/storefront/newsletter.html:10
 msgid ""
-"We've sent you a confirmation email. Please click the link inside to "
-"complete your subscription (double opt-in)."
+"We've sent you a confirmation email. Please click the link inside to complete"
+" your subscription (double opt-in)."
 msgstr ""
-"Ми надіслали вам електронний лист із підтвердженням. Будь ласка, перейдіть "
-"за посиланням у листі, щоб завершити підписку (подвійне підтвердження)."
+"Ми надіслали вам електронний лист із підтвердженням. Будь ласка, перейдіть за"
+" посиланням у листі, щоб завершити підписку (подвійне підтвердження)."
 
 #: templates/storefront/newsletter.html:12
 msgid "You're subscribed!"
@@ -9032,8 +8974,8 @@ msgid ""
 "Thank you — you'll now receive our news and offers. You can unsubscribe any "
 "time with one click."
 msgstr ""
-"Дякуємо — відтепер ви будете отримувати наші новини та пропозиції. Ви можете"
-" будь-коли відмовитися від підписки одним кліком."
+"Дякуємо — відтепер ви будете отримувати наші новини та пропозиції. Ви можете "
+"будь-коли відмовитися від підписки одним кліком."
 
 #: templates/storefront/newsletter.html:15
 msgid "You're already subscribed"
@@ -9044,15 +8986,13 @@ msgid "This email is already on our newsletter list."
 msgstr "Ця електронна адреса вже є в нашому списку розсилки."
 
 #: templates/storefront/newsletter.html:18
-#: templates/tenants/provisioning.html:3
-#: templates/tenants/provisioning.html:13
+#: templates/tenants/provisioning.html:3 templates/tenants/provisioning.html:13
 msgid "Something went wrong"
 msgstr "Сталася помилка"
 
 #: templates/storefront/newsletter.html:19
 msgid ""
-"The link is invalid or expired, or the email was not valid. Please try "
-"again."
+"The link is invalid or expired, or the email was not valid. Please try again."
 msgstr ""
 "Посилання недійсне або термін його дії закінчився, або адреса електронної "
 "пошти вказана неправильно. Спробуйте ще раз."
@@ -9084,8 +9024,8 @@ msgstr "Підписатися"
 
 #: templates/storefront/newsletter.html:36
 msgid ""
-"By subscribing you agree to receive marketing emails. See our privacy policy"
-" for details."
+"By subscribing you agree to receive marketing emails. See our privacy policy "
+"for details."
 msgstr ""
 "Підписуючись, ви погоджуєтеся отримувати маркетингові листи. Детальнішу "
 "інформацію дивіться в нашій політиці конфіденційності."
@@ -9172,8 +9112,7 @@ msgstr "Запитайте про цей товар"
 
 #: templates/storefront/product_detail.html:99
 msgid "No reviews yet — be the first to review this product."
-msgstr ""
-"Відгуків ще немає — станьте першим, хто залишить відгук про цей товар."
+msgstr "Відгуків ще немає — станьте першим, хто залишить відгук про цей товар."
 
 #: templates/storefront/product_detail.html:105
 msgid ""
@@ -9453,8 +9392,8 @@ msgstr "Адреса"
 
 #: templates/storefront/stay_checkin.html:30
 msgid ""
-"Please complete your registration (Meldeschein) before arrival — it speeds "
-"up your check-in."
+"Please complete your registration (Meldeschein) before arrival — it speeds up"
+" your check-in."
 msgstr ""
 "Будь ласка, заповніть реєстраційну форму (Meldeschein) до прибуття — це "
 "пришвидшить процедуру реєстрації."
@@ -9508,8 +9447,8 @@ msgid ""
 "I confirm that the information above is correct (registration form / "
 "Meldeschein under the German Federal Registration Act)."
 msgstr ""
-"Я підтверджую, що наведена вище інформація є правильною (реєстраційна форма "
-"/ Meldeschein відповідно до Федерального закону Німеччини про реєстрацію)."
+"Я підтверджую, що наведена вище інформація є правильною (реєстраційна форма /"
+" Meldeschein відповідно до Федерального закону Німеччини про реєстрацію)."
 
 #: templates/storefront/stay_checkin.html:91
 msgid "Complete check-in"
@@ -9695,8 +9634,8 @@ msgstr "Відкрити меню"
 #, python-format
 msgid "Simple mode hides from the menu: %(items)s. Expert shows everything."
 msgstr ""
-"У простому режимі з меню приховуються такі пункти: «%(items)s». У "
-"експертному режимі відображаються всі пункти."
+"У простому режимі з меню приховуються такі пункти: «%(items)s». У експертному"
+" режимі відображаються всі пункти."
 
 #: templates/tenant/_base_dashboard.html:86
 msgid "Simple hides pro tools; Expert shows everything"
@@ -9717,8 +9656,7 @@ msgstr "Експерт"
 msgid "Cabinet language"
 msgstr "Мова уряду"
 
-#: templates/tenant/_base_dashboard.html:106
-#: templates/tenant/languages.html:21
+#: templates/tenant/_base_dashboard.html:106 templates/tenant/languages.html:21
 msgid "Website languages"
 msgstr "Мови веб-сайту"
 
@@ -9735,8 +9673,8 @@ msgid ""
 "Your subscription is inactive — the dashboard is read-only. Please activate "
 "it to continue."
 msgstr ""
-"Ваша підписка неактивна — панель управління доступна лише для перегляду. "
-"Будь ласка, активуйте її, щоб продовжити."
+"Ваша підписка неактивна — панель управління доступна лише для перегляду. Будь"
+" ласка, активуйте її, щоб продовжити."
 
 #: templates/tenant/_cb_row.html:21
 msgid "Visible"
@@ -9866,8 +9804,8 @@ msgstr "Назва кнопки (не обов’язково)"
 #: templates/tenant/_cb_row.html:121
 msgid "Discount style (used until the promotion sets its own)"
 msgstr ""
-"Стиль знижки (використовується доти, доки в рамках акції не буде встановлено"
-" інший)"
+"Стиль знижки (використовується доти, доки в рамках акції не буде встановлено "
+"інший)"
 
 #: templates/tenant/_cb_row.html:122
 msgid "Discount style: automatic"
@@ -9976,8 +9914,8 @@ msgstr "Необхідні вимоги:"
 msgid "Headline"
 msgstr "Заголовок"
 
-#: templates/tenant/_section_fields.html:10
-#: templates/tenant/site_home.html:992 templates/tenant/site_home.html:1009
+#: templates/tenant/_section_fields.html:10 templates/tenant/site_home.html:992
+#: templates/tenant/site_home.html:1009
 msgid "Button text"
 msgstr "Текст кнопки"
 
@@ -10098,8 +10036,8 @@ msgstr "Значення:"
 
 #: templates/tenant/domains.html:40
 msgid ""
-"Once the DNS record points to us, the domain activates automatically within "
-"a few minutes (or click “Verify” to check now). The HTTPS certificate is "
+"Once the DNS record points to us, the domain activates automatically within a"
+" few minutes (or click “Verify” to check now). The HTTPS certificate is "
 "issued automatically on the first visit."
 msgstr ""
 "Як тільки запис DNS буде налаштований на нас, домен активується автоматично "
@@ -10136,8 +10074,8 @@ msgstr "Додаткові матеріали"
 
 #: templates/tenant/extras.html:9
 msgid ""
-"Optional paid add-ons guests can pick when booking (breakfast, parking, late"
-" checkout …). One engine for all booking types; “scope” limits where it "
+"Optional paid add-ons guests can pick when booking (breakfast, parking, late "
+"checkout …). One engine for all booking types; “scope” limits where it "
 "applies. Currently shown on Übernachtung."
 msgstr ""
 "Додаткові платні послуги, які гості можуть обрати під час бронювання "
@@ -10210,8 +10148,8 @@ msgid ""
 "Legal pages of your website — per language. Leave a field empty to use the "
 "automatic text from your business data."
 msgstr ""
-"Сторінки з юридичною інформацією вашого веб-сайту — для кожної мови. Залиште"
-" поле порожнім, щоб використовувати текст, що автоматично генерується на "
+"Сторінки з юридичною інформацією вашого веб-сайту — для кожної мови. Залиште "
+"поле порожнім, щоб використовувати текст, що автоматично генерується на "
 "основі даних вашої компанії."
 
 #: templates/tenant/legal_docs.html:23
@@ -10222,8 +10160,7 @@ msgstr ""
 "відображаються лише тоді, коли вказано текст."
 
 #: templates/tenant/legal_docs.html:25
-msgid ""
-"Empty = automatic text generated from your business data (shown below)."
+msgid "Empty = automatic text generated from your business data (shown below)."
 msgstr ""
 "Порожнє поле = текст, що автоматично генерується на основі даних вашого "
 "підприємства (наведено нижче)."
@@ -10276,11 +10213,11 @@ msgstr "Модулі"
 
 #: templates/tenant/modules.html:9
 msgid ""
-"Switch dashboard blocks on or off. Disabled modules disappear from the menu "
-"— your data stays."
+"Switch dashboard blocks on or off. Disabled modules disappear from the menu —"
+" your data stays."
 msgstr ""
-"Увімкніть або вимкніть блоки панелі інструментів. Вимкнені модулі зникають "
-"із меню — ваші дані зберігаються."
+"Увімкніть або вимкніть блоки панелі інструментів. Вимкнені модулі зникають із"
+" меню — ваші дані зберігаються."
 
 #: templates/tenant/modules.html:23
 msgid "Ansicht"
@@ -10491,8 +10428,7 @@ msgstr "Зони доставки за поштовим індексом"
 
 #: templates/tenant/payment_settings.html:124
 msgid ""
-"Optional. A matching PLZ zone overrides the flat fee / free-from / min "
-"above."
+"Optional. A matching PLZ zone overrides the flat fee / free-from / min above."
 msgstr ""
 "Необов’язково. Якщо знайдено відповідну зону PLZ, вона має пріоритет над "
 "зазначеною вище фіксованою ставкою / безкоштовним проїздом / мінімальною "
@@ -10558,8 +10494,8 @@ msgid ""
 "Legal, tax and operations settings are shown in Expert mode (toggle in the "
 "top bar)."
 msgstr ""
-"Налаштування юридичного, податкового та операційного характеру "
-"відображаються в режимі «Експерт» (перемикач у верхній панелі)."
+"Налаштування юридичного, податкового та операційного характеру відображаються"
+" в режимі «Експерт» (перемикач у верхній панелі)."
 
 #: templates/tenant/settings.html:65
 msgid "Legal & tax"
@@ -10567,12 +10503,11 @@ msgstr "Юридичні та податкові питання"
 
 #: templates/tenant/settings.html:75
 msgid ""
-"Tip: per-language legal texts (also AGB) are managed in the “Rechtstexte” "
-"tab above."
+"Tip: per-language legal texts (also AGB) are managed in the “Rechtstexte” tab"
+" above."
 msgstr ""
 "Порада: юридичні тексти для кожної мови (в тому числі загальні умови "
-"використання — AGB) управляються на вкладці «Rechtstexte», розташованій "
-"вище."
+"використання — AGB) управляються на вкладці «Rechtstexte», розташованій вище."
 
 #: templates/tenant/settings.html:81
 msgid "Operations & extras"
@@ -10708,11 +10643,10 @@ msgstr "Шаблони"
 
 #: templates/tenant/site.html:79
 msgid ""
-"Pick a ready-made layout. Your texts are kept — only empty fields are "
-"filled."
+"Pick a ready-made layout. Your texts are kept — only empty fields are filled."
 msgstr ""
-"Виберіть готовий макет. Ваші тексти залишаються без змін — заповнюються лише"
-" порожні поля."
+"Виберіть готовий макет. Ваші тексти залишаються без змін — заповнюються лише "
+"порожні поля."
 
 #: templates/tenant/site.html:100
 msgid "Apply this template? The section layout will be replaced."
@@ -10934,8 +10868,8 @@ msgstr "використання"
 #: templates/tenant/site_home.html:197
 msgid "Applies to all cards across the site; a single block can override it."
 msgstr ""
-"Застосовується до всіх карток на всьому сайті; одне блокування може "
-"скасувати це правило."
+"Застосовується до всіх карток на всьому сайті; одне блокування може скасувати"
+" це правило."
 
 #: templates/tenant/site_home.html:199
 msgid "Grid layout of catalog / rooms / events pages lives under"
@@ -11000,15 +10934,14 @@ msgid "Cover photos"
 msgstr "Фотографії на обкладинці"
 
 #: templates/tenant/site_home.html:246
-msgid ""
-"Banner photo on each section's landing page (catalog, events, rooms …)."
+msgid "Banner photo on each section's landing page (catalog, events, rooms …)."
 msgstr ""
 "Банерне фото на головній сторінці кожного розділу (каталог, події, номери…)."
 
 #: templates/tenant/site_home.html:249
 msgid ""
-"Banner background image: click the banner on the canvas. Accent background "
-"is in"
+"Banner background image: click the banner on the canvas. Accent background is"
+" in"
 msgstr ""
 "Фонове зображення банера: натисніть на банер на робочій області. Фонове "
 "зображення акценту знаходиться в"
@@ -11028,8 +10961,8 @@ msgid ""
 "Editing the phone/tablet version — per-device settings (columns, hide on "
 "device) are unlocked below."
 msgstr ""
-"Редагування версії для телефону/планшета — налаштування для окремих "
-"пристроїв (стовпці, приховати на пристрої) доступні нижче."
+"Редагування версії для телефону/планшета — налаштування для окремих пристроїв"
+" (стовпці, приховати на пристрої) доступні нижче."
 
 #: templates/tenant/site_home.html:295 templates/tenant/site_menu.html:112
 msgid "Drag to reorder"
@@ -11230,8 +11163,8 @@ msgstr "Блоки вмісту"
 
 #: templates/tenant/site_home.html:688
 msgid ""
-"Free building blocks (text, image, button). Reorder via position, remove "
-"with the checkbox."
+"Free building blocks (text, image, button). Reorder via position, remove with"
+" the checkbox."
 msgstr ""
 "Безкоштовні елементи (текст, зображення, кнопка). Змінюйте порядок за "
 "допомогою позиції, видаляйте за допомогою прапорця."
@@ -11274,8 +11207,7 @@ msgstr "конструктор меню"
 
 #: templates/tenant/site_home.html:797
 msgid ""
-"The footer shows your contact, opening hours and legal links. Edit them "
-"here:"
+"The footer shows your contact, opening hours and legal links. Edit them here:"
 msgstr ""
 "У нижньому колонтитулі вказані ваші контактні дані, години роботи та "
 "посилання на юридичну інформацію. Відредагувати їх можна тут:"
@@ -11387,8 +11319,8 @@ msgstr "Слайди на банері"
 
 #: templates/tenant/site_home.html:973
 msgid ""
-"Up to 6 slides — photo, heading, text and a button. Two or more slides "
-"rotate automatically. JPEG/PNG/WEBP, max 5 MB."
+"Up to 6 slides — photo, heading, text and a button. Two or more slides rotate"
+" automatically. JPEG/PNG/WEBP, max 5 MB."
 msgstr ""
 "До 6 слайдів — фото, заголовок, текст і кнопка. Два або більше слайдів "
 "змінюються автоматично. Формати: JPEG/PNG/WEBP, розмір не більше 5 МБ."
@@ -11430,8 +11362,8 @@ msgid ""
 "Banner photo on each section's landing page (catalog, events, …). "
 "JPEG/PNG/WEBP, max 5 MB."
 msgstr ""
-"Фотографія-банер на головній сторінці кожного розділу (каталог, події тощо)."
-" Формати: JPEG/PNG/WEBP, розмір не більше 5 МБ."
+"Фотографія-банер на головній сторінці кожного розділу (каталог, події тощо). "
+"Формати: JPEG/PNG/WEBP, розмір не більше 5 МБ."
 
 #: templates/tenant/site_home.html:1038
 msgid "Replace"
@@ -11465,8 +11397,7 @@ msgstr "Показано лише блоки для поточної сторі�
 
 #: templates/tenant/site_home.html:2340
 msgid ""
-"This page is edited directly on the canvas — click a heading, price or "
-"photo."
+"This page is edited directly on the canvas — click a heading, price or photo."
 msgstr ""
 "Цю сторінку можна редагувати безпосередньо на робочій області — просто "
 "натисніть на заголовок, ціну або фотографію."
@@ -11480,8 +11411,8 @@ msgid ""
 "Build your header and bottom menu. Drag-free: use ↑/↓ to reorder. Sub-items "
 "appear as a dropdown on desktop."
 msgstr ""
-"Створіть верхнє та нижнє меню. Без перетягування: використовуйте клавіші ↑/↓"
-" для зміни порядку. На настільних комп’ютерах підпункти відображаються у "
+"Створіть верхнє та нижнє меню. Без перетягування: використовуйте клавіші ↑/↓ "
+"для зміни порядку. На настільних комп’ютерах підпункти відображаються у "
 "вигляді випадаючого меню."
 
 #: templates/tenant/site_menu.html:29
@@ -11523,8 +11454,7 @@ msgid "Add sub-item"
 msgstr "Додати підпункт"
 
 #: templates/tenant/site_pages.html:11
-msgid ""
-"Layout of your listing pages. Only pages for active features are shown."
+msgid "Layout of your listing pages. Only pages for active features are shown."
 msgstr ""
 "Структура сторінок ваших оголошень. Відображаються лише сторінки активних "
 "пропозицій."
@@ -11610,8 +11540,8 @@ msgid ""
 "Add an intro text and a banner image to the top of each part of your site "
 "(menu, booking, offers …)."
 msgstr ""
-"Додайте вступний текст та зображення-банер у верхній частині кожного розділу"
-" вашого сайту (меню, бронювання, пропозиції тощо)."
+"Додайте вступний текст та зображення-банер у верхній частині кожного розділу "
+"вашого сайту (меню, бронювання, пропозиції тощо)."
 
 #: templates/tenant/site_sections.html:30
 msgid "Intro text"
@@ -11628,8 +11558,7 @@ msgstr "Завантажити банер"
 #: templates/tenant/site_sections.html:52
 msgid "JPEG/PNG/WEBP, max 5 MB — fills the banner image above."
 msgstr ""
-"JPEG/PNG/WEBP, не більше 5 МБ — зображення заповнює банер, розташований "
-"вище."
+"JPEG/PNG/WEBP, не більше 5 МБ — зображення заповнює банер, розташований вище."
 
 #: templates/tenant/site_sections.html:78
 msgid "Upload photos"
@@ -11645,8 +11574,8 @@ msgid ""
 "smart default. Placeholders are filled automatically per page."
 msgstr ""
 "Як ваші сторінки відображаються в Google та під час їхнього поширення. "
-"Залиште поле порожнім, щоб використовувати розумне значення за "
-"замовчуванням. Поля заповнюються автоматично для кожної сторінки."
+"Залиште поле порожнім, щоб використовувати розумне значення за замовчуванням."
+" Поля заповнюються автоматично для кожної сторінки."
 
 #: templates/tenant/site_seo.html:21
 msgid "Placeholders"
@@ -11673,8 +11602,8 @@ msgid ""
 "Lets AI assistants read and cite your site. Uncheck to block known AI "
 "crawlers in robots.txt."
 msgstr ""
-"Дозвольте ШІ-асистентам зчитувати та посилатися на ваш сайт. Зніміть "
-"галочку, щоб заблокувати відомі ШІ-сканери у файлі robots.txt."
+"Дозвольте ШІ-асистентам зчитувати та посилатися на ваш сайт. Зніміть галочку,"
+" щоб заблокувати відомі ШІ-сканери у файлі robots.txt."
 
 #: templates/tenants/onboarding.html:3 templates/tenants/onboarding.html:8
 msgid "Create your business"
@@ -11698,8 +11627,8 @@ msgid ""
 "We couldn't finish setting up \"%(name)s\". We're on it — please try again "
 "later or contact us."
 msgstr ""
-"Нам не вдалося завершити налаштування «%(name)s». Ми працюємо над цим — будь"
-" ласка, спробуйте ще раз пізніше або зв’яжіться з нами."
+"Нам не вдалося завершити налаштування «%(name)s». Ми працюємо над цим — будь "
+"ласка, спробуйте ще раз пізніше або зв’яжіться з нами."
 
 #: templates/tenants/provisioning.html:17
 #, python-format
@@ -11708,8 +11637,8 @@ msgstr "«%(name)s» створюється…"
 
 #: templates/tenants/provisioning.html:18
 msgid ""
-"This takes about a minute. The page refreshes automatically — you'll also "
-"get an email with your sign-in link."
+"This takes about a minute. The page refreshes automatically — you'll also get"
+" an email with your sign-in link."
 msgstr ""
 "Це займе приблизно хвилину. Сторінка оновиться автоматично — ви також "
 "отримаєте електронний лист із посиланням для входу."
@@ -11854,8 +11783,8 @@ msgid ""
 "Mit der Erstellung stimmst du unseren Bedingungen zu. Du kannst während der "
 "Testphase jederzeit kündigen."
 msgstr ""
-"Створюючи бізнес, ви погоджуєтеся з нашими умовами. Скасувати можна будь-"
-"коли протягом пробного періоду."
+"Створюючи бізнес, ви погоджуєтеся з нашими умовами. Скасувати можна будь-коли"
+" протягом пробного періоду."
 
 msgid "Name des Geschäfts"
 msgstr "Назва бізнесу"
@@ -11910,8 +11839,8 @@ msgstr "Майже готово — підтвердьте e-mail"
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 #, python-format
 msgid ""
-"Wir haben eine E-Mail an <strong>%(email)s</strong> geschickt. Klicke auf "
-"den Link darin — erst dann wird deine Website eingerichtet."
+"Wir haben eine E-Mail an <strong>%(email)s</strong> geschickt. Klicke auf den"
+" Link darin — erst dann wird deine Website eingerichtet."
 msgstr ""
 "Ми надіслали лист на <strong>%(email)s</strong>. Перейдіть за посиланням у "
 "листі — лише після цього сайт буде створено."
@@ -11934,8 +11863,7 @@ msgstr "Надіслати лист ще раз"
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid ""
 "E-Mail-Versand ist noch nicht eingerichtet — hier ist dein Bestätigungslink:"
-msgstr ""
-"Надсилання пошти ще не налаштовано — ось ваше посилання підтвердження:"
+msgstr "Надсилання пошти ще не налаштовано — ось ваше посилання підтвердження:"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid "Zurück zur Registrierung"
@@ -12005,13 +11933,13 @@ msgid ""
 "du möchtest „%(name)s“ auf SiteAdaptor erstellen. Bitte bestätige deine "
 "E-Mail-Adresse mit einem Klick:"
 msgstr ""
-"ви хочете створити «%(name)s» на SiteAdaptor. Підтвердьте свою e-mail-адресу"
-" одним кліком:"
+"ви хочете створити «%(name)s» на SiteAdaptor. Підтвердьте свою e-mail-адресу "
+"одним кліком:"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid ""
-"Der Link ist 72 Stunden gültig. Erst nach der Bestätigung wird deine Website"
-" eingerichtet."
+"Der Link ist 72 Stunden gültig. Erst nach der Bestätigung wird deine Website "
+"eingerichtet."
 msgstr ""
 "Посилання дійсне 72 години. Сайт буде створено лише після підтвердження."
 
@@ -12038,11 +11966,10 @@ msgstr "Розділи на сторінці"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid ""
-"Lege im vorherigen Schritt deine erste Position an — dann siehst du hier "
-"ihre Seite."
+"Lege im vorherigen Schritt deine erste Position an — dann siehst du hier ihre"
+" Seite."
 msgstr ""
-"Додайте першу позицію на попередньому кроці — тоді тут з'явиться її "
-"сторінка."
+"Додайте першу позицію на попередньому кроці — тоді тут з'явиться її сторінка."
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid "Seitenvorlage"
@@ -12098,8 +12025,7 @@ msgstr "Вкажіть принаймні одну позицію з ціною.
 msgid "Bitte überweisen Sie den Betrag im Voraus:"
 msgstr "Будь ласка, перекажіть суму заздалегідь:"
 
-msgid ""
-"Dieses Angebot ist abgelaufen. Schreiben Sie uns für ein neues Angebot."
+msgid "Dieses Angebot ist abgelaufen. Schreiben Sie uns für ein neues Angebot."
 msgstr "Термін дії цієї пропозиції минув. Напишіть нам, і ми надішлемо нову."
 
 msgid "Dieses Angebot wurde zurückgezogen."
@@ -12139,8 +12065,8 @@ msgid "Persönliches Angebot"
 msgstr "Персональна пропозиція"
 
 msgid ""
-"Persönliches Angebot für %(who)s — Positionen wählen oder frei eintragen; "
-"der Kunde nimmt es per Link an und bezahlt."
+"Persönliches Angebot für %(who)s — Positionen wählen oder frei eintragen; der"
+" Kunde nimmt es per Link an und bezahlt."
 msgstr ""
 "Персональна пропозиція для %(who)s — виберіть позиції або впишіть свої; "
 "клієнт приймає за посиланням і оплачує."
@@ -12200,8 +12126,7 @@ msgid "Per Video zeigen lassen"
 msgstr "Подивитися по відео"
 
 msgid ""
-"Lassen Sie es sich per WhatsApp-Video zeigen — direkt vom Team, ohne "
-"Anfahrt."
+"Lassen Sie es sich per WhatsApp-Video zeigen — direkt vom Team, ohne Anfahrt."
 msgstr "Вам усе покажуть по WhatsApp-відео — прямо від команди, без поїздки."
 
 msgid ""
@@ -12248,8 +12173,7 @@ msgstr "Не вказано номер WhatsApp — додайте його"
 #. ST-1b Look-Galerie (2026-07-19)
 msgid ""
 "Fertige Design-Pakete für deine Branche — ein Klick färbt die Vorschau um."
-msgstr ""
-"Готові дизайн-пакети для вашої галузі — один клік перефарбовує прев'ю."
+msgstr "Готові дизайн-пакети для вашої галузі — один клік перефарбовує прев'ю."
 
 #. ST-4a Admin-Home (2026-07-19)
 msgid "Umsatz heute"
@@ -12331,16 +12255,15 @@ msgstr "Щось не так? Пряма лінія з нами:"
 msgid "Ist jetzt alles wieder gut? Wenn nicht, antworten Sie einfach hier:"
 msgstr "Тепер усе гаразд? Якщо ні — просто відповідайте тут:"
 
-msgid ""
-"Und wenn Sie zufrieden waren, freuen wir uns über eine kurze Bewertung."
+msgid "Und wenn Sie zufrieden waren, freuen wir uns über eine kurze Bewertung."
 msgstr "А якщо ви залишилися задоволені — будемо раді короткому відгуку."
 
 msgid "Alles wieder gut? — %(business)s"
 msgstr "Усе гаразд? — %(business)s"
 
 msgid ""
-"danke für Ihre Geduld — wir hoffen, wir konnten Ihr Anliegen bei "
-"%(business)s lösen."
+"danke für Ihre Geduld — wir hoffen, wir konnten Ihr Anliegen bei %(business)s"
+" lösen."
 msgstr ""
 "дякуємо за терпіння — сподіваємося, нам вдалося вирішити ваше питання в "
 "%(business)s."
@@ -12354,8 +12277,7 @@ msgid "Care-Zyklus"
 msgstr "Care-цикл"
 
 #. LS-5 Care (2026-07-19)
-msgid ""
-"Nicht ganz zufrieden? Sagen Sie es uns direkt — wir kümmern uns sofort:"
+msgid "Nicht ganz zufrieden? Sagen Sie es uns direkt — wir kümmern uns sofort:"
 msgstr "Не все сподобалося? Скажіть нам напряму — одразу розберемося:"
 
 msgid "Your own blocks stay — only template blocks are replaced."
@@ -12476,10 +12398,8 @@ msgid "Unsere Treffer für dich"
 msgstr "Наші збіги для вас"
 
 msgid ""
-"In dieser Stadt gibt es gerade nichts Passendes — dafür ist das hier "
-"beliebt:"
-msgstr ""
-"У цьому місті зараз немає нічого відповідного — зате ось що популярне:"
+"In dieser Stadt gibt es gerade nichts Passendes — dafür ist das hier beliebt:"
+msgstr "У цьому місті зараз немає нічого відповідного — зате ось що популярне:"
 
 msgid "Noch mal suchen"
 msgstr "Шукати знову"
@@ -12500,8 +12420,8 @@ msgid "Unsere Vorschläge für dich"
 msgstr "Наші пропозиції для вас"
 
 msgid ""
-"Nichts Exaktes gefunden — hier ist unser Beliebtestes. Oder frag uns einfach"
-" direkt!"
+"Nichts Exaktes gefunden — hier ist unser Beliebtestes. Oder frag uns einfach "
+"direkt!"
 msgstr ""
 "Точного збігу немає — ось найпопулярніше в нас. Або просто запитайте нас "
 "напряму!"
@@ -12512,8 +12432,7 @@ msgstr "Підібрано за вашими відповідями — сере
 msgid "Unser Vorschlag"
 msgstr "Наш вибір"
 
-msgid ""
-"Noch keine Angebote online — schreib uns, wir helfen persönlich weiter."
+msgid "Noch keine Angebote online — schreib uns, wir helfen persönlich weiter."
 msgstr "Пропозицій поки немає онлайн — напишіть нам, допоможемо особисто."
 
 msgid "Beantworte 2–3 Fragen — wir schlagen dir das Passende vor."
@@ -12529,8 +12448,8 @@ msgid ""
 "Besucher beantworten 2–3 Fragen und bekommen 3 passende Vorschläge — statt "
 "lange im Katalog zu suchen."
 msgstr ""
-"Відвідувачі відповідають на 2–3 запитання й отримують 3 відповідні "
-"пропозиції — замість довгого пошуку в каталозі."
+"Відвідувачі відповідають на 2–3 запитання й отримують 3 відповідні пропозиції"
+" — замість довгого пошуку в каталозі."
 
 msgid ""
 "Für diese Branche gibt es noch keine Finder-Angebote (kein passendes "
@@ -12569,8 +12488,8 @@ msgid ""
 "Leere Zeilen werden ignoriert. Alles leeren = zurück zur Branchen-Vorlage. "
 "Für mehr Zeilen: speichern — es wachsen neue nach."
 msgstr ""
-"Порожні рядки ігноруються. Очистити все = повернутися до галузевого шаблону."
-" Потрібно більше рядків — збережіть, з'являться нові."
+"Порожні рядки ігноруються. Очистити все = повернутися до галузевого шаблону. "
+"Потрібно більше рядків — збережіть, з'являться нові."
 
 msgid "Fragen speichern"
 msgstr "Зберегти питання"
@@ -12654,8 +12573,8 @@ msgid ""
 "Bewertungen Ihrer Produkte, Leistungen, Zimmer und Events: ansehen, "
 "ausblenden, beantworten."
 msgstr ""
-"Відгуки про ваші товари, послуги, номери та події: переглядати, приховувати,"
-" відповідати."
+"Відгуки про ваші товари, послуги, номери та події: переглядати, приховувати, "
+"відповідати."
 
 msgid "Kunden bestellen online und holen im Laden ab."
 msgstr "Клієнти замовляють онлайн і забирають у магазині."
@@ -12692,8 +12611,7 @@ msgid ""
 msgstr "Автопублікація акцій у каналах (Google, Facebook, Instagram)."
 
 msgid ""
-"Anfragen annehmen, Angebote/Kostenvoranschläge erstellen, Aufträge "
-"abrechnen."
+"Anfragen annehmen, Angebote/Kostenvoranschläge erstellen, Aufträge abrechnen."
 msgstr ""
 "Приймайте заявки, створюйте кошториси/пропозиції, виставляйте рахунки за "
 "роботи."
@@ -12701,8 +12619,7 @@ msgstr ""
 msgid ""
 "Eigener Telegram-Bot: Kunden öffnen Ihren Shop als Mini App in Telegram."
 msgstr ""
-"Власний Telegram-бот: клієнти відкривають ваш магазин як Mini App у "
-"Telegram."
+"Власний Telegram-бот: клієнти відкривають ваш магазин як Mini App у Telegram."
 
 msgid "Kundennachrichten und Support-Tickets an einem Ort beantworten."
 msgstr ""
@@ -12715,8 +12632,8 @@ msgid ""
 "Kunden melden sich per E-Mail-Link an und sehen Bestellungen, Termine, "
 "Rechnungen und Bonuskarten."
 msgstr ""
-"Клієнти входять за посиланням з листа й бачать замовлення, зустрічі, рахунки"
-" та бонусні картки."
+"Клієнти входять за посиланням з листа й бачать замовлення, зустрічі, рахунки "
+"та бонусні картки."
 
 msgid "Umsatzjournal: Einnahmen aus Bestellungen, Reservierungen und manuell."
 msgstr "Журнал виручки: дохід від замовлень, бронювань і вручну."
@@ -12870,8 +12787,8 @@ msgid "Widerruf erklären"
 msgstr "Оформити відкликання"
 
 msgid ""
-"Füllen Sie das Formular aus, um Ihren Kauf zu widerrufen. Pflichtfelder: "
-"Name und Ware."
+"Füllen Sie das Formular aus, um Ihren Kauf zu widerrufen. Pflichtfelder: Name"
+" und Ware."
 msgstr ""
 "Заповніть форму, щоб відмовитися від покупки. Обов'язкові поля: ім'я та "
 "товар."
@@ -12893,8 +12810,8 @@ msgstr "Надіслати відкликання"
 
 #, python-format
 msgid ""
-"Vielen Dank, %(name)s. Ihr Widerruf wurde an uns übermittelt. Sie erhalten "
-"in Kürze eine Bestätigung."
+"Vielen Dank, %(name)s. Ihr Widerruf wurde an uns übermittelt. Sie erhalten in"
+" Kürze eine Bestätigung."
 msgstr ""
 "Дякуємо, %(name)s. Ваше відкликання передано нам. Незабаром ви отримаєте "
 "підтвердження."
@@ -12949,12 +12866,12 @@ msgid ""
 "Angeboten. Danach passt du alles Schritt für Schritt an. Beispiele lassen "
 "sich jederzeit wieder entfernen."
 msgstr ""
-"Найшвидше почати з готових прикладів — із фото, банером і пропозиціями. "
-"Потім усе налаштуєте крок за кроком. Приклади можна будь-коли прибрати."
+"Найшвидше почати з готових прикладів — із фото, банером і пропозиціями. Потім"
+" усе налаштуєте крок за кроком. Приклади можна будь-коли прибрати."
 
 msgid ""
-"Beispiel-Inhalte sind geladen — schau dir rechts deine Seite an und passe "
-"sie in den nächsten Schritten an."
+"Beispiel-Inhalte sind geladen — schau dir rechts deine Seite an und passe sie"
+" in den nächsten Schritten an."
 msgstr ""
 "Приклади завантажено — подивіться на сайт праворуч і налаштуйте його на "
 "наступних кроках."
@@ -12992,8 +12909,8 @@ msgid "Überspringen"
 msgstr "Пропустити"
 
 msgid ""
-"Mit Beispielen füllen wir deinen Shop mit Muster-Angeboten, Banner und "
-"Texten — du änderst sie einfach ab."
+"Mit Beispielen füllen wir deinen Shop mit Muster-Angeboten, Banner und Texten"
+" — du änderst sie einfach ab."
 msgstr ""
 "З прикладами ми наповнимо магазин зразками пропозицій, банером і текстами — "
 "ви просто їх зміните."
@@ -13104,11 +13021,11 @@ msgid "Foto (optional)"
 msgstr "Фото (необов'язково)"
 
 msgid ""
-"„Über uns\" schafft Vertrauen. Wähle eine Seitenvorlage und erzähl kurz, wer"
-" ihr seid."
+"„Über uns\" schafft Vertrauen. Wähle eine Seitenvorlage und erzähl kurz, wer "
+"ihr seid."
 msgstr ""
-"«Про нас» викликає довіру. Виберіть шаблон сторінки й коротко розкажіть, хто"
-" ви."
+"«Про нас» викликає довіру. Виберіть шаблон сторінки й коротко розкажіть, хто "
+"ви."
 
 msgid "Über uns — Titel"
 msgstr "Про нас — заголовок"
@@ -13136,16 +13053,15 @@ msgid ""
 msgstr ""
 "Як виводяться ваші товари? Виберіть розкладку — потім вільно налаштовується."
 
-msgid ""
-"Auch für andere Listen übernehmen (Leistungen, Zimmer, Veranstaltungen)"
+msgid "Auch für andere Listen übernehmen (Leistungen, Zimmer, Veranstaltungen)"
 msgstr "Застосувати й до інших списків (послуги, номери, події)"
 
 msgid "Kategorien verwalten"
 msgstr "Керування категоріями"
 
 msgid ""
-"Wie soll die Seite eines einzelnen Angebots aussehen? Stil wählen, "
-"Abschnitte ein- oder ausblenden — rechts siehst du es sofort."
+"Wie soll die Seite eines einzelnen Angebots aussehen? Stil wählen, Abschnitte"
+" ein- oder ausblenden — rechts siehst du es sofort."
 msgstr ""
 "Як має виглядати сторінка окремої пропозиції? Виберіть стиль, показуйте або "
 "приховуйте розділи — праворуч видно одразу."
@@ -13179,9 +13095,8 @@ msgid ""
 "Umschalter in der Kopfzeile. Später änderbar unter „Sprachen\" in den "
 "Einstellungen."
 msgstr ""
-"Відвідувачі спочатку бачать мову за замовчуванням; додаткові мови "
-"з'являються перемикачем у шапці. Пізніше змінюється в налаштуваннях у "
-"розділі «Мови»."
+"Відвідувачі спочатку бачать мову за замовчуванням; додаткові мови з'являються"
+" перемикачем у шапці. Пізніше змінюється в налаштуваннях у розділі «Мови»."
 
 msgid ""
 "Wie bezahlen und erhalten deine Kund:innen? Alles an einem Ort — jederzeit "
@@ -13209,8 +13124,8 @@ msgid ""
 "Pflichtangaben nach §5 TMG. Steuerangaben (Kleinunternehmer §19, USt-IdNr.) "
 "unter „Recht & Steuer\"."
 msgstr ""
-"Обов'язкові відомості за §5 TMG. Податкові дані (малий бізнес §19, ПДВ-"
-"номер) у розділі «Право та податки»."
+"Обов'язкові відомості за §5 TMG. Податкові дані (малий бізнес §19, ПДВ-номер)"
+" у розділі «Право та податки»."
 
 msgid "Alle Rechtstexte (Datenschutz, Widerruf, AGB)"
 msgstr "Усі правові тексти (конфіденційність, відкликання, умови)"
@@ -13236,8 +13151,7 @@ msgstr "Готово!"
 
 msgid ""
 "Dein Geschäft ist startklar. Alles lässt sich später im Dashboard anpassen."
-msgstr ""
-"Ваш бізнес готовий до запуску. Усе можна налаштувати пізніше в панелі."
+msgstr "Ваш бізнес готовий до запуску. Усе можна налаштувати пізніше в панелі."
 
 msgid "Zurück"
 msgstr "Назад"
@@ -13578,8 +13492,8 @@ msgstr "Позиція на ринку"
 
 #, python-format
 msgid ""
-"Your base price ranks %(p)s of %(n)s hotels in your city (platform listings,"
-" “from €/night”)."
+"Your base price ranks %(p)s of %(n)s hotels in your city (platform listings, "
+"“from €/night”)."
 msgstr ""
 "Ваша базова ціна — %(p)s-ша з %(n)s готелів міста (лістинги платформи, «від "
 "€/ніч»)."
@@ -13591,8 +13505,8 @@ msgid "you"
 msgstr "ви"
 
 msgid ""
-"Public base prices of hotels on this platform in your city — for orientation"
-" only."
+"Public base prices of hotels on this platform in your city — for orientation "
+"only."
 msgstr ""
 "Публічні базові ціни готелів платформи у вашому місті — лише для орієнтиру."
 
@@ -13615,8 +13529,8 @@ msgid ""
 "No companies yet. Add one to link corporate guests and put proper billing "
 "details on their invoices."
 msgstr ""
-"Компаній поки немає. Додайте компанію, щоб прив'язувати корпоративних гостей"
-" і виставляти рахунки з реквізитами."
+"Компаній поки немає. Додайте компанію, щоб прив'язувати корпоративних гостей "
+"і виставляти рахунки з реквізитами."
 
 msgid "Street"
 msgstr "Вулиця"
@@ -13722,8 +13636,7 @@ msgstr ""
 msgid "Occupancy ≥ %(n)s"
 msgstr "Зайнятість ≥ %(n)s"
 
-msgid ""
-"No dynamic price rules yet — online prices always match the base price."
+msgid "No dynamic price rules yet — online prices always match the base price."
 msgstr ""
 "Правил динамічних цін поки немає — онлайн-ціни завжди дорівнюють базовій."
 
@@ -13746,11 +13659,11 @@ msgid "Only used for a birthday greeting — leave empty if you prefer."
 msgstr "Використовується лише для привітання — можна залишити порожнім."
 
 msgid ""
-"Subscribers get a personal code on their birthday — once a year, opt-in "
-"only. Birthdays come from the customer card or the guest's own account."
+"Subscribers get a personal code on their birthday — once a year, opt-in only."
+" Birthdays come from the customer card or the guest's own account."
 msgstr ""
-"Підписники отримують персональний код у день народження — раз на рік, лише "
-"за згодою. Дати — з картки клієнта або особистого кабінету гостя."
+"Підписники отримують персональний код у день народження — раз на рік, лише за"
+" згодою. Дати — з картки клієнта або особистого кабінету гостя."
 
 #, python-format
 msgid "%(n)s subscribers with a known birthday"
@@ -13784,12 +13697,12 @@ msgstr "Знижка на «вікна»"
 msgid ""
 "Kurze freie Lücken zwischen Buchungen (z. B. 2–3 Nächte) verkaufen sich "
 "schwer — bieten Sie sie automatisch mit Rabatt an. Gilt, wenn der gesamte "
-"Aufenthalt in eine solche Lücke passt; wie bei den Automatik-Rabatten "
-"gewinnt die beste Ermäßigung (wird nicht addiert)."
+"Aufenthalt in eine solche Lücke passt; wie bei den Automatik-Rabatten gewinnt"
+" die beste Ermäßigung (wird nicht addiert)."
 msgstr ""
 "Короткі «вікна» між бронями (2–3 ночі) продаються погано — пропонуйте їх "
-"автоматично зі знижкою. Діє, коли все проживання вміщується в таке вікно; як"
-" і в авто-знижок, перемагає найкраща (не додаються)."
+"автоматично зі знижкою. Діє, коли все проживання вміщується в таке вікно; як "
+"і в авто-знижок, перемагає найкраща (не додаються)."
 
 msgid "Lücke bis … Nächte"
 msgstr "Вікно до … ночей"
@@ -13798,8 +13711,8 @@ msgid "Rabatt %"
 msgstr "Знижка %"
 
 msgid ""
-"Wir haben kurze Lücken zwischen Buchungen gefunden — solche Nächte verkaufen"
-" sich schwer. Lücken-Rabatt aktivieren?"
+"Wir haben kurze Lücken zwischen Buchungen gefunden — solche Nächte verkaufen "
+"sich schwer. Lücken-Rabatt aktivieren?"
 msgstr ""
 "Ми знайшли короткі «вікна» між бронями — такі ночі продаються погано. "
 "Увімкнути знижку на вікна?"
@@ -14022,8 +13935,8 @@ msgid "In der Anprobe zurücklegen"
 msgstr "Відкласти в примірочну"
 
 msgid ""
-"Unverbindlich reservieren — wir legen es 48 Stunden für Sie zurück. Kauf und"
-" Bezahlung erst im Geschäft."
+"Unverbindlich reservieren — wir legen es 48 Stunden für Sie zurück. Kauf und "
+"Bezahlung erst im Geschäft."
 msgstr ""
 "Резерв без зобов'язань — тримаємо річ 48 годин. Купівля та оплата лише в "
 "магазині."
@@ -14218,8 +14131,8 @@ msgstr "Години роботи ще не задано."
 
 #. hero-tiles / price-nav 2026-07-30
 msgid ""
-"Ohne Arbeitszeiten zeigt die Website «keine freien Termine» — unabhängig von"
-" der Leistung."
+"Ohne Arbeitszeiten zeigt die Website «keine freien Termine» — unabhängig von "
+"der Leistung."
 msgstr ""
 "Без робочих годин сайт пише «немає вільних часів» — незалежно від послуги."
 
@@ -15011,9 +14924,9 @@ msgstr ""
 
 #. I18N-3 cabinet templates 2026-07-30
 msgid ""
-"Nehmen Sie Zahlungen Ihrer Kunden direkt auf Ihr eigenes Stripe-Konto an (z."
-" B. Anzahlung für Reservierungen, Vorkasse bei Abholung). Das Geld geht "
-"direkt an Sie."
+"Nehmen Sie Zahlungen Ihrer Kunden direkt auf Ihr eigenes Stripe-Konto an (z. "
+"B. Anzahlung für Reservierungen, Vorkasse bei Abholung). Das Geld geht direkt"
+" an Sie."
 msgstr ""
 "Приймайте оплату клієнтів прямо на свій рахунок Stripe (наприклад, завдаток "
 "за бронь, передоплата при самовивозі). Гроші йдуть безпосередньо вам."
@@ -15644,8 +15557,8 @@ msgstr "Сьогодні:"
 
 #. I18N-7a emails 2026-07-31
 msgid ""
-"Hinweis: Die Ratenzahlung zu Ticket %(code)s („%(title)s“, %(name)s) ist "
-"nach %(n)s Versuchen fehlgeschlagen — der Plan wurde auf „failed“ gesetzt."
+"Hinweis: Die Ratenzahlung zu Ticket %(code)s („%(title)s“, %(name)s) ist nach"
+" %(n)s Versuchen fehlgeschlagen — der Plan wurde auf „failed“ gesetzt."
 msgstr ""
 "Увага: розстрочка за квитком %(code)s («%(title)s», %(name)s) не пройшла "
 "після %(n)s спроб — план переведено у «failed»."
@@ -15880,16 +15793,16 @@ msgstr "Ми тримаємо бронювання для вас до %(until)s.
 
 #. I18N-7a emails 2026-07-31
 msgid ""
-"Wir konnten die Zahlung nach mehreren Versuchen nicht abbuchen. Bitte melden"
-" Sie sich bei uns, um die Ratenzahlung fortzusetzen."
+"Wir konnten die Zahlung nach mehreren Versuchen nicht abbuchen. Bitte melden "
+"Sie sich bei uns, um die Ratenzahlung fortzusetzen."
 msgstr ""
 "Списати платіж після кількох спроб не вдалося. Зв’яжіться з нами, щоб "
 "продовжити розстрочку."
 
 #. I18N-7a emails 2026-07-31
 msgid ""
-"Wir versuchen es in den nächsten Tagen erneut. Sie können Ihre Zahlungsdaten"
-" auch hier prüfen:"
+"Wir versuchen es in den nächsten Tagen erneut. Sie können Ihre Zahlungsdaten "
+"auch hier prüfen:"
 msgstr ""
 "Ми повторимо спробу найближчими днями. Перевірити платіжні дані можна тут:"
 
@@ -15907,8 +15820,8 @@ msgstr "%(due)s"
 
 #. I18N-7a emails 2026-07-31
 msgid ""
-"die %(n)s. Rate (%(amount)s €) für „%(title)s“ konnte leider nicht "
-"eingezogen werden"
+"die %(n)s. Rate (%(amount)s €) für „%(title)s“ konnte leider nicht eingezogen"
+" werden"
 msgstr "%(n)s-й платіж (%(amount)s €) за «%(title)s», на жаль, не пройшов"
 
 #. I18N-7a emails 2026-07-31
@@ -15926,8 +15839,7 @@ msgstr "гарна новина — ваше замовлення готове:"
 
 #. I18N-7a emails 2026-07-31
 msgid ""
-"gute Nachrichten: für <strong>„%(title)s“</strong> ist wieder ein Platz "
-"frei."
+"gute Nachrichten: für <strong>„%(title)s“</strong> ist wieder ein Platz frei."
 msgstr "гарна новина: на «<strong>%(title)s</strong>» знову є місце."
 
 #. I18N-7a emails 2026-07-31
@@ -16036,11 +15948,17 @@ msgstr "Колір"
 msgid "Variante (leer = aus Größe/Farbe)"
 msgstr "Варіант (порожньо = з розміру/кольору)"
 
-msgid "Für Mode: Größe und Farbe getrennt eintragen — die Bezeichnung entsteht daraus automatisch."
+msgid ""
+"Für Mode: Größe und Farbe getrennt eintragen — die Bezeichnung entsteht "
+"daraus automatisch."
 msgstr "Для одягу: вводьте розмір і колір окремо — назва складеться з них."
 
-msgid "Optional (Mode/Schuhe): eine Zeile pro Größe, Spalten mit „|“ — erste Zeile = Überschriften. Beispiel: „Größe | Brust (cm)“."
-msgstr "Необов’язково (одяг/взуття): по рядку на розмір, колонки через «|» — перший рядок = заголовки. Приклад: «Розмір | Груди (см)»."
+msgid ""
+"Optional (Mode/Schuhe): eine Zeile pro Größe, Spalten mit „|“ — erste Zeile ="
+" Überschriften. Beispiel: „Größe | Brust (cm)“."
+msgstr ""
+"Необов’язково (одяг/взуття): по рядку на розмір, колонки через «|» — перший "
+"рядок = заголовки. Приклад: «Розмір | Груди (см)»."
 
 msgid "Material / Zusammensetzung"
 msgstr "Матеріал / склад"
@@ -16048,11 +15966,16 @@ msgstr "Матеріал / склад"
 msgid "Pflegehinweise"
 msgstr "Догляд"
 
-msgid "Textilkennzeichnung: offizielle Fasernamen, z. B. „95 % Baumwolle, 5 % Elasthan“ — Pflichtangabe bei Kleidung."
-msgstr "Маркування текстилю: офіційні назви волокон, напр. «95 % бавовна, 5 % еластан» — обов’язкове для одягу."
+msgid ""
+"Textilkennzeichnung: offizielle Fasernamen, z. B. „95 % Baumwolle, 5 % "
+"Elasthan“ — Pflichtangabe bei Kleidung."
+msgstr ""
+"Маркування текстилю: офіційні назви волокон, напр. «95 % бавовна, 5 % "
+"еластан» — обов’язкове для одягу."
 
 msgid "z. B. „30 °C Schonwäsche, nicht trocknergeeignet“ — optional."
-msgstr "напр. «30 °C делікатне прання, сушіння в машині заборонено» — необов’язково."
+msgstr ""
+"напр. «30 °C делікатне прання, сушіння в машині заборонено» — необов’язково."
 
 msgid "Please enter a name."
 msgstr "Введіть назву."
@@ -16156,8 +16079,12 @@ msgstr "Статуси та переходи"
 msgid "einem Gast"
 msgstr "гостя"
 
-msgid "Bestellungen an Lieferanten — Entwurf, Bestellung, Wareneingang. Der Eingang bucht Bestand & Ledger."
-msgstr "Замовлення постачальникам — чернетка, замовлено, приймання. Приймання пише залишок і леджер."
+msgid ""
+"Bestellungen an Lieferanten — Entwurf, Bestellung, Wareneingang. Der Eingang "
+"bucht Bestand & Ledger."
+msgstr ""
+"Замовлення постачальникам — чернетка, замовлено, приймання. Приймання пише "
+"залишок і леджер."
 
 msgid "— Lieferant (optional) —"
 msgstr "— Постачальник (необов’язково) —"
@@ -16168,8 +16095,12 @@ msgstr "Створити чернетку"
 msgid "Aus Bestellvorschlägen"
 msgstr "З пропозицій до замовлення"
 
-msgid "Erstellt einen Entwurf mit allen Artikeln unter Meldebestand (Menge = Sollbestand − Bestand)."
-msgstr "Створює чернетку з усіма товарами нижче точки замовлення (кількість = ціль − залишок)."
+msgid ""
+"Erstellt einen Entwurf mit allen Artikeln unter Meldebestand (Menge = "
+"Sollbestand − Bestand)."
+msgstr ""
+"Створює чернетку з усіма товарами нижче точки замовлення (кількість = ціль − "
+"залишок)."
 
 msgid "Entwurf erstellen"
 msgstr "Створити чернетку"
@@ -16228,8 +16159,12 @@ msgstr "Терміни придатності / партії"
 msgid "kritisch"
 msgstr "критично"
 
-msgid "Chargen mit MHD, frühestes Datum zuerst (FEFO). Abgelaufene/bald ablaufende Chargen abschreiben (Verderb)."
-msgstr "Партії з терміном придатності, найближчий першим (FEFO). Прострочені та ті, що скоро спливають, — списуйте (псування)."
+msgid ""
+"Chargen mit MHD, frühestes Datum zuerst (FEFO). Abgelaufene/bald ablaufende "
+"Chargen abschreiben (Verderb)."
+msgstr ""
+"Партії з терміном придатності, найближчий першим (FEFO). Прострочені та ті, "
+"що скоро спливають, — списуйте (псування)."
 
 msgid "Stk"
 msgstr "шт"
@@ -16249,8 +16184,12 @@ msgstr "Склади"
 msgid "Hauptlager"
 msgstr "Основний склад"
 
-msgid "Mehrere Standorte (Laden, Lager, Wagen …)? Zweiten Standort anlegen — dann werden Umlagerung und Standort-Auswahl beim Wareneingang aktiv."
-msgstr "Кілька місць зберігання (магазин, склад, авто …)? Створіть другий склад — стануть доступні переміщення та вибір складу під час приймання."
+msgid ""
+"Mehrere Standorte (Laden, Lager, Wagen …)? Zweiten Standort anlegen — dann "
+"werden Umlagerung und Standort-Auswahl beim Wareneingang aktiv."
+msgstr ""
+"Кілька місць зберігання (магазин, склад, авто …)? Створіть другий склад — "
+"стануть доступні переміщення та вибір складу під час приймання."
 
 msgid "z. B. Lager hinten"
 msgstr "напр. склад за залом"
@@ -16270,8 +16209,12 @@ msgstr "Перемістити"
 msgid "Nach Standort:"
 msgstr "За складами:"
 
-msgid "Eigene Namen für die Bestell-Status (nur Anzeige im Dashboard). Leer = Standard."
-msgstr "Власні назви статусів замовлення (лише відображення в кабінеті). Порожньо = стандартне."
+msgid ""
+"Eigene Namen für die Bestell-Status (nur Anzeige im Dashboard). Leer = "
+"Standard."
+msgstr ""
+"Власні назви статусів замовлення (лише відображення в кабінеті). Порожньо = "
+"стандартне."
 
 msgid "Aktiv beworben bis %(until)s"
 msgstr "Просувається до %(until)s"
@@ -16432,20 +16375,30 @@ msgstr "Зараз: класичний"
 msgid "Currently: New"
 msgstr "Зараз: новий"
 
-msgid "Falls dir das neue Design nicht liegt: schalte hier auf die bisherige Oberfläche um — jederzeit umkehrbar, Daten und Funktionen bleiben gleich."
-msgstr "Якщо новий дизайн не підійшов — перемкніться тут на попередній інтерфейс: оборотно будь-коли, дані й функції ті самі."
+msgid ""
+"Falls dir das neue Design nicht liegt: schalte hier auf die bisherige "
+"Oberfläche um — jederzeit umkehrbar, Daten und Funktionen bleiben gleich."
+msgstr ""
+"Якщо новий дизайн не підійшов — перемкніться тут на попередній інтерфейс: "
+"оборотно будь-коли, дані й функції ті самі."
 
 msgid "Klassisch"
 msgstr "Класичний"
 
-msgid "Keine Inhaber-E-Mail hinterlegt — E-Mail-Benachrichtigungen an Sie können nicht zugestellt werden."
+msgid ""
+"Keine Inhaber-E-Mail hinterlegt — E-Mail-Benachrichtigungen an Sie können "
+"nicht zugestellt werden."
 msgstr "E-mail власника не вказано — сповіщення вам не буде куди надіслати."
 
 msgid "In den Einstellungen ergänzen"
 msgstr "Додати в налаштуваннях"
 
-msgid "Alle verkäuflichen Artikel an einem Ort — Sichtbarkeit umschalten oder zum Bearbeiten öffnen."
-msgstr "Усе, що ви продаєте, в одному місці — показати/приховати або відкрити на редагування."
+msgid ""
+"Alle verkäuflichen Artikel an einem Ort — Sichtbarkeit umschalten oder zum "
+"Bearbeiten öffnen."
+msgstr ""
+"Усе, що ви продаєте, в одному місці — показати/приховати або відкрити на "
+"редагування."
 
 msgid "Noch keine Angebote — oben „＋“ wählen, um dein erstes anzulegen."
 msgstr "Пропозицій поки немає — натисніть «＋» вище, щоб створити першу."
@@ -16453,8 +16406,12 @@ msgstr "Пропозицій поки немає — натисніть «＋» 
 msgid "Drag to resize · double-click to reset"
 msgstr "Тягніть, щоб змінити ширину · подвійний клік — скидання"
 
-msgid "Lücken-Rabatt aktivieren: kurze Lücken zwischen Buchungen (bis 3 Nächte) automatisch mit −25 %% anbieten. Später unter „Units“ anpassbar."
-msgstr "Увімкнути знижку на «вікна»: короткі проміжки між бронюваннями (до 3 ночей) автоматично пропонуються з −25 %%. Пізніше налаштовується в розділі «Units»."
+msgid ""
+"Lücken-Rabatt aktivieren: kurze Lücken zwischen Buchungen (bis 3 Nächte) "
+"automatisch mit −25 %% anbieten. Später unter „Units“ anpassbar."
+msgstr ""
+"Увімкнути знижку на «вікна»: короткі проміжки між бронюваннями (до 3 ночей) "
+"автоматично пропонуються з −25 %%. Пізніше налаштовується в розділі «Units»."
 
 msgid "Compact inspector — denser fields, all controls kept"
 msgstr "Компактний інспектор — щільніші поля, усі елементи на місці"
@@ -16471,8 +16428,13 @@ msgstr "Посилання кнопки"
 msgid "Eigene Status"
 msgstr "Власні статуси"
 
-msgid "Eigene Zwischenstatus anlegen und mit bestehenden verbinden. Die Rolle bestimmt das Verhalten (Kapazität, Umsatz). Built-in-Status bleiben unverändert."
-msgstr "Створюйте власні проміжні статуси та зв’язуйте їх з наявними. Роль задає поведінку (місткість, виторг). Вбудовані статуси не змінюються."
+msgid ""
+"Eigene Zwischenstatus anlegen und mit bestehenden verbinden. Die Rolle "
+"bestimmt das Verhalten (Kapazität, Umsatz). Built-in-Status bleiben "
+"unverändert."
+msgstr ""
+"Створюйте власні проміжні статуси та зв’язуйте їх з наявними. Роль задає "
+"поведінку (місткість, виторг). Вбудовані статуси не змінюються."
 
 msgid "Löschen"
 msgstr "Видалити"
@@ -16492,8 +16454,11 @@ msgstr "Доступний із:"
 msgid "Führt zu:"
 msgstr "Веде до:"
 
-msgid "Zuerst einen Status anlegen und speichern — danach erscheinen hier die Übergänge."
-msgstr "Спочатку створіть і збережіть статус — після цього тут з’являться переходи."
+msgid ""
+"Zuerst einen Status anlegen und speichern — danach erscheinen hier die "
+"Übergänge."
+msgstr ""
+"Спочатку створіть і збережіть статус — після цього тут з’являться переходи."
 
 msgid "Branchen"
 msgstr "Галузі"
@@ -16501,32 +16466,66 @@ msgstr "Галузі"
 msgid "Jetzt starten"
 msgstr "Почати"
 
-msgid "SiteAdaptor: Website, Buchungen, Bestellungen und Marketing für lokale Betriebe — aus einer Hand, DSGVO-freundlich."
-msgstr "SiteAdaptor: сайт, бронювання, замовлення та маркетинг для локального бізнесу — в одному місці, з повагою до GDPR."
+msgid ""
+"SiteAdaptor: Website, Buchungen, Bestellungen und Marketing für lokale "
+"Betriebe — aus einer Hand, DSGVO-freundlich."
+msgstr ""
+"SiteAdaptor: сайт, бронювання, замовлення та маркетинг для локального бізнесу"
+" — в одному місці, з повагою до GDPR."
 
-msgid "SiteAdaptor ist eine Plattform für lokale Betriebe im DACH-Raum: Bäckereien, Salons, Werkstätten, Hotels, Restaurants und viele mehr. Unsere Idee ist einfach — ein kleines Geschäft soll in Minuten online sein, ohne Agentur, ohne Technik-Stress und ohne Baukasten-Frust."
-msgstr "SiteAdaptor — платформа для локального бізнесу в німецькомовній Європі: пекарні, салони, майстерні, готелі, ресторани та багато іншого. Ідея проста: малий бізнес має опинитися онлайн за хвилини — без агенції, без технічного стресу й без мук із конструктором."
+msgid ""
+"SiteAdaptor ist eine Plattform für lokale Betriebe im DACH-Raum: Bäckereien, "
+"Salons, Werkstätten, Hotels, Restaurants und viele mehr. Unsere Idee ist "
+"einfach — ein kleines Geschäft soll in Minuten online sein, ohne Agentur, "
+"ohne Technik-Stress und ohne Baukasten-Frust."
+msgstr ""
+"SiteAdaptor — платформа для локального бізнесу в німецькомовній Європі: "
+"пекарні, салони, майстерні, готелі, ресторани та багато іншого. Ідея проста: "
+"малий бізнес має опинитися онлайн за хвилини — без агенції, без технічного "
+"стресу й без мук із конструктором."
 
 msgid "Was wir anders machen"
 msgstr "Що ми робимо інакше"
 
-msgid "Statt eines leeren Baukastens bekommst du eine fertige Lösung für deine Branche: passende Seiten, passende Funktionen (Vorbestellung, Termine, Zimmerbuchung, Angebote, Tickets), passende Beispiele. Du tauschst Texte und Fotos — fertig."
-msgstr "Замість порожнього конструктора ви отримуєте готове рішення для своєї галузі: потрібні сторінки, потрібні функції (передзамовлення, запис, бронювання номера, акції, квитки) та влучні приклади. Змінюєте тексти й фото — готово."
+msgid ""
+"Statt eines leeren Baukastens bekommst du eine fertige Lösung für deine "
+"Branche: passende Seiten, passende Funktionen (Vorbestellung, Termine, "
+"Zimmerbuchung, Angebote, Tickets), passende Beispiele. Du tauschst Texte und "
+"Fotos — fertig."
+msgstr ""
+"Замість порожнього конструктора ви отримуєте готове рішення для своєї галузі:"
+" потрібні сторінки, потрібні функції (передзамовлення, запис, бронювання "
+"номера, акції, квитки) та влучні приклади. Змінюєте тексти й фото — готово."
 
 msgid "Alles an einem Ort"
 msgstr "Усе в одному місці"
 
-msgid "Website, Katalog, Buchungen und Bestellungen, Aktionen, Gutscheine und Stammkunden-Programme, Bewertungen und Kundennachrichten — ein Login, ein Werkzeug. Ohne Provisionen pro Bestellung."
-msgstr "Сайт, каталог, бронювання та замовлення, акції, сертифікати й програми лояльності, відгуки та повідомлення клієнтів — один вхід, один інструмент. Без комісії із замовлення."
+msgid ""
+"Website, Katalog, Buchungen und Bestellungen, Aktionen, Gutscheine und "
+"Stammkunden-Programme, Bewertungen und Kundennachrichten — ein Login, ein "
+"Werkzeug. Ohne Provisionen pro Bestellung."
+msgstr ""
+"Сайт, каталог, бронювання та замовлення, акції, сертифікати й програми "
+"лояльності, відгуки та повідомлення клієнтів — один вхід, один інструмент. "
+"Без комісії із замовлення."
 
 msgid "Datenschutz von Anfang an"
 msgstr "Приватність від початку"
 
-msgid "Gehostet in Europa, keine Tracking-Cookies auf deiner Website, Double-Opt-In für Newsletter, Gäste buchen ohne Konto. DSGVO ist bei uns Grundeinstellung, kein Add-on."
-msgstr "Хостинг у Європі, жодних трекінг-куків на вашому сайті, double-opt-in для розсилок, гості бронюють без акаунта. GDPR — наше налаштування за замовчуванням, а не додаток."
+msgid ""
+"Gehostet in Europa, keine Tracking-Cookies auf deiner Website, Double-Opt-In "
+"für Newsletter, Gäste buchen ohne Konto. DSGVO ist bei uns Grundeinstellung, "
+"kein Add-on."
+msgstr ""
+"Хостинг у Європі, жодних трекінг-куків на вашому сайті, double-opt-in для "
+"розсилок, гості бронюють без акаунта. GDPR — наше налаштування за "
+"замовчуванням, а не додаток."
 
-msgid "Fragen, Feedback, Partnerschaften? Schreib uns — die Kontaktdaten findest du im Impressum."
-msgstr "Питання, відгуки, партнерство? Напишіть нам — контакти в розділі Impressum."
+msgid ""
+"Fragen, Feedback, Partnerschaften? Schreib uns — die Kontaktdaten findest du "
+"im Impressum."
+msgstr ""
+"Питання, відгуки, партнерство? Напишіть нам — контакти в розділі Impressum."
 
 msgid "Jetzt kostenlos starten"
 msgstr "Почати безкоштовно"
@@ -16537,11 +16536,19 @@ msgstr "Переглянути галузі"
 msgid "Lösungen für deine Branche"
 msgstr "Рішення для вашої галузі"
 
-msgid "Website, Buchungen, Bestellungen, Aktionen und Treue — passend für deine Branche. 14 Tage kostenlos testen."
-msgstr "Сайт, бронювання, замовлення, акції та лояльність — під вашу галузь. 14 днів безкоштовно."
+msgid ""
+"Website, Buchungen, Bestellungen, Aktionen und Treue — passend für deine "
+"Branche. 14 Tage kostenlos testen."
+msgstr ""
+"Сайт, бронювання, замовлення, акції та лояльність — під вашу галузь. 14 днів "
+"безкоштовно."
 
-msgid "Website, Buchungen, Bestellungen, Aktionen und Treue — abgestimmt auf dein Geschäft. Wähle deine Branche und sieh, was möglich ist."
-msgstr "Сайт, бронювання, замовлення, акції та лояльність — під ваш бізнес. Оберіть галузь і подивіться, що можливо."
+msgid ""
+"Website, Buchungen, Bestellungen, Aktionen und Treue — abgestimmt auf dein "
+"Geschäft. Wähle deine Branche und sieh, was möglich ist."
+msgstr ""
+"Сайт, бронювання, замовлення, акції та лояльність — під ваш бізнес. Оберіть "
+"галузь і подивіться, що можливо."
 
 msgid "Mehr erfahren"
 msgstr "Докладніше"
@@ -16662,13 +16669,13 @@ msgstr "Зручності на картці номера"
 
 #: templates/stays/units.html
 msgid ""
-"Which icons guests see on the room cards (list and home page). Only "
-"amenities the room actually has are shown. Leave everything "
-"unchecked to show the room's first few amenities."
+"Which icons guests see on the room cards (list and home page). Only amenities"
+" the room actually has are shown. Leave everything unchecked to show the "
+"room's first few amenities."
 msgstr ""
-"Які значки гість бачить на картках номерів (список і головна). "
-"Показуємо лише те, що в номері справді є. Нічого не позначено — "
-"перші зручності самого номера."
+"Які значки гість бачить на картках номерів (список і головна). Показуємо лише"
+" те, що в номері справді є. Нічого не позначено — перші зручності самого "
+"номера."
 
 #: apps/booking/views.py templates/booking/availability.html
 msgid "Day reopened."
@@ -16684,11 +16691,11 @@ msgstr "Години роботи та ресурси"
 
 #: apps/booking/views.py templates/booking/availability.html
 msgid ""
-"No opening hours yet — that is why the website shows no free "
-"appointments. Add weekly hours under “Opening hours & resources”."
+"No opening hours yet — that is why the website shows no free appointments. "
+"Add weekly hours under “Opening hours & resources”."
 msgstr ""
-"Години роботи ще не задані — тому сайт не показує вільного часу. "
-"Задайте тижневий розклад у «Години роботи та ресурси»."
+"Години роботи ще не задані — тому сайт не показує вільного часу. Задайте "
+"тижневий розклад у «Години роботи та ресурси»."
 
 #: apps/booking/views.py templates/booking/availability.html
 msgid "Whole business"
@@ -16708,8 +16715,8 @@ msgstr "Відкрито — натисніть, щоб закрити прод�
 
 #: apps/booking/views.py templates/booking/availability.html
 msgid ""
-"A closed day disappears from the website for all services (or for "
-"the selected resource only)."
+"A closed day disappears from the website for all services (or for the "
+"selected resource only)."
 msgstr ""
 "Закритий день зникає із сайту для всіх послуг (або лише для обраного "
 "ресурсу)."
@@ -16795,8 +16802,12 @@ msgstr "Плиткою"
 msgid "Beispiele nach Funktion"
 msgstr "Приклади за функціями"
 
-msgid "Jede Kachel öffnet die passende Seite einer echten Demo-Website — kein Video, kein Screenshot."
-msgstr "Кожна плитка відкриває потрібну сторінку живого демо-сайту — не відео і не скриншот."
+msgid ""
+"Jede Kachel öffnet die passende Seite einer echten Demo-Website — kein Video,"
+" kein Screenshot."
+msgstr ""
+"Кожна плитка відкриває потрібну сторінку живого демо-сайту — не відео і не "
+"скриншот."
 
 msgid "Live ansehen"
 msgstr "Подивитися наживо"
@@ -16804,8 +16815,12 @@ msgstr "Подивитися наживо"
 msgid "Aktionen & Rabatte"
 msgstr "Акції та знижки"
 
-msgid "Prozent, Festpreis, Mystery-Deal, Countdown, begrenzte Stückzahl — alle Aktionstypen auf einer Seite."
-msgstr "Відсоток, фікс-ціна, mystery-deal, зворотний відлік, обмежена кількість — усі типи акцій на одній сторінці."
+msgid ""
+"Prozent, Festpreis, Mystery-Deal, Countdown, begrenzte Stückzahl — alle "
+"Aktionstypen auf einer Seite."
+msgstr ""
+"Відсоток, фікс-ціна, mystery-deal, зворотний відлік, обмежена кількість — усі"
+" типи акцій на одній сторінці."
 
 msgid "Termine online buchen"
 msgstr "Запис на час онлайн"
@@ -16829,7 +16844,8 @@ msgid "Größen & Farben"
 msgstr "Розміри та кольори"
 
 msgid "Varianten mit eigenem Foto, Größentabelle, Warteliste bei Ausverkauf."
-msgstr "Варіанти з власним фото, таблиця розмірів, лист очікування при розпродажі."
+msgstr ""
+"Варіанти з власним фото, таблиця розмірів, лист очікування при розпродажі."
 
 msgid "Veranstaltungen & Tickets"
 msgstr "Події та квитки"
@@ -16841,7 +16857,9 @@ msgid "Anfragen & Angebote"
 msgstr "Заявки та кошториси"
 
 msgid "Anfrage vom Kunden, Festpreis-Angebot zurück, Annahme mit einem Klick."
-msgstr "Заявка від клієнта, кошторис із фікс-ціною у відповідь, прийняття одним кліком."
+msgstr ""
+"Заявка від клієнта, кошторис із фікс-ціною у відповідь, прийняття одним "
+"кліком."
 
 msgid "Produktfinder"
 msgstr "Підбір товару"
@@ -16871,7 +16889,8 @@ msgid "Answer"
 msgstr "Відповідь"
 
 msgid "Clearing a question removes it. A new empty pair appears after saving."
-msgstr "Порожнє питання видаляється. Після збереження з'явиться нова порожня пара."
+msgstr ""
+"Порожнє питання видаляється. Після збереження з'явиться нова порожня пара."
 
 msgid "How to show the options"
 msgstr "Як показувати вибір"
@@ -17032,8 +17051,14 @@ msgstr "Об'єднати"
 msgid "Als Varianten zusammenführen"
 msgstr "Об'єднати як варіанти"
 
-msgid "Choose the main product — the others become its variants (name, price, stock, Art.-Nr., EAN and photo move along) and disappear from the storefront. Past orders keep their history."
-msgstr "Виберіть головний товар — решта стануть його варіантами (назва, ціна, залишок, артикул, EAN і фото переїдуть) і зникнуть з вітрини. Історія минулих замовлень збережеться."
+msgid ""
+"Choose the main product — the others become its variants (name, price, stock,"
+" Art.-Nr., EAN and photo move along) and disappear from the storefront. Past "
+"orders keep their history."
+msgstr ""
+"Виберіть головний товар — решта стануть його варіантами (назва, ціна, "
+"залишок, артикул, EAN і фото переїдуть) і зникнуть з вітрини. Історія минулих"
+" замовлень збережеться."
 
 msgid "The selected product stays — the rest become its variants."
 msgstr "Вибраний товар залишається — решта стануть його варіантами."
@@ -17042,7 +17067,8 @@ msgid "Art.-Nr."
 msgstr "Артикул"
 
 msgid "Tick two or more products first — they become one card with variants."
-msgstr "Позначте два чи більше товарів — вони стануть однією карткою з варіантами."
+msgstr ""
+"Позначте два чи більше товарів — вони стануть однією карткою з варіантами."
 
 msgid "Zeitraum wieder geöffnet."
 msgstr "Період знову відкрито."
@@ -17166,8 +17192,12 @@ msgstr "Проставить галочки нижче — потім «Збер
 msgid "Abläufe"
 msgstr "Процеси"
 
-msgid "Status-Namen, Statusübergänge und Board-Spalten für Ihre Verkäufe — an einem Ort."
-msgstr "Назви статусів, переходи та колонки дошки для ваших продажів — в одному місці."
+msgid ""
+"Status-Namen, Statusübergänge und Board-Spalten für Ihre Verkäufe — an einem "
+"Ort."
+msgstr ""
+"Назви статусів, переходи та колонки дошки для ваших продажів — в одному "
+"місці."
 
 msgid "Status-Namen, Übergänge und Board-Spalten:"
 msgstr "Назви статусів, переходи та колонки дошки:"
@@ -17238,8 +17268,12 @@ msgstr "Вас запросили до команди. Налаштуйте до
 msgid "Team & Zugriff"
 msgstr "Команда та доступ"
 
-msgid "Mitarbeiter einladen und Rollen verwalten. Abo, Recht & Steuern und diese Seite bleiben dem Inhaber vorbehalten."
-msgstr "Запрошуйте співробітників і керуйте ролями. Підписка, «Право та податки» і ця сторінка доступні лише власнику."
+msgid ""
+"Mitarbeiter einladen und Rollen verwalten. Abo, Recht & Steuern und diese "
+"Seite bleiben dem Inhaber vorbehalten."
+msgstr ""
+"Запрошуйте співробітників і керуйте ролями. Підписка, «Право та податки» і ця"
+" сторінка доступні лише власнику."
 
 msgid "Mitglieder"
 msgstr "Учасники"
@@ -17256,8 +17290,14 @@ msgstr "Видалити"
 msgid "Mitarbeiter einladen"
 msgstr "Запросити співробітника"
 
-msgid "Einladung erzeugt einen einmaligen Link (7 Tage gültig). Admin und Mitarbeiter unterscheiden sich derzeit nicht — beide ohne Zugriff auf Abo, Recht und Team."
-msgstr "Запрошення створює одноразове посилання (діє 7 днів). Ролі адміна та співробітника поки не відрізняються — обидві без доступу до підписки, права та команди."
+msgid ""
+"Einladung erzeugt einen einmaligen Link (7 Tage gültig). Admin und "
+"Mitarbeiter unterscheiden sich derzeit nicht — beide ohne Zugriff auf Abo, "
+"Recht und Team."
+msgstr ""
+"Запрошення створює одноразове посилання (діє 7 днів). Ролі адміна та "
+"співробітника поки не відрізняються — обидві без доступу до підписки, права "
+"та команди."
 
 msgid "Rolle"
 msgstr "Роль"
@@ -17268,8 +17308,12 @@ msgstr "Запросити"
 msgid "Team beitreten"
 msgstr "Приєднатися до команди"
 
-msgid "Dieser Einladungslink ist ungültig oder abgelaufen. Bitten Sie den Inhaber um eine neue Einladung."
-msgstr "Це посилання-запрошення недійсне або протерміноване. Попросіть власника про нове запрошення."
+msgid ""
+"Dieser Einladungslink ist ungültig oder abgelaufen. Bitten Sie den Inhaber um"
+" eine neue Einladung."
+msgstr ""
+"Це посилання-запрошення недійсне або протерміноване. Попросіть власника про "
+"нове запрошення."
 
 msgid "Dieses Konto ist bereits Mitglied des Teams."
 msgstr "Цей акаунт уже є учасником команди."
@@ -17313,32 +17357,55 @@ msgstr "Трек-номер (необов'язково)"
 msgid "Über den Betrieb"
 msgstr "Про бізнес"
 
-msgid "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb — Antworten folgen."
-msgstr "Відгуки про ваш бізнес із міського порталу (/entdecken) — відповіді з'являться згодом."
+msgid ""
+"Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb — Antworten "
+"folgen."
+msgstr ""
+"Відгуки про ваш бізнес із міського порталу (/entdecken) — відповіді "
+"з'являться згодом."
 
 msgid "Aktion für dieses Angebot erstellen"
 msgstr "Створити акцію для цієї позиції"
 
-msgid "Aktion gilt für diese Leistung — Aktionspreis greift automatisch bei der Buchung."
-msgstr "Акція діє на цю послугу — акційна ціна застосовується автоматично під час запису."
+msgid ""
+"Aktion gilt für diese Leistung — Aktionspreis greift automatisch bei der "
+"Buchung."
+msgstr ""
+"Акція діє на цю послугу — акційна ціна застосовується автоматично під час "
+"запису."
 
-msgid "Aktion gilt für dieses Zimmer — wirkt als Preis-Kandidat bei der Buchung."
-msgstr "Акція діє на цей номер — бере участь як ціновий кандидат під час бронювання."
+msgid ""
+"Aktion gilt für dieses Zimmer — wirkt als Preis-Kandidat bei der Buchung."
+msgstr ""
+"Акція діє на цей номер — бере участь як ціновий кандидат під час бронювання."
 
-msgid "Einfach zeigt nur das Wesentliche; Experte zeigt alles. Der Schalter oben in der Kopfzeile tut dasselbe."
-msgstr "«Просто» показує лише основне; «Експерт» — усе. Перемикач у шапці робить те саме."
+msgid ""
+"Einfach zeigt nur das Wesentliche; Experte zeigt alles. Der Schalter oben in "
+"der Kopfzeile tut dasselbe."
+msgstr ""
+"«Просто» показує лише основне; «Експерт» — усе. Перемикач у шапці робить те "
+"саме."
 
 msgid "Was der Einfach-Modus bei Ihnen ausblendet"
 msgstr "Що приховує у вас режим «Просто»"
 
-msgid "Nichts — alle Ihre aktiven Bereiche sind auch im Einfach-Modus sichtbar."
+msgid ""
+"Nichts — alle Ihre aktiven Bereiche sind auch im Einfach-Modus sichtbar."
 msgstr "Нічого — усі ваші активні розділи видно й у режимі «Просто»."
 
-msgid "Zusätzlich verbirgt Einfach die Schublade „Erweitert“ der Tab-Leisten und Profi-Felder in Formularen. Alle Seiten bleiben per direktem Link erreichbar."
-msgstr "Режим «Просто» також приховує шухляду «Erweitert» у таб-барах і профі-поля у формах. Усі сторінки залишаються доступними за прямим посиланням."
+msgid ""
+"Zusätzlich verbirgt Einfach die Schublade „Erweitert“ der Tab-Leisten und "
+"Profi-Felder in Formularen. Alle Seiten bleiben per direktem Link erreichbar."
+msgstr ""
+"Режим «Просто» також приховує шухляду «Erweitert» у таб-барах і профі-поля у "
+"формах. Усі сторінки залишаються доступними за прямим посиланням."
 
-msgid "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb. Ihre Antwort erscheint öffentlich auf dem Portal."
-msgstr "Відгуки про ваш бізнес із міського порталу (/entdecken). Ваша відповідь публічно видима на порталі."
+msgid ""
+"Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb. Ihre Antwort "
+"erscheint öffentlich auf dem Portal."
+msgstr ""
+"Відгуки про ваш бізнес із міського порталу (/entdecken). Ваша відповідь "
+"публічно видима на порталі."
 
 #: templates/tenant/site_home.html
 msgid "More tools"
@@ -17346,7 +17413,9 @@ msgstr "Інші інструменти"
 
 #: templates/tenant/site_home.html
 msgid "YouTube, Vimeo or direct .mp4. Loaded only on click (GDPR-friendly)."
-msgstr "YouTube, Vimeo або прямий .mp4. Завантажується лише після кліку (без стеження)."
+msgstr ""
+"YouTube, Vimeo або прямий .mp4. Завантажується лише після кліку (без "
+"стеження)."
 
 #: templates/storefront/gallery.html
 msgid "Unser Team"
@@ -17522,12 +17591,14 @@ msgstr "Тип заходу"
 msgid "Anfrage-Formular"
 msgstr "Форма заявки"
 
-msgid "Zusätzliche Felder auf der öffentlichen Anfrage-Seite (z. B. für Catering / Partyservice)."
-msgstr "Додаткові поля на публічній сторінці заявки (наприклад, для кейтерингу)."
+msgid ""
+"Zusätzliche Felder auf der öffentlichen Anfrage-Seite (z. B. für Catering / "
+"Partyservice)."
+msgstr ""
+"Додаткові поля на публічній сторінці заявки (наприклад, для кейтерингу)."
 
 msgid "Auswahlliste (eine Option pro Zeile)"
 msgstr "Список варіантів (по одному в рядку)"
-
 
 # GK-1: архетип Catering (тип/карточка/hero-плитки/feature-demo)
 msgid "Catering / Partyservice"
@@ -17550,7 +17621,6 @@ msgstr "Заявка на кейтеринг для події"
 
 msgid "Wunschdatum, Gästezahl und Anlass — Angebot kommt per E-Mail."
 msgstr "Дата, кількість гостей і привід — пропозиція надійде на пошту."
-
 
 # GK-4: C-блок «полоса цифр» (stats)
 msgid "Numbers"
@@ -17590,32 +17660,36 @@ msgstr "політикою конфіденційності"
 msgid "Signup form with double opt-in"
 msgstr "Форма підписки з подвійним підтвердженням"
 
-
 # GK-7: founder-пресет image_text
 msgid "Gründer-Zitat"
 msgstr "Цитата засновника"
-
 
 # GK-5: usp-столпы (pillars)
 msgid "Säulen"
 msgstr "Стовпи"
 
-msgid "One per line: icon | title | description (optional, for the “Pillars” style)."
-msgstr "По одному в рядку: іконка | заголовок | опис (необов’язково, для стилю «Стовпи»)."
-
+msgid ""
+"One per line: icon | title | description (optional, for the “Pillars” style)."
+msgstr ""
+"По одному в рядку: іконка | заголовок | опис (необов’язково, для стилю "
+"«Стовпи»)."
 
 # GK-6: testimonials рейтинг/фото + аватар-ряд trust
 msgid "One per line: Name | Text | Stars 1–5 | Photo URL (both optional)."
-msgstr "По одному в рядку: Ім’я | Текст | Зірки 1–5 | URL фото (обидва — необов’язково)."
+msgstr ""
+"По одному в рядку: Ім’я | Текст | Зірки 1–5 | URL фото (обидва — "
+"необов’язково)."
 
 msgid "Happy customers"
 msgstr "Задоволені клієнти"
 
-
 # GK-9: help-текст соцполей
-msgid "Handle oder vollständige URL (z. B. @meinladen). Gefüllte Profile erscheinen als Icons im Footer Ihrer Website."
-msgstr "Нік або повне посилання (наприклад, @meinladen). Заповнені профілі з’являться іконками в підвалі сайту."
-
+msgid ""
+"Handle oder vollständige URL (z. B. @meinladen). Gefüllte Profile erscheinen "
+"als Icons im Footer Ihrer Website."
+msgstr ""
+"Нік або повне посилання (наприклад, @meinladen). Заповнені профілі з’являться"
+" іконками в підвалі сайту."
 
 # GK-11: Google-рейтинг (Places API)
 msgid "Google Bewertungen"
@@ -17627,11 +17701,19 @@ msgstr "Показувати рейтинг і кількість відгукі
 msgid "Wartet auf erste Aktualisierung"
 msgstr "Очікує першого оновлення"
 
-msgid "Die Place ID Ihres Google-Unternehmensprofils (z. B. ChIJ…). Zu finden über den Google Place ID Finder oder im Business-Profil."
-msgstr "Place ID вашого профілю Google Business (наприклад, ChIJ…). Знайти можна через Google Place ID Finder або в профілі компанії."
+msgid ""
+"Die Place ID Ihres Google-Unternehmensprofils (z. B. ChIJ…). Zu finden über "
+"den Google Place ID Finder oder im Business-Profil."
+msgstr ""
+"Place ID вашого профілю Google Business (наприклад, ChIJ…). Знайти можна "
+"через Google Place ID Finder або в профілі компанії."
 
-msgid "Aktualisierung fehlgeschlagen — Place ID prüfen; der Plattform-API-Schlüssel muss konfiguriert sein."
-msgstr "Оновлення не вдалося — перевірте Place ID; на платформі має бути налаштований API-ключ."
+msgid ""
+"Aktualisierung fehlgeschlagen — Place ID prüfen; der Plattform-API-Schlüssel "
+"muss konfiguriert sein."
+msgstr ""
+"Оновлення не вдалося — перевірте Place ID; на платформі має бути налаштований"
+" API-ключ."
 
 msgid "Aktualisiert."
 msgstr "Оновлено."
@@ -17639,15 +17721,18 @@ msgstr "Оновлено."
 msgid "Jetzt aktualisieren"
 msgstr "Оновити зараз"
 
-msgid "Zeigt Bewertung und Anzahl Ihres Google-Unternehmensprofils auf der Website (Vertrauensleiste und Bewertungsseite)."
-msgstr "Показує рейтинг і кількість відгуків вашого профілю Google Business на сайті (смуга довіри та сторінка відгуків)."
+msgid ""
+"Zeigt Bewertung und Anzahl Ihres Google-Unternehmensprofils auf der Website "
+"(Vertrauensleiste und Bewertungsseite)."
+msgstr ""
+"Показує рейтинг і кількість відгуків вашого профілю Google Business на сайті "
+"(смуга довіри та сторінка відгуків)."
 
 msgid "Zuletzt aktualisiert"
 msgstr "Останнє оновлення"
 
 msgid "Automatische Aktualisierung alle paar Tage"
 msgstr "Автооновлення раз на кілька днів"
-
 
 msgid "%(n)s Google-Bewertung"
 msgid_plural "%(n)s Google-Bewertungen"
@@ -17656,11 +17741,9 @@ msgstr[1] "%(n)s відгуки Google"
 msgstr[2] "%(n)s відгуків Google"
 msgstr[3] "%(n)s відгуку Google"
 
-
 # GK-13: Speisekarte-PDF
 msgid "Menu as PDF"
 msgstr "Меню у PDF"
-
 
 # GK-14: Anfrage-CTA на browse-only каталоге
 msgid "Unverbindlich — wir melden uns mit einem Angebot."
@@ -17669,20 +17752,24 @@ msgstr "Ні до чого не зобов'язує — ми зв'яжемося
 # DS-3a: прайс-лист каталога (Fokus)
 msgid "Ganze Speisekarte"
 msgstr "Усе меню"
+
 msgid "Weitere"
 msgstr "Інше"
+
 msgid "Preisliste"
 msgstr "Прайс-лист"
 
 # DS-3c: сборки (Startpakete)
 msgid "Startpaket"
 msgstr "Стартовий набір"
+
 msgid "Startpaket angewendet."
 msgstr "Стартовий набір застосовано."
 
 # DS-4b: anfrage-банда на главной (Fokus)
 msgid "Planen Sie Ihr nächstes Event?"
 msgstr "Плануєте захід?"
+
 msgid "Event-Anfrage"
 msgstr "Заявка на захід"
 
@@ -17701,20 +17788,28 @@ msgstr[3] "%(n)s товарів"
 # DS-5/5b: сеточные контролы Studio + прайс с фото
 msgid "Ausgleichen"
 msgstr "Симетрія"
+
 msgid "Scrollen"
 msgstr "Прокрутка"
+
 msgid "Unvollständige Reihe zentrieren"
 msgstr "Центрувати неповний ряд"
+
 msgid "Kacheln in einer Reihe mit seitlichem Scrollen"
 msgstr "Плитки в один ряд із боковою прокруткою"
+
 msgid "Bildhöhe"
 msgstr "Висота фото"
+
 msgid "Bildhöhe (px)"
 msgstr "Висота фото (px)"
+
 msgid "ab-Preis"
 msgstr "Ціна «від»"
+
 msgid "Produktanzahl"
 msgstr "Кількість товарів"
+
 msgid "Preisliste mit Fotos"
 msgstr "Прайс-лист із фото"
 
@@ -17725,58 +17820,86 @@ msgstr "Пошук…"
 # DS-6: пресеты 5/6 в ряд
 msgid "5 per row"
 msgstr "5 у ряд"
+
 msgid "6 per row"
 msgstr "6 у ряд"
 
 # DS-5c: семейство прайс-видов
 msgid "Preisliste kompakt"
 msgstr "Компактний прайс"
+
 msgid "Preisliste zweispaltig"
 msgstr "Прайс у дві колонки"
+
 msgid "Min."
 msgstr "хв"
+
 msgid "Services layout"
 msgstr "Вигляд списку послуг"
+
 msgid "Services page (/termin/) — grid or price list."
 msgstr "Сторінка послуг (/termin/) — плитки або прайс-лист."
+
 msgid "Seite %(r)s von %(n)s"
 msgstr "Сторінка %(r)s з %(n)s"
+
 msgid "Alle Hauptkategorien"
 msgstr "Усі основні категорії"
+
 msgid "Categories submenu"
 msgstr "Підменю категорій"
-msgid "The categories submenu fills itself from your catalogue. Categories with a photo are shown as picture tiles."
-msgstr "Підменю категорій заповнюється з каталогу. Категорії з фото показуються плитками із зображеннями."
+
+msgid ""
+"The categories submenu fills itself from your catalogue. Categories with a "
+"photo are shown as picture tiles."
+msgstr ""
+"Підменю категорій заповнюється з каталогу. Категорії з фото показуються "
+"плитками із зображеннями."
+
 msgid "Manage category photos"
 msgstr "Керування фото категорій"
+
 msgid "Fortsetzung"
 msgstr "продовження"
+
 msgid "Speisekarte zum Blättern"
 msgstr "Меню-книга з гортанням"
+
 msgid "Weitere %(n)s anzeigen"
 msgstr "Показати ще %(n)s"
+
 msgid "Seite"
 msgstr "Сторінка"
+
 msgid "Zurückblättern"
 msgstr "Назад"
+
 msgid "Weiterblättern"
 msgstr "Вперед"
+
 msgid "Fotoliste zweispaltig"
 msgstr "Список із фото у дві колонки"
+
 msgid "Fotoliste dreispaltig"
 msgstr "Список із фото у три колонки"
+
 msgid "Speisekarte klassisch"
 msgstr "Класичне меню"
 
 # DS-7: лендинги направлений + цены в меню
 msgid "Bereichs-Landingpages"
 msgstr "Лендинги напрямів"
+
 msgid "Preise in der Speisekarte anzeigen"
 msgstr "Показувати ціни в меню"
+
 msgid "Beispiele aus der Küche"
 msgstr "Приклади з нашої кухні"
-msgid "Jedes Event wird individuell zusammengestellt — fragen Sie unverbindlich an."
-msgstr "Кожен захід збирається індивідуально — надішліть запит без зобов’язань."
+
+msgid ""
+"Jedes Event wird individuell zusammengestellt — fragen Sie unverbindlich an."
+msgstr ""
+"Кожен захід збирається індивідуально — надішліть запит без зобов’язань."
 
 #: apps/catalog/food.py
 msgid "Vorspeise"
@@ -17852,23 +17975,32 @@ msgstr "Приводи"
 
 #: templates/catalog/combo_form.html
 msgid "Comma-separated; same wording as your inquiry form. Used for filters."
-msgstr "Через кому; ті самі формулювання, що у формі запиту. Використовується для фільтрів."
+msgstr ""
+"Через кому; ті самі формулювання, що у формі запиту. Використовується для "
+"фільтрів."
 
 #: templates/catalog/combo_form.html
 msgid "Free choice from category"
 msgstr "Вільний вибір із категорії"
 
 #: templates/catalog/combo_form.html
-msgid "Guests pick any dishes of the category at à la carte prices — choice groups below are ignored."
-msgstr "Гості обирають будь-які страви категорії за цінами à la carte — групи вибору нижче ігноруються."
+msgid ""
+"Guests pick any dishes of the category at à la carte prices — choice groups "
+"below are ignored."
+msgstr ""
+"Гості обирають будь-які страви категорії за цінами à la carte — групи вибору "
+"нижче ігноруються."
 
 #: templates/catalog/combo_form.html
 msgid "In set"
 msgstr "У наборі"
 
 #: templates/catalog/combo_form.html
-msgid "Shown as part of the set — guests do not choose; cost is in the fixed price."
-msgstr "Показується як фіксована частина набору — гість не обирає; вартість входить у фіксовану ціну."
+msgid ""
+"Shown as part of the set — guests do not choose; cost is in the fixed price."
+msgstr ""
+"Показується як фіксована частина набору — гість не обирає; вартість входить у"
+" фіксовану ціну."
 
 #: apps/orders/public_views.py
 msgid "Minimum for this set: %(n)s persons."
@@ -17923,8 +18055,14 @@ msgid "Unverbindliche Kalkulation: %(total)s €"
 msgstr "Попередній розрахунок: %(total)s €"
 
 #: templates/emails/order_quote_created.txt
-msgid "Wichtig: Das ist eine unverbindliche Anfrage — KEIN Kaufvertrag und keine Zahlungspflicht. Wir prüfen Termin und Details und melden uns mit einem verbindlichen Angebot bei Ihnen."
-msgstr "Важливо: це незобов'язувальний запит — НЕ договір купівлі-продажу та без обов'язку оплати. Ми перевіримо дату й деталі та повернемося з обов'язковою пропозицією."
+msgid ""
+"Wichtig: Das ist eine unverbindliche Anfrage — KEIN Kaufvertrag und keine "
+"Zahlungspflicht. Wir prüfen Termin und Details und melden uns mit einem "
+"verbindlichen Angebot bei Ihnen."
+msgstr ""
+"Важливо: це незобов'язувальний запит — НЕ договір купівлі-продажу та без "
+"обов'язку оплати. Ми перевіримо дату й деталі та повернемося з обов'язковою "
+"пропозицією."
 
 #: templates/emails/order_quote_created.txt
 msgid "Bis gleich!"
@@ -17935,7 +18073,8 @@ msgid "Ihre Anfrage ist da — %(code)s"
 msgstr "Ваш запит отримано — %(code)s"
 
 #: templates/storefront/cart.html
-msgid "Unverbindlich — keine Zahlungspflicht. Wir melden uns mit einem Angebot."
+msgid ""
+"Unverbindlich — keine Zahlungspflicht. Wir melden uns mit einem Angebot."
 msgstr "Без зобов'язань — оплата не потрібна. Ми повернемося з пропозицією."
 
 #: templates/storefront/order_confirmation.html
@@ -17943,8 +18082,12 @@ msgid "Danke! Ihre Anfrage ist da."
 msgstr "Дякуємо! Ваш запит отримано."
 
 #: templates/storefront/order_confirmation.html
-msgid "Wir prüfen Termin und Details und melden uns mit einem Angebot. Ihre Anfrage-Nummer:"
-msgstr "Ми перевіримо дату й деталі та повернемося з пропозицією. Номер вашого запиту:"
+msgid ""
+"Wir prüfen Termin und Details und melden uns mit einem Angebot. Ihre Anfrage-"
+"Nummer:"
+msgstr ""
+"Ми перевіримо дату й деталі та повернемося з пропозицією. Номер вашого "
+"запиту:"
 
 #: apps/aggregator/shortlist.py
 msgid "Anbieter"
@@ -17991,16 +18134,24 @@ msgid "Ihre Merkliste"
 msgstr "Ваше відкладене"
 
 #: templates/aggregator/shortlist.html
-msgid "Gemerkte Angebote nebeneinander vergleichen — Preis, Mindestbestellung, Anlässe und Ernährung auf einen Blick."
-msgstr "Порівняйте відкладені пропозиції поруч — ціна, мінімальне замовлення, приводи та харчування з одного погляду."
+msgid ""
+"Gemerkte Angebote nebeneinander vergleichen — Preis, Mindestbestellung, "
+"Anlässe und Ernährung auf einen Blick."
+msgstr ""
+"Порівняйте відкладені пропозиції поруч — ціна, мінімальне замовлення, приводи"
+" та харчування з одного погляду."
 
 #: templates/aggregator/shortlist.html
 msgid "entfernen"
 msgstr "прибрати"
 
 #: templates/aggregator/shortlist.html
-msgid "Noch nichts gemerkt. Tippen Sie bei einem Angebot auf «Merken» — hier vergleichen Sie dann die Varianten."
-msgstr "Поки нічого не відкладено. Натисніть «Відкласти» біля пропозиції — і порівняйте варіанти тут."
+msgid ""
+"Noch nichts gemerkt. Tippen Sie bei einem Angebot auf «Merken» — hier "
+"vergleichen Sie dann die Varianten."
+msgstr ""
+"Поки нічого не відкладено. Натисніть «Відкласти» біля пропозиції — і "
+"порівняйте варіанти тут."
 
 #: templates/aggregator/shortlist.html
 msgid "Angebote entdecken"
@@ -18025,8 +18176,8 @@ msgstr "{name} у {tenant}{city_sfx}."
 #: apps/core/seo_meta.py
 msgid "{category} bei {tenant}{city_sfx}."
 msgstr "{category} у {tenant}{city_sfx}."
-# --- MT-1: Reisen (Tour-Produkt, Route) ---
 
+# --- MT-1: Reisen (Tour-Produkt, Route) ---
 msgid "Reisen"
 msgstr "Тури"
 
@@ -18084,8 +18235,12 @@ msgstr "Усі тури"
 msgid "Route (day by day)"
 msgstr "Маршрут (по днях)"
 
-msgid "Visibility is set per stop: keep your route private, share selected highlights publicly or with participants only."
-msgstr "Видимість задається для кожної точки: тримайте маршрут закритим, а окремі місця відкривайте публічно або лише учасникам."
+msgid ""
+"Visibility is set per stop: keep your route private, share selected "
+"highlights publicly or with participants only."
+msgstr ""
+"Видимість задається для кожної точки: тримайте маршрут закритим, а окремі "
+"місця відкривайте публічно або лише учасникам."
 
 msgid "Day"
 msgstr "День"
@@ -18123,8 +18278,12 @@ msgstr "Заїздів поки немає — створіть подію та 
 msgid "Tours"
 msgstr "Тури"
 
-msgid "A tour holds the content and the route; each date is a departure (event) with its own prices and seats."
-msgstr "Тур зберігає опис і маршрут; кожна дата — це заїзд (подія) зі своїми цінами та місцями."
+msgid ""
+"A tour holds the content and the route; each date is a departure (event) with"
+" its own prices and seats."
+msgstr ""
+"Тур зберігає опис і маршрут; кожна дата — це заїзд (подія) зі своїми цінами "
+"та місцями."
 
 msgid "New tour"
 msgstr "Новий тур"
@@ -18141,8 +18300,12 @@ msgstr "Маршрут"
 msgid "Day %(n)s"
 msgstr "День %(n)s"
 
-msgid "The detailed route is part of our guides' know-how — participants receive it after booking."
-msgstr "Докладний маршрут — напрацювання наших гідів, учасники отримують його після бронювання."
+msgid ""
+"The detailed route is part of our guides' know-how — participants receive it "
+"after booking."
+msgstr ""
+"Докладний маршрут — напрацювання наших гідів, учасники отримують його після "
+"бронювання."
 
 msgid "Duration"
 msgstr "Тривалість"
@@ -18213,7 +18376,6 @@ msgid "Tour deleted."
 msgstr "Тур видалено."
 
 # --- MT-2: Dokumente der Teilnehmer ---
-
 msgid "Reisepass"
 msgstr "Закордонний паспорт"
 
@@ -18257,7 +18419,8 @@ msgid "Participant"
 msgstr "Учасник"
 
 msgid "Files are stored encrypted; opening one is logged as a download by you."
-msgstr "Файли зберігаються зашифрованими; відкриття фіксується як ваше завантаження."
+msgstr ""
+"Файли зберігаються зашифрованими; відкриття фіксується як ваше завантаження."
 
 msgid "No participants yet."
 msgstr "Учасників поки немає."
@@ -18265,8 +18428,12 @@ msgstr "Учасників поки немає."
 msgid "My documents"
 msgstr "Мої документи"
 
-msgid "Your files are stored encrypted and can only be opened by you and the organiser."
-msgstr "Ваші файли зберігаються зашифрованими — відкрити їх можете лише ви та організатор."
+msgid ""
+"Your files are stored encrypted and can only be opened by you and the "
+"organiser."
+msgstr ""
+"Ваші файли зберігаються зашифрованими — відкрити їх можете лише ви та "
+"організатор."
 
 msgid "They are deleted automatically %(days)s days after the trip."
 msgstr "Вони видаляються автоматично через %(days)s днів після подорожі."
@@ -18287,7 +18454,6 @@ msgid "No documents uploaded yet."
 msgstr "Документи поки не завантажено."
 
 # --- MT-3: Reisegruppe (Feed, Chat, Telegram-Brücke) ---
-
 msgid "Beitrag"
 msgstr "Запис"
 
@@ -18324,8 +18490,12 @@ msgstr "Підключено — записи йдуть в обидва бок�
 msgid "Add your bot to the tour's Telegram group and write there:"
 msgstr "Додайте свого бота до Telegram-групи туру та напишіть там:"
 
-msgid "In @BotFather the bot's privacy mode must be disabled, otherwise Telegram only forwards commands to it."
-msgstr "У @BotFather у бота має бути вимкнено privacy mode, інакше Telegram передає йому лише команди."
+msgid ""
+"In @BotFather the bot's privacy mode must be disabled, otherwise Telegram "
+"only forwards commands to it."
+msgstr ""
+"У @BotFather у бота має бути вимкнено privacy mode, інакше Telegram передає "
+"йому лише команди."
 
 msgid "Invite link"
 msgstr "Посилання-запрошення"
@@ -18373,7 +18543,6 @@ msgid "Nothing posted yet."
 msgstr "Поки нічого не опубліковано."
 
 # --- MT-4/5/6: Logistik, Kosten, Checkliste ---
-
 msgid "Transport / Tickets"
 msgstr "Транспорт / квитки"
 
@@ -18437,8 +18606,11 @@ msgstr "Учасникам"
 msgid "Internal"
 msgstr "Внутрішнє"
 
-msgid "Purchase prices stay internal — participants only ever see the fact and the status."
-msgstr "Закупівельні ціни лишаються внутрішніми — учасник бачить лише факт і статус."
+msgid ""
+"Purchase prices stay internal — participants only ever see the fact and the "
+"status."
+msgstr ""
+"Закупівельні ціни лишаються внутрішніми — учасник бачить лише факт і статус."
 
 msgid "Nothing booked with suppliers yet."
 msgstr "У постачальників поки нічого не заброньовано."
@@ -18470,7 +18642,6 @@ msgstr[2] "%(n)s не закрито"
 msgstr[3] "%(n)s не закрито"
 
 # --- MT-D: витрина мото-архетипа (страны, приватный выезд, гиды) ---
-
 msgid "Land (gruppiert die Reise-Übersicht)"
 msgstr "Країна (групує список подорожей)"
 
@@ -18487,7 +18658,9 @@ msgid "None of the dates fit?"
 msgstr "Жодна дата не підходить?"
 
 msgid "We also ride private tours: your group, your dates, route on request."
-msgstr "Ми проводимо будь-який маршрут приватно: ваша група, ваші дати, маршрут за домовленістю."
+msgstr ""
+"Ми проводимо будь-який маршрут приватно: ваша група, ваші дати, маршрут за "
+"домовленістю."
 
 msgid "Request a private tour"
 msgstr "Запитати приватну подорож"
@@ -18498,8 +18671,12 @@ msgstr "Запитати власні дати"
 msgid "Prefer your own group?"
 msgstr "Хочете їхати своєю групою?"
 
-msgid "Tell us your dates and how many of you are riding — we will plan this tour privately for your group."
-msgstr "Назвіть бажані дати й кількість учасників — ми проведемо цю подорож приватно для вашої групи."
+msgid ""
+"Tell us your dates and how many of you are riding — we will plan this tour "
+"privately for your group."
+msgstr ""
+"Назвіть бажані дати й кількість учасників — ми проведемо цю подорож приватно "
+"для вашої групи."
 
 msgid "Tours with this guide"
 msgstr "Подорожі з цим гідом"
@@ -18527,7 +18704,9 @@ msgstr "Відкрити групу"
 msgid "Sign in to your account"
 msgstr "Увійти в особистий кабінет"
 
-msgid "News from the guide, packing tips and the chat with your group — all in one place."
+msgid ""
+"News from the guide, packing tips and the chat with your group — all in one "
+"place."
 msgstr "Новини від гіда, список речей і чат вашої групи — усе в одному місці."
 
 msgid "Costs"
@@ -18541,3 +18720,28 @@ msgstr "Стрічка, чат і міст у Telegram"
 
 msgid "Licences and IDs of the participants"
 msgstr "Права й документи учасників"
+
+msgid "Raster"
+msgstr "Сітка"
+
+msgid "Große Fotos"
+msgstr "Великі фото"
+
+msgid "Liste mit Fotos"
+msgstr "Список із фото"
+
+msgid "Beispiele unserer Arbeit"
+msgstr "Приклади наших робіт"
+
+msgid "Sie planen eine Veranstaltung?"
+msgstr "Плануєте захід?"
+
+msgid ""
+"Erzählen Sie uns von Ihrem Anlass — wir stellen ein passendes Menü zusammen "
+"und melden uns mit einem unverbindlichen Angebot."
+msgstr ""
+"Розкажіть нам про вашу подію — ми складемо відповідне меню та зв'яжемося з "
+"вами з необов'язковою пропозицією."
+
+msgid "Weitere Menüs aus dieser Kategorie"
+msgstr "Інші меню з цієї категорії"

@@ -308,6 +308,13 @@ input[type="datetime-local"] {
    Классы генерит grid_class_string; ширина плитки ленты — --sf-tile-w. */
 .sf-scroll-grid { display: flex; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: .5rem; -webkit-overflow-scrolling: touch; }
 .sf-scroll-grid > * { flex: 0 0 var(--sf-tile-w, 15rem); min-width: var(--sf-tile-w, 15rem); scroll-snap-align: start; }
+
+/* MEN-23: «крупный» вид галереи — переключатель посетителя меняет классы
+   контейнера (class-swap), а пропорцию плиток задаёт это правило: атрибутный
+   селектор (0,2,0) перебивает утилиту aspect-square (0,1,0). */
+[data-galv="gross"] [data-lightbox] {
+  aspect-ratio: 3 / 2;
+}
 .sf-balance-grid { display: flex; flex-wrap: wrap; justify-content: center; }
 .sf-balance-grid > * { min-width: 9rem; }
 .sf-bal-1 > * { flex: 0 1 100%; }

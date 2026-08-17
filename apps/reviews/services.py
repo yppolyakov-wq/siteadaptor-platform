@@ -64,6 +64,11 @@ def _verifier_for(entity_kind):
         from apps.events.reviews import has_ticket
 
         return has_ticket
+    if entity_kind == Review.KIND_COMBO:
+        # MEN-21: наборы меню — по FK OrderItem.combo (см. catalog.reviews).
+        from apps.catalog.reviews import has_bought_combo
+
+        return has_bought_combo
     return None
 
 
@@ -104,6 +109,7 @@ def entity_labels(reviews) -> dict:
         "service": ("apps.booking.models", "Service"),
         "stay": ("apps.stays.models", "StayUnit"),
         "event": ("apps.events.models", "Event"),
+        "combo": ("apps.catalog.models", "Combo"),  # MEN-21
     }
     for kind, ids in wanted.items():
         spec = loaders.get(kind)

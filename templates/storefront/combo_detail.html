@@ -71,6 +71,58 @@
   </div>
 </div>
 
+{% comment %}MEN-21 (фидбэк владельца): под основным блоком — отзывы о наборе,
+примеры работ (лента из галереи сайта), CTA «Планируете мероприятие?» и слайдер
+других наборов той же категории. Все блоки гейтятся наличием данных.{% endcomment %}
+{% include "storefront/_entity_reviews.html" %}
+
+{% if gallery_examples %}
+<section class="mt-12">
+  <div class="flex items-center justify-between gap-3 mb-4">
+    <h2 class="text-xl font-bold">{% trans "Beispiele unserer Arbeit" %}</h2>
+    <a href="{% url 'storefront-gallery' %}" class="text-sm text-indigo-600 hover:underline shrink-0">{% trans "Alle Fotos" %} →</a>
+  </div>
+  <div class="flex gap-3 overflow-x-auto pb-2">
+    {% for img in gallery_examples %}
+      <button type="button" data-lightbox="{{ img.url }}"
+              class="h-40 w-56 shrink-0 rounded-xl overflow-hidden bg-gray-100 block cursor-zoom-in group">
+        <img src="{{ img.url }}" alt="{{ img.alt.de|default:'' }}" loading="lazy" decoding="async"
+             class="w-full h-full object-cover group-hover:scale-[1.03] transition">
+      </button>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if event_cta_active %}
+<section class="mt-12 rounded-2xl px-6 py-8 text-center text-white" style="background: var(--accent, #4f46e5);">
+  <h2 class="text-xl md:text-2xl font-bold">{% trans "Sie planen eine Veranstaltung?" %}</h2>
+  <p class="mt-2 text-sm opacity-90 max-w-xl mx-auto">{% trans "Erzählen Sie uns von Ihrem Anlass — wir stellen ein passendes Menü zusammen und melden uns mit einem unverbindlichen Angebot." %}</p>
+  <button type="button" data-quick-url="{% url 'storefront-anfrage-modal' %}?betreff={{ combo.name_localized|urlencode }}"
+          class="inline-block mt-4 rounded-lg bg-white px-6 py-2.5 font-medium hover:bg-gray-100" style="color: var(--accent, #4f46e5);">{% trans "Unverbindlich anfragen" %}</button>
+</section>
+{% endif %}
+
+{% if related_combos %}
+<section class="mt-12">
+  <h2 class="text-xl font-bold mb-4">{% trans "Weitere Menüs aus dieser Kategorie" %}</h2>
+  <div class="flex gap-4 overflow-x-auto pb-2">
+    {% for c in related_combos %}
+      <a href="{% url 'storefront-combo' c.pk %}" class="group block w-56 shrink-0 bg-white sf-card rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
+        {% if c.primary_image_url %}<span class="block aspect-[4/3] bg-gray-100"><img src="{{ c.primary_image_url }}" alt="{{ c.name_localized }}" loading="lazy" decoding="async" class="w-full h-full object-cover"></span>{% endif %}
+        <span class="block p-4">
+          <span class="block font-semibold group-hover:underline line-clamp-2">{{ c.name_localized }}</span>
+          {% comment %}Стенд MEN-21: у свободной сборки цена складывается из блюд —
+          «ab 0,00 €» врал бы (семантика детали: Grundpreis только если задан).{% endcomment %}
+          {% if c.free_pool %}<span class="block mt-1 text-[11px] font-medium text-gray-500">{% trans "Free choice from category" %}</span>
+          {% elif show_prices %}<span class="block mt-1 text-sm font-bold">{% trans "from" %} {{ c.price }} {{ c.currency|cursym }}{% if c.price_per_person %} <span class="font-medium text-gray-500">/ {% trans "Person" %}</span>{% endif %}</span>{% endif %}
+        </span>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
 <script>
 (function () {
   // MEN-1/MEN-7: живой итог для ПОКАЗА (истина цены серверная — combo_price в

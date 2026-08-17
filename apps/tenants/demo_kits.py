@@ -209,6 +209,8 @@ class DemoKit:
     service_reviews: list = field(default_factory=list)
     stay_reviews: list = field(default_factory=list)
     event_reviews: list = field(default_factory=list)
+    # MEN-21: отзывы о НАБОРЕ МЕНЮ (kind="combo") — индекс в refs["combos"].
+    combo_reviews: list = field(default_factory=list)
     # #7 универсальные Extras: (label, price_eur, scope, per_night). Seed создаёт
     # apps.core.Extra — гость отмечает при бронировании (сейчас на stays).
     extras: list = field(default_factory=list)
@@ -7973,7 +7975,9 @@ CATERING = DemoKit(
     ],
     section_styles={
         "usp_bar": "pillars",
-        "products": "preisliste",
+        # MEN-22 (фидбэк «на главной товары списком без картинок — должно быть
+        # с картинками в 2 колонки»): фотосписок в 2 колонки вместо плоского.
+        "products": "preisliste_foto_2sp",
         "trust": "compact",
         "categories": "compact",  # DS-4b: строки-плитки с «ab €»
         "anfrage": "band",  # DS-4b: слим-форма на акцент-полосе
@@ -8150,6 +8154,73 @@ CATERING = DemoKit(
             "event_types": ["Hochzeit", "Privatfeier", "Firmenfeier"],
             "photos": ["antipasti"],
         },
+    ],
+    # MEN-21: отзывы на наборы (kind="combo") — секция отзывов видна в демо.
+    # Тексты реальных клиентов не переводим (правило DL-волны) — остаются DE.
+    combo_reviews=[
+        (
+            0,
+            5,
+            "Familie Berger",
+            "berger@example.de",
+            "Das Klassik-Menü war der Höhepunkt unserer Hochzeit — jeder Gang auf den Punkt, der Service unsichtbar gut.",
+        ),
+        (
+            0,
+            5,
+            "Jana & Tom",
+            "jana.tom@example.de",
+            "Aufbau, Ablauf, Geschmack — alles wie besprochen. Unsere Gäste reden heute noch vom Rinderfilet.",
+        ),
+        (
+            0,
+            4,
+            "K. Albers",
+            "albers@example.de",
+            "Sehr professionell organisiert. Ein Stern Abzug nur, weil das Dessert etwas spät kam.",
+        ),
+        (
+            1,
+            5,
+            "Sophie L.",
+            "sophie.l@example.de",
+            "Toll, dass jeder Gang wählbar war — so hatten auch die Vegetarier unter den Gästen ein volles Menü.",
+        ),
+        (
+            1,
+            5,
+            "M. und C. Winter",
+            "winter@example.de",
+            "Die Beratung bei der Zusammenstellung war Gold wert. Preis-Leistung stimmt absolut.",
+        ),
+        (
+            1,
+            4,
+            "R. Neumann",
+            "neumann@example.de",
+            "Sehr flexibel bei Sonderwünschen, das Tartelette ein Traum. Gerne wieder.",
+        ),
+        (
+            2,
+            5,
+            "Buchhaltung Feldmann GmbH",
+            "feldmann@example.de",
+            "Für unsere Firmenfeier frei zusammengestellt — die Gäste konnten nach Gängen wählen, Abrechnung transparent.",
+        ),
+        (
+            2,
+            5,
+            "Lisa Q.",
+            "lisa.q@example.de",
+            "Freie Auswahl klingt kompliziert, war aber kinderleicht. Alles frisch, alles pünktlich.",
+        ),
+        (
+            2,
+            4,
+            "H. Brandt",
+            "brandt@example.de",
+            "Große Auswahl, faire Preise à la carte. Die Antipasti waren das Highlight.",
+        ),
     ],
     job_samples=[
         {
@@ -10038,6 +10109,7 @@ def _seed_entity_reviews(kit: DemoKit, refs: dict) -> None:
         (kit.service_reviews, "service", "services"),
         (kit.stay_reviews, "stay", "stay_units"),
         (kit.event_reviews, "event", "events"),
+        (kit.combo_reviews, "combo", "combos"),  # MEN-21: наборы меню
     ]
     if not any(review_list for review_list, _kind, _key in specs):
         return
@@ -10168,6 +10240,7 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
         # надбавку кортежем ("Name", "6.00")).
         from apps.catalog.models import Category, Combo, ComboGroup, ComboOption, Product
 
+        refs["combos"] = []  # MEN-21: pk-лист для combo_reviews (порядок спеки)
         for ci, cspec in enumerate(kit.combos):
             cname, cname_ov = _split_i18n(cspec.get("name", ""))
             cdesc, cdesc_ov = _split_i18n(cspec.get("description", ""))
@@ -10193,6 +10266,7 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                 sort_order=ci,
                 is_active=True,
             )
+            refs["combos"].append(str(combo.pk))
             for gi, gspec in enumerate(cspec.get("groups", [])):
                 entries = [
                     (p, "0") if isinstance(p, str) else (p[0], str(p[1]))

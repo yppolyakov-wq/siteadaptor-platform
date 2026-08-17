@@ -1429,7 +1429,8 @@ def test_apply_catering_kit_reference_parity_gk15():
     # плоским preisliste из одобренного макета Fokus.
     assert cfg["catalog_layout"]["preset"] == "preisliste_karte"
     prow = next(s2 for s2 in cfg["sections"] if s2["key"] == "products")
-    assert prow["style"] == "preisliste"
+    # MEN-22: главная — фотосписок в 2 колонки (фидбэк «с картинками, 2 колонки»)
+    assert prow["style"] == "preisliste_foto_2sp"
     arow = next(s2 for s2 in cfg["sections"] if s2["key"] == "anfrage")
     assert arow["enabled"] is True
 
@@ -1493,3 +1494,15 @@ def test_catering_menu_sets_seeded_with_three_modes():
         for n in ("Rote-Bete-Carpaccio", "Rinderfilet mit Rotweinjus", "Schokoladenmousse")
     )
     assert a_la_carte > klassik.price
+
+    # MEN-21: у каждого набора засеяны отзывы (generic reviews, kind="combo") —
+    # секция отзывов на /kombi/<pk>/ видна в демо.
+    from apps.reviews.models import Review
+
+    for combo in combos.values():
+        assert (
+            Review.objects.filter(
+                entity_kind="combo", entity_id=combo.pk, is_published=True
+            ).count()
+            == 3
+        ), combo.name

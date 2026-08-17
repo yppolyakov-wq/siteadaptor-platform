@@ -379,7 +379,118 @@ def test_pool_courses_collapse_into_accordion():
     assert body.count("data-dish-tile") == 8  # ничего не спрятано из DOM
     # гармошки Gang'ов помечены классом group/gang (в шапке есть свой details)
     gangs = body.split('class="mt-3 group/gang')[1:]
-    assert len(gangs) == 2 and body.count("(4)") == 2
+    # счётчик Gang'а — в своей span-обёртке (голый count("(4)") ловил бы
+    # «★★★★ (4)» из формы отзывов MEN-21)
+    assert len(gangs) == 2 and body.count('text-gray-400">(4)</span>') == 2
     # открыт ровно первый Gang: атрибут open стоит у первой гармошки и только у неё
     assert " open>" in "<details " + gangs[0].split(">", 1)[0] + ">"
     assert body.count('rounded-xl border border-gray-200" open>') == 1
+
+
+# --- MEN-21: блоки под карточкой набора (отзывы/примеры/CTA/слайдер) ---------
+
+
+def _buy_combo(combo, email, *, status="confirmed"):
+    """Заказ с комбо-позицией (FK OrderItem.combo) — верификация покупателя."""
+    from apps.orders.models import OrderItem
+    from apps.promotions.models import Customer
+
+    customer = Customer.objects.create(name="Buyer", email=email)
+    order = Order.objects.create(
+        customer=customer, reference_code=f"O-{uuid.uuid4().hex[:8]}", status=status
+    )
+    OrderItem.objects.create(
+        order=order, combo=combo, qty=1, unit_price="42.00", title_snapshot=str(combo)
+    )
+    return order
+
+
+def test_has_bought_combo_verifier():
+    from apps.catalog.reviews import has_bought_combo
+
+    combo, _g, _opt = _wedding_set()
+    _buy_combo(combo, "buyer@test.de")
+    assert has_bought_combo(combo, "Buyer@Test.de") is True  # без регистра
+    assert has_bought_combo(combo, "nobody@test.de") is False
+
+
+def test_has_bought_combo_false_for_cancelled_and_other_combo():
+    combo, _g, _opt = _wedding_set()
+    other = Combo.objects.create(name="Anderes Menü", price=Decimal("30.00"))
+    _buy_combo(combo, "storno@test.de", status="cancelled")
+    from apps.catalog.reviews import has_bought_combo
+
+    assert has_bought_combo(combo, "storno@test.de") is False
+    assert has_bought_combo(other, "buyer@test.de") is False
+
+
+def test_combo_detail_renders_review_section_with_action():
+    combo, _g, _opt = _wedding_set()
+    from apps.reviews.models import Review
+
+    Review.objects.create(
+        entity_kind="combo", entity_id=combo.pk, rating=5, author_name="Anna B.", email="a@t.de"
+    )
+    body = public_views.combo_detail_public(_req(method="get"), pk=combo.pk).content.decode()
+    assert 'id="bewertungen"' in body and "Anna B." in body
+    assert f"/kombi/{combo.pk}/bewerten/" in body  # форма постит в новый приёмник
+
+
+def test_combo_review_submit_buyer_creates_review_stranger_rejected():
+    combo, _g, _opt = _wedding_set()
+    _buy_combo(combo, "buyer@test.de")
+    from apps.reviews.models import Review
+
+    data = {"author_name": "Käufer", "email": "buyer@test.de", "rating": "5", "comment": "Top"}
+    resp = public_views.combo_review_submit(_req(data=data), pk=combo.pk)
+    assert resp.status_code == 302 and resp["Location"].endswith("#bewertungen")
+    assert Review.objects.filter(entity_kind="combo", entity_id=combo.pk).count() == 1
+
+    stranger = {"author_name": "Fremd", "email": "fremd@test.de", "rating": "4"}
+    public_views.combo_review_submit(_req(data=stranger), pk=combo.pk)
+    assert Review.objects.filter(entity_kind="combo", entity_id=combo.pk).count() == 1
+
+
+def test_combo_detail_related_slider_same_category_only_excludes_self():
+    from apps.catalog.models import Category
+
+    cat = Category.objects.create(name={"de": "Hochzeit"}, slug="rel-hochzeit")
+    other_cat = Category.objects.create(name={"de": "Business"}, slug="rel-business")
+    combo = Combo.objects.create(name="Menü Klassik", price=Decimal("45.00"), category=cat)
+    sibling = Combo.objects.create(name="Menü Wahl", price=Decimal("52.00"), category=cat)
+    Combo.objects.create(name="Business-Lunch", price=Decimal("19.00"), category=other_cat)
+    body = public_views.combo_detail_public(_req(method="get"), pk=combo.pk).content.decode()
+    assert "Weitere Menüs aus dieser Kategorie" in body and "Menü Wahl" in body
+    assert "Business-Lunch" not in body
+    # сам набор в слайдере не дублируется: карточки-ссылки ведут только на соседей
+    assert f'href="/kombi/{sibling.pk}/"' in body
+    assert f'href="/kombi/{combo.pk}/"' not in body
+    # без категории/сиблингов блока нет
+    solo = public_views.combo_detail_public(_req(method="get"), pk=sibling.pk).content.decode()
+    assert "Menü Klassik" in solo  # обратная сторона: сиблинг видит соседа
+    lone = Combo.objects.create(name="Solo-Menü", price=Decimal("10.00"))
+    body_lone = public_views.combo_detail_public(_req(method="get"), pk=lone.pk).content.decode()
+    assert "Weitere Menüs aus dieser Kategorie" not in body_lone
+
+
+def test_combo_detail_event_cta_and_gallery_examples():
+    combo, _g, _opt = _wedding_set()
+    tenant = _browse_only(
+        site_config={"gallery": [{"url": "/media/demo/fest1.webp"}]},
+    )
+    body = public_views.combo_detail_public(_req(method="get", tenant=tenant), pk=combo.pk)
+    body = body.content.decode()
+    assert "Beispiele unserer Arbeit" in body and "/media/demo/fest1.webp" in body
+    assert "Sie planen eine Veranstaltung?" in body
+    # заявка — попапом (MEN-11), не страницей
+    assert "/anfrage/formular/?betreff=" in body and "/anfrage/?betreff=" not in body
+
+
+def test_combo_detail_blocks_gated_by_data():
+    combo, _g, _opt = _wedding_set()
+    tenant = TenantFactory.build(disabled_modules=["orders", "jobs"])
+    body = public_views.combo_detail_public(
+        _req(method="get", tenant=tenant), pk=combo.pk
+    ).content.decode()
+    assert "Beispiele unserer Arbeit" not in body  # галереи нет
+    assert "Sie planen eine Veranstaltung?" not in body  # jobs выключен

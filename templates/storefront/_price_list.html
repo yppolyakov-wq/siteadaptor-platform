@@ -18,7 +18,14 @@ price_groups_from) и `pl_style`:
 {% comment %}MEN-14: у фото-видов группы раскладываются СЕТКОЙ (grid), а не
 columns — иначе строка с картинкой рвётся между колонками. Мобильный всегда
 одна колонка (строка «фото + название + цена» в две колонки нечитаема).{% endcomment %}
-<div class="{% if st == 'preisliste_2sp' %}md:columns-2 md:gap-10{% elif st == 'preisliste_foto_2sp' %}grid md:grid-cols-2 gap-x-10 gap-y-6{% elif st == 'preisliste_foto_3sp' %}grid md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-6{% elif st == 'preisliste_buch' %}max-w-4xl{% else %}max-w-2xl{% endif %}" data-price-list data-pl-style="{{ st|default:'std' }}"{% if st == 'preisliste_buch' %} data-price-book{% endif %}>
+{% comment %}MEN-22 (фидбэк «как покупателю переключить вид?»): у базовых видов
+(plv непуст) ПОСЕТИТЕЛЬ переключает список/с фото/2 колонки — кнопки
+`_price_view_toggle.html`, обработчик в `_grid_view_script.html`. Фото при
+этом рендерятся всегда (класс plv-img, в виде «plain» скрыты) — переключение
+без перезагрузки. Классы целевых видов лежат в data-cls-* (JIT видит строки в
+атрибутах — purge-safe); kompakt/karte/buch — особые виды, без переключателя.{% endcomment %}
+{% with plv=st|price_view_state %}
+<div class="{% if st == 'preisliste_2sp' %}md:columns-2 md:gap-10{% elif st == 'preisliste_foto_2sp' %}grid md:grid-cols-2 gap-x-10 gap-y-6{% elif st == 'preisliste_foto_3sp' %}grid md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-6{% elif st == 'preisliste_buch' %}max-w-4xl{% else %}max-w-2xl{% endif %}" data-price-list data-pl-style="{{ st|default:'std' }}"{% if st == 'preisliste_buch' %} data-price-book{% endif %}{% if plv %} data-plv="{{ plv }}" data-plv-key="{{ plv_key|default:'products' }}" data-cls-plain="max-w-2xl" data-cls-foto="max-w-2xl" data-cls-cols="grid md:grid-cols-2 gap-x-10 gap-y-6" data-gcls-stack="mt-5 first:mt-0" data-gcls-cols=""{% endif %}>
   {% if st == 'preisliste_buch' %}{% book_pages price_groups as price_groups %}{% comment %}MEN-16: разворот. Обёртка страниц
   открывается и закрывается в разных if-ветках — так один цикл групп служит всем
   видам (дублировать его ради книги дороже, чем несимметричные теги).{% endcomment %}
@@ -27,7 +34,7 @@ columns — иначе строка с картинкой рвётся межд�
     {% comment %}Ревью MEN-14: в СЕТКЕ `first:mt-0` гасит отступ только у самого
     первого элемента, поэтому вторая колонка первой строки съезжала вниз на
     mt-5. У фото-видов вертикальный ритм задаёт gap-y контейнера.{% endcomment %}
-    <div class="{% if st == 'preisliste_buch' %}md:px-5{% elif st == 'preisliste_foto_2sp' or st == 'preisliste_foto_3sp' %}{% else %}mt-5 first:mt-0{% endif %}{% if st == 'preisliste_2sp' %} break-inside-avoid{% endif %}"{% if st == 'preisliste_buch' %} data-book-page{% endif %}>
+    <div class="{% if st == 'preisliste_buch' %}md:px-5{% elif st == 'preisliste_foto_2sp' or st == 'preisliste_foto_3sp' %}{% else %}mt-5 first:mt-0{% endif %}{% if st == 'preisliste_2sp' %} break-inside-avoid{% endif %}"{% if st == 'preisliste_buch' %} data-book-page{% endif %}{% if plv %} data-pl-group{% endif %}>
       {% if st == 'preisliste_karte' or st == 'preisliste_buch' %}
       <div class="text-center mb-2 mt-1">
         <div class="text-[11px] font-bold tracking-[0.18em] uppercase" style="color: var(--accent, #4f46e5);">{{ g.name }}{% if g.cont %} <span class="font-normal normal-case tracking-normal text-gray-400">({% trans "Fortsetzung" %})</span>{% endif %}</div>
@@ -47,10 +54,13 @@ columns — иначе строка с картинкой рвётся межд�
           {% with d=p.description_text %}{% if d %}<span class="block text-sm text-gray-500 italic mt-0.5">{{ d|truncatechars:90 }}</span>{% endif %}{% endwith %}
         </a>
         {% else %}
-        <a href="{% url 'storefront-product' p.pk %}" class="group flex {% if st == 'preisliste_foto' or st == 'preisliste_foto_2sp' or st == 'preisliste_foto_3sp' %}items-center{% else %}items-baseline{% endif %} gap-2 {% if st == 'preisliste_kompakt' %}py-1{% else %}py-1.5{% endif %} border-b border-dotted border-gray-300 last:border-0">
-          {% if st == 'preisliste_foto' or st == 'preisliste_foto_2sp' or st == 'preisliste_foto_3sp' %}{% if p.primary_image.url %}{% comment %}DS-5b: мини-фото.
-          Фикс DS-7: у Product НЕТ image_url (есть primary_image) — шаблон молча
-          не рендерил фото (замок в test_price_list).{% endcomment %}
+        <a href="{% url 'storefront-product' p.pk %}" class="group flex {% if plv %}items-center{% elif st == 'preisliste_foto' or st == 'preisliste_foto_2sp' or st == 'preisliste_foto_3sp' %}items-center{% else %}items-baseline{% endif %} gap-2 {% if st == 'preisliste_kompakt' %}py-1{% else %}py-1.5{% endif %} border-b border-dotted border-gray-300 last:border-0">
+          {% if plv %}{% if p.primary_image.url %}{% comment %}MEN-22: у базовых
+          видов фото ВСЕГДА в DOM (класс plv-img; в «plain» скрыто) — посетитель
+          переключает вид без перезагрузки. Фикс DS-7: у Product НЕТ image_url
+          (есть primary_image) — замок в test_price_list.{% endcomment %}
+          <img src="{{ p.primary_image.url }}" alt="" loading="lazy" class="plv-img w-10 h-10 rounded-lg object-cover shrink-0{% if plv == 'plain' %} hidden{% endif %}">
+          {% endif %}{% elif st == 'preisliste_foto' or st == 'preisliste_foto_2sp' or st == 'preisliste_foto_3sp' %}{% if p.primary_image.url %}
           <img src="{{ p.primary_image.url }}" alt="" loading="lazy" class="w-10 h-10 rounded-lg object-cover shrink-0">
           {% endif %}{% endif %}
           <span class="min-w-0">
@@ -89,4 +99,5 @@ columns — иначе строка с картинкой рвётся межд�
   {% endif %}
 </div>
 {% if st == 'preisliste_buch' %}{% include "storefront/_price_book_script.html" %}{% endif %}
+{% endwith %}
 {% endwith %}

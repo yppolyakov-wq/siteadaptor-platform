@@ -319,6 +319,12 @@ urlpatterns = [
     path("kombi/", orders_public.combo_list_public, name="storefront-combos"),
     path("kombi/add/", orders_public.combo_add, name="storefront-combo-add"),
     path("kombi/<uuid:pk>/", orders_public.combo_detail_public, name="storefront-combo"),
+    # MEN-21: отзыв о наборе (generic reviews, kind="combo") — образец product_review_submit.
+    path(
+        "kombi/<uuid:pk>/bewerten/",
+        orders_public.combo_review_submit,
+        name="storefront-combo-review",
+    ),
     # MEN-3: попап блюда (состав набора → крупное фото/описание/аллергены)
     path("gericht/<uuid:pk>/info/", orders_public.dish_info, name="storefront-dish-info"),
     path("warenkorb/bestellen/", orders_public.checkout, name="storefront-checkout"),

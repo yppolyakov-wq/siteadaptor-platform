@@ -381,6 +381,25 @@ def cursym(code):
     return _CURRENCY_SYMBOLS.get((code or "").strip().upper(), code)
 
 
+#: MEN-22: посетительский переключатель вида прайс-листа — стартовое состояние
+#: по стилю владельца. Пустая строка = переключателя нет (kompakt/karte/buch —
+#: особые «печатные» виды, посетительская смена ломала бы их идею).
+_PL_TOGGLE_INITIAL = {
+    "": "plain",
+    "preisliste": "plain",
+    "preisliste_2sp": "plain",
+    "preisliste_foto": "foto",
+    "preisliste_foto_2sp": "cols",
+    "preisliste_foto_3sp": "cols",
+}
+
+
+@register.filter(name="price_view_state")
+def price_view_state(style):
+    """Стиль прайс-листа → стартовый вид переключателя ('' = без переключателя)."""
+    return _PL_TOGGLE_INITIAL.get(style or "preisliste", "")
+
+
 @register.inclusion_tag("storefront/_presence_fab.html", takes_context=True)
 def presence_fab(context):
     """LS-2: плавающий бейдж «Jetzt erreichbar — Video-Anruf» (wa.me, LS-1).

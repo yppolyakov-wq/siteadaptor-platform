@@ -119,16 +119,15 @@ def test_published_for_excludes_hidden_and_other_entities():
 def test_is_verified_buyer_unknown_kind_is_false():
     p = ProductFactory()
     # неизвестный/непривязанный kind → нет верификатора → False (никого не пускаем)
-    assert review_services.is_verified_buyer("combo", p, "x@t.de") is False
     assert review_services.is_verified_buyer("widget", p, "x@t.de") is False
 
 
 def test_verifier_bound_for_every_review_kind():
-    # UA4-4b: product/service/stay/event должны иметь привязанный верификатор;
+    # UA4-4b (+MEN-21 combo): каждый объявленный kind обязан иметь верификатор;
     # неизвестный kind → None (fail-closed на уровне is_verified_buyer).
-    for kind in ("product", "service", "stay", "event"):
+    for kind, _label in Review.ENTITY_KINDS:
         assert review_services._verifier_for(kind) is not None, kind
-    assert review_services._verifier_for("combo") is None
+    assert review_services._verifier_for("widget") is None
 
 
 def test_is_verified_buyer_product_without_order_is_false():

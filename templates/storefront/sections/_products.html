@@ -1,13 +1,18 @@
 {% load i18n siteui %}{# Секция каталога (Track C1/C2): превью товаров. #}
 {% if products_preview %}
 <section data-reveal class="mb-10">
-  <div class="flex items-center justify-between mb-4">
+  <div class="flex items-center justify-between gap-3 mb-4">
     {% section_title site 'products' as st %}
     <h2 class="text-xl md:text-2xl font-bold" data-edit="section_titles.products">{% if st %}{{ st }}{% else %}{% trans "Our products" %}{% endif %}</h2>
-    {% section_show_all site 'products' as sa %}{% if sa %}<a href="{% url 'storefront-products' %}" class="text-sm font-medium text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
     {% comment %}Ревью MEN-14: переключатель «список/плитка» ищет сетку по
-    data-grid — у прайс-видов её нет, кнопки были мёртвыми.{% endcomment %}
-    {% if section_row.style|slice:":10" != "preisliste" %}{% include "storefront/_grid_view.html" with grid_key="products" %}{% endif %}
+    data-grid — у прайс-видов её нет, кнопки были мёртвыми.
+    Стенд MEN-22: ссылка+переключатель — одной правой группой (как в _gallery):
+    ml-auto партиала внутри justify-between съедал всё свободное место, и
+    «Alle anzeigen» прилипала к заголовку.{% endcomment %}
+    <span class="flex items-center gap-3 shrink-0">
+      {% section_show_all site 'products' as sa %}{% if sa %}<a href="{% url 'storefront-products' %}" class="text-sm font-medium text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
+      {% if section_row.style|slice:":10" != "preisliste" %}{% include "storefront/_grid_view.html" with grid_key="products" %}{% else %}{% include "storefront/_price_view_toggle.html" with pl_style=section_row.style plv_key="products" %}{% endif %}
+    </span>
   </div>
   {% section_intro site 'products' as si %}
   {% if si or is_preview %}<p class="mb-4 text-gray-600 whitespace-pre-line max-w-2xl" data-edit="section_intros.products">{{ si }}</p>{% endif %}
@@ -18,7 +23,7 @@
     свой запрос шире карточного лимита (прайс сканируется, а не листается).{% endcomment %}
     {% price_list_groups as price_groups %}
     <div class="sf-card bg-white rounded-2xl p-5 md:p-7">
-    {% include "storefront/_price_list.html" with pl_style=section_row.style %}
+    {% include "storefront/_price_list.html" with pl_style=section_row.style plv_key="products" %}
     <div class="mt-4 flex gap-2">
       <a href="{% url 'storefront-products' %}" class="inline-block rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:border-gray-400">{% trans "Ganze Speisekarte" %} →</a>
       {% speisekarte_pdf_available as pdf_ok %}{% if pdf_ok %}<a href="{% url 'storefront-speisekarte-pdf' %}" target="_blank" rel="noopener" class="inline-block rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:border-gray-400">📄 {% trans "Menu as PDF" %}</a>{% endif %}

@@ -100,9 +100,8 @@ msgstr "Price: low to high"
 msgid "Price: high to low"
 msgstr "Price: high to low"
 
-#: apps/booking/facets.py:58 apps/catalog/facets.py:152
-#: apps/core/views.py:1676 templates/aggregator/listing.html:46
-#: templates/tenant/site_home.html:478
+#: apps/booking/facets.py:58 apps/catalog/facets.py:152 apps/core/views.py:1676
+#: templates/aggregator/listing.html:46 templates/tenant/site_home.html:478
 msgid "Newest"
 msgstr "Newest"
 
@@ -661,9 +660,8 @@ msgstr "Promotion page"
 #: apps/core/context.py:48 templates/storefront/_action_bar.html:10
 #: templates/storefront/_base.html:115
 #: templates/tenant/_base_dashboard.html:131
-#: templates/tenant/_base_dashboard.html:143
-#: templates/tenant/site_home.html:61 templates/tenant/site_home.html:108
-#: templates/tenant/site_menu.html:3
+#: templates/tenant/_base_dashboard.html:143 templates/tenant/site_home.html:61
+#: templates/tenant/site_home.html:108 templates/tenant/site_menu.html:3
 msgid "Menu"
 msgstr "Menu"
 
@@ -760,13 +758,11 @@ msgstr "Related products"
 msgid "For whom"
 msgstr "For whom"
 
-#: apps/core/detail_sections.py:62
-#: templates/storefront/_event_thematic.html:15
+#: apps/core/detail_sections.py:62 templates/storefront/_event_thematic.html:15
 msgid "The idea"
 msgstr "The idea"
 
-#: apps/core/detail_sections.py:63
-#: templates/storefront/_event_thematic.html:20
+#: apps/core/detail_sections.py:63 templates/storefront/_event_thematic.html:20
 msgid "What's included"
 msgstr "What's included"
 
@@ -775,19 +771,16 @@ msgstr "What's included"
 msgid "Schedule"
 msgstr "Schedule"
 
-#: apps/core/detail_sections.py:65
-#: templates/storefront/_event_thematic.html:48
+#: apps/core/detail_sections.py:65 templates/storefront/_event_thematic.html:48
 msgid "Venue"
 msgstr "Venue"
 
-#: apps/core/detail_sections.py:66
-#: templates/storefront/_event_thematic.html:64
+#: apps/core/detail_sections.py:66 templates/storefront/_event_thematic.html:64
 #: templates/storefront/event_detail.html:113
 msgid "Accommodation"
 msgstr "Accommodation"
 
-#: apps/core/detail_sections.py:67
-#: templates/storefront/_event_thematic.html:71
+#: apps/core/detail_sections.py:67 templates/storefront/_event_thematic.html:71
 msgid "Food"
 msgstr "Food"
 
@@ -1319,8 +1312,7 @@ msgid "4 per row"
 msgstr "4 per row"
 
 #: apps/core/views.py:1672 apps/core/views.py:2354
-#: apps/tenants/siteconfig.py:603
-#: templates/storefront/sections/_gallery.html:4
+#: apps/tenants/siteconfig.py:603 templates/storefront/sections/_gallery.html:4
 msgid "Gallery"
 msgstr "Gallery"
 
@@ -1448,8 +1440,7 @@ msgstr "Bread & Baked Goods"
 
 #: apps/core/views.py:2597
 #, python-format
-msgid ""
-"Note: %(modules)s is untypical for your business type — enabled anyway."
+msgid "Note: %(modules)s is untypical for your business type — enabled anyway."
 msgstr ""
 "Note: %(modules)s is untypical for your business type — enabled anyway."
 
@@ -1546,8 +1537,7 @@ msgid "Marketing consent"
 msgstr "Marketing consent"
 
 #: apps/crm/forms.py:22
-msgid ""
-"Only tick if the customer explicitly agreed to receive offers (UWG §7)."
+msgid "Only tick if the customer explicitly agreed to receive offers (UWG §7)."
 msgstr ""
 "Only tick if the customer explicitly agreed to receive offers (UWG §7)."
 
@@ -1853,11 +1843,11 @@ msgstr "Please tell us your name and what you need."
 
 #: apps/jobs/public_views.py:70
 msgid ""
-"Your postal code is outside our usual service area — we'll still review your"
-" request and get back to you."
+"Your postal code is outside our usual service area — we'll still review your "
+"request and get back to you."
 msgstr ""
-"Your postal code is outside our usual service area — we'll still review your"
-" request and get back to you."
+"Your postal code is outside our usual service area — we'll still review your "
+"request and get back to you."
 
 #: apps/jobs/public_views.py:75
 msgid "Thank you! Your request has arrived — we'll get back to you soon."
@@ -2119,8 +2109,7 @@ msgstr "Display the \"Surprise Bag\" badge on your storefront and the aggregator
 
 #: apps/promotions/forms.py:82
 msgid "When it ends, a copy is scheduled for the next day/week automatically."
-msgstr ""
-"When it ends, a copy is scheduled for the next day/week automatically."
+msgstr "When it ends, a copy is scheduled for the next day/week automatically."
 
 #: apps/promotions/forms.py:85
 msgid ""
@@ -2151,17 +2140,15 @@ msgid "Your name"
 msgstr "Your name"
 
 #: apps/promotions/forms.py:124 apps/promotions/forms.py:136
-#: templates/aggregator/portal_login.html:13
-#: templates/booking/calendar.html:90 templates/booking/passes.html:52
-#: templates/events/event_detail.html:109
+#: templates/aggregator/portal_login.html:13 templates/booking/calendar.html:90
+#: templates/booking/passes.html:52 templates/events/event_detail.html:109
 #: templates/events/event_detail.html:131 templates/jobs/list.html:54
 #: templates/stays/calendar.html:132
 #: templates/storefront/_buybox_service_form.html:21
 #: templates/storefront/_buybox_stay_form.html:78
 #: templates/storefront/anfrage.html:89
 #: templates/storefront/booking_slots.html:73
-#: templates/storefront/cart.html:130
-#: templates/storefront/event_detail.html:73
+#: templates/storefront/cart.html:130 templates/storefront/event_detail.html:73
 #: templates/storefront/event_detail.html:141
 #: templates/storefront/message_contact.html:36
 #: templates/storefront/newsletter.html:32 templates/storefront/passes.html:26
@@ -2953,8 +2940,7 @@ msgid "Forgot password?"
 msgstr "Forgot password?"
 
 #: templates/account/logout.html:3 templates/account/logout.html:4
-#: templates/account/logout.html:14
-#: templates/aggregator/portal_account.html:29
+#: templates/account/logout.html:14 templates/aggregator/portal_account.html:29
 #: templates/tenant/_base_dashboard.html:109
 msgid "Sign out"
 msgstr "Sign out"
@@ -3042,8 +3028,7 @@ msgstr[1] "%(n)s room types"
 #: templates/storefront/_quick_add.html:14
 #: templates/storefront/combo_detail.html:9
 #: templates/storefront/product_detail.html:34
-#: templates/storefront/products.html:98
-#: templates/storefront/products.html:136
+#: templates/storefront/products.html:98 templates/storefront/products.html:136
 #: templates/storefront/stay_detail.html:31
 msgid "from"
 msgstr "from"
@@ -3106,9 +3091,8 @@ msgstr "All offers"
 msgid "All directions"
 msgstr "All directions"
 
-#: templates/aggregator/_search_form.html:27
-#: templates/aggregator/search.html:5 templates/storefront/listing.html:30
-#: templates/storefront/listing.html:31
+#: templates/aggregator/_search_form.html:27 templates/aggregator/search.html:5
+#: templates/storefront/listing.html:30 templates/storefront/listing.html:31
 #: templates/storefront/sections/_stay_search.html:28
 msgid "Search"
 msgstr "Search"
@@ -3137,8 +3121,7 @@ msgstr "Offers in %(city)s"
 #: templates/aggregator/listing.html:20
 #: templates/aggregator/portal_home.html:41 templates/inbox/list.html:12
 #: templates/jobs/list.html:16 templates/reviews/review_list.html:28
-#: templates/storefront/products.html:50
-#: templates/storefront/products.html:108
+#: templates/storefront/products.html:50 templates/storefront/products.html:108
 #: templates/storefront/products.html:126
 #: templates/storefront/products.html:135
 #: templates/storefront/promotions_list.html:10
@@ -3160,8 +3143,7 @@ msgstr "Any rating"
 msgid "up"
 msgstr "up"
 
-#: templates/aggregator/listing.html:41
-#: templates/storefront/_open_badge.html:5
+#: templates/aggregator/listing.html:41 templates/storefront/_open_badge.html:5
 msgid "Open now"
 msgstr "Open now"
 
@@ -3175,8 +3157,8 @@ msgid "Name (A–Z)"
 msgstr "Name (A–Z)"
 
 #: templates/aggregator/listing.html:62
-#: templates/aggregator/portal_home.html:57
-#: templates/crm/customer_list.html:48 templates/storefront/products.html:176
+#: templates/aggregator/portal_home.html:57 templates/crm/customer_list.html:48
+#: templates/storefront/products.html:176
 msgid "Show more"
 msgstr "Show more"
 
@@ -3245,11 +3227,11 @@ msgstr "My reservations"
 
 #: templates/aggregator/portal_account.html:64
 msgid ""
-"No reservations yet. Book any offer — no account needed, it will show up "
-"here by email."
+"No reservations yet. Book any offer — no account needed, it will show up here"
+" by email."
 msgstr ""
-"No reservations yet. Book any offer — no account needed, it will show up "
-"here by email."
+"No reservations yet. Book any offer — no account needed, it will show up here"
+" by email."
 
 #: templates/aggregator/portal_business.html:11
 #: templates/storefront/sections/_archetypes.html:15
@@ -3325,11 +3307,9 @@ msgstr "Check your inbox"
 
 #: templates/aggregator/portal_check_inbox.html:9
 msgid ""
-"If this address exists, we’ve sent a sign-in link. It’s valid for 15 "
-"minutes."
+"If this address exists, we’ve sent a sign-in link. It’s valid for 15 minutes."
 msgstr ""
-"If this address exists, we’ve sent a sign-in link. It’s valid for 15 "
-"minutes."
+"If this address exists, we’ve sent a sign-in link. It’s valid for 15 minutes."
 
 #: templates/aggregator/portal_home.html:21 templates/stays/calendar.html:118
 #: templates/stays/channels.html:80
@@ -3396,8 +3376,7 @@ msgstr "Email me a sign-in link"
 msgid "More"
 msgstr "More"
 
-#: templates/aggregator/search.html:17
-#: templates/tenant/_base_dashboard.html:65
+#: templates/aggregator/search.html:17 templates/tenant/_base_dashboard.html:65
 msgid "Nothing found."
 msgstr "Nothing found."
 
@@ -3557,8 +3536,7 @@ msgstr "Minutes"
 #: templates/catalog/combo_form.html:13 templates/catalog/combo_form.html:23
 #: templates/catalog/combo_form.html:29 templates/catalog/product_list.html:42
 #: templates/collections/list.html:30 templates/collections/list.html:46
-#: templates/events/event_detail.html:65
-#: templates/events/event_detail.html:109
+#: templates/events/event_detail.html:65 templates/events/event_detail.html:109
 #: templates/events/event_detail.html:130 templates/jobs/list.html:52
 #: templates/konto/profile.html:19 templates/stays/calendar.html:127
 #: templates/stays/units.html:132
@@ -3566,8 +3544,7 @@ msgstr "Minutes"
 #: templates/storefront/_buybox_stay_form.html:74
 #: templates/storefront/anfrage.html:85 templates/storefront/anfrage.html:115
 #: templates/storefront/booking_slots.html:63
-#: templates/storefront/cart.html:126
-#: templates/storefront/event_detail.html:72
+#: templates/storefront/cart.html:126 templates/storefront/event_detail.html:72
 #: templates/storefront/event_detail.html:140
 #: templates/storefront/message_contact.html:32
 msgid "Name"
@@ -3722,9 +3699,8 @@ msgid "Count per person (group course)"
 msgstr "Count per person (group course)"
 
 #: templates/booking/resources.html:55 templates/booking/services.html:63
-#: templates/catalog/category_form.html:32
-#: templates/catalog/combo_form.html:49 templates/catalog/combo_form.html:71
-#: templates/catalog/combo_form.html:84
+#: templates/catalog/category_form.html:32 templates/catalog/combo_form.html:49
+#: templates/catalog/combo_form.html:71 templates/catalog/combo_form.html:84
 #: templates/catalog/product_form.html:128
 #: templates/catalog/product_form.html:171
 #: templates/catalog/product_form.html:206
@@ -3735,8 +3711,7 @@ msgstr "Count per person (group course)"
 #: templates/promotions/coupon_campaigns.html:47
 #: templates/promotions/promotion_form.html:139
 #: templates/publishing/channels.html:50 templates/publishing/channels.html:76
-#: templates/publishing/channels.html:98
-#: templates/publishing/channels.html:120
+#: templates/publishing/channels.html:98 templates/publishing/channels.html:120
 #: templates/publishing/channels.html:147 templates/stays/units.html:54
 #: templates/stays/units.html:258 templates/tenant/languages.html:40
 #: templates/tenant/legal_docs.html:42 templates/tenant/modules.html:70
@@ -4004,8 +3979,7 @@ msgid "New category"
 msgstr "New category"
 
 #: templates/catalog/category_form.html:3
-#: templates/catalog/category_form.html:8
-#: templates/storefront/products.html:61
+#: templates/catalog/category_form.html:8 templates/storefront/products.html:61
 msgid "Edit category"
 msgstr "Edit category"
 
@@ -4013,9 +3987,8 @@ msgstr "Edit category"
 msgid "Slug"
 msgstr "Slug"
 
-#: templates/catalog/category_list.html:27
-#: templates/catalog/combo_form.html:46 templates/catalog/combo_form.html:70
-#: templates/catalog/combo_form.html:83
+#: templates/catalog/category_list.html:27 templates/catalog/combo_form.html:46
+#: templates/catalog/combo_form.html:70 templates/catalog/combo_form.html:83
 #: templates/catalog/product_form.html:170
 #: templates/catalog/product_form.html:205
 #: templates/catalog/product_form.html:219
@@ -4040,8 +4013,8 @@ msgid "New combo"
 msgstr "New combo"
 
 #: templates/catalog/combo_form.html:7 templates/catalog/combo_list.html:3
-#: templates/catalog/combo_list.html:8
-#: templates/storefront/combo_detail.html:6 templates/storefront/combos.html:3
+#: templates/catalog/combo_list.html:8 templates/storefront/combo_detail.html:6
+#: templates/storefront/combos.html:3
 msgid "Combos"
 msgstr "Combos"
 
@@ -4079,8 +4052,7 @@ msgstr "Group"
 msgid "product"
 msgstr "product"
 
-#: templates/catalog/combo_form.html:97
-#: templates/catalog/product_form.html:215
+#: templates/catalog/combo_form.html:97 templates/catalog/product_form.html:215
 #: templates/storefront/_add_to_cart_form.html:6
 #| msgid "Aktion"
 msgid "Option"
@@ -4152,8 +4124,7 @@ msgstr "Price & stock"
 msgid "Labeling"
 msgstr "Labeling"
 
-#: templates/catalog/product_form.html:59
-#: templates/crm/customer_detail.html:13
+#: templates/catalog/product_form.html:59 templates/crm/customer_detail.html:13
 msgid "Marketing"
 msgstr "Marketing"
 
@@ -4375,11 +4346,11 @@ msgstr "Customize columns"
 
 #: templates/core/board.html:19
 msgid ""
-"Rename, reorder (number) or hide the columns. The rules for moving cards "
-"stay the same."
+"Rename, reorder (number) or hide the columns. The rules for moving cards stay"
+" the same."
 msgstr ""
-"Rename, reorder (number) or hide the columns. The rules for moving cards "
-"stay the same."
+"Rename, reorder (number) or hide the columns. The rules for moving cards stay"
+" the same."
 
 #: templates/core/board.html:25 templates/reviews/review_list.html:55
 msgid "Hide"
@@ -4403,8 +4374,8 @@ msgstr "Transition not possible."
 
 #: templates/core/board.html:188
 msgid ""
-"Noch keine Verkaufskanäle aktiv — sobald Bestellungen, Termine oder Anfragen"
-" eingehen, erscheinen sie hier."
+"Noch keine Verkaufskanäle aktiv — sobald Bestellungen, Termine oder Anfragen "
+"eingehen, erscheinen sie hier."
 msgstr ""
 "No sales channels are active yet — as soon as orders, appointments, or "
 "inquiries come in, they will appear here."
@@ -4437,8 +4408,7 @@ msgstr "Add note"
 msgid "No notes yet."
 msgstr "No notes yet."
 
-#: templates/crm/customer_detail.html:66
-#: templates/promotions/analytics.html:15
+#: templates/crm/customer_detail.html:66 templates/promotions/analytics.html:15
 #: templates/promotions/promotion_form.html:149
 #: templates/promotions/reservation_list.html:3
 #: templates/promotions/reservation_list.html:8
@@ -4473,8 +4443,7 @@ msgstr "No loyalty cards yet."
 msgid "Vouchers"
 msgstr "Vouchers"
 
-#: templates/crm/customer_detail.html:130
-#: templates/promotions/vouchers.html:51
+#: templates/crm/customer_detail.html:130 templates/promotions/vouchers.html:51
 msgid "No vouchers yet."
 msgstr "No vouchers yet."
 
@@ -4535,16 +4504,14 @@ msgstr "Quantity"
 msgid "Bitte zeigen Sie diesen Code bei der Abholung vor."
 msgstr "Please show this code at pickup."
 
-#: templates/emails/base_email.html:17
-#: templates/emails/booking_cancelled.txt:7
+#: templates/emails/base_email.html:17 templates/emails/booking_cancelled.txt:7
 #: templates/emails/booking_confirmed.txt:10
 #: templates/emails/booking_created.txt:10
 #: templates/emails/booking_payment_reminder.txt:14
 #: templates/emails/booking_post_visit.txt:12
 #: templates/emails/booking_reminder.txt:11
 #: templates/emails/order_cancelled.txt:7
-#: templates/emails/order_confirmed.txt:8
-#: templates/emails/order_created.txt:19
+#: templates/emails/order_confirmed.txt:8 templates/emails/order_created.txt:19
 #: templates/emails/order_payment_reminder.txt:12
 #: templates/emails/order_picked_up.txt:6
 #: templates/emails/order_post_purchase.txt:12
@@ -4557,8 +4524,7 @@ msgstr "Please show this code at pickup."
 #: templates/emails/stay_cancelled.txt:12
 #: templates/emails/stay_confirmed.txt:12 templates/emails/stay_created.txt:12
 #: templates/emails/stay_payment_reminder.txt:14
-#: templates/emails/stay_post_stay.txt:12
-#: templates/emails/stay_reminder.txt:13
+#: templates/emails/stay_post_stay.txt:12 templates/emails/stay_reminder.txt:13
 #: templates/emails/ticket_post_event.txt:10
 #: templates/emails/ticket_reminder.txt:18
 msgid "Keine E-Mails mehr erhalten"
@@ -4761,8 +4727,7 @@ msgstr "Order confirmed"
 msgid ""
 "vielen Dank für Ihre Bestellung! Wir melden uns, sobald sie bestätigt ist."
 msgstr ""
-"thank you for your order! We will get back to you as soon as it is "
-"confirmed."
+"thank you for your order! We will get back to you as soon as it is confirmed."
 
 #: templates/emails/order_created.txt:6
 #: templates/emails/order_payment_reminder.txt:5
@@ -4797,8 +4762,8 @@ msgstr "Your order %(code)s is still waiting for payment."
 
 #: templates/emails/order_payment_reminder.txt:9
 msgid ""
-"Wenn Sie die Bestellung nicht mehr benötigen, können Sie diese E-Mail "
-"einfach ignorieren."
+"Wenn Sie die Bestellung nicht mehr benötigen, können Sie diese E-Mail einfach"
+" ignorieren."
 msgstr "If you no longer need the order, simply ignore this email."
 
 #: templates/emails/order_payment_reminder_subject.txt:1
@@ -4824,8 +4789,7 @@ msgid ""
 "Wir freuen uns auf Ihren nächsten Einkauf — am besten direkt über unsere "
 "Website."
 msgstr ""
-"We look forward to your next purchase — best ordered directly on our "
-"website."
+"We look forward to your next purchase — best ordered directly on our website."
 
 #: templates/emails/order_post_purchase_subject.txt:1
 msgid "Wie war Ihr Einkauf?"
@@ -5110,8 +5074,8 @@ msgstr "Your registration for “%(title)s” is still waiting for payment."
 
 #: templates/emails/ticket_payment_reminder.txt:9
 msgid ""
-"Wenn Sie die Anmeldung nicht mehr benötigen, können Sie diese E-Mail einfach"
-" ignorieren."
+"Wenn Sie die Anmeldung nicht mehr benötigen, können Sie diese E-Mail einfach "
+"ignorieren."
 msgstr "If you no longer need the registration, simply ignore this email."
 
 #: templates/emails/ticket_payment_reminder_subject.txt:1
@@ -5121,8 +5085,8 @@ msgstr "Your registration is waiting for payment"
 #: templates/emails/ticket_post_event.txt:3
 #, python-format
 msgid ""
-"vielen Dank, dass Sie bei „%(title)s“ dabei waren — wir hoffen, es hat Ihnen"
-" gutgetan!"
+"vielen Dank, dass Sie bei „%(title)s“ dabei waren — wir hoffen, es hat Ihnen "
+"gutgetan!"
 msgstr "thank you for joining “%(title)s” — we hope it did you good!"
 
 #: templates/emails/ticket_post_event.txt:5
@@ -5157,8 +5121,7 @@ msgstr "When"
 msgid "Wo"
 msgstr "Where"
 
-#: templates/emails/ticket_reminder.txt:8
-#: templates/events/event_detail.html:65
+#: templates/emails/ticket_reminder.txt:8 templates/events/event_detail.html:65
 #: templates/promotions/reservation_list.html:36
 #: templates/promotions/vouchers.html:36 templates/promotions/vouchers.html:63
 msgid "Code"
@@ -5200,8 +5163,7 @@ msgstr "Be quick — quantities are limited."
 
 #: templates/emails/waitlist_available.html:20
 #: templates/emails/waitlist_available.txt:9
-msgid ""
-"Dies ist eine einmalige Benachrichtigung auf Ihren Wunsch (Warteliste)."
+msgid "Dies ist eine einmalige Benachrichtigung auf Ihren Wunsch (Warteliste)."
 msgstr "This is a one-time notification you requested (waiting list)."
 
 #: templates/emails/waitlist_available.txt:3
@@ -5266,9 +5228,8 @@ msgid "New post"
 msgstr "New post"
 
 #: templates/events/blog_list.html:28
-#: templates/promotions/promotion_list.html:46
-#: templates/tenant/_cb_row.html:26 templates/tenant/site_home.html:656
-#: templates/tenant/site_menu.html:124
+#: templates/promotions/promotion_list.html:46 templates/tenant/_cb_row.html:26
+#: templates/tenant/site_home.html:656 templates/tenant/site_menu.html:124
 msgid "Title"
 msgstr "Title"
 
@@ -5366,8 +5327,7 @@ msgstr "This event is part of a series."
 msgid "Attendees"
 msgstr "Attendees"
 
-#: templates/events/event_detail.html:66
-#: templates/events/event_detail.html:110
+#: templates/events/event_detail.html:66 templates/events/event_detail.html:110
 #: templates/events/event_detail.html:133
 #: templates/storefront/event_confirmation.html:31
 #: templates/storefront/event_detail.html:75
@@ -5375,8 +5335,7 @@ msgstr "Attendees"
 msgid "Seats"
 msgstr "Seats"
 
-#: templates/events/event_detail.html:66
-#: templates/imports/_status_card.html:13
+#: templates/events/event_detail.html:66 templates/imports/_status_card.html:13
 #: templates/imports/import_preview.html:26
 #: templates/imports/import_start.html:46 templates/inventory/stock.html:190
 #: templates/promotions/analytics.html:13
@@ -5473,8 +5432,7 @@ msgstr "Visible on the website"
 
 #: templates/events/teacher_list.html:9
 msgid "Hosts and teachers — shown on retreats and as a filter in the catalog."
-msgstr ""
-"Hosts and teachers — shown on retreats and as a filter in the catalog."
+msgstr "Hosts and teachers — shown on retreats and as a filter in the catalog."
 
 #: templates/events/teacher_list.html:21 templates/reviews/review_list.html:23
 msgid "hidden"
@@ -5517,8 +5475,8 @@ msgstr "VAT"
 #: templates/finance/invoices.html:72 templates/finance/journal.html:77
 #: templates/storefront/_buybox_service_form.html:30
 #: templates/storefront/_buybox_stay_form.html:87
-#: templates/storefront/booking_slots.html:82
-#: templates/storefront/cart.html:70 templates/storefront/cart.html:138
+#: templates/storefront/booking_slots.html:82 templates/storefront/cart.html:70
+#: templates/storefront/cart.html:138
 msgid "Note (optional)"
 msgstr "Note (optional)"
 
@@ -5586,11 +5544,11 @@ msgstr "CSV delimiter"
 
 #: templates/imports/import_map.html:20
 msgid ""
-"CSV only — ignored for Excel files. If columns look wrong, pick the "
-"delimiter and reload via Start preview."
+"CSV only — ignored for Excel files. If columns look wrong, pick the delimiter"
+" and reload via Start preview."
 msgstr ""
-"CSV only — ignored for Excel files. If columns look wrong, pick the "
-"delimiter and reload via Start preview."
+"CSV only — ignored for Excel files. If columns look wrong, pick the delimiter"
+" and reload via Start preview."
 
 #: templates/imports/import_map.html:27
 msgid "CSV column"
@@ -5818,8 +5776,8 @@ msgstr "Discrepancy: Counter ↔ Ledger"
 #: templates/inventory/stock.html:86
 msgid ""
 "Der Bestandszähler weicht von der Summe der Ledger-Bewegungen ab (meist ein "
-"noch nicht gebuchter Startbestand). „Startbestand buchen“ gleicht den Ledger"
-" an, ohne den Zähler zu ändern."
+"noch nicht gebuchter Startbestand). „Startbestand buchen“ gleicht den Ledger "
+"an, ohne den Zähler zu ändern."
 msgstr ""
 "The inventory counter differs from the sum of the ledger transactions "
 "(usually due to an opening balance that has not yet been posted). “Post "
@@ -5884,8 +5842,8 @@ msgid ""
 "Gezählten Bestand eintragen; leere Felder bleiben unverändert. Differenzen "
 "werden als Inventur gebucht."
 msgstr ""
-"Enter the counted inventory; leave empty fields as is. Differences are "
-"posted as inventory adjustments."
+"Enter the counted inventory; leave empty fields as is. Differences are posted"
+" as inventory adjustments."
 
 #: templates/inventory/stock.html:175
 msgid "Meldebestand ≤"
@@ -6098,11 +6056,9 @@ msgstr "Check your e-mail"
 
 #: templates/konto/check_inbox.html:8
 msgid ""
-"If an account exists, we've sent you a login link. It's valid for 15 "
-"minutes."
+"If an account exists, we've sent you a login link. It's valid for 15 minutes."
 msgstr ""
-"If an account exists, we've sent you a login link. It's valid for 15 "
-"minutes."
+"If an account exists, we've sent you a login link. It's valid for 15 minutes."
 
 #: templates/konto/home.html:8 templates/konto/profile.html:3
 #: templates/konto/profile.html:6
@@ -6303,8 +6259,7 @@ msgstr "All statuses"
 
 #: templates/orders/order_list.html:31
 msgid "Prepayment, bank transfer, delivery &amp; pickup are set in one place:"
-msgstr ""
-"Prepayment, bank transfer, delivery &amp; pickup are set in one place:"
+msgstr "Prepayment, bank transfer, delivery &amp; pickup are set in one place:"
 
 #: templates/orders/order_list.html:32
 msgid "Payment &amp; shipping"
@@ -6328,11 +6283,11 @@ msgstr "Print"
 
 #: templates/orders/table_qr.html:19
 msgid ""
-"Print, cut out and place a QR code on each table. Guests scan it to open the"
-" menu and order — the order is linked to the table."
+"Print, cut out and place a QR code on each table. Guests scan it to open the "
+"menu and order — the order is linked to the table."
 msgstr ""
-"Print, cut out and place a QR code on each table. Guests scan it to open the"
-" menu and order — the order is linked to the table."
+"Print, cut out and place a QR code on each table. Guests scan it to open the "
+"menu and order — the order is linked to the table."
 
 #: templates/partners/dashboard.html:10
 msgid "Your referral link"
@@ -6356,11 +6311,9 @@ msgstr "On trial"
 
 #: templates/partners/dashboard.html:34
 msgid ""
-"Estimate based on currently active subscriptions. Payout is settled "
-"manually."
+"Estimate based on currently active subscriptions. Payout is settled manually."
 msgstr ""
-"Estimate based on currently active subscriptions. Payout is settled "
-"manually."
+"Estimate based on currently active subscriptions. Payout is settled manually."
 
 #: templates/partners/dashboard.html:51
 msgid "No clients yet — share your referral link."
@@ -6627,8 +6580,7 @@ msgid "Boost visibility"
 msgstr "Boost visibility"
 
 #: templates/promotions/promotion_feature.html:66
-#: templates/storefront/passes.html:27
-#: templates/tenant/listing_feature.html:67
+#: templates/storefront/passes.html:27 templates/tenant/listing_feature.html:67
 msgid "Buy"
 msgstr "Buy"
 
@@ -6751,8 +6703,7 @@ msgstr "Available"
 msgid "Window"
 msgstr "Window"
 
-#: templates/promotions/redeem.html:3
-#: templates/promotions/redeem_detail.html:3
+#: templates/promotions/redeem.html:3 templates/promotions/redeem_detail.html:3
 #: templates/promotions/voucher_redeem.html:30
 #: templates/promotions/voucher_redeem.html:43
 #: templates/promotions/vouchers.html:9
@@ -6918,15 +6869,13 @@ msgid "Enable"
 msgstr "Enable"
 
 #: templates/publishing/channels.html:32 templates/publishing/channels.html:58
-#: templates/publishing/channels.html:84
-#: templates/publishing/channels.html:106
+#: templates/publishing/channels.html:84 templates/publishing/channels.html:106
 #: templates/publishing/channels.html:128
 msgid "Configuration"
 msgstr "Configuration"
 
 #: templates/publishing/channels.html:33 templates/publishing/channels.html:59
-#: templates/publishing/channels.html:85
-#: templates/publishing/channels.html:107
+#: templates/publishing/channels.html:85 templates/publishing/channels.html:107
 #: templates/publishing/channels.html:129
 msgid "connected"
 msgstr "connected"
@@ -6944,8 +6893,7 @@ msgid "Refresh token (leave blank to keep current)"
 msgstr "Refresh token (leave blank to keep current)"
 
 #: templates/publishing/channels.html:51 templates/publishing/channels.html:77
-#: templates/publishing/channels.html:99
-#: templates/publishing/channels.html:121
+#: templates/publishing/channels.html:99 templates/publishing/channels.html:121
 #: templates/publishing/channels.html:148
 msgid "Setup guide"
 msgstr "Setup guide"
@@ -6970,8 +6918,7 @@ msgstr "Page access token (leave blank to keep current)"
 msgid "Instagram Business account ID"
 msgstr "Instagram Business account ID"
 
-#: templates/publishing/channels.html:94
-#: templates/publishing/channels.html:143
+#: templates/publishing/channels.html:94 templates/publishing/channels.html:143
 msgid "Access token (leave blank to keep current)"
 msgstr "Access token (leave blank to keep current)"
 
@@ -7126,13 +7073,11 @@ msgstr "Reports"
 msgid "Units & blocked dates"
 msgstr "Units & blocked dates"
 
-#: templates/stays/calendar.html:25
-#: templates/storefront/_media_gallery.html:43
+#: templates/stays/calendar.html:25 templates/storefront/_media_gallery.html:43
 msgid "Previous"
 msgstr "Previous"
 
-#: templates/stays/calendar.html:27
-#: templates/storefront/_media_gallery.html:45
+#: templates/stays/calendar.html:27 templates/storefront/_media_gallery.html:45
 msgid "Next"
 msgstr "Next"
 
@@ -7174,12 +7119,12 @@ msgstr "Sales channels"
 
 #: templates/stays/channels.html:11
 msgid ""
-"Track your OTA channels and import their reservations into your calendar (no"
-" double bookings). Availability import via iCal is on the Units page; live "
+"Track your OTA channels and import their reservations into your calendar (no "
+"double bookings). Availability import via iCal is on the Units page; live "
 "2-way sync needs OTA partner keys."
 msgstr ""
-"Track your OTA channels and import their reservations into your calendar (no"
-" double bookings). Availability import via iCal is on the Units page; live "
+"Track your OTA channels and import their reservations into your calendar (no "
+"double bookings). Availability import via iCal is on the Units page; live "
 "2-way sync needs OTA partner keys."
 
 #: templates/stays/channels.html:21
@@ -7204,11 +7149,11 @@ msgstr "Import a reservation"
 
 #: templates/stays/channels.html:62
 msgid ""
-"Enter an OTA booking to block those dates in your calendar. Re-importing the"
-" same reference does nothing (idempotent)."
+"Enter an OTA booking to block those dates in your calendar. Re-importing the "
+"same reference does nothing (idempotent)."
 msgstr ""
-"Enter an OTA booking to block those dates in your calendar. Re-importing the"
-" same reference does nothing (idempotent)."
+"Enter an OTA booking to block those dates in your calendar. Re-importing the "
+"same reference does nothing (idempotent)."
 
 #: templates/stays/channels.html:74
 msgid "Room"
@@ -7326,12 +7271,12 @@ msgstr "Metasearch & Google (rates feed)"
 #: templates/stays/units.html:31
 msgid ""
 "Machine-readable availability & prices for metasearch and channel partners. "
-"Connect it in Google Hotel Center to get free booking links straight to your"
-" direct booking."
+"Connect it in Google Hotel Center to get free booking links straight to your "
+"direct booking."
 msgstr ""
 "Machine-readable availability & prices for metasearch and channel partners. "
-"Connect it in Google Hotel Center to get free booking links straight to your"
-" direct booking."
+"Connect it in Google Hotel Center to get free booking links straight to your "
+"direct booking."
 
 #: templates/stays/units.html:37
 msgid "Kurtaxe & house rules"
@@ -7355,11 +7300,11 @@ msgstr "House rules (Hausordnung) — shown as a public page when filled"
 
 #: templates/stays/units.html:52
 msgid ""
-"Check-in ab 15:00, Check-out bis 11:00; Haustiere auf Anfrage; Nichtraucher;"
-" Ruhezeiten 22–7 Uhr; Kaution …"
+"Check-in ab 15:00, Check-out bis 11:00; Haustiere auf Anfrage; Nichtraucher; "
+"Ruhezeiten 22–7 Uhr; Kaution …"
 msgstr ""
-"Check-in from 3:00 p.m., check-out by 11:00 a.m.; pets allowed upon request;"
-" no smoking; quiet hours 10:00 p.m.–7:00 a.m.; security deposit …"
+"Check-in from 3:00 p.m., check-out by 11:00 a.m.; pets allowed upon request; "
+"no smoking; quiet hours 10:00 p.m.–7:00 a.m.; security deposit …"
 
 #: templates/stays/units.html:60
 msgid "Automatic discounts"
@@ -7538,11 +7483,11 @@ msgstr "Calendar sync (iCal)"
 
 #: templates/stays/units.html:325
 msgid ""
-"Export this unit's availability — paste this link into Booking.com / Airbnb "
-"/ Google:"
+"Export this unit's availability — paste this link into Booking.com / Airbnb /"
+" Google:"
 msgstr ""
-"Export this unit's availability — paste this link into Booking.com / Airbnb "
-"/ Google:"
+"Export this unit's availability — paste this link into Booking.com / Airbnb /"
+" Google:"
 
 #: templates/stays/units.html:328
 msgid "Import external calendars — booked dates will block this unit:"
@@ -7640,8 +7585,7 @@ msgstr "Terms"
 msgid "House rules"
 msgstr "House rules"
 
-#: templates/storefront/_base.html:212
-#: templates/storefront/gift_voucher.html:3
+#: templates/storefront/_base.html:212 templates/storefront/gift_voucher.html:3
 #: templates/storefront/gift_voucher.html:7
 msgid "Gift voucher"
 msgstr "Gift voucher"
@@ -7735,11 +7679,11 @@ msgstr "Voucher code (optional)"
 #: templates/storefront/booking_slots.html:94
 #, python-format
 msgid ""
-"A deposit of %(deposit_eur)s € is required — you'll pay securely in the next"
-" step."
+"A deposit of %(deposit_eur)s € is required — you'll pay securely in the next "
+"step."
 msgstr ""
-"A deposit of %(deposit_eur)s € is required — you'll pay securely in the next"
-" step."
+"A deposit of %(deposit_eur)s € is required — you'll pay securely in the next "
+"step."
 
 #: templates/storefront/_buybox_service_form.html:51
 #: templates/storefront/_buybox_stay_form.html:93
@@ -7828,11 +7772,11 @@ msgstr "e.g., SUMMER10"
 
 #: templates/storefront/_buybox_stay_form.html:91
 msgid ""
-"A payment is required for this booking — you'll pay securely in the next "
-"step (amount depends on the chosen rate)."
+"A payment is required for this booking — you'll pay securely in the next step"
+" (amount depends on the chosen rate)."
 msgstr ""
-"A payment is required for this booking — you'll pay securely in the next "
-"step (amount depends on the chosen rate)."
+"A payment is required for this booking — you'll pay securely in the next step"
+" (amount depends on the chosen rate)."
 
 #: templates/storefront/_buybox_stay_select.html:10
 msgid "Choose your dates"
@@ -7914,11 +7858,9 @@ msgstr "Write a review"
 
 #: templates/storefront/_entity_reviews.html:43
 msgid ""
-"Only verified customers can review. Use the e-mail address from your "
-"booking."
+"Only verified customers can review. Use the e-mail address from your booking."
 msgstr ""
-"Only verified customers can review. Use the e-mail address from your "
-"booking."
+"Only verified customers can review. Use the e-mail address from your booking."
 
 #: templates/storefront/_entity_reviews.html:49
 msgid "E-mail from your booking"
@@ -8181,11 +8123,11 @@ msgstr "TSN (2.2)"
 
 #: templates/storefront/anfrage.html:75
 msgid ""
-"HSN/TSN are in your vehicle registration (fields 2.1 and 2.2) — helps us "
-"find the exact parts."
+"HSN/TSN are in your vehicle registration (fields 2.1 and 2.2) — helps us find"
+" the exact parts."
 msgstr ""
-"HSN/TSN are in your vehicle registration (fields 2.1 and 2.2) — helps us "
-"find the exact parts."
+"HSN/TSN are in your vehicle registration (fields 2.1 and 2.2) — helps us find"
+" the exact parts."
 
 #: templates/storefront/anfrage.html:98
 msgid "Photos (optional, up to 5)"
@@ -8562,8 +8504,7 @@ msgid "Your online payment will be refunded."
 msgstr "Your online payment will be refunded."
 
 #: templates/storefront/event_cancel.html:25
-msgid ""
-"This ticket is non-refundable — cancelling will not refund any payment."
+msgid "This ticket is non-refundable — cancelling will not refund any payment."
 msgstr ""
 "This ticket is non-refundable — cancelling will not refund any payment."
 
@@ -8918,11 +8859,11 @@ msgstr "Almost done!"
 
 #: templates/storefront/newsletter.html:10
 msgid ""
-"We've sent you a confirmation email. Please click the link inside to "
-"complete your subscription (double opt-in)."
+"We've sent you a confirmation email. Please click the link inside to complete"
+" your subscription (double opt-in)."
 msgstr ""
-"We've sent you a confirmation email. Please click the link inside to "
-"complete your subscription (double opt-in)."
+"We've sent you a confirmation email. Please click the link inside to complete"
+" your subscription (double opt-in)."
 
 #: templates/storefront/newsletter.html:12
 msgid "You're subscribed!"
@@ -8945,18 +8886,15 @@ msgid "This email is already on our newsletter list."
 msgstr "This email is already on our newsletter list."
 
 #: templates/storefront/newsletter.html:18
-#: templates/tenants/provisioning.html:3
-#: templates/tenants/provisioning.html:13
+#: templates/tenants/provisioning.html:3 templates/tenants/provisioning.html:13
 msgid "Something went wrong"
 msgstr "Something went wrong"
 
 #: templates/storefront/newsletter.html:19
 msgid ""
-"The link is invalid or expired, or the email was not valid. Please try "
-"again."
+"The link is invalid or expired, or the email was not valid. Please try again."
 msgstr ""
-"The link is invalid or expired, or the email was not valid. Please try "
-"again."
+"The link is invalid or expired, or the email was not valid. Please try again."
 
 #: templates/storefront/newsletter.html:20
 msgid "Back to sign-up"
@@ -8984,11 +8922,11 @@ msgstr "Subscribe"
 
 #: templates/storefront/newsletter.html:36
 msgid ""
-"By subscribing you agree to receive marketing emails. See our privacy policy"
-" for details."
+"By subscribing you agree to receive marketing emails. See our privacy policy "
+"for details."
 msgstr ""
-"By subscribing you agree to receive marketing emails. See our privacy policy"
-" for details."
+"By subscribing you agree to receive marketing emails. See our privacy policy "
+"for details."
 
 #: templates/storefront/order_confirmation.html:3
 msgid "Order received"
@@ -9343,11 +9281,11 @@ msgstr "Address"
 
 #: templates/storefront/stay_checkin.html:30
 msgid ""
-"Please complete your registration (Meldeschein) before arrival — it speeds "
-"up your check-in."
+"Please complete your registration (Meldeschein) before arrival — it speeds up"
+" your check-in."
 msgstr ""
-"Please complete your registration (Meldeschein) before arrival — it speeds "
-"up your check-in."
+"Please complete your registration (Meldeschein) before arrival — it speeds up"
+" your check-in."
 
 #: templates/storefront/stay_checkin.html:35
 msgid "First name"
@@ -9600,8 +9538,7 @@ msgstr "Expert"
 msgid "Cabinet language"
 msgstr "Cabinet language"
 
-#: templates/tenant/_base_dashboard.html:106
-#: templates/tenant/languages.html:21
+#: templates/tenant/_base_dashboard.html:106 templates/tenant/languages.html:21
 msgid "Website languages"
 msgstr "Website languages"
 
@@ -9858,8 +9795,8 @@ msgstr "Requires:"
 msgid "Headline"
 msgstr "Headline"
 
-#: templates/tenant/_section_fields.html:10
-#: templates/tenant/site_home.html:992 templates/tenant/site_home.html:1009
+#: templates/tenant/_section_fields.html:10 templates/tenant/site_home.html:992
+#: templates/tenant/site_home.html:1009
 msgid "Button text"
 msgstr "Button text"
 
@@ -9978,12 +9915,12 @@ msgstr "Value:"
 
 #: templates/tenant/domains.html:40
 msgid ""
-"Once the DNS record points to us, the domain activates automatically within "
-"a few minutes (or click “Verify” to check now). The HTTPS certificate is "
+"Once the DNS record points to us, the domain activates automatically within a"
+" few minutes (or click “Verify” to check now). The HTTPS certificate is "
 "issued automatically on the first visit."
 msgstr ""
-"Once the DNS record points to us, the domain activates automatically within "
-"a few minutes (or click “Verify” to check now). The HTTPS certificate is "
+"Once the DNS record points to us, the domain activates automatically within a"
+" few minutes (or click “Verify” to check now). The HTTPS certificate is "
 "issued automatically on the first visit."
 
 #: templates/tenant/domains.html:42
@@ -10016,12 +9953,12 @@ msgstr "Extras"
 
 #: templates/tenant/extras.html:9
 msgid ""
-"Optional paid add-ons guests can pick when booking (breakfast, parking, late"
-" checkout …). One engine for all booking types; “scope” limits where it "
+"Optional paid add-ons guests can pick when booking (breakfast, parking, late "
+"checkout …). One engine for all booking types; “scope” limits where it "
 "applies. Currently shown on Übernachtung."
 msgstr ""
-"Optional paid add-ons guests can pick when booking (breakfast, parking, late"
-" checkout …). One engine for all booking types; “scope” limits where it "
+"Optional paid add-ons guests can pick when booking (breakfast, parking, late "
+"checkout …). One engine for all booking types; “scope” limits where it "
 "applies. Currently shown on Übernachtung."
 
 #: templates/tenant/extras.html:34
@@ -10098,8 +10035,7 @@ msgstr ""
 "Optional. The AGB page and its footer link appear only when a text is set."
 
 #: templates/tenant/legal_docs.html:25
-msgid ""
-"Empty = automatic text generated from your business data (shown below)."
+msgid "Empty = automatic text generated from your business data (shown below)."
 msgstr ""
 "Empty = automatic text generated from your business data (shown below)."
 
@@ -10149,11 +10085,11 @@ msgstr "Modules"
 
 #: templates/tenant/modules.html:9
 msgid ""
-"Switch dashboard blocks on or off. Disabled modules disappear from the menu "
-"— your data stays."
+"Switch dashboard blocks on or off. Disabled modules disappear from the menu —"
+" your data stays."
 msgstr ""
-"Switch dashboard blocks on or off. Disabled modules disappear from the menu "
-"— your data stays."
+"Switch dashboard blocks on or off. Disabled modules disappear from the menu —"
+" your data stays."
 
 #: templates/tenant/modules.html:23
 msgid "Ansicht"
@@ -10210,8 +10146,8 @@ msgid ""
 "(ergänzt E-Mail)."
 msgstr ""
 "Specify which channels will be used to notify you and your customers. "
-"Telegram notifications are only sent if the recipient has linked the bot (in"
-" addition to email)."
+"Telegram notifications are only sent if the recipient has linked the bot (in "
+"addition to email)."
 
 #: templates/tenant/notifications.html:20
 msgid "Ihr Telegram (Inhaber)"
@@ -10355,11 +10291,9 @@ msgstr "Delivery zones by postal code"
 
 #: templates/tenant/payment_settings.html:124
 msgid ""
-"Optional. A matching PLZ zone overrides the flat fee / free-from / min "
-"above."
+"Optional. A matching PLZ zone overrides the flat fee / free-from / min above."
 msgstr ""
-"Optional. A matching PLZ zone overrides the flat fee / free-from / min "
-"above."
+"Optional. A matching PLZ zone overrides the flat fee / free-from / min above."
 
 #: templates/tenant/payment_settings.html:128
 msgid "PLZ e.g. 40, 41"
@@ -10427,11 +10361,11 @@ msgstr "Legal & tax"
 
 #: templates/tenant/settings.html:75
 msgid ""
-"Tip: per-language legal texts (also AGB) are managed in the “Rechtstexte” "
-"tab above."
+"Tip: per-language legal texts (also AGB) are managed in the “Rechtstexte” tab"
+" above."
 msgstr ""
-"Tip: per-language legal texts (also AGB) are managed in the “Rechtstexte” "
-"tab above."
+"Tip: per-language legal texts (also AGB) are managed in the “Rechtstexte” tab"
+" above."
 
 #: templates/tenant/settings.html:81
 msgid "Operations & extras"
@@ -10562,11 +10496,9 @@ msgstr "Templates"
 
 #: templates/tenant/site.html:79
 msgid ""
-"Pick a ready-made layout. Your texts are kept — only empty fields are "
-"filled."
+"Pick a ready-made layout. Your texts are kept — only empty fields are filled."
 msgstr ""
-"Pick a ready-made layout. Your texts are kept — only empty fields are "
-"filled."
+"Pick a ready-made layout. Your texts are kept — only empty fields are filled."
 
 #: templates/tenant/site.html:100
 msgid "Apply this template? The section layout will be replaced."
@@ -10849,18 +10781,17 @@ msgid "Cover photos"
 msgstr "Cover photos"
 
 #: templates/tenant/site_home.html:246
-msgid ""
-"Banner photo on each section's landing page (catalog, events, rooms …)."
+msgid "Banner photo on each section's landing page (catalog, events, rooms …)."
 msgstr ""
 "Banner photo on each section's landing page (catalog, events, rooms …)."
 
 #: templates/tenant/site_home.html:249
 msgid ""
-"Banner background image: click the banner on the canvas. Accent background "
-"is in"
+"Banner background image: click the banner on the canvas. Accent background is"
+" in"
 msgstr ""
-"Banner background image: click the banner on the canvas. Accent background "
-"is in"
+"Banner background image: click the banner on the canvas. Accent background is"
+" in"
 
 #: templates/tenant/site_home.html:279
 msgid "Homepage blocks"
@@ -11075,11 +11006,11 @@ msgstr "Content blocks"
 
 #: templates/tenant/site_home.html:688
 msgid ""
-"Free building blocks (text, image, button). Reorder via position, remove "
-"with the checkbox."
+"Free building blocks (text, image, button). Reorder via position, remove with"
+" the checkbox."
 msgstr ""
-"Free building blocks (text, image, button). Reorder via position, remove "
-"with the checkbox."
+"Free building blocks (text, image, button). Reorder via position, remove with"
+" the checkbox."
 
 #: templates/tenant/site_home.html:705
 msgid "Page template name"
@@ -11119,11 +11050,9 @@ msgstr "menu builder"
 
 #: templates/tenant/site_home.html:797
 msgid ""
-"The footer shows your contact, opening hours and legal links. Edit them "
-"here:"
+"The footer shows your contact, opening hours and legal links. Edit them here:"
 msgstr ""
-"The footer shows your contact, opening hours and legal links. Edit them "
-"here:"
+"The footer shows your contact, opening hours and legal links. Edit them here:"
 
 #: templates/tenant/site_home.html:800
 msgid "Imprint / legal (address)"
@@ -11230,11 +11159,11 @@ msgstr "Banner slides"
 
 #: templates/tenant/site_home.html:973
 msgid ""
-"Up to 6 slides — photo, heading, text and a button. Two or more slides "
-"rotate automatically. JPEG/PNG/WEBP, max 5 MB."
+"Up to 6 slides — photo, heading, text and a button. Two or more slides rotate"
+" automatically. JPEG/PNG/WEBP, max 5 MB."
 msgstr ""
-"Up to 6 slides — photo, heading, text and a button. Two or more slides "
-"rotate automatically. JPEG/PNG/WEBP, max 5 MB."
+"Up to 6 slides — photo, heading, text and a button. Two or more slides rotate"
+" automatically. JPEG/PNG/WEBP, max 5 MB."
 
 #: templates/tenant/site_home.html:979 templates/tenant/site_home.html:1032
 msgid "No photo"
@@ -11306,11 +11235,9 @@ msgstr "Showing only blocks for the current page."
 
 #: templates/tenant/site_home.html:2340
 msgid ""
-"This page is edited directly on the canvas — click a heading, price or "
-"photo."
+"This page is edited directly on the canvas — click a heading, price or photo."
 msgstr ""
-"This page is edited directly on the canvas — click a heading, price or "
-"photo."
+"This page is edited directly on the canvas — click a heading, price or photo."
 
 #: templates/tenant/site_home.html:2380 templates/tenant/site_preview.html:82
 msgid "Saved"
@@ -11361,8 +11288,7 @@ msgid "Add sub-item"
 msgstr "Add sub-item"
 
 #: templates/tenant/site_pages.html:11
-msgid ""
-"Layout of your listing pages. Only pages for active features are shown."
+msgid "Layout of your listing pages. Only pages for active features are shown."
 msgstr ""
 "Layout of your listing pages. Only pages for active features are shown."
 
@@ -11538,11 +11464,11 @@ msgstr "\"%(name)s\" is being set up…"
 
 #: templates/tenants/provisioning.html:18
 msgid ""
-"This takes about a minute. The page refreshes automatically — you'll also "
-"get an email with your sign-in link."
+"This takes about a minute. The page refreshes automatically — you'll also get"
+" an email with your sign-in link."
 msgstr ""
-"This takes about a minute. The page refreshes automatically — you'll also "
-"get an email with your sign-in link."
+"This takes about a minute. The page refreshes automatically — you'll also get"
+" an email with your sign-in link."
 
 #: templates/tenants/provisioning.html:20
 msgid "Account created"
@@ -11639,8 +11565,8 @@ msgid ""
 "Welche Folgestatus aus einem Status wählbar sind (nur Anzeige-Buttons). "
 "Stornieren/Absagen bleibt immer möglich."
 msgstr ""
-"Which follow-up statuses are selectable from a status (display buttons "
-"only). Cancelling stays always possible."
+"Which follow-up statuses are selectable from a status (display buttons only)."
+" Cancelling stays always possible."
 
 msgid "Gründe dein Geschäft"
 msgstr "Create your business"
@@ -11683,8 +11609,8 @@ msgid ""
 "Mit der Erstellung stimmst du unseren Bedingungen zu. Du kannst während der "
 "Testphase jederzeit kündigen."
 msgstr ""
-"By creating a business you agree to our terms. You can cancel anytime during"
-" the trial."
+"By creating a business you agree to our terms. You can cancel anytime during "
+"the trial."
 
 msgid "Name des Geschäfts"
 msgstr "Business name"
@@ -11738,8 +11664,8 @@ msgstr "Almost there — please confirm your email"
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 #, python-format
 msgid ""
-"Wir haben eine E-Mail an <strong>%(email)s</strong> geschickt. Klicke auf "
-"den Link darin — erst dann wird deine Website eingerichtet."
+"Wir haben eine E-Mail an <strong>%(email)s</strong> geschickt. Klicke auf den"
+" Link darin — erst dann wird deine Website eingerichtet."
 msgstr ""
 "We've sent an email to <strong>%(email)s</strong>. Click the link inside — "
 "only then will your website be set up."
@@ -11749,8 +11675,7 @@ msgid ""
 "Der Link ist 72 Stunden gültig. Nichts erhalten? Schau auch im Spam-Ordner "
 "nach."
 msgstr ""
-"The link is valid for 72 hours. Nothing received? Check your spam folder "
-"too."
+"The link is valid for 72 hours. Nothing received? Check your spam folder too."
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid "E-Mail wurde erneut gesendet."
@@ -11838,8 +11763,8 @@ msgstr ""
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid ""
-"Der Link ist 72 Stunden gültig. Erst nach der Bestätigung wird deine Website"
-" eingerichtet."
+"Der Link ist 72 Stunden gültig. Erst nach der Bestätigung wird deine Website "
+"eingerichtet."
 msgstr ""
 "The link is valid for 72 hours. Your website will be set up only after "
 "confirmation."
@@ -11868,8 +11793,8 @@ msgstr "Sections on the page"
 
 #. AB5.1/AB6.10: регистрация double-opt-in + слайды мастера (2026-07-17)
 msgid ""
-"Lege im vorherigen Schritt deine erste Position an — dann siehst du hier "
-"ihre Seite."
+"Lege im vorherigen Schritt deine erste Position an — dann siehst du hier ihre"
+" Seite."
 msgstr ""
 "Add your first item in the previous step — then you'll see its page here."
 
@@ -11928,8 +11853,7 @@ msgstr "Please add at least one item with a price."
 msgid "Bitte überweisen Sie den Betrag im Voraus:"
 msgstr "Please transfer the amount in advance:"
 
-msgid ""
-"Dieses Angebot ist abgelaufen. Schreiben Sie uns für ein neues Angebot."
+msgid "Dieses Angebot ist abgelaufen. Schreiben Sie uns für ein neues Angebot."
 msgstr "This offer has expired. Write to us for a new offer."
 
 msgid "Dieses Angebot wurde zurückgezogen."
@@ -11969,8 +11893,8 @@ msgid "Persönliches Angebot"
 msgstr "Personal offer"
 
 msgid ""
-"Persönliches Angebot für %(who)s — Positionen wählen oder frei eintragen; "
-"der Kunde nimmt es per Link an und bezahlt."
+"Persönliches Angebot für %(who)s — Positionen wählen oder frei eintragen; der"
+" Kunde nimmt es per Link an und bezahlt."
 msgstr ""
 "Personal offer for %(who)s — pick items or enter them freely; the customer "
 "accepts via link and pays."
@@ -12031,23 +11955,22 @@ msgid "Per Video zeigen lassen"
 msgstr "See it via video"
 
 msgid ""
-"Lassen Sie es sich per WhatsApp-Video zeigen — direkt vom Team, ohne "
-"Anfahrt."
+"Lassen Sie es sich per WhatsApp-Video zeigen — direkt vom Team, ohne Anfahrt."
 msgstr "Let the team show it to you via WhatsApp video — no trip needed."
 
 msgid ""
 "Ihr Termin findet per Video statt — starten Sie ihn zur Terminzeit einfach "
 "hier:"
 msgstr ""
-"Your appointment takes place via video — just start it here at the appointed"
-" time:"
+"Your appointment takes place via video — just start it here at the appointed "
+"time:"
 
 msgid ""
 "Im internationalen Format, z. B. +49 171 1234567. Für Video-Beratung und "
 "Sofort-Kontakt; leer = WhatsApp-Buttons werden nicht angezeigt."
 msgstr ""
-"International format, e.g. +49 171 1234567. Used for video consultations and"
-" instant contact; leave blank to hide all WhatsApp buttons."
+"International format, e.g. +49 171 1234567. Used for video consultations and "
+"instant contact; leave blank to hide all WhatsApp buttons."
 
 #. LS-2 Jetzt erreichbar (2026-07-19)
 msgid "Jetzt erreichbar — Video-Anruf"
@@ -12163,16 +12086,15 @@ msgstr "Something not right? Direct line to us:"
 msgid "Ist jetzt alles wieder gut? Wenn nicht, antworten Sie einfach hier:"
 msgstr "Is everything all right now? If not, just reply here:"
 
-msgid ""
-"Und wenn Sie zufrieden waren, freuen wir uns über eine kurze Bewertung."
+msgid "Und wenn Sie zufrieden waren, freuen wir uns über eine kurze Bewertung."
 msgstr "And if you were happy with us, we'd appreciate a short review."
 
 msgid "Alles wieder gut? — %(business)s"
 msgstr "Everything all right? — %(business)s"
 
 msgid ""
-"danke für Ihre Geduld — wir hoffen, wir konnten Ihr Anliegen bei "
-"%(business)s lösen."
+"danke für Ihre Geduld — wir hoffen, wir konnten Ihr Anliegen bei %(business)s"
+" lösen."
 msgstr ""
 "thank you for your patience — we hope we could resolve your issue at "
 "%(business)s."
@@ -12186,8 +12108,7 @@ msgid "Care-Zyklus"
 msgstr "Care cycle"
 
 #. LS-5 Care (2026-07-19)
-msgid ""
-"Nicht ganz zufrieden? Sagen Sie es uns direkt — wir kümmern uns sofort:"
+msgid "Nicht ganz zufrieden? Sagen Sie es uns direkt — wir kümmern uns sofort:"
 msgstr "Not quite happy? Tell us directly — we'll take care of it right away:"
 
 msgid "Your own blocks stay — only template blocks are replaced."
@@ -12308,8 +12229,7 @@ msgid "Unsere Treffer für dich"
 msgstr "Our matches for you"
 
 msgid ""
-"In dieser Stadt gibt es gerade nichts Passendes — dafür ist das hier "
-"beliebt:"
+"In dieser Stadt gibt es gerade nichts Passendes — dafür ist das hier beliebt:"
 msgstr "Nothing matching in this city right now — but this is popular:"
 
 msgid "Noch mal suchen"
@@ -12331,8 +12251,8 @@ msgid "Unsere Vorschläge für dich"
 msgstr "Our suggestions for you"
 
 msgid ""
-"Nichts Exaktes gefunden — hier ist unser Beliebtestes. Oder frag uns einfach"
-" direkt!"
+"Nichts Exaktes gefunden — hier ist unser Beliebtestes. Oder frag uns einfach "
+"direkt!"
 msgstr ""
 "No exact match found — here's our most popular. Or just ask us directly!"
 
@@ -12342,8 +12262,7 @@ msgstr "Chosen based on your answers — the middle one is our favourite."
 msgid "Unser Vorschlag"
 msgstr "Our pick"
 
-msgid ""
-"Noch keine Angebote online — schreib uns, wir helfen persönlich weiter."
+msgid "Noch keine Angebote online — schreib uns, wir helfen persönlich weiter."
 msgstr "No offers online yet — write to us and we'll help you personally."
 
 msgid "Beantworte 2–3 Fragen — wir schlagen dir das Passende vor."
@@ -12502,8 +12421,8 @@ msgid ""
 "den Code beim Bestellen oder Buchen ein. Voraussetzung: Online-Zahlungen "
 "(Stripe) aktiviert."
 msgstr ""
-"Sell gift vouchers online: the buyer pays online, recipients redeem the code"
-" when ordering or booking. Requires online payments (Stripe) enabled."
+"Sell gift vouchers online: the buyer pays online, recipients redeem the code "
+"when ordering or booking. Requires online payments (Stripe) enabled."
 
 msgid "Auswertung Ihrer Aktionen: Aufrufe, Reservierungen, Einlösungen."
 msgstr "Analytics for your deals: views, reservations, redemptions."
@@ -12516,12 +12435,10 @@ msgstr "Publish news and posts — fresh content for customers and Google."
 msgid ""
 "Aktionen automatisch auf Kanälen veröffentlichen (Google, Facebook, "
 "Instagram)."
-msgstr ""
-"Publish deals automatically on channels (Google, Facebook, Instagram)."
+msgstr "Publish deals automatically on channels (Google, Facebook, Instagram)."
 
 msgid ""
-"Anfragen annehmen, Angebote/Kostenvoranschläge erstellen, Aufträge "
-"abrechnen."
+"Anfragen annehmen, Angebote/Kostenvoranschläge erstellen, Aufträge abrechnen."
 msgstr "Accept requests, create quotes/estimates, bill jobs."
 
 msgid ""
@@ -12539,8 +12456,8 @@ msgid ""
 "Kunden melden sich per E-Mail-Link an und sehen Bestellungen, Termine, "
 "Rechnungen und Bonuskarten."
 msgstr ""
-"Customers log in via an email link and see orders, appointments, invoices "
-"and loyalty cards."
+"Customers log in via an email link and see orders, appointments, invoices and"
+" loyalty cards."
 
 msgid "Umsatzjournal: Einnahmen aus Bestellungen, Reservierungen und manuell."
 msgstr "Revenue journal: income from orders, reservations and manual entries."
@@ -12694,8 +12611,8 @@ msgid "Widerruf erklären"
 msgstr "Declare withdrawal"
 
 msgid ""
-"Füllen Sie das Formular aus, um Ihren Kauf zu widerrufen. Pflichtfelder: "
-"Name und Ware."
+"Füllen Sie das Formular aus, um Ihren Kauf zu widerrufen. Pflichtfelder: Name"
+" und Ware."
 msgstr ""
 "Fill in the form to withdraw from your purchase. Required fields: name and "
 "goods."
@@ -12717,8 +12634,8 @@ msgstr "Send withdrawal"
 
 #, python-format
 msgid ""
-"Vielen Dank, %(name)s. Ihr Widerruf wurde an uns übermittelt. Sie erhalten "
-"in Kürze eine Bestätigung."
+"Vielen Dank, %(name)s. Ihr Widerruf wurde an uns übermittelt. Sie erhalten in"
+" Kürze eine Bestätigung."
 msgstr ""
 "Thank you, %(name)s. Your withdrawal has been submitted to us. You will "
 "receive a confirmation shortly."
@@ -12773,16 +12690,16 @@ msgid ""
 "Angeboten. Danach passt du alles Schritt für Schritt an. Beispiele lassen "
 "sich jederzeit wieder entfernen."
 msgstr ""
-"The quickest way to start is with ready-made examples — with photos, a "
-"banner and offers. Then you adjust everything step by step. Examples can be "
-"removed again at any time."
+"The quickest way to start is with ready-made examples — with photos, a banner"
+" and offers. Then you adjust everything step by step. Examples can be removed"
+" again at any time."
 
 msgid ""
-"Beispiel-Inhalte sind geladen — schau dir rechts deine Seite an und passe "
-"sie in den nächsten Schritten an."
+"Beispiel-Inhalte sind geladen — schau dir rechts deine Seite an und passe sie"
+" in den nächsten Schritten an."
 msgstr ""
-"Example content is loaded — take a look at your site on the right and adjust"
-" it in the next steps."
+"Example content is loaded — take a look at your site on the right and adjust "
+"it in the next steps."
 
 msgid "Beispiele wieder entfernen"
 msgstr "Remove examples again"
@@ -12818,11 +12735,11 @@ msgid "Überspringen"
 msgstr "Skip"
 
 msgid ""
-"Mit Beispielen füllen wir deinen Shop mit Muster-Angeboten, Banner und "
-"Texten — du änderst sie einfach ab."
+"Mit Beispielen füllen wir deinen Shop mit Muster-Angeboten, Banner und Texten"
+" — du änderst sie einfach ab."
 msgstr ""
-"With examples we fill your shop with sample offers, a banner and texts — you"
-" simply edit them."
+"With examples we fill your shop with sample offers, a banner and texts — you "
+"simply edit them."
 
 msgid "Deine Firma"
 msgstr "Your company"
@@ -12886,8 +12803,8 @@ msgid ""
 "Lade Beispiel-Produkte, Bilder und Aktionen — zum Ansehen und Anpassen. "
 "Jederzeit wieder entfernbar."
 msgstr ""
-"Load sample products, images and deals — to view and adjust. Removable again"
-" at any time."
+"Load sample products, images and deals — to view and adjust. Removable again "
+"at any time."
 
 msgid "Beispiel-Inhalte laden"
 msgstr "Load example content"
@@ -12930,11 +12847,10 @@ msgid "Foto (optional)"
 msgstr "Photo (optional)"
 
 msgid ""
-"„Über uns\" schafft Vertrauen. Wähle eine Seitenvorlage und erzähl kurz, wer"
-" ihr seid."
+"„Über uns\" schafft Vertrauen. Wähle eine Seitenvorlage und erzähl kurz, wer "
+"ihr seid."
 msgstr ""
-"“About us” builds trust. Choose a page template and briefly tell who you "
-"are."
+"“About us” builds trust. Choose a page template and briefly tell who you are."
 
 msgid "Über uns — Titel"
 msgstr "About us — title"
@@ -12962,19 +12878,18 @@ msgid ""
 msgstr ""
 "How are your products listed? Choose a layout — freely adjustable later."
 
-msgid ""
-"Auch für andere Listen übernehmen (Leistungen, Zimmer, Veranstaltungen)"
+msgid "Auch für andere Listen übernehmen (Leistungen, Zimmer, Veranstaltungen)"
 msgstr "Apply to other lists too (services, rooms, events)"
 
 msgid "Kategorien verwalten"
 msgstr "Manage categories"
 
 msgid ""
-"Wie soll die Seite eines einzelnen Angebots aussehen? Stil wählen, "
-"Abschnitte ein- oder ausblenden — rechts siehst du es sofort."
+"Wie soll die Seite eines einzelnen Angebots aussehen? Stil wählen, Abschnitte"
+" ein- oder ausblenden — rechts siehst du es sofort."
 msgstr ""
-"How should a single offer's page look? Choose a style, show or hide sections"
-" — you see it instantly on the right."
+"How should a single offer's page look? Choose a style, show or hide sections "
+"— you see it instantly on the right."
 
 msgid "Wie sieht dein Menü aus?"
 msgstr "What does your menu look like?"
@@ -13036,8 +12951,8 @@ msgid ""
 "Pflichtangaben nach §5 TMG. Steuerangaben (Kleinunternehmer §19, USt-IdNr.) "
 "unter „Recht & Steuer\"."
 msgstr ""
-"Mandatory information under §5 TMG. Tax details (small business §19, VAT ID)"
-" under “Legal & tax”."
+"Mandatory information under §5 TMG. Tax details (small business §19, VAT ID) "
+"under “Legal & tax”."
 
 msgid "Alle Rechtstexte (Datenschutz, Widerruf, AGB)"
 msgstr "All legal texts (privacy, withdrawal, terms)"
@@ -13409,11 +13324,11 @@ msgstr "Market position"
 
 #, python-format
 msgid ""
-"Your base price ranks %(p)s of %(n)s hotels in your city (platform listings,"
-" “from €/night”)."
+"Your base price ranks %(p)s of %(n)s hotels in your city (platform listings, "
+"“from €/night”)."
 msgstr ""
-"Your base price ranks %(p)s of %(n)s hotels in your city (platform listings,"
-" “from €/night”)."
+"Your base price ranks %(p)s of %(n)s hotels in your city (platform listings, "
+"“from €/night”)."
 
 msgid "median"
 msgstr "median"
@@ -13422,11 +13337,11 @@ msgid "you"
 msgstr "you"
 
 msgid ""
-"Public base prices of hotels on this platform in your city — for orientation"
-" only."
+"Public base prices of hotels on this platform in your city — for orientation "
+"only."
 msgstr ""
-"Public base prices of hotels on this platform in your city — for orientation"
-" only."
+"Public base prices of hotels on this platform in your city — for orientation "
+"only."
 
 msgid "Company"
 msgstr "Company"
@@ -13554,8 +13469,7 @@ msgstr ""
 msgid "Occupancy ≥ %(n)s"
 msgstr "Occupancy ≥ %(n)s"
 
-msgid ""
-"No dynamic price rules yet — online prices always match the base price."
+msgid "No dynamic price rules yet — online prices always match the base price."
 msgstr ""
 "No dynamic price rules yet — online prices always match the base price."
 
@@ -13578,11 +13492,11 @@ msgid "Only used for a birthday greeting — leave empty if you prefer."
 msgstr "Only used for a birthday greeting — leave empty if you prefer."
 
 msgid ""
-"Subscribers get a personal code on their birthday — once a year, opt-in "
-"only. Birthdays come from the customer card or the guest's own account."
+"Subscribers get a personal code on their birthday — once a year, opt-in only."
+" Birthdays come from the customer card or the guest's own account."
 msgstr ""
-"Subscribers get a personal code on their birthday — once a year, opt-in "
-"only. Birthdays come from the customer card or the guest's own account."
+"Subscribers get a personal code on their birthday — once a year, opt-in only."
+" Birthdays come from the customer card or the guest's own account."
 
 #, python-format
 msgid "%(n)s subscribers with a known birthday"
@@ -13616,12 +13530,12 @@ msgstr "Gap deal"
 msgid ""
 "Kurze freie Lücken zwischen Buchungen (z. B. 2–3 Nächte) verkaufen sich "
 "schwer — bieten Sie sie automatisch mit Rabatt an. Gilt, wenn der gesamte "
-"Aufenthalt in eine solche Lücke passt; wie bei den Automatik-Rabatten "
-"gewinnt die beste Ermäßigung (wird nicht addiert)."
+"Aufenthalt in eine solche Lücke passt; wie bei den Automatik-Rabatten gewinnt"
+" die beste Ermäßigung (wird nicht addiert)."
 msgstr ""
 "Short free gaps between bookings (e.g. 2–3 nights) are hard to sell — offer "
-"them with an automatic discount. Applies when the whole stay fits into such "
-"a gap; like the automatic discounts, the best reduction wins (not added up)."
+"them with an automatic discount. Applies when the whole stay fits into such a"
+" gap; like the automatic discounts, the best reduction wins (not added up)."
 
 msgid "Lücke bis … Nächte"
 msgstr "Gap up to … nights"
@@ -13630,8 +13544,8 @@ msgid "Rabatt %"
 msgstr "Discount %"
 
 msgid ""
-"Wir haben kurze Lücken zwischen Buchungen gefunden — solche Nächte verkaufen"
-" sich schwer. Lücken-Rabatt aktivieren?"
+"Wir haben kurze Lücken zwischen Buchungen gefunden — solche Nächte verkaufen "
+"sich schwer. Lücken-Rabatt aktivieren?"
 msgstr ""
 "We found short gaps between bookings — such nights are hard to sell. Enable "
 "the gap discount?"
@@ -13643,8 +13557,8 @@ msgid ""
 "Lücken-Rabatt aktivieren: kurze Lücken zwischen Buchungen (bis 3 Nächte) "
 "automatisch mit −25 % anbieten. Später unter „Units“ anpassbar."
 msgstr ""
-"Enable gap discount: automatically offer short gaps between bookings (up to "
-"3 nights) at −25 %. Adjustable later under “Units”."
+"Enable gap discount: automatically offer short gaps between bookings (up to 3"
+" nights) at −25 %. Adjustable later under “Units”."
 
 #: templates/stays/units.html:0
 msgid "Settings for all units"
@@ -13854,11 +13768,11 @@ msgid "In der Anprobe zurücklegen"
 msgstr "Reserve for fitting in store"
 
 msgid ""
-"Unverbindlich reservieren — wir legen es 48 Stunden für Sie zurück. Kauf und"
-" Bezahlung erst im Geschäft."
+"Unverbindlich reservieren — wir legen es 48 Stunden für Sie zurück. Kauf und "
+"Bezahlung erst im Geschäft."
 msgstr ""
-"Non-binding reservation — we'll hold it for 48 hours. Purchase and payment "
-"in store only."
+"Non-binding reservation — we'll hold it for 48 hours. Purchase and payment in"
+" store only."
 
 msgid "Bitte Name und eine gültige E-Mail angeben."
 msgstr "Please enter your name and a valid email."
@@ -14050,8 +13964,8 @@ msgstr "No opening hours set yet."
 
 #. hero-tiles / price-nav 2026-07-30
 msgid ""
-"Ohne Arbeitszeiten zeigt die Website «keine freien Termine» — unabhängig von"
-" der Leistung."
+"Ohne Arbeitszeiten zeigt die Website «keine freien Termine» — unabhängig von "
+"der Leistung."
 msgstr ""
 "Without working hours the website shows “no free appointments” — no matter "
 "which service."
@@ -14846,9 +14760,9 @@ msgstr ""
 
 #. I18N-3 cabinet templates 2026-07-30
 msgid ""
-"Nehmen Sie Zahlungen Ihrer Kunden direkt auf Ihr eigenes Stripe-Konto an (z."
-" B. Anzahlung für Reservierungen, Vorkasse bei Abholung). Das Geld geht "
-"direkt an Sie."
+"Nehmen Sie Zahlungen Ihrer Kunden direkt auf Ihr eigenes Stripe-Konto an (z. "
+"B. Anzahlung für Reservierungen, Vorkasse bei Abholung). Das Geld geht direkt"
+" an Sie."
 msgstr ""
 "Accept payments from your customers straight into your own Stripe account "
 "(e.g. deposit for reservations, prepayment for pickup). The money goes "
@@ -15420,8 +15334,8 @@ msgid ""
 "Bitte den Gast kontaktieren bzw. die Zahlung manuell klären (ggf. "
 "Rückerstattung bereits gezahlter Raten im Dashboard)."
 msgstr ""
-"Please contact the guest or settle the payment manually (refund already paid"
-" instalments in the dashboard if needed)."
+"Please contact the guest or settle the payment manually (refund already paid "
+"instalments in the dashboard if needed)."
 
 #. I18N-7a emails 2026-07-31
 msgid ""
@@ -15447,8 +15361,7 @@ msgstr "You can switch this overview off in the settings."
 msgid ""
 "Dieser Code kann als Promo-Code bei einer Buchung auf unserer Website "
 "eingelöst werden."
-msgstr ""
-"This code can be redeemed as a promo code when booking on our website."
+msgstr "This code can be redeemed as a promo code when booking on our website."
 
 #. I18N-7a emails 2026-07-31
 msgid "Erinnerung: TÜV / Service fällig"
@@ -15484,11 +15397,11 @@ msgstr "Today:"
 
 #. I18N-7a emails 2026-07-31
 msgid ""
-"Hinweis: Die Ratenzahlung zu Ticket %(code)s („%(title)s“, %(name)s) ist "
-"nach %(n)s Versuchen fehlgeschlagen — der Plan wurde auf „failed“ gesetzt."
+"Hinweis: Die Ratenzahlung zu Ticket %(code)s („%(title)s“, %(name)s) ist nach"
+" %(n)s Versuchen fehlgeschlagen — der Plan wurde auf „failed“ gesetzt."
 msgstr ""
-"Note: the instalment plan for ticket %(code)s (“%(title)s”, %(name)s) failed"
-" after %(n)s attempts — the plan was set to “failed”."
+"Note: the instalment plan for ticket %(code)s (“%(title)s”, %(name)s) failed "
+"after %(n)s attempts — the plan was set to “failed”."
 
 #. I18N-7a emails 2026-07-31
 msgid "Ihr Angebot %(code)s"
@@ -15700,9 +15613,9 @@ msgid ""
 "keine Zahlungspflicht. Sie entscheiden in Ruhe bei der Anprobe im Geschäft; "
 "gekauft und bezahlt wird erst vor Ort."
 msgstr ""
-"Important: this is a non-binding reservation — NOT a purchase contract and "
-"no obligation to pay. You decide at your leisure when trying on in the shop;"
-" buying and paying happens on site."
+"Important: this is a non-binding reservation — NOT a purchase contract and no"
+" obligation to pay. You decide at your leisure when trying on in the shop; "
+"buying and paying happens on site."
 
 #. I18N-7a emails 2026-07-31
 msgid "Wieder da: %(name)s"
@@ -15722,16 +15635,16 @@ msgstr "We will hold the reservation for you until %(until)s."
 
 #. I18N-7a emails 2026-07-31
 msgid ""
-"Wir konnten die Zahlung nach mehreren Versuchen nicht abbuchen. Bitte melden"
-" Sie sich bei uns, um die Ratenzahlung fortzusetzen."
+"Wir konnten die Zahlung nach mehreren Versuchen nicht abbuchen. Bitte melden "
+"Sie sich bei uns, um die Ratenzahlung fortzusetzen."
 msgstr ""
-"We could not collect the payment after several attempts. Please get in touch"
-" so we can continue the instalment plan."
+"We could not collect the payment after several attempts. Please get in touch "
+"so we can continue the instalment plan."
 
 #. I18N-7a emails 2026-07-31
 msgid ""
-"Wir versuchen es in den nächsten Tagen erneut. Sie können Ihre Zahlungsdaten"
-" auch hier prüfen:"
+"Wir versuchen es in den nächsten Tagen erneut. Sie können Ihre Zahlungsdaten "
+"auch hier prüfen:"
 msgstr ""
 "We will try again in the next few days. You can also check your payment "
 "details here:"
@@ -15750,8 +15663,8 @@ msgstr "on %(due)s"
 
 #. I18N-7a emails 2026-07-31
 msgid ""
-"die %(n)s. Rate (%(amount)s €) für „%(title)s“ konnte leider nicht "
-"eingezogen werden"
+"die %(n)s. Rate (%(amount)s €) für „%(title)s“ konnte leider nicht eingezogen"
+" werden"
 msgstr ""
 "instalment no. %(n)s (%(amount)s €) for “%(title)s” could unfortunately not "
 "be collected"
@@ -15771,8 +15684,7 @@ msgstr "good news — your job is done:"
 
 #. I18N-7a emails 2026-07-31
 msgid ""
-"gute Nachrichten: für <strong>„%(title)s“</strong> ist wieder ein Platz "
-"frei."
+"gute Nachrichten: für <strong>„%(title)s“</strong> ist wieder ein Platz frei."
 msgstr "good news: a place is free again for <strong>“%(title)s”</strong>."
 
 #. I18N-7a emails 2026-07-31
@@ -15863,11 +15775,19 @@ msgstr "Colour"
 msgid "Variante (leer = aus Größe/Farbe)"
 msgstr "Variant (empty = from size/colour)"
 
-msgid "Für Mode: Größe und Farbe getrennt eintragen — die Bezeichnung entsteht daraus automatisch."
-msgstr "For fashion: enter size and colour separately — the label is generated from them."
+msgid ""
+"Für Mode: Größe und Farbe getrennt eintragen — die Bezeichnung entsteht "
+"daraus automatisch."
+msgstr ""
+"For fashion: enter size and colour separately — the label is generated from "
+"them."
 
-msgid "Optional (Mode/Schuhe): eine Zeile pro Größe, Spalten mit „|“ — erste Zeile = Überschriften. Beispiel: „Größe | Brust (cm)“."
-msgstr "Optional (fashion/shoes): one line per size, columns separated by “|” — first line = headings. Example: “Size | Chest (cm)”."
+msgid ""
+"Optional (Mode/Schuhe): eine Zeile pro Größe, Spalten mit „|“ — erste Zeile ="
+" Überschriften. Beispiel: „Größe | Brust (cm)“."
+msgstr ""
+"Optional (fashion/shoes): one line per size, columns separated by “|” — first"
+" line = headings. Example: “Size | Chest (cm)”."
 
 msgid "Material / Zusammensetzung"
 msgstr "Material / composition"
@@ -15875,8 +15795,12 @@ msgstr "Material / composition"
 msgid "Pflegehinweise"
 msgstr "Care instructions"
 
-msgid "Textilkennzeichnung: offizielle Fasernamen, z. B. „95 % Baumwolle, 5 % Elasthan“ — Pflichtangabe bei Kleidung."
-msgstr "Textile labelling: official fibre names, e.g. “95 % cotton, 5 % elastane” — mandatory for clothing."
+msgid ""
+"Textilkennzeichnung: offizielle Fasernamen, z. B. „95 % Baumwolle, 5 % "
+"Elasthan“ — Pflichtangabe bei Kleidung."
+msgstr ""
+"Textile labelling: official fibre names, e.g. “95 % cotton, 5 % elastane” — "
+"mandatory for clothing."
 
 msgid "z. B. „30 °C Schonwäsche, nicht trocknergeeignet“ — optional."
 msgstr "e.g. “30 °C gentle cycle, not tumble dryer safe” — optional."
@@ -15983,8 +15907,12 @@ msgstr "Statuses & transitions"
 msgid "einem Gast"
 msgstr "a guest"
 
-msgid "Bestellungen an Lieferanten — Entwurf, Bestellung, Wareneingang. Der Eingang bucht Bestand & Ledger."
-msgstr "Purchase orders to suppliers — draft, ordered, goods receipt. The receipt books stock & ledger."
+msgid ""
+"Bestellungen an Lieferanten — Entwurf, Bestellung, Wareneingang. Der Eingang "
+"bucht Bestand & Ledger."
+msgstr ""
+"Purchase orders to suppliers — draft, ordered, goods receipt. The receipt "
+"books stock & ledger."
 
 msgid "— Lieferant (optional) —"
 msgstr "— Supplier (optional) —"
@@ -15995,8 +15923,12 @@ msgstr "Create draft"
 msgid "Aus Bestellvorschlägen"
 msgstr "From reorder suggestions"
 
-msgid "Erstellt einen Entwurf mit allen Artikeln unter Meldebestand (Menge = Sollbestand − Bestand)."
-msgstr "Creates a draft with every item below its reorder point (quantity = target − stock)."
+msgid ""
+"Erstellt einen Entwurf mit allen Artikeln unter Meldebestand (Menge = "
+"Sollbestand − Bestand)."
+msgstr ""
+"Creates a draft with every item below its reorder point (quantity = target − "
+"stock)."
 
 msgid "Entwurf erstellen"
 msgstr "Create draft"
@@ -16055,8 +15987,12 @@ msgstr "Shelf life / batches"
 msgid "kritisch"
 msgstr "critical"
 
-msgid "Chargen mit MHD, frühestes Datum zuerst (FEFO). Abgelaufene/bald ablaufende Chargen abschreiben (Verderb)."
-msgstr "Batches with a best-before date, earliest first (FEFO). Write off expired or soon-expiring batches (spoilage)."
+msgid ""
+"Chargen mit MHD, frühestes Datum zuerst (FEFO). Abgelaufene/bald ablaufende "
+"Chargen abschreiben (Verderb)."
+msgstr ""
+"Batches with a best-before date, earliest first (FEFO). Write off expired or "
+"soon-expiring batches (spoilage)."
 
 msgid "Stk"
 msgstr "pcs"
@@ -16076,8 +16012,12 @@ msgstr "Locations"
 msgid "Hauptlager"
 msgstr "Main warehouse"
 
-msgid "Mehrere Standorte (Laden, Lager, Wagen …)? Zweiten Standort anlegen — dann werden Umlagerung und Standort-Auswahl beim Wareneingang aktiv."
-msgstr "Several locations (shop, warehouse, van …)? Create a second location — transfers and the location picker on goods receipt become active."
+msgid ""
+"Mehrere Standorte (Laden, Lager, Wagen …)? Zweiten Standort anlegen — dann "
+"werden Umlagerung und Standort-Auswahl beim Wareneingang aktiv."
+msgstr ""
+"Several locations (shop, warehouse, van …)? Create a second location — "
+"transfers and the location picker on goods receipt become active."
 
 msgid "z. B. Lager hinten"
 msgstr "e.g. back store room"
@@ -16097,8 +16037,12 @@ msgstr "Transfer"
 msgid "Nach Standort:"
 msgstr "By location:"
 
-msgid "Eigene Namen für die Bestell-Status (nur Anzeige im Dashboard). Leer = Standard."
-msgstr "Custom names for order statuses (display only, in the dashboard). Empty = default."
+msgid ""
+"Eigene Namen für die Bestell-Status (nur Anzeige im Dashboard). Leer = "
+"Standard."
+msgstr ""
+"Custom names for order statuses (display only, in the dashboard). Empty = "
+"default."
 
 msgid "Aktiv beworben bis %(until)s"
 msgstr "Promoted until %(until)s"
@@ -16259,20 +16203,29 @@ msgstr ""
 msgid "Currently: New"
 msgstr ""
 
-msgid "Falls dir das neue Design nicht liegt: schalte hier auf die bisherige Oberfläche um — jederzeit umkehrbar, Daten und Funktionen bleiben gleich."
-msgstr "If the new design isn’t for you, switch back to the previous interface here — reversible at any time, data and features stay the same."
+msgid ""
+"Falls dir das neue Design nicht liegt: schalte hier auf die bisherige "
+"Oberfläche um — jederzeit umkehrbar, Daten und Funktionen bleiben gleich."
+msgstr ""
+"If the new design isn’t for you, switch back to the previous interface here —"
+" reversible at any time, data and features stay the same."
 
 msgid "Klassisch"
 msgstr "Classic"
 
-msgid "Keine Inhaber-E-Mail hinterlegt — E-Mail-Benachrichtigungen an Sie können nicht zugestellt werden."
+msgid ""
+"Keine Inhaber-E-Mail hinterlegt — E-Mail-Benachrichtigungen an Sie können "
+"nicht zugestellt werden."
 msgstr "No owner e-mail set — e-mail notifications to you cannot be delivered."
 
 msgid "In den Einstellungen ergänzen"
 msgstr "Add it in the settings"
 
-msgid "Alle verkäuflichen Artikel an einem Ort — Sichtbarkeit umschalten oder zum Bearbeiten öffnen."
-msgstr "Everything you sell in one place — toggle visibility or open it for editing."
+msgid ""
+"Alle verkäuflichen Artikel an einem Ort — Sichtbarkeit umschalten oder zum "
+"Bearbeiten öffnen."
+msgstr ""
+"Everything you sell in one place — toggle visibility or open it for editing."
 
 msgid "Noch keine Angebote — oben „＋“ wählen, um dein erstes anzulegen."
 msgstr "Nothing on offer yet — use “＋” above to create your first item."
@@ -16280,8 +16233,12 @@ msgstr "Nothing on offer yet — use “＋” above to create your first item."
 msgid "Drag to resize · double-click to reset"
 msgstr ""
 
-msgid "Lücken-Rabatt aktivieren: kurze Lücken zwischen Buchungen (bis 3 Nächte) automatisch mit −25 %% anbieten. Später unter „Units“ anpassbar."
-msgstr "Enable the gap discount: short gaps between bookings (up to 3 nights) are automatically offered at −25 %%. Adjustable later under “Units”."
+msgid ""
+"Lücken-Rabatt aktivieren: kurze Lücken zwischen Buchungen (bis 3 Nächte) "
+"automatisch mit −25 %% anbieten. Später unter „Units“ anpassbar."
+msgstr ""
+"Enable the gap discount: short gaps between bookings (up to 3 nights) are "
+"automatically offered at −25 %%. Adjustable later under “Units”."
 
 msgid "Compact inspector — denser fields, all controls kept"
 msgstr ""
@@ -16298,8 +16255,14 @@ msgstr ""
 msgid "Eigene Status"
 msgstr "Custom statuses"
 
-msgid "Eigene Zwischenstatus anlegen und mit bestehenden verbinden. Die Rolle bestimmt das Verhalten (Kapazität, Umsatz). Built-in-Status bleiben unverändert."
-msgstr "Create your own intermediate statuses and connect them to existing ones. The role defines the behaviour (capacity, revenue). Built-in statuses stay unchanged."
+msgid ""
+"Eigene Zwischenstatus anlegen und mit bestehenden verbinden. Die Rolle "
+"bestimmt das Verhalten (Kapazität, Umsatz). Built-in-Status bleiben "
+"unverändert."
+msgstr ""
+"Create your own intermediate statuses and connect them to existing ones. The "
+"role defines the behaviour (capacity, revenue). Built-in statuses stay "
+"unchanged."
 
 msgid "Löschen"
 msgstr "Delete"
@@ -16319,8 +16282,11 @@ msgstr "Reachable from:"
 msgid "Führt zu:"
 msgstr "Leads to:"
 
-msgid "Zuerst einen Status anlegen und speichern — danach erscheinen hier die Übergänge."
-msgstr "Create and save a status first — the transitions will appear here afterwards."
+msgid ""
+"Zuerst einen Status anlegen und speichern — danach erscheinen hier die "
+"Übergänge."
+msgstr ""
+"Create and save a status first — the transitions will appear here afterwards."
 
 msgid "Branchen"
 msgstr "Industries"
@@ -16328,32 +16294,68 @@ msgstr "Industries"
 msgid "Jetzt starten"
 msgstr "Get started"
 
-msgid "SiteAdaptor: Website, Buchungen, Bestellungen und Marketing für lokale Betriebe — aus einer Hand, DSGVO-freundlich."
-msgstr "SiteAdaptor: website, bookings, orders and marketing for local businesses — all in one, GDPR-friendly."
+msgid ""
+"SiteAdaptor: Website, Buchungen, Bestellungen und Marketing für lokale "
+"Betriebe — aus einer Hand, DSGVO-freundlich."
+msgstr ""
+"SiteAdaptor: website, bookings, orders and marketing for local businesses — "
+"all in one, GDPR-friendly."
 
-msgid "SiteAdaptor ist eine Plattform für lokale Betriebe im DACH-Raum: Bäckereien, Salons, Werkstätten, Hotels, Restaurants und viele mehr. Unsere Idee ist einfach — ein kleines Geschäft soll in Minuten online sein, ohne Agentur, ohne Technik-Stress und ohne Baukasten-Frust."
-msgstr "SiteAdaptor is a platform for local businesses in German-speaking Europe: bakeries, salons, workshops, hotels, restaurants and many more. Our idea is simple — a small business should be online in minutes, without an agency, without technical stress and without website-builder frustration."
+msgid ""
+"SiteAdaptor ist eine Plattform für lokale Betriebe im DACH-Raum: Bäckereien, "
+"Salons, Werkstätten, Hotels, Restaurants und viele mehr. Unsere Idee ist "
+"einfach — ein kleines Geschäft soll in Minuten online sein, ohne Agentur, "
+"ohne Technik-Stress und ohne Baukasten-Frust."
+msgstr ""
+"SiteAdaptor is a platform for local businesses in German-speaking Europe: "
+"bakeries, salons, workshops, hotels, restaurants and many more. Our idea is "
+"simple — a small business should be online in minutes, without an agency, "
+"without technical stress and without website-builder frustration."
 
 msgid "Was wir anders machen"
 msgstr "What we do differently"
 
-msgid "Statt eines leeren Baukastens bekommst du eine fertige Lösung für deine Branche: passende Seiten, passende Funktionen (Vorbestellung, Termine, Zimmerbuchung, Angebote, Tickets), passende Beispiele. Du tauschst Texte und Fotos — fertig."
-msgstr "Instead of an empty website builder you get a ready-made solution for your industry: the right pages, the right features (pre-orders, appointments, room bookings, offers, tickets) and matching examples. You swap texts and photos — done."
+msgid ""
+"Statt eines leeren Baukastens bekommst du eine fertige Lösung für deine "
+"Branche: passende Seiten, passende Funktionen (Vorbestellung, Termine, "
+"Zimmerbuchung, Angebote, Tickets), passende Beispiele. Du tauschst Texte und "
+"Fotos — fertig."
+msgstr ""
+"Instead of an empty website builder you get a ready-made solution for your "
+"industry: the right pages, the right features (pre-orders, appointments, room"
+" bookings, offers, tickets) and matching examples. You swap texts and photos "
+"— done."
 
 msgid "Alles an einem Ort"
 msgstr "Everything in one place"
 
-msgid "Website, Katalog, Buchungen und Bestellungen, Aktionen, Gutscheine und Stammkunden-Programme, Bewertungen und Kundennachrichten — ein Login, ein Werkzeug. Ohne Provisionen pro Bestellung."
-msgstr "Website, catalogue, bookings and orders, promotions, vouchers and loyalty programmes, reviews and customer messages — one login, one tool. No commission per order."
+msgid ""
+"Website, Katalog, Buchungen und Bestellungen, Aktionen, Gutscheine und "
+"Stammkunden-Programme, Bewertungen und Kundennachrichten — ein Login, ein "
+"Werkzeug. Ohne Provisionen pro Bestellung."
+msgstr ""
+"Website, catalogue, bookings and orders, promotions, vouchers and loyalty "
+"programmes, reviews and customer messages — one login, one tool. No "
+"commission per order."
 
 msgid "Datenschutz von Anfang an"
 msgstr "Privacy from day one"
 
-msgid "Gehostet in Europa, keine Tracking-Cookies auf deiner Website, Double-Opt-In für Newsletter, Gäste buchen ohne Konto. DSGVO ist bei uns Grundeinstellung, kein Add-on."
-msgstr "Hosted in Europe, no tracking cookies on your website, double opt-in for newsletters, guests book without an account. GDPR is our default, not an add-on."
+msgid ""
+"Gehostet in Europa, keine Tracking-Cookies auf deiner Website, Double-Opt-In "
+"für Newsletter, Gäste buchen ohne Konto. DSGVO ist bei uns Grundeinstellung, "
+"kein Add-on."
+msgstr ""
+"Hosted in Europe, no tracking cookies on your website, double opt-in for "
+"newsletters, guests book without an account. GDPR is our default, not an add-"
+"on."
 
-msgid "Fragen, Feedback, Partnerschaften? Schreib uns — die Kontaktdaten findest du im Impressum."
-msgstr "Questions, feedback, partnerships? Write to us — you’ll find our contact details in the imprint."
+msgid ""
+"Fragen, Feedback, Partnerschaften? Schreib uns — die Kontaktdaten findest du "
+"im Impressum."
+msgstr ""
+"Questions, feedback, partnerships? Write to us — you’ll find our contact "
+"details in the imprint."
 
 msgid "Jetzt kostenlos starten"
 msgstr "Start for free"
@@ -16364,11 +16366,19 @@ msgstr "Browse industries"
 msgid "Lösungen für deine Branche"
 msgstr "Solutions for your industry"
 
-msgid "Website, Buchungen, Bestellungen, Aktionen und Treue — passend für deine Branche. 14 Tage kostenlos testen."
-msgstr "Website, bookings, orders, promotions and loyalty — tailored to your industry. Try it free for 14 days."
+msgid ""
+"Website, Buchungen, Bestellungen, Aktionen und Treue — passend für deine "
+"Branche. 14 Tage kostenlos testen."
+msgstr ""
+"Website, bookings, orders, promotions and loyalty — tailored to your "
+"industry. Try it free for 14 days."
 
-msgid "Website, Buchungen, Bestellungen, Aktionen und Treue — abgestimmt auf dein Geschäft. Wähle deine Branche und sieh, was möglich ist."
-msgstr "Website, bookings, orders, promotions and loyalty — matched to your business. Pick your industry and see what’s possible."
+msgid ""
+"Website, Buchungen, Bestellungen, Aktionen und Treue — abgestimmt auf dein "
+"Geschäft. Wähle deine Branche und sieh, was möglich ist."
+msgstr ""
+"Website, bookings, orders, promotions and loyalty — matched to your business."
+" Pick your industry and see what’s possible."
 
 msgid "Mehr erfahren"
 msgstr "Learn more"
@@ -16487,13 +16497,13 @@ msgstr "Amenities on the room card"
 
 #: templates/stays/units.html
 msgid ""
-"Which icons guests see on the room cards (list and home page). Only "
-"amenities the room actually has are shown. Leave everything "
-"unchecked to show the room's first few amenities."
+"Which icons guests see on the room cards (list and home page). Only amenities"
+" the room actually has are shown. Leave everything unchecked to show the "
+"room's first few amenities."
 msgstr ""
-"Which icons guests see on the room cards (list and home page). Only "
-"amenities the room actually has are shown. Leave everything "
-"unchecked to show the room's first few amenities."
+"Which icons guests see on the room cards (list and home page). Only amenities"
+" the room actually has are shown. Leave everything unchecked to show the "
+"room's first few amenities."
 
 #: apps/booking/views.py templates/booking/availability.html
 msgid "Day reopened."
@@ -16505,11 +16515,11 @@ msgstr "Sales closed for this day."
 
 #: apps/booking/views.py templates/booking/availability.html
 msgid ""
-"No opening hours yet — that is why the website shows no free "
-"appointments. Add weekly hours under “Opening hours & resources”."
+"No opening hours yet — that is why the website shows no free appointments. "
+"Add weekly hours under “Opening hours & resources”."
 msgstr ""
-"No opening hours yet — that is why the website shows no free "
-"appointments. Add weekly hours under “Opening hours & resources”."
+"No opening hours yet — that is why the website shows no free appointments. "
+"Add weekly hours under “Opening hours & resources”."
 
 #: apps/booking/views.py templates/booking/availability.html
 msgid "Whole business"
@@ -16529,11 +16539,11 @@ msgstr "Open — click to close sales"
 
 #: apps/booking/views.py templates/booking/availability.html
 msgid ""
-"A closed day disappears from the website for all services (or for "
-"the selected resource only)."
+"A closed day disappears from the website for all services (or for the "
+"selected resource only)."
 msgstr ""
-"A closed day disappears from the website for all services (or for "
-"the selected resource only)."
+"A closed day disappears from the website for all services (or for the "
+"selected resource only)."
 
 #: templates/booking/availability.html
 msgid "Bookable"
@@ -16618,8 +16628,12 @@ msgstr "Grid view"
 msgid "Beispiele nach Funktion"
 msgstr "Examples by feature"
 
-msgid "Jede Kachel öffnet die passende Seite einer echten Demo-Website — kein Video, kein Screenshot."
-msgstr "Each tile opens the matching page of a real demo website — no video, no screenshot."
+msgid ""
+"Jede Kachel öffnet die passende Seite einer echten Demo-Website — kein Video,"
+" kein Screenshot."
+msgstr ""
+"Each tile opens the matching page of a real demo website — no video, no "
+"screenshot."
 
 msgid "Live ansehen"
 msgstr "View live"
@@ -16627,14 +16641,19 @@ msgstr "View live"
 msgid "Aktionen & Rabatte"
 msgstr "Offers & discounts"
 
-msgid "Prozent, Festpreis, Mystery-Deal, Countdown, begrenzte Stückzahl — alle Aktionstypen auf einer Seite."
-msgstr "Percentage, fixed price, mystery deal, countdown, limited stock — every offer type on one page."
+msgid ""
+"Prozent, Festpreis, Mystery-Deal, Countdown, begrenzte Stückzahl — alle "
+"Aktionstypen auf einer Seite."
+msgstr ""
+"Percentage, fixed price, mystery deal, countdown, limited stock — every offer"
+" type on one page."
 
 msgid "Termine online buchen"
 msgstr "Book appointments online"
 
 msgid "Mitarbeiter wählen, Kalender, freie Zeiten — Buchung ohne Anruf."
-msgstr "Pick a specialist, calendar, free times — booking without a phone call."
+msgstr ""
+"Pick a specialist, calendar, free times — booking without a phone call."
 
 msgid "Übernachtungen buchen"
 msgstr "Book overnight stays"
@@ -16664,7 +16683,8 @@ msgid "Anfragen & Angebote"
 msgstr "Requests & quotes"
 
 msgid "Anfrage vom Kunden, Festpreis-Angebot zurück, Annahme mit einem Klick."
-msgstr "Request from the customer, fixed-price quote back, accepted in one click."
+msgstr ""
+"Request from the customer, fixed-price quote back, accepted in one click."
 
 msgid "Produktfinder"
 msgstr "Product finder"
@@ -16855,8 +16875,14 @@ msgstr "Merge"
 msgid "Als Varianten zusammenführen"
 msgstr "Merge as variants"
 
-msgid "Choose the main product — the others become its variants (name, price, stock, Art.-Nr., EAN and photo move along) and disappear from the storefront. Past orders keep their history."
-msgstr "Choose the main product — the others become its variants (name, price, stock, item no., EAN and photo move along) and disappear from the storefront. Past orders keep their history."
+msgid ""
+"Choose the main product — the others become its variants (name, price, stock,"
+" Art.-Nr., EAN and photo move along) and disappear from the storefront. Past "
+"orders keep their history."
+msgstr ""
+"Choose the main product — the others become its variants (name, price, stock,"
+" item no., EAN and photo move along) and disappear from the storefront. Past "
+"orders keep their history."
 
 msgid "The selected product stays — the rest become its variants."
 msgstr "The selected product stays — the rest become its variants."
@@ -16989,8 +17015,12 @@ msgstr "Sets the checkboxes below — then press “Save”."
 msgid "Abläufe"
 msgstr "Workflows"
 
-msgid "Status-Namen, Statusübergänge und Board-Spalten für Ihre Verkäufe — an einem Ort."
-msgstr "Status names, status transitions and board columns for your sales — in one place."
+msgid ""
+"Status-Namen, Statusübergänge und Board-Spalten für Ihre Verkäufe — an einem "
+"Ort."
+msgstr ""
+"Status names, status transitions and board columns for your sales — in one "
+"place."
 
 msgid "Status-Namen, Übergänge und Board-Spalten:"
 msgstr "Status names, transitions and board columns:"
@@ -17061,8 +17091,12 @@ msgstr "You have been invited to the team. Set up your access:"
 msgid "Team & Zugriff"
 msgstr "Team & access"
 
-msgid "Mitarbeiter einladen und Rollen verwalten. Abo, Recht & Steuern und diese Seite bleiben dem Inhaber vorbehalten."
-msgstr "Invite staff and manage roles. Subscription, Legal & taxes and this page remain owner-only."
+msgid ""
+"Mitarbeiter einladen und Rollen verwalten. Abo, Recht & Steuern und diese "
+"Seite bleiben dem Inhaber vorbehalten."
+msgstr ""
+"Invite staff and manage roles. Subscription, Legal & taxes and this page "
+"remain owner-only."
 
 msgid "Mitglieder"
 msgstr "Members"
@@ -17079,8 +17113,14 @@ msgstr "Remove"
 msgid "Mitarbeiter einladen"
 msgstr "Invite staff"
 
-msgid "Einladung erzeugt einen einmaligen Link (7 Tage gültig). Admin und Mitarbeiter unterscheiden sich derzeit nicht — beide ohne Zugriff auf Abo, Recht und Team."
-msgstr "The invitation creates a single-use link (valid 7 days). Admin and staff currently do not differ — both without access to subscription, legal and team."
+msgid ""
+"Einladung erzeugt einen einmaligen Link (7 Tage gültig). Admin und "
+"Mitarbeiter unterscheiden sich derzeit nicht — beide ohne Zugriff auf Abo, "
+"Recht und Team."
+msgstr ""
+"The invitation creates a single-use link (valid 7 days). Admin and staff "
+"currently do not differ — both without access to subscription, legal and "
+"team."
 
 msgid "Rolle"
 msgstr "Role"
@@ -17091,8 +17131,12 @@ msgstr "Invite"
 msgid "Team beitreten"
 msgstr "Join the team"
 
-msgid "Dieser Einladungslink ist ungültig oder abgelaufen. Bitten Sie den Inhaber um eine neue Einladung."
-msgstr "This invitation link is invalid or has expired. Ask the owner for a new invitation."
+msgid ""
+"Dieser Einladungslink ist ungültig oder abgelaufen. Bitten Sie den Inhaber um"
+" eine neue Einladung."
+msgstr ""
+"This invitation link is invalid or has expired. Ask the owner for a new "
+"invitation."
 
 msgid "Dieses Konto ist bereits Mitglied des Teams."
 msgstr "This account is already a member of the team."
@@ -17136,32 +17180,54 @@ msgstr "Tracking number (optional)"
 msgid "Über den Betrieb"
 msgstr "About the business"
 
-msgid "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb — Antworten folgen."
-msgstr "Reviews from the city portal (/entdecken) about your business — replies coming soon."
+msgid ""
+"Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb — Antworten "
+"folgen."
+msgstr ""
+"Reviews from the city portal (/entdecken) about your business — replies "
+"coming soon."
 
 msgid "Aktion für dieses Angebot erstellen"
 msgstr "Create a promotion for this offer"
 
-msgid "Aktion gilt für diese Leistung — Aktionspreis greift automatisch bei der Buchung."
-msgstr "Promotion applies to this service — the promo price is applied automatically at booking."
+msgid ""
+"Aktion gilt für diese Leistung — Aktionspreis greift automatisch bei der "
+"Buchung."
+msgstr ""
+"Promotion applies to this service — the promo price is applied automatically "
+"at booking."
 
-msgid "Aktion gilt für dieses Zimmer — wirkt als Preis-Kandidat bei der Buchung."
+msgid ""
+"Aktion gilt für dieses Zimmer — wirkt als Preis-Kandidat bei der Buchung."
 msgstr "Promotion applies to this room — acts as a price candidate at booking."
 
-msgid "Einfach zeigt nur das Wesentliche; Experte zeigt alles. Der Schalter oben in der Kopfzeile tut dasselbe."
-msgstr "Simple shows only the essentials; Expert shows everything. The switch in the header does the same."
+msgid ""
+"Einfach zeigt nur das Wesentliche; Experte zeigt alles. Der Schalter oben in "
+"der Kopfzeile tut dasselbe."
+msgstr ""
+"Simple shows only the essentials; Expert shows everything. The switch in the "
+"header does the same."
 
 msgid "Was der Einfach-Modus bei Ihnen ausblendet"
 msgstr "What Simple mode hides for you"
 
-msgid "Nichts — alle Ihre aktiven Bereiche sind auch im Einfach-Modus sichtbar."
+msgid ""
+"Nichts — alle Ihre aktiven Bereiche sind auch im Einfach-Modus sichtbar."
 msgstr "Nothing — all your active sections are visible in Simple mode too."
 
-msgid "Zusätzlich verbirgt Einfach die Schublade „Erweitert“ der Tab-Leisten und Profi-Felder in Formularen. Alle Seiten bleiben per direktem Link erreichbar."
-msgstr "Simple also hides the “Advanced” drawer of the tab bars and pro fields in forms. All pages remain reachable via direct link."
+msgid ""
+"Zusätzlich verbirgt Einfach die Schublade „Erweitert“ der Tab-Leisten und "
+"Profi-Felder in Formularen. Alle Seiten bleiben per direktem Link erreichbar."
+msgstr ""
+"Simple also hides the “Advanced” drawer of the tab bars and pro fields in "
+"forms. All pages remain reachable via direct link."
 
-msgid "Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb. Ihre Antwort erscheint öffentlich auf dem Portal."
-msgstr "Reviews from the city portal (/entdecken) about your business. Your reply appears publicly on the portal."
+msgid ""
+"Bewertungen vom Stadtportal (/entdecken) über Ihren Betrieb. Ihre Antwort "
+"erscheint öffentlich auf dem Portal."
+msgstr ""
+"Reviews from the city portal (/entdecken) about your business. Your reply "
+"appears publicly on the portal."
 
 #: templates/tenant/site_home.html
 msgid "More tools"
@@ -17345,12 +17411,15 @@ msgstr "Type of event"
 msgid "Anfrage-Formular"
 msgstr "Request form"
 
-msgid "Zusätzliche Felder auf der öffentlichen Anfrage-Seite (z. B. für Catering / Partyservice)."
-msgstr "Additional fields on the public request page (e.g. for catering / party service)."
+msgid ""
+"Zusätzliche Felder auf der öffentlichen Anfrage-Seite (z. B. für Catering / "
+"Partyservice)."
+msgstr ""
+"Additional fields on the public request page (e.g. for catering / party "
+"service)."
 
 msgid "Auswahlliste (eine Option pro Zeile)"
 msgstr "Choice list (one option per line)"
-
 
 # GK-1: архетип Catering (тип/карточка/hero-плитки/feature-demo)
 msgid "Catering / Partyservice"
@@ -17372,8 +17441,8 @@ msgid "Event-Anfrage fürs Catering"
 msgstr "Event request for catering"
 
 msgid "Wunschdatum, Gästezahl und Anlass — Angebot kommt per E-Mail."
-msgstr "Preferred date, number of guests and occasion — the quote arrives by email."
-
+msgstr ""
+"Preferred date, number of guests and occasion — the quote arrives by email."
 
 # GK-4: C-блок «полоса цифр» (stats)
 msgid "Numbers"
@@ -17413,19 +17482,18 @@ msgstr "privacy policy"
 msgid "Signup form with double opt-in"
 msgstr "Signup form with double opt-in"
 
-
 # GK-7: founder-пресет image_text
 msgid "Gründer-Zitat"
 msgstr "Founder quote"
-
 
 # GK-5: usp-столпы (pillars)
 msgid "Säulen"
 msgstr "Pillars"
 
-msgid "One per line: icon | title | description (optional, for the “Pillars” style)."
-msgstr "One per line: icon | title | description (optional, for the “Pillars” style)."
-
+msgid ""
+"One per line: icon | title | description (optional, for the “Pillars” style)."
+msgstr ""
+"One per line: icon | title | description (optional, for the “Pillars” style)."
 
 # GK-6: testimonials рейтинг/фото + аватар-ряд trust
 msgid "One per line: Name | Text | Stars 1–5 | Photo URL (both optional)."
@@ -17434,11 +17502,13 @@ msgstr "One per line: Name | Text | Stars 1–5 | Photo URL (both optional)."
 msgid "Happy customers"
 msgstr "Happy customers"
 
-
 # GK-9: help-текст соцполей
-msgid "Handle oder vollständige URL (z. B. @meinladen). Gefüllte Profile erscheinen als Icons im Footer Ihrer Website."
-msgstr "Handle or full URL (e.g. @meinladen). Filled-in profiles appear as icons in your website footer."
-
+msgid ""
+"Handle oder vollständige URL (z. B. @meinladen). Gefüllte Profile erscheinen "
+"als Icons im Footer Ihrer Website."
+msgstr ""
+"Handle or full URL (e.g. @meinladen). Filled-in profiles appear as icons in "
+"your website footer."
 
 # GK-11: Google-рейтинг (Places API)
 msgid "Google Bewertungen"
@@ -17450,11 +17520,18 @@ msgstr "Show your Google rating and review count on the website"
 msgid "Wartet auf erste Aktualisierung"
 msgstr "Waiting for first refresh"
 
-msgid "Die Place ID Ihres Google-Unternehmensprofils (z. B. ChIJ…). Zu finden über den Google Place ID Finder oder im Business-Profil."
-msgstr "The Place ID of your Google Business Profile (e.g. ChIJ…). Find it via the Google Place ID Finder or in your Business Profile."
+msgid ""
+"Die Place ID Ihres Google-Unternehmensprofils (z. B. ChIJ…). Zu finden über "
+"den Google Place ID Finder oder im Business-Profil."
+msgstr ""
+"The Place ID of your Google Business Profile (e.g. ChIJ…). Find it via the "
+"Google Place ID Finder or in your Business Profile."
 
-msgid "Aktualisierung fehlgeschlagen — Place ID prüfen; der Plattform-API-Schlüssel muss konfiguriert sein."
-msgstr "Refresh failed — check the Place ID; the platform API key must be configured."
+msgid ""
+"Aktualisierung fehlgeschlagen — Place ID prüfen; der Plattform-API-Schlüssel "
+"muss konfiguriert sein."
+msgstr ""
+"Refresh failed — check the Place ID; the platform API key must be configured."
 
 msgid "Aktualisiert."
 msgstr "Refreshed."
@@ -17462,8 +17539,12 @@ msgstr "Refreshed."
 msgid "Jetzt aktualisieren"
 msgstr "Refresh now"
 
-msgid "Zeigt Bewertung und Anzahl Ihres Google-Unternehmensprofils auf der Website (Vertrauensleiste und Bewertungsseite)."
-msgstr "Shows the rating and review count of your Google Business Profile on the website (trust bar and reviews page)."
+msgid ""
+"Zeigt Bewertung und Anzahl Ihres Google-Unternehmensprofils auf der Website "
+"(Vertrauensleiste und Bewertungsseite)."
+msgstr ""
+"Shows the rating and review count of your Google Business Profile on the "
+"website (trust bar and reviews page)."
 
 msgid "Zuletzt aktualisiert"
 msgstr "Last refreshed"
@@ -17471,17 +17552,14 @@ msgstr "Last refreshed"
 msgid "Automatische Aktualisierung alle paar Tage"
 msgstr "Refreshes automatically every few days"
 
-
 msgid "%(n)s Google-Bewertung"
 msgid_plural "%(n)s Google-Bewertungen"
 msgstr[0] "%(n)s Google review"
 msgstr[1] "%(n)s Google reviews"
 
-
 # GK-13: Speisekarte-PDF
 msgid "Menu as PDF"
 msgstr "Menu as PDF"
-
 
 # GK-14: Anfrage-CTA на browse-only каталоге
 msgid "Unverbindlich — wir melden uns mit einem Angebot."
@@ -17490,20 +17568,24 @@ msgstr "No obligation — we'll get back to you with a quote."
 # DS-3a: прайс-лист каталога (Fokus)
 msgid "Ganze Speisekarte"
 msgstr "Full menu"
+
 msgid "Weitere"
 msgstr "More"
+
 msgid "Preisliste"
 msgstr "Price list"
 
 # DS-3c: сборки (Startpakete)
 msgid "Startpaket"
 msgstr "Starter pack"
+
 msgid "Startpaket angewendet."
 msgstr "Starter pack applied."
 
 # DS-4b: anfrage-банда на главной (Fokus)
 msgid "Planen Sie Ihr nächstes Event?"
 msgstr "Planning your next event?"
+
 msgid "Event-Anfrage"
 msgstr "Event enquiry"
 
@@ -17520,20 +17602,28 @@ msgstr[1] "%(n)s products"
 # DS-5/5b: сеточные контролы Studio + прайс с фото
 msgid "Ausgleichen"
 msgstr "Balance"
+
 msgid "Scrollen"
 msgstr "Scroll"
+
 msgid "Unvollständige Reihe zentrieren"
 msgstr "Center incomplete row"
+
 msgid "Kacheln in einer Reihe mit seitlichem Scrollen"
 msgstr "Tiles in one row with side scrolling"
+
 msgid "Bildhöhe"
 msgstr "Image height"
+
 msgid "Bildhöhe (px)"
 msgstr "Image height (px)"
+
 msgid "ab-Preis"
 msgstr "From-price"
+
 msgid "Produktanzahl"
 msgstr "Product count"
+
 msgid "Preisliste mit Fotos"
 msgstr "Price list with photos"
 
@@ -17544,58 +17634,86 @@ msgstr "Search…"
 # DS-6: пресеты 5/6 в ряд
 msgid "5 per row"
 msgstr "5 per row"
+
 msgid "6 per row"
 msgstr "6 per row"
 
 # DS-5c: семейство прайс-видов
 msgid "Preisliste kompakt"
 msgstr "Compact price list"
+
 msgid "Preisliste zweispaltig"
 msgstr "Two-column price list"
+
 msgid "Min."
 msgstr "min"
+
 msgid "Services layout"
 msgstr "Services layout"
+
 msgid "Services page (/termin/) — grid or price list."
 msgstr "Services page (/termin/) — grid or price list."
+
 msgid "Seite %(r)s von %(n)s"
 msgstr "Page %(r)s of %(n)s"
+
 msgid "Alle Hauptkategorien"
 msgstr "All main categories"
+
 msgid "Categories submenu"
 msgstr "Categories submenu"
-msgid "The categories submenu fills itself from your catalogue. Categories with a photo are shown as picture tiles."
-msgstr "The categories submenu fills itself from your catalogue. Categories with a photo are shown as picture tiles."
+
+msgid ""
+"The categories submenu fills itself from your catalogue. Categories with a "
+"photo are shown as picture tiles."
+msgstr ""
+"The categories submenu fills itself from your catalogue. Categories with a "
+"photo are shown as picture tiles."
+
 msgid "Manage category photos"
 msgstr "Manage category photos"
+
 msgid "Fortsetzung"
 msgstr "continued"
+
 msgid "Speisekarte zum Blättern"
 msgstr "Flip-through menu"
+
 msgid "Weitere %(n)s anzeigen"
 msgstr "Show %(n)s more"
+
 msgid "Seite"
 msgstr "Page"
+
 msgid "Zurückblättern"
 msgstr "Previous page"
+
 msgid "Weiterblättern"
 msgstr "Next page"
+
 msgid "Fotoliste zweispaltig"
 msgstr "Two-column photo list"
+
 msgid "Fotoliste dreispaltig"
 msgstr "Three-column photo list"
+
 msgid "Speisekarte klassisch"
 msgstr "Classic menu card"
 
 # DS-7: лендинги направлений + цены в меню
 msgid "Bereichs-Landingpages"
 msgstr "Category landing pages"
+
 msgid "Preise in der Speisekarte anzeigen"
 msgstr "Show prices in the menu"
+
 msgid "Beispiele aus der Küche"
 msgstr "Examples from our kitchen"
-msgid "Jedes Event wird individuell zusammengestellt — fragen Sie unverbindlich an."
-msgstr "Every event is put together individually — send us a no-obligation enquiry."
+
+msgid ""
+"Jedes Event wird individuell zusammengestellt — fragen Sie unverbindlich an."
+msgstr ""
+"Every event is put together individually — send us a no-obligation enquiry."
 
 #: apps/catalog/food.py
 msgid "Vorspeise"
@@ -17678,16 +17796,22 @@ msgid "Free choice from category"
 msgstr "Free choice from category"
 
 #: templates/catalog/combo_form.html
-msgid "Guests pick any dishes of the category at à la carte prices — choice groups below are ignored."
-msgstr "Guests pick any dishes of the category at à la carte prices — choice groups below are ignored."
+msgid ""
+"Guests pick any dishes of the category at à la carte prices — choice groups "
+"below are ignored."
+msgstr ""
+"Guests pick any dishes of the category at à la carte prices — choice groups "
+"below are ignored."
 
 #: templates/catalog/combo_form.html
 msgid "In set"
 msgstr "In set"
 
 #: templates/catalog/combo_form.html
-msgid "Shown as part of the set — guests do not choose; cost is in the fixed price."
-msgstr "Shown as part of the set — guests do not choose; cost is in the fixed price."
+msgid ""
+"Shown as part of the set — guests do not choose; cost is in the fixed price."
+msgstr ""
+"Shown as part of the set — guests do not choose; cost is in the fixed price."
 
 #: apps/orders/public_views.py
 msgid "Minimum for this set: %(n)s persons."
@@ -17742,8 +17866,14 @@ msgid "Unverbindliche Kalkulation: %(total)s €"
 msgstr "Non-binding estimate: %(total)s €"
 
 #: templates/emails/order_quote_created.txt
-msgid "Wichtig: Das ist eine unverbindliche Anfrage — KEIN Kaufvertrag und keine Zahlungspflicht. Wir prüfen Termin und Details und melden uns mit einem verbindlichen Angebot bei Ihnen."
-msgstr "Important: this is a non-binding inquiry — NOT a purchase contract and no obligation to pay. We will check the date and details and get back to you with a binding offer."
+msgid ""
+"Wichtig: Das ist eine unverbindliche Anfrage — KEIN Kaufvertrag und keine "
+"Zahlungspflicht. Wir prüfen Termin und Details und melden uns mit einem "
+"verbindlichen Angebot bei Ihnen."
+msgstr ""
+"Important: this is a non-binding inquiry — NOT a purchase contract and no "
+"obligation to pay. We will check the date and details and get back to you "
+"with a binding offer."
 
 #: templates/emails/order_quote_created.txt
 msgid "Bis gleich!"
@@ -17754,16 +17884,22 @@ msgid "Ihre Anfrage ist da — %(code)s"
 msgstr "Your inquiry has arrived — %(code)s"
 
 #: templates/storefront/cart.html
-msgid "Unverbindlich — keine Zahlungspflicht. Wir melden uns mit einem Angebot."
-msgstr "Non-binding — no obligation to pay. We will get back to you with an offer."
+msgid ""
+"Unverbindlich — keine Zahlungspflicht. Wir melden uns mit einem Angebot."
+msgstr ""
+"Non-binding — no obligation to pay. We will get back to you with an offer."
 
 #: templates/storefront/order_confirmation.html
 msgid "Danke! Ihre Anfrage ist da."
 msgstr "Thank you! Your inquiry has arrived."
 
 #: templates/storefront/order_confirmation.html
-msgid "Wir prüfen Termin und Details und melden uns mit einem Angebot. Ihre Anfrage-Nummer:"
-msgstr "We will check the date and details and get back to you with an offer. Your inquiry number:"
+msgid ""
+"Wir prüfen Termin und Details und melden uns mit einem Angebot. Ihre Anfrage-"
+"Nummer:"
+msgstr ""
+"We will check the date and details and get back to you with an offer. Your "
+"inquiry number:"
 
 #: apps/aggregator/shortlist.py
 msgid "Anbieter"
@@ -17810,16 +17946,23 @@ msgid "Ihre Merkliste"
 msgstr "Your shortlist"
 
 #: templates/aggregator/shortlist.html
-msgid "Gemerkte Angebote nebeneinander vergleichen — Preis, Mindestbestellung, Anlässe und Ernährung auf einen Blick."
-msgstr "Compare saved offers side by side — price, minimum order, occasions and diet at a glance."
+msgid ""
+"Gemerkte Angebote nebeneinander vergleichen — Preis, Mindestbestellung, "
+"Anlässe und Ernährung auf einen Blick."
+msgstr ""
+"Compare saved offers side by side — price, minimum order, occasions and diet "
+"at a glance."
 
 #: templates/aggregator/shortlist.html
 msgid "entfernen"
 msgstr "remove"
 
 #: templates/aggregator/shortlist.html
-msgid "Noch nichts gemerkt. Tippen Sie bei einem Angebot auf «Merken» — hier vergleichen Sie dann die Varianten."
-msgstr "Nothing saved yet. Tap «Save» on an offer — then compare the options here."
+msgid ""
+"Noch nichts gemerkt. Tippen Sie bei einem Angebot auf «Merken» — hier "
+"vergleichen Sie dann die Varianten."
+msgstr ""
+"Nothing saved yet. Tap «Save» on an offer — then compare the options here."
 
 #: templates/aggregator/shortlist.html
 msgid "Angebote entdecken"
@@ -17844,8 +17987,8 @@ msgstr "{name} at {tenant}{city_sfx}."
 #: apps/core/seo_meta.py
 msgid "{category} bei {tenant}{city_sfx}."
 msgstr "{category} at {tenant}{city_sfx}."
-# --- MT-1: Reisen (Tour-Produkt, Route) ---
 
+# --- MT-1: Reisen (Tour-Produkt, Route) ---
 msgid "Reisen"
 msgstr "Tours"
 
@@ -17903,8 +18046,12 @@ msgstr "All tours"
 msgid "Route (day by day)"
 msgstr "Route (day by day)"
 
-msgid "Visibility is set per stop: keep your route private, share selected highlights publicly or with participants only."
-msgstr "Visibility is set per stop: keep your route private, share selected highlights publicly or with participants only."
+msgid ""
+"Visibility is set per stop: keep your route private, share selected "
+"highlights publicly or with participants only."
+msgstr ""
+"Visibility is set per stop: keep your route private, share selected "
+"highlights publicly or with participants only."
 
 msgid "Day"
 msgstr "Day"
@@ -17942,8 +18089,12 @@ msgstr "No departures yet — create an event and pick this tour in the form."
 msgid "Tours"
 msgstr "Tours"
 
-msgid "A tour holds the content and the route; each date is a departure (event) with its own prices and seats."
-msgstr "A tour holds the content and the route; each date is a departure (event) with its own prices and seats."
+msgid ""
+"A tour holds the content and the route; each date is a departure (event) with"
+" its own prices and seats."
+msgstr ""
+"A tour holds the content and the route; each date is a departure (event) with"
+" its own prices and seats."
 
 msgid "New tour"
 msgstr "New tour"
@@ -17960,8 +18111,12 @@ msgstr "Route"
 msgid "Day %(n)s"
 msgstr "Day %(n)s"
 
-msgid "The detailed route is part of our guides' know-how — participants receive it after booking."
-msgstr "The detailed route is part of our guides' know-how — participants receive it after booking."
+msgid ""
+"The detailed route is part of our guides' know-how — participants receive it "
+"after booking."
+msgstr ""
+"The detailed route is part of our guides' know-how — participants receive it "
+"after booking."
 
 msgid "Duration"
 msgstr "Duration"
@@ -18024,7 +18179,6 @@ msgid "Tour deleted."
 msgstr "Tour deleted."
 
 # --- MT-2: Dokumente der Teilnehmer ---
-
 msgid "Reisepass"
 msgstr "Passport"
 
@@ -18068,7 +18222,8 @@ msgid "Participant"
 msgstr "Participant"
 
 msgid "Files are stored encrypted; opening one is logged as a download by you."
-msgstr "Files are stored encrypted; opening one is logged as a download by you."
+msgstr ""
+"Files are stored encrypted; opening one is logged as a download by you."
 
 msgid "No participants yet."
 msgstr "No participants yet."
@@ -18076,8 +18231,12 @@ msgstr "No participants yet."
 msgid "My documents"
 msgstr "My documents"
 
-msgid "Your files are stored encrypted and can only be opened by you and the organiser."
-msgstr "Your files are stored encrypted and can only be opened by you and the organiser."
+msgid ""
+"Your files are stored encrypted and can only be opened by you and the "
+"organiser."
+msgstr ""
+"Your files are stored encrypted and can only be opened by you and the "
+"organiser."
 
 msgid "They are deleted automatically %(days)s days after the trip."
 msgstr "They are deleted automatically %(days)s days after the trip."
@@ -18098,7 +18257,6 @@ msgid "No documents uploaded yet."
 msgstr "No documents uploaded yet."
 
 # --- MT-3: Reisegruppe (Feed, Chat, Telegram-Brücke) ---
-
 msgid "Beitrag"
 msgstr "Post"
 
@@ -18135,8 +18293,12 @@ msgstr "Connected — posts sync both ways."
 msgid "Add your bot to the tour's Telegram group and write there:"
 msgstr "Add your bot to the tour's Telegram group and write there:"
 
-msgid "In @BotFather the bot's privacy mode must be disabled, otherwise Telegram only forwards commands to it."
-msgstr "In @BotFather the bot's privacy mode must be disabled, otherwise Telegram only forwards commands to it."
+msgid ""
+"In @BotFather the bot's privacy mode must be disabled, otherwise Telegram "
+"only forwards commands to it."
+msgstr ""
+"In @BotFather the bot's privacy mode must be disabled, otherwise Telegram "
+"only forwards commands to it."
 
 msgid "Invite link"
 msgstr "Invite link"
@@ -18184,7 +18346,6 @@ msgid "Nothing posted yet."
 msgstr "Nothing posted yet."
 
 # --- MT-4/5/6: Logistik, Kosten, Checkliste ---
-
 msgid "Transport / Tickets"
 msgstr "Transport / tickets"
 
@@ -18248,8 +18409,12 @@ msgstr "For participants"
 msgid "Internal"
 msgstr "Internal"
 
-msgid "Purchase prices stay internal — participants only ever see the fact and the status."
-msgstr "Purchase prices stay internal — participants only ever see the fact and the status."
+msgid ""
+"Purchase prices stay internal — participants only ever see the fact and the "
+"status."
+msgstr ""
+"Purchase prices stay internal — participants only ever see the fact and the "
+"status."
 
 msgid "Nothing booked with suppliers yet."
 msgstr "Nothing booked with suppliers yet."
@@ -18279,7 +18444,6 @@ msgstr[0] "%(n)s still open"
 msgstr[1] "%(n)s still open"
 
 # --- MT-D: витрина мото-архетипа (страны, приватный выезд, гиды) ---
-
 msgid "Land (gruppiert die Reise-Übersicht)"
 msgstr "Country (groups the tour overview)"
 
@@ -18307,8 +18471,12 @@ msgstr "Request your own dates"
 msgid "Prefer your own group?"
 msgstr "Prefer your own group?"
 
-msgid "Tell us your dates and how many of you are riding — we will plan this tour privately for your group."
-msgstr "Tell us your dates and how many of you are riding — we will plan this tour privately for your group."
+msgid ""
+"Tell us your dates and how many of you are riding — we will plan this tour "
+"privately for your group."
+msgstr ""
+"Tell us your dates and how many of you are riding — we will plan this tour "
+"privately for your group."
 
 msgid "Tours with this guide"
 msgstr "Tours with this guide"
@@ -18334,8 +18502,12 @@ msgstr "Open the group"
 msgid "Sign in to your account"
 msgstr "Sign in to your account"
 
-msgid "News from the guide, packing tips and the chat with your group — all in one place."
-msgstr "News from the guide, packing tips and the chat with your group — all in one place."
+msgid ""
+"News from the guide, packing tips and the chat with your group — all in one "
+"place."
+msgstr ""
+"News from the guide, packing tips and the chat with your group — all in one "
+"place."
 
 msgid "Costs"
 msgstr "Costs"
@@ -18348,3 +18520,28 @@ msgstr "Feed, chat and the Telegram bridge"
 
 msgid "Licences and IDs of the participants"
 msgstr "Licences and IDs of the participants"
+
+msgid "Raster"
+msgstr "Grid"
+
+msgid "Große Fotos"
+msgstr "Large photos"
+
+msgid "Liste mit Fotos"
+msgstr "List with photos"
+
+msgid "Beispiele unserer Arbeit"
+msgstr "Examples of our work"
+
+msgid "Sie planen eine Veranstaltung?"
+msgstr "Planning an event?"
+
+msgid ""
+"Erzählen Sie uns von Ihrem Anlass — wir stellen ein passendes Menü zusammen "
+"und melden uns mit einem unverbindlichen Angebot."
+msgstr ""
+"Tell us about your occasion — we will put together a suitable menu and get "
+"back to you with a non-binding offer."
+
+msgid "Weitere Menüs aus dieser Kategorie"
+msgstr "More menus from this category"

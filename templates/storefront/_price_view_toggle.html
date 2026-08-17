@@ -1,0 +1,28 @@
+{% load i18n %}{% load siteui %}
+{% comment %}MEN-22 (фидбэк владельца «как покупателю переключить вид?»):
+посетительский переключатель прайс-листа — список / список с фото / 2 колонки.
+Виден и на десктопе (в отличие от мобильного «список/плитка» DS-10): владелец
+задаёт стартовый вид, посетитель меняет под себя, выбор живёт в localStorage.
+Кнопки ищут контейнер по data-plv-key; обработчик — `_grid_view_script.html`.
+Параметры include: pl_style (стиль владельца), plv_key (ключ контейнера).{% endcomment %}
+{% with plv=pl_style|price_view_state %}
+{% if plv %}
+<div class="ml-auto flex items-center gap-1 shrink-0" role="group" aria-label="{% trans 'Ansicht' %}">
+  <button type="button" data-plv-btn="plain" data-plv-key="{{ plv_key|default:'products' }}" aria-pressed="false"
+          aria-label="{% trans 'Liste' %}" title="{% trans 'Liste' %}"
+          class="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="5" width="16" height="2.5" rx="1"/><rect x="4" y="11" width="16" height="2.5" rx="1"/><rect x="4" y="17" width="16" height="2.5" rx="1"/></svg>
+  </button>
+  <button type="button" data-plv-btn="foto" data-plv-key="{{ plv_key|default:'products' }}" aria-pressed="false"
+          aria-label="{% trans 'Liste mit Fotos' %}" title="{% trans 'Liste mit Fotos' %}"
+          class="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="12" y="5.5" width="8" height="2.5" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="12" y="15.5" width="8" height="2.5" rx="1"/></svg>
+  </button>
+  <button type="button" data-plv-btn="cols" data-plv-key="{{ plv_key|default:'products' }}" aria-pressed="false"
+          aria-label="{% trans 'Zwei Spalten' %}" title="{% trans 'Zwei Spalten' %}"
+          class="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="5" width="7" height="2.5" rx="1"/><rect x="13" y="5" width="7" height="2.5" rx="1"/><rect x="4" y="11" width="7" height="2.5" rx="1"/><rect x="13" y="11" width="7" height="2.5" rx="1"/><rect x="4" y="17" width="7" height="2.5" rx="1"/><rect x="13" y="17" width="7" height="2.5" rx="1"/></svg>
+  </button>
+</div>
+{% endif %}
+{% endwith %}

@@ -106,11 +106,13 @@ def test_home_section_price_list_renders_groups_and_rows():
 
 def test_home_section_default_grid_unchanged():
     # Характеризация: без стиля — прежняя карточная сетка (байт-семантика вида).
+    # MEN-22: матчим МАРКАП-форму маркера — голый "data-price-list" теперь есть
+    # на каждой странице как строка селектора в _grid_view_script.html.
     _seed_products()
     tenant = TenantFactory.build(site_config={"sections": [{"key": "products", "enabled": True}]})
     html = _render_home(tenant)
     assert 'data-grid="products"' in html
-    assert "data-price-list" not in html
+    assert "data-price-list data-pl-style" not in html
 
 
 def test_catalog_page_preisliste_groups_and_facets_alive():
@@ -126,11 +128,12 @@ def test_catalog_page_preisliste_groups_and_facets_alive():
 
 
 def test_catalog_page_default_grid_unchanged():
+    # MEN-22: маркап-форма маркера (см. test_home_section_default_grid_unchanged).
     _seed_products()
     tenant = TenantFactory.build()
     html = _render_catalog(tenant)
     assert 'data-grid="catalog"' in html
-    assert "data-price-list" not in html
+    assert "data-price-list data-pl-style" not in html
 
 
 # ── DS-5c: семейство прайс-видов (компакт / две колонки / классическая карта) ──
@@ -351,3 +354,58 @@ def test_pages_screen_offers_and_saves_service_layout():
     assert siteconfig.normalize(tenant.site_config)["service_index_layout"]["preset"] == (
         "preisliste"
     )
+
+
+# ── MEN-22: посетительский переключатель вида (список / с фото / 2 колонки) ──
+
+
+def test_visitor_toggle_on_base_views_with_photos_always_in_dom():
+    """У базовых видов (plain/foto/2sp/3sp) рендерится переключатель и data-plv;
+    фото ВСЕГДА в DOM (класс plv-img) — в «plain» скрыты классом hidden."""
+    _seed_products()
+    p = Product.objects.get(name__de="Buffet Vegetarisch")
+    p.images = [{"id": "x1", "url": "/media/demo/buffet.webp", "alt": {}}]
+    p.save(update_fields=["images"])
+    tenant = TenantFactory.build(
+        site_config={"sections": [{"key": "products", "enabled": True, "style": "preisliste"}]}
+    )
+    html = _render_home(tenant)
+    assert 'data-plv="plain"' in html and 'data-plv-key="products"' in html
+    assert "data-plv-btn" in html  # кнопки переключателя
+    assert 'class="plv-img w-10 h-10 rounded-lg object-cover shrink-0 hidden"' in html
+    # классы целевых видов лежат в data-cls-* (JIT/purge-safe)
+    assert 'data-cls-cols="grid md:grid-cols-2 gap-x-10 gap-y-6"' in html
+
+    # фото-вид стартует с видимыми фото (без hidden)
+    tenant2 = TenantFactory.build(
+        site_config={
+            "sections": [{"key": "products", "enabled": True, "style": "preisliste_foto_2sp"}]
+        }
+    )
+    html2 = _render_home(tenant2)
+    assert 'data-plv="cols"' in html2
+    assert 'class="plv-img w-10 h-10 rounded-lg object-cover shrink-0"' in html2
+
+
+def test_visitor_toggle_absent_for_authored_views():
+    """kompakt/karte/buch — особые авторские виды: переключателя нет."""
+    _seed_products()
+    for style in ("preisliste_kompakt", "preisliste_karte", "preisliste_buch"):
+        tenant = TenantFactory.build(
+            site_config={"sections": [{"key": "products", "enabled": True, "style": style}]}
+        )
+        html = _render_home(tenant)
+        # маркап-форма атрибутов: голые имена есть в JS _grid_view_script.html
+        assert 'data-plv-btn="' not in html, style
+        assert 'data-plv="' not in html, style
+
+
+def test_catalog_page_toggle_uses_catalog_key():
+    """Страница каталога и секция главной — РАЗНЫЕ ключи localStorage:
+    выбор на главной не перекрашивает каталог (прецедент DS-10 «список на
+    акциях не переключает каталог»)."""
+    _seed_products()
+    tenant = TenantFactory.build(site_config={"catalog_layout": {"preset": "preisliste"}})
+    html = _render_catalog(tenant)
+    assert 'data-plv-key="catalog"' in html
+    assert 'data-plv-key="products"' not in html

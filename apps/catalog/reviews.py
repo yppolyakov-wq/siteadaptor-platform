@@ -33,6 +33,29 @@ def has_purchased(product, email: str) -> bool:
         return False
 
 
+def has_bought_combo(combo, email) -> bool:
+    """MEN-21: верификатор отзывов kind="combo" — покупал ли email этот набор.
+
+    Зеркало `has_purchased`: OrderItem держит FK `combo` (A4 — одна позиция на
+    набор). Известный предел: «свободная сборка» уезжает в заказ custom_lines
+    БЕЗ FK — её покупатель верификацию не проходит (fail-closed честнее, чем
+    матчить по названию); у browse-only кейтеринга заказов нет вовсе.
+    """
+    email = (email or "").strip().lower()
+    if not email:
+        return False
+    try:
+        from apps.orders.models import OrderItem
+
+        return (
+            OrderItem.objects.filter(combo=combo, order__customer__email__iexact=email)
+            .exclude(order__status="cancelled")
+            .exists()
+        )
+    except Exception:  # noqa: BLE001 — orders может быть выключен; тогда верификации нет
+        return False
+
+
 def published_for(product):
     """Опубликованные отзывы товара (новые сверху) — для детальной страницы."""
     return review_services.published_for(review_services.Review.KIND_PRODUCT, product.pk)
