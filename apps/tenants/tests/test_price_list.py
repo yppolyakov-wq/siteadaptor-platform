@@ -577,8 +577,23 @@ def test_grid_view_cols_follow_section_layout():
             ]
         }
     )
-    assert 'data-plv-cols="6"' in _render_home(six)
+    html6 = _render_home(six)
+    assert 'data-plv-cols="6"' in html6
+    assert 'data-plv-mobile="2"' in html6  # мобайл — 1|2 контролом раскладки, дефолт 2
     default = TenantFactory.build(
         site_config={"sections": [{"key": "products", "enabled": True, "style": "preisliste"}]}
     )
     assert 'data-plv-cols="4"' in _render_home(default)
+    one = TenantFactory.build(
+        site_config={
+            "sections": [
+                {
+                    "key": "products",
+                    "enabled": True,
+                    "style": "preisliste",
+                    "layout": {"preset": "cols4", "mobile": 1},
+                }
+            ]
+        }
+    )
+    assert 'data-plv-mobile="1"' in _render_home(one)
