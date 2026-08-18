@@ -33,17 +33,21 @@
 {% comment %}Фидбэк владельца 2026-08-07: «категории сделай картинками». Когда у
 категорий есть фото — сетка плиток (общий партиал с секцией главной, форма и
 колонки настраиваются из Studio); нет ни одного фото — прежние чипы-таблетки,
-иначе у тенантов без фотографий страница стала бы хуже, чем была.{% endcomment %}
-{% if categories_have_images %}
+иначе у тенантов без фотографий страница стала бы хуже, чем была.
+Фидбэк 2026-08-18 (моб. стенд владельца): ВНУТРИ категории верхний список
+категорий НЕ повторяем (та же сетка плиток была и на /sortiment/, и на каждой
+странице категории) — остаются «← Alle» и подкатегории (блок ниже).{% endcomment %}
+{% if current_category %}
+<div class="mb-6">
+  <a href="{% url 'storefront-products' %}{% if ansicht %}?ansicht={{ ansicht }}{% endif %}" class="inline-block text-sm text-indigo-600 hover:underline">← {% trans "All" %}</a>
+</div>
+{% elif categories_have_images %}
 <div class="mb-6">
   <div data-grid="categories" class="{% grid_classes site 'categories' %}">
     {% for c in categories %}
       {% include "storefront/_category_tile.html" with c=c cat_aspect=category_tile_aspect cat_active=False %}
     {% endfor %}
   </div>
-  {% if current_category %}
-    <a href="{% url 'storefront-products' %}{% if ansicht %}?ansicht={{ ansicht }}{% endif %}" class="inline-block mt-3 text-sm text-indigo-600 hover:underline">← {% trans "All" %}</a>
-  {% endif %}
 </div>
 {% else %}
 <div class="flex flex-wrap gap-2 mb-6">
@@ -211,7 +215,10 @@ fixed-ящиком, и до инициализации JS она вспыхив�
 MEN-24d: посетительский вид на СТРАНИЦЕ каталога — серверные ссылки
 _price_view_links (?ansicht=, любой стиль владельца вкл. karte/buch); class-swap
 MEN-22 остаётся механикой главной. Мобильный «список/плитка» грид-ветки жив.{% endcomment %}
-{% block listing_bar_view %}{% if catalog_preset|slice:":10" != "preisliste" %}{% include "storefront/_grid_view.html" with grid_key="catalog" %}{% comment %}KAT-4: плотность карточной сетки — только в карточном виде (в прайсе сетки нет).{% endcomment %}{% include "storefront/_density_control.html" with dc_mode="grid" dc_key="catalog" dc_default=catalog_cols %}{% endif %}{% include "storefront/_price_view_links.html" %}{% endblock %}
+{% comment %}Фидбэк 2026-08-18: клиентский «список/плитка» (_grid_view) с каталога
+убран — на мобильном он стоял ВТОРЫМ переключателем рядом с серверным ?ansicht=
+(Liste/Kacheln это уже покрывают), на десктопе был скрыт с DS-10.{% endcomment %}
+{% block listing_bar_view %}{% if catalog_preset|slice:":10" != "preisliste" %}{% comment %}KAT-4: плотность карточной сетки — только в карточном виде (в прайсе сетки нет).{% endcomment %}{% include "storefront/_density_control.html" with dc_mode="grid" dc_key="catalog" dc_default=catalog_cols %}{% endif %}{% include "storefront/_price_view_links.html" %}{% endblock %}
 
 {% block listing_grid %}
 {% if category_combos and category_page_style == "sets" %}

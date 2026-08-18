@@ -68,14 +68,16 @@ def test_filters_sort_and_view_share_one_row():
     bar = _bar(_catalog(TenantFactory.build()))
     i_filter = bar.find("data-filter-toggle")
     i_sort = bar.find('name="sort"')
-    i_view = bar.find("data-grid-view")
+    # Фидбэк 2026-08-18: вид на каталоге переключает ТОЛЬКО серверный ?ansicht=
+    # (клиентский «список/плитка» убран — дублировал его на мобильном).
+    i_view = bar.find("data-ansicht=")
     assert i_filter >= 0, "кнопка фильтров не в строке"
     assert i_sort > i_filter, "сортировка не в строке/не после фильтров"
     assert i_view > i_sort, "переключатель вида не в строке/не после сортировки"
     # ровно один экземпляр каждого — перенос include между блоками не задвоил
     assert bar.count("data-filter-toggle=") == 1
     assert bar.count('<select id="id_listing_sort"') == 1
-    assert bar.count('data-grid-view="grid"') == 1
+    assert "data-grid-view" not in bar  # клиентского переключателя на каталоге нет
 
 
 def test_filter_button_survives_empty_result():

@@ -22,7 +22,7 @@ ansicht), catalog_preset (эффективный вид).{% endcomment %}
   <a href="?{{ ansicht_base_qs }}{% if ansicht_base_qs %}&amp;{% endif %}ansicht=preisliste_foto_2sp" data-ansicht="preisliste_foto_2sp"
      {% if catalog_preset == "preisliste_foto_2sp" %}aria-current="page"{% endif %}
      aria-label="{% trans 'Zwei Spalten' %}" title="{% trans 'Zwei Spalten' %}"
-     class="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center {% if catalog_preset == 'preisliste_foto_2sp' %}bg-gray-900 text-white{% else %}text-gray-600{% endif %}">
+     class="w-9 h-9 rounded-lg border border-gray-300 hidden md:flex items-center justify-center {% if catalog_preset == 'preisliste_foto_2sp' %}bg-gray-900 text-white{% else %}text-gray-600{% endif %}">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="5" width="7" height="2.5" rx="1"/><rect x="13" y="5" width="7" height="2.5" rx="1"/><rect x="4" y="11" width="7" height="2.5" rx="1"/><rect x="13" y="11" width="7" height="2.5" rx="1"/><rect x="4" y="17" width="7" height="2.5" rx="1"/><rect x="13" y="17" width="7" height="2.5" rx="1"/></svg>
   </a>
   {% comment %}«Kacheln» = карточная сетка: сеточный пресет владельца, если он

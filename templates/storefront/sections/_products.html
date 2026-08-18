@@ -1,7 +1,9 @@
 {% load i18n siteui %}{# Секция каталога (Track C1/C2): превью товаров. #}
 {% if products_preview %}
 <section data-reveal class="mb-10">
-  <div class="flex items-center justify-between gap-3 mb-4">
+  {% comment %}Фидбэк 2026-08-18 (моб.): flex-wrap — правая группа (ссылка+
+  переключатель) переносится под заголовок, а не выходит за экран.{% endcomment %}
+  <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 mb-4">
     {% section_title site 'products' as st %}
     <h2 class="text-xl md:text-2xl font-bold" data-edit="section_titles.products">{% if st %}{{ st }}{% else %}{% trans "Our products" %}{% endif %}</h2>
     {% comment %}Ревью MEN-14: переключатель «список/плитка» ищет сетку по
@@ -9,7 +11,7 @@
     Стенд MEN-22: ссылка+переключатель — одной правой группой (как в _gallery):
     ml-auto партиала внутри justify-between съедал всё свободное место, и
     «Alle anzeigen» прилипала к заголовку.{% endcomment %}
-    <span class="flex items-center gap-3 shrink-0">
+    <span class="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
       {% section_show_all site 'products' as sa %}{% if sa %}<a href="{% url 'storefront-products' %}" class="text-sm font-medium text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
       {% if section_row.style|slice:":10" != "preisliste" %}{% include "storefront/_grid_view.html" with grid_key="products" %}{% else %}{% include "storefront/_price_view_toggle.html" with pl_style=section_row.style plv_key="products" %}{% endif %}
     </span>
