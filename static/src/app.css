@@ -378,6 +378,20 @@ input[type="datetime-local"] {
   background: rgb(31 41 55);
   border-color: rgb(55 65 81);
 }
+
+/* KAT-4 (фидбэк «покупатель не может изменить вид на 2-6 столбцов»): плотность
+   карточной сетки для ПОСЕТИТЕЛЯ — контрол «− N +» ставит data-density (2..6,
+   только десктоп; настройка владельца = стартовое значение, при равенстве
+   атрибут снимается и правят его Tailwind-классы). Атрибутная специфичность
+   (0,2,0) перебивает классы владельца при любом порядке в файле; .is-list
+   не конфликтует — он заперт в max-width:767px. */
+@media (min-width: 1024px) {
+  [data-grid][data-density="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  [data-grid][data-density="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  [data-grid][data-density="4"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  [data-grid][data-density="5"] { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  [data-grid][data-density="6"] { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
 .sf-balance-grid { display: flex; flex-wrap: wrap; justify-content: center; }
 .sf-balance-grid > * { min-width: 9rem; }
 .sf-bal-1 > * { flex: 0 1 100%; }

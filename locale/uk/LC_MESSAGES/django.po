@@ -18879,3 +18879,12 @@ msgstr "Як влаштована сторінка /sortiment/<slug>/ цієї �
 
 msgid "Alle anzeigen"
 msgstr "Показати всі"
+
+msgid "Spalten"
+msgstr "Колонки"
+
+msgid "Weniger Spalten"
+msgstr "Менше колонок"
+
+msgid "Mehr Spalten"
+msgstr "Більше колонок"

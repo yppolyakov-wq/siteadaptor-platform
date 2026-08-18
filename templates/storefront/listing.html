@@ -26,7 +26,11 @@ UB1-1: единый каркас страницы-листинга (по обр�
 передаёт произвольную разметку без прокидывания контекста.
 {% endcomment %}
 {% block content %}
-<div class="{% block listing_width %}{% endblock %}">
+{% comment %}KAT-5: data-listing-root — зона подмены при смене вида каталога без
+перезагрузки (fetch полной страницы → swap этого контейнера). Внутри неё НЕ
+должно быть инлайн-скриптов с прямым бинденгом — после swap они не исполняются
+(урок HF-волны); сорт-автосабмит делегирован в _grid_view_script.html.{% endcomment %}
+<div class="{% block listing_width %}{% endblock %}" data-listing-root>
 {% block listing_header %}{% endblock %}
 {% block listing_facets %}{% endblock %}
 {% block listing_toolbar %}
@@ -63,7 +67,8 @@ UB1-1: единый каркас страницы-листинга (по обр�
   {% block listing_bar_view %}{% endblock %}
   </span>
 </div><!--/listing-bar-->
-<script>document.querySelectorAll(".js-sort-select").forEach(function (s) { s.addEventListener("change", function () { s.form.submit(); }); });</script>
+{% comment %}Автосабмит сорта — делегированно в _grid_view_script.html (KAT-5:
+инлайн-биндинг умирал бы после fetch-подмены data-listing-root).{% endcomment %}
 {% endblock %}
 {% block listing_grid %}{% endblock %}
 {% block listing_pagination %}{% endblock %}

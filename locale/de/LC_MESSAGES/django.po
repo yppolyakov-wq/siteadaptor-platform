@@ -18813,3 +18813,12 @@ msgstr "Wie die Seite /sortiment/<slug>/ dieser Kategorie aufgebaut ist."
 
 msgid "Alle anzeigen"
 msgstr "Alle anzeigen"
+
+msgid "Spalten"
+msgstr "Spalten"
+
+msgid "Weniger Spalten"
+msgstr "Weniger Spalten"
+
+msgid "Mehr Spalten"
+msgstr "Mehr Spalten"

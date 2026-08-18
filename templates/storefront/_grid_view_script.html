@@ -40,6 +40,7 @@
     e.preventDefault();
     apply(b.getAttribute("data-grid-key"), b.getAttribute("data-grid-view"));
   });
+  window.__sfGridViewInit = init; // KAT-5: повторная инициализация после fetch-подмены
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
 })();
@@ -151,6 +152,11 @@
       b.classList.toggle("text-gray-600", !on);
       b.setAttribute("aria-pressed", on ? "true" : "false");
     });
+    /* KAT-4: контрол плотности «− N +» осмыслен только в Kacheln-виде —
+       inline-style бьёт классы (hidden lg:inline-flex остаются десктоп-гейтом). */
+    document.querySelectorAll('[data-density-ctl][data-dc-mode="plv"][data-dc-key="' + key + '"]').forEach(function (ctl) {
+      ctl.style.display = view === "grid" ? "" : "none";
+    });
   }
 
   function apply(key, view, persist) {
@@ -196,8 +202,130 @@
     e.preventDefault();
     apply(b.getAttribute("data-plv-key"), b.getAttribute("data-plv-btn"), true);
   });
+  window.__sfPlvInit = init; // KAT-5: повторная инициализация после fetch-подмены
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
+})();
+
+/* KAT-4 (фидбэк «покупатель не может изменить вид на 2-6 столбцов»): контрол
+   плотности «− N +» (2..6, десктоп lg+, localStorage). Режим plv — пишет
+   data-plv-cols прайс-контейнера (CSS-варианты MEN-25, действует в Kacheln);
+   режим grid — data-density карточной сетки (CSS-оверрайды KAT-4; равенство
+   дефолту владельца снимает атрибут — его классы снова правят). */
+(function () {
+  if (window.__sfDensityBound) return;
+  window.__sfDensityBound = true;
+  var PREFIX = "sf_density:";
+
+  function clamp(n) { return Math.min(6, Math.max(2, n)); }
+
+  function targets(ctl) {
+    var key = ctl.getAttribute("data-dc-key");
+    if (ctl.getAttribute("data-dc-mode") === "plv")
+      return document.querySelectorAll('[data-plv-key="' + key + '"][data-price-list]');
+    return document.querySelectorAll('[data-grid="' + key + '"]');
+  }
+
+  function ownerDefault(ctl) {
+    var d = parseInt(ctl.getAttribute("data-dc-default") || "", 10);
+    if (d >= 1 && d <= 6) return clamp(d);
+    // plv-режим: дефолт — из data-plv-cols контейнера (задан раскладкой секции)
+    var t = targets(ctl)[0];
+    d = t ? parseInt(t.getAttribute("data-plv-cols") || "4", 10) : 4;
+    return clamp(d);
+  }
+
+  function apply(ctl, n, persist) {
+    n = clamp(n);
+    var mode = ctl.getAttribute("data-dc-mode");
+    var def = parseInt(ctl.getAttribute("data-dc-owner") || "4", 10);
+    targets(ctl).forEach(function (t) {
+      if (mode === "plv") t.setAttribute("data-plv-cols", String(n));
+      else if (n === def) t.removeAttribute("data-density");
+      else t.setAttribute("data-density", String(n));
+    });
+    var val = ctl.querySelector("[data-dc-val]");
+    if (val) val.textContent = String(n);
+    ctl.setAttribute("data-dc-current", String(n));
+    if (persist) { try { localStorage.setItem(PREFIX + ctl.getAttribute("data-dc-key"), String(n)); } catch (e) {} }
+  }
+
+  function init() {
+    document.querySelectorAll("[data-density-ctl]").forEach(function (ctl) {
+      var def = ownerDefault(ctl);
+      ctl.setAttribute("data-dc-owner", String(def));
+      var saved = NaN;
+      try { saved = parseInt(localStorage.getItem(PREFIX + ctl.getAttribute("data-dc-key")) || "", 10); } catch (e) {}
+      apply(ctl, saved >= 2 && saved <= 6 ? saved : def, false);
+      // plv-контрол осмыслен только в Kacheln-виде (стартовая видимость;
+      // дальше её ведёт paint() переключателя plv)
+      if (ctl.getAttribute("data-dc-mode") === "plv") {
+        var t = targets(ctl)[0];
+        ctl.style.display = t && t.getAttribute("data-plv") === "grid" ? "" : "none";
+      }
+    });
+  }
+
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-dc-inc],[data-dc-dec]");
+    if (!b) return;
+    e.preventDefault();
+    var ctl = b.closest("[data-density-ctl]");
+    if (!ctl) return;
+    var cur = parseInt(ctl.getAttribute("data-dc-current") || ctl.getAttribute("data-dc-owner") || "4", 10);
+    apply(ctl, cur + (b.hasAttribute("data-dc-inc") ? 1 : -1), true);
+  });
+  window.__sfDensityInit = init; // KAT-5: повторная инициализация после fetch-подмены
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+
+/* DS-10: автосабмит селекта сортировки — делегированно (инлайн-биндинг в
+   listing.html умирал бы после fetch-подмены KAT-5; noscript-кнопка остаётся). */
+document.addEventListener("change", function (e) {
+  var s = e.target.closest && e.target.closest(".js-sort-select");
+  if (s && s.form) s.form.submit();
+});
+
+/* KAT-5 (решение владельца — вариант B): смена вида каталога БЕЗ видимой
+   перезагрузки. Клик по a[data-ansicht] → fetch полной страницы → DOMParser →
+   подмена [data-listing-root] + pushState (URL остаётся шарябельным, сервер
+   не менялся). Сеть/ошибка/старый браузер → обычная навигация. Назад/вперёд
+   после подмены → честная перезагрузка (контент истории не кэшируем). */
+(function () {
+  if (window.__sfAnsichtBound) return;
+  window.__sfAnsichtBound = true;
+  var pushed = false;
+
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("a[data-ansicht]");
+    if (!a) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return; // новая вкладка — браузеру
+    var root = document.querySelector("[data-listing-root]");
+    if (!root || !window.fetch || !window.DOMParser || !window.history || !history.pushState) return;
+    e.preventDefault();
+    var url = a.href;
+    fetch(url, { credentials: "same-origin" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+      .then(function (html) {
+        var doc = new DOMParser().parseFromString(html, "text/html");
+        var next = doc.querySelector("[data-listing-root]");
+        if (!next) throw new Error("no-root");
+        root.replaceWith(next);
+        history.pushState({}, "", url);
+        pushed = true;
+        // делегированные обработчики живы (document); переинициализируем
+        // состояние из localStorage для нового поддерева
+        if (window.__sfPlvInit) window.__sfPlvInit();
+        if (window.__sfDensityInit) window.__sfDensityInit();
+        if (window.__sfGridViewInit) window.__sfGridViewInit();
+      })
+      .catch(function () { window.location.href = url; });
+  });
+
+  window.addEventListener("popstate", function () {
+    if (pushed) window.location.reload();
+  });
 })();
 
 /* MEN-23: переключатель галереи «сетка ↔ крупно» — тот же механизм class-swap

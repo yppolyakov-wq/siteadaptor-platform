@@ -211,7 +211,7 @@ fixed-ящиком, и до инициализации JS она вспыхив�
 MEN-24d: посетительский вид на СТРАНИЦЕ каталога — серверные ссылки
 _price_view_links (?ansicht=, любой стиль владельца вкл. karte/buch); class-swap
 MEN-22 остаётся механикой главной. Мобильный «список/плитка» грид-ветки жив.{% endcomment %}
-{% block listing_bar_view %}{% if catalog_preset|slice:":10" != "preisliste" %}{% include "storefront/_grid_view.html" with grid_key="catalog" %}{% endif %}{% include "storefront/_price_view_links.html" %}{% endblock %}
+{% block listing_bar_view %}{% if catalog_preset|slice:":10" != "preisliste" %}{% include "storefront/_grid_view.html" with grid_key="catalog" %}{% comment %}KAT-4: плотность карточной сетки — только в карточном виде (в прайсе сетки нет).{% endcomment %}{% include "storefront/_density_control.html" with dc_mode="grid" dc_key="catalog" dc_default=catalog_cols %}{% endif %}{% include "storefront/_price_view_links.html" %}{% endblock %}
 
 {% block listing_grid %}
 {% if category_combos and category_page_style == "sets" %}

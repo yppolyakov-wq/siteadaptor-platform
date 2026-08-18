@@ -18685,3 +18685,12 @@ msgstr "How the /sortiment/<slug>/ page of this category is laid out."
 
 msgid "Alle anzeigen"
 msgstr "Show all"
+
+msgid "Spalten"
+msgstr "Columns"
+
+msgid "Weniger Spalten"
+msgstr "Fewer columns"
+
+msgid "Mehr Spalten"
+msgstr "More columns"

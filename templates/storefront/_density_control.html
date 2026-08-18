@@ -1,0 +1,18 @@
+{% load i18n %}
+{% comment %}KAT-4: контрол плотности «− N +» (2..6, только десктоп lg+,
+localStorage на ключ). Два режима (dc_mode): "plv" — Kacheln-вид прайс-листа,
+пишет data-plv-cols контейнера [data-plv-key=<dc_key>] (CSS-варианты MEN-25;
+дефолт читается из атрибута контейнера, видимость рулит скрипт plv — контрол
+осмыслен только в виде grid); "grid" — карточная сетка [data-grid=<dc_key>],
+пишет data-density (CSS-оверрайды KAT-4; равенство дефолту снимает атрибут —
+классы владельца снова правят). Обработчик — _grid_view_script.html.
+Параметры include: dc_mode, dc_key, опц. dc_default (grid-режим).{% endcomment %}
+<span class="hidden lg:inline-flex items-center gap-0.5 shrink-0" role="group"
+      aria-label="{% trans 'Spalten' %}" data-density-ctl
+      data-dc-mode="{{ dc_mode }}" data-dc-key="{{ dc_key }}"{% if dc_default %} data-dc-default="{{ dc_default }}"{% endif %}>
+  <button type="button" data-dc-dec aria-label="{% trans 'Weniger Spalten' %}" title="{% trans 'Weniger Spalten' %}"
+          class="w-7 h-9 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600 hover:border-gray-400">−</button>
+  <span data-dc-val class="w-4 text-center text-xs text-gray-500 tabular-nums" aria-hidden="true"></span>
+  <button type="button" data-dc-inc aria-label="{% trans 'Mehr Spalten' %}" title="{% trans 'Mehr Spalten' %}"
+          class="w-7 h-9 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600 hover:border-gray-400">+</button>
+</span>

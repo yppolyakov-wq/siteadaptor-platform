@@ -1635,8 +1635,14 @@ Python 3.12, менеджер uv.
   единая точка: карточки/прайс-строки/sellable(detail_url+JSON-LD)/sitemap(канонический,
   uuid ушёл)/фид/письма waitlist+post-purchase/10 POST-редиректов; select_related
   ("category") против N+1. Замки: test_product_slugs (7) + осознанные переписки
-  sitemap/sellable/finder. Остаток волны: **батч 3 KAT-4/5** (плотность «− N +»
-  посетителю + смена вида без перезагрузки).
+  sitemap/sellable/finder. **Батч 3 KAT-4+5 (той же датой, БЕЗ миграций) — ВОЛНА KAT
+  ЗАКРЫТА ЦЕЛИКОМ:** KAT-4 контрол плотности «− N +» посетителю (2..6, десктоп,
+  localStorage; режим plv → data-plv-cols Kacheln-прайса, режим grid → data-density
+  сетки каталога с CSS-оверрайдами, равенство дефолту владельца снимает атрибут);
+  KAT-5 смена вида каталога без перезагрузки (fetch полной страницы → своп
+  `[data-listing-root]` + pushState, фолбэк обычная навигация, назад → reload;
+  автосабмит сорта делегирован — инлайн-биндинг в swap-зоне умирал, урок HF).
+  Замки test_density_view (4) + стенд Playwright 20/20; 3 msgid × 5 .po.
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная)** — все аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,

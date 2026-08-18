@@ -806,6 +806,8 @@ def product_list(request, slug=None):
             "catalog_grid": catalog_grid,
             # DS-3a (Fokus): вид «прайс-лист» — шаблон ветвится по пресету.
             "catalog_preset": cfg["catalog_layout"]["preset"],
+            # KAT-4: стартовая плотность контрола «− N +» = колонки владельца.
+            "catalog_cols": cfg["catalog_layout"]["cols"],
             # MEN-24d: серверный переключатель видов у сортировки.
             "ansicht": ansicht,
             "ansicht_base_qs": ansicht_base_qs,

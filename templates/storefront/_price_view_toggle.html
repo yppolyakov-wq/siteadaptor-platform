@@ -30,6 +30,9 @@
           class="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>
   </button>
+  {% comment %}KAT-4: плотность Kacheln-вида (виден только при активном grid —
+  скрипт plv управляет display).{% endcomment %}
+  {% include "storefront/_density_control.html" with dc_mode="plv" dc_key=plv_key|default:"products" %}
 </div>
 {% endif %}
 {% endwith %}

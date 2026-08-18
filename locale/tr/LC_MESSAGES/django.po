@@ -18806,3 +18806,12 @@ msgstr "Bu kategorinin /sortiment/<slug>/ sayfasının nasıl düzenlendiği."
 
 msgid "Alle anzeigen"
 msgstr "Tümünü göster"
+
+msgid "Spalten"
+msgstr "Sütunlar"
+
+msgid "Weniger Spalten"
+msgstr "Daha az sütun"
+
+msgid "Mehr Spalten"
+msgstr "Daha fazla sütun"
