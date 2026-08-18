@@ -284,3 +284,18 @@ def test_menu_editor_offers_every_page_target():
     targets = set(menu_mod._PAGE_URL_NAMES) - {"offers"}  # offers = легаси-алиас home
     assert targets <= choices, f"нет в редакторе меню: {sorted(targets - choices)}"
     assert all(c["label"] for c in menu_mod.page_target_choices()), "цель без подписи"
+
+
+def test_gallery_toggle_absent_for_video_only_gallery():
+    """Ревью MEN-23: у «только видео» контейнера data-galv нет — кнопки были бы
+    мёртвыми. Гейт по site.gallery на главной И на /galerie/."""
+    from apps.promotions.public_views import storefront_home
+
+    tenant = _tenant(
+        gallery_video="https://www.youtube.com/watch?v=x",
+        sections=[{"key": "gallery", "enabled": True}],
+    )
+    html = public_views.gallery_page(_req("/galerie/", tenant)).content.decode()
+    assert 'data-galv-btn="' not in html
+    home = storefront_home(_req("/", tenant)).content.decode()
+    assert 'data-galv-btn="' not in home

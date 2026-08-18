@@ -387,7 +387,10 @@ def cursym(code):
 _PL_TOGGLE_INITIAL = {
     "": "plain",
     "preisliste": "plain",
-    "preisliste_2sp": "plain",
+    # Ревью MEN-22: preisliste_2sp здесь НЕТ — колонки-без-фото не совпадают ни с
+    # одним из трёх состояний переключателя (стартовое «plain» врало, а клик по
+    # активной кнопке заменял md:columns-2 владельца на узкий список без пути
+    # назад). 2sp — авторский вид, как kompakt/karte/buch.
     "preisliste_foto": "foto",
     "preisliste_foto_2sp": "cols",
     "preisliste_foto_3sp": "cols",

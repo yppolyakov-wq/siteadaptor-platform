@@ -494,3 +494,14 @@ def test_combo_detail_blocks_gated_by_data():
     ).content.decode()
     assert "Beispiele unserer Arbeit" not in body  # галереи нет
     assert "Sie planen eine Veranstaltung?" not in body  # jobs выключен
+
+
+def test_has_bought_combo_false_for_returned_status():
+    """Ревью MEN-21: отменённость — по РЕЕСТРУ статусов, не литералу "cancelled".
+    Builtin "returned" (Widerruf, деньги возвращены) права на отзыв не даёт;
+    кастомные статусы роли cancelled закрывает тот же cancelled_statuses_for."""
+    from apps.catalog.reviews import has_bought_combo
+
+    combo, _g, _opt = _wedding_set()
+    _buy_combo(combo, "widerruf@test.de", status="returned")
+    assert has_bought_combo(combo, "widerruf@test.de") is False

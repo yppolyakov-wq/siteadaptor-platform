@@ -115,7 +115,7 @@
           {% comment %}Стенд MEN-21: у свободной сборки цена складывается из блюд —
           «ab 0,00 €» врал бы (семантика детали: Grundpreis только если задан).{% endcomment %}
           {% if c.free_pool %}<span class="block mt-1 text-[11px] font-medium text-gray-500">{% trans "Free choice from category" %}</span>
-          {% elif show_prices %}<span class="block mt-1 text-sm font-bold">{% trans "from" %} {{ c.price }} {{ c.currency|cursym }}{% if c.price_per_person %} <span class="font-medium text-gray-500">/ {% trans "Person" %}</span>{% endif %}</span>{% endif %}
+          {% elif show_prices %}<span class="block mt-1 text-sm font-bold">{{ c.price }} {{ c.currency|cursym }}{% if c.price_per_person %} <span class="font-medium text-gray-500">/ {% trans "Person" %}</span>{% endif %}</span>{% endif %}
         </span>
       </a>
     {% endfor %}

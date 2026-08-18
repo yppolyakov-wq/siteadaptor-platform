@@ -22,11 +22,16 @@ def has_purchased(product, email: str) -> bool:
     if not email:
         return False
     try:
+        from apps.core import status_registry
         from apps.orders.models import OrderItem
 
+        # Ревью MEN-21: отменённость — через реестр статусов (SM-3), а не литерал
+        # "cancelled": builtin "returned" (Widerruf, деньги возвращены) и кастомные
+        # статусы роли cancelled тоже НЕ дают права на отзыв. Паритет с
+        # booking/stays/events-верификаторами.
         return (
             OrderItem.objects.filter(product=product, order__customer__email__iexact=email)
-            .exclude(order__status="cancelled")
+            .exclude(order__status__in=status_registry.cancelled_statuses_for("order"))
             .exists()
         )
     except Exception:  # noqa: BLE001 — orders может быть выключен; тогда верификации нет
@@ -45,11 +50,12 @@ def has_bought_combo(combo, email) -> bool:
     if not email:
         return False
     try:
+        from apps.core import status_registry
         from apps.orders.models import OrderItem
 
         return (
             OrderItem.objects.filter(combo=combo, order__customer__email__iexact=email)
-            .exclude(order__status="cancelled")
+            .exclude(order__status__in=status_registry.cancelled_statuses_for("order"))
             .exists()
         )
     except Exception:  # noqa: BLE001 — orders может быть выключен; тогда верификации нет

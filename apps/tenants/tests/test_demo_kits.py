@@ -1506,3 +1506,7 @@ def test_catering_menu_sets_seeded_with_three_modes():
             ).count()
             == 3
         ), combo.name
+    # Ревью MEN-21: показ отзыва переводится (I18N-12 — оверлей заполняет ТОЛЬКО
+    # демо-сидер; словари demo_i18n_<loc>.json знают 9 новых комментариев).
+    sample = Review.objects.filter(entity_kind="combo").first()
+    assert sample.comment_i18n.get("en"), "демо-отзыв набора без en-перевода"

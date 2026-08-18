@@ -8,14 +8,16 @@
   <div class="flex items-center justify-between gap-3 mb-4">
     <h2 class="text-xl md:text-2xl font-bold">{% trans "Gallery" %}</h2>
     <span class="flex items-center gap-3">
-      {% if section_row.style == "" or section_row.style == None %}{% include "storefront/_gallery_view_toggle.html" %}{% endif %}
+      {% comment %}Ревью MEN-23: гейт по site.gallery — у «только видео» контейнера
+      data-galv нет, кнопки были бы мёртвыми.{% endcomment %}
+      {% if site.gallery and section_row.style == "" or site.gallery and section_row.style == None %}{% include "storefront/_gallery_view_toggle.html" %}{% endif %}
       {% if site.gallery %}<a href="{% url 'storefront-gallery' %}" class="text-sm text-indigo-600 hover:underline shrink-0">{% trans "Alle Fotos" %} →</a>{% endif %}
     </span>
   </div>
   {% else %}
   {% comment %}MEN-23 (фидбэк «в галерее так же нужно сделать»): на странице
   /galerie/ переключатель «сетка ↔ крупно» — заголовок там выше партиала.{% endcomment %}
-  <div class="flex justify-end mb-4">{% include "storefront/_gallery_view_toggle.html" %}</div>
+  {% if site.gallery %}<div class="flex justify-end mb-4">{% include "storefront/_gallery_view_toggle.html" %}</div>{% endif %}
   {% endif %}
   {% comment %}UC6-6f: 5 видов по section_row.style — "" сетка | strip | large | polaroid | soft.{% endcomment %}
   {% if site.gallery %}

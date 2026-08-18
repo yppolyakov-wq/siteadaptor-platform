@@ -388,9 +388,11 @@ def test_visitor_toggle_on_base_views_with_photos_always_in_dom():
 
 
 def test_visitor_toggle_absent_for_authored_views():
-    """kompakt/karte/buch — особые авторские виды: переключателя нет."""
+    """kompakt/karte/buch/2sp — авторские виды: переключателя нет. Ревью MEN-22:
+    2sp (колонки без фото) не совпадает ни с одним состоянием переключателя —
+    стартовое «plain» врало, клик по активной кнопке рушил md:columns-2."""
     _seed_products()
-    for style in ("preisliste_kompakt", "preisliste_karte", "preisliste_buch"):
+    for style in ("preisliste_kompakt", "preisliste_karte", "preisliste_buch", "preisliste_2sp"):
         tenant = TenantFactory.build(
             site_config={"sections": [{"key": "products", "enabled": True, "style": style}]}
         )
@@ -409,3 +411,16 @@ def test_catalog_page_toggle_uses_catalog_key():
     html = _render_catalog(tenant)
     assert 'data-plv-key="catalog"' in html
     assert 'data-plv-key="products"' not in html
+
+
+def test_cols_target_classes_follow_owner_style():
+    """Ревью MEN-22: data-cls-cols обязан вернуть ИМЕННО стартовые классы вида —
+    у foto_3sp клик по активной «2 колонки» не должен ронять xl:grid-cols-3."""
+    _seed_products()
+    tenant = TenantFactory.build(
+        site_config={
+            "sections": [{"key": "products", "enabled": True, "style": "preisliste_foto_3sp"}]
+        }
+    )
+    html = _render_home(tenant)
+    assert 'data-cls-cols="grid md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-6"' in html

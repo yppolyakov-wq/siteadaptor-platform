@@ -31,8 +31,18 @@ def _buy(product, email, *, ref="O-REV001", status="confirmed"):
     return order
 
 
+def _rand_ip():
+    """Рейтлимит отзывов копится per-IP в Redis и переживает прогоны (DB /1,
+    известная грабля rl:*) — фиксированный 127.0.0.1 через N локальных прогонов
+    начинал отклонять сабмиты. Паттерн из test_menu_storefront."""
+    import uuid
+
+    return f"10.{uuid.uuid4().int % 250}.{uuid.uuid4().int % 250}.9"
+
+
 def _get(path):
     request = RequestFactory().get(path)
+    request.META["REMOTE_ADDR"] = _rand_ip()
     SessionMiddleware(lambda r: None).process_request(request)
     MessageMiddleware(lambda r: None).process_request(request)
     request.tenant = TenantFactory.build(name="Hofladen", address="Feldweg 1")
@@ -41,6 +51,7 @@ def _get(path):
 
 def _post(path, data):
     request = RequestFactory().post(path, data)
+    request.META["REMOTE_ADDR"] = _rand_ip()
     SessionMiddleware(lambda r: None).process_request(request)
     MessageMiddleware(lambda r: None).process_request(request)
     request.tenant = TenantFactory.build(name="Hofladen", address="Feldweg 1")
