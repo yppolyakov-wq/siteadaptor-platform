@@ -48,6 +48,10 @@ class Category(SoftDeleteMixin, I18nMixin):
     # I18N-10: перевод таблицы (заголовки «Größe/Brust/Taille» осмысленны для
     # покупателя). База — плоское поле; при отсутствии перевода показываем её.
     size_table_i18n = models.JSONField(default=dict, blank=True)
+    # KAT-1: шаблон СТРАНИЦЫ категории /sortiment/<slug>/ (реестр
+    # category_styles.CATEGORY_PAGE_STYLES). "" = Standard — прежний вид фильтра
+    # байт-в-байт; choices живут в форме (прецедент Product.variant_style).
+    page_style = models.CharField(max_length=20, blank=True, default="")
 
     class Meta:
         verbose_name_plural = "Categories"
@@ -81,17 +85,14 @@ class Category(SoftDeleteMixin, I18nMixin):
 
     @property
     def landing_ready(self) -> bool:
-        """DS-7a: ведёт ли ссылка на лендинг направления /bereich/<slug>/.
+        """KAT-1: есть ли КОНТЕНТ ШАПКИ страницы категории (описание или фото).
 
-        Условие — ЗЕРКАЛО гейтов вьюхи `category_landing`: корневая категория
-        (вьюха требует `parent__isnull=True`) и есть что показать (описание или
-        фото; иначе вьюха отдаёт 404). Ревью MEN-15 нашло, что без проверки
-        корня подкатегория с описанием получала ссылку на лендинг — и клик
-        приводил на 404. Инвариант нужен ОДНОМУ месту: им пользуются и плитки
-        (`_category_tile.html`, подкатегории на /sortiment/), и подменю шапки.
+        История: до волны KAT гейтил ссылку на отдельный лендинг /bereich/
+        (и требовал корневую категорию — MEN-15). После слияния «категория =
+        страница /sortiment/<slug>/» страница есть у ЛЮБОЙ категории, а этот
+        флаг решает только «рисовать ли hero-шапку»; ограничение корнем снято —
+        подкатегория с заполненным фото/описанием тоже получает шапку.
         """
-        if self.parent_id is not None:
-            return False
         return any((self.description or {}).values()) or bool(self.images)
 
     @property

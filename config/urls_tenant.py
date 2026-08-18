@@ -280,8 +280,6 @@ urlpatterns = [
     path("sortiment/", public_views.product_list, name="storefront-products"),
     # M4-B Lookbook: страница образа (подборка товаров с фото).
     path("lookbook/<slug:slug>/", collections_public.lookbook, name="storefront-lookbook"),
-    # DS-7a: целевой лендинг направления (категории) — «Hochzeits-Catering» и т.п.
-    path("bereich/<slug:slug>/", public_views.category_landing, name="storefront-bereich"),
     path("sortiment/<uuid:pk>/", public_views.product_detail, name="storefront-product"),
     # M2 Boutique: Warteliste товара/размера («ausverkauft → benachrichtigen»).
     path(
@@ -301,6 +299,10 @@ urlpatterns = [
         public_views.product_review_submit,
         name="storefront-product-review",
     ),
+    # KAT-1: СТРАНИЦА КАТЕГОРИИ (слияние лендинга /bereich/ и фильтра ?kategorie=).
+    # После всех <uuid:…>-роутов: uuid-конвертер строгий — товар по UUID выигрывает,
+    # остальное падает в категорию (неизвестный slug → 404 во вьюхе).
+    path("sortiment/<slug:slug>/", public_views.product_list, name="storefront-category"),
     # Click & Collect (Track D / D2a): корзина-сессия + оформление самовывоза.
     path("warenkorb/", orders_public.cart_view, name="storefront-cart"),
     path("warenkorb/add/", orders_public.cart_add, name="storefront-cart-add"),

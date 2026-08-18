@@ -182,7 +182,7 @@ def test_resolve_category_requires_existing_category():
     assert menu.resolve_menu(tenant, "top") == []  # категории нет → отброшен
     Category.objects.create(name="Fastfood", slug="fastfood", is_active=True)
     items = menu.resolve_menu(tenant, "top")
-    assert items and items[0]["url"] == "/sortiment/?kategorie=fastfood"
+    assert items and items[0]["url"] == "/sortiment/fastfood/"  # KAT-1: путь
 
 
 # --- MEN-15: авто-подменю категорий с картинками -------------------------------
@@ -220,7 +220,7 @@ def test_categories_node_builds_children_from_live_catalog():
     tenant._menu_categories_memo = None  # мемо живёт на объекте запроса
     kids = menu.resolve_menu(tenant, "top")[0]["children"]
     assert [k["label"] for k in kids] == ["Buffets", "Getränke"]  # выключенной нет
-    assert kids[0]["url"] == "/sortiment/?kategorie=mc-buffets"
+    assert kids[0]["url"] == "/sortiment/mc-buffets/"  # KAT-1: путь
 
 
 @pytest.mark.django_db
@@ -247,28 +247,28 @@ def test_categories_children_are_one_query_and_memoized():
 
 @pytest.mark.django_db
 def test_categories_children_follow_landing_setting_like_tiles():
-    """Ссылка в меню обязана совпадать с плиткой категории (_category_tile.html):
-    до MEN-15 меню всегда вело на фильтр, а плитка — на лендинг направления."""
+    """KAT-1: ссылка в меню обязана совпадать с плиткой категории — теперь у
+    ОБЕИХ единая цель: страница /sortiment/<slug>/ (тумблер лендингов умер)."""
     from apps.catalog.models import Category
 
     Category.objects.create(
         name={"de": "Hochzeit"},
-        description={"de": "Für den großen Tag"},  # landing_ready
+        description={"de": "Für den großen Tag"},  # контент шапки есть
         slug="ml-wedding",
     )
     tenant = TenantFactory(
         schema_name="public",
         slug="ml",
         name="ML",
-        site_config=_menu_with_categories(category_landings=True),
+        site_config=_menu_with_categories(category_landings=True),  # легаси-ключ игнорируется
     )
     kids = menu.resolve_menu(tenant, "top")[0]["children"]
-    assert kids[0]["url"] == "/bereich/ml-wedding/"
+    assert kids[0]["url"] == "/sortiment/ml-wedding/"
 
-    tenant.site_config = _menu_with_categories()  # тумблер выключен
+    tenant.site_config = _menu_with_categories()
     tenant._menu_categories_memo = None
     kids = menu.resolve_menu(tenant, "top")[0]["children"]
-    assert kids[0]["url"] == "/sortiment/?kategorie=ml-wedding"
+    assert kids[0]["url"] == "/sortiment/ml-wedding/"  # та же цель без ключа
 
 
 @pytest.mark.django_db
@@ -313,10 +313,8 @@ def test_categories_node_can_show_subcategories_of_one_parent():
 
 @pytest.mark.django_db
 def test_subcategory_never_links_to_landing_page():
-    """HIGH: вьюха лендинга `/bereich/<slug>/` требует КОРНЕВУЮ категорию
-    (parent__isnull=True), поэтому подкатегория с описанием получала ссылку,
-    ведущую на 404. Инвариант живёт в `Category.landing_ready` — им пользуются
-    и подменю шапки, и плитки категорий на /sortiment/."""
+    """KAT-1: подкатегория — полноправная страница /sortiment/<slug>/
+    (исторический 404-инвариант MEN-15 умер вместе с /bereich/)."""
     from apps.catalog.models import Category
 
     parent = Category.objects.create(
@@ -328,7 +326,9 @@ def test_subcategory_never_links_to_landing_page():
         slug="ml2-soups",
         parent=parent,
     )
-    assert parent.landing_ready is True and kid.landing_ready is False
+    # KAT-1: landing_ready = «есть контент шапки»; ограничение корнем снято —
+    # у подкатегории с описанием шапка тоже уместна (страница есть у всех).
+    assert parent.landing_ready is True and kid.landing_ready is True
 
     tenant = TenantFactory(
         schema_name="public",
@@ -337,7 +337,7 @@ def test_subcategory_never_links_to_landing_page():
         site_config=_menu_with_categories(target="ml2-food", category_landings=True),
     )
     kids = menu.resolve_menu(tenant, "top")[0]["children"]
-    assert kids[0]["url"] == "/sortiment/?kategorie=ml2-soups"  # фильтр, не лендинг
+    assert kids[0]["url"] == "/sortiment/ml2-soups/"  # KAT-1: страница категории
 
 
 @pytest.mark.django_db
@@ -352,7 +352,7 @@ def test_categories_node_with_target_leads_into_that_branch():
         schema_name="public", slug="mt", name="MT", site_config=_menu_with_categories("mt-food")
     )
     item = menu.resolve_menu(tenant, "top")[0]
-    assert item["url"] == "/sortiment/?kategorie=mt-food"
+    assert item["url"] == "/sortiment/mt-food/"  # KAT-1: путь
     # без target — весь каталог (прежнее поведение)
     tenant.site_config = _menu_with_categories()
     tenant._menu_categories_memo = None

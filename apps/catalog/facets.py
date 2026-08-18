@@ -68,7 +68,16 @@ class CatalogFacets(FacetProvider):
     def apply(self, items, params):
         sel = self.selected(params)
         if sel["kategorie"]:
-            items = items.filter(category__slug=sel["kategorie"], category__is_active=True)
+            from django.db.models import Q
+
+            # KAT-1: категория-контейнер включает товары ПРЯМЫХ детей — иначе
+            # страница /sortiment/<slug>/ родителя без собственных товаров была
+            # бы пустой сеткой под шапкой (осознанная смена семантики фасета).
+            items = items.filter(
+                Q(category__slug=sel["kategorie"])
+                | Q(category__parent__slug=sel["kategorie"], category__parent__is_active=True),
+                category__is_active=True,
+            )
         if sel["diet"]:
             items = items.filter(diets__contains=[sel["diet"]])
         if sel["preis_von"] is not None:

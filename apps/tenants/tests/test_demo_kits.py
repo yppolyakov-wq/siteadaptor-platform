@@ -92,10 +92,10 @@ def test_seeds_subcategories_and_bilingual_names(monkeypatch):
     assert demo_kits.apply_kit(tenant, kit.key) is True
 
     # Подкатегории: родитель Shop + двое детей с parent FK.
-    shop = Category.objects.get(slug="demo-shop")
+    shop = Category.objects.get(slug="shop")
     children = Category.objects.filter(parent=shop)
     assert children.count() == 2
-    wurst = Category.objects.get(slug="demo-wuerstchen")
+    wurst = Category.objects.get(slug="wuerstchen")
     assert wurst.parent_id == shop.pk
     # Двуязычное имя категории и товара (DL-3: пост-сид может дозаполнить ru/uk/tr,
     # если слово есть в словаре — проверяем ключи de/en, не точное равенство дикта).
@@ -217,7 +217,8 @@ def test_apply_restaurant_kit_builds_full_site():
     assert demo_kits.apply_kit(tenant, "restaurant") is True
 
     # каталог: несколько категорий + товары с фото
-    assert Category.objects.filter(slug__startswith="demo-").count() == 4
+    # KAT-6: слаги демо — как у живых (без префикса demo-)
+    assert Category.objects.count() == 4
     products = Product.objects.filter(metadata__demo=True)
     assert products.count() >= 28
     assert all(
@@ -349,8 +350,8 @@ def test_apply_pranasy_kit_uses_constructor_features():
     cfg = tenant.site_config
 
     # Restaurant и Shop — отдельные верхнеуровневые категории; Shop с подкатегориями.
-    assert Category.objects.filter(slug="demo-restaurant", parent__isnull=True).exists()
-    shop = Category.objects.get(slug="demo-shop")
+    assert Category.objects.filter(slug="restaurant", parent__isnull=True).exists()
+    shop = Category.objects.get(slug="shop")
     assert shop.parent_id is None
     assert Category.objects.filter(parent=shop).count() == 3
     # S2: секция «Unsere Bereiche» включена
@@ -365,7 +366,7 @@ def test_apply_pranasy_kit_uses_constructor_features():
     # M20U-2: слайдер баннеров — 3 слайда; первый ведёт в Restaurant-меню.
     assert len(cfg["heroes"]) == 3
     assert all(h["image"] and h["title"] and h["button_url"] for h in cfg["heroes"])
-    assert cfg["heroes"][0]["button_url"] == "/sortiment/?kategorie=demo-restaurant"
+    assert cfg["heroes"][0]["button_url"] == "/sortiment/restaurant/"
     # M20U-7: кастомные заголовки секций
     assert cfg["section_titles"]["products"] == "Speisekarte & Shop"
     assert cfg["section_titles"]["events"] == "Retreats bei Pranasy"
@@ -387,8 +388,8 @@ def test_pranasy_menu_resolves_categories_and_promo_groups(settings):
     items = menu.resolve_menu(tenant, "top")
     by = {i["label"]: i for i in items}
     # Restaurant и Shop резолвятся на свои категории.
-    assert by["Restaurant"]["url"] == "/sortiment/?kategorie=demo-restaurant"
-    assert by["Shop"]["url"] == "/sortiment/?kategorie=demo-shop"
+    assert by["Restaurant"]["url"] == "/sortiment/restaurant/"
+    assert by["Shop"]["url"] == "/sortiment/shop/"
     # Группа «Treue & Aktionen» с детьми (Treue → loyalty минимум резолвится).
     treue_group = by["Treue & Aktionen"]
     child_labels = {c["label"] for c in treue_group["children"]}

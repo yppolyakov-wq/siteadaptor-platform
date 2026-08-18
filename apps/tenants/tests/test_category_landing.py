@@ -1,5 +1,6 @@
-"""DS-7: лендинги направлений /bereich/<slug>/ + тумблер цен в меню.
-План docs/ds7-category-landings-plan-2026-08-12.md."""
+"""KAT-1 (бывш. DS-7): страница категории /sortiment/<slug>/ + тумблер цен в меню.
+Лендинг /bereich/ слит в страницу категории; шапку решает Category.page_style.
+Планы docs/ds7-category-landings-plan-2026-08-12.md → kat-catalog-structure-plan-2026-08-18.md."""
 
 from importlib import import_module
 
@@ -40,63 +41,121 @@ def _seed(desc=True, photo=True):
 
 
 def test_normalize_toggles_presence_minimal():
+    # KAT-1: тумблер category_landings УМЕР — normalize дропает ключ (прецедент
+    # classic_ui); категория всегда страница, шапку решает Category.page_style.
     assert "category_landings" not in siteconfig.normalize({})
-    assert siteconfig.normalize({"category_landings": True})["category_landings"] is True
+    assert "category_landings" not in siteconfig.normalize({"category_landings": True})
     assert "menu_show_prices" not in siteconfig.normalize({})
     assert "menu_show_prices" not in siteconfig.normalize({"menu_show_prices": True})
     assert siteconfig.normalize({"menu_show_prices": False})["menu_show_prices"] is False
 
 
-def test_landing_gates_and_content():
+def test_category_page_header_by_style_and_content():
+    """KAT-1: /sortiment/<slug>/ — шапка (бывший лендинг) рендерится при шаблоне
+    kopfbild/sets И контенте; Standard "" — прежний вид фильтра без шапки."""
     cat = _seed()
-    # тумблер выкл → 404 даже с контентом
     req = _req()
     req.tenant = TenantFactory.build()
-    with pytest.raises(Http404):
-        public_views.category_landing(req, cat.slug)
-    # тумблер вкл + контент → 200, примеры БЕЗ цен, CTA с прицелом
-    on = _req()
-    on.tenant = TenantFactory.build(site_config={"category_landings": True})
-    html = public_views.category_landing(on, cat.slug).content.decode()
-    assert "data-landing-hero" in html and "Hochzeits-Catering" in html
-    assert "Ihr Buffet ohne Stress." in html
+    # Standard: страница отвечает, шапки нет, товар в сетке есть
+    html = public_views.product_list(req, slug=cat.slug).content.decode()
+    assert "data-category-header" not in html
     assert "Hochzeitsbuffet Klassik" in html
-    # DS-7c (фидбэк): блюда мини-плитками, цена по тумблеру меню — дефолт ПОКАЗАТЬ
-    examples = html[html.find("data-landing-examples") :].split("</section>")[0]
-    assert "39,00" in examples
-    assert "betreff=Hochzeits-Catering" in html
-    # тумблер выключен + browse-only → цены на плитках скрыты («с ценой и без»)
-    off_prices = _req()
-    off_prices.tenant = TenantFactory.build(
-        site_config={"category_landings": True, "menu_show_prices": False},
-        disabled_modules=["orders"],
-    )
-    html2 = public_views.category_landing(off_prices, cat.slug).content.decode()
-    ex2 = html2[html2.find("data-landing-examples") :].split("</section>")[0]
-    assert "39,00" not in ex2 and "Hochzeitsbuffet Klassik" in ex2
-    # пустая категория (без описания и фото) → 404 (контент-гейт)
-    empty = Category.objects.create(name={"de": "Leer"}, slug="cl-leer")
+    assert "Ihr Buffet ohne Stress." in html  # описание — прежним плоским абзацем
+
+    # kopfbild: hero-шапка с фото и описанием; плоский абзац не дублируется
+    cat.page_style = "kopfbild"
+    cat.save(update_fields=["page_style"])
+    req2 = _req()
+    req2.tenant = TenantFactory.build()
+    html2 = public_views.product_list(req2, slug=cat.slug).content.decode()
+    assert "data-category-header" in html2
+    assert html2.count("Ihr Buffet ohne Stress.") == 1
+    assert "/media/wed.jpg" in html2
+
+    # kopfbild БЕЗ контента (пустая категория) → шапки нет, страница жива
+    empty = Category.objects.create(name={"de": "Leer"}, slug="cl-leer", page_style="kopfbild")
+    req3 = _req()
+    req3.tenant = TenantFactory.build()
+    html3 = public_views.product_list(req3, slug=empty.slug).content.decode()
+    assert "data-category-header" not in html3
+
+    # неизвестный slug в ПУТИ → 404 (посадочная страница, не redirect)
+    req4 = _req()
+    req4.tenant = TenantFactory.build()
     with pytest.raises(Http404):
-        public_views.category_landing(on, empty.slug)
+        public_views.product_list(req4, slug="gibts-nicht")
 
 
-def test_tiles_link_to_landing_when_enabled():
+def test_category_page_uuid_never_shadowed():
+    """KAT-1: /sortiment/<uuid>/ обязан резолвиться в ДЕТАЛЬ товара, а не в
+    категорию (uuid-роут стоит раньше slug-роута)."""
+    from django.urls import Resolver404, resolve
+
     cat = _seed()
-    on = _req()
-    on.tenant = TenantFactory.build(
-        site_config={
-            "category_landings": True,
-            "sections": [{"key": "categories", "enabled": True}],
-        }
-    )
-    html = public_views.storefront_home(on).content.decode()
-    assert f"/bereich/{cat.slug}/" in html
-    off = _req()
-    off.tenant = TenantFactory.build(
+    p = Product.objects.get(name__de="Hochzeitsbuffet Klassik")
+    try:
+        match = resolve(f"/sortiment/{p.pk}/", urlconf="config.urls_tenant")
+    except Resolver404:  # pragma: no cover — защита от смены urlconf в тесте
+        pytest.fail("uuid-URL не резолвится")
+    assert match.url_name == "storefront-product"
+    match2 = resolve(f"/sortiment/{cat.slug}/", urlconf="config.urls_tenant")
+    assert match2.url_name == "storefront-category"
+
+
+def test_tiles_link_to_category_page():
+    """KAT-1: плитки категорий ведут на /sortiment/<slug>/ — ветвление
+    «лендинг vs фильтр» умерло вместе с тумблером."""
+    cat = _seed()
+    req = _req()
+    req.tenant = TenantFactory.build(
         site_config={"sections": [{"key": "categories", "enabled": True}]}
     )
-    html_off = public_views.storefront_home(off).content.decode()
-    assert "/bereich/" not in html_off  # выкл → прежний фильтр каталога
+    html = public_views.storefront_home(req).content.decode()
+    assert f"/sortiment/{cat.slug}/" in html
+    assert "/bereich/" not in html and "?kategorie=" not in html
+
+
+def test_category_page_includes_child_products():
+    """KAT-1: категория-контейнер показывает товары ПРЯМЫХ детей (страница
+    родителя без собственных товаров — не пустая сетка под шапкой)."""
+    parent = Category.objects.create(name={"de": "Feiern"}, slug="cl-feiern")
+    child = Category.objects.create(name={"de": "Geburtstag"}, slug="cl-geb", parent=parent)
+    Product.objects.create(
+        name={"de": "Geburtstags-Buffet"}, base_price="22.00", category=child, is_active=True
+    )
+    req = _req()
+    req.tenant = TenantFactory.build()
+    html = public_views.product_list(req, slug=parent.slug).content.decode()
+    assert "Geburtstags-Buffet" in html
+
+
+def test_category_page_style_preisliste():
+    """KAT-1: шаблон «Preisliste» — прайс-вид как per-page дефолт ЭТОЙ категории;
+    общий каталог /sortiment/ остаётся на глобальном layout (сетка), а
+    ?ansicht= посетителя (MEN-24d) сильнее шаблона категории."""
+    cat = _seed()
+    cat.page_style = "preisliste"
+    cat.save(update_fields=["page_style"])
+    req = _req()
+    req.tenant = TenantFactory.build()
+    html = public_views.product_list(req, slug=cat.slug).content.decode()
+    assert "data-price-list data-pl-style" in html
+    # per-page дефолт → carry чистый: ?ansicht=preisliste встречается ТОЛЬКО
+    # в ссылке самого переключателя видов (href + data-ansicht рядом), а не в
+    # carry ссылок категорий/сброса фильтров
+    assert html.count('?ansicht=preisliste"') == html.count('?ansicht=preisliste" data-ansicht=')
+    # общий каталог не заражается стилем категории
+    req2 = _req()
+    req2.tenant = TenantFactory.build()
+    html2 = public_views.product_list(req2).content.decode()
+    assert "data-price-list data-pl-style" not in html2
+    # посетитель переключает вид обратно в сетку поверх шаблона категории
+    # (cols3 — грид-ссылка тулбара при прайс-владельце; мусор → дефолт страницы)
+    req3 = _req(f"/sortiment/{cat.slug}/?ansicht=cols3")
+    req3.tenant = TenantFactory.build()
+    html3 = public_views.product_list(req3, slug=cat.slug).content.decode()
+    assert "data-price-list data-pl-style" not in html3
+    assert "Hochzeitsbuffet Klassik" in html3
 
 
 def test_menu_prices_toggle_browse_only():

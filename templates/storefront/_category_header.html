@@ -1,0 +1,26 @@
+{% load i18n %}
+{% comment %}KAT-1: шапка СТРАНИЦЫ категории /sortiment/<slug>/ (наследница
+лендинга /bereich/): split — описание + CTA заявки слева, фото справа; под ней
+лента доп. фото (при >1). Рендерится при category_header_ready (описание или
+фото) и шаблоне kopfbild/sets; h1 страницы остаётся в listing_header (замок
+порядка листинга) — здесь имя категории не дублируем. CTA — попап заявки
+(MEN-11), не страница /anfrage/.{% endcomment %}
+<section class="mb-8 grid md:grid-cols-2 gap-6 md:gap-10 items-center" data-category-header>
+  <div class="py-2 md:py-6">
+    <p class="text-[11px] font-bold tracking-[0.13em] uppercase mb-2" style="color: var(--accent, #4f46e5);">{{ request.tenant.get_business_type_display }}{% if request.tenant.city %} · {{ request.tenant.city }}{% endif %}</p>
+    {% if category_description %}<p class="text-gray-600 max-w-md whitespace-pre-line">{{ category_description }}</p>{% endif %}
+    {% if storefront_jobs_enabled %}
+    <button type="button" data-quick-url="{% url 'storefront-anfrage-modal' %}?betreff={{ current_category|urlencode }}" class="inline-block mt-5 rounded-lg px-6 py-2.5 font-medium text-white hover:opacity-90" style="background: var(--accent, #4f46e5);">{% trans "Request a quote" %}</button>
+    {% endif %}
+  </div>
+  <div class="relative min-h-[200px] md:min-h-[300px] rounded-2xl overflow-hidden bg-gray-100">
+    {% if category_photo %}<img src="{{ category_photo }}" alt="{{ current_category }}" class="absolute inset-0 w-full h-full object-cover">{% endif %}
+  </div>
+</section>
+{% if category_photos|length > 1 %}
+<div class="mb-8 grid grid-cols-2 md:grid-cols-3 gap-3" data-category-gallery>
+  {% for url in category_photos %}
+    {% if not forloop.first %}<div class="aspect-[4/3] rounded-xl overflow-hidden bg-gray-100"><img src="{{ url }}" alt="" loading="lazy" class="w-full h-full object-cover"></div>{% endif %}
+  {% endfor %}
+</div>
+{% endif %}

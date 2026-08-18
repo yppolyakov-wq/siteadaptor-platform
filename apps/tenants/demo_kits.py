@@ -1076,12 +1076,12 @@ PRANASY_MENUS = {
             {
                 "label": "Restaurant",
                 "type": "category",
-                "target": "demo-restaurant",
+                "target": "restaurant",
             },
             {
                 "label": "Shop",
                 "type": "category",
-                "target": "demo-shop",
+                "target": "shop",
             },
             {
                 "label": "Catering",
@@ -1127,8 +1127,8 @@ PRANASY_MENUS = {
     "bottom": {
         "enabled": True,
         "items": [
-            {"label": "Restaurant", "type": "category", "target": "demo-restaurant", "icon": "🍔"},
-            {"label": "Shop", "type": "category", "target": "demo-shop", "icon": "🛒"},
+            {"label": "Restaurant", "type": "category", "target": "restaurant", "icon": "🍔"},
+            {"label": "Shop", "type": "category", "target": "shop", "icon": "🛒"},
             {"label": "Catering", "type": "archetype", "target": "jobs", "icon": "🎉"},
             {"label": "Retreats", "type": "archetype", "target": "events", "icon": "🧘"},
         ],
@@ -1304,14 +1304,14 @@ PRANASY = DemoKit(
             "title": "Bald geöffnet",
             "text": "Unser veganes Restaurant öffnet bald — die Speisekarte ist schon online.",
             "button_label": "Zur Speisekarte",
-            "button_url": "/sortiment/?kategorie=demo-restaurant",
+            "button_url": "/sortiment/restaurant/",
         },
         {
             "image_kw": "vegan,sausage",
             "title": "Veganer Shop",
             "text": "Würstchen, Aufschnitt und feine Konditorei — alles pflanzlich.",
             "button_label": "Zum Shop",
-            "button_url": "/sortiment/?kategorie=demo-shop",
+            "button_url": "/sortiment/shop/",
         },
         {
             "image_kw": "yoga,forest",
@@ -1517,7 +1517,7 @@ PRANASY = DemoKit(
         "title": "Hunger auf Pflanzliches?",
         "text": "Schau in die Speisekarte oder stöbere im veganen Shop.",
         "button_label": "Zur Speisekarte",
-        "button_url": "/sortiment/?kategorie=demo-restaurant",
+        "button_url": "/sortiment/restaurant/",
     },
     resources=[
         {
@@ -2999,7 +2999,7 @@ BAKERY = DemoKit(
             "title": "Torten auf Vorbestellung",
             "text": "Wunschtorte mit 2 Tagen Vorlauf — Motiv nach Absprache.",
             "button_label": "Torten ansehen",
-            "button_url": "/sortiment/?kategorie=torten",
+            "button_url": "/sortiment/torten/",
         },
         {
             "image_kw": "bakery,bag",
@@ -3455,7 +3455,7 @@ BUTCHER = DemoKit(
             "title": "Grillpakete fürs Wochenende",
             "text": "Jetzt vorbestellen — samstags frisch mariniert abholen.",
             "button_label": "Grillpakete ansehen",
-            "button_url": "/sortiment/?kategorie=grill",
+            "button_url": "/sortiment/grill/",
         },
         {
             "image_kw": "deli",
@@ -4214,9 +4214,9 @@ CLOTHING_MENUS = {
         "style": "classic",
         "sticky": True,
         "items": [
-            {"label": "Damen", "type": "category", "target": "demo-damen"},
-            {"label": "Herren", "type": "category", "target": "demo-herren"},
-            {"label": "Accessoires", "type": "category", "target": "demo-accessoires"},
+            {"label": "Damen", "type": "category", "target": "damen"},
+            {"label": "Herren", "type": "category", "target": "herren"},
+            {"label": "Accessoires", "type": "category", "target": "accessoires"},
             {"label": "Sale", "type": "promo_group", "target": "Sale"},
             {"label": "Galerie", "type": "page", "target": "gallery"},
             {"label": "Bewertungen", "type": "page", "target": "reviews"},
@@ -7567,7 +7567,6 @@ CATERING = DemoKit(
         # тизер на главной остаётся плоским preisliste из макета Fokus, книга
         # с листанием живёт у ресторана — демо показывают разные виды семейства.
         "catalog_layout": {"preset": "preisliste_karte"},
-        "category_landings": True,  # DS-7: плитки направлений → /bereich/<slug>/
         "menu_labels": True,  # MEN-24a: маркировка (диеты/аллергены) в прайсе
     },
     # MEN-24c (фидбэк «сколько строк показывать, сейчас 3»): секция-прайс
@@ -7629,6 +7628,7 @@ CATERING = DemoKit(
             ],
             "catering,buffet",  # DS-2: фото плитки (реальный файл, не SVG)
             "Warme Buffets und Menüs für 20 bis 200 Gäste — saisonal, vegetarisch und vor Ort frisch angerichtet. Wir planen Menge, Ablauf und Aufbau gemeinsam mit Ihnen.",
+            "kopfbild",  # KAT-1: шаблон страницы — hero-шапка с фото
         ),
         (
             "Fingerfood & Platten",
@@ -7796,6 +7796,7 @@ CATERING = DemoKit(
             ],
             "vegan,cake",  # DS-2: фото плитки (реальный файл, не SVG)
             "Ihr Hochzeitsbuffet ohne Stress: Probeessen, Menüplanung, Sektempfang und Mitternachtssnack — wir begleiten den ganzen Abend.",
+            "sets",  # KAT-1: шаблон страницы — Menü-Pakete над сеткой
         ),
         (
             "Business & Seminar",
@@ -9524,12 +9525,20 @@ def apply_kit(tenant, key: str) -> bool:
         extra = entry[3] if len(entry) > 3 else []
         photo_kw = extra if isinstance(extra, str) else ""
         children = extra if isinstance(extra, list) else []
-        # DS-7a: 5-й элемент — описание направления (лендинг /bereich/<slug>/).
+        # DS-7a: 5-й элемент — описание направления (шапка страницы категории).
         landing_desc = entry[4] if len(entry) > 4 else ""
+        # KAT-6: слаг демо-категории — КАК У ЖИВЫХ (без префикса demo-; URL
+        # /sortiment/kaese-wurst/ выглядит как настоящий). unique_slug обязателен:
+        # recreate на схеме с ручными категориями иначе падал бы на constraint.
+        from apps.catalog.slugs import unique_slug as _unique_slug
+
+        actual_slug = _unique_slug(Category, slug)
         category = Category.objects.create(
             name=_i18n_text(name),
             description={"de": landing_desc} if landing_desc else {},
-            slug=f"demo-{slug}",
+            slug=actual_slug,
+            # KAT-1: шаблон страницы категории из спеки кита (6-й элемент).
+            page_style=(entry[5] if len(entry) > 5 else ""),
             sort_order=sort,
             is_active=True,
             parent=parent,
@@ -9547,6 +9556,9 @@ def apply_kit(tenant, key: str) -> bool:
             ],
         )
         refs["categories"].append(str(category.pk))
+        # KAT-6: карта «слаг спеки → фактический» (unique_slug мог досуффиксовать) —
+        # ей пользуется привязка комбо к категории.
+        refs.setdefault("category_slugs", {})[slug] = actual_slug
         first_in_cat = True
         for item in items:
             product = _make_product(item, category)
@@ -10256,8 +10268,9 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
             cdesc, cdesc_ov = _split_i18n(cspec.get("description", ""))
             category = None
             if cspec.get("category"):
-                # Слаги демо-категорий префиксуются («demo-hochzeit»).
-                category = Category.objects.filter(slug=f"demo-{cspec['category']}").first()
+                # KAT-6: слаг спеки → фактический (unique_slug мог досуффиксовать).
+                actual = refs.get("category_slugs", {}).get(cspec["category"], cspec["category"])
+                category = Category.objects.filter(slug=actual).first()
             combo = Combo.objects.create(
                 name=cname,
                 name_i18n=cname_ov,

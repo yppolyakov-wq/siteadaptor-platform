@@ -285,13 +285,18 @@ def test_cart_shows_pool_row_with_labels():
     assert "Freie Auswahl" in body and "Kürbissuppe" in body
 
 
-def test_landing_shows_menu_sets_block():
-    """MEN-4: лендинг направления (DS-7) — блок «Menü-Pakete» с бейджем минимума."""
+def test_category_page_shows_menu_sets_block():
+    """MEN-4 → KAT-2: наборы направления — полоса «Menü-Pakete» на СТРАНИЦЕ
+    категории /sortiment/<slug>/ (лендинг /bereich/ слит в неё); при шаблоне
+    "sets" полоса стоит НАД сеткой, у остальных — под."""
     from apps.catalog.models import Category
     from apps.promotions import public_views as promo_views
 
     cat = Category.objects.create(
-        name={"de": "Hochzeit"}, slug="men4-landing", description={"de": "Feiern mit Stil"}
+        name={"de": "Hochzeit"},
+        slug="men4-landing",
+        description={"de": "Feiern mit Stil"},
+        page_style="sets",
     )
     Combo.objects.create(
         name="Hochzeitsmenü Klassik",
@@ -300,10 +305,25 @@ def test_landing_shows_menu_sets_block():
         price_per_person=True,
         min_persons=20,
     )
-    req = _req(method="get", tenant=TenantFactory.build(site_config={"category_landings": True}))
-    body = promo_views.category_landing(req, slug="men4-landing").content.decode()
+    # товар нужен, чтобы отрендерилась сама сетка (порядок полосы проверяем к ней)
+    ProductFactory(name={"de": "Sektempfang"}, category=cat)
+    req = _req(method="get", tenant=TenantFactory.build())
+    body = promo_views.product_list(req, slug="men4-landing").content.decode()
     assert "Menü-Pakete" in body and "Hochzeitsmenü Klassik" in body
     assert "ab 20 Personen" in body
+    assert "data-category-sets" in body
+    # ссылка «View all» ведёт на /kombi/ с фильтром направления (KAT-2)
+    assert "/kombi/?kategorie=men4-landing" in body
+    # полоса НАД сеткой: маркер сетки каталога идёт ПОСЛЕ полосы
+    assert body.index("data-category-sets") < body.index('data-sf-section="catalog"')
+
+    # Standard "": полоса остаётся, но ПОД сеткой
+    cat.page_style = ""
+    cat.save(update_fields=["page_style"])
+    req2 = _req(method="get", tenant=TenantFactory.build())
+    body2 = promo_views.product_list(req2, slug="men4-landing").content.decode()
+    assert "data-category-sets" in body2
+    assert body2.index('data-sf-section="catalog"') < body2.index("data-category-sets")
 
 
 def test_browse_only_pick_controls_and_person_field():

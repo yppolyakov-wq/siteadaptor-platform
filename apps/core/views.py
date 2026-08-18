@@ -2685,7 +2685,7 @@ def pages_view(request):
         # роняет ключи, класс W0). Скрытие цен — только browse-only (PAngV);
         # при активном orders чекбокс не рендерится и ключ не трогаем.
         if request.POST.get("cl_present"):
-            config["category_landings"] = request.POST.get("category_landings") == "on"
+            # KAT-1: тумблер category_landings умер (категория всегда страница).
             # MEN-24a: маркировка (диеты/аллергены) в прайс-листе — чекбокс
             # рендерится только FOOD-типам, но ключ пишем под общим сентинелом:
             # не-FOOD тип его и не включит (гейт витрины двойной).
@@ -2778,7 +2778,6 @@ def pages_view(request):
             "catalog_preset_options": catalog_preset_options,  # DS-3a
             "catalog_preset": config["catalog_layout"]["preset"],
             # DS-7: текущие значения тумблеров каталожного блока.
-            "category_landings_on": bool(config.get("category_landings")),
             "menu_prices_on": config.get("menu_show_prices") is not False,
             "menu_labels_on": bool(config.get("menu_labels")),  # MEN-24a
             "is_food_type": _pages_is_food_type(request),  # MEN-24a: гейт чекбокса

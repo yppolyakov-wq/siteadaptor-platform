@@ -14,6 +14,7 @@ from apps.core import seo_meta
 _PAGE_MAP = {
     "storefront-home": ("home", ""),
     "storefront-products": ("listing", _("Sortiment")),
+    "storefront-category": ("listing", _("Sortiment")),  # KAT-1: страница категории
     "storefront-aktionen": ("listing", _("Aktionen")),
     "storefront-termin": ("listing", _("Termine")),
     "storefront-unterkunft": ("listing", _("Zimmer")),

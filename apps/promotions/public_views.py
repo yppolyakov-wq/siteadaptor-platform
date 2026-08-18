@@ -524,91 +524,50 @@ def _carry_qs(params: dict) -> str:
     return urlencode({k: v for k, v in params.items() if v not in (None, "", False)})
 
 
-def category_landing(request, slug):
-    """DS-7a: целевой лендинг направления (категории) — /bereich/<slug>/.
-
-    Fokus-композиция: split-шапка (описание + CTA с прицелом на направление) +
-    галерея + примеры БЕЗ цен + цитаты + форма заявки. Двойной гейт (класс
-    ST-8): общий тумблер `category_landings` И контент у категории (description
-    или фото) — иначе 404 (пустой лендинг хуже фильтра каталога).
-    """
-    from django.http import Http404
-    from django.utils.translation import get_language
-
-    from apps.catalog.models import Category, Combo, Product
-    from apps.tenants import siteconfig
-
-    site = siteconfig.localize(siteconfig.normalize(request.tenant.site_config), get_language())
-    if not site.get("category_landings"):
-        raise Http404
-    category = get_object_or_404(Category, slug=slug, is_active=True, parent__isnull=True)
-    # MEN-4: наборы меню направления (Combo.category) — блок «Menü-Pakete»
-    # карточками выше примеров блюд; пусто → блок не рендерится.
-    menu_sets = list(
-        Combo.objects.filter(is_active=True, category=category)
-        .prefetch_related("groups__options")
-        .order_by("sort_order", "created_at")[:6]
-    )
-    description = category.get_i18n("description")
-    photos = [img.get("url") for img in (category.images or []) if img.get("url")]
-    products = list(
-        Product.objects.filter(is_active=True, category=category).order_by(
-            "-is_featured", "created_at"
-        )[:8]
-    )
-    if not (description or photos):
-        raise Http404
-    # Галерея: ТОЛЬКО собственные фото категории (≥2 — иначе секция прячется;
-    # DS-7c: визуал блюд несут мини-плитки примеров — добор фото товаров в
-    # галерею дублировал их же картинки друг над другом).
-    gallery = photos[:6]
-    return render(
-        request,
-        "storefront/category_landing.html",
-        {
-            "site": site,
-            "category": category,
-            "landing_description": description,
-            "landing_gallery": gallery,
-            "landing_products": products,
-            "landing_menu_sets": menu_sets,  # MEN-4
-            "landing_photo": (photos[:1] or gallery[:1] or [""])[0],
-            "testimonials": (site.get("testimonials") or [])[:2],
-        },
-    )
-
-
-def product_list(request):
+def product_list(request, slug=None):
     """Публичный каталог витрины (Track C1): активные товары + фасет-фильтры + сортировка.
 
     Фасеты (категория, диета, цена, бейдж, наличие) — нативные поля БД, поэтому
     композируются с keyset-пагинацией. Гейтятся тумблером `catalog_show_filters` и
     наличием данных (есть разброс цен / есть бейджи / что-то распродано) — нерелевантные
-    фильтры само-скрываются (анти-Битрикс простота)."""
+    фильтры само-скрываются (анти-Битрикс простота).
+
+    KAT-1: та же вьюха обслуживает СТРАНИЦУ КАТЕГОРИИ /sortiment/<slug>/ —
+    категория из пути (неизвестный slug → 404, это посадочная страница), шапка
+    по Category.page_style, `kategorie` в carry не попадает (ссылки/формы бьют
+    в текущий путь). Легаси-форма ?kategorie= продолжает работать."""
 
     from apps.catalog.models import Category, Product
     from apps.core import facets as facets_registry
 
-    # UB2-1: категория/диета — через единый FacetProvider (нативные поля БД,
-    # composable с keyset). Category-объект вьюха резолвит сама (redirect на
-    # неизвестный slug + заголовок/подкатегории).
     provider = facets_registry.provider_for("product")
     products = Product.objects.filter(is_active=True)
     category = None
-    slug = request.GET.get("kategorie", "")
-    if slug:
-        category = Category.objects.filter(slug=slug, is_active=True).first()
-        if category is None:
-            return redirect("storefront-products")
+    path_mode = slug is not None
+    if path_mode:
+        category = get_object_or_404(Category, slug=slug, is_active=True)
+    else:
+        slug = request.GET.get("kategorie", "")
+        if slug:
+            category = Category.objects.filter(slug=slug, is_active=True).first()
+            if category is None:
+                return redirect("storefront-products")
+    # KAT-1: шаблон СТРАНИЦЫ категории (Category.page_style; мусор → Standard).
+    from apps.catalog.category_styles import page_style as _category_page_style
+
+    cat_style = _category_page_style(category) if category is not None else ""
     # Снимок набора в рамках выбранной категории ДО фасет-фильтров — из него считаем
     # доступные значения фасетов (границы цены / присутствующие бейджи / есть ли
     # распроданное), чтобы показывать только релевантные фильтры и реальные диапазоны.
     facet_base = provider.apply(products, {"kategorie": slug})
-    sel = provider.selected(request.GET)
+    # KAT-1: при path-режиме категория приходит ИЗ ПУТИ — провайдер получает её
+    # мерджем (request.GET её не содержит; явный ?kategorie= в GET подавляется).
+    _params = {**request.GET.dict(), "kategorie": slug} if path_mode else request.GET
+    sel = provider.selected(_params)
     diet = sel["diet"]
     # UB2-1/2-3: все фасеты провайдера одним вызовом — категория/диета/цена/наличие/
     # происхождение/рейтинг (рейтинг — bulk-summary отзывов, pk__in, keyset-safe).
-    products = provider.apply(products, request.GET)
+    products = provider.apply(products, _params)
     # UB2-2: поиск ?q= — по name/description на всех локалях (keyset-safe WHERE);
     # снимок facet_base (границы цены/бейджи/наличие) поиск не сужает — как у диеты.
     q = (request.GET.get("q") or "").strip()
@@ -663,6 +622,15 @@ def product_list(request):
     # владельца, вкл. авторские karte/buch — class-swap их не умел). Мусор →
     # выбор владельца (normalize_layout, один источник правды с билдером).
     _owner_preset = cfg["catalog_layout"]["preset"]
+    # KAT-1: шаблон категории «Preisliste» — прайс-вид как per-page ДЕФОЛТ этой
+    # страницы (carry считает отличие от него → чистые URL без ?ansicht=).
+    if path_mode and cat_style == "preisliste":
+        cfg["catalog_layout"] = siteconfig.normalize_layout(
+            {**cfg["catalog_layout"], "preset": "preisliste"},
+            {"preset": _owner_preset},
+            extra_presets=siteconfig.PAGE_EXTRA_PRESETS["catalog_layout"],
+        )
+        _owner_preset = cfg["catalog_layout"]["preset"]
     _ansicht_raw = (request.GET.get("ansicht") or "").strip()
     if _ansicht_raw:
         cfg["catalog_layout"] = siteconfig.normalize_layout(
@@ -734,12 +702,32 @@ def product_list(request):
         and not any_facet_active
         else []
     )
+    # KAT-1: контент шапки страницы категории (бывший лендинг /bereich/).
+    cat_photos = (
+        [img.get("url") for img in (category.images or []) if img.get("url")]
+        if category is not None
+        else []
+    )
+    # KAT-2: наборы ЭТОЙ категории — полоса карточек (видимость как у /kombi/:
+    # каталог core, цены гейтит карточка); на «Show more»/фасетах не дублируем.
+    category_combos = (
+        list(
+            active_combos()
+            .filter(category=category)
+            .prefetch_related("groups__options")
+            .order_by("sort_order", "created_at")[:6]
+        )
+        if category is not None and not request.GET.get("cursor") and not any_facet_active
+        else []
+    )
     # Carry-over параметров между формами/ссылками (чтобы фильтры/сорт не терялись):
     #  • filter_hidden / filter_qs — все активные фасеты КРОМЕ sort (для формы сорта и
     #    ссылки «Show more», которая сама добавляет sort+cursor);
     #  • filter_form_hidden — нефасетные параметры (для формы цены/бейджа/наличия);
     _facets = {
-        "kategorie": category.slug if category else "",
+        # KAT-1: path-режим — категория живёт В ПУТИ, в carry её не носим
+        # (иначе каждая ссылка продублировала бы её GET-параметром поверх).
+        "kategorie": "" if path_mode else (category.slug if category else ""),
         "diet": diet,
         "badge": badge,
         "preis_von": price_min_val,
@@ -763,7 +751,7 @@ def product_list(request):
     filter_form_hidden = [
         (k, v)
         for k, v in (
-            ("kategorie", _facets["kategorie"]),
+            ("kategorie", _facets["kategorie"]),  # KAT-1: в path-режиме пусто
             ("q", q),
             ("sort", sort if sort != "newest" else ""),
             ("ansicht", ansicht),  # MEN-24d: «Anwenden» панели не сбрасывает вид
@@ -784,6 +772,21 @@ def product_list(request):
             "current_category": category,
             # «Категории с описанием»: i18n-описание выбранной категории (или "").
             "category_description": category.get_i18n("description") if category else "",
+            # KAT-1/KAT-2: страница категории — шаблон, шапка, полоса наборов.
+            "category_page_style": cat_style,
+            "category_header_ready": bool(category is not None and category.landing_ready),
+            # шапка — у шаблонов kopfbild/sets при наличии контента; Standard ""
+            # остаётся байт-в-байт прежним видом фильтра (замки характеризации).
+            "show_category_header": bool(
+                path_mode
+                and category is not None
+                and category.landing_ready
+                and cat_style in ("kopfbild", "sets")
+            ),
+            "category_photos": cat_photos[:6],
+            "category_photo": (cat_photos[:1] or [""])[0],
+            "category_combos": category_combos,
+            "is_category_page": path_mode,
             # H1.2: кастомные заголовок/интро страницы каталога (инлайн-правка на канве).
             "catalog_title": cfg.get("catalog_title", ""),
             "catalog_intro": cfg.get("catalog_intro", ""),
@@ -1459,6 +1462,16 @@ def sitemap_xml(request):
     product_pks = list(Product.objects.filter(is_active=True).values_list("pk", flat=True))
     if product_pks:
         urls.append(request.build_absolute_uri(reverse("storefront-products")))
+        # KAT-1: страницы категорий — посадочные для non-brand запросов
+        # («Käse Hilden»); только категории с активными товарами.
+        from apps.catalog.models import Category
+
+        urls += [
+            request.build_absolute_uri(reverse("storefront-category", args=[cslug]))
+            for cslug in Category.objects.filter(is_active=True, products__is_active=True)
+            .distinct()
+            .values_list("slug", flat=True)
+        ]
         urls += [
             request.build_absolute_uri(reverse("storefront-product", args=[pk]))
             for pk in product_pks

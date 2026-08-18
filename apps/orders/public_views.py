@@ -205,11 +205,27 @@ def _require_combos_visible(request):
 
 
 def combo_list_public(request):
-    """Витрина комбо-наборов (A4): /kombi/. MEN-3: гейт по видимости каталога."""
+    """Витрина комбо-наборов (A4): /kombi/. MEN-3: гейт по видимости каталога.
+
+    KAT-2: ?kategorie=<slug> — фильтр наборов направления («Alle Sets» со
+    страницы категории); неизвестный/пустой слаг → все наборы (fail-open)."""
     _require_combos_visible(request)
     from apps.catalog.combos import active_combos
 
-    return render(request, "storefront/combos.html", {"combos": active_combos()})
+    combos = active_combos()
+    kategorie = (request.GET.get("kategorie") or "").strip()
+    current_category = None
+    if kategorie:
+        from apps.catalog.models import Category
+
+        current_category = Category.objects.filter(slug=kategorie, is_active=True).first()
+        if current_category is not None:
+            combos = combos.filter(category=current_category)
+    return render(
+        request,
+        "storefront/combos.html",
+        {"combos": combos, "current_category": current_category},
+    )
 
 
 def combo_detail_public(request, pk):

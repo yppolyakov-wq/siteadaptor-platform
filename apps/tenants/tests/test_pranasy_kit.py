@@ -39,21 +39,21 @@ def test_pranasy_applies_full_bilingual_site():
     assert demo_kits.apply_kit(tenant, "pranasy") is True
 
     # Restaurant — отдельная верхнеуровневая категория, 8 блюд, покупка включена.
-    restaurant = Category.objects.get(slug="demo-restaurant")
+    restaurant = Category.objects.get(slug="restaurant")
     assert restaurant.parent_id is None
     dishes = Product.objects.filter(category=restaurant)
     assert dishes.count() == 8
     assert all(p.is_active for p in dishes)  # «купить сразу» — товары активны
 
     # Shop — отдельная верхнеуровневая категория с тремя подкатегориями.
-    shop = Category.objects.get(slug="demo-shop")
+    shop = Category.objects.get(slug="shop")
     assert shop.parent_id is None
     subs = Category.objects.filter(parent=shop)
     assert subs.count() == 3
     by_slug = {c.slug: c for c in subs}
-    assert Product.objects.filter(category=by_slug["demo-wuerstchen"]).count() == 3
-    assert Product.objects.filter(category=by_slug["demo-aufschnitt"]).count() == 3
-    assert Product.objects.filter(category=by_slug["demo-suesses"]).count() == 6
+    assert Product.objects.filter(category=by_slug["wuerstchen"]).count() == 3
+    assert Product.objects.filter(category=by_slug["aufschnitt"]).count() == 3
+    assert Product.objects.filter(category=by_slug["suesses"]).count() == 6
 
 
 def test_pranasy_products_are_bilingual():

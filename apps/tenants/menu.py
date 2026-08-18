@@ -179,14 +179,15 @@ def _archetype_url(tenant, key: str):
 
 
 def _category_url(tenant, slug: str):
+    # KAT-1: категория = страница /sortiment/<slug>/ (фильтр ?kategorie= умер
+    # из внутренних ссылок; правка одной функции чинит меню всех демо-китов).
     if not slug or not modules.is_module_active(tenant, "catalog"):
         return None
     from apps.catalog.models import Category
 
     if not Category.objects.filter(slug=slug, is_active=True).exists():
         return None
-    base = _reverse("storefront-products")
-    return f"{base}?kategorie={slug}" if base else None
+    return _reverse_args("storefront-category", slug)
 
 
 def _category_children(tenant, parent_slug: str):
@@ -197,8 +198,7 @@ def _category_children(tenant, parent_slug: str):
     меню. `parent_slug` пуст → корневые категории; иначе подкатегории названной.
 
     Ссылка обязана совпадать с плиткой категории (`_category_tile.html`):
-    лендинг направления при включённом тумблере и готовом контенте, иначе
-    фильтр каталога. Иначе меню и главная вели бы в разные места.
+    KAT-1 — всегда страница категории /sortiment/<slug>/.
 
     Мемо на объекте тенанта — как `_page_has_content`: меню резолвится на каждый
     рендер (шапка, нижнее меню, контекст-процессор), а это запрос в БД.
@@ -236,14 +236,10 @@ def _category_children(tenant, parent_slug: str):
     except Exception:  # noqa: BLE001 — узел меню не должен ронять страницу
         rows = []
 
-    landings = bool(siteconfig.normalize(tenant.site_config).get("category_landings"))
-    base = _reverse("storefront-products")
     out = []
     for cat in rows:
-        if landings and cat.landing_ready:
-            url = _reverse_args("storefront-bereich", cat.slug)
-        else:
-            url = f"{base}?kategorie={cat.slug}" if base else None
+        # KAT-1: одна цель — страница категории (ветвление лендинг/фильтр умерло).
+        url = _reverse_args("storefront-category", cat.slug)
         if not url:
             continue
         out.append(

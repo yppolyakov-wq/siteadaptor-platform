@@ -1,4 +1,4 @@
-{% load i18n siteui %}{# M20U-2: сетка категорий каталога → /sortiment/?kategorie=slug. #}
+{% load i18n siteui %}{# M20U-2/KAT-1: сетка категорий → страница /sortiment/<slug>/. #}
 {% if categories %}
 <section data-reveal class="mb-10">
   <div class="flex items-center justify-between mb-4">
@@ -19,7 +19,7 @@
     {% for r in cat_rows %}
     {% comment %}DS-7a: при включённых лендингах направление ведёт на свой
     /bereich/<slug>/ (fail-safe — фильтр каталога).{% endcomment %}
-    <a href="{% if site.category_landings and r.c.landing_ready %}{% url 'storefront-bereich' r.c.slug %}{% else %}{% url 'storefront-products' %}?kategorie={{ r.c.slug }}{% endif %}" class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-2.5 hover:border-gray-300">
+    <a href="{% url 'storefront-category' r.c.slug %}" class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-2.5 hover:border-gray-300">
       {% with img=r.c.images.0 %}{% if img.url %}<img src="{{ img.url }}" alt="" class="w-12 h-12 rounded-lg object-cover shrink-0">{% endif %}{% endwith %}
       <span class="min-w-0">
         <span class="block font-semibold text-sm leading-tight truncate">{{ r.c }}</span>

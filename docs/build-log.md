@@ -10693,3 +10693,67 @@ ansicht-override их сохраняет). Замок: attr из layout.cols, д
 колонки Kacheln — 1|2 контролом «мобайл» раскладки секции (data-plv-mobile,
 дефолт 2); CSS-правило заперто в max-width:767px — иначе его специфичность
 (0,3,0) перебила бы md/xl-блоки. Замок на оба значения.
+
+## 2026-08-18 — KAT батч 1: категория = страница /sortiment/<slug>/ + шаблоны + комбо + демо-слаги
+
+Обсуждение структуры каталога с владельцем (решения: категория=страница ·
+комбо=часть товара · SEO-слаги · шаблоны страницы категории опцией админа ·
+«301 не нужен, не в проде» · плотность посетителю · вид без перезагрузки).
+План `docs/kat-catalog-structure-plan-2026-08-18.md`; разведка — 3
+Explore-агента (колл-сайты /bereich/+?kategorie= · слаги товаров · комбо).
+
+**KAT-1 — категория = страница.** `/bereich/` умер целиком: вьюха
+`category_landing`, роут, шаблон `category_landing.html`, тумблер
+`category_landings` (normalize ДРОПАЕТ ключ — прецедент classic_ui; чекбокс
+из «Pages» удалён, POST-ветка снята). `product_list(request, slug=None)` —
+роут `sortiment/<slug:slug>/` (name `storefront-category`) ПОСЛЕ
+`<uuid:pk>`-подпутей (uuid строгий — товар выигрывает; замок resolve);
+path-режим: unknown slug → 404 (посадочная), легаси `?kategorie=` работает
+как раньше (unknown → redirect). Фильтр — мердж `{**GET, "kategorie": slug}`;
+carry чистится (`_facets["kategorie"]=""` в path-режиме — формы/ссылки бьют
+в текущий путь). Семантика выдачи ОСОЗНАННО расширена: категория включает
+товары ПРЯМЫХ активных детей (`Q(category__slug=..)|Q(category__parent__slug=..)`
+в CatalogFacets) — родитель-контейнер больше не пустой (замок). Все плитки/
+меню/hero ведут на `/sortiment/<slug>/` (единая `_reverse_args` в menu.py;
+ветвление «лендинг vs фильтр» умерло). SEO: `_PAGE_MAP` += storefront-category,
+sitemap += страницы категорий (активные с активными товарами).
+
+**Шаблоны страницы категории (опция админа).** `Category.page_style`
+(⚠️ миграция `catalog/0027`, CharField blank default "" — образец
+`variant_style`), реестр `apps/catalog/category_styles.py` (мусор → ""):
+`""` Standard (байт-в-байт прежний вид, замки целы) · `kopfbild` — hero-шапка
+`_category_header.html` (split: описание+CTA-попап заявки | фото; лента доп.
+фото; h1 не дублируется — остаётся в listing_header) + подкатегории
+фото-плитками · `sets` — полоса комбо-карточек НАД сеткой · `preisliste` —
+прайс-вид как PER-PAGE ДЕФОЛТ этой страницы (через normalize_layout ДО
+`?ansicht=` — carry чистый, `?ansicht=` посетителя сильнее; замок «только
+ссылка тулбара несёт ?ansicht=preisliste»). `landing_ready` переопределён:
+parent-ограничение снято, теперь просто «есть контент шапки». Select в
+CategoryForm (generic-цикл шаблона подхватил сам).
+
+**KAT-2 — комбо к товарам.** Единая карточка `_combo_card.html` (из
+combos.html — было бы три копии разметки): /kombi/, полоса «Sets & Menüs»
+страницы категории (лимит 6, гейт `not cursor and not any_facet_active` —
+на «Show more»/фильтрах не дублируется; style=sets → над сеткой, иначе в
+listing_after), тизер каталога. `/kombi/` += `?kategorie=` (fail-open) +
+строка фильтра с «Alle anzeigen».
+
+**KAT-6 — демо-слаги без `demo-`.** `CategoryForm._unique_slug` →
+`apps/catalog/slugs.py::unique_slug` (общий util; RESERVED_SLUGS={"p"} под
+будущий роут товаров KAT-3); `_make_category` сидера суффиксует через него
+(recreate на схеме с ручными категориями не падает на constraint), карта
+`refs["category_slugs"]` — привязка комбо/nav/hero по фактическому слагу.
+Попутно починены БИТЫЕ уже сегодня hero-кнопки torten/grill (вели на
+`?kategorie=torten` без префикса при категориях `demo-torten`). Демо catering:
+buffets=kopfbild, hochzeit=sets.
+
+Замки: `test_category_landing` (7: normalize-дроп, шапка по стилю+контенту,
+uuid vs slug, плитки, дети, preisliste-дефолт+carry+ansicht-override),
+`test_menu` (5 переписаны на путь), `test_menu_storefront`
+(sets-полоса над/под), демо-свиты (слаги/hero/nav). Стенд Playwright
+(catering+shop, пересев) — см. итог батча. 9 msgid × 5 .po (реестр стилей +
+«Alle anzeigen»). ⚠️ ops: `seed_demo_tenants --recreate` (слаги без demo-,
+page_style демо). Урок замков (повтор): негативный ассерт на `?ansicht=X`
+ловит ПРЕФИКСЫ более длинных пресетов (`?ansicht=preisliste_foto`) и ссылки
+самого переключателя — матчить с закрывающей кавычкой и сравнивать счётчики
+«всего vs в тулбаре».

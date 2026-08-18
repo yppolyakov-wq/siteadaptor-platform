@@ -2766,11 +2766,9 @@ def _normalize_impl(config) -> dict:
     # Presence-minimal: ключ только при включении — golden целы.
     if nav_in.get("cta"):
         normalized["nav"]["cta"] = True
-    # DS-7a: лендинги направлений /bereich/<slug>/ (presence-minimal, дефолт
-    # ВЫКЛ — описания категорий у существующих тенантов не должны внезапно
-    # рождать страницы и перенаправлять плитки).
-    if config.get("category_landings"):
-        normalized["category_landings"] = True
+    # KAT-1: тумблер category_landings УМЕР (прецедент classic_ui) — категория
+    # теперь ВСЕГДА страница /sortiment/<slug>/, а шапку решает Category.page_style;
+    # normalize ключ ДРОПАЕТ (не переносим в normalized).
     # DS-7b: цены в меню (прайс-виды/плитки). Дефолт ПОКАЗЫВАТЬ; ключ
     # материализуется только при False. PAngV-гейт применяет вьюха/форма
     # (скрытие только для browse-only меню) — normalize хранит намерение.

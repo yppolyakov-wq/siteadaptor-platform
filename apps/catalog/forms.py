@@ -25,9 +25,12 @@ class CategoryForm(DynamicI18nFormMixin, forms.ModelForm):
         ("description", {"label": "Beschreibung", "textarea": True}),
     )
 
+    # KAT-1: шаблон страницы категории (реестр category_styles; "" = Standard).
+    page_style = forms.ChoiceField(label=_("Seitenvorlage"), required=False)
+
     class Meta:
         model = Category
-        fields = ["parent", "slug", "icon", "sort_order", "is_active", "size_table"]
+        fields = ["parent", "slug", "page_style", "icon", "sort_order", "is_active", "size_table"]
         labels = {"size_table": _("Größentabelle")}
         help_texts = {
             "size_table": _(
@@ -42,6 +45,14 @@ class CategoryForm(DynamicI18nFormMixin, forms.ModelForm):
         self.fields["slug"].required = False
         self.fields["slug"].help_text = _("Leave blank to generate from the German name.")
         self.fields["parent"].required = False
+        from apps.catalog.category_styles import CATEGORY_PAGE_STYLES
+
+        self.fields["page_style"].choices = [
+            (code, f"{label} — {hint}") for code, label, hint in CATEGORY_PAGE_STYLES
+        ]
+        self.fields["page_style"].help_text = _(
+            "Wie die Seite /sortiment/<slug>/ dieser Kategorie aufgebaut ist."
+        )
         self.init_i18n_fields(tenant)  # L3d.5: динамика + initial всех локалей
 
         qs = Category.objects.all()
@@ -71,16 +82,12 @@ class CategoryForm(DynamicI18nFormMixin, forms.ModelForm):
         return parent
 
     def _unique_slug(self, base: str) -> str:
-        """Догнать суффикс -2, -3… чтобы slug был уникален среди живых записей."""
-        slug = base
-        i = 2
-        qs = Category.objects.all()
-        if self.instance.pk:
-            qs = qs.exclude(pk=self.instance.pk)
-        while qs.filter(slug=slug).exists():
-            slug = f"{base}-{i}"
-            i += 1
-        return slug
+        """KAT-6: общая утилита slugs.unique_slug (сидер и товары — тот же код)."""
+        from apps.catalog.slugs import unique_slug
+
+        return unique_slug(
+            Category, base, exclude_pk=self.instance.pk if self.instance.pk else None
+        )
 
     def clean(self):
         cleaned = super().clean()

@@ -70,7 +70,7 @@ def test_catalog_shows_subcategories_first():
     CategoryFactory(slug="roggen", name={"de": "Roggen"}, parent=parent, sort_order=1)
     body = public_views.product_list(_req(params={"kategorie": "brot"})).content.decode()
     assert "Roggen" in body
-    assert "kategorie=roggen" in body  # ссылка на подкатегорию
+    assert "/sortiment/roggen/" in body  # KAT-1: ссылка = страница подкатегории
 
 
 def test_catalog_subcats_first_toggle_off_hides_cards():
@@ -406,7 +406,7 @@ def test_home_categories_section_when_enabled():
     req.tenant.site_config = {"sections": [{"key": "categories", "enabled": True}]}
     body = public_views.storefront_home(req).content.decode()
     assert "Brot" in body and "Kuchen" in body
-    assert "kategorie=brot" in body  # ссылка на каталог с фильтром
+    assert "/sortiment/brot/" in body  # KAT-1: ссылка = страница категории
 
 
 def test_home_categories_section_hidden_by_default():
