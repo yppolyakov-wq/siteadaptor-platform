@@ -116,6 +116,12 @@ class Product(SoftDeleteMixin, I18nMixin):
     name = models.JSONField(default=dict)
     description = models.JSONField(default=dict)
 
+    # KAT-3: SEO-слаг товара (/sortiment/<категория>/<слаг>/, без категории —
+    # /sortiment/p/<слаг>/). Автогенерация в save() при пустом; стабилен после
+    # создания (переименование URL не меняет — прецедент Collection). Пустой слаг
+    # легален (bulk_create/старые записи) — такие живут на uuid-роуте.
+    slug = models.SlugField(max_length=140, blank=True, default="")
+
     category = models.ForeignKey(
         Category,
         null=True,
@@ -218,6 +224,40 @@ class Product(SoftDeleteMixin, I18nMixin):
             models.Index(fields=["category"], name="product_category_idx"),
             models.Index(fields=["sku"], name="product_sku_idx"),
         ]
+        constraints = [
+            # KAT-3: слаг уникален среди ЖИВЫХ записей с непустым слагом
+            # (soft-delete освобождает адрес; пустые не конфликтуют).
+            models.UniqueConstraint(
+                fields=["slug"],
+                condition=models.Q(deleted_at__isnull=True) & ~models.Q(slug=""),
+                name="uniq_product_slug_alive",
+            )
+        ]
+
+    def save(self, *args, **kwargs):
+        """KAT-3: авто-слаг при пустом — единая точка (форма/импорт/демо/мастер
+        идут через create/save). update_fields без slug не трогаем — targeted-write
+        существующих вьюх не должен внезапно писать новую колонку."""
+        if not self.slug:
+            update_fields = kwargs.get("update_fields")
+            if update_fields is None or "slug" in update_fields:
+                from .slugs import unique_slug
+
+                self.slug = unique_slug(
+                    Product, self.get_i18n("name") or self.sku, exclude_pk=self.pk
+                )
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self) -> str:
+        """KAT-3: SEO-адрес товара. С категорией — /sortiment/<cat>/<slug>/,
+        без — /sortiment/p/<slug>/; без слага — прежний uuid-роут (fail-safe)."""
+        from django.urls import reverse
+
+        if self.slug:
+            if self.category_id:
+                return reverse("storefront-product-seo", args=[self.category.slug, self.slug])
+            return reverse("storefront-product-slug", args=[self.slug])
+        return reverse("storefront-product", args=[self.pk])
 
     def __str__(self):
         return self.get_i18n("name") or self.sku or str(self.pk)

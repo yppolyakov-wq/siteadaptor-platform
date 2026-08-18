@@ -76,13 +76,14 @@ def enqueue_order_email(order, event):
             )
         # CM-6.4: ссылки «оценить товар» (деталь#bewertungen) — только с base.
         if event == "post_purchase":
+            # KAT-3: SEO-URL детали (select_related — без N+1 по товару/категории).
             ctx["review_links"] = (
                 [
                     {
                         "title": item.title_snapshot,
-                        "url": f"{base}{reverse('storefront-product', args=[item.product_id])}#bewertungen",
+                        "url": f"{base}{item.product.get_absolute_url()}#bewertungen",
                     }
-                    for item in order.items.all()
+                    for item in order.items.select_related("product__category")
                     if item.product_id
                 ][:5]
                 if base

@@ -149,7 +149,8 @@ def storefront_home(request):
         from apps.catalog.models import Product
 
         # M20U-7: источник товаров секции (избранные/новые/избранные-первыми).
-        prod_qs = Product.objects.filter(is_active=True)
+        # KAT-3: select_related — карточки строят SEO-URL через category.slug.
+        prod_qs = Product.objects.filter(is_active=True).select_related("category")
         source = siteconfig.product_source(site)
         if source == "featured_only":
             prod_qs = prod_qs.filter(is_featured=True).order_by("-created_at")
@@ -541,7 +542,8 @@ def product_list(request, slug=None):
     from apps.core import facets as facets_registry
 
     provider = facets_registry.provider_for("product")
-    products = Product.objects.filter(is_active=True)
+    # KAT-3: select_related — карточки листинга строят SEO-URL через category.slug.
+    products = Product.objects.filter(is_active=True).select_related("category")
     category = None
     path_mode = slug is not None
     if path_mode:
@@ -857,12 +859,26 @@ def product_list(request, slug=None):
     )
 
 
-def product_detail(request, pk):
+def product_detail(request, pk=None, pslug=None, cslug=None):
     from apps.catalog.models import Product
 
-    product = get_object_or_404(Product, pk=pk, is_active=True)
+    # KAT-3: три адреса одной детали — uuid (легаси/письма/QR), /sortiment/p/<slug>/
+    # (без категории) и /sortiment/<категория>/<slug>/. Слаговый резолв СТРОГИЙ:
+    # чужая категория в пути → 404 (не дублируем контент по любым путям).
+    if pk is not None:
+        product = get_object_or_404(Product, pk=pk, is_active=True)
+    elif cslug is not None:
+        product = get_object_or_404(
+            Product.objects.select_related("category"),
+            slug=pslug,
+            category__slug=cslug,
+            is_active=True,
+        )
+    else:
+        product = get_object_or_404(Product, slug=pslug, category__isnull=True, is_active=True)
     related = (
         Product.objects.filter(is_active=True, category=product.category)
+        .select_related("category")  # KAT-3: карточки → SEO-URL без N+1
         .exclude(pk=product.pk)
         .order_by("-is_featured", "-created_at")[:4]
         if product.category_id
@@ -928,7 +944,7 @@ def product_review_submit(request, pk):
     from apps.reviews.models import Review
 
     product = get_object_or_404(Product, pk=pk, is_active=True)
-    detail_url = reverse("storefront-product", args=[product.pk])
+    detail_url = product.get_absolute_url()  # KAT-3: SEO-URL
     if request.method != "POST":
         return redirect(detail_url)
     # Рейтлимит на отправку (анти-спам), как в публичных формах акций/заявок.
@@ -1170,22 +1186,22 @@ def product_waitlist_join(request, pk):
 
     product = get_object_or_404(Product, pk=pk, is_active=True)
     if request.method != "POST" or request.POST.get("website"):
-        return redirect("storefront-product", pk=pk)
+        return redirect(product.get_absolute_url())
     rl_ident = f"{ratelimit.client_ip(request)}:{pk}"
     if ratelimit.hit("waitlist", rl_ident, limit=RL_LIMIT, window=RL_WINDOW):
         messages.error(request, _("Zu viele Versuche. Bitte später erneut."))
-        return redirect("storefront-product", pk=pk)
+        return redirect(product.get_absolute_url())
     email = (request.POST.get("email") or "").strip().lower()
     if not email or "@" not in email:
         messages.error(request, _("Bitte eine gültige E-Mail angeben."))
-        return redirect("storefront-product", pk=pk)
+        return redirect(product.get_absolute_url())
     variant = None
     variant_pk = (request.POST.get("variant") or "").strip()
     if variant_pk:
         variant = ProductVariant.objects.filter(pk=variant_pk, product=product).first()
     product_waitlist.join(product, email, variant=variant)
     messages.success(request, _("Wir benachrichtigen Sie, sobald wieder verfügbar."))
-    return redirect("storefront-product", pk=pk)
+    return redirect(product.get_absolute_url())
 
 
 def product_anprobe_reserve(request, pk):
@@ -1201,19 +1217,19 @@ def product_anprobe_reserve(request, pk):
 
     product = get_object_or_404(Product, pk=pk, is_active=True)
     if request.method != "POST" or request.POST.get("website"):
-        return redirect("storefront-product", pk=pk)
+        return redirect(product.get_absolute_url())
     cfg = siteconfig.normalize(getattr(request.tenant, "site_config", {}) or {})
     if not cfg.get("anprobe") or not request.tenant.is_module_active("orders"):
-        return redirect("storefront-product", pk=pk)
+        return redirect(product.get_absolute_url())
     rl_ident = f"{ratelimit.client_ip(request)}:{pk}"
     if ratelimit.hit("anprobe", rl_ident, limit=RL_LIMIT, window=RL_WINDOW):
         messages.error(request, _("Zu viele Versuche. Bitte später erneut."))
-        return redirect("storefront-product", pk=pk)
+        return redirect(product.get_absolute_url())
     name = (request.POST.get("name") or "").strip()
     email = (request.POST.get("email") or "").strip().lower()
     if not name or not email or "@" not in email:
         messages.error(request, _("Bitte Name und eine gültige E-Mail angeben."))
-        return redirect("storefront-product", pk=pk)
+        return redirect(product.get_absolute_url())
     variant = None
     variant_pk = (request.POST.get("variant") or "").strip()
     if variant_pk:
@@ -1222,7 +1238,7 @@ def product_anprobe_reserve(request, pk):
         order = create_anprobe(product=product, variant=variant, name=name, email=email)
     except OutOfStock:
         messages.error(request, _("Leider gerade nicht verfügbar."))
-        return redirect("storefront-product", pk=pk)
+        return redirect(product.get_absolute_url())
     from django.utils import formats
 
     until = formats.date_format(timezone.localtime(order.reserve_expires_at), "d.m.Y H:i")
@@ -1230,7 +1246,7 @@ def product_anprobe_reserve(request, pk):
         request,
         _("Zurückgelegt bis %(until)s — wir freuen uns auf Sie!") % {"until": until},
     )
-    return redirect("storefront-product", pk=pk)
+    return redirect(product.get_absolute_url())
 
 
 def reservation_confirmation(request, code):
@@ -1459,8 +1475,10 @@ def sitemap_xml(request):
     # Каталог витрины (Track C1).
     from apps.catalog.models import Product
 
-    product_pks = list(Product.objects.filter(is_active=True).values_list("pk", flat=True))
-    if product_pks:
+    # KAT-3: в sitemap — канонический SEO-URL товара (get_absolute_url; без
+    # слага — uuid-фолбэк); select_related — slug категории без N+1.
+    sm_products = list(Product.objects.filter(is_active=True).select_related("category"))
+    if sm_products:
         urls.append(request.build_absolute_uri(reverse("storefront-products")))
         # KAT-1: страницы категорий — посадочные для non-brand запросов
         # («Käse Hilden»); только категории с активными товарами.
@@ -1472,10 +1490,7 @@ def sitemap_xml(request):
             .distinct()
             .values_list("slug", flat=True)
         ]
-        urls += [
-            request.build_absolute_uri(reverse("storefront-product", args=[pk]))
-            for pk in product_pks
-        ]
+        urls += [request.build_absolute_uri(p.get_absolute_url()) for p in sm_products]
     # CM-1: блог — свежий контент для локального SEO (только при активном модуле).
     tenant = getattr(request, "tenant", None)
     if tenant is not None and tenant.is_module_active("blog"):
@@ -1572,7 +1587,10 @@ def product_feed_xml(request):
     from apps.catalog.models import Product
 
     products = (
-        Product.objects.filter(is_active=True).prefetch_related("variants").order_by("-created_at")
+        Product.objects.filter(is_active=True)
+        .select_related("category")  # KAT-3: SEO-link в фиде без N+1
+        .prefetch_related("variants")
+        .order_by("-created_at")
     )
     tenant = getattr(request, "tenant", None)
     name = getattr(tenant, "name", "") or "Shop"
@@ -1581,9 +1599,7 @@ def product_feed_xml(request):
         title=name,
         link=request.build_absolute_uri(reverse("storefront-home")),
         description=_("Products from %(name)s") % {"name": name},
-        product_url=lambda p: request.build_absolute_uri(
-            reverse("storefront-product", args=[p.pk])
-        ),
+        product_url=lambda p: request.build_absolute_uri(p.get_absolute_url()),
         absolutize=request.build_absolute_uri,
     )
     return HttpResponse(xml, content_type="application/xml")

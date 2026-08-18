@@ -10757,3 +10757,40 @@ page_style демо). Урок замков (повтор): негативный
 ловит ПРЕФИКСЫ более длинных пресетов (`?ansicht=preisliste_foto`) и ссылки
 самого переключателя — матчить с закрывающей кавычкой и сравнивать счётчики
 «всего vs в тулбаре».
+
+## 2026-08-18 — KAT батч 2 (KAT-3): SEO-слаги товаров /sortiment/<категория>/<товар>/
+
+⚠️ Миграция `catalog/0028` (AddField slug + бэкфилл + partial-constraint
+`uniq_product_slug_alive`: живые с непустым слагом; deleted_at-фильтр в
+бэкфилле ЯВНЫЙ — AliveManager в миграциях не участвует; идемпотентность —
+занятые слаги в seed). `Product.slug` (SlugField 140, blank, default "") —
+автогенерация в `save()` при пустом (имя → sku → 'eintrag'; НЕ трогает
+targeted-write: гейт по update_fields); слаг стабилен после создания
+(переименование URL не меняет). Пустой слаг легален (bulk_create) → живёт
+на uuid-роуте.
+
+**Роуты:** `sortiment/p/<pslug>/` (товар без категории; слаг "p" зарезервирован
+в `slugs.RESERVED_SLUGS` — категория его не займёт) + `sortiment/<cslug>/<pslug>/`
+— ПОСЛЕ uuid-подпутей (uuid-строка матчит slug-паттерн, но uuid-роуты выше
+выигрывают). Резолв СТРОГИЙ: чужая категория в пути → 404 (не плодим
+дубль-контент); POST-подпути (warteliste/bewerten/anprobe) остаются на uuid.
+`get_absolute_url()` на модели — единая точка адреса (с категорией → seo-роут,
+без → p-роут, без слага → uuid).
+
+**Колл-сайты через get_absolute_url:** карточка `_product_card` (3) +
+прайс-строки `_price_list` (2) · sellable-адаптер (detail_url товара → SEO;
+JSON-LD url даром; hasattr-гейт для стабов) · sitemap (канонический адрес,
+uuid из sitemap ушёл — замок) · Google-фид (link) · письма waitlist +
+post-purchase (select_related product__category) · 10 POST-редиректов
+review/waitlist/anprobe + detail_url отзыва. N+1 закрыт select_related
+("category") в листинге/секции главной/related/фиде/sitemap
+(price_list_groups уже имел). `_add_error` quick-add остаётся на uuid
+(есть только pk — легитимный фолбэк).
+
+Замки: НОВЫЙ `test_product_slugs.py` (7: автогенерация/уникальность/
+стабильность, фолбэки sku→eintrag→bulk-"" → uuid, absolute_url по категории,
+резолв обоих роутов + рендер + живой uuid, строгий матч категории, карточки
+листинга на SEO-URL, резерв "p"). Осознанно переписаны: sitemap-замок
+(канонический адрес), test_sellable (detail_url == get_absolute_url),
+test_finder (карточка результата). Импорт/демо/мастер идут через
+objects.create → save → слаг автоматом (проверено: imports/processors).

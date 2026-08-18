@@ -576,7 +576,10 @@ def test_sitemap_includes_products():
     product = ProductFactory()
     body = public_views.sitemap_xml(_req("/sitemap.xml")).content.decode()
     assert "/sortiment/</loc>" in body
-    assert f"/sortiment/{product.pk}/" in body
+    # KAT-3: канонический адрес товара — SEO-слаг (uuid-роут жив, но в sitemap
+    # не дублируется).
+    assert product.get_absolute_url() in body
+    assert f"/sortiment/{product.pk}/" not in body
 
 
 def test_sitemap_without_products_skips_section():

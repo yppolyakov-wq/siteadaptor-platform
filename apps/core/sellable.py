@@ -247,7 +247,13 @@ def sellable_for(
         gallery=f["gallery"],
         purchase_mode=archetypes.purchase_mode(module),
         purchase_label=archetypes.purchase_label(module),
-        detail_url=_reverse_or_empty(url_name, obj.pk),
+        # KAT-3: товар отдаёт SEO-URL (get_absolute_url, внутри uuid-фолбэк при
+        # пустом слаге); hasattr — стабы контракта в тестах не обязаны его иметь.
+        detail_url=(
+            obj.get_absolute_url()
+            if kind == "product" and hasattr(obj, "get_absolute_url")
+            else _reverse_or_empty(url_name, obj.pk)
+        ),
         select_url=_reverse_or_empty(select_name, obj.pk),
         submit_url=_reverse_or_empty(submit_name, obj.pk),
         buybox_ready=buybox_ready,

@@ -303,6 +303,17 @@ urlpatterns = [
     # После всех <uuid:…>-роутов: uuid-конвертер строгий — товар по UUID выигрывает,
     # остальное падает в категорию (неизвестный slug → 404 во вьюхе).
     path("sortiment/<slug:slug>/", public_views.product_list, name="storefront-category"),
+    # KAT-3: SEO-адреса товара. p/ — товар без категории (слаг "p" зарезервирован
+    # в catalog.slugs.RESERVED_SLUGS, категория его занять не может); двухсегментный
+    # <категория>/<товар> — после uuid-подпутей (uuid-строка матчит slug-паттерн,
+    # но uuid-роуты выше выигрывают). POST-подпути (warteliste/bewerten/…) остаются
+    # на uuid. Пустой слаг товара → живёт только на uuid-роуте.
+    path("sortiment/p/<slug:pslug>/", public_views.product_detail, name="storefront-product-slug"),
+    path(
+        "sortiment/<slug:cslug>/<slug:pslug>/",
+        public_views.product_detail,
+        name="storefront-product-seo",
+    ),
     # Click & Collect (Track D / D2a): корзина-сессия + оформление самовывоза.
     path("warenkorb/", orders_public.cart_view, name="storefront-cart"),
     path("warenkorb/add/", orders_public.cart_add, name="storefront-cart-add"),

@@ -1627,9 +1627,17 @@ Python 3.12, менеджер uv.
   (/kombi/ + полоса категории лимит 6 с гейтом «первая страница без фасетов» + тизер),
   `/kombi/?kategorie=`. KAT-6: демо-слаги БЕЗ `demo-` (`slugs.unique_slug` util,
   RESERVED={"p"}; карта `refs["category_slugs"]`; починены битые hero torten/grill).
-  9 msgid × 5 .po. Остаток волны: **батч 2 KAT-3** (SEO-слаги товаров, ⚠️ `catalog/0028`)
-  → **батч 3 KAT-4/5** (плотность «− N +» посетителю + смена вида без перезагрузки).
-- Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная)** — все аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
+  9 msgid × 5 .po. **Батч 2 KAT-3 (той же датой): SEO-слаги товаров** — `Product.slug`
+  (⚠️ миграция `catalog/0028`: AddField+бэкфилл+partial-constraint; автогенерация в
+  save() при пустом, гейт по update_fields; bulk_create → пустой слаг → uuid-роут);
+  роуты `/sortiment/p/<slug>/` + `/sortiment/<cat>/<slug>/` ПОСЛЕ uuid-подпутей,
+  резолв строгий (чужая категория → 404), POST-подпути на uuid; `get_absolute_url()` —
+  единая точка: карточки/прайс-строки/sellable(detail_url+JSON-LD)/sitemap(канонический,
+  uuid ушёл)/фид/письма waitlist+post-purchase/10 POST-редиректов; select_related
+  ("category") против N+1. Замки: test_product_slugs (7) + осознанные переписки
+  sitemap/sellable/finder. Остаток волны: **батч 3 KAT-4/5** (плотность «− N +»
+  посетителю + смена вида без перезагрузки).
+- Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная)** — все аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».

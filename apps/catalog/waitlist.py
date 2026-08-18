@@ -28,7 +28,6 @@ def notify_available(product, variant=None) -> int:
     подписчики «товара в целом»; приёмка без варианта → все подписки товара.
     Каждая запись — ровно одно письмо (notified + dedupe_key)."""
     from django.db.models import Q
-    from django.urls import reverse
 
     from apps.catalog.models import ProductWaitlist
     from apps.promotions.notifications import _base_url, _render, notify
@@ -43,7 +42,7 @@ def notify_available(product, variant=None) -> int:
         from django.db import connection
 
         base = _base_url(connection.schema_name)
-        url = f"{base}{reverse('storefront-product', args=[product.pk])}" if base else ""
+        url = f"{base}{product.get_absolute_url()}" if base else ""  # KAT-3: SEO-URL
         ctx = {"entry": entry, "product": product, "variant": entry.variant, "product_url": url}
         subject, body, html = _render("product_waitlist_available", ctx)
         notify(

@@ -51,7 +51,7 @@ MEN-24a: show_labels — маркировка диет/аллергенов (т�
       {% endif %}
       {% for p in g.items %}
         {% if st == 'preisliste_karte' or st == 'preisliste_buch' %}
-        <a href="{% url 'storefront-product' p.pk %}" class="group block py-2 border-b border-dotted border-gray-300 last:border-0">
+        <a href="{{ p.get_absolute_url }}" class="group block py-2 border-b border-dotted border-gray-300 last:border-0">
           <span class="flex items-baseline gap-2">
             <span class="font-medium group-hover:underline">{{ p }}</span>
             {% if show_labels %}{% include "storefront/_price_row_labels.html" %}{% endif %}
@@ -61,7 +61,7 @@ MEN-24a: show_labels — маркировка диет/аллергенов (т�
           {% with d=p.description_text %}{% if d %}<span class="block text-sm text-gray-500 italic mt-0.5">{{ d|truncatechars:90 }}</span>{% endif %}{% endwith %}
         </a>
         {% else %}
-        <a href="{% url 'storefront-product' p.pk %}" class="group flex {% if plv %}items-center{% elif st == 'preisliste_foto' or st == 'preisliste_foto_2sp' or st == 'preisliste_foto_3sp' %}items-center{% else %}items-baseline{% endif %} gap-2 {% if st == 'preisliste_kompakt' %}py-1{% else %}py-1.5{% endif %} border-b border-dotted border-gray-300 last:border-0">
+        <a href="{{ p.get_absolute_url }}" class="group flex {% if plv %}items-center{% elif st == 'preisliste_foto' or st == 'preisliste_foto_2sp' or st == 'preisliste_foto_3sp' %}items-center{% else %}items-baseline{% endif %} gap-2 {% if st == 'preisliste_kompakt' %}py-1{% else %}py-1.5{% endif %} border-b border-dotted border-gray-300 last:border-0">
           {% if plv %}{% if p.primary_image.url %}{% comment %}MEN-22: у базовых
           видов фото ВСЕГДА в DOM (класс plv-img; в «plain» скрыто) — посетитель
           переключает вид без перезагрузки. Фикс DS-7: у Product НЕТ image_url

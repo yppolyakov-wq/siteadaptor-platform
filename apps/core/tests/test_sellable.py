@@ -121,7 +121,8 @@ def test_product_adapter_cart_mode_price_and_gallery():
     assert e.gallery == ["/b.jpg"]
     assert e.purchase_mode == "cart"
     assert e.purchase_label == "In den Warenkorb"
-    assert str(p.pk) in e.detail_url
+    # KAT-3: товар отдаёт SEO-URL (слаговый адрес; uuid-роут остаётся жить)
+    assert e.detail_url == p.get_absolute_url()
 
 
 def test_non_eur_currency_uses_code():

@@ -167,7 +167,7 @@ def test_page_steps_and_results_flow():
     html = public_views.finder_page(request).content.decode()
     assert "Unser Vorschlag" in html and "Schokotorte" in html
     assert "Noch mal suchen" in html
-    assert f"/sortiment/{torte.pk}/" in html  # карточка ведёт на деталь
+    assert torte.get_absolute_url() in html  # карточка ведёт на деталь (KAT-3: SEO-URL)
 
 
 def test_page_garbage_answers_restart_question():

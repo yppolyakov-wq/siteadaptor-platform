@@ -11,7 +11,7 @@
      class="sf-photo-edit hidden absolute top-2 right-11 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm hover:text-indigo-600"
      title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</button>
   {% include "storefront/_wish_heart.html" with p=p pos="absolute bottom-2 right-2" %}
-  <a href="{% url 'storefront-product' p.pk %}" class="flex items-center gap-3 flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 rounded-xl">
+  <a href="{{ p.get_absolute_url }}" class="flex items-center gap-3 flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 rounded-xl">
     <div class="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0">
       {% with img=p.primary_image %}
         {% if img %}<img src="{{ img.url }}" alt="{{ p }}" loading="lazy" decoding="async" class="w-full h-full object-cover">
@@ -57,7 +57,7 @@
      class="sf-photo-edit hidden absolute top-2 right-11 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm hover:text-indigo-600"
      title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</button>
   {% include "storefront/_wish_heart.html" with p=p pos="absolute top-2 left-2" %}
-  <a href="{% url 'storefront-product' p.pk %}" class="block focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
+  <a href="{{ p.get_absolute_url }}" class="block focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
     <div class="relative aspect-square bg-gray-100">
       {% with img=p.primary_image %}
         {% if img %}<img src="{{ img.url }}" alt="{{ p }}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-[1.02] transition">
@@ -116,7 +116,7 @@
      class="sf-photo-edit hidden absolute top-2 right-11 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm hover:text-indigo-600"
      title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</button>
   {% include "storefront/_wish_heart.html" with p=p pos="absolute top-2 left-2" %}
-  <a href="{% url 'storefront-product' p.pk %}" class="block focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
+  <a href="{{ p.get_absolute_url }}" class="block focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
     <div class="relative aspect-square bg-gray-100">
       {% with img=p.primary_image %}
         {% if img %}
