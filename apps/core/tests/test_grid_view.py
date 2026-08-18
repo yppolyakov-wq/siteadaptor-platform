@@ -23,7 +23,9 @@ EXPECTED = {
     "sections/_blog.html": {"blog"},
     "promotions_list.html": {"promo_list"},
     "service_index.html": {"services"},
-    "products.html": {"catalog"},
+    # products.html (каталог) — ОСОЗНАННО не здесь: вид переключает СЕРВЕРНЫЙ
+    # ?ansicht= (MEN-24d), клиентский свитчер убран по фидбэку 2026-08-18
+    # (на мобильном стоял вторым переключателем) — замок ниже.
     "stay_index.html": {"stay_rooms"},
     "event_index.html": {"events"},
 }
@@ -36,6 +38,15 @@ def test_grid_has_matching_view_switcher(name, keys):
     switched = set(re.findall(r'_grid_view\.html" with grid_key="([a-z_]+)"', body))
     assert keys <= grids, f"{name}: сетка без data-grid {keys - grids}"
     assert keys <= switched, f"{name}: нет переключателя для {keys - switched}"
+
+
+def test_catalog_view_switching_is_server_side():
+    """Фидбэк 2026-08-18: на каталоге вид переключает ТОЛЬКО серверный ?ansicht=
+    (_price_view_links) — клиентского «список/плитка» рядом с ним быть не должно
+    (на мобильном это был второй переключатель того же самого)."""
+    body = (TEMPLATES / "products.html").read_text(encoding="utf-8")
+    assert '_price_view_links.html" %}' in body  # серверный переключатель на месте
+    assert "_grid_view.html" not in body  # клиентский дубль не вернулся
 
 
 def test_switcher_and_script_exist():
