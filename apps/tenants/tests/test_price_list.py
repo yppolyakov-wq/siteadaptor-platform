@@ -557,3 +557,28 @@ def test_food_label_translations_are_identity_in_de():
     with translation.override("de"):
         rendered = [str(lb) for lb in labels]
     assert rendered == raw, [p for p in zip(raw, rendered, strict=True) if p[0] != p[1]]
+
+
+def test_grid_view_cols_follow_section_layout():
+    """MEN-25 (фидбэк «плитка от 2 до 6 + настройка администратору»): число
+    колонок Kacheln-вида = колонки раскладки секции (пикер Studio, 2–6) через
+    data-plv-cols; без явной раскладки — дефолт 4. Вёрстку дают CSS-блоки
+    [data-plv-cols] в app.css (мобайл всегда 2)."""
+    _seed_products()
+    six = TenantFactory.build(
+        site_config={
+            "sections": [
+                {
+                    "key": "products",
+                    "enabled": True,
+                    "style": "preisliste",
+                    "layout": {"preset": "cols6"},
+                }
+            ]
+        }
+    )
+    assert 'data-plv-cols="6"' in _render_home(six)
+    default = TenantFactory.build(
+        site_config={"sections": [{"key": "products", "enabled": True, "style": "preisliste"}]}
+    )
+    assert 'data-plv-cols="4"' in _render_home(default)

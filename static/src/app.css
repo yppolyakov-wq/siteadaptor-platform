@@ -353,6 +353,22 @@ input[type="datetime-local"] {
 @media (min-width: 1280px) {
   [data-plv="grid"] [data-pl-group] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
+/* MEN-25 (фидбэк «плитка от 2 до 6, настройку — администратору»): число колонок
+   Kacheln-вида берётся из раскладки секции (пикер колонок в Studio, 2–6) и едет
+   атрибутом data-plv-cols; мобайл всегда 2 (замок «мобильный ≤2»). Позже базовых
+   блоков — при равной специфичности побеждает последнее правило. */
+@media (min-width: 768px) {
+  [data-plv="grid"][data-plv-cols="1"] [data-pl-group],
+  [data-plv="grid"][data-plv-cols="2"] [data-pl-group] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  [data-plv="grid"][data-plv-cols="6"] [data-pl-group] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (min-width: 1280px) {
+  [data-plv="grid"][data-plv-cols="1"] [data-pl-group],
+  [data-plv="grid"][data-plv-cols="2"] [data-pl-group] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  [data-plv="grid"][data-plv-cols="3"] [data-pl-group] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  [data-plv="grid"][data-plv-cols="5"] [data-pl-group] { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  [data-plv="grid"][data-plv-cols="6"] [data-pl-group] { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
 .dark [data-plv="grid"] [data-pl-group] > a {
   background: rgb(31 41 55);
   border-color: rgb(55 65 81);
