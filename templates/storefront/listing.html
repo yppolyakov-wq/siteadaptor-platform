@@ -42,8 +42,12 @@ UB1-1: единый каркас страницы-листинга (по обр�
 выбрасывает; она остаётся в listing_facets и позиционируется CSS-ящиком.{% endcomment %}
 <div class="mb-4 flex flex-wrap items-center gap-2 text-sm" data-listing-bar>
   {% block listing_bar_filters %}{% endblock %}
+  {% comment %}MEN-24d: сорт и переключатель вида — ОДНОЙ правой группой: два
+  конкурирующих ml-auto (форма + партиал вида) делили свободное место, и пара
+  не прижималась к краю.{% endcomment %}
+  <span class="ml-auto flex flex-wrap items-center gap-2">
   {% if show_listing_toolbar and sort_options %}
-  <form method="get" class="ml-auto flex items-center gap-2 text-sm" data-listing-toolbar>
+  <form method="get" class="flex items-center gap-2 text-sm" data-listing-toolbar>
     {% for name, value in toolbar_hidden %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
     {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
     <label class="flex items-center gap-2 text-gray-500" for="id_listing_sort"><span class="hidden sm:inline">{% trans "Sort" %}</span>
@@ -57,6 +61,7 @@ UB1-1: единый каркас страницы-листинга (по обр�
   </form>
   {% endif %}
   {% block listing_bar_view %}{% endblock %}
+  </span>
 </div><!--/listing-bar-->
 <script>document.querySelectorAll(".js-sort-select").forEach(function (s) { s.addEventListener("change", function () { s.form.submit(); }); });</script>
 {% endblock %}

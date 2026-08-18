@@ -10622,3 +10622,61 @@ plain↔foto↔cols + персист, каталог не перекрашен, 
 браузер без `locale: "de-DE"` уводил витрину в EN (сам факт — проверка
 перевода). 7 msgid × 5 .po. Одна миграция `reviews/0005` (choices-only).
 ⚠️ ops: `seed_demo_tenants --kit catering --recreate`.
+
+## 2026-08-18 — MEN-24: маркировка, «Kacheln», кап строк, каталог во всю ширину (фидбэк владельца)
+
+План `docs/men24-price-list-views-plan-2026-08-18.md`; разведка — 3 Explore-агента
+(реестры food / тулбар+carry каталога / контролы секции билдера).
+
+**MEN-24a — маркировка в прайс-строках** («настройки вывода пиктограмок с диетами
+и аллергенами в каждый вид»). Диеты — эмодзи реестра (`diet_badges`, подпись в
+title); аллергены — буквенные сноски `<sup>` по схеме PDF-Speisekarte: маппинг
+поднят из `pdf.py::_allergen_letters` в `food.allergen_letters()` (единые буквы
+витрины и печатной карты), property `Product.allergen_letters_str`; легенда
+встреченных букв под списком (тег `allergen_legend`). Ключ `menu_labels`
+(presence-minimal, дефолт ВЫКЛ) + тег-гейт `menu_labels_active` (FOOD-типы,
+fail-closed; НЕ site.* — на /sortiment/ `site` в контексте нет, ловушка
+разведки). Чекбокс — экран «Pages» под сентинелом `cl_present`, виден только
+гастро-типам. Демо: catering + restaurant.
+
+**MEN-24b — вид «Kacheln»** («переключение на вид с сеткой по 2-4»): 4-я кнопка
+переключателя MEN-22; вёрстка карточек — ЧИСТО CSS-каскадом `[data-plv="grid"]`
+(строка → колонка-карточка, фото w-full, группы grid 2/md:3/xl:4; прецеденты
+`[data-galv]`/`.is-list`); скрипт читает `data-gcls-<view>` с фолбэком stack,
+whitelist localStorage += grid.
+
+**MEN-24c — кап строк + «Mehr anzeigen»** («в вид списка кнопку показать ещё…
+сколько строк — сейчас 3»): `price_list_groups(rows=)` режет строки на группу
+(запрос при капе расширен до 200 — 40 не хватало «по 3 в каждой из многих
+групп»), флаг `g.more`; ключ секции `rows` (presence-minimal, clamp 1..20,
+golden целы) прошит в билдер (POST/панель/live-draft/серверный черновик);
+существующая кнопка «Ganze Speisekarte» при срезе меняет подпись на
+«Mehr anzeigen →» (третью кнопку не плодили). Демо catering: rows=3.
+**Грабля:** локальная `rows` в цикле `_kit_sections` затенила список секций
+(TypeError на КАЖДОМ ките) — поймано пересевом демо, переименована.
+
+**MEN-24d — каталог** («товары по ширине + переключатели рядом с сортировкой»):
+посетительский вид страницы — СЕРВЕРНЫЙ `?ansicht=<preset>` (normalize_layout +
+PAGE_EXTRA_PRESETS, мусор → вид владельца) — работает при любом стиле, вкл.
+авторские karte/buch, где class-swap невозможен; class-swap остаётся механикой
+главной (каталог — `pl_page=1`: полная ширина max-w-none + без plv-атрибутов).
+Переключатель — 4 иконки-ссылки `_price_view_links.html` (`data-ansicht`; НЕ
+data-plv-btn — его перехватывает preventDefault, НЕ data-grid-view — замок
+бара); «Kacheln» = сеточный пресет владельца либо cols3. Carry: `ansicht` в
+`_facets` (пагинация/сорт даром) + `filter_form_hidden` + 7 ручных ссылок
+чипов/плиток + `_category_tile.html` (стенд поймал: у catering категории —
+фото-плитки, не чипы). Тулбар: сорт+вид — одной правой группой (двойной
+ml-auto делил свободное место). Замок каталожного class-swap переписан
+осознанно на серверные ссылки.
+
+**Стенд Playwright 21/21** (catering; маркировка/кап/грид/ширина/carry/мусор).
+**Стенд нашёл довоенный LMIV-баг переводов:** легенда показала «c =
+Eigentümer» — DeepL-коротыши в .po коверкали метки аллергенов/диет:
+`Eier→Eigentümer/Владелец`, `Soja→Soldat/Солдат`, `Halal→Wahl/Выборы`,
+`Bio→Biografie` (de/tr/ru/uk; светилось в попапе блюда, детали товара и
+легенде PDF с самой DL-волны). Исправлено ×4 локали + замок
+`test_food_label_translations_are_identity_in_de` (de-рендер реестров food =
+msgid байт-в-байт). Ключи/msgid: 5 новых × 5 .po. Замки: 6 новых в
+test_price_list (+2 переписаны осознанно). Без миграций.
+⚠️ ops: `seed_demo_tenants --kit catering --recreate` (+ restaurant для
+menu_labels в его демо).

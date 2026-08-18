@@ -291,7 +291,7 @@ msgstr "Krebstiere"
 
 #: apps/catalog/food.py:15
 msgid "Eier"
-msgstr "Eigentümer"
+msgstr "Eier"
 
 #: apps/catalog/food.py:16
 msgid "Fisch"
@@ -303,7 +303,7 @@ msgstr "Erdnüsse"
 
 #: apps/catalog/food.py:18
 msgid "Soja"
-msgstr "Soldat"
+msgstr "Soja"
 
 #: apps/catalog/food.py:19
 msgid "Milch (Laktose)"
@@ -355,11 +355,11 @@ msgstr "Laktosefrei"
 
 #: apps/catalog/food.py:40
 msgid "Halal"
-msgstr "Wahl"
+msgstr "Halal"
 
 #: apps/catalog/food.py:41
 msgid "Bio"
-msgstr "Biografie"
+msgstr "Bio"
 
 #: apps/catalog/food.py:51
 msgid "mit Farbstoff"
@@ -18674,3 +18674,18 @@ msgstr ""
 
 msgid "Weitere Menüs aus dieser Kategorie"
 msgstr "Weitere Menüs aus dieser Kategorie"
+
+msgid "Kacheln"
+msgstr "Kacheln"
+
+msgid "Mehr anzeigen"
+msgstr "Mehr anzeigen"
+
+msgid "Zeilen"
+msgstr "Zeilen"
+
+msgid "Zeilen je Kategorie (Preisliste)"
+msgstr "Zeilen je Kategorie (Preisliste)"
+
+msgid "Kennzeichnung in der Speisekarte (Diäten, Allergene)"
+msgstr "Kennzeichnung in der Speisekarte (Diäten, Allergene)"

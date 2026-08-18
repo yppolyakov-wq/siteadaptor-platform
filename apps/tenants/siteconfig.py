@@ -978,6 +978,14 @@ def section_layout(config, key) -> dict:
     return normalize_layout(None, default)
 
 
+def section_rows(config, key="products") -> int:
+    """MEN-24c: кап строк на группу прайс-вида секции (0 = без капа)."""
+    for item in config.get("sections", []):
+        if isinstance(item, dict) and item.get("key") == key:
+            return _clamp(item.get("rows"), 1, 20, 0)
+    return 0
+
+
 def section_limit(config, key) -> int:
     """M20U-7: сколько элементов выводит секция-превью `key` (клампится 1..MAX).
 
@@ -2198,6 +2206,12 @@ def _section_entry(key, enabled, raw_item):
     if key == "products":
         src = raw_item.get("source")
         entry["source"] = src if src in PRODUCT_SOURCES else PRODUCT_SOURCE_DEFAULT
+        # MEN-24c: кап СТРОК на группу прайс-вида («Zeilen je Kategorie») —
+        # presence-minimal (ключ только при заданном значении, golden целы);
+        # limit не переиспользуем: он про число КАРТОЧЕК сеточной ветки.
+        rows = _clamp(raw_item.get("rows"), 1, 20, 0)
+        if rows:
+            entry["rows"] = rows
     # M20U-7: видимость ссылки «View all» (по умолчанию показана).
     if key in SECTION_VIEWALL_KEYS:
         entry["show_all"] = bool(raw_item.get("show_all", True))
@@ -2762,6 +2776,10 @@ def _normalize_impl(config) -> dict:
     # (скрытие только для browse-only меню) — normalize хранит намерение.
     if config.get("menu_show_prices") is False:
         normalized["menu_show_prices"] = False
+    # MEN-24a: маркировка (диеты/аллергены) в витринном прайс-листе —
+    # presence-minimal, дефолт ВЫКЛ (иконки не «зарастают» без спроса).
+    if config.get("menu_labels"):
+        normalized["menu_labels"] = True
     # S7: многоуровневое меню (top + bottom). Дерево узлов с привязкой к
     # архетипам/категориям/страницам/URL/якорям; глубина 2. Легаси без `menus`
     # → top выводим из `nav` (та же плоская шапка, без регрессии), bottom —

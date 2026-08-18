@@ -20,14 +20,18 @@
   (slice ":10" == "preisliste"), внутри партиал ветвится по pl_style.{% endcomment %}
   {% if section_row.style|slice:":10" == "preisliste" %}
     {% comment %}DS-3a (Fokus): вид «прайс-лист» — группы по категориям строками;
-    свой запрос шире карточного лимита (прайс сканируется, а не листается).{% endcomment %}
-    {% price_list_groups as price_groups %}
+    свой запрос шире карточного лимита (прайс сканируется, а не листается).
+    MEN-24c: rows секции (кап строк на группу) режется в теге; при срезе кнопка
+    ниже меняет подпись на «Mehr anzeigen» — тот же URL полного меню.{% endcomment %}
+    {% price_list_groups rows=section_row.rows|default:0 as price_groups %}
     <div class="sf-card bg-white rounded-2xl p-5 md:p-7">
     {% include "storefront/_price_list.html" with pl_style=section_row.style plv_key="products" %}
+    {% with truncated=price_groups|has_more_rows %}
     <div class="mt-4 flex gap-2">
-      <a href="{% url 'storefront-products' %}" class="inline-block rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:border-gray-400">{% trans "Ganze Speisekarte" %} →</a>
+      <a href="{% url 'storefront-products' %}" class="inline-block rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:border-gray-400">{% if truncated %}{% trans "Mehr anzeigen" %}{% else %}{% trans "Ganze Speisekarte" %}{% endif %} →</a>
       {% speisekarte_pdf_available as pdf_ok %}{% if pdf_ok %}<a href="{% url 'storefront-speisekarte-pdf' %}" target="_blank" rel="noopener" class="inline-block rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:border-gray-400">📄 {% trans "Menu as PDF" %}</a>{% endif %}
     </div>
+    {% endwith %}
     </div>
   {% else %}
   <div data-grid="products" class="{% grid_classes site 'products' %}">

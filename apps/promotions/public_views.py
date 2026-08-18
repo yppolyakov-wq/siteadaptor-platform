@@ -658,6 +658,22 @@ def product_list(request):
     if is_preview and isinstance(request.session.get("site_preview_draft"), dict):
         raw_cfg = request.session["site_preview_draft"]
     cfg = siteconfig.normalize(raw_cfg)
+    # MEN-24d (фидбэк «переключатели видов рядом с сортировкой»): посетительский
+    # вид каталога — серверный ?ansicht=<preset> (работает при ЛЮБОМ стиле
+    # владельца, вкл. авторские karte/buch — class-swap их не умел). Мусор →
+    # выбор владельца (normalize_layout, один источник правды с билдером).
+    _owner_preset = cfg["catalog_layout"]["preset"]
+    _ansicht_raw = (request.GET.get("ansicht") or "").strip()
+    if _ansicht_raw:
+        cfg["catalog_layout"] = siteconfig.normalize_layout(
+            {**cfg["catalog_layout"], "preset": _ansicht_raw},
+            {"preset": _owner_preset},
+            extra_presets=siteconfig.PAGE_EXTRA_PRESETS["catalog_layout"],
+        )
+    # carry только при реальном отличии — дефолтные URL остаются чистыми
+    ansicht = (
+        cfg["catalog_layout"]["preset"] if cfg["catalog_layout"]["preset"] != _owner_preset else ""
+    )
     catalog_grid = siteconfig.grid_class_string(cfg["catalog_layout"])
     # Сортировка: из ?sort= (выбор покупателя) либо дефолт витрины; keyset по (поле, pk).
     _sort_keys = provider.sort_keys()
@@ -734,10 +750,14 @@ def product_list(request):
         "kollektion": kollektion,  # M4-B: подборка (лукбук)
         "bewertung": str(bewertung) if bewertung else "",  # UB2-3: минимум звёзд
         "q": q,  # UB2-2: поиск — полноправный фасет в carry
+        "ansicht": ansicht,  # MEN-24d: посетительский вид (пусто = вид владельца)
         "preview": "1" if is_preview else "",
     }
     filter_hidden = [(k, v) for k, v in _facets.items() if v]
     filter_qs = _carry_qs(_facets)
+    # MEN-24d: qs для ссылок самого переключателя — carry БЕЗ ansicht (иначе
+    # параметр дублировался бы в href «?…&ansicht=X»).
+    ansicht_base_qs = _carry_qs({k: v for k, v in _facets.items() if k != "ansicht"})
     # Фидбэк 2026-08-07: диета переехала В панель фильтров (видимый селект), так
     # что скрытым полем её больше не носим — иначе в форме было бы два `diet`.
     filter_form_hidden = [
@@ -746,6 +766,7 @@ def product_list(request):
             ("kategorie", _facets["kategorie"]),
             ("q", q),
             ("sort", sort if sort != "newest" else ""),
+            ("ansicht", ansicht),  # MEN-24d: «Anwenden» панели не сбрасывает вид
             ("preview", _facets["preview"]),
         )
         if v
@@ -780,6 +801,10 @@ def product_list(request):
             "catalog_grid": catalog_grid,
             # DS-3a (Fokus): вид «прайс-лист» — шаблон ветвится по пресету.
             "catalog_preset": cfg["catalog_layout"]["preset"],
+            # MEN-24d: серверный переключатель видов у сортировки.
+            "ansicht": ansicht,
+            "ansicht_base_qs": ansicht_base_qs,
+            "owner_preset": _owner_preset,
             # Билдер: показывать ли фильтры на странице каталога (group=catalog).
             "catalog_show_filters": cfg.get("catalog_show_filters", True),
             # Фасет цены (диапазон base_price) — показываем при разбросе цен.

@@ -18545,3 +18545,18 @@ msgstr ""
 
 msgid "Weitere Menüs aus dieser Kategorie"
 msgstr "More menus from this category"
+
+msgid "Kacheln"
+msgstr "Tiles"
+
+msgid "Mehr anzeigen"
+msgstr "Show more"
+
+msgid "Zeilen"
+msgstr "Rows"
+
+msgid "Zeilen je Kategorie (Preisliste)"
+msgstr "Rows per category (price list)"
+
+msgid "Kennzeichnung in der Speisekarte (Diäten, Allergene)"
+msgstr "Labelling in the menu (diets, allergens)"

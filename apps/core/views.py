@@ -1474,6 +1474,8 @@ def home_builder_view(request):
                 entry["limit"] = request.POST.get(f"limit_{key}", "")
             if key == "products":
                 entry["source"] = request.POST.get("source_products", "")
+                # MEN-24c: кап строк прайс-вида (пусто → normalize ключ не пишет)
+                entry["rows"] = request.POST.get("rows_products", "")
             if key in siteconfig.SECTION_VIEWALL_KEYS:
                 entry["show_all"] = request.POST.get(f"show_all_{key}") == "on"
             # SE-3d: визуальные параметры блока. Источник истины радиуса —
@@ -1867,6 +1869,7 @@ def home_builder_view(request):
                 "title": (config.get("section_titles") or {}).get(s["key"], ""),
                 "has_source": s["key"] == "products",
                 "source": s.get("source", ""),
+                "rows": s.get("rows", ""),  # MEN-24c: кап строк прайс-вида
                 "has_viewall": s["key"] in siteconfig.SECTION_VIEWALL_KEYS,
                 "show_all": s.get("show_all", True),
                 "visual_radius": bool(s.get("visual", {}).get("radius", 0) > 0),
@@ -2333,6 +2336,9 @@ def site_preview_draft(request):
                 # M20U-7: источник товаров → в черновик.
                 if key == "products" and item.get("source") in siteconfig.PRODUCT_SOURCES:
                     row["source"] = item["source"]
+                # MEN-24c: кап строк прайс-вида → в черновик (normalize клампит).
+                if key == "products" and isinstance(item.get("rows"), (int, str)):
+                    row["rows"] = item["rows"]
                 # M20U-7: видимость «View all» → в черновик.
                 if key in siteconfig.SECTION_VIEWALL_KEYS and "show_all" in item:
                     row["show_all"] = bool(item["show_all"])
@@ -2655,6 +2661,16 @@ def sections_view(request):
 # `apps.core.detail_sections` (KEYS+LABELS вместе); читаются через `section_labels`.
 
 
+def _pages_is_food_type(request) -> bool:
+    """MEN-24a: гейт чекбокса маркировки — только гастро-типам (fail-closed)."""
+    try:
+        from apps.catalog.views import FOOD_BUSINESS_TYPES
+
+        return getattr(request.tenant, "business_type", "") in FOOD_BUSINESS_TYPES
+    except Exception:  # noqa: BLE001
+        return False
+
+
 @login_required
 def pages_view(request):
     """M20U-7 «Pages»: per-page настройки витрины — раскладки сеток страниц
@@ -2670,6 +2686,10 @@ def pages_view(request):
         # при активном orders чекбокс не рендерится и ключ не трогаем.
         if request.POST.get("cl_present"):
             config["category_landings"] = request.POST.get("category_landings") == "on"
+            # MEN-24a: маркировка (диеты/аллергены) в прайс-листе — чекбокс
+            # рендерится только FOOD-типам, но ключ пишем под общим сентинелом:
+            # не-FOOD тип его и не включит (гейт витрины двойной).
+            config["menu_labels"] = request.POST.get("menu_labels") == "on"
             from apps.core import modules as _modules
 
             if not _modules.is_module_active(request.tenant, "orders"):
@@ -2760,6 +2780,8 @@ def pages_view(request):
             # DS-7: текущие значения тумблеров каталожного блока.
             "category_landings_on": bool(config.get("category_landings")),
             "menu_prices_on": config.get("menu_show_prices") is not False,
+            "menu_labels_on": bool(config.get("menu_labels")),  # MEN-24a
+            "is_food_type": _pages_is_food_type(request),  # MEN-24a: гейт чекбокса
             "orders_active_for_prices": modules.is_module_active(request.tenant, "orders"),
             "related_preset": config["detail_related_layout"]["preset"],
             "stay_index_preset": config["stay_index_layout"]["preset"],

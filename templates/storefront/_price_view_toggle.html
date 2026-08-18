@@ -23,6 +23,13 @@
           class="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="5" width="7" height="2.5" rx="1"/><rect x="13" y="5" width="7" height="2.5" rx="1"/><rect x="4" y="11" width="7" height="2.5" rx="1"/><rect x="13" y="11" width="7" height="2.5" rx="1"/><rect x="4" y="17" width="7" height="2.5" rx="1"/><rect x="13" y="17" width="7" height="2.5" rx="1"/></svg>
   </button>
+  {% comment %}MEN-24b: карточная сетка 2–4 колонки (вёрстка — CSS-каскад
+  [data-plv="grid"] в app.css; классы контейнера — data-cls-grid).{% endcomment %}
+  <button type="button" data-plv-btn="grid" data-plv-key="{{ plv_key|default:'products' }}" aria-pressed="false"
+          aria-label="{% trans 'Kacheln' %}" title="{% trans 'Kacheln' %}"
+          class="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>
+  </button>
 </div>
 {% endif %}
 {% endwith %}

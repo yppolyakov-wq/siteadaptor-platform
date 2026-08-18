@@ -402,15 +402,36 @@ def test_visitor_toggle_absent_for_authored_views():
         assert 'data-plv="' not in html, style
 
 
-def test_catalog_page_toggle_uses_catalog_key():
-    """Страница каталога и секция главной — РАЗНЫЕ ключи localStorage:
-    выбор на главной не перекрашивает каталог (прецедент DS-10 «список на
-    акциях не переключает каталог»)."""
+def test_catalog_page_uses_server_side_view_links():
+    """MEN-24d (переписан осознанно с MEN-22): на СТРАНИЦЕ каталога вид
+    посетителя — серверные ссылки ?ansicht= (работают при любом стиле владельца,
+    вкл. karte/buch), class-swap-механика главной там выключена (pl_page):
+    ни data-plv-атрибутов, ни узкого max-w-2xl у прайс-контейнера."""
     _seed_products()
     tenant = TenantFactory.build(site_config={"catalog_layout": {"preset": "preisliste"}})
     html = _render_catalog(tenant)
-    assert 'data-plv-key="catalog"' in html
-    assert 'data-plv-key="products"' not in html
+    # маркап-форма (грабля MEN-22: голые имена атрибутов есть в JS-селекторах)
+    assert 'data-plv-key="catalog"' not in html and 'data-plv="plain"' not in html
+    assert 'data-ansicht="preisliste_foto"' in html  # ссылки видов у сортировки
+    assert 'data-ansicht="cols3"' in html  # «Kacheln» — карточная сетка
+    assert 'aria-current="page"' in html  # активный вид подсвечен
+    # полная ширина: узкий кап снят у прайс-контейнера
+    container = html.split("data-price-list")[0].rsplit("<div", 1)[-1]
+    assert "max-w-2xl" not in container and "max-w-none" in container
+
+
+def test_catalog_ansicht_overrides_owner_preset_and_carries():
+    """MEN-24d: ?ansicht= подменяет пресет владельца (мусор → вид владельца);
+    выбранный вид переживает ссылки чипов/пагинации (carry)."""
+    _seed_products()
+    tenant = TenantFactory.build(site_config={"catalog_layout": {"preset": "preisliste_karte"}})
+    html = _render_catalog(tenant, "?ansicht=preisliste_foto")
+    assert 'data-pl-style="preisliste_foto"' in html
+    assert "ansicht=preisliste_foto" in html  # carry в ссылках
+    junk = _render_catalog(tenant, "?ansicht=junk")
+    assert 'data-pl-style="preisliste_karte"' in junk  # мусор → вид владельца
+    grid = _render_catalog(tenant, "?ansicht=cols3")
+    assert 'data-grid="catalog"' in grid  # карточная сетка — штатная ветка
 
 
 def test_cols_target_classes_follow_owner_style():
@@ -424,3 +445,115 @@ def test_cols_target_classes_follow_owner_style():
     )
     html = _render_home(tenant)
     assert 'data-cls-cols="grid md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-6"' in html
+
+
+# ── MEN-24: маркировка / вид «Kacheln» / кап строк ───────────────────────────
+
+
+def test_menu_labels_render_with_key_and_food_type_only():
+    """MEN-24a: пиктограммы диет + буквенные сноски аллергенов (схема PDF) —
+    только при включённом menu_labels И гастро-типе; легенда — по встреченным."""
+    _seed_products()
+    p = Product.objects.get(name__de="Buffet Vegetarisch")
+    p.diets = ["vegan"]
+    p.allergens = ["gluten", "eier"]
+    p.save(update_fields=["diets", "allergens"])
+    cfg = {
+        "sections": [{"key": "products", "enabled": True, "style": "preisliste"}],
+        "menu_labels": True,
+    }
+    html = _render_home(TenantFactory.build(business_type="catering", site_config=cfg))
+    assert "🌱" in html  # эмодзи диеты (title = метка)
+    assert "<sup" in html and ">ac</sup>" in html  # буквы gluten=a, eier=c
+    assert "a</b> = " in html  # легенда «a = Glutenhaltiges Getreide …»
+
+    # без ключа — чисто (дефолт ВЫКЛ)
+    off = dict(cfg)
+    off.pop("menu_labels")
+    html_off = _render_home(TenantFactory.build(business_type="catering", site_config=off))
+    assert "<sup" not in html_off and "🌱" not in html_off
+    # не-гастро тип — чисто даже с ключом
+    html_tech = _render_home(TenantFactory.build(business_type="services", site_config=cfg))
+    assert "<sup" not in html_tech
+
+
+def test_menu_labels_normalize_presence_minimal():
+    cfg = siteconfig.normalize({"menu_labels": True})
+    assert cfg["menu_labels"] is True
+    assert "menu_labels" not in siteconfig.normalize({})
+    assert "menu_labels" not in siteconfig.normalize({"menu_labels": False})
+
+
+def test_visitor_toggle_has_grid_state():
+    """MEN-24b: 4-я кнопка «Kacheln» (сетка 2–4) + классы контейнера в data-cls-grid;
+    вёрстку карточек даёт CSS-каскад [data-plv="grid"] в app.css."""
+    _seed_products()
+    tenant = TenantFactory.build(
+        site_config={"sections": [{"key": "products", "enabled": True, "style": "preisliste"}]}
+    )
+    html = _render_home(tenant)
+    assert 'data-plv-btn="grid"' in html
+    assert 'data-cls-grid="max-w-none"' in html and 'data-gcls-grid=""' in html
+
+
+def test_section_rows_cap_and_mehr_anzeigen():
+    """MEN-24c: rows секции режет строки на группу (тег), кнопка под списком
+    меняет подпись на «Mehr anzeigen»; без rows — прежняя «Ganze Speisekarte»."""
+    _seed_products()
+    cat = Category.objects.get(slug="pl-buffets")
+    for i in range(3):
+        Product.objects.create(
+            name={"de": f"Extra {i}"}, base_price="5.00", category=cat, is_active=True
+        )
+    capped = TenantFactory.build(
+        site_config={
+            "sections": [{"key": "products", "enabled": True, "style": "preisliste", "rows": 2}]
+        }
+    )
+    html = _render_home(capped)
+    assert "Mehr anzeigen" in html and "Ganze Speisekarte" not in html
+    assert "Buffet Vegetarisch" in html and "Extra 2" not in html  # хвост срезан
+
+    uncapped = TenantFactory.build(
+        site_config={"sections": [{"key": "products", "enabled": True, "style": "preisliste"}]}
+    )
+    html2 = _render_home(uncapped)
+    assert "Ganze Speisekarte" in html2 and "Mehr anzeigen" not in html2
+    assert "Extra 2" in html2
+
+
+def test_section_rows_normalize_clamped_presence_minimal():
+    row = next(
+        s
+        for s in siteconfig.normalize(
+            {"sections": [{"key": "products", "enabled": True, "rows": 99}]}
+        )["sections"]
+        if s["key"] == "products"
+    )
+    assert row["rows"] == 20  # кламп
+    bare = next(
+        s
+        for s in siteconfig.normalize({"sections": [{"key": "products", "enabled": True}]})[
+            "sections"
+        ]
+        if s["key"] == "products"
+    )
+    assert "rows" not in bare  # presence-minimal — golden целы
+
+
+def test_food_label_translations_are_identity_in_de():
+    """MEN-24a (стенд нашёл «c = Eigentümer»): DeepL-коротыши в .po коверкали
+    LMIV-метки — Eier→Eigentümer, Soja→Soldat, Halal→Wahl, Bio→Biografie.
+    Немецкие msgid реестров food обязаны рендериться в de КАК ЕСТЬ."""
+    from django.utils import translation
+
+    from apps.catalog.food import ADDITIVES, ALLERGENS, DIETS
+
+    labels = (
+        [lb for _c, lb in ALLERGENS] + [lb for _c, lb, _i in DIETS] + [lb for _c, lb in ADDITIVES]
+    )
+    with translation.override(None):  # msgid как написан в реестре
+        raw = [str(lb) for lb in labels]
+    with translation.override("de"):
+        rendered = [str(lb) for lb in labels]
+    assert rendered == raw, [p for p in zip(raw, rendered, strict=True) if p[0] != p[1]]

@@ -283,7 +283,7 @@ msgstr "Kabuklular"
 
 #: apps/catalog/food.py:15
 msgid "Eier"
-msgstr "Sahibi"
+msgstr "Yumurta"
 
 #: apps/catalog/food.py:16
 msgid "Fisch"
@@ -295,7 +295,7 @@ msgstr "Fıstık"
 
 #: apps/catalog/food.py:18
 msgid "Soja"
-msgstr "Asker"
+msgstr "Soya"
 
 #: apps/catalog/food.py:19
 msgid "Milch (Laktose)"
@@ -347,11 +347,11 @@ msgstr "Laktozsuz"
 
 #: apps/catalog/food.py:40
 msgid "Halal"
-msgstr "Seçim"
+msgstr "Helal"
 
 #: apps/catalog/food.py:41
 msgid "Bio"
-msgstr "Biyografi"
+msgstr "Organik"
 
 #: apps/catalog/food.py:51
 msgid "mit Farbstoff"
@@ -18670,3 +18670,18 @@ msgstr ""
 
 msgid "Weitere Menüs aus dieser Kategorie"
 msgstr "Bu kategoriden diğer menüler"
+
+msgid "Kacheln"
+msgstr "Karolar"
+
+msgid "Mehr anzeigen"
+msgstr "Daha fazla göster"
+
+msgid "Zeilen"
+msgstr "Satırlar"
+
+msgid "Zeilen je Kategorie (Preisliste)"
+msgstr "Kategori başına satır (fiyat listesi)"
+
+msgid "Kennzeichnung in der Speisekarte (Diäten, Allergene)"
+msgstr "Menüde işaretleme (diyetler, alerjenler)"

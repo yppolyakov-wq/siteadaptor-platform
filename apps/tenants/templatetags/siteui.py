@@ -397,9 +397,21 @@ _PL_TOGGLE_INITIAL = {
 }
 
 
+@register.filter(name="has_more_rows")
+def has_more_rows(groups):
+    """MEN-24c: хотя бы одна группа прайса срезана капом строк (g["more"])."""
+    try:
+        return any(g.get("more") for g in groups or [])
+    except (TypeError, AttributeError):
+        return False
+
+
 @register.filter(name="price_view_state")
-def price_view_state(style):
-    """Стиль прайс-листа → стартовый вид переключателя ('' = без переключателя)."""
+def price_view_state(style, page_mode=None):
+    """Стиль прайс-листа → стартовый вид переключателя ('' = без переключателя).
+    MEN-24d: page_mode (pl_page каталога) глушит class-swap — там вид серверный."""
+    if page_mode:
+        return ""
     return _PL_TOGGLE_INITIAL.get(style or "preisliste", "")
 
 
@@ -490,18 +502,71 @@ def _price_group_rows(products):
 
 
 @register.simple_tag
-def price_list_groups(limit=40):
+def price_list_groups(limit=40, rows=0):
     """Секция главной в стиле «preisliste»: активные товары группами по
     категориям (собственный запрос — выполняется ТОЛЬКО при выбранном стиле;
-    лимит секции-превью намеренно шире карточного — прайс сканируется)."""
+    лимит секции-превью намеренно шире карточного — прайс сканируется).
+
+    MEN-24c: rows>0 — кап СТРОК на группу (настройка секции «Zeilen»); срез
+    помечается g["more"] → под списком появляется «Mehr anzeigen». Запрос при
+    капе расширяется: 40 товаров не хватает «по 3 в каждой из многих групп»."""
     from apps.catalog.models import Product
 
+    try:
+        rows = max(0, int(rows or 0))
+    except (TypeError, ValueError):
+        rows = 0
+    if rows:
+        limit = max(limit, 200)
     qs = (
         Product.objects.filter(is_active=True)
         .select_related("category")
         .order_by("category__sort_order", "-is_featured", "created_at")[:limit]
     )
-    return _price_group_rows(qs)
+    groups = _price_group_rows(qs)
+    if rows:
+        for g in groups:
+            g["more"] = len(g["items"]) > rows
+            g["items"] = g["items"][:rows]
+    return groups
+
+
+@register.simple_tag(takes_context=True)
+def menu_labels_active(context):
+    """MEN-24a-гейт: показывать ли маркировку (диеты/аллергены) в прайс-строках.
+
+    Тег, а не site.*: на /sortiment/ `site` в контекст не кладётся (вьюха
+    разворачивает cfg плоско) — site.menu_labels там молча давал бы ''.
+    Гейт FOOD-типов + явное включение владельцем; fail-closed."""
+    try:
+        from apps.catalog.views import FOOD_BUSINESS_TYPES
+
+        request = context.get("request")
+        tenant = getattr(request, "tenant", None)
+        return (
+            tenant is not None
+            and getattr(tenant, "business_type", "") in FOOD_BUSINESS_TYPES
+            and bool((tenant.site_config or {}).get("menu_labels"))
+        )
+    except Exception:  # noqa: BLE001 — витрина не должна падать
+        return False
+
+
+@register.simple_tag
+def allergen_legend(groups):
+    """MEN-24a: легенда буквенных сносок по ФАКТИЧЕСКИ встреченным аллергенам
+    выдачи — [(буква, метка)], порядок реестра (та же схема, что PDF GK-13)."""
+    try:
+        from apps.catalog.food import ALLERGENS, allergen_letters
+
+        seen: set = set()
+        for g in groups or []:
+            for p in g.get("items", []):
+                seen.update(getattr(p, "allergens", None) or [])
+        letters = allergen_letters()
+        return [(letters[code], label) for code, label in ALLERGENS if code in seen]
+    except Exception:  # noqa: BLE001
+        return []
 
 
 @register.simple_tag

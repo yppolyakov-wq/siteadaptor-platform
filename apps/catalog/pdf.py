@@ -23,10 +23,13 @@ _BOTTOM = 25 * mm
 
 
 def _allergen_letters():
-    """Стабильная карта аллерген-код → буква сноски (a..n по реестру LMIV)."""
-    from apps.catalog.food import ALLERGENS
+    """Стабильная карта аллерген-код → буква сноски (a..n по реестру LMIV).
 
-    return {code: chr(ord("a") + i) for i, (code, _label) in enumerate(ALLERGENS)}
+    MEN-24a: источник поднят в food.allergen_letters — те же буквы у витринного
+    прайс-листа; здесь остаётся тонкая обёртка ради существующих колл-сайтов."""
+    from apps.catalog.food import allergen_letters
+
+    return allergen_letters()
 
 
 def _diet_labels(product) -> str:

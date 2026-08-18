@@ -101,3 +101,17 @@ def diet_badges(codes) -> list[dict]:
         for code, label, _icon in DIETS
         if code in wanted
     ]
+
+
+def allergen_letters() -> dict[str, str]:
+    """MEN-24a: позиционный буквенный код аллергена (a..n, порядок ALLERGENS).
+
+    Единая схема для PDF-Speisekarte (GK-13) и сносок в витринном прайс-листе —
+    буквы у блюда обязаны совпадать с легендой печатной карты."""
+    return {code: chr(ord("a") + i) for i, (code, _label) in enumerate(ALLERGENS)}
+
+
+def allergen_letter_str(codes) -> str:
+    """Сноска позиции: коды → компактная строка букв («acg»); неизвестные отброшены."""
+    letters = allergen_letters()
+    return "".join(sorted(letters[a] for a in (codes or []) if a in letters))

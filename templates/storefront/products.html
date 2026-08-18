@@ -40,12 +40,12 @@
     {% endfor %}
   </div>
   {% if current_category %}
-    <a href="{% url 'storefront-products' %}" class="inline-block mt-3 text-sm text-indigo-600 hover:underline">← {% trans "All" %}</a>
+    <a href="{% url 'storefront-products' %}{% if ansicht %}?ansicht={{ ansicht }}{% endif %}" class="inline-block mt-3 text-sm text-indigo-600 hover:underline">← {% trans "All" %}</a>
   {% endif %}
 </div>
 {% else %}
 <div class="flex flex-wrap gap-2 mb-6">
-  <a href="{% url 'storefront-products' %}"
+  <a href="{% url 'storefront-products' %}{% if ansicht %}?ansicht={{ ansicht }}{% endif %}"
      class="px-3 py-1.5 rounded-full text-sm border {% if not current_category %}bg-gray-900 text-white border-gray-900{% else %}bg-white border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{% trans "All" %}</a>
   {% for c in categories %}
     {% if is_preview %}
@@ -60,7 +60,7 @@
            class="text-indigo-600 hover:text-indigo-800 text-sm">✎</a>
       </span>
     {% else %}
-      <a href="{% url 'storefront-products' %}?kategorie={{ c.slug }}"
+      <a href="{% url 'storefront-products' %}?kategorie={{ c.slug }}{% if ansicht %}&amp;ansicht={{ ansicht }}{% endif %}"
          class="px-3 py-1.5 rounded-full text-sm border {% if current_category.pk == c.pk %}bg-gray-900 text-white border-gray-900{% else %}bg-white border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{{ c }}</a>
     {% endif %}
   {% endfor %}
@@ -73,10 +73,10 @@
 подборок идут ПОСЛЕ категорий и ДО фасет-формы.{% endcomment %}
 {% if collection_chips %}
 <div class="flex flex-wrap gap-2 mb-6">
-  <a href="{% url 'storefront-products' %}{% if current_category %}?kategorie={{ current_category.slug }}{% endif %}"
+  <a href="{% url 'storefront-products' %}{% if current_category %}?kategorie={{ current_category.slug }}{% if ansicht %}&amp;ansicht={{ ansicht }}{% endif %}{% elif ansicht %}?ansicht={{ ansicht }}{% endif %}"
      class="px-3 py-1.5 rounded-full text-sm border {% if not active_kollektion %}bg-gray-900 text-white border-gray-900{% else %}bg-white border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{% trans "All collections" %}</a>
   {% for c in collection_chips %}
-    <a href="{% url 'storefront-products' %}?kollektion={{ c.slug }}{% if current_category %}&kategorie={{ current_category.slug }}{% endif %}"
+    <a href="{% url 'storefront-products' %}?kollektion={{ c.slug }}{% if current_category %}&kategorie={{ current_category.slug }}{% endif %}{% if ansicht %}&amp;ansicht={{ ansicht }}{% endif %}"
        class="px-3 py-1.5 rounded-full text-sm border {% if active_kollektion == c.slug %}bg-gray-900 text-white border-gray-900{% else %}bg-white border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{{ c.label }}</a>
   {% endfor %}
 </div>
@@ -169,7 +169,7 @@ fixed-ящиком, и до инициализации JS она вспыхив�
   {% endif %}
   <button type="submit" class="rounded-lg bg-gray-900 text-white text-sm font-medium px-4 py-1.5 hover:bg-gray-700">{% trans "Apply" %}</button>
   {% if any_facet_active %}
-  <a href="{% url 'storefront-products' %}{% if current_category and is_preview %}?kategorie={{ current_category.slug }}&preview=1{% elif current_category %}?kategorie={{ current_category.slug }}{% elif is_preview %}?preview=1{% endif %}" class="self-center text-sm text-gray-500 hover:underline">{% trans "Reset filters" %}</a>
+  <a href="{% url 'storefront-products' %}{% if current_category and is_preview %}?kategorie={{ current_category.slug }}&preview=1{% elif current_category %}?kategorie={{ current_category.slug }}{% elif is_preview %}?preview=1{% endif %}{% if ansicht %}{% if current_category or is_preview %}&amp;{% else %}?{% endif %}ansicht={{ ansicht }}{% endif %}" class="self-center text-sm text-gray-500 hover:underline">{% trans "Reset filters" %}</a>
   {% endif %}
 </form>
 {% endif %}
@@ -178,7 +178,7 @@ fixed-ящиком, и до инициализации JS она вспыхив�
 {% if subcategories and catalog_subcats_first %}
 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
   {% for c in subcategories %}
-    <a href="{% url 'storefront-products' %}?kategorie={{ c.slug }}"
+    <a href="{% url 'storefront-products' %}?kategorie={{ c.slug }}{% if ansicht %}&amp;ansicht={{ ansicht }}{% endif %}"
        class="flex items-center justify-center text-center bg-white rounded-xl shadow-sm p-4 min-h-[4rem] font-medium border border-transparent hover:shadow-md hover:border-indigo-300 transition">{{ c }}</a>
   {% endfor %}
 </div>
@@ -195,9 +195,11 @@ fixed-ящиком, и до инициализации JS она вспыхив�
 {% endif %}
 {% endblock %}
 
-{% comment %}DS-10: в прайс-виде (DS-3a preisliste) сетки data-grid нет —
-переключатель вида был бы мёртвыми кнопками.{% endcomment %}
-{% block listing_bar_view %}{% if catalog_preset|slice:":10" != "preisliste" %}{% include "storefront/_grid_view.html" with grid_key="catalog" %}{% else %}{% include "storefront/_price_view_toggle.html" with pl_style=catalog_preset plv_key="catalog" %}{% endif %}{% endblock %}
+{% comment %}DS-10: в прайс-виде (DS-3a preisliste) сетки data-grid нет.
+MEN-24d: посетительский вид на СТРАНИЦЕ каталога — серверные ссылки
+_price_view_links (?ansicht=, любой стиль владельца вкл. karte/buch); class-swap
+MEN-22 остаётся механикой главной. Мобильный «список/плитка» грид-ветки жив.{% endcomment %}
+{% block listing_bar_view %}{% if catalog_preset|slice:":10" != "preisliste" %}{% include "storefront/_grid_view.html" with grid_key="catalog" %}{% endif %}{% include "storefront/_price_view_links.html" %}{% endblock %}
 
 {% block listing_grid %}
 {% if page.items %}
@@ -206,7 +208,9 @@ fixed-ящиком, и до инициализации JS она вспыхив�
 поиск/пагинация провайдера UB уже применены) группируется по категориям строками.{% endcomment %}
 <div data-sf-section="catalog">
   {% price_groups_from page.items as price_groups %}
-  {% include "storefront/_price_list.html" with pl_style=catalog_preset plv_key="catalog" %}
+  {% comment %}MEN-24d: pl_page — на странице каталога прайс на всю ширину и без
+  class-swap-атрибутов (вид переключается серверно, ?ansicht=).{% endcomment %}
+  {% include "storefront/_price_list.html" with pl_style=catalog_preset pl_page=1 %}
 </div>
 {% else %}
 {# SE-2a-2: маркер секции для on-canvas редактора (клик → инспектор раскладки каталога) #}

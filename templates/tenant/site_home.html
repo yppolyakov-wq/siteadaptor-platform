@@ -486,6 +486,11 @@
                 <input type="number" name="limit_{{ s.key }}" value="{{ s.limit }}" min="1" max="30" data-expert="1"
                        class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'How many to show' %}" title="{% trans 'How many to show' %}">
               {% endif %}
+              {% if s.key == "products" %}
+                {# MEN-24c: кап строк прайс-вида («по 3 в категории» + Mehr anzeigen); пусто = все #}
+                <input type="number" name="rows_products" value="{{ s.rows }}" min="1" max="20" data-expert="1" placeholder="{% trans 'Zeilen' %}"
+                       class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Zeilen je Kategorie (Preisliste)' %}" title="{% trans 'Zeilen je Kategorie (Preisliste)' %}">
+              {% endif %}
               {% if s.has_title %}
                 {# M20U-7: свой заголовок секции (иначе — стандартный) #}
                 <input type="text" name="title_{{ s.key }}" value="{{ s.title }}" maxlength="80"
@@ -2052,6 +2057,9 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       // M20U-7: источник товаров → в превью.
       var srcSel = form.querySelector("select[name='source_" + r.key + "']");
       if (srcSel && srcSel.value) sec.source = srcSel.value;
+      // MEN-24c: кап строк прайс-вида → в превью.
+      var rowsInp = form.querySelector("input[name='rows_" + r.key + "']");
+      if (rowsInp && rowsInp.value) sec.rows = parseInt(rowsInp.value, 10);
       // M20U-7: видимость «View all» → в превью.
       var saBox = form.querySelector("input[name='show_all_" + r.key + "']");
       if (saBox) sec.show_all = saBox.checked;

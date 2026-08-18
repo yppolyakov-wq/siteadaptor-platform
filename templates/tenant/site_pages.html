@@ -33,6 +33,14 @@
         {% trans "Preise in der Speisekarte anzeigen" %}
       </label>
       {% endif %}
+      {% if is_food_type %}
+      {% comment %}MEN-24a: маркировка в витринном прайсе — эмодзи диет + буквен-
+      ные сноски аллергенов (те же буквы, что в PDF-Speisekarte).{% endcomment %}
+      <label class="mt-1 flex items-center gap-2 text-sm text-gray-600">
+        <input type="checkbox" name="menu_labels" {% if menu_labels_on %}checked{% endif %} class="rounded border-gray-300">
+        {% trans "Kennzeichnung in der Speisekarte (Diäten, Allergene)" %}
+      </label>
+      {% endif %}
     </label>
     <label class="block text-sm">
       <span class="block font-medium mb-1">{% trans "Related products grid" %}</span>

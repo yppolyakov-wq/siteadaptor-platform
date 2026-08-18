@@ -1,0 +1,45 @@
+{% load i18n %}
+{% comment %}MEN-24d: посетительский переключатель видов СТРАНИЦЫ каталога —
+серверные ссылки ?ansicht=<preset> (ре-рендер; работает при любом стиле
+владельца, вкл. авторские karte/buch, где class-swap невозможен). Значения =
+пресеты catalog_layout (whitelist во вьюхе через normalize_layout). Атрибут
+data-ansicht — свой: data-plv-btn перехватил бы preventDefault скрипта MEN-22,
+data-grid-view ловится замком листинг-бара. Ожидает: ansicht_base_qs (carry без
+ansicht), catalog_preset (эффективный вид).{% endcomment %}
+<div class="flex items-center gap-1 shrink-0" role="group" aria-label="{% trans 'Ansicht' %}">
+  <a href="?{{ ansicht_base_qs }}{% if ansicht_base_qs %}&amp;{% endif %}ansicht=preisliste" data-ansicht="preisliste"
+     {% if catalog_preset == "preisliste" %}aria-current="page"{% endif %}
+     aria-label="{% trans 'Liste' %}" title="{% trans 'Liste' %}"
+     class="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center {% if catalog_preset == 'preisliste' %}bg-gray-900 text-white{% else %}text-gray-600{% endif %}">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="5" width="16" height="2.5" rx="1"/><rect x="4" y="11" width="16" height="2.5" rx="1"/><rect x="4" y="17" width="16" height="2.5" rx="1"/></svg>
+  </a>
+  <a href="?{{ ansicht_base_qs }}{% if ansicht_base_qs %}&amp;{% endif %}ansicht=preisliste_foto" data-ansicht="preisliste_foto"
+     {% if catalog_preset == "preisliste_foto" %}aria-current="page"{% endif %}
+     aria-label="{% trans 'Liste mit Fotos' %}" title="{% trans 'Liste mit Fotos' %}"
+     class="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center {% if catalog_preset == 'preisliste_foto' %}bg-gray-900 text-white{% else %}text-gray-600{% endif %}">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="12" y="5.5" width="8" height="2.5" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="12" y="15.5" width="8" height="2.5" rx="1"/></svg>
+  </a>
+  <a href="?{{ ansicht_base_qs }}{% if ansicht_base_qs %}&amp;{% endif %}ansicht=preisliste_foto_2sp" data-ansicht="preisliste_foto_2sp"
+     {% if catalog_preset == "preisliste_foto_2sp" %}aria-current="page"{% endif %}
+     aria-label="{% trans 'Zwei Spalten' %}" title="{% trans 'Zwei Spalten' %}"
+     class="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center {% if catalog_preset == 'preisliste_foto_2sp' %}bg-gray-900 text-white{% else %}text-gray-600{% endif %}">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="5" width="7" height="2.5" rx="1"/><rect x="13" y="5" width="7" height="2.5" rx="1"/><rect x="4" y="11" width="7" height="2.5" rx="1"/><rect x="13" y="11" width="7" height="2.5" rx="1"/><rect x="4" y="17" width="7" height="2.5" rx="1"/><rect x="13" y="17" width="7" height="2.5" rx="1"/></svg>
+  </a>
+  {% comment %}«Kacheln» = карточная сетка: сеточный пресет владельца, если он
+  есть (не-preisliste), иначе стандартный cols3 (2–4 колонки адаптивно).{% endcomment %}
+  {% if owner_preset|slice:":10" != "preisliste" %}{% with grid_target=owner_preset %}
+  <a href="?{{ ansicht_base_qs }}{% if ansicht_base_qs %}&amp;{% endif %}ansicht={{ grid_target }}" data-ansicht="{{ grid_target }}"
+     {% if catalog_preset|slice:":10" != "preisliste" %}aria-current="page"{% endif %}
+     aria-label="{% trans 'Kacheln' %}" title="{% trans 'Kacheln' %}"
+     class="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center {% if catalog_preset|slice:':10' != 'preisliste' %}bg-gray-900 text-white{% else %}text-gray-600{% endif %}">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>
+  </a>
+  {% endwith %}{% else %}
+  <a href="?{{ ansicht_base_qs }}{% if ansicht_base_qs %}&amp;{% endif %}ansicht=cols3" data-ansicht="cols3"
+     {% if catalog_preset|slice:":10" != "preisliste" %}aria-current="page"{% endif %}
+     aria-label="{% trans 'Kacheln' %}" title="{% trans 'Kacheln' %}"
+     class="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center {% if catalog_preset|slice:':10' != 'preisliste' %}bg-gray-900 text-white{% else %}text-gray-600{% endif %}">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>
+  </a>
+  {% endif %}
+</div>

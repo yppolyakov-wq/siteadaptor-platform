@@ -31,7 +31,9 @@ square — 1:1, tall — 3:4, wide — 16:9. Колонки берутся из 
 {% else %}
   {% comment %}DS-7a: лендинг направления вместо фильтра — когда включён тумблер
   и у категории есть контент (описание/фото).{% endcomment %}
-  <a href="{% if site.category_landings and c.landing_ready %}{% url 'storefront-bereich' c.slug %}{% else %}{% url 'storefront-products' %}?kategorie={{ c.slug }}{% endif %}"
+  {% comment %}MEN-24d: ansicht — только в каталожной ссылке (у лендинга свой
+  рендер); на главной переменной нет → тихо пусто.{% endcomment %}
+  <a href="{% if site.category_landings and c.landing_ready %}{% url 'storefront-bereich' c.slug %}{% else %}{% url 'storefront-products' %}?kategorie={{ c.slug }}{% if ansicht %}&amp;ansicht={{ ansicht }}{% endif %}{% endif %}"
      class="sf-card block bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md hover:border-indigo-300 border {% if cat_active %}border-indigo-400{% else %}border-transparent{% endif %} transition">
     {% if c.image_url %}
       {% comment %}DS-5: заданная высота фото (px из Studio) сильнее аспекта.{% endcomment %}

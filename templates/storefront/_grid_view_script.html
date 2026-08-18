@@ -158,9 +158,12 @@
       c.setAttribute("data-plv", view);
       var cls = c.getAttribute("data-cls-" + view);
       if (cls !== null) c.className = cls;
-      var gcls = c.getAttribute(view === "cols" ? "data-gcls-cols" : "data-gcls-stack") || "";
+      // MEN-24b: классы группы — по виду (grid добавил третий набор); нет
+      // атрибута для вида → фолбэк на stack.
+      var gattr = c.getAttribute("data-gcls-" + view);
+      var gcls = gattr !== null ? gattr : (c.getAttribute("data-gcls-stack") || "");
       c.querySelectorAll("[data-pl-group]").forEach(function (g) {
-        g.className = gcls + (view === "cols" ? "" : "");
+        g.className = gcls;
       });
       c.querySelectorAll(".plv-img").forEach(function (im) {
         im.classList.toggle("hidden", view === "plain");
@@ -179,7 +182,7 @@
       var current = c.getAttribute("data-plv") || "plain";
       var saved = null;
       try { saved = localStorage.getItem(PREFIX + key); } catch (e) {}
-      if (saved && ["plain", "foto", "cols"].indexOf(saved) >= 0 && saved !== current) {
+      if (saved && ["plain", "foto", "cols", "grid"].indexOf(saved) >= 0 && saved !== current) {
         apply(key, saved, false);
       } else {
         paint(key, current);

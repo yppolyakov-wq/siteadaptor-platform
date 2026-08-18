@@ -282,7 +282,7 @@ msgstr "ракообразные"
 
 #: apps/catalog/food.py:15
 msgid "Eier"
-msgstr "Владелец"
+msgstr "Яйца"
 
 #: apps/catalog/food.py:16
 msgid "Fisch"
@@ -294,7 +294,7 @@ msgstr "Арахис"
 
 #: apps/catalog/food.py:18
 msgid "Soja"
-msgstr "Солдат"
+msgstr "Соя"
 
 #: apps/catalog/food.py:19
 msgid "Milch (Laktose)"
@@ -346,11 +346,11 @@ msgstr "Без лактозы"
 
 #: apps/catalog/food.py:40
 msgid "Halal"
-msgstr "Выборы"
+msgstr "Халяль"
 
 #: apps/catalog/food.py:41
 msgid "Bio"
-msgstr "Биография"
+msgstr "Био"
 
 #: apps/catalog/food.py:51
 msgid "mit Farbstoff"
@@ -18750,3 +18750,18 @@ msgstr ""
 
 msgid "Weitere Menüs aus dieser Kategorie"
 msgstr "Другие меню из этой категории"
+
+msgid "Kacheln"
+msgstr "Плитки"
+
+msgid "Mehr anzeigen"
+msgstr "Показать ещё"
+
+msgid "Zeilen"
+msgstr "Строки"
+
+msgid "Zeilen je Kategorie (Preisliste)"
+msgstr "Строк на категорию (прайс-лист)"
+
+msgid "Kennzeichnung in der Speisekarte (Diäten, Allergene)"
+msgstr "Маркировка в меню (диеты, аллергены)"

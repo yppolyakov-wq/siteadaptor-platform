@@ -337,6 +337,14 @@ class Product(SoftDeleteMixin, I18nMixin):
 
         return diet_badges(self.diets)
 
+    @property
+    def allergen_letters_str(self) -> str:
+        """MEN-24a: буквенная сноска аллергенов («acg») — та же схема, что в
+        PDF-Speisekarte; для компактных прайс-строк витрины."""
+        from .food import allergen_letter_str
+
+        return allergen_letter_str(self.allergens)
+
 
 class ProductVariant(TimestampedModel):
     """Вариант товара (R1): чай 100/250 г, размер одежды, фасовка.

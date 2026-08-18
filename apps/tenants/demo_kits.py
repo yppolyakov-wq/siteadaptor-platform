@@ -275,6 +275,8 @@ class DemoKit:
     # ST-5b: представление раздела заказов в кабинете ("" = архетип-дефолт).
     # ST-2c/ST-7b: стили секций {section_key: style} (валидные SECTION_STYLES).
     section_styles: dict = field(default_factory=dict)
+    # MEN-24c: кап строк прайс-вида {section_key: N} (пока только products).
+    section_rows: dict = field(default_factory=dict)
     # ST-2: пресеты страниц page_presets [(host, preset_id), …] — info/cart.
     page_presets: list = field(default_factory=list)
     # M2 Boutique: Größentabellen per категория {slug: text} (строки «S | 86–90»).
@@ -654,6 +656,7 @@ RESTAURANT = DemoKit(
     config_patch={
         # MEN-16: на главной — «печатная карта» тизером, на полной Speisekarte
         # разворот книги с листанием (демо показывает оба вида семейства).
+        "menu_labels": True,  # MEN-24a: маркировка (диеты/аллергены) в прайсе
         "catalog_layout": {"preset": "preisliste_buch"},
         "hero_style": "split",
         "nav": {"cta": True},
@@ -7565,7 +7568,11 @@ CATERING = DemoKit(
         # с листанием живёт у ресторана — демо показывают разные виды семейства.
         "catalog_layout": {"preset": "preisliste_karte"},
         "category_landings": True,  # DS-7: плитки направлений → /bereich/<slug>/
+        "menu_labels": True,  # MEN-24a: маркировка (диеты/аллергены) в прайсе
     },
+    # MEN-24c (фидбэк «сколько строк показывать, сейчас 3»): секция-прайс
+    # главной — по 3 строки на категорию, дальше «Mehr anzeigen» → /sortiment/.
+    section_rows={"products": 3},
     # DS-4b «в точности как макет»: главная = 6 блоков (hero → направления →
     # Speisekarte → шаги → доверие+цифры → форма); остальной контент кита жив
     # на своих страницах (/galerie/ /team/ /bewertungen/ /aktionen/).
@@ -9330,6 +9337,9 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
         style = kit.section_styles.get(s["key"])
         if style:
             s["style"] = style
+        rows_cap = kit.section_rows.get(s["key"])
+        if rows_cap:
+            s["rows"] = rows_cap  # MEN-24c: кап строк прайс-вида (normalize клампит)
         # DS-4b: тонированные полосы макета (visual чистит normalize) + принуди-
         # тельное выключение секций (контент кита жив — страницы ST-8 работают).
         vis = kit.section_visuals.get(s["key"])

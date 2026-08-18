@@ -1597,8 +1597,21 @@ Python 3.12, менеджер uv.
   Стенд 22/22 (catering); грабля-класс: негативные замки на голые маркеры ловят строки
   селекторов нового JS — замки переведены на маркап-форму (`data-price-list
   data-pl-style` и т.п.); `ml-auto` партиала внутри `justify-between`-шапки секции
-  клеил ссылку к заголовку → правая группа (паттерн `_gallery`). ⚠️ ops:
-  `seed_demo_tenants --kit catering --recreate`.
+  клеил ссылку к заголовку → правая группа (паттерн `_gallery`). **MEN-24
+  (2026-08-18, фидбэк):** **a** маркировка диет/аллергенов в прайс-строках
+  (эмодзи + буквы схемы PDF, ключ `menu_labels`+чекбокс Pages, легенда;
+  fail-closed тег — на /sortiment/ `site` в контексте нет) · **b** 4-й вид
+  «Kacheln» (сетка 2-4, CSS-каскад `[data-plv="grid"]`) · **c** кап строк
+  секции (`rows` presence-minimal → билдер/live-draft; «Mehr anzeigen» вместо
+  «Ganze Speisekarte» при срезе; демо catering=3) · **d** каталог: серверный
+  `?ansicht=` рядом с сортировкой (normalize_layout-whitelist, carry в фасеты/
+  чипы/плитки; работает и на karte/buch) + прайс на всю ширину (`pl_page`).
+  **Стенд нашёл довоенный LMIV-баг .po:** Eier→«Eigentümer», Soja→«Soldat»,
+  Halal→«Wahl», Bio→«Biografie» (de/tr/ru/uk, со времён DL-волны; светилось в
+  попапе блюда/PDF) — исправлено + identity-замок de-рендера реестров food.
+  Грабля: локальная переменная в цикле `_kit_sections` затенила список секций —
+  демо всех китов падало TypeError; правило — пересев демо после правок сидера.
+  ⚠️ ops: `seed_demo_tenants --kit catering --recreate` (+ `--kit restaurant`).
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет)** — все аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,

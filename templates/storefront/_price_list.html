@@ -24,8 +24,14 @@ columns — иначе строка с картинкой рвётся межд�
 этом рендерятся всегда (класс plv-img, в виде «plain» скрыты) — переключение
 без перезагрузки. Классы целевых видов лежат в data-cls-* (JIT видит строки в
 атрибутах — purge-safe); kompakt/karte/buch — особые виды, без переключателя.{% endcomment %}
-{% with plv=st|price_view_state %}
-<div class="{% if st == 'preisliste_2sp' %}md:columns-2 md:gap-10{% elif st == 'preisliste_foto_2sp' %}grid md:grid-cols-2 gap-x-10 gap-y-6{% elif st == 'preisliste_foto_3sp' %}grid md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-6{% elif st == 'preisliste_buch' %}max-w-4xl{% else %}max-w-2xl{% endif %}" data-price-list data-pl-style="{{ st|default:'std' }}"{% if st == 'preisliste_buch' %} data-price-book{% endif %}{% if plv %} data-plv="{{ plv }}" data-plv-key="{{ plv_key|default:'products' }}" data-cls-plain="max-w-2xl" data-cls-foto="max-w-2xl" data-cls-cols="{% if st == 'preisliste_foto_3sp' %}grid md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-6{% else %}grid md:grid-cols-2 gap-x-10 gap-y-6{% endif %}" data-gcls-stack="mt-5 first:mt-0" data-gcls-cols=""{% endif %}>
+{% comment %}MEN-24d: pl_page=1 — страничный режим (каталог): базовые виды на всю
+ширину и БЕЗ class-swap-атрибутов (посетительский вид там серверный, ?ansicht=).
+MEN-24a: show_labels — маркировка диет/аллергенов (тег: FOOD-тип + menu_labels).{% endcomment %}
+{% with plx=pl_page|default:0 %}{% comment %}аргумент фильтра обязан резолвиться —
+голый pl_page у секции главной не передан и уронил бы рендер KeyError.{% endcomment %}
+{% with plv=st|price_view_state:plx %}
+{% menu_labels_active as show_labels %}
+<div class="{% if st == 'preisliste_2sp' %}md:columns-2 md:gap-10{% elif st == 'preisliste_foto_2sp' %}grid md:grid-cols-2 gap-x-10 gap-y-6{% elif st == 'preisliste_foto_3sp' %}grid md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-6{% elif st == 'preisliste_buch' %}max-w-4xl{% elif pl_page %}max-w-none{% else %}max-w-2xl{% endif %}" data-price-list data-pl-style="{{ st|default:'std' }}"{% if st == 'preisliste_buch' %} data-price-book{% endif %}{% if plv %} data-plv="{{ plv }}" data-plv-key="{{ plv_key|default:'products' }}" data-cls-plain="max-w-2xl" data-cls-foto="max-w-2xl" data-cls-cols="{% if st == 'preisliste_foto_3sp' %}grid md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-6{% else %}grid md:grid-cols-2 gap-x-10 gap-y-6{% endif %}" data-gcls-stack="mt-5 first:mt-0" data-gcls-cols="" data-cls-grid="max-w-none" data-gcls-grid=""{% endif %}>
   {% if st == 'preisliste_buch' %}{% book_pages price_groups as price_groups %}{% comment %}MEN-16: разворот. Обёртка страниц
   открывается и закрывается в разных if-ветках — так один цикл групп служит всем
   видам (дублировать его ради книги дороже, чем несимметричные теги).{% endcomment %}
@@ -48,6 +54,7 @@ columns — иначе строка с картинкой рвётся межд�
         <a href="{% url 'storefront-product' p.pk %}" class="group block py-2 border-b border-dotted border-gray-300 last:border-0">
           <span class="flex items-baseline gap-2">
             <span class="font-medium group-hover:underline">{{ p }}</span>
+            {% if show_labels %}{% include "storefront/_price_row_labels.html" %}{% endif %}
             <span class="flex-1 min-w-4"></span>
             {% if storefront_orders_active or site.menu_show_prices != False %}<span class="font-bold whitespace-nowrap" style="font-variant-numeric: tabular-nums;">{% if p.has_variants %}<span class="text-xs font-normal text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% else %}{{ p.base_price }}{% endif %} {{ p.currency|cursym }}</span>{% endif %}
           </span>
@@ -65,6 +72,7 @@ columns — иначе строка с картинкой рвётся межд�
           {% endif %}{% endif %}
           <span class="min-w-0">
             <span class="font-medium group-hover:underline{% if st == 'preisliste_kompakt' %} text-sm{% endif %}">{{ p }}</span>
+            {% if show_labels %}{% include "storefront/_price_row_labels.html" %}{% endif %}
             {% if st != 'preisliste_kompakt' %}{% with d=p.description_text %}{% if d %}<span class="text-sm text-gray-500"> — {{ d|truncatechars:60 }}</span>{% endif %}{% endwith %}{% endif %}
           </span>
           <span class="flex-1 min-w-4"></span>
@@ -98,6 +106,12 @@ columns — иначе строка с картинкой рвётся межд�
   {% endwith %}
   {% endif %}
 </div>
+{% if show_labels %}{% allergen_legend price_groups as al %}{% if al %}
+{% comment %}MEN-24a: легенда сносок — только фактически встреченные аллергены,
+буквы совпадают с PDF-Speisekarte (единый маппинг food.allergen_letters).{% endcomment %}
+<p class="mt-3 text-[11px] leading-relaxed text-gray-400">{% for letter, label in al %}<span class="whitespace-nowrap"><b class="font-semibold">{{ letter }}</b> = {{ label }}</span>{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+{% endif %}{% endif %}
 {% if st == 'preisliste_buch' %}{% include "storefront/_price_book_script.html" %}{% endif %}
+{% endwith %}
 {% endwith %}
 {% endwith %}
