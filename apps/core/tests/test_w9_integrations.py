@@ -61,6 +61,30 @@ def test_integrations_stripe_status_reflects_tenant_flags():
     assert "Stripe verbunden" in body
 
 
+def test_integrations_requires_login():
+    """Регресс: @login_required был «съеден» хелпером `_google_rating_status`,
+    вставленным между декоратором и вьюхой, — аноним получал 200 со статусами
+    подключений (Stripe/Telegram/домен). Класс граблей из build-log 2026-08-01."""
+    from django.contrib.auth.models import AnonymousUser
+
+    req = _req()
+    req.user = AnonymousUser()
+    resp = views.integrations_home(req)
+    assert resp.status_code == 302
+
+
+def test_integrations_google_rating_status_shown():
+    """Регресс: обёрнутый в login_required хелпер падал внутри _safe →
+    карточка «Google Bewertungen» всегда показывала пустой muted-статус."""
+    t = TenantFactory(business_type="restaurant")
+    t.google_place_id = "ChIJ-test"
+    t.google_rating = "4.70"
+    t.google_rating_count = 12
+    t.save(update_fields=["google_place_id", "google_rating", "google_rating_count"])
+    body = views.integrations_home(_req(tenant=t)).content.decode()
+    assert "★ 4.70 · 12" in body
+
+
 def test_integrations_bot_status_readonly():
     from apps.telegram.models import TelegramBot
 

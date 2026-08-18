@@ -3929,7 +3929,6 @@ def marketing_home(request):
     )
 
 
-@login_required
 def _google_rating_status(tenant):
     """GK-11: ok = кэш есть; warn = ID задан, но ещё не обновлялось; muted = выкл."""
     if not tenant.google_place_id:
@@ -3939,6 +3938,7 @@ def _google_rating_status(tenant):
     return (f"★ {tenant.google_rating} · {tenant.google_rating_count}", "ok")
 
 
+@login_required
 def integrations_home(request):
     """ST-4a → W9-9 (Р-3): «Integrationen» — вкладка Einstellungen-хаба с
     read-only статусами подключений на карточках (fail-safe: сломанный блок
@@ -4047,7 +4047,7 @@ def integrations_home(request):
             "hint": _("Bewertung und Anzahl von Google auf der Website anzeigen"),
             "url_name": "google-reviews-settings",
             "show": True,
-            "status": _safe(_google_rating_status),
+            "status": _safe(lambda: _google_rating_status(tenant)),
         },
         {
             "icon": "🏨",
