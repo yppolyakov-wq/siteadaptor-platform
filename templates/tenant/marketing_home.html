@@ -12,7 +12,7 @@
 сообщения ПЕРВОЙ карточкой, а не в двух кликах глубже (исследование 2026-08-18 §3.6).{% endcomment %}
 <a href="{% url 'inbox:list' %}" class="flex items-center gap-3 max-w-3xl mb-5 bg-rose-50 border border-rose-200 rounded-2xl px-4 py-3 hover:bg-rose-100">
   <span class="text-xl leading-none">💬</span>
-  <span class="text-sm font-medium text-rose-800">{% blocktrans with n=inbox_unread %}Nachrichten: {{ n }} ungelesen{% endblocktrans %}</span>
+  <span class="text-sm font-medium text-rose-800">{% blocktrans count n=inbox_unread %}{{ n }} ungelesene Nachricht{% plural %}{{ n }} ungelesene Nachrichten{% endblocktrans %}</span>
   <span class="ml-auto text-rose-700">→</span>
 </a>
 {% endif %}

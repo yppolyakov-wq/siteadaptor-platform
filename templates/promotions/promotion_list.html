@@ -56,7 +56,7 @@
       {% for p in promotions %}
         <tr class="border-b last:border-0">
           <td class="py-2">{{ p }}</td>
-          <td class="py-2">{{ p.promo_type }}</td>
+          <td class="py-2">{{ p.get_promo_type_display }}</td>
           {% comment %}X6-3 (ловушка черновика): вместо сырого кода — подпись, а у
           неактивной акции честный бейдж «клиенты её не видят».{% endcomment %}
           <td class="py-2">

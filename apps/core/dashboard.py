@@ -33,7 +33,7 @@ def home_widgets(tenant) -> list[dict]:
     from decimal import Decimal
 
     from django.utils import timezone
-    from django.utils.translation import gettext as _t
+    from django.utils.translation import gettext as _
 
     from apps.core.digest import _safe
 
@@ -66,17 +66,17 @@ def home_widgets(tenant) -> list[dict]:
         if last_week:
             delta = round(100 * (this_week - last_week) / last_week)
             arrow = "▲" if delta > 0 else ("▼" if delta < 0 else "→")
-            hint = _t("Woche: %(arrow)s %(delta)s %% vs. Vorwoche") % {
+            hint = _("Woche: %(arrow)s %(delta)s %% vs. Vorwoche") % {
                 "arrow": arrow,
                 "delta": abs(delta),
             }
         else:
-            hint = _t("letzte 7 Tage")
+            hint = _("letzte 7 Tage")
         widgets.append(
             {
                 "key": "umsatz",
                 "icon": "💶",
-                "label": _t("Umsatz heute"),
+                "label": _("Umsatz heute"),
                 "value": f"{days[-1]:.2f} €".replace(".", ","),
                 "hint": hint,
                 "url_name": "finance:journal",
@@ -92,9 +92,9 @@ def home_widgets(tenant) -> list[dict]:
             {
                 "key": "finance_off",
                 "icon": "💶",
-                "label": _t("Umsatz"),
+                "label": _("Umsatz"),
                 "value": "—",
-                "hint": _t("Finanzen aktivieren"),
+                "hint": _("Finanzen aktivieren"),
                 "url_name": "modules",
                 "url_query": "",
                 "sparkline": "",
@@ -113,9 +113,9 @@ def home_widgets(tenant) -> list[dict]:
             {
                 "key": "ready",
                 "icon": "📦",
-                "label": _t("Abholbereit"),
+                "label": _("Abholbereit"),
                 "value": str(_safe(_ready, 0)),
-                "hint": _t("Bestellungen fertig zur Abholung"),
+                "hint": _("Bestellungen fertig zur Abholung"),
                 # W10-3: deep-link на единую страницу (Liste заказов понимает
                 # ?status= — легаси-список больше не нужен для этого).
                 "url_name": "verkaeufe",
@@ -149,9 +149,9 @@ def home_widgets(tenant) -> list[dict]:
             {
                 "key": "stays_today",
                 "icon": "🛎",
-                "label": _t("Anreisen heute"),
+                "label": _("Anreisen heute"),
                 "value": str(arrivals_n),
-                "hint": _t("Abreisen heute: %(n)s") % {"n": departures_n},
+                "hint": _("Abreisen heute: %(n)s") % {"n": departures_n},
                 # SM-2 (2026-08-10): сводка «Heute» живёт на самой главной —
                 # виджет ведёт во вкладку броней (детальная работа — там).
                 "url_name": "verkaeufe",
@@ -177,9 +177,9 @@ def home_widgets(tenant) -> list[dict]:
             {
                 "key": "puls",
                 "icon": "📣",
-                "label": _t("Marketing-Puls"),
+                "label": _("Marketing-Puls"),
                 "value": str(views),
-                "hint": _t("Aufrufe aktiver Angebote · %(n)s Gutscheine eingelöst")
+                "hint": _("Aufrufe aktiver Angebote · %(n)s Gutscheine eingelöst")
                 % {"n": redeemed},
                 # W7b: /promotions/analytics/ гейтится СВОИМ модулем analytics
                 # (по умолчанию выключен) — ссылка вела в 404; без модуля ведём
@@ -205,9 +205,9 @@ def home_widgets(tenant) -> list[dict]:
             {
                 "key": "reviews",
                 "icon": "⭐",
-                "label": _t("Bewertungen"),
+                "label": _("Bewertungen"),
                 "value": f"{ov.get('avg') or 0:.1f} ({ov.get('count') or 0})",
-                "hint": _t("%(n)s ohne Antwort") % {"n": ov.get("unanswered") or 0},
+                "hint": _("%(n)s ohne Antwort") % {"n": ov.get("unanswered") or 0},
                 "url_name": "reviews:list",
                 "url_query": "",
                 "sparkline": "",

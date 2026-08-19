@@ -302,6 +302,33 @@ def view_descriptors(tenant, kind: str, active_view: str) -> list[dict]:
     ]
 
 
+# Какие GET-фильтры тело вида ДЕЙСТВИТЕЛЬНО исполняет (остальные оно молча
+# игнорирует). Ревью 2026-08-19: адрес с фильтром, который вид не понимает,
+# показывал ВСЕ сделки — владелец считал их отфильтрованными (легаси-редирект
+# заявок ?status=, виджет «Abholbereit» ?status=ready).
+_VIEW_FILTERS = {
+    ("liste", None): frozenset({"q", "status"}),
+    ("kalender", "stay"): frozenset({"q"}),  # Belegungsplan ищет сам
+}
+
+
+def honored_filters(kind: str, view: str) -> frozenset:
+    """Фильтры, которые исполняет тело (view, kind)."""
+    return _VIEW_FILTERS.get((view, kind)) or _VIEW_FILTERS.get((view, None)) or frozenset()
+
+
+def view_for_filters(kind: str, view: str, params) -> str:
+    """Вид, который ИСПОЛНИТ фильтры адреса: если текущий их не понимает —
+    «Liste» (единственный вид с полным набором). Явный `heute` не трогаем —
+    он kind-агностичен и приходит из deep-link виджетов."""
+    if view == "heute":
+        return view
+    wanted = {p for p in ("q", "status") if (params.get(p) or "").strip()}
+    if wanted and not wanted <= honored_filters(kind, view) and "liste" in KIND_VIEWS.get(kind, ()):
+        return "liste"
+    return view
+
+
 def body_context(request, kind: str, view: str) -> dict:
     """X3: контекст ТЕЛА поверхности продаж (движок по (view, kind)).
 

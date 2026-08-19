@@ -1704,7 +1704,33 @@ Python 3.12, менеджер uv.
   а не мастером); попутно киту `moto` добавлены часы работы (единственный без них
   → чек-лист готовности демо не закрывался). ⚠️ ops: пометка приезжает в уже
   засеянные демо только с `seed_demo_tenants --kit <кит> --recreate`.
-- Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная)** — все аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
+- **Самое свежее (2026-08-19, вечер): починка по АДВЕРСАРИАЛЬНОМУ РЕВЬЮ программы
+  «Кабинет-X» (55 агентов: 4 измерения → каждая находка проверена 3 скептиками;
+  14 подтверждено, 3 отклонено) — ⚠️ миграция `promotions/0026` (choices-only, DDL нет).**
+  Перед починкой каждый факт перепроверен разведкой (6 агентов, доказательства файл:строка),
+  замки написаны ДО правок. **HIGH:** X6-6 перенёс обязательное `base_price` в СКРЫТУЮ
+  вкладку — Chrome валит валидацию на нефокусируемом контроле и молча отменяет сохранение
+  товара (проверено браузером до/после: «An invalid form control … is not focusable» →
+  панель открывается, товар сохраняется). Правка в ОБЩЕМ партиале `_i18n_switch.html`:
+  `invalid` в фазе capture раскрывает вкладку И языковую группу поля, то же при серверной
+  ошибке (`data-field-error`); инвариант W0 цел. **Корректность:** главная отдаёт
+  fetch-фрагмент `?box=1` (был целый кабинет в панели брони) · фильтр в адресе обязан быть
+  ИСПОЛНЕН — `sales_page.view_for_filters` открывает «Liste», когда board/kalender молча
+  игнорировали `?status=`/`?q=` (легаси-редирект заявок, виджет «Abholbereit»); то, что вид
+  умеет сам (поиск Belegungsplan), не перебивается · снят мёртвый `heute_columns` на главной
+  (5-6 запросов на заход) · чипы «Abläufe» несут `?from=board`, панель Anfrage возвращает по
+  `next` · хвостовой ряд `hub_tabs` забирает вкладки с неизвестной группой (опечатка роняла
+  вкладку молча). **Ctrl+K:** «Nothing found.» считалось только по меню (висело поверх
+  найденного заказа), Enter игнорировал данные (было `/dashboard/`, стало
+  `/dashboard/orders/<uuid>/`). **i18n-класс:** псевдонимы `gettext as _t`/`gettext_lazy as
+  _l|_lazy` НЕ извлекаются makemessages → 23 строки жили без перевода, и гейт их не видел ПО
+  ПОСТРОЕНИЮ; сведены к каноническим именам, msgid добавлены в 5 каталогов, класс держит
+  скан-замок. **Статусы акций** — источник подписей перенесён в модель (choices), аналитика
+  печатала сырой код; скан-замок запрещает сырые коды. **Из отклонённых** взята одна правка:
+  скептики нашли достижимый вариант слабого гейта `next=` (у `status_manager_save` значение
+  приходит из GET) → 4 места отбивают `//host`. Замки: `test_cabinet_review_fixes.py` (20) +
+  стенд Playwright 10/10.
+- Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная)** — все аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».

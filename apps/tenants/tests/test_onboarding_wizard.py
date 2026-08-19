@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
+from django.utils.translation import gettext
 
 from apps.core import modules
 from apps.core import views as core_views
@@ -505,7 +506,10 @@ def test_offer_slide_shows_archetype_presets_and_cta():
     )
     onboarding.goto(tenant, "offer")
     html = core_views.setup_view(_req(tenant=tenant)).content.decode()
-    assert "preset=feierabend" in html and "Add your first product" in html
+    # Ревью 2026-08-19: подпись стала ПЕРЕВОДИМОЙ (раньше строка минула гейт
+    # из-за псевдонима gettext), поэтому сверяем через тот же gettext, а не
+    # английским литералом в немецком рендере.
+    assert "preset=feierabend" in html and gettext("Add your first product") in html
 
 
 def test_offer_cta_is_archetype_aware():
@@ -515,7 +519,8 @@ def test_offer_cta_is_archetype_aware():
     )
     onboarding.goto(tenant, "offer")
     html = core_views.setup_view(_req(tenant=tenant)).content.decode()
-    assert "Add your first service" in html and "Add your first product" not in html
+    assert gettext("Add your first service") in html
+    assert gettext("Add your first product") not in html
 
 
 def test_offer_slide_loads_and_clears_demo_content():

@@ -44,7 +44,7 @@ section (может быть None).{% endcomment %}
 </div>
 {% else %}
 {% if list_q %}
-  <p class="text-gray-500">{% blocktrans %}Nichts gefunden für „{{ list_q }}“.{% endblocktrans %}</p>
+  <p class="text-gray-500">{% blocktrans with q=list_q %}Nichts gefunden für „{{ q }}“.{% endblocktrans %}</p>
 {% else %}
   <p class="text-gray-500">{% trans "Noch keine Einträge." %}</p>
 {% endif %}

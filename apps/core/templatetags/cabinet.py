@@ -103,7 +103,11 @@ def hub_tabs(context, hub):
             group_tabs = [t for t in tabs if t["group"] == key]
             if group_tabs:
                 rows.append({"key": key, "label": label, "tabs": group_tabs})
-        rest = [t for t in tabs if not t["group"]]
+        # Ревью 2026-08-19: хвостовой ряд забирает ВСЁ, что не попало в известные
+        # группы, — иначе опечатка в `group` роняла вкладку из таб-бара молча
+        # (класс «узел молча выпал»). Для group="" поведение прежнее.
+        known = {key for key, _label in nav_registry.TAB_GROUPS}
+        rest = [t for t in tabs if t["group"] not in known]
         if rest:
             rows.append({"key": "", "label": "", "tabs": rest})
     return {"tabs": tabs, "rows": rows, "more_tabs": more, "more_active": more_active}

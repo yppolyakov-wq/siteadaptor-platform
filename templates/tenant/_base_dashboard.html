@@ -248,8 +248,19 @@
       a.classList.toggle("hidden", !hit);
       if (hit) any = true;
     });
+    palSyncEmpty(any);
+  }
+  // Ревью 2026-08-19: «Nothing found.» считалось ТОЛЬКО по пунктам меню, а
+  // строки данных (X8) в счёт не шли — при находке «заказ фрау Мюллер» палитра
+  // одновременно показывала результат и надпись «ничего не найдено».
+  function palMenuHit() {
+    return !!pal.querySelector(".navpal-item:not(.hidden)");
+  }
+  function palSyncEmpty(menuHit) {
     var pe = document.getElementById("navpal-empty");
-    if (pe) pe.classList.toggle("hidden", any);
+    if (!pe) return;
+    var dataHit = !!(palData && !palData.classList.contains("hidden") && palData.querySelector("a"));
+    pe.classList.toggle("hidden", (menuHit === undefined ? palMenuHit() : menuHit) || dataHit);
   }
   // X8: поиск по ДАННЫМ — секция «Gefunden» над пунктами меню. Debounce 250 мс,
   // предыдущий запрос отменяется; сеть упала → остаётся навигационный поиск.
@@ -258,7 +269,9 @@
   function palEsc(t) { var d = document.createElement("div"); d.textContent = t == null ? "" : t; return d.innerHTML; }
   function palRenderData(sections) {
     if (!palData) return;
-    if (!sections || !sections.length) { palData.classList.add("hidden"); palData.innerHTML = ""; return; }
+    if (!sections || !sections.length) {
+      palData.classList.add("hidden"); palData.innerHTML = ""; palSyncEmpty(); return;
+    }
     var html = "";
     sections.forEach(function (sec) {
       html += '<p class="px-4 pt-2 pb-1 text-[11px] uppercase tracking-wide text-gray-400">' + palEsc(sec.label) + "</p>";
@@ -270,6 +283,7 @@
     });
     palData.innerHTML = html;
     palData.classList.remove("hidden");
+    palSyncEmpty();
   }
   function palSearchData() {
     if (!palData) return;
@@ -294,7 +308,10 @@
       palQ.addEventListener("input", function () { palFilter(); palSearchData(); });
       palQ.addEventListener("keydown", function (e) {
         if (e.key === "Enter") {
-          var first = pal.querySelector(".navpal-item:not(.hidden)");
+          // Ревью 2026-08-19: Enter брал только пункты меню — найденная сделка
+          // по нему не открывалась вовсе. Данные показаны первыми → они и цель.
+          var first = (palData && !palData.classList.contains("hidden") && palData.querySelector("a"))
+                   || pal.querySelector(".navpal-item:not(.hidden)");
           if (first) window.location.href = first.getAttribute("href");
         }
       });

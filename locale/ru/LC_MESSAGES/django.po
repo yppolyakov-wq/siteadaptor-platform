@@ -19118,3 +19118,75 @@ msgstr "Управление событиями"
 #: templates/core/_sales_body.html
 msgid "Verkäufe: Tickets"
 msgstr "Продажи: билеты"
+
+msgid "Add a banner or photo"
+msgstr "Добавьте баннер или фото"
+
+msgid "Add contact details"
+msgstr "Добавьте контактные данные"
+
+msgid "Add your first event"
+msgstr "Добавьте первое мероприятие"
+
+msgid "Add your first item to sell"
+msgstr "Добавьте первую позицию для продажи"
+
+msgid "Add your first product"
+msgstr "Добавьте первый товар"
+
+msgid "Add your first room"
+msgstr "Добавьте первый номер"
+
+msgid "Add your first service"
+msgstr "Добавьте первую услугу"
+
+msgid "Browse our range and order right away — with your phone."
+msgstr "Посмотрите ассортимент и закажите сразу — со смартфона."
+
+msgid "Check availability and book right away — with your phone."
+msgstr "Проверьте свободные даты и забронируйте сразу — со смартфона."
+
+msgid "Complete legal info (Impressum)"
+msgstr "Заполните правовые данные (Impressum)"
+
+msgid "Create your first offer"
+msgstr "Создайте первую акцию"
+
+msgid "Describe your first service offer"
+msgstr "Опишите первую услугу"
+
+msgid "Draft saved."
+msgstr "Черновик сохранён."
+
+msgid "Pick a free slot and book in 30 seconds — with your phone."
+msgstr "Выберите свободное время и запишитесь за 30 секунд — со смартфона."
+
+msgid "Post scheduled."
+msgstr "Публикация запланирована."
+
+msgid "Post sent to channels."
+msgstr "Публикация отправлена в каналы."
+
+msgid "Scan & book a room"
+msgstr "Сканируйте и забронируйте номер"
+
+msgid "Scan & book an appointment"
+msgstr "Сканируйте и запишитесь"
+
+msgid "Scan & grab tickets"
+msgstr "Сканируйте и возьмите билеты"
+
+msgid "Scan & order"
+msgstr "Сканируйте и закажите"
+
+msgid "See upcoming events and book tickets."
+msgstr "Смотрите ближайшие события и покупайте билеты."
+
+msgid "Set your opening hours"
+msgstr "Укажите часы работы"
+
+msgid "Text is required."
+msgstr "Требуется текст."
+
+msgid "Suchen: Bestellung, Kunde, Bereich…"
+msgstr "Поиск: заказ, клиент, раздел…"

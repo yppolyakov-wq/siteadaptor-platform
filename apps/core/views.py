@@ -123,9 +123,13 @@ def dashboard(request):
     loop_ctx = {}
     if loop_kind:
         sub = sales_page.body_context(request, loop_kind, loop_view)
-        if isinstance(sub, dict):
-            loop_ctx = sub
-    heute = sales_page.heute_columns(tenant)
+        # Ревью 2026-08-19: тело поверхности может вернуть HttpResponse —
+        # fetch-фрагмент карточки брони (?box=1). Belegungsplan шлёт fetch по
+        # ТЕКУЩЕМУ пути, а X3 показывает его и здесь, поэтому фрагмент обязан
+        # уйти как есть (иначе в панель вставлялся целый кабинет).
+        if not isinstance(sub, dict):
+            return sub
+        loop_ctx = sub
     ctx = {
         "nav": "dashboard",
         # X2a: ОДИН механизм прогресса — единый чек-лист (реестр шагов мастера +
@@ -141,9 +145,9 @@ def dashboard(request):
         "presence_mode": presence.mode(tenant),
         "presence_now": presence.available_now(tenant),
         "presence_number": getattr(tenant, "whatsapp_number", ""),
-        # Полоса «сегодня» над петлёй: заезды/выдачи/записи (SM-2 колонки).
-        "heute_columns": heute,
-        "heute_has_items": any(col["items"] for col in heute),
+        # Полосы «Heute» здесь НЕТ: X3 поглотил её петлёй архетипа (те же
+        # сделки), а kind-агностичный вид живёт на `?view=heute` странице
+        # продаж. Вычисление осталось мёртвым грузом в 5-6 запросов — снято.
     }
     return render(request, "tenant/dashboard.html", {**loop_ctx, **ctx})
 
@@ -3241,6 +3245,9 @@ def verkaeufe(request):
     # входит в KIND_VIEWS (переключатель видов остаётся per-kind).
     if request.GET.get("view") == "heute":
         view = "heute"
+    # Ревью 2026-08-19: фильтр в адресе обязан быть ИСПОЛНЕН, а не молча
+    # проигнорирован телом вида (board не принимает ни ?status=, ни ?q=).
+    view = sales_page.view_for_filters(active, view, request.GET)
     # W10-3: «＋» из любого вида — цель создания по kind (есть только у
     # календарных движков: walk-in формы живут в их телах/на stay-new).
     create_target = ""
@@ -3482,7 +3489,7 @@ def status_labels_save(request, kind):
     status_labels.save_labels(request.tenant, kind, statuses, request)
     messages.success(request, _("Gespeichert."))
     nxt = request.POST.get("next", "")
-    if not nxt.startswith("/"):
+    if not nxt.startswith("/") or nxt.startswith("//"):
         nxt = reverse("ablaeufe")  # X2b: доска снесена — настройки статусов там
     return redirect(nxt)
 
@@ -3504,7 +3511,7 @@ def transitions_save(request, kind):
     transition_rules.save(request.tenant, kind, request)
     messages.success(request, _("Gespeichert."))
     nxt = request.POST.get("next", "")
-    if not nxt.startswith("/"):
+    if not nxt.startswith("/") or nxt.startswith("//"):
         nxt = reverse("ablaeufe")  # X2b: доска снесена — правила переходов там
     return redirect(nxt)
 
@@ -3745,7 +3752,7 @@ def status_manager_save(request, kind):
     tenant.save(update_fields=["site_config", "updated_at"])
     messages.success(request, _("Gespeichert."))
     nxt = request.POST.get("next", "")
-    if not nxt.startswith("/"):
+    if not nxt.startswith("/") or nxt.startswith("//"):
         nxt = reverse("status-manager", args=[kind])
     return redirect(nxt)
 

@@ -16,7 +16,9 @@ completed никогда не понижается.
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from django.utils.translation import gettext_lazy as _l
+# Канонический алиас `_` — только его извлекает makemessages (алиас `_l`/`_t`
+# проходил мимо обоих i18n-гейтов: ревью 2026-08-19).
+from django.utils.translation import gettext_lazy as _
 
 
 @dataclass(frozen=True)
@@ -117,27 +119,27 @@ def _gate_payment(t) -> bool:
 # business — escape-hatch (gate скрывает, тип уже выбран при регистрации);
 # detail/category/payment — гейт по архетипу/модулям. Порядок = порядок рельсы.
 SETUP_STEPS = (
-    SetupStep("business", "🏪", _l("Branche"), gate=_gate_business),
-    SetupStep("start", "🚀", _l("Start"), check=_check_start),
+    SetupStep("business", "🏪", _("Branche"), gate=_gate_business),
+    SetupStep("start", "🚀", _("Start"), check=_check_start),
     # AB6.10: языки СРАЗУ после старта (порядок владельца 2026-07-17) — контент
     # дальнейших шагов заполняется на каждом включённом языке.
-    SetupStep("language", "🌐", _l("Sprachen"), check=_check_language, tile_url="languages"),
-    SetupStep("company", "🏠", _l("Firma & Logo"), check=_check_company),
-    SetupStep("stil", "🎨", _l("Stil"), tile_url="site-home"),
-    SetupStep("menu", "🧭", _l("Menü"), tile_url="site-menu"),
-    SetupStep("offer", "🛍️", _l("Angebot"), check=_check_offer),
+    SetupStep("language", "🌐", _("Sprachen"), check=_check_language, tile_url="languages"),
+    SetupStep("company", "🏠", _("Firma & Logo"), check=_check_company),
+    SetupStep("stil", "🎨", _("Stil"), tile_url="site-home"),
+    SetupStep("menu", "🧭", _("Menü"), tile_url="site-menu"),
+    SetupStep("offer", "🛍️", _("Angebot"), check=_check_offer),
     # AB6.10: вид страницы товара/услуги/номера (стиль карточек + секции детали).
-    SetupStep("detail", "🧾", _l("Produktseite"), gate=_gate_detail),
+    SetupStep("detail", "🧾", _("Produktseite"), gate=_gate_detail),
     SetupStep(
-        "category", "📁", _l("Kategorien"), gate=_gate_category, tile_url="catalog:category-list"
+        "category", "📁", _("Kategorien"), gate=_gate_category, tile_url="catalog:category-list"
     ),
-    SetupStep("home", "🖼️", _l("Startseite"), check=_check_home, tile_url="site-home"),
+    SetupStep("home", "🖼️", _("Startseite"), check=_check_home, tile_url="site-home"),
     # AB6.10: «О компании» — свой слайд с шаблонами страницы (page_blocks["info"]).
-    SetupStep("about", "🏢", _l("Über uns"), check=_check_about),
-    SetupStep("texts", "📄", _l("Recht"), check=_check_texts, tile_url="legal-docs"),
+    SetupStep("about", "🏢", _("Über uns"), check=_check_about),
+    SetupStep("texts", "📄", _("Recht"), check=_check_texts, tile_url="legal-docs"),
     # AB6.10: оплата/доставка — в конец («если есть» — гейт по чекаут-модулям).
-    SetupStep("payment", "💳", _l("Zahlung"), gate=_gate_payment, tile_url="payment-settings"),
-    SetupStep("done", "🎉", _l("Fertig")),
+    SetupStep("payment", "💳", _("Zahlung"), gate=_gate_payment, tile_url="payment-settings"),
+    SetupStep("done", "🎉", _("Fertig")),
 )
 STEP_KEYS = tuple(s.key for s in SETUP_STEPS)
 _STEP_BY_KEY = {s.key: s for s in SETUP_STEPS}
@@ -169,24 +171,24 @@ _REMAP = {
 # визуализации при регистрации — эмодзи + короткое «что это даёт» на ЯЗЫКЕ ЗАДАЧ
 # (не сущностей). Ключи — Tenant.BUSINESS_TYPES; неизвестный → нейтральная иконка.
 BUSINESS_TYPE_META = {
-    "bakery": ("🥐", _l("Brot, Brötchen & Kuchen — Vorbestellung & Abholung")),
-    "butcher": ("🥩", _l("Fleisch & Wurst — Vorbestellung, Partyservice")),
-    "grocery": ("🛒", _l("Lebensmittel — Sortiment, Aktionen & Treue")),
-    "clothing": ("👗", _l("Mode — Online-Shop mit Größen & Versand")),
-    "restaurant": ("🍽️", _l("Speisekarte, Tischreservierung & Lieferung")),
-    "cafe": ("☕", _l("Karte, Reservierung & Treuekarte")),
-    "retail": ("🛍️", _l("Einzelhandel — Online-Shop, Versand & Abholung")),
-    "online_shop": ("📦", _l("Online-Shop — verkaufen & versenden, ohne Ladengeschäft")),
-    "tour_operator": ("🧭", _l("Touren & Events — Tickets und Termine")),
-    "hotel": ("🛏️", _l("Zimmer & Ferienwohnungen — Buchung nach Datum")),
+    "bakery": ("🥐", _("Brot, Brötchen & Kuchen — Vorbestellung & Abholung")),
+    "butcher": ("🥩", _("Fleisch & Wurst — Vorbestellung, Partyservice")),
+    "grocery": ("🛒", _("Lebensmittel — Sortiment, Aktionen & Treue")),
+    "clothing": ("👗", _("Mode — Online-Shop mit Größen & Versand")),
+    "restaurant": ("🍽️", _("Speisekarte, Tischreservierung & Lieferung")),
+    "cafe": ("☕", _("Karte, Reservierung & Treuekarte")),
+    "retail": ("🛍️", _("Einzelhandel — Online-Shop, Versand & Abholung")),
+    "online_shop": ("📦", _("Online-Shop — verkaufen & versenden, ohne Ladengeschäft")),
+    "tour_operator": ("🧭", _("Touren & Events — Tickets und Termine")),
+    "hotel": ("🛏️", _("Zimmer & Ferienwohnungen — Buchung nach Datum")),
     # S6: реальные архетипы (язык задач, как остальные карточки).
-    "friseur": ("💇", _l("Salon — Termine online, Bewertungen & Treuekarte")),
-    "handwerker": ("🔧", _l("Handwerk — Anfragen, Angebote & Kostenvoranschläge")),
-    "werkstatt": ("🚗", _l("KFZ-Werkstatt — Termine & Kostenvoranschläge")),
-    "events": ("🎟️", _l("Veranstalter — Tickets, Termine & Teilnehmerlisten")),
+    "friseur": ("💇", _("Salon — Termine online, Bewertungen & Treuekarte")),
+    "handwerker": ("🔧", _("Handwerk — Anfragen, Angebote & Kostenvoranschläge")),
+    "werkstatt": ("🚗", _("KFZ-Werkstatt — Termine & Kostenvoranschläge")),
+    "events": ("🎟️", _("Veranstalter — Tickets, Termine & Teilnehmerlisten")),
     # GK-1: кейтеринг как основной бизнес (Anfrage → Angebot → Event).
-    "catering": ("🍽️", _l("Catering & Partyservice — Anfragen, Angebote & Event-Planung")),
-    "other": ("✨", _l("Etwas anderes — frei konfigurierbar")),
+    "catering": ("🍽️", _("Catering & Partyservice — Anfragen, Angebote & Event-Planung")),
+    "other": ("✨", _("Etwas anderes — frei konfigurierbar")),
 }
 
 
@@ -476,29 +478,28 @@ def _has_offering(tenant) -> bool:
 # url_name'ы смонтированы в urls_tenant безусловно → reverse не падает даже при
 # выключенном модуле. Неизвестный/без архетипа → нейтральный фолбэк (каталог).
 _OFFER_CTA = {
-    "catalog": (_l("Add your first product"), "catalog:product-list"),
-    "stays": (_l("Add your first room"), "stays:units"),
-    "events": (_l("Add your first event"), "events:list"),
-    "booking": (_l("Add your first service"), "booking:services"),
+    "catalog": (_("Add your first product"), "catalog:product-list"),
+    "stays": (_("Add your first room"), "stays:units"),
+    "events": (_("Add your first event"), "events:list"),
+    "booking": (_("Add your first service"), "booking:services"),
     # W7b: Handwerker (primary=jobs) вёл в чужой каталог товаров — фолбэк
     # срабатывал из-за отсутствия ключа.
     # X2c: список заявок схлопнут в поверхность продаж — CTA ведёт туда,
     # где создание ВОЗМОЖНО (правило плана §4: перецелить _OFFER_CTA).
-    "jobs": (_l("Describe your first service offer"), "jobs:new"),
-    "promotions": (_l("Create your first offer"), "promotions:promotion-list"),
+    "jobs": (_("Describe your first service offer"), "jobs:new"),
+    "promotions": (_("Create your first offer"), "promotions:promotion-list"),
 }
 
 
 def offer_cta(tenant):
     """W3: архетип-осознанный CTA «добавь первое X» — (label, url_name) по primary-архетипу
     тенанта. Friseur/Werkstatt → услуга, events → событие, каталог → товар (фолбэк)."""
-    from django.utils.translation import gettext as _t
 
     from apps.core import archetypes
 
     return _OFFER_CTA.get(
         archetypes.primary_module(tenant),
-        (_t("Add your first item to sell"), "catalog:product-list"),
+        (_("Add your first item to sell"), "catalog:product-list"),
     )
 
 
@@ -515,7 +516,6 @@ def setup_checklist(tenant) -> dict:
     status ∈ done|skipped|pending; url — куда вести (слайд мастера или экран).
     """
     from django.urls import reverse
-    from django.utils.translation import gettext as _t
 
     rows = []
     for row in steps_with_status(tenant):
@@ -535,7 +535,7 @@ def setup_checklist(tenant) -> dict:
         {
             "key": "hours",
             "icon": "🕒",
-            "label": _t("Öffnungszeiten eintragen"),
+            "label": _("Öffnungszeiten eintragen"),
             "status": "done"
             if bool(tenant.opening_hours or tenant.opening_hours_structured)
             else "pending",
@@ -559,7 +559,6 @@ def completeness(tenant) -> dict:
     → {percent, done, total, items:[{key,label,done,url_name}]}. Считается по факту
     (фото/часы/контакты/первый товар/Impressum), а не по шагам мастера — мотивирует
     допилить сайт и даёт прямой путь к действию (анти-«пустой кабинет»)."""
-    from django.utils.translation import gettext as _t
 
     from . import siteconfig
 
@@ -570,19 +569,19 @@ def completeness(tenant) -> dict:
     items = [
         {
             "key": "banner",
-            "label": _t("Add a banner or photo"),
+            "label": _("Add a banner or photo"),
             "done": has_photo,
             "url_name": "site-home",  # W11-5: Studio (страница «Site» умерла)
         },
         {
             "key": "hours",
-            "label": _t("Set your opening hours"),
+            "label": _("Set your opening hours"),
             "done": bool(tenant.opening_hours or tenant.opening_hours_structured),
             "url_name": "settings",
         },
         {
             "key": "contact",
-            "label": _t("Add contact details"),
+            "label": _("Add contact details"),
             "done": bool(tenant.public_email or tenant.public_phone or tenant.address),
             "url_name": "settings",
         },
@@ -594,7 +593,7 @@ def completeness(tenant) -> dict:
         },
         {
             "key": "legal",
-            "label": _t("Complete legal info (Impressum)"),
+            "label": _("Complete legal info (Impressum)"),
             "done": bool(tenant.address),
             "url_name": "settings",
         },

@@ -13,7 +13,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import translation
 from django.utils.translation import gettext as _
-from django.utils.translation import gettext_lazy as _lazy
+from django.utils.translation import gettext_lazy
 from django.views.decorators.http import require_POST
 
 from apps.catalog.images import delete_stored_image, save_product_image
@@ -99,23 +99,18 @@ def promotion_photo_edit(request):
 # X6-3: подписи переходов были ГОЛЫМИ английскими литералами — на немецком
 # экране кабинета печатались как есть (и не переводились на 5 локалей).
 _PROMO_ACTION_LABELS = {
-    "scheduled": _lazy("Einplanen"),
-    "active": _lazy("Jetzt aktivieren"),
-    "paused": _lazy("Pausieren"),
-    "ended": _lazy("Beenden"),
-    "archived": _lazy("Archivieren"),
+    "scheduled": gettext_lazy("Einplanen"),
+    "active": gettext_lazy("Jetzt aktivieren"),
+    "paused": gettext_lazy("Pausieren"),
+    "ended": gettext_lazy("Beenden"),
+    "archived": gettext_lazy("Archivieren"),
 }
 
 # X6-3 (ловушка черновика): статус показывали сырым кодом («draft»), и владелец
 # не понимал, почему созданная акция не видна клиентам.
-PROMO_STATUS_LABELS = {
-    "draft": _lazy("Entwurf"),
-    "scheduled": _lazy("Geplant"),
-    "active": _lazy("Aktiv"),
-    "paused": _lazy("Pausiert"),
-    "ended": _lazy("Beendet"),
-    "archived": _lazy("Archiviert"),
-}
+# Ревью 2026-08-19: единственный источник подписей — choices модели, иначе
+# словарь-сателлит расходится с экранами (аналитика печатала сырой код).
+PROMO_STATUS_LABELS = dict(Promotion.STATUSES)
 
 
 def promo_status_label(status: str):
@@ -206,26 +201,26 @@ _POSTER_TARGETS = {
     "termin": (
         "storefront-termin",
         "booking",
-        _lazy("Scan & book an appointment"),
-        _lazy("Pick a free slot and book in 30 seconds — with your phone."),
+        gettext_lazy("Scan & book an appointment"),
+        gettext_lazy("Pick a free slot and book in 30 seconds — with your phone."),
     ),
     "sortiment": (
         "storefront-products",
         "catalog",
-        _lazy("Scan & order"),
-        _lazy("Browse our range and order right away — with your phone."),
+        gettext_lazy("Scan & order"),
+        gettext_lazy("Browse our range and order right away — with your phone."),
     ),
     "unterkunft": (
         "storefront-unterkunft",
         "stays",
-        _lazy("Scan & book a room"),
-        _lazy("Check availability and book right away — with your phone."),
+        gettext_lazy("Scan & book a room"),
+        gettext_lazy("Check availability and book right away — with your phone."),
     ),
     "veranstaltung": (
         "storefront-events",
         "events",
-        _lazy("Scan & grab tickets"),
-        _lazy("See upcoming events and book tickets."),
+        gettext_lazy("Scan & grab tickets"),
+        gettext_lazy("See upcoming events and book tickets."),
     ),
 }
 
@@ -762,10 +757,10 @@ def redeem_action(request, code):
 # Модульный словарь → gettext_LAZY: обычный gettext вычислился бы один раз при
 # импорте и заморозил язык первого запроса.
 _VOUCHER_ERRORS = {
-    "not_found": _lazy("Code nicht gefunden."),
-    "inactive": _lazy("Voucher deaktiviert."),
-    "expired": _lazy("Voucher abgelaufen."),
-    "used_up": _lazy("Voucher bereits eingelöst."),
+    "not_found": gettext_lazy("Code nicht gefunden."),
+    "inactive": gettext_lazy("Voucher deaktiviert."),
+    "expired": gettext_lazy("Voucher abgelaufen."),
+    "used_up": gettext_lazy("Voucher bereits eingelöst."),
 }
 
 

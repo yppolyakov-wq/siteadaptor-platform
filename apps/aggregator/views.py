@@ -555,7 +555,8 @@ def shortlist_toggle(request):
 
     shortlist.toggle(request, request.POST.get("listing"))
     nxt = request.POST.get("next") or ""
-    return redirect(nxt if nxt.startswith("/") else reverse("aggregator-index"))
+    ok = nxt.startswith("/") and not nxt.startswith("//")  # protocol-relative — чужой хост
+    return redirect(nxt if ok else reverse("aggregator-index"))
 
 
 def shortlist_compare(request):

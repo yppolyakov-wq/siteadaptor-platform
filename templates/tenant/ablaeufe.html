@@ -6,7 +6,9 @@
 {% comment %}X5-3: вход из «Verkäufe» (?from=board) не телепортирует в настройки —
 хлебная крошка назад вместо чужого таб-бара; из настроек — прежний вид.{% endcomment %}
 {% if from_board %}
-  <a href="{% url 'verkaeufe' %}" class="inline-block mb-4 text-sm text-gray-500 hover:text-indigo-700">← {% trans "Verkäufe" %}</a>
+  {% comment %}Крошка возвращает на ВКЛАДКУ того же направления, а не на
+  дефолтную (остаток того же класса, что чипы ниже).{% endcomment %}
+  <a href="{% url 'verkaeufe' %}{% if active_kind %}?tab={{ active_kind }}{% endif %}" class="inline-block mb-4 text-sm text-gray-500 hover:text-indigo-700">← {% trans "Verkäufe" %}</a>
 {% else %}
   {% hub_tabs "settings" %}
 {% endif %}
@@ -22,7 +24,10 @@
   {% if kinds %}
     <div class="flex gap-1 flex-wrap mb-4">
       {% for k, label in kinds %}
-        <a href="{% url 'ablaeufe' %}?kind={{ k }}"
+        {% comment %}Ревью 2026-08-19: чип обязан нести контекст входа
+        (?from=board) — иначе первый же клик рвал хлебную крошку «← Verkäufe»
+        и перекидывал подсветку сайдбара в настройки.{% endcomment %}
+        <a href="{% url 'ablaeufe' %}?kind={{ k }}{% if from_board %}&amp;from=board{% endif %}"
            class="px-3 py-1.5 rounded-lg text-sm font-medium {% if k == active_kind %}bg-indigo-600 text-white{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50{% endif %}">{{ label }}</a>
       {% endfor %}
     </div>

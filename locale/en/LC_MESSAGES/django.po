@@ -18913,3 +18913,75 @@ msgstr "Manage events"
 #: templates/core/_sales_body.html
 msgid "Verkäufe: Tickets"
 msgstr "Sales: tickets"
+
+msgid "Add a banner or photo"
+msgstr "Add a banner or photo"
+
+msgid "Add contact details"
+msgstr "Add contact details"
+
+msgid "Add your first event"
+msgstr "Add your first event"
+
+msgid "Add your first item to sell"
+msgstr "Add your first item to sell"
+
+msgid "Add your first product"
+msgstr "Add your first product"
+
+msgid "Add your first room"
+msgstr "Add your first room"
+
+msgid "Add your first service"
+msgstr "Add your first service"
+
+msgid "Browse our range and order right away — with your phone."
+msgstr "Browse our range and order right away — with your phone."
+
+msgid "Check availability and book right away — with your phone."
+msgstr "Check availability and book right away — with your phone."
+
+msgid "Complete legal info (Impressum)"
+msgstr "Complete legal info (Impressum)"
+
+msgid "Create your first offer"
+msgstr "Create your first offer"
+
+msgid "Describe your first service offer"
+msgstr "Describe your first service offer"
+
+msgid "Draft saved."
+msgstr "Draft saved."
+
+msgid "Pick a free slot and book in 30 seconds — with your phone."
+msgstr "Pick a free slot and book in 30 seconds — with your phone."
+
+msgid "Post scheduled."
+msgstr "Post scheduled."
+
+msgid "Post sent to channels."
+msgstr "Post sent to channels."
+
+msgid "Scan & book a room"
+msgstr "Scan & book a room"
+
+msgid "Scan & book an appointment"
+msgstr "Scan & book an appointment"
+
+msgid "Scan & grab tickets"
+msgstr "Scan & grab tickets"
+
+msgid "Scan & order"
+msgstr "Scan & order"
+
+msgid "See upcoming events and book tickets."
+msgstr "See upcoming events and book tickets."
+
+msgid "Set your opening hours"
+msgstr "Set your opening hours"
+
+msgid "Text is required."
+msgstr "Text is required."
+
+msgid "Suchen: Bestellung, Kunde, Bereich…"
+msgstr "Search: order, customer, section…"

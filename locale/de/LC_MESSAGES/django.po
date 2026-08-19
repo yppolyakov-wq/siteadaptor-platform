@@ -19042,3 +19042,75 @@ msgstr ""
 #: templates/core/_sales_body.html
 msgid "Verkäufe: Tickets"
 msgstr ""
+
+msgid "Add a banner or photo"
+msgstr "Banner oder Foto hinzufügen"
+
+msgid "Add contact details"
+msgstr "Kontaktdaten hinterlegen"
+
+msgid "Add your first event"
+msgstr "Erste Veranstaltung anlegen"
+
+msgid "Add your first item to sell"
+msgstr "Erstes Angebot anlegen"
+
+msgid "Add your first product"
+msgstr "Erstes Produkt anlegen"
+
+msgid "Add your first room"
+msgstr "Erstes Zimmer anlegen"
+
+msgid "Add your first service"
+msgstr "Erste Leistung anlegen"
+
+msgid "Browse our range and order right away — with your phone."
+msgstr "Sortiment ansehen und direkt bestellen — mit dem Handy."
+
+msgid "Check availability and book right away — with your phone."
+msgstr "Verfügbarkeit prüfen und direkt buchen — mit dem Handy."
+
+msgid "Complete legal info (Impressum)"
+msgstr "Impressum vervollständigen"
+
+msgid "Create your first offer"
+msgstr "Erste Aktion anlegen"
+
+msgid "Describe your first service offer"
+msgstr "Erste Leistung beschreiben"
+
+msgid "Draft saved."
+msgstr "Entwurf gespeichert."
+
+msgid "Pick a free slot and book in 30 seconds — with your phone."
+msgstr "Freien Termin wählen und in 30 Sekunden buchen — mit dem Handy."
+
+msgid "Post scheduled."
+msgstr "Beitrag geplant."
+
+msgid "Post sent to channels."
+msgstr "Beitrag an die Kanäle gesendet."
+
+msgid "Scan & book a room"
+msgstr "Scannen & Zimmer buchen"
+
+msgid "Scan & book an appointment"
+msgstr "Scannen & Termin buchen"
+
+msgid "Scan & grab tickets"
+msgstr "Scannen & Tickets sichern"
+
+msgid "Scan & order"
+msgstr "Scannen & bestellen"
+
+msgid "See upcoming events and book tickets."
+msgstr "Kommende Veranstaltungen ansehen und Tickets buchen."
+
+msgid "Set your opening hours"
+msgstr "Öffnungszeiten eintragen"
+
+msgid "Text is required."
+msgstr "Text ist erforderlich."
+
+msgid "Suchen: Bestellung, Kunde, Bereich…"
+msgstr "Suchen: Bestellung, Kunde, Bereich…"

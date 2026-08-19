@@ -3,6 +3,7 @@
 import pytest
 from django.contrib.auth import get_user_model
 from django.db import connection
+from django.utils.translation import gettext
 from django_tenants.utils import tenant_context
 
 from apps.tenants.forms import BusinessSignupForm
@@ -172,7 +173,10 @@ def test_completeness_offer_is_archetype_aware(settings):
         return next(i for i in onboarding.completeness(t)["items"] if i["key"] == "offer")
 
     hotel = _offer("stays")
-    assert hotel["url_name"] == "stays:units" and "room" in str(hotel["label"]).lower()
+    # Подпись переводится (ревью 2026-08-19) — сверяем смысл через gettext,
+    # а не английским словом в немецком рендере.
+    assert hotel["url_name"] == "stays:units"
+    assert str(hotel["label"]) == gettext("Add your first room")
     assert reverse(hotel["url_name"])  # резолвится в urls_tenant → нет NoReverseMatch
 
     ev = _offer("events")

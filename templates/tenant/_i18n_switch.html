@@ -60,5 +60,32 @@
     var goto = e.target.closest("[data-pf-goto]");
     if (goto) { setTab(goto.getAttribute("data-pf-goto")); return; }
   });
+
+  // Ревью 2026-08-19 (HIGH): обязательное поле в СКРЫТОЙ панели вешало форму —
+  // браузер валит constraint validation на нефокусируемом контроле и молча
+  // отменяет отправку («An invalid form control … is not focusable»), а
+  // владелец видит, что «Speichern» ничего не делает. Инвариант W0 (все поля в
+  // DOM, скрытие только CSS) остаётся: панель с проблемным полем ОТКРЫВАЕТСЯ.
+  // Слушаем в фазе capture — `invalid` не всплывает.
+  function revealField(el) {
+    if (!el || !el.closest) return;
+    var grp = el.closest("[data-i18n-loc]");  // поле неактивной локали
+    if (grp) { setLoc(grp.getAttribute("data-i18n-loc")); }
+    var panel = el.closest("[data-pf-panel]");  // поле неактивной вкладки
+    if (panel) { setTab(panel.getAttribute("data-pf-panel")); }
+  }
+  document.addEventListener("invalid", function (e) { revealField(e.target); }, true);
+
+  // Тот же класс со стороны сервера: после невалидного POST ошибка поля
+  // рисуется внутри скрытой панели/языковой группы и её никто не открывал.
+  function revealServerError() {
+    var err = document.querySelector("[data-field-error]");
+    if (err) { revealField(err); }
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", revealServerError);
+  } else {
+    revealServerError();
+  }
 })();
 </script>

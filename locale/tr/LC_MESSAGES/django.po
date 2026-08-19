@@ -19034,3 +19034,75 @@ msgstr "Etkinlikleri yönet"
 #: templates/core/_sales_body.html
 msgid "Verkäufe: Tickets"
 msgstr "Satışlar: biletler"
+
+msgid "Add a banner or photo"
+msgstr "Banner veya fotoğraf ekleyin"
+
+msgid "Add contact details"
+msgstr "İletişim bilgilerini ekleyin"
+
+msgid "Add your first event"
+msgstr "İlk etkinliğinizi ekleyin"
+
+msgid "Add your first item to sell"
+msgstr "Satılacak ilk ürününüzü ekleyin"
+
+msgid "Add your first product"
+msgstr "İlk ürününüzü ekleyin"
+
+msgid "Add your first room"
+msgstr "İlk odanızı ekleyin"
+
+msgid "Add your first service"
+msgstr "İlk hizmetinizi ekleyin"
+
+msgid "Browse our range and order right away — with your phone."
+msgstr "Ürün yelpazemize göz atın ve hemen sipariş verin — telefonunuzla."
+
+msgid "Check availability and book right away — with your phone."
+msgstr "Müsaitliği kontrol edin ve hemen rezervasyon yapın — telefonunuzla."
+
+msgid "Complete legal info (Impressum)"
+msgstr "Yasal bilgileri tamamlayın (Impressum)"
+
+msgid "Create your first offer"
+msgstr "İlk kampanyanızı oluşturun"
+
+msgid "Describe your first service offer"
+msgstr "İlk hizmet teklifinizi tanımlayın"
+
+msgid "Draft saved."
+msgstr "Taslak kaydedildi."
+
+msgid "Pick a free slot and book in 30 seconds — with your phone."
+msgstr "Boş bir randevu seçin ve 30 saniyede rezervasyon yapın — telefonunuzla."
+
+msgid "Post scheduled."
+msgstr "Gönderi zamanlandı."
+
+msgid "Post sent to channels."
+msgstr "Gönderi kanallara gönderildi."
+
+msgid "Scan & book a room"
+msgstr "Tara & oda rezerve et"
+
+msgid "Scan & book an appointment"
+msgstr "Tara & randevu al"
+
+msgid "Scan & grab tickets"
+msgstr "Tara & bilet al"
+
+msgid "Scan & order"
+msgstr "Tara & sipariş ver"
+
+msgid "See upcoming events and book tickets."
+msgstr "Yaklaşan etkinlikleri görün ve bilet alın."
+
+msgid "Set your opening hours"
+msgstr "Çalışma saatlerinizi girin"
+
+msgid "Text is required."
+msgstr "Metin gerekli."
+
+msgid "Suchen: Bestellung, Kunde, Bereich…"
+msgstr "Ara: sipariş, müşteri, bölüm…"

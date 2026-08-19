@@ -273,7 +273,20 @@ class Promotion(SoftDeleteMixin, I18nMixin):
     # значением, иначе ссылки на подраздел разъехались бы между локалями.
     group_i18n = models.JSONField(default=dict, blank=True)
 
-    status = models.CharField(max_length=20, default="draft", db_index=True)
+    # Ревью 2026-08-19: подписи статуса жили СЛОВАРЁМ во вьюхе (X6-3), поэтому
+    # каждый новый экран печатал сырой код, пока ключ не прокинут руками (так и
+    # случилось с аналитикой). Источник подписей — модель: `get_status_display`
+    # работает везде по умолчанию. AlterField choices-only → DDL не порождает.
+    STATUSES = [
+        ("draft", _("Entwurf")),
+        ("scheduled", _("Geplant")),
+        ("active", _("Aktiv")),
+        ("paused", _("Pausiert")),
+        ("ended", _("Beendet")),
+        ("archived", _("Archiviert")),
+    ]
+
+    status = models.CharField(max_length=20, choices=STATUSES, default="draft", db_index=True)
     starts_at = models.DateTimeField(null=True, blank=True)
     ends_at = models.DateTimeField(null=True, blank=True)
 

@@ -8,6 +8,7 @@
   <summary class="cursor-pointer px-6 py-3 font-semibold text-sm select-none">⚙️ {% trans "Anfrage-Formular" %}</summary>
   <form method="post" action="{% url 'jobs:anfrage-form-settings' %}" class="px-6 pb-6 space-y-3 text-sm">
     {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
     <p class="text-xs text-gray-500">{% trans "Zusätzliche Felder auf der öffentlichen Anfrage-Seite (z. B. für Catering / Partyservice)." %}</p>
     <label class="flex items-center gap-2"><input type="checkbox" name="af_date" {% if "date" in anfrage_cfg.fields %}checked{% endif %}> {% trans "Wunschdatum" %}</label>
     <label class="flex items-center gap-2"><input type="checkbox" name="af_guests" {% if "guests" in anfrage_cfg.fields %}checked{% endif %}> {% trans "Anzahl Personen" %}</label>

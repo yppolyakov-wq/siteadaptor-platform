@@ -24,7 +24,7 @@
       {% for r in rows %}
         <tr class="border-b last:border-0">
           <td class="py-2"><a href="{% url 'promotions:promotion-edit' r.promo.pk %}" class="text-indigo-600 hover:underline">{{ r.promo.title_text|default:r.promo.pk }}</a></td>
-          <td class="py-2"><span class="px-2 py-0.5 rounded-full bg-gray-100">{{ r.promo.status }}</span></td>
+          <td class="py-2"><span class="px-2 py-0.5 rounded-full bg-gray-100">{{ r.promo.get_status_display }}</span></td>
           <td class="py-2 text-right">{{ r.views }}</td>
           <td class="py-2 text-right font-medium">{{ r.n_deals }}</td>
           <td class="py-2 text-right">{{ r.n_res }}</td>

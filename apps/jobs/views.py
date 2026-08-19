@@ -134,7 +134,13 @@ def anfrage_form_settings(request):
     tenant.site_config = cfg
     tenant.save(update_fields=["site_config", "updated_at"])
     messages.success(request, _("Gespeichert."))
-    return redirect("ablaeufe")  # X2c: панель живёт на «Abläufe»
+    # X2c: панель живёт на «Abläufe». Ревью 2026-08-19: возвращаемся ТУДА ЖЕ,
+    # откуда сохраняли (kind + ?from=board) — как соседние панели экрана;
+    # чужой хост в `next` не принимаем (protocol-relative `//` тоже).
+    nxt = request.POST.get("next", "")
+    if not nxt.startswith("/") or nxt.startswith("//"):
+        nxt = reverse("ablaeufe")
+    return redirect(nxt)
 
 
 @login_required

@@ -19107,3 +19107,75 @@ msgstr "Керування подіями"
 #: templates/core/_sales_body.html
 msgid "Verkäufe: Tickets"
 msgstr "Продажі: квитки"
+
+msgid "Add a banner or photo"
+msgstr "Додайте банер або фото"
+
+msgid "Add contact details"
+msgstr "Додайте контактні дані"
+
+msgid "Add your first event"
+msgstr "Додайте першу подію"
+
+msgid "Add your first item to sell"
+msgstr "Додайте першу позицію для продажу"
+
+msgid "Add your first product"
+msgstr "Додайте перший товар"
+
+msgid "Add your first room"
+msgstr "Додайте перший номер"
+
+msgid "Add your first service"
+msgstr "Додайте першу послугу"
+
+msgid "Browse our range and order right away — with your phone."
+msgstr "Перегляньте асортимент і замовте одразу — зі смартфона."
+
+msgid "Check availability and book right away — with your phone."
+msgstr "Перевірте вільні дати та забронюйте одразу — зі смартфона."
+
+msgid "Complete legal info (Impressum)"
+msgstr "Заповніть правові дані (Impressum)"
+
+msgid "Create your first offer"
+msgstr "Створіть першу акцію"
+
+msgid "Describe your first service offer"
+msgstr "Опишіть першу послугу"
+
+msgid "Draft saved."
+msgstr "Чернетку збережено."
+
+msgid "Pick a free slot and book in 30 seconds — with your phone."
+msgstr "Оберіть вільний час і запишіться за 30 секунд — зі смартфона."
+
+msgid "Post scheduled."
+msgstr "Публікацію заплановано."
+
+msgid "Post sent to channels."
+msgstr "Публікацію надіслано в канали."
+
+msgid "Scan & book a room"
+msgstr "Скануйте та забронюйте номер"
+
+msgid "Scan & book an appointment"
+msgstr "Скануйте та запишіться"
+
+msgid "Scan & grab tickets"
+msgstr "Скануйте та візьміть квитки"
+
+msgid "Scan & order"
+msgstr "Скануйте та замовте"
+
+msgid "See upcoming events and book tickets."
+msgstr "Дивіться найближчі події та купуйте квитки."
+
+msgid "Set your opening hours"
+msgstr "Вкажіть години роботи"
+
+msgid "Text is required."
+msgstr "Потрібен текст."
+
+msgid "Suchen: Bestellung, Kunde, Bereich…"
+msgstr "Пошук: замовлення, клієнт, розділ…"

@@ -122,7 +122,6 @@ def posts(request):
     from django.shortcuts import get_object_or_404, redirect
     from django.utils import timezone
     from django.utils.dateparse import parse_datetime
-    from django.utils.translation import gettext as _t
 
     from apps.catalog.images import save_product_image
 
@@ -147,14 +146,14 @@ def posts(request):
             post = get_object_or_404(SocialPost, pk=pk)
             if action == "delete":
                 post.delete()
-                messages.success(request, _t("Post deleted."))
+                messages.success(request, _("Post deleted."))
             elif post.status != SocialPost.SENT:
                 _send_now(post)
-                messages.success(request, _t("Post sent to channels."))
+                messages.success(request, _("Post sent to channels."))
             return redirect("publishing-posts")
         text = (request.POST.get("text") or "").strip()
         if not text:
-            messages.error(request, _t("Text is required."))
+            messages.error(request, _("Text is required."))
             return redirect("publishing-posts")
         image = {}
         uploaded = request.FILES.get("image")
@@ -174,14 +173,14 @@ def posts(request):
         )
         if action == "now":
             _send_now(post)
-            messages.success(request, _t("Post sent to channels."))
+            messages.success(request, _("Post sent to channels."))
         elif action == "schedule" and when is not None:
             post.scheduled_at = when
             post.save(update_fields=["scheduled_at", "updated_at"])
             sm.apply(post, POST_SCHEDULED)
-            messages.success(request, _t("Post scheduled."))
+            messages.success(request, _("Post scheduled."))
         else:
-            messages.success(request, _t("Draft saved."))  # без даты — черновик
+            messages.success(request, _("Draft saved."))  # без даты — черновик
         return redirect("publishing-posts")
 
     return render(
