@@ -110,11 +110,27 @@ def _request(tenant):
 
 def test_nav_hides_disabled_modules():
     # W-CL: nav_modules/nav_groups снесены — гейт по модулям проверяем на якорях
-    # компакт-сайдбара (Marketing скрывается без promotions).
+    # компакт-сайдбара. X0 (cabinet-cleanup-2026-08-19, осознанная переписка):
+    # без promotions якорь Marketing ОСТАЁТСЯ, пока жив любой модуль его хаба
+    # (inbox/reviews/…) — прежний гейт отбирал у отеля вход к сообщениям.
+    # Полное скрытие требует выключить ВСЕ модули хаба.
     nav = modules_nav(_request(_tenant(disabled_modules=["promotions"])))
     urls = [it["url_name"] for it in nav["nav_compact"]]
-    assert "marketing-home" not in urls
-    assert "dashboard" in urls and "settings" in urls
+    assert "marketing-home" in urls
+    all_marketing = [
+        "promotions",
+        "reviews",
+        "crm",
+        "loyalty",
+        "inbox",
+        "telegram",
+        "publishing",
+        "blog",
+    ]
+    nav2 = modules_nav(_request(_tenant(disabled_modules=all_marketing)))
+    urls2 = [it["url_name"] for it in nav2["nav_compact"]]
+    assert "marketing-home" not in urls2
+    assert "dashboard" in urls2 and "settings" in urls2
 
 
 def test_nav_empty_on_public_schema():
