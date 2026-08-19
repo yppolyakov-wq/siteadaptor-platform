@@ -87,7 +87,7 @@ def test_login_post_sends_link_and_shows_check_inbox(monkeypatch):
     email = _email()
     resp = account_views.login_view(_req("post", data={"email": email}))
     assert resp.status_code == 200
-    assert b"Schau in deinen Posteingang" in resp.content
+    assert "Prüfen Sie Ihren Posteingang".encode() in resp.content  # X1: du → Sie
     assert len(sent) == 1
     assert sent[0]["email"] == email
     assert "/konto/login/verify/?t=" in sent[0]["url"]
@@ -99,7 +99,7 @@ def test_login_response_identical_for_honeypot(monkeypatch):
     monkeypatch.setattr(tasks.send_magic_link_email, "delay", lambda **kw: sent.append(kw))
     resp = account_views.login_view(_req("post", data={"email": _email(), "website": "spam"}))
     assert resp.status_code == 200
-    assert b"Schau in deinen Posteingang" in resp.content  # ответ тот же
+    assert "Prüfen Sie Ihren Posteingang".encode() in resp.content  # ответ тот же (X1: du → Sie)
     assert sent == []  # но письма нет
 
 

@@ -113,7 +113,7 @@ def test_no_slot_selected_hint_not_form():
     service = _service()
     body = _slots_page(service, {"tag": DAY.isoformat()})
     assert f"/termin/leistung/{service.pk}/buchen/" not in body  # POST-формы нет
-    assert "Wähle einen Zeitpunkt aus, um fortzufahren." in body  # хинт при доступных стартах
+    assert "Wählen Sie eine Uhrzeit, um fortzufahren." in body  # хинт (X1: du → Sie)
 
 
 def test_only_contact_fields_live_inside_the_dialog():
