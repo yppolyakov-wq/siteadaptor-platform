@@ -38,7 +38,8 @@
   <div class="flex items-center gap-2 ml-auto">
     {# W10-3: «＋» из любого вида (цель создания по kind — walk-in/stay-new) #}
     {% if create_target %}
-      <a href="{{ create_target }}" class="text-sm font-medium text-white bg-indigo-600 rounded-lg px-3 py-1.5 hover:bg-indigo-700">＋ {% if active_kind == "stay" %}{% trans "New booking" %}{% else %}{% trans "New appointment" %}{% endif %}</a>
+      {# X2c: подпись «＋» по kind — заявка ≠ бронь ≠ запись #}
+      <a href="{{ create_target }}" class="text-sm font-medium text-white bg-indigo-600 rounded-lg px-3 py-1.5 hover:bg-indigo-700">＋ {% if active_kind == "stay" %}{% trans "New booking" %}{% elif active_kind == "job" %}{% trans "New request" %}{% else %}{% trans "New appointment" %}{% endif %}</a>
     {% endif %}
     {% comment %}SM-4 (решение владельца): «Abläufe» ушла из тулбара — подпункт
     раздела «Verkäufe» в сайдбаре; тулбар вкладки = виды + «＋».{% endcomment %}

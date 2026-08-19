@@ -416,7 +416,24 @@ _SELECT_RELATED = {
 _EVENT_ORDER = {"stay": "-arrival", "booking": "-start"}
 
 
-def _managed_queryset(kind, event_order: bool = False, q: str = ""):
+def status_filter_options(tenant, kind: str) -> list[tuple]:
+    """X2c: варианты фильтра статуса для generic-списка продаж.
+
+    Источник — реестр статусов (встроенные + КАСТОМНЫЕ владельца, SM-3) с
+    учётом его собственных подписей (FB-4a/b). Раньше фильтр статуса был
+    только на легаси-странице заявок и в списке заказов."""
+    from apps.core import status_labels, status_registry
+
+    custom = status_labels.custom_labels(tenant, kind)
+    builtin = builtin_status_labels(kind)
+    out = []
+    for code, d in status_registry.all_descriptors(kind, tenant).items():
+        label = custom.get(code) or builtin.get(code) or getattr(d, "label", "") or code
+        out.append((code, label))
+    return out
+
+
+def _managed_queryset(kind, event_order: bool = False, q: str = "", status: str = ""):
     """Базовый queryset kind для кабинета: свежие сверху, с select_related.
     `event_order` — сортировка по дате СОБЫТИЯ (W7c, только kind'ы из _EVENT_ORDER).
 
@@ -427,6 +444,8 @@ def _managed_queryset(kind, event_order: bool = False, q: str = ""):
 
     order = _EVENT_ORDER.get(kind, "-created_at") if event_order else "-created_at"
     qs = model_for(kind).objects.select_related(*_SELECT_RELATED[kind]).order_by(order)
+    if status:
+        qs = qs.filter(status=status)  # X2c: фильтр статуса — паритет с легаси-списками
     q = (q or "").strip()
     if q:
         qs = qs.filter(
@@ -443,6 +462,7 @@ def manage_sections_for(
     only: str | None = None,
     event_order: bool = False,
     q: str = "",
+    status: str = "",
 ) -> list[dict]:
     """Секции доски по активным транзакционным модулям тенанта.
 
@@ -472,7 +492,7 @@ def manage_sections_for(
         trans = transition_rules.subset_for(tenant, kind)
         txs = [
             transaction_for(kind, obj, labels, trans)
-            for obj in _managed_queryset(kind, event_order, q)[:limit]
+            for obj in _managed_queryset(kind, event_order, q, status)[:limit]
         ]
         # LS-6: «⚠️ Problem»-полоса — открытые high-треды с ref на карточки секции.
         # ОДИН запрос на секцию по множеству кодов (не per-card — N+1); ключ =

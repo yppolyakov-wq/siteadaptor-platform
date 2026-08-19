@@ -364,9 +364,17 @@ def body_context(request, kind: str, view: str) -> dict:
         # «сегодняшние брони» иначе тонули под старыми, созданными позже.
         # X6-2: поиск (код/клиент) был только у заказов — теперь у всех kind.
         q = (request.GET.get("q") or "").strip()
+        # X2c: фильтр статуса в generic-списке — паритет с легаси-страницей
+        # заявок (там он был чипами) ДО её схлопывания (правило W10-6).
+        status = (request.GET.get("status") or "").strip()
+        options = transactions.status_filter_options(tenant, kind)
+        if status not in {code for code, _label in options}:
+            status = ""
         sections = transactions.manage_sections_for(
-            tenant, limit=200, only=kind, event_order=True, q=q
+            tenant, limit=200, only=kind, event_order=True, q=q, status=status
         )
         ctx["section"] = sections[0] if sections else None
         ctx["list_q"] = q
+        ctx["list_status"] = status
+        ctx["list_status_options"] = options
     return ctx

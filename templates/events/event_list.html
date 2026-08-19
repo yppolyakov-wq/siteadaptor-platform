@@ -4,7 +4,10 @@
 
 {% block dash_content %}
 {% comment %}W10-3b: hub_tabs-огрызок Verkäufe-хаба снят (реестр жив для палитры/подсветки) — мостик на единую страницу.{% endcomment %}
-<p class="mb-4 text-xs text-gray-400">{% trans "Alte Ansicht" %} · <a href="{% url 'verkaeufe' %}" class="text-indigo-600 hover:underline">🆕 {% trans "Alles auf einer Seite" %} →</a></p>
+{% comment %}X2c: экран НЕ «старый вид» — по глоссарию X4 это управление
+сущностью «Veranstaltung» (раздел Sortiment); сделки по билетам живут на
+вкладке «Verkäufe». Плашка была неверной подсказкой.{% endcomment %}
+<p class="mb-4 text-xs text-gray-400"><a href="{% url 'verkaeufe' %}?tab=ticket" class="text-indigo-600 hover:underline">{% trans "Verkäufe: Tickets" %} →</a></p>
 <div class="flex items-center justify-between mb-6">
   <div>
     <h1 class="text-2xl font-bold mb-1">{% trans "Events" %}</h1>

@@ -150,3 +150,58 @@ def test_view_order_is_identical_across_kinds():
     order = ["kalender", "board", "liste"]
     for kind, views in sales_page.KIND_VIEWS.items():
         assert list(views) == [v for v in order if v in views], kind
+
+
+# --- X2c: схлопывание легаси-списка заявок (после паритета) --------------------
+
+
+def test_sales_list_status_filter_is_generic():
+    """Паритет ДО 302 (правило W10-6): фильтр статуса был на легаси-странице
+    заявок чипами — теперь он в generic-Liste у ВСЕХ kind, с подписями из
+    реестра (включая кастом-статусы владельца)."""
+    from apps.core import transactions
+
+    t = _tenant("handwerker")
+    options = dict(transactions.status_filter_options(t, "job"))
+    assert "new" in options and str(options["new"])  # подпись, не сырой код
+
+    from apps.jobs import services as job_services
+
+    j1 = job_services.create_job(title="Zaun", name="Meyer")
+    job_services.create_job(title="Bad", name="Schmidt")
+    from apps.jobs.state_machine import JobSM
+
+    JobSM().apply(j1, "quoted")
+
+    sec = transactions.manage_sections_for(t, only="job", status="quoted")[0]
+    assert [tx.reference_code for tx in sec["transactions"]] == [j1.reference_code]
+    sec = transactions.manage_sections_for(t, only="job")[0]
+    assert len(sec["transactions"]) == 2
+
+
+def test_job_tab_offers_create_entry():
+    """«＋ Neue Anfrage» на вкладке продаж — форма ручной заявки жила ТОЛЬКО
+    на схлопнутом списке."""
+    from django.urls import reverse
+
+    from apps.core import views as core_views
+
+    t = _tenant("handwerker")
+    req = RequestFactory().get("/dashboard/verkaeufe/", {"tab": "job"})
+    req.tenant, req.user = t, _user()
+    html = core_views.verkaeufe(req).content.decode()
+    assert reverse("jobs:new") in html
+
+
+def test_events_screen_is_not_marked_legacy():
+    """X2c-ревизия: события — СУЩНОСТЬ раздела Sortiment (глоссарий X4), а не
+    легаси-поверхность продаж: 302 не делаем, ложную плашку «Alte Ansicht»
+    сняли."""
+    from apps.events import views as eviews
+
+    t = _tenant("events")
+    req = RequestFactory().get("/dashboard/events/")
+    req.tenant, req.user = t, _user()
+    html = eviews.event_list(req).content.decode()
+    assert "Alte Ansicht" not in html
+    assert "?tab=ticket" in html  # честный кросс-вход к сделкам

@@ -75,13 +75,18 @@ def _resolve_part(raw, products, variants):
 
 
 @login_required
-def job_list(request):
+def job_new(request):
+    """X2c: экран «＋ Neue Anfrage» (конвенция X6-1) + ПРИЁМНИК ручной заявки.
+
+    POST переехал сюда со списка заявок: сам список схлопнулся в единую
+    поверхность продаж (`/dashboard/verkaeufe/?tab=job`), а форма создания
+    обязана жить на своём экране."""
     if request.method == "POST":  # ручная заявка (телефон/личный контакт)
         name = request.POST.get("name", "").strip()
         title = request.POST.get("title", "").strip()
         if not (name and title):
             messages.error(request, _("Please enter a name and a short title."))
-            return redirect("jobs:list")
+            return redirect("jobs:new")
         job = services.create_job(
             title=title,
             name=name,
@@ -94,25 +99,17 @@ def job_list(request):
         )
         messages.success(request, _("Request created."))
         return redirect("jobs:detail", pk=job.pk)
+    return render(request, "jobs/new.html", {"nav": "jobs"})
 
-    status = request.GET.get("status", "")
-    jobs = Job.objects.select_related("customer")
-    if status in dict(Job.STATUSES):
-        jobs = jobs.filter(status=status)
-    from apps.tenants import siteconfig
 
-    return render(
-        request,
-        "jobs/list.html",
-        {
-            "nav": "jobs",
-            "jobs": jobs[:300],
-            "statuses": Job.STATUSES,
-            "active_status": status,
-            # AF-1: текущий конфиг событийных полей — панель «⚙️ Anfrage-Formular».
-            "anfrage_cfg": siteconfig.normalize(request.tenant.site_config).get("anfrage") or {},
-        },
-    )
+@login_required
+def job_list(request):
+    """X2c: легаси-список заявок → 302 на вкладку «Aufträge» единой страницы
+    продаж (GET-carry: ?status= живёт на цели — паритет закрыт фильтром
+    статуса generic-Liste). Паритет ДО схлопывания — правило W10-6."""
+    from apps.core import sales_page
+
+    return sales_page.legacy_redirect(request, tab="job")
 
 
 @login_required
@@ -137,7 +134,7 @@ def anfrage_form_settings(request):
     tenant.site_config = cfg
     tenant.save(update_fields=["site_config", "updated_at"])
     messages.success(request, _("Gespeichert."))
-    return redirect("jobs:list")
+    return redirect("ablaeufe")  # X2c: панель живёт на «Abläufe»
 
 
 @login_required
@@ -342,7 +339,8 @@ def job_delete(request, pk):
     if job.status in (Job.STATUS_NEW, Job.STATUS_DECLINED, Job.STATUS_CANCELLED):
         job.delete()
         messages.success(request, _("Request deleted."))
-        return redirect("jobs:list")
+        # X2c: списка заявок больше нет — возвращаем на вкладку продаж.
+        return redirect(reverse("verkaeufe") + "?tab=job")
     messages.error(request, _("This request can no longer be deleted."))
     return redirect("jobs:detail", pk=job.pk)
 

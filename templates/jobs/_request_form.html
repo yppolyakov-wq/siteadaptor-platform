@@ -1,0 +1,18 @@
+{% load i18n %}
+{% comment %}X2c: форма ручной заявки — общий партиал списка заявок
+и нового экрана «＋ Neue Anfrage» (jobs:new). Разметка перенесена 1:1;
+приёмник POST — jobs:new (список схлопнулся в поверхность продаж).{% endcomment %}
+<form method="post" action="{% url 'jobs:new' %}" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-4">
+  {% csrf_token %}
+  <h2 class="font-semibold">{% trans "New request" %} <span class="text-xs text-gray-400 font-normal">({% trans "e.g. phone call" %})</span></h2>
+  <input name="title" type="text" required placeholder="{% trans 'Short title (e.g. Bad streichen)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  <div class="grid sm:grid-cols-3 gap-4">
+    <input name="name" type="text" required placeholder="{% trans 'Name' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+    <input name="phone" type="text" placeholder="{% trans 'Phone' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+    <input name="email" type="email" placeholder="{% trans 'Email' %}" class="rounded-lg border border-gray-300 px-3 py-2">
+  </div>
+  <input name="site_address" type="text" placeholder="{% trans 'Job address (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  <input name="vehicle" type="text" placeholder="{% trans 'Vehicle / licence plate (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+  <textarea name="description" rows="2" placeholder="{% trans 'Description (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Create request" %}</button>
+</form>

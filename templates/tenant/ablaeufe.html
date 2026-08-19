@@ -53,4 +53,7 @@
     </form>
   </details>
 </div>
+{% if anfrage_enabled %}
+  {% include "jobs/_anfrage_form_panel.html" %}
+{% endif %}
 {% endblock %}

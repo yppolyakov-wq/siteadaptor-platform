@@ -19026,3 +19026,11 @@ msgstr "Bitti"
 #: apps/promotions/views.py
 msgid "Archiviert"
 msgstr "Arşivlendi"
+
+#: templates/core/_sales_body.html
+msgid "Veranstaltungen verwalten"
+msgstr "Etkinlikleri yönet"
+
+#: templates/core/_sales_body.html
+msgid "Verkäufe: Tickets"
+msgstr "Satışlar: biletler"

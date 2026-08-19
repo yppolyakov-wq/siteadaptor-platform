@@ -3,7 +3,7 @@
 {% block dash_title %}{{ job.reference_code }}{% endblock %}
 
 {% block dash_content %}
-<a href="{% url 'jobs:list' %}" class="text-sm text-gray-500 hover:underline">← {% trans "All jobs" %}</a>
+<a href="{% url 'verkaeufe' %}?tab=job" class="text-sm text-gray-500 hover:underline">← {% trans "All jobs" %}</a>
 
 {% if messages %}
   {% for m in messages %}

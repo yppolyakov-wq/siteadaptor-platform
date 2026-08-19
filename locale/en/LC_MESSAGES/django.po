@@ -18905,3 +18905,11 @@ msgstr "Ended"
 #: apps/promotions/views.py
 msgid "Archiviert"
 msgstr "Archived"
+
+#: templates/core/_sales_body.html
+msgid "Veranstaltungen verwalten"
+msgstr "Manage events"
+
+#: templates/core/_sales_body.html
+msgid "Verkäufe: Tickets"
+msgstr "Sales: tickets"

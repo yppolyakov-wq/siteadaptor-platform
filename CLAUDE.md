@@ -1678,10 +1678,15 @@ Python 3.12, менеджер uv.
   таб-бара), 19 сирот разобраны поимённо, гастро-гейт KDS/Tisch-QR, глоссарий
   `docs/cabinet-glossary.md` («Angebote» → «Sortiment»). **X5** настройки: два
   подписанных ряда вкладок вместо горизонтального скролла, «Abläufe» без телепорта
-  (`?from=board`), «Mein Geschäft» по секциям со sticky-Save. **Дальше по программе:
-  X6** (конвенция «＋», поиск везде, ловушка черновика акции, фиксированный порядок
-  видов, цена на вкладке «Preis & Lager») → **X8** (Ctrl+K по ДАННЫМ: «найти заказ
-  фрау Мюллер»). Отложено владельцем: X2c (паритет events/jobs → 302).
+  (`?from=board`), «Mein Geschäft» по секциям со sticky-Save. **X6** конвенция «＋» (ведёт в форму создания), поиск на «Sortiment» по всем
+  kind и в списке продаж по коду/клиенту, ловушка черновика акции (человеческие
+  статусы + первичная «Jetzt aktivieren» + бейдж «nicht sichtbar»), единый порядок
+  видов, цена на вкладке «Preis & Lager». **X2c** (был отложен владельцем, исполнен
+  после X3/X4 в РЕВИЗИИ: события — сущность раздела Sortiment по глоссарию X4, их
+  экран НЕ схлопываем; схлопнут только легаси-список заявок `jobs:list` → 302 на
+  вкладку продаж, ПОСЛЕ паритета: общий фильтр статуса в списке, экран `jobs:new`,
+  панель «Anfrage-Formular» на «Abläufe»). **Осталось по программе: X8** (Ctrl+K по
+  ДАННЫМ: «найти заказ фрау Мюллер»).
   Уроки: `scripts/i18n_quickcheck.py` — локальная замена CI-гейта i18n (в дев-
   контейнере нет gettext; дважды ронял CI), CI разбит на 3 группы (17 → 9 мин).
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная)** — все аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).

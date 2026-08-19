@@ -463,7 +463,9 @@ _OFFER_CTA = {
     "booking": (_l("Add your first service"), "booking:services"),
     # W7b: Handwerker (primary=jobs) вёл в чужой каталог товаров — фолбэк
     # срабатывал из-за отсутствия ключа.
-    "jobs": (_l("Describe your first service offer"), "jobs:list"),
+    # X2c: список заявок схлопнут в поверхность продаж — CTA ведёт туда,
+    # где создание ВОЗМОЖНО (правило плана §4: перецелить _OFFER_CTA).
+    "jobs": (_l("Describe your first service offer"), "jobs:new"),
     "promotions": (_l("Create your first offer"), "promotions:promotion-list"),
 }
 

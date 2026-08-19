@@ -19099,3 +19099,11 @@ msgstr "Завершена"
 #: apps/promotions/views.py
 msgid "Archiviert"
 msgstr "В архіві"
+
+#: templates/core/_sales_body.html
+msgid "Veranstaltungen verwalten"
+msgstr "Керування подіями"
+
+#: templates/core/_sales_body.html
+msgid "Verkäufe: Tickets"
+msgstr "Продажі: квитки"

@@ -48,7 +48,10 @@ def _job(**kwargs):
 
 
 def test_manual_request_creates_job():
-    resp = views.job_list(
+    """X2c (осознанная переписка): приёмник ручной заявки переехал со списка
+    на экран создания `jobs:new` — список схлопнут в единую поверхность
+    продаж (конвенция X6-1: «＋» открывает форму)."""
+    resp = views.job_new(
         _req("post", data={"title": "Zaun bauen", "name": "Herr Meyer", "email": "m@t.de"})
     )
     assert resp.status_code == 302
@@ -57,10 +60,18 @@ def test_manual_request_creates_job():
     assert str(job.pk) in resp.url
 
 
-def test_list_renders_and_filters():
-    job = _job()
-    body = views.job_list(_req(data={"status": "new"})).content.decode()
-    assert job.reference_code in body
+def test_new_screen_renders_form():
+    body = views.job_new(_req()).content.decode()
+    assert 'name="title"' in body and 'name="name"' in body
+
+
+def test_legacy_list_redirects_to_sales_tab():
+    """X2c: легаси-список заявок → 302 на вкладку продаж с GET-carry
+    (?status= живёт на цели — фильтр статуса generic-Liste закрыл паритет)."""
+    resp = views.job_list(_req(data={"status": "new"}))
+    assert resp.status_code == 302
+    assert resp.url.startswith("/dashboard/verkaeufe/")
+    assert "tab=job" in resp.url and "status=new" in resp.url
 
 
 def test_detail_renders_with_lines():
@@ -315,11 +326,17 @@ def test_anfrage_form_settings_unchecking_all_drops_key():
     assert "anfrage" not in tenant.site_config  # presence-minimal: выкл = ключа нет
 
 
-def test_list_renders_anfrage_form_panel_with_current_state():
+def test_ablaeufe_renders_anfrage_form_panel_with_current_state():
+    """X2c (осознанная переписка): панель «Anfrage-Formular» переехала со
+    страницы заявок (она схлопывается в единую поверхность продаж) на
+    «Abläufe» — там живут настройки процессов продаж. Разметка та же
+    (общий партиал), приёмник POST прежний."""
+    from apps.core import views as core_views
+
     tenant = TenantFactory.build(
         disabled_modules=[],
         site_config={"anfrage": {"fields": ["guests"], "event_types": ["Grillfest"]}},
     )
-    body = views.job_list(_req(tenant=tenant)).content.decode()
+    body = core_views.ablaeufe_view(_req(tenant=tenant)).content.decode()
     assert 'name="af_guests" checked' in body
     assert "Grillfest" in body

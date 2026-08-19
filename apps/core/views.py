@@ -3248,6 +3248,8 @@ def verkaeufe(request):
         create_target = reverse("stays:stay-new")
     elif active == "booking":
         create_target = reverse("verkaeufe") + "?tab=booking&view=kalender#neu"
+    elif active == "job":
+        create_target = reverse("jobs:new")  # X2c: ручная заявка (звонок/визит)
     ctx = {
         "nav": "board",
         "sales_tabs": sales_page.tab_descriptors(tenant, active),
@@ -3515,6 +3517,7 @@ def ablaeufe_view(request):
     stays — мёртвый контекст) — аудит 2026-08-05. Сохранение — прежние эндпоинты
     (status-labels-save/transitions-save/board-settings) через next= сюда."""
     from apps.core import status_labels, transition_rules
+    from apps.tenants import siteconfig
 
     tenant = request.tenant
     kinds = _status_kinds_for(tenant)
@@ -3538,6 +3541,10 @@ def ablaeufe_view(request):
         "transition_rows": transition_rows,
         "board_stage_rows": _board_stage_rows(tenant),
         "from_board": from_board,
+        # X2c: настройки публичной формы заявки жили на легаси-странице заявок
+        # (которая схлопывается) — их место в «Abläufe» (процессы продаж).
+        "anfrage_enabled": tenant.is_module_active("jobs"),
+        "anfrage_cfg": (siteconfig.normalize(tenant.site_config).get("anfrage") or {}),
     }
     if from_board:
         ctx["nav_anchor_override"] = "board"

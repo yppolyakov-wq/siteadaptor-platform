@@ -39,9 +39,10 @@ active_kind). Извлечено 1:1 из core/verkaeufe.html, чтобы ГЛА
 {% else %}
   {% include "core/_sales_liste.html" %}
 {% endif %}
-{# W10-3b: входы в полные управляющие экраны tickets/jobs (аудит: «выпали из новой навигации») #}
+{% comment %}X2c: у заявок легаси-список схлопнут (302 сюда же), у событий
+экран НЕ легаси — по глоссарию X4 это управление СУЩНОСТЬЮ («Veranstaltungen»
+в разделе Sortiment), билет же — сделка. Поэтому вместо «Alte Ansicht» —
+честный кросс-вход.{% endcomment %}
 {% if active_kind == "ticket" %}
-  <p class="mt-3 text-sm text-gray-400"><a href="{% url 'events:list' %}" class="hover:underline">{% trans "Alte Ansicht" %} →</a></p>
-{% elif active_kind == "job" %}
-  <p class="mt-3 text-sm text-gray-400"><a href="{% url 'jobs:list' %}" class="hover:underline">{% trans "Alte Ansicht" %} →</a></p>
+  <p class="mt-3 text-sm text-gray-400"><a href="{% url 'events:list' %}" class="hover:underline">{% trans "Veranstaltungen verwalten" %} →</a></p>
 {% endif %}

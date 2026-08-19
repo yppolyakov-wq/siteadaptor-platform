@@ -1,0 +1,21 @@
+{% load i18n %}
+{% comment %}X2c: панель «Anfrage-Formular» переехала со страницы заявок на
+«Abläufe» (настройки процессов продаж). Партиал общий — разметка 1:1,
+приёмник POST прежний (jobs:anfrage-form-settings).{% endcomment %}
+{% comment %}AF-1: событийные поля публичной формы /anfrage/ — состав + список
+«Art der Veranstaltung» per-tenant (любой архетип включает по целесообразности).{% endcomment %}
+<details class="bg-white rounded-2xl shadow-sm mb-8 max-w-xl">
+  <summary class="cursor-pointer px-6 py-3 font-semibold text-sm select-none">⚙️ {% trans "Anfrage-Formular" %}</summary>
+  <form method="post" action="{% url 'jobs:anfrage-form-settings' %}" class="px-6 pb-6 space-y-3 text-sm">
+    {% csrf_token %}
+    <p class="text-xs text-gray-500">{% trans "Zusätzliche Felder auf der öffentlichen Anfrage-Seite (z. B. für Catering / Partyservice)." %}</p>
+    <label class="flex items-center gap-2"><input type="checkbox" name="af_date" {% if "date" in anfrage_cfg.fields %}checked{% endif %}> {% trans "Wunschdatum" %}</label>
+    <label class="flex items-center gap-2"><input type="checkbox" name="af_guests" {% if "guests" in anfrage_cfg.fields %}checked{% endif %}> {% trans "Anzahl Personen" %}</label>
+    <label class="flex items-center gap-2"><input type="checkbox" name="af_event_type" {% if "event_type" in anfrage_cfg.fields %}checked{% endif %}> {% trans "Art der Veranstaltung" %}</label>
+    <div>
+      <label class="block text-xs text-gray-500 mb-1" for="id_af_event_types">{% trans "Auswahlliste (eine Option pro Zeile)" %}</label>
+      <textarea id="id_af_event_types" name="af_event_types" rows="4" placeholder="Hochzeit&#10;Firmenfeier&#10;Geburtstag" class="w-full rounded-lg border border-gray-300 px-3 py-2">{% for t in anfrage_cfg.event_types %}{{ t }}{% if not forloop.last %}&#10;{% endif %}{% endfor %}</textarea>
+    </div>
+    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+  </form>
+</details>
