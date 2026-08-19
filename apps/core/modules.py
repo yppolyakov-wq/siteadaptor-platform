@@ -597,6 +597,7 @@ def sidebar_nav(tenant) -> list[dict]:
                 "nav_key": e.nav_key,
                 "label": e.label,
                 "search": e.search,
+                "query": e.query,  # X5-3: «?from=board» у Abläufe
             }
             for e in nav_registry.sidebar_children(a)
             if (not e.module_key or is_module_active(tenant, e.module_key))

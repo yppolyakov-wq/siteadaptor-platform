@@ -535,6 +535,10 @@ def settings_view(request):
             "settings_show_loyalty": _mod.is_module_active(request.tenant, "loyalty"),
             "settings_show_service_area": _mod.is_module_active(request.tenant, "jobs")
             or _mod.is_module_active(request.tenant, "orders"),
+            # X5-4: перекрёстная ссылка «часы бизнеса ↔ расписание слотов записи»
+            # (владелец правил часы и не понимал, почему на витрине нет слотов —
+            # это разные вещи; фидбэк 2026-07-30).
+            "settings_show_booking_hint": _mod.is_module_active(request.tenant, "booking"),
         },
     )
 
@@ -3521,18 +3525,23 @@ def ablaeufe_view(request):
     if active:
         label_rows = status_labels.label_rows(tenant, active, _status_choices(active))
         transition_rows = transition_rules.editor_rows(tenant, active)
-    return render(
-        request,
-        "tenant/ablaeufe.html",
-        {
-            "nav": "ablaeufe",
-            "kinds": kinds,
-            "active_kind": active,
-            "status_label_rows": label_rows,
-            "transition_rows": transition_rows,
-            "board_stage_rows": _board_stage_rows(tenant),
-        },
-    )
+    # X5-3 (план x5-settings §2): «Abläufe» — ОДНА страница с двумя входами.
+    # Заход из подпункта «Verkäufe» раньше телепортировал: подсвечивался якорь
+    # «Einstellungen» и рисовался таб-бар настроек. С ?from=board страница
+    # остаётся в контексте продаж (хлебная крошка вместо табов).
+    from_board = request.GET.get("from") == "board"
+    ctx = {
+        "nav": "ablaeufe",
+        "kinds": kinds,
+        "active_kind": active,
+        "status_label_rows": label_rows,
+        "transition_rows": transition_rows,
+        "board_stage_rows": _board_stage_rows(tenant),
+        "from_board": from_board,
+    }
+    if from_board:
+        ctx["nav_anchor_override"] = "board"
+    return render(request, "tenant/ablaeufe.html", ctx)
 
 
 def _status_choices(kind):

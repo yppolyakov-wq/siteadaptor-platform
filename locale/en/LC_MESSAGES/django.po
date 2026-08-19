@@ -18817,3 +18817,23 @@ msgstr "Quote PDF"
 #: apps/core/nav_registry.py
 msgid "Noch nichts im Sortiment — oben „＋“ wählen, um den ersten Eintrag anzulegen."
 msgstr "Nothing in your range yet — use „＋“ above to create the first entry."
+
+#: templates/tenant/settings.html
+msgid "Basis"
+msgstr "Basics"
+
+#: templates/tenant/settings.html
+msgid "Verwaltung"
+msgstr "Administration"
+
+#: templates/tenant/settings.html
+msgid "Social-Profile"
+msgstr "Social profiles"
+
+#: templates/tenant/settings.html
+msgid "Handle oder volle URL — Icons erscheinen im Footer der Website."
+msgstr "Handle or full URL — icons appear in the website footer."
+
+#: templates/tenant/settings.html
+msgid "Termin-Slots richten sich nach den Arbeitszeiten der Ressourcen — nicht nach diesen Öffnungszeiten."
+msgstr "Appointment slots follow the working hours of your resources — not these opening hours."

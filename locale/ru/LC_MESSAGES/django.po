@@ -19022,3 +19022,23 @@ msgstr "Смета PDF"
 #: apps/core/nav_registry.py
 msgid "Noch nichts im Sortiment — oben „＋“ wählen, um den ersten Eintrag anzulegen."
 msgstr "В ассортименте пока пусто — нажмите «＋» вверху, чтобы добавить первую позицию."
+
+#: templates/tenant/settings.html
+msgid "Basis"
+msgstr "Основное"
+
+#: templates/tenant/settings.html
+msgid "Verwaltung"
+msgstr "Управление"
+
+#: templates/tenant/settings.html
+msgid "Social-Profile"
+msgstr "Соцсети"
+
+#: templates/tenant/settings.html
+msgid "Handle oder volle URL — Icons erscheinen im Footer der Website."
+msgstr "Ник или полная ссылка — иконки появятся в подвале сайта."
+
+#: templates/tenant/settings.html
+msgid "Termin-Slots richten sich nach den Arbeitszeiten der Ressourcen — nicht nach diesen Öffnungszeiten."
+msgstr "Слоты записи зависят от рабочего времени ресурсов, а не от этих часов работы."

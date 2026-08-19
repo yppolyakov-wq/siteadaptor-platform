@@ -78,6 +78,8 @@ def main(argv: list[str]) -> int:
         wanted |= {m.group(2) for m in TRANS.finditer(src)}
         # blocktrans с плейсхолдерами {{ x }} — сверяем только форму без них
         for m in BLOCKTRANS.finditer(src):
+            if "{% plural %}" in m.group(1):
+                continue  # plural-формы разбирает только gettext (CI-гейт)
             # Django (templatize) экранирует одиночный «%» в теле как «%%»,
             # а {{ x }} превращает в «%(x)s» — повторяем ту же нормализацию.
             body = m.group(1).replace("%", "%%")

@@ -18938,3 +18938,23 @@ msgstr "Teklif PDF"
 #: apps/core/nav_registry.py
 msgid "Noch nichts im Sortiment — oben „＋“ wählen, um den ersten Eintrag anzulegen."
 msgstr "Ürün yelpazenizde henüz bir şey yok — ilk kaydı oluşturmak için yukarıdaki „＋“ düğmesini kullanın."
+
+#: templates/tenant/settings.html
+msgid "Basis"
+msgstr "Temel"
+
+#: templates/tenant/settings.html
+msgid "Verwaltung"
+msgstr "Yönetim"
+
+#: templates/tenant/settings.html
+msgid "Social-Profile"
+msgstr "Sosyal profiller"
+
+#: templates/tenant/settings.html
+msgid "Handle oder volle URL — Icons erscheinen im Footer der Website."
+msgstr "Kullanıcı adı veya tam URL — simgeler web sitesinin alt bilgisinde görünür."
+
+#: templates/tenant/settings.html
+msgid "Termin-Slots richten sich nach den Arbeitszeiten der Ressourcen — nicht nach diesen Öffnungszeiten."
+msgstr "Randevu saatleri bu açılış saatlerine değil, kaynakların çalışma saatlerine göre belirlenir."

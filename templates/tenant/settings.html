@@ -5,7 +5,17 @@
 {% block dash_content %}
 {% hub_tabs "settings" %}
 <div class="max-w-2xl">
-  <h1 class="text-2xl font-bold mb-4">{% trans "Business settings" %}</h1>
+  <h1 class="text-2xl font-bold mb-2">{% trans "Business settings" %}</h1>
+
+  {% comment %}X5-4: якоря секций — страница длинная (контакт + 5 соцсетей + часы
+  + операционка), и владелец скроллил её глазами. Чипы прыгают к секции; поля
+  все в DOM (инвариант W0 — ничего не прячем).{% endcomment %}
+  <nav class="flex flex-wrap gap-1.5 mb-4 text-sm">
+    <a href="#sec-kontakt" class="px-2.5 py-1 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">{% trans "Contact & location" %}</a>
+    <a href="#sec-zeiten" class="px-2.5 py-1 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">{% trans "Opening hours" %}</a>
+    <a href="#sec-social" class="px-2.5 py-1 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">{% trans "Social-Profile" %}</a>
+    <a href="#sec-betrieb" class="px-2.5 py-1 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">{% trans "Operations & extras" %}</a>
+  </nav>
 
   {% include "tenant/_settings_messages.html" %}
 
@@ -16,7 +26,7 @@
     {% csrf_token %}
 
     {# ① Базис — контакт и адрес, всегда открыт #}
-    <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+    <fieldset id="sec-kontakt" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 scroll-mt-4">
       <legend class="font-semibold mb-2">{% trans "Contact & location" %}</legend>
       {% include "tenant/_settings_field.html" with field=form.name %}
       {% include "tenant/_settings_field.html" with field=form.address %}
@@ -26,6 +36,12 @@
       {% include "tenant/_settings_field.html" with field=form.whatsapp_number %}
       {% include "tenant/_settings_field.html" with field=form.website_url %}
       {% include "tenant/_settings_field.html" with field=form.map_url %}
+    </fieldset>
+
+    {# ③ Social — своя секция (X5-4): пять полей раздували блок контактов #}
+    <fieldset id="sec-social" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 scroll-mt-4">
+      <legend class="font-semibold mb-1">{% trans "Social-Profile" %}</legend>
+      <p class="text-xs text-gray-400 mb-2">{% trans "Handle oder volle URL — Icons erscheinen im Footer der Website." %}</p>
       {# GK-9: соцпрофили — иконки в футере витрины + sameAs (W0: всегда в DOM) #}
       {% include "tenant/_settings_field.html" with field=form.instagram %}
       {% include "tenant/_settings_field.html" with field=form.facebook %}
@@ -35,7 +51,7 @@
     </fieldset>
 
     {# ② Öffnungszeiten — структурный редактор (бейдж «Открыто») + свободный текст (свод обоих) #}
-    <fieldset class="bg-white rounded-2xl shadow-sm p-6">
+    <fieldset id="sec-zeiten" class="bg-white rounded-2xl shadow-sm p-6 scroll-mt-4">
       <legend class="font-semibold mb-1">{% trans "Opening hours" %}</legend>
       <p class="text-xs text-gray-400 mb-4">{% trans "Set open/close per day for the live “Open now” badge. Leave a day empty = closed." %}</p>
       <div class="space-y-2">
@@ -53,13 +69,21 @@
         {% render_field form.opening_hours class="w-full rounded-lg border border-gray-300 px-3 py-2" %}
         <p class="text-xs text-gray-400 mt-1">{% trans "Free text shown on the site (footer/contact). Leave empty to just use the times above." %}</p>
       </div>
+      {% if settings_show_booking_hint %}
+        {% comment %}X5-4: часы бизнеса ≠ расписание слотов записи — из-за этого
+        владелец видел на витрине «keine freien Termine» при заполненных часах.{% endcomment %}
+        <p class="mt-4 pt-4 border-t border-gray-100 text-xs text-gray-500">
+          {% trans "Termin-Slots richten sich nach den Arbeitszeiten der Ressourcen — nicht nach diesen Öffnungszeiten." %}
+          <a href="{% url 'booking:resources' %}" class="text-indigo-600 hover:underline">{% trans "Öffnungszeiten & Ressourcen" %} →</a>
+        </p>
+      {% endif %}
     </fieldset>
 
     {% comment %}W9-5: Recht & Steuern переехали на свой таб (LegalDoc + реквизиты).{% endcomment %}
     <div class="space-y-4">
 
       {# ④ Betrieb & Extras — зона обслуживания (гейт), дайджест, лояльность (гейт) #}
-      <details class="bg-white border border-gray-200 rounded-2xl px-6 py-4">
+      <details id="sec-betrieb" class="bg-white border border-gray-200 rounded-2xl px-6 py-4 scroll-mt-4">
         <summary class="cursor-pointer font-semibold">{% trans "Operations & extras" %}</summary>
         <div class="mt-4 space-y-4">
           {% if settings_show_service_area %}
@@ -81,7 +105,10 @@
       </details>
     </div>
 
-    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+    {# X5-4: sticky-Save — кнопка была в конце длинной формы #}
+    <div class="sticky bottom-0 -mx-2 px-2 py-3 bg-gray-50/95 backdrop-blur border-t border-gray-200">
+      <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+    </div>
   </form>
 </div>
 {% endblock %}

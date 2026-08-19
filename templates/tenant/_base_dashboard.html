@@ -47,23 +47,23 @@
       Строка-якорь остаётся ссылкой (клик = переход, не тумблер).{% endcomment %}
       <div class="flex items-center gap-0.5">
         <a href="{% url it.url_name %}" data-label="{{ it.search }}"
-           class="nav-link flex-1 min-w-0 flex items-center gap-2.5 px-3 py-2 rounded-lg {% if nav|nav_anchor == it.nav_key %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
+           class="nav-link flex-1 min-w-0 flex items-center gap-2.5 px-3 py-2 rounded-lg {% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
           <span class="w-5 shrink-0 text-center text-base leading-none">{{ it.icon }}</span>
           <span class="truncate">{{ it.label }}</span>
           {% if it.badge == "inbox" %}{# ST-4b: бейдж непрочитанного — на якоре Marketing #}
           <span data-inbox-badge data-url="{% url 'inbox:unread-count' %}" class="ml-auto hidden min-w-[1.25rem] text-center bg-rose-500 text-white text-[11px] font-semibold rounded-full px-1.5 py-0.5"></span>{% endif %}
         </a>
         {% if it.children %}
-        <button type="button" data-nav-toggle="{{ it.nav_key }}" aria-expanded="{% if nav|nav_anchor == it.nav_key %}true{% else %}false{% endif %}"
+        <button type="button" data-nav-toggle="{{ it.nav_key }}" aria-expanded="{% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}true{% else %}false{% endif %}"
                 class="shrink-0 w-6 h-8 grid place-items-center rounded-md text-gray-400 hover:text-indigo-600 hover:bg-gray-50">
-          <span class="text-[10px] leading-none transition-transform {% if nav|nav_anchor == it.nav_key %}rotate-90{% endif %}">▶</span>
+          <span class="text-[10px] leading-none transition-transform {% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}rotate-90{% endif %}">▶</span>
         </button>
         {% endif %}
       </div>
       {% if it.children %}
-      <div data-nav-children="{{ it.nav_key }}" class="pl-9 pr-1 space-y-0.5{% if nav|nav_anchor != it.nav_key %} hidden{% endif %}">
+      <div data-nav-children="{{ it.nav_key }}" class="pl-9 pr-1 space-y-0.5{% if nav_anchor_override|default:nav|nav_anchor != it.nav_key %} hidden{% endif %}">
         {% for c in it.children %}
-        <a href="{% url c.url_name %}" data-label="{{ c.search }} {{ c.label|lower }}"
+        <a href="{% url c.url_name %}{{ c.query }}" data-label="{{ c.search }} {{ c.label|lower }}"
            class="nav-link flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[13px] {% if nav == c.nav_key %}text-indigo-700 font-medium bg-indigo-50{% else %}text-gray-500 hover:text-gray-800 hover:bg-gray-50{% endif %}"><span class="truncate">{{ c.label }}</span>{% if c.badge == "inbox" %}{# X0: свой бейдж у подпункта «Nachrichten» — бейдж якоря вёл на лендинг без сообщений #}<span data-inbox-badge data-url="{% url 'inbox:unread-count' %}" class="ml-auto hidden min-w-[1.25rem] text-center bg-rose-500 text-white text-[11px] font-semibold rounded-full px-1.5 py-0.5"></span>{% endif %}</a>
         {% endfor %}
       </div>
@@ -132,7 +132,7 @@
   {% for it in nav_primary %}
     <a href="{% url it.url_name %}"
        class="flex-1 flex flex-col items-center justify-center gap-0.5 pt-1.5 pb-1 min-h-[46px] text-[11px] font-medium
-              {% if nav|nav_anchor == it.nav_key %}text-indigo-700{% else %}text-gray-600 active:bg-gray-100{% endif %}">
+              {% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}text-indigo-700{% else %}text-gray-600 active:bg-gray-100{% endif %}">
       <span class="text-[18px] leading-none" aria-hidden="true">{{ it.icon }}</span>
       <span class="leading-tight truncate max-w-full px-1">{{ it.label }}</span>
     </a>

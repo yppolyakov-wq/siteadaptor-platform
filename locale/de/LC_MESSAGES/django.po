@@ -18946,3 +18946,23 @@ msgstr ""
 #: apps/core/nav_registry.py
 msgid "Noch nichts im Sortiment — oben „＋“ wählen, um den ersten Eintrag anzulegen."
 msgstr ""
+
+#: templates/tenant/settings.html
+msgid "Basis"
+msgstr ""
+
+#: templates/tenant/settings.html
+msgid "Verwaltung"
+msgstr ""
+
+#: templates/tenant/settings.html
+msgid "Social-Profile"
+msgstr ""
+
+#: templates/tenant/settings.html
+msgid "Handle oder volle URL — Icons erscheinen im Footer der Website."
+msgstr ""
+
+#: templates/tenant/settings.html
+msgid "Termin-Slots richten sich nach den Arbeitszeiten der Ressourcen — nicht nach diesen Öffnungszeiten."
+msgstr ""

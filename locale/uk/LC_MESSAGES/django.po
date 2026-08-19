@@ -19011,3 +19011,23 @@ msgstr "Кошторис PDF"
 #: apps/core/nav_registry.py
 msgid "Noch nichts im Sortiment — oben „＋“ wählen, um den ersten Eintrag anzulegen."
 msgstr "В асортименті поки порожньо — натисніть «＋» угорі, щоб додати першу позицію."
+
+#: templates/tenant/settings.html
+msgid "Basis"
+msgstr "Основне"
+
+#: templates/tenant/settings.html
+msgid "Verwaltung"
+msgstr "Управління"
+
+#: templates/tenant/settings.html
+msgid "Social-Profile"
+msgstr "Соцмережі"
+
+#: templates/tenant/settings.html
+msgid "Handle oder volle URL — Icons erscheinen im Footer der Website."
+msgstr "Нік або повне посилання — іконки з’являться в підвалі сайту."
+
+#: templates/tenant/settings.html
+msgid "Termin-Slots richten sich nach den Arbeitszeiten der Ressourcen — nicht nach diesen Öffnungszeiten."
+msgstr "Слоти запису залежать від робочого часу ресурсів, а не від цих годин роботи."

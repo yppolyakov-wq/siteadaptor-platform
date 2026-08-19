@@ -91,9 +91,22 @@ def hub_tabs(context, hub):
         if not nav_registry.allowed_for_business(u, tenant):
             continue  # X4: гастро-экраны (KDS/Tisch-QR) — только гастро-типам
         entry = {"url_name": u, "label": lbl, "nav_key": k, "active": k == cur, "module": mod}
+        entry["group"] = nav_registry.group_for(hub, u)
         (more if advanced else tabs).append(entry)
     more_active = any(t["active"] for t in more)
-    return {"tabs": tabs, "more_tabs": more, "more_active": more_active}
+    # X5-1: у хаба с группами главные вкладки идут ПОДПИСАННЫМИ рядами (девять
+    # вкладок настроек уезжали в горизонтальный скролл — Abo/Team не видны).
+    # Хабы без групп рендерятся прежним плоским рядом (rows пуст).
+    rows = []
+    if any(t["group"] for t in tabs):
+        for key, label in nav_registry.TAB_GROUPS:
+            group_tabs = [t for t in tabs if t["group"] == key]
+            if group_tabs:
+                rows.append({"key": key, "label": label, "tabs": group_tabs})
+        rest = [t for t in tabs if not t["group"]]
+        if rest:
+            rows.append({"key": "", "label": "", "tabs": rest})
+    return {"tabs": tabs, "rows": rows, "more_tabs": more, "more_active": more_active}
 
 
 @register.inclusion_tag("tenant/_nav_palette.html", takes_context=True)

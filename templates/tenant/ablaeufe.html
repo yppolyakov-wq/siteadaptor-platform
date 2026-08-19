@@ -3,7 +3,13 @@
 {% block dash_title %}{% trans "Abläufe" %}{% endblock %}
 
 {% block dash_content %}
-{% hub_tabs "settings" %}
+{% comment %}X5-3: вход из «Verkäufe» (?from=board) не телепортирует в настройки —
+хлебная крошка назад вместо чужого таб-бара; из настроек — прежний вид.{% endcomment %}
+{% if from_board %}
+  <a href="{% url 'verkaeufe' %}" class="inline-block mb-4 text-sm text-gray-500 hover:text-indigo-700">← {% trans "Verkäufe" %}</a>
+{% else %}
+  {% hub_tabs "settings" %}
+{% endif %}
 {% comment %}W9-8: настройки процессов продаж в одном месте (аудит 2026-08-05 —
 панели были разбросаны по спискам). Селектор kind — ссылки ?kind=; панели постят
 на прежние эндпоинты с next= сюда (механика сохранения не менялась).{% endcomment %}

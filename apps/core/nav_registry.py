@@ -39,12 +39,20 @@ class NavEntry:
     owner_only: bool = False
     # X4: «ящик Erweitert таб-бара» и «подпункты якоря в сайдбаре» были ОДНИМ
     # множеством (advanced) — склад висел в подпунктах «товаров» у парикмахера.
-    # sidebar=False оставляет запись в ящике, но убирает из сайдбара.
-    sidebar: bool = True
+    # None = «как advanced» (прежнее поведение), False = остаётся в ящике, но
+    # уходит из сайдбара (склад), True = подпункт сайдбара даже будучи главной
+    # вкладкой (X5: «Integrationen» — вкладка ряда Verwaltung И подпункт).
+    sidebar: bool | None = None
     # X4: сироты получают вход в Ctrl+K, не раздувая таб-бары/сайдбар.
     palette_only: bool = False
     # X4: доп-гейт по типу бизнеса (KDS/Tisch-QR — только гастро).
     business_types: tuple[str, ...] = ()
+    # X5: ряд таб-бара («basis»/«verwaltung» у настроек). Пусто = один плоский
+    # ряд, как у всех прочих хабов.
+    group: str = ""
+    # X5-3: query-суффикс ссылки подпункта («?from=board» у Abläufe: одна
+    # страница, но заход из «Verkäufe» не должен телепортировать в настройки).
+    query: str = ""
 
 
 @dataclass(frozen=True)
@@ -133,9 +141,11 @@ def _e(
     advanced=False,
     search="",
     owner_only=False,
-    sidebar=True,
+    sidebar=None,
     palette_only=False,
     business_types=(),
+    group="",
+    query="",
 ):
     return NavEntry(
         url_name,
@@ -149,6 +159,8 @@ def _e(
         sidebar,
         palette_only,
         business_types,
+        group,
+        query,
     )
 
 
@@ -272,7 +284,16 @@ ENTRIES: tuple[NavEntry, ...] = (
     # рендерится). Auswertungen/Finanzen ПЕРЕЕХАЛИ из settings-хаба; Berichte —
     # бывший сирота stays:reports; Abläufe — дубль-запись (таб Einstellungen жив,
     # прецедент sellables/catalog; палитра дедупит по url_name).
-    _e("board", "ablaeufe", _("Abläufe"), "ablaeufe", None, True, "status übergänge spalten"),
+    _e(
+        "board",
+        "ablaeufe",
+        _("Abläufe"),
+        "ablaeufe",
+        None,
+        True,
+        "status übergänge spalten",
+        query="?from=board",
+    ),
     _e(
         "board",
         "promotions:analytics",
@@ -506,8 +527,16 @@ ENTRIES: tuple[NavEntry, ...] = (
         _("Mein Geschäft"),
         "settings",
         search="kontakt öffnungszeiten firma adresse logo",
+        group="basis",
     ),
-    _e("settings", "languages", _("Sprachen"), "languages", search="sprache locale übersetzung"),
+    _e(
+        "settings",
+        "languages",
+        _("Sprachen"),
+        "languages",
+        search="sprache locale übersetzung",
+        group="basis",
+    ),
     # X0: Recht/Abo/Team — owner-only (зеркалит _OWNER_ONLY мидлвари W9-10;
     # сотруднику таб не показывается вместо мёртвого 403).
     _e(
@@ -517,6 +546,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "legal-docs",
         search="impressum datenschutz agb widerruf steuer",
         owner_only=True,
+        group="verwaltung",
     ),
     _e(
         "settings",
@@ -524,6 +554,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         _("Zahlung & Lieferung"),
         "payments",
         search="stripe vorkasse lieferung zonen versand",
+        group="basis",
     ),
     _e(
         "settings",
@@ -531,6 +562,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         _("Benachrichtigungen & Kanäle"),
         "notifications",
         search="care e-mail telegram erinnerung",
+        group="basis",
     ),
     # W9-8: настройки процессов продаж (статусы/переходы/колонки) — раньше панели
     # были разбросаны по спискам (аудит 2026-08-05).
@@ -540,6 +572,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         _("Abläufe"),
         "ablaeufe",
         search="status übergänge spalten workflow prozesse",
+        group="verwaltung",
     ),
     # SM-4: «Website & Domains» переехал в site-хаб (подпункт раздела Website);
     # Finanzen/Auswertungen — в board-хаб (подпункты «Verkäufe»). Настройки слимятся.
@@ -554,8 +587,13 @@ ENTRIES: tuple[NavEntry, ...] = (
         _("Integrationen"),
         "integrations",
         None,
-        True,
+        # X5-1: не advanced — вкладка ряда «Verwaltung»; подпунктом якоря
+        # «Einstellungen» остаётся явно (sidebar=True): вход с первого экрана
+        # дал X2a, терять его нельзя.
+        False,
         "integrationen stripe telegram publishing ota kanäle verbindungen",
+        sidebar=True,
+        group="verwaltung",
     ),
     # GK-11: Google-рейтинг (Places API) — экран в кластере настроек.
     _e(
@@ -564,6 +602,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         _("Google Bewertungen"),
         "integrations",
         search="google bewertungen sterne rating place id",
+        palette_only=True,  # X5-2: вход — карточка Integrationen (GK-11) и Ctrl+K
     ),
     # X4: экран статуса приёма оплат (Stripe Connect) был сиротой — вход из
     # Integrationen-карточки существовал, в реестре записи не было.
@@ -583,6 +622,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "billing",
         search="abo tarif subscription rechnung",
         owner_only=True,
+        group="verwaltung",
     ),
     # W9-10 (Р-7): членства/роли/инвайт — owner-only (middleware).
     _e(
@@ -592,6 +632,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "team",
         search="team mitarbeiter rollen zugriff einladen",
         owner_only=True,
+        group="verwaltung",
     ),
     _e("settings", "extras", _("Zusatzleistungen"), "extras", None, True),
     _e("settings", "modules", _("Funktionen"), "modules", None, True, "module aktivieren"),
@@ -615,6 +656,21 @@ ENTRIES: tuple[NavEntry, ...] = (
 )
 
 HUBS: tuple[str, ...] = ("catalog", "board", "marketing", "sellables", "settings", "site")
+
+# X5-1: подписанные ряды главных вкладок (пока только хаб настроек). Порядок
+# рядов = порядок показа; вкладки без группы уходят в безымянный ряд в конце.
+TAB_GROUPS: tuple[tuple[str, str], ...] = (
+    ("basis", _("Basis")),
+    ("verwaltung", _("Verwaltung")),
+)
+
+
+def group_for(hub: str, url_name: str) -> str:
+    """Ряд таб-бара для записи ("" — общий ряд)."""
+    for e in ENTRIES:
+        if e.hub == hub and e.url_name == url_name:
+            return e.group
+    return ""
 
 
 def legacy_hub_tabs() -> dict:
@@ -719,7 +775,8 @@ def sidebar_children(anchor) -> list[NavEntry]:
     seen, out = set(), []
     for hub in anchor.hubs:
         for e in ENTRIES:
-            if not (e.advanced and e.sidebar and not e.palette_only):
+            in_sidebar = e.advanced if e.sidebar is None else e.sidebar
+            if not in_sidebar or e.palette_only:
                 continue  # X4: ящик «Erweitert» ≠ подпункты сайдбара (склад/сироты)
             if e.hub == hub and e.url_name not in seen:
                 seen.add(e.url_name)

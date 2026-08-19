@@ -4,6 +4,38 @@ cabinet). advanced-табы (more_tabs) — в свёрнутом ящике «E
 вне scroll-контейнера, чтобы выпадашка не обрезалась overflow-x-auto.{% endcomment %}
 {% load i18n %}
 {% if tabs or more_tabs %}
+{% comment %}X5-1: хаб с группами (настройки) рисует ПОДПИСАННЫЕ ряды вкладок —
+девять вкладок в одну строку уезжали в горизонтальный скролл, и «Abo & Rechnung»/
+«Team» не были видны вовсе. Хабы без групп (rows пуст) рендерятся прежней
+плоской строкой — разметка байт-в-байт.{% endcomment %}
+{% if rows %}
+<div class="border-b border-gray-200 mb-5">
+  <div class="flex items-start gap-3">
+    <div class="flex-1 space-y-1 pb-1">
+      {% for row in rows %}
+        <div class="flex items-center gap-2 flex-wrap" role="tablist">
+          {% if row.label %}<span class="text-[11px] uppercase tracking-wide text-gray-400 w-20 shrink-0">{{ row.label }}</span>{% endif %}
+          {% for t in row.tabs %}
+            <a href="{% url t.url_name %}" role="tab" aria-selected="{% if t.active %}true{% else %}false{% endif %}"
+               class="px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap {% if t.active %}bg-indigo-600 text-white{% else %}text-gray-600 hover:bg-gray-100{% endif %}">{{ t.label }}</a>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+    {% if more_tabs %}
+      <details class="relative shrink-0 self-start mt-1"{% if more_active %} open{% endif %}>
+        <summary class="list-none cursor-pointer select-none px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap {% if more_active %}bg-indigo-50 text-indigo-700{% else %}text-gray-500 hover:bg-gray-100{% endif %}">{% trans "Erweitert" %} ▾</summary>
+        <div class="absolute right-0 z-20 mt-1 w-48 rounded-lg border border-gray-200 bg-white shadow-lg py-1">
+          {% for t in more_tabs %}
+            <a href="{% url t.url_name %}" role="tab" aria-selected="{% if t.active %}true{% else %}false{% endif %}"
+               class="block px-3 py-2 text-sm whitespace-nowrap {% if t.active %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-600 hover:bg-gray-50{% endif %}">{{ t.label }}</a>
+          {% endfor %}
+        </div>
+      </details>
+    {% endif %}
+  </div>
+</div>
+{% else %}
 <div class="flex items-stretch border-b border-gray-200 mb-5">
   <div class="flex gap-1 flex-nowrap overflow-x-auto flex-1" role="tablist">
     {% for t in tabs %}
@@ -23,4 +55,5 @@ cabinet). advanced-табы (more_tabs) — в свёрнутом ящике «E
     </details>
   {% endif %}
 </div>
+{% endif %}
 {% endif %}
