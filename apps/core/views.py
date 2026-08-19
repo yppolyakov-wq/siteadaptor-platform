@@ -110,51 +110,42 @@ def dashboard(request):
     if untouched:
         return redirect("setup")
 
+    from apps.core import archetypes, sales_page
     from apps.core import dashboard as dash
-    from apps.core import transactions
 
-    # AB7-B2: блочная главная — плитки задач + встроенный канбан (тот же партиал/DnD,
-    # что на /dashboard/board/). Секции = активные транзакционные каналы (≤20 карт).
-    sections = transactions.manage_sections_for(request.tenant, limit=20)
-    kinds = [s["kind"] for s in sections]
-    # Фидбэк владельца 2026-07-28: у отеля (orders_view=calendar) главный вид
-    # продаж — Belegungsplan; встроенный канбан остаётся дополнением.
-    from apps.core import archetypes
-    from apps.core import orders_view as ov
-
-    sales_view = ov.resolve_view(request.tenant)
-    from apps.core import sales_page
-
-    _heute = sales_page.heute_columns(request.tenant)
-    return render(
-        request,
-        "tenant/dashboard.html",
-        {
-            "nav": "dashboard",
-            # X2a: ОДИН механизм прогресса — единый чек-лист (реестр шагов
-            # мастера + перенесённый пункт часов). Плашка «Setup-Fortschritt N/M»
-            # и отдельный readiness-список больше не конкурируют.
-            "checklist": onboarding.setup_checklist(request.tenant),
-            # ST-4a: виджеты «что сегодня».
-            "widgets": dash.home_widgets(request.tenant),
-            "sections": sections,  # AB7-B2: канбан на главной
-            "active_kind": kinds[0] if kinds else "",
-            # Отель/услуги: календарь — главный вид продаж (вход первым).
-            "sales_is_calendar": sales_view == "calendar",
-            # W7b: гостиничная лексика CTA («Belegungsplan/Anreisen & Zimmer») —
-            # только когда primary действительно stays; салону — «Kalender».
-            "sales_primary_is_stays": archetypes.primary_module(request.tenant) == "stays",
-            "sales_entry_url": ov.entry_url(request.tenant),
-            # LS-2: карточка присутствия «Jetzt erreichbar» (режим + живой статус).
-            "presence_mode": presence.mode(request.tenant),
-            "presence_now": presence.available_now(request.tenant),
-            "presence_number": getattr(request.tenant, "whatsapp_number", ""),
-            # SM-2 (фидбэк владельца 2026-08-10): «📆 Heute» — часть Übersicht,
-            # а не вид страницы продаж. Колонки те же, что были на ?view=heute.
-            "heute_columns": _heute,
-            "heute_has_items": any(col["items"] for col in _heute),
-        },
-    )
+    tenant = request.tenant
+    # X3 (вариант B плана cabinet-cleanup): первый экран = РАБОЧАЯ ПЕТЛЯ архетипа
+    # (отель → Belegungsplan, салон → Tagesplan, магазин/гастро → заказы, заявки →
+    # доска), а не набор плиток. Контекст и тело — те же, что у страницы Verkäufe
+    # (`body_context` + `core/_sales_body.html`), поэтому петля не форкается.
+    loop_kind = (sales_page.visible_kinds(tenant) or [""])[0]
+    loop_view = sales_page.resolve_view(tenant, loop_kind) if loop_kind else ""
+    loop_ctx = {}
+    if loop_kind:
+        sub = sales_page.body_context(request, loop_kind, loop_view)
+        if isinstance(sub, dict):
+            loop_ctx = sub
+    heute = sales_page.heute_columns(tenant)
+    ctx = {
+        "nav": "dashboard",
+        # X2a: ОДИН механизм прогресса — единый чек-лист (реестр шагов мастера +
+        # перенесённый пункт часов).
+        "checklist": onboarding.setup_checklist(tenant),
+        # ST-4a: виджеты «что сегодня» — сжаты в полосу над петлёй (X3).
+        "widgets": dash.home_widgets(tenant),
+        # X3: сама петля — через общий партиал тела продаж.
+        "active_kind": loop_kind,
+        "active_view": loop_view,
+        "sales_primary_is_stays": archetypes.primary_module(tenant) == "stays",
+        # LS-2: карточка присутствия «Jetzt erreichbar» (режим + живой статус).
+        "presence_mode": presence.mode(tenant),
+        "presence_now": presence.available_now(tenant),
+        "presence_number": getattr(tenant, "whatsapp_number", ""),
+        # Полоса «сегодня» над петлёй: заезды/выдачи/записи (SM-2 колонки).
+        "heute_columns": heute,
+        "heute_has_items": any(col["items"] for col in heute),
+    }
+    return render(request, "tenant/dashboard.html", {**loop_ctx, **ctx})
 
 
 @login_required

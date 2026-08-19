@@ -18877,3 +18877,11 @@ msgstr "Çalışma saatlerini girin"
 #, python-format
 msgid "Ihre Website ist zu %(p)s %% fertig"
 msgstr "Web siteniz %%%(p)s hazır"
+
+#. X3: главная-кокпит
+msgid "Heute im Betrieb"
+msgstr "Bugün işletmede"
+
+#. X3: главная-кокпит
+msgid "Noch keine Verkaufskanäle aktiv."
+msgstr "Henüz aktif satış kanalı yok."

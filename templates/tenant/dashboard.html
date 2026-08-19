@@ -5,50 +5,32 @@
 {% block dash_content %}
 <h1 class="text-2xl font-bold mb-4">{% trans "Welcome" %} 👋</h1>
 
-{% comment %}LS-2: присутствие «Jetzt erreichbar» — живой статус + режим Auto/An/Aus.
-Бейдж видео-звонка на витрине живёт по этому режиму (и только при WhatsApp-Nummer).{% endcomment %}
-<form method="post" action="{% url 'set-presence' %}" class="mb-6 max-w-xl bg-white rounded-2xl shadow-sm px-4 py-3">
-  {% csrf_token %}
-  <div class="flex flex-wrap items-center gap-3">
-    <span class="flex items-center gap-2 text-sm font-medium">
+{% comment %}X3: тонкая полоса «сегодня» над петлёй — числа дня + статус
+присутствия одной строкой (раньше занимали два отдельных блока экрана).{% endcomment %}
+<div class="flex flex-wrap items-stretch gap-3 mb-6">
+  {% for w in widgets %}
+    <a href="{% url w.url_name %}{{ w.url_query }}" class="flex-1 min-w-[9rem] bg-white rounded-2xl shadow-sm px-4 py-3 hover:ring-1 hover:ring-indigo-300">
+      <span class="block text-xs text-gray-500">{{ w.icon }} {{ w.label }}</span>
+      <span class="block text-xl font-bold text-gray-900">{{ w.value }}</span>
+      {% if w.sparkline %}<svg viewBox="0 0 120 32" class="w-full h-6 text-emerald-500" aria-hidden="true"><polyline points="{{ w.sparkline }}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>{% endif %}
+      <span class="block text-[11px] text-gray-400">{{ w.hint }}</span>
+    </a>
+  {% endfor %}
+  {% comment %}LS-2: присутствие «Jetzt erreichbar» — та же форма, компактно.{% endcomment %}
+  <form method="post" action="{% url 'set-presence' %}" class="flex-1 min-w-[11rem] bg-white rounded-2xl shadow-sm px-4 py-3">
+    {% csrf_token %}
+    <span class="flex items-center gap-2 text-xs text-gray-500">
       <span class="inline-flex h-2.5 w-2.5 rounded-full {% if presence_now %}bg-green-500{% else %}bg-gray-300{% endif %}" aria-hidden="true"></span>
       {% if presence_now %}{% trans "Jetzt erreichbar" %}{% else %}{% trans "Gerade nicht erreichbar" %}{% endif %}
     </span>
-    <span class="flex gap-1 ml-auto">
-      <button name="mode" value="auto" class="px-2.5 py-1 rounded-lg text-xs border {% if presence_mode == 'auto' %}bg-gray-900 text-white border-gray-900{% else %}border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{% trans "Auto" %}</button>
-      <button name="mode" value="on" class="px-2.5 py-1 rounded-lg text-xs border {% if presence_mode == 'on' %}bg-green-600 text-white border-green-600{% else %}border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{% trans "An" %}</button>
-      <button name="mode" value="off" class="px-2.5 py-1 rounded-lg text-xs border {% if presence_mode == 'off' %}bg-gray-900 text-white border-gray-900{% else %}border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{% trans "Aus" %}</button>
+    <span class="flex gap-1 mt-1.5">
+      <button name="mode" value="auto" class="px-2 py-0.5 rounded-lg text-[11px] border {% if presence_mode == 'auto' %}bg-gray-900 text-white border-gray-900{% else %}border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{% trans "Auto" %}</button>
+      <button name="mode" value="on" class="px-2 py-0.5 rounded-lg text-[11px] border {% if presence_mode == 'on' %}bg-green-600 text-white border-green-600{% else %}border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{% trans "An" %}</button>
+      <button name="mode" value="off" class="px-2 py-0.5 rounded-lg text-[11px] border {% if presence_mode == 'off' %}bg-gray-900 text-white border-gray-900{% else %}border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{% trans "Aus" %}</button>
     </span>
-  </div>
-  <p class="mt-1.5 text-xs text-gray-400">
-    {% trans "Video-Anruf-Badge auf Ihrer Website (WhatsApp). Auto = nach Öffnungszeiten." %}
-    {% if not presence_number %}<a href="{% url 'settings' %}" class="text-amber-700 hover:underline">{% trans "WhatsApp-Nummer fehlt — jetzt hinterlegen" %} →</a>{% endif %}
-  </p>
-</form>
-
-{% comment %}ST-4a: виджеты «что сегодня» — хоум отвечает без кликов (план
-st4-admin-home-plan §1).{% endcomment %}
-{% if widgets %}
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-  {% for w in widgets %}
-    <a href="{% url w.url_name %}{{ w.url_query }}" class="bg-white rounded-2xl shadow-sm p-4 hover:ring-1 hover:ring-indigo-300">
-      <span class="flex items-center justify-between gap-2">
-        <span class="text-xs text-gray-500">{{ w.icon }} {{ w.label }}</span>
-      </span>
-      <span class="block text-xl font-bold text-gray-900 mt-1">{{ w.value }}</span>
-      {% if w.sparkline %}
-        {# ST-4a: первый чарт кабинета — 7-дневный спарклайн выручки. #}
-        <svg viewBox="0 0 120 32" class="w-full h-8 mt-1 text-emerald-500" aria-hidden="true"><polyline points="{{ w.sparkline }}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      {% endif %}
-      <span class="block text-[11px] text-gray-400 mt-1">{{ w.hint }}</span>
-    </a>
-  {% endfor %}
+    {% if not presence_number %}<a href="{% url 'settings' %}" class="block mt-1 text-[11px] text-amber-700 hover:underline">{% trans "WhatsApp-Nummer fehlt" %} →</a>{% endif %}
+  </form>
 </div>
-{% endif %}
-
-{% comment %}X2a: хаб-плитки удалены — они дублировали сайдбар 1:1 (и под другими
-именами: «Bestellungen» ↔ якорь «Verkäufe»), занимая первый экран главной.
-Уникальным был только вход «Integrationen» — он стал подпунктом «Einstellungen».{% endcomment %}
 
 {% comment %}X2a: ЕДИНАЯ карточка настройки вместо двух конкурирующих механизмов
 (плашка «Setup-Fortschritt N/M» + отдельный readiness-список AB4). Источник один —
@@ -80,43 +62,18 @@ st4-admin-home-plan §1).{% endcomment %}
 {% endif %}
 
 
-{% comment %}SM-2 (фидбэк владельца 2026-08-10): «📆 Heute» — сводка дня по всем
-модулям продаж — живёт на Übersicht, а не видом на странице Verkäufe. Пустой
-день — слим-строка вместо сетки пустых колонок.{% endcomment %}
-{% if heute_columns %}
-  {% if heute_has_items %}
-    <div class="flex items-baseline justify-between gap-3 mb-3">
-      <h2 class="text-lg font-bold">📆 {% trans "Heute" %}</h2>
-      <a href="{% url 'verkaeufe' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Verkäufe" %} →</a>
-    </div>
-    <div class="mb-6">{% include "core/_sales_heute.html" %}</div>
-  {% else %}
-    <p class="mb-6 text-sm text-gray-400">📆 {% trans "Heute" %}: {% trans "Nichts für heute." %} <a href="{% url 'verkaeufe' %}" class="text-indigo-600 hover:underline">{% trans "Verkäufe" %} →</a></p>
-  {% endif %}
-{% endif %}
-
-{% comment %}AB7-B2: канбан входящих задач прямо на главной — тот же партиал/DnD, что на
-/dashboard/board/ (полнофункциональный). Показываем только при активных каналах.{% endcomment %}
-{% if sales_is_calendar %}
-{# Фидбэк 2026-07-28: отель — Belegungsplan главный (вход первым), канбан ниже лишь дополнение. #}
-<a href="{{ sales_entry_url }}" class="flex items-center justify-between gap-3 bg-indigo-600 text-white rounded-2xl shadow-sm px-5 py-4 mb-4 hover:bg-indigo-700">
-  {% comment %}W7b: гостиничная лексика («Anreisen & Zimmer») — только отелю; салону/
-  ресторану с календарным primary показываем нейтральный «Kalender/Termine».{% endcomment %}
-  {% if sales_primary_is_stays %}
-  <span class="font-semibold">📅 {% trans "Belegungsplan" %}</span>
-  <span class="text-sm opacity-90">{% trans "Anreisen, Buchungen & Zimmer auf einen Blick" %} →</span>
-  {% else %}
-  <span class="font-semibold">📅 {% trans "Kalender" %}</span>
-  <span class="text-sm opacity-90">{% trans "Termine & Buchungen auf einen Blick" %} →</span>
-  {% endif %}
-</a>
-{% endif %}
-{% if sections %}
-  <div class="flex items-baseline justify-between gap-3 mb-3">
-    <h2 class="text-lg font-bold">🗂️ {% trans "Tasks" %}</h2>
-    {# X0: «Full view» ведёт на единую страницу Verkäufe — легаси-доска больше не рекламируется с главной (исследование 2026-08-18 §3, слой 2). #}
-    <a href="{% if sales_is_calendar %}{{ sales_entry_url }}{% else %}{% url 'verkaeufe' %}{% endif %}" class="text-sm text-indigo-600 hover:underline">{% trans "Full view" %} →</a>
-  </div>
-  {% include "core/_board_body.html" %}
+{% comment %}X3 (вариант B): ПЕТЛЯ АРХЕТИПА — первый экран показывает работу дня
+(отель → Belegungsplan, салон → Tagesplan, магазин/гастро → заказы, заявки → доска)
+тем же телом, что и страница Verkäufe (`core/_sales_body.html`, контекст —
+`sales_page.body_context`). Прежние блоки (отдельная сводка «Heute», CTA-баннер
+календаря и второй канбан «Tasks») поглощены: они показывали те же сделки.{% endcomment %}
+{% if active_kind %}
+<div class="flex items-baseline justify-between gap-3 mb-3">
+  <h2 class="text-lg font-bold">{% if sales_primary_is_stays %}📅 {% trans "Belegungsplan" %}{% else %}🗂️ {% trans "Heute im Betrieb" %}{% endif %}</h2>
+  <a href="{% url 'verkaeufe' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Verkäufe" %} →</a>
+</div>
+{% include "core/_sales_body.html" %}
+{% else %}
+<p class="text-sm text-gray-400">{% trans "Noch keine Verkaufskanäle aktiv." %} <a href="{% url 'modules' %}" class="text-indigo-600 hover:underline">{% trans "Funktionen" %} →</a></p>
 {% endif %}
 {% endblock %}

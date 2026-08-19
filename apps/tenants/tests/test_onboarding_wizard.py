@@ -805,8 +805,11 @@ def test_dashboard_renders_hub_tiles_and_widgets():
     assert "setup" in html
 
 
-def test_dashboard_embeds_kanban_board_when_channel_active():
-    """AB7-B2: канбан входящих встроен в главную (тот же партиал/DnD) при активном канале."""
+def test_dashboard_embeds_archetype_loop_with_live_deal():
+    """AB7-B2 → X3 (осознанная переписка): главная встраивает РАБОЧУЮ ПЕТЛЮ
+    архетипа тем же телом, что страница продаж. У ресторана с активными модулями
+    петля — очередь заказов (KDS-паттерн), поэтому проверяем живую сделку в ней,
+    а не конкретный движок канбана."""
     from decimal import Decimal
 
     from apps.catalog.tests.factories import ProductFactory
@@ -816,16 +819,18 @@ def test_dashboard_embeds_kanban_board_when_channel_active():
         schema_name="public",
         slug="brd",
         name="Brd",
-        business_type="restaurant",
-        disabled_modules=[],
+        # Пекарня: primary-модуль — заказы, поэтому петля первого экрана это их
+        # очередь и живая сделка обязана быть видна. (У ресторана дефолтный
+        # primary — столики, там петля это Tagesplan.)
+        business_type="bakery",
+        disabled_modules=modules.default_disabled_for("bakery"),
     )
     onboarding.save_state(tenant, {"v": 2, "step": "done", "completed": True})
     product = ProductFactory(base_price=Decimal("8.00"))
     order = create_order(items=[(product, 1)], name="Max", email="max@test.de")
     html = core_views.dashboard(_req(tenant=tenant)).content.decode()
-    assert "data-drop-stage" in html and order.reference_code in html
-    # X0 (cabinet-cleanup-2026-08-19): «Full view» ведёт на единую страницу
-    # Verkäufe — легаси-доска с главной больше не рекламируется.
+    assert order.reference_code in html  # сделка видна прямо на первом экране
+    # Переход к полной поверхности продаж (легаси-доска не рекламируется).
     assert "/dashboard/verkaeufe/" in html
 
 

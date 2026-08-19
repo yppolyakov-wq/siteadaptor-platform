@@ -18961,3 +18961,11 @@ msgstr "Указать часы работы"
 #, python-format
 msgid "Ihre Website ist zu %(p)s %% fertig"
 msgstr "Ваш сайт готов на %(p)s %%"
+
+#. X3: главная-кокпит
+msgid "Heute im Betrieb"
+msgstr "Сегодня в работе"
+
+#. X3: главная-кокпит
+msgid "Noch keine Verkaufskanäle aktiv."
+msgstr "Каналы продаж пока не активны."

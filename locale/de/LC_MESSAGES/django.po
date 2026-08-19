@@ -18885,3 +18885,11 @@ msgstr "Öffnungszeiten eintragen"
 #, python-format
 msgid "Ihre Website ist zu %(p)s %% fertig"
 msgstr "Ihre Website ist zu %(p)s %% fertig"
+
+#. X3: главная-кокпит
+msgid "Heute im Betrieb"
+msgstr "Heute im Betrieb"
+
+#. X3: главная-кокпит
+msgid "Noch keine Verkaufskanäle aktiv."
+msgstr "Noch keine Verkaufskanäle aktiv."

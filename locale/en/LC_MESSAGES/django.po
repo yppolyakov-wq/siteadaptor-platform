@@ -18756,3 +18756,11 @@ msgstr "Set your opening hours"
 #, python-format
 msgid "Ihre Website ist zu %(p)s %% fertig"
 msgstr "Your website is %(p)s %% ready"
+
+#. X3: главная-кокпит
+msgid "Heute im Betrieb"
+msgstr "Today at work"
+
+#. X3: главная-кокпит
+msgid "Noch keine Verkaufskanäle aktiv."
+msgstr "No sales channels active yet."
