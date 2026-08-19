@@ -96,7 +96,9 @@ def test_redirect_target_renders_end_to_end():
 
 
 def test_full_pages_not_redirected():
-    """events:list/jobs:list/board/stay_new остаются страницами (не 302)."""
+    """events:list/jobs:list/stay_new остаются страницами (не 302).
+    X2b: `board` из списка ВЫШЕЛ — легаси-доска снесена (302 на Verkäufe);
+    events/jobs остаются до волны X2c (решение владельца 2026-08-19)."""
     from apps.core import views as core_views
     from apps.core.modules import default_disabled_for
     from apps.tenants.tests.factories import TenantFactory
@@ -105,7 +107,7 @@ def test_full_pages_not_redirected():
     req.tenant = TenantFactory.build(
         business_type="bakery", disabled_modules=list(default_disabled_for("bakery"))
     )
-    assert core_views.board(req).status_code == 200
+    assert core_views.board(req).status_code == 302  # X2b: снесена
 
     from apps.stays import views as stays_views
 

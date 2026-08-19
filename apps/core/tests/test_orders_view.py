@@ -89,13 +89,14 @@ def test_hotel_with_both_calendar_modules_enters_belegungsplan():
     assert ov.resolve_view(t) == "calendar"
 
 
-def test_segment_removed_bridge_remains():
-    # W10-1: сегмент ST-5b мёртв — на легаси-доске только мостик на Verkäufe.
+def test_segment_removed_and_board_redirects():
+    # W10-1: сегмент ST-5b мёртв (API удалён, не «забыт»).
+    # X2b (осознанная переписка): мостик «Alles auf einer Seite» проверять негде —
+    # сама легаси-доска снесена и отдаёт 302 на Verkäufe.
     t = TenantFactory(slug="ovr", name="OvR", enabled_modules=["catalog", "orders"])
-    body = core_views.board(_req(tenant=t)).content.decode()
-    assert "data-ov-switch" not in body
-    assert "Alles auf einer Seite" in body
-    assert not hasattr(ov, "switch_options")  # API удалён, не «забыт»
+    resp = core_views.board(_req(tenant=t))
+    assert resp.status_code == 302 and resp["Location"].startswith("/dashboard/verkaeufe/")
+    assert not hasattr(ov, "switch_options")
 
 
 def test_verkaeufe_view_switch_preserves_get_params():

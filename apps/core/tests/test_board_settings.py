@@ -113,16 +113,18 @@ def test_board_settings_reorder_materialized(settings):
 
 
 @pytest.mark.django_db
-def test_board_renders_panel_and_custom_label(settings):
+def test_ablaeufe_renders_panel_and_custom_label(settings):
+    """X2b (осознанная переписка): доска снесена — панель «⚙️ Spalten» и
+    кастомные метки колонок живут на «Abläufe» (W9-8, паритет проверен разведкой)."""
     settings.ROOT_URLCONF = "config.urls_tenant"
     tenant = TenantFactory(
         disabled_modules=[], site_config={"board": {"labels": {"intake": "Posteingang"}}}
     )
-    req = RequestFactory().get("/dashboard/board/")
+    req = RequestFactory().get("/dashboard/ablaeufe/")
     SessionMiddleware(lambda r: None).process_request(req)
     MessageMiddleware(lambda r: None).process_request(req)
     req.user = _user("b3")
     req.tenant = tenant
-    html = core_views.board(req).content.decode()
-    assert "/dashboard/board/settings/" in html  # панель настроек видна
+    html = core_views.ablaeufe_view(req).content.decode()
+    assert "/dashboard/board/settings/" in html  # приёмник панели прежний
     assert "Posteingang" in html  # кастомная метка колонки на доске

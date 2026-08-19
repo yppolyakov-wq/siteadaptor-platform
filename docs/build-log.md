@@ -10989,3 +10989,22 @@ readiness-список AB4 считали «выполнено» по РАЗНЫ
 **Грабля прогона:** тесты, создающие схемы (`test_isolation`, `test_models`,
 `test_async_signup`, `test_onboarding`), падают на `--reuse-db` со стале-схемой
 («column … already exists») и зелены на `--create-db` — это среда, не регресс.
+
+**X2b (той же датой) — легаси-доска снесена.** `/dashboard/board/` → 302 на Verkäufe
+с GET-carry; вьюха и `templates/core/board.html` удалены. Порядок работ задан
+разведкой: СНАЧАЛА закрыты пять серверных `reverse("board")`, потом снос — иначе
+`orders_view._view_url` (зовётся С ГЛАВНОЙ) дал бы NoReverseMatch = 500 у архетипов,
+чей primary-модуль не booking/stays/catalog (события/заявки/туры). Новые цели
+фолбэков: канбан-действие → `verkaeufe?tab=<kind>`, панель колонок и настройки
+статусов/переходов → «Abläufe» (там их UI и живёт с W9-8). Семантика параметра
+переведена: доска знала `?kind=`, единая страница — `?tab=`; `legacy_redirect`
+научен УДАЛЯТЬ ключ (значение None), чтобы старый ключ не тащился в новый адрес.
+`ModuleSpec("board")` с `url_prefixes` НЕ трогали — он гейтит живой action-эндпоинт
+канбана `/dashboard/board/<kind>/<pk>/action/`, встроенный в главную и Verkäufe.
+Замки переписаны осознанно (test_board целиком, board_settings → рендер панели на
+Abläufe, w10_redirects, w9_ablaeufe, w7_sales, kanban, orders_view, x0_x7_locks:
+`board` из категории [X2] в [302]); добавлен НОВЫЙ замок под риск №1 разведки —
+«вход главной никогда не указывает на снесённую доску» (5 архетипов). Стенд
+Playwright 8/8: главная 200, board→verkaeufe?tab=order без `kind=`, канбан-вид жив,
+панель колонок на Abläufe. **Волна X2a+X2b закрыта; X2c (паритет events/jobs) —
+отложена до X3/X4 решением владельца.**

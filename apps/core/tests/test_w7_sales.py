@@ -155,7 +155,8 @@ def test_kanban_non_fetch_rejects_external_next():
     req.user = _User()
     resp = views.kanban_action(req, "order", order.pk)
     assert resp.status_code == 302
-    assert resp["Location"].startswith("/dashboard/board/")
+    # X2b: доска снесена — фолбэк ведёт во вкладку единой страницы продаж.
+    assert resp["Location"].startswith("/dashboard/verkaeufe/?tab=order")
 
 
 # --- W10-5: единый apply_action + трек-номер с доски ---------------------------

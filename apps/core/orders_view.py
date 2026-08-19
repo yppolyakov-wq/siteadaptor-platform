@@ -42,7 +42,10 @@ def _view_url(tenant, view):
             return reverse("orders:order-list") if tenant.is_module_active("orders") else ""
         except NoReverseMatch:  # pragma: no cover
             return ""
-    return reverse("board")
+    # X2b: легаси-доска /dashboard/board/ снесена — канбан живёт вкладкой
+    # единой страницы продаж. Раньше отсюда приходил NoReverseMatch-риск для
+    # архетипов events/jobs (вызывается с ГЛАВНОЙ, views.dashboard).
+    return reverse("verkaeufe")
 
 
 def default_view(tenant):

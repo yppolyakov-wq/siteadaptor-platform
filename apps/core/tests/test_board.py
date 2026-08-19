@@ -41,30 +41,23 @@ def _req(disabled=None):
     return req
 
 
-def test_board_renders_tabs_columns_and_card():
-    order = _make_order()
-    html = views.board(_req()).content.decode()
-    assert "Aufgaben-Board" in html
-    assert order.reference_code in html  # карточка заказа отрендерена
-    assert "data-drop-stage" in html  # колонки-дропзоны есть
-    assert 'data-board-tab="order"' in html  # вкладка заказов
-
-
-def test_board_has_archive_toggle_and_terminal_stage():
+def test_board_redirects_to_unified_sales_page():
+    """X2b (осознанная переписка): легаси-доска снесена → 302 на Verkäufe.
+    Прежние четыре теста проверяли её рендер (вкладки/колонки/архив/пустое
+    состояние) — эта функциональность живёт видом «Board» вкладки Verkäufe и
+    покрыта test_verkaeufe."""
     _make_order()
-    html = views.board(_req()).content.decode()
-    assert 'id="board-show-closed"' in html  # T4: тумблер архива
-    assert 'data-stage="terminal"' in html  # terminal-колонка помечена для скрытия
+    resp = views.board(_req())
+    assert resp.status_code == 302
+    assert resp["Location"].startswith("/dashboard/verkaeufe/")
 
 
-def test_board_hides_inactive_transaction_module():
-    _make_order()
-    html = views.board(_req(disabled=["orders"])).content.decode()
-    assert 'data-board-tab="order"' not in html
-
-
-def test_board_empty_state_when_no_active_transactions():
-    # выключаем все транзакционные модули → пустая доска, graceful empty-state
-    disabled = ["orders", "booking", "stays", "events", "jobs", "promotions"]
-    html = views.board(_req(disabled=disabled)).content.decode()
-    assert "Noch keine Verkaufskanäle" in html
+def test_board_redirect_maps_kind_param_to_tab():
+    """Семантика параметра: доска знала ?kind=, единая страница — ?tab=;
+    старый ключ в новый адрес не тащим."""
+    req = _req()
+    req.GET = req.GET.copy()
+    req.GET["kind"] = "order"
+    resp = views.board(req)
+    assert resp.status_code == 302
+    assert "tab=order" in resp["Location"] and "kind=" not in resp["Location"]

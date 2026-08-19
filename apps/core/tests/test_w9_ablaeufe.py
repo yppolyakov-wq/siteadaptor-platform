@@ -80,11 +80,12 @@ def test_board_settings_returns_to_next_local_path_only():
     )
     assert resp.status_code == 302
     assert resp["Location"] == "/dashboard/ablaeufe/?kind=order"
-    # Внешний/протокол-относительный next не принимается — дефолт (доска).
+    # Внешний/протокол-относительный next не принимается — дефолт.
+    # X2b: доска снесена, дефолт панели колонок = сам экран «Abläufe».
     resp = views.board_settings(
         _req("/dashboard/board/settings/", "post", {"next": "//evil.example/x"}, tenant=tenant)
     )
-    assert resp["Location"].startswith("/dashboard/board/")
+    assert resp["Location"].startswith("/dashboard/ablaeufe/")
 
 
 def test_verkaeufe_links_to_ablaeufe():

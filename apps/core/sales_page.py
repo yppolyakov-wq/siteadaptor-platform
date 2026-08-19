@@ -258,13 +258,18 @@ def heute_columns(tenant) -> list[dict]:
 def legacy_redirect(request, **params):
     """W10-6: 302 с легаси-страницы продаж на Verkäufe С СОХРАНЕНИЕМ GET
     (deep-links ?status=/?von=/?tag=/?q=/?buchung= живут на цели). params
-    задают вкладку/вид и перекрывают одноимённые GET-ключи."""
+    задают вкладку/вид и перекрывают одноимённые GET-ключи; значение None
+    УДАЛЯЕТ ключ (X2b: у доски параметр звался `?kind=`, у единой страницы —
+    `?tab=`, тащить оба в адрес незачем)."""
     from django.http import HttpResponseRedirect
     from django.urls import reverse
 
     get = request.GET.copy()
     for k, v in params.items():
-        get[k] = v
+        if v is None:
+            get.pop(k, None)
+        else:
+            get[k] = v
     qs = get.urlencode()
     return HttpResponseRedirect(reverse("verkaeufe") + (f"?{qs}" if qs else ""))
 

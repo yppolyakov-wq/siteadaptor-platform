@@ -3389,32 +3389,21 @@ def _status_kinds_for(tenant):
 
 @login_required
 def board(request):
-    """UD2-3: единая доска входящих транзакций (заказы/брони/проживание/билеты/
-    заявки/резервы). Вкладки — активные транзакционные модули, колонки — стадии
-    конвейера; карточки тащатся между колонками или двигаются кнопками. Статус
-    меняется ТОЛЬКО через FSM (kanban_action). Per-app экраны остаются (D2)."""
-    from apps.core import transactions
+    """X2b: легаси-доска снесена → 302 на единую страницу продаж (W10-6, GET-carry).
 
-    sections = transactions.manage_sections_for(request.tenant)
-    kinds = [s["kind"] for s in sections]
-    active = request.GET.get("kind", "")
-    if active not in kinds:
-        active = kinds[0] if kinds else ""
-    board_stage_rows = _board_stage_rows(request.tenant)
-    # Фидбэк 2026-07-28: панели статусов ушли с календаря stays — настройки
-    # статусов достижимы отсюда (ящик «⚙️ Spalten»), по активным kind'ам.
-    status_kinds = _status_kinds_for(request.tenant)
-    return render(
-        request,
-        "core/board.html",
-        {
-            "nav": "board",
-            "sections": sections,
-            "active_kind": active,
-            "board_stage_rows": board_stage_rows,
-            "status_kinds": status_kinds,
-        },
-    )
+    Ссылок из шаблонов на неё не было уже с X0 («Full view» ведёт в Verkäufe);
+    доска оставалась третьей поверхностью продаж с собственными вкладками и
+    панелью колонок. Паритет достигнут: канбан — вид вкладки Verkäufe, панель
+    «⚙️ Spalten» и настройки статусов живут на «Abläufe» (W9-8).
+    Семантика параметра: доска знала `?kind=`, единая страница — `?tab=`.
+    """
+    from apps.core import sales_page
+
+    params = {"kind": None}  # старый ключ не тащим в новый адрес
+    kind = request.GET.get("kind", "")
+    if kind:
+        params["tab"] = kind
+    return sales_page.legacy_redirect(request, **params)
 
 
 @login_required
@@ -3457,7 +3446,8 @@ def board_settings(request):
     nxt = request.POST.get("next", "")
     if nxt.startswith("/") and not nxt.startswith("//"):
         return redirect(nxt)
-    return redirect("board")
+    # X2b: доска снесена — панель колонок живёт на «Abläufe» (W9-8).
+    return redirect("ablaeufe")
 
 
 @login_required
@@ -3486,7 +3476,8 @@ def kanban_action(request, kind, pk):
     # а не выбрасываем владельца на легаси /dashboard/board/.
     back = request.POST.get("next", "")
     if not (back.startswith("/") and not back.startswith("//")):
-        back = reverse("board") + f"?kind={kind}"
+        # X2b: доска снесена — возвращаемся во вкладку единой страницы продаж.
+        back = reverse("verkaeufe") + f"?tab={kind}"
     try:
         # W10-5: единая точка — спец-поля поверхности (tracking_code при
         # «Versendet» заказа-доставки) едут в extra и пишутся ДО apply.
@@ -3537,7 +3528,7 @@ def status_labels_save(request, kind):
     messages.success(request, _("Gespeichert."))
     nxt = request.POST.get("next", "")
     if not nxt.startswith("/"):
-        nxt = reverse("board")
+        nxt = reverse("ablaeufe")  # X2b: доска снесена — настройки статусов там
     return redirect(nxt)
 
 
@@ -3559,7 +3550,7 @@ def transitions_save(request, kind):
     messages.success(request, _("Gespeichert."))
     nxt = request.POST.get("next", "")
     if not nxt.startswith("/"):
-        nxt = reverse("board")
+        nxt = reverse("ablaeufe")  # X2b: доска снесена — правила переходов там
     return redirect(nxt)
 
 

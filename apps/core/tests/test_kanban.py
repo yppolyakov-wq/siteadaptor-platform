@@ -88,7 +88,8 @@ def test_illegal_transition_non_fetch_redirects_with_message():
     MessageMiddleware(lambda r: None).process_request(req)
     resp = views.kanban_action(req, "order", order.pk)
     assert resp.status_code == 302
-    assert "kind=order" in resp["Location"]
+    # X2b: фолбэк ведёт во вкладку Verkäufe (доска снесена) — ключ «tab».
+    assert "tab=order" in resp["Location"]
 
 
 def test_unknown_kind_bad_request():

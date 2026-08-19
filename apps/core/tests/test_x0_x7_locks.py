@@ -106,8 +106,8 @@ EXPECTED_UNLISTED = frozenset(
         "site",
         "stays:calendar",
         "stays:today",
-        # [X2] легаси-поверхности продаж — снос волной X2
-        "board",
+        "board",  # X2b: легаси-доска снесена → 302 на Verkäufe
+        # [POST] приёмник панели колонок (её UI живёт на «Abläufe»)
         "board-settings",
         # [X4] экраны-сироты — получат вход волной X4
         "billing-payments",
@@ -251,3 +251,21 @@ def test_marketing_home_shows_unread_card():
     html = core_views.marketing_home(req).content.decode()
     assert "ungelesen" in html
     assert "/dashboard/inbox/" in html
+
+
+# --- X2b: снос легаси-доски не ломает главную у events/jobs-архетипов ---------
+
+
+def test_home_entry_never_points_to_removed_board():
+    """Риск №1 разведки X2: `orders_view._view_url` звался С ГЛАВНОЙ и возвращал
+    reverse("board"); после сноса маршрута это дало бы 500 у архетипов, чей
+    primary-модуль не booking/stays/catalog (события/заявки/туры). Замок держит
+    инвариант: вход всегда резолвится и ведёт на единую страницу продаж."""
+    from django.urls import reverse
+
+    from apps.core import orders_view as ov
+
+    for bt in ("events", "handwerker", "tour_operator", "werkstatt", "other"):
+        t = TenantFactory(slug=f"x2b-{bt[:6]}-{uuid4().hex[:4]}", name="X2b", business_type=bt)
+        assert ov.entry_url_name(t) == "verkaeufe"
+        assert reverse(ov.entry_url_name(t)) == "/dashboard/verkaeufe/"
