@@ -21,7 +21,7 @@
       {% else %}bg-red-50 text-red-600{% endif %}">{% status_label job "job" %}</span>
   </h1>
   <span class="flex flex-wrap items-center gap-1">
-    <a href="{% url 'jobs:pdf' job.pk %}" target="_blank" class="text-sm text-indigo-600 hover:underline">{% trans "Angebot PDF" %} ↗</a>
+    <a href="{% url 'jobs:pdf' job.pk %}" target="_blank" class="text-sm text-indigo-600 hover:underline">{% trans "Kostenvoranschlag PDF" %} ↗</a>
     {% comment %}I18N-7b/2: язык сметы хранится на заявке — клиент повторно
     скачает тот же документ.{% endcomment %}
     {% if doc_languages|length > 1 %}

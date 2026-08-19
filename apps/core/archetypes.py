@@ -10,6 +10,13 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core import modules
 
+# X4: гастро-типы — ЕДИНЫЙ источник (был литералом в apps/catalog/views.py, а
+# навигации он нужен для гейта KDS/Tisch-QR; дублировать реестр архетипов —
+# ровно тот дефект «несинхронизированных реестров», что нашёл аудит 2026-08-05).
+FOOD_BUSINESS_TYPES = frozenset(
+    {"bakery", "butcher", "grocery", "restaurant", "cafe", "catering"}  # GK-1: Speisekarte
+)
+
 # Ключ модуля-архетипа → секция главной с его «главным товаром».
 PRIMARY_SECTION = {
     "catalog": "products",

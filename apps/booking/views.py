@@ -748,7 +748,9 @@ def services_view(request, pk=None):
         "booking/services.html",
         {
             "service_page": service_page,
-            "nav": "booking",
+            # X4: услуга — ПРОДАВАЕМАЯ СУЩНОСТЬ (раздел «Sortiment»), а не
+            # операция дня; свой nav-ключ, иначе сайдбар подсвечивал «Verkäufe».
+            "nav": "services",
             "services": services,
             # Фидбэк 2026-07-30 («на сайте пишет: нет доступных»): без рабочих часов
             # слоты не генерируются вообще. Показываем причину ЗДЕСЬ, где владелец
@@ -832,7 +834,7 @@ def passes_view(request):
         request,
         "booking/passes.html",
         {
-            "nav": "booking",
+            "nav": "passes",  # X4: 10er-Karten/Abos — сущность раздела «Sortiment»
             "passes": Pass.objects.select_related("customer")[:300],
             "plans": PassPlan.objects.select_related("service"),
             "services": Service.objects.filter(is_active=True),

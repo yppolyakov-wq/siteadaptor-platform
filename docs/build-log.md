@@ -11046,3 +11046,42 @@ Playwright 8/8: главная 200, board→verkaeufe?tab=order без `kind=`, 
 но закрывает самый частый случай. Правило: перед пушем шаблонного батча —
 `uv run python scripts/i18n_quickcheck.py`.
 
+
+**X4 «Подпункты по смыслу + сироты + глоссарий» (2026-08-19, план
+`docs/x4-navigation-plan-2026-08-19.md`, БЕЗ миграций).** Четвёртая волна
+программы `cabinet-cleanup-plan-2026-08-19`. Разведка вскрыла КОРЕНЬ дефекта:
+«подпункт сайдбара» и «вкладка ящика Erweitert» были ОДНИМ множеством
+(`advanced`), поэтому у салона в подпунктах раздела «его товаров» висели
+Lager/Einkauf/Kombi/Import, а экран услуг вообще не имел входа. Развязано тремя
+полями `NavEntry`: `sidebar` (запись остаётся в ящике, уходит из сайдбара),
+`palette_only` (вход только через Ctrl+K — сироты не раздувают таб-бары),
+`business_types` (гейт по типу бизнеса). **Sortiment** держит сущности архетипа
+(Produkte · Leistungen · Zimmer & Preise · Veranstaltungen · Reisen · Kategorien ·
+Kollektionen), **Verkäufe** — рабочие входы дня (Öffnungszeiten & Ressourcen ·
+Tage blockieren · Check-ins · Kitchen Display · Abläufe) ПЕРЕД отчётной группой.
+События и туры переехали из board-хаба в sellables: событие — то, что продают,
+билет — сделка по нему. **Сироты (19 экранов) разобраны поимённо**
+(план §4): шесть стали подпунктами, девять — записями палитры, четыре осознанно
+переклассифицированы (`billing-portal` — редирект в Stripe, `orders:kitchen-board`
+— HTMX-партиал, `promotions:shop-poster` — генератор PDF, `stays:stay-new` — форма
+за кнопкой «＋»). Категория [X4] в замке X7.3 опустела. **Подсветка «где я»:**
+все страницы booking/stays эмитили `nav="booking"/"stays"` → сайдбар подсвечивал
+«Verkäufe» даже на экране услуг; сущностные экраны получили свои ключи
+(`services`/`units`/`passes`). **Гастро-шум:** KDS и Tisch-QR гейтятся
+`FOOD_BUSINESS_TYPES` — кнопка «Kitchen Display» больше не висит у парикмахера
+(попутно константа переехала в `apps/core/archetypes.py` — единый источник,
+`catalog.views` её реэкспортирует: дублировать реестр архетипов = ровно тот дефект
+«несинхронизированных реестров», что нашёл аудит). **Глоссарий:** якорь и хаб
+«Angebote» → «Sortiment» (слово «Angebot» осталось за офертой клиенту:
+Sofort-Angebot, смета Handwerker), «Tickets» → «Veranstaltungen» в разделе
+сущностей, «Angebot PDF» → «Kostenvoranschlag PDF»; словарь —
+`docs/cabinet-glossary.md` (одно слово = одна сущность, витрина под него не
+переписывается). Попутно: заголовок «Rechnungen» на экране счетов был БЕЗ
+`{% trans %}` — обёрнут. Замки: новый `test_x4_navigation` (10), осознанные
+переписки `test_sidebar_children_composition` / `test_board_hub_*` /
+`test_catalog_hub_has_return_path…` / `test_view_renders_sections` /
+`test_order_liste_parity…`; 9 msgid × 5 каталогов.
+**Урок (продолжение урока X3):** `scripts/i18n_quickcheck.py` смотрел только
+`templates/` — шесть новых меток РЕЕСТРА (Python) прошли мимо него и были бы
+пойманы только CI. Скрипт расширен на `.py` (`_("…")`/`gettext…`), проверка
+теперь покрывает оба источника msgid.

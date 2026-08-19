@@ -73,7 +73,8 @@ def test_marketing_hub_gained_blog_and_newsletter():
 
 def test_catalog_hub_has_return_path_to_angebote_and_collections():
     html = _render("catalog", "catalog", _tenant())
-    assert "Angebote" in html  # обратный путь из Sortiment в хаб Angebote
+    # X4 (глоссарий): обратный путь ведёт в раздел «Sortiment» (бывш. «Angebote»).
+    assert "Sortiment" in html
     assert "Kollektionen" in html
 
 

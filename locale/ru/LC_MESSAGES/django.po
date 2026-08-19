@@ -18986,3 +18986,39 @@ msgstr "Выручка"
 #. X3: компактная полоса дня
 msgid "WhatsApp-Nummer fehlt"
 msgstr "Не указан номер WhatsApp"
+
+#: apps/core/nav_registry.py
+msgid "Rechnungen"
+msgstr "Счета"
+
+#: apps/core/nav_registry.py
+msgid "Karten & Abos"
+msgstr "Абонементы и карты"
+
+#: apps/core/nav_registry.py
+msgid "Channel Manager"
+msgstr "Менеджер каналов"
+
+#: apps/core/nav_registry.py
+msgid "Firmen"
+msgstr "Компании"
+
+#: apps/core/nav_registry.py
+msgid "Gastgeber"
+msgstr "Ведущие"
+
+#: apps/core/nav_registry.py
+msgid "Tisch-QR"
+msgstr "QR стола"
+
+#: apps/core/nav_registry.py
+msgid "Zahlungen empfangen"
+msgstr "Приём платежей"
+
+#: apps/core/nav_registry.py
+msgid "Kostenvoranschlag PDF"
+msgstr "Смета PDF"
+
+#: apps/core/nav_registry.py
+msgid "Noch nichts im Sortiment — oben „＋“ wählen, um den ersten Eintrag anzulegen."
+msgstr "В ассортименте пока пусто — нажмите «＋» вверху, чтобы добавить первую позицию."

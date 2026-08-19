@@ -153,27 +153,43 @@ def test_sales_anchor_respects_orders_view_default():
 
 def test_sidebar_children_composition():
     """Подпункты якоря = advanced-состав его хабов (единый реестр W8).
-    Verkäufe получил отчёты (Auswertungen/Finanzen/Berichte) + Abläufe;
-    Website — SEO/Domains/Medien (переезды из settings); Angebote — семь
-    каталожных страниц (скрин владельца); Übersicht — без подпунктов."""
-    t = TenantFactory(slug="sbc1", name="SbC", business_type="hotel", disabled_modules=[])
+
+    X4 (осознанная переписка, план x4-navigation-plan §3): состав приведён
+    к смыслу разделов. «Sortiment» держит СУЩНОСТИ архетипа (товары/услуги/
+    номера/события/туры), складская группа ушла в ящик «Erweitert» таб-бара
+    (sidebar=False) — раньше у салона в подпунктах «товаров» висели Lager/
+    Einkauf/Kombi/Import, а «Leistungen» не было вовсе. «Verkäufe» держит
+    рабочие входы дня ПЕРЕД отчётной группой.
+    """
+    t = TenantFactory(slug="sbc1", name="SbC", business_type="restaurant", disabled_modules=[])
     by_anchor = {it["url_name"]: it["children"] for it in modules.sidebar_nav(t)}
 
     assert by_anchor["dashboard"] == []
     verk = [c["url_name"] for c in by_anchor["verkaeufe"]]
-    assert verk == ["promotions:analytics", "finance:journal", "stays:reports", "ablaeufe"]
+    assert verk == [
+        "booking:resources",
+        "booking:availability",
+        "stays:checkins",
+        "orders:kitchen",  # гастро-тип: гейт business_types пропускает
+        "ablaeufe",
+        "promotions:analytics",
+        "finance:journal",
+        "stays:reports",
+    ]
     site = [c["url_name"] for c in by_anchor["site-home"]]
     assert site == ["site-seo", "domains", "media-library"]
     ang = [c["url_name"] for c in by_anchor["sellable-manage"]]
     assert ang == [
         "catalog:product-list",
+        "booking:services",
+        "stays:units",
+        "events:list",
+        "events:tour-list",
         "catalog:category-list",
-        "stock",
-        "purchasing",
-        "catalog:combo-list",
-        "imports:start",
         "collections:list",
     ]
+    # склад достижим, но НЕ из сайдбара — в ящике «Erweitert» таб-бара каталога
+    assert not {"stock", "purchasing", "catalog:combo-list", "imports:start"} & set(ang)
     sett = [c["url_name"] for c in by_anchor["settings"]]
     # X2a: «Integrationen» стал подпунктом (был доступен с первого экрана только
     # хаб-плиткой главной, которую X2a удалил как дубль сайдбара).

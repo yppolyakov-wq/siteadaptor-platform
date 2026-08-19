@@ -140,7 +140,7 @@ def test_view_renders_sections():
     ProductFactory(base_price=Decimal("5.00"), name={"de": "Brot"})
     _service()
     body = sellable_manage(_req(tenant=t)).content.decode()
-    assert "Angebote" in body
+    assert "Sortiment" in body  # X4 (глоссарий): раздел переименован
     assert "Brot" in body and "Haarschnitt" in body
     assert "Leistungen" in body  # заголовок секции услуг
 

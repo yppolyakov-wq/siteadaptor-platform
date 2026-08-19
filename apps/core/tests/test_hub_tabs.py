@@ -89,29 +89,34 @@ def test_sales_nav_collapsed_into_verkauefe():
 
 
 def test_board_hub_only_uncovered_tabs():
-    """W-CL: board/календари/список покрыты сегментом ST-5b и единой страницей —
-    в реестре board-хаба остались только Tickets/Aufträge."""
+    """W-CL: board/календари/список покрыты сегментом ST-5b и единой страницей.
+    X4 (осознанная переписка): события/туры переехали в хаб «Sortiment» —
+    сущность продаётся, а сделки по ней живут вкладкой «Tickets» страницы
+    Verkäufe; в board-хабе из главных записей остались только Aufträge."""
     html = _render_board("board", _fake_tenant())  # ничего не выключено
-    for lbl in ("Board", "Bestellungen", "Termine", "Übernachtungen"):
+    for lbl in ("Board", "Bestellungen", "Termine", "Übernachtungen", "Veranstaltungen"):
         assert lbl not in html, lbl
-    for lbl in ("Tickets", "Aufträge"):
-        assert lbl in html, lbl
+    assert "Aufträge" in html
 
 
 def test_board_hub_gates_inactive_modules():
-    # Тенант без Tickets — вкладка скрыта, Aufträge видна.
-    tenant = _fake_tenant(disabled=["events"])
+    # Тенант без booking/stays — рабочие входы дня скрыты, Aufträge видна.
+    tenant = _fake_tenant(disabled=["booking", "stays"])
     html = _render_board("jobs", tenant)
-    assert "Tickets" not in html
+    assert "Tage blockieren" not in html
+    assert "Check-ins" not in html
     assert "Aufträge" in html
     assert html.count('aria-selected="true"') == 1  # активна вкладка Aufträge
 
 
 def test_board_hub_fail_open_without_request():
-    # Без request/tenant в контексте (простой рендер) — гейт fail-open.
+    # Без request/tenant в контексте (простой рендер) — гейт fail-open,
+    # включая X4-гейт business_types (гастро-KDS показывается).
     html = _render_board("board")
-    for lbl in ("Tickets", "Aufträge"):
-        assert lbl in html, lbl
+    assert "Aufträge" in html
+    # X4-гейт business_types тоже fail-open: гастро-KDS виден (по URL —
+    # de.po переводит подпись «Kitchen Display» → «Küchenanzeige»).
+    assert "/kitchen/" in html
 
 
 # --- S3: хаб «Einstellungen» (свод настроек + ящик «Erweitert») ---------------

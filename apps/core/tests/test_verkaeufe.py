@@ -171,6 +171,22 @@ def test_calendar_day_nav_keeps_the_tab():
     # W10-6: отдельной страницы booking:calendar больше нет (302 на Verkäufe).
 
 
+def test_order_liste_kds_entries_only_for_food_types():
+    """X4: гейт гастро — «Kitchen Display»/«Tisch-QR» появляются у гастро-типа
+    и отсутствуют у прочих (проверяем по URL: de.po переводит подписи)."""
+    from apps.catalog.tests.factories import ProductFactory
+    from apps.orders import services
+
+    services.create_order(
+        items=[(ProductFactory(name={"de": "Brot"}), 1)], name="KDS-Kunde", email="k@t.de"
+    )
+    kw = dict(disabled_modules=["events", "stays", "booking", "jobs"])
+    food = views.verkaeufe(_req(business_type="cafe", **kw)).content.decode()
+    assert "kitchen/" in food and "tisch-qr/" in food
+    other = views.verkaeufe(_req(business_type="clothing", **kw)).content.decode()
+    assert "kitchen/" not in other and "tisch-qr/" not in other
+
+
 def test_order_liste_parity_filter_search_entries():
     """W10-3: вкладка order — фильтр статуса + поиск + входы KDS/QR (паритет
     с /dashboard/orders/; «тонкая обёртка» больше не богаче единой страницы)."""
@@ -185,9 +201,11 @@ def test_order_liste_parity_filter_search_entries():
         disabled_modules=["events", "stays", "booking", "jobs"],
     )
     body = views.verkaeufe(_req(**shop)).content.decode()
-    # по URL, не по подписи — de.po переводит «Kitchen Display» → «Küchenanzeige»
-    assert "kitchen/" in body and "tisch-qr/" in body
     assert 'name="status"' in body and 'name="q"' in body
+    # X4 (осознанная переписка §6.A4.5): KDS/Tisch-QR — гастро-инструменты;
+    # магазин их больше не видит (раньше «Kitchen Display» показывался всем,
+    # у кого включён модуль orders — вплоть до парикмахерской).
+    assert "kitchen/" not in body and "tisch-qr/" not in body
     # фильтр статуса: cancelled скрывает новый заказ
     body = views.verkaeufe(
         _req(data={"tab": "order", "status": "cancelled"}, **shop)

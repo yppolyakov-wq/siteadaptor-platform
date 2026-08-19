@@ -1047,7 +1047,7 @@ def units(request, pk=None):
         request,
         "stays/units.html",
         {
-            "nav": "stays",
+            "nav": "units",  # X4: номер — сущность раздела «Sortiment» (не операция дня)
             "units": units,
             "unit_page": unit_page,  # 2026-07-28: страница одного номера
             # Фидбэк №2: активный таб списка (einheiten | einstellungen)

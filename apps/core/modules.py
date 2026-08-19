@@ -599,7 +599,9 @@ def sidebar_nav(tenant) -> list[dict]:
                 "search": e.search,
             }
             for e in nav_registry.sidebar_children(a)
-            if not e.module_key or is_module_active(tenant, e.module_key)
+            if (not e.module_key or is_module_active(tenant, e.module_key))
+            # X4: гейт по типу бизнеса — «Kitchen Display» только гастро.
+            and nav_registry.allowed_for_business(e.url_name, tenant)
         ]
         # X0: «Nachrichten» — первым подпунктом якоря Marketing со СВОИМ бейджем:
         # бейдж на якоре вёл на лендинг, где непрочитанного не видно.

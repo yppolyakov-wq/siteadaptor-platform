@@ -107,28 +107,14 @@ EXPECTED_UNLISTED = frozenset(
         "stays:calendar",
         "stays:today",
         "board",  # X2b: легаси-доска снесена → 302 на Verkäufe
+        "billing-portal",  # редирект в Stripe-портал, не экран
         # [POST] приёмник панели колонок (её UI живёт на «Abläufe»)
         "board-settings",
-        # [X4] экраны-сироты — получат вход волной X4
-        "billing-payments",
-        "billing-portal",
-        "booking:availability",
-        "booking:passes",
-        "booking:resources",
-        "booking:services",
-        "crm:company-list",
-        "events:teacher-list",
-        "finance:invoices",
-        "jobs:anfrage-form-settings",
-        "orders:kitchen",
-        "orders:kitchen-board",
-        "orders:table-qr",
-        "promotions:reservation-list",
+        "orders:kitchen-board",  # HTMX-партиал поллинга KDS
+        # [DOC] генераторы печатных документов (вход — кнопка родного экрана)
         "promotions:shop-poster",
-        "stays:channels",
-        "stays:checkins",
+        # [＋] форма создания: вход — кнопка «＋» поверхности продаж
         "stays:stay-new",
-        "stays:units",
         # [OK] служебное
         "inbox:unread-count",  # JSON-счётчик бейджа
         "setup",  # мастер — собственный хром (_base_setup)

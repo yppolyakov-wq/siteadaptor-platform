@@ -19,6 +19,11 @@ from dataclasses import dataclass, field
 
 from django.utils.translation import gettext_lazy as _
 
+from apps.core.archetypes import FOOD_BUSINESS_TYPES
+
+# X4: гейт гастро-экранов (KDS/Tisch-QR) — кортеж ради frozen dataclass.
+FOOD_TYPES: tuple[str, ...] = tuple(sorted(FOOD_BUSINESS_TYPES))
+
 
 @dataclass(frozen=True)
 class NavEntry:
@@ -32,6 +37,14 @@ class NavEntry:
     # X0 (план cabinet-cleanup-2026-08-19): owner-only экраны (мидлварь W9-10 и
     # так отдаёт сотруднику 403 — здесь СКРЫТИЕ, чтобы не показывать мёртвые табы).
     owner_only: bool = False
+    # X4: «ящик Erweitert таб-бара» и «подпункты якоря в сайдбаре» были ОДНИМ
+    # множеством (advanced) — склад висел в подпунктах «товаров» у парикмахера.
+    # sidebar=False оставляет запись в ящике, но убирает из сайдбара.
+    sidebar: bool = True
+    # X4: сироты получают вход в Ctrl+K, не раздувая таб-бары/сайдбар.
+    palette_only: bool = False
+    # X4: доп-гейт по типу бизнеса (KDS/Tisch-QR — только гастро).
+    business_types: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -63,12 +76,15 @@ ANCHORS: tuple[Anchor, ...] = (
         "verkäufe bestellungen termine board kalender belegungsplan",
         hubs=("board",),
     ),
+    # X4 (глоссарий §6.A4.4): раздел зовётся «Sortiment» — слово «Angebot»
+    # осталось за офертой клиенту (Sofort-Angebot, смета Handwerker). URL и
+    # nav_key не тронуты (мораторий X7.1 на состав якорей соблюдён).
     Anchor(
         "sellable-manage",
-        _("Angebote"),
+        _("Sortiment"),
         "sellables",
         "📦",
-        "angebote sortiment produkte leistungen zimmer",
+        "sortiment angebote produkte leistungen zimmer veranstaltungen",
         hubs=("sellables", "catalog"),
     ),
     # X0 (план cabinet-cleanup-2026-08-19): module_key — только ПРЕДПОЧТИТЕЛЬНЫЙ
@@ -108,16 +124,43 @@ ANCHORS: tuple[Anchor, ...] = (
 )
 
 
-def _e(hub, url_name, label, nav_key, module_key=None, advanced=False, search="", owner_only=False):
-    return NavEntry(url_name, label, nav_key, hub, module_key, advanced, search, owner_only)
+def _e(
+    hub,
+    url_name,
+    label,
+    nav_key,
+    module_key=None,
+    advanced=False,
+    search="",
+    owner_only=False,
+    sidebar=True,
+    palette_only=False,
+    business_types=(),
+):
+    return NavEntry(
+        url_name,
+        label,
+        nav_key,
+        hub,
+        module_key,
+        advanced,
+        search,
+        owner_only,
+        sidebar,
+        palette_only,
+        business_types,
+    )
 
 
 # --- Табы хабов (порядок внутри hub = порядок показа) -------------------------
 # Содержимое = бывший литерал cabinet.HUB_TABS (W7b/W-CL) 1:1 — характеризацию
 # держат test_hub_tabs/test_w7_nav; здесь добавлены только search-слова палитры.
 ENTRIES: tuple[NavEntry, ...] = (
-    # Sortiment (рендерится на страницах каталога; якорь — «Angebote»).
-    _e("catalog", "sellable-manage", _("Angebote"), "sellables", search="übersicht alle"),
+    # Sortiment (рендерится на страницах каталога; якорь — «Sortiment»).
+    # X4 (глоссарий §6.A4.4): подпись «Angebote» освободила слово для оферты
+    # клиенту (Sofort-Angebot / смета Handwerker) — раздел товаров зовётся
+    # «Sortiment» и в якоре, и в табе.
+    _e("catalog", "sellable-manage", _("Sortiment"), "sellables", search="übersicht alle angebote"),
     _e(
         "catalog",
         "catalog:product-list",
@@ -128,7 +171,9 @@ ENTRIES: tuple[NavEntry, ...] = (
     ),
     _e("catalog", "catalog:category-list", _("Kategorien"), "categories", "catalog"),
     # SM-4 (решение владельца): каталожные страницы — тот же компакт-бар, что на
-    # «Angebote»: main Angebote·Produkte·Kategorien, остальное — в «Erweitert».
+    # «Sortiment»: main Sortiment·Produkte·Kategorien, остальное — в «Erweitert».
+    # X4: складская группа осталась в ящике таб-бара, но ушла из ПОДПУНКТОВ
+    # сайдбара (sidebar=False) — там место сущностям архетипа, а не учёту.
     _e(
         "catalog",
         "stock",
@@ -137,6 +182,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "catalog",
         True,
         "bestand inventur meldebestand",
+        sidebar=False,
     ),
     _e(
         "catalog",
@@ -146,9 +192,19 @@ ENTRIES: tuple[NavEntry, ...] = (
         "catalog",
         True,
         "lieferanten bestellung",
+        sidebar=False,
     ),
-    _e("catalog", "catalog:combo-list", _("Kombi"), "combos", "catalog", True),
-    _e("catalog", "imports:start", _("Import"), "imports", "catalog", True, "csv excel"),
+    _e("catalog", "catalog:combo-list", _("Kombi"), "combos", "catalog", True, sidebar=False),
+    _e(
+        "catalog",
+        "imports:start",
+        _("Import"),
+        "imports",
+        "catalog",
+        True,
+        "csv excel",
+        sidebar=False,
+    ),
     _e(
         "catalog",
         "collections:list",
@@ -159,9 +215,9 @@ ENTRIES: tuple[NavEntry, ...] = (
         "podborki lookbook",
     ),
     # Verkäufe (W-CL): board/календари/список покрыты единой страницей — остаток W10.
-    _e("board", "events:list", _("Tickets"), "events", "events", search="veranstaltungen"),
-    # MT-1: тур-продукт (контент + маршрут + заезды) — рядом с билетами, тот же модуль.
-    _e("board", "events:tour-list", _("Reisen"), "tours", "events", search="touren reisen route"),
+    # Хаб как ТАБ-БАР не рендерится (W10-3): записи живут ради палитры, подсветки
+    # и подпунктов сайдбара. X4: события/туры переехали в «Sortiment» (сущность),
+    # здесь остались сделки и рабочие входы дня.
     _e(
         "board",
         "jobs:list",
@@ -170,11 +226,53 @@ ENTRIES: tuple[NavEntry, ...] = (
         "jobs",
         search="anfragen kostenvoranschlag angebote",
     ),
+    # X4 (§6.A4.2): рабочие входы дня — ПЕРВЫМИ подпунктами «Verkäufe»; отчётная
+    # группа (Auswertungen/Finanzen/Berichte) осталась, но ниже.
+    _e(
+        "board",
+        "booking:resources",
+        _("Öffnungszeiten & Ressourcen"),
+        "booking",
+        "booking",
+        True,
+        "zeiten mitarbeiter tische ressourcen slots",
+    ),
+    _e(
+        "board",
+        "booking:availability",
+        _("Tage blockieren"),
+        "booking",
+        "booking",
+        True,
+        "urlaub feiertag sperren verfügbarkeit",
+    ),
+    _e(
+        "board",
+        "stays:checkins",
+        _("Check-ins"),
+        "stays",
+        "stays",
+        True,
+        "meldeschein anreise online-checkin",
+    ),
+    # X4 (§6.A4.5): KDS — гастро-экран; раньше кнопка висела у любого архетипа
+    # с модулем orders (парикмахер видел «Kitchen Display»).
+    _e(
+        "board",
+        "orders:kitchen",
+        _("Kitchen Display"),
+        "orders",
+        "orders",
+        True,
+        "küche kds bon",
+        business_types=FOOD_TYPES,
+    ),
     # SM-4 (решение владельца 2026-08-11): отчёты и настройки процессов — подпункты
     # раздела «Verkäufe» в сайдбаре (advanced board-хаба; сам hub_tabs "board" не
     # рендерится). Auswertungen/Finanzen ПЕРЕЕХАЛИ из settings-хаба; Berichte —
     # бывший сирота stays:reports; Abläufe — дубль-запись (таб Einstellungen жив,
     # прецедент sellables/catalog; палитра дедупит по url_name).
+    _e("board", "ablaeufe", _("Abläufe"), "ablaeufe", None, True, "status übergänge spalten"),
     _e(
         "board",
         "promotions:analytics",
@@ -202,7 +300,54 @@ ENTRIES: tuple[NavEntry, ...] = (
         True,
         "belegung adr revpar auslastung",
     ),
-    _e("board", "ablaeufe", _("Abläufe"), "ablaeufe", None, True, "status übergänge spalten"),
+    # X4: бывшие СИРОТЫ поверхности продаж — вход через Ctrl+K (в таб-бар и
+    # сайдбар не идут: palette_only). Классификация — x4-navigation-plan §4.
+    _e(
+        "board",
+        "promotions:reservation-list",
+        _("Reservierungen"),
+        "reservations",
+        "promotions",
+        search="reservierung abholung",
+        palette_only=True,
+    ),
+    _e(
+        "board",
+        "finance:invoices",
+        _("Rechnungen"),
+        "finance",
+        "finance",
+        search="rechnung invoice beleg",
+        palette_only=True,
+    ),
+    _e(
+        "board",
+        "jobs:anfrage-form-settings",
+        _("Anfrage-Formular"),
+        "jobs",
+        "jobs",
+        search="formular felder anfrage",
+        palette_only=True,
+    ),
+    _e(
+        "board",
+        "stays:channels",
+        _("Channel Manager"),
+        "stays",
+        "stays",
+        search="ota booking airbnb kanäle",
+        palette_only=True,
+    ),
+    _e(
+        "board",
+        "orders:table-qr",
+        _("Tisch-QR"),
+        "orders",
+        "orders",
+        search="tisch qr code gastro",
+        palette_only=True,
+        business_types=FOOD_TYPES,
+    ),
     # Marketing.
     _e(
         "marketing",
@@ -233,6 +378,16 @@ ENTRIES: tuple[NavEntry, ...] = (
     # («Ruf & Dialog»), Telegram остаётся в Erweitert.
     _e("marketing", "crm:customer-list", _("Kontakte"), "crm", "crm", search="kunden crm"),
     _e("marketing", "inbox:list", _("Nachrichten"), "inbox", "inbox", search="chat posteingang"),
+    # X4: корпоративные клиенты (CO-1) — экран был сиротой, вход через Ctrl+K.
+    _e(
+        "marketing",
+        "crm:company-list",
+        _("Firmen"),
+        "crm",
+        "crm",
+        search="firmen unternehmen b2b konten",
+        palette_only=True,
+    ),
     # W10-2+решение 4а (2026-08-06): Reservierungen — вкладка Verkäufe («с первой
     # продажей»); дубль из Marketing/Erweitert убран (одна поверхность).
     _e("marketing", "promotions:redeem", _("Einlösen"), "redeem", "promotions", True, "qr scan"),
@@ -266,15 +421,82 @@ ENTRIES: tuple[NavEntry, ...] = (
         True,
         "rundschreiben e-mail",
     ),
-    # Angebote-хаб (Sortiment-страницы дублем в Erweitert).
-    _e("sellables", "sellable-manage", _("Angebote"), "sellables", search="übersicht alle"),
+    # Sortiment-хаб (X4: сущности архетипа — то, что бизнес ПРОДАЁТ). Порядок
+    # записей = порядок подпунктов якоря «Sortiment» в сайдбаре.
+    _e(
+        "sellables",
+        "sellable-manage",
+        _("Sortiment"),
+        "sellables",
+        search="übersicht alle angebote",
+    ),
     _e("sellables", "catalog:product-list", _("Produkte"), "catalog", "catalog", True),
+    # X4: бывшие сироты — сущности НЕтоварных архетипов. У салона в подпунктах
+    # «Sortiment» висел склад, а «Leistungen» не было вовсе (исследование §3).
+    _e(
+        "sellables",
+        "booking:services",
+        _("Leistungen"),
+        "services",
+        "booking",
+        True,
+        "dienstleistung termin preise dauer",
+    ),
+    _e(
+        "sellables",
+        "stays:units",
+        _("Zimmer & Preise"),
+        "units",
+        "stays",
+        True,
+        "zimmer unterkunft tarife saison",
+    ),
+    # X4 (глоссарий): «Tickets» осталось за вкладкой СДЕЛОК в Verkäufe — сущность
+    # зовётся «Veranstaltungen» (событие продаётся билетами, но это не билет).
+    _e(
+        "sellables",
+        "events:list",
+        _("Veranstaltungen"),
+        "events",
+        "events",
+        True,
+        "events tickets kurse termine",
+    ),
+    _e(
+        "sellables",
+        "events:tour-list",
+        _("Reisen"),
+        "tours",
+        "events",
+        True,
+        "touren reisen route",
+    ),
     _e("sellables", "catalog:category-list", _("Kategorien"), "categories", "catalog", True),
-    _e("sellables", "stock", _("Lager"), "stock", "catalog", True),
-    _e("sellables", "purchasing", _("Einkauf"), "purchasing", "catalog", True),
-    _e("sellables", "catalog:combo-list", _("Kombi"), "combos", "catalog", True),
-    _e("sellables", "imports:start", _("Import"), "imports", "catalog", True),
     _e("sellables", "collections:list", _("Kollektionen"), "collections", None, True),
+    # Складская группа: ящик «Erweitert» таб-бара, но НЕ подпункты сайдбара.
+    _e("sellables", "stock", _("Lager"), "stock", "catalog", True, sidebar=False),
+    _e("sellables", "purchasing", _("Einkauf"), "purchasing", "catalog", True, sidebar=False),
+    _e("sellables", "catalog:combo-list", _("Kombi"), "combos", "catalog", True, sidebar=False),
+    _e("sellables", "imports:start", _("Import"), "imports", "catalog", True, sidebar=False),
+    # X4: сироты-сущности — вход через Ctrl+K (x4-navigation-plan §4).
+    _e(
+        "sellables",
+        "booking:passes",
+        _("Karten & Abos"),
+        "passes",
+        "booking",
+        search="10er-karte abo pass mitgliedschaft",
+        palette_only=True,
+    ),
+    _e(
+        "sellables",
+        "events:teacher-list",
+        _("Gastgeber"),
+        "events",
+        "events",
+        search="trainer kursleiter guide gastgeber",
+        palette_only=True,
+    ),
     # W11-1: хаб «Kunden» удалён (Р-2) — страницы crm/inbox/telegram рендерят
     # marketing-хаб («молчаливая подмена таб-бара» умерла).
     # Einstellungen (W9-1: «базовые + по типам»; порядок = целевая структура §2.3).
@@ -343,6 +565,17 @@ ENTRIES: tuple[NavEntry, ...] = (
         "integrations",
         search="google bewertungen sterne rating place id",
     ),
+    # X4: экран статуса приёма оплат (Stripe Connect) был сиротой — вход из
+    # Integrationen-карточки существовал, в реестре записи не было.
+    _e(
+        "settings",
+        "billing-payments",
+        _("Zahlungen empfangen"),
+        "billing",
+        search="stripe connect auszahlung konto verbinden",
+        owner_only=True,
+        palette_only=True,
+    ),
     _e(
         "settings",
         "billing",
@@ -386,15 +619,35 @@ HUBS: tuple[str, ...] = ("catalog", "board", "marketing", "sellables", "settings
 
 def legacy_hub_tabs() -> dict:
     """Производный реестр в форме легаси-кортежей cabinet.HUB_TABS
-    (url_name, label, nav_key, module_key, advanced) — потребители/замки целы."""
+    (url_name, label, nav_key, module_key, advanced) — потребители/замки целы.
+    X4: palette_only-записи (бывшие сироты) в таб-бары не попадают — их вход
+    только Ctrl+K."""
     return {
         hub: tuple(
             (e.url_name, e.label, e.nav_key, e.module_key, e.advanced)
             for e in ENTRIES
-            if e.hub == hub
+            if e.hub == hub and not e.palette_only
         )
         for hub in HUBS
     }
+
+
+def business_types_for(url_name: str) -> tuple[str, ...]:
+    """X4: гейт записи по типу бизнеса ("" — гейта нет). Потребители: hub_tabs,
+    nav_palette, sidebar_nav (у всех есть tenant)."""
+    for e in ENTRIES:
+        if e.url_name == url_name and e.business_types:
+            return e.business_types
+    return ()
+
+
+def allowed_for_business(url_name: str, tenant) -> bool:
+    """True — запись показывается этому тенанту (гейт business_types).
+    Fail-open без тенанта (тест-рендеры без запроса)."""
+    types = business_types_for(url_name)
+    if not types or tenant is None:
+        return True
+    return (getattr(tenant, "business_type", "") or "") in types
 
 
 # --- Карта подсветки: nav_key страницы → nav_key якоря сайдбара ---------------
@@ -466,7 +719,9 @@ def sidebar_children(anchor) -> list[NavEntry]:
     seen, out = set(), []
     for hub in anchor.hubs:
         for e in ENTRIES:
-            if e.hub == hub and e.advanced and e.url_name not in seen:
+            if not (e.advanced and e.sidebar and not e.palette_only):
+                continue  # X4: ящик «Erweitert» ≠ подпункты сайдбара (склад/сироты)
+            if e.hub == hub and e.url_name not in seen:
                 seen.add(e.url_name)
                 out.append(e)
     return out

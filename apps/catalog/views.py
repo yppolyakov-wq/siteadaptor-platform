@@ -15,6 +15,7 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.core.archetypes import FOOD_BUSINESS_TYPES as _FOOD_BUSINESS_TYPES
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
 from apps.inventory.services import log_catalog_change
 
@@ -34,10 +35,10 @@ from .option_styles import MODIFIER_STYLE_KEYS, MODIFIER_STYLES, VARIANT_STYLES
 
 # W2: пищевая маркировка (аллергены/добавки/диеты/происхождение) осмысленна только у
 # гастро/еды — секция формы товара показывается только этим архетипам (у прочих скрыта
-# CSS-ом, поля остаются в форме → Save их не стирает).
-FOOD_BUSINESS_TYPES = frozenset(
-    {"bakery", "butcher", "grocery", "restaurant", "cafe", "catering"}  # GK-1: Speisekarte
-)
+# CSS-ом, поля остаются в форме → Save их не стирает). X4: источник переехал в
+# apps/core/archetypes.py (его же читает навигация); имя здесь сохранено —
+# на него ссылаются public_views/siteui/тесты.
+FOOD_BUSINESS_TYPES = _FOOD_BUSINESS_TYPES
 # M1 Boutique: типы с текстильной маркировкой (Textilkennzeichnung EU 1007/2011).
 TEXTILE_BUSINESS_TYPES = frozenset({"clothing"})
 

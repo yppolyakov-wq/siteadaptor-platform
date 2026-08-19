@@ -3,11 +3,15 @@
 `scripts/i18n_gap.py` гоняет `makemessages`, которому нужен xgettext — в дев-
 контейнере его нет, поэтому недостающие msgid ловил только CI (дважды за волну
 «Кабинет-X»). Этот скрипт разбирает `{% trans "…" %}` / `{% blocktrans %}…`
-регулярками: он НЕ заменяет гейт CI (не видит Python-строки и plural-формы),
-но ловит самый частый случай — новую строку в шаблоне без записи в каталогах.
+регулярками, плюс литералы `_("…")` / `gettext…("…")` в Python. Он НЕ заменяет
+гейт CI (не знает plural-форм и контекстов), но ловит самый частый случай —
+новую строку без записи в каталогах.
+
+X4: сканирование .py добавлено после того, как six новых меток реестра
+навигации прошли мимо шаблонной проверки (скрипт смотрел только templates/).
 
 Запуск: `uv run python scripts/i18n_quickcheck.py [файлы…]` (по умолчанию —
-изменённые в рабочем дереве шаблоны).
+изменённые в рабочем дереве шаблоны и Python-модули).
 """
 
 from __future__ import annotations
@@ -21,6 +25,9 @@ ROOT = Path(__file__).resolve().parent.parent
 LOCALES = ("de", "en", "tr", "ru", "uk")
 TRANS = re.compile(r"{%\s*trans\s+([\"'])(.+?)\1")
 BLOCKTRANS = re.compile(r"{%\s*blocktrans[^%]*%}(.*?){%\s*endblocktrans\s*%}", re.S)
+# Python: _("…") / gettext("…") / gettext_lazy("…") — ТОЛЬКО строковый литерал
+# в одинарных кавычках без конкатенации (f-строки xgettext и так не берёт).
+PY_TRANS = re.compile(r"\b(?:_|gettext|gettext_lazy|pgettext|ngettext)\(\s*([\"'])(.+?)\1\s*[,)]")
 
 
 def po_msgids(locale: str) -> set[str]:
@@ -39,26 +46,35 @@ def po_msgids(locale: str) -> set[str]:
     return ids
 
 
-def changed_templates() -> list[Path]:
+def changed_sources() -> list[Path]:
     out = subprocess.run(
-        ["git", "diff", "--name-only", "HEAD", "--", "templates"],
+        ["git", "diff", "--name-only", "HEAD", "--", "templates", "apps", "config"],
         capture_output=True,
         text=True,
         cwd=ROOT,
     ).stdout.split()
-    return [ROOT / p for p in out if p.endswith(".html")]
+    return [
+        ROOT / p
+        for p in out
+        if (p.endswith(".html") or p.endswith(".py"))
+        and "/migrations/" not in p
+        and "/tests/" not in p
+    ]
 
 
 def main(argv: list[str]) -> int:
-    files = [Path(a) for a in argv[1:]] or changed_templates()
+    files = [Path(a) for a in argv[1:]] or changed_sources()
     if not files:
-        print("i18n-quickcheck: изменённых шаблонов нет")
+        print("i18n-quickcheck: изменённых исходников нет")
         return 0
     wanted: set[str] = set()
     for f in files:
         if not f.exists():
             continue
         src = f.read_text(encoding="utf-8")
+        if f.suffix == ".py":
+            wanted |= {m.group(2) for m in PY_TRANS.finditer(src) if "\\" not in m.group(2)}
+            continue
         wanted |= {m.group(2) for m in TRANS.finditer(src)}
         # blocktrans с плейсхолдерами {{ x }} — сверяем только форму без них
         for m in BLOCKTRANS.finditer(src):
@@ -74,7 +90,7 @@ def main(argv: list[str]) -> int:
         if gap:
             missing[loc] = gap
     if not missing:
-        print(f"i18n-quickcheck: ок ({len(wanted)} msgid из {len(files)} шаблонов)")
+        print(f"i18n-quickcheck: ок ({len(wanted)} msgid из {len(files)} файлов)")
         return 0
     for loc, gap in missing.items():
         print(f"{loc}: нет в .po — {len(gap)}")

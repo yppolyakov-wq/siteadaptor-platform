@@ -18902,3 +18902,39 @@ msgstr "Ciro"
 #. X3: компактная полоса дня
 msgid "WhatsApp-Nummer fehlt"
 msgstr "WhatsApp numarası eksik"
+
+#: apps/core/nav_registry.py
+msgid "Rechnungen"
+msgstr "Faturalar"
+
+#: apps/core/nav_registry.py
+msgid "Karten & Abos"
+msgstr "Kartlar ve abonelikler"
+
+#: apps/core/nav_registry.py
+msgid "Channel Manager"
+msgstr "Kanal yöneticisi"
+
+#: apps/core/nav_registry.py
+msgid "Firmen"
+msgstr "Firmalar"
+
+#: apps/core/nav_registry.py
+msgid "Gastgeber"
+msgstr "Ev sahipleri"
+
+#: apps/core/nav_registry.py
+msgid "Tisch-QR"
+msgstr "Masa QR"
+
+#: apps/core/nav_registry.py
+msgid "Zahlungen empfangen"
+msgstr "Ödeme al"
+
+#: apps/core/nav_registry.py
+msgid "Kostenvoranschlag PDF"
+msgstr "Teklif PDF"
+
+#: apps/core/nav_registry.py
+msgid "Noch nichts im Sortiment — oben „＋“ wählen, um den ersten Eintrag anzulegen."
+msgstr "Ürün yelpazenizde henüz bir şey yok — ilk kaydı oluşturmak için yukarıdaki „＋“ düğmesini kullanın."

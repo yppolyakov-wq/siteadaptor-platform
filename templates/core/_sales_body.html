@@ -27,8 +27,12 @@ active_kind). Извлечено 1:1 из core/verkaeufe.html, чтобы ГЛА
       <input type="search" name="q" value="{{ order_q }}" placeholder="{% trans 'Suche: Code, Name, E-Mail' %}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm w-56">
       <button type="submit" class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
     </form>
+    {% comment %}X4: гастро-инструменты только гастро-типам (гейт is_food) —
+    парикмахеру/мастерской «Kitchen Display» показывать нечего.{% endcomment %}
+    {% if is_food %}
     <a href="{% url 'orders:kitchen' %}" class="rounded-lg bg-gray-800 text-white px-3 py-2 text-sm font-medium hover:bg-gray-900">🍳 {% trans "Kitchen Display" %}</a>
     <a href="{% url 'orders:table-qr' %}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium hover:bg-gray-50">🪑 {% trans "Table QR codes" %}</a>
+    {% endif %}
   </div>
   {% include "orders/_order_rows.html" %}
   {# W10-6: «Alte Ansicht» убрана — orders:order-list теперь 302 сюда же #}

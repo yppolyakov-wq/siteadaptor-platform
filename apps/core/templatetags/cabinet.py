@@ -88,6 +88,8 @@ def hub_tabs(context, hub):
             continue
         if u in owner_hidden:
             continue
+        if not nav_registry.allowed_for_business(u, tenant):
+            continue  # X4: гастро-экраны (KDS/Tisch-QR) — только гастро-типам
         entry = {"url_name": u, "label": lbl, "nav_key": k, "active": k == cur, "module": mod}
         (more if advanced else tabs).append(entry)
     more_active = any(t["active"] for t in more)
@@ -109,6 +111,8 @@ def nav_palette(context):
             continue
         if e["url_name"] in owner_hidden:  # X0: сотрудник не видит owner-only экраны
             continue
+        if not nav_registry.allowed_for_business(e["url_name"], tenant):
+            continue  # X4: гейт по типу бизнеса (гастро-экраны)
         entries.append(
             {
                 "url_name": e["url_name"],
