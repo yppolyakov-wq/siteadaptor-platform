@@ -1,0 +1,43 @@
+{% load i18n %}
+{% comment %}X3: тело единой страницы продаж — диспетчер по (active_view,
+active_kind). Извлечено 1:1 из core/verkaeufe.html, чтобы ГЛАВНАЯ кабинета могла
+показывать ту же рабочую петлю архетипа (вариант B плана cabinet-cleanup).
+Контекст готовит `sales_page.body_context()` — один источник для обеих страниц.{% endcomment %}
+{% if active_view == "heute" %}
+  {% include "core/_sales_heute.html" %}
+{% elif active_view == "kalender" and active_kind == "stay" %}
+  {% include "stays/_belegungsplan_body.html" %}
+{% elif active_view == "kalender" and active_kind == "booking" %}
+  {% include "booking/_tagesplan_body.html" %}
+{% elif active_view == "kalender" and active_kind == "order" %}
+  {% include "orders/_auftragsbuch_body.html" %}
+{% elif active_view == "board" %}
+  {% include "core/_board_body.html" %}
+{% elif active_kind == "order" %}
+  {# W10-3: паритет с легаси-списком — фильтр статуса, поиск, входы KDS/QR #}
+  <div class="flex flex-wrap items-center gap-2 mb-3">
+    <form method="get" class="flex flex-wrap items-center gap-2">
+      <input type="hidden" name="tab" value="order">
+      <select name="status" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <option value="">{% trans "All statuses" %}</option>
+        {% for value, label in order_statuses %}
+          <option value="{{ value }}" {% if order_status == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <input type="search" name="q" value="{{ order_q }}" placeholder="{% trans 'Suche: Code, Name, E-Mail' %}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm w-56">
+      <button type="submit" class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
+    </form>
+    <a href="{% url 'orders:kitchen' %}" class="rounded-lg bg-gray-800 text-white px-3 py-2 text-sm font-medium hover:bg-gray-900">🍳 {% trans "Kitchen Display" %}</a>
+    <a href="{% url 'orders:table-qr' %}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium hover:bg-gray-50">🪑 {% trans "Table QR codes" %}</a>
+  </div>
+  {% include "orders/_order_rows.html" %}
+  {# W10-6: «Alte Ansicht» убрана — orders:order-list теперь 302 сюда же #}
+{% else %}
+  {% include "core/_sales_liste.html" %}
+{% endif %}
+{# W10-3b: входы в полные управляющие экраны tickets/jobs (аудит: «выпали из новой навигации») #}
+{% if active_kind == "ticket" %}
+  <p class="mt-3 text-sm text-gray-400"><a href="{% url 'events:list' %}" class="hover:underline">{% trans "Alte Ansicht" %} →</a></p>
+{% elif active_kind == "job" %}
+  <p class="mt-3 text-sm text-gray-400"><a href="{% url 'jobs:list' %}" class="hover:underline">{% trans "Alte Ansicht" %} →</a></p>
+{% endif %}

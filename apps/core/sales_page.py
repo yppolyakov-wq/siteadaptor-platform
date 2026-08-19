@@ -295,3 +295,64 @@ def view_descriptors(tenant, kind: str, active_view: str) -> list[dict]:
         }
         for view in KIND_VIEWS.get(kind, ("board",))
     ]
+
+
+def body_context(request, kind: str, view: str) -> dict:
+    """X3: контекст ТЕЛА поверхности продаж (движок по (view, kind)).
+
+    Один источник для страницы `Verkäufe` и для главной кабинета, которая
+    показывает ту же рабочую петлю архетипа (вариант B плана cabinet-cleanup).
+    Возвращает dict; для stay-календаря может вернуть HttpResponse — это
+    fetch-фрагмент карточки брони (`?box=1`), вызывающий обязан его отдать.
+    """
+    from apps.core import transactions
+
+    tenant = request.tenant
+    ctx: dict = {}
+    if view == "heute":
+        ctx["heute_columns"] = heute_columns(tenant)
+    elif view == "kalender" and kind == "stay":
+        from apps.stays.views import calendar_context as stays_calendar_context
+
+        sub = stays_calendar_context(request)
+        if not isinstance(sub, dict):  # ?box=1 — fetch-фрагмент карточки брони
+            return sub
+        ctx = {**sub, **ctx}
+    elif view == "kalender" and kind == "booking":
+        from apps.booking.views import calendar_context as booking_calendar_context
+
+        ctx = {**booking_calendar_context(request), **ctx}
+    elif view == "kalender" and kind == "order":  # V3: Auftragsbuch
+        from apps.orders.views import auftragsbuch_context
+
+        ctx = {**auftragsbuch_context(request), **ctx}
+    elif view == "board":
+        ctx["sections"] = transactions.manage_sections_for(tenant, only=kind)
+    elif kind == "order":  # Liste заказов — богатые строки списка orders
+        from django.db.models import Q
+
+        from apps.orders.models import Order
+
+        # W10-3: паритет с /dashboard/orders/ — фильтр статуса + поиск (код/имя/
+        # email); deep-link «Abholbereit» главной ведёт сюда (?status=ready).
+        qs = Order.objects.select_related("customer").prefetch_related("items")
+        status = request.GET.get("status", "")
+        if status:
+            qs = qs.filter(status=status)
+        q = (request.GET.get("q") or "").strip()
+        if q:
+            qs = qs.filter(
+                Q(reference_code__icontains=q)
+                | Q(customer__name__icontains=q)
+                | Q(customer__email__icontains=q)
+            )
+        ctx["orders"] = qs[:200]
+        ctx["order_statuses"] = Order.STATUSES
+        ctx["order_status"] = status
+        ctx["order_q"] = q
+    else:  # generic Liste по нормализованным транзакциям kind
+        # W7c: список — по дате СОБЫТИЯ (заезд/начало), не по дате создания:
+        # «сегодняшние брони» иначе тонули под старыми, созданными позже.
+        sections = transactions.manage_sections_for(tenant, limit=200, only=kind, event_order=True)
+        ctx["section"] = sections[0] if sections else None
+    return ctx

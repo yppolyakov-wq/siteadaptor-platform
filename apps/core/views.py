@@ -3234,7 +3234,7 @@ def verkaeufe(request):
     (неактивные вкладки не запрашиваются вовсе)."""
     from django.urls import reverse
 
-    from apps.core import sales_page, transactions
+    from apps.core import sales_page
 
     tenant = request.tenant
     kinds = sales_page.visible_kinds(tenant) or ["order"]
@@ -3261,54 +3261,12 @@ def verkaeufe(request):
         "active_view": view,
         "create_target": create_target,
     }
-    if view == "heute":
-        ctx["heute_columns"] = sales_page.heute_columns(tenant)
-    elif view == "kalender" and active == "stay":
-        from apps.stays.views import calendar_context as stays_calendar_context
-
-        sub = stays_calendar_context(request)
-        if not isinstance(sub, dict):  # ?box=1 — fetch-фрагмент карточки брони
-            return sub
-        ctx = {**sub, **ctx}
-    elif view == "kalender" and active == "booking":
-        from apps.booking.views import calendar_context as booking_calendar_context
-
-        ctx = {**booking_calendar_context(request), **ctx}
-    elif view == "kalender" and active == "order":  # V3: Auftragsbuch
-        from apps.orders.views import auftragsbuch_context
-
-        ctx = {**auftragsbuch_context(request), **ctx}
-    elif view == "board":
-        ctx["sections"] = transactions.manage_sections_for(tenant, only=active)
-    elif active == "order":  # Liste заказов — богатые строки списка orders
-        from django.db.models import Q
-
-        from apps.orders.models import Order
-
-        # W10-3: паритет с /dashboard/orders/ — фильтр статуса + поиск (код/имя/
-        # email); deep-link «Abholbereit» главной ведёт сюда (?status=ready).
-        qs = Order.objects.select_related("customer").prefetch_related("items")
-        status = request.GET.get("status", "")
-        if status:
-            qs = qs.filter(status=status)
-        q = (request.GET.get("q") or "").strip()
-        if q:
-            qs = qs.filter(
-                Q(reference_code__icontains=q)
-                | Q(customer__name__icontains=q)
-                | Q(customer__email__icontains=q)
-            )
-        ctx["orders"] = qs[:200]
-        ctx["order_statuses"] = Order.STATUSES
-        ctx["order_status"] = status
-        ctx["order_q"] = q
-    else:  # generic Liste по нормализованным транзакциям kind
-        # W7c: список — по дате СОБЫТИЯ (заезд/начало), не по дате создания:
-        # «сегодняшние брони» иначе тонули под старыми, созданными позже.
-        sections = transactions.manage_sections_for(
-            tenant, limit=200, only=active, event_order=True
-        )
-        ctx["section"] = sections[0] if sections else None
+    # X3: тело поверхности строит ОБЩАЯ функция — её же зовёт главная кабинета
+    # (одна петля архетипа, один источник контекста).
+    sub = sales_page.body_context(request, active, view)
+    if not isinstance(sub, dict):  # ?box=1 — fetch-фрагмент карточки брони
+        return sub
+    ctx = {**sub, **ctx}
     return render(request, "core/verkaeufe.html", ctx)
 
 
