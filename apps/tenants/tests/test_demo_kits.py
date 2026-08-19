@@ -1511,3 +1511,63 @@ def test_catering_menu_sets_seeded_with_three_modes():
     # демо-сидер; словари demo_i18n_<loc>.json знают 9 новых комментариев).
     sample = Review.objects.filter(entity_kind="combo").first()
     assert sample.comment_i18n.get("en"), "демо-отзыв набора без en-перевода"
+
+
+# --- решение владельца 2026-08-19: демо-кит пропускает мастер ------------------
+
+
+def test_kit_marks_wizard_complete_and_dashboard_opens(monkeypatch, settings):
+    """Свежий демо-тенант обязан открываться КАБИНЕТОМ, а не мастером.
+
+    Раньше сидер не трогал онбординг, состояние оставалось «нетронутым», и
+    AB5-редирект уводил в /dashboard/setup/ (вскрыто серверным обходом 2026-08-19).
+    """
+    import uuid
+
+    from django.contrib.auth import get_user_model
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.core import views as core_views
+    from apps.tenants import onboarding
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    kit = demo_kits.DemoKit(
+        key="wizardtest",
+        label="Wizard-Test",
+        business_type="restaurant",
+        accent="#16a34a",
+        hero_image_kw="shop",
+        hero_title="Test",
+        hero_text="Test",
+        categories=[({"de": "Shop"}, "shop", [_p_simple("Brot")])],
+    )
+    monkeypatch.setitem(demo_kits.KITS, kit.key, kit)
+    tenant = _tenant()
+    assert demo_kits.apply_kit(tenant, kit.key) is True
+
+    tenant.refresh_from_db()  # пометка обязана лежать в БД, а не только в памяти
+    state = onboarding.get_state(tenant)
+    assert state["completed"] is True
+    assert state["skipped"] == []  # не «брошен», а пройден
+
+    req = RequestFactory().get("/dashboard/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.tenant = tenant
+    req.user = get_user_model().objects.create_user(
+        username=f"w-{uuid.uuid4().hex[:8]}",
+        email=f"w-{uuid.uuid4().hex[:8]}@t.de",
+        password="pw12345678",
+    )
+    resp = core_views.dashboard(req)
+    assert resp.status_code == 200, "демо-тенант не должен уводить в мастер"
+
+
+def test_every_kit_defines_opening_hours():
+    """Часы работы — единственный пункт чек-листа главной ВНЕ шагов мастера
+    (считается по факту). Кит без часов оставлял бы демо-кабинет с вечно
+    неполной готовностью — так и было у `moto` до сверки 2026-08-19."""
+    missing = [k for k, kit in demo_kits.KITS.items() if not kit.opening_hours_text]
+    assert missing == [], f"киты без часов работы: {missing}"

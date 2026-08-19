@@ -5108,6 +5108,10 @@ MOTO = DemoKit(
         "anfrage": "Ab vier Fahrern fahren wir jede Route privat. Sagen Sie uns "
         "Wunschtermin und Gruppengröße — wir melden uns mit einem Angebot.",
     },
+    # Часы работы офиса: без них чек-лист готовности главной честно оставался
+    # неполным у ЕДИНСТВЕННОГО кита без часов (сверка 2026-08-19).
+    opening_hours_text="Büro: Mo–Fr 10:00–18:00 · Touren saisonal",
+    opening_hours={d: ("10:00", "18:00") for d in range(5)},
     hero_image_kw="motorcycle,mountain",
     hero_title="Himalaya Riders",
     hero_text="Geführte Motorradreisen durch Indien und Nepal — kleine Gruppen, "
@@ -9964,6 +9968,12 @@ def apply_kit(tenant, key: str) -> bool:
         from . import demo_i18n
 
         demo_i18n.translate_tenant_content(tenant, _demo_locales)
+    # Решение владельца 2026-08-19: демо-кит пропускает мастер. Без этого свежий
+    # демо-тенант открывался не кабинетом, а мастером настройки (AB5-редирект на
+    # «нетронутом» состоянии) — вскрыто серверным обходом кабинета.
+    from . import onboarding
+
+    onboarding.mark_complete(tenant)
     return True
 
 

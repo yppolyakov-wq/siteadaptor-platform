@@ -1695,6 +1695,15 @@ Python 3.12, менеджер uv.
   на якоря + «новый экран обязан иметь вход»).
   Уроки: `scripts/i18n_quickcheck.py` — локальная замена CI-гейта i18n (в дев-
   контейнере нет gettext; дважды ронял CI), CI разбит на 3 группы (17 → 9 мин).
+  **Сверка на ВСЕХ архетипах (той же датой):** серверный обход кабинета
+  (`TenantClient`, ссылки из DOM) — 14 архетипов из 14 с демо-китом, 979 экранов,
+  0 проблем; найдены и закрыты два дефекта (палитра вела в `@require_POST` → 405;
+  ссылка на карточку клиента при выключенном CRM → 404) + замок достижимости
+  `test_nav_reachability`. **Решение владельца:** демо-киты ПРОПУСКАЮТ мастер —
+  `apply_kit` зовёт `onboarding.mark_complete` (демо-тенант открывается кабинетом,
+  а не мастером); попутно киту `moto` добавлены часы работы (единственный без них
+  → чек-лист готовности демо не закрывался). ⚠️ ops: пометка приезжает в уже
+  засеянные демо только с `seed_demo_tenants --kit <кит> --recreate`.
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная)** — все аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,

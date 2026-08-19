@@ -122,3 +122,15 @@ def test_events_type_gets_events():
     demo.load_demo(tenant)
     assert Event.objects.count() == 3  # билеты (events primary)
     assert Service.objects.count() == 0
+
+
+def test_load_demo_does_not_complete_wizard():
+    """Демо-контент ВНУТРИ мастера (шаг 1 «🎁 Mit Beispielen starten») не имеет
+    права помечать мастер пройденным — иначе владельца выбросило бы из мастера
+    на первом же шаге. Пометку ставит только `apply_kit` (демо-кит целиком,
+    решение владельца 2026-08-19)."""
+    from apps.tenants import onboarding
+
+    tenant = _tenant("bakery")
+    demo.load_demo(tenant)
+    assert onboarding.get_state(tenant)["completed"] is False
