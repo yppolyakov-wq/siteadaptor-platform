@@ -18777,3 +18777,7 @@ msgstr "Activate Finance"
 #. X3: полоса дня
 msgid "Umsatz"
 msgstr "Revenue"
+
+#. X3: компактная полоса дня
+msgid "WhatsApp-Nummer fehlt"
+msgstr "WhatsApp number missing"

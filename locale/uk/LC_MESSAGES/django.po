@@ -18971,3 +18971,7 @@ msgstr "Увімкнути фінанси"
 #. X3: полоса дня
 msgid "Umsatz"
 msgstr "Виручка"
+
+#. X3: компактная полоса дня
+msgid "WhatsApp-Nummer fehlt"
+msgstr "Не вказано номер WhatsApp"

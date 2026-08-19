@@ -1710,7 +1710,8 @@ Python 3.12, менеджер uv.
   ЦЕЛИКОМ (не точечно — особенно после скриптовых/sed-правок); при новых Tailwind-классах
   в шаблонах — `npm run build:css` и закоммитить `static/css/app.css` (CI-замок свежести);
   при правках шаблонов — прогнать `apps/core/tests/test_template_comments.py` (многострочные
-  `{# #}` запрещены). ⚠️ `ruff format` по ЯВНОМУ пути обходит exclude миграций — старые
+  `{# #}` запрещены) И `uv run python scripts/i18n_quickcheck.py` (новый msgid без записи
+  в `.po` роняет CI-гейт i18n, а сам гейт локально не запускается — нет gettext). ⚠️ `ruff format` по ЯВНОМУ пути обходит exclude миграций — старые
   миграции не переформатировать. `billing/tests/test_tasks.py` виснет локально (среда,
   на CI зелёный) — локально гейтить с `--ignore`. ⚠️ Правки адаптеров
   `SellableEntity` (apps/core/sellable.py) гейтить ВКЛЮЧАЯ `apps/tenants` —
