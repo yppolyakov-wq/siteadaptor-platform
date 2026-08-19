@@ -1853,7 +1853,7 @@ Python 3.12, менеджер uv.
 > **закрыты** — статус см. §3, хронологию — `docs/build-log.md`. Раздел оставлен ради
 > ссылок на планы и рыночную аналитику; **как очередь работ он больше не действует**.
 > Актуальная очередь живёт в `docs/task-catalog.md` и в последних записях §3; открытый
-> бэклог — только owner-gated (Pro-тариф D1, массовый de.po T-1, per-page ДАННЫЕ секций —
+> бэклог — только owner-gated (Pro-тариф D1, per-page ДАННЫЕ секций —
 > вариант B UC2-3) и external-gated (Stripe live, OTA-API, Shopify/Woo, Ads, Push/Wallet —
 > `docs/external-integrations-backlog.md`).
 
