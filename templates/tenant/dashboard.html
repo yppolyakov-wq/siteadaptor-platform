@@ -53,19 +53,9 @@ st4-admin-home-plan §1).{% endcomment %}
 </div>
 {% endif %}
 
-{% comment %}ST-4a: 5 плиток-хабов + «Website → Studio» (SVG-иконсет, тег icon).
-Заменяют прежние task-плитки AB7 (их job-to-be-done — в виджетах и readiness).{% endcomment %}
-{% if hubs %}
-{% load cabinet %}
-<div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
-  {% for h in hubs %}
-    <a href="{% url h.url_name %}" class="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3 hover:ring-1 hover:ring-indigo-300 {% if h.wide %}sm:col-span-1{% endif %}">
-      <span class="text-indigo-600">{% icon h.icon "w-7 h-7" %}</span>
-      <span class="text-sm font-medium text-gray-800">{{ h.label }}</span>
-    </a>
-  {% endfor %}
-</div>
-{% endif %}
+{% comment %}X2a: хаб-плитки удалены — они дублировали сайдбар 1:1 (и под другими
+именами: «Bestellungen» ↔ якорь «Verkäufe»), занимая первый экран главной.
+Уникальным был только вход «Integrationen» — он стал подпунктом «Einstellungen».{% endcomment %}
 
 {% comment %}AB4: чек-лист готовности сайта — мотивация допилить + прямой путь к действию.
 Показываем компактно, пока сайт не на 100%.{% endcomment %}

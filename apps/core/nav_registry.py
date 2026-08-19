@@ -322,12 +322,18 @@ ENTRIES: tuple[NavEntry, ...] = (
     # SM-4: «Website & Domains» переехал в site-хаб (подпункт раздела Website);
     # Finanzen/Auswertungen — в board-хаб (подпункты «Verkäufe»). Настройки слимятся.
     # W9-9 (Р-3): Integrationen — вкладка настроек (был якорь сайдбара).
+    # X2a: advanced=True — запись становится ПОДПУНКТОМ якоря «Einstellungen»
+    # (sidebar_children берёт advanced-состав хабов). Прежде единственным входом
+    # с первого экрана была хаб-плитка главной, которую X2a удаляет как дубль
+    # сайдбара; таб-бар настроек и палитра Ctrl+K остаются как были.
     _e(
         "settings",
         "integrations-home",
         _("Integrationen"),
         "integrations",
-        search="integrationen stripe telegram publishing ota kanäle verbindungen",
+        None,
+        True,
+        "integrationen stripe telegram publishing ota kanäle verbindungen",
     ),
     # GK-11: Google-рейтинг (Places API) — экран в кластере настроек.
     _e(

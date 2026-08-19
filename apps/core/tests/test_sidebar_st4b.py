@@ -175,7 +175,15 @@ def test_sidebar_children_composition():
         "collections:list",
     ]
     sett = [c["url_name"] for c in by_anchor["settings"]]
-    assert sett == ["extras", "modules", "finder-settings", "support:help"]
+    # X2a: «Integrationen» стал подпунктом (был доступен с первого экрана только
+    # хаб-плиткой главной, которую X2a удалил как дубль сайдбара).
+    assert sett == [
+        "integrations-home",
+        "extras",
+        "modules",
+        "finder-settings",
+        "support:help",
+    ]
     # каждый подпункт резолвится (инвариант W8 держит и это, но локально быстрее)
     for children in by_anchor.values():
         for c in children:

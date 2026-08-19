@@ -83,15 +83,9 @@ def test_marketing_hub_has_no_dead_care_nav_key():
 
 
 # --- плитки главной: гейт по модулям (докстринг стал правдой) ------------------
-def test_hub_tiles_drop_marketing_when_promotions_disabled():
-    keys = [t["key"] for t in dash.hub_tiles(_tenant(disabled=["promotions"]))]
-    assert "marketing" not in keys
-    assert "settings" in keys and "website" in keys
-
-
-def test_hub_tiles_keep_marketing_when_active():
-    keys = [t["key"] for t in dash.hub_tiles(_tenant())]
-    assert "marketing" in keys
+# X2a: хаб-плитки главной удалены (дубль сайдбара) — гейт «Marketing без
+# promotions» держат замки сайдбара (test_sidebar_st4b, test_x0_x7_locks);
+# прежние два теста проверяли builder удалённой функции.
 
 
 # --- Marketing-Puls: ссылка не ведёт в 404 -------------------------------------

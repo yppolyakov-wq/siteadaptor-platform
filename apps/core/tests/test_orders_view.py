@@ -14,7 +14,6 @@ from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
-from apps.core import dashboard as dash
 from apps.core import orders_view as ov
 from apps.core import views as core_views
 from apps.tenants import siteconfig
@@ -129,10 +128,5 @@ def test_verkaeufe_view_switch_preserves_get_params():
     assert resp["Location"].startswith("/dashboard/verkaeufe/")
 
 
-def test_hub_tile_orders_always_unified_page():
-    # W-CL: плитка «Bestellungen» всегда ведёт на единую страницу продаж.
-    t = TenantFactory(
-        slug="ovh", name="OvH", disabled_modules=["events", "stays", "booking", "jobs"]
-    )
-    tiles = dash.hub_tiles(t)
-    assert tiles[0]["key"] == "orders" and tiles[0]["url_name"] == "verkaeufe"
+# X2a: плитка «Bestellungen» удалена (дубль якоря «Verkäufe» под другим именем);
+# entry_url_name остаётся под замками test_verkaeufe/test_orders_view выше.

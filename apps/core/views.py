@@ -139,7 +139,6 @@ def dashboard(request):
             # ST-4a: виджеты «что сегодня» + 5 хаб-плиток.
             # Прежние task-плитки AB7 заменены (dashboard_tiles остаётся для истории).
             "widgets": dash.home_widgets(request.tenant),
-            "hubs": dash.hub_tiles(request.tenant),
             "sections": sections,  # AB7-B2: канбан на главной
             "active_kind": kinds[0] if kinds else "",
             # Отель/услуги: календарь — главный вид продаж (вход первым).

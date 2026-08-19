@@ -13,7 +13,6 @@ from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
-from apps.core import dashboard as dash
 from apps.core import marketing_home as mh
 from apps.core import views as core_views
 from apps.tenants.tests.factories import TenantFactory
@@ -85,7 +84,5 @@ def test_reminder_overview_includes_winback_row():
     assert wb is not None and wb["active"] is True
 
 
-def test_hub_tile_marketing_points_to_center():
-    t = TenantFactory(slug="mh5", name="Mh5")
-    tile = next(x for x in dash.hub_tiles(t) if x["key"] == "marketing")
-    assert tile["url_name"] == "marketing-home"
+# X2a: плитка «Marketing» удалена вместе с хаб-плитками главной (дубль якоря);
+# вход в центр держат замки сайдбара (test_sidebar_st4b) и палитра.

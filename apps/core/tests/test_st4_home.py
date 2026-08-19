@@ -40,34 +40,29 @@ def _tenant(**kw):
     return TenantFactory(business_type="bakery", **kw)
 
 
-def test_hub_tiles_resolve_and_widgets_gated():
+def test_home_widgets_gated_by_modules():
+    """X2a (осознанная переписка): хаб-плитки удалены как дубль сайдбара —
+    остаётся проверка виджетов «что сегодня» и их гейтов по модулям."""
     tenant = _tenant(slug="st4a", name="St4a", disabled_modules=[])
-    hubs = dash.hub_tiles(tenant)
-    assert [h["key"] for h in hubs] == [
-        "orders",
-        "offer",
-        "marketing",
-        "integrations",
-        "settings",
-        "website",
-    ]
-    for h in hubs:  # smoke: каждая плитка ведёт на живой URL
-        assert reverse(h["url_name"])
     widgets = dash.home_widgets(tenant)
     keys = {w["key"] for w in widgets}
     assert {"umsatz", "ready", "puls", "reviews"} <= keys
+    for w in widgets:  # smoke: каждый виджет ведёт на живой URL
+        assert reverse(w["url_name"])
     # Гейт модуля: без finance/orders виджеты исчезают.
     off = _tenant(slug="st4b", name="St4b", disabled_modules=["finance", "orders"])
     keys_off = {w["key"] for w in dash.home_widgets(off)}
     assert "umsatz" not in keys_off and "ready" not in keys_off
 
 
-def test_home_renders_widgets_hubs_and_sprite():
+def test_home_renders_widgets_without_duplicate_tiles():
+    """X2a: первый экран главной — виджеты и работа дня, БЕЗ плиток-дублей
+    сайдбара. Ассерт на спрайт («ic-orders») снят осознанно: он оставался бы
+    зелёным и без плиток (спрайт подключает базовый шаблон) — ложное покрытие."""
     tenant = _tenant(slug="st4c", name="St4c", disabled_modules=[])
     html = core_views.dashboard(_req(tenant)).content.decode()
     assert "Umsatz heute" in html and "<polyline" in html  # спарклайн
-    assert 'href="#ic-orders"' in html and "ic-website" in html  # SVG-иконки хабов
-    assert 'id="ic-orders"' in html  # спрайт подключён
+    assert 'href="#ic-orders"' not in html  # плиток-хабов больше нет
 
 
 def test_sparkline_points_safe():
