@@ -18899,3 +18899,8 @@ msgstr "Меньше колонок"
 
 msgid "Mehr Spalten"
 msgstr "Больше колонок"
+
+#: templates/tenant/marketing_home.html
+#, python-format
+msgid "Nachrichten: %(n)s ungelesen"
+msgstr "Сообщения: %(n)s непрочитанных"

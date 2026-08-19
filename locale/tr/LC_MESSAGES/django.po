@@ -18815,3 +18815,8 @@ msgstr "Daha az sütun"
 
 msgid "Mehr Spalten"
 msgstr "Daha fazla sütun"
+
+#: templates/tenant/marketing_home.html
+#, python-format
+msgid "Nachrichten: %(n)s ungelesen"
+msgstr "Mesajlar: %(n)s okunmamış"

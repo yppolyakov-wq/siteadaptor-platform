@@ -7,6 +7,16 @@
 <h1 class="text-2xl font-bold mb-1">📣 {% trans "Marketing" %}</h1>
 <p class="text-sm text-gray-500 mb-5">{% trans "Erinnerungen, Treue, Bewertungen, Kampagnen — alles an einem Ort." %}</p>
 
+{% if inbox_unread %}
+{% comment %}X0 (cabinet-cleanup): бейдж непрочитанного на якоре ведёт сюда — покажем
+сообщения ПЕРВОЙ карточкой, а не в двух кликах глубже (исследование 2026-08-18 §3.6).{% endcomment %}
+<a href="{% url 'inbox:list' %}" class="flex items-center gap-3 max-w-3xl mb-5 bg-rose-50 border border-rose-200 rounded-2xl px-4 py-3 hover:bg-rose-100">
+  <span class="text-xl leading-none">💬</span>
+  <span class="text-sm font-medium text-rose-800">{% blocktrans with n=inbox_unread %}Nachrichten: {{ n }} ungelesen{% endblocktrans %}</span>
+  <span class="ml-auto text-rose-700">→</span>
+</a>
+{% endif %}
+
 {% if metrics %}
 {% comment %}ST-6a: панель результатов — готовые источники, только чтение.{% endcomment %}
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mb-6">

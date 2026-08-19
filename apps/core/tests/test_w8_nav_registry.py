@@ -43,11 +43,14 @@ def test_sidebar_anchors_from_registry():
     assert [it["nav_key"] for it in items] == [a.nav_key for a in nav_registry.ANCHORS]
     marketing = next(it for it in items if it["nav_key"] == "promotions")
     assert marketing["badge"] == "inbox"
-    # гейт якоря: без promotions Marketing исчезает
+    # X0 (cabinet-cleanup-2026-08-19, осознанная переписка): без promotions якорь
+    # Marketing ОСТАЁТСЯ, пока жив любой модуль его хаба (inbox/reviews/…) —
+    # прежний гейт отбирал у отеля вход к сообщениям клиентов. Полное скрытие
+    # (все модули хаба выключены) — замок в test_sidebar_st4b.
     t2 = SimpleNamespace(
         site_config={}, disabled_modules=["promotions"], enabled_modules=[], business_type=""
     )
-    assert "promotions" not in [it["nav_key"] for it in modules.sidebar_nav(t2)]
+    assert "promotions" in [it["nav_key"] for it in modules.sidebar_nav(t2)]
 
 
 # --- W8-2: достижимость -------------------------------------------------------

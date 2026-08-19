@@ -18822,3 +18822,8 @@ msgstr "Weniger Spalten"
 
 msgid "Mehr Spalten"
 msgstr "Mehr Spalten"
+
+#: templates/tenant/marketing_home.html
+#, python-format
+msgid "Nachrichten: %(n)s ungelesen"
+msgstr "Nachrichten: %(n)s ungelesen"

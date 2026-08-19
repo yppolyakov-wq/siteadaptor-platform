@@ -64,7 +64,7 @@
       <div data-nav-children="{{ it.nav_key }}" class="pl-9 pr-1 space-y-0.5{% if nav|nav_anchor != it.nav_key %} hidden{% endif %}">
         {% for c in it.children %}
         <a href="{% url c.url_name %}" data-label="{{ c.search }} {{ c.label|lower }}"
-           class="nav-link block px-2.5 py-1.5 rounded-md text-[13px] truncate {% if nav == c.nav_key %}text-indigo-700 font-medium bg-indigo-50{% else %}text-gray-500 hover:text-gray-800 hover:bg-gray-50{% endif %}">{{ c.label }}</a>
+           class="nav-link flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[13px] {% if nav == c.nav_key %}text-indigo-700 font-medium bg-indigo-50{% else %}text-gray-500 hover:text-gray-800 hover:bg-gray-50{% endif %}"><span class="truncate">{{ c.label }}</span>{% if c.badge == "inbox" %}{# X0: свой бейдж у подпункта «Nachrichten» — бейдж якоря вёл на лендинг без сообщений #}<span data-inbox-badge data-url="{% url 'inbox:unread-count' %}" class="ml-auto hidden min-w-[1.25rem] text-center bg-rose-500 text-white text-[11px] font-semibold rounded-full px-1.5 py-0.5"></span>{% endif %}</a>
         {% endfor %}
       </div>
       {% endif %}
@@ -148,15 +148,19 @@
 <script>
 // M22b realtime: живой бейдж непрочитанных сообщений в навигации.
 (function () {
-  var badge = document.querySelector("[data-inbox-badge]");
-  if (!badge) return;
+  // X0: бейджей теперь может быть несколько (якорь Marketing + подпункт
+  // «Nachrichten») — один fetch обновляет все.
+  var badges = document.querySelectorAll("[data-inbox-badge]");
+  if (!badges.length) return;
   function refresh() {
-    fetch(badge.getAttribute("data-url"), { headers: { "X-Requested-With": "fetch" } })
+    fetch(badges[0].getAttribute("data-url"), { headers: { "X-Requested-With": "fetch" } })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (d) {
         if (!d) return;
-        if (d.count > 0) { badge.textContent = d.count; badge.classList.remove("hidden"); }
-        else { badge.classList.add("hidden"); }
+        badges.forEach(function (badge) {
+          if (d.count > 0) { badge.textContent = d.count; badge.classList.remove("hidden"); }
+          else { badge.classList.add("hidden"); }
+        });
       }).catch(function () {});
   }
   refresh();

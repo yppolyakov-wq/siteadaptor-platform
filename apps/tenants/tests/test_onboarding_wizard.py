@@ -845,7 +845,9 @@ def test_dashboard_embeds_kanban_board_when_channel_active():
     order = create_order(items=[(product, 1)], name="Max", email="max@test.de")
     html = core_views.dashboard(_req(tenant=tenant)).content.decode()
     assert "data-drop-stage" in html and order.reference_code in html
-    assert "/dashboard/board/" in html  # ссылка «Full view» на большую доску
+    # X0 (cabinet-cleanup-2026-08-19): «Full view» ведёт на единую страницу
+    # Verkäufe — легаси-доска с главной больше не рекламируется.
+    assert "/dashboard/verkaeufe/" in html
 
 
 def test_fresh_setup_snaps_to_first_visible_step():

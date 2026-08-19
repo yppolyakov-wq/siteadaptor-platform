@@ -52,19 +52,41 @@ def status_label(context, obj, kind="order"):
 HUB_TABS = nav_registry.legacy_hub_tabs()
 
 
+def _hide_owner_only(context) -> bool:
+    """X0: True — пользователь ОПРЕДЕЛЁННО сотрудник (не owner) текущего тенанта →
+    owner-only записи (Recht/Abo/Team) прячем: мидлварь W9-10 всё равно отдаст им
+    403, мёртвый таб только путает. Fail-open: аноним/тест-стаб/ошибка → показываем
+    (доступ держит middleware, скрытие — чистый UX-слой)."""
+    request = context.get("request")
+    if request is None:
+        return False
+    try:
+        from apps.core import roles
+        from apps.core.models import Membership
+
+        role = roles.role_of(getattr(request, "user", None))
+        return bool(role) and role != Membership.ROLE_OWNER
+    except Exception:  # noqa: BLE001 — рендер хрома не должен падать из-за ролей
+        return False
+
+
 @register.inclusion_tag("tenant/_hub_tabs.html", takes_context=True)
 def hub_tabs(context, hub):
     """Отрисовать tab-bar хаба `hub` (реестр HUB_TABS), подсветив активный по `nav`.
 
     Табы с module_key прячутся, если модуль не активен у тенанта (fail-open, если
     request/tenant в контексте нет — простой тест-рендер без запроса). advanced-табы
-    уходят в свёрнутый ящик «Erweitert» (открыт, если активна одна из его вкладок)."""
+    уходят в свёрнутый ящик «Erweitert» (открыт, если активна одна из его вкладок).
+    X0: owner-only табы прячутся у сотрудников (см. _hide_owner_only)."""
     cur = context.get("nav")
     request = context.get("request")
     tenant = getattr(request, "tenant", None) if request is not None else None
+    owner_hidden = nav_registry.owner_only_url_names() if _hide_owner_only(context) else frozenset()
     tabs, more = [], []
     for u, lbl, k, mod, advanced in HUB_TABS.get(hub, ()):
         if mod is not None and tenant is not None and not modules.is_module_active(tenant, mod):
+            continue
+        if u in owner_hidden:
             continue
         entry = {"url_name": u, "label": lbl, "nav_key": k, "active": k == cur, "module": mod}
         (more if advanced else tabs).append(entry)
@@ -79,10 +101,13 @@ def nav_palette(context):
     request = context.get("request")
     tenant = getattr(request, "tenant", None) if request is not None else None
     area_by_hub = {hub: a.label for a in nav_registry.ANCHORS for hub in a.hubs}
+    owner_hidden = nav_registry.owner_only_url_names() if _hide_owner_only(context) else frozenset()
     entries = []
     for e in nav_registry.palette_entries():
         mod = e["module_key"]
         if mod is not None and tenant is not None and not modules.is_module_active(tenant, mod):
+            continue
+        if e["url_name"] in owner_hidden:  # X0: сотрудник не видит owner-only экраны
             continue
         entries.append(
             {

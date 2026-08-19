@@ -585,23 +585,44 @@ def sidebar_nav(tenant) -> list[dict]:
     items = []
     for a in nav_registry.ANCHORS:
         if a.module_key and not is_module_active(tenant, a.module_key):
-            continue
+            # X0 (план cabinet-cleanup-2026-08-19): якорь с хабами виден, если жив
+            # ЛЮБОЙ модуль его записей — иначе отель/werkstatt (promotions выкл по
+            # умолчанию) теряли единственный вход к Nachrichten/Bewertungen/Kontakte
+            # и бейдж непрочитанных (исследование 2026-08-18 §3, гейт-баг).
+            if not any(is_module_active(tenant, m) for m in nav_registry.hub_module_keys(a)):
+                continue
+        children = [
+            {
+                "url_name": e.url_name,
+                "nav_key": e.nav_key,
+                "label": e.label,
+                "search": e.search,
+            }
+            for e in nav_registry.sidebar_children(a)
+            if not e.module_key or is_module_active(tenant, e.module_key)
+        ]
+        # X0: «Nachrichten» — первым подпунктом якоря Marketing со СВОИМ бейджем:
+        # бейдж на якоре вёл на лендинг, где непрочитанного не видно.
+        if a.badge == "inbox" and is_module_active(tenant, "inbox"):
+            e = nav_registry.entry_for("marketing", "inbox:list")
+            if e is not None:
+                children.insert(
+                    0,
+                    {
+                        "url_name": e.url_name,
+                        "nav_key": e.nav_key,
+                        "label": e.label,
+                        "search": e.search,
+                        "badge": "inbox",
+                    },
+                )
         it = {
             "url_name": a.url_name,
             "nav_key": a.nav_key,
             "icon": a.icon,
             "label": a.label,
             "search": a.search,
-            "children": [
-                {
-                    "url_name": e.url_name,
-                    "nav_key": e.nav_key,
-                    "label": e.label,
-                    "search": e.search,
-                }
-                for e in nav_registry.sidebar_children(a)
-                if not e.module_key or is_module_active(tenant, e.module_key)
-            ],
+            "children": children,
         }
         if a.badge:
             it["badge"] = a.badge

@@ -59,16 +59,57 @@ def test_sidebar_nav_composition_and_urls():
 
 
 def test_sidebar_nav_gates():
-    # promotions выключен → нет якоря Marketing; «Angebote» остаётся всегда
-    # (catalog — core-модуль).
+    # X0 (cabinet-cleanup-2026-08-19, осознанная переписка): promotions выключен,
+    # но живы другие модули хаба (inbox/reviews/…) → якорь Marketing ОСТАЁТСЯ —
+    # иначе отель терял единственный вход к сообщениям клиентов (гейт-баг
+    # исследования 2026-08-18 §3). «Angebote» остаётся всегда (catalog — core).
     t = TenantFactory(
         slug="sb2",
         name="Sb2",
         disabled_modules=["catalog", "booking", "stays", "events", "promotions"],
     )
     keys = [it["url_name"] for it in modules.sidebar_nav(t)]
-    assert "marketing-home" not in keys
+    assert "marketing-home" in keys
     assert "verkaeufe" in keys and "settings" in keys and "sellable-manage" in keys
+
+
+def test_sidebar_marketing_hidden_only_without_any_hub_module():
+    # Якорь Marketing гаснет, только когда выключены ВСЕ модули его хаба.
+    t = TenantFactory(
+        slug="sb2b",
+        name="Sb2b",
+        disabled_modules=[
+            "promotions",
+            "reviews",
+            "crm",
+            "loyalty",
+            "inbox",
+            "telegram",
+            "publishing",
+            "blog",
+        ],
+    )
+    keys = [it["url_name"] for it in modules.sidebar_nav(t)]
+    assert "marketing-home" not in keys
+
+
+def test_sidebar_hotel_default_sees_marketing_and_messages():
+    # Гейт-баг исследования 2026-08-18: у отеля promotions выключен по умолчанию,
+    # но inbox/reviews активны — вход к сообщениям обязан быть; «Nachrichten» —
+    # первый подпункт якоря со своим бейджем.
+    from apps.core.modules import default_disabled_for
+
+    t = TenantFactory(
+        slug="sbh",
+        name="SbH",
+        business_type="hotel",
+        disabled_modules=default_disabled_for("hotel"),
+    )
+    nav = {it["url_name"]: it for it in modules.sidebar_nav(t)}
+    assert "marketing-home" in nav
+    children = nav["marketing-home"]["children"]
+    assert children and children[0]["url_name"] == "inbox:list"
+    assert children[0].get("badge") == "inbox"
 
 
 def test_compact_sidebar_renders_on_dashboard():

@@ -3917,6 +3917,19 @@ def marketing_home(request):
     from apps.core import marketing_home as mh
 
     tenant = request.tenant
+
+    def _unread():
+        # X0: непрочитанные треды — первой карточкой (бейдж якоря ведёт сюда).
+        if not tenant.is_module_active("inbox"):
+            return 0
+        from apps.inbox.models import Conversation
+
+        return Conversation.objects.filter(unread_for_staff=True).count()
+
+    try:
+        inbox_unread = _unread()
+    except Exception:  # noqa: BLE001 — карточка сообщений не валит лендинг (_safe-паттерн)
+        inbox_unread = 0
     return render(
         request,
         "tenant/marketing_home.html",
@@ -3925,6 +3938,7 @@ def marketing_home(request):
             "cards": mh.cards(tenant),
             "reminders": mh.reminder_overview(tenant),
             "metrics": mh.results_panel(tenant),
+            "inbox_unread": inbox_unread,
         },
     )
 

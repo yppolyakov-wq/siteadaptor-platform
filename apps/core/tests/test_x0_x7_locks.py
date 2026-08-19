@@ -1,0 +1,252 @@
+"""X0+X7 (план cabinet-cleanup-2026-08-19): хотфиксы навигации + предохранители.
+
+X0: owner-only табы прячутся у сотрудников · «Full view» → Verkäufe · карточка
+непрочитанных на marketing-home · гейт якоря Marketing (замки в test_sidebar_st4b).
+
+X7: два инвариант-замка против возврата «каши»:
+- состав якорей сайдбара ЗАМОРОЖЕН (мораторий владельца, минимум квартал) —
+  менять только осознанной правкой этого теста с записью в build-log;
+- каждый новый беспараметрный экран кабинета обязан попасть в реестр
+  навигации/палитру ЛИБО быть осознанно внесён в EXPECTED_UNLISTED ниже.
+"""
+
+from types import SimpleNamespace
+from uuid import uuid4
+
+import pytest
+from django.contrib.auth import get_user_model
+from django.template import Context, Template
+
+from apps.core import nav_registry
+from apps.core.models import Membership
+from apps.tenants.tests.factories import TenantFactory
+
+pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture(autouse=True)
+def _urlconf(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+
+
+# --- X7.1: замок состава якорей (мораторий) ----------------------------------
+
+
+def test_sidebar_anchor_composition_is_frozen():
+    """Состав/порядок якорей — под мораторием (решение владельца 2026-08-19,
+    план cabinet-cleanup §0.4): рынок держит 6–9 фиксированных пунктов, наши
+    9 перекроек за 7 недель — главный источник «каши». Изменение якорей =
+    осознанная правка ЭТОГО замка + запись в build-log."""
+    assert [(a.url_name, a.nav_key, a.icon) for a in nav_registry.ANCHORS] == [
+        ("dashboard", "dashboard", "🏠"),
+        ("verkaeufe", "board", "🗂️"),
+        ("sellable-manage", "sellables", "📦"),
+        ("marketing-home", "promotions", "📣"),
+        ("site-home", "site", "✏️"),
+        ("settings", "settings", "⚙️"),
+    ]
+
+
+# --- X7.3: замок «новый экран обязан быть в навигации» ------------------------
+
+# Беспараметрные url кабинета, ОСОЗНАННО отсутствующие в реестре/палитре.
+# Категории: [POST] — приёмники форм/действий, не страницы; [302] — легаси-
+# редиректы (W10-6/W11-5); [X2] — легаси-поверхности, план X2 (снос);
+# [X4] — экраны-сироты, план X4 (получат вход в навигацию/палитру);
+# [OK] — самостоятельный хром (мастер) или служебные JSON.
+EXPECTED_UNLISTED = frozenset(
+    {
+        # [POST] приёмники и action-роуты
+        "billing-checkout",
+        "billing-payments-callback",
+        "billing-payments-connect",
+        "billing-payments-methods",
+        "booking:booking-create",
+        "booking:service-inline-edit",
+        "booking:service-photo-edit",
+        "catalog:category-create",
+        "catalog:category-inline-edit",
+        "catalog:combo-create",
+        "catalog:product-create",
+        "catalog:product-inline-edit",
+        "catalog:product-photo-edit",
+        "catalog:products-merge",
+        "channel-config",
+        "channel-toggle",
+        "crm:company-create",
+        "crm:customer-create",
+        "crm:customer-export",
+        "domain-add",
+        "events:create",
+        "events:event-inline-edit",
+        "events:event-photo-edit",
+        "events:teacher-create",
+        "finance:export-csv",
+        "finance:export-datev",
+        "promotions:promotion-create",
+        "promotions:promotion-inline-edit",
+        "promotions:promotion-photo-edit",
+        "promotions:voucher-redeem",
+        "set-cabinet-lang",
+        "set-presence",
+        "site-cblock-photo-edit",
+        "site-inline-edit",
+        "site-preview-draft",
+        "site-share-preview",
+        "stays:reports-export",
+        "stays:stay-create",
+        "stays:stay-inline-edit",
+        "stays:stay-photo-edit",
+        "telegram-connect",
+        "telegram-disconnect",
+        "verkaeufe-view",
+        # [302] легаси-редиректы с GET-carry
+        "booking:calendar",
+        "orders:order-list",
+        "orders:order-settings",
+        "site",
+        "stays:calendar",
+        "stays:today",
+        # [X2] легаси-поверхности продаж — снос волной X2
+        "board",
+        "board-settings",
+        # [X4] экраны-сироты — получат вход волной X4
+        "billing-payments",
+        "billing-portal",
+        "booking:availability",
+        "booking:passes",
+        "booking:resources",
+        "booking:services",
+        "crm:company-list",
+        "events:teacher-list",
+        "finance:invoices",
+        "jobs:anfrage-form-settings",
+        "orders:kitchen",
+        "orders:kitchen-board",
+        "orders:table-qr",
+        "promotions:reservation-list",
+        "promotions:shop-poster",
+        "stays:channels",
+        "stays:checkins",
+        "stays:stay-new",
+        "stays:units",
+        # [OK] служебное
+        "inbox:unread-count",  # JSON-счётчик бейджа
+        "setup",  # мастер — собственный хром (_base_setup)
+        "site-menu",  # области Studio: вход из рейки билдера, не из сайдбара
+        "site-pages",
+        "site-preview",
+        "site-sections",
+    }
+)
+
+_CABINET_PREFIXES = ("dashboard/", "catalog/", "promotions/", "imports/", "crm/")
+
+
+def _cabinet_screen_names():
+    from django.urls import get_resolver
+    from django.urls.resolvers import URLPattern, URLResolver
+
+    def walk(resolver, prefix="", ns=""):
+        for p in resolver.url_patterns:
+            if isinstance(p, URLResolver):
+                yield from walk(
+                    p, prefix + str(p.pattern), ns + (p.namespace + ":" if p.namespace else "")
+                )
+            elif isinstance(p, URLPattern) and p.name:
+                full = prefix + str(p.pattern)
+                if not full.startswith(_CABINET_PREFIXES):
+                    continue
+                if p.pattern.converters or "(" in full or "<" in full:
+                    continue
+                yield ns + p.name
+
+    return set(walk(get_resolver("config.urls_tenant")))
+
+
+def test_every_cabinet_screen_listed_or_consciously_excluded():
+    """Инвариант X7.3 (принцип §5.5 исследования 2026-08-18): экран без входа из
+    навигации = класс дефектов «сирота», с которого начинается Битрикс-каша.
+    Новый беспараметрный url кабинета обязан либо попасть в nav_registry
+    (палитра/табы), либо быть ОСОЗНАННО добавлен в EXPECTED_UNLISTED с
+    категорией. Экраны категории [X4] уходят из списка волной X4."""
+    inventory = _cabinet_screen_names()
+    listed = {e["url_name"] for e in nav_registry.palette_entries()} | {
+        a.url_name for a in nav_registry.ANCHORS
+    }
+    unlisted = inventory - listed
+    assert unlisted == set(EXPECTED_UNLISTED), (
+        f"новые не в реестре: {sorted(unlisted - EXPECTED_UNLISTED)}; "
+        f"устарели в EXPECTED_UNLISTED: {sorted(EXPECTED_UNLISTED - unlisted)}"
+    )
+
+
+# --- X0: owner-only табы прячутся у сотрудников -------------------------------
+
+
+def _req_with_role(tenant, role):
+    user = get_user_model().objects.create_user(
+        username=f"u-{uuid4().hex[:8]}", email=f"{uuid4().hex[:8]}@t.de", password="pw12345678"
+    )
+    Membership.objects.create(user=user, role=role)
+    return SimpleNamespace(tenant=tenant, user=user)
+
+
+def _render_settings_tabs(request):
+    return Template('{% load cabinet %}{% hub_tabs "settings" %}').render(
+        Context({"nav": "settings", "request": request})
+    )
+
+
+def test_owner_only_tabs_hidden_for_staff():
+    t = TenantFactory(slug=f"x0-{uuid4().hex[:6]}", name="X0")
+    staff_html = _render_settings_tabs(_req_with_role(t, Membership.ROLE_STAFF))
+    # «&» в подписях автоэскейпится → сверяем рендер-форму.
+    for lbl in ("Team &amp; Zugriff", "Abo &amp; Rechnung", "Recht &amp; Steuern"):
+        assert lbl not in staff_html  # мидлварь отдала бы 403 — мёртвый таб скрыт
+    assert "Mein Geschäft" in staff_html
+
+
+def test_owner_only_tabs_visible_for_owner_and_failopen_without_request():
+    t = TenantFactory(slug=f"x0o-{uuid4().hex[:6]}", name="X0o")
+    owner_html = _render_settings_tabs(_req_with_role(t, Membership.ROLE_OWNER))
+    assert "Team &amp; Zugriff" in owner_html and "Abo &amp; Rechnung" in owner_html
+    # fail-open: рендер без request (простые тест-рендеры) показывает всё.
+    bare = Template('{% load cabinet %}{% hub_tabs "settings" %}').render(Context({"nav": ""}))
+    assert "Team &amp; Zugriff" in bare
+
+
+def test_owner_only_hidden_in_palette_for_staff():
+    t = TenantFactory(slug=f"x0p-{uuid4().hex[:6]}", name="X0p")
+    html = Template("{% load cabinet %}{% nav_palette %}").render(
+        Context({"request": _req_with_role(t, Membership.ROLE_STAFF)})
+    )
+    assert "Team &amp; Zugriff" not in html
+    # «Sprachen» — не-owner запись settings-хаба, остаётся видимой
+    # (якорь «Einstellungen» дедупит запись «Mein Geschäft» по url_name).
+    assert "Sprachen" in html
+
+
+# --- X0: карточка непрочитанных на marketing-home -----------------------------
+
+
+def test_marketing_home_shows_unread_card():
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.core import views as core_views
+    from apps.inbox.models import Conversation
+
+    t = TenantFactory(slug=f"x0m-{uuid4().hex[:6]}", name="X0m", business_type="friseur")
+    Conversation.objects.create(subject="Frage", unread_for_staff=True)
+    req = RequestFactory().get("/dashboard/marketing/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.tenant = t
+    req.user = get_user_model().objects.create_user(
+        username=f"m-{uuid4().hex[:8]}", email=f"m-{uuid4().hex[:8]}@t.de", password="pw12345678"
+    )
+    html = core_views.marketing_home(req).content.decode()
+    assert "ungelesen" in html
+    assert "/dashboard/inbox/" in html

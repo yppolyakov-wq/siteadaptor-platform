@@ -18694,3 +18694,8 @@ msgstr "Fewer columns"
 
 msgid "Mehr Spalten"
 msgstr "More columns"
+
+#: templates/tenant/marketing_home.html
+#, python-format
+msgid "Nachrichten: %(n)s ungelesen"
+msgstr "Messages: %(n)s unread"

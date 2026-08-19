@@ -29,6 +29,9 @@ class NavEntry:
     module_key: str | None = None  # гейт активности (None = ядро)
     advanced: bool = False  # ящик «Erweitert»
     search: str = ""  # ключевые слова палитры (дополняют label)
+    # X0 (план cabinet-cleanup-2026-08-19): owner-only экраны (мидлварь W9-10 и
+    # так отдаёт сотруднику 403 — здесь СКРЫТИЕ, чтобы не показывать мёртвые табы).
+    owner_only: bool = False
 
 
 @dataclass(frozen=True)
@@ -68,6 +71,10 @@ ANCHORS: tuple[Anchor, ...] = (
         "angebote sortiment produkte leistungen zimmer",
         hubs=("sellables", "catalog"),
     ),
+    # X0 (план cabinet-cleanup-2026-08-19): module_key — только ПРЕДПОЧТИТЕЛЬНЫЙ
+    # гейт; sidebar_nav показывает якорь и при выключенном promotions, если жив
+    # ЛЮБОЙ модуль его хаба (inbox/reviews/crm/…) — иначе отель терял вход к
+    # сообщениям клиентов и бейдж непрочитанных (исследование 2026-08-18 §3).
     Anchor(
         "marketing-home",
         _("Marketing"),
@@ -101,8 +108,8 @@ ANCHORS: tuple[Anchor, ...] = (
 )
 
 
-def _e(hub, url_name, label, nav_key, module_key=None, advanced=False, search=""):
-    return NavEntry(url_name, label, nav_key, hub, module_key, advanced, search)
+def _e(hub, url_name, label, nav_key, module_key=None, advanced=False, search="", owner_only=False):
+    return NavEntry(url_name, label, nav_key, hub, module_key, advanced, search, owner_only)
 
 
 # --- Табы хабов (порядок внутри hub = порядок показа) -------------------------
@@ -279,12 +286,15 @@ ENTRIES: tuple[NavEntry, ...] = (
         search="kontakt öffnungszeiten firma adresse logo",
     ),
     _e("settings", "languages", _("Sprachen"), "languages", search="sprache locale übersetzung"),
+    # X0: Recht/Abo/Team — owner-only (зеркалит _OWNER_ONLY мидлвари W9-10;
+    # сотруднику таб не показывается вместо мёртвого 403).
     _e(
         "settings",
         "legal-docs",
         _("Recht & Steuern"),
         "legal-docs",
         search="impressum datenschutz agb widerruf steuer",
+        owner_only=True,
     ),
     _e(
         "settings",
@@ -333,6 +343,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         _("Abo & Rechnung"),
         "billing",
         search="abo tarif subscription rechnung",
+        owner_only=True,
     ),
     # W9-10 (Р-7): членства/роли/инвайт — owner-only (middleware).
     _e(
@@ -341,6 +352,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         _("Team & Zugriff"),
         "team",
         search="team mitarbeiter rollen zugriff einladen",
+        owner_only=True,
     ),
     _e("settings", "extras", _("Zusatzleistungen"), "extras", None, True),
     _e("settings", "modules", _("Funktionen"), "modules", None, True, "module aktivieren"),
@@ -415,6 +427,29 @@ ANCHOR_BY_NAV: dict[str, str] = {
 def anchor_for(nav_key: str) -> str:
     """nav_key якоря сайдбара для страницы с данным context["nav"] ("" — нет)."""
     return ANCHOR_BY_NAV.get(nav_key or "", "")
+
+
+def owner_only_url_names() -> frozenset[str]:
+    """X0: url_name'ы owner-only записей — потребители (hub_tabs/палитра) прячут
+    их у сотрудников; доступ и так держит CabinetOwnerAccessMiddleware."""
+    return frozenset(e.url_name for e in ENTRIES if e.owner_only)
+
+
+def entry_for(hub: str, url_name: str) -> NavEntry | None:
+    """Запись реестра по (hub, url_name) — для точечных потребителей
+    (X0: «Nachrichten» первым подпунктом якоря Marketing)."""
+    for e in ENTRIES:
+        if e.hub == hub and e.url_name == url_name:
+            return e
+    return None
+
+
+def hub_module_keys(anchor) -> set[str]:
+    """X0: модульные гейты всех записей хабов якоря (для правила «якорь виден,
+    если жив любой его модуль»). None-гейты (ядро) в набор не попадают."""
+    return {
+        e.module_key for a_hub in anchor.hubs for e in ENTRIES if e.hub == a_hub and e.module_key
+    }
 
 
 def sidebar_children(anchor) -> list[NavEntry]:

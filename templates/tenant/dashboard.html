@@ -127,7 +127,8 @@ st4-admin-home-plan §1).{% endcomment %}
 {% if sections %}
   <div class="flex items-baseline justify-between gap-3 mb-3">
     <h2 class="text-lg font-bold">🗂️ {% trans "Tasks" %}</h2>
-    <a href="{% if sales_is_calendar %}{{ sales_entry_url }}{% else %}{% url 'board' %}{% endif %}" class="text-sm text-indigo-600 hover:underline">{% trans "Full view" %} →</a>
+    {# X0: «Full view» ведёт на единую страницу Verkäufe — легаси-доска больше не рекламируется с главной (исследование 2026-08-18 §3, слой 2). #}
+    <a href="{% if sales_is_calendar %}{{ sales_entry_url }}{% else %}{% url 'verkaeufe' %}{% endif %}" class="text-sm text-indigo-600 hover:underline">{% trans "Full view" %} →</a>
   </div>
   {% include "core/_board_body.html" %}
 {% endif %}
