@@ -72,6 +72,10 @@ EXPECTED_UNLISTED = frozenset(
         "catalog:product-photo-edit",
         "catalog:products-merge",
         "channel-config",
+        # POST-only приёмник панели «Anfrage-Formular» (её UI живёт на «Abläufe»
+        # с X2c). Был ошибочно классифицирован как экран и попал в палитру —
+        # серверный обход вскрыл 405 при клике из Ctrl+K.
+        "jobs:anfrage-form-settings",
         "channel-toggle",
         "crm:company-create",
         "crm:customer-create",

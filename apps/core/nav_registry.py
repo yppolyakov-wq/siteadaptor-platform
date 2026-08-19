@@ -291,7 +291,9 @@ ENTRIES: tuple[NavEntry, ...] = (
         "ablaeufe",
         None,
         True,
-        "status übergänge spalten",
+        # X2c: сюда переехала панель «Anfrage-Formular» — Ctrl+K обязан её
+        # находить (сам приёмник POST-only и в палитру не годится).
+        "status übergänge spalten anfrage-formular felder",
         query="?from=board",
     ),
     _e(
@@ -339,15 +341,6 @@ ENTRIES: tuple[NavEntry, ...] = (
         "finance",
         "finance",
         search="rechnung invoice beleg",
-        palette_only=True,
-    ),
-    _e(
-        "board",
-        "jobs:anfrage-form-settings",
-        _("Anfrage-Formular"),
-        "jobs",
-        "jobs",
-        search="formular felder anfrage",
         palette_only=True,
     ),
     _e(

@@ -136,10 +136,16 @@ def test_former_orphans_are_reachable_from_palette():
         "crm:company-list",
         "promotions:reservation-list",
         "finance:invoices",
-        "jobs:anfrage-form-settings",
         "billing-payments",
     ):
         assert name in listed, name
+    # Пост-программная сверка: `jobs:anfrage-form-settings` — POST-only приёмник
+    # (@require_POST), а не экран: X4 ошибочно дал ему запись палитры, и клик из
+    # Ctrl+K отдавал 405. Его UI живёт на «Abläufe» (X2c) — ищется по ключевым
+    # словам той записи.
+    assert "jobs:anfrage-form-settings" not in listed
+    abl = next(e for e in nav_registry.palette_entries() if e["url_name"] == "ablaeufe")
+    assert "anfrage" in abl["search"]
 
 
 def test_palette_only_entries_stay_out_of_tab_bars():

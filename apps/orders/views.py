@@ -182,6 +182,16 @@ def order_detail(request, pk):
             "items": order.items.all(),
             "allowed_targets": allowed,
             "nav": "orders",
+            # Пост-программная сверка (серверный обход 2026-08-19): ссылка
+            # «Kundenkarte öffnen» рисовалась всегда, а модуль CRM выключен у
+            # большинства архетипов по умолчанию → клик давал 404 (гейт путей
+            # мидлвари). Тот же класс, что ловит test_nav_reachability, но для
+            # ссылки ВНУТРИ страницы.
+            # fail-closed: без тенанта (простой тест-рендер) ссылку не рисуем —
+            # лучше не показать вход, чем показать ведущий в 404.
+            "crm_active": bool(
+                getattr(request, "tenant", None) and request.tenant.is_module_active("crm")
+            ),
         },
     )
 

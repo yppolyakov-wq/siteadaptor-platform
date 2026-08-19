@@ -88,3 +88,47 @@ def test_palette_entries_are_reachable(business_type):
         assert _gate_ok(tenant, path), (
             f"{business_type}: запись палитры {entry['url_name']} видна, но заперта гейтом"
         )
+
+
+# --- ссылки ВНУТРИ страниц (не навигация) -------------------------------------
+
+
+def test_order_detail_hides_customer_card_when_crm_off():
+    """Пост-программная сверка (серверный обход 2026-08-19): «Kundenkarte öffnen»
+    рисовалась всегда, а CRM выключен у большинства архетипов по умолчанию →
+    клик давал 404 гейта путей. Ссылка обязана появляться только с модулем."""
+    from django.contrib.auth import get_user_model
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.catalog.tests.factories import ProductFactory
+    from apps.orders import services, views
+
+    def _render(tenant):
+        order = services.create_order(
+            items=[(ProductFactory(name={"de": "Brot"}), 1)], name="Kunde", email="k@t.de"
+        )
+        req = RequestFactory().get(f"/dashboard/orders/{order.pk}/")
+        SessionMiddleware(lambda r: None).process_request(req)
+        MessageMiddleware(lambda r: None).process_request(req)
+        req.tenant = tenant
+        req.user = get_user_model().objects.create_user(
+            username=f"o-{uuid4().hex[:8]}",
+            email=f"o-{uuid4().hex[:8]}@t.de",
+            password="pw12345678",
+        )
+        return views.order_detail(req, pk=order.pk).content.decode()
+
+    off = _tenant("retail")  # пресет ритейла: crm выключен
+    assert not modules.is_module_active(off, "crm")
+    assert "/crm/" not in _render(off)
+
+    on = TenantFactory(
+        slug=f"nr-crm-{uuid4().hex[:4]}",
+        name="NRcrm",
+        business_type="retail",
+        disabled_modules=[m for m in modules.default_disabled_for("retail") if m != "crm"],
+    )
+    assert modules.is_module_active(on, "crm")
+    assert "/crm/" in _render(on)

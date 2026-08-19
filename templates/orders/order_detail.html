@@ -53,7 +53,7 @@
       <p class="text-sm font-medium">{{ order.customer }}</p>
       {% if order.customer.email %}<p class="text-sm text-gray-500">{{ order.customer.email }}</p>{% endif %}
       {% if order.customer.phone %}<p class="text-sm text-gray-500">{{ order.customer.phone }}</p>{% endif %}
-      <a href="{% url 'crm:customer-detail' order.customer.pk %}" class="inline-block mt-2 text-sm text-indigo-600 hover:underline">{% trans "Open customer card" %} →</a>
+      {% if crm_active %}<a href="{% url 'crm:customer-detail' order.customer.pk %}" class="inline-block mt-2 text-sm text-indigo-600 hover:underline">{% trans "Open customer card" %} →</a>{% endif %}
     </div>
 
     {% if order.is_delivery %}
