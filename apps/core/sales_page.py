@@ -30,13 +30,18 @@ _MODULE_KIND = {
 # kind → доступные виды по порядку отображения. `kalender` есть только там, где
 # существует календарный движок (stay: Belegungsplan, booking: Tagesplan,
 # order: Auftragsbuch по дате выдачи — V3).
+# X6-5 (план cabinet-cleanup §6.A6.5): ПОРЯДОК видов одинаков на всех вкладках —
+# Kalender · Board · Liste; меняется только ДОСТУПНОСТЬ (календарный движок есть
+# не у каждого kind). Раньше порядок плавал (order: board·liste·kalender,
+# ticket: liste·board), и переключатель «прыгал» при смене вкладки.
+# Дефолтный вид — отдельная ось (_KIND_DEFAULT/_ARCHETYPE_DEFAULT), не тронут.
 KIND_VIEWS = {
     "stay": ("kalender", "board", "liste"),
     "booking": ("kalender", "board", "liste"),
-    "order": ("board", "liste", "kalender"),
+    "order": ("kalender", "board", "liste"),
     "job": ("board", "liste"),
-    "ticket": ("liste", "board"),
-    "reservation": ("liste", "board"),
+    "ticket": ("board", "liste"),
+    "reservation": ("board", "liste"),
 }
 
 VIEW_LABELS = {
@@ -357,6 +362,11 @@ def body_context(request, kind: str, view: str) -> dict:
     else:  # generic Liste по нормализованным транзакциям kind
         # W7c: список — по дате СОБЫТИЯ (заезд/начало), не по дате создания:
         # «сегодняшние брони» иначе тонули под старыми, созданными позже.
-        sections = transactions.manage_sections_for(tenant, limit=200, only=kind, event_order=True)
+        # X6-2: поиск (код/клиент) был только у заказов — теперь у всех kind.
+        q = (request.GET.get("q") or "").strip()
+        sections = transactions.manage_sections_for(
+            tenant, limit=200, only=kind, event_order=True, q=q
+        )
         ctx["section"] = sections[0] if sections else None
+        ctx["list_q"] = q
     return ctx

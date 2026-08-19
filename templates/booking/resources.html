@@ -4,7 +4,14 @@
 
 {% block dash_content %}
 <a href="{% url 'booking:calendar' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Booking" %}</a>
-<h1 class="text-2xl font-bold mt-1 mb-4">{% trans "Resources & hours" %}</h1>
+<h1 class="text-2xl font-bold mt-1 mb-1">{% trans "Resources & hours" %}</h1>
+{% comment %}X6-4: две разные вещи, которые владелец путает — часы БИЗНЕСА (витрина,
+футер, бейдж «Открыто») и рабочее время РЕСУРСА (из него генерируются слоты).
+Движки не сливаем (расписание per-resource by design) — даём взаимные ссылки.{% endcomment %}
+<p class="text-xs text-gray-500 mb-4">
+  {% trans "Aus diesen Zeiten entstehen die buchbaren Termin-Slots." %}
+  <a href="{% url 'settings' %}#sec-zeiten" class="text-indigo-600 hover:underline">{% trans "Öffnungszeiten des Betriebs" %} →</a>
+</p>
 
 {% if messages %}
   {% for m in messages %}

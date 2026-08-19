@@ -26,6 +26,15 @@
 </div>
 {% endif %}
 
+{% comment %}X6-2: поиск по ВСЕМ продаваемым сущностям сразу — владелец ищет
+«Haarschnitt», не выбирая заранее, товар это или услуга.{% endcomment %}
+<form method="get" class="flex items-center gap-2 mb-4">
+  <input type="search" name="q" value="{{ q }}" placeholder="{% trans 'Suche im Sortiment…' %}"
+         class="rounded-lg border border-gray-300 px-3 py-2 text-sm w-64">
+  <button type="submit" class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
+  {% if q %}<a href="{% url 'sellable-manage' %}" class="text-sm text-gray-500 hover:underline">{% trans "Filter zurücksetzen" %}</a>{% endif %}
+</form>
+
 {% for s in sections %}
   <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mt-6 mb-2">{{ s.label }} <span class="text-gray-300">({{ s.count }})</span></h2>
     {% comment %}ST-5a: карточный грид с фото (image_url из контракта SellableEntity).{% endcomment %}
@@ -35,7 +44,11 @@
   {% empty %}
   <div class="text-center text-gray-400 py-16">
     <p class="text-4xl mb-2">📦</p>
-    <p>{% trans "Noch nichts im Sortiment — oben „＋“ wählen, um den ersten Eintrag anzulegen." %}</p>
+    {% if q %}
+      <p>{% blocktrans %}Nichts gefunden für „{{ q }}“.{% endblocktrans %}</p>
+    {% else %}
+      <p>{% trans "Noch nichts im Sortiment — oben „＋“ wählen, um den ersten Eintrag anzulegen." %}</p>
+    {% endif %}
   </div>
 {% endfor %}
 {% endblock %}

@@ -416,15 +416,33 @@ _SELECT_RELATED = {
 _EVENT_ORDER = {"stay": "-arrival", "booking": "-start"}
 
 
-def _managed_queryset(kind, event_order: bool = False):
+def _managed_queryset(kind, event_order: bool = False, q: str = ""):
     """Базовый queryset kind для кабинета: свежие сверху, с select_related.
-    `event_order` — сортировка по дате СОБЫТИЯ (W7c, только kind'ы из _EVENT_ORDER)."""
+    `event_order` — сортировка по дате СОБЫТИЯ (W7c, только kind'ы из _EVENT_ORDER).
+
+    X6-2: `q` — поиск по коду сделки и клиенту (имя/e-mail). У ВСЕХ шести kind
+    есть `reference_code` и FK `customer` (проверено), поэтому условие общее —
+    список Verkäufe искал только у заказов (W10-3), у остальных поиска не было."""
+    from django.db.models import Q
+
     order = _EVENT_ORDER.get(kind, "-created_at") if event_order else "-created_at"
-    return model_for(kind).objects.select_related(*_SELECT_RELATED[kind]).order_by(order)
+    qs = model_for(kind).objects.select_related(*_SELECT_RELATED[kind]).order_by(order)
+    q = (q or "").strip()
+    if q:
+        qs = qs.filter(
+            Q(reference_code__icontains=q)
+            | Q(customer__name__icontains=q)
+            | Q(customer__email__icontains=q)
+        )
+    return qs
 
 
 def manage_sections_for(
-    tenant, limit: int = BOARD_LIMIT, only: str | None = None, event_order: bool = False
+    tenant,
+    limit: int = BOARD_LIMIT,
+    only: str | None = None,
+    event_order: bool = False,
+    q: str = "",
 ) -> list[dict]:
     """Секции доски по активным транзакционным модулям тенанта.
 
@@ -454,7 +472,7 @@ def manage_sections_for(
         trans = transition_rules.subset_for(tenant, kind)
         txs = [
             transaction_for(kind, obj, labels, trans)
-            for obj in _managed_queryset(kind, event_order)[:limit]
+            for obj in _managed_queryset(kind, event_order, q)[:limit]
         ]
         # LS-6: «⚠️ Problem»-полоса — открытые high-треды с ref на карточки секции.
         # ОДИН запрос на секцию по множеству кодов (не per-card — N+1); ключ =

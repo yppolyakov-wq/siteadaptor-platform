@@ -3754,12 +3754,16 @@ def sellable_manage(request):
     from apps.core import sellable_manage as sm
 
     tenant = request.tenant
+    # X6-2: поиск по всем продаваемым сущностям сразу (владелец ищет по имени,
+    # не зная kind). Пустой q = прежний обзор.
+    q = (request.GET.get("q") or "").strip()
     return render(
         request,
         "tenant/sellable_manage.html",
         {
             "nav": "sellables",
-            "sections": sm.sellable_manage_sections_for(tenant),
+            "q": q,
+            "sections": sm.sellable_manage_sections_for(tenant, q=q),
             "add_options": sm.add_options(tenant),
             # W11-4: гейт кнопки «% Aktion» на карточках (цель PL из строки).
             "promotions_active": tenant.is_module_active("promotions"),

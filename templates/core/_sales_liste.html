@@ -4,6 +4,15 @@
 нет» у stay/booking/job/ticket. Строка ведёт на manage_url; действия — на
 Board/календаре/детали (список = обзор, как в рыночных référence). Контекст:
 section (может быть None).{% endcomment %}
+{% comment %}X6-2: поиск по коду сделки и клиенту — был только у заказов
+(W10-3), у брони/записи/заявки/билета его не было вовсе.{% endcomment %}
+<form method="get" class="flex items-center gap-2 mb-3">
+  <input type="hidden" name="tab" value="{{ active_kind }}">
+  <input type="hidden" name="view" value="liste">
+  <input type="search" name="q" value="{{ list_q }}" placeholder="{% trans 'Suche: Code, Name, E-Mail' %}"
+         class="rounded-lg border border-gray-300 px-3 py-2 text-sm w-56">
+  <button type="submit" class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
+</form>
 {% if section and section.transactions %}
 <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
   {% for tx in section.transactions %}
@@ -26,5 +35,9 @@ section (может быть None).{% endcomment %}
   {% endfor %}
 </div>
 {% else %}
-<p class="text-gray-500">{% trans "Noch keine Einträge." %}</p>
+{% if list_q %}
+  <p class="text-gray-500">{% blocktrans %}Nichts gefunden für „{{ list_q }}“.{% endblocktrans %}</p>
+{% else %}
+  <p class="text-gray-500">{% trans "Noch keine Einträge." %}</p>
+{% endif %}
 {% endif %}

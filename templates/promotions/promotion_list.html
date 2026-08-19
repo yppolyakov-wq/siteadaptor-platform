@@ -34,8 +34,8 @@
   <form method="get" class="mb-4">
     <select name="status" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
       <option value="">{% trans "Any status" %}</option>
-      {% for s in statuses %}
-        <option value="{{ s }}" {% if status == s %}selected{% endif %}>{{ s }}</option>
+      {% for value, label in statuses %}
+        <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
     </select>
   </form>
@@ -57,7 +57,12 @@
         <tr class="border-b last:border-0">
           <td class="py-2">{{ p }}</td>
           <td class="py-2">{{ p.promo_type }}</td>
-          <td class="py-2"><span class="px-2 py-0.5 rounded-full bg-gray-100">{{ p.status }}</span></td>
+          {% comment %}X6-3 (ловушка черновика): вместо сырого кода — подпись, а у
+          неактивной акции честный бейдж «клиенты её не видят».{% endcomment %}
+          <td class="py-2">
+            <span class="px-2 py-0.5 rounded-full {% if p.status == 'active' %}bg-green-100 text-green-800{% else %}bg-gray-100{% endif %}">{{ p.status_label }}</span>
+            {% if p.status != 'active' %}<span class="ml-1 text-[11px] text-amber-700">{% trans "nicht sichtbar" %}</span>{% endif %}
+          </td>
           <td class="py-2">{% if p.available_quantity is None %}∞{% else %}{{ p.available_quantity }}{% endif %}</td>
           <td class="py-2 text-gray-500">{{ p.starts_at|default:"—" }} → {{ p.ends_at|default:"—" }}</td>
           <td class="py-2 text-right whitespace-nowrap">

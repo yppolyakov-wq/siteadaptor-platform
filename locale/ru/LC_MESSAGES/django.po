@@ -19042,3 +19042,71 @@ msgstr "Ник или полная ссылка — иконки появятс�
 #: templates/tenant/settings.html
 msgid "Termin-Slots richten sich nach den Arbeitszeiten der Ressourcen — nicht nach diesen Öffnungszeiten."
 msgstr "Слоты записи зависят от рабочего времени ресурсов, а не от этих часов работы."
+
+#: templates/tenant/sellable_manage.html
+msgid "Filter zurücksetzen"
+msgstr "Сбросить фильтр"
+
+#: templates/tenant/sellable_manage.html
+msgid "Suche im Sortiment…"
+msgstr "Поиск по ассортименту…"
+
+#: templates/tenant/sellable_manage.html
+msgid "Nichts gefunden für „%(q)s“."
+msgstr "Ничего не найдено по «%(q)s»."
+
+#: templates/tenant/sellable_manage.html
+msgid "Nichts gefunden für „%(list_q)s“."
+msgstr "Ничего не найдено по «%(list_q)s»."
+
+#: apps/promotions/views.py
+msgid "Aus diesen Zeiten entstehen die buchbaren Termin-Slots."
+msgstr "Из этого времени формируются доступные слоты записи."
+
+#: apps/promotions/views.py
+msgid "Öffnungszeiten des Betriebs"
+msgstr "Часы работы бизнеса"
+
+#: apps/promotions/views.py
+msgid "Kunden sehen diese Aktion noch nicht."
+msgstr "Клиенты пока не видят эту акцию."
+
+#: apps/promotions/views.py
+msgid "nicht sichtbar"
+msgstr "не видна"
+
+#: apps/promotions/views.py
+msgid "Preis & Lager bearbeiten"
+msgstr "Изменить цену и остаток"
+
+#: apps/promotions/views.py
+msgid "Einplanen"
+msgstr "Запланировать"
+
+#: apps/promotions/views.py
+msgid "Jetzt aktivieren"
+msgstr "Активировать"
+
+#: apps/promotions/views.py
+msgid "Pausieren"
+msgstr "Приостановить"
+
+#: apps/promotions/views.py
+msgid "Beenden"
+msgstr "Завершить"
+
+#: apps/promotions/views.py
+msgid "Archivieren"
+msgstr "В архив"
+
+#: apps/promotions/views.py
+msgid "Geplant"
+msgstr "Запланирована"
+
+#: apps/promotions/views.py
+msgid "Beendet"
+msgstr "Завершена"
+
+#: apps/promotions/views.py
+msgid "Archiviert"
+msgstr "В архиве"

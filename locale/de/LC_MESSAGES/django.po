@@ -18966,3 +18966,71 @@ msgstr ""
 #: templates/tenant/settings.html
 msgid "Termin-Slots richten sich nach den Arbeitszeiten der Ressourcen — nicht nach diesen Öffnungszeiten."
 msgstr ""
+
+#: templates/tenant/sellable_manage.html
+msgid "Filter zurücksetzen"
+msgstr ""
+
+#: templates/tenant/sellable_manage.html
+msgid "Suche im Sortiment…"
+msgstr ""
+
+#: templates/tenant/sellable_manage.html
+msgid "Nichts gefunden für „%(q)s“."
+msgstr ""
+
+#: templates/tenant/sellable_manage.html
+msgid "Nichts gefunden für „%(list_q)s“."
+msgstr ""
+
+#: apps/promotions/views.py
+msgid "Aus diesen Zeiten entstehen die buchbaren Termin-Slots."
+msgstr ""
+
+#: apps/promotions/views.py
+msgid "Öffnungszeiten des Betriebs"
+msgstr ""
+
+#: apps/promotions/views.py
+msgid "Kunden sehen diese Aktion noch nicht."
+msgstr ""
+
+#: apps/promotions/views.py
+msgid "nicht sichtbar"
+msgstr ""
+
+#: apps/promotions/views.py
+msgid "Preis & Lager bearbeiten"
+msgstr ""
+
+#: apps/promotions/views.py
+msgid "Einplanen"
+msgstr ""
+
+#: apps/promotions/views.py
+msgid "Jetzt aktivieren"
+msgstr ""
+
+#: apps/promotions/views.py
+msgid "Pausieren"
+msgstr ""
+
+#: apps/promotions/views.py
+msgid "Beenden"
+msgstr ""
+
+#: apps/promotions/views.py
+msgid "Archivieren"
+msgstr ""
+
+#: apps/promotions/views.py
+msgid "Geplant"
+msgstr ""
+
+#: apps/promotions/views.py
+msgid "Beendet"
+msgstr ""
+
+#: apps/promotions/views.py
+msgid "Archiviert"
+msgstr ""

@@ -64,7 +64,14 @@
     {# Panel: Basics — название/описание (per язык) + категория/цена/активность + фото #}
     <div data-pf-panel="grund" class="space-y-4 pt-2">
       {% for g in i18n_groups %}{% include "tenant/_i18n_group.html" %}{% endfor %}
-      {% for field in form %}{% if field.name == 'category' or field.name == 'base_price' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      {% for field in form %}{% if field.name == 'category' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      {% comment %}X6-6 (план cabinet-cleanup §6.A6.6): цена переехала на вкладку
+      «Preis & Lager» — раньше вкладка «цены» цены НЕ содержала (она жила в
+      «Basics»), и владелец искал её там. Поле остаётся в DOM (W0), из «Basics»
+      сюда ведёт кнопка.{% endcomment %}
+      <button type="button" data-pf-goto="preis" class="inline-flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+        <span aria-hidden="true">💶</span> {% trans "Preis & Lager bearbeiten" %} →
+      </button>
       {% comment %}Под обычной ценой — переход к вариантам/наценкам (расширенная цена).
          Только когда товар уже сохранён (иначе вариантов ещё нет).{% endcomment %}
       {% if product %}
@@ -86,6 +93,8 @@
 
     {# Panel: Price & stock #}
     <div data-pf-panel="preis" class="space-y-3 pt-2 hidden">
+      {# X6-6: цена — первым полем своей вкладки #}
+      {% for field in form %}{% if field.name == 'base_price' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
       {% for field in form %}{% if field.name == 'unit' or field.name == 'content_amount' or field.name == 'currency' or field.name == 'stock_quantity' or field.name == 'cost_price' or field.name == 'reorder_point' or field.name == 'reorder_target' or field.name == 'sku' or field.name == 'gtin' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
     </div>
 

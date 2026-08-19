@@ -16,17 +16,24 @@
 
   {# Текущий статус и кнопки переходов (только при редактировании) #}
   {% if promotion %}
+    {% comment %}X6-3 «ловушка черновика»: сохранённая акция остаётся draft и
+    клиентам не видна, а статус показывался сырым кодом равнозначными кнопками.
+    Теперь — подпись статуса, честное предупреждение и ПЕРВИЧНАЯ кнопка
+    «Jetzt aktivieren» (переход тот же, FSM не тронут).{% endcomment %}
     <div class="bg-white rounded-2xl shadow-sm p-4 mb-4">
       <div class="flex items-center gap-2 mb-2 text-sm">
         <span class="text-gray-500">{% trans "Status" %}:</span>
-        <span class="px-2 py-0.5 rounded-full bg-gray-100 font-medium">{{ promotion.status }}</span>
+        <span class="px-2 py-0.5 rounded-full font-medium {% if promotion.status == 'active' %}bg-green-100 text-green-800{% else %}bg-gray-100{% endif %}">{{ status_label }}</span>
+        {% if promotion.status != 'active' %}
+          <span class="text-xs text-amber-700">{% trans "Kunden sehen diese Aktion noch nicht." %}</span>
+        {% endif %}
       </div>
       <div class="flex flex-wrap gap-2">
         {% for target, label in actions %}
           <form method="post" action="{% url 'promotions:promotion-transition' promotion.pk %}">
             {% csrf_token %}
             <input type="hidden" name="target" value="{{ target }}">
-            <button class="text-sm px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50">{{ label }}</button>
+            <button class="text-sm px-3 py-1.5 rounded-lg {% if target == 'active' %}bg-indigo-600 text-white font-medium hover:bg-indigo-700{% else %}border border-gray-300 hover:bg-gray-50{% endif %}">{{ label }}</button>
           </form>
         {% empty %}
           <span class="text-xs text-gray-400">{% trans "No transitions available." %}</span>

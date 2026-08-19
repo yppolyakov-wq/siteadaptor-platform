@@ -73,9 +73,24 @@ def main(argv: list[str]) -> int:
             continue
         src = f.read_text(encoding="utf-8")
         if f.suffix == ".py":
-            wanted |= {m.group(2) for m in PY_TRANS.finditer(src) if "\\" not in m.group(2)}
+            for m in PY_TRANS.finditer(src):
+                lit = m.group(2)
+                if "\\" in lit:
+                    continue  # экранирование внутри литерала — пропускаем (шум)
+                # Одиночный «%» в Python-строке попадает в .po как «%%» (так его
+                # пишет makemessages); строки с настоящими плейсхолдерами
+                # %(name)s остаются как есть.
+                if "%" in lit and "%(" not in lit:
+                    lit = lit.replace("%", "%%")
+                wanted.add(lit)
             continue
-        wanted |= {m.group(2) for m in TRANS.finditer(src)}
+        # X6: `{% trans %}` тоже проходит через templatize — одиночный «%»
+        # попадает в .po как «%%» (нашлось на units.html: «Preisänderung (%…)»).
+        for m in TRANS.finditer(src):
+            lit = m.group(2)
+            if "%" in lit and "%(" not in lit:
+                lit = lit.replace("%", "%%")
+            wanted.add(lit)
         # blocktrans с плейсхолдерами {{ x }} — сверяем только форму без них
         for m in BLOCKTRANS.finditer(src):
             if "{% plural %}" in m.group(1):

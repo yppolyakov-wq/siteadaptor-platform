@@ -1048,6 +1048,7 @@ def units(request, pk=None):
         "stays/units.html",
         {
             "nav": "units",  # X4: номер — сущность раздела «Sortiment» (не операция дня)
+            "open_new": request.GET.get("neu") == "1",  # X6-1: ＋ раскрывает форму
             "units": units,
             "unit_page": unit_page,  # 2026-07-28: страница одного номера
             # Фидбэк №2: активный таб списка (einheiten | einstellungen)

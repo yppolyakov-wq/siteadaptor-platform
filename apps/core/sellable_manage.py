@@ -26,6 +26,7 @@ _MANAGE = {
         "model": "catalog.Product",
         "module": "catalog",
         "label": _("Produkte"),
+        "search_json": ("name",),
         "edit": ("catalog:product-edit", True),
         "add": ("catalog:product-create", False),
         "toggle": True,
@@ -34,25 +35,36 @@ _MANAGE = {
         "model": "booking.Service",
         "module": "booking",
         "label": _("Leistungen"),
+        "search_flat": ("name",),
+        "search_json": ("name_i18n",),
         # Фидбэк 2026-07-30: своя страница услуги (как у номера/товара).
         "edit": ("booking:service-edit", True),
+        # X6-1 (конвенция «＋»): «＋» обязан открывать ФОРМУ создания. Своей
+        # страницы создания у услуги нет — форма живёт на списке, поэтому
+        # ведём туда с ?neu=1 (список раскрывает форму и скроллит к ней).
         "add": ("booking:services", False),
+        "add_query": "?neu=1#neu",
         "toggle": True,
     },
     "stay": {
         "model": "stays.StayUnit",
         "module": "stays",
         "label": _("Zimmer & Einheiten"),
+        "search_flat": ("name",),
+        "search_json": ("name_i18n",),
         # Фидбэк 2026-07-30: «Bearbeiten» вёл на СПИСОК номеров — у юнита есть
         # своя страница (stays:unit-edit, per-pk).
         "edit": ("stays:unit-edit", True),
         "add": ("stays:units", False),
+        "add_query": "?neu=1#neu",  # X6-1: ＋ раскрывает форму нового номера
         "toggle": True,
     },
     "event": {
         "model": "events.Event",
         "module": "events",
         "label": _("Veranstaltungen"),
+        "search_flat": ("title",),
+        "search_json": ("title_i18n",),
         "edit": ("events:edit", True),
         "add": ("events:create", False),
         "toggle": False,
@@ -61,6 +73,8 @@ _MANAGE = {
         "model": "catalog.Combo",
         "module": "catalog",
         "label": _("Kombis"),
+        "search_flat": ("name",),
+        "search_json": ("name_i18n",),
         "edit": ("catalog:combo-edit", True),
         "add": ("catalog:combo-create", False),
         "toggle": True,
@@ -136,16 +150,31 @@ def _locale(tenant) -> str | None:
     return getattr(tenant, "default_locale", None) or None
 
 
-def sellable_manage_sections_for(tenant, limit: int = 200) -> list[dict]:
+def sellable_manage_sections_for(tenant, limit: int = 200, q: str = "") -> list[dict]:
     """Секции обзора: по одному активному sellable-kind С ХОТЯ БЫ одной сущностью
-    (пустые не шумят — их «＋ Neu» есть в `add_options`). Порядок — MANAGE_KINDS."""
+    (пустые не шумят — их «＋ Neu» есть в `add_options`). Порядок — MANAGE_KINDS.
+
+    X6-2: `q` — поиск по имени СРАЗУ по всем kind (владелец ищет «Haarschnitt»,
+    не зная, товар это или услуга). Фильтр в БД по полям из реестра, включая
+    i18n-оверлеи (тот же хелпер, что у витринных фасетов UB2-2)."""
+    from apps.core.facets import i18n_icontains_q
+
     locale = _locale(tenant)
+    q = (q or "").strip()
     out = []
     for kind in MANAGE_KINDS:
         cfg = _MANAGE[kind]
         if not tenant.is_module_active(cfg["module"]):
             continue
         qs = _model(kind).objects.all()
+        if q:
+            qs = qs.filter(
+                i18n_icontains_q(
+                    q,
+                    flat_fields=cfg.get("search_flat", ()),
+                    json_fields=cfg.get("search_json", ()),
+                )
+            )
         # event использует status (нет is_active) → сортируем только по дате.
         qs = (
             qs.order_by("-is_active", "-created_at")
@@ -168,6 +197,7 @@ def add_options(tenant) -> list[dict]:
             continue
         url = _reverse(cfg["add"], None)
         if url:
+            url += cfg.get("add_query", "")
             out.append({"kind": kind, "label": cfg["label"], "url": url})
     return out
 

@@ -96,13 +96,30 @@ def promotion_photo_edit(request):
 
 
 # подписи для кнопок переходов акции
+# X6-3: подписи переходов были ГОЛЫМИ английскими литералами — на немецком
+# экране кабинета печатались как есть (и не переводились на 5 локалей).
 _PROMO_ACTION_LABELS = {
-    "scheduled": "Schedule",
-    "active": "Activate",
-    "paused": "Pause",
-    "ended": "End",
-    "archived": "Archive",
+    "scheduled": _lazy("Einplanen"),
+    "active": _lazy("Jetzt aktivieren"),
+    "paused": _lazy("Pausieren"),
+    "ended": _lazy("Beenden"),
+    "archived": _lazy("Archivieren"),
 }
+
+# X6-3 (ловушка черновика): статус показывали сырым кодом («draft»), и владелец
+# не понимал, почему созданная акция не видна клиентам.
+PROMO_STATUS_LABELS = {
+    "draft": _lazy("Entwurf"),
+    "scheduled": _lazy("Geplant"),
+    "active": _lazy("Aktiv"),
+    "paused": _lazy("Pausiert"),
+    "ended": _lazy("Beendet"),
+    "archived": _lazy("Archiviert"),
+}
+
+
+def promo_status_label(status: str):
+    return PROMO_STATUS_LABELS.get(status, status)
 
 
 def _promo_actions(promo):
@@ -164,12 +181,17 @@ def promotion_list(request):
             p.featured_until_agg = until
             p.is_featured_agg = bool(until and until > now)
 
+    # X6-3: человеческая подпись статуса на строке (сырой код «draft» ни о чём
+    # не говорит владельцу — исследование 2026-08-18 §3, «ловушка черновика»).
+    for p in promos:
+        p.status_label = promo_status_label(p.status)
     return render(
         request,
         "promotions/promotion_list.html",
         {
             "promotions": promos,
-            "statuses": PROMO_STATUSES,
+            # X6-3: фильтр показывал сырые коды статусов — даём подписи.
+            "statuses": [(st, promo_status_label(st)) for st in PROMO_STATUSES],
             "status": status,
             "featured_enabled": featured_enabled,
             "nav": "promotions",
@@ -319,6 +341,7 @@ def promotion_edit(request, pk):
             "is_create": False,
             "promotion": promo,
             "actions": _promo_actions(promo),
+            "status_label": promo_status_label(promo.status),  # X6-3
             "channel_stats": channel_stats,
             "preset_channels": preset_channels,
             "waitlist_count": promo.waitlist.count(),

@@ -18958,3 +18958,71 @@ msgstr "Kullanıcı adı veya tam URL — simgeler web sitesinin alt bilgisinde 
 #: templates/tenant/settings.html
 msgid "Termin-Slots richten sich nach den Arbeitszeiten der Ressourcen — nicht nach diesen Öffnungszeiten."
 msgstr "Randevu saatleri bu açılış saatlerine değil, kaynakların çalışma saatlerine göre belirlenir."
+
+#: templates/tenant/sellable_manage.html
+msgid "Filter zurücksetzen"
+msgstr "Filtreyi sıfırla"
+
+#: templates/tenant/sellable_manage.html
+msgid "Suche im Sortiment…"
+msgstr "Ürün yelpazenizde arayın…"
+
+#: templates/tenant/sellable_manage.html
+msgid "Nichts gefunden für „%(q)s“."
+msgstr "„%(q)s“ için sonuç yok."
+
+#: templates/tenant/sellable_manage.html
+msgid "Nichts gefunden für „%(list_q)s“."
+msgstr "„%(list_q)s“ için sonuç yok."
+
+#: apps/promotions/views.py
+msgid "Aus diesen Zeiten entstehen die buchbaren Termin-Slots."
+msgstr "Rezervasyon yapılabilir randevu saatleri bu çalışma saatlerinden oluşur."
+
+#: apps/promotions/views.py
+msgid "Öffnungszeiten des Betriebs"
+msgstr "İşletmenin açılış saatleri"
+
+#: apps/promotions/views.py
+msgid "Kunden sehen diese Aktion noch nicht."
+msgstr "Müşteriler bu kampanyayı henüz göremiyor."
+
+#: apps/promotions/views.py
+msgid "nicht sichtbar"
+msgstr "görünmüyor"
+
+#: apps/promotions/views.py
+msgid "Preis & Lager bearbeiten"
+msgstr "Fiyat ve stoğu düzenle"
+
+#: apps/promotions/views.py
+msgid "Einplanen"
+msgstr "Planla"
+
+#: apps/promotions/views.py
+msgid "Jetzt aktivieren"
+msgstr "Şimdi etkinleştir"
+
+#: apps/promotions/views.py
+msgid "Pausieren"
+msgstr "Duraklat"
+
+#: apps/promotions/views.py
+msgid "Beenden"
+msgstr "Bitir"
+
+#: apps/promotions/views.py
+msgid "Archivieren"
+msgstr "Arşivle"
+
+#: apps/promotions/views.py
+msgid "Geplant"
+msgstr "Planlandı"
+
+#: apps/promotions/views.py
+msgid "Beendet"
+msgstr "Bitti"
+
+#: apps/promotions/views.py
+msgid "Archiviert"
+msgstr "Arşivlendi"

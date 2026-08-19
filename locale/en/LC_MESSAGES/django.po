@@ -18837,3 +18837,71 @@ msgstr "Handle or full URL — icons appear in the website footer."
 #: templates/tenant/settings.html
 msgid "Termin-Slots richten sich nach den Arbeitszeiten der Ressourcen — nicht nach diesen Öffnungszeiten."
 msgstr "Appointment slots follow the working hours of your resources — not these opening hours."
+
+#: templates/tenant/sellable_manage.html
+msgid "Filter zurücksetzen"
+msgstr "Reset filter"
+
+#: templates/tenant/sellable_manage.html
+msgid "Suche im Sortiment…"
+msgstr "Search your range…"
+
+#: templates/tenant/sellable_manage.html
+msgid "Nichts gefunden für „%(q)s“."
+msgstr "Nothing found for “%(q)s”."
+
+#: templates/tenant/sellable_manage.html
+msgid "Nichts gefunden für „%(list_q)s“."
+msgstr "Nothing found for “%(list_q)s”."
+
+#: apps/promotions/views.py
+msgid "Aus diesen Zeiten entstehen die buchbaren Termin-Slots."
+msgstr "These hours generate the bookable appointment slots."
+
+#: apps/promotions/views.py
+msgid "Öffnungszeiten des Betriebs"
+msgstr "Business opening hours"
+
+#: apps/promotions/views.py
+msgid "Kunden sehen diese Aktion noch nicht."
+msgstr "Customers cannot see this promotion yet."
+
+#: apps/promotions/views.py
+msgid "nicht sichtbar"
+msgstr "not visible"
+
+#: apps/promotions/views.py
+msgid "Preis & Lager bearbeiten"
+msgstr "Edit price & stock"
+
+#: apps/promotions/views.py
+msgid "Einplanen"
+msgstr "Schedule"
+
+#: apps/promotions/views.py
+msgid "Jetzt aktivieren"
+msgstr "Activate now"
+
+#: apps/promotions/views.py
+msgid "Pausieren"
+msgstr "Pause"
+
+#: apps/promotions/views.py
+msgid "Beenden"
+msgstr "End"
+
+#: apps/promotions/views.py
+msgid "Archivieren"
+msgstr "Archive"
+
+#: apps/promotions/views.py
+msgid "Geplant"
+msgstr "Scheduled"
+
+#: apps/promotions/views.py
+msgid "Beendet"
+msgstr "Ended"
+
+#: apps/promotions/views.py
+msgid "Archiviert"
+msgstr "Archived"
