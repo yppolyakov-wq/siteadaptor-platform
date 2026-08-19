@@ -18764,3 +18764,16 @@ msgstr "Today at work"
 #. X3: главная-кокпит
 msgid "Noch keine Verkaufskanäle aktiv."
 msgstr "No sales channels active yet."
+
+#. X3: полоса дня
+#, python-format
+msgid "Woche: %(arrow)s %(delta)s %% vs. Vorwoche"
+msgstr "Week: %(arrow)s %(delta)s %% vs. last week"
+
+#. X3: полоса дня
+msgid "Finanzen aktivieren"
+msgstr "Activate Finance"
+
+#. X3: полоса дня
+msgid "Umsatz"
+msgstr "Revenue"

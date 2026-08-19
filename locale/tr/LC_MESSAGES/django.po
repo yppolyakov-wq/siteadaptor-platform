@@ -18885,3 +18885,16 @@ msgstr "Bugün işletmede"
 #. X3: главная-кокпит
 msgid "Noch keine Verkaufskanäle aktiv."
 msgstr "Henüz aktif satış kanalı yok."
+
+#. X3: полоса дня
+#, python-format
+msgid "Woche: %(arrow)s %(delta)s %% vs. Vorwoche"
+msgstr "Hafta: %(arrow)s %%%(delta)s geçen haftaya göre"
+
+#. X3: полоса дня
+msgid "Finanzen aktivieren"
+msgstr "Finansı etkinleştir"
+
+#. X3: полоса дня
+msgid "Umsatz"
+msgstr "Ciro"

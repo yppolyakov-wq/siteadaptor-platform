@@ -40,34 +40,64 @@ def home_widgets(tenant) -> list[dict]:
     today = timezone.localdate()
     widgets: list[dict] = []
 
-    # 💶 Umsatz heute + 7-дневный спарклайн (finance; в Простом finance скрыт).
+    # 💶 Umsatz heute + 7-дневный спарклайн + сравнение с прошлой неделей (X3).
     if tenant.is_module_active("finance"):
 
-        def _revenue_days():
+        def _revenue_days(n=14):
+            """Суммы по дням за n дней (последний элемент — сегодня)."""
             from django.db.models import Sum
 
             from apps.finance.models import RevenueEntry
 
-            start = today - timedelta(days=6)
+            start = today - timedelta(days=n - 1)
             rows = dict(
                 RevenueEntry.objects.filter(date__gte=start)
                 .values("date")
                 .annotate(s=Sum("amount"))
                 .values_list("date", "s")
             )
-            return [rows.get(start + timedelta(days=i)) or Decimal("0") for i in range(7)]
+            return [rows.get(start + timedelta(days=i)) or Decimal("0") for i in range(n)]
 
-        days = _safe(_revenue_days, [Decimal("0")] * 7)
+        # X3: берём 14 дней одним запросом — вторая неделя нужна для сравнения
+        # «vs прошлая неделя» (паттерн SumUp: число дня отвечает «лучше/хуже»).
+        fortnight = _safe(lambda: _revenue_days(14), [Decimal("0")] * 14)
+        days, prev_days = fortnight[7:], fortnight[:7]
+        this_week, last_week = sum(days), sum(prev_days)
+        if last_week:
+            delta = round(100 * (this_week - last_week) / last_week)
+            arrow = "▲" if delta > 0 else ("▼" if delta < 0 else "→")
+            hint = _t("Woche: %(arrow)s %(delta)s %% vs. Vorwoche") % {
+                "arrow": arrow,
+                "delta": abs(delta),
+            }
+        else:
+            hint = _t("letzte 7 Tage")
         widgets.append(
             {
                 "key": "umsatz",
                 "icon": "💶",
                 "label": _t("Umsatz heute"),
                 "value": f"{days[-1]:.2f} €".replace(".", ","),
-                "hint": _t("letzte 7 Tage"),
+                "hint": hint,
                 "url_name": "finance:journal",
                 "url_query": "",
                 "sparkline": _sparkline_points(days),
+            }
+        )
+    else:
+        # X3: раньше виджет выручки просто ИСЧЕЗАЛ у тенанта без модуля finance
+        # (а он выключен по умолчанию у ВСЕХ типов) — владелец не мог узнать, что
+        # выручку нужно «включить». Честная карточка вместо пустоты.
+        widgets.append(
+            {
+                "key": "finance_off",
+                "icon": "💶",
+                "label": _t("Umsatz"),
+                "value": "—",
+                "hint": _t("Finanzen aktivieren"),
+                "url_name": "modules",
+                "url_query": "",
+                "sparkline": "",
             }
         )
 

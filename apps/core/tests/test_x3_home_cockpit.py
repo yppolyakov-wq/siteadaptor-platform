@@ -103,3 +103,39 @@ def test_home_without_sales_modules_gives_honest_hint():
     )
     html = core_views.dashboard(_req(t, path="/dashboard/")).content.decode()
     assert "Noch keine Verkaufskanäle aktiv" in html
+
+
+# --- X3: полоса дня отвечает честно ------------------------------------------
+
+
+def test_revenue_widget_compares_with_previous_week():
+    """X3: число дня само по себе ни о чём не говорит — рядом «vs Vorwoche»
+    (паттерн SumUp). Сравнение считается ОДНИМ запросом на 14 дней."""
+    from datetime import timedelta
+    from decimal import Decimal
+
+    from django.utils import timezone
+
+    from apps.core import dashboard as dash
+    from apps.finance.models import RevenueEntry
+
+    t = _tenant("bakery")
+    t.disabled_modules = [m for m in t.disabled_modules if m != "finance"]
+    t.save(update_fields=["disabled_modules"])
+    today = timezone.localdate()
+    RevenueEntry.objects.create(date=today - timedelta(days=8), amount=Decimal("100.00"))
+    RevenueEntry.objects.create(date=today, amount=Decimal("150.00"))
+    w = next(x for x in dash.home_widgets(t) if x["key"] == "umsatz")
+    assert "Vorwoche" in w["hint"]  # сравнение показано
+    assert "▲" in w["hint"] or "▼" in w["hint"] or "→" in w["hint"]
+
+
+def test_revenue_card_offers_activation_when_finance_disabled():
+    """X3: finance выключен по умолчанию у ВСЕХ типов — раньше виджет выручки
+    просто исчезал, и владелец не мог узнать, что её надо включить."""
+    from apps.core import dashboard as dash
+
+    t = _tenant("bakery")  # default_disabled_for → finance выключен
+    assert not t.is_module_active("finance")
+    w = next((x for x in dash.home_widgets(t) if x["key"] == "finance_off"), None)
+    assert w is not None and w["url_name"] == "modules"
