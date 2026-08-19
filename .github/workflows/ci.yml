@@ -15,6 +15,17 @@ jobs:
   lint-and-test:
     runs-on: ubuntu-latest
 
+    # X2b-опт (2026-08-19): прогон делится на 3 ПАРАЛЛЕЛЬНЫЕ группы — раньше все
+    # ~4300 тестов шли одной джобой ~15,5 мин (при том, что внутри уже был
+    # `-n auto`). Создание тест-БД (django-tenants, ~250 миграций) стоит ~80 с и
+    # платится в каждой джобе, поэтому дробить мельче невыгодно. Объединение
+    # групп покрывает ВСЕ тесты: g3 = «всё, кроме g1 и g2» (через --ignore),
+    # так что новый apps/* автоматически попадает в g3 и не теряется.
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [g1, g2, g3]
+
     services:
       db:
         image: postgres:16-alpine
@@ -105,8 +116,16 @@ jobs:
       - name: Ruff format check
         run: uv run ruff format --check .
 
-      - name: Run tests
+      - name: Run tests (${{ matrix.group }})
         # Параллельно по ядрам раннера (-n auto). django-tenants: каждый воркер
         # получает свою тест-БД (test_<db>_gwN); --dist loadscope группирует тесты
         # модуля/класса на один воркер (стабильнее с общими фикстурами/схемой).
-        run: uv run pytest -ra -n auto --dist loadscope
+        # --durations=15 печатает самые долгие тесты — материал для точечной
+        # оптимизации (известный кандидат: billing webhook-тесты по ~60 с).
+        run: |
+          case "${{ matrix.group }}" in
+            g1) TARGET="apps/core apps/billing apps/aggregator" ;;
+            g2) TARGET="apps/tenants apps/catalog apps/orders apps/inventory" ;;
+            g3) TARGET=". --ignore=apps/core --ignore=apps/billing --ignore=apps/aggregator --ignore=apps/tenants --ignore=apps/catalog --ignore=apps/orders --ignore=apps/inventory" ;;
+          esac
+          uv run pytest -ra -n auto --dist loadscope --durations=15 $TARGET
