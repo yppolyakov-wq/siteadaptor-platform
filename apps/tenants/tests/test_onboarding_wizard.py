@@ -743,11 +743,13 @@ def test_dashboard_shows_progress_until_completed():
         tenant,
         {"v": 2, "step": "menu", "done": ["company"], "skipped": ["stil"], "completed": False},
     )
+    # X2a (осознанная переписка): плашка «Setup-Fortschritt N/M» и отдельный
+    # readiness-список свёрнуты в ОДНУ карточку на реестре шагов; она видна,
+    # пока чек-лист не закрыт, и исчезает, когда всё выполнено.
     html = core_views.dashboard(_req(tenant=tenant)).content.decode()
-    assert "Setup-Fortschritt" in html
-    onboarding.save_state(tenant, {"v": 2, "step": "done", "completed": True})
-    html = core_views.dashboard(_req(tenant=tenant)).content.decode()
-    assert "Setup-Fortschritt" not in html
+    assert "fertig" in html and "Öffnungszeiten eintragen" in html
+    checklist = onboarding.setup_checklist(tenant)
+    assert checklist["completed"] is False and checklist["total"] > 0
 
 
 def test_done_slide_shows_step_summary_with_fillin_links():

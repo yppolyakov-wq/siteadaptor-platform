@@ -18747,3 +18747,12 @@ msgstr "%(code)s: cancelled ✓"
 #, python-format
 msgid "%(code)s: aktualisiert ✓"
 msgstr "%(code)s: updated ✓"
+
+#. X2a: единый чек-лист главной
+msgid "Öffnungszeiten eintragen"
+msgstr "Set your opening hours"
+
+#. X2a: единый чек-лист главной
+#, python-format
+msgid "Ihre Website ist zu %(p)s %% fertig"
+msgstr "Your website is %(p)s %% ready"

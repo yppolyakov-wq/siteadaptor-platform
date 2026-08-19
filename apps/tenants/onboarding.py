@@ -60,8 +60,10 @@ def _check_offer(t) -> bool:
 
 
 def _check_home(t) -> bool:
+    # X2a: галерея тоже считается «главная наполнена» — признак пришёл из
+    # readiness-чек-листа (пункт «banner»), который свёрнут в единый список.
     cfg = t.site_config if isinstance(t.site_config, dict) else {}
-    return bool(cfg.get("hero_title") or cfg.get("hero_image"))
+    return bool(cfg.get("hero_title") or cfg.get("hero_image") or cfg.get("gallery"))
 
 
 def _has_legal_doc(t) -> bool:
@@ -477,6 +479,57 @@ def offer_cta(tenant):
         archetypes.primary_module(tenant),
         (_t("Add your first item to sell"), "catalog:product-list"),
     )
+
+
+def setup_checklist(tenant) -> dict:
+    """X2a: ЕДИНЫЙ чек-лист главной вместо двух конкурирующих механизмов
+    (плашка «Setup-Fortschritt N/M» + отдельный readiness-список AB4).
+
+    Источник — реестр шагов мастера (`steps_with_status`), поэтому «выполнено»
+    считается ОДИН раз и одинаково везде. Плюс пункты, которых в мастере нет
+    слайдом, но которые были в readiness: часы работы. Признак «фото/галерея»
+    перенесён внутрь `_check_home`.
+
+    → {percent, done, total, completed, items:[{key,label,status,url,step}]}
+    status ∈ done|skipped|pending; url — куда вести (слайд мастера или экран).
+    """
+    from django.urls import reverse
+    from django.utils.translation import gettext as _t
+
+    rows = []
+    for row in steps_with_status(tenant):
+        if row["key"] in ("done", "business"):  # финал и escape-hatch не показываем
+            continue
+        rows.append(
+            {
+                "key": row["key"],
+                "icon": row["icon"],
+                "label": row["label"],
+                "status": row["status"],
+                "url": f"{reverse('setup')}?step={row['key']}",
+            }
+        )
+    # Часы работы: слайда мастера нет, но пункт был в readiness — не теряем.
+    rows.append(
+        {
+            "key": "hours",
+            "icon": "🕒",
+            "label": _t("Öffnungszeiten eintragen"),
+            "status": "done"
+            if bool(tenant.opening_hours or tenant.opening_hours_structured)
+            else "pending",
+            "url": reverse("settings"),
+        }
+    )
+    done = sum(1 for r in rows if r["status"] in ("done", "skipped"))
+    total = len(rows)
+    return {
+        "percent": round(100 * done / total) if total else 100,
+        "done": done,
+        "total": total,
+        "completed": done >= total,
+        "items": rows,
+    }
 
 
 def completeness(tenant) -> dict:

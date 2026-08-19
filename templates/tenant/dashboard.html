@@ -3,13 +3,6 @@
 {% block dash_title %}{% trans "Dashboard" %}{% endblock %}
 
 {% block dash_content %}
-{% if not setup_completed %}
-  {% comment %}Setup-Fortschritt (Track D / AB6): плашка-прогресс, пока мастер не пройден.{% endcomment %}
-  <a href="{% url 'setup' %}" class="block mb-4 bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3 hover:bg-indigo-100">
-    <span class="text-sm font-medium text-indigo-800">{% blocktrans with done=setup_done total=setup_total %}Setup-Fortschritt: {{ done }}/{{ total }} — weiter einrichten →{% endblocktrans %}</span>
-    <span class="block mt-2 h-1.5 bg-indigo-100 rounded-full"><span class="block h-1.5 bg-indigo-600 rounded-full" style="width: {% widthratio setup_done setup_total 100 %}%"></span></span>
-  </a>
-{% endif %}
 <h1 class="text-2xl font-bold mb-4">{% trans "Welcome" %} 👋</h1>
 
 {% comment %}LS-2: присутствие «Jetzt erreichbar» — живой статус + режим Auto/An/Aus.
@@ -57,23 +50,27 @@ st4-admin-home-plan §1).{% endcomment %}
 именами: «Bestellungen» ↔ якорь «Verkäufe»), занимая первый экран главной.
 Уникальным был только вход «Integrationen» — он стал подпунктом «Einstellungen».{% endcomment %}
 
-{% comment %}AB4: чек-лист готовности сайта — мотивация допилить + прямой путь к действию.
-Показываем компактно, пока сайт не на 100%.{% endcomment %}
-{% if readiness and readiness.percent < 100 %}
+{% comment %}X2a: ЕДИНАЯ карточка настройки вместо двух конкурирующих механизмов
+(плашка «Setup-Fortschritt N/M» + отдельный readiness-список AB4). Источник один —
+реестр шагов мастера; пункт «часы работы» перенесён из readiness (слайда нет),
+признак «фото/галерея» ушёл внутрь проверки шага «Startseite».{% endcomment %}
+{% if checklist and not checklist.completed %}
 <div class="mb-8 max-w-xl bg-white rounded-2xl shadow-sm p-5">
   <div class="flex items-center justify-between mb-3">
-    <h2 class="font-semibold text-sm">{% blocktrans with p=readiness.percent %}Your site is {{ p }}% ready{% endblocktrans %}</h2>
-    <span class="text-sm text-gray-400">{{ readiness.done }}/{{ readiness.total }}</span>
+    <h2 class="font-semibold text-sm">{% blocktrans with p=checklist.percent %}Ihre Website ist zu {{ p }} % fertig{% endblocktrans %}</h2>
+    <span class="text-sm text-gray-400">{{ checklist.done }}/{{ checklist.total }}</span>
   </div>
-  <span class="block mb-4 h-2 bg-gray-100 rounded-full"><span class="block h-2 bg-emerald-500 rounded-full" style="width: {{ readiness.percent }}%"></span></span>
+  <span class="block mb-4 h-2 bg-gray-100 rounded-full"><span class="block h-2 bg-emerald-500 rounded-full" style="width: {{ checklist.percent }}%"></span></span>
   <ul class="space-y-1.5">
-    {% for item in readiness.items %}
+    {% for item in checklist.items %}
       <li>
-        {% if item.done %}
+        {% if item.status == 'done' %}
           <span class="flex items-center gap-2 text-sm text-gray-400"><span class="text-emerald-500">✓</span> <span class="line-through">{{ item.label }}</span></span>
+        {% elif item.status == 'skipped' %}
+          <a href="{{ item.url }}" class="flex items-center gap-2 text-sm text-gray-400 hover:text-indigo-700"><span>⏭</span> {{ item.label }} <span class="text-indigo-400">→</span></a>
         {% else %}
-          <a href="{% url item.url_name %}" class="flex items-center gap-2 text-sm text-gray-700 hover:text-indigo-700">
-            <span class="w-4 h-4 shrink-0 rounded border border-gray-300"></span> {{ item.label }} <span class="text-indigo-400">→</span>
+          <a href="{{ item.url }}" class="flex items-center gap-2 text-sm text-gray-700 hover:text-indigo-700">
+            <span class="w-4 h-4 shrink-0 rounded border border-gray-300"></span> {{ item.icon }} {{ item.label }} <span class="text-indigo-400">→</span>
           </a>
         {% endif %}
       </li>
