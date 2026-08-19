@@ -118,6 +118,7 @@ EXPECTED_UNLISTED = frozenset(
         "jobs:new",  # X2c: ручная заявка (приёмник POST схлопнутого списка)
         # [OK] служебное
         "inbox:unread-count",  # JSON-счётчик бейджа
+        "palette-search",  # X8: JSON-поиск палитры (не страница)
         "setup",  # мастер — собственный хром (_base_setup)
         "site-menu",  # области Studio: вход из рейки билдера, не из сайдбара
         "site-pages",

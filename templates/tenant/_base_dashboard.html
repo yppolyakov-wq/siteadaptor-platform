@@ -237,7 +237,7 @@
   function palOpen() {
     if (!pal) return;
     pal.classList.remove("hidden");
-    if (palQ) { palQ.value = ""; palFilter(); palQ.focus(); }
+    if (palQ) { palQ.value = ""; palFilter(); palRenderData([]); palQ.focus(); }
   }
   function palClose() { if (pal) pal.classList.add("hidden"); }
   function palFilter() {
@@ -251,12 +251,47 @@
     var pe = document.getElementById("navpal-empty");
     if (pe) pe.classList.toggle("hidden", any);
   }
+  // X8: поиск по ДАННЫМ — секция «Gefunden» над пунктами меню. Debounce 250 мс,
+  // предыдущий запрос отменяется; сеть упала → остаётся навигационный поиск.
+  var palData = document.getElementById("navpal-data");
+  var palTimer = null, palAbort = null;
+  function palEsc(t) { var d = document.createElement("div"); d.textContent = t == null ? "" : t; return d.innerHTML; }
+  function palRenderData(sections) {
+    if (!palData) return;
+    if (!sections || !sections.length) { palData.classList.add("hidden"); palData.innerHTML = ""; return; }
+    var html = "";
+    sections.forEach(function (sec) {
+      html += '<p class="px-4 pt-2 pb-1 text-[11px] uppercase tracking-wide text-gray-400">' + palEsc(sec.label) + "</p>";
+      sec.items.forEach(function (it) {
+        html += '<a href="' + encodeURI(it.url) + '" class="flex items-center justify-between gap-3 px-4 py-2 text-sm hover:bg-indigo-50">' +
+                '<span class="truncate">' + palEsc(it.label) + "</span>" +
+                '<span class="text-xs text-gray-400 shrink-0 truncate">' + palEsc(it.sub) + "</span></a>";
+      });
+    });
+    palData.innerHTML = html;
+    palData.classList.remove("hidden");
+  }
+  function palSearchData() {
+    if (!palData) return;
+    var q = (palQ && palQ.value || "").trim();
+    if (palTimer) clearTimeout(palTimer);
+    if (q.length < 2) { palRenderData([]); return; }
+    palTimer = setTimeout(function () {
+      if (palAbort) palAbort.abort();
+      palAbort = ("AbortController" in window) ? new AbortController() : null;
+      fetch(palData.getAttribute("data-url") + "?q=" + encodeURIComponent(q),
+            palAbort ? { signal: palAbort.signal } : undefined)
+        .then(function (r) { return r.ok ? r.json() : { sections: [] }; })
+        .then(function (d) { palRenderData(d.sections); })
+        .catch(function () { /* сеть/отмена — навигационный поиск остаётся */ });
+    }, 250);
+  }
   var palBtn = document.getElementById("navpal-open");
   if (palBtn) palBtn.addEventListener("click", palOpen);
   if (pal) {
     pal.addEventListener("click", function (e) { if (e.target === pal) palClose(); });
     if (palQ) {
-      palQ.addEventListener("input", palFilter);
+      palQ.addEventListener("input", function () { palFilter(); palSearchData(); });
       palQ.addEventListener("keydown", function (e) {
         if (e.key === "Enter") {
           var first = pal.querySelector(".navpal-item:not(.hidden)");

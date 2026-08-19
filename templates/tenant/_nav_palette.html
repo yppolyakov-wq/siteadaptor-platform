@@ -6,6 +6,10 @@
   <div class="mx-auto max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden">
     <input id="navpal-q" type="search" placeholder="{% trans 'Bereiche & Einstellungen suchen…' %}" autocomplete="off"
            class="w-full px-4 py-3 text-sm border-b border-gray-200 outline-none">
+    {% comment %}X8: результаты по ДАННЫМ (сделки/клиенты/предложения) — над
+    пунктами меню: «найти заказ фрау Мюллер» — сценарий №1 микро-владельца.
+    Наполняется fetch'ем; без JS/сети остаётся прежний навигационный поиск.{% endcomment %}
+    <div id="navpal-data" data-url="{% url 'palette-search' %}" class="hidden border-b border-gray-100"></div>
     <div id="navpal-list" class="max-h-80 overflow-y-auto">
       {% for e in entries %}
       <a href="{% url e.url_name %}" data-pal="{{ e.haystack }}"

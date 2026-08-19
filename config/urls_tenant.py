@@ -38,6 +38,7 @@ from apps.core.views import (
     modules_view,
     notifications_settings,
     pages_view,
+    palette_search,
     payment_settings,
     sections_view,
     sellable_manage,
@@ -138,6 +139,8 @@ urlpatterns = [
     path("dashboard/presence/", set_presence_view, name="set-presence"),
     # ST-4a: лендинг «Integrationen» (карточки-входы; хаб-плитка главной).
     path("dashboard/integrationen/", integrations_home, name="integrations-home"),
+    # X8: поиск по данным для палитры Ctrl+K (JSON; login_required во вьюхе).
+    path("dashboard/palette-search/", palette_search, name="palette-search"),
     # ST-6a: Marketing-центр (лендинг: карточки ROI-порядка + обзор напоминаний
     # + панель результатов).
     path("dashboard/marketing/", marketing_home, name="marketing-home"),

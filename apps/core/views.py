@@ -3910,6 +3910,28 @@ def _google_rating_status(tenant):
 
 
 @login_required
+def palette_search(request):
+    """X8: JSON-поиск по ДАННЫМ для палитры Ctrl+K (сделки/клиенты/предложения).
+
+    `@login_required` обязателен (класс дефектов X0: без него данные бизнеса
+    читал бы аноним — Membership-гейт мидлвари анонима не трогает). Источники
+    и их модульные гейты — `apps.core.palette_search`."""
+    from django.http import JsonResponse
+
+    from apps.core import palette_search as ps
+
+    sections = ps.search(request.tenant, request.GET.get("q", ""))
+    return JsonResponse(
+        {
+            "sections": [
+                {"key": sec["key"], "label": str(sec["label"]), "items": sec["items"]}
+                for sec in sections
+            ]
+        }
+    )
+
+
+@login_required
 def integrations_home(request):
     """ST-4a → W9-9 (Р-3): «Integrationen» — вкладка Einstellungen-хаба с
     read-only статусами подключений на карточках (fail-safe: сломанный блок
