@@ -433,7 +433,11 @@
       <input name="surcharge_eur" type="text" value="0" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
     </div>
     <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Board" %}</label>
+      {% comment %}X1: msgid «Board» обслуживал ДВА смысла — вид доски
+      (sales_page.VIEW_LABELS) и пансион отеля. Берём существующий msgid
+      «Verpflegung» (переведён в 5 .po), чтобы перевод одного смысла не ломал
+      другой.{% endcomment %}
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Verpflegung" %}</label>
       <select name="meal_plan" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
         {% for value, label in meals %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
       </select>

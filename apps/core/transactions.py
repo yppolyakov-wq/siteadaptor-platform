@@ -74,12 +74,14 @@ TRANSACTION_KINDS = tuple(_KIND_MODEL)
 
 # У Reservation.status НЕТ choices → нет get_status_display(); даём читаемые
 # немецкие подписи сами (иначе показали бы сырой код статуса).
+# X1: подписи были голыми немецкими строками — на немецком экране незаметно, но
+# в кабинете на en/tr/ru/uk выводился немецкий. msgid уже есть во всех 5 каталогах.
 _RESERVATION_STATUS_LABELS = {
-    "pending": "Reserviert",
-    "confirmed": "Bestätigt",
-    "cancelled": "Storniert",
-    "expired": "Abgelaufen",
-    "fulfilled": "Eingelöst",
+    "pending": _("Reserviert"),
+    "confirmed": _("Bestätigt"),
+    "cancelled": _("Storniert"),
+    "expired": _("Abgelaufen"),
+    "fulfilled": _("Eingelöst"),
 }
 
 

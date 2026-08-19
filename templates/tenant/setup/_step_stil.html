@@ -50,7 +50,8 @@
           <input type="radio" name="look" value="{{ lk.key }}" class="border-gray-300">
           <span class="inline-block w-3 h-3 rounded-full shrink-0" style="background: {{ lk.accent }};"></span>
           <span class="font-medium text-sm">{{ lk.label }}</span>
-          {% if lk.theme == 'dark' %}<span class="text-[11px] bg-gray-800 text-gray-100 rounded-full px-2 py-0.5">Dark</span>{% endif %}
+          {# X1: бейдж был английским «Dark» на немецком экране мастера. #}
+          {% if lk.theme == 'dark' %}<span class="text-[11px] bg-gray-800 text-gray-100 rounded-full px-2 py-0.5">{% trans "Dunkel" %}</span>{% endif %}
         </span>
         <span class="block text-xs text-gray-500 mb-2">{{ lk.description }}</span>
         <span class="block rounded-lg border border-gray-100 overflow-hidden bg-gray-50" style="height:150px" aria-hidden="true">

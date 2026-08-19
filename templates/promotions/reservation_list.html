@@ -18,8 +18,9 @@
   <form method="get" class="flex flex-wrap gap-3 mb-4">
     <select name="status" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
       <option value="">{% trans "Any status" %}</option>
-      {% for s in statuses %}
-        <option value="{{ s }}" {% if status == s %}selected{% endif %}>{{ s }}</option>
+      {# X1: вьюха отдаёт пары (код, подпись) — раньше в фильтре стояли сырые коды. #}
+      {% for code, label in statuses %}
+        <option value="{{ code }}" {% if status == code %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
     </select>
     <select name="promotion" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">

@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block dash_title %}{% trans "Redeem" %} {{ code }}{% endblock %}
 
 {% block dash_content %}
@@ -16,7 +16,9 @@
     <div class="bg-white rounded-2xl shadow-sm p-6 mt-3">
       <div class="flex items-center justify-between">
         <span class="font-mono text-lg font-bold">{{ reservation.reference_code }}</span>
-        <span class="px-2 py-0.5 rounded-full bg-gray-100 text-sm">{{ reservation.status }}</span>
+        {% comment %}X1: печатался сырой код («pending»/«confirmed»); тег умеет
+        reservation и уважает собственные имена статусов владельца (FB-4b).{% endcomment %}
+        <span class="px-2 py-0.5 rounded-full bg-gray-100 text-sm">{% status_label reservation "reservation" %}</span>
       </div>
       <dl class="mt-4 text-sm space-y-1">
         <div class="flex justify-between"><dt class="text-gray-500">{% trans "Offer" %}</dt><dd class="font-medium text-right">{{ reservation.promotion.title_text }}</dd></div>

@@ -18820,3 +18820,51 @@ msgstr "Daha fazla sütun"
 #, python-format
 msgid "Nachrichten: %(n)s ungelesen"
 msgstr "Mesajlar: %(n)s okunmamış"
+
+#. X1: Kabinett-Chrom
+msgid "Dunkel"
+msgstr "Koyu"
+
+#. X1: Kabinett-Chrom
+msgid "Automatisch"
+msgstr "Otomatik"
+
+#. X1: Kabinett-Chrom
+#, python-format
+msgid "Reservierung kann im Status „%(status)s“ nicht bestätigt werden."
+msgstr "“%(status)s” durumundaki rezervasyon onaylanamaz."
+
+#. X1: Kabinett-Chrom
+#, python-format
+msgid "Reservierung kann im Status „%(status)s“ nicht eingelöst werden."
+msgstr "“%(status)s” durumundaki rezervasyon kullanılamaz."
+
+#. X1: Kabinett-Chrom
+#, python-format
+msgid "Reservierung kann im Status „%(status)s“ nicht storniert werden."
+msgstr "“%(status)s” durumundaki rezervasyon iptal edilemez."
+
+#. X1: Kabinett-Chrom
+#, python-format
+msgid "Aktion im Status „%(status)s“ nicht möglich."
+msgstr "“%(status)s” durumunda işlem mümkün değil."
+
+#. X1: Kabinett-Chrom
+#, python-format
+msgid "%(code)s: bestätigt ✓"
+msgstr "%(code)s: onaylandı ✓"
+
+#. X1: Kabinett-Chrom
+#, python-format
+msgid "%(code)s: eingelöst ✓"
+msgstr "%(code)s: kullanıldı ✓"
+
+#. X1: Kabinett-Chrom
+#, python-format
+msgid "%(code)s: storniert ✓"
+msgstr "%(code)s: iptal edildi ✓"
+
+#. X1: Kabinett-Chrom
+#, python-format
+msgid "%(code)s: aktualisiert ✓"
+msgstr "%(code)s: güncellendi ✓"

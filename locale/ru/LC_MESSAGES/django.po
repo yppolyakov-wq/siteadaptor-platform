@@ -18904,3 +18904,51 @@ msgstr "Больше колонок"
 #, python-format
 msgid "Nachrichten: %(n)s ungelesen"
 msgstr "Сообщения: %(n)s непрочитанных"
+
+#. X1: Kabinett-Chrom
+msgid "Dunkel"
+msgstr "Тёмная"
+
+#. X1: Kabinett-Chrom
+msgid "Automatisch"
+msgstr "Автоматически"
+
+#. X1: Kabinett-Chrom
+#, python-format
+msgid "Reservierung kann im Status „%(status)s“ nicht bestätigt werden."
+msgstr "Бронь в статусе «%(status)s» нельзя подтвердить."
+
+#. X1: Kabinett-Chrom
+#, python-format
+msgid "Reservierung kann im Status „%(status)s“ nicht eingelöst werden."
+msgstr "Бронь в статусе «%(status)s» нельзя погасить."
+
+#. X1: Kabinett-Chrom
+#, python-format
+msgid "Reservierung kann im Status „%(status)s“ nicht storniert werden."
+msgstr "Бронь в статусе «%(status)s» нельзя отменить."
+
+#. X1: Kabinett-Chrom
+#, python-format
+msgid "Aktion im Status „%(status)s“ nicht möglich."
+msgstr "Действие невозможно в статусе «%(status)s»."
+
+#. X1: Kabinett-Chrom
+#, python-format
+msgid "%(code)s: bestätigt ✓"
+msgstr "%(code)s: подтверждено ✓"
+
+#. X1: Kabinett-Chrom
+#, python-format
+msgid "%(code)s: eingelöst ✓"
+msgstr "%(code)s: погашено ✓"
+
+#. X1: Kabinett-Chrom
+#, python-format
+msgid "%(code)s: storniert ✓"
+msgstr "%(code)s: отменено ✓"
+
+#. X1: Kabinett-Chrom
+#, python-format
+msgid "%(code)s: aktualisiert ✓"
+msgstr "%(code)s: обновлено ✓"

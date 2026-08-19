@@ -583,18 +583,51 @@ def reservation_list(request):
         qs = qs.filter(status=status)
     if promotion_id:
         qs = qs.filter(promotion_id=promotion_id)
+    # X1: фильтр печатал сырые коды («pending»/«confirmed»); отдаём пары
+    # (код, подпись) — те же имена, что в колонке статуса (тег status_label):
+    # собственное имя владельца (FB-4b) → встроенная подпись → код.
+    from apps.core import transactions
+
+    labels = transactions.builtin_status_labels("reservation")
+    tenant = getattr(request, "tenant", None)  # fail-safe: тест-рендер без тенанта
+    own = (
+        ((getattr(tenant, "site_config", None) or {}).get("status_labels") or {}).get("reservation")
+    ) or {}
+    status_choices = [
+        (code, own.get(code) or labels.get(code, code)) for code in RESERVATION_STATUSES
+    ]
     return render(
         request,
         "promotions/reservation_list.html",
         {
             "reservations": qs[:200],
-            "statuses": RESERVATION_STATUSES,
+            "statuses": status_choices,
             "status": status,
             "promotions": Promotion.objects.all(),
             "selected_promotion": promotion_id,
             "nav": "reservations",
         },
     )
+
+
+def _reservation_status_label(status: str) -> str:
+    """X1: подпись статуса резерва для сообщений (сырой код в тексте не показываем)."""
+    from apps.core import transactions
+
+    return str(transactions.builtin_status_labels("reservation").get(status, status))
+
+
+def _reservation_failed(action: str, status: str) -> str:
+    """X1: полные немецкие фразы на каждое действие — без склейки английских кодов
+    (правило i18n проекта: не собирать предложение из кусков)."""
+    label = _reservation_status_label(status)
+    texts = {
+        "confirm": _("Reservierung kann im Status „%(status)s“ nicht bestätigt werden."),
+        "fulfill": _("Reservierung kann im Status „%(status)s“ nicht eingelöst werden."),
+        "cancel": _("Reservierung kann im Status „%(status)s“ nicht storniert werden."),
+    }
+    template = texts.get(action, _("Aktion im Status „%(status)s“ nicht möglich."))
+    return template % {"status": label}
 
 
 @login_required
@@ -620,7 +653,9 @@ def reservation_action(request, pk):
                 }
                 messages.success(request, _res_done.get(action, _("Reservation updated.")))
             except IllegalTransition:
-                messages.error(request, f"Cannot {action} a reservation in status “{res.status}”.")
+                # X1: было английское f-сообщение со СКЛЕЙКОЙ кода действия и сырого
+                # статуса — единственная английская фраза среди переведённых соседей.
+                messages.error(request, _reservation_failed(action, res.status))
     return redirect("promotions:reservation-list")
 
 
@@ -683,9 +718,17 @@ def redeem_action(request, code):
         else:
             try:
                 handler(res, actor=request.user)
-                messages.success(request, f"{code}: {action} ✓")
+                # X1: было «CODE: confirm ✓» — английский код действия в немецком UI.
+                _done = {
+                    "confirm": _("%(code)s: bestätigt ✓"),
+                    "fulfill": _("%(code)s: eingelöst ✓"),
+                    "cancel": _("%(code)s: storniert ✓"),
+                }
+                messages.success(
+                    request, _done.get(action, _("%(code)s: aktualisiert ✓")) % {"code": code}
+                )
             except IllegalTransition:
-                messages.error(request, f"Status „{res.status}“ — Aktion „{action}“ nicht möglich.")
+                messages.error(request, _reservation_failed(action, res.status))
     return redirect("promotions:redeem-detail", code=code)
 
 
