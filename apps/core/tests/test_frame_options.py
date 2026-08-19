@@ -35,14 +35,14 @@ def test_dashboard_and_accounts_not_touched():
 
 def test_root_mounted_cabinet_not_touched():
     # Разделы кабинета на корне субдомена ВНЕ /dashboard/ (catalog/imports/promotions/
-    # crm/willkommen) — тоже кабинет владельца, middleware их не трогает (остаются DENY).
+    # crm) — тоже кабинет владельца, middleware их не трогает (остаются DENY).
+    # X2a: «/willkommen/» удалён (мёртвый алиас мастера).
     for path in (
         "/catalog/products/",
         "/imports/",
         "/promotions/redeem/",
         "/promotions/vouchers/redeem/",
         "/crm/",
-        "/willkommen/",
     ):
         resp = _call(path)
         assert "X-Frame-Options" not in resp, path

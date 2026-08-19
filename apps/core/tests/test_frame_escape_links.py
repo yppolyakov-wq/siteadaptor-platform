@@ -20,7 +20,7 @@ STOREFRONT_TEMPLATES = Path(settings.BASE_DIR) / "templates" / "storefront"
 # Признаки ссылки в DENY-зону: реверс кабинетных url-имён или литеральный href.
 _BLOCKED_URL_RE = re.compile(
     r"""\{%\s*url\s+['"](site-home|catalog:)"""  # site-home + весь CRUD /catalog/
-    r"""|href="/(dashboard|catalog|imports|promotions|crm|willkommen|accounts)/"""
+    r"""|href="/(dashboard|catalog|imports|promotions|crm|accounts)/"""
 )
 _ESCAPES_FRAME_RE = re.compile(r'target="(_top|_blank)"')
 _A_TAG_RE = re.compile(r"<a\s[^>]*>", re.DOTALL)

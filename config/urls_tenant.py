@@ -85,9 +85,9 @@ urlpatterns = [
     # --- Кабинет владельца (под логином) ---
     path("dashboard/", dashboard, name="dashboard"),
     # Onboarding-Wizard (Track D / D0c; B.4 линейный ≤10): пошаговая настройка после
-    # регистрации. `/willkommen/` — дружелюбный алиас на тот же мастер (анти-Битрикс).
+    # регистрации. X2a: алиас `/willkommen/` удалён — на него не вело ни одной
+    # ссылки, а строковые префиксы в middleware приходилось поддерживать вручную.
     path("dashboard/setup/", setup_view, name="setup"),
-    path("willkommen/", setup_view, name="willkommen"),
     path("dashboard/settings/", settings_view, name="settings"),
     # UD4-2: кабинет «Benachrichtigungen» — каналы email/Telegram per-событие.
     path(

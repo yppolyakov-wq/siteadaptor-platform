@@ -346,15 +346,3 @@ def save_prepay(tenant, request) -> None:
     """W4-3: сохранить онлайн-предоплату Click&Collect (P2.5c). Извлечено 1:1."""
     tenant.orders_prepay = bool(request.POST.get("orders_prepay"))
     tenant.save(update_fields=["orders_prepay", "updated_at"])
-
-
-@login_required
-@require_POST
-def order_settings(request):
-    """Легаси-приёмник настроек заказов — все ветки переехали и УДАЛЕНЫ.
-
-    W7a (аудит 2026-08-05): delivery/vorkasse/prepay → «Zahlung & Versand»
-    (core.payment_settings, W4-3; save_* зовутся оттуда по сентинелам). W9-8:
-    status_labels → generic status-labels-save (экран «Abläufe»). Остался
-    безопасный no-op редирект: устаревший POST ничего не пишет и не обнуляет."""
-    return redirect("orders:order-list")

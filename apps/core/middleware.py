@@ -88,7 +88,7 @@ class CabinetOwnerAccessMiddleware:
 
     # Кабинет-пути владельца: CABINET_PREFIXES (dashboard + корневые разделы) плюс
     # алиас мастера онбординга. Витрину/публичные пути/логин НЕ трогаем.
-    _PREFIXES = (*CABINET_PREFIXES, "/willkommen/")
+    _PREFIXES = CABINET_PREFIXES
     # W9-10: owner-only зона — Abo/Stripe-Connect, правовые тексты/реквизиты,
     # Team. Приглашённый admin/staff сюда не попадает («пригласить сотрудника»
     # ≠ «отдать бизнес»). Прямые вызовы вьюх в тестах идут мимо middleware —
@@ -129,7 +129,7 @@ class StorefrontFrameOptionsMiddleware:
     кабинета владельца смонтирована на корне субдомена ВНЕ `/dashboard/`
     (`config/urls_tenant.py`): `/catalog/` (CRUD товаров), `/imports/` (CSV),
     `/promotions/` (выдача/погашение ваучеров, лояльность), `/crm/` (данные клиентов),
-    `/willkommen/` (алиас мастера онбординга). Все под `@login_required`, ни одна не
+    мастер онбординга. Все под `@login_required`, ни одна не
     участвует в превью редактора (`preview_pages` — только главная + лендинги
     архетипов) → им незачем кадрироваться, оставляем самый строгий ``DENY``.
     Клиентский ЛК `/konto/` (магик-линк) — это витрина (ссылка «Mein Konto» в шапке/
@@ -150,7 +150,6 @@ class StorefrontFrameOptionsMiddleware:
         "/imports/",
         "/promotions/",
         "/crm/",
-        "/willkommen/",
     )
 
     def __init__(self, get_response):

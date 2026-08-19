@@ -40,7 +40,6 @@ def test_authenticated_non_member_blocked_on_cabinet():
         "/catalog/products/",
         "/crm/",
         "/promotions/redeem/",
-        "/willkommen/",
     ):
         assert _call(path, user=user).status_code == 403, path
 

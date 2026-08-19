@@ -6,7 +6,6 @@ app_name = "orders"
 
 urlpatterns = [
     path("", views.order_list, name="order-list"),
-    path("settings/", views.order_settings, name="order-settings"),
     path("kitchen/", views.kitchen, name="kitchen"),
     path("tisch-qr/", views.table_qr, name="table-qr"),
     path("kitchen/board/", views.kitchen_board, name="kitchen-board"),

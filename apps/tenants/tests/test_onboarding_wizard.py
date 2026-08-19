@@ -782,10 +782,11 @@ def test_dashboard_renders_once_wizard_touched():
 # --- AB7-B2: блочная главная (плитки задач + встроенный канбан) --------------------
 
 
-def test_dashboard_shows_task_tiles_gated_by_module():
-    """AB7-B2: плитки задач — offer/Kategorien/Startseite/Zahlung/Recht по модулям."""
-    from apps.core import dashboard as dash
-
+def test_dashboard_renders_hub_tiles_and_widgets():
+    """X2a (осознанная переписка): `dashboard_tiles` УДАЛЁН — он висел мёртвым с
+    ST-4a (2026-07-19), плитки задач заменены хабами и виджетами «что сегодня».
+    Прежние два теста проверяли builder мёртвой функции; оставляем проверку того,
+    что владелец реально видит на главной."""
     tenant = TenantFactory(
         schema_name="public",
         slug="tiles",
@@ -796,34 +797,10 @@ def test_dashboard_shows_task_tiles_gated_by_module():
     onboarding.save_state(
         tenant, {"v": 2, "step": "company", "done": ["company"], "completed": False}
     )
-    urls = {t["url_name"] for t in dash.dashboard_tiles(tenant)}
-    assert {"catalog:category-list", "site-home", "payment-settings", "legal-docs"} <= urls
-    # ST-4a: на ХОУМЕ task-плитки заменены хабами+виджетами (builder dashboard_tiles
-    # остаётся; его гейты — выше). Рендер проверяем по новым хабам.
     html = core_views.dashboard(_req(tenant=tenant)).content.decode()
     assert "ic-orders" in html and "Einstellungen" in html
-    # SM-1 (2026-08-10): режим Простой/Эксперт снесён — плитки одинаковы для всех,
-    # отдельного скрытия по режиму больше нет.
-
-
-def test_dashboard_tile_badge_links_to_incomplete_step():
-    """AB7-B2: невыполненный шаг → бейдж «Not set up» с ?step=<key> (дозаполнение)."""
-    tenant = TenantFactory(
-        schema_name="public",
-        slug="badge",
-        name="Badge",
-        business_type="bakery",
-        disabled_modules=modules.default_disabled_for("bakery"),
-    )
-    onboarding.save_state(
-        tenant, {"v": 2, "step": "company", "done": ["company"], "completed": False}
-    )
-    # ST-4a: бейдж «Not set up» уехал с плиток (заменены хабами) — дозаполнение
-    # ведёт readiness-чек-лист и рельса мастера; сам механизм needs жив в builder.
-    from apps.core import dashboard as dash
-
-    needs = {t["step"]: t["needs"] for t in dash.dashboard_tiles(tenant)}
-    assert needs.get("offer") is True
+    # Дозаполнение пропущенных шагов ведёт чек-лист готовности + рельса мастера.
+    assert "setup" in html
 
 
 def test_dashboard_embeds_kanban_board_when_channel_active():

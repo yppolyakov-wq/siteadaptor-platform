@@ -103,7 +103,6 @@ EXPECTED_UNLISTED = frozenset(
         # [302] легаси-редиректы с GET-carry
         "booking:calendar",
         "orders:order-list",
-        "orders:order-settings",
         "site",
         "stays:calendar",
         "stays:today",
@@ -140,7 +139,9 @@ EXPECTED_UNLISTED = frozenset(
     }
 )
 
-_CABINET_PREFIXES = ("dashboard/", "catalog/", "promotions/", "imports/", "crm/")
+# X2a: «willkommen/» жил ВНЕ этих префиксов — замок его не видел, и удаление
+# маршрута прошло бы мимо инварианта. Добавлен, чтобы класс ловился впредь.
+_CABINET_PREFIXES = ("dashboard/", "catalog/", "promotions/", "imports/", "crm/", "willkommen/")
 
 
 def _cabinet_screen_names():
