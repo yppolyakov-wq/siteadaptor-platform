@@ -118,4 +118,5 @@ def test_offer_cta_jobs_for_handwerker():
         business_type="handwerker", disabled_modules=["events", "stays", "booking"]
     )
     label, url_name = onboarding.offer_cta(tenant)
-    assert url_name == "jobs:list"
+    # X2c: CTA ведёт на экран создания заявки (список схлопнут в Verkäufe).
+    assert url_name == "jobs:new"
