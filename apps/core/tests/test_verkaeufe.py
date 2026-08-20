@@ -332,13 +332,16 @@ def test_toolbar_lives_inside_the_tab_not_above():
     """SM-2 (фидбэк владельца 2026-08-10): «кнопки идут как будто над верхним
     уровнем, а должны быть частью каждого внутри» — переключатель видов стоит
     ПОСЛЕ ряда вкладок; «📆 Heute» из ряда видов ушёл (живёт на Übersicht).
-    SM-4 (решение владельца 2026-08-11): «⚙️ Abläufe» ушла и из тулбара —
-    подпункт раздела «Verkäufe» в сайдбаре; тулбар = виды + «＋»."""
+    SM-4 (решение владельца 2026-08-11): «⚙️ Abläufe» ушла из тулбара в подпункт
+    сайдбара. VK-2 (фидбэк владельца 2026-08-20): вход в настройки РАЗДЕЛА вернулся
+    на страницу — владелец их не находил; замок переписан осознанно: кнопка обязана
+    нести АКТИВНЫЙ kind (настраиваем именно эту вкладку) и `from=board` (крошка
+    вернёт на неё же)."""
     body = views.verkaeufe(_req(**_hotel())).content.decode()
     assert body.index("data-sales-tabs") < body.index("data-sales-view-switch")
-    # тулбарная ссылка вела на ablaeufe с ?kind= — её больше нет (подпункт
-    # сайдбара ведёт на /dashboard/ablaeufe/ без querystring)
-    assert "ablaeufe/?kind=" not in body
+    # кнопка настроек — ПОСЛЕ вкладок (часть вкладки, не полоса над всем)
+    assert body.index("data-sales-tabs") < body.index("ablaeufe/?kind=stay")
+    assert "ablaeufe/?kind=stay&amp;from=board" in body
     assert "view=heute" not in body  # кнопки Heute на странице продаж больше нет
 
 

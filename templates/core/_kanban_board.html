@@ -4,9 +4,14 @@ UD2-2 Kanban-Board einer Transaktionsart (section). Spalten = Pipeline-Stufen;
 Karten nach `pipeline_stage` gefiltert. Drop-Zonen tragen data-drop-stage; das
 Drag-JS in board.html bindet Karten + Zonen.
 {% endcomment %}
+{% comment %}Фидбэк владельца 2026-08-20 (п.1 «очень много свободного места»):
+колонки были фиксированной ширины (sm:w-64) — три колонки занимали 768px на
+широком экране, дальше пустота. Теперь тянутся (flex-1 basis-0) и заполняют
+ширину; min-w не даёт сплющить их при 5+ колонках — тогда включается прежняя
+горизонтальная прокрутка. Мобильный snap-скролл (85vw) не тронут.{% endcomment %}
 <div class="kanban flex gap-4 overflow-x-auto snap-x snap-mandatory sm:snap-none pb-4" data-kanban data-kind="{{ section.kind }}">
   {% for col in section.columns %}
-    <div class="kanban-col flex-shrink-0 w-[85vw] sm:w-64 snap-start bg-gray-50 rounded-xl p-2" data-stage="{{ col.stage }}">
+    <div class="kanban-col flex-shrink-0 w-[85vw] snap-start sm:flex-1 sm:flex-shrink sm:basis-0 sm:w-auto sm:min-w-[15rem] bg-gray-50 rounded-xl p-2" data-stage="{{ col.stage }}">
       <div class="flex items-center justify-between px-2 py-1 mb-2">
         <span class="text-xs font-semibold text-gray-600 uppercase tracking-wide">{{ col.label }}</span>
         <span class="text-xs text-gray-400">{{ col.count }}</span>

@@ -4,7 +4,11 @@
 кабинета (AB7-B2). Контекст: sections / active_kind. Рендер 1:1 с прежним board.html;
 вьюха board не меняется. Правила переходов карт (FSM) — только через kanban_action.{% endcomment %}
 {% if sections %}
-  <div class="flex items-center justify-between gap-3 flex-wrap border-b border-gray-200 mb-4">
+  {% comment %}Фидбэк 2026-08-20 (п.1): при одной секции (Verkäufe/главная) в этом
+  ряду оставался только чекбокс «Abgeschlossene anzeigen» — и он тянул за собой
+  полосу-разделитель и 16px отступа. Граница и большой отступ — только когда в
+  ряду действительно есть табы секций.{% endcomment %}
+  <div class="flex items-center justify-end gap-3 flex-wrap {% if sections|length > 1 %}border-b border-gray-200 mb-4 justify-between{% else %}mb-1{% endif %}">
     {% if sections|length > 1 %}{# W7c: на Verkäufe секция одна — таб из одной кнопки не рисуем #}
     <div class="flex gap-1 flex-wrap" role="tablist">
       {% for s in sections %}
