@@ -19369,3 +19369,10 @@ msgstr "not set"
 
 msgid "Ein abgeschlossener Auftrag kann nicht mehr geändert werden."
 msgstr "A closed order can no longer be changed."
+
+msgid ""
+"Im Preis enthalten (Bruttopreis). Lebensmittel meist 7, Standard 19 (Angabe "
+"in Prozent). Bei Kleinunternehmerregelung nach § 19 UStG ohne Wirkung."
+msgstr ""
+"Included in the price (gross). Food is usually 7, standard is 19 (percent). "
+"No effect under the small-business rule of § 19 UStG."

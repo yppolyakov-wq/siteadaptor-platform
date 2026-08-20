@@ -19580,3 +19580,10 @@ msgstr "не задан"
 
 msgid "Ein abgeschlossener Auftrag kann nicht mehr geändert werden."
 msgstr "Закрытый заказ изменить уже нельзя."
+
+msgid ""
+"Im Preis enthalten (Bruttopreis). Lebensmittel meist 7, Standard 19 (Angabe "
+"in Prozent). Bei Kleinunternehmerregelung nach § 19 UStG ohne Wirkung."
+msgstr ""
+"Уже включён в цену (брутто). Продукты обычно 7, стандарт 19 (в процентах). "
+"При режиме малого предпринимателя (§ 19 UStG) не действует."

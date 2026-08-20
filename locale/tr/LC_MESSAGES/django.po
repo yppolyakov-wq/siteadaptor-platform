@@ -19496,3 +19496,10 @@ msgstr "ayarlanmadı"
 
 msgid "Ein abgeschlossener Auftrag kann nicht mehr geändert werden."
 msgstr "Kapatılmış bir sipariş artık değiştirilemez."
+
+msgid ""
+"Im Preis enthalten (Bruttopreis). Lebensmittel meist 7, Standard 19 (Angabe "
+"in Prozent). Bei Kleinunternehmerregelung nach § 19 UStG ohne Wirkung."
+msgstr ""
+"Fiyata dahildir (brüt). Gıdada genelde 7, standart 19 (yüzde olarak). § 19 "
+"UStG küçük işletme düzenlemesinde etkisizdir."

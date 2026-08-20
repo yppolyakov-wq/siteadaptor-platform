@@ -204,9 +204,13 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             "content_amount": _("Inhalt je Packung — z. B. 500 (bei Einheit „g“ → €/kg)."),
             "currency": _("Standard: EUR."),
             # SH-4: ставка нужна для разбивки итога — цена остаётся брутто (PAngV).
+            # Без литерального «%»: xgettext помечает такую строку python-format,
+            # и голый процент ломает извлечение (тот же класс, что уже правили
+            # в форме раньше — см. build-log 2026-07-11).
             "vat_rate": _(
-                "Im Preis enthalten (Bruttopreis). 7 % z. B. für Lebensmittel, "
-                "19 % Standard. Bei Kleinunternehmerregelung (§ 19) ohne Wirkung."
+                "Im Preis enthalten (Bruttopreis). Lebensmittel meist 7, "
+                "Standard 19 (Angabe in Prozent). Bei Kleinunternehmerregelung "
+                "nach § 19 UStG ohne Wirkung."
             ),
             "cost_price": _("Nur intern — für die Margen-Anzeige, nicht öffentlich."),
             "reorder_point": _("Ab diesem Bestand meldet der Shop „nachbestellen“."),
