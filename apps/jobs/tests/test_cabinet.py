@@ -110,6 +110,53 @@ def test_save_lines_computes_totals():
     assert str(job.valid_until) == "2026-12-31"
 
 
+# --- VK-9/10 (фидбэк владельца 2026-08-20): смета ----------------------------------
+
+
+def test_qty_survives_reload_in_german_locale():
+    """«В предварительной при указании числа оно пропадает»: Decimal в немецкой
+    локали рендерился как «2,50», а input[type=number] принимает только точку —
+    браузер показывал поле ПУСТЫМ, и сохранённое количество выглядело потерянным."""
+    from django.utils import translation
+
+    job = _job()
+    services.set_lines(job, [{"text": "Arbeit", "qty": "2.5", "unit_price": "40.00"}])
+    with translation.override("de"):
+        body = views.job_detail(_req(), pk=job.pk).content.decode()
+    assert 'name="line_qty_1" type="number" min="0.01" step="0.01" data-qt-qty value="2.50"' in body
+    assert 'value="2,50"' not in body  # запятая = невалидное значение для type=number
+
+
+def test_line_total_column_rendered():
+    """п.10: итог позиции (кол-во × цена) — в самой строке, а не только внизу."""
+    job = _job()
+    services.set_lines(job, [{"text": "Arbeit", "qty": 2, "unit_price": "40.00"}])
+    body = views.job_detail(_req(), pk=job.pk).content.decode()
+    assert "data-qt-sum" in body and "80,00 €" in body
+
+
+def test_line_with_price_but_no_text_is_reported_not_swallowed():
+    """Второй способ «потерять число»: строка без описания молча отбрасывалась."""
+    job = _job()
+    req = _req(
+        "post",
+        data={
+            "action": "save_lines",
+            "line_text_1": "Arbeit",
+            "line_qty_1": "1",
+            "line_price_1": "50,00",
+            "line_qty_2": "3",
+            "line_price_2": "20,00",  # описания нет — строка не сохранится
+            "vat_rate": "19.00",
+        },
+    )
+    views.job_detail(req, pk=job.pk)
+    job.refresh_from_db()
+    assert job.lines.count() == 1
+    texts = [str(m) for m in req._messages]
+    assert any("ohne Beschreibung" in t for t in texts)
+
+
 # --- G11b: пикер расходников из каталога -------------------------------------------
 
 

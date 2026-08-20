@@ -91,9 +91,11 @@
   <div class="space-y-2">
     <div class="hidden sm:grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs text-gray-400 font-medium">
       {% if parts %}<span class="col-span-3">{% trans "Part (catalog)" %}</span>{% endif %}
-      <span class="{% if parts %}col-span-4{% else %}col-span-7{% endif %}">{% trans "Description" %}</span>
+      <span class="{% if parts %}col-span-3{% else %}col-span-6{% endif %}">{% trans "Description" %}</span>
       <span class="col-span-2 text-right">{% trans "Qty" %}</span>
-      <span class="col-span-3 text-right">{% trans "Unit price (net)" %}</span>
+      <span class="col-span-2 text-right">{% trans "Unit price (net)" %}</span>
+      {# Фидбэк владельца 2026-08-20 (п.10): итог позиции — в самой строке #}
+      <span class="col-span-2 text-right">{% trans "Summe" %}</span>
     </div>
     {% for row in rows %}
       <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
@@ -103,9 +105,15 @@
             {% for p in parts %}<option value="{{ p.value }}" {% if p.value == row.part_value %}selected{% endif %}>{{ p.label }}</option>{% endfor %}
           </select>
         {% endif %}
-        <input name="line_text_{{ row.i }}" type="text" value="{% if row.line %}{{ row.line.text }}{% endif %}" placeholder="{% trans 'Position' %}" class="{% if parts %}col-span-4{% else %}col-span-7{% endif %} rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
-        <input name="line_qty_{{ row.i }}" type="number" min="0.01" step="0.01" value="{% if row.line %}{{ row.line.qty }}{% else %}1{% endif %}" class="col-span-2 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
-        <input name="line_price_{{ row.i }}" type="text" value="{% if row.line %}{{ row.line.unit_price|stringformat:'.2f' }}{% endif %}" placeholder="0,00" class="col-span-3 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
+        <input name="line_text_{{ row.i }}" type="text" value="{% if row.line %}{{ row.line.text }}{% endif %}" placeholder="{% trans 'Position' %}" class="{% if parts %}col-span-3{% else %}col-span-6{% endif %} rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        {% comment %}Фидбэк владельца 2026-08-20 (п.9 «при указании числа оно
+        пропадает»): значение Decimal в немецкой локали рендерилось как «1,00», а
+        input[type=number] принимает ТОЛЬКО точку — браузер показывал поле пустым,
+        и сохранённое количество выглядело потерянным. floatformat:"-2u" даёт
+        неломающееся «1» / «2.5».{% endcomment %}
+        <input name="line_qty_{{ row.i }}" type="number" min="0.01" step="0.01" data-qt-qty value="{% if row.line %}{{ row.line.qty|floatformat:'-2u' }}{% else %}1{% endif %}" class="col-span-2 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
+        <input name="line_price_{{ row.i }}" type="text" data-qt-price value="{% if row.line %}{{ row.line.unit_price|stringformat:'.2f' }}{% endif %}" placeholder="0,00" class="col-span-2 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
+        <output data-qt-sum class="col-span-2 px-2 py-1.5 text-sm text-right text-gray-600 tabular-nums">{% if row.line %}{{ row.line.line_total|floatformat:2 }} €{% endif %}</output>
       </div>
     {% endfor %}
   </div>
@@ -142,7 +150,51 @@
       {% if job.deposit_cents and not payments_enabled %}<p class="text-xs text-amber-700 mt-1">{% trans "Enable online payments to collect it." %}</p>{% endif %}
     </div>
     <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save quote" %}</button>
+    {# Живой нетто-итог: считается по строкам ДО сохранения (п.10) #}
+    <p class="ml-auto text-sm text-gray-500">{% trans "Zwischensumme (netto)" %}:
+      <span data-qt-net class="font-semibold text-gray-900 tabular-nums">–</span></p>
   </div>
+  {% comment %}Фидбэк владельца 2026-08-20 (п.10): сумма позиции и промежуточный
+итог считаются на вводе — владелец видит цифру до сохранения. Слушатель на
+document (партиал может перерисовываться — урок Ф1/HF).{% endcomment %}
+<script>
+(function () {
+  "use strict";
+  var CUR = " \u20ac";
+  function num(v) {
+    var s = String(v == null ? "" : v).replace(/\s/g, "");
+    // «1.234,50» — точка тут разделитель тысяч; «12.50» — десятичная.
+    if (s.indexOf(",") > -1) s = s.replace(/\./g, "");
+    var n = parseFloat(s.replace(",", "."));
+    return isFinite(n) ? n : 0;
+  }
+  function fmt(n) {
+    return n.toFixed(2).replace(".", ",") + CUR;
+  }
+  function recalc() {
+    var net = 0;
+    document.querySelectorAll("[data-qt-sum]").forEach(function (out) {
+      var row = out.parentNode;
+      var q = row.querySelector("[data-qt-qty]");
+      var p = row.querySelector("[data-qt-price]");
+      if (!q || !p) return;
+      var hasInput = String(p.value).trim() !== "" || String(q.value).trim() !== "";
+      var sum = num(q.value) * num(p.value);
+      out.textContent = hasInput && sum ? fmt(sum) : "";
+      net += sum;
+    });
+    var total = document.querySelector("[data-qt-net]");
+    if (total) total.textContent = net ? fmt(net) : "\u2013";
+  }
+  document.addEventListener("input", function (e) {
+    if (e.target.closest && e.target.closest("[data-qt-qty], [data-qt-price]")) recalc();
+  });
+  document.addEventListener("change", function (e) {
+    if (e.target.closest && e.target.closest("[data-qt-qty], [data-qt-price]")) recalc();
+  });
+  recalc();
+})();
+</script>
   {% if job.gross %}
     <div class="mt-4 text-sm text-right text-gray-600 space-y-0.5">
       <p>{% trans "Net" %}: {{ job.net|floatformat:2 }} €</p>

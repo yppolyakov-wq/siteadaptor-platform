@@ -243,6 +243,7 @@ def _save_lines(request, job):
     }
 
     lines = []
+    dropped = []  # строки с ценой, но без описания (см. ниже)
     for index in range(1, MAX_LINES + 1):
         product, variant = _resolve_part(
             request.POST.get(f"line_part_{index}", ""), products, variants
@@ -251,9 +252,14 @@ def _save_lines(request, job):
         # G11: расходник из каталога без текста → снимок названия товара/варианта.
         if product and not text:
             text = f"{product.name_text} · {variant.label}" if variant else product.name_text
-        if not text:
-            continue
         price_raw = str(request.POST.get(f"line_price_{index}", "")).strip()
+        if not text:
+            # Фидбэк владельца 2026-08-20 (п.9): строка без описания молча
+            # отбрасывалась — введённые цена/количество «пропадали» без следа.
+            # Придумать описание за владельца нельзя, но промолчать — нельзя тоже.
+            if price_raw:
+                dropped.append(index)
+            continue
         try:
             # A7a: дробное кол-во (часы/единицы). Ограничиваем 0,01..9999.
             qty_raw = str(request.POST.get(f"line_qty_{index}", "1") or "1").replace(",", ".")
@@ -276,6 +282,13 @@ def _save_lines(request, job):
                 "product": product,
                 "variant": variant,
             }
+        )
+
+    if dropped:
+        messages.warning(
+            request,
+            _("Positionen ohne Beschreibung wurden nicht gespeichert (Zeile %(rows)s).")
+            % {"rows": ", ".join(str(i) for i in dropped)},
         )
 
     vat_raw = request.POST.get("vat_rate", "19.00")

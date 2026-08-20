@@ -56,6 +56,55 @@
     </div>
   </div>
 
-  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-5 py-2.5 text-sm font-medium hover:bg-indigo-700">💶 {% trans "Angebot senden" %}</button>
+  {% comment %}Фидбэк владельца 2026-08-20 (п.10): в композере не было ни суммы
+  позиции, ни итога — владелец отправлял предложение, не видя цифры. Считаем на
+  вводе: отмеченные позиции + непустые свободные строки.{% endcomment %}
+  <div class="flex items-center gap-4 flex-wrap">
+    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-5 py-2.5 text-sm font-medium hover:bg-indigo-700">💶 {% trans "Angebot senden" %}</button>
+    <p class="text-sm text-gray-500">{% trans "Angebotssumme" %}:
+      <span data-of-total class="font-semibold text-gray-900 tabular-nums">–</span></p>
+  </div>
 </form>
+
+<script>
+(function () {
+  "use strict";
+  function num(v) {
+    var s = String(v == null ? "" : v).replace(/\s/g, "");
+    // «1.234,50» — точка тут разделитель тысяч; «12.50» — десятичная.
+    if (s.indexOf(",") > -1) s = s.replace(/\./g, "");
+    var n = parseFloat(s.replace(",", "."));
+    return isFinite(n) ? n : 0;
+  }
+  function priceOf(input) {
+    // Пустая цена = цена из ассортимента (placeholder «12,00 €») — как на сервере.
+    var raw = String(input.value).trim();
+    if (raw) return num(raw);
+    return num((input.getAttribute("placeholder") || "").replace(/[^\d.,-]/g, ""));
+  }
+  function recalc() {
+    var total = 0;
+    document.querySelectorAll('input[name="pick"]').forEach(function (cb) {
+      if (!cb.checked) return;
+      var row = cb.closest("label");
+      if (!row) return;
+      var q = row.querySelector('input[name^="qty:"]');
+      var p = row.querySelector('input[name^="price:"]');
+      if (q && p) total += num(q.value) * priceOf(p);
+    });
+    document.querySelectorAll('input[name="free_title"]').forEach(function (t) {
+      if (!String(t.value).trim()) return;
+      var row = t.parentNode;
+      var q = row.querySelector('input[name="free_qty"]');
+      var p = row.querySelector('input[name="free_price"]');
+      if (q && p) total += num(q.value) * num(p.value);
+    });
+    var out = document.querySelector("[data-of-total]");
+    if (out) out.textContent = total ? total.toFixed(2).replace(".", ",") + " \u20ac" : "\u2013";
+  }
+  document.addEventListener("input", recalc);
+  document.addEventListener("change", recalc);
+  recalc();
+})();
+</script>
 {% endblock %}
