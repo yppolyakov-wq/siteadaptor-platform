@@ -112,7 +112,10 @@
         <div class="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
           {% trans "Your subscription is inactive — the dashboard is read-only. Please activate it to continue." %}
         </div>
-      {% elif subscription_status == 'trial' and trial_days_left is not None %}
+      {% elif subscription_status == 'trial' and trial_days_left is not None and nav == 'billing' %}
+        {% comment %}VK-7 (фидбэк владельца 2026-08-20): постоянная плашка триала
+        осталась только там, где это рабочая информация — экран «Abo & Rechnung».
+        На всех прочих экранах — всплывающий тост один раз за сессию (ниже).{% endcomment %}
         <div class="mb-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm">
           {% blocktrans count days=trial_days_left %}Trial: {{ days }} day left.{% plural %}Trial: {{ days }} days left.{% endblocktrans %}
         </div>
@@ -123,6 +126,28 @@
 </div>
 
 {% nav_palette %}
+
+{% if show_trial_notice and subscription_status == 'trial' and trial_days_left is not None and nav != 'billing' %}
+{% comment %}VK-7: тост показывается ОДИН раз за сессию (флаг ставит
+billing.context.subscription) и закрывается кнопкой; постоянное место
+информации о триале — экран «Abo & Rechnung».{% endcomment %}
+<div id="trial-toast" role="status"
+     class="fixed z-40 bottom-20 md:bottom-6 right-4 left-4 md:left-auto md:max-w-sm rounded-xl bg-amber-50 border border-amber-200 text-amber-900 shadow-lg px-4 py-3 text-sm flex items-start gap-3">
+  <span class="text-lg leading-none" aria-hidden="true">⏳</span>
+  <div class="flex-1 min-w-0">
+    <p>{% blocktrans count days=trial_days_left %}Trial: {{ days }} day left.{% plural %}Trial: {{ days }} days left.{% endblocktrans %}</p>
+    <a href="{% url 'billing' %}" class="font-medium underline hover:no-underline">{% trans "Abo & Rechnung" %}</a>
+  </div>
+  <button type="button" id="trial-toast-close" class="text-amber-700 hover:text-amber-900 text-lg leading-none" aria-label="{% trans 'Schließen' %}">×</button>
+</div>
+<script>
+(function () {
+  var box = document.getElementById("trial-toast");
+  var btn = document.getElementById("trial-toast-close");
+  if (box && btn) btn.addEventListener("click", function () { box.remove(); });
+})();
+</script>
+{% endif %}
 
 {# Мобильный таб-бар кабинета (нативно, как в приложении) — первые разделы + «Меню». #}
 {% if nav_primary %}
