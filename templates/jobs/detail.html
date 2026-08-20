@@ -11,7 +11,7 @@
   {% endfor %}
 {% endif %}
 
-<div class="flex items-center justify-between gap-3 flex-wrap mt-1 mb-4">
+<div class="flex items-center justify-between gap-3 flex-wrap mt-0.5 mb-3">
   <h1 class="text-2xl font-bold">{{ job.title }}
     <span class="text-sm font-medium px-2 py-0.5 rounded-full ml-1
       {% if job.status == 'accepted' %}bg-green-100 text-green-800
@@ -38,16 +38,46 @@
   </span>
 </div>
 
-{# контакты / заявка #}
-<div class="bg-white rounded-2xl shadow-sm p-5 mb-6 text-sm space-y-1">
-  <p class="font-medium">{{ job.customer }} <span class="text-gray-400">· {{ job.reference_code }}</span></p>
-  {% if job.customer.email %}<p class="text-gray-500">✉ {{ job.customer.email }}</p>{% endif %}
-  {% if job.customer.phone %}<p class="text-gray-500">📞 {{ job.customer.phone }}</p>{% endif %}
-  {% if job.site_address %}<p class="text-gray-500">📍 {{ job.site_address }}</p>{% endif %}
+{% comment %}QF-3/QF-4 (фидбэк владельца 2026-08-20): «важная информация о клиенте
+очень мелкая» и «добавить возможность редактировать инфо о клиенте со страницы».
+Контакты — крупной строкой, а не серым мелким текстом; правка — тут же формой
+(меняется ОБЩАЯ карточка клиента, та же, что в CRM).{% endcomment %}
+<div class="bg-white rounded-2xl shadow-sm p-5 mb-5 text-sm space-y-1">
+  <div class="flex items-start justify-between gap-3 flex-wrap">
+    <div class="min-w-0">
+      <p class="text-lg font-semibold text-gray-900">{{ job.customer }}</p>
+      <p class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-[15px]">
+        {% if job.customer.email %}<a href="mailto:{{ job.customer.email }}" class="text-indigo-700 hover:underline">✉ {{ job.customer.email }}</a>{% endif %}
+        {% if job.customer.phone %}<a href="tel:{{ job.customer.phone }}" class="text-indigo-700 hover:underline">📞 {{ job.customer.phone }}</a>{% endif %}
+        {% if not job.customer.email and not job.customer.phone %}<span class="text-amber-700">{% trans "Keine Kontaktdaten hinterlegt" %}</span>{% endif %}
+      </p>
+      {% if job.site_address %}<p class="text-gray-600 mt-1">📍 {{ job.site_address }}</p>{% endif %}
+    </div>
+    <span class="text-xs text-gray-400 whitespace-nowrap">{{ job.reference_code }}</span>
+  </div>
   {% if job.event_date or job.guest_count or job.event_type %}
     {# AF-1: событийная заявка (Catering/Partyservice) — тип · дата · гости #}
-    <p class="text-gray-500">🎉 {% if job.event_type %}{{ job.event_type }}{% else %}{% trans "Event" %}{% endif %}{% if job.event_date %} · 📅 {{ job.event_date|date:"d.m.Y" }}{% endif %}{% if job.guest_count %} · 👥 {{ job.guest_count }} {% trans "guests" %}{% endif %}</p>
+    <p class="mt-2 inline-flex flex-wrap items-center gap-2 rounded-xl bg-indigo-50 px-3 py-1.5 text-[15px] font-medium text-indigo-900">
+      🎉 {% if job.event_type %}{{ job.event_type }}{% else %}{% trans "Event" %}{% endif %}{% if job.event_date %} · 📅 {{ job.event_date|date:"d.m.Y" }}{% endif %}{% if job.guest_count %} · 👥 {{ job.guest_count }} {% trans "guests" %}{% endif %}</p>
   {% endif %}
+
+  {# QF-4: правка контактов прямо здесь #}
+  <details class="mt-3 pt-3 border-t border-gray-100">
+    <summary class="cursor-pointer text-sm text-indigo-600 hover:underline">✏️ {% trans "Kundendaten bearbeiten" %}</summary>
+    <form method="post" class="mt-3 grid gap-2 sm:grid-cols-2 max-w-2xl">{% csrf_token %}
+      <input type="hidden" name="action" value="customer">
+      <label class="text-xs text-gray-500">{% trans "Name" %}
+        <input name="cust_name" value="{{ job.customer.name }}" maxlength="200" class="mt-0.5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
+      <label class="text-xs text-gray-500">{% trans "E-Mail" %}
+        <input name="cust_email" type="email" value="{{ job.customer.email }}" class="mt-0.5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
+      <label class="text-xs text-gray-500">{% trans "Telefon" %}
+        <input name="cust_phone" value="{{ job.customer.phone }}" maxlength="40" class="mt-0.5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
+      <label class="text-xs text-gray-500">{% trans "Adresse (Einsatzort)" %}
+        <input name="site_address" value="{{ job.site_address }}" maxlength="300" class="mt-0.5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
+      <p class="sm:col-span-2 text-xs text-gray-400">{% trans "Name, E-Mail und Telefon gehören zur Kundenkarte — die Änderung gilt auch für andere Verkäufe dieses Kunden." %}</p>
+      <div class="sm:col-span-2"><button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button></div>
+    </form>
+  </details>
   {% if job.vehicle or job.vehicle_plate %}
     <p class="text-gray-500">🚗 {{ job.vehicle }}{% if job.vehicle_plate %} · <span class="font-medium">{{ job.vehicle_plate }}</span>{% endif %}{% if job.vehicle_hsn or job.vehicle_tsn %} · HSN/TSN {{ job.vehicle_hsn }}/{{ job.vehicle_tsn }}{% endif %}</p>
   {% endif %}
@@ -98,11 +128,17 @@
       <span class="col-span-2 text-right">{% trans "Summe" %}</span>
     </div>
     {% for row in rows %}
-      <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
+      {% comment %}QF-1: свободные строки лежат в DOM (индексы приёмника не
+      меняются), но скрыты — раскрывает кнопка «＋ Position».{% endcomment %}
+      <div class="grid grid-cols-1 sm:grid-cols-12 gap-2" data-qt-row
+           {% if not row.visible %}hidden style="display:none"{% endif %}>
         {% if parts %}
-          <select name="line_part_{{ row.i }}" class="col-span-3 rounded-lg border border-gray-300 px-2 py-1.5 text-sm bg-white">
+          {% comment %}QF-5: пикер сразу заполняет описание и цену (владелец видел
+          «пустую колонку» и не понимал, что она делает). Цена — в data-атрибуте,
+          сервер всё равно пересчитывает снимок сам.{% endcomment %}
+          <select name="line_part_{{ row.i }}" data-qt-part class="col-span-3 rounded-lg border border-gray-300 px-2 py-1.5 text-sm bg-white">
             <option value="">— {% trans "Free text" %} —</option>
-            {% for p in parts %}<option value="{{ p.value }}" {% if p.value == row.part_value %}selected{% endif %}>{{ p.label }}</option>{% endfor %}
+            {% for p in parts %}<option value="{{ p.value }}" data-title="{{ p.title|default:p.label }}" data-price="{{ p.price|default_if_none:'' }}" {% if p.value == row.part_value %}selected{% endif %}>{{ p.label }}</option>{% endfor %}
           </select>
         {% endif %}
         <input name="line_text_{{ row.i }}" type="text" value="{% if row.line %}{{ row.line.text }}{% endif %}" placeholder="{% trans 'Position' %}" class="{% if parts %}col-span-3{% else %}col-span-6{% endif %} rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
@@ -120,41 +156,53 @@
       </div>
     {% endfor %}
   </div>
+  <button type="button" data-qt-add class="mt-2 text-sm font-medium text-indigo-600 hover:underline">＋ {% trans "Position hinzufügen" %}</button>
   {% if parts %}
     <p class="text-xs text-gray-400 mt-2">
       {% if job.stock_committed %}✓ {% trans "Stock for catalog parts has been booked." %}
       {% else %}ℹ {% trans "Catalog parts are deducted from stock when the job is marked done." %}{% endif %}
     </p>
   {% endif %}
-  <div class="flex items-end gap-4 mt-4 flex-wrap">
+  {% comment %}QF-2 (фидбэк владельца 2026-08-20): нижний ряд «прыгал» — у одного
+  поля подпись в две строки, у другого подсказка снизу, и контролы стояли на
+  разной высоте. Теперь это сетка: у каждого поля своя ячейка, подписи и подсказки
+  живут внутри неё, а кнопка сохранения прижата к правому краю последней строки.{% endcomment %}
+  <div class="grid gap-4 mt-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 items-start">
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "VAT" %}</label>
-      <select name="vat_rate" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <select name="vat_rate" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
         {% for rate in vat_rates %}<option value="{{ rate }}" {% if job.vat_rate == rate %}selected{% endif %}>{{ rate|floatformat:0 }} %</option>{% endfor %}
       </select>
     </div>
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Valid until" %}</label>
-      <input name="valid_until" type="date" value="{{ job.valid_until|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <input name="valid_until" type="date" value="{{ job.valid_until|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
     </div>
+    {% comment %}QF-2: «Fahrzeug» и «Nächster TÜV» — поля мастерской; у кейтеринга
+    они были шумом в ряду. Показываем архетипам, которым они нужны, и всегда —
+    если данные уже заполнены (инвариант W0: скрытие не теряет введённое).{% endcomment %}
+    {% if show_vehicle_fields %}
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Vehicle / plate" %}</label>
-      <input name="vehicle" type="text" value="{{ job.vehicle }}" placeholder="VW Golf · M-AB 1234" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <input name="vehicle" type="text" value="{{ job.vehicle }}" placeholder="VW Golf · M-AB 1234" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
     </div>
     {% comment %}A9: следующий TÜV/Service — beat напомнит клиенту за N дней (ретеншн).{% endcomment %}
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Next TÜV / service" %}</label>
-      <input name="service_due_date" type="date" value="{{ job.service_due_date|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <input name="service_due_date" type="date" value="{{ job.service_due_date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
       <p class="text-xs text-gray-400 mt-1">{% trans "We'll remind the customer by email." %}</p>
     </div>
+    {% endif %}
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Deposit (€, 0=none)" %}</label>
-      <input name="deposit_eur" type="text" value="{{ deposit_eur }}" class="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <input name="deposit_eur" type="text" value="{{ deposit_eur }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
       {% if job.deposit_cents and not payments_enabled %}<p class="text-xs text-amber-700 mt-1">{% trans "Enable online payments to collect it." %}</p>{% endif %}
     </div>
+  </div>
+  <div class="flex items-center justify-between gap-4 flex-wrap mt-4 pt-4 border-t border-gray-100">
     <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save quote" %}</button>
     {# Живой нетто-итог: считается по строкам ДО сохранения (п.10) #}
-    <p class="ml-auto text-sm text-gray-500">{% trans "Zwischensumme (netto)" %}:
+    <p class="text-sm text-gray-500">{% trans "Zwischensumme (netto)" %}:
       <span data-qt-net class="font-semibold text-gray-900 tabular-nums">–</span></p>
   </div>
   {% comment %}Фидбэк владельца 2026-08-20 (п.10): сумма позиции и промежуточный
@@ -189,6 +237,47 @@ document (партиал может перерисовываться — уро�
     var total = document.querySelector("[data-qt-net]");
     if (total) total.textContent = net ? fmt(net) : "\u2013";
   }
+  // QF-1: «＋ Position» раскрывает следующую скрытую строку (индексы в DOM уже
+  // есть — приёмник и нумерация полей не меняются).
+  var addBtn = document.querySelector("[data-qt-add]");
+  function nextHidden() {
+    return document.querySelector("[data-qt-row][hidden]");
+  }
+  function syncAddButton() {
+    if (addBtn) addBtn.style.display = nextHidden() ? "" : "none";
+  }
+  if (addBtn) {
+    addBtn.addEventListener("click", function () {
+      var row = nextHidden();
+      if (!row) return;
+      // `hidden` снимаем вместе с инлайновым display: класс .grid (display:grid)
+      // перебивает атрибут hidden — на стенде все 12 строк оставались видимыми.
+      row.hidden = false;
+      row.style.display = "";
+      var field = row.querySelector('input[name^="line_text_"]');
+      if (field) field.focus();
+      syncAddButton();
+    });
+    syncAddButton();
+  }
+
+  // QF-5: выбор из ассортимента заполняет описание и цену сразу — раньше колонка
+  // «Teil (Katalog)» выглядела пустой и непонятной (снимок всё равно делает сервер).
+  document.addEventListener("change", function (e) {
+    var sel = e.target.closest && e.target.closest("[data-qt-part]");
+    if (!sel) return;
+    var opt = sel.options[sel.selectedIndex];
+    var row = sel.closest("[data-qt-row]");
+    if (!opt || !row) return;
+    var text = row.querySelector('input[name^="line_text_"]');
+    var price = row.querySelector("[data-qt-price]");
+    var title = opt.getAttribute("data-title") || "";
+    var value = opt.getAttribute("data-price") || "";
+    if (text && title && !String(text.value).trim()) text.value = title;
+    if (price && value && !String(price.value).trim()) price.value = String(value).replace(".", ",");
+    recalc();
+  });
+
   document.addEventListener("input", function (e) {
     if (e.target.closest && e.target.closest("[data-qt-qty], [data-qt-price]")) recalc();
   });

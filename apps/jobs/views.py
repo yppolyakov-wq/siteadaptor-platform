@@ -36,11 +36,13 @@ def _parse_date(raw):
         return None
 
 
-def _catalog_parts():
-    """G11: активные товары/варианты для пикера расходников (value/label + остаток).
+def _catalog_parts(tenant=None):
+    """G11: активные позиции для пикера строки сметы (value/label + остаток).
 
-    value кодирует вид: ``p:<pk>`` товар без вариантов, ``v:<pk>`` вариант. Остаток
-    в подписи — int (локаль-стабильно), только при учёте склада."""
+    value кодирует вид: ``p:<pk>`` товар без вариантов, ``v:<pk>`` вариант,
+    ``s:<pk>`` услуга (QF-1: владелец добавляет в смету «товар/услугу»; у услуги
+    нет склада и FK — в строку едет снимок названия и цены, как у свободной).
+    Остаток в подписи — int (локаль-стабильно), только при учёте склада."""
     from apps.catalog.models import Product
 
     parts = []
@@ -51,19 +53,42 @@ def _catalog_parts():
                 label = f"{p.name_text} · {v.label}"
                 if v.stock_quantity is not None:
                     label += f" (Lager: {v.stock_quantity})"
-                parts.append({"value": f"v:{v.pk}", "label": label})
+                parts.append(
+                    {"value": f"v:{v.pk}", "label": label, "price": v.price_value, "title": label}
+                )
         else:
             label = p.name_text
             if p.stock_quantity is not None:
                 label += f" (Lager: {p.stock_quantity})"
-            parts.append({"value": f"p:{p.pk}", "label": label})
+            parts.append(
+                {
+                    "value": f"p:{p.pk}",
+                    "label": label,
+                    "price": p.base_price,
+                    "title": p.name_text,
+                }
+            )
+    # Услуги — только если модуль записи активен (у кейтеринга/Handwerker их нет).
+    if tenant is not None and tenant.is_module_active("booking"):
+        from apps.booking.models import Service
+
+        for svc in Service.objects.filter(is_active=True):
+            parts.append(
+                {
+                    "value": f"s:{svc.pk}",
+                    "label": str(svc),
+                    "price": Decimal(svc.price_cents) / 100,
+                    "title": str(svc),
+                }
+            )
     return parts
 
 
 def _resolve_part(raw, products, variants):
     """value пикера → (product, variant) инстансы или (None, None).
 
-    pk — UUID-строка (каталог на UUID-PK), словари ключим по str(pk)."""
+    pk — UUID-строка (каталог на UUID-PK), словари ключим по str(pk).
+    Услуга (``s:``) FK не имеет — её снимок берёт `_service_snapshot`."""
     kind, _, pk = (raw or "").partition(":")
     if not pk:
         return None, None
@@ -73,6 +98,22 @@ def _resolve_part(raw, products, variants):
     if kind == "p":
         return products.get(pk), None
     return None, None
+
+
+def _service_snapshot(raw):
+    """QF-1: (название, цена) выбранной услуги или (None, None).
+
+    У строки сметы нет FK на услугу (склад/леджер её не касаются) — в смету едет
+    СНИМОК: правка каталога услуг не переписывает отправленную смету."""
+    kind, _, pk = (raw or "").partition(":")
+    if kind != "s" or not pk:
+        return None, None
+    from apps.booking.models import Service
+
+    svc = Service.objects.filter(pk=pk, is_active=True).first()
+    if svc is None:
+        return None, None
+    return str(svc), Decimal(svc.price_cents) / 100
 
 
 @login_required
@@ -157,6 +198,19 @@ def job_detail(request, pk):
             return _transition(request, job, action)
         if action in ("link_booking", "unlink_booking"):
             return _link_booking(request, job, attach=action == "link_booking")
+        if action == "customer":
+            # QF-4 (фидбэк владельца 2026-08-20): контакты правятся прямо со
+            # страницы заявки. Правим ОБЩУЮ карточку клиента (та же запись видна
+            # в CRM и в других его сделках) — это и ожидается: «исправить телефон».
+            customer = job.customer
+            customer.name = (request.POST.get("cust_name") or customer.name).strip()[:200]
+            customer.email = (request.POST.get("cust_email") or "").strip()[:254]
+            customer.phone = (request.POST.get("cust_phone") or "").strip()[:40]
+            customer.save(update_fields=["name", "email", "phone", "updated_at"])
+            job.site_address = (request.POST.get("site_address") or "").strip()[:300]
+            job.save(update_fields=["site_address", "updated_at"])
+            messages.success(request, _("Kundendaten gespeichert."))
+            return redirect("jobs:detail", pk=job.pk)
         if action == "language":
             # I18N-7b/2: язык сметы хранится на заявке — клиент повторно скачает
             # ТОТ ЖЕ документ, независимо от языка кабинета.
@@ -173,6 +227,10 @@ def job_detail(request, pk):
     # Пред-заполненные строки конструктора (индекс + позиция или None) + текущая
     # привязка к расходнику (part_value) для пред-выбора в пикере (G11).
     rows = []
+    # QF-1 (фидбэк владельца 2026-08-20): двенадцать пустых строк — стена полей.
+    # Показываем заполненные + ОДНУ свободную, остальные остаются в DOM (индексы
+    # и приёмник не меняются) и раскрываются кнопкой «＋ Position».
+    visible_upto = len(existing) + 1
     for i in range(1, MAX_LINES + 1):
         line = existing[i - 1] if i <= len(existing) else None
         part_value = ""
@@ -180,7 +238,7 @@ def job_detail(request, pk):
             part_value = f"v:{line.variant_id}"
         elif line and line.product_id:
             part_value = f"p:{line.product_id}"
-        rows.append({"i": i, "line": line, "part_value": part_value})
+        rows.append({"i": i, "line": line, "part_value": part_value, "visible": i <= visible_upto})
     return render(
         request,
         "jobs/detail.html",
@@ -188,7 +246,7 @@ def job_detail(request, pk):
             "nav": "jobs",
             "job": job,
             "rows": rows,
-            "parts": _catalog_parts(),  # G11: пикер расходников из каталога
+            "parts": _catalog_parts(request.tenant),  # G11/QF-1: товары, варианты, услуги
             "vat_rates": RevenueEntry.VAT_RATES,
             "allowed": JobSM().allowed_targets(job.status),
             "small_business": request.tenant.small_business,
@@ -197,6 +255,11 @@ def job_detail(request, pk):
             "customer_bookings": _customer_bookings(job),  # A7d: Termin-привязка
             # VS-3: прикреплённые услуги к заявке (аренда посуды к мероприятию).
             "deal_links": deal_links.block_context("job", job.pk),
+            # QF-2: поля мастерской — нужным архетипам или если уже заполнены.
+            "show_vehicle_fields": (
+                request.tenant.business_type in ("werkstatt", "handwerker")
+                or bool(job.vehicle or job.service_due_date)
+            ),
             "doc_languages": _doc_languages(request),
         },
     )
@@ -251,10 +314,14 @@ def _save_lines(request, job):
         product, variant = _resolve_part(
             request.POST.get(f"line_part_{index}", ""), products, variants
         )
+        raw_part = request.POST.get(f"line_part_{index}", "")
+        svc_text, svc_price = _service_snapshot(raw_part)
         text = request.POST.get(f"line_text_{index}", "").strip()
         # G11: расходник из каталога без текста → снимок названия товара/варианта.
         if product and not text:
             text = f"{product.name_text} · {variant.label}" if variant else product.name_text
+        if svc_text and not text:  # QF-1: то же для услуги
+            text = svc_text
         price_raw = str(request.POST.get(f"line_price_{index}", "")).strip()
         if not text:
             # Фидбэк владельца 2026-08-20 (п.9): строка без описания молча
@@ -269,9 +336,11 @@ def _save_lines(request, job):
             qty = min(max(Decimal(qty_raw), Decimal("0.01")), Decimal("9999")).quantize(
                 Decimal("0.01")
             )
-            # Цена пуста + выбран расходник → снимок цены товара/варианта.
+            # Цена пуста + выбран расходник/услуга → снимок цены из каталога.
             if product and not price_raw:
                 unit_price = variant.price_value if variant else product.base_price
+            elif svc_price is not None and not price_raw:
+                unit_price = svc_price
             else:
                 unit_price = Decimal(price_raw.replace(",", ".") or "0")
         except (InvalidOperation, ValueError):
@@ -300,10 +369,13 @@ def _save_lines(request, job):
     job.valid_until = _parse_date(request.POST.get("valid_until"))
     job.vehicle = request.POST.get("vehicle", job.vehicle).strip()[:120]  # A9 Werkstatt
     # A9: следующий TÜV/Service. Смена даты «перезаряжает» напоминание (sent_at → null).
-    new_due = _parse_date(request.POST.get("service_due_date"))
-    if new_due != job.service_due_date:
-        job.service_due_date = new_due
-        job.service_reminder_sent_at = None
+    # QF-2: поле есть в форме не у всех архетипов — БЕЗ presence-guard сохранение
+    # сметы у кейтеринга стирало бы дату мастерской (класс W0).
+    if "service_due_date" in request.POST:
+        new_due = _parse_date(request.POST.get("service_due_date"))
+        if new_due != job.service_due_date:
+            job.service_due_date = new_due
+            job.service_reminder_sent_at = None
     # A7c: Anzahlung (€ → cents). 0 / пусто = без депозита.
     try:
         job.deposit_cents = max(

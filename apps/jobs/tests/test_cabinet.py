@@ -392,3 +392,123 @@ def test_ablaeufe_renders_anfrage_form_panel_with_current_state():
     body = core_views.ablaeufe_view(_req(tenant=tenant)).content.decode()
     assert 'name="af_guests" checked' in body
     assert "Grillfest" in body
+
+
+# --- QF-батч (фидбэк владельца 2026-08-20 по странице сметы) ---------------------
+
+
+def test_quote_shows_only_filled_rows_plus_one_spare():
+    """п.1: двенадцать пустых строк были стеной полей. Видны заполненные + одна
+    свободная; остальные лежат в DOM (индексы приёмника не меняются) и
+    раскрываются кнопкой."""
+    job = _job()
+    services.set_lines(job, [{"text": "Buffet", "qty": 1, "unit_price": "480.00"}])
+    body = views.job_detail(_req(), pk=job.pk).content.decode()
+    rows = body.count('gap-2" data-qt-row')
+    assert rows == 12  # все строки остаются в DOM (индексы приёмника не меняются)
+    # Скрытие — атрибутом И инлайновым display: класс .grid перебивает hidden
+    # (стенд ловил, что все двенадцать строк остаются видимыми).
+    assert body.count('hidden style="display:none"') == 10  # видны две: строка + запас
+    assert "data-qt-add" in body  # кнопка «＋ Position»
+
+
+def test_picker_carries_title_and_price_for_instant_fill():
+    """п.5: колонка «Teil (Katalog)» выглядела пустой — теперь выбор сразу
+    заполняет описание и цену (данные едут в data-атрибутах опции)."""
+    # name у товара — i18n-словарь (см. ProductFactory), подпись берётся из name_text
+    ProductFactory(name={"de": "Buffet Vegetarisch"}, base_price="24.00", stock_quantity=5)
+    job = _job()
+    body = views.job_detail(_req(), pk=job.pk).content.decode()
+    assert 'data-title="Buffet Vegetarisch"' in body
+    assert 'data-price="24' in body
+
+
+def test_service_can_be_added_to_the_quote_as_snapshot():
+    """п.1 («товар/услугу»): услуга попадает в смету снимком названия и цены —
+    FK нет, поэтому правка каталога услуг не переписывает отправленную смету."""
+    from apps.booking.models import Service
+
+    svc = Service.objects.create(name="Personal & Aufbau", price_cents=48000)
+    job = _job()
+    views.job_detail(
+        _req(
+            "post",
+            data={
+                "action": "save_lines",
+                "line_part_1": f"s:{svc.pk}",
+                "line_qty_1": "1",
+                "vat_rate": "19.00",
+            },
+        ),
+        pk=job.pk,
+    )
+    line = job.lines.get()
+    assert "Personal & Aufbau" in line.text
+    assert line.unit_price == Decimal("480.00")
+    assert line.product_id is None and line.variant_id is None  # снимок, не FK
+
+
+def test_customer_data_editable_from_the_job_page():
+    """п.4: контакты правятся со страницы заявки (общая карточка клиента)."""
+    job = _job()
+    resp = views.job_detail(
+        _req(
+            "post",
+            data={
+                "action": "customer",
+                "cust_name": "Miriam Klein",
+                "cust_email": "mk@example.de",
+                "cust_phone": "+49 170 1234567",
+                "site_address": "Rheinstr. 5, Düsseldorf",
+            },
+        ),
+        pk=job.pk,
+    )
+    assert resp.status_code == 302
+    job.refresh_from_db()
+    job.customer.refresh_from_db()
+    assert job.customer.name == "Miriam Klein"
+    assert job.customer.email == "mk@example.de"
+    assert job.customer.phone == "+49 170 1234567"
+    assert job.site_address.startswith("Rheinstr.")
+
+
+def test_customer_contacts_are_prominent_not_grey_fine_print():
+    """п.3: контакты — крупной строкой со ссылками, а не мелким серым текстом."""
+    job = _job(email="mk@example.de", phone="+49 170 1234567")
+    body = views.job_detail(_req(), pk=job.pk).content.decode()
+    assert 'href="mailto:mk@example.de"' in body
+    assert 'href="tel:+49 170 1234567"' in body
+    assert "text-lg font-semibold" in body  # имя клиента крупно
+
+
+def test_workshop_fields_hidden_for_non_workshop_but_data_never_lost():
+    """QF-2: «Fahrzeug»/«Nächster TÜV» — поля мастерской, у кейтеринга это шум.
+    Скрытие НЕ должно стирать данные при сохранении сметы (класс W0)."""
+    from datetime import date
+
+    from apps.tenants.tests.factories import TenantFactory
+
+    catering = TenantFactory.build(business_type="catering")
+    job = _job()
+    job.service_due_date = date(2027, 3, 15)
+    job.vehicle = "VW Golf"
+    job.save(update_fields=["service_due_date", "vehicle", "updated_at"])
+
+    req = _req(tenant=catering)
+    body = views.job_detail(req, pk=job.pk).content.decode()
+    assert 'name="service_due_date"' in body  # данные заполнены → поле показано
+
+    # У чистой заявки кейтеринга полей нет…
+    clean = _job(title="Ohne Fahrzeug")
+    body2 = views.job_detail(_req(tenant=catering), pk=clean.pk).content.decode()
+    assert 'name="vehicle"' not in body2
+
+    # …и сохранение сметы без этих полей не стирает дату у другой заявки
+    views.job_detail(
+        _req("post", data={"action": "save_lines", "vat_rate": "19.00"}, tenant=catering),
+        pk=job.pk,
+    )
+    job.refresh_from_db()
+    assert job.service_due_date == date(2027, 3, 15)
+    assert job.vehicle == "VW Golf"

@@ -19370,3 +19370,27 @@ msgstr[0] "%(n)s дод. послуга"
 msgstr[1] "%(n)s дод. послуги"
 msgstr[2] "%(n)s дод. послуг"
 msgstr[3] "%(n)s дод. послуги"
+
+#: apps/jobs/views.py templates/jobs/detail.html
+msgid "Adresse (Einsatzort)"
+msgstr "Адреса (місце робіт)"
+
+#: apps/jobs/views.py templates/jobs/detail.html
+msgid "Keine Kontaktdaten hinterlegt"
+msgstr "Контакти не вказані"
+
+#: apps/jobs/views.py templates/jobs/detail.html
+msgid "Kundendaten bearbeiten"
+msgstr "Змінити дані клієнта"
+
+#: apps/jobs/views.py templates/jobs/detail.html
+msgid "Kundendaten gespeichert."
+msgstr "Дані клієнта збережено."
+
+#: apps/jobs/views.py templates/jobs/detail.html
+msgid "Name, E-Mail und Telefon gehören zur Kundenkarte — die Änderung gilt auch für andere Verkäufe dieses Kunden."
+msgstr "Ім'я, e-mail і телефон належать картці клієнта — зміна вплине й на інші його продажі."
+
+#: apps/jobs/views.py templates/jobs/detail.html
+msgid "Position hinzufügen"
+msgstr "Додати позицію"

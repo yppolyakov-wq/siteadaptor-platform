@@ -19301,3 +19301,27 @@ msgid "%(n)s Zusatzleistung"
 msgid_plural "%(n)s Zusatzleistungen"
 msgstr[0] "%(n)s Zusatzleistung"
 msgstr[1] "%(n)s Zusatzleistungen"
+
+#: apps/jobs/views.py templates/jobs/detail.html
+msgid "Adresse (Einsatzort)"
+msgstr "Adresse (Einsatzort)"
+
+#: apps/jobs/views.py templates/jobs/detail.html
+msgid "Keine Kontaktdaten hinterlegt"
+msgstr "Keine Kontaktdaten hinterlegt"
+
+#: apps/jobs/views.py templates/jobs/detail.html
+msgid "Kundendaten bearbeiten"
+msgstr "Kundendaten bearbeiten"
+
+#: apps/jobs/views.py templates/jobs/detail.html
+msgid "Kundendaten gespeichert."
+msgstr "Kundendaten gespeichert."
+
+#: apps/jobs/views.py templates/jobs/detail.html
+msgid "Name, E-Mail und Telefon gehören zur Kundenkarte — die Änderung gilt auch für andere Verkäufe dieses Kunden."
+msgstr "Name, E-Mail und Telefon gehören zur Kundenkarte — die Änderung gilt auch für andere Verkäufe dieses Kunden."
+
+#: apps/jobs/views.py templates/jobs/detail.html
+msgid "Position hinzufügen"
+msgstr "Position hinzufügen"

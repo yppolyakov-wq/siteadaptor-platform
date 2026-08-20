@@ -19293,3 +19293,27 @@ msgid "%(n)s Zusatzleistung"
 msgid_plural "%(n)s Zusatzleistungen"
 msgstr[0] "%(n)s ek hizmet"
 msgstr[1] "%(n)s ek hizmet"
+
+#: apps/jobs/views.py templates/jobs/detail.html
+msgid "Adresse (Einsatzort)"
+msgstr "Adres (iş yeri)"
+
+#: apps/jobs/views.py templates/jobs/detail.html
+msgid "Keine Kontaktdaten hinterlegt"
+msgstr "İletişim bilgisi yok"
+
+#: apps/jobs/views.py templates/jobs/detail.html
+msgid "Kundendaten bearbeiten"
+msgstr "Müşteri bilgilerini düzenle"
+
+#: apps/jobs/views.py templates/jobs/detail.html
+msgid "Kundendaten gespeichert."
+msgstr "Müşteri bilgileri kaydedildi."
+
+#: apps/jobs/views.py templates/jobs/detail.html
+msgid "Name, E-Mail und Telefon gehören zur Kundenkarte — die Änderung gilt auch für andere Verkäufe dieses Kunden."
+msgstr "Ad, e-posta ve telefon müşteri kartına aittir — değişiklik bu müşterinin diğer satışları için de geçerlidir."
+
+#: apps/jobs/views.py templates/jobs/detail.html
+msgid "Position hinzufügen"
+msgstr "Kalem ekle"
