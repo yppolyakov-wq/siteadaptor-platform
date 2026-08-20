@@ -19248,3 +19248,7 @@ msgstr "Назва колонки"
 #: templates/tenant/ablaeufe.html
 msgid "Ausblenden"
 msgstr "Приховати"
+
+#: apps/core/transactions.py
+msgid "Aktions-Reservierungen (alt)"
+msgstr "Резерви за акціями (старі)"

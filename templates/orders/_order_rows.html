@@ -10,6 +10,10 @@
         <p class="font-medium">{{ o.reference_code }} · {{ o.customer }}
           {% if o.is_delivery %}<span class="text-xs text-gray-400">· 🚚 {% trans "Delivery" %}</span>{% endif %}
           {% if o.is_anprobe %}<span class="text-xs font-medium text-purple-600">· 🛍 {% trans "Anprobe bis" %} {{ o.reserve_expires_at|date:"d.m. H:i" }}</span>{% endif %}
+          {% comment %}VK-8 (фидбэк владельца 2026-08-20): продажа по акции приходит
+          ОБЫЧНЫМ заказом (волна PL) — но это должно быть видно в списке.
+          Источник — source_channel="promo" из promotions.services.purchase.{% endcomment %}
+          {% if o.source_channel == "promo" %}<span class="text-xs font-medium text-rose-600">· 🏷 {% trans "Aktion" %}</span>{% endif %}
         </p>
         <p class="text-xs text-gray-400 truncate">
           {% for item in o.items.all %}{{ item.qty }}× {{ item.title_snapshot }}{% if not forloop.last %}, {% endif %}{% endfor %}

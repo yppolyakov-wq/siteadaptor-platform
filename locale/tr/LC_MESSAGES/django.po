@@ -19175,3 +19175,7 @@ msgstr "Sütun adı"
 #: templates/tenant/ablaeufe.html
 msgid "Ausblenden"
 msgstr "Gizle"
+
+#: apps/core/transactions.py
+msgid "Aktions-Reservierungen (alt)"
+msgstr "Kampanya rezervasyonları (eski)"

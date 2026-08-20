@@ -19183,3 +19183,7 @@ msgstr "Name der Spalte"
 #: templates/tenant/ablaeufe.html
 msgid "Ausblenden"
 msgstr "Ausblenden"
+
+#: apps/core/transactions.py
+msgid "Aktions-Reservierungen (alt)"
+msgstr "Aktions-Reservierungen (alt)"

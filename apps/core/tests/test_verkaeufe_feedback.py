@@ -139,3 +139,28 @@ def test_column_names_are_visible_but_defaults_are_not_materialized():
     assert "intake" not in labels  # дефолт не материализован
     assert labels["done"] == "Fertig zur Abholung"  # своё имя сохранено
     assert tenant.site_config["notify"] == {"customer": {"email": True}}  # targeted-write
+
+
+# --- п.8: продажа по акции = обычный заказ, но помеченный ---------------------
+def test_promo_sale_is_a_normal_order_with_a_visible_badge():
+    """Вопрос владельца «разве не должен он попадать в классический заказ даже по
+    акции?»: с волны PL так и есть — `promotions.services.purchase` создаёт
+    обычный Order (source_channel="promo"). Теперь это ВИДНО: бейдж «Aktion» на
+    карточке доски и в списке заказов."""
+    from apps.core import transactions
+    from apps.orders.models import Customer, Order
+
+    customer = Customer.objects.create(name="Anna", email="a@t.de")
+    promo_order = Order.objects.create(
+        customer=customer, reference_code="O-PROMO1", source_channel="promo"
+    )
+    plain = Order.objects.create(customer=customer, reference_code="O-PLAIN1")
+
+    assert transactions.transaction_for("order", promo_order).from_promo is True
+    assert transactions.transaction_for("order", plain).from_promo is False
+
+    tenant = _tenant()
+    body = views.verkaeufe(
+        _req("/dashboard/verkaeufe/?tab=order&view=liste", tenant=tenant)
+    ).content.decode()
+    assert "O-PROMO1" in body and "🏷" in body

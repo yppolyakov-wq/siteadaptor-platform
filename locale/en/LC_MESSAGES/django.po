@@ -19054,3 +19054,7 @@ msgstr "Column name"
 #: templates/tenant/ablaeufe.html
 msgid "Ausblenden"
 msgstr "Hide"
+
+#: apps/core/transactions.py
+msgid "Aktions-Reservierungen (alt)"
+msgstr "Promo reservations (legacy)"

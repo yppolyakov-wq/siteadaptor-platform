@@ -102,7 +102,11 @@ KIND_LABEL = {
     "stay": _("Übernachtungen"),
     "ticket": _("Tickets"),
     "job": _("Aufträge"),
-    "reservation": _("Reservierungen"),
+    # VK-8 (фидбэк владельца 2026-08-20): «Reservierungen» не говорило, ЧТО это.
+    # С волны PL (2026-08-03/04) покупка по акции создаёт ОБЫЧНЫЙ заказ/бронь —
+    # здесь остались только резервы, созданные до неё (легаси-сущность
+    # promotions.Reservation; витрина в неё больше не пишет).
+    "reservation": _("Aktions-Reservierungen (alt)"),
 }
 
 # Последних записей на вкладку доски (UD1-3): свежие сверху, счётчик по стадиям.
@@ -134,6 +138,11 @@ class Transaction:
     # W10-5: карточка доски показывает поле трек-номера (заказ-доставка с
     # доступным переходом shipped) — письмо «versendet» уходит с Sendungsnummer.
     needs_tracking: bool = False
+    # VK-8: продажа пришла ИЗ АКЦИИ. Такой заказ ничем не отличается от обычного
+    # (тот же движок, склад, письма) — но владелец обязан видеть, что позиция
+    # ушла по акционной цене. Источник — Order.source_channel="promo", который
+    # ставит promotions.services.purchase; лишних запросов нет.
+    from_promo: bool = False
 
 
 def _money_str(value, currency: str = "EUR") -> str:
@@ -378,6 +387,7 @@ def transaction_for(
         manage_url=_manage_url(kind, obj),
         allowed_actions=actions,
         needs_tracking=needs_tracking,
+        from_promo=(getattr(obj, "source_channel", "") or "") == "promo",
     )
 
 

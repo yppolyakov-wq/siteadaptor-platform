@@ -96,8 +96,28 @@ def visible_kinds(tenant) -> list[str]:
         kind = _MODULE_KIND[module]
         if kind in out or not tenant.is_module_active(transactions.KIND_MODULE[kind]):
             continue
+        if kind == "reservation" and not _has_reservations():
+            # VK-8 (фидбэк владельца 2026-08-20): ЕДИНСТВЕННОЕ исключение из
+            # правила SM-2a «модуль = вкладка». С волны PL (2026-08-03/04) покупка
+            # по акции создаёт ОБЫЧНЫЙ заказ/бронь — витрина в `Reservation`
+            # больше не пишет вовсе (форма резерва снята со всех поверхностей).
+            # Модуль акций держат ради СКИДОК, поэтому вкладка была вечно пустой:
+            # у кейтеринга/отеля/туров резервировать нечего. Показываем её только
+            # там, где легаси-резервы реально есть, — иначе пустая вкладка читается
+            # как «что-то сломано».
+            continue
         out.append(kind)
     return out
+
+
+def _has_reservations() -> bool:
+    """Есть ли у тенанта легаси-резервы по акциям (EXISTS, fail-safe)."""
+    try:
+        from apps.promotions.models import Reservation
+
+        return Reservation.objects.exists()
+    except Exception:  # noqa: BLE001 — вкладка не стоит падения страницы продаж
+        return False
 
 
 def resolve_view(tenant, kind: str, requested: str = "") -> str:

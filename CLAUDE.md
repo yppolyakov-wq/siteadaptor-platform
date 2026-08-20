@@ -1749,9 +1749,13 @@ Python 3.12, менеджер uv.
   браузер показывал поле ПУСТЫМ (`floatformat:"-2u"`), плюс строка с ценой без
   описания молча отбрасывалась → сообщение с номером строки. **п.10** колонка
   «Summe» в строке сметы + живой «Zwischensumme», живой итог в композере Angebot.
-  **п.8 (Reservierungen) — АНАЛИЗ, ждёт решения владельца** (план §«Анализ»:
-  catering — единственный тип с включёнными акциями и нулём резерв-акций; общий
-  случай — любой бизнес, держащий promotions ради скидок). Замки: 13 новых,
+  **п.8** вопрос владельца «разве заказ по акции не должен быть обычным заказом?»
+  — по коду УЖЕ так (волна PL: кнопка акции → `purchase` → обычный Order; форма
+  резерва снята со всех витринных поверхностей, `Reservation` = легаси). Поэтому:
+  вкладка `reservation` — единственное исключение из SM-2a, видна только при
+  наличии таких записей; подпись «Aktions-Reservierungen (alt)»; продажа по акции
+  помечена бейджем «🏷 Aktion» в списке заказов и на карточке доски
+  (`source_channel="promo"`). Замки: 13 новых,
   2 переписаны осознанно; 17 msgid × 5 каталогов.
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная)** — все аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 

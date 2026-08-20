@@ -102,22 +102,29 @@ def test_normalize_sales_views_is_presence_minimal():
     assert "sales_views" not in cfg
 
 
-def test_reservation_tab_follows_active_module():
-    """SM-2 (2026-08-10, осознанная замена Р-4): reservation — тем же правилом
-    «вкладка на активный модуль»: promotions включён → вкладка есть сразу,
-    promotions выключен → вкладки нет (и продажи прошлого её не воскрешают)."""
+def test_reservation_tab_needs_data_not_just_the_module(monkeypatch):
+    """VK-8 (фидбэк владельца 2026-08-20, осознанная правка правила SM-2):
+    `reservation` — ЕДИНСТВЕННОЕ исключение из «модуль = вкладка». С волны PL
+    покупка по акции создаёт обычный заказ, витрина в `Reservation` не пишет
+    вовсе — модуль акций держат ради СКИДОК, и вкладка была вечно пустой.
+    Показываем её только там, где легаси-резервы реально есть."""
     from apps.core.modules import default_disabled_for
 
     tenant = TenantFactory.build(
         business_type="bakery", disabled_modules=list(default_disabled_for("bakery"))
     )
-    assert "reservation" in sales_page.visible_kinds(tenant)  # promotions активен
+    # promotions активен, но резервов нет → вкладки нет
+    monkeypatch.setattr(sales_page, "_has_reservations", lambda: False)
+    assert "reservation" not in sales_page.visible_kinds(tenant)
+
+    monkeypatch.setattr(sales_page, "_has_reservations", lambda: True)
+    assert "reservation" in sales_page.visible_kinds(tenant)
 
     off = TenantFactory.build(
         business_type="bakery",
         disabled_modules=list(default_disabled_for("bakery")) + ["promotions"],
     )
-    assert "reservation" not in sales_page.visible_kinds(off)
+    assert "reservation" not in sales_page.visible_kinds(off)  # модуль всё ещё гейт
 
 
 def test_auftragsbuch_groups_orders_by_pickup_day():
