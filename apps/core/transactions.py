@@ -125,6 +125,9 @@ class Transaction:
     customer: object
     title: str
     subtotal_display: str
+    # VS-3: СЫРАЯ сумма рядом с готовой строкой — чтобы потребителям (справочный
+    # итог прикреплённых услуг) не приходилось разбирать «85,00 €» обратно.
+    amount_value: object
     currency: str
     status: str
     status_label: str
@@ -149,6 +152,12 @@ class Transaction:
     # своим (маленьким) контекстом — переменная `today` из шаблона доски туда бы
     # не доехала, и бейдж молча потерял бы красный цвет.
     deadline_overdue: bool = False
+    # VS-3: связь «якорь ↔ прикреплённые сделки». `linked_children` — спутники
+    # этой сделки (велопрокат/трансфер к брони), `linked_anchor` — к чему
+    # прикреплена она сама. Заполняет `manage_sections_for` БАТЧЕМ (deal_links.
+    # for_cards): на карточку запросов не приходится.
+    linked_children: tuple = ()
+    linked_anchor: object = None
     # VK-8: продажа пришла ИЗ АКЦИИ. Такой заказ ничем не отличается от обычного
     # (тот же движок, склад, письма) — но владелец обязан видеть, что позиция
     # ушла по акционной цене. Источник — Order.source_channel="promo", который
@@ -417,6 +426,7 @@ def transaction_for(
         customer=obj.customer,
         title=f["title"],
         subtotal_display=_money_str(f["amount"], f["currency"]),
+        amount_value=f.get("amount"),
         currency=f["currency"],
         status=obj.status,
         status_label=_status_label(kind, obj, labels),
@@ -468,6 +478,18 @@ _SELECT_RELATED = {
 # W7c: поле «даты события» для сортировки списков (вид Liste на Verkäufe) —
 # бронь на завтра, созданная месяц назад, важнее прошлогодней, созданной вчера.
 _EVENT_ORDER = {"stay": "-arrival", "booking": "-start"}
+
+# kind → поля, из которых складывается заголовок карточки (см. _FIELDS): по ним
+# тоже ищем. У заказа заголовок = сам код, у резерва — название акции.
+_TITLE_SEARCH = {
+    "booking": ("resource__name", "service__name"),
+    "stay": ("unit__name",),
+    "job": ("title",),
+    "ticket": ("event__title",),
+    # У резерва заголовок — название акции, а `Promotion.title` это JSONField
+    # (i18n-словарь): `icontains` по нему в Postgres не работает. Легаси-kind
+    # ищется по коду и клиенту, как раньше.
+}
 
 # VS-2c: порядок ДОСКИ — по дате события ПО ВОЗРАСТАНИЮ (ближайшее сверху), у
 # заявок это дата мероприятия (AF-1). Пустая дата уезжает в конец (nulls_last),
@@ -523,11 +545,19 @@ def _managed_queryset(
         qs = qs.filter(status=status)  # X2c: фильтр статуса — паритет с легаси-списками
     q = (q or "").strip()
     if q:
-        qs = qs.filter(
+        # VS-3 (стенд поймал): владелец ищет сделку по тому, что видит на карточке
+        # — «Fahrrad», «Doppelzimmer», — а не по фамилии гостя. К коду и клиенту
+        # добавлены поля, из которых складывается ЗАГОЛОВОК карточки (_FIELDS).
+        # Выигрывают все поверхности поиска сразу: палитра Ctrl+K (X8), список
+        # продаж (X6-2) и пикер привязки (VS-3c).
+        condition = (
             Q(reference_code__icontains=q)
             | Q(customer__name__icontains=q)
             | Q(customer__email__icontains=q)
         )
+        for lookup in _TITLE_SEARCH.get(kind, ()):
+            condition |= Q(**{f"{lookup}__icontains": q})
+        qs = qs.filter(condition)
     return qs
 
 
@@ -659,6 +689,26 @@ def manage_sections_for(
                     _dc_replace(tx, has_problem=tx.reference_code in problem_codes) for tx in txs
                 ]
         except Exception:  # noqa: BLE001 — полоса best-effort, доска важнее
+            pass
+        # VS-3: связи «якорь ↔ спутники» — ОДИН батч на секцию (тот же паттерн,
+        # что problem-полоса выше): владелец видит на карточке брони «🔗 2
+        # Zusatzleistungen», а на карточке велопроката — к чему он относится.
+        try:
+            from dataclasses import replace as _dc_replace
+
+            from apps.core import deal_links
+
+            links = deal_links.for_cards(kind, [tx.pk for tx in txs])
+            if links:
+                txs = [
+                    _dc_replace(
+                        tx,
+                        linked_children=tuple(links.get(tx.pk, {}).get("children", ())),
+                        linked_anchor=links.get(tx.pk, {}).get("anchor"),
+                    )
+                    for tx in txs
+                ]
+        except Exception:  # noqa: BLE001 — подсказка о связи не стоит падения доски
             pass
         # V4 (2026-08-03): счётчики честные — по БД, а не по загруженным limit
         # карточкам (при >limit шапки колонок врали). Кастом-статусы тенанта

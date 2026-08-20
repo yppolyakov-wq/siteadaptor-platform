@@ -1,0 +1,67 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Verknüpfen" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}VS-3c: экран привязки сделки к «якорю» (план vs3-deal-links-plan-2026-08-20 §6).
+Две роли: role=child — ЭТА сделка становится прикреплённой к выбранной;
+role=anchor — выбранная прикрепляется К ЭТОЙ. Поиск — тот же `_managed_queryset`,
+что у палитры Ctrl+K: новых способов читать данные не вводим.{% endcomment %}
+<a href="{{ back }}" class="text-sm text-gray-500 hover:underline">← {% trans "Zurück" %}</a>
+
+<div class="max-w-2xl">
+  <h1 class="text-2xl font-bold mt-1 mb-1">🔗 {% trans "Verknüpfen" %}</h1>
+  <p class="text-sm text-gray-500 mb-1">
+    {% if role == "anchor" %}
+      {% blocktrans with title=current.title %}Welche Leistung gehört zu „{{ title }}“?{% endblocktrans %}
+    {% else %}
+      {% blocktrans with title=current.title %}Zu welcher Buchung gehört „{{ title }}“?{% endblocktrans %}
+    {% endif %}
+  </p>
+  <p class="text-xs text-gray-400 mb-4">{% trans "Beide bleiben eigenständige Verkäufe: eigener Status, eigener Preis, eigene Spalte. Die Verknüpfung zeigt nur, was zusammengehört." %}</p>
+
+  {% include "tenant/_settings_messages.html" %}
+
+  {# Переключатель роли — та же страница, другой смысл привязки #}
+  <div class="flex gap-1 mb-4">
+    <a href="?role=child&amp;q={{ q|urlencode }}&amp;next={{ back|urlencode }}"
+       class="px-3 py-1.5 rounded-lg text-sm font-medium {% if role != 'anchor' %}bg-indigo-600 text-white{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50{% endif %}">{% trans "Gehört zu …" %}</a>
+    <a href="?role=anchor&amp;q={{ q|urlencode }}&amp;next={{ back|urlencode }}"
+       class="px-3 py-1.5 rounded-lg text-sm font-medium {% if role == 'anchor' %}bg-indigo-600 text-white{% else %}bg-white border border-gray-200 text-gray-600 hover:bg-gray-50{% endif %}">{% trans "Leistung anhängen …" %}</a>
+  </div>
+
+  <form method="get" class="flex gap-2 mb-4">
+    <input type="hidden" name="role" value="{{ role }}">
+    <input type="hidden" name="next" value="{{ back }}">
+    <input type="search" name="q" value="{{ q }}" autofocus
+           placeholder="{% trans 'Suche: Code, Name, E-Mail' %}"
+           class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    <button type="submit" class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
+  </form>
+
+  {% if candidates %}
+    <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
+      {% for c in candidates %}
+        <div class="flex items-center gap-3 px-4 py-3">
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-medium truncate">{{ c.tx.title }}</p>
+            <p class="text-xs text-gray-400 truncate">{{ c.kind_label }} · #{{ c.tx.reference_code }}{% if c.tx.customer %} · {{ c.tx.customer }}{% endif %}{% if c.tx.subtotal_display %} · {{ c.tx.subtotal_display }}{% endif %}</p>
+          </div>
+          {% if c.blocked %}
+            <span class="text-xs text-gray-400 whitespace-nowrap">{% trans "bereits verknüpft" %}</span>
+          {% else %}
+            <form method="post" class="shrink-0">{% csrf_token %}
+              <input type="hidden" name="target_kind" value="{{ c.kind }}">
+              <input type="hidden" name="target_id" value="{{ c.tx.pk }}">
+              <input type="hidden" name="next" value="{{ back }}">
+              <button type="submit" class="text-sm font-medium text-white bg-indigo-600 rounded-lg px-3 py-1.5 hover:bg-indigo-700">🔗 {% trans "Verknüpfen" %}</button>
+            </form>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% elif q %}
+    <p class="text-sm text-gray-400">{% blocktrans %}Nichts gefunden für „{{ q }}“.{% endblocktrans %}</p>
+  {% endif %}
+</div>
+{% endblock %}

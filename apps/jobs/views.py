@@ -17,6 +17,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.core import deal_links
 from apps.core.fsm import IllegalTransition
 from apps.finance.models import RevenueEntry
 
@@ -194,6 +195,8 @@ def job_detail(request, pk):
             "deposit_eur": f"{job.deposit_cents / 100:.2f}",
             "payments_enabled": getattr(request.tenant, "payments_enabled", False),
             "customer_bookings": _customer_bookings(job),  # A7d: Termin-привязка
+            # VS-3: прикреплённые услуги к заявке (аренда посуды к мероприятию).
+            "deal_links": deal_links.block_context("job", job.pk),
             "doc_languages": _doc_languages(request),
         },
     )

@@ -19283,3 +19283,90 @@ msgstr[0] "%(n)d гість"
 msgstr[1] "%(n)d гостя"
 msgstr[2] "%(n)d гостей"
 msgstr[3] "%(n)d гостя"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Beide bleiben eigenständige Verkäufe: eigener Status, eigener Preis, eigene Spalte. Die Verknüpfung zeigt nur, was zusammengehört."
+msgstr "Обидві лишаються самостійними продажами: свій статус, своя ціна, своя колонка. Зв'язок лише показує, що до чого належить."
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Gehört zu"
+msgstr "Належить до"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Gehört zu keiner anderen Buchung."
+msgstr "Не належить до іншого бронювання."
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Gehört zu …"
+msgstr "Належить до …"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Leistung anhängen"
+msgstr "Прикріпити послугу"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Leistung anhängen …"
+msgstr "Прикріпити послугу …"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Lösen"
+msgstr "Відв'язати"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Noch keine Leistung angehängt."
+msgstr "Поки нічого не прикріплено."
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Verknüpfen"
+msgstr "Зв'язати"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Verknüpfen nicht möglich: eine Leistung hängt an genau einer Buchung."
+msgstr "Зв'язати не можна: послуга належить рівно до одного бронювання."
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Verknüpft."
+msgstr "Зв'язано."
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Verknüpfte Leistungen"
+msgstr "Пов'язані послуги"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Verknüpfung gelöst."
+msgstr "Зв'язок знято."
+
+#: apps/core/views.py templates/core/deal_link.html
+#, python-format
+msgid "Welche Leistung gehört zu „%(title)s“?"
+msgstr "Яка послуга належить до «%(title)s»?"
+
+#: apps/core/views.py templates/core/deal_link.html
+#, python-format
+msgid "Zu welcher Buchung gehört „%(title)s“?"
+msgstr "До якого бронювання належить «%(title)s»?"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Zuordnen"
+msgstr "Прив'язати"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "bereits verknüpft"
+msgstr "вже пов'язано"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "gehört zu"
+msgstr "належить до"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "separat abgerechnet"
+msgstr "рахунок окремо"
+
+#: templates/core/_kanban_card.html
+#, python-format
+msgid "%(n)s Zusatzleistung"
+msgid_plural "%(n)s Zusatzleistungen"
+msgstr[0] "%(n)s дод. послуга"
+msgstr[1] "%(n)s дод. послуги"
+msgstr[2] "%(n)s дод. послуг"
+msgstr[3] "%(n)s дод. послуги"

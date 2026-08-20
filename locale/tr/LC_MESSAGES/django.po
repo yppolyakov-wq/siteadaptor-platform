@@ -19208,3 +19208,88 @@ msgid "%(n)d Gast"
 msgid_plural "%(n)d Gäste"
 msgstr[0] "%(n)d misafir"
 msgstr[1] "%(n)d misafir"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Beide bleiben eigenständige Verkäufe: eigener Status, eigener Preis, eigene Spalte. Die Verknüpfung zeigt nur, was zusammengehört."
+msgstr "İkisi de bağımsız satış olarak kalır: kendi durumu, kendi fiyatı, kendi sütunu. Bağlantı yalnızca neyin birlikte olduğunu gösterir."
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Gehört zu"
+msgstr "Şuna ait"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Gehört zu keiner anderen Buchung."
+msgstr "Başka bir rezervasyona ait değil."
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Gehört zu …"
+msgstr "Şuna ait …"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Leistung anhängen"
+msgstr "Hizmet ekle"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Leistung anhängen …"
+msgstr "Hizmet ekle …"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Lösen"
+msgstr "Bağlantıyı kaldır"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Noch keine Leistung angehängt."
+msgstr "Henüz hizmet eklenmedi."
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Verknüpfen"
+msgstr "Bağla"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Verknüpfen nicht möglich: eine Leistung hängt an genau einer Buchung."
+msgstr "Bağlanamaz: bir hizmet tam olarak bir rezervasyona aittir."
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Verknüpft."
+msgstr "Bağlandı."
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Verknüpfte Leistungen"
+msgstr "Bağlı hizmetler"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Verknüpfung gelöst."
+msgstr "Bağlantı kaldırıldı."
+
+#: apps/core/views.py templates/core/deal_link.html
+#, python-format
+msgid "Welche Leistung gehört zu „%(title)s“?"
+msgstr "Hangi hizmet „%(title)s“ ile ilgili?"
+
+#: apps/core/views.py templates/core/deal_link.html
+#, python-format
+msgid "Zu welcher Buchung gehört „%(title)s“?"
+msgstr "„%(title)s“ hangi rezervasyona ait?"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Zuordnen"
+msgstr "Ata"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "bereits verknüpft"
+msgstr "zaten bağlı"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "gehört zu"
+msgstr "şuna ait"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "separat abgerechnet"
+msgstr "ayrı faturalandırılır"
+
+#: templates/core/_kanban_card.html
+#, python-format
+msgid "%(n)s Zusatzleistung"
+msgid_plural "%(n)s Zusatzleistungen"
+msgstr[0] "%(n)s ek hizmet"
+msgstr[1] "%(n)s ek hizmet"

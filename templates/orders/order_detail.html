@@ -102,4 +102,5 @@
     </div>
   </div>
 </div>
+{% include "core/_deal_links_block.html" with kind="order" obj_pk=order.pk links=deal_links next_path=request.get_full_path %}
 {% endblock %}

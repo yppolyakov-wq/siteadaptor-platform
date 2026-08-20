@@ -1,0 +1,53 @@
+{% load i18n %}
+{% comment %}VS-3c: блок связей на детали сделки. Параметры include: kind, obj_pk,
+links (deal_links.for_cards(...)[pk]), next_path. Спутники — самостоятельные
+сделки: у каждой свой статус и своя сумма; итог здесь СПРАВОЧНЫЙ (деньги не
+сливаются — инвариант §4.2 плана).{% endcomment %}
+<div class="bg-white rounded-2xl shadow-sm p-4 mb-6">
+  <div class="flex items-center justify-between gap-3 flex-wrap mb-2">
+    <h2 class="font-semibold">🔗 {% trans "Verknüpfte Leistungen" %}</h2>
+    <a href="{% url 'deal-link' kind obj_pk %}?role=anchor&amp;next={{ next_path|urlencode }}"
+       class="text-sm font-medium text-indigo-600 hover:underline">＋ {% trans "Leistung anhängen" %}</a>
+  </div>
+
+  {% if links.anchor %}
+    <div class="flex items-center justify-between gap-3 flex-wrap rounded-xl bg-gray-50 px-3 py-2 mb-3">
+      <p class="text-sm text-gray-600 min-w-0 truncate">{% trans "Gehört zu" %}:
+        {% if links.anchor.manage_url %}<a href="{{ links.anchor.manage_url }}" class="font-medium hover:underline">{{ links.anchor.title }}</a>{% else %}<span class="font-medium">{{ links.anchor.title }}</span>{% endif %}
+      </p>
+      <form method="post" action="{% url 'deal-unlink' kind obj_pk %}" class="shrink-0">{% csrf_token %}
+        <input type="hidden" name="next" value="{{ next_path }}">
+        <button type="submit" class="text-xs text-gray-500 hover:text-red-600">✂️ {% trans "Lösen" %}</button>
+      </form>
+    </div>
+  {% else %}
+    <p class="text-xs text-gray-400 mb-3">{% trans "Gehört zu keiner anderen Buchung." %}
+      <a href="{% url 'deal-link' kind obj_pk %}?next={{ next_path|urlencode }}" class="text-indigo-600 hover:underline">{% trans "Zuordnen" %}</a></p>
+  {% endif %}
+
+  {% if links.children %}
+    <div class="divide-y divide-gray-100">
+      {% for child in links.children %}
+        <div class="flex items-center gap-3 py-2">
+          <div class="min-w-0 flex-1">
+            <p class="text-sm truncate">
+              {% if child.manage_url %}<a href="{{ child.manage_url }}" class="font-medium hover:underline">{{ child.title }}</a>{% else %}<span class="font-medium">{{ child.title }}</span>{% endif %}
+            </p>
+            <p class="text-xs text-gray-400 truncate">{{ child.status_label }}{% if child.subtotal_display %} · {{ child.subtotal_display }}{% endif %}</p>
+          </div>
+          <form method="post" action="{% url 'deal-unlink' child.kind child.pk %}" class="shrink-0">{% csrf_token %}
+            <input type="hidden" name="next" value="{{ next_path }}">
+            <button type="submit" class="text-xs text-gray-500 hover:text-red-600">✂️ {% trans "Lösen" %}</button>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+    {% if links.children_total %}
+      <p class="mt-2 text-sm text-gray-500 text-right">{% trans "Zusatzleistungen" %}:
+        <span class="font-semibold text-gray-900">{{ links.children_total }}</span>
+        <span class="text-xs text-gray-400">({% trans "separat abgerechnet" %})</span></p>
+    {% endif %}
+  {% else %}
+    <p class="text-xs text-gray-400">{% trans "Noch keine Leistung angehängt." %}</p>
+  {% endif %}
+</div>

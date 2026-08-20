@@ -27,6 +27,16 @@ neu gerendert (Badge/Buttons frisch, Karte bleibt in der neuen Spalte).
       {% endif %}
       <p class="text-xs text-gray-500 truncate">{{ tx.customer }}{% if tx.subtotal_display %} · {{ tx.subtotal_display }}{% endif %}</p>
       <p class="text-xs text-gray-400 truncate">#{{ tx.reference_code }} · {{ tx.status_label }}{% if tx.from_promo %} · <span class="text-rose-600 font-medium">{% trans "Aktion" %}</span>{% endif %}</p>
+      {% comment %}VS-3: связь сделок. У якоря — сколько к нему прикреплено, у
+      спутника — к чему он относится (ссылка на карточку якоря). Данные приходят
+      батчем в контракте (deal_links.for_cards), запросов на карточку нет.{% endcomment %}
+      {% if tx.linked_children %}
+        <p class="text-xs text-indigo-600 truncate" title="{% for c in tx.linked_children %}{{ c.title }}{% if not forloop.last %}, {% endif %}{% endfor %}">🔗 {% blocktrans count n=tx.linked_children|length %}{{ n }} Zusatzleistung{% plural %}{{ n }} Zusatzleistungen{% endblocktrans %}</p>
+      {% endif %}
+      {% if tx.linked_anchor %}
+        <p class="text-xs text-gray-500 truncate">🔗 {% trans "gehört zu" %}
+          {% if tx.linked_anchor.manage_url %}<a href="{{ tx.linked_anchor.manage_url }}" class="hover:underline">{{ tx.linked_anchor.title }}</a>{% else %}{{ tx.linked_anchor.title }}{% endif %}</p>
+      {% endif %}
       {% if tx.deadline %}
         {# Срок сметы: просрочка — красным, иначе спокойная подпись #}
         <p class="text-xs truncate {% if tx.deadline_overdue %}text-red-600 font-medium{% else %}text-gray-400{% endif %}">

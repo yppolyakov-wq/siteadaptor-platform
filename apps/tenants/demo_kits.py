@@ -11248,6 +11248,42 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                     except IllegalTransition:
                         pass
 
+            # VS-3: демо связи «якорь + прикреплённая услуга» — к первой брони
+            # номера цепляем запись-услугу (велопрокат). Обе сделки остаются
+            # самостоятельными: своя вкладка, свой статус, своя цена.
+            if created_bookings and is_active("booking"):
+                try:
+                    from datetime import datetime as _datetime
+                    from datetime import time as _time
+
+                    from apps.booking.models import Resource as _Resource
+                    from apps.booking.services import book as _book
+                    from apps.core import deal_links as _deal_links
+
+                    anchor = created_bookings[0]
+                    velo_res, _ = _Resource.objects.get_or_create(
+                        name="Fahrradverleih", defaults={"capacity": 4}
+                    )
+                    start = timezone.make_aware(
+                        _datetime.combine(anchor.arrival + timedelta(days=1), _time(9, 0))
+                    )
+                    velo = _book(
+                        velo_res,
+                        start=start,
+                        end=start + timedelta(hours=8),
+                        name=anchor.customer.name if anchor.customer_id else "Gast",
+                        email=anchor.customer.email if anchor.customer_id else "gast@example.de",
+                        auto_confirm=True,
+                        # Со СВОЕЙ ценой: смысл связи в том, что услуга считается
+                        # отдельно от брони (стенд ловил пустой справочный итог).
+                        price_cents=2400,
+                    )
+                    _deal_links.attach(
+                        "stay", anchor.pk, "booking", velo.pk, note="Fahrradverleih, 1 Tag"
+                    )
+                except Exception:
+                    pass
+
             # A5/C4: Wartungs-Block (Sperrung) — показать в визуальном календаре
             # «belegt» БЕЗ брони (отличный от бронирований источник занятости).
             from apps.stays.models import UnitBlock

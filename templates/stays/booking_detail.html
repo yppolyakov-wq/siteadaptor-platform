@@ -16,4 +16,5 @@
   {# Фидбэк 2026-07-27: тело карточки — общий партиал (и здесь, и под календарём). #}
   {% include "stays/_booking_card.html" %}
 </div>
+{% include "core/_deal_links_block.html" with kind="stay" obj_pk=b.pk links=deal_links next_path=request.get_full_path %}
 {% endblock %}

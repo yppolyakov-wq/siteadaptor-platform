@@ -3608,6 +3608,112 @@ def transitions_save(request, kind):
 
 
 @login_required
+def deal_link_view(request, kind, pk):
+    """VS-3c: экран привязки сделки (кабинет). GET — поиск кандидатов, POST — привязка.
+
+    Две роли (план §6): `child` (по умолчанию) — ЭТА сделка становится
+    прикреплённой к выбранной; `anchor` — выбранная прикрепляется К ЭТОЙ.
+    Поиск — существующий `_managed_queryset(kind, q=…)` по видимым направлениям:
+    новых способов читать данные не вводим (гейты модулей наследуются).
+    """
+    from django.http import Http404
+    from django.urls import reverse
+
+    from apps.core import deal_links, sales_page, transactions
+
+    if kind not in transactions.TRANSACTION_KINDS:
+        raise Http404("unknown kind")
+    tenant = request.tenant
+    obj = get_object_or_404(transactions.model_for(kind), pk=pk)
+    current = transactions.transaction_for(kind, obj)
+    role = "anchor" if request.GET.get("role") == "anchor" else "child"
+    back = request.GET.get("next") or current.manage_url or reverse("verkaeufe")
+    if not (back.startswith("/") and not back.startswith("//")):
+        back = reverse("verkaeufe")
+
+    if request.method == "POST":
+        target_kind = request.POST.get("target_kind", "")
+        target_id = request.POST.get("target_id", "")
+        note = request.POST.get("note", "")
+        try:
+            if role == "anchor":
+                deal_links.attach(kind, obj.pk, target_kind, target_id, note=note)
+            else:
+                deal_links.attach(target_kind, target_id, kind, obj.pk, note=note)
+            messages.success(request, _("Verknüpft."))
+        except ValueError:
+            # Осмысленная причина: правила связи (§4 плана) — не «что-то пошло не так».
+            messages.error(
+                request,
+                _("Verknüpfen nicht möglich: eine Leistung hängt an genau einer Buchung."),
+            )
+        return redirect(request.POST.get("next") or back)
+
+    q = (request.GET.get("q") or "").strip()
+    candidates = []
+    if len(q) >= 2:
+        linked = {
+            (link.child_kind, str(link.child_id)) for link in deal_links.DealLink.objects.all()
+        }
+        anchors = {
+            (link.anchor_kind, str(link.anchor_id)) for link in deal_links.DealLink.objects.all()
+        }
+        for other in sales_page.visible_kinds(tenant):
+            for found in transactions._managed_queryset(other, q=q)[:5]:
+                if (other, found.pk) == (kind, obj.pk):
+                    continue  # сама себе не пара
+                tx = transactions.transaction_for(other, found)
+                key = (other, str(found.pk))
+                candidates.append(
+                    {
+                        "tx": tx,
+                        "kind": other,
+                        "kind_label": transactions.KIND_LABEL.get(other, other),
+                        # правило §4.3: один уровень — уже прикреплённая сделка не
+                        # может быть якорем, а якорь не может стать спутником
+                        "blocked": (key in linked if role == "anchor" else key in anchors),
+                    }
+                )
+            if len(candidates) >= 15:
+                break
+
+    return render(
+        request,
+        "core/deal_link.html",
+        {
+            "nav": "board",
+            "kind": kind,
+            "obj_pk": obj.pk,
+            "current": current,
+            "kind_label": transactions.KIND_LABEL.get(kind, kind),
+            "role": role,
+            "q": q,
+            "candidates": candidates,
+            "back": back,
+        },
+    )
+
+
+@login_required
+@require_POST
+def deal_unlink_view(request, kind, pk):
+    """VS-3c: снять привязку. `kind/pk` — СПУТНИК (у него одна связь)."""
+    from django.http import Http404
+    from django.urls import reverse
+
+    from apps.core import deal_links, transactions
+
+    if kind not in transactions.TRANSACTION_KINDS:
+        raise Http404("unknown kind")
+    if deal_links.detach(kind, pk):
+        messages.success(request, _("Verknüpfung gelöst."))
+    nxt = request.POST.get("next", "")
+    if not nxt.startswith("/") or nxt.startswith("//"):
+        nxt = reverse("verkaeufe")
+    return redirect(nxt)
+
+
+@login_required
 def ablaeufe_view(request):
     """W9-8: «Abläufe» — настройки процессов продаж в ОДНОМ месте: имена статусов
     (FB-4a/b), правила переходов (FB-3), свои статусы (status-manager) и колонки

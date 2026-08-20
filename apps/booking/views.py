@@ -19,6 +19,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.billing import connect
+from apps.core import deal_links
 from apps.core.fsm import IllegalTransition
 from apps.core.i18n_input import (
     apply_i18n_overlay,
@@ -184,7 +185,12 @@ def booking_detail(request, pk):
     return render(
         request,
         "booking/booking_detail.html",
-        {"b": booking, "nav": "booking"},
+        {
+            "b": booking,
+            "nav": "booking",
+            # VS-3: связь с якорной сделкой (запись может быть услугой к брони).
+            "deal_links": deal_links.block_context("booking", booking.pk),
+        },
     )
 
 

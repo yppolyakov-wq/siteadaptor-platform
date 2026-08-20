@@ -20,6 +20,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.billing import connect
+from apps.core import deal_links
 from apps.core.fsm import IllegalTransition
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
 
@@ -621,6 +622,8 @@ def booking_detail(request, pk):
             "units": list(StayUnit.objects.filter(is_active=True).order_by("name")),
             # PMS-R2: селект физического номера (пусто = у категории нет комнат).
             "free_rooms": services.free_rooms_for(booking),
+            # VS-3: прикреплённые услуги (велопрокат/трансфер к брони номера).
+            "deal_links": deal_links.block_context("stay", booking.pk),
         },
     )
 

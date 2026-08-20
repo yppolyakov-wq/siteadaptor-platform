@@ -19216,3 +19216,88 @@ msgid "%(n)d Gast"
 msgid_plural "%(n)d Gäste"
 msgstr[0] "%(n)d Gast"
 msgstr[1] "%(n)d Gäste"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Beide bleiben eigenständige Verkäufe: eigener Status, eigener Preis, eigene Spalte. Die Verknüpfung zeigt nur, was zusammengehört."
+msgstr "Beide bleiben eigenständige Verkäufe: eigener Status, eigener Preis, eigene Spalte. Die Verknüpfung zeigt nur, was zusammengehört."
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Gehört zu"
+msgstr "Gehört zu"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Gehört zu keiner anderen Buchung."
+msgstr "Gehört zu keiner anderen Buchung."
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Gehört zu …"
+msgstr "Gehört zu …"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Leistung anhängen"
+msgstr "Leistung anhängen"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Leistung anhängen …"
+msgstr "Leistung anhängen …"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Lösen"
+msgstr "Lösen"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Noch keine Leistung angehängt."
+msgstr "Noch keine Leistung angehängt."
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Verknüpfen"
+msgstr "Verknüpfen"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Verknüpfen nicht möglich: eine Leistung hängt an genau einer Buchung."
+msgstr "Verknüpfen nicht möglich: eine Leistung hängt an genau einer Buchung."
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Verknüpft."
+msgstr "Verknüpft."
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Verknüpfte Leistungen"
+msgstr "Verknüpfte Leistungen"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Verknüpfung gelöst."
+msgstr "Verknüpfung gelöst."
+
+#: apps/core/views.py templates/core/deal_link.html
+#, python-format
+msgid "Welche Leistung gehört zu „%(title)s“?"
+msgstr "Welche Leistung gehört zu „%(title)s“?"
+
+#: apps/core/views.py templates/core/deal_link.html
+#, python-format
+msgid "Zu welcher Buchung gehört „%(title)s“?"
+msgstr "Zu welcher Buchung gehört „%(title)s“?"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "Zuordnen"
+msgstr "Zuordnen"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "bereits verknüpft"
+msgstr "bereits verknüpft"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "gehört zu"
+msgstr "gehört zu"
+
+#: apps/core/views.py templates/core/deal_link.html
+msgid "separat abgerechnet"
+msgstr "separat abgerechnet"
+
+#: templates/core/_kanban_card.html
+#, python-format
+msgid "%(n)s Zusatzleistung"
+msgid_plural "%(n)s Zusatzleistungen"
+msgstr[0] "%(n)s Zusatzleistung"
+msgstr[1] "%(n)s Zusatzleistungen"

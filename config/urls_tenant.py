@@ -20,6 +20,8 @@ from apps.core.views import (
     board,
     board_settings,
     dashboard,
+    deal_link_view,
+    deal_unlink_view,
     domain_add,
     domain_remove,
     domain_verify,
@@ -201,6 +203,17 @@ urlpatterns = [
         name="transitions-save",
     ),
     # FB-3 Вариант B: редактор своих статусов + переходов (order/booking/stay).
+    # VS-3: привязка сделки к «якорю» (кабинет; план vs3-deal-links-plan-2026-08-20)
+    path(
+        "dashboard/verknuepfen/<str:kind>/<uuid:pk>/",
+        deal_link_view,
+        name="deal-link",
+    ),
+    path(
+        "dashboard/verknuepfen/<str:kind>/<uuid:pk>/loesen/",
+        deal_unlink_view,
+        name="deal-unlink",
+    ),
     path("dashboard/status-manager/<str:kind>/", status_manager, name="status-manager"),
     path(
         "dashboard/status-manager/<str:kind>/save/",

@@ -236,4 +236,5 @@ document (партиал может перерисовываться — уро�
     <form method="post" action="{% url 'jobs:delete' job.pk %}">{% csrf_token %}<button class="text-gray-400 hover:text-red-600 text-sm px-3 py-2">{% trans "Delete" %}</button></form>
   {% endif %}
 </div>
+{% include "core/_deal_links_block.html" with kind="job" obj_pk=job.pk links=deal_links next_path=request.get_full_path %}
 {% endblock %}

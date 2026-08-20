@@ -275,3 +275,44 @@ class LegalDoc(TimestampedModel):
 
     def __str__(self):
         return f"{self.kind}/{self.locale}"
+
+
+class DealLink(TimestampedModel):
+    """VS-3: связь «якорь → прикреплённая сделка» (план vs3-deal-links-plan-2026-08-20).
+
+    Запрос владельца: «к номеру/брони привязываются услуги… они должны двигаться по
+    колонкам отдельно». Спутник (велопрокат, трансфер, предзаказ) остаётся
+    САМОСТОЯТЕЛЬНОЙ сделкой со своим статусом, ценой и вкладкой; связь лишь
+    показывает, к чему он относится.
+
+    Почему таблица, а не поля на шести моделях: одна аддитивная миграция вместо
+    шести, симметричные запросы в обе стороны и ноль правок в движках сделок.
+    Почему не FK/GenericForeignKey: якорь и спутник — РАЗНЫЕ модели, а GFK тянул бы
+    джойн `contenttypes` на каждую карточку доски. Приём в проекте уже принят —
+    `reviews.Review(entity_kind, entity_id)`, `inbox.Conversation(ref_kind, ref_id)`;
+    сироты (объект удалён) отсекаются при чтении.
+
+    `unique(child_kind, child_id)` — у спутника ровно ОДИН якорь: иначе «+1 услуга»
+    показывалась бы у двух разных броней про один и тот же прокат. Перепривязка =
+    обновление той же строки.
+    """
+
+    anchor_kind = models.CharField(max_length=16)
+    anchor_id = models.UUIDField()
+    child_kind = models.CharField(max_length=16)
+    child_id = models.UUIDField()
+    note = models.CharField(max_length=120, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["child_kind", "child_id"], name="deallink_one_anchor_per_child"
+            )
+        ]
+        indexes = [
+            models.Index(fields=["anchor_kind", "anchor_id"], name="deallink_anchor_idx"),
+            models.Index(fields=["child_kind", "child_id"], name="deallink_child_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.anchor_kind}:{self.anchor_id} → {self.child_kind}:{self.child_id}"

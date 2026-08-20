@@ -15,6 +15,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.billing import connect
+from apps.core import deal_links
 from apps.core.fsm import IllegalTransition
 
 from .models import Order
@@ -182,6 +183,8 @@ def order_detail(request, pk):
             "items": order.items.all(),
             "allowed_targets": allowed,
             "nav": "orders",
+            # VS-3: заказ может быть прикреплён к брони (предзаказ торта к столу).
+            "deal_links": deal_links.block_context("order", order.pk),
             # Пост-программная сверка (серверный обход 2026-08-19): ссылка
             # «Kundenkarte öffnen» рисовалась всегда, а модуль CRM выключен у
             # большинства архетипов по умолчанию → клик давал 404 (гейт путей
