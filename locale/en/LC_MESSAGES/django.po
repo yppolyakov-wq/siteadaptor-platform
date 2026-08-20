@@ -19058,3 +19058,32 @@ msgstr "Hide"
 #: apps/core/transactions.py
 msgid "Aktions-Reservierungen (alt)"
 msgstr "Promo reservations (legacy)"
+
+#: apps/core/transactions.py templates/tenant/ablaeufe.html
+#, python-format
+msgid "Angebot abgelaufen (%(d)s)"
+msgstr "Quote expired (%(d)s)"
+
+#: apps/core/transactions.py templates/tenant/ablaeufe.html
+#, python-format
+msgid "Angebot gültig bis %(d)s"
+msgstr "Quote valid until %(d)s"
+
+#: apps/core/transactions.py templates/tenant/ablaeufe.html
+msgid "Jede Phase Ihrer Tafel und die Status darin — auf der Tafel bekommt jeder Status eine eigene Spalte innerhalb seiner Phase."
+msgstr "Every phase of your board and the statuses in it — on the board each status gets its own column inside its phase."
+
+#: apps/core/transactions.py templates/tenant/ablaeufe.html
+msgid "Phasen der Tafel"
+msgstr "Board phases"
+
+#: apps/core/transactions.py templates/tenant/ablaeufe.html
+msgid "Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden. Das sind die Gruppen über den Spalten; die Spaltennamen selbst sind die Status-Namen unten. Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten bleiben gleich."
+msgstr "Drag to sort, overwrite names freely, hide what you don't need. These are the groups above the columns; the column names themselves are the status names below. Applies to all sales types; the rules for moving cards stay the same."
+
+#: apps/core/transactions.py
+#, python-format
+msgid "%(n)d Gast"
+msgid_plural "%(n)d Gäste"
+msgstr[0] "%(n)d guest"
+msgstr[1] "%(n)d guests"

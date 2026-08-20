@@ -40,7 +40,9 @@
     сразу), статусы — встроенные ∪ свои.{% endcomment %}
     <section class="bg-white border border-gray-200 rounded-2xl p-4 mb-4">
       <h2 class="font-semibold mb-1">🗺 {% trans "So läuft ein Verkauf" %} · {{ kind_label }}</h2>
-      <p class="text-xs text-gray-400 mb-3">{% trans "Jede Spalte Ihrer Tafel und die Status, die darin landen. Karten wandern per Drag & Drop zwischen den Spalten." %}</p>
+      {% comment %}VS-2b: на доске КАЖДЫЙ статус — своя колонка, а стадии стали
+      группами колонок. Карта читается так же, поэтому текст объясняет группу.{% endcomment %}
+      <p class="text-xs text-gray-400 mb-3">{% trans "Jede Phase Ihrer Tafel und die Status darin — auf der Tafel bekommt jeder Status eine eigene Spalte innerhalb seiner Phase." %}</p>
       <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {% for col in process_map %}
           <div class="rounded-xl border border-gray-100 bg-gray-50 p-2 {% if col.hidden %}opacity-50{% endif %}">
@@ -58,8 +60,8 @@
     {% comment %}2. Колонки — Trello-стиль (перетаскивание), общие для всех
     направлений: стадии канонические (pipeline.STAGES).{% endcomment %}
     <section class="bg-white border border-gray-200 rounded-2xl p-4 mb-4">
-      <h2 class="font-semibold mb-1">🧱 {% trans "Spalten der Tafel" %}</h2>
-      <p class="text-xs text-gray-400 mb-3">{% trans "Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden. Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten bleiben gleich." %}</p>
+      <h2 class="font-semibold mb-1">🧱 {% trans "Phasen der Tafel" %}</h2>
+      <p class="text-xs text-gray-400 mb-3">{% trans "Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden. Das sind die Gruppen über den Spalten; die Spaltennamen selbst sind die Status-Namen unten. Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten bleiben gleich." %}</p>
       {% include "tenant/_board_columns_panel.html" with rows=board_stage_rows next_path=request.get_full_path %}
     </section>
 

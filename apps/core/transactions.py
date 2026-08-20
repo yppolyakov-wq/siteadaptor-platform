@@ -26,6 +26,7 @@ from importlib import import_module
 
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ngettext
 
 from apps.core import pipeline
 
@@ -138,11 +139,31 @@ class Transaction:
     # W10-5: карточка доски показывает поле трек-номера (заказ-доставка с
     # доступным переходом shipped) — письмо «versendet» уходит с Sendungsnummer.
     needs_tracking: bool = False
+    # VS-2c: «когда» сделки — дата мероприятия (заявка), выдачи (заказ), заезда
+    # (бронь номера), записи (термин), события (билет). Доска сортируется по ней:
+    # завтрашний корпоратив важнее свадьбы в сентябре, созданной раньше.
+    when: object = None
+    when_note: str = ""  # «80 Gäste» — вторая деталь строки «когда»
+    deadline: object = None  # срок сметы (Job.valid_until) — бейдж «истекает/просрочено»
+    # Просрочка считается НА СЕРВЕРЕ: карточку перерисовывает kanban_action со
+    # своим (маленьким) контекстом — переменная `today` из шаблона доски туда бы
+    # не доехала, и бейдж молча потерял бы красный цвет.
+    deadline_overdue: bool = False
     # VK-8: продажа пришла ИЗ АКЦИИ. Такой заказ ничем не отличается от обычного
     # (тот же движок, склад, письма) — но владелец обязан видеть, что позиция
     # ушла по акционной цене. Источник — Order.source_channel="promo", который
     # ставит promotions.services.purchase; лишних запросов нет.
     from_promo: bool = False
+
+
+def _is_overdue(deadline) -> bool:
+    """Срок сметы прошёл (сравниваем по дате; None → False)."""
+    if not deadline:
+        return False
+    from django.utils import timezone
+
+    value = deadline.date() if hasattr(deadline, "date") else deadline
+    return value < timezone.localdate()
 
 
 def _money_str(value, currency: str = "EUR") -> str:
@@ -170,13 +191,18 @@ def _cents(value) -> Decimal | None:
 
 
 def _order_fields(o):
-    return {"title": f"#{o.reference_code}", "amount": o.total, "currency": o.currency or "EUR"}
+    return {
+        "title": f"#{o.reference_code}",
+        "amount": o.total,
+        "currency": o.currency or "EUR",
+        "when": o.pickup_slot,
+    }
 
 
 def _booking_fields(b):
     name = str(b.service or b.resource or "") or b.reference_code
     title = f"{name} · {b.start:%d.%m. %H:%M}" if b.start else name
-    return {"title": title, "amount": _cents(b.total_cents), "currency": "EUR"}
+    return {"title": title, "amount": _cents(b.total_cents), "currency": "EUR", "when": b.start}
 
 
 def _stay_fields(s):
@@ -185,18 +211,32 @@ def _stay_fields(s):
         "title": f"{name} · {s.arrival:%d.%m.}–{s.departure:%d.%m.}",
         "amount": _cents(s.total_cents),
         "currency": "EUR",
+        "when": s.arrival,
     }
 
 
 def _ticket_fields(t):
-    return {"title": f"{t.event} ×{t.quantity}", "amount": _cents(t.total_cents), "currency": "EUR"}
+    return {
+        "title": f"{t.event} ×{t.quantity}",
+        "amount": _cents(t.total_cents),
+        "currency": "EUR",
+        "when": getattr(t.event, "starts_at", None),
+    }
 
 
 def _job_fields(j):
+    # VS-2c: у заявки «когда» — ДАТА МЕРОПРИЯТИЯ (волна AF-1), а не дата создания:
+    # кейтеринг живёт датами. `guest_count` идёт второй строкой карточки.
+    note = ""
+    if j.guest_count:
+        note = ngettext("%(n)d Gast", "%(n)d Gäste", j.guest_count) % {"n": j.guest_count}
     return {
         "title": j.title or f"#{j.reference_code}",
         "amount": j.gross,
         "currency": j.currency or "EUR",
+        "when": j.event_date,
+        "when_note": note,
+        "deadline": j.valid_until,
     }
 
 
@@ -388,6 +428,10 @@ def transaction_for(
         allowed_actions=actions,
         needs_tracking=needs_tracking,
         from_promo=(getattr(obj, "source_channel", "") or "") == "promo",
+        when=f.get("when"),
+        when_note=f.get("when_note", ""),
+        deadline=f.get("deadline"),
+        deadline_overdue=_is_overdue(f.get("deadline")),
     )
 
 
@@ -425,6 +469,16 @@ _SELECT_RELATED = {
 # бронь на завтра, созданная месяц назад, важнее прошлогодней, созданной вчера.
 _EVENT_ORDER = {"stay": "-arrival", "booking": "-start"}
 
+# VS-2c: порядок ДОСКИ — по дате события ПО ВОЗРАСТАНИЮ (ближайшее сверху), у
+# заявок это дата мероприятия (AF-1). Пустая дата уезжает в конец (nulls_last),
+# внутри — свежие сверху. Список («Liste») сохраняет свой порядок (_EVENT_ORDER).
+_BOARD_ORDER = {
+    "job": "event_date",
+    "order": "pickup_slot",
+    "stay": "arrival",
+    "booking": "start",
+}
+
 
 def status_filter_options(tenant, kind: str) -> list[tuple]:
     """X2c: варианты фильтра статуса для generic-списка продаж.
@@ -443,7 +497,9 @@ def status_filter_options(tenant, kind: str) -> list[tuple]:
     return out
 
 
-def _managed_queryset(kind, event_order: bool = False, q: str = "", status: str = ""):
+def _managed_queryset(
+    kind, event_order: bool = False, q: str = "", status: str = "", board_order: bool = False
+):
     """Базовый queryset kind для кабинета: свежие сверху, с select_related.
     `event_order` — сортировка по дате СОБЫТИЯ (W7c, только kind'ы из _EVENT_ORDER).
 
@@ -452,8 +508,17 @@ def _managed_queryset(kind, event_order: bool = False, q: str = "", status: str 
     список Verkäufe искал только у заказов (W10-3), у остальных поиска не было."""
     from django.db.models import Q
 
-    order = _EVENT_ORDER.get(kind, "-created_at") if event_order else "-created_at"
-    qs = model_for(kind).objects.select_related(*_SELECT_RELATED[kind]).order_by(order)
+    qs = model_for(kind).objects.select_related(*_SELECT_RELATED[kind])
+    field = _BOARD_ORDER.get(kind) if board_order else None
+    if field:
+        # VS-2c: ближайшее событие сверху; сделки без даты — в конец (F(...).asc с
+        # nulls_last), внутри — свежие первыми.
+        from django.db.models import F
+
+        qs = qs.order_by(F(field).asc(nulls_last=True), "-created_at")
+    else:
+        order = _EVENT_ORDER.get(kind, "-created_at") if event_order else "-created_at"
+        qs = qs.order_by(order)
     if status:
         qs = qs.filter(status=status)  # X2c: фильтр статуса — паритет с легаси-списками
     q = (q or "").strip()
@@ -466,6 +531,72 @@ def _managed_queryset(kind, event_order: bool = False, q: str = "", status: str 
     return qs
 
 
+# VS-2b (решение владельца 2026-08-20): КОЛОНКА = СТАТУС, а колонки одной стадии
+# визуально сгруппированы. Раньше колонок было четыре (канонические стадии), и у
+# кейтеринга «Angebot gesendet» (ждём ответа клиента) лежал в одной колонке с
+# «Beauftragt» (подтверждено, надо готовить) — доска не отвечала «что горит».
+# Стадия остаётся: она задаёт ГРУППУ и роль статуса (эффекты/ёмкость/деньги), а
+# пер-тенантные настройки колонок (переименование/скрытие/порядок, W5) продолжают
+# управлять ГРУППАМИ — `normalize_board` и его golden не тронуты.
+#
+# kind → (поле суммы в БД, делитель). Только там, где поле — ТОЧНЫЙ итог сделки:
+# у booking/ticket «итог» считается в Python (price+extras−скидка), и агрегат по
+# price_cents врал бы. Нет поля → шапка колонки просто без суммы.
+_SUM_FIELD = {
+    "order": ("total", 1),
+    "job": ("gross", 1),
+    "stay": ("total_cents", 100),
+}
+
+
+def status_columns(kind: str, tenant, board_cfg: dict | None = None) -> list[dict]:
+    """Колонки доски = статусы kind (встроенные ∪ кастом тенанта, SM-3).
+
+    Порядок: группы — в порядке стадий с учётом настроек тенанта
+    (`pipeline.resolve_columns`: переименование/скрытие/порядок), внутри группы —
+    порядок объявления в реестре. Подпись колонки — своё имя владельца (FB-4a)
+    поверх встроенной подписи; у кастом-статуса — его label.
+    """
+    from apps.core import status_labels, status_registry
+
+    custom_names = status_labels.custom_labels(tenant, kind)
+    builtin_names = builtin_status_labels(kind)
+    descriptors = status_registry.all_descriptors(kind, tenant)
+
+    groups = pipeline.resolve_columns(kind, board_cfg)  # видимые стадии по порядку
+    out = []
+    for group in groups:
+        for code, d in descriptors.items():
+            if d.stage != group["stage"]:
+                continue
+            label = custom_names.get(code) or (d.label if not d.builtin else "")
+            out.append(
+                {
+                    "status": code,
+                    "label": label or builtin_names.get(code, code),
+                    "stage": group["stage"],
+                    "group_label": group["label"],
+                    "custom": not d.builtin,
+                }
+            )
+    return out
+
+
+def column_groups(columns: list[dict]) -> list[dict]:
+    """Полоса групп над колонками: подряд идущие колонки одной стадии.
+
+    Возвращает [{stage, label, span}] — шаблон рисует группу как контейнер своих
+    колонок (ширина следует из числа колонок, синхронизировать ничего не нужно).
+    """
+    out = []
+    for col in columns:
+        if out and out[-1]["stage"] == col["stage"]:
+            out[-1]["columns"].append(col)
+            continue
+        out.append({"stage": col["stage"], "label": col["group_label"], "columns": [col]})
+    return out
+
+
 def manage_sections_for(
     tenant,
     limit: int = BOARD_LIMIT,
@@ -473,6 +604,7 @@ def manage_sections_for(
     event_order: bool = False,
     q: str = "",
     status: str = "",
+    board_order: bool = False,
 ) -> list[dict]:
     """Секции доски по активным транзакционным модулям тенанта.
 
@@ -502,7 +634,9 @@ def manage_sections_for(
         trans = transition_rules.subset_for(tenant, kind)
         txs = [
             transaction_for(kind, obj, labels, trans)
-            for obj in _managed_queryset(kind, event_order, q, status)[:limit]
+            for obj in _managed_queryset(kind, event_order, q, status, board_order=board_order)[
+                :limit
+            ]
         ]
         # LS-6: «⚠️ Problem»-полоса — открытые high-треды с ref на карточки секции.
         # ОДИН запрос на секцию по множеству кодов (не per-card — N+1); ключ =
@@ -530,27 +664,48 @@ def manage_sections_for(
         # карточкам (при >limit шапки колонок врали). Кастом-статусы тенанта
         # резолвятся тем же реестром, что и карточки.
         counts = {stage: 0 for stage in pipeline.STAGES}
+        status_counts: dict[str, int] = {}
+        status_sums: dict[str, object] = {}
         try:
-            from django.db.models import Count
+            from django.db.models import Count, Sum
 
             from apps.core import status_registry
 
-            for row in _managed_queryset(kind).values("status").annotate(n=Count("pk")):
+            # VS-2c: сумма в шапке колонки — ТЕМ ЖЕ запросом, что и счётчик, и
+            # только там, где поле суммы в БД = точный итог сделки (_SUM_FIELD).
+            money = _SUM_FIELD.get(kind)
+            # `.order_by()` СБРАСЫВАЕТ сортировку модели: иначе Django добавляет её
+            # поля в GROUP BY, и агрегат дробится на строку-на-запись (счётчики
+            # спасало сложение, а сумма перезаписывалась — ловил замок VS-2c).
+            qs = _managed_queryset(kind).order_by().values("status").annotate(n=Count("pk"))
+            if money:
+                qs = qs.annotate(amount=Sum(money[0]))
+            for row in qs:
                 d = status_registry.resolve(kind, row["status"], tenant)
                 stage = d.stage if d is not None else "intake"
                 counts[stage] = counts.get(stage, 0) + row["n"]
+                status_counts[row["status"]] = status_counts.get(row["status"], 0) + row["n"]
+                if money and row.get("amount"):
+                    status_sums[row["status"]] = status_sums.get(row["status"], Decimal(0)) + (
+                        Decimal(row["amount"]) / money[1]
+                    )
         except Exception:  # noqa: BLE001 — фолбэк: как раньше, по загруженным
             for tx in txs:
                 counts[tx.pipeline_stage] = counts.get(tx.pipeline_stage, 0) + 1
-        columns = pipeline.resolve_columns(kind, board_cfg)
-        for col in columns:  # число карточек в колонке — в шапку колонки
-            col["count"] = counts.get(col["stage"], 0)
+                status_counts[tx.status] = status_counts.get(tx.status, 0) + 1
+        # VS-2b: колонка = статус; стадия остаётся ГРУППОЙ (полоса над колонками).
+        columns = status_columns(kind, tenant, board_cfg)
+        for col in columns:
+            col["count"] = status_counts.get(col["status"], 0)
+            amount = status_sums.get(col["status"])
+            col["sum_display"] = _money_str(amount) if amount else ""
         out.append(
             {
                 "kind": kind,
                 "module": module,
                 "label": KIND_LABEL[kind],
                 "columns": columns,
+                "groups": column_groups(columns),
                 "transactions": txs,
                 "stage_counts": counts,
                 "total": sum(counts.values()),  # V4: честный итог по БД

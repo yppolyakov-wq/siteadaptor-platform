@@ -54,7 +54,9 @@ def test_board_columns_stretch_to_full_width():
     """Колонки были w-64 (фикс. 256px) — три колонки занимали треть широкого
     экрана. Теперь тянутся; min-w сохраняет прокрутку при большом числе колонок."""
     body = views.verkaeufe(_req("/dashboard/verkaeufe/?view=board")).content.decode()
-    assert "sm:flex-1" in body and "sm:min-w-[15rem]" in body
+    # VS-2b: колонок стало больше (колонка = статус) → минимальная ширина ниже,
+    # но инвариант тот же: тянутся по ширине и не сплющиваются.
+    assert "sm:flex-1" in body and "sm:min-w-[13rem]" in body
     assert "sm:w-64" not in body  # прежняя фиксированная ширина не вернулась
     assert "w-[85vw]" in body  # мобильный snap-скролл цел
 

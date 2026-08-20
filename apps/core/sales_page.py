@@ -300,13 +300,42 @@ def legacy_redirect(request, **params):
 
 
 def tab_descriptors(tenant, active_kind: str) -> list[dict]:
+    """Вкладки направлений. VS-2a (решение владельца 2026-08-20): у 13 из 16 типов
+    бизнеса направление ОДНО — ряд вкладок из одного элемента шаблон не рисует
+    вовсе (заголовок страницы = имя направления). При двух+ вкладка несёт число
+    АКТИВНЫХ сделок: видно, где работа, не переключаясь."""
+    kinds = visible_kinds(tenant)
+    counts = _active_counts(tenant, kinds) if len(kinds) > 1 else {}
     return [
         {
             "kind": kind,
             "label": transactions.KIND_LABEL.get(kind, kind),
             "active": kind == active_kind,
+            "count": counts.get(kind),
         }
-        for kind in visible_kinds(tenant)
+        for kind in kinds
+    ]
+
+
+def _active_counts(tenant, kinds) -> dict:
+    """{kind: число незакрытых сделок} — один COUNT на направление, fail-safe.
+    «Активные» = не терминальные (реестр статусов, с учётом кастомных SM-3)."""
+    out = {}
+    for kind in kinds:
+        try:
+            model = transactions.model_for(kind)
+            terminal = _terminal_statuses(kind, tenant)
+            out[kind] = model.objects.exclude(status__in=terminal).count()
+        except Exception:  # noqa: BLE001 — счётчик не стоит падения страницы
+            continue
+    return out
+
+
+def _terminal_statuses(kind: str, tenant) -> list[str]:
+    return [
+        code
+        for code, d in status_registry.all_descriptors(kind, tenant).items()
+        if d.stage == "terminal"
     ]
 
 
@@ -380,7 +409,8 @@ def body_context(request, kind: str, view: str) -> dict:
 
         ctx = {**auftragsbuch_context(request), **ctx}
     elif view == "board":
-        ctx["sections"] = transactions.manage_sections_for(tenant, only=kind)
+        # VS-2c: на доске порядок — по дате события (ближайшее сверху).
+        ctx["sections"] = transactions.manage_sections_for(tenant, only=kind, board_order=True)
     elif kind == "order":  # Liste заказов — богатые строки списка orders
         from django.db.models import Q
 

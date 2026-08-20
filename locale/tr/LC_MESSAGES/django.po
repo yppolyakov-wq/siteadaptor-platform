@@ -19179,3 +19179,32 @@ msgstr "Gizle"
 #: apps/core/transactions.py
 msgid "Aktions-Reservierungen (alt)"
 msgstr "Kampanya rezervasyonları (eski)"
+
+#: apps/core/transactions.py templates/tenant/ablaeufe.html
+#, python-format
+msgid "Angebot abgelaufen (%(d)s)"
+msgstr "Teklifin süresi doldu (%(d)s)"
+
+#: apps/core/transactions.py templates/tenant/ablaeufe.html
+#, python-format
+msgid "Angebot gültig bis %(d)s"
+msgstr "Teklif %(d)s tarihine kadar geçerli"
+
+#: apps/core/transactions.py templates/tenant/ablaeufe.html
+msgid "Jede Phase Ihrer Tafel und die Status darin — auf der Tafel bekommt jeder Status eine eigene Spalte innerhalb seiner Phase."
+msgstr "Panonuzun her aşaması ve içindeki durumlar — panoda her durum kendi aşamasının içinde ayrı bir sütun alır."
+
+#: apps/core/transactions.py templates/tenant/ablaeufe.html
+msgid "Phasen der Tafel"
+msgstr "Pano aşamaları"
+
+#: apps/core/transactions.py templates/tenant/ablaeufe.html
+msgid "Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden. Das sind die Gruppen über den Spalten; die Spaltennamen selbst sind die Status-Namen unten. Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten bleiben gleich."
+msgstr "Sıralamak için sürükleyin, adları serbestçe değiştirin, gereksizleri gizleyin. Bunlar sütunların üzerindeki gruplardır; sütun adlarının kendisi aşağıdaki durum adlarıdır. Tüm satış türleri için geçerlidir; kartların taşınma kuralları aynı kalır."
+
+#: apps/core/transactions.py
+#, python-format
+msgid "%(n)d Gast"
+msgid_plural "%(n)d Gäste"
+msgstr[0] "%(n)d misafir"
+msgstr[1] "%(n)d misafir"

@@ -188,7 +188,12 @@ def test_manage_sections_lists_active_transaction_modules():
     orders_sec = next((s for s in sections if s["kind"] == "order"), None)
     assert orders_sec is not None
     assert orders_sec["label"] == "Bestellungen"
-    assert [c["stage"] for c in orders_sec["columns"]] == list(STAGES)
+    # VS-2b (осознанная переписка, решение владельца 2026-08-20): колонка = СТАТУС,
+    # стадия стала ГРУППОЙ колонок. Инвариант порядка тот же — группы идут в
+    # порядке STAGES, внутри группы статусы в порядке реестра.
+    assert [g["stage"] for g in orders_sec["groups"]] == list(STAGES)
+    assert {c["stage"] for c in orders_sec["columns"]} <= set(STAGES)
+    assert len(orders_sec["columns"]) > len(STAGES)  # статусов больше, чем стадий
     assert any(t.pk == order.pk for t in orders_sec["transactions"])
     # счётчик по стадиям сходится с числом транзакций
     assert sum(orders_sec["stage_counts"].values()) == orders_sec["total"]

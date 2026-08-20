@@ -19263,3 +19263,34 @@ msgstr "Скрыть"
 #: apps/core/transactions.py
 msgid "Aktions-Reservierungen (alt)"
 msgstr "Резервы по акциям (старые)"
+
+#: apps/core/transactions.py templates/tenant/ablaeufe.html
+#, python-format
+msgid "Angebot abgelaufen (%(d)s)"
+msgstr "Смета просрочена (%(d)s)"
+
+#: apps/core/transactions.py templates/tenant/ablaeufe.html
+#, python-format
+msgid "Angebot gültig bis %(d)s"
+msgstr "Смета действует до %(d)s"
+
+#: apps/core/transactions.py templates/tenant/ablaeufe.html
+msgid "Jede Phase Ihrer Tafel und die Status darin — auf der Tafel bekommt jeder Status eine eigene Spalte innerhalb seiner Phase."
+msgstr "Каждая фаза вашей доски и статусы в ней — на доске у каждого статуса своя колонка внутри его фазы."
+
+#: apps/core/transactions.py templates/tenant/ablaeufe.html
+msgid "Phasen der Tafel"
+msgstr "Фазы доски"
+
+#: apps/core/transactions.py templates/tenant/ablaeufe.html
+msgid "Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden. Das sind die Gruppen über den Spalten; die Spaltennamen selbst sind die Status-Namen unten. Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten bleiben gleich."
+msgstr "Перетаскивайте для сортировки, свободно меняйте названия, скрывайте ненужное. Это группы над колонками; сами названия колонок — это имена статусов ниже. Действует для всех видов продаж; правила перемещения карточек не меняются."
+
+#: apps/core/transactions.py
+#, python-format
+msgid "%(n)d Gast"
+msgid_plural "%(n)d Gäste"
+msgstr[0] "%(n)d гость"
+msgstr[1] "%(n)d гостя"
+msgstr[2] "%(n)d гостей"
+msgstr[3] "%(n)d гостя"

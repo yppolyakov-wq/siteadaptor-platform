@@ -6,7 +6,7 @@ Zielstatus für die Zielspalte. Wird von kanban_action bei erfolgreichem fetch
 neu gerendert (Badge/Buttons frisch, Karte bleibt in der neuen Spalte).
 {% endcomment %}
 <div class="kanban-card bg-white rounded-lg border {% if tx.has_problem %}border-red-300 border-l-4 border-l-red-500{% else %}border-gray-200{% endif %} p-2.5 shadow-sm"
-     draggable="true" data-card-id="{{ tx.pk }}" data-stage="{{ tx.pipeline_stage }}" data-kind="{{ kind }}">
+     draggable="true" data-card-id="{{ tx.pk }}" data-stage="{{ tx.pipeline_stage }}" data-status="{{ tx.status }}" data-kind="{{ kind }}">
   {% if tx.has_problem %}{# LS-6: открытый high-тред с ref на сделку. #}
   <p class="text-[11px] font-medium text-red-600 mb-1">⚠️ {% trans "Problem — Kunde wartet" %}</p>
   {% endif %}
@@ -18,8 +18,22 @@ neu gerendert (Badge/Buttons frisch, Karte bleibt in der neuen Spalte).
       {% else %}
         <span class="text-sm font-medium text-gray-900 block truncate">{{ tx.title }}</span>
       {% endif %}
+      {% comment %}VS-2c (решение владельца 2026-08-20): карточка обязана отвечать
+      «когда это и на сколько». «Когда» — дата мероприятия заявки (AF-1), выдачи
+      заказа, заезда, записи; рядом — гости. Раньше на карточке не было ни даты
+      события, ни срока сметы.{% endcomment %}
+      {% if tx.when %}
+        <p class="text-xs font-medium text-gray-700 truncate">📅 {{ tx.when|date:"D, d.m.y" }}{% if tx.when_note %} · {{ tx.when_note }}{% endif %}</p>
+      {% endif %}
       <p class="text-xs text-gray-500 truncate">{{ tx.customer }}{% if tx.subtotal_display %} · {{ tx.subtotal_display }}{% endif %}</p>
       <p class="text-xs text-gray-400 truncate">#{{ tx.reference_code }} · {{ tx.status_label }}{% if tx.from_promo %} · <span class="text-rose-600 font-medium">{% trans "Aktion" %}</span>{% endif %}</p>
+      {% if tx.deadline %}
+        {# Срок сметы: просрочка — красным, иначе спокойная подпись #}
+        <p class="text-xs truncate {% if tx.deadline_overdue %}text-red-600 font-medium{% else %}text-gray-400{% endif %}">
+          {% if tx.deadline_overdue %}⏳ {% blocktrans with d=tx.deadline|date:"d.m.y" %}Angebot abgelaufen ({{ d }}){% endblocktrans %}
+          {% else %}⏳ {% blocktrans with d=tx.deadline|date:"d.m.y" %}Angebot gültig bis {{ d }}{% endblocktrans %}{% endif %}
+        </p>
+      {% endif %}
     </div>
   </div>
   {% if tx.allowed_actions %}

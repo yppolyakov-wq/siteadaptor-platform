@@ -100,10 +100,12 @@
     }
 
     function drop(card, zone) {
-      var stage = zone.getAttribute("data-drop-stage");
-      if (card.getAttribute("data-stage") === stage) return; // gleiche Spalte
-      // Zielstatus = Button dieser Karte, dessen Stufe der Zielspalte entspricht.
-      var btn = card.querySelector('[data-stage="' + stage + '"]');
+      // VS-2b: колонка = СТАТУС, поэтому целевой статус берём из зоны напрямую.
+      // Раньше зона несла стадию, и код выбирал «первый допустимый переход в эту
+      // стадию» — при двух статусах в колонке выбор был неоднозначным.
+      var status = zone.getAttribute("data-drop-status");
+      if (card.getAttribute("data-status") === status) return; // та же колонка
+      var btn = card.querySelector('[data-target="' + status + '"]');
       if (!btn) { showToast(MSG_NO_TRANSITION); return; }
       var target = btn.getAttribute("data-target");
       var form = card.querySelector("form[data-kanban-form]");
@@ -142,10 +144,12 @@
     document.querySelectorAll("[data-drop-stage]").forEach(bindZone);
 
     // T4: Archiv — abgeschlossene Spalte standardmäßig aus (Checkbox blendet ein).
+    // VS-2b: прячем ГРУППУ терминальной стадии целиком (в ней теперь несколько
+    // колонок-статусов: Storniert, Abgelehnt, …).
     var closedToggle = document.getElementById("board-show-closed");
     function applyClosed() {
       var show = closedToggle && closedToggle.checked;
-      document.querySelectorAll('.kanban-col[data-stage="terminal"]').forEach(function (c) {
+      document.querySelectorAll('.kanban-group[data-stage="terminal"]').forEach(function (c) {
         c.style.display = show ? "" : "none";
       });
     }
