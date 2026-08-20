@@ -19106,3 +19106,72 @@ msgstr "Metin gerekli."
 
 msgid "Suchen: Bestellung, Kunde, Bereich…"
 msgstr "Ara: sipariş, müşteri, bölüm…"
+
+#: apps/core/nav_registry.py
+msgid "Abläufe & Status"
+msgstr "Süreçler ve durumlar"
+
+#: templates/inbox/offer_compose.html
+msgid "Angebotssumme"
+msgstr "Teklif toplamı"
+
+#: templates/tenant/ablaeufe.html
+msgid "Eigener Status"
+msgstr "Özel durum"
+
+#: templates/tenant/ablaeufe.html
+msgid "Hier gibt es nichts auszublenden: aus diesen Status führt jeweils nur ein Weg weiter (plus Stornieren, das immer möglich bleibt)."
+msgstr "Burada gizlenecek bir şey yok: bu durumlardan yalnızca tek bir yol devam eder (ayrıca her zaman mümkün olan iptal)."
+
+#: templates/tenant/ablaeufe.html
+msgid "Jede Spalte Ihrer Tafel und die Status, die darin landen. Karten wandern per Drag & Drop zwischen den Spalten."
+msgstr "Panonuzun her sütunu ve içine düşen durumlar. Kartlar sütunlar arasında sürükle-bırak ile taşınır."
+
+#: apps/jobs/views.py
+#, python-format
+msgid "Positionen ohne Beschreibung wurden nicht gespeichert (Zeile %(rows)s)."
+msgstr "Açıklaması olmayan kalemler kaydedilmedi (satır %(rows)s)."
+
+#: templates/tenant/_base_dashboard.html
+msgid "Schließen"
+msgstr "Kapat"
+
+#: templates/tenant/ablaeufe.html
+msgid "So läuft ein Verkauf"
+msgstr "Bir satış nasıl ilerler"
+
+#: templates/tenant/ablaeufe.html
+msgid "Spalten der Tafel"
+msgstr "Pano sütunları"
+
+#: templates/tenant/ablaeufe.html
+msgid "Tafel, Status und Felder dieses Bereichs einstellen"
+msgstr "Bu bölümün panosunu, durumlarını ve alanlarını ayarlayın"
+
+#: templates/tenant/ablaeufe.html
+msgid "Wie ein Verkauf bei Ihnen durchläuft: Spalten der Tafel, Namen der Status und erlaubte Schritte."
+msgstr "Satışın işletmenizde nasıl ilerlediği: pano sütunları, durum adları ve izin verilen adımlar."
+
+#: templates/tenant/ablaeufe.html
+msgid "Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden. Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten bleiben gleich."
+msgstr "Sıralamak için sürükleyin, adları serbestçe değiştirin, gereksizleri gizleyin. Tüm satış türleri için geçerlidir; kartların taşınma kuralları aynı kalır."
+
+#: templates/jobs/detail.html
+msgid "Zwischensumme (netto)"
+msgstr "Ara toplam (net)"
+
+#: templates/tenant/ablaeufe.html
+msgid "keine Status"
+msgstr "durum yok"
+
+#: templates/tenant/ablaeufe.html
+msgid "Ziehen zum Sortieren"
+msgstr "Sıralamak için sürükleyin"
+
+#: templates/tenant/ablaeufe.html
+msgid "Name der Spalte"
+msgstr "Sütun adı"
+
+#: templates/tenant/ablaeufe.html
+msgid "Ausblenden"
+msgstr "Gizle"

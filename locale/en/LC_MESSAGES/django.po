@@ -18985,3 +18985,72 @@ msgstr "Text is required."
 
 msgid "Suchen: Bestellung, Kunde, Bereich…"
 msgstr "Search: order, customer, section…"
+
+#: apps/core/nav_registry.py
+msgid "Abläufe & Status"
+msgstr "Workflow & statuses"
+
+#: templates/inbox/offer_compose.html
+msgid "Angebotssumme"
+msgstr "Quote total"
+
+#: templates/tenant/ablaeufe.html
+msgid "Eigener Status"
+msgstr "Custom status"
+
+#: templates/tenant/ablaeufe.html
+msgid "Hier gibt es nichts auszublenden: aus diesen Status führt jeweils nur ein Weg weiter (plus Stornieren, das immer möglich bleibt)."
+msgstr "There is nothing to hide here: from each of these statuses only one way leads on (plus cancelling, which always stays possible)."
+
+#: templates/tenant/ablaeufe.html
+msgid "Jede Spalte Ihrer Tafel und die Status, die darin landen. Karten wandern per Drag & Drop zwischen den Spalten."
+msgstr "Every column of your board and the statuses that land in it. Cards move between columns by drag & drop."
+
+#: apps/jobs/views.py
+#, python-format
+msgid "Positionen ohne Beschreibung wurden nicht gespeichert (Zeile %(rows)s)."
+msgstr "Positions without a description were not saved (row %(rows)s)."
+
+#: templates/tenant/_base_dashboard.html
+msgid "Schließen"
+msgstr "Close"
+
+#: templates/tenant/ablaeufe.html
+msgid "So läuft ein Verkauf"
+msgstr "How a sale runs"
+
+#: templates/tenant/ablaeufe.html
+msgid "Spalten der Tafel"
+msgstr "Board columns"
+
+#: templates/tenant/ablaeufe.html
+msgid "Tafel, Status und Felder dieses Bereichs einstellen"
+msgstr "Set up the board, statuses and fields of this area"
+
+#: templates/tenant/ablaeufe.html
+msgid "Wie ein Verkauf bei Ihnen durchläuft: Spalten der Tafel, Namen der Status und erlaubte Schritte."
+msgstr "How a sale runs through your business: board columns, status names and allowed steps."
+
+#: templates/tenant/ablaeufe.html
+msgid "Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden. Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten bleiben gleich."
+msgstr "Drag to sort, overwrite names freely, hide what you don't need. Applies to all sales types; the rules for moving cards stay the same."
+
+#: templates/jobs/detail.html
+msgid "Zwischensumme (netto)"
+msgstr "Subtotal (net)"
+
+#: templates/tenant/ablaeufe.html
+msgid "keine Status"
+msgstr "no statuses"
+
+#: templates/tenant/ablaeufe.html
+msgid "Ziehen zum Sortieren"
+msgstr "Drag to sort"
+
+#: templates/tenant/ablaeufe.html
+msgid "Name der Spalte"
+msgstr "Column name"
+
+#: templates/tenant/ablaeufe.html
+msgid "Ausblenden"
+msgstr "Hide"

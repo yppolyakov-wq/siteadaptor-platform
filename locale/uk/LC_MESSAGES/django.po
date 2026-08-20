@@ -19179,3 +19179,72 @@ msgstr "Потрібен текст."
 
 msgid "Suchen: Bestellung, Kunde, Bereich…"
 msgstr "Пошук: замовлення, клієнт, розділ…"
+
+#: apps/core/nav_registry.py
+msgid "Abläufe & Status"
+msgstr "Процеси та статуси"
+
+#: templates/inbox/offer_compose.html
+msgid "Angebotssumme"
+msgstr "Сума пропозиції"
+
+#: templates/tenant/ablaeufe.html
+msgid "Eigener Status"
+msgstr "Власний статус"
+
+#: templates/tenant/ablaeufe.html
+msgid "Hier gibt es nichts auszublenden: aus diesen Status führt jeweils nur ein Weg weiter (plus Stornieren, das immer möglich bleibt)."
+msgstr "Тут нема чого приховувати: з цих статусів веде лише один шлях далі (плюс скасування — воно можливе завжди)."
+
+#: templates/tenant/ablaeufe.html
+msgid "Jede Spalte Ihrer Tafel und die Status, die darin landen. Karten wandern per Drag & Drop zwischen den Spalten."
+msgstr "Кожна колонка вашої дошки і статуси, які до неї потрапляють. Картки переміщуються між колонками перетягуванням."
+
+#: apps/jobs/views.py
+#, python-format
+msgid "Positionen ohne Beschreibung wurden nicht gespeichert (Zeile %(rows)s)."
+msgstr "Позиції без опису не збережено (рядок %(rows)s)."
+
+#: templates/tenant/_base_dashboard.html
+msgid "Schließen"
+msgstr "Закрити"
+
+#: templates/tenant/ablaeufe.html
+msgid "So läuft ein Verkauf"
+msgstr "Як проходить продаж"
+
+#: templates/tenant/ablaeufe.html
+msgid "Spalten der Tafel"
+msgstr "Колонки дошки"
+
+#: templates/tenant/ablaeufe.html
+msgid "Tafel, Status und Felder dieses Bereichs einstellen"
+msgstr "Налаштувати дошку, статуси та поля цього розділу"
+
+#: templates/tenant/ablaeufe.html
+msgid "Wie ein Verkauf bei Ihnen durchläuft: Spalten der Tafel, Namen der Status und erlaubte Schritte."
+msgstr "Як продаж проходить у вас: колонки дошки, назви статусів і дозволені кроки."
+
+#: templates/tenant/ablaeufe.html
+msgid "Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden. Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten bleiben gleich."
+msgstr "Перетягуйте для сортування, вільно змінюйте назви, приховуйте зайве. Діє для всіх видів продажів; правила переміщення карток не змінюються."
+
+#: templates/jobs/detail.html
+msgid "Zwischensumme (netto)"
+msgstr "Проміжний підсумок (нетто)"
+
+#: templates/tenant/ablaeufe.html
+msgid "keine Status"
+msgstr "немає статусів"
+
+#: templates/tenant/ablaeufe.html
+msgid "Ziehen zum Sortieren"
+msgstr "Перетягніть для сортування"
+
+#: templates/tenant/ablaeufe.html
+msgid "Name der Spalte"
+msgstr "Назва колонки"
+
+#: templates/tenant/ablaeufe.html
+msgid "Ausblenden"
+msgstr "Приховати"

@@ -19190,3 +19190,72 @@ msgstr "Требуется текст."
 
 msgid "Suchen: Bestellung, Kunde, Bereich…"
 msgstr "Поиск: заказ, клиент, раздел…"
+
+#: apps/core/nav_registry.py
+msgid "Abläufe & Status"
+msgstr "Процессы и статусы"
+
+#: templates/inbox/offer_compose.html
+msgid "Angebotssumme"
+msgstr "Сумма предложения"
+
+#: templates/tenant/ablaeufe.html
+msgid "Eigener Status"
+msgstr "Свой статус"
+
+#: templates/tenant/ablaeufe.html
+msgid "Hier gibt es nichts auszublenden: aus diesen Status führt jeweils nur ein Weg weiter (plus Stornieren, das immer möglich bleibt)."
+msgstr "Здесь нечего скрывать: из этих статусов ведёт только один путь дальше (плюс отмена — она возможна всегда)."
+
+#: templates/tenant/ablaeufe.html
+msgid "Jede Spalte Ihrer Tafel und die Status, die darin landen. Karten wandern per Drag & Drop zwischen den Spalten."
+msgstr "Каждая колонка вашей доски и статусы, которые в неё попадают. Карточки перемещаются между колонками перетаскиванием."
+
+#: apps/jobs/views.py
+#, python-format
+msgid "Positionen ohne Beschreibung wurden nicht gespeichert (Zeile %(rows)s)."
+msgstr "Позиции без описания не сохранены (строка %(rows)s)."
+
+#: templates/tenant/_base_dashboard.html
+msgid "Schließen"
+msgstr "Закрыть"
+
+#: templates/tenant/ablaeufe.html
+msgid "So läuft ein Verkauf"
+msgstr "Как проходит продажа"
+
+#: templates/tenant/ablaeufe.html
+msgid "Spalten der Tafel"
+msgstr "Колонки доски"
+
+#: templates/tenant/ablaeufe.html
+msgid "Tafel, Status und Felder dieses Bereichs einstellen"
+msgstr "Настроить доску, статусы и поля этого раздела"
+
+#: templates/tenant/ablaeufe.html
+msgid "Wie ein Verkauf bei Ihnen durchläuft: Spalten der Tafel, Namen der Status und erlaubte Schritte."
+msgstr "Как продажа проходит у вас: колонки доски, названия статусов и разрешённые шаги."
+
+#: templates/tenant/ablaeufe.html
+msgid "Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden. Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten bleiben gleich."
+msgstr "Перетаскивайте для сортировки, свободно меняйте названия, скрывайте ненужное. Действует для всех видов продаж; правила перемещения карточек не меняются."
+
+#: templates/jobs/detail.html
+msgid "Zwischensumme (netto)"
+msgstr "Промежуточный итог (нетто)"
+
+#: templates/tenant/ablaeufe.html
+msgid "keine Status"
+msgstr "нет статусов"
+
+#: templates/tenant/ablaeufe.html
+msgid "Ziehen zum Sortieren"
+msgstr "Перетащите для сортировки"
+
+#: templates/tenant/ablaeufe.html
+msgid "Name der Spalte"
+msgstr "Название колонки"
+
+#: templates/tenant/ablaeufe.html
+msgid "Ausblenden"
+msgstr "Скрыть"

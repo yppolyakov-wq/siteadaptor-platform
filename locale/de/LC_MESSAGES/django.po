@@ -19114,3 +19114,72 @@ msgstr "Text ist erforderlich."
 
 msgid "Suchen: Bestellung, Kunde, Bereich…"
 msgstr "Suchen: Bestellung, Kunde, Bereich…"
+
+#: apps/core/nav_registry.py
+msgid "Abläufe & Status"
+msgstr "Abläufe & Status"
+
+#: templates/inbox/offer_compose.html
+msgid "Angebotssumme"
+msgstr "Angebotssumme"
+
+#: templates/tenant/ablaeufe.html
+msgid "Eigener Status"
+msgstr "Eigener Status"
+
+#: templates/tenant/ablaeufe.html
+msgid "Hier gibt es nichts auszublenden: aus diesen Status führt jeweils nur ein Weg weiter (plus Stornieren, das immer möglich bleibt)."
+msgstr "Hier gibt es nichts auszublenden: aus diesen Status führt jeweils nur ein Weg weiter (plus Stornieren, das immer möglich bleibt)."
+
+#: templates/tenant/ablaeufe.html
+msgid "Jede Spalte Ihrer Tafel und die Status, die darin landen. Karten wandern per Drag & Drop zwischen den Spalten."
+msgstr "Jede Spalte Ihrer Tafel und die Status, die darin landen. Karten wandern per Drag & Drop zwischen den Spalten."
+
+#: apps/jobs/views.py
+#, python-format
+msgid "Positionen ohne Beschreibung wurden nicht gespeichert (Zeile %(rows)s)."
+msgstr "Positionen ohne Beschreibung wurden nicht gespeichert (Zeile %(rows)s)."
+
+#: templates/tenant/_base_dashboard.html
+msgid "Schließen"
+msgstr "Schließen"
+
+#: templates/tenant/ablaeufe.html
+msgid "So läuft ein Verkauf"
+msgstr "So läuft ein Verkauf"
+
+#: templates/tenant/ablaeufe.html
+msgid "Spalten der Tafel"
+msgstr "Spalten der Tafel"
+
+#: templates/tenant/ablaeufe.html
+msgid "Tafel, Status und Felder dieses Bereichs einstellen"
+msgstr "Tafel, Status und Felder dieses Bereichs einstellen"
+
+#: templates/tenant/ablaeufe.html
+msgid "Wie ein Verkauf bei Ihnen durchläuft: Spalten der Tafel, Namen der Status und erlaubte Schritte."
+msgstr "Wie ein Verkauf bei Ihnen durchläuft: Spalten der Tafel, Namen der Status und erlaubte Schritte."
+
+#: templates/tenant/ablaeufe.html
+msgid "Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden. Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten bleiben gleich."
+msgstr "Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden. Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten bleiben gleich."
+
+#: templates/jobs/detail.html
+msgid "Zwischensumme (netto)"
+msgstr "Zwischensumme (netto)"
+
+#: templates/tenant/ablaeufe.html
+msgid "keine Status"
+msgstr "keine Status"
+
+#: templates/tenant/ablaeufe.html
+msgid "Ziehen zum Sortieren"
+msgstr "Ziehen zum Sortieren"
+
+#: templates/tenant/ablaeufe.html
+msgid "Name der Spalte"
+msgstr "Name der Spalte"
+
+#: templates/tenant/ablaeufe.html
+msgid "Ausblenden"
+msgstr "Ausblenden"
