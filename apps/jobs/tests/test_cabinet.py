@@ -131,8 +131,13 @@ def test_line_total_column_rendered():
     """п.10: итог позиции (кол-во × цена) — в самой строке, а не только внизу."""
     job = _job()
     services.set_lines(job, [{"text": "Arbeit", "qty": 2, "unit_price": "40.00"}])
-    body = views.job_detail(_req(), pk=job.pk).content.decode()
+    from django.utils import translation
+
+    with translation.override("de"):
+        body = views.job_detail(_req(), pk=job.pk).content.decode()
     assert "data-qt-sum" in body and "80,00 €" in body
+    # цена и итог — в одном (немецком) формате; приёмник понимает и точку, и запятую
+    assert 'data-qt-price value="40,00"' in body
 
 
 def test_line_with_price_but_no_text_is_reported_not_swallowed():

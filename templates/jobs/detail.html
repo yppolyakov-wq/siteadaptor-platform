@@ -112,7 +112,10 @@
         и сохранённое количество выглядело потерянным. floatformat:"-2u" даёт
         неломающееся «1» / «2.5».{% endcomment %}
         <input name="line_qty_{{ row.i }}" type="number" min="0.01" step="0.01" data-qt-qty value="{% if row.line %}{{ row.line.qty|floatformat:'-2u' }}{% else %}1{% endif %}" class="col-span-2 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
-        <input name="line_price_{{ row.i }}" type="text" data-qt-price value="{% if row.line %}{{ row.line.unit_price|stringformat:'.2f' }}{% endif %}" placeholder="0,00" class="col-span-2 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
+        {% comment %}Цена — в немецком формате (поле текстовое, приёмник понимает и
+        запятую, и точку): «12.50» рядом с итогом «37,50 €» читалось как разный
+        формат в одной строке.{% endcomment %}
+<input name="line_price_{{ row.i }}" type="text" data-qt-price value="{% if row.line %}{{ row.line.unit_price|floatformat:2 }}{% endif %}" placeholder="0,00" class="col-span-2 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
         <output data-qt-sum class="col-span-2 px-2 py-1.5 text-sm text-right text-gray-600 tabular-nums">{% if row.line %}{{ row.line.line_total|floatformat:2 }} €{% endif %}</output>
       </div>
     {% endfor %}
