@@ -78,6 +78,22 @@
 
     {% comment %}5. Правила переходов (FB-3 вариант A) — раскрытая карточка.{% endcomment %}
     {% include "tenant/_transition_rules_panel.html" with rows=transition_rows kind=active_kind next_path=request.get_full_path open=1 %}
+
+    {% comment %}SH-13 (фидбэк владельца 2026-08-20 «настройки оплат и доставки можно
+    вывести в кнопку настройки в списке/канбане»): вход в смежные настройки ПРЯМО
+    отсюда — кнопка ⚙️ на странице продаж ведёт сюда, а оплата/доставка живут на
+    экране настроек. Ссылки, не копия формы: единственный писатель остаётся один
+    (урок W9-5), возврат — на ту же вкладку продаж.{% endcomment %}
+    {% if active_kind == "order" %}
+    <section class="bg-white border border-gray-200 rounded-2xl p-4 mb-4">
+      <h2 class="font-semibold mb-1">💳 {% trans "Zahlung & Lieferung" %}</h2>
+      <p class="text-xs text-gray-400 mb-3">{% trans "Zahlarten, Vorkasse-Bankdaten, Versandkosten und Liefergebiet — gelten für alle Bestellungen." %}</p>
+      <div class="flex flex-wrap gap-2">
+        <a href="{% url 'payment-settings' %}" class="text-sm font-medium rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Zahlung & Lieferung einstellen" %} →</a>
+        <a href="{% url 'notifications-settings' %}" class="text-sm font-medium rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Benachrichtigungen" %} →</a>
+      </div>
+    </section>
+    {% endif %}
   {% else %}
     <p class="text-sm text-gray-400 mb-4">{% trans "Keine aktiven Verkaufsmodule." %}</p>
   {% endif %}

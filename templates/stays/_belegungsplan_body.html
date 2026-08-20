@@ -3,24 +3,17 @@
 walk-in+JS) — извлечено из calendar.html 1:1 для переиспользования на единой
 странице продаж /dashboard/verkaeufe/ (план 2026-08-03). Все action-URL явные
 ({% url %}), поэтому POST'ы работают с любой страницы-хозяина.{% endcomment %}
-<div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-  <h1 class="text-2xl font-bold">{% trans "Stays" %}</h1>
-  <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-    {# PMS-A2: стойка «Heute» (заезды/выезды/в доме). #}
-    {# W10-6: stays:today поглощён видом «Heute» единой страницы #}
-    {% comment %}SM-2: сводка «Heute» переехала на Übersicht.{% endcomment %}
-    <a href="{% url 'dashboard' %}" class="text-sm text-indigo-600 hover:underline">📋 {% trans "Heute" %} →</a>
-    <a href="{% url 'stays:channels' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Channels" %} →</a>
-    <a href="{% url 'stays:checkins' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Check-ins" %} →</a>
-    <a href="{% url 'stays:reports' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Reports" %} →</a>
-    <a href="{% url 'stays:units' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Units & blocked dates" %} →</a>
-    {% comment %}Фидбэк 2026-07-30: «непонятно, где в админке задаётся календарь
-    цен» — с главного экрана отеля прямой вход в ценовые настройки (раньше он был
-    достижим только пилюлей ВНУТРИ списка номеров).{% endcomment %}
-    <a href="{% url 'stays:units' %}?tab=einstellungen&amp;sec=preise" class="text-sm text-indigo-600 hover:underline">💶 {% trans "Preise & Saison" %} →</a>
-  </div>
+{% comment %}SH-18 (фидбэк владельца 2026-08-20): под заголовком страницы висел
+ВТОРОЙ заголовок и ряд из шести ссылок («Heute», «Kanäle», «Check-ins»,
+«Berichte», «Einheiten», «Preise») — читались как непонятные хлебные крошки.
+Дубли подпунктов сайдбара (Kanäle/Check-ins/Berichte/Einheiten) убраны; два
+входа, которых в сайдбаре НЕТ, остались компактной строкой: сводка дня и
+календарь цен (его отсутствие — отдельный фидбэк 2026-07-30, замки
+test_price_nav/test_verkaeufe).{% endcomment %}
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1 mb-3 text-sm">
+  <a href="{% url 'dashboard' %}" class="text-indigo-600 hover:underline">📋 {% trans "Heute" %} →</a>
+  <a href="{% url 'stays:units' %}?tab=einstellungen&amp;sec=preise" class="text-indigo-600 hover:underline">💶 {% trans "Preise & Saison" %} →</a>
 </div>
-
 {% if messages %}
   {% for m in messages %}
     <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>

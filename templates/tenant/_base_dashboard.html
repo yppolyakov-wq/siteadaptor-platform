@@ -9,14 +9,26 @@
 {% include "tenant/_icons.html" %}
 <div class="min-h-screen flex">
   {# Фидбэк 2026-07-28: сворачиваемый сайдбар (desktop) — уезжает влево, состояние в localStorage. #}
+  {% comment %}SH-17 (фидбэк владельца 2026-08-20 «при сворачивании меню сделать
+  пиктограммы видимыми»): свёрнутый сайдбар больше не исчезает — остаётся узкая
+  полоса иконок (рыночная норма: Notion/Linear/Trello). Разметка одна, скрытие —
+  ТОЛЬКО CSS (инвариант W0), поэтому подсветка «где я» и поиск меню работают
+  без изменений; названия разделов остаются в title= (подсказка при наведении).{% endcomment %}
   <style>
     @media (min-width: 768px) {
-      body.sb-min #sidebar { display: none; }
-      body.sb-min #sidebar-expand { display: block; }
+      body.sb-min #sidebar { width: 3.5rem; }
+      body.sb-min #sidebar .sb-label,
+      body.sb-min #sidebar [data-nav-toggle],
+      body.sb-min #sidebar [data-nav-children] { display: none; }
+      body.sb-min #sidebar .nav-link { justify-content: center; padding-left: 0.5rem; padding-right: 0.5rem; }
+      body.sb-min #sidebar .sb-head { justify-content: center; padding-left: 0.5rem; padding-right: 0.5rem; }
+      /* Бейдж непрочитанного в полосе — точкой поверх иконки, а не строкой справа */
+      body.sb-min #sidebar [data-inbox-badge] { position: absolute; top: 0.25rem; right: 0.25rem; margin-left: 0; }
+      body.sb-min #sidebar .nav-link { position: relative; }
+      body.sb-min #sidebar-collapse { transform: rotate(180deg); }
     }
   </style>
   <script>if (localStorage.getItem("sb_min") === "1") document.body.classList.add("sb-min");</script>
-  <button id="sidebar-expand" class="hidden fixed top-4 left-2 z-40 bg-white border border-gray-200 rounded-lg shadow-sm px-2 py-1.5 text-gray-500 hover:text-gray-800" aria-label="{% trans 'Open menu' %}">☰</button>
   {# Затемнение под выехавшим меню (только мобайл) #}
   <div id="sidebar-overlay" class="fixed inset-0 bg-black/30 z-20 hidden md:hidden"></div>
 
@@ -24,13 +36,13 @@
          class="w-64 bg-white border-r border-gray-200 fixed inset-y-0 left-0 z-30
                 flex flex-col overflow-hidden
                 -translate-x-full md:translate-x-0 md:sticky md:top-0 md:h-screen md:z-auto transition-transform duration-200">
-    <div class="flex items-center justify-between p-5 pb-3">
-      <a href="{% url 'dashboard' %}" class="font-bold text-lg truncate">{{ request.tenant.name }}</a>
+    <div class="sb-head flex items-center justify-between p-5 pb-3">
+      <a href="{% url 'dashboard' %}" class="sb-label font-bold text-lg truncate">{{ request.tenant.name }}</a>
       <button id="sidebar-collapse" class="hidden md:block text-gray-400 hover:text-gray-700 text-lg leading-none" title="{% trans 'Menü einklappen' %}" aria-label="{% trans 'Menü einklappen' %}">⟨</button>
       <button id="sidebar-close" class="md:hidden text-gray-400 text-xl leading-none" aria-label="{% trans 'Close menu' %}">✕</button>
     </div>
     {# Быстрый фильтр пунктов меню — нативный поиск по разделам кабинета. #}
-    <div class="px-5 pb-3">
+    <div class="sb-label px-5 pb-3">
       <input id="nav-filter" type="search" autocomplete="off" placeholder="{% trans 'Search menu…' %}"
              class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm focus:bg-white focus:border-indigo-300">
     </div>
@@ -48,8 +60,8 @@
       <div class="flex items-center gap-0.5">
         <a href="{% url it.url_name %}" data-label="{{ it.search }}"
            class="nav-link flex-1 min-w-0 flex items-center gap-2.5 px-3 py-2 rounded-lg {% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
-          <span class="w-5 shrink-0 text-center text-base leading-none">{{ it.icon }}</span>
-          <span class="truncate">{{ it.label }}</span>
+          <span class="w-5 shrink-0 text-center text-base leading-none" title="{{ it.label }}">{{ it.icon }}</span>
+          <span class="sb-label truncate">{{ it.label }}</span>
           {% if it.badge == "inbox" %}{# ST-4b: бейдж непрочитанного — на якоре Marketing #}
           <span data-inbox-badge data-url="{% url 'inbox:unread-count' %}" class="ml-auto hidden min-w-[1.25rem] text-center bg-rose-500 text-white text-[11px] font-semibold rounded-full px-1.5 py-0.5"></span>{% endif %}
         </a>
@@ -69,11 +81,11 @@
       </div>
       {% endif %}
       {% endfor %}
-      <p id="nav-empty" class="hidden px-3 py-3 text-xs text-gray-400">{% trans "Nothing found." %}</p>
+      <p id="nav-empty" class="sb-label hidden px-3 py-3 text-xs text-gray-400">{% trans "Nothing found." %}</p>
       <a href="{% url 'modules' %}" class="nav-link flex items-center gap-2.5 px-3 py-2 mt-4 rounded-lg border border-dashed border-gray-300 text-gray-500 hover:border-indigo-400 hover:text-indigo-700"
          data-label="{% trans 'add function module' %}">
-        <span class="w-5 shrink-0 text-center text-base leading-none">➕</span>
-        <span class="truncate">{% trans "Funktion hinzufügen" %}</span>
+        <span class="w-5 shrink-0 text-center text-base leading-none" title="{% trans 'Funktion hinzufügen' %}">➕</span>
+        <span class="sb-label truncate">{% trans "Funktion hinzufügen" %}</span>
       </a>
     </nav>
   </aside>
@@ -201,14 +213,10 @@ billing.context.subscription) и закрывается кнопкой; пост
   document.getElementById("sidebar-open").addEventListener("click", open);
   document.getElementById("sidebar-close").addEventListener("click", close);
   ov.addEventListener("click", close);
-  // Фидбэк 2026-07-28: сворачивание на десктопе (сайдбар уезжает влево).
+  // SH-17: одна кнопка-тумблер — свернуть в полосу иконок / развернуть обратно.
   document.getElementById("sidebar-collapse").addEventListener("click", function () {
-    document.body.classList.add("sb-min");
-    localStorage.setItem("sb_min", "1");
-  });
-  document.getElementById("sidebar-expand").addEventListener("click", function () {
-    document.body.classList.remove("sb-min");
-    localStorage.setItem("sb_min", "0");
+    var min = document.body.classList.toggle("sb-min");
+    localStorage.setItem("sb_min", min ? "1" : "0");
   });
   var tb = document.getElementById("tabbar-menu");
   if (tb) tb.addEventListener("click", open);

@@ -4,12 +4,38 @@
 
 {% block dash_content %}
 <a href="{% url 'orders:order-list' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Orders" %}</a>
-<div class="flex items-center gap-3 mt-1 mb-4">
+{% comment %}SH-10 (фидбэк владельца 2026-08-20 «перенести изменения статуса в одну
+строчку с номером»): смена статуса — в шапке рядом с номером, а не в карточке
+внизу правой колонки. Приёмник и правила прежние (orders:order-action);
+поле трек-номера остаётся отдельной строкой — оно вводится ПЕРЕД отправкой.{% endcomment %}
+<div class="flex flex-wrap items-center gap-2 mt-1 mb-4">
   <h1 class="text-2xl font-bold">{{ order.reference_code }}</h1>
   <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">{% status_label order %}</span>
   {% if order.payment_state == 'paid' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-800">{% trans "paid" %}</span>
   {% elif order.payment_state == 'refunded' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">{% trans "refunded" %}</span>{% endif %}
+  <form method="post" action="{% url 'orders:order-action' order.pk %}" class="flex flex-wrap items-center gap-2 sm:ml-auto">
+    {% csrf_token %}
+    {% if 'shipped' in allowed_targets and order.is_delivery %}
+      {# G4/W10-5: «Versandt» уходит с трек-номером — поле рядом с кнопкой #}
+      <input name="tracking_code" type="text" placeholder="{% trans 'Tracking number (optional)' %}"
+             class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm w-52">
+      <button type="submit" name="action" value="shipped" class="text-sm font-medium rounded-lg px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700">{% trans "Mark as shipped" %}</button>
+    {% endif %}
+    {% for target in allowed_targets %}
+      {% if target == 'picked_up' and order.is_delivery %}{% elif target == 'shipped' %}{% else %}
+        <button type="submit" name="action" value="{{ target }}"
+                class="text-sm font-medium rounded-lg px-3 py-1.5 {% if target == 'cancelled' %}border border-red-200 text-red-600 hover:bg-red-50{% elif target == 'returned' %}border border-amber-200 text-amber-700 hover:bg-amber-50{% else %}bg-indigo-600 text-white hover:bg-indigo-700{% endif %}">
+          {% if target == 'confirmed' %}{% trans "Confirm" %}{% elif target == 'ready' %}{% trans "Ready" %}{% elif target == 'picked_up' %}{% trans "Picked up" %}{% elif target == 'returned' %}{% trans "Mark as returned" %}{% else %}{% trans "Cancel" %}{% endif %}
+        </button>
+      {% endif %}
+    {% endfor %}
+    {% if order.payment_state != 'paid' %}
+      <button type="submit" name="action" value="mark_paid"
+              class="text-sm font-medium rounded-lg px-3 py-1.5 border border-gray-300 hover:border-indigo-400">{% trans "Mark as paid" %}</button>
+    {% endif %}
+  </form>
 </div>
+<p class="text-xs text-gray-400 -mt-3 mb-4">{% trans "The customer gets an email on every status change." %}</p>
 
 {% if messages %}
   {% for m in messages %}
@@ -69,37 +95,6 @@
     </div>
     {% endif %}
 
-    <div class="bg-white rounded-2xl shadow-sm p-6">
-      <h2 class="font-semibold mb-3">{% trans "Actions" %}</h2>
-      <form method="post" action="{% url 'orders:order-action' order.pk %}" class="space-y-3">
-        {% csrf_token %}
-        {# G4: для доставки на статусе ready показываем «Versandt» с трек-номером #}
-        {% if 'shipped' in allowed_targets and order.is_delivery %}
-          <div class="flex flex-wrap items-end gap-2">
-            <div>
-              <label class="block text-xs text-gray-500 mb-1">{% trans "Tracking number (optional)" %}</label>
-              <input name="tracking_code" type="text" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            </div>
-            <button type="submit" name="action" value="shipped" class="text-sm font-medium rounded-lg px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700">{% trans "Mark as shipped" %}</button>
-          </div>
-        {% endif %}
-        <div class="flex flex-wrap gap-2">
-          {% for target in allowed_targets %}
-            {% if target == 'picked_up' and order.is_delivery %}{% elif target == 'shipped' %}{% else %}
-              <button type="submit" name="action" value="{{ target }}"
-                      class="text-sm font-medium rounded-lg px-4 py-2 {% if target == 'cancelled' %}border border-red-200 text-red-600 hover:bg-red-50{% elif target == 'returned' %}border border-amber-200 text-amber-700 hover:bg-amber-50{% else %}bg-indigo-600 text-white hover:bg-indigo-700{% endif %}">
-                {% if target == 'confirmed' %}{% trans "Confirm" %}{% elif target == 'ready' %}{% trans "Ready" %}{% elif target == 'picked_up' %}{% trans "Picked up" %}{% elif target == 'returned' %}{% trans "Mark as returned" %}{% else %}{% trans "Cancel" %}{% endif %}
-              </button>
-            {% endif %}
-          {% endfor %}
-          {% if order.payment_state != 'paid' %}
-            <button type="submit" name="action" value="mark_paid"
-                    class="text-sm font-medium rounded-lg px-4 py-2 border border-gray-300 hover:border-indigo-400">{% trans "Mark as paid" %}</button>
-          {% endif %}
-        </div>
-      </form>
-      <p class="text-xs text-gray-400 mt-3">{% trans "The customer gets an email on every status change." %}</p>
-    </div>
   </div>
 </div>
 {% include "core/_deal_links_block.html" with kind="order" obj_pk=order.pk links=deal_links next_path=request.get_full_path %}

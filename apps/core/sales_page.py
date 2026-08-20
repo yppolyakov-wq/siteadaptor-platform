@@ -120,6 +120,27 @@ def _has_reservations() -> bool:
         return False
 
 
+def views_for(kind: str, tenant=None) -> tuple:
+    """Доступные виды направления. SH-1 (фидбэк владельца 2026-08-20 «календарь не
+    нужен, главная страница продаж — список»): у ЗАКАЗОВ календарь — это
+    Auftragsbuch по дате выдачи (V3). Магазин слоты выдачи не использует, и вид
+    всегда пуст, поэтому показываем его ТОЛЬКО когда слоты реально проставляются
+    (данные, а не архетип: у пекарни C&C они есть, у shop — нет)."""
+    views = KIND_VIEWS.get(kind, ("board",))
+    if kind == "order" and tenant is not None and not _uses_pickup_slots():
+        return tuple(v for v in views if v != "kalender")
+    return views
+
+
+def _uses_pickup_slots() -> bool:
+    try:
+        from apps.orders.models import Order
+
+        return Order.objects.filter(pickup_slot__isnull=False).exists()
+    except Exception:  # noqa: BLE001 — вид не стоит падения страницы продаж
+        return False
+
+
 def resolve_view(tenant, kind: str, requested: str = "") -> str:
     """Вид вкладки: явный `?view=` → сохранённый выбор → архетипный дефолт.
     Недоступный для kind вид молча падает на первый доступный."""
@@ -347,7 +368,7 @@ def view_descriptors(tenant, kind: str, active_view: str) -> list[dict]:
             "icon": VIEW_ICONS[view],
             "active": view == active_view,
         }
-        for view in KIND_VIEWS.get(kind, ("board",))
+        for view in views_for(kind, tenant)
     ]
 
 
@@ -429,7 +450,18 @@ def body_context(request, kind: str, view: str) -> dict:
                 | Q(customer__name__icontains=q)
                 | Q(customer__email__icontains=q)
             )
-        ctx["orders"] = qs[:200]
+        # SH-11 (фидбэк владельца 2026-08-20 «в списке позволить менять статус»):
+        # к строке заказа привязываем переходы FSM — тот же слой, что у доски
+        # (allowed_actions_for + правила владельца FB-3), поэтому список не
+        # заводит СВОЮ логику переходов.
+        from apps.core import pipeline, transition_rules
+
+        subset = transition_rules.subset_for(tenant, "order")
+        orders = list(qs[:200])
+        for o in orders:
+            o.row_actions = transactions.allowed_actions_for("order", o.status, subset, obj=o)
+            o.row_stage = pipeline.stage_for("order", o.status)
+        ctx["orders"] = orders
         # X4 (§6.A4.5): KDS/Tisch-QR — гастро-инструменты; раньше кнопки видел
         # любой архетип с модулем orders (парикмахер — «Kitchen Display»).
         ctx["is_food"] = (getattr(tenant, "business_type", "") or "") in FOOD_BUSINESS_TYPES

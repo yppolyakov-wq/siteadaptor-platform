@@ -2,37 +2,39 @@
 {% comment %}Строки списка заказов — извлечены из order_list.html 1:1 для
 переиспользования на единой странице продаж /dashboard/verkaeufe/ (вид Liste,
 план 2026-08-03). Контекст: orders.{% endcomment %}
+{% comment %}SH-11/12/16 (фидбэк владельца 2026-08-20): порядковый номер строки,
+покупатель отдельной строкой, мельче шрифт и смена статуса прямо из списка.
+Строка перестала быть одной большой ссылкой — внутри теперь есть кнопки
+(вложенные интерактивные элементы в <a> недопустимы); ссылкой остаётся
+заголовок.{% endcomment %}
 {% if orders %}
 <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
   {% for o in orders %}
-    <a href="{% url 'orders:order-detail' o.pk %}" class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
-      <div class="min-w-0">
-        <p class="font-medium">{{ o.reference_code }} · {{ o.customer }}
-          {% if o.is_delivery %}<span class="text-xs text-gray-400">· 🚚 {% trans "Delivery" %}</span>{% endif %}
+    <div class="flex items-center justify-between gap-3 px-4 py-2 hover:bg-gray-50">
+      <span class="w-6 shrink-0 text-xs tabular-nums text-gray-300">{{ forloop.counter }}</span>
+      <div class="min-w-0 flex-1">
+        <a href="{% url 'orders:order-detail' o.pk %}" class="block text-sm font-medium truncate hover:text-indigo-700">{{ o.reference_code }}
+          {% if o.is_delivery %}<span class="text-xs font-normal text-gray-400">· 🚚 {% trans "Delivery" %}</span>{% endif %}
           {% if o.is_anprobe %}<span class="text-xs font-medium text-purple-600">· 🛍 {% trans "Anprobe bis" %} {{ o.reserve_expires_at|date:"d.m. H:i" }}</span>{% endif %}
           {% comment %}VK-8 (фидбэк владельца 2026-08-20): продажа по акции приходит
           ОБЫЧНЫМ заказом (волна PL) — но это должно быть видно в списке.
           Источник — source_channel="promo" из promotions.services.purchase.{% endcomment %}
           {% if o.source_channel == "promo" %}<span class="text-xs font-medium text-rose-600">· 🏷 {% trans "Aktion" %}</span>{% endif %}
-        </p>
-        <p class="text-xs text-gray-400 truncate">
-          {% for item in o.items.all %}{{ item.qty }}× {{ item.title_snapshot }}{% if not forloop.last %}, {% endif %}{% endfor %}
+        </a>
+        <p class="text-xs text-gray-500 truncate">👤 {{ o.customer }}<span class="text-gray-400"> ·
+          {% for item in o.items.all %}{{ item.qty }}× {{ item.title_snapshot }}{% if not forloop.last %}, {% endif %}{% endfor %}</span>
         </p>
       </div>
       <div class="flex items-center gap-2 shrink-0">
-        <span class="text-sm font-medium">{{ o.total }} {{ o.currency }}</span>
+        <span class="text-xs font-medium tabular-nums">{{ o.total }} {{ o.currency }}</span>
         {# E-7: способ оплаты (пусто у легаси-заказов до введения поля) #}
-        {% if o.payment_method %}<span class="text-xs px-2 py-0.5 rounded-full bg-sky-50 text-sky-700">{{ o.get_payment_method_display }}</span>{% endif %}
+        {% if o.payment_method %}<span class="hidden sm:inline text-xs px-2 py-0.5 rounded-full bg-sky-50 text-sky-700">{{ o.get_payment_method_display }}</span>{% endif %}
         {% if o.payment_state == 'paid' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800">{% trans "paid" %}</span>
         {% elif o.payment_state == 'refunded' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{% trans "refunded" %}</span>{% endif %}
-        <span class="text-xs font-medium px-2 py-0.5 rounded-full
-          {% if o.status == 'picked_up' %}bg-gray-100 text-gray-600
-          {% elif o.status == 'ready' %}bg-indigo-100 text-indigo-800
-          {% elif o.status == 'confirmed' %}bg-green-100 text-green-800
-          {% elif o.status == 'new' %}bg-amber-100 text-amber-800
-          {% else %}bg-red-50 text-red-600{% endif %}">{% status_label o %}</span>
+        {% status_label o as o_label %}
+        {% include "core/_row_status_menu.html" with kind="order" pk=o.pk label=o_label actions=o.row_actions next_path=request.get_full_path badge_class=o.row_stage|stage_badge %}
       </div>
-    </a>
+    </div>
   {% endfor %}
 </div>
 {% else %}

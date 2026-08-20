@@ -141,6 +141,23 @@ def nav_palette(context):
     return {"entries": entries}
 
 
+_STAGE_BADGES = {
+    "intake": "bg-amber-100 text-amber-800",
+    "in_progress": "bg-indigo-100 text-indigo-800",
+    "done": "bg-green-100 text-green-800",
+    "terminal": "bg-gray-100 text-gray-500",
+}
+
+
+@register.filter
+def stage_badge(stage):
+    """SH-11: стадия пайплайна → классы пилюли статуса в строке списка.
+
+    Цвет берём по СТАДИИ (реестр pipeline), а не по литеральному коду статуса —
+    иначе кастом-статусы владельца (SM-3) остались бы серыми."""
+    return _STAGE_BADGES.get(stage or "", "bg-gray-100 text-gray-500")
+
+
 @register.filter
 def nav_anchor(nav_key):
     """W8: nav_key страницы → nav_key якоря сайдбара (карта из nav_registry) —
