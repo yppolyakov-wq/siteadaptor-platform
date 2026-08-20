@@ -287,13 +287,17 @@ ENTRIES: tuple[NavEntry, ...] = (
     _e(
         "board",
         "ablaeufe",
-        _("Abläufe"),
+        # VK-3 (фидбэк владельца 2026-08-20): «Abläufe» не подсказывало, что
+        # именно здесь настраиваются свои статусы и колонки доски — владелец
+        # искал их на самой доске. Подпись подпункта продаж говорит прямо;
+        # вкладка настроек остаётся «Abläufe» (та же страница).
+        _("Abläufe & Status"),
         "ablaeufe",
         None,
         True,
         # X2c: сюда переехала панель «Anfrage-Formular» — Ctrl+K обязан её
         # находить (сам приёмник POST-only и в палитру не годится).
-        "status übergänge spalten anfrage-formular felder",
+        "status übergänge spalten anfrage-formular felder eigene status tafel",
         query="?from=board",
     ),
     _e(

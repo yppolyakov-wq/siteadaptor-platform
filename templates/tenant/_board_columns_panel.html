@@ -1,0 +1,62 @@
+{% load i18n %}
+{% comment %}VK-6 (фидбэк владельца 2026-08-20 «настройки могут быть как в трелло»):
+колонки доски настраиваются перетаскиванием, а не номерами. Ручка ⠿ — HTML5 DnD
+(тот же паттерн, что в билдере/канбане, без библиотек); порядок едет в hidden
+`order_<stage>` и перенумеровывается на drop. БЕЗ JS остаются переименование и
+скрытие — порядок просто не меняется (никакой потери данных).
+Параметры include: rows (_board_stage_rows), next_path.{% endcomment %}
+<form method="post" action="{% url 'board-settings' %}" class="space-y-2" data-board-cols>
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ next_path }}">
+  {% for r in rows %}
+    <div class="flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-2 py-2" draggable="true" data-col-row data-stage="{{ r.stage }}">
+      <span class="cursor-grab select-none text-gray-400 px-1" aria-hidden="true" title="{% trans 'Ziehen zum Sortieren' %}">⠿</span>
+      <input type="hidden" name="order_{{ r.stage }}" value="{{ r.pos }}" data-col-order>
+      {% comment %}Имя видно, а не подсказкой: поле несёт ДЕЙСТВУЮЩЕЕ название
+      колонки (своё или дефолтное). Дефолт обратно в site_config не попадёт —
+      board_settings отбрасывает значение, равное дефолту.{% endcomment %}
+      <input type="text" name="label_{{ r.stage }}" value="{{ r.label|default:r.default_label }}" placeholder="{{ r.default_label }}" maxlength="40"
+             class="flex-1 min-w-[10rem] rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
+             aria-label="{% trans "Name der Spalte" %}: {{ r.default_label }}">
+      <label class="flex items-center gap-1.5 text-xs text-gray-500 whitespace-nowrap px-1">
+        <input type="checkbox" name="hidden_{{ r.stage }}" {% if r.hidden %}checked{% endif %} class="rounded border-gray-300"> 👁 {% trans "Ausblenden" %}
+      </label>
+    </div>
+  {% endfor %}
+  <button type="submit" class="mt-1 bg-indigo-600 text-white rounded-lg px-4 py-2 text-xs font-medium hover:bg-indigo-700">{% trans "Save columns" %}</button>
+</form>
+
+<script>
+(function () {
+  "use strict";
+  var form = document.querySelector("[data-board-cols]");
+  if (!form) return;
+  var dragged = null;
+
+  function renumber() {
+    // Позиция = порядок в DOM (значения 1..N), как в page_blocks билдера.
+    form.querySelectorAll("[data-col-row]").forEach(function (row, i) {
+      var input = row.querySelector("[data-col-order]");
+      if (input) input.value = String(i + 1);
+    });
+  }
+
+  form.querySelectorAll("[data-col-row]").forEach(function (row) {
+    row.addEventListener("dragstart", function (e) {
+      dragged = row;
+      row.classList.add("opacity-40");
+      if (e.dataTransfer) { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", ""); }
+    });
+    row.addEventListener("dragend", function () { row.classList.remove("opacity-40"); dragged = null; });
+    row.addEventListener("dragover", function (e) {
+      if (!dragged || dragged === row) return;
+      e.preventDefault();
+      var box = row.getBoundingClientRect();
+      var after = e.clientY > box.top + box.height / 2;
+      row.parentNode.insertBefore(dragged, after ? row.nextSibling : row);
+      renumber();
+    });
+    row.addEventListener("drop", function (e) { e.preventDefault(); renumber(); });
+  });
+})();
+</script>

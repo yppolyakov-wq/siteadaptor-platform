@@ -3326,6 +3326,93 @@ def _board_stage_rows(tenant):
     ]
 
 
+def _process_map(tenant, kind, stage_rows):
+    """VK-4 (фидбэк владельца 2026-08-20, пп. 4/5 «настройки вообще не понятны»):
+    карта процесса — какие статусы попадают в какую колонку доски.
+
+    Экран настроек не объяснял связи с тем, что владелец видит на доске: три
+    свёрнутых панели с жаргоном. Карта строится по ТЕМ ЖЕ строкам колонок, что и
+    редактор ниже (`stage_rows`), поэтому переименование/скрытие/порядок видны
+    сразу. Статусы — встроенные ∪ кастом тенанта (SM-3), подписи — с учётом своих
+    имён (FB-4a).
+    """
+    from apps.core import status_labels, status_registry, transactions
+
+    custom_names = status_labels.custom_labels(tenant, kind)
+    builtin_names = transactions.builtin_status_labels(kind)
+    descriptors = status_registry.all_descriptors(kind, tenant)
+
+    by_stage: dict[str, list[dict]] = {}
+    for code, d in descriptors.items():
+        label = custom_names.get(code) or (d.label if not d.builtin else "")
+        by_stage.setdefault(d.stage, []).append(
+            {
+                "code": code,
+                "label": label or builtin_names.get(code, code),
+                "custom": not d.builtin,
+            }
+        )
+    return [
+        {
+            "stage": r["stage"],
+            "label": r["label"] or r["default_label"],
+            "hidden": r["hidden"],
+            "statuses": by_stage.get(r["stage"], []),
+        }
+        for r in stage_rows
+    ]
+
+
+def _status_manager_context(tenant, kind) -> dict:
+    """VK-3: контекст редактора СВОИХ статусов — общий для отдельного экрана
+    `status_manager` и для секции на «Abläufe» (раньше редактор был доступен
+    только ссылкой внутри свёрнутой панели переходов)."""
+    from apps.core import status_registry, transactions
+
+    builtin = status_registry.descriptors(kind)
+    custom = status_registry.custom_descriptors(tenant, kind)
+    edges = status_registry.custom_edges(tenant, kind)
+    blabels = transactions.builtin_status_labels(kind)
+
+    def label_of(code):
+        d = custom.get(code)
+        return d.label if d else blabels.get(code, code)
+
+    def role_of(code):
+        d = builtin.get(code) or custom.get(code)
+        return d.role if d else ""
+
+    all_codes = list(builtin) + list(custom)
+    trans_rows = []
+    for c, d in custom.items():
+        # SM-3: рёбер ИЗ cancelled-роли не бывает (терминальный статус терминален,
+        # как в builtin-графе; слой чтения custom_edges их отбросит) → источником
+        # не предлагаем отменённые, а у cancel-роли кастома нет блока «Führt zu».
+        # Молчаливо-мёртвая галочка хуже отсутствующей.
+        sources = [
+            {"code": o, "label": label_of(o), "checked": (o, c) in edges}
+            for o in all_codes
+            if o != c and role_of(o) != "cancelled"
+        ]
+        targets = (
+            [
+                {"code": o, "label": label_of(o), "checked": (c, o) in edges}
+                for o in all_codes
+                if o != c
+            ]
+            if d.role != "cancelled"
+            else []
+        )
+        trans_rows.append({"code": c, "label": d.label, "sources": sources, "targets": targets})
+    return {
+        "kind": kind,
+        "kind_label": transactions.KIND_LABEL.get(kind, kind),
+        "roles": [(r, status_registry.ROLE_LABELS[r]) for r in status_registry.ROLES],
+        "custom_rows": [{"code": c, "label": d.label, "role": d.role} for c, d in custom.items()],
+        "trans_rows": trans_rows,
+    }
+
+
 def _status_kinds_for(tenant):
     """Активные kind'ы с настраиваемыми статусами: [(kind, label)].
 
@@ -3381,7 +3468,11 @@ def board_settings(request):
     labels, hidden, order_pairs = {}, [], []
     for stage in pipeline.STAGES:
         lbl = (request.POST.get(f"label_{stage}") or "").strip()
-        if lbl:
+        # VK-6 (2026-08-20): панель показывает ДЕЙСТВУЮЩЕЕ имя колонки в поле
+        # (Trello-стиль), поэтому «своим» считаем только то, что отличается от
+        # дефолта — иначе первый же Save материализовал бы четыре метки и
+        # заморозил их на языке кабинета (presence-minimal, класс W6).
+        if lbl and lbl != str(pipeline.STAGE_LABELS[stage]):
             labels[stage] = lbl
         if request.POST.get(f"hidden_{stage}"):
             hidden.append(stage)
@@ -3532,9 +3623,16 @@ def ablaeufe_view(request):
     if active not in [k for k, _label in kinds]:
         active = kinds[0][0] if kinds else ""
     label_rows, transition_rows = [], []
+    stage_rows = _board_stage_rows(tenant)
+    ctx_status_manager: dict = {}
+    process_map: list = []
     if active:
         label_rows = status_labels.label_rows(tenant, active, _status_choices(active))
         transition_rows = transition_rules.editor_rows(tenant, active)
+        # VK-3/VK-4 (фидбэк 2026-08-20): карта процесса + редактор своих статусов
+        # прямо на странице — раньше редактор был ссылкой внутри свёрнутой панели.
+        process_map = _process_map(tenant, active, stage_rows)
+        ctx_status_manager = _status_manager_context(tenant, active)
     # X5-3 (план x5-settings §2): «Abläufe» — ОДНА страница с двумя входами.
     # Заход из подпункта «Verkäufe» раньше телепортировал: подсвечивался якорь
     # «Einstellungen» и рисовался таб-бар настроек. С ?from=board страница
@@ -3546,13 +3644,15 @@ def ablaeufe_view(request):
         "active_kind": active,
         "status_label_rows": label_rows,
         "transition_rows": transition_rows,
-        "board_stage_rows": _board_stage_rows(tenant),
+        "board_stage_rows": stage_rows,
+        "process_map": process_map,
         "from_board": from_board,
         # X2c: настройки публичной формы заявки жили на легаси-странице заявок
         # (которая схлопывается) — их место в «Abläufe» (процессы продаж).
         "anfrage_enabled": tenant.is_module_active("jobs"),
         "anfrage_cfg": (siteconfig.normalize(tenant.site_config).get("anfrage") or {}),
     }
+    ctx.update(ctx_status_manager)  # VK-3: секция «Eigene Status» на самой странице
     if from_board:
         ctx["nav_anchor_override"] = "board"
     return render(request, "tenant/ablaeufe.html", ctx)
@@ -3607,69 +3707,23 @@ def _set_status_config(cfg, top_key, kind, value):
 def status_manager(request, kind):
     """FB-3 Вариант B Phase 5 (+SM-3: все шесть направлений): редактор своих
     статусов + переходов. Владелец выбирает роль — стадия/поведение следуют;
-    переходы — чекбоксами."""
+    переходы — чекбоксами.
+
+    VK-3 (2026-08-20): тот же редактор встроен секцией на «Abläufe» (общий
+    контекст `_status_manager_context` + партиал) — отдельный экран остаётся
+    для deep-link'ов и палитры Ctrl+K."""
     from django.http import Http404
 
-    from apps.core import status_registry, transactions
     from apps.tenants import siteconfig
 
     if siteconfig.status_label_statuses(kind) is None:
         raise Http404("unknown status kind")
-    tenant = request.tenant
-    builtin = status_registry.descriptors(kind)
-    custom = status_registry.custom_descriptors(tenant, kind)
-    edges = status_registry.custom_edges(tenant, kind)
-    blabels = transactions.builtin_status_labels(kind)
-
-    def label_of(code):
-        d = custom.get(code)
-        return d.label if d else blabels.get(code, code)
-
-    def role_of(code):
-        d = builtin.get(code) or custom.get(code)
-        return d.role if d else ""
-
-    all_codes = list(builtin) + list(custom)
-    trans_rows = []
-    for c, d in custom.items():
-        # SM-3: рёбер ИЗ cancelled-роли не бывает (терминальный статус терминален,
-        # как в builtin-графе; слой чтения custom_edges их отбросит) → источником
-        # не предлагаем отменённые, а у cancel-роли кастома нет блока «Führt zu».
-        # Молчаливо-мёртвая галочка хуже отсутствующей.
-        sources = [
-            {"code": o, "label": label_of(o), "checked": (o, c) in edges}
-            for o in all_codes
-            if o != c and role_of(o) != "cancelled"
-        ]
-        targets = (
-            [
-                {"code": o, "label": label_of(o), "checked": (c, o) in edges}
-                for o in all_codes
-                if o != c
-            ]
-            if d.role != "cancelled"
-            else []
-        )
-        trans_rows.append({"code": c, "label": d.label, "sources": sources, "targets": targets})
-    return render(
-        request,
-        "tenant/status_manager.html",
-        {
-            "nav": "board",
-            "kind": kind,
-            "kind_label": transactions.KIND_LABEL.get(kind, kind),
-            "roles": [(r, status_registry.ROLE_LABELS[r]) for r in status_registry.ROLES],
-            "custom_rows": [
-                {"code": c, "label": d.label, "role": d.role} for c, d in custom.items()
-            ],
-            "trans_rows": trans_rows,
-            "next": request.GET.get("next", ""),
-        },
-    )
+    ctx = _status_manager_context(request.tenant, kind)
+    ctx["nav"] = "board"
+    ctx["next"] = request.GET.get("next", "")
+    return render(request, "tenant/status_manager.html", ctx)
 
 
-@login_required
-@require_POST
 def status_manager_save(request, kind):
     """FB-3 Вариант B Phase 5 (+SM-3): сохранить свои статусы (def_from_role) + переходы.
     Targeted-write status_defs/status_edges; normalize + presence-minimal. FSM built-in

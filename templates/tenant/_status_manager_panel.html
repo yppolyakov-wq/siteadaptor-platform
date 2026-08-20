@@ -1,0 +1,63 @@
+{% load i18n %}
+{% comment %}FB-3 Вариант B (Phase 5) — редактор СВОИХ статусов. Извлечён из
+tenant/status_manager.html (VK-3, фидбэк владельца 2026-08-20 «Eigene Status
+запрятан внутри»): та же разметка живёт на отдельном экране и секцией на
+«Abläufe». Параметры include: kind, custom_rows, roles, trans_rows,
+next_path (куда вернуться после сохранения).{% endcomment %}
+<form method="post" action="{% url 'status-manager-save' kind %}" class="space-y-4">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ next_path }}">
+
+  {# Статусы: имя + роль (стадия/поведение выводятся из роли) + удаление #}
+  {% for r in custom_rows %}
+    <div class="flex flex-wrap items-center gap-2">
+      <input type="hidden" name="custom_code" value="{{ r.code }}">
+      <input type="text" name="label_{{ r.code }}" value="{{ r.label }}" maxlength="40" class="flex-1 min-w-[12rem] rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
+      <select name="role_{{ r.code }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        {% for code, lbl in roles %}<option value="{{ code }}" {% if code == r.role %}selected{% endif %}>{{ lbl }}</option>{% endfor %}
+      </select>
+      <label class="flex items-center gap-1 text-xs text-red-500 whitespace-nowrap"><input type="checkbox" name="del_{{ r.code }}"> {% trans "Löschen" %}</label>
+    </div>
+  {% endfor %}
+
+  {# новый статус #}
+  <div class="flex flex-wrap items-center gap-2 {% if custom_rows %}pt-3 border-t border-gray-100{% endif %}">
+    <input type="text" name="new_label" placeholder="{% trans 'Neuer Status (Name)' %}" maxlength="40" class="flex-1 min-w-[12rem] rounded-lg border border-gray-300 px-3 py-1.5 text-sm">
+    <select name="new_role" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+      {% for code, lbl in roles %}<option value="{{ code }}">{{ lbl }}</option>{% endfor %}
+    </select>
+    <span class="text-lg text-gray-300 leading-none">＋</span>
+  </div>
+
+  {# Переходы: чекбоксы «erreichbar aus» / «führt zu» на кастом-статус #}
+  {% if trans_rows %}
+    <div class="pt-3 border-t border-gray-100">
+      <p class="font-medium text-sm mb-1">{% trans "Übergänge" %}</p>
+      <p class="text-xs text-gray-400 mb-3">{% trans "Von welchen Status ist er erreichbar und wohin führt er weiter?" %}</p>
+      {# SM-3: sources/targets раздельно — из cancelled-роли рёбер не бывает #}
+      {% for row in trans_rows %}
+        <div class="mb-4">
+          <p class="font-medium text-sm mb-1">{{ row.label }}</p>
+          <p class="text-xs text-gray-500 mb-1">{% trans "Erreichbar aus:" %}</p>
+          <div class="flex flex-wrap gap-2 mb-2 pl-2">
+            {% for o in row.sources %}
+              <label class="flex items-center gap-1 text-xs"><input type="checkbox" name="edge" value="{{ o.code }}|{{ row.code }}" {% if o.checked %}checked{% endif %}> {{ o.label }}</label>
+            {% endfor %}
+          </div>
+          {% if row.targets %}
+          <p class="text-xs text-gray-500 mb-1">{% trans "Führt zu:" %}</p>
+          <div class="flex flex-wrap gap-2 pl-2">
+            {% for o in row.targets %}
+              <label class="flex items-center gap-1 text-xs"><input type="checkbox" name="edge" value="{{ row.code }}|{{ o.code }}" {% if o.checked %}checked{% endif %}> {{ o.label }}</label>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% elif custom_rows %}
+    <p class="text-xs text-gray-400">{% trans "Zuerst einen Status anlegen und speichern — danach erscheinen hier die Übergänge." %}</p>
+  {% endif %}
+
+  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-5 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Speichern" %}</button>
+</form>

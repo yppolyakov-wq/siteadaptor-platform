@@ -3,9 +3,12 @@
 rows (transition_rules.editor_rows), kind (order|booking|stay), next_path. Постит на
 transitions-save. FSM/apply()/побочки/письма НЕ трогает — только СКРЫВАЕТ не-danger
 переходы из отображения. Stornieren/Absagen (danger) — disabled-чекбокс «immer».{% endcomment %}
+{% comment %}VK-4 (2026-08-20): `open` раскрывает панель; пустой набор правил
+больше не «съедает» весь раздел молча (у Reservierungen из статусов нечего
+скрывать — экран выглядел пустым, и владелец считал настройки сломанными).{% endcomment %}
 {% if rows %}
-<details class="mb-4 bg-white border border-gray-200 rounded-2xl px-4 py-3">
-  <summary class="cursor-pointer text-sm font-medium text-gray-700">⚙️ {% trans "Statusübergänge anpassen" %}</summary>
+<details class="mb-4 bg-white border border-gray-200 rounded-2xl px-4 py-3" {% if open %}open{% endif %}>
+  <summary class="cursor-pointer font-semibold text-gray-700">🔀 {% trans "Statusübergänge anpassen" %}</summary>
   <form method="post" action="{% url 'transitions-save' kind %}" class="mt-3 space-y-3 max-w-lg">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ next_path }}">
@@ -25,7 +28,15 @@ transitions-save. FSM/apply()/побочки/письма НЕ трогает �
     {% endfor %}
     <button type="submit" class="mt-1 bg-indigo-600 text-white rounded-lg px-4 py-2 text-xs font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
   </form>
-  {# FB-3 Вариант B: редактор своих статусов (создать/связать переходами) #}
-  <a href="{% url 'status-manager' kind %}?next={{ next_path|urlencode }}" class="inline-block mt-3 text-xs font-medium text-indigo-600 hover:underline">🏷️ {% trans "Eigene Status verwalten" %} →</a>
+  {% comment %}FB-3 Вариант B: редактор своих статусов. На «Abläufe» (open=1) он
+  живёт отдельной секцией прямо на странице — ссылка там была бы дублем.{% endcomment %}
+  {% if not open %}
+    <a href="{% url 'status-manager' kind %}?next={{ next_path|urlencode }}" class="inline-block mt-3 text-xs font-medium text-indigo-600 hover:underline">🏷️ {% trans "Eigene Status verwalten" %} →</a>
+  {% endif %}
 </details>
+{% elif open %}
+<div class="mb-4 bg-white border border-gray-200 rounded-2xl px-4 py-3">
+  <p class="font-semibold text-gray-700 mb-1">🔀 {% trans "Statusübergänge anpassen" %}</p>
+  <p class="text-xs text-gray-400">{% trans "Hier gibt es nichts auszublenden: aus diesen Status führt jeweils nur ein Weg weiter (plus Stornieren, das immer möglich bleibt)." %}</p>
+</div>
 {% endif %}

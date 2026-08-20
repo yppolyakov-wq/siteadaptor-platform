@@ -45,7 +45,10 @@ def test_ablaeufe_renders_all_three_panels():
     assert "Status-Namen anpassen" in body  # FB-4a/b панель
     assert "Statusübergänge anpassen" in body  # FB-3 панель
     assert 'action="/dashboard/board/settings/"' in body  # W5 колонки доски
-    assert "Eigene Status verwalten" in body  # вход в status-manager (Вариант B)
+    # VK-3 (фидбэк владельца 2026-08-20): раньше здесь была ССЫЛКА в отдельный
+    # экран («запрятано внутри») — теперь сам редактор своих статусов на странице.
+    assert 'action="/dashboard/status-manager/order/save/"' in body
+    assert "Eigene Status" in body
 
 
 def test_ablaeufe_panels_post_to_active_kind_with_next_back():
