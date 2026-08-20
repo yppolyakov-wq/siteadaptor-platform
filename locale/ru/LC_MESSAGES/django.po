@@ -19577,3 +19577,6 @@ msgstr "нетто"
 
 msgid "nicht gesetzt"
 msgstr "не задан"
+
+msgid "Ein abgeschlossener Auftrag kann nicht mehr geändert werden."
+msgstr "Закрытый заказ изменить уже нельзя."

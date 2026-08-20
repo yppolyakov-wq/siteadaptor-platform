@@ -19561,3 +19561,6 @@ msgstr "нетто"
 
 msgid "nicht gesetzt"
 msgstr "не задано"
+
+msgid "Ein abgeschlossener Auftrag kann nicht mehr geändert werden."
+msgstr "Закрите замовлення змінити вже не можна."

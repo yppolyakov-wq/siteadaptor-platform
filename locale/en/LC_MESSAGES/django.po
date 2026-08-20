@@ -19366,3 +19366,6 @@ msgstr "net"
 
 msgid "nicht gesetzt"
 msgstr "not set"
+
+msgid "Ein abgeschlossener Auftrag kann nicht mehr geändert werden."
+msgstr "A closed order can no longer be changed."

@@ -19494,3 +19494,6 @@ msgstr "netto"
 
 msgid "nicht gesetzt"
 msgstr "nicht gesetzt"
+
+msgid "Ein abgeschlossener Auftrag kann nicht mehr geändert werden."
+msgstr "Ein abgeschlossener Auftrag kann nicht mehr geändert werden."
