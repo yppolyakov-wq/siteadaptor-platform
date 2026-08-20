@@ -95,7 +95,9 @@
     <div data-pf-panel="preis" class="space-y-3 pt-2 hidden">
       {# X6-6: цена — первым полем своей вкладки #}
       {% for field in form %}{% if field.name == 'base_price' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
-      {% for field in form %}{% if field.name == 'unit' or field.name == 'content_amount' or field.name == 'currency' or field.name == 'stock_quantity' or field.name == 'cost_price' or field.name == 'reorder_point' or field.name == 'reorder_target' or field.name == 'sku' or field.name == 'gtin' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      {% comment %}SH-4 (фидбэк владельца 2026-08-20 «для разных товаров может быть
+      разный налог»): ставка НДС — рядом с ценой, в той же вкладке.{% endcomment %}
+      {% for field in form %}{% if field.name == 'vat_rate' or field.name == 'unit' or field.name == 'content_amount' or field.name == 'currency' or field.name == 'stock_quantity' or field.name == 'cost_price' or field.name == 'reorder_point' or field.name == 'reorder_target' or field.name == 'sku' or field.name == 'gtin' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
     </div>
 
     {# Panel: Labeling — пищевая маркировка (гейт по архетипу) + Herkunft/Zutaten #}

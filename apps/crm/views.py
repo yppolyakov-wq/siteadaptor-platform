@@ -49,8 +49,9 @@ def _filtered_customers(request):
     return customers, query, firma
 
 
-@login_required
-def customer_list(request):
+def customer_list_context(request) -> dict:
+    """SH-15: контекст списка клиентов — ОДИН источник для экрана CRM и вкладки
+    «Kunden» страницы продаж (паттерн X3 `sales_page.body_context`)."""
     customers, query, firma = _filtered_customers(request)
     page = paginate(customers, order_field="created_at", limit=25, cursor=request.GET.get("cursor"))
     # ST-5c: карточный грид. LTV — ОДНИМ батч-запросом на страницу (25), не
@@ -68,10 +69,15 @@ def customer_list(request):
         }
         for c in page.items:
             c.ltv = ltv.get(c.pk)
+    return {"page": page, "query": query, "firma": firma}
+
+
+@login_required
+def customer_list(request):
     return render(
         request,
         "crm/customer_list.html",
-        {"nav": "crm", "page": page, "query": query, "firma": firma},
+        {"nav": "crm", **customer_list_context(request)},
     )
 
 

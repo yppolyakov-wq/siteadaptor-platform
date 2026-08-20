@@ -108,3 +108,58 @@ def issue_invoice(invoice):
         invoice.issued_at = tz.now()
         invoice.save(update_fields=["number", "issued_at", "updated_at"])
         return InvoiceSM().apply(invoice, "issued")
+
+
+def invoice_from_order(order, tenant=None):
+    """SH-9: черновик счёта ИЗ ЗАКАЗА (фидбэк владельца 2026-08-20 «выставление счёта»).
+
+    Раньше счёт набирался руками, хотя все данные уже есть в заказе. Позиции —
+    снимок (`lines`), как у ручного счёта; получатель — плательщик заказа, если
+    он задан (§14 UStG требует реквизиты получателя СЧЁТА), иначе клиент.
+    Возвращает черновик: нумерация и неизменяемость наступают при `issue_invoice`.
+
+    Цены заказа брутто, а счёт считает от нетто — поэтому нетто позиций получаем
+    из `orders.totals` (единый хелпер), а не делим повторно здесь.
+    """
+    from decimal import Decimal
+
+    from django.utils.translation import gettext as _
+
+    from apps.orders.totals import order_totals, split_gross
+
+    from .models import Invoice
+
+    small = bool(tenant and getattr(tenant, "small_business", False))
+    totals = order_totals(order, small_business=small)
+    lines = []
+    for item in order.items.all():
+        rate = Decimal("0") if small else Decimal(str(item.vat_rate or 0))
+        net_unit, _vat = split_gross(item.unit_price, rate)
+        lines.append(
+            {"text": item.title_snapshot[:200], "qty": item.qty, "unit_price": str(net_unit)}
+        )
+    if order.is_delivery and order.shipping_cents:
+        rate = totals["rows"][0]["rate"] if totals["rows"] else Decimal("0")
+        net_ship, _vat = split_gross(Decimal(order.shipping_cents) / 100, rate)
+        lines.append({"text": str(_("Lieferung")), "qty": 1, "unit_price": str(net_ship)})
+    if order.discount_cents:
+        rate = totals["rows"][0]["rate"] if totals["rows"] else Decimal("0")
+        net_disc, _vat = split_gross(Decimal(order.discount_cents) / 100, rate)
+        lines.append({"text": str(_("Rabatt")), "qty": 1, "unit_price": str(-net_disc)})
+    # Ставка счёта — одна (модель Invoice знает одну ставку): берём преобладающую
+    # по обороту; смешанный чек показывает разбивку на карточке заказа.
+    rate = totals["rows"][0]["rate"] if totals["rows"] else Decimal("19.00")
+    net, vat, gross = compute_totals(lines, rate, small_business=small)
+    recipient = order.billing_name or str(order.customer)
+    if order.billing_address:
+        recipient = f"{recipient}\n{order.billing_address}"
+    return Invoice.objects.create(
+        customer=order.customer,
+        recipient=recipient[:1000],
+        lines=lines,
+        vat_rate=rate,
+        net=net,
+        vat_amount=vat,
+        gross=gross,
+        note=str(_("Auftrag %(code)s")) % {"code": order.reference_code},
+    )

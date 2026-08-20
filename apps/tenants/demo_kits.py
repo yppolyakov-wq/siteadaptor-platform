@@ -347,6 +347,7 @@ def _p(
     material="",
     care="",
     variant_style="",
+    vat="",
 ):
     return {
         "name": name,
@@ -358,6 +359,9 @@ def _p(
         "diets": diets or [],  # A4 диет-теги
         "modifiers": modifiers or [],
         "badge": badge,
+        # SH-4: ставка НДС позиции (пусто = 19 %). В демо гастро-китов еда идёт
+        # 7 %, напитки 19 % — владелец видит СМЕШАННЫЙ чек, как в жизни.
+        "vat": vat or "19.00",
         "unit": unit,
         "content": content,
         "stock": stock,
@@ -4138,6 +4142,7 @@ CAFE = DemoKit(
                             style="tiles",
                         ),
                     ],
+                    vat="7.00",
                 ),
                 _p(
                     "Avocado-Toast",
@@ -4146,6 +4151,7 @@ CAFE = DemoKit(
                     "avocado,toast",
                     allergens=["gluten"],
                     diets=["vegan"],
+                    vat="7.00",
                 ),
                 _p(
                     "Porridge mit Beeren",
@@ -4154,6 +4160,7 @@ CAFE = DemoKit(
                     "porridge",
                     allergens=["gluten"],
                     diets=["vegan"],
+                    vat="7.00",
                 ),
                 _p(
                     "Rührei auf Sauerteig",
@@ -4161,6 +4168,7 @@ CAFE = DemoKit(
                     "Drei Bio-Eier, Schnittlauch.",
                     "scrambled,eggs",
                     allergens=["gluten", "eier"],
+                    vat="7.00",
                 ),
             ],
         ),
@@ -4175,6 +4183,7 @@ CAFE = DemoKit(
                     "cheesecake",
                     allergens=["gluten", "milch", "eier"],
                     badge="empfehlung",
+                    vat="7.00",
                 ),
                 _p(
                     "Apfelstrudel",
@@ -4182,6 +4191,7 @@ CAFE = DemoKit(
                     "Mit Vanillesoße, lauwarm.",
                     "apple,strudel",
                     allergens=["gluten", "milch"],
+                    vat="7.00",
                 ),
                 _p(
                     "Zimtschnecke",
@@ -4189,6 +4199,7 @@ CAFE = DemoKit(
                     "Skandinavisch, mit Kardamom.",
                     "cinnamon,roll",
                     allergens=["gluten", "milch"],
+                    vat="7.00",
                 ),
                 _p(
                     "Veganer Schokokuchen",
@@ -4197,6 +4208,7 @@ CAFE = DemoKit(
                     "chocolate,cake",
                     allergens=["gluten"],
                     diets=["vegan"],
+                    vat="7.00",
                 ),
             ],
         ),
@@ -9422,6 +9434,9 @@ def apply_kit(tenant, key: str) -> bool:
             # T5: EK ≈ 55 % VK (Marge ~45 %) + Meldebestand/Sollbestand для демо
             # (Warenwert/Marge/Bestellvorschläge видны в кабинете склада).
             cost_price=(base * Decimal("0.55")).quantize(Decimal("0.01")),
+            # SH-4: ставка НДС позиции — демо показывает СМЕШАННЫЙ чек (в DACH
+            # еда 7 %, напитки/прочее 19 %). Ключ спеки `vat` необязателен.
+            vat_rate=Decimal(str(item.get("vat", "19.00"))),
             reorder_point=8 if stock is not None else None,
             reorder_target=24 if stock is not None else None,
             gtin=item.get("gtin", ""),  # A1 EAN

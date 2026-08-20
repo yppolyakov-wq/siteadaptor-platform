@@ -61,12 +61,18 @@ def _job(**kw):
 
 
 # --- VS-2a: одинокая вкладка --------------------------------------------------
-def test_single_direction_has_no_tab_row():
-    """У 13 из 16 типов направление одно — ряд вкладок из одного элемента был
-    чистым шумом; заголовок теперь называет само направление."""
+def test_single_direction_has_no_direction_tab_row():
+    """У 13 из 16 типов направление одно — ряд вкладок НАПРАВЛЕНИЙ из одного
+    элемента был чистым шумом; заголовок называет само направление.
+
+    SH-15 (решение владельца 2026-08-20): справа появилась вкладка «Kunden» —
+    она не направление сделок и в счёт направлений не идёт, поэтому заголовок
+    по-прежнему «Aufträge», а не общее «Verkäufe»."""
     body = views.verkaeufe(_req()).content.decode()
-    assert "data-sales-tabs" not in body
-    assert '<h1 class="text-xl font-bold mb-3">Aufträge</h1>' in body
+    row = body.split("data-sales-tabs")[1].split("</div>")[0]
+    assert row.count('href="/dashboard/verkaeufe/?tab=') == 1  # только «Kunden»
+    assert "data-kunden-tab" in row
+    assert ">Aufträge</h1>" in body
 
 
 def test_two_directions_keep_tabs_with_active_counts():
@@ -74,7 +80,7 @@ def test_two_directions_keep_tabs_with_active_counts():
 
     hotel = _tenant(business_type="hotel")
     tabs = sales_page.tab_descriptors(hotel, "stay")
-    assert [t["kind"] for t in tabs] == ["stay", "booking"]
+    assert [t["kind"] for t in tabs] == ["stay", "booking"]  # SH-15: клиенты — не направление
     assert all(t["count"] is not None for t in tabs)  # счётчик активных сделок
     body = views.verkaeufe(_req(tenant=hotel)).content.decode()
     assert "data-sales-tabs" in body

@@ -6,6 +6,8 @@
 ModuleGatingMiddleware по префиксу из реестра.
 """
 
+from decimal import Decimal, InvalidOperation
+
 import stripe
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -19,6 +21,7 @@ from apps.core import deal_links
 from apps.core.fsm import IllegalTransition
 
 from .models import Order
+from .services import OutOfStock
 from .state_machine import OrderSM
 
 
@@ -164,7 +167,11 @@ def kitchen_action(request, pk):
 
 @login_required
 def order_detail(request, pk):
+    from apps.catalog import picker as catalog_picker
     from apps.core import transition_rules
+
+    from . import editing as order_editing
+    from .totals import order_totals
 
     order = get_object_or_404(Order.objects.select_related("customer"), pk=pk)
     sm = OrderSM()
@@ -183,6 +190,25 @@ def order_detail(request, pk):
             "items": order.items.all(),
             "allowed_targets": allowed,
             "nav": "orders",
+            # SH группа B: правка доступна, пока заказ не закрыт (решение владельца
+            # «править всегда»); терминальный — read-only, его склад уже возвращён.
+            "editable": order_editing.is_editable(order, getattr(request, "tenant", None)),
+            "parts": catalog_picker._catalog_parts(getattr(request, "tenant", None)),
+            "shipping_eur_input": f"{order.shipping_cents / 100:.2f}",
+            # SH-3/4: разбивка итога (нетто/НДС по ставкам) — один хелпер на все
+            # поверхности; §19 Kleinunternehmer обнуляет НДС.
+            # SH-9: счёт из заказа — только при активном модуле «Finanzen»
+            # (иначе кнопка вела бы в гейт путей → 404, класс сверки 2026-08-19).
+            "finance_active": bool(
+                getattr(request, "tenant", None) and request.tenant.is_module_active("finance")
+            ),
+            "totals": order_totals(
+                order,
+                small_business=bool(
+                    getattr(request, "tenant", None) and request.tenant.small_business
+                ),
+            ),
+            "discount_eur_input": f"{order.discount_cents / 100:.2f}",
             # VS-3: заказ может быть прикреплён к брони (предзаказ торта к столу).
             "deal_links": deal_links.block_context("order", order.pk),
             # Пост-программная сверка (серверный обход 2026-08-19): ссылка
@@ -197,6 +223,130 @@ def order_detail(request, pk):
             ),
         },
     )
+
+
+@login_required
+@require_POST
+def order_edit(request, pk):
+    """SH группа B (фидбэк владельца 2026-08-20): правка заказа из кабинета —
+    состав/количество/скидка/доставка/клиент.
+
+    Один приёмник с `action=` (паттерн карточки заявки): вся арифметика и все
+    движения склада живут в `orders.editing`, вьюха только разбирает форму.
+    Решение владельца: править можно любой НЕзакрытый заказ, склад и леджер
+    пересчитываются тем же движком, что создание/отмена."""
+    from apps.catalog.models import Product, ProductVariant
+    from apps.catalog.picker import _resolve_part, _service_snapshot
+
+    from . import editing
+
+    order = get_object_or_404(Order.objects.select_related("customer"), pk=pk)
+    tenant = getattr(request, "tenant", None)
+    action = request.POST.get("action", "")
+    try:
+        if action == "items":
+            # Количества всех позиций одной формой: qty_<pk> (0 = удалить).
+            for item in list(order.items.all()):
+                raw = request.POST.get(f"qty_{item.pk}")
+                if raw is None:
+                    continue
+                try:
+                    qty = int(raw)
+                except (TypeError, ValueError):
+                    continue
+                if qty != item.qty:
+                    editing.set_item_qty(order, item.pk, qty, tenant=tenant)
+            messages.success(request, _("Positionen aktualisiert."))
+        elif action == "add_item":
+            raw = request.POST.get("part", "")
+            title = (request.POST.get("title") or "").strip()
+            qty = request.POST.get("qty") or 1
+            price_raw = (request.POST.get("price") or "").strip().replace(",", ".")
+            price = Decimal(price_raw) if price_raw else None
+            products = {str(p.pk): p for p in Product.objects.all()} if raw else {}
+            variants = {str(v.pk): v for v in ProductVariant.objects.all()} if raw else {}
+            product, variant = _resolve_part(raw, products, variants)
+            if product is None and raw.startswith("s:"):
+                # Услуга: FK нет, в заказ едет снимок названия/цены (как у сметы).
+                svc_title, svc_price = _service_snapshot(raw)
+                title = title or (svc_title or "")
+                price = price if price is not None else svc_price
+            if product is None and (not title or price is None):
+                messages.error(request, _("Bitte Position wählen oder Text und Preis angeben."))
+            else:
+                editing.add_item(
+                    order,
+                    product=product,
+                    variant=variant,
+                    qty=qty,
+                    title=title,
+                    unit_price=price,
+                    tenant=tenant,
+                )
+                messages.success(request, _("Position hinzugefügt."))
+        elif action == "discount":
+            raw = (request.POST.get("discount") or "0").strip().replace(",", ".")
+            cents = int(Decimal(raw or "0") * 100)
+            editing.set_discount(
+                order, cents=cents, note=request.POST.get("discount_note", ""), tenant=tenant
+            )
+            messages.success(request, _("Rabatt gespeichert."))
+        elif action == "delivery":
+            raw = (request.POST.get("shipping") or "").strip().replace(",", ".")
+            editing.update_delivery(
+                order,
+                fulfillment=request.POST.get("fulfillment"),
+                address=request.POST.get("shipping_address", ""),
+                shipping_cents=int(Decimal(raw) * 100) if raw else None,
+                tenant=tenant,
+            )
+            messages.success(request, _("Lieferung gespeichert."))
+        elif action == "numbers":
+            # SH-8: внешний номер (касса/маркетплейс) — свободное поле рядом с
+            # собственным кодом; сам reference_code не трогаем: на него ссылаются
+            # письма, PDF, платежи и поиск.
+            order.external_code = (request.POST.get("external_code") or "").strip()[:50]
+            order.save(update_fields=["external_code", "updated_at"])
+            messages.success(request, _("Nummern gespeichert."))
+        elif action == "payment":
+            # SH-9: плательщик и способ оплаты. `payment_state` меняет отдельная
+            # кнопка «оплачено» (там же возврат Stripe) — здесь только реквизиты.
+            method = request.POST.get("payment_method", "")
+            if method in dict(Order.PAYMENT_METHODS) or method == "":
+                order.payment_method = method
+            order.billing_name = (request.POST.get("billing_name") or "").strip()[:200]
+            order.billing_address = (request.POST.get("billing_address") or "").strip()[:1000]
+            order.save(
+                update_fields=["payment_method", "billing_name", "billing_address", "updated_at"]
+            )
+            messages.success(request, _("Zahlungsdaten gespeichert."))
+        elif action == "invoice":
+            from apps.finance.services import invoice_from_order
+
+            invoice = invoice_from_order(order, getattr(request, "tenant", None))
+            messages.success(request, _("Rechnungsentwurf erstellt."))
+            return redirect("finance:invoice-detail", pk=invoice.pk)
+        elif action == "customer":
+            editing.update_customer(
+                order,
+                name=request.POST.get("name", ""),
+                email=request.POST.get("email", ""),
+                phone=request.POST.get("phone", ""),
+            )
+            messages.success(request, _("Kundendaten gespeichert."))
+        else:
+            messages.error(request, _("Unknown action."))
+    except editing.OrderLocked as exc:
+        messages.error(request, str(exc))
+    except OutOfStock as exc:
+        messages.error(
+            request,
+            _("Nicht genug Bestand: %(title)s (verfügbar: %(n)s).")
+            % {"title": exc.title, "n": exc.available},
+        )
+    except (InvalidOperation, ValueError):
+        messages.error(request, _("Bitte Zahlen im Format 12,50 eingeben."))
+    return redirect("orders:order-detail", pk=order.pk)
 
 
 @login_required

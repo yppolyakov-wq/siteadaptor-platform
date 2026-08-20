@@ -20,6 +20,7 @@ from apps.core.views import (
     board,
     board_settings,
     dashboard,
+    deal_customer_edit,
     deal_link_view,
     deal_unlink_view,
     domain_add,
@@ -213,6 +214,12 @@ urlpatterns = [
         "dashboard/verknuepfen/<str:kind>/<uuid:pk>/loesen/",
         deal_unlink_view,
         name="deal-unlink",
+    ),
+    # SH-5: правка контакта клиента с карточки ЛЮБОЙ сделки (kind-агностично).
+    path(
+        "dashboard/kunde/<str:kind>/<uuid:pk>/",
+        deal_customer_edit,
+        name="deal-customer-edit",
     ),
     path("dashboard/status-manager/<str:kind>/", status_manager, name="status-manager"),
     path(

@@ -101,9 +101,24 @@ def test_order_detail_shows_items_and_actions():
     body = views.order_detail(_req(path=f"/dashboard/orders/{order.pk}/"), pk=order.pk)
     body = body.content.decode()
     assert order.reference_code in body
-    assert "2× Brot" in body
+    # SH-2 (осознанная переписка): позиции незакрытого заказа теперь РЕДАКТИРУЕМЫ —
+    # вместо строки «2× Brot» поле количества и название рядом.
+    assert 'value="2"' in body and "Brot" in body
+    assert 'name="action" value="items"' in body
     assert 'value="confirmed"' in body and 'value="cancelled"' in body
     assert 'value="ready"' not in body  # из new сразу в ready нельзя
+
+
+def test_closed_order_detail_is_read_only():
+    """SH-2: у закрытого заказа склад уже возвращён — правку не показываем."""
+    from apps.orders.state_machine import OrderSM
+
+    order = _order()
+    OrderSM().apply(order, "cancelled")
+    body = views.order_detail(_req(path=f"/dashboard/orders/{order.pk}/"), pk=order.pk)
+    body = body.content.decode()
+    assert "2× Brot" in body  # обычная строка-снимок
+    assert 'name="action" value="items"' not in body
 
 
 def test_order_action_transitions_and_payment():

@@ -19461,3 +19461,119 @@ msgid ""
 msgstr ""
 "Способы оплаты, банковские реквизиты для предоплаты, стоимость доставки и "
 "зона доставки — действуют для всех заказов."
+
+msgid "Lieferungen"
+msgstr "Доставки"
+
+msgid "Nur Lieferungen"
+msgstr "Только доставки"
+
+msgid ""
+"Kundenkarte mit Notizen, Tags und Historie gibt es im Modul «Kunden (CRM)»."
+msgstr ""
+"Карточка клиента с заметками, тегами и историей — в модуле «Клиенты (CRM)»."
+
+msgid "Abholung"
+msgstr "Самовывоз"
+
+msgid "Art"
+msgstr "Способ"
+
+msgid "Auftrag %(code)s"
+msgstr "Заказ %(code)s"
+
+msgid "Aus dem Sortiment"
+msgstr "Из каталога"
+
+msgid "Bezeichnung"
+msgstr "Название"
+
+msgid "Bitte Position wählen oder Text und Preis angeben."
+msgstr "Выберите позицию или укажите название и цену."
+
+msgid "Bitte Zahlen im Format 12,50 eingeben."
+msgstr "Введите число в формате 12,50."
+
+msgid "Externe Nummer"
+msgstr "Внешний номер"
+
+msgid "Grund / Code"
+msgstr "Причина / код"
+
+msgid "Kasse / Marktplatz"
+msgstr "Касса / маркетплейс"
+
+msgid "Lieferkosten"
+msgstr "Стоимость доставки"
+
+msgid "Lieferung"
+msgstr "Доставка"
+
+msgid "Lieferung gespeichert."
+msgstr "Доставка сохранена."
+
+msgid "Lieferung speichern"
+msgstr "Сохранить доставку"
+
+msgid "Menge 0 entfernt die Position. Der Bestand wird mitgeführt."
+msgstr "Количество 0 удаляет позицию. Остаток пересчитывается."
+
+msgid "MwSt.-Satz"
+msgstr "Ставка НДС"
+
+msgid "Nicht genug Bestand: %(title)s (verfügbar: %(n)s)."
+msgstr "Недостаточно на складе: %(title)s (доступно: %(n)s)."
+
+msgid "Nummern gespeichert."
+msgstr "Номера сохранены."
+
+msgid "Online (Stripe)"
+msgstr "Онлайн (Stripe)"
+
+msgid "Positionen aktualisiert."
+msgstr "Позиции обновлены."
+
+msgid "Positionen speichern"
+msgstr "Сохранить позиции"
+
+msgid "Rabatt"
+msgstr "Скидка"
+
+msgid "Rabatt gespeichert."
+msgstr "Скидка сохранена."
+
+msgid "Rabatt speichern"
+msgstr "Сохранить скидку"
+
+msgid "Rechnung aus Auftrag erstellen"
+msgstr "Создать счёт из заказа"
+
+msgid "Rechnungsadresse"
+msgstr "Адрес для счёта"
+
+msgid "Rechnungsempfänger (falls abweichend)"
+msgstr "Плательщик (если отличается)"
+
+msgid "Rechnungsentwurf erstellt."
+msgstr "Черновик счёта создан."
+
+msgid "Zahlart"
+msgstr "Способ оплаты"
+
+msgid "Zahlungsdaten gespeichert."
+msgstr "Платёжные данные сохранены."
+
+msgid "Zahlungsdaten speichern"
+msgstr "Сохранить платёжные данные"
+
+msgid "davon %(rate)s %% MwSt."
+msgstr "в т. ч. НДС %(rate)s %%"
+
+msgid "freie Position"
+msgstr "своя позиция"
+
+msgid "netto"
+msgstr "нетто"
+
+msgid "nicht gesetzt"
+msgstr "не задан"

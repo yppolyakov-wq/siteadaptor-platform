@@ -44,6 +44,7 @@ FB-11) — раньше клик по сделке вёл на общий кал
         <p class="font-medium">{{ b.customer|default:"—" }}{% if b.party_size > 1 %} · {{ b.party_size }} {% trans "guests" %}{% endif %}</p>
         {% if b.customer.email %}<p class="text-gray-500">{{ b.customer.email }}</p>{% endif %}
         {% if b.customer.phone %}<p class="text-gray-500">{{ b.customer.phone }}</p>{% endif %}
+        {% include "core/_deal_customer_edit.html" with kind="booking" obj_pk=b.pk customer=b.customer next_path=request.get_full_path %}
       </div>
       <div>
         <p class="text-xs text-gray-400">{% trans "Price" %}</p>

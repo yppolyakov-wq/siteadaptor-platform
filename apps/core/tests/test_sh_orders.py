@@ -149,3 +149,121 @@ def test_order_detail_status_actions_sit_in_the_header():
     # Кнопка перехода живёт ДО карточки позиций, отдельной карточки действий нет
     assert body.index('name="action"') < body.index("divide-y divide-gray-100 border-y")
     assert body.count(f"/dashboard/orders/{order.pk}/action/") == 1
+
+
+# --- п.15: клиенты вкладкой в продажах (решение владельца «всем архетипам») ---
+def test_customers_tab_shows_crm_list_inside_sales():
+    from apps.promotions.models import Customer
+
+    Customer.objects.create(name="Klara Kundin", email="k@t.de")
+    body = views.verkaeufe(_req(data={"tab": "kunden"})).content.decode()
+    assert "Klara Kundin" in body
+    assert "data-kunden-tab" in body
+    # У вкладки клиентов нет ни видов, ни «Abläufe» — только «＋» и кросс-входы
+    assert "data-sales-view-switch" not in body
+
+
+def test_customers_tab_works_without_crm_module():
+    """Решение владельца: вкладка «Kunden» — у ВСЕХ архетипов, БЕЗ включения CRM.
+    Модуль остаётся гейтом карточки/тегов/экспорта, поэтому ссылок туда нет."""
+    from apps.core.modules import default_disabled_for
+    from apps.promotions.models import Customer
+
+    no_crm = _tenant(disabled_modules=list(default_disabled_for("retail")) + ["crm"])
+    Customer.objects.create(name="Ohne CRM", email="o@t.de")
+    body = views.verkaeufe(_req(data={"tab": "kunden"}, tenant=no_crm)).content.decode()
+    assert "data-kunden-tab" in body
+    assert "Ohne CRM" in body  # список читается
+    assert "/crm/" not in body  # ссылок в гейтнутый модуль нет (класс 404 из X-сверки)
+    assert "data-no-crm" in body
+
+
+def test_customer_list_screen_and_sales_tab_share_one_body():
+    """Один партиал/один контекст — расхождению данных взяться неоткуда."""
+    from apps.crm.views import customer_list
+    from apps.promotions.models import Customer
+
+    Customer.objects.create(name="Klara Kundin", email="k2@t.de")
+    tenant = _tenant()
+    screen = customer_list(_req("/dashboard/crm/", tenant=tenant)).content.decode()
+    tab = views.verkaeufe(_req(data={"tab": "kunden"}, tenant=tenant)).content.decode()
+    assert "Klara Kundin" in screen and "Klara Kundin" in tab
+
+
+# --- п.14: доставка отдельным входом ------------------------------------------
+def test_delivery_filter_narrows_the_order_list():
+    _order(code="O-SH0005", name="Lieferkunde", fulfillment="delivery")
+    _order(code="O-SH0006", name="Abholkunde")
+    all_body = views.verkaeufe(_req(data={"tab": "order", "view": "liste"})).content.decode()
+    assert "O-SH0005" in all_body and "O-SH0006" in all_body
+    only = views.verkaeufe(
+        _req(data={"tab": "order", "view": "liste", "versand": "1"})
+    ).content.decode()
+    assert "O-SH0005" in only and "O-SH0006" not in only
+
+
+def test_delivery_entry_is_a_sidebar_subitem_of_sales():
+    from apps.core import nav_registry as nr
+
+    board = next(a for a in nr.ANCHORS if a.nav_key == "board")
+    children = {(e.url_name, e.query) for e in nr.sidebar_children(board)}
+    assert ("verkaeufe", "?tab=order&view=liste&versand=1") in children
+    assert ("verkaeufe", "?tab=kunden") in children
+
+
+def test_delivery_filter_forces_a_view_that_honors_it():
+    """Ревью 2026-08-19: фильтр в адресе обязан быть исполнен — доска ?versand=
+    не понимает, поэтому вид падает на «Liste»."""
+    assert sales_page.view_for_filters("order", "board", {"versand": "1"}) == "liste"
+    assert sales_page.view_for_filters("order", "liste", {"versand": "1"}) == "liste"
+
+
+# --- п.5: правка клиента на ВСЕХ архетипах ------------------------------------
+def test_deal_customer_edit_works_for_every_kind():
+    """Приёмник kind-агностичный: у каждой сделки есть `customer`, поэтому
+    контакт правится и у брони номера, и у записи, и у заявки — не только у заказа."""
+    from datetime import date, timedelta
+
+    from django.test import RequestFactory
+
+    from apps.core import views as core_views
+    from apps.stays.models import Customer as StayCustomer
+    from apps.stays.models import StayBooking, StayUnit
+
+    unit = StayUnit.objects.create(name="Zimmer 2", max_guests=2, price_cents=9000)
+    booking = StayBooking.objects.create(
+        unit=unit,
+        customer=StayCustomer.objects.create(name="Alt", email="alt@t.de"),
+        arrival=date.today() + timedelta(days=2),
+        departure=date.today() + timedelta(days=4),
+        guests=2,
+        reference_code="S-SH0100",
+    )
+    req = RequestFactory().post(
+        f"/dashboard/kunde/stay/{booking.pk}/",
+        {"name": "Neu Gast", "phone": "+49 222", "next": "/dashboard/verkaeufe/"},
+    )
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = _User()
+    req.tenant = _tenant("hotel")
+    resp = core_views.deal_customer_edit(req, "stay", booking.pk)
+    assert resp.status_code == 302 and resp["Location"] == "/dashboard/verkaeufe/"
+    booking.refresh_from_db()
+    assert booking.customer.name == "Neu Gast" and booking.customer.phone == "+49 222"
+    assert booking.customer.email == "alt@t.de"  # пустое поле не затирает
+
+
+def test_deal_customer_edit_rejects_unknown_kind():
+    from django.http import Http404
+    from django.test import RequestFactory
+
+    from apps.core import views as core_views
+
+    req = RequestFactory().post("/dashboard/kunde/hack/00000000-0000-0000-0000-000000000000/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = _User()
+    req.tenant = _tenant()
+    with pytest.raises(Http404):
+        core_views.deal_customer_edit(req, "hack", "00000000-0000-0000-0000-000000000000")
