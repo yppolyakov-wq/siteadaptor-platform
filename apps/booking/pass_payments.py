@@ -59,6 +59,18 @@ def purchase_pass(*, tenant_schema, plan_id, name, email, payment_intent="") -> 
             service=plan.service,
             stripe_payment_intent=payment_intent,
         )
+        # MX-7: абонемент — цифровая Вещь; деньги в журнал (идемпотентно по карте).
+        if plan.price_cents:
+            from decimal import Decimal as _D
+
+            from apps.finance.services import record_revenue
+
+            record_revenue(
+                source="pass",
+                source_ref=str(card.pk),
+                amount=_D(plan.price_cents) / 100,
+                note=f"{plan.label} · {card.code}"[:200],
+            )
         _email_code(card)
     return True
 

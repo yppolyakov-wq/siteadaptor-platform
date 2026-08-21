@@ -22,6 +22,9 @@ class RevenueEntry(TimestampedModel):
     SOURCE_STAY = "stay"
     SOURCE_BOOKING = "booking"
     SOURCE_EVENT = "event"
+    # MX-7: цифровые Вещи — их деньги в журнал не попадали ВООБЩЕ (перепись v2 §1).
+    SOURCE_GIFT = "gift"
+    SOURCE_PASS = "pass"
     SOURCE_MANUAL = "manual"
     SOURCES = [
         (SOURCE_ORDER, _("Order")),
@@ -29,6 +32,8 @@ class RevenueEntry(TimestampedModel):
         (SOURCE_STAY, _("Stay")),
         (SOURCE_BOOKING, _("Booking")),
         (SOURCE_EVENT, _("Event")),
+        (SOURCE_GIFT, _("Geschenkgutschein")),
+        (SOURCE_PASS, _("Mehrfachkarte")),
         (SOURCE_MANUAL, _("Manual")),
     ]
     # Ставки НДС DE: 19 стандарт, 7 еда/печать, 0 — §19 Kleinunternehmer и пр.

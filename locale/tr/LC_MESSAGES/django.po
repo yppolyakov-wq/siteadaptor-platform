@@ -19629,3 +19629,15 @@ msgid "%(n)s frei"
 msgid_plural "%(n)s frei"
 msgstr[0] "%(n)s boş"
 msgstr[1] "%(n)s boş"
+
+msgid "Digitale Angebote"
+msgstr "Dijital teklifler"
+
+msgid "Mehrfachkarten"
+msgstr "Çok girişli kartlar"
+
+msgid "Wertgutschein — Verkauf über /gutschein/"
+msgstr "Değer kuponu — /gutschein/ üzerinden satış"
+
+msgid "Mehrfachkarte"
+msgstr "Çok girişli kart"

@@ -19699,3 +19699,15 @@ msgstr[0] "%(n)s вільно"
 msgstr[1] "%(n)s вільно"
 msgstr[2] "%(n)s вільно"
 msgstr[3] "%(n)s вільно"
+
+msgid "Digitale Angebote"
+msgstr "Цифрові позиції"
+
+msgid "Mehrfachkarten"
+msgstr "Абонементи"
+
+msgid "Wertgutschein — Verkauf über /gutschein/"
+msgstr "Сертифікат-номінал — продаж через /gutschein/"
+
+msgid "Mehrfachkarte"
+msgstr "Абонемент"

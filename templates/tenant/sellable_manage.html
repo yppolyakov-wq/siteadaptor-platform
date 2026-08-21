@@ -51,4 +51,21 @@
     {% endif %}
   </div>
 {% endfor %}
+
+{% if digital_shelf and not q %}
+{# MX-7: цифровые Вещи — абонементы и сертификат перестают быть «тенями» полки. #}
+<div class="mt-8">
+  <h2 class="text-sm font-semibold text-gray-500 mb-2">💳 {% trans "Digitale Angebote" %}</h2>
+  <div class="grid sm:grid-cols-2 gap-3">
+    {% for shelf in digital_shelf %}
+    <a href="{{ shelf.url }}" class="rounded-xl border border-gray-200 p-4 hover:border-indigo-300">
+      <p class="font-medium">{{ shelf.label }}</p>
+      <ul class="mt-1 text-xs text-gray-500">
+        {% for line in shelf.items %}<li>{{ line }}</li>{% endfor %}
+      </ul>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
 {% endblock %}

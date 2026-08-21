@@ -43,6 +43,29 @@ def _deals(tenant, q: str) -> list[dict]:
             )
             if len(out) >= PER_SECTION:
                 return out
+    # MX-7: Sofort-Angebot (orders.Offer) — вторая смета, которой не было ни на
+    # доске, ни в поиске (перепись v2 §1). Ищем по получателю; вход — тред inbox.
+    if tenant.is_module_active("orders") and len(out) < PER_SECTION:
+        from django.db.models import Q as _Q
+        from django.urls import NoReverseMatch, reverse
+
+        from apps.orders.models import Offer
+
+        offers = Offer.objects.filter(
+            _Q(customer_name__icontains=q) | _Q(customer_email__icontains=q)
+        ).order_by("-created_at")[: PER_SECTION - len(out)]
+        for offer in offers:
+            try:
+                url = reverse("inbox:thread", args=[offer.conversation_id])
+            except (NoReverseMatch, AttributeError):
+                url = ""
+            out.append(
+                {
+                    "label": f"Angebot · {offer.customer_name or offer.customer_email}",
+                    "sub": f"{offer.get_status_display()}",
+                    "url": url,
+                }
+            )
     return out
 
 

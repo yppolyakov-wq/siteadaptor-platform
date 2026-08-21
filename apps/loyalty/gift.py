@@ -58,6 +58,18 @@ def mark_gift_voucher_paid(*, tenant_schema, gift_id, payment_intent="") -> bool
         if gift.payment_state != GiftVoucher.PAYMENT_PAID:
             gift.payment_state = GiftVoucher.PAYMENT_PAID
             fields.append("payment_state")
+            # MX-7: сертификат — цифровая Вещь; его деньги впервые попадают в
+            # журнал (идемпотентно по (source, source_ref)).
+            from decimal import Decimal as _D
+
+            from apps.finance.services import record_revenue
+
+            record_revenue(
+                source="gift",
+                source_ref=str(gift.pk),
+                amount=_D(gift.amount_cents) / 100,
+                note=f"Geschenkgutschein {gift.amount_eur:.0f} €"[:200],
+            )
         if payment_intent and gift.stripe_payment_intent != payment_intent:
             gift.stripe_payment_intent = payment_intent
             fields.append("stripe_payment_intent")

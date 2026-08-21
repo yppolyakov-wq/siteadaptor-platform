@@ -215,3 +215,49 @@ def toggle_visibility(kind: str, pk):
     obj.is_active = not obj.is_active
     obj.save(update_fields=["is_active"])
     return obj
+
+
+def digital_shelf(tenant) -> list[dict]:
+    """MX-7: цифровые Вещи — абонементы и сертификат на общей полке «Sortiment».
+
+    До MX-7 обе сущности были «тенями»: свой чекаут, ни полки, ни выручки
+    (перепись v2 §1). Здесь — read-обзор + переход к родным экранам; их деньги
+    теперь в журнале (source=gift/pass)."""
+    from django.apps import apps as django_apps
+    from django.urls import NoReverseMatch, reverse
+
+    out = []
+    if tenant.is_module_active("booking"):
+        try:
+            plans = list(
+                django_apps.get_model("booking", "PassPlan").objects.filter(is_active=True)
+            )
+        except Exception:  # noqa: BLE001 — полка не роняет обзор
+            plans = []
+        if plans:
+            try:
+                url = reverse("booking:passes")
+            except NoReverseMatch:
+                url = ""
+            out.append(
+                {
+                    "label": _("Mehrfachkarten"),
+                    "url": url,
+                    "items": [
+                        f"{p.label} · {p.credits}× · {p.price_cents / 100:.0f} €" for p in plans
+                    ],
+                }
+            )
+    if tenant.is_module_active("gift"):
+        try:
+            url = reverse("promotions:vouchers")
+        except NoReverseMatch:
+            url = ""
+        out.append(
+            {
+                "label": _("Geschenkgutscheine"),
+                "url": url,
+                "items": [_("Wertgutschein — Verkauf über /gutschein/")],
+            }
+        )
+    return out

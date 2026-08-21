@@ -4186,6 +4186,8 @@ def sellable_manage(request):
             "q": q,
             "sections": sm.sellable_manage_sections_for(tenant, q=q),
             "add_options": sm.add_options(tenant),
+            # MX-7: цифровые Вещи (абонементы/сертификат) — на общей полке.
+            "digital_shelf": sm.digital_shelf(tenant),
             # W11-4: гейт кнопки «% Aktion» на карточках (цель PL из строки).
             "promotions_active": tenant.is_module_active("promotions"),
             # ST-5a: карточный грид.

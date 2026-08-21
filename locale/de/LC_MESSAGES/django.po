@@ -19631,3 +19631,15 @@ msgid "%(n)s frei"
 msgid_plural "%(n)s frei"
 msgstr[0] "%(n)s frei"
 msgstr[1] "%(n)s frei"
+
+msgid "Digitale Angebote"
+msgstr "Digitale Angebote"
+
+msgid "Mehrfachkarten"
+msgstr "Mehrfachkarten"
+
+msgid "Wertgutschein — Verkauf über /gutschein/"
+msgstr "Wertgutschein — Verkauf über /gutschein/"
+
+msgid "Mehrfachkarte"
+msgstr "Mehrfachkarte"
