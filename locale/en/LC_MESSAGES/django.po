@@ -19248,3 +19248,22 @@ msgstr "Entry deleted."
 
 msgid "Ergebnis"
 msgstr "Result"
+
+msgid "Einnahmen"
+msgstr "Revenue"
+
+msgid ""
+"Einnahmen aus dem Journal, Ausgaben aus Einkauf, Anbieter-Buchungen und "
+"manuellen Einträgen."
+msgstr ""
+"Revenue from the journal, expenses from purchasing, supplier bookings and "
+"manual entries."
+
+msgid "Alle Kategorien"
+msgstr "All categories"
+
+msgid "Ausgabe erfassen"
+msgstr "Record expense"
+
+msgid "Noch keine Ausgaben im Zeitraum."
+msgstr "No expenses in this period yet."

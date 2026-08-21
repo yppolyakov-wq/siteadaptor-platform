@@ -19375,3 +19375,22 @@ msgstr "Kayıt silindi."
 
 msgid "Ergebnis"
 msgstr "Sonuç"
+
+msgid "Einnahmen"
+msgstr "Gelirler"
+
+msgid ""
+"Einnahmen aus dem Journal, Ausgaben aus Einkauf, Anbieter-Buchungen und "
+"manuellen Einträgen."
+msgstr ""
+"Gelirler defterden, giderler satın alma, tedarikçi rezervasyonları ve manuel"
+" kayıtlardan gelir."
+
+msgid "Alle Kategorien"
+msgstr "Tüm kategoriler"
+
+msgid "Ausgabe erfassen"
+msgstr "Gider kaydet"
+
+msgid "Noch keine Ausgaben im Zeitraum."
+msgstr "Bu dönemde henüz gider yok."

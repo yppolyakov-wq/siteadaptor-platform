@@ -19444,3 +19444,22 @@ msgstr "Запис видалено."
 
 msgid "Ergebnis"
 msgstr "Результат"
+
+msgid "Einnahmen"
+msgstr "Доходи"
+
+msgid ""
+"Einnahmen aus dem Journal, Ausgaben aus Einkauf, Anbieter-Buchungen und "
+"manuellen Einträgen."
+msgstr ""
+"Доходи — з журналу, витрати — із закупівель, бронювань у постачальників і "
+"ручних записів."
+
+msgid "Alle Kategorien"
+msgstr "Усі категорії"
+
+msgid "Ausgabe erfassen"
+msgstr "Записати витрату"
+
+msgid "Noch keine Ausgaben im Zeitraum."
+msgstr "Витрат за період поки немає."

@@ -19460,3 +19460,22 @@ msgstr "Запись удалена."
 
 msgid "Ergebnis"
 msgstr "Результат"
+
+msgid "Einnahmen"
+msgstr "Доходы"
+
+msgid ""
+"Einnahmen aus dem Journal, Ausgaben aus Einkauf, Anbieter-Buchungen und "
+"manuellen Einträgen."
+msgstr ""
+"Доходы — из журнала, расходы — из закупок, броней у поставщиков и ручных "
+"записей."
+
+msgid "Alle Kategorien"
+msgstr "Все категории"
+
+msgid "Ausgabe erfassen"
+msgstr "Записать расход"
+
+msgid "Noch keine Ausgaben im Zeitraum."
+msgstr "Расходов за период пока нет."

@@ -19377,3 +19377,22 @@ msgstr "Eintrag gelöscht."
 
 msgid "Ergebnis"
 msgstr "Ergebnis"
+
+msgid "Einnahmen"
+msgstr "Einnahmen"
+
+msgid ""
+"Einnahmen aus dem Journal, Ausgaben aus Einkauf, Anbieter-Buchungen und "
+"manuellen Einträgen."
+msgstr ""
+"Einnahmen aus dem Journal, Ausgaben aus Einkauf, Anbieter-Buchungen und "
+"manuellen Einträgen."
+
+msgid "Alle Kategorien"
+msgstr "Alle Kategorien"
+
+msgid "Ausgabe erfassen"
+msgstr "Ausgabe erfassen"
+
+msgid "Noch keine Ausgaben im Zeitraum."
+msgstr "Noch keine Ausgaben im Zeitraum."
