@@ -1,0 +1,7 @@
+{% load i18n %}{% blocktrans %}Guten Tag,{% endblocktrans %}
+
+{% if level == 1 %}{% blocktrans with n=number g=gross %}sicher ist es Ihrer Aufmerksamkeit entgangen: Die Rechnung {{ n }} über {{ g }} € ist noch offen. Wir bitten um Ausgleich in den nächsten Tagen.{% endblocktrans %}{% else %}{% blocktrans with n=number g=gross %}trotz Erinnerung ist die Rechnung {{ n }} über {{ g }} € weiterhin offen. Bitte begleichen Sie den Betrag umgehend.{% endblocktrans %}{% endif %}
+
+{% blocktrans %}Falls die Zahlung bereits unterwegs ist, betrachten Sie diese Nachricht als gegenstandslos.{% endblocktrans %}
+
+{{ business_name }}

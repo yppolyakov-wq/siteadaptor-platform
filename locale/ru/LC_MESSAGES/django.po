@@ -19836,3 +19836,97 @@ msgstr "CSV не распознан — не найдены колонки да�
 #: finance ERP-2
 msgid "Zahlung zugeordnet — Position ist bezahlt."
 msgstr "Платёж сопоставлен — позиция оплачена."
+
+#: finance ERP-3/4
+#, python-format
+msgid "%(s)s. Mahnung — Rechnung %(n)s"
+msgstr "Напоминание %(s)s — счёт %(n)s"
+
+#: finance ERP-3/4
+msgid "Als bezahlt markiert."
+msgstr "Отмечено как оплачено."
+
+#: finance ERP-3/4
+msgid "Beleg"
+msgstr "Документ"
+
+#: finance ERP-3/4
+msgid "Beleg (Foto/PDF)"
+msgstr "Документ (фото/PDF)"
+
+#: finance ERP-3/4
+msgid "Beleg konnte nicht gespeichert werden."
+msgstr "Не удалось сохранить документ."
+
+#: finance ERP-3/4
+msgid "Falls die Zahlung bereits unterwegs ist, betrachten Sie diese Nachricht als gegenstandslos."
+msgstr "Если оплата уже отправлена, просто проигнорируйте это письмо."
+
+#: finance ERP-3/4
+msgid "Guten Tag,"
+msgstr "Здравствуйте!"
+
+#: finance ERP-3/4
+msgid "Kunde hat keine E-Mail — Mahnung nicht möglich."
+msgstr "У клиента нет e-mail — напоминание невозможно."
+
+#: finance ERP-3/4
+#, python-format
+msgid "Mahnstufe %(n)s verschickt."
+msgstr "Отправлено напоминание уровня %(n)s."
+
+#: finance ERP-3/4
+#, python-format
+msgid "Mahnung (%(n)s)"
+msgstr "Напоминание (%(n)s)"
+
+#: finance ERP-3/4
+msgid "Mahnung heute bereits verschickt."
+msgstr "Напоминание сегодня уже отправлено."
+
+#: finance ERP-3/4
+msgid "Offene Eingangsrechnungen"
+msgstr "Неоплаченные входящие счета"
+
+#: finance ERP-3/4
+msgid "USt aus Einnahmen"
+msgstr "НДС с доходов"
+
+#: finance ERP-3/4
+msgid "USt-Zahllast (Richtwert)"
+msgstr "НДС к уплате (ориентир)"
+
+#: finance ERP-3/4
+msgid "USt.-Satz"
+msgstr "Ставка НДС"
+
+#: finance ERP-3/4
+msgid "Vorsteuer aus Ausgaben"
+msgstr "Входной НДС с расходов"
+
+#: finance ERP-3/4
+#, python-format
+msgid "Zahlungserinnerung — Rechnung %(n)s"
+msgstr "Напоминание об оплате — счёт %(n)s"
+
+#: finance ERP-3/4
+msgid "Zahlungsziel"
+msgstr "Срок оплаты"
+
+#: finance ERP-3/4
+msgid "fällig"
+msgstr "срок"
+
+#: finance ERP-3/4
+#, python-format
+msgid "sicher ist es Ihrer Aufmerksamkeit entgangen: Die Rechnung %(n)s über %(g)s € ist noch offen. Wir bitten um Ausgleich in den nächsten Tagen."
+msgstr "вероятно, это просто ускользнуло от внимания: счёт %(n)s на %(g)s € ещё не оплачен. Просим оплатить его в ближайшие дни."
+
+#: finance ERP-3/4
+#, python-format
+msgid "trotz Erinnerung ist die Rechnung %(n)s über %(g)s € weiterhin offen. Bitte begleichen Sie den Betrag umgehend."
+msgstr "несмотря на напоминание, счёт %(n)s на %(g)s € всё ещё не оплачен. Просим погасить сумму незамедлительно."
+
+#: documents ERP-3
+msgid "Beleg / Eingangsrechnung"
+msgstr "Документ / входящий счёт"

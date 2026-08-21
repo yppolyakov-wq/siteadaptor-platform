@@ -23,6 +23,7 @@
         <th class="px-4 py-2">{% trans "Kunde" %}</th>
         <th class="px-4 py-2 text-right">{% trans "Amount" %}</th>
         <th class="px-4 py-2 text-right">{% trans "Alter" %}</th>
+        <th class="px-4 py-2"></th>
       </tr>
     </thead>
     <tbody class="divide-y divide-gray-100">
@@ -33,6 +34,13 @@
         <td class="px-4 py-2">{{ i.customer|default:"—" }}</td>
         <td class="px-4 py-2 text-right font-medium">{{ i.amount|floatformat:2 }} €</td>
         <td class="px-4 py-2 text-right {% if i.age_days > 14 %}text-red-600{% elif i.age_days > 7 %}text-amber-600{% endif %}">{% blocktrans with n=i.age_days %}{{ n }} Tage{% endblocktrans %}</td>
+        <td class="px-4 py-2 text-right">
+          {% if i.kind == "invoice" %}
+          <form method="post" action="{% url 'finance:invoice-mahnung' i.obj.pk %}" class="inline">{% csrf_token %}
+            <button class="rounded-lg border border-amber-300 bg-amber-50 px-2 py-1 text-xs text-amber-800 hover:bg-amber-100">{% if i.obj.mahn_level %}{% blocktrans with n=i.obj.mahn_level %}Mahnung ({{ n }}){% endblocktrans %}{% else %}{% trans "Zahlungserinnerung" %}{% endif %}</button>
+          </form>
+          {% endif %}
+        </td>
       </tr>
       {% empty %}
       <tr><td colspan="5" class="px-4 py-6 text-center text-gray-400">{% trans "Keine offenen Posten — alles bezahlt." %}</td></tr>

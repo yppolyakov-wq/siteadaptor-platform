@@ -11919,3 +11919,29 @@ templatize` (регекс обязан учитывать `u`-префикс!); 
 MX-1, тихо жившая без .po-записей. 18 msgid × 5 каталогов.
 Замки: test_erp1_cogs (3) + test_erp2_bank (5), оба на свежей БД; смежные
 finance+orders 242.
+
+## 2026-08-21 — ERP-3 + ERP-4: Eingangsrechnung · Mahnwesen v1 · UStVA-срез · DATEV расходов
+(⚠️ миграции `finance/0011` + `documents/0002`, аддитивные)
+
+**ERP-3:** `ExpenseEntry` += supplier/due_date/paid_at/document — расход стал
+ДОКУМЕНТОМ: срок оплаты, статус «offen/überfällig» (свойства is_open/is_overdue),
+файл/фото счёта через `SecureDocument` (kind=receipt; owner стал nullable —
+Beleg принадлежит бизнесу, а не гостю; can_access без owner отдаёт файл только
+кабинету — fail-closed по построению; expiry для не-ticket = None, GoBD-хранение
+не съедается ретеншном досье). Экран Ausgaben: секция «Offene Eingangsrechnungen»
+(ВНЕ фильтра периода — долг не зависит от него), «Als bezahlt markieren», форма
++= ставка/поставщик/срок/файл; расход без срока = оплачен сразу (легаси-паритет).
+**Mahnwesen v1:** `Invoice` += mahn_level/mahned_at; кнопка на Offene Posten →
+письмо клиенту (шаблоны invoice_mahnung, локаль тенанта, notifications-дедуп
+«уровень+день»), эскалация 1→2→3 с капом.
+
+**ERP-4:** Ergebnis += «USt aus Einnahmen − Vorsteuer aus Ausgaben = Zahllast»
+(налог из брутто amount×rate/(100+rate); ставка 0 честно не даёт вычета);
+`datev_expenses_csv` — Aufwandskonto по категории (SKR03: 3400/4530/4660/…)
+an Kasse, зеркало выручки — бухгалтер получает ОБЕ стороны; кнопка DATEV на
+Ausgaben; ручная форма расхода получила ставку НДС (до этого Vorsteuer было
+не из чего считать).
+
+Замки: test_erp34_bills (4, свежая БД). Грабли тестов: TenantFactory(public)
+дважды в одном тесте — unique violation (переиспользовать существующего);
+username-счётчики коллидируют — uuid.

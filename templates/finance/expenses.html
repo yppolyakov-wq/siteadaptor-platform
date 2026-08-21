@@ -4,7 +4,10 @@
 
 {% block dash_content %}
 <div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
-  <h1 class="text-2xl font-bold">{% trans "Ausgaben" %}</h1>
+  <div>
+    <h1 class="text-2xl font-bold">{% trans "Ausgaben" %}</h1>
+    <a href="{% url 'finance:expenses-datev' %}?von={{ von|date:'Y-m-d' }}&bis={{ bis|date:'Y-m-d' }}" class="text-sm text-indigo-600 hover:underline">DATEV</a>
+  </div>
   <form method="get" class="flex flex-wrap items-center gap-2 text-sm">
     <input type="date" name="von" value="{{ von|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-2 py-1.5">
     <span class="text-gray-400">–</span>
@@ -37,11 +40,33 @@
   {% endfor %}
 </div>
 
-<form method="post" class="mb-6 flex flex-wrap items-end gap-2 rounded-xl border border-gray-200 p-4 text-sm">
+<form method="post" enctype="multipart/form-data" class="mb-6 flex flex-wrap items-end gap-2 rounded-xl border border-gray-200 p-4 text-sm">
   {% csrf_token %}
   <div>
     <label class="block text-xs text-gray-400 mb-1">{% trans "Amount" %}</label>
     <input name="amount" inputmode="decimal" placeholder="0,00" required class="w-28 rounded-lg border border-gray-300 px-2 py-1.5">
+  </div>
+  <div>
+    <label class="block text-xs text-gray-400 mb-1">{% trans "USt.-Satz" %}</label>
+    <select name="vat_rate" class="rounded-lg border border-gray-300 px-2 py-1.5">
+      <option value="0.00">0 %</option>
+      {% for r in vat_rates %}{% if r %}<option value="{{ r }}">{{ r|floatformat:0 }} %</option>{% endif %}{% endfor %}
+    </select>
+  </div>
+  <div>
+    <label class="block text-xs text-gray-400 mb-1">{% trans "Anbieter" %}</label>
+    <select name="supplier" class="rounded-lg border border-gray-300 px-2 py-1.5">
+      <option value="">—</option>
+      {% for sp in suppliers %}<option value="{{ sp.pk }}">{{ sp.name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div>
+    <label class="block text-xs text-gray-400 mb-1">{% trans "Zahlungsziel" %}</label>
+    <input type="date" name="due_date" class="rounded-lg border border-gray-300 px-2 py-1.5">
+  </div>
+  <div>
+    <label class="block text-xs text-gray-400 mb-1">{% trans "Beleg (Foto/PDF)" %}</label>
+    <input type="file" name="beleg" accept="image/*,.pdf" class="text-xs">
   </div>
   <div>
     <label class="block text-xs text-gray-400 mb-1">{% trans "Kategorie" %}</label>
@@ -59,6 +84,28 @@
   </div>
   <button class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">{% trans "Ausgabe erfassen" %}</button>
 </form>
+
+{% if open_bills %}
+{# ERP-3: входящие счета с сроком — вне периода: долг не зависит от фильтра. #}
+<h2 class="text-lg font-semibold mb-2">{% trans "Offene Eingangsrechnungen" %}</h2>
+<div class="mb-6 space-y-2">
+  {% for e in open_bills %}
+  <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border p-3 text-sm {% if e.is_overdue %}border-red-200 bg-red-50{% else %}border-gray-200{% endif %}">
+    <div>
+      <span class="font-medium">−{{ e.amount|floatformat:2 }} €</span>
+      {% if e.supplier %}<span class="text-gray-500"> · {{ e.supplier.name }}</span>{% endif %}
+      <span class="text-xs {% if e.is_overdue %}text-red-600{% else %}text-gray-400{% endif %}"> · {% trans "fällig" %} {{ e.due_date|date:"d.m.Y" }}</span>
+      {% if e.document %}<a href="{% url 'account-document-download' e.document.pk %}" class="text-xs text-indigo-600 hover:underline"> · {% trans "Beleg" %}</a>{% endif %}
+      {% if e.note %}<div class="text-xs text-gray-400">{{ e.note }}</div>{% endif %}
+    </div>
+    <form method="post">{% csrf_token %}
+      <input type="hidden" name="action" value="mark_paid"><input type="hidden" name="id" value="{{ e.pk }}">
+      <button class="rounded-lg border border-green-300 bg-green-50 px-3 py-1.5 text-xs text-green-800 hover:bg-green-100">{% trans "Als bezahlt markieren" %}</button>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
 
 <div class="overflow-x-auto rounded-xl border border-gray-200">
   <table class="min-w-full text-sm">

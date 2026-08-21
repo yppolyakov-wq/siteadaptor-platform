@@ -19820,3 +19820,97 @@ msgstr "CSV не розпізнано — не знайдено колонки �
 #: finance ERP-2
 msgid "Zahlung zugeordnet — Position ist bezahlt."
 msgstr "Платіж зіставлено — позицію оплачено."
+
+#: finance ERP-3/4
+#, python-format
+msgid "%(s)s. Mahnung — Rechnung %(n)s"
+msgstr "Нагадування %(s)s — рахунок %(n)s"
+
+#: finance ERP-3/4
+msgid "Als bezahlt markiert."
+msgstr "Позначено як оплачено."
+
+#: finance ERP-3/4
+msgid "Beleg"
+msgstr "Документ"
+
+#: finance ERP-3/4
+msgid "Beleg (Foto/PDF)"
+msgstr "Документ (фото/PDF)"
+
+#: finance ERP-3/4
+msgid "Beleg konnte nicht gespeichert werden."
+msgstr "Не вдалося зберегти документ."
+
+#: finance ERP-3/4
+msgid "Falls die Zahlung bereits unterwegs ist, betrachten Sie diese Nachricht als gegenstandslos."
+msgstr "Якщо оплату вже надіслано, просто проігноруйте цей лист."
+
+#: finance ERP-3/4
+msgid "Guten Tag,"
+msgstr "Доброго дня!"
+
+#: finance ERP-3/4
+msgid "Kunde hat keine E-Mail — Mahnung nicht möglich."
+msgstr "У клієнта немає e-mail — нагадування неможливе."
+
+#: finance ERP-3/4
+#, python-format
+msgid "Mahnstufe %(n)s verschickt."
+msgstr "Надіслано нагадування рівня %(n)s."
+
+#: finance ERP-3/4
+#, python-format
+msgid "Mahnung (%(n)s)"
+msgstr "Нагадування (%(n)s)"
+
+#: finance ERP-3/4
+msgid "Mahnung heute bereits verschickt."
+msgstr "Нагадування сьогодні вже надіслано."
+
+#: finance ERP-3/4
+msgid "Offene Eingangsrechnungen"
+msgstr "Неоплачені вхідні рахунки"
+
+#: finance ERP-3/4
+msgid "USt aus Einnahmen"
+msgstr "ПДВ з доходів"
+
+#: finance ERP-3/4
+msgid "USt-Zahllast (Richtwert)"
+msgstr "ПДВ до сплати (орієнтир)"
+
+#: finance ERP-3/4
+msgid "USt.-Satz"
+msgstr "Ставка ПДВ"
+
+#: finance ERP-3/4
+msgid "Vorsteuer aus Ausgaben"
+msgstr "Вхідний ПДВ з витрат"
+
+#: finance ERP-3/4
+#, python-format
+msgid "Zahlungserinnerung — Rechnung %(n)s"
+msgstr "Нагадування про оплату — рахунок %(n)s"
+
+#: finance ERP-3/4
+msgid "Zahlungsziel"
+msgstr "Строк оплати"
+
+#: finance ERP-3/4
+msgid "fällig"
+msgstr "строк"
+
+#: finance ERP-3/4
+#, python-format
+msgid "sicher ist es Ihrer Aufmerksamkeit entgangen: Die Rechnung %(n)s über %(g)s € ist noch offen. Wir bitten um Ausgleich in den nächsten Tagen."
+msgstr "ймовірно, це просто випало з уваги: рахунок %(n)s на %(g)s € ще не сплачено. Просимо сплатити його найближчими днями."
+
+#: finance ERP-3/4
+#, python-format
+msgid "trotz Erinnerung ist die Rechnung %(n)s über %(g)s € weiterhin offen. Bitte begleichen Sie den Betrag umgehend."
+msgstr "попри нагадування, рахунок %(n)s на %(g)s € досі не сплачено. Просимо погасити суму негайно."
+
+#: documents ERP-3
+msgid "Beleg / Eingangsrechnung"
+msgstr "Документ / вхідний рахунок"

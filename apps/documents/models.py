@@ -29,7 +29,9 @@ class SecureDocument(TimestampedModel):
     KIND_INSURANCE = "insurance"
     KIND_VISA = "visa"
     KIND_OTHER = "other"
+    KIND_RECEIPT = "receipt"  # ERP-3: входящий счёт/чек поставщика (кабинет-only)
     KINDS = [
+        (KIND_RECEIPT, _("Beleg / Eingangsrechnung")),
         (KIND_PASSPORT, _("Reisepass")),
         (KIND_LICENSE, _("Führerschein")),
         (KIND_INSURANCE, _("Versicherung")),
@@ -41,7 +43,12 @@ class SecureDocument(TimestampedModel):
     BY_STAFF = "staff"
     UPLOADERS = [(BY_CUSTOMER, _("Teilnehmer")), (BY_STAFF, _("Team"))]
 
-    owner = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="documents")
+    # ERP-3: owner опционален — Beleg поставщика принадлежит бизнесу, не гостю;
+    # can_access без owner отдаёт файл только кабинету (клиентская ветка
+    # сравнивает owner_id и с None не совпадает — fail-closed по построению).
+    owner = models.ForeignKey(
+        Customer, null=True, blank=True, on_delete=models.CASCADE, related_name="documents"
+    )
     kind = models.CharField(max_length=20, choices=KINDS, default=KIND_OTHER)
     # Мягкая привязка к сделке: ("ticket", <uuid>) — билет на заезд.
     ref_kind = models.CharField(max_length=20, blank=True)

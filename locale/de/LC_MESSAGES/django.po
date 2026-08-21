@@ -19752,3 +19752,97 @@ msgstr "CSV nicht erkannt — Datums- und Betragsspalte nicht gefunden."
 #: finance ERP-2
 msgid "Zahlung zugeordnet — Position ist bezahlt."
 msgstr "Zahlung zugeordnet — Position ist bezahlt."
+
+#: finance ERP-3/4
+#, python-format
+msgid "%(s)s. Mahnung — Rechnung %(n)s"
+msgstr "%(s)s. Mahnung — Rechnung %(n)s"
+
+#: finance ERP-3/4
+msgid "Als bezahlt markiert."
+msgstr "Als bezahlt markiert."
+
+#: finance ERP-3/4
+msgid "Beleg"
+msgstr "Beleg"
+
+#: finance ERP-3/4
+msgid "Beleg (Foto/PDF)"
+msgstr "Beleg (Foto/PDF)"
+
+#: finance ERP-3/4
+msgid "Beleg konnte nicht gespeichert werden."
+msgstr "Beleg konnte nicht gespeichert werden."
+
+#: finance ERP-3/4
+msgid "Falls die Zahlung bereits unterwegs ist, betrachten Sie diese Nachricht als gegenstandslos."
+msgstr "Falls die Zahlung bereits unterwegs ist, betrachten Sie diese Nachricht als gegenstandslos."
+
+#: finance ERP-3/4
+msgid "Guten Tag,"
+msgstr "Guten Tag,"
+
+#: finance ERP-3/4
+msgid "Kunde hat keine E-Mail — Mahnung nicht möglich."
+msgstr "Kunde hat keine E-Mail — Mahnung nicht möglich."
+
+#: finance ERP-3/4
+#, python-format
+msgid "Mahnstufe %(n)s verschickt."
+msgstr "Mahnstufe %(n)s verschickt."
+
+#: finance ERP-3/4
+#, python-format
+msgid "Mahnung (%(n)s)"
+msgstr "Mahnung (%(n)s)"
+
+#: finance ERP-3/4
+msgid "Mahnung heute bereits verschickt."
+msgstr "Mahnung heute bereits verschickt."
+
+#: finance ERP-3/4
+msgid "Offene Eingangsrechnungen"
+msgstr "Offene Eingangsrechnungen"
+
+#: finance ERP-3/4
+msgid "USt aus Einnahmen"
+msgstr "USt aus Einnahmen"
+
+#: finance ERP-3/4
+msgid "USt-Zahllast (Richtwert)"
+msgstr "USt-Zahllast (Richtwert)"
+
+#: finance ERP-3/4
+msgid "USt.-Satz"
+msgstr "USt.-Satz"
+
+#: finance ERP-3/4
+msgid "Vorsteuer aus Ausgaben"
+msgstr "Vorsteuer aus Ausgaben"
+
+#: finance ERP-3/4
+#, python-format
+msgid "Zahlungserinnerung — Rechnung %(n)s"
+msgstr "Zahlungserinnerung — Rechnung %(n)s"
+
+#: finance ERP-3/4
+msgid "Zahlungsziel"
+msgstr "Zahlungsziel"
+
+#: finance ERP-3/4
+msgid "fällig"
+msgstr "fällig"
+
+#: finance ERP-3/4
+#, python-format
+msgid "sicher ist es Ihrer Aufmerksamkeit entgangen: Die Rechnung %(n)s über %(g)s € ist noch offen. Wir bitten um Ausgleich in den nächsten Tagen."
+msgstr "sicher ist es Ihrer Aufmerksamkeit entgangen: Die Rechnung %(n)s über %(g)s € ist noch offen. Wir bitten um Ausgleich in den nächsten Tagen."
+
+#: finance ERP-3/4
+#, python-format
+msgid "trotz Erinnerung ist die Rechnung %(n)s über %(g)s € weiterhin offen. Bitte begleichen Sie den Betrag umgehend."
+msgstr "trotz Erinnerung ist die Rechnung %(n)s über %(g)s € weiterhin offen. Bitte begleichen Sie den Betrag umgehend."
+
+#: documents ERP-3
+msgid "Beleg / Eingangsrechnung"
+msgstr "Beleg / Eingangsrechnung"

@@ -19750,3 +19750,97 @@ msgstr "CSV tanınmadı — tarih ve tutar sütunları bulunamadı."
 #: finance ERP-2
 msgid "Zahlung zugeordnet — Position ist bezahlt."
 msgstr "Ödeme eşleştirildi — kalem ödendi."
+
+#: finance ERP-3/4
+#, python-format
+msgid "%(s)s. Mahnung — Rechnung %(n)s"
+msgstr "%(s)s. ihtar — fatura %(n)s"
+
+#: finance ERP-3/4
+msgid "Als bezahlt markiert."
+msgstr "Ödendi olarak işaretlendi."
+
+#: finance ERP-3/4
+msgid "Beleg"
+msgstr "Belge"
+
+#: finance ERP-3/4
+msgid "Beleg (Foto/PDF)"
+msgstr "Belge (foto/PDF)"
+
+#: finance ERP-3/4
+msgid "Beleg konnte nicht gespeichert werden."
+msgstr "Belge kaydedilemedi."
+
+#: finance ERP-3/4
+msgid "Falls die Zahlung bereits unterwegs ist, betrachten Sie diese Nachricht als gegenstandslos."
+msgstr "Ödemeniz zaten yoldaysa bu mesajı dikkate almayın."
+
+#: finance ERP-3/4
+msgid "Guten Tag,"
+msgstr "Merhaba,"
+
+#: finance ERP-3/4
+msgid "Kunde hat keine E-Mail — Mahnung nicht möglich."
+msgstr "Müşterinin e-postası yok — ihtar gönderilemez."
+
+#: finance ERP-3/4
+#, python-format
+msgid "Mahnstufe %(n)s verschickt."
+msgstr "%(n)s. seviye ihtar gönderildi."
+
+#: finance ERP-3/4
+#, python-format
+msgid "Mahnung (%(n)s)"
+msgstr "İhtar (%(n)s)"
+
+#: finance ERP-3/4
+msgid "Mahnung heute bereits verschickt."
+msgstr "İhtar bugün zaten gönderildi."
+
+#: finance ERP-3/4
+msgid "Offene Eingangsrechnungen"
+msgstr "Açık tedarikçi faturaları"
+
+#: finance ERP-3/4
+msgid "USt aus Einnahmen"
+msgstr "Gelirlerden KDV"
+
+#: finance ERP-3/4
+msgid "USt-Zahllast (Richtwert)"
+msgstr "Ödenecek KDV (gösterge)"
+
+#: finance ERP-3/4
+msgid "USt.-Satz"
+msgstr "KDV oranı"
+
+#: finance ERP-3/4
+msgid "Vorsteuer aus Ausgaben"
+msgstr "Giderlerden indirilecek KDV"
+
+#: finance ERP-3/4
+#, python-format
+msgid "Zahlungserinnerung — Rechnung %(n)s"
+msgstr "Ödeme hatırlatması — fatura %(n)s"
+
+#: finance ERP-3/4
+msgid "Zahlungsziel"
+msgstr "Vade"
+
+#: finance ERP-3/4
+msgid "fällig"
+msgstr "vade"
+
+#: finance ERP-3/4
+#, python-format
+msgid "sicher ist es Ihrer Aufmerksamkeit entgangen: Die Rechnung %(n)s über %(g)s € ist noch offen. Wir bitten um Ausgleich in den nächsten Tagen."
+msgstr "gözünüzden kaçmış olmalı: %(g)s € tutarındaki %(n)s numaralı fatura hâlâ açık. Önümüzdeki günlerde ödemenizi rica ederiz."
+
+#: finance ERP-3/4
+#, python-format
+msgid "trotz Erinnerung ist die Rechnung %(n)s über %(g)s € weiterhin offen. Bitte begleichen Sie den Betrag umgehend."
+msgstr "hatırlatmamıza rağmen %(g)s € tutarındaki %(n)s numaralı fatura hâlâ açık. Lütfen tutarı derhal ödeyin."
+
+#: documents ERP-3
+msgid "Beleg / Eingangsrechnung"
+msgstr "Belge / tedarikçi faturası"

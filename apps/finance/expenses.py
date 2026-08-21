@@ -69,6 +69,17 @@ class ExpenseEntry(TimestampedModel):
     # kind живёт в другом аппе и наборы растут (прецедент — DealLink).
     ref_kind = models.CharField(max_length=20, blank=True)
     ref_id = models.CharField(max_length=64, blank=True)
+    # ERP-3: расход как ДОКУМЕНТ (Eingangsrechnung): поставщик, срок оплаты,
+    # факт оплаты, файл/фото счёта (SecureDocument — приватная выдача, MT-2).
+    # Легаси-строки: всё пусто = «оплачено сразу» (как вели себя раньше).
+    supplier = models.ForeignKey(
+        "inventory.Lieferant", null=True, blank=True, on_delete=models.SET_NULL
+    )
+    due_date = models.DateField(null=True, blank=True)  # Zahlungsziel
+    paid_at = models.DateField(null=True, blank=True)
+    document = models.ForeignKey(
+        "documents.SecureDocument", null=True, blank=True, on_delete=models.SET_NULL
+    )
     note = models.CharField(max_length=200, blank=True)
 
     class Meta:
@@ -84,6 +95,17 @@ class ExpenseEntry(TimestampedModel):
             models.Index(fields=["date"], name="expense_date_idx"),
             models.Index(fields=["event"], name="expense_event_idx"),
         ]
+
+    @property
+    def is_open(self) -> bool:
+        """ERP-3: входящий счёт ждёт оплаты (есть срок, оплата не отмечена)."""
+        return self.due_date is not None and self.paid_at is None
+
+    @property
+    def is_overdue(self) -> bool:
+        from django.utils import timezone as _tz
+
+        return self.is_open and self.due_date < _tz.localdate()
 
     def __str__(self):
         return f"{self.date} −{self.amount} {self.currency} ({self.get_category_display()})"

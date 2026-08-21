@@ -28,6 +28,20 @@
     <p class="text-2xl font-semibold {% if result < 0 %}text-red-600{% endif %}">{{ result|floatformat:2 }} €</p>
   </div>
 </div>
+<div class="mt-4 grid sm:grid-cols-3 gap-4 max-w-3xl">
+  <div class="rounded-xl border border-gray-200 p-5">
+    <p class="text-xs text-gray-400">{% trans "USt aus Einnahmen" %}</p>
+    <p class="text-xl font-semibold">{{ ust|floatformat:2 }} €</p>
+  </div>
+  <div class="rounded-xl border border-gray-200 p-5">
+    <p class="text-xs text-gray-400">{% trans "Vorsteuer aus Ausgaben" %}</p>
+    <p class="text-xl font-semibold">−{{ vorsteuer|floatformat:2 }} €</p>
+  </div>
+  <div class="rounded-xl border border-gray-200 p-5">
+    <p class="text-xs text-gray-400">{% trans "USt-Zahllast (Richtwert)" %}</p>
+    <p class="text-xl font-semibold">{{ zahllast|floatformat:2 }} €</p>
+  </div>
+</div>
 {% if cogs %}
 <div class="mt-4 grid sm:grid-cols-2 gap-4 max-w-2xl">
   <div class="rounded-xl border border-gray-200 p-5">

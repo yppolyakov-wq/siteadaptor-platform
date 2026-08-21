@@ -77,3 +77,51 @@ def datev_csv(entries) -> str:
             ]
         )
     return buffer.getvalue()
+
+
+# ERP-4: счета затрат SKR03 (упрощённо, по категориям ExpenseEntry) — как
+# ERLOES_BY_VAT: бухгалтер перемапит, но выгрузка сразу осмысленна.
+AUFWAND_BY_CATEGORY = {
+    "goods": "3400",  # Wareneingang
+    "accommodation": "4660",  # Reisekosten/Unterkunft
+    "transport": "4530",  # Fahrzeug-/Transportkosten
+    "fees": "4380",  # Beiträge/Gebühren
+    "staff": "4190",  # Personal (Aushilfen vor Ort)
+    "other": "4900",  # Sonstige betriebliche Aufwendungen
+}
+
+
+def datev_expenses_csv(entries) -> str:
+    """ERP-4: DATEV-Buchungsstapel расходов — Aufwandskonto (Soll) an Kasse.
+
+    Зеркало `datev_csv` (выручка): тот же формат/кодировка, бухгалтер получает
+    ОБЕ стороны, а не половину книги."""
+    buffer = io.StringIO()
+    writer = csv.writer(buffer, delimiter=";")
+    writer.writerow(
+        [
+            "Umsatz",
+            "Soll/Haben-Kennzeichen",
+            "WKZ Umsatz",
+            "Konto",
+            "Gegenkonto (ohne BU-Schlüssel)",
+            "Belegdatum",
+            "Belegfeld 1",
+            "Buchungstext",
+        ]
+    )
+    for entry in entries:
+        konto = AUFWAND_BY_CATEGORY.get(entry.category, "4900")
+        writer.writerow(
+            [
+                _comma(entry.amount),
+                "S",
+                entry.currency,
+                konto,
+                KASSE,
+                entry.date.strftime("%d%m"),
+                str(entry.pk)[:12],
+                csv_safe(entry.note or entry.get_category_display()),
+            ]
+        )
+    return buffer.getvalue()

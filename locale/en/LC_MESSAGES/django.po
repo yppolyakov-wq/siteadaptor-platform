@@ -19624,3 +19624,97 @@ msgstr "CSV not recognised — date and amount columns not found."
 #: finance ERP-2
 msgid "Zahlung zugeordnet — Position ist bezahlt."
 msgstr "Payment matched — the item is paid."
+
+#: finance ERP-3/4
+#, python-format
+msgid "%(s)s. Mahnung — Rechnung %(n)s"
+msgstr "Reminder %(s)s — invoice %(n)s"
+
+#: finance ERP-3/4
+msgid "Als bezahlt markiert."
+msgstr "Marked as paid."
+
+#: finance ERP-3/4
+msgid "Beleg"
+msgstr "Receipt"
+
+#: finance ERP-3/4
+msgid "Beleg (Foto/PDF)"
+msgstr "Receipt (photo/PDF)"
+
+#: finance ERP-3/4
+msgid "Beleg konnte nicht gespeichert werden."
+msgstr "Receipt could not be saved."
+
+#: finance ERP-3/4
+msgid "Falls die Zahlung bereits unterwegs ist, betrachten Sie diese Nachricht als gegenstandslos."
+msgstr "If your payment is already on its way, please disregard this message."
+
+#: finance ERP-3/4
+msgid "Guten Tag,"
+msgstr "Hello,"
+
+#: finance ERP-3/4
+msgid "Kunde hat keine E-Mail — Mahnung nicht möglich."
+msgstr "Customer has no email — reminder not possible."
+
+#: finance ERP-3/4
+#, python-format
+msgid "Mahnstufe %(n)s verschickt."
+msgstr "Reminder level %(n)s sent."
+
+#: finance ERP-3/4
+#, python-format
+msgid "Mahnung (%(n)s)"
+msgstr "Reminder (%(n)s)"
+
+#: finance ERP-3/4
+msgid "Mahnung heute bereits verschickt."
+msgstr "Reminder already sent today."
+
+#: finance ERP-3/4
+msgid "Offene Eingangsrechnungen"
+msgstr "Open supplier invoices"
+
+#: finance ERP-3/4
+msgid "USt aus Einnahmen"
+msgstr "VAT on revenue"
+
+#: finance ERP-3/4
+msgid "USt-Zahllast (Richtwert)"
+msgstr "VAT payable (indicative)"
+
+#: finance ERP-3/4
+msgid "USt.-Satz"
+msgstr "VAT rate"
+
+#: finance ERP-3/4
+msgid "Vorsteuer aus Ausgaben"
+msgstr "Input VAT on expenses"
+
+#: finance ERP-3/4
+#, python-format
+msgid "Zahlungserinnerung — Rechnung %(n)s"
+msgstr "Payment reminder — invoice %(n)s"
+
+#: finance ERP-3/4
+msgid "Zahlungsziel"
+msgstr "Payment term"
+
+#: finance ERP-3/4
+msgid "fällig"
+msgstr "due"
+
+#: finance ERP-3/4
+#, python-format
+msgid "sicher ist es Ihrer Aufmerksamkeit entgangen: Die Rechnung %(n)s über %(g)s € ist noch offen. Wir bitten um Ausgleich in den nächsten Tagen."
+msgstr "it has surely just slipped your attention: invoice %(n)s for %(g)s € is still open. Please settle it within the next few days."
+
+#: finance ERP-3/4
+#, python-format
+msgid "trotz Erinnerung ist die Rechnung %(n)s über %(g)s € weiterhin offen. Bitte begleichen Sie den Betrag umgehend."
+msgstr "despite our reminder, invoice %(n)s for %(g)s € remains open. Please settle the amount immediately."
+
+#: documents ERP-3
+msgid "Beleg / Eingangsrechnung"
+msgstr "Receipt / supplier invoice"

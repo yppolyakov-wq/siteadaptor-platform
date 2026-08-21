@@ -1,0 +1,1 @@
+{% load i18n %}{% if level == 1 %}{% blocktrans with n=number %}Zahlungserinnerung — Rechnung {{ n }}{% endblocktrans %}{% else %}{% blocktrans with n=number s=level %}{{ s }}. Mahnung — Rechnung {{ n }}{% endblocktrans %}{% endif %}

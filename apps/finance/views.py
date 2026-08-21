@@ -93,6 +93,13 @@ def expenses(request):
     from .expenses import ExpenseEntry
 
     if request.method == "POST":
+        if request.POST.get("action") == "mark_paid":
+            # ERP-3: входящий счёт оплачен — закрывает строку в «offen».
+            ExpenseEntry.objects.filter(pk=request.POST.get("id"), paid_at__isnull=True).update(
+                paid_at=timezone.localdate()
+            )
+            messages.success(request, _("Als bezahlt markiert."))
+            return redirect("finance:expenses")
         if request.POST.get("action") == "delete":
             ExpenseEntry.objects.filter(
                 pk=request.POST.get("id"), source=ExpenseEntry.SOURCE_MANUAL
@@ -110,10 +117,44 @@ def expenses(request):
         category = request.POST.get("category", "")
         if category not in dict(ExpenseEntry.CATEGORIES):
             category = ExpenseEntry.CATEGORY_OTHER
+        # ERP-3: расход как документ — ставка (Vorsteuer, ERP-4), поставщик,
+        # срок оплаты, файл счёта (SecureDocument: шифрованный, кабинет-only).
+        vat_raw = request.POST.get("vat_rate", "")
+        vat_rate = next((r for r in RevenueEntry.VAT_RATES if str(r) == vat_raw), Decimal("0.00"))
+        supplier = None
+        if request.POST.get("supplier"):
+            from apps.inventory.models import Lieferant
+
+            supplier = Lieferant.objects.filter(pk=request.POST.get("supplier")).first()
+        due = (
+            _parse_date(request.POST.get("due_date"), None)
+            if request.POST.get("due_date")
+            else None
+        )
+        document = None
+        if request.FILES.get("beleg"):
+            from apps.documents import services as doc_services
+            from apps.documents.models import SecureDocument
+
+            try:
+                document = doc_services.store(
+                    request.FILES["beleg"],
+                    owner=None,
+                    kind=SecureDocument.KIND_RECEIPT,
+                    note="Eingangsrechnung",
+                    uploaded_by=str(request.user)[:150],
+                )
+            except Exception:  # noqa: BLE001 — битый файл не роняет запись расхода
+                messages.warning(request, _("Beleg konnte nicht gespeichert werden."))
         ExpenseEntry.objects.create(
             source=ExpenseEntry.SOURCE_MANUAL,
             amount=amount,
             category=category,
+            vat_rate=vat_rate,
+            supplier=supplier,
+            due_date=due,
+            paid_at=None if due else timezone.localdate(),
+            document=document,
             date=_parse_date(request.POST.get("date"), timezone.localdate()),
             note=request.POST.get("note", "").strip()[:200],
         )
@@ -123,10 +164,21 @@ def expenses(request):
     von, bis, qs = _period_expenses(request)
     by_cat = qs.values("category").annotate(sum=Sum("amount")).order_by("-sum")
     cat_labels = dict(ExpenseEntry.CATEGORIES)
+    # ERP-3: открытые входящие счета — ВНЕ периода (долг не зависит от фильтра).
+    open_bills = list(
+        ExpenseEntry.objects.filter(due_date__isnull=False, paid_at__isnull=True)
+        .select_related("supplier", "document")
+        .order_by("due_date")[:100]
+    )
+    from apps.inventory.models import Lieferant
+
     return render(
         request,
         "finance/expenses.html",
         {
+            "open_bills": open_bills,
+            "suppliers": list(Lieferant.objects.filter(is_active=True).order_by("name")),
+            "vat_rates": RevenueEntry.VAT_RATES,
             "nav": "finance",
             "von": von,
             "bis": bis,
@@ -174,6 +226,16 @@ def ergebnis(request):
     revenue = sum((e.amount for e in entries), Decimal("0"))
     spent = expense_qs.aggregate(s=Sum("amount"))["s"] or Decimal("0")
     cogs, cogs_partial = _order_cogs(entries)
+    # ERP-4: UStVA-срез — налог из БРУТТО: amount × rate/(100+rate). Расходы со
+    # ставкой 0 (легаси/безставочные) Vorsteuer не дают — честно.
+    ust = sum(
+        (e.amount * e.vat_rate / (Decimal("100") + e.vat_rate) for e in entries if e.vat_rate),
+        Decimal("0"),
+    )
+    vorsteuer = sum(
+        (e.amount * e.vat_rate / (Decimal("100") + e.vat_rate) for e in expense_qs if e.vat_rate),
+        Decimal("0"),
+    )
     return render(
         request,
         "finance/ergebnis.html",
@@ -187,6 +249,9 @@ def ergebnis(request):
             "cogs": cogs,
             "cogs_partial": cogs_partial,
             "rohertrag": revenue - cogs,
+            "ust": ust,
+            "vorsteuer": vorsteuer,
+            "zahllast": ust - vorsteuer,
         },
     )
 
@@ -266,6 +331,73 @@ def bank_import(request):
         "finance/bank.html",
         {"nav": "finance", "unmatched": unmatched, "matched": matched},
     )
+
+
+@login_required
+def invoice_mahnung(request, pk):
+    """ERP-3 Mahnwesen v1: ступень напоминания по выставленному счёту.
+
+    POST: level++ (макс 3), письмо клиенту (dedupe «не чаще раза в день» —
+    notifications-БД), отметка mahned_at. Возврат на Offene Posten."""
+    from django.db import connection
+    from django.utils import translation
+
+    from apps.notifications.services import notify
+
+    from .models import Invoice
+
+    invoice = get_object_or_404(Invoice, pk=pk, status="issued")
+    email = getattr(invoice.customer, "email", "") if invoice.customer_id else ""
+    if not email:
+        messages.error(request, _("Kunde hat keine E-Mail — Mahnung nicht möglich."))
+        return redirect("finance:offene")
+    level = min(int(invoice.mahn_level) + 1, 3)
+    tenant = getattr(request, "tenant", None)
+    locale = getattr(tenant, "default_locale", "") or "de"
+    from django.template.loader import render_to_string
+
+    ctx = {
+        "level": level,
+        "number": invoice.number_display,
+        "gross": f"{invoice.gross:.2f}".replace(".", ","),
+        "business_name": getattr(tenant, "name", "") or "",
+    }
+    with translation.override(locale if isinstance(locale, str) else "de"):
+        subject = render_to_string("emails/invoice_mahnung_subject.txt", ctx).strip()
+        body = render_to_string("emails/invoice_mahnung.txt", ctx)
+    sent = notify(
+        dedupe_key=(
+            f"{connection.schema_name}:invoice-mahn:{invoice.pk}:{level}:{timezone.localdate()}"
+        ),
+        type="invoice_mahnung",
+        recipient=email,
+        subject=subject,
+        body=body,
+    )
+    if sent is None:
+        messages.info(request, _("Mahnung heute bereits verschickt."))
+    else:
+        invoice.mahn_level = level
+        invoice.mahned_at = timezone.localdate()
+        invoice.save(update_fields=["mahn_level", "mahned_at", "updated_at"])
+        messages.success(request, _("Mahnstufe %(n)s verschickt.") % {"n": level})
+    return redirect("finance:offene")
+
+
+@login_required
+def expenses_export_datev(request):
+    """ERP-4: DATEV-CSV расходов за период — бухгалтер получает обе стороны."""
+    from django.http import HttpResponse
+
+    from .exports import datev_expenses_csv
+
+    von, bis, qs = _period_expenses(request)
+    response = HttpResponse(
+        datev_expenses_csv(qs.order_by("date")).encode("cp1252", errors="replace"),
+        content_type="text/csv; charset=windows-1252",
+    )
+    response["Content-Disposition"] = f'attachment; filename="datev_ausgaben_{von}_{bis}.csv"'
+    return response
 
 
 def _period_entries(request):

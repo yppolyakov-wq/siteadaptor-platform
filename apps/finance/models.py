@@ -119,6 +119,10 @@ class Invoice(TimestampedModel):
     vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     gross = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     issued_at = models.DateTimeField(null=True, blank=True)
+    # ERP-3 Mahnwesen v1: ступень напоминания (0=нет, 1=Zahlungserinnerung,
+    # 2/3=Mahnung) + когда отправляли (дедуп «не чаще раза в день»).
+    mahn_level = models.PositiveSmallIntegerField(default=0)
+    mahned_at = models.DateField(null=True, blank=True)
     note = models.CharField(max_length=200, blank=True)
 
     class Meta:
