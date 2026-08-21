@@ -5994,11 +5994,13 @@ MOTO = DemoKit(
             "capacity": 10,
             "price": "2490",
             "deposit_percent": 25,
+            # MX-2d (решение владельца §3.1): тир = категория УЧАСТИЯ; аренда
+            # байка — адресная опция с пулом (иначе ёмкость аренды не отследить).
             "tiers": [
-                ("Eigenes Motorrad", "1990", 3),
-                ("Royal Enfield 411", "2490", 6),
+                ("Fahrer", "1990", 9),
                 ("Sozius (ohne Bike)", "1490", 4),
             ],
+            "rental_option": ("Royal Enfield 411 mieten", "500", 6, "Moto-Verleih Manali"),
             "city": "Manali",
             "location": "Treffpunkt Hotel Snow Valley, Manali",
             "language": "de",
@@ -6022,7 +6024,8 @@ MOTO = DemoKit(
             "capacity": 10,
             "price": "2490",
             "deposit_percent": 25,
-            "tiers": [("Eigenes Motorrad", "1990", 3), ("Royal Enfield 411", "2490", 7)],
+            "tiers": [("Fahrer", "1990", 10)],
+            "rental_option": ("Royal Enfield 411 mieten", "500", 7, "Moto-Verleih Manali"),
             "city": "Manali",
             "language": "de",
             "waiver_required": True,
@@ -6049,7 +6052,8 @@ MOTO = DemoKit(
             "capacity": 8,
             "price": "2190",
             "deposit_percent": 25,
-            "tiers": [("Eigenes Motorrad", "1790", 2), ("Royal Enfield 411", "2190", 6)],
+            "tiers": [("Fahrer", "1790", 8)],
+            "rental_option": ("Royal Enfield 411 mieten", "400", 6, "Moto-Verleih Leh"),
             "city": "Leh",
             "location": "Treffpunkt Hotel Ladakh Palace, Leh",
             "language": "de",
@@ -10660,6 +10664,25 @@ def _seed_kit_modules(tenant, kit: DemoKit, refs: dict) -> None:
                         else None
                     ),
                 )
+                # MX-2d: адресная опция аренды у ЭТОГО заезда — тир перестал
+                # смешивать участие с арендой; пул и поставщик на опции.
+                rental = spec.get("rental_option")
+                if rental:
+                    from apps.core.models import Extra as _Extra
+                    from apps.inventory.models import Lieferant as _Lieferant
+
+                    r_label, r_price, r_pool, r_supplier = rental
+                    _sup, _created = _Lieferant.objects.get_or_create(name=r_supplier)
+                    _Extra.objects.create(
+                        label=r_label,
+                        price_cents=int(Decimal(str(r_price)) * 100),
+                        scope=_Extra.SCOPE_EVENTS,
+                        entity_kind="event",
+                        entity_id=str(event.pk),
+                        tracker=_Extra.TRACKER_POOL,
+                        pool_size=int(r_pool),
+                        supplier=_sup,
+                    )
                 # R5: привязать все засеянные типы номеров как варианты проживания.
                 if spec.get("offers_accommodation") and refs.get("stay_units"):
                     from apps.stays.models import StayUnit
@@ -11082,11 +11105,34 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
 
         try:
             ev = Event.objects.get(pk=refs["events"][0])
-            for who, mail, qty in [
-                ("Nina Roth", "nina@example.de", 2),
-                ("Paul Adam", "paul@example.de", 1),
-            ]:
+            # MX-2d: адресные опции события (аренда байка) — первый гость берёт
+            # первую, чтобы Zusatzverkäufe в демо был не пустым.
+            from apps.core import extras as _extras_engine
+
+            _addressed = [
+                e
+                for e in _extras_engine.active_for(
+                    "events", entity_kind="event", entity_id=str(ev.pk)
+                )
+                if e.entity_kind
+            ]
+            for idx, (who, mail, qty) in enumerate(
+                [
+                    ("Nina Roth", "nina@example.de", 2),
+                    ("Paul Adam", "paul@example.de", 1),
+                ]
+            ):
                 try:
+                    _snap = (
+                        _extras_engine.snapshot(
+                            [_addressed[0].pk],
+                            "events",
+                            entity_kind="event",
+                            entity_id=str(ev.pk),
+                        )
+                        if idx == 0 and _addressed
+                        else None
+                    )
                     # R8: подписываем waiver (на случай waiver_required события).
                     book_ticket(
                         ev,
@@ -11094,6 +11140,7 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                         email=mail,
                         quantity=qty,
                         auto_confirm=True,
+                        extras=_snap,
                         waiver_signed_name=who,
                         health_confirmed=True,
                         signed_ip="127.0.0.1",

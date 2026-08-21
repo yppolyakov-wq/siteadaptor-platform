@@ -1139,9 +1139,21 @@ def test_apply_moto_kit_seeds_tours_with_departures_and_route_visibility():
     # заезды привязаны к туру, а не висят отдельными событиями
     assert manali.departures.count() == 2
     assert Event.objects.filter(tour__isnull=True).count() == 0
-    # тиры «своя техника / аренда / пассажир» с собственными лимитами
+    # MX-2d (решение владельца 2026-08-21 §3.1): тир = категория УЧАСТИЯ
+    # (Fahrer/Sozius), аренда байка — АДРЕСНАЯ опция с пулом и поставщиком.
     juni = manali.departures.order_by("starts_at").first()
-    assert len(juni.tier_list) == 3
+    assert [t["label"] for t in juni.tier_list] == ["Fahrer", "Sozius (ohne Bike)"]
+    from apps.core.models import Extra
+
+    rental = Extra.objects.get(entity_kind="event", entity_id=str(juni.pk))
+    assert rental.label == "Royal Enfield 411 mieten"
+    assert rental.tracker == Extra.TRACKER_POOL and rental.pool_size == 6
+    assert rental.supplier is not None and "Manali" in rental.supplier.name
+    assert rental.price_cents == 50000  # +500 € к тиру участия
+    # демо-гость выбрал аренду → Zusatzverkäufe в демо не пуст
+    from apps.events.models import Ticket
+
+    assert Ticket.objects.filter(event=juni, extras__contains=[{"id": str(rental.pk)}]).exists()
     assert juni.deposit_percent == 25 and juni.waiver_required
     # анкета допуска к технике (мото-пресеты)
     assert "license_class" in juni.registration_fields
