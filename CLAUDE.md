@@ -1884,9 +1884,16 @@ Python 3.12, менеджер uv.
   DATEV расходов:** Ergebnis += USt/Vorsteuer/Zahllast (из брутто: amount×rate/(100+rate), ставки
   снимков) и `/finance/ausgaben/datev.csv` (SKR03: AUFWAND_BY_CATEGORY 3400/4660/4530/4380/4190/
   4900 an 1000 — зеркало datev_csv продаж). Замки: test_erp1_cogs (3) + test_erp2_bank (5) +
-  test_erp34_bills (4); finance+orders+documents 263 зелёных. Грабля CI: новые finance-шаблоны →
-  замок свежести app.css (пересобрать `npm run build:css` — урок повторился). ERP-5..7 (возврат
-  поставщику · часы Работы · производственный акт) — за отдельной отмашкой (гэп-анализ §4).
+  test_erp34_bills (4); finance+orders+documents 263 зелёных. **Три CI-грабли цикла:** (1) новые
+  finance-шаблоны → замок свежести app.css (пересобрать `npm run build:css` — урок повторился);
+  (2) msgfmt duplicate definition — msgid, добавленный прежней волной МНОГОСТРОЧНОЙ формой,
+  повторно добавлен одной строкой (msgfmt склеивает формы; перед пушем .po-батча — дуп-чек polib
+  по всем 5 каталогам, grep одной строки дубль не находит); (3) новые записи Ctrl+K-палитры =
+  текст в ХРОМЕ каждой страницы кабинета — негативные тест-ассерты на голые слова ловят хром
+  (inbox-тест с пробной темой «Offen» упал на «Offene Posten»; класс MEN — пробные строки
+  уникальными), а беспараметрные CSV-выгрузки — в EXPECTED_UNLISTED замка X7 (прецедент
+  export-datev). ERP-5..7 (возврат поставщику · часы Работы · производственный акт) — за
+  отдельной отмашкой (гэп-анализ §4).
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `core/0010` (Extra.consume_qty, v2-опции) + `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate) + `events/0028` (SupplierBooking вне туров) + `booking/0023` (Service.pricing_mode) + `catalog/0030` (Product.primary_action) + `finance/0009` (SOURCES gift/pass, choices-only)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. **Волна ERP (2026-08-21): `orders/0020` (OrderItem.cost_price) + `finance/0010` (BankTransaction) + `finance/0011` (Invoice.mahn_level/mahned_at + ExpenseEntry supplier/due_date/paid_at/document) + `documents/0002` (owner nullable + kind receipt)** — аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
