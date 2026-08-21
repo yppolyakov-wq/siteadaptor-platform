@@ -9273,6 +9273,25 @@ STADTFUEHRUNG = DemoKit(
     opening_hours_text="Touren täglich · Büro Mo–Fr 9:00–17:00",
     opening_hours={d: ("09:00", "17:00") for d in range(5)},
     menus=STADTFUEHRUNG_MENUS,
+    # Замок test_kits_have_first_screen: у каждого кита слайдер или hero-виджет.
+    heroes=[
+        {
+            "image_kw": "city,tour",
+            "title": "Altstadt & Dom — der Klassiker",
+            "text": "Zwei Stunden vom Dom bis an den Rhein — samstags und sonntags, "
+            "Einzelplätze ab 19 €.",
+            "button_label": "Termine ansehen",
+            "button_url": "/touren/",
+        },
+        {
+            "image_kw": "beer",
+            "title": "Kölsch & Brauhauskultur",
+            "text": "Freitagabend durch drei Brauhäuser — Geschichten inklusive, "
+            "Kölsch auch.",
+            "button_label": "Private Tour anfragen",
+            "button_url": "/anfrage/",
+        },
+    ],
     enable_modules=["events", "customer_account", "inbox", "jobs"],
     hide_archetypes=["catalog"],
     anfrage_form={
