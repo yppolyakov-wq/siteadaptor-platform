@@ -182,12 +182,27 @@ def booking_detail(request, pk):
     booking = get_object_or_404(
         Booking.objects.select_related("customer", "service", "resource"), pk=pk
     )
+    # MX-3: правка состава допов — опции услуги (scope-wide + адресные) и
+    # выбранные из снимка. Запись без услуги (бронь стола) — только scope-wide.
+    from apps.core import extras as extras_engine
+
+    if booking.service_id:
+        edit_extras = extras_engine.active_for(
+            "booking", entity_kind="service", entity_id=str(booking.service_id)
+        )
+    else:
+        edit_extras = extras_engine.active_for("booking")
+    chosen_extra_ids = {
+        str(e.get("id")) for e in (booking.extras or []) if isinstance(e, dict) and e.get("id")
+    }
     return render(
         request,
         "booking/booking_detail.html",
         {
             "b": booking,
             "nav": "booking",
+            "edit_extras": edit_extras,
+            "chosen_extra_ids": chosen_extra_ids,
             # VS-3: связь с якорной сделкой (запись может быть услугой к брони).
             "deal_links": deal_links.block_context("booking", booking.pk),
         },
@@ -218,6 +233,36 @@ def booking_action(request, pk):
             messages.error(request, _("Invalid date."))
         except services.SlotTaken:
             messages.error(request, _("That time is already taken."))
+        return redirect(back)
+    if action == "extras":
+        # MX-3: пересборка снимка допов записи; итог (total_cents) — свойство
+        # модели (цена+допы−скидка), отдельного пересчёта не требует. Сентинел
+        # не нужен: action=extras сам по себе явный. Оплаченная бронь с
+        # изменившимся итогом получает подсказку о доплате/возврате.
+        from apps.core import extras as extras_engine
+
+        if booking.status not in (Booking.STATUS_PENDING, Booking.STATUS_CONFIRMED):
+            messages.error(request, _("This step is not possible in the current status."))
+            return redirect(back)
+        old_total = booking.total_cents
+        booking.extras = extras_engine.snapshot(
+            request.POST.getlist("extra"),
+            "booking",
+            entity_kind="service" if booking.service_id else "",
+            entity_id=str(booking.service_id) if booking.service_id else "",
+        )
+        booking.save(update_fields=["extras", "updated_at"])
+        messages.success(request, _("Booking updated."))
+        if booking.payment_state == Booking.PAYMENT_PAID and booking.total_cents != old_total:
+            diff = (booking.total_cents - old_total) / 100
+            messages.warning(
+                request,
+                _(
+                    "Der Betrag hat sich um %(diff)s € geändert — Nachzahlung oder "
+                    "Erstattung mit dem Gast klären."
+                )
+                % {"diff": f"{diff:+.2f}"},
+            )
         return redirect(back)
     if action in ("confirmed", "fulfilled", "no_show", "cancelled"):
         try:

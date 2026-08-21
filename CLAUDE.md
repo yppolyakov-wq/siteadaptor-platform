@@ -1816,7 +1816,31 @@ Python 3.12, менеджер uv.
   осознанно переписаны 3. Уроки: два pytest на одной `--reuse-db` роняют друг друга; новое
   ОБЯЗАТЕЛЬНОЕ поле формы товара ломает чужие POST-ы (сделано необязательным с фолбэком).
   ⚠️ Миграции: `catalog/0029`, `orders/0018`, `orders/0019`. ops: `seed_demo_tenants --kit cafe --recreate`.
-- Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
+- **Самое свежее (2026-08-21): ПРОГРАММА MX «якоря + опции-трекеры + ERP» — стратегия согласована,
+  MX-0..MX-3 в main (`785794e`).** Пять док-итераций с владельцем (`mx-*-2026-08-2[01].md`):
+  4 ЯКОРЯ по оси ёмкости (Вещь/Работа/Проживание/Впечатление), способ продажи — свойство
+  КАРТОЧКИ (прецедент `Service.primary_action`), **опция = цена + ТРЕКЕР** (надбавка/свой пул/
+  фонд-движок/склад/закупка — решение владельца §5b), классификация всех 16 архетипов проверена
+  владельцем (тиры moto → переквалифицированы). Сделано: **MX-0** id опции в снимках (extras/
+  модификаторы/комбо) + 3 денежных фикса `move_stay` (недосчёт per-night допов 45 € доказан
+  тестом; потеря скидки акции; предоплата за итогом) + единый узел освобождения койки (отмена
+  билета С ДОСКИ больше не оставляет койку занятой — латентный oversell ретрита) ·
+  **MX-1** (⚠️ `finance/0008`) расходы-ERP: `ExpenseEntry.ref_kind/ref_id`, приёмка закупки
+  пишет расход (SOURCE_PURCHASE ожил), экраны `/finance/ausgaben/` + `/finance/ergebnis/`,
+  вкладки Finanzen · **MX-2** (⚠️ `core/0009`) адресные опции с трекерами: `Extra` +=
+  entity_kind/entity_id/tracker/pool_size/supplier/vat_rate, витрина+снимки фильтруют по
+  сущности (подмена формы отбита), экран **«Zusatzverkäufe»** (все проданные опции по дню
+  исполнения; вход из тулбара Verkäufe), демо moto: тир=участие + опция «Enfield mieten»
+  (пул 6, поставщик) · **MX-3 v1** правка допов из карточек stays/booking (W0-сентинел,
+  чужая адресная опция не проходит, дельта оплаченного warning'ом; правку ЗАКАЗА закрыла
+  параллельная волна SH — учтено union-мержем). ⚠️ ops: `seed_demo_tenants --kit moto
+  --recreate`. Остаток очереди: **MX-4** (закупка от опций: SupplierBooking вне туров, qty из
+  проданного) → **MX-5** (способ продажи на карточке: Product.primary_action, цена за человека
+  у Работы) → **MX-6** (карточка Впечатления/series_id) → **MX-7** (сертификат/абонемент в
+  общий учёт, Offer на доску). SOURCE OF TRUTH — `docs/mx-execution-plan-2026-08-21.md`;
+  уроки: CI-гейт `i18n_gap` строже quickcheck (сверять msgid шаблонов с .po напрямую);
+  снимок-замки сверять полями, не dict'ом.
+- Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».

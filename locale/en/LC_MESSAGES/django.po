@@ -19452,3 +19452,16 @@ msgstr "Add-on sales"
 
 msgid "gelöschtes Objekt"
 msgstr "deleted object"
+
+msgid ""
+"Der Betrag hat sich um %(diff)s € geändert — Nachzahlung oder Erstattung mit"
+" dem Gast klären."
+msgstr ""
+"The amount changed by %(diff)s € — settle the difference with the guest "
+"(extra payment or refund)."
+
+msgid "Zusatzleistungen ändern"
+msgstr "Change add-ons"
+
+msgid "Änderungen an Zusatzleistungen berechnen den Preis neu."
+msgstr "Changing add-ons recalculates the price."

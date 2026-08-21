@@ -19579,3 +19579,15 @@ msgstr "Ek satışlar"
 
 msgid "gelöschtes Objekt"
 msgstr "silinmiş nesne"
+
+msgid ""
+"Der Betrag hat sich um %(diff)s € geändert — Nachzahlung oder Erstattung mit"
+" dem Gast klären."
+msgstr ""
+"Tutar %(diff)s € değişti — farkı misafirle netleştirin (ek ödeme veya iade)."
+
+msgid "Zusatzleistungen ändern"
+msgstr "Ek hizmetleri değiştir"
+
+msgid "Änderungen an Zusatzleistungen berechnen den Preis neu."
+msgstr "Ek hizmet değişiklikleri fiyatı yeniden hesaplar."

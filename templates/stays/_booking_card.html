@@ -100,6 +100,22 @@ fetch ?buchung=<pk>&box=1). Контекст: b, can_delete, registration, units
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Note (optional)" %}</label>
       <textarea name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ b.note }}</textarea>
     </div>
+    {% if edit_extras %}
+    {# MX-3: правка состава допов; сентинел — форма без блока ничего не стирает (W0). #}
+    <div class="sm:col-span-2">
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Zusatzleistungen" %}</label>
+      <input type="hidden" name="extras_present" value="1">
+      <div class="flex flex-wrap gap-2">
+        {% for e in edit_extras %}
+        <label class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm cursor-pointer hover:border-indigo-300">
+          <input type="checkbox" name="extra" value="{{ e.pk }}" {% if e.pk|stringformat:"s" in chosen_extra_ids %}checked{% endif %} class="rounded border-gray-300">
+          {{ e.label }} <span class="text-xs text-gray-400">+{{ e.price_eur|floatformat:2 }} €{% if e.per_night %}/{% trans "night" %}{% endif %}</span>
+        </label>
+        {% endfor %}
+      </div>
+      <p class="mt-1 text-xs text-gray-400">{% trans "Änderungen an Zusatzleistungen berechnen den Preis neu." %}</p>
+    </div>
+    {% endif %}
     <label class="sm:col-span-2 inline-flex items-center gap-2 text-sm text-gray-600">
       <input type="checkbox" name="reprice" value="1" checked class="rounded border-gray-300">
       {% trans "Preis neu berechnen" %}

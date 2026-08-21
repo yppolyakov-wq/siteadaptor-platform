@@ -19663,3 +19663,15 @@ msgstr "Доп-продажи"
 
 msgid "gelöschtes Objekt"
 msgstr "удалённый объект"
+
+msgid ""
+"Der Betrag hat sich um %(diff)s € geändert — Nachzahlung oder Erstattung mit"
+" dem Gast klären."
+msgstr ""
+"Сумма изменилась на %(diff)s € — согласуйте с гостем доплату или возврат."
+
+msgid "Zusatzleistungen ändern"
+msgstr "Изменить доп-услуги"
+
+msgid "Änderungen an Zusatzleistungen berechnen den Preis neu."
+msgstr "Изменение доп-услуг пересчитывает цену."

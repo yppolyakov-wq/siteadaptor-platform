@@ -19580,3 +19580,16 @@ msgstr "Zusatzverkäufe"
 
 msgid "gelöschtes Objekt"
 msgstr "gelöschtes Objekt"
+
+msgid ""
+"Der Betrag hat sich um %(diff)s € geändert — Nachzahlung oder Erstattung mit"
+" dem Gast klären."
+msgstr ""
+"Der Betrag hat sich um %(diff)s € geändert — Nachzahlung oder Erstattung mit"
+" dem Gast klären."
+
+msgid "Zusatzleistungen ändern"
+msgstr "Zusatzleistungen ändern"
+
+msgid "Änderungen an Zusatzleistungen berechnen den Preis neu."
+msgstr "Änderungen an Zusatzleistungen berechnen den Preis neu."

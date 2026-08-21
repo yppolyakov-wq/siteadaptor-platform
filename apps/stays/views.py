@@ -262,6 +262,18 @@ def calendar_context(request):
                 sel_registration = selected.registration
             except Exception:  # noqa: BLE001 — OneToOne может отсутствовать
                 sel_registration = None
+    # MX-3: правка состава допов из карточки — список опций ЦЕЛЕВОГО юнита
+    # (scope-wide + адресные) и уже выбранные id из снимка.
+    edit_extras, chosen_extra_ids = [], set()
+    if selected is not None:
+        from apps.core import extras as extras_engine
+
+        edit_extras = extras_engine.active_for(
+            "stays", entity_kind="stay", entity_id=str(selected.unit_id)
+        )
+        chosen_extra_ids = {
+            str(e.get("id")) for e in (selected.extras or []) if isinstance(e, dict) and e.get("id")
+        }
     panel_ctx = {
         "b": selected,
         "registration": sel_registration,
@@ -269,6 +281,8 @@ def calendar_context(request):
         "units": units,
         # PMS-R2: селект физического номера (пусто = у категории нет комнат).
         "free_rooms": services.free_rooms_for(selected) if selected else [],
+        "edit_extras": edit_extras,
+        "chosen_extra_ids": chosen_extra_ids,
     }
     if request.GET.get("box") == "1":
         if selected is None:
@@ -434,6 +448,25 @@ def stay_action(request, pk):
         booking.guests = adults + children
         booking.note = request.POST.get("note", "").strip()[:2000]
         booking.save(update_fields=["adults", "children", "guests", "note", "updated_at"])
+        # MX-3: правка состава допов — только при сентинеле (форма без блока допов
+        # ничего не стирает, инвариант W0). Изменённый состав ТРЕБУЕТ пересчёта:
+        # менять допы с «ценой как была» значило бы рассинхронизировать итог.
+        old_total = booking.total_cents
+        if request.POST.get("extras_present"):
+            from apps.core import extras as extras_engine
+
+            new_snap = extras_engine.snapshot(
+                request.POST.getlist("extra"),
+                "stays",
+                nights=max((departure - arrival).days, 1),
+                entity_kind="stay",
+                entity_id=str(target_unit.pk),
+            )
+            old_ids = [str(e.get("id", "")) for e in (booking.extras or []) if isinstance(e, dict)]
+            if sorted(e["id"] for e in new_snap) != sorted(old_ids):
+                booking.extras = new_snap
+                booking.save(update_fields=["extras", "updated_at"])
+                reprice = True
         try:
             services.move_stay(
                 booking,
@@ -455,6 +488,21 @@ def stay_action(request, pk):
                 except services.RoomConflict:
                     messages.error(request, _("This room is taken for those dates."))
             messages.success(request, _("Stay updated."))
+            # MX-3: оплаченная бронь + изменившийся итог — владельцу нужна
+            # дельта (доплата/возврат вручную; авто-чарджа нет осознанно).
+            booking.refresh_from_db()
+            if booking.payment_state == StayBooking.PAYMENT_PAID and (
+                booking.total_cents != old_total
+            ):
+                diff = (booking.total_cents - old_total) / 100
+                messages.warning(
+                    request,
+                    _(
+                        "Der Betrag hat sich um %(diff)s € geändert — Nachzahlung oder "
+                        "Erstattung mit dem Gast klären."
+                    )
+                    % {"diff": f"{diff:+.2f}"},
+                )
         except services.MinStay:
             messages.error(request, _("Below the minimum number of nights."))
         except services.MaxGuests:

@@ -55,6 +55,26 @@ FB-11) — раньше клик по сделке вёл на общий кал
           {% for e in b.extras %}<li>+ {{ e.label }}</li>{% endfor %}
         </ul>
         {% endif %}
+        {% if edit_extras %}{% if b.status == "pending" or b.status == "confirmed" %}
+        {# MX-3: правка состава допов прямо из карточки записи. #}
+        <details class="mt-2">
+          <summary class="text-xs text-indigo-600 cursor-pointer select-none">{% trans "Zusatzleistungen ändern" %}</summary>
+          <form method="post" action="{% url 'booking:booking-action' b.pk %}" class="mt-2 space-y-2">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="extras">
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <div class="flex flex-wrap gap-2">
+              {% for e in edit_extras %}
+              <label class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs cursor-pointer hover:border-indigo-300">
+                <input type="checkbox" name="extra" value="{{ e.pk }}" {% if e.pk|stringformat:"s" in chosen_extra_ids %}checked{% endif %} class="rounded border-gray-300">
+                {{ e.label }} <span class="text-gray-400">+{{ e.price_eur|floatformat:2 }} €</span>
+              </label>
+              {% endfor %}
+            </div>
+            <button class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs text-white hover:bg-indigo-700">{% trans "Save" %}</button>
+          </form>
+        </details>
+        {% endif %}{% endif %}
       </div>
       {% if b.source_channel %}
       <div>

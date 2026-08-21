@@ -19647,3 +19647,15 @@ msgstr "Додаткові продажі"
 
 msgid "gelöschtes Objekt"
 msgstr "видалений об'єкт"
+
+msgid ""
+"Der Betrag hat sich um %(diff)s € geändert — Nachzahlung oder Erstattung mit"
+" dem Gast klären."
+msgstr ""
+"Сума змінилася на %(diff)s € — узгодьте з гостем доплату або повернення."
+
+msgid "Zusatzleistungen ändern"
+msgstr "Змінити додаткові послуги"
+
+msgid "Änderungen an Zusatzleistungen berechnen den Preis neu."
+msgstr "Зміна додаткових послуг перераховує ціну."
