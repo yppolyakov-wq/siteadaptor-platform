@@ -19781,10 +19781,6 @@ msgid "Bankabgleich"
 msgstr "Сверка с банком"
 
 #: finance ERP-2
-msgid "Einnahmen aus dem Journal, Ausgaben aus Einkauf, Anbieter-Buchungen und manuellen Einträgen."
-msgstr "Доходы из журнала; расходы из закупок, брони поставщиков и ручных записей."
-
-#: finance ERP-2
 msgid "Importieren"
 msgstr "Импортировать"
 

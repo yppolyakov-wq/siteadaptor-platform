@@ -19695,10 +19695,6 @@ msgid "Bankabgleich"
 msgstr "Banka mutabakatı"
 
 #: finance ERP-2
-msgid "Einnahmen aus dem Journal, Ausgaben aus Einkauf, Anbieter-Buchungen und manuellen Einträgen."
-msgstr "Gelirler günlükten; giderler satın alma, tedarikçi rezervasyonları ve manuel kayıtlardan."
-
-#: finance ERP-2
 msgid "Importieren"
 msgstr "İçe aktar"
 

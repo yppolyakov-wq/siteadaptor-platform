@@ -19697,10 +19697,6 @@ msgid "Bankabgleich"
 msgstr "Bankabgleich"
 
 #: finance ERP-2
-msgid "Einnahmen aus dem Journal, Ausgaben aus Einkauf, Anbieter-Buchungen und manuellen Einträgen."
-msgstr "Einnahmen aus dem Journal, Ausgaben aus Einkauf, Anbieter-Buchungen und manuellen Einträgen."
-
-#: finance ERP-2
 msgid "Importieren"
 msgstr "Importieren"
 
