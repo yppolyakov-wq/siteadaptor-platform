@@ -28,6 +28,13 @@ BLOCKTRANS = re.compile(r"{%\s*blocktrans[^%]*%}(.*?){%\s*endblocktrans\s*%}", r
 # Python: _("…") / gettext("…") / gettext_lazy("…") — ТОЛЬКО строковый литерал
 # в одинарных кавычках без конкатенации (f-строки xgettext и так не берёт).
 PY_TRANS = re.compile(r"\b(?:_|gettext|gettext_lazy|pgettext|ngettext)\(\s*([\"'])(.+?)\1\s*[,)]")
+# Волна SH: длинная подсказка была РАЗБИТА на соседние литералы («…» «…»), и
+# проверка её не видела — msgid поймал только CI. Ловим склейку явно.
+PY_TRANS_JOINED = re.compile(
+    r"\b(?:_|gettext|gettext_lazy|pgettext|ngettext)\(\s*((?:[\"'](?:[^\"'\\]|\\.)*[\"']\s*){2,})\)?",
+    re.S,
+)
+LITERAL = re.compile(r"[\"'](?P<body>(?:[^\"'\\]|\\.)*)[\"']")
 
 
 def po_msgids(locale: str) -> set[str]:
@@ -73,6 +80,13 @@ def main(argv: list[str]) -> int:
             continue
         src = f.read_text(encoding="utf-8")
         if f.suffix == ".py":
+            for m in PY_TRANS_JOINED.finditer(src):
+                lit = "".join(x.group("body") for x in LITERAL.finditer(m.group(1)))
+                if "\\" in lit:
+                    continue
+                if "%" in lit and "%(" not in lit:
+                    lit = lit.replace("%", "%%")
+                wanted.add(lit)
             for m in PY_TRANS.finditer(src):
                 lit = m.group(2)
                 if "\\" in lit:
@@ -103,7 +117,11 @@ def main(argv: list[str]) -> int:
                 wanted.add(body)
     missing = {}
     for loc in LOCALES:
-        gap = sorted(s for s in wanted if s not in po_msgids(loc))
+        ids = po_msgids(loc)
+        # «%» в .po хранится то как «%», то как «%%» — xgettext помечает строку
+        # python-format только при настоящем плейсхолдере. Считаем найденной
+        # ЛЮБУЮ из двух форм, иначе проверка врёт на подсказках вида «95 % Baumwolle».
+        gap = sorted(s for s in wanted if s not in ids and s.replace("%%", "%") not in ids)
         if gap:
             missing[loc] = gap
     if not missing:

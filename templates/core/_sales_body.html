@@ -3,7 +3,11 @@
 active_kind). Извлечено 1:1 из core/verkaeufe.html, чтобы ГЛАВНАЯ кабинета могла
 показывать ту же рабочую петлю архетипа (вариант B плана cabinet-cleanup).
 Контекст готовит `sales_page.body_context()` — один источник для обеих страниц.{% endcomment %}
-{% if active_view == "heute" %}
+{% comment %}SH-15: вкладка «Kunden» — список клиентов тем же партиалом, что и
+экран CRM (crm/_customer_list_body.html); своей реализации у страницы продаж нет.{% endcomment %}
+{% if active_kind == "kunden" %}
+  {% include "crm/_customer_list_body.html" %}
+{% elif active_view == "heute" %}
   {% include "core/_sales_heute.html" %}
 {% elif active_view == "kalender" and active_kind == "stay" %}
   {% include "stays/_belegungsplan_body.html" %}
@@ -25,8 +29,13 @@ active_kind). Извлечено 1:1 из core/verkaeufe.html, чтобы ГЛА
         {% endfor %}
       </select>
       <input type="search" name="q" value="{{ order_q }}" placeholder="{% trans 'Suche: Code, Name, E-Mail' %}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm w-56">
+      {% if order_versand %}<input type="hidden" name="versand" value="1">{% endif %}
       <button type="submit" class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
     </form>
+    {% comment %}SH-14: чип «только доставка» — тот же фильтр, что у подпункта
+    сайдбара «Lieferungen»; активный фильтр обязан быть виден и снимаем.{% endcomment %}
+    <a href="?tab=order&amp;view=liste{% if order_status %}&amp;status={{ order_status }}{% endif %}{% if order_q %}&amp;q={{ order_q|urlencode }}{% endif %}{% if not order_versand %}&amp;versand=1{% endif %}"
+       class="rounded-lg px-3 py-2 text-sm font-medium border {% if order_versand %}border-indigo-300 bg-indigo-50 text-indigo-700{% else %}border-gray-300 text-gray-600 hover:bg-gray-50{% endif %}">🚚 {% trans "Nur Lieferungen" %}{% if order_versand %} ✕{% endif %}</a>
     {% comment %}X4: гастро-инструменты только гастро-типам (гейт is_food) —
     парикмахеру/мастерской «Kitchen Display» показывать нечего.{% endcomment %}
     {% if is_food %}

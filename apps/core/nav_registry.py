@@ -300,6 +300,32 @@ ENTRIES: tuple[NavEntry, ...] = (
         "status übergänge spalten anfrage-formular felder eigene status tafel",
         query="?from=board",
     ),
+    # SH-15 (решение владельца «вкладка в Продажах всем» + «в меню так же вынести
+    # CRM»): клиенты — подпункт раздела продаж. Ведёт на ту же вкладку страницы
+    # продаж, что и ряд вкладок (один экран, одни данные); полный экран CRM с
+    # компаниями/экспортом остаётся табом Marketing.
+    _e(
+        "board",
+        "verkaeufe",
+        _("Kunden"),
+        "kunden",
+        None,  # список клиентов есть у всех; модуль crm гейтит карточку/теги/экспорт
+        True,
+        "kunden kontakte crm klienten",
+        query="?tab=kunden",
+    ),
+    # SH-14: доставка отдельным входом — заказы с доставкой одним списком
+    # (фильтр вида «Liste», не новый экран).
+    _e(
+        "board",
+        "verkaeufe",
+        _("Lieferungen"),
+        "lieferungen",
+        "orders",
+        True,
+        "versand lieferung tracking sendungen",
+        query="?tab=order&view=liste&versand=1",
+    ),
     _e(
         "board",
         "promotions:analytics",
@@ -804,8 +830,12 @@ def sidebar_children(anchor) -> list[NavEntry]:
             in_sidebar = e.advanced if e.sidebar is None else e.sidebar
             if not in_sidebar or e.palette_only:
                 continue  # X4: ящик «Erweitert» ≠ подпункты сайдбара (склад/сироты)
-            if e.hub == hub and e.url_name not in seen:
-                seen.add(e.url_name)
+            # SH-14/15: ключ дедупа — (url_name, query): «Kunden» и «Lieferungen»
+            # ведут на ОДИН экран продаж с разными вкладками/фильтрами, и по
+            # голому url_name второй пункт молча исчезал бы.
+            key = (e.url_name, e.query)
+            if e.hub == hub and key not in seen:
+                seen.add(key)
                 out.append(e)
     return out
 
@@ -827,6 +857,8 @@ def palette_entries() -> list[dict]:
         )
         seen.add(a.url_name)
     for e in ENTRIES:
+        # Палитра адресует экраны по url_name (без query) — записи «Kunden»/
+        # «Lieferungen» (SH-14/15) ведут на уже присутствующий «Verkäufe».
         if e.url_name in seen:
             continue
         seen.add(e.url_name)

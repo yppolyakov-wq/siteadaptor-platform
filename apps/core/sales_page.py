@@ -120,6 +120,27 @@ def _has_reservations() -> bool:
         return False
 
 
+def views_for(kind: str, tenant=None) -> tuple:
+    """Доступные виды направления. SH-1 (фидбэк владельца 2026-08-20 «календарь не
+    нужен, главная страница продаж — список»): у ЗАКАЗОВ календарь — это
+    Auftragsbuch по дате выдачи (V3). Магазин слоты выдачи не использует, и вид
+    всегда пуст, поэтому показываем его ТОЛЬКО когда слоты реально проставляются
+    (данные, а не архетип: у пекарни C&C они есть, у shop — нет)."""
+    views = KIND_VIEWS.get(kind, ("board",))
+    if kind == "order" and tenant is not None and not _uses_pickup_slots():
+        return tuple(v for v in views if v != "kalender")
+    return views
+
+
+def _uses_pickup_slots() -> bool:
+    try:
+        from apps.orders.models import Order
+
+        return Order.objects.filter(pickup_slot__isnull=False).exists()
+    except Exception:  # noqa: BLE001 — вид не стоит падения страницы продаж
+        return False
+
+
 def resolve_view(tenant, kind: str, requested: str = "") -> str:
     """Вид вкладки: явный `?view=` → сохранённый выбор → архетипный дефолт.
     Недоступный для kind вид молча падает на первый доступный."""
@@ -299,6 +320,21 @@ def legacy_redirect(request, **params):
     return HttpResponseRedirect(reverse("verkaeufe") + (f"?{qs}" if qs else ""))
 
 
+# SH-15 (фидбэк владельца 2026-08-20 «нет нигде списка клиентов», решение
+# «вкладка в Продажах всем»): последняя вкладка страницы продаж — не направление
+# сделок, а КЛИЕНТЫ. Данные и тело — те же, что на экране CRM (один партиал,
+# один контекст), поэтому расхождению взяться неоткуда.
+KUNDEN_TAB = "kunden"
+
+
+def shows_customers(tenant) -> bool:
+    """Вкладка клиентов есть у ВСЕХ архетипов (решение владельца 2026-08-20:
+    «вкладка в Продажах всем», НЕ «включить CRM всем»). Клиент заводится любой
+    продажей, поэтому список — базовая вещь; модуль crm остаётся гейтом
+    расширенного CRM (карточка, теги, заметки, сегменты, экспорт)."""
+    return True
+
+
 def tab_descriptors(tenant, active_kind: str) -> list[dict]:
     """Вкладки направлений. VS-2a (решение владельца 2026-08-20): у 13 из 16 типов
     бизнеса направление ОДНО — ряд вкладок из одного элемента шаблон не рисует
@@ -306,7 +342,7 @@ def tab_descriptors(tenant, active_kind: str) -> list[dict]:
     АКТИВНЫХ сделок: видно, где работа, не переключаясь."""
     kinds = visible_kinds(tenant)
     counts = _active_counts(tenant, kinds) if len(kinds) > 1 else {}
-    return [
+    tabs = [
         {
             "kind": kind,
             "label": transactions.KIND_LABEL.get(kind, kind),
@@ -315,6 +351,16 @@ def tab_descriptors(tenant, active_kind: str) -> list[dict]:
         }
         for kind in kinds
     ]
+    return tabs
+
+
+def customers_tab(tenant, active_kind: str) -> dict | None:
+    """Вкладка «Kunden» — отдельно от направлений сделок: ряд вкладок остаётся
+    рядом НАПРАВЛЕНИЙ (VS-2a: одинокое направление ряда не рисует), а клиенты
+    примыкают к нему справа. Гейт — модуль crm."""
+    if not shows_customers(tenant):
+        return None
+    return {"kind": KUNDEN_TAB, "label": _("Kunden"), "active": active_kind == KUNDEN_TAB}
 
 
 def _active_counts(tenant, kinds) -> dict:
@@ -347,7 +393,7 @@ def view_descriptors(tenant, kind: str, active_view: str) -> list[dict]:
             "icon": VIEW_ICONS[view],
             "active": view == active_view,
         }
-        for view in KIND_VIEWS.get(kind, ("board",))
+        for view in views_for(kind, tenant)
     ]
 
 
@@ -356,6 +402,8 @@ def view_descriptors(tenant, kind: str, active_view: str) -> list[dict]:
 # показывал ВСЕ сделки — владелец считал их отфильтрованными (легаси-редирект
 # заявок ?status=, виджет «Abholbereit» ?status=ready).
 _VIEW_FILTERS = {
+    # SH-14: `versand` (только доставка) исполняет список заказов.
+    ("liste", "order"): frozenset({"q", "status", "versand"}),
     ("liste", None): frozenset({"q", "status"}),
     ("kalender", "stay"): frozenset({"q"}),  # Belegungsplan ищет сам
 }
@@ -372,7 +420,7 @@ def view_for_filters(kind: str, view: str, params) -> str:
     он kind-агностичен и приходит из deep-link виджетов."""
     if view == "heute":
         return view
-    wanted = {p for p in ("q", "status") if (params.get(p) or "").strip()}
+    wanted = {p for p in ("q", "status", "versand") if (params.get(p) or "").strip()}
     if wanted and not wanted <= honored_filters(kind, view) and "liste" in KIND_VIEWS.get(kind, ()):
         return "liste"
     return view
@@ -391,6 +439,13 @@ def body_context(request, kind: str, view: str) -> dict:
 
     tenant = request.tenant
     ctx: dict = {}
+    if kind == KUNDEN_TAB:
+        # SH-15: тот же контекст, что у экрана CRM (crm.views.customer_list_context).
+        # `crm_active` гейтит ссылки на карточку/экспорт/компании: без модуля они
+        # упёрлись бы в гейт путей (404) — класс дефекта из сверки 2026-08-19.
+        from apps.crm.views import customer_list_context
+
+        return {**customer_list_context(request), "crm_active": tenant.is_module_active("crm")}
     if view == "heute":
         ctx["heute_columns"] = heute_columns(tenant)
     elif view == "kalender" and kind == "stay":
@@ -426,10 +481,30 @@ def body_context(request, kind: str, view: str) -> dict:
         if q:
             qs = qs.filter(
                 Q(reference_code__icontains=q)
+                | Q(external_code__icontains=q)  # SH-8: внешний номер
                 | Q(customer__name__icontains=q)
                 | Q(customer__email__icontains=q)
             )
-        ctx["orders"] = qs[:200]
+        # SH-14 (фидбэк владельца «доставки вынести в пункт меню»): доставка —
+        # не отдельный экран, а фильтр списка заказов; вход — подпункт сайдбара
+        # «Lieferungen» (nav_registry) и чип в тулбаре.
+        versand = (request.GET.get("versand") or "").strip() == "1"
+        if versand:
+            # is_delivery — свойство модели, не поле: фильтруем по способу выдачи.
+            qs = qs.filter(fulfillment=Order.FULFILLMENT_DELIVERY)
+        ctx["order_versand"] = versand
+        # SH-11 (фидбэк владельца 2026-08-20 «в списке позволить менять статус»):
+        # к строке заказа привязываем переходы FSM — тот же слой, что у доски
+        # (allowed_actions_for + правила владельца FB-3), поэтому список не
+        # заводит СВОЮ логику переходов.
+        from apps.core import pipeline, transition_rules
+
+        subset = transition_rules.subset_for(tenant, "order")
+        orders = list(qs[:200])
+        for o in orders:
+            o.row_actions = transactions.allowed_actions_for("order", o.status, subset, obj=o)
+            o.row_stage = pipeline.stage_for("order", o.status)
+        ctx["orders"] = orders
         # X4 (§6.A4.5): KDS/Tisch-QR — гастро-инструменты; раньше кнопки видел
         # любой архетип с модулем orders (парикмахер — «Kitchen Display»).
         ctx["is_food"] = (getattr(tenant, "business_type", "") or "") in FOOD_BUSINESS_TYPES

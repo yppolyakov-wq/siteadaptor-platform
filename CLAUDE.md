@@ -1789,7 +1789,34 @@ Python 3.12, менеджер uv.
   поля заголовка per-kind (выигрывают палитра Ctrl+K, список продаж и пикер).
   Демо hotel: к брони номера привязан велопрокат 24 €. Замки: 24 + стенд 9/9.
   Границы v1: без витрины, каскадов статусов, слияния денег и миграции Extras.
-- Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная)** — все аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
+- **Самое свежее (2026-08-20, поздний вечер): ВОЛНА SH «заказ, клиент, деньги» — 18 пунктов
+  фидбэка ЗАКРЫТЫ ЦЕЛИКОМ (⚠️ 3 аддитивные миграции).** План — `docs/sh-order-wave-plan-2026-08-20.md`
+  (решения владельца §6). **Группа A (без миграций):** вид «Kalender» у заказов только там, где
+  реально ставятся слоты выдачи (гейт по ДАННЫМ) · строка списка = № + покупатель + меню смены
+  статуса (общий `board-action`, FSM — жёсткий пол; та же механика у stay/booking/job/ticket) ·
+  мельче шрифт канбана (13/11px) · кнопки статуса в шапке карточки заказа · вход «Zahlung &
+  Lieferung» с «Abläufe» · **свёрнутый сайдбар = полоса иконок** (было `display:none`; скрытие
+  только CSS — инвариант W0) · убраны псевдо-крошки из тел календарей (замки отличили дубли от
+  ЕДИНСТВЕННЫХ входов «Heute»/«Preise & Saison» — они остались). **Группы B/C/D:**
+  `apps/orders/editing.py` — правка состава/количества/скидки/доставки/клиента, склад и леджер
+  двигаются ТЕМ ЖЕ движком, что создание/отмена, в одной atomic (закрытый заказ не правится —
+  его остаток уже вернул FSM; движения правки без `source_ref`, иначе дедуп съел бы законный
+  повтор) · `Product.vat_rate` (выбор 19/7/0) + снимок `OrderItem.vat_rate` + `apps/orders/totals.py`
+  (цены БРУТТО → НДС выделяется; скидка режет базу пропорционально, доставка по макс. ставке,
+  §19 обнуляет) · `Order.external_code` (внешний номер, ищется поиском сделок) + карточка
+  «Zahlung» (плательщик/адрес счёта) + «Rechnung aus Auftrag erstellen» → черновик
+  `finance.services.invoice_from_order` (нумерация по-прежнему при выставлении, GoBD цела) ·
+  **вкладка «Kunden» в продажах у ВСЕХ архетипов** (решение «вкладка всем», НЕ «включить CRM
+  всем»): тот же партиал/контекст, что экран CRM; без модуля список читается, ссылок в `/crm/`
+  нет · **«Lieferungen»** = фильтр списка `?versand=1` (в `_VIEW_FILTERS` → адрес исполняется),
+  оба входа — подпункты сайдбара «Verkäufe» (дедуп по паре url_name+query). Правка КЛИЕНТА
+  сделана kind-агностичной (`deal-customer-edit`) и подключена к брони номера и записи.
+  Пикер позиций вынесен в `apps/catalog/picker.py` (общий со сметой). Демо: ключ `vat` у позиции,
+  кит cafe = смешанный чек 7/19 %. Замки: test_order_editing (23) + test_sh_orders (14);
+  осознанно переписаны 3. Уроки: два pytest на одной `--reuse-db` роняют друг друга; новое
+  ОБЯЗАТЕЛЬНОЕ поле формы товара ломает чужие POST-ы (сделано необязательным с фолбэком).
+  ⚠️ Миграции: `catalog/0029`, `orders/0018`, `orders/0019`. ops: `seed_demo_tenants --kit cafe --recreate`.
+- Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».

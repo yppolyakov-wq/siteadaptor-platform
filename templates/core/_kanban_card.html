@@ -1,4 +1,7 @@
 {% load i18n %}
+{% comment %}SH-16 (фидбэк владельца 2026-08-20): мельче шрифт карточки —
+на доске помещается больше сделок без прокрутки; иерархия сохранена
+(заголовок 13px, детали 11px).{% endcomment %}
 {% comment %}
 UD2-2 Kanban-Karte einer Transaktion. `data-stage` = aktuelle Spalte; die
 Aktions-Buttons tragen data-stage/data-target → das Drag-JS liest daraus den
@@ -14,32 +17,32 @@ neu gerendert (Badge/Buttons frisch, Karte bleibt in der neuen Spalte).
     <span class="drag-handle text-gray-300 select-none cursor-grab leading-none pt-0.5" title="{% trans 'Ziehen zum Verschieben' %}">⠿</span>
     <div class="flex-1 min-w-0">
       {% if tx.manage_url %}
-        <a href="{{ tx.manage_url }}" class="text-sm font-medium text-gray-900 hover:text-indigo-700 block truncate">{{ tx.title }}</a>
+        <a href="{{ tx.manage_url }}" class="text-[13px] font-medium text-gray-900 hover:text-indigo-700 block truncate">{{ tx.title }}</a>
       {% else %}
-        <span class="text-sm font-medium text-gray-900 block truncate">{{ tx.title }}</span>
+        <span class="text-[13px] font-medium text-gray-900 block truncate">{{ tx.title }}</span>
       {% endif %}
       {% comment %}VS-2c (решение владельца 2026-08-20): карточка обязана отвечать
       «когда это и на сколько». «Когда» — дата мероприятия заявки (AF-1), выдачи
       заказа, заезда, записи; рядом — гости. Раньше на карточке не было ни даты
       события, ни срока сметы.{% endcomment %}
       {% if tx.when %}
-        <p class="text-xs font-medium text-gray-700 truncate">📅 {{ tx.when|date:"D, d.m.y" }}{% if tx.when_note %} · {{ tx.when_note }}{% endif %}</p>
+        <p class="text-[11px] font-medium text-gray-700 truncate">📅 {{ tx.when|date:"D, d.m.y" }}{% if tx.when_note %} · {{ tx.when_note }}{% endif %}</p>
       {% endif %}
-      <p class="text-xs text-gray-500 truncate">{{ tx.customer }}{% if tx.subtotal_display %} · {{ tx.subtotal_display }}{% endif %}</p>
-      <p class="text-xs text-gray-400 truncate">#{{ tx.reference_code }} · {{ tx.status_label }}{% if tx.from_promo %} · <span class="text-rose-600 font-medium">{% trans "Aktion" %}</span>{% endif %}</p>
+      <p class="text-[11px] text-gray-500 truncate">{{ tx.customer }}{% if tx.subtotal_display %} · {{ tx.subtotal_display }}{% endif %}</p>
+      <p class="text-[11px] text-gray-400 truncate">#{{ tx.reference_code }} · {{ tx.status_label }}{% if tx.from_promo %} · <span class="text-rose-600 font-medium">{% trans "Aktion" %}</span>{% endif %}</p>
       {% comment %}VS-3: связь сделок. У якоря — сколько к нему прикреплено, у
       спутника — к чему он относится (ссылка на карточку якоря). Данные приходят
       батчем в контракте (deal_links.for_cards), запросов на карточку нет.{% endcomment %}
       {% if tx.linked_children %}
-        <p class="text-xs text-indigo-600 truncate" title="{% for c in tx.linked_children %}{{ c.title }}{% if not forloop.last %}, {% endif %}{% endfor %}">🔗 {% blocktrans count n=tx.linked_children|length %}{{ n }} Zusatzleistung{% plural %}{{ n }} Zusatzleistungen{% endblocktrans %}</p>
+        <p class="text-[11px] text-indigo-600 truncate" title="{% for c in tx.linked_children %}{{ c.title }}{% if not forloop.last %}, {% endif %}{% endfor %}">🔗 {% blocktrans count n=tx.linked_children|length %}{{ n }} Zusatzleistung{% plural %}{{ n }} Zusatzleistungen{% endblocktrans %}</p>
       {% endif %}
       {% if tx.linked_anchor %}
-        <p class="text-xs text-gray-500 truncate">🔗 {% trans "gehört zu" %}
+        <p class="text-[11px] text-gray-500 truncate">🔗 {% trans "gehört zu" %}
           {% if tx.linked_anchor.manage_url %}<a href="{{ tx.linked_anchor.manage_url }}" class="hover:underline">{{ tx.linked_anchor.title }}</a>{% else %}{{ tx.linked_anchor.title }}{% endif %}</p>
       {% endif %}
       {% if tx.deadline %}
         {# Срок сметы: просрочка — красным, иначе спокойная подпись #}
-        <p class="text-xs truncate {% if tx.deadline_overdue %}text-red-600 font-medium{% else %}text-gray-400{% endif %}">
+        <p class="text-[11px] truncate {% if tx.deadline_overdue %}text-red-600 font-medium{% else %}text-gray-400{% endif %}">
           {% if tx.deadline_overdue %}⏳ {% blocktrans with d=tx.deadline|date:"d.m.y" %}Angebot abgelaufen ({{ d }}){% endblocktrans %}
           {% else %}⏳ {% blocktrans with d=tx.deadline|date:"d.m.y" %}Angebot gültig bis {{ d }}{% endblocktrans %}{% endif %}
         </p>

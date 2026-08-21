@@ -12,5 +12,7 @@ urlpatterns = [
     path("kitchen/<uuid:pk>/action/", views.kitchen_action, name="kitchen-action"),
     path("<uuid:pk>/", views.order_detail, name="order-detail"),
     path("<uuid:pk>/action/", views.order_action, name="order-action"),
+    # SH группа B: правка состава/скидки/доставки/клиента с карточки заказа.
+    path("<uuid:pk>/bearbeiten/", views.order_edit, name="order-edit"),
     path("<uuid:pk>/lieferschein.pdf", views.delivery_note_pdf, name="order-delivery-note"),
 ]

@@ -1,0 +1,55 @@
+{% load i18n %}
+{% comment %}SH-15 (фидбэк владельца 2026-08-20 «нет нигде списка клиентов»):
+тело списка клиентов извлечено 1:1, чтобы ОДНИ И ТЕ ЖЕ данные показывались и на
+экране CRM (таб Marketing), и вкладкой «Kunden» страницы продаж — без второй
+реализации и без расхождения данных. Контекст — crm.views.customer_list_context.
+{% endcomment %}
+<form method="get" class="mb-4 flex items-center gap-2 flex-wrap">
+  {% if firma %}<input type="hidden" name="firma" value="{{ firma.pk }}">{% endif %}
+  <input type="search" name="q" value="{{ query }}" placeholder="{% trans 'Search name, email, phone or tag…' %}"
+         class="w-full max-w-md rounded-lg border border-gray-300 px-3 py-2 text-sm">
+  {% if firma %}
+    {# CO-2: активный фильтр по компании; × сбрасывает только его. #}
+    <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full bg-gray-100 text-gray-700">
+      🏢 {{ firma.name }}
+      <a href="?{% if query %}q={{ query|urlencode }}{% endif %}" class="text-gray-400 hover:text-gray-700" aria-label="{% trans 'Reset' %}">✕</a>
+    </span>
+  {% endif %}
+</form>
+
+{% if page.items %}
+{% comment %}ST-5c: CRM-карточки — аватар-инициал, контакты, теги, LTV (батч из
+вьюхи; нет записей выручки → строка не показывается).{% endcomment %}
+<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+  {% for c in page.items %}
+    {% comment %}SH-15: без модуля CRM карточка клиента недоступна (гейт путей →
+    404), поэтому строка остаётся строкой, а не ссылкой в никуда. `crm_active`
+    приходит только с вкладки продаж; на экране CRM модуль активен по определению.{% endcomment %}
+    <a {% if crm_active is False %}data-no-crm{% else %}href="{% url 'crm:customer-detail' c.pk %}"{% endif %} class="bg-white rounded-2xl shadow-sm p-4 flex items-start gap-3 {% if crm_active is not False %}hover:ring-1 hover:ring-indigo-300{% endif %}">
+      <span class="w-10 h-10 rounded-full bg-indigo-600 text-white font-semibold shrink-0 flex items-center justify-center">{{ c|stringformat:"s"|slice:":1"|upper }}</span>
+      <span class="min-w-0 flex-1">
+        <span class="font-medium truncate block">{{ c }}</span>
+        <span class="text-xs text-gray-400 truncate block">{{ c.email }}{% if c.phone %} · {{ c.phone }}{% endif %}</span>
+        {% if c.ltv %}<span class="text-xs text-emerald-700 block mt-1">{{ c.ltv.total|floatformat:2 }} € · {{ c.ltv.n }}×</span>{% endif %}
+        {% if c.tags or c.company %}
+        <span class="flex flex-wrap items-center gap-1 mt-1.5">
+          {% if c.company %}<span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">🏢 {{ c.company.name }}</span>{% endif %}
+          {% for t in c.tags %}
+            <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">{{ t }}</span>
+          {% endfor %}
+        </span>
+        {% endif %}
+      </span>
+    </a>
+  {% endfor %}
+</div>
+
+{% if page.has_more %}
+<div class="mt-6 text-center">
+  <a href="?{% if query %}q={{ query|urlencode }}&amp;{% endif %}{% if firma %}firma={{ firma.pk }}&amp;{% endif %}cursor={{ page.next_cursor|urlencode }}"
+     class="inline-block px-5 py-2.5 rounded-lg bg-white border border-gray-300 text-sm font-medium hover:border-indigo-400">{% trans "Show more" %}</a>
+</div>
+{% endif %}
+{% else %}
+  <p class="text-gray-400 text-sm">{% trans "No customers yet. They appear automatically with reservations — or add one manually." %}</p>
+{% endif %}

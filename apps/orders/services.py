@@ -272,6 +272,9 @@ def create_order(
             unit_price=unit_price,
             title_snapshot=title[:200],
             modifiers=modifiers,
+            # SH-4: снимок ставки НДС товара (документ не переписывается, если
+            # ставку в каталоге потом поменяли).
+            vat_rate=product.vat_rate,
         )
         # U-D3: залогировать списание в склад-леджер (append-only, в той же atomic
         # create_order, что и декремент _reserve_stock). Только учитываемый остаток
@@ -323,6 +326,8 @@ def create_order(
             unit_price=unit_price,
             title_snapshot=title[:200],
             modifiers=mods,
+            # SH-4: у строки с товаром — его ставка; у свободной остаётся дефолт.
+            **({"vat_rate": product.vat_rate} if product is not None else {}),
         )
         tracked = variant if variant is not None else product
         if tracked is not None and tracked.stock_quantity is not None:

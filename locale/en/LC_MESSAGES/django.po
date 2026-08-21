@@ -19240,6 +19240,143 @@ msgstr ""
 msgid "Position hinzufügen"
 msgstr "Add position"
 
+msgid "Zahlung & Lieferung einstellen"
+msgstr "Set up payment & delivery"
+
+msgid ""
+"Zahlarten, Vorkasse-Bankdaten, Versandkosten und Liefergebiet — gelten für "
+"alle Bestellungen."
+msgstr ""
+"Payment methods, prepayment bank details, shipping costs and delivery area —"
+" apply to all orders."
+
+msgid "Lieferungen"
+msgstr "Deliveries"
+
+msgid "Nur Lieferungen"
+msgstr "Deliveries only"
+
+msgid ""
+"Kundenkarte mit Notizen, Tags und Historie gibt es im Modul «Kunden (CRM)»."
+msgstr ""
+"Customer cards with notes, tags and history come with the “Customers (CRM)” "
+"module."
+
+msgid "Abholung"
+msgstr "Pickup"
+
+msgid "Art"
+msgstr "Type"
+
+msgid "Auftrag %(code)s"
+msgstr "Order %(code)s"
+
+msgid "Aus dem Sortiment"
+msgstr "From your catalogue"
+
+msgid "Bezeichnung"
+msgstr "Description"
+
+msgid "Bitte Position wählen oder Text und Preis angeben."
+msgstr "Choose an item or enter a title and a price."
+
+msgid "Bitte Zahlen im Format 12,50 eingeben."
+msgstr "Please enter numbers like 12.50."
+
+msgid "Externe Nummer"
+msgstr "External number"
+
+msgid "Grund / Code"
+msgstr "Reason / code"
+
+msgid "Kasse / Marktplatz"
+msgstr "POS / marketplace"
+
+msgid "Lieferkosten"
+msgstr "Delivery cost"
+
+msgid "Lieferung"
+msgstr "Delivery"
+
+msgid "Lieferung gespeichert."
+msgstr "Delivery saved."
+
+msgid "Lieferung speichern"
+msgstr "Save delivery"
+
+msgid "Menge 0 entfernt die Position. Der Bestand wird mitgeführt."
+msgstr "Quantity 0 removes the item. Stock is adjusted with it."
+
+msgid "MwSt.-Satz"
+msgstr "VAT rate"
+
+msgid "Nicht genug Bestand: %(title)s (verfügbar: %(n)s)."
+msgstr "Not enough stock: %(title)s (available: %(n)s)."
+
+msgid "Nummern gespeichert."
+msgstr "Numbers saved."
+
+msgid "Online (Stripe)"
+msgstr "Online (Stripe)"
+
+msgid "Positionen aktualisiert."
+msgstr "Items updated."
+
+msgid "Positionen speichern"
+msgstr "Save items"
+
+msgid "Rabatt"
+msgstr "Discount"
+
+msgid "Rabatt gespeichert."
+msgstr "Discount saved."
+
+msgid "Rabatt speichern"
+msgstr "Save discount"
+
+msgid "Rechnung aus Auftrag erstellen"
+msgstr "Create invoice from order"
+
+msgid "Rechnungsadresse"
+msgstr "Billing address"
+
+msgid "Rechnungsempfänger (falls abweichend)"
+msgstr "Bill to (if different)"
+
+msgid "Rechnungsentwurf erstellt."
+msgstr "Invoice draft created."
+
+msgid "Zahlart"
+msgstr "Payment method"
+
+msgid "Zahlungsdaten gespeichert."
+msgstr "Payment details saved."
+
+msgid "Zahlungsdaten speichern"
+msgstr "Save payment details"
+
+msgid "davon %(rate)s %% MwSt."
+msgstr "incl. %(rate)s %% VAT"
+
+msgid "freie Position"
+msgstr "free item"
+
+msgid "netto"
+msgstr "net"
+
+msgid "nicht gesetzt"
+msgstr "not set"
+
+msgid "Ein abgeschlossener Auftrag kann nicht mehr geändert werden."
+msgstr "A closed order can no longer be changed."
+
+msgid ""
+"Im Preis enthalten (Bruttopreis). Lebensmittel meist 7, Standard 19 (Angabe "
+"in Prozent). Bei Kleinunternehmerregelung nach § 19 UStG ohne Wirkung."
+msgstr ""
+"Included in the price (gross). Food is usually 7, standard is 19 (percent). "
+"No effect under the small-business rule of § 19 UStG."
+
 msgid "Ausgaben"
 msgstr "Expenses"
 

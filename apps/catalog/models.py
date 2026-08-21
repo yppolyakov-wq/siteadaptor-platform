@@ -6,6 +6,8 @@
 - i18n JSONField + metadata на runtime-моделях
 """
 
+from decimal import Decimal
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -144,6 +146,12 @@ class Product(SoftDeleteMixin, I18nMixin):
 
     base_price = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=3, default="EUR")
+    # SH-4 (решение владельца 2026-08-20): своя ставка НДС у ТОВАРА — в DACH на
+    # одном чеке законно соседствуют 19 % (напитки) и 7 % (продукты навынос).
+    # Цена в проекте БРУТТО (PAngV «inkl. MwSt.»), поэтому ставка нужна только
+    # чтобы разложить итог на нетто/НДС; §19 Kleinunternehmer перебивает её нулём.
+    VAT_RATES = [Decimal("19.00"), Decimal("7.00"), Decimal("0.00")]
+    vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("19.00"))
 
     # PAngV (R2): Grundpreis (€/kg|l). unit — единица контента, content_amount —
     # количество (250 г, 0.75 л). Stück/пусто → без Grundpreis (несчётные товары).

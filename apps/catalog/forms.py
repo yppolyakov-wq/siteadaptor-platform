@@ -2,6 +2,8 @@
 полями de/en и собираются в JSONField.
 """
 
+from decimal import Decimal
+
 from django import forms
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
@@ -139,6 +141,18 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
         required=False,
         widget=forms.CheckboxSelectMultiple,
     )
+    # SH-4: ставка НДС — выбор из трёх законных ставок DACH, а не свободное число
+    # (опечатка «1,9» стоила бы владельцу неверного счёта). Модельное поле
+    # остаётся Decimal — choices живут в форме, миграции не требуют.
+    vat_rate = forms.TypedChoiceField(
+        label=_("MwSt.-Satz"),
+        choices=[("19.00", "19 %"), ("7.00", "7 %"), ("0.00", "0 %")],
+        coerce=Decimal,
+        initial="19.00",
+        # НЕ обязательное: форму товара постят и другие поверхности (мастер,
+        # импорт, тесты) — отсутствие поля не должно ронять сохранение товара.
+        required=False,
+    )
     # A4: диет-теги (vegan/vegetarisch/…) чекбоксами (JSONField на модели).
     diets = forms.MultipleChoiceField(
         label=_("Diets"),
@@ -152,6 +166,7 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
         fields = [
             "category",
             "base_price",
+            "vat_rate",
             "currency",
             "unit",
             "content_amount",
@@ -179,6 +194,7 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             "badge": _("Badge"),
             "variant_style": _("How to show the options"),
             "cost_price": _("Einkaufspreis (netto)"),
+            "vat_rate": _("MwSt.-Satz"),
             "reorder_point": _("Meldebestand"),
             "reorder_target": _("Sollbestand"),
         }
@@ -187,6 +203,15 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             "unit": _("Für den Grundpreis (z. B. €/kg). Zusammen mit der Menge."),
             "content_amount": _("Inhalt je Packung — z. B. 500 (bei Einheit „g“ → €/kg)."),
             "currency": _("Standard: EUR."),
+            # SH-4: ставка нужна для разбивки итога — цена остаётся брутто (PAngV).
+            # Без литерального «%»: xgettext помечает такую строку python-format,
+            # и голый процент ломает извлечение (тот же класс, что уже правили
+            # в форме раньше — см. build-log 2026-07-11).
+            "vat_rate": _(
+                "Im Preis enthalten (Bruttopreis). Lebensmittel meist 7, "
+                "Standard 19 (Angabe in Prozent). Bei Kleinunternehmerregelung "
+                "nach § 19 UStG ohne Wirkung."
+            ),
             "cost_price": _("Nur intern — für die Margen-Anzeige, nicht öffentlich."),
             "reorder_point": _("Ab diesem Bestand meldet der Shop „nachbestellen“."),
             "stock_quantity": _("Leer = unbegrenzt (kein Bestandslimit)."),
@@ -237,6 +262,7 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
                 *descs,
                 "category",
                 "base_price",
+                "vat_rate",
                 "is_active",
                 "unit",
                 "content_amount",
@@ -259,6 +285,13 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
                 "badge",
             ]
         )
+
+    def clean_vat_rate(self):
+        """Пустое поле = не менять: ставка остаётся у товара (или дефолт 19 %)."""
+        value = self.cleaned_data.get("vat_rate")
+        if value in (None, ""):
+            return getattr(self.instance, "vat_rate", None) or Decimal("19.00")
+        return value
 
     def clean_base_price(self):
         price = self.cleaned_data["base_price"]

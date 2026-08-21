@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n cabinet %}
 {% comment %}Generic-«Liste» вкладки Verkäufe: плоские строки нормализованных
 транзакций kind (Transaction из manage_sections_for). Закрывает пробел «списка
 нет» у stay/booking/job/ticket. Строка ведёт на manage_url; действия — на
@@ -21,25 +21,26 @@ section (может быть None).{% endcomment %}
          class="rounded-lg border border-gray-300 px-3 py-2 text-sm w-56">
   <button type="submit" class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
 </form>
+{% comment %}SH-12/16 (фидбэк 2026-08-20): порядковый номер строки, покупатель
+отдельной строкой и МЕЛЬЧЕ шрифт; SH-11: статус меняется прямо из списка. Строка
+перестала быть одной большой ссылкой — внутри теперь есть кнопки (вложенные
+интерактивные элементы в <a> недопустимы).{% endcomment %}
 {% if section and section.transactions %}
 <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
   {% for tx in section.transactions %}
-    <a href="{{ tx.manage_url|default:'#' }}" class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
-      <div class="min-w-0">
-        <p class="font-medium truncate">{{ tx.title }}
+    <div class="flex items-center justify-between gap-3 px-4 py-2 hover:bg-gray-50">
+      <span class="w-6 shrink-0 text-xs tabular-nums text-gray-300">{{ forloop.counter }}</span>
+      <div class="min-w-0 flex-1">
+        <a href="{{ tx.manage_url|default:'#' }}" class="text-sm font-medium truncate block hover:text-indigo-700">{{ tx.title }}
           {% if tx.has_problem %}<span class="text-xs font-medium text-red-600">· ⚠️ {% trans "Problem — Kunde wartet" %}</span>{% endif %}
-        </p>
-        <p class="text-xs text-gray-400 truncate">#{{ tx.reference_code }}{% if tx.customer %} · {{ tx.customer }}{% endif %} · {{ tx.created_at|date:"d.m.Y H:i" }}</p>
+        </a>
+        <p class="text-xs text-gray-500 truncate">{% if tx.customer %}👤 {{ tx.customer }} · {% endif %}#{{ tx.reference_code }}{% if tx.when %} · 📅 {{ tx.when|date:"d.m.y" }}{% endif %}</p>
       </div>
       <div class="flex items-center gap-2 shrink-0">
-        {% if tx.subtotal_display %}<span class="text-sm font-medium">{{ tx.subtotal_display }}</span>{% endif %}
-        <span class="text-xs font-medium px-2 py-0.5 rounded-full
-          {% if tx.pipeline_stage == 'done' %}bg-green-100 text-green-800
-          {% elif tx.pipeline_stage == 'in_progress' %}bg-indigo-100 text-indigo-800
-          {% elif tx.pipeline_stage == 'intake' %}bg-amber-100 text-amber-800
-          {% else %}bg-gray-100 text-gray-500{% endif %}">{{ tx.status_label }}</span>
+        {% if tx.subtotal_display %}<span class="text-xs font-medium tabular-nums">{{ tx.subtotal_display }}</span>{% endif %}
+        {% include "core/_row_status_menu.html" with kind=tx.kind pk=tx.pk label=tx.status_label actions=tx.allowed_actions next_path=request.get_full_path badge_class=tx.pipeline_stage|stage_badge %}
       </div>
-    </a>
+    </div>
   {% endfor %}
 </div>
 {% else %}

@@ -2,16 +2,10 @@
 {% comment %}Тело Tagesplan записей (день, prev/next, строки броней с FSM-кнопками,
 walk-in #neu) — извлечено из booking/calendar.html 1:1 для единой страницы продаж
 /dashboard/verkaeufe/ (план 2026-08-03). Action-URL форм явные.{% endcomment %}
-<div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-  <h1 class="text-2xl font-bold">{% trans "Kalender" %}</h1>
-  <div class="flex flex-wrap gap-x-4 gap-y-2">
-    <a href="{% url 'booking:services' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Services" %} →</a>
-    <a href="{% url 'booking:passes' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Passes" %} →</a>
-    {# Фидбэк 2026-08-04: «где заблокировать даты?» — говорящий вход вместо «Availability». #}
-    <a href="{% url 'booking:availability' %}" class="text-sm text-indigo-600 hover:underline">🚫 {% trans "Tage blockieren" %} →</a>
-    <a href="{% url 'booking:resources' %}" class="text-sm text-indigo-600 hover:underline">⚙️ {% trans "Einstellungen" %} →</a>
-  </div>
-</div>
+{% comment %}SH-18 (фидбэк владельца 2026-08-20, тот же класс, что у Belegungsplan):
+второй заголовок и ряд ссылок («Services», «Passes», «Tage blockieren»,
+«Einstellungen») дублировали подпункты сайдбара и читались как хлебные крошки.
+Тело дня начинается с самого дня.{% endcomment %}
 
 
 {% if messages %}

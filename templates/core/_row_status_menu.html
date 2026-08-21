@@ -1,0 +1,23 @@
+{% load i18n %}
+{% comment %}SH-11 (фидбэк владельца 2026-08-20 «в списке позволить менять статус»):
+компактное меню переходов прямо в строке списка. Тот же приёмник, что у доски и
+карточки (`board-action` → `transactions.apply_action`), поэтому письма, склад и
+деньги идут штатным путём; правила FSM остаются жёстким полом.
+Параметры include: kind, pk, label, actions (tx.allowed_actions), next_path.{% endcomment %}
+{% if actions %}
+<details class="relative" data-row-status>
+  <summary class="list-none cursor-pointer text-xs font-medium px-2 py-0.5 rounded-full {{ badge_class|default:'bg-gray-100 text-gray-600' }}">{{ label }} ▾</summary>
+  <div class="absolute right-0 z-20 mt-1 w-52 rounded-xl border border-gray-200 bg-white p-1 shadow-lg">
+    <form method="post" action="{% url 'board-action' kind pk %}" class="flex flex-col gap-1">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next_path }}">
+      {% for a in actions %}
+        <button type="submit" name="action" value="{{ a.target }}"
+                class="text-left text-sm rounded-lg px-2 py-1.5 {% if a.danger %}text-red-600 hover:bg-red-50{% else %}text-gray-700 hover:bg-gray-50{% endif %}">{{ a.label }}</button>
+      {% endfor %}
+    </form>
+  </div>
+</details>
+{% else %}
+<span class="text-xs font-medium px-2 py-0.5 rounded-full {{ badge_class|default:'bg-gray-100 text-gray-600' }}">{{ label }}</span>
+{% endif %}

@@ -3342,20 +3342,30 @@ def verkaeufe(request):
     tenant = request.tenant
     kinds = sales_page.visible_kinds(tenant) or ["order"]
     active = request.GET.get("tab", "")
-    if active not in kinds:
+    # SH-15: «Kunden» — вкладка страницы продаж (не направление сделок): у неё
+    # нет ни видов, ни «＋»-цели, тело — список клиентов CRM.
+    customers_tab = active == sales_page.KUNDEN_TAB and sales_page.shows_customers(tenant)
+    if not customers_tab and active not in kinds:
         active = kinds[0]
-    view = sales_page.resolve_view(tenant, active, request.GET.get("view", ""))
+    view = (
+        ""
+        if customers_tab
+        else sales_page.resolve_view(tenant, active, request.GET.get("view", ""))
+    )
     # W10-4: kind-агностичный вид «Heute» (?view=heute) — не персистится и не
     # входит в KIND_VIEWS (переключатель видов остаётся per-kind).
-    if request.GET.get("view") == "heute":
+    if not customers_tab and request.GET.get("view") == "heute":
         view = "heute"
     # Ревью 2026-08-19: фильтр в адресе обязан быть ИСПОЛНЕН, а не молча
     # проигнорирован телом вида (board не принимает ни ?status=, ни ?q=).
-    view = sales_page.view_for_filters(active, view, request.GET)
+    if not customers_tab:
+        view = sales_page.view_for_filters(active, view, request.GET)
     # W10-3: «＋» из любого вида — цель создания по kind (есть только у
     # календарных движков: walk-in формы живут в их телах/на stay-new).
     create_target = ""
-    if active == "stay":
+    if customers_tab:
+        create_target = reverse("crm:customer-create")
+    elif active == "stay":
         create_target = reverse("stays:stay-new")
     elif active == "booking":
         create_target = reverse("verkaeufe") + "?tab=booking&view=kalender#neu"
@@ -3366,7 +3376,8 @@ def verkaeufe(request):
     ctx = {
         "nav": "board",
         "sales_tabs": sales_page.tab_descriptors(tenant, active),
-        "sales_views": sales_page.view_descriptors(tenant, active, view),
+        "customers_tab": sales_page.customers_tab(tenant, active),
+        "sales_views": [] if customers_tab else sales_page.view_descriptors(tenant, active, view),
         "active_kind": active,
         "active_view": view,
         "create_target": create_target,
@@ -3756,6 +3767,42 @@ def transitions_save(request, kind):
     nxt = request.POST.get("next", "")
     if not nxt.startswith("/") or nxt.startswith("//"):
         nxt = reverse("ablaeufe")  # X2b: доска снесена — правила переходов там
+    return redirect(nxt)
+
+
+@login_required
+@require_POST
+def deal_customer_edit(request, kind, pk):
+    """SH-5 (фидбэк владельца 2026-08-20 «редактировать клиента … у ВСЕХ архетипов»):
+    правка контакта с карточки ЛЮБОЙ сделки.
+
+    Каждая сделка ссылается на своего клиента (`obj.customer`), поэтому приёмник
+    один и kind-агностичный — как `board-action` для статусов. Пишем в
+    СУЩЕСТВУЮЩЕГО клиента: сделка и её история остаются на том же контакте
+    (дубль в CRM был бы хуже опечатки)."""
+    from django.http import Http404
+    from django.urls import reverse
+
+    from apps.core import transactions
+
+    if kind not in transactions.TRANSACTION_KINDS:
+        raise Http404("unknown kind")
+    obj = get_object_or_404(transactions.model_for(kind), pk=pk)
+    customer = getattr(obj, "customer", None)
+    if customer is None:
+        raise Http404("deal has no customer")
+    fields = []
+    for attr in ("name", "email", "phone"):
+        value = (request.POST.get(attr) or "").strip()
+        if value and getattr(customer, attr, None) != value:
+            setattr(customer, attr, value)
+            fields.append(attr)
+    if fields:
+        customer.save(update_fields=fields + ["updated_at"])
+        messages.success(request, _("Kundendaten gespeichert."))
+    nxt = request.POST.get("next", "")
+    if not (nxt.startswith("/") and not nxt.startswith("//")):
+        nxt = transactions.transaction_for(kind, obj).manage_url or reverse("verkaeufe")
     return redirect(nxt)
 
 

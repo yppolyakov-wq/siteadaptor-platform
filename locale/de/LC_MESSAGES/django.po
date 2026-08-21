@@ -19369,6 +19369,142 @@ msgstr ""
 msgid "Position hinzufügen"
 msgstr "Position hinzufügen"
 
+msgid "Zahlung & Lieferung einstellen"
+msgstr "Zahlung & Lieferung einstellen"
+
+msgid ""
+"Zahlarten, Vorkasse-Bankdaten, Versandkosten und Liefergebiet — gelten für "
+"alle Bestellungen."
+msgstr ""
+"Zahlarten, Vorkasse-Bankdaten, Versandkosten und Liefergebiet — gelten für "
+"alle Bestellungen."
+
+msgid "Lieferungen"
+msgstr "Lieferungen"
+
+msgid "Nur Lieferungen"
+msgstr "Nur Lieferungen"
+
+msgid ""
+"Kundenkarte mit Notizen, Tags und Historie gibt es im Modul «Kunden (CRM)»."
+msgstr ""
+"Kundenkarte mit Notizen, Tags und Historie gibt es im Modul «Kunden (CRM)»."
+
+msgid "Abholung"
+msgstr "Abholung"
+
+msgid "Art"
+msgstr "Art"
+
+msgid "Auftrag %(code)s"
+msgstr "Auftrag %(code)s"
+
+msgid "Aus dem Sortiment"
+msgstr "Aus dem Sortiment"
+
+msgid "Bezeichnung"
+msgstr "Bezeichnung"
+
+msgid "Bitte Position wählen oder Text und Preis angeben."
+msgstr "Bitte Position wählen oder Text und Preis angeben."
+
+msgid "Bitte Zahlen im Format 12,50 eingeben."
+msgstr "Bitte Zahlen im Format 12,50 eingeben."
+
+msgid "Externe Nummer"
+msgstr "Externe Nummer"
+
+msgid "Grund / Code"
+msgstr "Grund / Code"
+
+msgid "Kasse / Marktplatz"
+msgstr "Kasse / Marktplatz"
+
+msgid "Lieferkosten"
+msgstr "Lieferkosten"
+
+msgid "Lieferung"
+msgstr "Lieferung"
+
+msgid "Lieferung gespeichert."
+msgstr "Lieferung gespeichert."
+
+msgid "Lieferung speichern"
+msgstr "Lieferung speichern"
+
+msgid "Menge 0 entfernt die Position. Der Bestand wird mitgeführt."
+msgstr "Menge 0 entfernt die Position. Der Bestand wird mitgeführt."
+
+msgid "MwSt.-Satz"
+msgstr "MwSt.-Satz"
+
+msgid "Nicht genug Bestand: %(title)s (verfügbar: %(n)s)."
+msgstr "Nicht genug Bestand: %(title)s (verfügbar: %(n)s)."
+
+msgid "Nummern gespeichert."
+msgstr "Nummern gespeichert."
+
+msgid "Online (Stripe)"
+msgstr "Online (Stripe)"
+
+msgid "Positionen aktualisiert."
+msgstr "Positionen aktualisiert."
+
+msgid "Positionen speichern"
+msgstr "Positionen speichern"
+
+msgid "Rabatt"
+msgstr "Rabatt"
+
+msgid "Rabatt gespeichert."
+msgstr "Rabatt gespeichert."
+
+msgid "Rabatt speichern"
+msgstr "Rabatt speichern"
+
+msgid "Rechnung aus Auftrag erstellen"
+msgstr "Rechnung aus Auftrag erstellen"
+
+msgid "Rechnungsadresse"
+msgstr "Rechnungsadresse"
+
+msgid "Rechnungsempfänger (falls abweichend)"
+msgstr "Rechnungsempfänger (falls abweichend)"
+
+msgid "Rechnungsentwurf erstellt."
+msgstr "Rechnungsentwurf erstellt."
+
+msgid "Zahlart"
+msgstr "Zahlart"
+
+msgid "Zahlungsdaten gespeichert."
+msgstr "Zahlungsdaten gespeichert."
+
+msgid "Zahlungsdaten speichern"
+msgstr "Zahlungsdaten speichern"
+
+msgid "davon %(rate)s %% MwSt."
+msgstr "davon %(rate)s %% MwSt."
+
+msgid "freie Position"
+msgstr "freie Position"
+
+msgid "netto"
+msgstr "netto"
+
+msgid "nicht gesetzt"
+msgstr "nicht gesetzt"
+
+msgid "Ein abgeschlossener Auftrag kann nicht mehr geändert werden."
+msgstr "Ein abgeschlossener Auftrag kann nicht mehr geändert werden."
+
+msgid ""
+"Im Preis enthalten (Bruttopreis). Lebensmittel meist 7, Standard 19 (Angabe "
+"in Prozent). Bei Kleinunternehmerregelung nach § 19 UStG ohne Wirkung."
+msgstr ""
+"Im Preis enthalten (Bruttopreis). Lebensmittel meist 7, Standard 19 (Angabe "
+"in Prozent). Bei Kleinunternehmerregelung nach § 19 UStG ohne Wirkung."
+
 msgid "Ausgaben"
 msgstr "Ausgaben"
 

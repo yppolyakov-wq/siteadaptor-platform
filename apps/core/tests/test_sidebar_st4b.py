@@ -165,16 +165,20 @@ def test_sidebar_children_composition():
     by_anchor = {it["url_name"]: it["children"] for it in modules.sidebar_nav(t)}
 
     assert by_anchor["dashboard"] == []
-    verk = [c["url_name"] for c in by_anchor["verkaeufe"]]
-    assert verk == [
-        "booking:resources",
-        "booking:availability",
-        "stays:checkins",
-        "orders:kitchen",  # гастро-тип: гейт business_types пропускает
-        "ablaeufe",
-        "promotions:analytics",
-        "finance:journal",
-        "stays:reports",
+    # SH-14/15 (фидбэк владельца 2026-08-20, осознанное дополнение состава):
+    # «Kunden» и «Lieferungen» — подпункты продаж; оба ведут на страницу продаж
+    # (разные вкладка/фильтр), поэтому дедуп подпунктов — по (url_name, query).
+    assert [(c["url_name"], c["query"]) for c in by_anchor["verkaeufe"]] == [
+        ("booking:resources", ""),
+        ("booking:availability", ""),
+        ("stays:checkins", ""),
+        ("orders:kitchen", ""),  # гастро-тип: гейт business_types пропускает
+        ("ablaeufe", "?from=board"),
+        ("verkaeufe", "?tab=kunden"),
+        ("verkaeufe", "?tab=order&view=liste&versand=1"),
+        ("promotions:analytics", ""),
+        ("finance:journal", ""),
+        ("stays:reports", ""),
     ]
     site = [c["url_name"] for c in by_anchor["site-home"]]
     assert site == ["site-seo", "domains", "media-library"]

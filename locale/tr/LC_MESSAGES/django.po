@@ -19367,6 +19367,143 @@ msgstr ""
 msgid "Position hinzufügen"
 msgstr "Kalem ekle"
 
+msgid "Zahlung & Lieferung einstellen"
+msgstr "Ödeme ve teslimatı ayarla"
+
+msgid ""
+"Zahlarten, Vorkasse-Bankdaten, Versandkosten und Liefergebiet — gelten für "
+"alle Bestellungen."
+msgstr ""
+"Ödeme yöntemleri, ön ödeme banka bilgileri, kargo ücretleri ve teslimat "
+"bölgesi — tüm siparişler için geçerlidir."
+
+msgid "Lieferungen"
+msgstr "Teslimatlar"
+
+msgid "Nur Lieferungen"
+msgstr "Sadece teslimatlar"
+
+msgid ""
+"Kundenkarte mit Notizen, Tags und Historie gibt es im Modul «Kunden (CRM)»."
+msgstr ""
+"Notlar, etiketler ve geçmişle birlikte müşteri kartı «Müşteriler (CRM)» "
+"modülünde."
+
+msgid "Abholung"
+msgstr "Teslim alma"
+
+msgid "Art"
+msgstr "Tür"
+
+msgid "Auftrag %(code)s"
+msgstr "Sipariş %(code)s"
+
+msgid "Aus dem Sortiment"
+msgstr "Ürün listesinden"
+
+msgid "Bezeichnung"
+msgstr "Açıklama"
+
+msgid "Bitte Position wählen oder Text und Preis angeben."
+msgstr "Bir kalem seçin ya da ad ve fiyat girin."
+
+msgid "Bitte Zahlen im Format 12,50 eingeben."
+msgstr "Lütfen sayıyı 12,50 biçiminde girin."
+
+msgid "Externe Nummer"
+msgstr "Harici numara"
+
+msgid "Grund / Code"
+msgstr "Neden / kod"
+
+msgid "Kasse / Marktplatz"
+msgstr "Kasa / pazar yeri"
+
+msgid "Lieferkosten"
+msgstr "Teslimat ücreti"
+
+msgid "Lieferung"
+msgstr "Teslimat"
+
+msgid "Lieferung gespeichert."
+msgstr "Teslimat kaydedildi."
+
+msgid "Lieferung speichern"
+msgstr "Teslimatı kaydet"
+
+msgid "Menge 0 entfernt die Position. Der Bestand wird mitgeführt."
+msgstr "Miktar 0 kalemi kaldırır. Stok buna göre güncellenir."
+
+msgid "MwSt.-Satz"
+msgstr "KDV oranı"
+
+msgid "Nicht genug Bestand: %(title)s (verfügbar: %(n)s)."
+msgstr "Yeterli stok yok: %(title)s (mevcut: %(n)s)."
+
+msgid "Nummern gespeichert."
+msgstr "Numaralar kaydedildi."
+
+msgid "Online (Stripe)"
+msgstr "Online (Stripe)"
+
+msgid "Positionen aktualisiert."
+msgstr "Kalemler güncellendi."
+
+msgid "Positionen speichern"
+msgstr "Kalemleri kaydet"
+
+msgid "Rabatt"
+msgstr "İndirim"
+
+msgid "Rabatt gespeichert."
+msgstr "İndirim kaydedildi."
+
+msgid "Rabatt speichern"
+msgstr "İndirimi kaydet"
+
+msgid "Rechnung aus Auftrag erstellen"
+msgstr "Siparişten fatura oluştur"
+
+msgid "Rechnungsadresse"
+msgstr "Fatura adresi"
+
+msgid "Rechnungsempfänger (falls abweichend)"
+msgstr "Fatura alıcısı (farklıysa)"
+
+msgid "Rechnungsentwurf erstellt."
+msgstr "Fatura taslağı oluşturuldu."
+
+msgid "Zahlart"
+msgstr "Ödeme yöntemi"
+
+msgid "Zahlungsdaten gespeichert."
+msgstr "Ödeme bilgileri kaydedildi."
+
+msgid "Zahlungsdaten speichern"
+msgstr "Ödeme bilgilerini kaydet"
+
+msgid "davon %(rate)s %% MwSt."
+msgstr "içinde %(rate)s %% KDV"
+
+msgid "freie Position"
+msgstr "serbest kalem"
+
+msgid "netto"
+msgstr "net"
+
+msgid "nicht gesetzt"
+msgstr "ayarlanmadı"
+
+msgid "Ein abgeschlossener Auftrag kann nicht mehr geändert werden."
+msgstr "Kapatılmış bir sipariş artık değiştirilemez."
+
+msgid ""
+"Im Preis enthalten (Bruttopreis). Lebensmittel meist 7, Standard 19 (Angabe "
+"in Prozent). Bei Kleinunternehmerregelung nach § 19 UStG ohne Wirkung."
+msgstr ""
+"Fiyata dahildir (brüt). Gıdada genelde 7, standart 19 (yüzde olarak). § 19 "
+"UStG küçük işletme düzenlemesinde etkisizdir."
+
 msgid "Ausgaben"
 msgstr "Giderler"
 

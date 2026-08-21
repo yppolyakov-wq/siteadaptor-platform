@@ -10,6 +10,7 @@ UUID-pk и смена статусов только FSM-хуками — зад�
 """
 
 import uuid
+from decimal import Decimal
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -99,6 +100,16 @@ class Order(TimestampedModel):
     reserve_expires_at = models.DateTimeField(null=True, blank=True)
     discount_cents = models.PositiveIntegerField(default=0)
     tracking_code = models.CharField(max_length=100, blank=True)  # номер DHL/Hermes
+    # SH-8 (решение владельца 2026-08-20 «второй номер = ВНЕШНИЙ»): номер этого
+    # заказа в чужой системе — касса, маркетплейс, бумажный журнал. Свободное
+    # поле (форматы у всех разные), НЕ unique (внешние номера бывают повторными),
+    # ищется поиском сделок наравне с reference_code.
+    external_code = models.CharField(max_length=50, blank=True, db_index=True)
+    # SH-9: плательщик, если он не совпадает с получателем заказа (фирма платит
+    # за сотрудника, родитель за ребёнка). Снимок для счёта — §14 UStG требует
+    # реквизиты ПОЛУЧАТЕЛЯ счёта, а не того, кто забирает товар.
+    billing_name = models.CharField(max_length=200, blank=True)
+    billing_address = models.TextField(blank=True)
     shipped_at = models.DateTimeField(null=True, blank=True)
 
     # Швы под маркетплейс/dropshipping (M11→M14/M15, master-plan §7) — ПАССИВНЫЕ,
@@ -180,6 +191,10 @@ class OrderItem(TimestampedModel):
     qty = models.PositiveIntegerField(default=1)
     # Снимки цены/названия: заказ показывает то, что видел клиент.
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    # SH-4: СНИМОК ставки НДС позиции (как unit_price/title): смена ставки в
+    # каталоге не переписывает уже выставленный документ. Цена брутто, поэтому
+    # ставка нужна для разложения итога (нетто/НДС), а не для доначисления.
+    vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("19.00"))
     title_snapshot = models.CharField(max_length=200)
     # Снимок выбранных модификаторов/Extras (A4b): [{"label","delta"}]. Надбавка
     # уже включена в unit_price; список — для отображения в заказе/письмах.
