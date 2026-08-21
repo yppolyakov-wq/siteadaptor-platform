@@ -9220,6 +9220,218 @@ SHOP = DemoKit(
     ],
 )
 
+
+# --- Кит «Stadtführung»: Трипстер-гид (§5 классификации MX) --------------------
+# Одиночный городской гид: экскурсия = карточка Впечатления (Tour) с датами-
+# заездами (platz, цена ЗА ЧЕЛОВЕКА) + anfrage приватной группы (jobs). Живой
+# пример MX-2e: адресная опция «Audio-Headset» с пулом. Business_type тот же
+# tour_operator — новый архетип НЕ нужен (решение владельца 2026-08-21).
+
+STADTFUEHRUNG_MENUS = {
+    "top": {
+        "style": "classic",
+        "sticky": True,
+        "items": [
+            {"label": "Touren", "type": "url", "target": "/touren/"},
+            {"label": "Termine", "type": "archetype", "target": "events"},
+            {"label": "Privat buchen", "type": "url", "target": "/anfrage/"},
+            {"label": "Galerie", "type": "page", "target": "gallery"},
+            {"label": "Bewertungen", "type": "page", "target": "reviews"},
+            {"label": "Über mich", "type": "page", "target": "about"},
+        ],
+    },
+    "bottom": {
+        "enabled": True,
+        "items": [
+            {"label": "Touren", "type": "url", "target": "/touren/", "icon": "🚶"},
+            {"label": "Termine", "type": "archetype", "target": "events", "icon": "🎟️"},
+            {"label": "Privat", "type": "url", "target": "/anfrage/", "icon": "✍️"},
+        ],
+    },
+}
+
+STADTFUEHRUNG = DemoKit(
+    key="stadtfuehrung",
+    label="Kölner Spaziergänge",
+    business_type="tour_operator",
+    subdomain="stadtfuehrung",
+    accent="#9d174d",
+    bundle="fokus_touren",
+    look="warm",
+    hero_image_kw="city,tour",
+    hero_title="Kölner Spaziergänge",
+    hero_text="Stadtführungen abseits der Trampelpfade — kleine Gruppen, echte "
+    "Geschichten, eine Gastgeberin. Öffentliche Termine oder Ihre private Tour.",
+    section_titles={
+        "tours": "Meine Touren",
+        "anfrage": "Private Führung anfragen",
+    },
+    section_intros={
+        "anfrage": "Ab sechs Personen laufe ich jede Tour privat — auch abends. "
+        "Wunschtermin nennen, ich melde mich innerhalb eines Tages.",
+    },
+    opening_hours_text="Touren täglich · Büro Mo–Fr 9:00–17:00",
+    opening_hours={d: ("09:00", "17:00") for d in range(5)},
+    menus=STADTFUEHRUNG_MENUS,
+    enable_modules=["events", "customer_account", "inbox", "jobs"],
+    hide_archetypes=["catalog"],
+    anfrage_form={
+        "fields": ["date", "guests", "event_type"],
+        "event_types": [
+            "Altstadt & Dom privat",
+            "Kölsch & Brauhauskultur",
+            "Frauen, die Köln prägten",
+            "Firmen-Event / Teamausflug",
+            "Eigene Idee",
+        ],
+    },
+    about_title="Über mich",
+    about_text="Ich bin Katharina — Kunsthistorikerin und seit zwölf Jahren "
+    "Stadtführerin in Köln. Ich laufe nur Touren, die ich selbst liebe: kleine "
+    "Gruppen, keine Mikrofon-Kolonnen, dafür Geschichten, die im Reiseführer "
+    "fehlen. Öffentliche Termine finden ab vier Gästen statt; private Touren "
+    "laufen auf Deutsch und Englisch.",
+    gallery_kw=["city,tour", "old,town", "beer", "market,stall", "red,wine"],
+    teachers=[
+        (
+            "Katharina Vogt",
+            "Stadtführerin & Kunsthistorikerin",
+            "guide,portrait",
+            "Zwölf Jahre Stadtführungen in Köln, davor Museumsdienst. "
+            "Lieblingsecke: die Höfe hinter Groß St. Martin kurz vor Sonnenuntergang.",
+        ),
+    ],
+    tours=[
+        {
+            "title": "Altstadt & Dom — der Klassiker",
+            "summary": "Zwei Stunden vom Dom durchs Martinsviertel bis an den Rhein "
+            "— die Pflichttour, ohne Trampelpfad-Gefühl.",
+            "region": "Altstadt, Köln",
+            "country": "Deutschland",
+            "difficulty": "easy",
+            "duration_days": 0,
+            "photos": ["city,tour", "old,town"],
+            "description": "Warum steht der Dom schief zur Straße? Wo stand das "
+            "römische Köln? Zwei Stunden zu Fuß, maximal zwölf Gäste, viele "
+            "Geschichten — am Ende wissen Sie, warum die Kölner ihre Stadt nie "
+            "fertig bauen.",
+            "details": {
+                "for_whom": [
+                    "Köln-Besucher und Neu-Kölner",
+                    "Gut zu Fuß — wir laufen ca. 3 km",
+                ],
+                "price_includes": [
+                    "2 Stunden Führung, max. 12 Gäste",
+                    "Audio-Headset ab 8 Gästen",
+                ],
+                "faq": [
+                    (
+                        "Findet die Tour bei Regen statt?",
+                        "Ja — Köln bei Regen ist ehrlicher. Bei Sturmwarnung sage "
+                        "ich ab und Sie buchen kostenlos um.",
+                    ),
+                ],
+            },
+            "teachers": [0],
+        },
+        {
+            "title": "Kölsch & Brauhauskultur",
+            "summary": "Drei Brauhäuser, viele Geschichten und die Frage, warum "
+            "der Köbes nie fragt, ob Sie noch eins möchten.",
+            "region": "Altstadt, Köln",
+            "country": "Deutschland",
+            "difficulty": "easy",
+            "duration_days": 0,
+            "photos": ["beer", "old,town"],
+            "description": "Eine Abendtour durch die Brauhauskultur: Geschichte "
+            "des Kölsch, Brauhaus-Knigge und drei Stationen mit Verkostung. "
+            "Ab 18 Jahren.",
+            "details": {
+                "price_includes": [
+                    "3 Stationen, je ein Kölsch inklusive",
+                    "2,5 Stunden, max. 10 Gäste",
+                ],
+            },
+            "teachers": [0],
+        },
+        {
+            "title": "Frauen, die Köln prägten",
+            "summary": "Von der Stifterin Plectrudis bis zur ersten Ratsfrau — "
+            "die Stadtgeschichte, die sonst ausgelassen wird.",
+            "region": "Innenstadt, Köln",
+            "country": "Deutschland",
+            "difficulty": "easy",
+            "duration_days": 0,
+            "photos": ["old,town", "city,tour"],
+            "description": "Zwei Stunden Stadtgeschichte aus weiblicher "
+            "Perspektive — Orte, Namen und Archivfunde, die in klassischen "
+            "Führungen fehlen.",
+            "teachers": [0],
+        },
+    ],
+    events=[
+        {
+            "title": "Altstadt & Dom · Samstagstour",
+            "tour": 0,
+            "in_days": 6,
+            "hour": 11,
+            "capacity": 12,
+            "price": "19",
+            "city": "Köln",
+            "location": "Treffpunkt Domplatte, Hauptportal",
+            "language": "de",
+            # MX-2e: адресная опция с ПУЛОМ — 15 headset-гарнитур на всех.
+            "rental_option": ("Audio-Headset", "3", 15, "Kopfhörer-Service Rheinland"),
+            "description": "Öffentlicher Termin — Einzelplätze buchbar.",
+        },
+        {
+            "title": "Altstadt & Dom · Sonntagstour",
+            "tour": 0,
+            "in_days": 7,
+            "hour": 14,
+            "capacity": 12,
+            "price": "19",
+            "city": "Köln",
+            "location": "Treffpunkt Domplatte, Hauptportal",
+            "language": "de",
+            "description": "Öffentlicher Termin — Einzelplätze buchbar.",
+        },
+        {
+            "title": "Kölsch & Brauhauskultur · Freitagabend",
+            "tour": 1,
+            "in_days": 5,
+            "hour": 18,
+            "capacity": 10,
+            "price": "34",
+            "city": "Köln",
+            "location": "Treffpunkt Heumarkt, Reiterdenkmal",
+            "language": "de",
+            "description": "Drei Brauhäuser inkl. je einem Kölsch.",
+        },
+        {
+            "title": "Frauen, die Köln prägten · Themenabend",
+            "tour": 2,
+            "in_days": 12,
+            "hour": 17,
+            "capacity": 12,
+            "price": "21",
+            "city": "Köln",
+            "location": "Treffpunkt Rathausvorplatz",
+            "language": "de",
+            "description": "Öffentlicher Termin — Einzelplätze buchbar.",
+        },
+    ],
+    extras=[
+        ("Kölsch-Verkostung zum Abschluss", "4.50", "events", False),
+    ],
+    reviews_seed=[
+        (5, "Beste Stadtführung, die wir je hatten — witzig und fundiert.", "sf.rev1@example.de"),
+        (5, "Katharina kennt jede Ecke. Die Brauhaustour ist ein Muss.", "sf.rev2@example.de"),
+        (4, "Toller Themenabend, gern mit etwas mehr Zeit am Rhein.", "sf.rev3@example.de"),
+    ],
+)
+
+
 KITS = {
     RESTAURANT.key: RESTAURANT,
     PRANASY.key: PRANASY,
@@ -9237,6 +9449,7 @@ KITS = {
     CATERING.key: CATERING,  # GK-1
     RETREAT.key: RETREAT,
     SHOP.key: SHOP,
+    STADTFUEHRUNG.key: STADTFUEHRUNG,  # Трипстер-гид (MX §5)
 }
 
 

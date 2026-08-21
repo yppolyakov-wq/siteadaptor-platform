@@ -1844,6 +1844,25 @@ Python 3.12, менеджер uv.
   follow-up'ы: пул-enforcement/рецепт (слайс 2e), ticket-допы (3b), серия в листинге/агрегаторе (6c). SOURCE OF TRUTH — `docs/mx-execution-plan-2026-08-21.md`;
   уроки: CI-гейт `i18n_gap` строже quickcheck (сверять msgid шаблонов с .po напрямую);
   снимок-замки сверять полями, не dict'ом.
+- **Самое свежее (2026-08-21, продолжение): FOLLOW-UPS программы MX ЗАКРЫТЫ ЦЕЛИКОМ
+  («Делай») — 2e+3b+6c+кит, всё БЕЗ миграций, всё в main.** План
+  `mx-followups-plan-2026-08-21.md`. **2e** enforcement трекеров опций
+  (`apps/core/option_trackers.py`): пул — PoolFull по окну исполнения (stay ночи /
+  ticket дни / booking день) под select_for_update Extra, общий на 3 kind, сделка
+  исключает себя (off-by-one ловился тестом); склад — OptionOutOfStock, движение
+  `source="option"` первым (md5-ref: 2 UUID не влезали в varchar(64)), счётчик только
+  при созданном движении; возвраты через SM-хуки трёх kind + зеркала кастом-статусов,
+  идемпотентны и только при sale-движении. Правки состава — `sync_options` (diff).
+  **3b** правка допов билета (`action=extras` в ticket_action + форма в списке).
+  **6c** серия/заезды тура ОДНОЙ карточкой: витрина сворачивает по tour|series с
+  бейджем «+N Termine» (свод после фасетов; паритет-замки целы), агрегатор — групповая
+  запись `tour:<id>|series:<id>` payload=ближайший будущий заезд, per-event строки
+  чистятся, beat `roll-event-group-listings` перекатывает протухшие. **Кит
+  «Kölner Spaziergänge»** (`stadtfuehrung`, tour_operator): Трипстер-гид — 3 экскурсии-
+  Tour + 4 заезда за-человека + anfrage приватной группы + пул-опция Audio-Headset
+  (живой 2e). Замки: test_option_trackers (7) + test_event_group_listing (6) +
+  test_kit_stadtfuehrung; tenants 933. ⚠️ ops: `seed_demo_tenants --kit stadtfuehrung`.
+  Остаток MX — только v2-опции по спросу (рецепт списания, qty>1, FEFO у опций).
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate) + `events/0028` (SupplierBooking вне туров) + `booking/0023` (Service.pricing_mode) + `catalog/0030` (Product.primary_action) + `finance/0009` (SOURCES gift/pass, choices-only)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,

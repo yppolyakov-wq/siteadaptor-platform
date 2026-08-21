@@ -11852,3 +11852,19 @@ SH закрыла правку заказа и НДС на товаре — ку
 Замки: `test_event_group_listing` (6) — свод двух заездов, серия, замена
 легаси-строки, перекат beat + удаление без дат, reconcile, витринный бейдж.
 events+aggregator 494 зелёных. 1 msgid × 5 каталогов.
+
+## 2026-08-21 — Кит «Kölner Spaziergänge» (stadtfuehrung) — Трипстер-гид (БЕЗ миграций)
+
+Последний follow-up MX (план `mx-followups-plan-2026-08-21.md`; §5 классификации:
+Трипстер-гид = tour_operator, новый архетип не нужен — разрыв был только в демо).
+Одиночная городская гид-экскурсовод: 3 экскурсии как Tour-карточки (Altstadt&Dom /
+Kölsch&Brauhauskultur / Frauen, die Köln prägten) + 4 публичных заезда с ценой ЗА
+ЧЕЛОВЕКА (19–34 €) — 6c сворачивает даты одной карточкой; `anfrage`-форма приватной
+группы (AF-1, 5 типов); гид со страницей (Teacher); **живой пример MX-2e** —
+адресная опция «Audio-Headset» с пулом 15 и поставщиком (rental_option сидера
+MX-2d) + scope-опция «Kölsch-Verkostung»; отзывы 4.7★, галерея, часы, сборка
+fokus_touren. Меню — только резолвимые цели (Touren/Termine/Privat/страницы ST-8).
+Замки: параметризованные кит-инварианты прошли автоматически (test_demo_menus 200,
+apps/tenants 933) + новый e2e-сид `test_kit_stadtfuehrung`. Урок: `apply_kit`
+принимает КЛЮЧ, не объект (KITS.get(key)). ops: `seed_demo_tenants --kit
+stadtfuehrung` после деплоя (миграций нет).
