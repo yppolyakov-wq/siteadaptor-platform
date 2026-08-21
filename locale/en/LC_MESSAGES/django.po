@@ -19754,3 +19754,35 @@ msgstr "Planned margin"
 #: jobs ERP-6
 msgid "ohne Positionen ohne EK"
 msgstr "excluding lines without cost"
+
+#: inventory ERP-7
+msgid "Produktion buchen"
+msgstr "Book production"
+
+#: inventory ERP-7
+msgid "Fertigprodukt"
+msgstr "Finished product"
+
+#: inventory ERP-7
+msgid "Zutaten (Verbrauch)"
+msgstr "Ingredients (consumption)"
+
+#: inventory ERP-7
+msgid "EK des Fertigprodukts aus Zutaten berechnen"
+msgstr "Calculate finished-product cost from ingredients"
+
+#: inventory ERP-7
+msgid "Bitte mindestens eine Zutat wählen."
+msgstr "Please select at least one ingredient."
+
+#: inventory ERP-7
+msgid "Nicht genug Bestand für %(name)s — nichts gebucht."
+msgstr "Not enough stock for %(name)s — nothing booked."
+
+#: inventory ERP-7
+msgid "Produktion gebucht (%(code)s): +%(n)s."
+msgstr "Production booked (%(code)s): +%(n)s."
+
+#: inventory ERP-7
+msgid "Zutaten werden abgebucht, das Fertigprodukt zugebucht — alles in einer Buchung. Reicht eine Zutat nicht, wird nichts gebucht."
+msgstr "Ingredients are deducted and the finished product is added — in one booking. If any ingredient is short, nothing is booked."

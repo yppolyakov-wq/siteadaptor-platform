@@ -19882,3 +19882,35 @@ msgstr "Plan-Marge"
 #: jobs ERP-6
 msgid "ohne Positionen ohne EK"
 msgstr "ohne Positionen ohne EK"
+
+#: inventory ERP-7
+msgid "Produktion buchen"
+msgstr "Produktion buchen"
+
+#: inventory ERP-7
+msgid "Fertigprodukt"
+msgstr "Fertigprodukt"
+
+#: inventory ERP-7
+msgid "Zutaten (Verbrauch)"
+msgstr "Zutaten (Verbrauch)"
+
+#: inventory ERP-7
+msgid "EK des Fertigprodukts aus Zutaten berechnen"
+msgstr "EK des Fertigprodukts aus Zutaten berechnen"
+
+#: inventory ERP-7
+msgid "Bitte mindestens eine Zutat wählen."
+msgstr "Bitte mindestens eine Zutat wählen."
+
+#: inventory ERP-7
+msgid "Nicht genug Bestand für %(name)s — nichts gebucht."
+msgstr "Nicht genug Bestand für %(name)s — nichts gebucht."
+
+#: inventory ERP-7
+msgid "Produktion gebucht (%(code)s): +%(n)s."
+msgstr "Produktion gebucht (%(code)s): +%(n)s."
+
+#: inventory ERP-7
+msgid "Zutaten werden abgebucht, das Fertigprodukt zugebucht — alles in einer Buchung. Reicht eine Zutat nicht, wird nichts gebucht."
+msgstr "Zutaten werden abgebucht, das Fertigprodukt zugebucht — alles in einer Buchung. Reicht eine Zutat nicht, wird nichts gebucht."

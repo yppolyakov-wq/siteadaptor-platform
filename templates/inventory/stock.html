@@ -195,6 +195,51 @@
   {% endif %}
 </div>
 
+{# --- ERP-7: Produktion buchen (Zutaten − / Fertigprodukt +, eine Operation) --- #}
+{% if entities %}
+<details class="mb-6 rounded-xl border border-gray-200 bg-white">
+  <summary class="cursor-pointer px-4 py-3 text-sm font-semibold text-gray-700">🏭 {% trans "Produktion buchen" %}</summary>
+  <form method="post" action="{% url 'stock' %}" class="px-4 pb-4 space-y-3">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="production">
+    <p class="text-xs text-gray-400">{% trans "Zutaten werden abgebucht, das Fertigprodukt zugebucht — alles in einer Buchung. Reicht eine Zutat nicht, wird nichts gebucht." %}</p>
+    <div class="grid gap-2 sm:grid-cols-2">
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Fertigprodukt" %}</label>
+        <select name="prod_output" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+          {% for e in entities %}<option value="{{ e.value }}">{{ e.label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Menge" %}</label>
+        <input type="number" name="prod_qty" min="1" placeholder="20" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+      </div>
+      {% if lots_on %}
+        <input type="text" name="prod_lot_code" placeholder="{% trans 'Charge-Nr.' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        <input type="date" name="prod_mhd" title="{% trans 'MHD' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+      {% endif %}
+    </div>
+    <div class="space-y-1.5">
+      <p class="text-xs font-medium text-gray-500">{% trans "Zutaten (Verbrauch)" %}</p>
+      {% for i in "1234" %}
+        <div class="grid grid-cols-[1fr_5rem] gap-2">
+          <select name="prod_in_{{ i }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+            <option value="">—</option>
+            {% for e in entities %}<option value="{{ e.value }}">{{ e.label }}</option>{% endfor %}
+          </select>
+          <input type="number" name="prod_in_qty_{{ i }}" min="1" placeholder="{% trans 'Menge' %}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
+        </div>
+      {% endfor %}
+    </div>
+    <label class="flex items-center gap-2 text-xs text-gray-500">
+      <input type="checkbox" name="prod_set_cost" checked class="h-3.5 w-3.5 rounded border-gray-300">
+      {% trans "EK des Fertigprodukts aus Zutaten berechnen" %}
+    </label>
+    <button class="text-sm bg-indigo-600 text-white rounded-lg px-4 py-1.5 hover:bg-indigo-700">{% trans "Produktion buchen" %}</button>
+  </form>
+</details>
+{% endif %}
+
 {# --- R1b: Inventur-Zählliste (alle Artikel zählen, Differenzen auf einmal buchen) --- #}
 {% if rows %}
 <details class="mb-6 rounded-xl border border-gray-200 bg-white">

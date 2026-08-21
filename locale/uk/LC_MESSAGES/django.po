@@ -19950,3 +19950,35 @@ msgstr "Планова маржа"
 #: jobs ERP-6
 msgid "ohne Positionen ohne EK"
 msgstr "без рядків без собівартості"
+
+#: inventory ERP-7
+msgid "Produktion buchen"
+msgstr "Провести виробництво"
+
+#: inventory ERP-7
+msgid "Fertigprodukt"
+msgstr "Готовий продукт"
+
+#: inventory ERP-7
+msgid "Zutaten (Verbrauch)"
+msgstr "Інгредієнти (витрата)"
+
+#: inventory ERP-7
+msgid "EK des Fertigprodukts aus Zutaten berechnen"
+msgstr "Розрахувати собівартість готового з інгредієнтів"
+
+#: inventory ERP-7
+msgid "Bitte mindestens eine Zutat wählen."
+msgstr "Виберіть хоча б один інгредієнт."
+
+#: inventory ERP-7
+msgid "Nicht genug Bestand für %(name)s — nichts gebucht."
+msgstr "Недостатньо залишку для %(name)s — нічого не проведено."
+
+#: inventory ERP-7
+msgid "Produktion gebucht (%(code)s): +%(n)s."
+msgstr "Виробництво проведено (%(code)s): +%(n)s."
+
+#: inventory ERP-7
+msgid "Zutaten werden abgebucht, das Fertigprodukt zugebucht — alles in einer Buchung. Reicht eine Zutat nicht, wird nichts gebucht."
+msgstr "Інгредієнти списуються, готовий продукт оприбутковується — однією операцією. Якщо якогось інгредієнта бракує, нічого не проводиться."

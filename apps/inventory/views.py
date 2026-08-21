@@ -271,6 +271,50 @@ def _handle_bulk_stocktake(request, actor):
     return redirect("stock")
 
 
+def _handle_production(request, actor):
+    """ERP-7: акт производства — до 4 строк сырья − / готовое + одной atomic.
+    Нехватка ЛЮБОЙ строки сырья откатывает весь акт (частичного производства
+    нет); PR-код акта — общий провенанс движений в леджере."""
+    out_product, out_variant = _resolve_entity(request.POST.get("prod_output"))
+    qty = _int(request.POST.get("prod_qty"))
+    if out_product is None or qty <= 0:
+        messages.error(request, _("Bitte einen Artikel wählen."))
+        return redirect("stock")
+    inputs = []
+    for i in range(1, 5):
+        p, v = _resolve_entity(request.POST.get(f"prod_in_{i}"))
+        q = _int(request.POST.get(f"prod_in_qty_{i}"))
+        if p is not None and q > 0:
+            inputs.append((p, v, q))
+    if not inputs:
+        messages.error(request, _("Bitte mindestens eine Zutat wählen."))
+        return redirect("stock")
+    try:
+        result = services.produce(
+            output_product=out_product,
+            output_variant=out_variant,
+            qty=qty,
+            inputs=inputs,
+            actor=actor,
+            mhd=_parse_date(request.POST.get("prod_mhd")),
+            lot_code=(request.POST.get("prod_lot_code") or "")[:64],
+            set_cost=request.POST.get("prod_set_cost") == "on",
+            tenant=request.tenant,
+        )
+    except services.ProductionError as exc:
+        messages.error(
+            request, _("Nicht genug Bestand für %(name)s — nichts gebucht.") % {"name": exc.label}
+        )
+        return redirect("stock")
+    except ValueError:
+        messages.error(request, _("Bitte einen Artikel wählen."))
+        return redirect("stock")
+    messages.success(
+        request, _("Produktion gebucht (%(code)s): +%(n)s.") % {"code": result["code"], "n": qty}
+    )
+    return redirect("stock")
+
+
 @require_POST
 def _handle_post(request):
     action = request.POST.get("action", "")
@@ -313,6 +357,9 @@ def _handle_post(request):
 
     if action == "stocktake_bulk":
         return _handle_bulk_stocktake(request, actor)
+
+    if action == "production":  # ERP-7: акт производства (сырьё − / готовое +)
+        return _handle_production(request, actor)
 
     product, variant = _resolve_entity(request.POST.get("entity"))
     if product is None:

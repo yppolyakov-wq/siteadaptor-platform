@@ -19880,3 +19880,35 @@ msgstr "Planlanan marj"
 #: jobs ERP-6
 msgid "ohne Positionen ohne EK"
 msgstr "maliyeti olmayan satırlar hariç"
+
+#: inventory ERP-7
+msgid "Produktion buchen"
+msgstr "Üretim kaydet"
+
+#: inventory ERP-7
+msgid "Fertigprodukt"
+msgstr "Bitmiş ürün"
+
+#: inventory ERP-7
+msgid "Zutaten (Verbrauch)"
+msgstr "Malzemeler (tüketim)"
+
+#: inventory ERP-7
+msgid "EK des Fertigprodukts aus Zutaten berechnen"
+msgstr "Bitmiş ürünün maliyetini malzemelerden hesapla"
+
+#: inventory ERP-7
+msgid "Bitte mindestens eine Zutat wählen."
+msgstr "Lütfen en az bir malzeme seçin."
+
+#: inventory ERP-7
+msgid "Nicht genug Bestand für %(name)s — nichts gebucht."
+msgstr "%(name)s için yeterli stok yok — hiçbir şey kaydedilmedi."
+
+#: inventory ERP-7
+msgid "Produktion gebucht (%(code)s): +%(n)s."
+msgstr "Üretim kaydedildi (%(code)s): +%(n)s."
+
+#: inventory ERP-7
+msgid "Zutaten werden abgebucht, das Fertigprodukt zugebucht — alles in einer Buchung. Reicht eine Zutat nicht, wird nichts gebucht."
+msgstr "Malzemeler düşülür, bitmiş ürün girilir — tek kayıtta. Herhangi bir malzeme yetersizse hiçbir şey kaydedilmez."

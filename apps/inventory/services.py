@@ -319,12 +319,14 @@ def receive_lot(
     note="",
     source="manual",
     location=None,
+    kind=None,
 ):
     """E1: оприходовать партию (Wareneingang по Charge). Двигает счётчик (+qty),
     пишет леджер (receipt) и создаёт `Lot(qty_remaining=qty)` — всё в одной atomic.
     Реюз `apply_manual_movement` для счётчика+леджера, поверх — запись партии.
     `source` — провенанс (E3: приёмка по Bestellung → "purchase"); `location` —
-    локация прихода (E2, NULL = основной склад)."""
+    локация прихода (E2, NULL = основной склад). `kind` — вид движения (ERP-7:
+    выход акта производства = "production"; дефолт — receipt)."""
     qty = int(qty)
     if qty <= 0:
         return None
@@ -332,7 +334,7 @@ def receive_lot(
         mv = apply_manual_movement(
             product=product,
             variant=variant,
-            kind=StockMovement.KIND_RECEIPT,
+            kind=kind or StockMovement.KIND_RECEIPT,
             delta=qty,
             actor=actor,
             note=note or (f"Charge {lot_code}" if lot_code else "Wareneingang"),
@@ -445,3 +447,120 @@ def expiring_lots(*, within_days=None, include_expired=True):
     if not include_expired:
         qs = qs.filter(mhd__gte=timezone.localdate())
     return qs.select_related("product", "variant").order_by("mhd", "created_at")
+
+
+# --- ERP-7: акт производства (BOM v1) ---------------------------------------------
+
+
+class ProductionError(Exception):
+    """ERP-7: акт не исполним (нехватка сырья) — вся операция откатывается."""
+
+    def __init__(self, label):
+        self.label = label
+        super().__init__(label)
+
+
+def _production_code() -> str:
+    """PR-код акта — общий провенанс движений (паттерн BE-кода закупок).
+    Уникальность по БД не проверяем: код — только читаемая метка в note,
+    коллизия в пространстве 30^6 космически редка и безвредна."""
+    import secrets
+
+    alphabet = "ACDEFGHJKLMNPQRSTUVWXYZ2345679"
+    return "PR-" + "".join(secrets.choice(alphabet) for _ in range(6))
+
+
+def produce(
+    *,
+    output_product,
+    output_variant=None,
+    qty,
+    inputs,
+    actor="",
+    mhd=None,
+    lot_code="",
+    set_cost=True,
+    tenant=None,
+):
+    """ERP-7: провести акт производства — сырьё −, готовое + одной atomic.
+
+    `inputs` — [(product, variant|None, qty)]. Сырьё списывается
+    `apply_manual_movement(kind=production, −qty)` + FEFO; нехватка остатка у
+    ЛЮБОЙ строки → ProductionError и откат ВСЕГО акта (частичного производства
+    нет). Готовое приходуется партией (`receive_lot`, MHD хлеба) при включённых
+    партиях тенанта, иначе тем же ручным путём (+qty). Расход НЕ пишется —
+    сырьё уже оплачено закупкой (двойной учёт).
+
+    `set_cost=True` и EK ВСЕХ строк сырья известен → `cost_price` готового =
+    Σ(qty_i × EK_i) / qty (иначе Warenwert молча терял бы готовое изделие);
+    средневзвешенного с существующим остатком v1 нет — объявлено в плане.
+    Локации v1 не участвуют (всё на основном складе).
+
+    Возвращает {"code", "unit_cost"} (unit_cost=None, если EK не считался).
+    """
+    from decimal import Decimal
+
+    qty = int(qty)
+    if qty <= 0:
+        raise ValueError("qty must be positive")
+    rows = [(p, v, int(q)) for p, v, q in inputs if int(q) > 0]
+    if not rows:
+        raise ValueError("no inputs")
+    out_key = (output_product.pk, output_variant.pk if output_variant else None)
+    if any((p.pk, v.pk if v else None) == out_key for p, v, _ in rows):
+        raise ValueError("output cannot be its own input")
+
+    code = _production_code()
+    total_cost = Decimal("0")
+    cost_known = True
+    with transaction.atomic():
+        for p, v, q in rows:
+            ek = v.cost_value if v is not None else p.cost_price
+            if ek is None:
+                cost_known = False
+            else:
+                total_cost += Decimal(q) * ek
+            mv = apply_manual_movement(
+                product=p,
+                variant=v,
+                kind=StockMovement.KIND_PRODUCTION,
+                delta=-q,
+                actor=actor,
+                note=code,
+                source="production",
+            )
+            # Кламп счётчика в 0 = нехватка сырья → акт целиком не исполним.
+            if mv is None or abs(mv.delta) < q:
+                label = f"{p} · {v.label}" if v is not None else str(p)
+                raise ProductionError(label)
+            if has_lots(p, v):
+                consume_fefo(p, v, qty=q)
+        if tenant is not None and lots_enabled(tenant):
+            receive_lot(
+                product=output_product,
+                variant=output_variant,
+                qty=qty,
+                mhd=mhd,
+                lot_code=lot_code,
+                actor=actor,
+                note=code,
+                source="production",
+                kind=StockMovement.KIND_PRODUCTION,
+            )
+        else:
+            apply_manual_movement(
+                product=output_product,
+                variant=output_variant,
+                kind=StockMovement.KIND_PRODUCTION,
+                delta=qty,
+                actor=actor,
+                note=code,
+                source="production",
+            )
+        unit_cost = None
+        if set_cost and cost_known:
+            unit_cost = (total_cost / qty).quantize(Decimal("0.01"))
+            entity = output_variant if output_variant is not None else output_product
+            entity.cost_price = unit_cost
+            entity.save(update_fields=["cost_price", "updated_at"])
+    return {"code": code, "unit_cost": unit_cost}
