@@ -248,8 +248,15 @@ def create_order(
         deltas = sum((Decimal(str(o.price_delta)) for o in options), Decimal("0"))
         unit_price = Decimal(str(base)) + deltas
         # Фидбэк 2026-08-04: артикул опции — в снимок (печать в заказе/PDF).
+        # MX-0: id опции в снимке — сводный учёт доп-продаж и агрегаты «сколько
+        # продано опции X» (немецкая метка — не ключ: переименование рвало историю).
         modifiers = [
-            {"label": o.label, "delta": str(o.price_delta), **({"sku": o.sku} if o.sku else {})}
+            {
+                "id": str(o.pk),
+                "label": o.label,
+                "delta": str(o.price_delta),
+                **({"sku": o.sku} if o.sku else {}),
+            }
             for o in options
         ]
         label = variant.label if variant is not None else ""

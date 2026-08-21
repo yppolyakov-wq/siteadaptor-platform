@@ -47,7 +47,13 @@ FB-11) — раньше клик по сделке вёл на общий кал
       </div>
       <div>
         <p class="text-xs text-gray-400">{% trans "Price" %}</p>
-        <p class="font-medium">{% if b.price_cents %}{{ b.price_eur|floatformat:2 }} €{% else %}—{% endif %}{% if b.voucher_code %} · 🎟 {{ b.voucher_code }}{% endif %}</p>
+        {# MX-0: итог С доп-услугами — price_eur без extras занижал сумму владельцу. #}
+        <p class="font-medium">{% if b.total_cents %}{{ b.total_eur|floatformat:2 }} €{% else %}—{% endif %}{% if b.voucher_code %} · 🎟 {{ b.voucher_code }}{% endif %}</p>
+        {% if b.extras %}
+        <ul class="mt-1 text-xs text-gray-500">
+          {% for e in b.extras %}<li>+ {{ e.label }}</li>{% endfor %}
+        </ul>
+        {% endif %}
       </div>
       {% if b.source_channel %}
       <div>

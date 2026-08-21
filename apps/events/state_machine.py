@@ -59,6 +59,13 @@ class TicketSM(StateMachine):
                 instance.voucher_code, amount_cents=getattr(instance, "discount_cents", 0)
             )
 
+        # MX-0: отмена → освободить companion-бронь проживания. Раньше это делали
+        # только два вьюха-хелпера — отмена с единой доски оставляла койку занятой.
+        if t.dst == "cancelled" and getattr(instance, "stay_booking_id", None):
+            from .services import release_linked_stay
+
+            release_linked_stay(instance)
+
         # R10e: отмена билета → стоп будущих списаний рассрочки (без авто-возврата;
         # уже оплаченные доли возвращает владелец вручную в кабинете).
         if t.dst == "cancelled":

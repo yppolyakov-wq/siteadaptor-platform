@@ -344,38 +344,56 @@ def move_stay(booking, *, arrival, departure, unit=None, reprice=True):
     if not reprice:
         booking.save(update_fields=["unit", "room", "arrival", "departure", "updated_at"])
         return booking
-    # A5a база + H1 тариф (снимок) + #7 Extras (снимки) − H4a скидка (снимок) +
-    # H9 Kurtaxe (пересчёт по ночам). Промокод не перегашиваем — держим снимок скидки.
+    # A5a база + H1 тариф (снимок) + #7 Extras (пересчёт per-night, MX-0) − H4a
+    # скидка + H9 Kurtaxe. Промокод не перегашиваем — держим снимок скидки.
     nights = (departure - arrival).days
+    rate_plan = _rate_for_booking(booking)
     booking.kurtaxe_cents = pricing.kurtaxe_total_cents(booking.adults, nights)
     room_cents = (
-        pricing.quote_total_cents(unit, arrival, departure, rate_plan=_rate_for_booking(booking))
-        * booking.rooms
+        pricing.quote_total_cents(unit, arrival, departure, rate_plan=rate_plan) * booking.rooms
     )
-    # G4: пересчитываем авто-скидку по новым датам/сроку до заезда.
+    # G4 + MX-0: авто-скидка ТЕМИ ЖЕ аргументами, что book_stay — без unit/departure
+    # правка молча теряла Lücken-Deal; без extra — скидку акции при живом FK
+    # StayBooking.promotion (итог и причина расходились).
+    from apps.promotions import price_layer as promo_layer
+
+    promo_hit = promo_layer.stay_promo(unit, arrival)
+    promo_extra = [(promo_hit[1], promo_hit[2])] if promo_hit else None
     booking.auto_discount_cents, booking.auto_discount_label = pricing.auto_discount(
-        room_cents, nights, arrival
+        room_cents, nights, arrival, unit=unit, departure=departure, extra=promo_extra
     )
+    # MX-0: per-night допы следуют за новым числом ночей (завтрак ×2 ночи при
+    # продлении до 5 недосчитывал 45 € — доказано тестом). Легаси-снимки без
+    # unit_cents не трогаем.
+    booking.extras = extras_engine.retotal(booking.extras, nights=nights)
     lodging_cents = (
         room_cents - booking.auto_discount_cents + extras_engine.total_cents(booking.extras)
     )
     booking.total_cents = max(0, lodging_cents - booking.discount_cents) + booking.kurtaxe_cents
-    booking.save(
-        update_fields=[
-            # PMS-R2 (фикс латентного бага): смена юнита раньше НЕ сохранялась
-            # в reprice-ветке — "unit" отсутствовал в update_fields (путь был
-            # недостижим: кнопка Move юнит не передавала; форма правки — передаёт).
-            "unit",
-            "room",
-            "arrival",
-            "departure",
-            "total_cents",
-            "kurtaxe_cents",
-            "auto_discount_cents",
-            "auto_discount_label",
-            "updated_at",
-        ]
-    )
+    update_fields = [
+        # PMS-R2 (фикс латентного бага): смена юнита раньше НЕ сохранялась
+        # в reprice-ветке — "unit" отсутствовал в update_fields (путь был
+        # недостижим: кнопка Move юнит не передавала; форма правки — передаёт).
+        "unit",
+        "room",
+        "arrival",
+        "departure",
+        "total_cents",
+        "kurtaxe_cents",
+        "auto_discount_cents",
+        "auto_discount_label",
+        "extras",
+        "updated_at",
+    ]
+    # MX-0: неоплаченная процентная предоплата (G7) следует за новым итогом —
+    # гость ждёт ссылку на старую сумму при изменившейся цене. Оплаченный депозит
+    # не трогаем (доплата/возврат — MX-3).
+    if booking.payment_state == StayBooking.PAYMENT_PENDING and booking.deposit_cents:
+        prepay = pricing.prepayment_cents(booking.total_cents, rate_plan)
+        if prepay > 0:
+            booking.deposit_cents = prepay
+            update_fields.append("deposit_cents")
+    booking.save(update_fields=update_fields)
     return booking
 
 

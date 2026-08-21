@@ -82,7 +82,8 @@ def test_create_order_with_modifier_surcharge_and_snapshot():
     order = services.create_order(items=[(product, None, 2, [cheese])], name="K", email="k@test.de")
     item = order.items.get()
     assert item.unit_price == Decimal("9.50")  # 8.00 + 1.50
-    assert item.modifiers == [{"label": "Käse", "delta": "1.50"}]
+    # MX-0: снимок несёт id опции (учётный ключ доп-продаж).
+    assert item.modifiers == [{"id": str(cheese.pk), "label": "Käse", "delta": "1.50"}]
     assert item.modifiers_label == "Käse"
     assert order.total == Decimal("19.00")  # 9.50 × 2
 

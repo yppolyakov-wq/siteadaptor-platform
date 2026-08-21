@@ -82,7 +82,8 @@ def combo_snapshot(combo, options):
     snap = []
     for o in options:
         label = str(o.product) if o.product_id else ""
-        snap.append({"label": label, "delta": str(o.price_delta)})
+        # MX-0: id опции — тот же учётный ключ, что у модификаторов.
+        snap.append({"id": str(o.pk), "label": label, "delta": str(o.price_delta)})
     return snap
 
 

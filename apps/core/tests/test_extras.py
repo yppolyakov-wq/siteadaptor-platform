@@ -26,9 +26,17 @@ def test_snapshot_multiplies_per_night_and_ignores_foreign():
     e2 = Extra.objects.create(label="Check-out", price_cents=2000, scope="stays", per_night=False)
     foreign = Extra.objects.create(label="Termin-Extra", price_cents=999, scope="booking")
     snap = extras_engine.snapshot([e1.pk, e2.pk, foreign.pk, "junk"], "stays", nights=3)
-    # per_night × 3 ночи; разовый — без множителя; чужой scope/мусор отброшены
-    assert {"label": "Frühstück", "price_cents": 3600} in snap
-    assert {"label": "Check-out", "price_cents": 2000} in snap
+    # per_night × 3 ночи; разовый — без множителя; чужой scope/мусор отброшены.
+    # MX-0: строка несёт id/unit_cents/per_night (учёт доп-продаж + честный retotal).
+    by_label = {e["label"]: e for e in snap}
+    assert by_label["Frühstück"] == {
+        "id": str(e1.pk),
+        "label": "Frühstück",
+        "price_cents": 3600,
+        "unit_cents": 1200,
+        "per_night": True,
+    }
+    assert by_label["Check-out"]["price_cents"] == 2000
     assert len(snap) == 2 and extras_engine.total_cents(snap) == 5600
 
 

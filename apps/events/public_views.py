@@ -805,8 +805,7 @@ def veranstaltung_cancel(request, token):
         except IllegalTransition:
             messages.error(request, _("This ticket can no longer be cancelled."))
             return redirect(reverse("storefront-ticket-cancel", args=[token]))
-        # R5: освободить привязанный номер; R1: уведомить лист ожидания.
-        _cancel_linked_stay(ticket)
+        # R5/MX-0: номер освобождает TicketSM-хук; R1: уведомить лист ожидания.
         services.notify_event_waitlist(ticket.event)
         # Возврат: только при бесплатной отмене и онлайн-оплате (депозит/полная).
         tenant = getattr(request, "tenant", None)
@@ -833,11 +832,3 @@ def veranstaltung_cancel(request, token):
         "storefront/event_cancel.html",
         {"ticket": ticket, "event": ticket.event, "state": state, "token": token},
     )
-
-
-def _cancel_linked_stay(ticket) -> None:
-    """R5: отменить привязанную бронь проживания (освобождает номер)."""
-    booking = ticket.stay_booking
-    if booking and booking.status in (booking.STATUS_PENDING, booking.STATUS_CONFIRMED):
-        booking.status = booking.STATUS_CANCELLED
-        booking.save(update_fields=["status", "updated_at"])

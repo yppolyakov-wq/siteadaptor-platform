@@ -271,6 +271,23 @@ def _attach_accommodation(event, ticket, customer, stay_unit_id, quantity):
     ticket.save(update_fields=["stay_booking", "accommodation_cents", "updated_at"])
 
 
+def release_linked_stay(ticket) -> None:
+    """MX-0: освободить companion-бронь проживания отменённого билета — ЕДИНЫЙ узел.
+
+    До MX-0 освобождение жило в ДВУХ вьюха-хелперах (кабинет + публичная отмена),
+    а путь единой доски (apply_action / drag / кастом-статус) койку НЕ освобождал —
+    латентный oversell ретрита. Теперь вызывается из TicketSM.on_transition и из
+    зеркала кастом-статусов (status_effects.restore_stock_for).
+
+    Статус меняем прямым save, НЕ StayBookingSM.apply: companion-бронь создаётся
+    внутренне (без промо/ваучера/своей оплаты), а SM-путь отправил бы гостю ВТОРОЕ
+    письмо об отмене того же заказа. Идемпотентно: уже отменённая — no-op."""
+    booking = ticket.stay_booking
+    if booking and booking.status in (booking.STATUS_PENDING, booking.STATUS_CONFIRMED):
+        booking.status = booking.STATUS_CANCELLED
+        booking.save(update_fields=["status", "updated_at"])
+
+
 def accommodation_quote(event, stay_unit_id) -> int:
     """Цена проживания выбранного типа на даты ретрита (центы, read-only); 0 — нет."""
     dates = _retreat_dates(event)

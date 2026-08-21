@@ -150,6 +150,12 @@ def restore_stock_for(kind: str, instance) -> None:
         if plan is not None and plan.status == InstallmentPlan.STATUS_ACTIVE:
             plan.status = InstallmentPlan.STATUS_CANCELLED
             plan.save(update_fields=["status", "updated_at"])
+        # MX-0: зеркало освобождения companion-брони проживания (built-in путь —
+        # TicketSM.on_transition; без зеркала кастом-cancel держал койку занятой).
+        if getattr(instance, "stay_booking_id", None):
+            from apps.events.services import release_linked_stay
+
+            release_linked_stay(instance)
     elif kind == "order":
         from apps.orders.state_machine import _restore_stock
 

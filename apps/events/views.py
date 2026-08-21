@@ -188,8 +188,7 @@ def ticket_action(request, pk, tid):
             TicketSM().apply(ticket, target)
             messages.success(request, _("Ticket updated."))
             if target == Ticket.STATUS_CANCELLED:
-                # R5: освободить привязанный номер (проживание оплачивалось билетом).
-                _cancel_linked_stay(ticket)
+                # R5/MX-0: номер освобождает TicketSM-хук (единый узел).
                 # Отмена освободила место → уведомить лист ожидания (R1).
                 notify_event_waitlist(ticket.event)
         except Exception:  # noqa: BLE001
@@ -464,14 +463,6 @@ def checkin(request, code):
             messages.success(request, _("Checked in — welcome!"))
         return redirect("events:checkin", code=ticket.reference_code)
     return render(request, "events/checkin.html", {"ticket": ticket, "event": ticket.event})
-
-
-def _cancel_linked_stay(ticket) -> None:
-    """R5: отменить привязанную бронь проживания (освобождает номер)."""
-    booking = ticket.stay_booking
-    if booking and booking.status in (booking.STATUS_PENDING, booking.STATUS_CONFIRMED):
-        booking.status = booking.STATUS_CANCELLED
-        booking.save(update_fields=["status", "updated_at"])
 
 
 @login_required
