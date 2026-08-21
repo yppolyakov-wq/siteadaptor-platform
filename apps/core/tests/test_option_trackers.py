@@ -233,3 +233,91 @@ def test_sync_options_commits_added_and_releases_removed():
     option_trackers.sync_options(_snap(stock_extra), [], kind="stay", deal=b)
     product.refresh_from_db()
     assert product.stock_quantity == 2
+
+
+# --- v2: рецепт (consume_qty), FEFO-партии, точный возврат ---------------------
+
+
+def test_recipe_qty_multiplies_by_nights_and_restores_exact():
+    """consume_qty=2 у per-night опции: 3 ночи → списано 6; отмена возвращает
+    ровно списанное (|delta| sale-движения), даже если конфиг опции сменили."""
+    product = _product(stock=10)
+    extra = _stock_extra(product)
+    extra.per_night = True
+    extra.consume_qty = 2
+    extra.save(update_fields=["per_night", "consume_qty"])
+    unit = _unit()
+    arrival = timezone.localdate() + timedelta(days=30)
+    b = stay_services.book_stay(
+        unit,
+        arrival=arrival,
+        departure=arrival + timedelta(days=3),
+        name="G",
+        extras=_snap(extra),
+    )
+    product.refresh_from_db()
+    assert product.stock_quantity == 4  # 10 − 2×3
+
+    # Конфиг сменили ПОСЛЕ продажи — возврат всё равно точный.
+    extra.consume_qty = 9
+    extra.save(update_fields=["consume_qty"])
+    transactions.apply_action("stay", b, "cancelled")
+    product.refresh_from_db()
+    assert product.stock_quantity == 10
+
+
+def test_stock_option_out_of_stock_respects_recipe_qty():
+    """Остатка 3 при рецепте 2×2 ночи (=4) — отказ, бронь не создаётся."""
+    product = _product(stock=3)
+    extra = _stock_extra(product)
+    extra.per_night = True
+    extra.consume_qty = 2
+    extra.save(update_fields=["per_night", "consume_qty"])
+    unit = _unit()
+    arrival = timezone.localdate() + timedelta(days=30)
+    with pytest.raises(option_trackers.OptionOutOfStock):
+        stay_services.book_stay(
+            unit,
+            arrival=arrival,
+            departure=arrival + timedelta(days=2),
+            name="G",
+            extras=_snap(extra),
+        )
+    product.refresh_from_db()
+    assert product.stock_quantity == 3
+
+
+def test_fefo_lots_consumed_and_restored():
+    """Партии включены: расход опции гасит ближайший MHD, отмена доливает."""
+    from datetime import date
+
+    from apps.inventory.models import Lot
+    from apps.inventory.services import receive_lot
+
+    product = _product(stock=0)
+    receive_lot(product=product, qty=5, mhd=date(2027, 1, 1), lot_code="A")
+    receive_lot(product=product, qty=5, mhd=date(2026, 10, 1), lot_code="B")  # ближе
+    product.refresh_from_db()
+    assert product.stock_quantity == 10
+
+    extra = _stock_extra(product)
+    extra.consume_qty = 3
+    extra.save(update_fields=["consume_qty"])
+    unit = _unit()
+    arrival = timezone.localdate() + timedelta(days=30)
+    b = stay_services.book_stay(
+        unit,
+        arrival=arrival,
+        departure=arrival + timedelta(days=2),
+        name="G",
+        extras=_snap(extra),
+    )
+    product.refresh_from_db()
+    assert product.stock_quantity == 7
+    assert Lot.objects.get(lot_code="B").qty_remaining == 2  # FEFO: ближний first
+    assert Lot.objects.get(lot_code="A").qty_remaining == 5
+
+    transactions.apply_action("stay", b, "cancelled")
+    product.refresh_from_db()
+    assert product.stock_quantity == 10
+    assert Lot.objects.get(lot_code="B").qty_remaining == 5

@@ -17,9 +17,11 @@
   принцип anti-oversell: продажа при нехватке отказывает). Возврат при отмене
   зеркален и переживает двойной вызов (builtin-хук FSM + зеркало кастом-статусов).
 
-Ограничения v1 (объявлены в плане): qty stock-списания = 1 за сделку (per_night
-не умножает расход); партии FEFO не трогаем — только счётчик+леджер (Вариант A:
-счётчик = ИТОГО-истина, разбивка по партиям реконсилируется).
+v2 (вторая отмашка «Делай»): qty = consume_qty × ночи (stay+per_night — как
+деньги снимка); партии FEFO гасятся/доливаются при включённых партиях (зеркало
+orders); возврат читает |delta| sale-движения — точный qty, переживает смену
+конфига опции после продажи. Изменение ДАТ брони расход не пере-списывает
+(продано — учтено; объявленное ограничение плана).
 """
 
 from datetime import timedelta
@@ -135,29 +137,44 @@ def _movement_ref(kind, deal, extra_id) -> str:
     return hashlib.md5(f"option:{kind}:{deal.pk}:{extra_id}".encode()).hexdigest()
 
 
+def _stock_qty(extra, kind, deal) -> int:
+    """v2-рецепт: расход = consume_qty × ночи (stay+per_night — ровно как
+    множатся ДЕНЬГИ снимка), иначе × 1. Минимум 1."""
+    per_unit = max(1, int(getattr(extra, "consume_qty", 1) or 1))
+    if kind == "stay" and extra.per_night:
+        nights = (deal.departure - deal.arrival).days
+        return per_unit * max(1, nights)
+    return per_unit
+
+
 def _commit_stock_option(extra, kind, deal):
     """Списать Вещь stock-опции: движение ПЕРВЫМ (идемпотентно), счётчик — только
-    если движение создано. Нехватка учитываемого остатка → OptionOutOfStock."""
+    если движение создано. Нехватка учитываемого остатка → OptionOutOfStock.
+    v2: qty по рецепту (consume_qty × ночи); партии FEFO гасятся в той же atomic
+    (зеркало orders._reserve_stock)."""
     from apps.catalog.models import Product
-    from apps.inventory.services import record_movement
+    from apps.inventory.services import consume_fefo, has_lots, record_movement
 
     if extra.product_id is None:
         return
+    qty = _stock_qty(extra, kind, deal)
     product = Product.objects.select_for_update().get(pk=extra.product_id)
-    if product.stock_quantity is not None and product.stock_quantity < 1:
+    if product.stock_quantity is not None and product.stock_quantity < qty:
         raise OptionOutOfStock(extra.label)
     movement = record_movement(
         product=product,
         kind="sale",
-        delta=-1,
+        delta=-qty,
         source="option",
         source_ref=_movement_ref(kind, deal, extra.pk),
         note=getattr(deal, "reference_code", "") or "",
     )
     if movement is not None and product.stock_quantity is not None:
         Product.objects.filter(pk=product.pk, stock_quantity__isnull=False).update(
-            stock_quantity=F("stock_quantity") - 1
+            stock_quantity=F("stock_quantity") - qty
         )
+        if has_lots(product, None):
+            consume_fefo(product, None, qty=qty)
 
 
 def _release_stock_option(extra_id, product_id, kind, deal, label=""):
@@ -170,8 +187,17 @@ def _release_stock_option(extra_id, product_id, kind, deal, label=""):
     from apps.inventory.services import record_movement
 
     ref = _movement_ref(kind, deal, extra_id)
-    sold = StockMovement.objects.filter(source="option", source_ref=ref, kind="sale").exists()
-    if not sold:
+    # v2: возврат читает |delta| SALE-движения — точный qty, переживает смену
+    # consume_qty/дат после продажи (возвращаем ровно списанное).
+    sold = (
+        StockMovement.objects.filter(source="option", source_ref=ref, kind="sale")
+        .values_list("delta", flat=True)
+        .first()
+    )
+    if sold is None:
+        return
+    qty = abs(int(sold))
+    if qty <= 0:
         return
     product = Product.objects.filter(pk=product_id).first()
     if product is None:
@@ -179,15 +205,19 @@ def _release_stock_option(extra_id, product_id, kind, deal, label=""):
     movement = record_movement(
         product=product,
         kind="return",
-        delta=1,
+        delta=qty,
         source="option",
         source_ref=ref,
         note=getattr(deal, "reference_code", "") or "",
     )
     if movement is not None and product.stock_quantity is not None:
+        from apps.inventory.services import has_lots, restore_fefo
+
         Product.objects.filter(pk=product.pk, stock_quantity__isnull=False).update(
-            stock_quantity=F("stock_quantity") + 1
+            stock_quantity=F("stock_quantity") + qty
         )
+        if has_lots(product, None):
+            restore_fefo(product, None, qty=qty)
 
 
 def _tracked_extras(option_ids):

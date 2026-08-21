@@ -19658,3 +19658,11 @@ msgstr "„%(label)s“ ist leider nicht mehr verfügbar."
 #, python-format
 msgid "+%(n)s Termine"
 msgstr "+%(n)s Termine"
+
+#: templates/tenant/extras.html (MX v2-опции)
+msgid "Lagerartikel (Verbrauch)"
+msgstr "Lagerartikel (Verbrauch)"
+
+#: templates/tenant/extras.html (MX v2-опции)
+msgid "Verbrauch je Verkauf"
+msgstr "Verbrauch je Verkauf"

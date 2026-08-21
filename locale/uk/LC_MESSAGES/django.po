@@ -19726,3 +19726,11 @@ msgstr "«%(label)s», на жаль, більше недоступно."
 #, python-format
 msgid "+%(n)s Termine"
 msgstr "+%(n)s дат"
+
+#: templates/tenant/extras.html (MX v2-опции)
+msgid "Lagerartikel (Verbrauch)"
+msgstr "Складський товар (витрата)"
+
+#: templates/tenant/extras.html (MX v2-опции)
+msgid "Verbrauch je Verkauf"
+msgstr "Витрата за продаж"

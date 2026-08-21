@@ -225,6 +225,9 @@ class Extra(I18nMixin, TimestampedModel):
     )
     # Складская Вещь расходуемой опции (tracker=stock; рецепт — слайс 2e).
     product = models.ForeignKey("catalog.Product", null=True, blank=True, on_delete=models.SET_NULL)
+    # v2-рецепт: сколько единиц Вещи расходует ОДНА продажа опции (×ночи у
+    # per_night-stay — как множатся деньги снимка). 1 = прежнее поведение.
+    consume_qty = models.PositiveSmallIntegerField(default=1)
     # Своя ставка НДС опции (завтрак 19 % в брони 7 %); NULL = ставка сделки.
     vat_rate = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     # Для stays: цена за ночь (× кол-во ночей), иначе разовая за бронь.

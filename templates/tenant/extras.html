@@ -84,6 +84,19 @@
           {% for sp in suppliers %}<option value="{{ sp.pk }}">{{ sp.name }}</option>{% endfor %}
         </select>
       </div>
+      {% if stock_products %}
+      <div>
+        <label class="block text-sm font-medium mb-1">{% trans "Lagerartikel (Verbrauch)" %}</label>
+        <select name="stock_product" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+          <option value="">—</option>
+          {% for pr in stock_products %}<option value="{{ pr.pk }}">{{ pr.name_text }}</option>{% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">{% trans "Verbrauch je Verkauf" %}</label>
+        <input name="consume_qty" type="number" min="1" max="99" value="1" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      {% endif %}
     </div>
     <label class="flex items-center gap-2 text-sm">
       <input type="checkbox" name="per_night" class="rounded border-gray-300">

@@ -19656,3 +19656,11 @@ msgstr "“%(label)s” maalesef artık mevcut değil."
 #, python-format
 msgid "+%(n)s Termine"
 msgstr "+%(n)s tarih daha"
+
+#: templates/tenant/extras.html (MX v2-опции)
+msgid "Lagerartikel (Verbrauch)"
+msgstr "Stok ürünü (tüketim)"
+
+#: templates/tenant/extras.html (MX v2-опции)
+msgid "Verbrauch je Verkauf"
+msgstr "Satış başına tüketim"

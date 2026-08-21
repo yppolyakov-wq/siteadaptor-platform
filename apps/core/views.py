@@ -58,6 +58,25 @@ def extras_view(request):
                     pool_size = max(0, min(int(request.POST.get("pool_size", "0") or 0), 999))
                 except (TypeError, ValueError):
                     pool_size = 0
+                # v2: складская Вещь + рецепт расхода — без них stock-трекер был
+                # незаводим из кабинета (поле писал только демо-сидер).
+                stock_product = None
+                consume_qty = 1
+                if tracker == Extra.TRACKER_STOCK:
+                    from apps.catalog.models import Product as _Product
+
+                    stock_product = _Product.objects.filter(
+                        pk=request.POST.get("stock_product") or None
+                    ).first()
+                    if stock_product is None:
+                        tracker = ""  # склад без Вещи бессмыслен — честная надбавка
+                    else:
+                        try:
+                            consume_qty = max(
+                                1, min(int(request.POST.get("consume_qty", "1") or 1), 99)
+                            )
+                        except (TypeError, ValueError):
+                            consume_qty = 1
                 extra = Extra.objects.create(
                     label=label,
                     price_cents=cents,
@@ -68,6 +87,8 @@ def extras_view(request):
                     tracker=tracker,
                     pool_size=pool_size if tracker == Extra.TRACKER_POOL else 0,
                     supplier=supplier,
+                    product=stock_product,
+                    consume_qty=consume_qty,
                 )
                 _set_extra_image(request, extra)  # A5: опц. фото при создании
                 messages.success(request, _("Extra added."))
@@ -97,8 +118,21 @@ def extras_view(request):
             # MX-2: селект адресности (подписи «Gilt für» аннотирует _extras_with_labels).
             "entity_choices": _extra_entity_choices(request),
             "suppliers": _extra_suppliers(),
+            # v2: Вещи для stock-трекера (учёт остатка не обязателен — списание
+            # без счётчика просто пишет леджер).
+            "stock_products": _extra_stock_products(),
         },
     )
+
+
+def _extra_stock_products():
+    """v2: активные товары для селекта складской опции (лениво, без падений)."""
+    try:
+        from apps.catalog.models import Product
+
+        return list(Product.objects.filter(is_active=True).order_by("created_at")[:200])
+    except Exception:  # noqa: BLE001 — каталог пуст/недоступен → без селекта
+        return []
 
 
 def _extra_entity_kinds() -> set:
