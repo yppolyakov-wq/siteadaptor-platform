@@ -19676,3 +19676,77 @@ msgstr "Brüt kâr (gelir − maliyet)"
 #: templates/finance/ergebnis.html (ERP-1)
 msgid "Teilweise ohne EK-Preis — ältere Verkäufe oder Artikel ohne Einkaufspreis."
 msgstr "Kısmen alış fiyatı olmadan — eski satışlar veya alış fiyatı olmayan ürünler."
+
+#: finance ERP-2
+#, python-format
+msgid "%(n)s Tage"
+msgstr "%(n)s gün"
+
+#: finance ERP-2
+msgid "Alter"
+msgstr "Yaş"
+
+#: finance ERP-2
+msgid "Bank"
+msgstr "Banka"
+
+#: finance ERP-2
+msgid "Bankabgleich"
+msgstr "Banka mutabakatı"
+
+#: finance ERP-2
+msgid "Einnahmen aus dem Journal, Ausgaben aus Einkauf, Anbieter-Buchungen und manuellen Einträgen."
+msgstr "Gelirler günlükten; giderler satın alma, tedarikçi rezervasyonları ve manuel kayıtlardan."
+
+#: finance ERP-2
+msgid "Importieren"
+msgstr "İçe aktar"
+
+#: finance ERP-2
+msgid "Kein Vorschlag — Verwendungszweck enthält keinen bekannten Code."
+msgstr "Öneri yok — açıklamada bilinen bir kod bulunmuyor."
+
+#: finance ERP-2
+msgid "Keine offenen Posten — alles bezahlt."
+msgstr "Açık kalem yok — her şey ödendi."
+
+#: finance ERP-2
+msgid "Keine offenen Umsätze — Auszug importieren oder alles ist zugeordnet."
+msgstr "Açık işlem yok — ekstre içe aktarın ya da her şey eşleşti."
+
+#: finance ERP-2
+msgid "Kontoauszug (CSV der Bank)"
+msgstr "Hesap ekstresi (CSV)"
+
+#: finance ERP-2
+msgid "Nicht zugeordnete Umsätze"
+msgstr "Eşleşmemiş işlemler"
+
+#: finance ERP-2
+msgid "Offen gesamt"
+msgstr "Toplam açık"
+
+#: finance ERP-2
+msgid "Offene Posten"
+msgstr "Açık kalemler"
+
+#: finance ERP-2
+msgid "Spalten werden automatisch erkannt (Buchungstag, Betrag, Verwendungszweck). Doppelte Umsätze werden übersprungen."
+msgstr "Sütunlar otomatik algılanır (tarih, tutar, açıklama). Yinelenen işlemler atlanır."
+
+#: finance ERP-2
+msgid "Zuletzt zugeordnet"
+msgstr "Son eşleşenler"
+
+#: finance ERP-2
+#, python-format
+msgid "%(new)s neue Umsätze importiert (%(total)s in der Datei)."
+msgstr "%(new)s yeni işlem içe aktarıldı (dosyada %(total)s)."
+
+#: finance ERP-2
+msgid "CSV nicht erkannt — Datums- und Betragsspalte nicht gefunden."
+msgstr "CSV tanınmadı — tarih ve tutar sütunları bulunamadı."
+
+#: finance ERP-2
+msgid "Zahlung zugeordnet — Position ist bezahlt."
+msgstr "Ödeme eşleştirildi — kalem ödendi."

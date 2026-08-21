@@ -8,6 +8,9 @@ urlpatterns = [
     path("", views.journal, name="journal"),
     # MX-1: расходы и сводный результат — «Finanzen» больше не только выручка.
     path("ausgaben/", views.expenses, name="expenses"),
+    # ERP-2: открытые позиции + банковская сверка.
+    path("offene/", views.offene_posten, name="offene"),
+    path("bank/", views.bank_import, name="bank"),
     path("ergebnis/", views.ergebnis, name="ergebnis"),
     # Экспорты журнала (D4c).
     path("export.csv", views.journal_export_csv, name="export-csv"),

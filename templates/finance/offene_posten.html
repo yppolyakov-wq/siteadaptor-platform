@@ -1,0 +1,43 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Offene Posten" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
+  <h1 class="text-2xl font-bold">{% trans "Offene Posten" %}</h1>
+  <a href="{% url 'finance:bank' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Bankabgleich" %} →</a>
+</div>
+{% include "finance/_finance_tabs.html" with fin_tab="offene" %}
+
+<div class="rounded-xl border border-gray-200 p-4 mb-4 max-w-xs">
+  <p class="text-xs text-gray-400">{% trans "Offen gesamt" %}</p>
+  <p class="text-xl font-semibold">{{ total|floatformat:2 }} €</p>
+</div>
+
+<div class="overflow-x-auto rounded-xl border border-gray-200">
+  <table class="min-w-full text-sm">
+    <thead class="bg-gray-50 text-left text-xs text-gray-500">
+      <tr>
+        <th class="px-4 py-2">{% trans "Art" %}</th>
+        <th class="px-4 py-2">{% trans "Code" %}</th>
+        <th class="px-4 py-2">{% trans "Kunde" %}</th>
+        <th class="px-4 py-2 text-right">{% trans "Amount" %}</th>
+        <th class="px-4 py-2 text-right">{% trans "Alter" %}</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for i in items %}
+      <tr>
+        <td class="px-4 py-2">{{ i.kind_label }}</td>
+        <td class="px-4 py-2 font-mono text-xs">{% if i.manage_url %}<a href="{{ i.manage_url }}" class="text-indigo-600 hover:underline">{{ i.code }}</a>{% else %}{{ i.code }}{% endif %}</td>
+        <td class="px-4 py-2">{{ i.customer|default:"—" }}</td>
+        <td class="px-4 py-2 text-right font-medium">{{ i.amount|floatformat:2 }} €</td>
+        <td class="px-4 py-2 text-right {% if i.age_days > 14 %}text-red-600{% elif i.age_days > 7 %}text-amber-600{% endif %}">{% blocktrans with n=i.age_days %}{{ n }} Tage{% endblocktrans %}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="px-4 py-6 text-center text-gray-400">{% trans "Keine offenen Posten — alles bezahlt." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

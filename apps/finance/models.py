@@ -142,4 +142,33 @@ class Invoice(TimestampedModel):
 
 # MT-5: журнал расходов — зеркало RevenueEntry в отдельном модуле; импорт нужен,
 # чтобы Django зарегистрировал модель этого приложения.
+
+
+class BankTransaction(TimestampedModel):
+    """ERP-2: строка импортированной банковской выписки (CSV) для сверки.
+
+    `import_hash` — дедуп повторного импорта того же файла/периода (уникален).
+    `matched_*` — к какой сделке/счёту привязан платёж (строки, не FK: kind
+    живут в разных аппах — прецедент DealLink/ExpenseEntry.ref_*). Подтверждение
+    сопоставления ставит оплату сделки ШТАТНЫМ полем payment_state / InvoiceSM.
+    """
+
+    date = models.DateField()
+    amount = models.DecimalField(max_digits=12, decimal_places=2)  # знак банка
+    currency = models.CharField(max_length=3, default="EUR")
+    purpose = models.CharField(max_length=500, blank=True)  # Verwendungszweck
+    counterparty = models.CharField(max_length=200, blank=True)
+    import_hash = models.CharField(max_length=32, unique=True)
+    matched_kind = models.CharField(max_length=20, blank=True)  # kind | "invoice"
+    matched_id = models.CharField(max_length=64, blank=True)
+    matched_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-date", "-created_at"]
+        indexes = [models.Index(fields=["matched_kind", "date"], name="banktx_matched_idx")]
+
+    def __str__(self):
+        return f"{self.date} {self.amount} {self.currency} · {self.purpose[:40]}"
+
+
 from .expenses import ExpenseEntry  # noqa: E402,F401

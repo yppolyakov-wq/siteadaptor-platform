@@ -19550,3 +19550,77 @@ msgstr "Gross profit (revenue − COGS)"
 #: templates/finance/ergebnis.html (ERP-1)
 msgid "Teilweise ohne EK-Preis — ältere Verkäufe oder Artikel ohne Einkaufspreis."
 msgstr "Partially without purchase price — older sales or items without cost price."
+
+#: finance ERP-2
+#, python-format
+msgid "%(n)s Tage"
+msgstr "%(n)s days"
+
+#: finance ERP-2
+msgid "Alter"
+msgstr "Age"
+
+#: finance ERP-2
+msgid "Bank"
+msgstr "Bank"
+
+#: finance ERP-2
+msgid "Bankabgleich"
+msgstr "Bank reconciliation"
+
+#: finance ERP-2
+msgid "Einnahmen aus dem Journal, Ausgaben aus Einkauf, Anbieter-Buchungen und manuellen Einträgen."
+msgstr "Revenue from the journal; expenses from purchasing, supplier bookings and manual entries."
+
+#: finance ERP-2
+msgid "Importieren"
+msgstr "Import"
+
+#: finance ERP-2
+msgid "Kein Vorschlag — Verwendungszweck enthält keinen bekannten Code."
+msgstr "No suggestion — the payment reference contains no known code."
+
+#: finance ERP-2
+msgid "Keine offenen Posten — alles bezahlt."
+msgstr "No open items — everything is paid."
+
+#: finance ERP-2
+msgid "Keine offenen Umsätze — Auszug importieren oder alles ist zugeordnet."
+msgstr "No open transactions — import a statement, or everything is matched."
+
+#: finance ERP-2
+msgid "Kontoauszug (CSV der Bank)"
+msgstr "Bank statement (CSV)"
+
+#: finance ERP-2
+msgid "Nicht zugeordnete Umsätze"
+msgstr "Unmatched transactions"
+
+#: finance ERP-2
+msgid "Offen gesamt"
+msgstr "Total outstanding"
+
+#: finance ERP-2
+msgid "Offene Posten"
+msgstr "Open items"
+
+#: finance ERP-2
+msgid "Spalten werden automatisch erkannt (Buchungstag, Betrag, Verwendungszweck). Doppelte Umsätze werden übersprungen."
+msgstr "Columns are detected automatically (date, amount, reference). Duplicate transactions are skipped."
+
+#: finance ERP-2
+msgid "Zuletzt zugeordnet"
+msgstr "Recently matched"
+
+#: finance ERP-2
+#, python-format
+msgid "%(new)s neue Umsätze importiert (%(total)s in der Datei)."
+msgstr "%(new)s new transactions imported (%(total)s in the file)."
+
+#: finance ERP-2
+msgid "CSV nicht erkannt — Datums- und Betragsspalte nicht gefunden."
+msgstr "CSV not recognised — date and amount columns not found."
+
+#: finance ERP-2
+msgid "Zahlung zugeordnet — Position ist bezahlt."
+msgstr "Payment matched — the item is paid."

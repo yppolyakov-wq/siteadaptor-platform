@@ -1,0 +1,69 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Bankabgleich" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
+  <h1 class="text-2xl font-bold">{% trans "Bankabgleich" %}</h1>
+  <a href="{% url 'finance:offene' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Offene Posten" %} →</a>
+</div>
+{% include "finance/_finance_tabs.html" with fin_tab="bank" %}
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" class="mb-6 flex flex-wrap items-end gap-2 rounded-xl border border-gray-200 p-4 text-sm">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="import">
+  <div class="grow">
+    <label class="block text-xs text-gray-400 mb-1">{% trans "Kontoauszug (CSV der Bank)" %}</label>
+    <input type="file" name="file" accept=".csv,text/csv" required class="w-full text-sm">
+  </div>
+  <button class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">{% trans "Importieren" %}</button>
+  <p class="w-full text-xs text-gray-400">{% trans "Spalten werden automatisch erkannt (Buchungstag, Betrag, Verwendungszweck). Doppelte Umsätze werden übersprungen." %}</p>
+</form>
+
+<h2 class="text-lg font-semibold mb-2">{% trans "Nicht zugeordnete Umsätze" %}</h2>
+<div class="space-y-2 mb-8">
+  {% for tx in unmatched %}
+  <div class="rounded-xl border border-gray-200 p-3 text-sm">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <div>
+        <span class="font-medium">{{ tx.date|date:"d.m.Y" }} · {{ tx.amount|floatformat:2 }} €</span>
+        {% if tx.counterparty %}<span class="text-gray-500"> · {{ tx.counterparty }}</span>{% endif %}
+        <div class="text-xs text-gray-400">{{ tx.purpose|truncatechars:120 }}</div>
+      </div>
+    </div>
+    {% if tx.match_suggestions %}
+    <div class="mt-2 flex flex-wrap gap-2">
+      {% for sug in tx.match_suggestions %}
+      <form method="post" class="inline">{% csrf_token %}
+        <input type="hidden" name="action" value="match">
+        <input type="hidden" name="tx" value="{{ tx.pk }}">
+        <input type="hidden" name="kind" value="{{ sug.item.kind }}">
+        <input type="hidden" name="obj" value="{{ sug.item.obj.pk }}">
+        <button class="rounded-full border px-3 py-1 text-xs {% if sug.strong %}border-green-300 bg-green-50 text-green-800{% else %}border-gray-300 hover:border-indigo-400{% endif %}">
+          {% if sug.strong %}✓{% endif %} {{ sug.item.kind_label }} {{ sug.item.code }} · {{ sug.item.amount|floatformat:2 }} €
+        </button>
+      </form>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="mt-1 text-xs text-gray-400">{% trans "Kein Vorschlag — Verwendungszweck enthält keinen bekannten Code." %}</p>
+    {% endif %}
+  </div>
+  {% empty %}
+  <p class="text-sm text-gray-400">{% trans "Keine offenen Umsätze — Auszug importieren oder alles ist zugeordnet." %}</p>
+  {% endfor %}
+</div>
+
+{% if matched %}
+<h2 class="text-lg font-semibold mb-2">{% trans "Zuletzt zugeordnet" %}</h2>
+<ul class="text-sm text-gray-500 space-y-1">
+  {% for tx in matched %}<li>{{ tx.date|date:"d.m.Y" }} · {{ tx.amount|floatformat:2 }} € → {{ tx.matched_kind }} {{ tx.matched_id|truncatechars:12 }}</li>{% endfor %}
+</ul>
+{% endif %}
+{% endblock %}

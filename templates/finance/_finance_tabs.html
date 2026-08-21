@@ -1,9 +1,11 @@
 {% load i18n %}
 {# MX-1: вкладки раздела Finanzen — Einnahmen · Ausgaben · Ergebnis (+ Rechnungen). #}
 <nav class="mb-4 flex flex-wrap gap-2 text-sm">
-  {% url 'finance:journal' as u_journal %}{% url 'finance:expenses' as u_expenses %}{% url 'finance:ergebnis' as u_ergebnis %}{% url 'finance:invoices' as u_invoices %}
+  {% url 'finance:journal' as u_journal %}{% url 'finance:expenses' as u_expenses %}{% url 'finance:ergebnis' as u_ergebnis %}{% url 'finance:invoices' as u_invoices %}{% url 'finance:offene' as u_offene %}{% url 'finance:bank' as u_bank %}
   <a href="{{ u_journal }}" class="rounded-full px-3 py-1.5 border {% if fin_tab == 'einnahmen' %}bg-indigo-600 text-white border-indigo-600{% else %}border-gray-300 hover:border-indigo-400{% endif %}">{% trans "Einnahmen" %}</a>
   <a href="{{ u_expenses }}" class="rounded-full px-3 py-1.5 border {% if fin_tab == 'ausgaben' %}bg-indigo-600 text-white border-indigo-600{% else %}border-gray-300 hover:border-indigo-400{% endif %}">{% trans "Ausgaben" %}</a>
   <a href="{{ u_ergebnis }}" class="rounded-full px-3 py-1.5 border {% if fin_tab == 'ergebnis' %}bg-indigo-600 text-white border-indigo-600{% else %}border-gray-300 hover:border-indigo-400{% endif %}">{% trans "Ergebnis" %}</a>
   <a href="{{ u_invoices }}" class="rounded-full px-3 py-1.5 border {% if fin_tab == 'rechnungen' %}bg-indigo-600 text-white border-indigo-600{% else %}border-gray-300 hover:border-indigo-400{% endif %}">{% trans "Rechnungen" %}</a>
+  <a href="{{ u_offene }}" class="rounded-full px-3 py-1.5 border {% if fin_tab == 'offene' %}bg-indigo-600 text-white border-indigo-600{% else %}border-gray-300 hover:border-indigo-400{% endif %}">{% trans "Offene Posten" %}</a>
+  <a href="{{ u_bank }}" class="rounded-full px-3 py-1.5 border {% if fin_tab == 'bank' %}bg-indigo-600 text-white border-indigo-600{% else %}border-gray-300 hover:border-indigo-400{% endif %}">{% trans "Bank" %}</a>
 </nav>

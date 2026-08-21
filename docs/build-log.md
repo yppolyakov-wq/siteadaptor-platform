@@ -11889,3 +11889,33 @@ stadtfuehrung` после деплоя (миграций нет).
 Ограничение (объявлено): изменение ДАТ брони расход не пере-списывает — продано,
 учтено. Замки: +3 в test_option_trackers (10 всего, прогон на свежей БД);
 смежные stays/events/booking/inventory 900 зелёных. 2 msgid × 5 каталогов.
+
+## 2026-08-21 — ERP-1 + ERP-2: COGS-снимок · Offene Posten · банковская сверка
+(⚠️ миграции `orders/0020` + `finance/0010`, аддитивные)
+
+Старт ERP-волны (план `erp-wave-plan-2026-08-21.md`, из `erp-gap-analysis`).
+
+**ERP-1:** `OrderItem.cost_price` — снимок EK на момент продажи в трёх точках
+создания позиций (create_order обычные + custom со складским товаром +
+editing.add_line); свободные строки и наборы — без снимка. Смена закупочной
+цены больше не дрейфует историческую маржу (замок). Ergebnis += Wareneinsatz
+(по заказам, чья выручка записана в период — момент = RevenueEntry.date) и
+Rohertrag; товарные позиции без снимка честно подсвечиваются.
+
+**ERP-2:** `finance.BankTransaction` (дедуп импорта по хэшу, matched_* строки —
+прецедент DealLink) + `apps/finance/bank.py`: разбор немецких банковских CSV
+(авто-детект колонок Buchungstag/Betrag/Verwendungszweck/Begünstigter, `;` и
+`,`, суммы «1.234,56», cp1252/utf-8; кривой файл — честная BankImportError);
+`open_items` — сделки, ЖДУЩИЕ оплату (order unpaid; booking/stay/ticket pending
+— none у броней = оплата на месте, не долг) + выставленные Invoice;
+`suggestions` — код сделки в Verwendungszweck (сильное; Vorkasse E7 его пишет)
+или равная сумма; `apply_match` ставит оплату ШТАТНО (payment_state / InvoiceSM
+paid). Экраны «Offene Posten» (возраст долга подсвечен) и «Bankabgleich»
+(импорт + предложения + подтверждение кликом); вкладки Finanzen; палитра.
+
+Урок i18n: quickcheck сканирует только ИЗМЕНЁННЫЕ файлы и Python-строки —
+шаблонные msgid новых файлов сверены напрямую через `translation.template.
+templatize` (регекс обязан учитывать `u`-префикс!); попутно всплыла строка
+MX-1, тихо жившая без .po-записей. 18 msgid × 5 каталогов.
+Замки: test_erp1_cogs (3) + test_erp2_bank (5), оба на свежей БД; смежные
+finance+orders 242.

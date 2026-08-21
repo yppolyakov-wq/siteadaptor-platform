@@ -11,7 +11,7 @@ from decimal import Decimal, InvalidOperation
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
@@ -188,6 +188,83 @@ def ergebnis(request):
             "cogs_partial": cogs_partial,
             "rohertrag": revenue - cogs,
         },
+    )
+
+
+@login_required
+def offene_posten(request):
+    """ERP-2: «кто мне должен» — сделки, ждущие оплату, + выставленные счета."""
+    from . import bank as bank_mod
+
+    items = bank_mod.open_items(request.tenant)
+    total = sum((i["amount"] or Decimal("0")) for i in items)
+    return render(
+        request,
+        "finance/offene_posten.html",
+        {"nav": "finance", "items": items, "total": total},
+    )
+
+
+@login_required
+def bank_import(request):
+    """ERP-2: импорт банковской выписки (CSV) + сопоставление платежей.
+
+    Подтверждение кликом ставит оплату сделки/счёта штатным путём — Vorkasse
+    перестаёт сверяться глазами."""
+    from . import bank as bank_mod
+    from .models import BankTransaction
+
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+        if action == "import" and request.FILES.get("file"):
+            try:
+                rows = bank_mod.parse_csv(request.FILES["file"].read())
+            except bank_mod.BankImportError:
+                messages.error(
+                    request,
+                    _("CSV nicht erkannt — Datums- und Betragsspalte nicht gefunden."),
+                )
+                return redirect("finance:bank")
+            created = bank_mod.import_rows(rows)
+            messages.success(
+                request,
+                _("%(new)s neue Umsätze importiert (%(total)s in der Datei).")
+                % {"new": created, "total": len(rows)},
+            )
+            return redirect("finance:bank")
+        if action == "match":
+            tx = get_object_or_404(BankTransaction, pk=request.POST.get("tx"), matched_kind="")
+            kind = request.POST.get("kind", "")
+            obj = None
+            if kind == "invoice":
+                from .models import Invoice
+
+                obj = Invoice.objects.filter(pk=request.POST.get("obj")).first()
+            elif kind in bank_mod._OPEN_PAYMENT_STATES:
+                from apps.core import transactions as core_transactions
+
+                obj = (
+                    core_transactions.model_for(kind)
+                    .objects.filter(pk=request.POST.get("obj"))
+                    .first()
+                )
+            if obj is None:
+                messages.error(request, _("Position nicht gefunden."))
+            else:
+                bank_mod.apply_match(tx, kind, obj)
+                messages.success(request, _("Zahlung zugeordnet — Position ist bezahlt."))
+            return redirect("finance:bank")
+        return redirect("finance:bank")
+
+    open_rows = bank_mod.open_items(request.tenant)
+    unmatched = list(BankTransaction.objects.filter(matched_kind="").order_by("-date")[:100])
+    for tx in unmatched:
+        tx.match_suggestions = bank_mod.suggestions(tx, open_rows)
+    matched = BankTransaction.objects.exclude(matched_kind="").order_by("-matched_at")[:20]
+    return render(
+        request,
+        "finance/bank.html",
+        {"nav": "finance", "unmatched": unmatched, "matched": matched},
     )
 
 

@@ -19678,3 +19678,77 @@ msgstr "Rohertrag (Einnahmen − Wareneinsatz)"
 #: templates/finance/ergebnis.html (ERP-1)
 msgid "Teilweise ohne EK-Preis — ältere Verkäufe oder Artikel ohne Einkaufspreis."
 msgstr "Teilweise ohne EK-Preis — ältere Verkäufe oder Artikel ohne Einkaufspreis."
+
+#: finance ERP-2
+#, python-format
+msgid "%(n)s Tage"
+msgstr "%(n)s Tage"
+
+#: finance ERP-2
+msgid "Alter"
+msgstr "Alter"
+
+#: finance ERP-2
+msgid "Bank"
+msgstr "Bank"
+
+#: finance ERP-2
+msgid "Bankabgleich"
+msgstr "Bankabgleich"
+
+#: finance ERP-2
+msgid "Einnahmen aus dem Journal, Ausgaben aus Einkauf, Anbieter-Buchungen und manuellen Einträgen."
+msgstr "Einnahmen aus dem Journal, Ausgaben aus Einkauf, Anbieter-Buchungen und manuellen Einträgen."
+
+#: finance ERP-2
+msgid "Importieren"
+msgstr "Importieren"
+
+#: finance ERP-2
+msgid "Kein Vorschlag — Verwendungszweck enthält keinen bekannten Code."
+msgstr "Kein Vorschlag — Verwendungszweck enthält keinen bekannten Code."
+
+#: finance ERP-2
+msgid "Keine offenen Posten — alles bezahlt."
+msgstr "Keine offenen Posten — alles bezahlt."
+
+#: finance ERP-2
+msgid "Keine offenen Umsätze — Auszug importieren oder alles ist zugeordnet."
+msgstr "Keine offenen Umsätze — Auszug importieren oder alles ist zugeordnet."
+
+#: finance ERP-2
+msgid "Kontoauszug (CSV der Bank)"
+msgstr "Kontoauszug (CSV der Bank)"
+
+#: finance ERP-2
+msgid "Nicht zugeordnete Umsätze"
+msgstr "Nicht zugeordnete Umsätze"
+
+#: finance ERP-2
+msgid "Offen gesamt"
+msgstr "Offen gesamt"
+
+#: finance ERP-2
+msgid "Offene Posten"
+msgstr "Offene Posten"
+
+#: finance ERP-2
+msgid "Spalten werden automatisch erkannt (Buchungstag, Betrag, Verwendungszweck). Doppelte Umsätze werden übersprungen."
+msgstr "Spalten werden automatisch erkannt (Buchungstag, Betrag, Verwendungszweck). Doppelte Umsätze werden übersprungen."
+
+#: finance ERP-2
+msgid "Zuletzt zugeordnet"
+msgstr "Zuletzt zugeordnet"
+
+#: finance ERP-2
+#, python-format
+msgid "%(new)s neue Umsätze importiert (%(total)s in der Datei)."
+msgstr "%(new)s neue Umsätze importiert (%(total)s in der Datei)."
+
+#: finance ERP-2
+msgid "CSV nicht erkannt — Datums- und Betragsspalte nicht gefunden."
+msgstr "CSV nicht erkannt — Datums- und Betragsspalte nicht gefunden."
+
+#: finance ERP-2
+msgid "Zahlung zugeordnet — Position ist bezahlt."
+msgstr "Zahlung zugeordnet — Position ist bezahlt."

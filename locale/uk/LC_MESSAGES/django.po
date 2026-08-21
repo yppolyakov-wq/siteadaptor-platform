@@ -19746,3 +19746,77 @@ msgstr "Валовий прибуток (виручка − собівартіс
 #: templates/finance/ergebnis.html (ERP-1)
 msgid "Teilweise ohne EK-Preis — ältere Verkäufe oder Artikel ohne Einkaufspreis."
 msgstr "Частково без закупівельної ціни — старі продажі або товари без неї."
+
+#: finance ERP-2
+#, python-format
+msgid "%(n)s Tage"
+msgstr "%(n)s дн."
+
+#: finance ERP-2
+msgid "Alter"
+msgstr "Вік"
+
+#: finance ERP-2
+msgid "Bank"
+msgstr "Банк"
+
+#: finance ERP-2
+msgid "Bankabgleich"
+msgstr "Звірка з банком"
+
+#: finance ERP-2
+msgid "Einnahmen aus dem Journal, Ausgaben aus Einkauf, Anbieter-Buchungen und manuellen Einträgen."
+msgstr "Доходи з журналу; витрати із закупівель, бронювань постачальників і ручних записів."
+
+#: finance ERP-2
+msgid "Importieren"
+msgstr "Імпортувати"
+
+#: finance ERP-2
+msgid "Kein Vorschlag — Verwendungszweck enthält keinen bekannten Code."
+msgstr "Немає пропозицій — у призначенні платежу немає відомого коду."
+
+#: finance ERP-2
+msgid "Keine offenen Posten — alles bezahlt."
+msgstr "Відкритих позицій немає — все оплачено."
+
+#: finance ERP-2
+msgid "Keine offenen Umsätze — Auszug importieren oder alles ist zugeordnet."
+msgstr "Немає незіставлених операцій — імпортуйте виписку, або все вже зіставлено."
+
+#: finance ERP-2
+msgid "Kontoauszug (CSV der Bank)"
+msgstr "Банківська виписка (CSV)"
+
+#: finance ERP-2
+msgid "Nicht zugeordnete Umsätze"
+msgstr "Незіставлені операції"
+
+#: finance ERP-2
+msgid "Offen gesamt"
+msgstr "Разом до сплати"
+
+#: finance ERP-2
+msgid "Offene Posten"
+msgstr "Відкриті позиції"
+
+#: finance ERP-2
+msgid "Spalten werden automatisch erkannt (Buchungstag, Betrag, Verwendungszweck). Doppelte Umsätze werden übersprungen."
+msgstr "Колонки розпізнаються автоматично (дата, сума, призначення). Дублі операцій пропускаються."
+
+#: finance ERP-2
+msgid "Zuletzt zugeordnet"
+msgstr "Нещодавно зіставлено"
+
+#: finance ERP-2
+#, python-format
+msgid "%(new)s neue Umsätze importiert (%(total)s in der Datei)."
+msgstr "Імпортовано нових операцій: %(new)s (у файлі %(total)s)."
+
+#: finance ERP-2
+msgid "CSV nicht erkannt — Datums- und Betragsspalte nicht gefunden."
+msgstr "CSV не розпізнано — не знайдено колонки дати й суми."
+
+#: finance ERP-2
+msgid "Zahlung zugeordnet — Position ist bezahlt."
+msgstr "Платіж зіставлено — позицію оплачено."
