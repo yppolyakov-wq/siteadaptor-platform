@@ -19020,8 +19020,11 @@ msgid "Kostenvoranschlag PDF"
 msgstr "Смета PDF"
 
 #: apps/core/nav_registry.py
-msgid "Noch nichts im Sortiment — oben „＋“ wählen, um den ersten Eintrag anzulegen."
-msgstr "В ассортименте пока пусто — нажмите «＋» вверху, чтобы добавить первую позицию."
+msgid ""
+"Noch nichts im Sortiment — oben „＋“ wählen, um den ersten Eintrag anzulegen."
+msgstr ""
+"В ассортименте пока пусто — нажмите «＋» вверху, чтобы добавить первую "
+"позицию."
 
 #: templates/tenant/settings.html
 msgid "Basis"
@@ -19040,8 +19043,12 @@ msgid "Handle oder volle URL — Icons erscheinen im Footer der Website."
 msgstr "Ник или полная ссылка — иконки появятся в подвале сайта."
 
 #: templates/tenant/settings.html
-msgid "Termin-Slots richten sich nach den Arbeitszeiten der Ressourcen — nicht nach diesen Öffnungszeiten."
-msgstr "Слоты записи зависят от рабочего времени ресурсов, а не от этих часов работы."
+msgid ""
+"Termin-Slots richten sich nach den Arbeitszeiten der Ressourcen — nicht nach"
+" diesen Öffnungszeiten."
+msgstr ""
+"Слоты записи зависят от рабочего времени ресурсов, а не от этих часов "
+"работы."
 
 #: templates/tenant/sellable_manage.html
 msgid "Filter zurücksetzen"
@@ -19204,16 +19211,25 @@ msgid "Eigener Status"
 msgstr "Свой статус"
 
 #: templates/tenant/ablaeufe.html
-msgid "Hier gibt es nichts auszublenden: aus diesen Status führt jeweils nur ein Weg weiter (plus Stornieren, das immer möglich bleibt)."
-msgstr "Здесь нечего скрывать: из этих статусов ведёт только один путь дальше (плюс отмена — она возможна всегда)."
+msgid ""
+"Hier gibt es nichts auszublenden: aus diesen Status führt jeweils nur ein "
+"Weg weiter (plus Stornieren, das immer möglich bleibt)."
+msgstr ""
+"Здесь нечего скрывать: из этих статусов ведёт только один путь дальше (плюс "
+"отмена — она возможна всегда)."
 
 #: templates/tenant/ablaeufe.html
-msgid "Jede Spalte Ihrer Tafel und die Status, die darin landen. Karten wandern per Drag & Drop zwischen den Spalten."
-msgstr "Каждая колонка вашей доски и статусы, которые в неё попадают. Карточки перемещаются между колонками перетаскиванием."
+msgid ""
+"Jede Spalte Ihrer Tafel und die Status, die darin landen. Karten wandern per"
+" Drag & Drop zwischen den Spalten."
+msgstr ""
+"Каждая колонка вашей доски и статусы, которые в неё попадают. Карточки "
+"перемещаются между колонками перетаскиванием."
 
 #: apps/jobs/views.py
 #, python-format
-msgid "Positionen ohne Beschreibung wurden nicht gespeichert (Zeile %(rows)s)."
+msgid ""
+"Positionen ohne Beschreibung wurden nicht gespeichert (Zeile %(rows)s)."
 msgstr "Позиции без описания не сохранены (строка %(rows)s)."
 
 #: templates/tenant/_base_dashboard.html
@@ -19233,12 +19249,22 @@ msgid "Tafel, Status und Felder dieses Bereichs einstellen"
 msgstr "Настроить доску, статусы и поля этого раздела"
 
 #: templates/tenant/ablaeufe.html
-msgid "Wie ein Verkauf bei Ihnen durchläuft: Spalten der Tafel, Namen der Status und erlaubte Schritte."
-msgstr "Как продажа проходит у вас: колонки доски, названия статусов и разрешённые шаги."
+msgid ""
+"Wie ein Verkauf bei Ihnen durchläuft: Spalten der Tafel, Namen der Status "
+"und erlaubte Schritte."
+msgstr ""
+"Как продажа проходит у вас: колонки доски, названия статусов и разрешённые "
+"шаги."
 
 #: templates/tenant/ablaeufe.html
-msgid "Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden. Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten bleiben gleich."
-msgstr "Перетаскивайте для сортировки, свободно меняйте названия, скрывайте ненужное. Действует для всех видов продаж; правила перемещения карточек не меняются."
+msgid ""
+"Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden."
+" Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten "
+"bleiben gleich."
+msgstr ""
+"Перетаскивайте для сортировки, свободно меняйте названия, скрывайте "
+"ненужное. Действует для всех видов продаж; правила перемещения карточек не "
+"меняются."
 
 #: templates/jobs/detail.html
 msgid "Zwischensumme (netto)"
@@ -19275,16 +19301,28 @@ msgid "Angebot gültig bis %(d)s"
 msgstr "Смета действует до %(d)s"
 
 #: apps/core/transactions.py templates/tenant/ablaeufe.html
-msgid "Jede Phase Ihrer Tafel und die Status darin — auf der Tafel bekommt jeder Status eine eigene Spalte innerhalb seiner Phase."
-msgstr "Каждая фаза вашей доски и статусы в ней — на доске у каждого статуса своя колонка внутри его фазы."
+msgid ""
+"Jede Phase Ihrer Tafel und die Status darin — auf der Tafel bekommt jeder "
+"Status eine eigene Spalte innerhalb seiner Phase."
+msgstr ""
+"Каждая фаза вашей доски и статусы в ней — на доске у каждого статуса своя "
+"колонка внутри его фазы."
 
 #: apps/core/transactions.py templates/tenant/ablaeufe.html
 msgid "Phasen der Tafel"
 msgstr "Фазы доски"
 
 #: apps/core/transactions.py templates/tenant/ablaeufe.html
-msgid "Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden. Das sind die Gruppen über den Spalten; die Spaltennamen selbst sind die Status-Namen unten. Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten bleiben gleich."
-msgstr "Перетаскивайте для сортировки, свободно меняйте названия, скрывайте ненужное. Это группы над колонками; сами названия колонок — это имена статусов ниже. Действует для всех видов продаж; правила перемещения карточек не меняются."
+msgid ""
+"Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden."
+" Das sind die Gruppen über den Spalten; die Spaltennamen selbst sind die "
+"Status-Namen unten. Gilt für alle Verkaufsarten; die Regeln für das "
+"Verschieben der Karten bleiben gleich."
+msgstr ""
+"Перетаскивайте для сортировки, свободно меняйте названия, скрывайте "
+"ненужное. Это группы над колонками; сами названия колонок — это имена "
+"статусов ниже. Действует для всех видов продаж; правила перемещения карточек"
+" не меняются."
 
 #: apps/core/transactions.py
 #, python-format
@@ -19296,8 +19334,12 @@ msgstr[2] "%(n)d гостей"
 msgstr[3] "%(n)d гостя"
 
 #: apps/core/views.py templates/core/deal_link.html
-msgid "Beide bleiben eigenständige Verkäufe: eigener Status, eigener Preis, eigene Spalte. Die Verknüpfung zeigt nur, was zusammengehört."
-msgstr "Обе остаются самостоятельными продажами: свой статус, своя цена, своя колонка. Связь лишь показывает, что относится к чему."
+msgid ""
+"Beide bleiben eigenständige Verkäufe: eigener Status, eigener Preis, eigene "
+"Spalte. Die Verknüpfung zeigt nur, was zusammengehört."
+msgstr ""
+"Обе остаются самостоятельными продажами: свой статус, своя цена, своя "
+"колонка. Связь лишь показывает, что относится к чему."
 
 #: apps/core/views.py templates/core/deal_link.html
 msgid "Gehört zu"
@@ -19399,9 +19441,22 @@ msgid "Kundendaten gespeichert."
 msgstr "Данные клиента сохранены."
 
 #: apps/jobs/views.py templates/jobs/detail.html
-msgid "Name, E-Mail und Telefon gehören zur Kundenkarte — die Änderung gilt auch für andere Verkäufe dieses Kunden."
-msgstr "Имя, e-mail и телефон принадлежат карточке клиента — изменение затронет и другие его продажи."
+msgid ""
+"Name, E-Mail und Telefon gehören zur Kundenkarte — die Änderung gilt auch "
+"für andere Verkäufe dieses Kunden."
+msgstr ""
+"Имя, e-mail и телефон принадлежат карточке клиента — изменение затронет и "
+"другие его продажи."
 
 #: apps/jobs/views.py templates/jobs/detail.html
 msgid "Position hinzufügen"
 msgstr "Добавить позицию"
+
+msgid "Ausgaben"
+msgstr "Расходы"
+
+msgid "Entry deleted."
+msgstr "Запись удалена."
+
+msgid "Ergebnis"
+msgstr "Результат"

@@ -121,6 +121,22 @@ def receive_po_line(
             )
         position.qty_received += take
         position.save(update_fields=["qty_received", "updated_at"])
+        # MX-1: приёмка = расход (SOURCE_PURCHASE был объявлен и мёртв). Идемпотентно
+        # по (source, source_ref): ключ = строка PO + накопленный qty_received —
+        # каждая частичная приёмка даёт ровно одну запись, ретрай в той же atomic
+        # упирается в unique-constraint.
+        if position.unit_cost:
+            from apps.finance.expenses import ExpenseEntry
+
+            ExpenseEntry.objects.get_or_create(
+                source=ExpenseEntry.SOURCE_PURCHASE,
+                source_ref=f"{position.pk}:{position.qty_received}",
+                defaults={
+                    "amount": position.unit_cost * take,
+                    "category": ExpenseEntry.CATEGORY_GOODS,
+                    "note": f"{position.bestellung.reference}"[:200],
+                },
+            )
         if update_cost and position.unit_cost:
             entity = variant if variant is not None else product
             entity.cost_price = position.unit_cost

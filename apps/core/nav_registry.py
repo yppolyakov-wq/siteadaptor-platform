@@ -338,6 +338,26 @@ ENTRIES: tuple[NavEntry, ...] = (
         search="reservierung abholung",
         palette_only=True,
     ),
+    # MX-1: расходы и результат — экраны раздела Finanzen (вход: вкладки на
+    # страницах + палитра; состав якорей сайдбара не тронут — мораторий X7.1).
+    _e(
+        "board",
+        "finance:expenses",
+        _("Ausgaben"),
+        "finance",
+        "finance",
+        search="ausgaben kosten einkauf spesen",
+        palette_only=True,
+    ),
+    _e(
+        "board",
+        "finance:ergebnis",
+        _("Ergebnis"),
+        "finance",
+        "finance",
+        search="ergebnis gewinn marge saldo",
+        palette_only=True,
+    ),
     _e(
         "board",
         "finance:invoices",

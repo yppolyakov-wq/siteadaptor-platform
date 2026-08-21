@@ -64,6 +64,11 @@ class ExpenseEntry(TimestampedModel):
         on_delete=models.SET_NULL,
         related_name="expense_entries",
     )
+    # MX-1: generic-объект затрат (сделка любого kind / опция / пусто = общий расход).
+    # `event` FK остаётся легаси-полем туров; новые привязки — сюда. Строки, не FK:
+    # kind живёт в другом аппе и наборы растут (прецедент — DealLink).
+    ref_kind = models.CharField(max_length=20, blank=True)
+    ref_id = models.CharField(max_length=64, blank=True)
     note = models.CharField(max_length=200, blank=True)
 
     class Meta:

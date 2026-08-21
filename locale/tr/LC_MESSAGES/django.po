@@ -18936,8 +18936,11 @@ msgid "Kostenvoranschlag PDF"
 msgstr "Teklif PDF"
 
 #: apps/core/nav_registry.py
-msgid "Noch nichts im Sortiment — oben „＋“ wählen, um den ersten Eintrag anzulegen."
-msgstr "Ürün yelpazenizde henüz bir şey yok — ilk kaydı oluşturmak için yukarıdaki „＋“ düğmesini kullanın."
+msgid ""
+"Noch nichts im Sortiment — oben „＋“ wählen, um den ersten Eintrag anzulegen."
+msgstr ""
+"Ürün yelpazenizde henüz bir şey yok — ilk kaydı oluşturmak için yukarıdaki "
+"„＋“ düğmesini kullanın."
 
 #: templates/tenant/settings.html
 msgid "Basis"
@@ -18953,11 +18956,16 @@ msgstr "Sosyal profiller"
 
 #: templates/tenant/settings.html
 msgid "Handle oder volle URL — Icons erscheinen im Footer der Website."
-msgstr "Kullanıcı adı veya tam URL — simgeler web sitesinin alt bilgisinde görünür."
+msgstr ""
+"Kullanıcı adı veya tam URL — simgeler web sitesinin alt bilgisinde görünür."
 
 #: templates/tenant/settings.html
-msgid "Termin-Slots richten sich nach den Arbeitszeiten der Ressourcen — nicht nach diesen Öffnungszeiten."
-msgstr "Randevu saatleri bu açılış saatlerine değil, kaynakların çalışma saatlerine göre belirlenir."
+msgid ""
+"Termin-Slots richten sich nach den Arbeitszeiten der Ressourcen — nicht nach"
+" diesen Öffnungszeiten."
+msgstr ""
+"Randevu saatleri bu açılış saatlerine değil, kaynakların çalışma saatlerine "
+"göre belirlenir."
 
 #: templates/tenant/sellable_manage.html
 msgid "Filter zurücksetzen"
@@ -18977,7 +18985,8 @@ msgstr "„%(list_q)s“ için sonuç yok."
 
 #: apps/promotions/views.py
 msgid "Aus diesen Zeiten entstehen die buchbaren Termin-Slots."
-msgstr "Rezervasyon yapılabilir randevu saatleri bu çalışma saatlerinden oluşur."
+msgstr ""
+"Rezervasyon yapılabilir randevu saatleri bu çalışma saatlerinden oluşur."
 
 #: apps/promotions/views.py
 msgid "Öffnungszeiten des Betriebs"
@@ -19075,7 +19084,8 @@ msgid "Draft saved."
 msgstr "Taslak kaydedildi."
 
 msgid "Pick a free slot and book in 30 seconds — with your phone."
-msgstr "Boş bir randevu seçin ve 30 saniyede rezervasyon yapın — telefonunuzla."
+msgstr ""
+"Boş bir randevu seçin ve 30 saniyede rezervasyon yapın — telefonunuzla."
 
 msgid "Post scheduled."
 msgstr "Gönderi zamanlandı."
@@ -19120,16 +19130,25 @@ msgid "Eigener Status"
 msgstr "Özel durum"
 
 #: templates/tenant/ablaeufe.html
-msgid "Hier gibt es nichts auszublenden: aus diesen Status führt jeweils nur ein Weg weiter (plus Stornieren, das immer möglich bleibt)."
-msgstr "Burada gizlenecek bir şey yok: bu durumlardan yalnızca tek bir yol devam eder (ayrıca her zaman mümkün olan iptal)."
+msgid ""
+"Hier gibt es nichts auszublenden: aus diesen Status führt jeweils nur ein "
+"Weg weiter (plus Stornieren, das immer möglich bleibt)."
+msgstr ""
+"Burada gizlenecek bir şey yok: bu durumlardan yalnızca tek bir yol devam "
+"eder (ayrıca her zaman mümkün olan iptal)."
 
 #: templates/tenant/ablaeufe.html
-msgid "Jede Spalte Ihrer Tafel und die Status, die darin landen. Karten wandern per Drag & Drop zwischen den Spalten."
-msgstr "Panonuzun her sütunu ve içine düşen durumlar. Kartlar sütunlar arasında sürükle-bırak ile taşınır."
+msgid ""
+"Jede Spalte Ihrer Tafel und die Status, die darin landen. Karten wandern per"
+" Drag & Drop zwischen den Spalten."
+msgstr ""
+"Panonuzun her sütunu ve içine düşen durumlar. Kartlar sütunlar arasında "
+"sürükle-bırak ile taşınır."
 
 #: apps/jobs/views.py
 #, python-format
-msgid "Positionen ohne Beschreibung wurden nicht gespeichert (Zeile %(rows)s)."
+msgid ""
+"Positionen ohne Beschreibung wurden nicht gespeichert (Zeile %(rows)s)."
 msgstr "Açıklaması olmayan kalemler kaydedilmedi (satır %(rows)s)."
 
 #: templates/tenant/_base_dashboard.html
@@ -19149,12 +19168,22 @@ msgid "Tafel, Status und Felder dieses Bereichs einstellen"
 msgstr "Bu bölümün panosunu, durumlarını ve alanlarını ayarlayın"
 
 #: templates/tenant/ablaeufe.html
-msgid "Wie ein Verkauf bei Ihnen durchläuft: Spalten der Tafel, Namen der Status und erlaubte Schritte."
-msgstr "Satışın işletmenizde nasıl ilerlediği: pano sütunları, durum adları ve izin verilen adımlar."
+msgid ""
+"Wie ein Verkauf bei Ihnen durchläuft: Spalten der Tafel, Namen der Status "
+"und erlaubte Schritte."
+msgstr ""
+"Satışın işletmenizde nasıl ilerlediği: pano sütunları, durum adları ve izin "
+"verilen adımlar."
 
 #: templates/tenant/ablaeufe.html
-msgid "Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden. Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten bleiben gleich."
-msgstr "Sıralamak için sürükleyin, adları serbestçe değiştirin, gereksizleri gizleyin. Tüm satış türleri için geçerlidir; kartların taşınma kuralları aynı kalır."
+msgid ""
+"Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden."
+" Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten "
+"bleiben gleich."
+msgstr ""
+"Sıralamak için sürükleyin, adları serbestçe değiştirin, gereksizleri "
+"gizleyin. Tüm satış türleri için geçerlidir; kartların taşınma kuralları "
+"aynı kalır."
 
 #: templates/jobs/detail.html
 msgid "Zwischensumme (netto)"
@@ -19191,16 +19220,28 @@ msgid "Angebot gültig bis %(d)s"
 msgstr "Teklif %(d)s tarihine kadar geçerli"
 
 #: apps/core/transactions.py templates/tenant/ablaeufe.html
-msgid "Jede Phase Ihrer Tafel und die Status darin — auf der Tafel bekommt jeder Status eine eigene Spalte innerhalb seiner Phase."
-msgstr "Panonuzun her aşaması ve içindeki durumlar — panoda her durum kendi aşamasının içinde ayrı bir sütun alır."
+msgid ""
+"Jede Phase Ihrer Tafel und die Status darin — auf der Tafel bekommt jeder "
+"Status eine eigene Spalte innerhalb seiner Phase."
+msgstr ""
+"Panonuzun her aşaması ve içindeki durumlar — panoda her durum kendi "
+"aşamasının içinde ayrı bir sütun alır."
 
 #: apps/core/transactions.py templates/tenant/ablaeufe.html
 msgid "Phasen der Tafel"
 msgstr "Pano aşamaları"
 
 #: apps/core/transactions.py templates/tenant/ablaeufe.html
-msgid "Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden. Das sind die Gruppen über den Spalten; die Spaltennamen selbst sind die Status-Namen unten. Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten bleiben gleich."
-msgstr "Sıralamak için sürükleyin, adları serbestçe değiştirin, gereksizleri gizleyin. Bunlar sütunların üzerindeki gruplardır; sütun adlarının kendisi aşağıdaki durum adlarıdır. Tüm satış türleri için geçerlidir; kartların taşınma kuralları aynı kalır."
+msgid ""
+"Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden."
+" Das sind die Gruppen über den Spalten; die Spaltennamen selbst sind die "
+"Status-Namen unten. Gilt für alle Verkaufsarten; die Regeln für das "
+"Verschieben der Karten bleiben gleich."
+msgstr ""
+"Sıralamak için sürükleyin, adları serbestçe değiştirin, gereksizleri "
+"gizleyin. Bunlar sütunların üzerindeki gruplardır; sütun adlarının kendisi "
+"aşağıdaki durum adlarıdır. Tüm satış türleri için geçerlidir; kartların "
+"taşınma kuralları aynı kalır."
 
 #: apps/core/transactions.py
 #, python-format
@@ -19210,8 +19251,12 @@ msgstr[0] "%(n)d misafir"
 msgstr[1] "%(n)d misafir"
 
 #: apps/core/views.py templates/core/deal_link.html
-msgid "Beide bleiben eigenständige Verkäufe: eigener Status, eigener Preis, eigene Spalte. Die Verknüpfung zeigt nur, was zusammengehört."
-msgstr "İkisi de bağımsız satış olarak kalır: kendi durumu, kendi fiyatı, kendi sütunu. Bağlantı yalnızca neyin birlikte olduğunu gösterir."
+msgid ""
+"Beide bleiben eigenständige Verkäufe: eigener Status, eigener Preis, eigene "
+"Spalte. Die Verknüpfung zeigt nur, was zusammengehört."
+msgstr ""
+"İkisi de bağımsız satış olarak kalır: kendi durumu, kendi fiyatı, kendi "
+"sütunu. Bağlantı yalnızca neyin birlikte olduğunu gösterir."
 
 #: apps/core/views.py templates/core/deal_link.html
 msgid "Gehört zu"
@@ -19311,9 +19356,22 @@ msgid "Kundendaten gespeichert."
 msgstr "Müşteri bilgileri kaydedildi."
 
 #: apps/jobs/views.py templates/jobs/detail.html
-msgid "Name, E-Mail und Telefon gehören zur Kundenkarte — die Änderung gilt auch für andere Verkäufe dieses Kunden."
-msgstr "Ad, e-posta ve telefon müşteri kartına aittir — değişiklik bu müşterinin diğer satışları için de geçerlidir."
+msgid ""
+"Name, E-Mail und Telefon gehören zur Kundenkarte — die Änderung gilt auch "
+"für andere Verkäufe dieses Kunden."
+msgstr ""
+"Ad, e-posta ve telefon müşteri kartına aittir — değişiklik bu müşterinin "
+"diğer satışları için de geçerlidir."
 
 #: apps/jobs/views.py templates/jobs/detail.html
 msgid "Position hinzufügen"
 msgstr "Kalem ekle"
+
+msgid "Ausgaben"
+msgstr "Giderler"
+
+msgid "Entry deleted."
+msgstr "Kayıt silindi."
+
+msgid "Ergebnis"
+msgstr "Sonuç"

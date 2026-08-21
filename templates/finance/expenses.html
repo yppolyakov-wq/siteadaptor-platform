@@ -1,0 +1,96 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Ausgaben" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
+  <h1 class="text-2xl font-bold">{% trans "Ausgaben" %}</h1>
+  <form method="get" class="flex flex-wrap items-center gap-2 text-sm">
+    <input type="date" name="von" value="{{ von|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-2 py-1.5">
+    <span class="text-gray-400">–</span>
+    <input type="date" name="bis" value="{{ bis|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-2 py-1.5">
+    <select name="kategorie" class="rounded-lg border border-gray-300 px-2 py-1.5">
+      <option value="">{% trans "Alle Kategorien" %}</option>
+      {% for code, label in categories %}<option value="{{ code }}" {% if code == active_category %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+    <button class="border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Show" %}</button>
+  </form>
+</div>
+{% include "finance/_finance_tabs.html" with fin_tab="ausgaben" %}
+
+{% if messages %}
+  {% for m in messages %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="grid sm:grid-cols-3 gap-4 mb-6 max-w-2xl">
+  <div class="rounded-xl border border-gray-200 p-4">
+    <p class="text-xs text-gray-400">{% trans "Summe" %}</p>
+    <p class="text-xl font-semibold">−{{ total|floatformat:2 }} €</p>
+  </div>
+  {% for row in by_cat|slice:":2" %}
+  <div class="rounded-xl border border-gray-200 p-4">
+    <p class="text-xs text-gray-400">{{ row.label }}</p>
+    <p class="text-xl font-semibold">−{{ row.sum|floatformat:2 }} €</p>
+  </div>
+  {% endfor %}
+</div>
+
+<form method="post" class="mb-6 flex flex-wrap items-end gap-2 rounded-xl border border-gray-200 p-4 text-sm">
+  {% csrf_token %}
+  <div>
+    <label class="block text-xs text-gray-400 mb-1">{% trans "Amount" %}</label>
+    <input name="amount" inputmode="decimal" placeholder="0,00" required class="w-28 rounded-lg border border-gray-300 px-2 py-1.5">
+  </div>
+  <div>
+    <label class="block text-xs text-gray-400 mb-1">{% trans "Kategorie" %}</label>
+    <select name="category" class="rounded-lg border border-gray-300 px-2 py-1.5">
+      {% for code, label in categories %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+    </select>
+  </div>
+  <div>
+    <label class="block text-xs text-gray-400 mb-1">{% trans "Date" %}</label>
+    <input type="date" name="date" value="{{ today|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-2 py-1.5">
+  </div>
+  <div class="grow">
+    <label class="block text-xs text-gray-400 mb-1">{% trans "Note" %}</label>
+    <input name="note" maxlength="200" class="w-full rounded-lg border border-gray-300 px-2 py-1.5">
+  </div>
+  <button class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">{% trans "Ausgabe erfassen" %}</button>
+</form>
+
+<div class="overflow-x-auto rounded-xl border border-gray-200">
+  <table class="min-w-full text-sm">
+    <thead class="bg-gray-50 text-left text-xs text-gray-500">
+      <tr>
+        <th class="px-4 py-2">{% trans "Date" %}</th>
+        <th class="px-4 py-2">{% trans "Kategorie" %}</th>
+        <th class="px-4 py-2">{% trans "Note" %}</th>
+        <th class="px-4 py-2 text-right">{% trans "Amount" %}</th>
+        <th class="px-4 py-2"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for e in entries %}
+      <tr>
+        <td class="px-4 py-2 whitespace-nowrap">{{ e.date|date:"d.m.Y" }}</td>
+        <td class="px-4 py-2">{{ e.get_category_display }}{% if e.source != "manual" %} · <span class="text-xs text-gray-400">{{ e.get_source_display }}</span>{% endif %}</td>
+        <td class="px-4 py-2 text-gray-500">{{ e.note }}{% if e.event %} · {{ e.event.title }}{% endif %}</td>
+        <td class="px-4 py-2 text-right font-medium">−{{ e.amount|floatformat:2 }} €</td>
+        <td class="px-4 py-2 text-right">
+          {% if e.source == "manual" %}
+          <form method="post" class="inline">{% csrf_token %}
+            <input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="{{ e.pk }}">
+            <button class="text-xs text-red-500 hover:underline">{% trans "Delete" %}</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="px-4 py-6 text-center text-gray-400">{% trans "Noch keine Ausgaben im Zeitraum." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

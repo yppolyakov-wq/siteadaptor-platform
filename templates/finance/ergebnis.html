@@ -1,0 +1,32 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Ergebnis" %}{% endblock %}
+
+{% block dash_content %}
+<div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
+  <h1 class="text-2xl font-bold">{% trans "Ergebnis" %}</h1>
+  <form method="get" class="flex flex-wrap items-center gap-2 text-sm">
+    <input type="date" name="von" value="{{ von|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-2 py-1.5">
+    <span class="text-gray-400">–</span>
+    <input type="date" name="bis" value="{{ bis|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-2 py-1.5">
+    <button class="border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Show" %}</button>
+  </form>
+</div>
+{% include "finance/_finance_tabs.html" with fin_tab="ergebnis" %}
+
+<div class="grid sm:grid-cols-3 gap-4 max-w-3xl">
+  <div class="rounded-xl border border-gray-200 p-5">
+    <p class="text-xs text-gray-400">{% trans "Einnahmen" %}</p>
+    <p class="text-2xl font-semibold">{{ revenue|floatformat:2 }} €</p>
+  </div>
+  <div class="rounded-xl border border-gray-200 p-5">
+    <p class="text-xs text-gray-400">{% trans "Ausgaben" %}</p>
+    <p class="text-2xl font-semibold">−{{ spent|floatformat:2 }} €</p>
+  </div>
+  <div class="rounded-xl border p-5 {% if result < 0 %}border-red-200 bg-red-50{% else %}border-green-200 bg-green-50{% endif %}">
+    <p class="text-xs text-gray-400">{% trans "Ergebnis" %}</p>
+    <p class="text-2xl font-semibold {% if result < 0 %}text-red-600{% endif %}">{{ result|floatformat:2 }} €</p>
+  </div>
+</div>
+<p class="mt-4 text-sm text-gray-500">{% trans "Einnahmen aus dem Journal, Ausgaben aus Einkauf, Anbieter-Buchungen und manuellen Einträgen." %}</p>
+{% endblock %}

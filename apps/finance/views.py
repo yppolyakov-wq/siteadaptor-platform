@@ -70,6 +70,100 @@ def journal(request):
     )
 
 
+def _period_expenses(request):
+    """MX-1: (von, bis, queryset) расходов по ?von=&bis= — зеркало _period_entries."""
+    from .expenses import ExpenseEntry
+
+    today = timezone.localdate()
+    von = _parse_date(request.GET.get("von"), today.replace(day=1))
+    bis = _parse_date(request.GET.get("bis"), today)
+    qs = ExpenseEntry.objects.filter(date__gte=von, date__lte=bis)
+    category = request.GET.get("kategorie", "")
+    if category in dict(ExpenseEntry.CATEGORIES):
+        qs = qs.filter(category=category)
+    return von, bis, qs
+
+
+@login_required
+def expenses(request):
+    """MX-1: экран «Ausgaben» — до него расходы существовали только в коде
+    (писала одна ветка тур-логистики, читал один экран заезда; ручного ввода
+    не было вовсе). Ручная запись + список с фильтрами; удаление — ТОЛЬКО
+    manual-строк (событийные записи держит идемпотентность источника)."""
+    from .expenses import ExpenseEntry
+
+    if request.method == "POST":
+        if request.POST.get("action") == "delete":
+            ExpenseEntry.objects.filter(
+                pk=request.POST.get("id"), source=ExpenseEntry.SOURCE_MANUAL
+            ).delete()
+            messages.success(request, _("Entry deleted."))
+            return redirect("finance:expenses")
+        try:
+            amount = Decimal(str(request.POST.get("amount", "")).replace(",", "."))
+        except (InvalidOperation, ValueError):
+            messages.error(request, _("Invalid amount."))
+            return redirect("finance:expenses")
+        if amount <= 0:
+            messages.error(request, _("Amount must be positive."))
+            return redirect("finance:expenses")
+        category = request.POST.get("category", "")
+        if category not in dict(ExpenseEntry.CATEGORIES):
+            category = ExpenseEntry.CATEGORY_OTHER
+        ExpenseEntry.objects.create(
+            source=ExpenseEntry.SOURCE_MANUAL,
+            amount=amount,
+            category=category,
+            date=_parse_date(request.POST.get("date"), timezone.localdate()),
+            note=request.POST.get("note", "").strip()[:200],
+        )
+        messages.success(request, _("Entry added."))
+        return redirect("finance:expenses")
+
+    von, bis, qs = _period_expenses(request)
+    by_cat = qs.values("category").annotate(sum=Sum("amount")).order_by("-sum")
+    cat_labels = dict(ExpenseEntry.CATEGORIES)
+    return render(
+        request,
+        "finance/expenses.html",
+        {
+            "nav": "finance",
+            "von": von,
+            "bis": bis,
+            "entries": qs.select_related("event")[:500],
+            "total": qs.aggregate(s=Sum("amount"))["s"] or Decimal("0"),
+            "by_cat": [
+                {"label": cat_labels.get(r["category"], r["category"]), "sum": r["sum"]}
+                for r in by_cat
+            ],
+            "categories": ExpenseEntry.CATEGORIES,
+            "active_category": request.GET.get("kategorie", ""),
+            "today": timezone.localdate(),
+        },
+    )
+
+
+@login_required
+def ergebnis(request):
+    """MX-1: «Ergebnis» — выручка − расходы за период (первый сводный P&L-срез)."""
+    von, bis, entries = _period_entries(request)
+    _von, _bis, expense_qs = _period_expenses(request)
+    revenue = entries.aggregate(s=Sum("amount"))["s"] or Decimal("0")
+    spent = expense_qs.aggregate(s=Sum("amount"))["s"] or Decimal("0")
+    return render(
+        request,
+        "finance/ergebnis.html",
+        {
+            "nav": "finance",
+            "von": von,
+            "bis": bis,
+            "revenue": revenue,
+            "spent": spent,
+            "result": revenue - spent,
+        },
+    )
+
+
 def _period_entries(request):
     """(von, bis, queryset) по ?von=&bis= — общий фильтр журнала и экспортов."""
     today = timezone.localdate()

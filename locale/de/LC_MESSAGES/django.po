@@ -18944,7 +18944,8 @@ msgid "Kostenvoranschlag PDF"
 msgstr ""
 
 #: apps/core/nav_registry.py
-msgid "Noch nichts im Sortiment — oben „＋“ wählen, um den ersten Eintrag anzulegen."
+msgid ""
+"Noch nichts im Sortiment — oben „＋“ wählen, um den ersten Eintrag anzulegen."
 msgstr ""
 
 #: templates/tenant/settings.html
@@ -18964,7 +18965,9 @@ msgid "Handle oder volle URL — Icons erscheinen im Footer der Website."
 msgstr ""
 
 #: templates/tenant/settings.html
-msgid "Termin-Slots richten sich nach den Arbeitszeiten der Ressourcen — nicht nach diesen Öffnungszeiten."
+msgid ""
+"Termin-Slots richten sich nach den Arbeitszeiten der Ressourcen — nicht nach"
+" diesen Öffnungszeiten."
 msgstr ""
 
 #: templates/tenant/sellable_manage.html
@@ -19128,17 +19131,27 @@ msgid "Eigener Status"
 msgstr "Eigener Status"
 
 #: templates/tenant/ablaeufe.html
-msgid "Hier gibt es nichts auszublenden: aus diesen Status führt jeweils nur ein Weg weiter (plus Stornieren, das immer möglich bleibt)."
-msgstr "Hier gibt es nichts auszublenden: aus diesen Status führt jeweils nur ein Weg weiter (plus Stornieren, das immer möglich bleibt)."
+msgid ""
+"Hier gibt es nichts auszublenden: aus diesen Status führt jeweils nur ein "
+"Weg weiter (plus Stornieren, das immer möglich bleibt)."
+msgstr ""
+"Hier gibt es nichts auszublenden: aus diesen Status führt jeweils nur ein "
+"Weg weiter (plus Stornieren, das immer möglich bleibt)."
 
 #: templates/tenant/ablaeufe.html
-msgid "Jede Spalte Ihrer Tafel und die Status, die darin landen. Karten wandern per Drag & Drop zwischen den Spalten."
-msgstr "Jede Spalte Ihrer Tafel und die Status, die darin landen. Karten wandern per Drag & Drop zwischen den Spalten."
+msgid ""
+"Jede Spalte Ihrer Tafel und die Status, die darin landen. Karten wandern per"
+" Drag & Drop zwischen den Spalten."
+msgstr ""
+"Jede Spalte Ihrer Tafel und die Status, die darin landen. Karten wandern per"
+" Drag & Drop zwischen den Spalten."
 
 #: apps/jobs/views.py
 #, python-format
-msgid "Positionen ohne Beschreibung wurden nicht gespeichert (Zeile %(rows)s)."
-msgstr "Positionen ohne Beschreibung wurden nicht gespeichert (Zeile %(rows)s)."
+msgid ""
+"Positionen ohne Beschreibung wurden nicht gespeichert (Zeile %(rows)s)."
+msgstr ""
+"Positionen ohne Beschreibung wurden nicht gespeichert (Zeile %(rows)s)."
 
 #: templates/tenant/_base_dashboard.html
 msgid "Schließen"
@@ -19157,12 +19170,22 @@ msgid "Tafel, Status und Felder dieses Bereichs einstellen"
 msgstr "Tafel, Status und Felder dieses Bereichs einstellen"
 
 #: templates/tenant/ablaeufe.html
-msgid "Wie ein Verkauf bei Ihnen durchläuft: Spalten der Tafel, Namen der Status und erlaubte Schritte."
-msgstr "Wie ein Verkauf bei Ihnen durchläuft: Spalten der Tafel, Namen der Status und erlaubte Schritte."
+msgid ""
+"Wie ein Verkauf bei Ihnen durchläuft: Spalten der Tafel, Namen der Status "
+"und erlaubte Schritte."
+msgstr ""
+"Wie ein Verkauf bei Ihnen durchläuft: Spalten der Tafel, Namen der Status "
+"und erlaubte Schritte."
 
 #: templates/tenant/ablaeufe.html
-msgid "Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden. Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten bleiben gleich."
-msgstr "Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden. Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten bleiben gleich."
+msgid ""
+"Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden."
+" Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten "
+"bleiben gleich."
+msgstr ""
+"Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden."
+" Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten "
+"bleiben gleich."
 
 #: templates/jobs/detail.html
 msgid "Zwischensumme (netto)"
@@ -19199,16 +19222,28 @@ msgid "Angebot gültig bis %(d)s"
 msgstr "Angebot gültig bis %(d)s"
 
 #: apps/core/transactions.py templates/tenant/ablaeufe.html
-msgid "Jede Phase Ihrer Tafel und die Status darin — auf der Tafel bekommt jeder Status eine eigene Spalte innerhalb seiner Phase."
-msgstr "Jede Phase Ihrer Tafel und die Status darin — auf der Tafel bekommt jeder Status eine eigene Spalte innerhalb seiner Phase."
+msgid ""
+"Jede Phase Ihrer Tafel und die Status darin — auf der Tafel bekommt jeder "
+"Status eine eigene Spalte innerhalb seiner Phase."
+msgstr ""
+"Jede Phase Ihrer Tafel und die Status darin — auf der Tafel bekommt jeder "
+"Status eine eigene Spalte innerhalb seiner Phase."
 
 #: apps/core/transactions.py templates/tenant/ablaeufe.html
 msgid "Phasen der Tafel"
 msgstr "Phasen der Tafel"
 
 #: apps/core/transactions.py templates/tenant/ablaeufe.html
-msgid "Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden. Das sind die Gruppen über den Spalten; die Spaltennamen selbst sind die Status-Namen unten. Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten bleiben gleich."
-msgstr "Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden. Das sind die Gruppen über den Spalten; die Spaltennamen selbst sind die Status-Namen unten. Gilt für alle Verkaufsarten; die Regeln für das Verschieben der Karten bleiben gleich."
+msgid ""
+"Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden."
+" Das sind die Gruppen über den Spalten; die Spaltennamen selbst sind die "
+"Status-Namen unten. Gilt für alle Verkaufsarten; die Regeln für das "
+"Verschieben der Karten bleiben gleich."
+msgstr ""
+"Ziehen zum Sortieren, Namen frei überschreiben, Nicht-Benötigtes ausblenden."
+" Das sind die Gruppen über den Spalten; die Spaltennamen selbst sind die "
+"Status-Namen unten. Gilt für alle Verkaufsarten; die Regeln für das "
+"Verschieben der Karten bleiben gleich."
 
 #: apps/core/transactions.py
 #, python-format
@@ -19218,8 +19253,12 @@ msgstr[0] "%(n)d Gast"
 msgstr[1] "%(n)d Gäste"
 
 #: apps/core/views.py templates/core/deal_link.html
-msgid "Beide bleiben eigenständige Verkäufe: eigener Status, eigener Preis, eigene Spalte. Die Verknüpfung zeigt nur, was zusammengehört."
-msgstr "Beide bleiben eigenständige Verkäufe: eigener Status, eigener Preis, eigene Spalte. Die Verknüpfung zeigt nur, was zusammengehört."
+msgid ""
+"Beide bleiben eigenständige Verkäufe: eigener Status, eigener Preis, eigene "
+"Spalte. Die Verknüpfung zeigt nur, was zusammengehört."
+msgstr ""
+"Beide bleiben eigenständige Verkäufe: eigener Status, eigener Preis, eigene "
+"Spalte. Die Verknüpfung zeigt nur, was zusammengehört."
 
 #: apps/core/views.py templates/core/deal_link.html
 msgid "Gehört zu"
@@ -19319,9 +19358,22 @@ msgid "Kundendaten gespeichert."
 msgstr "Kundendaten gespeichert."
 
 #: apps/jobs/views.py templates/jobs/detail.html
-msgid "Name, E-Mail und Telefon gehören zur Kundenkarte — die Änderung gilt auch für andere Verkäufe dieses Kunden."
-msgstr "Name, E-Mail und Telefon gehören zur Kundenkarte — die Änderung gilt auch für andere Verkäufe dieses Kunden."
+msgid ""
+"Name, E-Mail und Telefon gehören zur Kundenkarte — die Änderung gilt auch "
+"für andere Verkäufe dieses Kunden."
+msgstr ""
+"Name, E-Mail und Telefon gehören zur Kundenkarte — die Änderung gilt auch "
+"für andere Verkäufe dieses Kunden."
 
 #: apps/jobs/views.py templates/jobs/detail.html
 msgid "Position hinzufügen"
 msgstr "Position hinzufügen"
+
+msgid "Ausgaben"
+msgstr "Ausgaben"
+
+msgid "Entry deleted."
+msgstr "Eintrag gelöscht."
+
+msgid "Ergebnis"
+msgstr "Ergebnis"
