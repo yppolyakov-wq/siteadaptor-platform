@@ -19651,3 +19651,8 @@ msgstr "“%(label)s” seçilen dönem için maalesef tamamen dolu."
 #, python-format
 msgid "„%(label)s“ ist leider nicht mehr verfügbar."
 msgstr "“%(label)s” maalesef artık mevcut değil."
+
+#: templates/storefront/event_index.html (6c)
+#, python-format
+msgid "+%(n)s Termine"
+msgstr "+%(n)s tarih daha"

@@ -344,6 +344,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.promotions.tasks.roll_promotion_statuses",
         "schedule": 300.0,  # каждые 5 минут — scheduled→active, active→ended
     },
+    "roll-event-group-listings": {
+        "task": "apps.aggregator.tasks.roll_aggregator_event_groups",
+        "schedule": 3600.0,  # 6c: перекат групповых карточек событий на следующий заезд
+    },
     "roll-recurring-promotions": {
         "task": "apps.promotions.tasks.roll_recurring_promotions",
         "schedule": 3600.0,  # раз в час — авто-повтор завершившихся акций (Track B3b)

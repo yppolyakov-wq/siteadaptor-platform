@@ -19737,3 +19737,8 @@ msgstr "«%(label)s» на выбранные даты, к сожалению, �
 #, python-format
 msgid "„%(label)s“ ist leider nicht mehr verfügbar."
 msgstr "«%(label)s», к сожалению, больше недоступно."
+
+#: templates/storefront/event_index.html (6c)
+#, python-format
+msgid "+%(n)s Termine"
+msgstr "+%(n)s дат"

@@ -52,6 +52,25 @@ def veranstaltung_index(request):
     q = (request.GET.get("q") or "").strip()
     sort = request.GET.get("sort") or ""
     events = provider.sort(provider.search(events, q), sort)
+    # 6c: серия/заезды тура — ОДНОЙ карточкой (владелец: «одинаковые, разные
+    # даты — группируем»). Представитель группы = первый в ТЕКУЩЕМ порядке
+    # (дефолт по дате → ближайший; пользовательский сорт уважается); остальные
+    # даты — бейдж «+N Termine». Обычные события (без tour/series) не тронуты.
+    grouped, seen_groups = [], {}
+    for e in events:
+        gkey = (
+            ("tour", e.tour_id) if e.tour_id else (("series", e.series_id) if e.series_id else None)
+        )
+        if gkey is None:
+            grouped.append(e)
+            continue
+        if gkey in seen_groups:
+            seen_groups[gkey].more_dates += 1
+        else:
+            e.more_dates = 0
+            seen_groups[gkey] = e
+            grouped.append(e)
+    events = grouped
     active_filters = any(selected.values()) or bool(q)
     # RV3: компактный отсчёт до старта (urgency-пилюля на карточке/гриде). Событие
     # «скоро» (≤14 дней) получает метку Heute/Morgen/In N Tagen — конверсионный сигнал.

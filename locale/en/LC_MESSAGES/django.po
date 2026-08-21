@@ -19525,3 +19525,8 @@ msgstr "“%(label)s” is fully booked for the selected period."
 #, python-format
 msgid "„%(label)s“ ist leider nicht mehr verfügbar."
 msgstr "“%(label)s” is no longer available."
+
+#: templates/storefront/event_index.html (6c)
+#, python-format
+msgid "+%(n)s Termine"
+msgstr "+%(n)s more dates"

@@ -94,6 +94,7 @@
               {% if e.level_label %}<span class="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">{{ e.level_label }}</span>{% endif %}
               {% if e.is_online %}<span class="text-xs bg-sky-100 text-sky-700 rounded-full px-2 py-0.5">🖥 Online</span>{% endif %}
               {% if e.starts_soon and not e.is_sold_out %}<span class="text-xs bg-amber-100 text-amber-700 rounded-full px-2 py-0.5">⏳ {{ e.countdown_label }}</span>{% endif %}
+              {% if e.more_dates %}<span class="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">🗓 {% blocktrans with n=e.more_dates %}+{{ n }} Termine{% endblocktrans %}</span>{% endif %}
             </div>
             <div class="font-semibold truncate" data-edit-model="event" data-edit-pk="{{ e.pk }}" data-edit-field="title">{{ e.title_text }}</div>
             <div class="text-sm text-gray-500">🗓 {{ e.starts_at|date:"d.m.Y H:i" }}{% if e.is_online %} · 🖥 Online{% elif e.city %} · 📍 {{ e.city }}{% elif e.location %} · 📍 {{ e.location }}{% endif %}</div>
@@ -122,6 +123,7 @@
             <div class="absolute top-2 right-2 flex flex-col items-end gap-1">
               {% if e.is_sold_out %}<span class="text-xs bg-red-600 text-white rounded-full px-2 py-0.5 shadow-sm">{% trans "Sold out" %}</span>
               {% elif e.starts_soon %}<span class="text-xs bg-amber-500 text-white rounded-full px-2 py-0.5 shadow-sm">⏳ {{ e.countdown_label }}</span>{% endif %}
+              {% if e.more_dates %}<span class="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">🗓 {% blocktrans with n=e.more_dates %}+{{ n }} Termine{% endblocktrans %}</span>{% endif %}
             </div>
           </div>
           <div class="p-4 flex-1 flex flex-col">

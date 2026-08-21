@@ -202,14 +202,106 @@ def _event_snapshot(event_id):
     }
 
 
-def sync_event_listing(tenant_schema, event_id) -> str:
-    """Upsert/remove листинга события (Event) в агрегаторе (A6)."""
+def _event_group_ref(event) -> str:
+    """6c: ключ группы события — заезды тура/серия листятся ОДНОЙ записью."""
+    if event.tour_id:
+        return f"tour:{event.tour_id}"
+    if event.series_id:
+        return f"series:{event.series_id}"
+    return ""
+
+
+def sync_event_group_listing(tenant_schema, group_ref) -> str:
+    """6c: upsert/remove ГРУППОВОГО листинга (заезды тура / серия = одна карточка).
+
+    Payload — ближайший БУДУЩИЙ опубликованный заезд группы; нет такого →
+    запись удаляется. detail_url тура ведёт на страницу тура (там все даты),
+    серии — на деталь ближайшего события (MX-6 показывает «Weitere Termine»)."""
+    from django.utils import timezone as tz
+
     from apps.tenants.models import Tenant
 
     from .models import AggregatorListing
 
+    tenant = Tenant.objects.filter(schema_name=tenant_schema).first()
+    key = {
+        "tenant_schema": tenant_schema,
+        "listing_kind": AggregatorListing.KIND_EVENT,
+        "source_ref": group_ref,
+    }
+    nearest_id = None
+    tour_slug = tour_title = ""
     with schema_context(tenant_schema):
+        from apps.events.models import Event
+
+        kind_val, _, ident = group_ref.partition(":")
+        qs = Event.objects.filter(status=Event.STATUS_PUBLISHED, starts_at__gte=tz.now())
+        qs = qs.filter(tour_id=ident) if kind_val == "tour" else qs.filter(series_id=ident)
+        nearest = qs.order_by("starts_at").first()
+        if nearest is not None:
+            nearest_id = str(nearest.id)
+            if kind_val == "tour" and nearest.tour_id:
+                tour_slug = nearest.tour.slug
+                tour_title = nearest.tour.title
+        snap = _event_snapshot(nearest_id) if nearest_id else None
+
+    if snap is None or tenant is None or not tenant.is_module_active("events"):
+        AggregatorListing.objects.filter(**key).delete()
+        return "removed"
+    base = getattr(settings, "TENANT_DOMAIN_BASE", "siteadaptor.de")
+    detail = (
+        f"{_scheme()}://{tenant.slug}.{base}/tour/{tour_slug}/"
+        if tour_slug
+        else f"{_scheme()}://{tenant.slug}.{base}/veranstaltung/{nearest_id}/"
+    )
+    AggregatorListing.objects.update_or_create(
+        **key,
+        defaults={
+            **_tenant_base_defaults(tenant),
+            "city": snap["city"] or _tenant_base_defaults(tenant)["city"],
+            "category": snap["category"],
+            "promo_uuid": None,
+            "title": {"de": tour_title} if tour_title else snap["title"],
+            "teaser": snap["teaser"],
+            "image": _logo_image(tenant),
+            "new_price": snap["new_price"],
+            "old_price": None,
+            "discount_percent": None,
+            "starts_at": snap["starts_at"],
+            "ends_at": snap["ends_at"],
+            "detail_url": detail,
+            "is_surprise": False,
+            "is_active": True,
+        },
+    )
+    return "upserted"
+
+
+def sync_event_listing(tenant_schema, event_id) -> str:
+    """Upsert/remove листинга события (Event) в агрегаторе (A6).
+
+    6c: событие ГРУППЫ (tour/series) делегирует групповой записи, а свою
+    per-event строку удаляет (миграционный путь со старых строк)."""
+    from apps.tenants.models import Tenant
+
+    from .models import AggregatorListing
+
+    group_ref = ""
+    with schema_context(tenant_schema):
+        from apps.events.models import Event
+
+        _ev = Event.objects.filter(id=event_id).only("id", "tour_id", "series_id").first()
+        if _ev is not None:
+            group_ref = _event_group_ref(_ev)
         snap = _event_snapshot(event_id)
+
+    if group_ref:
+        AggregatorListing.objects.filter(
+            tenant_schema=tenant_schema,
+            listing_kind=AggregatorListing.KIND_EVENT,
+            source_ref=str(event_id),
+        ).delete()
+        return sync_event_group_listing(tenant_schema, group_ref)
 
     tenant = Tenant.objects.filter(schema_name=tenant_schema).first()
     key = {
@@ -244,6 +336,33 @@ def sync_event_listing(tenant_schema, event_id) -> str:
         },
     )
     return "upserted"
+
+
+def roll_event_group_listings() -> int:
+    """6c (beat): групповые записи с ПРОШЕДШИМ ближайшим заездом перекатить на
+    следующий (или удалить, если дат больше нет). Без этого карточка тура
+    пропадала бы из выдачи (вьюха прячет starts_at в прошлом), хотя будущие
+    заезды есть. Возвращает число обработанных записей."""
+    from django.utils import timezone as tz
+
+    from .models import AggregatorListing
+
+    stale = AggregatorListing.objects.filter(
+        listing_kind=AggregatorListing.KIND_EVENT,
+        starts_at__lt=tz.now(),
+        source_ref__regex=r"^(tour|series):",
+    ).values_list("tenant_schema", "source_ref")
+    n = 0
+    for tenant_schema, ref in list(stale):
+        sync_event_group_listing(tenant_schema, ref)
+        n += 1
+    return n
+
+
+@idempotent_task()
+def roll_aggregator_event_groups():
+    """Обёртка beat: перекат групповых событийных листингов (6c)."""
+    return roll_event_group_listings()
 
 
 @idempotent_task()
@@ -422,25 +541,28 @@ def reconcile_schema(tenant_schema) -> int:
     total += len(stay_ids)
 
     # --- события (events) — опубликованные будущие, если модуль активен ---
-    event_ids = []
+    # 6c: событие группы (tour/series) живёт ГРУППОВОЙ записью — в allowed идёт
+    # ref группы, per-event строки групповых чистятся exclude'ом.
+    event_ids, event_refs = [], []
     if tenant is not None and tenant.is_module_active("events"):
         from django.utils import timezone
 
         from apps.events.models import Event
 
         with schema_context(tenant_schema):
-            event_ids = [
-                str(eid)
-                for eid in Event.objects.filter(
+            rows = list(
+                Event.objects.filter(
                     status=Event.STATUS_PUBLISHED, starts_at__gte=timezone.now()
-                ).values_list("id", flat=True)
-            ]
+                ).only("id", "tour_id", "series_id")
+            )
+            event_ids = [str(e.id) for e in rows]
+            event_refs = list(dict.fromkeys(_event_group_ref(e) or str(e.id) for e in rows))
         for event_id in event_ids:
             sync_event_listing(tenant_schema, event_id)
     AggregatorListing.objects.filter(
         tenant_schema=tenant_schema, listing_kind=AggregatorListing.KIND_EVENT
-    ).exclude(source_ref__in=event_ids).delete()
-    total += len(event_ids)
+    ).exclude(source_ref__in=event_refs).delete()
+    total += len(event_refs)
 
     # --- MEN-5: наборы меню (Combo) — каталог core, гейт как в sync_menu_listing ---
     menu_ids = []
