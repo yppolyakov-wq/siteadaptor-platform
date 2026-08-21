@@ -19674,3 +19674,18 @@ msgstr "За цією позицією вже є відкрита заявка �
 
 msgid "Updated."
 msgstr "Оновлено."
+
+msgid "pro Termin"
+msgstr "за запис"
+
+msgid "pro Person"
+msgstr "за особу"
+
+msgid "Preis gilt"
+msgstr "Ціна діє"
+
+msgid "Preis pro Person"
+msgstr "Ціна за особу"
+
+msgid "Nur auf Anfrage"
+msgstr "Лише за запитом"

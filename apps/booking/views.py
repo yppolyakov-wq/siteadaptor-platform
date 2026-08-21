@@ -703,6 +703,10 @@ def services_view(request, pk=None):
                     price_cents=_eur_to_cents(request.POST.get("price_eur")),
                     deposit_cents=_eur_to_cents(request.POST.get("deposit_eur")),
                     is_video=bool(request.POST.get("is_video")),  # LS-1
+                    # MX-5: режим цены (""=за бронь | per_person).
+                    pricing_mode=(
+                        "per_person" if request.POST.get("pricing_mode") == "per_person" else ""
+                    ),
                 )
                 # L3d: переводы неосновных локалей (name_<loc>/description_<loc>)
                 apply_i18n_overlay(service, request.POST, getattr(request, "tenant", None))
@@ -726,6 +730,12 @@ def services_view(request, pk=None):
             if request.POST.get("is_video_present"):
                 service.is_video = bool(request.POST.get("is_video"))
                 fields.append("is_video")
+            # MX-5: режим цены — по сентинелу (W0: чужая форма без селекта не трогает).
+            if request.POST.get("pricing_mode_present"):
+                service.pricing_mode = (
+                    "per_person" if request.POST.get("pricing_mode") == "per_person" else ""
+                )
+                fields.append("pricing_mode")
             fields += apply_i18n_overlay(service, request.POST, getattr(request, "tenant", None))
             fields += _apply_rich(service, getattr(request, "tenant", None))
             # A3: новое фото заменяет старое; чекбокс «удалить» очищает.

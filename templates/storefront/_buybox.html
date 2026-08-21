@@ -8,7 +8,7 @@ test_public (порядок CTA/точные href). Двухшаговость (
 {% firstof buybox_mode sellable.purchase_mode as mode %}
 {% if mode == "cart" %}
   {# product: Click & Collect (D2a) — в корзину-сессию → /warenkorb/; waitlist у товара нет. #}
-  {% if orders_enabled %}
+  {% if orders_enabled and product.primary_action != "request" %}
     {% if product.in_stock %}
       {% if not product.has_variants and product.stock_quantity and product.stock_quantity <= 5 %}
         {% comment %}count-форма (а не with): та же строка у акций — плюрал, и без

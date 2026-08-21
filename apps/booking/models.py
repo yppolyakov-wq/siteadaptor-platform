@@ -118,6 +118,15 @@ class Service(I18nMixin, TimestampedModel):
         blank=True,
         choices=[("booking", _("Termin buchen")), ("request", _("Anfrage"))],
     )
+    # MX-5 (Tripster-модель): режим цены Работы. "" = за бронь (как всегда);
+    # per_person — цена × человек (групповая экскурсия/класс). party_size брони
+    # при этом несёт число людей.
+    pricing_mode = models.CharField(
+        max_length=12,
+        blank=True,
+        default="",
+        choices=[("", _("pro Termin")), ("per_person", _("pro Person"))],
+    )
     # UB3-2: подборки владельца («Damen», «Färben & Pflege») — услуга может входить
     # в несколько; на витрине это фасет-чипы листинга (?kollektion=<slug>).
     collections = models.ManyToManyField(

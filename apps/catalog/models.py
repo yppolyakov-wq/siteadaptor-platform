@@ -114,6 +114,16 @@ class Category(SoftDeleteMixin, I18nMixin):
 
 class Product(SoftDeleteMixin, I18nMixin):
     sku = models.CharField(max_length=100, blank=True, db_index=True)
+
+    # MX-5 (способ продажи — свойство КАРТОЧКИ, прецедент Service.primary_action):
+    # "" = корзина (как всегда); request — «торт на заказ»: вместо корзины CTA
+    # заявки (jobs), БЕЗ выключения модуля orders у остальных товаров.
+    primary_action = models.CharField(
+        max_length=10,
+        blank=True,
+        default="",
+        choices=[("", _("In den Warenkorb")), ("request", _("Nur auf Anfrage"))],
+    )
     gtin = models.CharField(max_length=14, blank=True)  # A1: EAN/GTIN (штрихкод) для фидов
     name = models.JSONField(default=dict)
     description = models.JSONField(default=dict)

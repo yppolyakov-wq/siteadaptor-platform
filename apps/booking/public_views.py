@@ -787,6 +787,13 @@ def service_book(request, pk):
     # отрезок. dauer вне капа/мусор → 1 (прежнее поведение).
     units = _parse_units(request.POST.get("dauer") or request.GET.get("dauer"))
     total_minutes = units * service.duration_minutes
+    # MX-5 (Tripster): per_person — цена × человек; party_size несёт число людей.
+    persons = 1
+    if service.pricing_mode == "per_person":
+        try:
+            persons = max(1, min(int(request.POST.get("personen", "1")), 50))
+        except (TypeError, ValueError):
+            persons = 1
     # Каждое время ре-валидируем по живой сетке и назначаем ему свой ресурс:
     # разные периоды может обслуживать разный мастер.
     slot_plan = []
@@ -807,7 +814,7 @@ def service_book(request, pk):
                 one_resource,
                 one,
                 one + timedelta(minutes=total_minutes),
-                pricing.price_cents_for(service, one.date()) * units,
+                pricing.price_cents_for(service, one.date()) * units * persons,
             )
         )
     resource = slot_plan[0][0]
@@ -834,9 +841,9 @@ def service_book(request, pk):
 
         r0, s0, e0, price0 = slot_plan[0]
         hit = promo_for_service(service, s0, getattr(r0, "pk", None))
-        if hit is not None and hit[1] * units < price0:
+        if hit is not None and hit[1] * units * persons < price0:
             promo = hit[0]
-            slot_plan[0] = (r0, s0, e0, hit[1] * units)
+            slot_plan[0] = (r0, s0, e0, hit[1] * units * persons)
     try:
         # HF-6c: один период = обычная бронь (байт-в-байт как раньше), несколько —
         # группа в одной транзакции: занятый период откатывает весь набор.
@@ -844,6 +851,7 @@ def service_book(request, pk):
         # бронь (набор оформляется как один заказ).
         created = services.book_many(
             slot_plan,
+            party_size=persons,
             name=name,
             email=request.POST.get("email", "").strip(),
             phone=request.POST.get("phone", "").strip(),

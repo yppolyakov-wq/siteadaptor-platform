@@ -19608,3 +19608,18 @@ msgstr "Dafür ist bereits eine offene Anbieter-Buchung da."
 
 msgid "Updated."
 msgstr "Aktualisiert."
+
+msgid "pro Termin"
+msgstr "pro Termin"
+
+msgid "pro Person"
+msgstr "pro Person"
+
+msgid "Preis gilt"
+msgstr "Preis gilt"
+
+msgid "Preis pro Person"
+msgstr "Preis pro Person"
+
+msgid "Nur auf Anfrage"
+msgstr "Nur auf Anfrage"

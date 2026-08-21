@@ -19690,3 +19690,18 @@ msgstr "По этой позиции уже есть открытая заявк
 
 msgid "Updated."
 msgstr "Обновлено."
+
+msgid "pro Termin"
+msgstr "за запись"
+
+msgid "pro Person"
+msgstr "за человека"
+
+msgid "Preis gilt"
+msgstr "Цена действует"
+
+msgid "Preis pro Person"
+msgstr "Цена за человека"
+
+msgid "Nur auf Anfrage"
+msgstr "Только по запросу"

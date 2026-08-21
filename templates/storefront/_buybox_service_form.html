@@ -22,6 +22,14 @@ storefront/_buybox.html при sellable.buybox_ready (= выбранный ?slot
   {# HF-7: длительность (число единиц) — сервер ре-валидирует отрезок целиком. #}
   {% if units > 1 %}<input type="hidden" name="dauer" value="{{ units }}">{% endif %}
   {% if chosen_resource %}<input type="hidden" name="resource" value="{{ chosen_resource.pk }}">{% endif %}
+  {% if service.pricing_mode == "per_person" %}
+  {# MX-5: цена за человека — гость выбирает число людей, итог = цена × человек. #}
+  <div>
+    <label class="block text-sm font-medium mb-1" for="id_personen">{% trans "Personen" %}</label>
+    <input id="id_personen" name="personen" type="number" min="1" max="50" value="1" class="w-24 rounded-lg border border-gray-300 px-3 py-2">
+    <p class="text-xs text-gray-400 mt-1">{% trans "Preis pro Person" %}: {{ service.price_eur|floatformat:2 }} €</p>
+  </div>
+  {% endif %}
   {% if passes_enabled %}
     <div>
       <label class="block text-sm font-medium mb-1" for="id_pass">{% trans "Pass code (optional)" %}</label>

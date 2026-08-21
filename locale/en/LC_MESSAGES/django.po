@@ -19480,3 +19480,18 @@ msgstr "There is already an open supplier booking for this."
 
 msgid "Updated."
 msgstr "Updated."
+
+msgid "pro Termin"
+msgstr "per appointment"
+
+msgid "pro Person"
+msgstr "per person"
+
+msgid "Preis gilt"
+msgstr "Price applies"
+
+msgid "Preis pro Person"
+msgstr "Price per person"
+
+msgid "Nur auf Anfrage"
+msgstr "On request only"

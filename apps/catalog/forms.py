@@ -166,6 +166,7 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
         fields = [
             "category",
             "base_price",
+            "primary_action",
             "vat_rate",
             "currency",
             "unit",

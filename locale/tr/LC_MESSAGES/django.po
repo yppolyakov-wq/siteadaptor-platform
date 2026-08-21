@@ -19606,3 +19606,18 @@ msgstr "Bunun için zaten açık bir tedarikçi rezervasyonu var."
 
 msgid "Updated."
 msgstr "Güncellendi."
+
+msgid "pro Termin"
+msgstr "randevu başına"
+
+msgid "pro Person"
+msgstr "kişi başına"
+
+msgid "Preis gilt"
+msgstr "Fiyat geçerli"
+
+msgid "Preis pro Person"
+msgstr "Kişi başı fiyat"
+
+msgid "Nur auf Anfrage"
+msgstr "Yalnızca talep üzerine"
