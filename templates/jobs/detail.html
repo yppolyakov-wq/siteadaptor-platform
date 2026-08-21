@@ -151,7 +151,12 @@
         {% comment %}Цена — в немецком формате (поле текстовое, приёмник понимает и
         запятую, и точку): «12.50» рядом с итогом «37,50 €» читалось как разный
         формат в одной строке.{% endcomment %}
-<input name="line_price_{{ row.i }}" type="text" data-qt-price value="{% if row.line %}{{ row.line.unit_price|floatformat:2 }}{% endif %}" placeholder="0,00" class="col-span-2 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
+<div class="col-span-2">
+          <input name="line_price_{{ row.i }}" type="text" data-qt-price value="{% if row.line %}{{ row.line.unit_price|floatformat:2 }}{% endif %}" placeholder="0,00" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
+          {% comment %}ERP-6: плановый EK/ставка за единицу (интерн; пусто у
+          строки с деталью = снимок EK детали при сохранении).{% endcomment %}
+          <input name="line_cost_{{ row.i }}" type="text" value="{% if row.line.cost_rate is not None %}{{ row.line.cost_rate|floatformat:2 }}{% endif %}" placeholder="{% trans 'EK' %}" title="{% trans 'Interner EK / Stundensatz je Einheit (nur Kalkulation)' %}" class="mt-1 w-full rounded border border-dashed border-gray-200 px-2 py-0.5 text-xs text-right text-gray-500">
+        </div>
         <output data-qt-sum class="col-span-2 px-2 py-1.5 text-sm text-right text-gray-600 tabular-nums">{% if row.line %}{{ row.line.line_total|floatformat:2 }} €{% endif %}</output>
       </div>
     {% endfor %}
@@ -205,6 +210,17 @@
     <p class="text-sm text-gray-500">{% trans "Zwischensumme (netto)" %}:
       <span data-qt-net class="font-semibold text-gray-900 tabular-nums">–</span></p>
   </div>
+  {% with plan=job.plan_calc %}{% if plan %}
+  {% comment %}ERP-6: плановая маржа Работы — только кабинет (в публичную смету
+  и PDF cost_rate не попадает, замок в тестах). Считается по сохранённым
+  строкам.{% endcomment %}
+  <div class="mt-2 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500 flex items-center gap-3 flex-wrap">
+    <span>🧮 {% trans "Kalkulation (intern)" %}:</span>
+    <span>{% trans "Plan-Kosten" %} <span class="font-medium text-gray-700 tabular-nums">{{ plan.cost|floatformat:2 }} €</span></span>
+    <span>{% trans "Plan-Marge" %} <span class="font-semibold tabular-nums {% if plan.margin < 0 %}text-red-600{% else %}text-green-700{% endif %}">{{ plan.margin|floatformat:2 }} €{% if plan.pct is not None %} ({{ plan.pct|floatformat:0 }} %){% endif %}</span></span>
+    {% if plan.partial %}<span class="text-amber-600">{% trans "ohne Positionen ohne EK" %}</span>{% endif %}
+  </div>
+  {% endif %}{% endwith %}
   {% comment %}Фидбэк владельца 2026-08-20 (п.10): сумма позиции и промежуточный
 итог считаются на вводе — владелец видит цифру до сохранения. Слушатель на
 document (партиал может перерисовываться — урок Ф1/HF).{% endcomment %}

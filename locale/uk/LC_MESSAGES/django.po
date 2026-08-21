@@ -19930,3 +19930,23 @@ msgstr "Повернення проведено: %(n)s шт."
 #: inventory ERP-5
 msgid "Nichts zurückzusenden."
 msgstr "Немає що повертати."
+
+#: jobs ERP-6
+msgid "Interner EK / Stundensatz je Einheit (nur Kalkulation)"
+msgstr "Внутрішня собівартість / ставка за одиницю (лише для калькуляції)"
+
+#: jobs ERP-6
+msgid "Kalkulation (intern)"
+msgstr "Калькуляція (внутрішня)"
+
+#: jobs ERP-6
+msgid "Plan-Kosten"
+msgstr "Планові витрати"
+
+#: jobs ERP-6
+msgid "Plan-Marge"
+msgstr "Планова маржа"
+
+#: jobs ERP-6
+msgid "ohne Positionen ohne EK"
+msgstr "без рядків без собівартості"

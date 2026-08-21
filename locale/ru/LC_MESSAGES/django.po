@@ -19946,3 +19946,23 @@ msgstr "Возврат проведён: %(n)s шт."
 #: inventory ERP-5
 msgid "Nichts zurückzusenden."
 msgstr "Возвращать нечего."
+
+#: jobs ERP-6
+msgid "Interner EK / Stundensatz je Einheit (nur Kalkulation)"
+msgstr "Внутренняя себестоимость / ставка за единицу (только для калькуляции)"
+
+#: jobs ERP-6
+msgid "Kalkulation (intern)"
+msgstr "Калькуляция (внутренняя)"
+
+#: jobs ERP-6
+msgid "Plan-Kosten"
+msgstr "Плановые затраты"
+
+#: jobs ERP-6
+msgid "Plan-Marge"
+msgstr "Плановая маржа"
+
+#: jobs ERP-6
+msgid "ohne Positionen ohne EK"
+msgstr "без строк без себестоимости"

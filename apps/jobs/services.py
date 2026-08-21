@@ -100,6 +100,7 @@ def set_lines(job, lines, *, vat_rate=None, small_business=False) -> Job:
                     text=text[:300],
                     qty=line.get("qty", 1),
                     unit_price=line.get("unit_price", 0),
+                    cost_rate=line.get("cost_rate"),  # ERP-6: плановый EK/ставка
                     # G11: привязка строки к расходнику каталога (опц.).
                     product=line.get("product"),
                     variant=line.get("variant"),

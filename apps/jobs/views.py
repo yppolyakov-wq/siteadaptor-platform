@@ -271,11 +271,24 @@ def _save_lines(request, job):
         except (InvalidOperation, ValueError):
             messages.error(request, _("Invalid amount."))
             return redirect("jobs:detail", pk=job.pk)
+        # ERP-6: плановый EK/ставка строки. Пусто + выбран расходник → снимок EK
+        # детали (философия снимков ERP-1: смета помнит EK на момент составления);
+        # пусто без расходника → None (ставка неизвестна, в калькуляцию не входит).
+        cost_raw = str(request.POST.get(f"line_cost_{index}", "")).strip()
+        cost_rate = None
+        if cost_raw:
+            try:
+                cost_rate = Decimal(cost_raw.replace(",", "."))
+            except InvalidOperation:
+                cost_rate = None
+        elif product is not None:
+            cost_rate = variant.cost_value if variant else product.cost_price
         lines.append(
             {
                 "text": text,
                 "qty": qty,
                 "unit_price": str(unit_price),
+                "cost_rate": cost_rate,
                 "product": product,
                 "variant": variant,
             }

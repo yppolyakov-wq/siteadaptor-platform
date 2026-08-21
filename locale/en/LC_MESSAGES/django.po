@@ -19734,3 +19734,23 @@ msgstr "Return booked: %(n)s pcs."
 #: inventory ERP-5
 msgid "Nichts zurückzusenden."
 msgstr "Nothing to return."
+
+#: jobs ERP-6
+msgid "Interner EK / Stundensatz je Einheit (nur Kalkulation)"
+msgstr "Internal cost / hourly rate per unit (calculation only)"
+
+#: jobs ERP-6
+msgid "Kalkulation (intern)"
+msgstr "Costing (internal)"
+
+#: jobs ERP-6
+msgid "Plan-Kosten"
+msgstr "Planned costs"
+
+#: jobs ERP-6
+msgid "Plan-Marge"
+msgstr "Planned margin"
+
+#: jobs ERP-6
+msgid "ohne Positionen ohne EK"
+msgstr "excluding lines without cost"

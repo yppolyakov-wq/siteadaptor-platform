@@ -19862,3 +19862,23 @@ msgstr "Rücksendung gebucht: %(n)s Stück."
 #: inventory ERP-5
 msgid "Nichts zurückzusenden."
 msgstr "Nichts zurückzusenden."
+
+#: jobs ERP-6
+msgid "Interner EK / Stundensatz je Einheit (nur Kalkulation)"
+msgstr "Interner EK / Stundensatz je Einheit (nur Kalkulation)"
+
+#: jobs ERP-6
+msgid "Kalkulation (intern)"
+msgstr "Kalkulation (intern)"
+
+#: jobs ERP-6
+msgid "Plan-Kosten"
+msgstr "Plan-Kosten"
+
+#: jobs ERP-6
+msgid "Plan-Marge"
+msgstr "Plan-Marge"
+
+#: jobs ERP-6
+msgid "ohne Positionen ohne EK"
+msgstr "ohne Positionen ohne EK"

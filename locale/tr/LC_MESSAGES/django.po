@@ -19860,3 +19860,23 @@ msgstr "İade kaydedildi: %(n)s adet."
 #: inventory ERP-5
 msgid "Nichts zurückzusenden."
 msgstr "İade edilecek bir şey yok."
+
+#: jobs ERP-6
+msgid "Interner EK / Stundensatz je Einheit (nur Kalkulation)"
+msgstr "Birim başına iç maliyet / saat ücreti (yalnızca hesaplama)"
+
+#: jobs ERP-6
+msgid "Kalkulation (intern)"
+msgstr "Maliyet hesabı (dahili)"
+
+#: jobs ERP-6
+msgid "Plan-Kosten"
+msgstr "Planlanan maliyet"
+
+#: jobs ERP-6
+msgid "Plan-Marge"
+msgstr "Planlanan marj"
+
+#: jobs ERP-6
+msgid "ohne Positionen ohne EK"
+msgstr "maliyeti olmayan satırlar hariç"

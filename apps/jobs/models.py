@@ -147,6 +147,29 @@ class Job(I18nMixin, TimestampedModel):
         """B1.6: «zu zahlen» = брутто − Gutschein (счёт остаётся на gross)."""
         return max(self.gross - self.discount_eur, 0)
 
+    def plan_calc(self):
+        """ERP-6: плановая калькуляция сметы (ТОЛЬКО кабинет).
+
+        {cost, margin, pct, partial} по строкам с известной ставкой
+        (cost = Σ qty × cost_rate; margin = netto − cost; partial = есть
+        строки без ставки, т.е. итог занижает себестоимость). None, если
+        ставка не задана ни у одной строки — блок не показывается."""
+        from decimal import Decimal
+
+        lines = list(self.lines.all())
+        priced = [ln for ln in lines if ln.cost_rate is not None]
+        if not priced:
+            return None
+        cost = sum((ln.qty * ln.cost_rate for ln in priced), Decimal("0"))
+        margin = self.net - cost
+        pct = (margin / self.net * 100) if self.net else None
+        return {
+            "cost": cost,
+            "margin": margin,
+            "pct": pct,
+            "partial": len(priced) < len(lines),
+        }
+
 
 class JobLine(I18nMixin, TimestampedModel):
     """Позиция сметы (Angebot): текст, количество, цена за единицу нетто.
@@ -160,6 +183,10 @@ class JobLine(I18nMixin, TimestampedModel):
     text_i18n = models.JSONField(default=dict, blank=True)  # I18N-12 (демо-сметы)
     qty = models.DecimalField(max_digits=7, decimal_places=2, default=1)  # дробное (A7a)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # нетто за ед.
+    # ERP-6: ПЛАНОВАЯ себестоимость за единицу строки (интерн, в публичную смету
+    # и PDF не попадает): для работ — ставка €/Std., для Teile — снимок EK детали
+    # на момент составления (философия снимков ERP-1). None = ставка неизвестна.
+    cost_rate = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
 
     # G11: расходник (Teile) из каталога — null = свободная строка (Arbeit/работа).
     # SET_NULL: удаление товара не трогает смету (text/unit_price — снимок). При
