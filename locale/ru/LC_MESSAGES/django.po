@@ -19705,3 +19705,13 @@ msgstr "Цена за человека"
 
 msgid "Nur auf Anfrage"
 msgstr "Только по запросу"
+
+msgid "Weitere Termine"
+msgstr "Другие даты"
+
+msgid "%(n)s frei"
+msgid_plural "%(n)s frei"
+msgstr[0] "%(n)s свободно"
+msgstr[1] "%(n)s свободно"
+msgstr[2] "%(n)s свободно"
+msgstr[3] "%(n)s свободно"

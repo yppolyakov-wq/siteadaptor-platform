@@ -120,7 +120,10 @@ def _event_facets(events) -> dict:
         "dur": {e.duration_kind for e in events},
     }
     return {
-        "cat": [(k, v) for k, v in taxonomy.CATEGORIES if k in present["cat"]],
+        # MX-6: свои категории (вне пресета) показываются как есть — раньше
+        # значение вне 9 wellness-тем молча выпадало из фильтра.
+        "cat": [(k, v) for k, v in taxonomy.CATEGORIES if k in present["cat"]]
+        + sorted((c, c) for c in present["cat"] if c not in dict(taxonomy.CATEGORIES)),
         "level": [(k, v) for k, v in taxonomy.LEVELS if k in present["level"]],
         "lang": [(k, v) for k, v in taxonomy.LANGUAGES if k in present["lang"]],
         "dur": [(k, v) for k, v in taxonomy.DURATIONS if k in present["dur"]],
@@ -308,6 +311,22 @@ def veranstaltung_detail(request, pk):
         "review_summary": review_services.summary("event", event.pk),
         "review_form_token": uuid.uuid4().hex,
         "review_action": reverse("storefront-event-review", args=[event.pk]),
+        # MX-6: «одинаковые, разные даты — группируем» (владелец). series_id
+        # писался при клонировании (RT3) и не читался НИГДЕ — курс из 12 занятий
+        # выглядел 12 несвязанными карточками. Деталь показывает остальные даты.
+        "series_siblings": (
+            list(
+                Event.objects.filter(
+                    series_id=event.series_id,
+                    status=Event.STATUS_PUBLISHED,
+                    starts_at__gte=timezone.now(),
+                )
+                .exclude(pk=event.pk)
+                .order_by("starts_at")[:12]
+            )
+            if event.series_id
+            else []
+        ),
         "agenda": _parse_agenda(event.program_localized()),  # RV2: тайм-лайн программы (I18N-12)
         # #7 доп-услуги; MX-2 — scope-wide + адресные ЭТОГО события.
         "extras": extras_engine.active_for("events", entity_kind="event", entity_id=str(event.pk)),

@@ -71,7 +71,13 @@ def event_create(request):
             event_share_draft(event)
         messages.success(request, _("Event created."))
         return redirect("events:detail", pk=event.pk)
-    return render(request, "events/event_form.html", {"form": form, "nav": "events"})
+    from . import taxonomy
+
+    return render(
+        request,
+        "events/event_form.html",
+        {"form": form, "nav": "events", "category_presets": taxonomy.CATEGORIES},
+    )
 
 
 @login_required
@@ -91,8 +97,12 @@ def event_edit(request, pk):
             _delete_event_photo(event, request.POST["delete_image"])
         messages.success(request, _("Event saved."))
         return redirect("events:detail", pk=event.pk)
+    from . import taxonomy
+
     return render(
-        request, "events/event_form.html", {"form": form, "event": event, "nav": "events"}
+        request,
+        "events/event_form.html",
+        {"form": form, "event": event, "nav": "events", "category_presets": taxonomy.CATEGORIES},
     )
 
 

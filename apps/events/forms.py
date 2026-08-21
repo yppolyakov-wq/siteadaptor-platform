@@ -40,8 +40,13 @@ class EventForm(forms.ModelForm):
         ),
     )
     # R2: таксономия (направление/уровень/язык) — для каталога и фильтров.
-    category = forms.ChoiceField(
-        required=False, choices=[("", "—")] + taxonomy.CATEGORIES, label=_("Richtung / Thema")
+    # MX-6: владелец может завести СВОЮ категорию (пресет из 9 wellness-тем
+    # душил тур-оператора/мастерские) — свободный ввод с datalist-подсказками.
+    category = forms.CharField(
+        required=False,
+        max_length=30,
+        label=_("Richtung / Thema"),
+        widget=forms.TextInput(attrs={"list": "event-category-presets"}),
     )
     level = forms.ChoiceField(
         required=False, choices=[("", "—")] + taxonomy.LEVELS, label=_("Level")

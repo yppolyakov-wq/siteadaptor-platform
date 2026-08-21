@@ -19689,3 +19689,13 @@ msgstr "Ціна за особу"
 
 msgid "Nur auf Anfrage"
 msgstr "Лише за запитом"
+
+msgid "Weitere Termine"
+msgstr "Інші дати"
+
+msgid "%(n)s frei"
+msgid_plural "%(n)s frei"
+msgstr[0] "%(n)s вільно"
+msgstr[1] "%(n)s вільно"
+msgstr[2] "%(n)s вільно"
+msgstr[3] "%(n)s вільно"

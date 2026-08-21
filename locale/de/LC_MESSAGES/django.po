@@ -19623,3 +19623,11 @@ msgstr "Preis pro Person"
 
 msgid "Nur auf Anfrage"
 msgstr "Nur auf Anfrage"
+
+msgid "Weitere Termine"
+msgstr "Weitere Termine"
+
+msgid "%(n)s frei"
+msgid_plural "%(n)s frei"
+msgstr[0] "%(n)s frei"
+msgstr[1] "%(n)s frei"

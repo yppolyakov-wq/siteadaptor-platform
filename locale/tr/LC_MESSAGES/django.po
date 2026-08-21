@@ -19621,3 +19621,11 @@ msgstr "Kişi başı fiyat"
 
 msgid "Nur auf Anfrage"
 msgstr "Yalnızca talep üzerine"
+
+msgid "Weitere Termine"
+msgstr "Diğer tarihler"
+
+msgid "%(n)s frei"
+msgid_plural "%(n)s frei"
+msgstr[0] "%(n)s boş"
+msgstr[1] "%(n)s boş"

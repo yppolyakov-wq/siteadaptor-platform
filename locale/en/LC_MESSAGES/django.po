@@ -19495,3 +19495,11 @@ msgstr "Price per person"
 
 msgid "Nur auf Anfrage"
 msgstr "On request only"
+
+msgid "Weitere Termine"
+msgstr "More dates"
+
+msgid "%(n)s frei"
+msgid_plural "%(n)s frei"
+msgstr[0] "%(n)s available"
+msgstr[1] "%(n)s available"

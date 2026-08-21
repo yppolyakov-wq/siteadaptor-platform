@@ -7,6 +7,10 @@
 
 <form method="post" enctype="multipart/form-data" class="bg-white p-6 rounded-2xl shadow-sm max-w-2xl space-y-4">
   {% csrf_token %}
+  {# MX-6: подсказки пресет-категорий для свободного ввода (своя категория разрешена). #}
+  <datalist id="event-category-presets">
+    {% for code, label in category_presets %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+  </datalist>
   {% for field in form %}
     <div>
       <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
