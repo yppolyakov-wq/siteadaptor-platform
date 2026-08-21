@@ -9286,8 +9286,7 @@ STADTFUEHRUNG = DemoKit(
         {
             "image_kw": "beer",
             "title": "Kölsch & Brauhauskultur",
-            "text": "Freitagabend durch drei Brauhäuser — Geschichten inklusive, "
-            "Kölsch auch.",
+            "text": "Freitagabend durch drei Brauhäuser — Geschichten inklusive, Kölsch auch.",
             "button_label": "Private Tour anfragen",
             "button_url": "/anfrage/",
         },
