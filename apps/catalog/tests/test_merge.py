@@ -115,5 +115,8 @@ def test_order_snapshots_sku_and_option_sku():
     )
     item = order.items.get()
     assert item.sku == "P-L-01"
-    assert {"label": "Geschenkbox", "delta": "0", "sku": "GB-1"} in item.modifiers
+    # MX-0: снимок несёт id опции — сверяем поля, не весь dict.
+    snap = item.modifiers[0]
+    assert (snap["label"], snap["delta"], snap["sku"]) == ("Geschenkbox", "0", "GB-1")
+    assert snap["id"]
     assert "Art.-Nr. GB-1" in item.modifiers_label
