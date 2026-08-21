@@ -62,6 +62,7 @@ from apps.core.views import (
     transitions_save,
     verkaeufe,
     verkaeufe_view_set,
+    zusatzverkaeufe,
 )
 from apps.events import public_views as events_public
 from apps.events import views as events_views
@@ -181,6 +182,8 @@ urlpatterns = [
     # Единая страница продаж (2026-08-03): вкладки по kind + виды на вкладку.
     path("dashboard/verkaeufe/", verkaeufe, name="verkaeufe"),
     path("dashboard/verkaeufe/view/", verkaeufe_view_set, name="verkaeufe-view"),
+    # MX-2c: сводный учёт доп-продаж (все проданные опции по направлениям).
+    path("dashboard/verkaeufe/zusatz/", zusatzverkaeufe, name="verkaeufe-zusatz"),
     # U-D2: единая Kanban-доска транзакций (заказы/брони/…) + generic FSM-action.
     path("dashboard/board/", board, name="board"),
     # W5: настройки колонок доски (переименование/порядок/скрытие).

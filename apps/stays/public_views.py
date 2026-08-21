@@ -432,7 +432,8 @@ def unterkunft_unit(request, pk):
         ),
         "rate_options": rate_options,  # H1 тарифы для выбранного диапазона
         "kurtaxe_eur": kurtaxe_eur,  # H9 (в total уже включена)
-        "extras": extras_engine.active_for("stays"),  # #7 доп-услуги
+        # #7 доп-услуги; MX-2 — scope-wide + адресные ЭТОЙ категории номера.
+        "extras": extras_engine.active_for("stays", entity_kind="stay", entity_id=str(unit.pk)),
         "deposit_required": deposit_required,
         "deposit_eur": f"{unit.deposit_cents / 100:.2f}".replace(".", ","),
         "similar": similar,  # H3 похожие номера
@@ -591,7 +592,11 @@ def unterkunft_book(request, pk):
     from apps.core import extras as extras_engine
 
     extras_snap = extras_engine.snapshot(
-        request.POST.getlist("extra"), "stays", nights=(bis - von).days
+        request.POST.getlist("extra"),
+        "stays",
+        nights=(bis - von).days,
+        entity_kind="stay",
+        entity_id=str(unit.pk),
     )
     # H1: выбранный тариф (если бизнес завёл тарифы). Невалидный/чужой pk → None
     # (бронь по базовой цене), но если тарифы есть — берём первый по порядку.

@@ -338,6 +338,15 @@ ENTRIES: tuple[NavEntry, ...] = (
         search="reservierung abholung",
         palette_only=True,
     ),
+    # MX-2c: сводные доп-продажи — вход из тулбара Verkäufe + палитра.
+    _e(
+        "board",
+        "verkaeufe-zusatz",
+        _("Zusatzverkäufe"),
+        "board",
+        search="zusatz extras frühstück optionen verkauft",
+        palette_only=True,
+    ),
     # MX-1: расходы и результат — экраны раздела Finanzen (вход: вкладки на
     # страницах + палитра; состав якорей сайдбара не тронут — мораторий X7.1).
     _e(

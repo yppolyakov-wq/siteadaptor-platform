@@ -19394,3 +19394,51 @@ msgstr "Gider kaydet"
 
 msgid "Noch keine Ausgaben im Zeitraum."
 msgstr "Bu dönemde henüz gider yok."
+
+msgid "Abwicklung"
+msgstr "İşleme"
+
+msgid "Alle Bereiche"
+msgstr "Tüm alanlar"
+
+msgid "Alle passenden Angebote"
+msgstr "Tüm uygun teklifler"
+
+msgid "Alle verkauften Zusatzleistungen nach Ausführungstag."
+msgstr "Satılan tüm ek hizmetler, ifa gününe göre."
+
+msgid "Aufpreis"
+msgstr "Ek ücret"
+
+msgid "Beim Anbieter zu buchen"
+msgstr "Tedarikçiden ayrılacak"
+
+msgid "Bereich"
+msgstr "Alan"
+
+msgid "Eigener Bestand (Pool)"
+msgstr "Kendi havuzu"
+
+msgid "Keine Zusatzverkäufe im Zeitraum."
+msgstr "Bu dönemde ek satış yok."
+
+msgid "Lagerartikel"
+msgstr "Stok ürünü"
+
+msgid "Nur für ein Angebot"
+msgstr "Yalnızca bir teklif için"
+
+msgid "Pool-Größe"
+msgstr "Havuz boyutu"
+
+msgid "Tag"
+msgstr "Gün"
+
+msgid "Zusatzleistung"
+msgstr "Ek hizmet"
+
+msgid "Zusatzverkäufe"
+msgstr "Ek satışlar"
+
+msgid "gelöschtes Objekt"
+msgstr "silinmiş nesne"

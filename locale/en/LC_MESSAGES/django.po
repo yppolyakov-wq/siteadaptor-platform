@@ -19267,3 +19267,51 @@ msgstr "Record expense"
 
 msgid "Noch keine Ausgaben im Zeitraum."
 msgstr "No expenses in this period yet."
+
+msgid "Abwicklung"
+msgstr "Handling"
+
+msgid "Alle Bereiche"
+msgstr "All areas"
+
+msgid "Alle passenden Angebote"
+msgstr "All matching offers"
+
+msgid "Alle verkauften Zusatzleistungen nach Ausführungstag."
+msgstr "All sold add-ons by fulfilment day."
+
+msgid "Aufpreis"
+msgstr "Surcharge"
+
+msgid "Beim Anbieter zu buchen"
+msgstr "Booked with a supplier"
+
+msgid "Bereich"
+msgstr "Area"
+
+msgid "Eigener Bestand (Pool)"
+msgstr "Own pool"
+
+msgid "Keine Zusatzverkäufe im Zeitraum."
+msgstr "No add-on sales in this period."
+
+msgid "Lagerartikel"
+msgstr "Stock item"
+
+msgid "Nur für ein Angebot"
+msgstr "Only for one offer"
+
+msgid "Pool-Größe"
+msgstr "Pool size"
+
+msgid "Tag"
+msgstr "Day"
+
+msgid "Zusatzleistung"
+msgstr "Add-on"
+
+msgid "Zusatzverkäufe"
+msgstr "Add-on sales"
+
+msgid "gelöschtes Objekt"
+msgstr "deleted object"

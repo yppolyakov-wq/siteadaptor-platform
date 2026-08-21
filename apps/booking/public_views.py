@@ -484,7 +484,10 @@ def service_slots(request, pk):
             else []
         ),
         "chosen_resource": chosen,
-        "extras": extras_engine.active_for("booking"),  # #7 доп-услуги
+        # #7 доп-услуги; MX-2 — scope-wide + адресные ЭТОЙ услуги.
+        "extras": extras_engine.active_for(
+            "booking", entity_kind="service", entity_id=str(service.pk)
+        ),
         "deposit_required": service.deposit_cents > 0
         and getattr(tenant, "payments_enabled", False),
         "deposit_eur": f"{service.deposit_cents / 100:.2f}".replace(".", ","),
@@ -819,7 +822,10 @@ def service_book(request, pk):
         return _embed_redirect("storefront-service-slots", embed, pk=pk)
     from apps.core import extras as extras_engine
 
-    extras_snap = extras_engine.snapshot(request.POST.getlist("extra"), "booking")
+    # MX-2: тот же фильтр адресности, что в GET — чужую опцию не подсунуть формой.
+    extras_snap = extras_engine.snapshot(
+        request.POST.getlist("extra"), "booking", entity_kind="service", entity_id=str(service.pk)
+    )
     # P5 «ценовой слой»: акция услуги применяется АВТОМАТИЧЕСКИ в штатной записи
     # (как авто-скидки stays) — одиночная бронь; для группы (HF-6c) v1 без промо.
     promo = None
@@ -935,7 +941,8 @@ def termin_slots(request, pk):
         "slots": slots,
         "group": resource.capacity > 1,
         "selected": selected,
-        "extras": extras_engine.active_for("booking"),  # #7 доп-услуги
+        # #7 доп-услуги; бронь РЕСУРСА (стол) — без сущности-услуги: scope-wide.
+        "extras": extras_engine.active_for("booking"),
         "deposit_required": resource.deposit_cents > 0
         and getattr(getattr(request, "tenant", None), "payments_enabled", False),
         "deposit_eur": f"{resource.deposit_cents / 100:.2f}".replace(".", ","),

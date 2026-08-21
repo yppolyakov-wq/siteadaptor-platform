@@ -7,18 +7,25 @@ Extra (apps.core.models) задаётся бизнесом со scope (stays/boo
 """
 
 
-def active_for(scope):
-    """Активные Extras, применимые к архетипу scope (+ scope=all)."""
+def active_for(scope, *, entity_kind="", entity_id=""):
+    """Активные Extras, применимые к архетипу scope (+ scope=all).
+
+    MX-2: адресность — scope-wide (entity_kind="") ∪ опции ИМЕННО этой сущности.
+    Без entity_kind поведение прежнее: адресные чужих сущностей не показываются
+    (иначе «аренда байка» всплыла бы у каждого события тенанта — дефект D3)."""
+    from django.db.models import Q
+
     from .models import Extra
 
-    return list(
-        Extra.objects.filter(is_active=True)
-        .filter(scope__in=[scope, Extra.SCOPE_ALL])
-        .order_by("sort_order", "label")
-    )
+    qs = Extra.objects.filter(is_active=True).filter(scope__in=[scope, Extra.SCOPE_ALL])
+    if entity_kind and entity_id:
+        qs = qs.filter(Q(entity_kind="") | Q(entity_kind=entity_kind, entity_id=str(entity_id)))
+    else:
+        qs = qs.filter(entity_kind="")
+    return list(qs.order_by("sort_order", "label"))
 
 
-def snapshot(ids, scope, *, nights=1):
+def snapshot(ids, scope, *, nights=1, entity_kind="", entity_id=""):
     """Снимок выбранных Extras по их id → [{id, label, price_cents, unit_cents, per_night}].
 
     nights — множитель для per_night-позиций (stays); price_cents — итог строки
@@ -30,7 +37,7 @@ def snapshot(ids, scope, *, nights=1):
         return []
     wanted = {str(i) for i in ids}
     out = []
-    for extra in active_for(scope):
+    for extra in active_for(scope, entity_kind=entity_kind, entity_id=entity_id):
         if str(extra.pk) in wanted:
             mult = max(1, int(nights)) if extra.per_night else 1
             out.append(

@@ -19396,3 +19396,51 @@ msgstr "Ausgabe erfassen"
 
 msgid "Noch keine Ausgaben im Zeitraum."
 msgstr "Noch keine Ausgaben im Zeitraum."
+
+msgid "Abwicklung"
+msgstr "Abwicklung"
+
+msgid "Alle Bereiche"
+msgstr "Alle Bereiche"
+
+msgid "Alle passenden Angebote"
+msgstr "Alle passenden Angebote"
+
+msgid "Alle verkauften Zusatzleistungen nach Ausführungstag."
+msgstr "Alle verkauften Zusatzleistungen nach Ausführungstag."
+
+msgid "Aufpreis"
+msgstr "Aufpreis"
+
+msgid "Beim Anbieter zu buchen"
+msgstr "Beim Anbieter zu buchen"
+
+msgid "Bereich"
+msgstr "Bereich"
+
+msgid "Eigener Bestand (Pool)"
+msgstr "Eigener Bestand (Pool)"
+
+msgid "Keine Zusatzverkäufe im Zeitraum."
+msgstr "Keine Zusatzverkäufe im Zeitraum."
+
+msgid "Lagerartikel"
+msgstr "Lagerartikel"
+
+msgid "Nur für ein Angebot"
+msgstr "Nur für ein Angebot"
+
+msgid "Pool-Größe"
+msgstr "Pool-Größe"
+
+msgid "Tag"
+msgstr "Tag"
+
+msgid "Zusatzleistung"
+msgstr "Zusatzleistung"
+
+msgid "Zusatzverkäufe"
+msgstr "Zusatzverkäufe"
+
+msgid "gelöschtes Objekt"
+msgstr "gelöschtes Objekt"

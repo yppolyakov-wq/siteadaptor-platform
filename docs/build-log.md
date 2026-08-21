@@ -11566,3 +11566,29 @@ orders/catalog/booking смежные 51, ruff, i18n_quickcheck, template_commen
   (мораторий X7.1); входы — вкладки + палитра (2 записи nav-реестра, palette_only).
 - i18n: 3 новых msgid × 5 каталогов. Замки: `test_mx1_expenses` (5) на свежей БД,
   смежные finance/inventory/nav 88 зелёных.
+
+## 2026-08-21 — MX-2 (слайсы a–c): адресные опции с трекерами + экран «Zusatzverkäufe» (⚠️ миграция `core/0009`, аддитивная)
+
+План `mx2-options-trackers-plan-2026-08-21.md`. Сделано:
+
+- **2a модель**: `core.Extra` += `entity_kind`/`entity_id` (адресность; пусто =
+  scope-wide как раньше), `tracker` (""=надбавка · pool · stock · purchase),
+  `pool_size`, `supplier` FK (Lieferant), `product` FK, `vat_rate` (своя ставка
+  опции — справочно, путь к фиксу «завтрак по 7 %»).
+- **2b адресность**: `active_for`/`snapshot` принимают сущность — scope-wide ∪
+  опции ИМЕННО её; «аренда байка» больше не всплывает у каждого события (дефект
+  D3 закрыт). Прокинуто в 4 GET-контекста витрины + 4 POST-приёмника + walk-in
+  (подмену формы чужой опцией отбивает snapshot — замок). Кабинет `/dashboard/
+  extras/`: селект «Nur für ein Angebot» (живые сущности активных модулей),
+  «Abwicklung» (трекер), Pool-Größe, Anbieter; колонка 🎯 в списке.
+- **2c «Zusatzverkäufe»**: `apps/core/zusatz.py` — скан снимков по id за окно
+  ИСПОЛНЕНИЯ (arrival/start/дата события/слот выдачи; заказы без слота — день
+  создания), отменённые сделки отфильтрованы через реестр статусов (кастом-cancel
+  тоже); Σ-сводка «Frühstück × 12». Экран `/dashboard/verkaeufe/zusatz/` +
+  вход из тулбара Verkäufe (гейт «есть активные опции») + палитра (nav-реестр).
+- v1-границы по плану: pool/stock — заявленный вид (информативно), enforcement
+  пула и рецепт — слайс 2e за отдельной отмашкой; кнопка «→ Anbieter-Buchung» —
+  MX-4. Слайс 2d (переквалификация демо moto) — следующий батч.
+- i18n: 16 msgid × 5 каталогов. Замки: `test_mx2_addressed_extras` (5, свежая БД),
+  смежные booking/stays/events/nav 370 зелёных. Урок MX-1 применён: msgid шаблонов
+  сверены с .po напрямую, не только quickcheck.

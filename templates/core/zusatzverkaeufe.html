@@ -1,0 +1,62 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Zusatzverkäufe" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}MX-2c: сводный учёт доп-продаж — «сколько завтраков завтра», «сколько
+аренд байка на заезд». Опция остаётся видимой и в карточке своей сделки.{% endcomment %}
+<div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
+  <div>
+    <h1 class="text-2xl font-bold">{% trans "Zusatzverkäufe" %}</h1>
+    <p class="text-sm text-gray-500">{% trans "Alle verkauften Zusatzleistungen nach Ausführungstag." %}</p>
+  </div>
+  <form method="get" class="flex flex-wrap items-center gap-2 text-sm">
+    <input type="date" name="von" value="{{ von|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-2 py-1.5">
+    <span class="text-gray-400">–</span>
+    <input type="date" name="bis" value="{{ bis|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-2 py-1.5">
+    <select name="kind" class="rounded-lg border border-gray-300 px-2 py-1.5">
+      <option value="">{% trans "Alle Bereiche" %}</option>
+      {% for code, label in kind_labels.items %}<option value="{{ code }}" {% if code == active_filter_kind %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+    <button class="border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Show" %}</button>
+  </form>
+</div>
+
+{% if summary %}
+<div class="mb-6 flex flex-wrap gap-3">
+  {% for s in summary|slice:":6" %}
+  <div class="rounded-xl border border-gray-200 px-4 py-3">
+    <p class="text-sm font-medium">{{ s.label }} × {{ s.count }}</p>
+    <p class="text-xs text-gray-400">{{ s.total_eur|floatformat:2 }} €</p>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="overflow-x-auto rounded-xl border border-gray-200">
+  <table class="min-w-full text-sm">
+    <thead class="bg-gray-50 text-left text-xs text-gray-500">
+      <tr>
+        <th class="px-4 py-2">{% trans "Tag" %}</th>
+        <th class="px-4 py-2">{% trans "Zusatzleistung" %}</th>
+        <th class="px-4 py-2">{% trans "Bereich" %}</th>
+        <th class="px-4 py-2">{% trans "Verkauf" %}</th>
+        <th class="px-4 py-2 text-right">{% trans "Amount" %}</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for r in rows %}
+      <tr>
+        <td class="px-4 py-2 whitespace-nowrap">{{ r.day|date:"d.m.Y" }}</td>
+        <td class="px-4 py-2 font-medium">{{ r.label }}</td>
+        <td class="px-4 py-2 text-gray-500">{{ r.kind_label }}</td>
+        <td class="px-4 py-2"><a href="{{ r.deal_url }}" class="text-indigo-600 hover:underline">{{ r.deal_ref }}</a></td>
+        <td class="px-4 py-2 text-right">{{ r.amount_eur|floatformat:2 }} €</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="px-4 py-6 text-center text-gray-400">{% trans "Keine Zusatzverkäufe im Zeitraum." %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -48,6 +48,7 @@ VS-2a: у 13 из 16 типов бизнеса направление ОДНО �
     {% endfor %}
   </div>
   <div class="flex items-center gap-2 ml-auto">
+    {% if has_zusatz %}<a href="{% url 'verkaeufe-zusatz' %}" class="px-3 py-1.5 rounded-lg text-sm border border-gray-200 text-gray-600 hover:bg-gray-50">🧾 {% trans "Zusatzverkäufe" %}</a>{% endif %}
     {# W10-3: «＋» из любого вида (цель создания по kind — walk-in/stay-new) #}
     {% if create_target %}
       {# X2c: подпись «＋» по kind — заявка ≠ бронь ≠ запись #}

@@ -19479,3 +19479,51 @@ msgstr "Записать расход"
 
 msgid "Noch keine Ausgaben im Zeitraum."
 msgstr "Расходов за период пока нет."
+
+msgid "Abwicklung"
+msgstr "Обработка"
+
+msgid "Alle Bereiche"
+msgstr "Все направления"
+
+msgid "Alle passenden Angebote"
+msgstr "Все подходящие позиции"
+
+msgid "Alle verkauften Zusatzleistungen nach Ausführungstag."
+msgstr "Все проданные доп-услуги по дню исполнения."
+
+msgid "Aufpreis"
+msgstr "Надбавка"
+
+msgid "Beim Anbieter zu buchen"
+msgstr "Заказывается у поставщика"
+
+msgid "Bereich"
+msgstr "Направление"
+
+msgid "Eigener Bestand (Pool)"
+msgstr "Свой парк (пул)"
+
+msgid "Keine Zusatzverkäufe im Zeitraum."
+msgstr "Доп-продаж за период нет."
+
+msgid "Lagerartikel"
+msgstr "Складская позиция"
+
+msgid "Nur für ein Angebot"
+msgstr "Только для одной позиции"
+
+msgid "Pool-Größe"
+msgstr "Размер пула"
+
+msgid "Tag"
+msgstr "День"
+
+msgid "Zusatzleistung"
+msgstr "Доп-услуга"
+
+msgid "Zusatzverkäufe"
+msgstr "Доп-продажи"
+
+msgid "gelöschtes Objekt"
+msgstr "удалённый объект"

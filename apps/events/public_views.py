@@ -309,7 +309,8 @@ def veranstaltung_detail(request, pk):
         "review_form_token": uuid.uuid4().hex,
         "review_action": reverse("storefront-event-review", args=[event.pk]),
         "agenda": _parse_agenda(event.program_localized()),  # RV2: тайм-лайн программы (I18N-12)
-        "extras": extras_engine.active_for("events"),  # #7 доп-услуги
+        # #7 доп-услуги; MX-2 — scope-wide + адресные ЭТОГО события.
+        "extras": extras_engine.active_for("events", entity_kind="event", entity_id=str(event.pk)),
         "accommodation": services.accommodation_options(event),  # R5 типы номеров
         "jobs_active": jobs_active,  # R6 корп-запрос (Angebot)
         "map_embed": "",
@@ -416,7 +417,10 @@ def veranstaltung_book(request, pk):
     pay_mode = (request.POST.get("pay_mode") or "").strip()  # R10: "installments" | ""
     from apps.core import extras as extras_engine
 
-    extras_snap = extras_engine.snapshot(request.POST.getlist("extra"), "events")
+    # MX-2: адресность — как в GET-контексте детали события.
+    extras_snap = extras_engine.snapshot(
+        request.POST.getlist("extra"), "events", entity_kind="event", entity_id=str(event.pk)
+    )
     # R5: выбранный тип номера (проживание на даты ретрита) + его цена для решения
     # об оплате/авто-подтверждении (фактическая бронь — атомарно в book_ticket).
     stay_unit_id = (request.POST.get("stay_unit") or "").strip() or None

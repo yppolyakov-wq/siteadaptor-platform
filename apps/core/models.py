@@ -193,10 +193,40 @@ class Extra(I18nMixin, TimestampedModel):
         (SCOPE_EVENTS, "Event"),
     ]
 
+    # MX-2 (план mx2-options-trackers-plan-2026-08-21.md): вид ТРЕКЕРА — как опция
+    # обрабатывается за кулисами (§5b стратегии: опция = цена + трекер). "" = чистая
+    # надбавка (поведение как раньше). v1: pool/stock — заявленный вид (информативно,
+    # enforcement — слайс 2e); purchase — подсказка закупки (MX-4).
+    TRACKER_NONE = ""
+    TRACKER_POOL = "pool"
+    TRACKER_STOCK = "stock"
+    TRACKER_PURCHASE = "purchase"
+    TRACKERS = [
+        (TRACKER_NONE, _("Aufpreis")),
+        (TRACKER_POOL, _("Eigener Bestand (Pool)")),
+        (TRACKER_STOCK, _("Lagerartikel")),
+        (TRACKER_PURCHASE, _("Beim Anbieter zu buchen")),
+    ]
+
     label = models.CharField(max_length=120)
     label_i18n = models.JSONField(default=dict, blank=True)  # I18N-12: показ на локали
     price_cents = models.PositiveIntegerField(default=0)
     scope = models.CharField(max_length=10, choices=SCOPES, default=SCOPE_ALL)
+    # MX-2: адресность — опция КОНКРЕТНОЙ сущности (пусто = scope-wide, как раньше).
+    # Строки, не FK: kind живут в разных аппах (прецедент DealLink).
+    entity_kind = models.CharField(max_length=20, blank=True, default="")
+    entity_id = models.CharField(max_length=64, blank=True, default="")
+    tracker = models.CharField(max_length=12, choices=TRACKERS, blank=True, default="")
+    # Размер собственного пула (tracker=pool): «8 прокатных мотоциклов».
+    pool_size = models.PositiveSmallIntegerField(default=0)
+    # Поставщик закупаемой опции (tracker=purchase) — префилл Anbieter-Buchung (MX-4).
+    supplier = models.ForeignKey(
+        "inventory.Lieferant", null=True, blank=True, on_delete=models.SET_NULL
+    )
+    # Складская Вещь расходуемой опции (tracker=stock; рецепт — слайс 2e).
+    product = models.ForeignKey("catalog.Product", null=True, blank=True, on_delete=models.SET_NULL)
+    # Своя ставка НДС опции (завтрак 19 % в брони 7 %); NULL = ставка сделки.
+    vat_rate = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     # Для stays: цена за ночь (× кол-во ночей), иначе разовая за бронь.
     per_night = models.BooleanField(default=False)
     # A5: фото доп-услуги (FileRef-конверт {url, …}, как у Service.image). Пусто =

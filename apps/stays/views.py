@@ -543,7 +543,11 @@ def stay_create(request):
     from apps.core import extras as extras_engine
 
     extras_snap = extras_engine.snapshot(
-        request.POST.getlist("extra"), "stays", nights=max((departure - arrival).days, 1)
+        request.POST.getlist("extra"),
+        "stays",
+        nights=max((departure - arrival).days, 1),
+        entity_kind="stay",
+        entity_id=str(unit.pk),
     )
     try:
         booking = services.book_stay(

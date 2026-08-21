@@ -19463,3 +19463,51 @@ msgstr "Записати витрату"
 
 msgid "Noch keine Ausgaben im Zeitraum."
 msgstr "Витрат за період поки немає."
+
+msgid "Abwicklung"
+msgstr "Обробка"
+
+msgid "Alle Bereiche"
+msgstr "Усі напрями"
+
+msgid "Alle passenden Angebote"
+msgstr "Усі відповідні позиції"
+
+msgid "Alle verkauften Zusatzleistungen nach Ausführungstag."
+msgstr "Усі продані додаткові послуги за днем виконання."
+
+msgid "Aufpreis"
+msgstr "Надбавка"
+
+msgid "Beim Anbieter zu buchen"
+msgstr "Замовляється в постачальника"
+
+msgid "Bereich"
+msgstr "Напрям"
+
+msgid "Eigener Bestand (Pool)"
+msgstr "Власний парк (пул)"
+
+msgid "Keine Zusatzverkäufe im Zeitraum."
+msgstr "Додаткових продажів за період немає."
+
+msgid "Lagerartikel"
+msgstr "Складська позиція"
+
+msgid "Nur für ein Angebot"
+msgstr "Лише для однієї позиції"
+
+msgid "Pool-Größe"
+msgstr "Розмір пулу"
+
+msgid "Tag"
+msgstr "День"
+
+msgid "Zusatzleistung"
+msgstr "Додаткова послуга"
+
+msgid "Zusatzverkäufe"
+msgstr "Додаткові продажі"
+
+msgid "gelöschtes Objekt"
+msgstr "видалений об'єкт"

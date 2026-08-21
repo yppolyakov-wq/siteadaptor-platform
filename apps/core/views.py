@@ -36,11 +36,38 @@ def extras_view(request):
                     )
                 except (TypeError, ValueError):
                     cents = 0
+                # MX-2: адресность («kind:pk» из селекта; пусто = scope-wide) +
+                # вид трекера + поставщик закупаемой опции.
+                entity_kind, entity_id = "", ""
+                raw_entity = request.POST.get("entity", "")
+                if ":" in raw_entity:
+                    ek, _sep, eid = raw_entity.partition(":")
+                    if ek in _extra_entity_kinds() and eid:
+                        entity_kind, entity_id = ek, eid[:64]
+                tracker = request.POST.get("tracker", "")
+                if tracker not in dict(Extra.TRACKERS):
+                    tracker = ""
+                supplier = None
+                if tracker == Extra.TRACKER_PURCHASE and request.POST.get("supplier"):
+                    from apps.inventory.models import Lieferant
+
+                    supplier = Lieferant.objects.filter(
+                        pk=request.POST.get("supplier"), is_active=True
+                    ).first()
+                try:
+                    pool_size = max(0, min(int(request.POST.get("pool_size", "0") or 0), 999))
+                except (TypeError, ValueError):
+                    pool_size = 0
                 extra = Extra.objects.create(
                     label=label,
                     price_cents=cents,
                     scope=request.POST.get("scope", Extra.SCOPE_ALL),
                     per_night=bool(request.POST.get("per_night")),
+                    entity_kind=entity_kind,
+                    entity_id=entity_id,
+                    tracker=tracker,
+                    pool_size=pool_size if tracker == Extra.TRACKER_POOL else 0,
+                    supplier=supplier,
                 )
                 _set_extra_image(request, extra)  # A5: опц. фото при создании
                 messages.success(request, _("Extra added."))
@@ -64,10 +91,87 @@ def extras_view(request):
         "tenant/extras.html",
         {
             "nav": "extras",
-            "extras": Extra.objects.all(),
+            "extras": _extras_with_labels(),
             "scopes": Extra.SCOPES,
+            "trackers": Extra.TRACKERS,
+            # MX-2: селект адресности (подписи «Gilt für» аннотирует _extras_with_labels).
+            "entity_choices": _extra_entity_choices(request),
+            "suppliers": _extra_suppliers(),
         },
     )
+
+
+def _extra_entity_kinds() -> set:
+    return {"service", "stay", "event"}
+
+
+def _extra_entity_choices(request):
+    """MX-2: [(value «kind:pk», label)] активных сущностей для адресной опции.
+    Только активные модули тенанта; лениво и без падений на пустых аппах."""
+    tenant = getattr(request, "tenant", None)
+    out = []
+    if tenant is None:
+        return out
+    from django.apps import apps as django_apps
+
+    if tenant.is_module_active("booking"):
+        for svc in django_apps.get_model("booking", "Service").objects.filter(is_active=True):
+            out.append((f"service:{svc.pk}", f"{_('Leistung')}: {svc.name}"))
+    if tenant.is_module_active("stays"):
+        for unit in django_apps.get_model("stays", "StayUnit").objects.filter(is_active=True):
+            out.append((f"stay:{unit.pk}", f"{_('Zimmer')}: {unit.name}"))
+    if tenant.is_module_active("events"):
+        from django.utils import timezone as _tz
+
+        events_qs = django_apps.get_model("events", "Event").objects.filter(
+            status="published", starts_at__gte=_tz.now()
+        )
+        for ev in events_qs:
+            out.append((f"event:{ev.pk}", f"{_('Termin')}: {ev.title}"))
+    return out
+
+
+def _extras_with_labels():
+    """MX-2: список Extras с аннотацией .entity_label для колонки «Gilt für»
+    (батч-резолв имён — без запроса на строку)."""
+    from apps.core.models import Extra
+
+    extras = list(Extra.objects.all())
+    labels = _extra_entity_labels()
+    for e in extras:
+        e.entity_label = labels.get(f"{e.entity_kind}:{e.entity_id}", "") if e.entity_kind else ""
+    return extras
+
+
+def _extra_entity_labels() -> dict:
+    """{«kind:pk»: имя} для колонки «Gilt für» — один проход по адресным опциям."""
+    from django.apps import apps as django_apps
+
+    from apps.core.models import Extra
+
+    labels = {}
+    pks = {"service": [], "stay": [], "event": []}
+    for e in Extra.objects.exclude(entity_kind="").values("entity_kind", "entity_id"):
+        if e["entity_kind"] in pks:
+            pks[e["entity_kind"]].append(e["entity_id"])
+    model_map = {
+        "service": ("booking", "Service", "name"),
+        "stay": ("stays", "StayUnit", "name"),
+        "event": ("events", "Event", "title"),
+    }
+    for kind, ids in pks.items():
+        if not ids:
+            continue
+        app, model, attr = model_map[kind]
+        for obj in django_apps.get_model(app, model).objects.filter(pk__in=ids):
+            labels[f"{kind}:{obj.pk}"] = getattr(obj, attr, str(obj))
+    return labels
+
+
+def _extra_suppliers():
+    from apps.inventory.models import Lieferant
+
+    return list(Lieferant.objects.filter(is_active=True).order_by("name"))
 
 
 def _set_extra_image(request, extra) -> bool:
@@ -3257,6 +3361,8 @@ def verkaeufe(request):
         create_target = reverse("verkaeufe") + "?tab=booking&view=kalender#neu"
     elif active == "job":
         create_target = reverse("jobs:new")  # X2c: ручная заявка (звонок/визит)
+    from apps.core import zusatz as zusatz_mod
+
     ctx = {
         "nav": "board",
         "sales_tabs": sales_page.tab_descriptors(tenant, active),
@@ -3264,6 +3370,8 @@ def verkaeufe(request):
         "active_kind": active,
         "active_view": view,
         "create_target": create_target,
+        # MX-2c: вход к сводным доп-продажам — только когда опции заведены.
+        "has_zusatz": zusatz_mod.has_any_options(),
     }
     # X3: тело поверхности строит ОБЩАЯ функция — её же зовёт главная кабинета
     # (одна петля архетипа, один источник контекста).
@@ -3272,6 +3380,50 @@ def verkaeufe(request):
         return sub
     ctx = {**sub, **ctx}
     return render(request, "core/verkaeufe.html", ctx)
+
+
+@login_required
+def zusatzverkaeufe(request):
+    """MX-2c: сводный экран доп-продаж — все проданные опции по направлениям.
+
+    Отвечает на «сколько завтраков завтра» / «сколько аренд байка на заезд»;
+    опция при этом остаётся видимой в карточке своей сделки. Окно — по дню
+    ИСПОЛНЕНИЯ (заезд/термин/событие/слот выдачи), дефолт 14 дней вперёд."""
+    from datetime import timedelta
+
+    from django.utils import timezone as _tz
+
+    from apps.core import zusatz
+
+    today = _tz.localdate()
+
+    def _parse(raw, fallback):
+        from datetime import date as _date
+
+        try:
+            return _date.fromisoformat(raw or "")
+        except ValueError:
+            return fallback
+
+    von = _parse(request.GET.get("von"), today)
+    bis = _parse(request.GET.get("bis"), today + timedelta(days=14))
+    rows = zusatz.sold_options(request.tenant, von, bis)
+    kind = request.GET.get("kind", "")
+    if kind in zusatz.KIND_LABELS:
+        rows = [r for r in rows if r["kind"] == kind]
+    return render(
+        request,
+        "core/zusatzverkaeufe.html",
+        {
+            "nav": "board",
+            "von": von,
+            "bis": bis,
+            "rows": rows,
+            "summary": zusatz.summary(rows),
+            "kind_labels": zusatz.KIND_LABELS,
+            "active_filter_kind": kind,
+        },
+    )
 
 
 @login_required
