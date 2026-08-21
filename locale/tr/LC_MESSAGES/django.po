@@ -19591,3 +19591,18 @@ msgstr "Ek hizmetleri değiştir"
 
 msgid "Änderungen an Zusatzleistungen berechnen den Preis neu."
 msgstr "Ek hizmet değişiklikleri fiyatı yeniden hesaplar."
+
+msgid "Beim Anbieter buchen"
+msgstr "Tedarikçiden ayırt"
+
+msgid "Beschaffung"
+msgstr "Tedarik"
+
+msgid "Anbieter-Buchung angelegt."
+msgstr "Tedarikçi rezervasyonu oluşturuldu."
+
+msgid "Dafür ist bereits eine offene Anbieter-Buchung da."
+msgstr "Bunun için zaten açık bir tedarikçi rezervasyonu var."
+
+msgid "Updated."
+msgstr "Güncellendi."

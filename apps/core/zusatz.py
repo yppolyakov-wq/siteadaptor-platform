@@ -154,3 +154,46 @@ def summary(rows) -> list[dict]:
 
 
 KIND_LABELS = transactions.KIND_LABEL
+
+
+def order_from_option(option, *, qty, event_id=None) -> tuple[object, bool]:
+    """MX-4: потребность закупки из проданной опции → SupplierBooking.
+
+    qty префиллится числом проданных опций (владелец может поправить в
+    логистике). Опция события цепляется к заезду; scope-wide — общая закупка
+    (event=None, ref на опцию). Дедуп: открытая закупка той же опции (по note
+    и объекту) не плодится повторным кликом — возвращается (существующая, False).
+    """
+    from apps.events.logistics import SupplierBooking
+
+    note = option.label[:300]
+    existing = SupplierBooking.objects.filter(note=note, status__in=SupplierBooking.OPEN_STATUSES)
+    existing = (
+        existing.filter(event_id=event_id)
+        if event_id
+        else existing.filter(ref_kind="extra", ref_id=str(option.pk))
+    )
+    found = existing.first()
+    if found is not None:
+        return found, False
+    booking = SupplierBooking.objects.create(
+        event_id=event_id,
+        ref_kind="extra" if not event_id else "",
+        ref_id=str(option.pk) if not event_id else "",
+        kind=SupplierBooking.KIND_OTHER,
+        supplier=option.supplier,
+        qty=max(1, int(qty)),
+        note=note,
+    )
+    return booking, True
+
+
+def procurement_rows(limit=50) -> list:
+    """MX-4: открытые Anbieter-Buchungen (заезды + общие) для секции Beschaffung."""
+    from apps.events.logistics import SupplierBooking
+
+    return list(
+        SupplierBooking.objects.filter(status__in=SupplierBooking.OPEN_STATUSES)
+        .select_related("supplier", "event")
+        .order_by("date", "created_at")[:limit]
+    )

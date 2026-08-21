@@ -19593,3 +19593,18 @@ msgstr "Zusatzleistungen ändern"
 
 msgid "Änderungen an Zusatzleistungen berechnen den Preis neu."
 msgstr "Änderungen an Zusatzleistungen berechnen den Preis neu."
+
+msgid "Beim Anbieter buchen"
+msgstr "Beim Anbieter buchen"
+
+msgid "Beschaffung"
+msgstr "Beschaffung"
+
+msgid "Anbieter-Buchung angelegt."
+msgstr "Anbieter-Buchung angelegt."
+
+msgid "Dafür ist bereits eine offene Anbieter-Buchung da."
+msgstr "Dafür ist bereits eine offene Anbieter-Buchung da."
+
+msgid "Updated."
+msgstr "Aktualisiert."

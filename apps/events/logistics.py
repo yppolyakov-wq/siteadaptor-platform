@@ -55,9 +55,17 @@ class SupplierBooking(TimestampedModel):
     #: Статусы, которые ещё требуют действия гида перед стартом.
     OPEN_STATUSES = (STATUS_TO_BOOK, STATUS_REQUESTED)
 
+    # MX-4: закупка живёт не только у заезда — event стал nullable, generic-ссылка
+    # ref_kind/ref_id указывает на любую сделку/опцию (пусто = общая закупка).
     event = models.ForeignKey(
-        "events.Event", on_delete=models.CASCADE, related_name="supplier_bookings"
+        "events.Event",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="supplier_bookings",
     )
+    ref_kind = models.CharField(max_length=20, blank=True, default="")
+    ref_id = models.CharField(max_length=64, blank=True, default="")
     kind = models.CharField(max_length=20, choices=KINDS, default=KIND_HOTEL)
     supplier = models.ForeignKey(
         "inventory.Lieferant", null=True, blank=True, on_delete=models.SET_NULL

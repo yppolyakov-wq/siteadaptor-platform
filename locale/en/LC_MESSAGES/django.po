@@ -19465,3 +19465,18 @@ msgstr "Change add-ons"
 
 msgid "Änderungen an Zusatzleistungen berechnen den Preis neu."
 msgstr "Changing add-ons recalculates the price."
+
+msgid "Beim Anbieter buchen"
+msgstr "Book with supplier"
+
+msgid "Beschaffung"
+msgstr "Procurement"
+
+msgid "Anbieter-Buchung angelegt."
+msgstr "Supplier booking created."
+
+msgid "Dafür ist bereits eine offene Anbieter-Buchung da."
+msgstr "There is already an open supplier booking for this."
+
+msgid "Updated."
+msgstr "Updated."

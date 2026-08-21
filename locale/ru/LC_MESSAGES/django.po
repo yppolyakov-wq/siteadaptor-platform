@@ -19675,3 +19675,18 @@ msgstr "Изменить доп-услуги"
 
 msgid "Änderungen an Zusatzleistungen berechnen den Preis neu."
 msgstr "Изменение доп-услуг пересчитывает цену."
+
+msgid "Beim Anbieter buchen"
+msgstr "Заказать у поставщика"
+
+msgid "Beschaffung"
+msgstr "Закупка"
+
+msgid "Anbieter-Buchung angelegt."
+msgstr "Заявка поставщику создана."
+
+msgid "Dafür ist bereits eine offene Anbieter-Buchung da."
+msgstr "По этой позиции уже есть открытая заявка поставщику."
+
+msgid "Updated."
+msgstr "Обновлено."

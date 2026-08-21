@@ -3418,10 +3418,56 @@ def zusatzverkaeufe(request):
 
     von = _parse(request.GET.get("von"), today)
     bis = _parse(request.GET.get("bis"), today + timedelta(days=14))
+    # MX-4: закупка от опции («сколько продали — столько заказать») и смена
+    # статуса Anbieter-Buchung прямо со сводного экрана.
+    if request.method == "POST":
+        from apps.core.models import Extra
+        from apps.events.logistics import SupplierBooking
+        from apps.events.tour_finance import sync_expense
+
+        action = request.POST.get("action", "")
+        if action == "bestellen":
+            option = Extra.objects.filter(
+                pk=request.POST.get("option"), tracker=Extra.TRACKER_PURCHASE
+            ).first()
+            if option is None:
+                messages.error(request, _("Unknown action."))
+            else:
+                event_id = option.entity_id if option.entity_kind == "event" else None
+                _sb, created = zusatz.order_from_option(
+                    option, qty=request.POST.get("qty", "1"), event_id=event_id
+                )
+                messages.success(
+                    request,
+                    _("Anbieter-Buchung angelegt.")
+                    if created
+                    else _("Dafür ist bereits eine offene Anbieter-Buchung da."),
+                )
+        elif action == "sb_status":
+            sb = SupplierBooking.objects.filter(pk=request.POST.get("id")).first()
+            target = request.POST.get("status", "")
+            if sb is not None and target in dict(SupplierBooking.STATUSES):
+                sb.status = target
+                sb.save(update_fields=["status", "updated_at"])
+                sync_expense(sb)  # «Bezahlt» → расход; откат статуса снимает его
+                messages.success(request, _("Updated."))
+        return redirect(request.get_full_path())
     rows = zusatz.sold_options(request.tenant, von, bis)
     kind = request.GET.get("kind", "")
     if kind in zusatz.KIND_LABELS:
         rows = [r for r in rows if r["kind"] == kind]
+    summary = zusatz.summary(rows)
+    # MX-4: сводке purchase-опций — кнопка закупки с префиллом qty=продано.
+    from apps.core.models import Extra
+
+    purchase_by_id = {str(e.pk): e for e in Extra.objects.filter(tracker=Extra.TRACKER_PURCHASE)}
+    for entry in summary:
+        opt = None
+        for r in rows:
+            if r["label"] == entry["label"] and r["option_id"] in purchase_by_id:
+                opt = purchase_by_id[r["option_id"]]
+                break
+        entry["purchase_option"] = opt
     return render(
         request,
         "core/zusatzverkaeufe.html",
@@ -3430,9 +3476,11 @@ def zusatzverkaeufe(request):
             "von": von,
             "bis": bis,
             "rows": rows,
-            "summary": zusatz.summary(rows),
+            "summary": summary,
             "kind_labels": zusatz.KIND_LABELS,
             "active_filter_kind": kind,
+            "procurement": zusatz.procurement_rows(),
+            "sb_statuses": [],
         },
     )
 

@@ -40,6 +40,9 @@ def record_expense(booking) -> object | None:
             "category": _CATEGORY_BY_KIND.get(booking.kind, ExpenseEntry.CATEGORY_OTHER),
             "date": booking.date or booking.created_at.date(),
             "event": booking.event,
+            # MX-4: generic-ссылка расхода — маржа считается и вне туров.
+            "ref_kind": booking.ref_kind or ("event" if booking.event_id else ""),
+            "ref_id": booking.ref_id or (str(booking.event_id) if booking.event_id else ""),
             "note": f"{booking.get_kind_display()} · {booking.supplier_label}"[:200],
         },
     )

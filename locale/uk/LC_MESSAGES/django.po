@@ -19659,3 +19659,18 @@ msgstr "Змінити додаткові послуги"
 
 msgid "Änderungen an Zusatzleistungen berechnen den Preis neu."
 msgstr "Зміна додаткових послуг перераховує ціну."
+
+msgid "Beim Anbieter buchen"
+msgstr "Замовити в постачальника"
+
+msgid "Beschaffung"
+msgstr "Закупівля"
+
+msgid "Anbieter-Buchung angelegt."
+msgstr "Заявку постачальнику створено."
+
+msgid "Dafür ist bereits eine offene Anbieter-Buchung da."
+msgstr "За цією позицією вже є відкрита заявка постачальнику."
+
+msgid "Updated."
+msgstr "Оновлено."
