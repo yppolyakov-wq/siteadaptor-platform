@@ -161,4 +161,25 @@ def _handle_post(request):
             messages.info(request, _("Nichts zu buchen (Position bereits vollständig)."))
         return _redirect(po)
 
+    if action == "return_line":
+        # ERP-5: возврат поставщику из принятого по строке.
+        line = BestellPosition.objects.filter(
+            pk=request.POST.get("line") or 0, bestellung=po
+        ).first()
+        if line is None:
+            messages.error(request, _("Position nicht gefunden."))
+            return _redirect(po)
+        took = purchasing.return_po_line(
+            line,
+            qty=_int(request.POST.get("qty"), 0),
+            tenant=request.tenant,
+            actor=actor,
+            location=_resolve_location(request.POST.get("location")),
+        )
+        if took:
+            messages.success(request, _("Rücksendung gebucht: %(n)s Stück.") % {"n": took})
+        else:
+            messages.info(request, _("Nichts zurückzusenden."))
+        return _redirect(po)
+
     return _redirect(po)

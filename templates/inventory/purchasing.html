@@ -75,7 +75,7 @@
                 <td class="py-1.5 pr-3">{{ line.product }}{% if line.variant %} · {{ line.variant.label }}{% endif %}</td>
                 <td class="py-1.5 px-2 text-right">{{ line.qty }}</td>
                 <td class="py-1.5 px-2 text-right text-gray-500">{{ line.unit_cost|floatformat:2 }} €</td>
-                <td class="py-1.5 px-2 text-right {% if line.is_fully_received %}text-green-600 font-semibold{% endif %}">{{ line.qty_received }}/{{ line.qty }}</td>
+                <td class="py-1.5 px-2 text-right {% if line.is_fully_received %}text-green-600 font-semibold{% endif %}">{{ line.qty_received }}/{{ line.qty }}{% if line.qty_returned %} <span class="text-amber-600 font-normal" title="{% trans 'Rücksendung Lieferant' %}">↩&nbsp;{{ line.qty_returned }}</span>{% endif %}</td>
                 <td class="py-1.5 pl-2 text-right">
                   {% if current.status == 'draft' %}
                     <form method="post">{% csrf_token %}<input type="hidden" name="action" value="remove_line"><input type="hidden" name="po" value="{{ current.pk }}"><input type="hidden" name="line" value="{{ line.pk }}"><button class="text-xs text-gray-400 hover:text-red-600">🗑</button></form>
@@ -97,6 +97,22 @@
                       {% endif %}
                       <label class="flex items-center gap-1 text-xs text-gray-500"><input type="checkbox" name="update_cost" class="h-3 w-3">{% trans "EK übernehmen" %}</label>
                       <button class="text-xs bg-green-600 text-white rounded-lg px-2.5 py-1 hover:bg-green-700">{% trans "Eingang" %}</button>
+                    </form>
+                  {% endif %}
+                  {% if line.qty_returnable %}
+                    {# ERP-5: возврат поставщику из принятого — доступен после приёмки. #}
+                    <form method="post" class="flex items-center gap-1.5 justify-end flex-wrap mt-1">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="return_line">
+                      <input type="hidden" name="po" value="{{ current.pk }}">
+                      <input type="hidden" name="line" value="{{ line.pk }}">
+                      <input type="number" name="qty" min="1" max="{{ line.qty_returnable }}" placeholder="{{ line.qty_returnable }}" required class="w-16 rounded border border-gray-300 px-1.5 py-1 text-xs">
+                      {% if stock_locations|length > 1 %}
+                        <select name="location" title="{% trans 'Standort' %}" class="rounded border border-gray-300 px-1.5 py-1 text-xs">
+                          {% for loc in stock_locations %}<option value="{{ loc.pk }}">📍 {{ loc.name }}</option>{% endfor %}
+                        </select>
+                      {% endif %}
+                      <button class="text-xs border border-amber-300 text-amber-700 rounded-lg px-2.5 py-1 hover:bg-amber-50">↩ {% trans "Rücksendung" %}</button>
                     </form>
                   {% endif %}
                 </td>

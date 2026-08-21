@@ -148,6 +148,57 @@ def receive_po_line(
     return take
 
 
+def return_po_line(position, *, qty, tenant=None, actor="", location=None):
+    """ERP-5: вернуть поставщику `qty` штук из ПРИНЯТОГО по строке (Rücksendung).
+
+    Зеркало приёмки: движение `return_supplier` (−N) складским путём
+    `apply_manual_movement` (счётчик один раз, кламп в ≥0 — при недостаче
+    остатка честно вернётся меньше), партии гасятся FEFO в той же atomic,
+    деньги — СТОРНО-запись расхода с отрицательной суммой (Gutschrift),
+    идемпотентная по ключу `<строка>:ret:<накопленный qty_returned>` (зеркало
+    ключа приёмки). Записи приёмки НЕ удаляются: частичные приёмки уже
+    разнесены по своим строкам, сторно складывается с ними в Ergebnis.
+    Возвращает фактически возвращённое количество."""
+    take = max(0, min(int(qty), position.qty_returnable))
+    if take <= 0:
+        return 0
+    product = position.product
+    variant = position.variant
+    with transaction.atomic():
+        mv = services.apply_manual_movement(
+            product=product,
+            variant=variant,
+            kind=StockMovement.KIND_RETURN_SUPPLIER,
+            delta=-take,
+            actor=actor,
+            note=f"Rücksendung {position.bestellung.reference}",
+            source="purchase",
+            location=location,
+        )
+        # Кламп счётчика в 0: возвращаем ровно то, что реально списалось.
+        actual = abs(mv.delta) if mv is not None else 0
+        if actual <= 0:
+            return 0
+        if _tenant_lots_enabled(tenant) and services.has_lots(product, variant):
+            services.consume_fefo(product, variant, qty=actual)
+        position.qty_returned += actual
+        position.save(update_fields=["qty_returned", "updated_at"])
+        if position.unit_cost:
+            from apps.finance.expenses import ExpenseEntry
+
+            ExpenseEntry.objects.get_or_create(
+                source=ExpenseEntry.SOURCE_PURCHASE,
+                source_ref=f"{position.pk}:ret:{position.qty_returned}",
+                defaults={
+                    "amount": -(position.unit_cost * actual),
+                    "category": ExpenseEntry.CATEGORY_GOODS,
+                    "supplier": position.bestellung.supplier,
+                    "note": f"Rücksendung {position.bestellung.reference}"[:200],
+                },
+            )
+    return actual
+
+
 def _tenant_lots_enabled(tenant=None) -> bool:
     """Тумблер партий тенанта. Явный `tenant` (из request.tenant во вьюхе) приоритетен;
     иначе — connection.tenant (schema-local контекст django-tenants)."""

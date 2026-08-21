@@ -19840,3 +19840,23 @@ msgstr "hatırlatmamıza rağmen %(g)s € tutarındaki %(n)s numaralı fatura h
 #: documents ERP-3
 msgid "Beleg / Eingangsrechnung"
 msgstr "Belge / tedarikçi faturası"
+
+#: inventory ERP-5
+msgid "Rücksendung Lieferant"
+msgstr "Tedarikçiye iade"
+
+#: inventory ERP-5
+msgid "Produktion"
+msgstr "Üretim"
+
+#: inventory ERP-5
+msgid "Rücksendung"
+msgstr "Tedarikçiye iade"
+
+#: inventory ERP-5
+msgid "Rücksendung gebucht: %(n)s Stück."
+msgstr "İade kaydedildi: %(n)s adet."
+
+#: inventory ERP-5
+msgid "Nichts zurückzusenden."
+msgstr "İade edilecek bir şey yok."

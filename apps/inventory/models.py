@@ -45,6 +45,10 @@ class StockMovement(TimestampedModel):
     # счётчик (итого) НЕ двигается, меняется только локационная разбивка.
     KIND_TRANSFER_OUT = "transfer_out"
     KIND_TRANSFER_IN = "transfer_in"
+    # ERP-5: возврат поставщику (−N); ERP-7: акт производства (знак дельты
+    # различает сырьё −/готовое +, документ = общий PR-код в note).
+    KIND_RETURN_SUPPLIER = "return_supplier"
+    KIND_PRODUCTION = "production"
     KINDS = [
         (KIND_RECEIPT, _("Wareneingang")),
         (KIND_SALE, _("Verkauf")),
@@ -54,6 +58,8 @@ class StockMovement(TimestampedModel):
         (KIND_COMMIT, _("Materialverbrauch")),
         (KIND_TRANSFER_OUT, _("Umlagerung (ab)")),
         (KIND_TRANSFER_IN, _("Umlagerung (zu)")),
+        (KIND_RETURN_SUPPLIER, _("Rücksendung Lieferant")),
+        (KIND_PRODUCTION, _("Produktion")),
     ]
 
     product = models.ForeignKey(
@@ -245,6 +251,8 @@ class BestellPosition(TimestampedModel):
     qty = models.PositiveIntegerField(default=1)
     unit_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # EK-снимок
     qty_received = models.PositiveIntegerField(default=0)
+    # ERP-5: сколько из принятого вернулось поставщику (Rücksendung).
+    qty_returned = models.PositiveIntegerField(default=0)
     note = models.CharField(max_length=200, blank=True)
 
     class Meta:
@@ -266,3 +274,8 @@ class BestellPosition(TimestampedModel):
     def qty_open(self) -> int:
         """Ещё не принято по строке (для частичной приёмки)."""
         return max(0, self.qty - self.qty_received)
+
+    @property
+    def qty_returnable(self) -> int:
+        """ERP-5: сколько ещё можно вернуть поставщику (принято − уже возвращено)."""
+        return max(0, self.qty_received - self.qty_returned)
