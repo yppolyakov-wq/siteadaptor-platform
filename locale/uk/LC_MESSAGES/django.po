@@ -19734,3 +19734,15 @@ msgstr "Складський товар (витрата)"
 #: templates/tenant/extras.html (MX v2-опции)
 msgid "Verbrauch je Verkauf"
 msgstr "Витрата за продаж"
+
+#: templates/finance/ergebnis.html (ERP-1)
+msgid "Wareneinsatz (EK der verkauften Ware)"
+msgstr "Собівартість проданого (закупівельна)"
+
+#: templates/finance/ergebnis.html (ERP-1)
+msgid "Rohertrag (Einnahmen − Wareneinsatz)"
+msgstr "Валовий прибуток (виручка − собівартість)"
+
+#: templates/finance/ergebnis.html (ERP-1)
+msgid "Teilweise ohne EK-Preis — ältere Verkäufe oder Artikel ohne Einkaufspreis."
+msgstr "Частково без закупівельної ціни — старі продажі або товари без неї."

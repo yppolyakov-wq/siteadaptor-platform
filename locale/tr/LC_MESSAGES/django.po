@@ -19664,3 +19664,15 @@ msgstr "Stok ürünü (tüketim)"
 #: templates/tenant/extras.html (MX v2-опции)
 msgid "Verbrauch je Verkauf"
 msgstr "Satış başına tüketim"
+
+#: templates/finance/ergebnis.html (ERP-1)
+msgid "Wareneinsatz (EK der verkauften Ware)"
+msgstr "Satılan malın maliyeti (alış fiyatı)"
+
+#: templates/finance/ergebnis.html (ERP-1)
+msgid "Rohertrag (Einnahmen − Wareneinsatz)"
+msgstr "Brüt kâr (gelir − maliyet)"
+
+#: templates/finance/ergebnis.html (ERP-1)
+msgid "Teilweise ohne EK-Preis — ältere Verkäufe oder Artikel ohne Einkaufspreis."
+msgstr "Kısmen alış fiyatı olmadan — eski satışlar veya alış fiyatı olmayan ürünler."

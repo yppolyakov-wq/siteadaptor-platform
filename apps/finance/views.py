@@ -143,13 +143,37 @@ def expenses(request):
     )
 
 
+def _order_cogs(entries):
+    """ERP-1: Wareneinsatz по заказам, чья ВЫРУЧКА записана в период (момент =
+    RevenueEntry.date, тот же, что в строке Einnahmen). Снимок EK — из позиции
+    (легаси-позиции без снимка честно считаются нулём и подсвечиваются)."""
+    from apps.orders.models import OrderItem
+
+    order_ids = [r.source_ref for r in entries if r.source == "order" and r.source_ref]
+    if not order_ids:
+        return Decimal("0"), False
+    cogs = Decimal("0")
+    missing = False
+    for item in OrderItem.objects.filter(order_id__in=order_ids).only(
+        "qty", "cost_price", "product_id", "combo_id"
+    ):
+        if item.cost_price is not None:
+            cogs += item.cost_price * item.qty
+        elif item.product_id is not None or item.combo_id is not None:
+            missing = True  # товарная позиция без EK-снимка (легаси/без закупа)
+    return cogs, missing
+
+
 @login_required
 def ergebnis(request):
-    """MX-1: «Ergebnis» — выручка − расходы за период (первый сводный P&L-срез)."""
+    """MX-1: «Ergebnis» — выручка − расходы за период (первый сводный P&L-срез).
+    ERP-1: + Wareneinsatz (COGS по снимкам EK) и Rohertrag."""
     von, bis, entries = _period_entries(request)
     _von, _bis, expense_qs = _period_expenses(request)
-    revenue = entries.aggregate(s=Sum("amount"))["s"] or Decimal("0")
+    entries = list(entries)
+    revenue = sum((e.amount for e in entries), Decimal("0"))
     spent = expense_qs.aggregate(s=Sum("amount"))["s"] or Decimal("0")
+    cogs, cogs_partial = _order_cogs(entries)
     return render(
         request,
         "finance/ergebnis.html",
@@ -160,6 +184,9 @@ def ergebnis(request):
             "revenue": revenue,
             "spent": spent,
             "result": revenue - spent,
+            "cogs": cogs,
+            "cogs_partial": cogs_partial,
+            "rohertrag": revenue - cogs,
         },
     )
 

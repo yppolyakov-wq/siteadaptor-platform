@@ -195,6 +195,10 @@ class OrderItem(TimestampedModel):
     # каталоге не переписывает уже выставленный документ. Цена брутто, поэтому
     # ставка нужна для разложения итога (нетто/НДС), а не для доначисления.
     vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("19.00"))
+    # ERP-1: снимок себестоимости (EK netto) на момент продажи — как снимаются
+    # цена/НДС/артикул. NULL = легаси-позиция или товар без EK; маржа по ТЕКУЩЕМУ
+    # cost_price дрейфовала после смены закупочной цены.
+    cost_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     title_snapshot = models.CharField(max_length=200)
     # Снимок выбранных модификаторов/Extras (A4b): [{"label","delta"}]. Надбавка
     # уже включена в unit_price; список — для отображения в заказе/письмах.

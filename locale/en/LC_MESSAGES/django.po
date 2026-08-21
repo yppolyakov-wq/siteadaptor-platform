@@ -19538,3 +19538,15 @@ msgstr "Stock item (consumption)"
 #: templates/tenant/extras.html (MX v2-опции)
 msgid "Verbrauch je Verkauf"
 msgstr "Consumption per sale"
+
+#: templates/finance/ergebnis.html (ERP-1)
+msgid "Wareneinsatz (EK der verkauften Ware)"
+msgstr "Cost of goods sold (purchase price)"
+
+#: templates/finance/ergebnis.html (ERP-1)
+msgid "Rohertrag (Einnahmen − Wareneinsatz)"
+msgstr "Gross profit (revenue − COGS)"
+
+#: templates/finance/ergebnis.html (ERP-1)
+msgid "Teilweise ohne EK-Preis — ältere Verkäufe oder Artikel ohne Einkaufspreis."
+msgstr "Partially without purchase price — older sales or items without cost price."

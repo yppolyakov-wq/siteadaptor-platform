@@ -19750,3 +19750,15 @@ msgstr "Складской товар (расход)"
 #: templates/tenant/extras.html (MX v2-опции)
 msgid "Verbrauch je Verkauf"
 msgstr "Расход за продажу"
+
+#: templates/finance/ergebnis.html (ERP-1)
+msgid "Wareneinsatz (EK der verkauften Ware)"
+msgstr "Себестоимость проданного (закупочная)"
+
+#: templates/finance/ergebnis.html (ERP-1)
+msgid "Rohertrag (Einnahmen − Wareneinsatz)"
+msgstr "Валовая прибыль (выручка − себестоимость)"
+
+#: templates/finance/ergebnis.html (ERP-1)
+msgid "Teilweise ohne EK-Preis — ältere Verkäufe oder Artikel ohne Einkaufspreis."
+msgstr "Частично без закупочной цены — старые продажи или товары без неё."

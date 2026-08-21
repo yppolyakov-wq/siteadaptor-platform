@@ -151,6 +151,12 @@ def add_item(order, *, product=None, variant=None, qty=1, title="", unit_price=N
         title_snapshot=str(name)[:200],
         # SH-4: снимок ставки НДС — как в create_order (свободная строка = дефолт).
         **({"vat_rate": product.vat_rate} if product is not None else {}),
+        # ERP-1: EK-снимок добавленной строки — тот же, что при создании заказа.
+        cost_price=(
+            variant.cost_value
+            if variant is not None
+            else (product.cost_price if product is not None else None)
+        ),
     )
     return recalc_total(order)
 

@@ -19666,3 +19666,15 @@ msgstr "Lagerartikel (Verbrauch)"
 #: templates/tenant/extras.html (MX v2-опции)
 msgid "Verbrauch je Verkauf"
 msgstr "Verbrauch je Verkauf"
+
+#: templates/finance/ergebnis.html (ERP-1)
+msgid "Wareneinsatz (EK der verkauften Ware)"
+msgstr "Wareneinsatz (EK der verkauften Ware)"
+
+#: templates/finance/ergebnis.html (ERP-1)
+msgid "Rohertrag (Einnahmen − Wareneinsatz)"
+msgstr "Rohertrag (Einnahmen − Wareneinsatz)"
+
+#: templates/finance/ergebnis.html (ERP-1)
+msgid "Teilweise ohne EK-Preis — ältere Verkäufe oder Artikel ohne Einkaufspreis."
+msgstr "Teilweise ohne EK-Preis — ältere Verkäufe oder Artikel ohne Einkaufspreis."
