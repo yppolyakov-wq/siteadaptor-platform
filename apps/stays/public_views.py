@@ -19,7 +19,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.billing import connect
-from apps.core import ratelimit
+from apps.core import option_trackers, ratelimit
 from apps.loyalty.public_views import gift_purchase_active as _gift_purchase_active
 
 from . import availability, payments, pricing, restrictions, services
@@ -635,6 +635,18 @@ def unterkunft_book(request, pk):
         return redirect(back)
     except services.PromoInvalid:
         messages.error(request, _("This promo code is not valid for this booking."))
+        return redirect(back)
+    except option_trackers.PoolFull as exc:
+        messages.error(
+            request,
+            _("„%(label)s“ ist im gewählten Zeitraum leider ausgebucht.") % {"label": exc.label},
+        )
+        return redirect(back)
+    except option_trackers.OptionOutOfStock as exc:
+        messages.error(
+            request,
+            _("„%(label)s“ ist leider nicht mehr verfügbar.") % {"label": exc.label},
+        )
         return redirect(back)
     except (services.StayUnavailable, ValueError):
         messages.error(

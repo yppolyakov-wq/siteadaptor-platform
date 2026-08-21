@@ -66,6 +66,13 @@ class TicketSM(StateMachine):
 
             release_linked_stay(instance)
 
+        # MX-2e: отмена возвращает stock-опции билета (идемпотентно; зеркало —
+        # status_effects.restore_stock_for).
+        if t.dst == "cancelled":
+            from apps.core import option_trackers
+
+            option_trackers.release_options("ticket", instance)
+
         # R10e: отмена билета → стоп будущих списаний рассрочки (без авто-возврата;
         # уже оплаченные доли возвращает владелец вручную в кабинете).
         if t.dst == "cancelled":

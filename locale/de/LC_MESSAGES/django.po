@@ -19643,3 +19643,13 @@ msgstr "Wertgutschein — Verkauf über /gutschein/"
 
 msgid "Mehrfachkarte"
 msgstr "Mehrfachkarte"
+
+#: apps/core/option_trackers.py (MX-2e)
+#, python-format
+msgid "„%(label)s“ ist im gewählten Zeitraum leider ausgebucht."
+msgstr "„%(label)s“ ist im gewählten Zeitraum leider ausgebucht."
+
+#: apps/core/option_trackers.py (MX-2e)
+#, python-format
+msgid "„%(label)s“ ist leider nicht mehr verfügbar."
+msgstr "„%(label)s“ ist leider nicht mehr verfügbar."

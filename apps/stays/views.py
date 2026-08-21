@@ -464,6 +464,27 @@ def stay_action(request, pk):
             )
             old_ids = [str(e.get("id", "")) for e in (booking.extras or []) if isinstance(e, dict)]
             if sorted(e["id"] for e in new_snap) != sorted(old_ids):
+                # MX-2e: убранные трекер-опции вернуть, добавленные — провести
+                # (пул/склад); отказ оставляет бронь без изменений.
+                from apps.core import option_trackers
+
+                try:
+                    option_trackers.sync_options(
+                        booking.extras, new_snap, kind="stay", deal=booking
+                    )
+                except option_trackers.PoolFull as exc:
+                    messages.error(
+                        request,
+                        _("„%(label)s“ ist im gewählten Zeitraum leider ausgebucht.")
+                        % {"label": exc.label},
+                    )
+                    return redirect(back)
+                except option_trackers.OptionOutOfStock as exc:
+                    messages.error(
+                        request,
+                        _("„%(label)s“ ist leider nicht mehr verfügbar.") % {"label": exc.label},
+                    )
+                    return redirect(back)
                 booking.extras = new_snap
                 booking.save(update_fields=["extras", "updated_at"])
                 reprice = True

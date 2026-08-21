@@ -101,6 +101,23 @@
               {% if t.payment_state != 'paid' and t.status != 'cancelled' %}<button name="target" value="paid" class="text-xs border rounded px-2 py-1">{% trans "Paid" %}</button>{% endif %}
               {% if t.status != 'cancelled' and t.status != 'attended' %}<button name="target" value="cancelled" class="text-xs text-red-600 border border-red-200 rounded px-2 py-1">✕</button>{% endif %}
             </form>
+            {% if edit_extras and t.status != 'cancelled' and t.status != 'attended' %}
+            {# 3b: правка допов билета — зеркало MX-3 (снимок пересобирается, итог сам). #}
+            <details class="mt-1 text-left">
+              <summary class="cursor-pointer text-xs text-gray-400 hover:text-indigo-600">{% trans "Zusatzleistungen" %}{% if t.extras %} ({{ t.extras|length }}){% endif %}</summary>
+              <form method="post" action="{% url 'events:ticket-action' event.pk t.pk %}" class="mt-1 space-y-1">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="extras">
+                {% for x in edit_extras %}
+                <label class="flex items-center gap-2 text-xs">
+                  <input type="checkbox" name="extra" value="{{ x.pk }}" {% for e in t.extras %}{% if e.id == x.pk|stringformat:"s" %}checked{% endif %}{% endfor %}>
+                  <span>{{ x.label }} · {{ x.price_eur|floatformat:2 }} €</span>
+                </label>
+                {% endfor %}
+                <button class="text-xs border rounded px-2 py-1">{% trans "Save" %}</button>
+              </form>
+            </details>
+            {% endif %}
           </td>
         </tr>
       {% endfor %}

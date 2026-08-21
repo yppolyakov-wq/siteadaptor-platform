@@ -18,7 +18,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.billing import connect
-from apps.core import ratelimit
+from apps.core import option_trackers, ratelimit
 from apps.core.fsm import IllegalTransition
 from apps.promotions.services import OutOfStock as PromoSoldOut
 
@@ -870,6 +870,18 @@ def service_book(request, pk):
     except (services.SlotTaken, services.ResourceClosed):
         messages.error(request, _("This time is no longer available. Please pick another."))
         return _embed_redirect("storefront-service-slots", embed, pk=pk)
+    except option_trackers.PoolFull as exc:
+        messages.error(
+            request,
+            _("„%(label)s“ ist im gewählten Zeitraum leider ausgebucht.") % {"label": exc.label},
+        )
+        return _embed_redirect("storefront-service-slots", embed, pk=pk)
+    except option_trackers.OptionOutOfStock as exc:
+        messages.error(
+            request,
+            _("„%(label)s“ ist leider nicht mehr verfügbar.") % {"label": exc.label},
+        )
+        return _embed_redirect("storefront-service-slots", embed, pk=pk)
     except PromoSoldOut:
         # P5: лимит акции исчерпан между показом и отправкой — бронь откатилась.
         messages.error(request, _("Diese Aktion ist leider ausverkauft."))
@@ -1024,6 +1036,18 @@ def termin_book(request, pk):
         )
     except (services.SlotTaken, services.ResourceClosed):
         messages.error(request, _("This slot is no longer available. Please pick another."))
+        return _embed_redirect("storefront-termin-slots", embed, pk=pk)
+    except option_trackers.PoolFull as exc:
+        messages.error(
+            request,
+            _("„%(label)s“ ist im gewählten Zeitraum leider ausgebucht.") % {"label": exc.label},
+        )
+        return _embed_redirect("storefront-termin-slots", embed, pk=pk)
+    except option_trackers.OptionOutOfStock as exc:
+        messages.error(
+            request,
+            _("„%(label)s“ ist leider nicht mehr verfügbar.") % {"label": exc.label},
+        )
         return _embed_redirect("storefront-termin-slots", embed, pk=pk)
 
     # PMS-B1 (UWG §7): галка согласия в воронке → Double-Opt-In письмо

@@ -298,6 +298,11 @@ def book_stay(
         source_channel=(source_channel or "")[:50],
         promotion=booked_promo,
     )
+    # MX-2e: трекеры опций — пул проверяется, склад списывается; исключение
+    # откатывает всю бронь (паттерн OutOfStock).
+    from apps.core import option_trackers
+
+    option_trackers.commit_options(extras_snap, kind="stay", deal=booking)
     # письмо «Anfrage erhalten» — Notification в этой же транзакции (E3)
     from .notifications import enqueue_stay_email
 

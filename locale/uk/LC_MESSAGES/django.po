@@ -19711,3 +19711,13 @@ msgstr "Сертифікат-номінал — продаж через /gutsche
 
 msgid "Mehrfachkarte"
 msgstr "Абонемент"
+
+#: apps/core/option_trackers.py (MX-2e)
+#, python-format
+msgid "„%(label)s“ ist im gewählten Zeitraum leider ausgebucht."
+msgstr "«%(label)s» на обрані дати, на жаль, повністю зайнято."
+
+#: apps/core/option_trackers.py (MX-2e)
+#, python-format
+msgid "„%(label)s“ ist leider nicht mehr verfügbar."
+msgstr "«%(label)s», на жаль, більше недоступно."

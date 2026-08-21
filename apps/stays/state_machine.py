@@ -32,6 +32,13 @@ class StayBookingSM(StateMachine):
 
             return_units(instance.promotion_id, 1)
 
+        # MX-2e: отмена возвращает stock-опции брони (идемпотентно; зеркало
+        # кастом-статусов — status_effects.restore_stock_for).
+        if t.dst == "cancelled":
+            from apps.core import option_trackers
+
+            option_trackers.release_options("stay", instance)
+
         # B1.4: отмена → вернуть использование промокода/Gutschein (однократно —
         # FSM не даёт второй переход в cancelled).
         if t.dst == "cancelled" and getattr(instance, "voucher_code", ""):

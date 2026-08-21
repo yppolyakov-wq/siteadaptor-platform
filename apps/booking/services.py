@@ -173,6 +173,11 @@ def book(
         note=note,
         source_channel=(source_channel or "")[:50],
     )
+    # MX-2e: трекеры опций записи (пул/склад) — в той же atomic; book_many
+    # проходит здесь же (extras несёт только первая бронь группы).
+    from apps.core import option_trackers
+
+    option_trackers.commit_options(booking.extras, kind="booking", deal=booking)
     # письмо «заявка принята» — Notification в этой же транзакции (D3c)
     if notify:
         from .notifications import enqueue_booking_email

@@ -42,6 +42,13 @@ class BookingSM(StateMachine):
                 instance.voucher_code, amount_cents=getattr(instance, "discount_cents", 0)
             )
 
+        # MX-2e: отмена возвращает stock-опции записи (идемпотентно; зеркало —
+        # status_effects.restore_stock_for).
+        if t.dst == "cancelled":
+            from apps.core import option_trackers
+
+            option_trackers.release_options("booking", instance)
+
         # Услуга выполнена (G10) → выручка в журнал (НДС 19 %, идемпотентно по
         # source_ref). Общие брони без цены (стол/комната) выручку не пишут.
         if t.dst == "fulfilled" and instance.total_cents:

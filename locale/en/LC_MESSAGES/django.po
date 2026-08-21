@@ -19515,3 +19515,13 @@ msgstr "Value voucher — sold via /gutschein/"
 
 msgid "Mehrfachkarte"
 msgstr "Multi-visit pass"
+
+#: apps/core/option_trackers.py (MX-2e)
+#, python-format
+msgid "„%(label)s“ ist im gewählten Zeitraum leider ausgebucht."
+msgstr "“%(label)s” is fully booked for the selected period."
+
+#: apps/core/option_trackers.py (MX-2e)
+#, python-format
+msgid "„%(label)s“ ist leider nicht mehr verfügbar."
+msgstr "“%(label)s” is no longer available."

@@ -19641,3 +19641,13 @@ msgstr "Değer kuponu — /gutschein/ üzerinden satış"
 
 msgid "Mehrfachkarte"
 msgstr "Çok girişli kart"
+
+#: apps/core/option_trackers.py (MX-2e)
+#, python-format
+msgid "„%(label)s“ ist im gewählten Zeitraum leider ausgebucht."
+msgstr "“%(label)s” seçilen dönem için maalesef tamamen dolu."
+
+#: apps/core/option_trackers.py (MX-2e)
+#, python-format
+msgid "„%(label)s“ ist leider nicht mehr verfügbar."
+msgstr "“%(label)s” maalesef artık mevcut değil."

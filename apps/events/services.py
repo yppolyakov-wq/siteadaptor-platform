@@ -168,6 +168,10 @@ def book_ticket(
         note=note,
         source_channel=(source_channel or "")[:50],
     )
+    # MX-2e: трекеры опций билета (пул/склад) — в той же atomic, что билет.
+    from apps.core import option_trackers
+
+    option_trackers.commit_options(ticket.extras, kind="ticket", deal=ticket)
     # R5: привязать проживание (выбранный тип номера) — внутри той же транзакции.
     if stay_unit_id:
         _attach_accommodation(event, ticket, customer, stay_unit_id, quantity)

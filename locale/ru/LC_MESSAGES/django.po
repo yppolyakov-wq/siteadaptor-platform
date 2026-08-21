@@ -19727,3 +19727,13 @@ msgstr "Сертификат-номинал — продажа через /gutsc
 
 msgid "Mehrfachkarte"
 msgstr "Абонемент"
+
+#: apps/core/option_trackers.py (MX-2e)
+#, python-format
+msgid "„%(label)s“ ist im gewählten Zeitraum leider ausgebucht."
+msgstr "«%(label)s» на выбранные даты, к сожалению, занято полностью."
+
+#: apps/core/option_trackers.py (MX-2e)
+#, python-format
+msgid "„%(label)s“ ist leider nicht mehr verfügbar."
+msgstr "«%(label)s», к сожалению, больше недоступно."

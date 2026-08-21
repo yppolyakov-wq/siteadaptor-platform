@@ -110,12 +110,17 @@ def event_edit(request, pk):
 def event_detail(request, pk):
     event = get_object_or_404(Event, pk=pk)
     tickets = event.tickets.select_related("customer").all()
+    # 3b: допы для правки состава билета (scope events + адресные этого события).
+    from apps.core import extras as extras_engine
+
+    edit_extras = extras_engine.active_for("events", entity_kind="event", entity_id=str(event.pk))
     return render(
         request,
         "events/event_detail.html",
         {
             "event": event,
             "tickets": tickets,
+            "edit_extras": edit_extras,
             "waitlist": event.waitlist.all(),
             "nav": "events",
         },
@@ -187,6 +192,51 @@ def ticket_action(request, pk, tid):
     """Действия по билету: confirm / attended / cancel (FSM) + mark paid."""
     ticket = get_object_or_404(Ticket, pk=tid, event_id=pk)
     target = request.POST.get("target", "")
+    if request.POST.get("action") == "extras":
+        # 3b (зеркало MX-3): правка состава допов билета; итог — свойство
+        # Ticket.total_cents (пересчитывается сам). Enforcement трекеров — MX-2e.
+        from apps.core import extras as extras_engine
+        from apps.core import option_trackers
+
+        if ticket.status not in (Ticket.STATUS_PENDING, Ticket.STATUS_CONFIRMED):
+            messages.error(request, _("This step is not possible in the current status."))
+            return redirect("events:detail", pk=pk)
+        old_total = ticket.total_cents
+        new_snap = extras_engine.snapshot(
+            request.POST.getlist("extra"),
+            "events",
+            entity_kind="event",
+            entity_id=str(ticket.event_id),
+        )
+        try:
+            option_trackers.sync_options(ticket.extras, new_snap, kind="ticket", deal=ticket)
+        except option_trackers.PoolFull as exc:
+            messages.error(
+                request,
+                _("„%(label)s“ ist im gewählten Zeitraum leider ausgebucht.")
+                % {"label": exc.label},
+            )
+            return redirect("events:detail", pk=pk)
+        except option_trackers.OptionOutOfStock as exc:
+            messages.error(
+                request,
+                _("„%(label)s“ ist leider nicht mehr verfügbar.") % {"label": exc.label},
+            )
+            return redirect("events:detail", pk=pk)
+        ticket.extras = new_snap
+        ticket.save(update_fields=["extras", "updated_at"])
+        messages.success(request, _("Ticket updated."))
+        if ticket.payment_state == Ticket.PAYMENT_PAID and ticket.total_cents != old_total:
+            diff = (ticket.total_cents - old_total) / 100
+            messages.warning(
+                request,
+                _(
+                    "Der Betrag hat sich um %(diff)s € geändert — Nachzahlung oder "
+                    "Erstattung mit dem Gast klären."
+                )
+                % {"diff": f"{diff:+.2f}"},
+            )
+        return redirect("events:detail", pk=pk)
     if target == "paid":
         ticket.payment_state = Ticket.PAYMENT_PAID
         ticket.save(update_fields=["payment_state", "updated_at"])

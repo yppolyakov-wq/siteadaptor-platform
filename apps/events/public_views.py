@@ -18,7 +18,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.billing import connect
-from apps.core import ratelimit
+from apps.core import option_trackers, ratelimit
 from apps.stays.services import StayUnavailable
 
 from . import installments, payments, services
@@ -487,6 +487,18 @@ def veranstaltung_book(request, pk):
         return redirect("storefront-event", pk=pk)
     except services.WaiverRequired:
         messages.error(request, _("Please sign the waiver to register."))
+        return redirect("storefront-event", pk=pk)
+    except option_trackers.PoolFull as exc:
+        messages.error(
+            request,
+            _("„%(label)s“ ist im gewählten Zeitraum leider ausgebucht.") % {"label": exc.label},
+        )
+        return redirect("storefront-event", pk=pk)
+    except option_trackers.OptionOutOfStock as exc:
+        messages.error(
+            request,
+            _("„%(label)s“ ist leider nicht mehr verfügbar.") % {"label": exc.label},
+        )
         return redirect("storefront-event", pk=pk)
     except (services.EventNotBookable, ValueError):
         messages.error(request, _("This event is not available."))

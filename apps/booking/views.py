@@ -245,12 +245,31 @@ def booking_action(request, pk):
             messages.error(request, _("This step is not possible in the current status."))
             return redirect(back)
         old_total = booking.total_cents
-        booking.extras = extras_engine.snapshot(
+        new_snap = extras_engine.snapshot(
             request.POST.getlist("extra"),
             "booking",
             entity_kind="service" if booking.service_id else "",
             entity_id=str(booking.service_id) if booking.service_id else "",
         )
+        # MX-2e: трекеры при правке — вернуть убранное, провести добавленное.
+        from apps.core import option_trackers
+
+        try:
+            option_trackers.sync_options(booking.extras, new_snap, kind="booking", deal=booking)
+        except option_trackers.PoolFull as exc:
+            messages.error(
+                request,
+                _("„%(label)s“ ist im gewählten Zeitraum leider ausgebucht.")
+                % {"label": exc.label},
+            )
+            return redirect(back)
+        except option_trackers.OptionOutOfStock as exc:
+            messages.error(
+                request,
+                _("„%(label)s“ ist leider nicht mehr verfügbar.") % {"label": exc.label},
+            )
+            return redirect(back)
+        booking.extras = new_snap
         booking.save(update_fields=["extras", "updated_at"])
         messages.success(request, _("Booking updated."))
         if booking.payment_state == Booking.PAYMENT_PAID and booking.total_cents != old_total:
