@@ -74,10 +74,15 @@ def test_staff_reply_clears_unread():
 
 
 def test_inbox_list_renders_and_filters():
-    services.start_conversation(subject="Offen", body="hi", email="a@t.de")
-    assert "Offen" in views.inbox_list(_req()).content.decode()
+    # Пробная тема уникальна: слово «Offen» — подстрока хрома кабинета
+    # («Offene Posten» в палитре ERP-2), негативный ассерт ловил бы хром.
+    services.start_conversation(subject="Probe-Betreff-77", body="hi", email="a@t.de")
+    assert "Probe-Betreff-77" in views.inbox_list(_req()).content.decode()
     # фильтр по resolved → открытого треда нет
-    assert "Offen" not in views.inbox_list(_req(data={"status": "resolved"})).content.decode()
+    assert (
+        "Probe-Betreff-77"
+        not in views.inbox_list(_req(data={"status": "resolved"})).content.decode()
+    )
 
 
 def test_thread_reply_and_status():

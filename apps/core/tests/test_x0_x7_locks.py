@@ -85,6 +85,8 @@ EXPECTED_UNLISTED = frozenset(
         "events:event-inline-edit",
         "events:event-photo-edit",
         "events:teacher-create",
+        # ERP-4: DATEV-выгрузка расходов — CSV-скачивание, вход кнопкой на Ausgaben.
+        "finance:expenses-datev",
         "finance:export-csv",
         "finance:export-datev",
         "promotions:promotion-create",
