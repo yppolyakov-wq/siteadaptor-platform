@@ -1927,9 +1927,24 @@ Python 3.12, менеджер uv.
   radius 16 (состав SH-11/12/16 цел), мобильный FAB «＋» над таб-баром (create_target; на sm+ —
   кнопка тулбара); Board/Kalender целы; стенд Playwright 10/10 (hotel+catering, 390+1440).
   Диагноз скриншота владельца: «Воспоминания»/«Выкупать» — авто-перевод Chrome, ru.po корректен
-  (реальные правки: Erweitert→«Дополнительно», Care-Zyklus→«Цикл заботы»). **Дальше по плану:
-  R4** (главная: карта Umsatz + цветные плитки) → **R5** (формы+карточка заказа; свод
-  Einstellungen — отдельным план-доком) → **R6** (desktop master-detail, по спросу).
+  (реальные правки: Erweitert→«Дополнительно», Care-Zyklus→«Цикл заботы»). **R4** главная:
+  имя бизнеса+дата, карта Umsatz со спарклайном и hint-пилюлей, виджеты — строки-карточки.
+  **R5a/b** карточка заказа + формы товара/акции (пилюльные табы .pf-tab в _i18n_switch).
+  **ВОЛНА R7 (фидбэк владельца по скриншотам, та же дата): R7-1 «одно меню»** — таб-бары
+  хабов на страницах СНЕСЕНЫ целиком (тег hub_tabs + партиал, 39 шаблонов, прецедент W-CL);
+  раздел сайдбара = тумблер, подменю несёт ВЕСЬ состав хабов + обзор первым подпунктом;
+  мобильный таб-бар открывает лист с раскрытым разделом; owner-гейт переехал в
+  sidebar_nav(tenant, user) (замок нашёл дыру: сотрудник увидел бы Team/Abo/Recht).
+  13 замков переписаны осознанно (test_hub_tabs — целиком на подменю). **R7-2** вкладки
+  формы товара — НАД карточкой, фото — внутрь «Grundlagen» (мини-формы ★/✕ вне главной
+  формы, кнопки через form=). **R7-3** «Lieferungen» (/dashboard/orders/lieferungen/:
+  адрес/трек/Lieferschein-PDF, статусы тем же board-action) и «Zahlungen»
+  (/dashboard/zahlungen/, слой чтения apps/core/payments_page.py, ERP-2-правило
+  «none = оплата на месте», итоги по контракту Transaction) — отдельные страницы,
+  подпункты «Verkäufe»; nav_key «zahlungen» (коллизию с «payments» поймал стенд).
+  **Дальше по плану:** R5c (обзор Einstellungen — план-док
+  `r5c-einstellungen-overview-plan-2026-08-24.md` готов, разведка воркфлоу сделана) →
+  R6 (desktop master-detail).
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `core/0010` (Extra.consume_qty, v2-опции) + `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate) + `events/0028` (SupplierBooking вне туров) + `booking/0023` (Service.pricing_mode) + `catalog/0030` (Product.primary_action) + `finance/0009` (SOURCES gift/pass, choices-only)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. **Волна ERP (2026-08-21): `orders/0020` (OrderItem.cost_price) + `finance/0010` (BankTransaction) + `finance/0011` (Invoice.mahn_level/mahned_at + ExpenseEntry supplier/due_date/paid_at/document) + `documents/0002` (owner nullable + kind receipt) + `inventory/0005` (qty_returned + kind'ы return_supplier/production, ERP-5/7) + `jobs/0015` (JobLine.cost_rate, ERP-6)** — аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
