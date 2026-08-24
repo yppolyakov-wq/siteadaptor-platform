@@ -12095,3 +12095,46 @@ W8-подсветка — раздел стал `data-nav-toggle`, состав 
 
 Гейты: core+orders 1322 + catalog/promotions/inventory 961; 10 msgid+плюрал
 × 5 каталогов; стенд Playwright 13/13 + 10/10 (hotel/catering, 390+1440).
+
+- 2026-08-24 — **ВОЛНА SR «Sortiment Redesign» (SR-1..SR-5) + VF-батч фидбэка — целиком**
+  (утверждённый канвас «Sortiment Redesign», план `sr-sortiment-redesign-plan-2026-08-24.md`;
+  БЕЗ миграций; новая зависимость nh3 — осознанный uv lock). **SR-1**: /dashboard/angebote/ —
+  единственная страница ассортимента: Kacheln↔Liste (персист `sortiment_view` presence-minimal
+  + POST-сеттер), карточки с кликабельными фото/именем БЕЗ «Bearbeiten», цена жирно + Bestand
+  цветом; вид Liste несёт инструменты умершей /catalog/products/ (Art.-Nr./категория/Bestand/
+  merge/фильтры) — сама страница = 302 с carry (q/kategorie/status); записи «Produkte» сняты из
+  реестра (nav="catalog" форм → якорь Sortiment через _EXTRA_NAV_ANCHORS); Delete товара
+  переехал в форму (единственный вход жил в списке). Замки: test_sr1_sortiment (7) + осознанные
+  переписки st4b/hub_tabs/w8/x4/x7 + 302-ассерты. Гард фильтра категорий — UUID (не isdigit).
+  **SR-2**: форма товара без max-w-xl — main + правая колонка: «Preis & Bestand» ВСЕГДА видна
+  (таб preis умер; поля физически в рейле + details «Mehr anzeigen», при ошибках open); 🌐-свитчер
+  компактной пиктограммой в углу табов (общий партиал — выиграли акции/категории; механика
+  invalid-раскрытия цела); поле new_category создаёт категорию при Save (unique_slug KAT-6).
+  **SR-3**: apps/core/richtext.py (nh3, allowlist p/br/b/i/em/u/ul/ol/li/a) + фильтры
+  rich_text (санитайз НА РЕНДЕРЕ — fail-closed) и is_rich (плоский текст — прежняя ветка
+  whitespace-pre-line, sanitize экранировал бы «&»); лёгкий contenteditable-редактор
+  (B/I/U/списки/ссылка; textarea в DOM — W0, per-locale поля Ф1); витрина: деталь рендерит
+  разметку, meta/прайс-строки striptags, адаптер SellableEntity отдаёт тизерам плоский текст.
+  Грабля nh3: rel в allowlist несовместим с link_rel (ValueError). **SR-4**: категории —
+  фото-плитки, фото и имя кликабельны, подкатегории чипами, Delete в форму. **SR-5 (R5c
+  «делаем оба»)**: settings_hints (живые подписи ТОЛЬКО из полей + 1 count Membership,
+  всё _safe) → подписи в подменю сайдбара (вариант А, data-label ищется) И страница-обзор
+  /dashboard/einstellungen/ (вариант Б, группы из legacy_hub_tabs с гейтами подменю); якорь
+  settings → einstellungen-home (прецедент W11-5), обзор первым подпунктом автоматически.
+  **VF-батч (скриншот владельца)**: VF-1 наезд карточек доски — регрессия VS-2b
+  (sm:min-w-0 группы + пол 13rem колонок → колонки вылезали под фон соседней группы при
+  viewport≲1200) → sm:min-w-min (честный min-content → скролл вместо наложения) + min-w-0
+  инпуту трек-номера; VF-2 позиция заказа одной строкой (№ · название · кол-во · × цена/шт ·
+  сумма; обе ветки, DE-грабля чисел в замке); VF-3 карточка «Zahlung» += «📄 Rechnung als
+  PDF» (draft переиспользуется по note, номер только у issue — GoBD) и «🔗 Zahlungslink
+  senden» (письмо payment_link с прямой /bezahlen/, dedupe-суффикс времени — прецедент
+  Mahnwesen; гейты зеркалят публичную страницу) + поле ссылки для ручной передачи.
+  **Сверка по запросу владельца**: обходчик 16 архетипов × все экраны подменю + новые
+  поверхности (841 URL с дублями) — 0 исключений/5xx/404; стенды Playwright: hotel
+  (Sortiment оба вида/форма/обзор настроек/подписи подменю), catering (Liste с товарами,
+  16 плиток категорий, карточка заказа со строками и гейтами VF-3), доска 1152px — колонки
+  в границах групп. CI-грабля повторилась дважды: замок свежести app.css (WIP-пуш) и
+  i18n_gap строже quickcheck (Vorkasse/You enter data per language — добавлены ×5).
+  Уроки: polib-скрипты гонять через uv run (system python без polib молча падал в пайпе);
+  стендовые FAIL-ы сначала триажить на условия данных (hotel без товаров/категорий,
+  catering без модуля orders — гейты работали честно).

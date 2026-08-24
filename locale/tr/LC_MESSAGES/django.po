@@ -20060,3 +20060,9 @@ msgstr "Zaten ödediyseniz bu e-postayı yok sayabilirsiniz."
 
 msgid "Zahlungslink für Ihre Bestellung %(code)s"
 msgstr "%(code)s numaralı siparişiniz için ödeme bağlantısı"
+
+msgid "Vorkasse"
+msgstr "Ön ödeme"
+
+msgid "You enter data per language"
+msgstr "Verileri dil başına girersiniz"

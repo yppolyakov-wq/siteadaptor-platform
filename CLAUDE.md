@@ -1945,6 +1945,26 @@ Python 3.12, менеджер uv.
   **Дальше по плану:** R5c (обзор Einstellungen — план-док
   `r5c-einstellungen-overview-plan-2026-08-24.md` готов, разведка воркфлоу сделана) →
   R6 (desktop master-detail).
+- **Самое свежее (2026-08-24): ВОЛНА SR «Sortiment Redesign» (SR-1..5) + VF-фидбэк — целиком в
+  ветке, БЕЗ миграций (нов. зависимость nh3 в uv.lock).** По утверждённому канвасу: **SR-1**
+  `/dashboard/angebote/` — единственная страница ассортимента (Kacheln↔Liste, ключ
+  `sortiment_view` presence-minimal; Liste несёт инструменты умершей `/catalog/products/` —
+  та 302 с carry; фото/имя кликабельны, «Bearbeiten» удалён; цена+Bestand — главная информация;
+  записи «Produkte» сняты из реестра, Delete в форме товара). **SR-2** форма товара на всю
+  ширину: «Preis & Bestand» постоянной правой колонкой (таб preis умер), 🌐-свитчер
+  пиктограммой (общий партиал), new_category создаёт категорию при Save. **SR-3** rich-text
+  описания: `apps/core/richtext.py` (nh3, узкий allowlist) + `rich_text`/`is_rich`
+  (санитайз на рендере; плоский текст — прежняя ветка), contenteditable-редактор без
+  библиотек (textarea в DOM — W0), витрина рендерит разметку, тизеры/JSON-LD — striptags.
+  **SR-4** категории фото-плитками (фото+имя кликабельны, подкатегории чипами). **SR-5**
+  R5c «оба»: `settings_hints` (живые подписи, 1 запрос) → подменю (А) + обзор
+  `/dashboard/einstellungen/` (Б; якорь settings→einstellungen-home, прецедент W11-5).
+  **VF**: наезд карточек доски = регрессия VS-2b (`sm:min-w-0` группы) → `sm:min-w-min`
+  (скролл вместо наложения); позиция заказа одной строкой (№·название·кол-во·×цена/шт·сумма);
+  карточка «Zahlung» += «📄 Rechnung als PDF» (draft переиспользуется, GoBD цел) и
+  «🔗 Zahlungslink senden» (письмо с /bezahlen/, dedupe-суффикс времени) + копи-поле ссылки.
+  **Сверка (запрос владельца): 16 архетипов × все экраны подменю (841 URL) — 0 ошибок**;
+  стенды Playwright hotel/catering/доска-1152. План — `sr-sortiment-redesign-plan-2026-08-24.md`.
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `core/0010` (Extra.consume_qty, v2-опции) + `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate) + `events/0028` (SupplierBooking вне туров) + `booking/0023` (Service.pricing_mode) + `catalog/0030` (Product.primary_action) + `finance/0009` (SOURCES gift/pass, choices-only)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. **Волна ERP (2026-08-21): `orders/0020` (OrderItem.cost_price) + `finance/0010` (BankTransaction) + `finance/0011` (Invoice.mahn_level/mahned_at + ExpenseEntry supplier/due_date/paid_at/document) + `documents/0002` (owner nullable + kind receipt) + `inventory/0005` (qty_returned + kind'ы return_supplier/production, ERP-5/7) + `jobs/0015` (JobLine.cost_rate, ERP-6)** — аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,

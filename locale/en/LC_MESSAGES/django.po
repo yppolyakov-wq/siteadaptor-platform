@@ -19934,3 +19934,9 @@ msgstr "If you have already paid, you can ignore this e-mail."
 
 msgid "Zahlungslink für Ihre Bestellung %(code)s"
 msgstr "Payment link for your order %(code)s"
+
+msgid "Vorkasse"
+msgstr "Prepayment"
+
+msgid "You enter data per language"
+msgstr "You enter data per language"

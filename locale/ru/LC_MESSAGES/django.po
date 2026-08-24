@@ -20151,3 +20151,9 @@ msgstr "Если вы уже оплатили, просто игнорируйт
 
 msgid "Zahlungslink für Ihre Bestellung %(code)s"
 msgstr "Ссылка на оплату заказа %(code)s"
+
+msgid "Vorkasse"
+msgstr "Предоплата"
+
+msgid "You enter data per language"
+msgstr "Данные вводятся отдельно для каждого языка"

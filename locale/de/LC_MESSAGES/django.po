@@ -20062,3 +20062,9 @@ msgstr ""
 
 msgid "Zahlungslink für Ihre Bestellung %(code)s"
 msgstr ""
+
+msgid "Vorkasse"
+msgstr ""
+
+msgid "You enter data per language"
+msgstr ""

@@ -20134,3 +20134,9 @@ msgstr "Якщо ви вже сплатили, просто ігноруйте �
 
 msgid "Zahlungslink für Ihre Bestellung %(code)s"
 msgstr "Посилання на оплату замовлення %(code)s"
+
+msgid "Vorkasse"
+msgstr "Передоплата"
+
+msgid "You enter data per language"
+msgstr "Дані вводяться окремо для кожної мови"
