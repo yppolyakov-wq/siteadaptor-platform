@@ -564,11 +564,13 @@ ENTRIES: tuple[NavEntry, ...] = (
     ),
     _e("sellables", "catalog:category-list", _("Kategorien"), "categories", "catalog", True),
     _e("sellables", "collections:list", _("Kollektionen"), "collections", None, True),
-    # Складская группа: ящик «Erweitert» таб-бара, но НЕ подпункты сайдбара.
-    _e("sellables", "stock", _("Lager"), "stock", "catalog", True, sidebar=False),
-    _e("sellables", "purchasing", _("Einkauf"), "purchasing", "catalog", True, sidebar=False),
-    _e("sellables", "catalog:combo-list", _("Kombi"), "combos", "catalog", True, sidebar=False),
-    _e("sellables", "imports:start", _("Import"), "imports", "catalog", True, sidebar=False),
+    # R2 (редизайн B, утверждённая структура): складская группа — подпункты
+    # сайдбара «Sortiment» (ящик «Erweitert» на страницах больше не рендерится,
+    # каждая страница живёт ровно в одном месте; X4-решение пересмотрено).
+    _e("sellables", "stock", _("Lager"), "stock", "catalog", True),
+    _e("sellables", "purchasing", _("Einkauf"), "purchasing", "catalog", True),
+    _e("sellables", "catalog:combo-list", _("Kombi"), "combos", "catalog", True),
+    _e("sellables", "imports:start", _("Import"), "imports", "catalog", True),
     # X4: сироты-сущности — вход через Ctrl+K (x4-navigation-plan §4).
     _e(
         "sellables",

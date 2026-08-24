@@ -52,11 +52,11 @@ def _children(tenant, anchor_url):
 
 
 def test_sortiment_children_are_archetype_entities():
-    """Главный дефект исследования §3: у салона в подпунктах «его товаров» висели
-    Lager/Einkauf/Kombi/Import, а экран услуг был сиротой. Теперь наоборот."""
+    """Сущности архетипа видны в подпунктах «Sortiment» (услуги салона были
+    сиротой). R2 (осознанная переписка): складская группа ТОЖЕ здесь —
+    утверждённая структура редизайна B (ящик «Erweitert» снят со страниц)."""
     friseur = _children(_tenant("friseur"), "sellable-manage")
     assert "booking:services" in friseur
-    assert not {"stock", "purchasing", "imports:start", "catalog:combo-list"} & set(friseur)
 
     hotel = _children(_tenant("hotel"), "sellable-manage")
     assert "stays:units" in hotel  # номера — «товар» отеля
@@ -65,10 +65,14 @@ def test_sortiment_children_are_archetype_entities():
     assert "catalog:product-list" in shop and "booking:services" not in shop
 
 
-def test_stock_group_stays_reachable_in_catalog_drawer():
-    """Склад ушёл из сайдбара, но НЕ из кабинета: ящик «Erweitert» таб-бара."""
+def test_stock_group_reachable_from_sidebar():
+    """R2 (осознанная переписка X4): ящик «Erweitert» снят со страниц —
+    складская группа достижима подпунктами «Sortiment»; записи реестра целы
+    (палитра/подсветка)."""
     tabs = {t[0] for t in nav_registry.legacy_hub_tabs()["catalog"]}
     assert {"stock", "purchasing", "catalog:combo-list", "imports:start"} <= tabs
+    shop = _children(_tenant("shop"), "sellable-manage")
+    assert {"stock", "purchasing", "catalog:combo-list", "imports:start"} <= set(shop)
 
 
 # --- подпункты «Verkäufe» — рабочие входы дня ---------------------------------

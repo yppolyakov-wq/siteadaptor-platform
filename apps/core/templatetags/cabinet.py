@@ -75,9 +75,10 @@ def hub_tabs(context, hub):
     """Отрисовать tab-bar хаба `hub` (реестр HUB_TABS), подсветив активный по `nav`.
 
     Табы с module_key прячутся, если модуль не активен у тенанта (fail-open, если
-    request/tenant в контексте нет — простой тест-рендер без запроса). advanced-табы
-    уходят в свёрнутый ящик «Erweitert» (открыт, если активна одна из его вкладок).
-    X0: owner-only табы прячутся у сотрудников (см. _hide_owner_only)."""
+    request/tenant в контексте нет — простой тест-рендер без запроса). R2 (редизайн B,
+    утверждённая структура): advanced-табы на странице НЕ рендерятся — их состав живёт
+    подпунктами сайдбара (SM-4) и в палитре Ctrl+K; на странице остаются только
+    контентные вкладки. X0: owner-only табы прячутся у сотрудников (_hide_owner_only)."""
     cur = context.get("nav")
     request = context.get("request")
     tenant = getattr(request, "tenant", None) if request is not None else None
@@ -90,9 +91,11 @@ def hub_tabs(context, hub):
             continue
         if not nav_registry.allowed_for_business(u, tenant):
             continue  # X4: гастро-экраны (KDS/Tisch-QR) — только гастро-типам
+        if advanced:
+            continue  # R2: дубль-входы «Erweitert» сняты со страниц (сайдбар/палитра)
         entry = {"url_name": u, "label": lbl, "nav_key": k, "active": k == cur, "module": mod}
         entry["group"] = nav_registry.group_for(hub, u)
-        (more if advanced else tabs).append(entry)
+        tabs.append(entry)
     more_active = any(t["active"] for t in more)
     # X5-1: у хаба с группами главные вкладки идут ПОДПИСАННЫМИ рядами (девять
     # вкладок настроек уезжали в горизонтальный скролл — Abo/Team не видны).

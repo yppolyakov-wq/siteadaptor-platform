@@ -24,22 +24,21 @@ def _render(nav):
     return Template('{% load cabinet %}{% hub_tabs "catalog" %}').render(Context({"nav": nav}))
 
 
-def test_hub_tabs_renders_all_five_subpages():
+def test_hub_tabs_renders_main_tabs_only():
+    # R2 (редизайн B): на странице — только контентные вкладки; advanced-состав
+    # живёт подпунктами сайдбара (SM-4) и в палитре, ящика «Erweitert» нет.
     html = _render("catalog")
-    for lbl in ("Produkte", "Kategorien", "Lager", "Kombi", "Import"):
-        assert lbl in html
-
-
-def test_catalog_hub_compact_after_sm4():
-    """SM-4 (решение владельца): каталожные страницы — тот же компакт-бар, что
-    «Angebote»: main Angebote·Produkte·Kategorien, остальное в «Erweitert»
-    (ящик идёт после основных табов — Lager/Kombi/Import внутри него)."""
-    html = _render("catalog")
-    assert "Erweitert" in html
-    for lbl in ("Lager", "Kombi", "Import", "Einkauf", "Kollektionen"):
-        assert html.index("Erweitert") < html.index(lbl), lbl
     for lbl in ("Produkte", "Kategorien"):
-        assert html.index(lbl) < html.index("Erweitert"), lbl
+        assert lbl in html
+    for lbl in ("Lager", "Kombi", "Import", "Einkauf"):
+        assert lbl not in html, lbl
+
+
+def test_catalog_hub_has_no_erweitert_drawer():
+    """R2: ящик «Erweitert» снят со страниц (утверждённая структура —
+    каждая страница живёт ровно в одном месте; SM-4-переписка)."""
+    html = _render("catalog")
+    assert "Erweitert" not in html
 
 
 def test_moved_pages_anchor_mapping():
@@ -56,10 +55,12 @@ def test_moved_pages_anchor_mapping():
 
 
 def test_hub_tabs_marks_exactly_one_active():
-    html = _render("stock")  # Lager активен
+    html = _render("categories")  # Kategorien — контентная вкладка
     assert html.count('aria-selected="true"') == 1
-    # активный таб — именно Lager (ссылка на stock, подсвечена)
-    assert 'aria-selected="true"' in html and "Lager" in html
+    # R2: advanced-страница (Lager) вкладки на странице не имеет — «где я»
+    # держит подпункт сайдбара (замок подсветки — test_w8_nav_registry).
+    html2 = _render("stock")
+    assert html2.count('aria-selected="true"') == 0
 
 
 def test_hub_tabs_empty_for_unknown_hub():
@@ -114,9 +115,9 @@ def test_board_hub_fail_open_without_request():
     # включая X4-гейт business_types (гастро-KDS показывается).
     html = _render_board("board")
     assert "Aufträge" in html
-    # X4-гейт business_types тоже fail-open: гастро-KDS виден (по URL —
-    # de.po переводит подпись «Kitchen Display» → «Küchenanzeige»).
-    assert "/kitchen/" in html
+    # R2: KDS — advanced-запись, на странице больше не рендерится (вход —
+    # подпункт сайдбара «Verkäufe»; X4-гейт business_types жив в реестре).
+    assert "/kitchen/" not in html
 
 
 # --- S3: хаб «Einstellungen» (свод настроек + ящик «Erweitert») ---------------
@@ -148,25 +149,23 @@ def test_settings_hub_primary_and_advanced_tabs():
         assert lbl in html, lbl
     for gone in ("Finanzen", "Auswertungen", "Domains", "Medien"):
         assert gone not in html, gone
-    # ящик «Erweitert» + его (редкие) вкладки
-    assert "Erweitert" in html
+    # R2: ящика «Erweitert» нет — advanced-состав в сайдбаре и палитре.
+    assert "Erweitert" not in html
     for lbl in ("Zusatzleistungen", "Funktionen", "Finder", "Hilfe"):
-        assert lbl in html, lbl
+        assert lbl not in html, lbl
 
 
-def test_settings_hub_erweitert_closed_on_primary_active():
-    # Активна прямая вкладка → ящик «Erweitert» свёрнут (без open).
+def test_settings_hub_primary_active_single():
     html = _render_settings("settings")
-    assert " open>" not in html
     assert html.count('aria-selected="true"') == 1  # активна одна прямая вкладка
 
 
-def test_settings_hub_erweitert_open_on_advanced_active():
-    # Активна вкладка из «Erweitert» (Funktionen; SM-4: Medien переехал в
-    # site-хаб) → ящик раскрыт (open), подсвечен.
+def test_settings_hub_advanced_page_has_no_tab_highlight():
+    # R2: advanced-страница (Funktionen) вкладки на странице не имеет —
+    # подсветку держит подпункт сайдбара «Einstellungen».
     html = _render_settings("modules")
-    assert " open>" in html
-    assert html.count('aria-selected="true"') == 1  # активна одна вкладка (в ящике)
+    assert "Erweitert" not in html
+    assert html.count('aria-selected="true"') == 0
 
 
 # --- S4a: хаб «Marketing» (акции/отзывы/лояльность/публикация) ---------------
@@ -192,9 +191,10 @@ def test_marketing_hub_all_tabs_when_active():
     html = _render_marketing("promotions", _fake_tenant())
     for lbl in ("Aktionen", "Bewertungen", "Kampagnen", "Gutscheine"):  # прямые
         assert lbl in html, lbl
-    assert "Erweitert" in html
-    for lbl in ("Einlösen", "Treuepunkte", "Kanäle", "Beiträge"):  # ящик
-        assert lbl in html, lbl
+    # R2: ящика нет — Einlösen/Treuepunkte/Kanäle/Beiträge в сайдбаре Marketing.
+    assert "Erweitert" not in html
+    for lbl in ("Einlösen", "Treuepunkte", "Kanäle", "Beiträge"):
+        assert lbl not in html, lbl
     # решение 4а (2026-08-06): Reservierungen — только вкладка Verkäufe, дубль убран
     assert "Reservierungen" not in html
     assert html.count('aria-selected="true"') == 1  # активна Aktionen

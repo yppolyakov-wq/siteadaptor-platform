@@ -154,12 +154,10 @@ def test_sales_anchor_respects_orders_view_default():
 def test_sidebar_children_composition():
     """Подпункты якоря = advanced-состав его хабов (единый реестр W8).
 
-    X4 (осознанная переписка, план x4-navigation-plan §3): состав приведён
-    к смыслу разделов. «Sortiment» держит СУЩНОСТИ архетипа (товары/услуги/
-    номера/события/туры), складская группа ушла в ящик «Erweitert» таб-бара
-    (sidebar=False) — раньше у салона в подпунктах «товаров» висели Lager/
-    Einkauf/Kombi/Import, а «Leistungen» не было вовсе. «Verkäufe» держит
-    рабочие входы дня ПЕРЕД отчётной группой.
+    R2 (редизайн B, осознанная переписка): ящик «Erweitert» снят со страниц —
+    складская группа ВЕРНУЛАСЬ подпунктами «Sortiment» (утверждённая структура:
+    каждая страница живёт ровно в одном месте, вход — сайдбар/палитра).
+    «Verkäufe» держит рабочие входы дня ПЕРЕД отчётной группой.
     """
     t = TenantFactory(slug="sbc1", name="SbC", business_type="restaurant", disabled_modules=[])
     by_anchor = {it["url_name"]: it["children"] for it in modules.sidebar_nav(t)}
@@ -191,9 +189,12 @@ def test_sidebar_children_composition():
         "events:tour-list",
         "catalog:category-list",
         "collections:list",
+        # R2: складская группа — подпункты Sortiment (ящика на страницах нет)
+        "stock",
+        "purchasing",
+        "catalog:combo-list",
+        "imports:start",
     ]
-    # склад достижим, но НЕ из сайдбара — в ящике «Erweitert» таб-бара каталога
-    assert not {"stock", "purchasing", "catalog:combo-list", "imports:start"} & set(ang)
     sett = [c["url_name"] for c in by_anchor["settings"]]
     # X2a: «Integrationen» стал подпунктом (был доступен с первого экрана только
     # хаб-плиткой главной, которую X2a удалил как дубль сайдбара).
