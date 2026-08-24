@@ -314,17 +314,28 @@ ENTRIES: tuple[NavEntry, ...] = (
         "kunden kontakte crm klienten",
         query="?tab=kunden",
     ),
-    # SH-14: доставка отдельным входом — заказы с доставкой одним списком
-    # (фильтр вида «Liste», не новый экран).
+    # SH-14 → R7-3 (фидбэк владельца 2026-08-24 «доставку нужно вынести в
+    # отдельную страницу, там могут формироваться отгрузочные накладные»):
+    # доставка стала СВОИМ экраном (адрес/трек-номер/Lieferschein), а не
+    # фильтром списка.
     _e(
         "board",
-        "verkaeufe",
+        "orders:deliveries",
         _("Lieferungen"),
-        "lieferungen",
+        "deliveries",
         "orders",
         True,
-        "versand lieferung tracking sendungen",
-        query="?tab=order&view=liste&versand=1",
+        "versand lieferung tracking sendungen lieferschein",
+    ),
+    # R7-3: оплаты отдельной поверхностью («посмотреть оплаты отдельно»).
+    _e(
+        "board",
+        "payments-page",
+        _("Zahlungen"),
+        "zahlungen",  # свой ключ: "payments" занят страницей «Zahlung & Lieferung»
+        None,  # деньги есть у любого продающего модуля; finance не требуется
+        True,
+        "zahlungen bezahlt offen stripe vorkasse geld",
     ),
     _e(
         "board",

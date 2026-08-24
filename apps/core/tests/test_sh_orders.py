@@ -207,7 +207,9 @@ def test_delivery_entry_is_a_sidebar_subitem_of_sales():
 
     board = next(a for a in nr.ANCHORS if a.nav_key == "board")
     children = {(e.url_name, e.query) for e in nr.sidebar_children(board)}
-    assert ("verkaeufe", "?tab=order&view=liste&versand=1") in children
+    # R7-3 (осознанная переписка SH-14): доставка — СВОЯ страница с накладными
+    # и трек-номерами, а не фильтр списка (фидбэк владельца 2026-08-24).
+    assert ("orders:deliveries", "") in children
     assert ("verkaeufe", "?tab=kunden") in children
 
 

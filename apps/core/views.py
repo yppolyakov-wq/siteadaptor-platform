@@ -4316,6 +4316,36 @@ def notifications_settings(request):
 
 
 @login_required
+def payments_page(request):
+    """R7-3 «Zahlungen» (фидбэк владельца 2026-08-24 «чтоб можно было посмотреть
+    оплаты отдельно»): деньги сделок одной таблицей — кто заплатил, кто должен,
+    чем платили. Свои таблицы не заводим: слой ЧТЕНИЯ поверх сделок
+    (`payments_page.payment_rows`), статусы оплаты меняются штатным путём на
+    карточке сделки. Модуль finance для страницы НЕ требуется — это продажи."""
+    from apps.core import payments_page as pay
+
+    tenant = request.tenant
+    state = request.GET.get("state", "open")
+    method = request.GET.get("method", "")
+    from apps.orders.models import Order
+
+    return render(
+        request,
+        "core/payments.html",
+        {
+            "nav": "zahlungen",
+            "rows": pay.payment_rows(tenant, state, method),
+            "summary": pay.payment_summary(tenant),
+            "state": state,
+            "method": method,
+            "filters": pay.FILTERS,
+            "payment_methods": Order.PAYMENT_METHODS if tenant.is_module_active("orders") else (),
+            "finance_active": tenant.is_module_active("finance"),
+        },
+    )
+
+
+@login_required
 def marketing_home(request):
     """ST-6a: Marketing-центр — лендинг с карточками в ROI-порядке ТЗ, read-only
     обзором авто-напоминаний и панелью результатов (готовые источники, только

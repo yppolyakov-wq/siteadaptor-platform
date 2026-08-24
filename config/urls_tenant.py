@@ -43,6 +43,7 @@ from apps.core.views import (
     pages_view,
     palette_search,
     payment_settings,
+    payments_page,
     sections_view,
     sellable_manage,
     sellable_visibility,
@@ -148,6 +149,8 @@ urlpatterns = [
     # ST-6a: Marketing-центр (лендинг: карточки ROI-порядка + обзор напоминаний
     # + панель результатов).
     path("dashboard/marketing/", marketing_home, name="marketing-home"),
+    # R7-3: оплаты отдельной поверхностью (фидбэк владельца 2026-08-24)
+    path("dashboard/zahlungen/", payments_page, name="payments-page"),
     path("dashboard/cabinet-lang/", set_cabinet_lang_view, name="set-cabinet-lang"),
     # Self-service custom-домены бизнеса (P2): заявка + DNS-подтверждение.
     path("dashboard/domains/", domains_view, name="domains"),

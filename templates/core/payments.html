@@ -1,0 +1,72 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n cabinet %}
+{% block dash_title %}{% trans "Zahlungen" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}R7-3: оплаты отдельной страницей (фидбэк владельца 2026-08-24).
+Слой ЧТЕНИЯ: сами статусы оплаты меняются на карточке сделки штатным путём —
+здесь обзор «кто заплатил, кто должен, чем платили» по всем направлениям.{% endcomment %}
+<div class="flex items-center gap-3 flex-wrap mb-3">
+  <h1 class="text-xl font-bold">💳 {% trans "Zahlungen" %}</h1>
+  {% if finance_active %}
+  <a href="{% url 'finance:open-items' %}" class="ml-auto text-sm text-indigo-600 hover:underline">{% trans "Offene Posten & Bankabgleich" %} →</a>
+  {% endif %}
+</div>
+
+<div class="flex flex-col sm:flex-row gap-3 mb-4">
+  <div class="flex-1 bg-white rounded-[22px] shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5">
+    <span class="block text-xs text-gray-500">{% trans "Wartet auf Zahlung" %}</span>
+    <span class="block text-2xl font-bold tracking-tight mt-0.5">{{ summary.open_total|floatformat:2 }} €</span>
+    <span class="block text-[11px] text-gray-400">{% blocktrans count n=summary.open_count %}{{ n }} Vorgang{% plural %}{{ n }} Vorgänge{% endblocktrans %}</span>
+  </div>
+  <div class="flex-1 bg-white rounded-[22px] shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5">
+    <span class="block text-xs text-gray-500">{% trans "Bezahlt (30 Tage)" %}</span>
+    <span class="block text-2xl font-bold tracking-tight mt-0.5">{{ summary.paid_total|floatformat:2 }} €</span>
+    <span class="block text-[11px] text-gray-400">{% blocktrans count n=summary.paid_count %}{{ n }} Vorgang{% plural %}{{ n }} Vorgänge{% endblocktrans %}</span>
+  </div>
+</div>
+
+<form method="get" class="flex flex-wrap items-center gap-2 mb-3">
+  <div class="flex gap-1.5">
+    {% for value, label in filters %}
+      <a href="?state={{ value }}{% if method %}&amp;method={{ method }}{% endif %}"
+         class="px-3 py-1.5 rounded-full text-sm font-medium {% if state == value %}bg-gray-900 text-white shadow-sm{% else %}bg-white text-gray-600 shadow-[0_3px_10px_rgba(22,24,29,0.05)] hover:bg-gray-50{% endif %}">{{ label }}</a>
+    {% endfor %}
+  </div>
+  {% if payment_methods %}
+  <input type="hidden" name="state" value="{{ state }}">
+  <select name="method" onchange="this.form.submit()"
+          class="rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm">
+    <option value="">{% trans "Alle Zahlarten" %}</option>
+    {% for value, label in payment_methods %}
+      <option value="{{ value }}" {% if method == value %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  {% endif %}
+</form>
+
+{% if rows %}
+<div class="space-y-2">
+  {% for r in rows %}
+    <div class="flex items-center justify-between gap-3 px-4 py-3 bg-white rounded-2xl shadow-[0_4px_14px_rgba(22,24,29,0.05)]">
+      <div class="min-w-0 flex-1">
+        <a href="{{ r.manage_url|default:'#' }}" class="text-sm font-medium truncate block hover:text-indigo-700">{{ r.title }}</a>
+        <p class="text-xs text-gray-500 truncate">{{ r.kind_label }} · #{{ r.code }}{% if r.customer %} · 👤 {{ r.customer }}{% endif %}{% if r.payment_method_label %} · {{ r.payment_method_label }}{% endif %}</p>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        {% if r.amount_display %}<span class="text-sm font-medium tabular-nums">{{ r.amount_display }}</span>{% endif %}
+        {% if r.payment_state == 'paid' %}
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800">{% trans "Bezahlt" %}</span>
+        {% elif r.payment_state == 'refunded' %}
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{% trans "Erstattet" %}</span>
+        {% else %}
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">{% trans "Offen" %}</span>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="text-gray-500">{% trans "Keine Zahlungen in dieser Ansicht." %}</p>
+{% endif %}
+{% endblock %}

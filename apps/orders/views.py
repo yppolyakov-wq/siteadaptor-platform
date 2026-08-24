@@ -91,6 +91,51 @@ def order_list(request):
     return legacy_redirect(request, tab="order", view="liste")
 
 
+@login_required
+def deliveries(request):
+    """R7-3 «Lieferungen» (фидбэк владельца 2026-08-24: «доставку нужно вынести
+    отдельно, там могут формироваться отгрузочные накладные»).
+
+    Отдельная рабочая поверхность доставки: заказы с фулфилментом «Lieferung»,
+    адрес, трек-номер, накладная (Lieferschein-PDF, приёмник прежний) и смена
+    статуса ТЕМ ЖЕ путём, что везде (`board-action` → transactions.apply_action),
+    поэтому письмо с Sendungsnummer уходит штатно (W10-5). Фильтр «offen» =
+    ещё не отправленные/не закрытые.
+    """
+    from apps.core import status_registry, transactions
+
+    state = request.GET.get("state", "offen")
+    qs = (
+        Order.objects.filter(fulfillment=Order.FULFILLMENT_DELIVERY)
+        .select_related("customer")
+        .prefetch_related("items")
+    )
+    done = (Order.STATUS_SHIPPED, Order.STATUS_PICKED_UP, Order.STATUS_RETURNED)
+    cancelled = status_registry.cancelled_statuses_for("order", request.tenant)
+    if state == "offen":
+        qs = qs.exclude(status__in=list(done) + list(cancelled))
+    elif state == "versendet":
+        qs = qs.filter(status=Order.STATUS_SHIPPED)
+    rows = []
+    for order in qs.order_by("-created_at")[:200]:
+        tx = transactions.transaction_for("order", order)
+        rows.append({"order": order, "tx": tx})
+    return render(
+        request,
+        "orders/deliveries.html",
+        {
+            "nav": "deliveries",
+            "rows": rows,
+            "state": state,
+            "states": (
+                ("offen", _("Offen")),
+                ("versendet", _("Versendet")),
+                ("", _("Alle")),
+            ),
+        },
+    )
+
+
 def _active_kitchen_orders():
     """Заказы в работе для KDS: принятые/новые, старые сверху (FIFO кухни)."""
     return (

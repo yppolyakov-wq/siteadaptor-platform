@@ -182,7 +182,9 @@ def test_sidebar_children_composition():
         ("orders:kitchen", ""),  # гастро-тип: гейт business_types пропускает
         ("ablaeufe", "?from=board"),
         ("verkaeufe", "?tab=kunden"),
-        ("verkaeufe", "?tab=order&view=liste&versand=1"),
+        # R7-3: доставка и оплаты — свои страницы (были фильтром/столбцом)
+        ("orders:deliveries", ""),
+        ("payments-page", ""),
         ("promotions:analytics", ""),
         ("finance:journal", ""),
         ("stays:reports", ""),
