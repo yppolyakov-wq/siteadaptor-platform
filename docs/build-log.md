@@ -12138,3 +12138,39 @@ W8-подсветка — раздел стал `data-nav-toggle`, состав 
   Уроки: polib-скрипты гонять через uv run (system python без polib молча падал в пайпе);
   стендовые FAIL-ы сначала триажить на условия данных (hotel без товаров/категорий,
   catering без модуля orders — гейты работали честно).
+- **2026-08-24 (продолжение, второй батч SR/VF — фидбэк-поток владельца, БЕЗ миграций).**
+  **SR-2b** форма категории = раскладка товара (main-колонка языки/описание/фото с
+  ★/✕-мини-формами через form= + рейл 340px «🗂 Struktur» parent/slug/page_style/icon/sort +
+  видимость + Größentabelle; msgid Struktur ×5). **SR-2c** «пустота внутри» таба Varianten:
+  грид вынесен НАРУЖУ формы (колонка 1 = форма + панель вариантов сразу под ней; вложенные
+  <form> недопустимы), 15 полей рейла привязаны form="product-form". **SR-2d** (фидбэк «правая
+  колонка только на главной; у каждой вкладки своя раскладка»): рейл data-pf-rail="grund" —
+  setTab прячет его на чужих табах и схлопывает грид ([data-pf-grid].pf-rail-off → block,
+  специфичность бьёт lg:grid), карточка главной формы гаснет на Varianten
+  (data-pf-hide-on — одинокий Save ушёл); invalid по полю рейла (base_price!) открывает его
+  таб — класс дыры «Save молча не работает» (ревью Кабинет-X) закрыт веткой revealField;
+  скрытие только CSS, hidden-поля отправляются (W0). **VF-4** счета: /finance/rechnungen/
+  получил ряд табов Finanzen (единственная страница раздела без него — «после нажатия на
+  счета пропадают табы»). **VF-5** «витрина для кухни» у aktionsmarkt: orders:kitchen (KDS)
+  гейтится KITCHEN_TYPES=(cafe,catering,restaurant), Tisch-QR — TABLE_TYPES=(cafe,restaurant).
+  **VF-6** «модуль клиенты по умолчанию у всех»: crm.recommended_for = все 16 типов
+  (пустой recommended_for выключил бы модуль ВСЕМ — грабля default_disabled_for; 8 строк
+  "crm" сняты с параметров test_default_disabled_for_vertical). **VF-7a** «ресурсы криво /
+  маркетинг и действия выбелены оба»: подсветка подпункта сайдбара — по URL (path/query
+  match в context.py; nav_key-фолбэк только при уникальности ключа внутри раздела и
+  отсутствии URL-совпадения) — двойная подсветка пар, деливших nav_key (booking, marketing),
+  ушла. **VF-8** «если заявок нет — писать, что их нет»: пустая доска рисовала голые колонки
+  → строка data-board-empty «Noch keine Einträge.» (msgid реюзится из Liste, ×5 переведён;
+  с первой сделкой исчезает — замок). **VF-9** «страница заявки как у заказов и товара +
+  Detail (Katalog) опять пусто»: карточка заявки — рейл-раскладка (смета широкой колонкой,
+  клиент/⚡Status/Verknüpfte Leistungen рейлом 340px, те же классы грида, что у формы товара,
+  тени R5; перенос marker-скриптом — состав сметы и её JS не тронуты, line_*_i/data-qt-*
+  целы); «пусто» оказалось демо-дефектом: селект наполнен (31 опция), но все строки демо-сметы
+  сеялись Freitext → line-спека демо-кита получила product_name (fail-soft резолв по
+  name__de), catering-строки привязаны к Buffet Vegetarisch/Dessertauswahl/Fingerfood-Platte
+  Klassik/Getränkepaket. Стенды Playwright: батч-скрипт 20/20 (форма товара: form=-сохранение
+  цены, invalid-reveal, раскладки табов; категория; одинарная подсветка Marketing/Aktionen/
+  Abläufe) + карточка заявки 8/8 (грид 760/340, привязка сметы) на пересеянном catering.
+  Замки: test_rail_scoped_to_basics_tab, test_empty_board_says_so, test_detail_uses_rail_layout;
+  осознанная переписка test_advanced_tabs_visible_for_everyone (рейл был «на любом табе»).
+  Урок: голый "<aside" в замке ловит сайдбар кабинета — якорить на классах рейла.
