@@ -20,7 +20,7 @@
     клиентам не видна, а статус показывался сырым кодом равнозначными кнопками.
     Теперь — подпись статуса, честное предупреждение и ПЕРВИЧНАЯ кнопка
     «Jetzt aktivieren» (переход тот же, FSM не тронут).{% endcomment %}
-    <div class="bg-white rounded-2xl shadow-sm p-4 mb-4">
+    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mb-4">
       <div class="flex items-center gap-2 mb-2 text-sm">
         <span class="text-gray-500">{% trans "Status" %}:</span>
         <span class="px-2 py-0.5 rounded-full font-medium {% if promotion.status == 'active' %}bg-green-100 text-green-800{% else %}bg-gray-100{% endif %}">{{ status_label }}</span>
@@ -44,7 +44,7 @@
 
   {# Платное продвижение в агрегаторе (P2.4b): видно у активных акций, если оплата настроена #}
   {% if promotion and promotion.status == 'active' and featured_enabled %}
-    <div class="bg-white rounded-2xl shadow-sm p-4 mb-4">
+    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mb-4">
       <div class="flex items-center justify-between gap-3">
         <div>
           <p class="text-sm font-medium">★ {% trans "Featured in the directory" %}</p>
@@ -63,7 +63,7 @@
   {% endif %}
 
   {# FB-5: ряд фото с плиткой «＋ Foto» ПЕРВОЙ — и при создании, и при правке #}
-    <div class="bg-white rounded-2xl shadow-sm p-4 mb-4">
+    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mb-4">
       <p class="text-sm font-medium mb-2">{% trans "Images" %}</p>
       <div class="flex flex-wrap gap-3">
         {% include "catalog/_photo_add_tile.html" %}
@@ -105,11 +105,11 @@
 
     {% include "tenant/_i18n_switch.html" %}
 
-    <div class="flex gap-4 border-b border-gray-200 text-sm font-medium overflow-x-auto" role="tablist">
-      <button type="button" data-pf-tab="grund" class="pf-tab pf-tab-on pb-2 whitespace-nowrap">{% trans "Basics" %}</button>
-      <button type="button" data-pf-tab="rabatt" class="pf-tab pb-2 whitespace-nowrap">{% trans "Discount" %}</button>
-      <button type="button" data-pf-tab="zeit" class="pf-tab pb-2 whitespace-nowrap">{% trans "Quantity & time" %}</button>
-      <button type="button" data-pf-tab="anz" class="pf-tab pb-2 whitespace-nowrap">{% trans "Display" %}</button>
+    <div class="flex gap-1.5 text-sm font-medium overflow-x-auto" role="tablist">
+      <button type="button" data-pf-tab="grund" class="pf-tab pf-tab-on whitespace-nowrap">{% trans "Basics" %}</button>
+      <button type="button" data-pf-tab="rabatt" class="pf-tab whitespace-nowrap">{% trans "Discount" %}</button>
+      <button type="button" data-pf-tab="zeit" class="pf-tab whitespace-nowrap">{% trans "Quantity & time" %}</button>
+      <button type="button" data-pf-tab="anz" class="pf-tab whitespace-nowrap">{% trans "Display" %}</button>
     </div>
 
     {# Basics: заголовок/описание (per язык) + товар/раздел + фото #}
@@ -159,7 +159,7 @@
   </form>
 
   {% if promotion and stats %}
-    <div class="bg-white rounded-2xl shadow-sm p-4 mt-4">
+    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mt-4">
       <p class="text-sm font-medium mb-2">{% trans "Statistics" %}</p>
       {# P7 «ценовой слой»: плитка «Verkäufe» — сделки стандартных рельсов (заказы/брони). #}
       <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
@@ -178,7 +178,7 @@
   {% endif %}
 
   {% if promotion and waitlist_count %}
-    <div class="bg-white rounded-2xl shadow-sm p-4 mt-4">
+    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mt-4">
       <p class="text-sm font-medium">{% trans "Waitlist" %}: <span class="font-bold">{{ waitlist_count }}</span></p>
       <p class="text-xs text-gray-400 mt-1">{% trans "Customers waiting for this offer to be back in stock." %}</p>
     </div>
@@ -186,7 +186,7 @@
 
   {# QR-код акции для печати + QR по каналам (атрибуция) #}
   {% if promotion and promotion.status == 'active' %}
-    <div class="bg-white rounded-2xl shadow-sm p-4 mt-4">
+    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mt-4">
       <p class="text-sm font-medium mb-2">{% trans "QR code (print for your shop)" %}</p>
       <img src="{% url 'storefront-promotion-qr' promotion.pk %}" width="140" height="140" alt="{% trans 'QR code' %}">
       <a href="{% url 'storefront-promotion-qr' promotion.pk %}" download="aktion-{{ promotion.pk }}.svg" class="block text-xs text-indigo-600 mt-1 hover:underline">{% trans "Download SVG" %}</a>
@@ -217,7 +217,7 @@
     </div>
 
     {# Атрибуция: брони по каналам #}
-    <div class="bg-white rounded-2xl shadow-sm p-4 mt-4">
+    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mt-4">
       <p class="text-sm font-medium mb-2">{% trans "Reservations by channel" %}</p>
       {% if channel_stats %}
         <table class="w-full text-sm">
