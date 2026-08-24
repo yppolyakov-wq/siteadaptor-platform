@@ -80,7 +80,14 @@ def test_crm_section_gated_by_module():
     from apps.crm.models import Customer
 
     Customer.objects.create(name="Frau Müller", email="m@t.de")
-    t = _tenant("friseur")  # crm выключен пресетом архетипа
+    # VF-6 (2026-08-24): crm рекомендован всем типам → выключаем руками, гейт
+    # секции по модулю остаётся тем же.
+    t = TenantFactory(
+        slug=f"x8-crmoff-{uuid4().hex[:4]}",
+        name="X8off",
+        business_type="friseur",
+        disabled_modules=[*default_disabled_for("friseur"), "crm"],
+    )
     assert not t.is_module_active("crm")
     assert "customers" not in {s["key"] for s in ps.search(t, "müller")}
 

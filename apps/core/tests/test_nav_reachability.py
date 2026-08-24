@@ -120,15 +120,17 @@ def test_order_detail_hides_customer_card_when_crm_off():
         )
         return views.order_detail(req, pk=order.pk).content.decode()
 
-    off = _tenant("retail")  # пресет ритейла: crm выключен
+    # VF-6 (2026-08-24): crm рекомендован всем типам → «выключен» теперь только
+    # руками владельца; гейт ссылки от этого не менее важен.
+    off = TenantFactory(
+        slug=f"nr-crmoff-{uuid4().hex[:4]}",
+        name="NRcrmOff",
+        business_type="retail",
+        disabled_modules=[*modules.default_disabled_for("retail"), "crm"],
+    )
     assert not modules.is_module_active(off, "crm")
     assert "/crm/" not in _render(off)
 
-    on = TenantFactory(
-        slug=f"nr-crm-{uuid4().hex[:4]}",
-        name="NRcrm",
-        business_type="retail",
-        disabled_modules=[m for m in modules.default_disabled_for("retail") if m != "crm"],
-    )
+    on = _tenant("retail")  # дефолт архетипа: crm активен (VF-6)
     assert modules.is_module_active(on, "crm")
     assert "/crm/" in _render(on)

@@ -148,21 +148,27 @@ REGISTRY: tuple[ModuleSpec, ...] = (
         # Пункт CRM остаётся якорем будущего хаба «Kunden» (S4b). url_prefix кампаний цел.
         nav_items=(NavItem("crm:customer-list", _("Customers"), "crm"),),
         url_prefixes=("/crm/", "/promotions/kampagnen/"),
-        recommended_for=("hotel", "tour_operator", "catering"),  # GK-1: событийные клиенты
-        suited_for=(
+        # VF-6 (решение владельца 2026-08-24): «модуль клиенты по умолчанию
+        # активирован у всех» — recommended_for = ВСЕ типы (паттерн reviews:
+        # default_disabled_for выключает всё, чего нет в recommended).
+        # Выключаемость на «Funktionen» остаётся.
+        recommended_for=(
             "bakery",
             "butcher",
             "grocery",
-            "cafe",
-            "restaurant",
-            "retail",
             "clothing",
-            "online_shop",  # 2026-07-10
+            "online_shop",
+            "restaurant",
+            "cafe",
+            "retail",
+            "tour_operator",
+            "hotel",
+            "friseur",
+            "handwerker",
+            "werkstatt",
+            "events",
+            "catering",
             "other",
-            "friseur",  # S6
-            "handwerker",  # S6
-            "werkstatt",  # S6
-            "events",  # S6
         ),
         description_de=_("Kundenliste führen: Kontakte, Tags, Notizen, Buchungshistorie."),
     ),

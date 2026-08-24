@@ -188,7 +188,6 @@ def test_gating_skips_public_schema():
         (
             "bakery",
             {
-                "crm",
                 "booking",
                 "stays",
                 "jobs",
@@ -217,7 +216,6 @@ def test_gating_skips_public_schema():
         (
             "restaurant",
             {
-                "crm",
                 "orders",
                 "stays",
                 "jobs",
@@ -231,7 +229,6 @@ def test_gating_skips_public_schema():
         (
             "retail",
             {
-                "crm",
                 "booking",
                 "stays",
                 "jobs",
@@ -261,7 +258,6 @@ def test_gating_skips_public_schema():
         (
             "other",
             {
-                "crm",
                 "orders",
                 "booking",
                 "stays",
@@ -280,7 +276,6 @@ def test_gating_skips_public_schema():
         (
             "friseur",
             {
-                "crm",
                 "orders",
                 "stays",
                 "analytics",
@@ -296,7 +291,6 @@ def test_gating_skips_public_schema():
             "handwerker",
             {
                 "promotions",
-                "crm",
                 "orders",
                 "booking",
                 "stays",
@@ -313,7 +307,6 @@ def test_gating_skips_public_schema():
             "werkstatt",
             {
                 "promotions",
-                "crm",
                 "orders",
                 "stays",
                 "loyalty",
@@ -328,7 +321,6 @@ def test_gating_skips_public_schema():
         (
             "events",
             {
-                "crm",
                 "orders",
                 "booking",
                 "stays",
