@@ -121,8 +121,12 @@ ANCHORS: tuple[Anchor, ...] = (
         "website gestalten studio design",
         hubs=("site",),
     ),
+    # SR-5 (вариант Б, прецедент W11-5): якорь ведёт на страницу-обзор
+    # /dashboard/einstellungen/ — url_name → einstellungen-home, nav_key
+    # остаётся "settings" (его эмитят все страницы настроек). Обзор становится
+    # первым подпунктом подменю автоматически (modules.sidebar_nav).
     Anchor(
-        "settings",
+        "einstellungen-home",
         _("Einstellungen"),
         "settings",
         "⚙️",

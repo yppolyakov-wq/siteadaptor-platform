@@ -1,0 +1,31 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Einstellungen" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}SR-5 вариант Б (артборд Einstellungen.dc + VarianteB утверждённого
+канваса): обзор настроек с ЖИВЫМИ подписями (слой settings_hints — общий с
+подменю сайдбара). Строка = вход на родной экран; формы не сводятся.{% endcomment %}
+<h1 class="text-2xl font-bold">⚙️ {% trans "Einstellungen" %}</h1>
+<p class="text-sm text-gray-500 mb-5">{% trans "Alles an einem Ort — mit Live-Status jeder Rubrik." %}</p>
+
+<div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3 items-start">
+  {% for g in groups %}
+  <div>
+    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2 px-1">{{ g.label }}</p>
+    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] px-4">
+      {% for r in g.rows %}
+      <a href="{{ r.url }}" class="flex items-center gap-3 py-3 {% if not forloop.first %}border-t border-gray-100{% endif %} group">
+        <span class="min-w-0 flex-1">
+          <span class="block text-sm font-medium group-hover:text-indigo-700">{{ r.label }}</span>
+          {% if r.hint %}<span class="block text-xs text-indigo-600/80 truncate">{{ r.hint }}</span>
+          {% elif r.static %}<span class="block text-xs text-gray-400 truncate">{{ r.static }}</span>{% endif %}
+        </span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-gray-300 group-hover:text-indigo-400"><path d="M9 5l7 7-7 7"></path></svg>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

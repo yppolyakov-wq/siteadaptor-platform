@@ -43,7 +43,8 @@ def test_sidebar_anchor_composition_is_frozen():
         ("sellable-manage", "sellables", "📦"),
         ("marketing-home", "promotions", "📣"),
         ("site-home", "site", "✏️"),
-        ("settings", "settings", "⚙️"),
+        # SR-5: якорь ведёт на обзор (nav_key прежний — подсветка цела)
+        ("einstellungen-home", "settings", "⚙️"),
     ]
 
 

@@ -646,6 +646,14 @@ def sidebar_nav(tenant, user=None) -> list[dict]:
         # не дублируем.
         # Дедуп по ПАРЕ (url_name, query): «Kunden»/«Lieferungen» ведут на тот же
         # `verkaeufe`, но с фильтром — по голому url_name обзор молча исчезал.
+        # SR-5 (вариант А): живые подписи подпунктов настроек — один слой с
+        # обзорной страницей (settings_hints; только поля + 1 count, fail-safe).
+        if a.nav_key == "settings" and children:
+            from apps.core import settings_hints
+
+            hints = settings_hints.hints_for(tenant)
+            for c in children:
+                c["hint"] = hints.get(c["url_name"], "")
         if children and not any(
             c["url_name"] == a.url_name and not c.get("query") for c in children
         ):

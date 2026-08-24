@@ -130,7 +130,7 @@ def test_nav_hides_disabled_modules():
     nav2 = modules_nav(_request(_tenant(disabled_modules=all_marketing)))
     urls2 = [it["url_name"] for it in nav2["nav_compact"]]
     assert "marketing-home" not in urls2
-    assert "dashboard" in urls2 and "settings" in urls2
+    assert "dashboard" in urls2 and "einstellungen-home" in urls2
 
 
 def test_nav_empty_on_public_schema():

@@ -52,7 +52,7 @@ def test_sidebar_nav_composition_and_urls():
         "sellable-manage",
         "marketing-home",
         "site-home",
-        "settings",
+        "einstellungen-home",
     ]
     for it in modules.sidebar_nav(t):
         reverse(it["url_name"])  # каждый якорь резолвится
@@ -70,7 +70,7 @@ def test_sidebar_nav_gates():
     )
     keys = [it["url_name"] for it in modules.sidebar_nav(t)]
     assert "marketing-home" in keys
-    assert "verkaeufe" in keys and "settings" in keys and "sellable-manage" in keys
+    assert "verkaeufe" in keys and "einstellungen-home" in keys and "sellable-manage" in keys
 
 
 def test_sidebar_marketing_hidden_only_without_any_hub_module():
@@ -206,12 +206,13 @@ def test_sidebar_children_composition():
         "catalog:combo-list",
         "imports:start",
     ]
-    sett = [c["url_name"] for c in by_anchor["settings"]]
+    sett = [c["url_name"] for c in by_anchor["einstellungen-home"]]
     # X2a: «Integrationen» стал подпунктом (был доступен с первого экрана только
     # хаб-плиткой главной, которую X2a удалил как дубль сайдбара).
     # R7-1: подменю несёт ВЕСЬ состав настроек — прежде main-часть жила
     # таб-баром на странице (дубль меню, фидбэк владельца 2026-08-24).
     assert sett == [
+        "einstellungen-home",  # SR-5: обзор раздела первым (авто-вставка якоря)
         "settings",
         "languages",
         "legal-docs",

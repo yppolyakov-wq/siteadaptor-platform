@@ -14,6 +14,7 @@ from apps.booking import public_views as booking_public
 from apps.collections import public_views as collections_public
 from apps.community import views as community_views
 from apps.core import health
+from apps.core.settings_home import einstellungen_home
 from apps.core.team import team_join, team_view
 from apps.core.views import (
     ablaeufe_view,
@@ -243,6 +244,9 @@ urlpatterns = [
     ),
     # SR-1: персист вида Kacheln ↔ Liste (POST, targeted-write).
     path("dashboard/angebote/ansicht/", sortiment_view_set, name="sortiment-view"),
+    # SR-5 (вариант Б): обзор настроек с живыми подписями — цель якоря
+    # «Einstellungen» (прецедент W11-5 site-home).
+    path("dashboard/einstellungen/", einstellungen_home, name="einstellungen-home"),
     # Кабинет заказов Click & Collect (Track D / D2b).
     path("dashboard/orders/", include("apps.orders.urls")),
     # Кабинет записи по времени (Track D / D3c).
