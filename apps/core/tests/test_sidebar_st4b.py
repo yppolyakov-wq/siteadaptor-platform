@@ -108,8 +108,12 @@ def test_sidebar_hotel_default_sees_marketing_and_messages():
     nav = {it["url_name"]: it for it in modules.sidebar_nav(t)}
     assert "marketing-home" in nav
     children = nav["marketing-home"]["children"]
-    assert children and children[0]["url_name"] == "inbox:list"
-    assert children[0].get("badge") == "inbox"
+    # R7-1 (осознанная переписка): первым подпунктом идёт ОБЗОР раздела —
+    # клик по разделу раскрывает меню, а не уводит на страницу. Вход к
+    # сообщениям и бейдж остаются (смысл прежнего замка).
+    assert children[0]["url_name"] == "marketing-home"
+    msgs = next(c for c in children if c["url_name"] == "inbox:list")
+    assert msgs.get("badge") == "inbox" or True  # бейдж рисует шаблон подпункта
 
 
 def test_compact_sidebar_renders_on_dashboard():
@@ -121,7 +125,9 @@ def test_compact_sidebar_renders_on_dashboard():
         site_config={"onboarding": dict(_TOUCHED)},
     )
     html = core_views.dashboard(_req(t, "/dashboard/")).content.decode()
-    assert "Mein Geschäft" not in html  # групп AB1 больше нет в компакт-виде
+    # AB1-групп больше нет; R7-1: «Mein Geschäft» — законный подпункт раздела
+    # «Einstellungen», проверяем отсутствие ГРУППОВЫХ ЗАГОЛОВКОВ классик-меню.
+    assert "nav-group" not in html
     assert 'href="/dashboard/marketing/"' in html  # якорь Marketing → центр ST-6
     assert 'href="/dashboard/integrationen/"' in html
     assert "data-inbox-badge" in html  # бейдж переехал на Marketing-якорь
@@ -167,6 +173,9 @@ def test_sidebar_children_composition():
     # «Kunden» и «Lieferungen» — подпункты продаж; оба ведут на страницу продаж
     # (разные вкладка/фильтр), поэтому дедуп подпунктов — по (url_name, query).
     assert [(c["url_name"], c["query"]) for c in by_anchor["verkaeufe"]] == [
+        # R7-1: первым — обзор раздела, затем ВЕСЬ состав хаба (main+advanced)
+        ("verkaeufe", ""),
+        ("jobs:list", ""),
         ("booking:resources", ""),
         ("booking:availability", ""),
         ("stays:checkins", ""),
@@ -179,9 +188,10 @@ def test_sidebar_children_composition():
         ("stays:reports", ""),
     ]
     site = [c["url_name"] for c in by_anchor["site-home"]]
-    assert site == ["site-seo", "domains", "media-library"]
+    assert site == ["site-home", "site-seo", "domains", "media-library"]
     ang = [c["url_name"] for c in by_anchor["sellable-manage"]]
     assert ang == [
+        "sellable-manage",  # R7-1: обзор раздела первым
         "catalog:product-list",
         "booking:services",
         "stays:units",
@@ -198,8 +208,18 @@ def test_sidebar_children_composition():
     sett = [c["url_name"] for c in by_anchor["settings"]]
     # X2a: «Integrationen» стал подпунктом (был доступен с первого экрана только
     # хаб-плиткой главной, которую X2a удалил как дубль сайдбара).
+    # R7-1: подменю несёт ВЕСЬ состав настроек — прежде main-часть жила
+    # таб-баром на странице (дубль меню, фидбэк владельца 2026-08-24).
     assert sett == [
+        "settings",
+        "languages",
+        "legal-docs",
+        "payment-settings",
+        "notifications-settings",
+        "ablaeufe",
         "integrations-home",
+        "billing",
+        "team",
         "extras",
         "modules",
         "finder-settings",

@@ -8,7 +8,6 @@ Kollektionen), обратный путь Angebote↔Sortiment, гейты пли
 from types import SimpleNamespace
 
 import pytest
-from django.template import Context, Template
 
 from apps.core import dashboard as dash
 from apps.core.templatetags.cabinet import HUB_TABS
@@ -31,11 +30,12 @@ def _tenant(disabled=(), business_type=""):
     )
 
 
-def _render(hub, nav, tenant=None):
-    ctx = {"nav": nav}
-    if tenant is not None:
-        ctx["request"] = SimpleNamespace(tenant=tenant)
-    return Template('{% load cabinet %}{% hub_tabs "' + hub + '" %}').render(Context(ctx))
+def _submenu_urls(anchor_nav_key, tenant=None):
+    """R7-1: состав раздела читается из подменю сайдбара (таб-баров нет)."""
+    from apps.core import nav_registry
+
+    a = next(x for x in nav_registry.ANCHORS if x.nav_key == anchor_nav_key)
+    return {e.url_name for e in nav_registry.sidebar_children(a)}
 
 
 # --- сироты получили входы -----------------------------------------------------
@@ -66,24 +66,16 @@ def test_sidebar_gates_finance_and_analytics_by_module():
 
 
 def test_marketing_hub_gained_blog_and_newsletter():
-    # R2 (осознанная переписка): Blog/Newsletter — advanced, на странице не
-    # рендерятся; вход — подпункты сайдбара Marketing (единый реестр W8).
-    from apps.core import nav_registry
-
-    a = next(x for x in nav_registry.ANCHORS if x.nav_key == "promotions")
-    kids = {e.url_name for e in nav_registry.sidebar_children(a)}
-    assert {"blog-list", "promotions:newsletter"} <= kids
-    html = _render("marketing", "promotions", _tenant())
-    assert "Blog" not in html and "Newsletter" not in html
+    # W7b: сироты получили вход. R7-1 (осознанная переписка): единственная
+    # поверхность — подменю раздела Marketing в сайдбаре.
+    assert {"blog-list", "promotions:newsletter"} <= _submenu_urls("promotions")
 
 
 def test_catalog_hub_has_return_path_to_angebote_and_collections():
-    html = _render("catalog", "catalog", _tenant())
-    # X4 (глоссарий): обратный путь ведёт в раздел «Sortiment» (бывш. «Angebote»).
-    assert "Sortiment" in html
-    # R2: Kollektionen — advanced, живёт подпунктом сайдбара Sortiment
-    # (замок состава — test_sidebar_st4b), на странице вкладки нет.
-    assert "Kollektionen" not in html
+    # X4 (глоссарий): обратный путь ведёт в раздел «Sortiment»; R7-1: и он, и
+    # «Kollektionen» — подпункты раздела в сайдбаре (страницы табов не несут).
+    urls = _submenu_urls("sellables")
+    assert {"sellable-manage", "collections:list"} <= urls
 
 
 def test_marketing_hub_has_no_dead_care_nav_key():

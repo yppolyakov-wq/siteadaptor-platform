@@ -45,7 +45,9 @@ def test_dashboard_nav_shows_icons_and_group_headers(rf, settings):
     # ST-4b (осознанная замена AB1-групп, одобрено 2026-07-19): компактный
     # сайдбар — плоские якоря хабов (замок в
     # test_sidebar_st4b). Здесь — состав компакт-вида.
-    assert "Mein Geschäft" not in html
+    # R7-1 (осознанная переписка): «Mein Geschäft» — законный подпункт раздела
+    # «Einstellungen» (таб-баров на страницах больше нет, состав живёт в меню);
+    # проверяем, что разделы верхнего уровня остались компактными якорями.
     assert 'href="/dashboard/marketing/"' in html
     assert 'href="/dashboard/integrationen/"' in html
     assert "Einstellungen" in html

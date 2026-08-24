@@ -19,8 +19,10 @@
   <style>
     @media (min-width: 768px) {
       body.sb-min #sidebar { width: 3.5rem; }
+      /* R7-1: сама строка раздела стала тумблером [data-nav-toggle] — в полосе
+         она ОБЯЗАНА остаться видимой (иначе разделы исчезают); скрываем только
+         подписи и раскрытые подпункты. */
       body.sb-min #sidebar .sb-label,
-      body.sb-min #sidebar [data-nav-toggle],
       body.sb-min #sidebar [data-nav-children] { display: none; }
       body.sb-min #sidebar .nav-link { justify-content: center; padding-left: 0.5rem; padding-right: 0.5rem; }
       body.sb-min #sidebar .sb-head { justify-content: center; padding-left: 0.5rem; padding-right: 0.5rem; }
@@ -60,22 +62,27 @@
       {% comment %}ST-4b: компактный сайдбар «хабы + Website» — плоские якоря;
       Sortiment/Kunden/Finanzen достижимы через хаб-табы. W-CL: классик-ветка снесена.{% endcomment %}
       {% for it in nav_compact %}
-      {% comment %}SM-4: якорь с подпунктами (advanced его хабов) — раскрытие
-      слайдером: шеврон-кнопка справа; активный раздел раскрыт с сервера.
-      Строка-якорь остаётся ссылкой (клик = переход, не тумблер).{% endcomment %}
+      {% comment %}R7-1 (фидбэк владельца 2026-08-24): раздел с подменю — ТУМБЛЕР:
+      клик раскрывает список подпунктов (первый из них — обзорная страница
+      раздела), а не уводит сразу на страницу. Раздел без подменю (Übersicht)
+      остаётся обычной ссылкой. Активный раздел раскрыт с сервера.{% endcomment %}
       <div class="flex items-center gap-0.5">
+        {% if it.children %}
+        <button type="button" data-nav-toggle="{{ it.nav_key }}" data-label="{{ it.search }}"
+                aria-expanded="{% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}true{% else %}false{% endif %}"
+                class="nav-link w-full min-w-0 flex items-center gap-2.5 px-3 py-2 rounded-xl text-left {% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}bg-indigo-600 text-white font-medium shadow-sm{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
+          <span class="w-5 shrink-0 text-center text-base leading-none" title="{{ it.label }}">{{ it.icon }}</span>
+          <span class="sb-label truncate">{{ it.label }}</span>
+          {% if it.badge == "inbox" %}
+          <span data-inbox-badge data-url="{% url 'inbox:unread-count' %}" class="ml-auto hidden min-w-[1.25rem] text-center bg-rose-500 text-white text-[11px] font-semibold rounded-full px-1.5 py-0.5"></span>{% endif %}
+          <span data-nav-chevron class="sb-label ml-auto text-[10px] leading-none transition-transform {% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}rotate-90{% endif %}" aria-hidden="true">▶</span>
+        </button>
+        {% else %}
         <a href="{% url it.url_name %}" data-label="{{ it.search }}"
            class="nav-link flex-1 min-w-0 flex items-center gap-2.5 px-3 py-2 rounded-xl {% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}bg-indigo-600 text-white font-medium shadow-sm{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
           <span class="w-5 shrink-0 text-center text-base leading-none" title="{{ it.label }}">{{ it.icon }}</span>
           <span class="sb-label truncate">{{ it.label }}</span>
-          {% if it.badge == "inbox" %}{# ST-4b: бейдж непрочитанного — на якоре Marketing #}
-          <span data-inbox-badge data-url="{% url 'inbox:unread-count' %}" class="ml-auto hidden min-w-[1.25rem] text-center bg-rose-500 text-white text-[11px] font-semibold rounded-full px-1.5 py-0.5"></span>{% endif %}
         </a>
-        {% if it.children %}
-        <button type="button" data-nav-toggle="{{ it.nav_key }}" aria-expanded="{% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}true{% else %}false{% endif %}"
-                class="shrink-0 w-6 h-8 grid place-items-center rounded-md text-gray-400 hover:text-indigo-600 hover:bg-gray-50">
-          <span class="text-[10px] leading-none transition-transform {% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}rotate-90{% endif %}">▶</span>
-        </button>
         {% endif %}
       </div>
       {% if it.children %}
@@ -177,11 +184,22 @@ billing.context.subscription) и закрывается кнопкой; пост
      style="margin-bottom: env(safe-area-inset-bottom); transform: translateZ(0);"
      aria-label="{% trans 'Menu' %}">
   {% for it in nav_primary %}
+    {% comment %}R7-1: раздел с подменю открывает список подпунктов (сайдбар-лист
+    с раскрытым разделом) — жест тот же, что на десктопе; раздел без подменю
+    («Übersicht») остаётся прямой ссылкой.{% endcomment %}
+    {% if it.has_children %}
+    <button type="button" data-tabbar-section="{{ it.nav_key }}" title="{{ it.label }}" aria-label="{{ it.label }}"
+            class="w-12 h-12 rounded-full grid place-items-center
+                   {% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}bg-indigo-600 text-white{% else %}text-gray-500 active:bg-gray-100{% endif %}">
+      <svg class="w-6 h-6" aria-hidden="true"><use href="#ic-nav-{{ it.nav_key }}"></use></svg>
+    </button>
+    {% else %}
     <a href="{% url it.url_name %}" title="{{ it.label }}" aria-label="{{ it.label }}"
        class="w-12 h-12 rounded-full grid place-items-center
               {% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}bg-indigo-600 text-white{% else %}text-gray-500 active:bg-gray-100{% endif %}">
       <svg class="w-6 h-6" aria-hidden="true"><use href="#ic-nav-{{ it.nav_key }}"></use></svg>
     </a>
+    {% endif %}
   {% endfor %}
   <button id="tabbar-menu" type="button" title="{% trans 'Menu' %}" aria-label="{% trans 'Menu' %}"
           class="w-12 h-12 rounded-full grid place-items-center text-gray-500 active:bg-gray-100">
@@ -229,16 +247,38 @@ billing.context.subscription) и закрывается кнопкой; пост
   var tb = document.getElementById("tabbar-menu");
   if (tb) tb.addEventListener("click", open);
 
-  // SM-4: слайдер подпунктов раздела — шеврон-кнопка тумблерит блок children.
+  // R7-1: раздел сайдбара — тумблер подменю (клик по самой строке раздела).
+  // В свёрнутой полосе (sb-min) подменю скрыто CSS, поэтому клик по иконке
+  // СНАЧАЛА разворачивает сайдбар — иначе жест был бы «мёртвым».
+  function setSection(key, openIt) {
+    var box = document.querySelector('[data-nav-children="' + key + '"]');
+    var btn = document.querySelector('[data-nav-toggle="' + key + '"]');
+    if (!box || !btn) return;
+    box.classList.toggle("hidden", !openIt);
+    btn.setAttribute("aria-expanded", openIt ? "true" : "false");
+    var ch = btn.querySelector("[data-nav-chevron]");
+    if (ch) ch.classList.toggle("rotate-90", openIt);
+  }
   document.addEventListener("click", function (ev) {
     var btn = ev.target.closest("[data-nav-toggle]");
-    if (!btn) return;
-    var box = document.querySelector('[data-nav-children="' + btn.getAttribute("data-nav-toggle") + '"]');
-    if (!box) return;
-    var opened = box.classList.toggle("hidden");
-    btn.setAttribute("aria-expanded", opened ? "false" : "true");
-    var ch = btn.querySelector("span");
-    if (ch) ch.classList.toggle("rotate-90", !opened);
+    if (btn) {
+      var key = btn.getAttribute("data-nav-toggle");
+      if (document.body.classList.contains("sb-min")) {
+        document.body.classList.remove("sb-min");
+        localStorage.setItem("sb_min", "0");
+        setSection(key, true);
+        return;
+      }
+      var box = document.querySelector('[data-nav-children="' + key + '"]');
+      setSection(key, box ? box.classList.contains("hidden") : true);
+      return;
+    }
+    // Мобильный таб-бар: раздел с подменю выезжает сайдбаром с раскрытым разделом.
+    var tab = ev.target.closest("[data-tabbar-section]");
+    if (tab) {
+      setSection(tab.getAttribute("data-tabbar-section"), true);
+      open();
+    }
   });
 
   // Быстрый фильтр пунктов меню (нативный поиск по разделам).

@@ -14,32 +14,22 @@
     {% endfor %}
   {% endif %}
 
-  {# FB-5: ряд фото с плиткой «＋ Foto» ПЕРВОЙ — и при создании (без фото), и при правке #}
-    <div class="mb-4">
-      <p class="text-sm font-medium mb-2">{% trans "Images" %}</p>
-      <div class="flex flex-wrap gap-3">
-        {% include "catalog/_photo_add_tile.html" %}
-        {% if product %}{% for img in product.images %}
-          <div class="relative w-24 border rounded-lg overflow-hidden {% if img.is_primary %}ring-2 ring-indigo-500{% endif %}">
-            <img src="{{ img.url }}" alt="" class="w-24 h-24 object-cover">
-            <div class="flex text-xs">
-              {% if not img.is_primary %}
-              <form method="post" action="{% url 'catalog:product-image-primary' product.pk img.id %}" class="flex-1">
-                {% csrf_token %}
-                <button class="w-full py-1 text-indigo-600 hover:bg-indigo-50">★</button>
-              </form>
-              {% else %}
-              <span class="flex-1 py-1 text-center text-indigo-600">{% trans "Main" %}</span>
-              {% endif %}
-              <form method="post" action="{% url 'catalog:product-image-delete' product.pk img.id %}">
-                {% csrf_token %}
-                <button class="px-2 py-1 text-red-600 hover:bg-red-50">✕</button>
-              </form>
-            </div>
-          </div>
-        {% endfor %}{% endif %}
-      </div>
-    </div>
+  {% comment %}R7-2 (фидбэк владельца 2026-08-24): вкладки — СВЕРХУ страницы,
+  над карточкой формы, а не внутри неё: владелец искал их как навигацию
+  страницы. Механика (data-pf-tab → data-pf-panel, invalid-раскрытие ревью
+  Кабинет-X) в общем партиале _i18n_switch и не тронута.{% endcomment %}
+  {# Табы: в Простом режиме продвинутые скрыты (панели остаются в DOM) #}
+  <div class="flex gap-1.5 flex-wrap text-sm font-medium" role="tablist">
+    <button type="button" data-pf-tab="grund" class="pf-tab pf-tab-on">{% trans "Basics" %}</button>
+    <button type="button" data-pf-tab="preis" class="pf-tab">{% trans "Price & stock" %}</button>
+    {% comment %}FB-1: вкладка «Kennzeichnung» (Allergene/Zusatzstoffe/Zutaten/Herkunft) —
+    пищевая, показываем только гастро-архетипам. Панель остаётся в DOM (W0) → Save не стирает.{% endcomment %}
+    <button type="button" data-pf-tab="kennz" class="pf-tab{% if not show_labeling_tab %} hidden{% endif %}">{% trans "Labeling" %}</button>
+    <button type="button" data-pf-tab="markt" class="pf-tab">{% trans "Marketing" %}</button>
+    {# Варианты/Extras — своя вкладка (только в режиме редактирования: нужен сохранённый товар) #}
+    {% if product %}<button type="button" data-pf-tab="varianten" class="pf-tab">{% trans "Variants & extras" %}</button>{% endif %}
+  </div>
+
 
   {% comment %}Ф1 (per-language + табы): переключатель языка показывает поля ТОЛЬКО
      выбранного языка (не все сразу); табы вместо портянки. ВСЕ поля (все языки/табы) в
@@ -48,18 +38,6 @@
     {% csrf_token %}
 
     {% include "tenant/_i18n_switch.html" %}
-
-    {# Табы: в Простом режиме продвинутые скрыты (панели остаются в DOM) #}
-    <div class="flex gap-1.5 flex-wrap text-sm font-medium" role="tablist">
-      <button type="button" data-pf-tab="grund" class="pf-tab pf-tab-on">{% trans "Basics" %}</button>
-      <button type="button" data-pf-tab="preis" class="pf-tab">{% trans "Price & stock" %}</button>
-      {% comment %}FB-1: вкладка «Kennzeichnung» (Allergene/Zusatzstoffe/Zutaten/Herkunft) —
-      пищевая, показываем только гастро-архетипам. Панель остаётся в DOM (W0) → Save не стирает.{% endcomment %}
-      <button type="button" data-pf-tab="kennz" class="pf-tab{% if not show_labeling_tab %} hidden{% endif %}">{% trans "Labeling" %}</button>
-      <button type="button" data-pf-tab="markt" class="pf-tab">{% trans "Marketing" %}</button>
-      {# Варианты/Extras — своя вкладка (только в режиме редактирования: нужен сохранённый товар) #}
-      {% if product %}<button type="button" data-pf-tab="varianten" class="pf-tab">{% trans "Variants & extras" %}</button>{% endif %}
-    </div>
 
     {# Panel: Basics — название/описание (per язык) + категория/цена/активность + фото #}
     <div data-pf-panel="grund" class="space-y-4 pt-2">
@@ -84,6 +62,31 @@
       {% for field in form %}{% if field.name == 'is_active' %}
         <label class="flex items-center gap-2 text-sm font-medium">{% render_field field %} {{ field.label }}</label>
       {% endif %}{% endfor %}
+      {% comment %}FB-5 + R7-2: изображения — ЧАСТЬ вкладки «Grundlagen» (решение
+      владельца: «изображения это часть основных»), а не отдельный блок над
+      формой. Мини-формы ★/✕ живут ВНЕ главной формы (вложенные <form>
+      недопустимы) — кнопки связаны с ними атрибутом form=.{% endcomment %}
+      <div class="mb-4">
+        <p class="text-sm font-medium mb-2">{% trans "Images" %}</p>
+        <div class="flex flex-wrap gap-3">
+          {% include "catalog/_photo_add_tile.html" %}
+          {% if product %}{% for img in product.images %}
+            <div class="relative w-24 border rounded-lg overflow-hidden {% if img.is_primary %}ring-2 ring-indigo-500{% endif %}">
+              <img src="{{ img.url }}" alt="" class="w-24 h-24 object-cover">
+              <div class="flex text-xs">
+                {% if not img.is_primary %}
+                <button type="submit" form="pf-img-main-{{ img.id }}"
+                        class="flex-1 py-1 text-indigo-600 hover:bg-indigo-50" title="{% trans 'Main' %}">★</button>
+                {% else %}
+                <span class="flex-1 py-1 text-center text-indigo-600">{% trans "Main" %}</span>
+                {% endif %}
+                <button type="submit" form="pf-img-del-{{ img.id }}"
+                        class="px-2 py-1 text-red-600 hover:bg-red-50" title="{% trans 'Löschen' %}">✕</button>
+              </div>
+            </div>
+          {% endfor %}{% endif %}
+        </div>
+      </div>
       <div>
         <label class="block text-sm font-medium mb-1">{% trans "Add images" %}</label>
         <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple class="w-full text-sm">
@@ -167,6 +170,17 @@
      вне основной формы — у каждой строки своя мини-форма, вложенные <form> недопустимы).
      Только в режиме редактирования (нужен сохранённый товар).{% endcomment %}
   {% if product %}
+  {% comment %}R7-2: приёмники действий над фото живут ВНЕ главной формы —
+  вложенные <form> недопустимы (браузер их выбрасывает, кнопки перестают
+  работать). Кнопки ★/✕ внутри вкладки «Grundlagen» связаны с ними атрибутом
+  form= (HTML5); URL-приёмники прежние.{% endcomment %}
+  {% if product %}{% for img in product.images %}
+    {% if not img.is_primary %}
+    <form id="pf-img-main-{{ img.id }}" method="post" action="{% url 'catalog:product-image-primary' product.pk img.id %}" class="hidden">{% csrf_token %}</form>
+    {% endif %}
+    <form id="pf-img-del-{{ img.id }}" method="post" action="{% url 'catalog:product-image-delete' product.pk img.id %}" class="hidden">{% csrf_token %}</form>
+  {% endfor %}{% endif %}
+
   <div data-pf-panel="varianten" class="hidden">
     <div class="mt-6 bg-white p-6 rounded-2xl shadow-sm">
       <p class="text-sm font-medium mb-1">{% trans "Variants" %}</p>

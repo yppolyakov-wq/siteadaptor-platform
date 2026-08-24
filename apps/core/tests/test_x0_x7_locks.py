@@ -187,28 +187,34 @@ def _req_with_role(tenant, role):
     return SimpleNamespace(tenant=tenant, user=user)
 
 
-def _render_settings_tabs(request):
-    return Template('{% load cabinet %}{% hub_tabs "settings" %}').render(
-        Context({"nav": "settings", "request": request})
-    )
+def _settings_menu(tenant, user):
+    """R7-1: состав раздела «Einstellungen» так, как его видит этот пользователь
+    (таб-бары сняты — единственная поверхность меню)."""
+    from apps.core import modules
+
+    section = next(it for it in modules.sidebar_nav(tenant, user) if it["nav_key"] == "settings")
+    return [str(c["label"]) for c in section["children"]]
 
 
-def test_owner_only_tabs_hidden_for_staff():
+def test_owner_only_entries_hidden_for_staff():
+    """X0 (переписан под R7-1): owner-гейт переехал из снесённого тега в
+    подменю сайдбара — сотруднику мёртвые экраны (403) не показываем."""
     t = TenantFactory(slug=f"x0-{uuid4().hex[:6]}", name="X0")
-    staff_html = _render_settings_tabs(_req_with_role(t, Membership.ROLE_STAFF))
-    # «&» в подписях автоэскейпится → сверяем рендер-форму.
-    for lbl in ("Team &amp; Zugriff", "Abo &amp; Rechnung", "Recht &amp; Steuern"):
-        assert lbl not in staff_html  # мидлварь отдала бы 403 — мёртвый таб скрыт
-    assert "Mein Geschäft" in staff_html
+    req = _req_with_role(t, Membership.ROLE_STAFF)
+    kids = _settings_menu(t, req.user)
+    for lbl in ("Team & Zugriff", "Abo & Rechnung", "Recht & Steuern"):
+        assert lbl not in kids, lbl
+    assert "Mein Geschäft" in kids
 
 
-def test_owner_only_tabs_visible_for_owner_and_failopen_without_request():
+def test_owner_only_entries_visible_for_owner_and_failopen_without_user():
     t = TenantFactory(slug=f"x0o-{uuid4().hex[:6]}", name="X0o")
-    owner_html = _render_settings_tabs(_req_with_role(t, Membership.ROLE_OWNER))
-    assert "Team &amp; Zugriff" in owner_html and "Abo &amp; Rechnung" in owner_html
-    # fail-open: рендер без request (простые тест-рендеры) показывает всё.
-    bare = Template('{% load cabinet %}{% hub_tabs "settings" %}').render(Context({"nav": ""}))
-    assert "Team &amp; Zugriff" in bare
+    req = _req_with_role(t, Membership.ROLE_OWNER)
+    kids = _settings_menu(t, req.user)
+    assert "Team & Zugriff" in kids and "Abo & Rechnung" in kids
+    # fail-open: без user (простые рендеры/тесты) показываем всё — доступ
+    # держит middleware, скрытие остаётся чистым UX-слоем.
+    assert "Team & Zugriff" in _settings_menu(t, None)
 
 
 def test_owner_only_hidden_in_palette_for_staff():

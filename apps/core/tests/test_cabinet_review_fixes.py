@@ -194,27 +194,24 @@ def test_no_gettext_aliases_in_sources():
     assert bad == [], "псевдонимы gettext минуют i18n-гейты: " + "; ".join(bad)
 
 
-def test_hub_tabs_never_drop_a_tab(monkeypatch):
-    """Группировка вкладок хаба не имеет права ТЕРЯТЬ вкладку: опечатка в
-    `group` роняла её из таб-бара молча (та же семья, что «узел молча выпал»
-    в меню витрины)."""
-    from apps.core import nav_registry
-    from apps.core.templatetags import cabinet as cabinet_tags
+def test_sidebar_menu_never_drops_an_entry():
+    """R7-1 (переписан после сноса таб-баров): состав раздела не имеет права
+    ТЕРЯТЬ запись — тот же класс «узел молча выпал». Раньше вкладку роняла
+    опечатка в `group`; теперь единственная поверхность — подменю сайдбара,
+    и в него обязана попасть каждая гейт-проходимая запись хаба."""
+    from apps.core import modules, nav_registry
 
     tenant = _tenant("hotel", enable=("stays", "booking", "orders"))
-    request = _req("/dashboard/settings/", tenant=tenant)
-    ctx = {"request": request}
-
-    original = nav_registry.group_for
-    monkeypatch.setattr(
-        nav_registry,
-        "group_for",
-        lambda hub, url: "sonstiges" if url == "billing" else original(hub, url),
-    )
-    data = cabinet_tags.hub_tabs(ctx, "settings")
-    assert data["rows"], "хаб настроек рендерится рядами"
-    in_rows = sum(len(row["tabs"]) for row in data["rows"])
-    assert in_rows == len(data["tabs"]), "вкладка с неизвестной группой выпала из рядов"
+    by_anchor = {it["nav_key"]: it["children"] for it in modules.sidebar_nav(tenant)}
+    for a in nav_registry.ANCHORS:
+        expected = {
+            e.url_name
+            for e in nav_registry.sidebar_children(a)
+            if (not e.module_key or modules.is_module_active(tenant, e.module_key))
+            and nav_registry.allowed_for_business(e.url_name, tenant)
+        }
+        shown = {c["url_name"] for c in by_anchor.get(a.nav_key, [])}
+        assert expected <= shown, (a.nav_key, sorted(expected - shown))
 
 
 def test_registry_groups_are_known():

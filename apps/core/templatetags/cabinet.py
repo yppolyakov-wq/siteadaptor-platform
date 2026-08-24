@@ -45,10 +45,11 @@ def status_label(context, obj, kind="order"):
     return node.get(obj.status) or default
 
 
-# S1/S2/S3 → W8: реестр табов переехал в apps/core/nav_registry.py (ЕДИНЫЙ
-# источник навигации: якоря, табы, подсветка, палитра). HUB_TABS — производная
-# в прежней форме кортежей (url_name, label, nav_key, module_key, advanced):
-# потребители и замки целы, источник правды один.
+# S1/S2/S3 → W8: реестр навигации живёт в apps/core/nav_registry.py (ЕДИНЫЙ
+# источник: якоря, подменю сайдбара, подсветка, палитра). HUB_TABS — производная
+# в прежней форме кортежей (url_name, label, nav_key, module_key, advanced);
+# R7-1: сам ТЕГ hub_tabs снесён — таб-бары на страницах дублировали подменю
+# сайдбара (фидбэк владельца 2026-08-24), меню осталось одно.
 HUB_TABS = nav_registry.legacy_hub_tabs()
 
 
@@ -68,52 +69,6 @@ def _hide_owner_only(context) -> bool:
         return bool(role) and role != Membership.ROLE_OWNER
     except Exception:  # noqa: BLE001 — рендер хрома не должен падать из-за ролей
         return False
-
-
-@register.inclusion_tag("tenant/_hub_tabs.html", takes_context=True)
-def hub_tabs(context, hub):
-    """Отрисовать tab-bar хаба `hub` (реестр HUB_TABS), подсветив активный по `nav`.
-
-    Табы с module_key прячутся, если модуль не активен у тенанта (fail-open, если
-    request/tenant в контексте нет — простой тест-рендер без запроса). R2 (редизайн B,
-    утверждённая структура): advanced-табы на странице НЕ рендерятся — их состав живёт
-    подпунктами сайдбара (SM-4) и в палитре Ctrl+K; на странице остаются только
-    контентные вкладки. X0: owner-only табы прячутся у сотрудников (_hide_owner_only)."""
-    cur = context.get("nav")
-    request = context.get("request")
-    tenant = getattr(request, "tenant", None) if request is not None else None
-    owner_hidden = nav_registry.owner_only_url_names() if _hide_owner_only(context) else frozenset()
-    tabs, more = [], []
-    for u, lbl, k, mod, advanced in HUB_TABS.get(hub, ()):
-        if mod is not None and tenant is not None and not modules.is_module_active(tenant, mod):
-            continue
-        if u in owner_hidden:
-            continue
-        if not nav_registry.allowed_for_business(u, tenant):
-            continue  # X4: гастро-экраны (KDS/Tisch-QR) — только гастро-типам
-        if advanced:
-            continue  # R2: дубль-входы «Erweitert» сняты со страниц (сайдбар/палитра)
-        entry = {"url_name": u, "label": lbl, "nav_key": k, "active": k == cur, "module": mod}
-        entry["group"] = nav_registry.group_for(hub, u)
-        tabs.append(entry)
-    more_active = any(t["active"] for t in more)
-    # X5-1: у хаба с группами главные вкладки идут ПОДПИСАННЫМИ рядами (девять
-    # вкладок настроек уезжали в горизонтальный скролл — Abo/Team не видны).
-    # Хабы без групп рендерятся прежним плоским рядом (rows пуст).
-    rows = []
-    if any(t["group"] for t in tabs):
-        for key, label in nav_registry.TAB_GROUPS:
-            group_tabs = [t for t in tabs if t["group"] == key]
-            if group_tabs:
-                rows.append({"key": key, "label": label, "tabs": group_tabs})
-        # Ревью 2026-08-19: хвостовой ряд забирает ВСЁ, что не попало в известные
-        # группы, — иначе опечатка в `group` роняла вкладку из таб-бара молча
-        # (класс «узел молча выпал»). Для group="" поведение прежнее.
-        known = {key for key, _label in nav_registry.TAB_GROUPS}
-        rest = [t for t in tabs if t["group"] not in known]
-        if rest:
-            rows.append({"key": "", "label": "", "tabs": rest})
-    return {"tabs": tabs, "rows": rows, "more_tabs": more, "more_active": more_active}
 
 
 @register.inclusion_tag("tenant/_nav_palette.html", takes_context=True)

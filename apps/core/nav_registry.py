@@ -840,16 +840,23 @@ def hub_module_keys(anchor) -> set[str]:
 
 
 def sidebar_children(anchor) -> list[NavEntry]:
-    """SM-4: подпункты якоря в сайдбаре = advanced-записи его хабов (единый
-    реестр W8: гейты/подсветка/палитра — те же). Дедуп по url_name (Angebote
-    собирает sellables+catalog — состав одинаков). Гейты модулей применяет
-    вызывающий (modules.sidebar_nav)."""
+    """Подпункты якоря в сайдбаре = ВЕСЬ состав его хабов (единый реестр W8:
+    гейты/подсветка/палитра — те же).
+
+    R7-1 (фидбэк владельца 2026-08-24 «при нажатии на Продажи или Ассортимент
+    должно открываться подменю, и в нём уже всё, а не сразу страница»): раньше
+    в подменю шли только advanced-записи (SM-4), а main-состав жил таб-баром
+    НА странице — то есть одни и те же ссылки показывались дважды («дубль
+    меню»). Теперь меню одно: раздел раскрывается подменю с полным составом,
+    таб-бары со страниц сняты. `sidebar=False` (явный) и `palette_only`
+    по-прежнему исключают запись. Дедуп по (url_name, query); гейты модулей
+    применяет вызывающий (modules.sidebar_nav)."""
     seen, out = set(), []
     for hub in anchor.hubs:
         for e in ENTRIES:
-            in_sidebar = e.advanced if e.sidebar is None else e.sidebar
+            in_sidebar = True if e.sidebar is None else e.sidebar
             if not in_sidebar or e.palette_only:
-                continue  # X4: ящик «Erweitert» ≠ подпункты сайдбара (склад/сироты)
+                continue  # sidebar=False — осознанно вне меню (сироты/дубли)
             # SH-14/15: ключ дедупа — (url_name, query): «Kunden» и «Lieferungen»
             # ведут на ОДИН экран продаж с разными вкладками/фильтрами, и по
             # голому url_name второй пункт молча исчезал бы.

@@ -576,11 +576,27 @@ NAV_TASK_LABELS: dict[str, str] = {
 # ST-4b: компактный сайдбар «хабы + Website» — плоский список якорей.
 # Sortiment/Kunden/Finanzen/Auswertungen достижимы через хаб-табы и
 # «Funktion hinzufügen». W-CL (2026-08-05): классик-сайдбар снесён.
-def sidebar_nav(tenant) -> list[dict]:
+def sidebar_nav(tenant, user=None) -> list[dict]:
     """Якоря компактного сайдбара — из ЕДИНОГО реестра (W8, nav_registry.ANCHORS).
     Гейты — по активным модулям; nav_key = значение `nav` целевой страницы.
-    SM-4: у якоря — `children` (advanced-состав его хабов, раскрытие слайдером)."""
+    R7-1: у якоря — `children` (ВЕСЬ состав его хабов; клик по разделу раскрывает
+    подменю). `user` — для owner-гейта: сотруднику owner-only экраны (Team/Abo/
+    Recht) не показываем, мидлварь W9-10 всё равно отдала бы 403 (прежде этот
+    гейт жил только в снесённом теге hub_tabs и в палитре). Fail-open: без
+    user/при ошибке ролей показываем всё — доступ держит middleware."""
     from apps.core import nav_registry
+
+    owner_hidden = frozenset()
+    if user is not None:
+        try:
+            from apps.core import roles
+            from apps.core.models import Membership
+
+            role = roles.role_of(user)
+            if role and role != Membership.ROLE_OWNER:
+                owner_hidden = nav_registry.owner_only_url_names()
+        except Exception:  # noqa: BLE001 — рендер хрома не падает из-за ролей
+            owner_hidden = frozenset()
 
     items = []
     for a in nav_registry.ANCHORS:
@@ -603,12 +619,16 @@ def sidebar_nav(tenant) -> list[dict]:
             if (not e.module_key or is_module_active(tenant, e.module_key))
             # X4: гейт по типу бизнеса — «Kitchen Display» только гастро.
             and nav_registry.allowed_for_business(e.url_name, tenant)
+            # X0: owner-only экраны сотруднику не показываем (мёртвый 403).
+            and e.url_name not in owner_hidden
         ]
         # X0: «Nachrichten» — первым подпунктом якоря Marketing со СВОИМ бейджем:
         # бейдж на якоре вёл на лендинг, где непрочитанного не видно.
         if a.badge == "inbox" and is_module_active(tenant, "inbox"):
             e = nav_registry.entry_for("marketing", "inbox:list")
-            if e is not None:
+            # R7-1: подменю несёт ВЕСЬ состав хаба — «Nachrichten» там уже есть;
+            # вставляем первым только если её нет (иначе был бы дубль строки).
+            if e is not None and not any(c["url_name"] == e.url_name for c in children):
                 children.insert(
                     0,
                     {
@@ -619,6 +639,26 @@ def sidebar_nav(tenant) -> list[dict]:
                         "badge": "inbox",
                     },
                 )
+        # R7-1: у раздела с подменю ПЕРВЫМ подпунктом — обзорная страница самого
+        # якоря («Verkäufe», «Sortiment», «Mein Geschäft»): клик по разделу теперь
+        # раскрывает меню, а не уводит на страницу, и обзор обязан остаться
+        # достижимым. Если запись якоря уже среди детей (Sortiment/Marketing) —
+        # не дублируем.
+        # Дедуп по ПАРЕ (url_name, query): «Kunden»/«Lieferungen» ведут на тот же
+        # `verkaeufe`, но с фильтром — по голому url_name обзор молча исчезал.
+        if children and not any(
+            c["url_name"] == a.url_name and not c.get("query") for c in children
+        ):
+            children.insert(
+                0,
+                {
+                    "url_name": a.url_name,
+                    "nav_key": a.nav_key,
+                    "label": a.label,
+                    "search": a.search,
+                    "query": "",
+                },
+            )
         it = {
             "url_name": a.url_name,
             "nav_key": a.nav_key,

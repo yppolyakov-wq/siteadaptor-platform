@@ -10,7 +10,6 @@
   дефолтную (остаток того же класса, что чипы ниже).{% endcomment %}
   <a href="{% url 'verkaeufe' %}{% if active_kind %}?tab={{ active_kind }}{% endif %}" class="inline-block mb-4 text-sm text-gray-500 hover:text-indigo-700">← {% trans "Verkäufe" %}</a>
 {% else %}
-  {% hub_tabs "settings" %}
 {% endif %}
 {% comment %}W9-8: настройки процессов продаж в одном месте (аудит 2026-08-05 —
 панели были разбросаны по спискам). VK-4 (фидбэк владельца 2026-08-20 «настройки

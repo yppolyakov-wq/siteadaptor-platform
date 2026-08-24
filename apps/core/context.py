@@ -270,13 +270,16 @@ def modules_nav(request):
         bottom_nav = _storefront_bottom_nav(request, tenant)
     # Кабинет: плоский список первых пунктов для мобильного таб-бара (нативно).
     # ST-4b/W-CL: таб-бар = первая четвёрка якорей компакт-сайдбара (безусловно).
-    _compact = modules.sidebar_nav(tenant)
+    _compact = modules.sidebar_nav(tenant, getattr(request, "user", None))
     nav_primary = [
         {
             "url_name": it["url_name"],
             "nav_key": it["nav_key"],
             "label": it["label"],
             "icon": it["icon"],
+            # R7-1: раздел с подменю на мобильном открывает СПИСОК подпунктов
+            # (тот же жест, что на десктопе), а не уводит сразу на страницу.
+            "has_children": bool(it.get("children")),
         }
         for it in _compact[:4]
     ]

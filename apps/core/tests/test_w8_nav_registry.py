@@ -107,9 +107,10 @@ def test_settings_subpage_highlights_settings_anchor():
     req.user = _User()
     req.tenant = TenantFactory(business_type="restaurant")
     html = views.notifications_settings(req).content.decode()
-    # nav="notifications" → якорь «Einstellungен» активен (раньше — ничего)
-    m = re.search(r'href="/dashboard/settings/"[^>]*class="nav-link[^"]*"', html)
-    # R1 (редизайн B): активный якорь — залитая пилюля bg-indigo-600 (был bg-indigo-50).
+    # nav="notifications" → раздел «Einstellungen» активен (раньше — ничего).
+    # R7-1: раздел с подменю — кнопка-тумблер [data-nav-toggle], не ссылка;
+    # подсветка та же (залитая индиго-пилюля стиля B).
+    m = re.search(r'data-nav-toggle="settings"[^>]*class="nav-link[^"]*"', html, re.S)
     assert m and "bg-indigo-600" in m.group(0), m.group(0) if m else html[:200]
 
 

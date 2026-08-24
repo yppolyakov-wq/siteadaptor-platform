@@ -1,16 +1,19 @@
 """X5 (план x5-settings-plan-2026-08-19): настройки без скролла и телепортов.
 
-- таб-бар настроек = два подписанных ряда (Basis/Verwaltung), прочие хабы плоские;
+R7-1 (2026-08-24): таб-бары со страниц сняты целиком — состав настроек живёт
+подменю раздела «Einstellungen» в сайдбаре. Замки рядов табов переписаны
+осознанно на новую поверхность (смысл сохранён: все экраны настроек видимы
+и достижимы, скролла/телепортов нет).
+
+- состав настроек виден целиком в подменю раздела;
 - «Google Bewertungen» ушёл из табов, но остался достижим (карточка + Ctrl+K);
 - «Abläufe» — одна страница: заход из «Verkäufe» держит контекст продаж;
 - «Mein Geschäft» — секции с якорями, все поля в DOM (инвариант W0).
 """
 
-from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
-from django.template import Context, Template
 
 from apps.core import modules, nav_registry
 from apps.core.modules import default_disabled_for
@@ -33,37 +36,25 @@ def _tenant(business_type):
     )
 
 
-def _settings_tabs_html(tenant=None, nav="settings"):
-    ctx = {"nav": nav}
-    if tenant is not None:
-        ctx["request"] = SimpleNamespace(tenant=tenant, user=None)
-    return Template('{% load cabinet %}{% hub_tabs "settings" %}').render(Context(ctx))
+def _settings_submenu(tenant):
+    """R7-1: подписи подпунктов раздела «Einstellungen» в сайдбаре."""
+    items = modules.sidebar_nav(tenant)
+    section = next(it for it in items if it["nav_key"] == "settings")
+    return [str(c["label"]) for c in section["children"]]
 
 
-def test_settings_tabs_render_two_labelled_rows():
-    """X5-1: девять вкладок в одну строку уезжали в горизонтальный скролл —
-    «Abo & Rechnung»/«Team» не были видны. Теперь два подписанных ряда."""
-    html = _settings_tabs_html(_tenant("friseur"))
-    assert "Basis" in html and "Verwaltung" in html
-    # ряды — не скролл-контейнер прежнего вида
-    assert "overflow-x-auto" not in html
-    for lbl in ("Mein Geschäft", "Sprachen", "Abo &amp; Rechnung", "Team &amp; Zugriff"):
-        assert lbl in html, lbl
+def test_settings_screens_all_visible_in_submenu():
+    """X5-1 (переписан под R7-1): девять вкладок уезжали в скролл, «Abo &
+    Rechnung»/«Team» не были видны. Теперь весь состав — вертикальным подменю
+    раздела, ничего не прячется."""
+    kids = _settings_submenu(_tenant("friseur"))
+    for lbl in ("Mein Geschäft", "Sprachen", "Abo & Rechnung", "Team & Zugriff"):
+        assert lbl in kids, lbl
 
 
-def test_other_hubs_keep_flat_tab_bar():
-    """Хабы без групп рендерятся прежней плоской строкой (разметка не тронута)."""
-    html = Template('{% load cabinet %}{% hub_tabs "catalog" %}').render(
-        Context({"nav": "catalog", "request": SimpleNamespace(tenant=_tenant("shop"), user=None)})
-    )
-    assert "overflow-x-auto" in html
-    assert "Basis" not in html
-
-
-def test_google_reviews_leaves_settings_tabbar_but_stays_reachable():
+def test_google_reviews_stays_reachable_without_own_menu_entry():
     """X5-2: экран остаётся, входов два (карточка Integrationen + Ctrl+K)."""
-    html = _settings_tabs_html(_tenant("friseur"))
-    assert "Google Bewertungen" not in html
+    assert "Google Bewertungen" not in _settings_submenu(_tenant("friseur"))
     assert "google-reviews-settings" in {e["url_name"] for e in nav_registry.palette_entries()}
 
 
@@ -81,13 +72,14 @@ def test_ablaeufe_from_board_keeps_sales_context():
     req = RequestFactory().get("/dashboard/ablaeufe/", {"from": "board"})
     req.tenant, req.user = t, user
     html = core_views.ablaeufe_view(req).content.decode()
-    assert "/dashboard/verkaeufe/" in html  # хлебная крошка назад
-    assert "Basis" not in html  # таб-бар настроек не рисуется
-
+    # R7-1: ссылка на продажи есть и в подменю сайдбара — крошку ищем по её
+    # собственной разметке («← Verkäufe» перед заголовком страницы).
+    crumb = "← Verkäufe"
+    assert crumb in html
     plain = RequestFactory().get("/dashboard/ablaeufe/")
     plain.tenant, plain.user = t, user
     html2 = core_views.ablaeufe_view(plain).content.decode()
-    assert "Basis" in html2  # прежний вид из настроек
+    assert crumb not in html2  # заход из настроек контекст продаж не подменяет
 
 
 def test_ablaeufe_sidebar_child_carries_from_board():
