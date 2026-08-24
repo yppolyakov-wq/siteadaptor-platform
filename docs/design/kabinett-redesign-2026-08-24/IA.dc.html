@@ -1,0 +1,105 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: 'Instrument Sans', system-ui, sans-serif; }
+    a { color: #4F46E5; } a:hover { color: #4338CA; }
+  </style>
+</helmet>
+<div style="width: 1240px; min-height: 980px; background: #FFFFFF; color: #16181D; padding: 40px; box-sizing: border-box; display: flex; flex-direction: column; gap: 28px">
+  <div style="display: flex; flex-direction: column; gap: 6px">
+    <div style="font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #4F46E5">Новая структура кабинета</div>
+    <div style="font-size: 28px; font-weight: 700; letter-spacing: -0.01em">Один источник навигации, максимум 3 уровня</div>
+    <div style="font-size: 14px; color: #6A7180; max-width: 760px">Каждая страница живёт ровно в одном месте. Дубли (подпункты сайдбара = дропдаун «Erweitert» = верхние табы) убираются: внутри страницы остаются только контентные вкладки, ссылки-повторы уходят.</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; align-items: start">
+
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 15px; font-weight: 700">Правила уровней</div>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="background: #F6F7F9; border-radius: 12px; padding: 14px 16px">
+          <div style="font-size: 13px; font-weight: 600; color: #4F46E5">Уровень 1 · Сайдбар / таб-бар</div>
+          <div style="font-size: 13px; color: #444a56; margin-top: 4px">6 разделов. На телефоне — 4 главных + «Mehr».</div>
+        </div>
+        <div style="background: #F6F7F9; border-radius: 12px; padding: 14px 16px">
+          <div style="font-size: 13px; font-weight: 600; color: #4F46E5">Уровень 2 · Подпункты раздела</div>
+          <div style="font-size: 13px; color: #444a56; margin-top: 4px">Раскрываются под разделом. ВСЕ настройки — здесь, не глубже. На телефоне — экран раздела.</div>
+        </div>
+        <div style="background: #F6F7F9; border-radius: 12px; padding: 14px 16px">
+          <div style="font-size: 13px; font-weight: 600; color: #4F46E5">Уровень 3 · Вкладки внутри страницы</div>
+          <div style="font-size: 13px; color: #444a56; margin-top: 4px">Только СОДЕРЖИМОЕ этой страницы (Bestellungen · Termine · Anfragen). Никогда не ссылки на другие страницы.</div>
+        </div>
+        <div style="background: #FDF3F3; border-radius: 12px; padding: 14px 16px">
+          <div style="font-size: 13px; font-weight: 600; color: #C24040">Убираем</div>
+          <div style="font-size: 13px; color: #444a56; margin-top: 4px">Дропдаун «Erweitert» на страницах · повтор пунктов в верхних табах · третий уровень настроек («ящики в ящиках»).</div>
+        </div>
+        <div style="background: #F0FBF6; border-radius: 12px; padding: 14px 16px">
+          <div style="font-size: 13px; font-weight: 600; color: #0A8A5F">Контекстные настройки</div>
+          <div style="font-size: 13px; color: #444a56; margin-top: 4px">Кнопка ⚙ прямо на странице ведёт к её настройкам (Abläufe из Verkäufe, SEO из Website) — и та же страница доступна из сайдбара.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 15px; font-weight: 700">Дерево (уровни 1–2)</div>
+      <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px">
+        <div style="border: 1px solid #E7E9EE; border-radius: 12px; padding: 10px 14px">
+          <div style="font-weight: 600">Übersicht</div>
+          <div style="color: #6A7180; margin-top: 2px">День: выручка · задачи · ближайшие сделки</div>
+        </div>
+        <div style="border: 1px solid #E7E9EE; border-radius: 12px; padding: 10px 14px">
+          <div style="font-weight: 600">Verkäufe</div>
+          <div style="color: #6A7180; margin-top: 2px">Вкладки: Bestellungen · Termine · Anfragen · Zusatz<br>Подпункты: Abläufe &amp; Status · Auswertungen · Finanzen · Ressourcen &amp; Zeiten</div>
+        </div>
+        <div style="border: 1px solid #E7E9EE; border-radius: 12px; padding: 10px 14px">
+          <div style="font-weight: 600">Sortiment</div>
+          <div style="color: #6A7180; margin-top: 2px">Вкладки: сущности архетипа (Produkte · Leistungen · Zimmer …)<br>Подпункты: Kategorien · Lager · Einkauf · Import</div>
+        </div>
+        <div style="border: 1px solid #E7E9EE; border-radius: 12px; padding: 10px 14px">
+          <div style="font-weight: 600">Marketing</div>
+          <div style="color: #6A7180; margin-top: 2px">Вкладки: Aktionen · Bewertungen · Kampagnen · Kontakte · Nachrichten<br>Подпункты: Treuepunkte · Newsletter · Blog · Kanäle · Telegram</div>
+        </div>
+        <div style="border: 1px solid #E7E9EE; border-radius: 12px; padding: 10px 14px">
+          <div style="font-weight: 600">Website</div>
+          <div style="color: #6A7180; margin-top: 2px">Studio (редактор)<br>Подпункты: SEO · Domains · Medien</div>
+        </div>
+        <div style="border: 1px solid #E7E9EE; border-radius: 12px; padding: 10px 14px">
+          <div style="font-weight: 600">Einstellungen</div>
+          <div style="color: #6A7180; margin-top: 2px">Все настройки бизнеса на ОДНОМ экране секциями: Geschäft · Zahlung &amp; Lieferung · Recht · Team · Sprachen · Benachrichtigungen · Integrationen · Funktionen</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 15px; font-weight: 700">Куда что переехало</div>
+      <div style="border: 1px solid #E7E9EE; border-radius: 12px; overflow: hidden; font-size: 12.5px">
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); background: #F6F7F9; font-weight: 600; padding: 8px 12px; gap: 8px"><span>Страница</span><span>Положение (клики с главной)</span></div>
+        <div style="display: flex; flex-direction: column">
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 8px 12px; gap: 8px; border-top: 1px solid #F0F1F4"><span>Создать товар</span><span style="color: #6A7180">Sortiment → «+» · <b style="color: #0A8A5F">1 клик</b> с FAB</span></div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 8px 12px; gap: 8px; border-top: 1px solid #F0F1F4"><span>Заказы / брони / заявки</span><span style="color: #6A7180">Verkäufe → вкладка · 2 клика</span></div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 8px 12px; gap: 8px; border-top: 1px solid #F0F1F4"><span>Статусы и переходы</span><span style="color: #6A7180">Verkäufe → Abläufe (⚙ на странице) · 2</span></div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 8px 12px; gap: 8px; border-top: 1px solid #F0F1F4"><span>Оплата и доставка</span><span style="color: #6A7180">Einstellungen → секция · 2</span></div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 8px 12px; gap: 8px; border-top: 1px solid #F0F1F4"><span>Склад / Lager</span><span style="color: #6A7180">Sortiment → Lager · 2</span></div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 8px 12px; gap: 8px; border-top: 1px solid #F0F1F4"><span>Newsletter / Blog</span><span style="color: #6A7180">Marketing → подпункт · 2 (был: 3 места сразу)</span></div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 8px 12px; gap: 8px; border-top: 1px solid #F0F1F4"><span>Финансы / отчёты</span><span style="color: #6A7180">Verkäufe → Finanzen · 2</span></div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 8px 12px; gap: 8px; border-top: 1px solid #F0F1F4"><span>Языки / право / команда</span><span style="color: #6A7180">Einstellungen → секция · 2</span></div>
+        </div>
+      </div>
+      <div style="background: #EEF0FF; border-radius: 12px; padding: 14px 16px">
+        <div style="font-size: 13px; font-weight: 600; color: #4338CA">Поиск остаётся сквозным</div>
+        <div style="font-size: 13px; color: #444a56; margin-top: 4px">Ctrl+K / 🔍 в шапке ищет и страницы, и сделки, и клиентов — «запасной вход» на любой экран за 1 действие.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
