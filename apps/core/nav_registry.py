@@ -23,6 +23,11 @@ from apps.core.archetypes import FOOD_BUSINESS_TYPES
 
 # X4: гейт гастро-экранов (KDS/Tisch-QR) — кортеж ради frozen dataclass.
 FOOD_TYPES: tuple[str, ...] = tuple(sorted(FOOD_BUSINESS_TYPES))
+# VF-5 (вопрос владельца 2026-08-24: «Küchenanzeige у продуктового?»): набор
+# пищевой МАРКИРОВКИ (bakery/butcher/grocery/…) — не то же, что «есть кухня».
+# KDS — тем, кто ГОТОВИТ под заказ; Tisch-QR — заведениям со столами.
+KITCHEN_TYPES: tuple[str, ...] = ("cafe", "catering", "restaurant")
+TABLE_TYPES: tuple[str, ...] = ("cafe", "restaurant")
 
 
 @dataclass(frozen=True)
@@ -282,7 +287,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "orders",
         True,
         "küche kds bon",
-        business_types=FOOD_TYPES,
+        business_types=KITCHEN_TYPES,
     ),
     # SM-4 (решение владельца 2026-08-11): отчёты и настройки процессов — подпункты
     # раздела «Verkäufe» в сайдбаре (advanced board-хаба; сам hub_tabs "board" не
@@ -453,7 +458,7 @@ ENTRIES: tuple[NavEntry, ...] = (
         "orders",
         search="tisch qr code gastro",
         palette_only=True,
-        business_types=FOOD_TYPES,
+        business_types=TABLE_TYPES,
     ),
     # Marketing.
     _e(
