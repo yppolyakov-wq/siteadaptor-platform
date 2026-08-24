@@ -1,0 +1,45 @@
+{% load i18n cabinet %}
+{% comment %}R6 (утверждённый макет DesktopVerkaeufe.dc): содержимое правой
+detail-панели master-detail. Рендерится СКРЫТЫМ <template> внутри каждой
+строки списка — клик по строке (lg+) клонирует его в #deal-peek: панель
+живёт из ТЕХ ЖЕ данных Transaction, что и строка, — запросов на клик нет.
+Действия — та же форма board-action (обычный POST, штатный путь статусов);
+«Bearbeiten» ведёт на полную карточку (manage_url).{% endcomment %}
+<template data-peek>
+  <div class="flex items-start justify-between gap-2 mb-3">
+    <div>
+      <p class="text-base font-bold tabular-nums">#{{ tx.reference_code }}</p>
+      {% if section.label %}<p class="text-xs text-gray-500">{{ section.label }}</p>{% endif %}
+    </div>
+    <span class="text-xs font-medium px-2.5 py-1 rounded-full {{ tx.pipeline_stage|stage_badge }}">{{ tx.status_label }}</span>
+  </div>
+  {% if tx.has_problem %}
+  <p class="text-xs font-medium text-red-600 mb-2">⚠️ {% trans "Problem — Kunde wartet" %}</p>
+  {% endif %}
+  <div class="space-y-1.5 text-sm mb-3">
+    <p class="font-medium truncate">{{ tx.title }}</p>
+    {% if tx.customer %}<p class="text-gray-600 truncate">👤 {{ tx.customer }}</p>{% endif %}
+    {# when бывает date И datetime (заезд vs слот) — формат без времени, как на доске #}
+    {% if tx.when %}<p class="text-gray-600">📅 {{ tx.when|date:"D, d.m.Y" }}{% if tx.when_note %} · {{ tx.when_note }}{% endif %}</p>{% endif %}
+    {% if tx.subtotal_display %}
+    <p class="flex items-center justify-between border-t border-gray-100 pt-2 mt-2">
+      <span class="text-gray-500">{% trans "Summe" %}</span>
+      <span class="font-bold tabular-nums">{{ tx.subtotal_display }}</span>
+    </p>
+    {% endif %}
+  </div>
+  {% if tx.allowed_actions %}
+  <form method="post" action="{% url 'board-action' tx.kind tx.pk %}" class="flex flex-col gap-1.5 mb-3">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    {% if tx.needs_tracking %}
+      <input type="text" name="tracking_code" maxlength="100" placeholder="{% trans 'Sendungsnummer (optional)' %}"
+             class="rounded-xl border border-transparent bg-gray-50 px-3 py-1.5 text-sm focus:border-indigo-300 focus:outline-none">
+    {% endif %}
+    {% include "core/_status_actions.html" with actions=tx.allowed_actions %}
+  </form>
+  {% endif %}
+  {% if tx.manage_url %}
+  <a href="{{ tx.manage_url }}" class="block text-center text-sm font-medium rounded-xl bg-indigo-600 text-white px-3 py-2 hover:bg-indigo-700">{% trans "Bearbeiten" %} →</a>
+  {% endif %}
+</template>

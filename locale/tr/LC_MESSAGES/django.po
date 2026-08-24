@@ -17716,3 +17716,6 @@ msgid "%(n)s Vorgang"
 msgid_plural "%(n)s Vorgänge"
 msgstr[0] "%(n)s işlem"
 msgstr[1] "%(n)s işlem"
+
+msgid "Eintrag wählen — Details erscheinen hier."
+msgstr "Bir kayıt seçin — ayrıntılar burada görünür."

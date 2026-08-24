@@ -1,0 +1,30 @@
+{% comment %}R6: делегированный обработчик master-detail. Отдельным партиалом
+ВНЕ повторяемых строк (урок HF-0: innerHTML не исполняет <script>; урок Ф1:
+делегирование на document переживает любой порядок парсинга). Клик по ссылке/
+кнопке/details внутри строки — обычное поведение (панель не перехватывает).{% endcomment %}
+<script>
+(function () {
+  "use strict";
+  if (window.__dealPeekBound) return;
+  window.__dealPeekBound = true;
+  document.addEventListener("click", function (e) {
+    var row = e.target.closest("[data-peek-row]");
+    if (!row) return;
+    if (e.target.closest("a, button, form, details, input, select, label")) return;
+    var panel = document.getElementById("deal-peek");
+    var tpl = row.querySelector("template[data-peek]");
+    if (!panel || !tpl) return;
+    if (!window.matchMedia("(min-width: 1024px)").matches) {
+      // Мобайл: панели нет — клик по телу строки ведёт на карточку сделки.
+      var link = row.querySelector("a[href]");
+      if (link && link.getAttribute("href") !== "#") window.location.href = link.href;
+      return;
+    }
+    panel.replaceChildren(tpl.content.cloneNode(true));
+    document.querySelectorAll("[data-peek-row].ring-2").forEach(function (r) {
+      r.classList.remove("ring-2", "ring-indigo-300");
+    });
+    row.classList.add("ring-2", "ring-indigo-300");
+  });
+})();
+</script>

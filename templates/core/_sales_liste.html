@@ -29,10 +29,15 @@ section (может быть None).{% endcomment %}
 интерактивные элементы в <a> недопустимы).{% endcomment %}
 {% comment %}R3 (утверждённый макет): строка списка = отдельная карточка
 radius 16 с мягкой тенью; порядковый номер (SH-12) и меню статуса целы.{% endcomment %}
+{% comment %}R6 (макет DesktopVerkaeufe.dc): master-detail на lg+ — клик по
+строке открывает правую панель с деталью из ТЕХ ЖЕ данных строки (скрытый
+<template data-peek> клонируется в #deal-peek, запросов на клик нет). На
+мобильном панели нет — строка ведёт на карточку как раньше.{% endcomment %}
 {% if section and section.transactions %}
+<div class="lg:grid lg:grid-cols-[1fr_22rem] lg:gap-4 lg:items-start" data-peek-root>
 <div class="space-y-2">
   {% for tx in section.transactions %}
-    <div class="flex items-center justify-between gap-3 px-4 py-3 bg-white rounded-2xl shadow-[0_4px_14px_rgba(22,24,29,0.05)]">
+    <div class="flex items-center justify-between gap-3 px-4 py-3 bg-white rounded-2xl shadow-[0_4px_14px_rgba(22,24,29,0.05)] lg:cursor-pointer" data-peek-row>
       <span class="w-6 shrink-0 text-xs tabular-nums text-gray-300">{{ forloop.counter }}</span>
       <div class="min-w-0 flex-1">
         <a href="{{ tx.manage_url|default:'#' }}" class="text-sm font-medium truncate block hover:text-indigo-700">{{ tx.title }}
@@ -44,9 +49,15 @@ radius 16 с мягкой тенью; порядковый номер (SH-12) и
         {% if tx.subtotal_display %}<span class="text-xs font-medium tabular-nums">{{ tx.subtotal_display }}</span>{% endif %}
         {% include "core/_row_status_menu.html" with kind=tx.kind pk=tx.pk label=tx.status_label actions=tx.allowed_actions next_path=request.get_full_path badge_class=tx.pipeline_stage|stage_badge %}
       </div>
+      {% include "core/_deal_peek.html" %}
     </div>
   {% endfor %}
 </div>
+<aside id="deal-peek" class="hidden lg:block sticky top-20 bg-white rounded-[22px] shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5">
+  <p class="text-sm text-gray-400" data-peek-empty>{% trans "Eintrag wählen — Details erscheinen hier." %}</p>
+</aside>
+</div>
+{% include "core/_deal_peek_js.html" %}
 {% else %}
 {% if list_q %}
   <p class="text-gray-500">{% blocktrans with q=list_q %}Nichts gefunden für „{{ q }}“.{% endblocktrans %}</p>

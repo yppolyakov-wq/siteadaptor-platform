@@ -17806,3 +17806,6 @@ msgstr[0] "%(n)s операція"
 msgstr[1] "%(n)s операції"
 msgstr[2] "%(n)s операцій"
 msgstr[3] "%(n)s операцій"
+
+msgid "Eintrag wählen — Details erscheinen hier."
+msgstr "Виберіть запис — деталі з’являться тут."

@@ -17652,3 +17652,6 @@ msgid "%(n)s Vorgang"
 msgid_plural "%(n)s Vorgänge"
 msgstr[0] "%(n)s Vorgang"
 msgstr[1] "%(n)s Vorgänge"
+
+msgid "Eintrag wählen — Details erscheinen hier."
+msgstr "Eintrag wählen — Details erscheinen hier."
