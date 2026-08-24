@@ -3,13 +3,16 @@
 Пилюли языков (по i18n_groups; только при i18n_multi) переключают видимость групп
 `[data-i18n-loc]`; кнопки `[data-pf-tab]` — панелей `[data-pf-panel]`. Все поля всех
 языков/табов остаются в DOM (скрытие только CSS) → Save собирает всё (инвариант W0).{% endcomment %}
+{% comment %}SR-2 (фидбэк владельца 2026-08-24): свитчер стал компактной
+пиктограммой-группой «🌐 + пилюли-коды» для угла шапки формы (вместо строки с
+пояснением). Механика (data-i18n-pill, radio-переключение) не тронута; в
+пилюлях — короткий КОД локали, полное имя — в title.{% endcomment %}
 {% if i18n_multi %}
-<div class="flex flex-wrap items-center gap-1 mb-4" role="group" aria-label="{% trans 'Editing language' %}">
-  <span class="text-xs text-gray-400 mr-1">🌐 {% trans "Language" %}:</span>
+<div class="inline-flex items-center gap-0.5 rounded-full bg-white shadow-sm px-1.5 py-1" role="group" aria-label="{% trans 'Editing language' %}" title="{% trans 'You enter data per language' %}">
+  <span class="text-sm px-0.5" aria-hidden="true">🌐</span>
   {% for g in i18n_groups %}
-    <button type="button" data-i18n-pill="{{ g.code }}" class="i18n-pill{% if g.is_base %} i18n-pill-on{% endif %} text-xs font-medium px-2.5 py-1 rounded-full border border-gray-200 text-gray-600">{{ g.label }}{% if g.is_base %} ·{% endif %}</button>
+    <button type="button" data-i18n-pill="{{ g.code }}" title="{{ g.label }}" class="i18n-pill{% if g.is_base %} i18n-pill-on{% endif %} text-[11px] font-semibold uppercase px-2 py-0.5 rounded-full border border-transparent text-gray-500">{{ g.code }}</button>
   {% endfor %}
-  <span class="text-xs text-gray-400 ml-1">{% trans "— you enter data per language" %}</span>
 </div>
 {% endif %}
 

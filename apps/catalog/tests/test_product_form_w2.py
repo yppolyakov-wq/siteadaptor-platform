@@ -79,13 +79,42 @@ def test_labeling_tab_hidden_for_nonfood(user):
 
 @pytest.mark.django_db
 def test_advanced_tabs_visible_for_everyone(user):
-    """SM-1 (2026-08-10): режим Простой/Эксперт снесён — продвинутые табы формы
-    (Preis & Lager / Marketing) видны каждому владельцу без переключателей."""
+    """SM-1: продвинутые табы видны каждому. SR-2 (осознанная переписка):
+    таба «Preis & stock» больше НЕТ — цена и наличие живут ПОСТОЯННОЙ правой
+    колонкой (data-price-rail), видимой на любом табе; Marketing — таб как был."""
     body = _render(user, TenantFactory(business_type="bakery"))
     assert "id_stock_quantity" in body and "id_cost_price" in body
-    for tab in ("preis", "markt"):
-        i = body.find(f'data-pf-tab="{tab}"')
-        assert i != -1 and "hidden" not in body[i : i + 80], tab
+    assert 'data-pf-tab="preis"' not in body and 'data-pf-panel="preis"' not in body
+    i = body.find("data-price-rail")
+    assert i != -1
+    # цена — вне какой-либо панели: её id встречается ПОСЛЕ маркера рейла
+    assert body.find("id_base_price", i) != -1
+    i = body.find('data-pf-tab="markt"')
+    assert i != -1 and "hidden" not in body[i : i + 80]
+
+
+@pytest.mark.django_db
+def test_inline_new_category_created_on_save(user):
+    """SR-2: поле «Neue Kategorie» на карточке товара создаёт категорию при
+    Save и назначает её товару (селект при этом перебивается)."""
+    from apps.catalog.forms import ProductForm
+    from apps.catalog.models import Category
+
+    TenantFactory(business_type="bakery")
+    form = ProductForm(
+        {
+            "name_de": "Brot",
+            "description_de": "",
+            "base_price": "4.20",
+            "currency": "EUR",
+            "new_category": "Backwaren",
+        },
+        tenant=None,
+    )
+    assert form.is_valid(), form.errors
+    product = form.save()
+    assert product.category is not None
+    assert Category.objects.get(pk=product.category_id).name["de"] == "Backwaren"
 
 
 # --- Ф1: переключатель языка (per-language ввод) ----------------------------

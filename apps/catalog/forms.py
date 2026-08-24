@@ -118,6 +118,14 @@ class CategoryForm(DynamicI18nFormMixin, forms.ModelForm):
 
 
 class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
+    # SR-2 (фидбэк владельца 2026-08-24): «если нет категории — добавить прямо
+    # с карточки товара». Не модельное поле: создаётся при Save и назначается.
+    new_category = forms.CharField(
+        required=False,
+        max_length=120,
+        label=_("New category"),
+        help_text=_("Wird beim Speichern angelegt und diesem Produkt zugewiesen."),
+    )
     # L3d.5: см. CategoryForm — динамические per-locale поля.
     name_de = forms.CharField(label=_("Name (DE)"), max_length=200)
     description_de = forms.CharField(
@@ -322,6 +330,16 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
         product = super().save(commit=False)
         product.name = self.collect_i18n("name")
         product.description = self.collect_i18n("description")
+        # SR-2: новая категория с карточки товара — сильнее выбора в селекте
+        # (владелец заполнил имя = хочет именно её; пустое поле = ничего).
+        new_cat = (self.cleaned_data.get("new_category") or "").strip()
+        if new_cat:
+            from apps.catalog.slugs import unique_slug
+
+            product.category = Category.objects.create(
+                name={"de": new_cat},
+                slug=unique_slug(Category, new_cat, fallback="kategorie"),
+            )
         product.allergens = self.cleaned_data.get("allergens", [])
         product.additives = self.cleaned_data.get("additives", [])
         product.diets = self.cleaned_data.get("diets", [])

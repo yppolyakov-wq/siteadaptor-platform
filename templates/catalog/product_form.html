@@ -3,7 +3,9 @@
 {% block dash_title %}{% if is_create %}{% trans "New product" %}{% else %}{% trans "Edit product" %}{% endif %}{% endblock %}
 
 {% block dash_content %}
-<div class="max-w-xl">
+{% comment %}SR-2: форма на всю ширину (утверждённый канвас) —
+main-колонка + правая колонка «Preis & Bestand»/«Kategorie»/Sichtbarkeit.{% endcomment %}
+<div>
   <h1 class="text-2xl font-bold mb-4">
     {% if is_create %}{% trans "New product" %}{% else %}{% trans "Edit product" %}{% endif %}
   </h1>
@@ -19,37 +21,31 @@
   страницы. Механика (data-pf-tab → data-pf-panel, invalid-раскрытие ревью
   Кабинет-X) в общем партиале _i18n_switch и не тронута.{% endcomment %}
   {# Табы: в Простом режиме продвинутые скрыты (панели остаются в DOM) #}
-  <div class="flex gap-1.5 flex-wrap text-sm font-medium" role="tablist">
+  {% comment %}SR-2: вкладки «Preis & stock» больше нет — цена и наличие ВСЕГДА
+  видны правой колонкой («основная информация», решение владельца); 🌐-свитчер
+  языков — пиктограммой в углу ряда табов.{% endcomment %}
+  <div class="flex items-center gap-1.5 flex-wrap text-sm font-medium" role="tablist">
     <button type="button" data-pf-tab="grund" class="pf-tab pf-tab-on">{% trans "Basics" %}</button>
-    <button type="button" data-pf-tab="preis" class="pf-tab">{% trans "Price & stock" %}</button>
     {% comment %}FB-1: вкладка «Kennzeichnung» (Allergene/Zusatzstoffe/Zutaten/Herkunft) —
     пищевая, показываем только гастро-архетипам. Панель остаётся в DOM (W0) → Save не стирает.{% endcomment %}
     <button type="button" data-pf-tab="kennz" class="pf-tab{% if not show_labeling_tab %} hidden{% endif %}">{% trans "Labeling" %}</button>
     <button type="button" data-pf-tab="markt" class="pf-tab">{% trans "Marketing" %}</button>
     {# Варианты/Extras — своя вкладка (только в режиме редактирования: нужен сохранённый товар) #}
     {% if product %}<button type="button" data-pf-tab="varianten" class="pf-tab">{% trans "Variants & extras" %}</button>{% endif %}
+    <span class="ml-auto">{% include "tenant/_i18n_switch.html" %}</span>
   </div>
 
 
   {% comment %}Ф1 (per-language + табы): переключатель языка показывает поля ТОЛЬКО
      выбранного языка (не все сразу); табы вместо портянки. ВСЕ поля (все языки/табы) в
      DOM — скрытие только CSS → Save собирает всё (инвариант W0). Свитчер/JS — партиал.{% endcomment %}
-  <form method="post" enctype="multipart/form-data" class="space-y-4 bg-white p-6 rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)]">
+  <form method="post" enctype="multipart/form-data" class="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-5 lg:items-start">
     {% csrf_token %}
 
-    {% include "tenant/_i18n_switch.html" %}
-
-    {# Panel: Basics — название/описание (per язык) + категория/цена/активность + фото #}
+    <div class="space-y-4 bg-white p-6 rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)]">
+    {# Panel: Basics — название/описание (per язык) + фото; категория/цена/видимость — в правой колонке #}
     <div data-pf-panel="grund" class="space-y-4 pt-2">
       {% for g in i18n_groups %}{% include "tenant/_i18n_group.html" %}{% endfor %}
-      {% for field in form %}{% if field.name == 'category' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
-      {% comment %}X6-6 (план cabinet-cleanup §6.A6.6): цена переехала на вкладку
-      «Preis & Lager» — раньше вкладка «цены» цены НЕ содержала (она жила в
-      «Basics»), и владелец искал её там. Поле остаётся в DOM (W0), из «Basics»
-      сюда ведёт кнопка.{% endcomment %}
-      <button type="button" data-pf-goto="preis" class="inline-flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-800 font-medium">
-        <span aria-hidden="true">💶</span> {% trans "Preis & Lager bearbeiten" %} →
-      </button>
       {% comment %}Под обычной ценой — переход к вариантам/наценкам (расширенная цена).
          Только когда товар уже сохранён (иначе вариантов ещё нет).{% endcomment %}
       {% if product %}
@@ -59,9 +55,6 @@
       {% else %}
         <p class="text-xs text-gray-400">{% trans "Save first to add variants & extras (sizes, options, surcharges)." %}</p>
       {% endif %}
-      {% for field in form %}{% if field.name == 'is_active' %}
-        <label class="flex items-center gap-2 text-sm font-medium">{% render_field field %} {{ field.label }}</label>
-      {% endif %}{% endfor %}
       {% comment %}FB-5 + R7-2: изображения — ЧАСТЬ вкладки «Grundlagen» (решение
       владельца: «изображения это часть основных»), а не отдельный блок над
       формой. Мини-формы ★/✕ живут ВНЕ главной формы (вложенные <form>
@@ -92,17 +85,6 @@
         <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple class="w-full text-sm">
         <p class="text-xs text-gray-400 mt-1">{% trans "JPEG, PNG or WEBP, max 5 MB each." %}</p>
       </div>
-    </div>
-
-    {# Panel: Price & stock #}
-    <div data-pf-panel="preis" class="space-y-3 pt-2 hidden">
-      {# X6-6: цена — первым полем своей вкладки #}
-      {% for field in form %}{% if field.name == 'base_price' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
-      {% comment %}MX-5: способ продажи карточки — «торт на заказ» без выключения orders.{% endcomment %}
-      {% for field in form %}{% if field.name == 'primary_action' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
-      {% comment %}SH-4 (фидбэк владельца 2026-08-20 «для разных товаров может быть
-      разный налог»): ставка НДС — рядом с ценой, в той же вкладке.{% endcomment %}
-      {% for field in form %}{% if field.name == 'vat_rate' or field.name == 'unit' or field.name == 'content_amount' or field.name == 'currency' or field.name == 'stock_quantity' or field.name == 'cost_price' or field.name == 'reorder_point' or field.name == 'reorder_target' or field.name == 'sku' or field.name == 'gtin' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
     </div>
 
     {# Panel: Labeling — пищевая маркировка (гейт по архетипу) + Herkunft/Zutaten #}
@@ -154,6 +136,40 @@
       товаров — переезжает в форму (confirm-страница прежняя).{% endcomment %}
       {% if product %}<a href="{% url 'catalog:product-delete' product.pk %}" class="ml-auto px-4 py-2 text-sm text-red-600 hover:underline">{% trans "Delete" %}</a>{% endif %}
     </div>
+    </div>
+
+    {% comment %}SR-2 (правая колонка): «цена и наличие — основная информация» —
+    видна на ЛЮБОМ табе (панель «Preis & stock» умерла, поля живут здесь; W0 —
+    ничего не скрыто). Категория — с созданием на месте; видимость — тумблером.{% endcomment %}
+    <aside class="space-y-4 mt-4 lg:mt-0">
+      <div class="bg-white p-5 rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] space-y-3" data-price-rail>
+        <p class="text-sm font-semibold">💶 {% trans "Price & stock" %}</p>
+        <div class="grid grid-cols-2 gap-3">
+          {% for field in form %}{% if field.name == 'base_price' or field.name == 'vat_rate' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          {% for field in form %}{% if field.name == 'stock_quantity' or field.name == 'reorder_point' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+        </div>
+        <details {% if form.errors %}open{% endif %}>
+          <summary class="text-sm text-indigo-600 cursor-pointer select-none">{% trans "Mehr anzeigen" %}</summary>
+          <div class="space-y-3 mt-3">
+            {% for field in form %}{% if field.name == 'unit' or field.name == 'content_amount' or field.name == 'currency' or field.name == 'sku' or field.name == 'gtin' or field.name == 'cost_price' or field.name == 'reorder_target' or field.name == 'primary_action' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+          </div>
+        </details>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] space-y-3">
+        <p class="text-sm font-semibold">🗂 {% trans "Category" %}</p>
+        {% for field in form %}{% if field.name == 'category' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+        {% for field in form %}{% if field.name == 'new_category' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)]">
+        {% for field in form %}{% if field.name == 'is_active' %}
+          <label class="flex items-center gap-2 text-sm font-medium">{% render_field field %} {{ field.label }}</label>
+        {% endif %}{% endfor %}
+      </div>
+    </aside>
   </form>
 
   {% comment %}W2: аллергены/добавки/диеты — компактными «чипами» вместо длинного столбца
