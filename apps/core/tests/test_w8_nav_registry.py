@@ -109,7 +109,8 @@ def test_settings_subpage_highlights_settings_anchor():
     html = views.notifications_settings(req).content.decode()
     # nav="notifications" → якорь «Einstellungен» активен (раньше — ничего)
     m = re.search(r'href="/dashboard/settings/"[^>]*class="nav-link[^"]*"', html)
-    assert m and "bg-indigo-50" in m.group(0), m.group(0) if m else html[:200]
+    # R1 (редизайн B): активный якорь — залитая пилюля bg-indigo-600 (был bg-indigo-50).
+    assert m and "bg-indigo-600" in m.group(0), m.group(0) if m else html[:200]
 
 
 def test_palette_rendered_on_cabinet_pages():

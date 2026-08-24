@@ -7,7 +7,9 @@
 {% block body %}
 {# ST-4a: SVG-спрайт иконсета кабинета (иконки хабов главной). #}
 {% include "tenant/_icons.html" %}
-<div class="min-h-screen flex">
+{% comment %}R1 (редизайн B, 2026-08-24): фон кабинета — серый холст стиля
+«Karten & Luft»; карточки контента читаются тенями, не бороздами.{% endcomment %}
+<div class="min-h-screen flex bg-[#F2F4F7]">
   {# Фидбэк 2026-07-28: сворачиваемый сайдбар (desktop) — уезжает влево, состояние в localStorage. #}
   {% comment %}SH-17 (фидбэк владельца 2026-08-20 «при сворачивании меню сделать
   пиктограммы видимыми»): свёрнутый сайдбар больше не исчезает — остаётся узкая
@@ -32,10 +34,14 @@
   {# Затемнение под выехавшим меню (только мобайл) #}
   <div id="sidebar-overlay" class="fixed inset-0 bg-black/30 z-20 hidden md:hidden"></div>
 
+  {% comment %}R1: на десктопе сайдбар — «парящая» карточка (скругление+тень,
+  без border-r); мобильный слайд-овер остаётся полноэкранной панелью.
+  sb-min-полоса (SH-17) работает без изменений — скрытие только CSS.{% endcomment %}
   <aside id="sidebar"
-         class="w-64 bg-white border-r border-gray-200 fixed inset-y-0 left-0 z-30
-                flex flex-col overflow-hidden
-                -translate-x-full md:translate-x-0 md:sticky md:top-0 md:h-screen md:z-auto transition-transform duration-200">
+         class="w-64 bg-white fixed inset-y-0 left-0 z-30
+                flex flex-col overflow-hidden shadow-xl
+                -translate-x-full md:translate-x-0 md:sticky md:top-4 md:z-auto transition-transform duration-200
+                md:my-4 md:ml-4 md:h-[calc(100vh-2rem)] md:rounded-2xl md:shadow-[0_8px_24px_rgba(22,24,29,0.06)]">
     <div class="sb-head flex items-center justify-between p-5 pb-3">
       <a href="{% url 'dashboard' %}" class="sb-label font-bold text-lg truncate">{{ request.tenant.name }}</a>
       <button id="sidebar-collapse" class="hidden md:block text-gray-400 hover:text-gray-700 text-lg leading-none" title="{% trans 'Menü einklappen' %}" aria-label="{% trans 'Menü einklappen' %}">⟨</button>
@@ -59,7 +65,7 @@
       Строка-якорь остаётся ссылкой (клик = переход, не тумблер).{% endcomment %}
       <div class="flex items-center gap-0.5">
         <a href="{% url it.url_name %}" data-label="{{ it.search }}"
-           class="nav-link flex-1 min-w-0 flex items-center gap-2.5 px-3 py-2 rounded-lg {% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
+           class="nav-link flex-1 min-w-0 flex items-center gap-2.5 px-3 py-2 rounded-xl {% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}bg-indigo-600 text-white font-medium shadow-sm{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
           <span class="w-5 shrink-0 text-center text-base leading-none" title="{{ it.label }}">{{ it.icon }}</span>
           <span class="sb-label truncate">{{ it.label }}</span>
           {% if it.badge == "inbox" %}{# ST-4b: бейдж непрочитанного — на якоре Marketing #}
@@ -91,7 +97,9 @@
   </aside>
 
   <div class="flex-1 flex flex-col min-w-0">
-    <header class="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 sticky top-0 z-10">
+    {% comment %}R1: шапка сливается с холстом (в утверждённом макете нет
+    отдельной белой полосы); при скролле — лёгкий blur, чтобы текст читался.{% endcomment %}
+    <header class="h-14 bg-[#F2F4F7]/95 backdrop-blur flex items-center justify-between px-4 md:px-6 sticky top-0 z-10">
       <div class="flex items-center gap-3 min-w-0">
         <button id="sidebar-open" class="md:hidden text-2xl leading-none text-gray-600" aria-label="{% trans 'Open menu' %}">☰</button>
         <span class="font-semibold truncate md:hidden">{% block dash_heading %}{% endblock %}</span>
@@ -161,23 +169,23 @@ billing.context.subscription) и закрывается кнопкой; пост
 </script>
 {% endif %}
 
-{# Мобильный таб-бар кабинета (нативно, как в приложении) — первые разделы + «Меню». #}
+{# Мобильный таб-бар кабинета — R1 (редизайн B): плавающая пилюля с SVG-иконками. #}
+{% comment %}Подписи разделов живут в title/aria-label (иконки-кружки —
+утверждённый макет B); «Mehr» открывает полный сайдбар слайд-овером.{% endcomment %}
 {% if nav_primary %}
-<nav class="md:hidden fixed bottom-0 inset-x-0 z-20 bg-white border-t border-gray-200 flex"
-     style="padding-bottom: max(2px, env(safe-area-inset-bottom)); transform: translateZ(0);"
+<nav class="md:hidden fixed bottom-3 inset-x-4 z-20 bg-white rounded-full shadow-[0_10px_26px_rgba(22,24,29,0.18)] flex items-center justify-around px-2 py-1.5"
+     style="margin-bottom: env(safe-area-inset-bottom); transform: translateZ(0);"
      aria-label="{% trans 'Menu' %}">
   {% for it in nav_primary %}
-    <a href="{% url it.url_name %}"
-       class="flex-1 flex flex-col items-center justify-center gap-0.5 pt-1.5 pb-1 min-h-[46px] text-[11px] font-medium
-              {% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}text-indigo-700{% else %}text-gray-600 active:bg-gray-100{% endif %}">
-      <span class="text-[18px] leading-none" aria-hidden="true">{{ it.icon }}</span>
-      <span class="leading-tight truncate max-w-full px-1">{{ it.label }}</span>
+    <a href="{% url it.url_name %}" title="{{ it.label }}" aria-label="{{ it.label }}"
+       class="w-12 h-12 rounded-full grid place-items-center
+              {% if nav_anchor_override|default:nav|nav_anchor == it.nav_key %}bg-indigo-600 text-white{% else %}text-gray-500 active:bg-gray-100{% endif %}">
+      <svg class="w-6 h-6" aria-hidden="true"><use href="#ic-nav-{{ it.nav_key }}"></use></svg>
     </a>
   {% endfor %}
-  <button id="tabbar-menu" type="button"
-          class="flex-1 flex flex-col items-center justify-center gap-0.5 pt-1.5 pb-1 min-h-[46px] text-[11px] font-medium text-gray-600 active:bg-gray-100">
-    <span class="text-[18px] leading-none" aria-hidden="true">☰</span>
-    <span class="leading-tight">{% trans "Menu" %}</span>
+  <button id="tabbar-menu" type="button" title="{% trans 'Menu' %}" aria-label="{% trans 'Menu' %}"
+          class="w-12 h-12 rounded-full grid place-items-center text-gray-500 active:bg-gray-100">
+    <svg class="w-6 h-6" aria-hidden="true"><use href="#ic-nav-more"></use></svg>
   </button>
 </nav>
 {% endif %}

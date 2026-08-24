@@ -9961,7 +9961,7 @@ msgstr "Сохранить как шаблон"
 
 #: templates/tenant/_hub_tabs.html:17
 msgid "Erweitert"
-msgstr "Расширенный"
+msgstr "Дополнительно"
 
 #: templates/tenant/_i18n_switch.html:8
 msgid "Editing language"
@@ -12370,7 +12370,7 @@ msgstr "Обычно отвечает за ~%(n)s мин"
 
 #. LS-5 Care (2026-07-19)
 msgid "Care-Zyklus"
-msgstr "Care-цикл"
+msgstr "Цикл заботы"
 
 #. LS-5 Care (2026-07-19)
 msgid ""
