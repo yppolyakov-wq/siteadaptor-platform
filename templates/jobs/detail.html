@@ -38,83 +38,15 @@
   </span>
 </div>
 
-{% comment %}QF-3/QF-4 (фидбэк владельца 2026-08-20): «важная информация о клиенте
-очень мелкая» и «добавить возможность редактировать инфо о клиенте со страницы».
-Контакты — крупной строкой, а не серым мелким текстом; правка — тут же формой
-(меняется ОБЩАЯ карточка клиента, та же, что в CRM).{% endcomment %}
-<div class="bg-white rounded-2xl shadow-sm p-5 mb-5 text-sm space-y-1">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div class="min-w-0">
-      <p class="text-lg font-semibold text-gray-900">{{ job.customer }}</p>
-      <p class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-[15px]">
-        {% if job.customer.email %}<a href="mailto:{{ job.customer.email }}" class="text-indigo-700 hover:underline">✉ {{ job.customer.email }}</a>{% endif %}
-        {% if job.customer.phone %}<a href="tel:{{ job.customer.phone }}" class="text-indigo-700 hover:underline">📞 {{ job.customer.phone }}</a>{% endif %}
-        {% if not job.customer.email and not job.customer.phone %}<span class="text-amber-700">{% trans "Keine Kontaktdaten hinterlegt" %}</span>{% endif %}
-      </p>
-      {% if job.site_address %}<p class="text-gray-600 mt-1">📍 {{ job.site_address }}</p>{% endif %}
-    </div>
-    <span class="text-xs text-gray-400 whitespace-nowrap">{{ job.reference_code }}</span>
-  </div>
-  {% if job.event_date or job.guest_count or job.event_type %}
-    {# AF-1: событийная заявка (Catering/Partyservice) — тип · дата · гости #}
-    <p class="mt-2 inline-flex flex-wrap items-center gap-2 rounded-xl bg-indigo-50 px-3 py-1.5 text-[15px] font-medium text-indigo-900">
-      🎉 {% if job.event_type %}{{ job.event_type }}{% else %}{% trans "Event" %}{% endif %}{% if job.event_date %} · 📅 {{ job.event_date|date:"d.m.Y" }}{% endif %}{% if job.guest_count %} · 👥 {{ job.guest_count }} {% trans "guests" %}{% endif %}</p>
-  {% endif %}
-
-  {# QF-4: правка контактов прямо здесь #}
-  <details class="mt-3 pt-3 border-t border-gray-100">
-    <summary class="cursor-pointer text-sm text-indigo-600 hover:underline">✏️ {% trans "Kundendaten bearbeiten" %}</summary>
-    <form method="post" class="mt-3 grid gap-2 sm:grid-cols-2 max-w-2xl">{% csrf_token %}
-      <input type="hidden" name="action" value="customer">
-      <label class="text-xs text-gray-500">{% trans "Name" %}
-        <input name="cust_name" value="{{ job.customer.name }}" maxlength="200" class="mt-0.5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-      <label class="text-xs text-gray-500">{% trans "E-Mail" %}
-        <input name="cust_email" type="email" value="{{ job.customer.email }}" class="mt-0.5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-      <label class="text-xs text-gray-500">{% trans "Telefon" %}
-        <input name="cust_phone" value="{{ job.customer.phone }}" maxlength="40" class="mt-0.5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-      <label class="text-xs text-gray-500">{% trans "Adresse (Einsatzort)" %}
-        <input name="site_address" value="{{ job.site_address }}" maxlength="300" class="mt-0.5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-      <p class="sm:col-span-2 text-xs text-gray-400">{% trans "Name, E-Mail und Telefon gehören zur Kundenkarte — die Änderung gilt auch für andere Verkäufe dieses Kunden." %}</p>
-      <div class="sm:col-span-2"><button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button></div>
-    </form>
-  </details>
-  {% if job.vehicle or job.vehicle_plate %}
-    <p class="text-gray-500">🚗 {{ job.vehicle }}{% if job.vehicle_plate %} · <span class="font-medium">{{ job.vehicle_plate }}</span>{% endif %}{% if job.vehicle_hsn or job.vehicle_tsn %} · HSN/TSN {{ job.vehicle_hsn }}/{{ job.vehicle_tsn }}{% endif %}</p>
-  {% endif %}
-  {% if job.description %}<p class="text-gray-600 mt-2 whitespace-pre-line">{{ job.description }}</p>{% endif %}
-  {% if job.invoice_id %}<p class="mt-2"><a href="{% url 'finance:invoice-detail' job.invoice_id %}" class="text-indigo-600 hover:underline">→ {% trans "Open invoice" %}</a></p>{% endif %}
-  {% if job.photos.all %}
-    <div class="mt-3 flex flex-wrap gap-2">
-      {% for ph in job.photos.all %}
-        <a href="{{ ph.image.url }}" target="_blank" rel="noopener">
-          <img src="{{ ph.image.url }}" alt="" class="h-20 w-20 object-cover rounded-lg border border-gray-200">
-        </a>
-      {% endfor %}
-    </div>
-  {% endif %}
-  {# A7d: привязанный выездной Termin (apps.booking) #}
-  <div class="mt-3 pt-3 border-t border-gray-100">
-    {% if job.booking %}
-      <p class="text-gray-600">📅 {% trans "Appointment" %}: {{ job.booking.start|date:"d.m.Y H:i" }} · {{ job.booking.reference_code }}</p>
-      <form method="post" class="mt-1">{% csrf_token %}
-        <input type="hidden" name="action" value="unlink_booking">
-        <button class="text-xs text-gray-500 hover:text-red-600">{% trans "Unlink" %}</button>
-      </form>
-    {% elif customer_bookings %}
-      <form method="post" class="flex flex-wrap items-center gap-2">{% csrf_token %}
-        <input type="hidden" name="action" value="link_booking">
-        <label class="text-gray-500">📅 {% trans "Link appointment" %}:</label>
-        <select name="booking" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
-          {% for b in customer_bookings %}<option value="{{ b.pk }}">{{ b.start|date:"d.m.Y H:i" }} · {{ b.reference_code }}</option>{% endfor %}
-        </select>
-        <button class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50">{% trans "Link" %}</button>
-      </form>
-    {% endif %}
-  </div>
-</div>
-
+{% comment %}VF-9 (фидбэк владельца 2026-08-24 «страница заявки — как у заказов и
+товара»): раскладка = смета широкой колонкой + рейл 340px (клиент / статус /
+связи) — те же классы грида, что у формы товара; карточки — тень R5. Состав
+сметы и её JS не тронуты (инварианты строк line_*_i / data-qt-*). На мобильном
+порядок как у заказа: позиции первыми, клиент ниже.{% endcomment %}
+<div class="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-5 lg:items-start">
+<div class="min-w-0">
 {# конструктор сметы #}
-<form method="post" class="bg-white rounded-2xl shadow-sm p-6 mb-6">
+<form method="post" class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-6">
   {% csrf_token %}
   <input type="hidden" name="action" value="save_lines">
   <h2 class="font-semibold mb-3">{% trans "Quote / Kostenvoranschlag" %}</h2>
@@ -316,7 +248,85 @@ document (партиал может перерисовываться — уро�
     </div>
   {% endif %}
 </form>
+</div>
 
+<aside class="space-y-4 mt-4 lg:mt-0">
+{% comment %}QF-3/QF-4 (фидбэк владельца 2026-08-20): «важная информация о клиенте
+очень мелкая» и «добавить возможность редактировать инфо о клиенте со страницы».
+Контакты — крупной строкой, а не серым мелким текстом; правка — тут же формой
+(меняется ОБЩАЯ карточка клиента, та же, что в CRM).{% endcomment %}
+<div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 text-sm space-y-1">
+  <div class="flex items-start justify-between gap-3 flex-wrap">
+    <div class="min-w-0">
+      <p class="text-lg font-semibold text-gray-900">{{ job.customer }}</p>
+      <p class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-[15px]">
+        {% if job.customer.email %}<a href="mailto:{{ job.customer.email }}" class="text-indigo-700 hover:underline">✉ {{ job.customer.email }}</a>{% endif %}
+        {% if job.customer.phone %}<a href="tel:{{ job.customer.phone }}" class="text-indigo-700 hover:underline">📞 {{ job.customer.phone }}</a>{% endif %}
+        {% if not job.customer.email and not job.customer.phone %}<span class="text-amber-700">{% trans "Keine Kontaktdaten hinterlegt" %}</span>{% endif %}
+      </p>
+      {% if job.site_address %}<p class="text-gray-600 mt-1">📍 {{ job.site_address }}</p>{% endif %}
+    </div>
+    <span class="text-xs text-gray-400 whitespace-nowrap">{{ job.reference_code }}</span>
+  </div>
+  {% if job.event_date or job.guest_count or job.event_type %}
+    {# AF-1: событийная заявка (Catering/Partyservice) — тип · дата · гости #}
+    <p class="mt-2 inline-flex flex-wrap items-center gap-2 rounded-xl bg-indigo-50 px-3 py-1.5 text-[15px] font-medium text-indigo-900">
+      🎉 {% if job.event_type %}{{ job.event_type }}{% else %}{% trans "Event" %}{% endif %}{% if job.event_date %} · 📅 {{ job.event_date|date:"d.m.Y" }}{% endif %}{% if job.guest_count %} · 👥 {{ job.guest_count }} {% trans "guests" %}{% endif %}</p>
+  {% endif %}
+
+  {# QF-4: правка контактов прямо здесь #}
+  <details class="mt-3 pt-3 border-t border-gray-100">
+    <summary class="cursor-pointer text-sm text-indigo-600 hover:underline">✏️ {% trans "Kundendaten bearbeiten" %}</summary>
+    <form method="post" class="mt-3 grid gap-2 sm:grid-cols-2 max-w-2xl">{% csrf_token %}
+      <input type="hidden" name="action" value="customer">
+      <label class="text-xs text-gray-500">{% trans "Name" %}
+        <input name="cust_name" value="{{ job.customer.name }}" maxlength="200" class="mt-0.5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
+      <label class="text-xs text-gray-500">{% trans "E-Mail" %}
+        <input name="cust_email" type="email" value="{{ job.customer.email }}" class="mt-0.5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
+      <label class="text-xs text-gray-500">{% trans "Telefon" %}
+        <input name="cust_phone" value="{{ job.customer.phone }}" maxlength="40" class="mt-0.5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
+      <label class="text-xs text-gray-500">{% trans "Adresse (Einsatzort)" %}
+        <input name="site_address" value="{{ job.site_address }}" maxlength="300" class="mt-0.5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
+      <p class="sm:col-span-2 text-xs text-gray-400">{% trans "Name, E-Mail und Telefon gehören zur Kundenkarte — die Änderung gilt auch für andere Verkäufe dieses Kunden." %}</p>
+      <div class="sm:col-span-2"><button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button></div>
+    </form>
+  </details>
+  {% if job.vehicle or job.vehicle_plate %}
+    <p class="text-gray-500">🚗 {{ job.vehicle }}{% if job.vehicle_plate %} · <span class="font-medium">{{ job.vehicle_plate }}</span>{% endif %}{% if job.vehicle_hsn or job.vehicle_tsn %} · HSN/TSN {{ job.vehicle_hsn }}/{{ job.vehicle_tsn }}{% endif %}</p>
+  {% endif %}
+  {% if job.description %}<p class="text-gray-600 mt-2 whitespace-pre-line">{{ job.description }}</p>{% endif %}
+  {% if job.invoice_id %}<p class="mt-2"><a href="{% url 'finance:invoice-detail' job.invoice_id %}" class="text-indigo-600 hover:underline">→ {% trans "Open invoice" %}</a></p>{% endif %}
+  {% if job.photos.all %}
+    <div class="mt-3 flex flex-wrap gap-2">
+      {% for ph in job.photos.all %}
+        <a href="{{ ph.image.url }}" target="_blank" rel="noopener">
+          <img src="{{ ph.image.url }}" alt="" class="h-20 w-20 object-cover rounded-lg border border-gray-200">
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
+  {# A7d: привязанный выездной Termin (apps.booking) #}
+  <div class="mt-3 pt-3 border-t border-gray-100">
+    {% if job.booking %}
+      <p class="text-gray-600">📅 {% trans "Appointment" %}: {{ job.booking.start|date:"d.m.Y H:i" }} · {{ job.booking.reference_code }}</p>
+      <form method="post" class="mt-1">{% csrf_token %}
+        <input type="hidden" name="action" value="unlink_booking">
+        <button class="text-xs text-gray-500 hover:text-red-600">{% trans "Unlink" %}</button>
+      </form>
+    {% elif customer_bookings %}
+      <form method="post" class="flex flex-wrap items-center gap-2">{% csrf_token %}
+        <input type="hidden" name="action" value="link_booking">
+        <label class="text-gray-500">📅 {% trans "Link appointment" %}:</label>
+        <select name="booking" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+          {% for b in customer_bookings %}<option value="{{ b.pk }}">{{ b.start|date:"d.m.Y H:i" }} · {{ b.reference_code }}</option>{% endfor %}
+        </select>
+        <button class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50">{% trans "Link" %}</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+<div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5">
+  <p class="text-sm font-semibold mb-2">⚡ {% trans "Status" %}</p>
 {# действия по статусу #}
 <div class="flex flex-wrap gap-2">
   {% if 'quoted' in allowed %}
@@ -341,5 +351,8 @@ document (партиал может перерисовываться — уро�
     <form method="post" action="{% url 'jobs:delete' job.pk %}">{% csrf_token %}<button class="text-gray-400 hover:text-red-600 text-sm px-3 py-2">{% trans "Delete" %}</button></form>
   {% endif %}
 </div>
+</div>
 {% include "core/_deal_links_block.html" with kind="job" obj_pk=job.pk links=deal_links next_path=request.get_full_path %}
+</aside>
+</div>
 {% endblock %}

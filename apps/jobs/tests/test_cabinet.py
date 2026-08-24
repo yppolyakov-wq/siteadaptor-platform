@@ -512,3 +512,23 @@ def test_workshop_fields_hidden_for_non_workshop_but_data_never_lost():
     job.refresh_from_db()
     assert job.service_due_date == date(2027, 3, 15)
     assert job.vehicle == "VW Golf"
+
+
+# --- VF-9 (фидбэк 2026-08-24): карточка заявки — как у заказа/товара ---------
+def test_detail_uses_rail_layout():
+    """«Страница заявки должна быть такой же, как у заказов и товара»: смета —
+    широкой колонкой, клиент/статус/связи — рейлом 340px (тот же грид, что у
+    формы товара); карточки в тени R5. Состав сметы (строки line_*_i,
+    data-qt-*) не тронут — его держат прежние замки."""
+    job = _job()
+    body = views.job_detail(_req(), pk=job.pk).content.decode()
+    assert "lg:grid-cols-[minmax(0,1fr)_340px]" in body  # рейл-грид
+    assert "shadow-[0_6px_18px_rgba(22,24,29,0.05)]" in body  # тень R5
+    # смета (форма) идёт РАНЬШЕ рейла: на мобильном позиции первыми — как у
+    # заказа. Голый "<aside" ловит сайдбар кабинета — якоримся на классах рейла.
+    rail_i = body.index('<aside class="space-y-4 mt-4 lg:mt-0">')
+    assert body.index('name="action" value="save_lines"') < rail_i
+    # рейл несёт клиента и карточку статуса
+    aside = body[rail_i:]
+    assert "Kundendaten bearbeiten" in aside
+    assert 'value="quoted"' in aside  # статусные действия — в рейле

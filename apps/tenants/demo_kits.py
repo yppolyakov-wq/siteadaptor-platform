@@ -8259,8 +8259,18 @@ CATERING = DemoKit(
             "description": "Sektempfang, warmes Buffet und Dessertbar für 80 "
             "Gäste, Scheune in Ratingen. Bitte vegetarisch mit veganen Optionen.",
             "lines": [
-                {"text": "Buffet Vegetarisch (80 P.)", "qty": 80, "unit_price": "24.00"},
-                {"text": "Dessertauswahl (80 P.)", "qty": 80, "unit_price": "6.00"},
+                {
+                    "text": "Buffet Vegetarisch (80 P.)",
+                    "qty": 80,
+                    "unit_price": "24.00",
+                    "product_name": "Buffet Vegetarisch",
+                },
+                {
+                    "text": "Dessertauswahl (80 P.)",
+                    "qty": 80,
+                    "unit_price": "6.00",
+                    "product_name": "Dessertauswahl",
+                },
                 {"text": "Personal & Aufbau (Pauschale)", "qty": 1, "unit_price": "480.00"},
             ],
             "vat_rate": 19,
@@ -8272,8 +8282,18 @@ CATERING = DemoKit(
             "description": "Sommerfest im Büro, Fingerfood und Getränke für 25 "
             "Personen, Lieferung bis 17 Uhr.",
             "lines": [
-                {"text": "Fingerfood-Platte Klassik (25 P.)", "qty": 25, "unit_price": "8.50"},
-                {"text": "Getränkepaket (25 P.)", "qty": 25, "unit_price": "9.00"},
+                {
+                    "text": "Fingerfood-Platte Klassik (25 P.)",
+                    "qty": 25,
+                    "unit_price": "8.50",
+                    "product_name": "Fingerfood-Platte Klassik",
+                },
+                {
+                    "text": "Getränkepaket (25 P.)",
+                    "qty": 25,
+                    "unit_price": "9.00",
+                    "product_name": "Getränkepaket",
+                },
                 {"text": "Lieferung & Abholung", "qty": 1, "unit_price": "60.00"},
             ],
             "vat_rate": 19,
@@ -11275,6 +11295,8 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                 "vat_rate": 7,
             },
         ]
+        from apps.catalog.models import Product
+
         for spec in jobs:
             try:
                 job = create_job(
@@ -11290,7 +11312,20 @@ def _seed_kit_records(tenant, kit: DemoKit, refs: dict, products: list) -> None:
                     vehicle_tsn=spec.get("vehicle_tsn", ""),
                     site_address=spec.get("site_address", ""),
                 )
-                set_lines(job, spec.get("lines", []), vat_rate=spec.get("vat_rate", 19))
+                # VF-9 (фидбэк 2026-08-24 «Detail (Katalog) пусто»): строка сметы
+                # может ссылаться на позицию каталога по имени (product_name) —
+                # иначе ВСЕ демо-строки Freitext и колонка выглядит пустой.
+                # Fail-soft: товара нет → строка остаётся свободной.
+                lines = []
+                for ln in spec.get("lines", []):
+                    ln = dict(ln)
+                    pname = ln.pop("product_name", "")
+                    if pname:
+                        ln["product"] = Product.objects.filter(
+                            is_active=True, name__de=pname
+                        ).first()
+                    lines.append(ln)
+                set_lines(job, lines, vat_rate=spec.get("vat_rate", 19))
             except Exception:
                 pass
 
