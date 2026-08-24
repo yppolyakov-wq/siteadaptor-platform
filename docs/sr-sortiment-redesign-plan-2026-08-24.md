@@ -125,6 +125,80 @@ golden siteconfig целы (sortiment_view presence-minimal). Стенд Playwri
 - Светофоры Integrationen «глубокие» (запросы к Stripe API) — нет, только поля.
 - Liste-паритет для не-product kind (SKU у услуг и т.п.) — нет: у них нет этих полей.
 
+## 4a. HANDOFF — статус исполнения на паузе (2026-08-24, лимит владельца)
+
+Сессия остановлена по просьбе владельца посреди батча SR-1. Ветка
+`claude/multi-sale-archetypes-x5l7d1`, коммит «SR-1 WIP». **В main НЕ мержено —
+CI не гонялся, батч не завершён.** Разведка (3 отчёта) вшита в контекст сессии;
+ключевые факты продублированы ниже, чтобы новая сессия не разведывала заново.
+
+**СДЕЛАНО (код в этом коммите):**
+- `apps/core/sellable_manage.py`: `ManagedSellable` += sku/category_label/stock/
+  stock_warn (заполняются у product; select_related("category"));
+  `sellable_manage_sections_for(tenant, q, category, active)` — фильтры
+  Kategorie (только product, прочие секции прячутся) и Status (только toggle-kind).
+- `apps/core/views.py::sellable_manage` — ansicht/kategorie/status из GET,
+  резолв вида (GET > site_config["sortiment_view"] > kacheln), categories для
+  селекта, digital_shelf прячется при любом фильтре; НОВАЯ
+  `sortiment_view_set` (POST, targeted-write; kacheln = pop ключа).
+- `apps/tenants/siteconfig.py`: normalize-passthrough `sortiment_view`
+  (только значение "liste"; golden целы).
+- `config/urls_tenant.py`: + `dashboard/angebote/ansicht/` (name=sortiment-view).
+- Шаблоны: `_sellable_manage_card.html` (фото+имя = ссылки, цена жирно +
+  Bestand цветом, «Bearbeiten» удалён), НОВЫЙ `_sellable_manage_liste.html`
+  (product: чекбоксы merge/Art.-Nr./Kategorie/Bestand; прочие — упрощённые),
+  `sellable_manage.html` (тумблер видов POST-формами + фильтры + merge-form).
+- `apps/catalog/views.py`: `product_list` → 302 на sellable-manage с carry
+  (q→q, category→kategorie, active→status); `_filtered_products` удалён;
+  4 внутренних redirect'а → sellable-manage; `Q` из импортов снят.
+- Шаблоны каталога: `product_list.html` + `_product_rows.html` УДАЛЕНЫ;
+  Cancel-ссылки (product_form/product_confirm_delete/merge_confirm) и
+  «← Products» в collections → sellable-manage; в футер `product_form.html`
+  добавлен «Delete» (единственный вход удаления жил на умершей странице).
+- SR-3 заготовка: зависимость `nh3` (pyproject+uv.lock) + `apps/core/richtext.py`
+  (sanitize/is_rich, allowlist тулбара). Ещё НЕ подключено нигде.
+- ruff check+format — зелёные. Прогнано:
+  `test_sellable_manage.py` — зелёный целиком (вкл. default-cards);
+  `test_views.py` каталога — 2 красных ожидаемых (см. ниже).
+
+**ОСТАЛОСЬ в SR-1 (следующая сессия, по порядку):**
+1. Переписать осознанно: `apps/catalog/tests/test_views.py::test_list_shows_products`
+   и `::test_search_filters_by_sku` → ассерты 302 + carry параметров.
+2. nav_registry: удалить записи «Produkte» → catalog:product-list
+   (`nav_registry.py:176-183` хаб catalog и `:535` хаб sellables); замки:
+   test_sidebar_st4b:194-209 (минус элемент №2), test_hub_tabs:64-69 (минус
+   «Produkte»), test_w8_nav_registry:32-33, test_x4_navigation:64-65+118.
+3. `test_x0_x7_locks.py` EXPECTED_UNLISTED: + `catalog:product-list` (секция
+   [302], рядом с orders:order-list) и + `sortiment-view` (POST-сеттер, рядом
+   с verkaeufe-view, строка ~108).
+4. `apps/tenants/onboarding.py:481` offer_cta catalog → `catalog:product-create`
+   (X6-1: CTA «первый товар» должен открывать ФОРМУ; проверить тесты offer_cta).
+5. НОВЫЕ замки: normalize sortiment_view presence-minimal · POST-сеттер персистит
+   и kacheln чистит ключ · redirect carry · Liste рендерит sku/Bestand/merge ·
+   карточка: имя/фото = <a href=edit_url>, текста «Bearbeiten» нет.
+6. msgid ×5 .po: «Kacheln» (новый; Liste/Bestand/Ausverkauft/Art.-Nr./Kategorie/
+   Preis/Status — проверить i18n_quickcheck'ом, большинство уже есть) +
+   `uv run python scripts/i18n_quickcheck.py`.
+7. `npm run build:css` (новые классы: accent-indigo-600, aspect-video в card-ссылке,
+   tabular-nums и пр.) — в том же коммите (урок CI #2152).
+8. Гейт батча: broad-прогон apps/core+apps/catalog+apps/tenants → push → CI →
+   по зелёному FF-merge в main.
+
+**Дальше по плану:** SR-2 (см. §1; факты разведки: форма = max-w-xl на :6,
+табы :22-30, панель preis :98-106 переезжает в правую колонку, замки
+test_product_form_w2 переписать — «preis»-таб исчезает), SR-3 (richtext.py
+готов; точки рендера: product_detail.html:60 whitespace-pre-line →
+|rich_text при is_rich; _sellable_card:21/57/73 и _price_list:61/76 —
+striptags; meta_description :4 — striptags; санитайз в ProductForm.save/
+collect_i18n), SR-4 (category_list.html:46 «Bearbeiten» → кликабельные
+фото+имя; фото у Category есть — models.py:74-86, в списке не рендерится),
+SR-5 (якорь settings nav_registry.py:116-131 url_name → einstellungen-home —
+прецедент-комментарий W11-5 там же :112-123; вставка обзора первым — сама,
+modules.py:649-661; замки: test_x0_x7_locks:46 кортеж, test_sidebar_st4b:49-56
+keys + :215-229 список 13→14, test_modules:133; hints-слой — только поля
+тенанта + 1 count(Membership), источники перечислены в отчёте разведки;
+test_hub_tabs:83-87 — label обзора «Einstellungen» ≠ «Mein Geschäft», дубля нет).
+
 ## 4. Замки, переписываемые осознанно (карта — дополняется по ходу)
 
 - test_sidebar_st4b: состав подменю angebote (минус Produkte-запись) и

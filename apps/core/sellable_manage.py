@@ -99,6 +99,13 @@ class ManagedSellable:
     price_value: object = None
     # W11-4: GET-параметр префилла цели в promotion-create ("" = kind без цели PL).
     promo_param: str = ""
+    # SR-1: «цена и наличие — главная информация» (решение владельца 2026-08-24).
+    # Заполняются только у product (у прочих kind этих полей нет): stock=None =
+    # учёт не ведётся (не ноль!), stock_warn = достигнут Meldebestand.
+    sku: str = ""
+    category_label: str = ""
+    stock: object = None
+    stock_warn: bool = False
 
 
 def _model(kind):
@@ -131,6 +138,21 @@ def _managed(kind, obj, locale) -> ManagedSellable:
     cfg = _MANAGE[kind]
     f = sellable.display_fields(kind, obj, locale)
     status_label = obj.get_status_display() if kind == "event" else ""
+    # SR-1: у товара наружу выходят Art.-Nr./категория/наличие — вид «Liste»
+    # наследует инструменты старой страницы товаров. stock=None = учёт не
+    # ведётся; предупреждение — по effective_reorder_point (T5).
+    sku = category_label = ""
+    stock = None
+    stock_warn = False
+    if kind == "product":
+        sku = obj.sku or ""
+        category_label = str(obj.category) if obj.category_id else ""
+        stock = obj.stock_quantity
+        if stock is not None:
+            try:
+                stock_warn = stock <= (obj.effective_reorder_point or 0)
+            except Exception:  # noqa: BLE001 — подпись не роняет обзор
+                stock_warn = False
     return ManagedSellable(
         kind=kind,
         pk=obj.pk,
@@ -143,6 +165,10 @@ def _managed(kind, obj, locale) -> ManagedSellable:
         edit_url=_reverse(cfg["edit"], obj.pk),
         price_value=f.get("price_value"),
         promo_param=_PROMO_PARAM.get(kind, ""),
+        sku=sku,
+        category_label=category_label,
+        stock=stock,
+        stock_warn=stock_warn,
     )
 
 
@@ -150,13 +176,19 @@ def _locale(tenant) -> str | None:
     return getattr(tenant, "default_locale", None) or None
 
 
-def sellable_manage_sections_for(tenant, limit: int = 200, q: str = "") -> list[dict]:
+def sellable_manage_sections_for(
+    tenant, limit: int = 200, q: str = "", category: str = "", active: str = ""
+) -> list[dict]:
     """Секции обзора: по одному активному sellable-kind С ХОТЯ БЫ одной сущностью
     (пустые не шумят — их «＋ Neu» есть в `add_options`). Порядок — MANAGE_KINDS.
 
     X6-2: `q` — поиск по имени СРАЗУ по всем kind (владелец ищет «Haarschnitt»,
     не зная, товар это или услуга). Фильтр в БД по полям из реестра, включая
-    i18n-оверлеи (тот же хелпер, что у витринных фасетов UB2-2)."""
+    i18n-оверлеи (тот же хелпер, что у витринных фасетов UB2-2).
+
+    SR-1 (паритет старой страницы товаров): `category` — pk категории, фильтр
+    строго товарный (другие kind при нём скрываются — у них категорий нет);
+    `active` — "1"/"0" по `is_active` (kind без тумблера скрывается)."""
     from apps.core.facets import i18n_icontains_q
 
     locale = _locale(tenant)
@@ -166,7 +198,17 @@ def sellable_manage_sections_for(tenant, limit: int = 200, q: str = "") -> list[
         cfg = _MANAGE[kind]
         if not tenant.is_module_active(cfg["module"]):
             continue
+        if category and kind != "product":
+            continue
+        if active in ("1", "0") and not cfg["toggle"]:
+            continue
         qs = _model(kind).objects.all()
+        if kind == "product":
+            qs = qs.select_related("category")
+            if category:
+                qs = qs.filter(category_id=category)
+        if active in ("1", "0"):
+            qs = qs.filter(is_active=(active == "1"))
         if q:
             qs = qs.filter(
                 i18n_icontains_q(

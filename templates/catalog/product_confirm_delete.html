@@ -11,7 +11,7 @@
   <form method="post">
     {% csrf_token %}
     <button type="submit" class="bg-red-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-red-700">{% trans "Delete" %}</button>
-    <a href="{% url 'catalog:product-list' %}" class="px-4 py-2 text-sm text-gray-600 hover:underline">{% trans "Cancel" %}</a>
+    <a href="{% url 'sellable-manage' %}" class="px-4 py-2 text-sm text-gray-600 hover:underline">{% trans "Cancel" %}</a>
   </form>
 </div>
 {% endblock %}

@@ -1,0 +1,66 @@
+{% load i18n %}
+{% comment %}SR-1: вид «Liste» обзора Sortiment (утверждённый канвас 2026-08-24).
+Наследник инструментов умершей страницы /catalog/products/: у product-секции —
+чекбоксы «Als Varianten zusammenführen» (form= вне таблицы, как у старой
+страницы), Art.-Nr., категория, Bestand; у прочих kind — упрощённые строки
+(этих полей у них нет). Имя и фото кликабельны → родная форма; «Bearbeiten»
+как текст не существует. Контекст: s (секция), merge_form_rendered.{% endcomment %}
+<div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+  <div class="hidden sm:flex items-center gap-3 px-4 py-2 border-b border-gray-100 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+    {% if s.kind == "product" %}<span class="w-4"></span>{% endif %}
+    <span class="w-11"></span>
+    <span class="flex-1">{% trans "Name" %}</span>
+    {% if s.kind == "product" %}
+      <span class="w-24">{% trans "Art.-Nr." %}</span>
+      <span class="w-28">{% trans "Kategorie" %}</span>
+    {% endif %}
+    <span class="w-24 text-right">{% trans "Preis" %}</span>
+    {% if s.kind == "product" %}<span class="w-20 text-right">{% trans "Bestand" %}</span>{% endif %}
+    <span class="w-24 text-center">{% trans "Status" %}</span>
+    <span class="w-16"></span>
+  </div>
+  {% for it in s.items %}
+  <div class="flex items-center gap-3 px-4 py-2 {% if not forloop.first %}border-t border-gray-100{% endif %}">
+    {% if s.kind == "product" %}
+      <input type="checkbox" name="ids" value="{{ it.pk }}" form="merge-form" class="w-4 h-4 accent-indigo-600 shrink-0">
+    {% endif %}
+    <a href="{{ it.edit_url|default:'#' }}" class="w-11 h-9 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+      {% if it.image_url %}<img src="{{ it.image_url }}" alt="" class="w-full h-full object-cover" loading="lazy">{% else %}<span class="text-gray-300">🏷️</span>{% endif %}
+    </a>
+    <a href="{{ it.edit_url|default:'#' }}" class="flex-1 min-w-0 text-sm font-medium truncate hover:text-indigo-700 {% if not it.is_visible %}text-gray-400{% endif %}">{{ it.name|default:"—" }}</a>
+    {% if s.kind == "product" %}
+      <span class="hidden sm:block w-24 text-xs text-gray-500 tabular-nums truncate">{{ it.sku }}</span>
+      <span class="hidden sm:block w-28 text-xs text-gray-500 truncate">{{ it.category_label }}</span>
+    {% endif %}
+    <span class="w-24 text-right text-sm font-semibold tabular-nums shrink-0">{{ it.price_display }}</span>
+    {% if s.kind == "product" %}
+      <span class="hidden sm:block w-20 text-right text-xs font-medium tabular-nums shrink-0
+        {% if it.stock == 0 %}text-red-600{% elif it.stock_warn %}text-amber-600{% elif it.stock != None %}text-emerald-600{% endif %}">
+        {% if it.stock == 0 %}0{% elif it.stock != None %}{{ it.stock }}{% if it.stock_warn %} ⚠{% endif %}{% endif %}
+      </span>
+    {% endif %}
+    <span class="w-24 flex justify-center shrink-0">
+      {% if it.can_toggle %}
+        <form method="post" action="{% url 'sellable-visibility' it.kind it.pk %}">
+          {% csrf_token %}
+          <button type="submit" title="{% trans 'Sichtbarkeit umschalten' %}"
+            class="text-[11px] font-medium px-2 py-0.5 rounded-full {% if it.is_visible %}bg-emerald-100 text-emerald-800 hover:bg-emerald-200{% else %}bg-gray-100 text-gray-500 hover:bg-gray-200{% endif %}">
+            {% if it.is_visible %}✓ {% trans "Sichtbar" %}{% else %}{% trans "Versteckt" %}{% endif %}
+          </button>
+        </form>
+      {% elif it.status_label %}
+        <span class="text-[11px] font-medium px-2 py-0.5 rounded-full {% if it.is_visible %}bg-emerald-100 text-emerald-800{% else %}bg-gray-100 text-gray-500{% endif %}">{{ it.status_label }}</span>
+      {% endif %}
+    </span>
+    <span class="w-16 text-right shrink-0">
+      {% if it.promo_param and promotions_active %}<a href="{% url 'promotions:promotion-create' %}?{{ it.promo_param }}={{ it.pk }}" class="text-xs font-medium text-amber-600 hover:underline">% {% trans "Aktion" %}</a>{% endif %}
+    </span>
+  </div>
+  {% endfor %}
+</div>
+{% if s.kind == "product" %}
+<div class="mt-2 flex items-center gap-2 flex-wrap">
+  <button form="merge-form" class="text-sm rounded-lg px-3 py-1.5 bg-white shadow-sm hover:bg-gray-50 text-gray-700">🔗 {% trans "Als Varianten zusammenführen" %}</button>
+  <span class="text-xs text-gray-400">{% trans "Tick two or more products first — they become one card with variants." %}</span>
+</div>
+{% endif %}

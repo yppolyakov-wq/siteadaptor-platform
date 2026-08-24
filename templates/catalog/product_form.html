@@ -147,9 +147,12 @@
 
     {% for err in form.non_field_errors %}<p class="text-sm text-red-600">{{ err }}</p>{% endfor %}
 
-    <div class="flex gap-3">
+    <div class="flex gap-3 items-center">
       <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
-      <a href="{% url 'catalog:product-list' %}" class="px-4 py-2 text-sm text-gray-600 hover:underline">{% trans "Cancel" %}</a>
+      <a href="{% url 'sellable-manage' %}" class="px-4 py-2 text-sm text-gray-600 hover:underline">{% trans "Cancel" %}</a>
+      {% comment %}SR-1: единственный вход удаления жил на умершей странице
+      товаров — переезжает в форму (confirm-страница прежняя).{% endcomment %}
+      {% if product %}<a href="{% url 'catalog:product-delete' product.pk %}" class="ml-auto px-4 py-2 text-sm text-red-600 hover:underline">{% trans "Delete" %}</a>{% endif %}
     </div>
   </form>
 

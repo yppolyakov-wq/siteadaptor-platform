@@ -5,7 +5,27 @@
 {% block dash_content %}
 {# X4 (глоссарий): «Angebot» = оферта клиенту (Sofort-Angebot/смета); раздел #}
 {# того, ЧТО бизнес продаёт, зовётся «Sortiment» во всех точках кабинета. #}
-<h1 class="text-2xl font-bold mb-1">📦 {% trans "Sortiment" %}</h1>
+{% comment %}SR-1 (утверждённый канвас 2026-08-24): единственная страница
+ассортимента — вид Kacheln ↔ Liste (персист POST'ом в sortiment-view), фильтры
+Kategorie/Status (паритет умершей /catalog/products/), «Bearbeiten»-ссылок нет —
+кликабельны фото и имя.{% endcomment %}
+<div class="flex items-center gap-3 flex-wrap mb-1">
+  <h1 class="text-2xl font-bold">📦 {% trans "Sortiment" %}</h1>
+  <div class="flex rounded-xl overflow-hidden bg-white shadow-sm" data-sortiment-view>
+    <form method="post" action="{% url 'sortiment-view' %}">
+      {% csrf_token %}
+      <input type="hidden" name="view" value="kacheln">
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <button type="submit" class="h-9 px-3.5 text-sm flex items-center gap-1.5 {% if sortiment_view == 'kacheln' %}bg-gray-900 text-white font-medium{% else %}text-gray-600 hover:bg-gray-50{% endif %}">⊞ {% trans "Kacheln" %}</button>
+    </form>
+    <form method="post" action="{% url 'sortiment-view' %}">
+      {% csrf_token %}
+      <input type="hidden" name="view" value="liste">
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <button type="submit" class="h-9 px-3.5 text-sm flex items-center gap-1.5 {% if sortiment_view == 'liste' %}bg-gray-900 text-white font-medium{% else %}text-gray-600 hover:bg-gray-50{% endif %}">☰ {% trans "Liste" %}</button>
+    </form>
+  </div>
+</div>
 <p class="text-sm text-gray-500 mb-4">{% trans "Alle verkäuflichen Artikel an einem Ort — Sichtbarkeit umschalten oder zum Bearbeiten öffnen." %}</p>
 
 {% if messages %}
@@ -18,32 +38,55 @@
 
 {% comment %}FB-8: ＋ Neu по активным типам — вход в РОДНУЮ форму создания (единый CRUD не делаем).{% endcomment %}
 {% if add_options %}
-<div class="flex flex-wrap gap-2 mb-6">
+<div class="flex flex-wrap gap-2 mb-4">
   {% for a in add_options %}
     <a href="{{ a.url }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 bg-white border border-gray-200 rounded-lg px-3 py-1.5 hover:border-indigo-400">＋ {{ a.label }}</a>
   {% endfor %}
 </div>
 {% endif %}
 
-{% comment %}X6-2: поиск по ВСЕМ продаваемым сущностям сразу — владелец ищет
-«Haarschnitt», не выбирая заранее, товар это или услуга.{% endcomment %}
-<form method="get" class="flex items-center gap-2 mb-4">
+{% comment %}X6-2: поиск по ВСЕМ продаваемым сущностям сразу; SR-1: + фильтры
+Kategorie/Status (строго товарные — активный фильтр прячет прочие секции).{% endcomment %}
+<form method="get" class="flex items-center gap-2 mb-4 flex-wrap">
   <input type="search" name="q" value="{{ q }}" placeholder="{% trans 'Suche im Sortiment…' %}"
          class="rounded-lg border border-gray-300 px-3 py-2 text-sm w-64">
+  {% if catalog_active and categories %}
+  <select name="kategorie" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    <option value="">{% trans "All categories" %}</option>
+    {% for c in categories %}
+      <option value="{{ c.pk }}" {% if sel_category == c.pk|stringformat:'s' %}selected{% endif %}>{{ c }}</option>
+    {% endfor %}
+  </select>
+  {% endif %}
+  <select name="status" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    <option value="">{% trans "Any status" %}</option>
+    <option value="1" {% if sel_active == '1' %}selected{% endif %}>{% trans "Active" %}</option>
+    <option value="0" {% if sel_active == '0' %}selected{% endif %}>{% trans "Inactive" %}</option>
+  </select>
   <button type="submit" class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
-  {% if q %}<a href="{% url 'sellable-manage' %}" class="text-sm text-gray-500 hover:underline">{% trans "Filter zurücksetzen" %}</a>{% endif %}
+  {% if filtered %}<a href="{% url 'sellable-manage' %}" class="text-sm text-gray-500 hover:underline">{% trans "Filter zurücksetzen" %}</a>{% endif %}
 </form>
+
+{% comment %}Фидбэк 2026-08-04 «Zusammenführen»: форма-приёмник чекбоксов вида
+«Liste» — вне секций, переживает любые перестановки разметки.{% endcomment %}
+{% if sortiment_view == "liste" and catalog_active %}
+<form id="merge-form" method="post" action="{% url 'catalog:products-merge' %}">{% csrf_token %}</form>
+{% endif %}
 
 {% for s in sections %}
   <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mt-6 mb-2">{{ s.label }} <span class="text-gray-300">({{ s.count }})</span></h2>
+  {% if sortiment_view == "liste" %}
+    {% include "tenant/_sellable_manage_liste.html" with s=s %}
+  {% else %}
     {% comment %}ST-5a: карточный грид с фото (image_url из контракта SellableEntity).{% endcomment %}
-  <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-    {% for it in s.items %}{% include "tenant/_sellable_manage_card.html" with it=it %}{% endfor %}
-  </div>
+    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+      {% for it in s.items %}{% include "tenant/_sellable_manage_card.html" with it=it %}{% endfor %}
+    </div>
+  {% endif %}
   {% empty %}
   <div class="text-center text-gray-400 py-16">
     <p class="text-4xl mb-2">📦</p>
-    {% if q %}
+    {% if filtered %}
       <p>{% blocktrans %}Nichts gefunden für „{{ q }}“.{% endblocktrans %}</p>
     {% else %}
       <p>{% trans "Noch nichts im Sortiment — oben „＋“ wählen, um den ersten Eintrag anzulegen." %}</p>
@@ -51,7 +94,7 @@
   </div>
 {% endfor %}
 
-{% if digital_shelf and not q %}
+{% if digital_shelf %}
 {# MX-7: цифровые Вещи — абонементы и сертификат перестают быть «тенями» полки. #}
 <div class="mt-8">
   <h2 class="text-sm font-semibold text-gray-500 mb-2">💳 {% trans "Digitale Angebote" %}</h2>

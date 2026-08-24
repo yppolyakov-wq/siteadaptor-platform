@@ -19,7 +19,7 @@
   <p class="text-xs text-gray-400">{% trans "The selected product stays — the rest become its variants." %}</p>
   <div class="flex gap-3 pt-1">
     <button class="bg-indigo-600 text-white rounded-lg px-4 py-2.5 font-medium hover:bg-indigo-700">{% trans "Zusammenführen" %}</button>
-    <a href="{% url 'catalog:product-list' %}" class="rounded-lg px-4 py-2.5 border border-gray-300 hover:border-indigo-400">{% trans "Cancel" %}</a>
+    <a href="{% url 'sellable-manage' %}" class="rounded-lg px-4 py-2.5 border border-gray-300 hover:border-indigo-400">{% trans "Cancel" %}</a>
   </div>
 </form>
 {% endblock %}

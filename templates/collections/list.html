@@ -10,7 +10,7 @@
   <div class="flex gap-4">
     {% if has_booking %}<a href="{% url 'booking:services' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Services" %}</a>{% endif %}
     {% if has_stays %}<a href="{% url 'stays:units' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Units" %}</a>{% endif %}
-    {% if has_catalog %}<a href="{% url 'catalog:product-list' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Products" %}</a>{% endif %}
+    {% if has_catalog %}<a href="{% url 'sellable-manage' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Sortiment" %}</a>{% endif %}
   </div>
 </div>
 

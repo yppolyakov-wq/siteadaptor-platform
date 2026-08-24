@@ -4212,22 +4212,74 @@ def sellable_manage(request):
     # X6-2: поиск по всем продаваемым сущностям сразу (владелец ищет по имени,
     # не зная kind). Пустой q = прежний обзор.
     q = (request.GET.get("q") or "").strip()
+    # SR-1: фильтры-паритет умершей страницы товаров (строго product-ные).
+    category = (request.GET.get("kategorie") or "").strip()
+    if not category.isdigit():
+        category = ""
+    active = request.GET.get("status") or ""
+    if active not in ("1", "0"):
+        active = ""
+    # SR-1: вид Kacheln ↔ Liste — явный GET сильнее сохранённого (паттерн
+    # sales_page.resolve_view), персист — POST-сеттер `sortiment-view`.
+    requested = request.GET.get("ansicht") or ""
+    saved = (tenant.site_config or {}).get("sortiment_view", "")
+    view = requested if requested in ("kacheln", "liste") else (saved or "kacheln")
+    catalog_active = tenant.is_module_active("catalog")
+    categories = []
+    if catalog_active:
+        from apps.catalog.models import Category
+
+        categories = list(Category.objects.all())
+    filtered = bool(q or category or active)
     return render(
         request,
         "tenant/sellable_manage.html",
         {
             "nav": "sellables",
             "q": q,
-            "sections": sm.sellable_manage_sections_for(tenant, q=q),
+            "sortiment_view": view,
+            "sel_category": category,
+            "sel_active": active,
+            "categories": categories,
+            "catalog_active": catalog_active,
+            "sections": sm.sellable_manage_sections_for(
+                tenant, q=q, category=category, active=active
+            ),
             "add_options": sm.add_options(tenant),
             # MX-7: цифровые Вещи (абонементы/сертификат) — на общей полке.
-            "digital_shelf": sm.digital_shelf(tenant),
+            # При любом активном фильтре полка прячется (как раньше при q).
+            "digital_shelf": [] if filtered else sm.digital_shelf(tenant),
+            "filtered": filtered,
             # W11-4: гейт кнопки «% Aktion» на карточках (цель PL из строки).
             "promotions_active": tenant.is_module_active("promotions"),
             # ST-5a: карточный грид.
             # Во вьюхе (не processor) — как dashboard: работает и на public-схеме.
         },
     )
+
+
+@login_required
+@require_POST
+def sortiment_view_set(request):
+    """SR-1: персист вида «Kacheln ↔ Liste» обзора Sortiment (зеркало
+    `verkaeufe_view_set`): targeted-write одного ключа site_config, дефолт
+    kacheln ключа не материализует (presence-minimal, golden целы)."""
+    from django.urls import reverse
+
+    view = request.POST.get("view") or ""
+    if view in ("kacheln", "liste"):
+        tenant = request.tenant
+        config = dict(tenant.site_config or {})
+        if view == "kacheln":
+            config.pop("sortiment_view", None)
+        else:
+            config["sortiment_view"] = view
+        tenant.site_config = config
+        tenant.save(update_fields=["site_config"])
+    nxt = request.POST.get("next", "")
+    if not nxt.startswith("/") or nxt.startswith("//"):
+        nxt = reverse("sellable-manage")
+    return redirect(nxt)
 
 
 @login_required

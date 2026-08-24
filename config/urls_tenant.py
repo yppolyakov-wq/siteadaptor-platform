@@ -58,6 +58,7 @@ from apps.core.views import (
     site_preview,
     site_preview_draft,
     site_view,
+    sortiment_view_set,
     status_labels_save,
     status_manager,
     status_manager_save,
@@ -240,6 +241,8 @@ urlpatterns = [
         sellable_visibility,
         name="sellable-visibility",
     ),
+    # SR-1: персист вида Kacheln ↔ Liste (POST, targeted-write).
+    path("dashboard/angebote/ansicht/", sortiment_view_set, name="sortiment-view"),
     # Кабинет заказов Click & Collect (Track D / D2b).
     path("dashboard/orders/", include("apps.orders.urls")),
     # Кабинет записи по времени (Track D / D3c).

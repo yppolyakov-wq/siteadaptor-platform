@@ -2686,6 +2686,10 @@ def _normalize_impl(config) -> dict:
     sv = normalize_sales_views(config.get("sales_views"))
     if sv:
         normalized["sales_views"] = sv
+    # SR-1: вид обзора Sortiment; единственное недефолтное значение — "liste"
+    # (kacheln = дефолт → ключ не материализуется, golden-паритет).
+    if config.get("sortiment_view") == "liste":
+        normalized["sortiment_view"] = "liste"
     # FD-1: Finder («вопросы → 3 предложения»); ключ ТОЛЬКО при непустом.
     fnd = normalize_finder(config.get("finder"))
     if fnd:

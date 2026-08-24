@@ -1,14 +1,24 @@
 {% load i18n %}
-{% comment %}ST-5a: карточка обзора продаваемой сущности (`it` = ManagedSellable) —
-фото 16:9 (фолбэк — эмодзи-плейсхолдер), имя/цена/статус, тот же тумблер
-видимости и «Bearbeiten», что у строки.{% endcomment %}
+{% comment %}ST-5a → SR-1 (утверждённый канвас 2026-08-24): карточка обзора
+продаваемой сущности (`it` = ManagedSellable). Фото и имя КЛИКАБЕЛЬНЫ и ведут в
+родную форму — текстовой ссылки «Bearbeiten» больше нет (решение владельца).
+Цена и наличие — главная информация: цена жирно, Bestand цветом (зелёный/
+жёлтый ⚠ Meldebestand/красный Ausverkauft); stock=None (учёт не ведётся) — без
+подписи вовсе.{% endcomment %}
 <div class="bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col">
-  <div class="aspect-video bg-gray-100 flex items-center justify-center overflow-hidden">
+  <a href="{{ it.edit_url|default:'#' }}" class="aspect-video bg-gray-100 flex items-center justify-center overflow-hidden">
     {% if it.image_url %}<img src="{{ it.image_url }}" alt="" class="w-full h-full object-cover" loading="lazy">{% else %}<span class="text-4xl text-gray-300">🏷️</span>{% endif %}
-  </div>
+  </a>
   <div class="p-3 flex-1 min-w-0">
-    <p class="font-medium truncate {% if not it.is_visible %}text-gray-400{% endif %}">{{ it.name|default:"—" }}</p>
-    <p class="text-xs text-gray-400 truncate">{{ it.price_display }}{% if it.status_label %} · {{ it.status_label }}{% endif %}</p>
+    <a href="{{ it.edit_url|default:'#' }}" class="font-medium truncate block hover:text-indigo-700 {% if not it.is_visible %}text-gray-400{% endif %}">{{ it.name|default:"—" }}</a>
+    <p class="mt-0.5 flex items-baseline gap-2 text-sm">
+      <span class="font-semibold tabular-nums">{{ it.price_display }}</span>
+      {% if it.status_label %}<span class="text-xs text-gray-400 truncate">{{ it.status_label }}</span>{% endif %}
+      <span class="ml-auto text-xs font-medium
+        {% if it.stock == 0 %}text-red-600{% elif it.stock_warn %}text-amber-600{% elif it.stock != None %}text-emerald-600{% endif %}">
+        {% if it.stock == 0 %}{% trans "Ausverkauft" %}{% elif it.stock != None %}{% trans "Bestand" %} {{ it.stock }}{% if it.stock_warn %} ⚠{% endif %}{% endif %}
+      </span>
+    </p>
   </div>
   <div class="px-3 pb-3 flex items-center justify-between gap-2">
     {% if it.can_toggle %}
@@ -22,10 +32,7 @@
     {% elif it.status_label %}
       <span class="text-xs font-medium px-2.5 py-1 rounded-full {% if it.is_visible %}bg-emerald-100 text-emerald-800{% else %}bg-gray-100 text-gray-500{% endif %}">{{ it.status_label }}</span>
     {% else %}<span></span>{% endif %}
-    <span class="flex items-center gap-2">
-      {# W11-4: акция на эту сущность (ценовой слой PL) — префилл цели в форме #}
-      {% if it.promo_param and promotions_active %}<a href="{% url 'promotions:promotion-create' %}?{{ it.promo_param }}={{ it.pk }}" class="text-sm text-amber-600 hover:underline" title="{% trans 'Aktion für dieses Angebot erstellen' %}">% {% trans "Aktion" %}</a>{% endif %}
-      {% if it.edit_url %}<a href="{{ it.edit_url }}" class="text-sm text-indigo-600 hover:underline">{% trans "Bearbeiten" %}</a>{% endif %}
-    </span>
+    {# W11-4: акция на эту сущность (ценовой слой PL) — префилл цели в форме #}
+    {% if it.promo_param and promotions_active %}<a href="{% url 'promotions:promotion-create' %}?{{ it.promo_param }}={{ it.pk }}" class="text-sm text-amber-600 hover:underline" title="{% trans 'Aktion für dieses Angebot erstellen' %}">% {% trans "Aktion" %}</a>{% endif %}
   </div>
 </div>

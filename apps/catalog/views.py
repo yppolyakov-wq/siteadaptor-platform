@@ -9,7 +9,7 @@ from decimal import Decimal, InvalidOperation
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
@@ -103,24 +103,6 @@ def _parse_int(raw):
         return None
 
 
-def _filtered_products(request):
-    qs = Product.objects.select_related("category").all()
-    q = (request.GET.get("q") or "").strip()
-    if q:
-        # Поиск по i18n-name (по ключам JSONField — icontains по jsonb не
-        # поддерживается Postgres напрямую) и по sku.
-        qs = qs.filter(Q(name__de__icontains=q) | Q(name__en__icontains=q) | Q(sku__icontains=q))
-    category = request.GET.get("category")
-    if category:
-        qs = qs.filter(category_id=category)
-    active = request.GET.get("active")
-    if active == "1":
-        qs = qs.filter(is_active=True)
-    elif active == "0":
-        qs = qs.filter(is_active=False)
-    return qs
-
-
 def _handle_uploads(request, obj, *, folder="products") -> None:
     """Сохраняет загруженные файлы в obj.images (FileRef-envelope).
 
@@ -162,19 +144,24 @@ def _uploaded_variant_image(request, field="image") -> dict | None:
 
 @login_required
 def product_list(request):
-    products = _filtered_products(request)
-    ctx = {
-        "nav": "catalog",
-        "products": products,
-        "categories": Category.objects.all(),
-        "q": request.GET.get("q", ""),
-        "selected_category": request.GET.get("category", ""),
-        "active": request.GET.get("active", ""),
-    }
-    # HTMX-запрос → только таблица (live-search без перезагрузки)
-    if request.headers.get("HX-Request"):
-        return render(request, "catalog/_product_rows.html", ctx)
-    return render(request, "catalog/product_list.html", ctx)
+    """SR-1: страница умерла — единственная поверхность ассортимента теперь
+    `/dashboard/angebote/` (вид «Liste» несёт её инструменты). 302 с переносом
+    GET на новые имена параметров (прецедент W10-6/X2b)."""
+    from urllib.parse import urlencode
+
+    from django.http import HttpResponseRedirect
+
+    params = {}
+    if request.GET.get("q"):
+        params["q"] = request.GET["q"]
+    if request.GET.get("category"):
+        params["kategorie"] = request.GET["category"]
+    if request.GET.get("active"):
+        params["status"] = request.GET["active"]
+    url = reverse("sellable-manage")
+    if params:
+        url += "?" + urlencode(params)
+    return HttpResponseRedirect(url)
 
 
 @login_required
@@ -482,7 +469,7 @@ def product_delete(request, pk):
     product = get_object_or_404(Product, pk=pk)
     if request.method == "POST":
         product.delete()  # soft-delete
-        return redirect("catalog:product-list")
+        return redirect("sellable-manage")
     return render(
         request,
         "catalog/product_confirm_delete.html",
@@ -1051,18 +1038,18 @@ def products_merge(request):
     с выбором главного; шаг 2 (POST ids+main) — merge.merge_products и редирект
     в форму главного товара (варианты уже на вкладке)."""
     if request.method != "POST":
-        return redirect("catalog:product-list")
+        return redirect("sellable-manage")
     products = list(Product.objects.filter(pk__in=request.POST.getlist("ids")))
     if len(products) < 2:
         messages.error(request, _("Select at least two products to merge."))
-        return redirect("catalog:product-list")
+        return redirect("sellable-manage")
     main_id = request.POST.get("main", "")
     if not main_id:
         return render(request, "catalog/merge_confirm.html", {"products": products})
     main = next((p for p in products if str(p.pk) == main_id), None)
     if main is None:
         messages.error(request, _("Select at least two products to merge."))
-        return redirect("catalog:product-list")
+        return redirect("sellable-manage")
     from .merge import merge_products
 
     merged, refused = merge_products(
