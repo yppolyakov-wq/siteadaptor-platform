@@ -19,7 +19,8 @@ import nh3
 
 # Ровно набор тулбара: жирный/курсив/подчёркивание, списки, ссылка, абзацы.
 ALLOWED_TAGS = {"p", "br", "b", "strong", "i", "em", "u", "ul", "ol", "li", "a"}
-ALLOWED_ATTRIBUTES = {"a": {"href", "rel", "target"}}
+# «rel» задаёт сам nh3 (link_rel) — в allowlist его быть не должно (ValueError).
+ALLOWED_ATTRIBUTES = {"a": {"href", "target"}}
 # nh3 сам ограничивает схемы ссылок (относительные же нам не нужны — наружу).
 ALLOWED_URL_SCHEMES = {"http", "https", "mailto", "tel"}
 

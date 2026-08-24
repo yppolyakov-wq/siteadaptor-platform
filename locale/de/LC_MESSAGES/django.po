@@ -19974,3 +19974,62 @@ msgstr "Eintrag wählen — Details erscheinen hier."
 
 msgid "Wird beim Speichern angelegt und diesem Produkt zugewiesen."
 msgstr ""
+
+msgid "Italic"
+msgstr "Kursiv"
+
+msgid "Underline"
+msgstr "Unterstrichen"
+
+msgid "Numbered list"
+msgstr "Nummerierte Liste"
+
+msgid "Foto hinzufügen"
+msgstr ""
+
+msgid "Nur Deutsch"
+msgstr ""
+
+msgid "Deutsch + %(n)s weitere"
+msgstr ""
+
+msgid "Zahlung vor Ort"
+msgstr ""
+
+msgid "%(n)s Module aktiv"
+msgstr ""
+
+msgid "Testphase"
+msgstr ""
+
+msgid "Aktiv · %(n)s Fragen"
+msgstr ""
+
+msgid "Alles an einem Ort — mit Live-Status jeder Rubrik."
+msgstr ""
+
+msgid "Geschäft"
+msgstr ""
+
+msgid "Adresse, Öffnungszeiten, Kontakt"
+msgstr ""
+
+msgid "Impressum, AGB, USt-Sätze"
+msgstr ""
+
+msgid "Status-Namen, Übergänge, Spalten"
+msgstr ""
+
+msgid "Extras & Optionen zu Verkäufen"
+msgstr ""
+
+msgid "Anleitungen & Kontakt"
+msgstr ""
+
+msgid "Module an- und abschalten"
+msgstr ""
+
+msgid "%(n)s Mitglied"
+msgid_plural "%(n)s Mitglieder"
+msgstr[0] "%(n)s Mitglied"
+msgstr[1] "%(n)s Mitglieder"

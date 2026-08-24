@@ -19844,3 +19844,62 @@ msgstr "Select an entry — details appear here."
 
 msgid "Wird beim Speichern angelegt und diesem Produkt zugewiesen."
 msgstr "Created when you save — and assigned to this product."
+
+msgid "Italic"
+msgstr "Italic"
+
+msgid "Underline"
+msgstr "Underline"
+
+msgid "Numbered list"
+msgstr "Numbered list"
+
+msgid "Foto hinzufügen"
+msgstr "Add photo"
+
+msgid "Nur Deutsch"
+msgstr "German only"
+
+msgid "Deutsch + %(n)s weitere"
+msgstr "German + %(n)s more"
+
+msgid "Zahlung vor Ort"
+msgstr "Payment on site"
+
+msgid "%(n)s Module aktiv"
+msgstr "%(n)s modules active"
+
+msgid "Testphase"
+msgstr "Trial"
+
+msgid "Aktiv · %(n)s Fragen"
+msgstr "Active · %(n)s questions"
+
+msgid "Alles an einem Ort — mit Live-Status jeder Rubrik."
+msgstr "Everything in one place — with a live status for every section."
+
+msgid "Geschäft"
+msgstr "Business"
+
+msgid "Adresse, Öffnungszeiten, Kontakt"
+msgstr "Address, opening hours, contact"
+
+msgid "Impressum, AGB, USt-Sätze"
+msgstr "Imprint, terms, VAT rates"
+
+msgid "Status-Namen, Übergänge, Spalten"
+msgstr "Status names, transitions, columns"
+
+msgid "Extras & Optionen zu Verkäufen"
+msgstr "Extras & options for sales"
+
+msgid "Anleitungen & Kontakt"
+msgstr "Guides & contact"
+
+msgid "Module an- und abschalten"
+msgstr "Turn modules on and off"
+
+msgid "%(n)s Mitglied"
+msgid_plural "%(n)s Mitglieder"
+msgstr[0] "%(n)s member"
+msgstr[1] "%(n)s members"

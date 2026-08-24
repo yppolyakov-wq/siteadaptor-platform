@@ -19970,3 +19970,62 @@ msgstr "Bir kayıt seçin — ayrıntılar burada görünür."
 
 msgid "Wird beim Speichern angelegt und diesem Produkt zugewiesen."
 msgstr "Kaydettiğinizde oluşturulur ve bu ürüne atanır."
+
+msgid "Italic"
+msgstr "İtalik"
+
+msgid "Underline"
+msgstr "Altı çizili"
+
+msgid "Numbered list"
+msgstr "Numaralı liste"
+
+msgid "Foto hinzufügen"
+msgstr "Fotoğraf ekle"
+
+msgid "Nur Deutsch"
+msgstr "Yalnızca Almanca"
+
+msgid "Deutsch + %(n)s weitere"
+msgstr "Almanca + %(n)s dil"
+
+msgid "Zahlung vor Ort"
+msgstr "Yerinde ödeme"
+
+msgid "%(n)s Module aktiv"
+msgstr "%(n)s modül etkin"
+
+msgid "Testphase"
+msgstr "Deneme süresi"
+
+msgid "Aktiv · %(n)s Fragen"
+msgstr "Etkin · %(n)s soru"
+
+msgid "Alles an einem Ort — mit Live-Status jeder Rubrik."
+msgstr "Her şey tek yerde — her bölümün canlı durumuyla."
+
+msgid "Geschäft"
+msgstr "İşletme"
+
+msgid "Adresse, Öffnungszeiten, Kontakt"
+msgstr "Adres, çalışma saatleri, iletişim"
+
+msgid "Impressum, AGB, USt-Sätze"
+msgstr "Künye, koşullar, KDV oranları"
+
+msgid "Status-Namen, Übergänge, Spalten"
+msgstr "Durum adları, geçişler, sütunlar"
+
+msgid "Extras & Optionen zu Verkäufen"
+msgstr "Satışlara ek hizmet ve seçenekler"
+
+msgid "Anleitungen & Kontakt"
+msgstr "Kılavuzlar ve iletişim"
+
+msgid "Module an- und abschalten"
+msgstr "Modülleri aç/kapat"
+
+msgid "%(n)s Mitglied"
+msgid_plural "%(n)s Mitglieder"
+msgstr[0] "%(n)s üye"
+msgstr[1] "%(n)s üye"

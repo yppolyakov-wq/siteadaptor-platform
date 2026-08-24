@@ -15,6 +15,7 @@
 from dataclasses import dataclass, field
 
 from django.urls import NoReverseMatch, reverse
+from django.utils.html import strip_tags
 
 from apps.core import archetypes
 
@@ -75,7 +76,8 @@ def _product(obj, locale):
     img = obj.primary_image
     return {
         "name": obj.get_i18n("name", locale),
-        "description": obj.get_i18n("description", locale),
+        # SR-3: в тизеры/JSON-LD — плоский текст (разметка — только деталь).
+        "description": strip_tags(obj.get_i18n("description", locale) or ""),
         "price_display": (prefix + _price_str(base, obj.currency)) if base is not None else "",
         "image_url": img.get("url", "") if isinstance(img, dict) else "",
         "gallery": _gallery_urls(obj.images),

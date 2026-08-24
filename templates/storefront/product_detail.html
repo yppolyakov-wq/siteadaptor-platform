@@ -1,7 +1,7 @@
 {% extends "storefront/detail.html" %}
-{% load i18n siteui %}{% load siteui %}
+{% load i18n siteui richtext %}{% load siteui %}
 {% block title %}{{ product }} — {{ request.tenant.name }}{% endblock %}
-{% block meta_description %}{{ product.description_text|default:product|truncatechars:160 }}{% endblock %}
+{% block meta_description %}{{ product.description_text|striptags|default:product|truncatechars:160 }}{% endblock %}
 
 {% block detail_back %}<a href="{% url 'storefront-products' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Our products" %}</a>{% endblock %}
 
@@ -57,7 +57,17 @@
     <span class="ml-auto text-rose-700 font-medium whitespace-nowrap">{% trans "Zum Angebot" %} →</span>
   </a>
   {% endif %}
-  {% if 'description' not in product_detail_hidden %}<div class="mt-4 text-gray-600 whitespace-pre-line" data-edit-model="product" data-edit-pk="{{ product.pk }}" data-edit-field="description">{{ product.description_text }}</div>{% endif %}
+  {% comment %}SR-3: описание с визуального редактора — ограниченный HTML
+  (санитайз и при сохранении, и на рендере фильтром rich_text). Легаси-плоский
+  текст — прежняя ветка whitespace-pre-line (его переносы в HTML незначимы).{% endcomment %}
+  {% if 'description' not in product_detail_hidden %}{% if product.description_text|is_rich %}<div class="mt-4 text-gray-600 rich-text" data-edit-model="product" data-edit-pk="{{ product.pk }}" data-edit-field="description">{{ product.description_text|rich_text }}</div>
+  <style>
+    .rich-text ul { list-style: disc; padding-left: 1.25rem; margin: .5rem 0; }
+    .rich-text ol { list-style: decimal; padding-left: 1.25rem; margin: .5rem 0; }
+    .rich-text p { margin: .5rem 0; }
+    .rich-text a { text-decoration: underline; }
+  </style>
+  {% else %}<div class="mt-4 text-gray-600 whitespace-pre-line" data-edit-model="product" data-edit-pk="{{ product.pk }}" data-edit-field="description">{{ product.description_text }}</div>{% endif %}{% endif %}
 
   {% comment %}Lebensmittel-Kennzeichnung (LMIV, R4) при наличии данных + M1 Boutique:
   Textilkennzeichnung (EU 1007/2011) — Material/Pflege ДО кнопки заказа.{% endcomment %}

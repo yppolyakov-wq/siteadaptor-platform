@@ -1,0 +1,89 @@
+{% load i18n %}
+{% comment %}SR-3: лёгкий визуальный редактор описания (B/I/U · списки · ссылка)
+без внешних библиотек. Прогрессивное улучшение: textarea ОСТАЁТСЯ в DOM (W0) и
+несёт значение — без JS форма работает как раньше; скрипт прячет её, рисует
+contenteditable и синкает HTML обратно (на вводе и на submit). Санитайз —
+на сервере (сохранение + рендер), клиент ничего не чистит.{% endcomment %}
+<style>
+  .rte-bar { display: flex; gap: 2px; padding: 4px 6px; border: 1px solid #e5e7eb; border-bottom: 0; border-radius: .75rem .75rem 0 0; background: #fafbfc; }
+  .rte-bar button { width: 28px; height: 26px; border-radius: 6px; font-size: 13px; color: #374151; }
+  .rte-bar button:hover { background: #eef2ff; color: #4338ca; }
+  .rte-area { min-height: 96px; border: 1px solid #e5e7eb; border-radius: 0 0 .75rem .75rem; padding: .5rem .75rem; font-size: .875rem; }
+  .rte-area:focus { outline: none; border-color: #a5b4fc; }
+  .rte-area ul { list-style: disc; padding-left: 1.25rem; }
+  .rte-area ol { list-style: decimal; padding-left: 1.25rem; }
+  .rte-area a { color: #4f46e5; text-decoration: underline; }
+</style>
+<script>
+(function () {
+  "use strict";
+  if (window.__rteBound) return;
+  window.__rteBound = true;
+  function enhance(ta) {
+    if (ta.dataset.rteDone) return;
+    ta.dataset.rteDone = "1";
+    var wrap = document.createElement("div");
+    var bar = document.createElement("div");
+    bar.className = "rte-bar";
+    var CMDS = [
+      ["B", "bold", "{% trans 'Bold' %}"],
+      ["I", "italic", "{% trans 'Italic' %}"],
+      ["U", "underline", "{% trans 'Underline' %}"],
+      ["•", "insertUnorderedList", "{% trans 'List' %}"],
+      ["1.", "insertOrderedList", "{% trans 'Numbered list' %}"],
+      ["🔗", "createLink", "{% trans 'Link' %}"],
+    ];
+    var area = document.createElement("div");
+    area.className = "rte-area";
+    area.contentEditable = "true";
+    var v = ta.value || "";
+    // плоский легаси-текст: переносы становятся <br>, HTML идёт как есть
+    area.innerHTML = v.indexOf("<") === -1 ? v.replace(/\n/g, "<br>") : v;
+    CMDS.forEach(function (c) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = c[0];
+      b.title = c[2];
+      if (c[0] === "B") b.style.fontWeight = "700";
+      if (c[0] === "I") b.style.fontStyle = "italic";
+      if (c[0] === "U") b.style.textDecoration = "underline";
+      b.addEventListener("click", function () {
+        area.focus();
+        if (c[1] === "createLink") {
+          var url = window.prompt("URL (https://…)", "https://");
+          if (url) document.execCommand("createLink", false, url);
+        } else {
+          document.execCommand(c[1], false, null);
+        }
+        sync();
+      });
+      bar.appendChild(b);
+    });
+    function sync() { ta.value = area.innerHTML; }
+    area.addEventListener("input", sync);
+    ta.classList.add("hidden");
+    ta.insertAdjacentElement("afterend", wrap);
+    wrap.appendChild(bar);
+    wrap.appendChild(area);
+    var form = ta.closest("form");
+    if (form && !form.dataset.rteSubmitBound) {
+      form.dataset.rteSubmitBound = "1";
+      form.addEventListener("submit", function () {
+        form.querySelectorAll("textarea[data-rte-done]").forEach(function (t) {
+          // каждая textarea синкается своим редактором на input; страховка —
+          // финальный проход по соседним .rte-area
+          var a = t.nextElementSibling && t.nextElementSibling.querySelector(".rte-area");
+          if (a) t.value = a.innerHTML;
+        });
+      });
+    }
+  }
+  function init() {
+    document
+      .querySelectorAll('[data-richtext-scope] textarea[name^="description"]')
+      .forEach(enhance);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>

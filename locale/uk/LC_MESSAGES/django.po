@@ -20042,3 +20042,64 @@ msgstr "Виберіть запис — деталі з’являться ту�
 
 msgid "Wird beim Speichern angelegt und diesem Produkt zugewiesen."
 msgstr "Створюється під час збереження й призначається цьому товару."
+
+msgid "Italic"
+msgstr "Курсив"
+
+msgid "Underline"
+msgstr "Підкреслений"
+
+msgid "Numbered list"
+msgstr "Нумерований список"
+
+msgid "Foto hinzufügen"
+msgstr "Додати фото"
+
+msgid "Nur Deutsch"
+msgstr "Лише німецька"
+
+msgid "Deutsch + %(n)s weitere"
+msgstr "Німецька + ще %(n)s"
+
+msgid "Zahlung vor Ort"
+msgstr "Оплата на місці"
+
+msgid "%(n)s Module aktiv"
+msgstr "Активних модулів: %(n)s"
+
+msgid "Testphase"
+msgstr "Пробний період"
+
+msgid "Aktiv · %(n)s Fragen"
+msgstr "Активний · запитань: %(n)s"
+
+msgid "Alles an einem Ort — mit Live-Status jeder Rubrik."
+msgstr "Усе в одному місці — з живим статусом кожного розділу."
+
+msgid "Geschäft"
+msgstr "Бізнес"
+
+msgid "Adresse, Öffnungszeiten, Kontakt"
+msgstr "Адреса, години роботи, контакти"
+
+msgid "Impressum, AGB, USt-Sätze"
+msgstr "Імпресум, умови, ставки ПДВ"
+
+msgid "Status-Namen, Übergänge, Spalten"
+msgstr "Назви статусів, переходи, колонки"
+
+msgid "Extras & Optionen zu Verkäufen"
+msgstr "Додаткові послуги й опції до продажів"
+
+msgid "Anleitungen & Kontakt"
+msgstr "Інструкції та контакт"
+
+msgid "Module an- und abschalten"
+msgstr "Увімкнення й вимкнення модулів"
+
+msgid "%(n)s Mitglied"
+msgid_plural "%(n)s Mitglieder"
+msgstr[0] "%(n)s учасник"
+msgstr[1] "%(n)s учасники"
+msgstr[2] "%(n)s учасників"
+msgstr[3] "%(n)s учасника"

@@ -694,3 +694,33 @@ def test_catalog_origin_and_rating_facets_end_to_end():
     body_r = public_views.product_list(_req(params={"bewertung": "4"})).content.decode()
     assert "Hofeier" in body_r and "Mehl" not in body_r
     assert plain.pk  # (использован выше косвенно)
+
+
+# --- SR-3: форматированное описание (визуальный редактор) --------------------
+
+
+def test_rich_description_renders_markup_and_strips_danger():
+    """SR-3: описание с разметкой allowlist рендерится КАК HTML (не текстом),
+    опасное вычищается на рендере даже при грязном хранении (fail-closed)."""
+    product = ProductFactory(
+        name={"de": "RichBrot"},
+        description={"de": "<b>fett</b><ul><li>eins</li></ul><script>alert(1)</script>"},
+    )
+    body = public_views.product_detail(
+        _req(f"/sortiment/{product.pk}/"), pk=product.pk
+    ).content.decode()
+    assert "<b>fett</b>" in body and "<li>eins</li>" in body
+    assert "<script>alert(1)" not in body
+
+
+def test_plain_description_keeps_legacy_branch():
+    """SR-3: плоский текст — прежняя ветка whitespace-pre-line (переносы живы),
+    без rich-контейнера."""
+    product = ProductFactory(
+        name={"de": "PlainBrot"}, description={"de": "Zeile 1\nZeile 2 & mehr"}
+    )
+    body = public_views.product_detail(
+        _req(f"/sortiment/{product.pk}/"), pk=product.pk
+    ).content.decode()
+    assert "whitespace-pre-line" in body
+    assert "Zeile 1\nZeile 2" in body

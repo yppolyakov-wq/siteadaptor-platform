@@ -329,7 +329,14 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
     def save(self, commit=True):
         product = super().save(commit=False)
         product.name = self.collect_i18n("name")
-        product.description = self.collect_i18n("description")
+        # SR-3: визуальный редактор шлёт ограниченный HTML — санитайз при
+        # сохранении (второй рубеж — фильтр rich_text на рендере).
+        from apps.core import richtext
+
+        product.description = {
+            k: richtext.sanitize(v) if richtext.is_rich(v) else v
+            for k, v in self.collect_i18n("description").items()
+        }
         # SR-2: новая категория с карточки товара — сильнее выбора в селекте
         # (владелец заполнил имя = хочет именно её; пустое поле = ничего).
         new_cat = (self.cleaned_data.get("new_category") or "").strip()
