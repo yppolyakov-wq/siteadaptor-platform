@@ -510,3 +510,18 @@ def test_no_variants_tab_on_create(user):
     assert 'data-pf-tab="varianten"' not in body
     assert 'data-pf-goto="varianten"' not in body
     assert "Speichern Sie zunächst, um Varianten" in body
+
+
+@pytest.mark.django_db
+def test_category_tiles_clickable_no_edit_text(user):
+    """SR-4 (канвас): фото и имя категории — ссылки в форму; текстовых
+    «Edit/Delete» в списке нет (Delete переехал в форму категории)."""
+    parent = CategoryFactory(name={"de": "Backwaren"}, slug="backwaren-t")
+    child = CategoryFactory(name={"de": "Kuchen"}, slug="kuchen-t", parent=parent)
+    req = RequestFactory().get("/catalog/categories/")
+    _attach_session_user(req, user)
+    body = views.category_list(req).content.decode()
+    assert f"/catalog/categories/{parent.pk}/edit/" in body
+    assert f"/catalog/categories/{child.pk}/edit/" in body  # чип подкатегории
+    assert ">Edit<" not in body and ">Delete<" not in body
+    assert "Foto hinzufügen" in body  # пустое фото — приглашение

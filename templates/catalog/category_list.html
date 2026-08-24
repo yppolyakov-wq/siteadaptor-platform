@@ -3,8 +3,11 @@
 {% block dash_title %}{% trans "Categories" %}{% endblock %}
 
 {% block dash_content %}
+{% comment %}SR-4 (утверждённый канвас 2026-08-24): категории — плитки с фото;
+фото и имя КЛИКАБЕЛЬНЫ → форма категории, текстовых «Edit/Delete» в списке нет
+(Delete переехал в форму — прецедент SR-1). Подкатегории — чипами у родителя.{% endcomment %}
 <div class="flex items-center justify-between mb-4">
-  <h1 class="text-2xl font-bold">{% trans "Categories" %}</h1>
+  <h1 class="text-2xl font-bold">🗂 {% trans "Categories" %}</h1>
   <a href="{% url 'catalog:category-create' %}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
     + {% trans "New category" %}
   </a>
@@ -16,42 +19,36 @@
   {% endfor %}
 {% endif %}
 
-<div class="bg-white rounded-2xl shadow-sm p-4">
-  <div class="-mx-4 px-4 overflow-x-auto sm:mx-0 sm:px-0">
-  <table class="w-full text-sm min-w-[560px]">
-    <thead class="text-left text-gray-500 border-b">
-      <tr>
-        <th class="py-2">{% trans "Name" %}</th>
-        <th class="py-2">{% trans "Slug" %}</th>
-        <th class="py-2">{% trans "Products" %}</th>
-        <th class="py-2">{% trans "Active" %}</th>
-        <th class="py-2"></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for c in categories %}
-        <tr class="border-b last:border-0">
-          <td class="py-2">
-            <span style="padding-left: {{ c.level }}.5rem">
-              {% if c.level %}<span class="text-gray-300">└ </span>{% endif %}
-              {% if c.icon %}<span class="mr-1">{{ c.icon }}</span>{% endif %}{{ c }}
-            </span>
-          </td>
-          <td class="py-2 font-mono text-gray-500">{{ c.slug }}</td>
-          <td class="py-2">{{ c.product_count }}</td>
-          <td class="py-2">
-            {% if c.is_active %}<span class="text-green-600">●</span>{% else %}<span class="text-gray-300">●</span>{% endif %}
-          </td>
-          <td class="py-2 text-right whitespace-nowrap">
-            <a href="{% url 'catalog:category-edit' c.pk %}" class="text-indigo-600 hover:underline">{% trans "Edit" %}</a>
-            <a href="{% url 'catalog:category-delete' c.pk %}" class="ml-3 text-red-600 hover:underline">{% trans "Delete" %}</a>
-          </td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="5" class="py-6 text-center text-gray-400">{% trans "No categories yet." %}</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  </div>
+{% if roots %}
+<div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+  {% for r in roots %}
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col">
+      <a href="{% url 'catalog:category-edit' r.cat.pk %}" class="h-28 bg-gray-100 flex items-center justify-center overflow-hidden">
+        {% if r.cat.image_url %}<img src="{{ r.cat.image_url }}" alt="" class="w-full h-full object-cover" loading="lazy">
+        {% else %}<span class="text-gray-300 text-sm flex flex-col items-center gap-1"><span class="text-2xl">📷</span>{% trans "Foto hinzufügen" %}</span>{% endif %}
+      </a>
+      <div class="p-3 flex-1">
+        <a href="{% url 'catalog:category-edit' r.cat.pk %}" class="font-medium hover:text-indigo-700 {% if not r.cat.is_active %}text-gray-400{% endif %}">{% if r.cat.icon %}{{ r.cat.icon }} {% endif %}{{ r.cat }}</a>
+        <p class="text-xs text-gray-500 mt-0.5">{{ r.cat.product_count }} {% trans "Products" %}{% if not r.cat.is_active %} · <span class="text-gray-400">{% trans "Versteckt" %}</span>{% endif %}</p>
+        {% if r.children %}
+          <div class="flex flex-wrap gap-1.5 mt-2">
+            {% for ch in r.children %}
+              <a href="{% url 'catalog:category-edit' ch.pk %}" class="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 hover:bg-indigo-50 hover:text-indigo-700">{{ ch }}</a>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+  <a href="{% url 'catalog:category-create' %}" class="rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-indigo-300 hover:text-indigo-500 min-h-[11rem]">
+    <span class="text-2xl">＋</span>
+    <span class="text-sm font-medium">{% trans "New category" %}</span>
+  </a>
 </div>
+{% else %}
+<div class="text-center text-gray-400 py-16 bg-white rounded-2xl shadow-sm">
+  <p class="text-4xl mb-2">🗂</p>
+  <p>{% trans "No categories yet." %}</p>
+</div>
+{% endif %}
 {% endblock %}

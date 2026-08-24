@@ -59,6 +59,9 @@
     <div class="flex gap-3">
       <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
       <a href="{% url 'catalog:category-list' %}" class="px-4 py-2 text-sm text-gray-600 hover:underline">{% trans "Cancel" %}</a>
+      {% comment %}SR-4: вход удаления жил только в списке — список стал
+      плитками без текстовых действий, Delete переезжает в форму (SR-1-прецедент).{% endcomment %}
+      {% if category %}<a href="{% url 'catalog:category-delete' category.pk %}" class="ml-auto px-4 py-2 text-sm text-red-600 hover:underline">{% trans "Delete" %}</a>{% endif %}
     </div>
   </form>
 </div>

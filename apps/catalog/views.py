@@ -561,10 +561,20 @@ def _descendants(category) -> list:
 
 @login_required
 def category_list(request):
+    """SR-4 (канвас Kategorien): плитки с фото — фото и имя кликабельны →
+    форма категории; подкатегории — чипами в плитке родителя."""
+    tree = _category_tree()
+    roots, cur = [], None
+    for c in tree:
+        if c.level == 0:
+            cur = {"cat": c, "children": []}
+            roots.append(cur)
+        elif cur is not None:
+            cur["children"].append(c)
     return render(
         request,
         "catalog/category_list.html",
-        {"nav": "categories", "categories": _category_tree()},
+        {"nav": "categories", "categories": tree, "roots": roots},
     )
 
 
