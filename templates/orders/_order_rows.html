@@ -7,10 +7,12 @@
 Строка перестала быть одной большой ссылкой — внутри теперь есть кнопки
 (вложенные интерактивные элементы в <a> недопустимы); ссылкой остаётся
 заголовок.{% endcomment %}
+{% comment %}R3 (редизайн B, утверждённый макет): каждая строка — отдельная
+карточка с мягкой тенью; состав строки (SH-11/12/16) не тронут.{% endcomment %}
 {% if orders %}
-<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
+<div class="space-y-2">
   {% for o in orders %}
-    <div class="flex items-center justify-between gap-3 px-4 py-2 hover:bg-gray-50">
+    <div class="flex items-center justify-between gap-3 px-4 py-3 bg-white rounded-2xl shadow-[0_4px_14px_rgba(22,24,29,0.05)]">
       <span class="w-6 shrink-0 text-xs tabular-nums text-gray-300">{{ forloop.counter }}</span>
       <div class="min-w-0 flex-1">
         <a href="{% url 'orders:order-detail' o.pk %}" class="block text-sm font-medium truncate hover:text-indigo-700">{{ o.reference_code }}

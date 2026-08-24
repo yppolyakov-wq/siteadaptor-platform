@@ -6,29 +6,33 @@ Board/календаре/детали (список = обзор, как в ры
 section (может быть None).{% endcomment %}
 {% comment %}X6-2: поиск по коду сделки и клиенту — был только у заказов
 (W10-3), у брони/записи/заявки/билета его не было вовсе.{% endcomment %}
+{% comment %}R3 (стиль B): контролы фильтра — белые карточки с тенью вместо
+рамок (границы только transparent — фокус подсвечивает индиго).{% endcomment %}
 <form method="get" class="flex flex-wrap items-center gap-2 mb-3">
   <input type="hidden" name="tab" value="{{ active_kind }}">
   <input type="hidden" name="view" value="liste">
   {% comment %}X2c: фильтр статуса — паритет с легаси-страницей заявок (чипы)
   и списком заказов; варианты из реестра, включая кастом-статусы владельца.{% endcomment %}
-  <select name="status" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+  <select name="status" onchange="this.form.submit()" class="rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm">
     <option value="">{% trans "All statuses" %}</option>
     {% for value, label in list_status_options %}
       <option value="{{ value }}" {% if list_status == value %}selected{% endif %}>{{ label }}</option>
     {% endfor %}
   </select>
   <input type="search" name="q" value="{{ list_q }}" placeholder="{% trans 'Suche: Code, Name, E-Mail' %}"
-         class="rounded-lg border border-gray-300 px-3 py-2 text-sm w-56">
-  <button type="submit" class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
+         class="rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm w-56 focus:border-indigo-300 focus:outline-none">
+  <button type="submit" class="rounded-xl bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
 </form>
 {% comment %}SH-12/16 (фидбэк 2026-08-20): порядковый номер строки, покупатель
 отдельной строкой и МЕЛЬЧЕ шрифт; SH-11: статус меняется прямо из списка. Строка
 перестала быть одной большой ссылкой — внутри теперь есть кнопки (вложенные
 интерактивные элементы в <a> недопустимы).{% endcomment %}
+{% comment %}R3 (утверждённый макет): строка списка = отдельная карточка
+radius 16 с мягкой тенью; порядковый номер (SH-12) и меню статуса целы.{% endcomment %}
 {% if section and section.transactions %}
-<div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
+<div class="space-y-2">
   {% for tx in section.transactions %}
-    <div class="flex items-center justify-between gap-3 px-4 py-2 hover:bg-gray-50">
+    <div class="flex items-center justify-between gap-3 px-4 py-3 bg-white rounded-2xl shadow-[0_4px_14px_rgba(22,24,29,0.05)]">
       <span class="w-6 shrink-0 text-xs tabular-nums text-gray-300">{{ forloop.counter }}</span>
       <div class="min-w-0 flex-1">
         <a href="{{ tx.manage_url|default:'#' }}" class="text-sm font-medium truncate block hover:text-indigo-700">{{ tx.title }}

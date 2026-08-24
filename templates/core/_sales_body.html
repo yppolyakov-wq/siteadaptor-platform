@@ -19,28 +19,30 @@ active_kind). Извлечено 1:1 из core/verkaeufe.html, чтобы ГЛА
   {% include "core/_board_body.html" %}
 {% elif active_kind == "order" %}
   {# W10-3: паритет с легаси-списком — фильтр статуса, поиск, входы KDS/QR #}
+  {% comment %}R3 (стиль B): контролы — белые карточки с тенью; чип доставки —
+  rounded-full, активный залит тёмным (макет Verkaeufe.dc, чип «Offen»).{% endcomment %}
   <div class="flex flex-wrap items-center gap-2 mb-3">
     <form method="get" class="flex flex-wrap items-center gap-2">
       <input type="hidden" name="tab" value="order">
-      <select name="status" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <select name="status" onchange="this.form.submit()" class="rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm">
         <option value="">{% trans "All statuses" %}</option>
         {% for value, label in order_statuses %}
           <option value="{{ value }}" {% if order_status == value %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
       </select>
-      <input type="search" name="q" value="{{ order_q }}" placeholder="{% trans 'Suche: Code, Name, E-Mail' %}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm w-56">
+      <input type="search" name="q" value="{{ order_q }}" placeholder="{% trans 'Suche: Code, Name, E-Mail' %}" class="rounded-xl border border-transparent bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm w-56 focus:border-indigo-300 focus:outline-none">
       {% if order_versand %}<input type="hidden" name="versand" value="1">{% endif %}
-      <button type="submit" class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
+      <button type="submit" class="rounded-xl bg-white shadow-[0_3px_10px_rgba(22,24,29,0.05)] px-3 py-2 text-sm hover:bg-gray-50">🔍</button>
     </form>
     {% comment %}SH-14: чип «только доставка» — тот же фильтр, что у подпункта
     сайдбара «Lieferungen»; активный фильтр обязан быть виден и снимаем.{% endcomment %}
     <a href="?tab=order&amp;view=liste{% if order_status %}&amp;status={{ order_status }}{% endif %}{% if order_q %}&amp;q={{ order_q|urlencode }}{% endif %}{% if not order_versand %}&amp;versand=1{% endif %}"
-       class="rounded-lg px-3 py-2 text-sm font-medium border {% if order_versand %}border-indigo-300 bg-indigo-50 text-indigo-700{% else %}border-gray-300 text-gray-600 hover:bg-gray-50{% endif %}">🚚 {% trans "Nur Lieferungen" %}{% if order_versand %} ✕{% endif %}</a>
+       class="rounded-full px-3.5 py-2 text-sm font-medium {% if order_versand %}bg-gray-900 text-white shadow-sm{% else %}bg-white text-gray-600 shadow-[0_3px_10px_rgba(22,24,29,0.05)] hover:bg-gray-50{% endif %}">🚚 {% trans "Nur Lieferungen" %}{% if order_versand %} ✕{% endif %}</a>
     {% comment %}X4: гастро-инструменты только гастро-типам (гейт is_food) —
     парикмахеру/мастерской «Kitchen Display» показывать нечего.{% endcomment %}
     {% if is_food %}
-    <a href="{% url 'orders:kitchen' %}" class="rounded-lg bg-gray-800 text-white px-3 py-2 text-sm font-medium hover:bg-gray-900">🍳 {% trans "Kitchen Display" %}</a>
-    <a href="{% url 'orders:table-qr' %}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium hover:bg-gray-50">🪑 {% trans "Table QR codes" %}</a>
+    <a href="{% url 'orders:kitchen' %}" class="rounded-xl bg-gray-800 text-white px-3 py-2 text-sm font-medium shadow-sm hover:bg-gray-900">🍳 {% trans "Kitchen Display" %}</a>
+    <a href="{% url 'orders:table-qr' %}" class="rounded-xl bg-white text-gray-600 px-3 py-2 text-sm font-medium shadow-[0_3px_10px_rgba(22,24,29,0.05)] hover:bg-gray-50">🪑 {% trans "Table QR codes" %}</a>
     {% endif %}
   </div>
   {% include "orders/_order_rows.html" %}
