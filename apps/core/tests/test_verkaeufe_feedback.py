@@ -169,3 +169,21 @@ def test_promo_sale_is_a_normal_order_with_a_visible_badge():
         _req("/dashboard/verkaeufe/?tab=order&view=liste", tenant=tenant)
     ).content.decode()
     assert "O-PROMO1" in body and "🏷" in body
+
+
+# --- VF-8 (фидбэк 2026-08-24): пустая доска говорит, что записей нет ----------
+def test_empty_board_says_so():
+    """«Если вдруг заявок нет — нужно писать, что их нет»: доска с нулём сделок
+    рисовала голые колонки без единого слова; теперь над ними явная строка
+    (msgid реюзится из Liste). С первой сделкой строка исчезает."""
+    body = views.verkaeufe(_req("/dashboard/verkaeufe/?view=board")).content.decode()
+    assert "data-board-empty" in body  # свежий тенант: сделок нет → строка есть
+
+    from apps.jobs.services import create_job
+
+    tenant = _tenant(business_type="catering")
+    create_job(title="Hochzeit", name="Anna", email="a@t.de")
+    body = views.verkaeufe(
+        _req("/dashboard/verkaeufe/?tab=job&view=board", tenant=tenant)
+    ).content.decode()
+    assert "data-board-empty" not in body  # заявка есть → строки нет

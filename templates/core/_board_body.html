@@ -27,6 +27,11 @@
 
   {% for s in sections %}
     <div class="board-panel" data-board-panel="{{ s.kind }}" {% if s.kind != active_kind %}hidden{% endif %}>
+      {% comment %}VF-8 (фидбэк владельца 2026-08-24 «если заявок нет — нужно
+      писать, что их нет»): пустая доска рисовала голые колонки без единого
+      слова. msgid реюзится из Liste (переведён ×5); вид сделки называет
+      заголовок вкладки/страницы.{% endcomment %}
+      {% if not s.total %}<p class="text-sm text-gray-500 mb-3" data-board-empty>{% trans "Noch keine Einträge." %}</p>{% endif %}
       {% include "core/_kanban_board.html" with section=s %}
     </div>
   {% endfor %}
