@@ -3,33 +3,62 @@
 {% block dash_title %}{% trans "Dashboard" %}{% endblock %}
 
 {% block dash_content %}
-<h1 class="text-2xl font-bold mb-4">{% trans "Welcome" %} 👋</h1>
+{% comment %}R4 (редизайн B, макет Main.dc/DesktopHome.dc): шапка — имя бизнеса
++ строка дня вместо «Welcome».{% endcomment %}
+<div class="mb-4">
+  <h1 class="text-xl font-bold tracking-tight">{{ request.tenant.name }}</h1>
+  <p class="text-xs text-gray-500">{% trans "Heute" %} · {% now "D, j. F" %}</p>
+</div>
 
-{% comment %}X3: тонкая полоса «сегодня» над петлёй — числа дня + статус
-присутствия одной строкой (раньше занимали два отдельных блока экрана).{% endcomment %}
-<div class="flex flex-wrap items-stretch gap-3 mb-6">
-  {% for w in widgets %}
-    <a href="{% url w.url_name %}{{ w.url_query }}" class="flex-1 min-w-[9rem] bg-white rounded-2xl shadow-sm px-4 py-3 hover:ring-1 hover:ring-indigo-300">
-      <span class="block text-xs text-gray-500">{{ w.icon }} {{ w.label }}</span>
-      <span class="block text-xl font-bold text-gray-900">{{ w.value }}</span>
-      {% if w.sparkline %}<svg viewBox="0 0 120 32" class="w-full h-6 text-emerald-500" aria-hidden="true"><polyline points="{{ w.sparkline }}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>{% endif %}
-      <span class="block text-[11px] text-gray-400">{{ w.hint }}</span>
+{% comment %}R4: Umsatz — большая карта (radius 22, hint-пилюля «▲/▼ vs.
+Vorwoche», спарклайн); присутствие LS-2 — карточка рядом. Данные и гейты
+home_widgets не тронуты — только рендер.{% endcomment %}
+<div class="flex flex-col sm:flex-row sm:items-stretch gap-3 mb-3">
+  {% for w in widgets %}{% if w.key == "umsatz" or w.key == "finance_off" %}
+    <a href="{% url w.url_name %}{{ w.url_query }}" class="block flex-1 bg-white rounded-[22px] shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 hover:bg-gray-50">
+      <span class="flex items-start justify-between gap-2">
+        <span>
+          <span class="block text-xs text-gray-500">{{ w.label }}</span>
+          <span class="block text-3xl font-bold tracking-tight mt-0.5">{{ w.value }}</span>
+        </span>
+        {% if "▲" in w.hint %}<span class="shrink-0 text-[11px] font-semibold text-emerald-700 bg-emerald-50 rounded-full px-2.5 py-1 whitespace-nowrap">{{ w.hint }}</span>
+        {% elif "▼" in w.hint %}<span class="shrink-0 text-[11px] font-semibold text-rose-700 bg-rose-50 rounded-full px-2.5 py-1 whitespace-nowrap">{{ w.hint }}</span>
+        {% else %}<span class="shrink-0 text-[11px] text-gray-400">{{ w.hint }}</span>{% endif %}
+      </span>
+      {% if w.sparkline %}<svg viewBox="0 0 120 32" class="w-full h-7 mt-2 text-emerald-500" aria-hidden="true"><polyline points="{{ w.sparkline }}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>{% endif %}
     </a>
-  {% endfor %}
-  {% comment %}LS-2: присутствие «Jetzt erreichbar» — та же форма, компактно.{% endcomment %}
-  <form method="post" action="{% url 'set-presence' %}" class="flex-1 min-w-[11rem] bg-white rounded-2xl shadow-sm px-4 py-3">
+  {% endif %}{% endfor %}
+  {% comment %}LS-2: присутствие «Jetzt erreichbar» — та же форма, карточкой.{% endcomment %}
+  <form method="post" action="{% url 'set-presence' %}" class="sm:w-64 bg-white rounded-[22px] shadow-[0_6px_18px_rgba(22,24,29,0.05)] px-4 py-3">
     {% csrf_token %}
     <span class="flex items-center gap-2 text-xs text-gray-500">
       <span class="inline-flex h-2.5 w-2.5 rounded-full {% if presence_now %}bg-green-500{% else %}bg-gray-300{% endif %}" aria-hidden="true"></span>
       {% if presence_now %}{% trans "Jetzt erreichbar" %}{% else %}{% trans "Gerade nicht erreichbar" %}{% endif %}
     </span>
-    <span class="flex gap-1 mt-1.5">
-      <button name="mode" value="auto" class="px-2 py-0.5 rounded-lg text-[11px] border {% if presence_mode == 'auto' %}bg-gray-900 text-white border-gray-900{% else %}border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{% trans "Auto" %}</button>
-      <button name="mode" value="on" class="px-2 py-0.5 rounded-lg text-[11px] border {% if presence_mode == 'on' %}bg-green-600 text-white border-green-600{% else %}border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{% trans "An" %}</button>
-      <button name="mode" value="off" class="px-2 py-0.5 rounded-lg text-[11px] border {% if presence_mode == 'off' %}bg-gray-900 text-white border-gray-900{% else %}border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{% trans "Aus" %}</button>
+    <span class="flex gap-1 mt-2">
+      <button name="mode" value="auto" class="px-2.5 py-1 rounded-full text-[11px] {% if presence_mode == 'auto' %}bg-gray-900 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">{% trans "Auto" %}</button>
+      <button name="mode" value="on" class="px-2.5 py-1 rounded-full text-[11px] {% if presence_mode == 'on' %}bg-green-600 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">{% trans "An" %}</button>
+      <button name="mode" value="off" class="px-2.5 py-1 rounded-full text-[11px] {% if presence_mode == 'off' %}bg-gray-900 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">{% trans "Aus" %}</button>
     </span>
-    {% if not presence_number %}<a href="{% url 'settings' %}" class="block mt-1 text-[11px] text-amber-700 hover:underline">{% trans "WhatsApp-Nummer fehlt" %} →</a>{% endif %}
+    {% if not presence_number %}<a href="{% url 'settings' %}" class="block mt-1.5 text-[11px] text-amber-700 hover:underline">{% trans "WhatsApp-Nummer fehlt" %} →</a>{% endif %}
   </form>
+</div>
+
+{% comment %}R4: остальные виджеты — строки-карточки в духе «Braucht
+Aufmerksamkeit» макета (цветная точка · label/hint · значение · шеврон);
+deep-links те же.{% endcomment %}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+  {% for w in widgets %}{% if w.key != "umsatz" and w.key != "finance_off" %}
+    <a href="{% url w.url_name %}{{ w.url_query }}" class="flex items-center gap-3 bg-white rounded-2xl shadow-[0_4px_14px_rgba(22,24,29,0.05)] px-4 py-3 hover:bg-gray-50">
+      <span class="w-2 h-2 shrink-0 rounded-full {% if w.key == 'ready' %}bg-amber-500{% elif w.key == 'stays_today' %}bg-emerald-500{% elif w.key == 'puls' %}bg-indigo-500{% elif w.key == 'reviews' %}bg-amber-400{% else %}bg-gray-300{% endif %}" aria-hidden="true"></span>
+      <span class="flex-1 min-w-0">
+        <span class="block text-sm font-medium text-gray-800 truncate">{{ w.icon }} {{ w.label }}</span>
+        <span class="block text-[11px] text-gray-400 truncate">{{ w.hint }}</span>
+      </span>
+      <span class="text-sm font-bold tabular-nums shrink-0">{{ w.value }}</span>
+      <span class="text-gray-300 shrink-0" aria-hidden="true">›</span>
+    </a>
+  {% endif %}{% endfor %}
 </div>
 
 {% comment %}X2a: ЕДИНАЯ карточка настройки вместо двух конкурирующих механизмов
@@ -37,7 +66,7 @@
 реестр шагов мастера; пункт «часы работы» перенесён из readiness (слайда нет),
 признак «фото/галерея» ушёл внутрь проверки шага «Startseite».{% endcomment %}
 {% if checklist and not checklist.completed %}
-<div class="mb-8 max-w-xl bg-white rounded-2xl shadow-sm p-5">
+<div class="mb-8 max-w-xl bg-white rounded-[22px] shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5">
   <div class="flex items-center justify-between mb-3">
     <h2 class="font-semibold text-sm">{% blocktrans with p=checklist.percent %}Ihre Website ist zu {{ p }} % fertig{% endblocktrans %}</h2>
     <span class="text-sm text-gray-400">{{ checklist.done }}/{{ checklist.total }}</span>
