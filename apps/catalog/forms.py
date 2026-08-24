@@ -238,6 +238,28 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         # живые категории в выпадашке
         self.fields["category"].queryset = Category.objects.all()
+        # SR-2b (фидбэк «пустота внутри»): правая колонка живёт ВНЕ <form>
+        # (панель вариантов с мини-формами должна стоять сразу под main-картой,
+        # вложенные <form> недопустимы) — поля рейла привязаны атрибутом form=.
+        for name in (
+            "category",
+            "new_category",
+            "base_price",
+            "vat_rate",
+            "stock_quantity",
+            "reorder_point",
+            "unit",
+            "content_amount",
+            "currency",
+            "sku",
+            "gtin",
+            "cost_price",
+            "reorder_target",
+            "primary_action",
+            "is_active",
+        ):
+            if name in self.fields:
+                self.fields[name].widget.attrs["form"] = "product-form"
         self.fields["category"].required = False
         self.init_i18n_fields(tenant)  # L3d.5
         # O-2: вид выбора вариантов — из реестра, с подсказками «когда уместно».

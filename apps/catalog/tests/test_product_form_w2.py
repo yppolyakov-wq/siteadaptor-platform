@@ -80,8 +80,8 @@ def test_labeling_tab_hidden_for_nonfood(user):
 @pytest.mark.django_db
 def test_advanced_tabs_visible_for_everyone(user):
     """SM-1: продвинутые табы видны каждому. SR-2 (осознанная переписка):
-    таба «Preis & stock» больше НЕТ — цена и наличие живут ПОСТОЯННОЙ правой
-    колонкой (data-price-rail), видимой на любом табе; Marketing — таб как был."""
+    таба «Preis & stock» больше НЕТ — цена и наличие живут правой колонкой
+    (data-price-rail) таба «Basics»; Marketing — таб как был."""
     body = _render(user, TenantFactory(business_type="bakery"))
     assert "id_stock_quantity" in body and "id_cost_price" in body
     assert 'data-pf-tab="preis"' not in body and 'data-pf-panel="preis"' not in body
@@ -91,6 +91,23 @@ def test_advanced_tabs_visible_for_everyone(user):
     assert body.find("id_base_price", i) != -1
     i = body.find('data-pf-tab="markt"')
     assert i != -1 and "hidden" not in body[i : i + 80]
+
+
+@pytest.mark.django_db
+def test_rail_scoped_to_basics_tab(user):
+    """SR-2d (фидбэк 2026-08-24): правая колонка (цена/категория) — ТОЛЬКО на
+    табе «Basics»: рейл несёт data-pf-rail="grund", setTab прячет его на прочих
+    табах и схлопывает грид (pf-rail-off); invalid по полю рейла открывает его
+    таб (иначе класс дыры «Save молча не работает» — ревью Кабинет-X)."""
+    body = _render(user, TenantFactory(business_type="bakery"))
+    assert 'data-pf-rail="grund"' in body  # рейл привязан к табу
+    assert "data-pf-grid" in body  # грид знает о схлопывании
+    # механика в общем партиале: тогглы рейла/грида + rail-ветка revealField
+    assert "data-pf-rail" in body and "pf-rail-off" in body
+    assert 'el.closest("[data-pf-rail]")' in body
+    # сервер рендерит рейл ВИДИМЫМ (стартовый таб = grund) — скрытие только JS
+    i = body.find('data-pf-rail="grund"')
+    assert "hidden" not in body[max(0, i - 120) : i]
 
 
 @pytest.mark.django_db

@@ -26,6 +26,9 @@
   .pf-tab:hover { background:#f3f4f6; color:#374151; }
   .pf-tab-on { background:#4f46e5; color:#fff; }
   .pf-tab-on:hover { background:#4338ca; color:#fff; }
+  /* SR-2d: активный таб без правой колонки → грид формы в одну колонку
+     (селектор бьёт lg:grid по специфичности; атрибут+класс > один класс). */
+  [data-pf-grid].pf-rail-off { display:block; }
 </style>
 
 <script>
@@ -55,6 +58,22 @@
     document.querySelectorAll("[data-pf-panel]").forEach(function (el) {
       el.classList.toggle("hidden", el.getAttribute("data-pf-panel") !== t);
     });
+    // SR-2d (фидбэк владельца 2026-08-24): правая колонка (цена/категория)
+    // принадлежит СВОЕМУ табу (data-pf-rail="grund") — на прочих скрывается,
+    // а грид (data-pf-grid) схлопывается в одну колонку: у каждой вкладки своя
+    // раскладка. Скрытие только CSS — поля остаются в DOM и уходят с Save (W0).
+    document.querySelectorAll("[data-pf-rail]").forEach(function (el) {
+      el.classList.toggle("hidden", el.getAttribute("data-pf-rail") !== t);
+    });
+    document.querySelectorAll("[data-pf-grid]").forEach(function (el) {
+      el.classList.toggle("pf-rail-off", !el.querySelector('[data-pf-rail="' + t + '"]'));
+    });
+    // Элементы, которым на конкретных табах не место (напр. карточка главной
+    // формы с одиноким Save на табе «Varianten»).
+    document.querySelectorAll("[data-pf-hide-on]").forEach(function (el) {
+      var hides = (el.getAttribute("data-pf-hide-on") || "").split(" ");
+      el.classList.toggle("hidden", hides.indexOf(t) !== -1);
+    });
   }
   document.addEventListener("click", function (e) {
     var pill = e.target.closest("[data-i18n-pill]");
@@ -79,6 +98,10 @@
     if (grp) { setLoc(grp.getAttribute("data-i18n-loc")); }
     var panel = el.closest("[data-pf-panel]");  // поле неактивной вкладки
     if (panel) { setTab(panel.getAttribute("data-pf-panel")); }
+    // SR-2d: обязательное поле правой колонки (base_price) при скрытом рейле —
+    // тот же класс дыры: открываем таб, которому рейл принадлежит.
+    var rail = el.closest("[data-pf-rail]");
+    if (rail) { setTab(rail.getAttribute("data-pf-rail")); }
   }
   document.addEventListener("invalid", function (e) { revealField(e.target); }, true);
 
