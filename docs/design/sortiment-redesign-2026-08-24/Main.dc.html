@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: 'Instrument Sans', system-ui, sans-serif; }
+    a { color: #4F46E5; } a:hover { color: #4338CA; }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; background: #F2F4F7; color: #16181D; box-sizing: border-box; display: flex; overflow: hidden">
+
+  <div style="width: 248px; background: #FFFFFF; border-radius: 20px; margin: 16px 0 16px 16px; box-shadow: 0 8px 24px rgba(22, 24, 29, 0.06); display: flex; flex-direction: column; padding: 18px 14px; box-sizing: border-box; gap: 14px; flex-shrink: 0">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 0 8px">
+      <div style="width: 32px; height: 32px; border-radius: 10px; background: #4F46E5; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700">H</div>
+      <div style="font-size: 14.5px; font-weight: 700">Hofladen Sonnenfeld</div>
+    </div>
+    <div style="height: 38px; border-radius: 12px; display: flex; align-items: center; padding: 0 12px; gap: 8px; background: #F2F4F7">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9BA0AB" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg>
+      <span style="font-size: 13px; color: #9BA0AB; flex-grow: 1">Suchen …</span>
+      <span style="font-size: 11px; color: #9BA0AB; border: 1px solid #E7E9EE; border-radius: 5px; padding: 1px 5px; background: #FFFFFF">Strg+K</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <div style="height: 40px; border-radius: 10px; color: #444A56; display: flex; align-items: center; gap: 10px; padding: 0 12px; font-size: 14px">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#6A7180" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.2L12 4.4l8 6.8V20h-5.4v-4.8h-5.2V20H4z"></path></svg>
+        Übersicht
+      </div>
+      <div style="height: 40px; border-radius: 10px; color: #444A56; display: flex; align-items: center; gap: 10px; padding: 0 12px; font-size: 14px">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#6A7180" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="16" rx="2"></rect><path d="M8.5 9h7M8.5 13h7M8.5 17h4"></path></svg>
+        Verkäufe
+      </div>
+      <div style="height: 40px; border-radius: 10px; background: #4F46E5; color: #FFFFFF; display: flex; align-items: center; gap: 10px; padding: 0 12px; font-size: 14px; font-weight: 600">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8l8-4 8 4v8l-8 4-8-4z"></path><path d="M4 8l8 4 8-4M12 12v8"></path></svg>
+        Sortiment
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 1px; padding: 4px 0 6px 40px">
+        <div style="height: 30px; display: flex; align-items: center; font-size: 13px; color: #16181D; font-weight: 600">Sortiment — Übersicht</div>
+        <div style="height: 30px; display: flex; align-items: center; font-size: 13px; color: #444A56">Kategorien</div>
+        <div style="height: 30px; display: flex; align-items: center; font-size: 13px; color: #444A56">Kollektionen</div>
+        <div style="height: 30px; display: flex; align-items: center; font-size: 13px; color: #444A56">Lager</div>
+        <div style="height: 30px; display: flex; align-items: center; font-size: 13px; color: #444A56">Einkauf</div>
+        <div style="height: 30px; display: flex; align-items: center; font-size: 13px; color: #444A56">Import</div>
+      </div>
+      <div style="height: 40px; border-radius: 10px; color: #444A56; display: flex; align-items: center; gap: 10px; padding: 0 12px; font-size: 14px">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#6A7180" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 5v12l-8.5-2.5H7a3 3 0 0 1 0-6h3.5L19 5z"></path><path d="M8.5 15l.8 3.5"></path></svg>
+        Marketing
+      </div>
+      <div style="height: 40px; border-radius: 10px; color: #444A56; display: flex; align-items: center; gap: 10px; padding: 0 12px; font-size: 14px">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#6A7180" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17.5L14 5l3 2.5L8 19l-4.5 1z"></path><path d="M12.5 7l3 2.5"></path></svg>
+        Website
+      </div>
+      <div style="height: 40px; border-radius: 10px; color: #444A56; display: flex; align-items: center; gap: 10px; padding: 0 12px; font-size: 14px">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#6A7180" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h8M18 7h2"></path><circle cx="15" cy="7" r="2.2"></circle><path d="M4 17h2M12 17h8"></path><circle cx="9" cy="17" r="2.2"></circle></svg>
+        Einstellungen
+      </div>
+    </div>
+    <div style="flex-grow: 1"></div>
+    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; border-top: 1px solid #F0F1F4">
+      <div style="width: 34px; height: 34px; border-radius: 99px; background: #EEF0FF; color: #4338CA; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700">KB</div>
+      <div style="flex-grow: 1">
+        <div style="font-size: 13px; font-weight: 600">Kateryna B.</div>
+        <div style="font-size: 11.5px; color: #6A7180">Inhaberin</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex-grow: 1; padding: 24px 32px; display: flex; flex-direction: column; gap: 14px; overflow: hidden; box-sizing: border-box">
+
+    <div style="display: flex; align-items: center; gap: 12px">
+      <div style="font-size: 22px; font-weight: 700; letter-spacing: -0.01em">📦 Sortiment</div>
+      <div style="display: flex; border-radius: 12px; overflow: hidden; background: #FFFFFF; box-shadow: 0 3px 10px rgba(22, 24, 29, 0.05)">
+        <div style="height: 36px; padding: 0 14px; display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; background: #16181D; color: #FFFFFF">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.9"><rect x="4" y="4" width="7" height="7" rx="1.5"></rect><rect x="13" y="4" width="7" height="7" rx="1.5"></rect><rect x="4" y="13" width="7" height="7" rx="1.5"></rect><rect x="13" y="13" width="7" height="7" rx="1.5"></rect></svg>
+          Kacheln
+        </div>
+        <div style="height: 36px; padding: 0 14px; display: flex; align-items: center; gap: 6px; font-size: 13px; color: #444A56">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6A7180" stroke-width="1.9" stroke-linecap="round"><path d="M5 6h14M5 12h14M5 18h14"></path></svg>
+          Liste
+        </div>
+      </div>
+      <div style="flex-grow: 1"></div>
+      <div style="height: 38px; border-radius: 12px; background: #FFFFFF; box-shadow: 0 3px 10px rgba(22, 24, 29, 0.05); display: flex; align-items: center; gap: 8px; padding: 0 14px; width: 240px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9BA0AB" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg>
+        <span style="font-size: 13px; color: #9BA0AB">Suche im Sortiment …</span>
+      </div>
+      <div style="height: 38px; border-radius: 12px; background: #FFFFFF; box-shadow: 0 3px 10px rgba(22, 24, 29, 0.05); display: flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 13px; color: #444A56">Alle Kategorien <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6A7180" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></div>
+      <div style="height: 38px; border-radius: 10px; background: #4F46E5; color: #FFFFFF; display: flex; align-items: center; gap: 8px; padding: 0 16px; font-size: 13.5px; font-weight: 600">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+        Neues Produkt
+      </div>
+    </div>
+
+    <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6A7180">Produkte <span style="color: #B3B8C2">(12)</span></div>
+
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px">
+
+      <div style="background: #FFFFFF; border-radius: 18px; box-shadow: 0 6px 18px rgba(22, 24, 29, 0.05); overflow: hidden; outline: 2px solid #4F46E5; outline-offset: -2px">
+        <div style="height: 128px; background: linear-gradient(135deg, #F5E6CC, #E8D3A9); display: flex; align-items: center; justify-content: center; font-size: 42px; cursor: pointer">🍞</div>
+        <div style="padding: 12px 14px 13px">
+          <div style="font-size: 14px; font-weight: 600; color: #4338CA; text-decoration: underline; cursor: pointer">Sauerteigbrot 750 g</div>
+          <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 5px">
+            <div style="font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums">4,20 €</div>
+            <div style="flex-grow: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #0A8A5F">Bestand 18</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 9px">
+            <div style="font-size: 11px; font-weight: 600; color: #0A8A5F; background: #F0FBF6; border-radius: 99px; padding: 3px 9px">✓ Sichtbar</div>
+            <div style="flex-grow: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #C77414">% Aktion</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background: #FFFFFF; border-radius: 18px; box-shadow: 0 6px 18px rgba(22, 24, 29, 0.05); overflow: hidden">
+        <div style="height: 128px; background: linear-gradient(135deg, #FBEFD8, #F2DFB6); display: flex; align-items: center; justify-content: center; font-size: 42px">🥚</div>
+        <div style="padding: 12px 14px 13px">
+          <div style="font-size: 14px; font-weight: 600">Bio-Eier 10er</div>
+          <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 5px">
+            <div style="font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums">3,90 €</div>
+            <div style="flex-grow: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #C77414">Bestand 4</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 9px">
+            <div style="font-size: 11px; font-weight: 600; color: #0A8A5F; background: #F0FBF6; border-radius: 99px; padding: 3px 9px">✓ Sichtbar</div>
+            <div style="flex-grow: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #C77414">% Aktion</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background: #FFFFFF; border-radius: 18px; box-shadow: 0 6px 18px rgba(22, 24, 29, 0.05); overflow: hidden">
+        <div style="height: 128px; background: linear-gradient(135deg, #FDF3D9, #F6E3AC); display: flex; align-items: center; justify-content: center; font-size: 42px">🍯</div>
+        <div style="padding: 12px 14px 13px">
+          <div style="font-size: 14px; font-weight: 600">Blütenhonig 500 g</div>
+          <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 5px">
+            <div style="font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums">6,50 €</div>
+            <div style="flex-grow: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #D5303E">Ausverkauft</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 9px">
+            <div style="font-size: 11px; font-weight: 600; color: #0A8A5F; background: #F0FBF6; border-radius: 99px; padding: 3px 9px">✓ Sichtbar</div>
+            <div style="flex-grow: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #C77414">% Aktion</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background: #FFFFFF; border-radius: 18px; box-shadow: 0 6px 18px rgba(22, 24, 29, 0.05); overflow: hidden">
+        <div style="height: 128px; background: linear-gradient(135deg, #E9F2E2, #D3E5C6); display: flex; align-items: center; justify-content: center; font-size: 42px">🧺</div>
+        <div style="padding: 12px 14px 13px">
+          <div style="font-size: 14px; font-weight: 600; color: #9BA0AB">Bio-Kiste „Woche“</div>
+          <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 5px">
+            <div style="font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; color: #9BA0AB">24,00 €</div>
+            <div style="flex-grow: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #9BA0AB">Bestand 7</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 9px">
+            <div style="font-size: 11px; font-weight: 600; color: #6A7180; background: #F2F4F7; border-radius: 99px; padding: 3px 9px">Versteckt</div>
+            <div style="flex-grow: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #C77414">% Aktion</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background: #FFFFFF; border-radius: 18px; box-shadow: 0 6px 18px rgba(22, 24, 29, 0.05); overflow: hidden">
+        <div style="height: 128px; background: linear-gradient(135deg, #FBE8DC, #F3D2BC); display: flex; align-items: center; justify-content: center; font-size: 42px">🧀</div>
+        <div style="padding: 12px 14px 13px">
+          <div style="font-size: 14px; font-weight: 600">Bauernkäse am Stück</div>
+          <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 5px">
+            <div style="font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums">2,80 € <span style="font-size: 11px; font-weight: 400; color: #6A7180">/ 100 g</span></div>
+            <div style="flex-grow: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #0A8A5F">Bestand 25</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 9px">
+            <div style="font-size: 11px; font-weight: 600; color: #0A8A5F; background: #F0FBF6; border-radius: 99px; padding: 3px 9px">✓ Sichtbar</div>
+            <div style="flex-grow: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #C77414">% Aktion</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background: #FFFFFF; border-radius: 18px; box-shadow: 0 6px 18px rgba(22, 24, 29, 0.05); overflow: hidden">
+        <div style="height: 128px; background: linear-gradient(135deg, #FDEFE0, #F8DDBB); display: flex; align-items: center; justify-content: center; font-size: 42px">🧃</div>
+        <div style="padding: 12px 14px 13px">
+          <div style="font-size: 14px; font-weight: 600">Apfelsaft naturtrüb 1 l</div>
+          <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 5px">
+            <div style="font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums">3,20 €</div>
+            <div style="flex-grow: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #0A8A5F">Bestand 32</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 9px">
+            <div style="font-size: 11px; font-weight: 600; color: #0A8A5F; background: #F0FBF6; border-radius: 99px; padding: 3px 9px">✓ Sichtbar</div>
+            <div style="flex-grow: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #C77414">% Aktion</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background: #FFFFFF; border-radius: 18px; box-shadow: 0 6px 18px rgba(22, 24, 29, 0.05); overflow: hidden">
+        <div style="height: 128px; background: linear-gradient(135deg, #EFE9F8, #DDD1F0); display: flex; align-items: center; justify-content: center; font-size: 42px">🫐</div>
+        <div style="padding: 12px 14px 13px">
+          <div style="font-size: 14px; font-weight: 600">Heidelbeer-Marmelade</div>
+          <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 5px">
+            <div style="font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums">4,80 €</div>
+            <div style="flex-grow: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #0A8A5F">Bestand 11</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 9px">
+            <div style="font-size: 11px; font-weight: 600; color: #0A8A5F; background: #F0FBF6; border-radius: 99px; padding: 3px 9px">✓ Sichtbar</div>
+            <div style="flex-grow: 1"></div>
+            <div style="font-size: 12px; font-weight: 600; color: #C77414">% Aktion</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="border-radius: 18px; border: 2px dashed #D5D9E0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #9BA0AB; min-height: 210px">
+        <div style="font-size: 26px">＋</div>
+        <div style="font-size: 13px; font-weight: 600">Neues Produkt</div>
+      </div>
+    </div>
+
+    <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6A7180; margin-top: 4px">Kombis <span style="color: #B3B8C2">(2)</span> <span style="font-weight: 400; text-transform: none; letter-spacing: 0; color: #B3B8C2">· bei Leistungen/Zimmern/Events erscheinen hier weitere Gruppen</span></div>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px">
+      <div style="background: #FFFFFF; border-radius: 18px; box-shadow: 0 6px 18px rgba(22, 24, 29, 0.05); overflow: hidden">
+        <div style="height: 86px; background: linear-gradient(135deg, #E4EEF9, #CBDEF2); display: flex; align-items: center; justify-content: center; font-size: 34px">🎁</div>
+        <div style="padding: 10px 14px 12px">
+          <div style="font-size: 14px; font-weight: 600">Frühstückskorb</div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px">
+            <div style="font-size: 14px; font-weight: 700">19,90 €</div>
+            <div style="flex-grow: 1"></div>
+            <div style="font-size: 11px; font-weight: 600; color: #0A8A5F; background: #F0FBF6; border-radius: 99px; padding: 3px 9px">✓ Sichtbar</div>
+          </div>
+        </div>
+      </div>
+      <div style="background: #FFFFFF; border-radius: 18px; box-shadow: 0 6px 18px rgba(22, 24, 29, 0.05); overflow: hidden">
+        <div style="height: 86px; background: linear-gradient(135deg, #F3EBE0, #E6D6C0); display: flex; align-items: center; justify-content: center; font-size: 34px">🧺</div>
+        <div style="padding: 10px 14px 12px">
+          <div style="font-size: 14px; font-weight: 600">Picknick-Paket</div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px">
+            <div style="font-size: 14px; font-weight: 700">32,00 €</div>
+            <div style="flex-grow: 1"></div>
+            <div style="font-size: 11px; font-weight: 600; color: #0A8A5F; background: #F0FBF6; border-radius: 99px; padding: 3px 9px">✓ Sichtbar</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: 'Instrument Sans', system-ui, sans-serif; }
+    a { color: #4F46E5; } a:hover { color: #4338CA; }
+    .sub { display: flex; flex-direction: column; justify-content: center; min-height: 40px; padding: 3px 0; }
+    .sub .n { font-size: 13px; color: #444A56; line-height: 1.25; }
+    .sub .l { font-size: 11px; color: #4F46E5; line-height: 1.3; }
+    .sub .g { font-size: 11px; color: #9BA0AB; line-height: 1.3; }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; background: #F2F4F7; color: #16181D; box-sizing: border-box; display: flex; overflow: hidden">
+
+  <div style="width: 264px; background: #FFFFFF; border-radius: 20px; margin: 16px 0 16px 16px; box-shadow: 0 8px 24px rgba(22, 24, 29, 0.06); display: flex; flex-direction: column; padding: 18px 14px; box-sizing: border-box; gap: 10px; flex-shrink: 0">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 0 8px">
+      <div style="width: 32px; height: 32px; border-radius: 10px; background: #4F46E5; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700">H</div>
+      <div style="font-size: 14.5px; font-weight: 700">Hofladen Sonnenfeld</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 2px; overflow: hidden">
+      <div style="height: 38px; border-radius: 10px; color: #444A56; display: flex; align-items: center; padding: 0 12px; font-size: 14px">Übersicht</div>
+      <div style="height: 38px; border-radius: 10px; color: #444A56; display: flex; align-items: center; padding: 0 12px; font-size: 14px">Verkäufe</div>
+      <div style="height: 38px; border-radius: 10px; color: #444A56; display: flex; align-items: center; padding: 0 12px; font-size: 14px">Sortiment</div>
+      <div style="height: 38px; border-radius: 10px; color: #444A56; display: flex; align-items: center; padding: 0 12px; font-size: 14px">Marketing</div>
+      <div style="height: 38px; border-radius: 10px; color: #444A56; display: flex; align-items: center; padding: 0 12px; font-size: 14px">Website</div>
+      <div style="height: 38px; border-radius: 10px; background: #4F46E5; color: #FFFFFF; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font-size: 14px; font-weight: 600">Einstellungen <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"></path></svg></div>
+      <div style="display: flex; flex-direction: column; padding: 4px 0 2px 24px">
+        <div class="sub"><span class="n">Mein Geschäft</span><span class="g">Adresse, Öffnungszeiten</span></div>
+        <div class="sub"><span class="n">Sprachen</span><span class="l">Deutsch + 2 weitere</span></div>
+        <div class="sub"><span class="n">Recht &amp; Steuern</span><span class="g">Impressum, AGB, USt</span></div>
+        <div class="sub"><span class="n">Zahlung &amp; Lieferung</span><span class="l">Stripe, Vorkasse · Abholung</span></div>
+        <div class="sub"><span class="n">Benachrichtigungen</span><span class="l">E-Mail + Telegram</span></div>
+        <div class="sub"><span class="n">Abläufe &amp; Status</span><span class="g">Status, Übergänge, Spalten</span></div>
+        <div class="sub"><span class="n">Integrationen</span><span class="l">Stripe <span style="color: #0A8A5F">●</span> Telegram <span style="color: #0A8A5F">●</span> Google <span style="color: #C77414">●</span></span></div>
+        <div class="sub"><span class="n">Funktionen</span><span class="l">8 Module aktiv</span></div>
+        <div class="sub"><span class="n">Abo &amp; Rechnung</span><span class="g">Basis · 39 €/Monat</span></div>
+        <div class="sub"><span class="n">Team &amp; Zugriff</span><span class="l">2 Mitglieder</span></div>
+        <div class="sub"><span class="n">Hilfe</span></div>
+      </div>
+    </div>
+    <div style="flex-grow: 1"></div>
+  </div>
+
+  <div style="flex-grow: 1; padding: 24px 32px; display: flex; flex-direction: column; gap: 14px; overflow: hidden; box-sizing: border-box">
+    <div style="display: flex; align-items: center; gap: 12px">
+      <div style="font-size: 22px; font-weight: 700; letter-spacing: -0.01em">📦 Sortiment</div>
+      <div style="flex-grow: 1"></div>
+      <div style="height: 38px; border-radius: 10px; background: #4F46E5; color: #FFFFFF; display: flex; align-items: center; gap: 8px; padding: 0 16px; font-size: 13.5px; font-weight: 600">＋ Neues Produkt</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; opacity: 0.55">
+      <div style="background: #FFFFFF; border-radius: 18px; box-shadow: 0 6px 18px rgba(22, 24, 29, 0.05); overflow: hidden">
+        <div style="height: 110px; background: linear-gradient(135deg, #F5E6CC, #E8D3A9); display: flex; align-items: center; justify-content: center; font-size: 36px">🍞</div>
+        <div style="padding: 11px 13px 12px"><div style="font-size: 13.5px; font-weight: 600">Sauerteigbrot 750 g</div><div style="font-size: 13px; font-weight: 700; margin-top: 4px">4,20 € <span style="float: right; font-size: 11.5px; color: #0A8A5F; font-weight: 600">Bestand 18</span></div></div>
+      </div>
+      <div style="background: #FFFFFF; border-radius: 18px; box-shadow: 0 6px 18px rgba(22, 24, 29, 0.05); overflow: hidden">
+        <div style="height: 110px; background: linear-gradient(135deg, #FBEFD8, #F2DFB6); display: flex; align-items: center; justify-content: center; font-size: 36px">🥚</div>
+        <div style="padding: 11px 13px 12px"><div style="font-size: 13.5px; font-weight: 600">Bio-Eier 10er</div><div style="font-size: 13px; font-weight: 700; margin-top: 4px">3,90 € <span style="float: right; font-size: 11.5px; color: #C77414; font-weight: 600">Bestand 4</span></div></div>
+      </div>
+      <div style="background: #FFFFFF; border-radius: 18px; box-shadow: 0 6px 18px rgba(22, 24, 29, 0.05); overflow: hidden">
+        <div style="height: 110px; background: linear-gradient(135deg, #FDF3D9, #F6E3AC); display: flex; align-items: center; justify-content: center; font-size: 36px">🍯</div>
+        <div style="padding: 11px 13px 12px"><div style="font-size: 13.5px; font-weight: 600">Blütenhonig 500 g</div><div style="font-size: 13px; font-weight: 700; margin-top: 4px">6,50 € <span style="float: right; font-size: 11.5px; color: #D5303E; font-weight: 600">Ausverkauft</span></div></div>
+      </div>
+      <div style="background: #FFFFFF; border-radius: 18px; box-shadow: 0 6px 18px rgba(22, 24, 29, 0.05); overflow: hidden">
+        <div style="height: 110px; background: linear-gradient(135deg, #FDEFE0, #F8DDBB); display: flex; align-items: center; justify-content: center; font-size: 36px">🧃</div>
+        <div style="padding: 11px 13px 12px"><div style="font-size: 13.5px; font-weight: 600">Apfelsaft 1 l</div><div style="font-size: 13px; font-weight: 700; margin-top: 4px">3,20 € <span style="float: right; font-size: 11.5px; color: #0A8A5F; font-weight: 600">Bestand 32</span></div></div>
+      </div>
+    </div>
+
+    <div style="font-size: 12.5px; color: #6A7180; background: #FFFFFF; border-radius: 14px; box-shadow: 0 3px 10px rgba(22, 24, 29, 0.05); padding: 12px 16px; width: fit-content">
+      💡 <b>Вариант А:</b> живые подписи прямо в подменю сайдбара — видны с любой страницы
+      (здесь: со страницы «Sortiment»). Отдельного экрана настроек не появляется.
+      <span style="color: #4F46E5">Синее</span> — живые данные, серое — статичное описание.
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

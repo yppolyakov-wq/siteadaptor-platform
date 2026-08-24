@@ -1,0 +1,142 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: 'Instrument Sans', system-ui, sans-serif; }
+    a { color: #4F46E5; } a:hover { color: #4338CA; }
+    .row { min-height: 56px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #F0F1F4; }
+    .row:last-child { border-bottom: none; }
+    .t { font-size: 14px; font-weight: 600; color: #16181D; }
+    .s { font-size: 12px; color: #6A7180; margin-top: 1px; }
+    .live { color: #4F46E5; }
+    .grp { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6A7180; padding: 0 4px; margin-bottom: 7px; }
+    .card { background: #FFFFFF; border-radius: 20px; box-shadow: 0 6px 18px rgba(22, 24, 29, 0.05); padding: 2px 16px; }
+    .owner { font-size: 10px; font-weight: 600; color: #9AA1AC; background: #F2F4F7; border-radius: 99px; padding: 3px 8px; white-space: nowrap; }
+    .chev { flex-shrink: 0; }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; background: #F2F4F7; color: #16181D; box-sizing: border-box; display: flex; overflow: hidden">
+
+  <div style="width: 248px; background: #FFFFFF; border-radius: 20px; margin: 16px 0 16px 16px; box-shadow: 0 8px 24px rgba(22, 24, 29, 0.06); display: flex; flex-direction: column; padding: 18px 14px; box-sizing: border-box; gap: 14px; flex-shrink: 0">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 0 8px">
+      <div style="width: 32px; height: 32px; border-radius: 10px; background: #4F46E5; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700">H</div>
+      <div style="font-size: 14.5px; font-weight: 700">Hofladen Sonnenfeld</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <div style="height: 40px; border-radius: 10px; color: #444A56; display: flex; align-items: center; padding: 0 12px; font-size: 14px">Übersicht</div>
+      <div style="height: 40px; border-radius: 10px; color: #444A56; display: flex; align-items: center; padding: 0 12px; font-size: 14px">Verkäufe</div>
+      <div style="height: 40px; border-radius: 10px; color: #444A56; display: flex; align-items: center; padding: 0 12px; font-size: 14px">Sortiment</div>
+      <div style="height: 40px; border-radius: 10px; color: #444A56; display: flex; align-items: center; padding: 0 12px; font-size: 14px">Marketing</div>
+      <div style="height: 40px; border-radius: 10px; color: #444A56; display: flex; align-items: center; padding: 0 12px; font-size: 14px">Website</div>
+      <div style="height: 40px; border-radius: 10px; background: #4F46E5; color: #FFFFFF; display: flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 600">Einstellungen</div>
+    </div>
+    <div style="flex-grow: 1"></div>
+  </div>
+
+  <div style="flex-grow: 1; padding: 24px 32px; display: flex; flex-direction: column; gap: 16px; overflow: hidden; box-sizing: border-box">
+
+    <div>
+      <div style="font-size: 22px; font-weight: 700; letter-spacing: -0.01em">Einstellungen</div>
+      <div style="font-size: 13px; color: #6A7180; margin-top: 2px">Alles an einem Ort — mit Live-Status jeder Rubrik</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; align-items: start">
+
+      <div style="display: flex; flex-direction: column; gap: 18px">
+        <div>
+          <div class="grp">Geschäft</div>
+          <div class="card">
+            <div class="row">
+              <div style="flex-grow: 1"><div class="t">Mein Geschäft</div><div class="s">Adresse, Öffnungszeiten, Kontakt</div></div>
+              <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B3B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"></path></svg>
+            </div>
+            <div class="row">
+              <div style="flex-grow: 1"><div class="t">Team &amp; Zugriff</div><div class="s live">2 Mitglieder</div></div>
+              <span class="owner">nur Inhaber</span>
+              <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B3B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"></path></svg>
+            </div>
+            <div class="row">
+              <div style="flex-grow: 1"><div class="t">Sprachen</div><div class="s live">Deutsch + 2 weitere</div></div>
+              <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B3B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"></path></svg>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="grp">Weitere</div>
+          <div class="card">
+            <div class="row">
+              <div style="flex-grow: 1"><div class="t">Zusatzleistungen</div><div class="s">Extras &amp; Optionen zu Verkäufen</div></div>
+              <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B3B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"></path></svg>
+            </div>
+            <div class="row">
+              <div style="flex-grow: 1"><div class="t">Finder</div><div class="s live">Aktiv · 3 Fragen</div></div>
+              <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B3B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"></path></svg>
+            </div>
+            <div class="row">
+              <div style="flex-grow: 1"><div class="t">Hilfe</div><div class="s">Anleitungen &amp; Kontakt</div></div>
+              <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B3B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"></path></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="grp">Verkauf</div>
+        <div class="card">
+          <div class="row">
+            <div style="flex-grow: 1"><div class="t">Zahlung &amp; Lieferung</div><div class="s live">Stripe, Vorkasse · Abholung, Lieferung</div></div>
+            <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B3B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"></path></svg>
+          </div>
+          <div class="row">
+            <div style="flex-grow: 1"><div class="t">Recht &amp; Steuern</div><div class="s">Impressum, AGB, USt-Sätze</div></div>
+            <span class="owner">nur Inhaber</span>
+            <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B3B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"></path></svg>
+          </div>
+          <div class="row">
+            <div style="flex-grow: 1"><div class="t">Benachrichtigungen &amp; Kanäle</div><div class="s live">E-Mail + Telegram</div></div>
+            <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B3B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"></path></svg>
+          </div>
+          <div class="row">
+            <div style="flex-grow: 1"><div class="t">Abläufe &amp; Status</div><div class="s">Status-Namen, Übergänge, Spalten</div></div>
+            <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B3B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"></path></svg>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="grp">System</div>
+        <div class="card">
+          <div class="row">
+            <div style="flex-grow: 1"><div class="t">Integrationen</div><div class="s">Stripe <span style="color: #0A8A5F">●</span> · Telegram <span style="color: #0A8A5F">●</span> · Google <span style="color: #C77414">●</span></div></div>
+            <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B3B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"></path></svg>
+          </div>
+          <div class="row">
+            <div style="flex-grow: 1"><div class="t">Funktionen</div><div class="s live">8 Module aktiv</div></div>
+            <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B3B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"></path></svg>
+          </div>
+          <div class="row">
+            <div style="flex-grow: 1"><div class="t">Abo &amp; Rechnung</div><div class="s">Basis · 39 €/Monat</div></div>
+            <span class="owner">nur Inhaber</span>
+            <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B3B8C2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"></path></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size: 12.5px; color: #6A7180; background: #FFFFFF; border-radius: 14px; box-shadow: 0 3px 10px rgba(22, 24, 29, 0.05); padding: 12px 16px; width: fit-content">
+      💡 <b>Вариант Б:</b> отдельная страница-обзор с живыми статусами — открывается кликом по
+      «Einstellungen» в сайдбаре; подменю сайдбара при этом остаётся (быстрый прыжок).
+      <span style="color: #4F46E5">Синее</span> — живые данные · «nur Inhaber» скрыто сотруднику.
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
