@@ -20157,3 +20157,6 @@ msgstr "Предоплата"
 
 msgid "You enter data per language"
 msgstr "Данные вводятся отдельно для каждого языка"
+
+msgid "Struktur"
+msgstr "Структура"

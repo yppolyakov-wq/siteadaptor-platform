@@ -20068,3 +20068,6 @@ msgstr ""
 
 msgid "You enter data per language"
 msgstr ""
+
+msgid "Struktur"
+msgstr "Struktur"

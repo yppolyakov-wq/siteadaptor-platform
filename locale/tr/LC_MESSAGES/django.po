@@ -20066,3 +20066,6 @@ msgstr "Ön ödeme"
 
 msgid "You enter data per language"
 msgstr "Verileri dil başına girersiniz"
+
+msgid "Struktur"
+msgstr "Yapı"
