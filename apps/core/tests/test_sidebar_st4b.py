@@ -280,3 +280,29 @@ def test_sidebar_renders_children_slider():
     html2 = core_views.verkaeufe(_req(t, "/dashboard/verkaeufe/")).content.decode()
     m2 = _re.search(r'data-nav-children="board"[^>]*class="([^"]+)"', html2)
     assert m2 and "hidden" not in m2.group(1)
+
+
+def test_child_highlight_is_url_based_single():
+    """VF-7a (фидбэк 2026-08-24 «выбелены оба»): подпункты, делящие nav_key
+    (booking:resources + booking:availability; обзор Marketing + Действия),
+    подсвечиваются ПО URL — активен ровно один."""
+    from django.test import RequestFactory
+    from django.urls import reverse
+
+    from apps.core.context import modules_nav
+
+    t = TenantFactory(slug="hlt", name="H", business_type="friseur")
+
+    def _actives(path):
+        req = RequestFactory().get(path)
+        req.tenant = t
+        nav = modules_nav(req)
+        out = []
+        for it in nav["nav_compact"]:
+            out += [c["url_name"] for c in it.get("children", []) if c.get("active")]
+        return out
+
+    assert _actives(reverse("booking:availability")) == ["booking:availability"]
+    assert _actives(reverse("booking:resources")) == ["booking:resources"]
+    acts = _actives(reverse("promotions:promotion-list"))
+    assert acts == ["promotions:promotion-list"]

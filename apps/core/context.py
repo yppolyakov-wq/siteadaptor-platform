@@ -271,6 +271,35 @@ def modules_nav(request):
     # Кабинет: плоский список первых пунктов для мобильного таб-бара (нативно).
     # ST-4b/W-CL: таб-бар = первая четвёрка якорей компакт-сайдбара (безусловно).
     _compact = modules.sidebar_nav(tenant, getattr(request, "user", None))
+    # VF-7a (фидбэк 2026-08-24 «выбелены оба»): активный ПОДПУНКТ определяется
+    # по URL страницы, не по nav_key — несколько подпунктов раздела законно
+    # делят nav_key (booking, marketing) и подсвечивались парами. Фолбэк для
+    # под-страниц: nav_key, но только если он у ЕДИНСТВЕННОГО подпункта.
+    from django.urls import NoReverseMatch as _NRM
+    from django.urls import reverse as _rev
+
+    _full = request.get_full_path()
+    _path = request.path
+    for _it in _compact:
+        _hit = False
+        _kids = _it.get("children", [])
+        _key_counts = {}
+        for _c in _kids:
+            _key_counts[_c["nav_key"]] = _key_counts.get(_c["nav_key"], 0) + 1
+        for _c in _kids:
+            try:
+                _u = _rev(_c["url_name"])
+            except _NRM:
+                _c["active"] = False
+                _c["nav_unique"] = False
+                continue
+            q = _c.get("query") or ""
+            _c["active"] = _full.startswith(_u + q) if q else (_path == _u)
+            # фолбэк для под-страниц (nav ведом только шаблону): годится лишь
+            # подпункт, чей nav_key уникален внутри раздела
+            _c["nav_unique"] = _key_counts.get(_c["nav_key"], 0) == 1
+            _hit = _hit or _c["active"]
+        _it["has_active_child"] = _hit
     nav_primary = [
         {
             "url_name": it["url_name"],
