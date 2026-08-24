@@ -20033,3 +20033,32 @@ msgid "%(n)s Mitglied"
 msgid_plural "%(n)s Mitglieder"
 msgstr[0] "%(n)s Mitglied"
 msgstr[1] "%(n)s Mitglieder"
+
+msgid "Rechnung als PDF"
+msgstr ""
+
+msgid "Zahlungslink senden"
+msgstr ""
+
+msgid "Zahlungslink"
+msgstr ""
+
+msgid "Der Kunde hat keine E-Mail-Adresse."
+msgstr ""
+
+msgid ""
+"Zahlungslink nicht verfügbar: Zahlart Stripe, Status neu und offene Zahlung "
+"nötig."
+msgstr ""
+
+msgid "Zahlungslink wurde an %(email)s gesendet."
+msgstr ""
+
+msgid "hier ist der Zahlungslink für Ihre Bestellung %(code)s."
+msgstr ""
+
+msgid "Wenn Sie bereits bezahlt haben, können Sie diese E-Mail ignorieren."
+msgstr ""
+
+msgid "Zahlungslink für Ihre Bestellung %(code)s"
+msgstr ""

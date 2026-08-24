@@ -20029,3 +20029,34 @@ msgid "%(n)s Mitglied"
 msgid_plural "%(n)s Mitglieder"
 msgstr[0] "%(n)s üye"
 msgstr[1] "%(n)s üye"
+
+msgid "Rechnung als PDF"
+msgstr "PDF olarak fatura"
+
+msgid "Zahlungslink senden"
+msgstr "Ödeme bağlantısı gönder"
+
+msgid "Zahlungslink"
+msgstr "Ödeme bağlantısı"
+
+msgid "Der Kunde hat keine E-Mail-Adresse."
+msgstr "Müşterinin e-posta adresi yok."
+
+msgid ""
+"Zahlungslink nicht verfügbar: Zahlart Stripe, Status neu und offene Zahlung "
+"nötig."
+msgstr ""
+"Ödeme bağlantısı kullanılamıyor: Stripe ödeme yöntemi, yeni durum ve açık "
+"ödeme gerekli."
+
+msgid "Zahlungslink wurde an %(email)s gesendet."
+msgstr "Ödeme bağlantısı %(email)s adresine gönderildi."
+
+msgid "hier ist der Zahlungslink für Ihre Bestellung %(code)s."
+msgstr "%(code)s numaralı siparişinizin ödeme bağlantısı aşağıdadır."
+
+msgid "Wenn Sie bereits bezahlt haben, können Sie diese E-Mail ignorieren."
+msgstr "Zaten ödediyseniz bu e-postayı yok sayabilirsiniz."
+
+msgid "Zahlungslink für Ihre Bestellung %(code)s"
+msgstr "%(code)s numaralı siparişiniz için ödeme bağlantısı"

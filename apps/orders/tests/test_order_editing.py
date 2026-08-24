@@ -239,3 +239,75 @@ def test_invoice_from_order_without_billing_uses_the_customer():
     order, _product = _order(price="10.00", qty=1)
     invoice = invoice_from_order(order)
     assert str(order.customer) in invoice.recipient
+
+
+# --- VF-3 (фидбэк 2026-08-24): счёт/ссылка на оплату с карточки заказа --------
+
+
+def _post_action(order, action, tenant=None):
+    import uuid as _uuid
+
+    from django.contrib.auth import get_user_model
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.orders import views
+
+    request = RequestFactory().post(f"/dashboard/orders/{order.pk}/edit/", {"action": action})
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    suffix = _uuid.uuid4().hex[:8]
+    request.user = get_user_model().objects.create_user(
+        username=f"o-{suffix}", email=f"o-{suffix}@test.de", password="pw12345678"
+    )
+    if tenant is not None:
+        request.tenant = tenant
+    return views.order_edit(request, pk=order.pk)
+
+
+def test_invoice_pdf_action_reuses_draft():
+    """«📄 Rechnung als PDF»: черновик по заказу переиспользуется — повторный
+    клик не плодит дубли в Finanzen; редирект сразу в PDF."""
+    from apps.finance.models import Invoice
+
+    order, _product = _order(price="10.00", qty=1)
+    resp = _post_action(order, "invoice_pdf")
+    assert resp.status_code == 302 and resp["Location"].endswith("/pdf/")
+    resp2 = _post_action(order, "invoice_pdf")
+    assert resp2["Location"] == resp["Location"]
+    assert Invoice.objects.filter(note__contains=order.reference_code).count() == 1
+
+
+def test_payment_link_sends_email_with_pay_url():
+    """«🔗 Zahlungslink senden»: письмо с прямой /bezahlen/; повторная отправка
+    не глотается дедупом (суффикс-время)."""
+    from apps.notifications.models import Notification
+    from apps.tenants.models import Domain
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(schema_name="public", slug="paylink-t", payments_enabled=True)
+    Domain.objects.create(domain="paylink.test", tenant=tenant, is_primary=True)
+    order, _product = _order(price="10.00", qty=1)
+    order.payment_method = "stripe"
+    order.save(update_fields=["payment_method"])
+    resp = _post_action(order, "payment_link", tenant=tenant)
+    assert resp.status_code == 302
+    note = Notification.objects.filter(type="order_payment_link").order_by("-created_at").first()
+    assert note is not None
+    assert (
+        f"https://paylink.test/bestellung/{order.reference_code}/bezahlen/" in note.payload["body"]
+    )
+
+
+def test_payment_link_refused_without_stripe():
+    """Гейт зеркалит публичный /bezahlen/: без Zahlart Stripe письма нет."""
+    from apps.notifications.models import Notification
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory.build(name="Shop Y", payments_enabled=True)
+    order, _product = _order(price="10.00", qty=1)  # payment_method пуст
+    before = Notification.objects.filter(type="order_payment_link").count()
+    resp = _post_action(order, "payment_link", tenant=tenant)
+    assert resp.status_code == 302
+    assert Notification.objects.filter(type="order_payment_link").count() == before

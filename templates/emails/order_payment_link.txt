@@ -1,0 +1,13 @@
+{% load i18n %}{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}
+
+{% blocktrans with code=order.reference_code %}hier ist der Zahlungslink für Ihre Bestellung {{ code }}.{% endblocktrans %}
+
+{% trans "Gesamt" %}: {{ order.total }} {{ order.currency }}
+{% if pay_url %}
+{% trans "Jetzt bezahlen" %}: {{ pay_url }}
+{% endif %}
+{% trans "Wenn Sie bereits bezahlt haben, können Sie diese E-Mail ignorieren." %}
+
+{% if unsubscribe_url %}—
+{% trans "Keine E-Mails mehr erhalten" %}: {{ unsubscribe_url }}
+{% endif %}

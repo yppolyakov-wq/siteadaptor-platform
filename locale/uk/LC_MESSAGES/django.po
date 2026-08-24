@@ -20103,3 +20103,34 @@ msgstr[0] "%(n)s учасник"
 msgstr[1] "%(n)s учасники"
 msgstr[2] "%(n)s учасників"
 msgstr[3] "%(n)s учасника"
+
+msgid "Rechnung als PDF"
+msgstr "Рахунок у PDF"
+
+msgid "Zahlungslink senden"
+msgstr "Надіслати посилання на оплату"
+
+msgid "Zahlungslink"
+msgstr "Посилання на оплату"
+
+msgid "Der Kunde hat keine E-Mail-Adresse."
+msgstr "У клієнта немає адреси ел. пошти."
+
+msgid ""
+"Zahlungslink nicht verfügbar: Zahlart Stripe, Status neu und offene Zahlung "
+"nötig."
+msgstr ""
+"Посилання на оплату недоступне: потрібні спосіб Stripe, статус «новий» і "
+"неоплачене замовлення."
+
+msgid "Zahlungslink wurde an %(email)s gesendet."
+msgstr "Посилання на оплату надіслано на %(email)s."
+
+msgid "hier ist der Zahlungslink für Ihre Bestellung %(code)s."
+msgstr "ось посилання на оплату вашого замовлення %(code)s."
+
+msgid "Wenn Sie bereits bezahlt haben, können Sie diese E-Mail ignorieren."
+msgstr "Якщо ви вже сплатили, просто ігноруйте цей лист."
+
+msgid "Zahlungslink für Ihre Bestellung %(code)s"
+msgstr "Посилання на оплату замовлення %(code)s"

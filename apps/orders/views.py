@@ -13,6 +13,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
@@ -247,6 +248,16 @@ def order_detail(request, pk):
             "finance_active": bool(
                 getattr(request, "tenant", None) and request.tenant.is_module_active("finance")
             ),
+            # VF-3: ссылка на оплату — те же гейты, что публичный /bezahlen/.
+            "pay_link_ready": bool(
+                order.payment_method == "stripe"
+                and order.payment_state == "unpaid"
+                and order.status == "new"
+                and order.total > 0
+                and getattr(request, "tenant", None)
+                and request.tenant.payments_enabled
+            ),
+            "pay_path": reverse("storefront-order-pay", args=[order.reference_code]),
             "totals": order_totals(
                 order,
                 small_business=bool(
@@ -371,6 +382,55 @@ def order_edit(request, pk):
             invoice = invoice_from_order(order, getattr(request, "tenant", None))
             messages.success(request, _("Rechnungsentwurf erstellt."))
             return redirect("finance:invoice-detail", pk=invoice.pk)
+        elif action == "invoice_pdf":
+            # VF-3: «сохранение PDF счёта» одним действием — черновик по заказу
+            # переиспользуется (иначе каждый клик плодил бы дубли в Finanzen);
+            # номер НЕ присваивается (GoBD: только issue), PDF черновика легален.
+            from apps.finance.models import Invoice
+            from apps.finance.services import invoice_from_order
+
+            note = f"Auftrag {order.reference_code}"
+            invoice = (
+                Invoice.objects.filter(status="draft", note=note).order_by("-created_at").first()
+            )
+            if invoice is None:
+                invoice = invoice_from_order(order, getattr(request, "tenant", None))
+            return redirect("finance:invoice-pdf", pk=invoice.pk)
+        elif action == "payment_link":
+            # VF-3: «отправка ссылки на оплату» — письмо с прямой /bezahlen/
+            # (гейты зеркалят публичную страницу: Stripe + не оплачен + new).
+            from django.utils import timezone as _tz
+
+            from .notifications import enqueue_order_email
+
+            payable = (
+                order.payment_method == "stripe"
+                and order.payment_state == "unpaid"
+                and order.status == "new"
+                and order.total > 0
+                and getattr(request, "tenant", None)
+                and request.tenant.payments_enabled
+            )
+            email = getattr(order.customer, "email", "")
+            if not payable:
+                messages.error(
+                    request,
+                    _(
+                        "Zahlungslink nicht verfügbar: Zahlart Stripe, Status neu und offene Zahlung nötig."
+                    ),
+                )
+            elif not email:
+                messages.error(request, _("Der Kunde hat keine E-Mail-Adresse."))
+            else:
+                enqueue_order_email(
+                    order,
+                    "payment_link",
+                    dedupe_suffix=f":{_tz.now():%Y%m%d%H%M%S}",
+                )
+                messages.success(
+                    request,
+                    _("Zahlungslink wurde an %(email)s gesendet.") % {"email": email},
+                )
         elif action == "customer":
             editing.update_customer(
                 order,

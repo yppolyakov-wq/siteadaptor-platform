@@ -227,6 +227,25 @@
         <input type="hidden" name="action" value="invoice">
         <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">🧾 {% trans "Rechnung aus Auftrag erstellen" %}</button>
       </form>
+        {% comment %}VF-3: «сохранение PDF счёта» одним кликом — черновик по
+      заказу переиспользуется, номер присвоит только issue (GoBD).{% endcomment %}
+      <form method="post" action="{% url 'orders:order-edit' order.pk %}" class="mt-2">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="invoice_pdf">
+        <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">📄 {% trans "Rechnung als PDF" %}</button>
+      </form>
+      {% endif %}
+      {% comment %}VF-3: отправка ссылки на оплату (гейты = публичный /bezahlen/:
+      Stripe · неоплачен · статус neu); ссылка рядом — для ручной передачи.{% endcomment %}
+      {% if pay_link_ready %}
+      <form method="post" action="{% url 'orders:order-edit' order.pk %}" class="mt-2">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="payment_link">
+        <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50" {% if not order.customer.email %}title="{% trans 'Der Kunde hat keine E-Mail-Adresse.' %}"{% endif %}>🔗 {% trans "Zahlungslink senden" %}</button>
+      </form>
+      <input type="text" readonly value="https://{{ request.get_host }}{{ pay_path }}" onclick="this.select()"
+             class="mt-2 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-500"
+             aria-label="{% trans 'Zahlungslink' %}">
       {% endif %}
     </div>
 

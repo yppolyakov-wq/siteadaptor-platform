@@ -23,6 +23,8 @@ _CUSTOMER_TEMPLATES = {
     "returned": "order_returned",  # A2c: возврат/Widerruf
     "post_purchase": "order_post_purchase",  # CM-6.4: danke + запрос отзыва о товарах
     "payment_reminder": "order_payment_reminder",  # B2.1: незавершённая Stripe-оплата
+    # VF-3 (2026-08-24): ручная отправка ссылки на оплату с карточки заказа.
+    "payment_link": "order_payment_link",
     # M3 Boutique: Anprobe-резерв — свои тексты (unverbindliche Reservierung,
     # KEIN Kaufvertrag; Kauf erst im Geschäft) вместо языка договора купли-продажи.
     "anprobe_created": "order_anprobe_created",
@@ -33,8 +35,12 @@ _CUSTOMER_TEMPLATES = {
 }
 
 
-def enqueue_order_email(order, event):
-    """Создать Notification(ы) события заказа (БД-дедуп) и поставить доставку."""
+def enqueue_order_email(order, event, dedupe_suffix=""):
+    """Создать Notification(ы) события заказа (БД-дедуп) и поставить доставку.
+
+    VF-3: `dedupe_suffix` — для РУЧНЫХ отправок (Zahlungslink с карточки):
+    фиксированный ключ глотал бы повторную отправку навсегда (прецедент
+    Mahnwesen — ключ с датой)."""
     # M3: у Anprobe-резервов created/cancelled ремапятся на свои шаблоны (юр-риск:
     # обычные письма говорят языком Kaufvertrag/Widerruf). Остальные события —
     # штатные (confirmed/ready уместны и для резерва).
@@ -74,6 +80,14 @@ def enqueue_order_email(order, event):
             ctx["order_url"] = (
                 f"{base}{reverse('storefront-order', args=[order.reference_code])}" if base else ""
             )
+        # VF-3: прямая ссылка оплаты — /bezahlen/ сам уводит в Stripe Checkout
+        # (оплаченный заказ страница честно вернёт на подтверждение).
+        if event == "payment_link":
+            ctx["pay_url"] = (
+                f"{base}{reverse('storefront-order-pay', args=[order.reference_code])}"
+                if base
+                else ""
+            )
         # CM-6.4: ссылки «оценить товар» (деталь#bewertungen) — только с base.
         if event == "post_purchase":
             # KAT-3: SEO-URL детали (select_related — без N+1 по товару/категории).
@@ -102,7 +116,7 @@ def enqueue_order_email(order, event):
                 "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
             }
         notify(
-            dedupe_key=f"order:{order.id}:{event}:customer",
+            dedupe_key=f"order:{order.id}:{event}:customer{dedupe_suffix}",
             type=f"order_{event}",
             recipient=customer.email,
             subject=subject,
