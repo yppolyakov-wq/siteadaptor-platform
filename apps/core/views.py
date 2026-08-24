@@ -4213,9 +4213,15 @@ def sellable_manage(request):
     # не зная kind). Пустой q = прежний обзор.
     q = (request.GET.get("q") or "").strip()
     # SR-1: фильтры-паритет умершей страницы товаров (строго product-ные).
+    # pk категории — UUID (мусор отбивается до запроса, иначе ValueError в ORM).
     category = (request.GET.get("kategorie") or "").strip()
-    if not category.isdigit():
-        category = ""
+    if category:
+        import uuid as _uuid
+
+        try:
+            _uuid.UUID(category)
+        except ValueError:
+            category = ""
     active = request.GET.get("status") or ""
     if active not in ("1", "0"):
         active = ""

@@ -62,7 +62,9 @@ def test_sortiment_children_are_archetype_entities():
     assert "stays:units" in hotel  # номера — «товар» отеля
 
     shop = _children(_tenant("shop"), "sellable-manage")
-    assert "catalog:product-list" in shop and "booking:services" not in shop
+    # SR-1: запись «Produkte» умерла — товары живут в самом обзоре Sortiment.
+    assert "catalog:product-list" not in shop and "booking:services" not in shop
+    assert "catalog:category-list" in shop
 
 
 def test_stock_group_reachable_from_sidebar():
@@ -115,7 +117,7 @@ def test_palette_gates_gastro_screens():
 
 def test_business_gate_fail_open_without_tenant():
     assert nav_registry.allowed_for_business("orders:kitchen", None) is True
-    assert nav_registry.allowed_for_business("catalog:product-list", None) is True
+    assert nav_registry.allowed_for_business("catalog:category-list", None) is True
 
 
 # --- сироты получили вход -----------------------------------------------------

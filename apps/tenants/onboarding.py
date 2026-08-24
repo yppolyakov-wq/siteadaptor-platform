@@ -478,7 +478,9 @@ def _has_offering(tenant) -> bool:
 # url_name'ы смонтированы в urls_tenant безусловно → reverse не падает даже при
 # выключенном модуле. Неизвестный/без архетипа → нейтральный фолбэк (каталог).
 _OFFER_CTA = {
-    "catalog": (_("Add your first product"), "catalog:product-list"),
+    # SR-1: страница товаров умерла (302 на Sortiment) — CTA ведёт сразу в
+    # форму создания (X6-1: «первое действие» открывает форму).
+    "catalog": (_("Add your first product"), "catalog:product-create"),
     "stays": (_("Add your first room"), "stays:units"),
     "events": (_("Add your first event"), "events:list"),
     "booking": (_("Add your first service"), "booking:services"),
@@ -499,7 +501,7 @@ def offer_cta(tenant):
 
     return _OFFER_CTA.get(
         archetypes.primary_module(tenant),
-        (_("Add your first item to sell"), "catalog:product-list"),
+        (_("Add your first item to sell"), "catalog:product-create"),
     )
 
 

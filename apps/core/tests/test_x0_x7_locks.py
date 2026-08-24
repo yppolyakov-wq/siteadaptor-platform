@@ -106,8 +106,10 @@ EXPECTED_UNLISTED = frozenset(
         "telegram-connect",
         "telegram-disconnect",
         "verkaeufe-view",
+        "sortiment-view",  # SR-1: POST-сеттер вида Kacheln/Liste (кнопки на Sortiment)
         # [302] легаси-редиректы с GET-carry
         "booking:calendar",
+        "catalog:product-list",  # SR-1: страница товаров умерла → 302 на Sortiment
         "orders:order-list",
         "site",
         "stays:calendar",

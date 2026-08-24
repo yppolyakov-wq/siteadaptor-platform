@@ -44,13 +44,13 @@ def test_list_requires_login():
 
 
 @pytest.mark.django_db
-def test_list_shows_products(user):
-    ProductFactory(name={"de": "Brot", "en": "Bread"})
+def test_list_redirects_to_sortiment(user):
+    """SR-1: страница товаров умерла — 302 на обзор Sortiment (W10-6)."""
     req = RequestFactory().get("/catalog/products/")
     _attach_session_user(req, user)
     resp = views.product_list(req)
-    assert resp.status_code == 200
-    assert b"Brot" in resp.content
+    assert resp.status_code == 302
+    assert resp["Location"] == "/dashboard/angebote/"
 
 
 @pytest.mark.django_db
@@ -115,16 +115,15 @@ def test_delete_product_is_soft(user):
 
 
 @pytest.mark.django_db
-def test_search_filters_by_sku(user):
-    ProductFactory(name={"de": "Brot"}, sku="AAA")
-    ProductFactory(name={"de": "Kuchen"}, sku="BBB")
-    req = RequestFactory().get("/catalog/products/", {"q": "AAA"})
-    req.META["HTTP_HX_REQUEST"] = "true"
+def test_list_redirect_carries_filters(user):
+    """SR-1: фильтры старой страницы переезжают в параметры Sortiment."""
+    req = RequestFactory().get("/catalog/products/", {"q": "AAA", "category": "7", "active": "1"})
     _attach_session_user(req, user)
     resp = views.product_list(req)
-    assert resp.status_code == 200
-    assert b"AAA" in resp.content
-    assert b"BBB" not in resp.content
+    assert resp.status_code == 302
+    loc = resp["Location"]
+    assert loc.startswith("/dashboard/angebote/?")
+    assert "q=AAA" in loc and "kategorie=7" in loc and "status=1" in loc
 
 
 # --- категории ------------------------------------------------------------

@@ -172,14 +172,15 @@ ENTRIES: tuple[NavEntry, ...] = (
     # X4 (глоссарий §6.A4.4): подпись «Angebote» освободила слово для оферты
     # клиенту (Sofort-Angebot / смета Handwerker) — раздел товаров зовётся
     # «Sortiment» и в якоре, и в табе.
-    _e("catalog", "sellable-manage", _("Sortiment"), "sellables", search="übersicht alle angebote"),
+    # SR-1: записи «Produkte» (catalog:product-list) удалены — страница умерла,
+    # 302 на Sortiment (вид «Liste» несёт её инструменты); обзор ищется и по
+    # старым словам.
     _e(
         "catalog",
-        "catalog:product-list",
-        _("Produkte"),
-        "catalog",
-        "catalog",
-        search="artikel waren sortiment",
+        "sellable-manage",
+        _("Sortiment"),
+        "sellables",
+        search="übersicht alle angebote artikel waren produkte",
     ),
     _e("catalog", "catalog:category-list", _("Kategorien"), "categories", "catalog"),
     # SM-4 (решение владельца): каталожные страницы — тот же компакт-бар, что на
@@ -532,7 +533,6 @@ ENTRIES: tuple[NavEntry, ...] = (
         "sellables",
         search="übersicht alle angebote",
     ),
-    _e("sellables", "catalog:product-list", _("Produkte"), "catalog", "catalog", True),
     # X4: бывшие сироты — сущности НЕтоварных архетипов. У салона в подпунктах
     # «Sortiment» висел склад, а «Leistungen» не было вовсе (исследование §3).
     _e(
@@ -802,6 +802,9 @@ _EXTRA_NAV_ANCHORS: dict[str, str] = {
     # якоря-лендинги (W9-9: integrations теперь запись settings-хаба — маппится сам)
     "dashboard": "dashboard",
     "site": "site",
+    # SR-1: записи «Produkte» умерли вместе со страницей, но формы товара
+    # по-прежнему эмитят nav="catalog" — подсвечивают якорь Sortiment.
+    "catalog": "sellables",
 }
 
 

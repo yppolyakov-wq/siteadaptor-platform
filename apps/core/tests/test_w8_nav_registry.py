@@ -28,9 +28,11 @@ def test_hub_tabs_is_derived_with_legacy_shape():
     first = HUB_TABS["settings"][0]
     assert first[0] == "settings" and str(first[1]) == "Mein Geschäft"  # W9-1
     assert first[2] == "settings" and first[3] is None and first[4] is False
-    # дубль Sortiment ↔ Angebote/Erweitert — осознанно две записи
-    assert any(t[0] == "catalog:product-list" for t in HUB_TABS["catalog"])
-    assert any(t[0] == "catalog:product-list" and t[4] for t in HUB_TABS["sellables"])
+    # SR-1: страница товаров умерла — записей «Produkte» в реестре больше нет,
+    # обзор Sortiment есть в обоих хабах (catalog-страницы и раздел sellables).
+    assert not any(t[0] == "catalog:product-list" for t in HUB_TABS["catalog"])
+    assert not any(t[0] == "catalog:product-list" for t in HUB_TABS["sellables"])
+    assert any(t[0] == "sellable-manage" for t in HUB_TABS["catalog"])
 
 
 def test_sidebar_anchors_from_registry():

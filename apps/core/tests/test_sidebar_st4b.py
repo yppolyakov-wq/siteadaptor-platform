@@ -193,8 +193,7 @@ def test_sidebar_children_composition():
     assert site == ["site-home", "site-seo", "domains", "media-library"]
     ang = [c["url_name"] for c in by_anchor["sellable-manage"]]
     assert ang == [
-        "sellable-manage",  # R7-1: обзор раздела первым
-        "catalog:product-list",
+        "sellable-manage",  # R7-1: обзор раздела первым (SR-1: «Produkte» умер)
         "booking:services",
         "stays:units",
         "events:list",

@@ -65,8 +65,10 @@ def test_sortiment_submenu_has_full_hub_content():
     """R7-1: в подменю раздела — ВЕСЬ состав его хабов (main + advanced),
     включая складскую группу: раньше main-часть жила таб-баром на странице."""
     kids = _menu()["sellables"]
-    for lbl in ("Produkte", "Kategorien", "Lager", "Einkauf", "Kombi"):
+    # SR-1: «Produkte» умер вместе со страницей (обзор Sortiment несёт товары).
+    for lbl in ("Kategorien", "Lager", "Einkauf", "Kombi"):
         assert lbl in kids, lbl
+    assert "Produkte" not in kids
 
 
 def test_submenu_starts_with_section_overview():
