@@ -18,7 +18,13 @@ snap-back + тост.
     {% comment %}Ширина группы пропорциональна числу её колонок (flex-grow=N) —
     иначе стадия с одной колонкой получала ту же треть экрана, что стадия с двумя,
     и колонки выходили разной ширины (поймано на стенде: 421px против 208px).{% endcomment %}
-    <div class="kanban-group flex-shrink-0 sm:flex-shrink sm:basis-0 sm:min-w-0 snap-start" style="flex-grow: {{ group.columns|length }}" data-stage="{{ group.stage }}">
+    {% comment %}VF-1 (скриншот владельца 2026-08-24, «карточки наезжают»):
+    min-w-0 объявлял группу сжимаемой до нуля, а колонки внутри держат пол
+    13rem → флекс-строка колонок становилась ШИРЕ группы и вылезала под фон
+    соседней. min-w-min возвращает группе честный min-content (сумма полов
+    колонок) — при нехватке места срабатывает overflow-x-auto доски (скролл,
+    как и задумывал VK-1), а не наложение.{% endcomment %}
+    <div class="kanban-group flex-shrink-0 sm:flex-shrink sm:basis-0 sm:min-w-min snap-start" style="flex-grow: {{ group.columns|length }}" data-stage="{{ group.stage }}">
       <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider px-1 pb-1 truncate">{{ group.label }}</p>
       <div class="flex gap-2">
         {% for col in group.columns %}

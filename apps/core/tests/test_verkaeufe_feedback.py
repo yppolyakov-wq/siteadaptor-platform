@@ -59,6 +59,9 @@ def test_board_columns_stretch_to_full_width():
     assert "sm:flex-1" in body and "sm:min-w-[13rem]" in body
     assert "sm:w-64" not in body  # прежняя фиксированная ширина не вернулась
     assert "w-[85vw]" in body  # мобильный snap-скролл цел
+    # VF-1 (2026-08-24, «карточки наезжают»): группа обязана держать
+    # min-content своих колонок — min-w-0 давал наложение вместо скролла.
+    assert "sm:min-w-min" in body and "sm:min-w-0" not in body
 
 
 # --- п.2: кнопка настроек раздела --------------------------------------------
