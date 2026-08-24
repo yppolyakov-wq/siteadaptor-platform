@@ -57,13 +57,18 @@
       {% csrf_token %}
       <input type="hidden" name="action" value="items">
       <div class="divide-y divide-gray-100 border-y border-gray-100">
+        {% comment %}VF-2 (фидбэк 2026-08-24): позиция В ОДНУ СТРОКУ —
+        порядковый номер · название · количество · цена за штуку · сумма
+        по позиции.{% endcomment %}
         {% for item in items %}
           <div class="flex items-center gap-2 py-2 text-sm">
-            <input type="number" name="qty_{{ item.pk }}" value="{{ item.qty }}" min="0" step="1"
-                   class="w-16 rounded-lg border border-gray-300 px-2 py-1 text-sm tabular-nums"
-                   aria-label="{% trans 'Menge' %}">
+            <span class="w-5 shrink-0 text-xs text-gray-300 tabular-nums">{{ forloop.counter }}</span>
             <span class="flex-1 min-w-0 truncate">{{ item.title_snapshot }}{% if item.sku %} <span class="text-gray-400">· Art.-Nr. {{ item.sku }}</span>{% endif %}{% if item.modifiers_label %} <span class="text-gray-400">({{ item.modifiers_label }})</span>{% endif %}</span>
-            <span class="tabular-nums whitespace-nowrap">{{ item.line_total }} {{ order.currency }}</span>
+            <input type="number" name="qty_{{ item.pk }}" value="{{ item.qty }}" min="0" step="1"
+                   class="w-16 shrink-0 rounded-lg border border-gray-300 px-2 py-1 text-sm tabular-nums"
+                   aria-label="{% trans 'Menge' %}">
+            <span class="w-24 shrink-0 text-right text-gray-500 tabular-nums whitespace-nowrap">× {{ item.unit_price }} {{ order.currency }}</span>
+            <span class="w-24 shrink-0 text-right font-medium tabular-nums whitespace-nowrap">{{ item.line_total }} {{ order.currency }}</span>
           </div>
         {% endfor %}
       </div>
@@ -97,9 +102,11 @@
     <div class="divide-y divide-gray-100 border-y border-gray-100 mb-3">
       {% if not editable %}
       {% for item in items %}
-        <div class="flex items-center justify-between py-2 text-sm">
-          <span>{{ item.qty }}× {{ item.title_snapshot }}{% if item.sku %} <span class="text-gray-400">· Art.-Nr. {{ item.sku }}</span>{% endif %}{% if item.modifiers_label %} <span class="text-gray-400">({{ item.modifiers_label }})</span>{% endif %}</span>
-          <span>{{ item.line_total }} {{ order.currency }}</span>
+        <div class="flex items-center gap-2 py-2 text-sm">
+          <span class="w-5 shrink-0 text-xs text-gray-300 tabular-nums">{{ forloop.counter }}</span>
+          <span class="flex-1 min-w-0 truncate">{{ item.title_snapshot }}{% if item.sku %} <span class="text-gray-400">· Art.-Nr. {{ item.sku }}</span>{% endif %}{% if item.modifiers_label %} <span class="text-gray-400">({{ item.modifiers_label }})</span>{% endif %}</span>
+          <span class="shrink-0 text-gray-500 tabular-nums whitespace-nowrap">{{ item.qty }} × {{ item.unit_price }} {{ order.currency }}</span>
+          <span class="w-24 shrink-0 text-right font-medium tabular-nums whitespace-nowrap">{{ item.line_total }} {{ order.currency }}</span>
         </div>
       {% endfor %}
       {% endif %}
