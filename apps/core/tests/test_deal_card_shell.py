@@ -202,7 +202,8 @@ def test_external_number_form_on_every_card():
 
 def test_external_number_saves_and_is_searchable(client, django_user_model):
     """Сохранение пишет поле сделки и находится поиском продаж."""
-    from apps.core import transactions, views as core_views
+    from apps.core import transactions
+    from apps.core import views as core_views
 
     job = _job()
     req = RequestFactory().post(
