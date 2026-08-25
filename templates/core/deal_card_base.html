@@ -1,0 +1,86 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% comment %}DC-1 (ТЗ владельца 2026-08-25 + правка «блоки должны иметь общие
+настройки — меняется один, меняются все сразу»): ЕДИНЫЙ скелет карточки сделки.
+Заказ, заявка, бронь номера и запись услуги наследуются отсюда и наполняют
+только свои блоки; рамка секции, порядок, заголовки, рейл и календарь живут
+здесь — правка меняет все карточки разом.
+
+Порядок (макет утверждён владельцем): голова → состав → скидка → суммы →
+оплата и счёт; правая колонка: статус → клиент с перепиской → контекст
+направления → связанные услуги; календарь — РАЗВЁРНУТЫМ блоком ниже сетки.
+
+Секции рисуются по данным: наследник перечисляет их во `deal_sections`
+(`core.deal_card.card_context`), чтобы пустых рамок не было.{% endcomment %}
+
+{% block dash_title %}{{ deal.reference_code }}{% endblock %}
+
+{% block dash_content %}
+<div data-deal-card data-deal-kind="{{ deal_kind }}">
+
+  {% block deal_back %}{% endblock %}
+
+  {% include "core/_deal_head.html" %}
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="grid xl:grid-cols-[minmax(0,1fr)_360px] gap-5 items-start">
+
+    <div class="space-y-5 min-w-0">
+      {% if "items" in deal_sections %}
+        <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="items">
+          <h2 class="font-semibold mb-3">{% block deal_items_title %}{{ deal_titles.items }}{% endblock %}</h2>
+          {% block deal_items %}{% endblock %}
+        </section>
+      {% endif %}
+
+      {% if "discount" in deal_sections %}
+        <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="discount">
+          <h2 class="font-semibold mb-3">🏷 {{ deal_titles.discount }}</h2>
+          {% block deal_discount %}{% endblock %}
+        </section>
+      {% endif %}
+
+      {% if "totals" in deal_sections %}
+        <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="totals">
+          <h2 class="font-semibold mb-3">{{ deal_titles.totals }}</h2>
+          {% block deal_totals %}{% endblock %}
+        </section>
+      {% endif %}
+
+      {% if "payment" in deal_sections %}
+        <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="payment">
+          <h2 class="font-semibold mb-3">💳 {{ deal_titles.payment }}</h2>
+          {% block deal_payment %}{% endblock %}
+        </section>
+      {% endif %}
+
+      {% block deal_main_extra %}{% endblock %}
+    </div>
+
+    <div class="space-y-5 min-w-0" data-deal-rail>
+      {% include "core/_deal_status_card.html" %}
+      {% include "core/_deal_customer_card.html" %}
+      {% block deal_rail_extra %}{% endblock %}
+      {% include "core/_deal_links_block.html" with kind=deal_kind obj_pk=deal.pk links=deal_links next_path=request.get_full_path %}
+    </div>
+
+  </div>
+
+  {% if deal_calendar_html %}
+    {% comment %}Владелец 2026-08-25: «если есть календарь — открывается сразу
+    ниже сетки». Тот же движок, что на странице продаж (Belegungsplan /
+    Tagesplan / Auftragsbuch) — развёрнутым, без клика.{% endcomment %}
+    <section class="mt-5 bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="calendar">
+      <h2 class="font-semibold mb-3">📅 {{ deal_titles.calendar }}</h2>
+      <div class="overflow-x-auto">{{ deal_calendar_html }}</div>
+    </section>
+  {% endif %}
+
+  {% block deal_after %}{% endblock %}
+</div>
+{% endblock %}

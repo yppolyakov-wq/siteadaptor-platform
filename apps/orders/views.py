@@ -214,7 +214,7 @@ def kitchen_action(request, pk):
 @login_required
 def order_detail(request, pk):
     from apps.catalog import picker as catalog_picker
-    from apps.core import transition_rules
+    from apps.core import deal_card, transition_rules
 
     from . import editing as order_editing
     from .totals import order_totals
@@ -265,22 +265,21 @@ def order_detail(request, pk):
                 ),
             ),
             "discount_eur_input": f"{order.discount_cents / 100:.2f}",
-            # VS-3: заказ может быть прикреплён к брони (предзаказ торта к столу).
-            "deal_links": deal_links.block_context("order", order.pk),
-            # Пост-программная сверка (серверный обход 2026-08-19): ссылка
-            # «Kundenkarte öffnen» рисовалась всегда, а модуль CRM выключен у
-            # большинства архетипов по умолчанию → клик давал 404 (гейт путей
-            # мидлвари). Тот же класс, что ловит test_nav_reachability, но для
-            # ссылки ВНУТРИ страницы.
-            # fail-closed: без тенанта (простой тест-рендер) ссылку не рисуем —
-            # лучше не показать вход, чем показать ведущий в 404.
-            "crm_active": bool(
-                getattr(request, "tenant", None) and request.tenant.is_module_active("crm")
+            # DC-1: общий скелет карточки сделки — голова, статус, клиент, связи
+            # и календарь приходят из одного источника (core/deal_card_base.html);
+            # crm_active/inbox_active/deal_links тоже оттуда.
+            **deal_card.card_context(
+                request,
+                "order",
+                order,
+                sections=("items", "discount", "totals", "payment"),
+                # VS-3: заказ может быть прикреплён к брони (предзаказ торта к столу).
+                links=deal_links.block_context("order", order.pk),
             ),
-            # C1: «✉️ Nachricht an den Kunden» — тот же fail-closed гейт модуля.
-            "inbox_active": bool(
-                getattr(request, "tenant", None) and request.tenant.is_module_active("inbox")
-            ),
+            # Внешний номер правится прямо в голове карточки (приёмник прежний).
+            "deal_external_form": reverse("orders:order-edit", args=[order.pk]),
+            "deal_external_action": "numbers",
+            "deal_external_code": order.external_code,
         },
     )
 

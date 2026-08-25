@@ -19992,3 +19992,36 @@ msgid ""
 msgstr ""
 "Starts a conversation about %(label)s. The customer gets an e-mail with a "
 "link to the conversation and can reply right away."
+
+msgid "Aktuell"
+msgstr "Currently"
+
+msgid "Anfrage-Details"
+msgstr "Request details"
+
+msgid "Dokumente"
+msgstr "Documents"
+
+msgid "Einzel"
+msgstr "Unit price"
+
+msgid "Kein Rabatt gesetzt — Gesamtpreis unverändert."
+msgstr "No discount set — total price unchanged."
+
+msgid "Leistung und Zusatzleistungen"
+msgstr "Service and extras"
+
+msgid "Nr."
+msgstr "No."
+
+msgid "Termin & Leistung"
+msgstr "Appointment & service"
+
+msgid "Termin verschieben"
+msgstr "Reschedule appointment"
+
+msgid "Vor Ort zu zahlen"
+msgstr "To be paid on site"
+
+msgid "im Gesamtpreis verrechnet"
+msgstr "included in the total price"

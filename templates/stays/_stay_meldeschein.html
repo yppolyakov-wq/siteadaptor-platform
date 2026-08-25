@@ -1,0 +1,11 @@
+{% load i18n cabinet %}
+{% comment %}DC-1: кусок карточки брони — общий для страницы (скелет
+`core/deal_card_base.html`) и для панели под Belegungsplan (fetch ?buchung=&box=1).
+Один источник: правка здесь меняет обе поверхности.{% endcomment %}
+    {% if registration %}
+    <p class="text-sm">{{ registration.first_name }} {{ registration.last_name }}{% if registration.nationality %} · {{ registration.nationality }}{% endif %}</p>
+    {% if registration.street %}<p class="text-sm text-gray-600">{{ registration.street }}, {{ registration.postal_code }}</p>{% endif %}
+    <p class="text-xs text-gray-400 mt-1">{% trans "Online ausgefüllt" %} · {{ registration.created_at|date:"d.m.Y H:i" }}</p>
+  {% else %}
+    <p class="text-sm text-gray-400">{% trans "Noch nicht ausgefüllt." %} <a href="{% url 'stays:checkins' %}" class="text-indigo-600 hover:underline">{% trans "Online-Checkins" %} →</a></p>
+  {% endif %}

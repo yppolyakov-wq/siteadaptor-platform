@@ -1,0 +1,21 @@
+{% load i18n cabinet %}
+{% comment %}DC-1: кусок карточки брони — общий для страницы (скелет
+`core/deal_card_base.html`) и для панели под Belegungsplan (fetch ?buchung=&box=1).
+Один источник: правка здесь меняет обе поверхности.{% endcomment %}
+      <p class="text-sm"><span class="text-gray-500">{% trans "Anreise" %}:</span> <span class="font-medium">{{ b.arrival|date:"l, d.m.Y" }}</span></p>
+    <p class="text-sm"><span class="text-gray-500">{% trans "Abreise" %}:</span> <span class="font-medium">{{ b.departure|date:"l, d.m.Y" }}</span></p>
+    <p class="text-sm text-gray-600 mt-1">{% blocktrans with n=b.nights %}{{ n }} Nächte{% endblocktrans %}</p>
+    {% if b.rate_snapshot.name %}
+      <p class="text-sm text-gray-600 mt-2">{% trans "Tarif" %}: {{ b.rate_snapshot.name }}{% if b.rate_snapshot.meal_label %} · {{ b.rate_snapshot.meal_label }}{% endif %}</p>
+      {% if b.rate_snapshot.cancellation_label %}<p class="text-xs text-gray-400">{{ b.rate_snapshot.cancellation_label }}</p>{% endif %}
+    {% endif %}ad i18n cabinet %}
+{% comment %}DC-1: кусок карточки брони — общий для страницы (скелет
+`core/deal_card_base.html`) и для панели под Belegungsplan (fetch ?buchung=&box=1).
+Один источник: правка здесь меняет обе поверхности.{% endcomment %}
+      <p class="text-sm"><span class="text-gray-500">{% trans "Anreise" %}:</span> <span class="font-medium">{{ b.arrival|date:"l, d.m.Y" }}</span></p>
+    <p class="text-sm"><span class="text-gray-500">{% trans "Abreise" %}:</span> <span class="font-medium">{{ b.departure|date:"l, d.m.Y" }}</span></p>
+    <p class="text-sm text-gray-600 mt-1">{% blocktrans with n=b.nights %}{{ n }} Nächte{% endblocktrans %}</p>
+    {% if b.rate_snapshot.name %}
+      <p class="text-sm text-gray-600 mt-2">{% trans "Tarif" %}: {{ b.rate_snapshot.name }}{% if b.rate_snapshot.meal_label %} · {{ b.rate_snapshot.meal_label }}{% endif %}</p>
+      {% if b.rate_snapshot.cancellation_label %}<p class="text-xs text-gray-400">{{ b.rate_snapshot.cancellation_label }}</p>{% endif %}
+    {% endif %}

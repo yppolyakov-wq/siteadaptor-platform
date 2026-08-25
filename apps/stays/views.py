@@ -20,7 +20,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.billing import connect
-from apps.core import deal_links
+from apps.core import deal_card, deal_links
 from apps.core.fsm import IllegalTransition
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
 
@@ -705,15 +705,15 @@ def booking_detail(request, pk):
             "units": list(StayUnit.objects.filter(is_active=True).order_by("name")),
             # PMS-R2: селект физического номера (пусто = у категории нет комнат).
             "free_rooms": services.free_rooms_for(booking),
-            # VS-3: прикреплённые услуги (велопрокат/трансфер к брони номера).
-            "deal_links": deal_links.block_context("stay", booking.pk),
-            # VF-16/C1: входы «карточка клиента» и «написать клиенту» — fail-closed
-            # гейты модулей (без них ссылки вели бы в 404 гейта путей).
-            "crm_active": bool(
-                getattr(request, "tenant", None) and request.tenant.is_module_active("crm")
-            ),
-            "inbox_active": bool(
-                getattr(request, "tenant", None) and request.tenant.is_module_active("inbox")
+            # DC-1: общий скелет карточки сделки — голова, статус, клиент, связи
+            # и Belegungsplan под сеткой приходят из одного источника.
+            **deal_card.card_context(
+                request,
+                "stay",
+                booking,
+                sections=("items", "totals", "payment"),
+                # VS-3: прикреплённые услуги (велопрокат/трансфер к брони номера).
+                links=deal_links.block_context("stay", booking.pk),
             ),
         },
     )

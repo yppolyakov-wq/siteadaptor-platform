@@ -117,8 +117,10 @@ def test_closed_order_detail_is_read_only():
     OrderSM().apply(order, "cancelled")
     body = views.order_detail(_req(path=f"/dashboard/orders/{order.pk}/"), pk=order.pk)
     body = body.content.decode()
-    # VF-2: строка позиции = «№ · название · кол-во × цена/шт · сумма»
-    assert "Brot" in body and "2 ×" in body  # обычная строка-снимок
+    # DC-1 (правка владельца 2026-08-25): порядок колонок «№ · Position · Einzel ·
+    # Menge · Summe» — количество отдельной колонкой ПОСЛЕ цены за штуку.
+    assert "Brot" in body  # обычная строка-снимок
+    assert "aria-label" not in body.split("Brot")[1][:400]  # read-only: без поля Menge
     assert 'name="action" value="items"' not in body
 
 
@@ -234,8 +236,8 @@ def test_normalize_status_labels_validation():
 
 
 def test_order_items_one_line_with_unit_price():
-    """VF-2 (фидбэк 2026-08-24): позиция одной строкой — порядковый номер,
-    название, количество, цена за штуку, сумма по позиции."""
+    """VF-2 (2026-08-24) + DC-1 (2026-08-25): позиция одной строкой; колонки —
+    № · Position · Einzel · Menge · Summe (количество ПОСЛЕ цены за штуку)."""
     order = _order()
     body = views.order_detail(_req(path=f"/dashboard/orders/{order.pk}/"), pk=order.pk)
     body = body.content.decode()
@@ -243,5 +245,8 @@ def test_order_items_one_line_with_unit_price():
     # DE-грабля чисел (урок ST-1b): рендер локализует Decimal запятой.
     unit = str(item.unit_price).replace(".", ",")
     total = str(item.line_total).replace(".", ",")
-    assert f"× {unit}" in body  # цена за штуку
+    assert unit in body  # цена за штуку
     assert total in body  # сумма по позиции
+    # Порядок колонок: заголовок «Einzel» стоит перед «Menge».
+    header = body[body.index(">Nr.<") : body.index(">Nr.<") + 600]
+    assert header.index("Einzel") < header.index("Menge")

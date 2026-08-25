@@ -1,0 +1,71 @@
+{% load i18n cabinet %}
+{% comment %}DC-1: кусок карточки брони — общий для страницы (скелет
+`core/deal_card_base.html`) и для панели под Belegungsplan (fetch ?buchung=&box=1).
+Один источник: правка здесь меняет обе поверхности.{% endcomment %}
+{# Фидбэк 2026-07-27: правка брони — даты/номер/гости/заметка одним сохранением. #}
+  <form method="post" action="{% url 'stays:stay-action' b.pk %}" class="grid sm:grid-cols-2 gap-3">
+    {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <input type="hidden" name="action" value="update">
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Anreise" %}</label>
+      <input type="date" name="arrival" value="{{ b.arrival|date:'Y-m-d' }}" required class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Abreise" %}</label>
+      <input type="date" name="departure" value="{{ b.departure|date:'Y-m-d' }}" required class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Unit" %}</label>
+      <select name="unit" class="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm">
+        {% for u in units %}<option value="{{ u.pk }}" {% if u.pk == b.unit_id %}selected{% endif %}>{{ u.name }}</option>{% endfor %}
+      </select>
+    </div>
+    {% if free_rooms or b.room %}
+    {# PMS-R2: физический номер — только свободные на диапазон комнаты категории #}
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">🚪 {% trans "Zimmer" %}</label>
+      <select name="room" class="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm">
+        <option value="">— {% trans "no room assigned" %}</option>
+        {% for r in free_rooms %}<option value="{{ r.pk }}" {% if r.pk == b.room_id %}selected{% endif %}>🚪 {{ r.number }}</option>{% endfor %}
+      </select>
+    </div>
+    {% endif %}
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Erwachsene" %}</label>
+        <input type="number" name="adults" min="1" max="50" value="{{ b.adults }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Kinder" %}</label>
+        <input type="number" name="children" min="0" max="50" value="{{ b.children }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      </div>
+    </div>
+    <div class="sm:col-span-2">
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Note (optional)" %}</label>
+      <textarea name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ b.note }}</textarea>
+    </div>
+    {% if edit_extras %}
+    {# MX-3: правка состава допов; сентинел — форма без блока ничего не стирает (W0). #}
+    <div class="sm:col-span-2">
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Zusatzleistungen" %}</label>
+      <input type="hidden" name="extras_present" value="1">
+      <div class="flex flex-wrap gap-2">
+        {% for e in edit_extras %}
+        <label class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm cursor-pointer hover:border-indigo-300">
+          <input type="checkbox" name="extra" value="{{ e.pk }}" {% if e.pk|stringformat:"s" in chosen_extra_ids %}checked{% endif %} class="rounded border-gray-300">
+          {{ e.label }} <span class="text-xs text-gray-400">+{{ e.price_eur|floatformat:2 }} €{% if e.per_night %}/{% trans "night" %}{% endif %}</span>
+        </label>
+        {% endfor %}
+      </div>
+      <p class="mt-1 text-xs text-gray-400">{% trans "Änderungen an Zusatzleistungen berechnen den Preis neu." %}</p>
+    </div>
+    {% endif %}
+    <label class="sm:col-span-2 inline-flex items-center gap-2 text-sm text-gray-600">
+      <input type="checkbox" name="reprice" value="1" checked class="rounded border-gray-300">
+      {% trans "Preis neu berechnen" %}
+      <span class="text-xs text-gray-400">({% trans "unchecked = price is kept" %})</span>
+    </label>
+    <div class="sm:col-span-2">
+      <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+    </div>
+  </form>

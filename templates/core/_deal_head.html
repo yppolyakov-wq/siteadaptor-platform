@@ -1,0 +1,31 @@
+{% load i18n cabinet %}
+{% comment %}DC-1 (ТЗ владельца 2026-08-25): голова карточки сделки — ОДИН
+источник на все архетипы. Номер и внешний номер одной строкой, рядом бейджи
+статуса и оплаты, под ними мета («когда» + создано). Контекст даёт
+`core.deal_card.card_context`: deal (контракт Transaction), deal_kind.
+Внешний номер редактируется там, где поле уже есть (пока заказ — DC-4).{% endcomment %}
+<div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] px-5 py-4 mb-4" data-deal-block="head">
+  <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+    <h1 class="text-xl sm:text-2xl font-bold tabular-nums">{{ deal.reference_code }}</h1>
+    <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">{{ deal.status_label }}</span>
+    {% block deal_head_badges %}{% endblock %}
+    {% if deal_external_form %}
+      <span class="hidden sm:block w-px h-6 bg-gray-100"></span>
+      <form method="post" action="{{ deal_external_form }}" class="flex items-center gap-2">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="{{ deal_external_action|default:'external' }}">
+        <label class="text-xs text-gray-500" for="deal-external">{% trans "Externe Nr." %}</label>
+        <input id="deal-external" type="text" name="external_code" value="{{ deal_external_code }}" maxlength="50"
+               placeholder="{% trans 'z. B. Marktplatz-Nummer' %}"
+               class="rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm tabular-nums w-44">
+        <button type="submit" class="text-sm font-medium rounded-lg px-3 py-1.5 bg-gray-100 text-gray-700 hover:bg-gray-200">{% trans "Speichern" %}</button>
+      </form>
+    {% elif deal_external_code %}
+      <span class="text-sm text-gray-500" title="{% trans 'Externe Nummer' %}">#{{ deal_external_code }}</span>
+    {% endif %}
+  </div>
+  <p class="text-xs text-gray-500 mt-1">
+    {{ deal.title }}{% if deal.when %} · {{ deal.when|date:"D d.m.Y" }}{% endif %}{% if deal.when_note %} · {{ deal.when_note }}{% endif %}
+    {% if deal.created_at %} · {% trans "angelegt" %} {{ deal.created_at|date:"d.m.Y H:i" }}{% endif %}
+  </p>
+</div>

@@ -20120,3 +20120,36 @@ msgid ""
 msgstr ""
 "Startet eine Unterhaltung zu %(label)s. Der Kunde bekommt eine E-Mail mit "
 "Link zum Gespräch und kann direkt antworten."
+
+msgid "Aktuell"
+msgstr ""
+
+msgid "Anfrage-Details"
+msgstr ""
+
+msgid "Dokumente"
+msgstr ""
+
+msgid "Einzel"
+msgstr ""
+
+msgid "Kein Rabatt gesetzt — Gesamtpreis unverändert."
+msgstr ""
+
+msgid "Leistung und Zusatzleistungen"
+msgstr ""
+
+msgid "Nr."
+msgstr ""
+
+msgid "Termin & Leistung"
+msgstr ""
+
+msgid "Termin verschieben"
+msgstr ""
+
+msgid "Vor Ort zu zahlen"
+msgstr ""
+
+msgid "im Gesamtpreis verrechnet"
+msgstr ""

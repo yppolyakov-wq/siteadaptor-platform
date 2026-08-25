@@ -20194,3 +20194,36 @@ msgid ""
 msgstr ""
 "Розпочинає бесіду щодо %(label)s. Клієнт отримає лист із посиланням на "
 "розмову й зможе одразу відповісти."
+
+msgid "Aktuell"
+msgstr "Зараз"
+
+msgid "Anfrage-Details"
+msgstr "Деталі заявки"
+
+msgid "Dokumente"
+msgstr "Документи"
+
+msgid "Einzel"
+msgstr "Ціна за шт."
+
+msgid "Kein Rabatt gesetzt — Gesamtpreis unverändert."
+msgstr "Знижку не задано — підсумкова ціна без змін."
+
+msgid "Leistung und Zusatzleistungen"
+msgstr "Послуга та додаткові послуги"
+
+msgid "Nr."
+msgstr "№"
+
+msgid "Termin & Leistung"
+msgstr "Запис і послуга"
+
+msgid "Termin verschieben"
+msgstr "Перенести запис"
+
+msgid "Vor Ort zu zahlen"
+msgstr "Оплата на місці"
+
+msgid "im Gesamtpreis verrechnet"
+msgstr "врахована в підсумковій ціні"

@@ -20210,3 +20210,36 @@ msgid ""
 msgstr ""
 "Начинает беседу по %(label)s. Клиент получит письмо со ссылкой на разговор и"
 " сможет сразу ответить."
+
+msgid "Aktuell"
+msgstr "Сейчас"
+
+msgid "Anfrage-Details"
+msgstr "Детали заявки"
+
+msgid "Dokumente"
+msgstr "Документы"
+
+msgid "Einzel"
+msgstr "Цена за шт."
+
+msgid "Kein Rabatt gesetzt — Gesamtpreis unverändert."
+msgstr "Скидка не задана — итоговая цена без изменений."
+
+msgid "Leistung und Zusatzleistungen"
+msgstr "Услуга и дополнительные услуги"
+
+msgid "Nr."
+msgstr "№"
+
+msgid "Termin & Leistung"
+msgstr "Запись и услуга"
+
+msgid "Termin verschieben"
+msgstr "Перенести запись"
+
+msgid "Vor Ort zu zahlen"
+msgstr "Оплата на месте"
+
+msgid "im Gesamtpreis verrechnet"
+msgstr "учтена в итоговой цене"

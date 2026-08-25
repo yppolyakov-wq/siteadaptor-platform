@@ -20119,3 +20119,36 @@ msgid ""
 msgstr ""
 "%(label)s hakkında bir görüşme başlatır. Müşteri, görüşme bağlantısını "
 "içeren bir e-posta alır ve doğrudan yanıtlayabilir."
+
+msgid "Aktuell"
+msgstr "Şu anda"
+
+msgid "Anfrage-Details"
+msgstr "Talep ayrıntıları"
+
+msgid "Dokumente"
+msgstr "Belgeler"
+
+msgid "Einzel"
+msgstr "Birim fiyat"
+
+msgid "Kein Rabatt gesetzt — Gesamtpreis unverändert."
+msgstr "İndirim tanımlı değil — toplam fiyat değişmedi."
+
+msgid "Leistung und Zusatzleistungen"
+msgstr "Hizmet ve ek hizmetler"
+
+msgid "Nr."
+msgstr "No."
+
+msgid "Termin & Leistung"
+msgstr "Randevu ve hizmet"
+
+msgid "Termin verschieben"
+msgstr "Randevuyu ertele"
+
+msgid "Vor Ort zu zahlen"
+msgstr "Yerinde ödenecek"
+
+msgid "im Gesamtpreis verrechnet"
+msgstr "toplam fiyata dahil edildi"

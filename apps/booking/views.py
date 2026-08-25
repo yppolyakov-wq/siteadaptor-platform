@@ -195,6 +195,11 @@ def booking_detail(request, pk):
     chosen_extra_ids = {
         str(e.get("id")) for e in (booking.extras or []) if isinstance(e, dict) and e.get("id")
     }
+    # DC-1: общий скелет карточки сделки (core/deal_card_base.html) — голова,
+    # статус, клиент, связи и календарь приходят из одного источника; здесь
+    # остаётся только специфика записи.
+    from apps.core import deal_card
+
     return render(
         request,
         "booking/booking_detail.html",
@@ -203,15 +208,13 @@ def booking_detail(request, pk):
             "nav": "booking",
             "edit_extras": edit_extras,
             "chosen_extra_ids": chosen_extra_ids,
-            # VS-3: связь с якорной сделкой (запись может быть услугой к брони).
-            "deal_links": deal_links.block_context("booking", booking.pk),
-            # VF-16/C1: входы «карточка клиента» и «написать клиенту» — fail-closed
-            # гейты модулей (без них ссылки вели бы в 404 гейта путей).
-            "crm_active": bool(
-                getattr(request, "tenant", None) and request.tenant.is_module_active("crm")
-            ),
-            "inbox_active": bool(
-                getattr(request, "tenant", None) and request.tenant.is_module_active("inbox")
+            **deal_card.card_context(
+                request,
+                "booking",
+                booking,
+                sections=("items", "totals", "payment"),
+                # VS-3: связь с якорной сделкой (запись может быть услугой к брони).
+                links=deal_links.block_context("booking", booking.pk),
             ),
         },
     )
