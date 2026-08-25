@@ -187,3 +187,37 @@ def test_shared_blocks_come_from_one_source():
         "_stay_meldeschein.html",
     ):
         assert part in fragment and part in page, part
+
+
+# --- DC-4: внешний номер у всех видов сделок ---------------------------------
+
+
+def test_external_number_form_on_every_card():
+    """ТЗ: «номер заказа основной и дополнительный, его можно изменить» — поле
+    есть на всех четырёх карточках, приёмник ОДИН (kind-агностичный)."""
+    for kind, html in _cards():
+        assert 'name="external_code"' in html, kind
+        assert f"/dashboard/externe-nummer/{kind}/" in html, kind
+
+
+def test_external_number_saves_and_is_searchable(client, django_user_model):
+    """Сохранение пишет поле сделки и находится поиском продаж."""
+    from apps.core import transactions, views as core_views
+
+    job = _job()
+    req = RequestFactory().post(
+        f"/dashboard/externe-nummer/job/{job.pk}/",
+        {"external_code": "KASSE-4711", "next": "/dashboard/verkaeufe/"},
+    )
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = _User()
+    req.tenant = _tenant("handwerker")
+    resp = core_views.deal_external_edit(req, "job", job.pk)
+    assert resp.status_code == 302
+    job.refresh_from_db()
+    assert job.external_code == "KASSE-4711"
+    # Поиск сделок находит по внешнему номеру (реестр _TITLE_SEARCH).
+    assert "external_code" in transactions._TITLE_SEARCH["job"]
+    assert "external_code" in transactions._TITLE_SEARCH["stay"]
+    assert "external_code" in transactions._TITLE_SEARCH["booking"]

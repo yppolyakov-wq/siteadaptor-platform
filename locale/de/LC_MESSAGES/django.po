@@ -20171,3 +20171,12 @@ msgstr ""
 
 msgid "Externe Nr."
 msgstr ""
+
+msgid "Externe Nummer gespeichert."
+msgstr ""
+
+msgid "Kein Kundenkonto hinterlegt."
+msgstr ""
+
+msgid "Der Kunde bekommt bei jedem Statuswechsel eine E-Mail."
+msgstr ""

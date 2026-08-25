@@ -9,11 +9,11 @@
     <h1 class="text-xl sm:text-2xl font-bold tabular-nums">{{ deal.reference_code }}</h1>
     <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">{{ deal.status_label }}</span>
     {% block deal_head_badges %}{% endblock %}
-    {% if deal_external_form %}
+    {% if deal_external_editable %}
       <span class="hidden sm:block w-px h-6 bg-gray-100"></span>
-      <form method="post" action="{{ deal_external_form }}" class="flex items-center gap-2">
+      <form method="post" action="{% url 'deal-external-edit' deal_kind deal.pk %}" class="flex items-center gap-2">
         {% csrf_token %}
-        <input type="hidden" name="action" value="{{ deal_external_action|default:'external' }}">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
         <label class="text-xs text-gray-500" for="deal-external">{% trans "Externe Nr." %}</label>
         <input id="deal-external" type="text" name="external_code" value="{{ deal_external_code }}" maxlength="50"
                placeholder="{% trans 'z. B. Marktplatz-Nummer' %}"

@@ -22,6 +22,7 @@ from apps.core.views import (
     board_settings,
     dashboard,
     deal_customer_edit,
+    deal_external_edit,
     deal_link_view,
     deal_unlink_view,
     domain_add,
@@ -228,6 +229,12 @@ urlpatterns = [
         "dashboard/kunde/<str:kind>/<uuid:pk>/",
         deal_customer_edit,
         name="deal-customer-edit",
+    ),
+    # DC-4: внешний номер сделки (kind-агностичный приёмник, как контакт клиента).
+    path(
+        "dashboard/externe-nummer/<str:kind>/<uuid:pk>/",
+        deal_external_edit,
+        name="deal-external-edit",
     ),
     path("dashboard/status-manager/<str:kind>/", status_manager, name="status-manager"),
     path(

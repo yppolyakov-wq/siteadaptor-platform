@@ -383,6 +383,10 @@ class Booking(TimestampedModel):
     )
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name="bookings")
     reference_code = models.CharField(max_length=12, unique=True)  # "T-XXXXXX"
+    # DC-4 (ТЗ владельца 2026-08-25): внешний номер сделки — номер кассы, портала
+    # или бумажной книги; вводится вручную и ищется поиском сделок. Машинные
+    # ключи импорта (external_ref у брони номера) этим полем НЕ подменяются.
+    external_code = models.CharField(max_length=50, blank=True, db_index=True)
     # HF-6: несколько периодов, выбранных гостем ЗА ОДИН РАЗ, — это N записей с
     # общим кодом группы (план hf6-multislot-plan-2026-07-31 §2, вариант A). Так
     # движок занятости, календарь и перенос продолжают работать с обычными

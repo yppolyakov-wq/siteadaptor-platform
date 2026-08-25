@@ -148,6 +148,9 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
         "deal_titles": SECTION_TITLES,
         "deal_calendar_html": calendar,
         "deal_show_when": show_when,
+        # DC-4: внешний номер правится прямо в голове — там, где поле есть.
+        "deal_external_editable": hasattr(obj, "external_code"),
+        "deal_external_code": getattr(obj, "external_code", ""),
         "deal_links": links,
         "crm_active": _module_active(tenant, "crm"),
         "inbox_active": _module_active(tenant, "inbox"),

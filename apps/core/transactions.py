@@ -484,10 +484,11 @@ _EVENT_ORDER = {"stay": "-arrival", "booking": "-start"}
 _TITLE_SEARCH = {
     # SH-8: у заказа ищем и ВНЕШНИЙ номер (касса/маркетплейс) — владелец диктует
     # его по телефону чаще, чем наш собственный код.
+    # DC-4 (2026-08-25): внешний номер есть у всех четырёх видов сделок с карточкой.
     "order": ("external_code",),
-    "booking": ("resource__name", "service__name"),
-    "stay": ("unit__name",),
-    "job": ("title",),
+    "booking": ("resource__name", "service__name", "external_code"),
+    "stay": ("unit__name", "external_code"),
+    "job": ("title", "external_code"),
     "ticket": ("event__title",),
     # У резерва заголовок — название акции, а `Promotion.title` это JSONField
     # (i18n-словарь): `icontains` по нему в Postgres не работает. Легаси-kind

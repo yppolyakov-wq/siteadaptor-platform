@@ -20261,3 +20261,12 @@ msgstr "Позиции"
 
 msgid "Externe Nr."
 msgstr "Внешний №"
+
+msgid "Externe Nummer gespeichert."
+msgstr "Внешний номер сохранён."
+
+msgid "Kein Kundenkonto hinterlegt."
+msgstr "Карточка клиента не привязана."
+
+msgid "Der Kunde bekommt bei jedem Statuswechsel eine E-Mail."
+msgstr "Клиент получает письмо при каждой смене статуса."

@@ -276,10 +276,6 @@ def order_detail(request, pk):
                 # VS-3: заказ может быть прикреплён к брони (предзаказ торта к столу).
                 links=deal_links.block_context("order", order.pk),
             ),
-            # Внешний номер правится прямо в голове карточки (приёмник прежний).
-            "deal_external_form": reverse("orders:order-edit", args=[order.pk]),
-            "deal_external_action": "numbers",
-            "deal_external_code": order.external_code,
         },
     )
 

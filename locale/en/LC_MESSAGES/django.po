@@ -20043,3 +20043,12 @@ msgstr "Items"
 
 msgid "Externe Nr."
 msgstr "External no."
+
+msgid "Externe Nummer gespeichert."
+msgstr "External number saved."
+
+msgid "Kein Kundenkonto hinterlegt."
+msgstr "No customer record linked."
+
+msgid "Der Kunde bekommt bei jedem Statuswechsel eine E-Mail."
+msgstr "The customer gets an email on every status change."

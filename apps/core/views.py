@@ -3889,6 +3889,37 @@ def deal_customer_edit(request, kind, pk):
 
 
 @login_required
+@require_POST
+def deal_external_edit(request, kind, pk):
+    """DC-4 (ТЗ владельца 2026-08-25): внешний номер сделки — ОДИН приёмник на все
+    виды (как `deal-customer-edit` для контакта и `board-action` для статусов).
+
+    Собственный `reference_code` не трогаем: на него ссылаются письма, PDF,
+    платежи и поиск. Внешний номер — свободное поле рядом (касса, портал,
+    бумажная книга), ищется поиском сделок."""
+    from django.http import Http404
+    from django.urls import reverse
+
+    from apps.core import transactions
+
+    if kind not in transactions.TRANSACTION_KINDS:
+        raise Http404("unknown kind")
+    model = transactions.model_for(kind)
+    if not hasattr(model, "external_code"):
+        raise Http404("kind has no external code")
+    obj = get_object_or_404(model, pk=pk)
+    value = (request.POST.get("external_code") or "").strip()[:50]
+    if value != obj.external_code:
+        obj.external_code = value
+        obj.save(update_fields=["external_code", "updated_at"])
+        messages.success(request, _("Externe Nummer gespeichert."))
+    nxt = request.POST.get("next", "")
+    if not (nxt.startswith("/") and not nxt.startswith("//")):
+        nxt = transactions.transaction_for(kind, obj).manage_url or reverse("verkaeufe")
+    return redirect(nxt)
+
+
+@login_required
 def deal_link_view(request, kind, pk):
     """VS-3c: экран привязки сделки (кабинет). GET — поиск кандидатов, POST — привязка.
 

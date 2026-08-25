@@ -20170,3 +20170,12 @@ msgstr "Kalemler"
 
 msgid "Externe Nr."
 msgstr "Harici no."
+
+msgid "Externe Nummer gespeichert."
+msgstr "Harici numara kaydedildi."
+
+msgid "Kein Kundenkonto hinterlegt."
+msgstr "Kayıtlı müşteri bilgisi yok."
+
+msgid "Der Kunde bekommt bei jedem Statuswechsel eine E-Mail."
+msgstr "Müşteri her durum değişikliğinde bir e-posta alır."

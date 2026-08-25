@@ -20245,3 +20245,12 @@ msgstr "Позиції"
 
 msgid "Externe Nr."
 msgstr "Зовнішній №"
+
+msgid "Externe Nummer gespeichert."
+msgstr "Зовнішній номер збережено."
+
+msgid "Kein Kundenkonto hinterlegt."
+msgstr "Картку клієнта не прив'язано."
+
+msgid "Der Kunde bekommt bei jedem Statuswechsel eine E-Mail."
+msgstr "Клієнт отримує лист під час кожної зміни статусу."

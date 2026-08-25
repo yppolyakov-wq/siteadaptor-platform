@@ -321,6 +321,10 @@ class StayBooking(TimestampedModel):
     unit = models.ForeignKey(StayUnit, on_delete=models.PROTECT, related_name="bookings")
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name="stays")
     reference_code = models.CharField(max_length=12, unique=True)  # "S-XXXXXX"
+    # DC-4 (ТЗ владельца 2026-08-25): внешний номер сделки — номер кассы, портала
+    # или бумажной книги; вводится вручную и ищется поиском сделок. Машинные
+    # ключи импорта (external_ref у брони номера) этим полем НЕ подменяются.
+    external_code = models.CharField(max_length=50, blank=True, db_index=True)
     arrival = models.DateField()
     departure = models.DateField()
     guests = models.PositiveSmallIntegerField(default=1)  # итого (adults + children)
