@@ -3,7 +3,9 @@
 {% block dash_title %}{% trans "Newsletter" %}{% endblock %}
 
 {% block dash_content %}
-<div class="max-w-2xl">
+{% comment %}VF-24 (фидбэк 2026-08-25): раскладка как у Kampagnen (VF-19) —
+«создание | список» в 2 колонки на lg+, на мобильном одна колонка.{% endcomment %}
+<div>
   <h1 class="text-2xl font-bold mb-1">{% trans "Newsletter campaigns" %}</h1>
   <p class="text-sm text-gray-500 mb-4">{% blocktrans count n=consented %}{{ n }} guest has confirmed marketing consent (double opt-in).{% plural %}{{ n }} guests have confirmed marketing consent (double opt-in).{% endblocktrans %} {% trans "Emails are only sent to them." %}</p>
 
@@ -13,8 +15,9 @@
     {% endfor %}
   {% endif %}
 
+  <div class="lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start">
   {# Создать кампанию #}
-  <form method="post" class="bg-white rounded-2xl shadow-sm p-5 mb-6 space-y-3">
+  <form method="post" class="bg-white rounded-2xl shadow-sm p-5 mb-6 space-y-3 min-w-0">
     {% csrf_token %}
     <input type="hidden" name="action" value="create">
     <h2 class="font-semibold">{% trans "New campaign" %}</h2>
@@ -30,7 +33,7 @@
   </form>
 
   {# Список кампаний #}
-  <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100">
+  <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 min-w-0">
     {% for c in campaigns %}
       <div class="p-4 flex items-start justify-between gap-3">
         <div class="min-w-0">
@@ -59,6 +62,7 @@
     {% empty %}
       <p class="p-4 text-sm text-gray-400">{% trans "No campaigns yet." %}</p>
     {% endfor %}
+  </div>
   </div>
 </div>
 {% endblock %}

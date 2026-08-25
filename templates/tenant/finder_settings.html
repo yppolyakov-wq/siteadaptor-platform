@@ -5,7 +5,9 @@
 {% block dash_content %}
 {% comment %}FD-3-lite: тумблер опции Finder + предпросмотр дерева вопросов
 (кастом-редактор — FD-3 полный). Finder = «вопросы → 3 предложения» на витрине.{% endcomment %}
-<div class="max-w-2xl">
+{% comment %}VF-24 (фидбэк 2026-08-25): «настройка | превью» в 2 колонки; редактор
+вопросов остаётся на всю ширину — его строка это 6 полей маппинга.{% endcomment %}
+<div>
   <h1 class="text-2xl font-bold mb-1">Finder</h1>
   <p class="text-gray-500 mb-4 text-sm">{% trans "Besucher beantworten 2–3 Fragen und bekommen 3 passende Vorschläge — statt lange im Katalog zu suchen." %}</p>
 
@@ -14,7 +16,8 @@
   {% if not has_kind %}
     <div class="rounded-xl bg-amber-50 text-amber-800 px-4 py-3 text-sm mb-4">{% trans "Für diese Branche gibt es noch keine Finder-Angebote (kein passendes Sortiment-Modul aktiv)." %}</div>
   {% else %}
-    <form method="post" class="bg-white rounded-2xl shadow-sm p-6 mb-5">
+    <div class="lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start">
+    <form method="post" class="bg-white rounded-2xl shadow-sm p-6 mb-5 min-w-0">
       {% csrf_token %}
       <label class="flex items-center justify-between gap-4 cursor-pointer">
         <span>
@@ -31,7 +34,7 @@
       </div>
     </form>
 
-    <div class="bg-white rounded-2xl shadow-sm p-6 mb-5">
+    <div class="bg-white rounded-2xl shadow-sm p-6 mb-5 min-w-0">
       <h2 class="font-semibold mb-1">{% trans "So fragt der Finder" %}</h2>
       <p class="text-xs text-gray-400 mb-4">{% if finder_has_custom %}{% trans "Eigene Fragen (unten bearbeiten)." %}{% else %}{% trans "Voreingestellt für deine Branche — unten anpassbar." %}{% endif %}</p>
       <div class="space-y-4">
@@ -46,6 +49,7 @@
           </div>
         {% endfor %}
       </div>
+    </div>
     </div>
 
     {% comment %}FD-3: полный редактор дерева — до 6 вопросов × 8 чипов; key

@@ -3,7 +3,9 @@
 {% block dash_title %}{% trans "Modules" %}{% endblock %}
 
 {% block dash_content %}
-<div class="max-w-2xl">
+{% comment %}VF-24 (фидбэк 2026-08-25): группы тумблеров — в 2 колонки на xl+
+(рекомендованные слева, прочие и премиум справа); одна форма и один Save.{% endcomment %}
+<div>
   <h1 class="text-2xl font-bold mb-1">{% trans "Modules" %}</h1>
   <p class="text-sm text-gray-500 mb-4">{% trans "Switch dashboard blocks on or off. Disabled modules disappear from the menu — your data stays." %}</p>
 
@@ -11,12 +13,16 @@
 
   <form method="post" class="space-y-3">
     {% csrf_token %}
+    <div class="xl:grid xl:grid-cols-2 xl:gap-5 xl:items-start">
+    <div class="space-y-3 min-w-0">
     {% comment %}AB2: «Für Ihr Geschäft empfohlen» — core + подходящие вертикали.{% endcomment %}
     <h2 class="font-semibold">{% trans "Recommended for your business" %}</h2>
     {% for row in rows %}
       {% include "tenant/_module_row.html" %}
     {% endfor %}
+    </div>
 
+    <div class="space-y-3 min-w-0">
     {% if other_rows %}
       {% comment %}AB2: универсальные/прочие — доступны, включаются осознанно.{% endcomment %}
       <h2 class="font-semibold pt-3">{% trans "More functions" %}</h2>
@@ -34,6 +40,8 @@
         {% include "tenant/_module_row.html" with is_premium=True %}
       {% endfor %}
     {% endif %}
+    </div>
+    </div>
     <button type="submit" class="bg-indigo-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-indigo-700">{% trans "Save" %}</button>
   </form>
 </div>

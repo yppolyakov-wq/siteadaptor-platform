@@ -3,7 +3,9 @@
 {% block dash_title %}{% trans "Channels" %}{% endblock %}
 
 {% block dash_content %}
-<div class="max-w-3xl">
+{% comment %}VF-24 (фидбэк 2026-08-25): «каналы + импорт | импортированные брони»
+в 2 колонки на lg+ вместо колонки max-w-3xl; мобильный — одна колонка.{% endcomment %}
+<div>
   <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
     <h1 class="text-2xl font-bold">{% trans "Sales channels" %}</h1>
     <a href="{% url 'stays:calendar' %}" class="text-sm text-indigo-600 hover:underline">← {% trans "Calendar" %}</a>
@@ -19,6 +21,8 @@
     {% endfor %}
   {% endif %}
 
+  <div class="lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start">
+  <div class="min-w-0">
   {# Каналы #}
   <div class="bg-white rounded-2xl shadow-sm p-5 mb-6">
     <h2 class="font-semibold mb-3">{% trans "Your channels" %}</h2>
@@ -104,6 +108,9 @@
     {% else %}<p class="text-xs text-gray-400">{% trans "Create a room first." %}</p>{% endif %}
   </div>
 
+  </div>
+
+  <div class="min-w-0">
   {# Импортированные брони #}
   {% if imported %}
   <div class="bg-white rounded-2xl shadow-sm p-5">
@@ -117,5 +124,7 @@
     {% endfor %}
   </div>
   {% endif %}
+  </div>
+  </div>
 </div>
 {% endblock %}

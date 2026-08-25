@@ -3,13 +3,17 @@
 {% block dash_title %}{% trans "Extras" %}{% endblock %}
 
 {% block dash_content %}
-<div class="max-w-2xl">
+{% comment %}VF-24 (фидбэк 2026-08-25 «много свободного места; проверь все страницы»):
+раскладка «список слева · форма справа» вместо колонки max-w-2xl. На мобильном —
+одна колонка (список первым, как было). Формы/эндпоинты не тронуты.{% endcomment %}
+<div>
   <h1 class="text-2xl font-bold mb-1">{% trans "Extras" %}</h1>
   <p class="text-sm text-gray-500 mb-5">{% trans "Optional paid add-ons guests can pick when booking (breakfast, parking, late checkout …). One engine for all booking types; “scope” limits where it applies. Currently shown on Übernachtung." %}</p>
 
   {% include "tenant/_settings_messages.html" %}
 
-  <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6">
+  <div class="lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start">
+  <div class="bg-white rounded-2xl shadow-sm divide-y divide-gray-100 mb-6 min-w-0">
     {% for e in extras %}
       <div class="flex items-center justify-between gap-3 p-4">
         <div class="flex items-center gap-3 min-w-0">
@@ -42,7 +46,7 @@
     {% endfor %}
   </div>
 
-  <form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+  <form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 min-w-0">
     {% csrf_token %}
     <input type="hidden" name="action" value="add">
     <h2 class="font-semibold">{% trans "New extra" %}</h2>
@@ -107,5 +111,6 @@
     </div>
     <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Add extra" %}</button>
   </form>
+  </div>
 </div>
 {% endblock %}
