@@ -299,6 +299,13 @@ def modules_nav(request):
             # подпункт, чей nav_key уникален внутри раздела
             _c["nav_unique"] = _key_counts.get(_c["nav_key"], 0) == 1
             _hit = _hit or _c["active"]
+        # VF-10: query-совпадение специфичнее голого пути — на
+        # /verkaeufe/?tab=job горит «Aufträge», а не он же вместе с «Verkäufe»
+        # (обзорный подпункт без query делит путь со вкладками).
+        if any(_c.get("active") and _c.get("query") for _c in _kids):
+            for _c in _kids:
+                if _c.get("active") and not _c.get("query"):
+                    _c["active"] = False
         _it["has_active_child"] = _hit
     nav_primary = [
         {

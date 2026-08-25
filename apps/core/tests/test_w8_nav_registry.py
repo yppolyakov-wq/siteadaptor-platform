@@ -140,7 +140,17 @@ def test_palette_rendered_on_cabinet_pages():
 
 
 def test_palette_entries_unique_and_complete():
+    """VF-10 (осознанная переписка): адрес карточки = url_name + query —
+    вкладки («Aufträge» ?tab=job, «Kunden» ?tab=kunden) живут своими
+    карточками; дубли ЭКРАНА по-прежнему схлопнуты (settings-«Abläufe»)."""
     entries = nav_registry.palette_entries()
-    urls = [e["url_name"] for e in entries]
-    assert len(urls) == len(set(urls))  # без дублей (Sortiment-дубль схлопнут)
+    keys = [(e["url_name"], e["query"]) for e in entries]
+    assert len(keys) == len(set(keys))  # без дублей адреса
+    urls = {e["url_name"] for e in entries}
     assert "billing" in urls and "verkaeufe" in urls and "finder-settings" in urls
+    # вкладка заявок находима и ведёт прямо на tab=job (клик виден владельцу)
+    job = next(e for e in entries if e["query"] == "?tab=job")
+    assert job["url_name"] == "verkaeufe"
+    # запись без query на тот же url_name после query-записи не плодится:
+    # «Abläufe» в палитре ровно один
+    assert sum(1 for e in entries if e["url_name"] == "ablaeufe") == 1

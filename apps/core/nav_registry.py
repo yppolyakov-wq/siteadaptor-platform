@@ -240,13 +240,18 @@ ENTRIES: tuple[NavEntry, ...] = (
     # Хаб как ТАБ-БАР не рендерится (W10-3): записи живут ради палитры, подсветки
     # и подпунктов сайдбара. X4: события/туры переехали в «Sortiment» (сущность),
     # здесь остались сделки и рабочие входы дня.
+    # VF-10 (фидбэк 2026-08-25 «Заявки не нажимается»): пункт вёл на jobs:list →
+    # 302 → verkaeufe?tab=job — у архетипов с одним направлением (catering) это
+    # ТА ЖЕ страница, что «Verkäufe», и подсветка не переходила: клик выглядел
+    # мёртвым. Прямая ссылка с query даёт видимый отклик (подсветка переезжает).
     _e(
         "board",
-        "jobs:list",
+        "verkaeufe",
         _("Aufträge"),
         "jobs",
         "jobs",
         search="anfragen kostenvoranschlag angebote",
+        query="?tab=job",
     ),
     # X4 (§6.A4.2): рабочие входы дня — ПЕРВЫМИ подпунктами «Verkäufe»; отчётная
     # группа (Auswertungen/Finanzen/Berichte) осталась, но ниже.
@@ -891,35 +896,40 @@ def sidebar_children(anchor) -> list[NavEntry]:
 
 
 def palette_entries() -> list[dict]:
-    """W8-4: индекс палитры Ctrl+K — якоря + табы (без дублей url_name).
-    Гейты модулей применяет рендер (шаблон получает готовый гейтнутый список)."""
-    seen, out = set(), []
+    """W8-4: индекс палитры Ctrl+K — якоря + табы (без дублей ЭКРАНА).
+    Гейты модулей применяет рендер (шаблон получает готовый гейтнутый список).
+
+    VF-10: запись с query — самостоятельный адрес («Aufträge» →
+    verkaeufe?tab=job, «Kunden» → ?tab=kunden): иначе вкладки схлопывались в
+    якорь «Verkäufe» и их поисковые термины пропадали из палитры. Инвариант
+    «один экран — одна карточка» цел: query-запись помечает url_name занятым,
+    так дубль-записи без query (settings-«Abläufe») по-прежнему схлопываются."""
+    seen, seen_q, out = set(), set(), []
+
+    def _rec(url_name, label, nav_key, module_key, hub, search, query=""):
+        return {
+            "url_name": url_name,
+            "label": label,
+            "nav_key": nav_key,
+            "module_key": module_key,
+            "hub": hub,
+            "search": search,
+            "query": query,
+        }
+
     for a in ANCHORS:
-        out.append(
-            {
-                "url_name": a.url_name,
-                "label": a.label,
-                "nav_key": a.nav_key,
-                "module_key": a.module_key,
-                "hub": "",
-                "search": a.search,
-            }
-        )
+        out.append(_rec(a.url_name, a.label, a.nav_key, a.module_key, "", a.search))
         seen.add(a.url_name)
     for e in ENTRIES:
-        # Палитра адресует экраны по url_name (без query) — записи «Kunden»/
-        # «Lieferungen» (SH-14/15) ведут на уже присутствующий «Verkäufe».
-        if e.url_name in seen:
-            continue
-        seen.add(e.url_name)
-        out.append(
-            {
-                "url_name": e.url_name,
-                "label": e.label,
-                "nav_key": e.nav_key,
-                "module_key": e.module_key,
-                "hub": e.hub,
-                "search": e.search,
-            }
-        )
+        if e.query:
+            key = (e.url_name, e.query)
+            if key in seen_q:
+                continue
+            seen_q.add(key)
+            seen.add(e.url_name)
+        else:
+            if e.url_name in seen:
+                continue
+            seen.add(e.url_name)
+        out.append(_rec(e.url_name, e.label, e.nav_key, e.module_key, e.hub, e.search, e.query))
     return out

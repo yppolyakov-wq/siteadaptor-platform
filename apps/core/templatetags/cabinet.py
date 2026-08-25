@@ -91,6 +91,8 @@ def nav_palette(context):
         entries.append(
             {
                 "url_name": e["url_name"],
+                # VF-10: вкладки-адреса («Aufträge» ?tab=job) — прыжок с query
+                "query": e.get("query", ""),
                 "label": e["label"],
                 "area": area_by_hub.get(e["hub"], ""),
                 "haystack": f"{e['label']} {e['search']}".lower(),

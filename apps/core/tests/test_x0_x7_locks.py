@@ -116,6 +116,8 @@ EXPECTED_UNLISTED = frozenset(
         "stays:calendar",
         "stays:today",
         "board",  # X2b: легаси-доска снесена → 302 на Verkäufe
+        "jobs:list",  # VF-10: пункт «Aufträge» ведёт прямо на verkaeufe?tab=job;
+        # сам URL остался легаси-редиректом X2c для старых ссылок
         "billing-portal",  # редирект в Stripe-портал, не экран
         # [POST] приёмник панели колонок (её UI живёт на «Abläufe»)
         "board-settings",

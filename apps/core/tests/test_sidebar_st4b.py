@@ -175,7 +175,9 @@ def test_sidebar_children_composition():
     assert [(c["url_name"], c["query"]) for c in by_anchor["verkaeufe"]] == [
         # R7-1: первым — обзор раздела, затем ВЕСЬ состав хаба (main+advanced)
         ("verkaeufe", ""),
-        ("jobs:list", ""),
+        # VF-10: «Aufträge» — прямая ссылка на вкладку (был jobs:list → 302; у
+        # архетипов с одним направлением клик выглядел мёртвым)
+        ("verkaeufe", "?tab=job"),
         ("booking:resources", ""),
         ("booking:availability", ""),
         ("stays:checkins", ""),
@@ -306,3 +308,30 @@ def test_child_highlight_is_url_based_single():
     assert _actives(reverse("booking:resources")) == ["booking:resources"]
     acts = _actives(reverse("promotions:promotion-list"))
     assert acts == ["promotions:promotion-list"]
+
+
+def test_child_highlight_query_beats_plain_path():
+    """VF-10 (фидбэк 2026-08-25 «Заявки не нажимается»): на вкладке
+    /verkaeufe/?tab=job горит «Aufträge» (query-совпадение), а НЕ обзорный
+    «Verkäufe» вместе с ним; без query — наоборот, только обзор. Иначе клик
+    по «Заявкам» не давал видимого отклика (подсветка не переезжала)."""
+    from django.test import RequestFactory
+
+    from apps.core.context import modules_nav
+
+    t = TenantFactory(slug="hlq", name="Hq", business_type="catering")
+
+    def _lit(path):
+        req = RequestFactory().get(path)
+        req.tenant = t
+        out = []
+        for it in modules_nav(req)["nav_compact"]:
+            out += [
+                (c["url_name"], c.get("query") or "")
+                for c in it.get("children", [])
+                if c.get("active")
+            ]
+        return out
+
+    assert _lit("/dashboard/verkaeufe/?tab=job") == [("verkaeufe", "?tab=job")]
+    assert _lit("/dashboard/verkaeufe/") == [("verkaeufe", "")]
