@@ -3,7 +3,16 @@
 {% block dash_title %}{% trans "Blog" %}{% endblock %}
 
 {% block dash_content %}
-<h1 class="text-2xl font-bold mb-4">{% trans "Blog" %}</h1>
+{% comment %}VF-22 (фидбэк 2026-08-25): явные кнопки — «показать статьи» (живой
+блог витрины), «＋ Neuer Beitrag» (к форме создания), у опубликованных строк —
+«📣 Teilen» с выбором канала (префилл в publishing, как на карточке записи).{% endcomment %}
+<div class="flex items-center gap-3 flex-wrap mb-4">
+  <h1 class="text-2xl font-bold">{% trans "Blog" %}</h1>
+  <span class="ml-auto flex items-center gap-2">
+    <a href="{% url 'storefront-blog' %}" target="_blank" rel="noopener" class="text-sm font-medium rounded-xl border border-gray-300 bg-white px-3 py-1.5 hover:bg-gray-50">{% trans "Ansehen auf der Website" %} ↗</a>
+    <a href="#blog-neu" class="text-sm font-medium rounded-xl bg-indigo-600 text-white px-3 py-1.5 hover:bg-indigo-700">＋ {% trans "New post" %}</a>
+  </span>
+</div>
 
 {% if messages %}
   {% for m in messages %}
@@ -13,16 +22,20 @@
 
 <div class="space-y-2 mb-8">
   {% for p in posts %}
-    <a href="{% url 'blog-edit' p.pk %}" class="flex items-center justify-between gap-3 bg-white rounded-xl border border-gray-200 px-4 py-3 hover:border-indigo-300">
-      <span class="font-medium">{{ p.title }}</span>
-      <span class="text-xs {% if p.is_published %}text-green-600{% elif p.published_at %}text-indigo-600{% else %}text-gray-400{% endif %}">{% if p.is_published %}{% trans "Published" %}{% elif p.published_at %}⏰ {{ p.published_at|date:"d.m.Y H:i" }}{% else %}{% trans "Draft" %}{% endif %}</span>
-    </a>
+    <div class="flex items-center justify-between gap-3 bg-white rounded-xl border border-gray-200 px-4 py-3 hover:border-indigo-300">
+      <a href="{% url 'blog-edit' p.pk %}" class="font-medium min-w-0 truncate flex-1">{{ p.title }}</a>
+      {% if can_share and p.is_published %}
+        <a href="{% url 'publishing-posts' %}?text={{ p.title|urlencode }}&link={{ request.scheme }}%3A%2F%2F{{ request.get_host }}{% url 'storefront-blog-post' p.slug %}"
+           class="text-sm text-indigo-600 hover:underline shrink-0">📣 {% trans "Teilen" %}</a>
+      {% endif %}
+      <span class="text-xs shrink-0 {% if p.is_published %}text-green-600{% elif p.published_at %}text-indigo-600{% else %}text-gray-400{% endif %}">{% if p.is_published %}{% trans "Published" %}{% elif p.published_at %}⏰ {{ p.published_at|date:"d.m.Y H:i" }}{% else %}{% trans "Draft" %}{% endif %}</span>
+    </div>
   {% empty %}
     <p class="text-gray-500">{% trans "No posts yet." %}</p>
   {% endfor %}
 </div>
 
-<form method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-3">
+<form id="blog-neu" method="post" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-6 max-w-xl space-y-3">
   {% csrf_token %}
   <h2 class="font-semibold">{% trans "New post" %}</h2>
   <input name="title" type="text" required placeholder="{% trans 'Title' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
