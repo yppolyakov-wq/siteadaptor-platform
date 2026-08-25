@@ -16,7 +16,11 @@
 вообще не понятны»): страница перестроена — сначала КАРТА процесса (что владелец
 видит на доске), затем разделы-карточки с объяснением, каждый со своей задачей.
 Механика сохранения не менялась: панели постят на прежние эндпоинты с next= сюда.{% endcomment %}
-<div class="max-w-3xl">
+{% comment %}VF-14 (фидбэк 2026-08-25 «много свободного места»): узкая колонка
+max-w-3xl умерла — карта процесса на всю ширину, разделы-карточки в 2 колонки
+на lg+ (на мобильном складываются в одну — адаптив прежний). Каждая панель —
+самостоятельная форма со своим эндпоинтом, перенос ничего не ломает.{% endcomment %}
+<div>
   <h1 class="text-2xl font-bold mb-1">🔁 {% trans "Abläufe" %}</h1>
   <p class="text-sm text-gray-500 mb-4">{% trans "Wie ein Verkauf bei Ihnen durchläuft: Spalten der Tafel, Namen der Status und erlaubte Schritte." %}</p>
 
@@ -56,6 +60,8 @@
       </div>
     </section>
 
+    <div class="lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start">
+    <div class="min-w-0">
     {% comment %}2. Колонки — Trello-стиль (перетаскивание), общие для всех
     направлений: стадии канонические (pipeline.STAGES).{% endcomment %}
     <section class="bg-white border border-gray-200 rounded-2xl p-4 mb-4">
@@ -66,7 +72,9 @@
 
     {% comment %}3. Имена статусов (FB-4a/b) — раскрытая карточка.{% endcomment %}
     {% include "tenant/_status_labels_panel.html" with rows=status_label_rows kind=active_kind next_path=request.get_full_path open=1 %}
+    </div>
 
+    <div class="min-w-0">
     {% comment %}4. VK-3: редактор СВОИХ статусов — на самой странице (был ссылкой
     внутри свёрнутой панели переходов; владелец его не находил).{% endcomment %}
     <section class="bg-white border border-gray-200 rounded-2xl p-4 mb-4">
@@ -93,11 +101,15 @@
       </div>
     </section>
     {% endif %}
+    {% comment %}VF-14: панель Anfrage-формы — в правую колонку (жила ПОСЛЕ
+    обёртки страницы и рвала раскладку).{% endcomment %}
+    {% if anfrage_enabled %}
+      {% include "jobs/_anfrage_form_panel.html" %}
+    {% endif %}
+    </div>
+    </div>
   {% else %}
     <p class="text-sm text-gray-400 mb-4">{% trans "Keine aktiven Verkaufsmodule." %}</p>
   {% endif %}
 </div>
-{% if anfrage_enabled %}
-  {% include "jobs/_anfrage_form_panel.html" %}
-{% endif %}
 {% endblock %}
