@@ -20025,3 +20025,21 @@ msgstr "To be paid on site"
 
 msgid "im Gesamtpreis verrechnet"
 msgstr "included in the total price"
+
+msgid "angelegt"
+msgstr "created"
+
+msgid "z. B. Marktplatz-Nummer"
+msgstr "e.g. marketplace number"
+
+msgid "Summen"
+msgstr "Totals"
+
+msgid "Zahlung & Rechnung"
+msgstr "Payment & invoice"
+
+msgid "Positionen"
+msgstr "Items"
+
+msgid "Externe Nr."
+msgstr "External no."

@@ -20153,3 +20153,21 @@ msgstr ""
 
 msgid "im Gesamtpreis verrechnet"
 msgstr ""
+
+msgid "angelegt"
+msgstr ""
+
+msgid "z. B. Marktplatz-Nummer"
+msgstr ""
+
+msgid "Summen"
+msgstr ""
+
+msgid "Zahlung & Rechnung"
+msgstr ""
+
+msgid "Positionen"
+msgstr ""
+
+msgid "Externe Nr."
+msgstr ""

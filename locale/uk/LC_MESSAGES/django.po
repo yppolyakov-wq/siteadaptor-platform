@@ -20227,3 +20227,21 @@ msgstr "Оплата на місці"
 
 msgid "im Gesamtpreis verrechnet"
 msgstr "врахована в підсумковій ціні"
+
+msgid "angelegt"
+msgstr "створено"
+
+msgid "z. B. Marktplatz-Nummer"
+msgstr "напр. номер маркетплейсу"
+
+msgid "Summen"
+msgstr "Підсумки"
+
+msgid "Zahlung & Rechnung"
+msgstr "Оплата та рахунок"
+
+msgid "Positionen"
+msgstr "Позиції"
+
+msgid "Externe Nr."
+msgstr "Зовнішній №"

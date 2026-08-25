@@ -165,7 +165,7 @@ test_price_nav/test_verkaeufe).{% endcomment %}
 </div>
 {% endif %}
 
-{% include "stays/_walkin_form.html" %}
+{% if not deal_calendar_compact %}{% include "stays/_walkin_form.html" %}{% endif %}
 
 <div id="cal-toast" class="fixed bottom-20 md:bottom-5 left-1/2 -translate-x-1/2 z-50 hidden rounded-lg bg-gray-900 text-white text-sm px-4 py-2 shadow-lg"></div>
 <script>

@@ -20152,3 +20152,21 @@ msgstr "Yerinde ödenecek"
 
 msgid "im Gesamtpreis verrechnet"
 msgstr "toplam fiyata dahil edildi"
+
+msgid "angelegt"
+msgstr "oluşturuldu"
+
+msgid "z. B. Marktplatz-Nummer"
+msgstr "örn. pazaryeri numarası"
+
+msgid "Summen"
+msgstr "Toplamlar"
+
+msgid "Zahlung & Rechnung"
+msgstr "Ödeme ve fatura"
+
+msgid "Positionen"
+msgstr "Kalemler"
+
+msgid "Externe Nr."
+msgstr "Harici no."

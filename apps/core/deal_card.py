@@ -100,6 +100,10 @@ def calendar_html(request, kind: str, obj) -> str:
         ctx = _resolve(ctx_path)(sub)
         if not isinstance(ctx, dict):  # ?box=1 — фрагмент карточки, не наш случай
             return ""
+        # На карточке сделки календарь показывает ЗАНЯТОСТЬ; формы создания новой
+        # брони/записи живут на самом календаре продаж (иначе карточка одной
+        # сделки предлагала бы завести другую).
+        ctx["deal_calendar_compact"] = True
         return render_to_string(template, ctx, request=sub)
     except Exception:  # noqa: BLE001 — см. docstring
         return ""
@@ -128,6 +132,14 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
             ],
         )
     calendar = calendar_html(request, kind, obj)
+    # «Когда» в мете печатаем, только если этой даты ещё нет в заголовке сделки
+    # (у брони номера title уже содержит даты — иначе строка дублируется).
+    when = getattr(deal, "when", None)
+    show_when = bool(
+        when
+        and getattr(when, "strftime", None)
+        and when.strftime("%d.%m") not in (deal.title or "")
+    )
     return {
         "deal": deal,
         "deal_obj": obj,
@@ -135,6 +147,7 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
         "deal_sections": tuple(sections),
         "deal_titles": SECTION_TITLES,
         "deal_calendar_html": calendar,
+        "deal_show_when": show_when,
         "deal_links": links,
         "crm_active": _module_active(tenant, "crm"),
         "inbox_active": _module_active(tenant, "inbox"),

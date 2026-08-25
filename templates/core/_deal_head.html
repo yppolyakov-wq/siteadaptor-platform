@@ -25,7 +25,7 @@
     {% endif %}
   </div>
   <p class="text-xs text-gray-500 mt-1">
-    {{ deal.title }}{% if deal.when %} · {{ deal.when|date:"D d.m.Y" }}{% endif %}{% if deal.when_note %} · {{ deal.when_note }}{% endif %}
+    {{ deal.title }}{% if deal_show_when %} · {{ deal.when|date:"D d.m.Y" }}{% endif %}{% if deal.when_note %} · {{ deal.when_note }}{% endif %}
     {% if deal.created_at %} · {% trans "angelegt" %} {{ deal.created_at|date:"d.m.Y H:i" }}{% endif %}
   </p>
 </div>

@@ -20243,3 +20243,21 @@ msgstr "Оплата на месте"
 
 msgid "im Gesamtpreis verrechnet"
 msgstr "учтена в итоговой цене"
+
+msgid "angelegt"
+msgstr "создано"
+
+msgid "z. B. Marktplatz-Nummer"
+msgstr "напр. номер маркетплейса"
+
+msgid "Summen"
+msgstr "Итоги"
+
+msgid "Zahlung & Rechnung"
+msgstr "Оплата и счёт"
+
+msgid "Positionen"
+msgstr "Позиции"
+
+msgid "Externe Nr."
+msgstr "Внешний №"
