@@ -2009,11 +2009,31 @@ Python 3.12, менеджер uv.
   на заявке · VF-18a кликабельные брони/номера/билеты в customer360 · VF-19 формы
   акции/комбо — рейл-раскладка товара, Kampagnen 2 колонки · VF-21 имя акции в списке —
   ссылка · VF-22 блог: «Ansehen auf der Website» + «＋ Neuer Beitrag» + «📣 Teilen» на
-  строках. Стенд 18/18 (метки «FAIL» = данные/локаль). **За решением владельца:**
-  резерв склада из сметы (VF-13, сейчас: заказы резервируют при создании, витрина при
-  0 честно «Ausverkauft»; смета списывает при «выполнено» с клампом) · план коммуникаций
-  сделка↔клиент `docs/deal-comms-plan-2026-08-25.md` (VF-17/18, C1–C3 без миграций) ·
-  объединение Кампании+Акции (VF-20).
+  строках. Стенд 18/18 (метки «FAIL» = данные/локаль).
+- **Самое свежее (2026-08-25, продолжение): VF-13 + коммуникации C1/C2/C3 + VF-20b +
+  VF-24 — решения владельца «делай по рекомендации» и «Кампании рядом, но не
+  объединять»; всё БЕЗ миграций.** **VF-13** (план `vf13-quote-stock-reserve-plan`):
+  резерв склада из сметы при Beauftragt = `commit_stock` на входе в `accepted`
+  (кламп, не блокировка — детали докупаются; `done` идемпотентен), НОВОЕ
+  `release_stock` возвращает при Storno/Abgelehnt **по ЛЕДЖЕРУ** (строки
+  пересоздаются каждым Save — PK нестабильны; return-движение первым, дедуп
+  `ret:<mv.pk>`, conditional UPDATE, FEFO; возвращается ровно списанное, вкл.
+  клампы), `_resync_reserved_stock` в `set_lines` (release+re-commit в одной
+  atomic; после done склад не трогается), зеркала кастом-статусов (роль active
+  c blocks_capacity резервирует, cancelled возвращает — «паритет: не делаем»
+  снят). **C1/C2/C3** (план `deal-comms-plan-2026-08-25 §5`): канон
+  `ref_id = reference_code` (offers.py писал UUID → тред не находили ни
+  problem-полоса, ни поиск; фолбэк на легаси в `find_thread`) · C1 партиал
+  «✉️ Nachricht an den Kunden» на 4 карточках + вьюха `inbox:deal-thread` под
+  inbox-префиксом (гейт модуля бесплатно) · C2 `adopt_open_thread` из
+  order/booking/stay/job — «спросил → купил» одной беседой (fail-soft, только при
+  однозначности) + подпись строки CRM = сделка · C3 чекбокс «Auch per Telegram
+  senden» (только при живой привязке) и wa.me на номер КЛИЕНТА; e-mail дефолт.
+  **VF-20b** Kampagnen сразу за Aktionen в реестре + перекрёстные входы (экран
+  кампаний был тупиком); данные и экраны раздельные. **VF-24** восемь узких
+  страниц в 2 колонки (Domains/Extras/Team/Newsletter/Module/Finder/Kanäle/Firma);
+  мобильный — одна колонка. Замки: +10 (VF-13), +13 (C-волна); стенд 17/18.
+  Грабля-повтор: новый arbitrary-класс `xl:grid-cols-2` требует пересборки app.css.
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `core/0010` (Extra.consume_qty, v2-опции) + `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate) + `events/0028` (SupplierBooking вне туров) + `booking/0023` (Service.pricing_mode) + `catalog/0030` (Product.primary_action) + `finance/0009` (SOURCES gift/pass, choices-only)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. **Волна ERP (2026-08-21): `orders/0020` (OrderItem.cost_price) + `finance/0010` (BankTransaction) + `finance/0011` (Invoice.mahn_level/mahned_at + ExpenseEntry supplier/due_date/paid_at/document) + `documents/0002` (owner nullable + kind receipt) + `inventory/0005` (qty_returned + kind'ы return_supplier/production, ERP-5/7) + `jobs/0015` (JobLine.cost_rate, ERP-6)** — аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
