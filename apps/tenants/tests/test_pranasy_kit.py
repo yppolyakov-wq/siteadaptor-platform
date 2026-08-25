@@ -130,3 +130,134 @@ def test_pranasy_storefront_renders_de_and_en(settings):
     assert resp_en.status_code == 200
     # EN-локаль: оверлей перевёл hero-заголовок (отличается от DE).
     assert resp_en.content.decode() != body_de
+
+
+# --- Catering-Bereich (Karte des Betreibers, 2026-08-25) ---------------------
+
+
+def _catering_tenant():
+    tenant = _tenant()
+    demo_kits.apply_kit(tenant, "pranasy")
+    return tenant
+
+
+def test_pranasy_seeds_the_full_catering_menu():
+    """49 Gerichte der PDF-Karte in sechs Gängen unter EINEM Bereich «Catering»."""
+    _catering_tenant()
+    catering = Category.objects.get(slug="catering")
+    assert catering.parent_id is None
+    assert catering.page_style == "sets"  # Menü-Pakete über dem Raster
+
+    subs = {c.slug: c for c in Category.objects.filter(parent=catering)}
+    assert set(subs) == {"suppen", "beilagen", "ragouts", "saucen", "vorspeisen", "salate"}
+
+    dishes = Product.objects.filter(category__parent=catering)
+    assert dishes.count() == 49
+    # Bereich selbst trägt keine eigenen Produkte — er ist ein Container.
+    assert not Product.objects.filter(category=catering).exists()
+    # Jedes Gericht bringt Zutaten (LMIV) und einen Gang (Menü-Konfigurator).
+    assert all(p.ingredients for p in dishes)
+    assert all(p.course for p in dishes)
+    # Ehrliche Kennzeichnung: Gerichte mit Sahne/Paneer/Joghurt sind vegetarisch,
+    # nicht vegan (der Betrieb wirbt sonst falsch).
+    borschtsch = dishes.get(name__de="Borschtsch")
+    assert "vegan" not in borschtsch.diets and "vegetarisch" in borschtsch.diets
+    assert "milch" in borschtsch.allergens
+
+
+def test_pranasy_catering_menu_packages():
+    """Drei Modi des Menü-Pakets wie beim Catering-Archetyp: fest, nach Wahl, frei."""
+    from apps.catalog import combos as combos_mod
+    from apps.catalog.models import Combo
+
+    _catering_tenant()
+    catering = Category.objects.get(slug="catering")
+    sets = list(Combo.objects.filter(is_active=True).order_by("sort_order"))
+    assert [c.name for c in sets] == [
+        "Menü Klassik",
+        "Menü nach Wahl",
+        "Ayurveda-Thali",
+        "Freie Auswahl",
+    ]
+    assert all(c.category_id == catering.pk and c.price_per_person for c in sets)
+    assert all(c.min_persons >= 10 for c in sets)
+
+    fixed, choice, thali, free = sets
+    # Fest zusammengestellt: jede Gruppe «included», nichts zu wählen.
+    assert [g.label for g in fixed.groups_active] == ["Suppe", "Hauptgang", "Beilage", "Salat"]
+    assert all(g.included for g in fixed.groups_active)
+    # Nach Wahl: Aufpreise stehen an den Optionen, nicht im Grundpreis.
+    hauptgang = choice.groups.get(label="Hauptgang")
+    assert hauptgang.min_select == 1 and hauptgang.max_select == 1
+    assert hauptgang.options.count() == 4
+    assert any(o.price_delta > 0 for o in hauptgang.options.all())
+    assert all(not g.included for g in choice.groups_active)
+    assert thali.groups_active and all(g.included for g in thali.groups_active)
+
+    # Freie Auswahl: Pool = alle Gerichte der Unterkategorien (KAT-1-Semantik).
+    assert free.free_pool is True
+    pool = combos_mod.pool_products(free)
+    assert len(pool) == 49
+    assert {p.course for p in pool} == {"suppe", "beilage", "hauptgang", "vorspeise"}
+
+
+def test_pranasy_catering_pages_render(settings):
+    """Speisekarte und Menü-Pakete sind über die Storefront erreichbar."""
+    from apps.orders import public_views as orders_views
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = _catering_tenant()
+
+    with translation.override("de"):
+        page = public_views.product_list(_req(tenant, "/sortiment/catering/"), slug="catering")
+    assert page.status_code == 200
+    body = page.content.decode()
+    assert "Menü Klassik" in body  # Set-Karten über dem Raster (page_style «sets»)
+    assert "Suppen" in body and "Salate" in body  # Gänge als Unterkategorien
+    # Der Container zeigt die Gerichte seiner Unterkategorien (KAT-1).
+    assert "/sortiment/salate/sommersalat/" in body
+
+    # Detailseite eines Gerichts: Zutaten und Kennzeichnung sind da.
+    borschtsch = Product.objects.get(name__de="Borschtsch")
+    with translation.override("de"):
+        detail = public_views.product_detail(
+            _req(tenant, borschtsch.get_absolute_url()),
+            cslug=borschtsch.category.slug,
+            pslug=borschtsch.slug,
+        )
+    assert detail.status_code == 200
+    detail_body = detail.content.decode()
+    assert "Rote Bete" in detail_body  # Zutatenliste aus der Karte
+
+    with translation.override("de"):
+        combos_page = orders_views.combo_list_public(_req(tenant, "/kombi/"))
+    assert combos_page.status_code == 200
+    assert "Freie Auswahl" in combos_page.content.decode()
+
+
+def test_pranasy_catering_is_reachable_from_the_menu():
+    """Der Bereich muss aus der Kopfzeile erreichbar sein — sonst findet ihn niemand."""
+    tenant = _catering_tenant()
+    with translation.override("de"):
+        top = menu.resolve_menu(tenant, "top")
+    catering = next(i for i in top if i["label"] == "Catering")
+    children = {c["label"]: c["url"] for c in catering["children"]}
+    assert set(children) == {"Speisekarte", "Menüs & Pakete", "Anfrage"}
+    assert children["Speisekarte"].endswith("/sortiment/catering/")
+    assert "/kombi/" in children["Menüs & Pakete"]
+
+
+def test_pranasy_dishes_are_translated_into_every_demo_locale():
+    """Klasse «Übersetzung liegt tot im Wörterbuch»: Name, Beschreibung und
+    Zutaten jedes Gerichts müssen auf allen Demo-Locales ankommen."""
+    _catering_tenant()
+    missing = []
+    for product in Product.objects.filter(category__parent__slug="catering"):
+        for loc in ("en", "ru", "uk", "tr"):
+            if not product.name.get(loc):
+                missing.append((product.name["de"], loc, "name"))
+            if not product.description.get(loc):
+                missing.append((product.name["de"], loc, "description"))
+            if not (product.ingredients_i18n or {}).get(loc):
+                missing.append((product.name["de"], loc, "ingredients"))
+    assert not missing, f"ohne Übersetzung: {missing[:12]} (insgesamt {len(missing)})"

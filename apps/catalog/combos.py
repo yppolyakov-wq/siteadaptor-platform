@@ -94,12 +94,25 @@ def pool_products(combo):
     блюдами лежат пакеты («Hochzeitsbuffet, 39 €/Gast») — предлагать их внутри
     конструктора блюд неверно. Если Gang не задан НИ У КОГО — берём всё
     (иначе конструктор был бы пуст у того, кто поля ещё не заполнил).
+
+    Категория-КОНТЕЙНЕР отдаёт и блюда ПРЯМЫХ детей — та же семантика, что у
+    страницы `/sortiment/<slug>/` и фасета категории (KAT-1). Иначе набор,
+    привязанный к направлению с подкатегориями («Catering» → Suppen/Salate/…),
+    открывал бы ПУСТОЙ конструктор.
     """
+    from django.db.models import Q
+
     from .models import Product
 
     if not (combo.free_pool and combo.category_id):
         return []
-    products = list(Product.objects.filter(is_active=True, category_id=combo.category_id))
+    products = list(
+        Product.objects.filter(
+            Q(category_id=combo.category_id)
+            | Q(category__parent_id=combo.category_id, category__is_active=True),
+            is_active=True,
+        )
+    )
     dishes = [p for p in products if p.course]
     return dishes or products
 
