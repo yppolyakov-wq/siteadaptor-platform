@@ -3,7 +3,7 @@
 {% block dash_title %}{% if is_create %}{% trans "New promotion" %}{% else %}{% trans "Edit promotion" %}{% endif %}{% endblock %}
 
 {% block dash_content %}
-<div class="max-w-xl">
+<div>
   <h1 class="text-2xl font-bold mb-4">
     {% if is_create %}{% trans "New promotion" %}{% else %}{% trans "Edit promotion" %}{% endif %}
   </h1>
@@ -14,54 +14,12 @@
     {% endfor %}
   {% endif %}
 
-  {# Текущий статус и кнопки переходов (только при редактировании) #}
-  {% if promotion %}
-    {% comment %}X6-3 «ловушка черновика»: сохранённая акция остаётся draft и
-    клиентам не видна, а статус показывался сырым кодом равнозначными кнопками.
-    Теперь — подпись статуса, честное предупреждение и ПЕРВИЧНАЯ кнопка
-    «Jetzt aktivieren» (переход тот же, FSM не тронут).{% endcomment %}
-    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mb-4">
-      <div class="flex items-center gap-2 mb-2 text-sm">
-        <span class="text-gray-500">{% trans "Status" %}:</span>
-        <span class="px-2 py-0.5 rounded-full font-medium {% if promotion.status == 'active' %}bg-green-100 text-green-800{% else %}bg-gray-100{% endif %}">{{ status_label }}</span>
-        {% if promotion.status != 'active' %}
-          <span class="text-xs text-amber-700">{% trans "Kunden sehen diese Aktion noch nicht." %}</span>
-        {% endif %}
-      </div>
-      <div class="flex flex-wrap gap-2">
-        {% for target, label in actions %}
-          <form method="post" action="{% url 'promotions:promotion-transition' promotion.pk %}">
-            {% csrf_token %}
-            <input type="hidden" name="target" value="{{ target }}">
-            <button class="text-sm px-3 py-1.5 rounded-lg {% if target == 'active' %}bg-indigo-600 text-white font-medium hover:bg-indigo-700{% else %}border border-gray-300 hover:bg-gray-50{% endif %}">{{ label }}</button>
-          </form>
-        {% empty %}
-          <span class="text-xs text-gray-400">{% trans "No transitions available." %}</span>
-        {% endfor %}
-      </div>
-    </div>
-  {% endif %}
-
-  {# Платное продвижение в агрегаторе (P2.4b): видно у активных акций, если оплата настроена #}
-  {% if promotion and promotion.status == 'active' and featured_enabled %}
-    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mb-4">
-      <div class="flex items-center justify-between gap-3">
-        <div>
-          <p class="text-sm font-medium">★ {% trans "Featured in the directory" %}</p>
-          {% if featured_listing and featured_listing.is_featured_now %}
-            <p class="text-xs text-amber-700">{% trans "Active until" %} {{ featured_listing.featured_until|date:"d.m.Y" }}</p>
-          {% else %}
-            <p class="text-xs text-gray-500">{% trans "More visibility on the city page." %}</p>
-          {% endif %}
-        </div>
-        <a href="{% url 'promotions:promotion-feature' promotion.pk %}"
-           class="text-sm px-3 py-1.5 rounded-lg border border-indigo-300 text-indigo-700 hover:bg-indigo-50 whitespace-nowrap">
-          {% if featured_listing and featured_listing.is_featured_now %}{% trans "Extend" %}{% else %}{% trans "Promote" %}{% endif %}
-        </a>
-      </div>
-    </div>
-  {% endif %}
-
+  {% comment %}VF-19 (фидбэк 2026-08-25 «страница акции — как страница товара»):
+  раскладка = контент широкой колонкой (фото/пресеты/форма с табами/статистика)
+  + рейл 340px (статус и переходы / продвижение / Warteliste / QR / каналы) —
+  те же классы грида, что у товара и заявки. Формы и эндпоинты не тронуты.{% endcomment %}
+  <div class="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-5 lg:items-start">
+  <div class="min-w-0">
   {# FB-5: ряд фото с плиткой «＋ Foto» ПЕРВОЙ — и при создании, и при правке #}
     <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mb-4">
       <p class="text-sm font-medium mb-2">{% trans "Images" %}</p>
@@ -176,6 +134,56 @@
       {% endif %}
     </div>
   {% endif %}
+  </div>
+
+  <aside class="mt-4 lg:mt-0 min-w-0">
+  {# Текущий статус и кнопки переходов (только при редактировании) #}
+  {% if promotion %}
+    {% comment %}X6-3 «ловушка черновика»: сохранённая акция остаётся draft и
+    клиентам не видна, а статус показывался сырым кодом равнозначными кнопками.
+    Теперь — подпись статуса, честное предупреждение и ПЕРВИЧНАЯ кнопка
+    «Jetzt aktivieren» (переход тот же, FSM не тронут).{% endcomment %}
+    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mb-4">
+      <div class="flex items-center gap-2 mb-2 text-sm">
+        <span class="text-gray-500">{% trans "Status" %}:</span>
+        <span class="px-2 py-0.5 rounded-full font-medium {% if promotion.status == 'active' %}bg-green-100 text-green-800{% else %}bg-gray-100{% endif %}">{{ status_label }}</span>
+        {% if promotion.status != 'active' %}
+          <span class="text-xs text-amber-700">{% trans "Kunden sehen diese Aktion noch nicht." %}</span>
+        {% endif %}
+      </div>
+      <div class="flex flex-wrap gap-2">
+        {% for target, label in actions %}
+          <form method="post" action="{% url 'promotions:promotion-transition' promotion.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="target" value="{{ target }}">
+            <button class="text-sm px-3 py-1.5 rounded-lg {% if target == 'active' %}bg-indigo-600 text-white font-medium hover:bg-indigo-700{% else %}border border-gray-300 hover:bg-gray-50{% endif %}">{{ label }}</button>
+          </form>
+        {% empty %}
+          <span class="text-xs text-gray-400">{% trans "No transitions available." %}</span>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  {# Платное продвижение в агрегаторе (P2.4b): видно у активных акций, если оплата настроена #}
+  {% if promotion and promotion.status == 'active' and featured_enabled %}
+    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mb-4">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <p class="text-sm font-medium">★ {% trans "Featured in the directory" %}</p>
+          {% if featured_listing and featured_listing.is_featured_now %}
+            <p class="text-xs text-amber-700">{% trans "Active until" %} {{ featured_listing.featured_until|date:"d.m.Y" }}</p>
+          {% else %}
+            <p class="text-xs text-gray-500">{% trans "More visibility on the city page." %}</p>
+          {% endif %}
+        </div>
+        <a href="{% url 'promotions:promotion-feature' promotion.pk %}"
+           class="text-sm px-3 py-1.5 rounded-lg border border-indigo-300 text-indigo-700 hover:bg-indigo-50 whitespace-nowrap">
+          {% if featured_listing and featured_listing.is_featured_now %}{% trans "Extend" %}{% else %}{% trans "Promote" %}{% endif %}
+        </a>
+      </div>
+    </div>
+  {% endif %}
 
   {% if promotion and waitlist_count %}
     <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mt-4">
@@ -235,5 +243,7 @@
       {% endif %}
     </div>
   {% endif %}
+  </aside>
+  </div>
 </div>
 {% endblock %}

@@ -54,7 +54,9 @@
     <tbody>
       {% for p in promotions %}
         <tr class="border-b last:border-0">
-          <td class="py-2">{{ p }}</td>
+          {% comment %}VF-21 (фидбэк 2026-08-25): название — ссылка в форму (как
+          имя товара в Sortiment); «Edit» в действиях остаётся.{% endcomment %}
+          <td class="py-2"><a href="{% url 'promotions:promotion-edit' p.pk %}" class="font-medium hover:text-indigo-700 hover:underline">{{ p }}</a></td>
           <td class="py-2">{{ p.get_promo_type_display }}</td>
           {% comment %}X6-3 (ловушка черновика): вместо сырого кода — подпись, а у
           неактивной акции честный бейдж «клиенты её не видят».{% endcomment %}
