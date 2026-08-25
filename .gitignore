@@ -57,3 +57,4 @@ Thumbs.db
 # Redis dump from local test runs
 dump.rdb
 node_modules/
+docs/design/deal-card-2026-08-25/verkaufskarte.html

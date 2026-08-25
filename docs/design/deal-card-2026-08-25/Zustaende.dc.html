@@ -1,0 +1,251 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: 'Instrument Sans', system-ui, sans-serif; }
+    a { color: #4F46E5; } a:hover { color: #4338CA; }
+  </style>
+</helmet>
+<div style="width: 1180px; height: 1040px; background: #F2F4F7; color: #16181D; box-sizing: border-box; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; overflow: hidden">
+
+  <div style="display: flex; flex-direction: column; gap: 3px">
+    <div style="font-size: 20px; font-weight: 700">Zustände</div>
+    <div style="font-size: 13px; color: #6A7180">Statuswechsel mit Benachrichtigung · Chat im Kundenblock · Rechnung in einer anderen Sprache</div>
+  </div>
+
+  <div style="background: #FFFFFF; border-radius: 20px; box-shadow: 0 6px 18px rgba(22, 24, 29, 0.05); padding: 18px 20px; display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 18px; align-items: start">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; font-weight: 700; color: #9BA0AB; font-variant-numeric: tabular-nums">1</div>
+      <div style="font-size: 15px; font-weight: 700">Statuswechsel</div>
+      <div style="font-size: 12px; color: #6A7180; line-height: 1.45">Liste öffnen, Ziel wählen, Benachrichtigung bestätigen</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; align-items: start">
+
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div style="font-size: 12px; color: #6A7180; font-weight: 600">Status der Bestellung</div>
+        <div style="height: 44px; border: 1px solid #4F46E5; border-radius: 12px; display: flex; align-items: center; gap: 10px; padding: 0 12px; background: #FFFFFF; box-shadow: 0 4px 12px rgba(22, 24, 29, 0.06)">
+          <span style="width: 9px; height: 9px; border-radius: 99px; background: #C77414"></span>
+          <span style="flex-grow: 1; font-size: 14.5px; font-weight: 600">Abholbereit</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"></path></svg>
+        </div>
+
+        <div style="border: 1px solid #E7E9EE; border-radius: 12px; background: #FFFFFF; box-shadow: 0 6px 18px rgba(22, 24, 29, 0.05); padding: 6px; display: flex; flex-direction: column; gap: 2px">
+          <div style="height: 38px; border-radius: 10px; display: flex; align-items: center; gap: 10px; padding: 0 10px; font-size: 14px; color: #444A56">
+            <span style="width: 8px; height: 8px; border-radius: 99px; background: #9BA0AB"></span>
+            <span style="flex-grow: 1">Neu</span>
+          </div>
+          <div style="height: 38px; border-radius: 10px; display: flex; align-items: center; gap: 10px; padding: 0 10px; font-size: 14px; color: #444A56">
+            <span style="width: 8px; height: 8px; border-radius: 99px; background: #4F46E5"></span>
+            <span style="flex-grow: 1">Bestätigt</span>
+          </div>
+          <div style="height: 38px; border-radius: 10px; background: #EEF0FF; display: flex; align-items: center; gap: 10px; padding: 0 10px; font-size: 14px; font-weight: 600; color: #4338CA">
+            <span style="width: 8px; height: 8px; border-radius: 99px; background: #C77414"></span>
+            <span style="flex-grow: 1">Abholbereit</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4338CA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+          </div>
+          <div style="height: 38px; border-radius: 10px; display: flex; align-items: center; gap: 10px; padding: 0 10px; font-size: 14px; color: #444A56">
+            <span style="width: 8px; height: 8px; border-radius: 99px; background: #0A8A5F"></span>
+            <span style="flex-grow: 1">Abgeholt</span>
+          </div>
+          <div style="height: 38px; border-radius: 10px; display: flex; align-items: center; gap: 10px; padding: 0 10px; font-size: 14px; color: #D24343">
+            <span style="width: 8px; height: 8px; border-radius: 99px; background: #D24343"></span>
+            <span style="flex-grow: 1">Storniert</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="border: 1px solid #E7E9EE; border-radius: 16px; background: #FFFFFF; box-shadow: 0 6px 18px rgba(22, 24, 29, 0.05); padding: 16px 18px; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 6-2 7-2 7h16s-2-1-2-7z"></path><path d="M10.5 19.5a2 2 0 0 0 3 0"></path></svg>
+            <div style="font-size: 14.5px; font-weight: 700">Status ändern: Abholbereit → Abgeholt</div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <div style="display: flex; align-items: flex-start; gap: 10px">
+              <div style="width: 20px; height: 20px; border-radius: 6px; background: #4F46E5; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 2px">
+                <div style="font-size: 13.5px; font-weight: 600">Kundin per E-Mail benachrichtigen</div>
+                <div style="font-size: 12px; color: #6A7180">anna.mahler@example.de</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: flex-start; gap: 10px">
+              <div style="width: 20px; height: 20px; border-radius: 6px; background: #4F46E5; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 2px">
+                <div style="font-size: 13.5px; font-weight: 600">Team benachrichtigen</div>
+                <div style="font-size: 12px; color: #6A7180">Telegram · Inhaber</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px">
+            <div style="height: 38px; padding: 0 16px; border-radius: 99px; background: #F2F4F7; color: #444A56; display: flex; align-items: center; font-size: 13.5px; font-weight: 600">Abbrechen</div>
+            <div style="height: 38px; padding: 0 16px; border-radius: 99px; background: #4F46E5; color: #FFFFFF; display: flex; align-items: center; font-size: 13.5px; font-weight: 600">Status ändern</div>
+          </div>
+        </div>
+
+        <div style="font-size: 12px; color: #9BA0AB">Voreinstellung kommt aus den Benachrichtigungen</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background: #FFFFFF; border-radius: 20px; box-shadow: 0 6px 18px rgba(22, 24, 29, 0.05); padding: 18px 20px; display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 18px; align-items: start">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; font-weight: 700; color: #9BA0AB; font-variant-numeric: tabular-nums">2</div>
+      <div style="font-size: 15px; font-weight: 700">Chat im Kundenblock</div>
+      <div style="font-size: 12px; color: #6A7180; line-height: 1.45">Antworten ohne die Sache zu verlassen</div>
+      <div style="font-size: 10.5px; font-weight: 600; color: #7A5AF8; background: #F1EEFE; border-radius: 99px; padding: 3px 8px; align-self: flex-start; margin-top: 4px">neu: Bildschirm</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 20px; align-items: start">
+
+      <div style="border: 1px solid #E7E9EE; border-radius: 20px; background: #FFFFFF; box-shadow: 0 4px 12px rgba(22, 24, 29, 0.06); padding: 16px 18px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: flex-start; gap: 12px">
+          <div style="width: 44px; height: 44px; border-radius: 99px; background: #EEF0FF; color: #4338CA; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; flex-shrink: 0">AM</div>
+          <div style="flex-grow: 1; min-width: 0">
+            <div style="font-size: 15.5px; font-weight: 700; color: #4F46E5">Anna Mahler</div>
+            <div style="font-size: 12.5px; color: #6A7180">Stammkundin · 6 Bestellungen · 412 €</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 5px; color: #6A7180; font-size: 12.5px; font-weight: 600">
+            Einklappen
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6A7180" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"></path></svg>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 3px; font-size: 13.5px">
+          <div style="color: #444A56">anna.mahler@example.de</div>
+          <div style="color: #444A56">+49 170 8823 114</div>
+        </div>
+
+        <div style="height: 40px; border-radius: 99px; background: #4F46E5; color: #FFFFFF; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13.5px; font-weight: 600">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a7.5 7.5 0 0 1-10.9 6.7L4 20l1.4-4.8A7.5 7.5 0 1 1 20 12z"></path></svg>
+          Kunde kontaktieren
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid #F0F1F4">
+          <div style="display: flex; flex-direction: column; gap: 3px; align-items: flex-start">
+            <div style="max-width: 265px; background: #F2F4F7; color: #16181D; border-radius: 14px; padding: 9px 12px; font-size: 13px; line-height: 1.45">Guten Tag, kann ich die Bestellung erst am Nachmittag abholen?</div>
+            <div style="font-size: 11px; color: #9BA0AB; font-variant-numeric: tabular-nums; padding-left: 4px">09:41</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 3px; align-items: flex-end">
+            <div style="max-width: 265px; background: #EEF0FF; color: #16181D; border-radius: 14px; padding: 9px 12px; font-size: 13px; line-height: 1.45">Gern, bis 18:00 Uhr ist alles für Sie reserviert.</div>
+            <div style="font-size: 11px; color: #9BA0AB; font-variant-numeric: tabular-nums; padding-right: 4px">09:47</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 3px; align-items: flex-start">
+            <div style="max-width: 265px; background: #F2F4F7; color: #16181D; border-radius: 14px; padding: 9px 12px; font-size: 13px; line-height: 1.45">Perfekt, dann komme ich gegen 17:30 Uhr. Danke!</div>
+            <div style="font-size: 11px; color: #9BA0AB; font-variant-numeric: tabular-nums; padding-left: 4px">09:52</div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px">
+          <div style="flex-grow: 1; height: 40px; border: 1px solid #E7E9EE; border-radius: 12px; display: flex; align-items: center; padding: 0 12px; font-size: 13.5px; color: #9BA0AB">Antwort schreiben …</div>
+          <div style="width: 40px; height: 40px; border-radius: 99px; background: #4F46E5; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13"></path><path d="M12 5l7 7-7 7"></path></svg>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+          <div style="display: flex; align-items: center; gap: 8px">
+            <div style="width: 18px; height: 18px; border-radius: 5px; border: 1px solid #E7E9EE; background: #FFFFFF"></div>
+            <div style="font-size: 12.5px; color: #444A56">Auch per Telegram senden</div>
+          </div>
+          <div style="font-size: 12.5px; color: #4F46E5; font-weight: 600">Per WhatsApp schreiben</div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; padding-top: 6px">
+        <div style="font-size: 13px; color: #444A56; line-height: 1.55">Der Verlauf gehört zur Sache: Jede Nachricht bleibt am Auftrag und am Kundenkonto sichtbar — kein Wechsel in den Posteingang.</div>
+        <div style="display: flex; align-items: center; gap: 8px">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6A7180" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 2"></path><circle cx="12" cy="12" r="8.5"></circle></svg>
+          <div style="font-size: 12.5px; color: #6A7180">Antwortzeit im Schnitt <span style="color: #16181D; font-weight: 600; font-variant-numeric: tabular-nums">18 Min.</span></div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6A7180" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"></path><path d="M4 7l8 6 8-6"></path></svg>
+          <div style="font-size: 12.5px; color: #6A7180">Kanal folgt den Einstellungen der Kundin</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background: #FFFFFF; border-radius: 20px; box-shadow: 0 6px 18px rgba(22, 24, 29, 0.05); padding: 18px 20px; display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 18px; align-items: start">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; font-weight: 700; color: #9BA0AB; font-variant-numeric: tabular-nums">3</div>
+      <div style="font-size: 15px; font-weight: 700">Rechnung in einer anderen Sprache</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start">
+
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <div style="font-size: 12px; color: #6A7180; font-weight: 600">Sprache des Dokuments</div>
+        <div style="display: flex; align-items: center; gap: 6px; padding: 4px; border-radius: 99px; background: #F2F4F7; align-self: flex-start">
+          <div style="height: 32px; padding: 0 14px; border-radius: 99px; color: #6A7180; display: flex; align-items: center; font-size: 13px; font-weight: 600">DE</div>
+          <div style="height: 32px; padding: 0 14px; border-radius: 99px; background: #FFFFFF; color: #16181D; display: flex; align-items: center; font-size: 13px; font-weight: 700; box-shadow: 0 2px 6px rgba(22, 24, 29, 0.06)">EN</div>
+          <div style="height: 32px; padding: 0 14px; border-radius: 99px; color: #6A7180; display: flex; align-items: center; font-size: 13px; font-weight: 600">TR</div>
+          <div style="height: 32px; padding: 0 14px; border-radius: 99px; color: #6A7180; display: flex; align-items: center; font-size: 13px; font-weight: 600">RU</div>
+          <div style="height: 32px; padding: 0 14px; border-radius: 99px; color: #6A7180; display: flex; align-items: center; font-size: 13px; font-weight: 600">UK</div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px">
+          <div style="height: 38px; padding: 0 14px; border-radius: 99px; background: #4F46E5; color: #FFFFFF; display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13H7z"></path><path d="M14 3v5h5"></path><path d="M10 13h6M10 17h4"></path></svg>
+            Rechnung erstellen
+          </div>
+          <div style="height: 38px; padding: 0 14px; border-radius: 99px; background: #F2F4F7; color: #444A56; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#444A56" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"></path><path d="M8 11l4 4 4-4"></path><path d="M5 19h14"></path></svg>
+            PDF herunterladen
+          </div>
+        </div>
+
+        <div style="font-size: 12.5px; color: #6A7180; line-height: 1.5">Sprache wirkt nur auf das Dokument — die Daten bleiben unverändert.</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px; align-items: center">
+        <div style="width: 214px; border: 1px solid #E7E9EE; border-radius: 10px; background: #FFFFFF; box-shadow: 0 4px 12px rgba(22, 24, 29, 0.06); padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; align-items: center; gap: 8px">
+            <div style="font-size: 12.5px; font-weight: 700; letter-spacing: 0.08em; flex-grow: 1">INVOICE</div>
+            <div style="width: 20px; height: 20px; border-radius: 6px; background: #EEF0FF"></div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 5px">
+            <div style="height: 5px; width: 100%; border-radius: 99px; background: #F0F1F4"></div>
+            <div style="height: 5px; width: 72%; border-radius: 99px; background: #F0F1F4"></div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 6px; border-top: 1px solid #F0F1F4">
+            <div style="display: flex; align-items: center; gap: 8px">
+              <div style="height: 5px; flex-grow: 1; border-radius: 99px; background: #F0F1F4"></div>
+              <div style="height: 5px; width: 34px; border-radius: 99px; background: #E7E9EE"></div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <div style="height: 5px; flex-grow: 1; border-radius: 99px; background: #F0F1F4"></div>
+              <div style="height: 5px; width: 34px; border-radius: 99px; background: #E7E9EE"></div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <div style="height: 5px; flex-grow: 1; border-radius: 99px; background: #F0F1F4"></div>
+              <div style="height: 5px; width: 34px; border-radius: 99px; background: #E7E9EE"></div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; padding-top: 8px; border-top: 1px solid #E7E9EE">
+            <div style="flex-grow: 1; font-size: 11.5px; color: #6A7180; font-weight: 600">Total</div>
+            <div style="font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums">29,80 €</div>
+          </div>
+        </div>
+        <div style="font-size: 11.5px; color: #9BA0AB">Vorschau · R-2026-0184 · EN</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>
