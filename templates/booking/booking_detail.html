@@ -4,8 +4,12 @@
 
 {% block dash_content %}
 {% comment %}Фидбэк 2026-08-05: карточка брони услуги (зеркало stays booking-detail,
-FB-11) — раньше клик по сделке вёл на общий календарь без деталей.{% endcomment %}
-<div class="max-w-2xl mx-auto">
+FB-11) — раньше клик по сделке вёл на общий календарь без деталей.
+VF-24 (2026-08-25): рейл-раскладка как у заказа/заявки — детали и действия
+широко, связанные сделки рейлом справа (раньше блок связей жил ПОСЛЕ узкой
+центрированной колонки и терялся). Мобильный — одна колонка.{% endcomment %}
+<div class="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-5 lg:items-start">
+<div class="min-w-0">
   <div class="flex items-center justify-between gap-3 flex-wrap mb-4">
     <h1 class="text-2xl font-bold">{% if b.service %}{{ b.service.name }}{% else %}{% trans "Booking" %}{% endif %} · <span class="text-gray-400 font-mono text-lg">{{ b.reference_code }}</span></h1>
     <a href="{% url 'booking:calendar' %}?tag={{ b.start|date:'Y-m-d' }}" class="text-sm text-indigo-600 hover:underline">📅 {% trans "Kalender" %} →</a>
@@ -105,5 +109,9 @@ FB-11) — раньше клик по сделке вёл на общий кал
     </form>
   </div>
 </div>
-{% include "core/_deal_links_block.html" with kind="booking" obj_pk=b.pk links=deal_links next_path=request.get_full_path %}
+
+<aside class="space-y-4 mt-4 lg:mt-0">
+  {% include "core/_deal_links_block.html" with kind="booking" obj_pk=b.pk links=deal_links next_path=request.get_full_path %}
+</aside>
+</div>
 {% endblock %}

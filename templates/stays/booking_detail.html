@@ -6,7 +6,11 @@
 {% comment %}2026-07-30: был мёртвый вызов hub_tabs "stays" — ключа "stays" в
 реестре HUB_TABS нет (хаб продаж называется "board"), тег молча рендерил пустоту.
 Навигация страницы — ссылка «← Belegungskalender» ниже.{% endcomment %}
-<div class="max-w-2xl">
+{% comment %}VF-24 (2026-08-25): рейл-раскладка как у заказа/заявки — карточка брони
+широко, связанные услуги рейлом справа (жили ПОСЛЕ узкой колонки). Мобильный —
+одна колонка прежним порядком.{% endcomment %}
+<div class="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-5 lg:items-start">
+<div class="min-w-0">
   <a href="{% url 'stays:calendar' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Belegungskalender" %}</a>
 
   {% if messages %}{% for m in messages %}
@@ -16,5 +20,9 @@
   {# Фидбэк 2026-07-27: тело карточки — общий партиал (и здесь, и под календарём). #}
   {% include "stays/_booking_card.html" %}
 </div>
-{% include "core/_deal_links_block.html" with kind="stay" obj_pk=b.pk links=deal_links next_path=request.get_full_path %}
+
+<aside class="space-y-4 mt-4 lg:mt-0">
+  {% include "core/_deal_links_block.html" with kind="stay" obj_pk=b.pk links=deal_links next_path=request.get_full_path %}
+</aside>
+</div>
 {% endblock %}

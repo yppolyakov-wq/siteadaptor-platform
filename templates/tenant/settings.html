@@ -3,7 +3,7 @@
 {% block dash_title %}{% trans "Settings" %}{% endblock %}
 
 {% block dash_content %}
-<div class="max-w-2xl">
+<div>
   <h1 class="text-2xl font-bold mb-2">{% trans "Business settings" %}</h1>
 
   {% comment %}X5-4: якоря секций — страница длинная (контакт + 5 соцсетей + часы
@@ -24,6 +24,11 @@
   <form method="post" class="space-y-6">
     {% csrf_token %}
 
+    {% comment %}VF-24 (2026-08-25): секции — в 2 колонки на xl+ (контакт | соцпрофили
+    и часы); одна форма и один Save, порядок полей и якоря X5-4 целы. На мобильном —
+    одна колонка прежним порядком.{% endcomment %}
+    <div class="xl:grid xl:grid-cols-2 xl:gap-6 xl:items-start xl:space-y-0 space-y-6">
+    <div class="space-y-6 min-w-0">
     {# ① Базис — контакт и адрес, всегда открыт #}
     <fieldset id="sec-kontakt" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 scroll-mt-4">
       <legend class="font-semibold mb-2">{% trans "Contact & location" %}</legend>
@@ -37,6 +42,9 @@
       {% include "tenant/_settings_field.html" with field=form.map_url %}
     </fieldset>
 
+    </div>
+
+    <div class="space-y-6 min-w-0">
     {# ③ Social — своя секция (X5-4): пять полей раздували блок контактов #}
     <fieldset id="sec-social" class="bg-white rounded-2xl shadow-sm p-6 space-y-4 scroll-mt-4">
       <legend class="font-semibold mb-1">{% trans "Social-Profile" %}</legend>
@@ -102,6 +110,8 @@
           {% endif %}
         </div>
       </details>
+    </div>
+    </div>
     </div>
 
     {# X5-4: sticky-Save — кнопка была в конце длинной формы #}
