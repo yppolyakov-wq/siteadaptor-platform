@@ -1,17 +1,33 @@
 {
   "pages": [
     { "id": "page-1", "name": "Структура" },
-    { "id": "page-2", "name": "Карточка по архетипам" }
+    { "id": "page-2", "name": "Архетипы" },
+    { "id": "page-3", "name": "Телефон и состояния" }
   ],
   "artboards": [
     { "file": "Struktur.dc.html", "x": 0, "y": 0, "w": 1320, "h": 940, "page": "page-1", "title": "Структура карточки · что есть, что новое" },
-    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1180, "h": 1080, "page": "page-2", "title": "Bestellung · магазин / кафе" },
-    { "file": "Hotel.dc.html", "x": 1300, "y": 0, "w": 1180, "h": 1120, "page": "page-2", "title": "Übernachtung · отель" },
-    { "file": "Termin.dc.html", "x": 2600, "y": 0, "w": 1180, "h": 1000, "page": "page-2", "title": "Termin · салон / мастерская" },
-    { "file": "Auftrag.dc.html", "x": 0, "y": 1260, "w": 1180, "h": 1120, "page": "page-2", "title": "Auftrag · кейтеринг / ремесленник" },
-    { "file": "Ticket.dc.html", "x": 1300, "y": 1260, "w": 1180, "h": 1040, "page": "page-2", "title": "Ticket · события / туры" },
-    { "file": "Mobil.dc.html", "x": 2600, "y": 1260, "w": 390, "h": 1000, "page": "page-2", "title": "Телефон · та же карточка" },
-    { "file": "Zustaende.dc.html", "x": 0, "y": 2500, "w": 1180, "h": 1040, "page": "page-2", "title": "Состояния · уведомление, чат, язык счёта" }
+
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1180, "h": 1020, "page": "page-2", "title": "Bäckerei · Backhaus Krume" },
+    { "file": "Metzgerei.dc.html", "x": 1300, "y": 0, "w": 1180, "h": 1000, "page": "page-2", "title": "Metzgerei · Bergmann" },
+    { "file": "Cafe.dc.html", "x": 2600, "y": 0, "w": 1180, "h": 1000, "page": "page-2", "title": "Café · Morgenrot" },
+    { "file": "Restaurant.dc.html", "x": 3900, "y": 0, "w": 1180, "h": 1020, "page": "page-2", "title": "Restaurant · Pranasy" },
+
+    { "file": "Hofladen.dc.html", "x": 0, "y": 1160, "w": 1180, "h": 1020, "page": "page-2", "title": "Einzelhandel · Hofladen Sonnenfeld" },
+    { "file": "Aktionsmarkt.dc.html", "x": 1300, "y": 1160, "w": 1180, "h": 1020, "page": "page-2", "title": "Lebensmittel · Aktionsmarkt Sparfuchs" },
+    { "file": "Mode.dc.html", "x": 2600, "y": 1160, "w": 1180, "h": 1080, "page": "page-2", "title": "Bekleidung · Studio Nordwind" },
+    { "file": "OnlineShop.dc.html", "x": 3900, "y": 1160, "w": 1180, "h": 1060, "page": "page-2", "title": "Online-Shop · Versand" },
+
+    { "file": "Friseur.dc.html", "x": 0, "y": 2380, "w": 1180, "h": 1000, "page": "page-2", "title": "Friseur · Salon Schöngut" },
+    { "file": "Werkstatt.dc.html", "x": 1300, "y": 2380, "w": 1180, "h": 1040, "page": "page-2", "title": "Werkstatt · KFZ Dreyer" },
+    { "file": "Handwerker.dc.html", "x": 2600, "y": 2380, "w": 1180, "h": 1060, "page": "page-2", "title": "Handwerk · Meisterbetrieb Krause" },
+    { "file": "Catering.dc.html", "x": 3900, "y": 2380, "w": 1180, "h": 1080, "page": "page-2", "title": "Catering · Grüne Tafel" },
+
+    { "file": "Hotel.dc.html", "x": 0, "y": 3600, "w": 1180, "h": 1120, "page": "page-2", "title": "Hotel · Pension Seeblick" },
+    { "file": "Touren.dc.html", "x": 1300, "y": 3600, "w": 1180, "h": 1080, "page": "page-2", "title": "Tour Operator · Himalaya Riders" },
+    { "file": "Events.dc.html", "x": 2600, "y": 3600, "w": 1180, "h": 1060, "page": "page-2", "title": "Veranstalter · Waldlicht Retreat" },
+
+    { "file": "Mobil.dc.html", "x": 0, "y": 0, "w": 390, "h": 1000, "page": "page-3", "title": "Телефон · та же карточка" },
+    { "file": "Zustaende.dc.html", "x": 520, "y": 0, "w": 1180, "h": 1040, "page": "page-3", "title": "Состояния · уведомление, чат, язык счёта" }
   ],
   "annotations": [
     {
@@ -31,13 +47,21 @@
       "text": "Фиолетовый бейдж «neu: Feld nötig» = нужно новое поле в базе (аддитивная миграция).\nСегодня внешний номер есть только у заказа, честный налог — у заказа и сметы, счёт — у заказа, сметы и брони.\nКарточки билета нет вовсе — это новый экран."
     },
     {
-      "id": "screens-note",
+      "id": "arch-note",
       "page": "page-2",
       "x": 0,
-      "y": -280,
-      "w": 760,
-      "text": "Пять видов сделок в одной раскладке — на утверждение.\nСлева всегда: номер, состав, деньги, оплата. Справа всегда: статус, клиент, связанные услуги; доставка — только там, где она есть.\nОтличается ровно одно: чем заполнен «состав» (позиции заказа, ночи и допы отеля, услуга и время, строки сметы, тир и места тура).\nТелефон — та же карточка одной колонкой в том же порядке.\nНижний артборд — три состояния: вопрос об уведомлении при смене статуса, развёрнутый чат в блоке клиента, счёт на другом языке."
+      "y": -300,
+      "w": 900,
+      "text": "Пятнадцать архетипов — по одной карточке на каждый, все в одной раскладке (на утверждение).\nРяд 1 — гастрономия: пекарня, мясная, кафе, ресторан. Ряд 2 — торговля: хофладен, акционный маркет, бутик, онлайн-магазин.\nРяд 3 — услуги: салон, автосервис, ремесленник, кейтеринг. Ряд 4 — размещение и впечатления: отель, тур-оператор, организатор событий.\nСлева всегда номер → состав → деньги → оплата; справа статус → клиент → контекст (выдача, тариф, объект, поездка) → связанные услуги; доставка только у бутика и онлайн-магазина.\nОтличается ровно одно: чем заполнен «состав» и какой контекстный блок стоит под клиентом."
+    },
+    {
+      "id": "states-note",
+      "page": "page-3",
+      "x": 0,
+      "y": -240,
+      "w": 700,
+      "text": "Телефон — та же карточка одной колонкой в том же порядке; все элементы управления не ниже 44 px.\nСостояния: вопрос «уведомить клиента и команду?» при смене статуса, развёрнутый чат прямо в блоке клиента, счёт на другом языке."
     }
   ],
-  "launch": { "view": "canvas", "page": "page-1" }
+  "launch": { "view": "canvas", "page": "page-2" }
 }
