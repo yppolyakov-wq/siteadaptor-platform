@@ -145,6 +145,7 @@ class Card:
     customer_mail: str
     customer_phone: str
     contact_label: str
+    calendar: dict = None  # шахматка/расписание: заголовок, ячейки, ссылка
     side_cards: list = field(default_factory=list)
     delivery: dict = None
     height: int = 1080
@@ -202,6 +203,57 @@ def render_side_card(sc):
 """
 
 
+def render_calendar(cal):
+    """Шахматка/расписание сделки: ячейки времени или дней.
+
+    Состояния ячейки: free (свободно), busy (занято другой сделкой),
+    this (эта сделка). Для отеля это Belegungsplan, для записи — Tagesplan,
+    для тура/события — полоса заезда.
+    """
+    if not cal:
+        return ""
+    cells = ""
+    for c in cal["cells"]:
+        state = c.get("state", "free")
+        if state == "this":
+            bg, color, border = ACCENT, "#FFFFFF", ACCENT
+        elif state == "busy":
+            bg, color, border = ACCENT_SOFT, ACCENT_DARK, ACCENT_SOFT
+        else:
+            bg, color, border = "#FFFFFF", FAINT, BORDER
+        cells += (
+            f'          <div style="flex-grow: 1; min-width: 0; height: 34px; border-radius: 8px; '
+            f"background: {bg}; border: 1px solid {border}; color: {color}; display: flex; "
+            f"align-items: center; justify-content: center; font-size: 11px; font-weight: 600; "
+            f'font-variant-numeric: tabular-nums">{c["label"]}</div>\n'
+        )
+    busy_label = cal.get("busy_label", "belegt")
+    free_label = cal.get("free_label", "frei")
+    legend = (
+        f'        <div style="display: flex; align-items: center; gap: 12px; font-size: 11px; color: {MUTED}">\n'
+        f'          <span style="display: flex; align-items: center; gap: 5px"><span style="width: 10px; height: 10px; border-radius: 3px; background: {ACCENT}"></span>{cal["this_label"]}</span>\n'
+        f'          <span style="display: flex; align-items: center; gap: 5px"><span style="width: 10px; height: 10px; border-radius: 3px; background: {ACCENT_SOFT}"></span>{busy_label}</span>\n'
+        f'          <span style="display: flex; align-items: center; gap: 5px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #FFFFFF; border: 1px solid {BORDER}"></span>{free_label}</span>\n'
+        f"        </div>\n"
+    )
+    note = (
+        f'        <div style="font-size: 12px; color: {BODY}">{cal["note"]}</div>\n'
+        if cal.get("note")
+        else ""
+    )
+    return f"""      <div style="background: #FFFFFF; border-radius: 20px; box-shadow: {CARD_SHADOW}; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; align-items: center; gap: 10px">
+          {icon(IC_CAL)}
+          <div style="font-size: 15px; font-weight: 700; flex-grow: 1">{cal["title"]}</div>
+          <div style="font-size: 12px; color: {MUTED}">{cal["period"]}</div>
+        </div>
+        <div style="display: flex; gap: 3px">
+{cells}        </div>
+{legend}{note}        <div style="font-size: 13px; color: {ACCENT}; font-weight: 600">{cal["link"]}</div>
+      </div>
+"""
+
+
 def render(card: Card) -> str:
     lines_html = "".join(render_line(ln) for ln in card.lines)
 
@@ -252,13 +304,24 @@ def render(card: Card) -> str:
             disc_chips += f"""              <div style="height: 30px; padding: 0 12px; border-radius: 99px; background: {ACCENT}; color: #FFFFFF; display: flex; align-items: center; font-size: 12.5px; font-weight: 600">{label}</div>\n"""
         else:
             disc_chips += f"""              <div style="height: 30px; padding: 0 12px; border-radius: 99px; background: #FFFFFF; color: {MUTED}; border: 1px solid {BORDER}; display: flex; align-items: center; font-size: 12.5px; font-weight: 600">{label}</div>\n"""
-    disc_state = (
-        f'<span style="color: {OK}; font-weight: 600">{card.disc_value}</span> · {card.disc_reason}'
-        if card.disc_scope != "none"
-        else f'<span style="color: {FAINT}">kein Rabatt gesetzt</span>'
-    )
+    # Где скидка уже посчитана — иначе непонятно, попала ли она в итог.
+    disc_effect = {
+        "position": "in der Position und damit im Gesamtpreis verrechnet",
+        "order": "als eigene Zeile in den Summen verrechnet",
+        "delivery": "auf die Versandkosten verrechnet",
+    }.get(card.disc_scope, "")
+    if disc_effect:
+        disc_line = (
+            f'Aktuell: <span style="color: {OK}; font-weight: 600">{card.disc_value}</span> · '
+            f'{card.disc_reason} — <span style="color: {OK}; font-weight: 600">{disc_effect}</span>'
+        )
+    else:
+        disc_line = (
+            f'<span style="color: {FAINT}">Kein Rabatt gesetzt — Gesamtpreis unverändert</span>'
+        )
 
     side_html = "".join(render_side_card(sc) for sc in card.side_cards)
+    side_html += render_calendar(card.calendar)
     head_badge = f"            {badge_new(card.head_badge)}\n" if card.head_badge else ""
     ext_badge = f"            {badge_new()}\n" if card.ext_new else ""
     totals_badge = f"            {badge_new()}\n" if card.totals_new else ""
@@ -307,6 +370,19 @@ def render(card: Card) -> str:
         </div>
 
 {lines_html}
+        <div style="margin-top: 8px; padding-top: 12px; border-top: 1px dashed {BORDER}; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+            <div style="font-size: 13px; font-weight: 700">Rabatt</div>
+            <div style="font-size: 12px; color: {MUTED}">wirkt auf</div>
+{disc_chips}            <div style="height: 30px; width: 96px; border: 1px solid {BORDER}; border-radius: 10px; display: flex; align-items: center; padding: 0 10px; font-size: 13px; font-variant-numeric: tabular-nums; background: #FFFFFF">{card.disc_value}</div>
+            <div style="display: flex; align-items: center; gap: 3px; padding: 3px; border-radius: 99px; background: {CANVAS}">
+              <div style="height: 24px; padding: 0 10px; border-radius: 99px; background: #FFFFFF; color: {INK}; display: flex; align-items: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 6px rgba(22, 24, 29, 0.06)">%</div>
+              <div style="height: 24px; padding: 0 10px; border-radius: 99px; color: {MUTED}; display: flex; align-items: center; font-size: 12px; font-weight: 600">€</div>
+            </div>
+            <div style="height: 30px; padding: 0 12px; border-radius: 99px; background: {CANVAS}; color: {BODY}; display: flex; align-items: center; font-size: 12.5px; font-weight: 600">Anwenden</div>
+          </div>
+          <div style="font-size: 12px; color: {MUTED}">{disc_line}</div>
+        </div>
         <div style="margin-top: 10px; padding-top: 12px; border-top: 1px solid {BORDER}; display: flex; flex-direction: column; gap: 7px">
           <div style="display: flex; align-items: center; gap: 8px; padding-bottom: 2px">
             <div style="font-size: 12px; color: {MUTED}; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; flex-grow: 1">Summen</div>
@@ -314,19 +390,6 @@ def render(card: Card) -> str:
 {totals_html}          <div style="display: flex; align-items: center; padding-top: 8px; border-top: 1px solid {LINE}">
             <div style="flex-grow: 1; font-size: 15.5px; font-weight: 700">{card.total_label}</div>
             <div style="{total_style}; font-weight: 700; font-variant-numeric: tabular-nums">{card.total_value}</div>
-          </div>
-          <div style="margin-top: 10px; padding-top: 12px; border-top: 1px dashed {BORDER}; display: flex; flex-direction: column; gap: 8px">
-            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
-              <div style="font-size: 13px; font-weight: 700">Rabatt</div>
-              <div style="font-size: 12px; color: {MUTED}">wirkt auf</div>
-{disc_chips}              <div style="height: 30px; width: 96px; border: 1px solid {BORDER}; border-radius: 10px; display: flex; align-items: center; padding: 0 10px; font-size: 13px; font-variant-numeric: tabular-nums; background: #FFFFFF">{card.disc_value}</div>
-              <div style="display: flex; align-items: center; gap: 3px; padding: 3px; border-radius: 99px; background: {CANVAS}">
-                <div style="height: 24px; padding: 0 10px; border-radius: 99px; background: #FFFFFF; color: {INK}; display: flex; align-items: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 6px rgba(22, 24, 29, 0.06)">%</div>
-                <div style="height: 24px; padding: 0 10px; border-radius: 99px; color: {MUTED}; display: flex; align-items: center; font-size: 12px; font-weight: 600">€</div>
-              </div>
-              <div style="height: 30px; padding: 0 12px; border-radius: 99px; background: {CANVAS}; color: {BODY}; display: flex; align-items: center; font-size: 12.5px; font-weight: 600">Anwenden</div>
-            </div>
-            <div style="font-size: 12px; color: {MUTED}">Aktuell: {disc_state}</div>
           </div>
         </div>
       </div>
@@ -650,6 +713,26 @@ CARDS = [
         customer_mail="sander.family@example.de",
         customer_phone="+49 172 5533 018",
         contact_label="Gäste kontaktieren",
+        calendar={
+            "title": "Tischbelegung · Tisch 12",
+            "period": "Fr 05.09.",
+            "cells": [
+                {"label": "17", "state": "free"},
+                {"label": "17:30", "state": "busy"},
+                {"label": "18", "state": "busy"},
+                {"label": "18:30", "state": "free"},
+                {"label": "19", "state": "free"},
+                {"label": "19:30", "state": "this"},
+                {"label": "20", "state": "this"},
+                {"label": "20:30", "state": "this"},
+                {"label": "21", "state": "this"},
+                {"label": "21:30", "state": "this"},
+                {"label": "22", "state": "free"},
+            ],
+            "this_label": "diese Reservierung",
+            "note": "19:30–21:30 · 4 Personen · Wintergarten",
+            "link": "Tischplan öffnen →",
+        },
         side_cards=[
             SideCard(
                 IC_CAL,
@@ -803,19 +886,10 @@ CARDS = [
                 "1×", "Mantel „Nordlicht“", "Größe M · Farbe Sand", "19 %", "189,00 €", "189,00 €"
             ),
             Line("2×", "Leinenhemd", "Größe S · Farbe Blau", "19 %", "79,00 €", "158,00 €"),
-            Line(
-                "1×",
-                "Versand DHL",
-                "",
-                "19 %",
-                "0,00 €",
-                "0,00 €",
-                strike="4,90 €",
-                disc_note="Rabatt −100 % · versandfrei ab 200 €",
-            ),
+            Line("1×", "Versand DHL", "2–3 Werktage", "19 %", "4,90 €", "4,90 €"),
         ],
         totals=[
-            ("Zwischensumme", "347,00 €"),
+            ("Zwischensumme", "351,90 €"),
             (
                 'Rabatt Gutschein WELCOME10 <span style="color: #B3B8C2">auf die Bestellung</span>',
                 "−34,70 €",
@@ -875,16 +949,7 @@ CARDS = [
         lines=[
             Line("3×", "Espresso-Bohnen 1 kg", "Art.-Nr. KB-220", "7 %", "18,90 €", "56,70 €"),
             Line("1×", "Handfilter-Set", "Art.-Nr. ZB-14", "19 %", "34,00 €", "34,00 €"),
-            Line(
-                "1×",
-                "Versand DHL Paket",
-                "",
-                "19 %",
-                "0,00 €",
-                "0,00 €",
-                strike="5,90 €",
-                disc_note="Rabatt −100 % · versandfrei ab 80 €",
-            ),
+            Line("1×", "Versand DHL Paket", "2–3 Werktage", "19 %", "5,90 €", "5,90 €"),
         ],
         totals=[
             ("Zwischensumme", "96,60 €"),
@@ -971,6 +1036,25 @@ CARDS = [
         customer_mail="lena.kraft@example.de",
         customer_phone="+49 175 4412 903",
         contact_label="Kundin kontaktieren",
+        calendar={
+            "title": "Tagesplan · Mara, Stuhl 2",
+            "period": "Do 04.09.",
+            "cells": [
+                {"label": "9", "state": "free"},
+                {"label": "10", "state": "busy"},
+                {"label": "11", "state": "busy"},
+                {"label": "12", "state": "free"},
+                {"label": "13", "state": "free"},
+                {"label": "14", "state": "this"},
+                {"label": "15", "state": "this"},
+                {"label": "16", "state": "busy"},
+                {"label": "17", "state": "free"},
+                {"label": "18", "state": "free"},
+            ],
+            "this_label": "dieser Termin",
+            "note": "14:00–15:15 · 75 Min. inkl. Kur",
+            "link": "Tagesplan öffnen →",
+        },
         side_cards=[
             SideCard(
                 IC_CAL,
@@ -1045,6 +1129,25 @@ CARDS = [
         customer_mail="s.roth@example.de",
         customer_phone="+49 221 5588 210",
         contact_label="Kundin kontaktieren",
+        calendar={
+            "title": "Werkstattplan · Hebebühne 1",
+            "period": "August",
+            "cells": [
+                {"label": "22", "state": "busy"},
+                {"label": "23", "state": "busy"},
+                {"label": "24", "state": "free"},
+                {"label": "25", "state": "free"},
+                {"label": "26", "state": "this"},
+                {"label": "27", "state": "this"},
+                {"label": "28", "state": "this"},
+                {"label": "29", "state": "busy"},
+                {"label": "30", "state": "free"},
+                {"label": "31", "state": "free"},
+            ],
+            "this_label": "dieser Auftrag",
+            "note": "In der Werkstatt: Di 26.08. – Do 28.08. · fertig 16:00",
+            "link": "Werkstattplan öffnen →",
+        },
         side_cards=[
             SideCard(
                 IC_CAL,
@@ -1090,29 +1193,52 @@ CARDS = [
         ],
         totals=[
             ("Zwischensumme (netto)", "4.426,00 €"),
-            ("MwSt. 19 %", "840,94 €"),
+            (
+                'Nachlass auf den Auftrag <span style="color: #B3B8C2">−3 % · Bestandskunde</span>',
+                "−132,78 €",
+            ),
+            ("Netto", "4.293,22 €"),
+            ("MwSt. 19 %", "815,71 €"),
         ],
         net_first=True,
         totals_new=False,
         total_label="Gesamt (brutto)",
-        total_value="5.266,94 €",
+        total_value="5.108,93 €",
         pay_status="Anzahlung bezahlt",
         pay_color=WARN,
-        pay_note="Offen: 3.686,86 € · Rest nach Abnahme",
+        pay_note="Offen: 3.576,25 € · Rest nach Abnahme · 2 % Skonto in 8 Tagen",
         pay_method="Anzahlung 30 % · Überweisung 14.08.",
         invoice_label="Rechnung aus Auftrag erstellen",
         invoice_new=False,
         invoice_langs=("DE", "EN"),
         invoice_note="Teilrechnung 1 gestellt · Schlussrechnung offen",
         disc_scope="order",
-        disc_value="2 %",
-        disc_reason="Skonto bei Zahlung in 8 Tagen",
+        disc_value="3 %",
+        disc_reason="Bestandskunde seit 2019",
         customer_name="Eheleute Hoffmann",
         customer_initials="EH",
         customer_sub="Privatkunde · Empfehlung",
         customer_mail="hoffmann.hilden@example.de",
         customer_phone="+49 2103 998 221",
         contact_label="Kunden kontaktieren",
+        calendar={
+            "title": "Einsatzplan · Team Krause",
+            "period": "Kalenderwochen",
+            "cells": [
+                {"label": "35", "state": "busy"},
+                {"label": "36", "state": "this"},
+                {"label": "37", "state": "this"},
+                {"label": "38", "state": "busy"},
+                {"label": "39", "state": "free"},
+                {"label": "40", "state": "free"},
+                {"label": "41", "state": "free"},
+                {"label": "42", "state": "free"},
+            ],
+            "this_label": "diese Baustelle",
+            "busy_label": "verplant",
+            "note": "Badsanierung eingeplant: KW 36–37 (01.–12.09.)",
+            "link": "Einsatzplan öffnen →",
+        },
         side_cards=[
             SideCard(
                 IC_CAL,
@@ -1181,6 +1307,30 @@ CARDS = [
         customer_mail="j.weiler@nordwind.de",
         customer_phone="+49 211 7788 010",
         contact_label="Kunden kontaktieren",
+        calendar={
+            "title": "Eventkalender",
+            "period": "Oktober",
+            "cells": [
+                {"label": "12", "state": "free"},
+                {"label": "13", "state": "free"},
+                {"label": "14", "state": "busy"},
+                {"label": "15", "state": "free"},
+                {"label": "16", "state": "free"},
+                {"label": "17", "state": "free"},
+                {"label": "18", "state": "this"},
+                {"label": "19", "state": "free"},
+                {"label": "20", "state": "free"},
+                {"label": "21", "state": "busy"},
+                {"label": "22", "state": "free"},
+                {"label": "23", "state": "free"},
+                {"label": "24", "state": "busy"},
+                {"label": "25", "state": "free"},
+            ],
+            "this_label": "diese Veranstaltung",
+            "busy_label": "anderes Event",
+            "note": "Sa 18.10. · Aufbau ab 15:00 · 45 Gäste",
+            "link": "Eventkalender öffnen →",
+        },
         side_cards=[
             SideCard(
                 IC_CAL,
@@ -1226,10 +1376,11 @@ CARDS = [
             Line("6×", "Kurtaxe", "ohne MwSt.", "—", "2,50 €", "15,00 €"),
         ],
         totals=[
-            ("Netto", "405,41 €"),
+            ("Zwischensumme", "450,30 €"),
+            ('davon Kurtaxe <span style="color: #B3B8C2">ohne MwSt.</span>', "15,00 €"),
+            ("Netto (steuerpflichtig)", "405,41 €"),
             ("MwSt. 7 %", "27,50 €"),
-            ("MwSt. 19 %", "2,40 €"),
-            ('Kurtaxe <span style="color: #B3B8C2">ohne MwSt.</span>', "15,00 €"),
+            ("MwSt. 19 %", "2,39 €"),
         ],
         net_first=False,
         totals_new=True,
@@ -1252,6 +1403,29 @@ CARDS = [
         customer_mail="berger.familie@example.de",
         customer_phone="+49 170 2211 884",
         contact_label="Gast kontaktieren",
+        calendar={
+            "title": "Belegungsplan · Zimmer 204",
+            "period": "September",
+            "cells": [
+                {"label": "08", "state": "free"},
+                {"label": "09", "state": "busy"},
+                {"label": "10", "state": "busy"},
+                {"label": "11", "state": "free"},
+                {"label": "12", "state": "this"},
+                {"label": "13", "state": "this"},
+                {"label": "14", "state": "this"},
+                {"label": "15", "state": "free"},
+                {"label": "16", "state": "free"},
+                {"label": "17", "state": "free"},
+                {"label": "18", "state": "busy"},
+                {"label": "19", "state": "busy"},
+                {"label": "20", "state": "free"},
+                {"label": "21", "state": "free"},
+            ],
+            "this_label": "diese Buchung",
+            "note": "3 Nächte · Anreise Fr 12.09., Abreise Mo 15.09.",
+            "link": "Belegungsplan öffnen →",
+        },
         side_cards=[
             SideCard(
                 IC_CAL,
@@ -1261,7 +1435,7 @@ CARDS = [
                     ("Anreise", "Fr 12.09. ab 15:00"),
                     ("Meldeschein", "ausgefüllt"),
                 ],
-                "Belegungsplan öffnen →",
+                "Zimmer wechseln →",
             )
         ],
         height=1120,
@@ -1318,6 +1492,20 @@ CARDS = [
         customer_mail="marco.lehner@example.de",
         customer_phone="+49 152 8899 341",
         contact_label="Teilnehmer kontaktieren",
+        calendar={
+            "title": "Reisetermine · Himalaya Enfield",
+            "period": "Saison 2026",
+            "cells": [
+                {"label": "12.–24.10.", "state": "this"},
+                {"label": "02.–14.11.", "state": "busy"},
+                {"label": "07.–19.12.", "state": "free"},
+            ],
+            "this_label": "dieses Ticket",
+            "busy_label": "ausgebucht",
+            "free_label": "Plätze frei",
+            "note": "13 Tage · 8 von 10 Plätzen belegt",
+            "link": "Reisetermine öffnen →",
+        },
         side_cards=[
             SideCard(
                 IC_CAL,
@@ -1374,6 +1562,20 @@ CARDS = [
         customer_mail="katrin.suess@example.de",
         customer_phone="+49 171 6600 293",
         contact_label="Teilnehmerin kontaktieren",
+        calendar={
+            "title": "Termine · Waldlicht Retreat",
+            "period": "Herbst 2026",
+            "cells": [
+                {"label": "03.–06.10.", "state": "this"},
+                {"label": "07.–10.11.", "state": "free"},
+                {"label": "05.–08.12.", "state": "busy"},
+            ],
+            "this_label": "dieses Ticket",
+            "busy_label": "ausgebucht",
+            "free_label": "Plätze frei",
+            "note": "4 Tage · Einzelzimmer · 14 von 16 Plätzen belegt",
+            "link": "Termine öffnen →",
+        },
         side_cards=[
             SideCard(
                 IC_CAL,
