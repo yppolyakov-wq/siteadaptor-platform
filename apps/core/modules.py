@@ -604,6 +604,31 @@ def sidebar_nav(tenant, user=None) -> list[dict]:
         except Exception:  # noqa: BLE001 — рендер хрома не падает из-за ролей
             owner_hidden = frozenset()
 
+    def _is_solo_direction_tab(e):
+        """VF-11 (фидбэк 2026-08-25 «внутри одно и то же»): подпункт-вкладка
+        направления («Aufträge» ?tab=job) — дубль обзора, когда направление у
+        бизнеса ОДНО (catering): та же страница, что «Verkäufe». Прячем.
+        Список направлений — с memo на тенанте (сайдбар рендерится каждой
+        страницей, visible_kinds ходит в БД за легаси-резервами). Fail-open:
+        ошибка гейта показывает пункт, а не роняет навигацию."""
+        q = e.query or ""
+        if not q.startswith("?tab="):
+            return False
+        from apps.core import transactions
+
+        if q[5:] not in transactions.KIND_MODULE:
+            return False  # «?tab=kunden» и т.п. — не направление продаж
+        kinds = getattr(tenant, "_sidebar_sales_kinds", None)
+        if kinds is None:
+            try:
+                from apps.core import sales_page
+
+                kinds = sales_page.visible_kinds(tenant)
+            except Exception:  # noqa: BLE001 — хром не падает из-за гейта
+                kinds = ["_a", "_b"]  # считаем мульти → пункт остаётся
+            tenant._sidebar_sales_kinds = kinds
+        return len(kinds) <= 1
+
     items = []
     for a in nav_registry.ANCHORS:
         if a.module_key and not is_module_active(tenant, a.module_key):
@@ -627,6 +652,8 @@ def sidebar_nav(tenant, user=None) -> list[dict]:
             and nav_registry.allowed_for_business(e.url_name, tenant)
             # X0: owner-only экраны сотруднику не показываем (мёртвый 403).
             and e.url_name not in owner_hidden
+            # VF-11: вкладка единственного направления = дубль обзора — прячем.
+            and not _is_solo_direction_tab(e)
         ]
         # X0: «Nachrichten» — первым подпунктом якоря Marketing со СВОИМ бейджем:
         # бейдж на якоре вёл на лендинг, где непрочитанного не видно.

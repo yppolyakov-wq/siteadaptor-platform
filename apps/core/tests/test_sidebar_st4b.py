@@ -15,6 +15,7 @@ from django.urls import reverse
 
 from apps.core import modules
 from apps.core import views as core_views
+from apps.tenants.models import Tenant
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
@@ -314,12 +315,14 @@ def test_child_highlight_query_beats_plain_path():
     """VF-10 (фидбэк 2026-08-25 «Заявки не нажимается»): на вкладке
     /verkaeufe/?tab=job горит «Aufträge» (query-совпадение), а НЕ обзорный
     «Verkäufe» вместе с ним; без query — наоборот, только обзор. Иначе клик
-    по «Заявкам» не давал видимого отклика (подсветка не переезжала)."""
+    по «Заявкам» не давал видимого отклика (подсветка не переезжала).
+    Тип — werkstatt: направлений два (Termine + Aufträge), пункт-вкладка
+    виден (у одно-направленных его прячет VF-11)."""
     from django.test import RequestFactory
 
     from apps.core.context import modules_nav
 
-    t = TenantFactory(slug="hlq", name="Hq", business_type="catering")
+    t = TenantFactory(slug="hlq", name="Hq", business_type="werkstatt")
 
     def _lit(path):
         req = RequestFactory().get(path)
@@ -335,3 +338,57 @@ def test_child_highlight_query_beats_plain_path():
 
     assert _lit("/dashboard/verkaeufe/?tab=job") == [("verkaeufe", "?tab=job")]
     assert _lit("/dashboard/verkaeufe/") == [("verkaeufe", "")]
+
+
+def test_solo_direction_tab_child_hidden():
+    """VF-11 (фидбэк 2026-08-25 «внутри одно и то же»): у бизнеса с ОДНИМ
+    направлением продаж (catering — только заявки) подпункт «Aufträge»
+    (?tab=job) — дубль обзора «Verkäufe» и не показывается; у бизнеса с
+    несколькими (werkstatt: Termine + Aufträge) — остаётся прямым входом
+    во вкладку. «?tab=kunden» — не направление, живёт у всех."""
+    from apps.core.modules import default_disabled_for
+
+    def _tabs(business_type):
+        t = TenantFactory(
+            slug=f"solo-{business_type[:6]}",
+            name="S",
+            business_type=business_type,
+            disabled_modules=list(default_disabled_for(business_type)),
+        )
+        by_anchor = {it["url_name"]: it.get("children", []) for it in modules.sidebar_nav(t)}
+        return [(c["url_name"], c.get("query") or "") for c in by_anchor.get("verkaeufe", [])]
+
+    catering = _tabs("catering")
+    assert ("verkaeufe", "?tab=job") not in catering  # дубль спрятан
+    assert ("verkaeufe", "?tab=kunden") in catering  # «Kunden» — не направление
+    werkstatt = _tabs("werkstatt")
+    assert ("verkaeufe", "?tab=job") in werkstatt  # два направления → вход нужен
+
+
+@pytest.mark.parametrize(
+    "business_type",
+    [c[0] for c in Tenant.BUSINESS_TYPES],
+)
+def test_verkaeufe_children_no_duplicate_targets(business_type):
+    """VF-11-свод (запрос владельца «проверь остальные архетипы»): у КАЖДОГО из
+    16 типов на честном пресете подпункты якоря «Verkäufe» ведут на РАЗНЫЕ
+    адреса (никакие два не открывают одну страницу), а подпункт-вкладка
+    направления (?tab=<kind>) существует только при ≥2 направлениях продаж."""
+    from apps.core import sales_page, transactions
+    from apps.core.modules import default_disabled_for
+
+    t = TenantFactory(
+        slug=f"vd-{business_type[:8]}-{uuid4().hex[:4]}",
+        name="VD",
+        business_type=business_type,
+        disabled_modules=list(default_disabled_for(business_type)),
+    )
+    kinds = sales_page.visible_kinds(t)
+    by_anchor = {it["url_name"]: it.get("children", []) for it in modules.sidebar_nav(t)}
+    targets = []
+    for c in by_anchor.get("verkaeufe", []):
+        targets.append((reverse(c["url_name"]), c.get("query") or ""))
+    assert len(targets) == len(set(targets)), f"{business_type}: дубли целей {targets}"
+    for _url, q in targets:
+        if q.startswith("?tab=") and q[5:] in transactions.KIND_MODULE:
+            assert len(kinds) >= 2, f"{business_type}: вкладка {q} при одном направлении"
