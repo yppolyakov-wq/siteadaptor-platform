@@ -24,6 +24,7 @@ from apps.core.views import (
     deal_customer_edit,
     deal_discount_edit,
     deal_external_edit,
+    deal_invoice,
     deal_link_view,
     deal_unlink_view,
     domain_add,
@@ -230,6 +231,12 @@ urlpatterns = [
         "dashboard/kunde/<str:kind>/<uuid:pk>/",
         deal_customer_edit,
         name="deal-customer-edit",
+    ),
+    # DC-6: счёт из сделки (заказ/бронь/запись) — общий приёмник, черновик реюзится.
+    path(
+        "dashboard/rechnung/<str:kind>/<uuid:pk>/",
+        deal_invoice,
+        name="deal-invoice",
     ),
     # DC-5: скидка владельца с карточки любой сделки (пересчёт итога — в домене).
     path(

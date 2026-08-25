@@ -354,3 +354,72 @@ def test_other_surfaces_keep_notifying():
     Notification.objects.all().delete()
     transactions.apply_action("order", order, "confirmed", extra={})
     assert Notification.objects.filter(dedupe_key=f"order:{order.id}:confirmed:customer").exists()
+
+
+# --- DC-6: счёт из брони и записи ---------------------------------------------
+
+
+def test_invoice_button_on_stay_and_booking_with_finance():
+    """ТЗ: «оплата … и там же выставление счёта». Кнопка — при активном модуле."""
+    from apps.booking import views as booking_views
+    from apps.stays import views as stay_views
+
+    for view, obj, bt, kind in (
+        (stay_views.booking_detail, _stay(), "hotel", "stay"),
+        (booking_views.booking_detail, _booking(), "friseur", "booking"),
+    ):
+        tenant = _tenant(bt)
+        tenant.disabled_modules = [m for m in tenant.disabled_modules if m != "finance"]
+        tenant.save(update_fields=["disabled_modules"])
+        html = view(_req(tenant=tenant), obj.pk).content.decode()
+        assert "data-deal-invoice" in html, kind
+        assert f"/dashboard/rechnung/{kind}/" in html, kind
+
+
+def test_invoice_draft_is_reused_and_totals_match():
+    """Повторный клик не плодит счета; суммы черновика сходятся с итогом сделки."""
+    from decimal import Decimal
+
+    from apps.core import views as core_views
+    from apps.finance.models import Invoice
+
+    stay = _stay()
+    tenant = _tenant("hotel")
+    tenant.disabled_modules = [m for m in tenant.disabled_modules if m != "finance"]
+    tenant.save(update_fields=["disabled_modules"])
+
+    def _post():
+        req = RequestFactory().post(f"/dashboard/rechnung/stay/{stay.pk}/")
+        SessionMiddleware(lambda r: None).process_request(req)
+        MessageMiddleware(lambda r: None).process_request(req)
+        req.user = _User()
+        req.tenant = tenant
+        return core_views.deal_invoice(req, "stay", stay.pk)
+
+    assert _post().status_code == 302
+    stay.refresh_from_db()
+    assert stay.invoice_id is not None
+    assert Invoice.objects.count() == 1
+    invoice = Invoice.objects.get()
+    assert invoice.gross == (Decimal(stay.total_cents) / 100).quantize(Decimal("0.01"))
+    _post()  # повторный клик — тот же черновик
+    assert Invoice.objects.count() == 1
+
+
+def test_invoice_button_hidden_without_finance_module():
+    from django.http import Http404
+
+    from apps.core import views as core_views
+    from apps.stays import views as stay_views
+
+    stay = _stay()
+    tenant = _tenant("hotel")  # finance выключен по умолчанию у всех типов
+    html = stay_views.booking_detail(_req(tenant=tenant), stay.pk).content.decode()
+    assert "data-deal-invoice" not in html
+    req = RequestFactory().post(f"/dashboard/rechnung/stay/{stay.pk}/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = _User()
+    req.tenant = tenant
+    with pytest.raises(Http404):
+        core_views.deal_invoice(req, "stay", stay.pk)

@@ -20311,3 +20311,15 @@ msgstr "активний"
 
 msgid "einrichten"
 msgstr "налаштувати"
+
+msgid "Kurtaxe"
+msgstr "Курортний збір"
+
+msgid "Buchung %(code)s"
+msgstr "Бронювання %(code)s"
+
+msgid "Termin %(code)s"
+msgstr "Запис %(code)s"
+
+msgid "Rechnung erstellen"
+msgstr "Виставити рахунок"

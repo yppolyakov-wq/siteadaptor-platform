@@ -100,6 +100,7 @@
     {% elif b.payment_state == 'refunded' %}{% trans "Refunded" %}
     {% else %}{% trans "Vor Ort zu zahlen" %}{% endif %}
   </p>
+  {% include "core/_deal_invoice_button.html" %}
 {% endblock %}
 
 {% block deal_rail_extra %}

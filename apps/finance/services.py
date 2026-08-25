@@ -110,6 +110,111 @@ def issue_invoice(invoice):
         return InvoiceSM().apply(invoice, "issued")
 
 
+def invoice_from_stay(booking, tenant=None):
+    """DC-6 (ТЗ владельца 2026-08-25): черновик счёта ИЗ БРОНИ НОМЕРА.
+
+    Позиции — снимок: ночи (проживание за вычетом авто-скидки), доп-услуги,
+    Kurtaxe отдельной строкой БЕЗ НДС (курортный сбор не облагается) и скидка
+    владельца. Ставка счёта одна (модель Invoice знает одну) — для размещения
+    в DE это 7 %; §19 Kleinunternehmer обнуляет. Черновик: номер и
+    неизменяемость наступают при `issue_invoice`.
+    """
+    from decimal import Decimal
+
+    from django.utils.translation import gettext as _
+
+    from apps.core import extras as extras_engine
+
+    from .models import Invoice
+
+    small = bool(tenant and getattr(tenant, "small_business", False))
+    rate = Decimal("0") if small else Decimal("7.00")
+    nights = max(1, (booking.departure - booking.arrival).days)
+    lodging = max(
+        0,
+        (booking.total_cents or 0)
+        - (booking.kurtaxe_cents or 0)
+        - extras_engine.total_cents(booking.extras)
+        + (booking.discount_cents or 0),
+    )
+    # Одна строка на всё проживание: цена за ночь округлялась бы дважды и итог
+    # счёта расходился с суммой брони на копейку (поймано замком).
+    stay_net, _vat = _net_from_gross(Decimal(lodging) / 100, rate)
+    unit_name = getattr(booking.unit, "name", "") or str(_("Übernachtung"))
+    nights_label = str(_("%(n)s Nächte")) % {"n": nights}
+    lines = [{"text": f"{unit_name} · {nights_label}"[:200], "qty": 1, "unit_price": str(stay_net)}]
+    for extra in booking.extras or []:
+        if not isinstance(extra, dict):
+            continue
+        net, _v = _net_from_gross(Decimal(int(extra.get("price_cents", 0))) / 100, rate)
+        lines.append({"text": str(extra.get("label", ""))[:200], "qty": 1, "unit_price": str(net)})
+    if booking.discount_cents:
+        net, _v = _net_from_gross(Decimal(booking.discount_cents) / 100, rate)
+        lines.append({"text": str(_("Rabatt")), "qty": 1, "unit_price": str(-net)})
+    if booking.kurtaxe_cents:  # без НДС — добавляем как есть
+        lines.append(
+            {
+                "text": str(_("Kurtaxe")),
+                "qty": 1,
+                "unit_price": str(Decimal(booking.kurtaxe_cents) / 100),
+            }
+        )
+    net, vat, gross = compute_totals(lines, rate, small_business=small)
+    return Invoice.objects.create(
+        customer=booking.customer,
+        recipient=str(booking.customer)[:1000],
+        lines=lines,
+        vat_rate=rate,
+        net=net,
+        vat_amount=vat,
+        gross=gross,
+        note=str(_("Buchung %(code)s")) % {"code": booking.reference_code},
+    )
+
+
+def invoice_from_booking(booking, tenant=None):
+    """DC-6: черновик счёта ИЗ ЗАПИСИ НА УСЛУГУ (услуга + допы − скидка)."""
+    from decimal import Decimal
+
+    from django.utils.translation import gettext as _
+
+    from .models import Invoice
+
+    small = bool(tenant and getattr(tenant, "small_business", False))
+    rate = Decimal("0") if small else Decimal("19.00")
+    title = getattr(booking.service, "name", "") or str(_("Leistung"))
+    net, _vat = _net_from_gross(Decimal(booking.price_cents or 0) / 100, rate)
+    lines = [{"text": str(title)[:200], "qty": 1, "unit_price": str(net)}]
+    for extra in booking.extras or []:
+        if not isinstance(extra, dict):
+            continue
+        e_net, _v = _net_from_gross(Decimal(int(extra.get("price_cents", 0))) / 100, rate)
+        lines.append(
+            {"text": str(extra.get("label", ""))[:200], "qty": 1, "unit_price": str(e_net)}
+        )
+    if booking.discount_cents:
+        d_net, _v = _net_from_gross(Decimal(booking.discount_cents) / 100, rate)
+        lines.append({"text": str(_("Rabatt")), "qty": 1, "unit_price": str(-d_net)})
+    total_net, vat, gross = compute_totals(lines, rate, small_business=small)
+    return Invoice.objects.create(
+        customer=booking.customer,
+        recipient=str(booking.customer)[:1000],
+        lines=lines,
+        vat_rate=rate,
+        net=total_net,
+        vat_amount=vat,
+        gross=gross,
+        note=str(_("Termin %(code)s")) % {"code": booking.reference_code},
+    )
+
+
+def _net_from_gross(gross, rate):
+    """Нетто из брутто по ставке (цены сделок брутто — PAngV)."""
+    from apps.orders.totals import split_gross
+
+    return split_gross(gross, rate)
+
+
 def invoice_from_order(order, tenant=None):
     """SH-9: черновик счёта ИЗ ЗАКАЗА (фидбэк владельца 2026-08-20 «выставление счёта»).
 

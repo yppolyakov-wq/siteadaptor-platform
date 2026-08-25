@@ -39,7 +39,10 @@
 
 {% block deal_totals %}{% include "stays/_stay_amount.html" %}{% endblock %}
 
-{% block deal_payment %}{% include "stays/_stay_payment.html" %}{% endblock %}
+{% block deal_payment %}
+  {% include "stays/_stay_payment.html" %}
+  {% include "core/_deal_invoice_button.html" %}
+{% endblock %}
 
 {% block deal_rail_extra %}
   <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5" data-deal-block="meldeschein">

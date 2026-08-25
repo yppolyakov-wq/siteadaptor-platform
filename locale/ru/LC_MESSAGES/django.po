@@ -20327,3 +20327,15 @@ msgstr "активен"
 
 msgid "einrichten"
 msgstr "настроить"
+
+msgid "Kurtaxe"
+msgstr "Курортный сбор"
+
+msgid "Buchung %(code)s"
+msgstr "Бронь %(code)s"
+
+msgid "Termin %(code)s"
+msgstr "Запись %(code)s"
+
+msgid "Rechnung erstellen"
+msgstr "Выставить счёт"

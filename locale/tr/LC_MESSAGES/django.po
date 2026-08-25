@@ -20236,3 +20236,15 @@ msgstr "etkin"
 
 msgid "einrichten"
 msgstr "kur"
+
+msgid "Kurtaxe"
+msgstr "Konaklama vergisi"
+
+msgid "Buchung %(code)s"
+msgstr "Rezervasyon %(code)s"
+
+msgid "Termin %(code)s"
+msgstr "Randevu %(code)s"
+
+msgid "Rechnung erstellen"
+msgstr "Fatura oluştur"

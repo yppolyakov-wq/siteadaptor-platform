@@ -20109,3 +20109,15 @@ msgstr "active"
 
 msgid "einrichten"
 msgstr "set up"
+
+msgid "Kurtaxe"
+msgstr "Tourist tax"
+
+msgid "Buchung %(code)s"
+msgstr "Booking %(code)s"
+
+msgid "Termin %(code)s"
+msgstr "Appointment %(code)s"
+
+msgid "Rechnung erstellen"
+msgstr "Create invoice"

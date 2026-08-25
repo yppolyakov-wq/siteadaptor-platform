@@ -20237,3 +20237,15 @@ msgstr ""
 
 msgid "einrichten"
 msgstr ""
+
+msgid "Kurtaxe"
+msgstr ""
+
+msgid "Buchung %(code)s"
+msgstr ""
+
+msgid "Termin %(code)s"
+msgstr ""
+
+msgid "Rechnung erstellen"
+msgstr ""

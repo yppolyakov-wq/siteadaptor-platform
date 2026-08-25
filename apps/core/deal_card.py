@@ -148,6 +148,9 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
         "deal_titles": SECTION_TITLES,
         "deal_calendar_html": calendar,
         "deal_show_when": show_when,
+        # DC-6: счёт из сделки (кнопка в блоке оплаты) — гейт модуля «Finanzen».
+        "finance_active": _module_active(tenant, "finance"),
+        "deal_invoice_id": getattr(obj, "invoice_id", None),
         # DC-5: скидка владельца — общий блок между составом и суммами.
         "deal_discount_cents": int(getattr(obj, "discount_cents", 0) or 0),
         "deal_discount_input": f"{int(getattr(obj, 'discount_cents', 0) or 0) / 100:.2f}",

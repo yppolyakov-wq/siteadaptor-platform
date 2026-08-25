@@ -3890,6 +3890,43 @@ def deal_customer_edit(request, kind, pk):
 
 @login_required
 @require_POST
+def deal_invoice(request, kind, pk):
+    """DC-6: счёт из сделки — один приёмник на все виды.
+
+    Черновик ПЕРЕИСПОЛЬЗУЕТСЯ (повторный клик не плодит дубли в Finanzen;
+    номер присваивает только `issue_invoice` — GoBD цел). Гейт — активный
+    модуль «Finanzen»: без него страница счёта упёрлась бы в гейт путей."""
+    from django.http import Http404
+    from django.urls import reverse
+
+    from apps.core import transactions
+    from apps.finance import services as finance_services
+    from apps.finance.models import Invoice
+
+    builders = {
+        "order": finance_services.invoice_from_order,
+        "stay": finance_services.invoice_from_stay,
+        "booking": finance_services.invoice_from_booking,
+    }
+    tenant = getattr(request, "tenant", None)
+    if kind not in builders or not (tenant and tenant.is_module_active("finance")):
+        raise Http404("no invoice for this deal")
+    obj = get_object_or_404(transactions.model_for(kind), pk=pk)
+    invoice = None
+    existing = getattr(obj, "invoice_id", None)
+    if existing:
+        invoice = Invoice.objects.filter(pk=existing).first()
+    if invoice is None:
+        invoice = builders[kind](obj, tenant=tenant)
+        if hasattr(obj, "invoice_id"):
+            obj.invoice_id = invoice.pk
+            obj.save(update_fields=["invoice_id", "updated_at"])
+        messages.success(request, _("Rechnungsentwurf erstellt."))
+    return redirect(reverse("finance:invoice-detail", args=[invoice.pk]))
+
+
+@login_required
+@require_POST
 def deal_discount_edit(request, kind, pk):
     """DC-5: скидка владельца с карточки ЛЮБОЙ сделки — один приёмник.
 
