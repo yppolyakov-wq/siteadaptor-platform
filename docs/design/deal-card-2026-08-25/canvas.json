@@ -1,33 +1,181 @@
 {
   "pages": [
-    { "id": "page-1", "name": "Структура" },
-    { "id": "page-2", "name": "Архетипы" },
-    { "id": "page-3", "name": "Телефон и состояния" }
+    {
+      "id": "page-1",
+      "name": "Структура"
+    },
+    {
+      "id": "page-2",
+      "name": "Архетипы"
+    },
+    {
+      "id": "page-3",
+      "name": "Телефон и состояния"
+    }
   ],
   "artboards": [
-    { "file": "Struktur.dc.html", "x": 0, "y": 0, "w": 1320, "h": 940, "page": "page-1", "title": "Структура карточки · что есть, что новое" },
-
-    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1180, "h": 1020, "page": "page-2", "title": "Bäckerei · Backhaus Krume" },
-    { "file": "Metzgerei.dc.html", "x": 1300, "y": 0, "w": 1180, "h": 1000, "page": "page-2", "title": "Metzgerei · Bergmann" },
-    { "file": "Cafe.dc.html", "x": 2600, "y": 0, "w": 1180, "h": 1000, "page": "page-2", "title": "Café · Morgenrot" },
-    { "file": "Restaurant.dc.html", "x": 3900, "y": 0, "w": 1180, "h": 1020, "page": "page-2", "title": "Restaurant · Pranasy" },
-
-    { "file": "Hofladen.dc.html", "x": 0, "y": 1160, "w": 1180, "h": 1020, "page": "page-2", "title": "Einzelhandel · Hofladen Sonnenfeld" },
-    { "file": "Aktionsmarkt.dc.html", "x": 1300, "y": 1160, "w": 1180, "h": 1020, "page": "page-2", "title": "Lebensmittel · Aktionsmarkt Sparfuchs" },
-    { "file": "Mode.dc.html", "x": 2600, "y": 1160, "w": 1180, "h": 1080, "page": "page-2", "title": "Bekleidung · Studio Nordwind" },
-    { "file": "OnlineShop.dc.html", "x": 3900, "y": 1160, "w": 1180, "h": 1060, "page": "page-2", "title": "Online-Shop · Versand" },
-
-    { "file": "Friseur.dc.html", "x": 0, "y": 2380, "w": 1180, "h": 1000, "page": "page-2", "title": "Friseur · Salon Schöngut" },
-    { "file": "Werkstatt.dc.html", "x": 1300, "y": 2380, "w": 1180, "h": 1040, "page": "page-2", "title": "Werkstatt · KFZ Dreyer" },
-    { "file": "Handwerker.dc.html", "x": 2600, "y": 2380, "w": 1180, "h": 1060, "page": "page-2", "title": "Handwerk · Meisterbetrieb Krause" },
-    { "file": "Catering.dc.html", "x": 3900, "y": 2380, "w": 1180, "h": 1080, "page": "page-2", "title": "Catering · Grüne Tafel" },
-
-    { "file": "Hotel.dc.html", "x": 0, "y": 3600, "w": 1180, "h": 1120, "page": "page-2", "title": "Hotel · Pension Seeblick" },
-    { "file": "Touren.dc.html", "x": 1300, "y": 3600, "w": 1180, "h": 1080, "page": "page-2", "title": "Tour Operator · Himalaya Riders" },
-    { "file": "Events.dc.html", "x": 2600, "y": 3600, "w": 1180, "h": 1060, "page": "page-2", "title": "Veranstalter · Waldlicht Retreat" },
-
-    { "file": "Mobil.dc.html", "x": 0, "y": 0, "w": 390, "h": 1000, "page": "page-3", "title": "Телефон · та же карточка" },
-    { "file": "Zustaende.dc.html", "x": 520, "y": 0, "w": 1180, "h": 1040, "page": "page-3", "title": "Состояния · уведомление, чат, язык счёта" }
+    {
+      "file": "Struktur.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1320,
+      "h": 1010,
+      "page": "page-1",
+      "title": "Структура карточки · что есть, что новое"
+    },
+    {
+      "file": "Main.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1180,
+      "h": 1020,
+      "page": "page-2",
+      "title": "Bäckerei · Backhaus Krume"
+    },
+    {
+      "file": "Metzgerei.dc.html",
+      "x": 1300,
+      "y": 0,
+      "w": 1180,
+      "h": 1000,
+      "page": "page-2",
+      "title": "Metzgerei · Bergmann"
+    },
+    {
+      "file": "Cafe.dc.html",
+      "x": 2600,
+      "y": 0,
+      "w": 1180,
+      "h": 1000,
+      "page": "page-2",
+      "title": "Café · Morgenrot"
+    },
+    {
+      "file": "Restaurant.dc.html",
+      "x": 3900,
+      "y": 0,
+      "w": 1180,
+      "h": 1020,
+      "page": "page-2",
+      "title": "Restaurant · Pranasy"
+    },
+    {
+      "file": "Hofladen.dc.html",
+      "x": 0,
+      "y": 1160,
+      "w": 1180,
+      "h": 1020,
+      "page": "page-2",
+      "title": "Einzelhandel · Hofladen Sonnenfeld"
+    },
+    {
+      "file": "Aktionsmarkt.dc.html",
+      "x": 1300,
+      "y": 1160,
+      "w": 1180,
+      "h": 1020,
+      "page": "page-2",
+      "title": "Lebensmittel · Aktionsmarkt Sparfuchs"
+    },
+    {
+      "file": "Mode.dc.html",
+      "x": 2600,
+      "y": 1160,
+      "w": 1180,
+      "h": 1080,
+      "page": "page-2",
+      "title": "Bekleidung · Studio Nordwind"
+    },
+    {
+      "file": "OnlineShop.dc.html",
+      "x": 3900,
+      "y": 1160,
+      "w": 1180,
+      "h": 1060,
+      "page": "page-2",
+      "title": "Online-Shop · Versand"
+    },
+    {
+      "file": "Friseur.dc.html",
+      "x": 0,
+      "y": 2380,
+      "w": 1180,
+      "h": 1000,
+      "page": "page-2",
+      "title": "Friseur · Salon Schöngut"
+    },
+    {
+      "file": "Werkstatt.dc.html",
+      "x": 1300,
+      "y": 2380,
+      "w": 1180,
+      "h": 1040,
+      "page": "page-2",
+      "title": "Werkstatt · KFZ Dreyer"
+    },
+    {
+      "file": "Handwerker.dc.html",
+      "x": 2600,
+      "y": 2380,
+      "w": 1180,
+      "h": 1060,
+      "page": "page-2",
+      "title": "Handwerk · Meisterbetrieb Krause"
+    },
+    {
+      "file": "Catering.dc.html",
+      "x": 3900,
+      "y": 2380,
+      "w": 1180,
+      "h": 1080,
+      "page": "page-2",
+      "title": "Catering · Grüne Tafel"
+    },
+    {
+      "file": "Hotel.dc.html",
+      "x": 0,
+      "y": 3600,
+      "w": 1180,
+      "h": 1120,
+      "page": "page-2",
+      "title": "Hotel · Pension Seeblick"
+    },
+    {
+      "file": "Touren.dc.html",
+      "x": 1300,
+      "y": 3600,
+      "w": 1180,
+      "h": 1080,
+      "page": "page-2",
+      "title": "Tour Operator · Himalaya Riders"
+    },
+    {
+      "file": "Events.dc.html",
+      "x": 2600,
+      "y": 3600,
+      "w": 1180,
+      "h": 1060,
+      "page": "page-2",
+      "title": "Veranstalter · Waldlicht Retreat"
+    },
+    {
+      "file": "Mobil.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 1240,
+      "page": "page-3",
+      "title": "Телефон · та же карточка"
+    },
+    {
+      "file": "Zustaende.dc.html",
+      "x": 520,
+      "y": 0,
+      "w": 1180,
+      "h": 1040,
+      "page": "page-3",
+      "title": "Состояния · уведомление, чат, язык счёта"
+    }
   ],
   "annotations": [
     {
@@ -36,7 +184,7 @@
       "x": 0,
       "y": -260,
       "w": 640,
-      "text": "ТЗ владельца 2026-08-25 — одна карточка сделки для всех архетипов.\nПорядок: номер + внешний номер · статус выпадающим списком · состав с нетто/налогом/брутто · оплата и счёт с выбором языка · клиент с чатом · доставка.\nБлоки включаются ПО ДАННЫМ, а не по типу бизнеса: у отеля нет доставки, у записи нет позиций — вместо них сводка."
+      "text": "ТЗ владельца 2026-08-25 — одна карточка сделки для всех архетипов.\nПорядок: номер + внешний номер ОДНОЙ строкой · состав · скидка · нетто/налог/брутто · оплата и счёт с выбором языка;\nво второй колонке: статус выпадающим списком · клиент с чатом · доставка.\nБлоки включаются ПО ДАННЫМ, а не по типу бизнеса: у отеля нет доставки, у записи нет позиций — вместо них сводка."
     },
     {
       "id": "migration-note",
@@ -52,7 +200,7 @@
       "x": 0,
       "y": -300,
       "w": 900,
-      "text": "Пятнадцать архетипов — по одной карточке на каждый, все в одной раскладке (на утверждение).\nРяд 1 — гастрономия: пекарня, мясная, кафе, ресторан. Ряд 2 — торговля: хофладен, акционный маркет, бутик, онлайн-магазин.\nРяд 3 — услуги: салон, автосервис, ремесленник, кейтеринг. Ряд 4 — размещение и впечатления: отель, тур-оператор, организатор событий.\nСлева всегда номер → состав → деньги → оплата; справа статус → клиент → контекст (выдача, тариф, объект, поездка) → связанные услуги; доставка только у бутика и онлайн-магазина.\nОтличается ровно одно: чем заполнен «состав» и какой контекстный блок стоит под клиентом."
+      "text": "Пятнадцать архетипов — по одной карточке на каждый, все в одной раскладке (на утверждение).\nПравки 2026-08-25: номер и внешний номер — ОДНОЙ строкой; статус переехал во ВТОРУЮ колонку (над клиентом);\nдобавлена СКИДКА с областью действия — позиция (зачёркнутая цена + пометка в строке), весь заказ (строка в итогах) или доставка (бесплатный Versand).\nРяд 1 — гастрономия: пекарня (скидка на позицию), мясная (на заказ), кафе (без скидки), ресторан (на заказ).\nРяд 2 — торговля: хофладен (Abo-бонус), акционный маркет (акция на позицию), бутик и онлайн-магазин (скидка на доставку).\nРяд 3 — услуги: салон (ваучер), автосервис (Kulanz на работу), ремесленник (Skonto), кейтеринг (скидка от 40 гостей).\nРяд 4 — размещение и впечатления: отель (Frühbucher на ночь), тур-оператор (ваучер), организатор (Frühbucher)."
     },
     {
       "id": "states-note",
@@ -63,5 +211,8 @@
       "text": "Телефон — та же карточка одной колонкой в том же порядке; все элементы управления не ниже 44 px.\nСостояния: вопрос «уведомить клиента и команду?» при смене статуса, развёрнутый чат прямо в блоке клиента, счёт на другом языке."
     }
   ],
-  "launch": { "view": "canvas", "page": "page-2" }
+  "launch": {
+    "view": "canvas",
+    "page": "page-2"
+  }
 }

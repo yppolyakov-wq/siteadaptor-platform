@@ -95,6 +95,8 @@ class Line:
     unit: str = ""
     total: str = ""
     negative: bool = False
+    strike: str = ""      # зачёркнутая цена до скидки
+    disc_note: str = ""   # «Rabatt −10 % · Stammkunde»
 
 
 @dataclass
@@ -134,6 +136,9 @@ class Card:
     invoice_new: bool
     invoice_langs: tuple
     invoice_note: str
+    disc_scope: str  # активная область скидки: position | order | delivery | none
+    disc_value: str  # «10 %» / «5,00 €» / «—»
+    disc_reason: str
     customer_name: str
     customer_initials: str
     customer_sub: str
@@ -151,11 +156,24 @@ def render_line(ln):
     note = (
         f' <span style="color: {MUTED}; font-size: 12.5px">· {ln.note}</span>' if ln.note else ""
     )
-    return f"""        <div style="display: grid; grid-template-columns: 54px minmax(0, 1fr) 92px 104px 104px; gap: 10px; padding: 11px 0; border-bottom: 1px solid {LINE}; align-items: center; font-size: 14px">
+    # Скидка на ПОЗИЦИЮ: пометка под названием + зачёркнутая цена до скидки.
+    disc = (
+        f'\n            <div style="font-size: 12px; color: {OK}; font-weight: 600; margin-top: 2px">{ln.disc_note}</div>'
+        if ln.disc_note
+        else ""
+    )
+    unit = (
+        f'<span style="color: {FAINT}; text-decoration: line-through; margin-right: 6px">{ln.strike}</span>{ln.unit}'
+        if ln.strike
+        else ln.unit
+    )
+    return f"""        <div style="display: grid; grid-template-columns: 54px minmax(0, 1fr) 92px 118px 104px; gap: 10px; padding: 11px 0; border-bottom: 1px solid {LINE}; align-items: center; font-size: 14px">
           <div style="font-variant-numeric: tabular-nums; color: {MUTED}">{ln.qty}</div>
-          <div>{ln.title}{note}</div>
+          <div style="min-width: 0">
+            <div>{ln.title}{note}</div>{disc}
+          </div>
           <div style="text-align: right; color: {MUTED}; font-variant-numeric: tabular-nums">{ln.vat}</div>
-          <div style="text-align: right; font-variant-numeric: tabular-nums">{ln.unit}</div>
+          <div style="text-align: right; font-variant-numeric: tabular-nums">{unit}</div>
           <div style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; color: {color}">{ln.total}</div>
         </div>
 """
@@ -191,9 +209,10 @@ def render(card: Card) -> str:
 
     totals_html = ""
     for label, value in card.totals:
+        val_color = OK if value.strip().startswith("−") else INK
         totals_html += f"""          <div style="display: flex; align-items: center; font-size: 14px">
             <div style="flex-grow: 1; color: {MUTED}">{label}</div>
-            <div style="font-variant-numeric: tabular-nums">{value}</div>
+            <div style="font-variant-numeric: tabular-nums; color: {val_color}">{value}</div>
           </div>
 """
 
@@ -225,6 +244,22 @@ def render(card: Card) -> str:
       </div>
 """
 
+    # Редактор скидки (ТЗ 2026-08-25): область действия — позиция / весь заказ /
+    # доставка; активная область подсвечена, значение и причина рядом.
+    scopes = [("position", "Position"), ("order", "Ganze Bestellung"), ("delivery", "Versand")]
+    disc_chips = ""
+    for key, label in scopes:
+        active = key == card.disc_scope
+        if active:
+            disc_chips += f'''              <div style="height: 30px; padding: 0 12px; border-radius: 99px; background: {ACCENT}; color: #FFFFFF; display: flex; align-items: center; font-size: 12.5px; font-weight: 600">{label}</div>\n'''
+        else:
+            disc_chips += f'''              <div style="height: 30px; padding: 0 12px; border-radius: 99px; background: #FFFFFF; color: {MUTED}; border: 1px solid {BORDER}; display: flex; align-items: center; font-size: 12.5px; font-weight: 600">{label}</div>\n'''
+    disc_state = (
+        f'<span style="color: {OK}; font-weight: 600">{card.disc_value}</span> · {card.disc_reason}'
+        if card.disc_scope != "none"
+        else f'<span style="color: {FAINT}">kein Rabatt gesetzt</span>'
+    )
+
     side_html = "".join(render_side_card(sc) for sc in card.side_cards)
     head_badge = f"            {badge_new(card.head_badge)}\n" if card.head_badge else ""
     ext_badge = f"            {badge_new()}\n" if card.ext_new else ""
@@ -249,28 +284,15 @@ def render(card: Card) -> str:
 
     <div style="display: flex; flex-direction: column; gap: 14px; min-width: 0">
 
-      <div style="background: #FFFFFF; border-radius: 20px; box-shadow: {CARD_SHADOW}; padding: 18px 20px; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start">
-        <div style="display: flex; flex-direction: column; gap: 8px; min-width: 0">
-          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
-            <div style="font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums">{card.number}</div>
-{pay_pill_html}{head_badge}          </div>
-          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
-            <span style="font-size: 12.5px; color: {MUTED}">Externe Nr.</span>
-            <div style="height: 34px; min-width: 180px; border: 1px solid {BORDER}; border-radius: 10px; display: flex; align-items: center; padding: 0 10px; font-size: 13.5px; font-variant-numeric: tabular-nums; background: #FFFFFF">{card.ext_number}</div>
-            <div style="height: 34px; padding: 0 12px; border-radius: 10px; background: {CANVAS}; color: {BODY}; display: flex; align-items: center; font-size: 13px; font-weight: 600">Speichern</div>
-{ext_badge}          </div>
-          <div style="font-size: 12.5px; color: {MUTED}">{card.meta}</div>
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 8px">
-          <div style="font-size: 12px; color: {MUTED}; font-weight: 600">Status · {card.kind_label}</div>
-          <div style="height: 44px; border: 1px solid {BORDER}; border-radius: 12px; display: flex; align-items: center; gap: 10px; padding: 0 12px; background: #FFFFFF">
-            <span style="width: 9px; height: 9px; border-radius: 99px; background: {card.status_color}"></span>
-            <span style="flex-grow: 1; font-size: 14.5px; font-weight: 600">{card.status}</span>
-            {icon(IC_CHEVRON_DOWN, MUTED, 16, "2")}
-          </div>
-          <div style="font-size: 12px; color: {MUTED}">Nächster Schritt: {card.status_next}</div>
-        </div>
+      <div style="background: #FFFFFF; border-radius: 20px; box-shadow: {CARD_SHADOW}; padding: 14px 20px; display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+          <div style="font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap">{card.number}</div>
+{pay_pill_html}{head_badge}          <div style="width: 1px; height: 24px; background: {LINE}"></div>
+          <span style="font-size: 12.5px; color: {MUTED}; white-space: nowrap">Externe Nr.</span>
+          <div style="height: 34px; min-width: 170px; border: 1px solid {BORDER}; border-radius: 10px; display: flex; align-items: center; padding: 0 10px; font-size: 13.5px; font-variant-numeric: tabular-nums; background: #FFFFFF">{card.ext_number}</div>
+          <div style="height: 34px; padding: 0 12px; border-radius: 10px; background: {CANVAS}; color: {BODY}; display: flex; align-items: center; font-size: 13px; font-weight: 600">Speichern</div>
+{ext_badge}        </div>
+        <div style="font-size: 12.5px; color: {MUTED}">{card.meta}</div>
       </div>
 
       <div style="background: #FFFFFF; border-radius: 20px; box-shadow: {CARD_SHADOW}; padding: 16px 20px 18px; display: flex; flex-direction: column; gap: 4px">
@@ -294,6 +316,19 @@ def render(card: Card) -> str:
 {totals_html}          <div style="display: flex; align-items: center; padding-top: 8px; border-top: 1px solid {LINE}">
             <div style="flex-grow: 1; font-size: 15.5px; font-weight: 700">{card.total_label}</div>
             <div style="{total_style}; font-weight: 700; font-variant-numeric: tabular-nums">{card.total_value}</div>
+          </div>
+          <div style="margin-top: 10px; padding-top: 12px; border-top: 1px dashed {BORDER}; display: flex; flex-direction: column; gap: 8px">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+              <div style="font-size: 13px; font-weight: 700">Rabatt</div>
+              <div style="font-size: 12px; color: {MUTED}">wirkt auf</div>
+{disc_chips}              <div style="height: 30px; width: 96px; border: 1px solid {BORDER}; border-radius: 10px; display: flex; align-items: center; padding: 0 10px; font-size: 13px; font-variant-numeric: tabular-nums; background: #FFFFFF">{card.disc_value}</div>
+              <div style="display: flex; align-items: center; gap: 3px; padding: 3px; border-radius: 99px; background: {CANVAS}">
+                <div style="height: 24px; padding: 0 10px; border-radius: 99px; background: #FFFFFF; color: {INK}; display: flex; align-items: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 6px rgba(22, 24, 29, 0.06)">%</div>
+                <div style="height: 24px; padding: 0 10px; border-radius: 99px; color: {MUTED}; display: flex; align-items: center; font-size: 12px; font-weight: 600">€</div>
+              </div>
+              <div style="height: 30px; padding: 0 12px; border-radius: 99px; background: {CANVAS}; color: {BODY}; display: flex; align-items: center; font-size: 12.5px; font-weight: 600">Anwenden</div>
+            </div>
+            <div style="font-size: 12px; color: {MUTED}">Aktuell: {disc_state}</div>
           </div>
         </div>
       </div>
@@ -333,6 +368,16 @@ def render(card: Card) -> str:
     </div>
 
     <div style="display: flex; flex-direction: column; gap: 14px; min-width: 0">
+
+      <div style="background: #FFFFFF; border-radius: 20px; box-shadow: {CARD_SHADOW}; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px">
+        <div style="font-size: 12px; color: {MUTED}; font-weight: 600">Status · {card.kind_label}</div>
+        <div style="height: 44px; border: 1px solid {BORDER}; border-radius: 12px; display: flex; align-items: center; gap: 10px; padding: 0 12px; background: #FFFFFF">
+          <span style="width: 9px; height: 9px; border-radius: 99px; background: {card.status_color}"></span>
+          <span style="flex-grow: 1; font-size: 14.5px; font-weight: 600">{card.status}</span>
+          {icon(IC_CHEVRON_DOWN, MUTED, 16, "2")}
+        </div>
+        <div style="font-size: 12px; color: {MUTED}">Nächster Schritt: {card.status_next}</div>
+      </div>
 
       <div style="background: #FFFFFF; border-radius: 20px; box-shadow: {CARD_SHADOW}; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px">
         <div style="display: flex; align-items: center; gap: 12px">
@@ -390,26 +435,30 @@ CARDS = [
         lines=[
             Line("2×", "Roggen-Sauerteig 1 kg", "Art.-Nr. BR-101", "7 %", "4,20 €", "8,40 €"),
             Line("12×", "Brötchen gemischt", "", "7 %", "0,55 €", "6,60 €"),
-            Line("1×", "Butterkuchen-Blech", "vorbestellt", "7 %", "14,50 €", "14,50 €"),
+            Line("1×", "Butterkuchen-Blech", "vorbestellt", "7 %", "13,05 €", "13,05 €",
+                 strike="14,50 €", disc_note="Rabatt −10 % · Stammkundin"),
             Line("1×", "Kaffeebohnen 500 g", "", "19 %", "9,80 €", "9,80 €"),
         ],
         totals=[
-            ("Netto", "35,79 €"),
-            ("MwSt. 7 % <span style=\"color: #B3B8C2\">auf 29,50 €</span>", "1,93 €"),
+            ("Netto", "34,44 €"),
+            ("MwSt. 7 % <span style=\"color: #B3B8C2\">auf 28,05 €</span>", "1,84 €"),
             ("MwSt. 19 % <span style=\"color: #B3B8C2\">auf 9,80 €</span>", "1,56 €"),
         ],
         net_first=False,
         totals_new=False,
         total_label="Gesamt (brutto)",
-        total_value="39,30 €",
+        total_value="37,85 €",
         pay_status="Bezahlt",
         pay_color=OK,
-        pay_note="Offen: 0,00 € von 39,30 €",
+        pay_note="Offen: 0,00 € von 37,85 €",
         pay_method="Online-Zahlung · 21.08. 06:41",
         invoice_label="Rechnung erstellen",
         invoice_new=False,
         invoice_langs=("DE", "EN", "TR"),
         invoice_note="Noch keine Rechnung · Beleg auf Wunsch",
+        disc_scope="position",
+        disc_value="10 %",
+        disc_reason="Stammkunden-Rabatt auf Butterkuchen",
         customer_name="Anna Mahler",
         customer_initials="AM",
         customer_sub="Stammkundin · 14 Bestellungen · 268 €",
@@ -446,21 +495,26 @@ CARDS = [
             Line("6×", "Bratwurst grob", "", "7 %", "1,80 €", "10,80 €"),
         ],
         totals=[
-            ("Netto", "104,26 €"),
-            ("MwSt. 7 %", "7,30 €"),
+            ("Zwischensumme", "112,56 €"),
+            ("Rabatt auf die Bestellung <span style=\"color: #B3B8C2\">−5 % · Firmenkunde</span>", "−5,63 €"),
+            ("Netto", "99,93 €"),
+            ("MwSt. 7 %", "7,00 €"),
         ],
         net_first=False,
         totals_new=False,
         total_label="Gesamt (brutto)",
-        total_value="112,56 €",
+        total_value="106,93 €",
         pay_status="Offen",
         pay_color=WARN,
-        pay_note="Zahlung bei Abholung · 112,56 €",
+        pay_note="Zahlung bei Abholung · 106,93 €",
         pay_method="Vor Ort · Karte oder bar",
         invoice_label="Rechnung erstellen",
         invoice_new=False,
         invoice_langs=("DE", "EN"),
         invoice_note="Kunde bittet um Rechnung auf die Firma",
+        disc_scope="order",
+        disc_value="5 %",
+        disc_reason="Firmenkunde Nordbau",
         customer_name="Thomas Wenzel",
         customer_initials="TW",
         customer_sub="Firmenkunde · 9 Bestellungen · 1.240 €",
@@ -513,6 +567,9 @@ CARDS = [
         invoice_new=False,
         invoice_langs=("DE", "EN"),
         invoice_note="Bewirtungsbeleg auf Wunsch",
+        disc_scope="none",
+        disc_value="—",
+        disc_reason="kein Rabatt",
         customer_name="Gast · Tisch 7",
         customer_initials="T7",
         customer_sub="Ohne Konto · QR-Bestellung",
@@ -549,21 +606,26 @@ CARDS = [
             Line("1×", "Weinbegleitung", "vorbestellt", "19 %", "24,00 €", "96,00 €"),
         ],
         totals=[
-            ("Netto", "275,63 €"),
-            ("MwSt. 19 %", "52,37 €"),
+            ("Zwischensumme", "328,00 €"),
+            ("Rabatt auf die Bestellung <span style=\"color: #B3B8C2\">−10 % · Stammgast</span>", "−32,80 €"),
+            ("Netto", "248,07 €"),
+            ("MwSt. 19 %", "47,13 €"),
         ],
         net_first=False,
         totals_new=True,
         total_label="Gesamt (brutto)",
-        total_value="328,00 €",
+        total_value="295,20 €",
         pay_status="Anzahlung offen",
         pay_color=WARN,
-        pay_note="Anzahlung 25 % · 82,00 € · fällig 02.09.",
+        pay_note="Anzahlung 25 % · 73,80 € · fällig 02.09.",
         pay_method="Vorbestellung mit Anzahlung",
         invoice_label="Rechnung erstellen",
         invoice_new=True,
         invoice_langs=("DE", "EN", "RU"),
         invoice_note="Rechnung nach dem Besuch",
+        disc_scope="order",
+        disc_value="10 %",
+        disc_reason="Stammgast · 4. Besuch",
         customer_name="Familie Sander",
         customer_initials="FS",
         customer_sub="4 Besuche · Allergie: Nüsse",
@@ -600,22 +662,26 @@ CARDS = [
             Line("1×", "Apfelsaft naturtrüb 5 l", "Pfand 3,00 €", "7 %", "12,00 €", "12,00 €"),
         ],
         totals=[
-            ("Netto", "51,21 €"),
-            ("MwSt. 7 %", "3,59 €"),
-            ("Pfand <span style=\"color: #B3B8C2\">ohne MwSt.</span>", "3,00 €"),
+            ("Zwischensumme", "55,80 €"),
+            ("Rabatt auf die Bestellung <span style=\"color: #B3B8C2\">Abo-Bonus</span>", "−3,00 €"),
+            ("Netto", "49,35 €"),
+            ("MwSt. 7 %", "3,45 €"),
         ],
         net_first=False,
         totals_new=False,
         total_label="Gesamt (brutto)",
-        total_value="58,80 €",
+        total_value="52,80 €",
         pay_status="Vorkasse offen",
         pay_color=WARN,
-        pay_note="Überweisung erwartet · Verwendungszweck O-9PL4XC",
+        pay_note="Überweisung 52,80 € · Verwendungszweck O-9PL4XC",
         pay_method="Vorkasse · Bankverbindung im Bestätigungs-Mail",
         invoice_label="Rechnung erstellen",
         invoice_new=False,
         invoice_langs=("DE", "EN"),
         invoice_note="Noch keine Rechnung",
+        disc_scope="order",
+        disc_value="3,00 €",
+        disc_reason="Abo-Bonus Gemüsekiste",
         customer_name="Miriam Kley",
         customer_initials="MK",
         customer_sub="Abo-Kundin · jede Woche",
@@ -647,7 +713,8 @@ CARDS = [
         meta="Aktions-Kauf · reserviert bis Fr 29.08. 20:00 · Kanal: Aktionsseite",
         pay_pill=("Aktion", ACCENT_DARK, ACCENT_SOFT),
         lines=[
-            Line("1×", "Kaffee-Paket „Mystery“", "Aktion −30 %", "19 %", "13,90 €", "13,90 €"),
+            Line("1×", "Kaffee-Paket „Mystery“", "", "19 %", "13,90 €", "13,90 €",
+                 strike="19,90 €", disc_note="Rabatt −30 % · Aktion „Sparfuchs-Woche“"),
             Line("2×", "Bio-Kiste Wochenmarkt", "Aktionspreis", "7 %", "18,50 €", "37,00 €"),
             Line("1×", "Rabatt „Sparfuchs-Woche“", "", "", "", "−5,00 €", negative=True),
         ],
@@ -668,6 +735,9 @@ CARDS = [
         invoice_new=False,
         invoice_langs=("DE", "TR"),
         invoice_note="Aktionsbeleg mit Ersparnis 18,90 €",
+        disc_scope="position",
+        disc_value="30 %",
+        disc_reason="Aktion „Sparfuchs-Woche“",
         customer_name="Ercan Yildiz",
         customer_initials="EY",
         customer_sub="6 Aktions-Käufe · spart im Schnitt 14 €",
@@ -701,17 +771,20 @@ CARDS = [
         lines=[
             Line("1×", "Mantel „Nordlicht“", "Größe M · Farbe Sand", "19 %", "189,00 €", "189,00 €"),
             Line("2×", "Leinenhemd", "Größe S · Farbe Blau", "19 %", "79,00 €", "158,00 €"),
-            Line("1×", "Versand DHL", "", "19 %", "4,90 €", "4,90 €"),
-            Line("1×", "Gutschein WELCOME10", "", "", "", "−35,19 €", negative=True),
+            Line("1×", "Versand DHL", "", "19 %", "0,00 €", "0,00 €",
+                 strike="4,90 €", disc_note="Rabatt −100 % · versandfrei ab 200 €"),
         ],
         totals=[
-            ("Netto", "266,98 €"),
-            ("MwSt. 19 %", "50,73 €"),
+            ("Zwischensumme", "347,00 €"),
+            ("Rabatt Gutschein WELCOME10 <span style=\"color: #B3B8C2\">auf die Bestellung</span>", "−34,70 €"),
+            ("Rabatt Versand <span style=\"color: #B3B8C2\">versandfrei ab 200 €</span>", "−4,90 €"),
+            ("Netto", "262,44 €"),
+            ("MwSt. 19 %", "49,86 €"),
         ],
         net_first=False,
         totals_new=False,
         total_label="Gesamt (brutto)",
-        total_value="316,71 €",
+        total_value="312,30 €",
         pay_status="Bezahlt",
         pay_color=OK,
         pay_note="Offen: 0,00 € · Rückgabefrist bis 17.09.",
@@ -720,6 +793,9 @@ CARDS = [
         invoice_new=False,
         invoice_langs=("DE", "EN"),
         invoice_note="Rechnung R-2026-0212 · versendet",
+        disc_scope="delivery",
+        disc_value="4,90 €",
+        disc_reason="Versandfrei ab 200 €",
         customer_name="Julia Brandt",
         customer_initials="JB",
         customer_sub="3 Bestellungen · 1 Rücksendung",
@@ -756,17 +832,20 @@ CARDS = [
         lines=[
             Line("3×", "Espresso-Bohnen 1 kg", "Art.-Nr. KB-220", "7 %", "18,90 €", "56,70 €"),
             Line("1×", "Handfilter-Set", "Art.-Nr. ZB-14", "19 %", "34,00 €", "34,00 €"),
-            Line("1×", "Versand DHL Paket", "", "19 %", "5,90 €", "5,90 €"),
+            Line("1×", "Versand DHL Paket", "", "19 %", "0,00 €", "0,00 €",
+                 strike="5,90 €", disc_note="Rabatt −100 % · versandfrei ab 80 €"),
         ],
         totals=[
-            ("Netto", "86,52 €"),
+            ("Zwischensumme", "96,60 €"),
+            ("Rabatt Versand <span style=\"color: #B3B8C2\">versandfrei ab 80 €</span>", "−5,90 €"),
+            ("Netto", "81,56 €"),
             ("MwSt. 7 %", "3,71 €"),
-            ("MwSt. 19 %", "6,37 €"),
+            ("MwSt. 19 %", "5,43 €"),
         ],
         net_first=False,
         totals_new=False,
         total_label="Gesamt (brutto)",
-        total_value="96,60 €",
+        total_value="90,70 €",
         pay_status="Bezahlt",
         pay_color=OK,
         pay_note="Auszahlung Marktplatz · 02.09.",
@@ -775,6 +854,9 @@ CARDS = [
         invoice_new=False,
         invoice_langs=("DE", "EN", "TR"),
         invoice_note="Rechnung R-2026-0198 · im Kundenkonto",
+        disc_scope="delivery",
+        disc_value="5,90 €",
+        disc_reason="Versandfrei ab 80 €",
         customer_name="Peer Osthoff",
         customer_initials="PO",
         customer_sub="Neukunde · Marktplatz",
@@ -829,6 +911,9 @@ CARDS = [
         invoice_new=True,
         invoice_langs=("DE", "EN"),
         invoice_note="Beleg auf Wunsch der Kundin",
+        disc_scope="order",
+        disc_value="10,00 €",
+        disc_reason="Gutschein GS-4471",
         customer_name="Lena Kraft",
         customer_initials="LK",
         customer_sub="Stammkundin · alle 6 Wochen",
@@ -862,16 +947,17 @@ CARDS = [
         lines=[
             Line("1×", "Inspektion nach Herstellervorgabe", "aus dem Sortiment", "19 %", "189,00 €", "189,00 €"),
             Line("4×", "Bremsbelag vorne", "Teil BR-88", "19 %", "34,50 €", "138,00 €"),
-            Line("2,5 Std.", "Arbeitszeit Mechanik", "", "19 %", "78,00 €", "195,00 €"),
+            Line("2,5 Std.", "Arbeitszeit Mechanik", "", "19 %", "62,40 €", "156,00 €",
+                 strike="78,00 €", disc_note="Rabatt −20 % · Kulanz"),
         ],
         totals=[
-            ("Zwischensumme (netto)", "522,00 €"),
-            ("MwSt. 19 %", "99,18 €"),
+            ("Zwischensumme (netto)", "483,00 €"),
+            ("MwSt. 19 %", "91,77 €"),
         ],
         net_first=True,
         totals_new=False,
         total_label="Gesamt (brutto)",
-        total_value="621,18 €",
+        total_value="574,77 €",
         pay_status="Offen",
         pay_color=WARN,
         pay_note="Zahlung bei Abholung des Fahrzeugs",
@@ -880,6 +966,9 @@ CARDS = [
         invoice_new=False,
         invoice_langs=("DE", "EN", "TR"),
         invoice_note="Kostenvoranschlag vom Kunden bestätigt",
+        disc_scope="position",
+        disc_value="20 %",
+        disc_reason="Kulanz auf Arbeitszeit",
         customer_name="Sabine Roth",
         customer_initials="SR",
         customer_sub="3 Aufträge · Fahrzeug seit 2021",
@@ -932,6 +1021,9 @@ CARDS = [
         invoice_new=False,
         invoice_langs=("DE", "EN"),
         invoice_note="Teilrechnung 1 gestellt · Schlussrechnung offen",
+        disc_scope="order",
+        disc_value="2 %",
+        disc_reason="Skonto bei Zahlung in 8 Tagen",
         customer_name="Eheleute Hoffmann",
         customer_initials="EH",
         customer_sub="Privatkunde · Empfehlung",
@@ -963,27 +1055,31 @@ CARDS = [
         meta="Firmenfeier Nordwind GmbH · 18.10. · 45 Gäste",
         pay_pill=None,
         lines=[
-            Line("45×", "Fingerfood-Menü „Garten“", "pro Person · aus dem Sortiment", "19 %", "24,50 €", "1.102,50 €"),
+            Line("45×", "Fingerfood-Menü „Garten“", "pro Person · aus dem Sortiment", "19 %", "23,28 €", "1.047,60 €",
+                 strike="24,50 €", disc_note="Rabatt −5 % · ab 40 Gästen"),
             Line("45×", "Getränkepauschale", "", "19 %", "9,00 €", "405,00 €"),
             Line("12 Std.", "Servicekraft", "", "19 %", "32,00 €", "384,00 €"),
             Line("1×", "Anfahrt &amp; Aufbau", "", "19 %", "120,00 €", "120,00 €"),
         ],
         totals=[
-            ("Zwischensumme (netto)", "2.011,50 €"),
-            ("MwSt. 19 %", "382,19 €"),
+            ("Zwischensumme (netto)", "1.956,60 €"),
+            ("MwSt. 19 %", "371,75 €"),
         ],
         net_first=True,
         totals_new=False,
         total_label="Gesamt (brutto)",
-        total_value="2.393,69 €",
+        total_value="2.328,35 €",
         pay_status="Anzahlung offen",
         pay_color=WARN,
-        pay_note="Anzahlung 30 % · 718,11 € · fällig 20.09.",
+        pay_note="Anzahlung 30 % · 698,51 € · fällig 20.09.",
         pay_method="Angebot gültig bis 05.09.2026",
         invoice_label="Rechnung aus Auftrag erstellen",
         invoice_new=False,
         invoice_langs=("DE", "EN"),
         invoice_note="Angebot-Link für den Kunden · kopieren",
+        disc_scope="position",
+        disc_value="5 %",
+        disc_reason="ab 40 Gästen",
         customer_name="Nordwind GmbH",
         customer_initials="NG",
         customer_sub="Ansprechpartner: Jonas Weiler",
@@ -1015,30 +1111,33 @@ CARDS = [
         meta="Fr 12.09. – Mo 15.09. · 3 Nächte · 2 Erw. + 1 Kind · 1 Zimmer",
         pay_pill=None,
         lines=[
-            Line("3 Nächte", "Doppelzimmer Seeblick", "129,00 € pro Nacht", "7 %", "129,00 €", "387,00 €"),
+            Line("3 Nächte", "Doppelzimmer Seeblick", "pro Nacht", "7 %", "116,10 €", "348,30 €",
+                 strike="129,00 €", disc_note="Rabatt −10 % · Frühbucher"),
             Line("6×", "Frühstück", "pro Nacht · 2 Pers.", "7 %", "12,00 €", "72,00 €"),
             Line("1×", "Parkplatz", "einmalig", "19 %", "15,00 €", "15,00 €"),
-            Line("1×", "Frühbucher −10 %", "", "", "", "−47,40 €", negative=True),
             Line("6×", "Kurtaxe", "ohne MwSt.", "—", "2,50 €", "15,00 €"),
         ],
         totals=[
-            ("Netto", "391,73 €"),
-            ("MwSt. 7 %", "28,47 €"),
+            ("Netto", "405,41 €"),
+            ("MwSt. 7 %", "27,50 €"),
             ("MwSt. 19 %", "2,40 €"),
             ("Kurtaxe <span style=\"color: #B3B8C2\">ohne MwSt.</span>", "15,00 €"),
         ],
         net_first=False,
         totals_new=True,
         total_label="Gesamt (brutto)",
-        total_value="441,60 €",
+        total_value="450,30 €",
         pay_status="Anzahlung bezahlt",
         pay_color=WARN,
-        pay_note="Offen: 309,12 € von 441,60 €",
+        pay_note="Offen: 315,21 € von 450,30 €",
         pay_method="Anzahlung 30 % · Karte 14.08.",
         invoice_label="Rechnung erstellen",
         invoice_new=False,
         invoice_langs=("DE", "EN", "RU"),
         invoice_note="Rechnung bei Abreise",
+        disc_scope="position",
+        disc_value="10 %",
+        disc_reason="Frühbucher auf Übernachtung",
         customer_name="Familie Berger",
         customer_initials="FB",
         customer_sub="2. Aufenthalt · Gast seit 2024",
@@ -1091,6 +1190,9 @@ CARDS = [
         invoice_new=True,
         invoice_langs=("DE", "EN"),
         invoice_note="Reisebestätigung versendet",
+        disc_scope="order",
+        disc_value="50,00 €",
+        disc_reason="Gutschein WELCOME50",
         customer_name="Marco Lehner",
         customer_initials="ML",
         customer_sub="Teilnehmer · 2. Reise",
@@ -1144,6 +1246,9 @@ CARDS = [
         invoice_new=True,
         invoice_langs=("DE", "EN"),
         invoice_note="Teilnehmer-Infoblatt versendet",
+        disc_scope="order",
+        disc_value="5 %",
+        disc_reason="Frühbucher bis 31.08.",
         customer_name="Katrin Süss",
         customer_initials="KS",
         customer_sub="Teilnehmerin · 3. Retreat",
