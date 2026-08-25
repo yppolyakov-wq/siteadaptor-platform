@@ -4,7 +4,14 @@
 
 {% block dash_content %}
 <div>
-  <h1 class="text-2xl font-bold mb-1">{% trans "Coupon campaigns" %}</h1>
+  {% comment %}VF-20b: обратный вход в Акции — экран кампаний был тупиком (ни одной
+  ссылки наружу). Раздельные поверхности, соседние задачи.{% endcomment %}
+  <div class="flex items-start justify-between gap-3 flex-wrap">
+    <h1 class="text-2xl font-bold mb-1">{% trans "Coupon campaigns" %}</h1>
+    {% if promotions_active %}
+      <a href="{% url 'promotions:promotion-list' %}" class="border border-gray-300 text-gray-700 rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-gray-50">🏷 {% trans "Aktionen" %}</a>
+    {% endif %}
+  </div>
   <p class="text-sm text-gray-500 mb-4">{% blocktrans count n=consented %}{{ n }} guest has confirmed marketing consent (double opt-in).{% plural %}{{ n }} guests have confirmed marketing consent (double opt-in).{% endblocktrans %} {% trans "Personal codes are only sent to them." %}</p>
 
   {% if messages %}

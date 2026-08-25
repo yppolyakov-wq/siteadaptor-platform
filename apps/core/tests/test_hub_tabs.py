@@ -167,6 +167,9 @@ def test_marketing_submenu_when_active_and_gated():
     kids = _menu()["promotions"]
     for lbl in ("Aktionen", "Bewertungen", "Kampagnen", "Gutscheine", "Kontakte", "Nachrichten"):
         assert lbl in kids, lbl
+    # VF-20b (решение владельца 2026-08-25): Кампании стоят СРАЗУ за Акциями —
+    # одна группа задач («предложить и разослать»), но экраны раздельные.
+    assert kids.index("Kampagnen") == kids.index("Aktionen") + 1
     # решение 4а (2026-08-06): Reservierungen — только вкладка Verkäufe
     assert "Reservierungen" not in kids
     off = _menu(_tenant(disabled=["publishing", "reviews"]))["promotions"]

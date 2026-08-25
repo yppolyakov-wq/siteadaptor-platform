@@ -474,14 +474,9 @@ ENTRIES: tuple[NavEntry, ...] = (
         "promotions",
         search="rabatt deals",
     ),
-    _e(
-        "marketing",
-        "reviews:list",
-        _("Bewertungen"),
-        "reviews",
-        "reviews",
-        search="rezension antworten",
-    ),
+    # VF-20b (решение владельца 2026-08-25 «поставить рядом, но не объединять»):
+    # Кампании — сразу за Акциями (одна группа задач: «предложить и разослать»),
+    # каждая остаётся своим экраном со своим модульным гейтом.
     _e(
         "marketing",
         "promotions:coupon-campaigns",
@@ -489,6 +484,14 @@ ENTRIES: tuple[NavEntry, ...] = (
         "campaigns",
         "crm",
         search="coupon winback",
+    ),
+    _e(
+        "marketing",
+        "reviews:list",
+        _("Bewertungen"),
+        "reviews",
+        "reviews",
+        search="rezension antworten",
     ),
     _e("marketing", "promotions:voucher-list", _("Gutscheine"), "vouchers", "loyalty"),
     # W11-1 (Р-2): Kunden влит в Marketing — Kontakte/Nachrichten прямыми табами

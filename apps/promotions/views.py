@@ -190,6 +190,12 @@ def promotion_list(request):
             "status": status,
             "featured_enabled": featured_enabled,
             "nav": "promotions",
+            # VF-20b: перекрёстный вход в Кампании (соседняя задача — «разослать
+            # персональные коды»). Гейт по модулю кампаний (crm) — fail-closed,
+            # иначе ссылка вела бы в 404 гейта путей.
+            "campaigns_active": bool(
+                getattr(request, "tenant", None) and request.tenant.is_module_active("crm")
+            ),
         },
     )
 
@@ -1034,6 +1040,11 @@ def coupon_campaigns(request):
             # PMS-B2: панель «Geburtstagsgruß» + счётчик клиентов с датой рождения.
             "birthday": CouponCampaign.objects.filter(kind=CouponCampaign.KIND_BIRTHDAY).first(),
             "birthday_known": consented_customers().exclude(birthday=None).count(),
+            # VF-20b: обратный вход в Акции (экран кампаний был тупиком — ни одной
+            # ссылки наружу). Гейт по модулю акций — fail-closed.
+            "promotions_active": bool(
+                getattr(request, "tenant", None) and request.tenant.is_module_active("promotions")
+            ),
         },
     )
 
