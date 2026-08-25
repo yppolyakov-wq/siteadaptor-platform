@@ -20179,3 +20179,6 @@ msgstr "Kayıtlı müşteri bilgisi yok."
 
 msgid "Der Kunde bekommt bei jedem Statuswechsel eine E-Mail."
 msgstr "Müşteri her durum değişikliğinde bir e-posta alır."
+
+msgid "Bitte einen gültigen Betrag eingeben."
+msgstr "Lütfen geçerli bir tutar girin."

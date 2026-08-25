@@ -20052,3 +20052,6 @@ msgstr "No customer record linked."
 
 msgid "Der Kunde bekommt bei jedem Statuswechsel eine E-Mail."
 msgstr "The customer gets an email on every status change."
+
+msgid "Bitte einen gültigen Betrag eingeben."
+msgstr "Please enter a valid amount."

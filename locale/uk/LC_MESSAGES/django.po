@@ -20254,3 +20254,6 @@ msgstr "Картку клієнта не прив'язано."
 
 msgid "Der Kunde bekommt bei jedem Statuswechsel eine E-Mail."
 msgstr "Клієнт отримує лист під час кожної зміни статусу."
+
+msgid "Bitte einen gültigen Betrag eingeben."
+msgstr "Введіть коректну суму."

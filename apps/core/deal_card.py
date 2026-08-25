@@ -148,6 +148,10 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
         "deal_titles": SECTION_TITLES,
         "deal_calendar_html": calendar,
         "deal_show_when": show_when,
+        # DC-5: скидка владельца — общий блок между составом и суммами.
+        "deal_discount_cents": int(getattr(obj, "discount_cents", 0) or 0),
+        "deal_discount_input": f"{int(getattr(obj, 'discount_cents', 0) or 0) / 100:.2f}",
+        "deal_discount_note": getattr(obj, "voucher_code", "") or "",
         # DC-4: внешний номер правится прямо в голове — там, где поле есть.
         "deal_external_editable": hasattr(obj, "external_code"),
         "deal_external_code": getattr(obj, "external_code", ""),

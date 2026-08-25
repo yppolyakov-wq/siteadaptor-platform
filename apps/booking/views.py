@@ -212,7 +212,7 @@ def booking_detail(request, pk):
                 request,
                 "booking",
                 booking,
-                sections=("items", "totals", "payment"),
+                sections=("items", "discount", "totals", "payment"),
                 # VS-3: связь с якорной сделкой (запись может быть услугой к брони).
                 links=deal_links.block_context("booking", booking.pk),
             ),

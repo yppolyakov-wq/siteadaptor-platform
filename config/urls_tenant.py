@@ -22,6 +22,7 @@ from apps.core.views import (
     board_settings,
     dashboard,
     deal_customer_edit,
+    deal_discount_edit,
     deal_external_edit,
     deal_link_view,
     deal_unlink_view,
@@ -229,6 +230,12 @@ urlpatterns = [
         "dashboard/kunde/<str:kind>/<uuid:pk>/",
         deal_customer_edit,
         name="deal-customer-edit",
+    ),
+    # DC-5: скидка владельца с карточки любой сделки (пересчёт итога — в домене).
+    path(
+        "dashboard/rabatt/<str:kind>/<uuid:pk>/",
+        deal_discount_edit,
+        name="deal-discount-edit",
     ),
     # DC-4: внешний номер сделки (kind-агностичный приёмник, как контакт клиента).
     path(

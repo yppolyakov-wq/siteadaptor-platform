@@ -3890,6 +3890,45 @@ def deal_customer_edit(request, kind, pk):
 
 @login_required
 @require_POST
+def deal_discount_edit(request, kind, pk):
+    """DC-5: скидка владельца с карточки ЛЮБОЙ сделки — один приёмник.
+
+    Сумма вводится в евро (немецкая запятая тоже принимается), пересчёт итога
+    делает домен (`core.deal_discount`), поэтому скидка попадает в общую цену
+    и в письма/PDF, а не остаётся подписью на экране."""
+    from decimal import Decimal, InvalidOperation
+
+    from django.http import Http404
+    from django.urls import reverse
+
+    from apps.core import deal_discount, transactions
+
+    if not deal_discount.supports(kind):
+        raise Http404("kind has no discount")
+    obj = get_object_or_404(transactions.model_for(kind), pk=pk)
+    raw = (request.POST.get("discount") or "0").replace(",", ".").strip()
+    try:
+        cents = int(Decimal(raw or "0") * 100)
+    except (InvalidOperation, ValueError):
+        messages.error(request, _("Bitte einen gültigen Betrag eingeben."))
+        cents = None
+    if cents is not None:
+        deal_discount.set_discount(
+            kind,
+            obj,
+            cents=cents,
+            note=(request.POST.get("discount_note") or "").strip(),
+            tenant=getattr(request, "tenant", None),
+        )
+        messages.success(request, _("Rabatt gespeichert."))
+    nxt = request.POST.get("next", "")
+    if not (nxt.startswith("/") and not nxt.startswith("//")):
+        nxt = transactions.transaction_for(kind, obj).manage_url or reverse("verkaeufe")
+    return redirect(nxt)
+
+
+@login_required
+@require_POST
 def deal_external_edit(request, kind, pk):
     """DC-4 (ТЗ владельца 2026-08-25): внешний номер сделки — ОДИН приёмник на все
     виды (как `deal-customer-edit` для контакта и `board-action` для статусов).

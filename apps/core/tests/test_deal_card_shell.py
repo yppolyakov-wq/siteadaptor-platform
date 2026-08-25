@@ -94,7 +94,12 @@ def _booking():
     day = timezone.localdate() + timedelta(days=2)
     start = datetime.combine(day, time(10, 0), tzinfo=timezone.get_current_timezone())
     return booking_services.book(
-        resource, start=start, end=start + timedelta(hours=1), name="Dora Klein", email="d@t.de"
+        resource,
+        start=start,
+        end=start + timedelta(hours=1),
+        name="Dora Klein",
+        email="d@t.de",
+        price_cents=4000,  # цена нужна, чтобы скидке было что уменьшать
     )
 
 
@@ -222,3 +227,70 @@ def test_external_number_saves_and_is_searchable(client, django_user_model):
     assert "external_code" in transactions._TITLE_SEARCH["job"]
     assert "external_code" in transactions._TITLE_SEARCH["stay"]
     assert "external_code" in transactions._TITLE_SEARCH["booking"]
+
+
+# --- DC-5: скидка владельца на всех карточках ---------------------------------
+
+
+def _post(kind, obj, data, tenant_type="retail"):
+    from apps.core import views as core_views
+
+    req = RequestFactory().post(f"/dashboard/rabatt/{kind}/{obj.pk}/", data)
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = _User()
+    req.tenant = _tenant(tenant_type)
+    return core_views.deal_discount_edit(req, kind, obj.pk)
+
+
+def test_discount_block_between_items_and_totals():
+    """ТЗ 2026-08-25: «скидка должна быть между позициями и суммой»."""
+    for kind, html in _cards():
+        assert 'data-deal-block="discount"' in html, kind
+        assert html.index('data-deal-block="items"') < html.index('data-deal-block="discount"'), (
+            kind
+        )
+        if 'data-deal-block="totals"' in html:
+            assert html.index('data-deal-block="discount"') < html.index(
+                'data-deal-block="totals"'
+            ), kind
+
+
+def test_discount_lowers_the_total_of_every_deal():
+    """«При указании скидки учитываться в общей цене» — итог реально падает."""
+    from decimal import Decimal
+
+    order = _order()
+    before = Decimal(order.total)
+    _post("order", order, {"discount": "2,50", "discount_note": "Stammkunde"})
+    order.refresh_from_db()
+    assert Decimal(order.total) == before - Decimal("2.50")
+
+    booking = _booking()
+    before_cents = booking.total_cents
+    _post("booking", booking, {"discount": "5.00"}, "friseur")
+    booking.refresh_from_db()
+    assert booking.total_cents == before_cents - 500
+
+    stay = _stay()
+    before_cents = stay.total_cents
+    _post("stay", stay, {"discount": "10,00"}, "hotel")
+    stay.refresh_from_db()
+    assert stay.total_cents == before_cents - 1000
+
+    job = _job()
+    before_gross = job.payable_gross
+    _post("job", job, {"discount": "7,00"}, "handwerker")
+    job.refresh_from_db()
+    assert job.payable_gross == before_gross - Decimal("7.00")
+
+
+def test_discount_never_goes_below_zero_and_rejects_garbage():
+    stay = _stay()
+    _post("stay", stay, {"discount": "999999"}, "hotel")
+    stay.refresh_from_db()
+    assert stay.total_cents == stay.kurtaxe_cents  # проживание съедено, налог остаётся
+    before = stay.total_cents
+    _post("stay", stay, {"discount": "abc"}, "hotel")  # мусор не меняет сумму
+    stay.refresh_from_db()
+    assert stay.total_cents == before

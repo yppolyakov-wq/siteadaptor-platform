@@ -92,34 +92,6 @@ Menge · Summe — количество ПОСЛЕ цены за штуку, н�
   {% if order.note %}<p class="text-sm text-gray-600 whitespace-pre-line mt-2">📝 {{ order.note }}</p>{% endif %}
 {% endblock %}
 
-{% block deal_discount %}
-  {% comment %}Правка владельца 2026-08-25: скидка стоит МЕЖДУ составом и суммами
-  и всегда попадает в итог — та же `discount_cents`, что у промокода (итог
-  считает один хелпер), поэтому в письмах/PDF/счёте она уже учтена (SH-7).{% endcomment %}
-  {% if editable %}
-    <form method="post" action="{% url 'orders:order-edit' order.pk %}" class="flex flex-wrap items-end gap-2">
-      {% csrf_token %}
-      <input type="hidden" name="action" value="discount">
-      <label class="text-xs text-gray-500">{% trans "Rabatt" %} ({{ order.currency }})
-        <input type="text" inputmode="decimal" name="discount" value="{{ discount_eur_input }}"
-               class="block w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm tabular-nums">
-      </label>
-      <label class="text-xs text-gray-500">{% trans "Grund / Code" %}
-        <input type="text" name="discount_note" value="{{ order.voucher_code }}" maxlength="12"
-               class="block w-32 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
-      </label>
-      <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Rabatt speichern" %}</button>
-    </form>
-  {% endif %}
-  <p class="text-xs text-gray-500 mt-2">
-    {% if order.discount_cents %}
-      {% trans "Aktuell" %}: <span class="text-green-700 font-medium">−{{ order.discount_eur }} {{ order.currency }}</span>{% if order.voucher_code %} · {{ order.voucher_code }}{% endif %}
-      — {% trans "im Gesamtpreis verrechnet" %}
-    {% else %}
-      {% trans "Kein Rabatt gesetzt — Gesamtpreis unverändert." %}
-    {% endif %}
-  </p>
-{% endblock %}
 
 {% block deal_totals %}
   {% if order.is_delivery %}

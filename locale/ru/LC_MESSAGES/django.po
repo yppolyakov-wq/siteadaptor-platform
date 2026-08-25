@@ -20270,3 +20270,6 @@ msgstr "Карточка клиента не привязана."
 
 msgid "Der Kunde bekommt bei jedem Statuswechsel eine E-Mail."
 msgstr "Клиент получает письмо при каждой смене статуса."
+
+msgid "Bitte einen gültigen Betrag eingeben."
+msgstr "Введите корректную сумму."

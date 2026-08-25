@@ -1,0 +1,26 @@
+{% load i18n %}
+{% comment %}DC-5 (ТЗ владельца 2026-08-25): скидка владельца — ОДИН блок на все
+виды сделок, между составом и суммами. Приёмник kind-агностичный
+(`deal-discount-edit`), пересчёт итога делает домен (см. core/deal_discount.py):
+скидка всегда попадает в общую цену, а не остаётся подписью.{% endcomment %}
+<form method="post" action="{% url 'deal-discount-edit' deal_kind deal.pk %}" class="flex flex-wrap items-end gap-2">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+  <label class="text-xs text-gray-500">{% trans "Rabatt" %} ({{ deal.currency|default:"EUR" }})
+    <input type="text" inputmode="decimal" name="discount" value="{{ deal_discount_input }}"
+           class="block w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm tabular-nums">
+  </label>
+  <label class="text-xs text-gray-500">{% trans "Grund / Code" %}
+    <input type="text" name="discount_note" value="{{ deal_discount_note }}" maxlength="20"
+           class="block w-40 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+  </label>
+  <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Rabatt speichern" %}</button>
+</form>
+<p class="text-xs text-gray-500 mt-2">
+  {% if deal_discount_cents %}
+    {% trans "Aktuell" %}: <span class="text-green-700 font-medium">−{{ deal_discount_input }} €</span>{% if deal_discount_note %} · {{ deal_discount_note }}{% endif %}
+    — <span class="text-green-700">{% trans "im Gesamtpreis verrechnet" %}</span>
+  {% else %}
+    {% trans "Kein Rabatt gesetzt — Gesamtpreis unverändert." %}
+  {% endif %}
+</p>
