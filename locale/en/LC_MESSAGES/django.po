@@ -19955,3 +19955,6 @@ msgstr "View on the website"
 
 msgid "mit Online-Anzahlung"
 msgstr "with online deposit"
+
+msgid "Catalog parts are reserved from stock when the job is accepted."
+msgstr "Catalog parts are reserved from stock when the job is accepted."

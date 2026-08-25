@@ -20081,3 +20081,7 @@ msgstr "Web sitesinde görüntüle"
 
 msgid "mit Online-Anzahlung"
 msgstr "çevrimiçi kaparo ile"
+
+msgid "Catalog parts are reserved from stock when the job is accepted."
+msgstr ""
+"Katalog parçaları, iş onaylandığında (Beauftragt) stoktan rezerve edilir."

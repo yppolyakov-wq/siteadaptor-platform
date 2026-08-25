@@ -35,7 +35,17 @@ class JobSM(StateMachine):
                 instance.voucher_code, amount_cents=getattr(instance, "discount_cents", 0)
             )
 
-        # G11: расходники (Teile) списываются со склада при erledigt (один раз).
+        # VF-13: резерв Teile при принятии сметы (Beauftragt) — commit_stock
+        # (кламп, идемпотентно); витрина не продаст заложенное под заявку.
+        if t.dst == "accepted":
+            services.commit_stock(instance)
+        # VF-13: отмена/отклонение возвращает зарезервированное (release гардится
+        # stock_committed — quoted→declined без резерва склад не двигает).
+        if t.dst in ("cancelled", "declined"):
+            services.release_stock(instance)
+
+        # G11: расходники (Teile) списаны не позже erledigt (обычно уже при
+        # Beauftragt — VF-13; повтор идемпотентен).
         if t.dst == "done":
             services.commit_stock(instance)
             # A9: клиенту — Auftrag fertig (Repair-Status) + ссылка на страницу статуса.

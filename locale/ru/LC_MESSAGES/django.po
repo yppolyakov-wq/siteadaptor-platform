@@ -20172,3 +20172,7 @@ msgstr "Посмотреть на сайте"
 
 msgid "mit Online-Anzahlung"
 msgstr "с онлайн-предоплатой"
+
+msgid "Catalog parts are reserved from stock when the job is accepted."
+msgstr ""
+"Товары из каталога резервируются на складе при принятии заказа (Beauftragt)."

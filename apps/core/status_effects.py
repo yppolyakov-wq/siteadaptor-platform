@@ -141,8 +141,8 @@ def restore_stock_for(kind: str, instance) -> None:
     ticket — стоп активной рассрочки (зеркало R10e: не деньги, но тот же «возврат
     при отмене» — иначе beat продолжит off-session списания по отменённому билету);
     прочие kinds ёмкость освобождают сами (по blocks_capacity), склад не двигают.
-    Возврат склада job при cancel НЕ делаем — builtin-отмена его тоже не делает
-    (обратной функции к commit_stock нет; паритет)."""
+    job — release_stock (VF-13: возврат резерва Teile; зеркало builtin-отмены,
+    идемпотентно по леджеру + гард stock_committed)."""
     if kind == "ticket":
         from apps.events.models import InstallmentPlan
 
@@ -164,6 +164,10 @@ def restore_stock_for(kind: str, instance) -> None:
         from apps.orders.state_machine import _restore_stock
 
         _restore_stock(instance)
+    elif kind == "job":
+        from apps.jobs.services import release_stock
+
+        release_stock(instance)
     elif kind == "reservation":
         from django.db.models import F
 
@@ -216,6 +220,12 @@ def apply_custom_effects(kind: str, instance, src_desc, dst_desc) -> None:
     if dst_desc.revenue_recognized:
         record_revenue_for(kind, instance)
     if dst_desc.role == "done":
+        commit_stock_for(kind, instance)
+    # VF-13 (зеркало резерва): кастом-статус job роли active, «держащий ёмкость»
+    # (blocks_capacity — дефолт роли), резервирует Teile как builtin `accepted`
+    # (commit_stock идемпотентен; builtin quoted/accepted сюда не попадают —
+    # builtin=True отфильтрован раньше).
+    if kind == "job" and dst_desc.role == "active" and dst_desc.blocks_capacity:
         commit_stock_for(kind, instance)
     if dst_desc.role == "cancelled":
         if src_desc is not None and src_desc.role == "cancelled":

@@ -114,17 +114,22 @@ def set_lines(job, lines, *, vat_rate=None, small_business=False) -> Job:
         net, vat, gross = compute_totals(dict_lines, job.vat_rate, small_business=small_business)
         job.net, job.vat_amount, job.gross = net, vat, gross
         job.save(update_fields=["vat_rate", "net", "vat_amount", "gross", "updated_at"])
+        # VF-13: если резерв уже держится (Beauftragt) — привести его к новому составу.
+        _resync_reserved_stock(job)
     return job
 
 
 def commit_stock(job) -> None:
-    """G11: списать остаток за расходники сметы (Teile) — один раз, при erledigt.
+    """G11/VF-13: списать остаток за расходники сметы (Teile) — один раз.
 
-    Списываем только строки с привязкой к каталогу (product/variant) и учётом
-    остатка (stock_quantity не null). Работа уже выполнена → не блокируем при
-    нехватке, а клампим в 0 (паттерн R3 по атомарности, но без OutOfStock).
-    Идемпотентно: гард ``job.stock_committed`` под select_for_update. Возврата при
-    отмене нет — cancelled достижим только до done (см. JobSM).
+    С VF-13 вызывается уже при ПРИНЯТИИ сметы (Beauftragt) — резерв, чтобы
+    витрина не продала заложенные под заявку детали; при erledigt повтор —
+    идемпотентный no-op. Списываем только строки с привязкой к каталогу
+    (product/variant) и учётом остатка (stock_quantity не null). Принятие
+    клиентом/вебхуком не блокируем при нехватке, а клампим в 0 (паттерн R3 по
+    атомарности, но без OutOfStock — детали докупаются). Идемпотентно: гард
+    ``job.stock_committed`` под select_for_update. Возврат при отмене —
+    ``release_stock``.
     """
     from math import ceil
 
@@ -170,6 +175,77 @@ def commit_stock(job) -> None:
         locked.stock_committed = True
         locked.save(update_fields=["stock_committed", "updated_at"])
     job.stock_committed = True
+
+
+def release_stock(job) -> None:
+    """VF-13: вернуть зарезервированное по смете при отмене (Storno/Abgelehnt).
+
+    Возврат идёт по ЛЕДЖЕРУ (source="job", kind="commit", note=reference_code),
+    а не по строкам — строки пересоздаются при каждом Save сметы и могли
+    отвязаться/исчезнуть. Return-движение пишется ПЕРВЫМ (дедуп конституционный
+    по (source, ref, kind), ref="ret:<pk движения>"), счётчик двигается
+    conditional UPDATE только при созданном движении — повторный вызов и
+    двухшаговые обходы безопасны. Возвращается ровно фактически списанное
+    (вкл. клампы). Гард stock_committed снимается; повторный резерв после
+    отмены невозможен (рёбер ИЗ cancelled-роли не бывает).
+    """
+    from django.db.models import F
+
+    from apps.catalog.models import Product, ProductVariant
+    from apps.inventory.models import StockMovement
+    from apps.inventory.services import record_movement, restore_fefo
+
+    with transaction.atomic():
+        locked = Job.objects.select_for_update().get(pk=job.pk)
+        if not locked.stock_committed:
+            return
+        movements = StockMovement.objects.filter(
+            source="job", kind="commit", note=locked.reference_code
+        )
+        for mv in movements:
+            qty = -mv.delta
+            if qty <= 0:
+                continue
+            created = record_movement(
+                product=mv.product,
+                variant=mv.variant,
+                kind="return",
+                delta=qty,
+                source="job",
+                source_ref=f"ret:{mv.pk}",
+                note=locked.reference_code,
+            )
+            if created is None:
+                continue  # это движение уже возвращали (дедуп)
+            if mv.variant_id:
+                ProductVariant.objects.filter(
+                    pk=mv.variant_id, stock_quantity__isnull=False
+                ).update(stock_quantity=F("stock_quantity") + qty)
+            else:
+                Product.all_objects.filter(pk=mv.product_id, stock_quantity__isnull=False).update(
+                    stock_quantity=F("stock_quantity") + qty
+                )
+            restore_fefo(mv.product, mv.variant, qty=qty)
+        locked.stock_committed = False
+        locked.save(update_fields=["stock_committed", "updated_at"])
+    job.stock_committed = False
+
+
+def _resync_reserved_stock(job) -> None:
+    """VF-13: смета с активным резервом правится → резерв следует новым строкам.
+
+    Release + повторный commit в одной atomic (net-эффект = дельта состава).
+    Только пока статус в роли active — после done/invoiced правка сметы склад
+    не трогает (история; прежнее поведение), у отменённой резерва нет.
+    """
+    from apps.core import status_registry
+
+    desc = status_registry.resolve("job", job.status)
+    if desc is None or desc.role != "active" or not job.stock_committed:
+        return
+    with transaction.atomic():
+        release_stock(job)
+        commit_stock(job)
 
 
 MAX_PHOTOS = 5

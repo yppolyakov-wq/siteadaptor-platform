@@ -117,7 +117,7 @@
   {% if parts %}
     <p class="text-xs text-gray-400 mt-2">
       {% if job.stock_committed %}✓ {% trans "Stock for catalog parts has been booked." %}
-      {% else %}ℹ {% trans "Catalog parts are deducted from stock when the job is marked done." %}{% endif %}
+      {% else %}ℹ {% trans "Catalog parts are reserved from stock when the job is accepted." %}{% endif %}
     </p>
   {% endif %}
   {% comment %}QF-2 (фидбэк владельца 2026-08-20): нижний ряд «прыгал» — у одного

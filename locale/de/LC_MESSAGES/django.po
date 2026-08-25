@@ -20083,3 +20083,6 @@ msgstr "Ansehen auf der Website"
 
 msgid "mit Online-Anzahlung"
 msgstr "mit Online-Anzahlung"
+
+msgid "Catalog parts are reserved from stock when the job is accepted."
+msgstr "Katalog-Teile werden mit der Beauftragung im Lager reserviert."
