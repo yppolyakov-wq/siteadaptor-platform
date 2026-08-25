@@ -46,7 +46,18 @@ def adopt_open_thread(customer, *, ref_kind: str, ref_id: str, ref_label: str = 
     без привязки (обычный вопрос с сайта), свежая сделка прикрепляется к нему:
     история «спросил → купил» остаётся одной беседой. Только при однозначности
     (0 или ≥2 открытых треда → ничего). Fail-soft: любая ошибка глотается —
-    создание сделки важнее склейки."""
+    создание сделки важнее склейки.
+
+    Ревью 2026-08-25 (три правки):
+    - НЕ трогаем high-треды: problem-полоса доски ищет open/pending+high по ref
+      сделки — склейка превратила бы жалобу «вообще» в «проблему по этому заказу»,
+      а свежий заказ получил бы красную полосу ни за что;
+    - НЕ трогаем тред с предложением (offers): accept_offer сам проставит ref и
+      напишет свою отметку — иначе две одинаковые системные строки подряд;
+    - `unread_for_staff` восстанавливаем после system-отметки: post_message гасит
+      флаг для любой не-клиентской роли, и неотвеченный вопрос молча исчезал бы
+      из бейджа, списка тредов, карточки CRM и дайджеста владельца.
+    """
     try:
         if customer is None or not ref_id:
             return
@@ -55,11 +66,14 @@ def adopt_open_thread(customer, *, ref_kind: str, ref_id: str, ref_label: str = 
                 customer=customer,
                 status__in=(Conversation.STATUS_OPEN, Conversation.STATUS_PENDING),
                 ref_kind="",
-            )[:2]
+            ).exclude(priority=Conversation.PRIORITY_HIGH)[:2]
         )
         if len(open_threads) != 1:
             return
         conv = open_threads[0]
+        if conv.offers.exists():
+            return  # тред предложения — ref проставит accept_offer
+        was_unread = conv.unread_for_staff
         conv.ref_kind = (ref_kind or "")[:20]
         conv.ref_id = str(ref_id)[:64]
         conv.ref_label = (ref_label or str(ref_id))[:200]
@@ -68,5 +82,8 @@ def adopt_open_thread(customer, *, ref_kind: str, ref_id: str, ref_label: str = 
         from .services import post_message
 
         post_message(conv, body=f"🔗 {conv.ref_label}", author_role=Message.AUTHOR_SYSTEM)
+        if was_unread:
+            # Вопрос клиента остаётся непрочитанным — на него ещё не ответили.
+            Conversation.objects.filter(pk=conv.pk).update(unread_for_staff=True)
     except Exception:  # noqa: BLE001 — склейка best-effort
         pass

@@ -135,7 +135,7 @@ def commit_stock_for(kind: str, instance) -> None:
         commit_stock(instance)
 
 
-def restore_stock_for(kind: str, instance) -> None:
+def restore_stock_for(kind: str, instance, src_role: str | None = None) -> None:
     """Вернуть складской остаток/ёмкость при кастом-cancel. order — позиции заказа
     (тот же `_restore_stock` + леджер); reservation — остаток акции + waitlist;
     ticket — стоп активной рассрочки (зеркало R10e: не деньги, но тот же «возврат
@@ -165,9 +165,15 @@ def restore_stock_for(kind: str, instance) -> None:
 
         _restore_stock(instance)
     elif kind == "job":
-        from apps.jobs.services import release_stock
+        # VF-13 + ревью 2026-08-25: возвращаем ТОЛЬКО резерв, т.е. когда сделку
+        # покидают из активной роли (Beauftragt). После «Erledigt» детали
+        # физически израсходованы — гард stock_committed этого не различает, и
+        # кастом-ребро done→cancelled раздувало бы остаток на установленные у
+        # клиента детали. src_role=None (неизвестно) → не трогаем склад.
+        if src_role == "active":
+            from apps.jobs.services import release_stock
 
-        release_stock(instance)
+            release_stock(instance)
     elif kind == "reservation":
         from django.db.models import F
 
@@ -230,7 +236,7 @@ def apply_custom_effects(kind: str, instance, src_desc, dst_desc) -> None:
     if dst_desc.role == "cancelled":
         if src_desc is not None and src_desc.role == "cancelled":
             return
-        restore_stock_for(kind, instance)
+        restore_stock_for(kind, instance, src_role=(src_desc.role if src_desc else None))
         unredeem_for(instance)
         if src_desc is not None and src_desc.revenue_recognized:
             record_reversal_for(kind, instance)

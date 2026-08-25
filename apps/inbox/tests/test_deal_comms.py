@@ -201,3 +201,61 @@ def test_reply_without_checkbox_does_not_push(monkeypatch):
     )
     views.thread(request, conv.pk)
     assert not called
+
+
+# --- ревью 2026-08-25: три правки склейки C2 ------------------------------------
+
+
+def test_adopt_keeps_unread_question_visible():
+    """Вопрос клиента остаётся непрочитанным: system-отметка о сделке не должна
+    гасить бейдж — иначе неотвеченный вопрос исчезал из инбокса и дайджеста."""
+    conv = services.start_conversation(subject="Frage", body="Habt ihr X?", email="unread@test.de")
+    assert conv.unread_for_staff
+    _order(email="unread@test.de")
+    conv.refresh_from_db()
+    assert conv.ref_kind == "order"  # склейка произошла
+    assert conv.unread_for_staff is True  # и вопрос всё ещё «непрочитан»
+
+
+def test_adopt_skips_high_priority_thread():
+    """High-тред (жалоба «вообще») не привязывается к свежей сделке — иначе доска
+    рисует «Problem — Kunde wartet» на беспроблемном заказе."""
+    conv = services.start_conversation(
+        subject="Beschwerde",
+        body="Sehr unzufrieden",
+        email="high@test.de",
+        ref_kind="order",
+        ref_id="ALT-1",
+        priority=Conversation.PRIORITY_HIGH,
+    )
+    Conversation.objects.filter(pk=conv.pk).update(ref_kind="", ref_id="", ref_label="")
+    _order(email="high@test.de")
+    conv.refresh_from_db()
+    assert conv.ref_kind == ""  # high остался без привязки
+
+
+def test_adopt_skips_offer_thread_no_duplicate_note():
+    """Тред с предложением ref проставляет accept_offer — склейка не должна
+    писать вторую системную отметку про тот же заказ."""
+    from apps.catalog.tests.factories import ProductFactory
+    from apps.orders import offers
+
+    conv = services.start_conversation(subject="Torten?", body="Preis?", email="offer@test.de")
+    product = ProductFactory(base_price="8.50", stock_quantity=5)
+    offer = offers.send_offer(
+        conv,
+        lines=[
+            {
+                "kind": "product",
+                "ref_id": str(product.id),
+                "title": "Torte",
+                "unit_price": "8.50",
+                "qty": 1,
+            }
+        ],
+    )
+    order = offers.accept_offer(offer, payment_method="on_site")
+    bodies = list(
+        conv.messages.filter(author_role=Message.AUTHOR_SYSTEM).values_list("body", flat=True)
+    )
+    assert sum(1 for b in bodies if order.reference_code in b) == 1, bodies

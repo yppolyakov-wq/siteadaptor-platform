@@ -111,7 +111,11 @@ def _capture(monkeypatch):
     calls = []
     monkeypatch.setattr(status_effects, "record_revenue_for", lambda k, i: calls.append(("rev", k)))
     monkeypatch.setattr(
-        status_effects, "restore_stock_for", lambda k, i: calls.append(("stock", k))
+        # Ревью 2026-08-25: restore_stock_for принимает роль ПОКИДАЕМОГО статуса
+        # (job возвращает только резерв, не израсходованное).
+        status_effects,
+        "restore_stock_for",
+        lambda k, i, src_role=None: calls.append(("stock", k)),
     )
     monkeypatch.setattr(status_effects, "unredeem_for", lambda i: calls.append("unredeem"))
     monkeypatch.setattr(

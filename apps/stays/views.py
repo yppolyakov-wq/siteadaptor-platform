@@ -283,6 +283,16 @@ def calendar_context(request):
         "free_rooms": services.free_rooms_for(selected) if selected else [],
         "edit_extras": edit_extras,
         "chosen_extra_ids": chosen_extra_ids,
+        # Ревью 2026-08-25: тот же партиал рендерится страницей брони, фрагментом
+        # ?box=1 и телом Belegungsplan — без этих гейтов входы «Kundenkarte» и
+        # «Nachricht an den Kunden» молча пропадали на шахматке (основной рабочей
+        # поверхности отеля). fail-closed, как в booking_detail.
+        "crm_active": bool(
+            getattr(request, "tenant", None) and request.tenant.is_module_active("crm")
+        ),
+        "inbox_active": bool(
+            getattr(request, "tenant", None) and request.tenant.is_module_active("inbox")
+        ),
     }
     if request.GET.get("box") == "1":
         if selected is None:

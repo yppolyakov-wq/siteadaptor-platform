@@ -190,3 +190,31 @@ def test_custom_active_status_reserves_and_custom_cancel_returns(monkeypatch):
     _apply(job, "storno_kulanz")
     product.refresh_from_db()
     assert product.stock_quantity == 10  # кастом-отмена вернула
+
+
+def test_custom_cancel_after_done_does_not_return_used_parts(monkeypatch):
+    """Ревью 2026-08-25: после «Erledigt» детали ИЗРАСХОДОВАНЫ. Кастом-ребро
+    done→cancelled не должно возвращать их на склад (гард stock_committed
+    резерв и расход не различает — различает роль покидаемого статуса)."""
+    from apps.core import status_registry
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(
+        site_config={
+            "status_defs": {
+                "job": [{"code": "storno_kulanz", "role": "cancelled", "stage": "terminal"}]
+            },
+            "status_edges": {"job": [{"src": "done", "dst": "storno_kulanz"}]},
+        }
+    )
+    monkeypatch.setattr(status_registry, "_current_tenant", lambda: tenant)
+
+    job = _job(email="k@test.de")
+    product = ProductFactory(stock_quantity=10)
+    _lines(job, product, 3)
+    job = _apply(job, "quoted", "accepted", "done")
+    product.refresh_from_db()
+    assert product.stock_quantity == 7
+    _apply(job, "storno_kulanz")
+    product.refresh_from_db()
+    assert product.stock_quantity == 7  # детали стоят у клиента, склад не растёт
