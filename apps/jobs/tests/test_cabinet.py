@@ -603,3 +603,29 @@ def test_detail_uses_rail_layout():
     aside = body[rail_i:]
     assert "Kundendaten bearbeiten" in aside
     assert 'value="quoted"' in aside  # статусные действия — в рейле
+
+
+# --- VF-15 (фидбэк 2026-08-25): блок «Zahlung» на карточке заявки ------------
+def test_payment_card_and_mark_paid():
+    """Карточка «💳 Zahlung» в рейле (статус/депозит/Angebot-ссылка) + ручное
+    «Als bezahlt markieren» — оплату на месте раньше было не отметить вовсе
+    (payment_state писал только Stripe-вебхук). Идемпотентно."""
+    job = _job()
+    services.set_lines(job, [{"text": "Buffet", "qty": 1, "unit_price": "100.00"}], vat_rate=19)
+    body = views.job_detail(_req(), pk=job.pk).content.decode()
+    rail = body[body.index('<aside class="space-y-4 mt-4 lg:mt-0">') :]
+    assert "💳" in rail and 'value="mark_paid"' in rail
+    assert "/angebot/" not in rail  # ссылка только на quoted/accepted
+
+    resp = views.job_detail(_req("post", data={"action": "mark_paid"}), pk=job.pk)
+    assert resp.status_code == 302
+    job.refresh_from_db()
+    assert job.payment_state == "paid"
+    views.job_detail(_req("post", data={"action": "mark_paid"}), pk=job.pk)  # идемпотентно
+    job.refresh_from_db()
+    assert job.payment_state == "paid"
+    body = views.job_detail(_req(), pk=job.pk).content.decode()
+    assert 'value="mark_paid"' not in body  # оплачено → кнопка честно скрыта
+
+    # VF-16: ссылка на CRM-карточку клиента (crm у всех типов с VF-6)
+    assert f"/crm/{job.customer.pk}/" in body or "crm" in body

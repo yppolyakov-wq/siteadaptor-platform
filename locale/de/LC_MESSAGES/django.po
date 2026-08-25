@@ -20074,3 +20074,12 @@ msgstr "Struktur"
 
 msgid "Position leeren"
 msgstr "Position leeren"
+
+msgid "Angebot-Link für den Kunden"
+msgstr "Angebot-Link für den Kunden"
+
+msgid "Ansehen auf der Website"
+msgstr "Ansehen auf der Website"
+
+msgid "mit Online-Anzahlung"
+msgstr "mit Online-Anzahlung"

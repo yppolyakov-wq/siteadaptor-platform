@@ -327,6 +327,9 @@ document (партиал может перерисовываться — уро�
         {% if not job.customer.email and not job.customer.phone %}<span class="text-amber-700">{% trans "Keine Kontaktdaten hinterlegt" %}</span>{% endif %}
       </p>
       {% if job.site_address %}<p class="text-gray-600 mt-1">📍 {{ job.site_address }}</p>{% endif %}
+      {% comment %}VF-16 (фидбэк 2026-08-25): полная карточка клиента в CRM —
+      гейт по модулю (без него ссылка вела бы в 404; прецедент order_detail).{% endcomment %}
+      {% if crm_active %}<a href="{% url 'crm:customer-detail' job.customer.pk %}" class="inline-block mt-1 text-sm text-indigo-600 hover:underline">{% trans "Open customer card" %} →</a>{% endif %}
     </div>
     <span class="text-xs text-gray-400 whitespace-nowrap">{{ job.reference_code }}</span>
   </div>
@@ -386,6 +389,40 @@ document (партиал может перерисовываться — уро�
       </form>
     {% endif %}
   </div>
+</div>
+{% comment %}VF-15 (фидбэк 2026-08-25 «блок оплаты должен быть во всех
+архетипах»): карточка «Zahlung» — как у заказа: статус оплаты, депозит,
+ручное «Als bezahlt markieren» (оплату на месте раньше было не отметить —
+payment_state писал только Stripe-вебхук), ссылка Angebot-страницы для
+ручной передачи и счёт.{% endcomment %}
+<div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 text-sm space-y-2">
+  <p class="font-semibold">💳 {% trans "Zahlung" %}</p>
+  <p>
+    {% if job.payment_state == 'paid' %}<span class="inline-block bg-green-100 text-green-800 rounded-full px-2 py-0.5 text-xs font-medium">✓ {% trans "paid" %}</span>
+    {% elif job.payment_state == 'refunded' %}<span class="inline-block bg-gray-100 text-gray-600 rounded-full px-2 py-0.5 text-xs font-medium">{% trans "Refunded" %}</span>
+    {% else %}<span class="inline-block bg-amber-100 text-amber-800 rounded-full px-2 py-0.5 text-xs font-medium">{% trans "Offen" %}</span>{% endif %}
+    {% if job.stripe_payment_intent %}<span class="text-xs text-gray-400 ml-1">· Stripe</span>{% endif %}
+    {% if job.gross %}<span class="text-gray-600 ml-1">{{ job.gross|floatformat:2 }} €</span>{% endif %}
+  </p>
+  {% if job.deposit_cents %}
+    <p class="text-xs text-gray-500">{% trans "Deposit" %}: {{ deposit_eur }} €</p>
+  {% endif %}
+  {% if job.payment_state != 'paid' and job.gross %}
+    <form method="post">{% csrf_token %}
+      <input type="hidden" name="action" value="mark_paid">
+      <button class="text-sm font-medium rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">✓ {% trans "Als bezahlt markieren" %}</button>
+    </form>
+  {% endif %}
+  {% if job.invoice_id %}
+    <p><a href="{% url 'finance:invoice-detail' job.invoice_id %}" class="text-indigo-600 hover:underline">🧾 {% trans "Open invoice" %} →</a></p>
+  {% endif %}
+  {% if job.status == 'quoted' or job.status == 'accepted' %}
+    <div>
+      <p class="text-xs text-gray-500 mb-1">{% trans "Angebot-Link für den Kunden" %}{% if job.deposit_cents and payments_enabled %} ({% trans "mit Online-Anzahlung" %}){% endif %}:</p>
+      <input type="text" readonly value="https://{{ request.get_host }}{{ angebot_path }}" onclick="this.select()"
+             class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5 text-xs text-gray-600">
+    </div>
+  {% endif %}
 </div>
 <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5">
   <p class="text-sm font-semibold mb-2">⚡ {% trans "Status" %}</p>

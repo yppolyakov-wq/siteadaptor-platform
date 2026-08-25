@@ -86,7 +86,8 @@ def sections(tenant, customer) -> list[dict]:
                     "title": f"{b.service.name if b.service else b.resource}",
                     "sub": f"{b.start:%d.%m.%Y %H:%M} · {b.reference_code}",
                     "status": b.status,
-                    "url": "",
+                    # VF-18a (фидбэк 2026-08-25): сделки клиента кликабельны
+                    "url": _url("booking:booking-detail", b.pk),
                 }
                 for b in customer.bookings.select_related("resource", "service").order_by("-start")[
                     :_LIMIT
@@ -116,7 +117,7 @@ def sections(tenant, customer) -> list[dict]:
                     "title": str(s.unit),
                     "sub": f"{s.arrival:%d.%m.%Y} → {s.departure:%d.%m.%Y} · {s.reference_code}",
                     "status": s.status,
-                    "url": "",
+                    "url": _url("stays:booking-detail", s.pk),
                 }
                 for s in customer.stays.select_related("unit").order_by("-arrival")[:_LIMIT]
             ],
@@ -131,7 +132,8 @@ def sections(tenant, customer) -> list[dict]:
                     "title": t.event.title,
                     "sub": f"{t.event.starts_at:%d.%m.%Y} · {t.quantity}× · {t.reference_code}",
                     "status": t.status,
-                    "url": "",
+                    # у билета нет своей карточки — ведём на экран события
+                    "url": _url("events:detail", t.event_id),
                 }
                 for t in customer.event_tickets.select_related("event").order_by("-created_at")[
                     :_LIMIT

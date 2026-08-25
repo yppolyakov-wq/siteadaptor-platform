@@ -20072,3 +20072,12 @@ msgstr "Yapı"
 
 msgid "Position leeren"
 msgstr "Satırı temizle"
+
+msgid "Angebot-Link für den Kunden"
+msgstr "Müşteri için teklif bağlantısı"
+
+msgid "Ansehen auf der Website"
+msgstr "Web sitesinde görüntüle"
+
+msgid "mit Online-Anzahlung"
+msgstr "çevrimiçi kaparo ile"

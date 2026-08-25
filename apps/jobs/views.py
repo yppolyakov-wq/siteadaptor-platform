@@ -124,6 +124,15 @@ def job_detail(request, pk):
             return _transition(request, job, action)
         if action in ("link_booking", "unlink_booking"):
             return _link_booking(request, job, attach=action == "link_booking")
+        if action == "mark_paid":
+            # VF-15 (фидбэк 2026-08-25 «блок оплаты во всех архетипах»): у заявки
+            # payment_state писал только Stripe-вебхук депозита — оплату «наличными
+            # при выдаче» владельцу было не отметить вовсе. Идемпотентно.
+            if job.payment_state != "paid":
+                job.payment_state = "paid"
+                job.save(update_fields=["payment_state", "updated_at"])
+                messages.success(request, _("Als bezahlt markiert."))
+            return redirect("jobs:detail", pk=job.pk)
         if action == "customer":
             # QF-4 (фидбэк владельца 2026-08-20): контакты правятся прямо со
             # страницы заявки. Правим ОБЩУЮ карточку клиента (та же запись видна
@@ -188,6 +197,12 @@ def job_detail(request, pk):
                 or bool(job.vehicle or job.service_due_date)
             ),
             "doc_languages": _doc_languages(request),
+            # VF-16: ссылка на полную карточку клиента в CRM (гейт по модулю —
+            # без него ссылка вела бы в 404 гейта путей; прецедент order_detail).
+            "crm_active": bool(request.tenant and request.tenant.is_module_active("crm")),
+            # VF-15: публичная страница Angebot (клиент принимает и платит
+            # депозит) — владельцу для ручной передачи ссылки.
+            "angebot_path": reverse("storefront-angebot", args=[job.public_token]),
         },
     )
 

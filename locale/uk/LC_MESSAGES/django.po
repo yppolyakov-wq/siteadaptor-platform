@@ -20146,3 +20146,12 @@ msgstr "Структура"
 
 msgid "Position leeren"
 msgstr "Очистити рядок"
+
+msgid "Angebot-Link für den Kunden"
+msgstr "Посилання на пропозицію для клієнта"
+
+msgid "Ansehen auf der Website"
+msgstr "Переглянути на сайті"
+
+msgid "mit Online-Anzahlung"
+msgstr "з онлайн-передоплатою"

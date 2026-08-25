@@ -19946,3 +19946,12 @@ msgstr "Structure"
 
 msgid "Position leeren"
 msgstr "Clear line"
+
+msgid "Angebot-Link für den Kunden"
+msgstr "Quote link for the customer"
+
+msgid "Ansehen auf der Website"
+msgstr "View on the website"
+
+msgid "mit Online-Anzahlung"
+msgstr "with online deposit"
