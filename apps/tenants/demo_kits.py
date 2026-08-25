@@ -1331,7 +1331,7 @@ PRANASY = DemoKit(
             "min_persons": 15,
             "category": "catering",
             "event_types": ["Firmenfeier", "Geburtstag", "Büro-Catering"],
-            "photos": ["catering,buffet", "borscht,soup"],
+            "photos": ["borscht,soup", "ragout,red"],
             "groups": [
                 {"label": "Suppe", "included": True, "products": ["Borschtsch"]},
                 {"label": "Hauptgang", "included": True, "products": ["Rotes Gemüseragout"]},
@@ -1573,7 +1573,9 @@ PRANASY = DemoKit(
         "jobs": {
             "intro": "Veganes & ayurvedisches Catering für Feiern, Büro und Events. Sag uns, "
             "was du brauchst — wir kochen frisch und melden uns mit einem unverbindlichen Angebot.",
-            "hero_kw": "catering,buffet",
+            # «catering,buffet» zeigt eine Bratwurst-Theke — auf einer rein
+            # pflanzlichen Seite das falsche Bild (Sichtcheck 2026-08-25).
+            "hero_kw": "vegan,buffet",
         },
         "events": {
             "intro": "Unsere Retreats: ruhige Wochenenden mit veganer & ayurvedischer Küche, "
@@ -2799,6 +2801,9 @@ PRANASY = DemoKit(
             "einzeln bestellbar oder als fertiges Menü-Paket. Wir kochen frisch, liefern warm "
             "und bauen auf Wunsch vor Ort auf.",
             "sets",
+            # Foto des Bereichs: der slug-Fallback griff «catering-buffet.webp» ab —
+            # eine Bratwurst-Theke auf einer rein pflanzlichen Seite.
+            "vegan,buffet",
         ),
     ],
     i18n={
@@ -10807,12 +10812,19 @@ def apply_kit(tenant, key: str) -> bool:
         # entry: (name, slug, items) ИЛИ (name, slug, items, children) ИЛИ
         # (name, slug, items, "photo,kw") — DS-2: 4-й элемент-СТРОКА задаёт ключ
         # фото плитки (иначе ключ = slug; немецкие слоги давали SVG-фолбэк).
+        # 7-й элемент — ключ фото для категории С ДЕТЬМИ (4-й занят детьми).
         # children — подкатегории той же формы (1 уровень). Первый товар
         # категории — в category_firsts (S6).
         name, slug, items = entry[0], entry[1], entry[2]
         extra = entry[3] if len(entry) > 3 else []
         photo_kw = extra if isinstance(extra, str) else ""
         children = extra if isinstance(extra, list) else []
+        # Kategorie MIT Unterkategorien belegt Element 3 mit den Kindern und kam
+        # deshalb nie an ein eigenes Foto — der slug-Fallback griff dann irgendein
+        # Bibliotheksbild ab (bei «catering» eine Bratwurst-Theke auf einer veganen
+        # Seite). Element 7 gibt Container-Kategorien ihren Foto-Schlüssel.
+        if not photo_kw and len(entry) > 6:
+            photo_kw = entry[6]
         # DS-7a: 5-й элемент — описание направления (шапка страницы категории).
         landing_desc = entry[4] if len(entry) > 4 else ""
         # KAT-6: слаг демо-категории — КАК У ЖИВЫХ (без префикса demo-; URL

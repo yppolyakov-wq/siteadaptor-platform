@@ -358,3 +358,4 @@ license=cc0,pdm) и Wikimedia Commons (haswbstatement CC0/Public domain);
 - `vegetable-fritters.webp` — https://wordpress.org/photos/photo/866a14276f/ — CC0 1.0 (wordpress, автор: Manjil Aryal)
 - `cabbage-salad.webp` — https://www.rawpixel.com/image/5915605/image-white-background-public-domain-leaves — CC0 1.0 (rawpixel)
 - `spring-salad.webp` — https://stocksnap.io/photo/kale-salad-WPKEJRMC8D — CC0 1.0 (stocksnap, автор: Dan Gold)
+- `vegan-buffet.webp` — https://www.rawpixel.com/image/5927577/photo-image-public-domain-hand-person — CC0 1.0 (rawpixel)
