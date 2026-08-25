@@ -1095,28 +1095,14 @@ PRANASY_MENUS = {
             # (Speisekarte + Menü-Pakete + Anfrage) — deshalb Gruppe statt
             # Einzelpunkt auf die Anfrage-Seite.
             {
+                # Подписи — msgid'ы хрома меню (_MENU_LABELS): переводятся на все
+                # пять локалей витрины из каталогов, свой label_i18n не нужен.
                 "label": "Catering",
                 "type": "group",
-                "label_i18n": {"en": "Catering"},
                 "children": [
-                    {
-                        "label": "Speisekarte",
-                        "type": "category",
-                        "target": "catering",
-                        "label_i18n": {"en": "Menu"},
-                    },
-                    {
-                        "label": "Menüs & Pakete",
-                        "type": "page",
-                        "target": "combos",
-                        "label_i18n": {"en": "Menus & packages"},
-                    },
-                    {
-                        "label": "Anfrage",
-                        "type": "archetype",
-                        "target": "jobs",
-                        "label_i18n": {"en": "Request"},
-                    },
+                    {"label": "Speisekarte", "type": "category", "target": "catering"},
+                    {"label": "Menüs & Pakete", "type": "page", "target": "combos"},
+                    {"label": "Anfrage", "type": "archetype", "target": "jobs"},
                 ],
             },
             {
@@ -1277,7 +1263,15 @@ PRANASY = DemoKit(
         "yoga,forest",
     ],
     faq=[
-        ("Ist alles wirklich vegan?", "Ja — 100 % pflanzlich, ohne Ausnahme."),
+        # Catering-Welle 2026-08-25: Restaurant und Shop sind rein pflanzlich, die
+        # Catering-Karte des Betreibers bringt ayurvedische Klassiker mit Sahne,
+        # Paneer oder Joghurt mit — die Antwort sagt das, statt «ohne Ausnahme».
+        (
+            "Ist alles wirklich vegan?",
+            "Restaurant und Shop sind 100 % pflanzlich. Beim Catering stehen daneben "
+            "ayurvedische Klassiker mit Sahne, Paneer oder Joghurt — jedes Gericht ist "
+            "gekennzeichnet.",
+        ),
         (
             "Wann öffnet das Restaurant?",
             "Bald! Die Speisekarte ist schon online — schau dich gern um.",
@@ -1304,7 +1298,7 @@ PRANASY = DemoKit(
         ("Nour El-Amin", "Gründerin & Köchin", "chef,woman"),
         ("Ben Krause", "Küche", "cook,man"),
     ],
-    trust={"since": "2021", "marks": ["100 % Vegan", "Ayurveda", "Regional"]},
+    trust={"since": "2021", "marks": ["Vegan & vegetarisch", "Ayurveda", "Regional"]},
     reviews_seed=[
         (
             5,
@@ -1489,7 +1483,7 @@ PRANASY = DemoKit(
         "Kürbissuppe mit Kürbiskernen": "suppe",
         "Gazpacho": "suppe",
         "Okroschka": "suppe",
-        "Raita-Kaltschale": "suppe",
+        "Raita (kalte Joghurtsuppe)": "suppe",
         "Reis": "beilage",
         "Bulgur": "beilage",
         "Nudeln": "beilage",
@@ -1502,15 +1496,15 @@ PRANASY = DemoKit(
         "Rotes Gemüseragout": "hauptgang",
         "Weißes Ragout mit Paneer": "hauptgang",
         "Kichererbsen-Ragout mit Blumenkohl": "hauptgang",
-        "Kürbisragout mit Muskat": "hauptgang",
-        "Brokkoli-Ragout mit Bohnen": "hauptgang",
+        "Kürbisragout": "hauptgang",
+        "Brokkoli-Ragout mit grünen Bohnen": "hauptgang",
         "Rosenkohl-Ragout mit Paprika": "hauptgang",
         "Tofu-Ragout mit Aubergine": "hauptgang",
         "Mahabridschal (Auberginen-Ragout)": "hauptgang",
         "Rote Tomatensauce": "beilage",
         "Steinpilz-Rahmsauce": "beilage",
         "Frische Minzsauce": "beilage",
-        "Spinatsauce mit Parmesan": "beilage",
+        "Spinatsauce mit Hartkäse": "beilage",
         "Tomaten-Käse-Sauce": "beilage",
         "Soja-Bolognese": "beilage",
         "Seitan-Tomatensauce": "beilage",
@@ -1521,7 +1515,7 @@ PRANASY = DemoKit(
         "Reisbratlinge": "vorspeise",
         "Schmorkohl": "vorspeise",
         "Ofengemüse vom Blech": "vorspeise",
-        "Pekingkohl-Salat": "vorspeise",
+        "Chinakohl-Salat": "vorspeise",
         "Morkowtscha (Karottensalat)": "vorspeise",
         "Frühlingssalat": "vorspeise",
         "Sommersalat": "vorspeise",
@@ -2033,7 +2027,9 @@ PRANASY = DemoKit(
         # die Gerichte liegen in den Unterkategorien, die Seite zeigt sie zusammen
         # (KAT-1) und darüber die Menü-Pakete (page_style «sets»).
         (
-            "Catering",
+            # Gleich in DE und EN → Inline-Dict statt Identity-Eintrag im
+            # Demo-Wörterbuch (ein Projekt-Test verbietet msgstr == msgid).
+            {"de": "Catering", "en": "Catering"},
             "catering",
             [],
             [
@@ -2044,7 +2040,7 @@ PRANASY = DemoKit(
                         _p(
                             "Borschtsch",
                             "5.90",
-                            "Tiefrot, süßsäuerlich und langsam gezogen — der Klassiker der "
+                            "Tiefrot, süßsauer und lange geköchelt — der Klassiker der "
                             "osteuropäischen Küche. Bohnen und reichlich Gemüse machen ihn "
                             "auch ohne Fleisch richtig sättigend. Serviert mit frischem Dill "
                             "und einem Löffel Schmand.",
@@ -2059,32 +2055,32 @@ PRANASY = DemoKit(
                         _p(
                             "Käsecremesuppe",
                             "5.50",
-                            "Samtig und mild: Kartoffeln und Sahne ergeben eine gleichmäßig "
-                            "cremige Suppe, Tofu gibt ihr Körper und macht sie sättigend. "
-                            "Schwarze Oliven und Kurkuma setzen würzige Akzente. Ein ruhiger "
-                            "Teller für kühle Tage.",
+                            "Samtig und mild: Kartoffeln, Sahne und Schmelzkäse ergeben eine "
+                            "gleichmäßig cremige Suppe, Tofu gibt ihr Körper und macht sie "
+                            "sättigend. Schwarze Oliven und Kurkuma setzen würzige Akzente. "
+                            "Ein ruhiger Teller für kühle Tage.",
                             "cheese,soup",
                             diets=["vegetarisch", "glutenfrei"],
                             allergens=["milch", "soja"],
                             vat="7.00",
-                            ingredients="Kartoffeln, Sahne, schwarze Oliven, Tofu, Pflanzenöl, Wasser, "
-                            "frische Kräuter, Gewürze (Salz, Asafoetida, schwarzer Pfeffer, "
-                            "Bockshornklee, Kurkuma)",
+                            ingredients="Kartoffeln, Sahne, Schmelzkäse, schwarze Oliven, Tofu, "
+                            "Pflanzenöl, Wasser, frische Kräuter, Gewürze (Salz, Asafötida "
+                            "(glutenfrei), schwarzer Pfeffer, Bockshornklee, Kurkuma)",
                         ),
                         _p(
                             "Dal mit Gemüse",
                             "6.20",
                             "Würziger indischer Eintopf aus Kichererbsen oder Mungbohnen, mit "
                             "Karotten, Blumenkohl und Paprika. Kreuzkümmel, Kurkuma und "
-                            "Asafoetida geben ihm Tiefe, Butter und Sahne machen ihn weich "
-                            "und rund. Mit frischem Koriander serviert.",
+                            "Asafötida geben ihm Tiefe, Butter und Sahne machen ihn weich und "
+                            "rund. Mit frischem Koriander serviert.",
                             "dal,soup",
                             diets=["vegetarisch", "glutenfrei"],
                             allergens=["milch"],
                             vat="7.00",
                             ingredients="Kichererbsen oder Mungbohnen, Karotten, Blumenkohl, Paprika, "
                             "Butter, Sahne oder Schmand, Wasser, Koriandergrün, Gewürze "
-                            "(Kreuzkümmel, Chili, Kurkuma, Asafoetida, Salz)",
+                            "(Kreuzkümmel, Chili, Kurkuma, Asafötida (glutenfrei), Salz)",
                         ),
                         _p(
                             "Cremige Pilzsuppe",
@@ -2099,7 +2095,7 @@ PRANASY = DemoKit(
                             vat="7.00",
                             ingredients="Kartoffeln, Sahne, Pilze, Karotten, Tomatenmark, grüne Oliven, "
                             "Tofu, Pflanzenöl, Wasser, frische Kräuter, Gewürze (Salz, "
-                            "Asafoetida, schwarzer Pfeffer, Bockshornklee, "
+                            "Asafötida (glutenfrei), schwarzer Pfeffer, Bockshornklee, "
                             "Bockshornkleeblätter)",
                         ),
                         _p(
@@ -2114,23 +2110,24 @@ PRANASY = DemoKit(
                             allergens=["milch"],
                             vat="7.00",
                             ingredients="Kürbis, Kartoffeln, Karotten, Sahne (20 %), Olivenöl, Wasser, "
-                            "Kürbiskerne, Gewürze (Salz, Bockshornklee, Asafoetida, Kurkuma, "
-                            "schwarzer Pfeffer)",
+                            "Kürbiskerne, Gewürze (Salz, Bockshornklee, Asafötida "
+                            "(glutenfrei), Kurkuma, schwarzer Pfeffer)",
                         ),
                         _p(
                             "Gazpacho",
                             "4.90",
                             "Kalte Gemüsesuppe aus Spanien — frisch, leicht säuerlich und so "
-                            "dicht, dass sie fast wie ein Getränk trinkbar ist. Tomaten, "
-                            "Gurke und Paprika werden mit Olivenöl und Weinessig kalt "
-                            "püriert. Mit knusprigen Croutons serviert.",
+                            "dicht, dass sie sich fast wie ein Getränk löffeln lässt. "
+                            "Tomaten, Gurke und Paprika werden mit Olivenöl und Weinessig "
+                            "oder Zitrone kalt püriert. Mit knusprigen veganen Croutons "
+                            "serviert.",
                             "gazpacho,soup",
                             diets=["vegan", "laktosefrei"],
-                            allergens=["gluten", "sellerie"],
+                            allergens=["gluten", "sellerie", "sulfit"],
                             vat="7.00",
                             ingredients="Tomaten, Gurke, Paprika, Olivenöl, Weinessig oder Zitrone, "
-                            "Wasser oder Eis, Croutons, Sellerie, Gewürze (Salz, schwarzer "
-                            "Pfeffer, Asafoetida)",
+                            "Wasser oder Eis, vegane Croutons, Sellerie, Gewürze (Salz, "
+                            "schwarzer Pfeffer, Asafötida)",
                         ),
                         _p(
                             "Okroschka",
@@ -2147,11 +2144,11 @@ PRANASY = DemoKit(
                             "Kräuter, Dill, Schmand, Kwass oder Kefir, Gewürze (Salz)",
                         ),
                         _p(
-                            "Raita-Kaltschale",
+                            "Raita (kalte Joghurtsuppe)",
                             "4.50",
                             "Kühl und erfrischend: Naturjoghurt mit geriebener Gurke, Tomate "
                             "und frischem Koriander oder Minze. Kreuzkümmel, Pfeffer und "
-                            "Asafoetida geben der Kaltschale eine feine Würze. Passt "
+                            "Asafötida geben der kalten Suppe eine feine Würze. Passt "
                             "besonders gut zu scharf gewürzten Gerichten.",
                             "raita,soup",
                             diets=["vegetarisch", "glutenfrei"],
@@ -2159,7 +2156,7 @@ PRANASY = DemoKit(
                             vat="7.00",
                             ingredients="Naturjoghurt, Gurke, Tomate, Koriandergrün oder Minze, Wasser, "
                             "Gewürze (gemahlener Kreuzkümmel, schwarzer Pfeffer, Salz, "
-                            "Asafoetida)",
+                            "Asafötida (glutenfrei))",
                         ),
                     ],
                     "borscht,soup",
@@ -2176,9 +2173,10 @@ PRANASY = DemoKit(
                             "3.50",
                             "Neutraler Klassiker, der zu Gemüse- und Hülsenfruchtgerichten "
                             "ebenso passt wie zu kräftigen Saucen. Die Körner bleiben locker "
-                            "und rieseln auseinander, dabei nehmen sie den Sud von Ragout und "
-                            "Sauce gut auf. Warm serviert als Beilage zu allem auf der Karte.",
-                            "rice,bowl",
+                            "und fallen schön auseinander, dabei nehmen sie die Sauce von "
+                            "Ragouts und Currys gut auf. Warm serviert — die Beilage zu fast "
+                            "allen warmen Gerichten.",
+                            "gekochter,reis,essen",
                             diets=["vegan", "glutenfrei", "laktosefrei"],
                             vat="7.00",
                             ingredients="Reis, Wasser, Öl, Gewürze (Salz)",
@@ -2216,7 +2214,7 @@ PRANASY = DemoKit(
                             "und leicht sämig. Kurkuma und Ghee geben dem Gericht seine "
                             "goldene Farbe und ein feines, nussiges Aroma. Mild, bekömmlich "
                             "und sättigend — auch für kleine Gäste geeignet.",
-                            "kitchari,dal",
+                            "kitchari,teller",
                             diets=["vegetarisch", "glutenfrei"],
                             allergens=["milch"],
                             vat="7.00",
@@ -2229,7 +2227,7 @@ PRANASY = DemoKit(
                             "Kräftige Beilage mit unverwechselbarem Geschmack und lockerer, "
                             "körniger Textur. Der Buchweizen bringt eine feine Nussnote mit "
                             "und harmoniert besonders gut mit Pilzsaucen und Gemüseragouts. "
-                            "Sättigend und reich an Ballaststoffen.",
+                            "Sättigend und angenehm nussig im Abgang.",
                             "buckwheat,groats",
                             diets=["vegan", "glutenfrei", "laktosefrei"],
                             vat="7.00",
@@ -2238,7 +2236,7 @@ PRANASY = DemoKit(
                         _p(
                             "Ofenkartoffeln",
                             "4.50",
-                            "Im Ofen gebacken, bis die Schale goldbraun und knusprig ist und "
+                            "Im Ofen geröstet, bis die Kanten goldbraun und knusprig sind und "
                             "das Innere schön mehlig bleibt. Öl und Gewürze ziehen beim "
                             "Backen ein und geben den Kartoffeln ihr warmes Aroma. Eine gute "
                             "Begleitung zu Gemüsebratlingen und Ragouts.",
@@ -2270,8 +2268,8 @@ PRANASY = DemoKit(
                             diets=["vegan", "laktosefrei"],
                             allergens=["gluten"],
                             vat="7.00",
-                            ingredients="Couscous, Wasser, Öl, Gewürze (Salz, Pfeffer, Möhren nach "
-                            "Wunsch)",
+                            ingredients="Couscous, Wasser, Öl, Möhren (nach Wunsch), Gewürze (Salz, "
+                            "Pfeffer)",
                         ),
                         _p(
                             "Plow (Pilaw)",
@@ -2285,8 +2283,8 @@ PRANASY = DemoKit(
                             allergens=["milch"],
                             vat="7.00",
                             ingredients="Reis, Kichererbsen, Möhren, Butterschmalz (Ghee), Wasser, "
-                            "Gewürze (Kreuzkümmel, Paprika, Kurkuma, Salz, Pfeffer, "
-                            "Asafötida)",
+                            "Gewürze (Kreuzkümmel, Paprika, Kurkuma, Salz, Pfeffer, Asafötida "
+                            "(glutenfrei))",
                         ),
                     ],
                     "rice,bowl",
@@ -2310,9 +2308,10 @@ PRANASY = DemoKit(
                             diets=["vegetarisch", "glutenfrei"],
                             allergens=["milch", "senf"],
                             vat="7.00",
-                            ingredients="Kartoffeln, Karotten, Öl zum Anbraten, Sahne 20 %, Tomatensauce, "
-                            "Wasser oder Gemüsebrühe, Gewürze (schwarze Senfsaat, "
-                            "Kreuzkümmel, Koriander gemahlen, Asafötida, Salz, Zucker)",
+                            ingredients="Kartoffeln, Karotten, Öl zum Anbraten, Sahne (20 %), "
+                            "Tomatensauce, Wasser oder selleriefreie Gemüsebrühe, Gewürze "
+                            "(schwarze Senfsaat, Kreuzkümmel, gemahlener Koriander, Asafötida "
+                            "(glutenfrei), Salz, Zucker)",
                         ),
                         _p(
                             "Weißes Ragout mit Paneer",
@@ -2321,13 +2320,13 @@ PRANASY = DemoKit(
                             "zarte Paneer-Würfel. Kurkuma gibt dem Ragout einen goldenen Ton, "
                             "Bockshornklee eine feine, nussige Note. Ein mildes, cremiges "
                             "Gericht für einen ruhigen Mittag.",
-                            "ragout,white",
+                            "paneerragout,essen",
                             diets=["vegetarisch", "glutenfrei"],
                             allergens=["milch"],
                             vat="7.00",
-                            ingredients="Kartoffeln geschält, Zucchini, Paneer, Sahne 20 %, Butter, "
-                            "Wasser oder Gemüsebrühe, Gewürze (Kurkuma, Bockshornklee, "
-                            "Asafötida, schwarzer Pfeffer, Salz)",
+                            ingredients="geschälte Kartoffeln, Zucchini, Paneer, Sahne (20 %), Butter, "
+                            "Wasser oder selleriefreie Gemüsebrühe, Gewürze (Kurkuma, "
+                            "Bockshornklee, Asafötida (glutenfrei), schwarzer Pfeffer, Salz)",
                         ),
                         _p(
                             "Kichererbsen-Ragout mit Blumenkohl",
@@ -2342,26 +2341,28 @@ PRANASY = DemoKit(
                             allergens=["milch"],
                             vat="7.00",
                             ingredients="Kichererbsen (gekocht), Kartoffeln, Blumenkohl, Paprika, Öl, "
-                            "Wasser oder Gemüsebrühe, Sahne, Gewürze (Kreuzkümmel, Koriander "
-                            "gemahlen, Fenchel, Kurkuma, Asafötida, Salz)",
+                            "Wasser oder selleriefreie Gemüsebrühe, Sahne, Gewürze "
+                            "(Kreuzkümmel, gemahlener Koriander, Fenchel, Kurkuma, Asafötida "
+                            "(glutenfrei), Salz)",
                         ),
                         _p(
-                            "Kürbisragout mit Muskat",
+                            "Kürbisragout",
                             "8.40",
                             "Zarter Kürbis trifft auf Paprika, Zucchini und Karotte — dazu "
-                            "Muskatnuss und Zimt, die die natürliche Süße des Kürbis "
+                            "Muskatnuss oder Zimt, die die natürliche Süße des Kürbis "
                             "aufnehmen. Sahne bindet alles zu einem dichten, samtigen Ragout. "
                             "Warm gewürzt, aber nicht scharf.",
-                            "pumpkin,ragout",
+                            "kuerbisragout,essen",
                             diets=["vegetarisch", "glutenfrei"],
                             allergens=["milch"],
                             vat="7.00",
-                            ingredients="Kürbis, Karotten, Paprika, Zucchini, Sahne 20 %, Öl oder Butter, "
-                            "Wasser oder Gemüsebrühe, Gewürze (Kreuzkümmel, Koriander, "
-                            "Kurkuma, Fenchel, Asafötida, Muskatnuss/Zimt, Salz)",
+                            ingredients="Kürbis, Karotten, Paprika, Zucchini, Sahne (20 %), Öl oder "
+                            "Butter, Wasser oder selleriefreie Gemüsebrühe, Gewürze "
+                            "(Kreuzkümmel, Koriander, Kurkuma, Fenchel, Asafötida "
+                            "(glutenfrei), Muskatnuss oder Zimt, Salz)",
                         ),
                         _p(
-                            "Brokkoli-Ragout mit Bohnen",
+                            "Brokkoli-Ragout mit grünen Bohnen",
                             "8.60",
                             "Brokkoli und grüne Bohnen geben dem Ragout kräftige Farbe und "
                             "angenehmen Biss, die Sahne macht es weich und mild. Schwarze "
@@ -2372,8 +2373,8 @@ PRANASY = DemoKit(
                             allergens=["milch", "senf"],
                             vat="7.00",
                             ingredients="Kartoffeln, Brokkoli, grüne Bohnen, Sahne, Öl, Wasser, Gewürze "
-                            "(schwarze Senfsaat, Kreuzkümmel, Koriander, Asafötida, weißer "
-                            "Pfeffer, Muskatnuss, Salz)",
+                            "(schwarze Senfsaat, Kreuzkümmel, Koriander, Asafötida "
+                            "(glutenfrei), weißer Pfeffer, Muskatnuss, Salz)",
                         ),
                         _p(
                             "Rosenkohl-Ragout mit Paprika",
@@ -2387,8 +2388,8 @@ PRANASY = DemoKit(
                             allergens=["milch"],
                             vat="7.00",
                             ingredients="Rosenkohl, Karotten, Paprika, Zucchini, Sahne, Öl, Wasser, "
-                            "Gewürze (Kreuzkümmel, Koriander, Kurkuma, Asafötida, Salz, "
-                            "Zucker)",
+                            "Gewürze (Kreuzkümmel, Koriander, Kurkuma, Asafötida "
+                            "(glutenfrei), Salz, Zucker)",
                         ),
                         _p(
                             "Tofu-Ragout mit Aubergine",
@@ -2408,18 +2409,19 @@ PRANASY = DemoKit(
                         _p(
                             "Mahabridschal (Auberginen-Ragout)",
                             "9.90",
-                            "Auberginen werden weich gebraten und schmoren dann mit Zucchini, "
-                            "Karotte und Paprika in einer würzigen Sauce. Kreuzkümmel, "
-                            "Koriander, Chili und Garam Masala geben Charakter, Sahne und "
-                            "Käse machen die Textur zum Schluss besonders cremig. Gut mit "
-                            "Beilage oder für sich.",
-                            "eggplant,ragout",
+                            "Auberginen werden in Öl weich angebraten und schmoren dann mit "
+                            "Zucchini, Karotte und Paprika in einer würzigen Sauce. "
+                            "Kreuzkümmel, Koriander, Chili und Garam Masala geben Charakter, "
+                            "Sahne und Käse machen die Textur zum Schluss besonders cremig. "
+                            "Gut mit Beilage oder für sich.",
+                            "mahabrinjal,essen",
                             diets=["vegetarisch", "glutenfrei"],
                             allergens=["milch"],
                             vat="7.00",
                             ingredients="Auberginen, Paprika, Zucchini, Karotten, Pflanzenöl, Wasser, "
-                            "Sahne, Käse, Gewürze (Koriander gemahlen, Kreuzkümmel gemahlen, "
-                            "Kurkuma, Asafötida, Chili, Zucker, Salz, Garam Masala)",
+                            "Sahne, Käse, Gewürze (gemahlener Koriander, gemahlener "
+                            "Kreuzkümmel, Kurkuma, Asafötida (glutenfrei), Chili, Zucker, "
+                            "Salz, Garam Masala)",
                         ),
                     ],
                     "ragout,red",
@@ -2434,10 +2436,10 @@ PRANASY = DemoKit(
                         _p(
                             "Rote Tomatensauce",
                             "2.90",
-                            "Dicht eingekochte Tomatenpaste, mit Sahne zu einer samtigen, "
+                            "Dicht eingekochtes Tomatenmark, mit Sahne zu einer samtigen, "
                             "tiefroten Sauce verrührt. Die Gewürze geben ihr eine warme, "
-                            "leicht pfeffrige Note. Passt zu Beilagen und Ragouts und ist "
-                            "zugleich die Grundlage für viele weitere Gerichte unserer Karte.",
+                            "würzige Note. Passt zu Beilagen und Ragouts und ist zugleich die "
+                            "Grundlage für viele weitere Gerichte unserer Karte.",
                             "tomato,sauce",
                             diets=["vegetarisch", "glutenfrei"],
                             allergens=["milch"],
@@ -2449,14 +2451,14 @@ PRANASY = DemoKit(
                             "4.50",
                             "Steinpilze und Zucchini werden in Butter mit Mehl angeschwitzt, "
                             "dann kommt Sahne dazu — so wird die Sauce dicht und samtig, mit "
-                            "klarem Waldpilz-Aroma. Asafoetida und Pfeffer runden sie ab. "
+                            "klarem Waldpilz-Aroma. Asafötida und Pfeffer runden sie ab. "
                             "Klassisch zu Nudeln, Ofenkartoffeln oder Gemüse.",
                             "mushroom,sauce",
                             diets=["vegetarisch"],
                             allergens=["gluten", "milch"],
                             vat="7.00",
                             ingredients="Steinpilze, Zucchini, Butter, Weizenmehl, Sahne, Wasser, Gewürze "
-                            "(Salz, Pfeffer, Asafoetida)",
+                            "(Salz, Pfeffer, Asafötida)",
                         ),
                         _p(
                             "Frische Minzsauce",
@@ -2466,23 +2468,24 @@ PRANASY = DemoKit(
                             "Gewürze machen sie pikant. Passt zu Salaten, Ofengemüse und "
                             "gebratenen Beilagen — oder einfach als Dip.",
                             "mint,sauce",
-                            diets=["vegetarisch", "glutenfrei"],
+                            diets=["vegetarisch", "glutenfrei", "laktosefrei"],
                             vat="7.00",
                             ingredients="Minze, Zucker oder Honig, kochendes Wasser, Essig, Gewürze",
                         ),
                         _p(
-                            "Spinatsauce mit Parmesan",
+                            "Spinatsauce mit Hartkäse",
                             "3.90",
                             "Frischer Spinat mit Zwiebel und Knoblauch, gebunden mit Butter, "
-                            "Mehl und Sahne — kräftig grün und cremig. Parmesan gibt Würze, "
-                            "frisch geriebene Muskatnuss die warme Tiefe. Wir reichen sie zu "
-                            "Pasta, Risotto oder gebackenem Gemüse.",
+                            "Mehl und Sahne — kräftig grün und cremig. Der Hartkäse gibt "
+                            "Würze, frisch geriebene Muskatnuss die warme Tiefe. Wir reichen "
+                            "sie zu Pasta, Risotto oder gebackenem Gemüse.",
                             "spinach,sauce",
                             diets=["vegetarisch"],
                             allergens=["gluten", "milch"],
                             vat="7.00",
-                            ingredients="frischer Spinat, Sahne, Zwiebeln, Knoblauch, Parmesan, Butter, "
-                            "Weizenmehl, Gewürze (Salz, schwarzer Pfeffer, Muskatnuss)",
+                            ingredients="frischer Spinat, Sahne, Zwiebeln, Knoblauch, Hartkäse "
+                            "(mikrobielles Lab), Butter, Weizenmehl, Gewürze (Salz, schwarzer "
+                            "Pfeffer, Muskatnuss)",
                         ),
                         _p(
                             "Tomaten-Käse-Sauce",
@@ -2501,10 +2504,10 @@ PRANASY = DemoKit(
                         _p(
                             "Soja-Bolognese",
                             "3.40",
-                            "Sojaschnetzel werden eingeweicht und mit Zwiebel und Möhre "
-                            "angebraten — so bekommen sie Biss und ein herzhaftes Aroma. In "
-                            "der Tomatensauce mit Knoblauch und Gewürzen entsteht daraus eine "
-                            "sättigende Sauce für Nudeln, Kartoffeln oder pur.",
+                            "Sojagranulat wird eingeweicht und mit Zwiebel und Möhre "
+                            "angebraten — so bekommt es Biss und ein herzhaftes Aroma. Mit "
+                            "Tomatenmark, Knoblauch und Gewürzen wird daraus eine sättigende "
+                            "Sauce für Nudeln, Kartoffeln oder pur.",
                             "soy,bolognese",
                             diets=["vegan", "laktosefrei"],
                             allergens=["gluten", "soja"],
@@ -2516,10 +2519,10 @@ PRANASY = DemoKit(
                         _p(
                             "Seitan-Tomatensauce",
                             "4.40",
-                            "Seitan, das herzhafte Weizen-Eiweiß, zieht in einer dichten "
-                            "Sauce aus Tomatenmark und stückigen Tomaten die Aromen von "
-                            "Zwiebel, Knoblauch und Kräutern in sich auf. Eine Prise Zucker "
-                            "rundet die Säure ab. Herzhaft zu Beilagen und Pasta.",
+                            "Seitan, das herzhafte Weizeneiweiß, saugt sich in einer dichten "
+                            "Sauce aus Tomatenmark und stückigen Tomaten voll. Zwiebel, "
+                            "Knoblauch und Kräuter geben ihr Tiefe, eine Prise Zucker rundet "
+                            "die Säure ab. Herzhaft zu Beilagen und Pasta.",
                             "seitan,sauce",
                             diets=["vegan", "laktosefrei"],
                             allergens=["gluten"],
@@ -2556,8 +2559,9 @@ PRANASY = DemoKit(
                             "5.90",
                             "Goldene Gemüsepuffer aus der indischen Küche: geriebene "
                             "Kartoffeln, Karotten und Kohl werden mit Gewürzen vermengt und "
-                            "knusprig ausgebacken. Außen resch, innen weich und saftig. Heiß "
-                            "serviert, dazu passen Minzsauce oder Ketchup.",
+                            "in heißem Öl ausgebacken. Außen goldbraun und knusprig, innen "
+                            "weich und saftig. Heiß serviert, dazu passen Minzsauce oder "
+                            "Ketchup.",
                             "vegetable,pakora",
                             diets=["vegan", "laktosefrei"],
                             allergens=["gluten"],
@@ -2576,16 +2580,16 @@ PRANASY = DemoKit(
                             diets=["vegan", "laktosefrei"],
                             allergens=["gluten"],
                             vat="7.00",
-                            ingredients="Kohl, Karotten, Kartoffeln, Mehl, Frittieröl, Gewürze (Salz, "
+                            ingredients="Kohl, Karotten, Kartoffeln, Mehl, Öl zum Braten, Gewürze (Salz, "
                             "Pfeffer)",
                         ),
                         _p(
                             "Kartoffelpuffer (Draniki)",
                             "5.80",
-                            "Der belarussische Klassiker: geriebene Kartoffeln mit etwas "
-                            "Mehl, in Öl gebraten, bis die Ränder knusprig werden und der "
-                            "Kern weich bleibt. Wir servieren die Puffer heiß mit Schmand. "
-                            "Gut als Vorspeise oder als Teller zum Teilen.",
+                            "Der belarussische Klassiker: geriebene Kartoffeln mit etwas Mehl "
+                            "oder Stärke, in Öl gebraten, bis die Ränder knusprig werden und "
+                            "der Kern weich bleibt. Wir servieren die Puffer heiß mit "
+                            "Schmand. Gut als Vorspeise oder als Teller zum Teilen.",
                             "potato,pancakes",
                             diets=["vegetarisch"],
                             allergens=["gluten", "milch"],
@@ -2600,11 +2604,11 @@ PRANASY = DemoKit(
                             "mit Paprika und Kurkuma und in knuspriger Panade gebraten. Innen "
                             "bleiben die Bratlinge zart und sättigend. Schmecken mit einer "
                             "Sauce ebenso wie für sich allein.",
-                            "rice,patties",
+                            "reisbratling,essen",
                             diets=["vegan", "laktosefrei"],
                             allergens=["gluten"],
                             vat="7.00",
-                            ingredients="Reis, Karotten, Kartoffeln, Mehl, Semmelbrösel, Frittieröl, "
+                            ingredients="Reis, Karotten, Kartoffeln, Mehl, Semmelbrösel, Öl zum Braten, "
                             "frische Kräuter, Gewürze (Salz, Pfeffer, Paprika, Kurkuma)",
                         ),
                         _p(
@@ -2614,21 +2618,21 @@ PRANASY = DemoKit(
                             "wird dabei saftig und aromatisch. Zucker und ein Spritzer Essig "
                             "geben ihm eine leicht süßsaure Note. Passt zu Kartoffeln, zu "
                             "Bratlingen oder einfach mit Brot.",
-                            "braised,cabbage",
+                            "schmorkohl,essen",
                             diets=["vegan", "laktosefrei"],
                             allergens=["gluten"],
                             vat="7.00",
                             ingredients="Weißkohl, Karotten, Tomatenmark, Pflanzenöl, Weizenmehl, Essig 3 "
-                            "%, Wasser oder Gemüsebrühe, Gewürze (Zucker, Salz, schwarzer "
-                            "Pfeffer, Lorbeerblatt)",
+                            "%, Wasser oder selleriefreie Gemüsebrühe, Gewürze (Zucker, Salz, "
+                            "schwarzer Pfeffer, Lorbeerblatt)",
                         ),
                         _p(
                             "Ofengemüse vom Blech",
                             "6.90",
-                            "Paprika, Blumenkohl, Karotte, Zucchini, Kürbis, Spargel, "
-                            "Brokkoli und grüne Bohnen kommen mit Öl und Gewürzen aufs Blech "
-                            "und backen, bis sie weich sind und leichte Röstaromen bekommen. "
-                            "Bunt und leicht — als Beilage oder kleines Hauptgericht.",
+                            "Buntes Gemüse der Saison — Paprika, Blumenkohl, Zucchini, "
+                            "Kürbis, Spargel und Brokkoli — wird mit Öl und Gewürzen im Ofen "
+                            "geröstet, bis es weich ist und leichte Röstaromen bekommt. Als "
+                            "Beilage oder als leichtes Hauptgericht.",
                             "roasted,veggies",
                             diets=["vegan", "glutenfrei", "laktosefrei"],
                             vat="7.00",
@@ -2647,13 +2651,12 @@ PRANASY = DemoKit(
                     "salate",
                     [
                         _p(
-                            "Pekingkohl-Salat",
+                            "Chinakohl-Salat",
                             "5.40",
                             "Knackiger Chinakohl, Gurke, Tomate und Karotte — leicht, saftig "
                             "und schön bunt. Ein Dressing aus Olivenöl und Zitronensaft hält "
                             "alles frisch und mild, frische Kräuter und Koriander setzen den "
-                            "feinen Akzent. Auf Wunsch auch nur mit Pflanzenöl, ganz ohne "
-                            "Mayonnaise.",
+                            "feinen Akzent.",
                             "cabbage,salad",
                             diets=["vegan", "glutenfrei", "laktosefrei"],
                             vat="7.00",
@@ -2665,13 +2668,13 @@ PRANASY = DemoKit(
                             "4.90",
                             "Fein geraspelte Karotte, mariniert in Öl, Essig und einer Prise "
                             "Zucker — süß-sauer, würzig und angenehm frisch. Koriander und "
-                            "roter Pfeffer geben dem Salat seine orientalische Note und eine "
-                            "leichte Schärfe. Passt zu Reis, Kartoffeln und warmen Gerichten.",
+                            "Chili geben dem Salat seine orientalische Note und eine leichte "
+                            "Schärfe. Passt zu Reis, Kartoffeln und warmen Gerichten.",
                             "carrot,salad",
                             diets=["vegan", "glutenfrei", "laktosefrei"],
                             vat="7.00",
                             ingredients="Karotten, Pflanzenöl, Essig 9 %, Gewürze (Zucker, Salz, "
-                            "Koriander, roter Pfeffer, schwarzer Pfeffer)",
+                            "Koriander, Chilipulver, schwarzer Pfeffer)",
                         ),
                         _p(
                             "Frühlingssalat",
@@ -2679,7 +2682,8 @@ PRANASY = DemoKit(
                             "Radieschen, Gurke, junge Salatblätter und grüne Erbsen — "
                             "knackig, hell und voller Frühlingsstimmung. Olivenöl mit "
                             "Zitronensaft, Dill und Petersilie hält das Dressing leicht und "
-                            "lässt den natürlichen Geschmack des Gemüses ganz nach vorn.",
+                            "lässt den natürlichen Geschmack des Gemüses ganz nach vorn "
+                            "treten.",
                             "spring,salad",
                             diets=["vegan", "glutenfrei", "laktosefrei"],
                             vat="7.00",
@@ -2690,9 +2694,9 @@ PRANASY = DemoKit(
                             "Sommersalat",
                             "5.50",
                             "Der Klassiker aus saftigen Tomaten und frischen Gurken, sanft "
-                            "mit Schmand angemacht. Viel frisches Grün und etwas schwarzer "
+                            "mit Schmand angemacht. Frische Kräuter und etwas schwarzer "
                             "Pfeffer runden die süßen, sonnengereiften Aromen ab — einfach, "
-                            "cremig und ganz nach Sommer schmeckend.",
+                            "cremig und ganz nach Sommer.",
                             "cucumber,tomato",
                             diets=["vegetarisch", "glutenfrei"],
                             allergens=["milch"],
@@ -2706,7 +2710,8 @@ PRANASY = DemoKit(
                             "Gekochte Rote Bete, fein geraspelt und mit Knoblauch "
                             "abgeschmeckt — kräftig in Farbe und Geschmack. Pflanzenöl und "
                             "Zitronensaft bringen Frische und eine feine Säure dazu. Schlicht "
-                            "gemacht und trotzdem ein Salat, der lange gut sättigt.",
+                            "zubereitet und trotzdem voller Geschmack — und dabei richtig "
+                            "gesund.",
                             "beetroot,salad",
                             diets=["vegan", "glutenfrei", "laktosefrei"],
                             vat="7.00",
@@ -2718,10 +2723,11 @@ PRANASY = DemoKit(
                             "5.20",
                             "Der bekannte Klassiker mit unverwechselbar süß-saurem Geschmack: "
                             "gekochte Rote Bete, Kartoffeln und Karotten treffen auf "
-                            "Salzgurken, Sauerkraut, Erbsen und Zwiebel. Pflanzenöl bindet "
+                            "Salzgurken, Sauerkraut, Erbsen und Zwiebel. Pflanzenöl verbindet "
                             "alles zu einem harmonischen, farbenfrohen Ganzen.",
                             "winegret,salad",
                             diets=["vegan", "glutenfrei", "laktosefrei"],
+                            allergens=["sulfit"],
                             vat="7.00",
                             ingredients="Rote Bete (gekocht), Kartoffeln (gekocht), Karotten (gekocht), "
                             "Sauerkraut, Salzgurken, Erbsen (Konserve), Zwiebeln, Pflanzenöl, "
@@ -2747,7 +2753,7 @@ PRANASY = DemoKit(
                             "Gurke mit frischer Minze und Koriandergrün in cremigem "
                             "Naturjoghurt. Kreuzkümmel und Zitronensaft geben Aroma und feine "
                             "Säure — der ideale Ausgleich zu scharf gewürzten Gerichten.",
-                            "cucumber,raita",
+                            "joghurtsalat,gurke,essen",
                             diets=["vegetarisch", "glutenfrei"],
                             allergens=["milch"],
                             vat="7.00",
@@ -2763,7 +2769,6 @@ PRANASY = DemoKit(
                             "Ein feiner, leichter Salat für helle Frühlingstage.",
                             "asparagus,salad",
                             diets=["vegan", "glutenfrei", "laktosefrei"],
-                            allergens=["schalenfruechte"],
                             vat="7.00",
                             ingredients="Grüner Spargel, Kirschtomaten, Salatblätter, Olivenöl, "
                             "Zitronensaft, Pinienkerne, Gewürze (Salz, schwarzer Pfeffer)",
@@ -2771,17 +2776,17 @@ PRANASY = DemoKit(
                         _p(
                             "Veganer Caesar-Salat",
                             "7.50",
-                            "Der berühmte Caesar, rein pflanzlich: knackiger Römersalat, "
-                            "Kirschtomaten und würzige Croutons unter einem cremigen "
+                            "Der berühmte Caesar, rein pflanzlich: knackiger Romana-Salat, "
+                            "Kirschtomaten und würzige vegane Croutons unter einem cremigen "
                             "Cashew-Dressing mit Dijon, Kapern und Hefeflocken. Gebratener "
                             "Tofu ersetzt das Hähnchen und macht den Salat schön sättigend.",
                             "vegan,caesar",
                             diets=["vegan", "laktosefrei"],
                             allergens=["gluten", "soja", "schalenfruechte", "senf"],
                             vat="7.00",
-                            ingredients="Salatblätter (Eisberg/Romana), fester Tofu, Kirschtomaten, "
-                            "Croutons, Cashewkerne, für das Dressing: Cashewkerne, Wasser, "
-                            "Zitronensaft, Knoblauch, Dijon-Senf, Kapern, Hefeflocken",
+                            ingredients="Salatblätter (Eisberg oder Romana), fester Tofu, Kirschtomaten, "
+                            "vegane Croutons, Cashewkerne, für das Dressing: Cashewkerne, "
+                            "Wasser, Zitronensaft, Knoblauch, Dijon-Senf, Kapern, Hefeflocken",
                         ),
                     ],
                     "spring,salad",
@@ -2813,7 +2818,9 @@ PRANASY = DemoKit(
             "faq": [
                 {
                     "q": "Is everything really vegan?",
-                    "a": "Yes — 100 % plant-based, no exceptions.",
+                    "a": "The restaurant and the shop are 100 % plant-based. Our catering "
+                    "menu also has ayurvedic classics with cream, paneer or yoghurt — "
+                    "every dish is labelled.",
                 },
                 {
                     "q": "When does the restaurant open?",
@@ -2868,7 +2875,7 @@ PRANASY = DemoKit(
                     "button_label": "See retreats",
                 },
             ],
-            "trust": {"marks": ["100 % Vegan", "Ayurveda", "Regional"]},
+            "trust": {"marks": ["Vegan & vegetarian", "Ayurveda", "Regional"]},
             "archetypes": {
                 "catalog": {
                     "intro": "Our restaurant opens soon — the menu is already here. And in the "

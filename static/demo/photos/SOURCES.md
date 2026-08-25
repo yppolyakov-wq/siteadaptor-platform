@@ -318,3 +318,43 @@ license=cc0,pdm) и Wikimedia Commons (haswbstatement CC0/Public domain);
 - `yoga-teacher-woman.webp` — AI-generated, FLUX.1-schnell
 
 <!-- AI-SET:END -->
+
+## Набор 2026-08-25 — Catering-Karte Pranasy (49 Gerichte)
+
+Скачано с Openverse API (`license=cc0,pdm`); лицензия каждого файла проверена по
+метаданным API, КАЖДЫЙ кадр просмотрен агентом-верификатором (отбраковано: мясо/рыба
+в кадре — витрина веганская, узнаваемые лица, водяные знаки, чужое блюдо). Для блюд,
+которым в CC0 не нашлось честного кадра, оставлен тематический SVG-плейсхолдер.
+
+- `borscht-soup.webp` — https://www.rawpixel.com/image/5927756/photo-image-public-domain-food-free — CC0 1.0 (rawpixel)
+- `dal-soup.webp` — https://www.flickr.com/photos/136375272@N05/40300293643 — CC0 1.0 (flickr (автор: MyStockPhotos))
+- `mushroom-soup.webp` — https://wordpress.org/photos/photo/538680fd6a/ — CC0 1.0 (wordpress (автор: Bigul Malayi))
+- `noodles-durum.webp` — https://stocksnap.io/photo/food-pasta-K5SKTOQN0U — CC0 1.0 (stocksnap (автор: Mali Maeder))
+- `roasted-potato.webp` — https://www.flickr.com/photos/41284017@N08/30644971893 — Public Domain Mark (flickr (автор: USDAgov))
+- `couscous-semolina.webp` — https://www.rawpixel.com/image/5920540/photo-image-public-domain-plant-fruit — CC0 1.0 (rawpixel)
+- `plov-pilaf.webp` — https://www.flickr.com/photos/41284017@N08/51668055761 — Public Domain Mark (flickr (автор: USDAgov))
+- `ragout-red.webp` — https://www.flickr.com/photos/57873306@N00/51667670547 — CC0 1.0 (flickr (автор: Kim Siever))
+- `chickpea-ragout.webp` — https://www.rawpixel.com/image/5918870/image-public-domain-leaves-black-background — CC0 1.0 (rawpixel)
+- `sprouts-ragout.webp` — https://www.rawpixel.com/image/5913190/image-public-domain-plant-green — CC0 1.0 (rawpixel)
+- `tofu-ragout.webp` — https://wordpress.org/photos/photo/36365bdec3/ — CC0 1.0 (wordpress (автор: Shashank Dubey))
+- `mushroom-sauce.webp` — https://www.rawpixel.com/image/5909707/image-public-domain-white-free — CC0 1.0 (rawpixel)
+- `spinach-sauce.webp` — https://www.rawpixel.com/image/5975304/spinach-cream-soup — CC0 1.0 (rawpixel)
+- `cheese-sauce.webp` — https://www.rawpixel.com/image/5911398/image-public-domain-tree-plant — CC0 1.0 (rawpixel)
+- `seitan-sauce.webp` — https://www.flickr.com/photos/57873306@N00/49736887377 — Public Domain Mark (flickr (автор: Kim Siever))
+- `vegetable-pakora.webp` — https://www.flickr.com/photos/68319403@N00/21890018930 — Public Domain Mark (flickr, автор: *Siddiqi*)
+- `potato-pancakes.webp` — https://www.flickr.com/photos/37996646802@N01/49695830118 — CC0 1.0 (flickr (автор: cogdogblog))
+- `cucumber-tomato.webp` — https://www.flickr.com/photos/184594136@N08/50408999363 — CC0 1.0 (flickr (автор: Alabama Extension))
+- `beetroot-salad.webp` — https://www.rawpixel.com/image/5917510/image-flower-public-domain-plant — CC0 1.0 (rawpixel)
+- `cucumber-salad.webp` — https://wordpress.org/photos/photo/1966a28f76/ — CC0 1.0 (wordpress (автор: Jackson Monichan))
+- `asparagus-salad.webp` — https://www.rawpixel.com/image/5970450/asparagus-salad-snack — CC0 1.0 (rawpixel)
+- `vegan-caesar.webp` — https://www.flickr.com/photos/164188154@N05/53406968475 — Public Domain Mark (flickr (автор: Red Lobster Lover Joe twitter:RLLoverJoe))
+- `roasted-veggies.webp` — https://www.flickr.com/photos/57873306@N00/37555668016 — Public Domain Mark (flickr (автор: Kim Siever))
+- `cheese-soup.webp` — https://www.flickr.com/photos/35034347371@N01/30480667 — CC0 1.0 (flickr, автор: roland)
+- `pumpkin-soup.webp` — https://www.rawpixel.com/image/5927637/photo-image-public-domain-halloween-food — CC0 1.0 (rawpixel)
+- `raita-soup.webp` — https://www.rawpixel.com/image/8735059/photo-image-public-domain-food — CC0 1.0 (rawpixel, автор: U.S. Department of Agriculture)
+- `rice-peas.webp` — https://wordpress.org/photos/photo/655681f3f0/ — CC0 1.0 (wordpress, автор: Dulcea Suresha)
+- `broccoli-ragout.webp` — https://www.flickr.com/photos/184594136@N08/49825787163 — CC0 1.0 (flickr, автор: Alabama Extension)
+- `tomato-sauce.webp` — https://www.flickr.com/photos/76297116@N00/6294660975 — CC0 1.0 (flickr, автор: Thomas Backa)
+- `vegetable-fritters.webp` — https://wordpress.org/photos/photo/866a14276f/ — CC0 1.0 (wordpress, автор: Manjil Aryal)
+- `cabbage-salad.webp` — https://www.rawpixel.com/image/5915605/image-white-background-public-domain-leaves — CC0 1.0 (rawpixel)
+- `spring-salad.webp` — https://stocksnap.io/photo/kale-salad-WPKEJRMC8D — CC0 1.0 (stocksnap, автор: Dan Gold)
