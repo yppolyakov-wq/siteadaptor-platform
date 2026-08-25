@@ -78,7 +78,12 @@
         input[type=number] принимает ТОЛЬКО точку — браузер показывал поле пустым,
         и сохранённое количество выглядело потерянным. floatformat:"-2u" даёт
         неломающееся «1» / «2.5».{% endcomment %}
-        <input name="line_qty_{{ row.i }}" type="number" min="0.01" step="0.01" data-qt-qty value="{% if row.line %}{{ row.line.qty|floatformat:'-2u' }}{% else %}1{% endif %}" class="col-span-2 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
+        {% comment %}VF-12 (фидбэк 2026-08-25): голый инпут-ячейка грида тянулся
+        на всю высоту строки (описание с 📦-подписью выше) — «Число» выглядело
+        выше цены. Обёртка-ячейка, как у цены, оставляет инпуту свою высоту.{% endcomment %}
+        <div class="col-span-2">
+          <input name="line_qty_{{ row.i }}" type="number" min="0.01" step="0.01" data-qt-qty value="{% if row.line %}{{ row.line.qty|floatformat:'-2u' }}{% else %}1{% endif %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
+        </div>
         {% comment %}Цена — в немецком формате (поле текстовое, приёмник понимает и
         запятую, и точку): «12.50» рядом с итогом «37,50 €» читалось как разный
         формат в одной строке.{% endcomment %}
