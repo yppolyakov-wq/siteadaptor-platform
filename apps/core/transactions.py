@@ -383,7 +383,8 @@ def _manage_url(kind: str, obj) -> str:
         if kind == "job":
             return reverse("jobs:detail", args=[obj.pk])
         if kind == "ticket":
-            return reverse("events:detail", args=[obj.event_id])
+            # DC-7: карточка билета (была страница события — билет терялся).
+            return reverse("events:ticket-detail", args=[obj.pk])
         if kind == "booking":
             # Фидбэк 2026-08-05: карточка брони (была ссылка на общий календарь —
             # «перекидывает на непонятную страницу», зеркало FB-11 у stays).

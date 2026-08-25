@@ -20339,3 +20339,12 @@ msgstr "Запись %(code)s"
 
 msgid "Rechnung erstellen"
 msgstr "Выставить счёт"
+
+msgid "Angaben aus dem Formular"
+msgstr "Данные из формы"
+
+msgid "Ticket und Zusatzleistungen"
+msgstr "Билет и дополнительные услуги"
+
+msgid "Teilnahmeerklärung"
+msgstr "Согласие участника"

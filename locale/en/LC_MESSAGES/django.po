@@ -20121,3 +20121,12 @@ msgstr "Appointment %(code)s"
 
 msgid "Rechnung erstellen"
 msgstr "Create invoice"
+
+msgid "Angaben aus dem Formular"
+msgstr "Details from the form"
+
+msgid "Ticket und Zusatzleistungen"
+msgstr "Ticket and extras"
+
+msgid "Teilnahmeerklärung"
+msgstr "Participation declaration"

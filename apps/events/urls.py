@@ -28,6 +28,8 @@ urlpatterns = [
     path("<uuid:pk>/series/", views.event_series, name="series"),  # RT3 recurring
     path("<uuid:pk>/tickets/add/", views.ticket_add, name="ticket-add"),
     path("<uuid:pk>/tickets/<uuid:tid>/action/", views.ticket_action, name="ticket-action"),
+    # DC-7: карточка билета (раньше вели на страницу события — билет там терялся).
+    path("ticket/<uuid:pk>/", views.ticket_detail, name="ticket-detail"),
     path("<uuid:pk>/roster.csv", views.roster_csv, name="roster-csv"),
     # MT-2: кто из участников заезда сдал документы.
     path("<uuid:pk>/dokumente/", document_views.event_documents, name="documents"),

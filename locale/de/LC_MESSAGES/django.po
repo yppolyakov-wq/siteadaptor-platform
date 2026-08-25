@@ -20249,3 +20249,12 @@ msgstr ""
 
 msgid "Rechnung erstellen"
 msgstr ""
+
+msgid "Angaben aus dem Formular"
+msgstr ""
+
+msgid "Ticket und Zusatzleistungen"
+msgstr ""
+
+msgid "Teilnahmeerklärung"
+msgstr ""

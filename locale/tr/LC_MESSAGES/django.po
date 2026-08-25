@@ -20248,3 +20248,12 @@ msgstr "Randevu %(code)s"
 
 msgid "Rechnung erstellen"
 msgstr "Fatura oluştur"
+
+msgid "Angaben aus dem Formular"
+msgstr "Formdaki bilgiler"
+
+msgid "Ticket und Zusatzleistungen"
+msgstr "Bilet ve ek hizmetler"
+
+msgid "Teilnahmeerklärung"
+msgstr "Katılım beyanı"

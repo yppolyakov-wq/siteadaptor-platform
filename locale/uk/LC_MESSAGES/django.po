@@ -20323,3 +20323,12 @@ msgstr "Запис %(code)s"
 
 msgid "Rechnung erstellen"
 msgstr "Виставити рахунок"
+
+msgid "Angaben aus dem Formular"
+msgstr "Дані з форми"
+
+msgid "Ticket und Zusatzleistungen"
+msgstr "Квиток і додаткові послуги"
+
+msgid "Teilnahmeerklärung"
+msgstr "Згода учасника"

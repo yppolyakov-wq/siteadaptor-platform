@@ -423,3 +423,49 @@ def test_invoice_button_hidden_without_finance_module():
     req.tenant = tenant
     with pytest.raises(Http404):
         core_views.deal_invoice(req, "stay", stay.pk)
+
+
+# --- DC-7: карточка билета ----------------------------------------------------
+
+
+def _ticket():
+    from datetime import timedelta as _td
+
+    from apps.events.models import Event, Ticket
+    from apps.promotions.models import Customer
+
+    event = Event.objects.create(
+        title="Herbst-Retreat",
+        starts_at=timezone.now() + _td(days=10),
+        capacity=20,
+        price_cents=9000,
+    )
+    customer = Customer.objects.create(name="Eva Gast", email=f"e-{uuid.uuid4().hex[:6]}@t.de")
+    return Ticket.objects.create(
+        event=event,
+        customer=customer,
+        reference_code=f"E-{uuid.uuid4().hex[:6].upper()}",
+        quantity=2,
+        price_cents=9000,
+        tier_label="Einzelzimmer",
+    )
+
+
+def test_ticket_card_exists_and_uses_the_shared_shell():
+    """ТЗ: карточки билета не было вовсе — доска вела на страницу события."""
+    from apps.events import views as event_views
+
+    ticket = _ticket()
+    html = event_views.ticket_detail(_req(tenant=_tenant("events")), ticket.pk).content.decode()
+    assert "data-deal-card" in html
+    assert 'data-deal-block="status"' in html and 'data-deal-block="customer"' in html
+    assert 'data-deal-block="calendar"' not in html  # календарного движка у билетов нет
+    assert ticket.reference_code in html and "Einzelzimmer" in html
+
+
+def test_board_links_to_the_ticket_card():
+    from apps.core import transactions
+
+    ticket = _ticket()
+    tx = transactions.transaction_for("ticket", ticket)
+    assert tx.manage_url == f"/dashboard/events/ticket/{ticket.pk}/"
