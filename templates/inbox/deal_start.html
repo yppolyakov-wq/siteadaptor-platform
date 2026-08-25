@@ -1,0 +1,36 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Nachricht an den Kunden" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}C1 (план deal-comms-plan-2026-08-25): композер первого сообщения по
+сделке. Экран показывается ТОЛЬКО когда треда ещё нет — существующий вьюха
+открывает сразу (переписка по сделке в одном месте).{% endcomment %}
+{% if back_url %}
+  <a href="{{ back_url }}" class="inline-block mb-4 text-sm text-gray-500 hover:text-indigo-700">← {{ deal_label }}</a>
+{% endif %}
+
+<h1 class="text-2xl font-bold mb-1">✉️ {% trans "Nachricht an den Kunden" %}</h1>
+<p class="text-sm text-gray-500 mb-4">{% blocktrans with label=deal_label %}Startet eine Unterhaltung zu {{ label }}. Der Kunde bekommt eine E-Mail mit Link zum Gespräch und kann direkt antworten.{% endblocktrans %}</p>
+
+{% include "tenant/_settings_messages.html" %}
+
+<div class="bg-white border border-gray-200 rounded-2xl p-4 max-w-2xl">
+  <p class="text-sm mb-3">
+    <span class="text-gray-500">{% trans "Kunde" %}:</span>
+    {{ customer.name|default:"—" }}{% if customer.email %} · <span class="text-gray-500">{{ customer.email }}</span>{% endif %}
+  </p>
+  {% if customer and customer.email %}
+    <form method="post" class="space-y-3">
+      {% csrf_token %}
+      <textarea name="body" rows="5" required autofocus placeholder="{% trans 'Ihre Nachricht …' %}"
+                class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+      <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Nachricht senden" %}</button>
+    </form>
+  {% else %}
+    <p class="text-sm text-amber-700">{% trans "Der Kunde hat keine E-Mail-Adresse hinterlegt." %}
+      {% if back_url %}<a href="{{ back_url }}" class="text-indigo-600 hover:underline">{% trans "Kontakt ergänzen" %} →</a>{% endif %}
+    </p>
+  {% endif %}
+</div>
+{% endblock %}

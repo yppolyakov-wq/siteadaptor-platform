@@ -172,13 +172,16 @@ def sections(tenant, customer) -> list[dict]:
         )
 
     if _active(tenant, "inbox"):
+        # C2 (фидбэк владельца 2026-08-25 «беседы тикетами по каждому заказу»):
+        # подпись строки = СДЕЛКА треда (ref_label), тема — второй строкой. Тред
+        # без привязки честно помечен «Allgemein» (общий вопрос с сайта).
         add(
             "conversations",
             _("Messages"),
             lambda: [
                 {
-                    "title": c.subject or str(c),
-                    "sub": f"{c.updated_at:%d.%m.%Y}",
+                    "title": c.ref_label or _("Allgemein"),
+                    "sub": (c.subject or "") + f" · {c.updated_at:%d.%m.%Y}",
                     "status": "●" if c.unread_for_staff else "",
                     "url": _url("inbox:thread", c.pk),
                 }

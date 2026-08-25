@@ -307,6 +307,15 @@ def book_stay(
     from .notifications import enqueue_stay_email
 
     enqueue_stay_email(booking, "created")
+    # C2: «спросил с сайта → забронировал» — одна беседа (fail-soft, однозначность).
+    from apps.inbox.deal_threads import adopt_open_thread, deal_ref_label
+
+    adopt_open_thread(
+        booking.customer,
+        ref_kind="stay",
+        ref_id=booking.reference_code,
+        ref_label=deal_ref_label("stay", booking.reference_code),
+    )
     return booking
 
 

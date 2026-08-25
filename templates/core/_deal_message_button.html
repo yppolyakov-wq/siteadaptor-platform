@@ -1,0 +1,8 @@
+{% load i18n %}
+{% comment %}C1 (план deal-comms-plan-2026-08-25): «написать клиенту» с карточки
+ЛЮБОЙ сделки — ОДИН партиал на все архетипы (прецедент _deal_customer_edit).
+Ведёт в существующий тред сделки либо в композер первого сообщения.
+Параметры include: kind, obj_pk, inbox_active (гейт модуля — fail-closed).{% endcomment %}
+{% if inbox_active %}
+  <a href="{% url 'inbox:deal-thread' kind obj_pk %}" class="text-sm text-indigo-600 hover:underline" data-deal-message>✉️ {% trans "Nachricht an den Kunden" %}</a>
+{% endif %}

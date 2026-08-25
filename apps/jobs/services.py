@@ -57,7 +57,7 @@ def create_job(
 ) -> Job:
     """Создать заявку (Anfrage). Customer переиспускается по email."""
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
-    return Job.objects.create(
+    job = Job.objects.create(
         customer=customer,
         reference_code=_unique_job_code(),
         title=(title or "").strip()[:200] or "Anfrage",
@@ -76,6 +76,16 @@ def create_job(
         guest_count=guest_count,
         event_type=(event_type or "").strip()[:100],
     )
+    # C2: «спросил с сайта → оставил заявку» — одна беседа (fail-soft, однозначность).
+    from apps.inbox.deal_threads import adopt_open_thread, deal_ref_label
+
+    adopt_open_thread(
+        customer,
+        ref_kind="job",
+        ref_id=job.reference_code,
+        ref_label=deal_ref_label("job", job.reference_code),
+    )
+    return job
 
 
 def set_lines(job, lines, *, vat_rate=None, small_business=False) -> Job:

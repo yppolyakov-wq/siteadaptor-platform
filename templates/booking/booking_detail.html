@@ -44,6 +44,10 @@ FB-11) — раньше клик по сделке вёл на общий кал
         <p class="font-medium">{{ b.customer|default:"—" }}{% if b.party_size > 1 %} · {{ b.party_size }} {% trans "guests" %}{% endif %}</p>
         {% if b.customer.email %}<p class="text-gray-500">{{ b.customer.email }}</p>{% endif %}
         {% if b.customer.phone %}<p class="text-gray-500">{{ b.customer.phone }}</p>{% endif %}
+        <span class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+          {% if crm_active %}<a href="{% url 'crm:customer-detail' b.customer.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Open customer card" %} →</a>{% endif %}
+          {% include "core/_deal_message_button.html" with kind="booking" obj_pk=b.pk %}
+        </span>
         {% include "core/_deal_customer_edit.html" with kind="booking" obj_pk=b.pk customer=b.customer next_path=request.get_full_path %}
       </div>
       <div>

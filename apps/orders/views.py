@@ -277,6 +277,10 @@ def order_detail(request, pk):
             "crm_active": bool(
                 getattr(request, "tenant", None) and request.tenant.is_module_active("crm")
             ),
+            # C1: «✉️ Nachricht an den Kunden» — тот же fail-closed гейт модуля.
+            "inbox_active": bool(
+                getattr(request, "tenant", None) and request.tenant.is_module_active("inbox")
+            ),
         },
     )
 

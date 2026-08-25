@@ -162,7 +162,10 @@
       <p class="text-sm font-medium">{{ order.customer }}</p>
       {% if order.customer.email %}<p class="text-sm text-gray-500">{{ order.customer.email }}</p>{% endif %}
       {% if order.customer.phone %}<p class="text-sm text-gray-500">{{ order.customer.phone }}</p>{% endif %}
-      {% if crm_active %}<a href="{% url 'crm:customer-detail' order.customer.pk %}" class="inline-block mt-2 text-sm text-indigo-600 hover:underline">{% trans "Open customer card" %} →</a>{% endif %}
+      <p class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+        {% if crm_active %}<a href="{% url 'crm:customer-detail' order.customer.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Open customer card" %} →</a>{% endif %}
+        {% include "core/_deal_message_button.html" with kind="order" obj_pk=order.pk %}
+      </p>
       {% comment %}SH-5 (фидбэк владельца 2026-08-20): контакт правится прямо с
       карточки заказа — тем же приёмом, что у заявки (QF-4). Пишем в СУЩЕСТВУЮЩЕГО
       клиента, дубля в CRM не заводим.{% endcomment %}

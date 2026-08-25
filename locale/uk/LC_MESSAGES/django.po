@@ -20160,3 +20160,37 @@ msgid "Catalog parts are reserved from stock when the job is accepted."
 msgstr ""
 "Товари з каталогу резервуються на складі при прийнятті замовлення "
 "(Beauftragt)."
+
+msgid "Nachricht an den Kunden"
+msgstr "Написати клієнту"
+
+msgid "Nachricht senden"
+msgstr "Надіслати повідомлення"
+
+msgid "Nachricht gesendet."
+msgstr "Повідомлення надіслано."
+
+msgid "Der Kunde hat keine E-Mail-Adresse hinterlegt."
+msgstr "У клієнта не вказано адресу електронної пошти."
+
+msgid "Kontakt ergänzen"
+msgstr "Доповнити контакт"
+
+msgid "Ihre Nachricht …"
+msgstr "Ваше повідомлення …"
+
+msgid "Auch per Telegram senden"
+msgstr "Надіслати також у Telegram"
+
+msgid "Per WhatsApp schreiben"
+msgstr "Написати у WhatsApp"
+
+msgid "Allgemein"
+msgstr "Загальне"
+
+msgid ""
+"Startet eine Unterhaltung zu %(label)s. Der Kunde bekommt eine E-Mail mit "
+"Link zum Gespräch und kann direkt antworten."
+msgstr ""
+"Розпочинає бесіду щодо %(label)s. Клієнт отримає лист із посиланням на "
+"розмову й зможе одразу відповісти."

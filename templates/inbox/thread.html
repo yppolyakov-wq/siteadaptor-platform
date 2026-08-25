@@ -142,8 +142,17 @@
 <form method="post" class="bg-white rounded-2xl shadow-sm p-4 max-w-2xl">{% csrf_token %}
   <input type="hidden" name="action" value="reply">
   <textarea name="body" rows="3" required placeholder="{% trans 'Write a reply…' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
-  <div class="text-right mt-2">
-    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Send reply" %}</button>
+  {% comment %}C3 (план deal-comms-plan-2026-08-25): e-mail уходит всегда, Telegram —
+  дополнительный канал и только при живой привязке клиента к боту; WhatsApp —
+  ссылка на чат с номером клиента (отправка через API — external-backlog).{% endcomment %}
+  <div class="flex flex-wrap items-center gap-3 mt-2">
+    {% if telegram_linked %}
+      <label class="flex items-center gap-2 text-sm text-gray-600"><input type="checkbox" name="via_telegram" value="1"> {% trans "Auch per Telegram senden" %}</label>
+    {% endif %}
+    {% if wa_url %}
+      <a href="{{ wa_url }}" target="_blank" rel="noopener" class="text-sm text-green-700 hover:underline">{% trans "Per WhatsApp schreiben" %} ↗</a>
+    {% endif %}
+    <button type="submit" class="ml-auto bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Send reply" %}</button>
   </div>
 </form>
 {% endblock %}

@@ -370,4 +370,14 @@ def create_order(
     from .notifications import enqueue_order_email
 
     enqueue_order_email(order, "created")
+    # C2: «спросил с сайта → купил» остаётся ОДНОЙ беседой (fail-soft, только при
+    # ровно одном открытом треде клиента без привязки).
+    from apps.inbox.deal_threads import adopt_open_thread, deal_ref_label
+
+    adopt_open_thread(
+        order.customer,
+        ref_kind="order",
+        ref_id=order.reference_code,
+        ref_label=deal_ref_label("order", order.reference_code),
+    )
     return order

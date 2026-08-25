@@ -105,12 +105,16 @@ def thread(request, pk):
         if action == "reply":
             body = request.POST.get("body", "").strip()
             if body:
-                services.post_message(
+                message = services.post_message(
                     conversation,
                     body=body[:5000],
                     author_role=Message.AUTHOR_STAFF,
                     author_user=request.user,
                 )
+                # C3: тот же текст дополнительно в Telegram (e-mail ушёл всегда).
+                # Сервисная коммуникация внутри существующего треда — вне UWG §7.
+                if request.POST.get("via_telegram") and conversation.customer_id:
+                    _send_reply_telegram(conversation, message)
                 messages.success(request, _("Reply sent."))
             else:
                 messages.error(request, _("Please write a message."))
@@ -152,8 +156,53 @@ def thread(request, pk):
             "offers_list": conversation.offers.select_related("order").prefetch_related("lines"),
             # LS-6: время первой реакции ЭТОГО треда (None — staff ещё не отвечал).
             "reaction_time": _thread_reaction(conversation),
+            # C3: внешние каналы — Telegram доступен только при живой привязке
+            # клиента к боту; WhatsApp — ссылка на чат с НОМЕРОМ КЛИЕНТА
+            # (отправка через API — external-backlog, платный Business API).
+            "telegram_linked": _telegram_linked(conversation.customer),
+            "wa_url": _customer_wa_url(conversation),
         },
     )
+
+
+def _telegram_linked(customer) -> bool:
+    """C3: клиент привязан к боту бизнеса (иначе канала нет). Fail-safe."""
+    try:
+        from apps.telegram.models import TelegramLink
+        from apps.telegram.notify import active_bot
+
+        if customer is None or active_bot() is None:
+            return False
+        return TelegramLink.objects.filter(customer=customer, chat_id__gt="").exists()
+    except Exception:  # noqa: BLE001 — канал опционален, тред важнее
+        return False
+
+
+def _customer_wa_url(conversation) -> str:
+    """C3: wa.me-чат с клиентом (тема — тред). Пусто без телефона."""
+    from apps.core.whatsapp import wa_link
+
+    customer = conversation.customer
+    phone = getattr(customer, "phone", "") or ""
+    if not phone:
+        return ""
+    return wa_link(phone, conversation.ref_label or conversation.subject or "")
+
+
+def _send_reply_telegram(conversation, message) -> None:
+    """C3: продублировать ответ владельца в Telegram клиента (fail-safe;
+    dedupe по id сообщения — повтор POST не задваивает пуш)."""
+    try:
+        from apps.telegram.notify import send_to_customer
+
+        send_to_customer(
+            conversation.customer,
+            type="inbox_reply",
+            dedupe_key=f"inbox:msg:{message.id}:telegram",
+            text=message.body,
+        )
+    except Exception:  # noqa: BLE001 — дополнительный канал не роняет ответ
+        pass
 
 
 @login_required
@@ -208,6 +257,67 @@ def offer_compose(request, pk):
         request,
         "inbox/offer_compose.html",
         {"nav": "inbox", "conversation": conversation, "sections": sections},
+    )
+
+
+@login_required
+def deal_thread(request, kind, pk):
+    """C1 «✉️ Nachricht an den Kunden»: тред сделки с карточки заказа/записи/
+    брони/заявки.
+
+    Тред уже есть (в т.ч. заведённый клиентом через «⚠️ Etwas stimmt nicht») →
+    открываем его: переписка по сделке живёт в ОДНОМ месте. Нет — GET показывает
+    маленький композер, POST создаёт тред owner-first и шлёт клиенту штатное
+    письмо со ссылкой на публичный тред (post_message в start_conversation).
+    """
+    from django.http import Http404
+    from django.shortcuts import get_object_or_404
+
+    from apps.core import transactions
+
+    from .deal_threads import deal_ref_label, find_thread
+
+    if kind not in transactions.TRANSACTION_KINDS:
+        raise Http404("unknown kind")
+    obj = get_object_or_404(transactions.model_for(kind), pk=pk)
+    customer = getattr(obj, "customer", None)
+    code = getattr(obj, "reference_code", "") or ""
+    existing = find_thread(kind, code, pk=obj.pk)
+    if existing is not None:
+        return redirect("inbox:thread", pk=existing.pk)
+
+    label = deal_ref_label(kind, code)
+    back_url = transactions.transaction_for(kind, obj).manage_url or ""
+    if request.method == "POST":
+        body = request.POST.get("body", "").strip()
+        if not body:
+            messages.error(request, _("Please write a message."))
+        elif customer is None or not customer.email:
+            messages.error(request, _("Der Kunde hat keine E-Mail-Adresse hinterlegt."))
+        else:
+            conversation = services.start_conversation(
+                subject=label,
+                body=body[:5000],
+                customer=customer,
+                ref_kind=kind,
+                ref_id=code,
+                ref_label=label,
+                author_role=Message.AUTHOR_STAFF,
+                author_user=request.user,
+            )
+            messages.success(request, _("Nachricht gesendet."))
+            return redirect("inbox:thread", pk=conversation.pk)
+    return render(
+        request,
+        "inbox/deal_start.html",
+        {
+            "nav": "inbox",
+            "kind": kind,
+            "deal": obj,
+            "customer": customer,
+            "deal_label": label,
+            "back_url": back_url,
+        },
     )
 
 

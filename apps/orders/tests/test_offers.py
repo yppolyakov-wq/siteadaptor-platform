@@ -137,7 +137,9 @@ def test_accept_offer_creates_order_and_links_thread():
     product.refresh_from_db()
     assert product.stock_quantity == 3  # товарная строка списала сток
     conv.refresh_from_db()
-    assert (conv.ref_kind, conv.ref_id) == ("order", str(order.pk))
+    # C1 (2026-08-25): канон ref_id — reference_code (был UUID; тред не находился
+    # ни problem-полосой доски, ни поиском треда сделки — оба ищут по коду).
+    assert (conv.ref_kind, conv.ref_id) == ("order", order.reference_code)
     assert conv.ref_label == order.reference_code
     assert conv.messages.filter(author_role="system", body__icontains="angenommen").exists()
 

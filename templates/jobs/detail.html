@@ -329,7 +329,10 @@ document (партиал может перерисовываться — уро�
       {% if job.site_address %}<p class="text-gray-600 mt-1">📍 {{ job.site_address }}</p>{% endif %}
       {% comment %}VF-16 (фидбэк 2026-08-25): полная карточка клиента в CRM —
       гейт по модулю (без него ссылка вела бы в 404; прецедент order_detail).{% endcomment %}
-      {% if crm_active %}<a href="{% url 'crm:customer-detail' job.customer.pk %}" class="inline-block mt-1 text-sm text-indigo-600 hover:underline">{% trans "Open customer card" %} →</a>{% endif %}
+      <span class="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
+        {% if crm_active %}<a href="{% url 'crm:customer-detail' job.customer.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Open customer card" %} →</a>{% endif %}
+        {% include "core/_deal_message_button.html" with kind="job" obj_pk=job.pk %}
+      </span>
     </div>
     <span class="text-xs text-gray-400 whitespace-nowrap">{{ job.reference_code }}</span>
   </div>

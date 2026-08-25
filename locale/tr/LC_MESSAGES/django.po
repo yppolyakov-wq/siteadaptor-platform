@@ -20085,3 +20085,37 @@ msgstr "çevrimiçi kaparo ile"
 msgid "Catalog parts are reserved from stock when the job is accepted."
 msgstr ""
 "Katalog parçaları, iş onaylandığında (Beauftragt) stoktan rezerve edilir."
+
+msgid "Nachricht an den Kunden"
+msgstr "Müşteriye mesaj gönder"
+
+msgid "Nachricht senden"
+msgstr "Mesaj gönder"
+
+msgid "Nachricht gesendet."
+msgstr "Mesaj gönderildi."
+
+msgid "Der Kunde hat keine E-Mail-Adresse hinterlegt."
+msgstr "Müşterinin kayıtlı bir e-posta adresi yok."
+
+msgid "Kontakt ergänzen"
+msgstr "İletişim bilgisi ekle"
+
+msgid "Ihre Nachricht …"
+msgstr "Mesajınız …"
+
+msgid "Auch per Telegram senden"
+msgstr "Telegram ile de gönder"
+
+msgid "Per WhatsApp schreiben"
+msgstr "WhatsApp'tan yaz"
+
+msgid "Allgemein"
+msgstr "Genel"
+
+msgid ""
+"Startet eine Unterhaltung zu %(label)s. Der Kunde bekommt eine E-Mail mit "
+"Link zum Gespräch und kann direkt antworten."
+msgstr ""
+"%(label)s hakkında bir görüşme başlatır. Müşteri, görüşme bağlantısını "
+"içeren bir e-posta alır ve doğrudan yanıtlayabilir."

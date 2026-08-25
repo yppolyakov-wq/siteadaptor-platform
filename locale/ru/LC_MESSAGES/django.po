@@ -20176,3 +20176,37 @@ msgstr "с онлайн-предоплатой"
 msgid "Catalog parts are reserved from stock when the job is accepted."
 msgstr ""
 "Товары из каталога резервируются на складе при принятии заказа (Beauftragt)."
+
+msgid "Nachricht an den Kunden"
+msgstr "Написать клиенту"
+
+msgid "Nachricht senden"
+msgstr "Отправить сообщение"
+
+msgid "Nachricht gesendet."
+msgstr "Сообщение отправлено."
+
+msgid "Der Kunde hat keine E-Mail-Adresse hinterlegt."
+msgstr "У клиента не указан адрес электронной почты."
+
+msgid "Kontakt ergänzen"
+msgstr "Дополнить контакт"
+
+msgid "Ihre Nachricht …"
+msgstr "Ваше сообщение …"
+
+msgid "Auch per Telegram senden"
+msgstr "Отправить также в Telegram"
+
+msgid "Per WhatsApp schreiben"
+msgstr "Написать в WhatsApp"
+
+msgid "Allgemein"
+msgstr "Общее"
+
+msgid ""
+"Startet eine Unterhaltung zu %(label)s. Der Kunde bekommt eine E-Mail mit "
+"Link zum Gespräch und kann direkt antworten."
+msgstr ""
+"Начинает беседу по %(label)s. Клиент получит письмо со ссылкой на разговор и"
+" сможет сразу ответить."

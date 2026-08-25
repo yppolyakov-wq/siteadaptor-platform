@@ -20086,3 +20086,37 @@ msgstr "mit Online-Anzahlung"
 
 msgid "Catalog parts are reserved from stock when the job is accepted."
 msgstr "Katalog-Teile werden mit der Beauftragung im Lager reserviert."
+
+msgid "Nachricht an den Kunden"
+msgstr "Nachricht an den Kunden"
+
+msgid "Nachricht senden"
+msgstr "Nachricht senden"
+
+msgid "Nachricht gesendet."
+msgstr "Nachricht gesendet."
+
+msgid "Der Kunde hat keine E-Mail-Adresse hinterlegt."
+msgstr "Der Kunde hat keine E-Mail-Adresse hinterlegt."
+
+msgid "Kontakt ergänzen"
+msgstr "Kontakt ergänzen"
+
+msgid "Ihre Nachricht …"
+msgstr "Ihre Nachricht …"
+
+msgid "Auch per Telegram senden"
+msgstr "Auch per Telegram senden"
+
+msgid "Per WhatsApp schreiben"
+msgstr "Per WhatsApp schreiben"
+
+msgid "Allgemein"
+msgstr "Allgemein"
+
+msgid ""
+"Startet eine Unterhaltung zu %(label)s. Der Kunde bekommt eine E-Mail mit "
+"Link zum Gespräch und kann direkt antworten."
+msgstr ""
+"Startet eine Unterhaltung zu %(label)s. Der Kunde bekommt eine E-Mail mit "
+"Link zum Gespräch und kann direkt antworten."

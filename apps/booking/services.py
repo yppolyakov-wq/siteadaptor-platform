@@ -183,6 +183,15 @@ def book(
         from .notifications import enqueue_booking_email
 
         enqueue_booking_email(booking, "created")
+    # C2: «спросил с сайта → записался» — одна беседа (fail-soft, однозначность).
+    from apps.inbox.deal_threads import adopt_open_thread, deal_ref_label
+
+    adopt_open_thread(
+        booking.customer,
+        ref_kind="booking",
+        ref_id=booking.reference_code,
+        ref_label=deal_ref_label("booking", booking.reference_code),
+    )
     return booking
 
 

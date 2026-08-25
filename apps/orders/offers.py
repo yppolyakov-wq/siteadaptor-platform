@@ -141,8 +141,11 @@ def accept_offer(offer, *, name="", email="", phone="", payment_method=""):
     conversation = offer.conversation
     if conversation is not None:
         # Тред ↔ заказ: мягкий ref (шов inbox) + отметка в ленте.
+        # C1 (2026-08-25): ref_id — КАНОНИЧЕСКИ reference_code, как у problem-гейта
+        # LS-6 и problem-полосы доски (раньше сюда писался UUID → тред, склеенный
+        # через принятие Angebot, не находился ни полосой, ни поиском треда сделки).
         conversation.ref_kind = "order"
-        conversation.ref_id = str(order.pk)
+        conversation.ref_id = order.reference_code
         conversation.ref_label = order.reference_code
         conversation.save(update_fields=["ref_kind", "ref_id", "ref_label", "updated_at"])
         _post_system_message(

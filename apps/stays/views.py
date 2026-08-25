@@ -697,6 +697,14 @@ def booking_detail(request, pk):
             "free_rooms": services.free_rooms_for(booking),
             # VS-3: прикреплённые услуги (велопрокат/трансфер к брони номера).
             "deal_links": deal_links.block_context("stay", booking.pk),
+            # VF-16/C1: входы «карточка клиента» и «написать клиенту» — fail-closed
+            # гейты модулей (без них ссылки вели бы в 404 гейта путей).
+            "crm_active": bool(
+                getattr(request, "tenant", None) and request.tenant.is_module_active("crm")
+            ),
+            "inbox_active": bool(
+                getattr(request, "tenant", None) and request.tenant.is_module_active("inbox")
+            ),
         },
     )
 

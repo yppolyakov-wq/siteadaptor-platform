@@ -19958,3 +19958,37 @@ msgstr "with online deposit"
 
 msgid "Catalog parts are reserved from stock when the job is accepted."
 msgstr "Catalog parts are reserved from stock when the job is accepted."
+
+msgid "Nachricht an den Kunden"
+msgstr "Message the customer"
+
+msgid "Nachricht senden"
+msgstr "Send message"
+
+msgid "Nachricht gesendet."
+msgstr "Message sent."
+
+msgid "Der Kunde hat keine E-Mail-Adresse hinterlegt."
+msgstr "The customer has no e-mail address on file."
+
+msgid "Kontakt ergänzen"
+msgstr "Add contact details"
+
+msgid "Ihre Nachricht …"
+msgstr "Your message …"
+
+msgid "Auch per Telegram senden"
+msgstr "Send via Telegram as well"
+
+msgid "Per WhatsApp schreiben"
+msgstr "Write on WhatsApp"
+
+msgid "Allgemein"
+msgstr "General"
+
+msgid ""
+"Startet eine Unterhaltung zu %(label)s. Der Kunde bekommt eine E-Mail mit "
+"Link zum Gespräch und kann direkt antworten."
+msgstr ""
+"Starts a conversation about %(label)s. The customer gets an e-mail with a "
+"link to the conversation and can reply right away."

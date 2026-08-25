@@ -205,6 +205,14 @@ def booking_detail(request, pk):
             "chosen_extra_ids": chosen_extra_ids,
             # VS-3: связь с якорной сделкой (запись может быть услугой к брони).
             "deal_links": deal_links.block_context("booking", booking.pk),
+            # VF-16/C1: входы «карточка клиента» и «написать клиенту» — fail-closed
+            # гейты модулей (без них ссылки вели бы в 404 гейта путей).
+            "crm_active": bool(
+                getattr(request, "tenant", None) and request.tenant.is_module_active("crm")
+            ),
+            "inbox_active": bool(
+                getattr(request, "tenant", None) and request.tenant.is_module_active("inbox")
+            ),
         },
     )
 

@@ -200,6 +200,8 @@ def job_detail(request, pk):
             # VF-16: ссылка на полную карточку клиента в CRM (гейт по модулю —
             # без него ссылка вела бы в 404 гейта путей; прецедент order_detail).
             "crm_active": bool(request.tenant and request.tenant.is_module_active("crm")),
+            # C1: «✉️ Nachricht an den Kunden» — тот же fail-closed гейт модуля.
+            "inbox_active": bool(request.tenant and request.tenant.is_module_active("inbox")),
             # VF-15: публичная страница Angebot (клиент принимает и платит
             # депозит) — владельцу для ручной передачи ссылки.
             "angebot_path": reverse("storefront-angebot", args=[job.public_token]),

@@ -37,6 +37,10 @@ fetch ?buchung=<pk>&box=1). Контекст: b, can_delete, registration, units
     <p class="font-medium">{{ b.customer.name|default:b.customer }}</p>
     {% if b.customer.email %}<p class="text-sm text-gray-600"><a href="mailto:{{ b.customer.email }}" class="hover:underline">{{ b.customer.email }}</a></p>{% endif %}
     {% if b.customer.phone %}<p class="text-sm text-gray-600"><a href="tel:{{ b.customer.phone }}" class="hover:underline">{{ b.customer.phone }}</a></p>{% endif %}
+    <p class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+      {% if crm_active %}<a href="{% url 'crm:customer-detail' b.customer.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Open customer card" %} →</a>{% endif %}
+      {% include "core/_deal_message_button.html" with kind="stay" obj_pk=b.pk %}
+    </p>
     {% include "core/_deal_customer_edit.html" with kind="stay" obj_pk=b.pk customer=b.customer next_path=request.get_full_path %}
     <p class="text-sm text-gray-600 mt-2">{{ b.adults }} {% trans "Erwachsene" %}{% if b.children %} · {{ b.children }} {% trans "Kinder" %}{% endif %}{% if b.rooms > 1 %} · {{ b.rooms }} {% trans "Zimmer" %}{% endif %}</p>
     {% if b.note %}<p class="mt-2 text-sm bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">📝 {{ b.note }}</p>{% endif %}
