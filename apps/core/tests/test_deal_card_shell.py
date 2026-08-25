@@ -294,3 +294,63 @@ def test_discount_never_goes_below_zero_and_rejects_garbage():
     _post("stay", stay, {"discount": "abc"}, "hotel")  # мусор не меняет сумму
     stay.refresh_from_db()
     assert stay.total_cents == before
+
+
+# --- DC-3: статус списком + вопрос об уведомлении -----------------------------
+
+
+def test_status_is_a_dropdown_with_notification_question():
+    """ТЗ: «смена статуса выпадающим списком, при выборе спрашивать —
+    отправить уведомление клиенту и администратору»."""
+    for kind, html in _cards():
+        block = html[html.index('data-deal-block="status"') :]
+        block = block[: block.index("</div>", block.index("</form>"))]
+        assert 'name="action"' in block and "<select" in block, kind
+        assert 'name="notify_customer"' in block and 'name="notify_team"' in block, kind
+        assert 'name="notify_form"' in block, kind  # снятый чекбокс в POST не приходит
+
+
+def test_unchecked_boxes_mute_only_this_status_change():
+    """Снятые чекбоксы гасят письма ИМЕННО этой смены; настройки тенанта целы."""
+    from apps.core import views as core_views
+    from apps.notifications.models import Notification
+
+    order = _order()
+    Notification.objects.all().delete()
+
+    req = RequestFactory().post(
+        f"/dashboard/board/order/{order.pk}/action/",
+        {"action": "confirmed", "notify_form": "1", "next": "/dashboard/verkaeufe/"},
+    )
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = _User()
+    req.tenant = _tenant()
+    core_views.kanban_action(req, "order", order.pk)
+    order.refresh_from_db()
+    assert order.status == "confirmed"
+    assert not Notification.objects.filter(dedupe_key__contains=":confirmed:").exists()
+
+    # Та же смена С отмеченным чекбоксом — письмо ставится в очередь как раньше.
+    order2 = _order()
+    req2 = RequestFactory().post(
+        f"/dashboard/board/order/{order2.pk}/action/",
+        {"action": "confirmed", "notify_form": "1", "notify_customer": "1", "notify_team": "1"},
+    )
+    SessionMiddleware(lambda r: None).process_request(req2)
+    MessageMiddleware(lambda r: None).process_request(req2)
+    req2.user = _User()
+    req2.tenant = _tenant()
+    core_views.kanban_action(req2, "order", order2.pk)
+    assert Notification.objects.filter(dedupe_key=f"order:{order2.id}:confirmed:customer").exists()
+
+
+def test_other_surfaces_keep_notifying():
+    """Доска и списки формы-вопроса не шлют — их поведение не меняется."""
+    from apps.core import transactions
+    from apps.notifications.models import Notification
+
+    order = _order()
+    Notification.objects.all().delete()
+    transactions.apply_action("order", order, "confirmed", extra={})
+    assert Notification.objects.filter(dedupe_key=f"order:{order.id}:confirmed:customer").exists()

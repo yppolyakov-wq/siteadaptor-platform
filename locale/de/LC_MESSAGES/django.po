@@ -20183,3 +20183,57 @@ msgstr ""
 
 msgid "Bitte einen gültigen Betrag eingeben."
 msgstr ""
+
+msgid "Nächster Schritt"
+msgstr ""
+
+msgid "Benachrichtigen?"
+msgstr ""
+
+msgid "Status ändern"
+msgstr ""
+
+msgid "WhatsApp"
+msgstr ""
+
+msgid "Nummer in den Einstellungen hinterlegen"
+msgstr ""
+
+msgid "Bot für Kundenchats und Benachrichtigungen"
+msgstr ""
+
+msgid "Bot verbinden"
+msgstr ""
+
+msgid "Absenderadresse in den Benachrichtigungen setzen"
+msgstr ""
+
+msgid "Chat auf der Website"
+msgstr ""
+
+msgid "Nachrichten landen im Posteingang"
+msgstr ""
+
+msgid "Modul „Nachrichten“ aktivieren"
+msgstr ""
+
+msgid "Instagram, Facebook, TikTok … im Profil hinterlegen"
+msgstr ""
+
+msgid "Kanal wählen"
+msgstr ""
+
+msgid "In alle aktiven Kanäle"
+msgstr ""
+
+msgid "Persönliche Kanäle"
+msgstr ""
+
+msgid "Wo Kundinnen und Kunden dich direkt erreichen."
+msgstr ""
+
+msgid "aktiv"
+msgstr ""
+
+msgid "einrichten"
+msgstr ""

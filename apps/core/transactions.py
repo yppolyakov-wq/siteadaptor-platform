@@ -459,6 +459,18 @@ def apply_action(kind: str, obj, target: str, actor=None, extra=None):
         if code and code != (getattr(obj, "tracking_code", "") or ""):
             obj.tracking_code = code
             obj.save(update_fields=["tracking_code", "updated_at"])
+    # DC-3: карточка сделки спрашивает, уведомлять ли клиента и команду. Снятый
+    # чекбокс В POST НЕ ПРИХОДИТ ВООБЩЕ, поэтому спрашивающая форма помечает
+    # себя скрытым `notify_form=1`; без этой пометки (доска, списки, per-app
+    # экраны) поведение прежнее — уведомляем всех.
+    asks = bool(extra.get("notify_form"))
+    mute_customer = asks and not extra.get("notify_customer")
+    mute_owner = asks and not extra.get("notify_team")
+    if mute_customer or mute_owner:
+        from apps.notifications.prefs import muted
+
+        with muted(customer=mute_customer, owner=mute_owner):
+            return sm_for(kind).apply(obj, target, actor=actor)
     return sm_for(kind).apply(obj, target, actor=actor)
 
 

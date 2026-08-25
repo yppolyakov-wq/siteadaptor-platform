@@ -21,14 +21,17 @@
 {% endif %}
 
 <div class="space-y-2 mb-8">
-  {% for p in posts %}
+  {% for row in rows %}
     <div class="flex items-center justify-between gap-3 bg-white rounded-xl border border-gray-200 px-4 py-3 hover:border-indigo-300">
-      <a href="{% url 'blog-edit' p.pk %}" class="font-medium min-w-0 truncate flex-1">{{ p.title }}</a>
-      {% if can_share and p.is_published %}
-        <a href="{% url 'publishing-posts' %}?text={{ p.title|urlencode }}&link={{ request.scheme }}%3A%2F%2F{{ request.get_host }}{% url 'storefront-blog-post' p.slug %}"
-           class="text-sm text-indigo-600 hover:underline shrink-0">📣 {% trans "Teilen" %}</a>
+      <a href="{% url 'blog-edit' row.post.pk %}" class="font-medium min-w-0 truncate flex-1">{{ row.post.title }}</a>
+      {% if row.post.is_published %}
+        {% if can_share %}
+          {% include "core/_share_menu.html" with share_targets=row.share_targets share_url=row.share_url share_all_url=row.share_all_url %}
+        {% else %}
+          {% include "core/_share_menu.html" with share_targets=row.share_targets share_url=row.share_url %}
+        {% endif %}
       {% endif %}
-      <span class="text-xs shrink-0 {% if p.is_published %}text-green-600{% elif p.published_at %}text-indigo-600{% else %}text-gray-400{% endif %}">{% if p.is_published %}{% trans "Published" %}{% elif p.published_at %}⏰ {{ p.published_at|date:"d.m.Y H:i" }}{% else %}{% trans "Draft" %}{% endif %}</span>
+      <span class="text-xs shrink-0 {% if row.post.is_published %}text-green-600{% elif row.post.published_at %}text-indigo-600{% else %}text-gray-400{% endif %}">{% if row.post.is_published %}{% trans "Published" %}{% elif row.post.published_at %}⏰ {{ row.post.published_at|date:"d.m.Y H:i" }}{% else %}{% trans "Draft" %}{% endif %}</span>
     </div>
   {% empty %}
     <p class="text-gray-500">{% trans "No posts yet." %}</p>

@@ -20055,3 +20055,57 @@ msgstr "The customer gets an email on every status change."
 
 msgid "Bitte einen gültigen Betrag eingeben."
 msgstr "Please enter a valid amount."
+
+msgid "Nächster Schritt"
+msgstr "Next step"
+
+msgid "Benachrichtigen?"
+msgstr "Notify?"
+
+msgid "Status ändern"
+msgstr "Change status"
+
+msgid "WhatsApp"
+msgstr "WhatsApp"
+
+msgid "Nummer in den Einstellungen hinterlegen"
+msgstr "Add the number in settings"
+
+msgid "Bot für Kundenchats und Benachrichtigungen"
+msgstr "Bot for customer chats and notifications"
+
+msgid "Bot verbinden"
+msgstr "Connect bot"
+
+msgid "Absenderadresse in den Benachrichtigungen setzen"
+msgstr "Set the sender address in notifications"
+
+msgid "Chat auf der Website"
+msgstr "Chat on the website"
+
+msgid "Nachrichten landen im Posteingang"
+msgstr "Messages arrive in the inbox"
+
+msgid "Modul „Nachrichten“ aktivieren"
+msgstr "Activate the “Messages” module"
+
+msgid "Instagram, Facebook, TikTok … im Profil hinterlegen"
+msgstr "Add Instagram, Facebook, TikTok … in the profile"
+
+msgid "Kanal wählen"
+msgstr "Choose channel"
+
+msgid "In alle aktiven Kanäle"
+msgstr "To all active channels"
+
+msgid "Persönliche Kanäle"
+msgstr "Personal channels"
+
+msgid "Wo Kundinnen und Kunden dich direkt erreichen."
+msgstr "Where customers reach you directly."
+
+msgid "aktiv"
+msgstr "active"
+
+msgid "einrichten"
+msgstr "set up"

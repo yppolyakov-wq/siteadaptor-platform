@@ -1,0 +1,23 @@
+{% load i18n %}
+{% comment %}Меню «поделиться» с ВЫБОРОМ канала (фидбэк владельца 2026-08-25).
+Параметры include: share_targets (core.share_links.share_targets), share_url,
+share_all_url (необязательно — «во все включённые каналы», apps.publishing).
+Работает без JS: ссылки открываются в новой вкладке, ссылка на статью — в поле
+только для чтения (копируется выделением).{% endcomment %}
+<details class="relative" data-share-menu>
+  <summary class="cursor-pointer select-none text-sm text-indigo-600 hover:underline">📣 {% trans "Teilen" %}</summary>
+  <div class="mt-2 w-64 rounded-xl border border-gray-200 bg-white p-3 shadow-lg space-y-1">
+    <p class="text-xs text-gray-500">{% trans "Kanal wählen" %}</p>
+    {% for t in share_targets %}
+      <a href="{{ t.url }}" target="_blank" rel="noopener"
+         class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-gray-50">{{ t.icon }} {{ t.label }}</a>
+    {% endfor %}
+    {% if share_all_url %}
+      <a href="{{ share_all_url }}" class="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-indigo-600 hover:bg-indigo-50">📡 {% trans "In alle aktiven Kanäle" %}</a>
+    {% endif %}
+    <label class="block pt-2 text-xs text-gray-500">{% trans "Link" %}
+      <input type="text" readonly value="{{ share_url }}" onclick="this.select()"
+             class="mt-1 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-600">
+    </label>
+  </div>
+</details>

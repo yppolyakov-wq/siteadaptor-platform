@@ -20273,3 +20273,57 @@ msgstr "Клиент получает письмо при каждой смен�
 
 msgid "Bitte einen gültigen Betrag eingeben."
 msgstr "Введите корректную сумму."
+
+msgid "Nächster Schritt"
+msgstr "Следующий шаг"
+
+msgid "Benachrichtigen?"
+msgstr "Уведомить?"
+
+msgid "Status ändern"
+msgstr "Изменить статус"
+
+msgid "WhatsApp"
+msgstr "WhatsApp"
+
+msgid "Nummer in den Einstellungen hinterlegen"
+msgstr "Укажите номер в настройках"
+
+msgid "Bot für Kundenchats und Benachrichtigungen"
+msgstr "Бот для чатов с клиентами и уведомлений"
+
+msgid "Bot verbinden"
+msgstr "Подключить бота"
+
+msgid "Absenderadresse in den Benachrichtigungen setzen"
+msgstr "Задайте адрес отправителя в уведомлениях"
+
+msgid "Chat auf der Website"
+msgstr "Чат на сайте"
+
+msgid "Nachrichten landen im Posteingang"
+msgstr "Сообщения приходят во входящие"
+
+msgid "Modul „Nachrichten“ aktivieren"
+msgstr "Включите модуль «Сообщения»"
+
+msgid "Instagram, Facebook, TikTok … im Profil hinterlegen"
+msgstr "Добавьте Instagram, Facebook, TikTok … в профиле"
+
+msgid "Kanal wählen"
+msgstr "Выберите канал"
+
+msgid "In alle aktiven Kanäle"
+msgstr "Во все активные каналы"
+
+msgid "Persönliche Kanäle"
+msgstr "Личные каналы"
+
+msgid "Wo Kundinnen und Kunden dich direkt erreichen."
+msgstr "Где клиенты связываются с вами напрямую."
+
+msgid "aktiv"
+msgstr "активен"
+
+msgid "einrichten"
+msgstr "настроить"

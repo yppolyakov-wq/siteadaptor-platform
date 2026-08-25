@@ -20182,3 +20182,57 @@ msgstr "Müşteri her durum değişikliğinde bir e-posta alır."
 
 msgid "Bitte einen gültigen Betrag eingeben."
 msgstr "Lütfen geçerli bir tutar girin."
+
+msgid "Nächster Schritt"
+msgstr "Sonraki adım"
+
+msgid "Benachrichtigen?"
+msgstr "Bildirim gönderilsin mi?"
+
+msgid "Status ändern"
+msgstr "Durumu değiştir"
+
+msgid "WhatsApp"
+msgstr "WhatsApp"
+
+msgid "Nummer in den Einstellungen hinterlegen"
+msgstr "Numarayı ayarlarda tanımlayın"
+
+msgid "Bot für Kundenchats und Benachrichtigungen"
+msgstr "Müşteri sohbetleri ve bildirimler için bot"
+
+msgid "Bot verbinden"
+msgstr "Botu bağla"
+
+msgid "Absenderadresse in den Benachrichtigungen setzen"
+msgstr "Bildirimlerde gönderen adresini ayarlayın"
+
+msgid "Chat auf der Website"
+msgstr "Web sitesinde sohbet"
+
+msgid "Nachrichten landen im Posteingang"
+msgstr "Mesajlar gelen kutusuna düşer"
+
+msgid "Modul „Nachrichten“ aktivieren"
+msgstr "“Mesajlar” modülünü etkinleştirin"
+
+msgid "Instagram, Facebook, TikTok … im Profil hinterlegen"
+msgstr "Instagram, Facebook, TikTok … profilde tanımlayın"
+
+msgid "Kanal wählen"
+msgstr "Kanal seçin"
+
+msgid "In alle aktiven Kanäle"
+msgstr "Tüm etkin kanallara"
+
+msgid "Persönliche Kanäle"
+msgstr "Kişisel kanallar"
+
+msgid "Wo Kundinnen und Kunden dich direkt erreichen."
+msgstr "Müşterilerin sana doğrudan ulaştığı yerler."
+
+msgid "aktiv"
+msgstr "etkin"
+
+msgid "einrichten"
+msgstr "kur"

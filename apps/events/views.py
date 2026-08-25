@@ -381,13 +381,40 @@ def blog_list(request):
                 blog_share_draft(post)
             messages.success(request, _("Post created."))
         return redirect("blog-list")
+    # Фидбэк владельца 2026-08-25 («кнопка поделиться и выбрать канал где»):
+    # у каждой опубликованной статьи — меню каналов с прямыми share-ссылками;
+    # «во все активные каналы» остаётся отдельным пунктом (модуль publishing).
+    from urllib.parse import quote
+
+    from django.urls import reverse
+
+    from apps.core.share_links import share_targets
+
+    posts = list(BlogPost.objects.all())
+    base = f"{request.scheme}://{request.get_host()}"
+    rows = []
+    for post in posts:
+        url = f"{base}{reverse('storefront-blog-post', args=[post.slug])}"
+        rows.append(
+            {
+                "post": post,
+                "share_url": url,
+                "share_targets": share_targets(post.title, url),
+                # «Во все активные каналы» — существующий контент-календарь с
+                # префиллом текста и ссылки (модуль publishing).
+                "share_all_url": (
+                    f"{reverse('publishing-posts')}?text={quote(post.title)}&link={quote(url)}"
+                ),
+            }
+        )
     return render(
         request,
         "events/blog_list.html",
         {
             "nav": "blog",  # W7b: своя вкладка в Marketing-хабе (была "events")
-            "posts": BlogPost.objects.all(),
-            # CM-3: кнопка «Teilen» видна только при активном модуле publishing.
+            "posts": posts,
+            "rows": rows,
+            # CM-3: пункт «во все каналы» виден только при активном модуле publishing.
             "can_share": getattr(request, "tenant", None) is not None
             and request.tenant.is_module_active("publishing"),
         },
