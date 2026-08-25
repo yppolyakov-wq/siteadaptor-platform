@@ -95,8 +95,8 @@ class Line:
     unit: str = ""
     total: str = ""
     negative: bool = False
-    strike: str = ""      # зачёркнутая цена до скидки
-    disc_note: str = ""   # «Rabatt −10 % · Stammkunde»
+    strike: str = ""  # зачёркнутая цена до скидки
+    disc_note: str = ""  # «Rabatt −10 % · Stammkunde»
 
 
 @dataclass
@@ -153,9 +153,7 @@ class Card:
 
 def render_line(ln):
     color = OK if ln.negative else INK
-    note = (
-        f' <span style="color: {MUTED}; font-size: 12.5px">· {ln.note}</span>' if ln.note else ""
-    )
+    note = f' <span style="color: {MUTED}; font-size: 12.5px">· {ln.note}</span>' if ln.note else ""
     # Скидка на ПОЗИЦИЮ: пометка под названием + зачёркнутая цена до скидки.
     disc = (
         f'\n            <div style="font-size: 12px; color: {OK}; font-weight: 600; margin-top: 2px">{ln.disc_note}</div>'
@@ -251,9 +249,9 @@ def render(card: Card) -> str:
     for key, label in scopes:
         active = key == card.disc_scope
         if active:
-            disc_chips += f'''              <div style="height: 30px; padding: 0 12px; border-radius: 99px; background: {ACCENT}; color: #FFFFFF; display: flex; align-items: center; font-size: 12.5px; font-weight: 600">{label}</div>\n'''
+            disc_chips += f"""              <div style="height: 30px; padding: 0 12px; border-radius: 99px; background: {ACCENT}; color: #FFFFFF; display: flex; align-items: center; font-size: 12.5px; font-weight: 600">{label}</div>\n"""
         else:
-            disc_chips += f'''              <div style="height: 30px; padding: 0 12px; border-radius: 99px; background: #FFFFFF; color: {MUTED}; border: 1px solid {BORDER}; display: flex; align-items: center; font-size: 12.5px; font-weight: 600">{label}</div>\n'''
+            disc_chips += f"""              <div style="height: 30px; padding: 0 12px; border-radius: 99px; background: #FFFFFF; color: {MUTED}; border: 1px solid {BORDER}; display: flex; align-items: center; font-size: 12.5px; font-weight: 600">{label}</div>\n"""
     disc_state = (
         f'<span style="color: {OK}; font-weight: 600">{card.disc_value}</span> · {card.disc_reason}'
         if card.disc_scope != "none"
@@ -435,14 +433,22 @@ CARDS = [
         lines=[
             Line("2×", "Roggen-Sauerteig 1 kg", "Art.-Nr. BR-101", "7 %", "4,20 €", "8,40 €"),
             Line("12×", "Brötchen gemischt", "", "7 %", "0,55 €", "6,60 €"),
-            Line("1×", "Butterkuchen-Blech", "vorbestellt", "7 %", "13,05 €", "13,05 €",
-                 strike="14,50 €", disc_note="Rabatt −10 % · Stammkundin"),
+            Line(
+                "1×",
+                "Butterkuchen-Blech",
+                "vorbestellt",
+                "7 %",
+                "13,05 €",
+                "13,05 €",
+                strike="14,50 €",
+                disc_note="Rabatt −10 % · Stammkundin",
+            ),
             Line("1×", "Kaffeebohnen 500 g", "", "19 %", "9,80 €", "9,80 €"),
         ],
         totals=[
             ("Netto", "34,44 €"),
-            ("MwSt. 7 % <span style=\"color: #B3B8C2\">auf 28,05 €</span>", "1,84 €"),
-            ("MwSt. 19 % <span style=\"color: #B3B8C2\">auf 9,80 €</span>", "1,56 €"),
+            ('MwSt. 7 % <span style="color: #B3B8C2">auf 28,05 €</span>', "1,84 €"),
+            ('MwSt. 19 % <span style="color: #B3B8C2">auf 9,80 €</span>', "1,56 €"),
         ],
         net_first=False,
         totals_new=False,
@@ -490,13 +496,18 @@ CARDS = [
         meta="Vorbestellung 22.08. · Abholung Sa 24.08. 09:00 · Kanal: Telefon",
         pay_pill=("Zahlung bei Abholung", MUTED, CANVAS),
         lines=[
-            Line("2,4 kg", "Rinderbraten am Stück", "Theke, gewogen", "7 %", "24,90 €/kg", "59,76 €"),
+            Line(
+                "2,4 kg", "Rinderbraten am Stück", "Theke, gewogen", "7 %", "24,90 €/kg", "59,76 €"
+            ),
             Line("1×", "Grillplatte „Bergmann“", "für 6 Personen", "7 %", "42,00 €", "42,00 €"),
             Line("6×", "Bratwurst grob", "", "7 %", "1,80 €", "10,80 €"),
         ],
         totals=[
             ("Zwischensumme", "112,56 €"),
-            ("Rabatt auf die Bestellung <span style=\"color: #B3B8C2\">−5 % · Firmenkunde</span>", "−5,63 €"),
+            (
+                'Rabatt auf die Bestellung <span style="color: #B3B8C2">−5 % · Firmenkunde</span>',
+                "−5,63 €",
+            ),
             ("Netto", "99,93 €"),
             ("MwSt. 7 %", "7,00 €"),
         ],
@@ -552,8 +563,8 @@ CARDS = [
         ],
         totals=[
             ("Netto", "17,60 €"),
-            ("MwSt. 19 % <span style=\"color: #B3B8C2\">im Haus</span>", "2,67 €"),
-            ("MwSt. 7 % <span style=\"color: #B3B8C2\">außer Haus</span>", "0,23 €"),
+            ('MwSt. 19 % <span style="color: #B3B8C2">im Haus</span>', "2,67 €"),
+            ('MwSt. 7 % <span style="color: #B3B8C2">außer Haus</span>', "0,23 €"),
         ],
         net_first=False,
         totals_new=False,
@@ -580,7 +591,11 @@ CARDS = [
             SideCard(
                 IC_CAL,
                 "Service",
-                [("Tisch", "7 · Fensterreihe"), ("Bestellt", "12:18 Uhr"), ("Küche", "2 Positionen offen")],
+                [
+                    ("Tisch", "7 · Fensterreihe"),
+                    ("Bestellt", "12:18 Uhr"),
+                    ("Küche", "2 Positionen offen"),
+                ],
                 "Küchenansicht öffnen →",
             )
         ],
@@ -607,7 +622,10 @@ CARDS = [
         ],
         totals=[
             ("Zwischensumme", "328,00 €"),
-            ("Rabatt auf die Bestellung <span style=\"color: #B3B8C2\">−10 % · Stammgast</span>", "−32,80 €"),
+            (
+                'Rabatt auf die Bestellung <span style="color: #B3B8C2">−10 % · Stammgast</span>',
+                "−32,80 €",
+            ),
             ("Netto", "248,07 €"),
             ("MwSt. 19 %", "47,13 €"),
         ],
@@ -636,7 +654,11 @@ CARDS = [
             SideCard(
                 IC_CAL,
                 "Tisch",
-                [("Wann", "Fr 05.09. · 19:30"), ("Tisch", "12 · Wintergarten"), ("Hinweis", "Kinderstuhl")],
+                [
+                    ("Wann", "Fr 05.09. · 19:30"),
+                    ("Tisch", "12 · Wintergarten"),
+                    ("Hinweis", "Kinderstuhl"),
+                ],
                 "Verschieben →",
             )
         ],
@@ -663,7 +685,7 @@ CARDS = [
         ],
         totals=[
             ("Zwischensumme", "55,80 €"),
-            ("Rabatt auf die Bestellung <span style=\"color: #B3B8C2\">Abo-Bonus</span>", "−3,00 €"),
+            ('Rabatt auf die Bestellung <span style="color: #B3B8C2">Abo-Bonus</span>', "−3,00 €"),
             ("Netto", "49,35 €"),
             ("MwSt. 7 %", "3,45 €"),
         ],
@@ -713,8 +735,16 @@ CARDS = [
         meta="Aktions-Kauf · reserviert bis Fr 29.08. 20:00 · Kanal: Aktionsseite",
         pay_pill=("Aktion", ACCENT_DARK, ACCENT_SOFT),
         lines=[
-            Line("1×", "Kaffee-Paket „Mystery“", "", "19 %", "13,90 €", "13,90 €",
-                 strike="19,90 €", disc_note="Rabatt −30 % · Aktion „Sparfuchs-Woche“"),
+            Line(
+                "1×",
+                "Kaffee-Paket „Mystery“",
+                "",
+                "19 %",
+                "13,90 €",
+                "13,90 €",
+                strike="19,90 €",
+                disc_note="Rabatt −30 % · Aktion „Sparfuchs-Woche“",
+            ),
             Line("2×", "Bio-Kiste Wochenmarkt", "Aktionspreis", "7 %", "18,50 €", "37,00 €"),
             Line("1×", "Rabatt „Sparfuchs-Woche“", "", "", "", "−5,00 €", negative=True),
         ],
@@ -769,15 +799,28 @@ CARDS = [
         meta="Eingegangen 20.08. 21:14 · Kanal: Online-Shop",
         pay_pill=("Bezahlt", OK, OK_SOFT),
         lines=[
-            Line("1×", "Mantel „Nordlicht“", "Größe M · Farbe Sand", "19 %", "189,00 €", "189,00 €"),
+            Line(
+                "1×", "Mantel „Nordlicht“", "Größe M · Farbe Sand", "19 %", "189,00 €", "189,00 €"
+            ),
             Line("2×", "Leinenhemd", "Größe S · Farbe Blau", "19 %", "79,00 €", "158,00 €"),
-            Line("1×", "Versand DHL", "", "19 %", "0,00 €", "0,00 €",
-                 strike="4,90 €", disc_note="Rabatt −100 % · versandfrei ab 200 €"),
+            Line(
+                "1×",
+                "Versand DHL",
+                "",
+                "19 %",
+                "0,00 €",
+                "0,00 €",
+                strike="4,90 €",
+                disc_note="Rabatt −100 % · versandfrei ab 200 €",
+            ),
         ],
         totals=[
             ("Zwischensumme", "347,00 €"),
-            ("Rabatt Gutschein WELCOME10 <span style=\"color: #B3B8C2\">auf die Bestellung</span>", "−34,70 €"),
-            ("Rabatt Versand <span style=\"color: #B3B8C2\">versandfrei ab 200 €</span>", "−4,90 €"),
+            (
+                'Rabatt Gutschein WELCOME10 <span style="color: #B3B8C2">auf die Bestellung</span>',
+                "−34,70 €",
+            ),
+            ('Rabatt Versand <span style="color: #B3B8C2">versandfrei ab 200 €</span>', "−4,90 €"),
             ("Netto", "262,44 €"),
             ("MwSt. 19 %", "49,86 €"),
         ],
@@ -832,12 +875,20 @@ CARDS = [
         lines=[
             Line("3×", "Espresso-Bohnen 1 kg", "Art.-Nr. KB-220", "7 %", "18,90 €", "56,70 €"),
             Line("1×", "Handfilter-Set", "Art.-Nr. ZB-14", "19 %", "34,00 €", "34,00 €"),
-            Line("1×", "Versand DHL Paket", "", "19 %", "0,00 €", "0,00 €",
-                 strike="5,90 €", disc_note="Rabatt −100 % · versandfrei ab 80 €"),
+            Line(
+                "1×",
+                "Versand DHL Paket",
+                "",
+                "19 %",
+                "0,00 €",
+                "0,00 €",
+                strike="5,90 €",
+                disc_note="Rabatt −100 % · versandfrei ab 80 €",
+            ),
         ],
         totals=[
             ("Zwischensumme", "96,60 €"),
-            ("Rabatt Versand <span style=\"color: #B3B8C2\">versandfrei ab 80 €</span>", "−5,90 €"),
+            ('Rabatt Versand <span style="color: #B3B8C2">versandfrei ab 80 €</span>', "−5,90 €"),
             ("Netto", "81,56 €"),
             ("MwSt. 7 %", "3,71 €"),
             ("MwSt. 19 %", "5,43 €"),
@@ -924,7 +975,11 @@ CARDS = [
             SideCard(
                 IC_CAL,
                 "Termin",
-                [("Wann", "Do 04.09. · 14:00"), ("Wer", "Mara · Stuhl 2"), ("Erinnerung", "gesendet 03.09.")],
+                [
+                    ("Wann", "Do 04.09. · 14:00"),
+                    ("Wer", "Mara · Stuhl 2"),
+                    ("Erinnerung", "gesendet 03.09."),
+                ],
                 "Verschieben →",
             )
         ],
@@ -945,10 +1000,25 @@ CARDS = [
         meta="VW Golf VII · K-DR 4471 · angenommen 22.08. 08:15",
         pay_pill=None,
         lines=[
-            Line("1×", "Inspektion nach Herstellervorgabe", "aus dem Sortiment", "19 %", "189,00 €", "189,00 €"),
+            Line(
+                "1×",
+                "Inspektion nach Herstellervorgabe",
+                "aus dem Sortiment",
+                "19 %",
+                "189,00 €",
+                "189,00 €",
+            ),
             Line("4×", "Bremsbelag vorne", "Teil BR-88", "19 %", "34,50 €", "138,00 €"),
-            Line("2,5 Std.", "Arbeitszeit Mechanik", "", "19 %", "62,40 €", "156,00 €",
-                 strike="78,00 €", disc_note="Rabatt −20 % · Kulanz"),
+            Line(
+                "2,5 Std.",
+                "Arbeitszeit Mechanik",
+                "",
+                "19 %",
+                "62,40 €",
+                "156,00 €",
+                strike="78,00 €",
+                disc_note="Rabatt −20 % · Kulanz",
+            ),
         ],
         totals=[
             ("Zwischensumme (netto)", "483,00 €"),
@@ -979,7 +1049,11 @@ CARDS = [
             SideCard(
                 IC_CAL,
                 "Fahrzeug &amp; Termin",
-                [("Fahrzeug", "VW Golf VII · 2019"), ("Kennzeichen", "K-DR 4471"), ("Fertig", "Do 28.08. · 16:00")],
+                [
+                    ("Fahrzeug", "VW Golf VII · 2019"),
+                    ("Kennzeichen", "K-DR 4471"),
+                    ("Fertig", "Do 28.08. · 16:00"),
+                ],
                 "Ersatzwagen prüfen →",
             )
         ],
@@ -1000,8 +1074,17 @@ CARDS = [
         meta="Badsanierung · Objekt: Lindenweg 12, Hilden · Angebot vom 12.08.",
         pay_pill=None,
         lines=[
-            Line("1×", "Fliesenarbeiten Bad 8 m²", "Material + Verlegung", "19 %", "2.240,00 €", "2.240,00 €"),
-            Line("1×", "Duschwanne bodengleich", "aus dem Sortiment", "19 %", "890,00 €", "890,00 €"),
+            Line(
+                "1×",
+                "Fliesenarbeiten Bad 8 m²",
+                "Material + Verlegung",
+                "19 %",
+                "2.240,00 €",
+                "2.240,00 €",
+            ),
+            Line(
+                "1×", "Duschwanne bodengleich", "aus dem Sortiment", "19 %", "890,00 €", "890,00 €"
+            ),
             Line("18 Std.", "Montage Meisterstunde", "", "19 %", "62,00 €", "1.116,00 €"),
             Line("1×", "Entsorgung Altbestand", "", "19 %", "180,00 €", "180,00 €"),
         ],
@@ -1034,7 +1117,11 @@ CARDS = [
             SideCard(
                 IC_CAL,
                 "Baustelle",
-                [("Objekt", "Lindenweg 12, Hilden"), ("Start", "Mo 01.09."), ("Dauer", "ca. 9 Werktage")],
+                [
+                    ("Objekt", "Lindenweg 12, Hilden"),
+                    ("Start", "Mo 01.09."),
+                    ("Dauer", "ca. 9 Werktage"),
+                ],
                 "Termin planen →",
             )
         ],
@@ -1055,8 +1142,16 @@ CARDS = [
         meta="Firmenfeier Nordwind GmbH · 18.10. · 45 Gäste",
         pay_pill=None,
         lines=[
-            Line("45×", "Fingerfood-Menü „Garten“", "pro Person · aus dem Sortiment", "19 %", "23,28 €", "1.047,60 €",
-                 strike="24,50 €", disc_note="Rabatt −5 % · ab 40 Gästen"),
+            Line(
+                "45×",
+                "Fingerfood-Menü „Garten“",
+                "pro Person · aus dem Sortiment",
+                "19 %",
+                "23,28 €",
+                "1.047,60 €",
+                strike="24,50 €",
+                disc_note="Rabatt −5 % · ab 40 Gästen",
+            ),
             Line("45×", "Getränkepauschale", "", "19 %", "9,00 €", "405,00 €"),
             Line("12 Std.", "Servicekraft", "", "19 %", "32,00 €", "384,00 €"),
             Line("1×", "Anfahrt &amp; Aufbau", "", "19 %", "120,00 €", "120,00 €"),
@@ -1090,7 +1185,12 @@ CARDS = [
             SideCard(
                 IC_CAL,
                 "Veranstaltung",
-                [("Wann", "Sa 18.10. · 18:00"), ("Gäste", "45"), ("Art", "Firmenfeier"), ("Ort", "Nordwind Campus")],
+                [
+                    ("Wann", "Sa 18.10. · 18:00"),
+                    ("Gäste", "45"),
+                    ("Art", "Firmenfeier"),
+                    ("Ort", "Nordwind Campus"),
+                ],
                 "Anfrage-Daten öffnen →",
             )
         ],
@@ -1111,8 +1211,16 @@ CARDS = [
         meta="Fr 12.09. – Mo 15.09. · 3 Nächte · 2 Erw. + 1 Kind · 1 Zimmer",
         pay_pill=None,
         lines=[
-            Line("3 Nächte", "Doppelzimmer Seeblick", "pro Nacht", "7 %", "116,10 €", "348,30 €",
-                 strike="129,00 €", disc_note="Rabatt −10 % · Frühbucher"),
+            Line(
+                "3 Nächte",
+                "Doppelzimmer Seeblick",
+                "pro Nacht",
+                "7 %",
+                "116,10 €",
+                "348,30 €",
+                strike="129,00 €",
+                disc_note="Rabatt −10 % · Frühbucher",
+            ),
             Line("6×", "Frühstück", "pro Nacht · 2 Pers.", "7 %", "12,00 €", "72,00 €"),
             Line("1×", "Parkplatz", "einmalig", "19 %", "15,00 €", "15,00 €"),
             Line("6×", "Kurtaxe", "ohne MwSt.", "—", "2,50 €", "15,00 €"),
@@ -1121,7 +1229,7 @@ CARDS = [
             ("Netto", "405,41 €"),
             ("MwSt. 7 %", "27,50 €"),
             ("MwSt. 19 %", "2,40 €"),
-            ("Kurtaxe <span style=\"color: #B3B8C2\">ohne MwSt.</span>", "15,00 €"),
+            ('Kurtaxe <span style="color: #B3B8C2">ohne MwSt.</span>', "15,00 €"),
         ],
         net_first=False,
         totals_new=True,
@@ -1148,7 +1256,11 @@ CARDS = [
             SideCard(
                 IC_CAL,
                 "Aufenthalt",
-                [("Zimmer", "204 · Seeblick"), ("Anreise", "Fr 12.09. ab 15:00"), ("Meldeschein", "ausgefüllt")],
+                [
+                    ("Zimmer", "204 · Seeblick"),
+                    ("Anreise", "Fr 12.09. ab 15:00"),
+                    ("Meldeschein", "ausgefüllt"),
+                ],
                 "Belegungsplan öffnen →",
             )
         ],
@@ -1169,7 +1281,14 @@ CARDS = [
         meta="Himalaya Enfield Tour · 12.–24.10.2026 · Tarif: Fahrer",
         pay_pill=None,
         lines=[
-            Line("1×", "Himalaya Enfield Tour", "Fahrer (eigenes Motorrad)", "19 %", "2.450,00 €", "2.450,00 €"),
+            Line(
+                "1×",
+                "Himalaya Enfield Tour",
+                "Fahrer (eigenes Motorrad)",
+                "19 %",
+                "2.450,00 €",
+                "2.450,00 €",
+            ),
             Line("1×", "Enfield mieten", "Pool · 6 Maschinen", "19 %", "620,00 €", "620,00 €"),
             Line("1×", "Einzelzimmer-Zuschlag", "", "19 %", "340,00 €", "340,00 €"),
             Line("1×", "Gutschein WELCOME50", "", "", "", "−50,00 €", negative=True),
@@ -1259,7 +1378,11 @@ CARDS = [
             SideCard(
                 IC_CAL,
                 "Veranstaltung",
-                [("Termin", "03.–06.10."), ("Ort", "Waldlicht Hof"), ("Plätze", "14 von 16 belegt")],
+                [
+                    ("Termin", "03.–06.10."),
+                    ("Ort", "Waldlicht Hof"),
+                    ("Plätze", "14 von 16 belegt"),
+                ],
                 "Teilnehmerliste öffnen →",
             )
         ],
