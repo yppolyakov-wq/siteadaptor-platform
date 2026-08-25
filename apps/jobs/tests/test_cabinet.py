@@ -166,10 +166,81 @@ def test_line_with_price_but_no_text_is_reported_not_swallowed():
 
 
 def test_detail_shows_part_picker():
-    ProductFactory(base_price="49.00", stock_quantity=5)
+    """VF-9b (осознанная переписка): селект каталога больше НЕ в каждой строке —
+    один пикер у «＋ Position» (data-qt-addpick, как у заказа); привязку строки
+    держит hidden line_part_i (без него Save снял бы связь — класс W0)."""
+    product = ProductFactory(base_price="49.00", stock_quantity=5)
     job = _job()
     body = views.job_detail(_req(), pk=job.pk).content.decode()
-    assert "line_part_1" in body  # колонка пикера расходников отрисована
+    assert "data-qt-addpick" in body  # пикер у «＋ Position»
+    assert f"p:{product.pk}" in body  # ассортимент в опциях
+    assert 'type="hidden" name="line_part_1"' in body  # привязка строки — hidden
+    assert "data-qt-part" not in body  # строчного селекта больше нет
+    assert "data-qt-clear" in body  # «✕» очистки строки (иначе привязанную не удалить)
+
+
+def test_detail_hides_ek_field_but_preserves_value():
+    """VF-9b «закупка — это раздел ERP»: видимого поля EK на странице продажи
+    нет, значение едет hidden'ом — Save не стирает введённые ставки (W0),
+    снимок EK для строк каталога по-прежнему делает сервер (ERP-6)."""
+    job = _job()
+    services.set_lines(
+        job,
+        [{"text": "Montage", "qty": 2, "unit_price": "80.00", "cost_rate": "38.50"}],
+        vat_rate=19,
+    )
+    body = views.job_detail(_req(), pk=job.pk).content.decode()
+    i = body.index('name="line_cost_1"')
+    assert 'type="hidden"' in body[i - 60 : i]  # поле есть, но скрыто
+    # круговой Save (значение из hidden уходит обратно) держит ставку
+    views.job_detail(
+        _req(
+            "post",
+            data={
+                "action": "save_lines",
+                "line_part_1": "",
+                "line_text_1": "Montage",
+                "line_qty_1": "2",
+                "line_price_1": "80,00",
+                "line_cost_1": "38,50",
+                "vat_rate": "19.00",
+            },
+        ),
+        pk=job.pk,
+    )
+    assert job.lines.get().cost_rate == Decimal("38.50")
+
+
+def test_combo_in_picker_and_snapshot():
+    """VF-9b «товар или комбо просто выбираем из каталога»: комбо-наборы в
+    пикере сметы (k:<pk>), выбор без текста → снимок имени/цены (FK нет —
+    как у услуги)."""
+    from apps.catalog.models import Combo
+    from apps.catalog.picker import _catalog_parts
+
+    combo = Combo.objects.create(name="Buffet-Paket", price=Decimal("450.00"))
+    values = [p["value"] for p in _catalog_parts(include_combos=True)]
+    assert f"k:{combo.pk}" in values
+    assert f"k:{combo.pk}" not in [p["value"] for p in _catalog_parts()]  # заказ не знает k:
+
+    job = _job()
+    views.job_detail(
+        _req(
+            "post",
+            data={
+                "action": "save_lines",
+                "line_part_1": f"k:{combo.pk}",
+                "line_text_1": "",
+                "line_price_1": "",
+                "line_qty_1": "1",
+                "vat_rate": "19.00",
+            },
+        ),
+        pk=job.pk,
+    )
+    line = job.lines.get()
+    assert line.text == "Buffet-Paket" and line.unit_price == Decimal("450.00")
+    assert line.product_id is None  # снимок, не FK
 
 
 def test_save_lines_links_part_and_snapshots():

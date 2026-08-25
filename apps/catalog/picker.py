@@ -8,12 +8,15 @@ QF-1 сделал пикер для сметы Handwerker; SH-2 (фидбэк в
 from decimal import Decimal
 
 
-def _catalog_parts(tenant=None):
+def _catalog_parts(tenant=None, include_combos=False):
     """G11: активные позиции для пикера строки сметы (value/label + остаток).
 
     value кодирует вид: ``p:<pk>`` товар без вариантов, ``v:<pk>`` вариант,
     ``s:<pk>`` услуга (QF-1: владелец добавляет в смету «товар/услугу»; у услуги
-    нет склада и FK — в строку едет снимок названия и цены, как у свободной).
+    нет склада и FK — в строку едет снимок названия и цены, как у свободной),
+    ``k:<pk>`` комбо-набор (VF-9b, фидбэк «товар или комбо просто выбираем из
+    каталога»: FK у строки нет — снимок имени/цены, как у услуги; only-jobs —
+    приёмник заказа префикса ``k:`` не знает, поэтому за флагом).
     Остаток в подписи — int (локаль-стабильно), только при учёте склада."""
     from apps.catalog.models import Product
 
@@ -38,6 +41,19 @@ def _catalog_parts(tenant=None):
                     "label": label,
                     "price": p.base_price,
                     "title": p.name_text,
+                }
+            )
+    # Комбо-наборы (Menü-Sets кейтеринга и т.п.) — по флагу вызывающего.
+    if include_combos:
+        from apps.catalog.models import Combo
+
+        for combo in Combo.objects.filter(is_active=True):
+            parts.append(
+                {
+                    "value": f"k:{combo.pk}",
+                    "label": str(combo),
+                    "price": combo.price,
+                    "title": str(combo),
                 }
             )
     # Услуги — только если модуль записи активен (у кейтеринга/Handwerker их нет).
@@ -86,3 +102,19 @@ def _service_snapshot(raw):
     if svc is None:
         return None, None
     return str(svc), Decimal(svc.price_cents) / 100
+
+
+def _combo_snapshot(raw):
+    """VF-9b: (название, цена) выбранного комбо или (None, None).
+
+    Как у услуги: FK на комбо у строки сметы нет (склад/леджер набора считает
+    только заказ) — в смету едет СНИМОК имени и базовой цены."""
+    kind, _, pk = (raw or "").partition(":")
+    if kind != "k" or not pk:
+        return None, None
+    from apps.catalog.models import Combo
+
+    combo = Combo.objects.filter(pk=pk, is_active=True).first()
+    if combo is None:
+        return None, None
+    return str(combo), combo.price

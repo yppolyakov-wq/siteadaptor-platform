@@ -19,6 +19,7 @@ from django.views.decorators.http import require_POST
 
 from apps.catalog.picker import (  # SH-B: пикер позиций общий с заказом
     _catalog_parts,
+    _combo_snapshot,
     _resolve_part,
     _service_snapshot,
 )
@@ -171,7 +172,8 @@ def job_detail(request, pk):
             "nav": "jobs",
             "job": job,
             "rows": rows,
-            "parts": _catalog_parts(request.tenant),  # G11/QF-1: товары, варианты, услуги
+            # G11/QF-1/VF-9b: товары, варианты, комбо, услуги
+            "parts": _catalog_parts(request.tenant, include_combos=True),
             "vat_rates": RevenueEntry.VAT_RATES,
             "allowed": JobSM().allowed_targets(job.status),
             "small_business": request.tenant.small_business,
@@ -241,6 +243,8 @@ def _save_lines(request, job):
         )
         raw_part = request.POST.get(f"line_part_{index}", "")
         svc_text, svc_price = _service_snapshot(raw_part)
+        if svc_text is None:  # VF-9b: комбо — тот же снимок имени/цены без FK
+            svc_text, svc_price = _combo_snapshot(raw_part)
         text = request.POST.get(f"line_text_{index}", "").strip()
         # G11: расходник из каталога без текста → снимок названия товара/варианта.
         if product and not text:

@@ -19943,3 +19943,6 @@ msgstr "You enter data per language"
 
 msgid "Struktur"
 msgstr "Structure"
+
+msgid "Position leeren"
+msgstr "Clear line"

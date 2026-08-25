@@ -52,8 +52,7 @@
   <h2 class="font-semibold mb-3">{% trans "Quote / Kostenvoranschlag" %}</h2>
   <div class="space-y-2">
     <div class="hidden sm:grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs text-gray-400 font-medium">
-      {% if parts %}<span class="col-span-3">{% trans "Part (catalog)" %}</span>{% endif %}
-      <span class="{% if parts %}col-span-3{% else %}col-span-6{% endif %}">{% trans "Description" %}</span>
+      <span class="col-span-6">{% trans "Description" %}</span>
       <span class="col-span-2 text-right">{% trans "Qty" %}</span>
       <span class="col-span-2 text-right">{% trans "Unit price (net)" %}</span>
       {# Фидбэк владельца 2026-08-20 (п.10): итог позиции — в самой строке #}
@@ -64,16 +63,16 @@
       меняются), но скрыты — раскрывает кнопка «＋ Position».{% endcomment %}
       <div class="grid grid-cols-1 sm:grid-cols-12 gap-2" data-qt-row
            {% if not row.visible %}hidden style="display:none"{% endif %}>
-        {% if parts %}
-          {% comment %}QF-5: пикер сразу заполняет описание и цену (владелец видел
-          «пустую колонку» и не понимал, что она делает). Цена — в data-атрибуте,
-          сервер всё равно пересчитывает снимок сам.{% endcomment %}
-          <select name="line_part_{{ row.i }}" data-qt-part class="col-span-3 rounded-lg border border-gray-300 px-2 py-1.5 text-sm bg-white">
-            <option value="">— {% trans "Free text" %} —</option>
-            {% for p in parts %}<option value="{{ p.value }}" data-title="{{ p.title|default:p.label }}" data-price="{{ p.price|default_if_none:'' }}" {% if p.value == row.part_value %}selected{% endif %}>{{ p.label }}</option>{% endfor %}
-          </select>
-        {% endif %}
-        <input name="line_text_{{ row.i }}" type="text" value="{% if row.line %}{{ row.line.text }}{% endif %}" placeholder="{% trans 'Position' %}" class="{% if parts %}col-span-3{% else %}col-span-6{% endif %} rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+        {% comment %}VF-9b (фидбэк 2026-08-24 «зачем эти данные выводить? если
+        нужно — просто выбираем из каталога»): селект каталога В КАЖДОЙ строке
+        убран — выбор из ассортимента живёт у «＋ Position» (как у заказа).
+        Привязку существующей строки держит hidden: приёмник читает line_part_i,
+        без поля Save снял бы связь со складом (класс W0).{% endcomment %}
+        <input type="hidden" name="line_part_{{ row.i }}" value="{{ row.part_value }}">
+        <div class="col-span-6">
+          <input name="line_text_{{ row.i }}" type="text" value="{% if row.line %}{{ row.line.text }}{% endif %}" placeholder="{% trans 'Position' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+          <span data-qt-linked class="mt-0.5 block text-[11px] text-gray-400{% if not row.part_value %} hidden{% endif %}">📦 {% trans "Aus dem Sortiment" %}</span>
+        </div>
         {% comment %}Фидбэк владельца 2026-08-20 (п.9 «при указании числа оно
         пропадает»): значение Decimal в немецкой локали рендерилось как «1,00», а
         input[type=number] принимает ТОЛЬКО точку — браузер показывал поле пустым,
@@ -85,15 +84,31 @@
         формат в одной строке.{% endcomment %}
 <div class="col-span-2">
           <input name="line_price_{{ row.i }}" type="text" data-qt-price value="{% if row.line %}{{ row.line.unit_price|floatformat:2 }}{% endif %}" placeholder="0,00" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
-          {% comment %}ERP-6: плановый EK/ставка за единицу (интерн; пусто у
-          строки с деталью = снимок EK детали при сохранении).{% endcomment %}
-          <input name="line_cost_{{ row.i }}" type="text" value="{% if row.line.cost_rate is not None %}{{ row.line.cost_rate|floatformat:2 }}{% endif %}" placeholder="{% trans 'EK' %}" title="{% trans 'Interner EK / Stundensatz je Einheit (nur Kalkulation)' %}" class="mt-1 w-full rounded border border-dashed border-gray-200 px-2 py-0.5 text-xs text-right text-gray-500">
+          {% comment %}ERP-6 → VF-9b (фидбэк «закупка — это раздел ERP»): видимое
+          поле EK со страницы продажи убрано; значение едет hidden'ом — иначе
+          Save стёр бы введённые ставки (W0). Для строк из каталога снимок EK
+          по-прежнему делает сервер (философия снимков ERP-1).{% endcomment %}
+          <input type="hidden" name="line_cost_{{ row.i }}" value="{% if row.line.cost_rate is not None %}{{ row.line.cost_rate|floatformat:2 }}{% endif %}">
         </div>
-        <output data-qt-sum class="col-span-2 px-2 py-1.5 text-sm text-right text-gray-600 tabular-nums">{% if row.line %}{{ row.line.line_total|floatformat:2 }} €{% endif %}</output>
+        <div class="col-span-2 flex items-start justify-end gap-1">
+          <output data-qt-sum class="px-1 py-1.5 text-sm text-right text-gray-600 tabular-nums">{% if row.line %}{{ row.line.line_total|floatformat:2 }} €{% endif %}</output>
+          <button type="button" data-qt-clear class="text-gray-300 hover:text-red-500 text-sm px-1 py-1.5" title="{% trans 'Position leeren' %}" aria-label="{% trans 'Position leeren' %}">✕</button>
+        </div>
       </div>
     {% endfor %}
   </div>
-  <button type="button" data-qt-add class="mt-2 text-sm font-medium text-indigo-600 hover:underline">＋ {% trans "Position hinzufügen" %}</button>
+  {% comment %}VF-9b: добавление позиции — как у заказа: «＋» даёт свободную
+  строку, селект рядом берёт товар/вариант/комбо/услугу из ассортимента
+  (текст и цена заполняются сразу, привязка — hidden line_part).{% endcomment %}
+  <div class="mt-2 flex flex-wrap items-center gap-3">
+    <button type="button" data-qt-add class="text-sm font-medium text-indigo-600 hover:underline">＋ {% trans "Position hinzufügen" %}</button>
+    {% if parts %}
+      <select data-qt-addpick class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm bg-white max-w-xs" aria-label="{% trans 'Aus dem Sortiment' %}">
+        <option value="">— {% trans "Aus dem Sortiment" %} —</option>
+        {% for p in parts %}<option value="{{ p.value }}" data-title="{{ p.title|default:p.label }}" data-price="{{ p.price|default_if_none:'' }}">{{ p.label }}</option>{% endfor %}
+      </select>
+    {% endif %}
+  </div>
   {% if parts %}
     <p class="text-xs text-gray-400 mt-2">
       {% if job.stock_committed %}✓ {% trans "Stock for catalog parts has been booked." %}
@@ -173,7 +188,8 @@ document (партиал может перерисовываться — уро�
   function recalc() {
     var net = 0;
     document.querySelectorAll("[data-qt-sum]").forEach(function (out) {
-      var row = out.parentNode;
+      // VF-9b: итог теперь во врапере с «✕» — ищем строку по data-qt-row.
+      var row = (out.closest && out.closest("[data-qt-row]")) || out.parentNode;
       var q = row.querySelector("[data-qt-qty]");
       var p = row.querySelector("[data-qt-price]");
       if (!q || !p) return;
@@ -209,20 +225,61 @@ document (партиал может перерисовываться — уро�
     syncAddButton();
   }
 
-  // QF-5: выбор из ассортимента заполняет описание и цену сразу — раньше колонка
-  // «Teil (Katalog)» выглядела пустой и непонятной (снимок всё равно делает сервер).
+  // VF-9b (сменил QF-5): выбор из ассортимента — ОДНИМ селектом у «＋ Position»
+  // (как у заказа), а не колонкой в каждой строке. Пик заполняет первую пустую
+  // видимую строку (или раскрывает следующую скрытую): текст+цена сразу,
+  // привязка — в hidden line_part_i (склад и снимки делает сервер).
   document.addEventListener("change", function (e) {
-    var sel = e.target.closest && e.target.closest("[data-qt-part]");
-    if (!sel) return;
-    var opt = sel.options[sel.selectedIndex];
-    var row = sel.closest("[data-qt-row]");
-    if (!opt || !row) return;
+    var pick = e.target.closest && e.target.closest("[data-qt-addpick]");
+    if (!pick || !pick.value) return;
+    var opt = pick.options[pick.selectedIndex];
+    var row = null;
+    document.querySelectorAll("[data-qt-row]:not([hidden])").forEach(function (r) {
+      var txt = r.querySelector('input[name^="line_text_"]');
+      if (!row && txt && !String(txt.value).trim()) row = r;
+    });
+    if (!row) {
+      row = nextHidden();
+      if (!row) { pick.value = ""; return; }
+      row.hidden = false;
+      row.style.display = "";
+    }
+    var part = row.querySelector('input[name^="line_part_"]');
     var text = row.querySelector('input[name^="line_text_"]');
     var price = row.querySelector("[data-qt-price]");
-    var title = opt.getAttribute("data-title") || "";
+    var linked = row.querySelector("[data-qt-linked]");
+    if (part) part.value = pick.value;
+    if (text) text.value = opt.getAttribute("data-title") || opt.text;
     var value = opt.getAttribute("data-price") || "";
-    if (text && title && !String(text.value).trim()) text.value = title;
-    if (price && value && !String(price.value).trim()) price.value = String(value).replace(".", ",");
+    if (price) price.value = value ? String(value).replace(".", ",") : "";
+    // 📦-подпись — только у строк со складской привязкой (p:/v:); услуга и
+    // комбо едут снимком без FK.
+    if (linked) linked.classList.toggle("hidden", !/^[pv]:/.test(pick.value));
+    pick.value = "";
+    var qty = row.querySelector("[data-qt-qty]");
+    if (qty) qty.focus();
+    recalc();
+    syncAddButton();
+  });
+
+  // VF-9b: «✕» очищает строку целиком (текст/привязку/цену/EK) — пустая строка
+  // при Save отбрасывается; раньше привязанную строку было не удалить (сервер
+  // восстанавливал текст из каталога).
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest && e.target.closest("[data-qt-clear]");
+    if (!btn) return;
+    var row = btn.closest("[data-qt-row]");
+    if (!row) return;
+    ["line_part_", "line_text_", "line_cost_"].forEach(function (prefix) {
+      var inp = row.querySelector('input[name^="' + prefix + '"]');
+      if (inp) inp.value = "";
+    });
+    var price = row.querySelector("[data-qt-price]");
+    if (price) price.value = "";
+    var qty = row.querySelector("[data-qt-qty]");
+    if (qty) qty.value = "1";
+    var linked = row.querySelector("[data-qt-linked]");
+    if (linked) linked.classList.add("hidden");
     recalc();
   });
 

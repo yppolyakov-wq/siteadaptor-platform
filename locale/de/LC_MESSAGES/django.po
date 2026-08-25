@@ -20071,3 +20071,6 @@ msgstr ""
 
 msgid "Struktur"
 msgstr "Struktur"
+
+msgid "Position leeren"
+msgstr "Position leeren"

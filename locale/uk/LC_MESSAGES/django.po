@@ -20143,3 +20143,6 @@ msgstr "Дані вводяться окремо для кожної мови"
 
 msgid "Struktur"
 msgstr "Структура"
+
+msgid "Position leeren"
+msgstr "Очистити рядок"

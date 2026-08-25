@@ -20069,3 +20069,6 @@ msgstr "Verileri dil başına girersiniz"
 
 msgid "Struktur"
 msgstr "Yapı"
+
+msgid "Position leeren"
+msgstr "Satırı temizle"
