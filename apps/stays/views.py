@@ -712,7 +712,7 @@ def booking_detail(request, pk):
                 request,
                 "stay",
                 booking,
-                sections=("items", "discount", "totals", "payment", "documents", "thread"),
+                sections=_stay_sections(request),
                 # VS-3: прикреплённые услуги (велопрокат/трансфер к брони номера).
                 links=deal_links.block_context("stay", booking.pk),
             ),
@@ -1517,4 +1517,22 @@ def unit_feature_checkout(request, pk):
         not_listable_msg="Nur aktive Unterkünfte können beworben werden.",
         sync=sync_stay_listing,
         feature_page_url=reverse("stays:unit-feature", args=[unit.pk]),
+    )
+
+
+def _stay_sections(request):
+    """DF-1c: секция «Документы» — только при активном модуле Finanzen.
+
+    Стенд поймал пустую рамку: у демо Finanzen выключен, счёта нет, а рамка
+    рисовалась. Скелет обещает «секции по данным» — соблюдаем.
+    """
+    tenant = getattr(request, "tenant", None)
+    try:
+        finance = bool(tenant and tenant.is_module_active("finance"))
+    except Exception:  # noqa: BLE001 — гейт fail-closed
+        finance = False
+    return (
+        ("items", "discount", "totals", "payment")
+        + (("documents",) if finance else ())
+        + ("thread",)
     )

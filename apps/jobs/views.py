@@ -203,7 +203,7 @@ def job_detail(request, pk):
                 request,
                 "job",
                 job,
-                sections=("request", "items", "discount", "payment", "documents", "thread"),
+                sections=("request", "items", "payment", "documents", "thread"),
                 # VS-3: прикреплённые услуги к заявке (аренда посуды к мероприятию).
                 links=deal_links.block_context("job", job.pk),
                 hide_targets=("invoiced",),

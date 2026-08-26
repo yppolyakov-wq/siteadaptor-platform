@@ -213,7 +213,7 @@ def booking_detail(request, pk):
                 request,
                 "booking",
                 booking,
-                sections=("items", "discount", "totals", "payment", "documents", "thread"),
+                sections=_booking_sections(request),
                 # VS-3: связь с якорной сделкой (запись может быть услугой к брони).
                 links=deal_links.block_context("booking", booking.pk),
             ),
@@ -999,3 +999,21 @@ def service_photo_edit(request):
         return HttpResponseBadRequest("; ".join(exc.messages))
     _bump_storefront(request)
     return HttpResponse(status=204)
+
+
+def _booking_sections(request):
+    """DF-1c: секция «Документы» — только при активном модуле Finanzen.
+
+    Стенд поймал пустую рамку: у демо Finanzen выключен, счёта нет, а рамка
+    рисовалась. Скелет обещает «секции по данным» — соблюдаем.
+    """
+    tenant = getattr(request, "tenant", None)
+    try:
+        finance = bool(tenant and tenant.is_module_active("finance"))
+    except Exception:  # noqa: BLE001 — гейт fail-closed
+        finance = False
+    return (
+        ("items", "discount", "totals", "payment")
+        + (("documents",) if finance else ())
+        + ("thread",)
+    )

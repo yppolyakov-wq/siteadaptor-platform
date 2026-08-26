@@ -876,3 +876,19 @@ def test_old_snapshots_without_unit_price_show_one_honest_row():
     stay.save(update_fields=["extras", "updated_at"])
     row = [r for r in deal_lines("stay", stay) if r["label"] == "Paket"][0]
     assert row["qty"] == 1 and row["unit"] == D("50.00")
+
+
+def test_no_nested_forms_on_any_deal_card():
+    """Стенд поймал: блок скидки оказался ВНУТРИ формы сметы. Вложенные <form>
+    браузер разворачивает — «Rabatt speichern» отправил бы конструктор сметы,
+    а сервер молча сохранил бы не то. Сканируем разметку карточек."""
+    import re
+
+    for kind, html in _cards():
+        body = html[html.index("data-deal-card") :]
+        depth = 0
+        for tag in re.findall(r"</?form\b", body):
+            depth += 1 if tag == "<form" else -1
+            assert depth <= 1, f"{kind}: вложенная форма"
+            assert depth >= 0, f"{kind}: лишний </form>"
+        assert depth == 0, f"{kind}: незакрытая форма"

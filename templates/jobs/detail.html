@@ -293,19 +293,26 @@ document (партиал может перерисовываться — уро�
   recalc();
 })();
 </script>
-  {% if job.gross %}
-    <div class="mt-4 text-sm text-right text-gray-600 space-y-0.5">
-      <p>{% trans "Net" %}: {{ job.net|floatformat:2 }} €</p>
-      {% if not small_business %}<p>{% trans "VAT" %} {{ job.vat_rate|floatformat:0 }} %: {{ job.vat_amount|floatformat:2 }} €</p>{% endif %}
-      <p class="font-bold text-gray-900">{% trans "Total" %}: {{ job.gross|floatformat:2 }} €</p>
-      {% if job.deposit_cents %}
-        <p class="text-gray-500">{% trans "Deposit" %}: {{ deposit_eur }} €
-          {% if job.payment_state == 'paid' %}<span class="ml-1 inline-block bg-green-100 text-green-800 rounded-full px-2 py-0.5 text-xs">✓ {% trans "paid" %}</span>{% endif %}
-        </p>
-      {% endif %}
-    </div>
-  {% endif %}
 </form>
+{% comment %}DF-1d: скидка — «в том же блоке, что и позиции, до итога».
+Обязательно ЗА пределами формы сметы: вложенные <form> браузер разворачивает,
+и «Rabatt speichern» отправил бы конструктор сметы (поймано стендом).{% endcomment %}
+<div class="mt-5 pt-4 border-t border-gray-100" data-deal-block="discount">
+  <h3 class="text-sm font-semibold mb-3">🏷 {{ deal_titles.discount }}</h3>
+  {% include "core/_deal_discount.html" %}
+</div>
+{% if job.gross %}
+  <div class="mt-4 text-sm text-right text-gray-600 space-y-0.5">
+    <p>{% trans "Net" %}: {{ job.net|floatformat:2 }} €</p>
+    {% if not small_business %}<p>{% trans "VAT" %} {{ job.vat_rate|floatformat:0 }} %: {{ job.vat_amount|floatformat:2 }} €</p>{% endif %}
+    <p class="font-bold text-gray-900">{% trans "Total" %}: {{ job.gross|floatformat:2 }} €</p>
+    {% if job.deposit_cents %}
+      <p class="text-gray-500">{% trans "Deposit" %}: {{ deposit_eur }} €
+        {% if job.payment_state == 'paid' %}<span class="ml-1 inline-block bg-green-100 text-green-800 rounded-full px-2 py-0.5 text-xs">✓ {% trans "paid" %}</span>{% endif %}
+      </p>
+    {% endif %}
+  </div>
+{% endif %}
 {% endblock %}
 
 {% block deal_payment %}
@@ -346,11 +353,13 @@ document (партиал может перерисовываться — уро�
 {% endblock %}
 
 {% block deal_rail_extra %}
-  <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 text-sm space-y-1" data-deal-block="request">
-    <p class="text-xs font-medium text-gray-500 mb-1">{% trans "Anfrage-Details" %}</p>
+  {% comment %}DF-2: событие, описание и фото переехали в тело карточки, здесь
+  остаётся то, что правится: контакты, авто, привязанный Termin.{% endcomment %}
+  <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 text-sm space-y-1" data-deal-block="request-edit">
 
   {# QF-4: правка контактов прямо здесь #}
-  <details class="mt-3 pt-3 border-t border-gray-100">
+  {# DF-2: разделитель убран — над правкой контактов больше нет блока #}
+  <details>
     <summary class="cursor-pointer text-sm text-indigo-600 hover:underline">✏️ {% trans "Kundendaten bearbeiten" %}</summary>
     <form method="post" class="mt-3 grid gap-2 sm:grid-cols-2 max-w-2xl">{% csrf_token %}
       <input type="hidden" name="action" value="customer">
