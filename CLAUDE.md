@@ -2066,6 +2066,23 @@ Python 3.12, менеджер uv.
   с выбором канала» у статей блога (`core/share_links.py` + `_share_menu.html`) и секция
   «Persönliche Kanäle» на странице каналов (`core/personal_channels.py`: WhatsApp, Telegram-бот,
   e-mail, чат сайта, соцпрофили со статусом и входом).
+- **Самое свежее (2026-08-26): DC-8/DC-9 + DC-8b + волна DF (фидбэк по карточке сделки) —
+  всё в main.** **DC-8** честный НДС у брони/записи/билета (ставка на позиции: проживание 7 %,
+  допы 19 %, Kurtaxe вне налога; снимок на сделке) + **DC-9** область действия скидки
+  (сделка/позиция/доставка — меняет распределение базы НДС, не итог); ⚠️ миграции
+  `stays/0034`+`booking/0026`+`events/0029`+`orders/0021`. **DC-8b** ставка правится из
+  кабинета (общий партиал `core/_vat_select.html` + тег `vat_select`, три законные ставки
+  DACH, presence-guard/clean не сбрасывают). **Волна DF (план `df-deal-card-feedback-plan-2026-08-26.md`,
+  БЕЗ миграций):** голова = только «angelegt» (длинная подпись из состава убрана) · смена
+  статуса в верхней строке + уведомления в `<dialog>` ВНУТРИ формы (fail-safe без JS;
+  карточка статуса в рейле снята) · документы своей секцией в 1-й колонке после оплаты
+  (гейт по данным — иначе пустая рамка) · скидка внутри позиций до итога (у заявки — ЗА
+  формой сметы: вложенные `<form>` браузер разворачивает) · «Anfrage des Kunden» блоком в
+  теле + состав меню едет в описание, а не в тему · переписка НА карточке (тот же тред
+  inbox, `next`-возврат, поллинг M22b) + видимая метка непрочитанного в CRM · **сверка с
+  макетом**: у брони/записи/билета состав стал ТАБЛИЦЕЙ (`core/_deal_lines`) и суммы —
+  Zwischensumme → Rabatt → Netto → MwSt. → Gesamt (`core/_deal_totals`), рейл 380px.
+  Замки 24 → 38; стенд Playwright 14/14 нашёл 3 дефекта мимо серверных тестов.
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна DC, 2026-08-25): `booking/0024` + `stays/0033` + `jobs/0016` (внешний номер сделки) + `booking/0025` (связь записи со счётом) — аддитивные; (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `core/0010` (Extra.consume_qty, v2-опции) + `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate) + `events/0028` (SupplierBooking вне туров) + `booking/0023` (Service.pricing_mode) + `catalog/0030` (Product.primary_action) + `finance/0009` (SOURCES gift/pass, choices-only)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. **Волна ERP (2026-08-21): `orders/0020` (OrderItem.cost_price) + `finance/0010` (BankTransaction) + `finance/0011` (Invoice.mahn_level/mahned_at + ExpenseEntry supplier/due_date/paid_at/document) + `documents/0002` (owner nullable + kind receipt) + `inventory/0005` (qty_returned + kind'ы return_supplier/production, ERP-5/7) + `jobs/0015` (JobLine.cost_rate, ERP-6)** — аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
