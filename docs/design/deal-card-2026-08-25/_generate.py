@@ -165,8 +165,11 @@ def render_line(ln):
         if ln.disc_note
         else ""
     )
+    # Зачёркнутая цена — ОТДЕЛЬНОЙ строкой над действующей: в одну строку колонка
+    # «Einzel» (118 px) не вмещает обе цены, и число рвётся на «116,10» + «€».
     unit = (
-        f'<span style="color: {FAINT}; text-decoration: line-through; margin-right: 6px">{ln.strike}</span>{ln.unit}'
+        f'<div style="color: {FAINT}; text-decoration: line-through; font-size: 12px; line-height: 1.35; white-space: nowrap">{ln.strike}</div>'
+        f'<div style="white-space: nowrap">{ln.unit}</div>'
         if ln.strike
         else ln.unit
     )
