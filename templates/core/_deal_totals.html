@@ -10,7 +10,7 @@ Zwischensumme → Rabatt → Netto → MwSt. → Gesamt. ОДИН партиал
 <div class="space-y-1 text-sm">
   <div class="flex items-center justify-between">
     <span class="text-gray-500">{% if deal_subtotal_is_net %}{% trans "Zwischensumme (netto)" %}{% else %}{% trans "Zwischensumme" %}{% endif %}</span>
-    <span class="tabular-nums">{{ deal_lines_total|floatformat:2 }} €</span>
+    <span class="tabular-nums"{% if deal_subtotal_is_net %} data-qt-net{% endif %}>{{ deal_lines_total|floatformat:2 }} €</span>
   </div>
   {% if deal_shipping_eur %}
     <div class="flex items-center justify-between text-gray-500">
@@ -24,7 +24,10 @@ Zwischensumme → Rabatt → Netto → MwSt. → Gesamt. ОДИН партиал
       <span class="tabular-nums">−{{ deal_discount_eur|floatformat:2 }} €</span>
     </div>
   {% endif %}
-  {% if deal_vat.net is not None %}
+  {% comment %}DG-2: строка «Netto» появляется, только если она ОТЛИЧАЕТСЯ от
+  промежуточного итога — у сметы без скидки это одно и то же число, и владелец
+  видел его дважды.{% endcomment %}
+  {% if deal_vat.net is not None and not deal_net_equals_subtotal %}
     <div class="flex items-center justify-between text-gray-500">
       <span>{% trans "Netto" %}</span>
       <span class="tabular-nums">{{ deal_vat.net|floatformat:2 }} €</span>

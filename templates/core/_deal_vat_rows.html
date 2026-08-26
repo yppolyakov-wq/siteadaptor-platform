@@ -5,7 +5,7 @@
 строка на каждую. §19 Kleinunternehmer обнуляет ставки.{% endcomment %}
 {% for row in deal_vat.rows %}
   <div class="flex items-center justify-between py-0.5 text-xs text-gray-500">
-    <span>{% blocktrans with rate=row.rate|floatformat:"0" %}davon {{ rate }} % MwSt.{% endblocktrans %}
+    <span>{% if deal_subtotal_is_net %}{% blocktrans with rate=row.rate|floatformat:"0" %}zzgl. {{ rate }} % MwSt.{% endblocktrans %}{% else %}{% blocktrans with rate=row.rate|floatformat:"0" %}davon {{ rate }} % MwSt.{% endblocktrans %}{% endif %}
       <span class="text-gray-400">({% trans "netto" %} {{ row.net|floatformat:2 }} €)</span></span>
     <span class="tabular-nums">{{ row.vat|floatformat:2 }} €</span>
   </div>

@@ -151,11 +151,11 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
       {% if job.deposit_cents and not payments_enabled %}<p class="text-xs text-amber-700 mt-1">{% trans "Enable online payments to collect it." %}</p>{% endif %}
     </div>
   </div>
-  <div class="flex items-center justify-between gap-4 flex-wrap mt-4 pt-4 border-t border-gray-100">
+  {% comment %}DG-2: живой итог больше не печатается ОТДЕЛЬНОЙ строкой — он
+  обновляет «Zwischensumme» в общем блоке сумм (иначе одно и то же число стояло
+  на экране дважды).{% endcomment %}
+  <div class="mt-4 pt-4 border-t border-gray-100">
     <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save quote" %}</button>
-    {# Живой нетто-итог: считается по строкам ДО сохранения (п.10) #}
-    <p class="text-sm text-gray-500">{% trans "Zwischensumme (netto)" %}:
-      <span data-qt-net class="font-semibold text-gray-900 tabular-nums">–</span></p>
   </div>
   {% with plan=job.plan_calc %}{% if plan %}
   {% comment %}ERP-6: плановая маржа Работы — только кабинет (в публичную смету
@@ -198,8 +198,10 @@ document (партиал может перерисовываться — уро�
       out.textContent = hasInput && sum ? fmt(sum) : "";
       net += sum;
     });
+    // Пишем в строку «Zwischensumme» общего блока сумм. Пустой ввод НЕ затирает
+    // сохранённое значение — иначе при первом клике исчезла бы серверная сумма.
     var total = document.querySelector("[data-qt-net]");
-    if (total) total.textContent = net ? fmt(net) : "\u2013";
+    if (total && net) total.textContent = fmt(net);
   }
   // QF-1: «＋ Position» раскрывает следующую скрытую строку (индексы в DOM уже
   // есть — приёмник и нумерация полей не меняются).

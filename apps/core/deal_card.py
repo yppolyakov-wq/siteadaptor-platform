@@ -224,6 +224,9 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
         # его отдельной строкой над скидкой.
         "deal_lines_total": subtotal,
         "deal_subtotal_is_net": subtotal_net,
+        # DG-2: у сметы без скидки Netto == промежуточный итог — вторую строку
+        # с тем же числом не печатаем.
+        "deal_net_equals_subtotal": vat.get("net") is not None and vat["net"] == subtotal,
         # DF-7: доставка — отдельной строкой сумм (у прочих видов её нет).
         "deal_shipping_eur": shipping,
         "deal_discount_eur": Decimal(int(getattr(obj, "discount_cents", 0) or 0)) / 100,

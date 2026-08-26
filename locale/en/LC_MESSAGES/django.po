@@ -20205,3 +20205,7 @@ msgstr "Subtotal"
 #: templates/core/_deal_totals.html
 msgid "Netto"
 msgstr "Net"
+
+#: templates/core/_deal_vat_rows.html
+msgid "zzgl. %(rate)s %% MwSt."
+msgstr "plus %(rate)s %% VAT"
