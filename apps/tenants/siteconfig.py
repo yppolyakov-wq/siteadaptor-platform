@@ -665,7 +665,10 @@ PAGE_REF_BLOCKS = (
 # хостов ограничено, чтобы конфиг не рос без предела.
 CATEGORY_HOST_PREFIX = "catalog:"
 _MAX_CATEGORY_HOSTS = 40
-_CATEGORY_HOST_RE = re.compile(r"^catalog:[a-z0-9](?:[a-z0-9-]{0,58}[a-z0-9])?$")
+# Слаг — по семантике SlugField Django (буквы/цифры/дефис/подчёркивание,
+# регистр значим): у живого тенанта категория вполне может называться
+# «Sommer_2026», и узкий шаблон молча выбросил бы её блоки.
+_CATEGORY_HOST_RE = re.compile(r"^catalog:[-\w]{1,60}$")
 
 
 def is_page_block_host(host) -> bool:

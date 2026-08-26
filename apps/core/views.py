@@ -1914,7 +1914,11 @@ def home_builder_view(request):
     if request.tenant.is_module_active("catalog"):
         from apps.catalog.models import Category
 
-        for _cat in Category.objects.filter(is_active=True).order_by("sort_order", "slug")[:20]:
+        # Только ВЕРХНИЙ уровень и не больше восьми: страница-лента Studio
+        # (ST-3b) рисует чип на каждый пункт — полный список подкатегорий сделал
+        # бы её нечитаемой. Блоки подкатегории конфиг всё равно хранит.
+        _cats = Category.objects.filter(is_active=True, parent__isnull=True)
+        for _cat in _cats.order_by("sort_order", "slug")[:8]:
             try:
                 preview_pages.append(
                     {
