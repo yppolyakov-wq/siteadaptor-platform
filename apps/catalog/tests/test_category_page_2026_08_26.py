@@ -168,3 +168,7 @@ def test_studio_lists_category_pages_and_inserts_into_their_host():
     blocks = siteconfig.normalize(tenant.site_config)["page_blocks"]
     assert [b["key"] for b in blocks["catalog:catering"]] == ["gallery_ref"]
     assert "catalog" not in blocks  # общий хост каталога не тронут
+
+    # и блок ПРАВИТСЯ: билдер рисует строку формы для этого хоста
+    body2 = core_views.home_builder_view(_builder_req(tenant)).content.decode()
+    assert 'value="catalog:catering"' in body2
