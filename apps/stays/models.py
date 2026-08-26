@@ -335,7 +335,7 @@ class StayBooking(TimestampedModel):
     # переписывает прошлые сделки — GoBD). Допы несут свою ставку в снимке.
     vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("7.00"))
     # DC-9: на что действует скидка владельца — вся сделка (дефолт) или позиция.
-    DISCOUNT_SCOPES = [("deal", "Ganze Buchung"), ("position", "Übernachtung")]
+    DISCOUNT_SCOPES = [("deal", _("Ganze Buchung")), ("position", _("Übernachtung"))]
     discount_scope = models.CharField(max_length=12, choices=DISCOUNT_SCOPES, default="deal")
     arrival = models.DateField()
     departure = models.DateField()

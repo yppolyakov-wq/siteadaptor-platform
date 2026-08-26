@@ -20265,3 +20265,19 @@ msgstr ""
 #: templates/stays/units.html
 msgid "Übernachtung 7 %, sonstige Leistungen 19 %."
 msgstr ""
+
+#: apps/core/models.py
+msgid "Ganzer Termin"
+msgstr ""
+
+#: apps/core/models.py
+msgid "Ganzes Ticket"
+msgstr ""
+
+#: apps/core/models.py
+msgid "Ganze Bestellung"
+msgstr ""
+
+#: apps/core/models.py
+msgid "Ganze Buchung"
+msgstr ""

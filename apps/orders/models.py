@@ -109,9 +109,9 @@ class Order(TimestampedModel):
     # вся сделка (дефолт, прежнее поведение), одна позиция или доставка. Сумма
     # скидки не меняется; меняется распределение базы НДС и показ.
     DISCOUNT_SCOPES = [
-        ("deal", "Ganze Bestellung"),
-        ("position", "Position"),
-        ("delivery", "Versand"),
+        ("deal", _("Ganze Bestellung")),
+        ("position", _("Position")),
+        ("delivery", _("Versand")),
     ]
     discount_scope = models.CharField(max_length=12, choices=DISCOUNT_SCOPES, default="deal")
     # SH-9: плательщик, если он не совпадает с получателем заказа (фирма платит

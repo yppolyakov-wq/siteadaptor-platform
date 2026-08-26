@@ -20264,3 +20264,19 @@ msgstr "Şuna uygulanır"
 #: templates/stays/units.html
 msgid "Übernachtung 7 %, sonstige Leistungen 19 %."
 msgstr "Konaklama %7, diğer hizmetler %19."
+
+#: apps/core/models.py
+msgid "Ganzer Termin"
+msgstr "Randevunun tamamı"
+
+#: apps/core/models.py
+msgid "Ganzes Ticket"
+msgstr "Biletin tamamı"
+
+#: apps/core/models.py
+msgid "Ganze Bestellung"
+msgstr "Siparişin tamamı"
+
+#: apps/core/models.py
+msgid "Ganze Buchung"
+msgstr "Rezervasyonun tamamı"

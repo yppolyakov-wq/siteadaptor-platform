@@ -20137,3 +20137,19 @@ msgstr "Applies to"
 #: templates/stays/units.html
 msgid "Übernachtung 7 %, sonstige Leistungen 19 %."
 msgstr "Accommodation 7 %, other services 19 %."
+
+#: apps/core/models.py
+msgid "Ganzer Termin"
+msgstr "Whole appointment"
+
+#: apps/core/models.py
+msgid "Ganzes Ticket"
+msgstr "Whole ticket"
+
+#: apps/core/models.py
+msgid "Ganze Bestellung"
+msgstr "Whole order"
+
+#: apps/core/models.py
+msgid "Ganze Buchung"
+msgstr "Whole booking"

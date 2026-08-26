@@ -397,7 +397,7 @@ class Booking(TimestampedModel):
     # DC-8: СНИМОК ставки НДС записи (каталог может поменять ставку позже).
     vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("19.00"))
     # DC-9: область действия скидки владельца.
-    DISCOUNT_SCOPES = [("deal", "Ganzer Termin"), ("position", "Leistung")]
+    DISCOUNT_SCOPES = [("deal", _("Ganzer Termin")), ("position", _("Leistung"))]
     discount_scope = models.CharField(max_length=12, choices=DISCOUNT_SCOPES, default="deal")
     # HF-6: несколько периодов, выбранных гостем ЗА ОДИН РАЗ, — это N записей с
     # общим кодом группы (план hf6-multislot-plan-2026-07-31 §2, вариант A). Так

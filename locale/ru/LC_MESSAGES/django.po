@@ -20355,3 +20355,19 @@ msgstr "Действует на"
 #: templates/stays/units.html
 msgid "Übernachtung 7 %, sonstige Leistungen 19 %."
 msgstr "Проживание 7 %, прочие услуги 19 %."
+
+#: apps/core/models.py
+msgid "Ganzer Termin"
+msgstr "Вся запись"
+
+#: apps/core/models.py
+msgid "Ganzes Ticket"
+msgstr "Весь билет"
+
+#: apps/core/models.py
+msgid "Ganze Bestellung"
+msgstr "Весь заказ"
+
+#: apps/core/models.py
+msgid "Ganze Buchung"
+msgstr "Вся бронь"

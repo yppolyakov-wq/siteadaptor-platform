@@ -620,7 +620,7 @@ class Ticket(TimestampedModel):
     # DC-8: СНИМОК ставки НДС билета на момент покупки.
     vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("19.00"))
     # DC-9: область действия скидки владельца.
-    DISCOUNT_SCOPES = [("deal", "Ganzes Ticket"), ("position", "Tarif")]
+    DISCOUNT_SCOPES = [("deal", _("Ganzes Ticket")), ("position", _("Tarif"))]
     discount_scope = models.CharField(max_length=12, choices=DISCOUNT_SCOPES, default="deal")
     status = models.CharField(max_length=20, choices=STATUSES, default=STATUS_PENDING)
     answers = models.JSONField(default=dict, blank=True)  # ответы на анкету события
