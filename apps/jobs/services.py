@@ -320,7 +320,14 @@ def add_job_photos(job, files, *, max_count=MAX_PHOTOS) -> int:
 def lines_snapshot(job) -> list[dict]:
     """Позиции сметы в формате finance (для Rechnung-снимка / PDF)."""
     return [
-        {"text": ln.text, "qty": str(ln.qty), "unit_price": str(ln.unit_price)}
+        {
+            "text": ln.text,
+            "qty": str(ln.qty),
+            "unit_price": str(ln.unit_price),
+            # VAT-4: ставка позиции едет в счёт — иначе смешанная смета дала бы
+            # Rechnung, брутто которой не совпадает с принятой клиентом сметой.
+            "vat_rate": str(ln.effective_vat_rate(job.vat_rate)),
+        }
         for ln in job.lines.all()
     ]
 

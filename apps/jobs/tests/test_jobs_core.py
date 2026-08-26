@@ -105,7 +105,13 @@ def test_lines_snapshot_format():
     services.set_lines(job, [{"text": "X", "qty": 3, "unit_price": "5.00"}])
     snap = services.lines_snapshot(job)
     # qty — JSON-safe строка (A7a: дробное кол-во), unit_price тоже строкой.
-    assert snap == [{"text": "X", "qty": "3.00", "unit_price": "5.00"}]
+    # Сверяем ПОЛЯ, а не dict целиком: снимок дополняется (VAT-4 добавил ставку
+    # строки), и сравнение словарей ломалось бы на каждом новом ключе — правило
+    # проекта после волны MX.
+    assert len(snap) == 1
+    line = snap[0]
+    assert (line["text"], line["qty"], line["unit_price"]) == ("X", "3.00", "5.00")
+    assert line["vat_rate"] == "19.00"  # ставка документа, своей у строки нет
 
 
 # --- FSM --------------------------------------------------------------------------
