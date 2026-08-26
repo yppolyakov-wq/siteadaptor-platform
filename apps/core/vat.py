@@ -154,3 +154,16 @@ def _apply_discount(by_rate: dict, discount: Decimal, *, scope: str, base_rate) 
         share = left if idx == len(rates) - 1 else _q(discount * (by_rate[rate] / base))
         by_rate[rate] = max(by_rate[rate] - share, ZERO)
         left -= share
+
+
+# Ставки, доступные владельцу в кабинете (DE): обычная, льготная, без налога.
+RATE_CHOICES = (Decimal("19.00"), Decimal("7.00"), Decimal("0.00"))
+
+
+def parse_rate(raw, default: Decimal) -> Decimal:
+    """Ставка из формы кабинета. Чужое значение → прежнее (защита от подмены)."""
+    try:
+        value = Decimal(str(raw).replace(",", ".").strip())
+    except Exception:  # noqa: BLE001 — пустое/мусор
+        return default
+    return value if value in RATE_CHOICES else default

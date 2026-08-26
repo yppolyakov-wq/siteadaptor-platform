@@ -569,3 +569,83 @@ def test_unknown_scope_is_ignored():
     deal_discount.set_discount("stay", stay, cents=500, scope="../etc/passwd")
     stay.refresh_from_db()
     assert stay.discount_scope == "deal"
+
+
+# --- DC-8: ставка НДС редактируется из кабинета ------------------------------
+
+
+def test_vat_rate_saves_from_cabinet_and_foreign_value_is_ignored():
+    """Ставка живёт на продаваемой сущности — её обязан менять владелец.
+
+    Свободного числа нет: принимаем только три законные ставки DACH, чужое
+    значение оставляет прежнюю (иначе подменённый POST дал бы неверный счёт)."""
+    from apps.booking.models import Service
+    from apps.booking.views import services_view
+    from apps.stays.views import units
+
+    tenant = _tenant("hotel")
+
+    unit = StayUnit.objects.create(name="Suite", price_cents=9000)
+    assert unit.vat_rate == Decimal("7.00")  # дефолт DE: проживание
+
+    def _post(view, data, path="/dashboard/", **kwargs):
+        req = RequestFactory().post(path, data)
+        SessionMiddleware(lambda r: None).process_request(req)
+        MessageMiddleware(lambda r: None).process_request(req)
+        req.user = _User()
+        req.tenant = tenant
+        return view(req, **kwargs)
+
+    base = {
+        "action": "unit_settings",
+        "unit": str(unit.pk),
+        "name": "Suite",
+        "price_eur": "90.00",
+        "vat_rate": "19.00",
+    }
+    _post(units, base)
+    unit.refresh_from_db()
+    assert unit.vat_rate == Decimal("19.00")  # владелец сменил ставку
+
+    _post(units, {**base, "vat_rate": "1.90"})  # опечатка/подмена
+    unit.refresh_from_db()
+    assert unit.vat_rate == Decimal("19.00")  # ставка не тронута
+
+    # Услуга — та же механика, свой дефолт (19 %).
+    service = Service.objects.create(name="Schnitt", price_cents=4000)
+    assert service.vat_rate == Decimal("19.00")
+    _post(
+        services_view,
+        {"action": "update", "service": str(service.pk), "duration": "30", "vat_rate": "7.00"},
+    )
+    service.refresh_from_db()
+    assert service.vat_rate == Decimal("7.00")
+
+    # Presence-guard: POST без поля (список, мастер, старый клиент) не сбрасывает.
+    _post(units, {k: v for k, v in base.items() if k != "vat_rate"})
+    unit.refresh_from_db()
+    assert unit.vat_rate == Decimal("19.00")
+
+
+def test_event_form_keeps_rate_when_field_is_absent():
+    """Событие постят и другие поверхности — пустое поле не сбрасывает ставку."""
+    from apps.events.forms import EventForm
+    from apps.events.models import Event
+
+    starts = timezone.now() + timedelta(days=20)
+    event = Event.objects.create(
+        title="Workshop", starts_at=starts, price_cents=5000, vat_rate=Decimal("7.00")
+    )
+    data = {
+        "title": "Workshop",
+        "starts_at": starts.strftime("%Y-%m-%dT%H:%M"),
+        "capacity": "10",
+        "price_eur": "50.00",
+    }
+    form = EventForm(data, instance=event)
+    assert form.is_valid(), form.errors
+    assert form.cleaned_data["vat_rate"] == Decimal("7.00")
+
+    form = EventForm({**data, "vat_rate": "19.00"}, instance=event)
+    assert form.is_valid(), form.errors
+    assert form.cleaned_data["vat_rate"] == Decimal("19.00")

@@ -20133,3 +20133,7 @@ msgstr "Participation declaration"
 
 msgid "Wirkt auf"
 msgstr "Applies to"
+
+#: templates/stays/units.html
+msgid "Übernachtung 7 %, sonstige Leistungen 19 %."
+msgstr "Accommodation 7 %, other services 19 %."

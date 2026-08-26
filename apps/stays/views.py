@@ -8,6 +8,7 @@ confirmed), управление юнитами (тип/цена/min_nights/max_
 
 import uuid
 from datetime import date, timedelta
+from decimal import Decimal
 
 import stripe
 from django.contrib import messages
@@ -20,7 +21,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.billing import connect
-from apps.core import deal_card, deal_links
+from apps.core import deal_card, deal_links, vat
 from apps.core.fsm import IllegalTransition
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
 
@@ -773,6 +774,8 @@ def units(request, pk=None):
                     quantity=_int(request.POST.get("quantity", "1"), 1, 1, 999),
                     price_cents=_eur_to_cents(request.POST.get("price_eur")),
                     weekend_price_cents=_eur_to_cents(request.POST.get("weekend_price_eur")),
+                    # DC-8: ставка НДС номера (DE — проживание 7 %).
+                    vat_rate=vat.parse_rate(request.POST.get("vat_rate"), Decimal("7.00")),
                     min_nights=_int(request.POST.get("min_nights", "1"), 1, 1, 365),
                     max_guests=_int(request.POST.get("max_guests", "2"), 2, 1, 99),
                     deposit_cents=_eur_to_cents(request.POST.get("deposit_eur")),
@@ -797,6 +800,9 @@ def units(request, pk=None):
                 unit.name = _new_name.strip()[:120]
             unit.price_cents = _eur_to_cents(request.POST.get("price_eur"))
             unit.weekend_price_cents = _eur_to_cents(request.POST.get("weekend_price_eur"))
+            # DC-8: ставка НДС — presence-guard (поле только на странице номера).
+            if request.POST.get("vat_rate") is not None:
+                unit.vat_rate = vat.parse_rate(request.POST.get("vat_rate"), unit.vat_rate)
             unit.quantity = _int(request.POST.get("quantity", "1"), 1, 1, 999)
             # PMS-R1: при заведённых комнатах ёмкость считается по ним —
             # ручной ввод quantity игнорируется (поле в форме read-only).
@@ -822,6 +828,7 @@ def units(request, pk=None):
                 "description",
                 "price_cents",
                 "weekend_price_cents",
+                "vat_rate",
                 "quantity",
                 "min_nights",
                 "max_guests",

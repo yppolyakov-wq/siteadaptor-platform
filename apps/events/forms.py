@@ -10,6 +10,8 @@ from django import forms
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
+from apps.core import vat
+
 from . import details as details_mod
 from . import landing, registration, taxonomy
 from .models import Event, Teacher, Tour
@@ -54,6 +56,17 @@ class EventForm(forms.ModelForm):
     language = forms.ChoiceField(
         required=False, choices=[("", "—")] + taxonomy.LANGUAGES, label=_("Sprache")
     )
+    # DC-8: ставка НДС события — три законные ставки DACH, не свободное число
+    # (единый источник списка — apps/core/vat.py; прецедент формы товара SH-4).
+    vat_rate = forms.TypedChoiceField(
+        label=_("MwSt.-Satz"),
+        choices=[(f"{r:.2f}", f"{r.normalize():f} %") for r in vat.RATE_CHOICES],
+        coerce=Decimal,
+        initial="19.00",
+        # Необязательное: событие постят и другие поверхности (мастер, демо) —
+        # отсутствие поля не должно ронять сохранение.
+        required=False,
+    )
     # R4: онлайн-предоплата %, 0 = полная оплата (1..99 = депозит, остаток на месте).
     deposit_percent = forms.IntegerField(
         required=False, min_value=0, max_value=100, label=_("Anzahlung online (%, 0 = voll)")
@@ -82,6 +95,7 @@ class EventForm(forms.ModelForm):
             "starts_at",
             "ends_at",
             "capacity",
+            "vat_rate",
             "require_manual_confirm",
             "offers_accommodation",
             "accommodation_units",
@@ -133,7 +147,15 @@ class EventForm(forms.ModelForm):
             for f in ("category", "level", "language"):
                 self.fields[f].initial = getattr(self.instance, f, "")
             self.fields["deposit_percent"].initial = self.instance.deposit_percent
+            self.fields["vat_rate"].initial = f"{self.instance.vat_rate:.2f}"
             landing.fill_initial(self, self.instance.landing)
+
+    def clean_vat_rate(self):
+        """Пустое поле = не менять: ставка остаётся у события (или дефолт 19 %)."""
+        value = self.cleaned_data.get("vat_rate")
+        if value in (None, ""):
+            return getattr(self.instance, "vat_rate", None) or Decimal("19.00")
+        return value
 
     def save(self, commit=True):
         event = super().save(commit=False)

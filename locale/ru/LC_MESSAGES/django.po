@@ -20351,3 +20351,7 @@ msgstr "Согласие участника"
 
 msgid "Wirkt auf"
 msgstr "Действует на"
+
+#: templates/stays/units.html
+msgid "Übernachtung 7 %, sonstige Leistungen 19 %."
+msgstr "Проживание 7 %, прочие услуги 19 %."

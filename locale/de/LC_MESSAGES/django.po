@@ -20261,3 +20261,7 @@ msgstr ""
 
 msgid "Wirkt auf"
 msgstr ""
+
+#: templates/stays/units.html
+msgid "Übernachtung 7 %, sonstige Leistungen 19 %."
+msgstr ""

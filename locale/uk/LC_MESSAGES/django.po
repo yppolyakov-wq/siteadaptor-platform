@@ -20335,3 +20335,7 @@ msgstr "Згода учасника"
 
 msgid "Wirkt auf"
 msgstr "Діє на"
+
+#: templates/stays/units.html
+msgid "Übernachtung 7 %, sonstige Leistungen 19 %."
+msgstr "Проживання 7 %, інші послуги 19 %."
