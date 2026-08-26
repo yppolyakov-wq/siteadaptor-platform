@@ -182,9 +182,11 @@ fixed-ящиком, и до инициализации JS она вспыхив�
 
 {# M20U-3: подкатегории выбранной категории — карточками первыми (тумблер в билдере) #}
 {% if subcategories and catalog_subcats_first %}
-{% if category_page_style == "kopfbild" %}
-{% comment %}KAT-1: шаблон «Mit Kopfbild» — подкатегории фото-плитками (общий
-партиал с секцией главной; без фото плитка сама падает в текст).{% endcomment %}
+{% comment %}Фидбэк 2026-08-26 («добавь в категории фото»): плитки с фото — не
+только у «Mit Kopfbild». Гейт тот же, что у верхнего списка категорий
+(`subcategories_have_images`): нет фото ни у одной подкатегории → прежняя
+текстовая сетка байт-в-байт.{% endcomment %}
+{% if category_page_style == "kopfbild" or subcategories_have_images %}
 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
   {% for c in subcategories %}
     {% include "storefront/_category_tile.html" with c=c cat_aspect="aspect-[4/3]" cat_active=False %}
@@ -225,13 +227,14 @@ MEN-22 остаётся механикой главной. Мобильный «
 {% comment %}KAT-2: шаблон «Sets & Menüs zuerst» — наборы категории НАД сеткой
 (вне keyset-пагинации: гейт «первая страница без фасетов» стоит во вьюхе).{% endcomment %}
 <section class="mb-8" data-category-sets>
-  <div class="flex items-end justify-between mb-3">
+  <div class="flex flex-wrap items-end justify-between gap-2 mb-3">
     <h2 class="text-lg md:text-xl font-bold">{% trans "Menü-Pakete" %}</h2>
-    <a href="{% url 'storefront-combos' %}?kategorie={{ current_category.slug }}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>
+    <div class="flex items-center gap-3">
+      {% include "storefront/_combo_view_toggle.html" %}
+      <a href="{% url 'storefront-combos' %}?kategorie={{ current_category.slug }}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>
+    </div>
   </div>
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    {% for c in category_combos %}{% include "storefront/_combo_card.html" %}{% endfor %}
-  </div>
+  {% include "storefront/_combo_grid.html" with combos=category_combos %}
 </section>
 {% endif %}
 {% if page.items %}
@@ -286,22 +289,25 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
     <h2 class="text-lg md:text-xl font-bold">🍔 {% trans "Combos & menus" %}</h2>
     <a href="{% url 'storefront-combos' %}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>
   </div>
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    {% for c in combos_teaser %}{% include "storefront/_combo_card.html" %}{% endfor %}
-  </div>
+  {% include "storefront/_combo_grid.html" with combos=combos_teaser %}
 </section>
 {% endif %}
 {% if category_combos and category_page_style != "sets" %}
 {% comment %}KAT-2: наборы категории у остальных шаблонов — полосой ПОД сеткой
 (та же карточка; при style=sets полоса уже стояла над сеткой).{% endcomment %}
 <section data-reveal class="mb-8" data-category-sets>
-  <div class="flex items-end justify-between mb-3">
+  <div class="flex flex-wrap items-end justify-between gap-2 mb-3">
     <h2 class="text-lg md:text-xl font-bold">{% trans "Menü-Pakete" %}</h2>
-    <a href="{% url 'storefront-combos' %}?kategorie={{ current_category.slug }}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>
+    <div class="flex items-center gap-3">
+      {% include "storefront/_combo_view_toggle.html" %}
+      <a href="{% url 'storefront-combos' %}?kategorie={{ current_category.slug }}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>
+    </div>
   </div>
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    {% for c in category_combos %}{% include "storefront/_combo_card.html" %}{% endfor %}
-  </div>
+  {% include "storefront/_combo_grid.html" with combos=category_combos %}
 </section>
 {% endif %}
-{% page_blocks "catalog" %}{% endblock %}
+{% page_blocks "catalog" %}
+{% comment %}KAT-1/фидбэк 2026-08-26: блоки ЭТОЙ категории — галерея, отзывы,
+команда и т. д. как на главной, но только на её странице (хост
+«catalog:<slug>»).{% endcomment %}
+{% if category_block_host %}{% page_blocks category_block_host %}{% endif %}{% endblock %}

@@ -207,6 +207,62 @@
   else init();
 })();
 
+/* Фидбэк 2026-08-26 («для пакетов меню — те же виды, что у блюд»): вид полосы
+   наборов (Kacheln / Liste / Kompakt). Та же механика, что у прайс-листа MEN-22:
+   класс контейнера берётся из data-cls-<вид> (purge-safe), вёрстку карточки в
+   списочных видах даёт каскад [data-cv=…] в app.css, выбор живёт в localStorage
+   на СВОЙ ключ (вид наборов не связан с видом блюд). */
+(function () {
+  if (window.__sfCvBound) return;
+  window.__sfCvBound = true;
+  var PREFIX = "sf_cv:";
+  var VIEWS = ["kacheln", "liste", "kompakt"];
+
+  function paint(key, view) {
+    document.querySelectorAll('[data-cv-btn][data-cv-key="' + key + '"]').forEach(function (b) {
+      var on = b.getAttribute("data-cv-btn") === view;
+      b.classList.toggle("bg-gray-900", on);
+      b.classList.toggle("text-white", on);
+      b.classList.toggle("text-gray-600", !on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+
+  function apply(key, view, persist) {
+    document.querySelectorAll('[data-combo-list][data-cv-key="' + key + '"]').forEach(function (c) {
+      c.setAttribute("data-cv", view);
+      var cls = c.getAttribute("data-cls-" + view);
+      if (cls !== null) c.className = cls;
+    });
+    paint(key, view);
+    if (persist) { try { localStorage.setItem(PREFIX + key, view); } catch (e) {} }
+  }
+
+  function init() {
+    var seen = {};
+    document.querySelectorAll("[data-combo-list][data-cv-key]").forEach(function (c) {
+      var key = c.getAttribute("data-cv-key");
+      if (seen[key]) return;
+      seen[key] = 1;
+      var current = c.getAttribute("data-cv") || "kacheln";
+      var saved = null;
+      try { saved = localStorage.getItem(PREFIX + key); } catch (e) {}
+      if (saved && VIEWS.indexOf(saved) >= 0 && saved !== current) apply(key, saved, false);
+      else paint(key, current);
+    });
+  }
+
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-cv-btn]");
+    if (!b) return;
+    e.preventDefault();
+    apply(b.getAttribute("data-cv-key"), b.getAttribute("data-cv-btn"), true);
+  });
+  window.__sfCvInit = init; // KAT-5: повторная инициализация после fetch-подмены
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+
 /* KAT-4 (фидбэк «покупатель не может изменить вид на 2-6 столбцов»): контрол
    плотности «− N +» (2..6, десктоп lg+, localStorage). Режим plv — пишет
    data-plv-cols прайс-контейнера (CSS-варианты MEN-25, действует в Kacheln);
@@ -317,6 +373,7 @@ document.addEventListener("change", function (e) {
         // делегированные обработчики живы (document); переинициализируем
         // состояние из localStorage для нового поддерева
         if (window.__sfPlvInit) window.__sfPlvInit();
+        if (window.__sfCvInit) window.__sfCvInit();
         if (window.__sfDensityInit) window.__sfDensityInit();
         if (window.__sfGridViewInit) window.__sfGridViewInit();
       })

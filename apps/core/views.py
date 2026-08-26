@@ -1330,7 +1330,7 @@ def home_builder_view(request):
             is_fetch = request.headers.get("X-Requested-With") == "fetch"
             new_id = None
             page_key = request.POST.get("page_key", "")
-            host = page_key if page_key in siteconfig.PAGE_BLOCK_HOSTS else ""
+            host = page_key if siteconfig.is_page_block_host(page_key) else ""
             # UC6-7c (ревью-фикс): fetch-вставка с невалидным page_key НЕ должна молча
             # уйти на главную — вернём ok:false без сохранения (клиент перезагрузит; на
             # практике page_key всегда валиден — из data-pb-host витрины).
@@ -1400,7 +1400,7 @@ def home_builder_view(request):
                 # иначе в конец (back-compat с кнопкой «Insert» в библиотеке).
                 # UC6-7b: на НЕ-главной (page_key) шаблон вставляется в page_blocks[хост].
                 page_key = request.POST.get("page_key", "")
-                if page_key in siteconfig.PAGE_BLOCK_HOSTS:
+                if siteconfig.is_page_block_host(page_key):
                     pb = dict(cfg.get("page_blocks") or {})
                     rows = list(pb.get(page_key) or [])
                     _insert_after_section(rows, new_block, request.POST.get("insert_after"))
@@ -1660,7 +1660,7 @@ def home_builder_view(request):
             for bid in request.POST.getlist("pb_id"):
                 host = request.POST.get(f"pb_page_{bid}", "")
                 btype = request.POST.get(f"cb_type_{bid}", "")
-                if host not in siteconfig.PAGE_BLOCK_HOSTS:
+                if not siteconfig.is_page_block_host(host):
                     continue
                 # UC2-3(b): на страницах валидны и ссылочные секции-справочники.
                 if (
@@ -1907,6 +1907,24 @@ def home_builder_view(request):
             preview_pages.append({"label": a.label, "url": reverse(a.url_name), "group": a.key})
         except NoReverseMatch:
             continue
+    # KAT-1/фидбэк 2026-08-26: страницы КАТЕГОРИЙ — тоже страницы витрины. Без них
+    # Studio не могла открыть «/sortiment/<slug>/», а значит и добавить туда блоки
+    # (галерея/отзывы/команда): панель показывала бы настройки главной, а «+» слал
+    # бы блок не в тот хост. Группа та же, что у каталога.
+    if request.tenant.is_module_active("catalog"):
+        from apps.catalog.models import Category
+
+        for _cat in Category.objects.filter(is_active=True).order_by("sort_order", "slug")[:20]:
+            try:
+                preview_pages.append(
+                    {
+                        "label": str(_cat),
+                        "url": reverse("storefront-category", args=[_cat.slug]),
+                        "group": "catalog",
+                    }
+                )
+            except NoReverseMatch:
+                continue
     # H0/H1: страницы-ДЕТАЛИ активных архетипов (товар/номер/событие — первый пример) —
     # чтобы деталь можно было открыть на канве и править инлайн (H1.2) / порядок секций.
     preview_pages.extend(archetypes.example_detail_pages(request.tenant))
@@ -1938,7 +1956,14 @@ def home_builder_view(request):
     # UC6-7b: C-блоки страниц (page_blocks) — строки формы для набора «Landing pages»
     # (общий партиал _cb_row; порядок хостов стабильный — по PAGE_BLOCK_HOSTS).
     page_cblocks = []
-    for host in siteconfig.PAGE_BLOCK_HOSTS:
+    # KAT-1/фидбэк 2026-08-26: кроме фикс-страниц, свои блоки может иметь КАЖДАЯ
+    # категория (хост «catalog:<slug>») — берём такие хосты из самого конфига.
+    _hosts = list(siteconfig.PAGE_BLOCK_HOSTS) + sorted(
+        h
+        for h in (config.get("page_blocks") or {})
+        if h not in siteconfig.PAGE_BLOCK_HOSTS and siteconfig.is_page_block_host(h)
+    )
+    for host in _hosts:
         host_rows = [
             {
                 "id": s["id"],

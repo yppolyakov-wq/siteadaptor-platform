@@ -279,6 +279,11 @@ class DemoKit:
     section_rows: dict = field(default_factory=dict)
     # ST-2: пресеты страниц page_presets [(host, preset_id), …] — info/cart.
     page_presets: list = field(default_factory=list)
+    # Фидбэк 2026-08-26: C-блоки КОНКРЕТНОЙ страницы — {host: [(key, data), …]}.
+    # Хост — фикс-страница (PAGE_BLOCK_HOSTS) или категория «catalog:<slug>»;
+    # key — обычный C-блок или ссылочная секция (PAGE_REF_BLOCKS: gallery_ref…),
+    # тогда data пустой (контент общий, из конструктора главной).
+    page_blocks: dict = field(default_factory=dict)
     # M2 Boutique: Größentabellen per категория {slug: text} (строки «S | 86–90»).
     size_tables: dict = field(default_factory=dict)
     # M3 Boutique: Click&Reserve «In der Anprobe» (site_config["anprobe"]).
@@ -1530,6 +1535,19 @@ PRANASY = DemoKit(
     # Kennzeichnung in der Preisliste und die Anfrage-Bande auf der Startseite.
     enable_anfrage_section=True,
     config_patch={"menu_labels": True},
+    # Фидбэк 2026-08-26: страница «Catering» — как полноценная главная. Блоки
+    # ССЫЛОЧНЫЕ (UC2-3b): галерея, отзывы, команда и FAQ берутся из общего
+    # контента сайта, поэтому второго набора текстов у страницы не заводится.
+    # Заявка внизу — вход в тот же /anfrage/, что и банда главной.
+    page_blocks={
+        "catalog:catering": [
+            ("gallery_ref", {}),
+            ("testimonials_ref", {}),
+            ("team_ref", {}),
+            ("faq_ref", {}),
+            ("anfrage_ref", {}),
+        ]
+    },
     seed_records=True,
     menus=PRANASY_MENUS,
     # M20U-2: слайдер баннеров — единая главная ведёт к ключевым действиям.
@@ -11194,6 +11212,24 @@ def apply_kit(tenant, key: str) -> bool:
 
         for host, preset_id in kit.page_presets:
             page_presets_mod.apply_page_preset(cfg, host, preset_id)
+    if kit.page_blocks:  # блоки конкретных страниц (в т.ч. «catalog:<slug>»)
+        _pb = dict(cfg.get("page_blocks") or {})
+        for _host, _specs in kit.page_blocks.items():
+            # KAT-6: слаг категории мог досуффиксоваться unique_slug — берём
+            # фактический (иначе хост указывал бы на несуществующую страницу).
+            if _host.startswith("catalog:"):
+                _slug = _host.split(":", 1)[1]
+                _host = "catalog:" + refs.get("category_slugs", {}).get(_slug, _slug)
+            _pb[_host] = [
+                {
+                    "key": _key,
+                    "id": f"pb-kit-{i}",
+                    "enabled": True,
+                    "data": dict(_data or {}),
+                }
+                for i, (_key, _data) in enumerate(_specs, start=1)
+            ]
+        cfg["page_blocks"] = _pb
     _demo_locales = [loc for loc in (kit.enabled_locales or []) if loc != "de"]
     if _demo_locales:  # DL-2/DL-3: оверлей текстов на все включённые локали
         from . import demo_i18n

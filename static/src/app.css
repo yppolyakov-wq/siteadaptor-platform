@@ -400,3 +400,26 @@ input[type="datetime-local"] {
 .sf-bal-4 > * { flex: 0 1 calc(25% - 1rem); }
 .sf-bal-5 > * { flex: 0 1 calc(20% - 1rem); }
 .sf-bal-6 > * { flex: 0 1 calc(16.66% - 1rem); }
+
+/* Фидбэк 2026-08-26 («для пакетов меню — те же виды, что у блюд»): списочные
+   виды полосы наборов. Класс контейнера переключает JS (data-cls-*), а вёрстку
+   карточки даёт этот каскад — сама карточка (_combo_card.html) для всех видов
+   одна, поэтому паритет-замки её разметки целы. */
+[data-cv="liste"] [data-combo-card],
+[data-cv="kompakt"] [data-combo-card] { display: flex; align-items: stretch; }
+[data-cv="liste"] [data-combo-img] {
+  flex: 0 0 auto;
+  width: 9rem;
+  aspect-ratio: auto;
+}
+@media (min-width: 640px) {
+  [data-cv="liste"] [data-combo-img] { width: 13rem; }
+}
+[data-cv="liste"] [data-combo-body],
+[data-cv="kompakt"] [data-combo-body] { flex: 1 1 auto; min-width: 0; }
+[data-cv="liste"] [data-combo-card]:hover,
+[data-cv="kompakt"] [data-combo-card]:hover { transform: none; }
+/* «Kompakt» — строка без фото: имя, бейдж, цена; описание не режем, а убираем. */
+[data-cv="kompakt"] [data-combo-img] { display: none; }
+[data-cv="kompakt"] [data-combo-body] { padding: 0.75rem 1rem; }
+[data-cv="kompakt"] [data-combo-body] > span.line-clamp-3 { display: none; }

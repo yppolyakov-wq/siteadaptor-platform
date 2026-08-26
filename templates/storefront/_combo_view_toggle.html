@@ -1,0 +1,21 @@
+{% load i18n %}
+{% comment %}Переключатель вида наборов (Kacheln / Liste / Kompakt) — тот же
+язык кнопок, что у прайс-видов блюд (_price_view_toggle). Ключ отдельный, чтобы
+вид наборов не был связан с видом блюд. Параметр include: cg_key.{% endcomment %}
+<div class="flex items-center gap-1 shrink-0" role="group" aria-label="{% trans 'Ansicht' %}">
+  <button type="button" data-cv-btn="kacheln" data-cv-key="{{ cg_key|default:'combos' }}" aria-pressed="false"
+          aria-label="{% trans 'Kacheln' %}" title="{% trans 'Kacheln' %}"
+          class="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>
+  </button>
+  <button type="button" data-cv-btn="liste" data-cv-key="{{ cg_key|default:'combos' }}" aria-pressed="false"
+          aria-label="{% trans 'Liste mit Fotos' %}" title="{% trans 'Liste mit Fotos' %}"
+          class="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="12" y="5.5" width="8" height="2.5" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="12" y="15.5" width="8" height="2.5" rx="1"/></svg>
+  </button>
+  <button type="button" data-cv-btn="kompakt" data-cv-key="{{ cg_key|default:'combos' }}" aria-pressed="false"
+          aria-label="{% trans 'Liste' %}" title="{% trans 'Liste' %}"
+          class="w-9 h-9 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="4" y="5" width="16" height="2.5" rx="1"/><rect x="4" y="11" width="16" height="2.5" rx="1"/><rect x="4" y="17" width="16" height="2.5" rx="1"/></svg>
+  </button>
+</div>
