@@ -154,6 +154,9 @@ class Card:
     delivery: dict = None
     height: int = 1080
     head_badge: str = ""
+    # "entwurf" — утверждённый макет; "heute" — то же самое, но так, как карточка
+    # выглядит в кабинете СЕГОДНЯ (для страницы сравнения, см. _delta.py).
+    variant: str = "entwurf"
 
 
 def render_line(ln):
@@ -330,6 +333,21 @@ def render(card: Card) -> str:
             f'<span style="color: {FAINT}">Kein Rabatt gesetzt — Gesamtpreis unverändert</span>'
         )
 
+    # Переключатель «% | €» есть только в утверждённом макете: в кабинете скидка
+    # задаётся исключительно в евро (discount_cents), процент нигде не хранится.
+    if card.variant == "heute":
+        pct_toggle = f'            <div style="font-size: 12px; color: {FAINT}">nur EUR</div>'
+    else:
+        pct_toggle = f"""            <div style="display: flex; align-items: center; gap: 3px; padding: 3px; border-radius: 99px; background: {CANVAS}">
+              <div style="height: 24px; padding: 0 10px; border-radius: 99px; background: #FFFFFF; color: {INK}; display: flex; align-items: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 6px rgba(22, 24, 29, 0.06)">%</div>
+              <div style="height: 24px; padding: 0 10px; border-radius: 99px; color: {MUTED}; display: flex; align-items: center; font-size: 12px; font-weight: 600">€</div>
+            </div>"""
+
+    customer_sub_html = (
+        f'<div style="font-size: 12.5px; color: {MUTED}">{card.customer_sub}</div>'
+        if card.customer_sub
+        else ""
+    )
     side_html = "".join(render_side_card(sc) for sc in card.side_cards)
     side_html += render_calendar(card.calendar)
     head_badge = f"            {badge_new(card.head_badge)}\n" if card.head_badge else ""
@@ -385,10 +403,7 @@ def render(card: Card) -> str:
             <div style="font-size: 13px; font-weight: 700">Rabatt</div>
             <div style="font-size: 12px; color: {MUTED}">wirkt auf</div>
 {disc_chips}            <div style="height: 30px; width: 96px; border: 1px solid {BORDER}; border-radius: 10px; display: flex; align-items: center; padding: 0 10px; font-size: 13px; font-variant-numeric: tabular-nums; background: #FFFFFF">{card.disc_value}</div>
-            <div style="display: flex; align-items: center; gap: 3px; padding: 3px; border-radius: 99px; background: {CANVAS}">
-              <div style="height: 24px; padding: 0 10px; border-radius: 99px; background: #FFFFFF; color: {INK}; display: flex; align-items: center; font-size: 12px; font-weight: 700; box-shadow: 0 2px 6px rgba(22, 24, 29, 0.06)">%</div>
-              <div style="height: 24px; padding: 0 10px; border-radius: 99px; color: {MUTED}; display: flex; align-items: center; font-size: 12px; font-weight: 600">€</div>
-            </div>
+{pct_toggle}
             <div style="height: 30px; padding: 0 12px; border-radius: 99px; background: {CANVAS}; color: {BODY}; display: flex; align-items: center; font-size: 12.5px; font-weight: 600">Anwenden</div>
           </div>
           <div style="font-size: 12px; color: {MUTED}">{disc_line}</div>
@@ -455,7 +470,7 @@ def render(card: Card) -> str:
           <div style="width: 44px; height: 44px; border-radius: 99px; background: {ACCENT_SOFT}; color: {ACCENT_DARK}; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700">{card.customer_initials}</div>
           <div style="flex-grow: 1; min-width: 0">
             <div style="font-size: 15.5px; font-weight: 700; color: {ACCENT}">{card.customer_name}</div>
-            <div style="font-size: 12.5px; color: {MUTED}">{card.customer_sub}</div>
+            {customer_sub_html}
           </div>
         </div>
         <div style="display: flex; flex-direction: column; gap: 3px; font-size: 13.5px">
