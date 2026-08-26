@@ -20,13 +20,13 @@ top layer, поэтому stacking-контекст карточки не важ
     <input type="hidden" name="notify_form" value="1">
     <label class="text-xs text-gray-500 whitespace-nowrap" for="deal-status-target">{% trans "Nächster Schritt" %}</label>
     <select id="deal-status-target" name="action"
-            class="rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm max-w-[13rem]">
+            class="rounded-lg border border-gray-300 px-2 py-1 text-sm max-w-[12rem]">
       {% for a in deal.allowed_actions %}
         <option value="{{ a.target }}">{{ a.label }}{% if a.danger %} ⚠️{% endif %}</option>
       {% endfor %}
     </select>
     <button type="submit" data-deal-status-go
-            class="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700 whitespace-nowrap">{% trans "Status ändern" %}</button>
+            class="rounded-lg bg-indigo-600 px-3 py-1 text-sm font-semibold text-white hover:bg-indigo-700 whitespace-nowrap">{% trans "Status ändern" %}</button>
 
     <dialog data-deal-status-dialog
             class="rounded-2xl p-0 border-0 shadow-xl backdrop:bg-black/40 w-[min(22rem,92vw)]">

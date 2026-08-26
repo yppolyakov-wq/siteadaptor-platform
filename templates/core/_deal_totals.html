@@ -12,6 +12,12 @@ Zwischensumme → Rabatt → Netto → MwSt. → Gesamt. ОДИН партиал
     <span class="text-gray-500">{% trans "Zwischensumme" %}</span>
     <span class="tabular-nums">{{ deal_lines_total|floatformat:2 }} €</span>
   </div>
+  {% if deal_shipping_eur %}
+    <div class="flex items-center justify-between text-gray-500">
+      <span>🚚 {% trans "Versand" %}</span>
+      <span class="tabular-nums">{{ deal_shipping_eur|floatformat:2 }} €</span>
+    </div>
+  {% endif %}
   {% if deal_discount_cents %}
     <div class="flex items-center justify-between text-green-700">
       <span>🏷 {% trans "Rabatt" %}{% if deal_discount_note %} · {{ deal_discount_note }}{% endif %}</span>

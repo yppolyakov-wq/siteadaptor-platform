@@ -177,6 +177,20 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
         lines = _deal_lines(kind, obj)
     except Exception:  # noqa: BLE001 — показ состава не должен ронять карточку
         lines = []
+    # DF-7: у заказа состав рисует его собственный (редактируемый) блок, но
+    # промежуточный итог и доставку для общих сумм берём из его же калькулятора —
+    # иначе показ разошёлся бы с деньгами.
+    subtotal = sum((r["total"] for r in lines), Decimal("0"))
+    shipping = None
+    if kind == "order":
+        try:
+            from apps.orders.totals import order_totals
+
+            totals = order_totals(obj, small_business=small)
+            subtotal = totals["items"]
+            shipping = totals["shipping"] or None
+        except Exception:  # noqa: BLE001 — суммы не должны ронять карточку
+            pass
     inbox_on = _module_active(tenant, "inbox")
     thread = _thread_for(kind, obj) if inbox_on else None
     return {
@@ -203,7 +217,9 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
         "deal_lines": lines,
         # Промежуточный итог = сумма строк (брутто ДО скидки) — макет требует
         # его отдельной строкой над скидкой.
-        "deal_lines_total": sum((r["total"] for r in lines), Decimal("0")),
+        "deal_lines_total": subtotal,
+        # DF-7: доставка — отдельной строкой сумм (у прочих видов её нет).
+        "deal_shipping_eur": shipping,
         "deal_discount_eur": Decimal(int(getattr(obj, "discount_cents", 0) or 0)) / 100,
         # DF-3: переписка с клиентом — прямо на карточке (тред или композер).
         "deal_thread": thread,
