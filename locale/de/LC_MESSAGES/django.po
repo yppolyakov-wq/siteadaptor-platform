@@ -20349,3 +20349,12 @@ msgstr ""
 #: templates/core/_deal_discount.html
 msgid "Gesamt (brutto)"
 msgstr ""
+
+msgid "Speisen meist 7 %, Getränke 19 %."
+msgstr ""
+
+msgid "Frühstück und Parkplatz sind 19 %, auch wenn die Übernachtung 7 % hat."
+msgstr ""
+
+msgid "wie die Buchung"
+msgstr ""

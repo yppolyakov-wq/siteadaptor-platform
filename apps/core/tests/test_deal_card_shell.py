@@ -758,12 +758,15 @@ def test_customer_request_is_a_body_block_on_the_job_card():
 
 
 def test_thread_block_lives_on_the_card_and_posts_back_to_it():
-    """DF-3: «написать клиенту должно просто ниже открываться тут же, чтобы не
-    переходить в другую страницу» — блок переписки в первой колонке, форма
-    возвращает на карточку (next), автообновление — существующим поллингом."""
+    """DF-3 + CARD-2: переписка открывается ТУТ ЖЕ, без перехода на другую
+    страницу, а форма возвращает на карточку (next).
+
+    Место переписки владелец уточнил 2026-08-26: «Nachrichten перенеси в правую
+    колонку под кнопку написать клиенту» — поэтому блок теперь в рейле, сразу за
+    карточкой клиента, а не в первой колонке (замок переписан осознанно)."""
     for kind, html in _cards():
         assert 'data-deal-block="thread"' in html, kind
-        assert html.index('data-deal-block="thread"') < html.index("data-deal-rail"), kind
+        assert html.index('data-deal-block="thread"') > html.index("data-deal-rail"), kind
         block = html[html.index('data-deal-block="thread"') :]
         block = block[: block.index("</section>")]
         assert 'name="next"' in block, kind  # остаёмся на карточке

@@ -15,6 +15,7 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.core import vat
 from apps.core.archetypes import FOOD_BUSINESS_TYPES as _FOOD_BUSINESS_TYPES
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
 from apps.inventory.services import log_catalog_change
@@ -858,6 +859,8 @@ def combo_create(request):
                 price=price,
                 sort_order=_parse_int(request.POST.get("sort")) or 0,
                 is_active=bool(request.POST.get("is_active")),
+                # VAT-2: ставка набора (по ней считается позиция заказа).
+                vat_rate=vat.parse_rate(request.POST.get("vat_rate"), Decimal("19.00")),
             )
             apply_i18n_overlay(combo, request.POST, getattr(request, "tenant", None))  # L3d
             _apply_combo_extras(combo, request)  # MEN-2
@@ -887,7 +890,9 @@ def combo_edit(request, pk):
         combo.description = (request.POST.get("description") or "").strip()
         combo.sort_order = _parse_int(request.POST.get("sort")) or 0
         combo.is_active = bool(request.POST.get("is_active"))
-        _uf = ["name", "price", "description", "sort_order", "is_active", "updated_at"]
+        # VAT-2: чужое значение оставляет прежнюю ставку (защита от подмены).
+        combo.vat_rate = vat.parse_rate(request.POST.get("vat_rate"), combo.vat_rate)
+        _uf = ["name", "price", "description", "sort_order", "is_active", "vat_rate", "updated_at"]
         _uf += _apply_combo_extras(combo, request)  # MEN-2
         _uf += apply_i18n_overlay(combo, request.POST, getattr(request, "tenant", None))  # L3d
         combo.save(update_fields=_uf)

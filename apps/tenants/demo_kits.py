@@ -3062,10 +3062,12 @@ HOTEL = DemoKit(
         (4, "Schöne Zimmer mit tollem Seeblick, sehr entspannt.", "hotel.klaus@example.de"),
     ],
     extras=[  # #7 доп-услуги к брони (per_night=True → за ночь)
-        ("Frühstücksbuffet", "12", "stays", True),
-        ("Parkplatz", "8", "stays", True),
-        ("Später Check-out (bis 14 Uhr)", "20", "stays", False),
-        ("Haustier", "15", "stays", False),
+        # Ставка 19 %: проживание льготное (7 %), а завтрак, парковка и прочие
+        # услуги — обычные (Aufteilungsgebot, § 12 Abs. 2 Nr. 11 UStG).
+        ("Frühstücksbuffet", "12", "stays", True, "19.00"),
+        ("Parkplatz", "8", "stays", True, "19.00"),
+        ("Später Check-out (bis 14 Uhr)", "20", "stays", False, "19.00"),
+        ("Haustier", "15", "stays", False, "19.00"),
     ],
     # HF-1: promotions у типа hotel только suited_for (по умолчанию выключен) —
     # включаем явно, иначе пункт меню «Angebote» и секция акций отпадают по гейту.
@@ -11043,7 +11045,12 @@ def apply_kit(tenant, key: str) -> bool:
     if kit.extras:  # #7 универсальные доп-услуги (Extra)
         from apps.core.models import Extra
 
-        for sort, (label, price, scope, per_night) in enumerate(kit.extras):
+        for sort, spec in enumerate(kit.extras):
+            label, price, scope, per_night = spec[0], spec[1], spec[2], spec[3]
+            # VAT-3: 5-й элемент — своя ставка НДС допа (у отеля завтрак и
+            # парковка облагаются 19 %, хотя проживание 7 % — Aufteilungsgebot).
+            # Отсутствует → None = «как у сделки», прежнее поведение кита.
+            vat_rate = spec[4] if len(spec) > 4 else None
             Extra.objects.create(
                 label=label,
                 price_cents=int(Decimal(str(price)) * 100),
@@ -11051,6 +11058,7 @@ def apply_kit(tenant, key: str) -> bool:
                 per_night=per_night,
                 sort_order=sort,
                 is_active=True,
+                vat_rate=Decimal(str(vat_rate)) if vat_rate is not None else None,
             )
 
     # S3: обложки разделов — интро + hero-фото + галерея на архетип.

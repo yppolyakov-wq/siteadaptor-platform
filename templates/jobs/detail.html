@@ -134,10 +134,6 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
         {% for rate in vat_rates %}<option value="{{ rate }}" {% if job.vat_rate == rate %}selected{% endif %}>{{ rate|floatformat:0 }} %</option>{% endfor %}
       </select>
     </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Valid until" %}</label>
-      <input name="valid_until" type="date" value="{{ job.valid_until|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
     {% comment %}QF-2: «Fahrzeug» и «Nächster TÜV» — поля мастерской; у кейтеринга
     они были шумом в ряду. Показываем архетипам, которым они нужны, и всегда —
     если данные уже заполнены (инвариант W0: скрытие не теряет введённое).{% endcomment %}
@@ -395,6 +391,31 @@ document (партиал может перерисовываться — уро�
 {% comment %}DF-1c: документы переехали из рейла в первую колонку — место задаёт
 скелет, здесь только наполнение (смета PDF, её язык, удаление черновика).{% endcomment %}
 {% block deal_documents %}
+  {% comment %}CARD-1 (владелец 2026-08-26): «поле Gültig bis и Angebot schicken
+  перенеси в поле Dokumente». Срок действия и отправка — свойства ДОКУМЕНТА, а не
+  строк состава, поэтому живут рядом с PDF. У срока своя форма (action=valid_until):
+  сохранение сметы его больше не трогает — в приёмнике стоит presence-guard.
+  {% endcomment %}
+  <div class="flex flex-wrap items-end gap-4 mb-4 pb-4 border-b border-gray-100">
+    <form method="post" class="flex items-end gap-2">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="valid_until">
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Valid until" %}</label>
+        <input name="valid_until" type="date" value="{{ job.valid_until|date:'Y-m-d' }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      </div>
+      <button type="submit" class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium hover:bg-gray-50">{% trans "Save" %}</button>
+    </form>
+    {% if job.status == 'new' %}
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="quoted">
+        <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">✉️ {% trans "Angebot senden" %}</button>
+      </form>
+    {% elif job.quoted_at %}
+      <p class="text-xs text-gray-500">✓ {% trans "Angebot gesendet" %} · {{ job.quoted_at|date:"d.m.Y" }}</p>
+    {% endif %}
+  </div>
   <div class="flex flex-wrap items-center gap-4">
     <a href="{% url 'jobs:pdf' job.pk %}" target="_blank" class="text-sm font-medium text-indigo-600 hover:underline">{% trans "Kostenvoranschlag PDF" %} ↗</a>
     {% comment %}I18N-7b/2: язык сметы хранится на заявке — клиент повторно

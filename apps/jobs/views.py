@@ -146,6 +146,14 @@ def job_detail(request, pk):
             job.save(update_fields=["site_address", "updated_at"])
             messages.success(request, _("Kundendaten gespeichert."))
             return redirect("jobs:detail", pk=job.pk)
+        if action == "valid_until":
+            # CARD-1 (владелец 2026-08-26): срок действия сметы живёт в блоке
+            # «Dokumente» рядом с PDF и отправкой — это свойство документа, а не
+            # строки состава.
+            job.valid_until = _parse_date(request.POST.get("valid_until"))
+            job.save(update_fields=["valid_until", "updated_at"])
+            messages.success(request, _("Saved."))
+            return redirect("jobs:detail", pk=job.pk)
         if action == "language":
             # I18N-7b/2: язык сметы хранится на заявке — клиент повторно скачает
             # ТОТ ЖЕ документ, независимо от языка кабинета.
@@ -347,7 +355,11 @@ def _save_lines(request, job):
     vat_raw = request.POST.get("vat_rate", "19.00")
     vat_rate = next((r for r in RevenueEntry.VAT_RATES if str(r) == vat_raw), Decimal("19.00"))
     services.set_lines(job, lines, vat_rate=vat_rate, small_business=request.tenant.small_business)
-    job.valid_until = _parse_date(request.POST.get("valid_until"))
+    # CARD-1: срок действия переехал в блок «Dokumente» и приходит СВОЕЙ формой.
+    # Без presence-guard сохранение сметы стирало бы его при каждом Save — ровно
+    # класс дефекта W0 («форма настроек теряла поля, которых нет в шаблоне»).
+    if "valid_until" in request.POST:
+        job.valid_until = _parse_date(request.POST.get("valid_until"))
     job.vehicle = request.POST.get("vehicle", job.vehicle).strip()[:120]  # A9 Werkstatt
     # A9: следующий TÜV/Service. Смена даты «перезаряжает» напоминание (sent_at → null).
     # QF-2: поле есть в форме не у всех архетипов — БЕЗ presence-guard сохранение

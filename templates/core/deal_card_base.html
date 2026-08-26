@@ -89,20 +89,22 @@
         </section>
       {% endif %}
 
-      {% if "thread" in deal_sections %}
-        {% comment %}DF-3: переписка с клиентом — на карточке, а не отдельной
-        страницей (владелец 2026-08-26). Гейт модуля inbox — в партиале.{% endcomment %}
-        <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="thread">
-          <h2 class="font-semibold mb-3">✉️ {{ deal_titles.thread }}</h2>
-          {% include "core/_deal_thread.html" %}
-        </section>
-      {% endif %}
-
       {% block deal_main_extra %}{% endblock %}
     </div>
 
     <div class="space-y-5 min-w-0" data-deal-rail>
       {% include "core/_deal_customer_card.html" %}
+      {% if "thread" in deal_sections %}
+        {% comment %}CARD-2 (владелец 2026-08-26): «Nachrichten перенеси в правую
+        колонку под кнопку написать клиенту». Переписка стоит сразу за карточкой
+        клиента — кнопка и сам разговор рядом, а первая колонка остаётся про
+        деньги. Гейт модуля inbox — в партиале; якорь тот же, поэтому скролл по
+        кнопке (DF-6) продолжает работать.{% endcomment %}
+        <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="thread">
+          <h2 class="font-semibold mb-3">✉️ {{ deal_titles.thread }}</h2>
+          {% include "core/_deal_thread.html" %}
+        </section>
+      {% endif %}
       {% block deal_rail_extra %}{% endblock %}
       {% include "core/_deal_links_block.html" with kind=deal_kind obj_pk=deal.pk links=deal_links next_path=request.get_full_path %}
     </div>

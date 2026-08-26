@@ -20439,3 +20439,12 @@ msgstr "Применить"
 #: templates/core/_deal_discount.html
 msgid "Gesamt (brutto)"
 msgstr "Итого (с НДС)"
+
+msgid "Speisen meist 7 %, Getränke 19 %."
+msgstr "Еда обычно 7 %, напитки 19 %."
+
+msgid "Frühstück und Parkplatz sind 19 %, auch wenn die Übernachtung 7 % hat."
+msgstr "Завтрак и парковка — 19 %, даже если проживание облагается 7 %."
+
+msgid "wie die Buchung"
+msgstr "как у брони"

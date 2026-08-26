@@ -168,12 +168,17 @@ def overlay_i18n_inputs(context, obj, fields, compact=False):
 
 
 @register.inclusion_tag("core/_vat_select.html")
-def vat_select(current=None, hint=""):
+def vat_select(current=None, hint="", inherit_label=""):
     """DC-8: поле «MwSt.-Satz» — общее для форм номера/услуги/события.
 
     Ставка живёт на позиции (проживание 7 %, допы 19 % — Aufteilungsgebot),
     поэтому её выбирают у КАЖДОЙ продаваемой сущности. Свободного ввода нет:
-    только три законные ставки DACH (прецедент формы товара, SH-4)."""
+    только три законные ставки DACH (прецедент формы товара, SH-4).
+
+    VAT-3: `inherit_label` добавляет первым пунктом «как у сделки» (пустое
+    значение). Он нужен там, где НЕзаданная ставка — законное состояние: у
+    доп-услуги пусто означает «облагается как сама сделка», и терять эту
+    семантику нельзя."""
     from decimal import Decimal
 
     from apps.core import vat
@@ -186,4 +191,5 @@ def vat_select(current=None, hint=""):
         "vat_choices": [(f"{r:.2f}", f"{r.normalize():f} %") for r in vat.RATE_CHOICES],
         "vat_current": f"{current_rate:.2f}" if current_rate is not None else "",
         "vat_hint": hint,
+        "vat_inherit_label": inherit_label,
     }

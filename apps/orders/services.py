@@ -173,8 +173,8 @@ def create_order(
     позиций и ValueError при qty < 1.
 
     custom_lines (LS-3 Sofort-Angebot) — кортежи (title, unit_price, qty[,
-    product[, variant]]): позиции с ЗАМОРОЖЕННОЙ ценой/названием (из строки, не
-    из каталога). product/variant переданы → складской учёт как у обычных
+    product[, variant[, modifiers[, vat_rate]]]]): позиции с ЗАМОРОЖЕННОЙ
+    ценой/названием (из строки, не из каталога). product/variant переданы → складской учёт как у обычных
     позиций (anti-oversell + леджер); None → свободная строка, склад не тронут.
     """
     norm = []
@@ -196,19 +196,24 @@ def create_order(
         # P2 «ценовой слой»: 6-й элемент — снимок modifiers (напр. маркер
         # {"promo": id} — по нему возврат лимита кампании при отмене).
         mods = list(line[5]) if len(line) > 5 else []
-        custom_norm.append((str(title), Decimal(str(unit_price)), int(qty), product, variant, mods))
+        # VAT-2: 7-й элемент — ставка НДС строки (услуга/блюдо из свободной сборки
+        # несут свою). None → снимок берётся из товара, иначе дефолт модели.
+        vat = line[6] if len(line) > 6 else None
+        custom_norm.append(
+            (str(title), Decimal(str(unit_price)), int(qty), product, variant, mods, vat)
+        )
     if not norm and not combo_norm and not custom_norm:
         raise EmptyOrder()
     if (
         any(qty < 1 for _p, _v, qty, _o in norm)
         or any(q < 1 for _c, _o, q in combo_norm)
-        or any(q < 1 for _t, _u, q, _p, _v, _m in custom_norm)
+        or any(q < 1 for _t, _u, q, _p, _v, _m, _r in custom_norm)
     ):
         raise ValueError("qty must be >= 1")
 
     # R3: атомарное списание; OutOfStock → откат, заказа нет. Custom-строки с
     # привязкой к товару резервируют сток тем же путём (цена всё равно из строки).
-    custom_reserve = [(p, v, q, []) for _t, _u, q, p, v, _m in custom_norm if p is not None]
+    custom_reserve = [(p, v, q, []) for _t, _u, q, p, v, _m, _r in custom_norm if p is not None]
     _reserve_stock(norm + custom_reserve)
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
     delivery = fulfillment == Order.FULFILLMENT_DELIVERY
@@ -307,11 +312,14 @@ def create_order(
                 unit_price=unit_price,
                 title_snapshot=str(combo.name)[:200],
                 modifiers=combo_snapshot(combo, options),
+                # VAT-2: ставка набора снимком — меню-сет гастро уходил в документ
+                # по 19 %, потому что у комбо ставки не было вовсе.
+                vat_rate=combo.vat_rate,
             )
             total += unit_price * qty
     # LS-3: custom-строки — цена/название заморожены (персональное предложение);
     # позиции с товаром логируют списание в леджер (как обычные), свободные — нет.
-    for title, unit_price, qty, product, variant, mods in custom_norm:
+    for title, unit_price, qty, product, variant, mods, line_vat in custom_norm:
         label = variant.label if variant is not None else ""
         _sku = ""
         if variant is not None and variant.sku:
@@ -328,8 +336,13 @@ def create_order(
             unit_price=unit_price,
             title_snapshot=title[:200],
             modifiers=mods,
-            # SH-4: у строки с товаром — его ставка; у свободной остаётся дефолт.
-            **({"vat_rate": product.vat_rate} if product is not None else {}),
+            # SH-4/VAT-2: у строки с товаром — его ставка; у свободной строки —
+            # переданная явно (блюдо, услуга), иначе дефолт модели.
+            **(
+                {"vat_rate": product.vat_rate}
+                if product is not None
+                else ({"vat_rate": line_vat} if line_vat is not None else {})
+            ),
             # ERP-1: EK-снимок у складских custom-строк (свободные — без).
             cost_price=(
                 variant.cost_value

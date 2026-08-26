@@ -20348,3 +20348,12 @@ msgstr "Uygula"
 #: templates/core/_deal_discount.html
 msgid "Gesamt (brutto)"
 msgstr "Toplam (brüt)"
+
+msgid "Speisen meist 7 %, Getränke 19 %."
+msgstr "Yiyecekler genellikle %7, içecekler %19."
+
+msgid "Frühstück und Parkplatz sind 19 %, auch wenn die Übernachtung 7 % hat."
+msgstr "Kahvaltı ve otopark %19'dur, konaklama %7 olsa bile."
+
+msgid "wie die Buchung"
+msgstr "rezervasyonla aynı"

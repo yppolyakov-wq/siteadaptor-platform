@@ -20221,3 +20221,12 @@ msgstr "Apply"
 #: templates/core/_deal_discount.html
 msgid "Gesamt (brutto)"
 msgstr "Total (gross)"
+
+msgid "Speisen meist 7 %, Getränke 19 %."
+msgstr "Food is usually 7 %, drinks 19 %."
+
+msgid "Frühstück und Parkplatz sind 19 %, auch wenn die Übernachtung 7 % hat."
+msgstr "Breakfast and parking are 19 %, even when the room is taxed at 7 %."
+
+msgid "wie die Buchung"
+msgstr "same as the booking"

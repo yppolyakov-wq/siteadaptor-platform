@@ -11,7 +11,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.catalog.option_styles import VARIANT_STYLES
-from apps.core import detail_sections, presence
+from apps.core import detail_sections, presence, vat
 from apps.tenants import domains
 from apps.tenants.forms import BusinessSettingsForm
 from apps.tenants.models import CustomDomain
@@ -89,6 +89,9 @@ def extras_view(request):
                     supplier=supplier,
                     product=stock_product,
                     consume_qty=consume_qty,
+                    # VAT-3: своя ставка допа; пусто = «как у сделки» (прежнее
+                    # поведение) — поэтому parse_rate_optional, а не parse_rate.
+                    vat_rate=vat.parse_rate_optional(request.POST.get("vat_rate")),
                 )
                 _set_extra_image(request, extra)  # A5: опц. фото при создании
                 messages.success(request, _("Extra added."))
