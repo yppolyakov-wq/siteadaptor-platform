@@ -20337,3 +20337,15 @@ msgstr ""
 #: templates/core/_deal_vat_rows.html
 msgid "zzgl. %(rate)s %% MwSt."
 msgstr ""
+
+#: templates/core/_deal_discount.html
+msgid "wirkt auf"
+msgstr ""
+
+#: templates/core/_deal_discount.html
+msgid "Anwenden"
+msgstr ""
+
+#: templates/core/_deal_discount.html
+msgid "Gesamt (brutto)"
+msgstr ""

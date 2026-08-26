@@ -20427,3 +20427,15 @@ msgstr "Сумма без НДС"
 #: templates/core/_deal_vat_rows.html
 msgid "zzgl. %(rate)s %% MwSt."
 msgstr "плюс НДС %(rate)s %%"
+
+#: templates/core/_deal_discount.html
+msgid "wirkt auf"
+msgstr "действует на"
+
+#: templates/core/_deal_discount.html
+msgid "Anwenden"
+msgstr "Применить"
+
+#: templates/core/_deal_discount.html
+msgid "Gesamt (brutto)"
+msgstr "Итого (с НДС)"

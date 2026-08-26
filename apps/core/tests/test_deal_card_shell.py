@@ -905,7 +905,11 @@ def test_every_card_shows_the_mockup_columns():
     for kind, html in _cards():
         items = html[html.index('data-deal-block="items"') :]
         items = items[: items.index("</section>")]
-        head = items[: items.index("</div>", items.index("Position"))]
+        # DG-3: шапка таблицы — общий партиал с классом .dl-head; берём именно
+        # её (раньше резали по первому </div>, а теперь у карточки своя шапка).
+        assert "dl-head" in items, f"{kind}: нет общей шапки состава"
+        head_start = items.index("dl-head")
+        head = items[head_start : items.index("</div>", head_start)]
         # У сметы (job) ставка НДС одна на весь документ — своим полем внизу,
         # поэтому колонки у неё нет и быть не должно; проверяем, что поле есть.
         columns = ("Position", "Einzel", "Menge", "Summe")

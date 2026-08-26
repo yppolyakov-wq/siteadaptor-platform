@@ -34,8 +34,8 @@ Zwischensumme → Rabatt → Netto → MwSt. → Gesamt. ОДИН партиал
     </div>
   {% endif %}
   {% include "core/_deal_vat_rows.html" %}
-  <div class="flex items-center justify-between pt-2 mt-1 border-t border-gray-100 text-base font-semibold">
-    <span>{% trans "Gesamt" %}</span>
+  <div class="flex items-center justify-between pt-2 mt-1 border-t border-gray-100 text-lg font-bold">
+    <span>{% if deal_subtotal_is_net %}{% trans "Gesamt" %}{% else %}{% trans "Gesamt (brutto)" %}{% endif %}</span>
     <span class="tabular-nums">{{ deal_vat.gross|floatformat:2 }} €</span>
   </div>
 </div>

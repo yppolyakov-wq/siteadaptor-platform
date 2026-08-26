@@ -20336,3 +20336,15 @@ msgstr "Net tutar"
 #: templates/core/_deal_vat_rows.html
 msgid "zzgl. %(rate)s %% MwSt."
 msgstr "artı %%%(rate)s KDV"
+
+#: templates/core/_deal_discount.html
+msgid "wirkt auf"
+msgstr "şuna uygulanır"
+
+#: templates/core/_deal_discount.html
+msgid "Anwenden"
+msgstr "Uygula"
+
+#: templates/core/_deal_discount.html
+msgid "Gesamt (brutto)"
+msgstr "Toplam (brüt)"
