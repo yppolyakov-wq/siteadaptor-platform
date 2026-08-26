@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block dash_title %}{% trans "Units" %}{% endblock %}
 
 {% block dash_content %}
@@ -155,6 +155,7 @@
             <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Deposit (€)" %}</label>
             <input name="deposit_eur" type="text" value="{{ u.deposit_eur|stringformat:'.2f' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
           </div>
+          {% vat_select u.vat_rate _("Übernachtung 7 %, sonstige Leistungen 19 %.") %}
           {% comment %}Фидбэк 2026-07-30: Lücken-Deal НА ЭТОТ номер — скидка на
           короткие свободные промежутки между бронями. 0 = как в общих настройках
           (Einstellungen → Preise). Presence-сентинел защищает от затирания.{% endcomment %}
@@ -331,6 +332,7 @@
       <label class="block text-sm font-medium mb-1">{% trans "Price / night (€)" %}</label>
       <input name="price_eur" type="text" placeholder="80" class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
+    {% vat_select "7.00" %}
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Quantity (identical units)" %}</label>
       <input name="quantity" type="number" min="1" value="1" class="w-full rounded-lg border border-gray-300 px-3 py-2">

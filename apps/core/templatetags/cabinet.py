@@ -165,3 +165,25 @@ def overlay_i18n_inputs(context, obj, fields, compact=False):
         "inputs": i18n_inputs_for(obj, getattr(request, "tenant", None), fields=names),
         "compact": compact,
     }
+
+
+@register.inclusion_tag("core/_vat_select.html")
+def vat_select(current=None, hint=""):
+    """DC-8: поле «MwSt.-Satz» — общее для форм номера/услуги/события.
+
+    Ставка живёт на позиции (проживание 7 %, допы 19 % — Aufteilungsgebot),
+    поэтому её выбирают у КАЖДОЙ продаваемой сущности. Свободного ввода нет:
+    только три законные ставки DACH (прецедент формы товара, SH-4)."""
+    from decimal import Decimal
+
+    from apps.core import vat
+
+    try:
+        current_rate = Decimal(str(current)) if current not in (None, "") else None
+    except Exception:  # noqa: BLE001 — чужое значение в шаблоне не должно ронять страницу
+        current_rate = None
+    return {
+        "vat_choices": [(f"{r:.2f}", f"{r.normalize():f} %") for r in vat.RATE_CHOICES],
+        "vat_current": f"{current_rate:.2f}" if current_rate is not None else "",
+        "vat_hint": hint,
+    }

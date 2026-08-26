@@ -550,7 +550,8 @@ def test_customer_contacts_are_prominent_not_grey_fine_print():
     body = views.job_detail(_req(), pk=job.pk).content.decode()
     assert 'href="mailto:mk@example.de"' in body
     assert 'href="tel:+49 170 1234567"' in body
-    assert "text-lg font-semibold" in body  # имя клиента крупно
+    # DC-1: карточка клиента — общий партиал (имя, кликабельные контакты).
+    assert 'data-deal-block="customer"' in body
 
 
 def test_workshop_fields_hidden_for_non_workshop_but_data_never_lost():
@@ -593,11 +594,13 @@ def test_detail_uses_rail_layout():
     data-qt-*) не тронут — его держат прежние замки."""
     job = _job()
     body = views.job_detail(_req(), pk=job.pk).content.decode()
-    assert "lg:grid-cols-[minmax(0,1fr)_340px]" in body  # рейл-грид
+    # DC-1 (2026-08-25): рейл даёт общий скелет карточки сделки.
+    assert "xl:grid-cols-[minmax(0,1fr)_360px]" in body  # рейл-грид
+    assert "data-deal-rail" in body
     assert "shadow-[0_6px_18px_rgba(22,24,29,0.05)]" in body  # тень R5
     # смета (форма) идёт РАНЬШЕ рейла: на мобильном позиции первыми — как у
     # заказа. Голый "<aside" ловит сайдбар кабинета — якоримся на классах рейла.
-    rail_i = body.index('<aside class="space-y-4 mt-4 lg:mt-0">')
+    rail_i = body.index("data-deal-rail")
     assert body.index('name="action" value="save_lines"') < rail_i
     # рейл несёт клиента и карточку статуса
     aside = body[rail_i:]
@@ -607,15 +610,16 @@ def test_detail_uses_rail_layout():
 
 # --- VF-15 (фидбэк 2026-08-25): блок «Zahlung» на карточке заявки ------------
 def test_payment_card_and_mark_paid():
-    """Карточка «💳 Zahlung» в рейле (статус/депозит/Angebot-ссылка) + ручное
-    «Als bezahlt markieren» — оплату на месте раньше было не отметить вовсе
-    (payment_state писал только Stripe-вебхук). Идемпотентно."""
+    """Блок «💳 Zahlung» (статус/депозит/Angebot-ссылка) + ручное «Als bezahlt
+    markieren» — оплату на месте раньше было не отметить вовсе (payment_state
+    писал только Stripe-вебхук). Идемпотентно. DC-1 (2026-08-25): по ТЗ владельца
+    оплата — секция ЛЕВОЙ колонки, единая на все карточки сделок."""
     job = _job()
     services.set_lines(job, [{"text": "Buffet", "qty": 1, "unit_price": "100.00"}], vat_rate=19)
     body = views.job_detail(_req(), pk=job.pk).content.decode()
-    rail = body[body.index('<aside class="space-y-4 mt-4 lg:mt-0">') :]
-    assert "💳" in rail and 'value="mark_paid"' in rail
-    assert "/angebot/" not in rail  # ссылка только на quoted/accepted
+    pay = body[body.index('data-deal-block="payment"') : body.index("data-deal-rail")]
+    assert "💳" in body and 'value="mark_paid"' in pay
+    assert "/angebot/" not in pay  # ссылка только на quoted/accepted
 
     resp = views.job_detail(_req("post", data={"action": "mark_paid"}), pk=job.pk)
     assert resp.status_code == 302

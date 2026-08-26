@@ -1,0 +1,683 @@
+"""DC-1: единый скелет карточки сделки (ТЗ владельца 2026-08-25).
+
+Замки-характеризации ПЕРЕД перестановкой блоков. Требование владельца:
+«базовые функции и блоки должны иметь общие настройки — меняется один, меняются
+все сразу», поэтому карточки заказа, заявки, брони и записи собираются ОДНИМ
+скелетом: голова → состав → скидка → суммы → оплата; статус, клиент и связанные
+сделки — в правой колонке; календарь (там, где движок есть) открывается СРАЗУ
+НИЖЕ сетки, а не в узком рейле и не по клику.
+"""
+
+import uuid
+from datetime import datetime, time, timedelta
+from decimal import Decimal
+
+import pytest
+from django.contrib.messages.middleware import MessageMiddleware
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.test import RequestFactory
+from django.utils import timezone
+
+from apps.booking import services as booking_services
+from apps.booking.models import Resource
+from apps.catalog.tests.factories import ProductFactory
+from apps.jobs import services as job_services
+from apps.orders import services as order_services
+from apps.stays import services as stay_services
+from apps.stays.models import StayUnit
+from apps.tenants.tests.factories import TenantFactory
+
+pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture(autouse=True)
+def _urlconf(settings):
+    settings.ROOT_URLCONF = "config.urls_tenant"
+
+
+class _User:
+    is_authenticated = True
+    is_active = True
+    username = "owner"
+
+
+def _tenant(business_type="retail"):
+    from apps.core.modules import default_disabled_for
+
+    return TenantFactory(
+        schema_name=f"t{uuid.uuid4().hex[:8]}",
+        business_type=business_type,
+        disabled_modules=list(default_disabled_for(business_type)),
+    )
+
+
+def _req(path="/dashboard/", tenant=None):
+    req = RequestFactory().get(path)
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = _User()
+    req.tenant = tenant if tenant is not None else _tenant()
+    return req
+
+
+# --- сделки четырёх видов ---------------------------------------------------
+
+
+def _order():
+    return order_services.create_order(
+        items=[(ProductFactory(name={"de": "Brot"}, base_price=Decimal("5.00")), 2)],
+        name="Anna Beispiel",
+        email=f"a-{uuid.uuid4().hex[:6]}@t.de",
+    )
+
+
+def _job():
+    job = job_services.create_job(title="Badsanierung", name="Ben Bauer", email="ben@t.de")
+    job_services.set_lines(job, [{"text": "Fliesen", "qty": 1, "unit_price": "100.00"}])
+    return job
+
+
+def _stay():
+    unit = StayUnit.objects.create(name=f"Zimmer {uuid.uuid4().hex[:6]}", price_cents=8000)
+    today = timezone.localdate()
+    return stay_services.book_stay(
+        unit,
+        arrival=today + timedelta(days=3),
+        departure=today + timedelta(days=5),
+        name="Clara Gast",
+        email="clara@t.de",
+    )
+
+
+def _booking():
+    resource = Resource.objects.create(name=f"Stuhl {uuid.uuid4().hex[:6]}")
+    day = timezone.localdate() + timedelta(days=2)
+    start = datetime.combine(day, time(10, 0), tzinfo=timezone.get_current_timezone())
+    return booking_services.book(
+        resource,
+        start=start,
+        end=start + timedelta(hours=1),
+        name="Dora Klein",
+        email="d@t.de",
+        price_cents=4000,  # цена нужна, чтобы скидке было что уменьшать
+    )
+
+
+def _cards():
+    """(kind, html) для всех четырёх карточек сделок."""
+    from apps.booking import views as booking_views
+    from apps.jobs import views as job_views
+    from apps.orders import views as order_views
+    from apps.stays import views as stay_views
+
+    out = []
+    for kind, view, obj, bt in (
+        ("order", order_views.order_detail, _order(), "retail"),
+        ("job", job_views.job_detail, _job(), "handwerker"),
+        ("stay", stay_views.booking_detail, _stay(), "hotel"),
+        ("booking", booking_views.booking_detail, _booking(), "friseur"),
+    ):
+        req = _req(tenant=_tenant(bt))
+        out.append((kind, view(req, obj.pk).content.decode()))
+    return out
+
+
+# --- замки ------------------------------------------------------------------
+
+
+def test_every_deal_card_keeps_its_core_blocks():
+    """Номер, клиент и вход в переписку остаются на каждой карточке."""
+    for kind, html in _cards():
+        assert "data-deal-card" in html, kind
+        assert 'data-deal-block="customer"' in html, kind
+        assert f"/inbox/deal/{kind}/" in html, kind  # C1: «написать клиенту»
+
+
+def test_status_lives_in_the_rail_on_every_card():
+    """ТЗ: «статус перенести во вторую колонку» — карточка статуса в рейле."""
+    for kind, html in _cards():
+        assert 'data-deal-block="status"' in html, kind
+        assert "data-deal-rail" in html, kind
+        assert html.index('data-deal-block="status"') > html.index("data-deal-rail"), kind
+
+
+def test_block_order_is_the_same_everywhere():
+    """Состав → скидка → суммы → оплата: порядок один на всех карточках."""
+    for kind, html in _cards():
+        order = [
+            html.index(f'data-deal-block="{name}"')
+            for name in ("items", "discount", "totals", "payment")
+            if f'data-deal-block="{name}"' in html
+        ]
+        assert order == sorted(order), kind
+
+
+def test_calendar_opens_below_the_grid_where_the_engine_exists():
+    """Владелец 2026-08-25: «если есть календарь — открывается сразу ниже сетки».
+
+    У брони и записи движок есть (Belegungsplan / Tagesplan) → блок присутствует
+    и стоит ПОСЛЕ сетки. У заявки календарного движка нет → блока нет вовсе."""
+    for kind, html in _cards():
+        if kind in ("stay", "booking"):
+            assert 'data-deal-block="calendar"' in html, kind
+            assert html.index('data-deal-block="calendar"') > html.index("data-deal-rail"), kind
+        if kind == "job":
+            assert 'data-deal-block="calendar"' not in html
+
+
+def test_shared_blocks_come_from_one_source():
+    """«Меняется один — меняются все»: общие блоки живут в общих партиалах."""
+    from pathlib import Path
+
+    base = Path("templates/core/deal_card_base.html").read_text()
+    for marker in ("_deal_status_card.html", "_deal_customer_card.html", "_deal_links_block.html"):
+        assert marker in base, marker
+    for tpl in (
+        "templates/orders/order_detail.html",
+        "templates/jobs/detail.html",
+        "templates/stays/booking_detail.html",
+        "templates/booking/booking_detail.html",
+    ):
+        body = Path(tpl).read_text()
+        assert "core/deal_card_base.html" in body or "deal_card_base" in body, tpl
+
+    # Панель брони под Belegungsplan — не страница, а fetch-фрагмент; она обязана
+    # собираться из ТЕХ ЖЕ кусков, что страница (иначе правка разъедется).
+    fragment = Path("templates/stays/_booking_card.html").read_text()
+    page = Path("templates/stays/booking_detail.html").read_text()
+    for part in (
+        "_stay_stay.html",
+        "_stay_edit.html",
+        "_stay_amount.html",
+        "_stay_meldeschein.html",
+    ):
+        assert part in fragment and part in page, part
+
+
+# --- DC-4: внешний номер у всех видов сделок ---------------------------------
+
+
+def test_external_number_form_on_every_card():
+    """ТЗ: «номер заказа основной и дополнительный, его можно изменить» — поле
+    есть на всех четырёх карточках, приёмник ОДИН (kind-агностичный)."""
+    for kind, html in _cards():
+        assert 'name="external_code"' in html, kind
+        assert f"/dashboard/externe-nummer/{kind}/" in html, kind
+
+
+def test_external_number_saves_and_is_searchable(client, django_user_model):
+    """Сохранение пишет поле сделки и находится поиском продаж."""
+    from apps.core import transactions
+    from apps.core import views as core_views
+
+    job = _job()
+    req = RequestFactory().post(
+        f"/dashboard/externe-nummer/job/{job.pk}/",
+        {"external_code": "KASSE-4711", "next": "/dashboard/verkaeufe/"},
+    )
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = _User()
+    req.tenant = _tenant("handwerker")
+    resp = core_views.deal_external_edit(req, "job", job.pk)
+    assert resp.status_code == 302
+    job.refresh_from_db()
+    assert job.external_code == "KASSE-4711"
+    # Поиск сделок находит по внешнему номеру (реестр _TITLE_SEARCH).
+    assert "external_code" in transactions._TITLE_SEARCH["job"]
+    assert "external_code" in transactions._TITLE_SEARCH["stay"]
+    assert "external_code" in transactions._TITLE_SEARCH["booking"]
+
+
+# --- DC-5: скидка владельца на всех карточках ---------------------------------
+
+
+def _post(kind, obj, data, tenant_type="retail"):
+    from apps.core import views as core_views
+
+    req = RequestFactory().post(f"/dashboard/rabatt/{kind}/{obj.pk}/", data)
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = _User()
+    req.tenant = _tenant(tenant_type)
+    return core_views.deal_discount_edit(req, kind, obj.pk)
+
+
+def test_discount_block_between_items_and_totals():
+    """ТЗ 2026-08-25: «скидка должна быть между позициями и суммой»."""
+    for kind, html in _cards():
+        assert 'data-deal-block="discount"' in html, kind
+        assert html.index('data-deal-block="items"') < html.index('data-deal-block="discount"'), (
+            kind
+        )
+        if 'data-deal-block="totals"' in html:
+            assert html.index('data-deal-block="discount"') < html.index(
+                'data-deal-block="totals"'
+            ), kind
+
+
+def test_discount_lowers_the_total_of_every_deal():
+    """«При указании скидки учитываться в общей цене» — итог реально падает."""
+    from decimal import Decimal
+
+    order = _order()
+    before = Decimal(order.total)
+    _post("order", order, {"discount": "2,50", "discount_note": "Stammkunde"})
+    order.refresh_from_db()
+    assert Decimal(order.total) == before - Decimal("2.50")
+
+    booking = _booking()
+    before_cents = booking.total_cents
+    _post("booking", booking, {"discount": "5.00"}, "friseur")
+    booking.refresh_from_db()
+    assert booking.total_cents == before_cents - 500
+
+    stay = _stay()
+    before_cents = stay.total_cents
+    _post("stay", stay, {"discount": "10,00"}, "hotel")
+    stay.refresh_from_db()
+    assert stay.total_cents == before_cents - 1000
+
+    job = _job()
+    before_gross = job.payable_gross
+    _post("job", job, {"discount": "7,00"}, "handwerker")
+    job.refresh_from_db()
+    assert job.payable_gross == before_gross - Decimal("7.00")
+
+
+def test_discount_never_goes_below_zero_and_rejects_garbage():
+    stay = _stay()
+    _post("stay", stay, {"discount": "999999"}, "hotel")
+    stay.refresh_from_db()
+    assert stay.total_cents == stay.kurtaxe_cents  # проживание съедено, налог остаётся
+    before = stay.total_cents
+    _post("stay", stay, {"discount": "abc"}, "hotel")  # мусор не меняет сумму
+    stay.refresh_from_db()
+    assert stay.total_cents == before
+
+
+# --- DC-3: статус списком + вопрос об уведомлении -----------------------------
+
+
+def test_status_is_a_dropdown_with_notification_question():
+    """ТЗ: «смена статуса выпадающим списком, при выборе спрашивать —
+    отправить уведомление клиенту и администратору»."""
+    for kind, html in _cards():
+        block = html[html.index('data-deal-block="status"') :]
+        block = block[: block.index("</div>", block.index("</form>"))]
+        assert 'name="action"' in block and "<select" in block, kind
+        assert 'name="notify_customer"' in block and 'name="notify_team"' in block, kind
+        assert 'name="notify_form"' in block, kind  # снятый чекбокс в POST не приходит
+
+
+def test_unchecked_boxes_mute_only_this_status_change():
+    """Снятые чекбоксы гасят письма ИМЕННО этой смены; настройки тенанта целы."""
+    from apps.core import views as core_views
+    from apps.notifications.models import Notification
+
+    order = _order()
+    Notification.objects.all().delete()
+
+    req = RequestFactory().post(
+        f"/dashboard/board/order/{order.pk}/action/",
+        {"action": "confirmed", "notify_form": "1", "next": "/dashboard/verkaeufe/"},
+    )
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = _User()
+    req.tenant = _tenant()
+    core_views.kanban_action(req, "order", order.pk)
+    order.refresh_from_db()
+    assert order.status == "confirmed"
+    assert not Notification.objects.filter(dedupe_key__contains=":confirmed:").exists()
+
+    # Та же смена С отмеченным чекбоксом — письмо ставится в очередь как раньше.
+    order2 = _order()
+    req2 = RequestFactory().post(
+        f"/dashboard/board/order/{order2.pk}/action/",
+        {"action": "confirmed", "notify_form": "1", "notify_customer": "1", "notify_team": "1"},
+    )
+    SessionMiddleware(lambda r: None).process_request(req2)
+    MessageMiddleware(lambda r: None).process_request(req2)
+    req2.user = _User()
+    req2.tenant = _tenant()
+    core_views.kanban_action(req2, "order", order2.pk)
+    assert Notification.objects.filter(dedupe_key=f"order:{order2.id}:confirmed:customer").exists()
+
+
+def test_other_surfaces_keep_notifying():
+    """Доска и списки формы-вопроса не шлют — их поведение не меняется."""
+    from apps.core import transactions
+    from apps.notifications.models import Notification
+
+    order = _order()
+    Notification.objects.all().delete()
+    transactions.apply_action("order", order, "confirmed", extra={})
+    assert Notification.objects.filter(dedupe_key=f"order:{order.id}:confirmed:customer").exists()
+
+
+# --- DC-6: счёт из брони и записи ---------------------------------------------
+
+
+def test_invoice_button_on_stay_and_booking_with_finance():
+    """ТЗ: «оплата … и там же выставление счёта». Кнопка — при активном модуле."""
+    from apps.booking import views as booking_views
+    from apps.stays import views as stay_views
+
+    for view, obj, bt, kind in (
+        (stay_views.booking_detail, _stay(), "hotel", "stay"),
+        (booking_views.booking_detail, _booking(), "friseur", "booking"),
+    ):
+        tenant = _tenant(bt)
+        tenant.disabled_modules = [m for m in tenant.disabled_modules if m != "finance"]
+        tenant.save(update_fields=["disabled_modules"])
+        html = view(_req(tenant=tenant), obj.pk).content.decode()
+        assert "data-deal-invoice" in html, kind
+        assert f"/dashboard/rechnung/{kind}/" in html, kind
+
+
+def test_invoice_draft_is_reused_and_totals_match():
+    """Повторный клик не плодит счета; суммы черновика сходятся с итогом сделки."""
+    from decimal import Decimal
+
+    from apps.core import views as core_views
+    from apps.finance.models import Invoice
+
+    stay = _stay()
+    tenant = _tenant("hotel")
+    tenant.disabled_modules = [m for m in tenant.disabled_modules if m != "finance"]
+    tenant.save(update_fields=["disabled_modules"])
+
+    def _post():
+        req = RequestFactory().post(f"/dashboard/rechnung/stay/{stay.pk}/")
+        SessionMiddleware(lambda r: None).process_request(req)
+        MessageMiddleware(lambda r: None).process_request(req)
+        req.user = _User()
+        req.tenant = tenant
+        return core_views.deal_invoice(req, "stay", stay.pk)
+
+    assert _post().status_code == 302
+    stay.refresh_from_db()
+    assert stay.invoice_id is not None
+    assert Invoice.objects.count() == 1
+    invoice = Invoice.objects.get()
+    assert invoice.gross == (Decimal(stay.total_cents) / 100).quantize(Decimal("0.01"))
+    _post()  # повторный клик — тот же черновик
+    assert Invoice.objects.count() == 1
+
+
+def test_invoice_button_hidden_without_finance_module():
+    from django.http import Http404
+
+    from apps.core import views as core_views
+    from apps.stays import views as stay_views
+
+    stay = _stay()
+    tenant = _tenant("hotel")  # finance выключен по умолчанию у всех типов
+    html = stay_views.booking_detail(_req(tenant=tenant), stay.pk).content.decode()
+    assert "data-deal-invoice" not in html
+    req = RequestFactory().post(f"/dashboard/rechnung/stay/{stay.pk}/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = _User()
+    req.tenant = tenant
+    with pytest.raises(Http404):
+        core_views.deal_invoice(req, "stay", stay.pk)
+
+
+# --- DC-7: карточка билета ----------------------------------------------------
+
+
+def _ticket():
+    from datetime import timedelta as _td
+
+    from apps.events.models import Event, Ticket
+    from apps.promotions.models import Customer
+
+    event = Event.objects.create(
+        title="Herbst-Retreat",
+        starts_at=timezone.now() + _td(days=10),
+        capacity=20,
+        price_cents=9000,
+    )
+    customer = Customer.objects.create(name="Eva Gast", email=f"e-{uuid.uuid4().hex[:6]}@t.de")
+    return Ticket.objects.create(
+        event=event,
+        customer=customer,
+        reference_code=f"E-{uuid.uuid4().hex[:6].upper()}",
+        quantity=2,
+        price_cents=9000,
+        tier_label="Einzelzimmer",
+    )
+
+
+def test_ticket_card_exists_and_uses_the_shared_shell():
+    """ТЗ: карточки билета не было вовсе — доска вела на страницу события."""
+    from apps.events import views as event_views
+
+    ticket = _ticket()
+    html = event_views.ticket_detail(_req(tenant=_tenant("events")), ticket.pk).content.decode()
+    assert "data-deal-card" in html
+    assert 'data-deal-block="status"' in html and 'data-deal-block="customer"' in html
+    assert 'data-deal-block="calendar"' not in html  # календарного движка у билетов нет
+    assert ticket.reference_code in html and "Einzelzimmer" in html
+
+
+def test_board_links_to_the_ticket_card():
+    from apps.core import transactions
+
+    ticket = _ticket()
+    tx = transactions.transaction_for("ticket", ticket)
+    assert tx.manage_url == f"/dashboard/events/ticket/{ticket.pk}/"
+
+
+# --- DC-8: честный НДС у брони, записи и билета -------------------------------
+
+
+def test_vat_rows_appear_on_stay_booking_and_ticket():
+    """Решение владельца 2026-08-26: налог выделяется у всех видов сделок."""
+    from apps.booking import views as booking_views
+    from apps.events import views as event_views
+    from apps.stays import views as stay_views
+
+    for view, obj, bt in (
+        (stay_views.booking_detail, _stay(), "hotel"),
+        (booking_views.booking_detail, _booking(), "friseur"),
+        (event_views.ticket_detail, _ticket(), "events"),
+    ):
+        html = view(_req(tenant=_tenant(bt)), obj.pk).content.decode()
+        assert "MwSt." in html, obj
+
+
+def test_stay_vat_splits_lodging_extras_and_kurtaxe():
+    """Проживание 7 %, завтрак 19 %, Kurtaxe вне НДС — три строки, итог сходится."""
+    from decimal import Decimal
+
+    from apps.core.vat import deal_vat
+
+    stay = _stay()
+    stay.extras = [{"label": "Frühstück", "price_cents": 2000, "vat_rate": "19.00"}]
+    stay.kurtaxe_cents = 300
+    stay.total_cents = stay.total_cents + 2000 + 300
+    stay.save(update_fields=["extras", "kurtaxe_cents", "total_cents"])
+
+    vat = deal_vat("stay", stay)
+    rates = {row["rate"] for row in vat["rows"]}
+    assert Decimal("19.00") in rates and Decimal("7.00") in rates and Decimal("0") in rates
+    assert vat["gross"] == (Decimal(stay.total_cents) / 100).quantize(Decimal("0.01"))
+    # Kurtaxe без налога: её брутто равно нетто.
+    zero_row = next(r for r in vat["rows"] if r["rate"] == Decimal("0"))
+    assert zero_row["vat"] == Decimal("0") and zero_row["gross"] == Decimal("3.00")
+
+
+def test_small_business_zeroes_all_rates():
+    from decimal import Decimal
+
+    from apps.core.vat import deal_vat
+
+    stay = _stay()
+    vat = deal_vat("stay", stay, small_business=True)
+    assert all(row["rate"] == Decimal("0") for row in vat["rows"])
+    assert vat["vat"] == Decimal("0")
+
+
+def test_vat_rate_is_a_snapshot():
+    """Смена ставки в каталоге не переписывает прошлые сделки (GoBD)."""
+    from decimal import Decimal
+
+    stay = _stay()
+    assert stay.vat_rate == Decimal("7.00")
+    stay.unit.vat_rate = Decimal("19.00")
+    stay.unit.save(update_fields=["vat_rate"])
+    stay.refresh_from_db()
+    assert stay.vat_rate == Decimal("7.00")
+
+
+# --- DC-9: область действия скидки --------------------------------------------
+
+
+def test_discount_scope_moves_the_vat_base_but_not_the_total():
+    """Область меняет распределение базы НДС, а НЕ итог сделки."""
+    from decimal import Decimal
+
+    from apps.core import deal_discount
+    from apps.core.vat import deal_vat
+
+    stay = _stay()
+    stay.extras = [{"label": "Frühstück", "price_cents": 4000, "vat_rate": "19.00"}]
+    stay.total_cents += 4000
+    stay.save(update_fields=["extras", "total_cents"])
+
+    deal_discount.set_discount("stay", stay, cents=1000, scope="deal")
+    stay.refresh_from_db()
+    total_after = stay.total_cents
+    spread = {r["rate"]: r["gross"] for r in deal_vat("stay", stay)["rows"]}
+
+    deal_discount.set_discount("stay", stay, cents=1000, scope="position")
+    stay.refresh_from_db()
+    assert stay.total_cents == total_after  # итог тот же
+    on_position = {r["rate"]: r["gross"] for r in deal_vat("stay", stay)["rows"]}
+    # При «на позицию» скидка целиком снята с базы проживания (7 %), завтрак цел.
+    assert on_position[Decimal("19.00")] == Decimal("40.00")
+    assert on_position[Decimal("7.00")] < spread[Decimal("7.00")]
+
+
+def test_unknown_scope_is_ignored():
+    from apps.core import deal_discount
+
+    stay = _stay()
+    deal_discount.set_discount("stay", stay, cents=500, scope="../etc/passwd")
+    stay.refresh_from_db()
+    assert stay.discount_scope == "deal"
+
+
+# --- DC-8: ставка НДС редактируется из кабинета ------------------------------
+
+
+def test_vat_rate_saves_from_cabinet_and_foreign_value_is_ignored():
+    """Ставка живёт на продаваемой сущности — её обязан менять владелец.
+
+    Свободного числа нет: принимаем только три законные ставки DACH, чужое
+    значение оставляет прежнюю (иначе подменённый POST дал бы неверный счёт)."""
+    from apps.booking.models import Service
+    from apps.booking.views import services_view
+    from apps.stays.views import units
+
+    tenant = _tenant("hotel")
+
+    unit = StayUnit.objects.create(name="Suite", price_cents=9000)
+    assert unit.vat_rate == Decimal("7.00")  # дефолт DE: проживание
+
+    def _post(view, data, path="/dashboard/", **kwargs):
+        req = RequestFactory().post(path, data)
+        SessionMiddleware(lambda r: None).process_request(req)
+        MessageMiddleware(lambda r: None).process_request(req)
+        req.user = _User()
+        req.tenant = tenant
+        return view(req, **kwargs)
+
+    base = {
+        "action": "unit_settings",
+        "unit": str(unit.pk),
+        "name": "Suite",
+        "price_eur": "90.00",
+        "vat_rate": "19.00",
+    }
+    _post(units, base)
+    unit.refresh_from_db()
+    assert unit.vat_rate == Decimal("19.00")  # владелец сменил ставку
+
+    _post(units, {**base, "vat_rate": "1.90"})  # опечатка/подмена
+    unit.refresh_from_db()
+    assert unit.vat_rate == Decimal("19.00")  # ставка не тронута
+
+    # Услуга — та же механика, свой дефолт (19 %).
+    service = Service.objects.create(name="Schnitt", price_cents=4000)
+    assert service.vat_rate == Decimal("19.00")
+    _post(
+        services_view,
+        {"action": "update", "service": str(service.pk), "duration": "30", "vat_rate": "7.00"},
+    )
+    service.refresh_from_db()
+    assert service.vat_rate == Decimal("7.00")
+
+    # Presence-guard: POST без поля (список, мастер, старый клиент) не сбрасывает.
+    _post(units, {k: v for k, v in base.items() if k != "vat_rate"})
+    unit.refresh_from_db()
+    assert unit.vat_rate == Decimal("19.00")
+
+
+def test_vat_field_is_rendered_on_all_three_forms():
+    """Поле должно БЫТЬ на странице — сохранения мало.
+
+    Рендер ловит то, чего не видит POST-замок: забытый {% load cabinet %} или
+    партиал, вставленный не в ту форму. Источник поля один, поэтому проверяем
+    один и тот же маркер на всех трёх формах."""
+    from apps.booking.models import Service
+    from apps.booking.views import services_view
+    from apps.events.forms import EventForm
+    from apps.stays.views import units
+
+    tenant = _tenant("hotel")
+    unit = StayUnit.objects.create(name="Suite", price_cents=9000, vat_rate=Decimal("7.00"))
+    Service.objects.create(name="Schnitt", price_cents=4000)
+
+    def _html(view, path, **kwargs):
+        req = _req(path, tenant=tenant)
+        resp = view(req, **kwargs)
+        if hasattr(resp, "render"):
+            resp.render()
+        return resp.content.decode()
+
+    unit_html = _html(units, "/dashboard/stays/units/", pk=unit.pk)
+    assert 'name="vat_rate"' in unit_html
+    assert 'value="7.00" selected' in unit_html  # текущая ставка выбрана
+
+    assert 'name="vat_rate"' in _html(services_view, "/dashboard/booking/leistungen/")
+
+    # Событие — ModelForm: поле в самой форме (шаблон рендерит поля циклом).
+    assert "vat_rate" in EventForm().fields
+
+
+def test_event_form_keeps_rate_when_field_is_absent():
+    """Событие постят и другие поверхности — пустое поле не сбрасывает ставку."""
+    from apps.events.forms import EventForm
+    from apps.events.models import Event
+
+    starts = timezone.now() + timedelta(days=20)
+    event = Event.objects.create(
+        title="Workshop", starts_at=starts, price_cents=5000, vat_rate=Decimal("7.00")
+    )
+    data = {
+        "title": "Workshop",
+        "starts_at": starts.strftime("%Y-%m-%dT%H:%M"),
+        "capacity": "10",
+        "price_eur": "50.00",
+    }
+    form = EventForm(data, instance=event)
+    assert form.is_valid(), form.errors
+    assert form.cleaned_data["vat_rate"] == Decimal("7.00")
+
+    form = EventForm({**data, "vat_rate": "19.00"}, instance=event)
+    assert form.is_valid(), form.errors
+    assert form.cleaned_data["vat_rate"] == Decimal("19.00")

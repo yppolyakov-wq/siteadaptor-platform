@@ -383,7 +383,8 @@ def _manage_url(kind: str, obj) -> str:
         if kind == "job":
             return reverse("jobs:detail", args=[obj.pk])
         if kind == "ticket":
-            return reverse("events:detail", args=[obj.event_id])
+            # DC-7: карточка билета (была страница события — билет терялся).
+            return reverse("events:ticket-detail", args=[obj.pk])
         if kind == "booking":
             # Фидбэк 2026-08-05: карточка брони (была ссылка на общий календарь —
             # «перекидывает на непонятную страницу», зеркало FB-11 у stays).
@@ -459,6 +460,18 @@ def apply_action(kind: str, obj, target: str, actor=None, extra=None):
         if code and code != (getattr(obj, "tracking_code", "") or ""):
             obj.tracking_code = code
             obj.save(update_fields=["tracking_code", "updated_at"])
+    # DC-3: карточка сделки спрашивает, уведомлять ли клиента и команду. Снятый
+    # чекбокс В POST НЕ ПРИХОДИТ ВООБЩЕ, поэтому спрашивающая форма помечает
+    # себя скрытым `notify_form=1`; без этой пометки (доска, списки, per-app
+    # экраны) поведение прежнее — уведомляем всех.
+    asks = bool(extra.get("notify_form"))
+    mute_customer = asks and not extra.get("notify_customer")
+    mute_owner = asks and not extra.get("notify_team")
+    if mute_customer or mute_owner:
+        from apps.notifications.prefs import muted
+
+        with muted(customer=mute_customer, owner=mute_owner):
+            return sm_for(kind).apply(obj, target, actor=actor)
     return sm_for(kind).apply(obj, target, actor=actor)
 
 
@@ -484,10 +497,11 @@ _EVENT_ORDER = {"stay": "-arrival", "booking": "-start"}
 _TITLE_SEARCH = {
     # SH-8: у заказа ищем и ВНЕШНИЙ номер (касса/маркетплейс) — владелец диктует
     # его по телефону чаще, чем наш собственный код.
+    # DC-4 (2026-08-25): внешний номер есть у всех четырёх видов сделок с карточкой.
     "order": ("external_code",),
-    "booking": ("resource__name", "service__name"),
-    "stay": ("unit__name",),
-    "job": ("title",),
+    "booking": ("resource__name", "service__name", "external_code"),
+    "stay": ("unit__name", "external_code"),
+    "job": ("title", "external_code"),
     "ticket": ("event__title",),
     # У резерва заголовок — название акции, а `Promotion.title` это JSONField
     # (i18n-словарь): `icontains` по нему в Postgres не работает. Легаси-kind

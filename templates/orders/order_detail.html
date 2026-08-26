@@ -1,74 +1,51 @@
-{% extends "tenant/_base_dashboard.html" %}
+{% extends "core/deal_card_base.html" %}
 {% load i18n cabinet %}
-{% block dash_title %}{{ order.reference_code }}{% endblock %}
+{% comment %}DC-1 (ТЗ владельца 2026-08-25): карточка заказа собирается ОБЩИМ
+скелетом `core/deal_card_base.html` — голова с номером и внешним номером, статус
+в правой колонке, клиент с перепиской, связи и календарь приходят оттуда
+(правка там меняет все карточки сразу). Здесь — специфика заказа: состав,
+скидка, суммы с НДС, оплата и счёт, доставка/выдача.
 
-{% block dash_content %}
-<a href="{% url 'orders:order-list' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Orders" %}</a>
-{% comment %}SH-10 (фидбэк владельца 2026-08-20 «перенести изменения статуса в одну
-строчку с номером»): смена статуса — в шапке рядом с номером, а не в карточке
-внизу правой колонки. Приёмник и правила прежние (orders:order-action);
-поле трек-номера остаётся отдельной строкой — оно вводится ПЕРЕД отправкой.{% endcomment %}
-<div class="flex flex-wrap items-center gap-2 mt-1 mb-4">
-  <h1 class="text-2xl font-bold">{{ order.reference_code }}</h1>
-  {% if order.external_code %}<span class="text-sm text-gray-500" title="{% trans 'Externe Nummer' %}">#{{ order.external_code }}</span>{% endif %}
-  <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">{% status_label order %}</span>
+Порядок колонок позиции (правка владельца 2026-08-25): № · Position · Einzel ·
+Menge · Summe — количество ПОСЛЕ цены за штуку, на месте количества — номер.
+Приёмники (orders:order-edit / orders:order-action) не менялись.{% endcomment %}
+
+{% block deal_back %}
+  <a href="{% url 'verkaeufe' %}?tab=order" class="text-sm text-gray-500 hover:underline">← {% trans "Orders" %}</a>
+{% endblock %}
+
+{% block deal_head_badges %}
   {% if order.payment_state == 'paid' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-800">{% trans "paid" %}</span>
   {% elif order.payment_state == 'refunded' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">{% trans "refunded" %}</span>{% endif %}
-  <form method="post" action="{% url 'orders:order-action' order.pk %}" class="flex flex-wrap items-center gap-2 sm:ml-auto">
-    {% csrf_token %}
-    {% if 'shipped' in allowed_targets and order.is_delivery %}
-      {# G4/W10-5: «Versandt» уходит с трек-номером — поле рядом с кнопкой #}
-      <input name="tracking_code" type="text" placeholder="{% trans 'Tracking number (optional)' %}"
-             class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm w-52">
-      <button type="submit" name="action" value="shipped" class="text-sm font-medium rounded-xl px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700">{% trans "Mark as shipped" %}</button>
-    {% endif %}
-    {% for target in allowed_targets %}
-      {% if target == 'picked_up' and order.is_delivery %}{% elif target == 'shipped' %}{% else %}
-        <button type="submit" name="action" value="{{ target }}"
-                class="text-sm font-medium rounded-xl px-3 py-1.5 {% if target == 'cancelled' %}border border-red-200 text-red-600 hover:bg-red-50{% elif target == 'returned' %}border border-amber-200 text-amber-700 hover:bg-amber-50{% else %}bg-indigo-600 text-white hover:bg-indigo-700{% endif %}">
-          {% if target == 'confirmed' %}{% trans "Confirm" %}{% elif target == 'ready' %}{% trans "Ready" %}{% elif target == 'picked_up' %}{% trans "Picked up" %}{% elif target == 'returned' %}{% trans "Mark as returned" %}{% else %}{% trans "Cancel" %}{% endif %}
-        </button>
-      {% endif %}
-    {% endfor %}
-    {% if order.payment_state != 'paid' %}
-      <button type="submit" name="action" value="mark_paid"
-              class="text-sm font-medium rounded-xl px-3 py-1.5 border border-gray-300 hover:border-indigo-400">{% trans "Mark as paid" %}</button>
-    {% endif %}
-  </form>
-</div>
-<p class="text-xs text-gray-400 -mt-3 mb-4">{% trans "The customer gets an email on every status change." %}</p>
+  {% if order.source_channel == 'promo' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-rose-50 text-rose-700">🏷 {% trans "Aktion" %}</span>{% endif %}
+{% endblock %}
 
-{% if messages %}
-  {% for m in messages %}
-    <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
-  {% endfor %}
-{% endif %}
-
-<div class="grid lg:grid-cols-2 gap-6 items-start">
-  <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-6">
-    <h2 class="font-semibold mb-3">{% trans "Items" %}</h2>
-    {% comment %}SH-2/3 (фидбэк владельца 2026-08-20): состав заказа правится из
-    кабинета — количество меняется, позиция удаляется (кол-во 0), новая
-    добавляется кнопкой. Склад и леджер двигает `orders.editing` тем же путём,
-    что создание/отмена (решение владельца «править всегда, склад
-    пересчитывается»). Закрытый заказ — read-only: его остаток уже возвращён.{% endcomment %}
-    {% if editable %}
+{% block deal_items %}
+  {% comment %}SH-2/3: состав правится из кабинета — количество меняется, позиция
+  удаляется (кол-во 0), новая добавляется кнопкой. Склад и леджер двигает
+  `orders.editing` тем же путём, что создание/отмена. Закрытый заказ —
+  read-only: его остаток уже возвращён.{% endcomment %}
+  <div class="grid grid-cols-[1.5rem_minmax(0,1fr)_6rem_4rem_6rem] gap-2 pb-2 border-b border-gray-100 text-[11px] uppercase tracking-wide text-gray-400">
+    <span>{% trans "Nr." %}</span>
+    <span>{% trans "Position" %}</span>
+    <span class="text-right">{% trans "Einzel" %}</span>
+    <span class="text-right">{% trans "Menge" %}</span>
+    <span class="text-right">{% trans "Summe" %}</span>
+  </div>
+  {% if editable %}
     <form method="post" action="{% url 'orders:order-edit' order.pk %}" class="mb-3">
       {% csrf_token %}
       <input type="hidden" name="action" value="items">
-      <div class="divide-y divide-gray-100 border-y border-gray-100">
-        {% comment %}VF-2 (фидбэк 2026-08-24): позиция В ОДНУ СТРОКУ —
-        порядковый номер · название · количество · цена за штуку · сумма
-        по позиции.{% endcomment %}
+      <div class="divide-y divide-gray-100 border-b border-gray-100">
         {% for item in items %}
-          <div class="flex items-center gap-2 py-2 text-sm">
-            <span class="w-5 shrink-0 text-xs text-gray-300 tabular-nums">{{ forloop.counter }}</span>
-            <span class="flex-1 min-w-0 truncate">{{ item.title_snapshot }}{% if item.sku %} <span class="text-gray-400">· Art.-Nr. {{ item.sku }}</span>{% endif %}{% if item.modifiers_label %} <span class="text-gray-400">({{ item.modifiers_label }})</span>{% endif %}</span>
+          <div class="grid grid-cols-[1.5rem_minmax(0,1fr)_6rem_4rem_6rem] items-center gap-2 py-2 text-sm">
+            <span class="text-xs text-gray-300 tabular-nums">{{ forloop.counter }}</span>
+            <span class="min-w-0 truncate">{{ item.title_snapshot }}{% if item.sku %} <span class="text-gray-400">· Art.-Nr. {{ item.sku }}</span>{% endif %}{% if item.modifiers_label %} <span class="text-gray-400">({{ item.modifiers_label }})</span>{% endif %}</span>
+            <span class="text-right text-gray-500 tabular-nums whitespace-nowrap">{{ item.unit_price }} {{ order.currency }}</span>
             <input type="number" name="qty_{{ item.pk }}" value="{{ item.qty }}" min="0" step="1"
-                   class="w-16 shrink-0 rounded-lg border border-gray-300 px-2 py-1 text-sm tabular-nums"
+                   class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm tabular-nums text-right"
                    aria-label="{% trans 'Menge' %}">
-            <span class="w-24 shrink-0 text-right text-gray-500 tabular-nums whitespace-nowrap">× {{ item.unit_price }} {{ order.currency }}</span>
-            <span class="w-24 shrink-0 text-right font-medium tabular-nums whitespace-nowrap">{{ item.line_total }} {{ order.currency }}</span>
+            <span class="text-right font-medium tabular-nums whitespace-nowrap">{{ item.line_total }} {{ order.currency }}</span>
           </div>
         {% endfor %}
       </div>
@@ -98,165 +75,122 @@
         <button type="submit" class="text-sm font-medium rounded-xl bg-indigo-600 text-white px-3 py-1.5 hover:bg-indigo-700">{% trans "Hinzufügen" %}</button>
       </form>
     </details>
-    {% endif %}
-    <div class="divide-y divide-gray-100 border-y border-gray-100 mb-3">
-      {% if not editable %}
+  {% else %}
+    <div class="divide-y divide-gray-100 border-b border-gray-100">
       {% for item in items %}
-        <div class="flex items-center gap-2 py-2 text-sm">
-          <span class="w-5 shrink-0 text-xs text-gray-300 tabular-nums">{{ forloop.counter }}</span>
-          <span class="flex-1 min-w-0 truncate">{{ item.title_snapshot }}{% if item.sku %} <span class="text-gray-400">· Art.-Nr. {{ item.sku }}</span>{% endif %}{% if item.modifiers_label %} <span class="text-gray-400">({{ item.modifiers_label }})</span>{% endif %}</span>
-          <span class="shrink-0 text-gray-500 tabular-nums whitespace-nowrap">{{ item.qty }} × {{ item.unit_price }} {{ order.currency }}</span>
-          <span class="w-24 shrink-0 text-right font-medium tabular-nums whitespace-nowrap">{{ item.line_total }} {{ order.currency }}</span>
-        </div>
-      {% endfor %}
-      {% endif %}
-      {% if order.is_delivery %}
-        <div class="flex items-center justify-between py-2 text-sm text-gray-500">
-          <span>🚚 {% trans "Delivery" %}</span><span>{{ order.shipping_eur }} {{ order.currency }}</span>
-        </div>
-      {% endif %}
-      {% if order.discount_cents %}
-        <div class="flex items-center justify-between py-2 text-sm text-green-700">
-          <span>🏷 {% trans "Discount" %}{% if order.voucher_code %} ({{ order.voucher_code }}){% endif %}</span><span>−{{ order.discount_eur }} {{ order.currency }}</span>
-        </div>
-      {% endif %}
-      {% comment %}SH-7: скидка владельца — та же `discount_cents`, что у промокода
-      (итог считает один хелпер), поэтому в письмах/PDF/счёте она уже учтена.{% endcomment %}
-      <div class="flex items-center justify-between py-2 font-bold">
-        <span>{% trans "Total" %}</span><span>{{ order.total }} {{ order.currency }}</span>
-      </div>
-      {% comment %}SH-3/4: разбивка НДС. Цены брутто (PAngV), поэтому налог
-      ВЫДЕЛЯЕТСЯ из итога; при нескольких ставках строка на каждую.{% endcomment %}
-      {% for row in totals.rows %}
-        <div class="flex items-center justify-between py-1 text-xs text-gray-500">
-          <span>{% blocktrans with rate=row.rate|floatformat:"0" %}davon {{ rate }} % MwSt.{% endblocktrans %}
-            <span class="text-gray-400">({% trans "netto" %} {{ row.net }})</span></span>
-          <span class="tabular-nums">{{ row.vat }} {{ order.currency }}</span>
+        <div class="grid grid-cols-[1.5rem_minmax(0,1fr)_6rem_4rem_6rem] items-center gap-2 py-2 text-sm">
+          <span class="text-xs text-gray-300 tabular-nums">{{ forloop.counter }}</span>
+          <span class="min-w-0 truncate">{{ item.title_snapshot }}{% if item.sku %} <span class="text-gray-400">· Art.-Nr. {{ item.sku }}</span>{% endif %}{% if item.modifiers_label %} <span class="text-gray-400">({{ item.modifiers_label }})</span>{% endif %}</span>
+          <span class="text-right text-gray-500 tabular-nums whitespace-nowrap">{{ item.unit_price }} {{ order.currency }}</span>
+          <span class="text-right text-gray-500 tabular-nums">{{ item.qty }}</span>
+          <span class="text-right font-medium tabular-nums whitespace-nowrap">{{ item.line_total }} {{ order.currency }}</span>
         </div>
       {% endfor %}
     </div>
-    {% if editable %}
-    <form method="post" action="{% url 'orders:order-edit' order.pk %}" class="flex flex-wrap items-end gap-2 mb-3">
-      {% csrf_token %}
-      <input type="hidden" name="action" value="discount">
-      <label class="text-xs text-gray-500">🏷 {% trans "Rabatt" %} ({{ order.currency }})
-        <input type="text" inputmode="decimal" name="discount" value="{{ discount_eur_input }}"
-               class="block w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
-      </label>
-      <label class="text-xs text-gray-500">{% trans "Grund / Code" %}
-        <input type="text" name="discount_note" value="{{ order.voucher_code }}" maxlength="12"
-               class="block w-32 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
-      </label>
-      <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Rabatt speichern" %}</button>
-    </form>
-    {% endif %}
-    {% if order.table_number %}<p class="text-sm font-medium text-gray-700">🪑 {% trans "Table" %} {{ order.table_number }}</p>{% endif %}
-    {% if order.pickup_location %}<p class="text-sm text-gray-600">📍 {% trans "Pickup" %}: {{ order.pickup_location }}</p>{% endif %}
-    {% if order.note %}<p class="text-sm text-gray-600 whitespace-pre-line">📝 {{ order.note }}</p>{% endif %}
-    <p class="text-xs text-gray-400 mt-2">{{ order.created_at }}{% if order.source_channel %} · {{ order.source_channel }}{% endif %}</p>
+  {% endif %}
+  {% if order.table_number %}<p class="text-sm font-medium text-gray-700 mt-2">🪑 {% trans "Table" %} {{ order.table_number }}</p>{% endif %}
+  {% if order.note %}<p class="text-sm text-gray-600 whitespace-pre-line mt-2">📝 {{ order.note }}</p>{% endif %}
+{% endblock %}
+
+
+{% block deal_totals %}
+  {% if order.is_delivery %}
+    <div class="flex items-center justify-between py-1 text-sm text-gray-500">
+      <span>🚚 {% trans "Delivery" %}</span><span class="tabular-nums">{{ order.shipping_eur }} {{ order.currency }}</span>
+    </div>
+  {% endif %}
+  {% if order.discount_cents %}
+    <div class="flex items-center justify-between py-1 text-sm text-green-700">
+      <span>🏷 {% trans "Discount" %}{% if order.voucher_code %} ({{ order.voucher_code }}){% endif %}</span>
+      <span class="tabular-nums">−{{ order.discount_eur }} {{ order.currency }}</span>
+    </div>
+  {% endif %}
+  <div class="flex items-center justify-between py-2 font-bold border-t border-gray-100 mt-1">
+    <span>{% trans "Total" %}</span><span class="tabular-nums">{{ order.total }} {{ order.currency }}</span>
   </div>
-
-  <div class="space-y-6">
-    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-6">
-      <h2 class="font-semibold mb-3">{% trans "Customer" %}</h2>
-      <p class="text-sm font-medium">{{ order.customer }}</p>
-      {% if order.customer.email %}<p class="text-sm text-gray-500">{{ order.customer.email }}</p>{% endif %}
-      {% if order.customer.phone %}<p class="text-sm text-gray-500">{{ order.customer.phone }}</p>{% endif %}
-      <p class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
-        {% if crm_active %}<a href="{% url 'crm:customer-detail' order.customer.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Open customer card" %} →</a>{% endif %}
-        {% include "core/_deal_message_button.html" with kind="order" obj_pk=order.pk %}
-      </p>
-      {% comment %}SH-5 (фидбэк владельца 2026-08-20): контакт правится прямо с
-      карточки заказа — тем же приёмом, что у заявки (QF-4). Пишем в СУЩЕСТВУЮЩЕГО
-      клиента, дубля в CRM не заводим.{% endcomment %}
-      <details class="mt-3">
-        <summary class="cursor-pointer text-sm font-medium text-indigo-600">✏️ {% trans "Kundendaten bearbeiten" %}</summary>
-        <form method="post" action="{% url 'orders:order-edit' order.pk %}" class="mt-2 space-y-2">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="customer">
-          <input type="text" name="name" value="{{ order.customer.name }}" placeholder="{% trans 'Name' %}"
-                 class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-          <input type="email" name="email" value="{{ order.customer.email }}" placeholder="{% trans 'E-Mail' %}"
-                 class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-          <input type="text" name="phone" value="{{ order.customer.phone }}" placeholder="{% trans 'Telefon' %}"
-                 class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-          <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Speichern" %}</button>
-        </form>
-      </details>
+  {% comment %}SH-3/4: разбивка НДС. Цены брутто (PAngV), поэтому налог
+  ВЫДЕЛЯЕТСЯ из итога; при нескольких ставках строка на каждую.{% endcomment %}
+  {% for row in totals.rows %}
+    <div class="flex items-center justify-between py-0.5 text-xs text-gray-500">
+      <span>{% blocktrans with rate=row.rate|floatformat:"0" %}davon {{ rate }} % MwSt.{% endblocktrans %}
+        <span class="text-gray-400">({% trans "netto" %} {{ row.net }})</span></span>
+      <span class="tabular-nums">{{ row.vat }} {{ order.currency }}</span>
     </div>
+  {% endfor %}
+{% endblock %}
 
-    {% comment %}SH-8/9 (фидбэк владельца 2026-08-20): оплата — кто платит, каким
-    способом, каким документом. Статус оплаты остаётся кнопкой в шапке (там же
-    возврат Stripe), здесь — реквизиты и внешний номер.{% endcomment %}
-    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-6">
-      <h2 class="font-semibold mb-3">💳 {% trans "Zahlung" %}</h2>
-      <p class="text-sm text-gray-600">{% trans "Status" %}:
-        {% if order.payment_state == 'paid' %}{% trans "Paid" %}{% elif order.payment_state == 'refunded' %}{% trans "Refunded" %}{% else %}{% trans "Unpaid" %}{% endif %}
-        {% if order.stripe_payment_intent %}<span class="text-gray-400">· {% trans "Online (Stripe)" %}</span>{% endif %}
-      </p>
-      <form method="post" action="{% url 'orders:order-edit' order.pk %}" class="mt-3 space-y-2">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="payment">
-        <label class="block text-xs text-gray-500">{% trans "Zahlart" %}
-          <select name="payment_method" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            <option value="">— {% trans "nicht gesetzt" %} —</option>
-            {% for value, label in order.PAYMENT_METHODS %}
-              <option value="{{ value }}" {% if order.payment_method == value %}selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-          </select>
-        </label>
-        <label class="block text-xs text-gray-500">{% trans "Rechnungsempfänger (falls abweichend)" %}
-          <input type="text" name="billing_name" value="{{ order.billing_name }}"
-                 class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-        </label>
-        <label class="block text-xs text-gray-500">{% trans "Rechnungsadresse" %}
-          <textarea name="billing_address" rows="2" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ order.billing_address }}</textarea>
-        </label>
-        <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Zahlungsdaten speichern" %}</button>
-      </form>
-      <form method="post" action="{% url 'orders:order-edit' order.pk %}" class="mt-3 flex flex-wrap items-end gap-2">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="numbers">
-        <label class="text-xs text-gray-500">{% trans "Externe Nummer" %}
-          <input type="text" name="external_code" value="{{ order.external_code }}" maxlength="50"
-                 placeholder="{% trans 'Kasse / Marktplatz' %}"
-                 class="block w-44 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-        </label>
-        <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Speichern" %}</button>
-      </form>
+{% block deal_payment %}
+  <p class="text-sm text-gray-600">{% trans "Status" %}:
+    {% if order.payment_state == 'paid' %}{% trans "Paid" %}{% elif order.payment_state == 'refunded' %}{% trans "Refunded" %}{% else %}{% trans "Unpaid" %}{% endif %}
+    {% if order.stripe_payment_intent %}<span class="text-gray-400">· {% trans "Online (Stripe)" %}</span>{% endif %}
+  </p>
+  {% if order.payment_state != 'paid' %}
+    <form method="post" action="{% url 'orders:order-action' order.pk %}" class="mt-2">
+      {% csrf_token %}
+      <button type="submit" name="action" value="mark_paid"
+              class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:border-indigo-400">{% trans "Mark as paid" %}</button>
+    </form>
+  {% endif %}
+  <div class="grid sm:grid-cols-2 gap-4 mt-3">
+    <form method="post" action="{% url 'orders:order-edit' order.pk %}" class="space-y-2">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="payment">
+      <label class="block text-xs text-gray-500">{% trans "Zahlart" %}
+        <select name="payment_method" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <option value="">— {% trans "nicht gesetzt" %} —</option>
+          {% for value, label in order.PAYMENT_METHODS %}
+            <option value="{{ value }}" {% if order.payment_method == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="block text-xs text-gray-500">{% trans "Rechnungsempfänger (falls abweichend)" %}
+        <input type="text" name="billing_name" value="{{ order.billing_name }}"
+               class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      </label>
+      <label class="block text-xs text-gray-500">{% trans "Rechnungsadresse" %}
+        <textarea name="billing_address" rows="2" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ order.billing_address }}</textarea>
+      </label>
+      <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Zahlungsdaten speichern" %}</button>
+    </form>
+
+    <div class="space-y-2">
       {% if finance_active %}
-      <form method="post" action="{% url 'orders:order-edit' order.pk %}" class="mt-3">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="invoice">
-        <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">🧾 {% trans "Rechnung aus Auftrag erstellen" %}</button>
-      </form>
+        <form method="post" action="{% url 'orders:order-edit' order.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="invoice">
+          <button type="submit" class="w-full text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">🧾 {% trans "Rechnung aus Auftrag erstellen" %}</button>
+        </form>
         {% comment %}VF-3: «сохранение PDF счёта» одним кликом — черновик по
-      заказу переиспользуется, номер присвоит только issue (GoBD).{% endcomment %}
-      <form method="post" action="{% url 'orders:order-edit' order.pk %}" class="mt-2">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="invoice_pdf">
-        <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">📄 {% trans "Rechnung als PDF" %}</button>
-      </form>
+        заказу переиспользуется, номер присвоит только issue (GoBD).{% endcomment %}
+        <form method="post" action="{% url 'orders:order-edit' order.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="invoice_pdf">
+          <button type="submit" class="w-full text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">📄 {% trans "Rechnung als PDF" %}</button>
+        </form>
       {% endif %}
       {% comment %}VF-3: отправка ссылки на оплату (гейты = публичный /bezahlen/:
       Stripe · неоплачен · статус neu); ссылка рядом — для ручной передачи.{% endcomment %}
       {% if pay_link_ready %}
-      <form method="post" action="{% url 'orders:order-edit' order.pk %}" class="mt-2">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="payment_link">
-        <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50" {% if not order.customer.email %}title="{% trans 'Der Kunde hat keine E-Mail-Adresse.' %}"{% endif %}>🔗 {% trans "Zahlungslink senden" %}</button>
-      </form>
-      <input type="text" readonly value="https://{{ request.get_host }}{{ pay_path }}" onclick="this.select()"
-             class="mt-2 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-500"
-             aria-label="{% trans 'Zahlungslink' %}">
+        <form method="post" action="{% url 'orders:order-edit' order.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="payment_link">
+          <button type="submit" class="w-full text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50" {% if not order.customer.email %}title="{% trans 'Der Kunde hat keine E-Mail-Adresse.' %}"{% endif %}>🔗 {% trans "Zahlungslink senden" %}</button>
+        </form>
+        <input type="text" readonly value="https://{{ request.get_host }}{{ pay_path }}" onclick="this.select()"
+               class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-500"
+               aria-label="{% trans 'Zahlungslink' %}">
       {% endif %}
     </div>
+  </div>
+{% endblock %}
 
-    {% comment %}SH-6: карточка доставки видна и у самовывоза — способ получения
-    сам является настройкой заказа (владелец меняет «Abholung ⇄ Lieferung»).{% endcomment %}
-    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-6">
-      <h2 class="font-semibold mb-3">{% if order.is_delivery %}🚚 {% trans "Delivery" %}{% else %}📍 {% trans "Abholung" %}{% endif %}</h2>
-      {% if order.is_delivery %}
+{% block deal_rail_extra %}
+  {% comment %}SH-6: карточка доставки видна и у самовывоза — способ получения
+  сам является настройкой заказа (владелец меняет «Abholung ⇄ Lieferung»).{% endcomment %}
+  <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5" data-deal-block="delivery">
+    <p class="text-xs font-medium text-gray-500 mb-2">{% if order.is_delivery %}🚚 {% trans "Delivery" %}{% else %}📍 {% trans "Abholung" %}{% endif %}</p>
+    {% if order.pickup_location %}<p class="text-sm text-gray-600">{{ order.pickup_location }}</p>{% endif %}
+    {% if order.is_delivery %}
       {% if order.shipping_address %}<p class="text-sm text-gray-600 whitespace-pre-line">{{ order.shipping_address }}</p>{% endif %}
       {% if order.tracking_code %}<p class="text-sm text-gray-500 mt-2">{% trans "Tracking" %}: <span class="font-mono">{{ order.tracking_code }}</span></p>{% endif %}
       {% if order.shipped_at %}<p class="text-xs text-gray-400 mt-1">{% trans "Shipped" %}: {{ order.shipped_at }}</p>{% endif %}
@@ -264,8 +198,8 @@
          class="inline-block mt-3 text-sm border border-gray-300 rounded-xl px-3 py-1.5 hover:bg-gray-50">📄 {% trans "Delivery note (PDF)" %}</a>
       {% url 'orders:order-delivery-note' order.pk as note_url %}
       <span class="inline-flex flex-wrap items-center gap-1 ml-2">{% doc_langs note_url %}</span>
-      {% endif %}
-      {% if editable %}
+    {% endif %}
+    {% if editable %}
       <form method="post" action="{% url 'orders:order-edit' order.pk %}" class="mt-3 space-y-2">
         {% csrf_token %}
         <input type="hidden" name="action" value="delivery">
@@ -280,14 +214,10 @@
         </label>
         <label class="block text-xs text-gray-500">{% trans "Lieferkosten" %} ({{ order.currency }})
           <input type="text" inputmode="decimal" name="shipping" value="{{ shipping_eur_input }}"
-                 class="mt-1 block w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                 class="mt-1 block w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm tabular-nums">
         </label>
         <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Lieferung speichern" %}</button>
       </form>
-      {% endif %}
-    </div>
-
+    {% endif %}
   </div>
-</div>
-{% include "core/_deal_links_block.html" with kind="order" obj_pk=order.pk links=deal_links next_path=request.get_full_path %}
 {% endblock %}

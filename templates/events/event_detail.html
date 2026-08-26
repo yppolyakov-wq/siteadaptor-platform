@@ -86,7 +86,8 @@
     <tbody>
       {% for t in tickets %}
         <tr class="border-b border-gray-50">
-          <td class="py-2 px-3 font-mono text-xs">{{ t.reference_code }}</td>
+          {# DC-7: код билета ведёт на его карточку (раньше билет жил только строкой). #}
+          <td class="py-2 px-3 font-mono text-xs"><a href="{% url 'events:ticket-detail' t.pk %}" class="text-indigo-600 hover:underline">{{ t.reference_code }}</a></td>
           <td class="px-3">{{ t.customer.name }}<div class="text-xs text-gray-400">{{ t.customer.email }}</div></td>
           <td class="px-3">{{ t.quantity }}</td>
           <td class="px-3">{% status_label t "ticket" %}</td>

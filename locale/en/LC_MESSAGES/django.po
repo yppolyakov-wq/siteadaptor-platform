@@ -19992,3 +19992,164 @@ msgid ""
 msgstr ""
 "Starts a conversation about %(label)s. The customer gets an e-mail with a "
 "link to the conversation and can reply right away."
+
+msgid "Aktuell"
+msgstr "Currently"
+
+msgid "Anfrage-Details"
+msgstr "Request details"
+
+msgid "Dokumente"
+msgstr "Documents"
+
+msgid "Einzel"
+msgstr "Unit price"
+
+msgid "Kein Rabatt gesetzt — Gesamtpreis unverändert."
+msgstr "No discount set — total price unchanged."
+
+msgid "Leistung und Zusatzleistungen"
+msgstr "Service and extras"
+
+msgid "Nr."
+msgstr "No."
+
+msgid "Termin & Leistung"
+msgstr "Appointment & service"
+
+msgid "Termin verschieben"
+msgstr "Reschedule appointment"
+
+msgid "Vor Ort zu zahlen"
+msgstr "To be paid on site"
+
+msgid "im Gesamtpreis verrechnet"
+msgstr "included in the total price"
+
+msgid "angelegt"
+msgstr "created"
+
+msgid "z. B. Marktplatz-Nummer"
+msgstr "e.g. marketplace number"
+
+msgid "Summen"
+msgstr "Totals"
+
+msgid "Zahlung & Rechnung"
+msgstr "Payment & invoice"
+
+msgid "Positionen"
+msgstr "Items"
+
+msgid "Externe Nr."
+msgstr "External no."
+
+msgid "Externe Nummer gespeichert."
+msgstr "External number saved."
+
+msgid "Kein Kundenkonto hinterlegt."
+msgstr "No customer record linked."
+
+msgid "Der Kunde bekommt bei jedem Statuswechsel eine E-Mail."
+msgstr "The customer gets an email on every status change."
+
+msgid "Bitte einen gültigen Betrag eingeben."
+msgstr "Please enter a valid amount."
+
+msgid "Nächster Schritt"
+msgstr "Next step"
+
+msgid "Benachrichtigen?"
+msgstr "Notify?"
+
+msgid "Status ändern"
+msgstr "Change status"
+
+msgid "WhatsApp"
+msgstr "WhatsApp"
+
+msgid "Nummer in den Einstellungen hinterlegen"
+msgstr "Add the number in settings"
+
+msgid "Bot für Kundenchats und Benachrichtigungen"
+msgstr "Bot for customer chats and notifications"
+
+msgid "Bot verbinden"
+msgstr "Connect bot"
+
+msgid "Absenderadresse in den Benachrichtigungen setzen"
+msgstr "Set the sender address in notifications"
+
+msgid "Chat auf der Website"
+msgstr "Chat on the website"
+
+msgid "Nachrichten landen im Posteingang"
+msgstr "Messages arrive in the inbox"
+
+msgid "Modul „Nachrichten“ aktivieren"
+msgstr "Activate the “Messages” module"
+
+msgid "Instagram, Facebook, TikTok … im Profil hinterlegen"
+msgstr "Add Instagram, Facebook, TikTok … in the profile"
+
+msgid "Kanal wählen"
+msgstr "Choose channel"
+
+msgid "In alle aktiven Kanäle"
+msgstr "To all active channels"
+
+msgid "Persönliche Kanäle"
+msgstr "Personal channels"
+
+msgid "Wo Kundinnen und Kunden dich direkt erreichen."
+msgstr "Where customers reach you directly."
+
+msgid "aktiv"
+msgstr "active"
+
+msgid "einrichten"
+msgstr "set up"
+
+msgid "Kurtaxe"
+msgstr "Tourist tax"
+
+msgid "Buchung %(code)s"
+msgstr "Booking %(code)s"
+
+msgid "Termin %(code)s"
+msgstr "Appointment %(code)s"
+
+msgid "Rechnung erstellen"
+msgstr "Create invoice"
+
+msgid "Angaben aus dem Formular"
+msgstr "Details from the form"
+
+msgid "Ticket und Zusatzleistungen"
+msgstr "Ticket and extras"
+
+msgid "Teilnahmeerklärung"
+msgstr "Participation declaration"
+
+msgid "Wirkt auf"
+msgstr "Applies to"
+
+#: templates/stays/units.html
+msgid "Übernachtung 7 %, sonstige Leistungen 19 %."
+msgstr "Accommodation 7 %, other services 19 %."
+
+#: apps/core/models.py
+msgid "Ganzer Termin"
+msgstr "Whole appointment"
+
+#: apps/core/models.py
+msgid "Ganzes Ticket"
+msgstr "Whole ticket"
+
+#: apps/core/models.py
+msgid "Ganze Bestellung"
+msgstr "Whole order"
+
+#: apps/core/models.py
+msgid "Ganze Buchung"
+msgstr "Whole booking"

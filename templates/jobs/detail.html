@@ -1,55 +1,25 @@
-{% extends "tenant/_base_dashboard.html" %}
+{% extends "core/deal_card_base.html" %}
 {% load i18n cabinet %}
-{% block dash_title %}{{ job.reference_code }}{% endblock %}
+{% comment %}DC-1 (ТЗ владельца 2026-08-25): карточка заявки/сметы собирается ОБЩИМ
+скелетом `core/deal_card_base.html` — голова, статус, клиент, связи приходят
+оттуда (правка там меняет все карточки сразу). Здесь — специфика заявки: смета
+со своими строками и живыми суммами (её разметка и JS НЕ тронуты — инварианты
+line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали объекта и события.
 
-{% block dash_content %}
-<a href="{% url 'verkaeufe' %}?tab=job" class="text-sm text-gray-500 hover:underline">← {% trans "All jobs" %}</a>
+Календарного движка у заявок нет — блок календаря не рисуется (честно, а не
+пустая рамка). Переход «invoiced» остаётся своей кнопкой в блоке оплаты: он не
+только меняет статус, но и выставляет счёт (`_make_invoice`).{% endcomment %}
 
-{% if messages %}
-  {% for m in messages %}
-    <div class="mt-3 mb-1 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
-  {% endfor %}
-{% endif %}
+{% block deal_back %}
+  <a href="{% url 'verkaeufe' %}?tab=job" class="text-sm text-gray-500 hover:underline">← {% trans "Aufträge" %}</a>
+{% endblock %}
 
-<div class="flex items-center justify-between gap-3 flex-wrap mt-0.5 mb-3">
-  <h1 class="text-2xl font-bold">{{ job.title }}
-    <span class="text-sm font-medium px-2 py-0.5 rounded-full ml-1
-      {% if job.status == 'accepted' %}bg-green-100 text-green-800
-      {% elif job.status == 'quoted' %}bg-blue-100 text-blue-800
-      {% elif job.status == 'new' %}bg-amber-100 text-amber-800
-      {% elif job.status == 'done' or job.status == 'invoiced' %}bg-gray-100 text-gray-600
-      {% else %}bg-red-50 text-red-600{% endif %}">{% status_label job "job" %}</span>
-  </h1>
-  <span class="flex flex-wrap items-center gap-1">
-    <a href="{% url 'jobs:pdf' job.pk %}" target="_blank" class="text-sm text-indigo-600 hover:underline">{% trans "Kostenvoranschlag PDF" %} ↗</a>
-    {% comment %}I18N-7b/2: язык сметы хранится на заявке — клиент повторно
-    скачает тот же документ.{% endcomment %}
-    {% if doc_languages|length > 1 %}
-      <form method="post" class="inline-flex items-center gap-1">
-        {% csrf_token %}
-        <select name="language" class="rounded-lg border border-gray-300 px-2 py-1 text-xs">
-          {% for lang in doc_languages %}
-            <option value="{{ lang.code }}" {% if lang.code == job.language %}selected{% endif %}>{{ lang.label }}</option>
-          {% endfor %}
-        </select>
-        <button name="action" value="language" class="text-xs rounded-lg border border-gray-300 px-2 py-1 hover:bg-gray-50">{% trans "Save" %}</button>
-      </form>
-    {% endif %}
-  </span>
-</div>
-
-{% comment %}VF-9 (фидбэк владельца 2026-08-24 «страница заявки — как у заказов и
-товара»): раскладка = смета широкой колонкой + рейл 340px (клиент / статус /
-связи) — те же классы грида, что у формы товара; карточки — тень R5. Состав
-сметы и её JS не тронуты (инварианты строк line_*_i / data-qt-*). На мобильном
-порядок как у заказа: позиции первыми, клиент ниже.{% endcomment %}
-<div class="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-5 lg:items-start">
-<div class="min-w-0">
+{% block deal_items_title %}{% trans "Quote / Kostenvoranschlag" %}{% endblock %}
+{% block deal_items %}
 {# конструктор сметы #}
-<form method="post" class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-6">
+<form method="post">
   {% csrf_token %}
   <input type="hidden" name="action" value="save_lines">
-  <h2 class="font-semibold mb-3">{% trans "Quote / Kostenvoranschlag" %}</h2>
   <div class="space-y-2">
     <div class="hidden sm:grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs text-gray-400 font-medium">
       <span class="col-span-6">{% trans "Description" %}</span>
@@ -310,32 +280,48 @@ document (партиал может перерисовываться — уро�
     </div>
   {% endif %}
 </form>
-</div>
+{% endblock %}
 
-<aside class="space-y-4 mt-4 lg:mt-0">
-{% comment %}QF-3/QF-4 (фидбэк владельца 2026-08-20): «важная информация о клиенте
-очень мелкая» и «добавить возможность редактировать инфо о клиенте со страницы».
-Контакты — крупной строкой, а не серым мелким текстом; правка — тут же формой
-(меняется ОБЩАЯ карточка клиента, та же, что в CRM).{% endcomment %}
-<div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 text-sm space-y-1">
-  <div class="flex items-start justify-between gap-3 flex-wrap">
-    <div class="min-w-0">
-      <p class="text-lg font-semibold text-gray-900">{{ job.customer }}</p>
-      <p class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-[15px]">
-        {% if job.customer.email %}<a href="mailto:{{ job.customer.email }}" class="text-indigo-700 hover:underline">✉ {{ job.customer.email }}</a>{% endif %}
-        {% if job.customer.phone %}<a href="tel:{{ job.customer.phone }}" class="text-indigo-700 hover:underline">📞 {{ job.customer.phone }}</a>{% endif %}
-        {% if not job.customer.email and not job.customer.phone %}<span class="text-amber-700">{% trans "Keine Kontaktdaten hinterlegt" %}</span>{% endif %}
-      </p>
-      {% if job.site_address %}<p class="text-gray-600 mt-1">📍 {{ job.site_address }}</p>{% endif %}
-      {% comment %}VF-16 (фидбэк 2026-08-25): полная карточка клиента в CRM —
-      гейт по модулю (без него ссылка вела бы в 404; прецедент order_detail).{% endcomment %}
-      <span class="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
-        {% if crm_active %}<a href="{% url 'crm:customer-detail' job.customer.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Open customer card" %} →</a>{% endif %}
-        {% include "core/_deal_message_button.html" with kind="job" obj_pk=job.pk %}
-      </span>
+{% block deal_payment %}
+<div class="text-sm space-y-2">
+  <p>
+    {% if job.payment_state == 'paid' %}<span class="inline-block bg-green-100 text-green-800 rounded-full px-2 py-0.5 text-xs font-medium">✓ {% trans "paid" %}</span>
+    {% elif job.payment_state == 'refunded' %}<span class="inline-block bg-gray-100 text-gray-600 rounded-full px-2 py-0.5 text-xs font-medium">{% trans "Refunded" %}</span>
+    {% else %}<span class="inline-block bg-amber-100 text-amber-800 rounded-full px-2 py-0.5 text-xs font-medium">{% trans "Offen" %}</span>{% endif %}
+    {% if job.stripe_payment_intent %}<span class="text-xs text-gray-400 ml-1">· Stripe</span>{% endif %}
+    {% if job.gross %}<span class="text-gray-600 ml-1">{{ job.gross|floatformat:2 }} €</span>{% endif %}
+  </p>
+  {% if job.deposit_cents %}
+    <p class="text-xs text-gray-500">{% trans "Deposit" %}: {{ deposit_eur }} €</p>
+  {% endif %}
+  {% if job.payment_state != 'paid' and job.gross %}
+    <form method="post">{% csrf_token %}
+      <input type="hidden" name="action" value="mark_paid">
+      <button class="text-sm font-medium rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">✓ {% trans "Als bezahlt markieren" %}</button>
+    </form>
+  {% endif %}
+  {% if job.invoice_id %}
+    <p><a href="{% url 'finance:invoice-detail' job.invoice_id %}" class="text-indigo-600 hover:underline">🧾 {% trans "Open invoice" %} →</a></p>
+  {% endif %}
+  {% if job.status == 'quoted' or job.status == 'accepted' %}
+    <div>
+      <p class="text-xs text-gray-500 mb-1">{% trans "Angebot-Link für den Kunden" %}{% if job.deposit_cents and payments_enabled %} ({% trans "mit Online-Anzahlung" %}){% endif %}:</p>
+      <input type="text" readonly value="https://{{ request.get_host }}{{ angebot_path }}" onclick="this.select()"
+             class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5 text-xs text-gray-600">
     </div>
-    <span class="text-xs text-gray-400 whitespace-nowrap">{{ job.reference_code }}</span>
-  </div>
+  {% endif %}
+</div>
+  {% if 'invoiced' in allowed %}
+    <form method="post" class="mt-2">{% csrf_token %}
+      <input type="hidden" name="action" value="invoice">
+      <button class="text-sm font-medium rounded-xl bg-emerald-600 text-white px-3 py-1.5 hover:bg-emerald-700">🧾 {% trans "Create invoice" %}</button>
+    </form>
+  {% endif %}
+{% endblock %}
+
+{% block deal_rail_extra %}
+  <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 text-sm space-y-1" data-deal-block="request">
+    <p class="text-xs font-medium text-gray-500 mb-1">{% trans "Anfrage-Details" %}</p>
   {% if job.event_date or job.guest_count or job.event_type %}
     {# AF-1: событийная заявка (Catering/Partyservice) — тип · дата · гости #}
     <p class="mt-2 inline-flex flex-wrap items-center gap-2 rounded-xl bg-indigo-50 px-3 py-1.5 text-[15px] font-medium text-indigo-900">
@@ -392,69 +378,27 @@ document (партиал может перерисовываться — уро�
       </form>
     {% endif %}
   </div>
-</div>
-{% comment %}VF-15 (фидбэк 2026-08-25 «блок оплаты должен быть во всех
-архетипах»): карточка «Zahlung» — как у заказа: статус оплаты, депозит,
-ручное «Als bezahlt markieren» (оплату на месте раньше было не отметить —
-payment_state писал только Stripe-вебхук), ссылка Angebot-страницы для
-ручной передачи и счёт.{% endcomment %}
-<div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 text-sm space-y-2">
-  <p class="font-semibold">💳 {% trans "Zahlung" %}</p>
-  <p>
-    {% if job.payment_state == 'paid' %}<span class="inline-block bg-green-100 text-green-800 rounded-full px-2 py-0.5 text-xs font-medium">✓ {% trans "paid" %}</span>
-    {% elif job.payment_state == 'refunded' %}<span class="inline-block bg-gray-100 text-gray-600 rounded-full px-2 py-0.5 text-xs font-medium">{% trans "Refunded" %}</span>
-    {% else %}<span class="inline-block bg-amber-100 text-amber-800 rounded-full px-2 py-0.5 text-xs font-medium">{% trans "Offen" %}</span>{% endif %}
-    {% if job.stripe_payment_intent %}<span class="text-xs text-gray-400 ml-1">· Stripe</span>{% endif %}
-    {% if job.gross %}<span class="text-gray-600 ml-1">{{ job.gross|floatformat:2 }} €</span>{% endif %}
-  </p>
-  {% if job.deposit_cents %}
-    <p class="text-xs text-gray-500">{% trans "Deposit" %}: {{ deposit_eur }} €</p>
-  {% endif %}
-  {% if job.payment_state != 'paid' and job.gross %}
-    <form method="post">{% csrf_token %}
-      <input type="hidden" name="action" value="mark_paid">
-      <button class="text-sm font-medium rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">✓ {% trans "Als bezahlt markieren" %}</button>
-    </form>
-  {% endif %}
-  {% if job.invoice_id %}
-    <p><a href="{% url 'finance:invoice-detail' job.invoice_id %}" class="text-indigo-600 hover:underline">🧾 {% trans "Open invoice" %} →</a></p>
-  {% endif %}
-  {% if job.status == 'quoted' or job.status == 'accepted' %}
-    <div>
-      <p class="text-xs text-gray-500 mb-1">{% trans "Angebot-Link für den Kunden" %}{% if job.deposit_cents and payments_enabled %} ({% trans "mit Online-Anzahlung" %}){% endif %}:</p>
-      <input type="text" readonly value="https://{{ request.get_host }}{{ angebot_path }}" onclick="this.select()"
-             class="w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5 text-xs text-gray-600">
-    </div>
-  {% endif %}
-</div>
-<div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5">
-  <p class="text-sm font-semibold mb-2">⚡ {% trans "Status" %}</p>
-{# действия по статусу #}
-<div class="flex flex-wrap gap-2">
-  {% if 'quoted' in allowed %}
-    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="quoted"><button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Send quote" %}</button></form>
-  {% endif %}
-  {% if 'accepted' in allowed %}
-    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="accepted"><button class="bg-green-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-green-700">{% trans "Mark as ordered" %}</button></form>
-  {% endif %}
-  {% if 'declined' in allowed %}
-    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="declined"><button class="border border-gray-300 rounded-lg px-4 py-2 text-sm hover:border-indigo-400">{% trans "Declined" %}</button></form>
-  {% endif %}
-  {% if 'done' in allowed %}
-    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="done"><button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Mark as done" %}</button></form>
-  {% endif %}
-  {% if 'invoiced' in allowed %}
-    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="invoice"><button class="bg-emerald-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-emerald-700">{% trans "Create invoice" %}</button></form>
-  {% endif %}
-  {% if 'cancelled' in allowed %}
-    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="cancelled"><button class="border border-red-200 text-red-600 rounded-lg px-4 py-2 text-sm hover:bg-red-50">{% trans "Cancel" %}</button></form>
-  {% endif %}
-  {% if job.status == 'new' or job.status == 'declined' or job.status == 'cancelled' %}
-    <form method="post" action="{% url 'jobs:delete' job.pk %}">{% csrf_token %}<button class="text-gray-400 hover:text-red-600 text-sm px-3 py-2">{% trans "Delete" %}</button></form>
-  {% endif %}
-</div>
-</div>
-{% include "core/_deal_links_block.html" with kind="job" obj_pk=job.pk links=deal_links next_path=request.get_full_path %}
-</aside>
-</div>
+  </div>
+  <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5" data-deal-block="documents">
+    <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Dokumente" %}</p>
+    <a href="{% url 'jobs:pdf' job.pk %}" target="_blank" class="text-sm text-indigo-600 hover:underline">{% trans "Kostenvoranschlag PDF" %} ↗</a>
+    {% comment %}I18N-7b/2: язык сметы хранится на заявке — клиент повторно
+    скачает тот же документ.{% endcomment %}
+    {% if doc_languages|length > 1 %}
+      <form method="post" class="mt-2 flex items-center gap-1">
+        {% csrf_token %}
+        <select name="language" class="rounded-lg border border-gray-300 px-2 py-1 text-xs">
+          {% for lang in doc_languages %}
+            <option value="{{ lang.code }}" {% if lang.code == job.language %}selected{% endif %}>{{ lang.label }}</option>
+          {% endfor %}
+        </select>
+        <button name="action" value="language" class="text-xs rounded-lg border border-gray-300 px-2 py-1 hover:bg-gray-50">{% trans "Save" %}</button>
+      </form>
+    {% endif %}
+    {% if job.status == 'new' or job.status == 'declined' or job.status == 'cancelled' %}
+      <form method="post" action="{% url 'jobs:delete' job.pk %}" class="mt-3">{% csrf_token %}
+        <button class="text-gray-400 hover:text-red-600 text-sm">{% trans "Delete" %}</button>
+      </form>
+    {% endif %}
+  </div>
 {% endblock %}

@@ -29,13 +29,13 @@ def test_snapshot_multiplies_per_night_and_ignores_foreign():
     # per_night × 3 ночи; разовый — без множителя; чужой scope/мусор отброшены.
     # MX-0: строка несёт id/unit_cents/per_night (учёт доп-продаж + честный retotal).
     by_label = {e["label"]: e for e in snap}
-    assert by_label["Frühstück"] == {
-        "id": str(e1.pk),
-        "label": "Frühstück",
-        "price_cents": 3600,
-        "unit_cents": 1200,
-        "per_night": True,
-    }
+    # Сверяем ПОЛЯ, а не dict целиком: снимок дорастает новыми ключами
+    # (DC-8 добавил ставку НДС), и сравнение словарём ломалось бы каждый раз.
+    row = by_label["Frühstück"]
+    assert row["id"] == str(e1.pk)
+    assert row["price_cents"] == 3600 and row["unit_cents"] == 1200
+    assert row["per_night"] is True
+    assert row["vat_rate"] is None  # DC-8: ставка не задана → берётся ставка сделки
     assert by_label["Check-out"]["price_cents"] == 2000
     assert len(snap) == 2 and extras_engine.total_cents(snap) == 5600
 

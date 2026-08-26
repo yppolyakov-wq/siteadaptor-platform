@@ -1,0 +1,114 @@
+{% extends "core/deal_card_base.html" %}
+{% load i18n cabinet %}
+{% comment %}DC-7 (ТЗ владельца 2026-08-25): карточка билета. Экрана не было
+вовсе — доска и списки вели на страницу события. Собирается ОБЩИМ скелетом
+`core/deal_card_base.html`: голова, статус, клиент, скидка, связи оттуда
+(правка там меняет все карточки). Здесь — специфика билета.
+
+Календарного движка у билетов нет — блок календаря не рисуется (честно).{% endcomment %}
+
+{% block deal_back %}
+  <a href="{% url 'verkaeufe' %}?tab=ticket" class="text-sm text-gray-500 hover:underline">← {% trans "Tickets" %}</a>
+{% endblock %}
+
+{% block deal_head_badges %}
+  {% if t.payment_state == 'paid' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">✓ {% trans "paid" %}</span>
+  {% elif t.payment_state == 'deposit' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-50 text-amber-700">{% trans "Deposit pending" %}</span>
+  {% elif t.payment_state == 'refunded' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">{% trans "Refunded" %}</span>{% endif %}
+{% endblock %}
+
+{% block deal_items_title %}🎟 {% trans "Ticket" %}{% endblock %}
+{% block deal_items %}
+  <div class="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+    <div>
+      <p class="text-xs text-gray-400">{% trans "Veranstaltung" %}</p>
+      <p class="font-medium"><a href="{% url 'events:detail' t.event_id %}" class="text-indigo-600 hover:underline">{{ t.event.title }}</a></p>
+    </div>
+    <div>
+      <p class="text-xs text-gray-400">{% trans "Date" %}</p>
+      <p class="font-medium">{{ t.event.starts_at|date:"D, d.m.Y H:i" }}</p>
+    </div>
+    <div>
+      <p class="text-xs text-gray-400">{% trans "Tarif" %}</p>
+      <p class="font-medium">{{ t.tier_label|default:"—" }}</p>
+    </div>
+    <div>
+      <p class="text-xs text-gray-400">{% trans "Plätze" %}</p>
+      <p class="font-medium">{{ t.quantity }}</p>
+    </div>
+  </div>
+
+  {% if t.extras %}
+    <ul class="mt-4 border-t border-gray-100 pt-3 text-sm text-gray-600 space-y-1">
+      {% for e in t.extras %}<li>+ {{ e.label }}</li>{% endfor %}
+    </ul>
+  {% endif %}
+  {% if edit_extras %}{% if t.status == "pending" or t.status == "confirmed" %}
+    {# 3b: правка состава допов билета — тот же приёмник, что на странице события. #}
+    <details class="mt-3">
+      <summary class="text-xs text-indigo-600 cursor-pointer select-none">{% trans "Zusatzleistungen ändern" %}</summary>
+      <form method="post" action="{% url 'events:ticket-action' t.event_id t.pk %}" class="mt-2 space-y-2">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="extras">
+        <div class="flex flex-wrap gap-2">
+          {% for e in edit_extras %}
+            <label class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs cursor-pointer hover:border-indigo-300">
+              <input type="checkbox" name="extra" value="{{ e.pk }}" {% if e.pk|stringformat:"s" in chosen_extra_ids %}checked{% endif %} class="rounded border-gray-300">
+              {{ e.label }} <span class="text-gray-400">+{{ e.price_eur|floatformat:2 }} €</span>
+            </label>
+          {% endfor %}
+        </div>
+        <button class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs text-white hover:bg-indigo-700">{% trans "Save" %}</button>
+      </form>
+    </details>
+  {% endif %}{% endif %}
+
+  {% if t.answers %}
+    <div class="mt-4 border-t border-gray-100 pt-3">
+      <p class="text-xs text-gray-400 mb-1">{% trans "Angaben aus dem Formular" %}</p>
+      <dl class="text-sm space-y-0.5">
+        {% for q, a in t.answers.items %}
+          <div class="flex gap-2"><dt class="text-gray-500 min-w-0 truncate">{{ q }}:</dt><dd class="font-medium">{{ a }}</dd></div>
+        {% endfor %}
+      </dl>
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block deal_totals %}
+  <div class="flex items-center justify-between text-sm">
+    <span class="text-gray-500">{% trans "Ticket und Zusatzleistungen" %}</span>
+    <span class="tabular-nums">{{ t.total_eur|floatformat:2 }} €</span>
+  </div>
+  {% if t.discount_cents %}
+    <div class="flex items-center justify-between text-sm text-green-700 mt-1">
+      <span>🏷 {% trans "Discount" %}</span><span class="tabular-nums">−{{ t.discount_eur|floatformat:2 }} €</span>
+    </div>
+  {% endif %}
+  <div class="flex items-center justify-between font-bold border-t border-gray-100 mt-2 pt-2">
+    <span>{% trans "Total" %}</span><span class="tabular-nums">{{ t.payable_eur|floatformat:2 }} €</span>
+  </div>
+  {% include "core/_deal_vat_rows.html" %}
+{% endblock %}
+
+{% block deal_payment %}
+  <p class="text-sm text-gray-600">{% trans "Status" %}:
+    {% if t.payment_state == 'paid' %}{% trans "Paid" %}
+    {% elif t.payment_state == 'deposit' %}{% trans "Deposit pending" %}
+    {% elif t.payment_state == 'refunded' %}{% trans "Refunded" %}
+    {% else %}{% trans "Vor Ort zu zahlen" %}{% endif %}
+  </p>
+  {% if t.deposit_cents %}
+    <p class="text-xs text-gray-500 mt-1">{% trans "Anzahlung" %}: {{ t.deposit_eur|floatformat:2 }} €</p>
+  {% endif %}
+{% endblock %}
+
+{% block deal_rail_extra %}
+  {% if waiver %}
+    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5" data-deal-block="waiver">
+      <p class="text-xs font-medium text-gray-500 mb-2">✍️ {% trans "Teilnahmeerklärung" %}</p>
+      <p class="text-sm">{{ waiver.signed_name }}</p>
+      {% if waiver.signed_at %}<p class="text-xs text-gray-400">{{ waiver.signed_at|date:"d.m.Y H:i" }}</p>{% endif %}
+    </div>
+  {% endif %}
+{% endblock %}

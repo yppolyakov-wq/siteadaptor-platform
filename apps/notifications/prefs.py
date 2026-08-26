@@ -10,6 +10,9 @@
 доменные `enqueue_*`-функции ПЕРЕД отправкой каждого канала.
 """
 
+import threading
+from contextlib import contextmanager
+
 from django.utils.translation import gettext_lazy as _
 
 CHANNELS = ("email", "telegram")
@@ -100,12 +103,33 @@ def _notify_cfg(tenant) -> dict:
     return node if isinstance(node, dict) else {}
 
 
+# DC-3 (ТЗ владельца 2026-08-25): РАЗОВОЕ подавление уведомлений на одну смену
+# статуса («отправить уведомление клиенту и администратору?» на карточке сделки).
+# Это не настройка тенанта, а флаг текущего действия, поэтому живёт в
+# thread-local и снимается сразу после выхода из блока: письма ставятся в
+# очередь синхронно внутри `SM().apply`, то есть в том же потоке.
+_mute = threading.local()
+
+
+@contextmanager
+def muted(*, customer: bool = False, owner: bool = False):
+    """Не уведомлять указанные аудитории внутри блока (по умолчанию — уведомлять)."""
+    prev = (getattr(_mute, "customer", False), getattr(_mute, "owner", False))
+    _mute.customer, _mute.owner = bool(customer), bool(owner)
+    try:
+        yield
+    finally:
+        _mute.customer, _mute.owner = prev
+
+
 def channel_enabled(tenant, audience: str, domain: str, event: str, channel: str) -> bool:
     """Включён ли `channel` для (`audience`, `domain`, `event`).
 
     `audience` ∈ {"customer","owner"}. Не настроено → True (текущее поведение).
     Owner — per-channel (не per-event): owner-письмо/пуш идёт на «created»-события.
     """
+    if getattr(_mute, audience, False):  # DC-3: разовое «не уведомлять»
+        return False
     cfg = _notify_cfg(tenant)
     if audience == "owner":
         owner = cfg.get("owner")

@@ -1,117 +1,120 @@
-{% extends "tenant/_base_dashboard.html" %}
+{% extends "core/deal_card_base.html" %}
 {% load i18n cabinet %}
-{% block dash_title %}{{ b.reference_code }}{% endblock %}
+{% comment %}DC-1 (ТЗ владельца 2026-08-25): карточка записи собирается ОБЩИМ
+скелетом `core/deal_card_base.html` — голова, статус, клиент, связи и календарь
+приходят оттуда (правка там меняет все карточки сразу). Здесь — специфика
+записи: время и ресурс, доп-услуги, цена, оплата, перенос времени.{% endcomment %}
 
-{% block dash_content %}
-{% comment %}Фидбэк 2026-08-05: карточка брони услуги (зеркало stays booking-detail,
-FB-11) — раньше клик по сделке вёл на общий календарь без деталей.
-VF-24 (2026-08-25): рейл-раскладка как у заказа/заявки — детали и действия
-широко, связанные сделки рейлом справа (раньше блок связей жил ПОСЛЕ узкой
-центрированной колонки и терялся). Мобильный — одна колонка.{% endcomment %}
-<div class="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-5 lg:items-start">
-<div class="min-w-0">
-  <div class="flex items-center justify-between gap-3 flex-wrap mb-4">
-    <h1 class="text-2xl font-bold">{% if b.service %}{{ b.service.name }}{% else %}{% trans "Booking" %}{% endif %} · <span class="text-gray-400 font-mono text-lg">{{ b.reference_code }}</span></h1>
-    <a href="{% url 'booking:calendar' %}?tag={{ b.start|date:'Y-m-d' }}" class="text-sm text-indigo-600 hover:underline">📅 {% trans "Kalender" %} →</a>
-  </div>
+{% block deal_back %}
+  <a href="{% url 'verkaeufe' %}?tab=booking" class="text-sm text-gray-500 hover:underline">← {% trans "Termine" %}</a>
+{% endblock %}
 
-  {% if messages %}
-    {% for m in messages %}
-      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
-    {% endfor %}
-  {% endif %}
+{% block deal_head_badges %}
+  {% if b.payment_state == 'paid' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">💶 {% trans "Paid" %}</span>
+  {% elif b.payment_state == 'pending' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-50 text-amber-700">{% trans "Deposit pending" %}</span>
+  {% elif b.payment_state == 'refunded' %}<span class="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">{% trans "Refunded" %}</span>{% endif %}
+  {% if b.group_code %}<span class="text-xs text-gray-400">🔗 {% trans "Part of a multi-slot booking" %}</span>{% endif %}
+{% endblock %}
 
-  <div class="bg-white rounded-2xl shadow-sm p-5 space-y-4">
-    <div class="flex items-center gap-2 flex-wrap">
-      <span class="text-xs font-medium px-2 py-0.5 rounded-full
-        {% if b.status == 'confirmed' %}bg-green-100 text-green-800
-        {% elif b.status == 'pending' %}bg-amber-100 text-amber-800
-        {% elif b.status == 'fulfilled' %}bg-gray-100 text-gray-600
-        {% else %}bg-red-50 text-red-600{% endif %}">{% status_label b "booking" %}</span>
-      {% if b.payment_state == 'paid' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">💶 {% trans "Paid" %}</span>
-      {% elif b.payment_state == 'pending' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">{% trans "Deposit pending" %}</span>
-      {% elif b.payment_state == 'refunded' %}<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{% trans "Refunded" %}</span>{% endif %}
-      {% if b.group_code %}<span class="text-xs text-gray-400">🔗 {% trans "Part of a multi-slot booking" %}</span>{% endif %}
+{% block deal_items_title %}{% trans "Termin & Leistung" %}{% endblock %}
+{% block deal_items %}
+  <div class="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+    <div>
+      <p class="text-xs text-gray-400">{% trans "Leistung" %}</p>
+      <p class="font-medium">{% if b.service %}{{ b.service.name }}{% else %}{% trans "Booking" %}{% endif %}</p>
     </div>
-
-    <div class="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
-      <div>
-        <p class="text-xs text-gray-400">{% trans "Date" %}</p>
-        <p class="font-medium">{{ b.start|date:"l, d.m.Y" }} · {{ b.start|time:"H:i" }}–{{ b.end|time:"H:i" }}</p>
-      </div>
-      <div>
-        <p class="text-xs text-gray-400">{% trans "Resource" %}</p>
-        <p class="font-medium">{{ b.resource.name }}</p>
-      </div>
-      <div>
-        <p class="text-xs text-gray-400">{% trans "Customer" %}</p>
-        <p class="font-medium">{{ b.customer|default:"—" }}{% if b.party_size > 1 %} · {{ b.party_size }} {% trans "guests" %}{% endif %}</p>
-        {% if b.customer.email %}<p class="text-gray-500">{{ b.customer.email }}</p>{% endif %}
-        {% if b.customer.phone %}<p class="text-gray-500">{{ b.customer.phone }}</p>{% endif %}
-        <span class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
-          {% if crm_active %}<a href="{% url 'crm:customer-detail' b.customer.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Open customer card" %} →</a>{% endif %}
-          {% include "core/_deal_message_button.html" with kind="booking" obj_pk=b.pk %}
-        </span>
-        {% include "core/_deal_customer_edit.html" with kind="booking" obj_pk=b.pk customer=b.customer next_path=request.get_full_path %}
-      </div>
-      <div>
-        <p class="text-xs text-gray-400">{% trans "Price" %}</p>
-        {# MX-0: итог С доп-услугами — price_eur без extras занижал сумму владельцу. #}
-        <p class="font-medium">{% if b.total_cents %}{{ b.total_eur|floatformat:2 }} €{% else %}—{% endif %}{% if b.voucher_code %} · 🎟 {{ b.voucher_code }}{% endif %}</p>
-        {% if b.extras %}
-        <ul class="mt-1 text-xs text-gray-500">
-          {% for e in b.extras %}<li>+ {{ e.label }}</li>{% endfor %}
-        </ul>
-        {% endif %}
-        {% if edit_extras %}{% if b.status == "pending" or b.status == "confirmed" %}
-        {# MX-3: правка состава допов прямо из карточки записи. #}
-        <details class="mt-2">
-          <summary class="text-xs text-indigo-600 cursor-pointer select-none">{% trans "Zusatzleistungen ändern" %}</summary>
-          <form method="post" action="{% url 'booking:booking-action' b.pk %}" class="mt-2 space-y-2">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="extras">
-            <input type="hidden" name="next" value="{{ request.get_full_path }}">
-            <div class="flex flex-wrap gap-2">
-              {% for e in edit_extras %}
-              <label class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs cursor-pointer hover:border-indigo-300">
-                <input type="checkbox" name="extra" value="{{ e.pk }}" {% if e.pk|stringformat:"s" in chosen_extra_ids %}checked{% endif %} class="rounded border-gray-300">
-                {{ e.label }} <span class="text-gray-400">+{{ e.price_eur|floatformat:2 }} €</span>
-              </label>
-              {% endfor %}
-            </div>
-            <button class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs text-white hover:bg-indigo-700">{% trans "Save" %}</button>
-          </form>
-        </details>
-        {% endif %}{% endif %}
-      </div>
-      {% if b.source_channel %}
+    <div>
+      <p class="text-xs text-gray-400">{% trans "Date" %}</p>
+      <p class="font-medium">{{ b.start|date:"l, d.m.Y" }} · {{ b.start|time:"H:i" }}–{{ b.end|time:"H:i" }}</p>
+    </div>
+    <div>
+      <p class="text-xs text-gray-400">{% trans "Resource" %}</p>
+      <p class="font-medium">{{ b.resource.name|default:"—" }}</p>
+    </div>
+    <div>
+      <p class="text-xs text-gray-400">{% trans "Personen" %}</p>
+      <p class="font-medium">{{ b.party_size|default:1 }}</p>
+    </div>
+    {% if b.source_channel %}
       <div>
         <p class="text-xs text-gray-400">{% trans "Source" %}</p>
         <p class="font-medium">{{ b.source_channel }}</p>
       </div>
-      {% endif %}
-      {% if b.note %}
+    {% endif %}
+    {% if b.note %}
       <div class="sm:col-span-2">
         <p class="text-xs text-gray-400">📝 {% trans "Note" %}</p>
         <p class="whitespace-pre-line">{{ b.note }}</p>
       </div>
-      {% endif %}
-    </div>
-
-    <form method="post" action="{% url 'booking:booking-action' b.pk %}" class="flex items-center gap-2 flex-wrap border-t border-gray-100 pt-4">
-      {% csrf_token %}
-      <input type="hidden" name="next" value="{% url 'booking:booking-detail' b.pk %}">
-      {% include "core/_status_actions.html" with kind="booking" obj=b %}
-      {% if b.status == 'pending' or b.status == 'confirmed' %}
-        <input type="datetime-local" name="start" value="{{ b.start|date:'Y-m-d\TH:i' }}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
-        <button name="action" value="move" class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Move" %}</button>
-      {% endif %}
-    </form>
+    {% endif %}
   </div>
-</div>
 
-<aside class="space-y-4 mt-4 lg:mt-0">
-  {% include "core/_deal_links_block.html" with kind="booking" obj_pk=b.pk links=deal_links next_path=request.get_full_path %}
-</aside>
-</div>
+  {% if b.extras %}
+    <ul class="mt-4 border-t border-gray-100 pt-3 text-sm text-gray-600 space-y-1">
+      {% for e in b.extras %}<li>+ {{ e.label }}</li>{% endfor %}
+    </ul>
+  {% endif %}
+  {% if edit_extras %}{% if b.status == "pending" or b.status == "confirmed" %}
+    {# MX-3: правка состава допов прямо из карточки записи. #}
+    <details class="mt-3">
+      <summary class="text-xs text-indigo-600 cursor-pointer select-none">{% trans "Zusatzleistungen ändern" %}</summary>
+      <form method="post" action="{% url 'booking:booking-action' b.pk %}" class="mt-2 space-y-2">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="extras">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <div class="flex flex-wrap gap-2">
+          {% for e in edit_extras %}
+            <label class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs cursor-pointer hover:border-indigo-300">
+              <input type="checkbox" name="extra" value="{{ e.pk }}" {% if e.pk|stringformat:"s" in chosen_extra_ids %}checked{% endif %} class="rounded border-gray-300">
+              {{ e.label }} <span class="text-gray-400">+{{ e.price_eur|floatformat:2 }} €</span>
+            </label>
+          {% endfor %}
+        </div>
+        <button class="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs text-white hover:bg-indigo-700">{% trans "Save" %}</button>
+      </form>
+    </details>
+  {% endif %}{% endif %}
+{% endblock %}
+
+{% block deal_totals %}
+  {# MX-0: итог С доп-услугами — price_eur без extras занижал сумму владельцу. #}
+  <div class="flex items-center justify-between text-sm">
+    <span class="text-gray-500">{% trans "Leistung und Zusatzleistungen" %}</span>
+    <span class="tabular-nums">{% if b.total_cents %}{{ b.total_eur|floatformat:2 }} €{% else %}—{% endif %}</span>
+  </div>
+  {% if b.voucher_code %}
+    <div class="flex items-center justify-between text-sm text-green-700 mt-1">
+      <span>🎟 {% trans "Gutschein" %} {{ b.voucher_code }}</span><span></span>
+    </div>
+  {% endif %}
+  <div class="flex items-center justify-between font-bold border-t border-gray-100 mt-2 pt-2">
+    <span>{% trans "Total" %}</span>
+    <span class="tabular-nums">{% if b.total_cents %}{{ b.total_eur|floatformat:2 }} €{% else %}—{% endif %}</span>
+  </div>
+  {% include "core/_deal_vat_rows.html" %}
+{% endblock %}
+
+{% block deal_payment %}
+  <p class="text-sm text-gray-600">{% trans "Status" %}:
+    {% if b.payment_state == 'paid' %}{% trans "Paid" %}
+    {% elif b.payment_state == 'pending' %}{% trans "Deposit pending" %}
+    {% elif b.payment_state == 'refunded' %}{% trans "Refunded" %}
+    {% else %}{% trans "Vor Ort zu zahlen" %}{% endif %}
+  </p>
+  {% include "core/_deal_invoice_button.html" %}
+{% endblock %}
+
+{% block deal_rail_extra %}
+  {% if b.status == 'pending' or b.status == 'confirmed' %}
+    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5" data-deal-block="move">
+      <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Termin verschieben" %}</p>
+      <form method="post" action="{% url 'booking:booking-action' b.pk %}" class="space-y-2">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <input type="datetime-local" name="start" value="{{ b.start|date:'Y-m-d\TH:i' }}"
+               class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <button name="action" value="move" class="text-sm font-medium rounded-lg border border-gray-300 px-3 py-1.5 hover:border-indigo-400">{% trans "Move" %}</button>
+      </form>
+    </div>
+  {% endif %}
 {% endblock %}

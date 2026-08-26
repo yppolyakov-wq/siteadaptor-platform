@@ -20194,3 +20194,164 @@ msgid ""
 msgstr ""
 "Розпочинає бесіду щодо %(label)s. Клієнт отримає лист із посиланням на "
 "розмову й зможе одразу відповісти."
+
+msgid "Aktuell"
+msgstr "Зараз"
+
+msgid "Anfrage-Details"
+msgstr "Деталі заявки"
+
+msgid "Dokumente"
+msgstr "Документи"
+
+msgid "Einzel"
+msgstr "Ціна за шт."
+
+msgid "Kein Rabatt gesetzt — Gesamtpreis unverändert."
+msgstr "Знижку не задано — підсумкова ціна без змін."
+
+msgid "Leistung und Zusatzleistungen"
+msgstr "Послуга та додаткові послуги"
+
+msgid "Nr."
+msgstr "№"
+
+msgid "Termin & Leistung"
+msgstr "Запис і послуга"
+
+msgid "Termin verschieben"
+msgstr "Перенести запис"
+
+msgid "Vor Ort zu zahlen"
+msgstr "Оплата на місці"
+
+msgid "im Gesamtpreis verrechnet"
+msgstr "врахована в підсумковій ціні"
+
+msgid "angelegt"
+msgstr "створено"
+
+msgid "z. B. Marktplatz-Nummer"
+msgstr "напр. номер маркетплейсу"
+
+msgid "Summen"
+msgstr "Підсумки"
+
+msgid "Zahlung & Rechnung"
+msgstr "Оплата та рахунок"
+
+msgid "Positionen"
+msgstr "Позиції"
+
+msgid "Externe Nr."
+msgstr "Зовнішній №"
+
+msgid "Externe Nummer gespeichert."
+msgstr "Зовнішній номер збережено."
+
+msgid "Kein Kundenkonto hinterlegt."
+msgstr "Картку клієнта не прив'язано."
+
+msgid "Der Kunde bekommt bei jedem Statuswechsel eine E-Mail."
+msgstr "Клієнт отримує лист під час кожної зміни статусу."
+
+msgid "Bitte einen gültigen Betrag eingeben."
+msgstr "Введіть коректну суму."
+
+msgid "Nächster Schritt"
+msgstr "Наступний крок"
+
+msgid "Benachrichtigen?"
+msgstr "Повідомити?"
+
+msgid "Status ändern"
+msgstr "Змінити статус"
+
+msgid "WhatsApp"
+msgstr "WhatsApp"
+
+msgid "Nummer in den Einstellungen hinterlegen"
+msgstr "Вкажіть номер у налаштуваннях"
+
+msgid "Bot für Kundenchats und Benachrichtigungen"
+msgstr "Бот для чатів із клієнтами та сповіщень"
+
+msgid "Bot verbinden"
+msgstr "Підключити бота"
+
+msgid "Absenderadresse in den Benachrichtigungen setzen"
+msgstr "Задайте адресу відправника у сповіщеннях"
+
+msgid "Chat auf der Website"
+msgstr "Чат на сайті"
+
+msgid "Nachrichten landen im Posteingang"
+msgstr "Повідомлення надходять у вхідні"
+
+msgid "Modul „Nachrichten“ aktivieren"
+msgstr "Увімкніть модуль «Повідомлення»"
+
+msgid "Instagram, Facebook, TikTok … im Profil hinterlegen"
+msgstr "Додайте Instagram, Facebook, TikTok … у профілі"
+
+msgid "Kanal wählen"
+msgstr "Оберіть канал"
+
+msgid "In alle aktiven Kanäle"
+msgstr "У всі активні канали"
+
+msgid "Persönliche Kanäle"
+msgstr "Особисті канали"
+
+msgid "Wo Kundinnen und Kunden dich direkt erreichen."
+msgstr "Де клієнти звʼязуються з вами напряму."
+
+msgid "aktiv"
+msgstr "активний"
+
+msgid "einrichten"
+msgstr "налаштувати"
+
+msgid "Kurtaxe"
+msgstr "Курортний збір"
+
+msgid "Buchung %(code)s"
+msgstr "Бронювання %(code)s"
+
+msgid "Termin %(code)s"
+msgstr "Запис %(code)s"
+
+msgid "Rechnung erstellen"
+msgstr "Виставити рахунок"
+
+msgid "Angaben aus dem Formular"
+msgstr "Дані з форми"
+
+msgid "Ticket und Zusatzleistungen"
+msgstr "Квиток і додаткові послуги"
+
+msgid "Teilnahmeerklärung"
+msgstr "Згода учасника"
+
+msgid "Wirkt auf"
+msgstr "Діє на"
+
+#: templates/stays/units.html
+msgid "Übernachtung 7 %, sonstige Leistungen 19 %."
+msgstr "Проживання 7 %, інші послуги 19 %."
+
+#: apps/core/models.py
+msgid "Ganzer Termin"
+msgstr "Весь запис"
+
+#: apps/core/models.py
+msgid "Ganzes Ticket"
+msgstr "Весь квиток"
+
+#: apps/core/models.py
+msgid "Ganze Bestellung"
+msgstr "Все замовлення"
+
+#: apps/core/models.py
+msgid "Ganze Buchung"
+msgstr "Уся бронь"

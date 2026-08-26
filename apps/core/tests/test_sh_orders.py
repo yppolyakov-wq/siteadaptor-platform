@@ -138,7 +138,12 @@ def test_collapsed_sidebar_keeps_icons():
 
 
 # --- п.10: смена статуса в одной строке с номером ----------------------------
-def test_order_detail_status_actions_sit_in_the_header():
+def test_order_detail_status_actions_sit_in_the_status_card():
+    """SH-10 (2026-08-20) требовал кнопки статуса в шапке. DC-1 (ТЗ владельца
+    2026-08-25, «статус перенести во вторую колонку») переносит их в карточку
+    статуса правой колонки — ОДНУ на все виды сделок; приёмник generic
+    (board-action), тот же путь, что доска и списки. Замок переписан осознанно:
+    отдельной карточки действий по-прежнему нет, статус — ровно один блок."""
     from apps.core import views as core_views  # noqa: F401
     from apps.orders import views as order_views
 
@@ -146,9 +151,9 @@ def test_order_detail_status_actions_sit_in_the_header():
     req = _req(f"/dashboard/orders/{order.pk}/")
     body = order_views.order_detail(req, order.pk).content.decode()
     assert "O-SH0004" in body
-    # Кнопка перехода живёт ДО карточки позиций, отдельной карточки действий нет
-    assert body.index('name="action"') < body.index("divide-y divide-gray-100 border-y")
-    assert body.count(f"/dashboard/orders/{order.pk}/action/") == 1
+    assert body.count('data-deal-block="status"') == 1
+    assert body.index("data-deal-rail") < body.index('data-deal-block="status"')
+    assert f"/dashboard/board/order/{order.pk}/action/" in body
 
 
 # --- п.15: клиенты вкладкой в продажах (решение владельца «всем архетипам») ---

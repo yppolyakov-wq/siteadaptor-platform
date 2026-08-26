@@ -24,6 +24,8 @@ def _ensure_channels():
 
 @login_required
 def channels(request):
+    from apps.core.personal_channels import personal_channels
+
     _ensure_channels()
     return render(
         request,
@@ -31,6 +33,9 @@ def channels(request):
         {
             "nav": "channels",
             "channels": Channel.objects.all().order_by("type"),
+            # Фидбэк владельца 2026-08-25: рядом с каналами публикации — личные
+            # каналы связи (WhatsApp, Telegram, e-mail, чат сайта, соцпрофили).
+            "personal_channels": personal_channels(getattr(request, "tenant", None)),
             "publications": (Publication.objects.select_related("channel", "promotion").all()[:20]),
         },
     )

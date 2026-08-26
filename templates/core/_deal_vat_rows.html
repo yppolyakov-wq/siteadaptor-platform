@@ -1,0 +1,12 @@
+{% load i18n %}
+{% comment %}DC-8 (решение владельца 2026-08-26): разбивка НДС в секции сумм —
+ОДИН партиал на все виды сделок. Цены брутто (PAngV), поэтому налог ВЫДЕЛЯЕТСЯ
+из итога; при нескольких ставках (проживание 7 % + завтрак 19 % + Kurtaxe 0 %)
+строка на каждую. §19 Kleinunternehmer обнуляет ставки.{% endcomment %}
+{% for row in deal_vat.rows %}
+  <div class="flex items-center justify-between py-0.5 text-xs text-gray-500">
+    <span>{% blocktrans with rate=row.rate|floatformat:"0" %}davon {{ rate }} % MwSt.{% endblocktrans %}
+      <span class="text-gray-400">({% trans "netto" %} {{ row.net|floatformat:2 }} €)</span></span>
+    <span class="tabular-nums">{{ row.vat|floatformat:2 }} €</span>
+  </div>
+{% endfor %}

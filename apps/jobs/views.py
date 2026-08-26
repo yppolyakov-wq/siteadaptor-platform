@@ -23,7 +23,7 @@ from apps.catalog.picker import (  # SH-B: пикер позиций общий 
     _resolve_part,
     _service_snapshot,
 )
-from apps.core import deal_links
+from apps.core import deal_card, deal_links
 from apps.core.fsm import IllegalTransition
 from apps.finance.models import RevenueEntry
 
@@ -189,19 +189,26 @@ def job_detail(request, pk):
             "deposit_eur": f"{job.deposit_cents / 100:.2f}",
             "payments_enabled": getattr(request.tenant, "payments_enabled", False),
             "customer_bookings": _customer_bookings(job),  # A7d: Termin-привязка
-            # VS-3: прикреплённые услуги к заявке (аренда посуды к мероприятию).
-            "deal_links": deal_links.block_context("job", job.pk),
             # QF-2: поля мастерской — нужным архетипам или если уже заполнены.
             "show_vehicle_fields": (
                 request.tenant.business_type in ("werkstatt", "handwerker")
                 or bool(job.vehicle or job.service_due_date)
             ),
             "doc_languages": _doc_languages(request),
-            # VF-16: ссылка на полную карточку клиента в CRM (гейт по модулю —
-            # без него ссылка вела бы в 404 гейта путей; прецедент order_detail).
-            "crm_active": bool(request.tenant and request.tenant.is_module_active("crm")),
-            # C1: «✉️ Nachricht an den Kunden» — тот же fail-closed гейт модуля.
-            "inbox_active": bool(request.tenant and request.tenant.is_module_active("inbox")),
+            # DC-1: общий скелет карточки сделки — голова, статус, клиент и связи
+            # приходят из одного источника (core/deal_card_base.html).
+            # У заявки своя форма контакта (адрес объекта) → общую отключаем;
+            # «invoiced» не в generic-кнопках: он ещё и выставляет счёт.
+            **deal_card.card_context(
+                request,
+                "job",
+                job,
+                sections=("items", "discount", "payment"),
+                # VS-3: прикреплённые услуги к заявке (аренда посуды к мероприятию).
+                links=deal_links.block_context("job", job.pk),
+                hide_targets=("invoiced",),
+            ),
+            "deal_customer_edit": False,
             # VF-15: публичная страница Angebot (клиент принимает и платит
             # депозит) — владельцу для ручной передачи ссылки.
             "angebot_path": reverse("storefront-angebot", args=[job.public_token]),

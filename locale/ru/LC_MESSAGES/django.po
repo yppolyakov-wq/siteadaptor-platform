@@ -20210,3 +20210,164 @@ msgid ""
 msgstr ""
 "Начинает беседу по %(label)s. Клиент получит письмо со ссылкой на разговор и"
 " сможет сразу ответить."
+
+msgid "Aktuell"
+msgstr "Сейчас"
+
+msgid "Anfrage-Details"
+msgstr "Детали заявки"
+
+msgid "Dokumente"
+msgstr "Документы"
+
+msgid "Einzel"
+msgstr "Цена за шт."
+
+msgid "Kein Rabatt gesetzt — Gesamtpreis unverändert."
+msgstr "Скидка не задана — итоговая цена без изменений."
+
+msgid "Leistung und Zusatzleistungen"
+msgstr "Услуга и дополнительные услуги"
+
+msgid "Nr."
+msgstr "№"
+
+msgid "Termin & Leistung"
+msgstr "Запись и услуга"
+
+msgid "Termin verschieben"
+msgstr "Перенести запись"
+
+msgid "Vor Ort zu zahlen"
+msgstr "Оплата на месте"
+
+msgid "im Gesamtpreis verrechnet"
+msgstr "учтена в итоговой цене"
+
+msgid "angelegt"
+msgstr "создано"
+
+msgid "z. B. Marktplatz-Nummer"
+msgstr "напр. номер маркетплейса"
+
+msgid "Summen"
+msgstr "Итоги"
+
+msgid "Zahlung & Rechnung"
+msgstr "Оплата и счёт"
+
+msgid "Positionen"
+msgstr "Позиции"
+
+msgid "Externe Nr."
+msgstr "Внешний №"
+
+msgid "Externe Nummer gespeichert."
+msgstr "Внешний номер сохранён."
+
+msgid "Kein Kundenkonto hinterlegt."
+msgstr "Карточка клиента не привязана."
+
+msgid "Der Kunde bekommt bei jedem Statuswechsel eine E-Mail."
+msgstr "Клиент получает письмо при каждой смене статуса."
+
+msgid "Bitte einen gültigen Betrag eingeben."
+msgstr "Введите корректную сумму."
+
+msgid "Nächster Schritt"
+msgstr "Следующий шаг"
+
+msgid "Benachrichtigen?"
+msgstr "Уведомить?"
+
+msgid "Status ändern"
+msgstr "Изменить статус"
+
+msgid "WhatsApp"
+msgstr "WhatsApp"
+
+msgid "Nummer in den Einstellungen hinterlegen"
+msgstr "Укажите номер в настройках"
+
+msgid "Bot für Kundenchats und Benachrichtigungen"
+msgstr "Бот для чатов с клиентами и уведомлений"
+
+msgid "Bot verbinden"
+msgstr "Подключить бота"
+
+msgid "Absenderadresse in den Benachrichtigungen setzen"
+msgstr "Задайте адрес отправителя в уведомлениях"
+
+msgid "Chat auf der Website"
+msgstr "Чат на сайте"
+
+msgid "Nachrichten landen im Posteingang"
+msgstr "Сообщения приходят во входящие"
+
+msgid "Modul „Nachrichten“ aktivieren"
+msgstr "Включите модуль «Сообщения»"
+
+msgid "Instagram, Facebook, TikTok … im Profil hinterlegen"
+msgstr "Добавьте Instagram, Facebook, TikTok … в профиле"
+
+msgid "Kanal wählen"
+msgstr "Выберите канал"
+
+msgid "In alle aktiven Kanäle"
+msgstr "Во все активные каналы"
+
+msgid "Persönliche Kanäle"
+msgstr "Личные каналы"
+
+msgid "Wo Kundinnen und Kunden dich direkt erreichen."
+msgstr "Где клиенты связываются с вами напрямую."
+
+msgid "aktiv"
+msgstr "активен"
+
+msgid "einrichten"
+msgstr "настроить"
+
+msgid "Kurtaxe"
+msgstr "Курортный сбор"
+
+msgid "Buchung %(code)s"
+msgstr "Бронь %(code)s"
+
+msgid "Termin %(code)s"
+msgstr "Запись %(code)s"
+
+msgid "Rechnung erstellen"
+msgstr "Выставить счёт"
+
+msgid "Angaben aus dem Formular"
+msgstr "Данные из формы"
+
+msgid "Ticket und Zusatzleistungen"
+msgstr "Билет и дополнительные услуги"
+
+msgid "Teilnahmeerklärung"
+msgstr "Согласие участника"
+
+msgid "Wirkt auf"
+msgstr "Действует на"
+
+#: templates/stays/units.html
+msgid "Übernachtung 7 %, sonstige Leistungen 19 %."
+msgstr "Проживание 7 %, прочие услуги 19 %."
+
+#: apps/core/models.py
+msgid "Ganzer Termin"
+msgstr "Вся запись"
+
+#: apps/core/models.py
+msgid "Ganzes Ticket"
+msgstr "Весь билет"
+
+#: apps/core/models.py
+msgid "Ganze Bestellung"
+msgstr "Весь заказ"
+
+#: apps/core/models.py
+msgid "Ganze Buchung"
+msgstr "Вся бронь"

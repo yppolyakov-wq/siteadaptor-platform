@@ -20119,3 +20119,164 @@ msgid ""
 msgstr ""
 "%(label)s hakkında bir görüşme başlatır. Müşteri, görüşme bağlantısını "
 "içeren bir e-posta alır ve doğrudan yanıtlayabilir."
+
+msgid "Aktuell"
+msgstr "Şu anda"
+
+msgid "Anfrage-Details"
+msgstr "Talep ayrıntıları"
+
+msgid "Dokumente"
+msgstr "Belgeler"
+
+msgid "Einzel"
+msgstr "Birim fiyat"
+
+msgid "Kein Rabatt gesetzt — Gesamtpreis unverändert."
+msgstr "İndirim tanımlı değil — toplam fiyat değişmedi."
+
+msgid "Leistung und Zusatzleistungen"
+msgstr "Hizmet ve ek hizmetler"
+
+msgid "Nr."
+msgstr "No."
+
+msgid "Termin & Leistung"
+msgstr "Randevu ve hizmet"
+
+msgid "Termin verschieben"
+msgstr "Randevuyu ertele"
+
+msgid "Vor Ort zu zahlen"
+msgstr "Yerinde ödenecek"
+
+msgid "im Gesamtpreis verrechnet"
+msgstr "toplam fiyata dahil edildi"
+
+msgid "angelegt"
+msgstr "oluşturuldu"
+
+msgid "z. B. Marktplatz-Nummer"
+msgstr "örn. pazaryeri numarası"
+
+msgid "Summen"
+msgstr "Toplamlar"
+
+msgid "Zahlung & Rechnung"
+msgstr "Ödeme ve fatura"
+
+msgid "Positionen"
+msgstr "Kalemler"
+
+msgid "Externe Nr."
+msgstr "Harici no."
+
+msgid "Externe Nummer gespeichert."
+msgstr "Harici numara kaydedildi."
+
+msgid "Kein Kundenkonto hinterlegt."
+msgstr "Kayıtlı müşteri bilgisi yok."
+
+msgid "Der Kunde bekommt bei jedem Statuswechsel eine E-Mail."
+msgstr "Müşteri her durum değişikliğinde bir e-posta alır."
+
+msgid "Bitte einen gültigen Betrag eingeben."
+msgstr "Lütfen geçerli bir tutar girin."
+
+msgid "Nächster Schritt"
+msgstr "Sonraki adım"
+
+msgid "Benachrichtigen?"
+msgstr "Bildirim gönderilsin mi?"
+
+msgid "Status ändern"
+msgstr "Durumu değiştir"
+
+msgid "WhatsApp"
+msgstr "WhatsApp"
+
+msgid "Nummer in den Einstellungen hinterlegen"
+msgstr "Numarayı ayarlarda tanımlayın"
+
+msgid "Bot für Kundenchats und Benachrichtigungen"
+msgstr "Müşteri sohbetleri ve bildirimler için bot"
+
+msgid "Bot verbinden"
+msgstr "Botu bağla"
+
+msgid "Absenderadresse in den Benachrichtigungen setzen"
+msgstr "Bildirimlerde gönderen adresini ayarlayın"
+
+msgid "Chat auf der Website"
+msgstr "Web sitesinde sohbet"
+
+msgid "Nachrichten landen im Posteingang"
+msgstr "Mesajlar gelen kutusuna düşer"
+
+msgid "Modul „Nachrichten“ aktivieren"
+msgstr "“Mesajlar” modülünü etkinleştirin"
+
+msgid "Instagram, Facebook, TikTok … im Profil hinterlegen"
+msgstr "Instagram, Facebook, TikTok … profilde tanımlayın"
+
+msgid "Kanal wählen"
+msgstr "Kanal seçin"
+
+msgid "In alle aktiven Kanäle"
+msgstr "Tüm etkin kanallara"
+
+msgid "Persönliche Kanäle"
+msgstr "Kişisel kanallar"
+
+msgid "Wo Kundinnen und Kunden dich direkt erreichen."
+msgstr "Müşterilerin sana doğrudan ulaştığı yerler."
+
+msgid "aktiv"
+msgstr "etkin"
+
+msgid "einrichten"
+msgstr "kur"
+
+msgid "Kurtaxe"
+msgstr "Konaklama vergisi"
+
+msgid "Buchung %(code)s"
+msgstr "Rezervasyon %(code)s"
+
+msgid "Termin %(code)s"
+msgstr "Randevu %(code)s"
+
+msgid "Rechnung erstellen"
+msgstr "Fatura oluştur"
+
+msgid "Angaben aus dem Formular"
+msgstr "Formdaki bilgiler"
+
+msgid "Ticket und Zusatzleistungen"
+msgstr "Bilet ve ek hizmetler"
+
+msgid "Teilnahmeerklärung"
+msgstr "Katılım beyanı"
+
+msgid "Wirkt auf"
+msgstr "Şuna uygulanır"
+
+#: templates/stays/units.html
+msgid "Übernachtung 7 %, sonstige Leistungen 19 %."
+msgstr "Konaklama %7, diğer hizmetler %19."
+
+#: apps/core/models.py
+msgid "Ganzer Termin"
+msgstr "Randevunun tamamı"
+
+#: apps/core/models.py
+msgid "Ganzes Ticket"
+msgstr "Biletin tamamı"
+
+#: apps/core/models.py
+msgid "Ganze Bestellung"
+msgstr "Siparişin tamamı"
+
+#: apps/core/models.py
+msgid "Ganze Buchung"
+msgstr "Rezervasyonun tamamı"

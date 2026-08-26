@@ -187,6 +187,47 @@ def ticket_add(request, pk):
 
 
 @login_required
+def ticket_detail(request, pk):
+    """DC-7 (ТЗ владельца 2026-08-25): карточка билета — экрана не было вовсе,
+    доска и списки вели на страницу СОБЫТИЯ, где билет терялся среди прочих.
+
+    Собирается общим скелетом карточки сделки (`core/deal_card_base.html`):
+    голова, статус, клиент, скидка и связи — из одного источника; здесь —
+    специфика билета: тир, места, доп-услуги, ответы анкеты, waiver.
+    """
+    from apps.core import deal_card, deal_links
+    from apps.core import extras as extras_engine
+
+    from .models import Ticket
+
+    ticket = get_object_or_404(Ticket.objects.select_related("customer", "event"), pk=pk)
+    edit_extras = extras_engine.active_for(
+        "events", entity_kind="event", entity_id=str(ticket.event_id)
+    )
+    chosen = {
+        str(e.get("id")) for e in (ticket.extras or []) if isinstance(e, dict) and e.get("id")
+    }
+    return render(
+        request,
+        "events/ticket_detail.html",
+        {
+            "t": ticket,
+            "nav": "events",
+            "edit_extras": edit_extras,
+            "chosen_extra_ids": chosen,
+            "waiver": getattr(ticket, "waiver", None),
+            **deal_card.card_context(
+                request,
+                "ticket",
+                ticket,
+                sections=("items", "discount", "totals", "payment"),
+                links=deal_links.block_context("ticket", ticket.pk),
+            ),
+        },
+    )
+
+
+@login_required
 @require_POST
 def ticket_action(request, pk, tid):
     """Действия по билету: confirm / attended / cancel (FSM) + mark paid."""
@@ -381,13 +422,40 @@ def blog_list(request):
                 blog_share_draft(post)
             messages.success(request, _("Post created."))
         return redirect("blog-list")
+    # Фидбэк владельца 2026-08-25 («кнопка поделиться и выбрать канал где»):
+    # у каждой опубликованной статьи — меню каналов с прямыми share-ссылками;
+    # «во все активные каналы» остаётся отдельным пунктом (модуль publishing).
+    from urllib.parse import quote
+
+    from django.urls import reverse
+
+    from apps.core.share_links import share_targets
+
+    posts = list(BlogPost.objects.all())
+    base = f"{request.scheme}://{request.get_host()}"
+    rows = []
+    for post in posts:
+        url = f"{base}{reverse('storefront-blog-post', args=[post.slug])}"
+        rows.append(
+            {
+                "post": post,
+                "share_url": url,
+                "share_targets": share_targets(post.title, url),
+                # «Во все активные каналы» — существующий контент-календарь с
+                # префиллом текста и ссылки (модуль publishing).
+                "share_all_url": (
+                    f"{reverse('publishing-posts')}?text={quote(post.title)}&link={quote(url)}"
+                ),
+            }
+        )
     return render(
         request,
         "events/blog_list.html",
         {
             "nav": "blog",  # W7b: своя вкладка в Marketing-хабе (была "events")
-            "posts": BlogPost.objects.all(),
-            # CM-3: кнопка «Teilen» видна только при активном модуле publishing.
+            "posts": posts,
+            "rows": rows,
+            # CM-3: пункт «во все каналы» виден только при активном модуле publishing.
             "can_share": getattr(request, "tenant", None) is not None
             and request.tenant.is_module_active("publishing"),
         },

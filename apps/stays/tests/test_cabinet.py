@@ -341,7 +341,7 @@ def test_booking_detail_renders_guest_dates_money_actions():
     assert booking.reference_code in body and unit.name in body
     assert "gast@test.de" in body  # контакт гостя
     assert "270" in body  # 3 ночи × 90 € = 270.00 € (сумма на карточке)
-    assert 'kind="stay"' not in body  # партиал отрендерен, не сырой тег
+    assert "{% include" not in body  # партиалы отрендерены, не сырые теги
     assert "Meldeschein" in body  # секция G6 присутствует
     # календарь линкует код брони на деталь
     cal = _cal(_req(data={"von": D0.isoformat()})).content.decode()

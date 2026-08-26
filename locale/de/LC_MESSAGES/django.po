@@ -20120,3 +20120,164 @@ msgid ""
 msgstr ""
 "Startet eine Unterhaltung zu %(label)s. Der Kunde bekommt eine E-Mail mit "
 "Link zum Gespräch und kann direkt antworten."
+
+msgid "Aktuell"
+msgstr ""
+
+msgid "Anfrage-Details"
+msgstr ""
+
+msgid "Dokumente"
+msgstr ""
+
+msgid "Einzel"
+msgstr ""
+
+msgid "Kein Rabatt gesetzt — Gesamtpreis unverändert."
+msgstr ""
+
+msgid "Leistung und Zusatzleistungen"
+msgstr ""
+
+msgid "Nr."
+msgstr ""
+
+msgid "Termin & Leistung"
+msgstr ""
+
+msgid "Termin verschieben"
+msgstr ""
+
+msgid "Vor Ort zu zahlen"
+msgstr ""
+
+msgid "im Gesamtpreis verrechnet"
+msgstr ""
+
+msgid "angelegt"
+msgstr ""
+
+msgid "z. B. Marktplatz-Nummer"
+msgstr ""
+
+msgid "Summen"
+msgstr ""
+
+msgid "Zahlung & Rechnung"
+msgstr ""
+
+msgid "Positionen"
+msgstr ""
+
+msgid "Externe Nr."
+msgstr ""
+
+msgid "Externe Nummer gespeichert."
+msgstr ""
+
+msgid "Kein Kundenkonto hinterlegt."
+msgstr ""
+
+msgid "Der Kunde bekommt bei jedem Statuswechsel eine E-Mail."
+msgstr ""
+
+msgid "Bitte einen gültigen Betrag eingeben."
+msgstr ""
+
+msgid "Nächster Schritt"
+msgstr ""
+
+msgid "Benachrichtigen?"
+msgstr ""
+
+msgid "Status ändern"
+msgstr ""
+
+msgid "WhatsApp"
+msgstr ""
+
+msgid "Nummer in den Einstellungen hinterlegen"
+msgstr ""
+
+msgid "Bot für Kundenchats und Benachrichtigungen"
+msgstr ""
+
+msgid "Bot verbinden"
+msgstr ""
+
+msgid "Absenderadresse in den Benachrichtigungen setzen"
+msgstr ""
+
+msgid "Chat auf der Website"
+msgstr ""
+
+msgid "Nachrichten landen im Posteingang"
+msgstr ""
+
+msgid "Modul „Nachrichten“ aktivieren"
+msgstr ""
+
+msgid "Instagram, Facebook, TikTok … im Profil hinterlegen"
+msgstr ""
+
+msgid "Kanal wählen"
+msgstr ""
+
+msgid "In alle aktiven Kanäle"
+msgstr ""
+
+msgid "Persönliche Kanäle"
+msgstr ""
+
+msgid "Wo Kundinnen und Kunden dich direkt erreichen."
+msgstr ""
+
+msgid "aktiv"
+msgstr ""
+
+msgid "einrichten"
+msgstr ""
+
+msgid "Kurtaxe"
+msgstr ""
+
+msgid "Buchung %(code)s"
+msgstr ""
+
+msgid "Termin %(code)s"
+msgstr ""
+
+msgid "Rechnung erstellen"
+msgstr ""
+
+msgid "Angaben aus dem Formular"
+msgstr ""
+
+msgid "Ticket und Zusatzleistungen"
+msgstr ""
+
+msgid "Teilnahmeerklärung"
+msgstr ""
+
+msgid "Wirkt auf"
+msgstr ""
+
+#: templates/stays/units.html
+msgid "Übernachtung 7 %, sonstige Leistungen 19 %."
+msgstr ""
+
+#: apps/core/models.py
+msgid "Ganzer Termin"
+msgstr ""
+
+#: apps/core/models.py
+msgid "Ganzes Ticket"
+msgstr ""
+
+#: apps/core/models.py
+msgid "Ganze Bestellung"
+msgstr ""
+
+#: apps/core/models.py
+msgid "Ganze Buchung"
+msgstr ""

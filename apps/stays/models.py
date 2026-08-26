@@ -8,6 +8,8 @@
 Stripe-Connect-оплату (P2.5b/c), finance, notifications и реестр модулей.
 """
 
+from decimal import Decimal
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -68,6 +70,10 @@ class StayUnit(I18nMixin, TimestampedModel):
     quantity = models.PositiveSmallIntegerField(default=1)
     # Цена за ночь (центы, брутто; Stripe-native). Итого = ночи × price_cents.
     price_cents = models.PositiveIntegerField(default=0)
+    # DC-8 (решение владельца 2026-08-26): ставка НДС номера. В DE проживание —
+    # 7 % (§12 Abs. 2 Nr. 11 UStG); завтрак и прочие допы идут по своей ставке
+    # (Aufteilungsgebot), Kurtaxe — вне НДС. Значение попадает СНИМКОМ в бронь.
+    vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("7.00"))
     # A5a: цена за ночь в Fr/Sa, если задана (0 = как обычная). Сезонные окна —
     # в SeasonRate (перебивают и базу, и выходные).
     weekend_price_cents = models.PositiveIntegerField(default=0)
@@ -321,6 +327,16 @@ class StayBooking(TimestampedModel):
     unit = models.ForeignKey(StayUnit, on_delete=models.PROTECT, related_name="bookings")
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name="stays")
     reference_code = models.CharField(max_length=12, unique=True)  # "S-XXXXXX"
+    # DC-4 (ТЗ владельца 2026-08-25): внешний номер сделки — номер кассы, портала
+    # или бумажной книги; вводится вручную и ищется поиском сделок. Машинные
+    # ключи импорта (external_ref у брони номера) этим полем НЕ подменяются.
+    external_code = models.CharField(max_length=50, blank=True, db_index=True)
+    # DC-8: СНИМОК ставки НДС на момент брони (смена ставки в каталоге не
+    # переписывает прошлые сделки — GoBD). Допы несут свою ставку в снимке.
+    vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("7.00"))
+    # DC-9: на что действует скидка владельца — вся сделка (дефолт) или позиция.
+    DISCOUNT_SCOPES = [("deal", _("Ganze Buchung")), ("position", _("Übernachtung"))]
+    discount_scope = models.CharField(max_length=12, choices=DISCOUNT_SCOPES, default="deal")
     arrival = models.DateField()
     departure = models.DateField()
     guests = models.PositiveSmallIntegerField(default=1)  # итого (adults + children)

@@ -88,6 +88,9 @@ IC_CAL = (
 
 @dataclass
 class Line:
+    # Правка владельца 2026-08-25: на месте прежней колонки «Menge» — порядковый
+    # номер; количество переехало ПОСЛЕ цены за штуку. index проставляется при
+    # рендере карточки (нумерация подряд), qty остаётся текстом позиции.
     qty: str
     title: str
     note: str = ""
@@ -97,6 +100,7 @@ class Line:
     negative: bool = False
     strike: str = ""  # зачёркнутая цена до скидки
     disc_note: str = ""  # «Rabatt −10 % · Stammkunde»
+    index: str = ""  # порядковый номер строки (проставляет render)
 
 
 @dataclass
@@ -166,13 +170,14 @@ def render_line(ln):
         if ln.strike
         else ln.unit
     )
-    return f"""        <div style="display: grid; grid-template-columns: 54px minmax(0, 1fr) 92px 118px 104px; gap: 10px; padding: 11px 0; border-bottom: 1px solid {LINE}; align-items: center; font-size: 14px">
-          <div style="font-variant-numeric: tabular-nums; color: {MUTED}">{ln.qty}</div>
+    return f"""        <div style="display: grid; grid-template-columns: 34px minmax(0, 1fr) 92px 118px 74px 104px; gap: 10px; padding: 11px 0; border-bottom: 1px solid {LINE}; align-items: center; font-size: 14px">
+          <div style="font-variant-numeric: tabular-nums; color: {FAINT}; font-size: 12.5px">{ln.index}</div>
           <div style="min-width: 0">
             <div>{ln.title}{note}</div>{disc}
           </div>
           <div style="text-align: right; color: {MUTED}; font-variant-numeric: tabular-nums">{ln.vat}</div>
           <div style="text-align: right; font-variant-numeric: tabular-nums">{unit}</div>
+          <div style="text-align: right; color: {MUTED}; font-variant-numeric: tabular-nums">{ln.qty}</div>
           <div style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; color: {color}">{ln.total}</div>
         </div>
 """
@@ -255,6 +260,8 @@ def render_calendar(cal):
 
 
 def render(card: Card) -> str:
+    for i, ln in enumerate(card.lines, start=1):
+        ln.index = str(i)
     lines_html = "".join(render_line(ln) for ln in card.lines)
 
     totals_html = ""
@@ -365,8 +372,8 @@ def render(card: Card) -> str:
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 54px minmax(0, 1fr) 92px 104px 104px; gap: 10px; padding: 8px 0; border-bottom: 1px solid {LINE}; font-size: 11.5px; color: {MUTED}; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em">
-          <div>Menge</div><div>Position</div><div style="text-align: right">MwSt.</div><div style="text-align: right">Einzel</div><div style="text-align: right">Summe</div>
+        <div style="display: grid; grid-template-columns: 34px minmax(0, 1fr) 92px 118px 74px 104px; gap: 10px; padding: 8px 0; border-bottom: 1px solid {LINE}; font-size: 11.5px; color: {MUTED}; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em">
+          <div>Nr.</div><div>Position</div><div style="text-align: right">MwSt.</div><div style="text-align: right">Einzel</div><div style="text-align: right">Menge</div><div style="text-align: right">Summe</div>
         </div>
 
 {lines_html}

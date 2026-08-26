@@ -262,6 +262,9 @@ class Event(I18nMixin, TimestampedModel):
     # 0 = без лимита мест; иначе анти-овердрафт пускает, пока продано < capacity.
     capacity = models.PositiveIntegerField(default=0)
     price_cents = models.PositiveIntegerField(default=0)  # за одно место (брутто)
+    # DC-8: ставка НДС билета (DE — обычно 19 %; культурные мероприятия бывают
+    # 7 %, поэтому настраивается, а не зашита). Снимком уходит в билет.
+    vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("19.00"))
     # Анкета участника: список вопросов (метки). Ответы — в Ticket.answers.
     questions = models.JSONField(default=list, blank=True)
     # A6: программа ретрита/мероприятия — список строк-пунктов (агенда). Показ
@@ -614,6 +617,11 @@ class Ticket(TimestampedModel):
     quantity = models.PositiveSmallIntegerField(default=1)  # мест в билете
     price_cents = models.PositiveIntegerField(default=0)  # снимок цены за место
     tier_label = models.CharField(max_length=120, blank=True)  # A6: снимок тира
+    # DC-8: СНИМОК ставки НДС билета на момент покупки.
+    vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("19.00"))
+    # DC-9: область действия скидки владельца.
+    DISCOUNT_SCOPES = [("deal", _("Ganzes Ticket")), ("position", _("Tarif"))]
+    discount_scope = models.CharField(max_length=12, choices=DISCOUNT_SCOPES, default="deal")
     status = models.CharField(max_length=20, choices=STATUSES, default=STATUS_PENDING)
     answers = models.JSONField(default=dict, blank=True)  # ответы на анкету события
     # #7: снимок выбранных Extras [{label, price_cents}] — разово на билет, сумма

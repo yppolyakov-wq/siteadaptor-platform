@@ -1,0 +1,13 @@
+{% load i18n %}
+{% comment %}DC-8: ОДИН источник поля «MwSt.-Satz» для всех форм кабинета —
+правка здесь меняет его у номера, услуги и события сразу (принцип общих блоков).
+Свободного числа нет: опечатка «1,9» стоила бы владельцу неверного счёта.{% endcomment %}
+<div>
+  <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "MwSt.-Satz" %}</label>
+  <select name="vat_rate" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    {% for rate, label in vat_choices %}
+      <option value="{{ rate }}"{% if rate == vat_current %} selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  {% if vat_hint %}<p class="text-xs text-gray-400 mt-1">{{ vat_hint }}</p>{% endif %}
+</div>

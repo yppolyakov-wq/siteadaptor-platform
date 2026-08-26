@@ -8,6 +8,7 @@ Customer переиспользуется по email (как в promotions/order
 
 import secrets
 import string
+from decimal import Decimal
 
 from django.db import transaction
 from django.db.models import Q
@@ -160,6 +161,8 @@ def book(
         service=service,
         promotion=promotion,
         price_cents=int(price_cents or 0),
+        # DC-8: снимок ставки НДС услуги (у записи без услуги — общая 19 %).
+        vat_rate=getattr(service, "vat_rate", None) or Decimal("19.00"),
         extras=list(extras or []),
         voucher_code=voucher_snap,
         discount_cents=discount_cents,

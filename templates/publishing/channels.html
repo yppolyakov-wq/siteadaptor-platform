@@ -153,6 +153,26 @@
   {% endfor %}
 </div>
 
+{% comment %}Фидбэк владельца 2026-08-25: «на странице каналов добавить соцсети,
+телеграм и т.д. — всё, где можем коммуницировать персонально с клиентом».
+Каналы выше — куда УХОДИТ публикация; здесь — где клиент пишет нам и где мы
+отвечаем лично. Слой только читает состояние (`core.personal_channels`) и ведёт
+на существующие экраны настроек.{% endcomment %}
+<h2 class="text-lg font-semibold mt-8 mb-1">{% trans "Persönliche Kanäle" %}</h2>
+<p class="text-sm text-gray-500 mb-3">{% trans "Wo Kundinnen und Kunden dich direkt erreichen." %}</p>
+<div class="grid sm:grid-cols-2 gap-3 max-w-3xl mb-8">
+  {% for c in personal_channels %}
+    <a href="{{ c.url }}" class="flex items-start gap-3 bg-white border border-gray-200 rounded-xl p-4 hover:border-indigo-300">
+      <span class="text-xl leading-none">{{ c.icon }}</span>
+      <span class="min-w-0 flex-1">
+        <span class="block font-medium">{{ c.label }}</span>
+        <span class="block text-xs text-gray-500 truncate">{{ c.hint }}</span>
+      </span>
+      <span class="text-xs shrink-0 {% if c.ready %}text-green-600{% else %}text-gray-400{% endif %}">{% if c.ready %}✓ {% trans "aktiv" %}{% else %}{% trans "einrichten" %} →{% endif %}</span>
+    </a>
+  {% endfor %}
+</div>
+
 <h2 class="text-lg font-semibold mt-8 mb-3">{% trans "Recent publications" %}</h2>
 {% if publications %}
 <div class="overflow-x-auto">

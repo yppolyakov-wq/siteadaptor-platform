@@ -75,15 +75,13 @@ def test_snapshot_rows_carry_option_id():
     """MX-0: снимок несёт id/unit_cents/per_night — фундамент Zusatzverkäufe."""
     e = Extra.objects.create(label="Parkplatz", price_cents=800, scope=Extra.SCOPE_STAYS)
     snap = extras_engine.snapshot([e.pk], "stays", nights=3)
-    assert snap == [
-        {
-            "id": str(e.pk),
-            "label": "Parkplatz",
-            "price_cents": 800,
-            "unit_cents": 800,
-            "per_night": False,
-        }
-    ]
+    # Сверяем ПОЛЯ, а не dict целиком (снимок дорастает ключами: DC-8 добавил
+    # ставку НДС) — правило записано в CLAUDE.md после волны MX.
+    assert len(snap) == 1
+    row = snap[0]
+    assert row["id"] == str(e.pk) and row["label"] == "Parkplatz"
+    assert row["price_cents"] == 800 and row["unit_cents"] == 800
+    assert row["per_night"] is False
 
 
 def test_move_keeps_stay_promo_discount():

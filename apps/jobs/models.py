@@ -39,6 +39,10 @@ class Job(I18nMixin, TimestampedModel):
     # (DSGVO-стирание анонимизирует Customer, не удаляя записи).
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name="jobs")
     reference_code = models.CharField(max_length=12, unique=True)  # "A-XXXXXX"
+    # DC-4 (ТЗ владельца 2026-08-25): внешний номер сделки — номер кассы, портала
+    # или бумажной книги; вводится вручную и ищется поиском сделок. Машинные
+    # ключи импорта (external_ref у брони номера) этим полем НЕ подменяются.
+    external_code = models.CharField(max_length=50, blank=True, db_index=True)
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     # I18N-12: перевод ПОКАЗА демо-заявок в кабинете (реальные заявки клиентов

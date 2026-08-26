@@ -1,9 +1,8 @@
 {% load i18n cabinet %}
-{% comment %}Фидбэк владельца 2026-07-27: карточка брони (FB-11) — общий партиал
-для страницы booking_detail И инлайн-панели под Belegungsplan (клик по плашке →
-fetch ?buchung=<pk>&box=1). Контекст: b, can_delete, registration, units.
-Плюс форма «Bearbeiten» — даты/номер/гости/заметка с опц. перерасчётом цены
-(до сих пор бронь редактировалась только переносом дат).{% endcomment %}
+{% comment %}Фидбэк владельца 2026-07-27: карточка брони — панель под
+Belegungsplan (клик по плашке → fetch ?buchung=<pk>&box=1). DC-1: тело собрано из
+ТЕХ ЖЕ партиалов `stays/_stay_*.html`, что и страница брони, — правка партиала
+меняет обе поверхности. Контекст: b, can_delete, registration, units.{% endcomment %}
 <div class="flex items-center justify-between gap-3 flex-wrap mt-2 mb-1">
   <h1 class="text-2xl font-bold">{{ b.unit.name }}{% if b.room %} · 🚪{{ b.room.number }}{% endif %} · {{ b.reference_code }}</h1>
   <span class="text-xs font-semibold px-2.5 py-1 rounded-full
@@ -20,8 +19,6 @@ fetch ?buchung=<pk>&box=1). Контекст: b, can_delete, registration, units
     {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
     {% include "core/_status_actions.html" with kind="stay" obj=b %}
   </form>
-  {% comment %}Батч C (решение владельца): hard-delete только для ручных броней
-  без денег (manual + не оплачено + без счёта) — GoBD; прочие лишь отменяются.{% endcomment %}
   {% if can_delete %}
   <form method="post" action="{% url 'stays:booking-delete' b.pk %}" onsubmit="return confirm('{% trans 'Delete this booking permanently?' %}')">
     {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
@@ -31,163 +28,30 @@ fetch ?buchung=<pk>&box=1). Контекст: b, can_delete, registration, units
 </div>
 
 <div class="grid sm:grid-cols-2 gap-4 mb-4">
-  {# Гость #}
   <div class="bg-white rounded-2xl shadow-sm p-4">
     <h2 class="font-semibold mb-2">👤 {% trans "Gast" %}</h2>
-    <p class="font-medium">{{ b.customer.name|default:b.customer }}</p>
-    {% if b.customer.email %}<p class="text-sm text-gray-600"><a href="mailto:{{ b.customer.email }}" class="hover:underline">{{ b.customer.email }}</a></p>{% endif %}
-    {% if b.customer.phone %}<p class="text-sm text-gray-600"><a href="tel:{{ b.customer.phone }}" class="hover:underline">{{ b.customer.phone }}</a></p>{% endif %}
-    <p class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
-      {% if crm_active %}<a href="{% url 'crm:customer-detail' b.customer.pk %}" class="text-sm text-indigo-600 hover:underline">{% trans "Open customer card" %} →</a>{% endif %}
-      {% include "core/_deal_message_button.html" with kind="stay" obj_pk=b.pk %}
-    </p>
-    {% include "core/_deal_customer_edit.html" with kind="stay" obj_pk=b.pk customer=b.customer next_path=request.get_full_path %}
-    <p class="text-sm text-gray-600 mt-2">{{ b.adults }} {% trans "Erwachsene" %}{% if b.children %} · {{ b.children }} {% trans "Kinder" %}{% endif %}{% if b.rooms > 1 %} · {{ b.rooms }} {% trans "Zimmer" %}{% endif %}</p>
-    {% if b.note %}<p class="mt-2 text-sm bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">📝 {{ b.note }}</p>{% endif %}
+    {% include "stays/_stay_guest.html" %}
   </div>
-
-  {# Aufenthalt #}
   <div class="bg-white rounded-2xl shadow-sm p-4">
     <h2 class="font-semibold mb-2">🛏️ {% trans "Aufenthalt" %}</h2>
-    <p class="text-sm"><span class="text-gray-500">{% trans "Anreise" %}:</span> <span class="font-medium">{{ b.arrival|date:"l, d.m.Y" }}</span></p>
-    <p class="text-sm"><span class="text-gray-500">{% trans "Abreise" %}:</span> <span class="font-medium">{{ b.departure|date:"l, d.m.Y" }}</span></p>
-    <p class="text-sm text-gray-600 mt-1">{% blocktrans with n=b.nights %}{{ n }} Nächte{% endblocktrans %}</p>
-    {% if b.rate_snapshot.name %}
-      <p class="text-sm text-gray-600 mt-2">{% trans "Tarif" %}: {{ b.rate_snapshot.name }}{% if b.rate_snapshot.meal_label %} · {{ b.rate_snapshot.meal_label }}{% endif %}</p>
-      {% if b.rate_snapshot.cancellation_label %}<p class="text-xs text-gray-400">{{ b.rate_snapshot.cancellation_label }}</p>{% endif %}
-    {% endif %}
+    {% include "stays/_stay_stay.html" %}
   </div>
 </div>
 
 {% if b.status == 'pending' or b.status == 'confirmed' %}
-{# Фидбэк 2026-07-27: правка брони — даты/номер/гости/заметка одним сохранением. #}
 <div class="bg-white rounded-2xl shadow-sm p-4 mb-4">
   <h2 class="font-semibold mb-2">✏️ {% trans "Buchung bearbeiten" %}</h2>
-  <form method="post" action="{% url 'stays:stay-action' b.pk %}" class="grid sm:grid-cols-2 gap-3">
-    {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
-    <input type="hidden" name="action" value="update">
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Anreise" %}</label>
-      <input type="date" name="arrival" value="{{ b.arrival|date:'Y-m-d' }}" required class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Abreise" %}</label>
-      <input type="date" name="departure" value="{{ b.departure|date:'Y-m-d' }}" required class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Unit" %}</label>
-      <select name="unit" class="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm">
-        {% for u in units %}<option value="{{ u.pk }}" {% if u.pk == b.unit_id %}selected{% endif %}>{{ u.name }}</option>{% endfor %}
-      </select>
-    </div>
-    {% if free_rooms or b.room %}
-    {# PMS-R2: физический номер — только свободные на диапазон комнаты категории #}
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">🚪 {% trans "Zimmer" %}</label>
-      <select name="room" class="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm">
-        <option value="">— {% trans "no room assigned" %}</option>
-        {% for r in free_rooms %}<option value="{{ r.pk }}" {% if r.pk == b.room_id %}selected{% endif %}>🚪 {{ r.number }}</option>{% endfor %}
-      </select>
-    </div>
-    {% endif %}
-    <div class="grid grid-cols-2 gap-3">
-      <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Erwachsene" %}</label>
-        <input type="number" name="adults" min="1" max="50" value="{{ b.adults }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Kinder" %}</label>
-        <input type="number" name="children" min="0" max="50" value="{{ b.children }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-      </div>
-    </div>
-    <div class="sm:col-span-2">
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Note (optional)" %}</label>
-      <textarea name="note" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ b.note }}</textarea>
-    </div>
-    {% if edit_extras %}
-    {# MX-3: правка состава допов; сентинел — форма без блока ничего не стирает (W0). #}
-    <div class="sm:col-span-2">
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Zusatzleistungen" %}</label>
-      <input type="hidden" name="extras_present" value="1">
-      <div class="flex flex-wrap gap-2">
-        {% for e in edit_extras %}
-        <label class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm cursor-pointer hover:border-indigo-300">
-          <input type="checkbox" name="extra" value="{{ e.pk }}" {% if e.pk|stringformat:"s" in chosen_extra_ids %}checked{% endif %} class="rounded border-gray-300">
-          {{ e.label }} <span class="text-xs text-gray-400">+{{ e.price_eur|floatformat:2 }} €{% if e.per_night %}/{% trans "night" %}{% endif %}</span>
-        </label>
-        {% endfor %}
-      </div>
-      <p class="mt-1 text-xs text-gray-400">{% trans "Änderungen an Zusatzleistungen berechnen den Preis neu." %}</p>
-    </div>
-    {% endif %}
-    <label class="sm:col-span-2 inline-flex items-center gap-2 text-sm text-gray-600">
-      <input type="checkbox" name="reprice" value="1" checked class="rounded border-gray-300">
-      {% trans "Preis neu berechnen" %}
-      <span class="text-xs text-gray-400">({% trans "unchecked = price is kept" %})</span>
-    </label>
-    <div class="sm:col-span-2">
-      <button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
-    </div>
-  </form>
+  {% include "stays/_stay_edit.html" %}
 </div>
 {% endif %}
 
-{# Betrag & Zahlung #}
 <div class="bg-white rounded-2xl shadow-sm p-4 mb-4">
   <h2 class="font-semibold mb-2">💶 {% trans "Betrag & Zahlung" %}</h2>
-  {% if b.total_cents %}
-    <p class="text-xl font-bold">{{ b.total_eur|floatformat:2 }} €</p>
-    <ul class="mt-1 text-sm text-gray-600 space-y-0.5">
-      {% for x in b.extras %}<li>+ {{ x.label }}</li>{% endfor %}
-      {% if b.kurtaxe_cents %}<li>{% trans "inkl. Kurtaxe" %}: {{ b.kurtaxe_eur|floatformat:2 }} €</li>{% endif %}
-      {% if b.voucher_code %}<li>{% trans "Gutschein" %} {{ b.voucher_code }}: −{{ b.discount_eur|floatformat:2 }} €</li>{% endif %}
-      {% if b.auto_discount_cents %}<li>{{ b.auto_discount_label|default:"Rabatt" }}: −{{ b.auto_discount_eur|floatformat:2 }} €</li>{% endif %}
-    </ul>
-    {% if price_rows %}
-      {% comment %}Фидбэк 2026-07-30: разбивка ПО НОЧАМ — видно, какая ночь по
-      какому сезону/выходному тарифу посчитана (мультисезонная бронь).{% endcomment %}
-      <details class="mt-2">
-        <summary class="text-sm text-indigo-600 cursor-pointer select-none">{% trans "Preis pro Nacht anzeigen" %}</summary>
-        <table class="mt-2 w-full text-sm">
-          {% for r in price_rows %}
-            <tr class="border-t border-gray-100">
-              <td class="py-1 text-gray-600">{{ r.date|date:"D, d.m.Y" }}</td>
-              <td class="py-1 text-gray-400 text-xs">{{ r.label }}</td>
-              <td class="py-1 text-right tabular-nums">{{ r.eur|floatformat:2 }} €</td>
-            </tr>
-          {% endfor %}
-        </table>
-      </details>
-    {% endif %}
-  {% else %}
-    <p class="text-sm text-gray-400">{% trans "Kein Preis hinterlegt." %}</p>
-  {% endif %}
-  <p class="mt-2 text-sm">
-    {% if b.deposit_cents %}{% trans "Anzahlung" %}: {{ b.deposit_eur|floatformat:2 }} € · {% endif %}
-    {% trans "Zahlung" %}:
-    {% if b.payment_state == 'paid' %}<span class="text-emerald-700 font-medium">✓ {% trans "bezahlt" %}</span>
-    {% elif b.payment_state == 'pending' %}<span class="text-amber-700 font-medium">{% trans "ausstehend" %}</span>
-    {% elif b.payment_state == 'refunded' %}<span class="text-gray-500">{% trans "erstattet" %}</span>
-    {% else %}<span class="text-gray-500">{% trans "vor Ort" %}</span>{% endif %}
-  </p>
-  {# PMS-A3: оплата на стойке (наличные/EC) — тот же stay-action, что статусы. #}
-  {% if b.payment_state != 'paid' and b.payment_state != 'refunded' and b.status != 'cancelled' %}
-  <form method="post" action="{% url 'stays:stay-action' b.pk %}" class="mt-2">
-    {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
-    <input type="hidden" name="action" value="mark_paid">
-    <button type="submit" class="text-sm border border-emerald-300 text-emerald-700 rounded-lg px-3 py-1.5 hover:bg-emerald-50">💶 {% trans "Als bezahlt markieren" %}</button>
-  </form>
-  {% endif %}
+  {% include "stays/_stay_amount.html" %}
+  {% include "stays/_stay_payment.html" %}
 </div>
 
-{# Meldeschein (G6) #}
 <div class="bg-white rounded-2xl shadow-sm p-4 mb-4">
   <h2 class="font-semibold mb-2">🪪 {% trans "Meldeschein" %}</h2>
-  {% if registration %}
-    <p class="text-sm">{{ registration.first_name }} {{ registration.last_name }}{% if registration.nationality %} · {{ registration.nationality }}{% endif %}</p>
-    {% if registration.street %}<p class="text-sm text-gray-600">{{ registration.street }}, {{ registration.postal_code }}</p>{% endif %}
-    <p class="text-xs text-gray-400 mt-1">{% trans "Online ausgefüllt" %} · {{ registration.created_at|date:"d.m.Y H:i" }}</p>
-  {% else %}
-    <p class="text-sm text-gray-400">{% trans "Noch nicht ausgefüllt." %} <a href="{% url 'stays:checkins' %}" class="text-indigo-600 hover:underline">{% trans "Online-Checkins" %} →</a></p>
-  {% endif %}
+  {% include "stays/_stay_meldeschein.html" %}
 </div>

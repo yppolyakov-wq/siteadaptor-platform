@@ -1,0 +1,17 @@
+{% load i18n cabinet %}
+{% comment %}DC-6 (ТЗ владельца 2026-08-25 «оплата … и там же выставление счёта,
+при необходимости с выбором языка»): кнопка счёта — ОДИН партиал на карточки
+сделок. Черновик переиспользуется (приёмник `deal-invoice`), язык документа
+выбирается на самой странице счёта (общий doc-слой I18N-7b).
+Параметры include: deal_kind, deal (контракт), deal_invoice_id, finance_active.{% endcomment %}
+{% if finance_active %}
+  <div class="flex flex-wrap items-center gap-2 pt-2" data-deal-invoice>
+    <form method="post" action="{% url 'deal-invoice' deal_kind deal.pk %}">
+      {% csrf_token %}
+      <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">🧾 {% trans "Rechnung erstellen" %}</button>
+    </form>
+    {% if deal_invoice_id %}
+      <a href="{% url 'finance:invoice-detail' deal_invoice_id %}" class="text-sm text-indigo-600 hover:underline">{% trans "Open invoice" %} →</a>
+    {% endif %}
+  </div>
+{% endif %}

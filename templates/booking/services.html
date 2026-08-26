@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block dash_title %}{% trans "Services" %}{% endblock %}
 
 {% block dash_content %}
@@ -122,6 +122,7 @@
         <label class="block text-xs text-gray-500 mb-1">{% trans "Price (€)" %}</label>
         <input name="price_eur" type="text" value="{{ s.price_eur|stringformat:'.2f' }}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
       </div>
+      {% vat_select s.vat_rate %}
       <div class="flex items-center gap-2">
         <button class="bg-indigo-600 text-white rounded-lg px-3 py-1.5 text-sm hover:bg-indigo-700">{% trans "Save" %}</button>
         <button name="action" value="toggle" class="text-xs text-gray-500 hover:underline">{% if s.is_active %}{% trans "Off" %}{% else %}{% trans "On" %}{% endif %}</button>
@@ -199,6 +200,7 @@
       <label class="block text-sm font-medium mb-1">{% trans "Price (€)" %}</label>
       <input name="price_eur" type="text" placeholder="49" class="w-full rounded-lg border border-gray-300 px-3 py-2">
     </div>
+    {% vat_select "19.00" %}
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Deposit (€, optional)" %}</label>
       <input name="deposit_eur" type="text" placeholder="0" class="w-full rounded-lg border border-gray-300 px-3 py-2">

@@ -1,0 +1,20 @@
+{% load i18n cabinet %}
+{% comment %}DC-1: кусок карточки брони — общий для страницы (скелет
+`core/deal_card_base.html`) и для панели под Belegungsplan (fetch ?buchung=&box=1).
+Один источник: правка здесь меняет обе поверхности.{% endcomment %}
+  <p class="mt-2 text-sm">
+    {% if b.deposit_cents %}{% trans "Anzahlung" %}: {{ b.deposit_eur|floatformat:2 }} € · {% endif %}
+    {% trans "Zahlung" %}:
+    {% if b.payment_state == 'paid' %}<span class="text-emerald-700 font-medium">✓ {% trans "bezahlt" %}</span>
+    {% elif b.payment_state == 'pending' %}<span class="text-amber-700 font-medium">{% trans "ausstehend" %}</span>
+    {% elif b.payment_state == 'refunded' %}<span class="text-gray-500">{% trans "erstattet" %}</span>
+    {% else %}<span class="text-gray-500">{% trans "vor Ort" %}</span>{% endif %}
+  </p>
+  {# PMS-A3: оплата на стойке (наличные/EC) — тот же stay-action, что статусы. #}
+  {% if b.payment_state != 'paid' and b.payment_state != 'refunded' and b.status != 'cancelled' %}
+  <form method="post" action="{% url 'stays:stay-action' b.pk %}" class="mt-2">
+    {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <input type="hidden" name="action" value="mark_paid">
+    <button type="submit" class="text-sm border border-emerald-300 text-emerald-700 rounded-lg px-3 py-1.5 hover:bg-emerald-50">💶 {% trans "Als bezahlt markieren" %}</button>
+  </form>
+  {% endif %}

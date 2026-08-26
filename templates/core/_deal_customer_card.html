@@ -1,0 +1,26 @@
+{% load i18n %}
+{% comment %}DC-1: клиент сделки — ОДНА карточка на все архетипы. Имя ведёт в
+полную карточку CRM, рядом вход в переписку (C1) и правка контакта (SH-5).
+Гейты модулей fail-closed: без CRM/Inbox ссылки не рисуются, а не ведут в 404.
+{% endcomment %}
+<div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5" data-deal-block="customer">
+  <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Kunde" %}</p>
+  {% if deal.customer %}
+    <p class="text-sm font-semibold">
+      {% if crm_active %}<a href="{% url 'crm:customer-detail' deal.customer.pk %}" class="text-indigo-600 hover:underline">{{ deal.customer.name|default:deal.customer }}</a>
+      {% else %}{{ deal.customer.name|default:deal.customer }}{% endif %}
+    </p>
+    {% comment %}QF-3: контакты — кликабельной строкой, а не серым мелким текстом.{% endcomment %}
+    {% if deal.customer.email %}<p class="text-sm break-all"><a href="mailto:{{ deal.customer.email }}" class="text-indigo-700 hover:underline">✉ {{ deal.customer.email }}</a></p>{% endif %}
+    {% if deal.customer.phone %}<p class="text-sm"><a href="tel:{{ deal.customer.phone }}" class="text-indigo-700 hover:underline">📞 {{ deal.customer.phone }}</a></p>{% endif %}
+    {% if not deal.customer.email and not deal.customer.phone %}<p class="text-sm text-amber-700">{% trans "Keine Kontaktdaten hinterlegt" %}</p>{% endif %}
+    <p class="mt-2">{% include "core/_deal_message_button.html" with kind=deal_kind obj_pk=deal.pk %}</p>
+    {% comment %}Карточка может отключить общую правку контакта, если у неё своя
+    форма с дополнительными полями (у заявки — адрес объекта).{% endcomment %}
+    {% if deal_customer_edit is not False %}
+      {% include "core/_deal_customer_edit.html" with kind=deal_kind obj_pk=deal.pk customer=deal.customer next_path=request.get_full_path %}
+    {% endif %}
+  {% else %}
+    <p class="text-sm text-gray-500">{% trans "Kein Kundenkonto hinterlegt." %}</p>
+  {% endif %}
+</div>

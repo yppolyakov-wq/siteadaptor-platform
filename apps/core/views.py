@@ -3889,6 +3889,114 @@ def deal_customer_edit(request, kind, pk):
 
 
 @login_required
+@require_POST
+def deal_invoice(request, kind, pk):
+    """DC-6: счёт из сделки — один приёмник на все виды.
+
+    Черновик ПЕРЕИСПОЛЬЗУЕТСЯ (повторный клик не плодит дубли в Finanzen;
+    номер присваивает только `issue_invoice` — GoBD цел). Гейт — активный
+    модуль «Finanzen»: без него страница счёта упёрлась бы в гейт путей."""
+    from django.http import Http404
+    from django.urls import reverse
+
+    from apps.core import transactions
+    from apps.finance import services as finance_services
+    from apps.finance.models import Invoice
+
+    builders = {
+        "order": finance_services.invoice_from_order,
+        "stay": finance_services.invoice_from_stay,
+        "booking": finance_services.invoice_from_booking,
+    }
+    tenant = getattr(request, "tenant", None)
+    if kind not in builders or not (tenant and tenant.is_module_active("finance")):
+        raise Http404("no invoice for this deal")
+    obj = get_object_or_404(transactions.model_for(kind), pk=pk)
+    invoice = None
+    existing = getattr(obj, "invoice_id", None)
+    if existing:
+        invoice = Invoice.objects.filter(pk=existing).first()
+    if invoice is None:
+        invoice = builders[kind](obj, tenant=tenant)
+        if hasattr(obj, "invoice_id"):
+            obj.invoice_id = invoice.pk
+            obj.save(update_fields=["invoice_id", "updated_at"])
+        messages.success(request, _("Rechnungsentwurf erstellt."))
+    return redirect(reverse("finance:invoice-detail", args=[invoice.pk]))
+
+
+@login_required
+@require_POST
+def deal_discount_edit(request, kind, pk):
+    """DC-5: скидка владельца с карточки ЛЮБОЙ сделки — один приёмник.
+
+    Сумма вводится в евро (немецкая запятая тоже принимается), пересчёт итога
+    делает домен (`core.deal_discount`), поэтому скидка попадает в общую цену
+    и в письма/PDF, а не остаётся подписью на экране."""
+    from decimal import Decimal, InvalidOperation
+
+    from django.http import Http404
+    from django.urls import reverse
+
+    from apps.core import deal_discount, transactions
+
+    if not deal_discount.supports(kind):
+        raise Http404("kind has no discount")
+    obj = get_object_or_404(transactions.model_for(kind), pk=pk)
+    raw = (request.POST.get("discount") or "0").replace(",", ".").strip()
+    try:
+        cents = int(Decimal(raw or "0") * 100)
+    except (InvalidOperation, ValueError):
+        messages.error(request, _("Bitte einen gültigen Betrag eingeben."))
+        cents = None
+    if cents is not None:
+        deal_discount.set_discount(
+            kind,
+            obj,
+            cents=cents,
+            note=(request.POST.get("discount_note") or "").strip(),
+            scope=(request.POST.get("discount_scope") or "").strip(),
+            tenant=getattr(request, "tenant", None),
+        )
+        messages.success(request, _("Rabatt gespeichert."))
+    nxt = request.POST.get("next", "")
+    if not (nxt.startswith("/") and not nxt.startswith("//")):
+        nxt = transactions.transaction_for(kind, obj).manage_url or reverse("verkaeufe")
+    return redirect(nxt)
+
+
+@login_required
+@require_POST
+def deal_external_edit(request, kind, pk):
+    """DC-4 (ТЗ владельца 2026-08-25): внешний номер сделки — ОДИН приёмник на все
+    виды (как `deal-customer-edit` для контакта и `board-action` для статусов).
+
+    Собственный `reference_code` не трогаем: на него ссылаются письма, PDF,
+    платежи и поиск. Внешний номер — свободное поле рядом (касса, портал,
+    бумажная книга), ищется поиском сделок."""
+    from django.http import Http404
+    from django.urls import reverse
+
+    from apps.core import transactions
+
+    if kind not in transactions.TRANSACTION_KINDS:
+        raise Http404("unknown kind")
+    model = transactions.model_for(kind)
+    if not hasattr(model, "external_code"):
+        raise Http404("kind has no external code")
+    obj = get_object_or_404(model, pk=pk)
+    value = (request.POST.get("external_code") or "").strip()[:50]
+    if value != obj.external_code:
+        obj.external_code = value
+        obj.save(update_fields=["external_code", "updated_at"])
+        messages.success(request, _("Externe Nummer gespeichert."))
+    nxt = request.POST.get("next", "")
+    if not (nxt.startswith("/") and not nxt.startswith("//")):
+        nxt = transactions.transaction_for(kind, obj).manage_url or reverse("verkaeufe")
+    return redirect(nxt)
+
+
+@login_required
 def deal_link_view(request, kind, pk):
     """VS-3c: экран привязки сделки (кабинет). GET — поиск кандидатов, POST — привязка.
 

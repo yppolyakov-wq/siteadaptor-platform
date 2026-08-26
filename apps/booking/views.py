@@ -7,6 +7,7 @@
 """
 
 from datetime import datetime, time, timedelta
+from decimal import Decimal
 
 import stripe
 from django.contrib import messages
@@ -19,7 +20,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.billing import connect
-from apps.core import deal_links
+from apps.core import deal_links, vat
 from apps.core.fsm import IllegalTransition
 from apps.core.i18n_input import (
     apply_i18n_overlay,
@@ -195,6 +196,11 @@ def booking_detail(request, pk):
     chosen_extra_ids = {
         str(e.get("id")) for e in (booking.extras or []) if isinstance(e, dict) and e.get("id")
     }
+    # DC-1: общий скелет карточки сделки (core/deal_card_base.html) — голова,
+    # статус, клиент, связи и календарь приходят из одного источника; здесь
+    # остаётся только специфика записи.
+    from apps.core import deal_card
+
     return render(
         request,
         "booking/booking_detail.html",
@@ -203,15 +209,13 @@ def booking_detail(request, pk):
             "nav": "booking",
             "edit_extras": edit_extras,
             "chosen_extra_ids": chosen_extra_ids,
-            # VS-3: связь с якорной сделкой (запись может быть услугой к брони).
-            "deal_links": deal_links.block_context("booking", booking.pk),
-            # VF-16/C1: входы «карточка клиента» и «написать клиенту» — fail-closed
-            # гейты модулей (без них ссылки вели бы в 404 гейта путей).
-            "crm_active": bool(
-                getattr(request, "tenant", None) and request.tenant.is_module_active("crm")
-            ),
-            "inbox_active": bool(
-                getattr(request, "tenant", None) and request.tenant.is_module_active("inbox")
+            **deal_card.card_context(
+                request,
+                "booking",
+                booking,
+                sections=("items", "discount", "totals", "payment"),
+                # VS-3: связь с якорной сделкой (запись может быть услугой к брони).
+                links=deal_links.block_context("booking", booking.pk),
             ),
         },
     )
@@ -728,6 +732,8 @@ def services_view(request, pk=None):
                     or {},  # A3: фото услуги
                     duration_minutes=_int(request.POST.get("duration"), 30, 5, 1440),
                     price_cents=_eur_to_cents(request.POST.get("price_eur")),
+                    # DC-8: ставка НДС услуги (DE — обычно 19 %).
+                    vat_rate=vat.parse_rate(request.POST.get("vat_rate"), Decimal("19.00")),
                     deposit_cents=_eur_to_cents(request.POST.get("deposit_eur")),
                     is_video=bool(request.POST.get("is_video")),  # LS-1
                     # MX-5: режим цены (""=за бронь | per_person).
@@ -744,8 +750,11 @@ def services_view(request, pk=None):
             service = get_object_or_404(Service, pk=request.POST.get("service"))
             service.duration_minutes = _int(request.POST.get("duration"), 30, 5, 1440)
             service.price_cents = _eur_to_cents(request.POST.get("price_eur"))
+            # DC-8: ставка НДС — presence-guard (поле есть только в форме услуги).
+            if request.POST.get("vat_rate") is not None:
+                service.vat_rate = vat.parse_rate(request.POST.get("vat_rate"), service.vat_rate)
             service.description = request.POST.get("description", "").strip()  # A3
-            fields = ["duration_minutes", "price_cents", "description", "updated_at"]
+            fields = ["duration_minutes", "price_cents", "vat_rate", "description", "updated_at"]
             # L3d: name правится тоже — но только если поле явно прислано
             # (presence-guard: старые клиенты формы без name не затронуты).
             new_name = request.POST.get("name")

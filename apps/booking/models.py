@@ -7,6 +7,8 @@
 (AvailabilityRule) + точечные исключения (ClosedDate).
 """
 
+from decimal import Decimal
+
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -98,6 +100,8 @@ class Service(I18nMixin, TimestampedModel):
     image = models.JSONField(default=dict, blank=True)
     duration_minutes = models.PositiveSmallIntegerField(default=30)
     price_cents = models.PositiveIntegerField(default=0)
+    # DC-8: ставка НДС услуги (DE — обычно 19 %). Снимком уходит в запись.
+    vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("19.00"))
     deposit_cents = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
     # LS-1: видео-консультация (v1 = WhatsApp-видео, wa.me-линк в письмах и на
@@ -383,6 +387,18 @@ class Booking(TimestampedModel):
     )
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name="bookings")
     reference_code = models.CharField(max_length=12, unique=True)  # "T-XXXXXX"
+    # DC-4 (ТЗ владельца 2026-08-25): внешний номер сделки — номер кассы, портала
+    # или бумажной книги; вводится вручную и ищется поиском сделок. Машинные
+    # ключи импорта (external_ref у брони номера) этим полем НЕ подменяются.
+    external_code = models.CharField(max_length=50, blank=True, db_index=True)
+    # DC-6: счёт, выставленный по записи (finance.Invoice в той же схеме) —
+    # без жёсткого FK, как у заявки; повторный клик переиспользует черновик.
+    invoice_id = models.UUIDField(null=True, blank=True)
+    # DC-8: СНИМОК ставки НДС записи (каталог может поменять ставку позже).
+    vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("19.00"))
+    # DC-9: область действия скидки владельца.
+    DISCOUNT_SCOPES = [("deal", _("Ganzer Termin")), ("position", _("Leistung"))]
+    discount_scope = models.CharField(max_length=12, choices=DISCOUNT_SCOPES, default="deal")
     # HF-6: несколько периодов, выбранных гостем ЗА ОДИН РАЗ, — это N записей с
     # общим кодом группы (план hf6-multislot-plan-2026-07-31 §2, вариант A). Так
     # движок занятости, календарь и перенос продолжают работать с обычными
