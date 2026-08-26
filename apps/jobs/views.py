@@ -352,8 +352,11 @@ def _save_lines(request, job):
             % {"rows": ", ".join(str(i) for i in dropped)},
         )
 
-    vat_raw = request.POST.get("vat_rate", "19.00")
-    vat_rate = next((r for r in RevenueEntry.VAT_RATES if str(r) == vat_raw), Decimal("19.00"))
+    # Баг, найденный на стенде 2026-08-26: в немецкой локали Decimal рендерится
+    # в атрибут как «19,00», а сравнение шло со строкой «19.00» — совпадения не
+    # было НИКОГДА, и выбор 7 % молча сбрасывался в 19 %. `vat.parse_rate`
+    # нормализует запятую и отбивает чужие значения.
+    vat_rate = vat.parse_rate(request.POST.get("vat_rate"), job.vat_rate or Decimal("19.00"))
     services.set_lines(job, lines, vat_rate=vat_rate, small_business=request.tenant.small_business)
     # CARD-1: срок действия переехал в блок «Dokumente» и приходит СВОЕЙ формой.
     # Без presence-guard сохранение сметы стирало бы его при каждом Save — ровно

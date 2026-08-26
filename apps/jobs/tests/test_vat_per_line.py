@@ -160,3 +160,45 @@ def test_explicit_rate_wins_over_the_catalog():
     )
 
     assert job.lines.get().vat_rate == Decimal("19.00")
+
+
+def test_document_rate_survives_german_decimal_comma():
+    """Баг стенда: в немецкой локали селект шлёт «7,00», а не «7.00».
+
+    Сравнение со строкой «7.00» не совпадало никогда — выбор ставки документа
+    молча сбрасывался в 19 %.
+    """
+    import uuid
+
+    from django.contrib.auth import get_user_model
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.jobs import views
+    from apps.tenants.tests.factories import TenantFactory
+
+    job = _job()
+    request = RequestFactory().post(
+        "/dashboard/auftraege/",
+        {
+            "action": "save_lines",
+            "line_text_1": "Speisen",
+            "line_qty_1": "1",
+            "line_price_1": "100,00",
+            "vat_rate": "7,00",
+        },
+    )
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    owner = uuid.uuid4().hex[:8]
+    request.user = get_user_model().objects.create_user(
+        username=f"o-{owner}", email=f"o-{owner}@test.de", password="pw12345678"
+    )
+    request.tenant = TenantFactory.build()
+
+    views.job_detail(request, pk=job.pk)
+
+    job.refresh_from_db()
+    assert job.vat_rate == Decimal("7.00")
+    assert job.vat_amount == Decimal("7.00")
