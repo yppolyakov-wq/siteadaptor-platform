@@ -627,6 +627,38 @@ def test_vat_rate_saves_from_cabinet_and_foreign_value_is_ignored():
     assert unit.vat_rate == Decimal("19.00")
 
 
+def test_vat_field_is_rendered_on_all_three_forms():
+    """Поле должно БЫТЬ на странице — сохранения мало.
+
+    Рендер ловит то, чего не видит POST-замок: забытый {% load cabinet %} или
+    партиал, вставленный не в ту форму. Источник поля один, поэтому проверяем
+    один и тот же маркер на всех трёх формах."""
+    from apps.booking.models import Service
+    from apps.booking.views import services_view
+    from apps.events.forms import EventForm
+    from apps.stays.views import units
+
+    tenant = _tenant("hotel")
+    unit = StayUnit.objects.create(name="Suite", price_cents=9000, vat_rate=Decimal("7.00"))
+    Service.objects.create(name="Schnitt", price_cents=4000)
+
+    def _html(view, path, **kwargs):
+        req = _req(path, tenant=tenant)
+        resp = view(req, **kwargs)
+        if hasattr(resp, "render"):
+            resp.render()
+        return resp.content.decode()
+
+    unit_html = _html(units, "/dashboard/stays/units/", pk=unit.pk)
+    assert 'name="vat_rate"' in unit_html
+    assert 'value="7.00" selected' in unit_html  # текущая ставка выбрана
+
+    assert 'name="vat_rate"' in _html(services_view, "/dashboard/booking/leistungen/")
+
+    # Событие — ModelForm: поле в самой форме (шаблон рендерит поля циклом).
+    assert "vat_rate" in EventForm().fields
+
+
 def test_event_form_keeps_rate_when_field_is_absent():
     """Событие постят и другие поверхности — пустое поле не сбрасывает ставку."""
     from apps.events.forms import EventForm
