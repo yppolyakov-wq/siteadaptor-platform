@@ -6,22 +6,15 @@
 свои настоящие строки (OrderItem / смета).{% endcomment %}
 <div class="overflow-x-auto">
   <div class="min-w-[34rem]">
-    <div class="grid grid-cols-[2rem_minmax(0,1fr)_4rem_6rem_5rem_6rem] gap-2 pb-2 text-xs font-medium text-gray-400 border-b border-gray-100">
-      <span>{% trans "Nr." %}</span>
-      <span>{% trans "Position" %}</span>
-      <span class="text-right">{% trans "MwSt." %}</span>
-      <span class="text-right">{% trans "Einzel" %}</span>
-      <span class="text-right">{% trans "Menge" %}</span>
-      <span class="text-right">{% trans "Summe" %}</span>
-    </div>
+    {% include "core/_deal_items_head.html" %}
     {% for row in deal_lines %}
-      <div class="grid grid-cols-[2rem_minmax(0,1fr)_4rem_6rem_5rem_6rem] gap-2 py-2 text-sm border-b border-gray-50 items-baseline" data-deal-line>
+      <div class="dl-row py-2 text-sm border-b border-gray-50" data-deal-line>
         <span class="text-gray-400 tabular-nums">{{ forloop.counter }}</span>
         <span class="min-w-0">
           <span class="block">{{ row.label }}</span>
           {% if row.note %}<span class="block text-xs text-gray-400">{{ row.note }}</span>{% endif %}
         </span>
-        <span class="text-right text-xs text-gray-500 tabular-nums">{% if row.rate %}{{ row.rate|floatformat:0 }} %{% else %}—{% endif %}</span>
+        <span class="text-right text-xs text-gray-500 tabular-nums dl-vat">{% if row.rate %}{{ row.rate|floatformat:0 }} %{% else %}—{% endif %}</span>
         <span class="text-right text-gray-600 tabular-nums">{% if row.unit is not None %}{{ row.unit|floatformat:2 }} €{% else %}—{% endif %}</span>
         <span class="text-right text-gray-600 tabular-nums">{% if row.qty is not None %}{{ row.qty }}×{% else %}—{% endif %}</span>
         <span class="text-right font-medium tabular-nums">{{ row.total|floatformat:2 }} €</span>

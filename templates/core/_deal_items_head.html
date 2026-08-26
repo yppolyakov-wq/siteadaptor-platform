@@ -1,0 +1,13 @@
+{% load i18n %}
+{% comment %}DG-1 (владелец 2026-08-26): шапка состава — ОДНА на все виды сделки.
+Колонки заданы классом `.dl-row` (static/src/app.css), поэтому заказ, смета,
+бронь, запись и билет рисуют состав одинаково: правка сетки или подписи здесь
+меняет все карточки сразу.{% endcomment %}
+<div class="dl-row dl-head border-b border-gray-100">
+  <span>{% trans "Nr." %}</span>
+  <span>{% trans "Position" %}</span>
+  <span class="text-right dl-vat">{% trans "MwSt." %}</span>
+  <span class="text-right">{% trans "Einzel" %}</span>
+  <span class="text-right">{% trans "Menge" %}</span>
+  <span class="text-right">{% trans "Summe" %}</span>
+</div>

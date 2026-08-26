@@ -433,3 +433,31 @@ input[type="datetime-local"] {
 [data-cv="kompakt"] [data-combo-body] > * { margin-top: 0; }
 [data-cv="kompakt"] [data-combo-body] > span.line-clamp-3 { display: none; }
 [data-cv="kompakt"] [data-combo-body] > span.text-xl { font-size: 1rem; margin-left: auto; }
+
+/* DG-1 (владелец 2026-08-26: «главный блок с составом заказа должен быть
+   схожий» у всех видов сделки): ОДНА сетка состава на заказ, смету, бронь,
+   запись и билет. Колонки по макету: № · Position · MwSt. · Einzel · Menge ·
+   Summe. Правка здесь меняет таблицу состава во ВСЕХ карточках сразу —
+   раньше заказ жил на фиксированных колонках, а смета на 12-колоночной сетке,
+   и один и тот же блок выглядел как две разные страницы. */
+.dl-row {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr) 3.5rem 6.5rem 5.5rem 6.5rem;
+  gap: 0.5rem;
+  align-items: center;
+}
+.dl-head {
+  font-size: 11px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #9ca3af;
+  align-items: end;
+  padding-bottom: 0.5rem;
+}
+/* Узкий экран: подписи прячем, ячейки становятся строками «поле за полем». */
+@media (max-width: 639px) {
+  .dl-head { display: none; }
+  .dl-row { grid-template-columns: 1.5rem minmax(0, 1fr) 4.5rem; }
+  .dl-row > .dl-vat { display: none; }
+}

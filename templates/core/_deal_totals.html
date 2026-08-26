@@ -9,7 +9,7 @@ Zwischensumme → Rabatt → Netto → MwSt. → Gesamt. ОДИН партиал
 {% endcomment %}
 <div class="space-y-1 text-sm">
   <div class="flex items-center justify-between">
-    <span class="text-gray-500">{% trans "Zwischensumme" %}</span>
+    <span class="text-gray-500">{% if deal_subtotal_is_net %}{% trans "Zwischensumme (netto)" %}{% else %}{% trans "Zwischensumme" %}{% endif %}</span>
     <span class="tabular-nums">{{ deal_lines_total|floatformat:2 }} €</span>
   </div>
   {% if deal_shipping_eur %}

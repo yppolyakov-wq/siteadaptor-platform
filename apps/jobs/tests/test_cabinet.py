@@ -475,7 +475,9 @@ def test_quote_shows_only_filled_rows_plus_one_spare():
     job = _job()
     services.set_lines(job, [{"text": "Buffet", "qty": 1, "unit_price": "480.00"}])
     body = views.job_detail(_req(), pk=job.pk).content.decode()
-    rows = body.count('gap-2" data-qt-row')
+    # DG-1: считаем по САМОМУ маркеру строки — класс сетки теперь общий
+    # (.dl-row) и может меняться; суть замка — число строк в DOM.
+    rows = body.count('data-qt-row="1"')  # разметка, а не строки JS-селекторов
     assert rows == 12  # все строки остаются в DOM (индексы приёмника не меняются)
     # Скрытие — атрибутом И инлайновым display: класс .grid перебивает hidden
     # (стенд ловил, что все двенадцать строк остаются видимыми).

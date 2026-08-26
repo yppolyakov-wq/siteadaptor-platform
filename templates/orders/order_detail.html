@@ -25,24 +25,17 @@ Menge · Summe — количество ПОСЛЕ цены за штуку, н�
   удаляется (кол-во 0), новая добавляется кнопкой. Склад и леджер двигает
   `orders.editing` тем же путём, что создание/отмена. Закрытый заказ —
   read-only: его остаток уже возвращён.{% endcomment %}
-  <div class="grid grid-cols-[1.5rem_minmax(0,1fr)_3.5rem_6rem_4rem_6rem] gap-2 pb-2 border-b border-gray-100 text-[11px] uppercase tracking-wide text-gray-400">
-    <span>{% trans "Nr." %}</span>
-    <span>{% trans "Position" %}</span>
-    <span class="text-right">{% trans "MwSt." %}</span>
-    <span class="text-right">{% trans "Einzel" %}</span>
-    <span class="text-right">{% trans "Menge" %}</span>
-    <span class="text-right">{% trans "Summe" %}</span>
-  </div>
+  {% include "core/_deal_items_head.html" %}
   {% if editable %}
     <form method="post" action="{% url 'orders:order-edit' order.pk %}" class="mb-3">
       {% csrf_token %}
       <input type="hidden" name="action" value="items">
       <div class="divide-y divide-gray-100 border-b border-gray-100">
         {% for item in items %}
-          <div class="grid grid-cols-[1.5rem_minmax(0,1fr)_3.5rem_6rem_4rem_6rem] items-center gap-2 py-2 text-sm">
+          <div class="dl-row py-2 text-sm">
             <span class="text-xs text-gray-300 tabular-nums">{{ forloop.counter }}</span>
             <span class="min-w-0 truncate">{{ item.title_snapshot }}{% if item.sku %} <span class="text-gray-400">· Art.-Nr. {{ item.sku }}</span>{% endif %}{% if item.modifiers_label %} <span class="text-gray-400">({{ item.modifiers_label }})</span>{% endif %}</span>
-            <span class="text-right text-xs text-gray-500 tabular-nums">{% if item.vat_rate %}{{ item.vat_rate|floatformat:0 }} %{% else %}—{% endif %}</span>
+            <span class="text-right text-xs text-gray-500 tabular-nums dl-vat">{% if item.vat_rate %}{{ item.vat_rate|floatformat:0 }} %{% else %}—{% endif %}</span>
             <span class="text-right text-gray-500 tabular-nums whitespace-nowrap">{{ item.unit_price|floatformat:2 }} €</span>
             <input type="number" name="qty_{{ item.pk }}" value="{{ item.qty }}" min="0" step="1"
                    class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm tabular-nums text-right"
@@ -80,10 +73,10 @@ Menge · Summe — количество ПОСЛЕ цены за штуку, н�
   {% else %}
     <div class="divide-y divide-gray-100 border-b border-gray-100">
       {% for item in items %}
-        <div class="grid grid-cols-[1.5rem_minmax(0,1fr)_3.5rem_6rem_4rem_6rem] items-center gap-2 py-2 text-sm">
+        <div class="dl-row py-2 text-sm">
           <span class="text-xs text-gray-300 tabular-nums">{{ forloop.counter }}</span>
           <span class="min-w-0 truncate">{{ item.title_snapshot }}{% if item.sku %} <span class="text-gray-400">· Art.-Nr. {{ item.sku }}</span>{% endif %}{% if item.modifiers_label %} <span class="text-gray-400">({{ item.modifiers_label }})</span>{% endif %}</span>
-          <span class="text-right text-xs text-gray-500 tabular-nums">{% if item.vat_rate %}{{ item.vat_rate|floatformat:0 }} %{% else %}—{% endif %}</span>
+          <span class="text-right text-xs text-gray-500 tabular-nums dl-vat">{% if item.vat_rate %}{{ item.vat_rate|floatformat:0 }} %{% else %}—{% endif %}</span>
           <span class="text-right text-gray-500 tabular-nums whitespace-nowrap">{{ item.unit_price|floatformat:2 }} €</span>
           <span class="text-right text-gray-500 tabular-nums">{{ item.qty }}×</span>
           <span class="text-right font-medium tabular-nums whitespace-nowrap">{{ item.line_total|floatformat:2 }} €</span>

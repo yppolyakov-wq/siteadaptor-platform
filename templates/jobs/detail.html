@@ -47,29 +47,23 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
   {% csrf_token %}
   <input type="hidden" name="action" value="save_lines">
   <div class="space-y-2">
-    {% comment %}DF-7: колонки — как на макете (Nr. · Position · MwSt. · Einzel ·
-    Menge · Summe). У сметы ставка одна на документ, поэтому в строках печатается
-    она же, а меняется ниже одним полем.{% endcomment %}
-    <div class="hidden sm:grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs text-gray-400 font-medium">
-      <span class="col-span-5">{% trans "Position" %}</span>
-      <span class="col-span-1 text-right">{% trans "MwSt." %}</span>
-      <span class="col-span-2 text-right">{% trans "Einzel" %}</span>
-      <span class="col-span-2 text-right">{% trans "Menge" %}</span>
-      {# Фидбэк владельца 2026-08-20 (п.10): итог позиции — в самой строке #}
-      <span class="col-span-2 text-right">{% trans "Summe" %}</span>
-    </div>
+    {% comment %}DG-1: состав сметы — на ОБЩЕЙ сетке карточки сделки (класс
+    .dl-row + общая шапка). У сметы ставка одна на документ, поэтому в строках
+    печатается она же, а меняется ниже одним полем.{% endcomment %}
+    {% include "core/_deal_items_head.html" %}
     {% for row in rows %}
       {% comment %}QF-1: свободные строки лежат в DOM (индексы приёмника не
       меняются), но скрыты — раскрывает кнопка «＋ Position».{% endcomment %}
-      <div class="grid grid-cols-1 sm:grid-cols-12 gap-2" data-qt-row
+      <div class="dl-row py-1" data-qt-row="1"
            {% if not row.visible %}hidden style="display:none"{% endif %}>
+        <span class="text-xs text-gray-300 tabular-nums">{{ forloop.counter }}</span>
         {% comment %}VF-9b (фидбэк 2026-08-24 «зачем эти данные выводить? если
         нужно — просто выбираем из каталога»): селект каталога В КАЖДОЙ строке
         убран — выбор из ассортимента живёт у «＋ Position» (как у заказа).
         Привязку существующей строки держит hidden: приёмник читает line_part_i,
         без поля Save снял бы связь со складом (класс W0).{% endcomment %}
         <input type="hidden" name="line_part_{{ row.i }}" value="{{ row.part_value }}">
-        <div class="col-span-5">
+        <div class="min-w-0">
           <input name="line_text_{{ row.i }}" type="text" value="{% if row.line %}{{ row.line.text }}{% endif %}" placeholder="{% trans 'Position' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
           <span data-qt-linked class="mt-0.5 block text-[11px] text-gray-400{% if not row.part_value %} hidden{% endif %}">📦 {% trans "Aus dem Sortiment" %}</span>
         </div>
@@ -84,8 +78,8 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
         {% comment %}Цена — в немецком формате (поле текстовое, приёмник понимает и
         запятую, и точку): «12.50» рядом с итогом «37,50 €» читалось как разный
         формат в одной строке.{% endcomment %}
-<div class="col-span-1 text-right text-xs text-gray-500 tabular-nums pt-2">{{ job.vat_rate|floatformat:0 }} %</div>
-        <div class="col-span-2">
+<div class="text-right text-xs text-gray-500 tabular-nums dl-vat">{{ job.vat_rate|floatformat:0 }} %</div>
+        <div>
           <input name="line_price_{{ row.i }}" type="text" data-qt-price value="{% if row.line %}{{ row.line.unit_price|floatformat:2 }}{% endif %}" placeholder="0,00" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
           {% comment %}ERP-6 → VF-9b (фидбэк «закупка — это раздел ERP»): видимое
           поле EK со страницы продажи убрано; значение едет hidden'ом — иначе
@@ -93,10 +87,10 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
           по-прежнему делает сервер (философия снимков ERP-1).{% endcomment %}
           <input type="hidden" name="line_cost_{{ row.i }}" value="{% if row.line.cost_rate is not None %}{{ row.line.cost_rate|floatformat:2 }}{% endif %}">
         </div>
-        <div class="col-span-2">
+        <div>
           <input name="line_qty_{{ row.i }}" type="number" min="0.01" step="0.01" data-qt-qty value="{% if row.line %}{{ row.line.qty|floatformat:'-2u' }}{% else %}1{% endif %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
         </div>
-        <div class="col-span-2 flex items-start justify-end gap-1">
+        <div class="flex items-center justify-end gap-1">
           <output data-qt-sum class="px-1 py-1.5 text-sm text-right text-gray-600 tabular-nums">{% if row.line %}{{ row.line.line_total|floatformat:2 }} €{% endif %}</output>
           <button type="button" data-qt-clear class="text-gray-300 hover:text-red-500 text-sm px-1 py-1.5" title="{% trans 'Position leeren' %}" aria-label="{% trans 'Position leeren' %}">✕</button>
         </div>
@@ -306,18 +300,7 @@ document (партиал может перерисовываться — уро�
   <h3 class="text-sm font-semibold mb-3">🏷 {{ deal_titles.discount }}</h3>
   {% include "core/_deal_discount.html" %}
 </div>
-{% if job.gross %}
-  <div class="mt-4 text-sm text-right text-gray-600 space-y-0.5">
-    <p>{% trans "Net" %}: {{ job.net|floatformat:2 }} €</p>
-    {% if not small_business %}<p>{% trans "VAT" %} {{ job.vat_rate|floatformat:0 }} %: {{ job.vat_amount|floatformat:2 }} €</p>{% endif %}
-    <p class="font-bold text-gray-900">{% trans "Total" %}: {{ job.gross|floatformat:2 }} €</p>
-    {% if job.deposit_cents %}
-      <p class="text-gray-500">{% trans "Deposit" %}: {{ deposit_eur }} €
-        {% if job.payment_state == 'paid' %}<span class="ml-1 inline-block bg-green-100 text-green-800 rounded-full px-2 py-0.5 text-xs">✓ {% trans "paid" %}</span>{% endif %}
-      </p>
-    {% endif %}
-  </div>
-{% endif %}
+
 {% endblock %}
 
 {% block deal_payment %}
@@ -430,4 +413,16 @@ document (партиал может перерисовываться — уро�
       </form>
     {% endif %}
   </div>
+{% endblock %}
+
+{% comment %}DG-1 (владелец 2026-08-26): суммы сметы больше не свои — тот же
+блок «Summen», что у заказа, брони и билета. Цены сметы НЕТТО, поэтому
+промежуточный итог помечен «(netto)» (макет Handwerker.dc.html).{% endcomment %}
+{% block deal_totals %}
+  {% include "core/_deal_totals.html" %}
+  {% if job.deposit_cents %}
+    <p class="mt-2 text-sm text-gray-500">{% trans "Deposit" %}: {{ deposit_eur }} €
+      {% if job.payment_state == 'paid' %}<span class="ml-1 inline-block bg-green-100 text-green-800 rounded-full px-2 py-0.5 text-xs">✓ {% trans "paid" %}</span>{% endif %}
+    </p>
+  {% endif %}
 {% endblock %}

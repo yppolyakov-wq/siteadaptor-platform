@@ -105,6 +105,17 @@ def deal_vat(kind: str, obj, *, small_business: bool = False) -> dict:
             "vat": totals["vat"],
         }
 
+    if kind == "job":
+        # DG-1: у сметы деньги уже посчитаны её движком (set_lines) и цены там
+        # НЕТТО, а не брутто. Пересчитывать нельзя — разошлись бы на копейку с
+        # PDF и счётом, поэтому берём готовые поля.
+        gross = Decimal(getattr(obj, "gross", 0) or 0)
+        net = Decimal(getattr(obj, "net", 0) or 0)
+        tax = Decimal(getattr(obj, "vat_amount", 0) or 0)
+        rate = ZERO if small_business else Decimal(str(getattr(obj, "vat_rate", 0) or 0))
+        rows = [{"rate": rate, "gross": gross, "net": net, "vat": tax}] if gross else []
+        return {"rows": rows, "gross": gross, "net": net, "vat": tax}
+
     components = deal_components(kind, obj)
     if not components:
         return {"rows": [], "gross": ZERO, "net": ZERO, "vat": ZERO}

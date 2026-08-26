@@ -182,6 +182,11 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
     # иначе показ разошёлся бы с деньгами.
     subtotal = sum((r["total"] for r in lines), Decimal("0"))
     shipping = None
+    # DG-1: у сметы цены НЕТТО (остальные виды — брутто, PAngV), поэтому
+    # промежуточный итог помечаем честно, а не молча смешиваем базы.
+    subtotal_net = kind == "job"
+    if kind == "job":
+        subtotal = Decimal(getattr(obj, "net", 0) or 0)
     if kind == "order":
         try:
             from apps.orders.totals import order_totals
@@ -218,6 +223,7 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
         # Промежуточный итог = сумма строк (брутто ДО скидки) — макет требует
         # его отдельной строкой над скидкой.
         "deal_lines_total": subtotal,
+        "deal_subtotal_is_net": subtotal_net,
         # DF-7: доставка — отдельной строкой сумм (у прочих видов её нет).
         "deal_shipping_eur": shipping,
         "deal_discount_eur": Decimal(int(getattr(obj, "discount_cents", 0) or 0)) / 100,
