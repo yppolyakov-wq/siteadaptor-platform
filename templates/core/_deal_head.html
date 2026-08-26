@@ -23,9 +23,13 @@
     {% elif deal_external_code %}
       <span class="text-sm text-gray-500" title="{% trans 'Externe Nummer' %}">#{{ deal_external_code }}</span>
     {% endif %}
+    {% include "core/_deal_status_form.html" %}
   </div>
-  <p class="text-xs text-gray-500 mt-1">
-    {{ deal.title }}{% if deal_show_when %} · {{ deal.when|date:"D d.m.Y" }}{% endif %}{% if deal.when_note %} · {{ deal.when_note }}{% endif %}
-    {% if deal.created_at %} · {% trans "angelegt" %} {{ deal.created_at|date:"d.m.Y H:i" }}{% endif %}
-  </p>
+  {% comment %}DF-1a (владелец 2026-08-26): подпись из состава сделки («…меню
+  «Выбор» — 20 Персон: Карпаччо…») ушла — состав виден в теле карточки, дата
+  события живёт в контексте направления, а текущий статус стоит бейджем выше.
+  В голове остаётся одна честная мета: когда сделка появилась.{% endcomment %}
+  {% if deal.created_at %}
+    <p class="text-xs text-gray-500 mt-1">{% trans "angelegt" %} {{ deal.created_at|date:"d.m.Y H:i" }}</p>
+  {% endif %}
 </div>

@@ -20153,3 +20153,55 @@ msgstr "Whole order"
 #: apps/core/models.py
 msgid "Ganze Buchung"
 msgstr "Whole booking"
+
+#: templates/core/_deal_thread.html
+msgid "Anfrage des Kunden"
+msgstr "Customer's request"
+
+#: templates/core/_deal_thread.html
+msgid "Abbrechen"
+msgstr "Cancel"
+
+#: templates/core/_deal_thread.html
+msgid "Noch keine Nachrichten."
+msgstr "No messages yet."
+
+#: templates/core/_deal_thread.html
+msgid "Antwort an den Kunden…"
+msgstr "Reply to the customer…"
+
+#: templates/core/_deal_thread.html
+msgid "Senden"
+msgstr "Send"
+
+#: templates/core/_deal_thread.html
+msgid "Ganzen Verlauf öffnen"
+msgstr "Open full conversation"
+
+#: templates/core/_deal_thread.html
+msgid "Nachricht an den Kunden…"
+msgstr "Message to the customer…"
+
+#: templates/core/_deal_thread.html
+msgid "Der Kunde hat keinen weiteren Text hinterlassen."
+msgstr "The customer left no further text."
+
+#: templates/core/_deal_lines.html
+msgid "pro Nacht"
+msgstr "per night"
+
+#: templates/core/_deal_lines.html
+msgid "ohne MwSt."
+msgstr "excl. VAT"
+
+#: templates/core/_deal_lines.html
+msgid "MwSt."
+msgstr "VAT"
+
+#: templates/core/_deal_totals.html
+msgid "Zwischensumme"
+msgstr "Subtotal"
+
+#: templates/core/_deal_totals.html
+msgid "Netto"
+msgstr "Net"

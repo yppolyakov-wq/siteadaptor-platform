@@ -595,17 +595,17 @@ def test_detail_uses_rail_layout():
     job = _job()
     body = views.job_detail(_req(), pk=job.pk).content.decode()
     # DC-1 (2026-08-25): рейл даёт общий скелет карточки сделки.
-    assert "xl:grid-cols-[minmax(0,1fr)_360px]" in body  # рейл-грид
+    assert "xl:grid-cols-[minmax(0,1fr)_380px]" in body  # рейл-грид (макет: 380px)
     assert "data-deal-rail" in body
     assert "shadow-[0_6px_18px_rgba(22,24,29,0.05)]" in body  # тень R5
     # смета (форма) идёт РАНЬШЕ рейла: на мобильном позиции первыми — как у
     # заказа. Голый "<aside" ловит сайдбар кабинета — якоримся на классах рейла.
     rail_i = body.index("data-deal-rail")
     assert body.index('name="action" value="save_lines"') < rail_i
-    # рейл несёт клиента и карточку статуса
+    # рейл несёт клиента; статус переехал в верхнюю строку (DF-1b, 2026-08-26)
     aside = body[rail_i:]
     assert "Kundendaten bearbeiten" in aside
-    assert 'value="quoted"' in aside  # статусные действия — в рейле
+    assert 'value="quoted"' in body[:rail_i]  # смена статуса — в голове карточки
 
 
 # --- VF-15 (фидбэк 2026-08-25): блок «Zahlung» на карточке заявки ------------

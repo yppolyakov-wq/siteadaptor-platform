@@ -18,7 +18,10 @@
 
 {% block deal_items_title %}{% trans "Termin & Leistung" %}{% endblock %}
 {% block deal_items %}
-  <div class="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+  {% comment %}DF-4: состав — таблицей по макету (услуга + допы со ставками);
+  контекст записи (время, ресурс, мастер) — под ней.{% endcomment %}
+  {% include "core/_deal_lines.html" %}
+  <div class="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-sm mt-4">
     <div>
       <p class="text-xs text-gray-400">{% trans "Leistung" %}</p>
       <p class="font-medium">{% if b.service %}{{ b.service.name }}{% else %}{% trans "Booking" %}{% endif %}</p>
@@ -76,22 +79,11 @@
   {% endif %}{% endif %}
 {% endblock %}
 
+{% comment %}DF-4: суммы — общим партиалом в порядке макета (Zwischensumme →
+Rabatt → Netto → MwSt. → Gesamt); свой набор строк у каждой карточки был причиной
+расхождений между архетипами.{% endcomment %}
 {% block deal_totals %}
-  {# MX-0: итог С доп-услугами — price_eur без extras занижал сумму владельцу. #}
-  <div class="flex items-center justify-between text-sm">
-    <span class="text-gray-500">{% trans "Leistung und Zusatzleistungen" %}</span>
-    <span class="tabular-nums">{% if b.total_cents %}{{ b.total_eur|floatformat:2 }} €{% else %}—{% endif %}</span>
-  </div>
-  {% if b.voucher_code %}
-    <div class="flex items-center justify-between text-sm text-green-700 mt-1">
-      <span>🎟 {% trans "Gutschein" %} {{ b.voucher_code }}</span><span></span>
-    </div>
-  {% endif %}
-  <div class="flex items-center justify-between font-bold border-t border-gray-100 mt-2 pt-2">
-    <span>{% trans "Total" %}</span>
-    <span class="tabular-nums">{% if b.total_cents %}{{ b.total_eur|floatformat:2 }} €{% else %}—{% endif %}</span>
-  </div>
-  {% include "core/_deal_vat_rows.html" %}
+  {% include "core/_deal_totals.html" %}
 {% endblock %}
 
 {% block deal_payment %}
@@ -101,7 +93,6 @@
     {% elif b.payment_state == 'refunded' %}{% trans "Refunded" %}
     {% else %}{% trans "Vor Ort zu zahlen" %}{% endif %}
   </p>
-  {% include "core/_deal_invoice_button.html" %}
 {% endblock %}
 
 {% block deal_rail_extra %}
@@ -117,4 +108,10 @@
       </form>
     </div>
   {% endif %}
+{% endblock %}
+
+{% comment %}DF-1c (владелец 2026-08-26): документы — своей секцией в первой
+колонке рядом с оплатой; место задаёт скелет, здесь только наполнение.{% endcomment %}
+{% block deal_documents %}
+  {% include "core/_deal_invoice_button.html" %}
 {% endblock %}

@@ -19,7 +19,10 @@
 
 {% block deal_items_title %}🎟 {% trans "Ticket" %}{% endblock %}
 {% block deal_items %}
-  <div class="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+  {% comment %}DF-4: состав — таблицей по макету (тариф × места, допы,
+  проживание); контекст события — под ней.{% endcomment %}
+  {% include "core/_deal_lines.html" %}
+  <div class="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-sm mt-4">
     <div>
       <p class="text-xs text-gray-400">{% trans "Veranstaltung" %}</p>
       <p class="font-medium"><a href="{% url 'events:detail' t.event_id %}" class="text-indigo-600 hover:underline">{{ t.event.title }}</a></p>
@@ -75,20 +78,9 @@
   {% endif %}
 {% endblock %}
 
+{% comment %}DF-4: суммы — общим партиалом в порядке макета.{% endcomment %}
 {% block deal_totals %}
-  <div class="flex items-center justify-between text-sm">
-    <span class="text-gray-500">{% trans "Ticket und Zusatzleistungen" %}</span>
-    <span class="tabular-nums">{{ t.total_eur|floatformat:2 }} €</span>
-  </div>
-  {% if t.discount_cents %}
-    <div class="flex items-center justify-between text-sm text-green-700 mt-1">
-      <span>🏷 {% trans "Discount" %}</span><span class="tabular-nums">−{{ t.discount_eur|floatformat:2 }} €</span>
-    </div>
-  {% endif %}
-  <div class="flex items-center justify-between font-bold border-t border-gray-100 mt-2 pt-2">
-    <span>{% trans "Total" %}</span><span class="tabular-nums">{{ t.payable_eur|floatformat:2 }} €</span>
-  </div>
-  {% include "core/_deal_vat_rows.html" %}
+  {% include "core/_deal_totals.html" %}
 {% endblock %}
 
 {% block deal_payment %}

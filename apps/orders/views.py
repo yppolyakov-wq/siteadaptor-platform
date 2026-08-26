@@ -272,7 +272,7 @@ def order_detail(request, pk):
                 request,
                 "order",
                 order,
-                sections=("items", "discount", "totals", "payment"),
+                sections=_order_sections(request, order),
                 # VS-3: заказ может быть прикреплён к брони (предзаказ торта к столу).
                 links=deal_links.block_context("order", order.pk),
             ),
@@ -613,3 +613,19 @@ def save_prepay(tenant, request) -> None:
     """W4-3: сохранить онлайн-предоплату Click&Collect (P2.5c). Извлечено 1:1."""
     tenant.orders_prepay = bool(request.POST.get("orders_prepay"))
     tenant.save(update_fields=["orders_prepay", "updated_at"])
+
+
+def _order_sections(request, order):
+    """DF-1c: «Документы» — при активном Finanzen (счёт) или доставке
+    (Lieferschein). Иначе секция была бы пустой рамкой (найдено стендом)."""
+    tenant = getattr(request, "tenant", None)
+    try:
+        finance = bool(tenant and tenant.is_module_active("finance"))
+    except Exception:  # noqa: BLE001 — гейт fail-closed
+        finance = False
+    has_docs = finance or bool(getattr(order, "is_delivery", False))
+    return (
+        ("items", "discount", "totals", "payment")
+        + (("documents",) if has_docs else ())
+        + ("thread",)
+    )

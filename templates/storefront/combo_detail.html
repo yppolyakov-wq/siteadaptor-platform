@@ -153,10 +153,16 @@
         { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + (box.dataset.cur || '€');
     }
     if (cta) {
+      // DF-2 (фидбэк владельца 2026-08-26 «в кейтеринге пусто в описании
+      // заказа»): состав набора раньше целиком уезжал в ТЕМУ заявки — она
+      // обрезается 200 символами, а описание оставалось пустым. Тема теперь
+      // короткая («Набор — N Personen»), выбранные блюда едут отдельным
+      // параметром в описание запроса.
       var subject = box.dataset.setName || '';
       subject += ' — ' + qtyValue() + ' ' + (box.dataset.personsLabel || 'Personen');
-      if (picked.length) subject += ': ' + picked.join(', ');
-      cta.dataset.quickUrl = ctaBase + '?betreff=' + encodeURIComponent(subject);
+      var url = ctaBase + '?betreff=' + encodeURIComponent(subject);
+      if (picked.length) url += '&details=' + encodeURIComponent(picked.join('\n'));
+      cta.dataset.quickUrl = url;
     }
   }
   box.addEventListener('change', recalc);

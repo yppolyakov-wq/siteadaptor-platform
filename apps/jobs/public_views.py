@@ -131,6 +131,8 @@ def anfrage(request):
         "storefront/anfrage.html",
         {
             "betreff": (request.GET.get("betreff") or "")[:200],
+            # DF-2: состав запроса (конфигуратор набора) — в описание, не в тему.
+            "details": (request.GET.get("details") or "")[:2000],
             "anfrage_cfg": anfrage_cfg,  # AF-1: событийные поля (Wunschdatum/Personen/Art)
             "jobs_vehicle": jobs_vehicle,  # A9: структурные поля авто
             "autorepair_ld": autorepair_ld,  # A9: schema.org AutoRepair (SEO)
@@ -311,6 +313,8 @@ def anfrage_modal(request):
         "storefront/_anfrage_modal.html",
         {
             "betreff": (request.GET.get("betreff") or "")[:200],
+            # DF-2: состав запроса (конфигуратор набора) — в описание, не в тему.
+            "details": (request.GET.get("details") or "")[:2000],
             "anfrage_cfg": _anfrage_config(request.tenant),
             "jobs_vehicle": siteconfig.normalize(request.tenant.site_config).get(
                 "jobs_vehicle", False

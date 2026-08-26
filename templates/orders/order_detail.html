@@ -154,20 +154,6 @@ Menge · Summe — количество ПОСЛЕ цены за штуку, н�
     </form>
 
     <div class="space-y-2">
-      {% if finance_active %}
-        <form method="post" action="{% url 'orders:order-edit' order.pk %}">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="invoice">
-          <button type="submit" class="w-full text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">🧾 {% trans "Rechnung aus Auftrag erstellen" %}</button>
-        </form>
-        {% comment %}VF-3: «сохранение PDF счёта» одним кликом — черновик по
-        заказу переиспользуется, номер присвоит только issue (GoBD).{% endcomment %}
-        <form method="post" action="{% url 'orders:order-edit' order.pk %}">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="invoice_pdf">
-          <button type="submit" class="w-full text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">📄 {% trans "Rechnung als PDF" %}</button>
-        </form>
-      {% endif %}
       {% comment %}VF-3: отправка ссылки на оплату (гейты = публичный /bezahlen/:
       Stripe · неоплачен · статус neu); ссылка рядом — для ручной передачи.{% endcomment %}
       {% if pay_link_ready %}
@@ -194,10 +180,6 @@ Menge · Summe — количество ПОСЛЕ цены за штуку, н�
       {% if order.shipping_address %}<p class="text-sm text-gray-600 whitespace-pre-line">{{ order.shipping_address }}</p>{% endif %}
       {% if order.tracking_code %}<p class="text-sm text-gray-500 mt-2">{% trans "Tracking" %}: <span class="font-mono">{{ order.tracking_code }}</span></p>{% endif %}
       {% if order.shipped_at %}<p class="text-xs text-gray-400 mt-1">{% trans "Shipped" %}: {{ order.shipped_at }}</p>{% endif %}
-      <a href="{% url 'orders:order-delivery-note' order.pk %}" target="_blank" rel="noopener"
-         class="inline-block mt-3 text-sm border border-gray-300 rounded-xl px-3 py-1.5 hover:bg-gray-50">📄 {% trans "Delivery note (PDF)" %}</a>
-      {% url 'orders:order-delivery-note' order.pk as note_url %}
-      <span class="inline-flex flex-wrap items-center gap-1 ml-2">{% doc_langs note_url %}</span>
     {% endif %}
     {% if editable %}
       <form method="post" action="{% url 'orders:order-edit' order.pk %}" class="mt-3 space-y-2">
@@ -218,6 +200,35 @@ Menge · Summe — количество ПОСЛЕ цены за штуку, н�
         </label>
         <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Lieferung speichern" %}</button>
       </form>
+    {% endif %}
+  </div>
+{% endblock %}
+
+{% comment %}DF-1c (владелец 2026-08-26): «документы и смета — в 1-й столбец
+рядом с оплатой». Счёт, его PDF и накладная были разбросаны (оплата + карточка
+доставки в рейле) — теперь один блок; ссылка на оплату осталась в «Zahlung»,
+это деньги, а не документ.{% endcomment %}
+{% block deal_documents %}
+  <div class="flex flex-wrap items-center gap-2">
+    {% if finance_active %}
+      <form method="post" action="{% url 'orders:order-edit' order.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="invoice">
+        <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">🧾 {% trans "Rechnung aus Auftrag erstellen" %}</button>
+      </form>
+      {% comment %}VF-3: «сохранение PDF счёта» одним кликом — черновик по
+      заказу переиспользуется, номер присвоит только issue (GoBD).{% endcomment %}
+      <form method="post" action="{% url 'orders:order-edit' order.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="invoice_pdf">
+        <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">📄 {% trans "Rechnung als PDF" %}</button>
+      </form>
+    {% endif %}
+    {% if order.is_delivery %}
+      <a href="{% url 'orders:order-delivery-note' order.pk %}" target="_blank" rel="noopener"
+         class="text-sm border border-gray-300 rounded-xl px-3 py-1.5 hover:bg-gray-50">📄 {% trans "Delivery note (PDF)" %}</a>
+      {% url 'orders:order-delivery-note' order.pk as note_url %}
+      <span class="inline-flex flex-wrap items-center gap-1">{% doc_langs note_url %}</span>
     {% endif %}
   </div>
 {% endblock %}

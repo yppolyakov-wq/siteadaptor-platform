@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import copy
 from dataclasses import replace as _dc_replace
+from decimal import Decimal
 
 from django.http import QueryDict
 from django.template.loader import render_to_string
@@ -27,10 +28,16 @@ from apps.core.vat import deal_vat
 
 # Подписи секций — в одном месте: правка меняет ВСЕ карточки сразу.
 SECTION_TITLES = {
+    # DF-2: «запрос клиента» — то, что человек прислал своими словами.
+    "request": _("Anfrage des Kunden"),
     "items": _("Positionen"),
     "discount": _("Rabatt"),
     "totals": _("Summen"),
     "payment": _("Zahlung & Rechnung"),
+    # DF-1c: документы стоят рядом с оплатой — это её продолжение (счёт, смета).
+    "documents": _("Dokumente"),
+    # DF-3: переписка по сделке — прямо на карточке.
+    "thread": _("Nachrichten"),
     "status": _("Status"),
     "customer": _("Kunde"),
     "calendar": _("Kalender"),
@@ -110,6 +117,22 @@ def calendar_html(request, kind: str, obj) -> str:
         return ""
 
 
+def _thread_for(kind: str, obj):
+    """DF-3: тред ЭТОЙ сделки для инлайн-переписки на карточке.
+
+    Владелец 2026-08-26: «написать клиенту должно просто ниже открываться тут
+    же, чтобы не переходить в другую страницу». Тред ищем тем же резолвером,
+    что и кнопка C1 (`inbox.deal_threads.find_thread`) — переписка по сделке
+    остаётся в ОДНОМ месте, второго канала не появляется. Fail-safe: любая
+    ошибка (модуль выключен, миграции не накачены) — карточка без блока."""
+    try:
+        from apps.inbox.deal_threads import find_thread
+
+        return find_thread(kind, getattr(obj, "reference_code", "") or "", pk=obj.pk)
+    except Exception:  # noqa: BLE001 — блок переписки не должен ронять карточку
+        return None
+
+
 def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targets=()) -> dict:
     """Общий контекст карточки сделки для `core/deal_card_base.html`.
 
@@ -147,6 +170,15 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
         and getattr(when, "strftime", None)
         and when.strftime("%d.%m") not in (deal.title or "")
     )
+    # DF-4: состав строками (бронь/запись/билет) — у заказа и заявки свои строки.
+    try:
+        from apps.core.deal_lines import deal_lines as _deal_lines
+
+        lines = _deal_lines(kind, obj)
+    except Exception:  # noqa: BLE001 — показ состава не должен ронять карточку
+        lines = []
+    inbox_on = _module_active(tenant, "inbox")
+    thread = _thread_for(kind, obj) if inbox_on else None
     return {
         "deal": deal,
         "deal_obj": obj,
@@ -167,6 +199,17 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
         "deal_discount_cents": int(getattr(obj, "discount_cents", 0) or 0),
         "deal_discount_input": f"{int(getattr(obj, 'discount_cents', 0) or 0) / 100:.2f}",
         "deal_discount_note": getattr(obj, "voucher_code", "") or "",
+        # DF-4: строки состава для общего партиала `core/_deal_lines.html`.
+        "deal_lines": lines,
+        # Промежуточный итог = сумма строк (брутто ДО скидки) — макет требует
+        # его отдельной строкой над скидкой.
+        "deal_lines_total": sum((r["total"] for r in lines), Decimal("0")),
+        "deal_discount_eur": Decimal(int(getattr(obj, "discount_cents", 0) or 0)) / 100,
+        # DF-3: переписка с клиентом — прямо на карточке (тред или композер).
+        "deal_thread": thread,
+        "deal_thread_messages": (
+            list(thread.messages.select_related("author_user")) if thread is not None else []
+        ),
         # DC-4: внешний номер правится прямо в голове — там, где поле есть.
         "deal_external_editable": hasattr(obj, "external_code"),
         "deal_external_code": getattr(obj, "external_code", ""),

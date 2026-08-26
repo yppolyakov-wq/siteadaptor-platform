@@ -182,7 +182,9 @@ def sections(tenant, customer) -> list[dict]:
                 {
                     "title": c.ref_label or _("Allgemein"),
                     "sub": (c.subject or "") + f" · {c.updated_at:%d.%m.%Y}",
-                    "status": "●" if c.unread_for_staff else "",
+                    # DF-3 (владелец 2026-08-26 «в CRM нет уведомления о новых
+                    # сообщениях»): серая точка терялась — теперь честная метка.
+                    "status": _("Neu") if c.unread_for_staff else "",
                     "url": _url("inbox:thread", c.pk),
                 }
                 for c in customer.conversations.order_by("-updated_at")[:_LIMIT]

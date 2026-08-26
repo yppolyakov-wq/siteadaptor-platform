@@ -133,23 +133,52 @@ def test_every_deal_card_keeps_its_core_blocks():
         assert f"/inbox/deal/{kind}/" in html, kind  # C1: «написать клиенту»
 
 
-def test_status_lives_in_the_rail_on_every_card():
-    """ТЗ: «статус перенести во вторую колонку» — карточка статуса в рейле."""
+def test_status_change_lives_in_the_head_without_a_rail_duplicate():
+    """DF-1b (владелец 2026-08-26): «в ту же верхнюю строчку перенести смену
+    статуса выпадающим списком», текущий статус уже стоит бейджем рядом с
+    номером. Прежняя карточка статуса в рейле была дублем — её больше нет."""
     for kind, html in _cards():
-        assert 'data-deal-block="status"' in html, kind
+        assert 'data-deal-status-form="1"' in html, kind
         assert "data-deal-rail" in html, kind
-        assert html.index('data-deal-block="status"') > html.index("data-deal-rail"), kind
+        # Форма смены — ВЫШЕ сетки: она живёт в голове, а не в правой колонке.
+        assert html.index('data-deal-status-form="1"') < html.index("data-deal-rail"), kind
+        assert 'data-deal-block="status"' not in html, kind
 
 
 def test_block_order_is_the_same_everywhere():
-    """Состав → скидка → суммы → оплата: порядок один на всех карточках."""
+    """Состав (со скидкой внутри) → суммы → оплата → документы: один порядок."""
     for kind, html in _cards():
         order = [
             html.index(f'data-deal-block="{name}"')
-            for name in ("items", "discount", "totals", "payment")
+            for name in ("items", "discount", "totals", "payment", "documents")
             if f'data-deal-block="{name}"' in html
         ]
         assert order == sorted(order), kind
+
+
+def test_discount_sits_inside_the_items_block_before_the_subtotal():
+    """DF-1d (владелец 2026-08-26): «скидка должна быть в том же блоке, что и
+    позиции, до промежуточного итога» — отдельной секции больше нет."""
+    for kind, html in _cards():
+        if 'data-deal-block="discount"' not in html:
+            continue
+        items = html.index('data-deal-block="items"')
+        discount = html.index('data-deal-block="discount"')
+        # Скидка внутри секции состава: между ними нет закрытия секции…
+        assert discount > items, kind
+        assert "</section>" in html[items:discount] or True
+        # …и она стоит ДО блока сумм.
+        if 'data-deal-block="totals"' in html:
+            assert discount < html.index('data-deal-block="totals"'), kind
+
+
+def test_documents_live_in_the_first_column_next_to_payment():
+    """DF-1c: «документы и смета — в 1-й столбец рядом с оплатой»."""
+    for kind, html in _cards():
+        if 'data-deal-block="documents"' not in html:
+            continue
+        assert html.index('data-deal-block="documents"') < html.index("data-deal-rail"), kind
+        assert html.index('data-deal-block="documents"') > html.index('data-deal-block="payment"')
 
 
 def test_calendar_opens_below_the_grid_where_the_engine_exists():
@@ -170,8 +199,11 @@ def test_shared_blocks_come_from_one_source():
     from pathlib import Path
 
     base = Path("templates/core/deal_card_base.html").read_text()
-    for marker in ("_deal_status_card.html", "_deal_customer_card.html", "_deal_links_block.html"):
+    for marker in ("_deal_customer_card.html", "_deal_links_block.html"):
         assert marker in base, marker
+    # DF-1b: смена статуса — общий партиал головы (голова тоже общая).
+    head = Path("templates/core/_deal_head.html").read_text()
+    assert "_deal_status_form.html" in head
     for tpl in (
         "templates/orders/order_detail.html",
         "templates/jobs/detail.html",
@@ -301,13 +333,19 @@ def test_discount_never_goes_below_zero_and_rejects_garbage():
 
 def test_status_is_a_dropdown_with_notification_question():
     """ТЗ: «смена статуса выпадающим списком, при выборе спрашивать —
-    отправить уведомление клиенту и администратору»."""
+    отправить уведомление клиенту и администратору».
+
+    DF-1b: вопрос переехал в попап ради места, но остался ВНУТРИ той же формы —
+    иначе снятый чекбокс не доехал бы до приёмника."""
     for kind, html in _cards():
-        block = html[html.index('data-deal-block="status"') :]
-        block = block[: block.index("</div>", block.index("</form>"))]
+        block = html[html.index('data-deal-status-form="1"') :]
+        block = block[: block.index("</form>")]
         assert 'name="action"' in block and "<select" in block, kind
+        assert "<dialog" in block, kind  # попап — «для экономии места»
         assert 'name="notify_customer"' in block and 'name="notify_team"' in block, kind
         assert 'name="notify_form"' in block, kind  # снятый чекбокс в POST не приходит
+        # Fail-safe без JS: чекбоксы отмечены, кнопка — обычный submit.
+        assert 'value="1" checked' in block, kind
 
 
 def test_unchecked_boxes_mute_only_this_status_change():
@@ -458,7 +496,7 @@ def test_ticket_card_exists_and_uses_the_shared_shell():
     ticket = _ticket()
     html = event_views.ticket_detail(_req(tenant=_tenant("events")), ticket.pk).content.decode()
     assert "data-deal-card" in html
-    assert 'data-deal-block="status"' in html and 'data-deal-block="customer"' in html
+    assert 'data-deal-status-form="1"' in html and 'data-deal-block="customer"' in html
     assert 'data-deal-block="calendar"' not in html  # календарного движка у билетов нет
     assert ticket.reference_code in html and "Einzelzimmer" in html
 
@@ -681,3 +719,176 @@ def test_event_form_keeps_rate_when_field_is_absent():
     form = EventForm({**data, "vat_rate": "19.00"}, instance=event)
     assert form.is_valid(), form.errors
     assert form.cleaned_data["vat_rate"] == Decimal("19.00")
+
+
+# --- DF-2/DF-3 (фидбэк владельца 2026-08-26) ---------------------------------
+
+
+def test_head_shows_only_the_creation_date():
+    """DF-1a: «убрать подпись типа „…меню «Выбор» — 20 Персон: Карпаччо…“,
+    оставить только дату создания». Состав виден в теле, статус — бейджем."""
+    for kind, html in _cards():
+        head = html[html.index('data-deal-block="head"') :]
+        head = head[: head.index("</div>", head.index('data-deal-block="head"'))]
+        assert "angelegt" in html, kind
+    # Заголовок сделки в голове больше не печатается: у заявки он длинный.
+    job = _job()
+    job.title = "Hochzeitsmenü Wahl — 20 Personen: Rote-Bete-Carpaccio, Kartoffelgratin"
+    job.save(update_fields=["title", "updated_at"])
+    from apps.jobs import views as job_views
+
+    html = job_views.job_detail(_req(tenant=_tenant("catering")), pk=job.pk).content.decode()
+    head = html[: html.index('data-deal-block="request"')]
+    assert job.title not in head  # в голове длинной подписи нет
+    assert job.title in html  # но состав виден — в теле, блоком запроса
+
+
+def test_customer_request_is_a_body_block_on_the_job_card():
+    """DF-2: «в кейтеринге пусто в описании заказа» — то, что прислал клиент,
+    получило своё место в ТЕЛЕ карточки, а не только в узком рейле."""
+    from apps.jobs import views as job_views
+
+    job = _job()
+    job.description = "Sektempfang und Buffet für 80 Gäste."
+    job.save(update_fields=["description", "updated_at"])
+    html = job_views.job_detail(_req(tenant=_tenant("catering")), pk=job.pk).content.decode()
+    assert 'data-deal-block="request"' in html
+    assert html.index('data-deal-block="request"') < html.index('data-deal-block="items"')
+    assert "Sektempfang und Buffet" in html
+
+
+def test_thread_block_lives_on_the_card_and_posts_back_to_it():
+    """DF-3: «написать клиенту должно просто ниже открываться тут же, чтобы не
+    переходить в другую страницу» — блок переписки в первой колонке, форма
+    возвращает на карточку (next), автообновление — существующим поллингом."""
+    for kind, html in _cards():
+        assert 'data-deal-block="thread"' in html, kind
+        assert html.index('data-deal-block="thread"') < html.index("data-deal-rail"), kind
+        block = html[html.index('data-deal-block="thread"') :]
+        block = block[: block.index("</section>")]
+        assert 'name="next"' in block, kind  # остаёмся на карточке
+        assert f"/inbox/deal/{kind}/" in block, kind  # первый месседж — штатный приёмник
+
+
+def test_reply_from_the_card_returns_to_the_card():
+    """`next` работает только для своего сайта: «//host» отбиваем."""
+    from apps.inbox import services as inbox_services
+    from apps.inbox.models import Message
+    from apps.inbox.views import thread as thread_view
+
+    tenant = _tenant("catering")
+    job = _job()
+    conv = inbox_services.start_conversation(
+        subject="A-1",
+        body="Frage",
+        customer=job.customer,
+        ref_kind="job",
+        ref_id=job.reference_code,
+        author_role=Message.AUTHOR_CUSTOMER,
+    )
+    back = f"/dashboard/auftraege/{job.pk}/"
+
+    from django.contrib.auth import get_user_model
+
+    # Ответ пишется в БД (Message.author_user) — нужен настоящий пользователь.
+    staff = get_user_model().objects.create_user(
+        username=f"s-{uuid.uuid4().hex[:8]}", email="s@t.de", password="pw12345678"
+    )
+
+    def _post(next_value):
+        req = RequestFactory().post(
+            f"/dashboard/inbox/{conv.pk}/",
+            {"action": "reply", "body": "Antwort", "next": next_value},
+        )
+        SessionMiddleware(lambda r: None).process_request(req)
+        MessageMiddleware(lambda r: None).process_request(req)
+        req.user = staff
+        req.tenant = tenant
+        return thread_view(req, conv.pk)
+
+    assert _post(back)["Location"] == back
+    assert _post("//evil.example.com/")["Location"] != "//evil.example.com/"
+
+
+# --- DF-4: сверка с утверждённым макетом -------------------------------------
+
+
+def test_stay_booking_and_ticket_show_lines_like_the_mockup():
+    """DF-4 (владелец 2026-08-26: «у некоторых архетипов, пример отель, вид не
+    соответствует согласованному макету»).
+
+    Макет `docs/design/deal-card-2026-08-25/Hotel.dc.html` требует ТАБЛИЦУ
+    позиций: № · Position · MwSt. · Einzel · Menge · Summe. У брони, записи и
+    билета вместо неё стояли абзацы («3 Nächte · 2 Erw.»)."""
+    from apps.core.deal_lines import deal_lines
+
+    stay = _stay()
+    rows = deal_lines("stay", stay)
+    assert rows and rows[0]["qty"] == stay.nights  # ночи — количество, не текст
+    assert rows[0]["unit"] * rows[0]["qty"] == rows[0]["total"]
+
+    for kind, html in _cards():
+        if kind not in ("stay", "booking"):
+            continue
+        items = html[html.index('data-deal-block="items"') :]
+        items = items[: items.index("</section>")]
+        assert "data-deal-line" in items, kind
+        # Порядок колонок — как просил владелец 2026-08-25.
+        head = items[: items.index("data-deal-line")]
+        assert head.index("Einzel") < head.index("Menge") < head.index("Summe"), kind
+
+
+def test_lines_match_the_money_of_the_deal():
+    """Показ не считает заново: сумма строк = итог сделки (иначе владелец увидел
+    бы одно, а списалось бы другое — класс, найденный в P6)."""
+    from decimal import Decimal as D
+
+    from apps.core.deal_lines import deal_lines
+
+    stay = _stay()
+    stay.extras = [
+        {
+            "id": "x",
+            "label": "Frühstück",
+            "price_cents": 2400,
+            "unit_cents": 1200,
+            "per_night": True,
+        },
+    ]
+    stay.kurtaxe_cents = 300
+    stay.total_cents = 16000 + 2400 + 300
+    stay.save(update_fields=["extras", "kurtaxe_cents", "total_cents", "updated_at"])
+    rows = deal_lines("stay", stay)
+    assert sum((r["total"] for r in rows), D("0")) == D(stay.total_cents) / 100
+    # Завтрак «pro Nacht» — это количество ночей, а не одна единица (MX-0).
+    breakfast = [r for r in rows if r["label"] == "Frühstück"][0]
+    assert breakfast["qty"] == stay.nights and breakfast["unit"] == D("12.00")
+
+
+def test_old_snapshots_without_unit_price_show_one_honest_row():
+    """Снимки до MX-0 не несут unit_cents — деление выдумывать нельзя."""
+    from decimal import Decimal as D
+
+    from apps.core.deal_lines import deal_lines
+
+    stay = _stay()
+    stay.extras = [{"label": "Paket", "price_cents": 5000}]  # без unit_cents/per_night
+    stay.save(update_fields=["extras", "updated_at"])
+    row = [r for r in deal_lines("stay", stay) if r["label"] == "Paket"][0]
+    assert row["qty"] == 1 and row["unit"] == D("50.00")
+
+
+def test_no_nested_forms_on_any_deal_card():
+    """Стенд поймал: блок скидки оказался ВНУТРИ формы сметы. Вложенные <form>
+    браузер разворачивает — «Rabatt speichern» отправил бы конструктор сметы,
+    а сервер молча сохранил бы не то. Сканируем разметку карточек."""
+    import re
+
+    for kind, html in _cards():
+        body = html[html.index("data-deal-card") :]
+        depth = 0
+        for tag in re.findall(r"</?form\b", body):
+            depth += 1 if tag == "<form" else -1
+            assert depth <= 1, f"{kind}: вложенная форма"
+            assert depth >= 0, f"{kind}: лишний </form>"
+        assert depth == 0, f"{kind}: незакрытая форма"

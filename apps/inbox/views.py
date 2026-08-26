@@ -97,6 +97,13 @@ def inbox_list(request):
     )
 
 
+def _safe_next(request) -> str:
+    """DF-3: куда вернуть после отправки. Только относительный путь этого сайта —
+    «//host» отбиваем (класс, найденный ревью «Кабинет-X»)."""
+    nxt = (request.POST.get("next") or "").strip()
+    return nxt if nxt.startswith("/") and not nxt.startswith("//") else ""
+
+
 @login_required
 def thread(request, pk):
     conversation = get_object_or_404(Conversation.objects.select_related("customer"), pk=pk)
@@ -137,7 +144,8 @@ def thread(request, pk):
             if offer is not None:
                 order_offers.cancel_offer(offer)
                 messages.success(request, _("Angebot zurückgezogen."))
-        return redirect("inbox:thread", pk=conversation.pk)
+        back = _safe_next(request)
+        return redirect(back) if back else redirect("inbox:thread", pk=conversation.pk)
 
     # Открыли тред — для владельца прочитано.
     if conversation.unread_for_staff:
@@ -306,7 +314,14 @@ def deal_thread(request, kind, pk):
                 author_user=request.user,
             )
             messages.success(request, _("Nachricht gesendet."))
-            return redirect("inbox:thread", pk=conversation.pk)
+            # DF-3: с карточки сделки остаёмся на карточке — переписка живёт там.
+            back = _safe_next(request)
+            return redirect(back) if back else redirect("inbox:thread", pk=conversation.pk)
+    # Ошибка ввода с карточки — тоже возвращаемся на неё (сообщение уже в messages).
+    if request.method == "POST":
+        back = _safe_next(request)
+        if back:
+            return redirect(back)
     return render(
         request,
         "inbox/deal_start.html",

@@ -20371,3 +20371,55 @@ msgstr "Весь заказ"
 #: apps/core/models.py
 msgid "Ganze Buchung"
 msgstr "Вся бронь"
+
+#: templates/core/_deal_thread.html
+msgid "Anfrage des Kunden"
+msgstr "Запрос клиента"
+
+#: templates/core/_deal_thread.html
+msgid "Abbrechen"
+msgstr "Отмена"
+
+#: templates/core/_deal_thread.html
+msgid "Noch keine Nachrichten."
+msgstr "Сообщений пока нет."
+
+#: templates/core/_deal_thread.html
+msgid "Antwort an den Kunden…"
+msgstr "Ответ клиенту…"
+
+#: templates/core/_deal_thread.html
+msgid "Senden"
+msgstr "Отправить"
+
+#: templates/core/_deal_thread.html
+msgid "Ganzen Verlauf öffnen"
+msgstr "Открыть всю переписку"
+
+#: templates/core/_deal_thread.html
+msgid "Nachricht an den Kunden…"
+msgstr "Сообщение клиенту…"
+
+#: templates/core/_deal_thread.html
+msgid "Der Kunde hat keinen weiteren Text hinterlassen."
+msgstr "Клиент не оставил дополнительного текста."
+
+#: templates/core/_deal_lines.html
+msgid "pro Nacht"
+msgstr "за ночь"
+
+#: templates/core/_deal_lines.html
+msgid "ohne MwSt."
+msgstr "без НДС"
+
+#: templates/core/_deal_lines.html
+msgid "MwSt."
+msgstr "НДС"
+
+#: templates/core/_deal_totals.html
+msgid "Zwischensumme"
+msgstr "Промежуточный итог"
+
+#: templates/core/_deal_totals.html
+msgid "Netto"
+msgstr "Сумма без НДС"
