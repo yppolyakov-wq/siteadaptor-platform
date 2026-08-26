@@ -227,3 +227,44 @@ def test_product_form_course_choice():
     assert form.save().course == "vorspeise"
     bad = ProductForm({**base, "course": "nachtisch"}, instance=product)
     assert not bad.is_valid() and "course" in bad.errors
+
+
+def test_free_pool_includes_dishes_of_direct_child_categories():
+    """Набор «свободной сборки» на категории-КОНТЕЙНЕРЕ обязан видеть блюда
+    подкатегорий: у направления с разбивкой по Gang'ам («Catering» → Suppen /
+    Salate / …) собственных товаров нет, и конструктор открывался ПУСТЫМ.
+
+    Семантика — та же, что у страницы `/sortiment/<slug>/` и фасета категории
+    (KAT-1): контейнер отдаёт себя + ПРЯМЫХ детей.
+    """
+    from apps.catalog.models import Category
+
+    parent = Category.objects.create(name={"de": "Catering"}, slug="fp-catering")
+    child = Category.objects.create(name={"de": "Suppen"}, slug="fp-suppen", parent=parent)
+    grandchild = Category.objects.create(name={"de": "Tief"}, slug="fp-tief", parent=child)
+    soup = ProductFactory(name={"de": "Borschtsch"}, category=child, course="suppe")
+    direct = ProductFactory(name={"de": "Tagesteller"}, category=parent, course="hauptgang")
+    deep = ProductFactory(name={"de": "Zu tief"}, category=grandchild, course="suppe")
+
+    combo = Combo.objects.create(
+        name="Freie Auswahl", price=Decimal("0.00"), free_pool=True, category=parent
+    )
+    names = {p.pk for p in combos.pool_products(combo)}
+    assert soup.pk in names and direct.pk in names
+    # Один уровень — как у фасета; внук в пул не попадает.
+    assert deep.pk not in names
+
+
+def test_free_pool_skips_inactive_child_category():
+    """Погашенная подкатегория не должна протаскивать свои блюда в конструктор."""
+    from apps.catalog.models import Category
+
+    parent = Category.objects.create(name={"de": "Catering"}, slug="fp2-catering")
+    off = Category.objects.create(
+        name={"de": "Alt"}, slug="fp2-alt", parent=parent, is_active=False
+    )
+    hidden = ProductFactory(name={"de": "Altes Gericht"}, category=off, course="suppe")
+    combo = Combo.objects.create(
+        name="Freie Auswahl", price=Decimal("0.00"), free_pool=True, category=parent
+    )
+    assert hidden.pk not in {p.pk for p in combos.pool_products(combo)}

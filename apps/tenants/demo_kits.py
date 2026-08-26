@@ -348,6 +348,7 @@ def _p(
     care="",
     variant_style="",
     vat="",
+    ingredients="",
 ):
     return {
         "name": name,
@@ -370,6 +371,9 @@ def _p(
         "material": material,  # M1: Textilkennzeichnung (Boutique)
         "care": care,
         "variant_style": variant_style,  # O-2: per-товарный вид выбора
+        # Ф2/LMIV: «Zutaten» товара (переводится оверлеем ingredients_i18n —
+        # demo_i18n заполняет локали из словарей).
+        "ingredients": ingredients,
     }
 
 
@@ -1087,11 +1091,19 @@ PRANASY_MENUS = {
                 "type": "category",
                 "target": "shop",
             },
+            # Catering-Welle 2026-08-25: das Catering ist jetzt ein eigener Bereich
+            # (Speisekarte + Menü-Pakete + Anfrage) — deshalb Gruppe statt
+            # Einzelpunkt auf die Anfrage-Seite.
             {
+                # Подписи — msgid'ы хрома меню (_MENU_LABELS): переводятся на все
+                # пять локалей витрины из каталогов, свой label_i18n не нужен.
                 "label": "Catering",
-                "type": "archetype",
-                "target": "jobs",
-                "label_i18n": {"en": "Catering"},
+                "type": "group",
+                "children": [
+                    {"label": "Speisekarte", "type": "category", "target": "catering"},
+                    {"label": "Menüs & Pakete", "type": "page", "target": "combos"},
+                    {"label": "Anfrage", "type": "archetype", "target": "jobs"},
+                ],
             },
             {
                 "label": "Retreats",
@@ -1251,7 +1263,15 @@ PRANASY = DemoKit(
         "yoga,forest",
     ],
     faq=[
-        ("Ist alles wirklich vegan?", "Ja — 100 % pflanzlich, ohne Ausnahme."),
+        # Catering-Welle 2026-08-25: Restaurant und Shop sind rein pflanzlich, die
+        # Catering-Karte des Betreibers bringt ayurvedische Klassiker mit Sahne,
+        # Paneer oder Joghurt mit — die Antwort sagt das, statt «ohne Ausnahme».
+        (
+            "Ist alles wirklich vegan?",
+            "Restaurant und Shop sind 100 % pflanzlich. Beim Catering stehen daneben "
+            "ayurvedische Klassiker mit Sahne, Paneer oder Joghurt — jedes Gericht ist "
+            "gekennzeichnet.",
+        ),
         (
             "Wann öffnet das Restaurant?",
             "Bald! Die Speisekarte ist schon online — schau dich gern um.",
@@ -1278,7 +1298,7 @@ PRANASY = DemoKit(
         ("Nour El-Amin", "Gründerin & Köchin", "chef,woman"),
         ("Ben Krause", "Küche", "cook,man"),
     ],
-    trust={"since": "2021", "marks": ["100 % Vegan", "Ayurveda", "Regional"]},
+    trust={"since": "2021", "marks": ["Vegan & vegetarisch", "Ayurveda", "Regional"]},
     reviews_seed=[
         (
             5,
@@ -1299,6 +1319,217 @@ PRANASY = DemoKit(
         "fields": ["date", "guests", "event_type"],
         "event_types": ["Firmenfeier", "Geburtstag", "Retreat", "Büro-Catering", "Sonstiges"],
     },
+    # MEN-6 (Karte des Betreibers): drei Modi eines Menü-Pakets auf dem Bereich
+    # «Catering» — fertig zusammengestellt, nach Wahl und frei kombiniert.
+    combos=[
+        {
+            "name": "Menü Klassik",
+            "description": "Vier Gänge, fest zusammengestellt: Suppe, Hauptgang, "
+            "Beilage und Salat. Warm geliefert, Aufbau auf Wunsch inklusive.",
+            "price": "19.50",
+            "per_person": True,
+            "min_persons": 15,
+            "category": "catering",
+            "event_types": ["Firmenfeier", "Geburtstag", "Büro-Catering"],
+            "photos": ["borscht,soup", "ragout,red"],
+            "groups": [
+                {"label": "Suppe", "included": True, "products": ["Borschtsch"]},
+                {"label": "Hauptgang", "included": True, "products": ["Rotes Gemüseragout"]},
+                {"label": "Beilage", "included": True, "products": ["Reis"]},
+                {"label": "Salat", "included": True, "products": ["Sommersalat"]},
+            ],
+        },
+        {
+            "name": "Menü nach Wahl",
+            "description": "Sie stellen das Menü zusammen: je ein Gericht pro Gang, "
+            "Extras optional. Der Preis passt sich Ihrer Auswahl an.",
+            "price": "22.90",
+            "per_person": True,
+            "min_persons": 15,
+            "category": "catering",
+            "event_types": ["Firmenfeier", "Geburtstag", "Retreat", "Büro-Catering"],
+            "photos": ["ragout,red", "spring,salad"],
+            "groups": [
+                {
+                    "label": "Suppe",
+                    "min": 1,
+                    "max": 1,
+                    "products": [
+                        "Borschtsch",
+                        "Dal mit Gemüse",
+                        ("Kürbissuppe mit Kürbiskernen", "0.50"),
+                        ("Cremige Pilzsuppe", "0.80"),
+                    ],
+                },
+                {
+                    "label": "Hauptgang",
+                    "min": 1,
+                    "max": 1,
+                    "products": [
+                        "Rotes Gemüseragout",
+                        ("Kichererbsen-Ragout mit Blumenkohl", "1.00"),
+                        ("Weißes Ragout mit Paneer", "1.50"),
+                        ("Tofu-Ragout mit Aubergine", "1.80"),
+                    ],
+                },
+                {
+                    "label": "Beilage",
+                    "min": 1,
+                    "max": 1,
+                    "products": [
+                        "Reis",
+                        "Buchweizen",
+                        "Bulgur",
+                        ("Ofenkartoffeln", "0.50"),
+                    ],
+                },
+                {
+                    "label": "Salat",
+                    "min": 1,
+                    "max": 1,
+                    "products": [
+                        "Sommersalat",
+                        "Rote-Bete-Salat mit Knoblauch",
+                        ("Frühlingssalat", "0.50"),
+                        ("Spargelsalat Asberg", "2.00"),
+                    ],
+                },
+                {
+                    "label": "Extras",
+                    "min": 0,
+                    "max": 3,
+                    "products": [
+                        ("Gemüse-Pakoras", "2.50"),
+                        ("Kartoffelpuffer (Draniki)", "2.50"),
+                        ("Auberginenkaviar", "2.00"),
+                        ("Frische Minzsauce", "1.00"),
+                    ],
+                },
+            ],
+        },
+        {
+            "name": "Ayurveda-Thali",
+            "description": "Unser ayurvedisches Tellergericht: Dal, Kitchari, Raita und "
+            "Ofengemüse — mild gewürzt, leicht verdaulich und ohne Zwiebel und Knoblauch.",
+            "price": "21.00",
+            "per_person": True,
+            "min_persons": 10,
+            "category": "catering",
+            "event_types": ["Retreat", "Büro-Catering", "Geburtstag"],
+            "photos": ["dal,soup", "kitchari,dal"],
+            "groups": [
+                {"label": "Suppe", "included": True, "products": ["Dal mit Gemüse"]},
+                {"label": "Hauptgang", "included": True, "products": ["Kitchari"]},
+                {"label": "Salat", "included": True, "products": ["Gurken-Raita mit Minze"]},
+                {"label": "Beilage", "included": True, "products": ["Ofengemüse vom Blech"]},
+            ],
+        },
+        {
+            "name": "Freie Auswahl",
+            "description": "Stellen Sie Ihr Buffet frei zusammen — alle 49 Gerichte der "
+            "Catering-Karte, nach Gängen sortiert. Preise à la carte, pro Person gerechnet.",
+            "price": "0.00",
+            "per_person": True,
+            "min_persons": 10,
+            "free_pool": True,
+            "category": "catering",
+            "event_types": ["Firmenfeier", "Geburtstag", "Retreat", "Büro-Catering", "Sonstiges"],
+            "photos": ["roasted,veggies"],
+        },
+    ],
+    # MEN-21: Bewertungen zu den Menü-Paketen (kind="combo") — Index = Reihenfolge
+    # der Spezifikation oben. Kundentexte bleiben DE (Regel der DL-Welle).
+    combo_reviews=[
+        (
+            0,
+            5,
+            "Familie Weber",
+            "pr.weber@example.de",
+            "Das Klassik-Menü für unsere Feier war rundum gut: Borschtsch heiß, "
+            "Ragout würzig, alles pünktlich aufgebaut.",
+        ),
+        (
+            1,
+            5,
+            "Team Nordlicht",
+            "pr.nordlicht@example.de",
+            "Wir konnten für jeden etwas auswählen — vegan, glutenfrei, mild. "
+            "Die Kolleginnen reden heute noch vom Kichererbsen-Ragout.",
+        ),
+        (
+            1,
+            4,
+            "Sabine H.",
+            "pr.sabine@example.de",
+            "Sehr flexibel und gut kalkulierbar. Nur die Lieferung kam zehn Minuten "
+            "später als besprochen.",
+        ),
+        (
+            2,
+            5,
+            "Yoga-Studio Anahata",
+            "pr.anahata@example.de",
+            "Für unser Retreat-Wochenende genau richtig: leicht, mild gewürzt und "
+            "trotzdem sättigend. Das Kitchari war der Favorit.",
+        ),
+    ],
+    # MEN-6: Gang jedes Gerichts — «freie Auswahl» im Menü-Konfigurator
+    # gruppiert danach, und die PDF-Speisekarte sortiert danach.
+    product_courses={
+        "Borschtsch": "suppe",
+        "Käsecremesuppe": "suppe",
+        "Dal mit Gemüse": "suppe",
+        "Cremige Pilzsuppe": "suppe",
+        "Kürbissuppe mit Kürbiskernen": "suppe",
+        "Gazpacho": "suppe",
+        "Okroschka": "suppe",
+        "Raita (kalte Joghurtsuppe)": "suppe",
+        "Reis": "beilage",
+        "Bulgur": "beilage",
+        "Nudeln": "beilage",
+        "Kitchari": "beilage",
+        "Buchweizen": "beilage",
+        "Ofenkartoffeln": "beilage",
+        "Gemüsereis": "beilage",
+        "Couscous": "beilage",
+        "Plow (Pilaw)": "beilage",
+        "Rotes Gemüseragout": "hauptgang",
+        "Weißes Ragout mit Paneer": "hauptgang",
+        "Kichererbsen-Ragout mit Blumenkohl": "hauptgang",
+        "Kürbisragout": "hauptgang",
+        "Brokkoli-Ragout mit grünen Bohnen": "hauptgang",
+        "Rosenkohl-Ragout mit Paprika": "hauptgang",
+        "Tofu-Ragout mit Aubergine": "hauptgang",
+        "Mahabridschal (Auberginen-Ragout)": "hauptgang",
+        "Rote Tomatensauce": "beilage",
+        "Steinpilz-Rahmsauce": "beilage",
+        "Frische Minzsauce": "beilage",
+        "Spinatsauce mit Hartkäse": "beilage",
+        "Tomaten-Käse-Sauce": "beilage",
+        "Soja-Bolognese": "beilage",
+        "Seitan-Tomatensauce": "beilage",
+        "Auberginenkaviar": "vorspeise",
+        "Gemüse-Pakoras": "vorspeise",
+        "Gemüsebratlinge": "vorspeise",
+        "Kartoffelpuffer (Draniki)": "vorspeise",
+        "Reisbratlinge": "vorspeise",
+        "Schmorkohl": "vorspeise",
+        "Ofengemüse vom Blech": "vorspeise",
+        "Chinakohl-Salat": "vorspeise",
+        "Morkowtscha (Karottensalat)": "vorspeise",
+        "Frühlingssalat": "vorspeise",
+        "Sommersalat": "vorspeise",
+        "Rote-Bete-Salat mit Knoblauch": "vorspeise",
+        "Winegret-Salat": "vorspeise",
+        "Gurkensalat mit Kräutern": "vorspeise",
+        "Gurken-Raita mit Minze": "vorspeise",
+        "Spargelsalat Asberg": "vorspeise",
+        "Veganer Caesar-Salat": "vorspeise",
+    },
+    # Catering-Welle 2026-08-25: Bereich «Catering» wie beim Archetyp — Menü-Pakete,
+    # Kennzeichnung in der Preisliste und die Anfrage-Bande auf der Startseite.
+    enable_anfrage_section=True,
+    config_patch={"menu_labels": True},
     seed_records=True,
     menus=PRANASY_MENUS,
     # M20U-2: слайдер баннеров — единая главная ведёт к ключевым действиям.
@@ -1342,7 +1573,9 @@ PRANASY = DemoKit(
         "jobs": {
             "intro": "Veganes & ayurvedisches Catering für Feiern, Büro und Events. Sag uns, "
             "was du brauchst — wir kochen frisch und melden uns mit einem unverbindlichen Angebot.",
-            "hero_kw": "catering,buffet",
+            # «catering,buffet» zeigt eine Bratwurst-Theke — auf einer rein
+            # pflanzlichen Seite das falsche Bild (Sichtcheck 2026-08-25).
+            "hero_kw": "vegan,buffet",
         },
         "events": {
             "intro": "Unsere Retreats: ruhige Wochenenden mit veganer & ayurvedischer Küche, "
@@ -1791,6 +2024,787 @@ PRANASY = DemoKit(
                 ),
             ],
         ),
+        # Catering-Speisekarte (Karte des Betreibers, 2026-08-25): 49 Gerichte in
+        # sechs Gängen unter EINEM Bereich «Catering». Der Bereich ist ein Container —
+        # die Gerichte liegen in den Unterkategorien, die Seite zeigt sie zusammen
+        # (KAT-1) und darüber die Menü-Pakete (page_style «sets»).
+        (
+            # Gleich in DE und EN → Inline-Dict statt Identity-Eintrag im
+            # Demo-Wörterbuch (ein Projekt-Test verbietet msgstr == msgid).
+            {"de": "Catering", "en": "Catering"},
+            "catering",
+            [],
+            [
+                (
+                    "Suppen",
+                    "suppen",
+                    [
+                        _p(
+                            "Borschtsch",
+                            "5.90",
+                            "Tiefrot, süßsauer und lange geköchelt — der Klassiker der "
+                            "osteuropäischen Küche. Bohnen und reichlich Gemüse machen ihn "
+                            "auch ohne Fleisch richtig sättigend. Serviert mit frischem Dill "
+                            "und einem Löffel Schmand.",
+                            "borscht,soup",
+                            diets=["vegetarisch", "glutenfrei"],
+                            allergens=["milch"],
+                            vat="7.00",
+                            ingredients="Rote Bete, Kartoffeln, Weißkohl, Karotten, Paprika, Tomaten, "
+                            "Tomatenmark, Dill, Wasser, Bohnen, Schmand, Gewürze (schwarzer "
+                            "Pfeffer, Lorbeerblatt, Salz, Zucker)",
+                        ),
+                        _p(
+                            "Käsecremesuppe",
+                            "5.50",
+                            "Samtig und mild: Kartoffeln, Sahne und Schmelzkäse ergeben eine "
+                            "gleichmäßig cremige Suppe, Tofu gibt ihr Körper und macht sie "
+                            "sättigend. Schwarze Oliven und Kurkuma setzen würzige Akzente. "
+                            "Ein ruhiger Teller für kühle Tage.",
+                            "cheese,soup",
+                            diets=["vegetarisch", "glutenfrei"],
+                            allergens=["milch", "soja"],
+                            vat="7.00",
+                            ingredients="Kartoffeln, Sahne, Schmelzkäse, schwarze Oliven, Tofu, "
+                            "Pflanzenöl, Wasser, frische Kräuter, Gewürze (Salz, Asafötida "
+                            "(glutenfrei), schwarzer Pfeffer, Bockshornklee, Kurkuma)",
+                        ),
+                        _p(
+                            "Dal mit Gemüse",
+                            "6.20",
+                            "Würziger indischer Eintopf aus Kichererbsen oder Mungbohnen, mit "
+                            "Karotten, Blumenkohl und Paprika. Kreuzkümmel, Kurkuma und "
+                            "Asafötida geben ihm Tiefe, Butter und Sahne machen ihn weich und "
+                            "rund. Mit frischem Koriander serviert.",
+                            "dal,soup",
+                            diets=["vegetarisch", "glutenfrei"],
+                            allergens=["milch"],
+                            vat="7.00",
+                            ingredients="Kichererbsen oder Mungbohnen, Karotten, Blumenkohl, Paprika, "
+                            "Butter, Sahne oder Schmand, Wasser, Koriandergrün, Gewürze "
+                            "(Kreuzkümmel, Chili, Kurkuma, Asafötida (glutenfrei), Salz)",
+                        ),
+                        _p(
+                            "Cremige Pilzsuppe",
+                            "6.40",
+                            "Kräftiger Pilzgeschmack, dichte und samtige Textur: Pilze "
+                            "bringen die erdige Note, Sahne und Tofu machen die Suppe zart "
+                            "und sättigend. Tomatenmark und grüne Oliven geben ihr Tiefe, "
+                            "Bockshornklee eine feine Kräuterwürze.",
+                            "mushroom,soup",
+                            diets=["vegetarisch", "glutenfrei"],
+                            allergens=["milch", "soja"],
+                            vat="7.00",
+                            ingredients="Kartoffeln, Sahne, Pilze, Karotten, Tomatenmark, grüne Oliven, "
+                            "Tofu, Pflanzenöl, Wasser, frische Kräuter, Gewürze (Salz, "
+                            "Asafötida (glutenfrei), schwarzer Pfeffer, Bockshornklee, "
+                            "Bockshornkleeblätter)",
+                        ),
+                        _p(
+                            "Kürbissuppe mit Kürbiskernen",
+                            "5.20",
+                            "Sonnengelbe Cremesuppe mit feiner Süße und samtiger Textur. "
+                            "Kürbis, Kartoffeln und Karotten werden mit Sahne fein püriert, "
+                            "Kurkuma und Bockshornklee runden sie ab. Geröstete Kürbiskerne "
+                            "obenauf sorgen für nussigen Biss.",
+                            "pumpkin,soup",
+                            diets=["vegetarisch", "glutenfrei"],
+                            allergens=["milch"],
+                            vat="7.00",
+                            ingredients="Kürbis, Kartoffeln, Karotten, Sahne (20 %), Olivenöl, Wasser, "
+                            "Kürbiskerne, Gewürze (Salz, Bockshornklee, Asafötida "
+                            "(glutenfrei), Kurkuma, schwarzer Pfeffer)",
+                        ),
+                        _p(
+                            "Gazpacho",
+                            "4.90",
+                            "Kalte Gemüsesuppe aus Spanien — frisch, leicht säuerlich und so "
+                            "dicht, dass sie sich fast wie ein Getränk löffeln lässt. "
+                            "Tomaten, Gurke und Paprika werden mit Olivenöl und Weinessig "
+                            "oder Zitrone kalt püriert. Mit knusprigen veganen Croutons "
+                            "serviert.",
+                            "gazpacho,soup",
+                            diets=["vegan", "laktosefrei"],
+                            allergens=["gluten", "sellerie", "sulfit"],
+                            vat="7.00",
+                            ingredients="Tomaten, Gurke, Paprika, Olivenöl, Weinessig oder Zitrone, "
+                            "Wasser oder Eis, vegane Croutons, Sellerie, Gewürze (Salz, "
+                            "schwarzer Pfeffer, Asafötida)",
+                        ),
+                        _p(
+                            "Okroschka",
+                            "5.60",
+                            "Die leichte Sommersuppe: gekochte Kartoffeln, frische Gurke und "
+                            "Radieschen fein gewürfelt, dazu Paneer und viel Dill. "
+                            "Aufgegossen wird mit Kwass oder Kefir — säuerlich, kühl und "
+                            "erfrischend, ohne schwer im Magen zu liegen.",
+                            "okroshka,soup",
+                            diets=["vegetarisch"],
+                            allergens=["gluten", "milch"],
+                            vat="7.00",
+                            ingredients="gekochte Kartoffeln, frische Gurke, Radieschen, Paneer, frische "
+                            "Kräuter, Dill, Schmand, Kwass oder Kefir, Gewürze (Salz)",
+                        ),
+                        _p(
+                            "Raita (kalte Joghurtsuppe)",
+                            "4.50",
+                            "Kühl und erfrischend: Naturjoghurt mit geriebener Gurke, Tomate "
+                            "und frischem Koriander oder Minze. Kreuzkümmel, Pfeffer und "
+                            "Asafötida geben der kalten Suppe eine feine Würze. Passt "
+                            "besonders gut zu scharf gewürzten Gerichten.",
+                            "raita,soup",
+                            diets=["vegetarisch", "glutenfrei"],
+                            allergens=["milch"],
+                            vat="7.00",
+                            ingredients="Naturjoghurt, Gurke, Tomate, Koriandergrün oder Minze, Wasser, "
+                            "Gewürze (gemahlener Kreuzkümmel, schwarzer Pfeffer, Salz, "
+                            "Asafötida (glutenfrei))",
+                        ),
+                    ],
+                    "borscht,soup",
+                    "Warme und kalte Suppen aus der ayurvedischen und osteuropäischen Küche — "
+                    "täglich frisch gekocht, im Glas oder in der Warmhaltebox geliefert.",
+                    "preisliste",
+                ),
+                (
+                    "Beilagen",
+                    "beilagen",
+                    [
+                        _p(
+                            "Reis",
+                            "3.50",
+                            "Neutraler Klassiker, der zu Gemüse- und Hülsenfruchtgerichten "
+                            "ebenso passt wie zu kräftigen Saucen. Die Körner bleiben locker "
+                            "und fallen schön auseinander, dabei nehmen sie die Sauce von "
+                            "Ragouts und Currys gut auf. Warm serviert — die Beilage zu fast "
+                            "allen warmen Gerichten.",
+                            "gekochter,reis,essen",
+                            diets=["vegan", "glutenfrei", "laktosefrei"],
+                            vat="7.00",
+                            ingredients="Reis, Wasser, Öl, Gewürze (Salz)",
+                        ),
+                        _p(
+                            "Bulgur",
+                            "3.90",
+                            "Herzhafte Beilage aus vorgegartem Weizen mit feiner Nussnote und "
+                            "angenehmem Biss. Das Vollkorn bleibt körnig und nimmt Saucen und "
+                            "Gewürze bereitwillig auf. Passt zu Ragouts, geschmortem Gemüse "
+                            "und allem, was etwas Sättigendes braucht.",
+                            "bulgur,grain",
+                            diets=["vegan", "laktosefrei"],
+                            allergens=["gluten"],
+                            vat="7.00",
+                            ingredients="Bulgur, Wasser, Öl, Gewürze (Salz)",
+                        ),
+                        _p(
+                            "Nudeln",
+                            "3.70",
+                            "Der Klassiker, den Große und Kleine mögen: Hartweizennudeln, al "
+                            "dente gekocht, mit angenehmem Biss. Sie sind die verlässliche "
+                            "Grundlage für Gemüseragouts und Saucen — oder ganz schlicht mit "
+                            "etwas Öl und frischen Kräutern.",
+                            "noodles,durum",
+                            diets=["vegan", "laktosefrei"],
+                            allergens=["gluten"],
+                            vat="7.00",
+                            ingredients="Nudeln (Hartweizen), Wasser, Öl, Gewürze (Salz)",
+                        ),
+                        _p(
+                            "Kitchari",
+                            "5.20",
+                            "Der ayurvedische Klassiker aus Reis und Mungbohnen, weich gegart "
+                            "und leicht sämig. Kurkuma und Ghee geben dem Gericht seine "
+                            "goldene Farbe und ein feines, nussiges Aroma. Mild, bekömmlich "
+                            "und sättigend — auch für kleine Gäste geeignet.",
+                            "kitchari,teller",
+                            diets=["vegetarisch", "glutenfrei"],
+                            allergens=["milch"],
+                            vat="7.00",
+                            ingredients="Reis, Mung-Dal oder Linsen, Wasser, Ghee, Gewürze (Kurkuma, "
+                            "Salz)",
+                        ),
+                        _p(
+                            "Buchweizen",
+                            "4.20",
+                            "Kräftige Beilage mit unverwechselbarem Geschmack und lockerer, "
+                            "körniger Textur. Der Buchweizen bringt eine feine Nussnote mit "
+                            "und harmoniert besonders gut mit Pilzsaucen und Gemüseragouts. "
+                            "Sättigend und angenehm nussig im Abgang.",
+                            "buckwheat,groats",
+                            diets=["vegan", "glutenfrei", "laktosefrei"],
+                            vat="7.00",
+                            ingredients="Buchweizen, Wasser, Öl, Gewürze (Salz)",
+                        ),
+                        _p(
+                            "Ofenkartoffeln",
+                            "4.50",
+                            "Im Ofen geröstet, bis die Kanten goldbraun und knusprig sind und "
+                            "das Innere schön mehlig bleibt. Öl und Gewürze ziehen beim "
+                            "Backen ein und geben den Kartoffeln ihr warmes Aroma. Eine gute "
+                            "Begleitung zu Gemüsebratlingen und Ragouts.",
+                            "roasted,potato",
+                            diets=["vegan", "glutenfrei", "laktosefrei"],
+                            vat="7.00",
+                            ingredients="Kartoffeln, Öl, Gewürze (Salz, Gewürzmischung)",
+                        ),
+                        _p(
+                            "Gemüsereis",
+                            "4.90",
+                            "Bunter Reis, der als Beilage ebenso funktioniert wie als kleines "
+                            "Hauptgericht. Möhren, Paprika, Erbsen und Mais werden "
+                            "mitgebraten und geben den Körnern Farbe und einen leicht "
+                            "süßlichen Geschmack. Warm serviert, mittags wie abends.",
+                            "rice,peas",
+                            diets=["vegan", "glutenfrei", "laktosefrei"],
+                            vat="7.00",
+                            ingredients="Reis, Möhren, Paprika, Erbsen, Mais, Wasser, Öl, Gewürze (Salz)",
+                        ),
+                        _p(
+                            "Couscous",
+                            "4.10",
+                            "Feiner Hartweizengrieß, schonend gedämpft — locker, körnig und "
+                            "angenehm zurückhaltend im Geschmack. Genau deshalb ist Couscous "
+                            "die ideale Grundlage für Gemüseragouts und aromatische Saucen. "
+                            "Auf Wunsch mit feinen Möhrenwürfeln.",
+                            "couscous,semolina",
+                            diets=["vegan", "laktosefrei"],
+                            allergens=["gluten"],
+                            vat="7.00",
+                            ingredients="Couscous, Wasser, Öl, Möhren (nach Wunsch), Gewürze (Salz, "
+                            "Pfeffer)",
+                        ),
+                        _p(
+                            "Plow (Pilaw)",
+                            "5.90",
+                            "Goldener Reis mit Kichererbsen und Möhren, langsam in "
+                            "Butterschmalz gegart. Kreuzkümmel, Paprika und Kurkuma geben ihm "
+                            "Farbe und ein tiefes, orientalisches Aroma, die Körner bleiben "
+                            "dabei locker. Heiß serviert, gern mit frischem Brot.",
+                            "plov,pilaf",
+                            diets=["vegetarisch", "glutenfrei"],
+                            allergens=["milch"],
+                            vat="7.00",
+                            ingredients="Reis, Kichererbsen, Möhren, Butterschmalz (Ghee), Wasser, "
+                            "Gewürze (Kreuzkümmel, Paprika, Kurkuma, Salz, Pfeffer, Asafötida "
+                            "(glutenfrei))",
+                        ),
+                    ],
+                    "rice,bowl",
+                    "Reis, Getreide und Kartoffeln als Basis jedes Menüs — neutral gewürzt, "
+                    "damit Ragouts und Saucen die Hauptrolle spielen.",
+                    "preisliste",
+                ),
+                (
+                    "Ragouts & Hauptgerichte",
+                    "ragouts",
+                    [
+                        _p(
+                            "Rotes Gemüseragout",
+                            "7.50",
+                            "Kartoffeln und Karotten braten wir goldbraun an und schmoren sie "
+                            "dann in einer Tomatensauce mit Sahne. Kreuzkümmel und Koriander "
+                            "geben dem Ragout seine warme, würzige Tiefe, eine Prise Zucker "
+                            "nimmt der Tomate die Säure. Sättigend und wohltuend an kühlen "
+                            "Tagen.",
+                            "ragout,red",
+                            diets=["vegetarisch", "glutenfrei"],
+                            allergens=["milch", "senf"],
+                            vat="7.00",
+                            ingredients="Kartoffeln, Karotten, Öl zum Anbraten, Sahne (20 %), "
+                            "Tomatensauce, Wasser oder selleriefreie Gemüsebrühe, Gewürze "
+                            "(schwarze Senfsaat, Kreuzkümmel, gemahlener Koriander, Asafötida "
+                            "(glutenfrei), Salz, Zucker)",
+                        ),
+                        _p(
+                            "Weißes Ragout mit Paneer",
+                            "9.20",
+                            "Kartoffeln und Zucchini schmoren sanft in Sahne, dazu kommen "
+                            "zarte Paneer-Würfel. Kurkuma gibt dem Ragout einen goldenen Ton, "
+                            "Bockshornklee eine feine, nussige Note. Ein mildes, cremiges "
+                            "Gericht für einen ruhigen Mittag.",
+                            "paneerragout,essen",
+                            diets=["vegetarisch", "glutenfrei"],
+                            allergens=["milch"],
+                            vat="7.00",
+                            ingredients="geschälte Kartoffeln, Zucchini, Paneer, Sahne (20 %), Butter, "
+                            "Wasser oder selleriefreie Gemüsebrühe, Gewürze (Kurkuma, "
+                            "Bockshornklee, Asafötida (glutenfrei), schwarzer Pfeffer, Salz)",
+                        ),
+                        _p(
+                            "Kichererbsen-Ragout mit Blumenkohl",
+                            "8.90",
+                            "Viel Gemüse und gekochte Kichererbsen machen dieses Ragout "
+                            "angenehm sättigend. Blumenkohl, Kartoffeln und Paprika sorgen "
+                            "für Biss, Kreuzkümmel, Koriander und Fenchel für einen tiefen, "
+                            "würzigen Geschmack. Ein Schuss Sahne zum Schluss macht alles "
+                            "besonders zart.",
+                            "chickpea,ragout",
+                            diets=["vegetarisch", "glutenfrei"],
+                            allergens=["milch"],
+                            vat="7.00",
+                            ingredients="Kichererbsen (gekocht), Kartoffeln, Blumenkohl, Paprika, Öl, "
+                            "Wasser oder selleriefreie Gemüsebrühe, Sahne, Gewürze "
+                            "(Kreuzkümmel, gemahlener Koriander, Fenchel, Kurkuma, Asafötida "
+                            "(glutenfrei), Salz)",
+                        ),
+                        _p(
+                            "Kürbisragout",
+                            "8.40",
+                            "Zarter Kürbis trifft auf Paprika, Zucchini und Karotte — dazu "
+                            "Muskatnuss oder Zimt, die die natürliche Süße des Kürbis "
+                            "aufnehmen. Sahne bindet alles zu einem dichten, samtigen Ragout. "
+                            "Warm gewürzt, aber nicht scharf.",
+                            "kuerbisragout,essen",
+                            diets=["vegetarisch", "glutenfrei"],
+                            allergens=["milch"],
+                            vat="7.00",
+                            ingredients="Kürbis, Karotten, Paprika, Zucchini, Sahne (20 %), Öl oder "
+                            "Butter, Wasser oder selleriefreie Gemüsebrühe, Gewürze "
+                            "(Kreuzkümmel, Koriander, Kurkuma, Fenchel, Asafötida "
+                            "(glutenfrei), Muskatnuss oder Zimt, Salz)",
+                        ),
+                        _p(
+                            "Brokkoli-Ragout mit grünen Bohnen",
+                            "8.60",
+                            "Brokkoli und grüne Bohnen geben dem Ragout kräftige Farbe und "
+                            "angenehmen Biss, die Sahne macht es weich und mild. Schwarze "
+                            "Senfsaat, Kreuzkümmel und Muskat sorgen für Tiefe, ohne dass es "
+                            "scharf wird. Dazu passt am besten Reis.",
+                            "broccoli,ragout",
+                            diets=["vegetarisch", "glutenfrei"],
+                            allergens=["milch", "senf"],
+                            vat="7.00",
+                            ingredients="Kartoffeln, Brokkoli, grüne Bohnen, Sahne, Öl, Wasser, Gewürze "
+                            "(schwarze Senfsaat, Kreuzkümmel, Koriander, Asafötida "
+                            "(glutenfrei), weißer Pfeffer, Muskatnuss, Salz)",
+                        ),
+                        _p(
+                            "Rosenkohl-Ragout mit Paprika",
+                            "8.20",
+                            "Kleine Rosenkohlköpfe geben dem Ragout einen milden, leicht "
+                            "süßlichen Ton und eine angenehme Textur. Mit Karotte, Paprika "
+                            "und Zucchini wird es bunt und rund, Sahne und eine Prise Zucker "
+                            "machen den Geschmack harmonisch. Ein klassisches Gemüseragout.",
+                            "sprouts,ragout",
+                            diets=["vegetarisch", "glutenfrei"],
+                            allergens=["milch"],
+                            vat="7.00",
+                            ingredients="Rosenkohl, Karotten, Paprika, Zucchini, Sahne, Öl, Wasser, "
+                            "Gewürze (Kreuzkümmel, Koriander, Kurkuma, Asafötida "
+                            "(glutenfrei), Salz, Zucker)",
+                        ),
+                        _p(
+                            "Tofu-Ragout mit Aubergine",
+                            "9.40",
+                            "Der Tofu wird mit dem Gemüse angebraten und zieht die Aromen der "
+                            "würzigen Sauce in sich auf — herzhaft und saftig. Ingwer, "
+                            "Koriander und Kreuzkümmel geben dem Ragout einen warmen Ton, der "
+                            "gut zu Aubergine, Paprika und Blumenkohl passt. Komplett "
+                            "pflanzlich.",
+                            "tofu,ragout",
+                            diets=["vegan", "glutenfrei", "laktosefrei"],
+                            allergens=["soja"],
+                            vat="7.00",
+                            ingredients="Tofu, Paprika, Aubergine, Zucchini, Blumenkohl, Wasser, Gewürze "
+                            "(Kurkuma, Kreuzkümmel, Koriander, schwarzer Pfeffer, Ingwer)",
+                        ),
+                        _p(
+                            "Mahabridschal (Auberginen-Ragout)",
+                            "9.90",
+                            "Auberginen werden in Öl weich angebraten und schmoren dann mit "
+                            "Zucchini, Karotte und Paprika in einer würzigen Sauce. "
+                            "Kreuzkümmel, Koriander, Chili und Garam Masala geben Charakter, "
+                            "Sahne und Käse machen die Textur zum Schluss besonders cremig. "
+                            "Gut mit Beilage oder für sich.",
+                            "mahabrinjal,essen",
+                            diets=["vegetarisch", "glutenfrei"],
+                            allergens=["milch"],
+                            vat="7.00",
+                            ingredients="Auberginen, Paprika, Zucchini, Karotten, Pflanzenöl, Wasser, "
+                            "Sahne, Käse, Gewürze (gemahlener Koriander, gemahlener "
+                            "Kreuzkümmel, Kurkuma, Asafötida (glutenfrei), Chili, Zucker, "
+                            "Salz, Garam Masala)",
+                        ),
+                    ],
+                    "ragout,red",
+                    "Herzhafte Gemüseragouts als Hauptgang — cremig, würzig und sättigend, in "
+                    "Mengen ab 10 Portionen kalkuliert.",
+                    "preisliste",
+                ),
+                (
+                    "Saucen",
+                    "saucen",
+                    [
+                        _p(
+                            "Rote Tomatensauce",
+                            "2.90",
+                            "Dicht eingekochtes Tomatenmark, mit Sahne zu einer samtigen, "
+                            "tiefroten Sauce verrührt. Die Gewürze geben ihr eine warme, "
+                            "würzige Note. Passt zu Beilagen und Ragouts und ist zugleich die "
+                            "Grundlage für viele weitere Gerichte unserer Karte.",
+                            "tomato,sauce",
+                            diets=["vegetarisch", "glutenfrei"],
+                            allergens=["milch"],
+                            vat="7.00",
+                            ingredients="Tomatenmark, Sahne, Wasser, Gewürze",
+                        ),
+                        _p(
+                            "Steinpilz-Rahmsauce",
+                            "4.50",
+                            "Steinpilze und Zucchini werden in Butter mit Mehl angeschwitzt, "
+                            "dann kommt Sahne dazu — so wird die Sauce dicht und samtig, mit "
+                            "klarem Waldpilz-Aroma. Asafötida und Pfeffer runden sie ab. "
+                            "Klassisch zu Nudeln, Ofenkartoffeln oder Gemüse.",
+                            "mushroom,sauce",
+                            diets=["vegetarisch"],
+                            allergens=["gluten", "milch"],
+                            vat="7.00",
+                            ingredients="Steinpilze, Zucchini, Butter, Weizenmehl, Sahne, Wasser, Gewürze "
+                            "(Salz, Pfeffer, Asafötida)",
+                        ),
+                        _p(
+                            "Frische Minzsauce",
+                            "2.50",
+                            "Frische Minze, mit heißem Wasser aufgegossen und mit Zucker oder "
+                            "Honig abgerundet. Ein Spritzer Essig gibt die feine Säure, die "
+                            "Gewürze machen sie pikant. Passt zu Salaten, Ofengemüse und "
+                            "gebratenen Beilagen — oder einfach als Dip.",
+                            "mint,sauce",
+                            diets=["vegetarisch", "glutenfrei", "laktosefrei"],
+                            vat="7.00",
+                            ingredients="Minze, Zucker oder Honig, kochendes Wasser, Essig, Gewürze",
+                        ),
+                        _p(
+                            "Spinatsauce mit Hartkäse",
+                            "3.90",
+                            "Frischer Spinat mit Zwiebel und Knoblauch, gebunden mit Butter, "
+                            "Mehl und Sahne — kräftig grün und cremig. Der Hartkäse gibt "
+                            "Würze, frisch geriebene Muskatnuss die warme Tiefe. Wir reichen "
+                            "sie zu Pasta, Risotto oder gebackenem Gemüse.",
+                            "spinach,sauce",
+                            diets=["vegetarisch"],
+                            allergens=["gluten", "milch"],
+                            vat="7.00",
+                            ingredients="frischer Spinat, Sahne, Zwiebeln, Knoblauch, Hartkäse "
+                            "(mikrobielles Lab), Butter, Weizenmehl, Gewürze (Salz, schwarzer "
+                            "Pfeffer, Muskatnuss)",
+                        ),
+                        _p(
+                            "Tomaten-Käse-Sauce",
+                            "4.20",
+                            "Kräftige Tomatensauce, verfeinert mit Sahne, festem Tofu und "
+                            "geriebenem Hartkäse. Der Käse schmilzt ein und macht sie dicht "
+                            "und mild, die Gewürze geben Tiefe. Eine sättigende Grundlage für "
+                            "Pasta, Pizza oder Aufläufe.",
+                            "cheese,sauce",
+                            diets=["vegetarisch", "glutenfrei"],
+                            allergens=["milch", "soja"],
+                            vat="7.00",
+                            ingredients="Tomatenmark oder Tomatenpüree, Tofu (fest), Sahne 33 %, "
+                            "Hartkäse, Pflanzenöl, Gewürze",
+                        ),
+                        _p(
+                            "Soja-Bolognese",
+                            "3.40",
+                            "Sojagranulat wird eingeweicht und mit Zwiebel und Möhre "
+                            "angebraten — so bekommt es Biss und ein herzhaftes Aroma. Mit "
+                            "Tomatenmark, Knoblauch und Gewürzen wird daraus eine sättigende "
+                            "Sauce für Nudeln, Kartoffeln oder pur.",
+                            "soy,bolognese",
+                            diets=["vegan", "laktosefrei"],
+                            allergens=["gluten", "soja"],
+                            vat="7.00",
+                            ingredients="Tomatenmark oder Tomatenpüree, Zwiebeln, Möhren, Knoblauch, "
+                            "Weizenmehl, Pflanzenöl, Wasser, Sojagranulat, Gewürze (Salz, "
+                            "Pfeffer, Gewürzmischung)",
+                        ),
+                        _p(
+                            "Seitan-Tomatensauce",
+                            "4.40",
+                            "Seitan, das herzhafte Weizeneiweiß, saugt sich in einer dichten "
+                            "Sauce aus Tomatenmark und stückigen Tomaten voll. Zwiebel, "
+                            "Knoblauch und Kräuter geben ihr Tiefe, eine Prise Zucker rundet "
+                            "die Säure ab. Herzhaft zu Beilagen und Pasta.",
+                            "seitan,sauce",
+                            diets=["vegan", "laktosefrei"],
+                            allergens=["gluten"],
+                            vat="7.00",
+                            ingredients="Seitan, Tomatenmark oder Tomatenpüree, Tomaten im eigenen Saft, "
+                            "Zwiebeln, Knoblauch, Möhren, Pflanzenöl, Wasser, Gewürze (Salz, "
+                            "schwarzer Pfeffer, Zucker, Kräuter)",
+                        ),
+                    ],
+                    "tomato,sauce",
+                    "Saucen zu Beilagen und Bratlingen — von der klassischen Tomatensauce bis "
+                    "zur Rahmsauce mit Steinpilzen.",
+                    "preisliste",
+                ),
+                (
+                    "Warme Vorspeisen",
+                    "vorspeisen",
+                    [
+                        _p(
+                            "Auberginenkaviar",
+                            "4.90",
+                            "Gebackene Auberginen werden mit Tomaten, Zwiebeln und Paprika zu "
+                            "einer weichen, rauchig-würzigen Paste geschmort. Knoblauch und "
+                            "Petersilie geben Frische und Würze. Wir servieren den Kaviar "
+                            "kalt oder lauwarm, dazu passt frisches Brot.",
+                            "eggplant,caviar",
+                            diets=["vegan", "glutenfrei", "laktosefrei"],
+                            vat="7.00",
+                            ingredients="Auberginen, Tomaten, Zwiebeln, Paprika, Knoblauch, "
+                            "Sonnenblumenöl, Petersilie, Gewürze (Salz, schwarzer Pfeffer)",
+                        ),
+                        _p(
+                            "Gemüse-Pakoras",
+                            "5.90",
+                            "Goldene Gemüsepuffer aus der indischen Küche: geriebene "
+                            "Kartoffeln, Karotten und Kohl werden mit Gewürzen vermengt und "
+                            "in heißem Öl ausgebacken. Außen goldbraun und knusprig, innen "
+                            "weich und saftig. Heiß serviert, dazu passen Minzsauce oder "
+                            "Ketchup.",
+                            "vegetable,pakora",
+                            diets=["vegan", "laktosefrei"],
+                            allergens=["gluten"],
+                            vat="7.00",
+                            ingredients="Kohl, Karotten, Kartoffeln, Mehl, Semmelbrösel, Frittieröl, "
+                            "frische Kräuter, Gewürze (Salz, Pfeffer, Gewürzmischung)",
+                        ),
+                        _p(
+                            "Gemüsebratlinge",
+                            "5.50",
+                            "Saftige Bratlinge aus Kohl, Karotten und Kartoffeln, in Mehl "
+                            "gewendet und goldbraun gebraten. Die Panade wird knusprig, "
+                            "während der Kern zart und weich bleibt. Eine feine pflanzliche "
+                            "Alternative zur klassischen Frikadelle.",
+                            "vegetable,fritters",
+                            diets=["vegan", "laktosefrei"],
+                            allergens=["gluten"],
+                            vat="7.00",
+                            ingredients="Kohl, Karotten, Kartoffeln, Mehl, Öl zum Braten, Gewürze (Salz, "
+                            "Pfeffer)",
+                        ),
+                        _p(
+                            "Kartoffelpuffer (Draniki)",
+                            "5.80",
+                            "Der belarussische Klassiker: geriebene Kartoffeln mit etwas Mehl "
+                            "oder Stärke, in Öl gebraten, bis die Ränder knusprig werden und "
+                            "der Kern weich bleibt. Wir servieren die Puffer heiß mit "
+                            "Schmand. Gut als Vorspeise oder als Teller zum Teilen.",
+                            "potato,pancakes",
+                            diets=["vegetarisch"],
+                            allergens=["gluten", "milch"],
+                            vat="7.00",
+                            ingredients="Kartoffeln, Mehl oder Stärke, Öl zum Braten, Schmand, Gewürze "
+                            "(Salz, Pfeffer)",
+                        ),
+                        _p(
+                            "Reisbratlinge",
+                            "5.20",
+                            "Gekochter Reis mit geriebenen Karotten und Kartoffeln, gewürzt "
+                            "mit Paprika und Kurkuma und in knuspriger Panade gebraten. Innen "
+                            "bleiben die Bratlinge zart und sättigend. Schmecken mit einer "
+                            "Sauce ebenso wie für sich allein.",
+                            "reisbratling,essen",
+                            diets=["vegan", "laktosefrei"],
+                            allergens=["gluten"],
+                            vat="7.00",
+                            ingredients="Reis, Karotten, Kartoffeln, Mehl, Semmelbrösel, Öl zum Braten, "
+                            "frische Kräuter, Gewürze (Salz, Pfeffer, Paprika, Kurkuma)",
+                        ),
+                        _p(
+                            "Schmorkohl",
+                            "4.50",
+                            "Weißkohl schmort mit Karotten und Tomatenmark langsam weich und "
+                            "wird dabei saftig und aromatisch. Zucker und ein Spritzer Essig "
+                            "geben ihm eine leicht süßsaure Note. Passt zu Kartoffeln, zu "
+                            "Bratlingen oder einfach mit Brot.",
+                            "schmorkohl,essen",
+                            diets=["vegan", "laktosefrei"],
+                            allergens=["gluten"],
+                            vat="7.00",
+                            ingredients="Weißkohl, Karotten, Tomatenmark, Pflanzenöl, Weizenmehl, Essig 3 "
+                            "%, Wasser oder selleriefreie Gemüsebrühe, Gewürze (Zucker, Salz, "
+                            "schwarzer Pfeffer, Lorbeerblatt)",
+                        ),
+                        _p(
+                            "Ofengemüse vom Blech",
+                            "6.90",
+                            "Buntes Gemüse der Saison — Paprika, Blumenkohl, Zucchini, "
+                            "Kürbis, Spargel und Brokkoli — wird mit Öl und Gewürzen im Ofen "
+                            "geröstet, bis es weich ist und leichte Röstaromen bekommt. Als "
+                            "Beilage oder als leichtes Hauptgericht.",
+                            "roasted,veggies",
+                            diets=["vegan", "glutenfrei", "laktosefrei"],
+                            vat="7.00",
+                            ingredients="Paprika, Blumenkohl, Karotten, Zucchini, Kürbis, Spargel, grüne "
+                            "Bohnen, Brokkoli, Pflanzenöl, Gewürze (Salz, Pfeffer, "
+                            "Gewürzmischung)",
+                        ),
+                    ],
+                    "vegetable,pakora",
+                    "Gebackenes und Gebratenes zum Start: Pakoras, Bratlinge und Ofengemüse — "
+                    "warm oder lauwarm servierbar.",
+                    "preisliste",
+                ),
+                (
+                    "Salate",
+                    "salate",
+                    [
+                        _p(
+                            "Chinakohl-Salat",
+                            "5.40",
+                            "Knackiger Chinakohl, Gurke, Tomate und Karotte — leicht, saftig "
+                            "und schön bunt. Ein Dressing aus Olivenöl und Zitronensaft hält "
+                            "alles frisch und mild, frische Kräuter und Koriander setzen den "
+                            "feinen Akzent.",
+                            "cabbage,salad",
+                            diets=["vegan", "glutenfrei", "laktosefrei"],
+                            vat="7.00",
+                            ingredients="Chinakohl, Gurke, Tomate, Karotte, frische Kräuter, "
+                            "Zitronensaft, Olivenöl, Gewürze (Salz, Pfeffer, Koriander)",
+                        ),
+                        _p(
+                            "Morkowtscha (Karottensalat)",
+                            "4.90",
+                            "Fein geraspelte Karotte, mariniert in Öl, Essig und einer Prise "
+                            "Zucker — süß-sauer, würzig und angenehm frisch. Koriander und "
+                            "Chili geben dem Salat seine orientalische Note und eine leichte "
+                            "Schärfe. Passt zu Reis, Kartoffeln und warmen Gerichten.",
+                            "carrot,salad",
+                            diets=["vegan", "glutenfrei", "laktosefrei"],
+                            vat="7.00",
+                            ingredients="Karotten, Pflanzenöl, Essig 9 %, Gewürze (Zucker, Salz, "
+                            "Koriander, Chilipulver, schwarzer Pfeffer)",
+                        ),
+                        _p(
+                            "Frühlingssalat",
+                            "5.90",
+                            "Radieschen, Gurke, junge Salatblätter und grüne Erbsen — "
+                            "knackig, hell und voller Frühlingsstimmung. Olivenöl mit "
+                            "Zitronensaft, Dill und Petersilie hält das Dressing leicht und "
+                            "lässt den natürlichen Geschmack des Gemüses ganz nach vorn "
+                            "treten.",
+                            "spring,salad",
+                            diets=["vegan", "glutenfrei", "laktosefrei"],
+                            vat="7.00",
+                            ingredients="Radieschen, Gurke, Salatblätter, grüne Erbsen, Dill und "
+                            "Petersilie, Olivenöl, Zitronensaft, Gewürze (Salz, Pfeffer)",
+                        ),
+                        _p(
+                            "Sommersalat",
+                            "5.50",
+                            "Der Klassiker aus saftigen Tomaten und frischen Gurken, sanft "
+                            "mit Schmand angemacht. Frische Kräuter und etwas schwarzer "
+                            "Pfeffer runden die süßen, sonnengereiften Aromen ab — einfach, "
+                            "cremig und ganz nach Sommer.",
+                            "cucumber,tomato",
+                            diets=["vegetarisch", "glutenfrei"],
+                            allergens=["milch"],
+                            vat="7.00",
+                            ingredients="Gurken, Tomaten, Schmand, frische Kräuter, Gewürze (Salz, "
+                            "Pfeffer)",
+                        ),
+                        _p(
+                            "Rote-Bete-Salat mit Knoblauch",
+                            "4.50",
+                            "Gekochte Rote Bete, fein geraspelt und mit Knoblauch "
+                            "abgeschmeckt — kräftig in Farbe und Geschmack. Pflanzenöl und "
+                            "Zitronensaft bringen Frische und eine feine Säure dazu. Schlicht "
+                            "zubereitet und trotzdem voller Geschmack — und dabei richtig "
+                            "gesund.",
+                            "beetroot,salad",
+                            diets=["vegan", "glutenfrei", "laktosefrei"],
+                            vat="7.00",
+                            ingredients="Rote Bete (gekocht), Knoblauch, Pflanzenöl, Zitronensaft, "
+                            "Gewürze (Salz, Pfeffer)",
+                        ),
+                        _p(
+                            "Winegret-Salat",
+                            "5.20",
+                            "Der bekannte Klassiker mit unverwechselbar süß-saurem Geschmack: "
+                            "gekochte Rote Bete, Kartoffeln und Karotten treffen auf "
+                            "Salzgurken, Sauerkraut, Erbsen und Zwiebel. Pflanzenöl verbindet "
+                            "alles zu einem harmonischen, farbenfrohen Ganzen.",
+                            "winegret,salad",
+                            diets=["vegan", "glutenfrei", "laktosefrei"],
+                            allergens=["sulfit"],
+                            vat="7.00",
+                            ingredients="Rote Bete (gekocht), Kartoffeln (gekocht), Karotten (gekocht), "
+                            "Sauerkraut, Salzgurken, Erbsen (Konserve), Zwiebeln, Pflanzenöl, "
+                            "Gewürze (Salz, Pfeffer)",
+                        ),
+                        _p(
+                            "Gurkensalat mit Kräutern",
+                            "4.80",
+                            "Ganz leicht, knackig und erfrischend — hier steht die Gurke im "
+                            "Mittelpunkt. Dill und Petersilie, etwas Pflanzenöl und ein "
+                            "Spritzer Zitrone genügen völlig. Eine schlichte Beilage zu allen "
+                            "warmen Gerichten, besonders an heißen Sommertagen.",
+                            "cucumber,salad",
+                            diets=["vegan", "glutenfrei", "laktosefrei"],
+                            vat="7.00",
+                            ingredients="Frische Gurken, Dill, Petersilie, Pflanzenöl, Zitronensaft, "
+                            "Gewürze (Salz, Pfeffer)",
+                        ),
+                        _p(
+                            "Gurken-Raita mit Minze",
+                            "5.10",
+                            "Kühler, würziger Joghurtsalat nach indischer Art: geraspelte "
+                            "Gurke mit frischer Minze und Koriandergrün in cremigem "
+                            "Naturjoghurt. Kreuzkümmel und Zitronensaft geben Aroma und feine "
+                            "Säure — der ideale Ausgleich zu scharf gewürzten Gerichten.",
+                            "joghurtsalat,gurke,essen",
+                            diets=["vegetarisch", "glutenfrei"],
+                            allergens=["milch"],
+                            vat="7.00",
+                            ingredients="Naturjoghurt, Gurke, frische Minze, Koriandergrün, Zitronensaft, "
+                            "Gewürze (Kreuzkümmel, Salz, schwarzer Pfeffer)",
+                        ),
+                        _p(
+                            "Spargelsalat Asberg",
+                            "7.90",
+                            "Knackiger grüner Spargel, süße Kirschtomaten und zarte "
+                            "Salatblätter, angemacht mit Olivenöl und Zitronensaft. Geröstete "
+                            "Pinienkerne bringen eine nussige Note und angenehmen Biss dazu. "
+                            "Ein feiner, leichter Salat für helle Frühlingstage.",
+                            "asparagus,salad",
+                            diets=["vegan", "glutenfrei", "laktosefrei"],
+                            vat="7.00",
+                            ingredients="Grüner Spargel, Kirschtomaten, Salatblätter, Olivenöl, "
+                            "Zitronensaft, Pinienkerne, Gewürze (Salz, schwarzer Pfeffer)",
+                        ),
+                        _p(
+                            "Veganer Caesar-Salat",
+                            "7.50",
+                            "Der berühmte Caesar, rein pflanzlich: knackiger Romana-Salat, "
+                            "Kirschtomaten und würzige vegane Croutons unter einem cremigen "
+                            "Cashew-Dressing mit Dijon, Kapern und Hefeflocken. Gebratener "
+                            "Tofu ersetzt das Hähnchen und macht den Salat schön sättigend.",
+                            "vegan,caesar",
+                            diets=["vegan", "laktosefrei"],
+                            allergens=["gluten", "soja", "schalenfruechte", "senf"],
+                            vat="7.00",
+                            ingredients="Salatblätter (Eisberg oder Romana), fester Tofu, Kirschtomaten, "
+                            "vegane Croutons, Cashewkerne, für das Dressing: Cashewkerne, "
+                            "Wasser, Zitronensaft, Knoblauch, Dijon-Senf, Kapern, Hefeflocken",
+                        ),
+                    ],
+                    "spring,salad",
+                    "Frische Salate und Joghurt-Salate — als Vorspeise, als Beilage zum "
+                    "Buffet oder als leichte Hauptspeise.",
+                    "preisliste",
+                ),
+            ],
+            "Veganes und ayurvedisch inspiriertes Catering: 49 Gerichte in sechs Gängen — "
+            "einzeln bestellbar oder als fertiges Menü-Paket. Wir kochen frisch, liefern warm "
+            "und bauen auf Wunsch vor Ort auf.",
+            "sets",
+            # Foto des Bereichs: der slug-Fallback griff «catering-buffet.webp» ab —
+            # eine Bratwurst-Theke auf einer rein pflanzlichen Seite.
+            "vegan,buffet",
+        ),
     ],
     i18n={
         "en": {
@@ -1809,7 +2823,9 @@ PRANASY = DemoKit(
             "faq": [
                 {
                     "q": "Is everything really vegan?",
-                    "a": "Yes — 100 % plant-based, no exceptions.",
+                    "a": "The restaurant and the shop are 100 % plant-based. Our catering "
+                    "menu also has ayurvedic classics with cream, paneer or yoghurt — "
+                    "every dish is labelled.",
                 },
                 {
                     "q": "When does the restaurant open?",
@@ -1864,7 +2880,7 @@ PRANASY = DemoKit(
                     "button_label": "See retreats",
                 },
             ],
-            "trust": {"marks": ["100 % Vegan", "Ayurveda", "Regional"]},
+            "trust": {"marks": ["Vegan & vegetarian", "Ayurveda", "Regional"]},
             "archetypes": {
                 "catalog": {
                     "intro": "Our restaurant opens soon — the menu is already here. And in the "
@@ -9698,6 +10714,9 @@ def apply_kit(tenant, key: str) -> bool:
             sku=item.get("sku", ""),
             material=item.get("material", ""),  # M1 Textilkennzeichnung
             care=item.get("care", ""),
+            # Ф2: состав блюда — витрина показывает «Zutaten», перевод локалей
+            # приезжает оверлеем ingredients_i18n (translate_tenant_content).
+            ingredients=item.get("ingredients", ""),
             # O-2: per-товарный вид выбора вариантов ("" = дефолт сайта/кита)
             variant_style=item.get("variant_style", ""),
             is_active=True,
@@ -9793,12 +10812,19 @@ def apply_kit(tenant, key: str) -> bool:
         # entry: (name, slug, items) ИЛИ (name, slug, items, children) ИЛИ
         # (name, slug, items, "photo,kw") — DS-2: 4-й элемент-СТРОКА задаёт ключ
         # фото плитки (иначе ключ = slug; немецкие слоги давали SVG-фолбэк).
+        # 7-й элемент — ключ фото для категории С ДЕТЬМИ (4-й занят детьми).
         # children — подкатегории той же формы (1 уровень). Первый товар
         # категории — в category_firsts (S6).
         name, slug, items = entry[0], entry[1], entry[2]
         extra = entry[3] if len(entry) > 3 else []
         photo_kw = extra if isinstance(extra, str) else ""
         children = extra if isinstance(extra, list) else []
+        # Kategorie MIT Unterkategorien belegt Element 3 mit den Kindern und kam
+        # deshalb nie an ein eigenes Foto — der slug-Fallback griff dann irgendein
+        # Bibliotheksbild ab (bei «catering» eine Bratwurst-Theke auf einer veganen
+        # Seite). Element 7 gibt Container-Kategorien ihren Foto-Schlüssel.
+        if not photo_kw and len(entry) > 6:
+            photo_kw = entry[6]
         # DS-7a: 5-й элемент — описание направления (шапка страницы категории).
         landing_desc = entry[4] if len(entry) > 4 else ""
         # KAT-6: слаг демо-категории — КАК У ЖИВЫХ (без префикса demo-; URL

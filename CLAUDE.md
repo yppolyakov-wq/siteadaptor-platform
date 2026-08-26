@@ -2066,6 +2066,37 @@ Python 3.12, менеджер uv.
   с выбором канала» у статей блога (`core/share_links.py` + `_share_menu.html`) и секция
   «Persönliche Kanäle» на странице каналов (`core/personal_channels.py`: WhatsApp, Telegram-бот,
   e-mail, чат сайта, соцпрофили со статусом и входом).
+- **Самое свежее (2026-08-25, вечер): Pranasy — кейтеринг-карта владельца (49 блюд из PDF),
+  БЕЗ миграций** (план `docs/pranasy-catering-menu-plan-2026-08-25.md`). PDF владельца
+  (название · «Описание» · «Состав», рус.) стал немецкой Speisekarte демо-кита: контейнер
+  `catering` (page_style «sets») + шесть подкатегорий-Gäng'ов (Suppen 8 · Beilagen 9 ·
+  Ragouts 8 · Saucen 7 · warme Vorspeisen 7 · Salate 10), у каждого блюда состав (LMIV),
+  диеты, аллергены, `course`, 7 % НДС; спека `_p` += `ingredients=`. **Раздел «как в
+  архетипе»:** 4 набора меню — те же три режима, что у кита `catering` (фикс ×2, «по
+  выбору» с надбавками, free_pool) + подменю шапки Catering (Speisekarte · Menüs & Pakete ·
+  Anfrage) + Anfrage-банда на главной + `menu_labels` + 4 отзыва на наборы. Категории
+  ДОПИСАНЫ В КОНЕЦ `categories` — индексы `promotions_spec` считают позицию в общем списке
+  товаров. **Правка движка:** `combos.pool_products` брал товары строго из категории набора
+  → у направления с подкатегориями «свободная сборка» открывалась ПУСТОЙ; теперь пул =
+  категория + ПРЯМЫЕ дети (семантика KAT-1), 2 замка. **Честная маркировка вместо слогана:**
+  24 из 49 блюд с сливками/паниром/гхи/йогуртом, а витрина заявляла «100 % pflanzlich, ohne
+  Ausnahme»; веганизировать рецепты нельзя (ru-локаль демо = ДОСЛОВНЫЙ текст PDF, локали
+  начали бы противоречить друг другу) → блюда помечены честно, смягчены ответ FAQ и знак
+  доверия («100 % Vegan» → «Vegan & vegetarisch»), hero/about не тронуты. **Адверсариальное
+  ревью карты (39 правок):** Pinienkerne — НЕ Schalenfrüchte по LMIV Anhang II (ложная буква
+  «h» отсекала бы аллергиков) · «selleriefreie Gemüsebrühe» · розничный Asafötida разбавлен
+  пшеничной мукой → «Asafötida (glutenfrei)» там, где стоит тег · Parmesan на телячьем
+  сычуге не вегетарианский → «Hartkäse (mikrobielles Lab)» · убрано регулируемое «reich an
+  Ballaststoffen» (EU-VO 1924/2006) и майонез из салата без майонеза. **Фото:** Openverse
+  CC0/PDM, каждый кадр просмотрен агентом, правило витрины — никакого мяса/рыбы в кадре
+  (у «caesar»/«bolognese» в стоках это норма); честный кадр нашёлся для 32 из 49, остальным
+  — тематический плейсхолдер. Грабля резолвера: ключи образуют плотные префикс-группы
+  (`ragout-`, `salad-`, `rice-`) и без своего файла блюдо молча получало фото СОСЕДА →
+  такие ключи переименованы под плейсхолдер, правило держит
+  `test_catering_dish_keys_never_borrow_another_dishs_photo`; двум старым ключам кита
+  catering проставлены `_PHOTO_ALIASES`; дубли пойманы хешем. **Переводы:** de база ·
+  **ru = дословный текст PDF** · en/uk/tr перевод (en 96 / ru 100 / uk 100 / tr 99 %,
+  строк без пути — 0). ⚠️ ops: `seed_demo_tenants --kit pranasy --recreate`.
 - **Самое свежее (2026-08-26): DC-8/DC-9 + DC-8b + волна DF (фидбэк по карточке сделки) —
   всё в main.** **DC-8** честный НДС у брони/записи/билета (ставка на позиции: проживание 7 %,
   допы 19 %, Kurtaxe вне налога; снимок на сделке) + **DC-9** область действия скидки
@@ -2083,7 +2114,7 @@ Python 3.12, менеджер uv.
   макетом**: у брони/записи/билета состав стал ТАБЛИЦЕЙ (`core/_deal_lines`) и суммы —
   Zwischensumme → Rabatt → Netto → MwSt. → Gesamt (`core/_deal_totals`), рейл 380px.
   Замки 24 → 38; стенд Playwright 14/14 нашёл 3 дефекта мимо серверных тестов.
-- Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна DC, 2026-08-25): `booking/0024` + `stays/0033` + `jobs/0016` (внешний номер сделки) + `booking/0025` (связь записи со счётом) — аддитивные; (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `core/0010` (Extra.consume_qty, v2-опции) + `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate) + `events/0028` (SupplierBooking вне туров) + `booking/0023` (Service.pricing_mode) + `catalog/0030` (Product.primary_action) + `finance/0009` (SOURCES gift/pass, choices-only)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. **Волна ERP (2026-08-21): `orders/0020` (OrderItem.cost_price) + `finance/0010` (BankTransaction) + `finance/0011` (Invoice.mahn_level/mahned_at + ExpenseEntry supplier/due_date/paid_at/document) + `documents/0002` (owner nullable + kind receipt) + `inventory/0005` (qty_returned + kind'ы return_supplier/production, ERP-5/7) + `jobs/0015` (JobLine.cost_rate, ERP-6)** — аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
+- Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна DC, 2026-08-25): `booking/0024` + `stays/0033` + `jobs/0016` (внешний номер сделки) + `booking/0025` (связь записи со счётом) — аддитивные; (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `core/0010` (Extra.consume_qty, v2-опции) + `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate) + `events/0028` (SupplierBooking вне туров) + `booking/0023` (Service.pricing_mode) + `catalog/0030` (Product.primary_action) + `finance/0009` (SOURCES gift/pass, choices-only)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. **Волна ERP (2026-08-21): `orders/0020` (OrderItem.cost_price) + `finance/0010` (BankTransaction) + `finance/0011` (Invoice.mahn_level/mahned_at + ExpenseEntry supplier/due_date/paid_at/document) + `documents/0002` (owner nullable + kind receipt) + `inventory/0005` (qty_returned + kind'ы return_supplier/production, ERP-5/7) + `jobs/0015` (JobLine.cost_rate, ERP-6)** — аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + `--kit pranasy --recreate` (кейтеринг-карта) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».

@@ -138,3 +138,44 @@ def test_photo_group_choice_is_stable_per_keyword(tmp_path, settings):
     # алиасы ведут на подобранный вручную сюжет
     assert demo_images.photo_static_name("hair,styling", lock=3) == "hair-salon.webp"
     assert demo_images.photo_static_name("hair,highlights", lock=1) == "hair-colorist.webp"
+
+
+def test_catering_dish_keys_never_borrow_another_dishs_photo():
+    """Catering-Welle 2026-08-25: die 49 Gerichtsschlüssel bilden dichte
+    Präfix-Gruppen (ragout-, salad-, cucumber-, rice-…). Fehlt für einen
+    Schlüssel die eigene Datei, liefert der Präfix-Fallback still das Foto eines
+    NACHBARGERICHTS — der Kürbisragout bekäme das der Kürbissuppe, die
+    Reisbratlinge das des Gemüsereises. Das sieht aus wie ein Fehler und fällt in
+    der Abdeckungsstatistik nicht auf (jeder Treffer zählt dort als «abgedeckt»).
+
+    Erlaubt bleibt der dokumentierte thematische Fallback auf ein GENERISCHES
+    Bibliotheksfoto (ein Salat bekommt die Salatschüssel). Verboten ist nur, das
+    Foto eines anderen Gerichts DIESER Karte zu zeigen.
+    """
+    from apps.tenants.demo_kits import KITS
+
+    catering = next(c for c in KITS["pranasy"].categories if c[1] == "catering")
+    dishes = [item for child in catering[3] for item in child[2]]
+    assert len(dishes) == 49
+
+    def _name(item):
+        return item["name"]["de"] if isinstance(item["name"], dict) else item["name"]
+
+    own_files = {}
+    for item in dishes:
+        found = demo_images.photo_static_name(item["img"])
+        slug = demo_images._kw_slug(item["img"])
+        if found and found.rsplit(".", 1)[0] == slug:
+            own_files[found] = _name(item)
+
+    stolen = []
+    for item in dishes:
+        found = demo_images.photo_static_name(item["img"])
+        if not found:
+            continue  # ehrlicher SVG-Platzhalter
+        slug = demo_images._kw_slug(item["img"])
+        if found.rsplit(".", 1)[0] == slug:
+            continue  # eigenes Foto
+        if found in own_files:
+            stolen.append((_name(item), item["img"], found, own_files[found]))
+    assert not stolen, f"Gericht zeigt das Foto eines anderen Gerichts: {stolen}"

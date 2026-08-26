@@ -379,6 +379,9 @@ _MENU_LABEL_ANCHORS = (
     _("Unterkunft"),
     # MEN-20: наборы меню — ручной ребёнок подменю «Speisekarte» кита catering.
     _("Menüs & Pakete"),
+    # Catering-Welle 2026-08-25: подменю «Catering» у pranasy (Speisekarte /
+    # Menüs & Pakete / Anfrage) — якорь держит msgid при makemessages.
+    _("Anfrage"),
 )
 
 

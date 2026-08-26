@@ -246,6 +246,12 @@ _PHOTO_EXTS = (".webp", ".jpg", ".jpeg", ".png")
 _PHOTO_ALIASES = {
     "hair-styling": "hair-salon",
     "hair-highlights": "hair-colorist",
+    # Catering-Welle 2026-08-25: die 49 neuen Gerichtsfotos der Pranasy-Karte
+    # bilden dichte Präfix-Gruppen (eggplant-, potato-, ragout-…). Zwei ALTE
+    # Schlüssel ohne eigene Datei hätten dadurch still ein anderes Foto bekommen
+    # (Präfix-Gruppe gewinnt), deshalb hier explizit festgenagelt.
+    "eggplant-vegan": "eggplant-ragout",  # gefüllte Aubergine (vorher: Schokolade)
+    "gratin-potato": "potato-salad",  # Gratin — nicht die Kartoffelpuffer
 }
 
 
