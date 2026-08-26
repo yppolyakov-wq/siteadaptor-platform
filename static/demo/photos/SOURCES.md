@@ -359,3 +359,14 @@ license=cc0,pdm) и Wikimedia Commons (haswbstatement CC0/Public domain);
 - `cabbage-salad.webp` — https://www.rawpixel.com/image/5915605/image-white-background-public-domain-leaves — CC0 1.0 (rawpixel)
 - `spring-salad.webp` — https://stocksnap.io/photo/kale-salad-WPKEJRMC8D — CC0 1.0 (stocksnap, автор: Dan Gold)
 - `vegan-buffet.webp` — https://www.rawpixel.com/image/5927577/photo-image-public-domain-hand-person — CC0 1.0 (rawpixel)
+
+Батч 2026-08-26 (фидбэк «сгенерируй недостающие изображения блюд»): Openverse
+`license=cc0,pdm`, четыре раунда запросов (точные названия блюд, глубина 2
+страницы, без wikimedia-оригиналов — они отдают 429). Каждый кадр просмотрен;
+правило витрины прежнее — никакого мяса, рыбы и морепродуктов, никаких
+узнаваемых лиц, никакого чужого блюда. Из 15 блюд без фото честный кадр нашёлся
+для двух; остальные ОСОЗНАННО остаются на тематическом плейсхолдере (неверная
+тарелка хуже её отсутствия).
+
+- `rice-plain.webp` — https://www.rawpixel.com/image/5904594/photo-image-public-domain-sunlight-summer — CC0 1.0 (rawpixel)
+- `cucumber-raita.webp` — https://commons.wikimedia.org/w/index.php?curid=178399183 — CC0 1.0 (Wikimedia Commons, автор: Miansari66)

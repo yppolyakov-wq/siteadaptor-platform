@@ -11,9 +11,8 @@
 {% endif %}
 {% if combos %}
 {% comment %}MEN-4/KAT-2: единая карточка набора — _combo_card.html (реюз со страницей категории и тизером каталога).{% endcomment %}
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-  {% for c in combos %}{% include "storefront/_combo_card.html" %}{% endfor %}
-</div>
+<div class="flex justify-end mb-3">{% include "storefront/_combo_view_toggle.html" %}</div>
+{% include "storefront/_combo_grid.html" with combos=combos cg_cls="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" %}
 {% else %}
 <p class="text-gray-500">{% trans "No combos available right now." %}</p>
 {% endif %}

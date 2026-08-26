@@ -279,6 +279,11 @@ class DemoKit:
     section_rows: dict = field(default_factory=dict)
     # ST-2: пресеты страниц page_presets [(host, preset_id), …] — info/cart.
     page_presets: list = field(default_factory=list)
+    # Фидбэк 2026-08-26: C-блоки КОНКРЕТНОЙ страницы — {host: [(key, data), …]}.
+    # Хост — фикс-страница (PAGE_BLOCK_HOSTS) или категория «catalog:<slug>»;
+    # key — обычный C-блок или ссылочная секция (PAGE_REF_BLOCKS: gallery_ref…),
+    # тогда data пустой (контент общий, из конструктора главной).
+    page_blocks: dict = field(default_factory=dict)
     # M2 Boutique: Größentabellen per категория {slug: text} (строки «S | 86–90»).
     size_tables: dict = field(default_factory=dict)
     # M3 Boutique: Click&Reserve «In der Anprobe» (site_config["anprobe"]).
@@ -1530,6 +1535,19 @@ PRANASY = DemoKit(
     # Kennzeichnung in der Preisliste und die Anfrage-Bande auf der Startseite.
     enable_anfrage_section=True,
     config_patch={"menu_labels": True},
+    # Фидбэк 2026-08-26: страница «Catering» — как полноценная главная. Блоки
+    # ССЫЛОЧНЫЕ (UC2-3b): галерея, отзывы, команда и FAQ берутся из общего
+    # контента сайта, поэтому второго набора текстов у страницы не заводится.
+    # Заявка внизу — вход в тот же /anfrage/, что и банда главной.
+    page_blocks={
+        "catalog:catering": [
+            ("gallery_ref", {}),
+            ("testimonials_ref", {}),
+            ("team_ref", {}),
+            ("faq_ref", {}),
+            ("anfrage_ref", {}),
+        ]
+    },
     seed_records=True,
     menus=PRANASY_MENUS,
     # M20U-2: слайдер баннеров — единая главная ведёт к ключевым действиям.
@@ -2138,7 +2156,7 @@ PRANASY = DemoKit(
                             "Radieschen fein gewürfelt, dazu Paneer und viel Dill. "
                             "Aufgegossen wird mit Kwass oder Kefir — säuerlich, kühl und "
                             "erfrischend, ohne schwer im Magen zu liegen.",
-                            "okroshka,soup",
+                            "okroschka,suppe,essen",
                             diets=["vegetarisch"],
                             allergens=["gluten", "milch"],
                             vat="7.00",
@@ -2178,7 +2196,7 @@ PRANASY = DemoKit(
                             "und fallen schön auseinander, dabei nehmen sie die Sauce von "
                             "Ragouts und Currys gut auf. Warm serviert — die Beilage zu fast "
                             "allen warmen Gerichten.",
-                            "gekochter,reis,essen",
+                            "rice,plain",
                             diets=["vegan", "glutenfrei", "laktosefrei"],
                             vat="7.00",
                             ingredients="Reis, Wasser, Öl, Gewürze (Salz)",
@@ -2216,7 +2234,7 @@ PRANASY = DemoKit(
                             "und leicht sämig. Kurkuma und Ghee geben dem Gericht seine "
                             "goldene Farbe und ein feines, nussiges Aroma. Mild, bekömmlich "
                             "und sättigend — auch für kleine Gäste geeignet.",
-                            "kitchari,teller",
+                            "kitchari,essen",
                             diets=["vegetarisch", "glutenfrei"],
                             allergens=["milch"],
                             vat="7.00",
@@ -2230,7 +2248,7 @@ PRANASY = DemoKit(
                             "körniger Textur. Der Buchweizen bringt eine feine Nussnote mit "
                             "und harmoniert besonders gut mit Pilzsaucen und Gemüseragouts. "
                             "Sättigend und angenehm nussig im Abgang.",
-                            "buckwheat,groats",
+                            "buchweizen,essen",
                             diets=["vegan", "glutenfrei", "laktosefrei"],
                             vat="7.00",
                             ingredients="Buchweizen, Wasser, Öl, Gewürze (Salz)",
@@ -2289,7 +2307,7 @@ PRANASY = DemoKit(
                             "(glutenfrei))",
                         ),
                     ],
-                    "rice,bowl",
+                    "couscous,semolina",
                     "Reis, Getreide und Kartoffeln als Basis jedes Menüs — neutral gewürzt, "
                     "damit Ragouts und Saucen die Hauptrolle spielen.",
                     "preisliste",
@@ -2354,7 +2372,7 @@ PRANASY = DemoKit(
                             "Muskatnuss oder Zimt, die die natürliche Süße des Kürbis "
                             "aufnehmen. Sahne bindet alles zu einem dichten, samtigen Ragout. "
                             "Warm gewürzt, aber nicht scharf.",
-                            "kuerbisragout,essen",
+                            "kürbisragout,essen",
                             diets=["vegetarisch", "glutenfrei"],
                             allergens=["milch"],
                             vat="7.00",
@@ -2416,7 +2434,7 @@ PRANASY = DemoKit(
                             "Kreuzkümmel, Koriander, Chili und Garam Masala geben Charakter, "
                             "Sahne und Käse machen die Textur zum Schluss besonders cremig. "
                             "Gut mit Beilage oder für sich.",
-                            "mahabrinjal,essen",
+                            "mahabridschal,essen",
                             diets=["vegetarisch", "glutenfrei"],
                             allergens=["milch"],
                             vat="7.00",
@@ -2469,7 +2487,7 @@ PRANASY = DemoKit(
                             "Honig abgerundet. Ein Spritzer Essig gibt die feine Säure, die "
                             "Gewürze machen sie pikant. Passt zu Salaten, Ofengemüse und "
                             "gebratenen Beilagen — oder einfach als Dip.",
-                            "mint,sauce",
+                            "minzsauce,essen",
                             diets=["vegetarisch", "glutenfrei", "laktosefrei"],
                             vat="7.00",
                             ingredients="Minze, Zucker oder Honig, kochendes Wasser, Essig, Gewürze",
@@ -2510,7 +2528,7 @@ PRANASY = DemoKit(
                             "angebraten — so bekommt es Biss und ein herzhaftes Aroma. Mit "
                             "Tomatenmark, Knoblauch und Gewürzen wird daraus eine sättigende "
                             "Sauce für Nudeln, Kartoffeln oder pur.",
-                            "soy,bolognese",
+                            "bolognese,soja,essen",
                             diets=["vegan", "laktosefrei"],
                             allergens=["gluten", "soja"],
                             vat="7.00",
@@ -2550,7 +2568,7 @@ PRANASY = DemoKit(
                             "einer weichen, rauchig-würzigen Paste geschmort. Knoblauch und "
                             "Petersilie geben Frische und Würze. Wir servieren den Kaviar "
                             "kalt oder lauwarm, dazu passt frisches Brot.",
-                            "eggplant,caviar",
+                            "auberginenkaviar,essen",
                             diets=["vegan", "glutenfrei", "laktosefrei"],
                             vat="7.00",
                             ingredients="Auberginen, Tomaten, Zwiebeln, Paprika, Knoblauch, "
@@ -2755,7 +2773,7 @@ PRANASY = DemoKit(
                             "Gurke mit frischer Minze und Koriandergrün in cremigem "
                             "Naturjoghurt. Kreuzkümmel und Zitronensaft geben Aroma und feine "
                             "Säure — der ideale Ausgleich zu scharf gewürzten Gerichten.",
-                            "joghurtsalat,gurke,essen",
+                            "cucumber,raita",
                             diets=["vegetarisch", "glutenfrei"],
                             allergens=["milch"],
                             vat="7.00",
@@ -11194,6 +11212,24 @@ def apply_kit(tenant, key: str) -> bool:
 
         for host, preset_id in kit.page_presets:
             page_presets_mod.apply_page_preset(cfg, host, preset_id)
+    if kit.page_blocks:  # блоки конкретных страниц (в т.ч. «catalog:<slug>»)
+        _pb = dict(cfg.get("page_blocks") or {})
+        for _host, _specs in kit.page_blocks.items():
+            # KAT-6: слаг категории мог досуффиксоваться unique_slug — берём
+            # фактический (иначе хост указывал бы на несуществующую страницу).
+            if _host.startswith("catalog:"):
+                _slug = _host.split(":", 1)[1]
+                _host = "catalog:" + refs.get("category_slugs", {}).get(_slug, _slug)
+            _pb[_host] = [
+                {
+                    "key": _key,
+                    "id": f"pb-kit-{i}",
+                    "enabled": True,
+                    "data": dict(_data or {}),
+                }
+                for i, (_key, _data) in enumerate(_specs, start=1)
+            ]
+        cfg["page_blocks"] = _pb
     _demo_locales = [loc for loc in (kit.enabled_locales or []) if loc != "de"]
     if _demo_locales:  # DL-2/DL-3: оверлей текстов на все включённые локали
         from . import demo_i18n

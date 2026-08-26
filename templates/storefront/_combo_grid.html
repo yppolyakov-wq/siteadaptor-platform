@@ -1,0 +1,18 @@
+{% load i18n %}
+{% comment %}Фидбэк 2026-08-26 («для пакетов меню тоже нужны разные виды, как у
+блюд»): единый контейнер наборов + посетительские виды Kacheln/Liste/Kompakt.
+
+Механика MEN-22 (class-swap + localStorage), а не серверный ?ansicht=: полоса
+наборов живёт НА странице каталога, где ?ansicht= уже занят блюдами, а сам набор
+не пагинируется (кап 6) — ре-рендер не нужен. DOM карточки не меняется, поэтому
+паритет-замки `_combo_card` целы; вид даёт каскад по data-cv в app.css.
+
+Параметры include: combos, cg_key (ключ localStorage, дефолт «combos»),
+cg_cls (классы вида Kacheln).{% endcomment %}
+<div data-combo-list data-cv="kacheln" data-cv-key="{{ cg_key|default:'combos' }}"
+     data-cls-kacheln="{{ cg_cls|default:'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' }}"
+     data-cls-liste="grid grid-cols-1 gap-3"
+     data-cls-kompakt="grid grid-cols-1 gap-2"
+     class="{{ cg_cls|default:'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' }}">
+  {% for c in combos %}{% include "storefront/_combo_card.html" %}{% endfor %}
+</div>

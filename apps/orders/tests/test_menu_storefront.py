@@ -326,6 +326,37 @@ def test_category_page_shows_menu_sets_block():
     assert body2.index('data-sf-section="catalog"') < body2.index("data-category-sets")
 
 
+def test_menu_sets_have_visitor_view_switcher():
+    """Фидбэк 2026-08-26: у наборов — те же виды, что у блюд (Kacheln/Liste/
+    Kompakt). Механика class-swap: контейнер несёт целевые классы, карточка одна
+    на все виды. Ключ localStorage свой — вид наборов не связан с видом блюд."""
+    from apps.catalog.models import Category
+    from apps.promotions import public_views as promo_views
+
+    cat = Category.objects.create(name={"de": "Catering"}, slug="cv-catering", page_style="sets")
+    Combo.objects.create(
+        name="Menü Klassik",
+        price=Decimal("42.00"),
+        category=cat,
+        images=[{"url": "/static/demo/photos/vegan-buffet.webp"}],
+    )
+    ProductFactory(name={"de": "Borschtsch"}, category=cat)
+
+    body = promo_views.product_list(
+        _req(method="get", tenant=TenantFactory.build()), slug="cv-catering"
+    ).content.decode()
+    assert "data-combo-list" in body and 'data-cv-key="combos"' in body
+    assert 'data-cv-btn="liste"' in body and 'data-cv-btn="kompakt"' in body
+    assert "data-cls-liste=" in body and "data-cls-kompakt=" in body
+    # карточка та же самая (паритет разметки) — только маркеры каскада
+    assert "data-combo-card" in body and "data-combo-img" in body
+
+    # /kombi/ получает тот же переключатель и ТОТ ЖЕ ключ (выбор переживает переход)
+    page = _req(method="get", tenant=TenantFactory.build())
+    kombi = public_views.combo_list_public(page).content.decode()
+    assert 'data-cv-key="combos"' in kombi and "data-combo-list" in kombi
+
+
 def test_browse_only_pick_controls_and_person_field():
     """MEN-7: у browse-only набора есть контролы выбора, поле персон с минимумом
     и CTA-заявка; POST-форма корзины при этом не рендерится."""
@@ -364,6 +395,26 @@ def test_included_group_never_shows_surcharge_and_pool_keeps_zero_price():
     )
     body = public_views.combo_detail_public(_req(method="get"), pk=pool.pk).content.decode()
     assert "Leitungswasser" in body and "0,00" in body
+
+
+def test_free_pool_card_does_not_advertise_zero_euro():
+    """Фидбэк 2026-08-26: у свободной сборки базовой цены нет (итог = выбор), а
+    карточка полосы «Menü-Pakete» печатала «0,00 € / Person» — читается как
+    «бесплатно». Набор с ЦЕНОЙ печатает её по-прежнему."""
+    from apps.catalog.models import Category
+    from apps.promotions import public_views as promo_views
+
+    cat = Category.objects.create(name={"de": "Catering"}, slug="fp-catering", page_style="sets")
+    Combo.objects.create(name="Freie Wahl", price=Decimal("0.00"), free_pool=True, category=cat)
+    Combo.objects.create(name="Menü Klassik", price=Decimal("19.50"), category=cat)
+    ProductFactory(name={"de": "Borschtsch"}, category=cat)
+
+    body = promo_views.product_list(
+        _req(method="get", tenant=TenantFactory.build()), slug="fp-catering"
+    ).content.decode()
+    assert "Freie Wahl" in body and "Menü Klassik" in body
+    assert "19,50" in body or "19.50" in body  # обычный набор показывает цену
+    assert "0,00" not in body and "0.00" not in body  # свободная сборка — нет
 
 
 def test_pool_shows_dishes_with_unknown_course():

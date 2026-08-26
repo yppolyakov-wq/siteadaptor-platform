@@ -657,13 +657,48 @@ PAGE_REF_BLOCKS = (
 )
 
 
+# Фидбэк 2026-08-26 («добавь на страницу кейтеринга галерею, отзывы, команду»):
+# «catalog» — ОДИН хост на весь каталог, блоки появились бы и на /sortiment/, и на
+# каждой странице категории. KAT-1 сделал категорию страницей, поэтому у неё может
+# быть и свой набор блоков: хост «catalog:<slug>». Слаг — строгим паттерном
+# (в site_config попадает только то, что похоже на слаг категории), число таких
+# хостов ограничено, чтобы конфиг не рос без предела.
+CATEGORY_HOST_PREFIX = "catalog:"
+_MAX_CATEGORY_HOSTS = 40
+# Слаг — по семантике SlugField Django (буквы/цифры/дефис/подчёркивание,
+# регистр значим): у живого тенанта категория вполне может называться
+# «Sommer_2026», и узкий шаблон молча выбросил бы её блоки.
+_CATEGORY_HOST_RE = re.compile(r"^catalog:[-\w]{1,60}$")
+
+
+def is_page_block_host(host) -> bool:
+    """UC6-7 + KAT-1: допустимый хост page_blocks — фикс-страница или категория."""
+    if not isinstance(host, str):
+        return False
+    return host in PAGE_BLOCK_HOSTS or bool(_CATEGORY_HOST_RE.match(host))
+
+
+def category_host(slug) -> str:
+    """Хост блоков страницы категории (пустой слаг → «», рендер тихо пропустит)."""
+    slug = _s(slug)
+    host = f"{CATEGORY_HOST_PREFIX}{slug}"
+    return host if _CATEGORY_HOST_RE.match(host) else ""
+
+
+def _page_block_hosts(raw: dict) -> list:
+    """Хосты для нормализации: фикс-whitelist + категорийные из самого конфига
+    (детерминированный порядок — фикс-хосты, затем категории по алфавиту)."""
+    cats = sorted(k for k in raw if is_page_block_host(k) and k not in PAGE_BLOCK_HOSTS)
+    return list(PAGE_BLOCK_HOSTS) + cats[:_MAX_CATEGORY_HOSTS]
+
+
 def normalize_page_blocks(raw) -> dict:
     """UC6-7: привести page_blocks к {host: [cblock,…]} — whitelist хостов,
     каждый блок через _clean_cblock, кап _MAX_CBLOCKS на страницу.
     Пусто → {} (ключ в normalize добавляется presence-minimal — golden живы)."""
     raw = raw if isinstance(raw, dict) else {}
     out = {}
-    for key in PAGE_BLOCK_HOSTS:
+    for key in _page_block_hosts(raw):
         items = raw.get(key)
         if not isinstance(items, list):
             continue

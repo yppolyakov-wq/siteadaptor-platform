@@ -610,6 +610,12 @@ def product_list(request, slug=None):
         if category is not None
         else []
     )
+    # Фидбэк 2026-08-26 («добавь в категории фото»): подкатегории рисовались
+    # ТЕКСТОВЫМИ карточками при любом шаблоне, кроме «kopfbild» — у направления
+    # с шестью Gängen (pranasy/catering) это шесть серых прямоугольников. Гейт
+    # тот же, что у верхнего списка: есть фото — плитки, нет ни у одной —
+    # прежняя текстовая сетка байт-в-байт (у большинства тенантов images пуст).
+    subcategories_have_images = any(c.image_url for c in subcategories)
     # M20U-7 (per-page): конфиг витрины. SE-2a-2: при ?preview=1 — черновик из сессии
     # (раскладка/сортировка/фильтры/подкатегории видны на канве сразу).
     from apps.tenants import siteconfig
@@ -793,6 +799,15 @@ def product_list(request, slug=None):
             "catalog_title": cfg.get("catalog_title", ""),
             "catalog_intro": cfg.get("catalog_intro", ""),
             "subcategories": subcategories,
+            "subcategories_have_images": subcategories_have_images,
+            # KAT-1/фидбэк 2026-08-26: у страницы категории — свой хост C-блоков
+            # («catalog:<slug>»), поэтому галерея/отзывы/команда добавляются на
+            # ОДНУ категорию, а не на весь каталог. Пусто вне path-режима.
+            "category_block_host": (
+                siteconfig.category_host(category.slug)
+                if path_mode and category is not None
+                else ""
+            ),
             "has_combos": has_combos,
             "combos_teaser": combos_teaser,  # A4: тизер-карточки Kombo/Tagesgericht
             "diet_chips": diet_chips,  # A4: фасет-чипы диет (только встречающиеся)
