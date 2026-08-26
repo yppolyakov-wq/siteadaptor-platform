@@ -3955,6 +3955,7 @@ def deal_discount_edit(request, kind, pk):
             obj,
             cents=cents,
             note=(request.POST.get("discount_note") or "").strip(),
+            scope=(request.POST.get("discount_scope") or "").strip(),
             tenant=getattr(request, "tenant", None),
         )
         messages.success(request, _("Rabatt gespeichert."))

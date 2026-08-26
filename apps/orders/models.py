@@ -105,6 +105,15 @@ class Order(TimestampedModel):
     # поле (форматы у всех разные), НЕ unique (внешние номера бывают повторными),
     # ищется поиском сделок наравне с reference_code.
     external_code = models.CharField(max_length=50, blank=True, db_index=True)
+    # DC-9 (решение владельца 2026-08-26): на что действует скидка владельца —
+    # вся сделка (дефолт, прежнее поведение), одна позиция или доставка. Сумма
+    # скидки не меняется; меняется распределение базы НДС и показ.
+    DISCOUNT_SCOPES = [
+        ("deal", "Ganze Bestellung"),
+        ("position", "Position"),
+        ("delivery", "Versand"),
+    ]
+    discount_scope = models.CharField(max_length=12, choices=DISCOUNT_SCOPES, default="deal")
     # SH-9: плательщик, если он не совпадает с получателем заказа (фирма платит
     # за сотрудника, родитель за ребёнка). Снимок для счёта — §14 UStG требует
     # реквизиты ПОЛУЧАТЕЛЯ счёта, а не того, кто забирает товар.

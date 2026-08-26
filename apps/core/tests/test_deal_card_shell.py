@@ -469,3 +469,103 @@ def test_board_links_to_the_ticket_card():
     ticket = _ticket()
     tx = transactions.transaction_for("ticket", ticket)
     assert tx.manage_url == f"/dashboard/events/ticket/{ticket.pk}/"
+
+
+# --- DC-8: честный НДС у брони, записи и билета -------------------------------
+
+
+def test_vat_rows_appear_on_stay_booking_and_ticket():
+    """Решение владельца 2026-08-26: налог выделяется у всех видов сделок."""
+    from apps.booking import views as booking_views
+    from apps.events import views as event_views
+    from apps.stays import views as stay_views
+
+    for view, obj, bt in (
+        (stay_views.booking_detail, _stay(), "hotel"),
+        (booking_views.booking_detail, _booking(), "friseur"),
+        (event_views.ticket_detail, _ticket(), "events"),
+    ):
+        html = view(_req(tenant=_tenant(bt)), obj.pk).content.decode()
+        assert "MwSt." in html, obj
+
+
+def test_stay_vat_splits_lodging_extras_and_kurtaxe():
+    """Проживание 7 %, завтрак 19 %, Kurtaxe вне НДС — три строки, итог сходится."""
+    from decimal import Decimal
+
+    from apps.core.vat import deal_vat
+
+    stay = _stay()
+    stay.extras = [{"label": "Frühstück", "price_cents": 2000, "vat_rate": "19.00"}]
+    stay.kurtaxe_cents = 300
+    stay.total_cents = stay.total_cents + 2000 + 300
+    stay.save(update_fields=["extras", "kurtaxe_cents", "total_cents"])
+
+    vat = deal_vat("stay", stay)
+    rates = {row["rate"] for row in vat["rows"]}
+    assert Decimal("19.00") in rates and Decimal("7.00") in rates and Decimal("0") in rates
+    assert vat["gross"] == (Decimal(stay.total_cents) / 100).quantize(Decimal("0.01"))
+    # Kurtaxe без налога: её брутто равно нетто.
+    zero_row = next(r for r in vat["rows"] if r["rate"] == Decimal("0"))
+    assert zero_row["vat"] == Decimal("0") and zero_row["gross"] == Decimal("3.00")
+
+
+def test_small_business_zeroes_all_rates():
+    from decimal import Decimal
+
+    from apps.core.vat import deal_vat
+
+    stay = _stay()
+    vat = deal_vat("stay", stay, small_business=True)
+    assert all(row["rate"] == Decimal("0") for row in vat["rows"])
+    assert vat["vat"] == Decimal("0")
+
+
+def test_vat_rate_is_a_snapshot():
+    """Смена ставки в каталоге не переписывает прошлые сделки (GoBD)."""
+    from decimal import Decimal
+
+    stay = _stay()
+    assert stay.vat_rate == Decimal("7.00")
+    stay.unit.vat_rate = Decimal("19.00")
+    stay.unit.save(update_fields=["vat_rate"])
+    stay.refresh_from_db()
+    assert stay.vat_rate == Decimal("7.00")
+
+
+# --- DC-9: область действия скидки --------------------------------------------
+
+
+def test_discount_scope_moves_the_vat_base_but_not_the_total():
+    """Область меняет распределение базы НДС, а НЕ итог сделки."""
+    from decimal import Decimal
+
+    from apps.core import deal_discount
+    from apps.core.vat import deal_vat
+
+    stay = _stay()
+    stay.extras = [{"label": "Frühstück", "price_cents": 4000, "vat_rate": "19.00"}]
+    stay.total_cents += 4000
+    stay.save(update_fields=["extras", "total_cents"])
+
+    deal_discount.set_discount("stay", stay, cents=1000, scope="deal")
+    stay.refresh_from_db()
+    total_after = stay.total_cents
+    spread = {r["rate"]: r["gross"] for r in deal_vat("stay", stay)["rows"]}
+
+    deal_discount.set_discount("stay", stay, cents=1000, scope="position")
+    stay.refresh_from_db()
+    assert stay.total_cents == total_after  # итог тот же
+    on_position = {r["rate"]: r["gross"] for r in deal_vat("stay", stay)["rows"]}
+    # При «на позицию» скидка целиком снята с базы проживания (7 %), завтрак цел.
+    assert on_position[Decimal("19.00")] == Decimal("40.00")
+    assert on_position[Decimal("7.00")] < spread[Decimal("7.00")]
+
+
+def test_unknown_scope_is_ignored():
+    from apps.core import deal_discount
+
+    stay = _stay()
+    deal_discount.set_discount("stay", stay, cents=500, scope="../etc/passwd")
+    stay.refresh_from_db()
+    assert stay.discount_scope == "deal"

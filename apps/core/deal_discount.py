@@ -40,19 +40,31 @@ def label_for(kind: str):
     return _("Rabatt")
 
 
-def set_discount(kind: str, obj, *, cents: int, note: str = "", tenant=None):
-    """Поставить скидку и пересчитать итог сделки. Возвращает новый итог (центы)."""
+def set_discount(kind: str, obj, *, cents: int, note: str = "", scope: str = "", tenant=None):
+    """Поставить скидку и пересчитать итог сделки. Возвращает новый итог (центы).
+
+    DC-9: `scope` — на что скидка ложится (вся сделка / позиция / доставка).
+    Итог сделки от области НЕ зависит; меняется распределение базы НДС и показ,
+    поэтому движки оплаты и письма не трогаем. Чужое значение игнорируется."""
     cents = max(int(cents or 0), 0)
     field, limit = NOTE_FIELDS[kind]
+    allowed = {value for value, _label in getattr(type(obj), "DISCOUNT_SCOPES", ())}
+    scope = scope if scope in allowed else ""
     if kind == "order":
         from apps.orders import editing as order_editing
 
         order_editing.set_discount(obj, cents=cents, note=note[:limit], tenant=tenant)
+        if scope and scope != obj.discount_scope:
+            obj.discount_scope = scope
+            obj.save(update_fields=["discount_scope", "updated_at"])
         obj.refresh_from_db()
         return int(round(float(obj.total) * 100))
 
     obj.discount_cents = cents
     updated = ["discount_cents", "updated_at"]
+    if scope and scope != getattr(obj, "discount_scope", ""):
+        obj.discount_scope = scope
+        updated.insert(1, "discount_scope")
     if note:
         setattr(obj, field, note[:limit])
         updated.insert(1, field)

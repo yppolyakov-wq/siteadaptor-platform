@@ -161,6 +161,8 @@ def book_ticket(
         reference_code=_unique_ticket_code(),
         quantity=quantity,
         price_cents=price_cents,
+        # DC-8: снимок ставки НДС события на момент покупки билета.
+        vat_rate=event.vat_rate,
         tier_label=matched_tier["label"] if matched_tier else "",
         status=Ticket.STATUS_PENDING,
         answers=answers or {},

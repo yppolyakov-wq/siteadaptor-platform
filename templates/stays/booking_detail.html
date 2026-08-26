@@ -37,7 +37,10 @@
   {% endif %}
 {% endblock %}
 
-{% block deal_totals %}{% include "stays/_stay_amount.html" %}{% endblock %}
+{% block deal_totals %}
+  {% include "stays/_stay_amount.html" %}
+  {% include "core/_deal_vat_rows.html" %}
+{% endblock %}
 
 {% block deal_payment %}
   {% include "stays/_stay_payment.html" %}

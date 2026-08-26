@@ -20332,3 +20332,6 @@ msgstr "Квиток і додаткові послуги"
 
 msgid "Teilnahmeerklärung"
 msgstr "Згода учасника"
+
+msgid "Wirkt auf"
+msgstr "Діє на"

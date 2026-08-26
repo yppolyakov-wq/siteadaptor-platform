@@ -23,6 +23,7 @@ from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import status_labels, transactions, transition_rules
+from apps.core.vat import deal_vat
 
 # Подписи секций — в одном месте: правка меняет ВСЕ карточки сразу.
 SECTION_TITLES = {
@@ -132,6 +133,12 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
             ],
         )
     calendar = calendar_html(request, kind, obj)
+    # DC-8: честная разбивка НДС (у заказа — его собственный хелпер).
+    small = bool(tenant and getattr(tenant, "small_business", False))
+    try:
+        vat = deal_vat(kind, obj, small_business=small)
+    except Exception:  # noqa: BLE001 — разбивка не должна ронять карточку
+        vat = {"rows": [], "gross": None, "net": None, "vat": None}
     # «Когда» в мете печатаем, только если этой даты ещё нет в заголовке сделки
     # (у брони номера title уже содержит даты — иначе строка дублируется).
     when = getattr(deal, "when", None)
@@ -151,6 +158,11 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
         # DC-6: счёт из сделки (кнопка в блоке оплаты) — гейт модуля «Finanzen».
         "finance_active": _module_active(tenant, "finance"),
         "deal_invoice_id": getattr(obj, "invoice_id", None),
+        # DC-8: строки «davon X % MwSt.» в секции сумм.
+        "deal_vat": vat,
+        # DC-9: область действия скидки (вся сделка / позиция / доставка).
+        "deal_discount_scope": getattr(obj, "discount_scope", "deal") or "deal",
+        "deal_discount_scopes": list(getattr(obj, "DISCOUNT_SCOPES", ()) or ()),
         # DC-5: скидка владельца — общий блок между составом и суммами.
         "deal_discount_cents": int(getattr(obj, "discount_cents", 0) or 0),
         "deal_discount_input": f"{int(getattr(obj, 'discount_cents', 0) or 0) / 100:.2f}",

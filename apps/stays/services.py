@@ -283,6 +283,9 @@ def book_stay(
         children=children,
         rooms=rooms,
         price_cents=unit.price_cents,
+        # DC-8: снимок ставки НДС номера (смена ставки в каталоге не переписывает
+        # прошлые брони — GoBD).
+        vat_rate=unit.vat_rate,
         # A5a сезон/выходные + H1 тариф + #7 Extras − H4a скидка + H9 Kurtaxe.
         total_cents=lodging_cents - discount_cents + kurtaxe,
         kurtaxe_cents=kurtaxe,

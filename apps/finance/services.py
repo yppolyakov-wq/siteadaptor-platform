@@ -128,7 +128,10 @@ def invoice_from_stay(booking, tenant=None):
     from .models import Invoice
 
     small = bool(tenant and getattr(tenant, "small_business", False))
-    rate = Decimal("0") if small else Decimal("7.00")
+    # DC-8: ставка — СНИМОК брони (проживание в DE 7 %, но владелец может иметь
+    # свою; §19 обнуляет). Смешанные ставки допов показывает карточка сделки —
+    # модель Invoice знает одну ставку, поэтому берём ставку проживания.
+    rate = Decimal("0") if small else Decimal(str(booking.vat_rate or "7.00"))
     nights = max(1, (booking.departure - booking.arrival).days)
     lodging = max(
         0,
@@ -181,7 +184,8 @@ def invoice_from_booking(booking, tenant=None):
     from .models import Invoice
 
     small = bool(tenant and getattr(tenant, "small_business", False))
-    rate = Decimal("0") if small else Decimal("19.00")
+    # DC-8: ставка — снимок записи (услуга могла иметь свою ставку).
+    rate = Decimal("0") if small else Decimal(str(booking.vat_rate or "19.00"))
     title = getattr(booking.service, "name", "") or str(_("Leistung"))
     net, _vat = _net_from_gross(Decimal(booking.price_cents or 0) / 100, rate)
     lines = [{"text": str(title)[:200], "qty": 1, "unit_price": str(net)}]

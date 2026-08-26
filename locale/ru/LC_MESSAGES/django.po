@@ -20348,3 +20348,6 @@ msgstr "Билет и дополнительные услуги"
 
 msgid "Teilnahmeerklärung"
 msgstr "Согласие участника"
+
+msgid "Wirkt auf"
+msgstr "Действует на"

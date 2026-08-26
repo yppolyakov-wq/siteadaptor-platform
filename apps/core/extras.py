@@ -47,6 +47,9 @@ def snapshot(ids, scope, *, nights=1, entity_kind="", entity_id=""):
                     "price_cents": extra.price_cents * mult,
                     "unit_cents": extra.price_cents,
                     "per_night": extra.per_night,
+                    # DC-8: ставка НДС допа в снимке (завтрак 19 % рядом с
+                    # проживанием 7 % — Aufteilungsgebot). None = ставка сделки.
+                    "vat_rate": str(extra.vat_rate) if extra.vat_rate is not None else None,
                 }
             )
     return out

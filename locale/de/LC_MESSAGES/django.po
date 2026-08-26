@@ -20258,3 +20258,6 @@ msgstr ""
 
 msgid "Teilnahmeerklärung"
 msgstr ""
+
+msgid "Wirkt auf"
+msgstr ""

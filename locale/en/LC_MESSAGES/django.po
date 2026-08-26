@@ -20130,3 +20130,6 @@ msgstr "Ticket and extras"
 
 msgid "Teilnahmeerklärung"
 msgstr "Participation declaration"
+
+msgid "Wirkt auf"
+msgstr "Applies to"
