@@ -106,9 +106,22 @@ def deal_vat(kind: str, obj, *, small_business: bool = False) -> dict:
         }
 
     if kind == "job":
-        # DG-1: у сметы деньги уже посчитаны её движком (set_lines) и цены там
-        # НЕТТО, а не брутто. Пересчитывать нельзя — разошлись бы на копейку с
-        # PDF и счётом, поэтому берём готовые поля.
+        # VAT-1 (2026-08-26): у сметы своя арифметика — цены НЕТТО, налог сверху,
+        # и с этой волны ставка живёт на ПОЗИЦИИ. Разбивку считает тот же
+        # quote_totals, что и set_lines/PDF/публичная страница — одна точка
+        # истины, иначе документ разойдётся с карточкой.
+        from apps.jobs.totals import quote_totals
+
+        lines = list(getattr(obj, "lines", None).all()) if hasattr(obj, "lines") else []
+        if lines:
+            totals = quote_totals(lines, getattr(obj, "vat_rate", 0), small_business=small_business)
+            return {
+                "rows": totals["rows"],
+                "gross": totals["gross"],
+                "net": totals["net"],
+                "vat": totals["vat"],
+            }
+        # Смета без строк (или стаб в тестах): берём снимок сделки.
         gross = Decimal(getattr(obj, "gross", 0) or 0)
         net = Decimal(getattr(obj, "net", 0) or 0)
         tax = Decimal(getattr(obj, "vat_amount", 0) or 0)
@@ -169,6 +182,22 @@ def _apply_discount(by_rate: dict, discount: Decimal, *, scope: str, base_rate) 
 
 # Ставки, доступные владельцу в кабинете (DE): обычная, льготная, без налога.
 RATE_CHOICES = (Decimal("19.00"), Decimal("7.00"), Decimal("0.00"))
+
+
+def parse_rate_optional(raw):
+    """Ставка из формы, где пусто = «как у документа/сделки» (VAT-1).
+
+    Отличается от `parse_rate` тем, что возвращает None вместо дефолта: у строки
+    сметы и у доп-услуги пустое значение — законное состояние, оно означает
+    наследование ставки, а не «19 %».
+    """
+    if raw in (None, ""):
+        return None
+    try:
+        value = Decimal(str(raw).replace(",", ".").strip())
+    except Exception:  # noqa: BLE001 — мусор из формы (как в parse_rate ниже)
+        return None
+    return value if value in RATE_CHOICES else None
 
 
 def parse_rate(raw, default: Decimal) -> Decimal:

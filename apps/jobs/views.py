@@ -23,7 +23,7 @@ from apps.catalog.picker import (  # SH-B: пикер позиций общий 
     _resolve_part,
     _service_snapshot,
 )
-from apps.core import deal_card, deal_links
+from apps.core import deal_card, deal_links, vat
 from apps.core.fsm import IllegalTransition
 from apps.finance.models import RevenueEntry
 
@@ -274,9 +274,9 @@ def _save_lines(request, job):
             request.POST.get(f"line_part_{index}", ""), products, variants
         )
         raw_part = request.POST.get(f"line_part_{index}", "")
-        svc_text, svc_price = _service_snapshot(raw_part)
+        svc_text, svc_price, svc_vat = _service_snapshot(raw_part)
         if svc_text is None:  # VF-9b: комбо — тот же снимок имени/цены без FK
-            svc_text, svc_price = _combo_snapshot(raw_part)
+            svc_text, svc_price, svc_vat = _combo_snapshot(raw_part)
         text = request.POST.get(f"line_text_{index}", "").strip()
         # G11: расходник из каталога без текста → снимок названия товара/варианта.
         if product and not text:
@@ -319,6 +319,12 @@ def _save_lines(request, job):
                 cost_rate = None
         elif product is not None:
             cost_rate = variant.cost_value if variant else product.cost_price
+        # VAT-1: ставка позиции. Пусто → подтянется из товара (в set_lines) или
+        # останется ставкой документа; у услуги/набора берём снимок из карточки.
+        vat_raw_line = str(request.POST.get(f"line_vat_{index}", "")).strip()
+        line_vat = vat.parse_rate_optional(vat_raw_line)
+        if line_vat is None and svc_vat is not None:
+            line_vat = svc_vat
         lines.append(
             {
                 "text": text,
@@ -327,6 +333,7 @@ def _save_lines(request, job):
                 "cost_rate": cost_rate,
                 "product": product,
                 "variant": variant,
+                "vat_rate": line_vat,
             }
         )
 

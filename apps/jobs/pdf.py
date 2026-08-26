@@ -101,10 +101,18 @@ def build_quote_pdf(job, tenant) -> bytes:
     c.drawRightString(page_w - x - 30 * mm, y, f"{label_net}:")
     c.drawRightString(page_w - x, y, money(job.net))
     if not tenant.small_business:
-        y -= 6 * mm
+        # VAT-1: § 14 Abs. 4 Nr. 8 UStG требует разбивку сумм ПО СТАВКАМ, поэтому
+        # при смешанной смете печатаем строку на каждую ставку. Цифры даёт тот же
+        # quote_totals, что считает карточку и итог документа.
+        from apps.jobs.totals import quote_totals
+
         label_vat = _("VAT")
-        c.drawRightString(page_w - x - 30 * mm, y, f"{label_vat} {job.vat_rate:.0f} %:")
-        c.drawRightString(page_w - x, y, money(job.vat_amount))
+        totals = quote_totals(list(job.lines.all()), job.vat_rate)
+        rows = totals["rows"] or [{"rate": job.vat_rate, "vat": job.vat_amount}]
+        for row in rows:
+            y -= 6 * mm
+            c.drawRightString(page_w - x - 30 * mm, y, f"{label_vat} {row['rate']:.0f} %:")
+            c.drawRightString(page_w - x, y, money(row["vat"]))
     y -= 7 * mm
     c.setFont(font_bold, 11)
     label_total = _("Total")

@@ -34,7 +34,9 @@
     </table>
     <div class="text-sm text-right text-gray-600 space-y-0.5">
       <p>{% trans "Net" %}: {{ job.net|floatformat:2 }} €</p>
-      {% if job.vat_amount %}<p>{% trans "VAT" %} {{ job.vat_rate|floatformat:0 }} %: {{ job.vat_amount|floatformat:2 }} €</p>{% endif %}
+      {% comment %}VAT-1: разбивка по ставкам — клиент принимает смету, где
+      налог показан так же, как в PDF и в карточке кабинета.{% endcomment %}
+      {% for row in vat_rows %}<p>{% trans "VAT" %} {{ row.rate|floatformat:0 }} %: {{ row.vat|floatformat:2 }} €</p>{% endfor %}
       <p class="text-lg font-bold text-gray-900">{% trans "Total" %}: {{ job.gross|floatformat:2 }} €</p>
       {% if job.discount_cents %}<p class="text-emerald-700">{% trans "Voucher" %} ({{ job.voucher_code }}): −{{ job.discount_eur|floatformat:2 }} € · <span class="font-semibold">{% trans "To pay" %}: {{ job.payable_gross|floatformat:2 }} €</span></p>{% endif %}
       {% if job.deposit_cents %}<p class="text-sm text-gray-500">{% trans "Deposit on acceptance" %}: {{ deposit_eur }} €</p>{% endif %}

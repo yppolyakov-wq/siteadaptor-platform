@@ -122,11 +122,31 @@ def set_item_qty(order, item_pk, qty: int, tenant=None):
 
 
 @transaction.atomic
-def add_item(order, *, product=None, variant=None, qty=1, title="", unit_price=None, tenant=None):
+def _vat_kwargs(product, vat_rate):
+    """Ставка позиции: из товара, иначе переданная явно, иначе дефолт модели."""
+    if product is not None:
+        return {"vat_rate": product.vat_rate}
+    if vat_rate is not None:
+        return {"vat_rate": vat_rate}
+    return {}
+
+
+def add_item(
+    order,
+    *,
+    product=None,
+    variant=None,
+    qty=1,
+    title="",
+    unit_price=None,
+    tenant=None,
+    vat_rate=None,
+):
     """Добавить позицию: товар/вариант из каталога или свободную строку.
 
     Свободная строка (product=None) склад не трогает — как `custom_lines`
-    в `create_order` (LS-3)."""
+    в `create_order` (LS-3). VAT-2: у свободной строки ставку можно передать
+    явно (услуга из пикера несёт свою ставку), иначе остаётся дефолт модели."""
     _require_editable(order, tenant)
     qty = max(int(qty), 1)
     if product is not None:
@@ -149,8 +169,10 @@ def add_item(order, *, product=None, variant=None, qty=1, title="", unit_price=N
         qty=qty,
         unit_price=price,
         title_snapshot=str(name)[:200],
-        # SH-4: снимок ставки НДС — как в create_order (свободная строка = дефолт).
-        **({"vat_rate": product.vat_rate} if product is not None else {}),
+        # SH-4: снимок ставки НДС — как в create_order. VAT-2: ставка товара
+        # выигрывает у переданной, свободная строка берёт переданную (услуга),
+        # иначе остаётся дефолт модели.
+        **_vat_kwargs(product, vat_rate),
         # ERP-1: EK-снимок добавленной строки — тот же, что при создании заказа.
         cost_price=(
             variant.cost_value

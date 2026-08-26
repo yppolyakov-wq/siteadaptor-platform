@@ -20,6 +20,7 @@ from . import payments, services
 from .models import Job
 from .notifications import enqueue_job_email
 from .state_machine import JobSM
+from .totals import quote_totals
 
 RL_LIMIT = 5
 RL_WINDOW = 600
@@ -279,12 +280,16 @@ def angebot(request, token):
                 else _("Thank you for letting us know."),
             )
         return redirect("storefront-angebot", token=token)
+    lines = list(job.lines.all())
     return render(
         request,
         "storefront/angebot.html",
         {
             "job": job,
-            "lines": list(job.lines.all()),
+            "lines": lines,
+            # VAT-1: клиент видит ту же разбивку по ставкам, что PDF и кабинет —
+            # одна функция на все поверхности документа.
+            "vat_rows": quote_totals(lines, job.vat_rate)["rows"],
             "deposit_eur": f"{job.deposit_cents / 100:.2f}".replace(".", ","),
             # B1.6: инпут кода — только в простом accept-пути (без Anzahlung-Checkout).
             "voucher_allowed": job.gross > 0

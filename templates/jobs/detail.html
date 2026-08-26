@@ -78,7 +78,15 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
         {% comment %}Цена — в немецком формате (поле текстовое, приёмник понимает и
         запятую, и точку): «12.50» рядом с итогом «37,50 €» читалось как разный
         формат в одной строке.{% endcomment %}
-<div class="text-right text-xs text-gray-500 tabular-nums dl-vat">{{ job.vat_rate|floatformat:0 }} %</div>
+<div class="dl-vat">
+          {% comment %}VAT-1 (владелец 2026-08-26): ставка выбирается В СТРОКЕ.
+          Пустое значение = «как весь документ» — так считались все прежние
+          сметы, поэтому смена ничего не переписывает задним числом.{% endcomment %}
+          <select name="line_vat_{{ row.i }}" class="w-full rounded-lg border border-gray-300 px-1 py-1.5 text-xs text-right tabular-nums">
+            <option value="">{{ job.vat_rate|floatformat:0 }} %</option>
+            {% for rate in vat_rates %}<option value="{{ rate }}" {% if row.line and row.line.vat_rate == rate %}selected{% endif %}>{{ rate|floatformat:0 }} %</option>{% endfor %}
+          </select>
+        </div>
         <div>
           <input name="line_price_{{ row.i }}" type="text" data-qt-price value="{% if row.line %}{{ row.line.unit_price|floatformat:2 }}{% endif %}" placeholder="0,00" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
           {% comment %}ERP-6 → VF-9b (фидбэк «закупка — это раздел ERP»): видимое
