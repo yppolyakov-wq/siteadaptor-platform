@@ -1,0 +1,87 @@
+{% load i18n %}
+{% comment %}DF-1b (фидбэк владельца 2026-08-26): смена статуса переехала из
+рейла в ВЕРХНЮЮ СТРОКУ карточки — текущий статус уже стоит бейджем рядом с
+номером, поэтому отдельная карточка в рейле была дублем и съедала место.
+
+«При нажатии после выбора показывать в попапе поля отправлять уведомление
+пользователю и админу (для экономии места)»: чекбоксы лежат в `<dialog>`
+ВНУТРИ этой же формы — значения штатно едут в POST, приёмник (`board-action`
++ сентинел `notify_form`, DC-3) не тронут. `showModal()` рисует диалог в
+top layer, поэтому stacking-контекст карточки не важен (урок HF: диалог внутри
+`lg:sticky` перекрывался шапкой).
+
+БЕЗ JS попап не открывается, но кнопка остаётся `type="submit"`, а чекбоксы —
+`checked`: форма уходит с прежним поведением уведомлений (fail-safe).{% endcomment %}
+{% if deal.allowed_actions %}
+  <form method="post" action="{% url 'board-action' deal_kind deal.pk %}"
+        class="flex items-center gap-2 sm:ml-auto" data-deal-status-form="1">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <input type="hidden" name="notify_form" value="1">
+    <label class="text-xs text-gray-500 whitespace-nowrap" for="deal-status-target">{% trans "Nächster Schritt" %}</label>
+    <select id="deal-status-target" name="action"
+            class="rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm max-w-[13rem]">
+      {% for a in deal.allowed_actions %}
+        <option value="{{ a.target }}">{{ a.label }}{% if a.danger %} ⚠️{% endif %}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" data-deal-status-go
+            class="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700 whitespace-nowrap">{% trans "Status ändern" %}</button>
+
+    <dialog data-deal-status-dialog
+            class="rounded-2xl p-0 border-0 shadow-xl backdrop:bg-black/40 w-[min(22rem,92vw)]">
+      <div class="p-5 text-left">
+        <p class="font-semibold mb-1">{% trans "Status ändern" %}</p>
+        <p class="text-sm text-gray-500 mb-3" data-deal-status-preview></p>
+        <p class="text-xs text-gray-500 mb-2">{% trans "Benachrichtigen?" %}</p>
+        <label class="flex items-center gap-2 text-sm text-gray-700 mb-1.5">
+          <input type="checkbox" name="notify_customer" value="1" checked class="rounded border-gray-300">
+          {% trans "Kunde" %}
+        </label>
+        <label class="flex items-center gap-2 text-sm text-gray-700">
+          <input type="checkbox" name="notify_team" value="1" checked class="rounded border-gray-300">
+          {% trans "Team" %}
+        </label>
+        {% if deal.needs_tracking %}
+          <input type="text" name="tracking_code" placeholder="{% trans 'Sendungsnummer (optional)' %}"
+                 class="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        {% endif %}
+        <div class="mt-4 flex items-center justify-end gap-2">
+          <button type="button" data-deal-status-cancel
+                  class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-50">{% trans "Abbrechen" %}</button>
+          <button type="submit"
+                  class="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">{% trans "Status ändern" %}</button>
+        </div>
+      </div>
+    </dialog>
+  </form>
+{% endif %}
+<script>
+(function () {
+  "use strict";
+  // Делегирование на document: партиал живёт в голове карточки, но правило
+  // проекта — не привязываться к узлу, который может быть перерисован (Ф1/HF).
+  document.addEventListener("click", function (e) {
+    var go = e.target.closest && e.target.closest("[data-deal-status-go]");
+    if (go) {
+      var form = go.closest("[data-deal-status-form]");
+      var dlg = form && form.querySelector("[data-deal-status-dialog]");
+      // Нет диалога или старый браузер — оставляем обычную отправку формы.
+      if (!dlg || typeof dlg.showModal !== "function") return;
+      e.preventDefault();
+      var sel = form.querySelector('select[name="action"]');
+      var preview = dlg.querySelector("[data-deal-status-preview]");
+      if (preview && sel && sel.selectedIndex >= 0) {
+        preview.textContent = sel.options[sel.selectedIndex].text;
+      }
+      dlg.showModal();
+      return;
+    }
+    var cancel = e.target.closest && e.target.closest("[data-deal-status-cancel]");
+    if (cancel) {
+      var d = cancel.closest("[data-deal-status-dialog]");
+      if (d) d.close();
+    }
+  });
+})();
+</script>

@@ -712,7 +712,7 @@ def booking_detail(request, pk):
                 request,
                 "stay",
                 booking,
-                sections=("items", "discount", "totals", "payment"),
+                sections=("items", "discount", "totals", "payment", "documents", "thread"),
                 # VS-3: прикреплённые услуги (велопрокат/трансфер к брони номера).
                 links=deal_links.block_context("stay", booking.pk),
             ),

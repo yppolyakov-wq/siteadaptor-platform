@@ -220,7 +220,7 @@ def ticket_detail(request, pk):
                 request,
                 "ticket",
                 ticket,
-                sections=("items", "discount", "totals", "payment"),
+                sections=("items", "discount", "totals", "payment", "thread"),
                 links=deal_links.block_context("ticket", ticket.pk),
             ),
         },

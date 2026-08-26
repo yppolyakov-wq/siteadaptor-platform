@@ -12,7 +12,7 @@ anfrage_cfg (site_config["anfrage"]), jobs_vehicle, has_service_area; POST
   </div>
   <div>
     <label class="block text-sm font-medium mb-1" for="id_desc">{% trans "Details (optional)" %}</label>
-    <textarea id="id_desc" name="description" rows="3" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+    <textarea id="id_desc" name="description" rows="3" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ details|default:'' }}</textarea>
   </div>
   {% if anfrage_cfg %}
   {% comment %}AF-1: событийные поля (Catering/Partyservice) — состав из

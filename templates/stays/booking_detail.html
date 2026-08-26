@@ -21,7 +21,11 @@
 
 {% block deal_items_title %}🛏️ {% trans "Aufenthalt" %}{% endblock %}
 {% block deal_items %}
-  <div class="grid sm:grid-cols-2 gap-4 text-sm">
+  {% comment %}DF-4: состав — таблицей по макету (ночи, допы, Kurtaxe со ставками
+  и суммами); раньше здесь стояли два абзаца, и карточка отеля расходилась с
+  утверждённым макетом. Контекст пребывания (даты, гости, заметка) — под ней.{% endcomment %}
+  {% include "core/_deal_lines.html" %}
+  <div class="grid sm:grid-cols-2 gap-4 text-sm mt-4">
     <div>{% include "stays/_stay_stay.html" %}</div>
     <div>
       <p class="text-sm text-gray-600">{{ b.adults }} {% trans "Erwachsene" %}{% if b.children %} · {{ b.children }} {% trans "Kinder" %}{% endif %}{% if b.rooms > 1 %} · {{ b.rooms }} {% trans "Zimmer" %}{% endif %}</p>
@@ -37,14 +41,31 @@
   {% endif %}
 {% endblock %}
 
+{% comment %}DF-4: суммы — общим партиалом в порядке макета. `_stay_amount.html`
+остаётся у панели под Belegungsplan: там таблицы позиций нет, и краткая сводка
+уместна.{% endcomment %}
 {% block deal_totals %}
-  {% include "stays/_stay_amount.html" %}
-  {% include "core/_deal_vat_rows.html" %}
+  {% include "core/_deal_totals.html" %}
+  {% if price_rows %}
+    {% comment %}Фидбэк 2026-07-30: разбивка ПО НОЧАМ — видно, какая ночь по
+    какому сезону/выходному тарифу посчитана (мультисезонная бронь).{% endcomment %}
+    <details class="mt-3">
+      <summary class="text-sm text-indigo-600 cursor-pointer select-none">{% trans "Preis pro Nacht anzeigen" %}</summary>
+      <table class="mt-2 w-full text-sm">
+        {% for r in price_rows %}
+          <tr class="border-t border-gray-100">
+            <td class="py-1 text-gray-600">{{ r.date|date:"D, d.m.Y" }}</td>
+            <td class="py-1 text-gray-400 text-xs">{{ r.label }}</td>
+            <td class="py-1 text-right tabular-nums">{{ r.eur|floatformat:2 }} €</td>
+          </tr>
+        {% endfor %}
+      </table>
+    </details>
+  {% endif %}
 {% endblock %}
 
 {% block deal_payment %}
   {% include "stays/_stay_payment.html" %}
-  {% include "core/_deal_invoice_button.html" %}
 {% endblock %}
 
 {% block deal_rail_extra %}
@@ -60,4 +81,10 @@
       <button type="submit" class="w-full text-sm text-red-600 border border-red-200 rounded-xl px-3 py-2 hover:bg-red-50">🗑 {% trans "Delete booking" %}</button>
     </form>
   {% endif %}
+{% endblock %}
+
+{% comment %}DF-1c (владелец 2026-08-26): документы — своей секцией в первой
+колонке рядом с оплатой; место задаёт скелет, здесь только наполнение.{% endcomment %}
+{% block deal_documents %}
+  {% include "core/_deal_invoice_button.html" %}
 {% endblock %}

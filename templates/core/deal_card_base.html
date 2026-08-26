@@ -6,9 +6,10 @@
 только свои блоки; рамка секции, порядок, заголовки, рейл и календарь живут
 здесь — правка меняет все карточки разом.
 
-Порядок (макет утверждён владельцем): голова → состав → скидка → суммы →
-оплата и счёт; правая колонка: статус → клиент с перепиской → контекст
-направления → связанные услуги; календарь — РАЗВЁРНУТЫМ блоком ниже сетки.
+Порядок (макет владельца + фидбэк 2026-08-26): голова со сменой статуса →
+состав со скидкой → суммы → оплата → документы; правая колонка: клиент с
+перепиской → контекст направления → связанные услуги; календарь — РАЗВЁРНУТЫМ
+блоком ниже сетки.
 
 Секции рисуются по данным: наследник перечисляет их во `deal_sections`
 (`core.deal_card.card_context`), чтобы пустых рамок не было.{% endcomment %}
@@ -28,20 +29,33 @@
     {% endfor %}
   {% endif %}
 
-  <div class="grid xl:grid-cols-[minmax(0,1fr)_360px] gap-5 items-start">
+  <div class="grid xl:grid-cols-[minmax(0,1fr)_380px] gap-5 items-start">
 
     <div class="space-y-5 min-w-0">
+      {% if "request" in deal_sections %}
+        {% comment %}DF-2 (владелец 2026-08-26 «в кейтеринге пусто в описании
+        заказа»): то, что ПРИСЛАЛ клиент — своим блоком в теле, первым. Раньше
+        это жило только в подписи головы (её владелец попросил убрать) и терялось
+        при обрезке темы.{% endcomment %}
+        <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="request">
+          <h2 class="font-semibold mb-3">💬 {{ deal_titles.request }}</h2>
+          {% block deal_request %}{% endblock %}
+        </section>
+      {% endif %}
+
       {% if "items" in deal_sections %}
         <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="items">
           <h2 class="font-semibold mb-3">{% block deal_items_title %}{{ deal_titles.items }}{% endblock %}</h2>
           {% block deal_items %}{% endblock %}
-        </section>
-      {% endif %}
-
-      {% if "discount" in deal_sections %}
-        <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="discount">
-          <h2 class="font-semibold mb-3">🏷 {{ deal_titles.discount }}</h2>
-          {% block deal_discount %}{% include "core/_deal_discount.html" %}{% endblock %}
+          {% comment %}DF-1d (владелец 2026-08-26): «скидка должна быть в том же
+          блоке, что и позиции, до промежуточного итога» — отдельной секции
+          больше нет, партиал живёт внутри состава.{% endcomment %}
+          {% if "discount" in deal_sections %}
+            <div class="mt-5 pt-4 border-t border-gray-100" data-deal-block="discount">
+              <h3 class="text-sm font-semibold mb-3">🏷 {{ deal_titles.discount }}</h3>
+              {% block deal_discount %}{% include "core/_deal_discount.html" %}{% endblock %}
+            </div>
+          {% endif %}
         </section>
       {% endif %}
 
@@ -59,11 +73,30 @@
         </section>
       {% endif %}
 
+      {% if "documents" in deal_sections %}
+        {% comment %}DF-1c (владелец 2026-08-26): «документы и смета — в 1-й
+        столбец рядом с оплатой, принадлежит к нему». Раньше блок жил в узком
+        рейле у заявки; теперь место задаёт скелет, наследник только наполняет.
+        {% endcomment %}
+        <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="documents">
+          <h2 class="font-semibold mb-3">📄 {{ deal_titles.documents }}</h2>
+          {% block deal_documents %}{% endblock %}
+        </section>
+      {% endif %}
+
+      {% if "thread" in deal_sections %}
+        {% comment %}DF-3: переписка с клиентом — на карточке, а не отдельной
+        страницей (владелец 2026-08-26). Гейт модуля inbox — в партиале.{% endcomment %}
+        <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="thread">
+          <h2 class="font-semibold mb-3">✉️ {{ deal_titles.thread }}</h2>
+          {% include "core/_deal_thread.html" %}
+        </section>
+      {% endif %}
+
       {% block deal_main_extra %}{% endblock %}
     </div>
 
     <div class="space-y-5 min-w-0" data-deal-rail>
-      {% include "core/_deal_status_card.html" %}
       {% include "core/_deal_customer_card.html" %}
       {% block deal_rail_extra %}{% endblock %}
       {% include "core/_deal_links_block.html" with kind=deal_kind obj_pk=deal.pk links=deal_links next_path=request.get_full_path %}

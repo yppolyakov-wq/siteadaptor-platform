@@ -151,8 +151,10 @@ def test_order_detail_status_actions_sit_in_the_status_card():
     req = _req(f"/dashboard/orders/{order.pk}/")
     body = order_views.order_detail(req, order.pk).content.decode()
     assert "O-SH0004" in body
-    assert body.count('data-deal-block="status"') == 1
-    assert body.index("data-deal-rail") < body.index('data-deal-block="status"')
+    # DF-1b (владелец 2026-08-26): смена статуса переехала в верхнюю строку —
+    # карточка-дубль в рейле снята, кнопки статуса остались на карточке заказа.
+    assert body.count('data-deal-status-form="1"') == 1
+    assert body.index('data-deal-status-form="1"') < body.index("data-deal-rail")
     assert f"/dashboard/board/order/{order.pk}/action/" in body
 
 

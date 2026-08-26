@@ -20280,3 +20280,55 @@ msgstr "Siparişin tamamı"
 #: apps/core/models.py
 msgid "Ganze Buchung"
 msgstr "Rezervasyonun tamamı"
+
+#: templates/core/_deal_thread.html
+msgid "Anfrage des Kunden"
+msgstr "Müşterinin talebi"
+
+#: templates/core/_deal_thread.html
+msgid "Abbrechen"
+msgstr "İptal"
+
+#: templates/core/_deal_thread.html
+msgid "Noch keine Nachrichten."
+msgstr "Henüz mesaj yok."
+
+#: templates/core/_deal_thread.html
+msgid "Antwort an den Kunden…"
+msgstr "Müşteriye yanıt…"
+
+#: templates/core/_deal_thread.html
+msgid "Senden"
+msgstr "Gönder"
+
+#: templates/core/_deal_thread.html
+msgid "Ganzen Verlauf öffnen"
+msgstr "Tüm yazışmayı aç"
+
+#: templates/core/_deal_thread.html
+msgid "Nachricht an den Kunden…"
+msgstr "Müşteriye mesaj…"
+
+#: templates/core/_deal_thread.html
+msgid "Der Kunde hat keinen weiteren Text hinterlassen."
+msgstr "Müşteri başka bir metin bırakmadı."
+
+#: templates/core/_deal_lines.html
+msgid "pro Nacht"
+msgstr "gecelik"
+
+#: templates/core/_deal_lines.html
+msgid "ohne MwSt."
+msgstr "KDV hariç"
+
+#: templates/core/_deal_lines.html
+msgid "MwSt."
+msgstr "KDV"
+
+#: templates/core/_deal_totals.html
+msgid "Zwischensumme"
+msgstr "Ara toplam"
+
+#: templates/core/_deal_totals.html
+msgid "Netto"
+msgstr "Net tutar"

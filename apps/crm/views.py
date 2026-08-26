@@ -69,6 +69,21 @@ def customer_list_context(request) -> dict:
         }
         for c in page.items:
             c.ltv = ltv.get(c.pk)
+        # DF-3 (владелец 2026-08-26 «в CRM нет уведомления о новых сообщениях»):
+        # непрочитанное — видимой меткой прямо в списке. ОДИН запрос на страницу
+        # (как LTV выше), не per-row.
+        try:
+            from apps.inbox.models import Conversation
+
+            unread = set(
+                Conversation.objects.filter(
+                    customer__in=[c.pk for c in page.items], unread_for_staff=True
+                ).values_list("customer_id", flat=True)
+            )
+            for c in page.items:
+                c.has_unread = c.pk in unread
+        except Exception:  # noqa: BLE001 — модуль выключен: список без меток
+            pass
     return {"page": page, "query": query, "firma": firma}
 
 

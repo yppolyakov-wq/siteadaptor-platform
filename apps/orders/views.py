@@ -272,7 +272,7 @@ def order_detail(request, pk):
                 request,
                 "order",
                 order,
-                sections=("items", "discount", "totals", "payment"),
+                sections=("items", "discount", "totals", "payment", "documents", "thread"),
                 # VS-3: заказ может быть прикреплён к брони (предзаказ торта к столу).
                 links=deal_links.block_context("order", order.pk),
             ),
