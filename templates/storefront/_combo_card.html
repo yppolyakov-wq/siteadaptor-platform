@@ -12,9 +12,13 @@ min_persons, описание, цена под PAngV/DS-7b-гейтом, CTA «C
     {% if c.free_pool %}<span class="inline-block mt-1 text-[11px] font-medium rounded-full bg-gray-100 text-gray-600 px-2 py-0.5">{% trans "Free choice from category" %}</span>
     {% elif c.min_persons %}<span class="inline-block mt-1 text-[11px] font-medium rounded-full bg-gray-100 text-gray-600 px-2 py-0.5">{% blocktrans with n=c.min_persons %}ab {{ n }} Personen{% endblocktrans %}</span>{% endif %}
     {% if c.description_localized %}<span class="block text-sm text-gray-500 mt-1 line-clamp-3">{{ c.description_localized }}</span>{% endif %}
-    {% if storefront_orders_active or site.menu_show_prices != False %}
+    {% comment %}Фидбэк 2026-08-26 (виден на полосе «Menü-Pakete»): у свободной
+    сборки базовой цены нет — итог складывается из выбора, — а карточка печатала
+    «0,00 € / Person», то есть «бесплатно». Цену такого набора не показываем;
+    что это за набор, говорит бейдж «Freie Auswahl aus der Kategorie».{% endcomment %}
+    {% if storefront_orders_active or site.menu_show_prices != False %}{% if not c.free_pool or c.price %}
     <span class="block mt-3 font-bold text-xl">{{ c.price }} {{ c.currency|cursym }}{% if c.price_per_person %} <span class="text-sm font-medium text-gray-500">/ {% trans "Person" %}</span>{% endif %}</span>
-    {% endif %}
+    {% endif %}{% endif %}
     <span class="inline-block mt-2 text-sm font-medium" style="color: var(--accent);">{% trans "Configure" %} &rarr;</span>
   </span>
 </a>

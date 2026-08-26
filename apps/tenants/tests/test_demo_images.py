@@ -179,3 +179,64 @@ def test_catering_dish_keys_never_borrow_another_dishs_photo():
         if found in own_files:
             stolen.append((_name(item), item["img"], found, own_files[found]))
     assert not stolen, f"Gericht zeigt das Foto eines anderen Gerichts: {stolen}"
+
+
+def test_catering_placeholders_are_topical_not_a_generic_plate():
+    """Фидбэк 2026-08-26 «сгенерируй недостающие изображения блюд».
+
+    Сгенерировать фотографии в этой среде нечем (модели изображений нет), а
+    честный CC0-кадр нашёлся не для всех блюд. Тогда минимум — читаемый
+    плейсхолдер: реестр эмодзи знал только английские слова, поэтому немецкие
+    ключи («schmorkohl», «kürbisragout», «minzsauce») получали общую «тарелку»
+    🍽️ или вовсе ✨. Замок держит: у каждого блюда карты — своя тема.
+    """
+    import re
+
+    from apps.tenants.demo_kits import KITS
+
+    catering = next(c for c in KITS["pranasy"].categories if c[1] == "catering")
+    dishes = [item for child in catering[3] for item in child[2]]
+    generic = []
+    for item in dishes:
+        if demo_images.photo_static_name(item["img"]):
+            continue  # реальное фото — плейсхолдер не рисуется
+        emoji = re.findall(r">([^<>]+)</text>", demo_images.svg_for(item["img"]))
+        name = item["name"]["de"] if isinstance(item["name"], dict) else item["name"]
+        if not emoji or emoji[0] in ("🍽️", "✨"):
+            generic.append((name, item["img"], emoji))
+    assert not generic, f"Плейсхолдер без темы: {generic}"
+
+
+def test_catering_placeholder_caption_reads_like_the_dish():
+    """Подпись плейсхолдера = первое слово ключа. Ключи вроде «gekochter,reis»
+    давали «Gekochter» — обрывок. Проверяем, что подпись начинается так же, как
+    название блюда (или входит в него): случайных слов на витрине нет."""
+    import re
+
+    from apps.tenants.demo_kits import KITS
+
+    catering = next(c for c in KITS["pranasy"].categories if c[1] == "catering")
+    dishes = [item for child in catering[3] for item in child[2]]
+    bad = []
+    for item in dishes:
+        if demo_images.photo_static_name(item["img"]):
+            continue
+        parts = re.findall(r">([^<>]+)</text>", demo_images.svg_for(item["img"]))
+        caption = parts[1] if len(parts) > 1 else ""
+        name = item["name"]["de"] if isinstance(item["name"], dict) else item["name"]
+        # Подпись должна складываться из слов НАЗВАНИЯ блюда: «Paneerragout» —
+        # это «Paneer» + «Ragout» из «Weißes Ragout mit Paneer», а «Mahabrinjal»
+        # к «Mahabridschal» отношения не имеет (чужая транслитерация).
+        words = [w for w in re.split(r"[^\wäöüß]+", name.lower()) if len(w) > 2]
+        rest = caption.lower()
+        changed = True
+        while rest and changed:
+            changed = False
+            for w in sorted(words, key=len, reverse=True):
+                if rest.startswith(w):
+                    rest, changed = rest[len(w) :], True
+                    break
+        # хвост может быть НАЧАЛОМ слова названия («Reisbratling» ← «Reisbratlinge»)
+        if rest and not any(w.startswith(rest) for w in words):
+            bad.append((name, item["img"], caption))
+    assert not bad, f"Подпись плейсхолдера не про блюдо: {bad}"

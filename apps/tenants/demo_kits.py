@@ -2156,7 +2156,7 @@ PRANASY = DemoKit(
                             "Radieschen fein gewürfelt, dazu Paneer und viel Dill. "
                             "Aufgegossen wird mit Kwass oder Kefir — säuerlich, kühl und "
                             "erfrischend, ohne schwer im Magen zu liegen.",
-                            "okroshka,soup",
+                            "okroschka,suppe,essen",
                             diets=["vegetarisch"],
                             allergens=["gluten", "milch"],
                             vat="7.00",
@@ -2196,7 +2196,7 @@ PRANASY = DemoKit(
                             "und fallen schön auseinander, dabei nehmen sie die Sauce von "
                             "Ragouts und Currys gut auf. Warm serviert — die Beilage zu fast "
                             "allen warmen Gerichten.",
-                            "gekochter,reis,essen",
+                            "rice,plain",
                             diets=["vegan", "glutenfrei", "laktosefrei"],
                             vat="7.00",
                             ingredients="Reis, Wasser, Öl, Gewürze (Salz)",
@@ -2234,7 +2234,7 @@ PRANASY = DemoKit(
                             "und leicht sämig. Kurkuma und Ghee geben dem Gericht seine "
                             "goldene Farbe und ein feines, nussiges Aroma. Mild, bekömmlich "
                             "und sättigend — auch für kleine Gäste geeignet.",
-                            "kitchari,teller",
+                            "kitchari,essen",
                             diets=["vegetarisch", "glutenfrei"],
                             allergens=["milch"],
                             vat="7.00",
@@ -2248,7 +2248,7 @@ PRANASY = DemoKit(
                             "körniger Textur. Der Buchweizen bringt eine feine Nussnote mit "
                             "und harmoniert besonders gut mit Pilzsaucen und Gemüseragouts. "
                             "Sättigend und angenehm nussig im Abgang.",
-                            "buckwheat,groats",
+                            "buchweizen,essen",
                             diets=["vegan", "glutenfrei", "laktosefrei"],
                             vat="7.00",
                             ingredients="Buchweizen, Wasser, Öl, Gewürze (Salz)",
@@ -2307,7 +2307,7 @@ PRANASY = DemoKit(
                             "(glutenfrei))",
                         ),
                     ],
-                    "rice,bowl",
+                    "couscous,semolina",
                     "Reis, Getreide und Kartoffeln als Basis jedes Menüs — neutral gewürzt, "
                     "damit Ragouts und Saucen die Hauptrolle spielen.",
                     "preisliste",
@@ -2372,7 +2372,7 @@ PRANASY = DemoKit(
                             "Muskatnuss oder Zimt, die die natürliche Süße des Kürbis "
                             "aufnehmen. Sahne bindet alles zu einem dichten, samtigen Ragout. "
                             "Warm gewürzt, aber nicht scharf.",
-                            "kuerbisragout,essen",
+                            "kürbisragout,essen",
                             diets=["vegetarisch", "glutenfrei"],
                             allergens=["milch"],
                             vat="7.00",
@@ -2434,7 +2434,7 @@ PRANASY = DemoKit(
                             "Kreuzkümmel, Koriander, Chili und Garam Masala geben Charakter, "
                             "Sahne und Käse machen die Textur zum Schluss besonders cremig. "
                             "Gut mit Beilage oder für sich.",
-                            "mahabrinjal,essen",
+                            "mahabridschal,essen",
                             diets=["vegetarisch", "glutenfrei"],
                             allergens=["milch"],
                             vat="7.00",
@@ -2487,7 +2487,7 @@ PRANASY = DemoKit(
                             "Honig abgerundet. Ein Spritzer Essig gibt die feine Säure, die "
                             "Gewürze machen sie pikant. Passt zu Salaten, Ofengemüse und "
                             "gebratenen Beilagen — oder einfach als Dip.",
-                            "mint,sauce",
+                            "minzsauce,essen",
                             diets=["vegetarisch", "glutenfrei", "laktosefrei"],
                             vat="7.00",
                             ingredients="Minze, Zucker oder Honig, kochendes Wasser, Essig, Gewürze",
@@ -2528,7 +2528,7 @@ PRANASY = DemoKit(
                             "angebraten — so bekommt es Biss und ein herzhaftes Aroma. Mit "
                             "Tomatenmark, Knoblauch und Gewürzen wird daraus eine sättigende "
                             "Sauce für Nudeln, Kartoffeln oder pur.",
-                            "soy,bolognese",
+                            "bolognese,soja,essen",
                             diets=["vegan", "laktosefrei"],
                             allergens=["gluten", "soja"],
                             vat="7.00",
@@ -2568,7 +2568,7 @@ PRANASY = DemoKit(
                             "einer weichen, rauchig-würzigen Paste geschmort. Knoblauch und "
                             "Petersilie geben Frische und Würze. Wir servieren den Kaviar "
                             "kalt oder lauwarm, dazu passt frisches Brot.",
-                            "eggplant,caviar",
+                            "auberginenkaviar,essen",
                             diets=["vegan", "glutenfrei", "laktosefrei"],
                             vat="7.00",
                             ingredients="Auberginen, Tomaten, Zwiebeln, Paprika, Knoblauch, "
@@ -2773,7 +2773,7 @@ PRANASY = DemoKit(
                             "Gurke mit frischer Minze und Koriandergrün in cremigem "
                             "Naturjoghurt. Kreuzkümmel und Zitronensaft geben Aroma und feine "
                             "Säure — der ideale Ausgleich zu scharf gewürzten Gerichten.",
-                            "joghurtsalat,gurke,essen",
+                            "cucumber,raita",
                             diets=["vegetarisch", "glutenfrei"],
                             allergens=["milch"],
                             vat="7.00",

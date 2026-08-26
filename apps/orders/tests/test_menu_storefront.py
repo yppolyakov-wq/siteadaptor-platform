@@ -397,6 +397,26 @@ def test_included_group_never_shows_surcharge_and_pool_keeps_zero_price():
     assert "Leitungswasser" in body and "0,00" in body
 
 
+def test_free_pool_card_does_not_advertise_zero_euro():
+    """Фидбэк 2026-08-26: у свободной сборки базовой цены нет (итог = выбор), а
+    карточка полосы «Menü-Pakete» печатала «0,00 € / Person» — читается как
+    «бесплатно». Набор с ЦЕНОЙ печатает её по-прежнему."""
+    from apps.catalog.models import Category
+    from apps.promotions import public_views as promo_views
+
+    cat = Category.objects.create(name={"de": "Catering"}, slug="fp-catering", page_style="sets")
+    Combo.objects.create(name="Freie Wahl", price=Decimal("0.00"), free_pool=True, category=cat)
+    Combo.objects.create(name="Menü Klassik", price=Decimal("19.50"), category=cat)
+    ProductFactory(name={"de": "Borschtsch"}, category=cat)
+
+    body = promo_views.product_list(
+        _req(method="get", tenant=TenantFactory.build()), slug="fp-catering"
+    ).content.decode()
+    assert "Freie Wahl" in body and "Menü Klassik" in body
+    assert "19,50" in body or "19.50" in body  # обычный набор показывает цену
+    assert "0,00" not in body and "0.00" not in body  # свободная сборка — нет
+
+
 def test_pool_shows_dishes_with_unknown_course():
     """Ревью MEN-17: блюдо с Gang'ом вне реестра (импорт/старые данные) молча
     выпадало из конструктора — `pool_products` считает его блюдом, а группировка
