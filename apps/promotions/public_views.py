@@ -651,6 +651,15 @@ def product_list(request, slug=None):
         cfg["catalog_layout"]["preset"] if cfg["catalog_layout"]["preset"] != _owner_preset else ""
     )
     catalog_grid = siteconfig.grid_class_string(cfg["catalog_layout"])
+    # Фидбэк владельца 2026-08-27 («категории по 3 в ряд»): число колонок у плиток
+    # категорий не подчинялось настройке. Верхний список звал {% grid_classes site
+    # 'categories' %}, но `site` в контекст этой вьюхи НЕ кладётся — тег молча брал
+    # дефолт секции; сетка подкатегорий была захардкожена (lg:grid-cols-4). Оба
+    # берут раскладку секции «categories»; подкатегории оставляют свой плотный
+    # отступ (gap "sm") — при дефолте cols4 строки классов прежние байт-в-байт.
+    _categories_layout = siteconfig.section_layout(cfg, "categories")
+    categories_grid = siteconfig.grid_class_string(_categories_layout)
+    subcategory_grid = siteconfig.grid_class_string({**_categories_layout, "gap": "sm"})
     # Сортировка: из ?sort= (выбор покупателя) либо дефолт витрины; keyset по (поле, pk).
     _sort_keys = provider.sort_keys()
     sort = request.GET.get("sort") or cfg.get("catalog_sort", "newest")
@@ -774,6 +783,7 @@ def product_list(request, slug=None):
             "page": page,
             "categories": categories,
             "categories_have_images": categories_have_images,
+            "categories_grid": categories_grid,
             "category_tile_aspect": siteconfig.CATEGORY_TILE_ASPECTS.get(
                 siteconfig.section_style(cfg, "categories"), "aspect-[4/3]"
             ),
@@ -799,6 +809,7 @@ def product_list(request, slug=None):
             "catalog_title": cfg.get("catalog_title", ""),
             "catalog_intro": cfg.get("catalog_intro", ""),
             "subcategories": subcategories,
+            "subcategory_grid": subcategory_grid,
             "subcategories_have_images": subcategories_have_images,
             # KAT-1/фидбэк 2026-08-26: у страницы категории — свой хост C-блоков
             # («catalog:<slug>»), поэтому галерея/отзывы/команда добавляются на

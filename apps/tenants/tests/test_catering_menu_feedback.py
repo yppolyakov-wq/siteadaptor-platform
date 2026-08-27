@@ -133,3 +133,79 @@ def test_single_dish_does_not_stretch_across_the_row():
         html = _read(name)
         assert "auto-fill,minmax(220px" not in html, name
         assert "sm:grid-cols-2" in html, name
+
+
+# --- Фидбэк владельца 2026-08-27 -------------------------------------------
+# «Сделай в пранаси по умолчанию на главной категории по 3 в ряд. А блюда по 6
+# и над ними перенести фильтр и переключатель видов».
+
+
+def test_toolbar_stands_directly_above_the_dishes():
+    """Тулбар каркаса управляет блюдами: наборы выше, заголовок блюд — при нём."""
+    html = _read("storefront/products.html")
+    skeleton = _read("storefront/listing.html")
+
+    # каркас: шапка → фасеты → тулбар → сетка
+    assert (
+        skeleton.index("{% block listing_header %}")
+        < skeleton.index("{% block listing_toolbar %}")
+        < skeleton.index("{% block listing_grid %}")
+    )
+
+    # секция наборов — в ШАПКЕ листинга (то есть над тулбаром)
+    header = html.split("{% block listing_header %}", 1)[1].split("{% block listing_facets %}", 1)[
+        0
+    ]
+    assert "data-category-sets" in header
+
+    # заголовок блюд — в тулбаре, вплотную к своей сетке (не в шапке: между ними
+    # встали бы плитки подкатегорий и панель фильтров)
+    assert "data-category-dishes" not in header
+    toolbar = html.split("{% block listing_toolbar %}", 1)[1].split("{% endblock %}", 1)[0]
+    assert "data-category-dishes" in toolbar
+    assert "{{ block.super }}" in toolbar
+    grid = html.split("{% block listing_grid %}", 1)[1].split("{% endblock %}", 1)[0]
+    assert "data-category-dishes" not in grid
+
+
+def test_subcategory_grid_follows_the_categories_layout():
+    """Число колонок подкатегорий было захардкожено — теперь это настройка."""
+    from apps.tenants import siteconfig
+
+    html = _read("storefront/products.html")
+    assert "{{ subcategory_grid }}" in html
+    assert "sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6" not in html  # прежний хардкод
+    # верхний список звал {% grid_classes site … %}, но `site` вьюха не кладёт —
+    # тег молча брал дефолт секции вместо настройки владельца
+    assert "{{ categories_grid }}" in html
+    assert "grid_classes site 'categories'" not in html
+
+    def grid(cfg):
+        return siteconfig.grid_class_string(
+            {**siteconfig.section_layout(cfg, "categories"), "gap": "sm"}
+        )
+
+    # дефолт — байт-в-байт прежняя строка классов (без визуальной регрессии)
+    assert grid({}) == "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"
+    cfg = siteconfig.normalize(
+        {"sections": [{"key": "categories", "enabled": False, "layout": {"preset": "cols3"}}]}
+    )
+    assert grid(cfg).endswith("lg:grid-cols-3 gap-3")
+
+
+def test_pranasy_shows_three_categories_and_six_dishes_per_row():
+    kit = demo_kits.KITS["pranasy"]
+
+    assert kit.section_layouts["categories"]["preset"] == "cols3"
+    assert kit.page_layouts["catalog"] == "cols6"
+
+
+def test_kit_section_layout_reaches_the_config():
+    """Раскладка секции обязана пережить normalize — иначе кит настроит впустую."""
+    from apps.tenants import siteconfig
+    from apps.tenants.demo_kits import _kit_sections
+
+    kit = demo_kits.KITS["pranasy"]
+    cfg = siteconfig.normalize({"sections": _kit_sections(kit)})
+
+    assert siteconfig.section_layout(cfg, "categories")["cols"] == 3

@@ -26,6 +26,25 @@
   {% endif %}
 </div>
 {% if show_category_header %}{% include "storefront/_category_header.html" %}{% endif %}
+{% comment %}Фидбэк владельца 2026-08-27: «блюда по 6 и НАД НИМИ перенести
+фильтр и переключатель видов». Секция наборов и заголовок блюд переехали из
+блока сетки в ШАПКУ листинга: тулбар каркаса (фильтры · сортировка · вид ·
+плотность) управляет именно блюдами и теперь стоит прямо над ними, а не над
+наборами.{% endcomment %}
+{% if category_combos and category_page_style == "sets" %}
+{% comment %}KAT-2: шаблон «Sets & Menüs zuerst» — наборы категории НАД сеткой
+(вне keyset-пагинации: гейт «первая страница без фасетов» стоит во вьюхе).{% endcomment %}
+{% comment %}Фидбэк владельца 2026-08-26 (вечер): «наборы и просто блюда
+сливаются» — секция наборов получила свою подложку, а сетка блюд ниже —
+собственный заголовок, чтобы граница между ними читалась.{% endcomment %}
+<section class="mb-8 rounded-2xl bg-gray-50 p-4 md:p-5" data-category-sets>
+  <div class="flex flex-wrap items-end justify-between gap-2 mb-3">
+    <h2 class="text-lg md:text-xl font-bold">{% trans "Menü-Pakete" %}</h2>
+    <a href="{% url 'storefront-combos' %}?kategorie={{ current_category.slug }}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>
+  </div>
+  {% include "storefront/_combo_grid.html" with combos=category_combos %}
+</section>
+{% endif %}
 {% endblock %}
 
 {% block listing_facets %}
@@ -43,7 +62,7 @@
 </div>
 {% elif categories_have_images %}
 <div class="mb-6">
-  <div data-grid="categories" class="{% grid_classes site 'categories' %}">
+  <div data-grid="categories" class="{{ categories_grid }}">
     {% for c in categories %}
       {% include "storefront/_category_tile.html" with c=c cat_aspect=category_tile_aspect cat_active=False %}
     {% endfor %}
@@ -187,13 +206,13 @@ fixed-ящиком, и до инициализации JS она вспыхив�
 (`subcategories_have_images`): нет фото ни у одной подкатегории → прежняя
 текстовая сетка байт-в-байт.{% endcomment %}
 {% if category_page_style == "kopfbild" or subcategories_have_images %}
-<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
+<div class="{{ subcategory_grid }} mb-6">
   {% for c in subcategories %}
     {% include "storefront/_category_tile.html" with c=c cat_aspect="aspect-[4/3]" cat_active=False %}
   {% endfor %}
 </div>
 {% else %}
-<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
+<div class="{{ subcategory_grid }} mb-6">
   {% for c in subcategories %}
     <a href="{% url 'storefront-category' c.slug %}{% if ansicht %}?ansicht={{ ansicht }}{% endif %}"
        class="flex items-center justify-center text-center bg-white rounded-xl shadow-sm p-4 min-h-[4rem] font-medium border border-transparent hover:shadow-md hover:border-indigo-300 transition">{{ c }}</a>
@@ -203,6 +222,16 @@ fixed-ящиком, и до инициализации JS она вспыхив�
 {% endif %}
 
 {# UB2-2: сортировка (и поиск ?q=) переехали в единый тулбар каркаса listing_toolbar. #}
+{% endblock %}
+
+{% comment %}Фидбэк владельца 2026-08-27: заголовок сетки блюд стоит вплотную к
+строке инструментов — между ним и блюдами не должно быть ни плиток подкатегорий,
+ни панели фильтров (в шапке листинга он отрывался от своей сетки).{% endcomment %}
+{% block listing_toolbar %}
+{% if category_combos and category_page_style == "sets" %}
+  <h2 class="text-lg md:text-xl font-bold mb-3" data-category-dishes>{% trans "Einzelne Gerichte" %}</h2>
+{% endif %}
+{{ block.super }}
 {% endblock %}
 
 {% comment %}DS-10: кнопка «Фильтры» — в единой строке инструментов; гейт ТОТ ЖЕ,
@@ -223,24 +252,7 @@ MEN-22 остаётся механикой главной. Мобильный «
 {% block listing_bar_view %}{% if catalog_preset|slice:":10" != "preisliste" %}{% comment %}KAT-4: плотность карточной сетки — только в карточном виде (в прайсе сетки нет).{% endcomment %}{% include "storefront/_density_control.html" with dc_mode="grid" dc_key="catalog" dc_default=catalog_cols %}{% endif %}{% include "storefront/_price_view_links.html" %}{% endblock %}
 
 {% block listing_grid %}
-{% if category_combos and category_page_style == "sets" %}
-{% comment %}KAT-2: шаблон «Sets & Menüs zuerst» — наборы категории НАД сеткой
-(вне keyset-пагинации: гейт «первая страница без фасетов» стоит во вьюхе).{% endcomment %}
-{% comment %}Фидбэк владельца 2026-08-26 (вечер): «наборы и просто блюда
-сливаются» — секция наборов получила свою подложку, а сетка блюд ниже —
-собственный заголовок, чтобы граница между ними читалась.{% endcomment %}
-<section class="mb-8 rounded-2xl bg-gray-50 p-4 md:p-5" data-category-sets>
-  <div class="flex flex-wrap items-end justify-between gap-2 mb-3">
-    <h2 class="text-lg md:text-xl font-bold">{% trans "Menü-Pakete" %}</h2>
-    <a href="{% url 'storefront-combos' %}?kategorie={{ current_category.slug }}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>
-  </div>
-  {% include "storefront/_combo_grid.html" with combos=category_combos %}
-</section>
-{% endif %}
 {% if page.items %}
-{% if category_combos and category_page_style == "sets" %}
-  <h2 class="text-lg md:text-xl font-bold mb-3" data-category-dishes>{% trans "Einzelne Gerichte" %}</h2>
-{% endif %}
 {% if catalog_preset|slice:":10" == "preisliste" %}
 {% comment %}DS-3a (Fokus): пресет «прайс-лист» — текущая ВЫДАЧА листинга (фасеты/
 поиск/пагинация провайдера UB уже применены) группируется по категориям строками.{% endcomment %}

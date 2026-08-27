@@ -277,6 +277,10 @@ class DemoKit:
     section_styles: dict = field(default_factory=dict)
     # MEN-24c: кап строк прайс-вида {section_key: N} (пока только products).
     section_rows: dict = field(default_factory=dict)
+    # Фидбэк 2026-08-27: раскладка секции-сетки {section_key: {"preset": "cols3",
+    # …}} — то же поле layout, что правит владелец в конструкторе (normalize
+    # клампит). Пусто → дефолт секции (GRID_SECTION_DEFAULTS).
+    section_layouts: dict = field(default_factory=dict)
     # ST-2: пресеты страниц page_presets [(host, preset_id), …] — info/cart.
     page_presets: list = field(default_factory=list)
     # Фидбэк 2026-08-26: C-блоки КОНКРЕТНОЙ страницы — {host: [(key, data), …]}.
@@ -1588,7 +1592,11 @@ PRANASY = DemoKit(
         "events": "Retreats bei Pranasy",
     },
     # Меню — плотная сетка; события — карточками (а не списком).
-    page_layouts={"catalog": "cols3", "events": "cols2"},
+    # Фидбэк владельца 2026-08-27 («категории по 3 в ряд, блюда по 6»): страница
+    # «Catering» — витрина карты, где направления (Suppen, Beilagen, Ragouts…)
+    # читаются крупными плитками, а сами блюда идут плотной сеткой под тулбаром.
+    page_layouts={"catalog": "cols6", "events": "cols2"},
+    section_layouts={"categories": {"preset": "cols3"}},
     archetype_covers={
         "catalog": {
             "intro": "Unser Restaurant öffnet bald — die Karte ist schon da. Und im veganen "
@@ -10658,6 +10666,9 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
         rows_cap = kit.section_rows.get(s["key"])
         if rows_cap:
             s["rows"] = rows_cap  # MEN-24c: кап строк прайс-вида (normalize клампит)
+        lay = kit.section_layouts.get(s["key"])
+        if lay:
+            s["layout"] = dict(lay)  # фидбэк 2026-08-27: число колонок секции
         # DS-4b: тонированные полосы макета (visual чистит normalize) + принуди-
         # тельное выключение секций (контент кита жив — страницы ST-8 работают).
         vis = kit.section_visuals.get(s["key"])
