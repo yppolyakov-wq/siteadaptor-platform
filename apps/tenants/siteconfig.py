@@ -1654,6 +1654,11 @@ def _clean_menu_node(raw, depth: int):
     # i18n (двуязычная витрина): переводы подписи узла {"de":..,"en":..}; пусто →
     # одноязычно (label). menu._resolve выбирает по локали. Ключ добавляем только
     # при наличии переводов — легаси-меню не раздуваем.
+    # Фидбэк 2026-08-26: узел «categories» может показывать в подменю ещё и
+    # НАБОРЫ меню («меню картинками по наборам и категориям»). Ключ presence-
+    # minimal: пишем только при True, иначе legacy-меню раздувалось бы флагом.
+    if raw.get("with_combos"):
+        node["with_combos"] = True
     li18n = raw.get("label_i18n")
     if isinstance(li18n, dict):
         clean_li18n = {loc: _s(v) for loc, v in li18n.items() if loc in ("de", "en") and _s(v)}

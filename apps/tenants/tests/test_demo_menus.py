@@ -275,26 +275,33 @@ def test_kits_with_menu_sets_link_them_in_navigation():
     было дойти навигацией. Тот же класс, что «наполненный модуль без пункта
     меню»: контент есть, пути к нему нет."""
 
-    def menu_targets(menus):
-        out = set()
+    def menu_paths(menus):
+        """(цели узлов, есть ли подменю с плитками наборов)."""
+        targets, tiles = set(), False
 
         def walk(items):
+            nonlocal tiles
             for item in items or []:
-                out.add(item.get("target"))
+                targets.add(item.get("target"))
+                if item.get("with_combos"):
+                    tiles = True
                 walk(item.get("children"))
 
         walk((menus or {}).get("top", {}).get("items", []))
         walk((menus or {}).get("bottom", {}).get("items", []))
-        return out
+        return targets, tiles
 
     for key, kit in demo_kits.KITS.items():
         if not kit.combos:
             continue
-        targets = menu_targets(kit.menus)
-        # Либо прямой пункт «Kombi/Menüs», либо кит вообще без своего меню
-        # (тогда шапка выводится авто-резолвером и combos попадает по гейту).
-        assert kit.menus is None or "combos" in targets, (
-            f"{key}: у кита {len(kit.combos)} набор(ов) меню, но в навигации на них нет пункта"
+        targets, tiles = menu_paths(kit.menus)
+        # Путь к наборам — любой из трёх: отдельный пункт «Kombi/Menüs»,
+        # подменю с ПЛИТКАМИ наборов (фидбэк владельца 2026-08-26: «оставить
+        # меню картинками по наборам и категориям» — прямая ссылка на каждый
+        # набор вместо общего пункта), или кит вовсе без своего меню (шапку
+        # выводит авто-резолвер, и combos попадает туда по гейту).
+        assert kit.menus is None or "combos" in targets or tiles, (
+            f"{key}: у кита {len(kit.combos)} набор(ов) меню, но в навигации на них нет пути"
         )
 
 

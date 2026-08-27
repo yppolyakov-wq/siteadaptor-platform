@@ -20230,3 +20230,9 @@ msgstr "Breakfast and parking are 19 %, even when the room is taxed at 7 %."
 
 msgid "wie die Buchung"
 msgstr "same as the booking"
+
+msgid "Einzelne Gerichte"
+msgstr "Individual dishes"
+
+msgid "Unsere Arbeit"
+msgstr "Our work"

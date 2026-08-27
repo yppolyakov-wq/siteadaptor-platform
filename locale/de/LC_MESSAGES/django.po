@@ -20358,3 +20358,9 @@ msgstr ""
 
 msgid "wie die Buchung"
 msgstr ""
+
+msgid "Einzelne Gerichte"
+msgstr ""
+
+msgid "Unsere Arbeit"
+msgstr ""

@@ -20357,3 +20357,9 @@ msgstr "Kahvaltı ve otopark %19'dur, konaklama %7 olsa bile."
 
 msgid "wie die Buchung"
 msgstr "rezervasyonla aynı"
+
+msgid "Einzelne Gerichte"
+msgstr "Tek tek yemekler"
+
+msgid "Unsere Arbeit"
+msgstr "Çalışmalarımız"

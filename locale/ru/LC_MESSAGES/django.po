@@ -20448,3 +20448,9 @@ msgstr "Завтрак и парковка — 19 %, даже если прож�
 
 msgid "wie die Buchung"
 msgstr "как у брони"
+
+msgid "Einzelne Gerichte"
+msgstr "Отдельные блюда"
+
+msgid "Unsere Arbeit"
+msgstr "Наша работа"

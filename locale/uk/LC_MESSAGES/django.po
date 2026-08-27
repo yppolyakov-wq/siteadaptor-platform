@@ -20433,3 +20433,9 @@ msgstr ""
 
 msgid "wie die Buchung"
 msgstr "як у броні"
+
+msgid "Einzelne Gerichte"
+msgstr "Окремі страви"
+
+msgid "Unsere Arbeit"
+msgstr "Наша робота"

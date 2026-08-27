@@ -242,9 +242,15 @@ def test_pranasy_catering_is_reachable_from_the_menu():
         top = menu.resolve_menu(tenant, "top")
     catering = next(i for i in top if i["label"] == "Catering")
     children = {c["label"]: c["url"] for c in catering["children"]}
-    assert set(children) == {"Speisekarte", "Menüs & Pakete", "Anfrage"}
-    assert children["Speisekarte"].endswith("/sortiment/catering/")
-    assert "/kombi/" in children["Menüs & Pakete"]
+    # Фидбэк владельца 2026-08-26: «убери пункт меню — меню и пакеты; оставить
+    # меню картинками по наборам и категориям, отправить запрос, наша работа».
+    # Сам пункт «Catering» ведёт на страницу направления, а подменю — плитки
+    # категорий и НАБОРОВ плюс два действия (замок переписан осознанно).
+    assert catering["url"].endswith("/sortiment/catering/")
+    assert {"Anfrage", "Unsere Arbeit"} <= set(children)
+    assert "Menüs & Pakete" not in children
+    assert any("/kombi/" in url for url in children.values()), "наборов нет в подменю"
+    assert any(c.get("image") for c in catering["children"]), "подменю без картинок"
 
 
 def test_pranasy_dishes_are_translated_into_every_demo_locale():

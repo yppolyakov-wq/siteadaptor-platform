@@ -14,7 +14,7 @@ MEN-17: блюдо рисует общий `_dish_chip.html` (компактна
       {% if g.max_select > 1 %}<span class="text-xs text-gray-400">({% blocktrans with n=g.max_select %}up to {{ n }}{% endblocktrans %})</span>{% endif %}{% endif %}
     </p>
     {% with opts=g.options_active %}
-    <div class="mt-2 grid gap-2 grid-cols-[repeat(auto-fill,minmax(220px,1fr))]">
+    <div class="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
       {% for o in opts|slice:":12" %}
         {% include "storefront/_dish_chip.html" with p=o.product readonly=g.included multi=g.is_multi in_name="opt-" in_name_id=g.pk in_value=o.pk in_delta=o.price_delta|unlocalize in_required=g.is_required is_first=forloop.first amount=o.price_delta prefix="+" cur=combo.currency|cursym ring=1 %}
       {% endfor %}
@@ -22,7 +22,7 @@ MEN-17: блюдо рисует общий `_dish_chip.html` (компактна
     {% if opts|length > 12 %}
       <details class="mt-2">
         <summary class="cursor-pointer text-sm text-gray-500">{% blocktrans with n=opts|length|add:"-12" %}Weitere {{ n }} anzeigen{% endblocktrans %}</summary>
-        <div class="mt-2 grid gap-2 grid-cols-[repeat(auto-fill,minmax(220px,1fr))]">
+        <div class="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
           {% for o in opts|slice:"12:" %}
             {% include "storefront/_dish_chip.html" with p=o.product readonly=g.included multi=g.is_multi in_name="opt-" in_name_id=g.pk in_value=o.pk in_delta=o.price_delta|unlocalize in_required=0 is_first=0 amount=o.price_delta prefix="+" cur=combo.currency|cursym ring=1 %}
           {% endfor %}

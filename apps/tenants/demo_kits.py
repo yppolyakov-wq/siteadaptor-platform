@@ -1102,12 +1102,18 @@ PRANASY_MENUS = {
             {
                 # Подписи — msgid'ы хрома меню (_MENU_LABELS): переводятся на все
                 # пять локалей витрины из каталогов, свой label_i18n не нужен.
+                #
+                # Фидбэк владельца 2026-08-26: «убери пункт меню — меню и пакеты;
+                # оставить меню картинками по наборам и категориям, отправить
+                # запрос, наша работа». Поэтому тип `categories` (подменю плитками
+                # с фото) + `with_combos` — в тех же плитках стоят наборы меню.
                 "label": "Catering",
-                "type": "group",
+                "type": "categories",
+                "target": "catering",
+                "with_combos": True,
                 "children": [
-                    {"label": "Speisekarte", "type": "category", "target": "catering"},
-                    {"label": "Menüs & Pakete", "type": "page", "target": "combos"},
                     {"label": "Anfrage", "type": "archetype", "target": "jobs"},
+                    {"label": "Unsere Arbeit", "type": "page", "target": "gallery"},
                 ],
             },
             {
@@ -1150,7 +1156,9 @@ PRANASY_MENUS = {
         "items": [
             {"label": "Restaurant", "type": "category", "target": "restaurant", "icon": "🍔"},
             {"label": "Shop", "type": "category", "target": "shop", "icon": "🛒"},
-            {"label": "Catering", "type": "archetype", "target": "jobs", "icon": "🎉"},
+            # Фидбэк 2026-08-26: нижнее меню вело сразу на форму запроса —
+            # теперь на саму страницу кейтеринга (запрос доступен с неё).
+            {"label": "Catering", "type": "category", "target": "catering", "icon": "🎉"},
             {"label": "Retreats", "type": "archetype", "target": "events", "icon": "🧘"},
         ],
     },
@@ -8474,10 +8482,12 @@ CATERING_MENUS = {
             # меню (MEN-13) переехали РУЧНЫМ первым ребёнком того же подменю —
             # отдельный пункт «Menüs» из строки шапки убран как дубль.
             {
+                # Фидбэк 2026-08-26: пункт «Menüs & Pakete» убран — наборы стоят
+                # плитками с фото В ТОМ ЖЕ подменю, рядом с категориями.
                 "label": "Speisekarte",
                 "type": "categories",
                 "target": "",
-                "children": [{"label": "Menüs & Pakete", "type": "page", "target": "combos"}],
+                "with_combos": True,
             },
             {"label": "Angebote", "type": "archetype", "target": "promotions"},
             {"label": "Galerie", "type": "page", "target": "gallery"},

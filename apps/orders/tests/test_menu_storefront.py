@@ -326,10 +326,11 @@ def test_category_page_shows_menu_sets_block():
     assert body2.index('data-sf-section="catalog"') < body2.index("data-category-sets")
 
 
-def test_menu_sets_have_visitor_view_switcher():
-    """Фидбэк 2026-08-26: у наборов — те же виды, что у блюд (Kacheln/Liste/
-    Kompakt). Механика class-swap: контейнер несёт целевые классы, карточка одна
-    на все виды. Ключ localStorage свой — вид наборов не связан с видом блюд."""
+def test_menu_sets_are_four_across_without_a_view_switcher():
+    """Фидбэк владельца 2026-08-26 (вечер): «сделать наборы 4 в ряд на десктопе
+    и убрать вид» — переключатель Kacheln/Liste/Kompakt снят со страниц (замок
+    переписан осознанно). Атрибуты class-swap на контейнере остаются: механика
+    общая, вернуть переключатель можно не трогая разметку карточки."""
     from apps.catalog.models import Category
     from apps.promotions import public_views as promo_views
 
@@ -346,7 +347,8 @@ def test_menu_sets_have_visitor_view_switcher():
         _req(method="get", tenant=TenantFactory.build()), slug="cv-catering"
     ).content.decode()
     assert "data-combo-list" in body and 'data-cv-key="combos"' in body
-    assert 'data-cv-btn="liste"' in body and 'data-cv-btn="kompakt"' in body
+    assert 'data-cv-btn="liste"' not in body  # переключатель убран
+    assert "lg:grid-cols-4" in body  # четыре набора в ряд на десктопе
     assert "data-cls-liste=" in body and "data-cls-kompakt=" in body
     # карточка та же самая (паритет разметки) — только маркеры каскада
     assert "data-combo-card" in body and "data-combo-img" in body

@@ -15,7 +15,7 @@ MEN-19 (фидбэк «портянка при большом ассортиме
       <span class="flex-1">{{ course_label }} <span class="text-sm font-normal text-gray-400">({{ dishes|length }})</span></span>
       <span class="text-gray-400 transition-transform group-open/gang:rotate-180" aria-hidden="true">▾</span>
     </summary>
-    <div class="px-3 pb-3 grid gap-2 grid-cols-[repeat(auto-fill,minmax(220px,1fr))]">
+    <div class="px-3 pb-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
       {% for p in dishes %}
         {% include "storefront/_dish_chip.html" with p=p readonly=0 multi=1 in_name="dish" in_value=p.pk in_delta=p.base_price|unlocalize amount=p.base_price prefix="" zero_ok=1 cur=p.currency|cursym ring=1 %}
       {% endfor %}

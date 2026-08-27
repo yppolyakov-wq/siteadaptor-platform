@@ -226,18 +226,21 @@ MEN-22 остаётся механикой главной. Мобильный «
 {% if category_combos and category_page_style == "sets" %}
 {% comment %}KAT-2: шаблон «Sets & Menüs zuerst» — наборы категории НАД сеткой
 (вне keyset-пагинации: гейт «первая страница без фасетов» стоит во вьюхе).{% endcomment %}
-<section class="mb-8" data-category-sets>
+{% comment %}Фидбэк владельца 2026-08-26 (вечер): «наборы и просто блюда
+сливаются» — секция наборов получила свою подложку, а сетка блюд ниже —
+собственный заголовок, чтобы граница между ними читалась.{% endcomment %}
+<section class="mb-8 rounded-2xl bg-gray-50 p-4 md:p-5" data-category-sets>
   <div class="flex flex-wrap items-end justify-between gap-2 mb-3">
     <h2 class="text-lg md:text-xl font-bold">{% trans "Menü-Pakete" %}</h2>
-    <div class="flex items-center gap-3">
-      {% include "storefront/_combo_view_toggle.html" %}
-      <a href="{% url 'storefront-combos' %}?kategorie={{ current_category.slug }}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>
-    </div>
+    <a href="{% url 'storefront-combos' %}?kategorie={{ current_category.slug }}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>
   </div>
   {% include "storefront/_combo_grid.html" with combos=category_combos %}
 </section>
 {% endif %}
 {% if page.items %}
+{% if category_combos and category_page_style == "sets" %}
+  <h2 class="text-lg md:text-xl font-bold mb-3" data-category-dishes>{% trans "Einzelne Gerichte" %}</h2>
+{% endif %}
 {% if catalog_preset|slice:":10" == "preisliste" %}
 {% comment %}DS-3a (Fokus): пресет «прайс-лист» — текущая ВЫДАЧА листинга (фасеты/
 поиск/пагинация провайдера UB уже применены) группируется по категориям строками.{% endcomment %}
@@ -299,7 +302,6 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
   <div class="flex flex-wrap items-end justify-between gap-2 mb-3">
     <h2 class="text-lg md:text-xl font-bold">{% trans "Menü-Pakete" %}</h2>
     <div class="flex items-center gap-3">
-      {% include "storefront/_combo_view_toggle.html" %}
       <a href="{% url 'storefront-combos' %}?kategorie={{ current_category.slug }}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>
     </div>
   </div>
