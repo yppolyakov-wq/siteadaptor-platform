@@ -56,14 +56,14 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
       меняются), но скрыты — раскрывает кнопка «＋ Position».{% endcomment %}
       <div class="dl-row py-1" data-qt-row="1"
            {% if not row.visible %}hidden style="display:none"{% endif %}>
-        <span class="text-xs text-gray-300 tabular-nums">{{ forloop.counter }}</span>
+        <span class="text-xs text-gray-300 tabular-nums dl-idx">{{ forloop.counter }}</span>
         {% comment %}VF-9b (фидбэк 2026-08-24 «зачем эти данные выводить? если
         нужно — просто выбираем из каталога»): селект каталога В КАЖДОЙ строке
         убран — выбор из ассортимента живёт у «＋ Position» (как у заказа).
         Привязку существующей строки держит hidden: приёмник читает line_part_i,
         без поля Save снял бы связь со складом (класс W0).{% endcomment %}
         <input type="hidden" name="line_part_{{ row.i }}" value="{{ row.part_value }}">
-        <div class="min-w-0">
+        <div class="min-w-0 dl-name">
           <input name="line_text_{{ row.i }}" type="text" value="{% if row.line %}{{ row.line.text }}{% endif %}" placeholder="{% trans 'Position' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
           <span data-qt-linked class="mt-0.5 block text-[11px] text-gray-400{% if not row.part_value %} hidden{% endif %}">📦 {% trans "Aus dem Sortiment" %}</span>
         </div>
@@ -87,7 +87,7 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
             {% for rate in vat_rates %}<option value="{{ rate }}" {% if row.line and row.line.vat_rate == rate %}selected{% endif %}>{{ rate|floatformat:0 }} %</option>{% endfor %}
           </select>
         </div>
-        <div>
+        <div class="dl-unit">
           <input name="line_price_{{ row.i }}" type="text" data-qt-price value="{% if row.line %}{{ row.line.unit_price|floatformat:2 }}{% endif %}" placeholder="0,00" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
           {% comment %}ERP-6 → VF-9b (фидбэк «закупка — это раздел ERP»): видимое
           поле EK со страницы продажи убрано; значение едет hidden'ом — иначе
@@ -95,10 +95,10 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
           по-прежнему делает сервер (философия снимков ERP-1).{% endcomment %}
           <input type="hidden" name="line_cost_{{ row.i }}" value="{% if row.line.cost_rate is not None %}{{ row.line.cost_rate|floatformat:2 }}{% endif %}">
         </div>
-        <div>
+        <div class="dl-qty">
           <input name="line_qty_{{ row.i }}" type="number" min="0.01" step="0.01" data-qt-qty value="{% if row.line %}{{ row.line.qty|floatformat:'-2u' }}{% else %}1{% endif %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right">
         </div>
-        <div class="flex items-center justify-end gap-1">
+        <div class="flex items-center justify-end gap-1 dl-sum">
           <output data-qt-sum class="px-1 py-1.5 text-sm text-right text-gray-600 tabular-nums">{% if row.line %}{{ row.line.line_total|floatformat:2 }} €{% endif %}</output>
           <button type="button" data-qt-clear class="text-gray-300 hover:text-red-500 text-sm px-1 py-1.5" title="{% trans 'Position leeren' %}" aria-label="{% trans 'Position leeren' %}">✕</button>
         </div>
@@ -346,22 +346,19 @@ document (партиал может перерисовываться — уро�
 
   {# QF-4: правка контактов прямо здесь #}
   {# DF-2: разделитель убран — над правкой контактов больше нет блока #}
-  <details>
-    <summary class="cursor-pointer text-sm text-indigo-600 hover:underline">✏️ {% trans "Kundendaten bearbeiten" %}</summary>
-    <form method="post" class="mt-3 grid gap-2 sm:grid-cols-2 max-w-2xl">{% csrf_token %}
-      <input type="hidden" name="action" value="customer">
-      <label class="text-xs text-gray-500">{% trans "Name" %}
-        <input name="cust_name" value="{{ job.customer.name }}" maxlength="200" class="mt-0.5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-      <label class="text-xs text-gray-500">{% trans "E-Mail" %}
-        <input name="cust_email" type="email" value="{{ job.customer.email }}" class="mt-0.5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-      <label class="text-xs text-gray-500">{% trans "Telefon" %}
-        <input name="cust_phone" value="{{ job.customer.phone }}" maxlength="40" class="mt-0.5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-      <label class="text-xs text-gray-500">{% trans "Adresse (Einsatzort)" %}
-        <input name="site_address" value="{{ job.site_address }}" maxlength="300" class="mt-0.5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
-      <p class="sm:col-span-2 text-xs text-gray-400">{% trans "Name, E-Mail und Telefon gehören zur Kundenkarte — die Änderung gilt auch für andere Verkäufe dieses Kunden." %}</p>
-      <div class="sm:col-span-2"><button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button></div>
-    </form>
-  </details>
+  {% comment %}CARD-4 (владелец 2026-08-26): контакты клиента правятся общим
+  попапом по карандашу у имени — отдельной раскрывашки больше нет. Здесь
+  остаётся то, что к карточке клиента НЕ относится: адрес объекта (место работ
+  меняется от заказа к заказу и в CRM ему не место).{% endcomment %}
+  <form method="post" class="grid gap-2">{% csrf_token %}
+    <input type="hidden" name="action" value="customer">
+    <input type="hidden" name="cust_name" value="{{ job.customer.name }}">
+    <input type="hidden" name="cust_email" value="{{ job.customer.email }}">
+    <input type="hidden" name="cust_phone" value="{{ job.customer.phone }}">
+    <label class="text-xs text-gray-500">📍 {% trans "Adresse (Einsatzort)" %}
+      <input name="site_address" value="{{ job.site_address }}" maxlength="300" class="mt-0.5 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></label>
+    <div><button type="submit" class="text-sm font-medium rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Save" %}</button></div>
+  </form>
   {% if job.vehicle or job.vehicle_plate %}
     <p class="text-gray-500">🚗 {{ job.vehicle }}{% if job.vehicle_plate %} · <span class="font-medium">{{ job.vehicle_plate }}</span>{% endif %}{% if job.vehicle_hsn or job.vehicle_tsn %} · HSN/TSN {{ job.vehicle_hsn }}/{{ job.vehicle_tsn }}{% endif %}</p>
   {% endif %}

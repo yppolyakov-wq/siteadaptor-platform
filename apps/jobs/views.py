@@ -224,7 +224,11 @@ def job_detail(request, pk):
                 links=deal_links.block_context("job", job.pk),
                 hide_targets=("invoiced",),
             ),
-            "deal_customer_edit": False,
+            # CARD-4 (владелец 2026-08-26): контакты клиента правятся ОБЩИМ
+            # попапом по карандашу у имени, как у остальных сделок. Своя форма
+            # заявки схлопнута до адреса объекта — он про место работ, а не про
+            # карточку клиента, и в CRM ему не место.
+            "deal_customer_edit": True,
             # VF-15: публичная страница Angebot (клиент принимает и платит
             # депозит) — владельцу для ручной передачи ссылки.
             "angebot_path": reverse("storefront-angebot", args=[job.public_token]),

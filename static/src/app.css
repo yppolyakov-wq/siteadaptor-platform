@@ -455,9 +455,27 @@ input[type="datetime-local"] {
   align-items: end;
   padding-bottom: 0.5rem;
 }
-/* Узкий экран: подписи прячем, ячейки становятся строками «поле за полем». */
+/* Узкий экран (фидбэк владельца 2026-08-26 «на мобильном состав заказа выглядит
+   ужасно»): сетка из шести колонок туда не помещается — раньше лишние ячейки
+   сыпались в новые ряды грида и строка разъезжалась. Теперь строка честно
+   раскладывается в три уровня: номер + название, под ними ставка/цена/количество,
+   и сумма отдельной строкой справа. Подписи колонок прячем — на узком экране
+   каждое поле читается по своему виду. */
 @media (max-width: 639px) {
-  .dl-head { display: none; }
-  .dl-row { grid-template-columns: 1.5rem minmax(0, 1fr) 4.5rem; }
-  .dl-row > .dl-vat { display: none; }
+  /* Порядок важен: `.dl-row` ниже задаёт display, а шапка несёт ОБА класса —
+     при равной специфичности выиграло бы последнее правило и подписи колонок
+     остались бы висеть. Поэтому у шапки более специфичный селектор. */
+  .dl-row.dl-head { display: none; }
+  .dl-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3rem 0.5rem;
+  }
+  .dl-row > .dl-idx { flex: 0 0 1.25rem; }
+  .dl-row > .dl-name { flex: 1 1 calc(100% - 1.75rem); min-width: 0; }
+  .dl-row > .dl-vat { flex: 0 0 4.25rem; margin-left: 1.75rem; text-align: left; }
+  .dl-row > .dl-unit { flex: 1 1 5rem; }
+  .dl-row > .dl-qty { flex: 0 0 4.5rem; }
+  .dl-row > .dl-sum { flex: 1 1 100%; justify-content: flex-end; text-align: right; }
 }
