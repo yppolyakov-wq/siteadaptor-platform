@@ -2172,6 +2172,24 @@ Python 3.12, менеджер uv.
   генератор научился рисовать состояние «heute» (`Card.variant`). Вывод сверки: НОВЫЙ дизайн не
   нужен ни по одному из девяти расхождений — всё уже стоит в макете от 25.08, отставала реализация.
   Артефакт «Verkaufskarte» обновлён.
+- **Самое свежее (2026-08-27): фидбэк-батч — карточка клиента, мобильная вёрстка, витрина
+  кейтеринга (БЕЗ миграций).** (1) Кнопка «написать клиенту» в заказе убрана (дублировала
+  открытый блок переписки), «Kundendaten bearbeiten» → карандаш у имени + `<dialog>`; состав
+  заказа на телефоне раскладывается переносом (`dl-*`-классы; грабля: `.dl-row{display:flex}`
+  перебивал `.dl-head{display:none}` при равной специфичности); селектор языка кабинета виден
+  на узком экране. (2) Витрина кейтеринга: «Menüs & Pakete» убран — наборы плитками с фото в
+  подменю, нижнее меню ведёт на страницу кейтеринга, наборы 4 в ряд без переключателя вида,
+  блюда внутри набора компактнее, попап блюда на телефоне во весь экран; грабли — `normalize`
+  выбрасывал новый ключ меню `with_combos`, а подпись плитки набора приходила пустой
+  (`Combo.name` — плоское поле с оверлеем, не JSON). (3) Колонки страницы кейтеринга: секция
+  наборов в шапке листинга, заголовок «Einzelne Gerichte» — в тулбаре (строка инструментов
+  стоит вплотную над сеткой блюд, которой и управляет); плитки категорий подчинились настройке
+  владельца — верхний список звал `{% grid_classes site 'categories' %}`, но `site` вьюха в
+  контекст НЕ кладёт (тег молча брал дефолт), сетка подкатегорий была захардкожена; кит получил
+  ось `section_layouts`, pranasy = категории `cols3` + каталог `cols6`. **Попутно:** safelist
+  Tailwind отставал от таблиц движка — `sm:grid-cols-4`/`lg:grid-cols-6` в CSS не попадали, то
+  есть выбор «6 в ряд» молча падал в одну колонку у ЛЮБОГО тенанта. ⚠️ ops: `seed_demo_tenants
+  --kit pranasy|catering --recreate`.
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна VAT, 2026-08-26): `jobs/0017` (JobLine.vat_rate) + `catalog/0031` (Combo.vat_rate) — аддитивные; (волна DC, 2026-08-25): `booking/0024` + `stays/0033` + `jobs/0016` (внешний номер сделки) + `booking/0025` (связь записи со счётом) — аддитивные; (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `core/0010` (Extra.consume_qty, v2-опции) + `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate) + `events/0028` (SupplierBooking вне туров) + `booking/0023` (Service.pricing_mode) + `catalog/0030` (Product.primary_action) + `finance/0009` (SOURCES gift/pass, choices-only)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. **Волна ERP (2026-08-21): `orders/0020` (OrderItem.cost_price) + `finance/0010` (BankTransaction) + `finance/0011` (Invoice.mahn_level/mahned_at + ExpenseEntry supplier/due_date/paid_at/document) + `documents/0002` (owner nullable + kind receipt) + `inventory/0005` (qty_returned + kind'ы return_supplier/production, ERP-5/7) + `jobs/0015` (JobLine.cost_rate, ERP-6)** — аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + `--kit pranasy --recreate` (кейтеринг-карта) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
