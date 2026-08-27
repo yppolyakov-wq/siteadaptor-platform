@@ -110,6 +110,13 @@ jobs:
         # Гейт гоняет makemessages во временную локаль и сверяет с реальными .po.
         run: uv run python scripts/i18n_gap.py
 
+      - name: i18n new untranslated strings (I18N-13)
+        # Второй гейт, другой класс: i18n_gap видит только ИЗВЛЕЧЁННЫЕ строки, а
+        # необёрнутая подпись (label="…", choices, текст в шаблоне) и gettext
+        # внутри f-строки в экстракцию не попадают вовсе. Сканер сверяет с
+        # базовой линией locale/i18n-untranslated-baseline.json и падает на НОВОМ.
+        run: uv run python scripts/i18n_untranslated.py --check
+
       - name: Ruff lint
         run: uv run ruff check .
 
