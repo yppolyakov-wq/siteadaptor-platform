@@ -172,3 +172,28 @@ def test_studio_lists_category_pages_and_inserts_into_their_host():
     # и блок ПРАВИТСЯ: билдер рисует строку формы для этого хоста
     body2 = core_views.home_builder_view(_builder_req(tenant)).content.decode()
     assert 'value="catalog:catering"' in body2
+
+
+# --- порядок блоков и подпись категорий (фидбэк 2026-08-26) ------------------
+
+
+def test_menu_sets_come_before_the_category_list():
+    """Фидбэк: «поменяй местами категории и пакеты меню». У шаблона «sets» полоса
+    наборов идёт ПЕРЕД подкатегориями и обе — над сеткой блюд."""
+    from apps.catalog.models import Combo
+
+    parent, _kid = _tree(page_style="sets")
+    Combo.objects.create(name="Menü Klassik", price="42.00", category=parent)
+    body = public_views.product_list(_req("/sortiment/catering/"), slug="catering").content.decode()
+    assert body.index("data-category-sets") < body.index("Kategorien")
+    assert body.index("Kategorien") < body.index('data-sf-section="catalog"')
+
+
+def test_subcategories_get_a_heading():
+    """Фидбэк: «подпиши категории» — у блока подкатегорий появился заголовок."""
+    _tree(page_style="sets")
+    body = public_views.product_list(_req("/sortiment/catering/"), slug="catering").content.decode()
+    assert "Kategorien" in body
+    # на общем каталоге подкатегорий нет — и заголовка тоже
+    root = public_views.product_list(_req("/sortiment/")).content.decode()
+    assert ">Kategorien<" not in root

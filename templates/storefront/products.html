@@ -180,8 +180,31 @@ fixed-ящиком, и до инициализации JS она вспыхив�
 </form>
 {% endif %}
 
+{% comment %}Фидбэк 2026-08-26 («поменяй местами категории и пакеты меню»):
+у шаблона «Sets & Menüs zuerst» полоса наборов идёт ПЕРЕД списком категорий —
+пакет и есть главное предложение направления, а категории ниже ведут к блюдам.
+У остальных шаблонов положение полосы прежнее (замки KAT-2).{% endcomment %}
+{% if category_combos and category_page_style == "sets" %}
+{% comment %}KAT-2: шаблон «Sets & Menüs zuerst» — наборы категории НАД сеткой
+(вне keyset-пагинации: гейт «первая страница без фасетов» стоит во вьюхе).{% endcomment %}
+<section class="mb-8" data-category-sets>
+  <div class="flex flex-wrap items-end justify-between gap-2 mb-3">
+    <h2 class="text-lg md:text-xl font-bold">{% trans "Menü-Pakete" %}</h2>
+    <div class="flex items-center gap-3">
+      {% include "storefront/_combo_view_toggle.html" %}
+      <a href="{% url 'storefront-combos' %}?kategorie={{ current_category.slug }}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>
+    </div>
+  </div>
+  {% include "storefront/_combo_grid.html" with combos=category_combos %}
+</section>
+{% endif %}
+
 {# M20U-3: подкатегории выбранной категории — карточками первыми (тумблер в билдере) #}
 {% if subcategories and catalog_subcats_first %}
+{% comment %}Фидбэк 2026-08-26 («подпиши категории»): у блока подкатегорий не было
+заголовка — рядом с подписанной полосой «Menü-Pakete» он читался как продолжение
+той же секции. msgid уже есть в каталогах, новых строк не заводим.{% endcomment %}
+<h2 class="text-lg md:text-xl font-bold mb-3">{% trans "Kategorien" %}</h2>
 {% comment %}Фидбэк 2026-08-26 («добавь в категории фото»): плитки с фото — не
 только у «Mit Kopfbild». Гейт тот же, что у верхнего списка категорий
 (`subcategories_have_images`): нет фото ни у одной подкатегории → прежняя
@@ -223,20 +246,6 @@ MEN-22 остаётся механикой главной. Мобильный «
 {% block listing_bar_view %}{% if catalog_preset|slice:":10" != "preisliste" %}{% comment %}KAT-4: плотность карточной сетки — только в карточном виде (в прайсе сетки нет).{% endcomment %}{% include "storefront/_density_control.html" with dc_mode="grid" dc_key="catalog" dc_default=catalog_cols %}{% endif %}{% include "storefront/_price_view_links.html" %}{% endblock %}
 
 {% block listing_grid %}
-{% if category_combos and category_page_style == "sets" %}
-{% comment %}KAT-2: шаблон «Sets & Menüs zuerst» — наборы категории НАД сеткой
-(вне keyset-пагинации: гейт «первая страница без фасетов» стоит во вьюхе).{% endcomment %}
-<section class="mb-8" data-category-sets>
-  <div class="flex flex-wrap items-end justify-between gap-2 mb-3">
-    <h2 class="text-lg md:text-xl font-bold">{% trans "Menü-Pakete" %}</h2>
-    <div class="flex items-center gap-3">
-      {% include "storefront/_combo_view_toggle.html" %}
-      <a href="{% url 'storefront-combos' %}?kategorie={{ current_category.slug }}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>
-    </div>
-  </div>
-  {% include "storefront/_combo_grid.html" with combos=category_combos %}
-</section>
-{% endif %}
 {% if page.items %}
 {% if catalog_preset|slice:":10" == "preisliste" %}
 {% comment %}DS-3a (Fokus): пресет «прайс-лист» — текущая ВЫДАЧА листинга (фасеты/

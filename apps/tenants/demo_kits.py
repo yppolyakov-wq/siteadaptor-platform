@@ -1580,7 +1580,9 @@ PRANASY = DemoKit(
         "events": "Retreats bei Pranasy",
     },
     # Меню — плотная сетка; события — карточками (а не списком).
-    page_layouts={"catalog": "cols3", "events": "cols2"},
+    # Фидбэк 2026-08-26: сетка блюд по умолчанию — шесть столбцов (посетитель
+    # всё так же меняет плотность контролом «− N +», мобильный остаётся 2).
+    page_layouts={"catalog": "cols6", "events": "cols2"},
     archetype_covers={
         "catalog": {
             "intro": "Unser Restaurant öffnet bald — die Karte ist schon da. Und im veganen "
