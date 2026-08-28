@@ -913,13 +913,14 @@ def test_every_card_shows_the_mockup_columns():
         assert "dl-head" in items, f"{kind}: нет общей шапки состава"
         head_start = items.index("dl-head")
         head = items[head_start : items.index("</div>", head_start)]
-        # У сметы (job) ставка НДС одна на весь документ — своим полем внизу,
-        # поэтому колонки у неё нет и быть не должно; проверяем, что поле есть.
-        columns = ("Position", "Einzel", "Menge", "Summe")
-        if kind != "job":
-            columns = ("Position", "MwSt.", "Einzel", "Menge", "Summe")
-        else:
-            assert 'name="vat_rate"' in items, "смета без выбора ставки"
+        # Смета раньше была исключением: ставка одна на весь документ, своим
+        # полем внизу, колонки нет. С VAT-1 она рисует ту же общую шапку с
+        # «MwSt.», а по фидбэку владельца 2026-08-28 документный селект убран —
+        # он противоречил выбору В СТРОКЕ. Ставка обязана выбираться построчно.
+        columns = ("Position", "MwSt.", "Einzel", "Menge", "Summe")
+        if kind == "job":
+            assert 'name="line_vat_' in items, "смета без выбора ставки в строке"
+            assert 'name="vat_rate"' not in items, "у сметы снова два разных выбора ставки"
         for column in columns:
             assert column in head, f"{kind}: нет колонки {column}"
         assert head.index("Einzel") < head.index("Menge") < head.index("Summe"), kind
