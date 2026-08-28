@@ -20,7 +20,12 @@ if [ ! -d .venv ]; then
 fi
 uv pip install -e ".[dev]" >/dev/null 2>&1 || echo "warn: dep install failed"
 
-# 3) Dev-переменные окружения для тестов (НЕ секреты — те же значения, что в
+# 3) i18n-гейт на коммитах (I18N-13): pre-commit ловит строку интерфейса без
+#    пути перевода ДО пуша. Настройка живёт в .git/config, а контейнер сессии
+#    каждый раз новый — поэтому включаем при каждом старте (идемпотентно).
+bash scripts/install-git-hooks.sh >/dev/null 2>&1 || echo "warn: git hooks install failed"
+
+# 4) Dev-переменные окружения для тестов (НЕ секреты — те же значения, что в
 #    .github/workflows/ci.yml). Пишем в CLAUDE_ENV_FILE, если он задан.
 if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
   cat >>"$CLAUDE_ENV_FILE" <<'ENV'
