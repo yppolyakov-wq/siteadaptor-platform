@@ -32,3 +32,29 @@ def test_normalize_matches_golden(name):
 def test_normalize_idempotent(name):
     once = siteconfig.normalize(GOLDEN_INPUTS[name])
     assert siteconfig.normalize(once) == once
+
+
+def test_every_grid_class_the_layout_engine_emits_exists_in_the_built_css():
+    """Стенд 2026-08-26: раскладка «6 столбцов» (DS-5) рисовала ТРИ. Классы
+    сетки собирает Python (`grid_class_string`), в шаблонах их литералов нет —
+    поэтому purge Tailwind вырезал `lg:grid-cols-6`, и выбор владельца молча
+    подменялся на sm-класс. Замок проверяет ВСЕ комбинации таблиц движка: новый
+    пресет без записи в safelist больше не пройдёт незамеченным.
+    """
+    from pathlib import Path
+
+    from apps.tenants import siteconfig
+
+    css = Path("static/css/app.css").read_text(encoding="utf-8")
+    missing = set()
+    for preset in siteconfig.LAYOUT_PRESET_KEYS:
+        layout = siteconfig.normalize_layout({"preset": preset})
+        for tablet in (0, 1, 2, 3, 4):  # SE-3c: явный пер-девайс планшет
+            classes = siteconfig.grid_class_string({**layout, "tablet": tablet})
+            for cls in classes.split():
+                if cls.startswith(("sf-", "grid")) and ":" not in cls and "-" not in cls:
+                    continue
+                selector = "." + cls.replace(":", r"\:").replace("/", r"\/")
+                if selector not in css:
+                    missing.add(cls)
+    assert not missing, f"классы движка сеток отсутствуют в собранном CSS: {sorted(missing)}"
