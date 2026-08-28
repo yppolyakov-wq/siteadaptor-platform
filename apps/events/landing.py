@@ -45,7 +45,7 @@ def form_fields() -> dict:
         "idea": forms.CharField(required=False, widget=_ta(3), label=_("Idee / Atmosphäre")),
         "includes_text": forms.CharField(
             required=False,
-            widget=_ta(5, "Yoga | Sanfte Praxis morgens & abends"),
+            widget=_ta(5, _("Yoga | Sanfte Praxis morgens & abends")),
             label=_("Was ist dabei (Titel | Text)"),
         ),
         "venue": forms.CharField(required=False, widget=_ta(3), label=_("Ort / Veranstaltungsort")),
@@ -72,7 +72,7 @@ def form_fields() -> dict:
         ),
         "faq_text": forms.CharField(
             required=False,
-            widget=_ta(5, "Für Anfänger geeignet? | Ja, alle Level willkommen."),
+            widget=_ta(5, _("Für Anfänger geeignet? | Ja, alle Level willkommen.")),
             label=_("FAQ (Frage | Antwort)"),
         ),
         "testimonials_text": forms.CharField(

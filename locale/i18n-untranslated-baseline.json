@@ -124,28 +124,16 @@
   "Team anzeigen"
  ],
  "apps/events/forms.py": [
-  "Frühbucher | 79 | 10\nStandard | 99\nKind | 0",
-  "leer = Standardtext"
+  "Frühbucher | 79 | 10\nStandard | 99\nKind | 0"
  ],
  "apps/events/landing.py": [
-  "Für Anfänger geeignet? | Ja, alle Level willkommen.",
   "Johanna | Köln | Hat mich geerdet. | https://…/foto.jpg | 5"
  ],
  "apps/events/public_views.py": [
   "März"
  ],
  "apps/events/registration.py": [
-  "Allergien / Unverträglichkeiten",
-  "Eigenes Motorrad oder Mietmaschine",
-  "Erfahrungslevel",
-  "Fahrpraxis",
-  "Führerscheinklasse",
-  "Geburtsdatum",
-  "Gesundheitliche Hinweise",
   "Kindermenü",
-  "Körpergröße (cm)",
-  "Land",
-  "Notfallkontakt (Name & Telefon)",
   "Über 20.000 km"
  ],
  "apps/events/taxonomy.py": [
@@ -156,16 +144,9 @@
   "Nur veröffentlichte, kommende Veranstaltungen erscheinen im Verzeichnis und können beworben werden.",
   "Nur veröffentlichte, kommende Veranstaltungen können beworben werden."
  ],
- "apps/finance/bank.py": [
-  "Rechnung"
- ],
  "apps/finance/exports.py": [
   "Gegenkonto (ohne BU-Schlüssel)",
   "Konto"
- ],
- "apps/imports/forms.py": [
-  "Datei zu groß (max. 10 MB).",
-  "Nur .csv, .xlsx oder .xlsm werden unterstützt."
  ],
  "apps/inventory/models.py": [
   "Signed: +Zugang / −Abgang"

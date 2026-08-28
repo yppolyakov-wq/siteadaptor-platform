@@ -9,6 +9,7 @@
 """
 
 from django.conf import settings
+from django.utils.text import format_lazy
 
 
 def extra_locales(tenant) -> list[str]:
@@ -162,7 +163,14 @@ class DynamicI18nFormMixin:
                 fname = f"{f}_{loc}"
                 if loc != base and fname not in self.fields:
                     self.fields[fname] = dj_forms.CharField(
-                        label=f"{opts.get('label', f.capitalize())} ({loc.upper()})",
+                        # format_lazy, а не f-строка: подпись базы приходит
+                        # lazy-переводом, f-строка вычислила бы её сразу и
+                        # заморозила на немецком (I18N-13).
+                        label=format_lazy(
+                            "{base} ({loc})",
+                            base=opts.get("label") or f.capitalize(),
+                            loc=loc.upper(),
+                        ),
                         max_length=opts.get("max_length"),
                         required=False,
                         widget=dj_forms.Textarea(attrs={"rows": 3})

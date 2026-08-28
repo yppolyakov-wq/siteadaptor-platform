@@ -21,6 +21,7 @@ from datetime import datetime
 from decimal import Decimal, InvalidOperation
 
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from apps.core import status_registry, transactions
 
@@ -193,7 +194,7 @@ def open_items(tenant) -> list[dict]:
         out.append(
             {
                 "kind": "invoice",
-                "kind_label": "Rechnung",
+                "kind_label": _("Rechnung"),
                 "obj": inv,
                 "code": inv.number_display if hasattr(inv, "number_display") else str(inv.number),
                 "title": str(inv.recipient or "")[:60],

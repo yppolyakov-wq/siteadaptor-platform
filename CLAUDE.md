@@ -2190,6 +2190,29 @@ Python 3.12, менеджер uv.
   Tailwind отставал от таблиц движка — `sm:grid-cols-4`/`lg:grid-cols-6` в CSS не попадали, то
   есть выбор «6 в ряд» молча падал в одну колонку у ЛЮБОГО тенанта. ⚠️ ops: `seed_demo_tenants
   --kit pranasy|catering --recreate`.
+- **Самое свежее (2026-08-27, вечер): I18N-13 — гейт «новых непереведённых параметров» +
+  56 машинных подписей форм (БЕЗ миграций).** Запрос владельца «проверить, все ли поля
+  админки и параметры есть в файле перевода, и сразу ловить новые». Проверка: формальный
+  гейт `i18n_gap` зелёный (4838 msgid, пять каталогов по 4795, наборы 1:1, в tr/ru/uk
+  пустых нет), но у него слепая зона ПО ПОСТРОЕНИЮ — он сверяет только ИЗВЛЕЧЁННОЕ, а
+  необёрнутая подпись и `gettext` внутри f-строки в экстракцию не попадают (проверено на
+  xgettext). **Главная находка — в формах:** прогон всех форм под ru (после компиляции .mo —
+  локально их не было вовсе, без них измерение врёт) дал **56 подписей из 198 = машинные
+  имена полей Django** («Base price», «Is featured», «Starts at»); они не переводились НИ на
+  один язык, включая немецкий, и msgid для них не существовало. Исправлено `Meta.labels` в
+  9 формах (переиспользованы существующие msgid, новых 34×5). Плюс: реестр анкеты участника
+  `events/registration.py` (виден и НА ВИТРИНЕ при покупке билета; переведены только `label`,
+  ключи/`options` остаются базовыми — «переводится показ, а не запись»), ошибки импорта,
+  `kind_label` счёта в «Offene Posten», немецкая проза в placeholder'ах, английский msgid
+  `You enter data per language` без немецкого. **Дефект per-locale подписей:**
+  `core/i18n_input.py` собирал «Name (EN)» f-строкой → перевод, лежавший в каталогах, не
+  применялся; теперь `format_lazy`. **Предохранители:** сканер
+  `scripts/i18n_untranslated.py` (не обёрнута И нет в de.po; + правило f-строк; базовая
+  линия `locale/i18n-untranslated-baseline.json` — падает только на НОВОМ) на трёх уровнях:
+  PostToolUse-хук `.claude/hooks/i18n-watch.sh` → `.githooks/pre-commit`
+  (`scripts/install-git-hooks.sh`) → шаг CI; сводный отчёт — `scripts/i18n_status.py`.
+  Замки `test_i18n_guard.py` (5), в т.ч. «каждая подпись поля формы переводится на ru».
+  План — `docs/i18n-guard-plan-2026-08-27.md`.
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна VAT, 2026-08-26): `jobs/0017` (JobLine.vat_rate) + `catalog/0031` (Combo.vat_rate) — аддитивные; (волна DC, 2026-08-25): `booking/0024` + `stays/0033` + `jobs/0016` (внешний номер сделки) + `booking/0025` (связь записи со счётом) — аддитивные; (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `core/0010` (Extra.consume_qty, v2-опции) + `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate) + `events/0028` (SupplierBooking вне туров) + `booking/0023` (Service.pricing_mode) + `catalog/0030` (Product.primary_action) + `finance/0009` (SOURCES gift/pass, choices-only)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. **Волна ERP (2026-08-21): `orders/0020` (OrderItem.cost_price) + `finance/0010` (BankTransaction) + `finance/0011` (Invoice.mahn_level/mahned_at + ExpenseEntry supplier/due_date/paid_at/document) + `documents/0002` (owner nullable + kind receipt) + `inventory/0005` (qty_returned + kind'ы return_supplier/production, ERP-5/7) + `jobs/0015` (JobLine.cost_rate, ERP-6)** — аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + `--kit pranasy --recreate` (кейтеринг-карта) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,

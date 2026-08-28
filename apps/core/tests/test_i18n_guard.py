@@ -10,6 +10,9 @@
 import importlib.util
 import json
 import pathlib
+import re
+
+import pytest
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]
 
@@ -44,3 +47,86 @@ def test_gettext_inside_fstring_is_reported():
     assert isinstance(findings, list)
     # Литералы из f-строк этого модуля переведены — значит правило молчит.
     assert not [f for f in findings if f["rule"] == "fstring" and f["text"] in known]
+
+
+def test_no_english_msgid_without_german_translation():
+    """Базовый язык проекта — немецкий, но часть msgid заведена по-английски.
+    Если у такой строки нет немецкого `msgstr`, немецкий владелец видит
+    английский текст (волна I18N-12 чинила 20 таких). Замок держит класс."""
+    spec = importlib.util.spec_from_file_location(
+        "i18n_status", ROOT / "scripts" / "i18n_status.py"
+    )
+    status = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(status)
+    cats = {
+        loc: status.parse_po(ROOT / f"locale/{loc}/LC_MESSAGES/django.po") for loc in status.LOCALES
+    }
+    bad = status.english_msgid_without_german(cats)
+    assert bad == [], "английский msgid без немецкого перевода: " + "; ".join(bad[:10])
+
+
+def test_all_catalogs_carry_the_same_msgids():
+    """Пять каталогов обязаны нести один и тот же набор msgid: расхождение
+    означает, что у части пользователей строка молча уедет по-немецки."""
+    spec = importlib.util.spec_from_file_location(
+        "i18n_status", ROOT / "scripts" / "i18n_status.py"
+    )
+    status = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(status)
+    cats = {
+        loc: set(status.parse_po(ROOT / f"locale/{loc}/LC_MESSAGES/django.po"))
+        for loc in status.LOCALES
+    }
+    union = set().union(*cats.values())
+    drift = {loc: sorted(union - ids)[:5] for loc, ids in cats.items() if union - ids}
+    assert drift == {}, f"расхождение наборов msgid: {drift}"
+
+
+@pytest.mark.django_db
+def test_form_labels_are_translatable():
+    """Подпись поля формы кабинета обязана переводиться.
+
+    Без явного `label`/`verbose_name` Django печатает машинное имя поля
+    («Base price», «Is featured») — оно не переводится НИ на один язык, включая
+    немецкий. До I18N-13 таких подписей было 56 из 198; замок не даёт классу
+    вернуться: под ru у каждой подписи обязана быть кириллица (исключения —
+    бренды и единицы измерения).
+    """
+    import importlib
+    import inspect
+
+    from django import forms as dj_forms
+    from django.utils import translation
+
+    cyrillic = re.compile(r"[а-яА-ЯёЁ]")
+    brandish = re.compile(
+        r"^(E-?Mail|WhatsApp|Instagram|Facebook|Telegram|TikTok|LinkedIn|YouTube|URL|SEO|PDF|"
+        r"CSV|QR|API|IBAN|BIC|SKU|EAN|MwSt\.?|USt\.?|VAT|Stripe|PayPal|Klarna|SEPA|Google|"
+        r"DATEV|ID|Bio|kg|g|ml|l)\b",
+        re.I,
+    )
+    bad = []
+    with translation.override("ru"):
+        for path in sorted(ROOT.glob("apps/*/forms.py")):
+            module_name = f"apps.{path.parent.name}.forms"
+            try:
+                module = importlib.import_module(module_name)
+            except Exception:  # приложение может быть не сконфигурировано
+                continue
+            for cls_name, cls in vars(module).items():
+                if not (
+                    inspect.isclass(cls)
+                    and issubclass(cls, (dj_forms.Form, dj_forms.ModelForm))
+                    and cls.__module__ == module_name
+                ):
+                    continue
+                try:
+                    form = cls()
+                except Exception:  # формам с обязательным tenant нужен контекст
+                    continue
+                for field_name, field in form.fields.items():
+                    label = str(field.label or "").strip()
+                    if not label or cyrillic.search(label) or brandish.match(label):
+                        continue
+                    bad.append(f"{module_name}.{cls_name}.{field_name}: «{label}»")
+    assert bad == [], "подписи полей без перевода: " + "; ".join(bad[:12])

@@ -8,14 +8,16 @@
 ростера/CSV были стабильны и не зависели от текста свободных вопросов.
 """
 
+from django.utils.translation import gettext_lazy as _
+
 # Каталог пресет-полей (порядок = порядок показа). type: text|date|textarea|select.
 FIELDS = [
-    {"key": "country", "label": "Land", "type": "text"},
-    {"key": "birth_date", "label": "Geburtsdatum", "type": "date"},
-    {"key": "emergency_contact", "label": "Notfallkontakt (Name & Telefon)", "type": "text"},
+    {"key": "country", "label": _("Land"), "type": "text"},
+    {"key": "birth_date", "label": _("Geburtsdatum"), "type": "date"},
+    {"key": "emergency_contact", "label": _("Notfallkontakt (Name & Telefon)"), "type": "text"},
     {
         "key": "diet",
-        "label": "Ernährung",
+        "label": _("Ernährung"),
         "type": "select",
         "options": [
             "Vegetarisch",
@@ -28,18 +30,18 @@ FIELDS = [
     },
     {
         "key": "experience",
-        "label": "Erfahrungslevel",
+        "label": _("Erfahrungslevel"),
         "type": "select",
         "options": ["Anfänger", "Mittel", "Fortgeschritten"],
     },
-    {"key": "allergies", "label": "Allergien / Unverträglichkeiten", "type": "text"},
-    {"key": "medical", "label": "Gesundheitliche Hinweise", "type": "textarea"},
+    {"key": "allergies", "label": _("Allergien / Unverträglichkeiten"), "type": "text"},
+    {"key": "medical", "label": _("Gesundheitliche Hinweise"), "type": "textarea"},
     # MT-1: мото/квадро-туры — то, что организатор обязан знать до старта
     # (допуск к технике, реальный опыт, подбор мотоцикла по росту).
-    {"key": "license_class", "label": "Führerscheinklasse", "type": "text"},
+    {"key": "license_class", "label": _("Führerscheinklasse"), "type": "text"},
     {
         "key": "riding_experience",
-        "label": "Fahrpraxis",
+        "label": _("Fahrpraxis"),
         "type": "select",
         "options": [
             "Bis 5.000 km",
@@ -48,10 +50,10 @@ FIELDS = [
             "Offroad-erfahren",
         ],
     },
-    {"key": "height_cm", "label": "Körpergröße (cm)", "type": "text"},
+    {"key": "height_cm", "label": _("Körpergröße (cm)"), "type": "text"},
     {
         "key": "own_bike",
-        "label": "Eigenes Motorrad oder Mietmaschine",
+        "label": _("Eigenes Motorrad oder Mietmaschine"),
         "type": "select",
         "options": ["Mietmaschine", "Eigenes Motorrad"],
     },

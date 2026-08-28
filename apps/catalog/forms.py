@@ -23,8 +23,8 @@ class CategoryForm(DynamicI18nFormMixin, forms.ModelForm):
         label=_("Description (DE)"), widget=forms.Textarea(attrs={"rows": 3}), required=False
     )
     i18n_fields = (
-        ("name", {"label": "Name", "max_length": 200}),
-        ("description", {"label": "Beschreibung", "textarea": True}),
+        ("name", {"label": _("Name"), "max_length": 200}),
+        ("description", {"label": _("Beschreibung"), "textarea": True}),
     )
 
     # KAT-1: шаблон страницы категории (реестр category_styles; "" = Standard).
@@ -33,7 +33,15 @@ class CategoryForm(DynamicI18nFormMixin, forms.ModelForm):
     class Meta:
         model = Category
         fields = ["parent", "slug", "page_style", "icon", "sort_order", "is_active", "size_table"]
-        labels = {"size_table": _("Größentabelle")}
+        labels = {
+            "size_table": _("Größentabelle"),
+            # I18N-13: иначе Django печатает «Parent»/«Sort order» на всех языках.
+            "parent": _("Übergeordnete Kategorie"),
+            "slug": _("Slug"),
+            "icon": _("Symbol"),
+            "sort_order": _("Sortierung"),
+            "is_active": _("Active"),
+        }
         help_texts = {
             "size_table": _(
                 "Optional (Mode/Schuhe): eine Zeile pro Größe, Spalten mit „|“ — "
@@ -132,8 +140,8 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
         label=_("Description (DE)"), widget=forms.Textarea(attrs={"rows": 3}), required=False
     )
     i18n_fields = (
-        ("name", {"label": "Name", "max_length": 200}),
-        ("description", {"label": "Beschreibung", "textarea": True}),
+        ("name", {"label": _("Name"), "max_length": 200}),
+        ("description", {"label": _("Beschreibung"), "textarea": True}),
     )
     # Lebensmittel-Kennzeichnung (LMIV, R4): аллергены чекбоксами (JSONField на модели).
     allergens = forms.MultipleChoiceField(
@@ -196,6 +204,21 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             "variant_style",
         ]
         labels = {
+            # I18N-13: без явной подписи Django выводит машинное имя поля
+            # («Base price», «Is featured») — оно не переводится НИ на один язык,
+            # включая немецкий. msgid переиспользуем существующие.
+            "category": _("Category"),
+            "base_price": _("Price"),
+            "currency": _("Currency"),
+            "unit": _("Unit"),
+            "content_amount": _("Content"),
+            "sku": _("SKU"),
+            "stock_quantity": _("Stock"),
+            "origin": _("Origin"),
+            "ingredients": _("Ingredients"),
+            "is_active": _("Active"),
+            "is_featured": _("Recommended"),
+            "primary_action": _("Kauf oder Anfrage"),
             # M1 Boutique: Textilkennzeichnung (EU 1007/2011) + Pflegehinweise.
             "material": _("Material / Zusammensetzung"),
             "care": _("Pflegehinweise"),

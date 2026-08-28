@@ -109,6 +109,16 @@ class BusinessSettingsForm(forms.ModelForm):
             "opening_hours": forms.Textarea(attrs={"rows": 3}),
         }
         labels = {
+            "name": _("Name"),
+            "address": _("Address"),
+            "city": _("City"),
+            "contact_email": _("Email"),
+            "contact_phone": _("Phone"),
+            "website_url": _("Website"),
+            "opening_hours": _("Opening hours"),
+            "map_url": _("Karten-Link"),
+            "service_area_plz": _("Einzugsgebiet (PLZ)"),
+            "service_area_note": _("Hinweis zum Einzugsgebiet"),
             "whatsapp_number": _("WhatsApp-Nummer"),
             "auto_redeem_on_scan": _("Auto-redeem on scan (logged-in staff)"),
             "owner_digest_enabled": _("Morning digest email"),

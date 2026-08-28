@@ -20363,3 +20363,105 @@ msgstr "Tek tek yemekler"
 
 msgid "Unsere Arbeit"
 msgstr "Çalışmalarımız"
+
+msgid "Kauf oder Anfrage"
+msgstr "Satın alma veya talep"
+
+msgid "Manuell bestätigen"
+msgstr "Manuel onayla"
+
+msgid "Unterkunft anbieten"
+msgstr "Konaklama sun"
+
+msgid "Unterkunft (Zimmertypen)"
+msgstr "Konaklama (oda tipleri)"
+
+msgid "Haftungserklärung nötig"
+msgstr "Sorumluluk beyanı gerekli"
+
+msgid "Text der Haftungserklärung"
+msgstr "Sorumluluk beyanı metni"
+
+msgid "Kostenlose Stornierung bis (Tage vor Beginn)"
+msgstr "Ücretsiz iptal (başlangıçtan gün önce)"
+
+msgid "Foto-URL"
+msgstr "Fotoğraf bağlantısı"
+
+msgid "Art der Aktion"
+msgstr "Kampanya türü"
+
+msgid "Verfügbare Menge"
+msgstr "Mevcut miktar"
+
+msgid "Max. pro Kunde"
+msgstr "Müşteri başına en fazla"
+
+msgid "Reservierung gültig (Stunden)"
+msgstr "Rezervasyon geçerli (saat)"
+
+msgid "Automatisch bestätigen"
+msgstr "Otomatik onayla"
+
+msgid "Karten-Link"
+msgstr "Harita bağlantısı"
+
+msgid "Einzugsgebiet (PLZ)"
+msgstr "Hizmet bölgesi (posta kodları)"
+
+msgid "Hinweis zum Einzugsgebiet"
+msgstr "Hizmet bölgesi notu"
+
+msgid "Land"
+msgstr "Ülke"
+
+msgid "Geburtsdatum"
+msgstr "Doğum tarihi"
+
+msgid "Notfallkontakt (Name & Telefon)"
+msgstr "Acil durum kişisi (ad ve telefon)"
+
+msgid "Erfahrungslevel"
+msgstr "Deneyim seviyesi"
+
+msgid "Allergien / Unverträglichkeiten"
+msgstr "Alerjiler / intoleranslar"
+
+msgid "Gesundheitliche Hinweise"
+msgstr "Sağlık notları"
+
+msgid "Führerscheinklasse"
+msgstr "Ehliyet sınıfı"
+
+msgid "Fahrpraxis"
+msgstr "Sürüş deneyimi"
+
+msgid "Körpergröße (cm)"
+msgstr "Boy (cm)"
+
+msgid "Eigenes Motorrad oder Mietmaschine"
+msgstr "Kendi motosikleti veya kiralık"
+
+msgid "Nur .csv, .xlsx oder .xlsm werden unterstützt."
+msgstr "Yalnızca .csv, .xlsx veya .xlsm desteklenir."
+
+msgid "Datei zu groß (max. 10 MB)."
+msgstr "Dosya çok büyük (en fazla 10 MB)."
+
+msgid "leer = Standardtext"
+msgstr "boş = varsayılan metin"
+
+msgid "Rechnung"
+msgstr "Fatura"
+
+msgid "Yoga | Sanfte Praxis morgens & abends"
+msgstr "Yoga | Sabah ve akşam yumuşak pratik"
+
+msgid "Für Anfänger geeignet? | Ja, alle Level willkommen."
+msgstr "Yeni başlayanlara uygun mu? | Evet, her seviye hoş geldiniz."
+
+msgid "Übergeordnete Kategorie"
+msgstr "Üst kategori"
+
+msgid "Symbol"
+msgstr "Simge"

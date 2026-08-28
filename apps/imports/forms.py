@@ -21,7 +21,7 @@ class ImportUploadForm(forms.Form):
         f = self.cleaned_data["source_file"]
         name = (f.name or "").lower()
         if not name.endswith(ALLOWED_SUFFIXES):
-            raise forms.ValidationError("Nur .csv, .xlsx oder .xlsm werden unterstützt.")
+            raise forms.ValidationError(_("Nur .csv, .xlsx oder .xlsm werden unterstützt."))
         if f.size and f.size > MAX_UPLOAD_BYTES:
-            raise forms.ValidationError("Datei zu groß (max. 10 MB).")
+            raise forms.ValidationError(_("Datei zu groß (max. 10 MB)."))
         return f

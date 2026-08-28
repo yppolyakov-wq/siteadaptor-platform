@@ -151,12 +151,17 @@ def _extra_entity_choices(request):
         return out
     from django.apps import apps as django_apps
 
+    # msgid выносим из f-строк наружу: xgettext не парсит выражения внутри
+    # f-строки, обёрнутая там строка в каталоги не попадает (I18N-13).
+    service_label = _("Leistung")
+    stay_label = _("Zimmer")
+    event_label = _("Termin")
     if tenant.is_module_active("booking"):
         for svc in django_apps.get_model("booking", "Service").objects.filter(is_active=True):
-            out.append((f"service:{svc.pk}", f"{_('Leistung')}: {svc.name}"))
+            out.append((f"service:{svc.pk}", f"{service_label}: {svc.name}"))
     if tenant.is_module_active("stays"):
         for unit in django_apps.get_model("stays", "StayUnit").objects.filter(is_active=True):
-            out.append((f"stay:{unit.pk}", f"{_('Zimmer')}: {unit.name}"))
+            out.append((f"stay:{unit.pk}", f"{stay_label}: {unit.name}"))
     if tenant.is_module_active("events"):
         from django.utils import timezone as _tz
 
@@ -164,7 +169,7 @@ def _extra_entity_choices(request):
             status="published", starts_at__gte=_tz.now()
         )
         for ev in events_qs:
-            out.append((f"event:{ev.pk}", f"{_('Termin')}: {ev.title}"))
+            out.append((f"event:{ev.pk}", f"{event_label}: {ev.title}"))
     return out
 
 

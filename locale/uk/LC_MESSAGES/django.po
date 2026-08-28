@@ -20439,3 +20439,105 @@ msgstr "Окремі страви"
 
 msgid "Unsere Arbeit"
 msgstr "Наша робота"
+
+msgid "Kauf oder Anfrage"
+msgstr "Купівля або запит"
+
+msgid "Manuell bestätigen"
+msgstr "Підтверджувати вручну"
+
+msgid "Unterkunft anbieten"
+msgstr "Пропонувати проживання"
+
+msgid "Unterkunft (Zimmertypen)"
+msgstr "Проживання (типи номерів)"
+
+msgid "Haftungserklärung nötig"
+msgstr "Потрібна відмова від претензій"
+
+msgid "Text der Haftungserklärung"
+msgstr "Текст відмови від претензій"
+
+msgid "Kostenlose Stornierung bis (Tage vor Beginn)"
+msgstr "Безкоштовне скасування за (днів до початку)"
+
+msgid "Foto-URL"
+msgstr "Посилання на фото"
+
+msgid "Art der Aktion"
+msgstr "Тип акції"
+
+msgid "Verfügbare Menge"
+msgstr "Доступна кількість"
+
+msgid "Max. pro Kunde"
+msgstr "Макс. на клієнта"
+
+msgid "Reservierung gültig (Stunden)"
+msgstr "Бронь діє (годин)"
+
+msgid "Automatisch bestätigen"
+msgstr "Підтверджувати автоматично"
+
+msgid "Karten-Link"
+msgstr "Посилання на карту"
+
+msgid "Einzugsgebiet (PLZ)"
+msgstr "Зона обслуговування (індекси)"
+
+msgid "Hinweis zum Einzugsgebiet"
+msgstr "Примітка до зони обслуговування"
+
+msgid "Land"
+msgstr "Країна"
+
+msgid "Geburtsdatum"
+msgstr "Дата народження"
+
+msgid "Notfallkontakt (Name & Telefon)"
+msgstr "Екстрений контакт (ім'я та телефон)"
+
+msgid "Erfahrungslevel"
+msgstr "Рівень досвіду"
+
+msgid "Allergien / Unverträglichkeiten"
+msgstr "Алергії / непереносимість"
+
+msgid "Gesundheitliche Hinweise"
+msgstr "Особливості здоров'я"
+
+msgid "Führerscheinklasse"
+msgstr "Категорія водійських прав"
+
+msgid "Fahrpraxis"
+msgstr "Досвід водіння"
+
+msgid "Körpergröße (cm)"
+msgstr "Зріст (см)"
+
+msgid "Eigenes Motorrad oder Mietmaschine"
+msgstr "Власний мотоцикл або оренда"
+
+msgid "Nur .csv, .xlsx oder .xlsm werden unterstützt."
+msgstr "Підтримуються лише .csv, .xlsx або .xlsm."
+
+msgid "Datei zu groß (max. 10 MB)."
+msgstr "Файл завеликий (макс. 10 МБ)."
+
+msgid "leer = Standardtext"
+msgstr "порожньо = стандартний текст"
+
+msgid "Rechnung"
+msgstr "Рахунок"
+
+msgid "Yoga | Sanfte Praxis morgens & abends"
+msgstr "Йога | М'яка практика вранці та ввечері"
+
+msgid "Für Anfänger geeignet? | Ja, alle Level willkommen."
+msgstr "Підходить новачкам? | Так, чекаємо будь-який рівень."
+
+msgid "Übergeordnete Kategorie"
+msgstr "Батьківська категорія"
+
+msgid "Symbol"
+msgstr "Значок"

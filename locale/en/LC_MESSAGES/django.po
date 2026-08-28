@@ -20236,3 +20236,105 @@ msgstr "Individual dishes"
 
 msgid "Unsere Arbeit"
 msgstr "Our work"
+
+msgid "Kauf oder Anfrage"
+msgstr "Purchase or request"
+
+msgid "Manuell bestätigen"
+msgstr "Confirm manually"
+
+msgid "Unterkunft anbieten"
+msgstr "Offer accommodation"
+
+msgid "Unterkunft (Zimmertypen)"
+msgstr "Accommodation (room types)"
+
+msgid "Haftungserklärung nötig"
+msgstr "Waiver required"
+
+msgid "Text der Haftungserklärung"
+msgstr "Waiver text"
+
+msgid "Kostenlose Stornierung bis (Tage vor Beginn)"
+msgstr "Free cancellation until (days before start)"
+
+msgid "Foto-URL"
+msgstr "Photo URL"
+
+msgid "Art der Aktion"
+msgstr "Promotion type"
+
+msgid "Verfügbare Menge"
+msgstr "Available quantity"
+
+msgid "Max. pro Kunde"
+msgstr "Max. per customer"
+
+msgid "Reservierung gültig (Stunden)"
+msgstr "Reservation valid (hours)"
+
+msgid "Automatisch bestätigen"
+msgstr "Confirm automatically"
+
+msgid "Karten-Link"
+msgstr "Map link"
+
+msgid "Einzugsgebiet (PLZ)"
+msgstr "Service area (postcodes)"
+
+msgid "Hinweis zum Einzugsgebiet"
+msgstr "Note on the service area"
+
+msgid "Land"
+msgstr "Country"
+
+msgid "Geburtsdatum"
+msgstr "Date of birth"
+
+msgid "Notfallkontakt (Name & Telefon)"
+msgstr "Emergency contact (name & phone)"
+
+msgid "Erfahrungslevel"
+msgstr "Experience level"
+
+msgid "Allergien / Unverträglichkeiten"
+msgstr "Allergies / intolerances"
+
+msgid "Gesundheitliche Hinweise"
+msgstr "Health notes"
+
+msgid "Führerscheinklasse"
+msgstr "Driving licence class"
+
+msgid "Fahrpraxis"
+msgstr "Riding experience"
+
+msgid "Körpergröße (cm)"
+msgstr "Height (cm)"
+
+msgid "Eigenes Motorrad oder Mietmaschine"
+msgstr "Own motorcycle or rental"
+
+msgid "Nur .csv, .xlsx oder .xlsm werden unterstützt."
+msgstr "Only .csv, .xlsx or .xlsm are supported."
+
+msgid "Datei zu groß (max. 10 MB)."
+msgstr "File too large (max. 10 MB)."
+
+msgid "leer = Standardtext"
+msgstr "empty = default text"
+
+msgid "Rechnung"
+msgstr "Invoice"
+
+msgid "Yoga | Sanfte Praxis morgens & abends"
+msgstr "Yoga | Gentle practice morning & evening"
+
+msgid "Für Anfänger geeignet? | Ja, alle Level willkommen."
+msgstr "Suitable for beginners? | Yes, all levels welcome."
+
+msgid "Übergeordnete Kategorie"
+msgstr "Parent category"
+
+msgid "Symbol"
+msgstr "Icon"

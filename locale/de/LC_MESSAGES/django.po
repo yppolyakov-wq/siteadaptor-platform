@@ -20067,7 +20067,7 @@ msgid "Vorkasse"
 msgstr ""
 
 msgid "You enter data per language"
-msgstr ""
+msgstr "Sie geben die Daten je Sprache ein"
 
 msgid "Struktur"
 msgstr "Struktur"
@@ -20363,4 +20363,106 @@ msgid "Einzelne Gerichte"
 msgstr ""
 
 msgid "Unsere Arbeit"
+msgstr ""
+
+msgid "Kauf oder Anfrage"
+msgstr ""
+
+msgid "Manuell bestätigen"
+msgstr ""
+
+msgid "Unterkunft anbieten"
+msgstr ""
+
+msgid "Unterkunft (Zimmertypen)"
+msgstr ""
+
+msgid "Haftungserklärung nötig"
+msgstr ""
+
+msgid "Text der Haftungserklärung"
+msgstr ""
+
+msgid "Kostenlose Stornierung bis (Tage vor Beginn)"
+msgstr ""
+
+msgid "Foto-URL"
+msgstr ""
+
+msgid "Art der Aktion"
+msgstr ""
+
+msgid "Verfügbare Menge"
+msgstr ""
+
+msgid "Max. pro Kunde"
+msgstr ""
+
+msgid "Reservierung gültig (Stunden)"
+msgstr ""
+
+msgid "Automatisch bestätigen"
+msgstr ""
+
+msgid "Karten-Link"
+msgstr ""
+
+msgid "Einzugsgebiet (PLZ)"
+msgstr ""
+
+msgid "Hinweis zum Einzugsgebiet"
+msgstr ""
+
+msgid "Land"
+msgstr ""
+
+msgid "Geburtsdatum"
+msgstr ""
+
+msgid "Notfallkontakt (Name & Telefon)"
+msgstr ""
+
+msgid "Erfahrungslevel"
+msgstr ""
+
+msgid "Allergien / Unverträglichkeiten"
+msgstr ""
+
+msgid "Gesundheitliche Hinweise"
+msgstr ""
+
+msgid "Führerscheinklasse"
+msgstr ""
+
+msgid "Fahrpraxis"
+msgstr ""
+
+msgid "Körpergröße (cm)"
+msgstr ""
+
+msgid "Eigenes Motorrad oder Mietmaschine"
+msgstr ""
+
+msgid "Nur .csv, .xlsx oder .xlsm werden unterstützt."
+msgstr ""
+
+msgid "Datei zu groß (max. 10 MB)."
+msgstr ""
+
+msgid "leer = Standardtext"
+msgstr ""
+
+msgid "Rechnung"
+msgstr ""
+
+msgid "Yoga | Sanfte Praxis morgens & abends"
+msgstr ""
+
+msgid "Für Anfänger geeignet? | Ja, alle Level willkommen."
+msgstr ""
+
+msgid "Übergeordnete Kategorie"
+msgstr ""
+
+msgid "Symbol"
 msgstr ""
