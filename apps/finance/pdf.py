@@ -24,6 +24,31 @@ _INK = (0.10, 0.10, 0.12)
 _MUTED = (0.42, 0.42, 0.48)
 
 
+def _vat_rows(invoice):
+    """[(ставка, сумма налога)] счёта: по ставкам строк, иначе снимок документа."""
+    from decimal import ROUND_HALF_UP, Decimal
+
+    cent = Decimal("0.01")
+    by_rate: dict[Decimal, Decimal] = {}
+    for line in invoice.lines or []:
+        own = line.get("vat_rate") if isinstance(line, dict) else None
+        if own in (None, ""):
+            return [(Decimal(invoice.vat_rate), invoice.vat_amount)]
+        try:
+            rate = Decimal(str(own))
+            amount = Decimal(str(line["unit_price"])) * Decimal(str(line.get("qty", 1)))
+        except Exception:  # noqa: BLE001 — кривой снимок не должен ронять счёт
+            return [(Decimal(invoice.vat_rate), invoice.vat_amount)]
+        by_rate[rate] = by_rate.get(rate, Decimal("0")) + amount
+    if not by_rate:
+        return [(Decimal(invoice.vat_rate), invoice.vat_amount)]
+    rows = []
+    for rate in sorted(by_rate, reverse=True):
+        net = by_rate[rate].quantize(cent, rounding=ROUND_HALF_UP)
+        rows.append((rate, (net * rate / Decimal("100")).quantize(cent, rounding=ROUND_HALF_UP)))
+    return rows
+
+
 def build_invoice_pdf(invoice, tenant) -> bytes:
     font, font_bold = fonts()
     buffer = io.BytesIO()
@@ -97,10 +122,15 @@ def build_invoice_pdf(invoice, tenant) -> bytes:
     c.drawRightString(page_w - x - 30 * mm, y, f"{label_net}:")
     c.drawRightString(page_w - x, y, money(invoice.net))
     if not tenant.small_business:
-        y -= 6 * mm
+        # VAT-4: § 14 Abs. 4 Nr. 8 UStG — суммы разбиваются ПО СТАВКАМ. Строки
+        # счёта несут свою ставку; у старых счетов её нет, и документ печатается
+        # по снимку `invoice.vat_rate` — повторное скачивание не должно давать
+        # другой документ под тем же номером.
         label_vat = _("VAT")
-        c.drawRightString(page_w - x - 30 * mm, y, f"{label_vat} {invoice.vat_rate:.0f} %:")
-        c.drawRightString(page_w - x, y, money(invoice.vat_amount))
+        for rate, amount in _vat_rows(invoice):
+            y -= 6 * mm
+            c.drawRightString(page_w - x - 30 * mm, y, f"{label_vat} {rate:.0f} %:")
+            c.drawRightString(page_w - x, y, money(amount))
     y -= 7 * mm
     c.setFont(font_bold, 11)
     label_total = _("Total")

@@ -15,6 +15,8 @@
 - состояние Onboarding-Wizard (тот же JSON) сохраняем.
 """
 
+from django.utils.translation import gettext_lazy as _
+
 from . import siteconfig
 
 # key · label · описание (DE) · recommended_for (типы бизнеса — рекомендация и
@@ -24,8 +26,10 @@ from . import siteconfig
 TEMPLATES = [
     {
         "key": "laden",
-        "label": "Klassischer Laden",
-        "description_de": "Startbanner, aktuelle Angebote, Produkte, Über uns, Kontakt — der Allrounder für den Einzelhandel.",
+        "label": _("Klassischer Laden"),
+        "description_de": _(
+            "Startbanner, aktuelle Angebote, Produkte, Über uns, Kontakt — der Allrounder für den Einzelhandel."
+        ),
         "recommended_for": ("bakery", "butcher", "grocery", "retail", "clothing", "online_shop"),
         "sections": ["hero", "promotions", "products", "about", "contact"],
         "texts": {
@@ -39,8 +43,10 @@ TEMPLATES = [
     },
     {
         "key": "gastro",
-        "label": "Café & Restaurant",
-        "description_de": "Speisen und Angebote im Fokus, Öffnungszeiten prominent — für die Gastronomie.",
+        "label": _("Café & Restaurant"),
+        "description_de": _(
+            "Speisen und Angebote im Fokus, Öffnungszeiten prominent — für die Gastronomie."
+        ),
         "recommended_for": ("cafe", "restaurant"),
         "sections": ["hero", "products", "promotions", "contact"],
         "texts": {
@@ -58,8 +64,10 @@ TEMPLATES = [
     },
     {
         "key": "dienstleister",
-        "label": "Dienstleister & Termine",
-        "description_de": "Vorstellung und Kontakt im Vordergrund — für Termin-Geschäfte (Friseur, Studio, Beratung).",
+        "label": _("Dienstleister & Termine"),
+        "description_de": _(
+            "Vorstellung und Kontakt im Vordergrund — für Termin-Geschäfte (Friseur, Studio, Beratung)."
+        ),
         # E2 «задача-первым»: tour_operator убран — его primary-задача (туры/
         # события с датами) обслуживает шаблон `veranstaltung` (events-first), а
         # не «about»-first dienstleister. Остаётся generic-фолбэком для «other».
@@ -76,8 +84,10 @@ TEMPLATES = [
     },
     {
         "key": "gastgeber",
-        "label": "Übernachtung & Gastgeber",
-        "description_de": "Verfügbarkeit, Zimmer, Lage und Kontakt — für Pension, Ferienwohnung oder kleines Hotel.",
+        "label": _("Übernachtung & Gastgeber"),
+        "description_de": _(
+            "Verfügbarkeit, Zimmer, Lage und Kontakt — für Pension, Ferienwohnung oder kleines Hotel."
+        ),
         "recommended_for": ("hotel",),
         # «Задача-первым» (E4): поиск дат ВНУТРИ hero (site_defaults.hero_widget=
         # "stays") — первый экран сразу ведёт гостя к его задаче «свободно ли на
@@ -97,8 +107,10 @@ TEMPLATES = [
     {
         # S6: Friseur/Werkstatt — Termin + «Leistungen & Preise» (services) на главной.
         "key": "termine",
-        "label": "Termine & Leistungen",
-        "description_de": "Leistungen mit Preisen und Online-Termin im Fokus — für Friseur, Werkstatt und Studios.",
+        "label": _("Termine & Leistungen"),
+        "description_de": _(
+            "Leistungen mit Preisen und Online-Termin im Fokus — für Friseur, Werkstatt und Studios."
+        ),
         "recommended_for": ("friseur", "werkstatt"),
         "sections": ["hero", "services", "about", "promotions", "contact"],
         "texts": {
@@ -117,8 +129,10 @@ TEMPLATES = [
     {
         # S6: Handwerker — Anfrage/Angebot; Referenzen (before_after) + Ablauf (process).
         "key": "handwerk",
-        "label": "Handwerk & Angebote",
-        "description_de": "Referenzen, Ablauf und unverbindliches Angebot — für Meisterbetrieb, Sanierung und Montage.",
+        "label": _("Handwerk & Angebote"),
+        "description_de": _(
+            "Referenzen, Ablauf und unverbindliches Angebot — für Meisterbetrieb, Sanierung und Montage."
+        ),
         "recommended_for": ("handwerker",),
         "sections": ["hero", "before_after", "process", "promotions", "contact"],
         "texts": {
@@ -134,8 +148,10 @@ TEMPLATES = [
         # GK-1: Catering/Partyservice — jobs-primary (Anfrage → Angebot); Speisekarte
         # browse-only (catalog core, orders выключен пресетом), доверие/процесс/FAQ.
         "key": "catering",
-        "label": "Catering & Partyservice",
-        "description_de": "Anfrage, Angebot und Event-Planung — für Catering, Partyservice und Foodtrucks.",
+        "label": _("Catering & Partyservice"),
+        "description_de": _(
+            "Anfrage, Angebot und Event-Planung — für Catering, Partyservice und Foodtrucks."
+        ),
         "recommended_for": ("catering",),
         "sections": ["hero", "usp_bar", "products", "process", "testimonials", "faq", "contact"],
         "texts": {
@@ -151,8 +167,10 @@ TEMPLATES = [
     {
         # S6: Veranstalter/Events — Tickets/Termine (events) im Fokus.
         "key": "veranstaltung",
-        "label": "Veranstaltungen & Tickets",
-        "description_de": "Kommende Termine und Tickets im Fokus — für Veranstalter, Guides und Studios.",
+        "label": _("Veranstaltungen & Tickets"),
+        "description_de": _(
+            "Kommende Termine und Tickets im Fokus — für Veranstalter, Guides und Studios."
+        ),
         "recommended_for": ("events", "tour_operator"),
         "sections": ["hero", "events", "about", "contact"],
         "texts": {
@@ -166,8 +184,10 @@ TEMPLATES = [
     },
     {
         "key": "minimal",
-        "label": "Minimal / Visitenkarte",
-        "description_de": "Schlichte Eine-Seite-Visitenkarte: Banner und Kontakt. Für alle, die es einfach mögen.",
+        "label": _("Minimal / Visitenkarte"),
+        "description_de": _(
+            "Schlichte Eine-Seite-Visitenkarte: Banner und Kontakt. Für alle, die es einfach mögen."
+        ),
         "recommended_for": (),  # универсальный
         "sections": ["hero", "contact"],
         "texts": {"hero_title": "", "hero_text": "", "about_title": "", "about_text": ""},
@@ -185,8 +205,8 @@ _BY_KEY = {t["key"]: t for t in TEMPLATES}
 LOOK_FAMILIES = [
     {
         "key": "klar",
-        "label": "Klar",
-        "description_de": "Hell und aufgeräumt — klare Flächen, ruhige Typografie.",
+        "label": _("Klar"),
+        "description_de": _("Hell und aufgeräumt — klare Flächen, ruhige Typografie."),
         "font": "system",
         "typography": {"weight_head": 0, "line_height": 0.0},  # дефолты витрины
         "site_defaults": {"card_radius": 0, "card_shadow": False, "card_bg": "", "card_padding": 0},
@@ -196,8 +216,8 @@ LOOK_FAMILIES = [
     },
     {
         "key": "warm",
-        "label": "Warm",
-        "description_de": "Serif-Überschriften, weiche Karten — einladend und persönlich.",
+        "label": _("Warm"),
+        "description_de": _("Serif-Überschriften, weiche Karten — einladend und persönlich."),
         "font": "serif",
         "typography": {"weight_head": 600, "line_height": 1.6},
         "site_defaults": {
@@ -212,8 +232,8 @@ LOOK_FAMILIES = [
     },
     {
         "key": "nacht",
-        "label": "Nacht",
-        "description_de": "Dunkler Auftritt mit kräftigen Überschriften — modern und markant.",
+        "label": _("Nacht"),
+        "description_de": _("Dunkler Auftritt mit kräftigen Überschriften — modern und markant."),
         "font": "system",
         "typography": {"weight_head": 800, "line_height": 0.0},
         "site_defaults": {
@@ -230,8 +250,8 @@ LOOK_FAMILIES = [
     # (FONTS editorial/organic) + тёплая подложка страницы (site_defaults.page_bg).
     {
         "key": "fein",
-        "label": "Fein",
-        "description_de": "Elegante Serif-Überschriften auf Creme — edel und ruhig.",
+        "label": _("Fein"),
+        "description_de": _("Elegante Serif-Überschriften auf Creme — edel und ruhig."),
         "font": "editorial",  # Playfair Display 600 (latin/latin-ext/cyrillic)
         "typography": {"weight_head": 600, "line_height": 1.65},
         "site_defaults": {
@@ -247,8 +267,8 @@ LOOK_FAMILIES = [
     },
     {
         "key": "natur",
-        "label": "Natur",
-        "description_de": "Runde Formen und warme Erdtöne — freundlich und bodenständig.",
+        "label": _("Natur"),
+        "description_de": _("Runde Formen und warme Erdtöne — freundlich und bodenständig."),
         "font": "organic",  # Nunito 800 (latin/latin-ext/cyrillic)
         "typography": {"weight_head": 800, "line_height": 1.6},
         "site_defaults": {
@@ -475,8 +495,8 @@ BUNDLES = [
     {
         # Сервисный «цена + заявка» — прайс и форма прямо на главной (catering).
         "key": "fokus",
-        "label": "Fokus",
-        "description_de": (
+        "label": _("Fokus"),
+        "description_de": _(
             "Ein Hauptziel pro Bildschirm: Split-Banner, Preisliste, "
             "Anfrage direkt auf der Startseite."
         ),
@@ -493,8 +513,8 @@ BUNDLES = [
     {
         # DS-8: отель — «свободно ли на мои даты»: поиск ВНУТРИ баннера.
         "key": "fokus_hotel",
-        "label": "Fokus",
-        "description_de": (
+        "label": _("Fokus"),
+        "description_de": _(
             "Ein Hauptziel pro Bildschirm: Split-Banner mit Datumssuche, "
             "Zimmer direkt darunter, kompaktes Vertrauensband."
         ),
@@ -511,8 +531,8 @@ BUNDLES = [
     {
         # DS-8: ресторан — печатная карта + бронь стола.
         "key": "fokus_gastro",
-        "label": "Fokus",
-        "description_de": (
+        "label": _("Fokus"),
+        "description_de": _(
             "Ein Hauptziel pro Bildschirm: Split-Banner, klassische Speisekarte, "
             "Tisch-Reservierung immer sichtbar."
         ),
@@ -529,8 +549,8 @@ BUNDLES = [
     {
         # DS-8: кафе — много позиций: компакт на главной, фото-прайс на странице.
         "key": "fokus_cafe",
-        "label": "Fokus",
-        "description_de": (
+        "label": _("Fokus"),
+        "description_de": _(
             "Ein Hauptziel pro Bildschirm: Split-Banner, kompakte Karte auf der "
             "Startseite, Speisekarte mit Fotos."
         ),
@@ -547,8 +567,8 @@ BUNDLES = [
     {
         # DS-8: пекарня — направления плитками + прайс с фото («глазами выбирают»).
         "key": "fokus_bakery",
-        "label": "Fokus",
-        "description_de": (
+        "label": _("Fokus"),
+        "description_de": _(
             "Ein Hauptziel pro Bildschirm: Split-Banner, Sortiment-Kacheln und "
             "Preisliste mit Fotos."
         ),
@@ -566,8 +586,8 @@ BUNDLES = [
         # DS-9: мясная лавка — витрина «прилавок»: направления + прайс с фото +
         # Partyservice-заявка (jobs у Metzgerei активен) прямо на главной.
         "key": "fokus_theke",
-        "label": "Fokus",
-        "description_de": (
+        "label": _("Fokus"),
+        "description_de": _(
             "Ein Hauptziel pro Bildschirm: Theken-Sortiment mit Fotos und "
             "Partyservice-Anfrage direkt auf der Startseite."
         ),
@@ -585,8 +605,8 @@ BUNDLES = [
         # DS-9: Friseur — «Termin-Fokus»: топ-услуги В баннере, прайс услуг,
         # МАСТЕРА остаются (у салона доверие — это люди), затем доверие.
         "key": "fokus_termin",
-        "label": "Fokus",
-        "description_de": (
+        "label": _("Fokus"),
+        "description_de": _(
             "Ein Hauptziel pro Bildschirm: Leistungen mit Preisen im Banner, "
             "Team und Termin-Buchung immer sichtbar."
         ),
@@ -603,8 +623,8 @@ BUNDLES = [
         # DS-9: Werkstatt — «Ablauf-Fokus»: услуги с фикс-ценой + понятный
         # процесс (Termin → Diagnose → Abholung) + заявка на смету.
         "key": "fokus_werkstatt",
-        "label": "Fokus",
-        "description_de": (
+        "label": _("Fokus"),
+        "description_de": _(
             "Ein Hauptziel pro Bildschirm: Festpreis-Leistungen, klarer Ablauf "
             "und Kostenvoranschlag-Anfrage."
         ),
@@ -622,8 +642,8 @@ BUNDLES = [
         # DS-9: Handwerker — «Referenz-Fokus»: доверие через РАБОТЫ (до/после),
         # затем ход работы и заявка. Прайса нет — цена всегда индивидуальна.
         "key": "fokus_referenz",
-        "label": "Fokus",
-        "description_de": (
+        "label": _("Fokus"),
+        "description_de": _(
             "Ein Hauptziel pro Bildschirm: Referenzen vorher/nachher, klarer "
             "Ablauf und Angebots-Anfrage."
         ),
@@ -640,8 +660,8 @@ BUNDLES = [
         # DS-9: продуктовый/акционный магазин — «Angebots-Fokus»: скидки ПЕРВЫМИ
         # (магазин у дома живёт предложениями), затем направления.
         "key": "fokus_angebote",
-        "label": "Fokus",
-        "description_de": (
+        "label": _("Fokus"),
+        "description_de": _(
             "Ein Hauptziel pro Bildschirm: aktuelle Angebote ganz oben, Sortiment-Kacheln darunter."
         ),
         "recommended_for": ("grocery",),
@@ -658,8 +678,8 @@ BUNDLES = [
         # плитками + товары КАРТОЧКАМИ (фото+цена+кнопка) + полоса преимуществ
         # (доставка/оплата/возврат — конверсия онлайн-покупки).
         "key": "fokus_sortiment",
-        "label": "Fokus",
-        "description_de": (
+        "label": _("Fokus"),
+        "description_de": _(
             "Ein Hauptziel pro Bildschirm: Sortiment-Kacheln, Produkte als Karten "
             "und Versand-Vorteile auf einen Blick."
         ),
@@ -676,8 +696,8 @@ BUNDLES = [
         # DS-9: мода — «Lookbook-Fokus»: картинка правит. Вертикальные плитки
         # направлений, карточки-оверлеи, галерея образов остаётся.
         "key": "fokus_lookbook",
-        "label": "Fokus",
-        "description_de": (
+        "label": _("Fokus"),
+        "description_de": _(
             "Ein Hauptziel pro Bildschirm: große Bilder, Kollektionen als Kacheln "
             "und Lookbook-Galerie."
         ),
@@ -695,8 +715,8 @@ BUNDLES = [
         # DS-9: события/ретриты — «Programm-Fokus»: ближайшие даты афишей,
         # затем «как проходит» и доверие.
         "key": "fokus_programm",
-        "label": "Fokus",
-        "description_de": (
+        "label": _("Fokus"),
+        "description_de": _(
             "Ein Hauptziel pro Bildschirm: kommende Termine als Programm, "
             "Ablauf und Stimmen der Gäste."
         ),
@@ -717,8 +737,8 @@ BUNDLES = [
         # же список дат второй раз, но без маршрута и фото. Заявка на приватный
         # выезд — сразу на главной (гейт модуля jobs внутри партиала).
         "key": "fokus_touren",
-        "label": "Fokus",
-        "description_de": (
+        "label": _("Fokus"),
+        "description_de": _(
             "Ein Hauptziel pro Bildschirm: Reisen mit Bildern, Termine und "
             "Anfrage für die eigene Gruppe."
         ),

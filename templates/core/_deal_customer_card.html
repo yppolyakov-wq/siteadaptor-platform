@@ -6,17 +6,29 @@
 <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5" data-deal-block="customer">
   <p class="text-xs font-medium text-gray-500 mb-2">{% trans "Kunde" %}</p>
   {% if deal.customer %}
-    <p class="text-sm font-semibold">
+    {% comment %}CARD-4 (владелец 2026-08-26): имя ведёт в карточку клиента CRM,
+    карандаш рядом открывает попап правки — отдельной строки-раскрывашки
+    «Kundendaten bearbeiten» больше нет.{% endcomment %}
+    <p class="text-sm font-semibold flex items-center gap-1.5">
       {% if crm_active %}<a href="{% url 'crm:customer-detail' deal.customer.pk %}" class="text-indigo-600 hover:underline">{{ deal.customer.name|default:deal.customer }}</a>
       {% else %}{{ deal.customer.name|default:deal.customer }}{% endif %}
+      {% if deal_customer_edit is not False %}
+        <button type="button" data-customer-edit-open
+                title="{% trans 'Kundendaten bearbeiten' %}" aria-label="{% trans 'Kundendaten bearbeiten' %}"
+                class="text-gray-400 hover:text-indigo-600 leading-none">✏️</button>
+      {% endif %}
     </p>
     {% comment %}QF-3: контакты — кликабельной строкой, а не серым мелким текстом.{% endcomment %}
     {% if deal.customer.email %}<p class="text-sm break-all"><a href="mailto:{{ deal.customer.email }}" class="text-indigo-700 hover:underline">✉ {{ deal.customer.email }}</a></p>{% endif %}
     {% if deal.customer.phone %}<p class="text-sm"><a href="tel:{{ deal.customer.phone }}" class="text-indigo-700 hover:underline">📞 {{ deal.customer.phone }}</a></p>{% endif %}
     {% if not deal.customer.email and not deal.customer.phone %}<p class="text-sm text-amber-700">{% trans "Keine Kontaktdaten hinterlegt" %}</p>{% endif %}
-    <p class="mt-2">{% include "core/_deal_message_button.html" with kind=deal_kind obj_pk=deal.pk %}</p>
-    {% comment %}Карточка может отключить общую правку контакта, если у неё своя
-    форма с дополнительными полями (у заявки — адрес объекта).{% endcomment %}
+    {% comment %}CARD-3 (владелец 2026-08-26): «убери кнопку написать клиенту —
+    ниже всё равно есть открытое поле». Блок переписки стоит прямо под этой
+    карточкой (CARD-2), поэтому ссылка-якорь была дублем. В местах, где блока
+    переписки нет (панель гостя в календаре), партиал кнопки живёт по-прежнему.
+
+    Карточка может отключить общую правку контакта, если у неё своя форма с
+    дополнительными полями (у заявки — адрес объекта).{% endcomment %}
     {% if deal_customer_edit is not False %}
       {% include "core/_deal_customer_edit.html" with kind=deal_kind obj_pk=deal.pk customer=deal.customer next_path=request.get_full_path %}
     {% endif %}

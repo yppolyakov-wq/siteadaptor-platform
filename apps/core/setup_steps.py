@@ -14,6 +14,7 @@ from dataclasses import dataclass
 
 from django.contrib import messages
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 
 from apps.core import page_presets as _page_presets
 
@@ -291,10 +292,10 @@ def _ctx_menu(request):
 # AB6.2d: пресеты раскладки каталога/категорий для слайда «Kategorien» (мокапы в
 # шаблоне по key). Подмножество LAYOUT_PRESETS, осмысленное для листинга товаров.
 _CATALOG_PRESET_CARDS = (
-    {"key": "cols2", "label": "2 Spalten"},
-    {"key": "cols3", "label": "3 Spalten"},
-    {"key": "cols4", "label": "4 Spalten"},
-    {"key": "list", "label": "Liste"},
+    {"key": "cols2", "label": gettext_lazy("2 Spalten")},
+    {"key": "cols3", "label": gettext_lazy("3 Spalten")},
+    {"key": "cols4", "label": gettext_lazy("4 Spalten")},
+    {"key": "list", "label": gettext_lazy("Liste")},
 )
 
 
@@ -483,10 +484,10 @@ def _ctx_texts(request):
 # создаваемой сущности → только пресеты/CTA. Плейсхолдер имени — язык задач архетипа.
 _OFFER_KINDS = ("catalog", "booking", "stays", "events")
 _OFFER_NAME_PH = {
-    "catalog": "z. B. Roggenbrot",
-    "booking": "z. B. Haarschnitt",
-    "stays": "z. B. Doppelzimmer",
-    "events": "z. B. Sommerkonzert",
+    "catalog": gettext_lazy("z. B. Roggenbrot"),
+    "booking": gettext_lazy("z. B. Haarschnitt"),
+    "stays": gettext_lazy("z. B. Doppelzimmer"),
+    "events": gettext_lazy("z. B. Sommerkonzert"),
 }
 
 
@@ -668,20 +669,20 @@ def _ctx_content(request):
 _CARD_STYLE_PRESETS = (
     {
         "key": "klar",
-        "label": "Klar",
-        "hint": "ohne Rahmen, viel Weißraum",
+        "label": gettext_lazy("Klar"),
+        "hint": gettext_lazy("ohne Rahmen, viel Weißraum"),
         "defaults": {"card_radius": 0, "card_shadow": False, "card_bg": "", "card_padding": 0},
     },
     {
         "key": "weich",
-        "label": "Weich",
-        "hint": "runde Ecken, leichter Schatten",
+        "label": gettext_lazy("Weich"),
+        "hint": gettext_lazy("runde Ecken, leichter Schatten"),
         "defaults": {"card_radius": 16, "card_shadow": True, "card_bg": "", "card_padding": 0},
     },
     {
         "key": "karte",
-        "label": "Karte",
-        "hint": "Kachel mit Fläche und Innenabstand",
+        "label": gettext_lazy("Karte"),
+        "hint": gettext_lazy("Kachel mit Fläche und Innenabstand"),
         "defaults": {
             "card_radius": 12,
             "card_shadow": True,

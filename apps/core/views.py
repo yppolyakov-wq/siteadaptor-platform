@@ -11,7 +11,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.catalog.option_styles import VARIANT_STYLES
-from apps.core import detail_sections, presence
+from apps.core import detail_sections, presence, vat
 from apps.tenants import domains
 from apps.tenants.forms import BusinessSettingsForm
 from apps.tenants.models import CustomDomain
@@ -89,6 +89,9 @@ def extras_view(request):
                     supplier=supplier,
                     product=stock_product,
                     consume_qty=consume_qty,
+                    # VAT-3: своя ставка допа; пусто = «как у сделки» (прежнее
+                    # поведение) — поэтому parse_rate_optional, а не parse_rate.
+                    vat_rate=vat.parse_rate_optional(request.POST.get("vat_rate")),
                 )
                 _set_extra_image(request, extra)  # A5: опц. фото при создании
                 messages.success(request, _("Extra added."))
@@ -148,12 +151,17 @@ def _extra_entity_choices(request):
         return out
     from django.apps import apps as django_apps
 
+    # msgid выносим из f-строк наружу: xgettext не парсит выражения внутри
+    # f-строки, обёрнутая там строка в каталоги не попадает (I18N-13).
+    service_label = _("Leistung")
+    stay_label = _("Zimmer")
+    event_label = _("Termin")
     if tenant.is_module_active("booking"):
         for svc in django_apps.get_model("booking", "Service").objects.filter(is_active=True):
-            out.append((f"service:{svc.pk}", f"{_('Leistung')}: {svc.name}"))
+            out.append((f"service:{svc.pk}", f"{service_label}: {svc.name}"))
     if tenant.is_module_active("stays"):
         for unit in django_apps.get_model("stays", "StayUnit").objects.filter(is_active=True):
-            out.append((f"stay:{unit.pk}", f"{_('Zimmer')}: {unit.name}"))
+            out.append((f"stay:{unit.pk}", f"{stay_label}: {unit.name}"))
     if tenant.is_module_active("events"):
         from django.utils import timezone as _tz
 
@@ -161,7 +169,7 @@ def _extra_entity_choices(request):
             status="published", starts_at__gte=_tz.now()
         )
         for ev in events_qs:
-            out.append((f"event:{ev.pk}", f"{_('Termin')}: {ev.title}"))
+            out.append((f"event:{ev.pk}", f"{event_label}: {ev.title}"))
     return out
 
 
@@ -2188,46 +2196,46 @@ def home_builder_view(request):
                 # (page_only → JS прячет на главной; контент общий с главной).
                 {
                     "value": "faq_ref",
-                    "label": "FAQ anzeigen",
+                    "label": _("FAQ anzeigen"),
                     "icon": "❓",
-                    "hint": "Der FAQ-Block der Startseite — auch auf dieser Seite",
+                    "hint": _("Der FAQ-Block der Startseite — auch auf dieser Seite"),
                     "page_only": True,
                 },
                 {
                     "value": "team_ref",
-                    "label": "Team anzeigen",
+                    "label": _("Team anzeigen"),
                     "icon": "👥",
-                    "hint": "Der Team-Block der Startseite — auch auf dieser Seite",
+                    "hint": _("Der Team-Block der Startseite — auch auf dieser Seite"),
                     "page_only": True,
                 },
                 {
                     "value": "gallery_ref",
-                    "label": "Galerie anzeigen",
+                    "label": _("Galerie anzeigen"),
                     "icon": "🖼️",
-                    "hint": "Die Galerie der Startseite — auch auf dieser Seite",
+                    "hint": _("Die Galerie der Startseite — auch auf dieser Seite"),
                     "page_only": True,
                 },
                 {
                     "value": "testimonials_ref",
-                    "label": "Stimmen anzeigen",
+                    "label": _("Stimmen anzeigen"),
                     "icon": "💬",
-                    "hint": "Kundenstimmen der Startseite — auch auf dieser Seite",
+                    "hint": _("Kundenstimmen der Startseite — auch auf dieser Seite"),
                     "page_only": True,
                 },
                 # AF-2b: встраиваемые формы (заявка/контакт) — на страницах;
                 # рендер гейтится модулем (jobs/inbox выключен → блок пуст).
                 {
                     "value": "anfrage_ref",
-                    "label": "Anfrage-Formular",
+                    "label": _("Anfrage-Formular"),
                     "icon": "📝",
-                    "hint": "Angebot-Anfrage direkt auf dieser Seite (Modul Aufträge)",
+                    "hint": _("Angebot-Anfrage direkt auf dieser Seite (Modul Aufträge)"),
                     "page_only": True,
                 },
                 {
                     "value": "message_ref",
-                    "label": "Kontaktformular",
+                    "label": _("Kontaktformular"),
                     "icon": "✉️",
-                    "hint": "Frage-stellen-Formular direkt auf dieser Seite (Modul Nachrichten)",
+                    "hint": _("Frage-stellen-Formular direkt auf dieser Seite (Modul Nachrichten)"),
                     "page_only": True,
                 },
             ],

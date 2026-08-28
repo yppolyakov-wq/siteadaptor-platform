@@ -44,25 +44,30 @@
       {% endif %}
 
       {% if "items" in deal_sections %}
+        {% comment %}DG-3 (макет `docs/design/deal-card-2026-08-25/` + фидбэк
+        владельца 2026-08-26 «оно всё в рамках одного блока, а у нас как будто
+        разные»): состав, скидка и суммы — ОДНА карточка, как на артборде.
+        Между ними тонкие разделители, «Summen» — подзаголовок, а не заголовок
+        отдельной карточки.{% endcomment %}
         <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="items">
-          <h2 class="font-semibold mb-3">{% block deal_items_title %}{{ deal_titles.items }}{% endblock %}</h2>
+          <div class="flex items-center justify-between gap-3 mb-3">
+            <h2 class="font-semibold">{% block deal_items_title %}{{ deal_titles.items }}{% endblock %}</h2>
+            {% block deal_items_actions %}{% endblock %}
+          </div>
           {% block deal_items %}{% endblock %}
-          {% comment %}DF-1d (владелец 2026-08-26): «скидка должна быть в том же
-          блоке, что и позиции, до промежуточного итога» — отдельной секции
-          больше нет, партиал живёт внутри состава.{% endcomment %}
+
           {% if "discount" in deal_sections %}
-            <div class="mt-5 pt-4 border-t border-gray-100" data-deal-block="discount">
-              <h3 class="text-sm font-semibold mb-3">🏷 {{ deal_titles.discount }}</h3>
+            <div class="mt-4 pt-4 border-t border-gray-100" data-deal-block="discount">
               {% block deal_discount %}{% include "core/_deal_discount.html" %}{% endblock %}
             </div>
           {% endif %}
-        </section>
-      {% endif %}
 
-      {% if "totals" in deal_sections %}
-        <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="totals">
-          <h2 class="font-semibold mb-3">{{ deal_titles.totals }}</h2>
-          {% block deal_totals %}{% endblock %}
+          {% if "totals" in deal_sections %}
+            <div class="mt-4 pt-4 border-t border-gray-100" data-deal-block="totals">
+              <p class="text-[11px] uppercase tracking-wide text-gray-400 mb-2">{{ deal_titles.totals }}</p>
+              {% block deal_totals %}{% endblock %}
+            </div>
+          {% endif %}
         </section>
       {% endif %}
 
@@ -84,20 +89,22 @@
         </section>
       {% endif %}
 
-      {% if "thread" in deal_sections %}
-        {% comment %}DF-3: переписка с клиентом — на карточке, а не отдельной
-        страницей (владелец 2026-08-26). Гейт модуля inbox — в партиале.{% endcomment %}
-        <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="thread">
-          <h2 class="font-semibold mb-3">✉️ {{ deal_titles.thread }}</h2>
-          {% include "core/_deal_thread.html" %}
-        </section>
-      {% endif %}
-
       {% block deal_main_extra %}{% endblock %}
     </div>
 
     <div class="space-y-5 min-w-0" data-deal-rail>
       {% include "core/_deal_customer_card.html" %}
+      {% if "thread" in deal_sections %}
+        {% comment %}CARD-2 (владелец 2026-08-26): «Nachrichten перенеси в правую
+        колонку под кнопку написать клиенту». Переписка стоит сразу за карточкой
+        клиента — кнопка и сам разговор рядом, а первая колонка остаётся про
+        деньги. Гейт модуля inbox — в партиале; якорь тот же, поэтому скролл по
+        кнопке (DF-6) продолжает работать.{% endcomment %}
+        <section class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-5 sm:p-6" data-deal-block="thread">
+          <h2 class="font-semibold mb-3">✉️ {{ deal_titles.thread }}</h2>
+          {% include "core/_deal_thread.html" %}
+        </section>
+      {% endif %}
       {% block deal_rail_extra %}{% endblock %}
       {% include "core/_deal_links_block.html" with kind=deal_kind obj_pk=deal.pk links=deal_links next_path=request.get_full_path %}
     </div>

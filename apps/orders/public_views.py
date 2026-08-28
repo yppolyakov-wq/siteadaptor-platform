@@ -851,6 +851,9 @@ def checkout(request):
                 None,
                 None,
                 [{"label": str(d), "delta": str(d.base_price)} for d in dishes],
+                # VAT-2: свободная сборка — это блюда из набора, поэтому ставка
+                # берётся у набора (7 % у гастро), а не дефолт 19 %.
+                combo.vat_rate,
             )
             for combo, dishes, qty, _ok, _k in pool_items
         ]

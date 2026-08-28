@@ -266,7 +266,7 @@
           <input type="hidden" name="action" value="rate"><input type="hidden" name="unit" value="{{ u.pk }}">
           <input type="date" name="start_date" required class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
           <input type="date" name="end_date" required class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
-          <input type="text" name="price_eur" required placeholder="€/Nacht" class="w-24 rounded-lg border border-gray-300 px-2 py-1 text-sm">
+          <input type="text" name="price_eur" required placeholder="{% trans "€/Nacht" %}" class="w-24 rounded-lg border border-gray-300 px-2 py-1 text-sm">
           <input type="text" name="label" placeholder="{% trans 'Label' %}" class="rounded-lg border border-gray-300 px-2 py-1 text-sm">
           <button class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 hover:border-indigo-400">{% trans "Add rate" %}</button>
         </form>

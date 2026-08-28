@@ -659,6 +659,11 @@ class Combo(I18nMixin, SoftDeleteMixin):
     description_i18n = models.JSONField(default=dict, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=3, default="EUR")
+    # VAT-2 (2026-08-26): своя ставка НДС набора. Без неё позиция заказа с комбо
+    # всегда уезжала в документ по 19 %, хотя меню-сет гастро — это еда по 7 %.
+    # Дефолт 19: угадывать ставку за владельца по типу бизнеса нельзя, поэтому в
+    # форме стоит подсказка «Speisen meist 7 %».
+    vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("19.00"))
     # MEN-2 (волна Menü-Sets): галерея набора — FileRef-конверты, как Product.images.
     images = models.JSONField(default=list, blank=True)
     # Привязка к направлению (категории): блок «Menü-Pakete» на лендинге DS-7 и

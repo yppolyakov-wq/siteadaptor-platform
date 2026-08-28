@@ -88,13 +88,34 @@ def create_job(
     return job
 
 
+def _line_vat_rate(line):
+    """Ставка позиции сметы: явная из формы, иначе из карточки товара, иначе None.
+
+    None означает «как весь документ» — существующие сметы так и продолжают
+    считаться. Ставка товара берётся СНИМКОМ на момент сохранения: правка
+    каталога не переписывает смету, которую клиент уже видел.
+    """
+    raw = line.get("vat_rate")
+    if raw not in (None, ""):
+        return Decimal(str(raw))
+    variant = line.get("variant")
+    product = line.get("product")
+    if variant is not None and getattr(variant, "product_id", None) and product is None:
+        product = variant.product
+    if product is not None:
+        rate = getattr(product, "vat_rate", None)
+        if rate is not None:
+            return Decimal(str(rate))
+    return None
+
+
 def set_lines(job, lines, *, vat_rate=None, small_business=False) -> Job:
     """Заменить позиции сметы и пересчитать суммы (снимок).
 
     ``lines`` — список dict ``{"text", "qty", "unit_price"}``. Пустые строки
     (без текста) пропускаются. Суммы считаются через finance.compute_totals.
     """
-    from apps.finance.services import compute_totals
+    from apps.jobs.totals import quote_totals
 
     with transaction.atomic():
         job.lines.all().delete()
@@ -111,6 +132,8 @@ def set_lines(job, lines, *, vat_rate=None, small_business=False) -> Job:
                     qty=line.get("qty", 1),
                     unit_price=line.get("unit_price", 0),
                     cost_rate=line.get("cost_rate"),  # ERP-6: плановый EK/ставка
+                    # VAT-1: своя ставка позиции. None = ставка документа.
+                    vat_rate=_line_vat_rate(line),
                     # G11: привязка строки к расходнику каталога (опц.).
                     product=line.get("product"),
                     variant=line.get("variant"),
@@ -120,9 +143,10 @@ def set_lines(job, lines, *, vat_rate=None, small_business=False) -> Job:
 
         if vat_rate is not None:
             job.vat_rate = Decimal(str(vat_rate))
-        dict_lines = [{"text": o.text, "qty": o.qty, "unit_price": str(o.unit_price)} for o in objs]
-        net, vat, gross = compute_totals(dict_lines, job.vat_rate, small_business=small_business)
-        job.net, job.vat_amount, job.gross = net, vat, gross
+        # VAT-1: итог считается по ставкам ПОЗИЦИЙ (строка без своей ставки идёт по
+        # ставке документа — поэтому смета без смешанных ставок считается как раньше).
+        totals = quote_totals(objs, job.vat_rate, small_business=small_business)
+        job.net, job.vat_amount, job.gross = totals["net"], totals["vat"], totals["gross"]
         job.save(update_fields=["vat_rate", "net", "vat_amount", "gross", "updated_at"])
         # VF-13: если резерв уже держится (Beauftragt) — привести его к новому составу.
         _resync_reserved_stock(job)
@@ -296,7 +320,14 @@ def add_job_photos(job, files, *, max_count=MAX_PHOTOS) -> int:
 def lines_snapshot(job) -> list[dict]:
     """Позиции сметы в формате finance (для Rechnung-снимка / PDF)."""
     return [
-        {"text": ln.text, "qty": str(ln.qty), "unit_price": str(ln.unit_price)}
+        {
+            "text": ln.text,
+            "qty": str(ln.qty),
+            "unit_price": str(ln.unit_price),
+            # VAT-4: ставка позиции едет в счёт — иначе смешанная смета дала бы
+            # Rechnung, брутто которой не совпадает с принятой клиентом сметой.
+            "vat_rate": str(ln.effective_vat_rate(job.vat_rate)),
+        }
         for ln in job.lines.all()
     ]
 

@@ -13,6 +13,7 @@ from django.core.exceptions import ValidationError
 from django.db import connection, transaction
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from apps.notifications.prefs import channel_enabled
 from apps.notifications.services import notify
@@ -88,11 +89,13 @@ def send_offer(conversation, *, lines, valid_until=None, note="", author=None):
         OfferLine.objects.create(offer=offer, position=i, **line)
 
     if conversation is not None:
-        _post_system_message(
-            conversation,
-            f"📄 Angebot über {offer.total} {offer.currency} gesendet"
-            + (f" (gültig bis {valid_until.strftime('%d.%m.%Y')})" if valid_until else ""),
-        )
+        text = _("📄 Angebot über %(total)s %(cur)s gesendet") % {
+            "total": offer.total,
+            "cur": offer.currency,
+        }
+        if valid_until:
+            text += _(" (gültig bis %(date)s)") % {"date": valid_until.strftime("%d.%m.%Y")}
+        _post_system_message(conversation, text)
     enqueue_offer_email(offer, "sent")
     return offer
 
@@ -149,7 +152,8 @@ def accept_offer(offer, *, name="", email="", phone="", payment_method=""):
         conversation.ref_label = order.reference_code
         conversation.save(update_fields=["ref_kind", "ref_id", "ref_label", "updated_at"])
         _post_system_message(
-            conversation, f"✅ Angebot angenommen — Bestellung {order.reference_code}"
+            conversation,
+            _("✅ Angebot angenommen — Bestellung %(code)s") % {"code": order.reference_code},
         )
     return order
 
@@ -164,7 +168,7 @@ def decline_offer(offer):
     offer.declined_at = timezone.now()
     offer.save(update_fields=["declined_at", "updated_at"])
     if offer.conversation is not None:
-        _post_system_message(offer.conversation, "❌ Angebot abgelehnt")
+        _post_system_message(offer.conversation, _("❌ Angebot abgelehnt"))
     return offer
 
 
@@ -176,7 +180,7 @@ def cancel_offer(offer):
         return offer
     OfferSM().apply(offer, Offer.STATUS_CANCELLED)
     if offer.conversation is not None:
-        _post_system_message(offer.conversation, "Angebot zurückgezogen")
+        _post_system_message(offer.conversation, _("Angebot zurückgezogen"))
     return offer
 
 

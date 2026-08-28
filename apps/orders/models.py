@@ -233,7 +233,7 @@ class OrderItem(TimestampedModel):
         for m in self.modifiers or []:
             label = m.get("label", "")
             if m.get("sku"):
-                label = f"{label} [Art.-Nr. {m['sku']}]"
+                label = _("%(label)s [Art.-Nr. %(sku)s]") % {"label": label, "sku": m["sku"]}
             parts.append(label)
         return ", ".join(parts)
 

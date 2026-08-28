@@ -242,17 +242,17 @@ class Promotion(SoftDeleteMixin, I18nMixin):
     # сохраняет вид существующих акций. Только презентация: свойства цены/
     # has_discount/анти-оверселл не зависят от стиля.
     DISCOUNT_STYLES = [
-        ("", "Automatisch"),
-        ("percent", "Prozent-Badge (−30 %)"),
-        ("badge", "Betrag-Badge (−5 €)"),
-        ("strikethrough", "Nur durchgestrichener Preis"),
-        ("festpreis", "Nur neuer Preis (Festpreis)"),
-        ("ab", "Ab-Preis („ab 7,50 €“)"),
-        ("countdown", "Countdown-Akzent"),
-        ("surprise", "Überraschung im Fokus"),
+        ("", _("Automatisch")),
+        ("percent", _("Prozent-Badge (−30 %)")),
+        ("badge", _("Betrag-Badge (−5 €)")),
+        ("strikethrough", _("Nur durchgestrichener Preis")),
+        ("festpreis", _("Nur neuer Preis (Festpreis)")),
+        ("ab", _("Ab-Preis („ab 7,50 €“)")),
+        ("countdown", _("Countdown-Akzent")),
+        ("surprise", _("Überraschung im Fokus")),
         # UE2-3: цена/фото скрыты до клика-раскрытия (чистая презентация,
         # бронь/остаток не зависят). AlterField choices — без изменения БД.
-        ("mystery", "Mystery — Preis bis Klick versteckt"),
+        ("mystery", _("Mystery — Preis bis Klick versteckt")),
     ]
     discount_style = models.CharField(
         max_length=20, choices=DISCOUNT_STYLES, default="", blank=True
@@ -262,7 +262,7 @@ class Promotion(SoftDeleteMixin, I18nMixin):
     # на интервал. Наследник один (recurrence уходит к нему, у родителя гасится),
     # поэтому цепочка не ветвится.
     NO_RECUR, DAILY, WEEKLY = "", "daily", "weekly"
-    RECURRENCE = [(NO_RECUR, "—"), (DAILY, "Täglich"), (WEEKLY, "Wöchentlich")]
+    RECURRENCE = [(NO_RECUR, "—"), (DAILY, _("Täglich")), (WEEKLY, _("Wöchentlich"))]
     recurrence = models.CharField(max_length=10, choices=RECURRENCE, default=NO_RECUR, blank=True)
 
     # S6: группа/направление акции («Fastfood», «Fertiggerichte»…) — для отдельных

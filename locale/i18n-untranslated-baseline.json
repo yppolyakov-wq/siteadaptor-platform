@@ -1,0 +1,188 @@
+{
+ "apps/aggregator/admin.py": [
+  "From @BotFather. Leave blank to keep current. Save, then run «Connect»."
+ ],
+ "apps/billing/usage.py": [
+  "Nutzungsgebühr"
+ ],
+ "apps/core/admin_dashboard.py": [
+  "Aktive Abos",
+  "Betriebe",
+  "Im Test",
+  "Offene Tickets",
+  "Registrierte Geschäfte",
+  "Support wartet",
+  "Trial-Phase",
+  "Zahlende Kunden",
+  "Zahlung überfällig"
+ ],
+ "apps/core/page_presets.py": [
+  "Abholung und Bezahlung vor Ort möglich — Ihre Bestellung liegt zur vereinbarten Zeit für Sie bereit.",
+  "Bildunterschrift — klicken und ersetzen",
+  "Fragen zur Bestellung?",
+  "Gut zu wissen",
+  "Qualität, Regionalität, Handwerk: Beschreiben Sie in zwei bis drei Sätzen, wofür Ihr Geschäft steht.",
+  "Rufen Sie uns an oder schreiben Sie uns — wir helfen gern weiter.",
+  "Stellen Sie hier die Menschen hinter Ihrem Geschäft vor — Namen, Rollen und was Ihre Kundschaft an ihnen schätzt.",
+  "Wie alles begann: Erzählen Sie hier, wie Ihr Geschäft entstanden ist und was Sie antreibt — das Foto können Sie jederzeit austauschen.",
+  "Worauf wir Wert legen"
+ ],
+ "apps/core/transactions.py": [
+  "BookingSM",
+  "JobSM",
+  "OrderSM",
+  "ReservationSM",
+  "StayBookingSM",
+  "TicketSM"
+ ],
+ "apps/events/forms.py": [
+  "Frühbucher | 79 | 10\nStandard | 99\nKind | 0"
+ ],
+ "apps/events/landing.py": [
+  "Johanna | Köln | Hat mich geerdet. | https://…/foto.jpg | 5"
+ ],
+ "apps/events/public_views.py": [
+  "März"
+ ],
+ "apps/events/registration.py": [
+  "Kindermenü",
+  "Über 20.000 km"
+ ],
+ "apps/events/taxonomy.py": [
+  "Deutsch",
+  "English"
+ ],
+ "apps/finance/exports.py": [
+  "Gegenkonto (ohne BU-Schlüssel)",
+  "Konto"
+ ],
+ "apps/inventory/models.py": [
+  "Signed: +Zugang / −Abgang"
+ ],
+ "apps/inventory/views.py": [
+  "Datum"
+ ],
+ "apps/notifications/adapters.py": [
+  "kein aktiver Telegram-Bot"
+ ],
+ "apps/promotions/presets.py": [
+  "Feierabend-Überraschungstüte",
+  "Frühbucher-Rabatt: 10 % bei Buchung 8 Wochen im Voraus",
+  "Frühjahrs-Check",
+  "Saison-Menü zum Aktionspreis"
+ ],
+ "apps/promotions/public_views.py": [
+  "## Angebot",
+  "Widerruf eines Kaufvertrags\n\nHiermit widerrufe ich den Vertrag über den Kauf folgender Waren:"
+ ],
+ "apps/promotions/views.py": [
+  "Alles Gute zum Geburtstag – Ihr Geschenk wartet",
+  "Wir vermissen Sie – Ihr persönlicher Gutschein"
+ ],
+ "apps/publishing/adapters.py": [
+  "Facebook nicht konfiguriert:",
+  "GBP nicht konfiguriert:",
+  "Instagram nicht konfiguriert:",
+  "Pinterest nicht konfiguriert:",
+  "Telegram nicht konfiguriert:"
+ ],
+ "apps/publishing/oauth.py": [
+  "GOOGLE_OAUTH_CLIENT_ID",
+  "GOOGLE_OAUTH_CLIENT_SECRET",
+  "META_APP_ID",
+  "META_APP_SECRET",
+  "PINTEREST_CLIENT_ID",
+  "PINTEREST_CLIENT_SECRET"
+ ],
+ "apps/reviews/services.py": [
+  "Combo",
+  "StayUnit"
+ ],
+ "apps/stays/public_views.py": [
+  "?von={arrival}&bis={departure}&erw={adults}"
+ ],
+ "apps/tenants/google_places.py": [
+  "Google Places nicht konfiguriert: GOOGLE_PLACES_API_KEY fehlt"
+ ],
+ "apps/tenants/management/commands/create_test_tenant.py": [
+  "Bäckerei Test"
+ ],
+ "apps/tenants/management/commands/seed_demo_tenants.py": [
+  "Direkt buchen — ohne Provision.",
+  "Fehlt Ihr Kit? Der Container läuft evtl. auf einem alten Image — erst neu bauen:\n      ./scripts/deploy.sh single   (git pull + docker compose build + up -d)",
+  "gehört Tenant",
+  "» — wird übersprungen.\n    Verfügbare Kits:"
+ ],
+ "apps/tenants/models.py": [
+  ".\n\nHinweis: Bitte passen Sie diesen Text an Ihr Geschäft an.",
+  "Datenschutzerklärung\n\nVerantwortlich für die Datenverarbeitung auf dieser Website ist",
+  "LinkedIn",
+  "Stornierung / Widerruf\n\nEine Reservierung ist unverbindlich und kann jederzeit storniert werden. Bei Fragen kontaktieren Sie uns bitte unter",
+  "TikTok",
+  "YouTube"
+ ],
+ "apps/tenants/siteconfig.py": [
+  "Beschreiben Sie hier ein Angebot oder eine Besonderheit — das Foto können Sie jederzeit austauschen.",
+  "Bildunterschrift — klicken und ersetzen",
+  "Bleiben Sie auf dem Laufenden",
+  "Erzählen Sie hier in zwei bis drei Sätzen, was Ihr Geschäft besonders macht — Ihre Geschichte, Ihre Spezialität, Ihr Team.",
+  "Frisch, regional, mit Herz",
+  "Gäste bewirtet",
+  "Jahre Erfahrung",
+  "Neuigkeiten und Angebote — kein Spam, jederzeit abbestellbar.",
+  "für Sie da",
+  "zufriedene Kunden",
+  "— Anna Muster, Gründerin",
+  "„Wir kochen, wie wir selbst am liebsten essen: frisch, saisonal und mit Zeit für die Details.“"
+ ],
+ "apps/tenants/sitetemplates.py": [
+  "Catering für Ihr Event",
+  "Ihr Aufenthalt",
+  "Ihr Meisterbetrieb",
+  "Ihr Termin bei uns",
+  "Ihre Unterkunft für eine schöne Zeit — jetzt Verfügbarkeit prüfen.",
+  "Lernen Sie uns kennen und buchen Sie online Ihren Termin.",
+  "Sagen Sie uns Datum und Gästezahl — Sie erhalten ein unverbindliches Angebot.",
+  "Schildern Sie Ihr Vorhaben — Sie erhalten ein unverbindliches Angebot.",
+  "Schön, dass Sie da sind. Entdecken Sie unsere aktuellen Angebote.",
+  "Sehen Sie unsere Leistungen und buchen Sie online Ihren Wunschtermin.",
+  "Sichern Sie sich jetzt Ihre Tickets für die nächsten Termine.",
+  "Unsere Karte und aktuelle Angebote — frisch für Sie.",
+  "Willkommen bei uns"
+ ],
+ "templates/storefront/_discount_display.html": [
+  "🌱 Überraschungstüte"
+ ],
+ "templates/tenant/_cb_row.html": [
+  "12 | Jahre Erfahrung&#10;500+ | zufriedene Kunden&#10;4,9 ★ | Bewertung"
+ ],
+ "templates/tenant/_section_fields.html": [
+  "Habt ihr Parkplätze? | Ja, direkt vor dem Laden.",
+  "Maria Rossi | Küchenchefin",
+  "shipping | Versand ab 4,90 €&#10;bio | 100 % Bio | Zutaten von Höfen aus der Region&#10;payment | Sichere Zahlung"
+ ],
+ "templates/tenants/legal_agb.html": [
+  "3. Testphase, Vertragslaufzeit, Kündigung",
+  "4. Pflichten des Kunden",
+  "5. Verfügbarkeit",
+  "Allgemeine Geschäftsbedingungen",
+  "Stand: [Monat Jahr].",
+  "Wir bemühen uns um eine hohe Verfügbarkeit der Plattform; Wartungsfenster und Umstände außerhalb unseres Einflussbereichs bleiben vorbehalten."
+ ],
+ "templates/tenants/legal_datenschutz.html": [
+  "4. Registrierung und Kundenkonto",
+  "7. Websites unserer Kunden",
+  "Datenschutzerklärung",
+  "Stand: [Monat Jahr]. Diese Erklärung wird bei Änderungen der Verarbeitung aktualisiert."
+ ],
+ "templates/tenants/legal_impressum.html": [
+  ". Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.",
+  "Angaben gemäß § 5 DDG",
+  "Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:",
+  "Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV",
+  "[Inhaber/in bzw. Geschäftsführer/in]",
+  "[Name / Firma des Betreibers]",
+  "[Straße Hausnummer]",
+  "[USt-IdNr. gemäß § 27a UStG, falls vorhanden]"
+ ]
+}

@@ -118,10 +118,14 @@
         {% comment %}T1 (FB-12): язык КАБИНЕТА (админ-панели) — отдельно от языка витрины.
         Переключатель по сессии (set-cabinet-lang), показываем при ≥2 переведённых языках.{% endcomment %}
         {% if cabinet_langs|length > 1 %}
-        <form method="post" action="{% url 'set-cabinet-lang' %}" class="hidden sm:inline-flex items-center gap-1 text-gray-500" title="{% trans 'Cabinet language' %}">
+        {% comment %}Фидбэк владельца 2026-08-26: «язык админки в мобильной версии
+        нельзя переключить» — селектор был скрыт классом `hidden sm:inline-flex`.
+        Теперь он есть и на телефоне; там прячется только иконка-подпись, сам
+        выбор остаётся (двухбуквенный код влезает в узкую шапку).{% endcomment %}
+        <form method="post" action="{% url 'set-cabinet-lang' %}" class="inline-flex items-center gap-1 text-gray-500" title="{% trans 'Cabinet language' %}">
           {% csrf_token %}
-          <span aria-hidden="true">🗣</span>
-          <select name="lang" onchange="this.form.submit()" aria-label="{% trans 'Cabinet language' %}" class="text-xs bg-white border border-gray-200 rounded-lg px-1.5 py-1 text-gray-600 cursor-pointer">
+          <span aria-hidden="true" class="hidden sm:inline">🗣</span>
+          <select name="lang" onchange="this.form.submit()" aria-label="{% trans 'Cabinet language' %}" class="text-xs bg-white border border-gray-200 rounded-lg px-1 sm:px-1.5 py-1 text-gray-600 cursor-pointer">
             {% for l in cabinet_langs %}<option value="{{ l.code }}"{% if l.code == cabinet_lang %} selected{% endif %}>{{ l.label }}</option>{% endfor %}
           </select>
         </form>

@@ -321,9 +321,10 @@ def order_edit(request, pk):
             products = {str(p.pk): p for p in Product.objects.all()} if raw else {}
             variants = {str(v.pk): v for v in ProductVariant.objects.all()} if raw else {}
             product, variant = _resolve_part(raw, products, variants)
+            svc_vat = None
             if product is None and raw.startswith("s:"):
                 # Услуга: FK нет, в заказ едет снимок названия/цены (как у сметы).
-                svc_title, svc_price = _service_snapshot(raw)
+                svc_title, svc_price, svc_vat = _service_snapshot(raw)
                 title = title or (svc_title or "")
                 price = price if price is not None else svc_price
             if product is None and (not title or price is None):
@@ -337,6 +338,7 @@ def order_edit(request, pk):
                     title=title,
                     unit_price=price,
                     tenant=tenant,
+                    vat_rate=svc_vat,
                 )
                 messages.success(request, _("Position hinzugefügt."))
         elif action == "discount":

@@ -8,6 +8,7 @@ public-схему и пути вне реестра не трогаем.
 """
 
 from django.http import Http404, HttpResponseForbidden
+from django.utils.translation import gettext as _
 
 from . import modules
 from .i18n_cabinet import CABINET_PREFIXES, resolve_cabinet_locale
@@ -107,9 +108,9 @@ class CabinetOwnerAccessMiddleware:
             and getattr(request.user, "is_authenticated", False)
         ):
             if not has_cabinet_access(request.user):
-                return HttpResponseForbidden("Kein Zugriff auf dieses Konto.")
+                return HttpResponseForbidden(_("Kein Zugriff auf dieses Konto."))
             if request.path.startswith(self._OWNER_ONLY) and not is_owner(request.user):
-                return HttpResponseForbidden("Nur für Inhaber.")
+                return HttpResponseForbidden(_("Nur für Inhaber."))
         return self.get_response(request)
 
 

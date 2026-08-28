@@ -277,6 +277,10 @@ class DemoKit:
     section_styles: dict = field(default_factory=dict)
     # MEN-24c: кап строк прайс-вида {section_key: N} (пока только products).
     section_rows: dict = field(default_factory=dict)
+    # Фидбэк 2026-08-27: раскладка секции-сетки {section_key: {"preset": "cols3",
+    # …}} — то же поле layout, что правит владелец в конструкторе (normalize
+    # клампит). Пусто → дефолт секции (GRID_SECTION_DEFAULTS).
+    section_layouts: dict = field(default_factory=dict)
     # ST-2: пресеты страниц page_presets [(host, preset_id), …] — info/cart.
     page_presets: list = field(default_factory=list)
     # Фидбэк 2026-08-26: C-блоки КОНКРЕТНОЙ страницы — {host: [(key, data), …]}.
@@ -1102,12 +1106,18 @@ PRANASY_MENUS = {
             {
                 # Подписи — msgid'ы хрома меню (_MENU_LABELS): переводятся на все
                 # пять локалей витрины из каталогов, свой label_i18n не нужен.
+                #
+                # Фидбэк владельца 2026-08-26: «убери пункт меню — меню и пакеты;
+                # оставить меню картинками по наборам и категориям, отправить
+                # запрос, наша работа». Поэтому тип `categories` (подменю плитками
+                # с фото) + `with_combos` — в тех же плитках стоят наборы меню.
                 "label": "Catering",
-                "type": "group",
+                "type": "categories",
+                "target": "catering",
+                "with_combos": True,
                 "children": [
-                    {"label": "Speisekarte", "type": "category", "target": "catering"},
-                    {"label": "Menüs & Pakete", "type": "page", "target": "combos"},
                     {"label": "Anfrage", "type": "archetype", "target": "jobs"},
+                    {"label": "Unsere Arbeit", "type": "page", "target": "gallery"},
                 ],
             },
             {
@@ -1150,7 +1160,9 @@ PRANASY_MENUS = {
         "items": [
             {"label": "Restaurant", "type": "category", "target": "restaurant", "icon": "🍔"},
             {"label": "Shop", "type": "category", "target": "shop", "icon": "🛒"},
-            {"label": "Catering", "type": "archetype", "target": "jobs", "icon": "🎉"},
+            # Фидбэк 2026-08-26: нижнее меню вело сразу на форму запроса —
+            # теперь на саму страницу кейтеринга (запрос доступен с неё).
+            {"label": "Catering", "type": "category", "target": "catering", "icon": "🎉"},
             {"label": "Retreats", "type": "archetype", "target": "events", "icon": "🧘"},
         ],
     },
@@ -1580,9 +1592,11 @@ PRANASY = DemoKit(
         "events": "Retreats bei Pranasy",
     },
     # Меню — плотная сетка; события — карточками (а не списком).
-    # Фидбэк 2026-08-26: сетка блюд по умолчанию — шесть столбцов (посетитель
-    # всё так же меняет плотность контролом «− N +», мобильный остаётся 2).
+    # Фидбэк владельца 2026-08-27 («категории по 3 в ряд, блюда по 6»): страница
+    # «Catering» — витрина карты, где направления (Suppen, Beilagen, Ragouts…)
+    # читаются крупными плитками, а сами блюда идут плотной сеткой под тулбаром.
     page_layouts={"catalog": "cols6", "events": "cols2"},
+    section_layouts={"categories": {"preset": "cols3"}},
     archetype_covers={
         "catalog": {
             "intro": "Unser Restaurant öffnet bald — die Karte ist schon da. Und im veganen "
@@ -3064,10 +3078,12 @@ HOTEL = DemoKit(
         (4, "Schöne Zimmer mit tollem Seeblick, sehr entspannt.", "hotel.klaus@example.de"),
     ],
     extras=[  # #7 доп-услуги к брони (per_night=True → за ночь)
-        ("Frühstücksbuffet", "12", "stays", True),
-        ("Parkplatz", "8", "stays", True),
-        ("Später Check-out (bis 14 Uhr)", "20", "stays", False),
-        ("Haustier", "15", "stays", False),
+        # Ставка 19 %: проживание льготное (7 %), а завтрак, парковка и прочие
+        # услуги — обычные (Aufteilungsgebot, § 12 Abs. 2 Nr. 11 UStG).
+        ("Frühstücksbuffet", "12", "stays", True, "19.00"),
+        ("Parkplatz", "8", "stays", True, "19.00"),
+        ("Später Check-out (bis 14 Uhr)", "20", "stays", False, "19.00"),
+        ("Haustier", "15", "stays", False, "19.00"),
     ],
     # HF-1: promotions у типа hotel только suited_for (по умолчанию выключен) —
     # включаем явно, иначе пункт меню «Angebote» и секция акций отпадают по гейту.
@@ -8474,10 +8490,12 @@ CATERING_MENUS = {
             # меню (MEN-13) переехали РУЧНЫМ первым ребёнком того же подменю —
             # отдельный пункт «Menüs» из строки шапки убран как дубль.
             {
+                # Фидбэк 2026-08-26: пункт «Menüs & Pakete» убран — наборы стоят
+                # плитками с фото В ТОМ ЖЕ подменю, рядом с категориями.
                 "label": "Speisekarte",
                 "type": "categories",
                 "target": "",
-                "children": [{"label": "Menüs & Pakete", "type": "page", "target": "combos"}],
+                "with_combos": True,
             },
             {"label": "Angebote", "type": "archetype", "target": "promotions"},
             {"label": "Galerie", "type": "page", "target": "gallery"},
@@ -10648,6 +10666,9 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
         rows_cap = kit.section_rows.get(s["key"])
         if rows_cap:
             s["rows"] = rows_cap  # MEN-24c: кап строк прайс-вида (normalize клампит)
+        lay = kit.section_layouts.get(s["key"])
+        if lay:
+            s["layout"] = dict(lay)  # фидбэк 2026-08-27: число колонок секции
         # DS-4b: тонированные полосы макета (visual чистит normalize) + принуди-
         # тельное выключение секций (контент кита жив — страницы ST-8 работают).
         vis = kit.section_visuals.get(s["key"])
@@ -11045,7 +11066,12 @@ def apply_kit(tenant, key: str) -> bool:
     if kit.extras:  # #7 универсальные доп-услуги (Extra)
         from apps.core.models import Extra
 
-        for sort, (label, price, scope, per_night) in enumerate(kit.extras):
+        for sort, spec in enumerate(kit.extras):
+            label, price, scope, per_night = spec[0], spec[1], spec[2], spec[3]
+            # VAT-3: 5-й элемент — своя ставка НДС допа (у отеля завтрак и
+            # парковка облагаются 19 %, хотя проживание 7 % — Aufteilungsgebot).
+            # Отсутствует → None = «как у сделки», прежнее поведение кита.
+            vat_rate = spec[4] if len(spec) > 4 else None
             Extra.objects.create(
                 label=label,
                 price_cents=int(Decimal(str(price)) * 100),
@@ -11053,6 +11079,7 @@ def apply_kit(tenant, key: str) -> bool:
                 per_night=per_night,
                 sort_order=sort,
                 is_active=True,
+                vat_rate=Decimal(str(vat_rate)) if vat_rate is not None else None,
             )
 
     # S3: обложки разделов — интро + hero-фото + галерея на архетип.

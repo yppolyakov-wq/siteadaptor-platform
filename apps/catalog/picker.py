@@ -7,6 +7,8 @@ QF-1 сделал пикер для сметы Handwerker; SH-2 (фидбэк в
 
 from decimal import Decimal
 
+from django.utils.translation import gettext as _
+
 
 def _catalog_parts(tenant=None, include_combos=False):
     """G11: активные позиции для пикера строки сметы (value/label + остаток).
@@ -27,14 +29,14 @@ def _catalog_parts(tenant=None, include_combos=False):
             for v in variants:
                 label = f"{p.name_text} · {v.label}"
                 if v.stock_quantity is not None:
-                    label += f" (Lager: {v.stock_quantity})"
+                    label += _(" (Lager: %(n)s)") % {"n": v.stock_quantity}
                 parts.append(
                     {"value": f"v:{v.pk}", "label": label, "price": v.price_value, "title": label}
                 )
         else:
             label = p.name_text
             if p.stock_quantity is not None:
-                label += f" (Lager: {p.stock_quantity})"
+                label += _(" (Lager: %(n)s)") % {"n": p.stock_quantity}
             parts.append(
                 {
                     "value": f"p:{p.pk}",
@@ -89,32 +91,34 @@ def _resolve_part(raw, products, variants):
 
 
 def _service_snapshot(raw):
-    """QF-1: (название, цена) выбранной услуги или (None, None).
+    """QF-1: (название, цена, ставка НДС) выбранной услуги или (None, None, None).
 
     У строки сметы нет FK на услугу (склад/леджер её не касаются) — в смету едет
     СНИМОК: правка каталога услуг не переписывает отправленную смету."""
     kind, _, pk = (raw or "").partition(":")
     if kind != "s" or not pk:
-        return None, None
+        return None, None, None
     from apps.booking.models import Service
 
     svc = Service.objects.filter(pk=pk, is_active=True).first()
     if svc is None:
-        return None, None
-    return str(svc), Decimal(svc.price_cents) / 100
+        return None, None, None
+    # VAT-2: ставка едет тем же снимком, что имя и цена — иначе услуга в смете и
+    # в заказе молча считалась бы по 19 %, даже если в её карточке стоит 7 %.
+    return str(svc), Decimal(svc.price_cents) / 100, svc.vat_rate
 
 
 def _combo_snapshot(raw):
-    """VF-9b: (название, цена) выбранного комбо или (None, None).
+    """VF-9b: (название, цена, ставка НДС) выбранного набора или (None, None, None).
 
     Как у услуги: FK на комбо у строки сметы нет (склад/леджер набора считает
     только заказ) — в смету едет СНИМОК имени и базовой цены."""
     kind, _, pk = (raw or "").partition(":")
     if kind != "k" or not pk:
-        return None, None
+        return None, None, None
     from apps.catalog.models import Combo
 
     combo = Combo.objects.filter(pk=pk, is_active=True).first()
     if combo is None:
-        return None, None
-    return str(combo), combo.price
+        return None, None, None
+    return str(combo), combo.price, getattr(combo, "vat_rate", None)

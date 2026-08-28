@@ -106,8 +106,27 @@ class EventForm(forms.ModelForm):
             "free_cancel_days",
         )
         labels = {
-            "cancellation": "Stornierung",
-            "free_cancel_days": "Kostenlose Stornierung bis (Tage vor Beginn)",
+            # I18N-13: без явной подписи Django печатает машинное имя поля
+            # («Starts at», «Is online») — оно не переводится ни на один язык.
+            "title": _("Title"),
+            "description": _("Description"),
+            "location": _("Location"),
+            "city": _("City"),
+            "latitude": _("Latitude"),
+            "longitude": _("Longitude"),
+            "is_online": _("Online"),
+            "online_url": _("Link"),
+            "starts_at": _("Starts at"),
+            "ends_at": _("Ends at"),
+            "capacity": _("Capacity"),
+            "require_manual_confirm": _("Manuell bestätigen"),
+            "offers_accommodation": _("Unterkunft anbieten"),
+            "accommodation_units": _("Unterkunft (Zimmertypen)"),
+            "teachers": _("Teachers"),
+            "waiver_required": _("Haftungserklärung nötig"),
+            "waiver_text": _("Text der Haftungserklärung"),
+            "cancellation": _("Stornierung"),
+            "free_cancel_days": _("Kostenlose Stornierung bis (Tage vor Beginn)"),
             "tour": _("Gehört zur Reise (optional)"),
         }
         widgets = {
@@ -117,7 +136,9 @@ class EventForm(forms.ModelForm):
             "ends_at": forms.DateTimeInput(
                 attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M"
             ),
-            "waiver_text": forms.Textarea(attrs={"rows": 4, "placeholder": "leer = Standardtext"}),
+            "waiver_text": forms.Textarea(
+                attrs={"rows": 4, "placeholder": _("leer = Standardtext")}
+            ),
             "description": forms.Textarea(attrs={"rows": 3}),
         }
 
@@ -284,3 +305,11 @@ class TeacherForm(forms.ModelForm):
         model = Teacher
         fields = ("name", "title", "bio", "photo_url", "website", "instagram", "is_active")
         widgets = {"bio": forms.Textarea(attrs={"rows": 4})}
+        labels = {
+            "name": _("Name"),
+            "title": _("Title"),
+            "bio": _("Bio"),
+            "photo_url": _("Foto-URL"),
+            "website": _("Website"),
+            "is_active": _("Active"),
+        }

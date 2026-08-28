@@ -758,12 +758,15 @@ def test_customer_request_is_a_body_block_on_the_job_card():
 
 
 def test_thread_block_lives_on_the_card_and_posts_back_to_it():
-    """DF-3: «написать клиенту должно просто ниже открываться тут же, чтобы не
-    переходить в другую страницу» — блок переписки в первой колонке, форма
-    возвращает на карточку (next), автообновление — существующим поллингом."""
+    """DF-3 + CARD-2: переписка открывается ТУТ ЖЕ, без перехода на другую
+    страницу, а форма возвращает на карточку (next).
+
+    Место переписки владелец уточнил 2026-08-26: «Nachrichten перенеси в правую
+    колонку под кнопку написать клиенту» — поэтому блок теперь в рейле, сразу за
+    карточкой клиента, а не в первой колонке (замок переписан осознанно)."""
     for kind, html in _cards():
         assert 'data-deal-block="thread"' in html, kind
-        assert html.index('data-deal-block="thread"') < html.index("data-deal-rail"), kind
+        assert html.index('data-deal-block="thread"') > html.index("data-deal-rail"), kind
         block = html[html.index('data-deal-block="thread"') :]
         block = block[: block.index("</section>")]
         assert 'name="next"' in block, kind  # остаёмся на карточке
@@ -892,3 +895,75 @@ def test_no_nested_forms_on_any_deal_card():
             assert depth <= 1, f"{kind}: вложенная форма"
             assert depth >= 0, f"{kind}: лишний </form>"
         assert depth == 0, f"{kind}: незакрытая форма"
+
+
+# --- DF-7: полная сверка с макетом ------------------------------------------
+
+
+def test_every_card_shows_the_mockup_columns():
+    """Макет (`docs/design/deal-card-2026-08-25/`) требует ОДИН набор колонок
+    состава на всех видах: Nr. · Position · MwSt. · Einzel · Menge · Summe.
+
+    У заказа колонки MwSt. не было вовсе — ставка снималась только в сводке."""
+    for kind, html in _cards():
+        items = html[html.index('data-deal-block="items"') :]
+        items = items[: items.index("</section>")]
+        # DG-3: шапка таблицы — общий партиал с классом .dl-head; берём именно
+        # её (раньше резали по первому </div>, а теперь у карточки своя шапка).
+        assert "dl-head" in items, f"{kind}: нет общей шапки состава"
+        head_start = items.index("dl-head")
+        head = items[head_start : items.index("</div>", head_start)]
+        # У сметы (job) ставка НДС одна на весь документ — своим полем внизу,
+        # поэтому колонки у неё нет и быть не должно; проверяем, что поле есть.
+        columns = ("Position", "Einzel", "Menge", "Summe")
+        if kind != "job":
+            columns = ("Position", "MwSt.", "Einzel", "Menge", "Summe")
+        else:
+            assert 'name="vat_rate"' in items, "смета без выбора ставки"
+        for column in columns:
+            assert column in head, f"{kind}: нет колонки {column}"
+        assert head.index("Einzel") < head.index("Menge") < head.index("Summe"), kind
+
+
+def test_money_is_formatted_the_same_way_everywhere():
+    """«4,9 EUR» — деньги без второго знака и с кодом валюты вместо символа.
+
+    Макет печатает «4,90 €». Ловим оба класса: обрезанную копейку и «EUR»."""
+    import re
+
+    for kind, html in _cards():
+        body = html[html.index("data-deal-card") :]
+        # Код валюты в суммах/позициях (в подписи поля ввода он допустим).
+        for block in ("items", "totals"):
+            marker = f'data-deal-block="{block}"'
+            if marker not in body:
+                continue
+            chunk = body[body.index(marker) :]
+            chunk = chunk[: chunk.index("</section>")]
+            assert " EUR" not in chunk, f"{kind}: код валюты вместо символа € в {block}"
+            # Суммы — всегда с двумя знаками: «12,5 €» или «12.5 €» недопустимы.
+            bad = re.findall(r"\d+[.,]\d\s*€", chunk)
+            assert not bad, f"{kind}: деньги без второго знака в {block}: {bad[:3]}"
+
+
+def test_order_totals_follow_the_mockup_order():
+    """Макет Hofladen: Zwischensumme → (Versand) → Rabatt → Netto → MwSt. →
+    Gesamt. У заказа своего блока сумм больше нет — он общий."""
+    from apps.orders import views as order_views
+
+    tenant = _tenant("retail")
+    order = _order()
+    order.discount_cents = 300
+    order.fulfillment = order.FULFILLMENT_DELIVERY
+    order.shipping_cents = 490
+    order.save(update_fields=["discount_cents", "fulfillment", "shipping_cents", "updated_at"])
+    html = order_views.order_detail(_req(tenant=tenant), order.pk).content.decode()
+    totals = html[html.index('data-deal-block="totals"') :]
+    totals = totals[: totals.index("</section>")]
+    order_of = [
+        totals.index(word)
+        for word in ("Zwischensumme", "Versand", "Rabatt", "Netto", "MwSt.", "Gesamt")
+        if word in totals
+    ]
+    assert order_of == sorted(order_of), "порядок строк сумм разошёлся с макетом"
+    assert "4,90 €" in totals  # доставка: две цифры после запятой и символ €

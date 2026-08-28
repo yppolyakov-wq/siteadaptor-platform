@@ -68,10 +68,12 @@
   var D = JSON.parse(document.getElementById("builder-data").textContent);
   var M = D.menus;
   var T = {
-    archetype: "Bereich", category: "Kategorie", promo_group: "Aktionsgruppe",
-    page: "Seite", url: "Link (URL)", anchor: "Sprungmarke", group: "Nur Untermenü",
+    archetype: "{% trans "Bereich" %}", category: "{% trans "Kategorie" %}",
+    promo_group: "{% trans "Aktionsgruppe" %}", page: "{% trans "Seite" %}",
+    url: "{% trans "Link (URL)" %}", anchor: "{% trans "Sprungmarke" %}",
+    group: "{% trans "Nur Untermenü" %}",
     // MEN-15: авто-подменю категорий каталога (список НЕ ведётся руками).
-    categories: "Kategorien (automatisch)"
+    categories: "{% trans "Kategorien (automatisch)" %}"
   };
   var elTop = document.getElementById("top-items");
   var elBottom = document.getElementById("bottom-items");

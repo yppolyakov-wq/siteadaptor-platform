@@ -20067,7 +20067,7 @@ msgid "Vorkasse"
 msgstr ""
 
 msgid "You enter data per language"
-msgstr ""
+msgstr "Sie geben die Daten je Sprache ein"
 
 msgid "Struktur"
 msgstr "Struktur"
@@ -20332,4 +20332,722 @@ msgstr ""
 
 #: templates/core/_deal_totals.html
 msgid "Netto"
+msgstr ""
+
+#: templates/core/_deal_vat_rows.html
+msgid "zzgl. %(rate)s %% MwSt."
+msgstr ""
+
+#: templates/core/_deal_discount.html
+msgid "wirkt auf"
+msgstr ""
+
+#: templates/core/_deal_discount.html
+msgid "Anwenden"
+msgstr ""
+
+#: templates/core/_deal_discount.html
+msgid "Gesamt (brutto)"
+msgstr ""
+
+msgid "Speisen meist 7 %, Getränke 19 %."
+msgstr ""
+
+msgid "Frühstück und Parkplatz sind 19 %, auch wenn die Übernachtung 7 % hat."
+msgstr ""
+
+msgid "wie die Buchung"
+msgstr ""
+
+msgid "Einzelne Gerichte"
+msgstr ""
+
+msgid "Unsere Arbeit"
+msgstr ""
+
+msgid "Kauf oder Anfrage"
+msgstr ""
+
+msgid "Manuell bestätigen"
+msgstr ""
+
+msgid "Unterkunft anbieten"
+msgstr ""
+
+msgid "Unterkunft (Zimmertypen)"
+msgstr ""
+
+msgid "Haftungserklärung nötig"
+msgstr ""
+
+msgid "Text der Haftungserklärung"
+msgstr ""
+
+msgid "Kostenlose Stornierung bis (Tage vor Beginn)"
+msgstr ""
+
+msgid "Foto-URL"
+msgstr ""
+
+msgid "Art der Aktion"
+msgstr ""
+
+msgid "Verfügbare Menge"
+msgstr ""
+
+msgid "Max. pro Kunde"
+msgstr ""
+
+msgid "Reservierung gültig (Stunden)"
+msgstr ""
+
+msgid "Automatisch bestätigen"
+msgstr ""
+
+msgid "Karten-Link"
+msgstr ""
+
+msgid "Einzugsgebiet (PLZ)"
+msgstr ""
+
+msgid "Hinweis zum Einzugsgebiet"
+msgstr ""
+
+msgid "Land"
+msgstr ""
+
+msgid "Geburtsdatum"
+msgstr ""
+
+msgid "Notfallkontakt (Name & Telefon)"
+msgstr ""
+
+msgid "Erfahrungslevel"
+msgstr ""
+
+msgid "Allergien / Unverträglichkeiten"
+msgstr ""
+
+msgid "Gesundheitliche Hinweise"
+msgstr ""
+
+msgid "Führerscheinklasse"
+msgstr ""
+
+msgid "Fahrpraxis"
+msgstr ""
+
+msgid "Körpergröße (cm)"
+msgstr ""
+
+msgid "Eigenes Motorrad oder Mietmaschine"
+msgstr ""
+
+msgid "Nur .csv, .xlsx oder .xlsm werden unterstützt."
+msgstr ""
+
+msgid "Datei zu groß (max. 10 MB)."
+msgstr ""
+
+msgid "leer = Standardtext"
+msgstr ""
+
+msgid "Rechnung"
+msgstr ""
+
+msgid "Yoga | Sanfte Praxis morgens & abends"
+msgstr ""
+
+msgid "Für Anfänger geeignet? | Ja, alle Level willkommen."
+msgstr ""
+
+msgid "Übergeordnete Kategorie"
+msgstr ""
+
+msgid "Symbol"
+msgstr ""
+
+msgid "Nur Text"
+msgstr ""
+
+msgid "Text + Bild"
+msgstr ""
+
+msgid "Unsere Geschichte"
+msgstr ""
+
+msgid "Team & Werte"
+msgstr ""
+
+msgid "Schlicht"
+msgstr ""
+
+msgid "Mit Empfehlungen"
+msgstr ""
+
+msgid "Vertrauen & Hinweise"
+msgstr ""
+
+msgid "2 Spalten"
+msgstr ""
+
+msgid "3 Spalten"
+msgstr ""
+
+msgid "4 Spalten"
+msgstr ""
+
+msgid "Klar"
+msgstr ""
+
+msgid "Weich"
+msgstr ""
+
+msgid "ohne Rahmen, viel Weißraum"
+msgstr ""
+
+msgid "runde Ecken, leichter Schatten"
+msgstr ""
+
+msgid "Kachel mit Fläche und Innenabstand"
+msgstr ""
+
+msgid "FAQ anzeigen"
+msgstr ""
+
+msgid "Der FAQ-Block der Startseite — auch auf dieser Seite"
+msgstr ""
+
+msgid "Team anzeigen"
+msgstr ""
+
+msgid "Der Team-Block der Startseite — auch auf dieser Seite"
+msgstr ""
+
+msgid "Galerie anzeigen"
+msgstr ""
+
+msgid "Die Galerie der Startseite — auch auf dieser Seite"
+msgstr ""
+
+msgid "Stimmen anzeigen"
+msgstr ""
+
+msgid "Kundenstimmen der Startseite — auch auf dieser Seite"
+msgstr ""
+
+msgid "Angebot-Anfrage direkt auf dieser Seite (Modul Aufträge)"
+msgstr ""
+
+msgid "Kontaktformular"
+msgstr ""
+
+msgid "Frage-stellen-Formular direkt auf dieser Seite (Modul Nachrichten)"
+msgstr ""
+
+msgid "Nur durchgestrichener Preis"
+msgstr ""
+
+msgid "Nur neuer Preis (Festpreis)"
+msgstr ""
+
+msgid "Ab-Preis („ab 7,50 €“)"
+msgstr ""
+
+msgid "Überraschung im Fokus"
+msgstr ""
+
+msgid "Mystery — Preis bis Klick versteckt"
+msgstr ""
+
+msgid "Täglich"
+msgstr ""
+
+msgid "Wöchentlich"
+msgstr ""
+
+msgid "Rabatt-Aktion"
+msgstr ""
+
+msgid "Feierabend-Tüte 🌱"
+msgstr ""
+
+msgid "Angebot der Woche"
+msgstr ""
+
+msgid "Grillpaket vorbestellen"
+msgstr ""
+
+msgid "Wochenangebot"
+msgstr ""
+
+msgid "MHD-Rabatt 🌱"
+msgstr ""
+
+msgid "Mittagstisch"
+msgstr ""
+
+msgid "Happy Hour"
+msgstr ""
+
+msgid "Schlussverkauf"
+msgstr ""
+
+msgid "Frühbucher-Rabatt"
+msgstr ""
+
+msgid "Saison-Angebot"
+msgstr ""
+
+msgid "Sale-Aktion"
+msgstr ""
+
+msgid "Neu im Shop"
+msgstr ""
+
+msgid "Sonderangebot"
+msgstr ""
+
+msgid "Last-Minute-Angebot"
+msgstr ""
+
+msgid "Neukunden-Rabatt"
+msgstr ""
+
+msgid "Saison-Check-Aktion"
+msgstr ""
+
+msgid "Saison-Aktion"
+msgstr ""
+
+msgid "Frühbucher-Ticket"
+msgstr ""
+
+msgid "Klassischer Laden"
+msgstr ""
+
+msgid "Startbanner, aktuelle Angebote, Produkte, Über uns, Kontakt — der Allrounder für den Einzelhandel."
+msgstr ""
+
+msgid "Café & Restaurant"
+msgstr ""
+
+msgid "Speisen und Angebote im Fokus, Öffnungszeiten prominent — für die Gastronomie."
+msgstr ""
+
+msgid "Dienstleister & Termine"
+msgstr ""
+
+msgid "Vorstellung und Kontakt im Vordergrund — für Termin-Geschäfte (Friseur, Studio, Beratung)."
+msgstr ""
+
+msgid "Übernachtung & Gastgeber"
+msgstr ""
+
+msgid "Verfügbarkeit, Zimmer, Lage und Kontakt — für Pension, Ferienwohnung oder kleines Hotel."
+msgstr ""
+
+msgid "Termine & Leistungen"
+msgstr ""
+
+msgid "Leistungen mit Preisen und Online-Termin im Fokus — für Friseur, Werkstatt und Studios."
+msgstr ""
+
+msgid "Handwerk & Angebote"
+msgstr ""
+
+msgid "Referenzen, Ablauf und unverbindliches Angebot — für Meisterbetrieb, Sanierung und Montage."
+msgstr ""
+
+msgid "Catering & Partyservice"
+msgstr ""
+
+msgid "Anfrage, Angebot und Event-Planung — für Catering, Partyservice und Foodtrucks."
+msgstr ""
+
+msgid "Kommende Termine und Tickets im Fokus — für Veranstalter, Guides und Studios."
+msgstr ""
+
+msgid "Minimal / Visitenkarte"
+msgstr ""
+
+msgid "Schlichte Eine-Seite-Visitenkarte: Banner und Kontakt. Für alle, die es einfach mögen."
+msgstr ""
+
+msgid "Hell und aufgeräumt — klare Flächen, ruhige Typografie."
+msgstr ""
+
+msgid "Warm"
+msgstr ""
+
+msgid "Serif-Überschriften, weiche Karten — einladend und persönlich."
+msgstr ""
+
+msgid "Nacht"
+msgstr ""
+
+msgid "Dunkler Auftritt mit kräftigen Überschriften — modern und markant."
+msgstr ""
+
+msgid "Fein"
+msgstr ""
+
+msgid "Elegante Serif-Überschriften auf Creme — edel und ruhig."
+msgstr ""
+
+msgid "Natur"
+msgstr ""
+
+msgid "Runde Formen und warme Erdtöne — freundlich und bodenständig."
+msgstr ""
+
+msgid "Fokus"
+msgstr ""
+
+msgid "Ein Hauptziel pro Bildschirm: Split-Banner, Preisliste, Anfrage direkt auf der Startseite."
+msgstr ""
+
+msgid "Ein Hauptziel pro Bildschirm: Split-Banner mit Datumssuche, Zimmer direkt darunter, kompaktes Vertrauensband."
+msgstr ""
+
+msgid "Ein Hauptziel pro Bildschirm: Split-Banner, klassische Speisekarte, Tisch-Reservierung immer sichtbar."
+msgstr ""
+
+msgid "Ein Hauptziel pro Bildschirm: Split-Banner, kompakte Karte auf der Startseite, Speisekarte mit Fotos."
+msgstr ""
+
+msgid "Ein Hauptziel pro Bildschirm: Split-Banner, Sortiment-Kacheln und Preisliste mit Fotos."
+msgstr ""
+
+msgid "Ein Hauptziel pro Bildschirm: Theken-Sortiment mit Fotos und Partyservice-Anfrage direkt auf der Startseite."
+msgstr ""
+
+msgid "Ein Hauptziel pro Bildschirm: Leistungen mit Preisen im Banner, Team und Termin-Buchung immer sichtbar."
+msgstr ""
+
+msgid "Ein Hauptziel pro Bildschirm: Festpreis-Leistungen, klarer Ablauf und Kostenvoranschlag-Anfrage."
+msgstr ""
+
+msgid "Ein Hauptziel pro Bildschirm: Referenzen vorher/nachher, klarer Ablauf und Angebots-Anfrage."
+msgstr ""
+
+msgid "Ein Hauptziel pro Bildschirm: aktuelle Angebote ganz oben, Sortiment-Kacheln darunter."
+msgstr ""
+
+msgid "Ein Hauptziel pro Bildschirm: Sortiment-Kacheln, Produkte als Karten und Versand-Vorteile auf einen Blick."
+msgstr ""
+
+msgid "Ein Hauptziel pro Bildschirm: große Bilder, Kollektionen als Kacheln und Lookbook-Galerie."
+msgstr ""
+
+msgid "Ein Hauptziel pro Bildschirm: kommende Termine als Programm, Ablauf und Stimmen der Gäste."
+msgstr ""
+
+msgid "Ein Hauptziel pro Bildschirm: Reisen mit Bildern, Termine und Anfrage für die eigene Gruppe."
+msgstr ""
+
+msgid " (Lager: %(n)s)"
+msgstr ""
+
+msgid "Nur aktive Menü-Sets erscheinen im Verzeichnis und können beworben werden. Aktivieren Sie das Set zuerst."
+msgstr ""
+
+msgid "Nur aktive Menü-Sets können beworben werden."
+msgstr ""
+
+msgid "Kein Zugriff auf dieses Konto."
+msgstr ""
+
+msgid "Nur für Inhaber."
+msgstr ""
+
+msgid "Angebot · %(who)s"
+msgstr ""
+
+msgid "z. B. Roggenbrot"
+msgstr ""
+
+msgid "z. B. Haarschnitt"
+msgstr ""
+
+msgid "z. B. Doppelzimmer"
+msgstr ""
+
+msgid "z. B. Sommerkonzert"
+msgstr ""
+
+msgid "Nur http/https-URLs sind erlaubt."
+msgstr ""
+
+msgid "Ungültige URL."
+msgstr ""
+
+msgid "Host konnte nicht aufgelöst werden."
+msgstr ""
+
+msgid "Interne Adresse (%(ip)s) ist nicht erlaubt."
+msgstr ""
+
+msgid "Antwort zu groß."
+msgstr ""
+
+msgid "Nur veröffentlichte, kommende Veranstaltungen erscheinen im Verzeichnis und können beworben werden."
+msgstr ""
+
+msgid "Nur veröffentlichte, kommende Veranstaltungen können beworben werden."
+msgstr ""
+
+msgid "Rückrufbitte"
+msgstr ""
+
+msgid "%(label)s [Art.-Nr. %(sku)s]"
+msgstr ""
+
+msgid "Aktion −%(pct)s%% · %(title)s"
+msgstr ""
+
+msgid "%(code)s: ausgegeben ✓ (Auto)"
+msgstr ""
+
+msgid "Stempel +1 (%(n)s/%(total)s)"
+msgstr ""
+
+msgid " — Belohnung: %(label)s [%(code)s]"
+msgstr ""
+
+msgid "Kampagne an %(n)s Empfänger gesendet."
+msgstr ""
+
+msgid "Newsletter an %(n)s Empfänger gesendet."
+msgstr ""
+
+msgid "Nur aktive Unterkünfte erscheinen im Verzeichnis und können beworben werden. Aktivieren Sie die Unterkunft zuerst."
+msgstr ""
+
+msgid "Nur aktive Unterkünfte können beworben werden."
+msgstr ""
+
+msgid "Ungültiger Domainname."
+msgstr ""
+
+msgid "Bitte eine Domain angeben, keine IP-Adresse."
+msgstr ""
+
+msgid "Subdomains von %(base)s werden automatisch vergeben."
+msgstr ""
+
+msgid "Diese Domain ist bereits vergeben."
+msgstr ""
+
+msgid "Diese Domain wurde bereits hinzugefügt."
+msgstr ""
+
+msgid "Server nicht konfiguriert. Bitte Support kontaktieren."
+msgstr ""
+
+msgid "Domain löst noch nicht auf (DNS kann bis 24 h dauern)."
+msgstr ""
+
+msgid "Domain zeigt auf %(ips)s, erwartet %(target)s."
+msgstr ""
+
+msgid "USt."
+msgstr ""
+
+msgid "Rechnung stellen"
+msgstr ""
+
+msgid "Entwurf löschen"
+msgstr ""
+
+msgid "Neue Rechnung (Entwurf)"
+msgstr ""
+
+msgid "Empfänger (Name, Adresse)"
+msgstr ""
+
+msgid "Leer lassen bei Firmenkunden — die Rechnungsdaten der Firma werden automatisch übernommen."
+msgstr ""
+
+msgid "(Preis netto)"
+msgstr ""
+
+msgid "€/Nacht"
+msgstr ""
+
+msgid "Button — klicken zum Bearbeiten"
+msgstr ""
+
+msgid "Bild — klicken zum Hinzufügen"
+msgstr ""
+
+msgid "Bild + Text — klicken zum Bearbeiten"
+msgstr ""
+
+msgid "Aktion wählen — klicken zum Bearbeiten"
+msgstr ""
+
+msgid "Zahlen-Block — klicken zum Bearbeiten"
+msgstr ""
+
+msgid "Textblock — klicken zum Bearbeiten"
+msgstr ""
+
+msgid "Block einfügen"
+msgstr ""
+
+msgid "Aktionsgruppe"
+msgstr ""
+
+msgid "Link (URL)"
+msgstr ""
+
+msgid "Sprungmarke"
+msgstr ""
+
+msgid "Nur Untermenü"
+msgstr ""
+
+msgid "Kategorien (automatisch)"
+msgstr ""
+
+msgid "Neuigkeiten vom Guide & Gruppen-Chat"
+msgstr ""
+
+msgid "Reisegruppen"
+msgstr ""
+
+msgid "Angebote & Aufträge"
+msgstr ""
+
+msgid "Rechnung Nr. %(n)s"
+msgstr ""
+
+msgid "Bonuskarten"
+msgstr ""
+
+msgid "Ihrem Shop"
+msgstr ""
+
+msgid "Ihr Anmelde-Link – %(shop)s"
+msgstr ""
+
+msgid "Guten Tag,\n\nmit diesem Link melden Sie sich bei %(shop)s an: %(url)s\n\nDer Link ist 15 Minuten gültig und kann nur einmal verwendet werden.\nFalls Sie keine Anmeldung angefordert haben, ignorieren Sie diese E-Mail."
+msgstr ""
+
+msgid "Ihr Anmelde-Link"
+msgstr ""
+
+msgid "Guten Tag,\n\nmit diesem Link melden Sie sich an: %(url)s\n\nDer Link ist 15 Minuten gültig und kann nur einmal verwendet werden.\nFalls Sie keine Anmeldung angefordert haben, ignorieren Sie diese E-Mail."
+msgstr ""
+
+msgid "heute"
+msgstr ""
+
+msgid "in %(n)s Tagen"
+msgstr ""
+
+msgid "Ihre Testphase endet bald"
+msgstr ""
+
+msgid "Ihre Testphase endet %(when)s. Aktivieren Sie Ihr Abo, um ohne Unterbrechung weiterzuarbeiten."
+msgstr ""
+
+msgid "Video-Termin %(when)s — %(service)s"
+msgstr ""
+
+msgid "Ihre Mehrfachkarte %(code)s"
+msgstr ""
+
+msgid "Hallo %(name)s,\n\nvielen Dank! Ihre %(label)s ist aktiv.\nCode: %(code)s — %(credits)s Besuche.\nGeben Sie den Code bei der Online-Buchung an.\n"
+msgstr ""
+
+msgid "Kein passender Code — bitte den Code aus dem Dashboard verwenden."
+msgstr ""
+
+msgid "Diese Reisegruppe ist bereits mit einer anderen Telegram-Gruppe verbunden."
+msgstr ""
+
+msgid "✅ Verbunden mit «%(title)s». Beiträge laufen ab jetzt in beide Richtungen."
+msgstr ""
+
+msgid "Ihr Gutscheincode: %(code)s (%(amount)s €)"
+msgstr ""
+
+msgid "Ihr Geschenkgutschein"
+msgstr ""
+
+msgid "📄 Angebot über %(total)s %(cur)s gesendet"
+msgstr ""
+
+msgid " (gültig bis %(date)s)"
+msgstr ""
+
+msgid "✅ Angebot angenommen — Bestellung %(code)s"
+msgstr ""
+
+msgid "❌ Angebot abgelehnt"
+msgstr ""
+
+msgid "Angebot zurückgezogen"
+msgstr ""
+
+msgid "Rabatt für Kunden (Stripe-Coupon)"
+msgstr ""
+
+msgid "Bitte bestätigen Sie Ihre Anmeldung zum Newsletter:\n\n%(link)s\n\nWenn Sie sich nicht angemeldet haben, ignorieren Sie diese E-Mail."
+msgstr ""
+
+msgid "Bitte bestätigen Sie Ihre Newsletter-Anmeldung"
+msgstr ""
+
+msgid "Link abgelaufen"
+msgstr ""
+
+msgid "Diese Vorschau-Ansicht ist abgelaufen oder wurde nicht gefunden. Bitten Sie den Absender um einen neuen Link."
+msgstr ""
+
+msgid "Instagram benötigt ein Bild für die Aktion"
+msgstr ""
+
+msgid "Pinterest benötigt ein Bild für die Aktion"
+msgstr ""
+
+msgid "Lücken-Deal −%(pct)s%%"
+msgstr ""
+
+msgid "−%(pct)s%% ab %(n)s Nächten"
+msgstr ""
+
+msgid "Frühbucher −%(pct)s%%"
+msgstr ""
+
+msgid "Übernachtung %(unit)s: %(nights)s Nächte (%(from)s–%(to)s)"
+msgstr ""
+
+msgid "Kurtaxe (ohne USt.)"
+msgstr ""
+
+msgid "Ihre Website ist bereit — %(name)s"
+msgstr ""
+
+msgid "Hallo,\n\nIhre Website für „%(name)s“ ist fertig eingerichtet!\n\nHier anmelden: %(url)s\nBenutzername: %(email)s\n\nViel Erfolg!\nIhr siteadaptor-Team"
+msgstr ""
+
+msgid "Ich bin gerade auf Ihrer Website — können Sie mir kurz per Video helfen?"
+msgstr ""
+
+msgid "★ Anzeige"
+msgstr ""
+
+msgid "Monat"
+msgstr ""
+
+msgid "Widerruf online erklären"
+msgstr ""
+
+msgid "Ihr persönlicher Code: %(code)s"
+msgstr ""
+
+msgid "Last-Minute −%(pct)s%%"
 msgstr ""

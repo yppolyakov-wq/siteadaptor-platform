@@ -20407,3 +20407,722 @@ msgstr "Проміжний підсумок"
 #: templates/core/_deal_totals.html
 msgid "Netto"
 msgstr "Сума без ПДВ"
+
+#: templates/core/_deal_vat_rows.html
+msgid "zzgl. %(rate)s %% MwSt."
+msgstr "плюс ПДВ %(rate)s %%"
+
+#: templates/core/_deal_discount.html
+msgid "wirkt auf"
+msgstr "діє на"
+
+#: templates/core/_deal_discount.html
+msgid "Anwenden"
+msgstr "Застосувати"
+
+#: templates/core/_deal_discount.html
+msgid "Gesamt (brutto)"
+msgstr "Разом (з ПДВ)"
+
+msgid "Speisen meist 7 %, Getränke 19 %."
+msgstr "Їжа зазвичай 7 %, напої 19 %."
+
+msgid "Frühstück und Parkplatz sind 19 %, auch wenn die Übernachtung 7 % hat."
+msgstr ""
+"Сніданок і парковка — 19 %, навіть якщо проживання оподатковується 7 %."
+
+msgid "wie die Buchung"
+msgstr "як у броні"
+
+msgid "Einzelne Gerichte"
+msgstr "Окремі страви"
+
+msgid "Unsere Arbeit"
+msgstr "Наша робота"
+
+msgid "Kauf oder Anfrage"
+msgstr "Купівля або запит"
+
+msgid "Manuell bestätigen"
+msgstr "Підтверджувати вручну"
+
+msgid "Unterkunft anbieten"
+msgstr "Пропонувати проживання"
+
+msgid "Unterkunft (Zimmertypen)"
+msgstr "Проживання (типи номерів)"
+
+msgid "Haftungserklärung nötig"
+msgstr "Потрібна відмова від претензій"
+
+msgid "Text der Haftungserklärung"
+msgstr "Текст відмови від претензій"
+
+msgid "Kostenlose Stornierung bis (Tage vor Beginn)"
+msgstr "Безкоштовне скасування за (днів до початку)"
+
+msgid "Foto-URL"
+msgstr "Посилання на фото"
+
+msgid "Art der Aktion"
+msgstr "Тип акції"
+
+msgid "Verfügbare Menge"
+msgstr "Доступна кількість"
+
+msgid "Max. pro Kunde"
+msgstr "Макс. на клієнта"
+
+msgid "Reservierung gültig (Stunden)"
+msgstr "Бронь діє (годин)"
+
+msgid "Automatisch bestätigen"
+msgstr "Підтверджувати автоматично"
+
+msgid "Karten-Link"
+msgstr "Посилання на карту"
+
+msgid "Einzugsgebiet (PLZ)"
+msgstr "Зона обслуговування (індекси)"
+
+msgid "Hinweis zum Einzugsgebiet"
+msgstr "Примітка до зони обслуговування"
+
+msgid "Land"
+msgstr "Країна"
+
+msgid "Geburtsdatum"
+msgstr "Дата народження"
+
+msgid "Notfallkontakt (Name & Telefon)"
+msgstr "Екстрений контакт (ім'я та телефон)"
+
+msgid "Erfahrungslevel"
+msgstr "Рівень досвіду"
+
+msgid "Allergien / Unverträglichkeiten"
+msgstr "Алергії / непереносимість"
+
+msgid "Gesundheitliche Hinweise"
+msgstr "Особливості здоров'я"
+
+msgid "Führerscheinklasse"
+msgstr "Категорія водійських прав"
+
+msgid "Fahrpraxis"
+msgstr "Досвід водіння"
+
+msgid "Körpergröße (cm)"
+msgstr "Зріст (см)"
+
+msgid "Eigenes Motorrad oder Mietmaschine"
+msgstr "Власний мотоцикл або оренда"
+
+msgid "Nur .csv, .xlsx oder .xlsm werden unterstützt."
+msgstr "Підтримуються лише .csv, .xlsx або .xlsm."
+
+msgid "Datei zu groß (max. 10 MB)."
+msgstr "Файл завеликий (макс. 10 МБ)."
+
+msgid "leer = Standardtext"
+msgstr "порожньо = стандартний текст"
+
+msgid "Rechnung"
+msgstr "Рахунок"
+
+msgid "Yoga | Sanfte Praxis morgens & abends"
+msgstr "Йога | М'яка практика вранці та ввечері"
+
+msgid "Für Anfänger geeignet? | Ja, alle Level willkommen."
+msgstr "Підходить новачкам? | Так, чекаємо будь-який рівень."
+
+msgid "Übergeordnete Kategorie"
+msgstr "Батьківська категорія"
+
+msgid "Symbol"
+msgstr "Значок"
+
+msgid "Nur Text"
+msgstr "Лише текст"
+
+msgid "Text + Bild"
+msgstr "Текст + фото"
+
+msgid "Unsere Geschichte"
+msgstr "Наша історія"
+
+msgid "Team & Werte"
+msgstr "Команда та цінності"
+
+msgid "Schlicht"
+msgstr "Просто"
+
+msgid "Mit Empfehlungen"
+msgstr "З рекомендаціями"
+
+msgid "Vertrauen & Hinweise"
+msgstr "Довіра та примітки"
+
+msgid "2 Spalten"
+msgstr "2 колонки"
+
+msgid "3 Spalten"
+msgstr "3 колонки"
+
+msgid "4 Spalten"
+msgstr "4 колонки"
+
+msgid "Klar"
+msgstr "Чистий"
+
+msgid "Weich"
+msgstr "М'який"
+
+msgid "ohne Rahmen, viel Weißraum"
+msgstr "без рамок, багато повітря"
+
+msgid "runde Ecken, leichter Schatten"
+msgstr "заокруглені кути, легка тінь"
+
+msgid "Kachel mit Fläche und Innenabstand"
+msgstr "плитка із заливкою та внутрішніми відступами"
+
+msgid "FAQ anzeigen"
+msgstr "Показати FAQ"
+
+msgid "Der FAQ-Block der Startseite — auch auf dieser Seite"
+msgstr "Блок FAQ з головної — і на цій сторінці"
+
+msgid "Team anzeigen"
+msgstr "Показати команду"
+
+msgid "Der Team-Block der Startseite — auch auf dieser Seite"
+msgstr "Блок команди з головної — і на цій сторінці"
+
+msgid "Galerie anzeigen"
+msgstr "Показати галерею"
+
+msgid "Die Galerie der Startseite — auch auf dieser Seite"
+msgstr "Галерея з головної — і на цій сторінці"
+
+msgid "Stimmen anzeigen"
+msgstr "Показати відгуки"
+
+msgid "Kundenstimmen der Startseite — auch auf dieser Seite"
+msgstr "Відгуки клієнтів з головної — і на цій сторінці"
+
+msgid "Angebot-Anfrage direkt auf dieser Seite (Modul Aufträge)"
+msgstr "Запит кошторису просто на цій сторінці (модуль «Заявки»)"
+
+msgid "Kontaktformular"
+msgstr "Форма зворотного зв'язку"
+
+msgid "Frage-stellen-Formular direkt auf dieser Seite (Modul Nachrichten)"
+msgstr "Форма запитання просто на цій сторінці (модуль «Повідомлення»)"
+
+msgid "Nur durchgestrichener Preis"
+msgstr "Лише закреслена ціна"
+
+msgid "Nur neuer Preis (Festpreis)"
+msgstr "Лише нова ціна (фіксована)"
+
+msgid "Ab-Preis („ab 7,50 €“)"
+msgstr "Ціна «від» («від 7,50 €»)"
+
+msgid "Überraschung im Fokus"
+msgstr "Акцент на сюрпризі"
+
+msgid "Mystery — Preis bis Klick versteckt"
+msgstr "Mystery — ціна прихована до кліку"
+
+msgid "Täglich"
+msgstr "Щодня"
+
+msgid "Wöchentlich"
+msgstr "Щотижня"
+
+msgid "Rabatt-Aktion"
+msgstr "Акція зі знижкою"
+
+msgid "Feierabend-Tüte 🌱"
+msgstr "Вечірній пакунок 🌱"
+
+msgid "Angebot der Woche"
+msgstr "Пропозиція тижня"
+
+msgid "Grillpaket vorbestellen"
+msgstr "Передзамовлення гриль-набору"
+
+msgid "Wochenangebot"
+msgstr "Тижнева пропозиція"
+
+msgid "MHD-Rabatt 🌱"
+msgstr "Знижка за терміном придатності 🌱"
+
+msgid "Mittagstisch"
+msgstr "Бізнес-ланч"
+
+msgid "Happy Hour"
+msgstr "Щаслива година"
+
+msgid "Schlussverkauf"
+msgstr "Розпродаж"
+
+msgid "Frühbucher-Rabatt"
+msgstr "Знижка за раннє бронювання"
+
+msgid "Saison-Angebot"
+msgstr "Сезонна пропозиція"
+
+msgid "Sale-Aktion"
+msgstr "Розпродаж (Sale)"
+
+msgid "Neu im Shop"
+msgstr "Новинки магазину"
+
+msgid "Sonderangebot"
+msgstr "Спецпропозиція"
+
+msgid "Last-Minute-Angebot"
+msgstr "Пропозиція last minute"
+
+msgid "Neukunden-Rabatt"
+msgstr "Знижка новим клієнтам"
+
+msgid "Saison-Check-Aktion"
+msgstr "Акція «сезонний чек-ап»"
+
+msgid "Saison-Aktion"
+msgstr "Сезонна акція"
+
+msgid "Frühbucher-Ticket"
+msgstr "Квиток раннього бронювання"
+
+msgid "Klassischer Laden"
+msgstr "Класичний магазин"
+
+msgid "Startbanner, aktuelle Angebote, Produkte, Über uns, Kontakt — der Allrounder für den Einzelhandel."
+msgstr "Банер, актуальні акції, товари, «Про нас», контакти — універсальний варіант для роздрібу."
+
+msgid "Café & Restaurant"
+msgstr "Кафе та ресторан"
+
+msgid "Speisen und Angebote im Fokus, Öffnungszeiten prominent — für die Gastronomie."
+msgstr "Акцент на стравах і акціях, години роботи на видному місці — для закладів харчування."
+
+msgid "Dienstleister & Termine"
+msgstr "Послуги та запис"
+
+msgid "Vorstellung und Kontakt im Vordergrund — für Termin-Geschäfte (Friseur, Studio, Beratung)."
+msgstr "На першому плані — розповідь про себе та контакти; для бізнесу за записом (салон, студія, консультації)."
+
+msgid "Übernachtung & Gastgeber"
+msgstr "Проживання та гостинність"
+
+msgid "Verfügbarkeit, Zimmer, Lage und Kontakt — für Pension, Ferienwohnung oder kleines Hotel."
+msgstr "Наявність місць, номери, розташування та контакти — для пансіону, апартаментів або невеликого готелю."
+
+msgid "Termine & Leistungen"
+msgstr "Запис та послуги"
+
+msgid "Leistungen mit Preisen und Online-Termin im Fokus — für Friseur, Werkstatt und Studios."
+msgstr "Акцент на послугах із цінами та онлайн-записі — для салонів, майстерень і студій."
+
+msgid "Handwerk & Angebote"
+msgstr "Ремесло та кошториси"
+
+msgid "Referenzen, Ablauf und unverbindliches Angebot — für Meisterbetrieb, Sanierung und Montage."
+msgstr "Приклади робіт, порядок роботи та кошторис без зобов'язань — для майстерень, ремонту та монтажу."
+
+msgid "Catering & Partyservice"
+msgstr "Кейтеринг та обслуговування свят"
+
+msgid "Anfrage, Angebot und Event-Planung — für Catering, Partyservice und Foodtrucks."
+msgstr "Заявка, кошторис і планування заходу — для кейтерингу, обслуговування свят і фудтраків."
+
+msgid "Kommende Termine und Tickets im Fokus — für Veranstalter, Guides und Studios."
+msgstr "Акцент на найближчих датах і квитках — для організаторів, гідів і студій."
+
+msgid "Minimal / Visitenkarte"
+msgstr "Мінімум / візитівка"
+
+msgid "Schlichte Eine-Seite-Visitenkarte: Banner und Kontakt. Für alle, die es einfach mögen."
+msgstr "Проста односторінкова візитівка: банер і контакти. Для тих, хто любить простіше."
+
+msgid "Hell und aufgeräumt — klare Flächen, ruhige Typografie."
+msgstr "Світло й охайно — чисті площини, спокійна типографіка."
+
+msgid "Warm"
+msgstr "Теплий"
+
+msgid "Serif-Überschriften, weiche Karten — einladend und persönlich."
+msgstr "Заголовки із засічками, м'які картки — затишно й по-людськи."
+
+msgid "Nacht"
+msgstr "Ніч"
+
+msgid "Dunkler Auftritt mit kräftigen Überschriften — modern und markant."
+msgstr "Темний образ із великими заголовками — сучасно й помітно."
+
+msgid "Fein"
+msgstr "Витончений"
+
+msgid "Elegante Serif-Überschriften auf Creme — edel und ruhig."
+msgstr "Витончені заголовки із засічками на кремовому — шляхетно й спокійно."
+
+msgid "Natur"
+msgstr "Природа"
+
+msgid "Runde Formen und warme Erdtöne — freundlich und bodenständig."
+msgstr "Округлі форми та теплі землисті тони — привітно й по-простому."
+
+msgid "Fokus"
+msgstr "Фокус"
+
+msgid "Ein Hauptziel pro Bildschirm: Split-Banner, Preisliste, Anfrage direkt auf der Startseite."
+msgstr "Одна головна мета на екран: спліт-банер, прайс-лист, заявка просто на головній."
+
+msgid "Ein Hauptziel pro Bildschirm: Split-Banner mit Datumssuche, Zimmer direkt darunter, kompaktes Vertrauensband."
+msgstr "Одна головна мета на екран: спліт-банер із пошуком за датами, номери одразу під ним, компактна смуга довіри."
+
+msgid "Ein Hauptziel pro Bildschirm: Split-Banner, klassische Speisekarte, Tisch-Reservierung immer sichtbar."
+msgstr "Одна головна мета на екран: спліт-банер, класичне меню, бронювання столу завжди на видноті."
+
+msgid "Ein Hauptziel pro Bildschirm: Split-Banner, kompakte Karte auf der Startseite, Speisekarte mit Fotos."
+msgstr "Одна головна мета на екран: спліт-банер, компактне меню на головній, меню з фотографіями."
+
+msgid "Ein Hauptziel pro Bildschirm: Split-Banner, Sortiment-Kacheln und Preisliste mit Fotos."
+msgstr "Одна головна мета на екран: спліт-банер, плитки асортименту та прайс-лист із фотографіями."
+
+msgid "Ein Hauptziel pro Bildschirm: Theken-Sortiment mit Fotos und Partyservice-Anfrage direkt auf der Startseite."
+msgstr "Одна головна мета на екран: вітринний асортимент із фото та заявка на обслуговування свята просто на головній."
+
+msgid "Ein Hauptziel pro Bildschirm: Leistungen mit Preisen im Banner, Team und Termin-Buchung immer sichtbar."
+msgstr "Одна головна мета на екран: послуги з цінами в банері, команда та запис завжди на видноті."
+
+msgid "Ein Hauptziel pro Bildschirm: Festpreis-Leistungen, klarer Ablauf und Kostenvoranschlag-Anfrage."
+msgstr "Одна головна мета на екран: послуги за фіксованою ціною, зрозумілий порядок робіт і заявка на кошторис."
+
+msgid "Ein Hauptziel pro Bildschirm: Referenzen vorher/nachher, klarer Ablauf und Angebots-Anfrage."
+msgstr "Одна головна мета на екран: приклади «до/після», зрозумілий порядок робіт і заявка на кошторис."
+
+msgid "Ein Hauptziel pro Bildschirm: aktuelle Angebote ganz oben, Sortiment-Kacheln darunter."
+msgstr "Одна головна мета на екран: актуальні акції на самому верху, плитки асортименту під ними."
+
+msgid "Ein Hauptziel pro Bildschirm: Sortiment-Kacheln, Produkte als Karten und Versand-Vorteile auf einen Blick."
+msgstr "Одна головна мета на екран: плитки асортименту, товари картками та переваги доставки — одним поглядом."
+
+msgid "Ein Hauptziel pro Bildschirm: große Bilder, Kollektionen als Kacheln und Lookbook-Galerie."
+msgstr "Одна головна мета на екран: великі зображення, колекції плитками та галерея лукбуку."
+
+msgid "Ein Hauptziel pro Bildschirm: kommende Termine als Programm, Ablauf und Stimmen der Gäste."
+msgstr "Одна головна мета на екран: найближчі дати програмою, порядок проведення та відгуки гостей."
+
+msgid "Ein Hauptziel pro Bildschirm: Reisen mit Bildern, Termine und Anfrage für die eigene Gruppe."
+msgstr "Одна головна мета на екран: подорожі з фотографіями, дати та заявка на власну групу."
+
+msgid " (Lager: %(n)s)"
+msgstr " (залишок: %(n)s)"
+
+msgid "Nur aktive Menü-Sets erscheinen im Verzeichnis und können beworben werden. Aktivieren Sie das Set zuerst."
+msgstr "У каталозі показуються та просуваються лише активні меню-набори. Спершу активуйте набір."
+
+msgid "Nur aktive Menü-Sets können beworben werden."
+msgstr "Просувати можна лише активні меню-набори."
+
+msgid "Kein Zugriff auf dieses Konto."
+msgstr "Немає доступу до цього облікового запису."
+
+msgid "Nur für Inhaber."
+msgstr "Лише для власника."
+
+msgid "Angebot · %(who)s"
+msgstr "Пропозиція · %(who)s"
+
+msgid "z. B. Roggenbrot"
+msgstr "напр. житній хліб"
+
+msgid "z. B. Haarschnitt"
+msgstr "напр. стрижка"
+
+msgid "z. B. Doppelzimmer"
+msgstr "напр. двомісний номер"
+
+msgid "z. B. Sommerkonzert"
+msgstr "напр. літній концерт"
+
+msgid "Nur http/https-URLs sind erlaubt."
+msgstr "Дозволені лише посилання http/https."
+
+msgid "Ungültige URL."
+msgstr "Некоректне посилання."
+
+msgid "Host konnte nicht aufgelöst werden."
+msgstr "Не вдалося визначити адресу хоста."
+
+msgid "Interne Adresse (%(ip)s) ist nicht erlaubt."
+msgstr "Внутрішня адреса (%(ip)s) заборонена."
+
+msgid "Antwort zu groß."
+msgstr "Відповідь завелика."
+
+msgid "Nur veröffentlichte, kommende Veranstaltungen erscheinen im Verzeichnis und können beworben werden."
+msgstr "У каталозі показуються та просуваються лише опубліковані майбутні події."
+
+msgid "Nur veröffentlichte, kommende Veranstaltungen können beworben werden."
+msgstr "Просувати можна лише опубліковані майбутні події."
+
+msgid "Rückrufbitte"
+msgstr "Прохання передзвонити"
+
+msgid "%(label)s [Art.-Nr. %(sku)s]"
+msgstr "%(label)s [арт. %(sku)s]"
+
+msgid "Aktion −%(pct)s%% · %(title)s"
+msgstr "Акція −%(pct)s%% · %(title)s"
+
+msgid "%(code)s: ausgegeben ✓ (Auto)"
+msgstr "%(code)s: видано ✓ (авто)"
+
+msgid "Stempel +1 (%(n)s/%(total)s)"
+msgstr "Штамп +1 (%(n)s/%(total)s)"
+
+msgid " — Belohnung: %(label)s [%(code)s]"
+msgstr " — нагорода: %(label)s [%(code)s]"
+
+msgid "Kampagne an %(n)s Empfänger gesendet."
+msgstr "Кампанію надіслано %(n)s одержувачам."
+
+msgid "Newsletter an %(n)s Empfänger gesendet."
+msgstr "Розсилку надіслано %(n)s одержувачам."
+
+msgid "Nur aktive Unterkünfte erscheinen im Verzeichnis und können beworben werden. Aktivieren Sie die Unterkunft zuerst."
+msgstr "У каталозі показуються та просуваються лише активні об'єкти розміщення. Спершу активуйте об'єкт."
+
+msgid "Nur aktive Unterkünfte können beworben werden."
+msgstr "Просувати можна лише активні об'єкти розміщення."
+
+msgid "Ungültiger Domainname."
+msgstr "Некоректне доменне ім'я."
+
+msgid "Bitte eine Domain angeben, keine IP-Adresse."
+msgstr "Вкажіть домен, а не IP-адресу."
+
+msgid "Subdomains von %(base)s werden automatisch vergeben."
+msgstr "Піддомени %(base)s видаються автоматично."
+
+msgid "Diese Domain ist bereits vergeben."
+msgstr "Цей домен уже зайнятий."
+
+msgid "Diese Domain wurde bereits hinzugefügt."
+msgstr "Цей домен уже додано."
+
+msgid "Server nicht konfiguriert. Bitte Support kontaktieren."
+msgstr "Сервер не налаштовано. Зверніться до підтримки."
+
+msgid "Domain löst noch nicht auf (DNS kann bis 24 h dauern)."
+msgstr "Домен поки не резолвиться (DNS може оновлюватися до 24 год)."
+
+msgid "Domain zeigt auf %(ips)s, erwartet %(target)s."
+msgstr "Домен вказує на %(ips)s, очікується %(target)s."
+
+msgid "USt."
+msgstr "ПДВ"
+
+msgid "Rechnung stellen"
+msgstr "Виставити рахунок"
+
+msgid "Entwurf löschen"
+msgstr "Видалити чернетку"
+
+msgid "Neue Rechnung (Entwurf)"
+msgstr "Новий рахунок (чернетка)"
+
+msgid "Empfänger (Name, Adresse)"
+msgstr "Одержувач (ім'я, адреса)"
+
+msgid "Leer lassen bei Firmenkunden — die Rechnungsdaten der Firma werden automatisch übernommen."
+msgstr "Для корпоративних клієнтів залиште порожнім — реквізити компанії підставляться автоматично."
+
+msgid "(Preis netto)"
+msgstr "(ціна без ПДВ)"
+
+msgid "€/Nacht"
+msgstr "€/ніч"
+
+msgid "Button — klicken zum Bearbeiten"
+msgstr "Кнопка — натисніть, щоб змінити"
+
+msgid "Bild — klicken zum Hinzufügen"
+msgstr "Фото — натисніть, щоб додати"
+
+msgid "Bild + Text — klicken zum Bearbeiten"
+msgstr "Фото й текст — натисніть, щоб змінити"
+
+msgid "Aktion wählen — klicken zum Bearbeiten"
+msgstr "Оберіть акцію — натисніть, щоб змінити"
+
+msgid "Zahlen-Block — klicken zum Bearbeiten"
+msgstr "Блок цифр — натисніть, щоб змінити"
+
+msgid "Textblock — klicken zum Bearbeiten"
+msgstr "Текстовий блок — натисніть, щоб змінити"
+
+msgid "Block einfügen"
+msgstr "Вставити блок"
+
+msgid "Aktionsgruppe"
+msgstr "Група акцій"
+
+msgid "Link (URL)"
+msgstr "Посилання (URL)"
+
+msgid "Sprungmarke"
+msgstr "Якір"
+
+msgid "Nur Untermenü"
+msgstr "Лише підменю"
+
+msgid "Kategorien (automatisch)"
+msgstr "Категорії (автоматично)"
+
+msgid "Neuigkeiten vom Guide & Gruppen-Chat"
+msgstr "Новини від гіда та груповий чат"
+
+msgid "Reisegruppen"
+msgstr "Тургрупи"
+
+msgid "Angebote & Aufträge"
+msgstr "Кошториси та заявки"
+
+msgid "Rechnung Nr. %(n)s"
+msgstr "Рахунок № %(n)s"
+
+msgid "Bonuskarten"
+msgstr "Бонусні картки"
+
+msgid "Ihrem Shop"
+msgstr "вашому магазині"
+
+msgid "Ihr Anmelde-Link – %(shop)s"
+msgstr "Ваше посилання для входу – %(shop)s"
+
+msgid "Guten Tag,\n\nmit diesem Link melden Sie sich bei %(shop)s an: %(url)s\n\nDer Link ist 15 Minuten gültig und kann nur einmal verwendet werden.\nFalls Sie keine Anmeldung angefordert haben, ignorieren Sie diese E-Mail."
+msgstr "Вітаємо!\n\nЗа цим посиланням ви увійдете до %(shop)s: %(url)s\n\nПосилання діє 15 хвилин і працює один раз.\nЯкщо ви не запитували вхід, просто проігноруйте цей лист."
+
+msgid "Ihr Anmelde-Link"
+msgstr "Ваше посилання для входу"
+
+msgid "Guten Tag,\n\nmit diesem Link melden Sie sich an: %(url)s\n\nDer Link ist 15 Minuten gültig und kann nur einmal verwendet werden.\nFalls Sie keine Anmeldung angefordert haben, ignorieren Sie diese E-Mail."
+msgstr "Вітаємо!\n\nЗа цим посиланням ви увійдете в акаунт: %(url)s\n\nПосилання діє 15 хвилин і працює один раз.\nЯкщо ви не запитували вхід, просто проігноруйте цей лист."
+
+msgid "heute"
+msgstr "сьогодні"
+
+msgid "in %(n)s Tagen"
+msgstr "через %(n)s дн."
+
+msgid "Ihre Testphase endet bald"
+msgstr "Пробний період скоро завершиться"
+
+msgid "Ihre Testphase endet %(when)s. Aktivieren Sie Ihr Abo, um ohne Unterbrechung weiterzuarbeiten."
+msgstr "Пробний період завершується %(when)s. Активуйте підписку, щоб продовжити роботу без перерви."
+
+msgid "Video-Termin %(when)s — %(service)s"
+msgstr "Відеозустріч %(when)s — %(service)s"
+
+msgid "Ihre Mehrfachkarte %(code)s"
+msgstr "Ваш абонемент %(code)s"
+
+msgid "Hallo %(name)s,\n\nvielen Dank! Ihre %(label)s ist aktiv.\nCode: %(code)s — %(credits)s Besuche.\nGeben Sie den Code bei der Online-Buchung an.\n"
+msgstr "Вітаємо, %(name)s!\n\nДякуємо! Ваш %(label)s активний.\nКод: %(code)s — %(credits)s відвідувань.\nВкажіть код під час онлайн-запису.\n"
+
+msgid "Kein passender Code — bitte den Code aus dem Dashboard verwenden."
+msgstr "Код не підходить — використайте код із кабінету."
+
+msgid "Diese Reisegruppe ist bereits mit einer anderen Telegram-Gruppe verbunden."
+msgstr "Ця тургрупа вже пов'язана з іншою групою Telegram."
+
+msgid "✅ Verbunden mit «%(title)s». Beiträge laufen ab jetzt in beide Richtungen."
+msgstr "✅ Підключено до «%(title)s». Повідомлення тепер ідуть в обидва боки."
+
+msgid "Ihr Gutscheincode: %(code)s (%(amount)s €)"
+msgstr "Ваш код сертифіката: %(code)s (%(amount)s €)"
+
+msgid "Ihr Geschenkgutschein"
+msgstr "Ваш подарунковий сертифікат"
+
+msgid "📄 Angebot über %(total)s %(cur)s gesendet"
+msgstr "📄 Надіслано пропозицію на %(total)s %(cur)s"
+
+msgid " (gültig bis %(date)s)"
+msgstr " (діє до %(date)s)"
+
+msgid "✅ Angebot angenommen — Bestellung %(code)s"
+msgstr "✅ Пропозицію прийнято — замовлення %(code)s"
+
+msgid "❌ Angebot abgelehnt"
+msgstr "❌ Пропозицію відхилено"
+
+msgid "Angebot zurückgezogen"
+msgstr "Пропозицію відкликано"
+
+msgid "Rabatt für Kunden (Stripe-Coupon)"
+msgstr "Знижка клієнтам (купон Stripe)"
+
+msgid "Bitte bestätigen Sie Ihre Anmeldung zum Newsletter:\n\n%(link)s\n\nWenn Sie sich nicht angemeldet haben, ignorieren Sie diese E-Mail."
+msgstr "Підтвердьте підписку на розсилку:\n\n%(link)s\n\nЯкщо ви не підписувалися, просто проігноруйте цей лист."
+
+msgid "Bitte bestätigen Sie Ihre Newsletter-Anmeldung"
+msgstr "Підтвердьте підписку на розсилку"
+
+msgid "Link abgelaufen"
+msgstr "Посилання застаріло"
+
+msgid "Diese Vorschau-Ansicht ist abgelaufen oder wurde nicht gefunden. Bitten Sie den Absender um einen neuen Link."
+msgstr "Попередній перегляд застарів або не знайдений. Попросіть відправника надіслати нове посилання."
+
+msgid "Instagram benötigt ein Bild für die Aktion"
+msgstr "Для публікації акції в Instagram потрібне зображення"
+
+msgid "Pinterest benötigt ein Bild für die Aktion"
+msgstr "Для публікації акції в Pinterest потрібне зображення"
+
+msgid "Lücken-Deal −%(pct)s%%"
+msgstr "Пропозиція на «вікно» −%(pct)s%%"
+
+msgid "−%(pct)s%% ab %(n)s Nächten"
+msgstr "−%(pct)s%% від %(n)s ночей"
+
+msgid "Frühbucher −%(pct)s%%"
+msgstr "Раннє бронювання −%(pct)s%%"
+
+msgid "Übernachtung %(unit)s: %(nights)s Nächte (%(from)s–%(to)s)"
+msgstr "Проживання %(unit)s: %(nights)s ноч. (%(from)s–%(to)s)"
+
+msgid "Kurtaxe (ohne USt.)"
+msgstr "Курортний збір (без ПДВ)"
+
+msgid "Ihre Website ist bereit — %(name)s"
+msgstr "Ваш сайт готовий — %(name)s"
+
+msgid "Hallo,\n\nIhre Website für „%(name)s“ ist fertig eingerichtet!\n\nHier anmelden: %(url)s\nBenutzername: %(email)s\n\nViel Erfolg!\nIhr siteadaptor-Team"
+msgstr "Вітаємо!\n\nВаш сайт «%(name)s» повністю налаштований!\n\nУвійти: %(url)s\nЛогін: %(email)s\n\nУспіхів!\nКоманда siteadaptor"
+
+msgid "Ich bin gerade auf Ihrer Website — können Sie mir kurz per Video helfen?"
+msgstr "Я зараз на вашому сайті — допоможете коротко по відео?"
+
+msgid "★ Anzeige"
+msgstr "★ Реклама"
+
+msgid "Monat"
+msgstr "місяць"
+
+msgid "Widerruf online erklären"
+msgstr "Оформити відмову онлайн"
+
+msgid "Ihr persönlicher Code: %(code)s"
+msgstr "Ваш персональний код: %(code)s"
+
+msgid "Last-Minute −%(pct)s%%"
+msgstr "Last minute −%(pct)s%%"

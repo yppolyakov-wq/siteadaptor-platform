@@ -12,6 +12,7 @@ import socket
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from .models import CustomDomain, Domain
 
@@ -33,16 +34,18 @@ def validate_new_domain(raw: str) -> str:
     """Нормализовать + проверить домен заявки; вернуть его или бросить DomainError."""
     domain = normalize_domain(raw)
     if not _HOST_RE.match(domain):
-        raise DomainError("Ungültiger Domainname.")
+        raise DomainError(_("Ungültiger Domainname."))
     if all(part.isdigit() for part in domain.split(".")):
-        raise DomainError("Bitte eine Domain angeben, keine IP-Adresse.")
+        raise DomainError(_("Bitte eine Domain angeben, keine IP-Adresse."))
     base = getattr(settings, "TENANT_DOMAIN_BASE", "siteadaptor.de").split(":")[0]
     if domain == base or domain.endswith("." + base):
-        raise DomainError(f"Subdomains von {base} werden automatisch vergeben.")
+        raise DomainError(
+            _("Subdomains von %(base)s werden automatisch vergeben.") % {"base": base}
+        )
     if Domain.objects.filter(domain=domain).exists():
-        raise DomainError("Diese Domain ist bereits vergeben.")
+        raise DomainError(_("Diese Domain ist bereits vergeben."))
     if CustomDomain.objects.filter(domain=domain).exists():
-        raise DomainError("Diese Domain wurde bereits hinzugefügt.")
+        raise DomainError(_("Diese Domain wurde bereits hinzugefügt."))
     return domain
 
 
@@ -66,13 +69,17 @@ def verify(custom: CustomDomain) -> bool:
     """
     target = getattr(settings, "CUSTOM_DOMAIN_TARGET_IP", "").strip()
     if not target:
-        return _fail(custom, "Server nicht konfiguriert. Bitte Support kontaktieren.")
+        return _fail(custom, _("Server nicht konfiguriert. Bitte Support kontaktieren."))
 
     ips = _resolve_ipv4(custom.domain)
     if not ips:
-        return _pending(custom, "Domain löst noch nicht auf (DNS kann bis 24 h dauern).")
+        return _pending(custom, _("Domain löst noch nicht auf (DNS kann bis 24 h dauern)."))
     if target not in ips:
-        return _pending(custom, f"Domain zeigt auf {', '.join(ips)}, erwartet {target}.")
+        return _pending(
+            custom,
+            _("Domain zeigt auf %(ips)s, erwartet %(target)s.")
+            % {"ips": ", ".join(ips), "target": target},
+        )
 
     with transaction.atomic():
         Domain.objects.get_or_create(

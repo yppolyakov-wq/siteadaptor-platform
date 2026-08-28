@@ -6,4 +6,4 @@
     {% if block.body %}<p class="{% if block.size == 'sm' %}text-sm {% elif block.size == 'lg' %}text-lg {% elif block.size == 'xl' %}text-xl {% endif %}{% if block.color == 'muted' %}text-gray-500{% else %}text-gray-700{% endif %} leading-relaxed whitespace-pre-line"{% if block.color == 'accent' %} style="color:var(--accent);"{% endif %}>{{ block.body }}</p>{% endif %}
   </div>
 </section>
-{% elif is_preview %}{% include "storefront/sections/_block_placeholder.html" with label="Textblock — klicken zum Bearbeiten" %}{% endif %}
+{% elif is_preview %}{% include "storefront/sections/_block_placeholder.html" with label=_("Textblock — klicken zum Bearbeiten") %}{% endif %}

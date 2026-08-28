@@ -1,38 +1,43 @@
 {% load i18n %}
-{% comment %}DC-5 (ТЗ владельца 2026-08-25): скидка владельца — ОДИН блок на все
-виды сделок, между составом и суммами. Приёмник kind-агностичный
-(`deal-discount-edit`), пересчёт итога делает домен (см. core/deal_discount.py):
-скидка всегда попадает в общую цену, а не остаётся подписью.{% endcomment %}
-<form method="post" action="{% url 'deal-discount-edit' deal_kind deal.pk %}" class="flex flex-wrap items-end gap-2">
+{% comment %}DG-3 (макет `docs/design/deal-card-2026-08-25/Hofladen.dc.html` +
+фидбэк владельца 2026-08-26 «строчка со скидкой должна быть в одну строчку вся
+информация»): скидка — ОДНА строка внутри блока состава. Подписи полей ушли
+внутрь плейсхолдеров и aria-label, область действия — пилюли, а не селект.
+
+Приёмник kind-агностичный (`deal-discount-edit`), пересчёт итога делает домен
+(core/deal_discount.py): скидка всегда попадает в общую цену.{% endcomment %}
+<form method="post" action="{% url 'deal-discount-edit' deal_kind deal.pk %}"
+      class="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm">
   {% csrf_token %}
   <input type="hidden" name="next" value="{{ request.get_full_path }}">
-  <label class="text-xs text-gray-500">{% trans "Rabatt" %} ({{ deal.currency|default:"EUR" }})
-    <input type="text" inputmode="decimal" name="discount" value="{{ deal_discount_input }}"
-           class="block w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm tabular-nums">
-  </label>
+  <span class="font-semibold">🏷 {% trans "Rabatt" %}</span>
   {% if deal_discount_scopes|length > 1 %}
-    {% comment %}DC-9: область действия — на что ложится скидка. Сумма итога не
-    меняется; меняется база НДС и показ (напр. «versandfrei» вместо скидки на
-    товар).{% endcomment %}
-    <label class="text-xs text-gray-500">{% trans "Wirkt auf" %}
-      <select name="discount_scope" class="block rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
-        {% for value, label in deal_discount_scopes %}
-          <option value="{{ value }}" {% if value == deal_discount_scope %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-      </select>
-    </label>
+    {% comment %}DC-9: на что ложится скидка. Итог не меняется — меняется база
+    НДС и показ. Пилюли-радио: видно текущий выбор без раскрытия списка.{% endcomment %}
+    <span class="text-xs text-gray-500">{% trans "wirkt auf" %}</span>
+    <span class="inline-flex rounded-lg border border-gray-200 overflow-hidden" role="group">
+      {% for value, label in deal_discount_scopes %}
+        <label class="cursor-pointer">
+          <input type="radio" name="discount_scope" value="{{ value }}" class="sr-only peer"
+                 {% if value == deal_discount_scope %}checked{% endif %}>
+          <span class="block px-2.5 py-1 text-xs peer-checked:bg-indigo-600 peer-checked:text-white hover:bg-gray-50">{{ label }}</span>
+        </label>
+      {% endfor %}
+    </span>
   {% endif %}
-  <label class="text-xs text-gray-500">{% trans "Grund / Code" %}
-    <input type="text" name="discount_note" value="{{ deal_discount_note }}" maxlength="20"
-           class="block w-40 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
-  </label>
-  <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Rabatt speichern" %}</button>
+  <input type="text" inputmode="decimal" name="discount" value="{{ deal_discount_input }}"
+         aria-label="{% trans 'Rabatt' %} ({{ deal.currency|default:'EUR' }})" placeholder="0,00"
+         class="w-20 rounded-lg border border-gray-300 px-2 py-1 text-sm tabular-nums text-right">
+  <input type="text" name="discount_note" value="{{ deal_discount_note }}" maxlength="20"
+         aria-label="{% trans 'Grund / Code' %}" placeholder="{% trans 'Grund / Code' %}"
+         class="w-36 rounded-lg border border-gray-300 px-2 py-1 text-sm">
+  <button type="submit" class="rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-medium hover:bg-gray-50">{% trans "Anwenden" %}</button>
+  <span class="text-xs text-gray-500">
+    {% if deal_discount_cents %}
+      {% trans "Aktuell" %}: <span class="text-green-700 font-medium">−{{ deal_discount_input }} €</span>{% if deal_discount_note %} · {{ deal_discount_note }}{% endif %}
+      — <span class="text-green-700">{% trans "im Gesamtpreis verrechnet" %}</span>
+    {% else %}
+      {% trans "Kein Rabatt gesetzt — Gesamtpreis unverändert." %}
+    {% endif %}
+  </span>
 </form>
-<p class="text-xs text-gray-500 mt-2">
-  {% if deal_discount_cents %}
-    {% trans "Aktuell" %}: <span class="text-green-700 font-medium">−{{ deal_discount_input }} €</span>{% if deal_discount_note %} · {{ deal_discount_note }}{% endif %}
-    — <span class="text-green-700">{% trans "im Gesamtpreis verrechnet" %}</span>
-  {% else %}
-    {% trans "Kein Rabatt gesetzt — Gesamtpreis unverändert." %}
-  {% endif %}
-</p>

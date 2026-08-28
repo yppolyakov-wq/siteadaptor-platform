@@ -191,6 +191,11 @@ class JobLine(I18nMixin, TimestampedModel):
     # и PDF не попадает): для работ — ставка €/Std., для Teile — снимок EK детали
     # на момент составления (философия снимков ERP-1). None = ставка неизвестна.
     cost_rate = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    # VAT-1 (2026-08-26): своя ставка НДС позиции. NULL = ставка документа
+    # (Job.vat_rate) — так существующие сметы считаются байт-в-байт как раньше и
+    # бэкфилл не нужен. Ставка — СНИМОК: правка каталога не переписывает смету,
+    # которую клиент уже видел (та же семантика, что у OrderItem.vat_rate).
+    vat_rate = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
 
     # G11: расходник (Teile) из каталога — null = свободная строка (Arbeit/работа).
     # SET_NULL: удаление товара не трогает смету (text/unit_price — снимок). При
@@ -223,6 +228,14 @@ class JobLine(I18nMixin, TimestampedModel):
     @property
     def line_total(self) -> Decimal:
         return self.unit_price * self.qty
+
+    def effective_vat_rate(self, document_rate=None) -> Decimal:
+        """Ставка, по которой считается эта строка: своя, иначе ставка документа."""
+        if self.vat_rate is not None:
+            return Decimal(self.vat_rate)
+        if document_rate is not None:
+            return Decimal(document_rate)
+        return Decimal(self.job.vat_rate)
 
 
 class JobPhoto(TimestampedModel):

@@ -97,18 +97,25 @@ def _enqueue_gift_email(gift):
     if not gift.buyer_email or gift.voucher is None:
         return
     from django.template.loader import render_to_string
+    from django.utils import translation
+    from django.utils.translation import gettext as _
 
-    from apps.notifications.services import notify
+    from apps.notifications.services import email_locale, notify
 
     ctx = {"gift": gift, "code": gift.voucher.code}
-    try:
-        body = render_to_string("emails/gift_voucher.txt", ctx)
-    except Exception:  # noqa: BLE001 — без шаблона не роняем выпуск
-        body = f"Ihr Gutscheincode: {gift.voucher.code} ({gift.amount_eur:.0f} €)"
+    with translation.override(email_locale()):  # I18N-13: локаль получателя
+        try:
+            body = render_to_string("emails/gift_voucher.txt", ctx)
+        except Exception:  # noqa: BLE001 — без шаблона не роняем выпуск
+            body = _("Ihr Gutscheincode: %(code)s (%(amount)s €)") % {
+                "code": gift.voucher.code,
+                "amount": f"{gift.amount_eur:.0f}",
+            }
+        subject = _("Ihr Geschenkgutschein")
     notify(
         dedupe_key=f"gift:{gift.id}:issued",
         type="gift_voucher",
         recipient=gift.buyer_email,
-        subject="Ihr Geschenkgutschein",
+        subject=subject,
         body=body,
     )

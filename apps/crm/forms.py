@@ -19,6 +19,9 @@ class CustomerForm(forms.ModelForm):
         model = Customer
         fields = ["name", "email", "phone", "company", "birthday", "note", "marketing_opt_in"]
         labels = {
+            "name": _("Name"),
+            "phone": _("Phone"),
+            "note": _("Note"),
             "marketing_opt_in": _("Marketing consent"),
             "company": _("Company"),
             "birthday": _("Birthday"),
@@ -90,6 +93,9 @@ class CompanyForm(forms.ModelForm):
             "note",
         ]
         labels = {
+            "name": _("Name"),
+            "phone": _("Phone"),
+            "note": _("Note"),
             "vat_id": _("USt-IdNr. (VAT ID)"),
             "street": _("Street"),
             "postal_code": _("Postal code"),

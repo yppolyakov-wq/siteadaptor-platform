@@ -432,7 +432,7 @@ def presence_fab(context):
         if presence.available_now(tenant):
             wa_url = wa_link(
                 getattr(tenant, "whatsapp_number", ""),
-                "Ich bin gerade auf Ihrer Website — können Sie mir kurz per Video helfen?",
+                _("Ich bin gerade auf Ihrer Website — können Sie mir kurz per Video helfen?"),
             )
     return {"wa_url": wa_url}
 

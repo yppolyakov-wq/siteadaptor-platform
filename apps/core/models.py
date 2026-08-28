@@ -187,10 +187,10 @@ class Extra(I18nMixin, TimestampedModel):
     SCOPE_BOOKING = "booking"
     SCOPE_EVENTS = "events"
     SCOPES = [
-        (SCOPE_ALL, "Alle"),
-        (SCOPE_STAYS, "Übernachtung"),
-        (SCOPE_BOOKING, "Termin"),
-        (SCOPE_EVENTS, "Event"),
+        (SCOPE_ALL, _("Alle")),
+        (SCOPE_STAYS, _("Übernachtung")),
+        (SCOPE_BOOKING, _("Termin")),
+        (SCOPE_EVENTS, _("Event")),
     ]
 
     # MX-2 (план mx2-options-trackers-plan-2026-08-21.md): вид ТРЕКЕРА — как опция

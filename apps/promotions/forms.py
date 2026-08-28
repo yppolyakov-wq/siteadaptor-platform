@@ -34,8 +34,8 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
         label=_("Description (DE)"), widget=forms.Textarea(attrs={"rows": 3}), required=False
     )
     i18n_fields = (
-        ("title", {"label": "Titel", "max_length": 200}),
-        ("description", {"label": "Beschreibung", "textarea": True}),
+        ("title", {"label": _("Titel"), "max_length": 200}),
+        ("description", {"label": _("Beschreibung"), "textarea": True}),
     )
     starts_at = _DateTimeLocal(label=_("Starts at"))
     ends_at = _DateTimeLocal(label=_("Ends at"))
@@ -67,6 +67,12 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
             "group",
         ]
         labels = {
+            "product": _("Product"),
+            "promo_type": _("Art der Aktion"),
+            "available_quantity": _("Verfügbare Menge"),
+            "max_per_customer": _("Max. pro Kunde"),
+            "reservation_ttl_hours": _("Reservierung gültig (Stunden)"),
+            "auto_confirm": _("Automatisch bestätigen"),
             "group": _("Section / group"),
             "compare_at_price": _("Old price (struck through)"),
             "discount_percent": _("Discount %"),
@@ -131,10 +137,12 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
         # переводы = только метка), поэтому НЕ через DynamicI18nFormMixin:
         # базовая локаль остаётся полем `group`, прочие приезжают динамически.
         self._group_locales = extra_locales(tenant)
+        # msgid наружу: внутри f-строки xgettext его не видит (I18N-13).
+        group_label = _("Section / group")
         overlay = getattr(self.instance, "group_i18n", None) or {}
         for loc in self._group_locales:
             self.fields[f"group_{loc}"] = forms.CharField(
-                label=f"{_('Section / group')} ({loc.upper()})",
+                label=f"{group_label} ({loc.upper()})",
                 max_length=50,
                 required=False,
                 initial=overlay.get(loc, "") if isinstance(overlay, dict) else "",
@@ -266,6 +274,7 @@ class LoyaltyProgramForm(forms.ModelForm):
         model = LoyaltyProgram
         fields = ["label", "stamps_required", "reward_label", "is_active"]
         labels = {
+            "is_active": _("Active"),
             "label": _("Program name"),
             "stamps_required": _("Stamps required"),
             "reward_label": _("Reward"),

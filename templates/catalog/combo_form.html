@@ -1,5 +1,5 @@
 {% extends "tenant/_base_dashboard.html" %}
-{% load i18n %}
+{% load i18n cabinet %}
 {% block dash_title %}{% if combo %}{{ combo.name }}{% else %}{% trans "New combo" %}{% endif %}{% endblock %}
 
 {% block dash_content %}
@@ -43,6 +43,13 @@
       <div>
         <label class="block text-sm font-medium mb-1">{% trans "Fixed price" %} (€)</label>
         <input name="price" value="{{ combo.price|default:'' }}" required class="w-32 rounded-lg border border-gray-300 px-3 py-2.5">
+      </div>
+      <div>
+        {% comment %}VAT-2 (владелец 2026-08-26): «если у товара нет настройки
+        налога — нужно добавить в настройках». У набора ставки не было вовсе, и
+        меню-сет гастро уезжал в документ по 19 % вместо 7 %.{% endcomment %}
+        <label class="block text-sm font-medium mb-1">{% trans "VAT" %}</label>
+        {% vat_select combo.vat_rate _("Speisen meist 7 %, Getränke 19 %.") %}
       </div>
       <div>
         <label class="block text-sm font-medium mb-1">{% trans "Order" %}</label>

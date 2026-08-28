@@ -260,6 +260,52 @@ def _category_children(tenant, parent_slug: str):
     return out
 
 
+def _combo_children(tenant, category_slug: str):
+    """Плитки НАБОРОВ меню для подменю (фидбэк владельца 2026-08-26).
+
+    «Оставить меню картинками по наборам и категориям» — рядом с плитками
+    категорий встают сами наборы, чтобы гость видел их прямо из шапки, не
+    проваливаясь на отдельную страницу «Menüs & Pakete».
+
+    Берём наборы указанной категории (пусто = все активные). Как и у категорий,
+    сюда едут только данные: обрезку описания и вёрстку делает шаблон.
+    """
+    if not modules.is_module_active(tenant, "catalog"):
+        return []
+    try:
+        from apps.catalog.models import Combo
+
+        qs = Combo.objects.filter(is_active=True, deleted_at__isnull=True)
+        if category_slug:
+            qs = qs.filter(category__slug=category_slug)
+        rows = list(qs.order_by("sort_order", "name")[:_MAX_MENU_CATEGORIES])
+    except Exception:  # noqa: BLE001 — узел меню не должен ронять страницу
+        rows = []
+
+    out = []
+    for combo in rows:
+        url = _reverse_args("storefront-combo", combo.pk)
+        if not url:
+            continue
+        images = combo.images or []
+        first = images[0] if images else None
+        image = first.get("url") if isinstance(first, dict) else (first or "")
+        out.append(
+            {
+                # У набора имя — плоское поле + оверлей переводов (не JSON-поле,
+                # как у категории), поэтому `*_localized`, а не `get_i18n`:
+                # иначе плитка приходит без подписи (поймано замком).
+                "label": combo.name_localized(),
+                "url": url,
+                "icon": "",
+                "image": image or "",
+                "desc": combo.description_localized(),
+                "children": [],
+            }
+        )
+    return out
+
+
 def _promo_group_url(tenant, group: str):
     if not group or not modules.is_module_active(tenant, "promotions"):
         return None
@@ -382,6 +428,8 @@ _MENU_LABEL_ANCHORS = (
     # Catering-Welle 2026-08-25: подменю «Catering» у pranasy (Speisekarte /
     # Menüs & Pakete / Anfrage) — якорь держит msgid при makemessages.
     _("Anfrage"),
+    # Фидбэк 2026-08-26: «наша работа» — галерея работ в подменю кейтеринга.
+    _("Unsere Arbeit"),
 )
 
 
@@ -405,6 +453,10 @@ def _resolve(tenant, node: dict):
         # MEN-15: дети собираются из живых категорий (владелец список не ведёт).
         # Ручные дети, если их положили, остаются впереди авто-списка.
         children = children + _category_children(tenant, node["target"])
+        # Фидбэк 2026-08-26: у гастро в то же подменю едут наборы меню —
+        # «картинками по наборам и категориям».
+        if node.get("with_combos"):
+            children = children + _combo_children(tenant, node["target"])
     url = _node_url(tenant, node)
     if url is None and not children:
         return None

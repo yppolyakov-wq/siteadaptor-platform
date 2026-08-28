@@ -76,15 +76,31 @@ def compute_totals(lines, vat_rate, *, small_business=False):
     """(net, vat, gross) из снимка позиций; §19 Kleinunternehmer — без НДС.
 
     qty может быть дробным (A7a, часы/единицы Handwerker) — считаем как Decimal.
+
+    VAT-4: если строка несёт СВОЮ ставку (`line["vat_rate"]`), налог считается по
+    группам ставок — иначе смешанный счёт (еда 7 % + напитки 19 %) считался по
+    одной преобладающей и расходился с суммой заказа. Строки без своей ставки
+    идут по переданной, поэтому старые вызовы работают байт-в-байт.
     """
     from decimal import ROUND_HALF_UP, Decimal
 
-    net = sum(
-        (_to_decimal(line["unit_price"], "0") * _to_decimal(line.get("qty", 1)) for line in lines),
-        start=Decimal("0"),
-    ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-    rate = Decimal("0") if small_business else Decimal(str(vat_rate))
-    vat = (net * rate / Decimal("100")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    cent = Decimal("0.01")
+    default_rate = Decimal("0") if small_business else Decimal(str(vat_rate))
+    by_rate: dict[Decimal, Decimal] = {}
+    for line in lines:
+        own = line.get("vat_rate")
+        rate = default_rate if own in (None, "") else Decimal(str(own))
+        if small_business:
+            rate = Decimal("0")
+        amount = _to_decimal(line["unit_price"], "0") * _to_decimal(line.get("qty", 1))
+        by_rate[rate] = by_rate.get(rate, Decimal("0")) + amount
+
+    net = Decimal("0")
+    vat = Decimal("0")
+    for rate, amount in by_rate.items():
+        group_net = amount.quantize(cent, rounding=ROUND_HALF_UP)
+        net += group_net
+        vat += (group_net * rate / Decimal("100")).quantize(cent, rounding=ROUND_HALF_UP)
     return net, vat, net + vat
 
 
@@ -145,21 +161,49 @@ def invoice_from_stay(booking, tenant=None):
     stay_net, _vat = _net_from_gross(Decimal(lodging) / 100, rate)
     unit_name = getattr(booking.unit, "name", "") or str(_("Übernachtung"))
     nights_label = str(_("%(n)s Nächte")) % {"n": nights}
-    lines = [{"text": f"{unit_name} · {nights_label}"[:200], "qty": 1, "unit_price": str(stay_net)}]
+    lines = [
+        {
+            "text": f"{unit_name} · {nights_label}"[:200],
+            "qty": 1,
+            "unit_price": str(stay_net),
+            "vat_rate": str(rate),
+        }
+    ]
     for extra in booking.extras or []:
         if not isinstance(extra, dict):
             continue
-        net, _v = _net_from_gross(Decimal(int(extra.get("price_cents", 0))) / 100, rate)
-        lines.append({"text": str(extra.get("label", ""))[:200], "qty": 1, "unit_price": str(net)})
+        # VAT-4: у допа своя ставка (завтрак 19 % рядом с проживанием 7 % —
+        # Aufteilungsgebot). Снимок без ставки идёт по ставке брони, как раньше.
+        own = extra.get("vat_rate")
+        extra_rate = rate if small or own in (None, "") else Decimal(str(own))
+        net, _v = _net_from_gross(Decimal(int(extra.get("price_cents", 0))) / 100, extra_rate)
+        lines.append(
+            {
+                "text": str(extra.get("label", ""))[:200],
+                "qty": 1,
+                "unit_price": str(net),
+                "vat_rate": str(extra_rate),
+            }
+        )
     if booking.discount_cents:
         net, _v = _net_from_gross(Decimal(booking.discount_cents) / 100, rate)
-        lines.append({"text": str(_("Rabatt")), "qty": 1, "unit_price": str(-net)})
-    if booking.kurtaxe_cents:  # без НДС — добавляем как есть
+        lines.append(
+            {
+                "text": str(_("Rabatt")),
+                "qty": 1,
+                "unit_price": str(-net),
+                "vat_rate": str(rate),
+            }
+        )
+    if booking.kurtaxe_cents:
+        # Курортный сбор НЕ облагается НДС: без явной ставки 0 общий расчёт
+        # начислил бы на него ставку проживания, и счёт стал бы больше брони.
         lines.append(
             {
                 "text": str(_("Kurtaxe")),
                 "qty": 1,
                 "unit_price": str(Decimal(booking.kurtaxe_cents) / 100),
+                "vat_rate": "0",
             }
         )
     net, vat, gross = compute_totals(lines, rate, small_business=small)
@@ -245,18 +289,40 @@ def invoice_from_order(order, tenant=None):
         rate = Decimal("0") if small else Decimal(str(item.vat_rate or 0))
         net_unit, _vat = split_gross(item.unit_price, rate)
         lines.append(
-            {"text": item.title_snapshot[:200], "qty": item.qty, "unit_price": str(net_unit)}
+            {
+                "text": item.title_snapshot[:200],
+                "qty": item.qty,
+                "unit_price": str(net_unit),
+                # VAT-4: ставка в снимке строки — иначе смешанный счёт считался бы
+                # по одной преобладающей и не сошёлся бы с итогом заказа.
+                "vat_rate": str(rate),
+            }
         )
     if order.is_delivery and order.shipping_cents:
         rate = totals["rows"][0]["rate"] if totals["rows"] else Decimal("0")
         net_ship, _vat = split_gross(Decimal(order.shipping_cents) / 100, rate)
-        lines.append({"text": str(_("Lieferung")), "qty": 1, "unit_price": str(net_ship)})
+        lines.append(
+            {
+                "text": str(_("Lieferung")),
+                "qty": 1,
+                "unit_price": str(net_ship),
+                "vat_rate": str(rate),
+            }
+        )
     if order.discount_cents:
         rate = totals["rows"][0]["rate"] if totals["rows"] else Decimal("0")
         net_disc, _vat = split_gross(Decimal(order.discount_cents) / 100, rate)
-        lines.append({"text": str(_("Rabatt")), "qty": 1, "unit_price": str(-net_disc)})
-    # Ставка счёта — одна (модель Invoice знает одну ставку): берём преобладающую
-    # по обороту; смешанный чек показывает разбивку на карточке заказа.
+        lines.append(
+            {
+                "text": str(_("Rabatt")),
+                "qty": 1,
+                "unit_price": str(-net_disc),
+                "vat_rate": str(rate),
+            }
+        )
+    # `Invoice.vat_rate` остаётся полем документа (легаси-счета и §19), но налог
+    # считается ПО СТАВКАМ СТРОК: у смешанного заказа одна усреднённая ставка
+    # давала счёт, не совпадающий с суммой, которую клиент реально заплатил.
     rate = totals["rows"][0]["rate"] if totals["rows"] else Decimal("19.00")
     net, vat, gross = compute_totals(lines, rate, small_business=small)
     recipient = order.billing_name or str(order.customer)

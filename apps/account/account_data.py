@@ -7,6 +7,7 @@ Customer — хаб: к нему привязаны заказы/брони/сч
 """
 
 from django.urls import reverse
+from django.utils.translation import gettext as _
 
 from apps.core.transactions import transaction_for
 
@@ -193,12 +194,12 @@ def _travel_groups(customer):
     items = [
         {
             "title": str(space),
-            "sub": "Neuigkeiten vom Guide & Gruppen-Chat",
+            "sub": _("Neuigkeiten vom Guide & Gruppen-Chat"),
             "url": reverse("community-space", args=[space.pk]),
         }
         for space in FeedSpace.objects.filter(ref_kind="event", ref_id__in=event_ids)[:LIMIT]
     ]
-    return {"key": "groups", "title": "Reisegruppen", "icon": "💬", "items": items}
+    return {"key": "groups", "title": _("Reisegruppen"), "icon": "💬", "items": items}
 
 
 def _jobs(customer):
@@ -216,7 +217,7 @@ def _jobs(customer):
                 "url": tx.detail_url_customer,
             }
         )
-    return {"key": "jobs", "title": "Angebote & Aufträge", "icon": "🧾", "items": items}
+    return {"key": "jobs", "title": _("Angebote & Aufträge"), "icon": "🧾", "items": items}
 
 
 def _invoices(customer):
@@ -224,7 +225,7 @@ def _invoices(customer):
 
     items = [
         {
-            "title": f"Rechnung Nr. {inv.number}" if inv.number else "Entwurf",
+            "title": (_("Rechnung Nr. %(n)s") % {"n": inv.number} if inv.number else _("Entwurf")),
             "sub": f"{inv.gross} € · {inv.issued_at:%d.%m.%Y}"
             if inv.issued_at
             else f"{inv.gross} €",
@@ -288,7 +289,7 @@ def _loyalty(customer):
         .select_related("program")
         .order_by("-updated_at")[:LIMIT]
     ]
-    return {"key": "loyalty", "title": "Bonuskarten", "icon": "⭐", "items": items}
+    return {"key": "loyalty", "title": _("Bonuskarten"), "icon": "⭐", "items": items}
 
 
 def _messages(customer):

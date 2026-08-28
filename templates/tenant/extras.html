@@ -62,6 +62,11 @@
           {% for value, label in scopes %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
         </select>
       </div>
+      {% comment %}VAT-3 (владелец 2026-08-26): ставку допа задать было негде —
+      завтрак и парковка облагались как сама бронь (7 %), хотя это отдельные
+      услуги по 19 % (Aufteilungsgebot). Пустое значение сохраняет прежнее
+      поведение «как у сделки».{% endcomment %}
+      {% vat_select "" _("Frühstück und Parkplatz sind 19 %, auch wenn die Übernachtung 7 % hat.") _("wie die Buchung") %}
       {% comment %}MX-2: адресность — опция конкретной сущности (пусто = для всех).{% endcomment %}
       <div>
         <label class="block text-sm font-medium mb-1">{% trans "Nur für ein Angebot" %}</label>

@@ -62,13 +62,19 @@ def send_trial_reminder(*, tenant_id, days_left):
     tenant = Tenant.objects.filter(id=tenant_id).first()
     if tenant is None or not tenant.owner_email:
         return {"skipped": True}
-    when = "heute" if days_left == 0 else f"in {days_left} Tagen"
-    send_mail(
-        subject="Ihre Testphase endet bald",
-        message=(
-            f"Ihre Testphase endet {when}. Aktivieren Sie Ihr Abo, "
+    from django.utils import translation
+    from django.utils.translation import gettext as _
+
+    with translation.override(getattr(tenant, "default_locale", "") or "de"):
+        when = _("heute") if days_left == 0 else _("in %(n)s Tagen") % {"n": days_left}
+        subject = _("Ihre Testphase endet bald")
+        message = _(
+            "Ihre Testphase endet %(when)s. Aktivieren Sie Ihr Abo, "
             "um ohne Unterbrechung weiterzuarbeiten."
-        ),
+        ) % {"when": when}
+    send_mail(
+        subject=subject,
+        message=message,
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[tenant.owner_email],
     )

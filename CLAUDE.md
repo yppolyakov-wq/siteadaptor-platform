@@ -2141,7 +2141,88 @@ Python 3.12, менеджер uv.
   отзывы · команда · FAQ · заявка. **Попутно:** карточка свободной сборки печатала
   «0,00 € / Person» (базовой цены у неё нет) — цену такого набора больше не показываем.
   Стенд Playwright на живом сиде. ⚠️ ops: `seed_demo_tenants --kit pranasy --recreate`.
-- Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна DC, 2026-08-25): `booking/0024` + `stays/0033` + `jobs/0016` (внешний номер сделки) + `booking/0025` (связь записи со счётом) — аддитивные; (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `core/0010` (Extra.consume_qty, v2-опции) + `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate) + `events/0028` (SupplierBooking вне туров) + `booking/0023` (Service.pricing_mode) + `catalog/0030` (Product.primary_action) + `finance/0009` (SOURCES gift/pass, choices-only)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. **Волна ERP (2026-08-21): `orders/0020` (OrderItem.cost_price) + `finance/0010` (BankTransaction) + `finance/0011` (Invoice.mahn_level/mahned_at + ExpenseEntry supplier/due_date/paid_at/document) + `documents/0002` (owner nullable + kind receipt) + `inventory/0005` (qty_returned + kind'ы return_supplier/production, ERP-5/7) + `jobs/0015` (JobLine.cost_rate, ERP-6)** — аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + `--kit pranasy --recreate` (кейтеринг-карта) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
+- **Самое свежее (2026-08-26, вечер): ВОЛНА VAT «налог на позиции» + перестановки карточки —
+  всё в `main` (`cfe1351`), ⚠️ миграции `jobs/0017` + `catalog/0031`.** План
+  `docs/vat-per-line-plan-2026-08-26.md`; разведка 12 агентов. **VAT-1:** у сметы ставка была
+  ОДНА на документ (в строках печаталась она же — выглядело как per-позиция); `JobLine.vat_rate`
+  nullable (NULL = ставка документа → существующие сметы байт-в-байт, бэкфилла нет), новый
+  `apps/jobs/totals.py::quote_totals` — одна точка истины на карточку/PDF/публичную страницу/счёт,
+  округление ПО ГРУППЕ ставки; PDF и публичная смета печатают строку на каждую ставку (§ 14 Abs. 4
+  Nr. 8 UStG); ставка подтягивается из карточки товара и услуги (снимки пикера расширены ставкой),
+  явный выбор владельца сильнее каталога. **VAT-2/3:** `Combo.vat_rate` (ставки у набора НЕ БЫЛО —
+  меню-сет гастро уезжал по 19 % вместо 7 %), `Extra.vat_rate` наконец выведен в форму (поле было с
+  DC-8, но ни в одной форме → у 100 % допов пусто, завтрак/парковка отеля облагались 7 % вместо 19 %,
+  Aufteilungsgebot; пункт «wie die Buchung» = прежняя семантика), свободные строки несут ставку
+  7-м элементом `custom_lines` (свободная сборка блюд, услуга из пикера), `parse_rate_optional`
+  отличает «не задано» от 19 %. **VAT-4 — ДЕЙСТВУЮЩИЙ дефект прода:** `invoice_from_order` считал
+  весь счёт по преобладающей ставке (11,90 € @19 % + 10,70 € @7 % → счёт 23,80 € вместо 22,60 €;
+  ломало сверку ERP-2 и Mahnung); `compute_totals` получила построчную форму (старые вызовы
+  байт-в-байт), строки счёта несут ставку в JSON-снимке, PDF печатает разбивку, легаси-счета — по
+  снимку `invoice.vat_rate`; у счёта из брони Kurtaxe облагался ставкой проживания → счёт был БОЛЬШЕ
+  брони. **CARD-1/2:** «Gültig bis» + «Angebot senden» → блок «Dokumente» (своя форма + presence-guard
+  в приёмнике сметы, иначе Save состава стирал дату — класс W0); «Nachrichten» → рейл под карточку
+  клиента (общий скелет → все виды сделок, якорь прежний, скролл DF-6 цел). **Стенд вскрыл
+  пред-существующий баг:** в немецкой локали селект шлёт «19,00», приёмник сравнивал с «19.00» →
+  выбор ставки документа сбрасывался в 19 % ВСЕГДА (кейтеринг не мог провести смету по 7 %) →
+  `vat.parse_rate`. Уроки: снимок-замки сверять полями, а не dict'ом (повтор MX); значения, идущие
+  через локаль, гейтить браузером. Отложено: дробление `RevenueEntry` по ставкам (нужен гард от
+  двойного учёта — смена `source_ref` обошла бы unique-constraint).
+- **Дизайн (2026-08-26): канвас карточки сделки += страница «Сегодня и после»** — те же карточки
+  ЦЕЛИКОМ в двух состояниях (кабинет сегодня ↔ утверждённый макет) вместо набора фрагментов;
+  генератор научился рисовать состояние «heute» (`Card.variant`). Вывод сверки: НОВЫЙ дизайн не
+  нужен ни по одному из девяти расхождений — всё уже стоит в макете от 25.08, отставала реализация.
+  Артефакт «Verkaufskarte» обновлён.
+- **Самое свежее (2026-08-27): фидбэк-батч — карточка клиента, мобильная вёрстка, витрина
+  кейтеринга (БЕЗ миграций).** (1) Кнопка «написать клиенту» в заказе убрана (дублировала
+  открытый блок переписки), «Kundendaten bearbeiten» → карандаш у имени + `<dialog>`; состав
+  заказа на телефоне раскладывается переносом (`dl-*`-классы; грабля: `.dl-row{display:flex}`
+  перебивал `.dl-head{display:none}` при равной специфичности); селектор языка кабинета виден
+  на узком экране. (2) Витрина кейтеринга: «Menüs & Pakete» убран — наборы плитками с фото в
+  подменю, нижнее меню ведёт на страницу кейтеринга, наборы 4 в ряд без переключателя вида,
+  блюда внутри набора компактнее, попап блюда на телефоне во весь экран; грабли — `normalize`
+  выбрасывал новый ключ меню `with_combos`, а подпись плитки набора приходила пустой
+  (`Combo.name` — плоское поле с оверлеем, не JSON). (3) Колонки страницы кейтеринга: секция
+  наборов в шапке листинга, заголовок «Einzelne Gerichte» — в тулбаре (строка инструментов
+  стоит вплотную над сеткой блюд, которой и управляет); плитки категорий подчинились настройке
+  владельца — верхний список звал `{% grid_classes site 'categories' %}`, но `site` вьюха в
+  контекст НЕ кладёт (тег молча брал дефолт), сетка подкатегорий была захардкожена; кит получил
+  ось `section_layouts`, pranasy = категории `cols3` + каталог `cols6`. **Попутно:** safelist
+  Tailwind отставал от таблиц движка — `sm:grid-cols-4`/`lg:grid-cols-6` в CSS не попадали, то
+  есть выбор «6 в ряд» молча падал в одну колонку у ЛЮБОГО тенанта. ⚠️ ops: `seed_demo_tenants
+  --kit pranasy|catering --recreate`.
+- **Самое свежее (2026-08-27, вечер): I18N-13 — гейт «новых непереведённых параметров» +
+  56 машинных подписей форм (БЕЗ миграций).** Запрос владельца «проверить, все ли поля
+  админки и параметры есть в файле перевода, и сразу ловить новые». Проверка: формальный
+  гейт `i18n_gap` зелёный (4838 msgid, пять каталогов по 4795, наборы 1:1, в tr/ru/uk
+  пустых нет), но у него слепая зона ПО ПОСТРОЕНИЮ — он сверяет только ИЗВЛЕЧЁННОЕ, а
+  необёрнутая подпись и `gettext` внутри f-строки в экстракцию не попадают (проверено на
+  xgettext). **Главная находка — в формах:** прогон всех форм под ru (после компиляции .mo —
+  локально их не было вовсе, без них измерение врёт) дал **56 подписей из 198 = машинные
+  имена полей Django** («Base price», «Is featured», «Starts at»); они не переводились НИ на
+  один язык, включая немецкий, и msgid для них не существовало. Исправлено `Meta.labels` в
+  9 формах (переиспользованы существующие msgid, новых 34×5). Плюс: реестр анкеты участника
+  `events/registration.py` (виден и НА ВИТРИНЕ при покупке билета; переведены только `label`,
+  ключи/`options` остаются базовыми — «переводится показ, а не запись»), ошибки импорта,
+  `kind_label` счёта в «Offene Posten», немецкая проза в placeholder'ах, английский msgid
+  `You enter data per language` без немецкого. **Дефект per-locale подписей:**
+  `core/i18n_input.py` собирал «Name (EN)» f-строкой → перевод, лежавший в каталогах, не
+  применялся; теперь `format_lazy`. **Предохранители:** сканер
+  `scripts/i18n_untranslated.py` (не обёрнута И нет в de.po; + правило f-строк; базовая
+  линия `locale/i18n-untranslated-baseline.json` — падает только на НОВОМ) на трёх уровнях:
+  PostToolUse-хук `.claude/hooks/i18n-watch.sh` → `.githooks/pre-commit`
+  (`scripts/install-git-hooks.sh`) → шаг CI; сводный отчёт — `scripts/i18n_status.py`.
+  Замки `test_i18n_guard.py` (5), в т.ч. «каждая подпись поля формы переводится на ru».
+  **Волна долга (та же дата, после мержа в main):** воркфлоу-аудит доведён до конца
+  (resume; 46 находок подтверждено, 26 отклонено), переведён ВЕСЬ хром — карточки
+  шаблонов/Look'ов, пресеты акций и страниц, библиотека блоков билдера, карточки
+  мастера, стили скидки, ошибки доменов/SSRF, сообщения вьюх, экраны счетов,
+  плейсхолдеры канвы, JS редактора меню (+228 msgid × 5 локалей); строк «без пути
+  перевода» **342 → 120**, остаток — контент тенанта, правовое платформы, admin,
+  имена в коде, машинные форматы (разбор в плане §4). Побочно найден дефект:
+  письма, собираемые в Python, шли в языке КАБИНЕТА владельца → общий
+  `notifications.services.email_locale()` + `translation.override` в шести письмах.
+  План — `docs/i18n-guard-plan-2026-08-27.md`.
+- Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна VAT, 2026-08-26): `jobs/0017` (JobLine.vat_rate) + `catalog/0031` (Combo.vat_rate) — аддитивные; (волна DC, 2026-08-25): `booking/0024` + `stays/0033` + `jobs/0016` (внешний номер сделки) + `booking/0025` (связь записи со счётом) — аддитивные; (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `core/0010` (Extra.consume_qty, v2-опции) + `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate) + `events/0028` (SupplierBooking вне туров) + `booking/0023` (Service.pricing_mode) + `catalog/0030` (Product.primary_action) + `finance/0009` (SOURCES gift/pass, choices-only)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. **Волна ERP (2026-08-21): `orders/0020` (OrderItem.cost_price) + `finance/0010` (BankTransaction) + `finance/0011` (Invoice.mahn_level/mahned_at + ExpenseEntry supplier/due_date/paid_at/document) + `documents/0002` (owner nullable + kind receipt) + `inventory/0005` (qty_returned + kind'ы return_supplier/production, ERP-5/7) + `jobs/0015` (JobLine.cost_rate, ERP-6)** — аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + `--kit pranasy --recreate` (кейтеринг-карта) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».

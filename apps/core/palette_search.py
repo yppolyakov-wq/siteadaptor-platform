@@ -61,7 +61,8 @@ def _deals(tenant, q: str) -> list[dict]:
                 url = ""
             out.append(
                 {
-                    "label": f"Angebot · {offer.customer_name or offer.customer_email}",
+                    "label": _("Angebot · %(who)s")
+                    % {"who": offer.customer_name or offer.customer_email},
                     "sub": f"{offer.get_status_display()}",
                     "url": url,
                 }

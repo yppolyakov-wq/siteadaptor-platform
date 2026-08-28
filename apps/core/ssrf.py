@@ -18,6 +18,7 @@ import socket
 from urllib.parse import urlparse
 
 import requests
+from django.utils.translation import gettext as _
 
 _ALLOWED_SCHEMES = {"http", "https"}
 _MAX_BYTES = 2 * 1024 * 1024  # 2 МБ — календарные фиды небольшие
@@ -44,21 +45,21 @@ def validate_public_url(raw: str) -> str:
     бросить SsrfError."""
     parsed = urlparse((raw or "").strip())
     if parsed.scheme not in _ALLOWED_SCHEMES:
-        raise SsrfError("Nur http/https-URLs sind erlaubt.")
+        raise SsrfError(_("Nur http/https-URLs sind erlaubt."))
     host = parsed.hostname
     if not host:
-        raise SsrfError("Ungültige URL.")
+        raise SsrfError(_("Ungültige URL."))
     port = parsed.port or (443 if parsed.scheme == "https" else 80)
     try:
         infos = socket.getaddrinfo(host, port, proto=socket.IPPROTO_TCP)
     except OSError as exc:
-        raise SsrfError("Host konnte nicht aufgelöst werden.") from exc
+        raise SsrfError(_("Host konnte nicht aufgelöst werden.")) from exc
     if not infos:
-        raise SsrfError("Host konnte nicht aufgelöst werden.")
+        raise SsrfError(_("Host konnte nicht aufgelöst werden."))
     for info in infos:
         ip = ipaddress.ip_address(info[4][0])
         if _is_blocked(ip):
-            raise SsrfError(f"Interne Adresse ({ip}) ist nicht erlaubt.")
+            raise SsrfError(_("Interne Adresse (%(ip)s) ist nicht erlaubt.") % {"ip": ip})
     return raw
 
 
@@ -75,7 +76,7 @@ def safe_get(url: str, *, timeout: int = _TIMEOUT, max_bytes: int = _MAX_BYTES) 
         total += len(chunk)
         if total > max_bytes:
             resp.close()
-            raise SsrfError("Antwort zu groß.")
+            raise SsrfError(_("Antwort zu groß."))
         chunks.append(chunk)
     resp.close()
     return b"".join(chunks).decode(resp.encoding or "utf-8", errors="replace")

@@ -23,7 +23,7 @@ from apps.catalog.picker import (  # SH-B: пикер позиций общий 
     _resolve_part,
     _service_snapshot,
 )
-from apps.core import deal_card, deal_links
+from apps.core import deal_card, deal_links, vat
 from apps.core.fsm import IllegalTransition
 from apps.finance.models import RevenueEntry
 
@@ -146,6 +146,14 @@ def job_detail(request, pk):
             job.save(update_fields=["site_address", "updated_at"])
             messages.success(request, _("Kundendaten gespeichert."))
             return redirect("jobs:detail", pk=job.pk)
+        if action == "valid_until":
+            # CARD-1 (владелец 2026-08-26): срок действия сметы живёт в блоке
+            # «Dokumente» рядом с PDF и отправкой — это свойство документа, а не
+            # строки состава.
+            job.valid_until = _parse_date(request.POST.get("valid_until"))
+            job.save(update_fields=["valid_until", "updated_at"])
+            messages.success(request, _("Saved."))
+            return redirect("jobs:detail", pk=job.pk)
         if action == "language":
             # I18N-7b/2: язык сметы хранится на заявке — клиент повторно скачает
             # ТОТ ЖЕ документ, независимо от языка кабинета.
@@ -203,12 +211,24 @@ def job_detail(request, pk):
                 request,
                 "job",
                 job,
-                sections=("request", "items", "payment", "documents", "thread"),
+                sections=(
+                    "request",
+                    "items",
+                    "discount",
+                    "totals",
+                    "payment",
+                    "documents",
+                    "thread",
+                ),
                 # VS-3: прикреплённые услуги к заявке (аренда посуды к мероприятию).
                 links=deal_links.block_context("job", job.pk),
                 hide_targets=("invoiced",),
             ),
-            "deal_customer_edit": False,
+            # CARD-4 (владелец 2026-08-26): контакты клиента правятся ОБЩИМ
+            # попапом по карандашу у имени, как у остальных сделок. Своя форма
+            # заявки схлопнута до адреса объекта — он про место работ, а не про
+            # карточку клиента, и в CRM ему не место.
+            "deal_customer_edit": True,
             # VF-15: публичная страница Angebot (клиент принимает и платит
             # депозит) — владельцу для ручной передачи ссылки.
             "angebot_path": reverse("storefront-angebot", args=[job.public_token]),
@@ -266,9 +286,9 @@ def _save_lines(request, job):
             request.POST.get(f"line_part_{index}", ""), products, variants
         )
         raw_part = request.POST.get(f"line_part_{index}", "")
-        svc_text, svc_price = _service_snapshot(raw_part)
+        svc_text, svc_price, svc_vat = _service_snapshot(raw_part)
         if svc_text is None:  # VF-9b: комбо — тот же снимок имени/цены без FK
-            svc_text, svc_price = _combo_snapshot(raw_part)
+            svc_text, svc_price, svc_vat = _combo_snapshot(raw_part)
         text = request.POST.get(f"line_text_{index}", "").strip()
         # G11: расходник из каталога без текста → снимок названия товара/варианта.
         if product and not text:
@@ -311,6 +331,12 @@ def _save_lines(request, job):
                 cost_rate = None
         elif product is not None:
             cost_rate = variant.cost_value if variant else product.cost_price
+        # VAT-1: ставка позиции. Пусто → подтянется из товара (в set_lines) или
+        # останется ставкой документа; у услуги/набора берём снимок из карточки.
+        vat_raw_line = str(request.POST.get(f"line_vat_{index}", "")).strip()
+        line_vat = vat.parse_rate_optional(vat_raw_line)
+        if line_vat is None and svc_vat is not None:
+            line_vat = svc_vat
         lines.append(
             {
                 "text": text,
@@ -319,6 +345,7 @@ def _save_lines(request, job):
                 "cost_rate": cost_rate,
                 "product": product,
                 "variant": variant,
+                "vat_rate": line_vat,
             }
         )
 
@@ -329,10 +356,17 @@ def _save_lines(request, job):
             % {"rows": ", ".join(str(i) for i in dropped)},
         )
 
-    vat_raw = request.POST.get("vat_rate", "19.00")
-    vat_rate = next((r for r in RevenueEntry.VAT_RATES if str(r) == vat_raw), Decimal("19.00"))
+    # Баг, найденный на стенде 2026-08-26: в немецкой локали Decimal рендерится
+    # в атрибут как «19,00», а сравнение шло со строкой «19.00» — совпадения не
+    # было НИКОГДА, и выбор 7 % молча сбрасывался в 19 %. `vat.parse_rate`
+    # нормализует запятую и отбивает чужие значения.
+    vat_rate = vat.parse_rate(request.POST.get("vat_rate"), job.vat_rate or Decimal("19.00"))
     services.set_lines(job, lines, vat_rate=vat_rate, small_business=request.tenant.small_business)
-    job.valid_until = _parse_date(request.POST.get("valid_until"))
+    # CARD-1: срок действия переехал в блок «Dokumente» и приходит СВОЕЙ формой.
+    # Без presence-guard сохранение сметы стирало бы его при каждом Save — ровно
+    # класс дефекта W0 («форма настроек теряла поля, которых нет в шаблоне»).
+    if "valid_until" in request.POST:
+        job.valid_until = _parse_date(request.POST.get("valid_until"))
     job.vehicle = request.POST.get("vehicle", job.vehicle).strip()[:120]  # A9 Werkstatt
     # A9: следующий TÜV/Service. Смена даты «перезаряжает» напоминание (sent_at → null).
     # QF-2: поле есть в форме не у всех архетипов — БЕЗ presence-guard сохранение

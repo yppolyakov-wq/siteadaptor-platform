@@ -16,6 +16,7 @@ import logging
 import requests
 from django.conf import settings
 from django.db import connection
+from django.utils.translation import gettext as _
 from django_tenants.utils import schema_context
 
 from .secrets import decrypted_config
@@ -250,7 +251,7 @@ def _ig_publish(publication) -> str:
     content = content_for(publication)
     image = content.image_url
     if not image:
-        raise RuntimeError("Instagram benötigt ein Bild für die Aktion")
+        raise RuntimeError(_("Instagram benötigt ein Bild für die Aktion"))
 
     version = _meta_version()
     ig_user = config["ig_user_id"]
@@ -353,7 +354,7 @@ def _pinterest_publish(publication) -> str:
     content = content_for(publication)
     image = content.image_url
     if not image:
-        raise RuntimeError("Pinterest benötigt ein Bild für die Aktion")
+        raise RuntimeError(_("Pinterest benötigt ein Bild für die Aktion"))
 
     body = {
         "board_id": config["board_id"],

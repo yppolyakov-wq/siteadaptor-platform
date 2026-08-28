@@ -12,6 +12,29 @@ from .models import Notification
 from .tasks import send_notification
 
 
+def tenant_locale() -> str:
+    """Язык БИЗНЕСА = `Tenant.default_locale` текущей схемы (фолбэк «de»).
+
+    I18N-13: письма, чьё тело собирается в Python (а не шаблоном через
+    `_render`), обязаны рендериться в локали ПОЛУЧАТЕЛЯ, а не в языке кабинета
+    владельца — иначе владелец с русским интерфейсом отправит клиенту русское
+    письмо. Использовать как `with translation.override(email_locale()):`.
+    """
+    try:
+        from apps.tenants.models import Tenant
+
+        tenant = Tenant.objects.filter(schema_name=connection.schema_name).first()
+        loc = getattr(tenant, "default_locale", "") if tenant else ""
+        return loc if isinstance(loc, str) and loc else "de"
+    except Exception:  # noqa: BLE001
+        return "de"
+
+
+# Письмо собирается в языке бизнеса — исторический псевдоним для читаемости
+# на почтовых колл-сайтах.
+email_locale = tenant_locale
+
+
 def notify(
     *,
     dedupe_key: str,

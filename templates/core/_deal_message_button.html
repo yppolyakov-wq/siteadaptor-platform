@@ -1,8 +1,30 @@
 {% load i18n %}
 {% comment %}C1 (план deal-comms-plan-2026-08-25): «написать клиенту» с карточки
 ЛЮБОЙ сделки — ОДИН партиал на все архетипы (прецедент _deal_customer_edit).
-Ведёт в существующий тред сделки либо в композер первого сообщения.
+
+DF-6 (владелец 2026-08-26): «должно опускать страницу до поля написать, а не
+переводить на другую страницу». Блок переписки теперь стоит на самой карточке
+(DF-3), поэтому здесь якорь: плавный скролл к нему и фокус в поле. Переход на
+страницу треда остаётся ФОЛБЭКОМ там, где блока нет (список, чужая поверхность)
+и когда JS не сработал — href настоящий, а не «#».
 Параметры include: kind, obj_pk, inbox_active (гейт модуля — fail-closed).{% endcomment %}
 {% if inbox_active %}
-  <a href="{% url 'inbox:deal-thread' kind obj_pk %}" class="text-sm text-indigo-600 hover:underline" data-deal-message>✉️ {% trans "Nachricht an den Kunden" %}</a>
+  <a href="{% url 'inbox:deal-thread' kind obj_pk %}" class="text-sm text-indigo-600 hover:underline"
+     data-deal-message data-deal-message-scroll>✉️ {% trans "Nachricht an den Kunden" %}</a>
+  <script>
+  (function () {
+    "use strict";
+    // Делегирование на document: карточка перерисовывается фрагментами (урок Ф1/HF).
+    document.addEventListener("click", function (e) {
+      var link = e.target.closest && e.target.closest("[data-deal-message-scroll]");
+      if (!link) return;
+      var block = document.querySelector('[data-deal-block="thread"]');
+      if (!block) return;  // блока нет — обычный переход по ссылке
+      e.preventDefault();
+      block.scrollIntoView({ behavior: "smooth", block: "center" });
+      var field = block.querySelector("textarea");
+      if (field) setTimeout(function () { field.focus({ preventScroll: true }); }, 350);
+    });
+  })();
+  </script>
 {% endif %}
