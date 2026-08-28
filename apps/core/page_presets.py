@@ -10,6 +10,8 @@ top-level ключей siteconfig НЕ вводится (golden-замки не 
 DE как прочий канва-контент; хром пикера переводится в шаблонах.
 """
 
+from django.utils.translation import gettext_lazy as _
+
 # host -> {"prefix": префикс id посеянных блоков, "presets": (пресеты…)}
 # Пресет: key/label/icon/blocks[(kind, data)]/flat{ключ: значение}/
 # recommended_for (business_type; пусто = нейтрален, порядок не меняется).
@@ -19,10 +21,10 @@ PAGE_PRESETS = {
     "info": {
         "prefix": "pb-about-",
         "presets": (
-            {"key": "text", "label": "Nur Text", "icon": "📝", "blocks": ()},
+            {"key": "text", "label": _("Nur Text"), "icon": "📝", "blocks": ()},
             {
                 "key": "bild",
-                "label": "Text + Bild",
+                "label": _("Text + Bild"),
                 "icon": "🖼️",
                 "blocks": (
                     (
@@ -36,7 +38,7 @@ PAGE_PRESETS = {
             },
             {
                 "key": "geschichte",
-                "label": "Unsere Geschichte",
+                "label": _("Unsere Geschichte"),
                 "icon": "📖",
                 "blocks": (
                     (
@@ -56,7 +58,7 @@ PAGE_PRESETS = {
             },
             {
                 "key": "team",
-                "label": "Team & Werte",
+                "label": _("Team & Werte"),
                 "icon": "🤝",
                 "blocks": (
                     (
@@ -91,14 +93,14 @@ PAGE_PRESETS = {
         "presets": (
             {
                 "key": "schlicht",
-                "label": "Schlicht",
+                "label": _("Schlicht"),
                 "icon": "🧺",
                 "blocks": (),
                 "flat": {"cart_show_upsell": False},
             },
             {
                 "key": "empfehlung",
-                "label": "Mit Empfehlungen",
+                "label": _("Mit Empfehlungen"),
                 "icon": "✨",
                 "blocks": (),
                 "flat": {"cart_show_upsell": True},
@@ -106,7 +108,7 @@ PAGE_PRESETS = {
             },
             {
                 "key": "vertrauen",
-                "label": "Vertrauen & Hinweise",
+                "label": _("Vertrauen & Hinweise"),
                 "icon": "🤝",
                 "blocks": (
                     (

@@ -7,11 +7,13 @@ initial-ключи форма игнорирует, поэтому `recurrence` 
 (включится, когда появится поле, B3b).
 """
 
+from django.utils.translation import gettext_lazy as _
+
 # Универсальные пресеты — доступны всем вертикалям.
 _COMMON = [
     {
         "key": "rabatt",
-        "label": "Rabatt-Aktion",
+        "label": _("Rabatt-Aktion"),
         "initial": {"title_de": "Aktion", "promo_type": "discount", "discount_percent": 20},
     },
 ]
@@ -21,7 +23,7 @@ PRESETS = {
     "bakery": [
         {
             "key": "feierabend",
-            "label": "Feierabend-Tüte 🌱",
+            "label": _("Feierabend-Tüte 🌱"),
             "initial": {
                 "title_de": "Feierabend-Überraschungstüte",
                 "promo_type": "reservation",
@@ -33,7 +35,7 @@ PRESETS = {
         },
         {
             "key": "woche",
-            "label": "Angebot der Woche",
+            "label": _("Angebot der Woche"),
             "initial": {
                 "title_de": "Angebot der Woche",
                 "promo_type": "discount",
@@ -45,7 +47,7 @@ PRESETS = {
     "butcher": [
         {
             "key": "grill",
-            "label": "Grillpaket vorbestellen",
+            "label": _("Grillpaket vorbestellen"),
             "initial": {
                 "title_de": "Grillpaket",
                 "promo_type": "reservation",
@@ -55,7 +57,7 @@ PRESETS = {
         },
         {
             "key": "woche",
-            "label": "Wochenangebot",
+            "label": _("Wochenangebot"),
             "initial": {
                 "title_de": "Wochenangebot",
                 "promo_type": "discount",
@@ -67,7 +69,7 @@ PRESETS = {
     "grocery": [
         {
             "key": "mhd",
-            "label": "MHD-Rabatt 🌱",
+            "label": _("MHD-Rabatt 🌱"),
             "initial": {
                 "title_de": "Kurz vor MHD",
                 "promo_type": "reservation",
@@ -81,7 +83,7 @@ PRESETS = {
     "restaurant": [
         {
             "key": "mittag",
-            "label": "Mittagstisch",
+            "label": _("Mittagstisch"),
             "initial": {
                 "title_de": "Mittagstisch",
                 "promo_type": "reservation",
@@ -91,14 +93,14 @@ PRESETS = {
         },
         {
             "key": "happy",
-            "label": "Happy Hour",
+            "label": _("Happy Hour"),
             "initial": {"title_de": "Happy Hour", "promo_type": "discount", "discount_percent": 30},
         },
     ],
     "cafe": [
         {
             "key": "mittag",
-            "label": "Mittagstisch",
+            "label": _("Mittagstisch"),
             "initial": {
                 "title_de": "Mittagstisch",
                 "promo_type": "reservation",
@@ -110,7 +112,7 @@ PRESETS = {
     "clothing": [
         {
             "key": "sale",
-            "label": "Schlussverkauf",
+            "label": _("Schlussverkauf"),
             "initial": {
                 "title_de": "Schlussverkauf",
                 "promo_type": "discount",
@@ -122,7 +124,7 @@ PRESETS = {
     "catering": [
         {
             "key": "fruehbucher",
-            "label": "Frühbucher-Rabatt",
+            "label": _("Frühbucher-Rabatt"),
             "initial": {
                 "title_de": "Frühbucher-Rabatt: 10 % bei Buchung 8 Wochen im Voraus",
                 "promo_type": "discount",
@@ -131,7 +133,7 @@ PRESETS = {
         },
         {
             "key": "saison",
-            "label": "Saison-Angebot",
+            "label": _("Saison-Angebot"),
             "initial": {
                 "title_de": "Saison-Menü zum Aktionspreis",
                 "promo_type": "discount",
@@ -143,7 +145,7 @@ PRESETS = {
     "online_shop": [
         {
             "key": "sale",
-            "label": "Sale-Aktion",
+            "label": _("Sale-Aktion"),
             "initial": {
                 "title_de": "Sale-Aktion",
                 "promo_type": "discount",
@@ -152,7 +154,7 @@ PRESETS = {
         },
         {
             "key": "launch",
-            "label": "Neu im Shop",
+            "label": _("Neu im Shop"),
             "initial": {
                 "title_de": "Neu im Shop",
                 "promo_type": "discount",
@@ -163,7 +165,7 @@ PRESETS = {
     "retail": [
         {
             "key": "sale",
-            "label": "Sonderangebot",
+            "label": _("Sonderangebot"),
             "initial": {
                 "title_de": "Sonderangebot",
                 "promo_type": "discount",
@@ -174,7 +176,7 @@ PRESETS = {
     "hotel": [
         {
             "key": "lastminute",
-            "label": "Last-Minute-Angebot",
+            "label": _("Last-Minute-Angebot"),
             "initial": {
                 "title_de": "Last-Minute-Angebot",
                 "promo_type": "reservation",
@@ -188,7 +190,7 @@ PRESETS = {
     "friseur": [
         {
             "key": "neukunde",
-            "label": "Neukunden-Rabatt",
+            "label": _("Neukunden-Rabatt"),
             "initial": {
                 "title_de": "Neukunden-Rabatt",
                 "promo_type": "discount",
@@ -199,7 +201,7 @@ PRESETS = {
     "werkstatt": [
         {
             "key": "check",
-            "label": "Saison-Check-Aktion",
+            "label": _("Saison-Check-Aktion"),
             "initial": {
                 "title_de": "Frühjahrs-Check",
                 "promo_type": "discount",
@@ -210,7 +212,7 @@ PRESETS = {
     "handwerker": [
         {
             "key": "saison",
-            "label": "Saison-Aktion",
+            "label": _("Saison-Aktion"),
             "initial": {
                 "title_de": "Saison-Aktion",
                 "promo_type": "discount",
@@ -221,7 +223,7 @@ PRESETS = {
     "events": [
         {
             "key": "fruehbucher",
-            "label": "Frühbucher-Ticket",
+            "label": _("Frühbucher-Ticket"),
             "initial": {
                 "title_de": "Frühbucher-Rabatt",
                 "promo_type": "discount",

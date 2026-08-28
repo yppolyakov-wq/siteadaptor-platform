@@ -166,7 +166,7 @@ def rueckruf(request):
     if best_time:
         desc += " " + _("Preferred time: %(t)s") % {"t": best_time[:100]}
     job = services.create_job(
-        title="Rückrufbitte",
+        title=_("Rückrufbitte"),
         name=name,
         phone=phone,
         email=request.POST.get("email", "").strip(),

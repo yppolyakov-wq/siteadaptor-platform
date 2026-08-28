@@ -105,10 +105,10 @@ def po_msgids() -> set[str]:
         elif in_id and line.startswith('"'):
             cur.append(line.strip().strip('"'))
         elif in_id:
-            ids.add("".join(cur))
+            ids.add("".join(cur).replace('\\"', '"'))
             in_id = False
     if in_id:
-        ids.add("".join(cur))
+        ids.add("".join(cur).replace('\\"', '"'))
     ids.discard("")
     return ids
 

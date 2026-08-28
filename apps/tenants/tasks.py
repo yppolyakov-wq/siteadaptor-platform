@@ -20,15 +20,23 @@ def _send_ready_email(tenant, email):
     from .services import login_url_for
 
     login_url = login_url_for(tenant)
+    from django.utils import translation
+    from django.utils.translation import gettext as _
+
+    from apps.notifications.services import email_locale
+
+    with translation.override(email_locale()):  # I18N-13: локаль получателя
+        subject = _("Ihre Website ist bereit — %(name)s") % {"name": tenant.name}
+        message = _(
+            "Hallo,\n\n"
+            "Ihre Website für „%(name)s“ ist fertig eingerichtet!\n\n"
+            "Hier anmelden: %(url)s\n"
+            "Benutzername: %(email)s\n\n"
+            "Viel Erfolg!\nIhr siteadaptor-Team"
+        ) % {"name": tenant.name, "url": login_url, "email": email}
     send_mail(
-        subject=f"Ihre Website ist bereit — {tenant.name}",
-        message=(
-            f"Hallo,\n\n"
-            f"Ihre Website für „{tenant.name}“ ist fertig eingerichtet!\n\n"
-            f"Hier anmelden: {login_url}\n"
-            f"Benutzername: {email}\n\n"
-            f"Viel Erfolg!\nIhr siteadaptor-Team"
-        ),
+        subject=subject,
+        message=message,
         from_email=None,  # DEFAULT_FROM_EMAIL
         recipient_list=[email],
         fail_silently=True,  # письмо — бонус, не условие готовности

@@ -31,10 +31,21 @@ PY_TRANS = re.compile(r"\b(?:_|gettext|gettext_lazy|pgettext|ngettext)\(\s*([\"'
 # Волна SH: длинная подсказка была РАЗБИТА на соседние литералы («…» «…»), и
 # проверка её не видела — msgid поймал только CI. Ловим склейку явно.
 PY_TRANS_JOINED = re.compile(
-    r"\b(?:_|gettext|gettext_lazy|pgettext|ngettext)\(\s*((?:[\"'](?:[^\"'\\]|\\.)*[\"']\s*){2,})\)?",
+    # Литерал = две альтернативы по типу кавычки: тело исключает СВОЮ кавычку,
+    # поэтому апостроф внутри двойных кавычек («we'll») склейку не рвёт, а
+    # выражение не «перепрыгивает» через код между соседними строками.
+    r"\b(?:_|gettext|gettext_lazy|pgettext|ngettext)\(\s*"
+    r"((?:(?:\"(?:[^\"\\]|\\.)*\"|'(?:[^'\\]|\\.)*')\s*){2,})\)?",
     re.S,
 )
-LITERAL = re.compile(r"[\"'](?P<body>(?:[^\"'\\]|\\.)*)[\"']")
+LITERAL = re.compile(r"\"(?:[^\"\\]|\\.)*\"|'(?:[^'\\]|\\.)*'")
+
+
+def _unescape(text: str) -> str:
+    """`.po` хранит msgid экранированным: `Show \\"View all\\" link`. Без снятия
+    экранирования сверка врёт на любой строке с кавычками (ложная тревога
+    pre-commit-хука, 2026-08-27)."""
+    return text.replace('\\"', '"').replace("\\\\", "\\")
 
 
 def po_msgids(locale: str) -> set[str]:
@@ -46,10 +57,10 @@ def po_msgids(locale: str) -> set[str]:
         elif in_id and line.startswith('"'):
             cur.append(line.strip().strip('"'))
         elif in_id:
-            ids.add("".join(cur))
+            ids.add(_unescape("".join(cur)))
             in_id = False
     if in_id:
-        ids.add("".join(cur))
+        ids.add(_unescape("".join(cur)))
     return ids
 
 
@@ -81,7 +92,7 @@ def main(argv: list[str]) -> int:
         src = f.read_text(encoding="utf-8")
         if f.suffix == ".py":
             for m in PY_TRANS_JOINED.finditer(src):
-                lit = "".join(x.group("body") for x in LITERAL.finditer(m.group(1)))
+                lit = "".join(x.group(0)[1:-1] for x in LITERAL.finditer(m.group(1)))
                 if "\\" in lit:
                     continue
                 if "%" in lit and "%(" not in lit:

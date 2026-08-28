@@ -1489,7 +1489,7 @@ def unit_feature(request, pk):
         kind=AggregatorListing.KIND_STAY,
         source_ref=str(unit.pk),
         listable=unit.is_active,
-        not_listed_hint=(
+        not_listed_hint=_(
             "Nur aktive Unterkünfte erscheinen im Verzeichnis und können "
             "beworben werden. Aktivieren Sie die Unterkunft zuerst."
         ),
@@ -1514,7 +1514,7 @@ def unit_feature_checkout(request, pk):
         source_ref=str(unit.pk),
         title=unit.name,
         listable=unit.is_active,
-        not_listable_msg="Nur aktive Unterkünfte können beworben werden.",
+        not_listable_msg=_("Nur aktive Unterkünfte können beworben werden."),
         sync=sync_stay_listing,
         feature_page_url=reverse("stays:unit-feature", args=[unit.pk]),
     )

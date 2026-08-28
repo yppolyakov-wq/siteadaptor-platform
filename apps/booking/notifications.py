@@ -6,6 +6,7 @@
 
 from django.db import connection
 from django.urls import reverse
+from django.utils.translation import gettext as _
 
 from apps.notifications.prefs import channel_enabled
 from apps.notifications.services import notify
@@ -72,7 +73,8 @@ def enqueue_booking_email(booking, event):
             when = booking.start.strftime("%d.%m. %H:%M") if booking.start else ""
             ctx["whatsapp_url"] = wa_link(
                 getattr(tenant, "whatsapp_number", "") if tenant else "",
-                f"Video-Termin {when} — {booking.service.name}",
+                _("Video-Termin %(when)s — %(service)s")
+                % {"when": when, "service": booking.service.name},
             )
         # UA4-4b wiring: post-visit ведёт на форму отзыва об услуге (generic
         # reviews, GET → деталь с формой). Нет услуги/домена → письмо без ссылки.

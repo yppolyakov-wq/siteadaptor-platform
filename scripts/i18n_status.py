@@ -30,6 +30,14 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 LOCALES = ("de", "en", "tr", "ru", "uk")
 # Названия брендов/форматов совпадают во всех языках — «перевода» у них нет.
+# Английские служебные слова: без них короткая строка («Warm», «Link (URL)»)
+# неотличима от немецкой — там пустой de-перевод норма, а не дефект.
+EN_MARK = re.compile(
+    r"\b(the|a|an|and|or|of|for|to|in|on|with|your|you|we|is|are|be|per|by|from|"
+    r"this|that|it|all|new|show|hide|save|delete|please|no|yes|not|can|will|use|"
+    r"add|edit|open|close|only|more|less|next|back|here)\b",
+    re.I,
+)
 BRANDS = {
     "WhatsApp",
     "Instagram",
@@ -124,6 +132,8 @@ def english_msgid_without_german(cats: dict[str, dict[str, Entry]]) -> list[str]
     for msgid, entry in de.items():
         if entry.translated or DE_MARK.search(msgid) or msgid in BRANDS:
             continue
+        if not EN_MARK.search(msgid):
+            continue  # ни немецких, ни английских маркеров → судить не о чем
         if entry.plural and DE_MARK.search(entry.plural):
             continue
         ref = en.get(msgid)

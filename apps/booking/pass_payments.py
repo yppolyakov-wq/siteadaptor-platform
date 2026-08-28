@@ -77,20 +77,32 @@ def purchase_pass(*, tenant_schema, plan_id, name, email, payment_intent="") -> 
 
 def _email_code(card) -> None:
     """Письмо клиенту с кодом купленной карты (без шаблона — короткий текст)."""
-    from apps.notifications.services import notify
+    from django.utils import translation
+    from django.utils.translation import gettext as _
+
+    from apps.notifications.services import email_locale, notify
 
     email = getattr(card.customer, "email", "")
     if not email:
         return
+    # I18N-13: письмо клиенту — в локали получателя, а не в языке кабинета.
+    with translation.override(email_locale()):
+        subject = _("Ihre Mehrfachkarte %(code)s") % {"code": card.code}
+        body = _(
+            "Hallo %(name)s,\n\n"
+            "vielen Dank! Ihre %(label)s ist aktiv.\n"
+            "Code: %(code)s — %(credits)s Besuche.\n"
+            "Geben Sie den Code bei der Online-Buchung an.\n"
+        ) % {
+            "name": card.customer,
+            "label": card.label,
+            "code": card.code,
+            "credits": card.credits_total,
+        }
     notify(
         dedupe_key=f"pass:{card.id}:issued",
         type="pass_issued",
         recipient=email,
-        subject=f"Ihre Mehrfachkarte {card.code}",
-        body=(
-            f"Hallo {card.customer},\n\n"
-            f"vielen Dank! Ihre {card.label} ist aktiv.\n"
-            f"Code: {card.code} — {card.credits_total} Besuche.\n"
-            f"Geben Sie den Code bei der Online-Buchung an.\n"
-        ),
+        subject=subject,
+        body=body,
     )

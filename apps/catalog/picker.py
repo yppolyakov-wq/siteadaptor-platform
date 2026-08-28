@@ -7,6 +7,8 @@ QF-1 сделал пикер для сметы Handwerker; SH-2 (фидбэк в
 
 from decimal import Decimal
 
+from django.utils.translation import gettext as _
+
 
 def _catalog_parts(tenant=None, include_combos=False):
     """G11: активные позиции для пикера строки сметы (value/label + остаток).
@@ -27,14 +29,14 @@ def _catalog_parts(tenant=None, include_combos=False):
             for v in variants:
                 label = f"{p.name_text} · {v.label}"
                 if v.stock_quantity is not None:
-                    label += f" (Lager: {v.stock_quantity})"
+                    label += _(" (Lager: %(n)s)") % {"n": v.stock_quantity}
                 parts.append(
                     {"value": f"v:{v.pk}", "label": label, "price": v.price_value, "title": label}
                 )
         else:
             label = p.name_text
             if p.stock_quantity is not None:
-                label += f" (Lager: {p.stock_quantity})"
+                label += _(" (Lager: %(n)s)") % {"n": p.stock_quantity}
             parts.append(
                 {
                     "value": f"p:{p.pk}",

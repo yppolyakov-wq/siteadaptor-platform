@@ -1096,7 +1096,7 @@ def combo_feature(request, pk):
         kind=AggregatorListing.KIND_MENU,
         source_ref=str(combo.pk),
         listable=combo.is_active,
-        not_listed_hint=(
+        not_listed_hint=_(
             "Nur aktive Menü-Sets erscheinen im Verzeichnis und können beworben "
             "werden. Aktivieren Sie das Set zuerst."
         ),
@@ -1121,7 +1121,7 @@ def combo_feature_checkout(request, pk):
         source_ref=str(combo.pk),
         title=combo.name,
         listable=combo.is_active,
-        not_listable_msg="Nur aktive Menü-Sets können beworben werden.",
+        not_listable_msg=_("Nur aktive Menü-Sets können beworben werden."),
         sync=sync_menu_listing,
         feature_page_url=reverse("catalog:combo-feature", args=[combo.pk]),
     )

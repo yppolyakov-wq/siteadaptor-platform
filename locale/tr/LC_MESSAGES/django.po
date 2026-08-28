@@ -20465,3 +20465,588 @@ msgstr "Üst kategori"
 
 msgid "Symbol"
 msgstr "Simge"
+
+msgid "Nur Text"
+msgstr "Yalnızca metin"
+
+msgid "Text + Bild"
+msgstr "Metin + görsel"
+
+msgid "Unsere Geschichte"
+msgstr "Hikâyemiz"
+
+msgid "Team & Werte"
+msgstr "Ekip ve değerler"
+
+msgid "Schlicht"
+msgstr "Sade"
+
+msgid "Mit Empfehlungen"
+msgstr "Önerilerle"
+
+msgid "Vertrauen & Hinweise"
+msgstr "Güven ve notlar"
+
+msgid "2 Spalten"
+msgstr "2 sütun"
+
+msgid "3 Spalten"
+msgstr "3 sütun"
+
+msgid "4 Spalten"
+msgstr "4 sütun"
+
+msgid "Klar"
+msgstr "Sade"
+
+msgid "Weich"
+msgstr "Yumuşak"
+
+msgid "ohne Rahmen, viel Weißraum"
+msgstr "çerçevesiz, bol boşluk"
+
+msgid "runde Ecken, leichter Schatten"
+msgstr "yuvarlak köşeler, hafif gölge"
+
+msgid "Kachel mit Fläche und Innenabstand"
+msgstr "dolgulu ve iç boşluklu döşeme"
+
+msgid "FAQ anzeigen"
+msgstr "SSS'yi göster"
+
+msgid "Der FAQ-Block der Startseite — auch auf dieser Seite"
+msgstr "Ana sayfadaki SSS bloğu — bu sayfada da"
+
+msgid "Team anzeigen"
+msgstr "Ekibi göster"
+
+msgid "Der Team-Block der Startseite — auch auf dieser Seite"
+msgstr "Ana sayfadaki ekip bloğu — bu sayfada da"
+
+msgid "Galerie anzeigen"
+msgstr "Galeriyi göster"
+
+msgid "Die Galerie der Startseite — auch auf dieser Seite"
+msgstr "Ana sayfadaki galeri — bu sayfada da"
+
+msgid "Stimmen anzeigen"
+msgstr "Görüşleri göster"
+
+msgid "Kundenstimmen der Startseite — auch auf dieser Seite"
+msgstr "Ana sayfadaki müşteri görüşleri — bu sayfada da"
+
+msgid "Angebot-Anfrage direkt auf dieser Seite (Modul Aufträge)"
+msgstr "Bu sayfada doğrudan teklif talebi (İşler modülü)"
+
+msgid "Kontaktformular"
+msgstr "İletişim formu"
+
+msgid "Frage-stellen-Formular direkt auf dieser Seite (Modul Nachrichten)"
+msgstr "Bu sayfada doğrudan soru sorma formu (Mesajlar modülü)"
+
+msgid "Nur durchgestrichener Preis"
+msgstr "Yalnızca üstü çizili fiyat"
+
+msgid "Nur neuer Preis (Festpreis)"
+msgstr "Yalnızca yeni fiyat (sabit fiyat)"
+
+msgid "Ab-Preis („ab 7,50 €“)"
+msgstr "Başlangıç fiyatı (“7,50 €'dan”)"
+
+msgid "Überraschung im Fokus"
+msgstr "Sürpriz odakta"
+
+msgid "Mystery — Preis bis Klick versteckt"
+msgstr "Mystery — tıklanana kadar fiyat gizli"
+
+msgid "Täglich"
+msgstr "Günlük"
+
+msgid "Wöchentlich"
+msgstr "Haftalık"
+
+msgid "Rabatt-Aktion"
+msgstr "İndirim kampanyası"
+
+msgid "Feierabend-Tüte 🌱"
+msgstr "Gün sonu paketi 🌱"
+
+msgid "Angebot der Woche"
+msgstr "Haftanın teklifi"
+
+msgid "Grillpaket vorbestellen"
+msgstr "Mangal paketi ön siparişi"
+
+msgid "Wochenangebot"
+msgstr "Haftalık teklif"
+
+msgid "MHD-Rabatt 🌱"
+msgstr "Son kullanma indirimi 🌱"
+
+msgid "Mittagstisch"
+msgstr "Öğle menüsü"
+
+msgid "Happy Hour"
+msgstr "Mutlu saatler"
+
+msgid "Schlussverkauf"
+msgstr "Sezon sonu indirimi"
+
+msgid "Frühbucher-Rabatt"
+msgstr "Erken rezervasyon indirimi"
+
+msgid "Saison-Angebot"
+msgstr "Sezon teklifi"
+
+msgid "Sale-Aktion"
+msgstr "Sale kampanyası"
+
+msgid "Neu im Shop"
+msgstr "Mağazada yeni"
+
+msgid "Sonderangebot"
+msgstr "Özel teklif"
+
+msgid "Last-Minute-Angebot"
+msgstr "Son dakika teklifi"
+
+msgid "Neukunden-Rabatt"
+msgstr "Yeni müşteri indirimi"
+
+msgid "Saison-Check-Aktion"
+msgstr "Sezon bakımı kampanyası"
+
+msgid "Saison-Aktion"
+msgstr "Sezon kampanyası"
+
+msgid "Frühbucher-Ticket"
+msgstr "Erken rezervasyon bileti"
+
+msgid "Klassischer Laden"
+msgstr "Klasik dükkân"
+
+msgid "Startbanner, aktuelle Angebote, Produkte, Über uns, Kontakt — der Allrounder für den Einzelhandel."
+msgstr "Başlangıç afişi, güncel teklifler, ürünler, hakkımızda, iletişim — perakende için çok yönlü seçim."
+
+msgid "Café & Restaurant"
+msgstr "Kafe ve restoran"
+
+msgid "Speisen und Angebote im Fokus, Öffnungszeiten prominent — für die Gastronomie."
+msgstr "Yemekler ve teklifler odakta, çalışma saatleri ön planda — gastronomi için."
+
+msgid "Dienstleister & Termine"
+msgstr "Hizmet ve randevu"
+
+msgid "Vorstellung und Kontakt im Vordergrund — für Termin-Geschäfte (Friseur, Studio, Beratung)."
+msgstr "Tanıtım ve iletişim ön planda — randevulu işletmeler için (kuaför, stüdyo, danışmanlık)."
+
+msgid "Übernachtung & Gastgeber"
+msgstr "Konaklama ve ev sahipliği"
+
+msgid "Verfügbarkeit, Zimmer, Lage und Kontakt — für Pension, Ferienwohnung oder kleines Hotel."
+msgstr "Müsaitlik, odalar, konum ve iletişim — pansiyon, tatil dairesi veya küçük otel için."
+
+msgid "Termine & Leistungen"
+msgstr "Randevular ve hizmetler"
+
+msgid "Leistungen mit Preisen und Online-Termin im Fokus — für Friseur, Werkstatt und Studios."
+msgstr "Fiyatlı hizmetler ve online randevu odakta — kuaför, servis ve stüdyolar için."
+
+msgid "Handwerk & Angebote"
+msgstr "Zanaat ve teklifler"
+
+msgid "Referenzen, Ablauf und unverbindliches Angebot — für Meisterbetrieb, Sanierung und Montage."
+msgstr "Referanslar, süreç ve bağlayıcı olmayan teklif — usta işletmeler, tadilat ve montaj için."
+
+msgid "Catering & Partyservice"
+msgstr "Catering ve parti servisi"
+
+msgid "Anfrage, Angebot und Event-Planung — für Catering, Partyservice und Foodtrucks."
+msgstr "Talep, teklif ve etkinlik planlama — catering, parti servisi ve food truck'lar için."
+
+msgid "Kommende Termine und Tickets im Fokus — für Veranstalter, Guides und Studios."
+msgstr "Yaklaşan tarihler ve biletler odakta — organizatörler, rehberler ve stüdyolar için."
+
+msgid "Minimal / Visitenkarte"
+msgstr "Minimal / kartvizit"
+
+msgid "Schlichte Eine-Seite-Visitenkarte: Banner und Kontakt. Für alle, die es einfach mögen."
+msgstr "Sade tek sayfalık kartvizit: afiş ve iletişim. Basit sevenler için."
+
+msgid "Hell und aufgeräumt — klare Flächen, ruhige Typografie."
+msgstr "Aydınlık ve derli toplu — net yüzeyler, sakin tipografi."
+
+msgid "Warm"
+msgstr "Sıcak"
+
+msgid "Serif-Überschriften, weiche Karten — einladend und persönlich."
+msgstr "Serif başlıklar, yumuşak kartlar — davetkâr ve kişisel."
+
+msgid "Nacht"
+msgstr "Gece"
+
+msgid "Dunkler Auftritt mit kräftigen Überschriften — modern und markant."
+msgstr "Güçlü başlıklarla koyu bir görünüm — modern ve çarpıcı."
+
+msgid "Fein"
+msgstr "Zarif"
+
+msgid "Elegante Serif-Überschriften auf Creme — edel und ruhig."
+msgstr "Krem üzerine zarif serif başlıklar — asil ve sakin."
+
+msgid "Natur"
+msgstr "Doğa"
+
+msgid "Runde Formen und warme Erdtöne — freundlich und bodenständig."
+msgstr "Yuvarlak formlar ve sıcak toprak tonları — samimi ve sade."
+
+msgid "Fokus"
+msgstr "Odak"
+
+msgid "Ein Hauptziel pro Bildschirm: Split-Banner, Preisliste, Anfrage direkt auf der Startseite."
+msgstr "Ekran başına tek ana hedef: bölünmüş afiş, fiyat listesi, ana sayfada doğrudan talep."
+
+msgid "Ein Hauptziel pro Bildschirm: Split-Banner mit Datumssuche, Zimmer direkt darunter, kompaktes Vertrauensband."
+msgstr "Ekran başına tek ana hedef: tarih aramalı bölünmüş afiş, hemen altında odalar, kompakt güven şeridi."
+
+msgid "Ein Hauptziel pro Bildschirm: Split-Banner, klassische Speisekarte, Tisch-Reservierung immer sichtbar."
+msgstr "Ekran başına tek ana hedef: bölünmüş afiş, klasik menü, masa rezervasyonu her zaman görünür."
+
+msgid "Ein Hauptziel pro Bildschirm: Split-Banner, kompakte Karte auf der Startseite, Speisekarte mit Fotos."
+msgstr "Ekran başına tek ana hedef: bölünmüş afiş, ana sayfada kompakt menü, fotoğraflı menü."
+
+msgid "Ein Hauptziel pro Bildschirm: Split-Banner, Sortiment-Kacheln und Preisliste mit Fotos."
+msgstr "Ekran başına tek ana hedef: bölünmüş afiş, ürün döşemeleri ve fotoğraflı fiyat listesi."
+
+msgid "Ein Hauptziel pro Bildschirm: Theken-Sortiment mit Fotos und Partyservice-Anfrage direkt auf der Startseite."
+msgstr "Ekran başına tek ana hedef: fotoğraflı tezgâh ürünleri ve ana sayfada doğrudan parti servisi talebi."
+
+msgid "Ein Hauptziel pro Bildschirm: Leistungen mit Preisen im Banner, Team und Termin-Buchung immer sichtbar."
+msgstr "Ekran başına tek ana hedef: afişte fiyatlı hizmetler, ekip ve randevu her zaman görünür."
+
+msgid "Ein Hauptziel pro Bildschirm: Festpreis-Leistungen, klarer Ablauf und Kostenvoranschlag-Anfrage."
+msgstr "Ekran başına tek ana hedef: sabit fiyatlı hizmetler, net süreç ve maliyet teklifi talebi."
+
+msgid "Ein Hauptziel pro Bildschirm: Referenzen vorher/nachher, klarer Ablauf und Angebots-Anfrage."
+msgstr "Ekran başına tek ana hedef: öncesi/sonrası referanslar, net süreç ve teklif talebi."
+
+msgid "Ein Hauptziel pro Bildschirm: aktuelle Angebote ganz oben, Sortiment-Kacheln darunter."
+msgstr "Ekran başına tek ana hedef: en üstte güncel teklifler, altında ürün döşemeleri."
+
+msgid "Ein Hauptziel pro Bildschirm: Sortiment-Kacheln, Produkte als Karten und Versand-Vorteile auf einen Blick."
+msgstr "Ekran başına tek ana hedef: ürün döşemeleri, kart olarak ürünler ve tek bakışta kargo avantajları."
+
+msgid "Ein Hauptziel pro Bildschirm: große Bilder, Kollektionen als Kacheln und Lookbook-Galerie."
+msgstr "Ekran başına tek ana hedef: büyük görseller, döşeme olarak koleksiyonlar ve lookbook galerisi."
+
+msgid "Ein Hauptziel pro Bildschirm: kommende Termine als Programm, Ablauf und Stimmen der Gäste."
+msgstr "Ekran başına tek ana hedef: program olarak yaklaşan tarihler, akış ve konuk görüşleri."
+
+msgid "Ein Hauptziel pro Bildschirm: Reisen mit Bildern, Termine und Anfrage für die eigene Gruppe."
+msgstr "Ekran başına tek ana hedef: fotoğraflı geziler, tarihler ve kendi grubunuz için talep."
+
+msgid " (Lager: %(n)s)"
+msgstr " (stok: %(n)s)"
+
+msgid "Nur aktive Menü-Sets erscheinen im Verzeichnis und können beworben werden. Aktivieren Sie das Set zuerst."
+msgstr "Dizinde yalnızca etkin menü setleri görünür ve tanıtılabilir. Önce seti etkinleştirin."
+
+msgid "Nur aktive Menü-Sets können beworben werden."
+msgstr "Yalnızca etkin menü setleri tanıtılabilir."
+
+msgid "Kein Zugriff auf dieses Konto."
+msgstr "Bu hesaba erişim yok."
+
+msgid "Nur für Inhaber."
+msgstr "Yalnızca işletme sahibi için."
+
+msgid "Angebot · %(who)s"
+msgstr "Teklif · %(who)s"
+
+msgid "z. B. Roggenbrot"
+msgstr "örn. çavdar ekmeği"
+
+msgid "z. B. Haarschnitt"
+msgstr "örn. saç kesimi"
+
+msgid "z. B. Doppelzimmer"
+msgstr "örn. çift kişilik oda"
+
+msgid "z. B. Sommerkonzert"
+msgstr "örn. yaz konseri"
+
+msgid "Nur http/https-URLs sind erlaubt."
+msgstr "Yalnızca http/https adreslerine izin verilir."
+
+msgid "Ungültige URL."
+msgstr "Geçersiz URL."
+
+msgid "Host konnte nicht aufgelöst werden."
+msgstr "Sunucu adresi çözümlenemedi."
+
+msgid "Interne Adresse (%(ip)s) ist nicht erlaubt."
+msgstr "Dahili adrese (%(ip)s) izin verilmiyor."
+
+msgid "Antwort zu groß."
+msgstr "Yanıt çok büyük."
+
+msgid "Nur veröffentlichte, kommende Veranstaltungen erscheinen im Verzeichnis und können beworben werden."
+msgstr "Dizinde yalnızca yayımlanmış, yaklaşan etkinlikler görünür ve tanıtılabilir."
+
+msgid "Nur veröffentlichte, kommende Veranstaltungen können beworben werden."
+msgstr "Yalnızca yayımlanmış, yaklaşan etkinlikler tanıtılabilir."
+
+msgid "Rückrufbitte"
+msgstr "Geri arama talebi"
+
+msgid "%(label)s [Art.-Nr. %(sku)s]"
+msgstr "%(label)s [ürün kodu %(sku)s]"
+
+msgid "Aktion −%(pct)s%% · %(title)s"
+msgstr "Kampanya −%(pct)s%% · %(title)s"
+
+msgid "%(code)s: ausgegeben ✓ (Auto)"
+msgstr "%(code)s: verildi ✓ (oto)"
+
+msgid "Stempel +1 (%(n)s/%(total)s)"
+msgstr "Damga +1 (%(n)s/%(total)s)"
+
+msgid " — Belohnung: %(label)s [%(code)s]"
+msgstr " — ödül: %(label)s [%(code)s]"
+
+msgid "Kampagne an %(n)s Empfänger gesendet."
+msgstr "Kampanya %(n)s alıcıya gönderildi."
+
+msgid "Newsletter an %(n)s Empfänger gesendet."
+msgstr "Bülten %(n)s alıcıya gönderildi."
+
+msgid "Nur aktive Unterkünfte erscheinen im Verzeichnis und können beworben werden. Aktivieren Sie die Unterkunft zuerst."
+msgstr "Dizinde yalnızca etkin konaklamalar görünür ve tanıtılabilir. Önce konaklamayı etkinleştirin."
+
+msgid "Nur aktive Unterkünfte können beworben werden."
+msgstr "Yalnızca etkin konaklamalar tanıtılabilir."
+
+msgid "Ungültiger Domainname."
+msgstr "Geçersiz alan adı."
+
+msgid "Bitte eine Domain angeben, keine IP-Adresse."
+msgstr "Lütfen IP adresi değil, alan adı girin."
+
+msgid "Subdomains von %(base)s werden automatisch vergeben."
+msgstr "%(base)s alt alan adları otomatik atanır."
+
+msgid "Diese Domain ist bereits vergeben."
+msgstr "Bu alan adı zaten alınmış."
+
+msgid "Diese Domain wurde bereits hinzugefügt."
+msgstr "Bu alan adı zaten eklenmiş."
+
+msgid "Server nicht konfiguriert. Bitte Support kontaktieren."
+msgstr "Sunucu yapılandırılmamış. Lütfen destek ile iletişime geçin."
+
+msgid "Domain löst noch nicht auf (DNS kann bis 24 h dauern)."
+msgstr "Alan adı henüz çözümlenmiyor (DNS 24 saate kadar sürebilir)."
+
+msgid "Domain zeigt auf %(ips)s, erwartet %(target)s."
+msgstr "Alan adı %(ips)s adresine işaret ediyor, beklenen %(target)s."
+
+msgid "USt."
+msgstr "KDV"
+
+msgid "Rechnung stellen"
+msgstr "Fatura kes"
+
+msgid "Entwurf löschen"
+msgstr "Taslağı sil"
+
+msgid "Neue Rechnung (Entwurf)"
+msgstr "Yeni fatura (taslak)"
+
+msgid "Empfänger (Name, Adresse)"
+msgstr "Alıcı (ad, adres)"
+
+msgid "Leer lassen bei Firmenkunden — die Rechnungsdaten der Firma werden automatisch übernommen."
+msgstr "Kurumsal müşterilerde boş bırakın — şirketin fatura bilgileri otomatik alınır."
+
+msgid "(Preis netto)"
+msgstr "(net fiyat)"
+
+msgid "€/Nacht"
+msgstr "€/gece"
+
+msgid "Button — klicken zum Bearbeiten"
+msgstr "Düğme — düzenlemek için tıklayın"
+
+msgid "Bild — klicken zum Hinzufügen"
+msgstr "Görsel — eklemek için tıklayın"
+
+msgid "Bild + Text — klicken zum Bearbeiten"
+msgstr "Görsel + metin — düzenlemek için tıklayın"
+
+msgid "Aktion wählen — klicken zum Bearbeiten"
+msgstr "Kampanya seçin — düzenlemek için tıklayın"
+
+msgid "Zahlen-Block — klicken zum Bearbeiten"
+msgstr "Sayı bloğu — düzenlemek için tıklayın"
+
+msgid "Textblock — klicken zum Bearbeiten"
+msgstr "Metin bloğu — düzenlemek için tıklayın"
+
+msgid "Block einfügen"
+msgstr "Blok ekle"
+
+msgid "Aktionsgruppe"
+msgstr "Kampanya grubu"
+
+msgid "Link (URL)"
+msgstr "Bağlantı (URL)"
+
+msgid "Sprungmarke"
+msgstr "Bağlantı noktası"
+
+msgid "Nur Untermenü"
+msgstr "Yalnızca alt menü"
+
+msgid "Kategorien (automatisch)"
+msgstr "Kategoriler (otomatik)"
+
+msgid "Neuigkeiten vom Guide & Gruppen-Chat"
+msgstr "Rehberden haberler ve grup sohbeti"
+
+msgid "Reisegruppen"
+msgstr "Seyahat grupları"
+
+msgid "Angebote & Aufträge"
+msgstr "Teklifler ve işler"
+
+msgid "Rechnung Nr. %(n)s"
+msgstr "Fatura no. %(n)s"
+
+msgid "Bonuskarten"
+msgstr "Sadakat kartları"
+
+msgid "Ihrem Shop"
+msgstr "mağazanız"
+
+msgid "Ihr Anmelde-Link – %(shop)s"
+msgstr "Giriş bağlantınız – %(shop)s"
+
+msgid "Guten Tag,\n\nmit diesem Link melden Sie sich bei %(shop)s an: %(url)s\n\nDer Link ist 15 Minuten gültig und kann nur einmal verwendet werden.\nFalls Sie keine Anmeldung angefordert haben, ignorieren Sie diese E-Mail."
+msgstr "Merhaba,\n\nBu bağlantıyla %(shop)s hesabınıza giriş yapabilirsiniz: %(url)s\n\nBağlantı 15 dakika geçerlidir ve yalnızca bir kez kullanılabilir.\nGiriş talebinde bulunmadıysanız bu e-postayı yok sayın."
+
+msgid "Ihr Anmelde-Link"
+msgstr "Giriş bağlantınız"
+
+msgid "Guten Tag,\n\nmit diesem Link melden Sie sich an: %(url)s\n\nDer Link ist 15 Minuten gültig und kann nur einmal verwendet werden.\nFalls Sie keine Anmeldung angefordert haben, ignorieren Sie diese E-Mail."
+msgstr "Merhaba,\n\nBu bağlantıyla giriş yapabilirsiniz: %(url)s\n\nBağlantı 15 dakika geçerlidir ve yalnızca bir kez kullanılabilir.\nGiriş talebinde bulunmadıysanız bu e-postayı yok sayın."
+
+msgid "heute"
+msgstr "bugün"
+
+msgid "in %(n)s Tagen"
+msgstr "%(n)s gün içinde"
+
+msgid "Ihre Testphase endet bald"
+msgstr "Deneme süreniz yakında bitiyor"
+
+msgid "Ihre Testphase endet %(when)s. Aktivieren Sie Ihr Abo, um ohne Unterbrechung weiterzuarbeiten."
+msgstr "Deneme süreniz %(when)s sona eriyor. Kesintisiz devam etmek için aboneliğinizi etkinleştirin."
+
+msgid "Video-Termin %(when)s — %(service)s"
+msgstr "Görüntülü randevu %(when)s — %(service)s"
+
+msgid "Ihre Mehrfachkarte %(code)s"
+msgstr "Çok girişli kartınız %(code)s"
+
+msgid "Hallo %(name)s,\n\nvielen Dank! Ihre %(label)s ist aktiv.\nCode: %(code)s — %(credits)s Besuche.\nGeben Sie den Code bei der Online-Buchung an.\n"
+msgstr "Merhaba %(name)s,\n\nteşekkürler! %(label)s kartınız aktif.\nKod: %(code)s — %(credits)s ziyaret.\nOnline randevuda kodu belirtin.\n"
+
+msgid "Kein passender Code — bitte den Code aus dem Dashboard verwenden."
+msgstr "Eşleşen kod yok — lütfen panodaki kodu kullanın."
+
+msgid "Diese Reisegruppe ist bereits mit einer anderen Telegram-Gruppe verbunden."
+msgstr "Bu seyahat grubu zaten başka bir Telegram grubuna bağlı."
+
+msgid "✅ Verbunden mit «%(title)s». Beiträge laufen ab jetzt in beide Richtungen."
+msgstr "✅ «%(title)s» ile bağlandı. Gönderiler artık iki yönde akıyor."
+
+msgid "Ihr Gutscheincode: %(code)s (%(amount)s €)"
+msgstr "Hediye kodunuz: %(code)s (%(amount)s €)"
+
+msgid "Ihr Geschenkgutschein"
+msgstr "Hediye çekiniz"
+
+msgid "📄 Angebot über %(total)s %(cur)s gesendet"
+msgstr "📄 %(total)s %(cur)s tutarında teklif gönderildi"
+
+msgid " (gültig bis %(date)s)"
+msgstr " (%(date)s tarihine kadar geçerli)"
+
+msgid "✅ Angebot angenommen — Bestellung %(code)s"
+msgstr "✅ Teklif kabul edildi — sipariş %(code)s"
+
+msgid "❌ Angebot abgelehnt"
+msgstr "❌ Teklif reddedildi"
+
+msgid "Angebot zurückgezogen"
+msgstr "Teklif geri çekildi"
+
+msgid "Rabatt für Kunden (Stripe-Coupon)"
+msgstr "Müşterilere indirim (Stripe kuponu)"
+
+msgid "Bitte bestätigen Sie Ihre Anmeldung zum Newsletter:\n\n%(link)s\n\nWenn Sie sich nicht angemeldet haben, ignorieren Sie diese E-Mail."
+msgstr "Lütfen bülten aboneliğinizi onaylayın:\n\n%(link)s\n\nAbone olmadıysanız bu e-postayı yok sayın."
+
+msgid "Bitte bestätigen Sie Ihre Newsletter-Anmeldung"
+msgstr "Lütfen bülten aboneliğinizi onaylayın"
+
+msgid "Link abgelaufen"
+msgstr "Bağlantının süresi doldu"
+
+msgid "Diese Vorschau-Ansicht ist abgelaufen oder wurde nicht gefunden. Bitten Sie den Absender um einen neuen Link."
+msgstr "Bu önizlemenin süresi dolmuş veya bulunamadı. Lütfen gönderenden yeni bir bağlantı isteyin."
+
+msgid "Instagram benötigt ein Bild für die Aktion"
+msgstr "Instagram kampanya için bir görsel gerektiriyor"
+
+msgid "Pinterest benötigt ein Bild für die Aktion"
+msgstr "Pinterest kampanya için bir görsel gerektiriyor"
+
+msgid "Lücken-Deal −%(pct)s%%"
+msgstr "Boşluk fırsatı −%(pct)s%%"
+
+msgid "−%(pct)s%% ab %(n)s Nächten"
+msgstr "%(n)s geceden itibaren −%(pct)s%%"
+
+msgid "Frühbucher −%(pct)s%%"
+msgstr "Erken rezervasyon −%(pct)s%%"
+
+msgid "Übernachtung %(unit)s: %(nights)s Nächte (%(from)s–%(to)s)"
+msgstr "Konaklama %(unit)s: %(nights)s gece (%(from)s–%(to)s)"
+
+msgid "Kurtaxe (ohne USt.)"
+msgstr "Konaklama vergisi (KDV hariç)"
+
+msgid "Ihre Website ist bereit — %(name)s"
+msgstr "Web siteniz hazır — %(name)s"
+
+msgid "Hallo,\n\nIhre Website für „%(name)s“ ist fertig eingerichtet!\n\nHier anmelden: %(url)s\nBenutzername: %(email)s\n\nViel Erfolg!\nIhr siteadaptor-Team"
+msgstr "Merhaba,\n\n“%(name)s” için web siteniz hazır!\n\nBuradan giriş yapın: %(url)s\nKullanıcı adı: %(email)s\n\nBaşarılar!\nsiteadaptor ekibiniz"
+
+msgid "Ich bin gerade auf Ihrer Website — können Sie mir kurz per Video helfen?"
+msgstr "Şu anda web sitenizdeyim — kısaca görüntülü yardımcı olur musunuz?"
+
+msgid "★ Anzeige"
+msgstr "★ Reklam"
+
+msgid "Monat"
+msgstr "ay"
+
+msgid "Widerruf online erklären"
+msgstr "Cayma hakkını çevrimiçi bildir"
+
+msgid "Ihr persönlicher Code: %(code)s"
+msgstr "Kişisel kodunuz: %(code)s"
+
+msgid "Last-Minute −%(pct)s%%"
+msgstr "Son dakika −%(pct)s%%"

@@ -38,7 +38,7 @@
 
 <form method="post" class="bg-white rounded-2xl shadow-sm p-6 max-w-2xl space-y-4">
   {% csrf_token %}
-  <h2 class="font-semibold">Neue Rechnung (Entwurf)</h2>
+  <h2 class="font-semibold">{% trans "Neue Rechnung (Entwurf)" %}</h2>
   <div class="grid sm:grid-cols-2 gap-4">
     <div>
       <label class="block text-sm font-medium mb-1">{% trans "Customer" %} ({% trans "optional" %})</label>
@@ -59,13 +59,13 @@
     </div>
   </div>
   <div>
-    <label class="block text-sm font-medium mb-1">Empfänger (Name, Adresse)</label>
+    <label class="block text-sm font-medium mb-1">{% trans "Empfänger (Name, Adresse)" %}</label>
     <textarea name="recipient" rows="2" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
     {# CO-2: пусто + корпоративный гость → реквизиты компании подставятся сами. #}
-    <p class="text-xs text-gray-400 mt-1">Leer lassen bei Firmenkunden — die Rechnungsdaten der Firma werden automatisch übernommen.</p>
+    <p class="text-xs text-gray-400 mt-1">{% trans "Leer lassen bei Firmenkunden — die Rechnungsdaten der Firma werden automatisch übernommen." %}</p>
   </div>
   <div class="space-y-2">
-    <p class="text-sm font-medium">Positionen <span class="text-xs text-gray-400 font-normal">(Preis netto)</span></p>
+    <p class="text-sm font-medium">{% trans "Positionen" %} <span class="text-xs text-gray-400 font-normal">{% trans "(Preis netto)" %}</span></p>
     {% for i in "12345"|make_list %}
       <div class="flex gap-2">
         <input name="line_text_{{ forloop.counter }}" type="text" placeholder="Bezeichnung" class="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm">
@@ -88,6 +88,6 @@
       <p class="text-xs text-gray-400 mt-1">{% trans "The invoice is issued in this language — pick the customer's language." %}</p>
     </div>
   {% endif %}
-  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">Entwurf anlegen</button>
+  <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Entwurf anlegen" %}</button>
 </form>
 {% endblock %}

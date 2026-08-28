@@ -755,7 +755,7 @@ def event_feature(request, pk):
         kind=AggregatorListing.KIND_EVENT,
         source_ref=str(event.pk),
         listable=listable,
-        not_listed_hint=(
+        not_listed_hint=_(
             "Nur veröffentlichte, kommende Veranstaltungen erscheinen im "
             "Verzeichnis und können beworben werden."
         ),
@@ -783,7 +783,7 @@ def event_feature_checkout(request, pk):
         source_ref=str(event.pk),
         title=event.title,
         listable=event.is_published and event.starts_at > timezone.now(),
-        not_listable_msg="Nur veröffentlichte, kommende Veranstaltungen können beworben werden.",
+        not_listable_msg=_("Nur veröffentlichte, kommende Veranstaltungen können beworben werden."),
         sync=sync_event_listing,
         feature_page_url=reverse("events:feature", args=[event.pk]),
     )

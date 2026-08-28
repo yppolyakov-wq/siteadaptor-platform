@@ -20338,3 +20338,588 @@ msgstr "Parent category"
 
 msgid "Symbol"
 msgstr "Icon"
+
+msgid "Nur Text"
+msgstr "Text only"
+
+msgid "Text + Bild"
+msgstr "Text + image"
+
+msgid "Unsere Geschichte"
+msgstr "Our story"
+
+msgid "Team & Werte"
+msgstr "Team & values"
+
+msgid "Schlicht"
+msgstr "Plain"
+
+msgid "Mit Empfehlungen"
+msgstr "With recommendations"
+
+msgid "Vertrauen & Hinweise"
+msgstr "Trust & notes"
+
+msgid "2 Spalten"
+msgstr "2 columns"
+
+msgid "3 Spalten"
+msgstr "3 columns"
+
+msgid "4 Spalten"
+msgstr "4 columns"
+
+msgid "Klar"
+msgstr "Clean"
+
+msgid "Weich"
+msgstr "Soft"
+
+msgid "ohne Rahmen, viel Weißraum"
+msgstr "no borders, lots of white space"
+
+msgid "runde Ecken, leichter Schatten"
+msgstr "rounded corners, light shadow"
+
+msgid "Kachel mit Fläche und Innenabstand"
+msgstr "tile with a filled surface and padding"
+
+msgid "FAQ anzeigen"
+msgstr "Show FAQ"
+
+msgid "Der FAQ-Block der Startseite — auch auf dieser Seite"
+msgstr "The homepage FAQ block — on this page too"
+
+msgid "Team anzeigen"
+msgstr "Show team"
+
+msgid "Der Team-Block der Startseite — auch auf dieser Seite"
+msgstr "The homepage team block — on this page too"
+
+msgid "Galerie anzeigen"
+msgstr "Show gallery"
+
+msgid "Die Galerie der Startseite — auch auf dieser Seite"
+msgstr "The homepage gallery — on this page too"
+
+msgid "Stimmen anzeigen"
+msgstr "Show testimonials"
+
+msgid "Kundenstimmen der Startseite — auch auf dieser Seite"
+msgstr "Customer testimonials from the homepage — on this page too"
+
+msgid "Angebot-Anfrage direkt auf dieser Seite (Modul Aufträge)"
+msgstr "Quote request right on this page (Jobs module)"
+
+msgid "Kontaktformular"
+msgstr "Contact form"
+
+msgid "Frage-stellen-Formular direkt auf dieser Seite (Modul Nachrichten)"
+msgstr "Ask-a-question form right on this page (Messages module)"
+
+msgid "Nur durchgestrichener Preis"
+msgstr "Struck-through price only"
+
+msgid "Nur neuer Preis (Festpreis)"
+msgstr "New price only (fixed price)"
+
+msgid "Ab-Preis („ab 7,50 €“)"
+msgstr "From-price (“from €7.50”)"
+
+msgid "Überraschung im Fokus"
+msgstr "Surprise in focus"
+
+msgid "Mystery — Preis bis Klick versteckt"
+msgstr "Mystery — price hidden until click"
+
+msgid "Täglich"
+msgstr "Daily"
+
+msgid "Wöchentlich"
+msgstr "Weekly"
+
+msgid "Rabatt-Aktion"
+msgstr "Discount promotion"
+
+msgid "Feierabend-Tüte 🌱"
+msgstr "After-work bag 🌱"
+
+msgid "Angebot der Woche"
+msgstr "Offer of the week"
+
+msgid "Grillpaket vorbestellen"
+msgstr "Pre-order BBQ pack"
+
+msgid "Wochenangebot"
+msgstr "Weekly offer"
+
+msgid "MHD-Rabatt 🌱"
+msgstr "Best-before discount 🌱"
+
+msgid "Mittagstisch"
+msgstr "Lunch special"
+
+msgid "Happy Hour"
+msgstr "Happy hour"
+
+msgid "Schlussverkauf"
+msgstr "Clearance sale"
+
+msgid "Frühbucher-Rabatt"
+msgstr "Early-bird discount"
+
+msgid "Saison-Angebot"
+msgstr "Seasonal offer"
+
+msgid "Sale-Aktion"
+msgstr "Sale campaign"
+
+msgid "Neu im Shop"
+msgstr "New in the shop"
+
+msgid "Sonderangebot"
+msgstr "Special offer"
+
+msgid "Last-Minute-Angebot"
+msgstr "Last-minute offer"
+
+msgid "Neukunden-Rabatt"
+msgstr "New-customer discount"
+
+msgid "Saison-Check-Aktion"
+msgstr "Seasonal check promotion"
+
+msgid "Saison-Aktion"
+msgstr "Seasonal promotion"
+
+msgid "Frühbucher-Ticket"
+msgstr "Early-bird ticket"
+
+msgid "Klassischer Laden"
+msgstr "Classic shop"
+
+msgid "Startbanner, aktuelle Angebote, Produkte, Über uns, Kontakt — der Allrounder für den Einzelhandel."
+msgstr "Hero banner, current offers, products, about us, contact — the all-rounder for retail."
+
+msgid "Café & Restaurant"
+msgstr "Café & restaurant"
+
+msgid "Speisen und Angebote im Fokus, Öffnungszeiten prominent — für die Gastronomie."
+msgstr "Dishes and offers in focus, opening hours up front — for hospitality."
+
+msgid "Dienstleister & Termine"
+msgstr "Service provider & appointments"
+
+msgid "Vorstellung und Kontakt im Vordergrund — für Termin-Geschäfte (Friseur, Studio, Beratung)."
+msgstr "Introduction and contact up front — for appointment businesses (salon, studio, consulting)."
+
+msgid "Übernachtung & Gastgeber"
+msgstr "Stay & host"
+
+msgid "Verfügbarkeit, Zimmer, Lage und Kontakt — für Pension, Ferienwohnung oder kleines Hotel."
+msgstr "Availability, rooms, location and contact — for a guesthouse, holiday flat or small hotel."
+
+msgid "Termine & Leistungen"
+msgstr "Appointments & services"
+
+msgid "Leistungen mit Preisen und Online-Termin im Fokus — für Friseur, Werkstatt und Studios."
+msgstr "Services with prices and online booking in focus — for salons, workshops and studios."
+
+msgid "Handwerk & Angebote"
+msgstr "Trades & quotes"
+
+msgid "Referenzen, Ablauf und unverbindliches Angebot — für Meisterbetrieb, Sanierung und Montage."
+msgstr "References, process and a no-obligation quote — for master craft businesses, renovation and installation."
+
+msgid "Catering & Partyservice"
+msgstr "Catering & party service"
+
+msgid "Anfrage, Angebot und Event-Planung — für Catering, Partyservice und Foodtrucks."
+msgstr "Enquiry, quote and event planning — for catering, party service and food trucks."
+
+msgid "Kommende Termine und Tickets im Fokus — für Veranstalter, Guides und Studios."
+msgstr "Upcoming dates and tickets in focus — for organisers, guides and studios."
+
+msgid "Minimal / Visitenkarte"
+msgstr "Minimal / business card"
+
+msgid "Schlichte Eine-Seite-Visitenkarte: Banner und Kontakt. Für alle, die es einfach mögen."
+msgstr "A plain one-page business card: banner and contact. For anyone who likes it simple."
+
+msgid "Hell und aufgeräumt — klare Flächen, ruhige Typografie."
+msgstr "Bright and tidy — clean surfaces, calm typography."
+
+msgid "Warm"
+msgstr "Warm"
+
+msgid "Serif-Überschriften, weiche Karten — einladend und persönlich."
+msgstr "Serif headings, soft cards — inviting and personal."
+
+msgid "Nacht"
+msgstr "Night"
+
+msgid "Dunkler Auftritt mit kräftigen Überschriften — modern und markant."
+msgstr "A dark look with bold headings — modern and striking."
+
+msgid "Fein"
+msgstr "Fine"
+
+msgid "Elegante Serif-Überschriften auf Creme — edel und ruhig."
+msgstr "Elegant serif headings on cream — refined and calm."
+
+msgid "Natur"
+msgstr "Nature"
+
+msgid "Runde Formen und warme Erdtöne — freundlich und bodenständig."
+msgstr "Rounded shapes and warm earth tones — friendly and down-to-earth."
+
+msgid "Fokus"
+msgstr "Focus"
+
+msgid "Ein Hauptziel pro Bildschirm: Split-Banner, Preisliste, Anfrage direkt auf der Startseite."
+msgstr "One main goal per screen: split banner, price list, enquiry right on the homepage."
+
+msgid "Ein Hauptziel pro Bildschirm: Split-Banner mit Datumssuche, Zimmer direkt darunter, kompaktes Vertrauensband."
+msgstr "One main goal per screen: split banner with a date search, rooms right below, a compact trust bar."
+
+msgid "Ein Hauptziel pro Bildschirm: Split-Banner, klassische Speisekarte, Tisch-Reservierung immer sichtbar."
+msgstr "One main goal per screen: split banner, a classic menu, table reservation always visible."
+
+msgid "Ein Hauptziel pro Bildschirm: Split-Banner, kompakte Karte auf der Startseite, Speisekarte mit Fotos."
+msgstr "One main goal per screen: split banner, a compact menu on the homepage, a menu with photos."
+
+msgid "Ein Hauptziel pro Bildschirm: Split-Banner, Sortiment-Kacheln und Preisliste mit Fotos."
+msgstr "One main goal per screen: split banner, assortment tiles and a price list with photos."
+
+msgid "Ein Hauptziel pro Bildschirm: Theken-Sortiment mit Fotos und Partyservice-Anfrage direkt auf der Startseite."
+msgstr "One main goal per screen: counter assortment with photos and a party-service enquiry right on the homepage."
+
+msgid "Ein Hauptziel pro Bildschirm: Leistungen mit Preisen im Banner, Team und Termin-Buchung immer sichtbar."
+msgstr "One main goal per screen: services with prices in the banner, team and appointment booking always visible."
+
+msgid "Ein Hauptziel pro Bildschirm: Festpreis-Leistungen, klarer Ablauf und Kostenvoranschlag-Anfrage."
+msgstr "One main goal per screen: fixed-price services, a clear process and a quote request."
+
+msgid "Ein Hauptziel pro Bildschirm: Referenzen vorher/nachher, klarer Ablauf und Angebots-Anfrage."
+msgstr "One main goal per screen: before/after references, a clear process and a quote request."
+
+msgid "Ein Hauptziel pro Bildschirm: aktuelle Angebote ganz oben, Sortiment-Kacheln darunter."
+msgstr "One main goal per screen: current offers at the very top, assortment tiles below."
+
+msgid "Ein Hauptziel pro Bildschirm: Sortiment-Kacheln, Produkte als Karten und Versand-Vorteile auf einen Blick."
+msgstr "One main goal per screen: assortment tiles, products as cards and shipping benefits at a glance."
+
+msgid "Ein Hauptziel pro Bildschirm: große Bilder, Kollektionen als Kacheln und Lookbook-Galerie."
+msgstr "One main goal per screen: large images, collections as tiles and a lookbook gallery."
+
+msgid "Ein Hauptziel pro Bildschirm: kommende Termine als Programm, Ablauf und Stimmen der Gäste."
+msgstr "One main goal per screen: upcoming dates as a programme, the schedule and guest testimonials."
+
+msgid "Ein Hauptziel pro Bildschirm: Reisen mit Bildern, Termine und Anfrage für die eigene Gruppe."
+msgstr "One main goal per screen: trips with photos, dates and an enquiry for your own group."
+
+msgid " (Lager: %(n)s)"
+msgstr " (stock: %(n)s)"
+
+msgid "Nur aktive Menü-Sets erscheinen im Verzeichnis und können beworben werden. Aktivieren Sie das Set zuerst."
+msgstr "Only active menu sets appear in the directory and can be promoted. Activate the set first."
+
+msgid "Nur aktive Menü-Sets können beworben werden."
+msgstr "Only active menu sets can be promoted."
+
+msgid "Kein Zugriff auf dieses Konto."
+msgstr "No access to this account."
+
+msgid "Nur für Inhaber."
+msgstr "Owners only."
+
+msgid "Angebot · %(who)s"
+msgstr "Offer · %(who)s"
+
+msgid "z. B. Roggenbrot"
+msgstr "e.g. rye bread"
+
+msgid "z. B. Haarschnitt"
+msgstr "e.g. haircut"
+
+msgid "z. B. Doppelzimmer"
+msgstr "e.g. double room"
+
+msgid "z. B. Sommerkonzert"
+msgstr "e.g. summer concert"
+
+msgid "Nur http/https-URLs sind erlaubt."
+msgstr "Only http/https URLs are allowed."
+
+msgid "Ungültige URL."
+msgstr "Invalid URL."
+
+msgid "Host konnte nicht aufgelöst werden."
+msgstr "The host could not be resolved."
+
+msgid "Interne Adresse (%(ip)s) ist nicht erlaubt."
+msgstr "Internal address (%(ip)s) is not allowed."
+
+msgid "Antwort zu groß."
+msgstr "Response too large."
+
+msgid "Nur veröffentlichte, kommende Veranstaltungen erscheinen im Verzeichnis und können beworben werden."
+msgstr "Only published, upcoming events appear in the directory and can be promoted."
+
+msgid "Nur veröffentlichte, kommende Veranstaltungen können beworben werden."
+msgstr "Only published, upcoming events can be promoted."
+
+msgid "Rückrufbitte"
+msgstr "Callback request"
+
+msgid "%(label)s [Art.-Nr. %(sku)s]"
+msgstr "%(label)s [item no. %(sku)s]"
+
+msgid "Aktion −%(pct)s%% · %(title)s"
+msgstr "Promotion −%(pct)s%% · %(title)s"
+
+msgid "%(code)s: ausgegeben ✓ (Auto)"
+msgstr "%(code)s: issued ✓ (auto)"
+
+msgid "Stempel +1 (%(n)s/%(total)s)"
+msgstr "Stamp +1 (%(n)s/%(total)s)"
+
+msgid " — Belohnung: %(label)s [%(code)s]"
+msgstr " — reward: %(label)s [%(code)s]"
+
+msgid "Kampagne an %(n)s Empfänger gesendet."
+msgstr "Campaign sent to %(n)s recipients."
+
+msgid "Newsletter an %(n)s Empfänger gesendet."
+msgstr "Newsletter sent to %(n)s recipients."
+
+msgid "Nur aktive Unterkünfte erscheinen im Verzeichnis und können beworben werden. Aktivieren Sie die Unterkunft zuerst."
+msgstr "Only active accommodations appear in the directory and can be promoted. Activate the accommodation first."
+
+msgid "Nur aktive Unterkünfte können beworben werden."
+msgstr "Only active accommodations can be promoted."
+
+msgid "Ungültiger Domainname."
+msgstr "Invalid domain name."
+
+msgid "Bitte eine Domain angeben, keine IP-Adresse."
+msgstr "Please enter a domain, not an IP address."
+
+msgid "Subdomains von %(base)s werden automatisch vergeben."
+msgstr "Subdomains of %(base)s are assigned automatically."
+
+msgid "Diese Domain ist bereits vergeben."
+msgstr "This domain is already taken."
+
+msgid "Diese Domain wurde bereits hinzugefügt."
+msgstr "This domain has already been added."
+
+msgid "Server nicht konfiguriert. Bitte Support kontaktieren."
+msgstr "Server not configured. Please contact support."
+
+msgid "Domain löst noch nicht auf (DNS kann bis 24 h dauern)."
+msgstr "The domain does not resolve yet (DNS can take up to 24 h)."
+
+msgid "Domain zeigt auf %(ips)s, erwartet %(target)s."
+msgstr "The domain points to %(ips)s, expected %(target)s."
+
+msgid "USt."
+msgstr "VAT"
+
+msgid "Rechnung stellen"
+msgstr "Issue invoice"
+
+msgid "Entwurf löschen"
+msgstr "Delete draft"
+
+msgid "Neue Rechnung (Entwurf)"
+msgstr "New invoice (draft)"
+
+msgid "Empfänger (Name, Adresse)"
+msgstr "Recipient (name, address)"
+
+msgid "Leer lassen bei Firmenkunden — die Rechnungsdaten der Firma werden automatisch übernommen."
+msgstr "Leave empty for company customers — the company's invoice details are used automatically."
+
+msgid "(Preis netto)"
+msgstr "(net price)"
+
+msgid "€/Nacht"
+msgstr "€/night"
+
+msgid "Button — klicken zum Bearbeiten"
+msgstr "Button — click to edit"
+
+msgid "Bild — klicken zum Hinzufügen"
+msgstr "Image — click to add"
+
+msgid "Bild + Text — klicken zum Bearbeiten"
+msgstr "Image + text — click to edit"
+
+msgid "Aktion wählen — klicken zum Bearbeiten"
+msgstr "Choose a promotion — click to edit"
+
+msgid "Zahlen-Block — klicken zum Bearbeiten"
+msgstr "Numbers block — click to edit"
+
+msgid "Textblock — klicken zum Bearbeiten"
+msgstr "Text block — click to edit"
+
+msgid "Block einfügen"
+msgstr "Insert block"
+
+msgid "Aktionsgruppe"
+msgstr "Promotion group"
+
+msgid "Link (URL)"
+msgstr "Link (URL)"
+
+msgid "Sprungmarke"
+msgstr "Anchor"
+
+msgid "Nur Untermenü"
+msgstr "Submenu only"
+
+msgid "Kategorien (automatisch)"
+msgstr "Categories (automatic)"
+
+msgid "Neuigkeiten vom Guide & Gruppen-Chat"
+msgstr "News from the guide & group chat"
+
+msgid "Reisegruppen"
+msgstr "Travel groups"
+
+msgid "Angebote & Aufträge"
+msgstr "Quotes & jobs"
+
+msgid "Rechnung Nr. %(n)s"
+msgstr "Invoice no. %(n)s"
+
+msgid "Bonuskarten"
+msgstr "Loyalty cards"
+
+msgid "Ihrem Shop"
+msgstr "your shop"
+
+msgid "Ihr Anmelde-Link – %(shop)s"
+msgstr "Your sign-in link – %(shop)s"
+
+msgid "Guten Tag,\n\nmit diesem Link melden Sie sich bei %(shop)s an: %(url)s\n\nDer Link ist 15 Minuten gültig und kann nur einmal verwendet werden.\nFalls Sie keine Anmeldung angefordert haben, ignorieren Sie diese E-Mail."
+msgstr "Hello,\n\nuse this link to sign in to %(shop)s: %(url)s\n\nThe link is valid for 15 minutes and can only be used once.\nIf you did not request a sign-in, please ignore this email."
+
+msgid "Ihr Anmelde-Link"
+msgstr "Your sign-in link"
+
+msgid "Guten Tag,\n\nmit diesem Link melden Sie sich an: %(url)s\n\nDer Link ist 15 Minuten gültig und kann nur einmal verwendet werden.\nFalls Sie keine Anmeldung angefordert haben, ignorieren Sie diese E-Mail."
+msgstr "Hello,\n\nuse this link to sign in: %(url)s\n\nThe link is valid for 15 minutes and can only be used once.\nIf you did not request a sign-in, please ignore this email."
+
+msgid "heute"
+msgstr "today"
+
+msgid "in %(n)s Tagen"
+msgstr "in %(n)s days"
+
+msgid "Ihre Testphase endet bald"
+msgstr "Your trial ends soon"
+
+msgid "Ihre Testphase endet %(when)s. Aktivieren Sie Ihr Abo, um ohne Unterbrechung weiterzuarbeiten."
+msgstr "Your trial ends %(when)s. Activate your subscription to keep working without interruption."
+
+msgid "Video-Termin %(when)s — %(service)s"
+msgstr "Video appointment %(when)s — %(service)s"
+
+msgid "Ihre Mehrfachkarte %(code)s"
+msgstr "Your multi-visit pass %(code)s"
+
+msgid "Hallo %(name)s,\n\nvielen Dank! Ihre %(label)s ist aktiv.\nCode: %(code)s — %(credits)s Besuche.\nGeben Sie den Code bei der Online-Buchung an.\n"
+msgstr "Hello %(name)s,\n\nthank you! Your %(label)s is active.\nCode: %(code)s — %(credits)s visits.\nEnter the code when booking online.\n"
+
+msgid "Kein passender Code — bitte den Code aus dem Dashboard verwenden."
+msgstr "No matching code — please use the code from the dashboard."
+
+msgid "Diese Reisegruppe ist bereits mit einer anderen Telegram-Gruppe verbunden."
+msgstr "This travel group is already linked to another Telegram group."
+
+msgid "✅ Verbunden mit «%(title)s». Beiträge laufen ab jetzt in beide Richtungen."
+msgstr "✅ Connected to “%(title)s”. Posts now flow in both directions."
+
+msgid "Ihr Gutscheincode: %(code)s (%(amount)s €)"
+msgstr "Your voucher code: %(code)s (€%(amount)s)"
+
+msgid "Ihr Geschenkgutschein"
+msgstr "Your gift voucher"
+
+msgid "📄 Angebot über %(total)s %(cur)s gesendet"
+msgstr "📄 Quote for %(total)s %(cur)s sent"
+
+msgid " (gültig bis %(date)s)"
+msgstr " (valid until %(date)s)"
+
+msgid "✅ Angebot angenommen — Bestellung %(code)s"
+msgstr "✅ Quote accepted — order %(code)s"
+
+msgid "❌ Angebot abgelehnt"
+msgstr "❌ Quote declined"
+
+msgid "Angebot zurückgezogen"
+msgstr "Quote withdrawn"
+
+msgid "Rabatt für Kunden (Stripe-Coupon)"
+msgstr "Discount for customers (Stripe coupon)"
+
+msgid "Bitte bestätigen Sie Ihre Anmeldung zum Newsletter:\n\n%(link)s\n\nWenn Sie sich nicht angemeldet haben, ignorieren Sie diese E-Mail."
+msgstr "Please confirm your newsletter subscription:\n\n%(link)s\n\nIf you did not sign up, please ignore this email."
+
+msgid "Bitte bestätigen Sie Ihre Newsletter-Anmeldung"
+msgstr "Please confirm your newsletter subscription"
+
+msgid "Link abgelaufen"
+msgstr "Link expired"
+
+msgid "Diese Vorschau-Ansicht ist abgelaufen oder wurde nicht gefunden. Bitten Sie den Absender um einen neuen Link."
+msgstr "This preview has expired or could not be found. Please ask the sender for a new link."
+
+msgid "Instagram benötigt ein Bild für die Aktion"
+msgstr "Instagram requires an image for the promotion"
+
+msgid "Pinterest benötigt ein Bild für die Aktion"
+msgstr "Pinterest requires an image for the promotion"
+
+msgid "Lücken-Deal −%(pct)s%%"
+msgstr "Gap deal −%(pct)s%%"
+
+msgid "−%(pct)s%% ab %(n)s Nächten"
+msgstr "−%(pct)s%% from %(n)s nights"
+
+msgid "Frühbucher −%(pct)s%%"
+msgstr "Early bird −%(pct)s%%"
+
+msgid "Übernachtung %(unit)s: %(nights)s Nächte (%(from)s–%(to)s)"
+msgstr "Stay %(unit)s: %(nights)s nights (%(from)s–%(to)s)"
+
+msgid "Kurtaxe (ohne USt.)"
+msgstr "Tourist tax (excl. VAT)"
+
+msgid "Ihre Website ist bereit — %(name)s"
+msgstr "Your website is ready — %(name)s"
+
+msgid "Hallo,\n\nIhre Website für „%(name)s“ ist fertig eingerichtet!\n\nHier anmelden: %(url)s\nBenutzername: %(email)s\n\nViel Erfolg!\nIhr siteadaptor-Team"
+msgstr "Hello,\n\nyour website for “%(name)s” is fully set up!\n\nSign in here: %(url)s\nUsername: %(email)s\n\nGood luck!\nYour siteadaptor team"
+
+msgid "Ich bin gerade auf Ihrer Website — können Sie mir kurz per Video helfen?"
+msgstr "I'm on your website right now — could you help me briefly over video?"
+
+msgid "★ Anzeige"
+msgstr "★ Ad"
+
+msgid "Monat"
+msgstr "month"
+
+msgid "Widerruf online erklären"
+msgstr "Declare withdrawal online"
+
+msgid "Ihr persönlicher Code: %(code)s"
+msgstr "Your personal code: %(code)s"
+
+msgid "Last-Minute −%(pct)s%%"
+msgstr "Last minute −%(pct)s%%"

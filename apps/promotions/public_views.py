@@ -1387,9 +1387,11 @@ def shared_preview(request, token):
             request,
             "storefront/legal.html",
             {
-                "legal_title": "Link abgelaufen",
-                "legal_body": "Diese Vorschau-Ansicht ist abgelaufen oder wurde "
-                "nicht gefunden. Bitten Sie den Absender um einen neuen Link.",
+                "legal_title": _("Link abgelaufen"),
+                "legal_body": _(
+                    "Diese Vorschau-Ansicht ist abgelaufen oder wurde nicht gefunden. "
+                    "Bitten Sie den Absender um einen neuen Link."
+                ),
             },
             status=410,
         )

@@ -10,6 +10,10 @@
 
 from django.db import transaction
 from django.db.models import F
+from django.utils import translation
+from django.utils.translation import gettext as _
+
+from apps.notifications.services import tenant_locale
 
 from .models import Promotion
 from .services import OutOfStock
@@ -241,5 +245,8 @@ def stay_promo(unit, arrival=None):
                 continue  # кривые правила = акция не действует
         if best is None or percent > best[1]:
             title = promo.title.get("de") or next(iter(promo.title.values()), "Aktion")
-            best = (promo, percent, f"Aktion −{percent}% · {title}"[:80])
+            # I18N-13: метка попадает в снимок брони — язык БИЗНЕСА.
+            with translation.override(tenant_locale()):
+                label = _("Aktion −%(pct)s%% · %(title)s") % {"pct": percent, "title": title}
+            best = (promo, percent, label[:80])
     return best

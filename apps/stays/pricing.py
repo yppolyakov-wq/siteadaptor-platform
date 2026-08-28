@@ -148,7 +148,7 @@ def gap_discount(unit, arrival, departure, settings, today=None) -> tuple[int, s
         return 0, ""
     unit_pct = int(getattr(unit, "gap_discount_percent", 0) or 0)
     percent = max(1, min(unit_pct or int(getattr(settings, "gap_discount_percent", 0) or 0), 70))
-    return percent, f"Lücken-Deal −{percent}%"
+    return percent, _("Lücken-Deal −%(pct)s%%") % {"pct": percent}
 
 
 def auto_discount(
@@ -184,18 +184,28 @@ def auto_discount(
 
     lead = (arrival - today).days  # дней до заезда
     candidates = []  # (percent, label)
-    for rule in settings.clean_auto_rules():
-        kind, threshold, percent = rule["kind"], rule["threshold"], rule["percent"]
-        if kind == StaySettings.KIND_LOS and nights >= threshold:
-            candidates.append((percent, f"−{percent}% ab {threshold} Nächten"))
-        elif kind == StaySettings.KIND_EARLY and lead >= threshold:
-            candidates.append((percent, f"Frühbucher −{percent}%"))
-        elif kind == StaySettings.KIND_LAST and 0 <= lead <= threshold:
-            candidates.append((percent, f"Last-Minute −{percent}%"))
-    if unit is not None and departure is not None:
-        gap_percent, gap_label = gap_discount(unit, arrival, departure, settings, today=today)
-        if gap_percent:
-            candidates.append((gap_percent, gap_label))
+    # I18N-13: подпись уходит в БД (`StayBooking.auto_discount_label`) и потом
+    # видна и гостю, и владельцу — берём язык БИЗНЕСА, а не того, кто нажал
+    # кнопку (иначе одна и та же бронь получала бы разный текст).
+    from django.utils import translation
+
+    from apps.notifications.services import tenant_locale
+
+    with translation.override(tenant_locale()):
+        for rule in settings.clean_auto_rules():
+            kind, threshold, percent = rule["kind"], rule["threshold"], rule["percent"]
+            if kind == StaySettings.KIND_LOS and nights >= threshold:
+                candidates.append(
+                    (percent, _("−%(pct)s%% ab %(n)s Nächten") % {"pct": percent, "n": threshold})
+                )
+            elif kind == StaySettings.KIND_EARLY and lead >= threshold:
+                candidates.append((percent, _("Frühbucher −%(pct)s%%") % {"pct": percent}))
+            elif kind == StaySettings.KIND_LAST and 0 <= lead <= threshold:
+                candidates.append((percent, _("Last-Minute −%(pct)s%%") % {"pct": percent}))
+        if unit is not None and departure is not None:
+            gap_percent, gap_label = gap_discount(unit, arrival, departure, settings, today=today)
+            if gap_percent:
+                candidates.append((gap_percent, gap_label))
     # P4 «ценовой слой»: акция на номер — обычный кандидат (не суммируем, max).
     for percent, label in extra or ():
         if percent:

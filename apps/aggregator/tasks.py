@@ -380,15 +380,17 @@ def send_magic_link_email(*, email, url):
     """
     from django.conf import settings
     from django.core.mail import send_mail
+    from django.utils.translation import gettext as _
 
     send_mail(
-        subject="Ihr Anmelde-Link",
-        message=(
+        subject=_("Ihr Anmelde-Link"),
+        message=_(
             "Guten Tag,\n\n"
-            f"mit diesem Link melden Sie sich an: {url}\n\n"
+            "mit diesem Link melden Sie sich an: %(url)s\n\n"
             "Der Link ist 15 Minuten gültig und kann nur einmal verwendet werden.\n"
             "Falls Sie keine Anmeldung angefordert haben, ignorieren Sie diese E-Mail."
-        ),
+        )
+        % {"url": url},
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[email],
     )

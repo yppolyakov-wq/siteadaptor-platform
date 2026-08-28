@@ -3,7 +3,7 @@
 {% block dash_title %}{{ invoice.number_display }}{% endblock %}
 
 {% block dash_content %}
-<a href="{% url 'finance:invoices' %}" class="text-sm text-gray-500 hover:underline">← Rechnungen</a>
+<a href="{% url 'finance:invoices' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Rechnungen" %}</a>
 <div class="flex items-center gap-3 mt-1 mb-4">
   <h1 class="text-2xl font-bold">{{ invoice.number_display }}</h1>
   <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">{{ invoice.get_status_display }}</span>
@@ -25,9 +25,9 @@
           <span>{{ line.unit_price }} EUR</span>
         </div>
       {% endfor %}
-      <div class="py-2 text-sm flex items-center justify-between"><span>Netto</span><span>{{ invoice.net }} EUR</span></div>
-      <div class="py-2 text-sm flex items-center justify-between"><span>USt. {{ invoice.vat_rate }} %</span><span>{{ invoice.vat_amount }} EUR</span></div>
-      <div class="py-2 font-bold flex items-center justify-between"><span>Gesamt</span><span>{{ invoice.gross }} EUR</span></div>
+      <div class="py-2 text-sm flex items-center justify-between"><span>{% trans "Netto" %}</span><span>{{ invoice.net }} EUR</span></div>
+      <div class="py-2 text-sm flex items-center justify-between"><span>{% trans "USt." %} {{ invoice.vat_rate }} %</span><span>{{ invoice.vat_amount }} EUR</span></div>
+      <div class="py-2 font-bold flex items-center justify-between"><span>{% trans "Gesamt" %}</span><span>{{ invoice.gross }} EUR</span></div>
     </div>
     {% if invoice.note %}<p class="text-sm text-gray-500 mt-3">📝 {{ invoice.note }}</p>{% endif %}
     {% if not invoice.is_editable %}<p class="text-xs text-gray-400 mt-3">{% trans "Issued invoices are immutable (GoBD). Use Storno if needed." %}</p>{% endif %}
@@ -55,11 +55,11 @@
     <form method="post" class="flex flex-wrap gap-2">
       {% csrf_token %}
       {% if invoice.is_editable %}
-        <button name="action" value="issue" class="text-sm font-medium rounded-lg px-4 py-2 bg-green-600 text-white hover:bg-green-700">Rechnung stellen</button>
-        <button name="action" value="delete" class="text-sm font-medium rounded-lg px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50">Entwurf löschen</button>
+        <button name="action" value="issue" class="text-sm font-medium rounded-lg px-4 py-2 bg-green-600 text-white hover:bg-green-700">{% trans "Rechnung stellen" %}</button>
+        <button name="action" value="delete" class="text-sm font-medium rounded-lg px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50">{% trans "Entwurf löschen" %}</button>
       {% endif %}
-      {% if "paid" in allowed %}<button name="action" value="paid" class="text-sm font-medium rounded-lg px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700">Als bezahlt markieren</button>{% endif %}
-      {% if "cancelled" in allowed %}<button name="action" value="cancelled" class="text-sm font-medium rounded-lg px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50">Stornieren</button>{% endif %}
+      {% if "paid" in allowed %}<button name="action" value="paid" class="text-sm font-medium rounded-lg px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700">{% trans "Als bezahlt markieren" %}</button>{% endif %}
+      {% if "cancelled" in allowed %}<button name="action" value="cancelled" class="text-sm font-medium rounded-lg px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50">{% trans "Stornieren" %}</button>{% endif %}
     </form>
   </div>
 </div>

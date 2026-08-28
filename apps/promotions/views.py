@@ -716,7 +716,7 @@ def redeem_detail(request, code):
                 services.confirm(res, actor=request.user)
             services.fulfill(res, actor=request.user)
             res.refresh_from_db()
-            messages.success(request, f"{code}: ausgegeben ✓ (Auto)")
+            messages.success(request, _("%(code)s: ausgegeben ✓ (Auto)") % {"code": code})
         except IllegalTransition:
             pass
     return render(
@@ -880,9 +880,15 @@ def loyalty_stamp(request, program_id):
         if card is not None:
             try:
                 card, reward = services.add_stamp(card)
-                msg = f"Stempel +1 ({card.stamps}/{program.stamps_required})"
+                msg = _("Stempel +1 (%(n)s/%(total)s)") % {
+                    "n": card.stamps,
+                    "total": program.stamps_required,
+                }
                 if reward is not None:
-                    msg += f" — Belohnung: {reward.label} [{reward.code}]"
+                    msg += _(" — Belohnung: %(label)s [%(code)s]") % {
+                        "label": reward.label,
+                        "code": reward.code,
+                    }
                 messages.success(request, msg)
             except services.LoyaltyError:
                 messages.error(request, _("Zu schnell — bitte kurz warten."))
@@ -942,7 +948,7 @@ def coupon_campaigns(request):
                 kind=CouponCampaign.KIND_MANUAL,
             )
             n = send_coupon_campaign(campaign, base_url=request.build_absolute_uri("/").rstrip("/"))
-            messages.success(request, f"Kampagne an {n} Empfänger gesendet.")
+            messages.success(request, _("Kampagne an %(n)s Empfänger gesendet.") % {"n": n})
         elif action == "delete":
             CouponCampaign.objects.filter(
                 pk=request.POST.get("campaign"), status=CouponCampaign.STATUS_DRAFT
@@ -1071,7 +1077,7 @@ def newsletter_campaigns(request):
 
             campaign = get_object_or_404(NewsletterCampaign, pk=request.POST.get("campaign"))
             n = send_campaign(campaign, base_url=request.build_absolute_uri("/").rstrip("/"))
-            messages.success(request, f"Newsletter an {n} Empfänger gesendet.")
+            messages.success(request, _("Newsletter an %(n)s Empfänger gesendet.") % {"n": n})
         elif action == "delete":
             NewsletterCampaign.objects.filter(
                 pk=request.POST.get("campaign"), status=NewsletterCampaign.STATUS_DRAFT

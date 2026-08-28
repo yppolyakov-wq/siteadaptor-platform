@@ -8,9 +8,10 @@
 
 from django.core import signing
 from django.urls import reverse
-from django.utils import timezone
+from django.utils import timezone, translation
+from django.utils.translation import gettext as _
 
-from apps.notifications.services import notify
+from apps.notifications.services import email_locale, notify
 
 from .models import Customer, NewsletterCampaign
 
@@ -82,16 +83,23 @@ def segment_customers(*, tag="", inactive_days=None, top_ltv=None, exclude_ids=N
 def send_doi_email(customer, *, base_url: str) -> None:
     """Письмо Double-Opt-In со ссылкой подтверждения (UWG §7)."""
     link = f"{base_url}{reverse('storefront-newsletter-confirm', args=[doi_token(customer)])}"
-    body = (
-        "Bitte bestätigen Sie Ihre Anmeldung zum Newsletter:\n\n"
-        f"{link}\n\n"
-        "Wenn Sie sich nicht angemeldet haben, ignorieren Sie diese E-Mail."
-    )
+    from django.utils import translation
+    from django.utils.translation import gettext as _
+
+    from apps.notifications.services import email_locale
+
+    with translation.override(email_locale()):  # I18N-13: локаль получателя
+        body = _(
+            "Bitte bestätigen Sie Ihre Anmeldung zum Newsletter:\n\n"
+            "%(link)s\n\n"
+            "Wenn Sie sich nicht angemeldet haben, ignorieren Sie diese E-Mail."
+        ) % {"link": link}
+        subject = _("Bitte bestätigen Sie Ihre Newsletter-Anmeldung")
     notify(
         dedupe_key=f"doi:{customer.id}:{timezone.localdate().isoformat()}",
         type="newsletter_doi",
         recipient=customer.email,
-        subject="Bitte bestätigen Sie Ihre Newsletter-Anmeldung",
+        subject=subject,
         body=body,
     )
 
@@ -161,7 +169,10 @@ def send_coupon_campaign(campaign, *, base_url: str, customers=None) -> int:
         unsub = f"{base_url}{reverse('storefront-unsubscribe', args=[customer.unsubscribe_token])}"
         terms = _coupon_terms(campaign)
         body_parts = [campaign.body.strip()] if campaign.body.strip() else []
-        body_parts.append(f"Ihr persönlicher Code: {voucher.code}")
+        # I18N-13: системная строка письма — в локали получателя (текст самой
+        # кампании остаётся тем, что написал владелец).
+        with translation.override(email_locale()):
+            body_parts.append(_("Ihr persönlicher Code: %(code)s") % {"code": voucher.code})
         if terms:
             body_parts.append(terms)
         body_parts.append(f"—\nAbmelden: {unsub}")

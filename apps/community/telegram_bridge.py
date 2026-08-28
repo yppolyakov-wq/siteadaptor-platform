@@ -17,6 +17,8 @@
 
 import logging
 
+from django.utils.translation import gettext as _
+
 from .models import FeedPost, FeedSpace
 from .services import add_post
 
@@ -64,14 +66,16 @@ def try_link(bot, message: dict) -> str:
     code = payload.strip()[:20]
     space = FeedSpace.objects.filter(tg_link_code=code).first() if code else None
     if space is None:
-        return "Kein passender Code — bitte den Code aus dem Dashboard verwenden."
+        return _("Kein passender Code — bitte den Code aus dem Dashboard verwenden.")
     if space.tg_chat_id and space.tg_chat_id != chat_id:
         # Код мог утечь: перевесить уже связанную группу нельзя, иначе чужой чат
         # начал бы получать записи поездки. Отвязка — только из кабинета.
-        return "Diese Reisegruppe ist bereits mit einer anderen Telegram-Gruppe verbunden."
+        return _("Diese Reisegruppe ist bereits mit einer anderen Telegram-Gruppe verbunden.")
     space.tg_chat_id = chat_id
     space.save(update_fields=["tg_chat_id", "updated_at"])
-    return f"✅ Verbunden mit «{space.title}». Beiträge laufen ab jetzt in beide Richtungen."
+    return _("✅ Verbunden mit «%(title)s». Beiträge laufen ab jetzt in beide Richtungen.") % {
+        "title": space.title
+    }
 
 
 def ingest_group_message(bot, message: dict) -> bool:

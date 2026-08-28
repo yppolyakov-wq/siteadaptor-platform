@@ -11,7 +11,10 @@ import secrets
 import string
 
 from django.db import transaction
+from django.utils import translation
+from django.utils.translation import gettext as _
 
+from apps.notifications.services import tenant_locale
 from apps.promotions.models import Customer
 
 from . import availability, pricing
@@ -47,8 +50,8 @@ class RestrictionViolated(Exception):
 
 
 def _unique_stay_code() -> str:
-    for _ in range(10):
-        code = "S-" + "".join(secrets.choice(_ALPHABET) for _ in range(6))
+    for _attempt in range(10):
+        code = "S-" + "".join(secrets.choice(_ALPHABET) for _i in range(6))
         if not StayBooking.objects.filter(reference_code=code).exists():
             return code
     raise RuntimeError("could not generate unique stay reference code")
@@ -514,18 +517,18 @@ def stay_to_invoice(booking, *, small_business=False):
         net_beh = gross_beh
     vat = gross_beh - net_beh
     net = net_beh + kurtaxe  # Kurtaxe без НДС → net == gross по этой строке
-    lines = [
-        {
-            "text": (
-                f"Übernachtung {booking.unit.name}: {booking.nights} "
-                f"Nächte ({booking.arrival:%d.%m.%Y}–{booking.departure:%d.%m.%Y})"
-            ),
-            "qty": 1,
-            "unit_price": str(net_beh),
+    # I18N-13: строки счёта — снимок в БД (GoBD): язык БИЗНЕСА, не действующего лица.
+    with translation.override(tenant_locale()):
+        stay_line = _("Übernachtung %(unit)s: %(nights)s Nächte (%(from)s–%(to)s)") % {
+            "unit": booking.unit.name,
+            "nights": booking.nights,
+            "from": f"{booking.arrival:%d.%m.%Y}",
+            "to": f"{booking.departure:%d.%m.%Y}",
         }
-    ]
+        kurtaxe_line = _("Kurtaxe (ohne USt.)")
+    lines = [{"text": stay_line, "qty": 1, "unit_price": str(net_beh)}]
     if kurtaxe:
-        lines.append({"text": "Kurtaxe (ohne USt.)", "qty": 1, "unit_price": str(kurtaxe)})
+        lines.append({"text": kurtaxe_line, "qty": 1, "unit_price": str(kurtaxe)})
     invoice = Invoice.objects.create(
         customer=booking.customer,
         recipient=str(booking.customer)[:500],

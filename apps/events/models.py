@@ -286,8 +286,8 @@ class Event(I18nMixin, TimestampedModel):
     CANCEL_FLEXIBLE = "flexible"
     CANCEL_NONREF = "non_refundable"
     CANCELLATIONS = [
-        (CANCEL_FLEXIBLE, "Kostenlose Stornierung"),
-        (CANCEL_NONREF, "Nicht erstattbar"),
+        (CANCEL_FLEXIBLE, _("Kostenlose Stornierung")),
+        (CANCEL_NONREF, _("Nicht erstattbar")),
     ]
     cancellation = models.CharField(max_length=20, choices=CANCELLATIONS, default=CANCEL_FLEXIBLE)
     # Бесплатная отмена до N дней до начала (для flexible; 0 = до дня начала).
