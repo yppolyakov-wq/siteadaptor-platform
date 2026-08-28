@@ -311,3 +311,25 @@ def test_payment_link_refused_without_stripe():
     resp = _post_action(order, "payment_link", tenant=tenant)
     assert resp.status_code == 302
     assert Notification.objects.filter(type="order_payment_link").count() == before
+
+
+@pytest.mark.django_db(transaction=True)
+def test_add_item_runs_in_a_transaction():
+    """Прод-500 2026-08-28: добавление товара в заказ из кабинета падало
+    `TransactionManagementError: select_for_update cannot be used outside of a
+    transaction`.
+
+    Причина — хелпер `_vat_kwargs`, вставленный МЕЖДУ `@transaction.atomic` и
+    `add_item`: декоратор достался хелперу, а сама функция осталась без
+    транзакции. Обычные тесты этого не видят — pytest-django оборачивает каждый
+    тест в транзакцию и маскирует дефект, поэтому здесь `transaction=True`
+    (как в проде: ATOMIC_REQUESTS не включён).
+    """
+    product = ProductFactory(base_price=Decimal("5.00"), stock_quantity=10)
+    order = services.create_order(items=[(product, 1)], name="K", email="k@t.de")
+    other = ProductFactory(base_price=Decimal("2.50"), stock_quantity=6)
+
+    editing.add_item(order, product=other, qty=2)
+
+    other.refresh_from_db()
+    assert other.stock_quantity == 4  # остаток списан, страница не упала

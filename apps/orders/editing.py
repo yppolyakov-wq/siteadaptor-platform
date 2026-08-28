@@ -121,7 +121,6 @@ def set_item_qty(order, item_pk, qty: int, tenant=None):
     return recalc_total(order)
 
 
-@transaction.atomic
 def _vat_kwargs(product, vat_rate):
     """Ставка позиции: из товара, иначе переданная явно, иначе дефолт модели."""
     if product is not None:
@@ -131,6 +130,12 @@ def _vat_kwargs(product, vat_rate):
     return {}
 
 
+# ВНИМАНИЕ: декоратор относится к `add_item`. Хелпер, вставленный между
+# декоратором и функцией, забирает его себе — ровно так `add_item` осталась без
+# транзакции, и добавление товара с учётом остатка падало 500-й
+# (`select_for_update` вне транзакции). Тем же способом однажды была потеряна
+# авторизация вьюхи (build-log 2026-08-01) — новые хелперы ставим ВЫШЕ.
+@transaction.atomic
 def add_item(
     order,
     *,
