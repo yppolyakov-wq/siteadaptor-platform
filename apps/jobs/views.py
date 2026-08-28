@@ -111,6 +111,14 @@ def anfrage_form_settings(request):
     return redirect(nxt)
 
 
+def _parse_deposit_cents(raw) -> int:
+    """Anzahlung из формы (€ → центы). Пусто/мусор/минус → 0 («без депозита»)."""
+    try:
+        return max(0, round(float(str(raw or "0").replace(",", ".")) * 100))
+    except (TypeError, ValueError):
+        return 0
+
+
 @login_required
 def job_detail(request, pk):
     job = get_object_or_404(Job.objects.select_related("customer"), pk=pk)
@@ -145,6 +153,14 @@ def job_detail(request, pk):
             job.site_address = (request.POST.get("site_address") or "").strip()[:300]
             job.save(update_fields=["site_address", "updated_at"])
             messages.success(request, _("Kundendaten gespeichert."))
+            return redirect("jobs:detail", pk=job.pk)
+        if action == "deposit":
+            # Фидбэк владельца 2026-08-28: Anzahlung — свойство ОПЛАТЫ, а не
+            # состава сметы; поле переехало в карточку «Zahlung» и приходит
+            # своей формой (как valid_until из «Dokumente»).
+            job.deposit_cents = _parse_deposit_cents(request.POST.get("deposit_eur"))
+            job.save(update_fields=["deposit_cents", "updated_at"])
+            messages.success(request, _("Saved."))
             return redirect("jobs:detail", pk=job.pk)
         if action == "valid_until":
             # CARD-1 (владелец 2026-08-26): срок действия сметы живёт в блоке
@@ -376,14 +392,11 @@ def _save_lines(request, job):
         if new_due != job.service_due_date:
             job.service_due_date = new_due
             job.service_reminder_sent_at = None
-    # A7c: Anzahlung (€ → cents). 0 / пусто = без депозита.
-    try:
-        job.deposit_cents = max(
-            0,
-            round(float(str(request.POST.get("deposit_eur", "0") or "0").replace(",", ".")) * 100),
-        )
-    except (TypeError, ValueError):
-        job.deposit_cents = 0
+    # A7c: Anzahlung (€ → cents). Фидбэк 2026-08-28: поле переехало в карточку
+    # «Zahlung» и приходит СВОЕЙ формой, поэтому здесь обязателен presence-guard —
+    # без него каждое сохранение сметы обнуляло бы депозит (класс дефекта W0).
+    if "deposit_eur" in request.POST:
+        job.deposit_cents = _parse_deposit_cents(request.POST.get("deposit_eur"))
     job.save(
         update_fields=[
             "valid_until",

@@ -635,3 +635,55 @@ def test_payment_card_and_mark_paid():
 
     # VF-16: ссылка на CRM-карточку клиента (crm у всех типов с VF-6)
     assert f"/crm/{job.customer.pk}/" in body or "crm" in body
+
+
+def test_deposit_lives_in_the_payment_card_and_survives_quote_save():
+    """Фидбэк владельца 2026-08-28: Anzahlung — свойство оплаты, а не состава.
+
+    Поле уехало в карточку «Zahlung» и приходит своей формой; сохранение состава
+    сметы его больше не видит — значит обязано НЕ трогать (иначе каждый Save
+    обнулял бы депозит: класс дефекта W0)."""
+    job = _job()
+    views.job_detail(_req("post", data={"action": "deposit", "deposit_eur": "150,00"}), pk=job.pk)
+    job.refresh_from_db()
+    assert job.deposit_cents == 15000
+
+    views.job_detail(
+        _req(
+            "post",
+            data={
+                "action": "save_lines",
+                "line_text_1": "Arbeit",
+                "line_price_1": "80",
+                "line_qty_1": "1",
+            },
+        ),
+        pk=job.pk,
+    )
+    job.refresh_from_db()
+    assert job.deposit_cents == 15000  # состав сохранён, депозит цел
+
+
+def test_quote_form_has_no_second_vat_control():
+    """Ставка выбирается В СТРОКЕ (VAT-1); документный селект на том же экране
+    противоречил ей — убран. Ставка документа остаётся дефолтом строк."""
+    job = _job()
+    body = views.job_detail(_req("get"), pk=job.pk).content.decode()
+    assert 'name="line_vat_1"' in body  # ставка строки на месте
+    assert 'name="vat_rate"' not in body  # второго, документного селекта нет
+
+    before = job.vat_rate
+    views.job_detail(
+        _req(
+            "post",
+            data={
+                "action": "save_lines",
+                "line_text_1": "Arbeit",
+                "line_price_1": "80",
+                "line_qty_1": "1",
+            },
+        ),
+        pk=job.pk,
+    )
+    job.refresh_from_db()
+    assert job.vat_rate == before  # без поля в форме ставка документа не сбрасывается

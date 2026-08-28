@@ -127,17 +127,15 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
   поля подпись в две строки, у другого подсказка снизу, и контролы стояли на
   разной высоте. Теперь это сетка: у каждого поля своя ячейка, подписи и подсказки
   живут внутри неё, а кнопка сохранения прижата к правому краю последней строки.{% endcomment %}
-  <div class="grid gap-4 mt-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 items-start">
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "VAT" %}</label>
-      <select name="vat_rate" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-        {% for rate in vat_rates %}<option value="{{ rate }}" {% if job.vat_rate == rate %}selected{% endif %}>{{ rate|floatformat:0 }} %</option>{% endfor %}
-      </select>
-    </div>
-    {% comment %}QF-2: «Fahrzeug» и «Nächster TÜV» — поля мастерской; у кейтеринга
-    они были шумом в ряду. Показываем архетипам, которым они нужны, и всегда —
-    если данные уже заполнены (инвариант W0: скрытие не теряет введённое).{% endcomment %}
-    {% if show_vehicle_fields %}
+  {% comment %}Фидбэк владельца 2026-08-28: в этом ряду остались ТОЛЬКО поля
+  мастерской. Ставка НДС ушла — она выбирается в строке (VAT-1), и второй,
+  документный селект противоречил ей на экране; Anzahlung уехала в карточку
+  «Zahlung», где ей и место. У остальных архетипов ряда больше нет.{% endcomment %}
+  {% if show_vehicle_fields %}
+  <div class="grid gap-4 mt-4 sm:grid-cols-2 lg:grid-cols-3 items-start">
+    {% comment %}QF-2: «Fahrzeug» и «Nächster TÜV» — поля мастерской; у прочих
+    архетипов они были шумом. Гейт сохранён (W0: скрытие не теряет введённое —
+    приёмник читает их по presence-guard).{% endcomment %}
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Vehicle / plate" %}</label>
       <input name="vehicle" type="text" value="{{ job.vehicle }}" placeholder="VW Golf · M-AB 1234" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
@@ -148,13 +146,8 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
       <input name="service_due_date" type="date" value="{{ job.service_due_date|date:'Y-m-d' }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
       <p class="text-xs text-gray-400 mt-1">{% trans "We'll remind the customer by email." %}</p>
     </div>
-    {% endif %}
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Deposit (€, 0=none)" %}</label>
-      <input name="deposit_eur" type="text" value="{{ deposit_eur }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-      {% if job.deposit_cents and not payments_enabled %}<p class="text-xs text-amber-700 mt-1">{% trans "Enable online payments to collect it." %}</p>{% endif %}
-    </div>
   </div>
+  {% endif %}
   {% comment %}DG-2: живой итог больше не печатается ОТДЕЛЬНОЙ строкой — он
   обновляет «Zwischensumme» в общем блоке сумм (иначе одно и то же число стояло
   на экране дважды).{% endcomment %}
@@ -311,8 +304,21 @@ document (партиал может перерисовываться — уро�
     {% if job.stripe_payment_intent %}<span class="text-xs text-gray-400 ml-1">· Stripe</span>{% endif %}
     {% if job.gross %}<span class="text-gray-600 ml-1">{{ job.gross|floatformat:2 }} €</span>{% endif %}
   </p>
-  {% if job.deposit_cents %}
-    <p class="text-xs text-gray-500">{% trans "Deposit" %}: {{ deposit_eur }} €</p>
+  {% comment %}Фидбэк владельца 2026-08-28: Anzahlung — свойство оплаты, а не
+  состава сметы. Своя форма (как «срок действия» в «Dokumente»): приёмник
+  сохранения сметы читает поле по presence-guard, поэтому Save состава депозит
+  не трогает.{% endcomment %}
+  <form method="post" class="flex flex-wrap items-end gap-2">{% csrf_token %}
+    <input type="hidden" name="action" value="deposit">
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">{% trans "Deposit (€, 0=none)" %}</label>
+      <input name="deposit_eur" type="text" inputmode="decimal" value="{{ deposit_eur }}"
+             class="w-28 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-right tabular-nums">
+    </div>
+    <button class="text-sm font-medium rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Save" %}</button>
+  </form>
+  {% if job.deposit_cents and not payments_enabled %}
+    <p class="text-xs text-amber-700">{% trans "Enable online payments to collect it." %}</p>
   {% endif %}
   {% if job.payment_state != 'paid' and job.gross %}
     <form method="post">{% csrf_token %}
