@@ -687,3 +687,21 @@ def test_quote_form_has_no_second_vat_control():
     )
     job.refresh_from_db()
     assert job.vat_rate == before  # без поля в форме ставка документа не сбрасывается
+
+
+def test_angebot_actions_live_only_in_the_documents_block():
+    """Фидбэк владельца 2026-08-28: действия с самим документом (отправка, PDF,
+    срок действия) — только в «Dokumente». В блоке состава остаётся сохранение
+    позиций: это единственный submit формы, без него смету не сохранить.
+    """
+    job = _job()
+    body = views.job_detail(_req("get"), pk=job.pk).content.decode()
+
+    quote = body[body.index('data-deal-block="items"') :]
+    quote = quote[: quote.index("</section>")]
+    assert "Positionen speichern" in quote  # форма состава сохраняется
+    assert "Angebot" not in quote  # но «Angebot» тут больше не действие
+
+    docs = body[body.index('data-deal-block="documents"') :]
+    docs = docs[: docs.index("</section>")]
+    assert "Angebot senden" in docs  # отправка живёт в документах

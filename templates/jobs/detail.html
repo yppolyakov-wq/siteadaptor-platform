@@ -151,8 +151,15 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
   {% comment %}DG-2: живой итог больше не печатается ОТДЕЛЬНОЙ строкой — он
   обновляет «Zwischensumme» в общем блоке сумм (иначе одно и то же число стояло
   на экране дважды).{% endcomment %}
+  {% comment %}Фидбэк владельца 2026-08-28: «кнопка Angebot остаётся тут, она
+  должна быть только в документе». Это единственный submit формы состава —
+  удалить его значит лишить смету сохранения, поэтому убрано СЛОВО «Angebot»:
+  кнопка сохраняет позиции и называется так же, как на карточке заказа. Все
+  действия с самим документом (отправка, PDF, срок действия) живут в блоке
+  «Dokumente» и только там. Кнопка стала вторичной — первичное действие
+  карточки это «Angebot senden».{% endcomment %}
   <div class="mt-4 pt-4 border-t border-gray-100">
-    <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save quote" %}</button>
+    <button type="submit" class="text-sm font-medium rounded-xl border border-gray-300 px-3 py-1.5 hover:bg-gray-50">{% trans "Positionen speichern" %}</button>
   </div>
   {% with plan=job.plan_calc %}{% if plan %}
   {% comment %}ERP-6: плановая маржа Работы — только кабинет (в публичную смету
