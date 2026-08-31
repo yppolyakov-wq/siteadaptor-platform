@@ -20923,3 +20923,25 @@ msgstr "Your personal code: %(code)s"
 
 msgid "Last-Minute −%(pct)s%%"
 msgstr "Last minute −%(pct)s%%"
+
+#. SF-2 aktionen listing 2026-08-31
+msgid "Ends today"
+msgstr "Ends today"
+
+#. SF-2 aktionen listing 2026-08-31
+msgid "This week"
+msgstr "This week"
+
+#. SF-2 aktionen listing 2026-08-31
+msgid "Reservable"
+msgstr "Reservable"
+
+#. SF-2 aktionen listing 2026-08-31
+msgid "No offers match these filters."
+msgstr "No offers match these filters."
+
+#. SF-2 aktionen listing 2026-08-31
+msgid "%(n)s offer"
+msgid_plural "%(n)s offers"
+msgstr[0] "%(n)s offer"
+msgstr[1] "%(n)s offers"

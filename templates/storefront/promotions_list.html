@@ -1,16 +1,16 @@
-{% extends "storefront/_base.html" %}
+{% extends "storefront/listing.html" %}
 {% load i18n %}
-{% block content %}
-<section class="mb-10">
-  {% comment %}Фидбэк владельца 2026-08-01: переключатель вида — и на странице
-  акций; ключ общий на все группы, чтобы выбор не «прыгал» между секциями.{% endcomment %}
-  <div class="flex items-center justify-between gap-3 mb-4">
-    <h1 class="text-2xl md:text-3xl font-bold">{% trans "Current offers" %}</h1>
-    {% include "storefront/_grid_view.html" with grid_key="promo_list" %}
-  </div>
+{% comment %}SF-2: /aktionen/ на каркасе listing.html (U-B). Секции-групп
+(Prospekt-логика, фидбэк 2026-07-29) сохранены байт-в-байт — замки
+test_promotions_parity; системные чипы/сорт/поиск — PromoFacets.{% endcomment %}
 
+{% block listing_header %}
+  <h1 class="text-2xl md:text-3xl font-bold mb-4">{% trans "Current offers" %}</h1>
+{% endblock %}
+
+{% block listing_facets %}
   {% if groups %}
-    <div class="flex flex-wrap gap-2 mb-6">
+    <div class="flex flex-wrap gap-2 mb-3">
       <a href="{% url 'storefront-aktionen' %}"
          class="px-3 py-1.5 rounded-full text-sm border {% if not selected_group %}bg-gray-900 text-white border-gray-900{% else %}border-gray-300 text-gray-600 hover:bg-gray-100{% endif %}">{% trans "All" %}</a>
       {% for g, g_label in groups %}
@@ -19,7 +19,34 @@
       {% endfor %}
     </div>
   {% endif %}
+  {% comment %}Системные чипы (SF-2): тумблеры-ссылки, carry остальных параметров
+  в URL; на мобильном — горизонтальный скролл, не перенос в 3 строки.{% endcomment %}
+  <div class="flex gap-2 mb-4 overflow-x-auto" data-promo-filters>
+    {% for c in system_chips %}
+      <a href="{{ c.url }}"
+         class="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-sm border {% if c.active %}bg-gray-900 text-white border-gray-900{% else %}border-gray-300 text-gray-600 hover:bg-gray-100{% endif %}">{{ c.label }}</a>
+    {% endfor %}
+  </div>
+  {% if result_count is not None %}
+    <p class="text-sm text-gray-500 mb-4" data-result-count>{% blocktrans count n=result_count %}{{ n }} offer{% plural %}{{ n }} offers{% endblocktrans %}</p>
+  {% endif %}
+{% endblock %}
 
+{% block listing_bar_view %}{% include "storefront/_grid_view.html" with grid_key="promo_list" %}{% endblock %}
+
+{% block listing_grid %}
+  {% if ending_soon %}
+    {% comment %}Компактная полоса «скоро закончатся»: максимум 4, горизонтальный
+    скролл на мобильном; при пустом наборе секции нет вовсе (вьюха).{% endcomment %}
+    <section class="mb-8" data-ending-soon>
+      <h2 class="text-lg font-bold mb-3">⏳ {% trans "Ending soon" %}</h2>
+      <div class="flex gap-4 overflow-x-auto pb-2">
+        {% for p in ending_soon %}
+          <div class="w-56 shrink-0">{% include "storefront/_promo_card.html" %}</div>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
   {% if grouped_promotions %}
     {% comment %}Фидбэк 2026-07-29: группы акций — секциями с заголовками (Prospekt-
     логика: Wochenangebote / Räumung / Anti-Food-Waste читаются с первого взгляда).{% endcomment %}
@@ -40,8 +67,16 @@
         {% include "storefront/_promo_card.html" %}
       {% endfor %}
     </div>
-  {% else %}
-    <p class="text-gray-400">{% trans "No current offers." %}</p>
   {% endif %}
-</section>
+{% endblock %}
+
+{% block listing_empty %}
+  {% if not grouped_promotions and not promotions %}
+    {% if has_filters %}
+      <p class="text-gray-400">{% trans "No offers match these filters." %}</p>
+      <a href="{% url 'storefront-aktionen' %}" class="inline-block mt-2 text-sm text-indigo-600 hover:underline">{% trans "Filter zurücksetzen" %}</a>
+    {% else %}
+      <p class="text-gray-400">{% trans "No current offers." %}</p>
+    {% endif %}
+  {% endif %}
 {% endblock %}

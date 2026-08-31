@@ -3142,7 +3142,7 @@ msgstr "Angebote nach Stadt entdecken"
 
 #: templates/aggregator/index.html:11
 msgid "Ending soon"
-msgstr "Bald zu Ende"
+msgstr "Endet bald"
 
 #: templates/aggregator/index.html:14
 msgid "By city"
@@ -21051,3 +21051,25 @@ msgstr ""
 
 msgid "Last-Minute −%(pct)s%%"
 msgstr ""
+
+#. SF-2 aktionen listing 2026-08-31
+msgid "Ends today"
+msgstr "Endet heute"
+
+#. SF-2 aktionen listing 2026-08-31
+msgid "This week"
+msgstr "Diese Woche"
+
+#. SF-2 aktionen listing 2026-08-31
+msgid "Reservable"
+msgstr "Reservierbar"
+
+#. SF-2 aktionen listing 2026-08-31
+msgid "No offers match these filters."
+msgstr "Keine Angebote mit diesen Filtern."
+
+#. SF-2 aktionen listing 2026-08-31
+msgid "%(n)s offer"
+msgid_plural "%(n)s offers"
+msgstr[0] "%(n)s Angebot"
+msgstr[1] "%(n)s Angebote"

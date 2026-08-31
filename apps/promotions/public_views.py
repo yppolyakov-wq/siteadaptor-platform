@@ -274,44 +274,65 @@ MIN_GROUP_SECTION = 2
 
 
 def promotion_list(request):
-    """Публичный список акций /aktionen/ (S6) с фильтром по группе/направлению."""
+    """Публичный список акций /aktionen/ (S6 → SF-2: рельсы U-B).
+
+    Дефолт без фильтров — Prospekt-секции по группам (фидбэк владельца
+    2026-07-29/08-07, MIN_GROUP_SECTION); любой активный фильтр/поиск/
+    сортировка → плоская сетка (прежнее поведение ?gruppe=). Системные
+    фильтры (Endet heute/Diese Woche, −N %+, Reservierbar), ?q= и сорт —
+    PromoFacets (SF-2), состояние живёт в URL (чипы = обычные ссылки)."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.core import facets as facets_registry
     from apps.core import modules
+
+    from .facets import DISCOUNT_PRESETS
 
     if not modules.is_module_active(request.tenant, "promotions"):
         raise Http404
-    qs = Promotion.objects.filter(status="active").order_by("-created_at")
+    provider = facets_registry.provider_for("promotion")
+    base = (
+        Promotion.objects.filter(status="active").select_related("product").order_by("-created_at")
+    )
+    q = (request.GET.get("q") or "").strip()
+    sort = request.GET.get("sort") or ""
+    sel = provider.selected(request.GET)
+    # поиск ДО apply: фильтр «−N %+» материализует список (см. PromoFacets)
+    promotions = provider.sort(provider.apply(provider.search(base, q), request.GET), sort)
+
     # Ключ группы — плоское значение (по нему фильтр `?gruppe=`), метка — с
     # оверлеем локали. Карту строим по НЕотфильтрованной выдаче, иначе при
     # выбранной группе остальные чипы остались бы без перевода.
     group_labels = {
-        g: resolve_overlay(g, ov) for g, ov in qs.values_list("group", "group_i18n") if g
+        g: resolve_overlay(g, ov) for g, ov in base.values_list("group", "group_i18n") if g
     }
     groups = sorted(group_labels)
-    selected = (request.GET.get("gruppe") or "").strip()
-    if selected:
-        qs = qs.filter(group=selected)
+    selected = sel["gruppe"]
+    has_filters = bool(
+        selected or sel["endet"] or sel["rabatt"] or sel["reservierbar"] or q or sort
+    )
+
     # Фидбэк 2026-07-29: группы акций (Wochenangebote/Räumung/…) — СЕКЦИЯМИ с
     # заголовками, а не только чипами-фильтрами (иначе типы акций не считывались).
     # Порядок — по первому вхождению в выдачу (свежая группа первой); акции без
-    # группы — в конец под «More offers». Выбран фильтр или групп нет → прежняя
-    # плоская сетка.
+    # группы — в конец под «More offers». Выбран фильтр или групп нет →
+    # прежняя плоская сетка.
     grouped = []
-    if not selected and groups:
+    if not has_filters and groups:
         by_group: dict[str, list] = {}
         order: list[str] = []
-        for promo in qs:
+        for promo in promotions:
             key = promo.group or ""
             if key not in by_group:
                 by_group[key] = []
                 order.append(key)
             by_group[key].append(promo)
         order.sort(key=lambda g: g == "")  # безгрупповые в конец
-        # Фидбэк 2026-08-07 («страница выглядит незаполненной»): группа из ОДНОЙ
-        # акции занимала целую строку сетки (3 колонки) — у демо-ресторана 6
-        # акций дробились на 5 групп, из них 4 одиночные. Секцию получает только
-        # группа, которой хватает на осмысленный блок; остальные акции идут одним
-        # блоком в конце. Чипы-фильтры по группам сверху не трогаем: там видны
-        # ВСЕ группы, включая одиночные.
+        # Фидбэк 2026-08-07 («страница выглядит незаполненной»): секцию получает
+        # только группа, которой хватает на осмысленный блок; остальные — одним
+        # блоком в конце. Чипы-фильтры сверху показывают ВСЕ группы.
         sections, rest = [], []
         for key in order:
             items = by_group[key]
@@ -323,14 +344,66 @@ def promotion_list(request):
             grouped = []  # группировать нечего → плоская сетка (ветка шаблона)
         else:
             grouped = sections + ([("", "", rest)] if rest else [])
+
+    # SF-2: компактная полоса «⏳ Endet bald» над секциями — только на чистом
+    # виде и только если есть чем наполнить (пустые секции не показываем).
+    ending_soon = []
+    if not has_filters:
+        now = timezone.now()
+        ending_soon = list(
+            base.filter(ends_at__gt=now, ends_at__lte=now + timedelta(days=3)).order_by("ends_at")[
+                :4
+            ]
+        )
+
+    def _chip(label, param, value):
+        """Чип-ссылка: тумблер своего параметра с carry остальных (состояние в URL)."""
+        params = request.GET.copy()
+        active = params.get(param) == str(value)
+        if active:
+            params.pop(param, None)
+        else:
+            params[param] = value
+        encoded = params.urlencode()
+        return {
+            "label": label,
+            "active": active,
+            "url": f"{request.path}?{encoded}" if encoded else request.path,
+        }
+
+    system_chips = [
+        _chip(_("Ends today"), "endet", "heute"),
+        _chip(_("This week"), "endet", "woche"),
+        *[_chip(f"−{n} %+", "rabatt", n) for n in DISCOUNT_PRESETS],
+        _chip(_("Reservable"), "reservierbar", "1"),
+    ]
+    toolbar_hidden = [
+        (k, v)
+        for k, v in (
+            ("gruppe", selected),
+            ("endet", sel["endet"]),
+            ("rabatt", str(sel["rabatt"] or "")),
+            ("reservierbar", "1" if sel["reservierbar"] else ""),
+        )
+        if v
+    ]
     return render(
         request,
         "storefront/promotions_list.html",
         {
-            "promotions": qs,
+            "promotions": promotions,
             "groups": [(g, group_labels[g]) for g in groups],
             "selected_group": selected,
             "grouped_promotions": grouped,
+            "ending_soon": ending_soon,
+            "system_chips": system_chips,
+            "has_filters": has_filters,
+            "result_count": len(promotions) if has_filters else None,
+            "show_listing_toolbar": True,
+            "q": q,
+            "sort": sort,
+            "sort_options": provider.sort_options(),
+            "toolbar_hidden": toolbar_hidden,
         },
     )
 

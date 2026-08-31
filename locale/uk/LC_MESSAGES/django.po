@@ -21126,3 +21126,27 @@ msgstr "Ваш персональний код: %(code)s"
 
 msgid "Last-Minute −%(pct)s%%"
 msgstr "Last minute −%(pct)s%%"
+
+#. SF-2 aktionen listing 2026-08-31
+msgid "Ends today"
+msgstr "Закінчується сьогодні"
+
+#. SF-2 aktionen listing 2026-08-31
+msgid "This week"
+msgstr "Цього тижня"
+
+#. SF-2 aktionen listing 2026-08-31
+msgid "Reservable"
+msgstr "Можна зарезервувати"
+
+#. SF-2 aktionen listing 2026-08-31
+msgid "No offers match these filters."
+msgstr "За цими фільтрами акцій немає."
+
+#. SF-2 aktionen listing 2026-08-31
+msgid "%(n)s offer"
+msgid_plural "%(n)s offers"
+msgstr[0] "%(n)s акція"
+msgstr[1] "%(n)s акції"
+msgstr[2] "%(n)s акцій"
+msgstr[3] "%(n)s акції"

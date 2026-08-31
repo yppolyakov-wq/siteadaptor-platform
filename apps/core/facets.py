@@ -120,4 +120,10 @@ def provider_for(kind: str) -> FacetProvider:
         from apps.booking.facets import ServiceFacets
 
         return ServiceFacets()
+    if kind == "promotion":
+        # SF-2: акции — не SELLABLE_KINDS (ценовой слой, не сущность), но листинг
+        # /aktionen/ ходит теми же рельсами U-B.
+        from apps.promotions.facets import PromoFacets
+
+        return PromoFacets()
     return NullFacets()

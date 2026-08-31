@@ -21050,3 +21050,25 @@ msgstr "Kişisel kodunuz: %(code)s"
 
 msgid "Last-Minute −%(pct)s%%"
 msgstr "Son dakika −%(pct)s%%"
+
+#. SF-2 aktionen listing 2026-08-31
+msgid "Ends today"
+msgstr "Bugün bitiyor"
+
+#. SF-2 aktionen listing 2026-08-31
+msgid "This week"
+msgstr "Bu hafta"
+
+#. SF-2 aktionen listing 2026-08-31
+msgid "Reservable"
+msgstr "Rezerve edilebilir"
+
+#. SF-2 aktionen listing 2026-08-31
+msgid "No offers match these filters."
+msgstr "Bu filtrelerle eşleşen kampanya yok."
+
+#. SF-2 aktionen listing 2026-08-31
+msgid "%(n)s offer"
+msgid_plural "%(n)s offers"
+msgstr[0] "%(n)s kampanya"
+msgstr[1] "%(n)s kampanya"
