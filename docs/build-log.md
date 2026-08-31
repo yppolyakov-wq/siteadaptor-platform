@@ -12923,3 +12923,69 @@ CSS. Тот же дефект независимо нашла параллель
 
 ⚠️ ops: миграций нет; демо получает шестиколоночную сетку после
 `seed_demo_tenants --kit pranasy --recreate`.
+
+### 2026-08-31 — Sparfuchs-ТЗ: сверка внешнего UX-аудита + волны SF-1..SF-4a
+
+Владелец принёс UX-ТЗ по демо `aktionsmarkt.siteadaptor.de` от другого ИИ (PDF,
+80 разделов). Сверка с кодом — воркфлоу (12 разведчиков по кластерам, ключевые
+вердикты перепроверены вручную file:line): бо́льшая часть P0 ТЗ уже реализована
+платформенно (Mehr-overflow, дропдаун языка, тумблер темы, единые
+PriceBlock/OfferCard, PAngV-журнал, JSON-LD, waitlist…) либо была данными кита;
+реальные гэпы легли в волны SF (план `sparfuchs-ux-tz-plan-2026-08-31.md`,
+семейство SF в каталоге). Всё БЕЗ миграций; FF-мержи в main по зелёным CI.
+
+**SF-1 (фиксы):** кит aktionsmarkt `city="Köln"` (адрес говорил Köln, сидер
+ставил Hilden → hero/SEO/JSON-LD врали) · «Korb»-омонимы DeepL (en «Box» — ТЗ
+приняло за концепцию раздела; ru/uk «Корзина/Кошик фермера») · dark-карта:
+пары чипов скидок (text-green-800 был перекрашен без bg-green-100 — чип
+«Überraschungstüte» светлым по светлому; +замок пар) · mystery-утечки: savings
+и PAngV-строка под reveal-гейт (цена восстанавливалась арифметикой), og:image
+и JSON-LD-Offer не выдают секрет, миниатюры в блюре, C-блок канвы получил свой
+mystery-root · reveal-персист (sessionStorage по pk — back больше не прячет) ·
+telegram-web-app.js: defer + потребитель в DOMContentLoaded (единственный
+render-blocking 3rd-party; голый defer тихо убил бы Mini App — замок на
+обёртку) · openinghours через gettext («Today: Geschlossen» на EN-витрине;
+дни недели — django WEEKDAYS_ABBR, кривые msgstr бейджа ru/uk/tr починены) ·
+**StorefrontLocaleClampMiddleware**: Accept-Language клампится к
+`active_locales` тенанта — браузер pl/fr/… больше не получает msgid-салат,
+en-браузер de-only бизнеса видит немецкую витрину (ровно «сайт встречает
+английским» из ТЗ; явный выбор посетителя и кабинет не трогаются).
+
+**SF-2 (/aktionen/ на рельсы U-B):** `PromoFacets` (kind "promotion" в
+`provider_for`) — чипы Endet heute/Diese Woche (окна ends_at), −20/30/50 %+
+(fail-closed пресеты; процент считается свойством из цен → фильтр и все
+сортировки in-memory, callable-реестр как у events; листинг не пагинируется),
+Reservierbar, ?q= (JSON-i18n, ДО apply), сорт Neueste/Endet bald/Rabatt/Preis.
+Шаблон — наследник каркаса `listing.html`; секции-групп СОХРАНЕНЫ
+(характеризационные замки `test_promotions_parity` ДО свода; фильтр → плоская
+сетка как раньше). Полоса «⏳ Endet bald» (≤3 дней, 4 шт, скрыта если пусто),
+счётчик «N Angebote» при фильтре, honest empty + «Filter zurücksetzen».
+Грабля-повтор класса MEN: тест-титул «Bald» столкнулся с подписью сортировки
+(de «Ending soon» заодно исправлен «Bald zu Ende»→«Endet bald»).
+
+**SF-3 (конец жизни акции):** ended/paused/archived → страница
+`promotion_ended.html` (что была за акция + CTA + 3 актуальные; ended/archived
+= HTTP 410, пауза 200; draft/scheduled — прежний 404, не раскрываем; POST-гейты
+целы) · первые **кастомные 404/500** платформы (standalone, i18n) ·
+`_detail_buybar` на детали акции (label-параметр; mystery без панели) ·
+§11 PAngV на карточках: `lowest_price_30d_bulk` (Min окна + цена на начало,
+DISTINCT ON) + `_attach_lowest_30d` на листинге/полосе/секции главной/тизере
+товара. Грабля-повтор 2026-08-01: хелпер между декораторами «съел»
+@xframe/@cache у storefront_home — пойман тестом, возвращены. Замок свежести
+app.css поймал на CI непересобранный бандл (классы страницы beendet) — урок
+«пересборка в ТОМ ЖЕ коммите» повторился.
+
+**SF-4a (Merkzettel для акций):** хранение generic (сессия, ключ `wish_promo`;
+товарный ключ не мигрируем), общий счётчик бейджа; сердечко на промо-карточке
+и детали (`_wish_heart` generic по kind; промо-карточка перестроена: корень
+div + ссылка внутри — форма в <a> невалидна); «Beendet»-плитки вместо
+молчаливого выпадения (замок переписан осознанно; у акций — ссылка на
+актуальные); тумблер «Merkzettel (♡)» в Theme-области билдера (паттерн
+quick_add, W0-сентинел + live-draft) — опция впервые включаема любому
+архетипу; меню-гейт wishlist дополнен опцией (пункт вёл в 404 при выключенной);
+кит aktionsmarkt: опция вкл + «Merkliste ❤️» в нижнем меню. Урок ST-3
+повторён (modules_nav → {} на public-схеме — тесты хрома на обычной схеме).
+
+**SF-4b (промо-цена в каталоге и корзине — денежный путь) — ⏸ чекпоинт
+владельца**, план-раздел в `sparfuchs-ux-tz-plan §SF-4`. ⚠️ ops: миграций нет;
+`seed_demo_tenants --kit aktionsmarkt --recreate` (город/меню/демо).
