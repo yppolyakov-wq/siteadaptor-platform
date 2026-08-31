@@ -1854,6 +1854,9 @@ def home_builder_view(request):
         # (unchecked не шлётся; без сентинела любое иное сохранение гасило бы тумблер).
         if request.POST.get("quick_add_present") == "1":
             config["quick_add"] = request.POST.get("quick_add") == "on"
+        # SF-4a: Merkzettel — та же механика (опция витрины, сентинел присутствия).
+        if request.POST.get("wishlist_present") == "1":
+            config["wishlist"] = request.POST.get("wishlist") == "on"
         # M20f: дизайн — шрифт + стиль hero (site_config); акцент — поле Tenant.
         config["font"] = request.POST.get("font", config.get("font", "system"))
         config["hero_style"] = "accent" if request.POST.get("hero_accent") == "on" else "plain"
@@ -2615,6 +2618,8 @@ def site_preview_draft(request):
         cfg["hero_image"] = data["hero_image"].strip()
     if isinstance(data.get("quick_add"), bool):
         cfg["quick_add"] = data["quick_add"]
+    if isinstance(data.get("wishlist"), bool):
+        cfg["wishlist"] = data["wishlist"]
     # M20d: контент-секции — отражаем в превью, только если присланы (иначе не трём).
     if any(k in data for k in siteconfig.CONTENT_FIELDS):
         cfg.update(siteconfig.parse_content_sections(data.get))

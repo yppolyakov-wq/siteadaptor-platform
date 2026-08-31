@@ -1,19 +1,21 @@
 {% load i18n %}{% comment %}M4-C: сердечко «отложить». Форма (а не голая кнопка) —
 работает и без JS; со скриптом _base.html перехватывает submit и красит на месте.
-`p` — товар, `pos` — классы позиционирования от вызывающей карточки (у каждой
-раскладки свои: compact/overlay/default конфликтуют с контролами канвы).{% endcomment %}
+`p` — товар ИЛИ акция, `pos` — классы позиционирования от вызывающей карточки
+(у каждой раскладки свои: compact/overlay/default конфликтуют с контролами канвы).
+SF-4a: партиал стал generic — `kind="promotion"` переключает URL и список
+принадлежности (акции хранятся своим сессионным ключом).{% endcomment %}
 {% if storefront_wishlist_enabled %}
-<form method="post" action="{% url 'storefront-wishlist-toggle' p.pk %}" data-wish-form
+<form method="post" action="{% if kind == 'promotion' %}{% url 'storefront-wishlist-toggle-promo' p.pk %}{% else %}{% url 'storefront-wishlist-toggle' p.pk %}{% endif %}" data-wish-form
       class="{{ pos|default:'absolute top-2 right-2' }} z-10">
   {% csrf_token %}
   <input type="hidden" name="next" value="{{ request.get_full_path }}">
-  {% if p.pk|stringformat:'s' in storefront_wishlist_ids %}
+  {% if kind == 'promotion' and p.pk|stringformat:'s' in storefront_wishlist_promo_ids or kind != 'promotion' and p.pk|stringformat:'s' in storefront_wishlist_ids %}
     <button type="submit" data-wish-btn data-on="1" aria-pressed="true"
-            title="{% trans 'Vom Merkzettel entfernen' %}"
+            title="{% trans 'Vom Merkzettel entfernen' %}" aria-label="{% trans 'Vom Merkzettel entfernen' %}"
             class="w-8 h-8 rounded-full bg-white/90 shadow flex items-center justify-center text-rose-600 hover:bg-white">♥</button>
   {% else %}
     <button type="submit" data-wish-btn data-on="0" aria-pressed="false"
-            title="{% trans 'Auf den Merkzettel' %}"
+            title="{% trans 'Auf den Merkzettel' %}" aria-label="{% trans 'Auf den Merkzettel' %}"
             class="w-8 h-8 rounded-full bg-white/90 shadow flex items-center justify-center text-gray-400 hover:text-rose-600 hover:bg-white">♡</button>
   {% endif %}
 </form>

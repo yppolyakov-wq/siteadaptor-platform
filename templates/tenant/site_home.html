@@ -344,6 +344,15 @@
           <input type="checkbox" name="quick_add" {% if config.quick_add %}checked{% endif %} class="rounded border-gray-300 mt-0.5">
           <span>{% trans "Quick order on cards (+ button / configurator)" %}<span class="block text-xs text-gray-400">{% trans "Off: cards just link to the product page." %}</span></span>
         </label>
+        {% comment %}SF-4a: тумблер Merkzettel — раньше ключ site_config["wishlist"]
+        существовал (дефолт по архетипу), но ни одна форма кабинета его не писала:
+        включить опцию не-ритейл архетипу было невозможно. Тот же W0-паттерн
+        сентинела, что у quick_add.{% endcomment %}
+        <label class="flex items-start gap-2 text-sm mt-3">
+          <input type="hidden" name="wishlist_present" value="1">
+          <input type="checkbox" name="wishlist" {% if storefront_wishlist_enabled %}checked{% endif %} class="rounded border-gray-300 mt-0.5">
+          <span>{% trans "Merkzettel (♡ on cards)" %}<span class="block text-xs text-gray-400">{% trans "Visitors save products and offers — on this device, no account." %}</span></span>
+        </label>
         <p class="text-xs text-gray-400 mt-3">{% trans "Grid layout of catalog / rooms / events pages lives under" %}
           <a href="{% url 'site-pages' %}" class="text-indigo-600 hover:underline">{% trans "Pages" %}</a>.</p>
       </fieldset>

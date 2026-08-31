@@ -1,19 +1,64 @@
 {% extends "storefront/_base.html" %}
 {% load i18n %}
-{% comment %}M4-C «Merkzettel»: отложенные товары обычными карточками каталога
-(единая форма ST-7c действует и здесь). Список живёт в сессии — про посетителя
-ничего не сохраняется в БД.{% endcomment %}
+{% comment %}M4-C «Merkzettel»: отложенное обычными карточками (единая форма ST-7c
+действует и здесь). Список живёт в сессии — про посетителя ничего не сохраняется
+в БД. SF-4a: + акции; закончившиеся позиции не выпадают молча — плитка «Beendet»
+с кнопкой убрать (у акций — ссылка на актуальные).{% endcomment %}
 {% block title %}{% trans "Merkzettel" %} — {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
 <h1 class="text-2xl md:text-3xl font-bold mb-1">{% trans "Merkzettel" %}</h1>
 <p class="text-gray-500 mb-6">{% trans "Ihre gemerkten Teile — nur auf diesem Gerät gespeichert." %}</p>
 
+{% if wish_promotions %}
+<section class="mb-8">
+  <h2 class="text-lg font-bold mb-3">{% trans "Current offers" %}</h2>
+  <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+    {% for p in wish_promotions %}
+      {% if p.wish_ended %}
+        <div class="rounded-2xl bg-gray-50 ring-1 ring-gray-200 p-4 flex flex-col" data-wish-ended>
+          <p class="font-semibold text-gray-400 line-clamp-2">{{ p.title_text }}</p>
+          <p class="mt-1 text-xs font-medium text-gray-400">{% trans "Beendet" %}</p>
+          <div class="mt-auto pt-3 flex items-center justify-between gap-2">
+            {% if promotions_active %}
+              <a href="{% url 'storefront-aktionen' %}" class="text-sm text-indigo-600 hover:underline">{% trans "See current offers" %} →</a>
+            {% endif %}
+            <form method="post" action="{% url 'storefront-wishlist-toggle-promo' p.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <button type="submit" class="text-sm text-gray-400 hover:text-red-600" aria-label="{% trans 'Vom Merkzettel entfernen' %}">✕ {% trans "Entfernen" %}</button>
+            </form>
+          </div>
+        </div>
+      {% else %}
+        {% include "storefront/_promo_card.html" %}
+      {% endif %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
 {% if products %}
 <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-  {% for p in products %}{% include "storefront/_product_card.html" with p=p %}{% endfor %}
+  {% for p in products %}
+    {% if p.wish_ended %}
+      <div class="rounded-2xl bg-gray-50 ring-1 ring-gray-200 p-4 flex flex-col" data-wish-ended>
+        <p class="font-semibold text-gray-400 line-clamp-2">{{ p }}</p>
+        <p class="mt-1 text-xs font-medium text-gray-400">{% trans "Beendet" %}</p>
+        <form method="post" action="{% url 'storefront-wishlist-toggle' p.pk %}" class="mt-auto pt-3">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <button type="submit" class="text-sm text-gray-400 hover:text-red-600" aria-label="{% trans 'Vom Merkzettel entfernen' %}">✕ {% trans "Entfernen" %}</button>
+        </form>
+      </div>
+    {% else %}
+      {% include "storefront/_product_card.html" with p=p %}
+    {% endif %}
+  {% endfor %}
 </div>
-{% else %}
+{% endif %}
+
+{% if not products and not wish_promotions %}
 <p class="text-gray-400 mb-6">{% trans "Noch nichts gemerkt. Tippen Sie auf ♡ an einem Artikel." %}</p>
 {% endif %}
 

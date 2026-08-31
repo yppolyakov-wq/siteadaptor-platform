@@ -378,6 +378,12 @@ urlpatterns = [
     # M4-C: список отложенного (сессия, без аккаунта).
     path("merkzettel/", orders_public.wishlist_view, name="storefront-wishlist"),
     path("merkzettel/<uuid:pk>/", orders_public.wishlist_toggle, name="storefront-wishlist-toggle"),
+    path(
+        "merkzettel/aktion/<uuid:pk>/",
+        orders_public.wishlist_toggle,
+        {"kind": "promotion"},
+        name="storefront-wishlist-toggle-promo",
+    ),
     path("warenkorb/remove/", orders_public.cart_remove, name="storefront-cart-remove"),
     path("warenkorb/combo-remove/", orders_public.combo_remove, name="storefront-combo-remove"),
     path("warenkorb/nochmal/<str:code>/", orders_public.reorder, name="storefront-reorder"),

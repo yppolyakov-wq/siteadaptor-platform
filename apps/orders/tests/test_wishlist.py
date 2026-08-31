@@ -41,15 +41,18 @@ def test_newest_first_and_capped():
     assert wishlist.ids(request)[0] == f"pk-{wishlist.WISH_MAX + 4}"  # новое первым
 
 
-def test_products_skips_deleted_and_inactive():
-    """Товар мог быть скрыт после добавления — список не падает и не показывает его."""
+def test_products_marks_inactive_and_skips_deleted():
+    """SF-4a (осознанная переписка замка): скрытый товар раньше выпадал МОЛЧА —
+    теперь остаётся с пометкой wish_ended («Beendet»); удалённый pk выпадает."""
     request = _req()
     live, hidden = _product("Mantel"), _product("Weg")
     hidden.is_active = False
     hidden.save(update_fields=["is_active"])
     for pk in (live.pk, hidden.pk, "00000000-0000-0000-0000-000000000000"):
         wishlist.toggle(request, pk)
-    assert list(wishlist.products(request)) == [live]
+    out = wishlist.products(request)
+    assert [p.pk for p in out] == [hidden.pk, live.pk]  # порядок: новое первым
+    assert [p.wish_ended for p in out] == [True, False]
 
 
 def test_enabled_by_archetype_and_override():

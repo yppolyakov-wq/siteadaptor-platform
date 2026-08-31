@@ -3589,6 +3589,8 @@ AKTIONSMARKT_MENUS = {
             {"label": "Aktionen", "type": "archetype", "target": "promotions", "icon": "🔥"},
             {"label": "Sortiment", "type": "archetype", "target": "catalog", "icon": "🛒"},
             {"label": "Korb", "type": "archetype", "target": "orders", "icon": "🧺"},
+            # SF-4a: вход в Merkzettel с мобильного (иконка шапки скрыта на sm-)
+            {"label": "Merkliste", "type": "page", "target": "wishlist", "icon": "❤️"},
             {"label": "Treue", "type": "archetype", "target": "loyalty", "icon": "💝"},
         ],
     },
@@ -3601,7 +3603,8 @@ AKTIONSMARKT = DemoKit(
     # DS-9: дизайн «Fokus» для архетипа — своя композиция (реестр BUNDLES).
     bundle="fokus_angebote",
     look="klar",
-    config_patch={"hero_style": "split", "nav": {"cta": True}},
+    # SF-4a: Merkzettel у магазина акций (grocery-дефолт опции — False).
+    config_patch={"hero_style": "split", "nav": {"cta": True}, "wishlist": True},
     subdomain="aktionsmarkt",
     # 2026-07-30: слайдер + плитки hero_widget="aktionsmarkt"
     # (Deals/Sortiment/Treuepunkte/Newsletter).

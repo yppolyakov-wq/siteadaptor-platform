@@ -20,6 +20,9 @@
 <div class="grid md:grid-cols-2 gap-6 md:gap-10"{% if promotion.discount_style == 'mystery' %} data-mystery-root="{{ promotion.pk }}"{% endif %}>
   {# Фото #}
   <div class="relative">
+    {% comment %}SF-4a: сердечко Merkzettel на детали акции (низ фото — верх
+    занят контролами канвы).{% endcomment %}
+    {% include "storefront/_wish_heart.html" with kind="promotion" p=promotion pos="absolute bottom-2 right-2" %}
     {% comment %}UE3-2: 📷 замена главного фото акции + 🗑 удаление (только когда
     у акции СВОЯ галерея — фолбэк-фото товара не удаляем). Hidden по умолчанию;
     раскрывает JS билдера при editOn.{% endcomment %}

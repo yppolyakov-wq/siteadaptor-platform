@@ -21193,3 +21193,11 @@ msgstr "На главную"
 #. SF-3 promo lifecycle / error pages 2026-08-31
 msgid "Something went wrong. Please try again."
 msgstr "Что-то пошло не так. Пожалуйста, попробуйте ещё раз."
+
+#. SF-4a wishlist toggle 2026-08-31
+msgid "Merkzettel (♡ on cards)"
+msgstr "Отложенное (♡ на карточках)"
+
+#. SF-4a wishlist toggle 2026-08-31
+msgid "Visitors save products and offers — on this device, no account."
+msgstr "Посетители откладывают товары и акции — на этом устройстве, без аккаунта."

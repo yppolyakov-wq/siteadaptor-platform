@@ -478,9 +478,9 @@ def _is_ajax(request) -> bool:
 # --- M4-C Merkzettel (список отложенного, сессия) ---------------------------------
 
 
-def wishlist_toggle(request, pk):
-    """Переключить товар в списке отложенного. AJAX → JSON (сердечко
-    перекрашивается без перехода), обычный POST → назад на ту же страницу."""
+def wishlist_toggle(request, pk, kind="product"):
+    """Переключить позицию (товар/акцию — SF-4a) в списке отложенного. AJAX →
+    JSON (сердечко перекрашивается без перехода), обычный POST → назад."""
     from django.http import JsonResponse
 
     from apps.orders import wishlist
@@ -489,7 +489,7 @@ def wishlist_toggle(request, pk):
         raise Http404
     if request.method != "POST":
         return redirect("storefront-wishlist")
-    state = wishlist.toggle(request, pk)
+    state = wishlist.toggle(request, pk, kind)
     if _is_ajax(request):
         return JsonResponse({"ok": True, "on": state, "count": wishlist.count(request)})
     return redirect(request.POST.get("next") or "storefront-wishlist")
@@ -501,10 +501,18 @@ def wishlist_view(request):
 
     if not wishlist.enabled(request.tenant):
         raise Http404
+    from apps.core import modules
+
     return render(
         request,
         "storefront/wishlist.html",
-        {"products": wishlist.products(request)},
+        {
+            "products": wishlist.products(request),
+            # SF-4a: акции — главный контент магазина акций; «Beendet»-позиции
+            # остаются с пометкой и ссылкой на актуальные.
+            "wish_promotions": wishlist.promotions(request),
+            "promotions_active": modules.is_module_active(request.tenant, "promotions"),
+        },
     )
 
 

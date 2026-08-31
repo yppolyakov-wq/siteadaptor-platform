@@ -43,6 +43,13 @@ def _wishlist_ids(request) -> list:
     return wishlist.ids(request) if hasattr(request, "session") else []
 
 
+def _wishlist_promo_ids(request) -> list:
+    """SF-4a: pk отложенных АКЦИЙ — сердечко на промо-карточке."""
+    from apps.orders import wishlist
+
+    return wishlist.ids(request, "promotion") if hasattr(request, "session") else []
+
+
 def _cart_count(request) -> int:
     """Всего позиций в корзине (товары + комбо) — для бейджа иконки корзины."""
     total = 0
@@ -397,6 +404,7 @@ def modules_nav(request):
         "storefront_wishlist_enabled": _wishlist_enabled(tenant),
         "storefront_wishlist_count": _wishlist_count(request),
         "storefront_wishlist_ids": _wishlist_ids(request),
+        "storefront_wishlist_promo_ids": _wishlist_promo_ids(request),
         # T2c: «+»/модалка на карточках = orders активен И не отключён владельцем.
         "storefront_quick_add": modules.is_module_active(tenant, "orders") and cfg["quick_add"],
         # M20 ④: легаси-навигация (плоская) — на случай старых шаблонов.

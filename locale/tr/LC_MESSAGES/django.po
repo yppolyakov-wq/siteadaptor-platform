@@ -21100,3 +21100,11 @@ msgstr "Ana sayfaya"
 #. SF-3 promo lifecycle / error pages 2026-08-31
 msgid "Something went wrong. Please try again."
 msgstr "Bir şeyler ters gitti. Lütfen tekrar deneyin."
+
+#. SF-4a wishlist toggle 2026-08-31
+msgid "Merkzettel (♡ on cards)"
+msgstr "Kayıt listesi (kartlarda ♡)"
+
+#. SF-4a wishlist toggle 2026-08-31
+msgid "Visitors save products and offers — on this device, no account."
+msgstr "Ziyaretçiler ürünleri ve kampanyaları kaydeder — bu cihazda, hesapsız."

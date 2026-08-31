@@ -21101,3 +21101,11 @@ msgstr "Zur Startseite"
 #. SF-3 promo lifecycle / error pages 2026-08-31
 msgid "Something went wrong. Please try again."
 msgstr "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+
+#. SF-4a wishlist toggle 2026-08-31
+msgid "Merkzettel (♡ on cards)"
+msgstr "Merkzettel (♡ auf Karten)"
+
+#. SF-4a wishlist toggle 2026-08-31
+msgid "Visitors save products and offers — on this device, no account."
+msgstr "Besucher merken sich Produkte und Angebote — auf diesem Gerät, ohne Konto."

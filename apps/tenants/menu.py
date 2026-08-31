@@ -350,6 +350,13 @@ def _node_url(tenant, node: dict):
                 return None
         if target == "gift" and not _gift_reachable(tenant):
             return None
+        if target == "wishlist":
+            # SF-4a: страница гейтится ОПЦИЕЙ wishlist, а не только модулем orders —
+            # пункт меню при выключенной опции вёл в 404 (находка сверки 2026-08-31).
+            from apps.orders import wishlist as _wishlist
+
+            if not _wishlist.enabled(tenant):
+                return None
         return _reverse(name)
     if ntype == "url":
         return target or None
@@ -392,6 +399,8 @@ _MENU_LABEL_ANCHORS = (
     _("Termine"),
     _("Leistungen"),
     _("Anfahrt"),
+    # SF-4a: пункт Merkzettel в нижнем меню кита aktionsmarkt.
+    _("Merkliste"),
     # ST-8: подписи новых страниц (галерея/отзывы/команда) в демо-меню.
     _("Unser Team"),
     _("Meister"),
