@@ -21186,3 +21186,7 @@ msgstr "Відкладене (♡ на картках)"
 #. SF-4a wishlist toggle 2026-08-31
 msgid "Visitors save products and offers — on this device, no account."
 msgstr "Відвідувачі відкладають товари та акції — на цьому пристрої, без акаунта."
+
+#. SF-4b promo cart 2026-08-31
+msgid "The promotion limit has been reached. Please adjust the quantity or remove the item."
+msgstr "Ліміт акції вичерпано. Будь ласка, зменшіть кількість або приберіть товар."

@@ -100,11 +100,28 @@ def _cart_items(request):
     return items
 
 
-def _line_price(product, variant, options=()):
+def _line_price(product, variant, options=(), promo_map=None):
+    """Цена строки корзины. SF-4b: с promo_map (product_promo_map по позициям)
+    база заменяется промо-ценой применимой акции — ровно той же функцией
+    (`promo_line_price`), что применит create_order: «показано = списано»."""
     from apps.catalog.modifiers import options_delta
 
     base = variant.price_value if variant is not None else product.base_price
+    if promo_map:
+        from apps.promotions.price_layer import promo_line_price
+
+        promo_base = promo_line_price(promo_map.get(product.pk), product, variant)
+        if promo_base is not None:
+            base = promo_base
     return base + options_delta(options)
+
+
+def _cart_promo_map(items):
+    """SF-4b: батч акций по товарным строкам корзины (один запрос)."""
+    from apps.promotions.price_layer import product_promo_map
+
+    ids = {p.pk for p, _v, _o, _q in items}
+    return product_promo_map(ids) if ids else {}
 
 
 # --- Комбо-наборы (A4) в корзине -------------------------------------------------
@@ -192,6 +209,9 @@ def quick_add_form(request, pk):
         pk=pk,
         is_active=True,
     )
+    from apps.promotions.price_layer import attach_promos
+
+    attach_promos([product])
     return render(request, "storefront/_quick_add.html", {"product": product})
 
 
@@ -495,6 +515,13 @@ def wishlist_toggle(request, pk, kind="product"):
     return redirect(request.POST.get("next") or "storefront-wishlist")
 
 
+def _attach_wish_promos(products):
+    """SF-4b: промо-атрибуты и на карточках Merkzettel (та же цена, что везде)."""
+    from apps.promotions.price_layer import attach_promos
+
+    return attach_promos(products)
+
+
 def wishlist_view(request):
     """Страница «Merkzettel» — отложенные товары обычными карточками."""
     from apps.orders import wishlist
@@ -507,7 +534,7 @@ def wishlist_view(request):
         request,
         "storefront/wishlist.html",
         {
-            "products": wishlist.products(request),
+            "products": _attach_wish_promos(wishlist.products(request)),
             # SF-4a: акции — главный контент магазина акций; «Beendet»-позиции
             # остаются с пометкой и ссылкой на актуальные.
             "wish_promotions": wishlist.promotions(request),
@@ -599,6 +626,7 @@ def cart_view(request):
     from decimal import Decimal
 
     items = _cart_items(request)
+    pmap = _cart_promo_map(items)
     rows = [
         {
             "product": product,
@@ -606,11 +634,15 @@ def cart_view(request):
             "options": options,
             "qty": qty,
             "key": _cart_key(product, variant, options),
-            "unit_price": _line_price(product, variant, options),
-            "line_total": _line_price(product, variant, options) * qty,
+            "unit_price": _line_price(product, variant, options, promo_map=pmap),
+            "line_total": _line_price(product, variant, options, promo_map=pmap) * qty,
+            # SF-4b: строка по акции — зачёркнутая база + чип «Aktion» в шаблоне
+            "base_unit_price": _line_price(product, variant, options),
         }
         for product, variant, options, qty in items
     ]
+    for r in rows:
+        r["is_promo"] = r["unit_price"] < r["base_unit_price"]
     # Комбо-наборы (A4): отдельные строки корзины со снимком состава.
     from apps.catalog.combos import combo_price, pool_price
 
@@ -666,7 +698,9 @@ def cart_view(request):
         from apps.catalog.models import Product
 
         in_cart_ids = {r["product"].pk for r in rows}
-        ctx["upsell"] = list(
+        from apps.promotions.price_layer import attach_promos
+
+        ctx["upsell"] = attach_promos(
             Product.objects.filter(is_active=True)
             .exclude(pk__in=in_cart_ids)
             .order_by("-is_featured", "-created_at")[:4]
@@ -772,7 +806,9 @@ def checkout(request):
                 _("Minimum for this set: %(n)s persons.") % {"n": combo.min_persons},
             )
             return redirect("storefront-combo", pk=combo.pk)
-    subtotal = sum((_line_price(p, v, o) * q for p, v, o, q in items), Decimal("0"))
+    # SF-4b: минимумы доставки/итог считаем по тем же промо-ценам, что спишет заказ
+    pmap = _cart_promo_map(items)
+    subtotal = sum((_line_price(p, v, o, promo_map=pmap) * q for p, v, o, q in items), Decimal("0"))
     subtotal += sum((combo_price(c, o) * q for c, o, q in combo_items), Decimal("0"))
     subtotal += sum((pool_price(c, d) * q for c, d, q, _ok, _k in pool_items), Decimal("0"))
     subtotal_cents = int(subtotal * 100)
@@ -847,6 +883,10 @@ def checkout(request):
     # _cart_items даёт (product, variant, options, qty); create_order ждёт
     # (product, variant, qty, options) — переставляем.
     order_items = [(p, v, q, o) for p, v, o, q in _cart_items(request)]
+    # SF-4b: класс промо-исключения нужен в except ниже — импорт ДО try (лениво
+    # в теле вьюхи против модульных циклов orders ↔ promotions).
+    from apps.promotions.services import OutOfStock as PromoLimitSoldOut
+
     order_combos = [(c, o, q) for c, o, q in combo_items]
     try:
         # MEN-4: свободная сборка → custom_lines (цена заморожена сервером ЗДЕСЬ,
@@ -884,6 +924,16 @@ def checkout(request):
         )
     except EmptyOrder:
         messages.error(request, _("Your order is empty."))
+        return redirect("storefront-cart")
+    except PromoLimitSoldOut:
+        # SF-4b: лимит кампании исчерпан на чекауте (гонка двух корзин) —
+        # честное сообщение вместо тихой продажи по полной цене.
+        messages.error(
+            request,
+            _(
+                "The promotion limit has been reached. Please adjust the quantity or remove the item."
+            ),
+        )
         return redirect("storefront-cart")
     except OutOfStock as exc:
         messages.error(

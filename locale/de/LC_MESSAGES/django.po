@@ -21109,3 +21109,7 @@ msgstr "Merkzettel (♡ auf Karten)"
 #. SF-4a wishlist toggle 2026-08-31
 msgid "Visitors save products and offers — on this device, no account."
 msgstr "Besucher merken sich Produkte und Angebote — auf diesem Gerät, ohne Konto."
+
+#. SF-4b promo cart 2026-08-31
+msgid "The promotion limit has been reached. Please adjust the quantity or remove the item."
+msgstr "Das Aktionslimit ist erreicht. Bitte Menge anpassen oder Artikel entfernen."

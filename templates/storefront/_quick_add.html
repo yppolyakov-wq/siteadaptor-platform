@@ -11,7 +11,7 @@
       {% endif %}{% endwith %}
       <div>
         <h3 class="font-bold leading-tight">{{ product }}</h3>
-        <p class="text-sm font-semibold mt-0.5">{% if product.has_variants %}{% trans "from" %} {{ product.price_from }}{% else %}{{ product.base_price }}{% endif %} {{ product.currency|cursym }}</p>
+        <p class="text-sm font-semibold mt-0.5">{% if product.has_variants %}{% trans "from" %} {{ product.price_from }}{% elif product.promo_price %}<span class="text-rose-600">{{ product.promo_price }}</span> <span class="text-xs font-normal text-gray-400 line-through">{{ product.base_price }}</span>{% else %}{{ product.base_price }}{% endif %} {{ product.currency|cursym }}</p>
       </div>
     </div>
     {% include "storefront/_add_to_cart_form.html" %}

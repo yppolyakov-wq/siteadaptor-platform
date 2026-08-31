@@ -21108,3 +21108,7 @@ msgstr "Kayıt listesi (kartlarda ♡)"
 #. SF-4a wishlist toggle 2026-08-31
 msgid "Visitors save products and offers — on this device, no account."
 msgstr "Ziyaretçiler ürünleri ve kampanyaları kaydeder — bu cihazda, hesapsız."
+
+#. SF-4b promo cart 2026-08-31
+msgid "The promotion limit has been reached. Please adjust the quantity or remove the item."
+msgstr "Kampanya limitine ulaşıldı. Lütfen adedi azaltın veya ürünü kaldırın."

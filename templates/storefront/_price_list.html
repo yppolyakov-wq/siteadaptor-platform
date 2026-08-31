@@ -56,7 +56,7 @@ MEN-24a: show_labels — маркировка диет/аллергенов (т�
             <span class="font-medium group-hover:underline">{{ p }}</span>
             {% if show_labels %}{% include "storefront/_price_row_labels.html" %}{% endif %}
             <span class="flex-1 min-w-4"></span>
-            {% if storefront_orders_active or site.menu_show_prices != False %}<span class="font-bold whitespace-nowrap" style="font-variant-numeric: tabular-nums;">{% if p.has_variants %}<span class="text-xs font-normal text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% else %}{{ p.base_price }}{% endif %} {{ p.currency|cursym }}</span>{% endif %}
+            {% if storefront_orders_active or site.menu_show_prices != False %}<span class="font-bold whitespace-nowrap" style="font-variant-numeric: tabular-nums;">{% if p.has_variants %}<span class="text-xs font-normal text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% else %}{{ p.promo_price|default:p.base_price }}{% endif %} {{ p.currency|cursym }}</span>{% endif %}
           </span>
           {% with d=p.description_text %}{% if d %}<span class="block text-sm text-gray-500 italic mt-0.5">{{ d|striptags|truncatechars:90 }}</span>{% endif %}{% endwith %}
         </a>
@@ -76,7 +76,7 @@ MEN-24a: show_labels — маркировка диет/аллергенов (т�
             {% if st != 'preisliste_kompakt' %}{% with d=p.description_text %}{% if d %}<span class="text-sm text-gray-500"> — {{ d|striptags|truncatechars:60 }}</span>{% endif %}{% endwith %}{% endif %}
           </span>
           <span class="flex-1 min-w-4"></span>
-          {% if storefront_orders_active or site.menu_show_prices != False %}<span class="font-bold whitespace-nowrap{% if st == 'preisliste_kompakt' %} text-sm{% endif %}" style="font-variant-numeric: tabular-nums;">{% if p.has_variants %}<span class="text-xs font-normal text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% else %}{{ p.base_price }}{% endif %} {{ p.currency|cursym }}</span>{% endif %}
+          {% if storefront_orders_active or site.menu_show_prices != False %}<span class="font-bold whitespace-nowrap{% if st == 'preisliste_kompakt' %} text-sm{% endif %}" style="font-variant-numeric: tabular-nums;">{% if p.has_variants %}<span class="text-xs font-normal text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% else %}{{ p.promo_price|default:p.base_price }}{% endif %} {{ p.currency|cursym }}</span>{% endif %}
         </a>
         {% endif %}
       {% endfor %}

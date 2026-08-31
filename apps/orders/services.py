@@ -163,6 +163,7 @@ def create_order(
     payment_method="",
     custom_lines=(),
     reserve_expires_at=None,
+    apply_promotions=True,
 ):
     """Создать заказ из позиций со снимками цены/названия.
 
@@ -211,6 +212,33 @@ def create_order(
     ):
         raise ValueError("qty must be >= 1")
 
+    # SF-4b (вариант A владельца): корзина/любой items-путь продаёт товар с
+    # активной акцией-целью по ПРОМО-ЦЕНЕ. Лимит кампании списывается ЗДЕСЬ,
+    # в той же atomic (conditional UPDATE claim_units; исчерпан → промо-
+    # OutOfStock, checkout показывает «Aktionslimit erreicht»). Маркер
+    # {"promo": id} едет в OrderItem.modifiers — возврат лимита при отмене
+    # (_restore_promo_limits) и аналитика (deal_counts) читают его без правок.
+    # custom_lines не трогаем (promotions.purchase кладёт маркер сам).
+    line_promos: dict[int, tuple] = {}
+    if apply_promotions and norm:
+        from apps.promotions.price_layer import (
+            claim_units,
+            product_promo_map,
+            promo_line_price,
+        )
+
+        promo_by_product = product_promo_map({p.pk for p, _v, _q, _o in norm})
+        claim_totals: dict = {}
+        for idx, (product, variant, qty, _options) in enumerate(norm):
+            promo = promo_by_product.get(product.pk)
+            promo_base = promo_line_price(promo, product, variant)
+            if promo_base is None:
+                continue
+            line_promos[idx] = (promo, Decimal(str(promo_base)))
+            prev = claim_totals.get(promo.pk)
+            claim_totals[promo.pk] = (promo, (prev[1] if prev else 0) + qty)
+        for promo, total_qty in claim_totals.values():
+            claim_units(promo, total_qty)
     # R3: атомарное списание; OutOfStock → откат, заказа нет. Custom-строки с
     # привязкой к товару резервируют сток тем же путём (цена всё равно из строки).
     custom_reserve = [(p, v, q, []) for _t, _u, q, p, v, _m, _r in custom_norm if p is not None]
@@ -245,13 +273,18 @@ def create_order(
         reserve_expires_at=reserve_expires_at,
     )
     total = Decimal("0")
-    for product, variant, qty, options in norm:
+    for idx, (product, variant, qty, options) in enumerate(norm):
         # DecimalField не приводит атрибут у не перезагруженных из БД
         # инстансов — нормализуем явно. Цена варианта: своя или base_price.
         base = variant.price_value if variant is not None else product.base_price
         # A4b: надбавки модификаторов входят в unit_price; снимок — отдельно.
         deltas = sum((Decimal(str(o.price_delta)) for o in options), Decimal("0"))
-        unit_price = Decimal(str(base)) + deltas
+        # SF-4b: применимая акция заменяет БАЗУ строки (дельты опций — поверх).
+        line_promo = line_promos.get(idx)
+        if line_promo is not None:
+            unit_price = line_promo[1] + deltas
+        else:
+            unit_price = Decimal(str(base)) + deltas
         # Фидбэк 2026-08-04: артикул опции — в снимок (печать в заказе/PDF).
         # MX-0: id опции в снимке — сводный учёт доп-продаж и агрегаты «сколько
         # продано опции X» (немецкая метка — не ключ: переименование рвало историю).
@@ -264,6 +297,10 @@ def create_order(
             }
             for o in options
         ]
+        if line_promo is not None:
+            # тот же dict-элемент, что кладёт promotions.services.purchase —
+            # modifiers__contains матчит частично, возврат/аналитика едины.
+            modifiers.append({"promo": str(line_promo[0].pk), "label": "Aktion"})
         label = variant.label if variant is not None else ""
         title = f"{product} · {label}" if label else str(product)
         item = OrderItem.objects.create(

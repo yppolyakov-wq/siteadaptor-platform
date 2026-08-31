@@ -115,6 +115,46 @@ def deal_counts(promotion) -> dict:
     }
 
 
+def promo_line_price(promo, product, variant=None):
+    """SF-4b (вариант A владельца): промо-цена СТРОКИ корзины/заказа или None.
+
+    Применимость: промо действует только на строку, чья база = base_price
+    товара (без варианта или вариант без своей цены) — `new_price` выводится
+    из базовой цены, вариант с собственной ценой едет по полной. Дельты
+    модификаторов добавляются ПОВЕРХ снаружи."""
+    if promo is None or product is None or promo.product_id != product.pk:
+        return None
+    if variant is not None and getattr(variant, "price", None) is not None:
+        return None
+    return promo.new_price
+
+
+def attach_promos(products, *, with_lowest=True):
+    """SF-4b: bulk-атрибуты промо для карточных поверхностей (каталог/главная/
+    related/upsell/wishlist/quick-add): `promo`, `promo_price` (None у товара
+    с вариантами — «from …» с промо врал бы), `promo_badge`, `promo_lowest`
+    (§11 PAngV: карточка с промо-ценой анонсирует снижение — референс рядом).
+
+    Один запрос акций + один батч PriceLog; без акций — ноль лишних запросов."""
+    products = list(products)
+    pmap = product_promo_map([p.pk for p in products])
+    lows = {}
+    if with_lowest and pmap:
+        from apps.catalog.price_history import lowest_price_30d_bulk
+
+        lows = lowest_price_30d_bulk(list(pmap.keys()))
+    for p in products:
+        promo = pmap.get(p.pk)
+        p.promo = promo
+        p.promo_price = None if getattr(p, "has_variants", False) else promo_line_price(promo, p)
+        pct = promo.discount_percent_display if promo else None
+        # festpreis без процента раньше вырождался в одинокий «%» — человеческая
+        # подпись честнее (находка сверки Sparfuchs-ТЗ).
+        p.promo_badge = f"−{pct} %" if pct else (_("Aktion") if promo else "")
+        p.promo_lowest = lows.get(p.pk) if promo else None
+    return products
+
+
 def promo_for_product(product):
     """P6: активная акция на товар → Promotion | None (для показа на витрине;
     чекаут по промо-цене живёт на детали АКЦИИ — /p/<uuid>/kaufen/).

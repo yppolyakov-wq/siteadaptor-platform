@@ -30,7 +30,10 @@
     </a>
   {% endif %}
   <div class="mt-3 text-2xl font-bold">
-    {% if product.has_variants %}{% trans "from" %} {{ product.price_from }}{% else %}<span data-price-edit data-edit-pk="{{ product.pk }}" data-price="{{ product.base_price }}">{{ product.base_price }}</span>{% endif %} {{ product.currency|cursym }}
+    {% comment %}SF-4b (вариант A): активная акция-цель — промо-цена крупно,
+    база зачёркнута. data-price-edit остаётся на элементе ТОЛЬКО с базовой
+    ценой (канва-правка пишет base_price; промо — производная).{% endcomment %}
+    {% if product.has_variants %}{% trans "from" %} {{ product.price_from }}{% elif target_promo and target_promo.new_price is not None %}<span class="text-rose-600">{{ target_promo.new_price }}</span> <span class="text-base font-normal text-gray-400 line-through" data-price-edit data-edit-pk="{{ product.pk }}" data-price="{{ product.base_price }}">{{ product.base_price }}</span>{% else %}<span data-price-edit data-edit-pk="{{ product.pk }}" data-price="{{ product.base_price }}">{{ product.base_price }}</span>{% endif %} {{ product.currency|cursym }}
   </div>
   {% if not product.has_variants %}{% with gp=product.grundpreis %}{% if gp %}
     <p class="text-sm text-gray-500">{{ gp.0 }} {{ product.currency|cursym }} / {{ gp.1 }}</p>
@@ -46,9 +49,9 @@
   {% endif %}
   {# E-2/PAngV: Gesamtpreis-Hinweis у цены; правовая строка — немецкий msgid (паттерн §312j-кнопки). #}
   <p class="mt-1 text-xs text-gray-400">{% trans "inkl. MwSt." %}{% if request.tenant.delivery_enabled %} · {% trans "zzgl. Versand" %}{% endif %}</p>
-  {% comment %}P6 «ценовой слой»: активная акция на этот товар — промо-цена со ссылкой
-  на страницу акции (чекаут по промо-цене живёт там — /p/<uuid>/kaufen/; корзина
-  ниже продаёт по обычной цене, поэтому промо-цену не подмешиваем в buy-box).{% endcomment %}
+  {% comment %}P6 → SF-4b (вариант A): корзина теперь продаёт по промо-цене
+  (create_order применяет тот же ценовой слой) — buy-box показывает её выше;
+  rose-баннер остаётся ссылкой на страницу акции (описание/условия/срок).{% endcomment %}
   {% if target_promo %}
   <a href="{% url 'storefront-promotion' target_promo.pk %}" class="mt-3 flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-100 px-3 py-2.5 text-sm hover:border-rose-300 transition">
     <span class="bg-rose-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shrink-0">{% if target_promo.discount_percent_display %}−{{ target_promo.discount_percent_display }} %{% else %}{% trans "Aktion" %}{% endif %}</span>
@@ -239,7 +242,7 @@
 {% block detail_buybar %}
 {# M20U-4: мобильная липкая панель покупки (только когда заказ доступен и в наличии) #}
 {% if orders_enabled and product.in_stock %}
-  {% if product.has_variants %}{% blocktrans asvar buyprice with p=product.price_from c=product.currency|cursym %}from {{ p }} {{ c }}{% endblocktrans %}{% else %}{% blocktrans asvar buyprice with p=product.base_price c=product.currency|cursym %}{{ p }} {{ c }}{% endblocktrans %}{% endif %}
+  {% if product.has_variants %}{% blocktrans asvar buyprice with p=product.price_from c=product.currency|cursym %}from {{ p }} {{ c }}{% endblocktrans %}{% elif target_promo and target_promo.new_price is not None %}{% blocktrans asvar buyprice with p=target_promo.new_price c=product.currency|cursym %}{{ p }} {{ c }}{% endblocktrans %}{% else %}{% blocktrans asvar buyprice with p=product.base_price c=product.currency|cursym %}{{ p }} {{ c }}{% endblocktrans %}{% endif %}
   {% include "storefront/_detail_buybar.html" with price=buyprice anchor="#kaufen" module="catalog" sold_out=False %}
 {% endif %}
 {% page_blocks "product_detail" %}

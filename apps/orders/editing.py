@@ -99,9 +99,38 @@ def recalc_total(order) -> Decimal:
     return order.total
 
 
+def _item_promo_id(item) -> str:
+    """SF-4b: id акции из промо-маркера позиции ({"promo": id} в modifiers)."""
+    for mod in item.modifiers or []:
+        if isinstance(mod, dict) and mod.get("promo"):
+            return str(mod["promo"])
+    return ""
+
+
+def _move_promo_limit(item, delta: int) -> None:
+    """SF-4b: зеркало склада для лимита кампании — правка промо-строки двигает
+    и его (раньше уменьшение/удаление НЕ возвращало лимит, а последующая
+    отмена уже не находила строку — двойная потеря; увеличение раздавало
+    промо-цену сверх лимита). delta > 0 = вернуть, delta < 0 = дозабрать
+    (conditional UPDATE; исчерпан → промо-OutOfStock, вьюха покажет ошибку)."""
+    promo_id = _item_promo_id(item)
+    if not promo_id or delta == 0:
+        return
+    from apps.promotions.models import Promotion
+    from apps.promotions.price_layer import claim_units, return_units
+
+    if delta > 0:
+        return_units(promo_id, delta)
+        return
+    promo = Promotion.objects.filter(pk=promo_id).first()
+    if promo is not None:
+        claim_units(promo, -delta)
+
+
 @transaction.atomic
 def set_item_qty(order, item_pk, qty: int, tenant=None):
-    """Изменить количество позиции (0 = удалить). Склад двигается на разницу."""
+    """Изменить количество позиции (0 = удалить). Склад двигается на разницу;
+    промо-строка двигает и лимит кампании (SF-4b, та же atomic)."""
     _require_editable(order, tenant)
     item = order.items.select_related("product", "variant").get(pk=item_pk)
     qty = max(int(qty), 0)
@@ -113,6 +142,7 @@ def set_item_qty(order, item_pk, qty: int, tenant=None):
         order=order,
         title=item.title_snapshot,
     )
+    _move_promo_limit(item, delta)
     if qty:
         item.qty = qty
         item.save(update_fields=["qty", "updated_at"])
