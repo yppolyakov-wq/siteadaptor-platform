@@ -118,6 +118,43 @@
   color: #fee2e2;
 }
 
+/* SF-1.3: чипы скидок/механики (_discount_display) — карта перекрашивала
+   text-green-800 в светлый, но НЕ трогала bg-green-100 → светлый текст на
+   светлой плашке (чип «Überraschungstüte» был нечитаем в тёмной теме).
+   Правило: пастельная подложка → глубокий тон того же оттенка, тёмный текст →
+   светлый того же оттенка — тогда любая пара остаётся контрастной. */
+.dark .bg-green-100 {
+  background-color: #064e3b;
+}
+.dark .bg-emerald-100 {
+  background-color: #064e3b;
+}
+.dark .text-emerald-700 {
+  color: #a7f3d0;
+}
+.dark .bg-sky-100 {
+  background-color: #0c4a6e;
+}
+.dark .text-sky-700 {
+  color: #bae6fd;
+}
+.dark .bg-indigo-50 {
+  background-color: #312e81;
+}
+.dark .text-indigo-700 {
+  color: #c7d2fe;
+}
+.dark .bg-amber-50 {
+  background-color: #78350f;
+}
+.dark .text-amber-800 {
+  color: #fde68a;
+}
+/* Голый акцент-текст на тёмной карточке: цена/скидка/scarcity. */
+.dark .text-red-600 {
+  color: #f87171;
+}
+
 /* R1: тост подтверждения добавления в корзину + «прыжок» бейджа. */
 #sf-toast {
   position: fixed;

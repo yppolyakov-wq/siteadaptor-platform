@@ -44,3 +44,10 @@ def test_compiled_css_has_dark_override_map():
     css = Path(settings.BASE_DIR, "static", "css", "app.css").read_text()
     assert ".dark .bg-white{" in css
     assert ".dark .text-gray-900{color:#f3f4f6}" in css
+    # SF-1.3: чипы скидок — перекрашенный текст обязан идти в паре с
+    # перекрашенной подложкой (text-green-800 без bg-green-100 давал светлое
+    # на светлом у чипа «Überraschungstüte» в тёмной теме).
+    assert ".dark .bg-green-100{" in css
+    assert ".dark .bg-sky-100{" in css
+    assert ".dark .bg-amber-50{" in css
+    assert ".dark .text-red-600{" in css
