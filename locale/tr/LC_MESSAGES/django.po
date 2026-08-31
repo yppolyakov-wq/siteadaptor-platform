@@ -21072,3 +21072,31 @@ msgid "%(n)s offer"
 msgid_plural "%(n)s offers"
 msgstr[0] "%(n)s kampanya"
 msgstr[1] "%(n)s kampanya"
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "This offer has unfortunately ended."
+msgstr "Bu kampanya maalesef sona erdi."
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "This offer is currently paused."
+msgstr "Bu kampanya şu anda duraklatıldı."
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "See current offers"
+msgstr "Güncel kampanyaları gör"
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "Page not found."
+msgstr "Sayfa bulunamadı."
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "This page does not exist or is no longer available."
+msgstr "Bu sayfa yok veya artık mevcut değil."
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "To the homepage"
+msgstr "Ana sayfaya"
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "Something went wrong. Please try again."
+msgstr "Bir şeyler ters gitti. Lütfen tekrar deneyin."

@@ -56,6 +56,10 @@
     {% if target_promo.old_price %}<span class="text-gray-400 line-through">{{ target_promo.old_price }} {{ target_promo.currency|cursym }}</span>{% endif %}
     <span class="ml-auto text-rose-700 font-medium whitespace-nowrap">{% trans "Zum Angebot" %} →</span>
   </a>
+  {% if target_promo_lowest is not None %}
+    {# SF-3 (§11 PAngV): референс низшей цены рядом с зачёркнутой ценой тизера. #}
+    <p class="mt-1 text-xs text-gray-400">{% blocktrans with p=target_promo_lowest %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>
+  {% endif %}
   {% endif %}
   {% comment %}SR-3: описание с визуального редактора — ограниченный HTML
   (санитайз и при сохранении, и на рендере фильтром rich_text). Легаси-плоский

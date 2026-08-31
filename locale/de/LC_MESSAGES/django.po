@@ -21073,3 +21073,31 @@ msgid "%(n)s offer"
 msgid_plural "%(n)s offers"
 msgstr[0] "%(n)s Angebot"
 msgstr[1] "%(n)s Angebote"
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "This offer has unfortunately ended."
+msgstr "Dieses Angebot ist leider beendet."
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "This offer is currently paused."
+msgstr "Dieses Angebot ist derzeit pausiert."
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "See current offers"
+msgstr "Aktuelle Angebote ansehen"
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "Page not found."
+msgstr "Seite nicht gefunden."
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "This page does not exist or is no longer available."
+msgstr "Diese Seite gibt es nicht oder sie ist nicht mehr verfügbar."
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "To the homepage"
+msgstr "Zur Startseite"
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "Something went wrong. Please try again."
+msgstr "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."

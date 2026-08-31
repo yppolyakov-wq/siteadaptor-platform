@@ -71,7 +71,7 @@
     цена» — крупная новая цена, ПОД ней зачёркнутая старая + пилюля скидки; строка
     наличия; промо-баннер группы с СЕГМЕНТНЫМ отсчётом (Tage|Std|Min|Sek); CTA.
     mystery-стиль по-прежнему прячет цену до раскрытия (part="price").{% endcomment %}
-    <div class="mt-4 rounded-2xl bg-white ring-1 ring-gray-200 shadow-sm p-4 md:p-5">
+    <div id="angebot" class="mt-4 rounded-2xl bg-white ring-1 ring-gray-200 shadow-sm p-4 md:p-5">
       {% with eff=promotion.discount_style %}
       {% if eff == "mystery" %}
         <div class="text-2xl md:text-3xl">{% include "storefront/_discount_display.html" with promo=promotion part="price" %}</div>
@@ -159,6 +159,14 @@
     </div>
   </div>
 </div>
+
+{% comment %}SF-3: липкая панель цена+CTA на мобильном (<lg) — как у товара/номера/
+события; ведёт якорем к карточке цены. mystery без панели: цена — секрет.{% endcomment %}
+{% if promotion.discount_style != 'mystery' and promotion.new_price is not None %}
+  {% blocktrans asvar buyprice with p=promotion.new_price c=promotion.currency|cursym %}{{ p }} {{ c }}{% endblocktrans %}
+  {% trans "Reserve now" as buylabel %}
+  {% include "storefront/_detail_buybar.html" with price=buyprice anchor="#angebot" label=buylabel sold_out=promotion.is_sold_out %}
+{% endif %}
 
 {% comment %}Фидбэк 2026-07-29: форма брони/листа ожидания — в попапе за CTA.
 Внутри тот же единый _buybox (паритет-замки целы — форма в DOM). При ошибках

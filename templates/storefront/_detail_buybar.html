@@ -9,7 +9,7 @@ M20U-4: мобильная липкая панель покупки внизу �
   {% if sold_out %}
     <a href="{{ anchor }}" class="bg-amber-600 text-white rounded-lg px-5 py-2.5 font-medium">{% trans "Join waitlist" %}</a>
   {% else %}
-    <a href="{{ anchor }}" class="text-white rounded-lg px-5 py-2.5 font-medium" style="background: var(--accent, #4f46e5);">{% purchase_label module %}</a>
+    <a href="{{ anchor }}" class="text-white rounded-lg px-5 py-2.5 font-medium" style="background: var(--accent, #4f46e5);">{% if label %}{{ label }}{% else %}{% purchase_label module %}{% endif %}</a>
   {% endif %}
 </div>
 {# отступ, чтобы контент не прятался под липкой панелью #}

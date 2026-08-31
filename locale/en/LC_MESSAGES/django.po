@@ -20945,3 +20945,31 @@ msgid "%(n)s offer"
 msgid_plural "%(n)s offers"
 msgstr[0] "%(n)s offer"
 msgstr[1] "%(n)s offers"
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "This offer has unfortunately ended."
+msgstr "This offer has unfortunately ended."
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "This offer is currently paused."
+msgstr "This offer is currently paused."
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "See current offers"
+msgstr "See current offers"
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "Page not found."
+msgstr "Page not found."
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "This page does not exist or is no longer available."
+msgstr "This page does not exist or is no longer available."
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "To the homepage"
+msgstr "To the homepage"
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "Something went wrong. Please try again."
+msgstr "Something went wrong. Please try again."

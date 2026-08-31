@@ -21150,3 +21150,31 @@ msgstr[0] "%(n)s акція"
 msgstr[1] "%(n)s акції"
 msgstr[2] "%(n)s акцій"
 msgstr[3] "%(n)s акції"
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "This offer has unfortunately ended."
+msgstr "Ця акція, на жаль, вже завершилася."
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "This offer is currently paused."
+msgstr "Ця акція зараз призупинена."
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "See current offers"
+msgstr "Переглянути актуальні акції"
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "Page not found."
+msgstr "Сторінку не знайдено."
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "This page does not exist or is no longer available."
+msgstr "Такої сторінки немає, або вона більше недоступна."
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "To the homepage"
+msgstr "На головну"
+
+#. SF-3 promo lifecycle / error pages 2026-08-31
+msgid "Something went wrong. Please try again."
+msgstr "Щось пішло не так. Будь ласка, спробуйте ще раз."

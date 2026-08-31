@@ -1,0 +1,19 @@
+{% load i18n %}<!doctype html>
+{% comment %}SF-3: кастомный 500 — вместо голой «Server Error (500)». Рендерится
+django.views.defaults.server_error БЕЗ request/контекст-процессоров (пустой
+Context) — поэтому никакой динамики, только i18n-теги (gettext без БД).{% endcomment %}
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>500</title>
+</head>
+<body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f9fafb;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#111827;">
+  <main style="text-align:center;padding:2rem;max-width:26rem;">
+    <p style="font-size:3rem;margin:0;" aria-hidden="true">⚠️</p>
+    <h1 style="font-size:1.4rem;margin:.75rem 0 .25rem;">{% trans "Something went wrong. Please try again." %}</h1>
+    <a href="/" style="display:inline-block;margin-top:1rem;background:#111827;color:#fff;text-decoration:none;border-radius:.75rem;padding:.7rem 1.4rem;font-weight:600;">{% trans "To the homepage" %}</a>
+  </main>
+</body>
+</html>

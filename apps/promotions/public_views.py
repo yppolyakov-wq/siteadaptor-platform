@@ -20,6 +20,7 @@ from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
+from apps.catalog.price_history import lowest_price_30d
 from apps.catalog.views import FOOD_BUSINESS_TYPES as _FOOD_TYPES
 from apps.core import ratelimit
 from apps.core.models import resolve_overlay
@@ -64,8 +65,6 @@ def _detail_ctx(request, promo, form) -> dict:
     # 30 дней (PriceLog). Нет привязанного товара/данных → None, строка молчит.
     lowest_30d = None
     if promo.has_discount and promo.product_id:
-        from apps.catalog.price_history import lowest_price_30d
-
         lowest_30d = lowest_price_30d(promo.product)
     return {
         "promotion": promo,
@@ -85,6 +84,22 @@ def _capture_channel(request) -> str:
     if ch:
         request.session["src_ch"] = ch
     return ch or request.session.get("src_ch", "")
+
+
+def _attach_lowest_30d(promos) -> list:
+    """SF-3 (§11 PAngV): низшая цена 30 дней — и на КАРТОЧКАХ со скидкой.
+
+    Батч по товарам-носителям (bulk, без N+1); вешает `p.lowest_30d` только
+    там, где карточка реально анонсирует снижение (has_discount + товар).
+    Материализует queryset — карточные поверхности не пагинируются."""
+    from apps.catalog.price_history import lowest_price_30d_bulk
+
+    promos = list(promos)
+    ids = [p.product_id for p in promos if p.product_id and p.has_discount]
+    lows = lowest_price_30d_bulk(ids) if ids else {}
+    for p in promos:
+        p.lowest_30d = lows.get(p.product_id) if p.has_discount else None
+    return promos
 
 
 # Same-origin framing разрешён: кабинет владельца (тот же субдомен-origin)
@@ -144,9 +159,13 @@ def storefront_home(request):
     section_blocks = siteconfig.group_block_rows([s for s in site["sections"] if s["enabled"]])
 
     promos = (
-        Promotion.objects.filter(status="active").order_by("-created_at")
+        _attach_lowest_30d(
+            Promotion.objects.filter(status="active")
+            .select_related("product")
+            .order_by("-created_at")
+        )
         if "promotions" in sections
-        else Promotion.objects.none()
+        else []
     )
     products_preview = []
     if "products" in sections:
@@ -300,7 +319,9 @@ def promotion_list(request):
     sort = request.GET.get("sort") or ""
     sel = provider.selected(request.GET)
     # поиск ДО apply: фильтр «−N %+» материализует список (см. PromoFacets)
-    promotions = provider.sort(provider.apply(provider.search(base, q), request.GET), sort)
+    promotions = _attach_lowest_30d(
+        provider.sort(provider.apply(provider.search(base, q), request.GET), sort)
+    )
 
     # Ключ группы — плоское значение (по нему фильтр `?gruppe=`), метка — с
     # оверлеем локали. Карту строим по НЕотфильтрованной выдаче, иначе при
@@ -350,7 +371,7 @@ def promotion_list(request):
     ending_soon = []
     if not has_filters:
         now = timezone.now()
-        ending_soon = list(
+        ending_soon = _attach_lowest_30d(
             base.filter(ends_at__gt=now, ends_at__lte=now + timedelta(days=3)).order_by("ends_at")[
                 :4
             ]
@@ -1011,7 +1032,14 @@ def product_detail(request, pk=None, pslug=None, cslug=None):
             "product": product,
             # P6 «ценовой слой»: активная акция на ЭТОТ товар — баннер с промо-ценой
             # и ссылкой на акцию (чекаут по промо-цене — там, /p/<uuid>/kaufen/).
-            "target_promo": promo_for_product(product),
+            "target_promo": (target_promo := promo_for_product(product)),
+            # SF-3 (§11 PAngV): референс низшей цены — и под rose-тизером акции
+            # (зачёркнутая цена в баннере тоже «Bekanntgabe» снижения).
+            "target_promo_lowest": (
+                lowest_price_30d(product)
+                if target_promo is not None and target_promo.has_discount
+                else None
+            ),
             # UA2-1 (U-A): единый контракт продаваемой сущности в контексте детали
             # (шов для buy-box UA3 / секций UA4 / JSON-LD UA4-4b).
             "sellable": sellable_for("product", product),
@@ -1091,7 +1119,36 @@ def product_review_submit(request, pk):
 
 
 def promotion_detail(request, pk):
-    promo = get_object_or_404(Promotion, pk=pk, status="active")
+    promo = get_object_or_404(Promotion, pk=pk)
+    if promo.status != "active":
+        # SF-3: QR с флаера/старая ссылка после конца акции вели в голый 404.
+        # Публичной акция БЫЛА только в ended/paused/archived — им дружелюбная
+        # страница (беендет — HTTP 410 Gone для краулеров, пауза — 200);
+        # draft/scheduled наружу не светились → прежний 404 (не раскрываем).
+        if promo.status not in ("ended", "archived", "paused"):
+            raise Http404
+        from apps.core import modules
+
+        alternatives = []
+        if modules.is_module_active(request.tenant, "promotions"):
+            alternatives = _attach_lowest_30d(
+                Promotion.objects.filter(status="active")
+                .exclude(pk=promo.pk)
+                .select_related("product")
+                .order_by("-created_at")[:3]
+            )
+        response = render(
+            request,
+            "storefront/promotion_ended.html",
+            {
+                "promotion": promo,
+                "paused": promo.status == "paused",
+                "alternatives": alternatives,
+            },
+        )
+        if promo.status != "paused":
+            response.status_code = 410
+        return response
     ch = _capture_channel(request)
     # аналитика: атомарный счётчик просмотров (не блокирует рендер)
     Promotion.objects.filter(pk=promo.pk).update(views=F("views") + 1)

@@ -61,3 +61,33 @@ def _on_product_save(sender, instance, **kwargs):
 def _on_variant_save(sender, instance, **kwargs):
     if instance.price is not None:
         log_price_if_changed(instance.product, instance.price, variant=instance)
+
+
+def lowest_price_30d_bulk(product_ids, days: int = 30) -> dict:
+    """SF-3: §11 PAngV для КАРТОЧЕК — минимум за окно батчем (без N+1).
+
+    Семантика 1:1 с lowest_price_30d: Min по окну + цена, действовавшая на
+    начало окна (последняя запись до старта). Возврат {product_id: Decimal};
+    товары без записей в словарь не попадают (строка честно молчит)."""
+    from django.db.models import Min
+
+    from apps.catalog.models import PriceLog
+
+    ids = [pk for pk in set(product_ids) if pk]
+    if not ids:
+        return {}
+    since = timezone.now() - timedelta(days=days)
+    base = PriceLog.objects.filter(product_id__in=ids, variant__isnull=True)
+    out: dict = {}
+    for row in base.filter(created_at__gte=since).values("product_id").annotate(m=Min("price")):
+        out[row["product_id"]] = row["m"]
+    before = (
+        base.filter(created_at__lt=since)
+        .order_by("product_id", "-created_at")
+        .distinct("product_id")
+        .values_list("product_id", "price")
+    )
+    for pid, price in before:
+        cur = out.get(pid)
+        out[pid] = price if cur is None else min(cur, price)
+    return out

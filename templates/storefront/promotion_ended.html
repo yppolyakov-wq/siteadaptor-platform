@@ -1,0 +1,34 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% comment %}SF-3: страница закончившейся/приостановленной акции — вместо голого
+404 по QR с флаера/старой ссылке. Резерв/покупка остаются заблокированы на
+сервере (POST-вьюхи фильтруют status=active); ended/archived отдаются с
+HTTP 410 Gone (краулерам честно «ушло»), paused — 200.{% endcomment %}
+
+{% block title %}{{ promotion.title_text }} — {{ request.tenant.name }}{% endblock %}
+
+{% block content %}
+<section class="max-w-2xl mx-auto text-center py-10 md:py-16">
+  <p class="text-5xl mb-4" aria-hidden="true">⏳</p>
+  <h1 class="text-2xl md:text-3xl font-bold">{{ promotion.title_text }}</h1>
+  <p class="mt-3 text-gray-500">
+    {% if paused %}{% trans "This offer is currently paused." %}{% else %}{% trans "This offer has unfortunately ended." %}{% endif %}
+  </p>
+  {% if alternatives %}
+    <a href="{% url 'storefront-aktionen' %}" class="inline-block mt-6 text-white rounded-xl px-6 py-3 font-semibold shadow-sm hover:opacity-90" style="background: var(--accent, #dc2626);">{% trans "See current offers" %}</a>
+  {% else %}
+    <a href="{% url 'storefront-home' %}" class="inline-block mt-6 text-white rounded-xl px-6 py-3 font-semibold shadow-sm hover:opacity-90" style="background: var(--accent, #dc2626);">{% trans "Back" %}</a>
+  {% endif %}
+</section>
+
+{% if alternatives %}
+<section class="mb-10">
+  <h2 class="text-lg font-bold mb-3">{% trans "Current offers" %}</h2>
+  <div data-grid="promo_ended_alt" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+    {% for p in alternatives %}
+      {% include "storefront/_promo_card.html" %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}

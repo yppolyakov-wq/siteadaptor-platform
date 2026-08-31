@@ -1,0 +1,22 @@
+{% load i18n %}<!doctype html>
+{% comment %}SF-3: кастомный 404 витрины — раньше посетитель (в т.ч. по QR/старой
+ссылке) получал голую джанговскую «Not Found». Standalone-страница без extends:
+404 стреляет и на кабинет-путях/public-схеме, где витринный хром неуместен;
+контекст-процессоры при рендере 404 работают (request передаётся), поэтому имя
+тенанта доступно, но ни на что сложное не опираемся.{% endcomment %}
+<html lang="{{ request.LANGUAGE_CODE|default:'de' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>404 — {% if request.tenant and request.tenant.name %}{{ request.tenant.name }}{% else %}404{% endif %}</title>
+</head>
+<body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f9fafb;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#111827;">
+  <main style="text-align:center;padding:2rem;max-width:26rem;">
+    <p style="font-size:3rem;margin:0;" aria-hidden="true">🔍</p>
+    <h1 style="font-size:1.4rem;margin:.75rem 0 .25rem;">{% trans "Page not found." %}</h1>
+    <p style="color:#6b7280;margin:0 0 1.25rem;">{% trans "This page does not exist or is no longer available." %}</p>
+    <a href="/" style="display:inline-block;background:#111827;color:#fff;text-decoration:none;border-radius:.75rem;padding:.7rem 1.4rem;font-weight:600;">{% trans "To the homepage" %}</a>
+  </main>
+</body>
+</html>
