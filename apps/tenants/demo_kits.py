@@ -3640,6 +3640,9 @@ AKTIONSMARKT = DemoKit(
     "von Prozent-Rabatten über Festpreise bis zu limitierten und wiederkehrenden Aktionen.",
     nav_style="classic",
     address="Marktstraße 1, 50667 Köln",
+    # SF-1.1: адрес говорит Köln — city обязан совпадать (сидер по умолчанию
+    # ставит Hilden всем китам; без оверрайда hero-eyebrow/SEO/JSON-LD врали).
+    city="Köln",
     opening_hours_text="Mo–Sa 8:00–20:00",
     opening_hours={d: ("08:00", "20:00") for d in range(6)},
     gallery_kw=["supermarket", "grocery,shelf", "vegetables", "bakery", "shopping,cart", "sale"],
