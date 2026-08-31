@@ -17,7 +17,7 @@
 {% block content %}
 <a href="{% url 'storefront-home' %}" class="inline-flex items-center gap-1 text-sm text-indigo-600 hover:underline mb-4">← {% trans "Back" %}</a>
 
-<div class="grid md:grid-cols-2 gap-6 md:gap-10"{% if promotion.discount_style == 'mystery' %} data-mystery-root{% endif %}>
+<div class="grid md:grid-cols-2 gap-6 md:gap-10"{% if promotion.discount_style == 'mystery' %} data-mystery-root="{{ promotion.pk }}"{% endif %}>
   {# Фото #}
   <div class="relative">
     {% comment %}UE3-2: 📷 замена главного фото акции + 🗑 удаление (только когда
@@ -53,7 +53,8 @@
         {% for img in gallery %}
           <button type="button" data-gallery-thumb data-full="{{ img.url }}"
                   class="shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden ring-2 {% if forloop.first %}ring-indigo-500{% else %}ring-transparent hover:ring-gray-300{% endif %}">
-            <img src="{{ img.url }}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover">
+            {# SF-1.4: mystery размывал только главное фото — миниатюры выдавали товар. #}
+            <img src="{{ img.url }}" alt="" loading="lazy" decoding="async"{% if promotion.discount_style == 'mystery' %} data-mystery-blur{% endif %} class="w-full h-full object-cover{% if promotion.discount_style == 'mystery' %} blur-lg{% endif %}">
           </button>
         {% endfor %}
       </div>
@@ -90,11 +91,16 @@
         {# Акция только с процентом (цены не заданы): размер скидки и есть оффер. #}
         <p class="text-3xl md:text-4xl font-extrabold text-red-600 leading-none" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promotion.pk }}" data-price="{{ promotion.discount_percent_display }}">−{{ promotion.discount_percent_display }} %</p>
       {% endif %}
+      {% comment %}SF-1.4: у mystery строки «Sie sparen …» и PAngV-референс шли ВНЕ
+      гейта — по сумме+проценту скрытая цена восстанавливалась арифметикой. Прячем
+      их тем же механизмом, что цену (data-mystery-price → появляются по reveal).{% endcomment %}
+      {% if promotion.discount_style == "mystery" %}<div data-mystery-price data-mystery-extra hidden>{% endif %}
       {% if lowest_30d is not None %}
         {# §11 PAngV (M1): референс зачёркнутой цены — низшая цена последних 30 дней. #}
         <p class="mt-1 text-xs text-gray-400">{% blocktrans with p=lowest_30d %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>
       {% endif %}
       {% include "storefront/_discount_display.html" with promo=promotion part="savings" %}
+      {% if promotion.discount_style == "mystery" %}</div>{% endif %}
       {# Статус наличия (референс: «В наличии» отдельной строкой). #}
       {% if promotion.is_sold_out %}
         <p class="mt-2 text-sm font-medium text-gray-400">{% trans "Sold out" %}</p>

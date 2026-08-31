@@ -7,10 +7,14 @@
 {% if promo %}
 <section class="my-8">
   <div class="max-w-5xl mx-auto px-4">
-    <div class="sf-card relative overflow-hidden bg-white rounded-2xl shadow-sm md:grid md:grid-cols-2">
+    {% comment %}SF-1.4: mystery в C-блоке прятал цену, но не размывал фото и не имел
+    своего data-mystery-root (reveal фолбэком раскрывал ВСЕ mystery-цены страницы).
+    Эффективный стиль = style_hint блока или стиль акции — как в _discount_display.{% endcomment %}
+    {% with eff_mystery=block.style_hint|default:promo.discount_style %}
+    <div class="sf-card relative overflow-hidden bg-white rounded-2xl shadow-sm md:grid md:grid-cols-2"{% if eff_mystery == 'mystery' %} data-mystery-root="{{ promo.pk }}"{% endif %}>
       <div class="relative aspect-[4/3] md:aspect-auto bg-gray-100">
         {% with img=promo.primary_image %}
-          {% if img %}<img src="{{ img.url }}" alt="{{ promo.title_text }}" loading="lazy" decoding="async" class="w-full h-full object-cover">{% endif %}
+          {% if img %}<img src="{{ img.url }}" alt="{{ promo.title_text }}" loading="lazy" decoding="async"{% if eff_mystery == 'mystery' %} data-mystery-blur{% endif %} class="w-full h-full object-cover{% if eff_mystery == 'mystery' %} blur-lg{% endif %}">{% endif %}
         {% endwith %}
         {% if block.badge_pos == "top-right" %}
           {% include "storefront/_discount_display.html" with promo=promo style_override=block.style_hint part="badge" size="sm" badge_pos_class="top-3 right-3" %}
@@ -34,6 +38,7 @@
         {% endif %}
       </div>
     </div>
+    {% endwith %}
   </div>
 </section>
 {% elif is_preview %}{% include "storefront/sections/_block_placeholder.html" with label=_("Aktion wählen — klicken zum Bearbeiten") %}{% endif %}

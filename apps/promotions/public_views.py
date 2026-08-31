@@ -55,6 +55,10 @@ def _abs_promo_url(request, pk) -> str:
 def _detail_ctx(request, promo, form) -> dict:
     img = promo.primary_image
     og_image = request.build_absolute_uri(img["url"]) if img and img.get("url") else ""
+    if promo.discount_style == "mystery":
+        # SF-1.4: превью ссылки (og:image) показывало НЕразмытое фото товара-
+        # носителя — «секрет» раскрывался в мессенджере до клика.
+        og_image = ""
     share_url = _abs_promo_url(request, promo.pk)
     # §11 PAngV (M1 Boutique): у зачёркнутой Sale-цены — низшая цена товара за
     # 30 дней (PriceLog). Нет привязанного товара/данных → None, строка молчит.

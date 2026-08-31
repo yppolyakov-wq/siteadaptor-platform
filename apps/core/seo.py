@@ -152,7 +152,9 @@ def offer_ld(promo, *, url: str, image_url: str = "") -> str:
         data["description"] = promo.description_text
     if image_url:
         data["image"] = image_url
-    price = promo.new_price
+    # SF-1.4: mystery прячет цену до раскрытия — Offer с точной ценой в исходнике
+    # страницы выдавал бы «секрет» (Product без offers остаётся валидным).
+    price = None if getattr(promo, "discount_style", "") == "mystery" else promo.new_price
     if price is not None:
         offer = {
             "@type": "Offer",

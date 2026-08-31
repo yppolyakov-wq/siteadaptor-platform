@@ -19,8 +19,8 @@
       } catch (e) {}
     })();
   </script>
-  {# TG2: Telegram Mini App SDK — активен только внутри Telegram (вне — no-op). #}
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  {# TG2: Mini App SDK. SF-1.6: defer — не блокирует рендер; потребитель ждёт DOMContentLoaded. #}
+  <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
   <title>{% block title %}{% if seo_meta.title %}{{ seo_meta.title }}{% else %}{{ request.tenant.name|default:"Shop" }}{% endif %}{% endblock %}</title>
   <meta name="description" content="{% block meta_description %}{% if seo_meta.description %}{{ seo_meta.description }}{% else %}{{ request.tenant.name|default:'' }}{% endif %}{% endblock %}">
   {% block og %}{% endblock %}
@@ -430,13 +430,15 @@
   </script>
   <script>
     // TG2: внутри Telegram витрина работает как Mini App (ready/expand + тема).
-    (function () {
+    // SF-1.6: SDK грузится с defer → читать Telegram.WebApp можно только после
+    // DOMContentLoaded (deferred исполняются до него; голая IIFE видела бы undefined).
+    document.addEventListener("DOMContentLoaded", function () {
       var tg = window.Telegram && window.Telegram.WebApp;
       if (tg && tg.initData) {
         try { tg.ready(); tg.expand(); } catch (e) {}
         document.documentElement.classList.add("in-telegram");
       }
-    })();
+    });
   </script>
   <script>
     // Обратный отсчёт: элементы с data-countdown="<ISO end>"
@@ -459,14 +461,28 @@
     // UE2-3: mystery-акция — цена/фото скрыты до раскрытия. Кнопка
     // data-mystery-reveal (a11y: настоящий <button>) раскрывает в пределах
     // data-mystery-root; бронь/остаток от стиля не зависят.
+    // SF-1.5: раскрытие персистится на сессию браузера (sessionStorage по pk
+    // из data-mystery-root) — back/переход карточка→деталь не прячут заново.
+    function sfMysteryReveal(root) {
+      root.querySelectorAll("[data-mystery-price]").forEach(function (el) { el.hidden = false; });
+      root.querySelectorAll("[data-mystery-blur]").forEach(function (el) { el.classList.remove("blur-lg"); });
+      root.querySelectorAll("[data-mystery-reveal]").forEach(function (el) { el.remove(); });
+    }
     document.addEventListener("click", function (e) {
       var btn = e.target.closest("[data-mystery-reveal]");
       if (!btn) return;
       e.preventDefault(); e.stopPropagation();
       var root = btn.closest("[data-mystery-root]") || document;
-      root.querySelectorAll("[data-mystery-price]").forEach(function (el) { el.hidden = false; });
-      root.querySelectorAll("[data-mystery-blur]").forEach(function (el) { el.classList.remove("blur-lg"); });
-      btn.remove();
+      sfMysteryReveal(root);
+      var pk = root.getAttribute ? root.getAttribute("data-mystery-root") : "";
+      if (pk) { try { sessionStorage.setItem("sf-mystery-" + pk, "1"); } catch (err) {} }
+    });
+    document.addEventListener("DOMContentLoaded", function () {
+      document.querySelectorAll("[data-mystery-root]").forEach(function (root) {
+        var pk = root.getAttribute("data-mystery-root");
+        if (!pk) return;
+        try { if (sessionStorage.getItem("sf-mystery-" + pk)) sfMysteryReveal(root); } catch (err) {}
+      });
     });
 
     // Шаринг: кнопки с data-share-url / data-copy

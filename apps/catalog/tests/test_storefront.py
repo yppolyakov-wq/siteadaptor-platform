@@ -624,8 +624,13 @@ def test_storefront_includes_telegram_miniapp_sdk():
     """TG2: витрина подключает Telegram Web App SDK (Mini App)."""
     ProductFactory(name={"de": "AktivBrot"})
     body = public_views.product_list(_req()).content.decode()
-    assert "telegram.org/js/telegram-web-app.js" in body
+    # SF-1.6: SDK с defer (не блокирует рендер), потребитель обязан ждать
+    # DOMContentLoaded — deferred SDK исполняется до него; голая IIFE молча
+    # видела бы window.Telegram === undefined и Mini App не инициализировался.
+    assert 'src="https://telegram.org/js/telegram-web-app.js" defer' in body
     assert "in-telegram" in body  # init-скрипт присутствует
+    tg_init = body.split("in-telegram")[0].rsplit("<script>", 1)[1]
+    assert 'addEventListener("DOMContentLoaded"' in tg_init
 
 
 def test_category_description_renders_when_category_selected():

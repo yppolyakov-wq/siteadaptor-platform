@@ -139,3 +139,39 @@ def test_non_mystery_has_no_reveal_artifacts():
     promo = _discounted(images=[{"id": "x", "url": "/x.png", "is_primary": True}])
     body = _card(promo)
     assert "data-mystery" not in body and "blur-lg" not in body
+
+
+def test_mystery_hides_savings_and_metadata_leaks():
+    """SF-1.4: до reveal не светим выгоду/PAngV/og-фото/цену в JSON-LD — по
+    «Sie sparen 2,50 € (−25 %)» скрытая цена восстанавливалась арифметикой,
+    og:image показывал неразмытое фото в превью ссылки, Offer клал цену в
+    исходник, миниатюры галереи шли без блюра."""
+    promo = _discounted(
+        discount_style="mystery",
+        images=[
+            {"id": "x", "url": "/x.png", "is_primary": True},
+            {"id": "y", "url": "/y.png"},
+        ],
+    )
+    body = _detail(promo)
+    # выгода в DOM, но внутри скрытой mystery-обёртки (появится по reveal)
+    assert "data-mystery-extra" in body
+    extra = body.split("data-mystery-extra")[1].split("</div>")[0]
+    assert "Sie sparen" in extra or "You save" in extra
+    # блюр и на главной, и на миниатюрах галереи
+    assert body.count("data-mystery-blur") >= 3
+    # метаданные не выдают секрет
+    assert 'property="og:image"' not in body
+    assert '"offers"' not in body
+    # root несёт pk — ключ sessionStorage-персиста reveal (SF-1.5)
+    assert f'data-mystery-root="{promo.pk}"' in body
+    assert f'data-mystery-root="{promo.pk}"' in _card(promo)
+
+
+def test_non_mystery_detail_keeps_savings_offer_and_og():
+    """Обратная сторона SF-1.4: обычная акция ничего не теряет."""
+    promo = _discounted(images=[{"id": "x", "url": "/x.png", "is_primary": True}])
+    body = _detail(promo)
+    assert "data-mystery-extra" not in body
+    assert '"offers"' in body
+    assert 'property="og:image"' in body
