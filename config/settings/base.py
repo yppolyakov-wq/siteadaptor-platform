@@ -142,6 +142,10 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
+    # SF-1.8: витрина тенанта говорит только на включённых им языках — негоциация
+    # Accept-Language по всему LANGUAGES давала msgid-микс на локалях без .po.
+    # После LocaleMiddleware (клампим его выбор), до CabinetLocaleMiddleware.
+    "apps.core.middleware.StorefrontLocaleClampMiddleware",
     # T1 (FB-12): язык кабинета перекрывает язык витрины на кабинет-путях. После
     # LocaleMiddleware (нужны session+tenant) и до рендера вьюх.
     "apps.core.middleware.CabinetLocaleMiddleware",

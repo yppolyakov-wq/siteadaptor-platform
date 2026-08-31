@@ -43,6 +43,42 @@ class SessionSchemaGuardMiddleware:
         return self.get_response(request)
 
 
+class StorefrontLocaleClampMiddleware:
+    """SF-1.8: кламп языка ВИТРИНЫ к локалям тенанта.
+
+    LocaleMiddleware негоциирует по ВСЕМУ settings.LANGUAGES: браузер с pl/fr/…
+    (в реестре есть, у тенанта не включён, каталога locale/ нет) получал витрину
+    из сырых msgid — гарантированный языковой салат; Accept-Language: en давал
+    английскую витрину немецкому бизнесу, включившему только de. Правило: язык
+    вне `tenant.active_locales` → `default_locale` тенанта. Явный выбор
+    посетителя (cookie переключателя, L1 валидирует по active_locales) в
+    список входит и клампом не трогается. Кабинет-пути правит
+    CabinetLocaleMiddleware (стоит следом), public-схема (платформа/порталы) —
+    не наша: не трогаем.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        tenant = getattr(request, "tenant", None)
+        if (
+            tenant is not None
+            and getattr(tenant, "schema_name", "public") != "public"
+            and not request.path.startswith(CABINET_PREFIXES)
+        ):
+            from django.utils import translation
+
+            allowed = list(getattr(tenant, "active_locales", None) or [])
+            active = translation.get_language() or ""
+            if allowed and active not in allowed:
+                default = getattr(tenant, "default_locale", "") or ""
+                loc = default if default in allowed else allowed[0]
+                translation.activate(loc)
+                request.LANGUAGE_CODE = loc
+        return self.get_response(request)
+
+
 class CabinetLocaleMiddleware:
     """T1 (FB-12): активирует язык КАБИНЕТА для кабинет-путей, независимо от языка
     витрины (её выбирает клиент). Стоит после LocaleMiddleware → перекрывает его выбор
