@@ -646,7 +646,7 @@ def _opening_hours_rows(tenant) -> list:
     for wd in range(7):
         rng = hours.get(str(wd)) or ["", ""]
         rows.append(
-            {"wd": wd, "label": openinghours.WEEKDAYS_DE[wd], "open": rng[0], "close": rng[1]}
+            {"wd": wd, "label": openinghours.weekday_abbr(wd), "open": rng[0], "close": rng[1]}
         )
     return rows
 

@@ -8,7 +8,18 @@
 
 from datetime import datetime, time
 
-WEEKDAYS_DE = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
+from django.utils.dates import WEEKDAYS_ABBR
+from django.utils.translation import gettext
+
+
+def weekday_abbr(wd: int) -> str:
+    """Сокращённый день недели на активной локали (ключ = date.weekday(), 0=Пн).
+
+    SF-1.7: раньше константа WEEKDAYS_DE давала «Mo»/«Di»… во всех локалях
+    (бейдж «Closed · from Mo 08:00» мешал языки). Переводит сам Django
+    (conf/locale, msgid "Mon"…) — в de это те же «Mo»/«Di», в ru «Пн» и т.д.
+    """
+    return str(WEEKDAYS_ABBR[wd % 7])
 
 
 def _parse_hhmm(value) -> time | None:
@@ -56,12 +67,16 @@ def open_status(structured, now: datetime) -> dict | None:
         o = _parse_hhmm(rng[0])
         if delta == 0 and now.time() >= o:
             continue  # сегодня уже открывались/закрылись — ищем дальше
-        return {"open": False, "until": None, "next": (WEEKDAYS_DE[wd], rng[0])}
+        return {"open": False, "until": None, "next": (weekday_abbr(wd), rng[0])}
     return {"open": False, "until": None, "next": None}
 
 
 def today_label(structured, now: datetime) -> str:
-    """Сегодняшние часы строкой «09:00–18:00» или «Geschlossen»."""
+    """Сегодняшние часы строкой «09:00–18:00» или локализованное «Geschlossen».
+
+    SF-1.7: голый DE-литерал уезжал в EN/RU/… витрину («Today: Geschlossen»);
+    msgid "Closed" уже есть во всех 5 каталогах (de: «Geschlossen»).
+    """
     hours = normalize(structured)
     rng = hours.get(str(now.weekday()))
-    return f"{rng[0]}–{rng[1]}" if rng else "Geschlossen"
+    return f"{rng[0]}–{rng[1]}" if rng else gettext("Closed")

@@ -150,9 +150,6 @@
   "Unsere Karte und aktuelle Angebote — frisch für Sie.",
   "Willkommen bei uns"
  ],
- "templates/storefront/_discount_display.html": [
-  "🌱 Überraschungstüte"
- ],
  "templates/tenant/_cb_row.html": [
   "12 | Jahre Erfahrung&#10;500+ | zufriedene Kunden&#10;4,9 ★ | Bewertung"
  ],

@@ -17405,7 +17405,7 @@ msgstr "Men"
 
 #: apps/tenants/menu.py
 msgid "Korb"
-msgstr "Box"
+msgstr "Cart"
 
 #: apps/tenants/menu.py
 msgid "Lehrer"

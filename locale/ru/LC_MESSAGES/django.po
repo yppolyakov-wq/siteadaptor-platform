@@ -3033,7 +3033,7 @@ msgstr "Открыть"
 #: templates/aggregator/_cards.html:32 templates/crm/customer_detail.html:125
 #: templates/promotions/promotion_list.html:66
 msgid "until"
-msgstr "пока"
+msgstr "до"
 
 #: templates/aggregator/_cards.html:32 templates/storefront/_open_badge.html:9
 msgid "Closed"
@@ -8112,7 +8112,7 @@ msgstr "до %(t)s"
 #: templates/storefront/_open_badge.html:9
 #, python-format
 msgid "from %(d)s %(t)s"
-msgstr "Источник: %(d)s %(t)s"
+msgstr "с %(d)s %(t)s"
 
 #: templates/storefront/_product_card.html:15
 #: templates/storefront/_promo_card.html:11
@@ -17593,7 +17593,7 @@ msgstr "Мужчинам"
 
 #: apps/tenants/menu.py
 msgid "Korb"
-msgstr "Корзина фермера"
+msgstr "Корзина"
 
 #: apps/tenants/menu.py
 msgid "Lehrer"

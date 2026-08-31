@@ -3,10 +3,20 @@
 from datetime import datetime
 
 import pytest
+from django.utils import translation
 
 from apps.tenants import openinghours
 
+# SF-1.7: день недели и «Geschlossen» стали локализованными (weekday_abbr /
+# gettext("Closed")) — ассерты немецких строк валидны только в de-локали.
+# «Geschlossen» требует скомпилированных .mo (CI компилирует; локально — polib).
 pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture(autouse=True)
+def _de_locale():
+    with translation.override("de"):
+        yield
 
 
 def test_open_now_within_range():

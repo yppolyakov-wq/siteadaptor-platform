@@ -3014,7 +3014,7 @@ msgstr "Aç"
 #: templates/aggregator/_cards.html:32 templates/crm/customer_detail.html:125
 #: templates/promotions/promotion_list.html:66
 msgid "until"
-msgstr "ta ki"
+msgstr "bitiş"
 
 #: templates/aggregator/_cards.html:32 templates/storefront/_open_badge.html:9
 msgid "Closed"
@@ -8048,12 +8048,12 @@ msgstr "Fotoğraf ekle"
 #: templates/storefront/_open_badge.html:5
 #, python-format
 msgid "until %(t)s"
-msgstr "%(t)s adresine kadar"
+msgstr "%(t)s'e kadar"
 
 #: templates/storefront/_open_badge.html:9
 #, python-format
 msgid "from %(d)s %(t)s"
-msgstr "%(d)s sitesinden %(t)s"
+msgstr "%(d)s %(t)s'ten itibaren"
 
 #: templates/storefront/_product_card.html:15
 #: templates/storefront/_promo_card.html:11

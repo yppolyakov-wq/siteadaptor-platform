@@ -3021,7 +3021,7 @@ msgstr "Відкрити"
 #: templates/aggregator/_cards.html:32 templates/crm/customer_detail.html:125
 #: templates/promotions/promotion_list.html:66
 msgid "until"
-msgstr "доки"
+msgstr "до"
 
 #: templates/aggregator/_cards.html:32 templates/storefront/_open_badge.html:9
 msgid "Closed"
@@ -8092,12 +8092,12 @@ msgstr "Додати фото"
 #: templates/storefront/_open_badge.html:5
 #, python-format
 msgid "until %(t)s"
-msgstr "доки %(t)s"
+msgstr "до %(t)s"
 
 #: templates/storefront/_open_badge.html:9
 #, python-format
 msgid "from %(d)s %(t)s"
-msgstr "з сайту %(d)s %(t)s"
+msgstr "з %(d)s %(t)s"
 
 #: templates/storefront/_product_card.html:15
 #: templates/storefront/_promo_card.html:11
@@ -17581,7 +17581,7 @@ msgstr "Чоловікам"
 
 #: apps/tenants/menu.py
 msgid "Korb"
-msgstr "Кошик фермера"
+msgstr "Кошик"
 
 #: apps/tenants/menu.py
 msgid "Lehrer"
