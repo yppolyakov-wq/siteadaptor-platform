@@ -1749,6 +1749,12 @@ FONTS = {
     # семейство реально в --font-head. Тело остаётся системным (скорость/CLS).
     "editorial": (_SANS, '"Playfair Display", Georgia, Cambria, serif'),
     "organic": (_SANS, '"Nunito", ui-rounded, system-ui, sans-serif'),
+    # DL-1: display-гарнитуры «акционных» Look'ов (latin/latin-ext; кириллических
+    # сабсетов у этих семейств нет — заголовки на ru/uk честно падают в фолбэк).
+    "condensed": (_SANS, '"Barlow Condensed", "Arial Narrow", Arial, sans-serif'),
+    "bricolage": (_SANS, '"Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif'),
+    "space": (_SANS, '"Space Grotesk", "Helvetica Neue", Arial, sans-serif'),
+    "schibsted": (_SANS, '"Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif'),
 }
 
 

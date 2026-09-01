@@ -2310,6 +2310,14 @@ def home_builder_view(request):
                 ("system", _("System")),
                 ("serif", _("Serif")),
                 ("rounded", _("Rounded")),
+                # DL-1: self-hosted гарнитуры Look'ов. Без записей в селекте
+                # пересохранение типографики молча сбрасывало такой Look на system.
+                ("editorial", _("Playfair Display")),
+                ("organic", _("Nunito")),
+                ("condensed", _("Barlow Condensed")),
+                ("bricolage", _("Bricolage Grotesque")),
+                ("space", _("Space Grotesk")),
+                ("schibsted", _("Schibsted Grotesk")),
             ],
             "hero_accent": config.get("hero_style") == "accent",
             "accent": request.tenant.primary_color or "#4f46e5",

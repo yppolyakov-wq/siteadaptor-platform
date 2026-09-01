@@ -20626,52 +20626,70 @@ msgstr ""
 msgid "Klassischer Laden"
 msgstr ""
 
-msgid "Startbanner, aktuelle Angebote, Produkte, Über uns, Kontakt — der Allrounder für den Einzelhandel."
+msgid ""
+"Startbanner, aktuelle Angebote, Produkte, Über uns, Kontakt — der Allrounder"
+" für den Einzelhandel."
 msgstr ""
 
 msgid "Café & Restaurant"
 msgstr ""
 
-msgid "Speisen und Angebote im Fokus, Öffnungszeiten prominent — für die Gastronomie."
+msgid ""
+"Speisen und Angebote im Fokus, Öffnungszeiten prominent — für die "
+"Gastronomie."
 msgstr ""
 
 msgid "Dienstleister & Termine"
 msgstr ""
 
-msgid "Vorstellung und Kontakt im Vordergrund — für Termin-Geschäfte (Friseur, Studio, Beratung)."
+msgid ""
+"Vorstellung und Kontakt im Vordergrund — für Termin-Geschäfte (Friseur, "
+"Studio, Beratung)."
 msgstr ""
 
 msgid "Übernachtung & Gastgeber"
 msgstr ""
 
-msgid "Verfügbarkeit, Zimmer, Lage und Kontakt — für Pension, Ferienwohnung oder kleines Hotel."
+msgid ""
+"Verfügbarkeit, Zimmer, Lage und Kontakt — für Pension, Ferienwohnung oder "
+"kleines Hotel."
 msgstr ""
 
 msgid "Termine & Leistungen"
 msgstr ""
 
-msgid "Leistungen mit Preisen und Online-Termin im Fokus — für Friseur, Werkstatt und Studios."
+msgid ""
+"Leistungen mit Preisen und Online-Termin im Fokus — für Friseur, Werkstatt "
+"und Studios."
 msgstr ""
 
 msgid "Handwerk & Angebote"
 msgstr ""
 
-msgid "Referenzen, Ablauf und unverbindliches Angebot — für Meisterbetrieb, Sanierung und Montage."
+msgid ""
+"Referenzen, Ablauf und unverbindliches Angebot — für Meisterbetrieb, "
+"Sanierung und Montage."
 msgstr ""
 
 msgid "Catering & Partyservice"
 msgstr ""
 
-msgid "Anfrage, Angebot und Event-Planung — für Catering, Partyservice und Foodtrucks."
+msgid ""
+"Anfrage, Angebot und Event-Planung — für Catering, Partyservice und "
+"Foodtrucks."
 msgstr ""
 
-msgid "Kommende Termine und Tickets im Fokus — für Veranstalter, Guides und Studios."
+msgid ""
+"Kommende Termine und Tickets im Fokus — für Veranstalter, Guides und "
+"Studios."
 msgstr ""
 
 msgid "Minimal / Visitenkarte"
 msgstr ""
 
-msgid "Schlichte Eine-Seite-Visitenkarte: Banner und Kontakt. Für alle, die es einfach mögen."
+msgid ""
+"Schlichte Eine-Seite-Visitenkarte: Banner und Kontakt. Für alle, die es "
+"einfach mögen."
 msgstr ""
 
 msgid "Hell und aufgeräumt — klare Flächen, ruhige Typografie."
@@ -20704,52 +20722,82 @@ msgstr ""
 msgid "Fokus"
 msgstr ""
 
-msgid "Ein Hauptziel pro Bildschirm: Split-Banner, Preisliste, Anfrage direkt auf der Startseite."
+msgid ""
+"Ein Hauptziel pro Bildschirm: Split-Banner, Preisliste, Anfrage direkt auf "
+"der Startseite."
 msgstr ""
 
-msgid "Ein Hauptziel pro Bildschirm: Split-Banner mit Datumssuche, Zimmer direkt darunter, kompaktes Vertrauensband."
+msgid ""
+"Ein Hauptziel pro Bildschirm: Split-Banner mit Datumssuche, Zimmer direkt "
+"darunter, kompaktes Vertrauensband."
 msgstr ""
 
-msgid "Ein Hauptziel pro Bildschirm: Split-Banner, klassische Speisekarte, Tisch-Reservierung immer sichtbar."
+msgid ""
+"Ein Hauptziel pro Bildschirm: Split-Banner, klassische Speisekarte, Tisch-"
+"Reservierung immer sichtbar."
 msgstr ""
 
-msgid "Ein Hauptziel pro Bildschirm: Split-Banner, kompakte Karte auf der Startseite, Speisekarte mit Fotos."
+msgid ""
+"Ein Hauptziel pro Bildschirm: Split-Banner, kompakte Karte auf der "
+"Startseite, Speisekarte mit Fotos."
 msgstr ""
 
-msgid "Ein Hauptziel pro Bildschirm: Split-Banner, Sortiment-Kacheln und Preisliste mit Fotos."
+msgid ""
+"Ein Hauptziel pro Bildschirm: Split-Banner, Sortiment-Kacheln und Preisliste"
+" mit Fotos."
 msgstr ""
 
-msgid "Ein Hauptziel pro Bildschirm: Theken-Sortiment mit Fotos und Partyservice-Anfrage direkt auf der Startseite."
+msgid ""
+"Ein Hauptziel pro Bildschirm: Theken-Sortiment mit Fotos und Partyservice-"
+"Anfrage direkt auf der Startseite."
 msgstr ""
 
-msgid "Ein Hauptziel pro Bildschirm: Leistungen mit Preisen im Banner, Team und Termin-Buchung immer sichtbar."
+msgid ""
+"Ein Hauptziel pro Bildschirm: Leistungen mit Preisen im Banner, Team und "
+"Termin-Buchung immer sichtbar."
 msgstr ""
 
-msgid "Ein Hauptziel pro Bildschirm: Festpreis-Leistungen, klarer Ablauf und Kostenvoranschlag-Anfrage."
+msgid ""
+"Ein Hauptziel pro Bildschirm: Festpreis-Leistungen, klarer Ablauf und "
+"Kostenvoranschlag-Anfrage."
 msgstr ""
 
-msgid "Ein Hauptziel pro Bildschirm: Referenzen vorher/nachher, klarer Ablauf und Angebots-Anfrage."
+msgid ""
+"Ein Hauptziel pro Bildschirm: Referenzen vorher/nachher, klarer Ablauf und "
+"Angebots-Anfrage."
 msgstr ""
 
-msgid "Ein Hauptziel pro Bildschirm: aktuelle Angebote ganz oben, Sortiment-Kacheln darunter."
+msgid ""
+"Ein Hauptziel pro Bildschirm: aktuelle Angebote ganz oben, Sortiment-Kacheln"
+" darunter."
 msgstr ""
 
-msgid "Ein Hauptziel pro Bildschirm: Sortiment-Kacheln, Produkte als Karten und Versand-Vorteile auf einen Blick."
+msgid ""
+"Ein Hauptziel pro Bildschirm: Sortiment-Kacheln, Produkte als Karten und "
+"Versand-Vorteile auf einen Blick."
 msgstr ""
 
-msgid "Ein Hauptziel pro Bildschirm: große Bilder, Kollektionen als Kacheln und Lookbook-Galerie."
+msgid ""
+"Ein Hauptziel pro Bildschirm: große Bilder, Kollektionen als Kacheln und "
+"Lookbook-Galerie."
 msgstr ""
 
-msgid "Ein Hauptziel pro Bildschirm: kommende Termine als Programm, Ablauf und Stimmen der Gäste."
+msgid ""
+"Ein Hauptziel pro Bildschirm: kommende Termine als Programm, Ablauf und "
+"Stimmen der Gäste."
 msgstr ""
 
-msgid "Ein Hauptziel pro Bildschirm: Reisen mit Bildern, Termine und Anfrage für die eigene Gruppe."
+msgid ""
+"Ein Hauptziel pro Bildschirm: Reisen mit Bildern, Termine und Anfrage für "
+"die eigene Gruppe."
 msgstr ""
 
 msgid " (Lager: %(n)s)"
 msgstr ""
 
-msgid "Nur aktive Menü-Sets erscheinen im Verzeichnis und können beworben werden. Aktivieren Sie das Set zuerst."
+msgid ""
+"Nur aktive Menü-Sets erscheinen im Verzeichnis und können beworben werden. "
+"Aktivieren Sie das Set zuerst."
 msgstr ""
 
 msgid "Nur aktive Menü-Sets können beworben werden."
@@ -20791,7 +20839,9 @@ msgstr ""
 msgid "Antwort zu groß."
 msgstr ""
 
-msgid "Nur veröffentlichte, kommende Veranstaltungen erscheinen im Verzeichnis und können beworben werden."
+msgid ""
+"Nur veröffentlichte, kommende Veranstaltungen erscheinen im Verzeichnis und "
+"können beworben werden."
 msgstr ""
 
 msgid "Nur veröffentlichte, kommende Veranstaltungen können beworben werden."
@@ -20821,7 +20871,9 @@ msgstr ""
 msgid "Newsletter an %(n)s Empfänger gesendet."
 msgstr ""
 
-msgid "Nur aktive Unterkünfte erscheinen im Verzeichnis und können beworben werden. Aktivieren Sie die Unterkunft zuerst."
+msgid ""
+"Nur aktive Unterkünfte erscheinen im Verzeichnis und können beworben werden."
+" Aktivieren Sie die Unterkunft zuerst."
 msgstr ""
 
 msgid "Nur aktive Unterkünfte können beworben werden."
@@ -20866,7 +20918,9 @@ msgstr ""
 msgid "Empfänger (Name, Adresse)"
 msgstr ""
 
-msgid "Leer lassen bei Firmenkunden — die Rechnungsdaten der Firma werden automatisch übernommen."
+msgid ""
+"Leer lassen bei Firmenkunden — die Rechnungsdaten der Firma werden "
+"automatisch übernommen."
 msgstr ""
 
 msgid "(Preis netto)"
@@ -20932,13 +20986,25 @@ msgstr ""
 msgid "Ihr Anmelde-Link – %(shop)s"
 msgstr ""
 
-msgid "Guten Tag,\n\nmit diesem Link melden Sie sich bei %(shop)s an: %(url)s\n\nDer Link ist 15 Minuten gültig und kann nur einmal verwendet werden.\nFalls Sie keine Anmeldung angefordert haben, ignorieren Sie diese E-Mail."
+msgid ""
+"Guten Tag,\n"
+"\n"
+"mit diesem Link melden Sie sich bei %(shop)s an: %(url)s\n"
+"\n"
+"Der Link ist 15 Minuten gültig und kann nur einmal verwendet werden.\n"
+"Falls Sie keine Anmeldung angefordert haben, ignorieren Sie diese E-Mail."
 msgstr ""
 
 msgid "Ihr Anmelde-Link"
 msgstr ""
 
-msgid "Guten Tag,\n\nmit diesem Link melden Sie sich an: %(url)s\n\nDer Link ist 15 Minuten gültig und kann nur einmal verwendet werden.\nFalls Sie keine Anmeldung angefordert haben, ignorieren Sie diese E-Mail."
+msgid ""
+"Guten Tag,\n"
+"\n"
+"mit diesem Link melden Sie sich an: %(url)s\n"
+"\n"
+"Der Link ist 15 Minuten gültig und kann nur einmal verwendet werden.\n"
+"Falls Sie keine Anmeldung angefordert haben, ignorieren Sie diese E-Mail."
 msgstr ""
 
 msgid "heute"
@@ -20950,7 +21016,9 @@ msgstr ""
 msgid "Ihre Testphase endet bald"
 msgstr ""
 
-msgid "Ihre Testphase endet %(when)s. Aktivieren Sie Ihr Abo, um ohne Unterbrechung weiterzuarbeiten."
+msgid ""
+"Ihre Testphase endet %(when)s. Aktivieren Sie Ihr Abo, um ohne Unterbrechung"
+" weiterzuarbeiten."
 msgstr ""
 
 msgid "Video-Termin %(when)s — %(service)s"
@@ -20959,16 +21027,23 @@ msgstr ""
 msgid "Ihre Mehrfachkarte %(code)s"
 msgstr ""
 
-msgid "Hallo %(name)s,\n\nvielen Dank! Ihre %(label)s ist aktiv.\nCode: %(code)s — %(credits)s Besuche.\nGeben Sie den Code bei der Online-Buchung an.\n"
+msgid ""
+"Hallo %(name)s,\n"
+"\n"
+"vielen Dank! Ihre %(label)s ist aktiv.\n"
+"Code: %(code)s — %(credits)s Besuche.\n"
+"Geben Sie den Code bei der Online-Buchung an.\n"
 msgstr ""
 
 msgid "Kein passender Code — bitte den Code aus dem Dashboard verwenden."
 msgstr ""
 
-msgid "Diese Reisegruppe ist bereits mit einer anderen Telegram-Gruppe verbunden."
+msgid ""
+"Diese Reisegruppe ist bereits mit einer anderen Telegram-Gruppe verbunden."
 msgstr ""
 
-msgid "✅ Verbunden mit «%(title)s». Beiträge laufen ab jetzt in beide Richtungen."
+msgid ""
+"✅ Verbunden mit «%(title)s». Beiträge laufen ab jetzt in beide Richtungen."
 msgstr ""
 
 msgid "Ihr Gutscheincode: %(code)s (%(amount)s €)"
@@ -20995,7 +21070,12 @@ msgstr ""
 msgid "Rabatt für Kunden (Stripe-Coupon)"
 msgstr ""
 
-msgid "Bitte bestätigen Sie Ihre Anmeldung zum Newsletter:\n\n%(link)s\n\nWenn Sie sich nicht angemeldet haben, ignorieren Sie diese E-Mail."
+msgid ""
+"Bitte bestätigen Sie Ihre Anmeldung zum Newsletter:\n"
+"\n"
+"%(link)s\n"
+"\n"
+"Wenn Sie sich nicht angemeldet haben, ignorieren Sie diese E-Mail."
 msgstr ""
 
 msgid "Bitte bestätigen Sie Ihre Newsletter-Anmeldung"
@@ -21004,7 +21084,9 @@ msgstr ""
 msgid "Link abgelaufen"
 msgstr ""
 
-msgid "Diese Vorschau-Ansicht ist abgelaufen oder wurde nicht gefunden. Bitten Sie den Absender um einen neuen Link."
+msgid ""
+"Diese Vorschau-Ansicht ist abgelaufen oder wurde nicht gefunden. Bitten Sie "
+"den Absender um einen neuen Link."
 msgstr ""
 
 msgid "Instagram benötigt ein Bild für die Aktion"
@@ -21031,10 +21113,20 @@ msgstr ""
 msgid "Ihre Website ist bereit — %(name)s"
 msgstr ""
 
-msgid "Hallo,\n\nIhre Website für „%(name)s“ ist fertig eingerichtet!\n\nHier anmelden: %(url)s\nBenutzername: %(email)s\n\nViel Erfolg!\nIhr siteadaptor-Team"
+msgid ""
+"Hallo,\n"
+"\n"
+"Ihre Website für „%(name)s“ ist fertig eingerichtet!\n"
+"\n"
+"Hier anmelden: %(url)s\n"
+"Benutzername: %(email)s\n"
+"\n"
+"Viel Erfolg!\n"
+"Ihr siteadaptor-Team"
 msgstr ""
 
-msgid "Ich bin gerade auf Ihrer Website — können Sie mir kurz per Video helfen?"
+msgid ""
+"Ich bin gerade auf Ihrer Website — können Sie mir kurz per Video helfen?"
 msgstr ""
 
 msgid "★ Anzeige"
@@ -21108,8 +21200,36 @@ msgstr "Merkzettel (♡ auf Karten)"
 
 #. SF-4a wishlist toggle 2026-08-31
 msgid "Visitors save products and offers — on this device, no account."
-msgstr "Besucher merken sich Produkte und Angebote — auf diesem Gerät, ohne Konto."
+msgstr ""
+"Besucher merken sich Produkte und Angebote — auf diesem Gerät, ohne Konto."
 
 #. SF-4b promo cart 2026-08-31
-msgid "The promotion limit has been reached. Please adjust the quantity or remove the item."
-msgstr "Das Aktionslimit ist erreicht. Bitte Menge anpassen oder Artikel entfernen."
+msgid ""
+"The promotion limit has been reached. Please adjust the quantity or remove "
+"the item."
+msgstr ""
+"Das Aktionslimit ist erreicht. Bitte Menge anpassen oder Artikel entfernen."
+
+#. DL-1: имя гарнитуры (собственное)
+msgid "Playfair Display"
+msgstr "Playfair Display"
+
+#. DL-1: имя гарнитуры (собственное)
+msgid "Nunito"
+msgstr "Nunito"
+
+#. DL-1: имя гарнитуры (собственное)
+msgid "Barlow Condensed"
+msgstr "Barlow Condensed"
+
+#. DL-1: имя гарнитуры (собственное)
+msgid "Bricolage Grotesque"
+msgstr "Bricolage Grotesque"
+
+#. DL-1: имя гарнитуры (собственное)
+msgid "Space Grotesk"
+msgstr "Space Grotesk"
+
+#. DL-1: имя гарнитуры (собственное)
+msgid "Schibsted Grotesk"
+msgstr "Schibsted Grotesk"
