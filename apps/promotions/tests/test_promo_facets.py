@@ -42,7 +42,11 @@ def _promo(title, **kw):
 def test_endet_filters_by_window():
     t = _tenant("pf1")
     now = timezone.now()
-    _promo("HeuteDeal", ends_at=now + timedelta(hours=2))
+    # Фильтр «heute» отсекает по МЕСТНОЙ полуночи, поэтому «сейчас + 2 часа»
+    # после 22:00 уезжало на завтра и тест краснел каждый вечер (флак по
+    # времени суток, не регрессия). Берём конец текущего локального дня.
+    heute_ends = timezone.localtime(now).replace(hour=23, minute=59, second=59, microsecond=0)
+    _promo("HeuteDeal", ends_at=heute_ends)
     _promo("WocheDeal", ends_at=now + timedelta(days=5))
     _promo("SpaeterDeal", ends_at=now + timedelta(days=30))
     _promo("EwigDeal")
