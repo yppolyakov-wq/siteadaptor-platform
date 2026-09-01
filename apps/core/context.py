@@ -61,6 +61,23 @@ def _cart_count(request) -> int:
     return total
 
 
+def _accent_ink(accent: str) -> str:
+    """DL-5: цвет текста ПОВЕРХ акцент-фона по яркости акцента.
+
+    Светлый акцент (лайм neon #c8f542, янтарь warm) с белым текстом нечитаем —
+    отдаём тёмные чернила; тёмный/насыщенный акцент — белые (прежний вид).
+    Не-hex/битое значение → белый (fail-safe, как было всегда)."""
+    accent = (accent or "").strip()
+    if len(accent) == 7 and accent.startswith("#"):
+        try:
+            r, g, b = (int(accent[i : i + 2], 16) for i in (1, 3, 5))
+        except ValueError:
+            return "#ffffff"
+        if (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.62:
+            return "#111827"
+    return "#ffffff"
+
+
 def _storefront_bottom_nav(request, tenant):
     """Мобильный нижний таб-бар витрины (T2b, развивает P1 action-bar).
 
@@ -439,6 +456,9 @@ def modules_nav(request):
         "storefront_line_height": cfg["typography"]["line_height"],
         # M20: override акцента в live-preview (пусто → tenant.primary_color).
         "storefront_accent": storefront_accent,
+        # DL-5 (стенд): «чернила» поверх акцент-фона — светлый акцент (лайм
+        # neon, янтарь warm) с жёстким text-white был нечитаем на 36 CTA.
+        "storefront_accent_ink": _accent_ink(storefront_accent or "#4f46e5"),
         # ST-1: тёмный Look — дефолт темы сайта (посетительский тумблер сильнее).
         "storefront_theme_default": storefront_theme_default,
         # SE-2d/SE-3d: глобальный стиль карточек («весь сайт»; draft-aware). Пустые

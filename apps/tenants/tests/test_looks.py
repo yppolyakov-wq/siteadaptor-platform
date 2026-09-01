@@ -355,6 +355,18 @@ def test_sf_primary_alias_emitted():
     assert "--sf-primary: var(--accent)" in _home(tenant)
 
 
+def test_accent_ink_follows_luminance():
+    """DL-5 (стенд): светлый акцент (лайм neon) с жёстким text-white был
+    нечитаем на CTA — сервер отдаёт тёмные чернила по яркости акцента."""
+    lime = TenantFactory.build(business_type="grocery", primary_color="#c8f542")
+    assert "--accent-ink: #111827" in _home(lime)
+    green = TenantFactory.build(business_type="grocery", primary_color="#16a34a")
+    assert "--accent-ink: #ffffff" in _home(green)
+    # Превью neon: акцент лайм → тёмные чернила и без сохранённого цвета.
+    plain = TenantFactory.build(business_type="grocery", primary_color="#4f46e5")
+    assert "--accent-ink: #111827" in _home(plain, "?preview=1&look=neon")
+
+
 def test_preview_bundle_overlay_is_stateless():
     """DL-3: ?preview=1&bundle=<key> — оси сборки read-only оверлеем; без
     явного &look= кожу даёт Look-семейство самой сборки; явный &look= сильнее."""

@@ -35,6 +35,8 @@
       --accent: {{ storefront_accent|default:"#4f46e5" }};
       {# DL-6: app.css потребляет --sf-primary (кнопки вида, свотчи) с фолбэком-индиго — без алиаса акцент туда не доезжал. #}
       --sf-primary: var(--accent);
+      {# DL-5: «чернила» поверх акцент-фона — по яркости акцента (лайм/янтарь → тёмные). #}
+      --accent-ink: {{ storefront_accent_ink|default:"#ffffff" }};
       --font-body: {{ storefront_font_body|default:"ui-sans-serif, system-ui, sans-serif"|safe }};
       --font-head: {{ storefront_font_head|default:"ui-sans-serif, system-ui, sans-serif"|safe }};
       {# SE-3b: типографика — переменные только когда заданы (var-fallback = текущий вид). #}
@@ -74,6 +76,9 @@
     .dark [data-sf-chrome="hard"] .sf-card, .dark [data-sf-chrome="hard"] .cb-box { border-color: #3f3f46; box-shadow: 5px 5px 0 rgba(0, 0, 0, .55) !important; }
     .dark [data-sf-chrome="hairline"] .sf-card, .dark [data-sf-chrome="hairline"] .cb-box,
     .dark [data-sf-chrome="line"] .sf-card, .dark [data-sf-chrome="line"] .cb-box { border-color: rgba(255, 255, 255, .16); }
+    /* DL-5: контраст поверх акцент-фона — жёсткий text-white в 36 CTA нечитаем на
+       светлом акценте (лайм neon, янтарь warm); ink считает сервер по яркости. */
+    [style*="background: var(--accent)"], [style*="background:var(--accent)"] { color: var(--accent-ink, #ffffff) !important; }
     /* Выразительная типошкала: плотнее трекинг и баланс переносов в заголовках. */
     h1, h2, h3 { letter-spacing: -0.02em; text-wrap: balance; }
     /* P2b: scroll-reveal — только при разрешённом движении (WCAG 2.3.3). Скрытое
