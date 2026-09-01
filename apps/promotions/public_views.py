@@ -167,6 +167,16 @@ def storefront_home(request):
         if "promotions" in sections
         else []
     )
+    # DL-3 (стиль spotlight секции акций): чипы «Endet bald» над гридом —
+    # акции, заканчивающиеся в ближайшие 3 дня (как полоса /aktionen/, SF-2).
+    promo_ending_soon = []
+    if promos:
+        from datetime import timedelta
+
+        from django.utils import timezone as _tz
+
+        _soon = _tz.now() + timedelta(days=3)
+        promo_ending_soon = [p for p in promos if p.ends_at and p.ends_at <= _soon][:4]
     products_preview = []
     if "products" in sections:
         from apps.catalog.models import Product
@@ -271,6 +281,7 @@ def storefront_home(request):
             "section_blocks": section_blocks,
             "site": site,
             "promotions": promos,
+            "promo_ending_soon": promo_ending_soon,  # DL-3: чипы spotlight-стиля
             "products_preview": products_preview,
             "categories": categories,
             "category_tile_aspect": siteconfig.CATEGORY_TILE_ASPECTS.get(

@@ -2177,6 +2177,10 @@ SECTION_STYLES = {
     # DS-4b (Fokus): форма заявки на главной — «band» (акцент-полоса со слим-
     # полями в строку, как в концепт-макете); "" = обычная карточка-форма AF-2.
     "anfrage": ("band",),
+    # DL-3 (акционные сборки): spotlight — первая акция крупно + чипы «Endet
+    # bald» над гридом; rows — компактные строки «процент-первым» (Marktplatz).
+    # "" = прежний грид байт-в-байт.
+    "promotions": ("spotlight", "rows"),
 }
 #: Класс аспекта плитки категории по стилю секции (см. _category_tile.html).
 CATEGORY_TILE_ASPECTS = {
@@ -2223,6 +2227,8 @@ SECTION_STYLE_LABELS = {
     "preisliste_karte": _("Speisekarte klassisch"),  # DS-5c: печатная карта
     "preisliste_buch": _("Speisekarte zum Blättern"),  # MEN-16: книга-разворот
     "band": _("Farbband"),  # DS-4b: anfrage — слим-форма на акцент-полосе
+    "spotlight": _("Deal der Woche groß"),  # DL-3: акция-фичер + Endet-bald-чипы
+    "rows": _("Kompakte Zeilen"),  # DL-3: строки «процент-первым» (Marktplatz)
 }
 
 # UC6-6f: подсказка стиля скидки у промо-БЛОКА (фидбэк владельца «пресеты промо-

@@ -21454,3 +21454,11 @@ msgstr "Еженедельная газета хороших цен: сериф�
 #. DL-2: Look-семейства акционной волны
 msgid "Nüchtern und dicht: Prozent zuerst, klare Listen, volle Übersicht."
 msgstr "Сдержанно и плотно: процент — первым, чёткие списки, полный обзор."
+
+#. DL-3: стили секции promotions
+msgid "Deal der Woche groß"
+msgstr "Дил недели крупно"
+
+#. DL-3: стили секции promotions
+msgid "Kompakte Zeilen"
+msgstr "Компактные строки"

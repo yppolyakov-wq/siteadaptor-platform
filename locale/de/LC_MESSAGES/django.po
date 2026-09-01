@@ -21274,3 +21274,11 @@ msgstr "Wochenzeitung der guten Preise: Serifen, Papier, feine Linien."
 #. DL-2: Look-семейства акционной волны
 msgid "Nüchtern und dicht: Prozent zuerst, klare Listen, volle Übersicht."
 msgstr "Nüchtern und dicht: Prozent zuerst, klare Listen, volle Übersicht."
+
+#. DL-3: стили секции promotions
+msgid "Deal der Woche groß"
+msgstr "Deal der Woche groß"
+
+#. DL-3: стили секции promotions
+msgid "Kompakte Zeilen"
+msgstr "Kompakte Zeilen"

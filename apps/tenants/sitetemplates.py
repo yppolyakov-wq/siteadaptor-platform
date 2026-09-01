@@ -17,6 +17,8 @@
 
 from django.utils.translation import gettext_lazy as _
 
+from apps.core import page_presets
+
 from . import siteconfig
 
 # key · label · описание (DE) · recommended_for (типы бизнеса — рекомендация и
@@ -1009,9 +1011,96 @@ BUNDLES = [
             }
         ),
     },
+    # DL-3 (волна DL): пять «дил-шаблонов» по утверждённому канвасу «Sparfuchs
+    # Aktionsmarkt Redesign» — в отличие от архетипных «Fokus» это УНИВЕРСАЛЬНЫЕ
+    # полноценные шаблоны (пустой recommended_for → видны всем типам): кожу даёт
+    # Look-семейство DL-2 (label/description реюзятся оттуда же — msgid одни),
+    # композицию — оси Fokus-ДНК + акции первыми (spotlight/rows) + направления
+    # компактно + страничные пресеты ST-2 («О нас»/корзина).
+    {
+        "key": "deal_prospekt",
+        "label": _("Prospekt"),
+        "description_de": _(
+            "Discounter-Energie: Preis-Sticker, kräftige Rahmen, plakative Schrift."
+        ),
+        "recommended_for": (),
+        "look": "prospekt",
+        "config": _fokus(
+            {
+                "section_styles": {"promotions": "spotlight", "categories": "compact"},
+                "sections_on": ("promotions", "categories"),
+                "page_presets": {"info": "bild", "cart": "vertrauen"},
+            }
+        ),
+    },
+    {
+        "key": "deal_frisch",
+        "label": _("Frischmarkt"),
+        "description_de": _("Warmer Markt von nebenan: Creme, weiche Karten, viel Luft."),
+        "recommended_for": (),
+        "look": "frisch",
+        "config": _fokus(
+            {
+                "section_styles": {"promotions": "spotlight", "categories": "square"},
+                "sections_on": ("promotions", "categories"),
+                "page_presets": {"info": "geschichte", "cart": "vertrauen"},
+            }
+        ),
+    },
+    {
+        "key": "deal_neon",
+        "label": _("Nachtmarkt"),
+        "description_de": _("Dunkler Deal-Jäger: Neon-Preise, große Timer, maximaler Kontrast."),
+        "recommended_for": (),
+        "look": "neon",
+        "config": _fokus(
+            {
+                "section_styles": {"promotions": "spotlight", "categories": "compact"},
+                "sections_on": ("promotions", "categories"),
+                "page_presets": {"cart": "schlicht"},
+            }
+        ),
+    },
+    {
+        "key": "deal_blatt",
+        "label": _("Markthalle"),
+        "description_de": _("Wochenzeitung der guten Preise: Serifen, Papier, feine Linien."),
+        "recommended_for": (),
+        "look": "blatt",
+        "config": _fokus(
+            {
+                "nav_style": "centered",
+                "catalog_layout": {"preset": "preisliste"},
+                "section_styles": {"promotions": "spotlight", "categories": "compact"},
+                "sections_on": ("promotions", "categories"),
+                "page_presets": {"info": "text", "cart": "schlicht"},
+            }
+        ),
+    },
+    {
+        "key": "deal_smart",
+        "label": _("Marktplatz"),
+        "description_de": _("Nüchtern und dicht: Prozent zuerst, klare Listen, volle Übersicht."),
+        "recommended_for": (),
+        "look": "smart",
+        "config": _fokus(
+            {
+                "hero_style": "plain",
+                "catalog_layout": {"preset": "preisliste_foto"},
+                "section_styles": {"promotions": "rows", "categories": "compact"},
+                "sections_on": ("promotions", "categories"),
+                "page_presets": {"cart": "empfehlung"},
+            }
+        ),
+    },
 ]
 
 _BUNDLE_BY_KEY = {b["key"]: b for b in BUNDLES}
+
+
+def get_bundle(key):
+    """DL-3: сборка по ключу (None — неизвестный) — для stateless-превью."""
+    return _BUNDLE_BY_KEY.get(key)
 
 
 def bundles_for(business_type) -> list[dict]:
@@ -1093,6 +1182,10 @@ def _apply_bundle_axes(config: dict, over: dict) -> None:
             row["enabled"] = True
         elif row["key"] in off:
             row["enabled"] = False
+    # DL-3: страничные пресеты ST-2 — сборка красит и «О нас»/корзину, не только
+    # главную. apply_page_preset идемпотентен и хранит блоки владельца.
+    for host, preset_id in (over.get("page_presets") or {}).items():
+        page_presets.apply_page_preset(config, host, preset_id)
 
 
 def apply_look(tenant, family_key) -> bool:

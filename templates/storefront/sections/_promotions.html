@@ -1,4 +1,4 @@
-{% load i18n siteui %}{# Секция акций (Track C2): прежняя главная витрины. #}
+{% load i18n siteui %}{# Секция акций (Track C2); DL-3: стили spotlight/rows (deal-looks-wave-plan-2026-09-01), "" = прежний грид байт-в-байт. #}
 <section id="aktionen" data-reveal class="mb-10">
 <div class="flex items-center justify-between mb-6 gap-3">
   {% section_title site 'promotions' as st %}
@@ -10,11 +10,54 @@
 {% section_intro site 'promotions' as si %}
 {% if si or is_preview %}<p class="mb-4 text-gray-600 whitespace-pre-line max-w-2xl" data-edit="section_intros.promotions">{{ si }}</p>{% endif %}
 {% if promotions %}
+{% with pstyle=section_row.style|default:"" %}
+{% if pstyle == "spotlight" %}
+  {# DL-3 spotlight: чипы «Endet bald» (view отдаёт promo_ending_soon, ≤3 дня) + первая акция крупно (col-span в общем гриде). #}
+  {% if promo_ending_soon %}
+  <div class="mb-5 flex gap-2 overflow-x-auto" data-promo-ending>
+    <span class="shrink-0 inline-flex items-center text-xs font-bold text-amber-700 py-1.5">⏳ {% trans "Ending soon" %}:</span>
+    {% for p in promo_ending_soon %}
+      <a href="{% url 'storefront-promotion' p.pk %}" class="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50 text-amber-800 text-xs font-semibold px-3 py-1.5">
+        <span class="max-w-[14rem] truncate">{{ p.title_text }}</span>
+        <span data-countdown="{{ p.ends_at|date:'c' }}" data-expired="{% trans 'expired' %}"></span>
+      </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+  <div id="promo-grid" data-grid="promotions" class="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+    {% for p in promotions %}
+      {% if forloop.first %}
+        <div class="col-span-2 row-span-2" data-promo-spotlight>{% include "storefront/_promo_card.html" %}</div>
+      {% else %}
+        {% include "storefront/_promo_card.html" %}
+      {% endif %}
+    {% endfor %}
+  </div>
+{% elif pstyle == "rows" %}
+  {# DL-3 rows: строки «процент-первым» (Marktplatz) — бейдж · название · цена. #}
+  <div class="space-y-2.5" data-promo-rows>
+    {% for p in promotions %}
+      <a href="{% url 'storefront-promotion' p.pk %}" class="sf-card relative flex items-center gap-3 bg-white rounded-xl shadow-sm px-3.5 py-3 hover:shadow-md transition">
+        {# `!static` перебивает захардкоженный `absolute` бейджа (partial parity-locked — сам бейдж не правим). #}
+        {% include "storefront/_discount_display.html" with promo=p part="badge" size="sm" badge_pos_class="!static shrink-0" %}
+        <span class="flex-1 min-w-0">
+          <span class="block font-semibold text-sm truncate">{{ p.title_text }}</span>
+          {% if p.lowest_30d is not None and p.discount_style != 'mystery' %}
+            <span class="block text-[10px] leading-tight text-gray-400">{% blocktrans with p=p.lowest_30d %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</span>
+          {% endif %}
+        </span>
+        <span class="text-right shrink-0">{% include "storefront/_discount_display.html" with promo=p part="price" %}</span>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
 <div id="promo-grid" data-grid="promotions" class="{% grid_classes site 'promotions' %}">
   {% for p in promotions %}
     {% include "storefront/_promo_card.html" %}
   {% endfor %}
 </div>
+{% endif %}
+{% endwith %}
 {% else %}
   <p class="text-gray-400">{% trans "No current offers." %}</p>
 {% endif %}

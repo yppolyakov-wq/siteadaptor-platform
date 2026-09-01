@@ -21230,3 +21230,11 @@ msgstr "A weekly paper of good prices: serifs, paper, fine rules."
 #. DL-2: Look-семейства акционной волны
 msgid "Nüchtern und dicht: Prozent zuerst, klare Listen, volle Übersicht."
 msgstr "Sober and dense: percent first, clean lists, full overview."
+
+#. DL-3: стили секции promotions
+msgid "Deal der Woche groß"
+msgstr "Deal of the week, large"
+
+#. DL-3: стили секции promotions
+msgid "Kompakte Zeilen"
+msgstr "Compact rows"

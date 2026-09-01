@@ -14,6 +14,8 @@ ARCHETYPES = [k for k, _ in Tenant.BUSINESS_TYPES if k != "other"]
 
 
 def test_registry_valid():
+    from apps.core import page_presets as pp
+
     for b in sitetemplates.BUNDLES:
         assert sitetemplates.get_look_family(b["look"]) is not None, b["key"]
         styles = b["config"].get("section_styles", {})
@@ -25,6 +27,12 @@ def test_registry_valid():
                 preset in siteconfig.LAYOUT_PRESETS
                 or preset in siteconfig.PAGE_EXTRA_PRESETS["catalog_layout"]
             )
+        # DL-3: страничные пресеты сборки обязаны существовать в реестре ST-2
+        # (мёртвый ключ применился бы молча — apply_page_preset вернул бы False).
+        for host, pid in (b["config"].get("page_presets") or {}).items():
+            reg = pp.PAGE_PRESETS.get(host)
+            assert reg is not None, (b["key"], host)
+            assert any(p["key"] == pid for p in reg["presets"]), (b["key"], host, pid)
 
 
 @pytest.mark.parametrize("business_type", ARCHETYPES)
@@ -65,15 +73,59 @@ def test_bundles_for_recommended_first():
     assert "fokus" in keys
 
 
+DEAL_BUNDLES = ("deal_prospekt", "deal_frisch", "deal_neon", "deal_blatt", "deal_smart")
+
+
 def test_every_archetype_sees_exactly_one_fokus():
     """DS-8: у каждого архетипа своя вариация Fokus — и ровно одна карточка
-    (иначе владелец видит пять одинаковых «Fokus»)."""
+    (иначе владелец видит пять одинаковых «Fokus»). DL-3: поверх — пять
+    универсальных дил-шаблонов (свои label'ы), рекомендация — первой."""
     for bt in ARCHETYPES:
         got = [b for b in sitetemplates.bundles_for(bt) if b["label"] == "Fokus"]
         assert len(got) <= 1, (bt, [b["key"] for b in got])
     for bt in ("hotel", "restaurant", "cafe", "bakery", "catering"):
         keys = [b["key"] for b in sitetemplates.bundles_for(bt)]
-        assert len(keys) == 1, (bt, keys)
+        assert keys[0].startswith("fokus"), (bt, keys)  # рекомендованная — первая
+        assert set(DEAL_BUNDLES) <= set(keys), (bt, keys)
+        assert len(keys) == 1 + len(DEAL_BUNDLES), (bt, keys)
+
+
+def test_deal_bundles_universal_and_composed():
+    """DL-3: дил-шаблоны видны ЛЮБОМУ типу бизнеса (пустой recommended_for) и
+    несут композицию канваса: акции первыми (spotlight/rows) + направления."""
+    by_key = {b["key"]: b for b in sitetemplates.BUNDLES}
+    for key in DEAL_BUNDLES:
+        b = by_key[key]
+        assert b["recommended_for"] == (), key
+        assert b["look"] == key.removeprefix("deal_"), key
+        cfg = b["config"]
+        assert cfg["section_styles"]["promotions"] in ("spotlight", "rows"), key
+        assert "promotions" in cfg["sections_on"] and "categories" in cfg["sections_on"], key
+        assert not (set(cfg["sections_on"]) & set(cfg["sections_off"])), key
+    for bt in ARCHETYPES:
+        keys = {b["key"] for b in sitetemplates.bundles_for(bt)}
+        assert set(DEAL_BUNDLES) <= keys, bt
+    assert by_key["deal_smart"]["config"]["section_styles"]["promotions"] == "rows"
+    assert by_key["deal_smart"]["config"]["hero_style"] == "plain"
+    assert by_key["deal_blatt"]["config"]["nav_style"] == "centered"
+
+
+def test_bundle_page_presets_seed_pages():
+    """DL-3: ось page_presets — сборка красит и «О нас»/корзину (блоки ST-2
+    с префиксом семейства), блоки владельца целы."""
+    tenant = TenantFactory(
+        business_type="grocery",
+        site_config={"page_blocks": {"info": [{"key": "text", "id": "own-1", "data": {}}]}},
+    )
+    assert sitetemplates.apply_bundle(tenant, "deal_prospekt") is True
+    cfg = tenant.site_config
+    ids = [b["id"] for b in cfg["page_blocks"]["info"]]
+    assert "own-1" in ids  # блок владельца жив
+    assert any(i.startswith("pb-about-bild-") for i in ids)
+    # flat-ключ пресета: дефолт True → сигнален только "schlicht" (False).
+    other = TenantFactory(business_type="grocery")
+    assert sitetemplates.apply_bundle(other, "deal_neon") is True
+    assert other.site_config["cart_show_upsell"] is False
 
 
 def test_fokus_variants_carry_archetype_output_views():

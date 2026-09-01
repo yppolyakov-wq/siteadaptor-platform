@@ -348,6 +348,22 @@ def test_new_family_preview_overlay():
     assert "#f7f5f0" in html  # page_bg газеты
 
 
+def test_preview_bundle_overlay_is_stateless():
+    """DL-3: ?preview=1&bundle=<key> — оси сборки read-only оверлеем; без
+    явного &look= кожу даёт Look-семейство самой сборки; явный &look= сильнее."""
+    tenant = TenantFactory.build(business_type="grocery", primary_color="#4f46e5")
+    html = _home(tenant, "?preview=1&bundle=deal_prospekt")
+    assert "Barlow Condensed" in html  # кожа выведена из bundle.look
+    assert 'data-sf-chrome="hard"' in html
+    assert sitetemplates.look_accent("grocery", "prospekt") in html
+    # Явный look перебивает look сборки (галерея показывает комбинации).
+    html = _home(tenant, "?preview=1&look=neon&bundle=deal_prospekt")
+    assert 'var tenantDark = "dark" === "dark"' in html
+    # Мусорный ключ сборки — рендер живой, конфиг не тронут.
+    assert "#4f46e5" in _home(tenant, "?preview=1&bundle=junk")
+    assert tenant.site_config in (None, {}, tenant.site_config)
+
+
 def test_builder_save_preserves_lookonly_site_defaults():
     """DL-2 (класс W0/W6): Save билдера БЕЗ hidden-инпутов не стирает
     page_bg/card_chrome/hero_widget; с инпутами — пишет присланное."""

@@ -21358,3 +21358,11 @@ msgstr "İyi fiyatların haftalık gazetesi: serifler, kâğıt, ince çizgiler.
 #. DL-2: Look-семейства акционной волны
 msgid "Nüchtern und dicht: Prozent zuerst, klare Listen, volle Übersicht."
 msgstr "Sade ve yoğun: önce yüzde, net listeler, tam genel bakış."
+
+#. DL-3: стили секции promotions
+msgid "Deal der Woche groß"
+msgstr "Haftanın fırsatı, büyük"
+
+#. DL-3: стили секции promotions
+msgid "Kompakte Zeilen"
+msgstr "Kompakt satırlar"

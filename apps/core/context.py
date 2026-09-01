@@ -200,11 +200,16 @@ def modules_nav(request):
         storefront_accent = tenant.primary_color or ""
     # ST-1b: stateless-превью Look'а (?preview=1&look=<family>) — оверлей пачки
     # ключей ПОВЕРХ cfg только на этот рендер, НИЧЕГО не пишет (N iframe галереи
-    # не делят единственный session-слот черновика).
-    if request.GET.get("preview") == "1" and request.GET.get("look"):
+    # не делят единственный session-слот черновика). DL-3: += &bundle=<key> —
+    # оси сборки (стили/включение секций, catalog_layout, страничные пресеты)
+    # тем же read-only оверлеем; без явного &look= кожу даёт Look самой сборки.
+    if request.GET.get("preview") == "1" and (request.GET.get("look") or request.GET.get("bundle")):
         from apps.tenants import sitetemplates
 
-        _fam = sitetemplates.get_look_family(request.GET.get("look", ""))
+        _bundle = sitetemplates.get_bundle(request.GET.get("bundle", ""))
+        _fam = sitetemplates.get_look_family(
+            request.GET.get("look", "") or (_bundle["look"] if _bundle else "")
+        )
         if _fam is not None:
             cfg = dict(cfg)
             cfg["font"] = _fam["font"]
@@ -222,6 +227,13 @@ def modules_nav(request):
             storefront_accent = sitetemplates.look_accent(
                 getattr(tenant, "business_type", ""), _fam["key"]
             )
+        if _bundle is not None:
+            # Ряды секций делят ссылки с нормализованным конфигом — копируем
+            # ДО мутации осей (_apply_bundle_axes правит row'ы на месте).
+            cfg = dict(cfg)
+            cfg["sections"] = [dict(r) for r in cfg["sections"]]
+            sitetemplates.apply_bundle_config(cfg, _bundle["key"])
+            nav_style = (cfg.get("nav") or {}).get("style") or nav_style
     font_body, font_head = siteconfig.font_stacks(cfg["font"])
     # ST-1: тёмный Look — дефолт темы сайта ("" | "dark", draft-aware для превью).
     storefront_theme_default = cfg.get("theme", "")

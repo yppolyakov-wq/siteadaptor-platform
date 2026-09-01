@@ -19,7 +19,13 @@
           <span class="font-medium text-sm">✨ {{ b.label }}</span>
           <span class="text-[11px] bg-emerald-100 text-emerald-800 rounded-full px-2 py-0.5">{% trans "Startpaket" %}</span>
         </span>
-        <span class="block text-xs text-gray-500">{{ b.description_de }}</span>
+        <span class="block text-xs text-gray-500 mb-2">{{ b.description_de }}</span>
+        {% comment %}DL-3: живое мини-превью сборки — scaled-iframe своего сайта под
+        stateless-оверлеем ?preview=1&look=<family>&bundle=<key> (как у Look'ов ниже).{% endcomment %}
+        <span class="block rounded-lg border border-gray-100 overflow-hidden bg-gray-50 mt-auto" style="height:150px" aria-hidden="true">
+          <iframe data-src="/?preview=1&look={{ b.look }}&bundle={{ b.key }}" title="{{ b.label }}" tabindex="-1" loading="lazy"
+                  style="width:400%;height:600px;transform:scale(.25);transform-origin:0 0;pointer-events:none;border:0"></iframe>
+        </span>
       </label>
     {% endfor %}
   </div>
@@ -36,6 +42,21 @@
           document.querySelectorAll('#bundle-gallery input[name="bundle"]:checked').forEach(function (o) { o.checked = false; });
         }
       });
+      // DL-3: ленивые превью сборок (свой IO — блок Look'ов может отсутствовать).
+      var frames = document.querySelectorAll('#bundle-gallery iframe[data-src]');
+      if (!('IntersectionObserver' in window)) {
+        frames.forEach(function (f) { f.src = f.getAttribute('data-src'); });
+        return;
+      }
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting && !e.target.src) {
+            e.target.src = e.target.getAttribute('data-src');
+            io.unobserve(e.target);
+          }
+        });
+      }, { rootMargin: '100px' });
+      frames.forEach(function (f) { io.observe(f); });
     })();
   </script>
   {% endif %}
