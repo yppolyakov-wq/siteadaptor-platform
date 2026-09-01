@@ -3604,7 +3604,18 @@ AKTIONSMARKT = DemoKit(
     bundle="fokus_angebote",
     look="klar",
     # SF-4a: Merkzettel у магазина акций (grocery-дефолт опции — False).
-    config_patch={"hero_style": "split", "nav": {"cta": True}, "wishlist": True},
+    # DL-4: site_defaults.hero_widget — config_patch мерджится ПОСЛЕ сборки
+    # (латентный баг сидинга: _FOKUS_BASE.hero_widget="none" затирал плитки
+    # kit.hero_widget, комментарий ниже врал с DS-9) → плитки восстановлены.
+    config_patch={
+        "hero_style": "split",
+        "nav": {"cta": True},
+        "wishlist": True,
+        "site_defaults": {"hero_widget": "aktionsmarkt"},
+    },
+    # DL-4: акции на главной — витриной «Deal der Woche» (spotlight: featured-
+    # карточка + полоса «Endet bald»; макет-референс канваса Sparfuchs).
+    section_styles={"promotions": "spotlight"},
     subdomain="aktionsmarkt",
     # 2026-07-30: слайдер + плитки hero_widget="aktionsmarkt"
     # (Deals/Sortiment/Treuepunkte/Newsletter).
@@ -3632,7 +3643,9 @@ AKTIONSMARKT = DemoKit(
             "button_url": "/aktionen/",
         },
     ],
-    accent="#dc2626",  # Sale-Rot
+    # DL-4: поле — ФОЛБЭК без look'а; фактический акцент даёт look_accent
+    # (grocery×klar = зелёный), Sale-Rot живёт в чипах скидок (красные всегда).
+    accent="#dc2626",
     hero_image_kw="supermarket,sale",
     hero_title="Aktionsmarkt Sparfuchs",
     hero_text="Jede Woche neue Angebote — sparen bei allem, was Sie täglich brauchen.",

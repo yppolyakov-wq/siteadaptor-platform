@@ -589,6 +589,13 @@ def test_apply_aktionsmarkt_kit_covers_all_promo_types():
     faq_q = " ".join(p["q"] for p in tenant.site_config["faq"])
     assert "Überraschungstüte" in faq_q and "Countdown" in faq_q and "Gutschein" in faq_q
 
+    # DL-4: плитки первого экрана переживают сборку (config_patch мерджится
+    # ПОСЛЕ _FOKUS_BASE.hero_widget="none" — латентный баг сидинга закрыт),
+    # акции на главной — витриной «Deal der Woche».
+    assert tenant.site_config["site_defaults"]["hero_widget"] == "aktionsmarkt"
+    promo_row = next(s for s in tenant.site_config["sections"] if s["key"] == "promotions")
+    assert promo_row["style"] == "spotlight" and promo_row["enabled"] is True
+
 
 def test_apply_friseur_kit_booking_services():
     """Friseur: booking-услуги (цена+длительность) + ресурсы + брони в кабинете."""
