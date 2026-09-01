@@ -3771,7 +3771,7 @@ AKTIONSMARKT = DemoKit(
             "group": "Dauertiefpreis",
         },
         {
-            "title": "Cola Dauertiefpreis 0,79 €",
+            "title": "Limonade Dauertiefpreis 0,79 €",
             "product": 9,
             "new_price": "0.79",
             "discount_style": "strikethrough",
@@ -3947,7 +3947,7 @@ AKTIONSMARKT = DemoKit(
             [
                 _p("Orangensaft 1 L", "2.49", "100 % Direktsaft.", "orange,juice"),
                 _p("Mineralwasser 1,5 L", "0.79", "Spritzig oder still.", "water,bottle"),
-                _p("Cola 1,5 L", "1.49", "Eisgekühlt am besten.", "cola,bottle"),
+                _p("Limonade 1,5 L", "1.49", "Eisgekühlt am besten.", "lemonade,glass"),
                 _p("Gemahlener Kaffee 500 g", "6.90", "Kräftige Röstung.", "coffee,ground"),
             ],
             "red-wine",  # DS-9: фото плитки (было SVG)

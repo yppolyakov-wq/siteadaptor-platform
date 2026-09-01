@@ -233,7 +233,7 @@ license=cc0,pdm) и Wikimedia Commons (haswbstatement CC0/Public domain);
 - `clothing-rack.webp` — AI-generated, FLUX.1-schnell
 - `coffee.webp` — AI-generated, FLUX.1-schnell
 - `coffee-cafe.webp` — AI-generated, FLUX.1-schnell
-- `cola-bottle.webp` — AI-generated, FLUX.1-schnell
+- `lemonade-glass.webp` — AI-generated, FLUX.1-schnell
 - `cola-glass.webp` — AI-generated, FLUX.1-schnell
 - `cook-man.webp` — AI-generated, FLUX.1-schnell
 - `cooking-class.webp` — AI-generated, FLUX.1-schnell

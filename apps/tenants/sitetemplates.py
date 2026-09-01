@@ -755,6 +755,62 @@ def _fokus(extra: dict) -> dict:
     return cfg
 
 
+# DL-9b: ДНК ДИЛ-шаблонов (волна DL) — отдельная от Fokus: у акционного сайта
+# главный контент не «одно действие», а сами акции, поэтому trust не форсится,
+# а состав и ПОРЯДОК блоков каждая сборка задаёт сама (ось sections_order).
+# Общий знаменатель: CTA в шапке, плитки задач сняты, «шумные» разделы (команда/
+# галерея/портфолио/лендинги других модулей) выключены — их место занимает
+# композиция конкретного шаблона.
+_DEAL_BASE = {
+    "nav_cta": True,
+    "hero_widget": "none",
+    "sections_off": (
+        "archetypes",
+        "team",
+        "gallery",
+        "reviews",
+        "before_after",
+        "blog",
+        "services",
+        "events",
+        "tours",
+        "stay_search",
+        "stay_rooms",
+        "finder",
+        "anfrage",
+        "cta",
+    ),
+}
+
+
+def _deal(extra: dict) -> dict:
+    """Дил-сборка: общая ДНК + СВОЯ композиция (набор/порядок/виды блоков).
+
+    Всё, что сборка не включила явно, гасится: иначе пять шаблонов снова
+    сползлись бы в одну страницу с разными цветами (фидбэк 2026-09-01)."""
+    cfg = {
+        **_DEAL_BASE,
+        **{
+            k: v
+            for k, v in extra.items()
+            if k not in ("section_styles", "sections_on", "sections_off")
+        },
+    }
+    cfg["section_styles"] = dict(extra.get("section_styles", {}))
+    cfg["sections_on"] = tuple(extra.get("sections_on", ()))
+    # Гасим всё остальное известное — кроме включённого этой сборкой и hero
+    # (его судьбу сборка решает явно через sections_on/sections_off).
+    known = {key for key, _label, _default in siteconfig.SECTIONS}
+    always_keep = {"contact"}  # контакты/часы — на всех дил-шаблонах
+    off = (
+        set(_DEAL_BASE["sections_off"])
+        | (known - set(cfg["sections_on"]) - always_keep)
+        | set(extra.get("sections_off", ()))
+    ) - set(cfg["sections_on"])
+    cfg["sections_off"] = tuple(sorted(off))
+    return cfg
+
+
 BUNDLES = [
     {
         # Сервисный «цена + заявка» — прайс и форма прямо на главной (catering).
@@ -1029,13 +1085,28 @@ BUNDLES = [
         ),
         "recommended_for": (),
         "look": "prospekt",
-        "config": _fokus(
+        # V1: плакат-листовка — красная плита, ленты категорий, крупный дил,
+        # «как это работает» строкой и полоса преимуществ. Без рассказов о себе.
+        "config": _deal(
             {
-                # DL-8d (сверка с артбордом V1): hero — красная плита с крупной
-                # типографикой, не сплит с фото.
                 "hero_style": "accent",
-                "section_styles": {"promotions": "spotlight", "categories": "compact"},
-                "sections_on": ("promotions", "categories"),
+                "nav_style": "classic",
+                "sections_on": ("hero", "categories", "promotions", "process", "usp_bar"),
+                "sections_order": (
+                    "hero",
+                    "categories",
+                    "promotions",
+                    "process",
+                    "usp_bar",
+                    "contact",
+                ),
+                "section_styles": {
+                    "categories": "compact",
+                    "promotions": "spotlight",
+                    "process": "row",
+                    "usp_bar": "compact",
+                    "contact": "compact",
+                },
                 "page_presets": {"info": "bild", "cart": "vertrauen"},
             }
         ),
@@ -1046,10 +1117,37 @@ BUNDLES = [
         "description_de": _("Warmer Markt von nebenan: Creme, weiche Karten, viel Luft."),
         "recommended_for": (),
         "look": "frisch",
-        "config": _fokus(
+        # V2: рынок по соседству — фото-баннер, крупные плитки категорий, акции,
+        # затем ИСТОРИЯ (панель «о нас») и голоса гостей. Тёплый и неспешный.
+        "config": _deal(
             {
-                "section_styles": {"promotions": "spotlight", "categories": "square"},
-                "sections_on": ("promotions", "categories"),
+                "hero_style": "split",
+                "nav_style": "classic",
+                "sections_on": (
+                    "hero",
+                    "categories",
+                    "promotions",
+                    "about",
+                    "testimonials",
+                    "usp_bar",
+                ),
+                "sections_order": (
+                    "hero",
+                    "categories",
+                    "promotions",
+                    "about",
+                    "testimonials",
+                    "usp_bar",
+                    "contact",
+                ),
+                "section_styles": {
+                    "categories": "square",
+                    "promotions": "spotlight",
+                    "about": "accent",
+                    "testimonials": "quotes",
+                    "usp_bar": "plain",
+                    "contact": "split",
+                },
                 "page_presets": {"info": "geschichte", "cart": "vertrauen"},
             }
         ),
@@ -1060,10 +1158,29 @@ BUNDLES = [
         "description_de": _("Dunkler Deal-Jäger: Neon-Preise, große Timer, maximaler Kontrast."),
         "recommended_for": (),
         "look": "neon",
-        "config": _fokus(
+        # V3: охотник за скидками — АКЦИИ СРАЗУ под баннером, фото во всю плитку,
+        # затем короткие ответы и знаки доверия. Никаких рассказов и преимуществ.
+        "config": _deal(
             {
-                "section_styles": {"promotions": "spotlight", "categories": "compact"},
-                "sections_on": ("promotions", "categories"),
+                "hero_style": "split",
+                "nav_style": "classic",
+                "card_style": "overlay",
+                "sections_on": ("hero", "promotions", "categories", "faq", "trust"),
+                "sections_order": (
+                    "hero",
+                    "promotions",
+                    "categories",
+                    "faq",
+                    "trust",
+                    "contact",
+                ),
+                "section_styles": {
+                    "promotions": "spotlight",
+                    "categories": "compact",
+                    "faq": "list",
+                    "trust": "compact",
+                    "contact": "compact",
+                },
                 "page_presets": {"cart": "schlicht"},
             }
         ),
@@ -1074,12 +1191,31 @@ BUNDLES = [
         "description_de": _("Wochenzeitung der guten Preise: Serifen, Papier, feine Linien."),
         "recommended_for": (),
         "look": "blatt",
-        "config": _fokus(
+        # V4: газета недели — шапка по центру, полоса-оглавление, акции, затем
+        # ПРАЙС-ЛИСТ товаров, передовица «о нас» и пронумерованные вопросы.
+        "config": _deal(
             {
+                "hero_style": "split",
                 "nav_style": "centered",
                 "catalog_layout": {"preset": "preisliste"},
-                "section_styles": {"promotions": "spotlight", "categories": "compact"},
-                "sections_on": ("promotions", "categories"),
+                "sections_on": ("hero", "usp_bar", "promotions", "products", "about", "faq"),
+                "sections_order": (
+                    "hero",
+                    "usp_bar",
+                    "promotions",
+                    "products",
+                    "about",
+                    "faq",
+                    "contact",
+                ),
+                "section_styles": {
+                    "usp_bar": "pillars",
+                    "promotions": "spotlight",
+                    "products": "preisliste",
+                    "about": "plain",
+                    "faq": "numbered",
+                    "contact": "map_first",
+                },
                 "page_presets": {"info": "text", "cart": "schlicht"},
             }
         ),
@@ -1090,12 +1226,24 @@ BUNDLES = [
         "description_de": _("Nüchtern und dicht: Prozent zuerst, klare Listen, volle Übersicht."),
         "recommended_for": (),
         "look": "smart",
-        "config": _fokus(
+        # V5: утилитарный маркетплейс — БЕЗ баннера: сразу список акций
+        # «процент-первым», плотные карточки, три шага и знаки доверия строкой.
+        "config": _deal(
             {
                 "hero_style": "plain",
+                "nav_style": "minimal",
+                "card_style": "compact",
                 "catalog_layout": {"preset": "preisliste_foto"},
-                "section_styles": {"promotions": "rows", "categories": "compact"},
-                "sections_on": ("promotions", "categories"),
+                "sections_on": ("promotions", "categories", "process", "trust"),
+                "sections_off": ("hero",),
+                "sections_order": ("promotions", "categories", "process", "trust", "contact"),
+                "section_styles": {
+                    "promotions": "rows",
+                    "categories": "compact",
+                    "process": "minimal",
+                    "trust": "plain",
+                    "contact": "compact",
+                },
                 "page_presets": {"cart": "empfehlung"},
             }
         ),
@@ -1205,6 +1353,14 @@ def _apply_bundle_axes(config: dict, over: dict) -> None:
             row["enabled"] = True
         elif row["key"] in off:
             row["enabled"] = False
+    # DL-9a: ПОРЯДОК блоков главной — часть шаблона (до этой оси порядок задавал
+    # только шаблон архетипа, и сборки отличались лишь «кожей»). Сортировка
+    # стабильная: ключи вне списка сохраняют относительный порядок и уходят в
+    # конец, поэтому чужие секции конфига не теряются и не перемешиваются.
+    order = over.get("sections_order")
+    if order:
+        rank = {key: i for i, key in enumerate(order)}
+        config["sections"].sort(key=lambda row: rank.get(row["key"], len(rank)))
     # DL-3: страничные пресеты ST-2 — сборка красит и «О нас»/корзину, не только
     # главную. apply_page_preset идемпотентен и хранит блоки владельца.
     for host, preset_id in (over.get("page_presets") or {}).items():

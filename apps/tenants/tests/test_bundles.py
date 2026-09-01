@@ -100,7 +100,10 @@ def test_deal_bundles_universal_and_composed():
         assert b["look"] == key.removeprefix("deal_"), key
         cfg = b["config"]
         assert cfg["section_styles"]["promotions"] in ("spotlight", "rows"), key
-        assert "promotions" in cfg["sections_on"] and "categories" in cfg["sections_on"], key
+        # Акции — главный контент дил-шаблона (общее у всех пяти). Второй блок
+        # у каждого СВОЙ (DL-9: газета несёт прайс-лист вместо плиток категорий),
+        # поэтому «categories у всех» здесь больше не требуется — осознанно.
+        assert "promotions" in cfg["sections_on"], key
         assert not (set(cfg["sections_on"]) & set(cfg["sections_off"])), key
     for bt in ARCHETYPES:
         keys = {b["key"] for b in sitetemplates.bundles_for(bt)}
@@ -108,6 +111,47 @@ def test_deal_bundles_universal_and_composed():
     assert by_key["deal_smart"]["config"]["section_styles"]["promotions"] == "rows"
     assert by_key["deal_smart"]["config"]["hero_style"] == "plain"
     assert by_key["deal_blatt"]["config"]["nav_style"] == "centered"
+
+
+def test_deal_bundles_differ_structurally():
+    """DL-9 (фидбэк «выглядят одинаково, только цвет меняется»): у КАЖДОЙ пары
+    дил-шаблонов различается сама страница — набор блоков и/или их порядок,
+    а не только кожа. Замок держит инвариант при будущих правках реестра."""
+    by_key = {b["key"]: b["config"] for b in sitetemplates.BUNDLES}
+    shapes = {}
+    for key in DEAL_BUNDLES:
+        cfg = by_key[key]
+        shapes[key] = (tuple(cfg["sections_on"]), tuple(cfg.get("sections_order", ())))
+    for a in DEAL_BUNDLES:
+        for b in DEAL_BUNDLES:
+            if a < b:
+                assert shapes[a] != shapes[b], (a, b, shapes[a])
+    # Порядок задан у всех и начинается с главного блока шаблона.
+    assert by_key["deal_neon"]["sections_order"][1] == "promotions"  # акции сразу
+    assert "hero" not in by_key["deal_smart"]["sections_on"]  # маркетплейс без баннера
+    assert by_key["deal_smart"]["sections_order"][0] == "promotions"
+    assert "products" in by_key["deal_blatt"]["sections_on"]  # газета несёт прайс
+
+
+@pytest.mark.parametrize("key", ["deal_prospekt", "deal_neon", "deal_blatt", "deal_smart"])
+def test_sections_order_applied_and_survives_normalize(key):
+    """DL-9a: ось sections_order переставляет блоки главной и переживает
+    normalize (порядок — часть данных, не косметика)."""
+    tenant = TenantFactory(business_type="grocery")
+    assert sitetemplates.apply_bundle(tenant, key) is True
+    cfg = tenant.site_config
+    enabled = [s["key"] for s in cfg["sections"] if s["enabled"]]
+    wanted = [
+        k
+        for k in next(b for b in sitetemplates.BUNDLES if b["key"] == key)["config"][
+            "sections_order"
+        ]
+        if k in enabled
+    ]
+    assert enabled[: len(wanted)] == wanted, (key, enabled)
+    # Идемпотентность: повторное применение не перемешивает.
+    sitetemplates.apply_bundle(tenant, key)
+    assert [s["key"] for s in tenant.site_config["sections"] if s["enabled"]] == enabled
 
 
 def test_bundle_page_presets_seed_pages():
