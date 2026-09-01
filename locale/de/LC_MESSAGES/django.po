@@ -21307,3 +21307,12 @@ msgstr "Design testen"
 
 msgid "Vorschau"
 msgstr "Vorschau"
+
+msgid "Fotoform"
+msgstr "Fotoform"
+
+msgid "Rund"
+msgstr "Rund"
+
+msgid "Breit (16:9)"
+msgstr "Breit (16:9)"

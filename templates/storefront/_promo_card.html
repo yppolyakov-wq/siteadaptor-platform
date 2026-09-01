@@ -7,7 +7,7 @@
   {% include "storefront/_wish_heart.html" with kind="promotion" pos="absolute bottom-2 right-2" %}
 <a href="{% url 'storefront-promotion' p.pk %}"
    class="block focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
-  <div class="relative aspect-square bg-gray-100">
+  <div class="relative aspect-square bg-gray-100" data-sf-media-box>
     {% comment %}UE3-2: замена главного фото акции на канве (режим правки билдера).
     Hidden по умолчанию; раскрывает JS билдера при editOn. Пустая галерея акции →
     replace добавляет главное (фолбэк на фото товара цел).{% endcomment %}

@@ -503,6 +503,8 @@ def modules_nav(request):
         # DL-2: ХРОМ карточек ("" | hard | hairline | line) — рамка/тень
         # семейства Look'а; body несёт data-sf-chrome, правила в _base.html.
         "storefront_card_chrome": cfg["site_defaults"].get("card_chrome", ""),
+        # DL-10a: форма кадра на карточках (round | wide; "" = как в разметке).
+        "storefront_media_shape": cfg["site_defaults"].get("media_shape", ""),
         # DL-8b: семейство выбранного Look'а (body data-sf-look — фирменные
         # бейджи/цены варианта CSS-каскадом); в превью — из GET-оверлея (ниже).
         "storefront_look": (cfg.get("design") or {}).get("look", ""),

@@ -474,3 +474,33 @@ def test_builder_save_preserves_lookonly_site_defaults():
     assert "page_bg" not in sd
     assert "card_chrome" not in sd
     assert sd["hero_widget"] == "stays"  # E4-выбор переживает любой Save
+
+
+def test_media_shape_presence_minimal_and_rendered():
+    """DL-10 (фидбэк «сделать фото круглыми и отдельно горизонтальными»):
+    форма кадра — presence-minimal ключ site_defaults.media_shape; на витрине
+    выходит атрибутом body (CSS-каскад по помеченным медиа-боксам)."""
+    assert "media_shape" not in siteconfig.normalize({})["site_defaults"]
+    assert (
+        "media_shape"
+        not in siteconfig.normalize({"site_defaults": {"media_shape": "junk"}})["site_defaults"]
+    )
+    for shape in ("round", "wide"):
+        cfg = siteconfig.normalize({"site_defaults": {"media_shape": shape}})
+        assert cfg["site_defaults"]["media_shape"] == shape
+        tenant = TenantFactory.build(business_type="grocery", site_config=cfg)
+        assert f' data-sf-media="{shape}"' in _home(tenant)
+    # Без ключа атрибута нет — прежний вид карточек байт-в-байт.
+    assert " data-sf-media=" not in _home(TenantFactory.build(business_type="grocery"))
+
+
+def test_bundles_carry_media_shape():
+    """DL-10b: форма кадра — часть композиции шаблона (круглые у Frischmarkt,
+    широкие у Markthalle), остальные оставляют разметочную форму."""
+    tenant = TenantFactory(business_type="grocery")
+    sitetemplates.apply_bundle(tenant, "deal_frisch")
+    assert tenant.site_config["site_defaults"]["media_shape"] == "round"
+    sitetemplates.apply_bundle(tenant, "deal_blatt")
+    assert tenant.site_config["site_defaults"]["media_shape"] == "wide"
+    sitetemplates.apply_bundle(tenant, "deal_neon")
+    assert "media_shape" not in tenant.site_config["site_defaults"]

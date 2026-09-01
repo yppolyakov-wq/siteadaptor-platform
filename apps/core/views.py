@@ -1823,6 +1823,8 @@ def home_builder_view(request):
             "card_style": request.POST.get("sd_card_style", ""),
             # O-2: дефолтный вид выбора вариантов для всего магазина ("" = список).
             "variant_style": request.POST.get("sd_variant_style", ""),
+            # DL-10: форма кадра на карточках ("" = как в разметке).
+            "media_shape": request.POST.get("sd_media_shape", ""),
             # DL-2: фон страницы и хром карточек Look'а — hidden-инпуты
             # (round-trip, W0; их выставляет и клик по Look-карточке).
             "page_bg": request.POST.get("sd_page_bg", ""),
@@ -2360,6 +2362,7 @@ def home_builder_view(request):
             "card_bg": config["site_defaults"]["card_bg"],
             "card_padding": config["site_defaults"]["card_padding"],
             "card_style": config["site_defaults"].get("card_style", ""),  # ST-7c
+            "media_shape": config["site_defaults"].get("media_shape", ""),  # DL-10
             # DL-2: префилл hidden-инпутов round-trip'а (фон страницы + хром).
             "page_bg": config["site_defaults"].get("page_bg", ""),
             "card_chrome": config["site_defaults"].get("card_chrome", ""),

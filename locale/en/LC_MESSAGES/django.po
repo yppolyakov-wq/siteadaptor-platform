@@ -21263,3 +21263,12 @@ msgstr "Try a design"
 
 msgid "Vorschau"
 msgstr "Preview"
+
+msgid "Fotoform"
+msgstr "Photo shape"
+
+msgid "Rund"
+msgstr "Round"
+
+msgid "Breit (16:9)"
+msgstr "Wide (16:9)"

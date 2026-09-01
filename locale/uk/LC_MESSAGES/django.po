@@ -21471,3 +21471,12 @@ msgstr "Приміряти дизайн"
 
 msgid "Vorschau"
 msgstr "Попередній перегляд"
+
+msgid "Fotoform"
+msgstr "Форма фото"
+
+msgid "Rund"
+msgstr "Круглі"
+
+msgid "Breit (16:9)"
+msgstr "Широкі (16:9)"

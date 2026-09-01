@@ -20,7 +20,7 @@ square — 1:1, tall — 3:4, wide — 16:9. Колонки берутся из 
 {% if is_preview %}
   <div class="sf-card block bg-white rounded-xl shadow-sm overflow-hidden border border-transparent">
     {% if c.image_url %}
-      <span class="block {{ cat_aspect|default:'aspect-[4/3]' }} bg-gray-100"><img src="{{ c.image_url }}" alt="{{ c }}" loading="lazy" class="w-full h-full object-cover"></span>
+      <span class="block {{ cat_aspect|default:'aspect-[4/3]' }} bg-gray-100" data-sf-media-box><img src="{{ c.image_url }}" alt="{{ c }}" loading="lazy" class="w-full h-full object-cover"></span>
     {% endif %}
     <span class="flex items-center justify-center gap-1 p-3 text-center font-medium {% if not c.image_url %}min-h-[5rem]{% endif %}">
       <span data-cat-edit="{{ c.pk }}">{{ c }}</span>
@@ -38,7 +38,7 @@ square — 1:1, tall — 3:4, wide — 16:9. Колонки берутся из 
      class="sf-card block bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md hover:border-indigo-300 border {% if cat_active %}border-indigo-400{% else %}border-transparent{% endif %} transition">
     {% if c.image_url %}
       {% comment %}DS-5: заданная высота фото (px из Studio) сильнее аспекта.{% endcomment %}
-      <span class="block bg-gray-100 {% if not cat_img_h %}{{ cat_aspect|default:'aspect-[4/3]' }}{% endif %}"{% if cat_img_h %} style="height: {{ cat_img_h }}px;"{% endif %}><img src="{{ c.image_url }}" alt="{{ c }}" loading="lazy" class="w-full h-full object-cover"></span>
+      <span class="block bg-gray-100 {% if not cat_img_h %}{{ cat_aspect|default:'aspect-[4/3]' }}{% endif %}" data-sf-media-box{% if cat_img_h %} style="height: {{ cat_img_h }}px;"{% endif %}><img src="{{ c.image_url }}" alt="{{ c }}" loading="lazy" class="w-full h-full object-cover"></span>
     {% endif %}
     <span class="block p-3 text-center {% if not c.image_url %}min-h-[5rem] flex flex-col justify-center{% endif %}">
       <span class="font-medium">{{ c }}</span>

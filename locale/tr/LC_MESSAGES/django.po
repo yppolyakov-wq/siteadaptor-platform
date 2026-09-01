@@ -21390,3 +21390,12 @@ msgstr "Tasarımı dene"
 
 msgid "Vorschau"
 msgstr "Önizleme"
+
+msgid "Fotoform"
+msgstr "Fotoğraf biçimi"
+
+msgid "Rund"
+msgstr "Yuvarlak"
+
+msgid "Breit (16:9)"
+msgstr "Geniş (16:9)"

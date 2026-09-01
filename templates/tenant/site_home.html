@@ -339,6 +339,15 @@
                 <option value="compact" {% if card_style == 'compact' %}selected{% endif %}>{% trans "Kompakte Zeile" %}</option>
               </select>
             </label>
+            {# DL-10: ФОРМА КАДРА — квадрат (как в разметке) / круглое фото / шире. #}
+            <label class="text-sm">
+              <span class="block font-medium mb-1">{% trans "Fotoform" %}</span>
+              <select name="sd_media_shape" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+                <option value="">{% trans "Standard" %}</option>
+                <option value="round" {% if media_shape == 'round' %}selected{% endif %}>{% trans "Rund" %}</option>
+                <option value="wide" {% if media_shape == 'wide' %}selected{% endif %}>{% trans "Breit (16:9)" %}</option>
+              </select>
+            </label>
           </div>
           <p class="text-xs text-gray-400 mt-2">{% trans "Applies to all cards across the site; a single block can override it." %}</p>
         </div>
@@ -2198,6 +2207,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       var sdBg = form.querySelector("input[name='sd_card_bg']");
       // ST-7c: форма карточки (select sd_card_style; "" = прежняя).
       var sdStyle = form.querySelector("select[name='sd_card_style']");
+      // DL-10: форма кадра (select sd_media_shape; "" = как в разметке).
+      var sdMedia = form.querySelector("select[name='sd_media_shape']");
       // DL-2: фон страницы + хром карточек (hidden, их выставляет Look-клик).
       var sdPageBg = form.querySelector("input[name='sd_page_bg']");
       var sdChrome = form.querySelector("input[name='sd_card_chrome']");
@@ -2207,6 +2218,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         card_padding: sdPad && sdPad.value !== "" ? parseInt(sdPad.value, 10) || 0 : 0,
         card_bg: sdBgOn && sdBgOn.checked && sdBg ? sdBg.value : "",
         card_style: sdStyle ? sdStyle.value : "",
+        media_shape: sdMedia ? sdMedia.value : "",
         page_bg: sdPageBg ? sdPageBg.value : "",
         card_chrome: sdChrome ? sdChrome.value : "",
       };

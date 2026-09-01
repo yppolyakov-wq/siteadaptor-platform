@@ -76,6 +76,19 @@
     .dark [data-sf-chrome="hard"] .sf-card, .dark [data-sf-chrome="hard"] .cb-box { border-color: #3f3f46; box-shadow: 5px 5px 0 rgba(0, 0, 0, .55) !important; }
     .dark [data-sf-chrome="hairline"] .sf-card, .dark [data-sf-chrome="hairline"] .cb-box,
     .dark [data-sf-chrome="line"] .sf-card, .dark [data-sf-chrome="line"] .cb-box { border-color: rgba(255, 255, 255, .16); }
+    /* DL-10 (фидбэк владельца): ФОРМА кадра на карточках — body data-sf-media.
+       "wide" — шире (16:9, «полосой»); "round" — круглое фото по центру карточки.
+       Помечены только те боксы, где подпись НЕ лежит поверх кадра (overlay-
+       карточки исключены — круглый кроп срезал бы текст). Без атрибута —
+       форма из разметки (квадрат / 3:2 / 4:3), т.е. прежний вид. */
+    [data-sf-media="wide"] [data-sf-media-box] { aspect-ratio: 16 / 9 !important; height: auto !important; }
+    [data-sf-media="round"] [data-sf-media-box] {
+      aspect-ratio: 1 / 1 !important; height: auto !important;
+      width: 62%; margin: 0.75rem auto 0; border-radius: 9999px; overflow: hidden;
+    }
+    /* Круг: бейдж скидки уезжает к краю кадра — держим его в пределах карточки. */
+    [data-sf-media="round"] [data-sf-media-box] > span[class*="absolute"],
+    [data-sf-media="round"] [data-sf-media-box] > .absolute { left: 0.25rem; top: 0.25rem; }
     /* DL-5: контраст поверх акцент-фона — жёсткий text-white в 36 CTA нечитаем на
        светлом акценте (лайм neon, янтарь warm); ink считает сервер по яркости. */
     [style*="background: var(--accent)"], [style*="background:var(--accent)"] { color: var(--accent-ink, #ffffff) !important; }
@@ -100,7 +113,7 @@
     document.documentElement.classList.add("js-opt");
   </script>
 </head>
-<body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col overflow-x-hidden"{% if storefront_card_chrome %} data-sf-chrome="{{ storefront_card_chrome }}"{% endif %}{% if storefront_look %} data-sf-look="{{ storefront_look }}"{% endif %}{% if storefront_card_radius or storefront_card_shadow or storefront_card_bg or storefront_card_padding %} style="{% if storefront_card_radius %}--sf-r:{{ storefront_card_radius }}px;{% endif %}{% if storefront_card_shadow %}--sf-sh:0 10px 25px -8px rgba(0,0,0,.18);{% endif %}{% if storefront_card_bg %}--sf-bg:{{ storefront_card_bg }};{% endif %}{% if storefront_card_padding %}--sf-pad:{{ storefront_card_padding }}px;{% endif %}"{% endif %}>
+<body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col overflow-x-hidden"{% if storefront_card_chrome %} data-sf-chrome="{{ storefront_card_chrome }}"{% endif %}{% if storefront_look %} data-sf-look="{{ storefront_look }}"{% endif %}{% if storefront_media_shape %} data-sf-media="{{ storefront_media_shape }}"{% endif %}{% if storefront_card_radius or storefront_card_shadow or storefront_card_bg or storefront_card_padding %} style="{% if storefront_card_radius %}--sf-r:{{ storefront_card_radius }}px;{% endif %}{% if storefront_card_shadow %}--sf-sh:0 10px 25px -8px rgba(0,0,0,.18);{% endif %}{% if storefront_card_bg %}--sf-bg:{{ storefront_card_bg }};{% endif %}{% if storefront_card_padding %}--sf-pad:{{ storefront_card_padding }}px;{% endif %}"{% endif %}>
   {% comment %}M20 ④: шапка витрины — стиль (classic/centered/minimal), sticky и
   пункты из настроек (storefront_nav). Мобильный бургер раскрывает меню на
   телефоне; стиль minimal прячет ссылки и на десктопе (всё в бургере).{% endcomment %}

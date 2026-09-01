@@ -1123,6 +1123,7 @@ BUNDLES = [
             {
                 "hero_style": "split",
                 "nav_style": "classic",
+                "media_shape": "round",
                 "sections_on": (
                     "hero",
                     "categories",
@@ -1197,6 +1198,7 @@ BUNDLES = [
             {
                 "hero_style": "split",
                 "nav_style": "centered",
+                "media_shape": "wide",
                 "catalog_layout": {"preset": "preisliste"},
                 "sections_on": ("hero", "usp_bar", "promotions", "products", "about", "faq"),
                 "sections_order": (
@@ -1322,6 +1324,11 @@ def _apply_bundle_axes(config: dict, over: dict) -> None:
         config["nav"] = nav
     if over.get("catalog_layout"):
         config["catalog_layout"] = dict(over["catalog_layout"])
+    # DL-10b: форма кадра (круглые/широкие фото) — часть композиции шаблона.
+    if over.get("media_shape"):
+        sd = dict(config.get("site_defaults") or {})
+        sd["media_shape"] = over["media_shape"]
+        config["site_defaults"] = sd
     # DS-9: форма карточек (мода — фото во всю плитку).
     if over.get("card_style"):
         sd = dict(config.get("site_defaults") or {})

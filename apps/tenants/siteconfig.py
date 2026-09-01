@@ -1178,6 +1178,11 @@ def normalize_site_defaults(raw) -> dict:
     # текущая форма → golden целы).
     if sd.get("card_style") in ("overlay", "compact"):
         out["card_style"] = sd["card_style"]
+    # DL-10a (фидбэк владельца): ФОРМА кадра на карточках — "round" (круглые
+    # фото) | "wide" (шире, 16:9). Пусто = зашитый в разметку вид (квадрат /
+    # 3:2 / 4:3), поэтому ключ presence-minimal и golden-эталоны целы.
+    if sd.get("media_shape") in ("round", "wide"):
+        out["media_shape"] = sd["media_shape"]
     # O-2 (2026-08-01): дефолтный вид выбора вариантов для всего магазина; товар
     # может его переопределить. Ключ ТОЛЬКО при валидном не-пустом значении
     # ("" = выпадающий список, как раньше → golden целы).

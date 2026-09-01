@@ -37,7 +37,7 @@ overlay ⇒ заголовок поверх фото в вертикальной
   {% if card.image_url %}
     {% if card.kind == "stay" %}<div class="{% if card_style == "overlay" %}relative {% endif %}aspect-[4/3] bg-gray-100"><img src="{{ card.image_url }}" alt="{{ card.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover">{% if card_style == "overlay" %}<div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-4 pb-3 pt-10"><span class="text-white font-semibold text-lg"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="name"{% endif %}>{{ card.name }}</span></div>{% endif %}</div>
     {% elif card_style == "overlay" %}<div class="relative"><img src="{{ card.image_url }}" alt="{{ card.name }}" loading="lazy" decoding="async" class="w-full aspect-[3/2] object-cover"><div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-4 pb-3 pt-10"><span class="text-white font-semibold text-lg"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="name"{% endif %}>{{ card.name }}</span></div></div>
-    {% else %}<img src="{{ card.image_url }}" alt="{{ card.name }}" loading="lazy" decoding="async" class="w-full aspect-[3/2] object-cover">{% endif %}
+    {% else %}<span class="block aspect-[3/2] bg-gray-100" data-sf-media-box><img src="{{ card.image_url }}" alt="{{ card.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover"></span>{% endif %}
   {% endif %}
   <div class="p-5">
     {% if card_style == "overlay" and card.image_url %}{% comment %}имя уже поверх фото{% endcomment %}
