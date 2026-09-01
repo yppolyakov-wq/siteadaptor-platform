@@ -186,7 +186,7 @@
         <div class="grid grid-cols-3 gap-2">
           {% for lk in looks %}
             <button type="button" class="bld-look rounded-xl border border-gray-200 p-3 text-left hover:ring-1 hover:ring-indigo-300"
-                    data-look='{"accent":"{{ lk.accent }}","font":"{{ lk.font }}","hero_style":"{{ lk.hero_style }}","theme":"{{ lk.theme }}","nav_style":"{{ lk.nav_style }}","weight_head":{{ lk.typography.weight_head|stringformat:"d" }},"line_height":{{ lk.typography.line_height|stringformat:"g" }},"card_radius":{{ lk.site_defaults.card_radius|stringformat:"d" }},"card_shadow":{{ lk.site_defaults.card_shadow|yesno:"true,false" }},"card_padding":{{ lk.site_defaults.card_padding|stringformat:"d" }},"card_bg":"{{ lk.site_defaults.card_bg }}"}'>
+                    data-look='{"accent":"{{ lk.accent }}","font":"{{ lk.font }}","hero_style":"{{ lk.hero_style }}","theme":"{{ lk.theme }}","nav_style":"{{ lk.nav_style }}","weight_head":{{ lk.typography.weight_head|stringformat:"d" }},"line_height":{{ lk.typography.line_height|stringformat:"g" }},"card_radius":{{ lk.site_defaults.card_radius|stringformat:"d" }},"card_shadow":{{ lk.site_defaults.card_shadow|yesno:"true,false" }},"card_padding":{{ lk.site_defaults.card_padding|stringformat:"d" }},"card_bg":"{{ lk.site_defaults.card_bg }}","page_bg":"{{ lk.site_defaults.page_bg|default:'' }}","card_chrome":"{{ lk.site_defaults.card_chrome|default:'' }}","card_style":"{{ lk.site_defaults.card_style|default:'' }}"}'>
               <span class="flex items-center gap-2">
                 <span class="inline-block w-3 h-3 rounded-full shrink-0" style="background: {{ lk.accent }};"></span>
                 <span class="text-sm font-medium">{{ lk.label }}</span>
@@ -242,6 +242,11 @@
               setVal(form, "input[name='sd_card_padding']", String(lk.card_padding || 0));
               setChecked(form, "input[name='sd_card_bg_on']", !!lk.card_bg);
               if (lk.card_bg) setVal(form, "input[name='sd_card_bg']", lk.card_bg);
+              // DL-2: фон страницы + хром + форма карточки семейства ("" законно —
+              // Look без ключа снимает прежнее значение).
+              setVal(form, "input[name='sd_page_bg']", lk.page_bg || "");
+              setVal(form, "input[name='sd_card_chrome']", lk.card_chrome || "");
+              setVal(form, "select[name='sd_card_style']", lk.card_style || "");
             });
           });
         })();
@@ -254,6 +259,9 @@
         <p class="text-xs text-gray-400 mb-4">{% trans "Accent colour, font and banner style — the preview updates as you change them." %}</p>
         {# ST-1b: тема сайта (тёмный Look) — hidden, round-trip при Save (W0-инвариант). #}
         <input type="hidden" name="theme" id="bld-theme" value="{{ theme }}">
+        {# DL-2: фон страницы + хром карточек Look'а — hidden, round-trip при Save (их выставляет клик по Look-карточке; без контролов Save их стирал бы). #}
+        <input type="hidden" name="sd_page_bg" value="{{ page_bg }}">
+        <input type="hidden" name="sd_card_chrome" value="{{ card_chrome }}">
         <div class="grid sm:grid-cols-3 gap-4">
           <label class="text-sm">
             <span class="block font-medium mb-1">{% trans "Accent colour" %}</span>
@@ -2190,12 +2198,17 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       var sdBg = form.querySelector("input[name='sd_card_bg']");
       // ST-7c: форма карточки (select sd_card_style; "" = прежняя).
       var sdStyle = form.querySelector("select[name='sd_card_style']");
+      // DL-2: фон страницы + хром карточек (hidden, их выставляет Look-клик).
+      var sdPageBg = form.querySelector("input[name='sd_page_bg']");
+      var sdChrome = form.querySelector("input[name='sd_card_chrome']");
       payload.site_defaults = {
         card_radius: sdR ? parseInt(sdR.value, 10) || 0 : 0,
         card_shadow: !!(sdSh && sdSh.checked),
         card_padding: sdPad && sdPad.value !== "" ? parseInt(sdPad.value, 10) || 0 : 0,
         card_bg: sdBgOn && sdBgOn.checked && sdBg ? sdBg.value : "",
         card_style: sdStyle ? sdStyle.value : "",
+        page_bg: sdPageBg ? sdPageBg.value : "",
+        card_chrome: sdChrome ? sdChrome.value : "",
       };
     }
     // UC6-7b: C-блоки СТРАНИЦ (pb-строки) → черновик {хост: [entry,…]}. Шлём ВСЕ

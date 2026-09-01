@@ -1194,6 +1194,12 @@ def normalize_site_defaults(raw) -> dict:
     # не применяется (правило в _base.html скоуплено html:not(.dark)).
     if _clean_bg(sd.get("page_bg")):
         out["page_bg"] = _clean_bg(sd.get("page_bg"))
+    # DL-2: ХРОМ карточек (рамка/тень как у семейства): hard — толстая рамка +
+    # жёсткая тень (проспект), hairline — волосяная линейка без тени (газета),
+    # line — тонкая рамка (утилитарный/тёмный). Ключ ТОЛЬКО при валидном
+    # значении ("" = прежний облик → golden целы).
+    if sd.get("card_chrome") in ("hard", "hairline", "line"):
+        out["card_chrome"] = sd["card_chrome"]
     return out
 
 

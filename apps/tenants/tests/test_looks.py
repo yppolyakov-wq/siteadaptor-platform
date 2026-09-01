@@ -17,21 +17,49 @@ pytestmark = pytest.mark.django_db
 ARCHETYPES = [k for k, _ in Tenant.BUSINESS_TYPES if k != "other"]
 
 
-def test_registry_shape_five_looks_per_archetype():
-    # DS-1 (2026-08-12): +Fein/Natur — 5 семейств × 15 типов = 75 Look'ов.
-    assert len(sitetemplates.LOOK_FAMILIES) == 5
+def test_registry_shape_ten_looks_per_archetype():
+    # DS-1: +Fein/Natur; DL-2 (2026-09-01): +5 «акционных» семейств —
+    # 10 семейств × 15 типов = 150 Look'ов.
+    assert len(sitetemplates.LOOK_FAMILIES) == 10
     keys = [f["key"] for f in sitetemplates.LOOK_FAMILIES]
-    assert keys == ["klar", "warm", "nacht", "fein", "natur"]
+    assert keys == [
+        "klar",
+        "warm",
+        "nacht",
+        "fein",
+        "natur",
+        "prospekt",
+        "frisch",
+        "neon",
+        "blatt",
+        "smart",
+    ]
     assert len(ARCHETYPES) == 15
     for bt in ARCHETYPES:
         looks = sitetemplates.looks_for(bt)
         assert [lk["key"] for lk in looks] == keys
         for lk in looks:
             assert lk["accent"].startswith("#")
-    # DS-1: кортежи акцентов индексируются позицией семейства — у КАЖДОГО типа
-    # ровно 5 колонок (рассинхрон дал бы IndexError/чужой акцент молча).
+    # Кортежи акцентов индексируются позицией семейства — у КАЖДОГО типа
+    # ровно 10 колонок (рассинхрон дал бы IndexError/чужой акцент молча).
     for bt, accents in sitetemplates.ARCHETYPE_LOOK_ACCENTS.items():
-        assert len(accents) == 5, bt
+        assert len(accents) == 10, bt
+    # DL-2: у каждого семейства полный набор ключей, который _apply читает
+    # без гардов (KeyError на проде — незабываемый способ узнать об опечатке).
+    for fam in sitetemplates.LOOK_FAMILIES:
+        for req in (
+            "key",
+            "label",
+            "description_de",
+            "font",
+            "typography",
+            "site_defaults",
+            "nav_style",
+            "hero_style",
+            "theme",
+        ):
+            assert req in fam, (fam.get("key"), req)
+        assert fam["font"] in siteconfig.FONTS, fam["key"]
 
 
 def test_normalize_theme_presence_minimal():
@@ -175,7 +203,7 @@ def test_wizard_stil_slide_looks_gallery_and_apply():
         return request
 
     ctx = setup_steps._ctx_template(_req())
-    assert [lk["key"] for lk in ctx["looks"]] == ["klar", "warm", "nacht", "fein", "natur"]
+    assert [lk["key"] for lk in ctx["looks"]] == [f["key"] for f in sitetemplates.LOOK_FAMILIES]
 
     # POST с look → применяется семейство (serif у warm), template игнорируется.
     setup_steps._post_template(_req("post", {"look": "warm", "template": "laden"}))
@@ -289,3 +317,90 @@ def test_page_bg_presence_minimal():
     assert "page_bg" not in junk["site_defaults"]
     ok = siteconfig.normalize({"site_defaults": {"page_bg": "#faf7f2"}})
     assert ok["site_defaults"]["page_bg"] == "#faf7f2"
+
+
+def test_card_chrome_presence_minimal_and_rendered():
+    """DL-2: хром карточек — presence-minimal ключ; body несёт data-sf-chrome."""
+    assert "card_chrome" not in siteconfig.normalize({})["site_defaults"]
+    junk = siteconfig.normalize({"site_defaults": {"card_chrome": "loud"}})
+    assert "card_chrome" not in junk["site_defaults"]
+    for value in ("hard", "hairline", "line"):
+        ok = siteconfig.normalize({"site_defaults": {"card_chrome": value}})
+        assert ok["site_defaults"]["card_chrome"] == value
+    # Атрибут на <body> — с пробелом-префиксом (CSS-правила [data-sf-chrome=…]
+    # в <style> есть на каждой странице, голый маркер дал бы ложный матч).
+    tenant = TenantFactory.build(site_config={"site_defaults": {"card_chrome": "hard"}})
+    assert ' data-sf-chrome="hard"' in _home(tenant)
+    assert ' data-sf-chrome="' not in _home(TenantFactory.build())
+
+
+def test_new_family_preview_overlay():
+    """DL-2: stateless-превью работает и для новых семейств (шрифт+хром+фон)."""
+    tenant = TenantFactory.build(business_type="grocery", primary_color="#4f46e5")
+    html = _home(tenant, "?preview=1&look=prospekt")
+    assert "Barlow Condensed" in html  # --font-head семейства
+    assert 'data-sf-chrome="hard"' in html
+    assert sitetemplates.look_accent("grocery", "prospekt") in html
+    html = _home(tenant, "?preview=1&look=neon")
+    assert 'var tenantDark = "dark" === "dark"' in html
+    html = _home(tenant, "?preview=1&look=blatt")
+    assert "Playfair Display" in html
+    assert "#f7f5f0" in html  # page_bg газеты
+
+
+def test_builder_save_preserves_lookonly_site_defaults():
+    """DL-2 (класс W0/W6): Save билдера БЕЗ hidden-инпутов не стирает
+    page_bg/card_chrome/hero_widget; с инпутами — пишет присланное."""
+    import uuid as _uuid
+
+    from django.contrib.auth import get_user_model
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.core import views as core_views
+
+    tenant = TenantFactory(
+        business_type="grocery",
+        site_config={
+            "site_defaults": {
+                "page_bg": "#faf6ef",
+                "card_chrome": "hard",
+                "hero_widget": "stays",
+            }
+        },
+    )
+
+    def _post(data):
+        request = RequestFactory().post("/dashboard/site/home/", data)
+        SessionMiddleware(lambda r: None).process_request(request)
+        MessageMiddleware(lambda r: None).process_request(request)
+        o = _uuid.uuid4().hex[:8]
+        request.user = get_user_model().objects.create_user(
+            username=f"o-{o}", email=f"o-{o}@t.de", password="pw12345678"
+        )
+        request.tenant = tenant
+        return core_views.home_builder_view(request)
+
+    # Save-форма без DL-2 hidden-инпутов (старый клиент/другая область).
+    assert _post({"font": "system"}).status_code == 302
+    tenant.refresh_from_db()
+    sd = tenant.site_config["site_defaults"]
+    assert sd["page_bg"] == "#faf6ef"
+    assert sd["card_chrome"] == "hard"
+    assert sd["hero_widget"] == "stays"
+    # С инпутами — присланные значения побеждают ("" законно снимает ключ).
+    assert (
+        _post({"font": "system", "sd_page_bg": "#f4f6f9", "sd_card_chrome": "line"}).status_code
+        == 302
+    )
+    tenant.refresh_from_db()
+    sd = tenant.site_config["site_defaults"]
+    assert sd["page_bg"] == "#f4f6f9"
+    assert sd["card_chrome"] == "line"
+    assert _post({"font": "system", "sd_page_bg": "", "sd_card_chrome": ""}).status_code == 302
+    tenant.refresh_from_db()
+    sd = tenant.site_config["site_defaults"]
+    assert "page_bg" not in sd
+    assert "card_chrome" not in sd
+    assert sd["hero_widget"] == "stays"  # E4-выбор переживает любой Save

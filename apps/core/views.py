@@ -1807,6 +1807,7 @@ def home_builder_view(request):
         }
         # SE-2d: глобальный стиль карточек («весь сайт»). normalize_site_defaults
         # клампит radius (0..24) и приводит мусор к 0 → дефолт = текущее поведение.
+        prev_sd = dict(config.get("site_defaults") or {})
         config["site_defaults"] = {
             "card_radius": request.POST.get("sd_card_radius", ""),
             "card_shadow": request.POST.get("sd_card_shadow") == "on",
@@ -1822,7 +1823,20 @@ def home_builder_view(request):
             "card_style": request.POST.get("sd_card_style", ""),
             # O-2: дефолтный вид выбора вариантов для всего магазина ("" = список).
             "variant_style": request.POST.get("sd_variant_style", ""),
+            # DL-2: фон страницы и хром карточек Look'а — hidden-инпуты
+            # (round-trip, W0; их выставляет и клик по Look-карточке).
+            "page_bg": request.POST.get("sd_page_bg", ""),
+            "card_chrome": request.POST.get("sd_card_chrome", ""),
         }
+        # DL-2 (класс W0/W6): ключи БЕЗ контролов в форме билдера переживают Save
+        # из прежнего конфига — иначе пересборка site_defaults их стирала
+        # (page_bg/hero_widget терялись первым же сохранением билдера).
+        if "sd_page_bg" not in request.POST and prev_sd.get("page_bg"):
+            config["site_defaults"]["page_bg"] = prev_sd["page_bg"]
+        if "sd_card_chrome" not in request.POST and prev_sd.get("card_chrome"):
+            config["site_defaults"]["card_chrome"] = prev_sd["card_chrome"]
+        if prev_sd.get("hero_widget"):
+            config["site_defaults"]["hero_widget"] = prev_sd["hero_widget"]
         # S4: стартовая страница витрины (общая главная или один архетип).
         config["storefront_root"] = request.POST.get("storefront_root", "home").strip() or "home"
         # SE-7c: область «Меню» — стиль шапки + sticky. Presence-guard (правим лишь когда
@@ -2346,6 +2360,9 @@ def home_builder_view(request):
             "card_bg": config["site_defaults"]["card_bg"],
             "card_padding": config["site_defaults"]["card_padding"],
             "card_style": config["site_defaults"].get("card_style", ""),  # ST-7c
+            # DL-2: префилл hidden-инпутов round-trip'а (фон страницы + хром).
+            "page_bg": config["site_defaults"].get("page_bg", ""),
+            "card_chrome": config["site_defaults"].get("card_chrome", ""),
             # O-2: дефолтный вид выбора вариантов + реестр видов для селекта.
             "variant_style": config["site_defaults"].get("variant_style", ""),
             "variant_styles": VARIANT_STYLES,

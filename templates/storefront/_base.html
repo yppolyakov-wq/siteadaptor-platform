@@ -62,6 +62,16 @@
     [style*="--sf-sh"] .cb-box { box-shadow: var(--sf-sh); }
     [style*="--sf-bg"] .cb-box { background: var(--sf-bg); }
     [style*="--sf-pad"] .cb-box { padding: var(--sf-pad); }
+    /* DL-2: ХРОМ карточек семейства Look'а (body data-sf-chrome). hard — рамка
+       2px + жёсткая тень (проспект), hairline — волосяная линейка без тени
+       (газета), line — тонкая рамка (утилитарный/тёмный). Без атрибута —
+       прежний облик; тёмная тема несёт свои цвета рамок ниже. */
+    [data-sf-chrome="hard"] .sf-card, [data-sf-chrome="hard"] .cb-box { border: 2px solid #171717; box-shadow: 5px 5px 0 #171717 !important; }
+    [data-sf-chrome="hairline"] .sf-card, [data-sf-chrome="hairline"] .cb-box { border: 1px solid rgba(23, 23, 23, .22); box-shadow: none !important; }
+    [data-sf-chrome="line"] .sf-card, [data-sf-chrome="line"] .cb-box { border: 1px solid rgba(23, 23, 23, .14); box-shadow: none !important; }
+    .dark [data-sf-chrome="hard"] .sf-card, .dark [data-sf-chrome="hard"] .cb-box { border-color: #3f3f46; box-shadow: 5px 5px 0 rgba(0, 0, 0, .55) !important; }
+    .dark [data-sf-chrome="hairline"] .sf-card, .dark [data-sf-chrome="hairline"] .cb-box,
+    .dark [data-sf-chrome="line"] .sf-card, .dark [data-sf-chrome="line"] .cb-box { border-color: rgba(255, 255, 255, .16); }
     /* Выразительная типошкала: плотнее трекинг и баланс переносов в заголовках. */
     h1, h2, h3 { letter-spacing: -0.02em; text-wrap: balance; }
     /* P2b: scroll-reveal — только при разрешённом движении (WCAG 2.3.3). Скрытое
@@ -83,7 +93,7 @@
     document.documentElement.classList.add("js-opt");
   </script>
 </head>
-<body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col overflow-x-hidden"{% if storefront_card_radius or storefront_card_shadow or storefront_card_bg or storefront_card_padding %} style="{% if storefront_card_radius %}--sf-r:{{ storefront_card_radius }}px;{% endif %}{% if storefront_card_shadow %}--sf-sh:0 10px 25px -8px rgba(0,0,0,.18);{% endif %}{% if storefront_card_bg %}--sf-bg:{{ storefront_card_bg }};{% endif %}{% if storefront_card_padding %}--sf-pad:{{ storefront_card_padding }}px;{% endif %}"{% endif %}>
+<body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col overflow-x-hidden"{% if storefront_card_chrome %} data-sf-chrome="{{ storefront_card_chrome }}"{% endif %}{% if storefront_card_radius or storefront_card_shadow or storefront_card_bg or storefront_card_padding %} style="{% if storefront_card_radius %}--sf-r:{{ storefront_card_radius }}px;{% endif %}{% if storefront_card_shadow %}--sf-sh:0 10px 25px -8px rgba(0,0,0,.18);{% endif %}{% if storefront_card_bg %}--sf-bg:{{ storefront_card_bg }};{% endif %}{% if storefront_card_padding %}--sf-pad:{{ storefront_card_padding }}px;{% endif %}"{% endif %}>
   {% comment %}M20 ④: шапка витрины — стиль (classic/centered/minimal), sticky и
   пункты из настроек (storefront_nav). Мобильный бургер раскрывает меню на
   телефоне; стиль minimal прячет ссылки и на десктопе (всё в бургере).{% endcomment %}

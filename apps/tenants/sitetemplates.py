@@ -201,7 +201,9 @@ _BY_KEY = {t["key"]: t for t in TEMPLATES}
 # ST-1 «Каталог Look'ов» (план st1-looks-plan-2026-07-19): Look = целостный
 # визуальный образ = СЕМЕЙСТВО (шрифт/типографика/карточки/шапка/hero/тема) ×
 # архетипный акцент (ARCHETYPE_LOOK_ACCENTS) × набор секций рекомендованного
-# шаблона архетипа. 3 семейства × 14 архетипов = 42 Look'а из чистых данных.
+# шаблона архетипа. 10 семейств × 15 архетипов = 150 Look'ов из чистых данных
+# (ST-1: klar/warm/nacht · DS-1: fein/natur · DL-2: prospekt/frisch/neon/
+# blatt/smart — deal-looks-wave-plan-2026-09-01).
 LOOK_FAMILIES = [
     {
         "key": "klar",
@@ -282,35 +284,291 @@ LOOK_FAMILIES = [
         "hero_style": "accent",
         "theme": "",
     },
+    # DL-2 (2026-09-01): пять «акционных» семейств по утверждённому канвасу
+    # «Sparfuchs Aktionsmarkt Redesign». Новая ось site_defaults.card_chrome
+    # (hard/hairline/line) — рамка/тень карточек, presence-minimal.
+    {
+        "key": "prospekt",
+        "label": _("Prospekt"),
+        "description_de": _(
+            "Discounter-Energie: Preis-Sticker, kräftige Rahmen, plakative Schrift."
+        ),
+        "font": "condensed",  # Barlow Condensed 700 (latin/latin-ext)
+        "typography": {"weight_head": 700, "line_height": 1.45},
+        "site_defaults": {
+            "card_radius": 0,
+            "card_shadow": False,
+            "card_bg": "#ffffff",
+            "card_padding": 0,
+            "card_chrome": "hard",
+        },
+        "nav_style": "classic",
+        "hero_style": "split",
+        "theme": "",
+    },
+    {
+        "key": "frisch",
+        "label": _("Frischmarkt"),
+        "description_de": _("Warmer Markt von nebenan: Creme, weiche Karten, viel Luft."),
+        "font": "bricolage",  # Bricolage Grotesque 700
+        "typography": {"weight_head": 700, "line_height": 1.6},
+        "site_defaults": {
+            "card_radius": 20,
+            "card_shadow": True,
+            "card_bg": "#ffffff",
+            "card_padding": 0,
+            "page_bg": "#faf6ef",  # крем-подложка канваса V2
+        },
+        "nav_style": "classic",
+        "hero_style": "split",
+        "theme": "",
+    },
+    {
+        "key": "neon",
+        "label": _("Nachtmarkt"),
+        "description_de": _("Dunkler Deal-Jäger: Neon-Preise, große Timer, maximaler Kontrast."),
+        "font": "space",  # Space Grotesk 700
+        "typography": {"weight_head": 700, "line_height": 1.5},
+        "site_defaults": {
+            "card_radius": 14,
+            "card_shadow": False,
+            "card_bg": "",
+            "card_padding": 0,
+            "card_chrome": "line",
+        },
+        "nav_style": "classic",
+        "hero_style": "split",
+        "theme": "dark",
+    },
+    {
+        "key": "blatt",
+        "label": _("Markthalle"),
+        "description_de": _("Wochenzeitung der guten Preise: Serifen, Papier, feine Linien."),
+        "font": "editorial",  # Playfair Display 600 (реюз DS-1)
+        "typography": {"weight_head": 600, "line_height": 1.65},
+        "site_defaults": {
+            "card_radius": 0,
+            "card_shadow": False,
+            "card_bg": "#ffffff",
+            "card_padding": 0,
+            "page_bg": "#f7f5f0",  # бумага канваса V4
+            "card_chrome": "hairline",
+        },
+        "nav_style": "centered",
+        "hero_style": "split",
+        "theme": "",
+    },
+    {
+        "key": "smart",
+        "label": _("Marktplatz"),
+        "description_de": _("Nüchtern und dicht: Prozent zuerst, klare Listen, volle Übersicht."),
+        "font": "schibsted",  # Schibsted Grotesk 700
+        "typography": {"weight_head": 700, "line_height": 1.5},
+        "site_defaults": {
+            "card_radius": 12,
+            "card_shadow": False,
+            "card_bg": "#ffffff",
+            "card_padding": 0,
+            "page_bg": "#f4f6f9",  # холодный светлый фон канваса V5
+            "card_chrome": "line",
+        },
+        "nav_style": "classic",
+        "hero_style": "plain",
+        "theme": "",
+    },
 ]
 
 _FAMILY_BY_KEY = {f["key"]: f for f in LOOK_FAMILIES}
 
-# Акценты per-архетип: {business_type: (klar, warm, nacht, fein, natur)}. Nacht-тона
-# светлее (контраст на тёмном фоне); fein — глубокие благородные, natur —
-# травяные/земляные (DS-1). Неизвестный тип → retail-палитра.
+# Акценты per-архетип: {business_type: (klar, warm, nacht, fein, natur,
+# prospekt, frisch, neon, blatt, smart)} — ПОЗИЦИОННО, порядок = LOOK_FAMILIES.
+# Nacht/neon-тона светлее (контраст на тёмном); fein/blatt — глубокие
+# благородные; natur/frisch — травяные/земляные; prospekt — «продажный»
+# красно-оранжевый жанра проспекта; smart — функциональный синий (DL-2).
 ARCHETYPE_LOOK_ACCENTS = {
-    "bakery": ("#b45309", "#9a3412", "#f59e0b", "#7c2d12", "#a16207"),
-    "butcher": ("#b91c1c", "#7f1d1d", "#f87171", "#7f1d1d", "#92400e"),
-    "grocery": ("#15803d", "#166534", "#4ade80", "#14532d", "#4d7c0f"),
-    "clothing": ("#111827", "#9d174d", "#e879f9", "#1c1917", "#78716c"),
-    "restaurant": ("#b45309", "#7c2d12", "#fbbf24", "#7c2d12", "#4d7c0f"),
-    "cafe": ("#92400e", "#78350f", "#fbbf24", "#713f12", "#a16207"),
-    "retail": ("#4f46e5", "#1e40af", "#818cf8", "#312e81", "#0f766e"),
-    "online_shop": ("#4f46e5", "#0f766e", "#a78bfa", "#312e81", "#0f766e"),
-    "tour_operator": ("#0e7490", "#155e75", "#22d3ee", "#164e63", "#15803d"),
-    "hotel": ("#0e7490", "#1e3a8a", "#38bdf8", "#1e3a8a", "#166534"),
-    "friseur": ("#0f766e", "#9d174d", "#f472b6", "#831843", "#0f766e"),
-    "handwerker": ("#ea580c", "#9a3412", "#fb923c", "#7c2d12", "#92400e"),
-    "werkstatt": ("#1e40af", "#374151", "#60a5fa", "#1e3a8a", "#374151"),
-    "events": ("#7c3aed", "#6d28d9", "#c084fc", "#581c87", "#6d28d9"),
+    # fmt: off
+    "bakery": (
+        "#b45309",
+        "#9a3412",
+        "#f59e0b",
+        "#7c2d12",
+        "#a16207",
+        "#dc2626",
+        "#a16207",
+        "#f59e0b",
+        "#7c2d12",
+        "#1d4ed8",
+    ),
+    "butcher": (
+        "#b91c1c",
+        "#7f1d1d",
+        "#f87171",
+        "#7f1d1d",
+        "#92400e",
+        "#dc2626",
+        "#92400e",
+        "#f87171",
+        "#7f1d1d",
+        "#1d4ed8",
+    ),
+    "grocery": (
+        "#15803d",
+        "#166534",
+        "#4ade80",
+        "#14532d",
+        "#4d7c0f",
+        "#dc2626",
+        "#2e6b3c",
+        "#c8f542",
+        "#b3202c",
+        "#1d4ed8",
+    ),
+    "clothing": (
+        "#111827",
+        "#9d174d",
+        "#e879f9",
+        "#1c1917",
+        "#78716c",
+        "#b91c1c",
+        "#78716c",
+        "#e879f9",
+        "#1c1917",
+        "#1d4ed8",
+    ),
+    "restaurant": (
+        "#b45309",
+        "#7c2d12",
+        "#fbbf24",
+        "#7c2d12",
+        "#4d7c0f",
+        "#dc2626",
+        "#4d7c0f",
+        "#fbbf24",
+        "#7c2d12",
+        "#1d4ed8",
+    ),
+    "cafe": (
+        "#92400e",
+        "#78350f",
+        "#fbbf24",
+        "#713f12",
+        "#a16207",
+        "#dc2626",
+        "#a16207",
+        "#fbbf24",
+        "#713f12",
+        "#1d4ed8",
+    ),
+    "retail": (
+        "#4f46e5",
+        "#1e40af",
+        "#818cf8",
+        "#312e81",
+        "#0f766e",
+        "#dc2626",
+        "#0f766e",
+        "#a3e635",
+        "#312e81",
+        "#1d4ed8",
+    ),
+    "online_shop": (
+        "#4f46e5",
+        "#0f766e",
+        "#a78bfa",
+        "#312e81",
+        "#0f766e",
+        "#dc2626",
+        "#0f766e",
+        "#a78bfa",
+        "#312e81",
+        "#1d4ed8",
+    ),
+    "tour_operator": (
+        "#0e7490",
+        "#155e75",
+        "#22d3ee",
+        "#164e63",
+        "#15803d",
+        "#c2410c",
+        "#15803d",
+        "#22d3ee",
+        "#164e63",
+        "#1d4ed8",
+    ),
+    "hotel": (
+        "#0e7490",
+        "#1e3a8a",
+        "#38bdf8",
+        "#1e3a8a",
+        "#166534",
+        "#c2410c",
+        "#166534",
+        "#38bdf8",
+        "#1e3a8a",
+        "#1d4ed8",
+    ),
+    "friseur": (
+        "#0f766e",
+        "#9d174d",
+        "#f472b6",
+        "#831843",
+        "#0f766e",
+        "#db2777",
+        "#0f766e",
+        "#f472b6",
+        "#831843",
+        "#1d4ed8",
+    ),
+    "handwerker": (
+        "#ea580c",
+        "#9a3412",
+        "#fb923c",
+        "#7c2d12",
+        "#92400e",
+        "#ea580c",
+        "#92400e",
+        "#fb923c",
+        "#7c2d12",
+        "#1d4ed8",
+    ),
+    "werkstatt": (
+        "#1e40af",
+        "#374151",
+        "#60a5fa",
+        "#1e3a8a",
+        "#374151",
+        "#ea580c",
+        "#374151",
+        "#60a5fa",
+        "#1e3a8a",
+        "#1d4ed8",
+    ),
+    "events": (
+        "#7c3aed",
+        "#6d28d9",
+        "#c084fc",
+        "#581c87",
+        "#6d28d9",
+        "#db2777",
+        "#6d28d9",
+        "#c084fc",
+        "#581c87",
+        "#1d4ed8",
+    ),
+    # GK-1: frisch/bio-грин + тёплый warm
     "catering": (
         "#15803d",
         "#b45309",
         "#4ade80",
         "#166534",
         "#4d7c0f",
-    ),  # GK-1: frisch/bio-грин + тёплый warm
+        "#dc2626",
+        "#2e6b3c",
+        "#c8f542",
+        "#166534",
+        "#1d4ed8",
+    ),
+    # fmt: on
 }
 _DEFAULT_ACCENTS = ARCHETYPE_LOOK_ACCENTS["retail"]
 

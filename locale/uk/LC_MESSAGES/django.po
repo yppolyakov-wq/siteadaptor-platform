@@ -21397,3 +21397,45 @@ msgstr "Space Grotesk"
 #. DL-1: имя гарнитуры (собственное)
 msgid "Schibsted Grotesk"
 msgstr "Schibsted Grotesk"
+
+#. DL-2: Look-семейства акционной волны
+msgid "Prospekt"
+msgstr "Prospekt"
+
+#. DL-2: Look-семейства акционной волны
+msgid "Frischmarkt"
+msgstr "Frischmarkt"
+
+#. DL-2: Look-семейства акционной волны
+msgid "Nachtmarkt"
+msgstr "Nachtmarkt"
+
+#. DL-2: Look-семейства акционной волны
+msgid "Markthalle"
+msgstr "Markthalle"
+
+#. DL-2: Look-семейства акционной волны
+msgid "Marktplatz"
+msgstr "Marktplatz"
+
+#. DL-2: Look-семейства акционной волны
+msgid "Discounter-Energie: Preis-Sticker, kräftige Rahmen, plakative Schrift."
+msgstr "Енергія дискаунтера: цінники-стікери, жирні рамки, плакатний шрифт."
+
+#. DL-2: Look-семейства акционной волны
+msgid "Warmer Markt von nebenan: Creme, weiche Karten, viel Luft."
+msgstr "Теплий ринок по сусідству: крем, м'які картки, багато повітря."
+
+#. DL-2: Look-семейства акционной волны
+msgid "Dunkler Deal-Jäger: Neon-Preise, große Timer, maximaler Kontrast."
+msgstr ""
+"Темний мисливець за знижками: неонові ціни, великі таймери, максимальний "
+"контраст."
+
+#. DL-2: Look-семейства акционной волны
+msgid "Wochenzeitung der guten Preise: Serifen, Papier, feine Linien."
+msgstr "Щотижнева газета хороших цін: серифи, папір, тонкі лінії."
+
+#. DL-2: Look-семейства акционной волны
+msgid "Nüchtern und dicht: Prozent zuerst, klare Listen, volle Übersicht."
+msgstr "Стримано й щільно: відсоток — першим, чіткі списки, повний огляд."
