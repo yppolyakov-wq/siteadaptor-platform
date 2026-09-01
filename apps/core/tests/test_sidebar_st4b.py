@@ -193,7 +193,8 @@ def test_sidebar_children_composition():
         ("stays:reports", ""),
     ]
     site = [c["url_name"] for c in by_anchor["site-home"]]
-    assert site == ["site-home", "site-seo", "domains", "media-library"]
+    # DL-7b (осознанное дополнение): «Design» — переключатель шаблонов вне Studio.
+    assert site == ["site-home", "design", "site-seo", "domains", "media-library"]
     ang = [c["url_name"] for c in by_anchor["sellable-manage"]]
     assert ang == [
         "sellable-manage",  # R7-1: обзор раздела первым (SR-1: «Produkte» умер)

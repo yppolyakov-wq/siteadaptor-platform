@@ -742,6 +742,8 @@ ENTRIES: tuple[NavEntry, ...] = (
     # SM-4: хаб "site" — подпункты раздела Website в сайдбаре (страницы хаба нет:
     # раздел ведёт в Studio; hub_tabs "site" нигде не рендерится, как board).
     # Domains переехал из main-табов settings, Medien — из advanced settings.
+    # DL-7b: переключатель шаблонов (сборки + Look'и) — первым подпунктом Website.
+    _e("site", "design", _("Design"), "design", None, False, "vorlage look theme farben schrift"),
     _e("site", "site-seo", _("SEO"), "seo", None, True, "meta titel beschreibung robots"),
     _e(
         "site",

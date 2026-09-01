@@ -13084,3 +13084,34 @@ runserver для стендов — `config.settings.stand` (dev с debug_toolba
 NoReverseMatch djdt на витрине).
 
 ⚠️ ops: `seed_demo_tenants --kit aktionsmarkt --recreate` (spotlight+плитки).
+
+### 2026-09-01 (продолжение) — DL-7: фидбэк-батч по Studio (скриншот владельца)
+
+Диагностика стендом (Playwright, логин демо-владельцем) ДО кода: клик по
+Look-карточке Studio перекрашивает канву, POST `use_bundle:` применяет и
+сохраняет — механика новых тем жива. Реальные причины фидбэка: в области
+«⚡ Start» Studio и на слайде «Stil» — галерея всех ~14 легаси Layout-Vorlagen
+чужих отраслей, и их Apply меняет раскладку, а не тему; выбор темы жил только
+внутри Studio. План — `deal-looks-wave-plan-2026-09-01 §8`. Сделано (БЕЗ миграций):
+
+- **DL-7a** `templates_for` = рекомендованные типу + универсальные — у каждого
+  из 16 типов остаётся свой шаблон + «Minimal», чужие отраслевые пресеты ушли
+  из Studio и мастера (замок «у каждого типа ≥1 и никаких чужих»).
+- **DL-7b** НОВЫЙ экран `/dashboard/design/` («Design», первый подпункт якоря
+  Website; nav_registry → сайдбар/палитра даром; чек-лист DoD): карточки всех
+  сборок типа с живыми scaled-iframe превью (`?preview=1&look&bundle`) +
+  Look'и; применение POST'ом через apply_bundle/apply_look — сохраняется
+  СРАЗУ (закрыт класс «кликнул Look в Studio, не нажал Save — тема
+  не применилась»). Замок сайдбара переписан осознанно (+design).
+- **DL-7c** выравнивание spotlight-грида: CSS-каскад в обёртке
+  `[data-promo-spotlight]` (карточка = flex-колонка, фото flex-1 вместо
+  aspect-square) — нижний край большой карточки сходится с правым рядом
+  (стенд: bigBottom == rightBottom); шаблон карточки не тронут.
+- **DL-7d** `SECTION_STYLES["promotions"]` += "banner" (первая акция широкой
+  горизонтальной картой + остальные сеткой; полоса «Endet bald» общая со
+  spotlight; единственная акция — без пустой сетки) — итого 4 вида блока
+  акций: сетка · Deal der Woche groß · Kompakte Zeilen · Breites Banner.
+
+Стенд: страница Design с 6 карточками-превью, Apply Prospekt → витрина в
+hard-chrome с выровненным spotlight. 5 msgid × 5 каталогов. ⚠️ ops: без
+миграций; пересев кита не требуется (стили секции — конфиг).

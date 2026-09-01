@@ -11,8 +11,8 @@
 {% if si or is_preview %}<p class="mb-4 text-gray-600 whitespace-pre-line max-w-2xl" data-edit="section_intros.promotions">{{ si }}</p>{% endif %}
 {% if promotions %}
 {% with pstyle=section_row.style|default:"" %}
-{% if pstyle == "spotlight" %}
-  {# DL-3 spotlight: чипы «Endet bald» (view отдаёт promo_ending_soon, ≤3 дня) + первая акция крупно (col-span в общем гриде). #}
+{% if pstyle == "spotlight" or pstyle == "banner" %}
+  {# DL-3 spotlight: чипы «Endet bald» (view отдаёт promo_ending_soon, ≤3 дня) + первая акция крупно (col-span в общем гриде). DL-7d: полоса общая со стилем banner. #}
   {% if promo_ending_soon %}
   <div class="mb-5 flex gap-2 overflow-x-auto" data-promo-ending>
     <span class="shrink-0 inline-flex items-center text-xs font-bold text-amber-700 py-1.5">⏳ {% trans "Ending soon" %}:</span>
@@ -24,6 +24,36 @@
     {% endfor %}
   </div>
   {% endif %}
+  {% if pstyle == "banner" %}
+  {# DL-7d banner: первая акция широкой горизонтальной картой, остальные обычной сеткой. #}
+  {% for p in promotions %}
+    {% if forloop.first %}
+      <a href="{% url 'storefront-promotion' p.pk %}" class="sf-card group relative mb-4 md:mb-6 flex flex-col md:flex-row bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition" data-promo-hero{% if p.discount_style == 'mystery' %} data-mystery-root="{{ p.pk }}"{% endif %}>
+        <span class="relative block md:w-1/2 lg:w-2/5 aspect-[4/3] md:aspect-auto md:min-h-[16rem] bg-gray-100 shrink-0">
+          {% with img=p.primary_image %}
+            {% if img %}<img src="{{ img.url }}" alt="{{ p.title_text }}" loading="lazy" decoding="async"{% if p.discount_style == 'mystery' %} data-mystery-blur{% endif %} class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.02] transition{% if p.discount_style == 'mystery' %} blur-lg{% endif %}">{% endif %}
+          {% endwith %}
+          {% include "storefront/_discount_display.html" with promo=p part="badge" size="lg" %}
+        </span>
+        <span class="flex-1 p-5 md:p-7 flex flex-col justify-center">
+          {% include "storefront/_discount_display.html" with promo=p part="surprise" size="lg" %}
+          <span class="block text-xl md:text-2xl font-bold leading-tight">{{ p.title_text }}</span>
+          <span class="block mt-3">{% include "storefront/_discount_display.html" with promo=p part="price" %}</span>
+          {% if p.lowest_30d is not None and p.discount_style != 'mystery' %}
+            <span class="block mt-1 text-xs text-gray-400">{% blocktrans with p=p.lowest_30d %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</span>
+          {% endif %}
+          {% include "storefront/_discount_display.html" with promo=p part="scarcity" size="lg" %}
+          {% include "storefront/_discount_display.html" with promo=p part="countdown" size="lg" %}
+        </span>
+      </a>
+    {% endif %}
+  {% endfor %}
+  {% if promotions|length > 1 %}
+  <div id="promo-grid" data-grid="promotions" class="{% grid_classes site 'promotions' %}">
+    {% for p in promotions %}{% if not forloop.first %}{% include "storefront/_promo_card.html" %}{% endif %}{% endfor %}
+  </div>
+  {% endif %}
+  {% else %}
   <div id="promo-grid" data-grid="promotions" class="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
     {% for p in promotions %}
       {% if forloop.first %}
@@ -33,6 +63,7 @@
       {% endif %}
     {% endfor %}
   </div>
+  {% endif %}
 {% elif pstyle == "rows" %}
   {# DL-3 rows: строки «процент-первым» (Marktplatz) — бейдж · название · цена. #}
   <div class="space-y-2.5" data-promo-rows>

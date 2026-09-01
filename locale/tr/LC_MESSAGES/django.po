@@ -21366,3 +21366,21 @@ msgstr "Haftanın fırsatı, büyük"
 #. DL-3: стили секции promotions
 msgid "Kompakte Zeilen"
 msgstr "Kompakt satırlar"
+
+msgid "Breites Banner"
+msgstr "Geniş banner"
+
+msgid "Feinschliff im Studio"
+msgstr "Studio'da ince ayar"
+
+msgid "Looks"
+msgstr "Görünümler"
+
+msgid ""
+"Nur die Optik (Farben, Schrift, Karten) — deine Seitenstruktur bleibt "
+"unverändert."
+msgstr ""
+"Yalnızca görünüm (renkler, yazı tipi, kartlar) — sayfa yapınız değişmez."
+
+msgid "Your texts are kept — only empty fields are filled."
+msgstr "Metinleriniz korunur — yalnızca boş alanlar doldurulur."

@@ -614,10 +614,14 @@ def looks_for(business_type) -> list[dict]:
 
 
 def templates_for(business_type):
-    """Шаблоны: рекомендованные типу — первыми, затем остальные (вкл. универсальные)."""
+    """Шаблоны: рекомендованные типу + универсальные (пустой recommended_for).
+
+    DL-7a (фидбэк владельца): чужие отраслевые пресеты («посторонние шаблоны»
+    в Studio и мастере) больше не показываются — их Apply менял раскладку
+    секций под чужой архетип и выглядел как «тема не применилась»."""
     recommended = [t for t in TEMPLATES if business_type in t["recommended_for"]]
-    rest = [t for t in TEMPLATES if business_type not in t["recommended_for"]]
-    return recommended + rest
+    universal = [t for t in TEMPLATES if not t["recommended_for"]]
+    return recommended + universal
 
 
 def template_cards(business_type):

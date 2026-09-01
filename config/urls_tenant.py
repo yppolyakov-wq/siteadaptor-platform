@@ -14,6 +14,7 @@ from apps.booking import public_views as booking_public
 from apps.collections import public_views as collections_public
 from apps.community import views as community_views
 from apps.core import health
+from apps.core.design_page import design_view
 from apps.core.settings_home import einstellungen_home
 from apps.core.team import team_join, team_view
 from apps.core.views import (
@@ -129,6 +130,8 @@ urlpatterns = [
     path("dashboard/extras/", extras_view, name="extras"),
     # Конструктор витрины v1 (Track C2).
     path("dashboard/site/", site_view, name="site"),
+    # DL-7b: переключатель шаблонов вне Studio (подпункт Website).
+    path("dashboard/design/", design_view, name="design"),
     path("dashboard/site/home/", home_builder_view, name="site-home"),
     path("dashboard/site/menu/", menu_builder_view, name="site-menu"),
     path("dashboard/site/seo/", seo_settings_view, name="site-seo"),

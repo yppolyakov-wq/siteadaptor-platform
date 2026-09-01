@@ -21462,3 +21462,21 @@ msgstr "Дил недели крупно"
 #. DL-3: стили секции promotions
 msgid "Kompakte Zeilen"
 msgstr "Компактные строки"
+
+msgid "Breites Banner"
+msgstr "Широкий баннер"
+
+msgid "Feinschliff im Studio"
+msgstr "Тонкая настройка в Студии"
+
+msgid "Looks"
+msgstr "Луки (стили)"
+
+msgid ""
+"Nur die Optik (Farben, Schrift, Karten) — deine Seitenstruktur bleibt "
+"unverändert."
+msgstr ""
+"Только оформление (цвета, шрифт, карточки) — структура страниц не меняется."
+
+msgid "Your texts are kept — only empty fields are filled."
+msgstr "Ваши тексты сохраняются — заполняются только пустые поля."

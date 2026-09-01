@@ -273,6 +273,30 @@
   background-color: #ffffff;
 }
 
+/* DL-7c (фидбэк владельца): spotlight-грид акций — большая карточка (row-span-2)
+   растягивается на высоту двух соседних рядов: карточка = flex-колонка, фото
+   теряет жёсткий aspect-square и заполняет остаток (нижние края сходятся).
+   Шаблон карточки не трогаем — только каскад внутри обёртки. */
+[data-promo-spotlight] {
+  display: grid;
+}
+[data-promo-spotlight] > .sf-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+[data-promo-spotlight] > .sf-card > a {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+[data-promo-spotlight] > .sf-card > a > div:first-child {
+  aspect-ratio: auto;
+  flex: 1 1 auto;
+  min-height: 12rem;
+}
+
 /* R1: тост подтверждения добавления в корзину + «прыжок» бейджа. */
 #sf-toast {
   position: fixed;

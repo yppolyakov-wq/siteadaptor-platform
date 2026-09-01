@@ -60,6 +60,28 @@ def test_spotlight_without_soon_deadlines_hides_strip():
     assert "data-promo-ending" not in html
 
 
+def test_banner_style_features_first_promo_wide():
+    """DL-7d: banner — первая акция широкой горизонтальной картой, остальные
+    обычной сеткой; полоса «Endet bald» общая со spotlight."""
+    PromotionFactory(
+        status="active",
+        title={"de": "Wochen-Kracher"},
+        ends_at=timezone.now() + timedelta(days=1),
+    )
+    PromotionFactory(status="active", title={"de": "Zweite Aktion"})
+    html = _home([{"key": "promotions", "enabled": True, "style": "banner"}])
+    assert "data-promo-hero" in html
+    assert "data-promo-spotlight" not in html
+    assert 'id="promo-grid"' in html  # остальные — сеткой
+    assert "data-promo-ending" in html
+    # Единственная акция → баннер без пустой сетки под ним.
+    from apps.promotions.models import Promotion
+
+    Promotion.objects.filter(title__de="Zweite Aktion").delete()
+    html = _home([{"key": "promotions", "enabled": True, "style": "banner"}])
+    assert "data-promo-hero" in html and 'id="promo-grid"' not in html
+
+
 def test_rows_style_renders_compact_rows():
     PromotionFactory(status="active", title={"de": "Prozent-Deal"}, discount_percent=30)
     html = _home([{"key": "promotions", "enabled": True, "style": "rows"}])

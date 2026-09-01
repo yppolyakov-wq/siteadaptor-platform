@@ -21282,3 +21282,22 @@ msgstr "Deal der Woche groß"
 #. DL-3: стили секции promotions
 msgid "Kompakte Zeilen"
 msgstr "Kompakte Zeilen"
+
+msgid "Breites Banner"
+msgstr "Breites Banner"
+
+msgid "Feinschliff im Studio"
+msgstr "Feinschliff im Studio"
+
+msgid "Looks"
+msgstr "Looks"
+
+msgid ""
+"Nur die Optik (Farben, Schrift, Karten) — deine Seitenstruktur bleibt "
+"unverändert."
+msgstr ""
+"Nur die Optik (Farben, Schrift, Karten) — deine Seitenstruktur bleibt "
+"unverändert."
+
+msgid "Your texts are kept — only empty fields are filled."
+msgstr "Ihre Texte bleiben erhalten — nur leere Felder werden gefüllt."

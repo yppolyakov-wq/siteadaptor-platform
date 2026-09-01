@@ -2180,7 +2180,7 @@ SECTION_STYLES = {
     # DL-3 (акционные сборки): spotlight — первая акция крупно + чипы «Endet
     # bald» над гридом; rows — компактные строки «процент-первым» (Marktplatz).
     # "" = прежний грид байт-в-байт.
-    "promotions": ("spotlight", "rows"),
+    "promotions": ("spotlight", "rows", "banner"),  # DL-7d: + широкий баннер-дил
 }
 #: Класс аспекта плитки категории по стилю секции (см. _category_tile.html).
 CATEGORY_TILE_ASPECTS = {
@@ -2229,6 +2229,7 @@ SECTION_STYLE_LABELS = {
     "band": _("Farbband"),  # DS-4b: anfrage — слим-форма на акцент-полосе
     "spotlight": _("Deal der Woche groß"),  # DL-3: акция-фичер + Endet-bald-чипы
     "rows": _("Kompakte Zeilen"),  # DL-3: строки «процент-первым» (Marktplatz)
+    "banner": _("Breites Banner"),  # DL-7d: первая акция широкой картой
 }
 
 # UC6-6f: подсказка стиля скидки у промо-БЛОКА (фидбэк владельца «пресеты промо-

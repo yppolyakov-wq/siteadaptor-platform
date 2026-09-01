@@ -1,0 +1,86 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Design" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}DL-7b: переключатель шаблонов вне Studio (подпункт Website). Карточки
+Startpaket'ов с живыми scaled-iframe превью (stateless-оверлей look+bundle) и
+Look'и; применение POST'ом — сохраняется сразу. Тонкая настройка — в Studio.{% endcomment %}
+<div class="max-w-5xl">
+  <div class="flex items-center justify-between gap-3 mb-1 flex-wrap">
+    <h1 class="text-2xl font-bold">🎨 {% trans "Design" %}</h1>
+    <a href="{% url 'site-home' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Feinschliff im Studio" %} →</a>
+  </div>
+  <p class="text-sm text-gray-500 mb-4">{% trans "Fertige Design-Pakete für deine Branche — ein Klick färbt die Vorschau um." %} {% trans "Your texts are kept — only empty fields are filled." %}</p>
+
+  {% if messages %}
+    {% for m in messages %}
+      <div class="mb-3 rounded-lg px-4 py-2 text-sm {% if m.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-800{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <h2 class="font-semibold mb-2">✨ {% trans "Startpaket" %}</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8" id="design-bundles">
+    {% for b in bundles %}
+      <div class="border border-gray-200 rounded-xl bg-white p-3 flex flex-col">
+        <span class="flex items-center gap-2 mb-1">
+          <span class="font-medium text-sm">{{ b.label }}</span>
+          <span class="text-[11px] bg-emerald-100 text-emerald-800 rounded-full px-2 py-0.5">{% trans "Startpaket" %}</span>
+        </span>
+        <span class="block text-xs text-gray-500 mb-2">{{ b.description_de }}</span>
+        <span class="block rounded-lg border border-gray-100 overflow-hidden bg-gray-50 mb-3" style="height:150px" aria-hidden="true">
+          <iframe data-src="/?preview=1&look={{ b.look }}&bundle={{ b.key }}" title="{{ b.label }}" tabindex="-1" loading="lazy"
+                  style="width:400%;height:600px;transform:scale(.25);transform-origin:0 0;pointer-events:none;border:0"></iframe>
+        </span>
+        <form method="post" class="mt-auto" onsubmit="return confirm('{% trans "Apply this template? The section layout will be replaced." %}');">
+          {% csrf_token %}
+          <input type="hidden" name="bundle" value="{{ b.key }}">
+          <button class="w-full text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Apply" %}</button>
+        </form>
+      </div>
+    {% endfor %}
+  </div>
+
+  <h2 class="font-semibold mb-1">{% trans "Looks" %}</h2>
+  <p class="text-xs text-gray-400 mb-3">{% trans "Nur die Optik (Farben, Schrift, Karten) — deine Seitenstruktur bleibt unverändert." %}</p>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="design-looks">
+    {% for lk in looks %}
+      <div class="border border-gray-200 rounded-xl bg-white p-3 flex flex-col">
+        <span class="flex items-center gap-2 mb-1">
+          <span class="inline-block w-3 h-3 rounded-full shrink-0" style="background: {{ lk.accent }};"></span>
+          <span class="font-medium text-sm">{{ lk.label }}</span>
+          {% if lk.theme == 'dark' %}<span class="text-[11px] bg-gray-800 text-gray-100 rounded-full px-2 py-0.5">{% trans "Dunkel" %}</span>{% endif %}
+        </span>
+        <span class="block text-xs text-gray-500 mb-2">{{ lk.description }}</span>
+        <span class="block rounded-lg border border-gray-100 overflow-hidden bg-gray-50 mb-3" style="height:120px" aria-hidden="true">
+          <iframe data-src="/?preview=1&look={{ lk.key }}" title="{{ lk.label }}" tabindex="-1" loading="lazy"
+                  style="width:400%;height:480px;transform:scale(.25);transform-origin:0 0;pointer-events:none;border:0"></iframe>
+        </span>
+        <form method="post" class="mt-auto">
+          {% csrf_token %}
+          <input type="hidden" name="look" value="{{ lk.key }}">
+          <button class="w-full text-sm border border-gray-200 text-gray-700 rounded-lg px-3 py-1.5 hover:bg-gray-50">{% trans "Apply" %}</button>
+        </form>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+<script>
+  (function () {
+    var frames = document.querySelectorAll("#design-bundles iframe[data-src], #design-looks iframe[data-src]");
+    if (!("IntersectionObserver" in window)) {
+      frames.forEach(function (f) { f.src = f.getAttribute("data-src"); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting && !e.target.src) {
+          e.target.src = e.target.getAttribute("data-src");
+          io.unobserve(e.target);
+        }
+      });
+    }, { rootMargin: "150px" });
+    frames.forEach(function (f) { io.observe(f); });
+  })();
+</script>
+{% endblock %}
