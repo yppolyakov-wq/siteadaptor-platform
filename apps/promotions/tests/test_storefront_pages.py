@@ -74,6 +74,39 @@ def test_team_page_renders_members():
     assert "Anna Berg" in html and "Meisterin" in html
 
 
+# --- DL-6: вид секции владельца действует и на отдельной странице -------------
+
+
+def test_gallery_page_respects_section_style():
+    """Стиль strip рисовался только на главной — /galerie/ рендерил дефолт-сетку
+    (партиал не получал section_row); MEN-23-переключатель у авторского стиля
+    по-прежнему скрыт."""
+    tenant = _tenant(
+        gallery=[{"id": "g1", "url": "https://img.test/a.jpg"}],
+        sections=[{"key": "gallery", "enabled": True, "style": "strip"}],
+    )
+    html = public_views.gallery_page(_req("/galerie/", tenant)).content.decode()
+    assert "cursor-zoom-in" in html and "overflow-x-auto" in html  # strip-полоса
+    assert 'data-galv-btn="' not in html  # авторский стиль не переключаем
+
+
+def test_team_page_respects_section_style():
+    tenant = _tenant(
+        team=[{"name": "Anna Berg", "role": "Meisterin", "photo": ""}],
+        sections=[{"key": "team", "enabled": True, "style": "list"}],
+    )
+    html = public_views.team_page(_req("/team/", tenant)).content.decode()
+    assert "Anna Berg" in html
+    assert "space-y-3 max-w-2xl" in html  # ветка list, не дефолт-карточки
+
+
+def test_about_page_respects_contact_style():
+    """Контакт-блок /ueber-uns/ уважает стиль секции contact (compact)."""
+    tenant = _tenant(sections=[{"key": "contact", "enabled": True, "style": "compact"}])
+    html = public_views.about_page(_req("/ueber-uns/", tenant)).content.decode()
+    assert "text-base font-bold text-gray-800" in html  # компакт-заголовок полосы
+
+
 # --- пустой раздел не создаёт пустую страницу --------------------------------
 
 

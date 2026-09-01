@@ -348,6 +348,13 @@ def test_new_family_preview_overlay():
     assert "#f7f5f0" in html  # page_bg газеты
 
 
+def test_sf_primary_alias_emitted():
+    """DL-6: app.css потребляет --sf-primary (активные кнопки вида, свотчи) с
+    фолбэком-индиго — без алиаса в _base.html акцент тенанта туда не доезжал."""
+    tenant = TenantFactory.build(business_type="grocery", primary_color="#15803d")
+    assert "--sf-primary: var(--accent)" in _home(tenant)
+
+
 def test_preview_bundle_overlay_is_stateless():
     """DL-3: ?preview=1&bundle=<key> — оси сборки read-only оверлеем; без
     явного &look= кожу даёт Look-семейство самой сборки; явный &look= сильнее."""

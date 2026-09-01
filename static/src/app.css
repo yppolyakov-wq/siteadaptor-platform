@@ -221,6 +221,58 @@
   color: #f87171;
 }
 
+/* DL-6 (охват всех страниц): пробелы карты — утилиты второстепенных страниц
+   (право/корзина/подтверждение/аккаунт/рассылка) светились в тёмной теме.
+   То же правило пар: пастельная подложка → глубокий тон, тёмный текст →
+   светлый того же оттенка. */
+.dark .border-gray-300 {
+  border-color: #4b5563;
+}
+.dark .ring-gray-200 {
+  --tw-ring-color: #374151;
+}
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #1f2937;
+}
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #374151;
+}
+.dark .text-indigo-600 {
+  color: #a5b4fc;
+}
+.dark .hover\:text-indigo-800:hover {
+  color: #c7d2fe;
+}
+.dark .text-amber-700 {
+  color: #fcd34d;
+}
+.dark .border-amber-300 {
+  border-color: #92400e;
+}
+.dark .bg-amber-100 {
+  background-color: #78350f;
+}
+.dark .text-emerald-800 {
+  color: #a7f3d0;
+}
+.dark .bg-sky-50 {
+  background-color: #0c4a6e;
+}
+.dark .text-sky-800 {
+  color: #bae6fd;
+}
+/* Тёмные чипы/кнопки (bg-gray-900 text-white) сливались с тёмным фоном страницы —
+   осветляем до различимого нейтрального (активный чип фильтра, FAB, «Notify me»). */
+.dark .bg-gray-900 {
+  background-color: #374151;
+}
+/* QR-код: белое «тихое поле» ОБЯЗАНО остаться белым (сканируемость) — точечная
+   отмена карты .dark .bg-white для помеченных обёрток. */
+.dark .sf-qr.bg-white,
+.dark .sf-qr .bg-white {
+  background-color: #ffffff;
+}
+
 /* R1: тост подтверждения добавления в корзину + «прыжок» бейджа. */
 #sf-toast {
   position: fixed;

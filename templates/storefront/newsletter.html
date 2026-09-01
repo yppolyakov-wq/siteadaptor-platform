@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="max-w-lg mx-auto">
-  <div class="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+  <div class="sf-card bg-white rounded-2xl shadow-sm p-6 md:p-8">
     {% if state == "sent" %}
       <h1 class="text-2xl font-bold mb-2">{% trans "Almost done!" %} ✉️</h1>
       <p class="text-gray-600">{% trans "We've sent you a confirmation email. Please click the link inside to complete your subscription (double opt-in)." %}</p>
@@ -17,7 +17,7 @@
     {% elif state == "error" %}
       <h1 class="text-2xl font-bold mb-2">{% trans "Something went wrong" %}</h1>
       <p class="text-gray-600">{% trans "The link is invalid or expired, or the email was not valid. Please try again." %}</p>
-      <a href="{% url 'storefront-newsletter' %}" class="inline-block mt-4 text-indigo-600 hover:underline">{% trans "Back to sign-up" %}</a>
+      <a href="{% url 'storefront-newsletter' %}" class="inline-block mt-4 hover:underline" style="color: var(--accent);">{% trans "Back to sign-up" %}</a>
     {% else %}
       <h1 class="text-2xl font-bold mb-2">{% trans "Subscribe to our newsletter" %}</h1>
       <p class="text-gray-600 mb-5">{% trans "Get our latest news and special offers. We use double opt-in and you can unsubscribe any time." %}</p>
@@ -32,7 +32,7 @@
           <label class="block text-sm font-medium mb-1" for="id_email">{% trans "Email" %} *</label>
           <input id="id_email" name="email" type="email" required class="w-full rounded-lg border border-gray-300 px-3 py-2">
         </div>
-        <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% trans "Subscribe" %}</button>
+        <button type="submit" class="w-full text-white rounded-lg px-4 py-3 font-medium hover:opacity-90" style="background: var(--accent);">{% trans "Subscribe" %}</button>
         <p class="text-xs text-gray-400">{% trans "By subscribing you agree to receive marketing emails. See our privacy policy for details." %}</p>
       </form>
     {% endif %}

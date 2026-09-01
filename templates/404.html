@@ -16,7 +16,8 @@
     <p style="font-size:3rem;margin:0;" aria-hidden="true">🔍</p>
     <h1 style="font-size:1.4rem;margin:.75rem 0 .25rem;">{% trans "Page not found." %}</h1>
     <p style="color:#6b7280;margin:0 0 1.25rem;">{% trans "This page does not exist or is no longer available." %}</p>
-    <a href="/" style="display:inline-block;background:#111827;color:#fff;text-decoration:none;border-radius:.75rem;padding:.7rem 1.4rem;font-weight:600;">{% trans "To the homepage" %}</a>
+    {# DL-6: кнопка — в акценте тенанта (процессоры на 404 уже работают, см. выше); фолбэк — нейтральный. #}
+    <a href="/" style="display:inline-block;background:{{ storefront_accent|default:"#111827" }};color:#fff;text-decoration:none;border-radius:.75rem;padding:.7rem 1.4rem;font-weight:600;">{% trans "To the homepage" %}</a>
   </main>
 </body>
 </html>

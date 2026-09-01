@@ -154,7 +154,7 @@
               class="text-sm px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50">{% trans "Copy link" %}</button>
       <details class="w-full mt-1">
         <summary class="text-sm text-gray-500 cursor-pointer">{% trans "Show QR code" %}</summary>
-        <div class="mt-2 inline-block bg-white p-3 rounded-xl border border-gray-200">
+        <div class="sf-qr mt-2 inline-block bg-white p-3 rounded-xl border border-gray-200">
           <img src="{{ qr_url }}" width="160" height="160" alt="{% trans 'QR code for this offer' %}">
           <a href="{{ qr_url }}" download="aktion-{{ promotion.pk }}.svg" class="block text-center text-xs text-indigo-600 mt-1 hover:underline">{% trans "Download" %}</a>
         </div>

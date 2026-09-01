@@ -16,8 +16,10 @@
   </div>
   {% else %}
   {% comment %}MEN-23 (фидбэк «в галерее так же нужно сделать»): на странице
-  /galerie/ переключатель «сетка ↔ крупно» — заголовок там выше партиала.{% endcomment %}
-  {% if site.gallery %}<div class="flex justify-end mb-4">{% include "storefront/_gallery_view_toggle.html" %}</div>{% endif %}
+  /galerie/ переключатель «сетка ↔ крупно» — заголовок там выше партиала.
+  DL-6: страница теперь получает section_row → тот же гейт «авторские стили
+  (strip/large/…) не переключаем», что и у секции на главной.{% endcomment %}
+  {% if site.gallery and section_row.style == "" or site.gallery and section_row.style == None %}<div class="flex justify-end mb-4">{% include "storefront/_gallery_view_toggle.html" %}</div>{% endif %}
   {% endif %}
   {% comment %}UC6-6f: 5 видов по section_row.style — "" сетка | strip | large | polaroid | soft.{% endcomment %}
   {% if site.gallery %}

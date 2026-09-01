@@ -450,7 +450,12 @@ def about_page(request):
     from apps.tenants import siteconfig
 
     site = siteconfig.localize(siteconfig.normalize(request.tenant.site_config), get_language())
-    return render(request, "storefront/about.html", {"site": site, "sections": []})
+    # DL-6: контакт-блок страницы уважает стиль секции contact (split/map_first/…).
+    return render(
+        request,
+        "storefront/about.html",
+        {"site": site, "sections": [], "section_row": _section_row(site, "contact")},
+    )
 
 
 def _site_ctx(request):
@@ -460,6 +465,12 @@ def _site_ctx(request):
     from apps.tenants import siteconfig
 
     return siteconfig.localize(siteconfig.normalize(request.tenant.site_config), get_language())
+
+
+def _section_row(site, key):
+    """DL-6: ряд секции из нормализованного конфига — тот же section_row, что
+    получает партиал на главной (вид секции действует и на своей странице)."""
+    return next((s for s in site["sections"] if s["key"] == key), None)
 
 
 def _pdf_course_groups(cat_title, products):
@@ -533,7 +544,14 @@ def gallery_page(request):
         "storefront/gallery.html",
         # as_page: партиал секции не рисует свою шапку и ссылку «Все фото»
         # (заголовок уже на странице, ссылка вела бы сюда же).
-        {"site": site, "sections": [], "as_page": True},
+        # DL-6: section_row — вид секции владельца (strip/large/…) действует
+        # и на отдельной странице, а не только на главной.
+        {
+            "site": site,
+            "sections": [],
+            "as_page": True,
+            "section_row": _section_row(site, "gallery"),
+        },
     )
 
 
@@ -545,7 +563,7 @@ def team_page(request):
     return render(
         request,
         "storefront/team.html",
-        {"site": site, "sections": [], "as_page": True},
+        {"site": site, "sections": [], "as_page": True, "section_row": _section_row(site, "team")},
     )
 
 

@@ -33,6 +33,8 @@
   <style>
     :root {
       --accent: {{ storefront_accent|default:"#4f46e5" }};
+      {# DL-6: app.css потребляет --sf-primary (кнопки вида, свотчи) с фолбэком-индиго — без алиаса акцент туда не доезжал. #}
+      --sf-primary: var(--accent);
       --font-body: {{ storefront_font_body|default:"ui-sans-serif, system-ui, sans-serif"|safe }};
       --font-head: {{ storefront_font_head|default:"ui-sans-serif, system-ui, sans-serif"|safe }};
       {# SE-3b: типографика — переменные только когда заданы (var-fallback = текущий вид). #}
@@ -537,8 +539,9 @@
   {% presence_fab %}
   {% if storefront_inbox_enabled %}
   {# M22b: плавающая кнопка чата — доступна с любой страницы (над таб-баром на мобиле). #}
+  {# DL-6: FAB — в акценте тенанта (жёсткий indigo игнорировал Look любого цвета). #}
   <a href="{% url 'storefront-message' %}" data-chat-fab aria-label="{% trans 'Ask us a question' %}"
-     class="fixed right-4 bottom-20 sm:bottom-5 z-30 flex items-center gap-2 bg-indigo-600 text-white rounded-full shadow-lg px-4 py-3 hover:bg-indigo-700">
+     class="fixed right-4 bottom-20 sm:bottom-5 z-30 flex items-center gap-2 text-white rounded-full shadow-lg px-4 py-3 hover:opacity-90" style="background: var(--accent);">
     <span class="text-lg leading-none" aria-hidden="true">💬</span><span class="hidden sm:inline text-sm font-medium">{% trans "Ask us" %}</span>
   </a>
   {% endif %}

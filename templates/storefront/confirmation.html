@@ -3,7 +3,7 @@
 {% block title %}{% trans "Reservation confirmed" %}{% endblock %}
 
 {% block content %}
-<div class="bg-white rounded-2xl shadow-sm p-8 text-center">
+<div class="sf-card bg-white rounded-2xl shadow-sm p-8 text-center">
   <div class="text-4xl mb-3">✅</div>
   <h1 class="text-2xl font-bold mb-2">{% trans "Reservation received" %}</h1>
   <p class="text-gray-600">{{ reservation.promotion.title_text }}</p>
@@ -16,7 +16,7 @@
   {# Персональный QR — показать на выдаче #}
   <div class="mt-5">
     <img src="{% url 'storefront-reservation-qr' reservation.reference_code %}" width="180" height="180"
-         alt="{% trans 'Your reservation QR code' %}" class="inline-block bg-white p-2 rounded-xl border border-gray-200">
+         alt="{% trans 'Your reservation QR code' %}" class="sf-qr inline-block bg-white p-2 rounded-xl border border-gray-200">
   </div>
 
   <p class="text-sm text-gray-500 mt-4">
