@@ -30,8 +30,11 @@ def _request(rf, method, user, tenant, data=None):
 def test_templates_for_puts_recommended_first():
     order = [t["key"] for t in sitetemplates.templates_for("cafe")]
     assert order[0] == "gastro"  # cafe → рекомендован «gastro»
-    # все шаблоны присутствуют ровно один раз
-    assert sorted(order) == sorted(t["key"] for t in sitetemplates.TEMPLATES)
+    # DL-7a (осознанная переписка): только рекомендованные + универсальные —
+    # чужие отраслевые пресеты («посторонние шаблоны») из галерей ушли.
+    for t in sitetemplates.templates_for("cafe"):
+        assert (not t["recommended_for"]) or "cafe" in t["recommended_for"], t["key"]
+    assert "laden" not in order and "termine" not in order  # чужие отрасли
 
 
 @pytest.mark.parametrize(
@@ -259,8 +262,9 @@ def test_builder_template_gallery_renders(rf, settings):
     user = get_user_model().objects.create_user("u2", "u2@test.de", "pw12345678")
 
     html = home_builder_view(_request(rf, "get", user, tenant)).content.decode()
-    assert "Klassischer Laden" in html  # карточка шаблона в галерее
-    assert "Café &amp; Restaurant" in html
+    assert "Klassischer Laden" in html  # карточка шаблона в галерее (bakery)
+    # DL-7a: чужой отраслевой пресет в галерее больше не показывается.
+    assert "Café &amp; Restaurant" not in html
 
 
 def test_builder_ignores_invalid_accent(rf, settings):
