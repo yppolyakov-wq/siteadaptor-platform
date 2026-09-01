@@ -9,7 +9,6 @@ from importlib import import_module
 import pytest
 from django.conf import settings as dj_settings
 from django.contrib.messages.middleware import MessageMiddleware
-from django.contrib.sessions.middleware import SessionMiddleware
 from django.http import Http404
 from django.test import RequestFactory
 
