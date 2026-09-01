@@ -152,6 +152,14 @@ def storefront_home(request):
     from django.utils.translation import get_language
 
     site = siteconfig.localize(site, get_language())
+    # DL-3: stateless-превью сборки (?preview=1&bundle=) — кожу даёт context-
+    # processor, но КОМПОЗИЦИЮ главной (стили/включение секций, hero_style)
+    # рендерит эта вьюха из СВОЕГО site — без оверлея здесь превью сборки
+    # показывало бы сохранённую раскладку. Read-only, на копии рядов.
+    if request.GET.get("preview") == "1" and request.GET.get("bundle"):
+        from apps.tenants import sitetemplates
+
+        site = sitetemplates.apply_preview_bundle(site, request.GET.get("bundle", ""))
     sections = [s["key"] for s in site["sections"] if s["enabled"]]
     # D.2: полные записи включённых секций (фикс + C-блоки с данными) для рендера
     # через {% render_block %}; `sections` (ключи) остаётся для гейтинга запросов.

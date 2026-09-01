@@ -1103,6 +1103,20 @@ def get_bundle(key):
     return _BUNDLE_BY_KEY.get(key)
 
 
+def apply_preview_bundle(cfg, key):
+    """DL-3: оси сборки НА КОПИИ конфига (stateless-превью ?preview=1&bundle=).
+
+    Ряды секций делят ссылки с нормализованным конфигом — копируем ДО мутации
+    (_apply_bundle_axes правит row'ы на месте). Неизвестный ключ → cfg как есть."""
+    bundle = _BUNDLE_BY_KEY.get(key)
+    if bundle is None:
+        return cfg
+    cfg = dict(cfg)
+    cfg["sections"] = [dict(r) for r in cfg["sections"]]
+    _apply_bundle_axes(cfg, bundle["config"])
+    return cfg
+
+
 def bundles_for(business_type) -> list[dict]:
     """Сборки для архетипа: рекомендованные + универсальные (пустой
     recommended_for = всем). DS-8: у каждого архетипа своя вариация «Fokus» —

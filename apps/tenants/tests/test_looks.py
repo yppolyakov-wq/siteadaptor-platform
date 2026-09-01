@@ -366,6 +366,16 @@ def test_preview_bundle_overlay_is_stateless():
     # Явный look перебивает look сборки (галерея показывает комбинации).
     html = _home(tenant, "?preview=1&look=neon&bundle=deal_prospekt")
     assert 'var tenantDark = "dark" === "dark"' in html
+    # КОМПОЗИЦИЯ сборки доезжает до тела главной (вьюха рендерит секции из
+    # своего site — без оверлея там превью показывало бы сохранённую раскладку).
+    from apps.promotions.tests.factories import PromotionFactory
+
+    PromotionFactory(status="active", discount_percent=20)
+    html = _home(tenant, "?preview=1&bundle=deal_smart")
+    assert "data-promo-rows" in html  # стиль promotions сборки (V5 Marktplatz)
+    assert "data-promo-spotlight" not in html
+    html = _home(tenant, "?preview=1&bundle=deal_prospekt")
+    assert "data-promo-spotlight" in html
     # Мусорный ключ сборки — рендер живой, конфиг не тронут.
     assert "#4f46e5" in _home(tenant, "?preview=1&bundle=junk")
     assert tenant.site_config in (None, {}, tenant.site_config)

@@ -228,11 +228,7 @@ def modules_nav(request):
                 getattr(tenant, "business_type", ""), _fam["key"]
             )
         if _bundle is not None:
-            # Ряды секций делят ссылки с нормализованным конфигом — копируем
-            # ДО мутации осей (_apply_bundle_axes правит row'ы на месте).
-            cfg = dict(cfg)
-            cfg["sections"] = [dict(r) for r in cfg["sections"]]
-            sitetemplates.apply_bundle_config(cfg, _bundle["key"])
+            cfg = sitetemplates.apply_preview_bundle(cfg, _bundle["key"])
             nav_style = (cfg.get("nav") or {}).get("style") or nav_style
     font_body, font_head = siteconfig.font_stacks(cfg["font"])
     # ST-1: тёмный Look — дефолт темы сайта ("" | "dark", draft-aware для превью).
