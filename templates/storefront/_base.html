@@ -100,7 +100,7 @@
     document.documentElement.classList.add("js-opt");
   </script>
 </head>
-<body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col overflow-x-hidden"{% if storefront_card_chrome %} data-sf-chrome="{{ storefront_card_chrome }}"{% endif %}{% if storefront_card_radius or storefront_card_shadow or storefront_card_bg or storefront_card_padding %} style="{% if storefront_card_radius %}--sf-r:{{ storefront_card_radius }}px;{% endif %}{% if storefront_card_shadow %}--sf-sh:0 10px 25px -8px rgba(0,0,0,.18);{% endif %}{% if storefront_card_bg %}--sf-bg:{{ storefront_card_bg }};{% endif %}{% if storefront_card_padding %}--sf-pad:{{ storefront_card_padding }}px;{% endif %}"{% endif %}>
+<body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col overflow-x-hidden"{% if storefront_card_chrome %} data-sf-chrome="{{ storefront_card_chrome }}"{% endif %}{% if storefront_look %} data-sf-look="{{ storefront_look }}"{% endif %}{% if storefront_card_radius or storefront_card_shadow or storefront_card_bg or storefront_card_padding %} style="{% if storefront_card_radius %}--sf-r:{{ storefront_card_radius }}px;{% endif %}{% if storefront_card_shadow %}--sf-sh:0 10px 25px -8px rgba(0,0,0,.18);{% endif %}{% if storefront_card_bg %}--sf-bg:{{ storefront_card_bg }};{% endif %}{% if storefront_card_padding %}--sf-pad:{{ storefront_card_padding }}px;{% endif %}"{% endif %}>
   {% comment %}M20 ④: шапка витрины — стиль (classic/centered/minimal), sticky и
   пункты из настроек (storefront_nav). Мобильный бургер раскрывает меню на
   телефоне; стиль minimal прячет ссылки и на десктопе (всё в бургере).{% endcomment %}
@@ -542,6 +542,22 @@
   {% endif %}
   {# LS-2: бейдж «Jetzt erreichbar — Video-Anruf» (пусто, если недоступен/нет номера). #}
   {% presence_fab %}
+  {% if storefront_demo_design %}
+  {% comment %}DL-8e: пилюля «Design testen» — ТОЛЬКО на демо-витринах (гейт по
+  слагам демо-китов в процессоре). Выбор живёт в сессии посетителя (read-only
+  оверлей, конфиг тенанта не пишется); <details> — дропап без JS.{% endcomment %}
+  <details class="fixed left-1/2 -translate-x-1/2 bottom-20 sm:bottom-5 z-40" data-demo-design>
+    <summary class="list-none cursor-pointer inline-flex items-center gap-2 bg-gray-900 text-white rounded-full shadow-lg px-4 py-2.5 text-sm font-medium whitespace-nowrap">🎨 {% trans "Design testen" %}</summary>
+    <div class="absolute bottom-12 left-1/2 -translate-x-1/2 w-60 bg-white text-gray-900 rounded-xl shadow-xl border border-gray-200 p-1.5">
+      <a href="{% url 'storefront-design-testen' %}?tpl=standard&next={{ request.path|urlencode }}"
+         class="block rounded-lg px-3 py-1.5 text-sm hover:bg-gray-100{% if not storefront_demo_design.active %} font-semibold{% endif %}">{% trans "Standard" %}{% if not storefront_demo_design.active %} ✓{% endif %}</a>
+      {% for o in storefront_demo_design.options %}
+        <a href="{% url 'storefront-design-testen' %}?tpl={{ o.key }}&next={{ request.path|urlencode }}"
+           class="block rounded-lg px-3 py-1.5 text-sm hover:bg-gray-100{% if o.key == storefront_demo_design.active %} font-semibold{% endif %}">{{ o.label }}{% if o.key == storefront_demo_design.active %} ✓{% endif %}</a>
+      {% endfor %}
+    </div>
+  </details>
+  {% endif %}
   {% if storefront_inbox_enabled %}
   {# M22b: плавающая кнопка чата — доступна с любой страницы (над таб-баром на мобиле). #}
   {# DL-6: FAB — в акценте тенанта (жёсткий indigo игнорировал Look любого цвета). #}

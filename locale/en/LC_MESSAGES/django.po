@@ -21257,3 +21257,9 @@ msgstr ""
 
 msgid "Your texts are kept — only empty fields are filled."
 msgstr "Your texts are kept — only empty fields are filled."
+
+msgid "Design testen"
+msgstr "Try a design"
+
+msgid "Vorschau"
+msgstr "Preview"

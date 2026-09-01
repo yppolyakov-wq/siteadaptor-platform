@@ -21384,3 +21384,9 @@ msgstr ""
 
 msgid "Your texts are kept — only empty fields are filled."
 msgstr "Metinleriniz korunur — yalnızca boş alanlar doldurulur."
+
+msgid "Design testen"
+msgstr "Tasarımı dene"
+
+msgid "Vorschau"
+msgstr "Önizleme"

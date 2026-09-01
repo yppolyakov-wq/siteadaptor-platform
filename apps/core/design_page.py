@@ -29,11 +29,17 @@ def design_view(request):
         else:
             messages.error(request, _("Unbekannte Vorlage."))
         return redirect("design")
+    from apps.tenants import siteconfig
+
+    # DL-8a: активный выбор (ключ design пишут apply_bundle/apply_look).
+    current = siteconfig.normalize(tenant.site_config).get("design") or {}
     return render(
         request,
         "tenant/design.html",
         {
             "bundles": sitetemplates.bundles_for(tenant.business_type),
             "looks": sitetemplates.looks_for(tenant.business_type),
+            "current_bundle": current.get("bundle", ""),
+            "current_look": current.get("look", ""),
         },
     )

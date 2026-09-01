@@ -34,11 +34,18 @@ def test_default_grid_has_no_new_style_markers():
     PromotionFactory(status="active", title={"de": "Sommeraktion"})
     html = _home()
     assert 'id="promo-grid"' in html and "Sommeraktion" in html
-    for marker in ("data-promo-spotlight", "data-promo-rows", "data-promo-ending"):
+    for marker in (
+        "data-promo-spotlight",
+        "data-promo-rows",
+        "data-promo-ending",
+        "data-promo-side",
+    ):
         assert marker not in html, marker
 
 
 def test_spotlight_features_first_promo_and_ending_strip():
+    """DL-8c (фидбэк «карточка занимает весь экран»): featured-дил —
+    ГОРИЗОНТАЛЬНАЯ карта + две компакт-плитки сбоку; с 4-й акции — сетка."""
     PromotionFactory(
         status="active",
         title={"de": "Endet gleich"},
@@ -47,9 +54,17 @@ def test_spotlight_features_first_promo_and_ending_strip():
     PromotionFactory(status="active", title={"de": "Zweite Aktion"})
     html = _home([{"key": "promotions", "enabled": True, "style": "spotlight"}])
     assert "data-promo-spotlight" in html
+    assert "data-promo-hero" in html  # featured — горизонтальная карта
+    assert "data-promo-side" in html  # плитки сбоку (вторая акция)
+    assert 'id="promo-grid"' not in html  # ≤3 акций — сетки-остатка нет
     assert "data-promo-ending" in html  # полоса «Endet bald» — есть срок ≤ 3 дня
     assert "data-countdown=" in html
     assert "Endet gleich" in html and "Zweite Aktion" in html
+    # 4-я акция открывает сетку-остаток.
+    PromotionFactory(status="active", title={"de": "Dritte"})
+    PromotionFactory(status="active", title={"de": "Vierte"})
+    html = _home([{"key": "promotions", "enabled": True, "style": "spotlight"}])
+    assert 'id="promo-grid"' in html
 
 
 def test_spotlight_without_soon_deadlines_hides_strip():

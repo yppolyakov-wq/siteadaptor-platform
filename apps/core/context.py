@@ -61,6 +61,28 @@ def _cart_count(request) -> int:
     return total
 
 
+def _demo_design_ctx(request, tenant):
+    """DL-8e: данные пилюли «Design testen» на демо-витрине (None вне демо).
+
+    Опции = сборки типа бизнеса (bundles_for); активный ключ — из сессии
+    посетителя. Внутри канвы редактора (?preview=1) пилюлю не показываем —
+    там владелец работает со своим превью."""
+    from apps.core import demo_switch
+
+    if request.GET.get("preview") == "1" or not demo_switch.is_demo_tenant(tenant):
+        return None
+    from apps.tenants import sitetemplates
+
+    active = request.session.get(demo_switch.SESSION_KEY, "") if hasattr(request, "session") else ""
+    return {
+        "options": [
+            {"key": b["key"], "label": b["label"]}
+            for b in sitetemplates.bundles_for(getattr(tenant, "business_type", "") or "retail")
+        ],
+        "active": active,
+    }
+
+
 def _accent_ink(accent: str) -> str:
     """DL-5: цвет текста ПОВЕРХ акцент-фона по яркости акцента.
 
@@ -220,13 +242,17 @@ def modules_nav(request):
     # не делят единственный session-слот черновика). DL-3: += &bundle=<key> —
     # оси сборки (стили/включение секций, catalog_layout, страничные пресеты)
     # тем же read-only оверлеем; без явного &look= кожу даёт Look самой сборки.
-    if request.GET.get("preview") == "1" and (request.GET.get("look") or request.GET.get("bundle")):
+    # DL-8e: тот же оверлей питает демо-переключатель шаблона (выбор в СЕССИИ
+    # посетителя, только на демо-тенантах; конфиг не пишется никогда).
+    from apps.core import demo_switch as _demo_switch
+
+    _ov_bundle_key = _demo_switch.overlay_bundle_key(request)
+    _ov_look_key = request.GET.get("look", "") if request.GET.get("preview") == "1" else ""
+    if _ov_look_key or _ov_bundle_key:
         from apps.tenants import sitetemplates
 
-        _bundle = sitetemplates.get_bundle(request.GET.get("bundle", ""))
-        _fam = sitetemplates.get_look_family(
-            request.GET.get("look", "") or (_bundle["look"] if _bundle else "")
-        )
+        _bundle = sitetemplates.get_bundle(_ov_bundle_key)
+        _fam = sitetemplates.get_look_family(_ov_look_key or (_bundle["look"] if _bundle else ""))
         if _fam is not None:
             cfg = dict(cfg)
             cfg["font"] = _fam["font"]
@@ -244,6 +270,8 @@ def modules_nav(request):
             storefront_accent = sitetemplates.look_accent(
                 getattr(tenant, "business_type", ""), _fam["key"]
             )
+            # DL-8b: превью несёт и фирменные бейджи/цены семейства.
+            cfg["design"] = {**(cfg.get("design") or {}), "look": _fam["key"]}
         if _bundle is not None:
             cfg = sitetemplates.apply_preview_bundle(cfg, _bundle["key"])
             nav_style = (cfg.get("nav") or {}).get("style") or nav_style
@@ -475,6 +503,11 @@ def modules_nav(request):
         # DL-2: ХРОМ карточек ("" | hard | hairline | line) — рамка/тень
         # семейства Look'а; body несёт data-sf-chrome, правила в _base.html.
         "storefront_card_chrome": cfg["site_defaults"].get("card_chrome", ""),
+        # DL-8b: семейство выбранного Look'а (body data-sf-look — фирменные
+        # бейджи/цены варианта CSS-каскадом); в превью — из GET-оверлея (ниже).
+        "storefront_look": (cfg.get("design") or {}).get("look", ""),
+        # DL-8e: пилюля «Design testen» — только на демо-тенантах.
+        "storefront_demo_design": _demo_design_ctx(request, tenant),
         # O-2: дефолтный вид выбора вариантов ("" = выпадающий список). Товар
         # может переопределить своим `variant_style`.
         "storefront_variant_style": cfg["site_defaults"].get("variant_style", ""),

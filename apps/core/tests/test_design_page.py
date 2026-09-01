@@ -53,6 +53,20 @@ def test_post_bundle_applies_and_persists():
     assert row["style"] == "spotlight" and row["enabled"] is True  # композиция
 
 
+def test_active_badge_and_preview_links():
+    """DL-8a: активный выбор помечен «Aktiv», у карточек есть полный превью."""
+    from apps.tenants import sitetemplates
+
+    tenant = TenantFactory(business_type="grocery")
+    sitetemplates.apply_bundle(tenant, "deal_blatt")
+    html = design_view(_req(tenant)).content.decode()
+    assert "Aktiv" in html
+    # Бейдж стоит на карточке активной сборки (рамка-подсветка + ✓).
+    idx = html.find('value="deal_blatt"')
+    assert idx > -1 and "Aktiv" in html[idx - 2500 : idx]
+    assert 'href="/?preview=1&look=blatt&bundle=deal_blatt" target="_blank"' in html
+
+
 def test_post_look_applies_skin_only():
     tenant = TenantFactory(business_type="grocery")
     resp = design_view(_req(tenant, "post", {"look": "prospekt"}))

@@ -348,6 +348,31 @@ def test_new_family_preview_overlay():
     assert "#f7f5f0" in html  # page_bg газеты
 
 
+def test_design_key_tracks_choice():
+    """DL-8a: apply_look/apply_bundle пишут presence-minimal ключ design —
+    питает бейдж «Aktiv» и data-sf-look; мусор дропается нормализацией."""
+    tenant = TenantFactory(business_type="grocery")
+    sitetemplates.apply_bundle(tenant, "deal_neon")
+    assert tenant.site_config["design"] == {"look": "neon", "bundle": "deal_neon"}
+    # Look поверх сборки меняет только кожу — bundle-ключ остаётся.
+    sitetemplates.apply_look(tenant, "blatt")
+    assert tenant.site_config["design"] == {"look": "blatt", "bundle": "deal_neon"}
+    # Мусорные значения не переживают normalize; пусто = ключа нет (golden).
+    assert "design" not in siteconfig.normalize({"design": {"look": "junk", "bundle": "junk"}})
+    assert "design" not in siteconfig.normalize({})
+
+
+def test_look_family_rendered_on_body():
+    """DL-8b: body несёт data-sf-look (фирменные бейджи/цены каскадом) —
+    из сохранённого выбора и в stateless-превью."""
+    tenant = TenantFactory(business_type="grocery")
+    sitetemplates.apply_bundle(tenant, "deal_prospekt")
+    assert ' data-sf-look="prospekt"' in _home(tenant)
+    plain = TenantFactory.build(business_type="grocery", primary_color="#4f46e5")
+    assert ' data-sf-look="neon"' in _home(plain, "?preview=1&bundle=deal_neon")
+    assert ' data-sf-look="' not in _home(plain)  # без выбора — атрибута нет
+
+
 def test_sf_primary_alias_emitted():
     """DL-6: app.css потребляет --sf-primary (активные кнопки вида, свотчи) с
     фолбэком-индиго — без алиаса в _base.html акцент тенанта туда не доезжал."""

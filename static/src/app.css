@@ -273,28 +273,81 @@
   background-color: #ffffff;
 }
 
-/* DL-7c (фидбэк владельца): spotlight-грид акций — большая карточка (row-span-2)
-   растягивается на высоту двух соседних рядов: карточка = flex-колонка, фото
-   теряет жёсткий aspect-square и заполняет остаток (нижние края сходятся).
-   Шаблон карточки не трогаем — только каскад внутри обёртки. */
-[data-promo-spotlight] {
+/* DL-8c (фидбэк «карточка занимает весь экран»): spotlight v2 — featured-дил
+   ГОРИЗОНТАЛЬНОЙ картой + две компакт-плитки сбоку; правая колонка тянется
+   до высоты featured-карты (grid stretch), мини-плитки делят высоту поровну. */
+[data-promo-side] {
   display: grid;
-}
-[data-promo-spotlight] > .sf-card {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-[data-promo-spotlight] > .sf-card > a {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
+  gap: 1rem;
   min-height: 0;
 }
-[data-promo-spotlight] > .sf-card > a > div:first-child {
-  aspect-ratio: auto;
-  flex: 1 1 auto;
-  min-height: 12rem;
+[data-promo-side] > .sf-card {
+  min-height: 0;
+}
+
+/* DL-8b: фирменные бейджи и цены Look-семейств (сверка с артбордами канваса).
+   Только каскад по body[data-sf-look] — шаблоны и паритет-замки целы.
+   V1 Prospekt: жёлтый наклонный стикер-процент, чёрный текст, жёсткая тень. */
+[data-sf-look="prospekt"] .bg-red-600.text-white.rounded-full {
+  background: #fde047;
+  color: #171717;
+  border-radius: 2px;
+  transform: rotate(-3deg);
+  box-shadow: 2px 2px 0 #171717;
+}
+/* V1: полоса «Endet bald» — чёрные ленты с жёлтым текстом (макет Main). */
+[data-sf-look="prospekt"] [data-promo-ending] a {
+  background: #171717;
+  border-color: #171717;
+  color: #fde047;
+}
+[data-sf-look="prospekt"] [data-promo-ending] a * {
+  color: #fde047;
+}
+/* V1: заголовки секций — плашка-стикер в акценте. */
+[data-sf-look="prospekt"] section[data-reveal] h2[data-edit] {
+  background: var(--accent);
+  color: var(--accent-ink, #fff);
+  display: inline-block;
+  padding: 0.1em 0.45em;
+  transform: rotate(-1deg);
+}
+/* V2 Frischmarkt: пастель-пилюля процента + цены в акценте (зелёные). */
+[data-sf-look="frisch"] .bg-red-600.text-white.rounded-full {
+  background: #ffe4e6;
+  color: #9f1239;
+  box-shadow: none;
+}
+[data-sf-look="frisch"] .font-extrabold.text-red-600,
+[data-sf-look="frisch"] .font-bold.text-red-600 {
+  color: var(--accent);
+}
+/* V3 Nachtmarkt: лаймовые бейджи с тёмным текстом + цены в акценте. */
+[data-sf-look="neon"] .bg-red-600.text-white.rounded-full {
+  background: var(--accent);
+  color: var(--accent-ink, #111827);
+  box-shadow: none;
+}
+[data-sf-look="neon"] .font-extrabold.text-red-600,
+[data-sf-look="neon"] .font-bold.text-red-600 {
+  color: var(--accent);
+}
+/* V4 Markthalle: бейдж-бокс — рамка без заливки, прямые углы; цены карминовые. */
+[data-sf-look="blatt"] .bg-red-600.text-white.rounded-full {
+  background: #ffffff;
+  color: #171717;
+  border: 1px solid #171717;
+  border-radius: 0;
+  box-shadow: none;
+}
+[data-sf-look="blatt"] .font-extrabold.text-red-600,
+[data-sf-look="blatt"] .font-bold.text-red-600 {
+  color: var(--accent);
+}
+/* V5 Marktplatz: красные бейджи со скруглением-боксом (не пилюля). */
+[data-sf-look="smart"] .bg-red-600.text-white.rounded-full {
+  border-radius: 6px;
+  box-shadow: none;
 }
 
 /* R1: тост подтверждения добавления в корзину + «прыжок» бейджа. */

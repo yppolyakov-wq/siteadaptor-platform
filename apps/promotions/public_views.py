@@ -156,10 +156,14 @@ def storefront_home(request):
     # processor, но КОМПОЗИЦИЮ главной (стили/включение секций, hero_style)
     # рендерит эта вьюха из СВОЕГО site — без оверлея здесь превью сборки
     # показывало бы сохранённую раскладку. Read-only, на копии рядов.
-    if request.GET.get("preview") == "1" and request.GET.get("bundle"):
+    # DL-8e: тот же ключ приходит и из демо-сессии («Design testen» на витрине).
+    from apps.core.demo_switch import overlay_bundle_key
+
+    _ov_bundle = overlay_bundle_key(request)
+    if _ov_bundle:
         from apps.tenants import sitetemplates
 
-        site = sitetemplates.apply_preview_bundle(site, request.GET.get("bundle", ""))
+        site = sitetemplates.apply_preview_bundle(site, _ov_bundle)
     sections = [s["key"] for s in site["sections"] if s["enabled"]]
     # D.2: полные записи включённых секций (фикс + C-блоки с данными) для рендера
     # через {% render_block %}; `sections` (ключи) остаётся для гейтинга запросов.

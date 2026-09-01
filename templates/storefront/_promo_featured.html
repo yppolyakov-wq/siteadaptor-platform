@@ -1,0 +1,19 @@
+{% load i18n %}{# DL-8c: featured-дил ГОРИЗОНТАЛЬНОЙ картой (фото слева, контент справа). Контекст: p. Реюз: стиль banner (во всю ширину) и spotlight v2 (2/3 + плитки сбоку). #}
+<a href="{% url 'storefront-promotion' p.pk %}" class="sf-card group relative h-full flex flex-col md:flex-row bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition" data-promo-hero{% if p.discount_style == 'mystery' %} data-mystery-root="{{ p.pk }}"{% endif %}>
+  <span class="relative block md:w-1/2 lg:w-2/5 aspect-[4/3] md:aspect-auto md:min-h-[14rem] md:self-stretch bg-gray-100 shrink-0">
+    {% with img=p.primary_image %}
+      {% if img %}<img src="{{ img.url }}" alt="{{ p.title_text }}" loading="lazy" decoding="async"{% if p.discount_style == 'mystery' %} data-mystery-blur{% endif %} class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.02] transition{% if p.discount_style == 'mystery' %} blur-lg{% endif %}">{% endif %}
+    {% endwith %}
+    {% include "storefront/_discount_display.html" with promo=p part="badge" size="lg" %}
+  </span>
+  <span class="flex-1 p-5 md:p-6 flex flex-col justify-center min-w-0">
+    {% include "storefront/_discount_display.html" with promo=p part="surprise" size="lg" %}
+    <span class="block text-xl md:text-2xl font-bold leading-tight">{{ p.title_text }}</span>
+    <span class="block mt-3">{% include "storefront/_discount_display.html" with promo=p part="price" %}</span>
+    {% if p.lowest_30d is not None and p.discount_style != 'mystery' %}
+      <span class="block mt-1 text-xs text-gray-400">{% blocktrans with p=p.lowest_30d %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</span>
+    {% endif %}
+    {% include "storefront/_discount_display.html" with promo=p part="scarcity" size="lg" %}
+    {% include "storefront/_discount_display.html" with promo=p part="countdown" size="lg" %}
+  </span>
+</a>

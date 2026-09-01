@@ -1031,6 +1031,9 @@ BUNDLES = [
         "look": "prospekt",
         "config": _fokus(
             {
+                # DL-8d (сверка с артбордом V1): hero — красная плита с крупной
+                # типографикой, не сплит с фото.
+                "hero_style": "accent",
                 "section_styles": {"promotions": "spotlight", "categories": "compact"},
                 "sections_on": ("promotions", "categories"),
                 "page_presets": {"info": "bild", "cart": "vertrauen"},
@@ -1154,6 +1157,8 @@ def apply_bundle(tenant, key) -> bool:
     apply_look(tenant, bundle["look"])
     config = siteconfig.normalize(tenant.site_config)
     _apply_bundle_axes(config, bundle["config"])
+    # DL-8a: запомнить выбранную сборку (бейдж «Aktiv» страницы Design).
+    config["design"] = {"look": bundle["look"], "bundle": key}
     tenant.site_config = siteconfig.normalize(config)
     tenant.save(update_fields=["site_config", "updated_at"])
     return True
@@ -1216,4 +1221,13 @@ def apply_look(tenant, family_key) -> bool:
     business_type = getattr(tenant, "business_type", "") or "retail"
     template = templates_for(business_type)[0]  # рекомендованный архетипу первым
     _apply(tenant, template, family=family, accent=look_accent(business_type, family_key))
+    # DL-8a: запомнить выбранную кожу (бейдж «Aktiv» страницы Design +
+    # data-sf-look витрины). Прежний bundle-ключ сохраняется: Look меняет
+    # только оптику, композиция сборки остаётся.
+    config = siteconfig.normalize(tenant.site_config)
+    design = dict(config.get("design") or {})
+    design["look"] = family_key
+    config["design"] = design
+    tenant.site_config = siteconfig.normalize(config)
+    tenant.save(update_fields=["site_config", "updated_at"])
     return True

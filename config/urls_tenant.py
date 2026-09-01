@@ -14,6 +14,7 @@ from apps.booking import public_views as booking_public
 from apps.collections import public_views as collections_public
 from apps.community import views as community_views
 from apps.core import health
+from apps.core.demo_switch import demo_design_switch
 from apps.core.design_page import design_view
 from apps.core.settings_home import einstellungen_home
 from apps.core.team import team_join, team_view
@@ -336,6 +337,8 @@ urlpatterns = [
     # FD-1: Finder «вопросы → 3 предложения» (опция; 404 пока не включён).
     path("finder/", public_views.finder_page, name="storefront-finder"),
     path("lang/", public_views.set_language, name="storefront-set-language"),
+    # DL-8e: смена шаблона на ДЕМО-витрине (сессия посетителя, 404 вне демо).
+    path("design-testen/", demo_design_switch, name="storefront-design-testen"),
     # Каталог товаров на витрине (Track C1).
     path("sortiment/", public_views.product_list, name="storefront-products"),
     # M4-B Lookbook: страница образа (подборка товаров с фото).

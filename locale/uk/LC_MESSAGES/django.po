@@ -21465,3 +21465,9 @@ msgstr ""
 
 msgid "Your texts are kept — only empty fields are filled."
 msgstr "Ваші тексти зберігаються — заповнюються лише порожні поля."
+
+msgid "Design testen"
+msgstr "Приміряти дизайн"
+
+msgid "Vorschau"
+msgstr "Попередній перегляд"

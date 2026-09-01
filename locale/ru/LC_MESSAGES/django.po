@@ -21480,3 +21480,9 @@ msgstr ""
 
 msgid "Your texts are kept — only empty fields are filled."
 msgstr "Ваши тексты сохраняются — заполняются только пустые поля."
+
+msgid "Design testen"
+msgstr "Примерить дизайн"
+
+msgid "Vorschau"
+msgstr "Предпросмотр"

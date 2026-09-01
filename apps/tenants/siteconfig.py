@@ -2749,6 +2749,21 @@ def _normalize_impl(config) -> dict:
     # (kacheln = дефолт → ключ не материализуется, golden-паритет).
     if config.get("sortiment_view") == "liste":
         normalized["sortiment_view"] = "liste"
+    # DL-8a: выбранный дизайн ({look, bundle}) — пишут apply_look/apply_bundle;
+    # питает бейдж «Aktiv» страницы Design и data-sf-look витрины. Валидация
+    # по реестрам — ленивый импорт (siteconfig не импортирует sitetemplates
+    # на уровне модуля: тот сам импортирует siteconfig). Presence-minimal.
+    dsg = config.get("design")
+    if isinstance(dsg, dict) and (dsg.get("look") or dsg.get("bundle")):
+        from apps.tenants import sitetemplates as _st
+
+        clean = {}
+        if _st.get_look_family(str(dsg.get("look") or "")) is not None:
+            clean["look"] = str(dsg["look"])
+        if _st.get_bundle(str(dsg.get("bundle") or "")) is not None:
+            clean["bundle"] = str(dsg["bundle"])
+        if clean:
+            normalized["design"] = clean
     # FD-1: Finder («вопросы → 3 предложения»); ключ ТОЛЬКО при непустом.
     fnd = normalize_finder(config.get("finder"))
     if fnd:
