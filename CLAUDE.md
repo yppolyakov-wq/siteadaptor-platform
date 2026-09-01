@@ -2250,6 +2250,29 @@ Python 3.12, менеджер uv.
   (дыры SH-волны закрыты). Границы v1 — план §SF-4b. СЕМЕЙСТВО SF ЗАКРЫТО. Грабли-повторы пойманы:
   декоратор-«съеден-хелпером», app.css-свежесть, MEN-уникальные тест-строки, ST-3
   public-схема. ⚠️ ops: `seed_demo_tenants --kit aktionsmarkt --recreate`.
+- **Самое свежее (2026-09-01): ВОЛНА DL «5 дил-шаблонов + переключатель» ЗАКРЫТА ЦЕЛИКОМ
+  (DL-1..6, БЕЗ миграций, в main).** По утверждённому канвасу «Sparfuchs Aktionsmarkt
+  Redesign» (5 вариантов × 3 страницы × 2 вьюпорта): **DL-1** self-hosted шрифты ×4
+  (Barlow Condensed/Bricolage/Space Grotesk/Schibsted, OFL; `FONTS` += 4; починена дыра —
+  `font_options` не знал editorial/organic → пересохранение сбрасывало DS-Look'и).
+  **DL-2** `LOOK_FAMILIES` += prospekt/frisch/neon(dark)/blatt/smart (акценты 15×10, замок)
+  + новая ось `site_defaults.card_chrome` hard|hairline|line (body `data-sf-chrome`, .dark-пары);
+  Save билдера — presence-preserve site_defaults (класс W0/W6). **DL-3** `BUNDLES` +=
+  5 УНИВЕРСАЛЬНЫХ дил-сборок (recommended_for=() — видны всем 15 типам) + ось `page_presets`
+  + `SECTION_STYLES["promotions"]` spotlight/rows ("" байт-в-байт, замки) + переключатель:
+  stateless-превью `?preview=1&bundle=<key>` + ленивые iframe-карточки сборок в мастере «Stil»
+  (билдер получил карточки даром — реестр). **DL-4** aktionsmarkt: плитки hero пережили
+  сборку (латентный баг сидинга — config_patch после _FOKUS_BASE), главная = spotlight.
+  **DL-6** шаблоны действуют на ВСЕХ страницах: тёмная карта += border-300/ring/divide/
+  indigo/amber/sky-пары + bg-gray-900-чипы; QR — класс `sf-qr` (тихое поле остаётся белым);
+  `--sf-primary` наконец эмиттится (кнопки вида/свотчи были вечно-индиго); indigo→акцент
+  (чат-FAB/Newsletter/право/404); sf-card на карточках права/корзины/подтверждений;
+  section_row на /galerie/ /team/ /ueber-uns/. **DL-5 стенд** нашёл дефект: композиция
+  сборки не доезжала до тела главной в превью (кожа — context-processor, секции — вьюха)
+  → общий `apply_preview_bundle`. Грабля стендов: dev-settings дают djdt-500 на витрине —
+  гонять `config.settings.stand`; data-reveal прячет секции на fullPage-скриншотах.
+  План — `docs/deal-looks-wave-plan-2026-09-01.md`. ⚠️ ops: `seed_demo_tenants --kit
+  aktionsmarkt --recreate`.
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна VAT, 2026-08-26): `jobs/0017` (JobLine.vat_rate) + `catalog/0031` (Combo.vat_rate) — аддитивные; (волна DC, 2026-08-25): `booking/0024` + `stays/0033` + `jobs/0016` (внешний номер сделки) + `booking/0025` (связь записи со счётом) — аддитивные; (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `core/0010` (Extra.consume_qty, v2-опции) + `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate) + `events/0028` (SupplierBooking вне туров) + `booking/0023` (Service.pricing_mode) + `catalog/0030` (Product.primary_action) + `finance/0009` (SOURCES gift/pass, choices-only)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. **Волна ERP (2026-08-21): `orders/0020` (OrderItem.cost_price) + `finance/0010` (BankTransaction) + `finance/0011` (Invoice.mahn_level/mahned_at + ExpenseEntry supplier/due_date/paid_at/document) + `documents/0002` (owner nullable + kind receipt) + `inventory/0005` (qty_returned + kind'ы return_supplier/production, ERP-5/7) + `jobs/0015` (JobLine.cost_rate, ERP-6)** — аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + `--kit pranasy --recreate` (кейтеринг-карта) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,

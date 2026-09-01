@@ -13018,3 +13018,69 @@ quick-add, строка корзины (чип «Aktion»), related/upsell/wishl
 при последующей отмене»), deal_counts видит корзинные заказы, товар без акции
 байт-в-байт. Регресс 712 + demo-kit 59 зелёные (сидер теперь честно продаёт
 демо-заказы по промо-ценам — инварианты целы). Границы v1 — план §SF-4b.
+
+### 2026-09-01 — Волна DL: 5 дил-шаблонов по канвасу + переключатель + охват всех страниц
+
+Отмашка владельца: «внедряй все 5 и текущий, текущий довести до ума; сделай
+переключатель шаблонов» + «проверь, чтоб шаблоны подходили под другие страницы».
+Источник дизайна — утверждённый канвас «Sparfuchs Aktionsmarkt Redesign» (5
+вариантов × 3 страницы × десктоп/мобайл); план `deal-looks-wave-plan-2026-09-01`.
+Всё БЕЗ миграций.
+
+**DL-1 шрифты:** 8 self-hosted woff2 (Barlow Condensed / Bricolage Grotesque /
+Space Grotesk / Schibsted Grotesk, 700, latin+latin-ext, OFL, ~168 КБ, провенанс
+SOURCES.md) + @font-face в app.css; `FONTS` += condensed/bricolage/space/schibsted.
+Починена дыра: `font_options` билдера не знал даже editorial/organic —
+пересохранение типографики сбрасывало DS-Look'и; теперь селект = все ключи FONTS.
+
+**DL-2 Look-семейства ×5:** prospekt (Barlow, хром «hard» — рамка 2px + жёсткая
+тень) · frisch (Bricolage, крем #faf6ef, radius 20) · neon (Space Grotesk,
+theme=dark, «line») · blatt (Playfair, бумага #f7f5f0, «hairline», nav centered) ·
+smart (Schibsted, #f4f6f9, «line», hero plain). `ARCHETYPE_LOOK_ACCENTS`: все 15
+кортежей 5→10 колонок (замок «ровно 10»). **Новая ось** `site_defaults.card_chrome`
+∈ hard|hairline|line (presence-minimal; body `data-sf-chrome` + правила в
+_base.html, вкл. .dark-пары). Починки класса W0/W6 до внедрения: билдер-Save
+пересобирал site_defaults из подмножества (терял page_bg/hero_widget, уронил бы
+card_chrome) → presence-preserve + hidden round-trip; data-look JSON билдера +=
+page_bg/card_chrome/card_style (живой клик красит фон канвы).
+
+**DL-3 сборки + переключатель:** `BUNDLES` += deal_prospekt/frisch/neon/blatt/
+smart — УНИВЕРСАЛЬНЫЕ (recommended_for=() → видны всем 15 типам; замок
+«exactly-one-fokus» переписан осознанно). Новая ось сборки `page_presets`
+(через готовый apply_page_preset ST-2 — красит «О нас»/корзину). Ось
+`SECTION_STYLES["promotions"]`: spotlight (featured-карточка col-span
++ полоса «Endet bald» ≤3 дня — `promo_ending_soon` во вьюхе) и rows
+(компакт-строки: бейдж процента `!static` · § 11 PAngV · цена); "" = прежний
+грид байт-в-байт (характеризационные замки ДО правки). Переключатель:
+stateless-превью `?preview=1&bundle=<key>` (без &look= кожу даёт Look сборки;
+явный &look= сильнее) + ленивые scaled-iframe на карточках сборок мастера
+«Stil»; кнопки `use_bundle:` билдера получили 5 карточек даром (реестр).
+
+**DL-4 aktionsmarkt «до ума»:** латентный баг сидинга — kit.hero_widget
+применялся ДО apply_bundle_config и «none» Fokus-ДНК затирал плитки → плитки
+восстановлены config_patch'ем (мерджится после сборки), замок; главная кита —
+promotions=spotlight; комментарий accent честный (фактический акцент даёт
+look_accent).
+
+**DL-6 охват всех страниц:** тёмная карта app.css += border-gray-300/
+ring-gray-200/divide-*/text-indigo-600/amber/sky/emerald-пары; тёмные чипы
+bg-gray-900 осветлены; «тихое поле» QR остаётся белым (класс sf-qr — иначе
+.dark .bg-white ломал сканируемость); `--sf-primary` наконец эмиттится (алиас
+var(--accent)) — кнопки вида/свотчи были вечно-индиго; жёсткий indigo → акцент
+(чат-FAB, Newsletter, право, кнопка 404); sf-card на «сырых» карточках
+(право/корзина/чекаут/5 подтверждений/рассылка/лояльность); section_row на
+отдельных страницах — /galerie/ и /team/ уважают вид секции, /ueber-uns/ —
+стиль contact; toggle MEN-23 на /galerie/ получил гейт «авторские стили не
+переключаем».
+
+**DL-5 стенд:** нашёл реальный дефект — кожа превью шла из context-processor,
+но КОМПОЗИЦИЮ главной рендерит storefront_home из своего site → стили/включение
+секций сборки не превьюились (deal_smart показывал spotlight вместо rows);
+общий `apply_preview_bundle` (копия рядов до мутации) в обеих точках + замок.
+Playwright-матрица «6 шаблонов × маршруты × 1440/390» на пересеянном ките.
+Уроки-повторы: многострочный `{# #}` (сразу пойман гейтом), grep по маркеру
+ловит CSS-селекторы `[data-sf-chrome=…]` — сверять по `<body`-атрибуту;
+runserver для стендов — `config.settings.stand` (dev с debug_toolbar даёт
+NoReverseMatch djdt на витрине).
+
+⚠️ ops: `seed_demo_tenants --kit aktionsmarkt --recreate` (spotlight+плитки).
