@@ -1,0 +1,95 @@
+{% load i18n %}{% comment %}DL-16.1 (S1): слайдер-примитив для ЛЮБОЙ горизонтальной ленты
+с атрибутом data-sf-slider (scroll-раскладки сеток, strip-галерея, похожие наборы, ленты
+акций/товаров). Прогрессивное улучшение: без JS — обычная overflow-лента. Стрелки ‹ › —
+только при наведении (решение владельца; CSS @media (hover:hover)), точки = «страницы»
+(≤ 12), клавиатура ← →, свайп нативный, автопрокрутки нет (R5). Идемпотентно (dataset.init),
+window.__sfSliderInit — повторная инициализация после KAT-5 fetch-свопа.{% endcomment %}
+<script>
+(function () {
+  var L_PREV = "{% trans 'Zurück' %}", L_NEXT = "{% trans 'Weiter' %}";
+  function build(strip) {
+    if (strip.dataset.sliderInit) return;
+    strip.dataset.sliderInit = "1";
+    var wrap = document.createElement("div");
+    wrap.className = "sf-slider";
+    strip.parentNode.insertBefore(wrap, strip);
+    wrap.appendChild(strip);
+    strip.classList.add("sf-slider-strip");
+    if (!strip.hasAttribute("tabindex")) strip.setAttribute("tabindex", "0");
+    var prev = document.createElement("button"), next = document.createElement("button");
+    prev.type = next.type = "button";
+    prev.className = "sf-slider-arrow sf-slider-prev"; next.className = "sf-slider-arrow sf-slider-next";
+    prev.setAttribute("aria-label", L_PREV); next.setAttribute("aria-label", L_NEXT);
+    prev.textContent = "‹"; next.textContent = "›";
+    var dots = document.createElement("div"); dots.className = "sf-slider-dots";
+    wrap.appendChild(prev); wrap.appendChild(next); wrap.appendChild(dots);
+    function pages() { var w = strip.clientWidth || 1; return Math.max(1, Math.min(12, Math.ceil((strip.scrollWidth - 1) / w))); }
+    function page() { var w = strip.clientWidth || 1; return Math.min(pages() - 1, Math.round(strip.scrollLeft / w)); }
+    function renderDots() {
+      var n = pages(), cur = page();
+      dots.innerHTML = "";
+      if (n < 2) { wrap.classList.add("sf-slider-single"); return; }
+      wrap.classList.remove("sf-slider-single");
+      for (var k = 0; k < n; k++) {
+        var d = document.createElement("button"); d.type = "button"; d.className = "sf-slider-dot" + (k === cur ? " is-on" : "");
+        d.setAttribute("aria-label", (k + 1) + " / " + n); d.dataset.page = String(k);
+        dots.appendChild(d);
+      }
+      var max = strip.scrollWidth - strip.clientWidth - 1;
+      prev.disabled = strip.scrollLeft <= 0; next.disabled = strip.scrollLeft >= max;
+    }
+    function go(delta) { strip.scrollBy({ left: delta * strip.clientWidth * 0.9, behavior: "smooth" }); }
+    prev.addEventListener("click", function () { go(-1); });
+    next.addEventListener("click", function () { go(+1); });
+    dots.addEventListener("click", function (e) {
+      var d = e.target.closest(".sf-slider-dot"); if (!d) return;
+      strip.scrollTo({ left: Number(d.dataset.page) * strip.clientWidth, behavior: "smooth" });
+    });
+    strip.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowRight") { e.preventDefault(); go(+1); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); go(-1); }
+    });
+    var t = null;
+    strip.addEventListener("scroll", function () { if (t) return; t = setTimeout(function () { t = null; renderDots(); }, 80); }, { passive: true });
+    if (window.ResizeObserver) new ResizeObserver(renderDots).observe(strip);
+    renderDots();
+  }
+  function init() { document.querySelectorAll("[data-sf-slider]").forEach(build); }
+  window.__sfSliderInit = init;
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+})();
+</script>
+{% comment %}DL-16.4 (P2 «Hover-Slider»): фото на карточке товара листаются — стрелки при
+наведении (hover-устройства), точки, свайп на таче; клик по стрелке/точке не переходит
+по ссылке карточки. Медиа-бокс несёт data-card-imgs="url|url|…" (≥ 2 фото).{% endcomment %}
+<script>
+(function () {
+  function build(box) {
+    if (box.dataset.cimgInit) return;
+    box.dataset.cimgInit = "1";
+    var urls = (box.getAttribute("data-card-imgs") || "").split("|").filter(Boolean);
+    var img = box.querySelector("img");
+    if (urls.length < 2 || !img) return;
+    var i = 0, dots = [];
+    function show(n) { i = (n + urls.length) % urls.length; img.src = urls[i]; dots.forEach(function (d, k) { d.classList.toggle("is-on", k === i); }); }
+    function stopper(fn) { return function (e) { e.preventDefault(); e.stopPropagation(); fn(); }; }
+    function mk(cls, txt) { var b = document.createElement("button"); b.type = "button"; b.className = cls; b.textContent = txt; b.setAttribute("aria-label", txt === "‹" ? "{% trans 'Zurück' %}" : "{% trans 'Weiter' %}"); return b; }
+    var prev = mk("sf-cimg-arrow sf-cimg-prev", "‹"), next = mk("sf-cimg-arrow sf-cimg-next", "›");
+    prev.addEventListener("click", stopper(function () { show(i - 1); }));
+    next.addEventListener("click", stopper(function () { show(i + 1); }));
+    var wrap = document.createElement("span"); wrap.className = "sf-cimg-dots";
+    urls.forEach(function (_, k) { var d = document.createElement("i"); if (k === 0) d.className = "is-on"; d.addEventListener("click", stopper(function () { show(k); })); wrap.appendChild(d); dots.push(d); });
+    box.appendChild(prev); box.appendChild(next); box.appendChild(wrap);
+    var x0 = null;
+    box.addEventListener("touchstart", function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+    box.addEventListener("touchend", function (e) {
+      if (x0 === null) return;
+      var dx = e.changedTouches[0].clientX - x0; x0 = null;
+      if (Math.abs(dx) > 30) { e.preventDefault(); show(dx < 0 ? i + 1 : i - 1); }
+    });
+  }
+  function init() { document.querySelectorAll("[data-card-imgs]").forEach(build); }
+  window.__sfCardImgsInit = init;
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+})();
+</script>

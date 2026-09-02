@@ -823,6 +823,51 @@ input[type="datetime-local"] {
    Классы генерит grid_class_string; ширина плитки ленты — --sf-tile-w. */
 .sf-scroll-grid { display: flex; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: .5rem; -webkit-overflow-scrolling: touch; }
 .sf-scroll-grid > * { flex: 0 0 var(--sf-tile-w, 15rem); min-width: var(--sf-tile-w, 15rem); scroll-snap-align: start; }
+/* DL-16.1 S1: слайдер-примитив поверх любой overflow-ленты [data-sf-slider] (JS оборачивает в
+   .sf-slider). Стрелки — только при наведении и только там, где есть hover (решение владельца);
+   тач — нативный свайп + точки. Полоса прокрутки прячется у улучшенной ленты. */
+.sf-slider { position: relative; }
+.sf-slider-strip { scroll-behavior: smooth; scrollbar-width: none; outline: none; }
+.sf-slider-strip::-webkit-scrollbar { display: none; }
+.sf-slider-strip:focus-visible { outline: 2px solid var(--accent, #4f46e5); outline-offset: 2px; }
+.sf-slider-arrow { position: absolute; top: 40%; transform: translateY(-50%); width: 2.25rem; height: 2.25rem; border-radius: 9999px; background: #fff; color: #111827; border: 1px solid #e5e7eb; box-shadow: 0 2px 8px rgba(0,0,0,.14); font-size: 1.35rem; line-height: 1; display: none; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: opacity .15s; z-index: 2; }
+.sf-slider-prev { left: -0.5rem; } .sf-slider-next { right: -0.5rem; }
+.sf-slider-arrow:disabled { opacity: 0 !important; pointer-events: none; }
+@media (hover: hover) and (pointer: fine) {
+  .sf-slider-arrow { display: flex; }
+  .sf-slider:hover .sf-slider-arrow:not(:disabled), .sf-slider:focus-within .sf-slider-arrow:not(:disabled) { opacity: 1; }
+}
+.sf-slider-dots { display: flex; justify-content: center; gap: .375rem; margin-top: .25rem; }
+.sf-slider-single .sf-slider-dots, .sf-slider-single .sf-slider-arrow { display: none; }
+.sf-slider-dot { width: .5rem; height: .5rem; border-radius: 9999px; background: #d1d5db; border: 0; padding: 0; cursor: pointer; }
+.sf-slider-dot.is-on { background: var(--accent, #111827); }
+.dark .sf-slider-arrow { background: #1f2937; color: #f9fafb; border-color: #374151; }
+.dark .sf-slider-dot { background: #4b5563; }
+/* DL-16.4 P2: листание фото на карточке товара ([data-card-imgs]) — стрелки при наведении,
+   точки поверх фото, свайп нативный (JS). */
+[data-card-imgs] .sf-cimg-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 1.75rem; height: 1.75rem; border-radius: 9999px; background: rgba(255,255,255,.92); color: #111827; border: 0; box-shadow: 0 1px 4px rgba(0,0,0,.18); font-size: 1.1rem; line-height: 1; display: none; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: opacity .15s; z-index: 20; }
+[data-card-imgs] .sf-cimg-prev { left: .375rem; } [data-card-imgs] .sf-cimg-next { right: .375rem; }
+@media (hover: hover) and (pointer: fine) {
+  [data-card-imgs] .sf-cimg-arrow { display: flex; }
+  [data-card-imgs]:hover .sf-cimg-arrow { opacity: 1; }
+}
+[data-card-imgs] .sf-cimg-dots { position: absolute; left: 0; right: 0; bottom: .375rem; display: flex; justify-content: center; gap: .25rem; z-index: 20; }
+[data-card-imgs] .sf-cimg-dots i { width: .375rem; height: .375rem; border-radius: 9999px; background: rgba(255,255,255,.6); box-shadow: 0 0 0 1px rgba(0,0,0,.15); cursor: pointer; display: block; }
+[data-card-imgs] .sf-cimg-dots i.is-on { background: #fff; }
+/* overlay-карточка: подпись лежит внизу фото — точки уходят наверх */
+[data-card-imgs][data-cimg-dots="top"] .sf-cimg-dots { top: .5rem; bottom: auto; }
+
+/* DL-16.6 D2: раскладка «Tabs» детали товара — панели <details> (аккордеон <md, свой
+   маркер ▸); на md+ JS ставит .pd-tabs-on: summary прячется, панель без рамки, вкладки .pd-tab. */
+[data-pd-panel] > summary { list-style: none; }
+[data-pd-panel] > summary::-webkit-details-marker { display: none; }
+[data-pd-panel] > summary::before { content: "▸"; display: inline-block; margin-right: .5rem; color: #9ca3af; transition: transform .15s; }
+[data-pd-panel][open] > summary::before { transform: rotate(90deg); }
+.pd-tabs-on [data-pd-panel] { border: 0; padding: 0; margin: 0; }
+.pd-tabs-on [data-pd-panel] > summary { display: none; }
+.pd-tab { padding: .5rem .875rem; font-size: .875rem; font-weight: 600; color: #6b7280; background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; }
+.pd-tab.is-on { color: #111827; border-bottom-color: var(--accent, #4f46e5); }
+.dark .pd-tab { color: #9ca3af; } .dark .pd-tab.is-on { color: #f9fafb; }
 
 /* MEN-23: «крупный» вид галереи — переключатель посетителя меняет классы
    контейнера (class-swap), а пропорцию плиток задаёт это правило: атрибутный

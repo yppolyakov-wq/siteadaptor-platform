@@ -27,14 +27,36 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
          class="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-sm border {% if c.active %}bg-gray-900 text-white border-gray-900{% else %}border-gray-300 text-gray-600 hover:bg-gray-100{% endif %}">{{ c.label }}</a>
     {% endfor %}
   </div>
+  {% comment %}DL-16.2 (A5): поиск по акциям — `?q=` вьюха понимала давно, а входа в UI
+  не было (шапка ищет по primary-листингу). Carry остальных параметров hidden-полями.{% endcomment %}
+  <form method="get" class="mb-4 flex items-center gap-2" data-promo-search>
+    {% for name, value in toolbar_hidden %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+    {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+    {% if list_view %}<input type="hidden" name="ansicht" value="liste">{% endif %}
+    <input type="search" name="q" value="{{ q }}" placeholder="{% trans 'Aktionen durchsuchen …' %}" aria-label="{% trans 'Suchen' %}" class="h-9 w-full max-w-xs rounded-lg border border-gray-300 px-3 text-sm">
+    <button type="submit" class="h-9 rounded-lg border border-gray-300 px-3 text-sm font-medium">{% trans "Suchen" %}</button>
+  </form>
   {% if result_count is not None %}
     <p class="text-sm text-gray-500 mb-4" data-result-count>{% blocktrans count n=result_count %}{{ n }} offer{% plural %}{{ n }} offers{% endblocktrans %}</p>
   {% endif %}
 {% endblock %}
 
-{% block listing_bar_view %}{% include "storefront/_grid_view.html" with grid_key="promo_list" %}{% endblock %}
+{% block listing_bar_view %}
+  {% comment %}DL-16.2 (A4): «Karten | Liste» — серверные ссылки ?ansicht= (KAT-5 меняет
+  вид без перезагрузки); в режиме таблицы клиентский «список/плитка» не нужен.{% endcomment %}
+  <div class="flex items-center gap-1 shrink-0" role="group" aria-label="{% trans 'Ansicht' %}" data-promo-ansicht>
+    <a href="?{{ ansicht_base_qs }}" data-ansicht="karten" {% if not list_view %}aria-current="page"{% endif %} title="{% trans 'Karten' %}"
+       class="h-9 rounded-lg border border-gray-300 px-3 flex items-center text-sm {% if not list_view %}bg-gray-900 text-white{% else %}text-gray-600{% endif %}">{% trans "Karten" %}</a>
+    <a href="?{{ ansicht_base_qs }}{% if ansicht_base_qs %}&amp;{% endif %}ansicht=liste" data-ansicht="liste" {% if list_view %}aria-current="page"{% endif %} title="{% trans 'Liste' %}"
+       class="h-9 rounded-lg border border-gray-300 px-3 flex items-center text-sm {% if list_view %}bg-gray-900 text-white{% else %}text-gray-600{% endif %}">{% trans "Liste" %}</a>
+  </div>
+  {% if not list_view %}{% include "storefront/_grid_view.html" with grid_key="promo_list" %}{% endif %}
+{% endblock %}
 
 {% block listing_grid %}
+  {% if list_view %}
+    {% include "storefront/_promo_table.html" %}
+  {% endif %}
   {% if ending_soon %}
     {% comment %}Компактная полоса «скоро закончатся»: максимум 4, горизонтальный
     скролл на мобильном; при пустом наборе секции нет вовсе (вьюха).{% endcomment %}
@@ -51,19 +73,35 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
   {% if grouped_promotions %}
     {% comment %}Фидбэк 2026-07-29: группы акций — секциями с заголовками (Prospekt-
     логика: Wochenangebote / Räumung / Anti-Food-Waste читаются с первого взгляда).{% endcomment %}
-    {% for group, group_label, items in grouped_promotions %}
+    {% for group, group_label, items, more_url in grouped_promotions %}
       <section class="mb-8">
+        {% if promo_layout == "slider" %}
+        <h2 class="text-lg font-bold mb-3 flex items-baseline justify-between gap-3"><span>{% if group %}{{ group_label }}{% else %}{% trans "More offers" %}{% endif %}
+          <span class="text-sm font-normal text-gray-400">· {{ items|length }}</span></span>
+          {% if more_url %}<a href="{{ more_url }}" class="text-sm font-medium hover:underline" style="color: var(--accent, #4f46e5);">{% trans "Alle anzeigen" %} →</a>{% endif %}</h2>
+        {% else %}
         <h2 class="text-lg font-bold mb-3">{% if group %}{{ group_label }}{% else %}{% trans "More offers" %}{% endif %}
           <span class="text-sm font-normal text-gray-400">· {{ items|length }}</span></h2>
+        {% endif %}
+        {% if promo_layout == "slider" %}
+        {% comment %}DL-16.2 (A3): группа — горизонтальная лента со слайдером-примитивом
+        (стрелки при наведении, точки, свайп); все группы видны без прокрутки вниз.{% endcomment %}
+        <div data-grid="promo_list" data-promo-strip class="flex gap-4 overflow-x-auto pb-2" data-sf-slider>
+          {% for p in items %}
+            <div class="w-60 shrink-0 flex [&>div]:w-full">{% include "storefront/_promo_card.html" with in_group=True %}</div>
+          {% endfor %}
+        </div>
+        {% else %}
         {# DL-14: неполный ряд группы распределяется по ширине (spread) + авто-колонки #}
         <div data-grid="promo_list" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" {% sf_grid_attrs cols="2/2/3" count=items|length %}>
           {% for p in items %}
-            {% include "storefront/_promo_card.html" %}
+            {% include "storefront/_promo_card.html" with in_group=True %}
           {% endfor %}
         </div>
+        {% endif %}
       </section>
     {% endfor %}
-  {% elif promotions %}
+  {% elif promotions and not list_view %}
     <div data-grid="promo_list" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" {% sf_grid_attrs cols="2/2/3" count=promotions|length %}>
       {% for p in promotions %}
         {% include "storefront/_promo_card.html" %}

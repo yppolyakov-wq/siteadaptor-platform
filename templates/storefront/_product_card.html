@@ -62,7 +62,7 @@
      title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</button>
   {% include "storefront/_wish_heart.html" with p=p pos="absolute top-2 left-2" %}
   <a href="{{ p.get_absolute_url }}" class="block focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
-    <div class="relative aspect-square bg-gray-100" data-sf-media-box>
+    <div class="relative aspect-square bg-gray-100" data-sf-media-box{% if storefront_card_slider and p.images|length > 1 %} data-card-imgs="{% for im in p.images %}{{ im.url }}{% if not forloop.last %}|{% endif %}{% endfor %}" data-cimg-dots="top"{% endif %}>
       {% with img=p.primary_image %}
         {% if img %}<img src="{{ img.url }}" alt="{{ p }}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-[1.02] transition">
         {% else %}<div class="w-full h-full flex items-center justify-center text-gray-300" aria-hidden="true"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></div>{% endif %}
@@ -125,7 +125,7 @@
      title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</button>
   {% include "storefront/_wish_heart.html" with p=p pos="absolute top-2 left-2" %}
   <a href="{{ p.get_absolute_url }}" class="block focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
-    <div class="relative aspect-square bg-gray-100" data-sf-media-box>
+    <div class="relative aspect-square bg-gray-100" data-sf-media-box{% if storefront_card_slider and p.images|length > 1 %} data-card-imgs="{% for im in p.images %}{{ im.url }}{% if not forloop.last %}|{% endif %}{% endfor %}"{% endif %}>
       {% with img=p.primary_image %}
         {% if img %}
           <img src="{{ img.url }}" alt="{{ p }}" loading="lazy" decoding="async"
@@ -148,7 +148,16 @@
         <span class="absolute top-3 {{ badge_x }} bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">★</span>
       {% endif %}
       {% if not p.in_stock %}
-        <span class="absolute top-3 right-3 bg-gray-800/80 text-white text-xs font-bold px-2.5 py-1 rounded-full">{% trans "sold out" %}</span>
+        <span class="absolute {% if storefront_card_style == "etikett" %}bottom-3 right-3{% else %}top-3 right-3{% endif %} bg-gray-800/80 text-white text-xs font-bold px-2.5 py-1 rounded-full">{% trans "sold out" %}</span>
+      {% endif %}
+      {% if storefront_card_style == "etikett" %}
+      {% comment %}DL-16.4 (P1 «Etikett»): плашка-ценник в углу фото — цена первой (R3), под
+      ней Grundpreis; строка цены внизу карточки в этой форме не дублируется.{% endcomment %}
+      <span class="absolute top-2 right-2 rounded-lg bg-white/95 text-gray-900 ring-1 ring-gray-900/80 px-2 py-1 text-right shadow-sm" data-price-plate>
+        <span class="block text-base font-extrabold leading-tight{% if p.promo_price %} text-rose-600{% endif %}">{% if p.has_variants %}<span class="text-[10px] font-normal text-gray-500">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% elif p.promo_price %}{{ p.promo_price }}{% else %}{{ p.base_price }}{% endif %} {{ p.currency|cursym }}</span>
+        {% if p.promo_price and not p.has_variants %}<span class="block text-[10px] text-gray-400 line-through">{{ p.base_price }} {{ p.currency|cursym }}</span>{% endif %}
+        {% if not p.has_variants %}{% with gp=p.grundpreis %}{% if gp %}<span class="block text-[10px] text-gray-500">{{ gp.0 }} {{ p.currency|cursym }} / {{ gp.1 }}</span>{% endif %}{% endwith %}{% endif %}
+      </span>
       {% endif %}
     </div>
     <div class="px-3 pt-3 md:px-4">
@@ -169,12 +178,12 @@
     <div class="min-w-0">
       {% comment %}#7-B: цена товара БЕЗ вариантов размечена для инлайн-правки (поповер-инпут в
       режиме правки билдера). У товаров с вариантами цена «от …» пер-вариант → правится в форме.{% endcomment %}
-      <div class="font-bold leading-tight">{% if p.has_variants %}<span class="text-xs font-normal text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% else %}{% if p.promo_price %}<span class="text-rose-600">{{ p.promo_price }}</span> <span class="text-xs font-normal text-gray-400 line-through" data-price-edit data-edit-pk="{{ p.pk }}" data-price="{{ p.base_price }}">{{ p.base_price }}</span>{% else %}<span data-price-edit data-edit-pk="{{ p.pk }}" data-price="{{ p.base_price }}">{{ p.base_price }}</span>{% endif %}{% endif %} {{ p.currency|cursym }}</div>
+      {% if storefront_card_style != "etikett" %}<div class="font-bold leading-tight">{% if p.has_variants %}<span class="text-xs font-normal text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% else %}{% if p.promo_price %}<span class="text-rose-600">{{ p.promo_price }}</span> <span class="text-xs font-normal text-gray-400 line-through" data-price-edit data-edit-pk="{{ p.pk }}" data-price="{{ p.base_price }}">{{ p.base_price }}</span>{% else %}<span data-price-edit data-edit-pk="{{ p.pk }}" data-price="{{ p.base_price }}">{{ p.base_price }}</span>{% endif %}{% endif %} {{ p.currency|cursym }}</div>
+      {% if not p.has_variants %}{% with gp=p.grundpreis %}{% if gp %}<p class="text-[11px] text-gray-400 leading-tight">{{ gp.0 }} {{ p.currency|cursym }} / {{ gp.1 }}</p>{% endif %}{% endwith %}{% endif %}{% endif %}
       {% if p.promo_price and p.promo_lowest is not None %}
         {# SF-4b (§11 PAngV): карточка с промо-ценой анонсирует снижение — референс рядом. #}
         <p class="mt-0.5 text-[10px] leading-tight {{ pangv_cls|default:'text-gray-400' }}">{% blocktrans with p=p.promo_lowest %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>
       {% endif %}
-      {% if not p.has_variants %}{% with gp=p.grundpreis %}{% if gp %}<p class="text-[11px] text-gray-400 leading-tight">{{ gp.0 }} {{ p.currency|cursym }} / {{ gp.1 }}</p>{% endif %}{% endwith %}{% endif %}
     </div>
     {% if storefront_quick_add and p.in_stock %}
       {% if p.has_variants or p.has_modifiers %}

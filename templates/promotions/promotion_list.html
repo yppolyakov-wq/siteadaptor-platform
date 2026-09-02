@@ -53,6 +53,12 @@
       <option value="" {% if not promo_grouping %}selected{% endif %}>{% trans "nach Gruppen (Wochenangebote, Räumung …)" %}</option>
       <option value="time" {% if promo_grouping == "time" %}selected{% endif %}>{% trans "nach Zeit (Endet heute, diese Woche …)" %}</option>
     </select>
+    {# DL-16.2 (A3): раскладка секций — сетка или ленты-слайдеры со стрелками #}
+    <label for="promo-page-layout" class="text-gray-500">{% trans "Darstellung:" %}</label>
+    <select id="promo-page-layout" name="layout" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <option value="" {% if not promo_layout %}selected{% endif %}>{% trans "Raster (wie bisher)" %}</option>
+      <option value="slider" {% if promo_layout == "slider" %}selected{% endif %}>{% trans "Slider (Gruppen als Leisten)" %}</option>
+    </select>
   </form>
   </div>
 

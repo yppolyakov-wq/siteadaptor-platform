@@ -198,6 +198,7 @@ def promotion_list(request):
             ),
             # DL-13 C3: текущий режим страницы /aktionen/ (панель «gliedern»).
             "promo_grouping": _promo_grouping(request),
+            "promo_layout": _promo_layout(request),  # DL-16.2 A3
         },
     )
 
@@ -208,6 +209,14 @@ def _promo_grouping(request) -> str:
     raw = getattr(getattr(request, "tenant", None), "site_config", None)
     raw = raw if isinstance(raw, dict) else {}
     return siteconfig.normalize_promo_grouping(raw.get("promo_grouping"))
+
+
+def _promo_layout(request) -> str:
+    from apps.tenants import siteconfig
+
+    raw = getattr(getattr(request, "tenant", None), "site_config", None)
+    raw = raw if isinstance(raw, dict) else {}
+    return siteconfig.normalize_promo_layout(raw.get("promo_layout"))
 
 
 @login_required
@@ -227,6 +236,12 @@ def promotion_page_mode(request):
         cfg["promo_grouping"] = mode
     else:
         cfg.pop("promo_grouping", None)
+    # DL-16.2 (A3): раскладка групп — сетка ("") или ленты-слайдеры ("slider")
+    layout = siteconfig.normalize_promo_layout(request.POST.get("layout", ""))
+    if layout:
+        cfg["promo_layout"] = layout
+    else:
+        cfg.pop("promo_layout", None)
     tenant.site_config = cfg
     tenant.save(update_fields=["site_config", "updated_at"])
     messages.success(request, _("Ansicht der Aktionsseite gespeichert."))

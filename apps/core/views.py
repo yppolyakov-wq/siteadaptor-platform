@@ -1783,7 +1783,9 @@ def home_builder_view(request):
                     k
                     for k in siteconfig.PRODUCT_DETAIL_SECTION_KEYS
                     if request.POST.get(f"pd_visible_{k}") != "on"
-                ]
+                ],
+                # DL-16.6 (D2): раскладка секций ("" = как раньше; normalize дропает пустое)
+                "layout": "tabs" if request.POST.get("pd_layout") == "tabs" else "",
             }
         # UA4-1 slice C: видимость секций детальной услуги/номера (hide-only, presence-guard).
         if request.tenant.is_module_active("booking") and request.POST.get("sd_present"):
@@ -1828,6 +1830,9 @@ def home_builder_view(request):
             "variant_style": request.POST.get("sd_variant_style", ""),
             # DL-10: форма кадра на карточках ("" = как в разметке).
             "media_shape": request.POST.get("sd_media_shape", ""),
+            # DL-16.4: форма карточки акции и листание фото на карточке товара.
+            "promo_card": request.POST.get("sd_promo_card", ""),
+            "card_slider": "on" if request.POST.get("sd_card_slider") == "on" else "",
             # DL-2: фон страницы и хром карточек Look'а — hidden-инпуты
             # (round-trip, W0; их выставляет и клик по Look-карточке).
             "page_bg": request.POST.get("sd_page_bg", ""),
@@ -2142,6 +2147,7 @@ def home_builder_view(request):
             "sections": sections,
             "event_sections": event_sections,
             "product_sections": product_sections,
+            "product_detail_layout": siteconfig.product_detail_layout(config),  # DL-16.6
             "service_sections": service_sections,
             "stay_sections": stay_sections,
             "catalog_categories": catalog_categories,
@@ -2377,6 +2383,8 @@ def home_builder_view(request):
             "card_padding": config["site_defaults"]["card_padding"],
             "card_style": config["site_defaults"].get("card_style", ""),  # ST-7c
             "media_shape": config["site_defaults"].get("media_shape", ""),  # DL-10
+            "promo_card": config["site_defaults"].get("promo_card", ""),  # DL-16.4
+            "card_slider": config["site_defaults"].get("card_slider", ""),
             # DL-2: префилл hidden-инпутов round-trip'а (фон страницы + хром).
             "page_bg": config["site_defaults"].get("page_bg", ""),
             "card_chrome": config["site_defaults"].get("card_chrome", ""),

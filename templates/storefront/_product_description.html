@@ -1,0 +1,13 @@
+{% load richtext %}{% comment %}DL-16.6: описание товара — общий партиал для правой колонки
+(раскладка «Untereinander») и панели «Beschreibung» (раскладка «Tabs»). Контекст: product.
+SR-3: описание с визуального редактора — ограниченный HTML (санитайз и при сохранении, и на
+рендере фильтром rich_text). Легаси-плоский текст — прежняя ветка whitespace-pre-line (его
+переносы в HTML незначимы). Разметка 1:1 с прежним inline-блоком product_detail.html.{% endcomment %}
+{% if product.description_text|is_rich %}<div class="mt-4 text-gray-600 rich-text" data-edit-model="product" data-edit-pk="{{ product.pk }}" data-edit-field="description">{{ product.description_text|rich_text }}</div>
+<style>
+  .rich-text ul { list-style: disc; padding-left: 1.25rem; margin: .5rem 0; }
+  .rich-text ol { list-style: decimal; padding-left: 1.25rem; margin: .5rem 0; }
+  .rich-text p { margin: .5rem 0; }
+  .rich-text a { text-decoration: underline; }
+</style>
+{% else %}<div class="mt-4 text-gray-600 whitespace-pre-line" data-edit-model="product" data-edit-pk="{{ product.pk }}" data-edit-field="description">{{ product.description_text }}</div>{% endif %}

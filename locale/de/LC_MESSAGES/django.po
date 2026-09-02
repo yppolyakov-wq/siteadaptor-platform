@@ -21485,3 +21485,91 @@ msgstr "Bento: Kacheln-Mosaik als erster Bildschirm"
 
 msgid "Reihen: zentrieren"
 msgstr "Reihen: zentrieren"
+
+msgid "Aktionen durchsuchen …"
+msgstr "Aktionen durchsuchen …"
+
+msgid "Darstellung:"
+msgstr "Darstellung:"
+
+msgid "Raster (wie bisher)"
+msgstr "Raster (wie bisher)"
+
+msgid "Slider (Gruppen als Leisten)"
+msgstr "Slider (Gruppen als Leisten)"
+
+msgid "Gruppe"
+msgstr "Gruppe"
+
+msgid "Endet"
+msgstr "Endet"
+
+msgid "Sie sparen"
+msgstr "Sie sparen"
+
+msgid "Gilt für"
+msgstr "Gilt für"
+
+msgid "Bedingungen"
+msgstr "Bedingungen"
+
+msgid "Weitere Aktionen"
+msgstr "Weitere Aktionen"
+
+msgid "täglich"
+msgstr "täglich"
+
+msgid "Uhr"
+msgstr "Uhr"
+
+msgid "max. %(n)s pro Kunde"
+msgstr "max. %(n)s pro Kunde"
+
+msgid "Reservierung %(h)s h gültig"
+msgstr "Reservierung %(h)s h gültig"
+
+msgid "Aktionskarte"
+msgstr "Aktionskarte"
+
+msgid "Preis zuerst"
+msgstr "Preis zuerst"
+
+msgid "Preis-Etikett"
+msgstr "Preis-Etikett"
+
+msgid "Fotos auf der Karte blättern"
+msgstr "Fotos auf der Karte blättern"
+
+msgid "Regale (Unterkategorien als Leisten)"
+msgstr "Regale (Unterkategorien als Leisten)"
+
+msgid ""
+"Jede Unterkategorie als horizontale Leiste mit Pfeilen — alles auf einen "
+"Blick."
+msgstr ""
+"Jede Unterkategorie als horizontale Leiste mit Pfeilen — alles auf einen "
+"Blick."
+
+msgid "Tabs (Unterkategorien als Reiter)"
+msgstr "Tabs (Unterkategorien als Reiter)"
+
+msgid "Unterkategorien als Reiter über dem Raster — Wechsel ohne Neuladen."
+msgstr "Unterkategorien als Reiter über dem Raster — Wechsel ohne Neuladen."
+
+msgid "Abholung im Laden"
+msgstr "Abholung im Laden"
+
+msgid "heute bis %(t)s"
+msgstr "heute bis %(t)s"
+
+msgid "Zuletzt angesehen"
+msgstr "Zuletzt angesehen"
+
+msgid "Aufbau"
+msgstr "Aufbau"
+
+msgid "Untereinander"
+msgstr "Untereinander"
+
+msgid "Tabs"
+msgstr "Tabs"

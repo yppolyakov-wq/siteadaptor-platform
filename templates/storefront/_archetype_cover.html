@@ -37,7 +37,11 @@
     var slides = [].slice.call(s.querySelectorAll("[data-cover-slide]"));
     var dots = [].slice.call(s.querySelectorAll("[data-cover-dot]"));
     if (slides.length < 2) return;
-    var i = 0, timer;
+    var i = 0, timer = null;
+    // DL-16.1 S4 (зеркало hero, DL-13 C6): без автопрокрутки на узком экране и при
+    // prefers-reduced-motion; пауза при наведении/фокусе; клик по точке останавливает совсем.
+    var auto = !(window.matchMedia && (window.matchMedia("(max-width: 767px)").matches ||
+                 window.matchMedia("(prefers-reduced-motion: reduce)").matches));
     function show(n) {
       slides.forEach(function (sl, k) { sl.classList.toggle("opacity-0", k !== n); });
       dots.forEach(function (d, k) {
@@ -46,10 +50,15 @@
       });
       i = n;
     }
-    function start() { timer = setInterval(function () { show((i + 1) % slides.length); }, 6000); }
+    function stop() { if (timer) { clearInterval(timer); timer = null; } }
+    function start() { if (auto && !timer) timer = setInterval(function () { show((i + 1) % slides.length); }, 6000); }
     dots.forEach(function (d, k) {
-      d.addEventListener("click", function () { clearInterval(timer); show(k); start(); });
+      d.addEventListener("click", function () { stop(); auto = false; show(k); });
     });
+    s.addEventListener("mouseenter", stop);
+    s.addEventListener("mouseleave", start);
+    s.addEventListener("focusin", stop);
+    s.addEventListener("focusout", start);
     start();
   });
 })();

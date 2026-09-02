@@ -27,6 +27,17 @@ CATEGORY_PAGE_STYLES = [
         _("Preisliste"),
         _("Produkte dieser Kategorie als Preisliste statt Raster."),
     ),
+    # DL-16.5 (K2/K3): направления с подкатегориями — «полки» лентами или табы.
+    (
+        "regale",
+        _("Regale (Unterkategorien als Leisten)"),
+        _("Jede Unterkategorie als horizontale Leiste mit Pfeilen — alles auf einen Blick."),
+    ),
+    (
+        "tabs",
+        _("Tabs (Unterkategorien als Reiter)"),
+        _("Unterkategorien als Reiter über dem Raster — Wechsel ohne Neuladen."),
+    ),
 ]
 VALID_PAGE_STYLES = frozenset(code for code, _l, _h in CATEGORY_PAGE_STYLES)
 

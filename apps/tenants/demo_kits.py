@@ -31,6 +31,19 @@ def demo_image(keyword: str, *, w: int = 800, h: int = 600, lock: int = 1) -> st
     return demo_images.demo_image_url(keyword.strip(), w=w, h=h, lock=lock)
 
 
+def _product_images(img, lock: int, alt: str) -> list[dict]:
+    """DL-16.4: `img` — ключ фото или СПИСОК ключей (первое главное; lock смещается,
+    чтобы кадры отличались)."""
+    keys = list(img) if isinstance(img, (list, tuple)) else [img]
+    out = []
+    for i, kw in enumerate(keys):
+        ref = _image_ref(kw, lock + i, alt)
+        ref["is_primary"] = i == 0
+        ref["sort_order"] = i
+        out.append(ref)
+    return out
+
+
 def _image_ref(keyword: str, lock: int, alt: str) -> dict:
     """FileRef-конверт для Product.images / галереи из внешнего фото."""
     return {
@@ -260,8 +273,11 @@ class DemoKit:
     # (font/typography/site_defaults/nav.style/hero_style/theme/акцент); секции
     # и тексты кита НЕ трогаются (полный apply_look переписал бы раскладку).
     look: str = ""
-    # ST-7c: форма карточек витрины ("" | overlay | compact) → site_defaults.
+    # ST-7c: форма карточек витрины ("" | overlay | compact | etikett) → site_defaults.
     card_style: str = ""
+    # DL-16.4: форма карточки акции ("" | preis) и листание фото на карточке товара ("" | "on").
+    promo_card: str = ""
+    card_slider: str = ""
     # O-2: дефолтный вид выбора вариантов магазина ("" = выпадающий список).
     variant_style: str = ""
     # E4 «задача-первым»: primary-виджет ВНУТРИ hero ("" | stays | services |
@@ -2062,6 +2078,8 @@ PRANASY = DemoKit(
                     ],
                 ),
             ],
+            "",  # описание
+            "regale",  # DL-16.5 (K2): подкатегории — «полки» лентами со стрелками
         ),
         # Catering-Speisekarte (Karte des Betreibers, 2026-08-25): 49 Gerichte in
         # sechs Gängen unter EINEM Bereich «Catering». Der Bereich ist ein Container —
@@ -3613,6 +3631,7 @@ AKTIONSMARKT = DemoKit(
     # DS-9: дизайн «Fokus» для архетипа — своя композиция (реестр BUNDLES).
     bundle="fokus_angebote",
     look="klar",
+    promo_card="preis",  # DL-16.4: «Preis zuerst» — дефолт акционного демо
     # SF-4a: Merkzettel у магазина акций (grocery-дефолт опции — False).
     # DL-4: site_defaults.hero_widget — config_patch мерджится ПОСЛЕ сборки
     # (латентный баг сидинга: _FOKUS_BASE.hero_widget="none" затирал плитки
@@ -5437,6 +5456,7 @@ CLOTHING_MENUS = {
 # per-size остатком (ausverkauft → Warteliste), Versand deutschlandweit (без PLZ-зон),
 # Sale-акции. Multi-axis (цвет×размер) — гэп D3 в roadmap; демо честно на размерах.
 CLOTHING = DemoKit(
+    card_slider="on",  # DL-16.4 (P2): 3–4 фото на товар — листаются на карточке
     key="clothing",
     # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
     section_layouts={"gallery": {"preset": "cols3"}},
@@ -5674,7 +5694,7 @@ CLOTHING = DemoKit(
                     "Sommerkleid Nordlicht",
                     "45.00",
                     "Leichte Viskose, Midi-Länge. Fällt normal aus.",
-                    "summer,dress",
+                    ["summer,dress", "dress", "fashion"],
                     # M4-A: размер × цвет + фото варианта (label собирается сам).
                     variants=[
                         {
@@ -5728,7 +5748,7 @@ CLOTHING = DemoKit(
                     "Seidentuch Aurora",
                     "24.90",
                     "Seidiges Tuch, drei Dessins — Auswahl als Foto-Kacheln.",
-                    "scarf,silk",
+                    ["scarf,silk", "accessories", "fashion,designer"],
                     # O-2: НОСИТЕЛЬ вида "photo" — варианты фото-плитками
                     # (фидбэк владельца 2026-08-03 «негде попробовать»).
                     variant_style="photo",
@@ -5759,7 +5779,7 @@ CLOTHING = DemoKit(
                     "Leinenbluse Küste",
                     "39.90",
                     "100 % Leinen, luftig geschnitten.",
-                    "linen,blouse",
+                    ["linen,blouse", "linen,shirt", "tshirt"],
                     variants=[
                         {"label": "S", "price": "39.90", "stock": 5},
                         {"label": "M", "price": "39.90", "stock": 7},
@@ -5772,7 +5792,7 @@ CLOTHING = DemoKit(
                     "Strickcardigan Wolke",
                     "54.90",
                     "Weicher Feinstrick aus Bio-Baumwolle.",
-                    "cardigan",
+                    ["cardigan", "knitwear", "fashion"],
                     variants=[
                         {"label": "S", "price": "54.90", "stock": 4},
                         {"label": "M", "price": "54.90", "stock": 0},  # ausverkauft → Warteliste
@@ -10927,7 +10947,9 @@ def apply_kit(tenant, key: str) -> bool:
             description=_i18n_text(item["desc"]),
             base_price=base,
             category=category,
-            images=[_image_ref(item["img"], lock, name_i18n.get("de", ""))],
+            # DL-16.4 (P2): список ключей → несколько фото (первое — главное, остальные
+            # листаются на карточке/галерея детали); строка — как раньше.
+            images=_product_images(item["img"], lock, name_i18n.get("de", "")),
             allergens=item["allergens"],
             diets=item.get("diets", []),  # A4 диет-теги
             badge=item.get("badge", ""),
@@ -11403,9 +11425,17 @@ def apply_kit(tenant, key: str) -> bool:
             if fam["theme"] == "dark":
                 cfg["theme"] = "dark"
             accent = sitetemplates.look_accent(kit.business_type, kit.look)
-    if kit.card_style in ("overlay", "compact"):  # ST-7c: форма карточек
+    if kit.card_style in ("overlay", "compact", "etikett"):  # ST-7c: форма карточек
         sd = dict(cfg.get("site_defaults") or {})
         sd["card_style"] = kit.card_style
+        cfg["site_defaults"] = sd
+    if kit.promo_card == "preis":  # DL-16.4 AK1: карточка акции «Preis zuerst»
+        sd = dict(cfg.get("site_defaults") or {})
+        sd["promo_card"] = "preis"
+        cfg["site_defaults"] = sd
+    if kit.card_slider:  # DL-16.4 P2: фото на карточке товара листаются
+        sd = dict(cfg.get("site_defaults") or {})
+        sd["card_slider"] = "on"
         cfg["site_defaults"] = sd
     if kit.variant_style:  # O-2: вид выбора вариантов (normalize отбросит мусор)
         sd = dict(cfg.get("site_defaults") or {})

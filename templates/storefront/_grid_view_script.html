@@ -354,7 +354,7 @@ document.addEventListener("change", function (e) {
   var pushed = false;
 
   document.addEventListener("click", function (e) {
-    var a = e.target.closest && e.target.closest("a[data-ansicht]");
+    var a = e.target.closest && e.target.closest("a[data-ansicht], a[data-listing-nav]"); // DL-16.5: табы категорий
     if (!a) return;
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return; // новая вкладка — браузеру
     var root = document.querySelector("[data-listing-root]");
@@ -376,6 +376,8 @@ document.addEventListener("change", function (e) {
         if (window.__sfCvInit) window.__sfCvInit();
         if (window.__sfDensityInit) window.__sfDensityInit();
         if (window.__sfGridViewInit) window.__sfGridViewInit();
+        if (window.__sfSliderInit) window.__sfSliderInit(); // DL-16.1
+        if (window.__sfCardImgsInit) window.__sfCardImgsInit(); // DL-16.4
       })
       .catch(function () { window.location.href = url; });
   });

@@ -5,35 +5,51 @@
 библиотек (GDPR). Переиспользуется детальными всех архетипов (товар/номер/событие).
 Параметры: images — список URL или dict'ов {url}; alt — опц. подпись.{% endcomment %}
 {% if images %}
-<div class="space-y-3 js-media-gallery relative" data-media-gallery>
-  <button type="button" class="js-media-zoom block w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100 cursor-zoom-in" aria-label="{% trans 'Enlarge photo' %}">
-    <img class="js-media-main w-full h-full object-cover" src="{{ images.0.url|default:images.0 }}" alt="{{ alt|default:'' }}">
-  </button>
-  {% comment %}Полоса миниатюр: на публичной — при >1 фото; в редакторе (is_preview+edit_pk)
-  показываем ВСЕГДА, чтобы у каждого слайда были пер-слайд контролы 📷/🗑 + плитка «＋»
-  (даже для одного фото). На публичной витрине контролы не рендерятся.{% endcomment %}
-  {% if images|length > 1 or is_preview and edit_pk %}
-  <div class="grid grid-cols-5 gap-2">
-    {% for img in images %}
-      {% with u=img.url|default:img %}
-      <div class="relative">
-        <button type="button" class="js-media-thumb block w-full aspect-square rounded-lg overflow-hidden bg-gray-100 ring-indigo-500 hover:opacity-90 {% if forloop.first %}ring-2{% endif %}" data-src="{{ u }}" data-index="{{ forloop.counter0 }}" aria-label="{% trans 'Show photo' %} {{ forloop.counter }}">
-          <img class="w-full h-full object-cover" src="{{ u }}" alt="" loading="lazy">
-        </button>
-        {% if is_preview and edit_pk %}
-          {# Пер-слайд: 📷 заменить ЭТО фото, 🗑 удалить ЭТО фото (по id). Видны только в режиме правки. #}
-          <span data-photo-edit data-photo-op="replace" data-edit-model="{{ edit_model|default:'product' }}" data-edit-pk="{{ edit_pk }}" data-img-id="{{ img.id }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-1 left-1 z-20 w-6 h-6 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-xs hover:text-indigo-600" title="{% trans 'Replace this photo' %}" aria-label="{% trans 'Replace this photo' %}">📷</span>
-          <span data-photo-edit data-photo-op="remove" data-edit-model="{{ edit_model|default:'product' }}" data-edit-pk="{{ edit_pk }}" data-img-id="{{ img.id }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-1 right-1 z-20 w-6 h-6 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-xs hover:text-red-600" title="{% trans 'Remove this photo' %}" aria-label="{% trans 'Remove this photo' %}">🗑</span>
-        {% endif %}
-      </div>
-      {% endwith %}
-    {% endfor %}
-    {% if is_preview and edit_pk %}
-      {# Плитка «＋» — добавить фото в галерею (op=add). #}
-      <span data-photo-edit data-photo-op="add" data-edit-model="{{ edit_model|default:'product' }}" data-edit-pk="{{ edit_pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden aspect-square rounded-lg border-2 border-dashed border-gray-300 text-gray-400 text-2xl flex items-center justify-center hover:border-indigo-400 hover:text-indigo-600 cursor-pointer" title="{% trans 'Add photo' %}" aria-label="{% trans 'Add photo' %}">＋</span>
-    {% endif %}
+<div class="js-media-gallery relative" data-media-gallery>
+  {% if images|length > 1 %}
+  {% comment %}DL-16.6 (D1): на телефоне — snap-лента кадров со свайпом и точками (слайдер-
+  примитив S1), миниатюры экран не занимают; тап по кадру — лайтбокс. Обёртка md:hidden —
+  целиком, чтобы .sf-slider со стрелками не оставался на десктопе пустым.{% endcomment %}
+  <div class="md:hidden">
+    <div class="flex gap-2 overflow-x-auto snap-x snap-mandatory pb-1" data-media-strip data-sf-slider>
+      {% for img in images %}
+      <button type="button" class="js-media-strip-item snap-center shrink-0 w-[88%] aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100" data-index="{{ forloop.counter0 }}" aria-label="{% trans 'Enlarge photo' %} {{ forloop.counter }}">
+        <img class="w-full h-full object-cover" src="{{ img.url|default:img }}" alt="{{ alt|default:'' }}"{% if not forloop.first %} loading="lazy"{% endif %}>
+      </button>
+      {% endfor %}
+    </div>
   </div>
   {% endif %}
+  {% comment %}md+: большое фото + миниатюры СТОЛБИКОМ слева (DL-16.6 D1; было — ряд из 5 под
+  фото). На публичной — при >1 фото; в редакторе (is_preview+edit_pk) столбик ВСЕГДА, чтобы
+  у каждого слайда были пер-слайд контролы 📷/🗑 + плитка «＋» (даже для одного фото).{% endcomment %}
+  <div class="{% if images|length > 1 %}hidden md:flex{% else %}flex{% endif %} gap-3 items-start">
+    {% if images|length > 1 or is_preview and edit_pk %}
+    <div class="flex flex-col gap-2 w-16 shrink-0" data-media-thumbs>
+      {% for img in images %}
+        {% with u=img.url|default:img %}
+        <div class="relative">
+          <button type="button" class="js-media-thumb block w-full aspect-square rounded-lg overflow-hidden bg-gray-100 ring-indigo-500 hover:opacity-90 {% if forloop.first %}ring-2{% endif %}" data-src="{{ u }}" data-index="{{ forloop.counter0 }}" aria-label="{% trans 'Show photo' %} {{ forloop.counter }}">
+            <img class="w-full h-full object-cover" src="{{ u }}" alt="" loading="lazy">
+          </button>
+          {% if is_preview and edit_pk %}
+            {# Пер-слайд: 📷 заменить ЭТО фото, 🗑 удалить ЭТО фото (по id). Видны только в режиме правки. #}
+            <span data-photo-edit data-photo-op="replace" data-edit-model="{{ edit_model|default:'product' }}" data-edit-pk="{{ edit_pk }}" data-img-id="{{ img.id }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-1 left-1 z-20 w-6 h-6 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-xs hover:text-indigo-600" title="{% trans 'Replace this photo' %}" aria-label="{% trans 'Replace this photo' %}">📷</span>
+            <span data-photo-edit data-photo-op="remove" data-edit-model="{{ edit_model|default:'product' }}" data-edit-pk="{{ edit_pk }}" data-img-id="{{ img.id }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-1 right-1 z-20 w-6 h-6 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-xs hover:text-red-600" title="{% trans 'Remove this photo' %}" aria-label="{% trans 'Remove this photo' %}">🗑</span>
+          {% endif %}
+        </div>
+        {% endwith %}
+      {% endfor %}
+      {% if is_preview and edit_pk %}
+        {# Плитка «＋» — добавить фото в галерею (op=add). #}
+        <span data-photo-edit data-photo-op="add" data-edit-model="{{ edit_model|default:'product' }}" data-edit-pk="{{ edit_pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden aspect-square rounded-lg border-2 border-dashed border-gray-300 text-gray-400 text-2xl flex items-center justify-center hover:border-indigo-400 hover:text-indigo-600 cursor-pointer" title="{% trans 'Add photo' %}" aria-label="{% trans 'Add photo' %}">＋</span>
+      {% endif %}
+    </div>
+    {% endif %}
+    <button type="button" class="js-media-zoom block flex-1 min-w-0 aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100 cursor-zoom-in" aria-label="{% trans 'Enlarge photo' %}">
+      <img class="js-media-main w-full h-full object-cover" src="{{ images.0.url|default:images.0 }}" alt="{{ alt|default:'' }}">
+    </button>
+  </div>
 
   {# Полноэкранный лайтбокс (скрыт; один на галерею). #}
   <div class="js-lb fixed inset-0 z-50 hidden items-center justify-center bg-black/90 p-4" role="dialog" aria-modal="true">
@@ -62,6 +78,10 @@
     }
     thumbs.forEach(function (t) {
       t.addEventListener('click', function () { selectThumb(+t.dataset.index); });
+    });
+    // DL-16.6 (D1): кадр мобильной ленты → тот же лайтбокс с этого кадра
+    g.querySelectorAll('.js-media-strip-item').forEach(function (t) {
+      t.addEventListener('click', function () { selectThumb(+t.dataset.index); show(); });
     });
 
     // --- Лайтбокс ---

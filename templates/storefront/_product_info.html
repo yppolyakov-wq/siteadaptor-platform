@@ -1,0 +1,11 @@
+{% load i18n %}{% comment %}DL-16.6: Lebensmittel-Kennzeichnung (LMIV, R4) + Textilkennzeichnung
+(EU 1007/2011, M1 Boutique) — общий партиал правой колонки и панели «Details» раскладки «Tabs».
+Гейт по наличию данных (product_has_info) — у вызывающего шаблона.{% endcomment %}
+<div class="mt-5 rounded-xl bg-gray-50 border border-gray-100 p-4 text-sm text-gray-700 space-y-1">
+  {% if product.material %}<p><span class="font-medium">{% trans "Material" %}:</span> {{ product.material_localized }}</p>{% endif %}
+  {% if product.care %}<p><span class="font-medium">{% trans "Care" %}:</span> {{ product.care_localized }}</p>{% endif %}
+  {% if product.origin %}<p><span class="font-medium">{% trans "Origin" %}:</span> {{ product.origin_localized }}</p>{% endif %}
+  {% if product.ingredients %}<p><span class="font-medium">{% trans "Ingredients" %}:</span> {{ product.ingredients_localized }}</p>{% endif %}
+  {% if product.allergen_labels %}<p><span class="font-medium">{% trans "Allergens" %}:</span> {{ product.allergen_labels|join:", " }}</p>{% endif %}
+  {% if product.additive_labels %}<p><span class="font-medium">{% trans "Additives" %}:</span> {{ product.additive_labels|join:", " }}</p>{% endif %}
+</div>

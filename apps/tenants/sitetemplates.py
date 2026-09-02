@@ -977,6 +977,8 @@ def _fokus(extra: dict) -> dict:
 _DEAL_BASE = {
     "nav_cta": True,
     "hero_widget": "none",
+    # DL-16.4 (решение владельца): карточка акции «Preis zuerst» — дефолт всех дил-сборок.
+    "promo_card": "preis",
     # DL-13 C3: режим страницы акций — часть композиции; сброс, если сборка
     # не задаёт «по времени» явно (иначе Retro «протёк» бы в следующую сборку).
     "promo_grouping": "",
@@ -1763,6 +1765,11 @@ def _apply_bundle_axes(config: dict, over: dict) -> None:
     if over.get("card_style"):
         sd = dict(config.get("site_defaults") or {})
         sd["card_style"] = over["card_style"]
+        config["site_defaults"] = sd
+    # DL-16.4: форма карточки акции ("preis" у дил-сборок; "" = снять).
+    if "promo_card" in over:
+        sd = dict(config.get("site_defaults") or {})
+        sd["promo_card"] = over["promo_card"]
         config["site_defaults"] = sd
     # DS-8/9: виджет первого экрана — часть композиции ("none" = снять плитки).
     if over.get("hero_widget"):

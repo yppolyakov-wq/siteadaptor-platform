@@ -505,6 +505,9 @@ def modules_nav(request):
         "storefront_card_chrome": cfg["site_defaults"].get("card_chrome", ""),
         # DL-10a: форма кадра на карточках (round | wide; "" = как в разметке).
         "storefront_media_shape": cfg["site_defaults"].get("media_shape", ""),
+        # DL-16.4: форма карточки акции ("" | preis) и листание фото на карточке товара.
+        "storefront_promo_card": cfg["site_defaults"].get("promo_card", ""),
+        "storefront_card_slider": cfg["site_defaults"].get("card_slider", ""),
         # DL-8b: семейство выбранного Look'а (body data-sf-look — фирменные
         # бейджи/цены варианта CSS-каскадом); в превью — из GET-оверлея (ниже).
         "storefront_look": (cfg.get("design") or {}).get("look", ""),

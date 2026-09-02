@@ -64,30 +64,11 @@
     <p class="mt-1 text-xs text-gray-400">{% blocktrans with p=target_promo_lowest %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>
   {% endif %}
   {% endif %}
-  {% comment %}SR-3: описание с визуального редактора — ограниченный HTML
-  (санитайз и при сохранении, и на рендере фильтром rich_text). Легаси-плоский
-  текст — прежняя ветка whitespace-pre-line (его переносы в HTML незначимы).{% endcomment %}
-  {% if 'description' not in product_detail_hidden %}{% if product.description_text|is_rich %}<div class="mt-4 text-gray-600 rich-text" data-edit-model="product" data-edit-pk="{{ product.pk }}" data-edit-field="description">{{ product.description_text|rich_text }}</div>
-  <style>
-    .rich-text ul { list-style: disc; padding-left: 1.25rem; margin: .5rem 0; }
-    .rich-text ol { list-style: decimal; padding-left: 1.25rem; margin: .5rem 0; }
-    .rich-text p { margin: .5rem 0; }
-    .rich-text a { text-decoration: underline; }
-  </style>
-  {% else %}<div class="mt-4 text-gray-600 whitespace-pre-line" data-edit-model="product" data-edit-pk="{{ product.pk }}" data-edit-field="description">{{ product.description_text }}</div>{% endif %}{% endif %}
+  {% comment %}DL-16.6 (D2): описание и Kennzeichnung — партиалы; в раскладке «Tabs» они
+  уезжают из правой колонки в панели тела (см. detail_body), здесь — «Untereinander».{% endcomment %}
+  {% if 'description' not in product_detail_hidden and product_detail_layout != 'tabs' %}{% include "storefront/_product_description.html" %}{% endif %}
 
-  {% comment %}Lebensmittel-Kennzeichnung (LMIV, R4) при наличии данных + M1 Boutique:
-  Textilkennzeichnung (EU 1007/2011) — Material/Pflege ДО кнопки заказа.{% endcomment %}
-  {% if 'info' not in product_detail_hidden %}{% if product.origin or product.ingredients or product.allergen_labels or product.additive_labels or product.material or product.care %}
-    <div class="mt-5 rounded-xl bg-gray-50 border border-gray-100 p-4 text-sm text-gray-700 space-y-1">
-      {% if product.material %}<p><span class="font-medium">{% trans "Material" %}:</span> {{ product.material_localized }}</p>{% endif %}
-      {% if product.care %}<p><span class="font-medium">{% trans "Care" %}:</span> {{ product.care_localized }}</p>{% endif %}
-      {% if product.origin %}<p><span class="font-medium">{% trans "Origin" %}:</span> {{ product.origin_localized }}</p>{% endif %}
-      {% if product.ingredients %}<p><span class="font-medium">{% trans "Ingredients" %}:</span> {{ product.ingredients_localized }}</p>{% endif %}
-      {% if product.allergen_labels %}<p><span class="font-medium">{% trans "Allergens" %}:</span> {{ product.allergen_labels|join:", " }}</p>{% endif %}
-      {% if product.additive_labels %}<p><span class="font-medium">{% trans "Additives" %}:</span> {{ product.additive_labels|join:", " }}</p>{% endif %}
-    </div>
-  {% endif %}{% endif %}
+  {% if 'info' not in product_detail_hidden and product_detail_layout != 'tabs' and product_has_info %}{% include "storefront/_product_info.html" %}{% endif %}
 
   {% if product.category.size_table %}
     {% comment %}M2 Boutique: Größentabelle категории — details-модалка без JS
@@ -109,6 +90,8 @@
   {# UA3-1 слайс 2: buy-box — единый партиал, mode=cart из контракта sellable. #}
   {% sold_badge sellable.kind sellable.pk %}
   {% include "storefront/_buybox.html" %}
+  {# DL-16.6 (D3): полоса доверия под buy-box — Abholung/Lieferung/часы сегодня из данных #}
+  {% include "storefront/_trust_strip.html" %}
   {% comment %}M4-C: «отложить» на детали — под кнопкой покупки, статичной
   строкой (не абсолютным сердечком, как на карточке).{% endcomment %}
   {% include "storefront/_wish_heart.html" with p=product pos="mt-3 inline-flex" %}
@@ -163,66 +146,80 @@
 {% endblock %}
 
 {% block detail_body %}
-{% comment %}A1/A2: отзывы о товаре. Оставить может только верифицированный покупатель
-(сервер проверяет заказ с этим товаром по e-mail). Список — опубликованные отзывы.
-Секцию можно скрыть в билдере (group=catalog_detail → «Reviews»).{% endcomment %}
-{% if 'reviews' not in product_detail_hidden %}
-<section id="bewertungen" class="mt-12 scroll-mt-24" data-sf-section="product_detail">
-  <h2 class="text-xl font-bold mb-4">{% trans "Customer reviews" %}</h2>
-  {% if review_summary.count %}
-    <div class="flex items-center gap-2 mb-5">
-      <span class="text-amber-500 text-lg" aria-hidden="true">★</span>
-      <span class="text-lg font-semibold">{{ review_summary.avg }}</span>
-      <span class="text-gray-400 text-sm">{% blocktrans count n=review_summary.count %}{{ n }} review{% plural %}{{ n }} reviews{% endblocktrans %}</span>
-    </div>
-    <ul class="space-y-4">
-      {% for r in reviews %}
-        <li class="bg-white rounded-xl border border-gray-100 p-4">
-          <div class="flex items-center justify-between">
-            <span class="font-medium text-gray-800">{{ r.author_name }}</span>
-            <span class="text-amber-500 text-sm" aria-label="{{ r.rating }}/5">{{ r.stars }}</span>
-          </div>
-          {% if r.comment %}<p class="mt-2 text-sm text-gray-600 whitespace-pre-line">{{ r.comment }}</p>{% endif %}
-          {% if r.reply_text %}
-            <div class="mt-2 ml-3 border-l-2 border-indigo-100 pl-3">
-              <p class="text-xs font-medium text-gray-500">{% trans "Reply from the business" %}</p>
-              <p class="text-sm text-gray-600 whitespace-pre-line">{{ r.reply_text }}</p>
-            </div>
-          {% endif %}
-          <p class="mt-1 text-xs text-gray-400">{{ r.created_at|date:"d.m.Y" }}</p>
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p class="text-gray-400 text-sm mb-5">{% trans "No reviews yet — be the first to review this product." %}</p>
-  {% endif %}
-
-  {# Форма отзыва: только верифицированный покупатель (проверка заказа по e-mail на сервере). #}
-  <details class="mt-6 rounded-xl border border-gray-200 bg-gray-50 p-4">
-    <summary class="cursor-pointer font-medium text-gray-800">{% trans "Write a review" %}</summary>
-    <p class="text-xs text-gray-500 mt-2">{% trans "Only verified buyers can review. Use the e-mail address from your order." %}</p>
-    <form method="post" action="{% url 'storefront-product-review' product.pk %}" class="mt-3 space-y-3">
-      {% csrf_token %}
-      <input type="hidden" name="form_token" value="{{ review_form_token }}">
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <input name="author_name" type="text" required maxlength="120" placeholder="{% trans 'Your name' %}" class="rounded-lg border border-gray-300 px-3 py-2">
-        <input name="email" type="email" required placeholder="{% trans 'E-mail from your order' %}" class="rounded-lg border border-gray-300 px-3 py-2">
-      </div>
-      <div>
-        <label class="block text-sm mb-1" for="id_review_rating">{% trans "Rating" %}</label>
-        <select id="id_review_rating" name="rating" required class="rounded-lg border border-gray-300 px-3 py-2">
-          <option value="5">★★★★★ (5)</option>
-          <option value="4">★★★★ (4)</option>
-          <option value="3">★★★ (3)</option>
-          <option value="2">★★ (2)</option>
-          <option value="1">★ (1)</option>
-        </select>
-      </div>
-      <textarea name="comment" rows="3" placeholder="{% trans 'Your review (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
-      <button type="submit" class="rounded-lg bg-gray-900 text-white px-4 py-2 text-sm font-medium hover:bg-gray-700">{% trans "Submit review" %}</button>
-    </form>
+{% if product_detail_layout == "tabs" %}
+{% comment %}DL-16.6 (D2, Studio «Aufbau: Tabs»): описание / Kennzeichnung / отзывы — <details>-
+аккордеон на телефоне, на md+ JS строит табы поверх ТЕХ ЖЕ панелей (без JS — аккордеон
+везде; ссылка #bewertungen из рейтинга открывает панель отзывов). Скрытые в билдере секции
+панелями не становятся — тот же реестр product_detail_hidden.{% endcomment %}
+<div class="mt-10" data-pd-tabs data-sf-section="product_detail">
+  <div class="hidden gap-1 border-b border-gray-200 mb-4" data-pd-tablist role="tablist"></div>
+  {% if 'description' not in product_detail_hidden %}{% if product.description_text or is_preview %}
+  <details class="rounded-xl border border-gray-200 px-4 py-3 mb-2" data-pd-panel="description" open>
+    <summary class="cursor-pointer font-semibold select-none">{% trans "Beschreibung" %}</summary>
+    {% include "storefront/_product_description.html" %}
   </details>
-</section>
+  {% endif %}{% endif %}
+  {% if 'info' not in product_detail_hidden and product_has_info %}
+  <details class="rounded-xl border border-gray-200 px-4 py-3 mb-2" data-pd-panel="info">
+    <summary class="cursor-pointer font-semibold select-none">{% trans "Details" %}</summary>
+    {% include "storefront/_product_info.html" %}
+  </details>
+  {% endif %}
+  {% if 'reviews' not in product_detail_hidden %}
+  <details class="rounded-xl border border-gray-200 px-4 py-3 mb-2" data-pd-panel="reviews">
+    <summary class="cursor-pointer font-semibold select-none">{% trans "Customer reviews" %}{% if review_summary.count %} <span class="font-normal text-gray-400">({{ review_summary.count }})</span>{% endif %}</summary>
+    {% include "storefront/_product_reviews.html" with in_tabs=True %}
+  </details>
+  {% endif %}
+</div>
+<script>
+(function () {
+  var root = document.querySelector('[data-pd-tabs]');
+  if (!root) return;
+  var list = root.querySelector('[data-pd-tablist]');
+  var panels = Array.prototype.slice.call(root.querySelectorAll('[data-pd-panel]'));
+  if (!panels.length) return;
+  var mq = window.matchMedia('(min-width: 768px)');
+  var cur = 0;
+  panels.forEach(function (p, i) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'pd-tab'; b.setAttribute('role', 'tab');
+    b.textContent = p.querySelector('summary').textContent.trim();
+    b.addEventListener('click', function () { select(i); });
+    list.appendChild(b);
+  });
+  function select(i) {
+    cur = i;
+    panels.forEach(function (p, k) { p.hidden = k !== i; if (k === i) p.open = true; });
+    Array.prototype.forEach.call(list.querySelectorAll('.pd-tab'), function (b, k) {
+      b.classList.toggle('is-on', k === i);
+      b.setAttribute('aria-selected', k === i ? 'true' : 'false');
+    });
+  }
+  function apply() {
+    if (mq.matches) {
+      root.classList.add('pd-tabs-on'); list.classList.remove('hidden'); list.classList.add('flex'); select(cur);
+    } else {
+      root.classList.remove('pd-tabs-on'); list.classList.add('hidden'); list.classList.remove('flex');
+      panels.forEach(function (p) { p.hidden = false; });
+    }
+  }
+  function byHash() {
+    if (location.hash !== '#bewertungen') return;
+    for (var i = 0; i < panels.length; i++) {
+      if (panels[i].dataset.pdPanel === 'reviews') {
+        cur = i;
+        if (mq.matches) select(i); else panels[i].open = true;
+      }
+    }
+  }
+  byHash(); apply();
+  if (mq.addEventListener) mq.addEventListener('change', apply); else mq.addListener(apply);
+  window.addEventListener('hashchange', byHash);
+})();
+</script>
+{% else %}
+{% if 'reviews' not in product_detail_hidden %}{% include "storefront/_product_reviews.html" %}{% endif %}
 {% endif %}
 {% endblock %}
 
@@ -230,14 +227,52 @@
 {% if 'related' not in product_detail_hidden and related %}
 <div class="mt-12">
   <h2 class="text-xl font-bold mb-4">{% trans "More from this category" %}</h2>
+  {% if related_strip %}
+  {% comment %}DL-16.6 (D4): похожих больше, чем колонок ряда → горизонтальная лента со
+  слайдером-примитивом (стрелки при наведении, точки, свайп) вместо второго ряда из
+  1–4 карточек; в пределах ряда — прежняя сетка раскладки (spread/авто-колонки DL-14).{% endcomment %}
+  <div class="flex gap-4 overflow-x-auto pb-2" data-related-strip data-sf-slider>
+    {% for p in related %}<div class="w-44 sm:w-56 shrink-0 flex [&>*]:w-full">{% include "storefront/_product_card.html" %}</div>{% endfor %}
+  </div>
+  {% else %}
   <div class="{{ related_grid|default:'grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6' }}" {% sf_grid_attrs related_layout count=related|length %}>
     {% for p in related %}
       {% include "storefront/_product_card.html" %}
     {% endfor %}
     {% include "storefront/_grid_filler.html" %}
   </div>
+  {% endif %}
 </div>
 {% endif %}
+{% comment %}DL-16.6 (D4): «Zuletzt angesehen» — список pk живёт в localStorage посетителя
+(не в сессии: cache-сессия на КАЖДЫЙ анонимный просмотр — Redis-ключ на каждого бота — и
+лишняя кука на витрине против UX-принципа владельца); JS дотягивает карточки фрагментом
+/sortiment/zuletzt/ и раскрывает блок только при непустом ответе.{% endcomment %}
+<div class="mt-12" data-recent-strip data-current="{{ product.pk }}" data-url="{% url 'storefront-products-recent' %}" hidden>
+  <h2 class="text-xl font-bold mb-4">{% trans "Zuletzt angesehen" %}</h2>
+  <div class="flex gap-4 overflow-x-auto pb-2" data-recent-items data-sf-slider></div>
+</div>
+<script>
+(function () {
+  var box = document.querySelector('[data-recent-strip]');
+  if (!box) return;
+  var KEY = 'sf_seen_products', cur = box.dataset.current, ids = [];
+  try { ids = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { ids = []; }
+  if (!Array.isArray(ids)) ids = [];
+  var prev = ids.filter(function (x) { return typeof x === 'string' && x !== cur; }).slice(0, 8);
+  try { localStorage.setItem(KEY, JSON.stringify([cur].concat(prev).slice(0, 8))); } catch (e) {}
+  if (!prev.length) return;
+  fetch(box.dataset.url + '?ids=' + encodeURIComponent(prev.join(',')), { headers: { 'X-Requested-With': 'fetch' } })
+    .then(function (r) { return r.ok ? r.text() : ''; })
+    .then(function (html) {
+      if (!html.trim()) return;
+      box.querySelector('[data-recent-items]').innerHTML = html;
+      box.hidden = false;
+      if (window.__sfSliderInit) window.__sfSliderInit();
+      if (window.__sfCardImgsInit) window.__sfCardImgsInit();
+    }).catch(function () {});
+})();
+</script>
 {% endblock %}
 
 {% block detail_buybar %}

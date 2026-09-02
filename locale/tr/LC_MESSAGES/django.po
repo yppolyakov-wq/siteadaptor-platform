@@ -21568,3 +21568,90 @@ msgstr "Bento: ilk ekran olarak kutu mozaiği"
 
 msgid "Reihen: zentrieren"
 msgstr "Satırlar: ortala"
+
+msgid "Aktionen durchsuchen …"
+msgstr "Kampanyalarda ara …"
+
+msgid "Darstellung:"
+msgstr "Görünüm:"
+
+msgid "Raster (wie bisher)"
+msgstr "Izgara (önceki gibi)"
+
+msgid "Slider (Gruppen als Leisten)"
+msgstr "Kaydırıcı (gruplar şerit olarak)"
+
+msgid "Gruppe"
+msgstr "Grup"
+
+msgid "Endet"
+msgstr "Bitiş"
+
+msgid "Sie sparen"
+msgstr "Tasarruf"
+
+msgid "Gilt für"
+msgstr "Geçerli olduğu ürün"
+
+msgid "Bedingungen"
+msgstr "Koşullar"
+
+msgid "Weitere Aktionen"
+msgstr "Diğer kampanyalar"
+
+msgid "täglich"
+msgstr "her gün"
+
+msgid "Uhr"
+msgstr "saat"
+
+msgid "max. %(n)s pro Kunde"
+msgstr "müşteri başına en fazla %(n)s"
+
+msgid "Reservierung %(h)s h gültig"
+msgstr "Rezervasyon %(h)s saat geçerli"
+
+msgid "Aktionskarte"
+msgstr "Kampanya kartı"
+
+msgid "Preis zuerst"
+msgstr "Önce fiyat"
+
+msgid "Preis-Etikett"
+msgstr "Fiyat etiketi"
+
+msgid "Fotos auf der Karte blättern"
+msgstr "Kart üzerinde fotoğrafları çevir"
+
+msgid "Regale (Unterkategorien als Leisten)"
+msgstr "Raflar (alt kategoriler şerit olarak)"
+
+msgid ""
+"Jede Unterkategorie als horizontale Leiste mit Pfeilen — alles auf einen "
+"Blick."
+msgstr "Her alt kategori oklu yatay bir şerit — her şey bir bakışta."
+
+msgid "Tabs (Unterkategorien als Reiter)"
+msgstr "Sekmeler (alt kategoriler sekme olarak)"
+
+msgid "Unterkategorien als Reiter über dem Raster — Wechsel ohne Neuladen."
+msgstr ""
+"Izgaranın üstünde sekme olarak alt kategoriler — yeniden yüklemeden geçiş."
+
+msgid "Abholung im Laden"
+msgstr "Mağazadan teslim alma"
+
+msgid "heute bis %(t)s"
+msgstr "bugün %(t)s'e kadar"
+
+msgid "Zuletzt angesehen"
+msgstr "Son görüntülenenler"
+
+msgid "Aufbau"
+msgstr "Düzen"
+
+msgid "Untereinander"
+msgstr "Alt alta"
+
+msgid "Tabs"
+msgstr "Sekmeler"

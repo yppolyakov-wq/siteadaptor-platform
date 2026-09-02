@@ -5,9 +5,17 @@
 {% comment %}UB1-3: каталог на каркасе listing.html. Разметка блоков перенесена без
 изменений (замки — apps/catalog/tests/test_listing_parity.py + test_storefront).{% endcomment %}
 
+{% block structured_data %}{{ block.super }}{% if catalog_breadcrumb_ld %}<script type="application/ld+json">{{ catalog_breadcrumb_ld|safe }}</script>{% endif %}{% endblock %}
+
 {% block listing_header %}
 <div class="mb-6">
   <a href="{% url 'storefront-home' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Offers" %}</a>
+  {% if catalog_breadcrumbs %}
+  {# DL-16.5 (K1): видимые хлебные крошки страницы категории (JSON-LD BreadcrumbList — в head) #}
+  <nav aria-label="Breadcrumb" class="mt-1 text-sm text-gray-500 flex flex-wrap items-center gap-1" data-breadcrumbs>
+    {% for name, url in catalog_breadcrumbs %}{% if not forloop.first %}<span aria-hidden="true">›</span>{% endif %}{% if url %}<a href="{{ url }}" class="hover:underline">{{ name }}</a>{% else %}<span class="font-medium text-gray-800" aria-current="page">{{ name }}</span>{% endif %}{% endfor %}
+  </nav>
+  {% endif %}
   {# H1.2: заголовок каталога — кастомный (catalog_title) с инлайн-правкой; суффикс категории вне маркера. #}
   <h1 class="text-2xl md:text-3xl font-bold mt-1"><span data-edit="catalog_title">{% if catalog_title %}{{ catalog_title }}{% else %}{% trans "Our products" %}{% endif %}</span>{% if current_category %} · {{ current_category }}{% endif %}</h1>
   {# H1.2: интро каталога — правится инлайн; пустое скрыто на публичной, видно/правится в редакторе (?preview=1). #}
@@ -201,7 +209,27 @@ fixed-ящиком, и до инициализации JS она вспыхив�
 {% endif %}
 
 {# M20U-3: подкатегории выбранной категории — карточками первыми (тумблер в билдере) #}
-{% if subcategories and catalog_subcats_first %}
+{% if category_tabs %}
+{% comment %}DL-16.5 (K3 «Tabs»): подкатегории табами со счётчиком; переход = ссылка
+data-listing-nav → KAT-5 fetch-своп без перезагрузки; на телефоне — горизонтальный скролл.{% endcomment %}
+<nav class="sticky top-16 z-10 -mx-4 px-4 sm:mx-0 sm:px-0 mb-4 bg-white/95 backdrop-blur border-b border-gray-200 flex gap-1 overflow-x-auto" data-category-tabs aria-label="{% trans 'Kategorien' %}">
+  {% for t in category_tabs %}<a href="{{ t.url }}{% if ansicht %}?ansicht={{ ansicht }}{% endif %}" data-listing-nav {% if t.active %}aria-current="page"{% endif %} class="shrink-0 whitespace-nowrap px-3 py-2.5 text-sm border-b-2 -mb-px {% if t.active %}border-gray-900 text-gray-900 font-semibold{% else %}border-transparent text-gray-500 hover:text-gray-900{% endif %}">{{ t.label }} <span class="text-xs text-gray-400">· {{ t.count }}</span></a>{% endfor %}
+</nav>
+{% endif %}
+{% if shelves %}
+{% comment %}DL-16.5 (K2 «Regale»): подкатегория = строка «Название · N → Alle anzeigen» +
+лента карточек со слайдером-примитивом (16.1); прямые товары направления — сеткой ниже.{% endcomment %}
+{% for sh in shelves %}
+<section class="mb-8" data-shelf="{{ sh.category.slug }}">
+  <h2 class="text-lg md:text-xl font-bold mb-3 flex items-baseline justify-between gap-3"><span>{{ sh.category }} <span class="text-sm font-normal text-gray-400">· {{ sh.total }}</span></span>
+    <a href="{% url 'storefront-category' sh.category.slug %}" class="text-sm font-medium hover:underline" style="color: var(--accent, #4f46e5);">{% trans "Alle anzeigen" %} →</a></h2>
+  <div class="flex gap-4 overflow-x-auto pb-2" data-sf-slider>
+    {% for p in sh.items %}<div class="w-56 shrink-0 flex [&>div]:w-full">{% include "storefront/_product_card.html" %}</div>{% endfor %}
+  </div>
+</section>
+{% endfor %}
+{% endif %}
+{% if subcategories and catalog_subcats_first and not subcats_hidden %}
 {% comment %}Фидбэк 2026-08-26 («подпиши категории»): у блока подкатегорий не было
 заголовка — рядом с подписанной полосой «Menü-Pakete» он читался как продолжение
 той же секции. msgid уже есть в каталогах, новых строк не заводим.{% endcomment %}
@@ -296,6 +324,7 @@ MEN-22 остаётся механикой главной. Мобильный «
 {% if not page.items %}
   {% if q %}
     <p class="text-gray-400">{% trans "Nothing found. Try a different search." %}</p>
+  {% elif shelves or category_tabs %}
   {% elif subcategories and catalog_subcats_first %}
     <p class="text-gray-400">{% trans "Choose a subcategory above." %}</p>
   {% else %}

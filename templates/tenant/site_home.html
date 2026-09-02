@@ -343,7 +343,20 @@
                 <option value="">{% trans "Standard" %}</option>
                 <option value="overlay" {% if card_style == 'overlay' %}selected{% endif %}>{% trans "Text auf Foto" %}</option>
                 <option value="compact" {% if card_style == 'compact' %}selected{% endif %}>{% trans "Kompakte Zeile" %}</option>
+                <option value="etikett" {% if card_style == 'etikett' %}selected{% endif %}>{% trans "Preis-Etikett" %}</option>
               </select>
+            </label>
+            {# DL-16.4: карточка акции — «Preis zuerst» (дефолт дил-сборок) #}
+            <label class="text-sm">
+              <span class="block font-medium mb-1">{% trans "Aktionskarte" %}</span>
+              <select name="sd_promo_card" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+                <option value="">{% trans "Standard" %}</option>
+                <option value="preis" {% if promo_card == 'preis' %}selected{% endif %}>{% trans "Preis zuerst" %}</option>
+              </select>
+            </label>
+            <label class="text-sm flex items-center gap-2 md:mt-6">
+              <input type="checkbox" name="sd_card_slider" value="on" {% if card_slider %}checked{% endif %} class="rounded border-gray-300">
+              <span>{% trans "Fotos auf der Karte blättern" %}</span>
             </label>
             {# DL-10: ФОРМА КАДРА — квадрат (как в разметке) / круглое фото / шире. #}
             <label class="text-sm">
@@ -764,6 +777,14 @@
               </li>
               {% endfor %}
             </ul>
+            {# DL-16.6 (D2): раскладка секций детали товара — друг под другом или табами #}
+            <label class="mt-2 flex items-center gap-2 text-sm">
+              <span class="text-gray-500">{% trans "Aufbau" %}</span>
+              <select name="pd_layout" class="rounded-lg border border-gray-300 px-2 py-1 text-sm text-gray-600">
+                <option value="">{% trans "Untereinander" %}</option>
+                <option value="tabs" {% if product_detail_layout == 'tabs' %}selected{% endif %}>{% trans "Tabs" %}</option>
+              </select>
+            </label>
           </div>
           {% endif %}
           {% comment %}UA4-1 slice C: секции детальной УСЛУГИ (booking) — тот же hide-only

@@ -88,8 +88,9 @@ def test_grid_attr_string_overrides_and_validation():
 
 
 def test_grid_attr_string_empty_for_scroll_and_balance():
-    # DS-5: своя механика (лента / центрирование) — атрибутов «полных рядов» нет
-    assert siteconfig.grid_attr_string({"scroll": True}) == ""
+    # DS-5: своя механика (лента / центрирование) — атрибутов «полных рядов» нет;
+    # DL-16.1: лента несёт маркер слайдера-примитива (стрелки/точки), balance — ничего.
+    assert siteconfig.grid_attr_string({"scroll": True}) == 'data-sf-slider="1"'
     assert siteconfig.grid_attr_string({"balance": True}) == ""
 
 

@@ -13,14 +13,36 @@
     <button type="button" data-quick-url="{% url 'storefront-anfrage-modal' %}?betreff={{ current_category|urlencode }}" class="inline-block mt-5 rounded-lg px-6 py-2.5 font-medium text-white hover:opacity-90" style="background: var(--accent, #4f46e5);">{% trans "Request a quote" %}</button>
     {% endif %}
   </div>
-  <div class="relative min-h-[200px] md:min-h-[300px] rounded-2xl overflow-hidden bg-gray-100">
-    {% if category_photo %}<img src="{{ category_photo }}" alt="{{ current_category }}" class="absolute inset-0 w-full h-full object-cover">{% endif %}
+  {% comment %}DL-16.5 (K1): при ≥ 2 фото — слайдер (fade, точки, стрелки при наведении,
+  БЕЗ автопрокрутки, лайтбокс по клику); одно фото — как раньше. Сетка доп. фото под
+  шапкой этим заменена.{% endcomment %}
+  <div class="relative min-h-[200px] md:min-h-[300px] rounded-2xl overflow-hidden bg-gray-100{% if category_photos|length > 1 %} sf-slider{% endif %}"{% if category_photos|length > 1 %} data-cat-hero{% endif %}>
+    {% if category_photos|length > 1 %}
+      {% for url in category_photos %}<img src="{{ url }}" alt="{{ current_category }}" data-lightbox="{{ url }}" data-cat-slide class="absolute inset-0 w-full h-full object-cover cursor-zoom-in transition-opacity duration-500{% if not forloop.first %} opacity-0 pointer-events-none{% endif %}"{% if not forloop.first %} loading="lazy"{% endif %}>{% endfor %}
+      <button type="button" class="sf-slider-arrow sf-slider-prev" data-cat-prev aria-label="{% trans 'Zurück' %}" style="left: .5rem;">‹</button>
+      <button type="button" class="sf-slider-arrow sf-slider-next" data-cat-next aria-label="{% trans 'Weiter' %}" style="right: .5rem;">›</button>
+      <div class="absolute bottom-3 inset-x-0 flex justify-center gap-1.5">{% for url in category_photos %}<button type="button" data-cat-dot class="w-2 h-2 rounded-full {% if forloop.first %}bg-white{% else %}bg-white/50{% endif %} shadow" aria-label="{{ forloop.counter }}"></button>{% endfor %}</div>
+    {% elif category_photo %}<img src="{{ category_photo }}" alt="{{ current_category }}" data-lightbox="{{ category_photo }}" class="absolute inset-0 w-full h-full object-cover cursor-zoom-in">{% endif %}
   </div>
 </section>
 {% if category_photos|length > 1 %}
-<div class="mb-8 grid grid-cols-2 md:grid-cols-3 gap-3" data-category-gallery>
-  {% for url in category_photos %}
-    {% if not forloop.first %}<div class="aspect-[4/3] rounded-xl overflow-hidden bg-gray-100"><img src="{{ url }}" alt="" loading="lazy" class="w-full h-full object-cover"></div>{% endif %}
-  {% endfor %}
-</div>
+<script>
+(function () {
+  document.querySelectorAll("[data-cat-hero]").forEach(function (s) {
+    if (s.dataset.init) return;
+    s.dataset.init = "1";
+    var slides = [].slice.call(s.querySelectorAll("[data-cat-slide]"));
+    var dots = [].slice.call(s.querySelectorAll("[data-cat-dot]"));
+    var i = 0;
+    function show(n) {
+      i = (n + slides.length) % slides.length;
+      slides.forEach(function (sl, k) { sl.classList.toggle("opacity-0", k !== i); sl.classList.toggle("pointer-events-none", k !== i); });
+      dots.forEach(function (d, k) { d.classList.toggle("bg-white", k === i); d.classList.toggle("bg-white/50", k !== i); });
+    }
+    s.querySelector("[data-cat-prev]").addEventListener("click", function () { show(i - 1); });
+    s.querySelector("[data-cat-next]").addEventListener("click", function () { show(i + 1); });
+    dots.forEach(function (d, k) { d.addEventListener("click", function () { show(k); }); });
+  });
+})();
+</script>
 {% endif %}

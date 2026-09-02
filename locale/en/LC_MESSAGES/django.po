@@ -21441,3 +21441,90 @@ msgstr "Bento: tile mosaic as the first screen"
 
 msgid "Reihen: zentrieren"
 msgstr "Rows: centered"
+
+msgid "Aktionen durchsuchen …"
+msgstr "Search offers …"
+
+msgid "Darstellung:"
+msgstr "Display:"
+
+msgid "Raster (wie bisher)"
+msgstr "Grid (as before)"
+
+msgid "Slider (Gruppen als Leisten)"
+msgstr "Slider (groups as rows)"
+
+msgid "Gruppe"
+msgstr "Group"
+
+msgid "Endet"
+msgstr "Ends"
+
+msgid "Sie sparen"
+msgstr "You save"
+
+msgid "Gilt für"
+msgstr "Applies to"
+
+msgid "Bedingungen"
+msgstr "Conditions"
+
+msgid "Weitere Aktionen"
+msgstr "More offers"
+
+msgid "täglich"
+msgstr "daily"
+
+msgid "Uhr"
+msgstr "h"
+
+msgid "max. %(n)s pro Kunde"
+msgstr "max. %(n)s per customer"
+
+msgid "Reservierung %(h)s h gültig"
+msgstr "Reservation valid for %(h)s h"
+
+msgid "Aktionskarte"
+msgstr "Offer card"
+
+msgid "Preis zuerst"
+msgstr "Price first"
+
+msgid "Preis-Etikett"
+msgstr "Price tag"
+
+msgid "Fotos auf der Karte blättern"
+msgstr "Browse photos on the card"
+
+msgid "Regale (Unterkategorien als Leisten)"
+msgstr "Shelves (subcategories as rows)"
+
+msgid ""
+"Jede Unterkategorie als horizontale Leiste mit Pfeilen — alles auf einen "
+"Blick."
+msgstr ""
+"Each subcategory as a horizontal row with arrows — everything at a glance."
+
+msgid "Tabs (Unterkategorien als Reiter)"
+msgstr "Tabs (subcategories as tabs)"
+
+msgid "Unterkategorien als Reiter über dem Raster — Wechsel ohne Neuladen."
+msgstr "Subcategories as tabs above the grid — switching without reload."
+
+msgid "Abholung im Laden"
+msgstr "Pickup in store"
+
+msgid "heute bis %(t)s"
+msgstr "today until %(t)s"
+
+msgid "Zuletzt angesehen"
+msgstr "Recently viewed"
+
+msgid "Aufbau"
+msgstr "Layout"
+
+msgid "Untereinander"
+msgstr "Stacked"
+
+msgid "Tabs"
+msgstr "Tabs"

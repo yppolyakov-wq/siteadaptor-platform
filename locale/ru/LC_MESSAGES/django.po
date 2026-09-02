@@ -21665,3 +21665,91 @@ msgstr "Бенто: мозаика плиток первым экраном"
 
 msgid "Reihen: zentrieren"
 msgstr "Ряды: по центру"
+
+msgid "Aktionen durchsuchen …"
+msgstr "Поиск по акциям …"
+
+msgid "Darstellung:"
+msgstr "Отображение:"
+
+msgid "Raster (wie bisher)"
+msgstr "Сетка (как раньше)"
+
+msgid "Slider (Gruppen als Leisten)"
+msgstr "Слайдер (группы лентами)"
+
+msgid "Gruppe"
+msgstr "Группа"
+
+msgid "Endet"
+msgstr "Окончание"
+
+msgid "Sie sparen"
+msgstr "Вы экономите"
+
+msgid "Gilt für"
+msgstr "Действует на"
+
+msgid "Bedingungen"
+msgstr "Условия"
+
+msgid "Weitere Aktionen"
+msgstr "Другие акции"
+
+msgid "täglich"
+msgstr "ежедневно"
+
+msgid "Uhr"
+msgstr "ч"
+
+msgid "max. %(n)s pro Kunde"
+msgstr "не более %(n)s на клиента"
+
+msgid "Reservierung %(h)s h gültig"
+msgstr "Резерв действует %(h)s ч"
+
+msgid "Aktionskarte"
+msgstr "Карточка акции"
+
+msgid "Preis zuerst"
+msgstr "Цена первой"
+
+msgid "Preis-Etikett"
+msgstr "Ценник"
+
+msgid "Fotos auf der Karte blättern"
+msgstr "Листать фото на карточке"
+
+msgid "Regale (Unterkategorien als Leisten)"
+msgstr "Полки (подкатегории лентами)"
+
+msgid ""
+"Jede Unterkategorie als horizontale Leiste mit Pfeilen — alles auf einen "
+"Blick."
+msgstr ""
+"Каждая подкатегория — горизонтальная лента со стрелками, всё на одном "
+"экране."
+
+msgid "Tabs (Unterkategorien als Reiter)"
+msgstr "Вкладки (подкатегории вкладками)"
+
+msgid "Unterkategorien als Reiter über dem Raster — Wechsel ohne Neuladen."
+msgstr "Подкатегории вкладками над сеткой — переключение без перезагрузки."
+
+msgid "Abholung im Laden"
+msgstr "Самовывоз из магазина"
+
+msgid "heute bis %(t)s"
+msgstr "сегодня до %(t)s"
+
+msgid "Zuletzt angesehen"
+msgstr "Вы недавно смотрели"
+
+msgid "Aufbau"
+msgstr "Компоновка"
+
+msgid "Untereinander"
+msgstr "Друг под другом"
+
+msgid "Tabs"
+msgstr "Вкладки"

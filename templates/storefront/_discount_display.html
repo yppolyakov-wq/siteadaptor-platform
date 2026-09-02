@@ -90,7 +90,8 @@ UE1: badge_pos_class — переопределение позиции бейд�
 {% elif part == "savings" %}
   {% comment %}Рынок DACH («Sie sparen …» у дискаунтеров): явная выгода на детальной.{% endcomment %}
   {% if promo.has_discount and promo.discount_amount %}
-    <p class="mt-1 text-sm font-medium text-emerald-700">{% blocktrans with amount=promo.discount_amount %}You save {{ amount }} €{% endblocktrans %}{% if promo.discount_percent_display %} (−{{ promo.discount_percent_display }} %){% endif %}</p>
+    {% if size == "sm" %}<p class="mt-0.5 text-[11px] font-medium text-emerald-700" data-savings>{% blocktrans with amount=promo.discount_amount %}You save {{ amount }} €{% endblocktrans %}</p>
+    {% else %}<p class="mt-1 text-sm font-medium text-emerald-700">{% blocktrans with amount=promo.discount_amount %}You save {{ amount }} €{% endblocktrans %}{% if promo.discount_percent_display %} (−{{ promo.discount_percent_display }} %){% endif %}</p>{% endif %}
   {% endif %}
 {% elif part == "countdown" %}
   {% if promo.ends_at and promo.show_countdown or promo.ends_at and eff_style == "countdown" %}

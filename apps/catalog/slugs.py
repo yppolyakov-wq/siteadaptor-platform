@@ -10,7 +10,7 @@ from django.utils.text import slugify
 
 # KAT-3: слова, занятые подпутями /sortiment/ — категория/товар с таким слагом
 # перекрыли бы роут (uuid-роуты строже и не в счёт).
-RESERVED_SLUGS = frozenset({"p"})
+RESERVED_SLUGS = frozenset({"p", "zuletzt"})  # DL-16.6: /sortiment/zuletzt/ — фрагмент
 
 
 def unique_slug(model, base: str, *, exclude_pk=None, fallback: str = "eintrag") -> str:

@@ -80,7 +80,7 @@ def test_grid_attr_string_count_and_more():
     attrs = siteconfig.grid_attr_string(None, cols="2/3/4", count=3, more=True)
     assert 'data-sf-cols="2/3/3"' in attrs and 'data-sf-more="1"' in attrs
     # scroll/balance — своя механика, атрибутов нет
-    assert siteconfig.grid_attr_string({"scroll": True}, count=2) == ""
+    assert siteconfig.grid_attr_string({"scroll": True}, count=2) == 'data-sf-slider="1"'  # DL-16.1
 
 
 def test_css_block_carries_spread_auto_and_more_rules():

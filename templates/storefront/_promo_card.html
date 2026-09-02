@@ -1,6 +1,55 @@
 {% load i18n %}{# Карточка акции (исп. в секции главной и на /aktionen/). Контекст: p. #}
 {% comment %}SF-4a: корень — div, ссылка внутри (как у _product_card): форма
 сердечка Merkzettel внутри <a> — невалидный HTML, клики конфликтуют.{% endcomment %}
+{% if storefront_promo_card == "preis" and not wide %}
+{% comment %}DL-16.4 (AK1, решение владельца «Preis-zuerst дефолтом»): блок цены СВЕРХУ
+(крупная новая → зачёркнутая → бейдж → Grundpreis → Sie sparen), под ним фото 4:3 и
+название — форма карточки дискаунтеров (ALDI/HOFER/Marktguru, R3). Медиа-бокс и части
+скидки — те же партиалы, что у стандартной формы (одна точка правды условий, mystery
+остаётся скрытой).{% endcomment %}
+<div class="sf-card group relative bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition" data-promo-price-first{% if p.discount_style == 'mystery' %} data-mystery-root="{{ p.pk }}"{% endif %}>
+  {% include "storefront/_wish_heart.html" with kind="promotion" pos="absolute bottom-2 right-2" %}
+<a href="{% url 'storefront-promotion' p.pk %}"
+   class="block focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
+  <div class="px-3 pt-3 md:px-4 flex flex-wrap items-center gap-x-2 gap-y-1 [&_span]:whitespace-nowrap" data-promo-price-block>
+    <div class="min-w-0">
+      {% include "storefront/_discount_display.html" with promo=p part="price" %}
+      {% if p.discount_style != 'mystery' %}{% include "storefront/_discount_display.html" with promo=p part="savings" size="sm" %}{% endif %}
+    </div>
+    {% include "storefront/_discount_display.html" with promo=p part="badge" size="sm" badge_pos_class="!static shrink-0" %}
+  </div>
+  <div class="relative aspect-[4/3] bg-gray-100 mt-2" data-sf-media-box>
+    {% comment %}UE3-2: замена главного фото акции на канве (режим правки билдера).
+    Hidden по умолчанию; раскрывает JS билдера при editOn. Пустая галерея акции →
+    replace добавляет главное (фолбэк на фото товара цел).{% endcomment %}
+    <button type="button" data-photo-edit data-edit-model="promotion" data-edit-pk="{{ p.pk }}"
+       class="sf-photo-edit hidden absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm hover:text-indigo-600"
+       title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</button>
+    {% with img=p.primary_image %}
+      {% if img %}
+        <img src="{{ img.url }}" alt="{{ p.title_text }}" loading="lazy" decoding="async"{% if p.discount_style == 'mystery' %} data-mystery-blur{% endif %}
+             class="w-full h-full object-cover group-hover:scale-[1.02] transition{% if p.discount_style == 'mystery' %} blur-lg{% endif %}">
+      {% else %}
+        <div class="w-full h-full flex items-center justify-center text-gray-300" aria-hidden="true">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+        </div>
+      {% endif %}
+    {% endwith %}
+  </div>
+  <div class="p-3 md:p-4">
+    {% include "storefront/_discount_display.html" with promo=p part="surprise" size="sm" %}
+    {% if p.group and not in_group %}<p class="text-[10px] font-semibold uppercase tracking-wide text-gray-400 mb-0.5" data-promo-group>{{ p.group_localized }}</p>{% endif %}
+    <h3 class="font-semibold leading-tight line-clamp-2" data-edit-model="promotion" data-edit-field="title" data-edit-pk="{{ p.pk }}">{{ p.title_text }}</h3>
+    {% if p.lowest_30d is not None and p.discount_style != 'mystery' %}
+      <p class="mt-0.5 text-[10px] leading-tight text-gray-400">{% blocktrans with p=p.lowest_30d %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>
+    {% endif %}
+    {% include "storefront/_discount_display.html" with promo=p part="flags" size="sm" %}
+    {% include "storefront/_discount_display.html" with promo=p part="scarcity" size="sm" %}
+    {% include "storefront/_discount_display.html" with promo=p part="countdown" size="sm" %}
+  </div>
+</a>
+</div>
+{% else %}
 <div class="sf-card group relative bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition{% if wide %} sf-wide{% endif %}"{% if p.discount_style == 'mystery' %} data-mystery-root="{{ p.pk }}"{% endif %}>
   {% comment %}Сердечко — на корне, НИЗ фото: верх занят discount-бейджем слева
   и контролами канвы справа.{% endcomment %}
@@ -29,8 +78,13 @@
   </div>
   <div class="p-3 md:p-4">
     {% include "storefront/_discount_display.html" with promo=p part="surprise" size="sm" %}
+    {% comment %}DL-16.2 (A5): группа на карточке — вне секций своей группы (главная,
+    плоская выдача, полоса «Endet bald»); внутри секции заголовок уже называет её.{% endcomment %}
+    {% if p.group and not in_group %}<p class="text-[10px] font-semibold uppercase tracking-wide text-gray-400 mb-0.5" data-promo-group>{{ p.group_localized }}</p>{% endif %}
     <h3 class="font-semibold leading-tight line-clamp-2" data-edit-model="promotion" data-edit-field="title" data-edit-pk="{{ p.pk }}">{{ p.title_text }}</h3>
     <div class="mt-2">{% include "storefront/_discount_display.html" with promo=p part="price" %}</div>
+    {# DL-16.2 (A5): «Sie sparen» и на карточке (дискаунтер-конвенция); mystery — молчит #}
+    {% if p.discount_style != 'mystery' %}{% include "storefront/_discount_display.html" with promo=p part="savings" size="sm" %}{% endif %}
     {% comment %}SF-3 (§11 PAngV): карточка тоже анонсирует снижение цены — референс
     обязан стоять рядом; у mystery цена скрыта до reveal — строка молчит.{% endcomment %}
     {% if p.lowest_30d is not None and p.discount_style != 'mystery' %}
@@ -42,3 +96,4 @@
   </div>
 </a>
 </div>
+{% endif %}

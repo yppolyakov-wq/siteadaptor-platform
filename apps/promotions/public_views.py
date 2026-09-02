@@ -28,6 +28,7 @@ from apps.core.pagecache import cache_storefront_page
 from apps.core.pagination import paginate
 from apps.core.seo import offer_ld
 from apps.loyalty.models import LoyaltyCard, LoyaltyProgram, Voucher
+from apps.promotions import rules_text
 
 from .forms import PublicReservationForm, WaitlistForm
 from .models import (
@@ -66,6 +67,26 @@ def _detail_ctx(request, promo, form) -> dict:
     lowest_30d = None
     if promo.has_discount and promo.product_id:
         lowest_30d = lowest_price_30d(promo.product)
+    # DL-16.3 (AD1): цель акции — карточкой «Gilt für» (mystery — нет: раскрыла бы товар).
+    target_card = None
+    if promo.target_kind and promo.discount_style != "mystery":
+        try:
+            from apps.core.sellable import sellable_for
+
+            se = sellable_for(promo.target_kind, promo.target)
+            target_card = {
+                "kind": promo.target_kind,
+                "name": se.name,
+                "url": se.detail_url,
+                "image_url": se.image_url,
+            }
+        except Exception:  # noqa: BLE001 — витрина не падает из-за адаптера
+            target_card = None
+    # DL-16.3 (AD3): «Weitere Aktionen» — та же группа, иначе другие активные.
+    others = Promotion.objects.filter(status="active").exclude(pk=promo.pk).order_by("-created_at")
+    related = list(others.filter(group=promo.group)[:8]) if promo.group else []
+    if len(related) < 2:
+        related = list(others[:8])
     return {
         "promotion": promo,
         "form": form,
@@ -75,6 +96,9 @@ def _detail_ctx(request, promo, form) -> dict:
         "og_image": og_image,
         "ld_offer": offer_ld(promo, url=share_url, image_url=og_image),
         "lowest_30d": lowest_30d,
+        "target_card": target_card,
+        "conditions": rules_text.conditions_for(promo),  # DL-16.3 AD2
+        "related_promos": _attach_lowest_30d(related),
     }
 
 
@@ -373,6 +397,21 @@ def _time_groups(promotions, now):
     return [(key, labels[key], items) for key, items in buckets.items() if items]
 
 
+_TIME_MORE = {"heute": "?endet=heute", "woche": "?endet=woche"}
+
+
+def _group_more_url(key: str, grouping: str) -> str:
+    """DL-16.2 (A3): ссылка «Alle anzeigen →» секции — тот же URL, что чип группы
+    (тема) или чип срока (время: heute/woche); у остальных секций пусто."""
+    if not key:
+        return ""
+    if grouping == "time":
+        return _TIME_MORE.get(key, "")
+    from urllib.parse import urlencode
+
+    return "?" + urlencode({"gruppe": key})
+
+
 def promotion_list(request):
     """Публичный список акций /aktionen/ (S6 → SF-2: рельсы U-B).
 
@@ -387,6 +426,7 @@ def promotion_list(request):
 
     from apps.core import facets as facets_registry
     from apps.core import modules
+    from apps.tenants import siteconfig
 
     from .facets import DISCOUNT_PRESETS
 
@@ -399,6 +439,17 @@ def promotion_list(request):
     q = (request.GET.get("q") or "").strip()
     sort = request.GET.get("sort") or ""
     sel = provider.selected(request.GET)
+    # DL-16.2 (A4): посетительский вид «Liste» — плоская таблица для сравнения; ключ
+    # `ansicht` как у каталога (серверная ссылка, KAT-5 меняет без перезагрузки).
+    list_view = (request.GET.get("ansicht") or "") == "liste"
+    _base_qs = request.GET.copy()
+    _base_qs.pop("ansicht", None)
+    ansicht_base_qs = _base_qs.urlencode()
+    # DL-16.2 (A3): раскладка групп — сетка или ленты-слайдеры (Studio-панель)
+    _raw_cfg = getattr(request.tenant, "site_config", None)
+    promo_layout = siteconfig.normalize_promo_layout(
+        (_raw_cfg if isinstance(_raw_cfg, dict) else {}).get("promo_layout")
+    )
     # поиск ДО apply: фильтр «−N %+» материализует список (см. PromoFacets)
     promotions = _attach_lowest_30d(
         provider.sort(provider.apply(provider.search(base, q), request.GET), sort)
@@ -451,11 +502,18 @@ def promotion_list(request):
             grouped = []  # группировать нечего → плоская сетка (ветка шаблона)
         else:
             grouped = sections + ([("", "", rest)] if rest else [])
+    # DL-16.2 (A3): «Alle anzeigen →» у секции = чип этой группы/времени (у «More
+    # offers»/länger/dauerhaft ссылки нет); 4-й элемент кортежа читает шаблон.
+    if list_view:
+        grouped = []  # A4: таблица — плоская, без секций и полосы «Endet bald»
+    grouped = [
+        (key, label, items, _group_more_url(key, promo_grouping)) for key, label, items in grouped
+    ]
 
     # SF-2: компактная полоса «⏳ Endet bald» над секциями — только на чистом
     # виде и только если есть чем наполнить (пустые секции не показываем).
     ending_soon = []
-    if not has_filters:
+    if not has_filters and not list_view:
         now = timezone.now()
         ending_soon = _attach_lowest_30d(
             base.filter(ends_at__gt=now, ends_at__lte=now + timedelta(days=3)).order_by("ends_at")[
@@ -511,6 +569,9 @@ def promotion_list(request):
             "sort": sort,
             "sort_options": provider.sort_options(),
             "toolbar_hidden": toolbar_hidden,
+            "promo_layout": promo_layout,  # DL-16.2 A3
+            "list_view": list_view,  # DL-16.2 A4
+            "ansicht_base_qs": ansicht_base_qs,
         },
     )
 
@@ -776,6 +837,11 @@ def product_list(request, slug=None):
     # снимок facet_base (границы цены/бейджи/наличие) поиск не сужает — как у диеты.
     q = (request.GET.get("q") or "").strip()
     products = provider.search(products, q)
+    # DL-16.5 (K2 «Regale»): товары подкатегорий уже стоят на «полках» — сетка ниже показывает
+    # только ПРЯМЫЕ товары направления (иначе всё дублировалось бы; семантика KAT-1 «контейнер
+    # включает детей» остаётся у Standard/прочих шаблонов).
+    if path_mode and category is not None and cat_style == "regale":
+        products = products.filter(category=category)
     # Доступные значения фасетов — из снимка категории (present провайдера).
     chips = provider.present(facet_base, request.GET)
     diet_chips = chips["diet_chips"]
@@ -818,6 +884,74 @@ def product_list(request, slug=None):
     # тот же, что у верхнего списка: есть фото — плитки, нет ни у одной —
     # прежняя текстовая сетка байт-в-байт (у большинства тенантов images пуст).
     subcategories_have_images = any(c.image_url for c in subcategories)
+    # DL-16.5 (K2 «Regale»): у направления с подкатегориями каждая подкатегория —
+    # лента ≤ 8 товаров со слайдером (16.1) + «Alle anzeigen»; прямые товары — сеткой ниже.
+    shelves = []
+    # полки/табы считают по ВСЕМ активным товарам, не по отфильтрованной выдаче страницы
+    _all_products = Product.objects.filter(is_active=True)
+    if path_mode and cat_style == "regale" and subcategories:
+        from .price_layer import attach_promos as _attach_promos_shelf
+
+        for sub in subcategories:
+            sub_qs = _all_products.filter(category=sub)
+            items = list(sub_qs.order_by("-is_featured", "-created_at")[:8])
+            if items:
+                _attach_promos_shelf(items)
+                shelves.append({"category": sub, "items": items, "total": sub_qs.count()})
+    # DL-16.5 (K3 «Tabs»): подкатегории табами; на странице подкатегории — табы родителя.
+    tabs_source = None
+    if path_mode and category is not None:
+        if cat_style == "tabs" and subcategories:
+            tabs_source = category
+        elif category.parent_id and _category_page_style(category.parent) == "tabs":
+            tabs_source = category.parent
+    category_tabs = []
+    if tabs_source is not None:
+        from django.db.models import Count as _Count
+
+        _subs = list(tabs_source.children.filter(is_active=True).order_by("sort_order", "slug"))
+        _counts = {
+            r["category_id"]: r["n"]
+            for r in _all_products.filter(category__in=_subs)
+            .values("category_id")
+            .annotate(n=_Count("id"))
+        }
+        category_tabs = [
+            {
+                "label": tabs_source,
+                "url": reverse("storefront-category", args=[tabs_source.slug]),
+                "active": category == tabs_source,
+                "count": _all_products.filter(category__in=[tabs_source, *_subs]).count(),
+            }
+        ] + [
+            {
+                "label": sub,
+                "url": reverse("storefront-category", args=[sub.slug]),
+                "active": sub == category,
+                "count": _counts.get(sub.pk, 0),
+            }
+            for sub in _subs
+        ]
+    # DL-16.5 (K1): хлебные крошки страницы категории (видимые + BreadcrumbList).
+    catalog_breadcrumbs = []
+    catalog_breadcrumb_ld = ""
+    if path_mode and category is not None:
+        from apps.core.seo import breadcrumb_ld as _breadcrumb_ld
+
+        chain = []
+        node = category
+        while node is not None and len(chain) < 5:
+            chain.append(node)
+            node = node.parent
+        chain.reverse()
+        root_label = (request.tenant.site_config or {}).get("catalog_title") or _("Our products")
+        catalog_breadcrumbs = [(root_label, reverse("storefront-products"))] + [
+            (str(c), reverse("storefront-category", args=[c.slug]) if c != category else "")
+            for c in chain
+        ]
+        catalog_breadcrumb_ld = _breadcrumb_ld(
+            [(n, request.build_absolute_uri(u) if u else "") for n, u in catalog_breadcrumbs]
+        )
     # M20U-7 (per-page): конфиг витрины. SE-2a-2: при ?preview=1 — черновик из сессии
     # (раскладка/сортировка/фильтры/подкатегории видны на канве сразу).
     from apps.tenants import siteconfig
@@ -1030,6 +1164,12 @@ def product_list(request, slug=None):
             "subcategories": subcategories,
             "subcategory_grid": subcategory_grid,
             "subcategories_have_images": subcategories_have_images,
+            # DL-16.5: «полки»/табы/крошки; плитки подкатегорий в этих шаблонах не дублируем
+            "shelves": shelves,
+            "category_tabs": category_tabs,
+            "subcats_hidden": cat_style in ("regale", "tabs"),
+            "catalog_breadcrumbs": catalog_breadcrumbs,
+            "catalog_breadcrumb_ld": catalog_breadcrumb_ld,
             # KAT-1/фидбэк 2026-08-26: у страницы категории — свой хост C-блоков
             # («catalog:<slug>»), поэтому галерея/отзывы/команда добавляются на
             # ОДНУ категорию, а не на весь каталог. Пусто вне path-режима.
@@ -1050,6 +1190,9 @@ def product_list(request, slug=None):
             "active_diet": diet,
             "catalog_grid": catalog_grid,
             "catalog_layout": catalog_layout,  # DL-14: {% sf_grid_attrs %} в шаблоне
+            # DL-16.1 S4: нормализованный конфиг под именем `site` — гейты шаблонов
+            # (`site.menu_show_prices`, `site.menu_labels`) раньше молча давали '' на /sortiment/.
+            "site": cfg,
             "grid_filler": catalog_filler,
             # DS-3a (Fokus): вид «прайс-лист» — шаблон ветвится по пресету.
             "catalog_preset": cfg["catalog_layout"]["preset"],
@@ -1131,7 +1274,7 @@ def product_detail(request, pk=None, pslug=None, cslug=None):
         Product.objects.filter(is_active=True, category=product.category)
         .select_related("category")  # KAT-3: карточки → SEO-URL без N+1
         .exclude(pk=product.pk)
-        .order_by("-is_featured", "-created_at")[:4]
+        .order_by("-is_featured", "-created_at")[:8]  # DL-16.6 (D4): до 8 — лента, если > ряда
         if product.category_id
         else []
     )
@@ -1147,6 +1290,12 @@ def product_detail(request, pk=None, pslug=None, cslug=None):
     related_grid = siteconfig.grid_class_string(_cfg["detail_related_layout"])
     # DL-14: атрибуты «полных рядов» ставит шаблон (spread + авто-колонки по числу).
     related_layout = _cfg["detail_related_layout"]
+    # DL-16.6 (D4): похожих больше, чем колонок ряда → лента [data-sf-slider]; в пределах
+    # ряда — сетка (лента из 2 карточек на десктопе выглядела бы как обрубок). Явный
+    # scroll-режим Studio отдаёт ленту сам (движок раскладок, scroll → slider с DL-16.1).
+    related_strip = not related_layout.get("scroll") and len(related) > int(
+        related_layout.get("cols") or 4
+    )
     from apps.catalog import reviews as product_reviews
     from apps.core.sellable import sellable_for
 
@@ -1180,6 +1329,7 @@ def product_detail(request, pk=None, pslug=None, cslug=None):
             "related": related,
             "related_grid": related_grid,
             "related_layout": related_layout,
+            "related_strip": related_strip,
             "grid_filler": (
                 grid_filler.filler_for("related", request.tenant)
                 if related_layout.get("tail") == "fill"
@@ -1195,8 +1345,51 @@ def product_detail(request, pk=None, pslug=None, cslug=None):
             "review_form_token": uuid.uuid4().hex,
             # Скрытые опц. секции детальной товара (билдер: group=catalog_detail).
             "product_detail_hidden": siteconfig.product_detail_hidden(_cfg),
+            # DL-16.6 (D2): "" — описание/Kennzeichnung в правой колонке, отзывы телом;
+            # "tabs" — все три панелями тела (аккордеон <md, табы md+).
+            "product_detail_layout": siteconfig.product_detail_layout(_cfg),
+            # Гейт панели/блока Kennzeichnung — есть хоть одно поле (LMIV/Textil).
+            "product_has_info": bool(
+                product.origin
+                or product.ingredients
+                or product.allergen_labels
+                or product.additive_labels
+                or product.material
+                or product.care
+            ),
         },
     )
+
+
+RECENT_MAX = 8
+
+
+def products_recent(request):
+    """DL-16.6 (D4): фрагмент «Zuletzt angesehen» — карточки по pk из localStorage
+    посетителя (`?ids=a,b,…`, порядок клиента, ≤8, только активные; мусор молча
+    выпадает). Хранилище — браузер, а не сессия: cache-сессия писалась бы на КАЖДЫЙ
+    анонимный просмотр товара (Redis-ключ на каждого бота) и ставила бы куку витрине
+    без действия посетителя (UX-принцип владельца: без трекинг-кук)."""
+    from apps.catalog.models import Product
+
+    from .price_layer import attach_promos
+
+    ids = []
+    for raw in (request.GET.get("ids") or "").split(",")[:RECENT_MAX]:
+        try:
+            ids.append(uuid.UUID(raw.strip()))
+        except ValueError:
+            continue
+    if not ids:
+        return HttpResponse("")
+    by_pk = {
+        p.pk: p
+        for p in Product.objects.filter(pk__in=ids, is_active=True).select_related("category")
+    }
+    products = attach_promos([by_pk[i] for i in ids if i in by_pk])
+    if not products:
+        return HttpResponse("")
+    return render(request, "storefront/_recent_strip.html", {"products": products})
 
 
 def product_review_submit(request, pk):

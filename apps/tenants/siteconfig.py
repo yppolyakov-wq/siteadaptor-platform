@@ -1067,7 +1067,11 @@ def grid_attr_string(layout, cols=None, tail=None, count=None, more=False, defau
     атрибут data-sf-auto); `more` — в сетке есть хвостовая кнопка .sf-more
     («Alle anzeigen» при скрытии, DL-14) — CSS считает ряды без неё."""
     lay = normalize_layout(layout if isinstance(layout, dict) else None)
-    if lay.get("scroll") or lay.get("balance"):
+    if lay.get("scroll"):
+        # DL-16.1 (S1): лента получает слайдер-примитив (стрелки/точки) даром; правила
+        # полных рядов к ней не применяются.
+        return 'data-sf-slider="1"'
+    if lay.get("balance"):
         return ""
     if isinstance(cols, str) and _COLS_TRIPLET_RE.match(cols):
         triplet = tuple(int(n) for n in cols.split("/"))
@@ -1262,8 +1266,14 @@ def normalize_site_defaults(raw) -> dict:
     # ST-7c: ФОРМА карточки (архетипный вид: overlay — текст поверх фото,
     # compact — узкая строка). Ключ ТОЛЬКО при валидном не-дефолте ("" =
     # текущая форма → golden целы).
-    if sd.get("card_style") in ("overlay", "compact"):
+    if sd.get("card_style") in ("overlay", "compact", "etikett"):
         out["card_style"] = sd["card_style"]
+    # DL-16.4: форма карточки АКЦИИ ("" | preis — блок цены сверху, дефолт дил-сборок)
+    if sd.get("promo_card") in ("preis",):
+        out["promo_card"] = sd["promo_card"]
+    # DL-16.4 (P2): фото на карточке товара листаются (точки/стрелки/свайп) — "on"
+    if sd.get("card_slider") in ("on", True):
+        out["card_slider"] = "on"
     # DL-10a (фидбэк владельца): ФОРМА кадра на карточках — "round" (круглые
     # фото) | "wide" (шире, 16:9). Пусто = зашитый в разметку вид (квадрат /
     # 3:2 / 4:3), поэтому ключ presence-minimal и golden-эталоны целы.
@@ -1381,11 +1391,22 @@ def event_detail_order(config) -> list[str]:
 
 
 def normalize_product_detail(raw) -> dict:
-    return normalize_detail_sections(raw, "catalog")
+    out = normalize_detail_sections(raw, "catalog")
+    # DL-16.6 (D2): раскладка секций детали товара — "" (друг под другом) | "tabs"
+    # (табы на десктопе / аккордеон на мобайле); presence-minimal, golden целы.
+    if isinstance(raw, dict) and raw.get("layout") == "tabs":
+        out["layout"] = "tabs"
+    return out
 
 
 def product_detail_hidden(config) -> set:
     return detail_section_hidden(config, "catalog")
+
+
+def product_detail_layout(config) -> str:
+    """DL-16.6: "" | "tabs" — из нормализованного или сырого конфига."""
+    pd = (config or {}).get("product_detail") if isinstance(config, dict) else None
+    return "tabs" if isinstance(pd, dict) and pd.get("layout") == "tabs" else ""
 
 
 # --- UC1-1 (U-C): единый реестр секций по ТИПУ СТРАНИЦЫ ---------------------
@@ -2694,6 +2715,15 @@ def normalize_promo_grouping(raw) -> str:
     return raw if raw in PROMO_GROUPINGS else ""
 
 
+# DL-16.2 (A3): раскладка секций-групп на /aktionen/ — "" сетка (как было) или
+# "slider": каждая группа — горизонтальная лента со стрелками (S1) + «Alle anzeigen».
+PROMO_LAYOUTS = ("slider",)
+
+
+def normalize_promo_layout(raw) -> str:
+    return raw if raw in PROMO_LAYOUTS else ""
+
+
 def normalize_presence(raw) -> dict:
     """LS-2 «Jetzt erreichbar»: {"mode": "on"|"off"}; auto — ДЕФОЛТ и в конфиг
     не пишется (presence-minimal, golden-паритет). Мусор → auto (пусто)."""
@@ -2896,6 +2926,9 @@ def _normalize_impl(config) -> dict:
     promo_grouping = normalize_promo_grouping(config.get("promo_grouping"))
     if promo_grouping:
         normalized["promo_grouping"] = promo_grouping
+    promo_layout = normalize_promo_layout(config.get("promo_layout"))
+    if promo_layout:
+        normalized["promo_layout"] = promo_layout
     # AF-1: событийные поля формы /anfrage/; ключ ТОЛЬКО при непустом (golden-паритет).
     anfrage = normalize_anfrage(config.get("anfrage"))
     if anfrage:

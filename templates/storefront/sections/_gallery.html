@@ -24,7 +24,7 @@
   {% comment %}UC6-6f: 5 видов по section_row.style — "" сетка | strip | large | polaroid | soft.{% endcomment %}
   {% if site.gallery %}
   {% if section_row.style == "strip" %}
-  <div class="flex gap-3 overflow-x-auto pb-2">
+  <div class="flex gap-3 overflow-x-auto pb-2" data-sf-slider>
     {% for img in site.gallery %}
       <button type="button" data-lightbox="{{ img.url }}"
               class="h-40 w-56 shrink-0 rounded-xl overflow-hidden bg-gray-100 block cursor-zoom-in group">

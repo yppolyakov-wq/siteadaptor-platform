@@ -1,0 +1,4 @@
+{% comment %}DL-16.6 (D4): карточки ленты «Zuletzt angesehen» — ответ фрагмент-эндпоинта
+/sortiment/zuletzt/?ids=… (порядок клиента, только активные); вставляется JS детали товара
+в [data-recent-items]. Список pk живёт в localStorage посетителя, не в сессии.{% endcomment %}
+{% for p in products %}<div class="w-44 sm:w-56 shrink-0 flex [&>*]:w-full">{% include "storefront/_product_card.html" %}</div>{% endfor %}

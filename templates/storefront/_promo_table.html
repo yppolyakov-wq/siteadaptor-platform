@@ -1,0 +1,31 @@
+{% load i18n %}{% comment %}DL-16.2 (A4): вид «Liste» на /aktionen/ — одна строка на акцию,
+для сравнения цен и сроков (?ansicht=liste). Цена/Grundpreis/дефицит — тем же
+_discount_display (одна точка правды условий, mystery остаётся скрытой); на телефоне
+узкие столбцы прячутся (md:table-cell).{% endcomment %}
+<div class="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0" data-promo-table>
+<table class="w-full text-sm">
+  <thead class="text-left text-xs text-gray-500">
+    <tr class="border-b border-gray-200">
+      <th class="py-2 pr-2 w-14"></th>
+      <th class="py-2 pr-3">{% trans "Angebot" %}</th>
+      <th class="py-2 pr-3 hidden md:table-cell">{% trans "Gruppe" %}</th>
+      <th class="py-2 pr-3">{% trans "Preis" %}</th>
+      <th class="py-2 pr-3 hidden md:table-cell">{% trans "Sie sparen" %}</th>
+      <th class="py-2 pr-3 whitespace-nowrap">{% trans "Endet" %}</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for p in promotions %}
+    <tr class="border-b border-gray-100 align-top" data-promo-row>
+      <td class="py-2 pr-2"><a href="{% url 'storefront-promotion' p.pk %}" class="block w-12 h-12 rounded-lg overflow-hidden bg-gray-100">{% if p.primary_image %}<img src="{{ p.primary_image }}" alt="" loading="lazy" class="w-full h-full object-cover{% if p.discount_style == 'mystery' %} blur-sm{% endif %}">{% endif %}</a></td>
+      <td class="py-2 pr-3"><a href="{% url 'storefront-promotion' p.pk %}" class="font-medium hover:underline">{{ p.title_text }}</a>
+        {% include "storefront/_discount_display.html" with promo=p part="flags" size="sm" %}</td>
+      <td class="py-2 pr-3 hidden md:table-cell text-gray-500">{% if p.group %}{{ p.group_localized }}{% else %}—{% endif %}</td>
+      <td class="py-2 pr-3 whitespace-nowrap">{% include "storefront/_discount_display.html" with promo=p part="price" %}{% include "storefront/_discount_display.html" with promo=p part="scarcity" size="sm" %}</td>
+      <td class="py-2 pr-3 hidden md:table-cell">{% if p.discount_style != 'mystery' %}{% include "storefront/_discount_display.html" with promo=p part="savings" size="sm" %}{% endif %}</td>
+      <td class="py-2 pr-3 whitespace-nowrap text-gray-600">{% if p.ends_at %}{{ p.ends_at|date:"d.m." }}{% else %}—{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>

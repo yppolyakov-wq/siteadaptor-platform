@@ -116,6 +116,21 @@
         <p class="mt-2 text-sm font-medium text-emerald-600">✓ {% trans "In stock" %}</p>
       {% endif %}
       {% include "storefront/_discount_display.html" with promo=promotion part="flags" size="lg" %}
+      {% if target_card %}
+      {# DL-16.3 (AD1): цель акции — товар/услуга/номер/комбо — с фото и ссылкой (раньше не показывалась вовсе) #}
+      <a href="{{ target_card.url }}" class="mt-3 flex items-center gap-3 rounded-xl border border-gray-200 p-2.5 hover:bg-gray-50" data-promo-target>
+        <span class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0">{% if target_card.image_url %}<img src="{{ target_card.image_url }}" alt="" loading="lazy" class="w-full h-full object-cover">{% endif %}</span>
+        <span class="min-w-0"><span class="block text-[11px] uppercase tracking-wide text-gray-400">{% trans "Gilt für" %}</span><span class="block font-medium truncate">{{ target_card.name }}</span></span>
+        <span class="ml-auto shrink-0 text-sm font-medium" style="color: var(--accent, #4f46e5);">→</span>
+      </a>
+      {% endif %}
+      {% if conditions %}
+      {# DL-16.3 (AD2): окно happy-hour, лимит/срок резерва — из полей, которые до сих пор не рендерились #}
+      <div class="mt-3 rounded-xl border border-gray-200 p-3 text-sm" data-promo-conditions>
+        <p class="text-[11px] uppercase tracking-wide text-gray-400 mb-1">{% trans "Bedingungen" %}</p>
+        <ul class="space-y-0.5">{% for c in conditions %}<li>{{ c.icon }} {{ c.text }}</li>{% endfor %}</ul>
+      </div>
+      {% endif %}
 
       {% if promotion.seconds_left and promotion.show_countdown or promotion.seconds_left and eff == "countdown" %}
       {% comment %}Промо-баннер с сегментным отсчётом (референс владельца): группа
@@ -168,6 +183,17 @@
 
 {% comment %}SF-3: липкая панель цена+CTA на мобильном (<lg) — как у товара/номера/
 события; ведёт якорем к карточке цены. mystery без панели: цена — секрет.{% endcomment %}
+
+{% if related_promos %}
+{# DL-16.3 (AD3): другие акции той же группы (фолбэк — прочие активные) лентой-слайдером; раньше — только на 410-странице #}
+<section class="mt-10" data-promo-related>
+  <h2 class="text-lg font-bold mb-3 flex items-baseline justify-between gap-3"><span>{% trans "Weitere Aktionen" %}</span>
+    <a href="{% url 'storefront-aktionen' %}" class="text-sm font-medium hover:underline" style="color: var(--accent, #4f46e5);">{% trans "Alle anzeigen" %} →</a></h2>
+  <div class="flex gap-4 overflow-x-auto pb-2" data-sf-slider>
+    {% for p in related_promos %}<div class="w-60 shrink-0 flex [&>div]:w-full">{% include "storefront/_promo_card.html" %}</div>{% endfor %}
+  </div>
+</section>
+{% endif %}
 {% if promotion.discount_style != 'mystery' and promotion.new_price is not None %}
   {% blocktrans asvar buyprice with p=promotion.new_price c=promotion.currency|cursym %}{{ p }} {{ c }}{% endblocktrans %}
   {% trans "Reserve now" as buylabel %}

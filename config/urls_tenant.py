@@ -344,6 +344,8 @@ urlpatterns = [
     # M4-B Lookbook: страница образа (подборка товаров с фото).
     path("lookbook/<slug:slug>/", collections_public.lookbook, name="storefront-lookbook"),
     path("sortiment/<uuid:pk>/", public_views.product_detail, name="storefront-product"),
+    # DL-16.6 (D4): фрагмент «Zuletzt angesehen» — ДО <slug>-роутов (слаг «zuletzt» зарезервирован).
+    path("sortiment/zuletzt/", public_views.products_recent, name="storefront-products-recent"),
     # M2 Boutique: Warteliste товара/размера («ausverkauft → benachrichtigen»).
     path(
         "sortiment/<uuid:pk>/warteliste/",
