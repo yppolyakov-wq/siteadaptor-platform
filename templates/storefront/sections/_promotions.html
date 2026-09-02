@@ -1,4 +1,5 @@
 {% load i18n siteui %}{# Секция акций (Track C2); DL-3: стили spotlight/rows (deal-looks-wave-plan-2026-09-01), "" = прежний грид байт-в-байт. #}
+{% url 'storefront-aktionen' as more_url %}
 <section id="aktionen" data-reveal class="mb-10">
 <div class="flex items-center justify-between mb-6 gap-3">
   {% section_title site 'promotions' as st %}
@@ -35,8 +36,9 @@
     {% if forloop.first %}<div class="mb-4 md:mb-6">{% include "storefront/_promo_featured.html" %}</div>{% endif %}
   {% endfor %}
   {% if promotions|length > 1 %}
-  <div id="promo-grid" data-grid="promotions" class="{% grid_classes site 'promotions' %}" {% grid_attrs site 'promotions' %}>
+  <div id="promo-grid" data-grid="promotions" class="{% grid_classes site 'promotions' %}" {% grid_attrs site 'promotions' count=promotions|length|add:"-1" more=True %}>
     {% for p in promotions %}{% if not forloop.first %}{% include "storefront/_promo_card.html" %}{% endif %}{% endfor %}
+    {% include "storefront/_grid_more.html" %}
   </div>
   {% endif %}
   {% else %}
@@ -69,8 +71,9 @@
     {% endif %}
   </div>
   {% if promotions|length > 3 %}
-  <div id="promo-grid" data-grid="promotions" class="{% grid_classes site 'promotions' %}" {% grid_attrs site 'promotions' %}>
+  <div id="promo-grid" data-grid="promotions" class="{% grid_classes site 'promotions' %}" {% grid_attrs site 'promotions' count=promotions|length|add:"-3" more=True %}>
     {% for p in promotions %}{% if forloop.counter > 3 %}{% include "storefront/_promo_card.html" %}{% endif %}{% endfor %}
+    {% include "storefront/_grid_more.html" %}
   </div>
   {% endif %}
   {% endif %}
@@ -92,10 +95,11 @@
     {% endfor %}
   </div>
 {% else %}
-<div id="promo-grid" data-grid="promotions" class="{% grid_classes site 'promotions' %}" {% grid_attrs site 'promotions' %}>
+<div id="promo-grid" data-grid="promotions" class="{% grid_classes site 'promotions' %}" {% grid_attrs site 'promotions' count=promotions|length more=True %}>
   {% for p in promotions %}
     {% include "storefront/_promo_card.html" %}
   {% endfor %}
+    {% include "storefront/_grid_more.html" %}
 </div>
 {% endif %}
 {% endwith %}

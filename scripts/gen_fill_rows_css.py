@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-"""DL-11 «Volle Reihen»: генератор CSS quantity-queries для static/src/app.css.
+"""DL-11 «Volle Reihen» (+ DL-14 «Verteilen»/авто-колонки/«Alle anzeigen»): генератор
+CSS quantity-queries для static/src/app.css.
 
 Сетка несёт data-sf-cols="<тел>/<планш>/<деск>" и data-sf-tail="trim|show|fill"
 (siteconfig.grid_attr_string / тег {% grid_attrs %}). На каждом окне ширины
@@ -39,9 +40,18 @@ WINDOWS = (
 
 def rules_for(sel: str, n: int) -> list[str]:
     out = []
-    # trim: неполный последний ряд — скрыть целиком
-    first = f'{sel}[data-sf-tail="trim"]:not(.is-list) > :nth-child({n}n+1):nth-last-child(-n+{n - 1}):not(:first-child)'
+    # trim: неполный последний ряд — скрыть целиком (сетки БЕЗ хвостовой кнопки)
+    first = f'{sel}[data-sf-tail="trim"]:not(.is-list):not([data-sf-more]) > :nth-child({n}n+1):nth-last-child(-n+{n - 1}):not(:first-child)'
     out.append(f"{first},\n{first} ~ * {{ display: none; }}")
+    # DL-14 trim + «Alle anzeigen»: последний ребёнок — кнопка .sf-more (не элемент
+    # ряда): порог nth-last-child на 1 больше; при скрытии кнопка показывается.
+    first_more = f'{sel}[data-sf-tail="trim"][data-sf-more]:not(.is-list) > :nth-child({n}n+1):nth-last-child(-n+{n}):not(:first-child):not(.sf-more)'
+    out.append(f"{first_more},\n{first_more} ~ :not(.sf-more) {{ display: none; }}")
+    out.append(f"{first_more} ~ .sf-more {{ display: flex; }}")
+    # DL-14 spread: число колонок окна — ширина плитки считается в CSS
+    out.append(f'{sel}[data-sf-tail="spread"] {{ --sf-n: {n}; }}')
+    # DL-14 авто-колонки: атрибут (сервер клампит по числу элементов) сильнее классов
+    out.append(f"{sel}[data-sf-auto] {{ grid-template-columns: repeat({n}, minmax(0, 1fr)); }}")
     # fill: плитка-подсказка растягивается на остаток ряда; полный ряд → прячется
     out.append(f"{sel} > .sf-filler:nth-child({n}n+1) {{ display: none; }}")
     for r in range(2, n + 1):
@@ -58,7 +68,38 @@ def generate() -> str:
         for n in range(2, 7):
             for rule in rules_for(sel_of(n), n):
                 lines.append("  " + rule.replace("\n", "\n  "))
+        # spread/auto при одной колонке (телефон): ширина 100 %, сетка в одну колонку
+        lines.append(f'  {sel_of(1)}[data-sf-tail="spread"] {{ --sf-n: 1; }}')
+        lines.append(
+            f"  {sel_of(1)}[data-sf-auto] {{ grid-template-columns: repeat(1, minmax(0, 1fr)); }}"
+        )
         lines.append("}")
+    # DL-14 spread («Verteilen»): неполный ряд раскладывается по ширине — flex-wrap +
+    # space-evenly; ширина плитки = (100% − (n−1)·gap)/n, gap из классов Tailwind
+    # контейнера (gap-3/4/6/8, md:gap-6/8). Полный ряд выглядит как сетка.
+    # Исключения как у trim/fill: .is-list, [data-density]. Кнопка .sf-more и плитка
+    # .sf-filler в этом режиме не нужны.
+    lines.append('[data-sf-tail="spread"] { --sf-gap: 1rem; }')
+    lines.append('[data-sf-tail="spread"].gap-3 { --sf-gap: 0.75rem; }')
+    lines.append('[data-sf-tail="spread"].gap-6 { --sf-gap: 1.5rem; }')
+    lines.append('[data-sf-tail="spread"].gap-8 { --sf-gap: 2rem; }')
+    lines.append(
+        '@media (min-width: 768px) { [data-sf-tail="spread"].md\\:gap-6 { --sf-gap: 1.5rem; } '
+        '[data-sf-tail="spread"].md\\:gap-8 { --sf-gap: 2rem; } }'
+    )
+    lines.append(
+        '[data-sf-tail="spread"]:not(.is-list):not([data-density]) { display: flex; flex-wrap: wrap; justify-content: space-evenly; }'
+    )
+    lines.append(
+        '[data-sf-tail="spread"]:not(.is-list):not([data-density]) > * { flex: 0 0 auto; box-sizing: border-box; '
+        "width: calc((100% - (var(--sf-n, 1) - 1) * var(--sf-gap)) / var(--sf-n, 1) - 0.02px); }"
+    )
+    lines.append(
+        '[data-sf-tail="spread"] > .sf-filler, [data-sf-tail="spread"] > .sf-more { display: none; }'
+    )
+    # DL-14 «Alle anzeigen»: кнопка — последний ребёнок сетки, скрыта; trim-правила
+    # выше показывают её (display:flex) только когда что-то скрыли; занимает весь ряд.
+    lines.append(".sf-more { display: none; grid-column: 1 / -1; justify-content: center; }")
     # Посетительский «список» (<768px, одна колонка): плитке-подсказке места нет.
     lines.append(
         "@media (max-width: 767.98px) { [data-grid].is-list > .sf-filler { display: none; } }"

@@ -1,4 +1,5 @@
 {% load i18n siteui sellable_ui %}
+{% url 'storefront-termin' as more_url %}
 {% comment %}
 A3: блок «Leistungen & Preise» — услуги (Service) с ценой/длительностью на главной.
 Рендерится только при активном модуле booking и непустом services_preview. Карточка
@@ -17,13 +18,14 @@ A3: блок «Leistungen & Preise» — услуги (Service) с ценой/д
   {% comment %}UB1-2: карточка — единый партиал _sellable_card.html (горизонтальный
   вариант; ссылка на слот-пикер, CTA-пилюля, Festpreis-бейдж при активном jobs —
   A9/A7 сигнал доверия «прозрачные фикс-цены»).{% endcomment %}
-  <div data-grid="services" class="{% grid_classes site 'services' %}" {% grid_attrs site 'services' %}>
+  <div data-grid="services" class="{% grid_classes site 'services' %}" {% grid_attrs site 'services' count=services_preview|length more=True %}>
     {% trans "Fixed price" as festpreis_label %}
     {% for s in services_preview %}
       {% url 'storefront-service-slots' s.pk as slots_url %}
       {% if services_festpreis %}{% sellable_card 'service' s variant='horizontal' href=slots_url cta='purchase' badge=festpreis_label %}
       {% else %}{% sellable_card 'service' s variant='horizontal' href=slots_url cta='purchase' %}{% endif %}
     {% endfor %}
+    {% include "storefront/_grid_more.html" %}
   </div>
 </section>
 {% endif %}

@@ -1,5 +1,5 @@
 {% extends "storefront/listing.html" %}
-{% load i18n %}
+{% load i18n siteui %}
 {% comment %}SF-2: /aktionen/ на каркасе listing.html (U-B). Секции-групп
 (Prospekt-логика, фидбэк 2026-07-29) сохранены байт-в-байт — замки
 test_promotions_parity; системные чипы/сорт/поиск — PromoFacets.{% endcomment %}
@@ -42,7 +42,8 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
       <h2 class="text-lg font-bold mb-3">⏳ {% trans "Ending soon" %}</h2>
       {% comment %}Фидбэк 2026-09-02 «карточки поплыли по высоте»: обёртка — flex, карточка
       растягивается на высоту ряда (без flex обёртка тянулась, карточка внутри — нет).{% endcomment %}
-      <div class="flex items-stretch gap-4 overflow-x-auto pb-2">
+      {# DL-14: на десктопе 4 карточки фикс-ширины распределяются по ширине #}
+      <div class="flex items-stretch gap-4 overflow-x-auto pb-2 lg:justify-evenly">
         {% for p in ending_soon %}
           <div class="w-56 shrink-0 flex [&>div]:w-full">{% include "storefront/_promo_card.html" %}</div>
         {% endfor %}
@@ -56,20 +57,19 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
       <section class="mb-8">
         <h2 class="text-lg font-bold mb-3">{% if group %}{{ group_label }}{% else %}{% trans "More offers" %}{% endif %}
           <span class="text-sm font-normal text-gray-400">· {{ items|length }}</span></h2>
-        <div data-grid="promo_list" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" data-sf-cols="2/2/3" data-sf-tail="fill">
+        {# DL-14: неполный ряд группы распределяется по ширине (spread) + авто-колонки #}
+        <div data-grid="promo_list" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" {% sf_grid_attrs cols="2/2/3" count=items|length %}>
           {% for p in items %}
             {% include "storefront/_promo_card.html" %}
           {% endfor %}
-          {% include "storefront/_grid_filler.html" %}
         </div>
       </section>
     {% endfor %}
   {% elif promotions %}
-    <div data-grid="promo_list" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" data-sf-cols="2/2/3" data-sf-tail="fill">
+    <div data-grid="promo_list" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" {% sf_grid_attrs cols="2/2/3" count=promotions|length %}>
       {% for p in promotions %}
         {% include "storefront/_promo_card.html" %}
       {% endfor %}
-      {% include "storefront/_grid_filler.html" %}
     </div>
   {% endif %}
 {% endblock %}

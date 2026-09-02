@@ -17,7 +17,6 @@ from django.db.models import F
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import NoReverseMatch, reverse
-from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
@@ -503,8 +502,6 @@ def promotion_list(request):
             "groups": [(g, group_labels[g]) for g in groups],
             "selected_group": selected,
             "grouped_promotions": grouped,
-            # DL-11: плитка-подсказка добивает неполный ряд каждой группы
-            "grid_filler": grid_filler.filler_for("promotions", request.tenant),
             "ending_soon": ending_soon,
             "system_chips": system_chips,
             "has_filters": has_filters,
@@ -856,10 +853,17 @@ def product_list(request, slug=None):
         cfg["catalog_layout"]["preset"] if cfg["catalog_layout"]["preset"] != _owner_preset else ""
     )
     catalog_grid = siteconfig.grid_class_string(cfg["catalog_layout"])
-    # DL-11: листинг контент не прячет — неполный ряд добивает плитка-подсказка
-    # (tail="fill"; CSS по data-sf-cols на каждом брейкпоинте). mark_safe: атрибуты
-    # с кавычками идут в шаблон как есть.
-    catalog_grid_attrs = mark_safe(siteconfig.grid_attr_string(cfg["catalog_layout"], tail="fill"))
+    # DL-11 → DL-14: листинг контент не прячет; неполный ряд по умолчанию
+    # РАСПРЕДЕЛЯЕТСЯ по ширине (spread) + авто-колонки по числу элементов — атрибуты
+    # ставит {% sf_grid_attrs catalog_layout count=… %} в шаблоне (число элементов
+    # известно только там). Плитка-подсказка DL-11 — только при tail="fill" в
+    # раскладке страницы.
+    catalog_layout = cfg["catalog_layout"]
+    catalog_filler = (
+        grid_filler.filler_for("catalog", request.tenant, exclude=("catalog",))
+        if catalog_layout.get("tail") == "fill"
+        else None
+    )
     # Фидбэк владельца 2026-08-27 («категории по 3 в ряд»): число колонок у плиток
     # категорий не подчинялось настройке. Верхний список звал {% grid_classes site
     # 'categories' %}, но `site` в контекст этой вьюхи НЕ кладётся — тег молча брал
@@ -869,8 +873,11 @@ def product_list(request, slug=None):
     _categories_layout = siteconfig.section_layout(cfg, "categories")
     categories_grid = siteconfig.grid_class_string(_categories_layout)
     subcategory_grid = siteconfig.grid_class_string({**_categories_layout, "gap": "sm"})
-    categories_grid_attrs = mark_safe(siteconfig.grid_attr_string(_categories_layout, tail="fill"))
-    subcategory_grid_attrs = categories_grid_attrs
+    categories_filler = (
+        grid_filler.filler_for("categories", request.tenant)
+        if _categories_layout.get("tail") == "fill"
+        else None
+    )
     # Сортировка: из ?sort= (выбор покупателя) либо дефолт витрины; keyset по (поле, pk).
     _sort_keys = provider.sort_keys()
     sort = request.GET.get("sort") or cfg.get("catalog_sort", "newest")
@@ -994,8 +1001,8 @@ def product_list(request, slug=None):
             "categories": categories,
             "categories_have_images": categories_have_images,
             "categories_grid": categories_grid,
-            "categories_grid_attrs": categories_grid_attrs,
-            "categories_filler": grid_filler.filler_for("categories", request.tenant),
+            "categories_layout": _categories_layout,  # DL-14: {% sf_grid_attrs %} в шаблоне
+            "categories_filler": categories_filler,
             "category_tile_aspect": siteconfig.CATEGORY_TILE_ASPECTS.get(
                 siteconfig.section_style(cfg, "categories"), "aspect-[4/3]"
             ),
@@ -1022,7 +1029,6 @@ def product_list(request, slug=None):
             "catalog_intro": cfg.get("catalog_intro", ""),
             "subcategories": subcategories,
             "subcategory_grid": subcategory_grid,
-            "subcategory_grid_attrs": subcategory_grid_attrs,
             "subcategories_have_images": subcategories_have_images,
             # KAT-1/фидбэк 2026-08-26: у страницы категории — свой хост C-блоков
             # («catalog:<slug>»), поэтому галерея/отзывы/команда добавляются на
@@ -1043,8 +1049,8 @@ def product_list(request, slug=None):
             ),
             "active_diet": diet,
             "catalog_grid": catalog_grid,
-            "catalog_grid_attrs": catalog_grid_attrs,
-            "grid_filler": grid_filler.filler_for("catalog", request.tenant, exclude=("catalog",)),
+            "catalog_layout": catalog_layout,  # DL-14: {% sf_grid_attrs %} в шаблоне
+            "grid_filler": catalog_filler,
             # DS-3a (Fokus): вид «прайс-лист» — шаблон ветвится по пресету.
             "catalog_preset": cfg["catalog_layout"]["preset"],
             # KAT-4: стартовая плотность контрола «− N +» = колонки владельца.
@@ -1139,9 +1145,8 @@ def product_detail(request, pk=None, pslug=None, cslug=None):
         _raw = request.session["site_preview_draft"]
     _cfg = siteconfig.normalize(_raw)
     related_grid = siteconfig.grid_class_string(_cfg["detail_related_layout"])
-    related_grid_attrs = mark_safe(
-        siteconfig.grid_attr_string(_cfg["detail_related_layout"], tail="fill")
-    )
+    # DL-14: атрибуты «полных рядов» ставит шаблон (spread + авто-колонки по числу).
+    related_layout = _cfg["detail_related_layout"]
     from apps.catalog import reviews as product_reviews
     from apps.core.sellable import sellable_for
 
@@ -1174,8 +1179,12 @@ def product_detail(request, pk=None, pslug=None, cslug=None):
             ),
             "related": related,
             "related_grid": related_grid,
-            "related_grid_attrs": related_grid_attrs,
-            "grid_filler": grid_filler.filler_for("related", request.tenant),
+            "related_layout": related_layout,
+            "grid_filler": (
+                grid_filler.filler_for("related", request.tenant)
+                if related_layout.get("tail") == "fill"
+                else None
+            ),
             # Кнопка «Zur Abholung bestellen» (D2a) — только при активном модуле.
             "orders_enabled": request.tenant.is_module_active("orders"),
             # GK-14: browse-only каталог (orders off) — buy-box падает в Anfrage-CTA.

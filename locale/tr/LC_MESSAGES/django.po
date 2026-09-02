@@ -21565,3 +21565,6 @@ msgstr "Günün fırsatıyla tam ekran fotoğraf"
 
 msgid "Bento: Kacheln-Mosaik als erster Bildschirm"
 msgstr "Bento: ilk ekran olarak kutu mozaiği"
+
+msgid "Reihen: verteilen"
+msgstr "Satırlar: yay"

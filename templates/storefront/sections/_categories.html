@@ -1,4 +1,5 @@
 {% load i18n siteui %}{# M20U-2/KAT-1: сетка категорий → страница /sortiment/<slug>/. #}
+{% url 'storefront-products' as more_url %}
 {% if categories %}
 <section data-reveal class="mb-10">
   <div class="flex items-center justify-between mb-4">
@@ -19,7 +20,7 @@
   раскладку секции (выбор колонок в Studio ничего не менял). Нетронутая раскладка —
   прежние классы байт-в-байт; настроенная владельцем/китом — из движка.{% endcomment %}
   {% layout_is_default site 'categories' as cat_default %}
-  <div data-grid="categories" class="{% if cat_default %}grid sm:grid-cols-2 lg:grid-cols-3 gap-3{% else %}{% grid_classes site 'categories' %}{% endif %}" {% if cat_default %}{% grid_attrs site 'categories' cols="1/2/3" %}{% else %}{% grid_attrs site 'categories' %}{% endif %}>
+  <div data-grid="categories" class="{% if cat_default %}grid sm:grid-cols-2 lg:grid-cols-3 gap-3{% else %}{% grid_classes site 'categories' %}{% endif %}" {% if cat_default %}{% grid_attrs site 'categories' cols="1/2/3" count=cat_rows|length more=True %}{% else %}{% grid_attrs site 'categories' count=cat_rows|length more=True %}{% endif %}>
     {% for r in cat_rows %}
     {% comment %}DS-7a: при включённых лендингах направление ведёт на свой
     /bereich/<slug>/ (fail-safe — фильтр каталога).{% endcomment %}
@@ -32,21 +33,24 @@
       <span class="ml-auto font-bold" style="color: var(--accent, #4f46e5);">→</span>
     </a>
     {% endfor %}
+    {% include "storefront/_grid_more.html" %}
   </div>
   {% elif section_row.tile_info or section_row.img_h %}
   {% comment %}DS-5: плитки с инфо-строкой (ab-цена/число товаров) и/или заданной
   высотой фото — данные одним агрегатом (categories_with_min_price).{% endcomment %}
   {% categories_with_min_price categories as cat_rows %}
-  <div data-grid="categories" class="{% grid_classes site 'categories' %}" {% grid_attrs site 'categories' %}>
+  <div data-grid="categories" class="{% grid_classes site 'categories' %}" {% grid_attrs site 'categories' count=cat_rows|length more=True %}>
     {% for r in cat_rows %}
       {% include "storefront/_category_tile.html" with c=r.c cat_aspect=category_tile_aspect cat_img_h=section_row.img_h cat_info=section_row.tile_info cat_min_price=r.min_price cat_count=r.count cat_active=False is_preview=False %}
     {% endfor %}
+    {% include "storefront/_grid_more.html" %}
   </div>
   {% else %}
-  <div data-grid="categories" class="{% grid_classes site 'categories' %}" {% grid_attrs site 'categories' %}>
+  <div data-grid="categories" class="{% grid_classes site 'categories' %}" {% grid_attrs site 'categories' count=categories|length more=True %}>
     {% for c in categories %}
       {% include "storefront/_category_tile.html" with c=c cat_aspect=category_tile_aspect cat_active=False is_preview=False %}
     {% endfor %}
+    {% include "storefront/_grid_more.html" %}
   </div>
   {% endif %}
 </section>

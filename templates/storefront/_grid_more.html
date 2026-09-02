@@ -1,0 +1,5 @@
+{% load i18n %}{% comment %}DL-14 «Alle anzeigen»: хвостовая кнопка сетки главной —
+показывается ТОЛЬКО когда режим «Reihen: voll» скрыл неполный последний ряд (CSS
+генератора по data-sf-more: display:flex на весь ряд), ведёт в соответствующий
+каталог. Контекст: more_url. Обязана быть ПОСЛЕДНИМ ребёнком сетки.{% endcomment %}
+{% if more_url %}<a href="{{ more_url }}" class="sf-more mt-1 items-center" data-sf-more-btn><span class="inline-flex items-center gap-1 rounded-full border px-5 py-2 text-sm font-medium hover:opacity-90" style="border-color: var(--accent, #4f46e5); color: var(--accent, #4f46e5);">{% trans "Alle anzeigen" %} →</span></a>{% endif %}

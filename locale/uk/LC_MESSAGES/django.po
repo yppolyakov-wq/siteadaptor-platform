@@ -21646,3 +21646,6 @@ msgstr "Фото на весь екран з акцією дня"
 
 msgid "Bento: Kacheln-Mosaik als erster Bildschirm"
 msgstr "Бенто: мозаїка плиток першим екраном"
+
+msgid "Reihen: verteilen"
+msgstr "Ряди: розподілити"

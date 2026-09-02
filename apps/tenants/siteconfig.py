@@ -998,8 +998,30 @@ def normalize_layout(raw, default=None, extra_presets=()) -> dict:
     return out
 
 
-_LAYOUT_TAILS = ("show", "fill")
+# DL-14: + spread («Verteilen») — неполный последний ряд раскладывается по ширине
+# (flex-wrap + space-evenly, ширина плитки как у колонки; CSS генератора).
+_LAYOUT_TAILS = ("show", "fill", "spread")
 _COLS_TRIPLET_RE = re.compile(r"^[1-6]/[1-6]/[1-6]$")
+# DL-14 авто-колонки: элементов меньше колонок окна → колонки = число элементов,
+# но не ниже пола (планшет 2, десктоп 3; телефон без изменений) — одна карточка на
+# всю ширину десктопа была бы огромной. Ключа нет: применяется везде, где число
+# элементов известно при рендере (count=), классы Tailwind не меняются — атрибут
+# data-sf-auto + CSS переопределяют grid-template-columns.
+_AUTO_COLS_FLOOR = (None, 2, 3)
+
+
+def auto_cols_triplet(triplet, count) -> tuple[tuple[int, int, int], bool]:
+    """(триплет после кламп-а по числу элементов, изменился ли). count ≤ 0 → 1:1."""
+    if not isinstance(count, int) or count <= 0:
+        return tuple(triplet), False
+    out = []
+    for n, floor in zip(triplet, _AUTO_COLS_FLOOR, strict=True):
+        if floor is None:
+            out.append(n)
+        else:
+            out.append(max(min(n, floor), min(n, count)))
+    out = tuple(out)
+    return out, out != tuple(triplet)
 
 
 def grid_cols_triplet(layout) -> tuple[int, int, int]:
@@ -1031,23 +1053,36 @@ def grid_class_string(layout) -> str:
     return " ".join(["grid", _GRID_MOBILE[mobile], _GRID_SM[sm], _GRID_LG[cols], _GRID_GAP[gap]])
 
 
-def grid_attr_string(layout, cols=None, tail=None) -> str:
+def grid_attr_string(layout, cols=None, tail=None, count=None, more=False, default_tail="trim"):
     """DL-11: атрибуты сетки для CSS «полных рядов»: data-sf-cols="<тел>/<планш>/<деск>"
-    + data-sf-tail="trim|show|fill". Классы Tailwind не трогаем (замки характеризации
-    целы) — CSS в app.css (генератор scripts/gen_fill_rows_css.py) скрывает хвост
-    неполного ряда (trim) или растягивает плитку-подсказку .sf-filler (fill) на
-    каждом брейкпоинте отдельно. scroll/balance (DS-5) — своя механика → пусто.
+    + data-sf-tail="trim|show|fill|spread". Классы Tailwind не трогаем (замки
+    характеризации целы) — CSS в app.css (генератор scripts/gen_fill_rows_css.py)
+    скрывает хвост неполного ряда (trim), растягивает плитку-подсказку .sf-filler
+    (fill) или раскладывает неполный ряд по ширине (spread, DL-14) на каждом
+    брейкпоинте отдельно. scroll/balance (DS-5) — своя механика → пусто.
 
     `cols` — переопределение триплета для хардкоженных сеток ("1/2/3"); `tail` —
-    принудительный режим (листинги всегда "fill": контент прятать нельзя)."""
+    принудительный режим; `default_tail` — дефолт без ключа в раскладке (главная
+    trim, листинги spread); `count` — число элементов → авто-колонки (DL-14,
+    атрибут data-sf-auto); `more` — в сетке есть хвостовая кнопка .sf-more
+    («Alle anzeigen» при скрытии, DL-14) — CSS считает ряды без неё."""
     lay = normalize_layout(layout if isinstance(layout, dict) else None)
     if lay.get("scroll") or lay.get("balance"):
         return ""
-    if not (isinstance(cols, str) and _COLS_TRIPLET_RE.match(cols)):
-        cols = "/".join(str(n) for n in grid_cols_triplet(lay))
+    if isinstance(cols, str) and _COLS_TRIPLET_RE.match(cols):
+        triplet = tuple(int(n) for n in cols.split("/"))
+    else:
+        triplet = grid_cols_triplet(lay)
+    triplet, auto = auto_cols_triplet(triplet, count)
+    cols = "/".join(str(n) for n in triplet)
     if tail not in _LAYOUT_TAILS and tail != "trim":
-        tail = lay.get("tail") or "trim"
-    return f'data-sf-cols="{cols}" data-sf-tail="{tail}"'
+        tail = lay.get("tail") or default_tail
+    attrs = f'data-sf-cols="{cols}" data-sf-tail="{tail}"'
+    if auto:
+        attrs += ' data-sf-auto="1"'
+    if more:
+        attrs += ' data-sf-more="1"'
+    return attrs
 
 
 def section_layout(config, key) -> dict:

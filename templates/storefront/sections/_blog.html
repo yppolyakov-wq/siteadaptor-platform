@@ -1,4 +1,5 @@
 {% load i18n siteui %}{% comment %}HF-1: лента новостей на главной (модуль blog).
+{% url 'storefront-blog' as more_url %}
 Гейт — blog_preview из storefront_home: секция не рендерится, пока у бизнеса нет
 опубликованных постов.{% endcomment %}
 {% if blog_preview %}
@@ -11,7 +12,7 @@
   </div>
   {% section_intro site 'blog' as si %}
   {% if si or is_preview %}<p class="mb-4 text-gray-600 whitespace-pre-line max-w-2xl" data-edit="section_intros.blog">{{ si }}</p>{% endif %}
-  <div data-grid="blog" class="{% grid_classes site 'blog' %}" {% grid_attrs site 'blog' %}>
+  <div data-grid="blog" class="{% grid_classes site 'blog' %}" {% grid_attrs site 'blog' count=blog_preview|length more=True %}>
     {% for post in blog_preview %}
       <a href="{% url 'storefront-blog-post' post.slug %}" class="sf-card bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition flex flex-col">
         {% if post.cover_url %}<img src="{{ post.cover_url }}" alt="" loading="lazy" decoding="async" class="w-full h-40 object-cover">{% endif %}
@@ -23,6 +24,7 @@
         </div>
       </a>
     {% endfor %}
+    {% include "storefront/_grid_more.html" %}
   </div>
 </section>
 {% endif %}

@@ -1,4 +1,5 @@
 {% load i18n siteui %}{# MT-F1: тур-продукты на главной (главный товар тур-оператора). #}
+{% url 'storefront-tours' as more_url %}
 {% if tours_preview %}
 <section data-reveal class="mb-10">
   <div class="flex items-center justify-between mb-4">
@@ -9,8 +10,9 @@
   </div>
   {% section_intro site 'tours' as si %}
   {% if si or is_preview %}<p class="mb-4 text-gray-600 whitespace-pre-line max-w-2xl" data-edit="section_intros.tours">{{ si }}</p>{% endif %}
-  <div data-grid="tours" class="{% grid_classes site 'tours' %}" {% grid_attrs site 'tours' %}>
+  <div data-grid="tours" class="{% grid_classes site 'tours' %}" {% grid_attrs site 'tours' count=tours_preview|length more=True %}>
     {% for tour in tours_preview %}{% include "storefront/_tour_card.html" %}{% endfor %}
+    {% include "storefront/_grid_more.html" %}
   </div>
 </section>
 {% endif %}

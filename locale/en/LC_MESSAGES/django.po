@@ -21438,3 +21438,6 @@ msgstr "Full-screen photo with deal of the day"
 
 msgid "Bento: Kacheln-Mosaik als erster Bildschirm"
 msgstr "Bento: tile mosaic as the first screen"
+
+msgid "Reihen: verteilen"
+msgstr "Rows: spread out"

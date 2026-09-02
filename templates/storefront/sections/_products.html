@@ -36,10 +36,12 @@
     {% endwith %}
     </div>
   {% else %}
-  <div data-grid="products" class="{% grid_classes site 'products' %}" {% grid_attrs site 'products' %}>
+  {% url 'storefront-products' as more_url %}
+  <div data-grid="products" class="{% grid_classes site 'products' %}" {% grid_attrs site 'products' count=products_preview|length more=True %}>
     {% for p in products_preview %}
       {% include "storefront/_product_card.html" %}
     {% endfor %}
+  {% include "storefront/_grid_more.html" %}
   </div>
   {% endif %}
 </section>

@@ -404,13 +404,36 @@ def grid_classes(site, key):
 
 
 @register.simple_tag(name="grid_attrs")
-def grid_attrs(site, key, cols="", tail=""):
+def grid_attrs(site, key, cols="", tail="", count=0, more=False):
     """DL-11: атрибуты «полных рядов» секции `key` (рядом с grid_classes):
     <div class="{% grid_classes site 'products' %}" {% grid_attrs site 'products' %}>.
-    `cols="1/2/3"` — для стилей с хардкоженной сеткой; `tail="fill"` — принудительно."""
+    `cols="1/2/3"` — для стилей с хардкоженной сеткой; `tail="fill"` — принудительно.
+    DL-14: `count=` — число элементов (авто-колонки), `more=True` — в сетке есть
+    хвостовая кнопка «Alle anzeigen» (_grid_more.html)."""
     return mark_safe(
         siteconfig.grid_attr_string(
-            siteconfig.section_layout(site, key), cols or None, tail or None
+            siteconfig.section_layout(site, key),
+            cols or None,
+            tail or None,
+            count=int(count or 0),
+            more=bool(more),
+        )
+    )
+
+
+@register.simple_tag(name="sf_grid_attrs")
+def sf_grid_attrs(layout=None, cols="", tail="", count=0, default_tail="spread", more=False):
+    """DL-14: атрибуты «полных рядов» для сеток БЕЗ секции главной (листинги,
+    хардкоженные сетки): раскладка страницы (dict) и/или триплет `cols`; дефолт
+    хвоста — spread (листинги контент не прячут, неполный ряд распределяется)."""
+    return mark_safe(
+        siteconfig.grid_attr_string(
+            layout if isinstance(layout, dict) else None,
+            cols or None,
+            tail or None,
+            count=int(count or 0),
+            more=bool(more),
+            default_tail=default_tail,
         )
     )
 

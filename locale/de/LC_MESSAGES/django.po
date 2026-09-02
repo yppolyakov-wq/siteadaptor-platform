@@ -21482,3 +21482,6 @@ msgstr "Vollbild-Foto mit Angebot des Tages"
 
 msgid "Bento: Kacheln-Mosaik als erster Bildschirm"
 msgstr "Bento: Kacheln-Mosaik als erster Bildschirm"
+
+msgid "Reihen: verteilen"
+msgstr "Reihen: verteilen"

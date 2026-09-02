@@ -62,7 +62,7 @@
 </div>
 {% elif categories_have_images %}
 <div class="mb-6">
-  <div data-grid="categories" class="{{ categories_grid }}" {{ categories_grid_attrs }}>
+  <div data-grid="categories" class="{{ categories_grid }}" {% sf_grid_attrs categories_layout count=categories|length %}>
     {% for c in categories %}
       {% include "storefront/_category_tile.html" with c=c cat_aspect=category_tile_aspect cat_active=False %}
     {% endfor %}
@@ -211,14 +211,14 @@ fixed-ящиком, и до инициализации JS она вспыхив�
 (`subcategories_have_images`): нет фото ни у одной подкатегории → прежняя
 текстовая сетка байт-в-байт.{% endcomment %}
 {% if category_page_style == "kopfbild" or subcategories_have_images %}
-<div class="{{ subcategory_grid }} mb-6" {{ subcategory_grid_attrs }}>
+<div class="{{ subcategory_grid }} mb-6" {% sf_grid_attrs categories_layout count=subcategories|length %}>
   {% for c in subcategories %}
     {% include "storefront/_category_tile.html" with c=c cat_aspect="aspect-[4/3]" cat_active=False %}
   {% endfor %}
   {% include "storefront/_grid_filler.html" with grid_filler=categories_filler %}
 </div>
 {% else %}
-<div class="{{ subcategory_grid }} mb-6" {{ subcategory_grid_attrs }}>
+<div class="{{ subcategory_grid }} mb-6" {% sf_grid_attrs categories_layout count=subcategories|length %}>
   {% for c in subcategories %}
     <a href="{% url 'storefront-category' c.slug %}{% if ansicht %}?ansicht={{ ansicht }}{% endif %}"
        class="flex items-center justify-center text-center bg-white rounded-xl shadow-sm p-4 min-h-[4rem] font-medium border border-transparent hover:shadow-md hover:border-indigo-300 transition">{{ c }}</a>
@@ -271,7 +271,7 @@ MEN-22 остаётся механикой главной. Мобильный «
 </div>
 {% else %}
 {# SE-2a-2: маркер секции для on-canvas редактора (клик → инспектор раскладки каталога) #}
-<div data-grid="catalog" data-sf-section="catalog" class="{{ catalog_grid|default:'grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}" {{ catalog_grid_attrs }}>
+<div data-grid="catalog" data-sf-section="catalog" class="{{ catalog_grid|default:'grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}" {% sf_grid_attrs catalog_layout count=page.items|length %}>
   {% for p in page.items %}
     {% include "storefront/_product_card.html" %}
   {% endfor %}

@@ -25,7 +25,7 @@ section_row.style — "" карточки-сетка (текущий) | quotes |
       {% endfor %}
     </div>
   {% elif section_row.style == "accent" %}
-    <div class="{% grid_classes site 'testimonials' %}" {% grid_attrs site 'testimonials' %}>
+    <div class="{% grid_classes site 'testimonials' %}" {% grid_attrs site 'testimonials' count=site.testimonials|length %}>
       {% for t in site.testimonials %}
         <figure class="bg-white rounded-r-2xl shadow-sm p-5" style="border-left:4px solid var(--accent);">
           <blockquote class="text-gray-700 whitespace-pre-line">“{{ t.text }}”</blockquote>
@@ -45,7 +45,7 @@ section_row.style — "" карточки-сетка (текущий) | quotes |
       {% endfor %}
     </div>
   {% else %}
-    <div class="{% grid_classes site 'testimonials' %}" {% grid_attrs site 'testimonials' %}>
+    <div class="{% grid_classes site 'testimonials' %}" {% grid_attrs site 'testimonials' count=site.testimonials|length %}>
       {% for t in site.testimonials %}
         <figure class="bg-white rounded-2xl shadow-sm p-5">
           <blockquote class="text-gray-700 whitespace-pre-line">“{{ t.text }}”</blockquote>
