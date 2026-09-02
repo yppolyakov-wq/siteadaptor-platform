@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-from datetime import timedelta
 from importlib import import_module
 
 import pytest
@@ -72,8 +71,10 @@ def test_time_mode_slider_more_links_only_for_heute_and_woche():
         disabled_modules=[],
         site_config={"promo_grouping": "time", "promo_layout": "slider"},
     )
-    now = timezone.now()
-    Promotion.objects.create(title={"de": "H"}, status="active", ends_at=now + timedelta(hours=2))
+    # Бакет «Endet heute» считается по ЛОКАЛЬНОМУ концу суток: «now + 2 ч» поздним
+    # вечером уезжает в завтра, и тест падал по часам (CI 20:05 UTC = 22:05 Berlin).
+    today_end = timezone.localtime().replace(hour=23, minute=58, second=0, microsecond=0)
+    Promotion.objects.create(title={"de": "H"}, status="active", ends_at=today_end)
     Promotion.objects.create(title={"de": "D"}, status="active")  # dauerhaft
     html = _get(public_views.promotion_list, "/aktionen/", tenant)
     assert 'href="?endet=heute"' in html
