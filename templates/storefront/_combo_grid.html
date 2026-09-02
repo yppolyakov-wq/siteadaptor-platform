@@ -17,6 +17,7 @@ cg_cls (классы вида Kacheln).{% endcomment %}
      data-cls-kacheln="{{ cg_cls|default:'grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4' }}"
      data-cls-liste="grid grid-cols-1 gap-3"
      data-cls-kompakt="grid grid-cols-1 gap-2"
-     class="{{ cg_cls|default:'grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4' }}">
+     class="{{ cg_cls|default:'grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4' }}"{% if grid_filler %} data-sf-cols="2/2/4" data-sf-tail="fill"{% endif %}>
   {% for c in combos %}{% include "storefront/_combo_card.html" %}{% endfor %}
+  {% include "storefront/_grid_filler.html" %}
 </div>

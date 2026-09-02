@@ -486,6 +486,13 @@
                   ▭<input type="number" name="tablet_{{ s.key }}" value="{% if s.layout_tablet %}{{ s.layout_tablet }}{% endif %}" min="1" max="4" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on tablet' %}">
                   🖥<input type="number" name="cols_{{ s.key }}" value="{{ s.layout_cols }}" min="1" max="6" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on desktop' %}">
                 </span>
+                {% comment %}DL-11: хвост неполного последнего ряда — обрезать (дефолт, ряды
+                всегда полные на любой ширине) или показать всё. Пусто = дефолт (ключ не
+                пишется, golden целы). Ausgleichen/Scrollen (DS-5) — своя механика.{% endcomment %}
+                <select name="tail_{{ s.key }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Letzte Reihe' %}" title="{% trans 'Unvollständige letzte Reihe: abschneiden (Reihen immer voll) oder alles zeigen' %}">
+                  <option value="" {% if not s.layout_tail %}selected{% endif %}>{% trans "Reihen: voll" %}</option>
+                  <option value="show" {% if s.layout_tail == "show" %}selected{% endif %}>{% trans "Reihen: alles zeigen" %}</option>
+                </select>
                 {% comment %}DS-5: симметрия неполного ряда / горизонтальная лента.
                 Scroll побеждает balance (grid_class_string).{% endcomment %}
                 <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap" data-expert="1" title="{% trans 'Unvollständige Reihe zentrieren' %}">

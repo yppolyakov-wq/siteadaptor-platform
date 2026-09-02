@@ -44,7 +44,7 @@
     {% endfor %}
   </div>
   {% elif section_row.style == "polaroid" %}
-  <div class="{% grid_classes site 'gallery' %}">
+  <div class="{% grid_classes site 'gallery' %}" {% grid_attrs site 'gallery' %}>
     {% for img in site.gallery %}
       <button type="button" data-lightbox="{{ img.url }}"
               class="bg-white p-2 pb-6 rounded shadow-md block cursor-zoom-in group">
@@ -56,7 +56,7 @@
     {% endfor %}
   </div>
   {% elif section_row.style == "soft" %}
-  <div class="{% grid_classes site 'gallery' %}">
+  <div class="{% grid_classes site 'gallery' %}" {% grid_attrs site 'gallery' %}>
     {% for img in site.gallery %}
       <button type="button" data-lightbox="{{ img.url }}"
               class="aspect-square rounded-3xl overflow-hidden bg-gray-100 block cursor-zoom-in group">
@@ -69,7 +69,7 @@
   {% comment %}MEN-23: посетительский переключатель «⊞ Raster ↔ ▤ Groß» — тот же
   class-swap, что у прайс-листа (обработчик в _grid_view_script.html); крупный
   вид = 2 колонки 3:2 (aspect правит CSS-правило [data-galv="gross"]).{% endcomment %}
-  <div class="{% grid_classes site 'gallery' %}" data-galv="raster"
+  <div class="{% grid_classes site 'gallery' %}" {% grid_attrs site 'gallery' %} data-galv="raster"
        data-cls-raster="{% grid_classes site 'gallery' %}" data-cls-gross="grid gap-4 sm:grid-cols-2">
     {% for img in site.gallery %}
       <button type="button" data-lightbox="{{ img.url }}"

@@ -15,7 +15,7 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from apps.core import ratelimit
+from apps.core import grid_filler, ratelimit
 
 from . import payments as order_payments
 from .models import Offer, Order
@@ -244,7 +244,12 @@ def combo_list_public(request):
     return render(
         request,
         "storefront/combos.html",
-        {"combos": combos, "current_category": current_category},
+        {
+            "combos": combos,
+            "current_category": current_category,
+            # DL-11: плитка-подсказка добивает неполный последний ряд наборов
+            "grid_filler": grid_filler.filler_for("combos", request.tenant),
+        },
     )
 
 

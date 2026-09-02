@@ -20,7 +20,9 @@ ST-7b: стили — "" карточка-полоса | plain — без кар
   {% elif section_row.style == "pillars" %}
   {% comment %}GK-5: «столпы» — крупная иконка + заголовок + абзац (u.text опционален;
   без text столп рендерит только заголовок — честно и не пусто).{% endcomment %}
-  <div class="grid gap-6 sm:grid-cols-3 text-center">
+  {% comment %}DL-11: колонки по числу столпов — 2 и 4 не дробятся в тройки
+  (4 USP в 3 колонках = сирота в последнем ряду); 3/6 — по три.{% endcomment %}
+  <div class="grid gap-6 text-center {% if site.usp_bar|length == 4 %}sm:grid-cols-2 lg:grid-cols-4{% elif site.usp_bar|length == 2 %}sm:grid-cols-2{% else %}sm:grid-cols-3{% endif %}">
     {% for u in site.usp_bar %}
       <div class="bg-white rounded-2xl shadow-sm px-5 py-6">
         <span aria-hidden="true" class="text-3xl leading-none">{% usp_icon u.icon %}</span>

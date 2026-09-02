@@ -30,7 +30,7 @@
     {% if forloop.first %}<div class="mb-4 md:mb-6">{% include "storefront/_promo_featured.html" %}</div>{% endif %}
   {% endfor %}
   {% if promotions|length > 1 %}
-  <div id="promo-grid" data-grid="promotions" class="{% grid_classes site 'promotions' %}">
+  <div id="promo-grid" data-grid="promotions" class="{% grid_classes site 'promotions' %}" {% grid_attrs site 'promotions' %}>
     {% for p in promotions %}{% if not forloop.first %}{% include "storefront/_promo_card.html" %}{% endif %}{% endfor %}
   </div>
   {% endif %}
@@ -64,7 +64,7 @@
     {% endif %}
   </div>
   {% if promotions|length > 3 %}
-  <div id="promo-grid" data-grid="promotions" class="{% grid_classes site 'promotions' %}">
+  <div id="promo-grid" data-grid="promotions" class="{% grid_classes site 'promotions' %}" {% grid_attrs site 'promotions' %}>
     {% for p in promotions %}{% if forloop.counter > 3 %}{% include "storefront/_promo_card.html" %}{% endif %}{% endfor %}
   </div>
   {% endif %}
@@ -87,7 +87,7 @@
     {% endfor %}
   </div>
 {% else %}
-<div id="promo-grid" data-grid="promotions" class="{% grid_classes site 'promotions' %}">
+<div id="promo-grid" data-grid="promotions" class="{% grid_classes site 'promotions' %}" {% grid_attrs site 'promotions' %}>
   {% for p in promotions %}
     {% include "storefront/_promo_card.html" %}
   {% endfor %}

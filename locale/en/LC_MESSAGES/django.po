@@ -21272,3 +21272,59 @@ msgstr "Round"
 
 msgid "Breit (16:9)"
 msgstr "Wide (16:9)"
+
+msgid "Aktuelle Angebote"
+msgstr "Current offers"
+
+msgid "Jede Woche neue Aktionen — reinschauen lohnt sich."
+msgstr "New deals every week — worth a look."
+
+msgid "Zu den Aktionen"
+msgstr "To the offers"
+
+msgid "Neue Aktionen direkt ins Postfach — jederzeit abbestellbar."
+msgstr "New deals straight to your inbox — unsubscribe anytime."
+
+msgid "Newsletter abonnieren"
+msgstr "Subscribe to the newsletter"
+
+msgid "Lieblinge merken"
+msgstr "Save favourites"
+
+msgid "Angebote mit ♡ merken und später wiederfinden."
+msgstr "Save offers with ♡ and find them again later."
+
+msgid "Zum Merkzettel"
+msgstr "To the wishlist"
+
+msgid "Nicht das Richtige dabei?"
+msgstr "Nothing quite right?"
+
+msgid "Schreiben Sie uns — wir machen Ihnen ein Angebot."
+msgstr "Write to us — we'll make you an offer."
+
+msgid "Ganzes Sortiment"
+msgstr "Full range"
+
+msgid "Alle Kategorien und Produkte auf einen Blick."
+msgstr "All categories and products at a glance."
+
+msgid "Fragen? Wir helfen gern."
+msgstr "Questions? Happy to help."
+
+msgid "Rufen Sie an oder schreiben Sie uns — wir melden uns schnell."
+msgstr "Call or write to us — we'll get back to you quickly."
+
+msgid "Letzte Reihe"
+msgstr "Last row"
+
+msgid "Reihen: voll"
+msgstr "Rows: full"
+
+msgid "Reihen: alles zeigen"
+msgstr "Rows: show all"
+
+msgid ""
+"Unvollständige letzte Reihe: abschneiden (Reihen immer voll) oder alles "
+"zeigen"
+msgstr "Incomplete last row: trim it (rows always full) or show everything"

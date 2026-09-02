@@ -9,7 +9,7 @@
   </div>
   {% section_intro site 'events' as si %}
   {% if si or is_preview %}<p class="mb-4 text-gray-600 whitespace-pre-line max-w-2xl" data-edit="section_intros.events">{{ si }}</p>{% endif %}
-  <div data-grid="events" class="{% grid_classes site 'events' %}">
+  <div data-grid="events" class="{% grid_classes site 'events' %}" {% grid_attrs site 'events' %}>
     {% for e in events_preview %}
       <a href="{% url 'storefront-event' e.pk %}" class="sf-card relative bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition flex flex-col">
         <span data-photo-edit data-edit-model="event" data-edit-pk="{{ e.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>

@@ -1089,6 +1089,7 @@ BUNDLES = [
         # «как это работает» строкой и полоса преимуществ. Без рассказов о себе.
         "config": _deal(
             {
+                "section_layouts": {"categories": {"preset": "cols3"}},  # DL-11: 6 = 2×3
                 "hero_style": "accent",
                 "nav_style": "classic",
                 "sections_on": ("hero", "categories", "promotions", "process", "usp_bar"),
@@ -1121,6 +1122,7 @@ BUNDLES = [
         # затем ИСТОРИЯ (панель «о нас») и голоса гостей. Тёплый и неспешный.
         "config": _deal(
             {
+                "section_layouts": {"categories": {"preset": "cols3"}},  # DL-11: 6 = 2×3
                 "hero_style": "split",
                 "nav_style": "classic",
                 "media_shape": "round",
@@ -1163,6 +1165,7 @@ BUNDLES = [
         # затем короткие ответы и знаки доверия. Никаких рассказов и преимуществ.
         "config": _deal(
             {
+                "section_layouts": {"categories": {"preset": "cols3"}},  # DL-11: 6 = 2×3
                 "hero_style": "split",
                 "nav_style": "classic",
                 "card_style": "overlay",
@@ -1196,6 +1199,7 @@ BUNDLES = [
         # ПРАЙС-ЛИСТ товаров, передовица «о нас» и пронумерованные вопросы.
         "config": _deal(
             {
+                "section_layouts": {"categories": {"preset": "cols3"}},  # DL-11: 6 = 2×3
                 "hero_style": "split",
                 "nav_style": "centered",
                 "media_shape": "wide",
@@ -1232,6 +1236,7 @@ BUNDLES = [
         # «процент-первым», плотные карточки, три шага и знаки доверия строкой.
         "config": _deal(
             {
+                "section_layouts": {"categories": {"preset": "cols3"}},  # DL-11: 6 = 2×3
                 "hero_style": "plain",
                 "nav_style": "minimal",
                 "card_style": "compact",
@@ -1351,11 +1356,23 @@ def _apply_bundle_axes(config: dict, over: dict) -> None:
             top["style"] = over["nav_style"]
             config["menus"] = {**menus, "top": top}
     styles = over.get("section_styles", {})
+    # DL-11: раскладка секции (колонки) — часть композиции: ряды плиток у сборки
+    # полные по построению (6 категорий × 3 колонки), не только по CSS-обрезке.
+    layouts = over.get("section_layouts", {})
     on = set(over.get("sections_on", ()))
     off = set(over.get("sections_off", ())) - on
     for row in config["sections"]:
         if row["key"] in styles:
             row["style"] = styles[row["key"]]
+        if row["key"] in layouts:
+            # Нормализованный ряд несёт материализованные cols/mobile/tablet — при
+            # смене пресета они перебили бы его (стенд: превью frisch осталось 4-кол.).
+            keep = {
+                k: v
+                for k, v in (row.get("layout") or {}).items()
+                if k not in ("preset", "cols", "mobile", "tablet")
+            }
+            row["layout"] = {**keep, **layouts[row["key"]]}
         if row["key"] in on:
             row["enabled"] = True
         elif row["key"] in off:

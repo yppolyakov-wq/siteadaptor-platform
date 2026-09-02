@@ -21316,3 +21316,61 @@ msgstr "Rund"
 
 msgid "Breit (16:9)"
 msgstr "Breit (16:9)"
+
+msgid "Aktuelle Angebote"
+msgstr "Aktuelle Angebote"
+
+msgid "Jede Woche neue Aktionen — reinschauen lohnt sich."
+msgstr "Jede Woche neue Aktionen — reinschauen lohnt sich."
+
+msgid "Zu den Aktionen"
+msgstr "Zu den Aktionen"
+
+msgid "Neue Aktionen direkt ins Postfach — jederzeit abbestellbar."
+msgstr "Neue Aktionen direkt ins Postfach — jederzeit abbestellbar."
+
+msgid "Newsletter abonnieren"
+msgstr "Newsletter abonnieren"
+
+msgid "Lieblinge merken"
+msgstr "Lieblinge merken"
+
+msgid "Angebote mit ♡ merken und später wiederfinden."
+msgstr "Angebote mit ♡ merken und später wiederfinden."
+
+msgid "Zum Merkzettel"
+msgstr "Zum Merkzettel"
+
+msgid "Nicht das Richtige dabei?"
+msgstr "Nicht das Richtige dabei?"
+
+msgid "Schreiben Sie uns — wir machen Ihnen ein Angebot."
+msgstr "Schreiben Sie uns — wir machen Ihnen ein Angebot."
+
+msgid "Ganzes Sortiment"
+msgstr "Ganzes Sortiment"
+
+msgid "Alle Kategorien und Produkte auf einen Blick."
+msgstr "Alle Kategorien und Produkte auf einen Blick."
+
+msgid "Fragen? Wir helfen gern."
+msgstr "Fragen? Wir helfen gern."
+
+msgid "Rufen Sie an oder schreiben Sie uns — wir melden uns schnell."
+msgstr "Rufen Sie an oder schreiben Sie uns — wir melden uns schnell."
+
+msgid "Letzte Reihe"
+msgstr "Letzte Reihe"
+
+msgid "Reihen: voll"
+msgstr "Reihen: voll"
+
+msgid "Reihen: alles zeigen"
+msgstr "Reihen: alles zeigen"
+
+msgid ""
+"Unvollständige letzte Reihe: abschneiden (Reihen immer voll) oder alles "
+"zeigen"
+msgstr ""
+"Unvollständige letzte Reihe: abschneiden (Reihen immer voll) oder alles "
+"zeigen"

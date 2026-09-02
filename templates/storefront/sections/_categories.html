@@ -15,7 +15,11 @@
   {% comment %}DS-4b (Fokus): направления строками-плитками — фото 46px, имя,
   «ab X €» из самого дешёвого товара категории, стрелка (концепт-макет).{% endcomment %}
   {% categories_with_min_price categories as cat_rows %}
-  <div data-grid="categories" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+  {% comment %}DL-11: стиль compact жил жёсткой сеткой 1/2/3 и молча игнорировал
+  раскладку секции (выбор колонок в Studio ничего не менял). Нетронутая раскладка —
+  прежние классы байт-в-байт; настроенная владельцем/китом — из движка.{% endcomment %}
+  {% layout_is_default site 'categories' as cat_default %}
+  <div data-grid="categories" class="{% if cat_default %}grid sm:grid-cols-2 lg:grid-cols-3 gap-3{% else %}{% grid_classes site 'categories' %}{% endif %}" {% if cat_default %}{% grid_attrs site 'categories' cols="1/2/3" %}{% else %}{% grid_attrs site 'categories' %}{% endif %}>
     {% for r in cat_rows %}
     {% comment %}DS-7a: при включённых лендингах направление ведёт на свой
     /bereich/<slug>/ (fail-safe — фильтр каталога).{% endcomment %}
@@ -33,13 +37,13 @@
   {% comment %}DS-5: плитки с инфо-строкой (ab-цена/число товаров) и/или заданной
   высотой фото — данные одним агрегатом (categories_with_min_price).{% endcomment %}
   {% categories_with_min_price categories as cat_rows %}
-  <div data-grid="categories" class="{% grid_classes site 'categories' %}">
+  <div data-grid="categories" class="{% grid_classes site 'categories' %}" {% grid_attrs site 'categories' %}>
     {% for r in cat_rows %}
       {% include "storefront/_category_tile.html" with c=r.c cat_aspect=category_tile_aspect cat_img_h=section_row.img_h cat_info=section_row.tile_info cat_min_price=r.min_price cat_count=r.count cat_active=False is_preview=False %}
     {% endfor %}
   </div>
   {% else %}
-  <div data-grid="categories" class="{% grid_classes site 'categories' %}">
+  <div data-grid="categories" class="{% grid_classes site 'categories' %}" {% grid_attrs site 'categories' %}>
     {% for c in categories %}
       {% include "storefront/_category_tile.html" with c=c cat_aspect=category_tile_aspect cat_active=False is_preview=False %}
     {% endfor %}

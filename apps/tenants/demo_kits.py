@@ -658,6 +658,8 @@ RESTAURANT = DemoKit(
         },
     ],
     key="restaurant",
+    # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
+    section_layouts={"gallery": {"preset": "cols3"}, "events": {"preset": "cols2"}},
     # DS-5c: Speisekarte как в печатных меню — «классическая карта» на главной
     # и на странице /sortiment/ (config_patch).
     # DS-8 (Fokus для ресторана): сплит-баннер с плитками задач, печатная карта,
@@ -1596,7 +1598,10 @@ PRANASY = DemoKit(
     # «Catering» — витрина карты, где направления (Suppen, Beilagen, Ragouts…)
     # читаются крупными плитками, а сами блюда идут плотной сеткой под тулбаром.
     page_layouts={"catalog": "cols6", "events": "cols2"},
-    section_layouts={"categories": {"preset": "cols3"}},
+    section_layouts={
+        "categories": {"preset": "cols3"},
+        "gallery": {"preset": "cols3"},
+    },  # DL-11: +галерея 6 = 2×3
     archetype_covers={
         "catalog": {
             "intro": "Unser Restaurant öffnet bald — die Karte ist schon da. Und im veganen "
@@ -2975,6 +2980,8 @@ HOTEL_MENUS = {
 
 HOTEL = DemoKit(
     key="hotel",
+    # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
+    section_layouts={"gallery": {"preset": "cols3"}, "stay_rooms": {"preset": "cols2"}},
     label="Pension Seeblick",
     hero_widget="stays",  # E4 «задача-первым»: поиск дат ВНУТРИ hero (первый экран)
     # DS-8 (Fokus для отеля): сплит-баннер с поиском дат, номера сразу под ним,
@@ -3598,6 +3605,9 @@ AKTIONSMARKT_MENUS = {
 
 AKTIONSMARKT = DemoKit(
     key="aktionsmarkt",
+    # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
+    # DL-11: 6 категорий = 2×3 (стиль compact с настроенной раскладкой берёт движок)
+    section_layouts={"gallery": {"preset": "cols3"}, "categories": {"preset": "cols3"}},
     label="Aktionsmarkt Sparfuchs",
     business_type="grocery",
     # DS-9: дизайн «Fokus» для архетипа — своя композиция (реестр BUNDLES).
@@ -3900,6 +3910,16 @@ AKTIONSMARKT = DemoKit(
             "desc": "Bunt gemischt aus allen Abteilungen — der Inhalt bleibt eine "
             "Überraschung, der Warenwert liegt bei rund 25 €.",
         },
+        {
+            # DL-11: 15-я активная акция — сетка после spotlight (3) = 12 = 4 ряда × 3
+            "title": "Gouda jung −20 %",
+            "product": 16,  # Gouda jung 400 g 3,49 € → 2,79 €
+            "percent": 20,
+            "discount_style": "badge",
+            "group": "Wochenangebote",
+            "ends_in_days": 7,
+            "desc": "Mild und cremig — diese Woche günstiger.",
+        },
     ],
     categories=[
         (
@@ -3973,6 +3993,19 @@ AKTIONSMARKT = DemoKit(
             ],
             "grocery-bag",  # DS-9: фото плитки (было SVG)
         ),
+        # DL-11: шестая категория — 6 плиток = два полных ряда по 3 (compact) и по 2
+        # (телефон); товары ДОПИСАНЫ В КОНЕЦ — индексы promotions_spec.product целы.
+        (
+            "Molkerei & Eier",
+            "molkerei-eier",
+            [
+                _p("Gouda jung 400 g", "3.49", "Mild und cremig, am Stück.", "cheese"),
+                _p("Butter 250 g", "1.99", "Süßrahm, aus der Region.", "butter"),
+                _p("Eier 10er Freiland", "2.79", "Aus Freilandhaltung.", "eggs"),
+                _p("Bergkäse am Stück", "4.99", "Würzig, 6 Monate gereift.", "cheese,wheel"),
+            ],
+            "cheese",
+        ),
     ],
 )
 
@@ -4019,6 +4052,8 @@ BAKERY_MENUS = {
 # (Anti-Food-Waste), Wochenangebot, Torten auf Vorbestellung, LMIV-Allergene, Stempelkarte.
 BAKERY = DemoKit(
     key="bakery",
+    # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
+    section_layouts={"gallery": {"preset": "cols3"}, "categories": {"preset": "cols2"}},
     page_presets=[("info", "team")],  # ST-2: шаблон «Über uns»
     label="Backhaus Krume",
     # FB-3 Вариант B демо: свой статус заказа «In Kommissionierung» между Bestätigt и Fertig.
@@ -4124,6 +4159,8 @@ BAKERY = DemoKit(
             "Das Kuchenbuffet zur Taufe war ein Traum — pünktlich geliefert und "
             "wunderschön angerichtet.",
         ),
+        # DL-11: четвёртый отзыв — 4 = два полных ряда по 2 (testimonials cols2)
+        ("Frau Ott", "Samstags sind die Brötchen noch warm — wir kommen extra früh."),
     ],
     reviews_seed=[
         (5, "Das Sauerteigbrot ist das beste der Stadt!", "bk.albers@example.de"),
@@ -4501,6 +4538,9 @@ BUTCHER_MENUS = {
 # (Anfrage → Angebot: Buffets/Platten), Hausmacher-Wurst, Herkunft, Stempelkarte.
 BUTCHER = DemoKit(
     key="butcher",
+    # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
+    # DL-11: 4 категории в стиле compact — 2×2 (compact с настроенной раскладкой берёт движок)
+    section_layouts={"gallery": {"preset": "cols3"}, "categories": {"preset": "cols2"}},
     label="Metzgerei Bergmann",
     business_type="butcher",
     # DS-9: дизайн «Fokus» для архетипа — своя композиция (реестр BUNDLES).
@@ -4927,6 +4967,8 @@ CAFE_MENUS = {
 # Mittagstisch/Happy-Hour-акции. LMIV-аллергены, диет-теги на веган-позициях.
 CAFE = DemoKit(
     key="cafe",
+    # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
+    section_layouts={"gallery": {"preset": "cols3"}},
     card_style="compact",  # ST-7c: строка-прайс (меню)
     variant_style="buttons",  # O-2: размеры/объёмы кнопками
     winback={"inactive_days": 60, "percent": 10},  # B4/LS-5
@@ -5322,6 +5364,8 @@ CLOTHING_MENUS = {
 # Sale-акции. Multi-axis (цвет×размер) — гэп D3 в roadmap; демо честно на размерах.
 CLOTHING = DemoKit(
     key="clothing",
+    # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
+    section_layouts={"gallery": {"preset": "cols3"}},
     look="nacht",  # ST-1: тёмный Look (мода)
     card_style="overlay",  # ST-7c: текст поверх фото
     variant_style="axes",  # O-2: цвет кружками + размеры кнопками
@@ -5913,6 +5957,8 @@ TOURS = DemoKit(
         },
     ],
     key="tours",
+    # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
+    section_layouts={"gallery": {"preset": "cols3"}, "services": {"preset": "cols3"}},
     label="Stadtgold Touren",
     business_type="tour_operator",
     # DS-9: дизайн «Fokus» для архетипа — своя композиция (реестр BUNDLES).
@@ -7489,6 +7535,8 @@ FRISEUR_MENUS = {
 
 FRISEUR = DemoKit(
     key="friseur",
+    # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
+    section_layouts={"gallery": {"preset": "cols3"}},
     look="warm",  # ST-1: тёплый Look (архетип-акцент friseur)
     seed_inbox=True,  # LS-3/4/6: демо «Прямой линии» + Sofort-Angebot
     whatsapp_number="+49 170 2000001",  # LS-1/LS-2
@@ -7914,6 +7962,8 @@ WERKSTATT = DemoKit(
         },
     ],
     key="werkstatt",
+    # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
+    section_layouts={"gallery": {"preset": "cols3"}, "products": {"preset": "cols3"}},
     whatsapp_number="+49 170 2000002",  # LS-1: видео-смета
     label="KFZ-Werkstatt Dreyer",
     # FB-3 Вариант B демо: свой промежуточный статус «Teile bestellt» (держит слот занятым).
@@ -8117,6 +8167,13 @@ WERKSTATT = DemoKit(
         ("Reifenwechsel", 45, "39", "Räder umstecken, Wuchten auf Wunsch, Reifendruck prüfen."),
         ("HU/AU (TÜV)", 60, "89", "Hauptuntersuchung & Abgasuntersuchung direkt vor Ort."),
         ("Bremsen-Check", 30, "0", "Kostenloser Sicherheits-Check von Belägen und Scheiben."),
+        # DL-11: шестая услуга — 6 = три полных ряда по 2 (services cols2)
+        (
+            "Klimaservice",
+            60,
+            "119",
+            "Kältemittel auffüllen, Dichtheit prüfen, Verdampfer desinfizieren.",
+        ),
     ],
     # UA4-4b демо-A9: отзывы об услугах (generic reviews.Review) — индексы в services.
     service_reviews=[
@@ -8166,6 +8223,8 @@ WERKSTATT = DemoKit(
                 _p("Bremsbeläge vorne", "44.90", "Markenqualität.", "brake,pad"),
                 _p("Luftfilter", "16.90", "Passend für viele Modelle.", "air,filter"),
                 _p("Scheibenfrostschutz 3 L", "8.90", "Bis −20 °C.", "antifreeze"),
+                # DL-11: шестой товар — 6 = два полных ряда по 3 (products cols3)
+                _p("Innenraumfilter Pollen", "14.90", "Frische Luft im Innenraum.", "air,filter"),
             ],
         ),
     ],
@@ -8262,6 +8321,8 @@ HANDWERKER = DemoKit(
         },
     ],
     key="handwerker",
+    # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
+    section_layouts={"gallery": {"preset": "cols3"}, "promotions": {"preset": "cols2"}},
     label="Meisterbetrieb Krause",
     business_type="handwerker",  # S6: реальный архетип
     # DS-9: дизайн «Fokus» для архетипа — своя композиция (реестр BUNDLES).
@@ -8483,6 +8544,13 @@ HANDWERKER = DemoKit(
         ("Elektro: Steckdose/Schalter setzen", 45, "75"),
         ("Sanitär: Armatur tauschen", 60, "120"),
         ("Notdienst-Einsatz (Anfahrt)", 60, "89"),
+        # DL-11: шестая услуга — 6 = три полных ряда по 2 (services cols2)
+        (
+            "Kleinreparaturen",
+            60,
+            "65",
+            "Tropfender Hahn, klemmende Tür, lose Fliese — schnell erledigt, Festpreis je Stunde.",
+        ),
     ],
     resources=[
         {
@@ -8589,6 +8657,12 @@ CATERING = DemoKit(
         },
     ],
     key="catering",
+    # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
+    section_layouts={
+        "gallery": {"preset": "cols3"},
+        "promotions": {"preset": "cols2"},
+        "categories": {"preset": "cols4", "tablet": 2},
+    },
     label="Grüne Tafel Catering",
     business_type="catering",
     subdomain="catering",
@@ -9057,6 +9131,13 @@ CATERING = DemoKit(
             5,
             demo_image("cook,man", w=200, h=200, lock=873),
         ),
+        # DL-11: четвёртый отзыв — 4 = два полных ряда по 2 (testimonials cols2)
+        (
+            "Herr Lindner",
+            "Firmenevent mit 120 Gästen — Aufbau, Buffet und Abbau liefen wie am Schnürchen.",
+            5,
+            demo_image("cook,man", w=200, h=200, lock=874),
+        ),
     ],
     process=[
         ("Anfrage stellen", "Datum, Gästezahl und Anlass online nennen — unverbindlich."),
@@ -9507,6 +9588,8 @@ RETREAT = DemoKit(
         },
     ],
     key="retreat",
+    # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
+    section_layouts={"gallery": {"preset": "cols3"}, "services": {"preset": "cols3"}},
     spacers=[{"after": "gallery", "height": "lg"}],  # ST-7a
     label="Waldlicht Retreat",
     business_type="events",  # S6: архетип «Veranstalter/Events» (билеты primary)
@@ -10032,6 +10115,8 @@ SHOP = DemoKit(
         },
     ],
     key="shop",
+    # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
+    section_layouts={"gallery": {"preset": "cols3"}},
     page_presets=[("cart", "vertrauen"), ("info", "geschichte")],  # ST-2
     label="Hofladen Sonnenfeld",
     business_type="retail",
@@ -10345,6 +10430,12 @@ STADTFUEHRUNG_MENUS = {
 
 STADTFUEHRUNG = DemoKit(
     key="stadtfuehrung",
+    # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
+    section_layouts={
+        "gallery": {"preset": "cols3"},
+        "events": {"preset": "cols2"},
+        "tours": {"preset": "cols3"},
+    },
     label="Kölner Spaziergänge",
     business_type="tour_operator",
     subdomain="stadtfuehrung",
@@ -10402,7 +10493,14 @@ STADTFUEHRUNG = DemoKit(
     "Gruppen, keine Mikrofon-Kolonnen, dafür Geschichten, die im Reiseführer "
     "fehlen. Öffentliche Termine finden ab vier Gästen statt; private Touren "
     "laufen auf Deutsch und Englisch.",
-    gallery_kw=["city,tour", "old,town", "beer", "market,stall", "red,wine"],
+    gallery_kw=[
+        "city,tour",
+        "old,town",
+        "beer",
+        "market,stall",
+        "red,wine",
+        "suspension,bridge",
+    ],  # DL-11: 6 = 2×3
     teachers=[
         (
             "Katharina Vogt",

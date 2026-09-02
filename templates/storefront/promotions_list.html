@@ -54,18 +54,20 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
       <section class="mb-8">
         <h2 class="text-lg font-bold mb-3">{% if group %}{{ group_label }}{% else %}{% trans "More offers" %}{% endif %}
           <span class="text-sm font-normal text-gray-400">· {{ items|length }}</span></h2>
-        <div data-grid="promo_list" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <div data-grid="promo_list" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" data-sf-cols="2/2/3" data-sf-tail="fill">
           {% for p in items %}
             {% include "storefront/_promo_card.html" %}
           {% endfor %}
+          {% include "storefront/_grid_filler.html" %}
         </div>
       </section>
     {% endfor %}
   {% elif promotions %}
-    <div data-grid="promo_list" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+    <div data-grid="promo_list" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" data-sf-cols="2/2/3" data-sf-tail="fill">
       {% for p in promotions %}
         {% include "storefront/_promo_card.html" %}
       {% endfor %}
+      {% include "storefront/_grid_filler.html" %}
     </div>
   {% endif %}
 {% endblock %}

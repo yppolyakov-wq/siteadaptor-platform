@@ -645,7 +645,8 @@ def test_apply_werkstatt_kit_jobs_booking_catalog():
     tenant = TenantFactory(schema_name="public", slug="we", name="WE", business_type="other")
     assert demo_kits.apply_kit(tenant, "werkstatt") is True
     assert Service.objects.filter(name="Ölwechsel", price_cents=4900).exists()
-    assert Product.objects.filter(metadata__demo=True).count() == 5  # Teile & Zubehör
+    # DL-11: 6 Teile (было 5) — ряд плиток products cols3 = 2×3 без «сироты»
+    assert Product.objects.filter(metadata__demo=True).count() == 6  # Teile & Zubehör
     assert Job.objects.count() >= 2  # seed_records → Kostenvoranschläge
     for m in ("booking", "jobs", "orders", "customer_account"):
         assert tenant.is_module_active(m)

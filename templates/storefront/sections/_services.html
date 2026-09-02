@@ -17,7 +17,7 @@ A3: блок «Leistungen & Preise» — услуги (Service) с ценой/д
   {% comment %}UB1-2: карточка — единый партиал _sellable_card.html (горизонтальный
   вариант; ссылка на слот-пикер, CTA-пилюля, Festpreis-бейдж при активном jobs —
   A9/A7 сигнал доверия «прозрачные фикс-цены»).{% endcomment %}
-  <div data-grid="services" class="{% grid_classes site 'services' %}">
+  <div data-grid="services" class="{% grid_classes site 'services' %}" {% grid_attrs site 'services' %}>
     {% trans "Fixed price" as festpreis_label %}
     {% for s in services_preview %}
       {% url 'storefront-service-slots' s.pk as slots_url %}

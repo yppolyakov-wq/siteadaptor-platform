@@ -21480,3 +21480,59 @@ msgstr "Круглі"
 
 msgid "Breit (16:9)"
 msgstr "Широкі (16:9)"
+
+msgid "Aktuelle Angebote"
+msgstr "Актуальні пропозиції"
+
+msgid "Jede Woche neue Aktionen — reinschauen lohnt sich."
+msgstr "Щотижня нові акції — зазирніть."
+
+msgid "Zu den Aktionen"
+msgstr "До акцій"
+
+msgid "Neue Aktionen direkt ins Postfach — jederzeit abbestellbar."
+msgstr "Нові акції прямо на пошту — відписка будь-коли."
+
+msgid "Newsletter abonnieren"
+msgstr "Підписатися на розсилку"
+
+msgid "Lieblinge merken"
+msgstr "Зберегти улюблене"
+
+msgid "Angebote mit ♡ merken und später wiederfinden."
+msgstr "Позначайте пропозиції ♡ та знаходьте їх пізніше."
+
+msgid "Zum Merkzettel"
+msgstr "До списку обраного"
+
+msgid "Nicht das Richtige dabei?"
+msgstr "Не знайшли потрібного?"
+
+msgid "Schreiben Sie uns — wir machen Ihnen ein Angebot."
+msgstr "Напишіть нам — ми зробимо пропозицію."
+
+msgid "Ganzes Sortiment"
+msgstr "Увесь асортимент"
+
+msgid "Alle Kategorien und Produkte auf einen Blick."
+msgstr "Усі категорії та товари на одній сторінці."
+
+msgid "Fragen? Wir helfen gern."
+msgstr "Є питання? Ми допоможемо."
+
+msgid "Rufen Sie an oder schreiben Sie uns — wir melden uns schnell."
+msgstr "Зателефонуйте або напишіть — ми швидко відповімо."
+
+msgid "Letzte Reihe"
+msgstr "Останній ряд"
+
+msgid "Reihen: voll"
+msgstr "Ряди: повні"
+
+msgid "Reihen: alles zeigen"
+msgstr "Ряди: показати все"
+
+msgid ""
+"Unvollständige letzte Reihe: abschneiden (Reihen immer voll) oder alles "
+"zeigen"
+msgstr "Неповний останній ряд: обрізати (ряди завжди повні) або показати все"

@@ -43,7 +43,7 @@ single — одна колонка по центру.{% endcomment %}
       {% endfor %}
     </div>
     {% else %}
-    <div class="{% grid_classes site 'reviews' %}">
+    <div class="{% grid_classes site 'reviews' %}" {% grid_attrs site 'reviews' %}>
       {% for r in reviews %}
         <blockquote class="bg-white rounded-2xl shadow-sm p-5">
           <p class="text-amber-500 mb-2" aria-label="{{ r.rating }}/5">{{ r.stars }}</p>

@@ -21399,3 +21399,59 @@ msgstr "Yuvarlak"
 
 msgid "Breit (16:9)"
 msgstr "Geniş (16:9)"
+
+msgid "Aktuelle Angebote"
+msgstr "Güncel teklifler"
+
+msgid "Jede Woche neue Aktionen — reinschauen lohnt sich."
+msgstr "Her hafta yeni kampanyalar — göz atmaya değer."
+
+msgid "Zu den Aktionen"
+msgstr "Kampanyalara git"
+
+msgid "Neue Aktionen direkt ins Postfach — jederzeit abbestellbar."
+msgstr "Yeni kampanyalar doğrudan e-postanıza — istediğiniz zaman iptal edin."
+
+msgid "Newsletter abonnieren"
+msgstr "Bültene abone ol"
+
+msgid "Lieblinge merken"
+msgstr "Favorileri kaydet"
+
+msgid "Angebote mit ♡ merken und später wiederfinden."
+msgstr "Teklifleri ♡ ile kaydedin, sonra kolayca bulun."
+
+msgid "Zum Merkzettel"
+msgstr "Favori listesine"
+
+msgid "Nicht das Richtige dabei?"
+msgstr "Aradığınızı bulamadınız mı?"
+
+msgid "Schreiben Sie uns — wir machen Ihnen ein Angebot."
+msgstr "Bize yazın — size bir teklif hazırlayalım."
+
+msgid "Ganzes Sortiment"
+msgstr "Tüm ürünler"
+
+msgid "Alle Kategorien und Produkte auf einen Blick."
+msgstr "Tüm kategoriler ve ürünler bir bakışta."
+
+msgid "Fragen? Wir helfen gern."
+msgstr "Sorunuz mu var? Yardımcı olalım."
+
+msgid "Rufen Sie an oder schreiben Sie uns — wir melden uns schnell."
+msgstr "Arayın ya da yazın — hızlıca dönüş yaparız."
+
+msgid "Letzte Reihe"
+msgstr "Son satır"
+
+msgid "Reihen: voll"
+msgstr "Satırlar: tam"
+
+msgid "Reihen: alles zeigen"
+msgstr "Satırlar: tümünü göster"
+
+msgid ""
+"Unvollständige letzte Reihe: abschneiden (Reihen immer voll) oder alles "
+"zeigen"
+msgstr "Eksik son satır: kes (satırlar hep tam) ya da tümünü göster"

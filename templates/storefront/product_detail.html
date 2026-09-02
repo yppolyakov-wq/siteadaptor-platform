@@ -230,10 +230,11 @@
 {% if 'related' not in product_detail_hidden and related %}
 <div class="mt-12">
   <h2 class="text-xl font-bold mb-4">{% trans "More from this category" %}</h2>
-  <div class="{{ related_grid|default:'grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6' }}">
+  <div class="{{ related_grid|default:'grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6' }}" {{ related_grid_attrs }}>
     {% for p in related %}
       {% include "storefront/_product_card.html" %}
     {% endfor %}
+    {% include "storefront/_grid_filler.html" %}
   </div>
 </div>
 {% endif %}

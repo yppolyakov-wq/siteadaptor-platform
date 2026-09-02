@@ -36,7 +36,7 @@
     {% endwith %}
     </div>
   {% else %}
-  <div data-grid="products" class="{% grid_classes site 'products' %}">
+  <div data-grid="products" class="{% grid_classes site 'products' %}" {% grid_attrs site 'products' %}>
     {% for p in products_preview %}
       {% include "storefront/_product_card.html" %}
     {% endfor %}

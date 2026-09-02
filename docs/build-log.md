@@ -13214,3 +13214,59 @@ Playwright: превью prospekt/neon/blatt с фирменными детал�
 - Замки: presence-minimal + мусор дропается + рендер атрибута обеих форм +
   отсутствие атрибута без ключа + сборки несут ось (3 в test_looks).
   3 msgid × 5 каталогов.
+
+### 2026-09-02 — DL-11 «Volle Reihen»: ряды плиток полные на всех шаблонах и ширинах
+
+Фидбэк владельца (скриншот категорий aktionsmarkt: 5 плиток в 4 колонках): «старайся,
+чтоб ряд был полностью заполнен… либо 4 уже делать, или 8, но проверяй в зависимости
+от типа вывода; проверь все шаблоны и с зумом». План — `docs/dl11-fill-rows-plan-2026-09-02.md`.
+Разведка (воркфлоу, 2 из 6 разведчиков до лимита субагентов + инлайн-дочитка): механизма
+кратности не было нигде; лимиты секций и колонки нормализовались независимо; планшетный
+шаг `_SM_FROM_COLS` (4/5/6 → 3) ломал даже «правильные» числа при зуме; стили с жёсткими
+сетками (categories compact, usp pillars…) игнорировали раскладку.
+
+- **Слой 1 — движок.** `normalize_layout` += ключ `tail` (`""` = обрезать, дефолт, ключ
+  не пишется → golden целы | `show` | `fill`), `grid_cols_triplet` — ЕДИНСТВЕННЫЙ источник
+  чисел колонок (телефон/планшет/десктоп; `grid_class_string` теперь через него —
+  строки классов байт-в-байт), `grid_attr_string` → `data-sf-cols="m/s/l" data-sf-tail`;
+  тег `{% grid_attrs site 'key' [cols=] [tail=] %}` у 13 секций-сеток главной (20 мест).
+- **Слой 2 — CSS quantity queries** (генератор `scripts/gen_fill_rows_css.py` → блок в
+  `static/src/app.css` между маркерами; замок «блок = вывод генератора»): на трёх окнах
+  ширины (≤639 / 640–1023 / ≥1024) по позиции числа в триплете — `trim` прячет первый
+  элемент НЕПОЛНОГО последнего ряда и всё за ним (`:nth-child(Nn+1):nth-last-child(-n+N-1)
+  :not(:first-child) ~ *`), `fill` растягивает плитку-подсказку `.sf-filler` на остаток
+  ряда и прячет её при полном ряде. Исключения: `.is-list` (посетительский «список»),
+  `[data-density]` (KAT-4 — свои правила по N).
+- **Слой 3 — листинги не прячут контент:** `apps/core/grid_filler.py::filler_for(kind)`
+  (CTA по гейтам модулей: акции → рассылка → Merkzettel → заявка → сортимент → контакт;
+  контакт есть у всех → плитка никогда не пуста) + `storefront/_grid_filler.html` —
+  последний ребёнок сетки на /sortiment/ (товары, плитки категорий, подкатегории),
+  /aktionen/ (каждая группа), /kombi/, «похожие товары»; размер страницы каталога
+  24 → 20 при 5 колонках (кратность колонкам lg и sm).
+- **Studio:** селект «Reihen: voll / alles zeigen» рядом с Ausgleichen/Scrollen
+  (Save presence-minimal, префилл, round-trip замок).
+- **Попутно два латентных дефекта:** стиль categories `compact` игнорировал выбор
+  колонок в Studio (жёсткая сетка) → тег `layout_is_default`: нетронутая раскладка =
+  прежние классы байт-в-байт, настроенная — из движка; usp_bar `pillars` при 4 столпах
+  давал сироту (3 колонки) → колонки по числу столпов (2/4 → 2×2 и 4).
+- **Демо (владелец: «4 или 8, по типу вывода»):** аудит `scripts/demo_rows_audit.py`
+  (статикой по спекам, учитывает оси сборки и стиль compact) → у 17 китов 0 остатков на
+  десктопе (замок `test_demo_kits_rows_full_on_desktop`; планшет — платформенный trim).
+  Правки: aktionsmarkt 6-я категория «Molkerei & Eier» (4 товара ДОПИСАНЫ В КОНЕЦ —
+  индексы promotions_spec целы) + 15-я акция (сетка после spotlight = 12) + categories
+  cols3; werkstatt 6-й товар и 6-я услуга (+products cols3); handwerker 6-я услуга;
+  bakery/catering 4-й отзыв; stadtfuehrung 6-е фото; галерея 6 = 2×3 у 15 китов;
+  hotel stay_rooms cols2, restaurant/stadtfuehrung events cols2, tours/retreat services
+  cols3, handwerker/catering promotions cols2, bakery categories cols2, catering
+  categories cols4+tablet 2; новая ось сборки `section_layouts` (deal_* → categories
+  cols3). Переводы: 18 строк × 4 словаря (aktionsmarkt en 90 → 97.6 %, ru/uk/tr 100 %).
+- **Стенд** (`scratchpad/orphan_scan.mjs` — детектор неполных рядов по computed
+  grid-template-columns с учётом col-span, 6 ширин 1440…390): до — 19 неполных рядов на
+  главной/листингах/5 сборках; после — 0. Грабли: контейнер пересоздан (потерян hosts-
+  вход, `pkill -f` по «runserver» убивал собственный shell → якорный regex), внешние
+  ресурсы через прокси вешали Playwright → `page.route` abort.
+- Замки: `test_fill_rows.py` (20: presence-minimal, триплет, атрибуты/тег, CSS-блок
+  свежий и покрывает все N×окна, рендер главной, Studio round-trip, демо-киты);
+  осознанно: werkstatt-кит 5 → 6 Teile. 19 msgid × 5 каталогов. БЕЗ миграций.
+  ⚠️ ops: `seed_demo_tenants --recreate` (все киты — раскладки/данные) или хотя бы
+  `--kit aktionsmarkt|werkstatt|handwerker|bakery|catering|stadtfuehrung`.

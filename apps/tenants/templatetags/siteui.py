@@ -320,6 +320,28 @@ def grid_classes(site, key):
     return siteconfig.grid_class_string(siteconfig.section_layout(site, key))
 
 
+@register.simple_tag(name="grid_attrs")
+def grid_attrs(site, key, cols="", tail=""):
+    """DL-11: атрибуты «полных рядов» секции `key` (рядом с grid_classes):
+    <div class="{% grid_classes site 'products' %}" {% grid_attrs site 'products' %}>.
+    `cols="1/2/3"` — для стилей с хардкоженной сеткой; `tail="fill"` — принудительно."""
+    return mark_safe(
+        siteconfig.grid_attr_string(
+            siteconfig.section_layout(site, key), cols or None, tail or None
+        )
+    )
+
+
+@register.simple_tag(name="layout_is_default")
+def layout_is_default(site, key):
+    """DL-11: раскладка секции не тронута (равна дефолту секции)? Стили с жёсткой
+    сеткой (categories compact) держат прежние классы, пока владелец/кит не
+    настроил колонки — тогда сетка берётся из движка."""
+    default = siteconfig.normalize_layout(None, siteconfig.GRID_SECTION_DEFAULTS.get(key))
+    current = siteconfig.section_layout(site, key)
+    return {k: v for k, v in current.items() if k != "tail"} == default
+
+
 @register.simple_tag(name="section_font_vars")
 def section_font_vars(font_key):
     """H1.5: CSS-переменные шрифта секции (--font-body/--font-head) — оверрайд

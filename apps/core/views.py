@@ -1599,6 +1599,9 @@ def home_builder_view(request):
                     lay["balance"] = True
                 if request.POST.get(f"scroll_{key}") == "on":
                     lay["scroll"] = True
+                # DL-11: хвост неполного ряда (пусто = дефолт «обрезать» → ключ не пишется)
+                if request.POST.get(f"tail_{key}", "") in siteconfig._LAYOUT_TAILS:
+                    lay["tail"] = request.POST.get(f"tail_{key}")
                 # DS-5: плитка категорий — высота фото + инфо-строка.
                 if key == "categories":
                     if request.POST.get("img_h_categories", ""):
@@ -2051,6 +2054,8 @@ def home_builder_view(request):
                 # DS-5: симметрия/лента + плитка категорий (высота фото, инфо).
                 "layout_balance": bool((s.get("layout") or {}).get("balance")),
                 "layout_scroll": bool((s.get("layout") or {}).get("scroll")),
+                # DL-11: хвост неполного ряда ("" = обрезать, "show" = всё)
+                "layout_tail": (s.get("layout") or {}).get("tail", ""),
                 "img_h": s.get("img_h", 0),
                 "tile_info": s.get("tile_info", []),
                 "has_limit": s["key"] in siteconfig.GRID_SECTION_LIMITS,

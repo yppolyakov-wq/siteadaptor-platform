@@ -977,7 +977,30 @@ def normalize_layout(raw, default=None, extra_presets=()) -> dict:
         out["balance"] = True
     if raw.get("scroll"):
         out["scroll"] = True
+    # DL-11: хвост неполного последнего ряда — "" = обрезать (дефолт, ключ НЕ
+    # пишется → golden целы) | "show" = показать всё (прежнее поведение) |
+    # "fill" = добить ряд плиткой-подсказкой. Рендер — CSS по data-sf-cols/
+    # data-sf-tail (grid_attr_string), на каждом брейкпоинте свои колонки.
+    tail = raw.get("tail")
+    if tail in _LAYOUT_TAILS:
+        out["tail"] = tail
     return out
+
+
+_LAYOUT_TAILS = ("show", "fill")
+_COLS_TRIPLET_RE = re.compile(r"^[1-6]/[1-6]/[1-6]$")
+
+
+def grid_cols_triplet(layout) -> tuple[int, int, int]:
+    """DL-11: число колонок (телефон, планшет, десктоп) из layout — ЕДИНСТВЕННЫЙ
+    источник чисел для grid_class_string, атрибутов data-sf-cols и аудита демо.
+    SE-3c: явный планшет (tablet>0) побеждает; иначе авто-вывод (_SM_FROM_COLS)."""
+    lay = normalize_layout(layout if isinstance(layout, dict) else None)
+    cols, mobile = lay["cols"], lay["mobile"]
+    tablet = lay.get("tablet", 0)
+    sm = tablet if tablet else max(mobile, _SM_FROM_COLS[cols])
+    sm = min(max(sm, 1), 4)
+    return mobile, sm, cols
 
 
 def grid_class_string(layout) -> str:
@@ -988,16 +1011,32 @@ def grid_class_string(layout) -> str:
     всех секций-сеток без правок шаблонов (классы генерятся здесь центрально).
     """
     lay = normalize_layout(layout if isinstance(layout, dict) else None)
-    cols, mobile, gap = lay["cols"], lay["mobile"], lay["gap"]
+    cols, gap = lay["cols"], lay["gap"]
     if lay.get("scroll"):
         return " ".join(["sf-scroll-grid", _GRID_GAP[gap]])
     if lay.get("balance"):
         return " ".join(["sf-balance-grid", f"sf-bal-{cols}", _GRID_GAP[gap]])
-    # SE-3c: явный планшет (tablet>0) побеждает; иначе авто-вывод (как было).
-    tablet = lay.get("tablet", 0)
-    sm = tablet if tablet else max(mobile, _SM_FROM_COLS[cols])
-    sm = min(max(sm, 1), 4)
+    mobile, sm, cols = grid_cols_triplet(lay)
     return " ".join(["grid", _GRID_MOBILE[mobile], _GRID_SM[sm], _GRID_LG[cols], _GRID_GAP[gap]])
+
+
+def grid_attr_string(layout, cols=None, tail=None) -> str:
+    """DL-11: атрибуты сетки для CSS «полных рядов»: data-sf-cols="<тел>/<планш>/<деск>"
+    + data-sf-tail="trim|show|fill". Классы Tailwind не трогаем (замки характеризации
+    целы) — CSS в app.css (генератор scripts/gen_fill_rows_css.py) скрывает хвост
+    неполного ряда (trim) или растягивает плитку-подсказку .sf-filler (fill) на
+    каждом брейкпоинте отдельно. scroll/balance (DS-5) — своя механика → пусто.
+
+    `cols` — переопределение триплета для хардкоженных сеток ("1/2/3"); `tail` —
+    принудительный режим (листинги всегда "fill": контент прятать нельзя)."""
+    lay = normalize_layout(layout if isinstance(layout, dict) else None)
+    if lay.get("scroll") or lay.get("balance"):
+        return ""
+    if not (isinstance(cols, str) and _COLS_TRIPLET_RE.match(cols)):
+        cols = "/".join(str(n) for n in grid_cols_triplet(lay))
+    if tail not in _LAYOUT_TAILS and tail != "trim":
+        tail = lay.get("tail") or "trim"
+    return f'data-sf-cols="{cols}" data-sf-tail="{tail}"'
 
 
 def section_layout(config, key) -> dict:
