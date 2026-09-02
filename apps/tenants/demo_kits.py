@@ -3965,10 +3965,40 @@ AKTIONSMARKT = DemoKit(
             "Getränke",
             "getraenke",
             [
-                _p("Orangensaft 1 L", "2.49", "100 % Direktsaft.", "orange,juice"),
-                _p("Mineralwasser 1,5 L", "0.79", "Spritzig oder still.", "water,bottle"),
-                _p("Limonade 1,5 L", "1.49", "Eisgekühlt am besten.", "lemonade,glass"),
-                _p("Gemahlener Kaffee 500 g", "6.90", "Kräftige Röstung.", "coffee,ground"),
+                # DL-13 C5: unit/content → Grundpreis (PAngV) на карточках товара
+                # И на акциях по этим товарам (Limonade/Kaffee — акции кита).
+                _p(
+                    "Orangensaft 1 L",
+                    "2.49",
+                    "100 % Direktsaft.",
+                    "orange,juice",
+                    unit="l",
+                    content=1,
+                ),
+                _p(
+                    "Mineralwasser 1,5 L",
+                    "0.79",
+                    "Spritzig oder still.",
+                    "water,bottle",
+                    unit="l",
+                    content=1.5,
+                ),
+                _p(
+                    "Limonade 1,5 L",
+                    "1.49",
+                    "Eisgekühlt am besten.",
+                    "lemonade,glass",
+                    unit="l",
+                    content=1.5,
+                ),
+                _p(
+                    "Gemahlener Kaffee 500 g",
+                    "6.90",
+                    "Kräftige Röstung.",
+                    "coffee,ground",
+                    unit="g",
+                    content=500,
+                ),
             ],
             "red-wine",  # DS-9: фото плитки (было SVG)
         ),
@@ -3976,9 +4006,23 @@ AKTIONSMARKT = DemoKit(
             "Haushalt",
             "haushalt",
             [
-                _p("Spülmittel 500 ml", "1.99", "Fettlöser-Power.", "dish,soap"),
+                _p(
+                    "Spülmittel 500 ml",
+                    "1.99",
+                    "Fettlöser-Power.",
+                    "dish,soap",
+                    unit="ml",
+                    content=500,
+                ),
                 _p("Toilettenpapier 10er", "4.99", "Weich und ergiebig.", "toilet,paper"),
-                _p("Waschmittel 2 kg", "8.99", "Für 40 Wäschen.", "laundry,detergent"),
+                _p(
+                    "Waschmittel 2 kg",
+                    "8.99",
+                    "Für 40 Wäschen.",
+                    "laundry,detergent",
+                    unit="kg",
+                    content=2,
+                ),
             ],
             "dish-soap",  # DS-9: фото плитки (было SVG)
         ),

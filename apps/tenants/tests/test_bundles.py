@@ -20,7 +20,8 @@ def test_registry_valid():
         assert sitetemplates.get_look_family(b["look"]) is not None, b["key"]
         styles = b["config"].get("section_styles", {})
         for sec, st in styles.items():
-            assert st in siteconfig.SECTION_STYLES.get(sec, ()), (b["key"], sec, st)
+            # DL-13: "" = сброс на стандартный вид (deal_foto гасит spotlight кита).
+            assert st == "" or st in siteconfig.SECTION_STYLES.get(sec, ()), (b["key"], sec, st)
         preset = (b["config"].get("catalog_layout") or {}).get("preset")
         if preset:
             assert (
@@ -51,7 +52,7 @@ def test_every_bundle_applies_and_is_idempotent(business_type):
             assert cfg["nav"]["cta"] is True
         for sec, st in b["config"].get("section_styles", {}).items():
             row = next(r for r in cfg["sections"] if r["key"] == sec)
-            assert row["style"] == st
+            assert row.get("style", "") == st  # "" = сброс (presence-minimal, DL-13)
         for sec in b["config"].get("sections_on", ()):
             assert next(r for r in cfg["sections"] if r["key"] == sec)["enabled"] is True
         # чужие ключи целы (W6-инвариант через apply_look-базу)

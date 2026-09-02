@@ -325,6 +325,22 @@ def storefront_home(request):
 MIN_GROUP_SECTION = 2
 
 
+def _promo_grouping_for(request) -> str:
+    """DL-13 C3: режим страницы акций — из сохранённого конфига, а в превью
+    сборки (?preview=1&bundle= / «Design testen») — из ОСИ сборки: стенд показал,
+    что Retro в превью рисовал тематические группы (ось читалась только из БД)."""
+    from apps.core.demo_switch import overlay_bundle_key
+    from apps.tenants import siteconfig, sitetemplates
+
+    key = overlay_bundle_key(request)
+    if key:
+        bundle = sitetemplates.get_bundle(key)
+        if bundle is not None:
+            return siteconfig.normalize_promo_grouping(bundle["config"].get("promo_grouping"))
+    raw = request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
+    return siteconfig.normalize_promo_grouping(raw.get("promo_grouping"))
+
+
 def _time_groups(promotions, now):
     """DL-13 C3 («Prospekt по времени», анализ DL-12 §2 — Lidl/ALDI/PENNY
     группируют предложения по сроку, а не по теме): секции «Endet heute» ·
@@ -372,7 +388,6 @@ def promotion_list(request):
 
     from apps.core import facets as facets_registry
     from apps.core import modules
-    from apps.tenants import siteconfig
 
     from .facets import DISCOUNT_PRESETS
 
@@ -410,8 +425,7 @@ def promotion_list(request):
     grouped = []
     # DL-13 C3: владелец выбрал «по времени» (site_config.promo_grouping, панель
     # в кабинете / ось сборки) — секции по сроку вместо тематических групп.
-    raw_site = request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
-    promo_grouping = siteconfig.normalize_promo_grouping(raw_site.get("promo_grouping"))
+    promo_grouping = _promo_grouping_for(request)
     if not has_filters and promo_grouping == "time":
         grouped = _time_groups(promotions, timezone.localtime())
     elif not has_filters and groups:

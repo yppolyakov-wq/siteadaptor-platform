@@ -58,6 +58,9 @@
     /* SE-3d: фон/отступы карточек. Отдельные имена переменных и селекторы (не
        объединяем с --sf-r — иначе [style*="--sf-r"] ложно совпал бы с --sf-rest). */
     [style*="--sf-bg"] .sf-card { background: var(--sf-bg) !important; }
+    /* DL-13.4 (стенд Retro): плитка-подсказка DL-11 несёт акцент inline-стилем, а
+       правило выше красило её в card_bg Look'а — белый текст на белой карточке. */
+    [style*="--sf-bg"] .sf-card.sf-filler { background: var(--accent, #4f46e5) !important; }
     [style*="--sf-pad"] .sf-card { padding: var(--sf-pad) !important; }
     /* UC6-6b: те же переменные применяются к контейнеру C-блока (.cb-box) —
        тень/фон/отступ/радиус настраиваются из ленты блока. Без переменной —

@@ -13270,3 +13270,71 @@ Playwright: превью prospekt/neon/blatt с фирменными детал�
   осознанно: werkstatt-кит 5 → 6 Teile. 19 msgid × 5 каталогов. БЕЗ миграций.
   ⚠️ ops: `seed_demo_tenants --recreate` (все киты — раскладки/данные) или хотя бы
   `--kit aktionsmarkt|werkstatt|handwerker|bakery|catering|stadtfuehrung`.
+
+### 2026-09-02 (продолжение) — DL-12: анализ композиций вывода контента
+
+Запрос владельца после DL-11: «опять все дизайны настроены на Fokus; может быть и другое
+расположение — проведём анализ, как оптимально и юзабельно выводить контент». Воркфлоу
+с адверсариальной проверкой не выполнился (лимит сессии субагентов) — анализ сделан
+инлайн по первоисточникам (Lidl/ALDI SÜD/PENNY/HOFER/Marktguru/mydealz/OTTO, NN/g,
+Baymard, Shopify Dawn, Wix; недоступные источники названы). Док —
+`docs/dl12-content-layout-analysis-2026-09-02.md`: 13 наблюдений → правила, 7 семейств
+композиций главной (H1 Fokus · H2 Prospekt · H3 Sortiment-first · H4 Magazin · H5 Vollbild ·
+H6 Bento · H7 Action-first) + страница акций «по времени», привязка шести новых дизайнов
+к композициям (§4.1), рекомендации P1–P7. Канвас «Kompositionen» (10 артбордов). Решения
+владельца: привязка утверждена · лимит акций на главной 9 · Grundpreis на карточке акции —
+в DL-13. Влито в main (`8493cb3`).
+
+### 2026-09-02 (продолжение) — DL-13: шесть дизайнов V6–V11 в разных композициях
+
+По утверждённому канвасу «Neue Design-Richtungen» (Monochrom · Pastell · Retro · Nobel ·
+Foto · Bauhaus) и анализу DL-12. Условие владельца: дизайны отличаются КОМПОЗИЦИЕЙ, не
+только кожей. План — `docs/dl13-six-designs-plan-2026-09-02.md`. Всё БЕЗ миграций.
+
+- **DL-13.1 кожа.** 14 self-hosted woff2 (Archivo/Archivo Black/Quicksand/Alfa Slab One/
+  Cormorant Garamond/Manrope, OFL, `static/fonts/SOURCES.md`) + `@font-face` + `FONTS` ×6;
+  `LOOK_FAMILIES` += 6 (16), `ARCHETYPE_LOOK_ACCENTS` — 16 позиционных колонок у 15 типов;
+  фирменный CSS `[data-sf-look]`: ч/б фото monochrom (цвет по hover, QR цел), белые пилюли
+  pastell, штамп-бейдж + полоса заголовков retro, тёплая тёмная подложка `#12100e` + золотая
+  волосяная рамка + serif-цены nobel, стеклянные бейджи foto (`.sf-glass`), круг-бейдж +
+  3px-рамки + три цвета по позиции bauhaus.
+- **DL-13.2 примитивы.** `HERO_STYLES` += `fullscreen` (full-bleed фото ~86 vh, градиент,
+  CTA, стеклянная карточка акции дня — тег `hero_deal_card`; без фото — честный accent) и
+  `bento` (тег `hero_bento`: бренд-плитка всегда с рейтингом-подписью, акция/категория/часы/
+  Newsletter по данным; раскладка по числу плиток — 4 → 3×2, 3 → последняя на 2 колонки,
+  ≤2 → бренд в один ряд). Билдер: селект «Banner» вместо чекбокса — закрыт латентный баг
+  класса W0: Save писал accent/plain БЕЗУСЛОВНО и затирал `split` сборок Fokus; легаси-чекбокс
+  ещё принимается. `/aktionen/` «по времени»: ключ `promo_grouping` (presence-minimal), секции
+  Endet heute · Endet diese Woche · Länger gültig · Dauerhaft (порог MIN_GROUP_SECTION не
+  действует — ряд добивает плитка DL-11), панель «Aktionsseite gliedern» в списке акций
+  (targeted-write `promotions:promotion-page-mode`, в EXPECTED_UNLISTED замка X7), ось сборки
+  (`_DEAL_BASE` сбрасывает — Retro не «протекает» в следующую сборку); в превью/«Design
+  testen» ось читается из сборки, а не из БД (стенд поймал). Лимит акций главной **9** +
+  «Alle Aktionen» (`GRID_SECTION_LIMITS`/`SECTION_VIEWALL_KEYS`) — ⚠️ осознанная
+  golden-регенерация 4 эталонов (только `limit`/`show_all` у promotions); полоса «Endet
+  bald» — из полной выборки. Grundpreis по ПРОМО-цене на карточке/детали акции (PAngV;
+  у mystery — в скрытом блоке: из Grundpreis цена восстанавливалась бы). Слайдер: без
+  автопрокрутки ≤767px и при reduced-motion, пауза на hover/focus, клик по точке — стоп.
+- **DL-13.3 сборки.** `deal_monochrom` (H3 Sortiment-first, без баннера) · `deal_pastell`
+  (H6 Bento, круглые кадры) · `deal_retro` (H2 Prospekt по времени, preisliste_foto) ·
+  `deal_nobel` (H4 Magazin: split → about accent → banner → gallery large → quotes → contact
+  split) · `deal_foto` (H5 Vollbild + overlay-карточки; `"promotions": ""` = сброс стиля
+  кита) · `deal_bauhaus` (H6 Bento-geo, акции строками). Реестр `COMPOSITIONS` +
+  `composition` у всех 11 дил-сборок → подпись «🧭 …» на карточке `/dashboard/design/`.
+- **DL-13.4 стенд (Playwright, 6 сборок × 8 страниц × 1440/820/390, детектор неполных
+  рядов, консоль/HTTP/горизонтальный скролл): 0 проблем.** Нашёл 4 дефекта, невидимых
+  тестам: шестая плитка Bento уезжала одна в третий ряд (→ раскладка по числу плиток);
+  Retro в превью рисовал тематические группы (ось читалась из БД); Bauhaus-круг рвал
+  «−0,70 €» (nowrap/min-width); плитка-подсказка DL-11 под Look'ом с `card_bg` была белой
+  на белом (`[style*=--sf-bg] .sf-card` перебивал inline-акцент → правило для `.sf-filler`).
+  Плюс охват страниц: при выбранном Look жёсткий `bg-indigo-600`/`text-indigo-600` витрины
+  (20 шаблонов — buy-box, корзина, «View all», формы) → акцент семейства одним каскадом
+  под `[data-sf-look]` (сайты без Look'а как раньше). Демо aktionsmarkt: unit/content у
+  напитков/Haushalt → Grundpreis виден на карточках и акциях.
+- **Замки:** `test_dl13_primitives` (17), test_looks/test_bundles/test_x0_x7 обновлены
+  осознанно; broad 934 passed. 36 msgid × 5 каталогов. Ограничения v1: «Ab Montag»
+  (scheduled-акции) на странице по времени — v2 (их деталь наружу закрыта, SF-3); при
+  слайдах `heroes` стиль `accent` уступает слайдеру (порядок веток hero не менялся —
+  иначе регрессия у существующих сайтов); overlay-форма действует на карточки товаров,
+  промо-карточка своей overlay-ветки не имеет. ⚠️ ops: `seed_demo_tenants --kit
+  aktionsmarkt --recreate`.

@@ -463,6 +463,25 @@
   box-shadow: none;
 }
 
+/* DL-13.4 (охват страниц): при выбранном Look жёсткий indigo кнопок/ссылок
+   витрины (20 шаблонов: корзина, buy-box, «View all», формы) — в акцент
+   семейства. Только под body[data-sf-look] — сайты без Look'а как раньше.
+   Чернила — --accent-ink (светлый акцент → тёмный текст, DL-5). */
+[data-sf-look] .bg-indigo-600 {
+  background-color: var(--accent) !important;
+  color: var(--accent-ink, #fff) !important;
+}
+[data-sf-look] .hover\:bg-indigo-700:hover {
+  background-color: var(--accent) !important;
+  filter: brightness(0.92);
+}
+[data-sf-look] .text-indigo-600:not(.bg-indigo-600) {
+  color: var(--accent);
+}
+[data-sf-look] .focus\:ring-indigo-500:focus {
+  --tw-ring-color: var(--accent);
+}
+
 /* DL-13: «стеклянная» плашка поверх фото (Vollbild-hero, карточки Foto). */
 .sf-glass {
   background: rgba(255, 255, 255, 0.78);
@@ -585,9 +604,10 @@ body[data-sf-look="bauhaus"] .cb-box {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 3.25rem;
+  min-width: 3.25rem;
   height: 3.25rem;
-  padding: 0;
+  padding: 0 0.5rem;
+  white-space: nowrap;
   border-radius: 9999px;
   background: #d62828;
   color: #fff;

@@ -1640,8 +1640,9 @@ BUNDLES = [
                 "card_style": "overlay",
                 "sections_on": ("hero", "usp_bar", "promotions", "cta"),
                 "sections_order": ("hero", "usp_bar", "promotions", "cta", "contact"),
-                # promotions/cta — стандартный вид ("" presence-minimal, ключ не пишется).
-                "section_styles": {"usp_bar": "plain"},
+                # promotions "" = СБРОС на стандартную сетку (у демо-кита сохранён
+                # spotlight — без явного "" стиль кита протекал в превью Vollbild).
+                "section_styles": {"usp_bar": "plain", "promotions": ""},
                 "page_presets": {"info": "bild"},
             }
         ),

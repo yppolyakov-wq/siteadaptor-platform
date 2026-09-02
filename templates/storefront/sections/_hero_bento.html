@@ -2,11 +2,14 @@
 (h1/текст/CTA — инлайн-правка и SEO целы), прочие по данным; grid-flow-dense
 уплотняет сетку, когда плитки выпадают.{% endcomment %}
 <section class="mb-10 grid gap-3 md:gap-4 md:grid-cols-3 md:auto-rows-[minmax(150px,auto)] grid-flow-dense" data-hero-bento>
-  <div class="md:row-span-2 rounded-2xl p-6 md:p-8 text-white flex flex-col justify-end min-h-[220px]" style="background: var(--accent, #4f46e5);" data-bento="brand">
+  <div class="{% if brand_rows == 2 %}md:row-span-2 {% endif %}{% if brand_cols == 3 %}md:col-span-3 {% elif brand_cols == 2 %}md:col-span-2 {% endif %}rounded-2xl p-6 md:p-8 text-white flex flex-col justify-end min-h-[220px]" style="background: var(--accent, #4f46e5);" data-bento="brand">
     <p class="text-[11px] font-bold tracking-[0.13em] uppercase mb-2 text-white/80">{{ request.tenant.get_business_type_display }}{% if request.tenant.city %} · {{ request.tenant.city }}{% endif %}</p>
     <h1 class="text-3xl md:text-4xl font-bold leading-tight" data-edit="hero_title">{{ site.hero_title|default:request.tenant.name }}</h1>
     {% if site.hero_text %}<p class="mt-3 text-white/90 max-w-md whitespace-pre-line" data-edit="hero_text">{{ site.hero_text }}</p>{% endif %}
     {% include "storefront/sections/_hero_cta.html" with style="light" %}
+    {% comment %}Рейтинг — подписью бренд-плитки (шестая плитка ломала сетку 3×2).{% endcomment %}
+    {% if rating %}<p class="mt-4 text-sm text-white/85" data-bento-rating>★ {{ rating.0 }} · {% blocktrans count n=rating.1 %}{{ n }} review{% plural %}{{ n }} reviews{% endblocktrans %}</p>
+    {% elif google_rating %}<p class="mt-4 text-sm text-white/85" data-bento-rating>★ {{ google_rating|floatformat:1 }} · {% blocktrans count n=google_rating_count %}{{ n }} Google-Bewertung{% plural %}{{ n }} Google-Bewertungen{% endblocktrans %}</p>{% endif %}
   </div>
   {% if deal %}
   <a href="{% url 'storefront-promotion' deal.pk %}" class="sf-card group relative rounded-2xl overflow-hidden bg-white shadow-sm min-h-[150px] flex flex-col" data-bento="deal">
@@ -36,18 +39,9 @@
   </a>
   {% endif %}
   {% if newsletter %}
-  <a href="{% url 'storefront-newsletter' %}" class="sf-card rounded-2xl bg-white shadow-sm p-4 flex flex-col justify-between min-h-[150px]" data-bento="newsletter">
+  <a href="{% url 'storefront-newsletter' %}" class="{% if last_wide %}md:col-span-2 {% endif %}sf-card rounded-2xl bg-white shadow-sm p-4 flex flex-col justify-between min-h-[150px]" data-bento="newsletter">
     <span class="text-[11px] font-bold tracking-[0.13em] uppercase text-gray-500">{% trans "Newsletter" %}</span>
     <span><span class="block font-semibold leading-tight">{% trans "Angebote der Woche per E-Mail" %}</span><span class="mt-2 inline-block text-sm font-medium" style="color: var(--accent, #4f46e5);">{% trans "Jetzt anmelden" %} →</span></span>
   </a>
-  {% endif %}
-  {% if rating or google_rating %}
-  <div class="sf-card rounded-2xl bg-white shadow-sm p-4 flex flex-col justify-between min-h-[150px]" data-bento="rating">
-    <span class="text-[11px] font-bold tracking-[0.13em] uppercase text-gray-500">{% trans "Bewertungen" %}</span>
-    <span>
-      {% if rating %}<span class="block text-3xl font-extrabold leading-none">{{ rating.0 }}<span class="text-amber-500">★</span></span><span class="block text-xs text-gray-500 mt-1">{% blocktrans count n=rating.1 %}{{ n }} review{% plural %}{{ n }} reviews{% endblocktrans %}</span>
-      {% else %}<span class="block text-3xl font-extrabold leading-none">{{ google_rating|floatformat:1 }}<span class="text-amber-500">★</span></span><span class="block text-xs text-gray-500 mt-1">{% blocktrans count n=google_rating_count %}{{ n }} Google-Bewertung{% plural %}{{ n }} Google-Bewertungen{% endblocktrans %}</span>{% endif %}
-    </span>
-  </div>
   {% endif %}
 </section>

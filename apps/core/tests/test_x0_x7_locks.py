@@ -96,6 +96,8 @@ EXPECTED_UNLISTED = frozenset(
         "promotions:voucher-redeem",
         "set-cabinet-lang",
         "set-presence",
+        # DL-13 C3: POST-only targeted-write режима страницы акций (панель в списке акций).
+        "promotions:promotion-page-mode",
         "site-cblock-photo-edit",
         "site-inline-edit",
         "site-preview-draft",

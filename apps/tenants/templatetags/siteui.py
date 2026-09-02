@@ -225,6 +225,14 @@ def hero_bento(context):
         out["rating"] = None
     out["google_rating"] = getattr(tenant, "google_rating", None)
     out["google_rating_count"] = getattr(tenant, "google_rating_count", 0)
+    # Стенд DL-13.4: 6 плиток в сетке 3×2 с бренд-плиткой на 2 ряда — шестая
+    # (рейтинг) уезжала одна в третий ряд. Раскладка считается по числу
+    # ДАТА-плиток: рейтинг живёт в бренд-плитке подписью, 4 плитки = 2×2 рядом
+    # с брендом (2 ряда), 3 → последняя на 2 колонки, ≤2 → бренд в один ряд.
+    n = sum(1 for k in ("deal", "category", "hours", "newsletter") if out.get(k))
+    out["brand_rows"] = 2 if n >= 3 else 1
+    out["brand_cols"] = 3 if n == 0 else (2 if n == 1 else 1)
+    out["last_wide"] = n == 3
     return out
 
 
