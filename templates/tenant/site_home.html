@@ -244,8 +244,11 @@
               if (lk.card_bg) setVal(form, "input[name='sd_card_bg']", lk.card_bg);
               // DL-2: фон страницы + хром + форма карточки семейства ("" законно —
               // Look без ключа снимает прежнее значение).
-              setVal(form, "input[name='sd_page_bg']", lk.page_bg || "");
-              setVal(form, "input[name='sd_card_chrome']", lk.card_chrome || "");
+              // DL-17.3: фон страницы — color-инпут + тумблер (как card_bg: пустое
+              // значение color-инпут не умеет, «нет фона» = снятый тумблер).
+              setChecked(form, "input[name='sd_page_bg_on']", !!lk.page_bg);
+              if (lk.page_bg) setVal(form, "input[name='sd_page_bg']", lk.page_bg);
+              setVal(form, "select[name='sd_card_chrome']", lk.card_chrome || "");
               setVal(form, "select[name='sd_card_style']", lk.card_style || "");
             });
           });
@@ -259,9 +262,11 @@
         <p class="text-xs text-gray-400 mb-4">{% trans "Accent colour, font and banner style — the preview updates as you change them." %}</p>
         {# ST-1b: тема сайта (тёмный Look) — hidden, round-trip при Save (W0-инвариант). #}
         <input type="hidden" name="theme" id="bld-theme" value="{{ theme }}">
-        {# DL-2: фон страницы + хром карточек Look'а — hidden, round-trip при Save (их выставляет клик по Look-карточке; без контролов Save их стирал бы). #}
-        <input type="hidden" name="sd_page_bg" value="{{ page_bg }}">
-        <input type="hidden" name="sd_card_chrome" value="{{ card_chrome }}">
+        {% comment %}DL-17.3: фон страницы + хром карточек — ВИДИМЫЕ контролы ниже (в блоке
+        «стиль карточек»); Look-клик продолжает их выставлять по name. Сентинел присутствия
+        тумблера фона — чтобы «снять фон» работало с color-инпутом (он не умеет пустое
+        значение), а старые POST-ы без сентинела сохраняли прежнюю семантику (W0/DL-2).{% endcomment %}
+        <input type="hidden" name="sd_page_bg_present" value="1">
         <div class="grid sm:grid-cols-3 gap-4">
           <label class="text-sm">
             <span class="block font-medium mb-1">{% trans "Accent colour" %}</span>
@@ -328,6 +333,15 @@
                 <label class="flex items-center gap-1 text-xs text-gray-500"><input type="checkbox" name="sd_card_bg_on" {% if card_bg %}checked{% endif %} class="rounded border-gray-300">{% trans "use" %}</label>
               </span>
             </label>
+            {% comment %}DL-17.3 (DS-1): фон СТРАНИЦЫ (тёплая подложка Look-семейств).
+            Был только hidden-инпут под Look-клик — из Studio цвет было не выбрать.{% endcomment %}
+            <label class="text-sm">
+              <span class="block font-medium mb-1">{% trans "Seitenhintergrund" %}</span>
+              <span class="flex items-center gap-2">
+                <input type="color" name="sd_page_bg" value="{{ page_bg|default:'#ffffff' }}" class="h-9 w-12 rounded border border-gray-300 p-0.5">
+                <label class="flex items-center gap-1 text-xs text-gray-500"><input type="checkbox" name="sd_page_bg_on" {% if page_bg %}checked{% endif %} class="rounded border-gray-300">{% trans "use" %}</label>
+              </span>
+            </label>
             {% comment %}O-2: дефолтный вид выбора вариантов для всего магазина.
             Товар может переопределить своим полем в форме товара.{% endcomment %}
             <label class="text-sm">
@@ -346,12 +360,41 @@
                 <option value="etikett" {% if card_style == 'etikett' %}selected{% endif %}>{% trans "Preis-Etikett" %}</option>
               </select>
             </label>
+            {% comment %}DL-17.3 (DL-2): ХРОМ карточек — рамка/тень семейства. Был hidden
+            под Look-клик; теперь выбирается и вручную ("" = прежний облик).{% endcomment %}
+            <label class="text-sm">
+              <span class="block font-medium mb-1">{% trans "Kartenrahmen" %}</span>
+              <select name="sd_card_chrome" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+                <option value="">{% trans "Standard" %}</option>
+                <option value="hard" {% if card_chrome == 'hard' %}selected{% endif %}>{% trans "Kräftiger Rahmen" %}</option>
+                <option value="hairline" {% if card_chrome == 'hairline' %}selected{% endif %}>{% trans "Haarlinie" %}</option>
+                <option value="line" {% if card_chrome == 'line' %}selected{% endif %}>{% trans "Feine Linie" %}</option>
+              </select>
+            </label>
             {# DL-16.4: карточка акции — «Preis zuerst» (дефолт дил-сборок) #}
             <label class="text-sm">
               <span class="block font-medium mb-1">{% trans "Aktionskarte" %}</span>
               <select name="sd_promo_card" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
                 <option value="">{% trans "Standard" %}</option>
                 <option value="preis" {% if promo_card == 'preis' %}selected{% endif %}>{% trans "Preis zuerst" %}</option>
+              </select>
+            </label>
+            {% comment %}DL-17.3: страница /aktionen/ — раскладка групп (сетка/ленты, DL-16.2 A3)
+            и режим группировки (по группам владельца / по времени, DL-13 C3). Ключи верхнего
+            уровня, presence-minimal; та же настройка есть на списке акций — здесь Save идёт
+            под presence-guard, поэтому чужая форма билдера её не роняет.{% endcomment %}
+            <label class="text-sm">
+              <span class="block font-medium mb-1">{% trans "Aktionsseite: Aufbau" %}</span>
+              <select name="promo_layout" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+                <option value="">{% trans "Raster" %}</option>
+                <option value="slider" {% if promo_layout == 'slider' %}selected{% endif %}>{% trans "Slider" %}</option>
+              </select>
+            </label>
+            <label class="text-sm">
+              <span class="block font-medium mb-1">{% trans "Aktionsseite: Gruppierung" %}</span>
+              <select name="promo_grouping" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+                <option value="">{% trans "Nach Gruppen" %}</option>
+                <option value="time" {% if promo_grouping == 'time' %}selected{% endif %}>{% trans "Nach Zeit" %}</option>
               </select>
             </label>
             <label class="text-sm flex items-center gap-2 md:mt-6">
@@ -513,6 +556,8 @@
                   <option value="show" {% if s.layout_tail == "show" %}selected{% endif %}>{% trans "Reihen: alles zeigen" %}</option>
                   {# DL-14: неполный ряд распределяется по ширине (отступы больше) #}
                   <option value="spread" {% if s.layout_tail == "spread" %}selected{% endif %}>{% trans "Reihen: zentrieren" %}</option>
+                  {# DL-17.3: неполный ряд добивается плиткой-подсказкой (DL-11 `fill`) #}
+                  <option value="fill" {% if s.layout_tail == "fill" %}selected{% endif %}>{% trans "Reihen: auffüllen" %}</option>
                 </select>
                 {% comment %}DS-5: симметрия неполного ряда / горизонтальная лента.
                 Scroll побеждает balance (grid_class_string).{% endcomment %}
@@ -2101,6 +2146,10 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         var box = form.querySelector("input[name='" + f + "_" + r.key + "']");
         if (box && box.checked) lay[f] = true;
       });
+      // DL-17.3: хвост неполного ряда (show/fill/spread) → в превью; "" = дефолт
+      // «обрезать» (ключ не шлём — сервер строит черновик из конфига заново).
+      var tailSel = form.querySelector("select[name='tail_" + r.key + "']");
+      if (tailSel && tailSel.value) lay.tail = tailSel.value;
       if (Object.keys(lay).length) sec.layout = lay;
       // DS-5: плитка категорий (высота фото + инфо-строка) → в превью.
       if (r.key === "categories") {
@@ -2225,6 +2274,12 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     if (csSel && csSel.value) payload.catalog_sort = csSel.value;  // живо дефолт-сортировка
     var csChk = form.querySelector("input[name='cart_show_upsell']");
     if (csChk) payload.cart_show_upsell = csChk.checked;  // живо вкл/выкл кросс-селл корзины
+    // DL-17.3: страница акций — раскладка групп и режим группировки ("" законно:
+    // снимает ключ, поэтому шлём значение как есть, а не «только непустое»).
+    var plSel = form.querySelector("select[name='promo_layout']");
+    if (plSel) payload.promo_layout = plSel.value;
+    var pgSel = form.querySelector("select[name='promo_grouping']");
+    if (pgSel) payload.promo_grouping = pgSel.value;
     var evSel = form.querySelector("select[name='events_preset']");
     if (evSel && evSel.value) payload.events_index_layout = { preset: evSel.value };
     var stSel = form.querySelector("select[name='stay_preset']");
@@ -2245,9 +2300,15 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       var sdStyle = form.querySelector("select[name='sd_card_style']");
       // DL-10: форма кадра (select sd_media_shape; "" = как в разметке).
       var sdMedia = form.querySelector("select[name='sd_media_shape']");
-      // DL-2: фон страницы + хром карточек (hidden, их выставляет Look-клик).
+      // DL-17.3: фон страницы (color + тумблер, как card_bg) и хром карточек (select).
       var sdPageBg = form.querySelector("input[name='sd_page_bg']");
-      var sdChrome = form.querySelector("input[name='sd_card_chrome']");
+      var sdPageBgOn = form.querySelector("input[name='sd_page_bg_on']");
+      var sdChrome = form.querySelector("[name='sd_card_chrome']");
+      // DL-17.3: карточка акции / листание фото / вид выбора вариантов — контролы
+      // были, а в черновик не ехали (правка была видна только после Save).
+      var sdPromoCard = form.querySelector("select[name='sd_promo_card']");
+      var sdSlider = form.querySelector("input[name='sd_card_slider']");
+      var sdVariant = form.querySelector("select[name='sd_variant_style']");
       payload.site_defaults = {
         card_radius: sdR ? parseInt(sdR.value, 10) || 0 : 0,
         card_shadow: !!(sdSh && sdSh.checked),
@@ -2255,8 +2316,11 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         card_bg: sdBgOn && sdBgOn.checked && sdBg ? sdBg.value : "",
         card_style: sdStyle ? sdStyle.value : "",
         media_shape: sdMedia ? sdMedia.value : "",
-        page_bg: sdPageBg ? sdPageBg.value : "",
+        page_bg: sdPageBgOn && sdPageBgOn.checked && sdPageBg ? sdPageBg.value : "",
         card_chrome: sdChrome ? sdChrome.value : "",
+        promo_card: sdPromoCard ? sdPromoCard.value : "",
+        card_slider: sdSlider && sdSlider.checked ? "on" : "",
+        variant_style: sdVariant ? sdVariant.value : "",
       };
     }
     // UC6-7b: C-блоки СТРАНИЦ (pb-строки) → черновик {хост: [entry,…]}. Шлём ВСЕ
@@ -2300,7 +2364,10 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       pdInputs.forEach(function (inp) {
         if (!inp.checked) pdHidden.push(inp.name.slice(11));  // "pd_visible_".length === 11
       });
-      payload.product_detail = { hidden: pdHidden };
+      // DL-17.3: + раскладка секций детали (DL-16.6 «tabs») — иначе табы
+      // появлялись только после Save.
+      var pdLay = form.querySelector("select[name='pd_layout']");
+      payload.product_detail = { hidden: pdHidden, layout: pdLay ? pdLay.value : "" };
     }
     // UA4-1 slice C: видимость секций детальной услуги/номера → в черновик (превью ?preview=1).
     var sdInputs = Array.prototype.slice.call(form.querySelectorAll("input[name^='sd_visible_']"));

@@ -11,14 +11,24 @@
   {% include "storefront/_wish_heart.html" with kind="promotion" pos="absolute bottom-2 right-2" %}
 <a href="{% url 'storefront-promotion' p.pk %}"
    class="block focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
-  <div class="px-3 pt-3 md:px-4 flex flex-wrap items-center gap-x-2 gap-y-1 [&_span]:whitespace-nowrap" data-promo-price-block>
-    <div class="min-w-0">
-      {% include "storefront/_discount_display.html" with promo=p part="price" %}
-      {% if p.discount_style != 'mystery' %}{% include "storefront/_discount_display.html" with promo=p part="savings" size="sm" %}{% endif %}
+  {% comment %}DL-17.1 (фидбэк «цена съехала»): плашка цены — строка «НОВАЯ цена · statt
+  старая · бейдж» и под ней ОДНА мета-строка «Grundpreis · Sie sparen» (макет AK1). Прежняя
+  разметка клала «Sie sparen» в один блок с ценой, и бейдж отодвигался на ширину этой
+  строки (на узкой карточке — переносился под неё).{% endcomment %}
+  <div class="px-3 pt-3 pb-2 md:px-4 bg-amber-50 border-b border-amber-100 dark:bg-gray-800 dark:border-gray-700" data-promo-price-block>
+    <div class="flex items-start gap-x-2 [&_span]:whitespace-nowrap">
+      {# Цена и «statt» переносятся ВНУТРИ левого блока; бейдж (shrink-0) всегда у цены. #}
+      <div class="min-w-0 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        {% include "storefront/_discount_display.html" with promo=p part="price_line" %}
+      </div>
+      {% include "storefront/_discount_display.html" with promo=p part="badge" size="sm" badge_pos_class="!static shrink-0 ml-auto" %}
     </div>
-    {% include "storefront/_discount_display.html" with promo=p part="badge" size="sm" badge_pos_class="!static shrink-0" %}
+    <p class="mt-0.5 text-[11px] leading-tight text-gray-500 dark:text-gray-400 flex flex-wrap items-baseline gap-x-1.5">
+      {% include "storefront/_discount_display.html" with promo=p part="grundpreis" %}
+      {% if p.discount_style != 'mystery' and p.has_discount and p.discount_amount %}<span class="font-medium text-emerald-700 dark:text-emerald-400" data-savings>{% blocktrans with amount=p.discount_amount %}You save {{ amount }} €{% endblocktrans %}</span>{% endif %}
+    </p>
   </div>
-  <div class="relative aspect-[4/3] bg-gray-100 mt-2" data-sf-media-box>
+  <div class="relative aspect-[4/3] bg-gray-100" data-sf-media-box>
     {% comment %}UE3-2: замена главного фото акции на канве (режим правки билдера).
     Hidden по умолчанию; раскрывает JS билдера при editOn. Пустая галерея акции →
     replace добавляет главное (фолбэк на фото товара цел).{% endcomment %}
@@ -43,9 +53,14 @@
     {% if p.lowest_30d is not None and p.discount_style != 'mystery' %}
       <p class="mt-0.5 text-[10px] leading-tight text-gray-400">{% blocktrans with p=p.lowest_30d %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>
     {% endif %}
-    {% include "storefront/_discount_display.html" with promo=p part="flags" size="sm" %}
-    {% include "storefront/_discount_display.html" with promo=p part="scarcity" size="sm" %}
-    {% include "storefront/_discount_display.html" with promo=p part="countdown" size="sm" %}
+    {% if preview %}
+      {# DL-17.4: будущая акция — только дата старта; счётчик и остаток бессмысленны. #}
+      <div class="mt-1.5">{% include "storefront/_discount_display.html" with promo=p part="starts" %}</div>
+    {% else %}
+      {% include "storefront/_discount_display.html" with promo=p part="flags" size="sm" %}
+      {% include "storefront/_discount_display.html" with promo=p part="scarcity" size="sm" %}
+      {% include "storefront/_discount_display.html" with promo=p part="countdown" size="sm" %}
+    {% endif %}
   </div>
 </a>
 </div>
@@ -90,9 +105,13 @@
     {% if p.lowest_30d is not None and p.discount_style != 'mystery' %}
       <p class="mt-0.5 text-[10px] leading-tight text-gray-400">{% blocktrans with p=p.lowest_30d %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>
     {% endif %}
-    {% include "storefront/_discount_display.html" with promo=p part="flags" size="sm" %}
-    {% include "storefront/_discount_display.html" with promo=p part="scarcity" size="sm" %}
-    {% include "storefront/_discount_display.html" with promo=p part="countdown" size="sm" %}
+    {% if preview %}
+      <div class="mt-1.5">{% include "storefront/_discount_display.html" with promo=p part="starts" %}</div>
+    {% else %}
+      {% include "storefront/_discount_display.html" with promo=p part="flags" size="sm" %}
+      {% include "storefront/_discount_display.html" with promo=p part="scarcity" size="sm" %}
+      {% include "storefront/_discount_display.html" with promo=p part="countdown" size="sm" %}
+    {% endif %}
   </div>
 </a>
 </div>

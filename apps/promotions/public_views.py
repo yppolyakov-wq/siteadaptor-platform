@@ -13,7 +13,7 @@ import segno
 from django.conf import settings
 from django.contrib import messages
 from django.core.cache import cache
-from django.db.models import F
+from django.db.models import F, Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import NoReverseMatch, reverse
@@ -360,8 +360,19 @@ def _promo_grouping_for(request) -> str:
         bundle = sitetemplates.get_bundle(key)
         if bundle is not None:
             return siteconfig.normalize_promo_grouping(bundle["config"].get("promo_grouping"))
-    raw = request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
+    raw = _promo_page_config(request)
     return siteconfig.normalize_promo_grouping(raw.get("promo_grouping"))
+
+
+def _promo_page_config(request) -> dict:
+    """DL-17.3: конфиг страницы акций — с учётом ЧЕРНОВИКА билдера при ?preview=1.
+    Без этого правка «Aktionsseite: Aufbau/Gruppierung» в Studio не была видна на
+    канве до «Опубликовать», хотя остальные витринные вьюхи черновик читают."""
+    if request.GET.get("preview") == "1" and isinstance(
+        getattr(request, "session", None) and request.session.get("site_preview_draft"), dict
+    ):
+        return request.session["site_preview_draft"]
+    return request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
 
 
 def _time_groups(promotions, now):
@@ -393,6 +404,33 @@ def _time_groups(promotions, now):
         "woche": _("Endet diese Woche"),
         "laenger": _("Länger gültig"),
         "dauerhaft": _("Dauerhaft"),
+    }
+    return [(key, labels[key], items) for key, items in buckets.items() if items]
+
+
+def _upcoming_buckets(promos, now):
+    """DL-17.4 (A1 «Vorschau»): будущие акции — по НАЧАЛУ: «Ab dieser Woche» ·
+    «Ab nächster Woche» · «Demnächst». Prospekt-привычка DACH: покупатель видит,
+    что будет дёшево со следующего понедельника, и планирует поход.
+
+    Порог MIN_GROUP_SECTION тут не действует — одна будущая акция тоже новость."""
+    from datetime import timedelta
+
+    end_today = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+    end_week = end_today + timedelta(days=6 - now.weekday())
+    end_next = end_week + timedelta(days=7)
+    buckets = {"start_woche": [], "start_naechste": [], "start_spaeter": []}
+    for promo in promos:
+        if promo.starts_at is None or promo.starts_at <= end_week:
+            buckets["start_woche"].append(promo)
+        elif promo.starts_at <= end_next:
+            buckets["start_naechste"].append(promo)
+        else:
+            buckets["start_spaeter"].append(promo)
+    labels = {
+        "start_woche": _("Ab dieser Woche"),
+        "start_naechste": _("Ab nächster Woche"),
+        "start_spaeter": _("Demnächst"),
     }
     return [(key, labels[key], items) for key, items in buckets.items() if items]
 
@@ -446,9 +484,8 @@ def promotion_list(request):
     _base_qs.pop("ansicht", None)
     ansicht_base_qs = _base_qs.urlencode()
     # DL-16.2 (A3): раскладка групп — сетка или ленты-слайдеры (Studio-панель)
-    _raw_cfg = getattr(request.tenant, "site_config", None)
     promo_layout = siteconfig.normalize_promo_layout(
-        (_raw_cfg if isinstance(_raw_cfg, dict) else {}).get("promo_layout")
+        _promo_page_config(request).get("promo_layout")  # DL-17.3: с учётом черновика
     )
     # поиск ДО apply: фильтр «−N %+» материализует список (см. PromoFacets)
     promotions = _attach_lowest_30d(
@@ -521,6 +558,20 @@ def promotion_list(request):
             ]
         )
 
+    # DL-17.4 (A1): «Vorschau» — акции в статусе `scheduled` с будущим стартом.
+    # Отдельным запросом (не в `base`): активные и будущие нельзя мешать в одной
+    # выдаче — у будущих нет ни countdown, ни покупки, а фасеты «Endet …» им чужие.
+    upcoming_groups = []
+    if not has_filters and not list_view:
+        _now = timezone.now()
+        upcoming = _attach_lowest_30d(
+            Promotion.objects.filter(status="scheduled", starts_at__gt=_now)
+            .select_related("product")
+            .order_by("starts_at")[:8]
+        )
+        if upcoming:
+            upcoming_groups = _upcoming_buckets(upcoming, timezone.localtime())
+
     def _chip(label, param, value):
         """Чип-ссылка: тумблер своего параметра с carry остальных (состояние в URL)."""
         params = request.GET.copy()
@@ -561,6 +612,7 @@ def promotion_list(request):
             "selected_group": selected,
             "grouped_promotions": grouped,
             "ending_soon": ending_soon,
+            "upcoming_groups": upcoming_groups,
             "system_chips": system_chips,
             "has_filters": has_filters,
             "result_count": len(promotions) if has_filters else None,
@@ -867,7 +919,16 @@ def product_list(request, slug=None):
     if badge:
         products = products.filter(badge=badge)
 
-    categories = Category.objects.filter(is_active=True, products__is_active=True).distinct()
+    # DL-18.2: направления каталога — КОРНЕВЫЕ категории с товарами в поддереве.
+    # Раньше фильтр брал любую категорию с товарами, поэтому магазин с полками
+    # («Frische» → Obst & Gemüse / Backwaren) показывал на /sortiment/ не четыре
+    # направления, а шесть листьев — иерархия витрины пропадала. Плоский каталог
+    # (товары лежат прямо в корневых) не меняется: те же категории, тот же порядок.
+    categories = (
+        Category.objects.filter(is_active=True, parent__isnull=True)
+        .filter(Q(products__is_active=True) | Q(children__products__is_active=True))
+        .distinct()
+    )
     # Фидбэк 2026-08-07: плитки с фото — только когда фото ЕСТЬ; иначе прежние
     # чипы (у большинства тенантов Category.images пуст, сетка серых
     # прямоугольников была бы хуже текста).
@@ -1445,7 +1506,18 @@ def product_review_submit(request, pk):
 
 
 def promotion_detail(request, pk):
+    from django.utils import timezone
+
     promo = get_object_or_404(Promotion, pk=pk)
+    # DL-17.4 (A1 «Vorschau»): у будущей акции деталь ОТКРЫТА, но без покупки —
+    # состав и условия видны заранее (Prospekt), кнопка появится на старте.
+    # Раньше scheduled отдавал голый 404, из-за чего карточку «Ab Mo.» показать
+    # было нельзя (комментарий в _time_groups).
+    if promo.status == "scheduled" and promo.starts_at and promo.starts_at > timezone.now():
+        form = PublicReservationForm(initial={"form_token": uuid.uuid4().hex})
+        ctx = _detail_ctx(request, promo, form)
+        ctx["promo_preview"] = True
+        return render(request, "storefront/promotion_detail.html", ctx)
     if promo.status != "active":
         # SF-3: QR с флаера/старая ссылка после конца акции вели в голый 404.
         # Публичной акция БЫЛА только в ended/paused/archived — им дружелюбная

@@ -21753,3 +21753,57 @@ msgstr "Друг под другом"
 
 msgid "Tabs"
 msgstr "Вкладки"
+
+msgid "statt %(p)s €"
+msgstr "вместо %(p)s €"
+
+msgid "Ab dieser Woche"
+msgstr "С этой недели"
+
+msgid "Ab nächster Woche"
+msgstr "Со следующей недели"
+
+msgid "Demnächst"
+msgstr "Скоро"
+
+msgid "ab %(d)s"
+msgstr "с %(d)s"
+
+msgid "Startet am %(d)s"
+msgstr "Стартует %(d)s"
+
+msgid "Vorschau — buchen können Sie ab dem Starttag."
+msgstr "Предпросмотр — забронировать можно со дня старта."
+
+msgid "Kartenrahmen"
+msgstr "Рамка карточки"
+
+msgid "Kräftiger Rahmen"
+msgstr "Жирная рамка"
+
+msgid "Haarlinie"
+msgstr "Тонкая линейка"
+
+msgid "Feine Linie"
+msgstr "Тонкая рамка"
+
+msgid "Seitenhintergrund"
+msgstr "Фон страницы"
+
+msgid "Aktionsseite: Aufbau"
+msgstr "Страница акций: вид"
+
+msgid "Aktionsseite: Gruppierung"
+msgstr "Страница акций: группировка"
+
+msgid "Nach Gruppen"
+msgstr "По группам"
+
+msgid "Nach Zeit"
+msgstr "По времени"
+
+msgid "Slider"
+msgstr "Слайдер"
+
+msgid "Reihen: auffüllen"
+msgstr "Ряды: заполнить"

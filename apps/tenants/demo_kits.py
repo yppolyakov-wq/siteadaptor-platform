@@ -3625,13 +3625,24 @@ AKTIONSMARKT = DemoKit(
     key="aktionsmarkt",
     # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
     # DL-11: 6 категорий = 2×3 (стиль compact с настроенной раскладкой берёт движок)
-    section_layouts={"gallery": {"preset": "cols3"}, "categories": {"preset": "cols3"}},
+    # DL-18.2: 4 корневых направления = 2 полных ряда по 2 (крупные фото-плитки);
+    # подкатегории живут внутри «полок» (regale/tabs), а не в корне.
+    section_layouts={
+        "gallery": {"preset": "cols3"},
+        "categories": {"preset": "cols2"},
+        # DL-18.2: полки-контейнеры оставили секции товаров 6 позиций — при четырёх
+        # колонках это полтора ряда (замок test_fill_rows), при трёх — ровно два.
+        "products": {"preset": "cols3"},
+    },
     label="Aktionsmarkt Sparfuchs",
     business_type="grocery",
     # DS-9: дизайн «Fokus» для архетипа — своя композиция (реестр BUNDLES).
     bundle="fokus_angebote",
     look="klar",
     promo_card="preis",  # DL-16.4: «Preis zuerst» — дефолт акционного демо
+    # DL-17.2 (фидбэк «карусели нет в демо»): листание фото прямо на карточке —
+    # у товаров ниже по 2–3 кадра (P2, стрелки при наведении + свайп).
+    card_slider="on",
     # SF-4a: Merkzettel у магазина акций (grocery-дефолт опции — False).
     # DL-4: site_defaults.hero_widget — config_patch мерджится ПОСЛЕ сборки
     # (латентный баг сидинга: _FOKUS_BASE.hero_widget="none" затирал плитки
@@ -3641,6 +3652,9 @@ AKTIONSMARKT = DemoKit(
         "nav": {"cta": True},
         "wishlist": True,
         "site_defaults": {"hero_widget": "aktionsmarkt"},
+        # DL-17.2: группы акций — лентами со стрелками (A3); без ключа страница
+        # рисовала сетки, и «карусели из макета» в демо не было видно.
+        "promo_layout": "slider",
     },
     # DL-4: акции на главной — витриной «Deal der Woche» (spotlight: featured-
     # карточка + полоса «Endet bald»; макет-референс канваса Sparfuchs).
@@ -3772,6 +3786,38 @@ AKTIONSMARKT = DemoKit(
         },
     ],
     promotions_spec=[
+        # DL-17.4 (A1 «Vorschau»): что начнётся на следующей неделе — Prospekt-привычка
+        # DACH. `starts_in_days` сеет акцию в статусе `scheduled`: витрина показывает
+        # её лентой «Ab dieser Woche» без покупки, beat включит сам в день старта.
+        {
+            "title": "Kaffee-Woche: −25 % ab Montag",
+            "desc": "Nächste Woche ist Kaffee-Woche — alle Röstungen −25 %.",
+            "product": 10,
+            "percent": 25,
+            "group": "Wochenangebote",
+            "starts_in_days": 3,
+            "ends_in_days": 7,
+        },
+        {
+            "title": "Käse-Tage −20 %",
+            "desc": "Ab nächster Woche: Gouda und Bergkäse günstiger.",
+            "product": 16,
+            "percent": 20,
+            "group": "Wochenangebote",
+            "starts_in_days": 9,
+            "ends_in_days": 5,
+        },
+        {
+            "title": "Waschmittel-Aktion 6,99 €",
+            "desc": "Vorschau: Festpreis statt 8,99 € — ab Montag in zwei Wochen.",
+            "product": 13,
+            "new_price": 6.99,
+            "compare_at": 8.99,
+            "discount_style": "festpreis",
+            "group": "Dauertiefpreis",
+            "starts_in_days": 12,
+            "ends_in_days": 10,
+        },
         {
             "title": "Äpfel −20 %",
             "product": 0,
@@ -3971,133 +4017,211 @@ AKTIONSMARKT = DemoKit(
         },
     ],
     categories=[
+        # DL-18.2 (фидбэк «сделай демо продуктового магазина, а не картинки вразнобой»):
+        # каталог собран как настоящий супермаркет — четыре направления, внутри полки.
+        # Порядок ОБХОДА товаров сохранён (Obst → Backwaren → Getränke → Haushalt →
+        # Tüten → Molkerei), поэтому индексы `promotions_spec.product` остались целы.
         (
-            "Obst & Gemüse",
-            "obst-gemuese",
+            "Frische",
+            "frische",
+            [],
             [
-                _p("Äpfel 1 kg", "2.49", "Knackig und regional.", "apples"),
-                _p("Bananen 1 kg", "1.79", "Fair gehandelt.", "bananas"),
-                _p("Tomaten 500 g", "2.99", "Sonnengereift.", "tomatoes"),
-                _p("Bio-Gemüsekiste", "24.90", "Bunte Auswahl der Saison.", "vegetable,box"),
+                (
+                    "Obst & Gemüse",
+                    "obst-gemuese",
+                    [
+                        # DL-17.2: список ключей → 2–3 кадра на карточке (карусель).
+                        _p(
+                            "Äpfel 1 kg",
+                            "2.49",
+                            "Knackig und regional.",
+                            ["apples", "fresh-fruit"],
+                            unit="kg",
+                            content=1,
+                        ),
+                        _p(
+                            "Bananen 1 kg",
+                            "1.79",
+                            "Fair gehandelt.",
+                            ["bananas", "grocery,shelf"],
+                            unit="kg",
+                            content=1,
+                        ),
+                        _p(
+                            "Tomaten 500 g",
+                            "2.99",
+                            "Sonnengereift.",
+                            ["tomatoes", "cucumber,tomato"],
+                            unit="kg",
+                            content=0.5,
+                        ),
+                        _p(
+                            "Bio-Gemüsekiste",
+                            "24.90",
+                            "Bunte Auswahl der Saison.",
+                            ["vegetable,box", "farm,vegetables", "vegetables"],
+                        ),
+                    ],
+                    "fresh-fruit",  # DS-9: фото плитки (было SVG)
+                ),
+                (
+                    "Backwaren",
+                    "backwaren",
+                    [
+                        _p(
+                            "Bauernbrot 750 g",
+                            "1.99",
+                            "Täglich frisch gebacken.",
+                            ["bread", "rye,bread", "bread,loaf"],
+                            allergens=["gluten"],
+                            unit="kg",
+                            content=0.75,
+                        ),
+                        _p(
+                            "Brötchen 6er",
+                            "0.60",
+                            "Knusprig und frisch.",
+                            ["bread,rolls", "wholegrain,roll"],
+                            allergens=["gluten"],
+                        ),
+                        _p(
+                            "Croissant",
+                            "1.50",
+                            "Buttrig und zart.",
+                            ["croissant", "bakery,oven"],
+                            allergens=["gluten", "milch"],
+                        ),
+                    ],
+                    "bread-rolls",  # DS-9: фото плитки (было SVG)
+                ),
             ],
-            "fresh-fruit",  # DS-9: фото плитки (было SVG)
+            "Alles, was täglich frisch ins Regal kommt — Obst, Gemüse und Backwaren "
+            "aus der Region.",
+            "regale",  # DL-16.5 (K2): подкатегории — «полки» лентами со стрелками
+            "farm-vegetables",
         ),
         (
-            "Backwaren",
-            "backwaren",
+            "Vorrat & Haushalt",
+            "vorrat-haushalt",
+            [],
             [
-                _p(
-                    "Bauernbrot 750 g",
-                    "1.99",
-                    "Täglich frisch gebacken.",
-                    "bread",
-                    allergens=["gluten"],
+                (
+                    "Getränke",
+                    "getraenke",
+                    [
+                        # DL-13 C5: unit/content → Grundpreis (PAngV) на карточках товара
+                        # И на акциях по этим товарам (Limonade/Kaffee — акции кита).
+                        _p(
+                            "Orangensaft 1 L",
+                            "2.49",
+                            "100 % Direktsaft.",
+                            ["orange,juice", "apple,juice"],
+                            unit="l",
+                            content=1,
+                        ),
+                        _p(
+                            "Mineralwasser 1,5 L",
+                            "0.79",
+                            "Spritzig oder still.",
+                            "water,bottle",
+                            unit="l",
+                            content=1.5,
+                        ),
+                        _p(
+                            "Limonade 1,5 L",
+                            "1.49",
+                            "Eisgekühlt am besten.",
+                            ["lemonade,glass", "lemonade"],
+                            unit="l",
+                            content=1.5,
+                        ),
+                        _p(
+                            "Gemahlener Kaffee 500 g",
+                            "6.90",
+                            "Kräftige Röstung.",
+                            ["coffee,ground", "coffee", "espresso"],
+                            unit="g",
+                            content=500,
+                        ),
+                    ],
+                    # DL-18.2: плитка «Getränke» показывала красное вино — в продуктовом
+                    # дискаунтере рядом с соками это читалось как чужой кадр.
+                    "orange-juice",
                 ),
-                _p(
-                    "Brötchen 6er",
-                    "0.60",
-                    "Knusprig und frisch.",
-                    "bread,rolls",
-                    allergens=["gluten"],
-                ),
-                _p(
-                    "Croissant",
-                    "1.50",
-                    "Buttrig und zart.",
-                    "croissant",
-                    allergens=["gluten", "milch"],
+                (
+                    "Haushalt",
+                    "haushalt",
+                    [
+                        _p(
+                            "Spülmittel 500 ml",
+                            "1.99",
+                            "Fettlöser-Power.",
+                            "dish,soap",
+                            unit="ml",
+                            content=500,
+                        ),
+                        _p("Toilettenpapier 10er", "4.99", "Weich und ergiebig.", "toilet,paper"),
+                        _p(
+                            "Waschmittel 2 kg",
+                            "8.99",
+                            "Für 40 Wäschen.",
+                            "laundry,detergent",
+                            unit="kg",
+                            content=2,
+                        ),
+                    ],
+                    "dish-soap",  # DS-9: фото плитки (было SVG)
                 ),
             ],
-            "bread-rolls",  # DS-9: фото плитки (было SVG)
-        ),
-        (
-            "Getränke",
-            "getraenke",
-            [
-                # DL-13 C5: unit/content → Grundpreis (PAngV) на карточках товара
-                # И на акциях по этим товарам (Limonade/Kaffee — акции кита).
-                _p(
-                    "Orangensaft 1 L",
-                    "2.49",
-                    "100 % Direktsaft.",
-                    "orange,juice",
-                    unit="l",
-                    content=1,
-                ),
-                _p(
-                    "Mineralwasser 1,5 L",
-                    "0.79",
-                    "Spritzig oder still.",
-                    "water,bottle",
-                    unit="l",
-                    content=1.5,
-                ),
-                _p(
-                    "Limonade 1,5 L",
-                    "1.49",
-                    "Eisgekühlt am besten.",
-                    "lemonade,glass",
-                    unit="l",
-                    content=1.5,
-                ),
-                _p(
-                    "Gemahlener Kaffee 500 g",
-                    "6.90",
-                    "Kräftige Röstung.",
-                    "coffee,ground",
-                    unit="g",
-                    content=500,
-                ),
-            ],
-            "red-wine",  # DS-9: фото плитки (было SVG)
-        ),
-        (
-            "Haushalt",
-            "haushalt",
-            [
-                _p(
-                    "Spülmittel 500 ml",
-                    "1.99",
-                    "Fettlöser-Power.",
-                    "dish,soap",
-                    unit="ml",
-                    content=500,
-                ),
-                _p("Toilettenpapier 10er", "4.99", "Weich und ergiebig.", "toilet,paper"),
-                _p(
-                    "Waschmittel 2 kg",
-                    "8.99",
-                    "Für 40 Wäschen.",
-                    "laundry,detergent",
-                    unit="kg",
-                    content=2,
-                ),
-            ],
-            "dish-soap",  # DS-9: фото плитки (было SVG)
+            "Getränke und Haushaltswaren zum Bevorraten — Dauertiefpreise das ganze Jahr.",
+            "tabs",  # DL-16.5 (K3): полки табами со счётчиком — демо-потребитель вида
+            "grocery-shelf",
         ),
         (
             "Überraschungstüten",
             "ueberraschungstueten",
             [
-                _p("Backwaren-Tüte", "15.00", "Wert ca. 15 € — Anti-Food-Waste.", "bakery,bag"),
                 _p(
-                    "Obst & Gemüse-Tüte", "12.00", "Wert ca. 12 € — Anti-Food-Waste.", "grocery,bag"
+                    "Backwaren-Tüte",
+                    "15.00",
+                    "Wert ca. 15 € — Anti-Food-Waste.",
+                    ["bakery,bag", "bakery,oven"],
+                ),
+                _p(
+                    "Obst & Gemüse-Tüte",
+                    "12.00",
+                    "Wert ca. 12 € — Anti-Food-Waste.",
+                    ["grocery,bag", "farm,vegetables"],
                 ),
             ],
             "grocery-bag",  # DS-9: фото плитки (было SVG)
+            "Gerettete Ware vom Vortag — jeden Abend neu gepackt.",
         ),
-        # DL-11: шестая категория — 6 плиток = два полных ряда по 3 (compact) и по 2
-        # (телефон); товары ДОПИСАНЫ В КОНЕЦ — индексы promotions_spec.product целы.
+        # DL-11: товары ДОПИСАНЫ В КОНЕЦ — индексы promotions_spec.product целы.
         (
             "Molkerei & Eier",
             "molkerei-eier",
             [
-                _p("Gouda jung 400 g", "3.49", "Mild und cremig, am Stück.", "cheese"),
+                _p(
+                    "Gouda jung 400 g",
+                    "3.49",
+                    "Mild und cremig, am Stück.",
+                    ["cheese", "cheese,wheel"],
+                    unit="kg",
+                    content=0.4,
+                ),
                 _p("Butter 250 g", "1.99", "Süßrahm, aus der Region.", "butter"),
                 _p("Eier 10er Freiland", "2.79", "Aus Freilandhaltung.", "eggs"),
-                _p("Bergkäse am Stück", "4.99", "Würzig, 6 Monate gereift.", "cheese,wheel"),
+                _p(
+                    "Bergkäse am Stück",
+                    "4.99",
+                    "Würzig, 6 Monate gereift.",
+                    ["cheese,wheel", "cheese"],
+                ),
             ],
             "cheese",
+            "Käse, Butter und Eier von Höfen aus dem Umland.",
+            "kopfbild",  # KAT-1: шапка направления с фото
         ),
     ],
 )
@@ -5467,7 +5591,9 @@ CLOTHING = DemoKit(
     business_type="clothing",
     # DS-9: дизайн «Fokus» для архетипа — своя композиция (реестр BUNDLES).
     bundle="fokus_lookbook",
-    config_patch={"hero_style": "split", "nav": {"cta": True}},
+    # DL-18.3: акции магазина одежды — группами-лентами (Sale · Accessoire-Deals),
+    # как в продуктовом демо; страница /aktionen/ становится Sale-витриной.
+    config_patch={"hero_style": "split", "nav": {"cta": True}, "promo_layout": "slider"},
     subdomain="mode",
     accent="#1e293b",  # Fashion-Navy
     hero_image_kw="fashion,boutique",
@@ -5576,11 +5702,13 @@ CLOTHING = DemoKit(
     collections=[
         (
             "Herbst-Looks",
-            {"products": [0, 1, 2], "photos": ["autumn,fashion", "coat,street", "boots,autumn"]},
+            # DL-18.3: coat/boots/blazer-кадров в библиотеке нет — «boots,autumn»
+            # уезжал по префикс-группе в autumn-hair.webp (причёска в лукбуке одежды).
+            {"products": [0, 1, 2], "photos": ["knitwear", "clothing,rack", "fashion,boutique"]},
         ),
         (
             "Business",
-            {"products": [3, 4], "photos": ["business,outfit", "blazer,woman"]},
+            {"products": [3, 4], "photos": ["fashion,designer", "chinos"]},
         ),
         ("Basics", {"products": [5, 6, 7]}),  # без фото → обычный фасет-чип
     ],
@@ -5602,6 +5730,45 @@ CLOTHING = DemoKit(
         {"code": "NORDWIND10", "label": "−10 % für Neukunden", "percent": 10, "max_uses": 200},
     ],
     promotions_spec=[
+        # DL-18.3 (фидбэк «тематическое демо одежды со скидками»): Sale-витрина —
+        # шесть действующих акций в двух группах (лентами) + предпросмотр зимней
+        # распродажи (A1 «Vorschau»: `starts_in_days` → статус scheduled).
+        {
+            "title": "Winter-Sale: −40 % ab Montag",
+            "desc": "Vorschau: Strick, Mäntel und Schals stark reduziert.",
+            "product": 7,
+            "percent": 40,
+            "group": "Sale",
+            "starts_in_days": 5,
+            "ends_in_days": 14,
+        },
+        {
+            "title": "Leinenbluse Küste −25 %",
+            "desc": "Luftiges Leinen zum Saisonende.",
+            "product": 2,
+            "percent": 25,
+            "group": "Sale",
+            "discount_style": "percent",
+            "ends_in_days": 12,
+        },
+        {
+            "title": "Chino-Hose Deich statt 59,90 € nur 44,90 €",
+            "desc": "Zwei Farben, solange der Vorrat reicht.",
+            "product": 8,
+            "new_price": 44.90,
+            "compare_at": 59.90,
+            "discount_style": "strikethrough",
+            "group": "Sale",
+            "ends_in_days": 9,
+        },
+        {
+            "title": "Canvas-Tasche −20 %",
+            "desc": "Der Alltagsbegleiter aus schwerem Baumwoll-Canvas.",
+            "product": 12,
+            "percent": 20,
+            "group": "Accessoire-Deals",
+            "ends_in_days": 10,
+        },
         # Sale-Ядро: %-скидка на hero-товар. Заголовок/desc СОХРАНЕНЫ дословно —
         # у них уже есть переводы в demo_i18n_{en,ru,tr,uk}.json.
         {
@@ -5748,7 +5915,9 @@ CLOTHING = DemoKit(
                     "Seidentuch Aurora",
                     "24.90",
                     "Seidiges Tuch, drei Dessins — Auswahl als Foto-Kacheln.",
-                    ["scarf,silk", "accessories", "fashion,designer"],
+                    # DL-18.3: ключей scarf-* в библиотеке нет — товар уезжал в
+                    # SVG-заглушку; берём кадры, которые реально существуют.
+                    ["accessories", "fashion,designer"],
                     # O-2: НОСИТЕЛЬ вида "photo" — варианты фото-плитками
                     # (фидбэк владельца 2026-08-03 «негде попробовать»).
                     variant_style="photo",
@@ -5757,13 +5926,13 @@ CLOTHING = DemoKit(
                             "label": "Dessin Blüte",
                             "price": "24.90",
                             "stock": 6,
-                            "images": ["scarf,floral"],
+                            "images": ["accessories"],
                         },
                         {
                             "label": "Dessin Streifen",
                             "price": "24.90",
                             "stock": 4,
-                            "images": ["scarf,stripes"],
+                            "images": ["fashion,designer"],
                         },
                         {
                             "label": "Dessin Uni",
@@ -5779,7 +5948,8 @@ CLOTHING = DemoKit(
                     "Leinenbluse Küste",
                     "39.90",
                     "100 % Leinen, luftig geschnitten.",
-                    ["linen,blouse", "linen,shirt", "tshirt"],
+                    # DL-18.3: linen-shirt.webp — брак набора (на кадре выпечка).
+                    ["linen,blouse", "tshirt"],
                     variants=[
                         {"label": "S", "price": "39.90", "stock": 5},
                         {"label": "M", "price": "39.90", "stock": 7},
@@ -5842,7 +6012,7 @@ CLOTHING = DemoKit(
                     "Leinenhemd Hafen",
                     "39.90",
                     "Locker geschnitten, knitterfreundlich.",
-                    "linen,shirt",
+                    ["fashion", "clothing,rack"],  # DL-18.3: было linen,shirt (выпечка)
                     variants=[
                         {"label": "M", "price": "39.90", "stock": 5},
                         {"label": "L", "price": "39.90", "stock": 6},
@@ -5927,8 +6097,10 @@ CLOTHING = DemoKit(
     ],
     product_reviews=[
         (0, 5, "Meike S.", "nw.rev1@example.de", "Das Kleid sitzt perfekt — Größentabelle stimmt."),
-        (4, 5, "Jan H.", "nw.rev2@example.de", "Bestes Basic-Shirt, das ich je hatte."),
-        (6, 5, "Ines W.", "nw.rev3@example.de", "Merino-Pulli kratzt null. Liebe."),
+        # DL-18.3: индексы съехали (5 = Basic T-Shirt, 7 = Strickpullover Merino) —
+        # отзывы сидели на джинсах и льняной рубашке.
+        (5, 5, "Jan H.", "nw.rev2@example.de", "Bestes Basic-Shirt, das ich je hatte."),
+        (7, 5, "Ines W.", "nw.rev3@example.de", "Merino-Pulli kratzt null. Liebe."),
     ],
 )
 
@@ -11151,11 +11323,19 @@ def apply_kit(tenant, key: str) -> bool:
             "promo_type": Promotion.RESERVATION
             if spec.get("type") == "reservation"
             else Promotion.DISCOUNT,
-            "status": "active",
+            # DL-17.4 (A1 «Vorschau»): `starts_in_days` делает акцию ЗАПЛАНИРОВАННОЙ —
+            # она видна витриной лентой «Ab dieser Woche», но ещё не продаётся
+            # (beat `roll_due_promotions` включит её сам на старте).
+            "status": "scheduled" if spec.get("starts_in_days") else "active",
             # Фидбэк 2026-07-29: чип «Neu» (is_new ≤ 7 дней) — только у явно
             # помеченных spec'ов, иначе у свежего сида все акции «новые».
-            "starts_at": now if spec.get("new") else now - timedelta(days=10),
-            "ends_at": now + timedelta(days=spec.get("ends_in_days", 14)),
+            "starts_at": (
+                now + timedelta(days=spec["starts_in_days"])
+                if spec.get("starts_in_days")
+                else (now if spec.get("new") else now - timedelta(days=10))
+            ),
+            "ends_at": now
+            + timedelta(days=spec.get("starts_in_days", 0) + spec.get("ends_in_days", 14)),
             "group": spec.get("group", ""),
             "show_countdown": bool(spec.get("countdown")),
             "is_surprise": bool(spec.get("surprise")),

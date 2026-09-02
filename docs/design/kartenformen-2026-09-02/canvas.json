@@ -1,0 +1,39 @@
+{
+ "artboards": [
+  {
+   "file": "Main.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 800,
+   "h": 900,
+   "title": "Сводка форм"
+  },
+  {
+   "file": "N1.dc.html",
+   "x": 900,
+   "y": 0,
+   "w": 800,
+   "h": 720,
+   "title": "N1 · Regal"
+  },
+  {
+   "file": "N2.dc.html",
+   "x": 1800,
+   "y": 0,
+   "w": 800,
+   "h": 860,
+   "title": "N2 · Lookbook"
+  },
+  {
+   "file": "N3.dc.html",
+   "x": 2700,
+   "y": 0,
+   "w": 800,
+   "h": 700,
+   "title": "N3 · Deal-Kachel"
+  }
+ ],
+ "launch": {
+  "view": "canvas"
+ }
+}

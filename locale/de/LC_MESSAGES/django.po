@@ -21573,3 +21573,57 @@ msgstr "Untereinander"
 
 msgid "Tabs"
 msgstr "Tabs"
+
+msgid "statt %(p)s €"
+msgstr "statt %(p)s €"
+
+msgid "Ab dieser Woche"
+msgstr "Ab dieser Woche"
+
+msgid "Ab nächster Woche"
+msgstr "Ab nächster Woche"
+
+msgid "Demnächst"
+msgstr "Demnächst"
+
+msgid "ab %(d)s"
+msgstr "ab %(d)s"
+
+msgid "Startet am %(d)s"
+msgstr "Startet am %(d)s"
+
+msgid "Vorschau — buchen können Sie ab dem Starttag."
+msgstr "Vorschau — buchen können Sie ab dem Starttag."
+
+msgid "Kartenrahmen"
+msgstr "Kartenrahmen"
+
+msgid "Kräftiger Rahmen"
+msgstr "Kräftiger Rahmen"
+
+msgid "Haarlinie"
+msgstr "Haarlinie"
+
+msgid "Feine Linie"
+msgstr "Feine Linie"
+
+msgid "Seitenhintergrund"
+msgstr "Seitenhintergrund"
+
+msgid "Aktionsseite: Aufbau"
+msgstr "Aktionsseite: Aufbau"
+
+msgid "Aktionsseite: Gruppierung"
+msgstr "Aktionsseite: Gruppierung"
+
+msgid "Nach Gruppen"
+msgstr "Nach Gruppen"
+
+msgid "Nach Zeit"
+msgstr "Nach Zeit"
+
+msgid "Slider"
+msgstr "Slider"
+
+msgid "Reihen: auffüllen"
+msgstr "Reihen: auffüllen"

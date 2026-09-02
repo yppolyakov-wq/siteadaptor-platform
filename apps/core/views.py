@@ -1833,9 +1833,17 @@ def home_builder_view(request):
             # DL-16.4: форма карточки акции и листание фото на карточке товара.
             "promo_card": request.POST.get("sd_promo_card", ""),
             "card_slider": "on" if request.POST.get("sd_card_slider") == "on" else "",
-            # DL-2: фон страницы и хром карточек Look'а — hidden-инпуты
-            # (round-trip, W0; их выставляет и клик по Look-карточке).
-            "page_bg": request.POST.get("sd_page_bg", ""),
+            # DL-2/DL-17.3: фон страницы и хром карточек — видимые контролы
+            # билдера (их выставляет и клик по Look-карточке). Фон правится
+            # color-инпутом, а он не умеет пустое значение → «нет фона» несёт
+            # тумблер `sd_page_bg_on` при сентинеле `sd_page_bg_present`; POST
+            # без сентинела (старый клиент/тест) сохраняет прежнюю семантику.
+            "page_bg": (
+                ""
+                if request.POST.get("sd_page_bg_present") == "1"
+                and request.POST.get("sd_page_bg_on") != "on"
+                else request.POST.get("sd_page_bg", "")
+            ),
             "card_chrome": request.POST.get("sd_card_chrome", ""),
         }
         # DL-2 (класс W0/W6): ключи БЕЗ контролов в форме билдера переживают Save
@@ -1847,6 +1855,19 @@ def home_builder_view(request):
             config["site_defaults"]["card_chrome"] = prev_sd["card_chrome"]
         if prev_sd.get("hero_widget"):
             config["site_defaults"]["hero_widget"] = prev_sd["hero_widget"]
+        # DL-17.3: страница /aktionen/ — раскладка групп (сетка/ленты) и режим
+        # группировки (по группам владельца / по времени). Presence-guard (W0/W7a):
+        # у ключей есть второй писатель (панель на списке акций), и форма билдера
+        # без этих полей не должна ронять уже сохранённый выбор. Пустое значение
+        # законно — normalize (presence-minimal) снимет ключ.
+        if "promo_layout" in request.POST:
+            config["promo_layout"] = siteconfig.normalize_promo_layout(
+                request.POST.get("promo_layout")
+            )
+        if "promo_grouping" in request.POST:
+            config["promo_grouping"] = siteconfig.normalize_promo_grouping(
+                request.POST.get("promo_grouping")
+            )
         # S4: стартовая страница витрины (общая главная или один архетип).
         config["storefront_root"] = request.POST.get("storefront_root", "home").strip() or "home"
         # SE-7c: область «Меню» — стиль шапки + sticky. Presence-guard (правим лишь когда
@@ -2385,7 +2406,10 @@ def home_builder_view(request):
             "media_shape": config["site_defaults"].get("media_shape", ""),  # DL-10
             "promo_card": config["site_defaults"].get("promo_card", ""),  # DL-16.4
             "card_slider": config["site_defaults"].get("card_slider", ""),
-            # DL-2: префилл hidden-инпутов round-trip'а (фон страницы + хром).
+            # DL-17.3: страница акций — раскладка групп и режим группировки.
+            "promo_layout": config.get("promo_layout", ""),
+            "promo_grouping": config.get("promo_grouping", ""),
+            # DL-2/DL-17.3: префилл контролов фона страницы и хрома карточек.
             "page_bg": config["site_defaults"].get("page_bg", ""),
             "card_chrome": config["site_defaults"].get("card_chrome", ""),
             # O-2: дефолтный вид выбора вариантов + реестр видов для селекта.
@@ -2544,6 +2568,9 @@ def site_preview_draft(request):
                     for fld in ("balance", "scroll"):
                         if lay.get(fld):
                             sub[fld] = True
+                    # DL-17.3: хвост неполного ряда (show/fill/spread) → в превью.
+                    if lay.get("tail") in siteconfig._LAYOUT_TAILS:
+                        sub["tail"] = lay["tail"]
                     if sub:
                         row["layout"] = sub
                 # DS-5: плитка категорий → в превью (normalize клампит/whitelist).
@@ -2637,10 +2664,20 @@ def site_preview_draft(request):
     # SE-2d: глобальный стиль карточек («весь сайт») — в превью (normalize_site_defaults
     # клампит). Применяется через context-процессор на любой странице под ?preview=1.
     if isinstance(data.get("site_defaults"), dict):
-        cfg["site_defaults"] = data["site_defaults"]
+        # DL-17.3: МЕРДЖ, а не замена: форма присылает только свои оси, а в
+        # site_defaults живут и ключи без контрола (hero_widget) — замена гасила
+        # их в превью, хотя Save сохранял (класс W0: «превью врёт о результате»).
+        _sd = cfg.get("site_defaults")
+        cfg["site_defaults"] = {**(_sd if isinstance(_sd, dict) else {}), **data["site_defaults"]}
     # SE-3b: глобальная типографика → в превью (normalize_typography клампит).
     if isinstance(data.get("typography"), dict):
         cfg["typography"] = data["typography"]
+    # DL-17.3: страница акций — раскладка групп и режим группировки в черновик
+    # (пустое значение законно снимает ключ; normalize presence-minimal).
+    if "promo_layout" in data:
+        cfg["promo_layout"] = siteconfig.normalize_promo_layout(data.get("promo_layout"))
+    if "promo_grouping" in data:
+        cfg["promo_grouping"] = siteconfig.normalize_promo_grouping(data.get("promo_grouping"))
     # M20f: дизайн вживую — шрифт + стиль hero (поля site_config).
     if data.get("font") in siteconfig.FONTS:
         cfg["font"] = data["font"]

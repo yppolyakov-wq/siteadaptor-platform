@@ -21528,3 +21528,57 @@ msgstr "Stacked"
 
 msgid "Tabs"
 msgstr "Tabs"
+
+msgid "statt %(p)s €"
+msgstr "was %(p)s €"
+
+msgid "Ab dieser Woche"
+msgstr "From this week"
+
+msgid "Ab nächster Woche"
+msgstr "From next week"
+
+msgid "Demnächst"
+msgstr "Coming soon"
+
+msgid "ab %(d)s"
+msgstr "from %(d)s"
+
+msgid "Startet am %(d)s"
+msgstr "Starts on %(d)s"
+
+msgid "Vorschau — buchen können Sie ab dem Starttag."
+msgstr "Preview — you can book from the start date."
+
+msgid "Kartenrahmen"
+msgstr "Card frame"
+
+msgid "Kräftiger Rahmen"
+msgstr "Bold frame"
+
+msgid "Haarlinie"
+msgstr "Hairline rule"
+
+msgid "Feine Linie"
+msgstr "Fine line"
+
+msgid "Seitenhintergrund"
+msgstr "Page background"
+
+msgid "Aktionsseite: Aufbau"
+msgstr "Deals page: layout"
+
+msgid "Aktionsseite: Gruppierung"
+msgstr "Deals page: grouping"
+
+msgid "Nach Gruppen"
+msgstr "By groups"
+
+msgid "Nach Zeit"
+msgstr "By time"
+
+msgid "Slider"
+msgstr "Slider"
+
+msgid "Reihen: auffüllen"
+msgstr "Rows: fill up"

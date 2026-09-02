@@ -152,12 +152,21 @@
       {% endif %}
       {% endwith %}
 
+      {% if promo_preview %}
+      {% comment %}DL-17.4 (A1): акция ещё не началась — вместо покупки честная плашка
+      со стартом. Цена и условия уже видны (Prospekt-предпросмотр).{% endcomment %}
+      <div class="mt-4 rounded-xl bg-indigo-50 border border-indigo-100 px-4 py-3 text-sm text-indigo-900" data-promo-preview>
+        <p class="font-semibold">🗓 {% blocktrans with d=promotion.starts_at|date:"D d.m.Y" %}Startet am {{ d }}{% endblocktrans %}</p>
+        <p class="mt-0.5 text-indigo-800">{% trans "Vorschau — buchen können Sie ab dem Starttag." %}</p>
+      </div>
+      {% else %}
       <button type="button" data-modal-open="promo-reserve-modal"
               class="mt-4 w-full text-white rounded-xl px-4 py-3 font-semibold shadow-sm hover:opacity-90 focus:ring-2 focus:ring-offset-1 focus:ring-red-400"
               style="background: var(--accent, #dc2626);">
         {% if promotion.is_sold_out %}🔔 {% trans "Notify me" %}{% else %}{% trans "Reserve now" %}{% endif %}
       </button>
       <p class="mt-2 text-center text-xs text-gray-500">{% trans "No account needed — reserve in 30 seconds." %}</p>
+      {% endif %}
     </div>
 
     {% if promotion.description_text %}
@@ -194,7 +203,7 @@
   </div>
 </section>
 {% endif %}
-{% if promotion.discount_style != 'mystery' and promotion.new_price is not None %}
+{% if promotion.discount_style != 'mystery' and promotion.new_price is not None and not promo_preview %}
   {% blocktrans asvar buyprice with p=promotion.new_price c=promotion.currency|cursym %}{{ p }} {{ c }}{% endblocktrans %}
   {% trans "Reserve now" as buylabel %}
   {% include "storefront/_detail_buybar.html" with price=buyprice anchor="#angebot" label=buylabel sold_out=promotion.is_sold_out %}
@@ -203,6 +212,7 @@
 {% comment %}Фидбэк 2026-07-29: форма брони/листа ожидания — в попапе за CTA.
 Внутри тот же единый _buybox (паритет-замки целы — форма в DOM). При ошибках
 формы (ре-рендер POST'а) модал открывается сам.{% endcomment %}
+{% if not promo_preview %}
 <div id="promo-reserve-modal" class="fixed inset-0 z-50 {% if not form.errors and not waitlist_form.errors %}hidden{% endif %}" role="dialog" aria-modal="true" aria-label="{% trans 'Reserve' %}">
   <div class="absolute inset-0 bg-black/45" data-modal-close></div>
   <div class="absolute inset-x-0 bottom-0 md:inset-0 md:flex md:items-center md:justify-center p-0 md:p-4 pointer-events-none">
@@ -215,6 +225,7 @@
     </div>
   </div>
 </div>
+{% endif %}
 <script>
 (function () {
   // Фидбэк 2026-07-29: попап формы брони. Делегирование на document (урок Ф1).

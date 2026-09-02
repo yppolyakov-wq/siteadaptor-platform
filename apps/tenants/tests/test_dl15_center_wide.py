@@ -169,8 +169,12 @@ def test_aktionsmarkt_promo_groups_fill_rows():
     from apps.tenants import demo_kits
 
     kit = demo_kits.AKTIONSMARKT
-    groups = Counter(p.get("group", "") for p in kit.promotions_spec)
+    # DL-17.4: запланированные акции (`starts_in_days`) в секции групп не выводятся —
+    # у них своя лента «Vorschau», поэтому кратность рядов считают только действующие.
+    live = [p for p in kit.promotions_spec if not p.get("starts_in_days")]
+    groups = Counter(p.get("group", "") for p in live)
     bad = {g: n for g, n in groups.items() if g and n % 3}
     assert not bad, bad
+    assert any(p.get("starts_in_days") for p in kit.promotions_spec)  # демо A1 «Vorschau»
     soon = sum(1 for p in kit.promotions_spec if 0 < p.get("ends_in_days", 99) <= 3)
     assert min(soon, 4) % 2 == 0, soon

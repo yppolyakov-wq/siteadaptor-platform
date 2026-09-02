@@ -52,6 +52,35 @@ UE1: badge_pos_class — переопределение позиции бейд�
   карточки товара; mystery прячет цену, а из Grundpreis она восстанавливается
   арифметикой → у mystery строки нет.{% endcomment %}
   {% if eff_style != "mystery" %}{% with gp=promo.grundpreis %}{% if gp %}<span class="block text-[11px] text-gray-400 leading-tight" data-grundpreis>{{ gp.0 }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency|cursym }}{% endif %} / {{ gp.1 }}</span>{% endif %}{% endwith %}{% endif %}
+{% elif part == "price_line" %}
+  {% comment %}DL-17.1 (макет AK1): строка цены формы «Preis zuerst» — НОВАЯ цена крупно,
+  за ней «statt <старая>», рядом бейдж (его ставит вызывающий шаблон). Отдельная часть, а
+  не правка part="price": там порядок «старая → новая» заморожен замками парити на всех
+  прочих поверхностях. Grundpreis сюда не входит — он уводил бы бейдж от цены (мета-строка
+  под плашкой, part="grundpreis").{% endcomment %}
+  {% if eff_style == "mystery" %}
+    <span data-mystery-price hidden>{% include "storefront/_price.html" with promo=promo %}</span>
+    <button type="button" data-mystery-reveal class="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800 underline decoration-dashed">🎁 {% trans "Reveal the deal" %}</button>
+  {% elif promo.new_price is not None %}
+    {% if eff_style == "ab" %}<span class="text-sm font-normal text-gray-400">{% trans "from" %}</span> {% endif %}
+    <span class="text-xl md:text-2xl font-extrabold {% if promo.has_discount and eff_style != 'festpreis' %}text-red-600{% endif %}" data-price-edit data-edit-model="promotion" data-price-field="price_override" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.new_price }}">{{ promo.new_price }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency|cursym }}{% endif %}</span>
+    {% if promo.strikethrough_old_price and eff_style != "festpreis" and eff_style != "ab" %}
+      <span class="text-sm text-gray-400" data-price-edit data-edit-model="promotion" data-price-field="compare_at_price" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.old_price }}">{% blocktrans with p=promo.old_price %}statt {{ p }} €{% endblocktrans %}</span>
+    {% endif %}
+  {% elif promo.discount_percent_display %}
+    {# Процент-акция без цен (цель — категория/свободная): крупным остаётся сам процент. #}
+    <span class="text-xl md:text-2xl font-extrabold text-red-600" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.discount_percent_display }}">−{{ promo.discount_percent_display }} %</span>
+  {% endif %}
+{% elif part == "starts" %}
+  {% comment %}DL-17.4 (A1): дата старта будущей акции — «ab Mo. 07.09.». Отдельной
+  частью: у флагов и countdown разметка заморожена замками парити.{% endcomment %}
+  {% if promo.starts_at %}
+    <span class="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 text-[11px] font-semibold px-2 py-0.5 rounded-full" data-promo-starts>🗓 {% blocktrans with d=promo.starts_at|date:"D d.m." %}ab {{ d }}{% endblocktrans %}</span>
+  {% endif %}
+{% elif part == "grundpreis" %}
+  {% comment %}DL-17.1: Grundpreis (§ 5 PAngV) отдельной частью — для форм, где он идёт
+  мета-строкой под ценой. В part="price" он остаётся на месте (парити).{% endcomment %}
+  {% if eff_style != "mystery" %}{% with gp=promo.grundpreis %}{% if gp %}<span data-grundpreis>{{ gp.0 }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency|cursym }}{% endif %} / {{ gp.1 }}</span>{% endif %}{% endwith %}{% endif %}
 {% elif part == "scarcity" %}
   {% if promo.available_quantity is not None %}
     {% if size == "lg" %}

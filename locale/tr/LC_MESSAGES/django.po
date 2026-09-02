@@ -21655,3 +21655,57 @@ msgstr "Alt alta"
 
 msgid "Tabs"
 msgstr "Sekmeler"
+
+msgid "statt %(p)s €"
+msgstr "yerine %(p)s €"
+
+msgid "Ab dieser Woche"
+msgstr "Bu haftadan itibaren"
+
+msgid "Ab nächster Woche"
+msgstr "Gelecek haftadan itibaren"
+
+msgid "Demnächst"
+msgstr "Yakında"
+
+msgid "ab %(d)s"
+msgstr "%(d)s tarihinden"
+
+msgid "Startet am %(d)s"
+msgstr "%(d)s tarihinde başlıyor"
+
+msgid "Vorschau — buchen können Sie ab dem Starttag."
+msgstr "Önizleme — başlangıç gününden itibaren rezerve edebilirsiniz."
+
+msgid "Kartenrahmen"
+msgstr "Kart çerçevesi"
+
+msgid "Kräftiger Rahmen"
+msgstr "Kalın çerçeve"
+
+msgid "Haarlinie"
+msgstr "Çok ince çizgi"
+
+msgid "Feine Linie"
+msgstr "İnce çizgi"
+
+msgid "Seitenhintergrund"
+msgstr "Sayfa arka planı"
+
+msgid "Aktionsseite: Aufbau"
+msgstr "Kampanya sayfası: düzen"
+
+msgid "Aktionsseite: Gruppierung"
+msgstr "Kampanya sayfası: gruplama"
+
+msgid "Nach Gruppen"
+msgstr "Gruplara göre"
+
+msgid "Nach Zeit"
+msgstr "Zamana göre"
+
+msgid "Slider"
+msgstr "Kaydırıcı"
+
+msgid "Reihen: auffüllen"
+msgstr "Satırlar: doldur"

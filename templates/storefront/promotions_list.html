@@ -70,6 +70,21 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
       </div>
     </section>
   {% endif %}
+  {% if upcoming_groups %}
+    {% comment %}DL-17.4 (A1 «Vorschau»): что начнётся — лентой над действующими
+    предложениями. Карточки помечены «ab <дата>» и без счётчика/остатка (preview).{% endcomment %}
+    {% for key, label, items in upcoming_groups %}
+      <section class="mb-8" data-upcoming="{{ key }}">
+        <h2 class="text-lg font-bold mb-3">🗓 {{ label }}
+          <span class="text-sm font-normal text-gray-400">· {{ items|length }}</span></h2>
+        <div class="flex gap-4 overflow-x-auto pb-2" data-upcoming-strip data-sf-slider>
+          {% for p in items %}
+            <div class="w-64 sm:w-72 shrink-0 flex [&>div]:w-full">{% include "storefront/_promo_card.html" with preview=True %}</div>
+          {% endfor %}
+        </div>
+      </section>
+    {% endfor %}
+  {% endif %}
   {% if grouped_promotions %}
     {% comment %}Фидбэк 2026-07-29: группы акций — секциями с заголовками (Prospekt-
     логика: Wochenangebote / Räumung / Anti-Food-Waste читаются с первого взгляда).{% endcomment %}
@@ -88,7 +103,7 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
         (стрелки при наведении, точки, свайп); все группы видны без прокрутки вниз.{% endcomment %}
         <div data-grid="promo_list" data-promo-strip class="flex gap-4 overflow-x-auto pb-2" data-sf-slider>
           {% for p in items %}
-            <div class="w-60 shrink-0 flex [&>div]:w-full">{% include "storefront/_promo_card.html" with in_group=True %}</div>
+            <div class="w-64 sm:w-72 shrink-0 flex [&>div]:w-full">{% include "storefront/_promo_card.html" with in_group=True %}</div>
           {% endfor %}
         </div>
         {% else %}

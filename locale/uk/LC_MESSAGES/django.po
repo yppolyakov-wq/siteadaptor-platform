@@ -21737,3 +21737,57 @@ msgstr "Одне під одним"
 
 msgid "Tabs"
 msgstr "Вкладки"
+
+msgid "statt %(p)s €"
+msgstr "замість %(p)s €"
+
+msgid "Ab dieser Woche"
+msgstr "З цього тижня"
+
+msgid "Ab nächster Woche"
+msgstr "З наступного тижня"
+
+msgid "Demnächst"
+msgstr "Незабаром"
+
+msgid "ab %(d)s"
+msgstr "з %(d)s"
+
+msgid "Startet am %(d)s"
+msgstr "Стартує %(d)s"
+
+msgid "Vorschau — buchen können Sie ab dem Starttag."
+msgstr "Попередній перегляд — забронювати можна від дня старту."
+
+msgid "Kartenrahmen"
+msgstr "Рамка картки"
+
+msgid "Kräftiger Rahmen"
+msgstr "Жирна рамка"
+
+msgid "Haarlinie"
+msgstr "Тонка лінійка"
+
+msgid "Feine Linie"
+msgstr "Тонка рамка"
+
+msgid "Seitenhintergrund"
+msgstr "Фон сторінки"
+
+msgid "Aktionsseite: Aufbau"
+msgstr "Сторінка акцій: вигляд"
+
+msgid "Aktionsseite: Gruppierung"
+msgstr "Сторінка акцій: групування"
+
+msgid "Nach Gruppen"
+msgstr "За групами"
+
+msgid "Nach Zeit"
+msgstr "За часом"
+
+msgid "Slider"
+msgstr "Слайдер"
+
+msgid "Reihen: auffüllen"
+msgstr "Ряди: заповнити"
