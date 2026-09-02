@@ -84,5 +84,5 @@ def test_theme_pickers_live_only_in_builder(settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
     tenant = TenantFactory(disabled_modules=[])
     html = core_views.home_builder_view(_req("get", _user("w6c"), tenant)).content.decode()
-    assert 'name="hero_accent"' in html
+    assert 'name="hero_style"' in html  # DL-13: селект стиля баннера (был чекбокс)
     assert 'name="font"' in html

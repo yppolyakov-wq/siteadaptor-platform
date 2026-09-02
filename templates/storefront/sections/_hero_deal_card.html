@@ -1,0 +1,15 @@
+{% load i18n %}{% comment %}DL-13 C1: «стеклянная» карточка первой активной акции
+поверх Vollbild-фото (контекст: deal | None — пусто, колонка схлопывается).{% endcomment %}
+{% if deal %}
+<a href="{% url 'storefront-promotion' deal.pk %}" class="sf-glass block rounded-2xl p-4 text-gray-900 hover:bg-white transition" data-hero-deal>
+  <span class="block text-[11px] font-bold tracking-[0.13em] uppercase text-gray-500">{% trans "Angebot des Tages" %}</span>
+  <span class="mt-2 flex items-center gap-3">
+    {% with img=deal.primary_image %}{% if img %}<img src="{{ img.url }}" alt="" class="w-16 h-16 rounded-xl object-cover shrink-0{% if deal.discount_style == 'mystery' %} blur-lg{% endif %}">{% endif %}{% endwith %}
+    <span class="min-w-0">
+      <span class="block font-semibold leading-tight line-clamp-2">{{ deal.title_text }}</span>
+      <span class="block mt-1">{% include "storefront/_discount_display.html" with promo=deal part="price" %}</span>
+    </span>
+  </span>
+  {% if deal.ends_at %}<span class="mt-2 block text-xs text-gray-500">📅 {% blocktrans with d=deal.ends_at|date:"d.m." %}until {{ d }}{% endblocktrans %}</span>{% endif %}
+</a>
+{% endif %}

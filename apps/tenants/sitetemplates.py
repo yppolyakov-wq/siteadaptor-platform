@@ -378,12 +378,120 @@ LOOK_FAMILIES = [
         "hero_style": "plain",
         "theme": "",
     },
+    # DL-13 (2026-09-02): шесть направлений канваса «Neue Design-Richtungen»
+    # (решение владельца) — кожа; композиции несут сборки deal_* (H3/H6/H2/H4/H5).
+    {
+        "key": "monochrom",
+        "label": _("Monochrom"),
+        "description_de": _("Schwarz-Weiß-Typografie, Farbe nur beim Preis: ehrlich und ruhig."),
+        "font": "archivo",  # Archivo 700
+        "typography": {"weight_head": 700, "line_height": 1.4},
+        "site_defaults": {
+            "card_radius": 0,
+            "card_shadow": False,
+            "card_bg": "#ffffff",
+            "card_padding": 0,
+            "page_bg": "#ffffff",
+            "card_chrome": "line",
+        },
+        "nav_style": "minimal",
+        "hero_style": "plain",
+        "theme": "",
+    },
+    {
+        "key": "pastell",
+        "label": _("Pastell"),
+        "description_de": _("Weiche Kacheln und runde Ecken — freundlich, für Familien und Bio."),
+        "font": "quicksand",  # Quicksand 700
+        "typography": {"weight_head": 700, "line_height": 1.6},
+        "site_defaults": {
+            "card_radius": 22,
+            "card_shadow": True,
+            "card_bg": "#ffffff",
+            "card_padding": 0,
+            "page_bg": "#fbf6f8",
+        },
+        "nav_style": "classic",
+        "hero_style": "split",
+        "theme": "",
+    },
+    {
+        "key": "retro",
+        "label": _("Retro"),
+        "description_de": _("Plakat der 70er: Ocker, Stempel-Badges, kräftige Slab-Schrift."),
+        "font": "alfaslab",  # Alfa Slab One 400
+        "typography": {"weight_head": 400, "line_height": 1.5},
+        "site_defaults": {
+            "card_radius": 6,
+            "card_shadow": True,
+            "card_bg": "#fffdf7",
+            "card_padding": 0,
+            "page_bg": "#f6efe1",
+            "card_chrome": "hard",
+        },
+        "nav_style": "classic",
+        "hero_style": "accent",
+        "theme": "",
+    },
+    {
+        "key": "nobel",
+        "label": _("Nobel"),
+        "description_de": _("Dunkel, Gold-Haarlinie, Antiqua — Feinkost, Wein, Delikatessen."),
+        "font": "cormorant",  # Cormorant Garamond 600
+        "typography": {"weight_head": 600, "line_height": 1.7},
+        "site_defaults": {
+            "card_radius": 0,
+            "card_shadow": False,
+            "card_bg": "",
+            "card_padding": 0,
+            "card_chrome": "hairline",
+        },
+        "nav_style": "centered",
+        "hero_style": "split",
+        "theme": "dark",
+    },
+    {
+        "key": "foto",
+        "label": _("Foto"),
+        "description_de": _("Bilder im Vollformat, Glas-Karten darüber — für starke eigene Fotos."),
+        "font": "manrope",  # Manrope 800
+        "typography": {"weight_head": 800, "line_height": 1.5},
+        "site_defaults": {
+            "card_radius": 22,
+            "card_shadow": False,
+            "card_bg": "#ffffff",
+            "card_padding": 0,
+            "page_bg": "#ffffff",
+        },
+        "nav_style": "classic",
+        "hero_style": "fullscreen",
+        "theme": "",
+    },
+    {
+        "key": "bauhaus",
+        "label": _("Bauhaus"),
+        "description_de": _("Schwarzes Raster, drei reine Farben, Geometrie — Concept-Store."),
+        "font": "archivo_black",  # Archivo Black 400
+        "typography": {"weight_head": 400, "line_height": 1.4},
+        "site_defaults": {
+            "card_radius": 0,
+            "card_shadow": False,
+            "card_bg": "#ffffff",
+            "card_padding": 0,
+            "page_bg": "#f4f1ea",
+            "card_chrome": "hard",
+        },
+        "nav_style": "classic",
+        "hero_style": "bento",
+        "theme": "",
+    },
 ]
 
 _FAMILY_BY_KEY = {f["key"]: f for f in LOOK_FAMILIES}
 
 # Акценты per-архетип: {business_type: (klar, warm, nacht, fein, natur,
-# prospekt, frisch, neon, blatt, smart)} — ПОЗИЦИОННО, порядок = LOOK_FAMILIES.
+# prospekt, frisch, neon, blatt, smart, monochrom, pastell, retro, nobel, foto,
+# bauhaus)} — ПОЗИЦИОННО, порядок = LOOK_FAMILIES.
 # Nacht/neon-тона светлее (контраст на тёмном); fein/blatt — глубокие
 # благородные; natur/frisch — травяные/земляные; prospekt — «продажный»
 # красно-оранжевый жанра проспекта; smart — функциональный синий (DL-2).
@@ -400,6 +508,13 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#f59e0b",
         "#7c2d12",
         "#1d4ed8",
+        # DL-13: monochrom · pastell · retro · nobel · foto · bauhaus
+        "#b45309",
+        "#c08457",
+        "#b45309",
+        "#b8860b",
+        "#3f2a14",
+        "#d62828",
     ),
     "butcher": (
         "#b91c1c",
@@ -412,6 +527,13 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#f87171",
         "#7f1d1d",
         "#1d4ed8",
+        # DL-13: monochrom · pastell · retro · nobel · foto · bauhaus
+        "#b91c1c",
+        "#b5567a",
+        "#9a3412",
+        "#b08d57",
+        "#3b0a0a",
+        "#d62828",
     ),
     "grocery": (
         "#15803d",
@@ -424,6 +546,13 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#c8f542",
         "#b3202c",
         "#1d4ed8",
+        # DL-13: monochrom · pastell · retro · nobel · foto · bauhaus
+        "#dc2626",
+        "#b5567a",
+        "#c2410c",
+        "#c6a15b",
+        "#17181c",
+        "#d62828",
     ),
     "clothing": (
         "#111827",
@@ -436,6 +565,13 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#e879f9",
         "#1c1917",
         "#1d4ed8",
+        # DL-13: monochrom · pastell · retro · nobel · foto · bauhaus
+        "#be123c",
+        "#7c6fb0",
+        "#7c2d12",
+        "#c9a96e",
+        "#17181c",
+        "#1d3f9e",
     ),
     "restaurant": (
         "#b45309",
@@ -448,6 +584,13 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#fbbf24",
         "#7c2d12",
         "#1d4ed8",
+        # DL-13: monochrom · pastell · retro · nobel · foto · bauhaus
+        "#b91c1c",
+        "#b5567a",
+        "#9a3412",
+        "#c6a15b",
+        "#2a1a12",
+        "#d62828",
     ),
     "cafe": (
         "#92400e",
@@ -460,6 +603,13 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#fbbf24",
         "#713f12",
         "#1d4ed8",
+        # DL-13: monochrom · pastell · retro · nobel · foto · bauhaus
+        "#92400e",
+        "#a0715e",
+        "#92400e",
+        "#b8860b",
+        "#2b1d16",
+        "#1d3f9e",
     ),
     "retail": (
         "#4f46e5",
@@ -472,6 +622,13 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#a3e635",
         "#312e81",
         "#1d4ed8",
+        # DL-13: monochrom · pastell · retro · nobel · foto · bauhaus
+        "#1d4ed8",
+        "#6f8fb5",
+        "#a16207",
+        "#c0a062",
+        "#17181c",
+        "#1d3f9e",
     ),
     "online_shop": (
         "#4f46e5",
@@ -484,6 +641,13 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#a78bfa",
         "#312e81",
         "#1d4ed8",
+        # DL-13: monochrom · pastell · retro · nobel · foto · bauhaus
+        "#1d4ed8",
+        "#6f8fb5",
+        "#a16207",
+        "#c0a062",
+        "#17181c",
+        "#1d3f9e",
     ),
     "tour_operator": (
         "#0e7490",
@@ -496,6 +660,13 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#22d3ee",
         "#164e63",
         "#1d4ed8",
+        # DL-13: monochrom · pastell · retro · nobel · foto · bauhaus
+        "#0e7490",
+        "#5b9aa0",
+        "#7c5e10",
+        "#b39a5c",
+        "#0f2f3a",
+        "#1d3f9e",
     ),
     "hotel": (
         "#0e7490",
@@ -508,6 +679,13 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#38bdf8",
         "#1e3a8a",
         "#1d4ed8",
+        # DL-13: monochrom · pastell · retro · nobel · foto · bauhaus
+        "#1e40af",
+        "#7a8fb5",
+        "#854d0e",
+        "#c6a15b",
+        "#12233a",
+        "#1d3f9e",
     ),
     "friseur": (
         "#0f766e",
@@ -520,6 +698,13 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#f472b6",
         "#831843",
         "#1d4ed8",
+        # DL-13: monochrom · pastell · retro · nobel · foto · bauhaus
+        "#9d174d",
+        "#b57a9a",
+        "#9f1239",
+        "#cdb07a",
+        "#2a1229",
+        "#d62828",
     ),
     "handwerker": (
         "#ea580c",
@@ -532,6 +717,13 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#fb923c",
         "#7c2d12",
         "#1d4ed8",
+        # DL-13: monochrom · pastell · retro · nobel · foto · bauhaus
+        "#c2410c",
+        "#8a9a6f",
+        "#78350f",
+        "#b39a5c",
+        "#1f2937",
+        "#f2c230",
     ),
     "werkstatt": (
         "#1e40af",
@@ -544,6 +736,13 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#60a5fa",
         "#1e3a8a",
         "#1d4ed8",
+        # DL-13: monochrom · pastell · retro · nobel · foto · bauhaus
+        "#1d4ed8",
+        "#6f8fb5",
+        "#7c2d12",
+        "#a89060",
+        "#17181c",
+        "#1d3f9e",
     ),
     "events": (
         "#7c3aed",
@@ -556,6 +755,13 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#c084fc",
         "#581c87",
         "#1d4ed8",
+        # DL-13: monochrom · pastell · retro · nobel · foto · bauhaus
+        "#6d28d9",
+        "#9a7ab5",
+        "#b45309",
+        "#c6a15b",
+        "#1e1b4b",
+        "#d62828",
     ),
     # GK-1: frisch/bio-грин + тёплый warm
     "catering": (
@@ -569,6 +775,13 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#c8f542",
         "#166534",
         "#1d4ed8",
+        # DL-13: monochrom · pastell · retro · nobel · foto · bauhaus
+        "#15803d",
+        "#6fa08a",
+        "#6b7a1e",
+        "#b8a06a",
+        "#14301f",
+        "#1d3f9e",
     ),
     # fmt: on
 }
@@ -764,6 +977,9 @@ def _fokus(extra: dict) -> dict:
 _DEAL_BASE = {
     "nav_cta": True,
     "hero_widget": "none",
+    # DL-13 C3: режим страницы акций — часть композиции; сброс, если сборка
+    # не задаёт «по времени» явно (иначе Retro «протёк» бы в следующую сборку).
+    "promo_grouping": "",
     "sections_off": (
         "archetypes",
         "team",
@@ -809,6 +1025,24 @@ def _deal(extra: dict) -> dict:
     ) - set(cfg["sections_on"])
     cfg["sections_off"] = tuple(sorted(off))
     return cfg
+
+
+# DL-13 (анализ DL-12 §4.1): семейства КОМПОЗИЦИЙ главной — подпись на карточке
+# сборки в Design/мастере, чтобы шаблоны различались для владельца «по смыслу»,
+# а не только по цвету. Ключ → человеческая метка; сборка несёт "composition".
+COMPOSITIONS = {
+    "fokus": _("Fokus: Kategorien → Sortiment → Vertrauen"),
+    "prospekt": _("Prospekt: Aktionen zuerst"),
+    "sortiment": _("Sortiment zuerst, ohne Banner"),
+    "magazin": _("Magazin: Geschichte & Bilder"),
+    "vollbild": _("Vollbild-Foto mit Angebot des Tages"),
+    "bento": _("Bento: Kacheln-Mosaik als erster Bildschirm"),
+}
+
+
+def composition_label(bundle: dict) -> str:
+    """Подпись композиции сборки ("" — у сборки нет ключа/неизвестный)."""
+    return str(COMPOSITIONS.get(bundle.get("composition", ""), ""))
 
 
 BUNDLES = [
@@ -1079,6 +1313,7 @@ BUNDLES = [
     # компактно + страничные пресеты ST-2 («О нас»/корзина).
     {
         "key": "deal_prospekt",
+        "composition": "prospekt",  # DL-13: семейство композиции (COMPOSITIONS)
         "label": _("Prospekt"),
         "description_de": _(
             "Discounter-Energie: Preis-Sticker, kräftige Rahmen, plakative Schrift."
@@ -1114,6 +1349,7 @@ BUNDLES = [
     },
     {
         "key": "deal_frisch",
+        "composition": "magazin",  # DL-13: семейство композиции (COMPOSITIONS)
         "label": _("Frischmarkt"),
         "description_de": _("Warmer Markt von nebenan: Creme, weiche Karten, viel Luft."),
         "recommended_for": (),
@@ -1157,6 +1393,7 @@ BUNDLES = [
     },
     {
         "key": "deal_neon",
+        "composition": "prospekt",  # DL-13: семейство композиции (COMPOSITIONS)
         "label": _("Nachtmarkt"),
         "description_de": _("Dunkler Deal-Jäger: Neon-Preise, große Timer, maximaler Kontrast."),
         "recommended_for": (),
@@ -1191,6 +1428,7 @@ BUNDLES = [
     },
     {
         "key": "deal_blatt",
+        "composition": "magazin",  # DL-13: семейство композиции (COMPOSITIONS)
         "label": _("Markthalle"),
         "description_de": _("Wochenzeitung der guten Preise: Serifen, Papier, feine Linien."),
         "recommended_for": (),
@@ -1228,6 +1466,7 @@ BUNDLES = [
     },
     {
         "key": "deal_smart",
+        "composition": "sortiment",  # DL-13: семейство композиции (COMPOSITIONS)
         "label": _("Marktplatz"),
         "description_de": _("Nüchtern und dicht: Prozent zuerst, klare Listen, volle Übersicht."),
         "recommended_for": (),
@@ -1250,6 +1489,184 @@ BUNDLES = [
                     "process": "minimal",
                     "trust": "plain",
                     "contact": "compact",
+                },
+                "page_presets": {"cart": "empfehlung"},
+            }
+        ),
+    },
+    # ── DL-13: шесть дизайнов канваса «Neue Design-Richtungen» — КАЖДЫЙ в
+    # своей композиции (анализ DL-12 §4.1, утверждено владельцем 2026-09-02).
+    {
+        "key": "deal_monochrom",
+        "label": _("Monochrom"),
+        "composition": "sortiment",
+        "description_de": _("Schwarz-Weiß-Typografie, Farbe nur beim Preis: ehrlich und ruhig."),
+        "recommended_for": (),
+        "look": "monochrom",
+        # V6 / H3 Sortiment-first: без баннера — плитки категорий первым экраном,
+        # акции строками, преимущества и доверие компактно.
+        "config": _deal(
+            {
+                "section_layouts": {"categories": {"preset": "cols3"}},
+                "hero_style": "plain",
+                "nav_style": "minimal",
+                "catalog_layout": {"preset": "cols4"},
+                "sections_on": ("categories", "promotions", "usp_bar", "trust"),
+                "sections_off": ("hero",),
+                "sections_order": ("categories", "promotions", "usp_bar", "trust", "contact"),
+                "section_styles": {
+                    "categories": "square",
+                    "promotions": "rows",
+                    "usp_bar": "compact",
+                    "trust": "compact",
+                    "contact": "compact",
+                },
+                "page_presets": {"cart": "empfehlung"},
+            }
+        ),
+    },
+    {
+        "key": "deal_pastell",
+        "label": _("Pastell"),
+        "composition": "bento",
+        "description_de": _("Weiche Kacheln und runde Ecken — freundlich, für Familien und Bio."),
+        "recommended_for": (),
+        "look": "pastell",
+        # V7 / H6 Bento: мозаика первым экраном (бренд · акция дня · категория ·
+        # часы · Newsletter · рейтинг), затем категории, spotlight-акции, голоса.
+        "config": _deal(
+            {
+                "section_layouts": {"categories": {"preset": "cols3"}},
+                "hero_style": "bento",
+                "nav_style": "classic",
+                "media_shape": "round",
+                "sections_on": ("hero", "categories", "promotions", "testimonials"),
+                "sections_order": ("hero", "categories", "promotions", "testimonials", "contact"),
+                "section_styles": {
+                    "categories": "wide",
+                    "promotions": "spotlight",
+                    "testimonials": "quotes",
+                },
+                "page_presets": {"info": "geschichte"},
+            }
+        ),
+    },
+    {
+        "key": "deal_retro",
+        "label": _("Retro"),
+        "composition": "prospekt",
+        "description_de": _("Plakat der 70er: Ocker, Stempel-Badges, kräftige Slab-Schrift."),
+        "recommended_for": (),
+        "look": "retro",
+        # V8 / H2 Prospekt по времени: акцент-плита, spotlight-акции сразу, страница
+        # акций «Endet heute / diese Woche / …» (promo_grouping), категории компактно,
+        # «как это работает» строкой, преимущества.
+        "config": _deal(
+            {
+                "section_layouts": {"categories": {"preset": "cols3"}},
+                "hero_style": "accent",
+                "nav_style": "classic",
+                "promo_grouping": "time",
+                "media_shape": "wide",
+                "catalog_layout": {"preset": "preisliste_foto"},
+                "sections_on": ("hero", "promotions", "categories", "process", "usp_bar"),
+                "sections_order": (
+                    "hero",
+                    "promotions",
+                    "categories",
+                    "process",
+                    "usp_bar",
+                    "contact",
+                ),
+                "section_styles": {
+                    "promotions": "spotlight",
+                    "categories": "compact",
+                    "process": "row",
+                    "usp_bar": "compact",
+                    "contact": "compact",
+                },
+                "page_presets": {"info": "bild"},
+            }
+        ),
+    },
+    {
+        "key": "deal_nobel",
+        "label": _("Nobel"),
+        "composition": "magazin",
+        "description_de": _("Dunkel, Gold-Haarlinie, Antiqua — Feinkost, Wein, Delikatessen."),
+        "recommended_for": (),
+        "look": "nobel",
+        # V9 / H4 Magazin: split-hero с фото, «о нас» акцентом, акции широкой
+        # картой (banner), галерея, отзывы цитатами, контакт сплитом.
+        "config": _deal(
+            {
+                "section_layouts": {"categories": {"preset": "cols3"}},
+                "hero_style": "split",
+                "nav_style": "centered",
+                "sections_on": ("hero", "about", "promotions", "gallery", "testimonials"),
+                "sections_order": (
+                    "hero",
+                    "about",
+                    "promotions",
+                    "gallery",
+                    "testimonials",
+                    "contact",
+                ),
+                "section_styles": {
+                    "about": "accent",
+                    "promotions": "banner",
+                    "gallery": "large",
+                    "testimonials": "quotes",
+                    "contact": "split",
+                },
+                "page_presets": {"info": "geschichte"},
+            }
+        ),
+    },
+    {
+        "key": "deal_foto",
+        "label": _("Foto"),
+        "composition": "vollbild",
+        "description_de": _("Bilder im Vollformat, Glas-Karten darüber — für starke eigene Fotos."),
+        "recommended_for": (),
+        "look": "foto",
+        # V10 / H5 Vollbild: фото во весь экран + стеклянная карточка акции дня,
+        # полоса преимуществ, акции overlay-карточками, CTA-баннер.
+        "config": _deal(
+            {
+                "section_layouts": {"categories": {"preset": "cols3"}},
+                "hero_style": "fullscreen",
+                "nav_style": "classic",
+                "card_style": "overlay",
+                "sections_on": ("hero", "usp_bar", "promotions", "cta"),
+                "sections_order": ("hero", "usp_bar", "promotions", "cta", "contact"),
+                # promotions/cta — стандартный вид ("" presence-minimal, ключ не пишется).
+                "section_styles": {"usp_bar": "plain"},
+                "page_presets": {"info": "bild"},
+            }
+        ),
+    },
+    {
+        "key": "deal_bauhaus",
+        "label": _("Bauhaus"),
+        "composition": "bento",
+        "description_de": _("Schwarzes Raster, drei reine Farben, Geometrie — Concept-Store."),
+        "recommended_for": (),
+        "look": "bauhaus",
+        # V11 / H6 Bento-geo: геометрическая мозаика, категории квадратами,
+        # акции строками, «как это работает» строкой; каталог плотнее (4).
+        "config": _deal(
+            {
+                "section_layouts": {"categories": {"preset": "cols3"}},
+                "hero_style": "bento",
+                "nav_style": "classic",
+                "catalog_layout": {"preset": "cols4"},
+                "sections_on": ("hero", "categories", "promotions", "process"),
+                "sections_order": ("hero", "categories", "promotions", "process", "contact"),
+                "section_styles": {
+                    "categories": "square",
+                    "promotions": "rows",
+                    "process": "row",
                 },
                 "page_presets": {"cart": "empfehlung"},
             }
@@ -1323,6 +1740,13 @@ def _apply_bundle_axes(config: dict, over: dict) -> None:
     """Оси сборки поверх конфига (общее тело apply_bundle/apply_bundle_config)."""
     if over.get("hero_style"):
         config["hero_style"] = over["hero_style"]
+    # DL-13 C3: страница /aktionen/ «по времени» (Retro = Prospekt по сроку);
+    # "" снимает ключ (presence-minimal). Ось только когда сборка её знает.
+    if "promo_grouping" in over:
+        if over["promo_grouping"]:
+            config["promo_grouping"] = over["promo_grouping"]
+        else:
+            config.pop("promo_grouping", None)
     if over.get("nav_cta"):
         nav = dict(config.get("nav") or {})
         nav["cta"] = True

@@ -361,6 +361,17 @@ class Promotion(SoftDeleteMixin, I18nMixin):
         return (self.old_price - self.new_price).quantize(_CENTS)
 
     @property
+    def grundpreis(self):
+        """DL-13 C5 (PAngV, аудит DL-12 P3): Grundpreis по ПРОМО-цене — у акции на
+        весовой/объёмный товар без вариантов (кг/л как у карточки товара);
+        иначе None (свободная акция, услуга, номер, товар с вариантами)."""
+        if not (self.product_id and self.product) or self.product.has_variants:
+            return None
+        from apps.catalog.pricing import grundpreis
+
+        return grundpreis(self.new_price, self.product.unit, self.product.content_amount)
+
+    @property
     def discount_percent_display(self):
         """Целый процент скидки для бейджа (−XX %)."""
         if self.discount_percent:

@@ -20,3 +20,17 @@ Self-hosted WOFF2 — без внешних CDN на витрине (GDPR DE). �
 `@font-face` с unicode-range — в `static/src/app.css` (собирается в
 `static/css/app.css`). Браузер грузит файл лениво, только когда семейство
 реально используется Look'ом (`FONTS` в `apps/tenants/siteconfig.py`).
+
+## DL-13 (2026-09-02) — шесть новых Look-семейств
+
+Взяты с fonts.gstatic.com через CSS API Google Fonts (статические инстансы), сабсеты
+latin / latin-ext (+ cyrillic, где есть), все — OFL 1.1.
+
+| Файл | Гарнитура | Вес | Look |
+|---|---|---|---|
+| archivo-{latin,latin-ext}-700.woff2 | Archivo (Omnibus-Type) | 700 | monochrom |
+| archivo-black-{latin,latin-ext}-400.woff2 | Archivo Black (Omnibus-Type) | 400 | bauhaus |
+| quicksand-{latin,latin-ext}-700.woff2 | Quicksand (Andrew Paglinawan) | 700 | pastell |
+| alfa-slab-one-{latin,latin-ext}-400.woff2 | Alfa Slab One (JM Solé) | 400 | retro |
+| cormorant-garamond-{latin,latin-ext,cyrillic}-600.woff2 | Cormorant Garamond (Christian Thalmann) | 600 | nobel |
+| manrope-{latin,latin-ext,cyrillic}-800.woff2 | Manrope (Mikhail Sharanda) | 800 | foto |

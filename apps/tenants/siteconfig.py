@@ -892,7 +892,18 @@ GRID_SECTION_DEFAULTS = {
 # сетки (categories/stay_rooms/team/…) показывают всё — лимит к ним не применяем.
 # DS-5: + categories (владелец задаёт число плиток; ⚠️ материализация limit —
 # осознанная golden-регенерация 2026-08-12).
-GRID_SECTION_LIMITS = {"products": 8, "events": 6, "blog": 3, "categories": 30, "tours": 6}
+# DL-13 (C4, решение владельца «лимит 9»): секция акций главной — 9 карточек
+# (3 полных ряда по 3) + ссылка «Alle Aktionen» — раньше выводила ВСЕ активные
+# акции (у демо 15 → главная превращалась в /aktionen/). ⚠️ материализация
+# limit/show_all у promotions — осознанная golden-регенерация 2026-09-02.
+GRID_SECTION_LIMITS = {
+    "products": 8,
+    "events": 6,
+    "blog": 3,
+    "categories": 30,
+    "tours": 6,
+    "promotions": 9,
+}
 # ^ дефолт categories = максимум: раньше секция выводила ВСЕ категории —
 #   меньший дефолт молча отрезал бы плитки существующим сайтам (регрессия).
 _SECTION_LIMIT_MAX = 30  # DS-5: было 24
@@ -1099,6 +1110,7 @@ _SECTION_INTRO_MAX = 300
 SECTION_VIEWALL_KEYS = {
     "categories",
     "products",
+    "promotions",  # DL-13 (C4): «Alle Aktionen» при лимите 9
     "events",
     "stay_rooms",
     "services",
@@ -1594,7 +1606,19 @@ NESTED_TEXT_FIELDS = ["cta.title", "cta.text"]
 # выглядит как раньше.
 # DS-3b (Fokus): "split" — текст слева на чистом поле, фото справа (hero_image
 # или первый слайд heroes; слайдер при split не крутится — ограничение v1).
-HERO_STYLES = ("plain", "accent", "split")
+# DL-13 (C1/C2): "fullscreen" — full-bleed фото ~86 vh с текстом слева снизу и
+# «стеклянной» карточкой первой акции (без фото честно падает на accent);
+# "bento" — мозаика плиток (акция дня · категория · часы · Newsletter · рейтинг),
+# плитки без данных выпадают. Управление — селект «Banner» билдера (был чекбокс
+# hero_accent: Save безусловно писал accent/plain и затирал split любой сборки).
+HERO_STYLES = ("plain", "accent", "split", "fullscreen", "bento")
+HERO_STYLE_LABELS = (
+    ("plain", _("Banner: Standard")),
+    ("accent", _("Banner: Akzentfläche")),
+    ("split", _("Banner: Text + Foto")),
+    ("fullscreen", _("Banner: Vollbild-Foto")),
+    ("bento", _("Banner: Bento-Kacheln")),
+)
 
 # Навигация витрины (M20 ④): пункты шапки, их порядок и стиль.
 # (key, подпись, url_name, требуемый модуль | None). offers/products — всегда
@@ -1805,6 +1829,13 @@ FONTS = {
     "bricolage": (_SANS, '"Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif'),
     "space": (_SANS, '"Space Grotesk", "Helvetica Neue", Arial, sans-serif'),
     "schibsted": (_SANS, '"Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif'),
+    # DL-13 (2026-09-02): шесть новых Look-семейств (self-hosted, OFL).
+    "archivo": (_SANS, '"Archivo", "Helvetica Neue", Arial, sans-serif'),
+    "archivo_black": (_SANS, '"Archivo Black", Impact, "Arial Black", sans-serif'),
+    "quicksand": (_SANS, '"Quicksand", ui-rounded, system-ui, sans-serif'),
+    "alfaslab": (_SANS, '"Alfa Slab One", "Rockwell", Georgia, serif'),
+    "cormorant": (_SANS, '"Cormorant Garamond", Georgia, Cambria, serif'),
+    "manrope": (_SANS, '"Manrope", "Helvetica Neue", Arial, sans-serif'),
 }
 
 
@@ -2618,6 +2649,16 @@ def _clean_finder_match(raw) -> dict:
     return out
 
 
+# DL-13 (C3): режим страницы /aktionen/ — "" (по группам владельца, как было)
+# или "time" (Prospekt по времени: Endet heute · Endet diese Woche · Länger
+# gültig · Dauerhaft). Presence-minimal: ключ пишется ТОЛЬКО при "time".
+PROMO_GROUPINGS = ("time",)
+
+
+def normalize_promo_grouping(raw) -> str:
+    return raw if raw in PROMO_GROUPINGS else ""
+
+
 def normalize_presence(raw) -> dict:
     """LS-2 «Jetzt erreichbar»: {"mode": "on"|"off"}; auto — ДЕФОЛТ и в конфиг
     не пишется (presence-minimal, golden-паритет). Мусор → auto (пусто)."""
@@ -2816,6 +2857,10 @@ def _normalize_impl(config) -> dict:
     presence = normalize_presence(config.get("presence"))
     if presence:
         normalized["presence"] = presence
+    # DL-13 (C3): страница акций «по времени»; ключ ТОЛЬКО при "time" (golden целы).
+    promo_grouping = normalize_promo_grouping(config.get("promo_grouping"))
+    if promo_grouping:
+        normalized["promo_grouping"] = promo_grouping
     # AF-1: событийные поля формы /anfrage/; ключ ТОЛЬКО при непустом (golden-паритет).
     anfrage = normalize_anfrage(config.get("anfrage"))
     if anfrage:

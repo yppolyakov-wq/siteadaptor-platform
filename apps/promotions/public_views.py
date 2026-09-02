@@ -171,25 +171,31 @@ def storefront_home(request):
     # UC6-3a: последовательные узкие C-блоки → ряды (md:flex в home.html).
     section_blocks = siteconfig.group_block_rows([s for s in site["sections"] if s["enabled"]])
 
-    promos = (
-        _attach_lowest_30d(
-            Promotion.objects.filter(status="active")
-            .select_related("product")
-            .order_by("-created_at")
+    promos_all = (
+        list(
+            _attach_lowest_30d(
+                Promotion.objects.filter(status="active")
+                .select_related("product")
+                .order_by("-created_at")
+            )
         )
         if "promotions" in sections
         else []
     )
     # DL-3 (стиль spotlight секции акций): чипы «Endet bald» над гридом —
     # акции, заканчивающиеся в ближайшие 3 дня (как полоса /aktionen/, SF-2).
+    # DL-13 C4: полоса — из ПОЛНОЙ выборки, срез лимита ниже её не режет.
     promo_ending_soon = []
-    if promos:
+    if promos_all:
         from datetime import timedelta
 
         from django.utils import timezone as _tz
 
         _soon = _tz.now() + timedelta(days=3)
-        promo_ending_soon = [p for p in promos if p.ends_at and p.ends_at <= _soon][:4]
+        promo_ending_soon = [p for p in promos_all if p.ends_at and p.ends_at <= _soon][:4]
+    # DL-13 C4 (решение владельца «лимит 9»): секция главной — первые N акций
+    # (настраивается в Studio, дефолт 9) + «Alle Aktionen»; раньше выводились ВСЕ.
+    promos = promos_all[: siteconfig.section_limit(site, "promotions")]
     products_preview = []
     if "products" in sections:
         from apps.catalog.models import Product
@@ -319,6 +325,39 @@ def storefront_home(request):
 MIN_GROUP_SECTION = 2
 
 
+def _time_groups(promotions, now):
+    """DL-13 C3 («Prospekt по времени», анализ DL-12 §2 — Lidl/ALDI/PENNY
+    группируют предложения по сроку, а не по теме): секции «Endet heute» ·
+    «Endet diese Woche» · «Länger gültig» · «Dauerhaft» (без ends_at) в порядке
+    срочности; внутри — ближайший конец первым. Пустые секции выпадают, порог
+    MIN_GROUP_SECTION здесь НЕ действует: одна акция «Endet heute» — важнее
+    полного ряда (ряд добивает плитка-подсказка DL-11). Будущие «Ab Montag»
+    (scheduled) — v2: их деталь наружу закрыта (SF-3), карточка вела бы в 404."""
+    from datetime import timedelta
+
+    end_today = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+    end_week = end_today + timedelta(days=6 - now.weekday())
+    buckets = {"heute": [], "woche": [], "laenger": [], "dauerhaft": []}
+    for promo in promotions:
+        if promo.ends_at is None:
+            buckets["dauerhaft"].append(promo)
+        elif promo.ends_at <= end_today:
+            buckets["heute"].append(promo)
+        elif promo.ends_at <= end_week:
+            buckets["woche"].append(promo)
+        else:
+            buckets["laenger"].append(promo)
+    for key in ("heute", "woche", "laenger"):
+        buckets[key].sort(key=lambda p: p.ends_at)
+    labels = {
+        "heute": _("Endet heute"),
+        "woche": _("Endet diese Woche"),
+        "laenger": _("Länger gültig"),
+        "dauerhaft": _("Dauerhaft"),
+    }
+    return [(key, labels[key], items) for key, items in buckets.items() if items]
+
+
 def promotion_list(request):
     """Публичный список акций /aktionen/ (S6 → SF-2: рельсы U-B).
 
@@ -333,6 +372,7 @@ def promotion_list(request):
 
     from apps.core import facets as facets_registry
     from apps.core import modules
+    from apps.tenants import siteconfig
 
     from .facets import DISCOUNT_PRESETS
 
@@ -368,7 +408,13 @@ def promotion_list(request):
     # группы — в конец под «More offers». Выбран фильтр или групп нет →
     # прежняя плоская сетка.
     grouped = []
-    if not has_filters and groups:
+    # DL-13 C3: владелец выбрал «по времени» (site_config.promo_grouping, панель
+    # в кабинете / ось сборки) — секции по сроку вместо тематических групп.
+    raw_site = request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
+    promo_grouping = siteconfig.normalize_promo_grouping(raw_site.get("promo_grouping"))
+    if not has_filters and promo_grouping == "time":
+        grouped = _time_groups(promotions, timezone.localtime())
+    elif not has_filters and groups:
         by_group: dict[str, list] = {}
         order: list[str] = []
         for promo in promotions:

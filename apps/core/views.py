@@ -1878,7 +1878,14 @@ def home_builder_view(request):
             config["wishlist"] = request.POST.get("wishlist") == "on"
         # M20f: дизайн — шрифт + стиль hero (site_config); акцент — поле Tenant.
         config["font"] = request.POST.get("font", config.get("font", "system"))
-        config["hero_style"] = "accent" if request.POST.get("hero_accent") == "on" else "plain"
+        # DL-13 C1: стиль баннера — селект hero_style (5 стилей). Легаси-чекбокс
+        # hero_accent (старые формы) — прежняя семантика. Раньше Save писал
+        # accent/plain БЕЗУСЛОВНО и затирал split любой сборки Fokus (класс W0).
+        hero_style = request.POST.get("hero_style")
+        if hero_style in siteconfig.HERO_STYLES:
+            config["hero_style"] = hero_style
+        else:
+            config["hero_style"] = "accent" if request.POST.get("hero_accent") == "on" else "plain"
         # ST-1b: тёмный Look — hidden-input `theme` ВСЕГДА в форме (W0-инвариант,
         # пред-заполнен текущим значением); "dark" → ключ, иначе снимаем (билдер —
         # единый источник темы, W6). Presence-guard: без поля в POST не трогаем.
@@ -2340,7 +2347,9 @@ def home_builder_view(request):
                 ("space", _("Space Grotesk")),
                 ("schibsted", _("Schibsted Grotesk")),
             ],
-            "hero_accent": config.get("hero_style") == "accent",
+            # DL-13 C1: селект стиля баннера (plain/accent/split/fullscreen/bento).
+            "hero_style": config.get("hero_style", "plain"),
+            "hero_style_options": siteconfig.HERO_STYLE_LABELS,
             "accent": request.tenant.primary_color or "#4f46e5",
             # ST-1b: Look-карточки архетипа (клик выставляет контролы формы) +
             # текущая тема (hidden-input `theme` — round-trip при Save).

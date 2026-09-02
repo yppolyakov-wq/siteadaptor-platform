@@ -424,6 +424,8 @@
     "tablet": 0,
     "width": "contained"
    },
+   "limit": 9,
+   "show_all": true,
    "visual": {
     "background": "",
     "padding": 0,

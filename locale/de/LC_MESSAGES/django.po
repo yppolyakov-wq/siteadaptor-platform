@@ -21374,3 +21374,111 @@ msgid ""
 msgstr ""
 "Unvollständige letzte Reihe: abschneiden (Reihen immer voll) oder alles "
 "zeigen"
+
+msgid "Aktionsseite gliedern:"
+msgstr "Aktionsseite gliedern:"
+
+msgid "Alle Aktionen"
+msgstr "Alle Aktionen"
+
+msgid "Ansicht der Aktionsseite gespeichert."
+msgstr "Ansicht der Aktionsseite gespeichert."
+
+msgid "Banner: Akzentfläche"
+msgstr "Banner: Akzentfläche"
+
+msgid "Banner: Bento-Kacheln"
+msgstr "Banner: Bento-Kacheln"
+
+msgid "Banner: Standard"
+msgstr "Banner: Standard"
+
+msgid "Banner: Text + Foto"
+msgstr "Banner: Text + Foto"
+
+msgid "Banner: Vollbild-Foto"
+msgstr "Banner: Vollbild-Foto"
+
+msgid "Bauhaus"
+msgstr "Bauhaus"
+
+msgid "Bilder im Vollformat, Glas-Karten darüber — für starke eigene Fotos."
+msgstr "Bilder im Vollformat, Glas-Karten darüber — für starke eigene Fotos."
+
+msgid "Dauerhaft"
+msgstr "Dauerhaft"
+
+msgid "Dunkel, Gold-Haarlinie, Antiqua — Feinkost, Wein, Delikatessen."
+msgstr "Dunkel, Gold-Haarlinie, Antiqua — Feinkost, Wein, Delikatessen."
+
+msgid "Endet diese Woche"
+msgstr "Endet diese Woche"
+
+msgid "Endet heute"
+msgstr "Endet heute"
+
+msgid "Länger gültig"
+msgstr "Länger gültig"
+
+msgid "Monochrom"
+msgstr "Monochrom"
+
+msgid "Nobel"
+msgstr "Nobel"
+
+msgid "Pastell"
+msgstr "Pastell"
+
+msgid "Plakat der 70er: Ocker, Stempel-Badges, kräftige Slab-Schrift."
+msgstr "Plakat der 70er: Ocker, Stempel-Badges, kräftige Slab-Schrift."
+
+msgid "Retro"
+msgstr "Retro"
+
+msgid "Schwarz-Weiß-Typografie, Farbe nur beim Preis: ehrlich und ruhig."
+msgstr "Schwarz-Weiß-Typografie, Farbe nur beim Preis: ehrlich und ruhig."
+
+msgid "Weiche Kacheln und runde Ecken — freundlich, für Familien und Bio."
+msgstr "Weiche Kacheln und runde Ecken — freundlich, für Familien und Bio."
+
+msgid "Schwarzes Raster, drei reine Farben, Geometrie — Concept-Store."
+msgstr "Schwarzes Raster, drei reine Farben, Geometrie — Concept-Store."
+
+msgid "Jetzt geöffnet"
+msgstr "Jetzt geöffnet"
+
+msgid "Geschlossen"
+msgstr "Geschlossen"
+
+msgid "Angebote der Woche per E-Mail"
+msgstr "Angebote der Woche per E-Mail"
+
+msgid "Jetzt anmelden"
+msgstr "Jetzt anmelden"
+
+msgid "nach Gruppen (Wochenangebote, Räumung …)"
+msgstr "nach Gruppen (Wochenangebote, Räumung …)"
+
+msgid "nach Zeit (Endet heute, diese Woche …)"
+msgstr "nach Zeit (Endet heute, diese Woche …)"
+
+msgid "opens %(d)s %(t)s"
+msgstr "öffnet %(d)s %(t)s"
+
+msgid "Fokus: Kategorien → Sortiment → Vertrauen"
+msgstr "Fokus: Kategorien → Sortiment → Vertrauen"
+
+msgid "Prospekt: Aktionen zuerst"
+msgstr "Prospekt: Aktionen zuerst"
+
+msgid "Sortiment zuerst, ohne Banner"
+msgstr "Sortiment zuerst, ohne Banner"
+
+msgid "Magazin: Geschichte & Bilder"
+msgstr "Magazin: Geschichte & Bilder"
+
+msgid "Vollbild-Foto mit Angebot des Tages"
+msgstr "Vollbild-Foto mit Angebot des Tages"
+
+msgid "Bento: Kacheln-Mosaik als erster Bildschirm"
+msgstr "Bento: Kacheln-Mosaik als erster Bildschirm"

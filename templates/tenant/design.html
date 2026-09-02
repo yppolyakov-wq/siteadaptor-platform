@@ -29,6 +29,9 @@ Look'и; применение POST'ом — сохраняется сразу. �
           {% if b.key == current_bundle %}<span class="ml-auto text-[11px] bg-indigo-600 text-white rounded-full px-2 py-0.5">✓ {% trans "Aktiv" %}</span>{% endif %}
         </span>
         <span class="block text-xs text-gray-500 mb-2">{{ b.description_de }}</span>
+        {% comment %}DL-13: подпись КОМПОЗИЦИИ (анализ DL-12) — чем шаблон отличается по
+        структуре страницы, а не только по цвету (фидбэк «опять всё Fokus»).{% endcomment %}
+        {% if b.composition_label %}<span class="block text-[11px] text-gray-400 mb-2" data-composition="{{ b.composition }}">🧭 {{ b.composition_label }}</span>{% endif %}
         <span class="block rounded-lg border border-gray-100 overflow-hidden bg-gray-50 mb-3" style="height:150px" aria-hidden="true">
           <iframe data-src="/?preview=1&look={{ b.look }}&bundle={{ b.key }}" title="{{ b.label }}" tabindex="-1" loading="lazy"
                   style="width:400%;height:600px;transform:scale(.25);transform-origin:0 0;pointer-events:none;border:0"></iframe>

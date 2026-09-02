@@ -103,6 +103,9 @@
         <p class="mt-1 text-xs text-gray-400">{% blocktrans with p=lowest_30d %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>
       {% endif %}
       {% include "storefront/_discount_display.html" with promo=promotion part="savings" %}
+      {% comment %}DL-13 C5 (PAngV): Grundpreis по промо-цене — как на детали товара;
+      у mystery едет в том же скрытом блоке (цена восстанавливалась бы из него).{% endcomment %}
+      {% with gp=promotion.grundpreis %}{% if gp %}<p class="mt-1 text-sm text-gray-500" data-grundpreis>{{ gp.0 }} {% if promotion.currency == 'EUR' %}€{% else %}{{ promotion.currency|cursym }}{% endif %} / {{ gp.1 }}</p>{% endif %}{% endwith %}
       {% if promotion.discount_style == "mystery" %}</div>{% endif %}
       {# Статус наличия (референс: «В наличии» отдельной строкой). #}
       {% if promotion.is_sold_out %}

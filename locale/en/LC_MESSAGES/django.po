@@ -21328,3 +21328,113 @@ msgid ""
 "Unvollständige letzte Reihe: abschneiden (Reihen immer voll) oder alles "
 "zeigen"
 msgstr "Incomplete last row: trim it (rows always full) or show everything"
+
+msgid "Aktionsseite gliedern:"
+msgstr "Group the offers page:"
+
+msgid "Alle Aktionen"
+msgstr "All offers"
+
+msgid "Ansicht der Aktionsseite gespeichert."
+msgstr "Offers page view saved."
+
+msgid "Banner: Akzentfläche"
+msgstr "Banner: accent panel"
+
+msgid "Banner: Bento-Kacheln"
+msgstr "Banner: bento tiles"
+
+msgid "Banner: Standard"
+msgstr "Banner: standard"
+
+msgid "Banner: Text + Foto"
+msgstr "Banner: text + photo"
+
+msgid "Banner: Vollbild-Foto"
+msgstr "Banner: full-screen photo"
+
+msgid "Bauhaus"
+msgstr "Bauhaus"
+
+msgid "Bilder im Vollformat, Glas-Karten darüber — für starke eigene Fotos."
+msgstr ""
+"Full-format images with glass cards on top — for strong photos of your own."
+
+msgid "Dauerhaft"
+msgstr "Ongoing"
+
+msgid "Dunkel, Gold-Haarlinie, Antiqua — Feinkost, Wein, Delikatessen."
+msgstr "Dark, gold hairline, serif — fine food, wine, delicatessen."
+
+msgid "Endet diese Woche"
+msgstr "Ends this week"
+
+msgid "Endet heute"
+msgstr "Ends today"
+
+msgid "Länger gültig"
+msgstr "Valid longer"
+
+msgid "Monochrom"
+msgstr "Monochrome"
+
+msgid "Nobel"
+msgstr "Noble"
+
+msgid "Pastell"
+msgstr "Pastel"
+
+msgid "Plakat der 70er: Ocker, Stempel-Badges, kräftige Slab-Schrift."
+msgstr "A 70s poster: ochre, stamp badges, bold slab type."
+
+msgid "Retro"
+msgstr "Retro"
+
+msgid "Schwarz-Weiß-Typografie, Farbe nur beim Preis: ehrlich und ruhig."
+msgstr ""
+"Black-and-white typography, colour only on the price: honest and calm."
+
+msgid "Weiche Kacheln und runde Ecken — freundlich, für Familien und Bio."
+msgstr "Soft tiles and rounded corners — friendly, for families and organic."
+
+msgid "Schwarzes Raster, drei reine Farben, Geometrie — Concept-Store."
+msgstr "Black grid, three pure colours, geometry — concept store."
+
+msgid "Jetzt geöffnet"
+msgstr "Open now"
+
+msgid "Geschlossen"
+msgstr "Closed"
+
+msgid "Angebote der Woche per E-Mail"
+msgstr "Weekly offers by e-mail"
+
+msgid "Jetzt anmelden"
+msgstr "Sign up now"
+
+msgid "nach Gruppen (Wochenangebote, Räumung …)"
+msgstr "by group (weekly offers, clearance …)"
+
+msgid "nach Zeit (Endet heute, diese Woche …)"
+msgstr "by time (ends today, this week …)"
+
+msgid "opens %(d)s %(t)s"
+msgstr "opens %(d)s %(t)s"
+
+msgid "Fokus: Kategorien → Sortiment → Vertrauen"
+msgstr "Focus: categories → range → trust"
+
+msgid "Prospekt: Aktionen zuerst"
+msgstr "Flyer: offers first"
+
+msgid "Sortiment zuerst, ohne Banner"
+msgstr "Range first, no banner"
+
+msgid "Magazin: Geschichte & Bilder"
+msgstr "Magazine: story & pictures"
+
+msgid "Vollbild-Foto mit Angebot des Tages"
+msgstr "Full-screen photo with deal of the day"
+
+msgid "Bento: Kacheln-Mosaik als erster Bildschirm"
+msgstr "Bento: tile mosaic as the first screen"

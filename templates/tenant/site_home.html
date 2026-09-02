@@ -231,7 +231,7 @@
               if (!form || !lk.accent) return;
               setVal(form, "input[name='accent']", lk.accent);
               setVal(form, "select[name='font']", lk.font);
-              setChecked(form, "input[name='hero_accent']", lk.hero_style === "accent");
+              setVal(form, "select[name='hero_style']", lk.hero_style || "plain");  // DL-13: селект стиля баннера
               setVal(form, "input[name='theme']", lk.theme || "");
               var navRadio = form.querySelector('input[name="nav_style"][value="' + lk.nav_style + '"]');
               if (navRadio) { navRadio.checked = true; fire(navRadio); }
@@ -275,9 +275,15 @@
               {% endfor %}
             </select>
           </label>
-          <label class="flex items-center gap-2 text-sm sm:pt-6">
-            <input type="checkbox" name="hero_accent" {% if hero_accent %}checked{% endif %} class="rounded border-gray-300">
-            {% trans "Accent banner background" %}
+          {% comment %}DL-13 C1/C2: стиль баннера — селект из 5 стилей (был чекбокс
+          «accent»: Save писал accent/plain безусловно и затирал split сборки Fokus).{% endcomment %}
+          <label class="text-sm">
+            <span class="block font-medium mb-1">{% trans "Banner" %}</span>
+            <select name="hero_style" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              {% for key, label in hero_style_options %}
+                <option value="{{ key }}" {% if key == hero_style %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
           </label>
           {# SE-3b: типографика — начертание заголовков + межстрочный интервал тела. #}
           <label class="text-sm" data-expert="1">
@@ -2148,7 +2154,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     });
     // M20f: дизайн вживую — шрифт, стиль hero, акцент.
     var fontEl = form.querySelector("[name=font]");
-    var heroEl = form.querySelector("[name=hero_accent]");
+    var heroEl = form.querySelector("select[name=hero_style]");  // DL-13: селект стиля баннера
     var accentEl = form.querySelector("[name=accent]");
     // SE-3b: глобальная типографика (начертание заголовков + межстрочный интервал).
     var twhEl = form.querySelector("select[name='typo_weight_head']");
@@ -2171,7 +2177,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       section_titles: sectionTitles,
       theme: themeEl ? themeEl.value : undefined,
       font: fontEl ? fontEl.value : "system",
-      hero_style: heroEl && heroEl.checked ? "accent" : "plain",
+      hero_style: heroEl ? heroEl.value : "plain",
       accent: accentEl ? accentEl.value : "",
       nav_style: navStyleEl ? navStyleEl.value : undefined,
       nav_sticky: !!(navStickyEl && navStickyEl.checked),

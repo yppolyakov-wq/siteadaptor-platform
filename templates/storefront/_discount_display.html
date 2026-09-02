@@ -48,6 +48,10 @@ UE1: badge_pos_class — переопределение позиции бейд�
   {% else %}
     {% include "storefront/_price.html" with promo=promo %}
   {% endif %}
+  {% comment %}DL-13 C5 (PAngV): Grundpreis по промо-цене рядом с ценой — как у
+  карточки товара; mystery прячет цену, а из Grundpreis она восстанавливается
+  арифметикой → у mystery строки нет.{% endcomment %}
+  {% if eff_style != "mystery" %}{% with gp=promo.grundpreis %}{% if gp %}<span class="block text-[11px] text-gray-400 leading-tight" data-grundpreis>{{ gp.0 }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency|cursym }}{% endif %} / {{ gp.1 }}</span>{% endif %}{% endwith %}{% endif %}
 {% elif part == "scarcity" %}
   {% if promo.available_quantity is not None %}
     {% if size == "lg" %}

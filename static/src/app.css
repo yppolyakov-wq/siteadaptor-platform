@@ -118,6 +118,119 @@
   src: url("../fonts/schibsted-grotesk-latin-ext-700.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
+/* DL-13: шесть Look-семейств — Archivo / Archivo Black / Quicksand / Alfa Slab One / Cormorant Garamond / Manrope (OFL, static/fonts/SOURCES.md) */
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/archivo-latin-ext-700.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/archivo-latin-700.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Archivo Black";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/archivo-black-latin-ext-400.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Archivo Black";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/archivo-black-latin-400.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Quicksand";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/quicksand-latin-ext-700.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Quicksand";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/quicksand-latin-700.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Alfa Slab One";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/alfa-slab-one-latin-ext-400.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Alfa Slab One";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/alfa-slab-one-latin-400.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../fonts/cormorant-garamond-cyrillic-600.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../fonts/cormorant-garamond-latin-ext-600.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../fonts/cormorant-garamond-latin-600.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("../fonts/manrope-cyrillic-800.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("../fonts/manrope-latin-ext-800.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("../fonts/manrope-latin-800.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
 /* ───────────────────────────────────────────────────────────────────────────
    P5c: тёмная тема витрины (Tailwind darkMode:"class").
@@ -348,6 +461,153 @@
 [data-sf-look="smart"] .bg-red-600.text-white.rounded-full {
   border-radius: 6px;
   box-shadow: none;
+}
+
+/* DL-13: «стеклянная» плашка поверх фото (Vollbild-hero, карточки Foto). */
+.sf-glass {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.35);
+}
+
+/* DL-13: шесть семейств канваса «Neue Design-Richtungen» (V6–V11). Только
+   каскад по body[data-sf-look] — шаблоны и паритет-замки целы; body-префикс
+   там, где надо перебить inline-правила хрома (_base.html) той же силы. */
+/* V6 Monochrom: фото чёрно-белые (цвет по hover), заголовки uppercase,
+   цвет — только у цены и бейджа. QR (.sf-qr) и без того ч/б — не трогаем. */
+[data-sf-look="monochrom"] img:not(.sf-qr) {
+  filter: grayscale(1);
+  transition: filter 0.35s;
+}
+[data-sf-look="monochrom"] a:hover img,
+[data-sf-look="monochrom"] .group:hover img,
+[data-sf-look="monochrom"] [data-hero-fullscreen] img,
+[data-sf-look="monochrom"] [data-bento] img {
+  filter: none;
+}
+[data-sf-look="monochrom"] h1,
+[data-sf-look="monochrom"] h2 {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+[data-sf-look="monochrom"] .bg-red-600.text-white.rounded-full {
+  background: #171717;
+  color: #fff;
+  border-radius: 0;
+  box-shadow: none;
+}
+[data-sf-look="monochrom"] .font-extrabold.text-red-600,
+[data-sf-look="monochrom"] .font-bold.text-red-600 {
+  color: var(--accent);
+}
+/* V7 Pastell: белая пилюля-бейдж с акцентом, зелёные цены, мягкие карточки. */
+[data-sf-look="pastell"] .bg-red-600.text-white.rounded-full {
+  background: #ffffff;
+  color: var(--accent);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+[data-sf-look="pastell"] .font-extrabold.text-red-600,
+[data-sf-look="pastell"] .font-bold.text-red-600 {
+  color: #2b6e52;
+}
+[data-sf-look="pastell"] [data-promo-ending] a {
+  background: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+/* V8 Retro: бейдж-«штамп» (двойная обводка, наклон), заголовки с полосой-подчёркиванием. */
+[data-sf-look="retro"] .bg-red-600.text-white.rounded-full {
+  background: transparent;
+  color: var(--accent);
+  border: 2px solid var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+  transform: rotate(-6deg);
+  box-shadow: none;
+}
+[data-sf-look="retro"] section[data-reveal] h2[data-edit] {
+  display: inline-block;
+  border-bottom: 6px solid var(--accent);
+  padding-bottom: 0.1em;
+}
+[data-sf-look="retro"] .font-extrabold.text-red-600,
+[data-sf-look="retro"] .font-bold.text-red-600 {
+  color: var(--accent);
+}
+/* V9 Nobel: тёмная тёплая подложка, золотая волосяная рамка, цены serif золотом,
+   бейдж — контурный, без заливки. */
+.dark body[data-sf-look="nobel"] {
+  background-color: #12100e;
+}
+body[data-sf-look="nobel"] .sf-card,
+body[data-sf-look="nobel"] .cb-box {
+  border-color: rgba(198, 161, 91, 0.45) !important;
+}
+[data-sf-look="nobel"] .bg-red-600.text-white.rounded-full {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 0;
+  letter-spacing: 0.08em;
+  box-shadow: none;
+}
+[data-sf-look="nobel"] .font-extrabold.text-red-600,
+[data-sf-look="nobel"] .font-bold.text-red-600 {
+  color: var(--accent);
+  font-family: var(--font-head);
+}
+[data-sf-look="nobel"] section[data-reveal] h2[data-edit] {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+/* V10 Foto: фото во всю плитку, «стеклянные» бейджи и подписи. */
+[data-sf-look="foto"] .bg-red-600.text-white.rounded-full {
+  background: rgba(255, 255, 255, 0.85);
+  color: #171717;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: none;
+}
+[data-sf-look="foto"] .font-extrabold.text-red-600,
+[data-sf-look="foto"] .font-bold.text-red-600 {
+  color: var(--accent);
+}
+/* V11 Bauhaus: круг-бейдж, три чистых цвета по позиции в ряду, чёрные 3px
+   рамки без тени, заголовки секций с цветной левой планкой. */
+body[data-sf-look="bauhaus"] .sf-card,
+body[data-sf-look="bauhaus"] .cb-box {
+  border: 3px solid #171717 !important;
+  box-shadow: none !important;
+}
+[data-sf-look="bauhaus"] .bg-red-600.text-white.rounded-full {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  padding: 0;
+  border-radius: 9999px;
+  background: #d62828;
+  color: #fff;
+  border: 3px solid #171717;
+  box-shadow: none;
+}
+[data-sf-look="bauhaus"] [data-grid] > :nth-child(3n + 2) .bg-red-600.text-white.rounded-full {
+  background: #1d3f9e;
+}
+[data-sf-look="bauhaus"] [data-grid] > :nth-child(3n + 3) .bg-red-600.text-white.rounded-full {
+  background: #f2c318;
+  color: #171717;
+}
+[data-sf-look="bauhaus"] section[data-reveal] h2[data-edit] {
+  border-left: 10px solid var(--accent);
+  padding-left: 0.4em;
+}
+[data-sf-look="bauhaus"] .font-extrabold.text-red-600,
+[data-sf-look="bauhaus"] .font-bold.text-red-600 {
+  color: #171717;
 }
 
 /* R1: тост подтверждения добавления в корзину + «прыжок» бейджа. */

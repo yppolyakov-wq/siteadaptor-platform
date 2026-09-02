@@ -153,6 +153,81 @@ def hero_tiles(context, widget):
     return {"tiles": registry.tiles_for(widget, tenant, deal=deal)}
 
 
+@register.inclusion_tag("storefront/sections/_hero_deal_card.html", takes_context=True)
+def hero_deal_card(context):
+    """DL-13 C1: «стеклянная» карточка первой активной акции в Vollbild-hero.
+    Гейт: модуль promotions активен И есть живая акция — иначе пусто (партиал
+    самогейтится, колонка грида схлопывается)."""
+    from apps.core import modules
+
+    tenant = getattr(context.get("request"), "tenant", None) or context.get("tenant")
+    if tenant is None or not modules.is_module_active(tenant, "promotions"):
+        return {"deal": None}
+    return {"deal": deal_of_day()}
+
+
+@register.inclusion_tag("storefront/sections/_hero_bento.html", takes_context=True)
+def hero_bento(context):
+    """DL-13 C2: плитки Bento-hero. Бренд-плитка (заголовок/текст/CTA) — всегда;
+    остальные — по данным: акция дня (модуль promotions), первая категория с
+    фото (модуль catalog), часы (структурные часы заданы), Newsletter (модуль
+    promotions), рейтинг (внутренний или Google). Каждая выборка fail-safe —
+    первый экран не должен падать из-за одной плитки."""
+    from apps.core import modules
+
+    request = context.get("request")
+    tenant = getattr(request, "tenant", None) or context.get("tenant")
+    out = {
+        "request": request,  # inclusion_tag рендерит СВОЙ контекст — request не наследуется
+        "site": context.get("site") or {},
+        "primary_item": context.get("primary_item"),
+        "deal": None,
+        "category": None,
+        "hours": None,
+        "newsletter": False,
+        "rating": None,
+    }
+    if tenant is None:
+        return out
+    if modules.is_module_active(tenant, "promotions"):
+        try:
+            out["deal"] = deal_of_day()
+        except Exception:  # pragma: no cover — плитка не роняет главную
+            out["deal"] = None
+        out["newsletter"] = True
+    if modules.is_module_active(tenant, "catalog"):
+        try:
+            from apps.catalog.models import Category
+
+            out["category"] = next(
+                (
+                    c
+                    for c in Category.objects.filter(is_active=True, parent__isnull=True).order_by(
+                        "sort_order", "slug"
+                    )[:12]
+                    if c.image_url
+                ),
+                None,
+            )
+        except Exception:  # pragma: no cover
+            out["category"] = None
+    try:
+        status = tenant.open_status()  # метод, не property (в шаблоне зовётся без скобок)
+        if status is not None:
+            out["hours"] = {"status": status, "today": tenant.todays_hours()}
+    except Exception:  # pragma: no cover
+        out["hours"] = None
+    try:
+        from apps.core.templatetags.seo import business_rating
+
+        out["rating"] = business_rating()
+    except Exception:  # pragma: no cover
+        out["rating"] = None
+    out["google_rating"] = getattr(tenant, "google_rating", None)
+    out["google_rating_count"] = getattr(tenant, "google_rating_count", 0)
+    return out
+
+
 @register.inclusion_tag("storefront/_funnel_steps.html")
 def funnel_steps(kind, current):
     """E5 «задача-первым»: прогресс-степпер воронки (Schritt N/M) — ведём клиента

@@ -73,7 +73,20 @@ def test_bundles_for_recommended_first():
     assert "fokus" in keys
 
 
-DEAL_BUNDLES = ("deal_prospekt", "deal_frisch", "deal_neon", "deal_blatt", "deal_smart")
+DEAL_BUNDLES = (
+    "deal_prospekt",
+    "deal_frisch",
+    "deal_neon",
+    "deal_blatt",
+    "deal_smart",
+    # DL-13: шесть дизайнов «Neue Design-Richtungen» — каждый в своей композиции.
+    "deal_monochrom",
+    "deal_pastell",
+    "deal_retro",
+    "deal_nobel",
+    "deal_foto",
+    "deal_bauhaus",
+)
 
 
 def test_every_archetype_sees_exactly_one_fokus():
@@ -99,7 +112,12 @@ def test_deal_bundles_universal_and_composed():
         assert b["recommended_for"] == (), key
         assert b["look"] == key.removeprefix("deal_"), key
         cfg = b["config"]
-        assert cfg["section_styles"]["promotions"] in ("spotlight", "rows"), key
+        # DL-13: + banner (Magazin) и "" (сетка overlay-карточек у Vollbild) —
+        # замок осознанно расширен вместе с шестью новыми композициями.
+        assert cfg["section_styles"].get("promotions", "") in ("spotlight", "rows", "banner", ""), (
+            key
+        )
+        assert b["composition"] in sitetemplates.COMPOSITIONS, key  # подпись композиции
         # Акции — главный контент дил-шаблона (общее у всех пяти). Второй блок
         # у каждого СВОЙ (DL-9: газета несёт прайс-лист вместо плиток категорий),
         # поэтому «categories у всех» здесь больше не требуется — осознанно.
@@ -131,6 +149,15 @@ def test_deal_bundles_differ_structurally():
     assert "hero" not in by_key["deal_smart"]["sections_on"]  # маркетплейс без баннера
     assert by_key["deal_smart"]["sections_order"][0] == "promotions"
     assert "products" in by_key["deal_blatt"]["sections_on"]  # газета несёт прайс
+    # DL-13: композиции по утверждённой привязке DL-12 §4.1.
+    assert "hero" not in by_key["deal_monochrom"]["sections_on"]  # Sortiment-first
+    assert by_key["deal_monochrom"]["sections_order"][0] == "categories"
+    assert by_key["deal_pastell"]["hero_style"] == "bento"
+    assert by_key["deal_bauhaus"]["hero_style"] == "bento"
+    assert by_key["deal_foto"]["hero_style"] == "fullscreen"
+    assert by_key["deal_foto"]["card_style"] == "overlay"
+    assert by_key["deal_retro"]["promo_grouping"] == "time"  # Prospekt по времени
+    assert by_key["deal_nobel"]["sections_order"][1] == "about"  # Magazin
 
 
 @pytest.mark.parametrize("key", ["deal_prospekt", "deal_neon", "deal_blatt", "deal_smart"])

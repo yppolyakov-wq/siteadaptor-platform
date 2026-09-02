@@ -37,7 +37,12 @@ def design_view(request):
         request,
         "tenant/design.html",
         {
-            "bundles": sitetemplates.bundles_for(tenant.business_type),
+            # DL-13: подпись композиции на карточке (чем шаблон отличается по
+            # структуре страницы — анализ DL-12, фидбэк «опять всё Fokus»).
+            "bundles": [
+                {**b, "composition_label": sitetemplates.composition_label(b)}
+                for b in sitetemplates.bundles_for(tenant.business_type)
+            ],
             "looks": sitetemplates.looks_for(tenant.business_type),
             "current_bundle": current.get("bundle", ""),
             "current_look": current.get("look", ""),

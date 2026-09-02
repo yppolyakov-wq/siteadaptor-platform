@@ -1,4 +1,5 @@
-{% load i18n %}{# Секция hero (Track C2 / M20U-2): баннер или слайдер баннеров из site_config. #}
+{% load i18n siteui %}{# Секция hero (Track C2 / M20U-2): баннер или слайдер баннеров из site_config. #}
+{% firstof site.hero_image site.heroes.0.image as hero_photo %}
 {% if site.hero_style == "split" %}
 {% comment %}DS-3b (Fokus): сплит-композиция — текст слева на чистом поле (читается
 без тёмной вуали), фото справа как есть. Фото: hero_image или первый слайд heroes
@@ -33,6 +34,32 @@
     {% if split_photo %}<img src="{{ split_photo }}" alt="" class="absolute inset-0 w-full h-full object-cover">{% endif %}
   </div>
 </section>
+{% elif site.hero_style == "fullscreen" and hero_photo %}
+{% comment %}DL-13 C1 (Vollbild, дизайн V10 «Foto»): full-bleed фото ~86 vh (мобайл
+70 vh), градиент снизу, заголовок/текст/CTA слева снизу, справа «стеклянная»
+карточка первой активной акции (гейт модуля promotions — тег hero_deal_card
+самогейтится). Без фото ветка не срабатывает → честный фолбэк accent ниже.{% endcomment %}
+<section class="relative left-1/2 -translate-x-1/2 w-screen -mt-6 md:-mt-10 mb-10 min-h-[70vh] md:min-h-[86vh] flex items-end bg-gray-900 text-white overflow-hidden" data-hero-fullscreen>
+  <img src="{{ hero_photo }}" alt="" fetchpriority="high" class="absolute inset-0 w-full h-full object-cover">
+  <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/5"></div>
+  <div class="relative w-full max-w-7xl mx-auto px-4 lg:px-8 pb-10 md:pb-16 grid md:grid-cols-3 gap-6 items-end">
+    <div class="md:col-span-2">
+      <p class="text-[11px] font-bold tracking-[0.13em] uppercase mb-2 text-white/80">{{ request.tenant.get_business_type_display }}{% if request.tenant.city %} · {{ request.tenant.city }}{% endif %}</p>
+      <h1 class="text-4xl md:text-6xl font-bold leading-tight drop-shadow-lg" data-edit="hero_title">{{ site.hero_title|default:request.tenant.name }}</h1>
+      {% if site.hero_text %}<p class="mt-4 text-lg md:text-xl text-white/90 max-w-2xl drop-shadow whitespace-pre-line" data-edit="hero_text">{{ site.hero_text }}</p>{% endif %}
+      {% include "storefront/sections/_hero_cta.html" with style="light" %}
+    </div>
+    {% hero_deal_card %}
+  </div>
+</section>
+{% if site.site_defaults.hero_widget %}
+<div class="-mt-6 mb-10">{% include "storefront/sections/_hero_widget.html" with hero_widget=site.site_defaults.hero_widget %}</div>
+{% endif %}
+{% elif site.hero_style == "bento" %}
+{% comment %}DL-13 C2 (Bento, дизайны V7/V11): мозаика плиток — бренд-плитка (заголовок/
+текст/CTA, всегда) · акция дня · категория с фото · часы работы · Newsletter ·
+рейтинг. Плитки без данных выпадают, сетка уплотняется (тег hero_bento).{% endcomment %}
+{% hero_bento %}
 {% elif site.heroes %}
 {# M20U-2: слайдер главных баннеров (full-bleed). Один слайд — без автопрокрутки. #}
 <section class="relative left-1/2 -translate-x-1/2 w-screen -mt-6 md:-mt-10 mb-10" data-hero-slider>
@@ -70,7 +97,12 @@
     var slides = [].slice.call(s.querySelectorAll('[data-hero-slide]'));
     var dots = [].slice.call(s.querySelectorAll('[data-hero-dot]'));
     if (slides.length < 2) return;
-    var i = 0, timer;
+    var i = 0, timer = null;
+    // DL-13 C6 (NN/g, Baymard: авто-карусель без паузы и на телефоне — потери
+    // кликов): без автопрокрутки на узком экране и при prefers-reduced-motion;
+    // пауза при наведении/фокусе; клик по точке останавливает ротацию совсем.
+    var auto = !(window.matchMedia && (window.matchMedia('(max-width: 767px)').matches ||
+                 window.matchMedia('(prefers-reduced-motion: reduce)').matches));
     function show(n) {
       slides.forEach(function (sl, k) {
         sl.classList.toggle('opacity-0', k !== n);
@@ -82,10 +114,15 @@
       });
       i = n;
     }
-    function start() { timer = setInterval(function () { show((i + 1) % slides.length); }, 6000); }
+    function stop() { if (timer) { clearInterval(timer); timer = null; } }
+    function start() { if (auto && !timer) timer = setInterval(function () { show((i + 1) % slides.length); }, 6000); }
     dots.forEach(function (d, k) {
-      d.addEventListener('click', function () { clearInterval(timer); show(k); start(); });
+      d.addEventListener('click', function () { stop(); auto = false; show(k); });
     });
+    s.addEventListener('mouseenter', stop);
+    s.addEventListener('mouseleave', start);
+    s.addEventListener('focusin', stop);
+    s.addEventListener('focusout', start);
     start();
   });
 })();
@@ -102,7 +139,8 @@
     {% if site.site_defaults.hero_widget %}{% include "storefront/sections/_hero_widget.html" with hero_widget=site.site_defaults.hero_widget %}{% else %}{% include "storefront/sections/_hero_cta.html" with style="light" %}{% endif %}
   </div>
 </section>
-{% elif site.hero_style == "accent" %}
+{% elif site.hero_style == "accent" or site.hero_style == "fullscreen" %}
+{# DL-13: fullscreen без фото честно падает сюда (не пустой первый экран). #}
 <section class="mb-10 rounded-2xl shadow-sm p-8 md:p-12 text-center text-white" style="background: var(--accent, #4f46e5);">
   <h1 class="text-3xl md:text-4xl font-bold" data-edit="hero_title">{{ site.hero_title|default:request.tenant.name }}</h1>
   {% if site.hero_text %}<p class="mt-3 text-white/90 max-w-2xl mx-auto whitespace-pre-line" data-edit="hero_text">{{ site.hero_text }}</p>{% endif %}

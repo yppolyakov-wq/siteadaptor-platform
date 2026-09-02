@@ -21552,3 +21552,113 @@ msgid ""
 "zeigen"
 msgstr ""
 "Неполный последний ряд: обрезать (ряды всегда полные) или показать всё"
+
+msgid "Aktionsseite gliedern:"
+msgstr "Группировка страницы акций:"
+
+msgid "Alle Aktionen"
+msgstr "Все акции"
+
+msgid "Ansicht der Aktionsseite gespeichert."
+msgstr "Вид страницы акций сохранён."
+
+msgid "Banner: Akzentfläche"
+msgstr "Баннер: акцентная плашка"
+
+msgid "Banner: Bento-Kacheln"
+msgstr "Баннер: плитки Bento"
+
+msgid "Banner: Standard"
+msgstr "Баннер: стандартный"
+
+msgid "Banner: Text + Foto"
+msgstr "Баннер: текст + фото"
+
+msgid "Banner: Vollbild-Foto"
+msgstr "Баннер: фото на весь экран"
+
+msgid "Bauhaus"
+msgstr "Баухаус"
+
+msgid "Bilder im Vollformat, Glas-Karten darüber — für starke eigene Fotos."
+msgstr ""
+"Фото во весь формат, «стеклянные» карточки поверх — для сильных собственных "
+"фотографий."
+
+msgid "Dauerhaft"
+msgstr "Постоянно"
+
+msgid "Dunkel, Gold-Haarlinie, Antiqua — Feinkost, Wein, Delikatessen."
+msgstr "Тёмный фон, золотая линия, антиква — деликатесы, вино, гастрономия."
+
+msgid "Endet diese Woche"
+msgstr "Заканчивается на этой неделе"
+
+msgid "Endet heute"
+msgstr "Заканчивается сегодня"
+
+msgid "Länger gültig"
+msgstr "Действует дольше"
+
+msgid "Monochrom"
+msgstr "Монохром"
+
+msgid "Nobel"
+msgstr "Благородный"
+
+msgid "Pastell"
+msgstr "Пастель"
+
+msgid "Plakat der 70er: Ocker, Stempel-Badges, kräftige Slab-Schrift."
+msgstr "Плакат 70-х: охра, бейджи-штампы, тяжёлый брусковый шрифт."
+
+msgid "Retro"
+msgstr "Ретро"
+
+msgid "Schwarz-Weiß-Typografie, Farbe nur beim Preis: ehrlich und ruhig."
+msgstr "Чёрно-белая типографика, цвет только у цены: честно и спокойно."
+
+msgid "Weiche Kacheln und runde Ecken — freundlich, für Familien und Bio."
+msgstr "Мягкие плитки и скруглённые углы — дружелюбно, для семей и био."
+
+msgid "Schwarzes Raster, drei reine Farben, Geometrie — Concept-Store."
+msgstr "Чёрная сетка, три чистых цвета, геометрия — концепт-стор."
+
+msgid "Jetzt geöffnet"
+msgstr "Сейчас открыто"
+
+msgid "Geschlossen"
+msgstr "Закрыто"
+
+msgid "Angebote der Woche per E-Mail"
+msgstr "Предложения недели по e-mail"
+
+msgid "Jetzt anmelden"
+msgstr "Подписаться"
+
+msgid "nach Gruppen (Wochenangebote, Räumung …)"
+msgstr "по группам (предложения недели, распродажа …)"
+
+msgid "nach Zeit (Endet heute, diese Woche …)"
+msgstr "по времени (заканчивается сегодня, на этой неделе …)"
+
+msgid "opens %(d)s %(t)s"
+msgstr "откроется %(d)s %(t)s"
+
+msgid "Fokus: Kategorien → Sortiment → Vertrauen"
+msgstr "Фокус: категории → ассортимент → доверие"
+
+msgid "Prospekt: Aktionen zuerst"
+msgstr "Проспект: сначала акции"
+
+msgid "Sortiment zuerst, ohne Banner"
+msgstr "Сначала ассортимент, без баннера"
+
+msgid "Magazin: Geschichte & Bilder"
+msgstr "Журнал: история и фотографии"
+
+msgid "Vollbild-Foto mit Angebot des Tages"
+msgstr "Фото на весь экран с акцией дня"
+
+msgid "Bento: Kacheln-Mosaik als erster Bildschirm"
+msgstr "Бенто: мозаика плиток первым экраном"

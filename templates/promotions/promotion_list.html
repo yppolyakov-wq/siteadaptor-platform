@@ -35,7 +35,8 @@
 {% endif %}
 
 <div class="bg-white rounded-2xl shadow-sm p-4">
-  <form method="get" class="mb-4">
+  <div class="mb-4 flex flex-wrap items-center gap-3">
+  <form method="get">
     <select name="status" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
       <option value="">{% trans "Any status" %}</option>
       {% for value, label in statuses %}
@@ -43,6 +44,17 @@
       {% endfor %}
     </select>
   </form>
+  {% comment %}DL-13 C3: как гл. страница /aktionen/ группирует акции — тематические
+  группы владельца (как было) или Prospekt «по времени» (Endet heute/diese Woche…).
+  Targeted-write ключа promo_grouping; сборка Retro ставит «по времени» сама.{% endcomment %}
+  <form method="post" action="{% url 'promotions:promotion-page-mode' %}" class="flex items-center gap-2 text-sm" data-promo-page-mode>{% csrf_token %}
+    <label for="promo-page-mode" class="text-gray-500">{% trans "Aktionsseite gliedern:" %}</label>
+    <select id="promo-page-mode" name="mode" onchange="this.form.submit()" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <option value="" {% if not promo_grouping %}selected{% endif %}>{% trans "nach Gruppen (Wochenangebote, Räumung …)" %}</option>
+      <option value="time" {% if promo_grouping == "time" %}selected{% endif %}>{% trans "nach Zeit (Endet heute, diese Woche …)" %}</option>
+    </select>
+  </form>
+  </div>
 
   <div class="-mx-4 px-4 overflow-x-auto sm:mx-0 sm:px-0">
   <table class="w-full text-sm min-w-[640px]">

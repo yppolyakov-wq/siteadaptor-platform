@@ -196,8 +196,41 @@ def promotion_list(request):
             "campaigns_active": bool(
                 getattr(request, "tenant", None) and request.tenant.is_module_active("crm")
             ),
+            # DL-13 C3: текущий режим страницы /aktionen/ (панель «gliedern»).
+            "promo_grouping": _promo_grouping(request),
         },
     )
+
+
+def _promo_grouping(request) -> str:
+    from apps.tenants import siteconfig
+
+    raw = getattr(getattr(request, "tenant", None), "site_config", None)
+    raw = raw if isinstance(raw, dict) else {}
+    return siteconfig.normalize_promo_grouping(raw.get("promo_grouping"))
+
+
+@login_required
+@require_POST
+def promotion_page_mode(request):
+    """DL-13 C3: режим страницы /aktionen/ — по группам владельца ("") или
+    «по времени» ("time": Endet heute · diese Woche · länger · dauerhaft).
+
+    Targeted-write ключа promo_grouping (паттерн set_presence_view): остальной
+    site_config цел; "" = отсутствие ключа (presence-minimal, golden целы)."""
+    from apps.tenants import siteconfig
+
+    tenant = request.tenant
+    cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
+    mode = siteconfig.normalize_promo_grouping(request.POST.get("mode", ""))
+    if mode:
+        cfg["promo_grouping"] = mode
+    else:
+        cfg.pop("promo_grouping", None)
+    tenant.site_config = cfg
+    tenant.save(update_fields=["site_config", "updated_at"])
+    messages.success(request, _("Ansicht der Aktionsseite gespeichert."))
+    return redirect("promotions:promotion-list")
 
 
 # C2: цели QR-печатки — (url-name, модуль-гейт, заголовок, подпись). Невалидная/

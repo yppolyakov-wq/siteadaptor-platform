@@ -21455,3 +21455,113 @@ msgid ""
 "Unvollständige letzte Reihe: abschneiden (Reihen immer voll) oder alles "
 "zeigen"
 msgstr "Eksik son satır: kes (satırlar hep tam) ya da tümünü göster"
+
+msgid "Aktionsseite gliedern:"
+msgstr "Kampanya sayfasını grupla:"
+
+msgid "Alle Aktionen"
+msgstr "Tüm kampanyalar"
+
+msgid "Ansicht der Aktionsseite gespeichert."
+msgstr "Kampanya sayfası görünümü kaydedildi."
+
+msgid "Banner: Akzentfläche"
+msgstr "Afiş: vurgu alanı"
+
+msgid "Banner: Bento-Kacheln"
+msgstr "Afiş: bento kutuları"
+
+msgid "Banner: Standard"
+msgstr "Afiş: standart"
+
+msgid "Banner: Text + Foto"
+msgstr "Afiş: metin + fotoğraf"
+
+msgid "Banner: Vollbild-Foto"
+msgstr "Afiş: tam ekran fotoğraf"
+
+msgid "Bauhaus"
+msgstr "Bauhaus"
+
+msgid "Bilder im Vollformat, Glas-Karten darüber — für starke eigene Fotos."
+msgstr ""
+"Tam boy görseller, üzerinde cam kartlar — güçlü kendi fotoğraflarınız için."
+
+msgid "Dauerhaft"
+msgstr "Sürekli"
+
+msgid "Dunkel, Gold-Haarlinie, Antiqua — Feinkost, Wein, Delikatessen."
+msgstr "Koyu, altın ince çizgi, serif — gurme, şarap, şarküteri."
+
+msgid "Endet diese Woche"
+msgstr "Bu hafta bitiyor"
+
+msgid "Endet heute"
+msgstr "Bugün bitiyor"
+
+msgid "Länger gültig"
+msgstr "Daha uzun geçerli"
+
+msgid "Monochrom"
+msgstr "Monokrom"
+
+msgid "Nobel"
+msgstr "Asil"
+
+msgid "Pastell"
+msgstr "Pastel"
+
+msgid "Plakat der 70er: Ocker, Stempel-Badges, kräftige Slab-Schrift."
+msgstr "70'ler afişi: okra, damga rozetleri, kalın slab yazı."
+
+msgid "Retro"
+msgstr "Retro"
+
+msgid "Schwarz-Weiß-Typografie, Farbe nur beim Preis: ehrlich und ruhig."
+msgstr "Siyah-beyaz tipografi, renk yalnızca fiyatta: dürüst ve sakin."
+
+msgid "Weiche Kacheln und runde Ecken — freundlich, für Familien und Bio."
+msgstr ""
+"Yumuşak kutular ve yuvarlak köşeler — samimi, aileler ve organik için."
+
+msgid "Schwarzes Raster, drei reine Farben, Geometrie — Concept-Store."
+msgstr "Siyah ızgara, üç saf renk, geometri — konsept mağaza."
+
+msgid "Jetzt geöffnet"
+msgstr "Şu anda açık"
+
+msgid "Geschlossen"
+msgstr "Kapalı"
+
+msgid "Angebote der Woche per E-Mail"
+msgstr "Haftanın kampanyaları e-postayla"
+
+msgid "Jetzt anmelden"
+msgstr "Şimdi kaydol"
+
+msgid "nach Gruppen (Wochenangebote, Räumung …)"
+msgstr "gruba göre (haftalık kampanyalar, tasfiye …)"
+
+msgid "nach Zeit (Endet heute, diese Woche …)"
+msgstr "zamana göre (bugün bitiyor, bu hafta …)"
+
+msgid "opens %(d)s %(t)s"
+msgstr "%(d)s %(t)s açılır"
+
+msgid "Fokus: Kategorien → Sortiment → Vertrauen"
+msgstr "Odak: kategoriler → ürün yelpazesi → güven"
+
+msgid "Prospekt: Aktionen zuerst"
+msgstr "Broşür: önce kampanyalar"
+
+msgid "Sortiment zuerst, ohne Banner"
+msgstr "Önce ürün yelpazesi, afişsiz"
+
+msgid "Magazin: Geschichte & Bilder"
+msgstr "Dergi: hikâye ve görseller"
+
+msgid "Vollbild-Foto mit Angebot des Tages"
+msgstr "Günün fırsatıyla tam ekran fotoğraf"
+
+msgid "Bento: Kacheln-Mosaik als erster Bildschirm"
+msgstr "Bento: ilk ekran olarak kutu mozaiği"
