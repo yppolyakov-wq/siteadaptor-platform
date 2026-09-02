@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-"""DL-11 «Volle Reihen» (+ DL-14 «Verteilen»/авто-колонки/«Alle anzeigen»): генератор
-CSS quantity-queries для static/src/app.css.
+"""DL-11 «Volle Reihen» (+ DL-14 авто-колонки/«Alle anzeigen», DL-15 «по центру +
+широкая одиночная карточка»): генератор CSS quantity-queries для static/src/app.css.
 
 Сетка несёт data-sf-cols="<тел>/<планш>/<деск>" и data-sf-tail="trim|show|fill"
 (siteconfig.grid_attr_string / тег {% grid_attrs %}). На каждом окне ширины
@@ -11,6 +11,11 @@ CSS quantity-queries для static/src/app.css.
   :not(:first-child) оставляет единственный ряд, когда элементов меньше колонок.
 * fill — плитка-подсказка .sf-filler (всегда ПОСЛЕДНИЙ ребёнок) растягивается на
   остаток ряда, а при полном ряде прячется.
+* spread (DL-14/15) — flex-wrap, остаток ряда по центру с обычным зазором; ровно одна
+  карточка в последнем ряду (планшет/десктоп) занимает всю ширину и становится
+  горизонтальной (фото 38 % слева) — только у карточек со структурой
+  `a > [data-sf-media-box] + div` (guard :has). Класс .sf-wide даёт ту же форму
+  любой карточке вне сеток (полоса «Endet bald» на /aktionen/).
 
 Исключения: [data-grid].is-list (посетительский «список» <768px — одна колонка) и
 [data-density=N] (KAT-4: на ≥1024 колонки задаёт посетитель).
@@ -61,6 +66,68 @@ def rules_for(sel: str, n: int) -> list[str]:
     return out
 
 
+def solo_selectors(sel_of) -> list[str]:
+    """DL-15 D: ровно одна карточка в последнем ряду сетки spread (n ≥ 2). Сетка с кнопкой
+    .sf-more (главная): кнопка — последний ребёнок, карточка — предпоследний."""
+    out = []
+    for n in range(2, 7):
+        sel = sel_of(n)
+        out.append(
+            f'{sel}[data-sf-tail="spread"]:not(.is-list):not([data-sf-more]) > :nth-child({n}n+1):last-child'
+        )
+        out.append(
+            f'{sel}[data-sf-tail="spread"]:not(.is-list)[data-sf-more] > :nth-child({n}n+1):nth-last-child(2)'
+        )
+    return out
+
+
+def wide_rules(c: str, *, full_width: bool) -> list[str]:
+    """Горизонтальная форма карточки для контейнера-селектора `c` (div-корень с <a>
+    внутри — promo/product; или сам <a class="sf-card"> — sellable). Правила только для
+    ссылки с медиа-боксом и текстовым телом (`a:has(> [data-sf-media-box] + div)`):
+    скрытая ✎-ссылка редактора, overlay-карточки без тела и плитки категорий не
+    затрагиваются (и ширину не получают — остаются по центру, вариант B)."""
+    out = []
+    # ⚠️ :has() нельзя вкладывать в :has() — такой селектор невалиден и браузер молча
+    # выбрасывает ВСЁ правило (стенд DL-15: карточка осталась узкой). Условия —
+    # ТОЛЬКО цепочкой отдельных :has().
+    horiz = f"{c}:has(> a > [data-sf-media-box] + div), a{c}:has(> [data-sf-media-box] + div)"
+    if full_width:
+        out.append(f"{horiz} {{ width: 100%; }}")
+    link = f"{c} > a:has(> [data-sf-media-box] + div), a{c}:has(> [data-sf-media-box] + div)"
+    out.append(f"{link} {{ display: flex; align-items: center; }}")
+    out.append(
+        f"{c} > a:has(> [data-sf-media-box] + div) > [data-sf-media-box], "
+        f"a{c}:has(> [data-sf-media-box] + div) > [data-sf-media-box] "
+        "{ width: 38%; flex: none; aspect-ratio: 3 / 2; }"
+    )
+    out.append(
+        f"{c} > a > [data-sf-media-box] + div, a{c} > [data-sf-media-box] + div "
+        "{ flex: 1 1 auto; min-width: 0; }"
+    )
+    # Карточка ТОВАРА: ряд «цена + кнопка» стоит ВНЕ ссылки → корень становится сеткой
+    # 38 % / 1fr, ссылка — display:contents, фото на все ряды, «название + цена» —
+    # одним блоком по вертикальному центру (иначе название висело посередине, цена
+    # внизу — стенд DL-15). Фокус-кольцо ссылки без бокса → рисуем на текстовом теле.
+    plike = f"{c}:has(> a > [data-sf-media-box] + div):has(> a ~ div)"
+    out.append(
+        f"{plike} {{ display: grid; grid-template-columns: 38% minmax(0, 1fr); "
+        "grid-template-rows: 1fr auto auto 1fr; align-items: center; }"
+    )
+    out.append(f"{plike} > a:has(> [data-sf-media-box] + div) {{ display: contents; }}")
+    out.append(
+        f"{plike} > a > [data-sf-media-box] "
+        "{ grid-column: 1; grid-row: 1 / -1; width: 100%; align-self: stretch; }"
+    )
+    out.append(f"{plike} > a > [data-sf-media-box] + div {{ grid-column: 2; grid-row: 2; }}")
+    out.append(f"{plike} > a ~ div {{ grid-column: 2; grid-row: 3; margin-top: 0; }}")
+    out.append(
+        f"{plike} > a:focus-visible > [data-sf-media-box] + div "
+        "{ outline: 2px solid var(--accent, #4f46e5); outline-offset: -2px; }"
+    )
+    return out
+
+
 def generate() -> str:
     lines = [START]
     for media, sel_of in WINDOWS:
@@ -74,8 +141,8 @@ def generate() -> str:
             f"  {sel_of(1)}[data-sf-auto] {{ grid-template-columns: repeat(1, minmax(0, 1fr)); }}"
         )
         lines.append("}")
-    # DL-14 spread («Verteilen»): неполный ряд раскладывается по ширине — flex-wrap +
-    # space-evenly; ширина плитки = (100% − (n−1)·gap)/n, gap из классов Tailwind
+    # DL-14/15 spread: flex-wrap, остаток ряда ПО ЦЕНТРУ с обычным зазором (решение
+    # владельца B); ширина плитки = (100% − (n−1)·gap)/n, gap из классов Tailwind
     # контейнера (gap-3/4/6/8, md:gap-6/8). Полный ряд выглядит как сетка.
     # Исключения как у trim/fill: .is-list, [data-density]. Кнопка .sf-more и плитка
     # .sf-filler в этом режиме не нужны.
@@ -88,7 +155,7 @@ def generate() -> str:
         '[data-sf-tail="spread"].md\\:gap-8 { --sf-gap: 2rem; } }'
     )
     lines.append(
-        '[data-sf-tail="spread"]:not(.is-list):not([data-density]) { display: flex; flex-wrap: wrap; justify-content: space-evenly; }'
+        '[data-sf-tail="spread"]:not(.is-list):not([data-density]) { display: flex; flex-wrap: wrap; justify-content: center; }'
     )
     lines.append(
         '[data-sf-tail="spread"]:not(.is-list):not([data-density]) > * { flex: 0 0 auto; box-sizing: border-box; '
@@ -97,6 +164,19 @@ def generate() -> str:
     lines.append(
         '[data-sf-tail="spread"] > .sf-filler, [data-sf-tail="spread"] > .sf-more { display: none; }'
     )
+    # DL-15 D: ровно одна карточка в последнем ряду (планшет/десктоп) — на всю ширину,
+    # горизонтальная; те же правила — классу .sf-wide (полоса «Endet bald»). Guard
+    # @supports: браузер без :has остаётся на варианте B.
+    lines.append("@supports selector(a:has(> b)) {")
+    for media, sel_of in (WINDOWS[1], WINDOWS[2]):
+        lines.append(f"  {media} {{")
+        solo = ":is(" + ", ".join(solo_selectors(sel_of)) + ")"
+        for rule in wide_rules(solo, full_width=True):
+            lines.append("    " + rule)
+        lines.append("  }")
+    for rule in wide_rules(".sf-wide", full_width=False):
+        lines.append("  " + rule)
+    lines.append("}")
     # DL-14 «Alle anzeigen»: кнопка — последний ребёнок сетки, скрыта; trim-правила
     # выше показывают её (display:flex) только когда что-то скрыли; занимает весь ряд.
     lines.append(".sf-more { display: none; grid-column: 1 / -1; justify-content: center; }")

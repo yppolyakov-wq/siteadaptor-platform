@@ -499,7 +499,7 @@
                   <option value="" {% if not s.layout_tail %}selected{% endif %}>{% trans "Reihen: voll" %}</option>
                   <option value="show" {% if s.layout_tail == "show" %}selected{% endif %}>{% trans "Reihen: alles zeigen" %}</option>
                   {# DL-14: неполный ряд распределяется по ширине (отступы больше) #}
-                  <option value="spread" {% if s.layout_tail == "spread" %}selected{% endif %}>{% trans "Reihen: verteilen" %}</option>
+                  <option value="spread" {% if s.layout_tail == "spread" %}selected{% endif %}>{% trans "Reihen: zentrieren" %}</option>
                 </select>
                 {% comment %}DS-5: симметрия неполного ряда / горизонтальная лента.
                 Scroll побеждает balance (grid_class_string).{% endcomment %}

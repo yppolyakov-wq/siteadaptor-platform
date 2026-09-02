@@ -1,7 +1,7 @@
 {% load i18n %}{# Карточка акции (исп. в секции главной и на /aktionen/). Контекст: p. #}
 {% comment %}SF-4a: корень — div, ссылка внутри (как у _product_card): форма
 сердечка Merkzettel внутри <a> — невалидный HTML, клики конфликтуют.{% endcomment %}
-<div class="sf-card group relative bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition"{% if p.discount_style == 'mystery' %} data-mystery-root="{{ p.pk }}"{% endif %}>
+<div class="sf-card group relative bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition{% if wide %} sf-wide{% endif %}"{% if p.discount_style == 'mystery' %} data-mystery-root="{{ p.pk }}"{% endif %}>
   {% comment %}Сердечко — на корне, НИЗ фото: верх занят discount-бейджем слева
   и контролами канвы справа.{% endcomment %}
   {% include "storefront/_wish_heart.html" with kind="promotion" pos="absolute bottom-2 right-2" %}

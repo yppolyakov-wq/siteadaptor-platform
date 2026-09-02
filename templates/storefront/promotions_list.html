@@ -43,10 +43,8 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
       {% comment %}Фидбэк 2026-09-02 «карточки поплыли по высоте»: обёртка — flex, карточка
       растягивается на высоту ряда (без flex обёртка тянулась, карточка внутри — нет).{% endcomment %}
       {# DL-14: на десктопе 4 карточки фикс-ширины распределяются по ширине #}
-      <div class="flex items-stretch gap-4 overflow-x-auto pb-2 lg:justify-evenly">
-        {% for p in ending_soon %}
-          <div class="w-56 shrink-0 flex [&>div]:w-full">{% include "storefront/_promo_card.html" %}</div>
-        {% endfor %}
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" data-ending-grid>
+        {% for p in ending_soon %}{% include "storefront/_promo_card.html" with wide=True %}{% endfor %}
       </div>
     </section>
   {% endif %}

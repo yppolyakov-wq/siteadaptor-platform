@@ -3920,6 +3920,36 @@ AKTIONSMARKT = DemoKit(
             "ends_in_days": 7,
             "desc": "Mild und cremig — diese Woche günstiger.",
         },
+        # DL-15 («пересей демо, чтоб всё было по ширине»): группы /aktionen/ кратны 3
+        # колонкам десктопа — Anti-Food-Waste 6, Räumung 3; сроки > 3 дней, чтобы полоса
+        # «Endet bald» осталась на 4 карточках (2 колонки × 2).
+        {
+            "title": "Butter 250 g −30 % — MHD-Ware",
+            "product": 17,
+            "percent": 30,
+            "discount_style": "percent",
+            "group": "Anti-Food-Waste",
+            "ends_in_days": 5,
+            "desc": "Kurz vor dem Mindesthaltbarkeitsdatum — noch bestens.",
+        },
+        {
+            "title": "Bergkäse-Anschnitt −25 % — Reste retten",
+            "product": 19,
+            "percent": 25,
+            "discount_style": "strikethrough",
+            "group": "Anti-Food-Waste",
+            "ends_in_days": 6,
+            "desc": "Anschnitte und Restlaibe zum kleinen Preis — nichts wegwerfen.",
+        },
+        {
+            "title": "Spülmittel −30 % (Räumung)",
+            "product": 11,
+            "percent": 30,
+            "discount_style": "badge",
+            "group": "Räumung",
+            "ends_in_days": 10,
+            "desc": "Sortimentswechsel — der Restbestand muss raus.",
+        },
     ],
     categories=[
         (

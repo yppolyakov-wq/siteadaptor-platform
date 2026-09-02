@@ -93,7 +93,7 @@ def test_css_block_carries_spread_auto_and_more_rules():
     block = mod.generate()
     assert block in css  # замок свежести (как в DL-11)
     assert '[data-sf-tail="spread"]:not(.is-list):not([data-density]) { display: flex;' in css
-    assert "space-evenly" in css and "--sf-gap" in css
+    assert "justify-content: center" in css and "--sf-gap" in css  # DL-15 B
     for n in (2, 3, 4, 5, 6):
         assert (
             f'[data-sf-cols$="/{n}"]:not([data-density])[data-sf-tail="spread"] {{ --sf-n: {n}; }}'
@@ -214,7 +214,6 @@ def test_aktionen_groups_spread_and_no_filler():
     grid = re.search(r'data-grid="promo_list"[^>]*', html).group(0)
     assert 'data-sf-tail="spread"' in grid and 'data-sf-cols="2/2/3"' in grid
     assert "data-sf-filler" not in html
-    assert "lg:justify-evenly" in html or "data-ending-soon" not in html
 
 
 # ── Studio ──────────────────────────────────────────────────────────────────

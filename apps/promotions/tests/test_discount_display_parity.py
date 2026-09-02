@@ -36,8 +36,8 @@ def test_percent_badge_card_and_detail():
     promo = PromotionFactory(status="active", discount_percent=30)
     card, detail = _card(promo), _detail(promo)
     assert (
-        'class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold'
-        ' px-2.5 py-1 rounded-full shadow"' in card
+        'class="absolute top-3 left-3 bg-red-600 text-white text-sm font-bold'
+        ' px-3 py-1 rounded-full shadow"' in card  # DL-15: бейдж карточки крупнее
     )
     assert ">−30 %</span>" in card
     # Фидбэк 2026-07-30 (референс владельца): на детальной бейдж переехал с фото
