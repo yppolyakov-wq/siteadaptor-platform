@@ -89,9 +89,13 @@
       aspect-ratio: 1 / 1 !important; height: auto !important;
       width: 62%; margin: 0.75rem auto 0; border-radius: 9999px; overflow: hidden;
     }
-    /* Круг: бейдж скидки уезжает к краю кадра — держим его в пределах карточки. */
-    [data-sf-media="round"] [data-sf-media-box] > span[class*="absolute"],
-    [data-sf-media="round"] [data-sf-media-box] > .absolute { left: 0.25rem; top: 0.25rem; }
+    /* Круг: бейдж скидки в углу кадра срезался круглым кропом (фидбэк 2026-09-02
+       «на круглых карточках не видно скидки») — ставим его по центру верхней хорды
+       круга; только пилюли-бейджи (кнопки канвы и полоса «ausverkauft» — как были). */
+    [data-sf-media="round"] [data-sf-media-box] > span.rounded-full[class*="absolute"] {
+      left: 50% !important; right: auto !important; top: 7% !important;
+      transform: translateX(-50%); white-space: nowrap; z-index: 2;
+    }
     /* DL-5: контраст поверх акцент-фона — жёсткий text-white в 36 CTA нечитаем на
        светлом акценте (лайм neon, янтарь warm); ink считает сервер по яркости. */
     [style*="background: var(--accent)"], [style*="background:var(--accent)"] { color: var(--accent-ink, #ffffff) !important; }

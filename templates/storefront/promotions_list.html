@@ -40,9 +40,11 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
     скролл на мобильном; при пустом наборе секции нет вовсе (вьюха).{% endcomment %}
     <section class="mb-8" data-ending-soon>
       <h2 class="text-lg font-bold mb-3">⏳ {% trans "Ending soon" %}</h2>
-      <div class="flex gap-4 overflow-x-auto pb-2">
+      {% comment %}Фидбэк 2026-09-02 «карточки поплыли по высоте»: обёртка — flex, карточка
+      растягивается на высоту ряда (без flex обёртка тянулась, карточка внутри — нет).{% endcomment %}
+      <div class="flex items-stretch gap-4 overflow-x-auto pb-2">
         {% for p in ending_soon %}
-          <div class="w-56 shrink-0">{% include "storefront/_promo_card.html" %}</div>
+          <div class="w-56 shrink-0 flex [&>div]:w-full">{% include "storefront/_promo_card.html" %}</div>
         {% endfor %}
       </div>
     </section>
