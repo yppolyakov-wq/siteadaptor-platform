@@ -1,0 +1,143 @@
+{
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "title": "Сводка",
+      "x": 0,
+      "y": 0,
+      "w": 720,
+      "h": 560
+    },
+    {
+      "file": "K1.dc.html",
+      "title": "K1 · Kategorie · Kopfbild-Slider",
+      "x": 820,
+      "y": 0,
+      "w": 720,
+      "h": 640
+    },
+    {
+      "file": "K2.dc.html",
+      "title": "K2 · Kategorie · Regale",
+      "x": 1640,
+      "y": 0,
+      "w": 720,
+      "h": 620
+    },
+    {
+      "file": "K3.dc.html",
+      "title": "K3 · Kategorie · Tabs",
+      "x": 2460,
+      "y": 0,
+      "w": 720,
+      "h": 620
+    },
+    {
+      "file": "A1.dc.html",
+      "title": "A1 · Aktionen · Wochen-Tabs",
+      "x": 0,
+      "y": 720,
+      "w": 720,
+      "h": 700
+    },
+    {
+      "file": "A2.dc.html",
+      "title": "A2 · Aktionen · Prospekt-Seite",
+      "x": 820,
+      "y": 720,
+      "w": 720,
+      "h": 700
+    },
+    {
+      "file": "A3.dc.html",
+      "title": "A3 · Aktionen · Gruppen-Slider",
+      "x": 1640,
+      "y": 720,
+      "w": 720,
+      "h": 700
+    },
+    {
+      "file": "A4.dc.html",
+      "title": "A4 · Aktionen · Tabelle",
+      "x": 2460,
+      "y": 720,
+      "w": 720,
+      "h": 520
+    },
+    {
+      "file": "P1.dc.html",
+      "title": "P1–P3 · Produktkarte · Formen",
+      "x": 0,
+      "y": 1520,
+      "w": 720,
+      "h": 560
+    },
+    {
+      "file": "D1.dc.html",
+      "title": "D1–D4 · Produktdetail · Desktop",
+      "x": 820,
+      "y": 1520,
+      "w": 720,
+      "h": 740
+    },
+    {
+      "file": "D2.dc.html",
+      "title": "D2 · Produktdetail · Mobil",
+      "x": 1640,
+      "y": 1520,
+      "w": 390,
+      "h": 760
+    },
+    {
+      "file": "AK1.dc.html",
+      "title": "AK1–AK3 · Aktionskarte · Formen",
+      "x": 2460,
+      "y": 1320,
+      "w": 720,
+      "h": 560
+    },
+    {
+      "file": "AD1.dc.html",
+      "title": "AD1–AD3 · Aktionsdetail · Desktop",
+      "x": 0,
+      "y": 2340,
+      "w": 720,
+      "h": 620
+    },
+    {
+      "file": "AD2.dc.html",
+      "title": "AD4 · Aktionsdetail · Mobil Prospekt",
+      "x": 820,
+      "y": 2340,
+      "w": 390,
+      "h": 760
+    },
+    {
+      "file": "S1.dc.html",
+      "title": "S1–S4 · Slider-Primitiv & Ansichten",
+      "x": 1640,
+      "y": 2340,
+      "w": 720,
+      "h": 700
+    }
+  ],
+  "annotations": [
+    {
+      "id": "frage",
+      "x": 2460,
+      "y": 2340,
+      "w": 300,
+      "text": "На согласование: пакет v1 (Main, колонка «Пакет v1») + 5 вопросов в доке §5 (стрелки всегда/при наведении; Preis-zuerst дефолтом для deal_*; Vorschau запланированных; таблица — тумблер посетителя или режим владельца)."
+    },
+    {
+      "id": "regeln",
+      "x": 2460,
+      "y": 2520,
+      "w": 300,
+      "text": "Всё без миграций; _discount_display/_promo_card не переписываем (C1 SF-аудита) — новые формы = ветки card_style с паритет-замком. Каждая форма — только при потребителе в демо."
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  }
+}
