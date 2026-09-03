@@ -424,3 +424,69 @@ def test_builder_save_keeps_section_cover_and_gallery(settings):
     assert saved.get("intro") == "Frisch jeden Tag"
     assert saved.get("button_label") == "Ansehen"
     assert saved.get("button_url") == "/sortiment/"
+
+
+# ── STU-5: страница «Pages» умерла, её настройки живут в Студии ───────────────
+
+
+@pytest.mark.django_db
+def test_dead_pages_screen_redirects_to_studio(settings):
+    """Прецедент W10-6/W11-5: экран умер, но старые ссылки и закладки не ломаются."""
+    from types import SimpleNamespace
+
+    from django.test import RequestFactory
+
+    from apps.core import views
+    from apps.tenants.tests.factories import TenantFactory
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    req = RequestFactory().get("/dashboard/site/pages/")
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = TenantFactory()
+    resp = views.pages_view(req)
+    assert resp.status_code == 302
+    assert resp.url == "/dashboard/site/home/"
+
+
+@pytest.mark.django_db
+def test_settings_moved_from_pages_screen_still_save(settings):
+    """Экран «Pages» был ВТОРЫМ писателем раскладок, но держал три настройки, которых
+    в Студии не было. Схлопнуть его, не перенеся их, значило бы потерять настройки —
+    поэтому замок проверяет именно сохранение из формы Студии."""
+    from types import SimpleNamespace
+
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.core import views
+    from apps.tenants.tests.factories import TenantFactory
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = TenantFactory(disabled_modules=["orders"], business_type="restaurant")
+    req = RequestFactory().post(
+        "/dashboard/site/home/",
+        {
+            "cl_present": "1",
+            "menu_labels": "on",
+            # чекбокс СНЯТ: ключ presence-minimal и хранится только когда цены скрыты
+            "related_preset": "cols4",
+        },
+    )
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    views.home_builder_view(req)
+
+    tenant.refresh_from_db()
+    cfg = tenant.site_config
+    assert cfg.get("menu_labels") is True
+    assert cfg.get("menu_show_prices") is False, "снятый чекбокс обязан скрыть цены"
+    assert cfg.get("detail_related_layout", {}).get("preset") == "cols4"
+
+
+@pytest.mark.django_db
+def test_moved_settings_are_scoped_to_their_page_type(builder_html):
+    assert 'data-stu-page="catalog category"' in builder_html
+    assert 'data-stu-page="product"' in builder_html

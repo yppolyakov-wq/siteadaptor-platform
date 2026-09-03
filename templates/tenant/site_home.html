@@ -145,7 +145,6 @@
          отвечает на вопрос «настройки чего я вижу».{% endcomment %}
       <button type="button" aria-pressed="false" class="bld-rail-btn flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm text-gray-600 hover:bg-gray-100" data-area="page"><span>📄</span><span class="stu-area-label">{% trans "Seite" %}</span></button>
        <button type="button" aria-pressed="false" class="bld-rail-btn flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm text-gray-600 hover:bg-gray-100" data-area="menu"><span>☰</span><span>{% trans "Menu" %}</span></button>
-       <button type="button" aria-pressed="false" class="bld-rail-btn flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm text-gray-600 hover:bg-gray-100" data-area="footer"><span>🔻</span><span>{% trans "Footer" %}</span></button>
        <button type="button" aria-pressed="false" class="bld-rail-btn flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm text-gray-600 hover:bg-gray-100" data-area="library"><span>📚</span><span>{% trans "Templates" %}</span></button>
      </div>
      <form method="post" id="home-form" data-draft-url="{% url 'site-preview-draft' %}" class="space-y-6">
@@ -420,8 +419,7 @@
           <input type="checkbox" name="wishlist" {% if storefront_wishlist_enabled %}checked{% endif %} class="rounded border-gray-300 mt-0.5">
           <span>{% trans "Merkzettel (♡ on cards)" %}<span class="block text-xs text-gray-400">{% trans "Visitors save products and offers — on this device, no account." %}</span></span>
         </label>
-        <p class="text-xs text-gray-400 mt-3">{% trans "Grid layout of catalog / rooms / events pages lives under" %}
-          <a href="{% url 'site-pages' %}" class="text-indigo-600 hover:underline">{% trans "Pages" %}</a>.</p>
+        
       </fieldset>
 
       {% comment %}M1: лого бизнеса — в шапке витрины вместо текстового имени. Загрузка —
@@ -433,6 +431,21 @@
           {% if request.tenant.logo_url %}<img src="{{ request.tenant.logo_url }}" alt="" class="h-10 w-auto max-w-[140px] object-contain border border-gray-100 rounded">{% else %}<span class="text-sm text-gray-400">{% trans "No logo yet" %}</span>{% endif %}
           <button type="button" class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50" onclick="window.__sfShowArea('logo-media')">{% if request.tenant.logo_url %}{% trans "Change logo" %}{% else %}{% trans "Add logo" %}{% endif %}</button>
         </div>
+      </fieldset>
+      {% comment %}STU-5: содержимое вкладки «Footer» переехало сюда. Своих полей у
+         неё не было — только три указателя, а отдельная вкладка ради них делала ряд
+         длиннее и «настройки где-то ещё» заметнее.{% endcomment %}
+      <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-3" data-stu-footer-links>
+        <legend class="font-semibold mb-1">{% trans "Footer" %}</legend>
+        <p class="text-sm text-gray-600">{% trans "The footer shows your contact, opening hours and legal links. Edit them here:" %}</p>
+        <div class="flex flex-col gap-2 text-sm">
+          <a href="{% url 'settings' %}" class="text-indigo-600 hover:underline">→ {% trans "Contact & opening hours" %}</a>
+          <a href="{% url 'settings' %}" class="text-indigo-600 hover:underline">→ {% trans "Imprint / legal (address)" %}</a>
+        </div>
+        {# H1.2: тэглайн подвала правится прямо на сайте (вкл. «✏️ Править» → клик по тексту подвала). #}
+        <p class="text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">✍️ {% trans "A footer tagline can be edited directly on the page — click the footer text." %}</p>
+        <p class="text-xs text-gray-400">{% trans "Show/hide the contact block in" %}
+          <button type="button" class="text-indigo-600 hover:underline" onclick="window.__sfShowArea('sections')">{% trans "Sections" %}</button>.</p>
       </fieldset>
       </div>{% comment %}/область 🎨 Тема{% endcomment %}
 
@@ -810,6 +823,34 @@
               </select>
             </label>
           </div>
+          {% comment %}STU-5: перенос со страницы «Pages» — она была ВТОРЫМ писателем
+             раскладок и держала три настройки, которых в Студии не было. Сентинел
+             cl_present сохранён (W0: чужой POST не роняет ключи), поэтому семантика
+             сохранения та же, что и на прежнем экране.{% endcomment %}
+          {% if has_catalog %}
+          <div class="stu-page-row mt-4 space-y-2" data-stu-page="catalog category">
+            <input type="hidden" name="cl_present" value="1">
+            {% if not orders_active_for_prices %}
+            <label class="flex items-center gap-2 text-sm text-gray-600">
+              <input type="checkbox" name="menu_show_prices" {% if menu_prices_on %}checked{% endif %} class="rounded border-gray-300">
+              {% trans "Preise in der Speisekarte anzeigen" %}
+            </label>
+            {% endif %}
+            {% if is_food_type %}
+            <label class="flex items-center gap-2 text-sm text-gray-600">
+              <input type="checkbox" name="menu_labels" {% if menu_labels_on %}checked{% endif %} class="rounded border-gray-300">
+              {% trans "Kennzeichnung in der Speisekarte (Diäten, Allergene)" %}
+            </label>
+            {% endif %}
+          </div>
+          <label class="stu-page-row mt-4 block text-sm" data-stu-page="product">
+            <span class="block font-medium mb-1">{% trans "Related products grid" %}</span>
+            <span class="block text-xs text-gray-400 mb-1.5">{% trans "“More from this category” on a product page." %}</span>
+            <select name="related_preset" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if pk == related_preset %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+            </select>
+          </label>
+          {% endif %}
           <p class="stu-page-empty hidden text-xs text-gray-500">{% trans "This page is edited directly on the canvas — click a heading, price or photo." %}</p>
         </fieldset>
       {% comment %} SE-2a-2/SE-2b-1: per-page инспектор лендингов — клик по гриду на канве
@@ -1098,20 +1139,7 @@
 
       {% comment %}SE-7d область 🔻 Подвал: видимость секции контактов + ссылки в настройки
       (контакты/часы/Impressum — поля Tenant, правятся в «Settings», не дублируем здесь).{% endcomment %}
-      <div data-bld-area="footer" class="bld-area space-y-6 hidden">
-      <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-3">
-        <legend class="font-semibold mb-1">{% trans "Footer" %}</legend>
-        <p class="text-sm text-gray-600">{% trans "The footer shows your contact, opening hours and legal links. Edit them here:" %}</p>
-        <div class="flex flex-col gap-2 text-sm">
-          <a href="{% url 'settings' %}" class="text-indigo-600 hover:underline">→ {% trans "Contact & opening hours" %}</a>
-          <a href="{% url 'settings' %}" class="text-indigo-600 hover:underline">→ {% trans "Imprint / legal (address)" %}</a>
-        </div>
-        {# H1.2: тэглайн подвала правится прямо на сайте (вкл. «✏️ Править» → клик по тексту подвала). #}
-        <p class="text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">✍️ {% trans "A footer tagline can be edited directly on the page — click the footer text." %}</p>
-        <p class="text-xs text-gray-400">{% trans "Show/hide the contact block in" %}
-          <button type="button" class="text-indigo-600 hover:underline" onclick="window.__sfShowArea('sections')">{% trans "Sections" %}</button>.</p>
-      </fieldset>
-      </div>{% comment %}/область 🔻 Подвал{% endcomment %}
+
     </form>
 
     {% comment %}SE-7 область 📚 Шаблоны: ТОЛЬКО шаблоны (UC6-6e, фидбэк владельца) —
@@ -1191,7 +1219,6 @@
       <div class="flex flex-col gap-2 text-sm">
         <a href="{% url 'site-seo' %}" class="text-indigo-600 hover:underline">🔎 {% trans "SEO" %} — {% trans "Titles & descriptions for Google, with live preview." %}</a>
         <a href="{% url 'site-sections' %}" class="text-indigo-600 hover:underline">🖼️ {% trans "Section covers" %} — {% trans "Intro text & banner on each part of the site." %}</a>
-        <a href="{% url 'site-pages' %}" class="text-indigo-600 hover:underline">📄 {% trans "Pages" %} — {% trans "Grid layout of catalog, rooms and events pages." %}</a>
         <a href="{% url 'site-preview' %}" class="text-indigo-600 hover:underline">👁 {% trans "Preview" %} — {% trans "Live site in desktop / tablet / mobile." %}</a>
         <a href="{% url 'site-menu' %}" class="text-indigo-600 hover:underline">🧭 {% trans "Navigation menu" %} — {% trans "Header & bottom menu, sub-menus, links." %}</a>
       </div>
@@ -3028,8 +3055,6 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   }
 
   // SE-2a-1: переключатель страницы превью — грузит выбранный URL с черновиком.
-  var pageSel = document.getElementById("home-prev-page");
-
   // Part D: «блоки только своей группы вывода». При настройке детальной/категории/
   // лендинга в панели показываем ТОЛЬКО блоки этой страницы — на главной блоки главной,
   // на лендинге/детали — пер-страничные контролы; чужие группы скрываем (значения полей
@@ -3251,26 +3276,10 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       }
     }
   }
-  function currentScopeGroup() {
-    if (!pageSel) return "home";
-    var opt = pageSel.options[pageSel.selectedIndex];
-    return (opt && opt.getAttribute("data-group")) || "home";
-  }
-
-  if (pageSel) {
-    pageSel.addEventListener("change", function () {
-      previewPath = pageSel.value || "/";
-      applyPageScope(currentScopeGroup());
-      frame.contentWindow.location.replace(previewUrl());
-    });
-    // T-6.1: deep-link — если стартовая страница есть в селекторе, синхронизируем
-    // его (панель покажет блоки этой страницы); нет в списке — селектор остаётся
-    // на главной, страница правится прямо на канве.
-    if (previewPath !== "/")
-      for (var ppi = 0; ppi < pageSel.options.length; ppi++)
-        if (pageSel.options[ppi].value === previewPath) { pageSel.selectedIndex = ppi; break; }
-    applyPageScope(currentScopeGroup());  // стартовая синхронизация
-  }
+  // STU-5: код селектора страниц (#home-prev-page) удалён — самого элемента в
+  // шаблоне нет с UC6-1b, поэтому ветка не выполнялась НИКОГДА, вместе с её
+  // «стартовой синхронизацией» скоупа. Скоуп панели синхронизирует instrumentFrame
+  // по фактической странице кадра (PAGE_GROUPS + data-pb-host + data-stu-page).
 
   // M20 WYSIWYG: тексты [data-edit] в превью редактируются прямо в билдере
   // (как на отдельной странице Preview) — сохранение на blur в site_config.
