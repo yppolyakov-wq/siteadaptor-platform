@@ -125,6 +125,7 @@ def test_page_config_keys_registry_consistent_with_apply_groups():
         set(siteconfig._PAGE_DETAIL_KEYS)
         | set(siteconfig._PAGE_LAYOUT_KEYS)
         | set(siteconfig._PAGE_BOOL_KEYS)
+        | set(siteconfig._PAGE_STYLE_KEYS)  # DL-21.1: шаблон корневой страницы каталога
         | {"catalog_sort"}
     )
     assert from_registry == from_apply

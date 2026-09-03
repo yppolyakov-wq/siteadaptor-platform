@@ -13820,7 +13820,10 @@ prospekt/countdown); (3) набор «Landing pages» page-scoped, и откры
 msgid «Groups»); перед гейтом новые файлы — `git add`; (2) `execSync` с Python-кодом через
 `JSON.stringify` ломает переводы строк в shell — код помощника стенда в файл + env-переменная,
 `cwd` явно; (3) прогон стенда, оборванный на середине, оставляет в БД чужой ключ — стенд сам
-возвращает кит-значение на старте.
+возвращает кит-значение на старте. (4) CI #2322: замок «реестр `PAGE_CONFIG_KEYS` = группы
+`apply_page_payload`» (`test_page_registry`) не вошёл в локальный targeted-гейт — новый ключ
+`catalog_page_style` был применён ad-hoc-веткой; правило: новый page-ключ = объявленная группа
+(`_PAGE_STYLE_KEYS`), не ветка.
 
 Замки: `test_dl21_root_layouts` (16) · `test_dl21_promo_overview` (16) · `test_dl21_studio` (4)
 · кит-замки ×2 · счётчик плиток `test_dl19_studio` 4→6 осознанно. 20 msgid × 5 каталогов.

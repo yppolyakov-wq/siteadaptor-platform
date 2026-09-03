@@ -1595,6 +1595,9 @@ _PAGE_LAYOUT_KEYS = (
     "service_index_layout",
 )
 _PAGE_BOOL_KEYS = ("catalog_show_filters", "catalog_subcats_first", "cart_show_upsell")
+# DL-21.1: строковые шаблоны СТРАНИЦ (валидатор → "" = снять ключ); группа объявлена явно,
+# чтобы замок «реестр PAGE_CONFIG_KEYS = группы применения» видел ключ, а не ad-hoc ветку.
+_PAGE_STYLE_KEYS = ("catalog_page_style",)
 
 PAGE_CONFIG_KEYS = {
     "home": (),  # sections/section_titles/… — собственный generic-путь драфта
@@ -1645,12 +1648,14 @@ def apply_page_payload(cfg: dict, data: dict) -> None:
     if data.get("catalog_sort") in CATALOG_SORT_KEYS:
         cfg["catalog_sort"] = data["catalog_sort"]
     # DL-21.1: шаблон корневой страницы каталога — "" законно (снимает ключ).
-    if "catalog_page_style" in data:
-        cps = normalize_catalog_page_style(data.get("catalog_page_style"))
-        if cps:
-            cfg["catalog_page_style"] = cps
+    for key in _PAGE_STYLE_KEYS:
+        if key not in data:
+            continue
+        val = normalize_catalog_page_style(data.get(key))
+        if val:
+            cfg[key] = val
         else:
-            cfg.pop("catalog_page_style", None)
+            cfg.pop(key, None)
 
 
 def page_config(config, page_type: str) -> dict:
