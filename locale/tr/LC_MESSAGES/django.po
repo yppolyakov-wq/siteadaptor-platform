@@ -21766,3 +21766,24 @@ msgstr "Geri sayım halkası"
 
 msgid "Remaining time as a ring on the photo."
 msgstr "Kalan süre fotoğraf üzerinde halka olarak."
+
+msgid "Card form"
+msgstr "Kart biçimi"
+
+msgid "over"
+msgstr "bitti"
+
+msgid "%(n)s d"
+msgstr "%(n)s g"
+
+msgid "%(n)s h"
+msgstr "%(n)s sa"
+
+msgid "%(n)s min"
+msgstr "%(n)s dk"
+
+msgid "Secure it"
+msgstr "Kapın"
+
+msgid "To the offer"
+msgstr "Fırsata git"

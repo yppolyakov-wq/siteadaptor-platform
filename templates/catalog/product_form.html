@@ -138,7 +138,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
       {% for field in form %}{% if field.name == 'is_featured' %}
         <label class="flex items-center gap-2 text-sm font-medium">{% render_field field %} {{ field.label }}</label>
       {% endif %}{% endfor %}
-      {% for field in form %}{% if field.name == 'badge' or field.name == 'variant_style' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      {% for field in form %}{% if field.name == 'badge' or field.name == 'variant_style' or field.name == 'card_style' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
     </div>
 
     {% for err in form.non_field_errors %}<p class="text-sm text-red-600">{{ err }}</p>{% endfor %}

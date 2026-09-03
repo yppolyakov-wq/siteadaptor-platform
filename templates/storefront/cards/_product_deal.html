@@ -1,0 +1,31 @@
+{% load i18n %}{% load siteui %}{% comment %}DL-19 (макет N3 «Deal-Kachel»): всё в одной
+строке — фото, название, цена, выгода и кнопка. Форма для «предложения дня»: посетителю
+не нужно открывать карточку, чтобы понять сделку.{% endcomment %}
+<div class="sf-card relative group flex items-center gap-3 bg-white rounded-2xl shadow-sm p-3 hover:shadow-md transition" data-card-form="deal">
+  {% include "storefront/cards/_canvas_edit.html" %}
+  {% include "storefront/_wish_heart.html" with p=p pos="absolute bottom-2 left-2" %}
+  <a href="{{ p.get_absolute_url }}" class="flex items-center gap-3 flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 rounded-xl">
+    <div class="w-24 sm:w-32 shrink-0 rounded-xl overflow-hidden">
+      {% include "storefront/cards/_photo.html" with ratio="aspect-[4/3]" %}
+    </div>
+    <div class="min-w-0 flex-1">
+      <div class="flex items-baseline gap-2 flex-wrap">
+        <h3 class="font-semibold leading-tight truncate" data-edit-model="product" data-edit-pk="{{ p.pk }}" data-edit-field="name">{{ p }}</h3>
+        {% if p.promo_badge %}<span class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow shrink-0">{{ p.promo_badge }}</span>{% endif %}
+      </div>
+      <div class="mt-0.5 flex items-baseline gap-2 flex-wrap">
+        <span class="text-xl leading-none font-extrabold {% if p.promo_price %}text-red-600{% endif %}">{% if p.has_variants %}<span class="text-xs font-normal text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% elif p.promo_price %}{{ p.promo_price }}{% else %}<span data-price-edit data-edit-pk="{{ p.pk }}" data-price="{{ p.base_price }}">{{ p.base_price }}</span>{% endif %} {{ p.currency|cursym }}</span>
+        {% if p.promo_price %}<span class="text-xs text-gray-400 line-through">{{ p.base_price }} {{ p.currency|cursym }}</span>{% endif %}
+        {% if p.promo_savings %}<span class="text-xs font-medium text-emerald-700 dark:text-emerald-400" data-savings>{% blocktrans with amount=p.promo_savings %}You save {{ amount }} €{% endblocktrans %}</span>{% endif %}
+      </div>
+      <p class="mt-0.5 text-[11px] leading-tight text-gray-500 dark:text-gray-400 flex flex-wrap items-baseline gap-x-2">
+        {% if not p.has_variants %}{% with gp=p.grundpreis %}{% if gp %}<span>{{ gp.0 }} {{ p.currency|cursym }} / {{ gp.1 }}</span>{% endif %}{% endwith %}{% endif %}
+        {% if p.promo and p.promo.ends_at %}<span data-deal-until>{% blocktrans with d=p.promo.ends_at|date:"d.m." %}until {{ d }}{% endblocktrans %}</span>{% endif %}
+      </p>
+      {% if p.promo_price and p.promo_lowest is not None %}
+        <p class="mt-0.5 text-[10px] leading-tight {{ pangv_cls|default:'text-gray-400' }}">{% blocktrans with p=p.promo_lowest %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>
+      {% endif %}
+    </div>
+  </a>
+  {% include "storefront/cards/_add_button.html" with cls="shrink-0" %}
+</div>

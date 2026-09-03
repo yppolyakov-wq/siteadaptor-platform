@@ -1,0 +1,27 @@
+{% load i18n %}{% comment %}DL-19 (N1 «Regal» для акции): ценник как в зале — цена на
+плашке ведёт, фото слева опознавательным квадратом. Условия/цена берутся ТЕМИ ЖЕ
+партами `_discount_display` (одна точка правды: mystery остаётся скрытой).{% endcomment %}
+<div class="sf-card group relative flex items-stretch bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition" data-card-form="regal"{% if p.discount_style == 'mystery' %} data-mystery-root="{{ p.pk }}"{% endif %}>
+  {% include "storefront/_wish_heart.html" with kind="promotion" pos="absolute top-2 left-2" %}
+  <a href="{% url 'storefront-promotion' p.pk %}" class="flex items-stretch flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
+    <div class="w-24 sm:w-28 shrink-0">
+      {% include "storefront/cards/_promo_photo.html" with ratio="h-full min-h-[6rem]" %}
+    </div>
+    <div class="flex-1 min-w-0 px-3 py-2.5 bg-amber-50 dark:bg-gray-800" data-price-plate>
+      <div class="flex items-start gap-x-2 [&_span]:whitespace-nowrap">
+        <div class="min-w-0 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          {% include "storefront/_discount_display.html" with promo=p part="price_line" %}
+        </div>
+        {% include "storefront/_discount_display.html" with promo=p part="badge" size="sm" badge_pos_class="!static shrink-0 ml-auto" %}
+      </div>
+      <p class="mt-0.5 text-[11px] leading-tight text-gray-500 dark:text-gray-400 flex flex-wrap items-baseline gap-x-1.5">
+        {% include "storefront/_discount_display.html" with promo=p part="grundpreis" %}
+        {% if p.discount_style != 'mystery' and p.has_discount and p.discount_amount %}<span class="font-medium text-emerald-700 dark:text-emerald-400" data-savings>{% blocktrans with amount=p.discount_amount %}You save {{ amount }} €{% endblocktrans %}</span>{% endif %}
+      </p>
+      {% if p.group and not in_group %}<p class="mt-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400" data-promo-group>{{ p.group_localized }}</p>{% endif %}
+      <h3 class="mt-0.5 font-semibold leading-tight line-clamp-2" data-edit-model="promotion" data-edit-field="title" data-edit-pk="{{ p.pk }}">{{ p.title_text }}</h3>
+      {% if preview %}{% include "storefront/_discount_display.html" with promo=p part="starts" %}
+      {% else %}{% include "storefront/_discount_display.html" with promo=p part="countdown" size="sm" %}{% endif %}
+    </div>
+  </a>
+</div>

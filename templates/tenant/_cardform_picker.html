@@ -1,0 +1,53 @@
+{% load i18n %}{% comment %}DL-19 (запрос владельца «выбор из вариантов и предпросмотр»):
+форма карточки выбирается ПЛИТКАМИ с мини-макетом, а не строкой селекта. Значение держит
+hidden-инпут с прежним именем поля (`sd_card_style` / `sd_promo_card`) — сохранение и
+живой черновик билдера не меняются. Вход: name, value, items, title.{% endcomment %}
+<div class="text-sm md:col-span-2" data-cardform-picker>
+  <span class="block font-medium mb-1">{{ title }}</span>
+  <input type="hidden" name="{{ name }}" value="{{ value }}">
+  <div class="flex flex-wrap gap-2">
+    {% for key, label, hint in items %}
+      <button type="button" data-cf-key="{{ key }}" title="{{ hint }}"
+              aria-pressed="{% if value == key %}true{% else %}false{% endif %}"
+              class="cf-tile rounded-lg border p-1.5 text-left {% if value == key %}border-indigo-500 ring-2 ring-indigo-200{% else %}border-gray-200 hover:border-gray-300{% endif %}">
+        {% include "tenant/_cardform_thumb.html" with key=key %}
+        <span class="mt-1 block w-16 text-[10px] leading-tight text-gray-600 dark:text-gray-300 line-clamp-2">{{ label }}</span>
+      </button>
+    {% endfor %}
+  </div>
+</div>
+<script>
+(function () {
+  // Делегирование на document (урок Ф1: инлайн-биндинг в партиале выполняется
+  // раньше разметки и на живой странице молчит). Гвард — партиал включается дважды.
+  if (window.__cfPickerInit) return;
+  window.__cfPickerInit = true;
+  function sync(box) {
+    var inp = box.querySelector("input[type=hidden]");
+    var val = inp ? inp.value : "";
+    box.querySelectorAll("[data-cf-key]").forEach(function (b) {
+      var on = b.getAttribute("data-cf-key") === val;
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+      b.classList.toggle("border-indigo-500", on);
+      b.classList.toggle("ring-2", on);
+      b.classList.toggle("ring-indigo-200", on);
+      b.classList.toggle("border-gray-200", !on);
+    });
+  }
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest ? e.target.closest("[data-cf-key]") : null;
+    if (!btn) return;
+    var box = btn.closest("[data-cardform-picker]");
+    var inp = box && box.querySelector("input[type=hidden]");
+    if (!inp) return;
+    inp.value = btn.getAttribute("data-cf-key");
+    sync(box);
+    // change (bubbles) → живой draft-канал билдера перекрашивает канву.
+    inp.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  document.addEventListener("change", function (e) {
+    var box = e.target.closest ? e.target.closest("[data-cardform-picker]") : null;
+    if (box) sync(box);  // Look-клик выставляет значение программно — плитки следуют
+  });
+})();
+</script>

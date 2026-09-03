@@ -1,0 +1,17 @@
+{% load i18n %}{% comment %}DL-19 (N2 «Lookbook» для акции): кадр 3:4 без рамки, тихая
+подпись. Для моды: распродажа не должна кричать плашками поверх съёмки.{% endcomment %}
+<div class="group relative" data-card-form="lookbook"{% if p.discount_style == 'mystery' %} data-mystery-root="{{ p.pk }}"{% endif %}>
+  {% include "storefront/_wish_heart.html" with kind="promotion" pos="absolute top-2 left-2" %}
+  <a href="{% url 'storefront-promotion' p.pk %}" class="block focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+    <div class="overflow-hidden rounded-xl">
+      {% include "storefront/cards/_promo_photo.html" with ratio="aspect-[3/4]" %}
+    </div>
+    <div class="pt-2.5">
+      {% if p.group and not in_group %}<p class="text-[10px] uppercase tracking-[0.14em] text-gray-400 truncate" data-promo-group>{{ p.group_localized }}</p>{% endif %}
+      <h3 class="mt-0.5 text-sm leading-snug line-clamp-2" data-edit-model="promotion" data-edit-field="title" data-edit-pk="{{ p.pk }}">{{ p.title_text }}</h3>
+      <div class="mt-1 text-sm">{% include "storefront/_discount_display.html" with promo=p part="price_line" %}</div>
+      {% if preview %}{% include "storefront/_discount_display.html" with promo=p part="starts" %}
+      {% else %}{% include "storefront/_discount_display.html" with promo=p part="countdown" size="sm" %}{% endif %}
+    </div>
+  </a>
+</div>

@@ -452,6 +452,39 @@ class Promotion(SoftDeleteMixin, I18nMixin):
         start = self.starts_at or self.created_at
         return bool(start) and (timezone.now() - start).days < 7
 
+    @property
+    def time_left_label(self):
+        """DL-19: КОРОТКИЙ остаток времени для кольца («2 T.», «5 Std.»). Полный
+        счётчик остаётся партом `countdown`; в кружок 44 px влезают два знака."""
+        if not self.ends_at:
+            return ""
+        secs = int((self.ends_at - timezone.now()).total_seconds())
+        if secs <= 0:
+            return _("over")
+        if secs >= 86400:
+            return _("%(n)s d") % {"n": secs // 86400}
+        if secs >= 3600:
+            return _("%(n)s h") % {"n": secs // 3600}
+        return _("%(n)s min") % {"n": max(1, secs // 60)}
+
+    @property
+    def time_left_pct(self):
+        """DL-19 (форма «Countdown-Ring»): доля ОСТАВШЕГОСЯ окна акции, 0..100.
+
+        None — если срок не задан (кольцо рисовать нечем: «сколько осталось»
+        без конца окна не определено). Считается от старта, а не от «сегодня»:
+        кольцо должно пустеть по мере хода акции."""
+        if not self.ends_at:
+            return None
+        start = self.starts_at or self.created_at
+        if not start:
+            return None
+        total = (self.ends_at - start).total_seconds()
+        if total <= 0:
+            return 0
+        left = (self.ends_at - timezone.now()).total_seconds()
+        return max(0, min(100, round(left / total * 100)))
+
 
 class Reservation(TimestampedModel):
     promotion = models.ForeignKey(Promotion, on_delete=models.CASCADE, related_name="reservations")

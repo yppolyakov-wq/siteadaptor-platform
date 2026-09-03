@@ -1,0 +1,26 @@
+{% load i18n %}{% comment %}DL-19 (AK3 «Countdown-Ring»): остаток времени — кольцом на фото
+(conic-gradient по `Promotion.time_left_pct`, без JS; текстовый счётчик остаётся партом
+`countdown`). Форма для «горит» — Happy Hour, последний день, распродажа выходного.{% endcomment %}
+<div class="sf-card group relative bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition" data-card-form="ring"{% if p.discount_style == 'mystery' %} data-mystery-root="{{ p.pk }}"{% endif %}>
+  {% include "storefront/_wish_heart.html" with kind="promotion" pos="absolute bottom-2 right-2" %}
+  <a href="{% url 'storefront-promotion' p.pk %}" class="block focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
+    <div class="relative">
+      {% include "storefront/cards/_promo_photo.html" with ratio="aspect-square" %}
+      {% if p.time_left_pct is not None %}
+        <span class="absolute top-3 right-3 w-14 h-14 rounded-full grid place-items-center shadow"
+              style="background: conic-gradient(var(--accent) {{ p.time_left_pct }}%, rgba(255,255,255,.55) 0);"
+              data-time-ring="{{ p.time_left_pct }}" aria-hidden="true">
+          <span class="w-11 h-11 rounded-full bg-white text-gray-900 grid place-items-center text-[11px] font-bold leading-none text-center">{{ p.time_left_label }}</span>
+        </span>
+      {% endif %}
+      {% include "storefront/_discount_display.html" with promo=p part="badge" size="sm" %}
+    </div>
+    <div class="p-3 md:p-4">
+      {% if p.group and not in_group %}<p class="text-[10px] font-semibold uppercase tracking-wide text-gray-400 mb-0.5" data-promo-group>{{ p.group_localized }}</p>{% endif %}
+      <h3 class="font-semibold leading-tight line-clamp-2" data-edit-model="promotion" data-edit-field="title" data-edit-pk="{{ p.pk }}">{{ p.title_text }}</h3>
+      <div class="mt-2 flex flex-wrap items-baseline gap-x-2">{% include "storefront/_discount_display.html" with promo=p part="price_line" %}</div>
+      {% if preview %}{% include "storefront/_discount_display.html" with promo=p part="starts" %}
+      {% else %}{% include "storefront/_discount_display.html" with promo=p part="countdown" size="sm" %}{% endif %}
+    </div>
+  </a>
+</div>

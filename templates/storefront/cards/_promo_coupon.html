@@ -1,0 +1,34 @@
+{% load i18n %}{% comment %}DL-19 (AK2 «Coupon»): купон с пунктирным вырезом — номинал
+крупно, условие мелко, действие рядом. Форма для акций «покажи на кассе»/«резервируй»:
+привычка бумажного купона читается быстрее карточки с фото.{% endcomment %}
+<div class="group relative" data-card-form="coupon"{% if p.discount_style == 'mystery' %} data-mystery-root="{{ p.pk }}"{% endif %}>
+  {% include "storefront/_wish_heart.html" with kind="promotion" pos="absolute top-2 right-2" %}
+  <a href="{% url 'storefront-promotion' p.pk %}" class="block rounded-2xl border-2 border-dashed border-gray-300 bg-white p-4 hover:border-gray-400 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-900">
+    <div class="flex items-baseline gap-2 pb-2 border-b border-dashed border-gray-300">
+      {% if p.discount_style != "mystery" and p.discount_percent_display %}
+        <span class="text-3xl font-extrabold leading-none text-red-600">−{{ p.discount_percent_display }} %</span>
+      {% elif p.discount_style != "mystery" and p.new_price is not None %}
+        <span class="text-2xl font-extrabold leading-none text-red-600">{{ p.new_price }} €</span>
+      {% elif p.discount_style == "mystery" %}
+        {% comment %}Mystery: номинал под замком — 🎁 и та же кнопка-reveal, что у
+        прежних форм (парт price несёт скрытую цену и обработчик).{% endcomment %}
+        <span class="text-2xl leading-none" aria-hidden="true">🎁</span>
+        {% include "storefront/_discount_display.html" with promo=p part="price" %}
+      {% else %}
+        <span class="text-2xl leading-none" aria-hidden="true">🎁</span>
+      {% endif %}
+      <span class="text-[10px] uppercase tracking-[0.14em] text-gray-400">{% trans "Coupon" %}</span>
+    </div>
+    <div class="pt-2">
+      {% if p.group and not in_group %}<p class="text-[10px] font-semibold uppercase tracking-wide text-gray-400" data-promo-group>{{ p.group_localized }}</p>{% endif %}
+      <h3 class="font-semibold leading-tight line-clamp-2" data-edit-model="promotion" data-edit-field="title" data-edit-pk="{{ p.pk }}">{{ p.title_text }}</h3>
+      {% if p.discount_style != 'mystery' and p.has_discount and p.discount_amount %}<p class="mt-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400" data-savings>{% blocktrans with amount=p.discount_amount %}You save {{ amount }} €{% endblocktrans %}</p>{% endif %}
+      {% if preview %}{% include "storefront/_discount_display.html" with promo=p part="starts" %}
+      {% else %}
+        {% include "storefront/_discount_display.html" with promo=p part="flags" size="sm" %}
+        {% include "storefront/_discount_display.html" with promo=p part="countdown" size="sm" %}
+      {% endif %}
+      <span class="mt-2 block rounded-full px-4 py-2 text-center text-sm font-semibold text-white shadow" style="background: var(--accent);" data-deal-cta>{% if p.promo_type == "reservation" %}{% trans "Reserve" %}{% else %}{% trans "Secure it" %}{% endif %}</span>
+    </div>
+  </a>
+</div>

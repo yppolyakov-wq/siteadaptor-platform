@@ -3,7 +3,12 @@
 сердечка Merkzettel внутри <a> — невалидный HTML, клики конфликтуют.
 DL-19: `storefront_promo_card` ниже — ДЕЙСТВУЮЩАЯ форма этой карточки (своя у
 акции побеждает дефолт сайта); затенение имени намеренное.{% endcomment %}{% card_form p "promo" as storefront_promo_card %}
-{% if storefront_promo_card == "preis" and not wide %}
+{% if storefront_promo_card == "regal" and not wide %}{% include "storefront/cards/_promo_regal.html" %}
+{% elif storefront_promo_card == "lookbook" and not wide %}{% include "storefront/cards/_promo_lookbook.html" %}
+{% elif storefront_promo_card == "deal" %}{% include "storefront/cards/_promo_deal.html" %}
+{% elif storefront_promo_card == "coupon" and not wide %}{% include "storefront/cards/_promo_coupon.html" %}
+{% elif storefront_promo_card == "ring" and not wide %}{% include "storefront/cards/_promo_ring.html" %}
+{% elif storefront_promo_card == "preis" and not wide %}
 {% comment %}DL-16.4 (AK1, решение владельца «Preis-zuerst дефолтом»): блок цены СВЕРХУ
 (крупная новая → зачёркнутая → бейдж → Grundpreis → Sie sparen), под ним фото 4:3 и
 название — форма карточки дискаунтеров (ALDI/HOFER/Marktguru, R3). Медиа-бокс и части

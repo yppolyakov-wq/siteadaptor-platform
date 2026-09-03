@@ -5,7 +5,10 @@
 DL-19: `storefront_card_style` ниже — ДЕЙСТВУЮЩАЯ форма этой карточки: своя у
 товара (`Product.card_style`) побеждает дефолт сайта. Затенение имени намеренное —
 ветвление и замки разметки прежние, меняется только источник значения.{% endcomment %}{% card_form p "product" as storefront_card_style %}
-{% if storefront_card_style == "compact" %}
+{% if storefront_card_style == "regal" %}{% include "storefront/cards/_product_regal.html" %}
+{% elif storefront_card_style == "lookbook" %}{% include "storefront/cards/_product_lookbook.html" %}
+{% elif storefront_card_style == "deal" %}{% include "storefront/cards/_product_deal.html" %}
+{% elif storefront_card_style == "compact" %}
 <div class="sf-card relative group flex items-center gap-3 bg-white rounded-2xl shadow-sm p-3 hover:shadow-md transition">
   <a href="{% url 'catalog:product-edit' p.pk %}" target="_blank" rel="noopener"
      class="sf-edit-link hidden absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm text-gray-600 hover:text-indigo-600"

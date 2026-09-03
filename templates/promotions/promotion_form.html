@@ -103,9 +103,9 @@
       {% for field in form %}{% if field.name == 'available_quantity' or field.name == 'max_per_customer' or field.name == 'reservation_ttl_hours' or field.name == 'auto_confirm' or field.name == 'starts_at' or field.name == 'ends_at' or field.name == 'recurrence' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
     </div>
 
-    {# Anzeige: перечёркнутая цена, обратный отсчёт #}
+    {# Anzeige: перечёркнутая цена, обратный отсчёт, форма карточки (DL-19) #}
     <div data-pf-panel="anz" class="space-y-3 pt-2 hidden">
-      {% for field in form %}{% if field.name == 'strikethrough_old_price' or field.name == 'show_countdown' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      {% for field in form %}{% if field.name == 'strikethrough_old_price' or field.name == 'show_countdown' or field.name == 'card_style' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
     </div>
 
     {% for err in form.non_field_errors %}<p class="text-sm text-red-600">{{ err }}</p>{% endfor %}

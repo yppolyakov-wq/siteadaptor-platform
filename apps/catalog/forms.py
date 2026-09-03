@@ -8,6 +8,7 @@ from django import forms
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
+from apps.core import card_forms
 from apps.core.i18n_input import DynamicI18nFormMixin
 
 from .food import ADDITIVES, ALLERGENS, COURSES, DIETS
@@ -202,6 +203,7 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             "is_featured",
             "badge",
             "variant_style",
+            "card_style",
         ]
         labels = {
             # I18N-13: без явной подписи Django выводит машинное имя поля
@@ -293,6 +295,18 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             choices=[(key, label) for key, label, _hint in VARIANT_STYLES],
             help_text=_("Leer = wie in den Website-Einstellungen eingestellt."),
         )
+        # DL-19: ФОРМА карточки этого товара — из реестра card_forms, с подсказками
+        # «когда уместно». Пустой пункт = «как в настройках сайта» (дефолт магазина);
+        # заданное значение ПОБЕЖДАЕТ общий выбор владельца.
+        self.fields["card_style"] = forms.ChoiceField(
+            label=_("Card form"),
+            required=False,
+            choices=[
+                (key, f"{label} — {hint}" if hint else label)
+                for key, label, hint in card_forms.forms_for(card_forms.PRODUCT)
+            ],
+            help_text=_("Leer = wie in den Website-Einstellungen eingestellt."),
+        )
         # MEN-2: тип подачи (Gang) — реестр food.COURSES; ChoiceField валидирует код.
         self.fields["course"] = forms.ChoiceField(
             label=_("Gang"),
@@ -337,6 +351,7 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
                 "care",
                 "is_featured",
                 "badge",
+                "card_style",
             ]
         )
 

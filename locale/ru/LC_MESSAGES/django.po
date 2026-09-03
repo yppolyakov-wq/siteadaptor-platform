@@ -21865,3 +21865,24 @@ msgstr "Кольцо обратного отсчёта"
 
 msgid "Remaining time as a ring on the photo."
 msgstr "Оставшееся время кольцом на фото."
+
+msgid "Card form"
+msgstr "Вид карточки"
+
+msgid "over"
+msgstr "истекло"
+
+msgid "%(n)s d"
+msgstr "%(n)s дн."
+
+msgid "%(n)s h"
+msgstr "%(n)s ч"
+
+msgid "%(n)s min"
+msgstr "%(n)s мин"
+
+msgid "Secure it"
+msgstr "Забрать"
+
+msgid "To the offer"
+msgstr "К предложению"

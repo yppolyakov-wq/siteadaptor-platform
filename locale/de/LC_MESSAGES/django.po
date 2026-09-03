@@ -21684,3 +21684,24 @@ msgstr "Countdown-Ring"
 
 msgid "Remaining time as a ring on the photo."
 msgstr "Restzeit als Ring auf dem Foto."
+
+msgid "Card form"
+msgstr "Kartenform"
+
+msgid "over"
+msgstr "vorbei"
+
+msgid "%(n)s d"
+msgstr "%(n)s T."
+
+msgid "%(n)s h"
+msgstr "%(n)s Std."
+
+msgid "%(n)s min"
+msgstr "%(n)s Min."
+
+msgid "Secure it"
+msgstr "Sichern"
+
+msgid "To the offer"
+msgstr "Zum Angebot"

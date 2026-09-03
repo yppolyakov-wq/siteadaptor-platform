@@ -1300,3 +1300,20 @@ input[type="datetime-local"] {
 .sf-more { display: none; grid-column: 1 / -1; justify-content: center; }
 @media (max-width: 767.98px) { [data-grid].is-list > .sf-filler { display: none; } }
 /* /DL-11 fill-rows */
+
+/* DL-19: ГОРИЗОНТАЛЬНЫЕ формы карточки (Regal / Deal-Kachel) на телефоне занимают
+   всю ширину. В сетке из двух колонок 190 px плашка цены сжимается так, что цена
+   переносится, бейдж уезжает под неё, а название режется — стенд 390 px показал это
+   сразу. Правило скоуплено формой карточки: вертикальные формы не затронуты. */
+@media (max-width: 639.98px) {
+  [data-grid]:has(> [data-card-form="regal"]),
+  [data-grid]:has(> [data-card-form="deal"]) {
+    --sf-n: 1;  /* режим spread (DL-14) считает ширину плитки от числа колонок */
+    grid-template-columns: 1fr !important;
+  }
+  [data-grid]:has(> [data-card-form="regal"]) > *,
+  [data-grid]:has(> [data-card-form="deal"]) > * {
+    width: 100% !important;
+    flex: 0 0 100% !important;
+  }
+}

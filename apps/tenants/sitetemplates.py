@@ -1261,7 +1261,7 @@ BUNDLES = [
         "look": "klar",
         "config": _fokus(
             {
-                "card_style": "overlay",
+                "card_style": "lookbook",  # DL-19: у сборки «Lookbook» — своя форма карточки
                 "section_styles": {"categories": "tall", "gallery": "large"},
                 "sections_on": ("categories", "products", "gallery"),
             }

@@ -1,0 +1,15 @@
+{% load i18n %}{% comment %}DL-19: фото акции для новых форм — та же семантика, что в прежних
+ветках (главное фото, mystery-блюр, кнопка правки на канве). Параметры: p, ratio.{% endcomment %}
+<div class="relative {{ ratio|default:'aspect-square' }} bg-gray-100 overflow-hidden" data-sf-media-box>
+  <button type="button" data-photo-edit data-edit-model="promotion" data-edit-pk="{{ p.pk }}"
+     class="sf-photo-edit hidden absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm hover:text-indigo-600"
+     title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</button>
+  {% with img=p.primary_image %}
+    {% if img %}
+      <img src="{{ img.url }}" alt="{{ p.title_text }}" loading="lazy" decoding="async"{% if p.discount_style == 'mystery' %} data-mystery-blur{% endif %}
+           class="w-full h-full object-cover group-hover:scale-[1.02] transition{% if p.discount_style == 'mystery' %} blur-lg{% endif %}">
+    {% else %}
+      <div class="w-full h-full flex items-center justify-center text-gray-300" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></div>
+    {% endif %}
+  {% endwith %}
+</div>

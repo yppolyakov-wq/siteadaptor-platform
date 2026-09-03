@@ -374,6 +374,7 @@ def _p(
     material="",
     care="",
     variant_style="",
+    card_style="",
     vat="",
     ingredients="",
 ):
@@ -398,6 +399,8 @@ def _p(
         "material": material,  # M1: Textilkennzeichnung (Boutique)
         "care": care,
         "variant_style": variant_style,  # O-2: per-товарный вид выбора
+        # DL-19: per-товарная ФОРМА карточки ("" = форма сайта; своя побеждает)
+        "card_style": card_style,
         # Ф2/LMIV: «Zutaten» товара (переводится оверлеем ingredients_i18n —
         # demo_i18n заполняет локали из словарей).
         "ingredients": ingredients,
@@ -3642,6 +3645,9 @@ AKTIONSMARKT = DemoKit(
     bundle="fokus_angebote",
     look="klar",
     promo_card="preis",  # DL-16.4: «Preis zuerst» — дефолт акционного демо
+    # DL-19 (N1): товары — «Regal»: цена ведёт, фото опознавательным квадратом.
+    # Дискаунтер выбирают ценой, и на экран помещается вдвое больше позиций.
+    card_style="regal",
     # DL-17.2 (фидбэк «карусели нет в демо»): листание фото прямо на карточке —
     # у товаров ниже по 2–3 кадра (P2, стрелки при наведении + свайп).
     card_slider="on",
@@ -3834,6 +3840,8 @@ AKTIONSMARKT = DemoKit(
             "new": True,
             "product": 6,
             "percent": 30,
+            # DL-19 (AK3): остаток времени кольцом на фото — «горит сегодня»
+            "card_style": "ring",
             "discount_style": "countdown",
             "countdown": True,
             "ends_in_days": 2,
@@ -3858,6 +3866,8 @@ AKTIONSMARKT = DemoKit(
             "title": "Gemahlener Kaffee −25 % (limitiert)",
             "images": ["coffee,ground", "coffee,cafe", "espresso"],
             "product": 10,
+            # DL-19 (AK2): своя форма карточки — купон («резервируй и забери»)
+            "card_style": "coupon",
             "type": "reservation",
             "percent": 25,
             "available_quantity": 10,
@@ -5587,7 +5597,9 @@ CLOTHING = DemoKit(
     # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
     section_layouts={"gallery": {"preset": "cols3"}},
     look="nacht",  # ST-1: тёмный Look (мода)
-    card_style="overlay",  # ST-7c: текст поверх фото
+    # DL-19 (N2): «Lookbook» — высокий кадр 3:4 и тихая подпись. До волны ближайшей
+    # формой был overlay (текст поверх фото); теперь у моды есть своя.
+    card_style="lookbook",
     variant_style="axes",  # O-2: цвет кружками + размеры кнопками
     label="Studio Nordwind",
     business_type="clothing",
@@ -11147,6 +11159,8 @@ def apply_kit(tenant, key: str) -> bool:
             ingredients=item.get("ingredients", ""),
             # O-2: per-товарный вид выбора вариантов ("" = дефолт сайта/кита)
             variant_style=item.get("variant_style", ""),
+            # DL-19: своя форма карточки этой позиции (побеждает дефолт сайта)
+            card_style=item.get("card_style", ""),
             is_active=True,
             is_featured=(len(created_products) < 3),
             metadata={"demo": True},
@@ -11349,6 +11363,9 @@ def apply_kit(tenant, key: str) -> bool:
         # UE2-2: стиль вывода скидки (showcase 7 стилей на aktionsmarkt).
         if spec.get("discount_style"):
             fields["discount_style"] = spec["discount_style"]
+        # DL-19: своя ФОРМА карточки этой акции (побеждает дефолт сайта)
+        if spec.get("card_style"):
+            fields["card_style"] = spec["card_style"]
         if spec.get("new_price"):
             fields["price_override"] = Decimal(str(spec["new_price"]))
         if spec.get("compare_at"):

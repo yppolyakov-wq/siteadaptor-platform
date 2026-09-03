@@ -11,7 +11,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.catalog.option_styles import VARIANT_STYLES
-from apps.core import detail_sections, presence, vat
+from apps.core import card_forms, detail_sections, presence, vat
 from apps.tenants import domains
 from apps.tenants.forms import BusinessSettingsForm
 from apps.tenants.models import CustomDomain
@@ -2403,6 +2403,9 @@ def home_builder_view(request):
             "card_bg": config["site_defaults"]["card_bg"],
             "card_padding": config["site_defaults"]["card_padding"],
             "card_style": config["site_defaults"].get("card_style", ""),  # ST-7c
+            # DL-19: варианты формы карточки для плиток-предпросмотра (реестр)
+            "card_forms_product": card_forms.forms_for(card_forms.PRODUCT),
+            "card_forms_promo": card_forms.forms_for(card_forms.PROMO),
             "media_shape": config["site_defaults"].get("media_shape", ""),  # DL-10
             "promo_card": config["site_defaults"].get("promo_card", ""),  # DL-16.4
             "card_slider": config["site_defaults"].get("card_slider", ""),

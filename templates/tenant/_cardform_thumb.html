@@ -1,0 +1,23 @@
+{% comment %}DL-19: мини-макет формы карточки для плиток выбора в Studio (только визуал,
+без данных — как variantThumb у C-блоков). Вход: key.{% endcomment %}
+{% if key == "overlay" %}
+  <span class="block w-14 h-10 rounded ring-1 ring-gray-200 overflow-hidden bg-gray-300 relative" aria-hidden="true"><span class="absolute inset-x-1 bottom-1 h-1.5 rounded bg-white/90"></span></span>
+{% elif key == "compact" %}
+  <span class="flex w-14 h-10 items-center gap-1 rounded ring-1 ring-gray-200 bg-white p-1" aria-hidden="true"><span class="w-6 h-6 rounded bg-gray-300 shrink-0"></span><span class="flex-1"><span class="block h-1 w-6 rounded bg-gray-300"></span><span class="block mt-1 h-1 w-4 rounded bg-gray-400"></span></span></span>
+{% elif key == "etikett" %}
+  <span class="block w-14 h-10 rounded ring-1 ring-gray-200 overflow-hidden bg-gray-300 relative" aria-hidden="true"><span class="absolute top-1 right-1 h-3 w-5 rounded-sm bg-white ring-1 ring-gray-400"></span></span>
+{% elif key == "preis" %}
+  <span class="block w-14 h-10 rounded ring-1 ring-gray-200 overflow-hidden bg-white" aria-hidden="true"><span class="block h-3 bg-amber-100"><span class="block ml-1 pt-1 h-1 w-6 rounded bg-gray-500"></span></span><span class="block h-7 bg-gray-300"></span></span>
+{% elif key == "regal" %}
+  <span class="flex w-14 h-10 rounded ring-1 ring-gray-200 overflow-hidden bg-white" aria-hidden="true"><span class="w-5 bg-gray-300 shrink-0"></span><span class="flex-1 bg-amber-100 p-1"><span class="block h-2 w-6 rounded bg-gray-600"></span><span class="block mt-1 h-1 w-5 rounded bg-gray-400"></span></span></span>
+{% elif key == "lookbook" %}
+  <span class="block w-14 h-10 rounded overflow-hidden bg-white" aria-hidden="true"><span class="block h-7 w-8 mx-auto bg-gray-300 rounded-sm"></span><span class="block mt-1 h-1 w-6 mx-auto rounded bg-gray-400"></span></span>
+{% elif key == "deal" %}
+  <span class="flex w-14 h-10 items-center gap-1 rounded ring-1 ring-gray-200 bg-white p-1" aria-hidden="true"><span class="w-5 h-5 rounded bg-gray-300 shrink-0"></span><span class="flex-1"><span class="block h-1 w-5 rounded bg-gray-400"></span><span class="block mt-1 h-2 w-4 rounded bg-gray-600"></span></span><span class="w-3 h-3 rounded-full bg-indigo-400 shrink-0"></span></span>
+{% elif key == "coupon" %}
+  <span class="flex w-14 h-10 items-center gap-1 rounded border border-dashed border-gray-400 bg-white p-1 relative" aria-hidden="true"><span class="h-4 w-4 rounded bg-gray-600 shrink-0"></span><span class="w-px self-stretch border-l border-dashed border-gray-300"></span><span class="flex-1"><span class="block h-1 w-5 rounded bg-gray-400"></span><span class="block mt-1 h-1 w-3 rounded bg-gray-300"></span></span></span>
+{% elif key == "ring" %}
+  <span class="block w-14 h-10 rounded ring-1 ring-gray-200 overflow-hidden bg-gray-300 relative" aria-hidden="true"><span class="absolute top-1 right-1 h-4 w-4 rounded-full bg-white ring-2 ring-indigo-400"></span></span>
+{% else %}
+  <span class="block w-14 h-10 rounded ring-1 ring-gray-200 overflow-hidden bg-white" aria-hidden="true"><span class="block h-6 bg-gray-300"></span><span class="block ml-1 mt-1 h-1 w-8 rounded bg-gray-300"></span><span class="block ml-1 mt-0.5 h-1 w-5 rounded bg-gray-400"></span></span>
+{% endif %}

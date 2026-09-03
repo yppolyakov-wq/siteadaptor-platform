@@ -1287,11 +1287,26 @@ def test_friseur_new_ideology_video_presence_look():
     assert "theme" not in cfg  # warm — светлый Look
 
 
-def test_clothing_new_ideology_dark_overlay():
+def test_clothing_new_ideology_dark_lookbook():
     t = TenantFactory(slug="ni2", name="NI2", business_type="clothing")
     assert demo_kits.apply_kit(t, "clothing")
     assert t.site_config.get("theme") == "dark"  # ST-1 nacht
-    assert t.site_config["site_defaults"]["card_style"] == "overlay"  # ST-7c
+    # DL-19: у моды появилась своя форма — кадр 3:4 с тихой подписью. До волны
+    # ближайшей был overlay (текст поверх фото), замок обновлён осознанно.
+    assert t.site_config["site_defaults"]["card_style"] == "lookbook"
+
+
+def test_aktionsmarkt_shows_the_new_card_forms_including_a_per_promo_override():
+    """DL-19: демо показывает и общий выбор («Regal» товарам), и приоритет
+    per-объект формы над сайтовой («Preis zuerst» + купон/кольцо у двух акций)."""
+    from apps.promotions.models import Promotion
+
+    t = TenantFactory(slug="ni2b", name="NI2B", business_type="grocery")
+    assert demo_kits.apply_kit(t, "aktionsmarkt")
+    sd = t.site_config["site_defaults"]
+    assert sd["card_style"] == "regal" and sd["promo_card"] == "preis"
+    own = set(Promotion.objects.exclude(card_style="").values_list("card_style", flat=True))
+    assert own == {"coupon", "ring"}
 
 
 def test_cafe_new_ideology_compact_section_styles():

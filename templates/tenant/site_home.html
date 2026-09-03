@@ -249,7 +249,7 @@
               setChecked(form, "input[name='sd_page_bg_on']", !!lk.page_bg);
               if (lk.page_bg) setVal(form, "input[name='sd_page_bg']", lk.page_bg);
               setVal(form, "select[name='sd_card_chrome']", lk.card_chrome || "");
-              setVal(form, "select[name='sd_card_style']", lk.card_style || "");
+              setVal(form, "[name='sd_card_style']", lk.card_style || "");
             });
           });
         })();
@@ -306,6 +306,17 @@
             </select>
           </label>
         </div>
+        {% comment %}ST-7c/DL-19: ФОРМА карточек — плитки с мини-макетом (варианты видно,
+           а не читать). ВНЕ data-expert-блока: это первичная настройка вида витрины, а в
+           Простом режиме expert-блок скрыт целиком — прецедент W11-5 (quick_add был спрятан
+           там же, и владелец его не находил). Значения — в hidden-инпутах ПРЕЖНИХ имён,
+           поэтому save/live-draft/клик по Look'у не тронуты.{% endcomment %}
+        <div class="mt-4 pt-4 border-t border-gray-100">
+          <div class="grid sm:grid-cols-2 gap-4">
+            {% include "tenant/_cardform_picker.html" with name="sd_card_style" value=card_style items=card_forms_product title=_("Kartenform") %}
+            {% include "tenant/_cardform_picker.html" with name="sd_promo_card" value=promo_card items=card_forms_promo title=_("Aktionskarte") %}
+          </div>
+        </div>
         {% comment %} SE-2d: глобальный стиль карточек — «весь сайт» (мастер-настройка, наследуется
            всеми сетками; блок может переопределить своим visual). SE-8a: эксперт-только. {% endcomment %}
         <div class="mt-4 pt-4 border-t border-gray-100" data-expert="1">
@@ -350,16 +361,6 @@
                 {% for key, label, hint in variant_styles %}<option value="{{ key }}" {% if variant_style == key %}selected{% endif %} title="{{ hint }}">{{ label }}</option>{% endfor %}
               </select>
             </label>
-            {# ST-7c: ФОРМА карточки — вертикальная / текст поверх фото / строка-прайс. #}
-            <label class="text-sm">
-              <span class="block font-medium mb-1">{% trans "Kartenform" %}</span>
-              <select name="sd_card_style" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
-                <option value="">{% trans "Standard" %}</option>
-                <option value="overlay" {% if card_style == 'overlay' %}selected{% endif %}>{% trans "Text auf Foto" %}</option>
-                <option value="compact" {% if card_style == 'compact' %}selected{% endif %}>{% trans "Kompakte Zeile" %}</option>
-                <option value="etikett" {% if card_style == 'etikett' %}selected{% endif %}>{% trans "Preis-Etikett" %}</option>
-              </select>
-            </label>
             {% comment %}DL-17.3 (DL-2): ХРОМ карточек — рамка/тень семейства. Был hidden
             под Look-клик; теперь выбирается и вручную ("" = прежний облик).{% endcomment %}
             <label class="text-sm">
@@ -369,14 +370,6 @@
                 <option value="hard" {% if card_chrome == 'hard' %}selected{% endif %}>{% trans "Kräftiger Rahmen" %}</option>
                 <option value="hairline" {% if card_chrome == 'hairline' %}selected{% endif %}>{% trans "Haarlinie" %}</option>
                 <option value="line" {% if card_chrome == 'line' %}selected{% endif %}>{% trans "Feine Linie" %}</option>
-              </select>
-            </label>
-            {# DL-16.4: карточка акции — «Preis zuerst» (дефолт дил-сборок) #}
-            <label class="text-sm">
-              <span class="block font-medium mb-1">{% trans "Aktionskarte" %}</span>
-              <select name="sd_promo_card" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
-                <option value="">{% trans "Standard" %}</option>
-                <option value="preis" {% if promo_card == 'preis' %}selected{% endif %}>{% trans "Preis zuerst" %}</option>
               </select>
             </label>
             {% comment %}DL-17.3: страница /aktionen/ — раскладка групп (сетка/ленты, DL-16.2 A3)
@@ -2296,8 +2289,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       var sdPad = form.querySelector("input[name='sd_card_padding']");
       var sdBgOn = form.querySelector("input[name='sd_card_bg_on']");
       var sdBg = form.querySelector("input[name='sd_card_bg']");
-      // ST-7c: форма карточки (select sd_card_style; "" = прежняя).
-      var sdStyle = form.querySelector("select[name='sd_card_style']");
+      // ST-7c/DL-19: форма карточки (плитки + hidden sd_card_style; "" = прежняя).
+      var sdStyle = form.querySelector("[name='sd_card_style']");
       // DL-10: форма кадра (select sd_media_shape; "" = как в разметке).
       var sdMedia = form.querySelector("select[name='sd_media_shape']");
       // DL-17.3: фон страницы (color + тумблер, как card_bg) и хром карточек (select).
@@ -2306,7 +2299,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       var sdChrome = form.querySelector("[name='sd_card_chrome']");
       // DL-17.3: карточка акции / листание фото / вид выбора вариантов — контролы
       // были, а в черновик не ехали (правка была видна только после Save).
-      var sdPromoCard = form.querySelector("select[name='sd_promo_card']");
+      var sdPromoCard = form.querySelector("[name='sd_promo_card']");
       var sdSlider = form.querySelector("input[name='sd_card_slider']");
       var sdVariant = form.querySelector("select[name='sd_variant_style']");
       payload.site_defaults = {

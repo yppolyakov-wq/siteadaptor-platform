@@ -1,0 +1,23 @@
+{% load i18n %}{% load siteui %}{% comment %}DL-19 (макет N2 «Lookbook»): кадр решает —
+высокое фото 3:4 без рамки и тени, под ним тихая подпись. Для моды/интерьера: карточка
+не соревнуется с фотографией. Цена спокойная (не красная), скидка — тонкой строкой.{% endcomment %}
+<div class="group relative" data-card-form="lookbook">
+  {% include "storefront/cards/_canvas_edit.html" %}
+  {% include "storefront/_wish_heart.html" with p=p pos="absolute top-2 left-2" %}
+  <a href="{{ p.get_absolute_url }}" class="block focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+    <div class="overflow-hidden rounded-xl">
+      {% include "storefront/cards/_photo.html" with ratio="aspect-[3/4]" %}
+    </div>
+    <div class="pt-2.5{% if storefront_quick_add and p.in_stock %} pr-12{% endif %}">
+      {% if p.category %}<p class="text-[10px] uppercase tracking-[0.14em] text-gray-400 truncate">{{ p.category }}</p>{% endif %}
+      <h3 class="mt-0.5 text-sm leading-snug truncate" data-edit-model="product" data-edit-pk="{{ p.pk }}" data-edit-field="name">{{ p }}</h3>
+      <p class="mt-1 text-sm">{% if p.has_variants %}<span class="text-xs text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% elif p.promo_price %}<span class="font-semibold text-red-600">{{ p.promo_price }}</span> <span class="text-xs text-gray-400 line-through">{{ p.base_price }}</span>{% else %}<span data-price-edit data-edit-pk="{{ p.pk }}" data-price="{{ p.base_price }}">{{ p.base_price }}</span>{% endif %} {{ p.currency|cursym }}</p>
+      {% if p.promo_price and p.promo_lowest is not None %}
+        <p class="mt-0.5 text-[10px] leading-tight {{ pangv_cls|default:'text-gray-400' }}">{% blocktrans with p=p.promo_lowest %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>
+      {% endif %}
+    </div>
+  </a>
+  {% comment %}Кнопка — в углу ПОДПИСИ (высота подписи меняется от числа строк, поэтому
+  фиксированный отступ от низа наезжал бы на текст).{% endcomment %}
+  {% include "storefront/cards/_add_button.html" with cls="absolute right-0 bottom-0 z-10" %}
+</div>

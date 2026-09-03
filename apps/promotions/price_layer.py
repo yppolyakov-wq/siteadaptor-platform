@@ -152,6 +152,14 @@ def attach_promos(products, *, with_lowest=True):
         # подпись честнее (находка сверки Sparfuchs-ТЗ).
         p.promo_badge = f"−{pct} %" if pct else (_("Aktion") if promo else "")
         p.promo_lowest = lows.get(p.pk) if promo else None
+        # DL-19: выгода в евро — формам «Regal»/«Deal-Kachel» она нужна строкой
+        # («Sie sparen 0,50 €»); в шаблоне вычесть нельзя, а второй запрос ради
+        # этого не нужен — обе цены уже здесь.
+        p.promo_savings = (
+            (p.base_price - p.promo_price)
+            if p.promo_price is not None and p.base_price is not None
+            else None
+        )
     return products
 
 

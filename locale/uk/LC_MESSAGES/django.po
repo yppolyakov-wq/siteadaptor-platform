@@ -21849,3 +21849,24 @@ msgstr "Кільце зворотного відліку"
 
 msgid "Remaining time as a ring on the photo."
 msgstr "Час, що лишився, кільцем на фото."
+
+msgid "Card form"
+msgstr "Вигляд картки"
+
+msgid "over"
+msgstr "завершено"
+
+msgid "%(n)s d"
+msgstr "%(n)s дн."
+
+msgid "%(n)s h"
+msgstr "%(n)s год"
+
+msgid "%(n)s min"
+msgstr "%(n)s хв"
+
+msgid "Secure it"
+msgstr "Забрати"
+
+msgid "To the offer"
+msgstr "До пропозиції"

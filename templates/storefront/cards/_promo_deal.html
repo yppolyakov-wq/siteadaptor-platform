@@ -1,0 +1,29 @@
+{% load i18n %}{% comment %}DL-19 (N3 «Deal-Kachel»): всё в одной строке — фото, название,
+цена, выгода, условие, срок и кнопка. Референс Marktguru/Lidl-App: сделка понятна без
+открытия карточки. Кнопка — <span> внутри ссылки (вложенных <a>/<button> не делаем).{% endcomment %}
+<div class="sf-card group relative flex items-center gap-3 bg-white rounded-2xl shadow-sm p-3 hover:shadow-md transition{% if wide %} sf-wide{% endif %}" data-card-form="deal"{% if p.discount_style == 'mystery' %} data-mystery-root="{{ p.pk }}"{% endif %}>
+  {% include "storefront/_wish_heart.html" with kind="promotion" pos="absolute bottom-2 left-2" %}
+  <a href="{% url 'storefront-promotion' p.pk %}" class="flex items-center gap-3 flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 rounded-xl">
+    <div class="w-24 sm:w-32 shrink-0 rounded-xl overflow-hidden">
+      {% include "storefront/cards/_promo_photo.html" with ratio="aspect-[4/3]" %}
+    </div>
+    <div class="min-w-0 flex-1">
+      {% if p.group and not in_group %}<p class="text-[10px] font-semibold uppercase tracking-wide text-gray-400" data-promo-group>{{ p.group_localized }}</p>{% endif %}
+      <h3 class="font-semibold leading-tight line-clamp-2" data-edit-model="promotion" data-edit-field="title" data-edit-pk="{{ p.pk }}">{{ p.title_text }}</h3>
+      <div class="mt-0.5 flex items-center gap-x-2 flex-wrap [&_span]:whitespace-nowrap">
+        {% include "storefront/_discount_display.html" with promo=p part="price_line" %}
+        {% include "storefront/_discount_display.html" with promo=p part="badge" size="sm" badge_pos_class="!static shrink-0" %}
+      </div>
+      <p class="mt-0.5 text-[11px] leading-tight text-gray-500 dark:text-gray-400 flex flex-wrap items-baseline gap-x-1.5">
+        {% include "storefront/_discount_display.html" with promo=p part="grundpreis" %}
+        {% if p.discount_style != 'mystery' and p.has_discount and p.discount_amount %}<span class="font-medium text-emerald-700 dark:text-emerald-400" data-savings>{% blocktrans with amount=p.discount_amount %}You save {{ amount }} €{% endblocktrans %}</span>{% endif %}
+      </p>
+      {% if preview %}{% include "storefront/_discount_display.html" with promo=p part="starts" %}
+      {% else %}
+        {% include "storefront/_discount_display.html" with promo=p part="flags" size="sm" %}
+        {% include "storefront/_discount_display.html" with promo=p part="countdown" size="sm" %}
+      {% endif %}
+    </div>
+    <span class="hidden sm:inline-flex shrink-0 items-center rounded-full px-4 py-2 text-sm font-semibold text-white shadow" style="background: var(--accent);" data-deal-cta>{% trans "To the offer" %}</span>
+  </a>
+</div>
