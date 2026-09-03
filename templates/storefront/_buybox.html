@@ -82,6 +82,9 @@ test_public (порядок CTA/точные href). Двухшаговость (
           </div>
         {% endif %}
       {% endfor %}
+      {% comment %}SH-24: тот же выбор «Abholung | Lieferung», что в корзине —
+      покупка по акции больше не форсит самовывоз.{% endcomment %}
+      {% include "storefront/_fulfillment_choice.html" %}
       <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
         {% trans "Jetzt kaufen" %}
       </button>

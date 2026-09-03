@@ -17,9 +17,10 @@ from django.views.decorators.http import require_POST
 
 from apps.core import ratelimit
 
+from . import delivery_choice
 from . import payments as order_payments
 from .models import Offer, Order
-from .services import EmptyOrder, OutOfStock, create_order, delivery_quote
+from .services import EmptyOrder, OutOfStock, create_order
 
 CART_SESSION_KEY = "cart"
 RL_LIMIT = 5  # оформлений на IP
@@ -815,34 +816,15 @@ def checkout(request):
     subtotal += sum((combo_price(c, o) * q for c, o, q in combo_items), Decimal("0"))
     subtotal += sum((pool_price(c, d) * q for c, d, q, _ok, _k in pool_items), Decimal("0"))
     subtotal_cents = int(subtotal * 100)
-    delivery = request.POST.get("fulfillment") == "delivery" and getattr(
-        tenant, "delivery_enabled", False
-    )
-    shipping_cents = 0
-    shipping_address = ""
-    if delivery:
-        street = request.POST.get("street", "").strip()
-        plz = request.POST.get("plz", "").strip()
-        city = request.POST.get("city", "").strip()
-        if not (street and plz and city):
-            messages.error(request, _("Please enter your full delivery address."))
-            return redirect("storefront-cart")
-        quote = delivery_quote(tenant, subtotal_cents, plz)
-        if not quote["deliverable"]:
-            messages.error(
-                request,
-                _("Sorry, we don't deliver to postal code %(plz)s.") % {"plz": plz},
-            )
-            return redirect("storefront-cart")
-        if quote["min_cents"] and subtotal_cents < quote["min_cents"]:
-            messages.error(
-                request,
-                _("Minimum order for delivery is %(min)s €.")
-                % {"min": f"{quote['min_cents'] / 100:.2f}".replace(".", ",")},
-            )
-            return redirect("storefront-cart")
-        shipping_cents = quote["fee_cents"]
-        shipping_address = f"{street}\n{plz} {city}"
+    # SH-24: разбор «Abholung | Lieferung» — общий с покупкой по акции и
+    # принятием предложения (тексты ошибок и правила прежние, замки доставки целы).
+    choice = delivery_choice.resolve(request.POST, tenant, subtotal_cents)
+    if not choice:
+        messages.error(request, choice.error)
+        return redirect("storefront-cart")
+    delivery = choice.delivery
+    shipping_cents = choice.shipping_cents
+    shipping_address = choice.shipping_address
     pickup_location = ""
     if not delivery:
         pickup_min = getattr(tenant, "pickup_min_cents", 0) or 0
@@ -1051,6 +1033,12 @@ def offer_page(request, token):
             chosen = request.POST.get("payment") or methods[0]
             if chosen not in methods:
                 chosen = methods[0]
+            # SH-24: способ получения — тот же разбор, что на чекауте корзины
+            # (раньше принятие предложения всегда создавало заказ на самовывоз).
+            choice = delivery_choice.resolve(request.POST, tenant, int(offer.total * 100))
+            if not choice:
+                messages.error(request, choice.error)
+                return redirect("storefront-offer", token=token)
             try:
                 order = offer_service.accept_offer(
                     offer,
@@ -1058,6 +1046,9 @@ def offer_page(request, token):
                     email=request.POST.get("email", "").strip(),
                     phone=request.POST.get("phone", "").strip()[:50],
                     payment_method=chosen,
+                    fulfillment="delivery" if choice.delivery else "pickup",
+                    shipping_cents=choice.shipping_cents,
+                    shipping_address=choice.shipping_address,
                 )
             except offer_service.OfferUnavailable:
                 return redirect("storefront-offer", token=token)
@@ -1102,6 +1093,8 @@ def offer_page(request, token):
             "payment_methods": [{"code": m, "label": labels[m]} for m in methods]
             if len(methods) > 1
             else [],
+            # SH-24: данные выбора «Abholung | Lieferung» для общего партиала.
+            **delivery_choice.context(tenant),
         },
     )
 

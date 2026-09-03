@@ -1,0 +1,51 @@
+{% load i18n %}
+{% comment %}SH-24: выбор «Abholung | Lieferung» — ОДИН партиал на корзину,
+покупку по акции и принятие предложения (раньше выбор был только в корзине, а
+две другие поверхности молча форсили самовывоз). Поля те же (`fulfillment`,
+`street`/`plz`/`city`), поэтому серверный разбор общий — `orders.delivery_choice`.
+Без доставки у бизнеса партиал печатает честную строку «самовывоз».{% endcomment %}
+{% if delivery_enabled %}
+  <div>
+    <h2 class="font-semibold mb-2">{% trans "How would you like to get it?" %}</h2>
+    <div class="grid grid-cols-2 gap-2" data-fulfillment-switch>
+      <label class="sf-seg flex items-center justify-center gap-2 text-sm font-medium rounded-lg border border-gray-200 px-3 py-2.5 cursor-pointer"><input type="radio" name="fulfillment" value="pickup" class="sr-only" checked> 🛍 {% trans "Pickup" %}</label>
+      <label class="sf-seg flex items-center justify-center gap-2 text-sm font-medium rounded-lg border border-gray-200 px-3 py-2.5 cursor-pointer"><input type="radio" name="fulfillment" value="delivery" class="sr-only"> 🚚 {% trans "Delivery" %}</label>
+    </div>
+    {% if delivery_fee_eur %}<p class="text-xs text-gray-400 mt-1">{% blocktrans with f=delivery_fee_eur %}Delivery {{ f }} €{% endblocktrans %}{% if delivery_free_cents %} · {% blocktrans with f=delivery_free_eur %}free from {{ f }} €{% endblocktrans %}{% endif %}{% if delivery_min_cents %} · {% blocktrans with m=delivery_min_eur %}min. {{ m }} €{% endblocktrans %}{% endif %}</p>{% endif %}
+  </div>
+  <div id="delivery-address" class="hidden grid sm:grid-cols-2 gap-3">
+    <div class="sm:col-span-2">
+      <label class="block text-sm font-medium mb-1" for="ff-street">{% trans "Street & no." %}</label>
+      <input id="ff-street" name="street" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="ff-plz">{% trans "Postal code" %}</label>
+      <input id="ff-plz" name="plz" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="ff-city">{% trans "City" %}</label>
+      <input id="ff-city" name="city" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+    </div>
+  </div>
+{% else %}
+  <input type="hidden" name="fulfillment" value="pickup">
+  <p class="flex items-center gap-2 text-sm font-medium text-gray-700 rounded-lg bg-gray-50 border border-gray-200 px-3 py-2">
+    🛍 {% trans "Pickup in store" %}{% if request.tenant.address %} <span class="font-normal text-gray-500">· {{ request.tenant.address }}</span>{% endif %}
+  </p>
+{% endif %}
+{% if delivery_enabled %}
+  <script>
+    // SH-24: адрес показывается при выборе «Lieferung». Делегирование на
+    // document — партиал может приехать fetch-свопом (урок HF: инлайн-биндинг
+    // внутри свапаемой зоны умирает после первой подмены).
+    (function () {
+      if (window.__ffChoiceBound) return;
+      window.__ffChoiceBound = true;
+      document.addEventListener("change", function (e) {
+        if (!e.target || e.target.name !== "fulfillment") return;
+        var addr = document.getElementById("delivery-address");
+        if (addr) addr.classList.toggle("hidden", e.target.value !== "delivery");
+      });
+    })();
+  </script>
+{% endif %}

@@ -1434,3 +1434,16 @@ input[type="datetime-local"] {
     flex: 0 0 100% !important;
   }
 }
+
+/* SH-24: сегмент-контроль «Abholung | Lieferung» на чекауте. Радио остаются в
+   DOM (name/value прежние — приёмник и замки доставки целы), подсветку даёт
+   :has(:checked), поэтому выбор работает и без JS. */
+.sf-seg:has(input:checked) {
+  border-color: var(--accent, #4f46e5);
+  background: color-mix(in srgb, var(--accent, #4f46e5) 10%, transparent);
+  color: var(--accent, #4f46e5);
+}
+.sf-seg:has(input:focus-visible) {
+  outline: 2px solid var(--accent, #4f46e5);
+  outline-offset: 2px;
+}

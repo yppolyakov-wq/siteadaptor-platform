@@ -49,8 +49,26 @@ def test_reserve_form_exact_fields():
         "email",
         "phone",
         "quantity",
+        # SH-24: способ получения. У бизнеса без доставки это скрытое поле
+        # «pickup» (форма честно называет способ), с доставкой — сегмент-контроль
+        # и поля адреса; замок ниже проверяет второй случай.
+        "fulfillment",
     }
     assert f"/p/{promo.pk}/waitlist/" not in body  # waitlist только при sold-out
+
+
+def test_reserve_form_offers_delivery_when_the_business_delivers():
+    """SH-24: покупка по акции больше не форсит самовывоз."""
+    from apps.tenants.tests.factories import TenantFactory
+
+    promo = PromotionFactory(status="active", available_quantity=5)
+    request = RequestFactory().get(f"/p/{promo.pk}/")
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.tenant = TenantFactory.build(delivery_enabled=True, delivery_fee_cents=350)
+    body = public_views.promotion_detail(request, pk=promo.pk).content.decode()
+    form = form_block(body, f'action="/p/{promo.pk}/kaufen/"')
+    assert {"fulfillment", "street", "plz", "city"} <= field_names(form)
 
 
 def test_sold_out_swaps_reserve_for_waitlist():

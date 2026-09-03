@@ -3628,6 +3628,15 @@ AKTIONSMARKT_MENUS = {
 
 AKTIONSMARKT = DemoKit(
     key="aktionsmarkt",
+    # SH-24 (решение владельца Р-6): у демо с заказом ТОВАРА доставка включена —
+    # иначе выбор «Abholung | Lieferung» на чекауте не показать.
+    delivery={
+        "enabled": True,
+        "fee_cents": 350,
+        "free_cents": 3000,
+        "min_cents": 1000,
+        "area": "Lieferung im Stadtgebiet Köln.",
+    },
     # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
     # DL-11: 6 категорий = 2×3 (стиль compact с настроенной раскладкой берёт движок)
     # DL-18.2: 4 корневых направления = 2 полных ряда по 2 (крупные фото-плитки);
@@ -4291,6 +4300,14 @@ BAKERY_MENUS = {
 # (Anti-Food-Waste), Wochenangebot, Torten auf Vorbestellung, LMIV-Allergene, Stempelkarte.
 BAKERY = DemoKit(
     key="bakery",
+    # SH-24 (Р-6): пекарня возит корзины по району.
+    delivery={
+        "enabled": True,
+        "fee_cents": 290,
+        "free_cents": 2500,
+        "min_cents": 1200,
+        "area": "Lieferung im Umkreis von 5 km.",
+    },
     # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
     section_layouts={"gallery": {"preset": "cols3"}, "categories": {"preset": "cols2"}},
     page_presets=[("info", "team")],  # ST-2: шаблон «Über uns»
@@ -4777,6 +4794,14 @@ BUTCHER_MENUS = {
 # (Anfrage → Angebot: Buffets/Platten), Hausmacher-Wurst, Herkunft, Stempelkarte.
 BUTCHER = DemoKit(
     key="butcher",
+    # SH-24 (Р-6): мясная лавка возит Partyservice-заказы.
+    delivery={
+        "enabled": True,
+        "fee_cents": 490,
+        "free_cents": 5000,
+        "min_cents": 2000,
+        "area": "Lieferung im Stadtgebiet.",
+    },
     # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
     # DL-11: 4 категории в стиле compact — 2×2 (compact с настроенной раскладкой берёт движок)
     section_layouts={"gallery": {"preset": "cols3"}, "categories": {"preset": "cols2"}},
@@ -5206,6 +5231,14 @@ CAFE_MENUS = {
 # Mittagstisch/Happy-Hour-акции. LMIV-аллергены, диет-теги на веган-позициях.
 CAFE = DemoKit(
     key="cafe",
+    # SH-24 (Р-6): кофе и кухня — с доставкой.
+    delivery={
+        "enabled": True,
+        "fee_cents": 250,
+        "free_cents": 2000,
+        "min_cents": 800,
+        "area": "Wir liefern im Umkreis von 3 km.",
+    },
     # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
     section_layouts={"gallery": {"preset": "cols3"}},
     card_style="compact",  # ST-7c: строка-прайс (меню)
@@ -8963,6 +8996,15 @@ CATERING = DemoKit(
         },
     ],
     key="catering",
+    # SH-24 (Р-6): кейтеринг живёт на заявках — доставка включена, чтобы в форме
+    # /anfrage/ стоял вопрос «привезём или заберёте сами».
+    delivery={
+        "enabled": True,
+        "fee_cents": 0,
+        "free_cents": 0,
+        "min_cents": 0,
+        "area": "Wir liefern im Umkreis von 30 km um Köln.",
+    },
     # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
     section_layouts={
         "gallery": {"preset": "cols3"},

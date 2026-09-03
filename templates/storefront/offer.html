@@ -51,6 +51,9 @@
             <input id="of-email" name="email" type="email" required value="{{ offer.customer_email }}" class="w-full rounded-lg border border-gray-300 px-3 py-2">
           </div>
         </div>
+        {% comment %}SH-24: выбор «Abholung | Lieferung» — тот же партиал, что в
+        корзине и в покупке по акции.{% endcomment %}
+        {% include "storefront/_fulfillment_choice.html" %}
         {% if payment_methods %}
           <div>
             <p class="text-sm font-medium mb-1">{% trans "Wie möchten Sie bezahlen?" %}</p>

@@ -67,6 +67,15 @@ def _parse_event_fields(post, cfg) -> dict:
     return out
 
 
+def _parse_fulfillment(post, tenant) -> str:
+    """SH-24: «привезти или заберу сам» в заявке. Fail-closed: у бизнеса без
+    доставки поле игнорируется целиком (форма его не показывала)."""
+    if not getattr(tenant, "delivery_enabled", False):
+        return ""
+    val = (post.get("fulfillment") or "").strip()
+    return val if val in ("pickup", "delivery") else ""
+
+
 def anfrage(request):
     _require_jobs_active(request)
     anfrage_cfg = _anfrage_config(request.tenant)  # AF-1: событийные поля
@@ -97,6 +106,8 @@ def anfrage(request):
             vehicle_tsn=request.POST.get("vehicle_tsn", "").strip(),
             # AF-1: событийные поля (Wunschdatum/Personen/Art) — только из конфига.
             **_parse_event_fields(request.POST, anfrage_cfg),
+            # SH-24: «привезти» или «заберу сам» — только у бизнеса с доставкой.
+            fulfillment=_parse_fulfillment(request.POST, request.tenant),
         )
         services.add_job_photos(job, request.FILES.getlist("photos"))  # A7b
         enqueue_job_email(job, "new")  # владельцу — новый лид
@@ -135,6 +146,8 @@ def anfrage(request):
             # DF-2: состав запроса (конфигуратор набора) — в описание, не в тему.
             "details": (request.GET.get("details") or "")[:2000],
             "anfrage_cfg": anfrage_cfg,  # AF-1: событийные поля (Wunschdatum/Personen/Art)
+            # SH-24: выбор «привезти / заберу сам» — только у бизнеса с доставкой.
+            "delivery_enabled": getattr(request.tenant, "delivery_enabled", False),
             "jobs_vehicle": jobs_vehicle,  # A9: структурные поля авто
             "autorepair_ld": autorepair_ld,  # A9: schema.org AutoRepair (SEO)
             # A7: зона обслуживания — баннер + поле PLZ (показываем, если задана).
@@ -321,6 +334,7 @@ def anfrage_modal(request):
             # DF-2: состав запроса (конфигуратор набора) — в описание, не в тему.
             "details": (request.GET.get("details") or "")[:2000],
             "anfrage_cfg": _anfrage_config(request.tenant),
+            "delivery_enabled": getattr(request.tenant, "delivery_enabled", False),
             "jobs_vehicle": siteconfig.normalize(request.tenant.site_config).get(
                 "jobs_vehicle", False
             ),

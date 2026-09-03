@@ -118,7 +118,17 @@ def send_offer(conversation, *, lines, valid_until=None, note="", author=None):
 
 
 @transaction.atomic
-def accept_offer(offer, *, name="", email="", phone="", payment_method=""):
+def accept_offer(
+    offer,
+    *,
+    name="",
+    email="",
+    phone="",
+    payment_method="",
+    fulfillment="",
+    shipping_cents=0,
+    shipping_address="",
+):
     """Принять предложение → обычный Order (custom_lines, цены заморожены).
 
     Идемпотентно: уже принятое возвращает существующий заказ (повторный POST не
@@ -152,6 +162,10 @@ def accept_offer(offer, *, name="", email="", phone="", payment_method=""):
         note=f"Angebot {str(offer.token)[:8]}",
         source_channel="offer",
         payment_method=payment_method,
+        # SH-24: доставка предложения — как у обычного заказа.
+        fulfillment=fulfillment or "pickup",
+        shipping_cents=shipping_cents,
+        shipping_address=shipping_address,
     )
     OfferSM().apply(offer, Offer.STATUS_ACCEPTED)
     offer.order = order

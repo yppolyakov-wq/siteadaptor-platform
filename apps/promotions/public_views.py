@@ -87,10 +87,14 @@ def _detail_ctx(request, promo, form) -> dict:
     related = list(others.filter(group=promo.group)[:8]) if promo.group else []
     if len(related) < 2:
         related = list(others[:8])
+    from apps.orders import delivery_choice
+
     return {
         "promotion": promo,
         "form": form,
         "waitlist_form": WaitlistForm(),
+        # SH-24: данные выбора «Abholung | Lieferung» для общего партиала.
+        **delivery_choice.context(getattr(request, "tenant", None)),
         "share_url": share_url,
         "qr_url": reverse("storefront-promotion-qr", args=[promo.pk]),
         "og_image": og_image,
@@ -1882,16 +1886,31 @@ def promotion_purchase(request, pk):
         return redirect("storefront-promotion", pk=pk)  # дубль сабмита
 
     channel = (form.cleaned_data.get("channel") or request.session.get("src_ch") or "").strip()
+    from apps.orders import delivery_choice
+
     from . import services as promo_services
+
+    # SH-24: способ получения — тот же разбор, что на чекауте корзины.
+    qty = form.cleaned_data["quantity"]
+    subtotal_cents = int((promo.new_price or 0) * 100) * qty
+    choice = delivery_choice.resolve(request.POST, getattr(request, "tenant", None), subtotal_cents)
+    if not choice:
+        if token_key:
+            cache.delete(token_key)
+        messages.error(request, choice.error)
+        return render(request, "storefront/promotion_detail.html", ctx)
 
     try:
         order = promo_services.purchase(
             promo,
-            quantity=form.cleaned_data["quantity"],
+            quantity=qty,
             name=form.cleaned_data["name"],
             email=form.cleaned_data.get("email", ""),
             phone=form.cleaned_data.get("phone", ""),
             source_channel=channel,
+            fulfillment="delivery" if choice.delivery else "pickup",
+            shipping_cents=choice.shipping_cents,
+            shipping_address=choice.shipping_address,
         )
     except OutOfStock:
         if token_key:

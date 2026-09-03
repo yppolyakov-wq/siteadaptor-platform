@@ -53,7 +53,12 @@
     {% endif %}
   </fieldset>
 
-  {% comment %}③ Lieferung / Versand — сентинел sec_delivery{% endcomment %}
+{% endif %}
+
+{% comment %}③ Lieferung / Versand — сентинел sec_delivery. SH-24: блок больше не
+гейтится модулем «orders» — кейтеринг/Handwerker живут на jobs, а доставка нужна
+и им (вопрос «привезём или заберёте» стоит в заявке).{% endcomment %}
+{% if orders_active or jobs_active %}
   <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-3">
     <input type="hidden" name="sec_delivery" value="1">
     <legend class="font-semibold mb-1">{% trans "Delivery (Versand)" %}</legend>

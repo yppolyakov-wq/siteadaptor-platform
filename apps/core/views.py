@@ -729,6 +729,8 @@ def payment_settings_context(request) -> dict:
 
     return {
         "orders_active": _mod.is_module_active(tenant, "orders"),
+        # SH-24: доставка настраивается и у архетипов на jobs (кейтеринг).
+        "jobs_active": _mod.is_module_active(tenant, "jobs"),
         # Stripe-Connect + Zahlarten (E7-3).
         "connect_configured": connect.is_connect_configured(),
         "connected": bool(tenant.stripe_connect_id),
@@ -4308,6 +4310,7 @@ def ablaeufe_view(request):
         # (которая схлопывается) — их место в «Abläufe» (процессы продаж).
         "anfrage_enabled": tenant.is_module_active("jobs"),
         "anfrage_cfg": (siteconfig.normalize(tenant.site_config).get("anfrage") or {}),
+        "delivery_enabled": getattr(tenant, "delivery_enabled", False),
     }
     ctx.update(ctx_status_manager)  # VK-3: секция «Eigene Status» на самой странице
     if from_board:

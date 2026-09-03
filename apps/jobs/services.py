@@ -54,6 +54,7 @@ def create_job(
     event_date=None,
     guest_count=None,
     event_type="",
+    fulfillment="",
 ) -> Job:
     """Создать заявку (Anfrage). Customer переиспускается по email."""
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
@@ -75,6 +76,8 @@ def create_job(
         event_date=event_date,
         guest_count=guest_count,
         event_type=(event_type or "").strip()[:100],
+        # SH-24: способ получения (пусто = вопрос не задавался).
+        fulfillment=fulfillment if fulfillment in ("pickup", "delivery") else "",
     )
     # C2: «спросил с сайта → оставил заявку» — одна беседа (fail-soft, однозначность).
     from apps.inbox.deal_threads import adopt_open_thread, deal_ref_label

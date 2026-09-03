@@ -95,8 +95,16 @@ def test_stripe_section_gated_on_connect(settings, monkeypatch):
 
 
 def test_orders_sections_hidden_when_orders_off(settings):
+    """SH-24: блок доставки живёт при ЛЮБОМ из двух модулей — заказы или заявки
+    (кейтеринг продаёт через /anfrage/, и вопрос «привезём или заберёте» — его).
+    Без обоих — прежнее поведение: блока нет."""
     settings.ROOT_URLCONF = "config.urls_tenant"
-    tenant = TenantFactory(disabled_modules=["orders"])
+    tenant = TenantFactory(disabled_modules=["orders", "jobs"])
     html = core_views.payment_settings(_req("get", _user("ps6"), tenant)).content.decode()
     assert 'name="sec_delivery"' not in html
     assert 'name="delivery_enabled"' not in html
+
+    jobs_only = TenantFactory(schema_name="ps6b", slug="ps6b", disabled_modules=["orders"])
+    html2 = core_views.payment_settings(_req("get", _user("ps6b"), jobs_only)).content.decode()
+    assert 'name="sec_delivery"' in html2 and 'name="delivery_enabled"' in html2
+    assert 'name="sec_prepay"' not in html2  # блок «Abholung & Vorkasse» остаётся за orders

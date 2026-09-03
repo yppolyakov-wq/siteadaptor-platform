@@ -141,6 +141,9 @@ def purchase(
     phone="",
     note="",
     source_channel="",
+    fulfillment="",
+    shipping_cents=0,
+    shipping_address="",
 ):
     """P2 «ценовой слой»: чекаут акции СТАНДАРТНЫМ заказом (план
     promo-price-layer-plan-2026-08-03).
@@ -182,6 +185,11 @@ def purchase(
         phone=phone,
         note=note,
         source_channel=source_channel or "promo",
+        # SH-24: покупка по акции знает способ получения (раньше форсила
+        # самовывоз — у бизнеса с доставкой заказ по акции молча ехал «на вынос»).
+        fulfillment=fulfillment or "pickup",
+        shipping_cents=shipping_cents,
+        shipping_address=shipping_address,
         custom_lines=[
             (
                 line_title,

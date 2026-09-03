@@ -64,6 +64,16 @@ class Job(I18nMixin, TimestampedModel):
     event_date = models.DateField(null=True, blank=True)  # Wunschdatum
     guest_count = models.PositiveIntegerField(null=True, blank=True)  # Anzahl Personen
     event_type = models.CharField(max_length=100, blank=True)  # Art der Veranstaltung
+    # SH-24 (фидбэк «нужна опция доставки»): кейтеринг привозит еду или клиент
+    # забирает сам. Поле видно на форме заявки только при включённой доставке
+    # у бизнеса; пусто = вопрос не задавался (легаси-заявки и архетипы без доставки).
+    FULFILLMENT_PICKUP = "pickup"
+    FULFILLMENT_DELIVERY = "delivery"
+    FULFILLMENTS = [
+        (FULFILLMENT_PICKUP, _("Pickup")),
+        (FULFILLMENT_DELIVERY, _("Delivery")),
+    ]
+    fulfillment = models.CharField(max_length=10, choices=FULFILLMENTS, blank=True)
     status = models.CharField(max_length=20, choices=STATUSES, default=STATUS_NEW)
     source_channel = models.CharField(max_length=50, blank=True)
     # Публичная Angebot-страница: клиент принимает/отклоняет смету онлайн (F3).
