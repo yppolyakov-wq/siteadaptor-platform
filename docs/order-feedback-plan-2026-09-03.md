@@ -197,3 +197,119 @@ data-upcoming>` со слайдер-лентой каждая. При одной
   `promo_label`; `purchase()` пишет `old_price` + FK; `test_mixed_vat_invoice` остаётся зелёным
   без правок (страховка сумм).
 
+
+## 6. SH-23 — способ оплаты на каждом виде сделки + Privat/Firma
+
+### 6.1 Что показала разведка (файл:строка)
+
+* Реестр способов есть ТОЛЬКО у заказа: `Order.payment_method` on_site/stripe/vorkasse
+  (`orders/models.py:51-61,78-80`, `max_length=10` — «invoice» влезает, длиннее нет); выбиратель
+  `orders/payments.py:11-30` (stripe при `orders_prepay`, vorkasse при IBAN, on_site всегда), пикер
+  в корзине только при >1 способа (`public_views.py:742-753`) и на публичном Offer (`:1026-1106`).
+  Тумблеры на `Tenant` ГЛОБАЛЬНЫЕ и гейтятся модулем `orders` (`_payment_fields.html:24,58`).
+* Остальные виды способа оплаты НЕ ИМЕЮТ — есть только «сколько списать Stripe»: booking
+  (депозит автоматом, `booking/public_views.py:905-928`), stay (предоплата G7 0/%/100 по тарифу —
+  **100 % = «Vorkasse», но только картой**, `stays/public_views.py:664-696`), ticket (полная/
+  депозит/рассрочка, единственный выбор — чекбокс «in Raten», `events/public_views.py:526-574`),
+  job (Anzahlung = accept, `jobs/public_views.py:227-252`), покупка по акции (`promotions/services.py:174`
+  → `payment_method=""`, ни пикера, ни Stripe — скрытая дыра), Offer (пикер есть).
+  Единый читающий слой уже есть: `Transaction.payment_method` (`core/transactions.py:135,435`).
+* Счёт: движок есть (`finance.Invoice`, GoBD-нумерация при выпуске, PDF, Mahnwesen, Offene
+  Posten), но **нет** `due_date`/срока оплаты, ссылки на сделку, отправки письма со счётом, реквизитов
+  и «Zahlbar bis» в PDF; билдеры только order/stay/booking (ticket/job — нет); **модуль `finance`
+  выключен у всех архетипов по умолчанию** (`core/modules.py:443-450`) — покупка «на счёт» не может
+  от него зависеть.
+* Клиент-компания: `crm.Company` (name/vat_id/адрес + `invoice_recipient`, CO-1/CO-2) есть, но на
+  витрине компания нигде не спрашивается; `Order.billing_*` заполняется только в кабинете; признака
+  «Privat/Firma» нет ни у одной модели.
+* Риски: тихие Stripe-фолбэки переписывают способ в on_site (`public_views.py:964-970` и аналоги
+  у 4 видов); «100 % предоплаты × on_site» — бессмысленная комбинация (нужен guard); депозит/
+  остаток билета без механизма счёта; рассрочка не терпит `payment_method_types`; **анти-oversell:
+  у booking/stay/ticket нет авто-отмены неоплаченных `pending`** — «счёт на 14 дней» заморозит
+  места на две недели (нужен `payment_due_at` + beat по образцу `expire_due_anprobe`); напоминания
+  об оплате только для stripe (`orders/tasks.py:61-83`); Widerruf-текст ветвится по `customer_type`.
+
+### 6.2 Решение (рекомендация; развилки — §9)
+
+* **Реестр `apps/core/payment_methods.py`**: `on_site | stripe | vorkasse | invoice` (invoice = Kauf
+  auf Rechnung, ТОЛЬКО для `customer_type=company`) + `CUSTOMER_TYPES = private | company`;
+  `available_methods(tenant, kind, deal)` = прежние guard'ы + матрица per-kind + guard'ы риска
+  (100 % предоплаты не сочетается с on_site; рассрочка — только stripe).
+* **Поля на каждой доменной модели** (Order/Booking/StayBooking/Ticket/Job; аддитивные миграции,
+  дефолты = прежнее поведение): `payment_method` (у Order расширить до 16), `customer_type`,
+  `billing_company`, `billing_vat_id`, `billing_name`, `billing_address` (у Order два последних
+  есть). Компания при `company` → `crm.Company.get_or_create` + `Customer.company` (механика CO-2).
+* **Tenant (SHARED-миграция)**: `payment_matrix` JSON `{kind: {method: bool}}` (пусто = как сейчас),
+  `invoice_b2b_enabled`, `invoice_terms_days` (дефолт 14), `unpaid_hold_days` (окно удержания места/
+  номера/билета без оплаты). Экран «Zahlung & Lieferung» — матрица «вид × способ» тем же
+  сентинел-механизмом W4-3; гейт `orders_active` снимается (виды без заказов тоже платят).
+* **Счёт для B2B**: `Invoice += due_date, payment_terms_days, deal_kind/deal_id, sent_at`; при
+  способе `invoice` счёт выпускается на чекауте АВТОМАТИЧЕСКИ (Р-1) — независимо от модуля
+  `finance` (включение `invoice_b2b_enabled` авто-включает `finance`), письмо с PDF + реквизиты +
+  «Zahlbar bis»; Offene Posten сортируется по `due_date`, просроченные — в Mahnwesen; билдеры
+  ticket/job добавляются в `deal_invoice`.
+* **Витрина**: общие партиалы `_billing_party.html` (Privat/Firma + поля фирмы, раскрытие как
+  адрес доставки) и `_payment_picker.html`; вставка: корзина (замена локального блока), Offer,
+  Termin (сервис/ресурс), Übernachtung (поверх `prepayment_percent`: сумма × способ), Ticket
+  (`pay_mode` → реестр: voll/Anzahlung/Raten/Rechnung), Angebot-accept (выбор способа вместо
+  «оплатил = принял»), покупка по акции (`payment_method` + `fulfillment` в `create_order`).
+  §312j-кнопка остаётся у всех; Stripe-фолбэк НЕ переписывает `invoice`/`vorkasse`.
+* **Удержание**: `payment_due_at` у booking/stay/ticket при on_site/vorkasse/invoice + beat-экспирация
+  (`unpaid_hold_days`), напоминания — общая ветка для не-stripe.
+* **Слайсы**: **23a** реестр + Order (invoice + Privat/Firma + матрица настроек для заказов) →
+  **23b** счёт (due_date/PDF/письмо/Offene Posten/Mahnwesen/билдеры ticket+job) → **23c** остальные
+  виды (пикеры booking/stay/ticket/job + удержание + напоминания) → **23d** паритет акции/Offer/
+  экран «Zahlungen» (фильтр по способу для всех видов).
+
+## 7. SH-24 — «Abholung / Lieferung» явным выбором
+
+### 7.1 Что показала разведка
+
+* У заказа выбор ЕСТЬ: радио в корзине при `tenant.delivery_enabled` (`cart.html:77-99`),
+  иначе скрытый pickup + плашка «Abholung im Laden»; настройки — fieldset ③ «Zahlung & Lieferung»
+  (только при модуле `orders`). Владелец не видит выбора, потому что: доставка включена только у
+  4 демо-китов (restaurant ×2, clothing, retail — `demo_kits.py:11720-11736`), а у bakery/butcher/
+  grocery/cafe/aktionsmarkt выключена; покупка по акции и принятие Offer ФОРСЯТ pickup
+  (`promotions/services.py:174`, `orders/offers.py:129-137`); у кейтеринг-заявки есть адрес объекта
+  (`site_address`), но не выбор «привезти/забрать».
+
+### 7.2 Решение
+
+* Сегмент-контроль «Abholung | Lieferung» вместо двух радио (с ценой доставки/минимумом в подписи),
+  тот же `name="fulfillment"` (замки `test_delivery` целы); при выключенной доставке — прежняя
+  плашка. Паритет: покупка по акции и Offer получают тот же выбор (`fulfillment` +
+  `shipping_address` прокидываются в `create_order`).
+* Кейтеринг/Handwerker-заявка: `Job.fulfillment` (delivery|pickup, ⚠️ миграция jobs) + выбор в
+  форме `/anfrage/` при `delivery_enabled`; «Lieferung» показывает адрес; доска/карточка печатают
+  бейдж «🚚 Lieferung»/«🏬 Abholung».
+* Настройки доставки перестают гейтиться модулем `orders` (кейтеринг живёт на jobs); демо-киты:
+  доставка включена у aktionsmarkt, grocery, cafe (Р-6), у catering/pranasy — выбор в заявке.
+
+## 8. Порядок инкрементов и миграции
+
+| # | Инкремент | Миграции |
+|---|---|---|
+| DL-22 | бейдж на фото по смыслу стиля ✅ | нет |
+| DL-23 | бакеты предпросмотра рядом ✅ | нет |
+| SH-19 | артикул: демо-SKU, поле в рейле формы, «Details», корзина | нет |
+| SH-20 | артикул везде: счёт (JSON), список продаж, KDS, письма, пикер; OfferLine.sku + JobLine.sku | `orders/00xx`, `jobs/00xx` (аддитивные) |
+| SH-21 | фото в строке позиции (5 карточек) + пикер со списком-миниатюрами | нет |
+| SH-22 | list_price/promotion/promo_label на OrderItem, totals.promo_rows, показ везде, `add_item` знает акции | `orders/00xx` (аддитивная) |
+| SH-24 | сегмент Abholung/Lieferung + паритет акция/Offer + Job.fulfillment + демо | `jobs/00xx` (аддитивная) |
+| SH-23a…d | реестр способов, Privat/Firma, счёт B2B, все виды, удержание | orders/booking/stays/events/jobs + tenants (SHARED) + finance — аддитивные |
+
+Батч-режим: SH-19+SH-20 одним батчем (артикулы), SH-21+SH-22 вторым (строка позиции), SH-24
+третьим, SH-23 — по слайсам с чекпоинтами. Каждый — замки ДО правок, стенд Playwright, i18n ×5.
+
+## 9. Развилки владельца
+
+| # | Вопрос | Рекомендация |
+|---|---|---|
+| Р-1 | Счёт юрлицу выпускать АВТОМАТИЧЕСКИ на чекауте (номер GoBD сразу, письмо с PDF) или владелец выпускает вручную из карточки? | автоматически; вручную остаётся для прочих способов |
+| Р-2 | Zahlungsziel по умолчанию | 14 дней, настраивается |
+| Р-3 | «Rechnung» — только фирмам или и частным лицам? | только фирмам (риск неоплаты; частным — Vorkasse/on_site/online) |
+| Р-4 | Окно удержания места/номера/билета без оплаты (on_site/vorkasse/invoice) | до `due_date` для счёта; 3 дня для Vorkasse; on_site — без удержания (как сейчас) |
+| Р-5 | Übernachtung: 100 % предоплата по тарифу — разрешить банковским переводом (Vorkasse), не только картой? | да |
+| Р-6 | У каких демо включить доставку | aktionsmarkt, grocery, cafe (+ выбор в заявке catering/pranasy) |
+| Р-7 | Счёт: скидка акции ОПИСАТЕЛЬНО в тексте строки (суммы байт-в-байт) или структурными минус-строками? | описательно |
+| Р-8 | Кабинетное «Position hinzufügen» применяет действующую акцию автоматически (и двигает лимит)? | да |
