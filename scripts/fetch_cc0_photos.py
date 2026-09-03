@@ -48,9 +48,14 @@ def search(query: str, limit: int) -> list[dict]:
     return out
 
 
+#: Без User-Agent stocksnap.io (≈¾ CC0-выдачи Openverse по технике) отдаёт 403,
+#: и кандидат терялся МОЛЧА — выглядело как «нет кадров по запросу».
+UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125 Safari/537.36"
+
+
 def download(url: str, dst: str) -> bool:
     proc = subprocess.run(
-        ["curl", "-sSL", "--max-time", "120", "-o", dst, "-w", "%{http_code}", url],
+        ["curl", "-sSL", "-A", UA, "--max-time", "120", "-o", dst, "-w", "%{http_code}", url],
         capture_output=True,
         text=True,
     )
@@ -92,7 +97,10 @@ def main() -> int:
                 if os.path.exists(dst):
                     got += 1
                     continue
-                if not download(r["url"], dst):
+                # Прямой URL иногда мёртв (429 wikimedia, приватный хост) —
+                # у Openverse есть свой прокси полного размера; пробуем вторым.
+                proxy = f"{API}{r.get('id')}/thumb/?full_size=true&compressed=false"
+                if not download(r["url"], dst) and not download(proxy, dst):
                     continue
                 sources[os.path.basename(dst)] = {
                     "title": r.get("title"),

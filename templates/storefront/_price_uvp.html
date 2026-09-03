@@ -1,0 +1,10 @@
+{% load i18n siteui %}{% comment %}O-1: Streichpreis gegen die UVP des Herstellers.
+
+Rendert NICHTS, wenn `p.list_price` leer ist oder nicht über dem Verkaufspreis
+liegt (`Product.savings` gibt dann None zurück) — deshalb bleiben alle bisherigen
+Kits und die Paritäts-Schlösser der Kartenformen byte-genau.
+
+RECHTLICH: Wir kennzeichnen die Referenz ausdrücklich als «UVP» (fremde
+Herstellerempfehlung). Der Streichpreis gegen den EIGENEN früheren Preis fällt
+unter § 11 PAngV und wird an anderer Stelle gerendert (`p.promo_lowest`).{% endcomment %}
+{% if p.savings %}<span class="text-xs font-normal text-gray-400 whitespace-nowrap">{% trans "UVP" %} <span class="line-through">{{ p.list_price }} {{ p.currency|cursym }}</span>{% if p.savings_percent %} <span class="text-rose-600 font-semibold">−{{ p.savings_percent }} %</span>{% endif %}</span>{% endif %}

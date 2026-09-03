@@ -177,6 +177,42 @@ class Product(SoftDeleteMixin, I18nMixin):
 
     stock_quantity = models.IntegerField(null=True, blank=True)
 
+    # O-1 (Outlet/B-Ware): UVP — unverbindliche Preisempfehlung des Herstellers.
+    # Streichpreis OHNE Aktion: `base_price` bleibt der Verkaufspreis, `list_price`
+    # ist die Referenz, aus der die Ersparnis gerechnet wird. RECHTLICH getrennt
+    # vom §11 PAngV: dort geht es um den EIGENEN niedrigsten Preis der letzten
+    # 30 Tage (das rechnet `promotions.lowest_price_30d`), hier um die fremde
+    # Herstellerempfehlung — die muss echt sein und wird als «UVP» ausgezeichnet.
+    # None = kein Streichpreis (Normalfall bei Ware ohne UVP).
+    list_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    # O-1: Zustand der Ware. Für Outlet/Restposten/B-Ware ist das keine Dekoration:
+    # bei gebrauchter Ware darf die Gewährleistung auf 12 Monate verkürzt werden
+    # (§ 476 Abs. 2 BGB), und ein bekannter Mangel MUSS beschrieben werden —
+    # dafür `condition_note`. Leer = KEINE ANGABE (bisheriges Verhalten aller Kits
+    # unverändert — die Zustandszeile erscheint dann gar nicht); "neu" ist die
+    # ausdrückliche Aussage «neu und originalverpackt», die im Outlet etwas wert ist.
+    # schema.org-Abbildung steht in apps/core/seo.py (ITEM_CONDITION).
+    #: Formulierungen sind die im deutschen Handel üblichen (und rechtlich
+    #: eingeführten) Bezeichnungen — msgid bleibt deutsch wie bei BADGE_CHOICES.
+    CONDITION_CHOICES = [
+        ("", _("keine Angabe")),
+        ("neu", _("Neu & originalverpackt")),
+        ("neu_ohne_ovp", _("Neu ohne OVP")),
+        ("ausstellung", _("Ausstellungsstück")),
+        ("retoure", _("Retoure – geprüft")),
+        ("wie_neu", _("Gebraucht – wie neu")),
+        ("gut", _("Gebraucht – gut")),
+    ]
+    condition = models.CharField(max_length=20, blank=True, default="", choices=CONDITION_CHOICES)
+    condition_note = models.CharField(max_length=255, blank=True, default="")
+    condition_note_i18n = models.JSONField(default=dict, blank=True)
+
+    # O-1: Marke/Hersteller — eigenes Feld statt `origin` (das ist die HERKUNFT,
+    # «Regional/Bio»). Freitext, weil Marken pro Laden verschieden sind; die
+    # Facette baut ihre Werte aus den tatsächlich gepflegten Marken.
+    brand = models.CharField(max_length=120, blank=True, default="")
+
     # T5 (R2/R4): Einkauf & Bestellwesen. cost_price — Einkaufspreis netto
     # (Bestandswert/Marge). reorder_point/reorder_target — Meldebestand/Sollbestand
     # des Artikels (Bestellvorschlag; überschreibt den globalen Schwellwert). Alle
@@ -315,6 +351,38 @@ class Product(SoftDeleteMixin, I18nMixin):
     def care_localized(self, locale: str | None = None) -> str:
         """M1: Pflegehinweise на локали."""
         return self.get_overlay("care", "care_i18n", locale)
+
+    def condition_note_localized(self, locale: str | None = None) -> str:
+        """O-1: описание состояния («Karton geöffnet») на локали."""
+        return self.get_overlay("condition_note", "condition_note_i18n", locale)
+
+    @property
+    def condition_label(self):
+        """O-1: переводимая метка состояния; '' у новой ware (пустое значение)."""
+        return dict(self.CONDITION_CHOICES).get(self.condition, "") if self.condition else ""
+
+    @property
+    def is_used(self) -> bool:
+        """Товар, который НЕ является новым в смысле § 476 BGB (Gewährleistung
+        darf auf 12 Monate verkürzt werden). Витрина по этому флагу пишет срок."""
+        return self.condition in ("wie_neu", "gut")
+
+    @property
+    def savings(self) -> Decimal | None:
+        """O-1: экономия против UVP («Sie sparen X €»). None, если UVP не задан
+        или не выше цены — врать «скидкой» на равном/меньшем UVP нельзя (UWG)."""
+        if self.list_price is None:
+            return None
+        diff = Decimal(str(self.list_price)) - Decimal(str(self.base_price))
+        return diff if diff > 0 else None
+
+    @property
+    def savings_percent(self) -> int | None:
+        """Округлённый процент экономии против UVP (для бейджа «−45 %»)."""
+        saved = self.savings
+        if saved is None or not self.list_price:
+            return None
+        return int((saved / Decimal(str(self.list_price)) * 100).quantize(Decimal("1")))
 
     @property
     def primary_image(self) -> dict | None:

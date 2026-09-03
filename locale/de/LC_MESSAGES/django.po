@@ -21954,3 +21954,70 @@ msgstr "Nur hier"
 
 msgid "Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite."
 msgstr "Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite."
+
+msgid "Neu ohne OVP"
+msgstr ""
+
+msgid "Ausstellungsstück"
+msgstr ""
+
+msgid "Retoure – geprüft"
+msgstr ""
+
+msgid "Gebraucht – wie neu"
+msgstr ""
+
+msgid "Gebraucht – gut"
+msgstr ""
+
+msgid "Zustand"
+msgstr ""
+
+msgid "Marke"
+msgstr ""
+
+msgid "Nur reduziert"
+msgstr ""
+
+msgid "UVP"
+msgstr ""
+
+msgid "Sie sparen %(s)s %(c)s"
+msgstr ""
+
+msgid "Hinweis zum Zustand"
+msgstr ""
+
+msgid "Marke & Zustand"
+msgstr ""
+
+msgid "Nur für Outlet-, Retouren- und Restposten-Ware. Leer = Neuware."
+msgstr ""
+
+msgid ""
+"Bekannte Gebrauchsspuren MÜSSEN benannt werden, z. B. „Karton geöffnet, "
+"Gerät neu“ oder „Kratzer am Standfuß“."
+msgstr ""
+
+msgid "Hersteller/Marke — wird als Filter auf der Website angeboten."
+msgstr ""
+
+msgid ""
+"Unverbindliche Preisempfehlung des Herstellers. Wird durchgestrichen neben "
+"dem Preis gezeigt; nur eintragen, wenn sie echt ist."
+msgstr ""
+
+msgid "keine Angabe"
+msgstr ""
+
+msgid "Neu & originalverpackt"
+msgstr ""
+
+msgid ""
+"Hallen-Optik: schmale Versalien, harte Kanten, Signalfarbe nur am Preis."
+msgstr ""
+
+msgid ""
+"Outlet-Halle: Kategorien zuerst, Preis groß, dichtes Raster — für Sortimente"
+" mit vielen Einzelstücken."
+msgstr ""

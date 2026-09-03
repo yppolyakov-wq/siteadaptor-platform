@@ -1048,6 +1048,11 @@ def product_list(request, slug=None):
     herkunft, bewertung = sel["herkunft"], sel["bewertung"]
     groesse = sel.get("groesse", "")  # M2 Boutique: фасет размера
     kollektion = sel.get("kollektion", "")  # M4-B Lookbook: подборка товаров
+    # O-2 (Outlet): цвет / состояние / марка / «только со скидкой».
+    farbe = sel.get("farbe", "")
+    zustand = sel.get("zustand", "")
+    marke = sel.get("marke", "")
+    nur_angebote = sel.get("nur_angebote", False)
 
     # --- Фасет-бейдж (Neu/Beliebt/Angebot/Tagesgericht…): только присутствующие;
     # остаётся во вьюхе (вне единого набора UB2-3). ---
@@ -1326,6 +1331,10 @@ def product_list(request, slug=None):
         or groesse
         or kollektion
         or bewertung
+        or farbe
+        or zustand
+        or marke
+        or nur_angebote
         or q
     )
     has_combos = request.tenant.is_module_active("orders") and active_combos().exists()
@@ -1371,6 +1380,10 @@ def product_list(request, slug=None):
         "herkunft": herkunft,  # UB2-3: Bio/Regional-происхождение
         "groesse": groesse,  # M2: размер
         "kollektion": kollektion,  # M4-B: подборка (лукбук)
+        "farbe": farbe,  # O-2: цвет варианта
+        "zustand": zustand,  # O-2: состояние (B-Ware)
+        "marke": marke,  # O-2: марка
+        "nur_angebote": "1" if nur_angebote else "",  # O-2: только со скидкой
         "bewertung": str(bewertung) if bewertung else "",  # UB2-3: минимум звёзд
         "q": q,  # UB2-2: поиск — полноправный фасет в carry
         "ansicht": ansicht,  # MEN-24d: посетительский вид (пусто = вид владельца)
@@ -1515,6 +1528,15 @@ def product_list(request, slug=None):
             # M4-B Lookbook: чипы подборок владельца (?kollektion=<slug>).
             "collection_chips": chips["collection_chips"],
             "active_kollektion": kollektion,
+            # O-2 (Outlet): цвет (ось вариантов), состояние и марка + «reduziert».
+            "color_chips": chips.get("color_chips", []),
+            "active_farbe": farbe,
+            "condition_chips": chips.get("condition_chips", []),
+            "active_zustand": zustand,
+            "brand_chips": chips.get("brand_chips", []),
+            "active_marke": marke,
+            "show_deal_filter": chips.get("show_deal_filter", False),
+            "only_deals": nur_angebote,
             # UB2-3: рейтинг-фасет (минимум звёзд) — только когда есть отзывы.
             "show_rating_filter": chips["show_rating_filter"],
             "rating_thresholds": chips["rating_thresholds"],
@@ -1646,6 +1668,10 @@ def product_detail(request, pk=None, pslug=None, cslug=None):
                 or product.additive_labels
                 or product.material
                 or product.care
+                # O-1: у B-Ware состояние — обязательная часть описания товара
+                # (§ 476 BGB: известный недостаток должен быть назван).
+                or product.condition
+                or product.brand
             ),
         },
     )

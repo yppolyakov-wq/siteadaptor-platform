@@ -21904,3 +21904,77 @@ msgstr "Only here"
 
 msgid "Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite."
 msgstr "Choose a template — it will then apply to this page only."
+
+msgid "Neu ohne OVP"
+msgstr "New, without original box"
+
+msgid "Ausstellungsstück"
+msgstr "Display item"
+
+msgid "Retoure – geprüft"
+msgstr "Return — tested"
+
+msgid "Gebraucht – wie neu"
+msgstr "Used — as new"
+
+msgid "Gebraucht – gut"
+msgstr "Used — good"
+
+msgid "Zustand"
+msgstr "Condition"
+
+msgid "Marke"
+msgstr "Brand"
+
+msgid "Nur reduziert"
+msgstr "Reduced only"
+
+msgid "UVP"
+msgstr "RRP"
+
+msgid "Sie sparen %(s)s %(c)s"
+msgstr "You save %(s)s %(c)s"
+
+msgid "Hinweis zum Zustand"
+msgstr "Note on condition"
+
+msgid "Marke & Zustand"
+msgstr "Brand & condition"
+
+msgid "Nur für Outlet-, Retouren- und Restposten-Ware. Leer = Neuware."
+msgstr "Only for outlet, returned and clearance goods. Empty = new."
+
+msgid ""
+"Bekannte Gebrauchsspuren MÜSSEN benannt werden, z. B. „Karton geöffnet, "
+"Gerät neu“ oder „Kratzer am Standfuß“."
+msgstr ""
+"Known signs of use MUST be named, e.g. “box opened, device new” or “scratch "
+"on the stand”."
+
+msgid "Hersteller/Marke — wird als Filter auf der Website angeboten."
+msgstr "Manufacturer/brand — offered as a filter on the website."
+
+msgid ""
+"Unverbindliche Preisempfehlung des Herstellers. Wird durchgestrichen neben "
+"dem Preis gezeigt; nur eintragen, wenn sie echt ist."
+msgstr ""
+"Manufacturer's recommended retail price. Shown struck through next to the "
+"price; enter it only if it is genuine."
+
+msgid "keine Angabe"
+msgstr "not specified"
+
+msgid "Neu & originalverpackt"
+msgstr "New, sealed"
+
+msgid ""
+"Hallen-Optik: schmale Versalien, harte Kanten, Signalfarbe nur am Preis."
+msgstr ""
+"Warehouse look: narrow caps, hard edges, signal colour only on the price."
+
+msgid ""
+"Outlet-Halle: Kategorien zuerst, Preis groß, dichtes Raster — für Sortimente"
+" mit vielen Einzelstücken."
+msgstr ""
+"Outlet hall: categories first, big price, dense grid — for ranges with many "
+"single items."

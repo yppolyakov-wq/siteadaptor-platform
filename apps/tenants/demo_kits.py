@@ -377,6 +377,10 @@ def _p(
     card_style="",
     vat="",
     ingredients="",
+    condition="",
+    note="",
+    brand="",
+    uvp="",
 ):
     return {
         "name": name,
@@ -404,6 +408,12 @@ def _p(
         # Ф2/LMIV: «Zutaten» товара (переводится оверлеем ingredients_i18n —
         # demo_i18n заполняет локали из словарей).
         "ingredients": ingredients,
+        # O-1 (Outlet): состояние B-Ware + описание следа использования, марка,
+        # UVP (Streichpreis). Пусто = новый товар без UVP — как у всех прежних китов.
+        "condition": condition,
+        "condition_note": note,
+        "brand": brand,
+        "uvp": uvp,
     }
 
 
@@ -11256,6 +11266,11 @@ def apply_kit(tenant, key: str) -> bool:
             variant_style=item.get("variant_style", ""),
             # DL-19: своя форма карточки этой позиции (побеждает дефолт сайта)
             card_style=item.get("card_style", ""),
+            # O-1 (Outlet): состояние/марка/UVP. Пустые значения = прежнее поведение.
+            condition=item.get("condition", ""),
+            condition_note=item.get("condition_note", ""),
+            brand=item.get("brand", ""),
+            list_price=(Decimal(str(item["uvp"])) if item.get("uvp") else None),
             is_active=True,
             is_featured=(len(created_products) < 3),
             metadata={"demo": True},

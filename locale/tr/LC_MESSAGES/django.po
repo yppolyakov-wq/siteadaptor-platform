@@ -22032,3 +22032,78 @@ msgstr "Sadece burada"
 
 msgid "Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite."
 msgstr "Bir şablon seçin — yalnızca bu sayfa için geçerli olur."
+
+msgid "Neu ohne OVP"
+msgstr "Yeni, orijinal kutusuz"
+
+msgid "Ausstellungsstück"
+msgstr "Teşhir ürünü"
+
+msgid "Retoure – geprüft"
+msgstr "İade — test edildi"
+
+msgid "Gebraucht – wie neu"
+msgstr "İkinci el — yeni gibi"
+
+msgid "Gebraucht – gut"
+msgstr "İkinci el — iyi durumda"
+
+msgid "Zustand"
+msgstr "Durum"
+
+msgid "Marke"
+msgstr "Marka"
+
+msgid "Nur reduziert"
+msgstr "Sadece indirimli"
+
+msgid "UVP"
+msgstr "Tavsiye edilen fiyat"
+
+msgid "Sie sparen %(s)s %(c)s"
+msgstr "%(s)s %(c)s tasarruf edersiniz"
+
+msgid "Hinweis zum Zustand"
+msgstr "Durum hakkında not"
+
+msgid "Marke & Zustand"
+msgstr "Marka ve durum"
+
+msgid "Nur für Outlet-, Retouren- und Restposten-Ware. Leer = Neuware."
+msgstr "Yalnızca outlet, iade ve stok fazlası ürünler için. Boş = sıfır ürün."
+
+msgid ""
+"Bekannte Gebrauchsspuren MÜSSEN benannt werden, z. B. „Karton geöffnet, "
+"Gerät neu“ oder „Kratzer am Standfuß“."
+msgstr ""
+"Bilinen kullanım izleri BELİRTİLMELİDİR, örn. „kutu açılmış, cihaz sıfır“ "
+"veya „ayakta çizik“."
+
+msgid "Hersteller/Marke — wird als Filter auf der Website angeboten."
+msgstr "Üretici/marka — web sitesinde filtre olarak sunulur."
+
+msgid ""
+"Unverbindliche Preisempfehlung des Herstellers. Wird durchgestrichen neben "
+"dem Preis gezeigt; nur eintragen, wenn sie echt ist."
+msgstr ""
+"Üreticinin tavsiye ettiği satış fiyatı. Fiyatın yanında üstü çizili "
+"gösterilir; yalnızca gerçekse girin."
+
+msgid "keine Angabe"
+msgstr "belirtilmemiş"
+
+msgid "Neu & originalverpackt"
+msgstr "Sıfır, orijinal kutulu"
+
+msgid ""
+"Hallen-Optik: schmale Versalien, harte Kanten, Signalfarbe nur am Preis."
+msgstr ""
+"Depo görünümü: dar büyük harfler, sert kenarlar, sinyal rengi yalnızca "
+"fiyatta."
+
+msgid ""
+"Outlet-Halle: Kategorien zuerst, Preis groß, dichtes Raster — für Sortimente"
+" mit vielen Einzelstücken."
+msgstr ""
+"Outlet deposu: önce kategoriler, büyük fiyat, sık ızgara — çok sayıda tekil "
+"ürün içeren ürün yelpazeleri için."

@@ -20,7 +20,7 @@ ARCHETYPES = [k for k, _ in Tenant.BUSINESS_TYPES if k != "other"]
 def test_registry_shape_ten_looks_per_archetype():
     # DS-1: +Fein/Natur; DL-2 (2026-09-01): +5 «акционных» семейств —
     # 10 семейств × 15 типов = 150 Look'ов.
-    assert len(sitetemplates.LOOK_FAMILIES) == 16  # DL-13: +6
+    assert len(sitetemplates.LOOK_FAMILIES) == 17  # DL-13: +6; O-5: +lager
     keys = [f["key"] for f in sitetemplates.LOOK_FAMILIES]
     assert keys == [
         "klar",
@@ -40,6 +40,8 @@ def test_registry_shape_ten_looks_per_archetype():
         "nobel",
         "foto",
         "bauhaus",
+        # O-5 (2026-09-03): Look аутлета — узкий гротеск, жёсткая рамка, плотная сетка.
+        "lager",
     ]
     assert len(ARCHETYPES) == 15
     for bt in ARCHETYPES:
@@ -50,7 +52,7 @@ def test_registry_shape_ten_looks_per_archetype():
     # Кортежи акцентов индексируются позицией семейства — у КАЖДОГО типа
     # ровно 10 колонок (рассинхрон дал бы IndexError/чужой акцент молча).
     for bt, accents in sitetemplates.ARCHETYPE_LOOK_ACCENTS.items():
-        assert len(accents) == 16, bt  # DL-13: +6 колонок
+        assert len(accents) == 17, bt  # DL-13: +6 колонок; O-5: +lager
     # DL-2: у каждого семейства полный набор ключей, который _apply читает
     # без гардов (KeyError на проде — незабываемый способ узнать об опечатке).
     for fam in sitetemplates.LOOK_FAMILIES:

@@ -22117,3 +22117,78 @@ msgstr "Тільки тут"
 
 msgid "Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite."
 msgstr "Виберіть шаблон — він діятиме лише на цій сторінці."
+
+msgid "Neu ohne OVP"
+msgstr "Новий, без упаковки"
+
+msgid "Ausstellungsstück"
+msgstr "Вітринний зразок"
+
+msgid "Retoure – geprüft"
+msgstr "Повернення — перевірено"
+
+msgid "Gebraucht – wie neu"
+msgstr "Вживаний — як новий"
+
+msgid "Gebraucht – gut"
+msgstr "Вживаний — добрий стан"
+
+msgid "Zustand"
+msgstr "Стан"
+
+msgid "Marke"
+msgstr "Бренд"
+
+msgid "Nur reduziert"
+msgstr "Лише зі знижкою"
+
+msgid "UVP"
+msgstr "Рекоменд. ціна"
+
+msgid "Sie sparen %(s)s %(c)s"
+msgstr "Ви заощаджуєте %(s)s %(c)s"
+
+msgid "Hinweis zum Zustand"
+msgstr "Примітка про стан"
+
+msgid "Marke & Zustand"
+msgstr "Бренд і стан"
+
+msgid "Nur für Outlet-, Retouren- und Restposten-Ware. Leer = Neuware."
+msgstr "Лише для аутлету, повернень і залишків. Порожньо = новий товар."
+
+msgid ""
+"Bekannte Gebrauchsspuren MÜSSEN benannt werden, z. B. „Karton geöffnet, "
+"Gerät neu“ oder „Kratzer am Standfuß“."
+msgstr ""
+"Відомі сліди використання МАЮТЬ бути названі, наприклад «коробку відкрито, "
+"пристрій новий» або «подряпина на підставці»."
+
+msgid "Hersteller/Marke — wird als Filter auf der Website angeboten."
+msgstr "Виробник/бренд — пропонується фільтром на сайті."
+
+msgid ""
+"Unverbindliche Preisempfehlung des Herstellers. Wird durchgestrichen neben "
+"dem Preis gezeigt; nur eintragen, wenn sie echt ist."
+msgstr ""
+"Рекомендована виробником ціна. Показується закресленою поряд із ціною; "
+"вказуйте, лише якщо вона справжня."
+
+msgid "keine Angabe"
+msgstr "не вказано"
+
+msgid "Neu & originalverpackt"
+msgstr "Новий, в упаковці"
+
+msgid ""
+"Hallen-Optik: schmale Versalien, harte Kanten, Signalfarbe nur am Preis."
+msgstr ""
+"Складська естетика: вузькі прописні, жорсткі краї, сигнальний колір лише на "
+"ціні."
+
+msgid ""
+"Outlet-Halle: Kategorien zuerst, Preis groß, dichtes Raster — für Sortimente"
+" mit vielen Einzelstücken."
+msgstr ""
+"Аутлет-склад: спершу категорії, велика ціна, щільна сітка — для асортименту "
+"з багатьох одиничних позицій."

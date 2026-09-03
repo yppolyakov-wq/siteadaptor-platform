@@ -60,6 +60,13 @@ class CatalogFacets(FacetProvider):
             "herkunft": (params.get("herkunft") or "").strip(),
             # M2 Boutique: фасет размера (по variant.label, только доступные).
             "groesse": (params.get("groesse") or "").strip(),
+            # O-2: цвет — ось `ProductVariant.color` (M4-A завела ось, фасета не было).
+            "farbe": (params.get("farbe") or "").strip(),
+            # O-2 (Outlet): состояние товара и марка — своя ось у B-Ware.
+            "zustand": (params.get("zustand") or "").strip(),
+            "marke": (params.get("marke") or "").strip(),
+            # O-2: «nur reduzierte Artikel» — товары с действующей акцией.
+            "nur_angebote": params.get("nur_angebote") == "1",
             # M4-B Lookbook: подборка товаров владельца (M2M Collection).
             "kollektion": (params.get("kollektion") or "").strip(),
             "bewertung": bewertung if bewertung in RATING_THRESHOLDS else 0,
@@ -102,6 +109,23 @@ class CatalogFacets(FacetProvider):
             )
             matched = _with_size_axis(available).filter(size_axis=sel["groesse"])
             items = items.filter(pk__in=matched.values("product_id"))
+        if sel["farbe"]:
+            # O-2: тот же приём, что у размера — pk__in по ДОСТУПНЫМ вариантам
+            # (NULL-остаток = безлимит), поэтому распроданный цвет не всплывает.
+            from django.db.models import Q
+
+            from apps.catalog.models import ProductVariant
+
+            matched = ProductVariant.objects.filter(
+                product__in=items, is_active=True, color=sel["farbe"]
+            ).filter(Q(stock_quantity__isnull=True) | Q(stock_quantity__gt=0))
+            items = items.filter(pk__in=matched.values("product_id"))
+        if sel["zustand"]:
+            items = items.filter(condition=sel["zustand"])
+        if sel["marke"]:
+            items = items.filter(brand=sel["marke"])
+        if sel["nur_angebote"]:
+            items = items.filter(pk__in=self._discounted_ids(items))
         if sel["kollektion"]:
             # M2M-JOIN по slug активной подборки; distinct — товар может входить
             # в несколько (тот же приём, что у услуг/номеров UB3-2).
@@ -128,6 +152,20 @@ class CatalogFacets(FacetProvider):
             Q(_has_var=True, _has_stock_var=True)
             | (Q(_has_var=False) & (Q(stock_quantity__isnull=True) | Q(stock_quantity__gt=0)))
         )
+
+    @staticmethod
+    def _discounted_ids(items):
+        """O-2: pk товаров, которые ДЕЙСТВИТЕЛЬНО дешевле обычного — либо на них
+        висит активная акция (bulk-карта, без N+1), либо у них есть UVP выше
+        собственной цены (штатный механизм аутлета). Пустой фильтр не врёт:
+        товар без обоих признаков сюда не попадает."""
+        from django.db.models import F
+
+        from apps.promotions.price_layer import product_promo_map
+
+        ids = set(items.filter(list_price__gt=F("base_price")).values_list("pk", flat=True))
+        ids.update(product_promo_map(items.values_list("pk", flat=True)).keys())
+        return ids
 
     @staticmethod
     def _rated_ids(items, min_rating):
@@ -180,7 +218,48 @@ class CatalogFacets(FacetProvider):
             # M2 Boutique: чипы размеров (порядок — по sort_order вариантов);
             # один размер на весь каталог = шум, чипы прячем.
             "size_chips": self._size_chips(items),
+            # O-2: цвет/состояние/марка — те же правила, что у размера: показываем
+            # ось, только когда в наборе БОЛЬШЕ ОДНОГО значения (одно = не фильтр).
+            "color_chips": self._color_chips(items),
+            "condition_chips": self._condition_chips(items),
+            "brand_chips": self._brand_chips(items),
+            # O-2: тумблер «только со скидкой» — лишь если есть что показать.
+            "show_deal_filter": bool(self._discounted_ids(items)),
         }
+
+    @staticmethod
+    def _color_chips(items) -> list:
+        """O-2: цвета набора — {code, label}. Код и подпись совпадают (цвет ведёт
+        владелец свободным текстом), но форма dict оставляет место свотчу."""
+        from apps.catalog.models import ProductVariant
+
+        rows = (
+            ProductVariant.objects.filter(product__in=items, is_active=True)
+            .exclude(color="")
+            .values_list("color", flat=True)
+            .distinct()
+        )
+        colors = sorted(set(rows))
+        return [{"code": c, "label": c} for c in colors] if len(colors) > 1 else []
+
+    @staticmethod
+    def _condition_chips(items) -> list:
+        """O-2: состояния, реально встречающиеся в наборе — в порядке реестра
+        (от нового к подержанному), а не по алфавиту: это шкала, не список."""
+        from apps.catalog.models import Product
+
+        present = set(items.exclude(condition="").values_list("condition", flat=True))
+        chips = [
+            {"code": code, "label": label}
+            for code, label in Product.CONDITION_CHOICES
+            if code and code in present
+        ]
+        return chips if len(chips) > 1 else []
+
+    @staticmethod
+    def _brand_chips(items) -> list:
+        brands = sorted(set(items.exclude(brand="").values_list("brand", flat=True)))
+        return brands if len(brands) > 1 else []
 
     @staticmethod
     def _size_chips(items) -> list:
@@ -209,7 +288,15 @@ class CatalogFacets(FacetProvider):
         if not q:
             return items
         # name/description — JSON i18n {"de","en"}: ищем по всем локалям реестра.
-        return items.filter(i18n_icontains_q(q, json_fields=("name", "description")))
+        # O-2: + марка и артикул — в аутлете ищут «Nordvolt» и «OUT-014», а не
+        # только слово из названия (тот же приём, что у поиска сделок VS-3).
+        from django.db.models import Q
+
+        return items.filter(
+            i18n_icontains_q(q, json_fields=("name", "description"))
+            | Q(brand__icontains=q)
+            | Q(sku__icontains=q)
+        )
 
     def sort_keys(self) -> dict:
         return {

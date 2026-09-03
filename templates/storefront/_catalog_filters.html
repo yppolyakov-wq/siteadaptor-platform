@@ -2,7 +2,7 @@
 БЕЗ изменений разметки — её нужно рендерить в двух местах: обычно над сеткой, а в
 шаблоне «Navigator» — в боковой колонке. Замки прежнего вида: test_listing_bar,
 test_storefront, test_listing_parity.{% endcomment %}
-{% if catalog_show_filters and show_price_filter or catalog_show_filters and badge_chips or catalog_show_filters and show_stock_filter or catalog_show_filters and origin_chips or catalog_show_filters and show_rating_filter or catalog_show_filters and size_chips or catalog_show_filters and diet_chips %}
+{% if catalog_show_filters and show_price_filter or catalog_show_filters and badge_chips or catalog_show_filters and show_stock_filter or catalog_show_filters and origin_chips or catalog_show_filters and show_rating_filter or catalog_show_filters and size_chips or catalog_show_filters and diet_chips or catalog_show_filters and color_chips or catalog_show_filters and condition_chips or catalog_show_filters and brand_chips or catalog_show_filters and show_deal_filter %}
 {% comment %}DS-10: панель отдаётся УЖЕ скрытой — CSS DS-6 делает видимую панель
 fixed-ящиком, и до инициализации JS она вспыхивала поверх контента. Без JS её
 показывает правило в <noscript> ниже (прогрессивное улучшение сохранено).{% endcomment %}
@@ -64,6 +64,41 @@ fixed-ящиком, и до инициализации JS она вспыхив�
       {% for g in size_chips %}<option value="{{ g }}" {% if active_groesse == g %}selected{% endif %}>{{ g }}</option>{% endfor %}
     </select>
   </div>
+  {% endif %}
+  {% comment %}O-2 (Outlet): цвет — вторая ось вариантов рядом с размером; состояние
+  и марка — то, чем в аутлете выбирают в первую очередь; «reduziert» — тумблер.{% endcomment %}
+  {% if color_chips %}
+  <div>
+    <label class="block text-xs text-gray-500 mb-1" for="id_farbe">{% trans "Farbe" %}</label>
+    <select id="id_farbe" name="farbe" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+      <option value="">{% trans "All" %}</option>
+      {% for c in color_chips %}<option value="{{ c.code }}" {% if active_farbe == c.code %}selected{% endif %}>{{ c.label }}</option>{% endfor %}
+    </select>
+  </div>
+  {% endif %}
+  {% if condition_chips %}
+  <div>
+    <label class="block text-xs text-gray-500 mb-1" for="id_zustand">{% trans "Zustand" %}</label>
+    <select id="id_zustand" name="zustand" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+      <option value="">{% trans "All" %}</option>
+      {% for z in condition_chips %}<option value="{{ z.code }}" {% if active_zustand == z.code %}selected{% endif %}>{{ z.label }}</option>{% endfor %}
+    </select>
+  </div>
+  {% endif %}
+  {% if brand_chips %}
+  <div>
+    <label class="block text-xs text-gray-500 mb-1" for="id_marke">{% trans "Marke" %}</label>
+    <select id="id_marke" name="marke" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+      <option value="">{% trans "All" %}</option>
+      {% for b in brand_chips %}<option value="{{ b }}" {% if active_marke == b %}selected{% endif %}>{{ b }}</option>{% endfor %}
+    </select>
+  </div>
+  {% endif %}
+  {% if show_deal_filter %}
+  <label class="flex items-center gap-2 text-sm text-gray-600 pb-1.5">
+    <input type="checkbox" name="nur_angebote" value="1" {% if only_deals %}checked{% endif %} class="rounded border-gray-300">
+    {% trans "Nur reduziert" %}
+  </label>
   {% endif %}
   {% if show_rating_filter %}
   <div>

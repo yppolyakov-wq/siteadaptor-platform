@@ -22134,3 +22134,78 @@ msgstr "Только здесь"
 
 msgid "Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite."
 msgstr "Выберите шаблон — он будет действовать только на этой странице."
+
+msgid "Neu ohne OVP"
+msgstr "Новый, без упаковки"
+
+msgid "Ausstellungsstück"
+msgstr "Витринный образец"
+
+msgid "Retoure – geprüft"
+msgstr "Возврат — проверен"
+
+msgid "Gebraucht – wie neu"
+msgstr "Б/у — как новый"
+
+msgid "Gebraucht – gut"
+msgstr "Б/у — хорошее состояние"
+
+msgid "Zustand"
+msgstr "Состояние"
+
+msgid "Marke"
+msgstr "Бренд"
+
+msgid "Nur reduziert"
+msgstr "Только со скидкой"
+
+msgid "UVP"
+msgstr "Реком. цена"
+
+msgid "Sie sparen %(s)s %(c)s"
+msgstr "Вы экономите %(s)s %(c)s"
+
+msgid "Hinweis zum Zustand"
+msgstr "Примечание о состоянии"
+
+msgid "Marke & Zustand"
+msgstr "Бренд и состояние"
+
+msgid "Nur für Outlet-, Retouren- und Restposten-Ware. Leer = Neuware."
+msgstr "Только для аутлета, возвратов и остатков. Пусто = новый товар."
+
+msgid ""
+"Bekannte Gebrauchsspuren MÜSSEN benannt werden, z. B. „Karton geöffnet, "
+"Gerät neu“ oder „Kratzer am Standfuß“."
+msgstr ""
+"Известные следы использования ОБЯЗАНЫ быть названы, например «коробка "
+"вскрыта, устройство новое» или «царапина на подставке»."
+
+msgid "Hersteller/Marke — wird als Filter auf der Website angeboten."
+msgstr "Производитель/бренд — предлагается фильтром на сайте."
+
+msgid ""
+"Unverbindliche Preisempfehlung des Herstellers. Wird durchgestrichen neben "
+"dem Preis gezeigt; nur eintragen, wenn sie echt ist."
+msgstr ""
+"Рекомендованная производителем цена. Показывается зачёркнутой рядом с ценой;"
+" указывайте, только если она настоящая."
+
+msgid "keine Angabe"
+msgstr "не указано"
+
+msgid "Neu & originalverpackt"
+msgstr "Новый, в упаковке"
+
+msgid ""
+"Hallen-Optik: schmale Versalien, harte Kanten, Signalfarbe nur am Preis."
+msgstr ""
+"Складская эстетика: узкие прописные, жёсткие грани, сигнальный цвет только "
+"на цене."
+
+msgid ""
+"Outlet-Halle: Kategorien zuerst, Preis groß, dichtes Raster — für Sortimente"
+" mit vielen Einzelstücken."
+msgstr ""
+"Аутлет-склад: сначала категории, крупная цена, плотная сетка — для "
+"ассортимента из множества единичных позиций."

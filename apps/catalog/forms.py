@@ -199,6 +199,11 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             "material",
             "care",
             "course",
+            # O-1 (Outlet/B-Ware): состояние, описание дефекта, марка, UVP.
+            "condition",
+            "condition_note",
+            "brand",
+            "list_price",
             "is_active",
             "is_featured",
             "badge",
@@ -231,6 +236,10 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             "vat_rate": _("MwSt.-Satz"),
             "reorder_point": _("Meldebestand"),
             "reorder_target": _("Sollbestand"),
+            "condition": _("Zustand"),
+            "condition_note": _("Hinweis zum Zustand"),
+            "brand": _("Marke"),
+            "list_price": _("UVP"),
         }
         # W2: подсказки под полями (шаблон теперь их выводит) — снимают непонятность.
         help_texts = {
@@ -257,6 +266,17 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
                 "5 % Elasthan“ — Pflichtangabe bei Kleidung."
             ),
             "care": _("z. B. „30 °C Schonwäsche, nicht trocknergeeignet“ — optional."),
+            # O-1: § 476 Abs. 2 BGB — bekannter Mangel MUSS benannt werden.
+            "condition": _("Nur für Outlet-, Retouren- und Restposten-Ware. Leer = Neuware."),
+            "condition_note": _(
+                "Bekannte Gebrauchsspuren MÜSSEN benannt werden, z. B. "
+                "„Karton geöffnet, Gerät neu“ oder „Kratzer am Standfuß“."
+            ),
+            "brand": _("Hersteller/Marke — wird als Filter auf der Website angeboten."),
+            "list_price": _(
+                "Unverbindliche Preisempfehlung des Herstellers. Wird durchgestrichen "
+                "neben dem Preis gezeigt; nur eintragen, wenn sie echt ist."
+            ),
         }
 
     def __init__(self, *args, tenant=None, **kwargs):
@@ -282,6 +302,7 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             "reorder_target",
             "primary_action",
             "is_active",
+            "list_price",  # O-1: UVP стоит рядом с ценой → тоже в рейле
         ):
             if name in self.fields:
                 self.fields[name].widget.attrs["form"] = "product-form"
@@ -349,6 +370,10 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
                 "ingredients",
                 "material",
                 "care",
+                "brand",
+                "condition",
+                "condition_note",
+                "list_price",
                 "is_featured",
                 "badge",
                 "card_style",

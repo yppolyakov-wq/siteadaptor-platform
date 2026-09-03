@@ -99,6 +99,13 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
         <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple class="w-full text-sm">
         <p class="text-xs text-gray-400 mt-1">{% trans "JPEG, PNG or WEBP, max 5 MB each." %}</p>
       </div>
+      {% comment %}O-1 (Outlet/B-Ware): марка и состояние — часть описания товара, а не
+      маркировки: в аутлете это первое, что смотрит покупатель, и по § 476 Abs. 2 BGB
+      известный недостаток обязан быть назван.{% endcomment %}
+      <div class="space-y-3 border-t border-gray-100 pt-3">
+        <p class="text-sm font-medium">{% trans "Marke & Zustand" %}</p>
+        {% for field in form %}{% if field.name == 'brand' or field.name == 'condition' or field.name == 'condition_note' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      </div>
     </div>
 
     {# Panel: Labeling — пищевая маркировка (гейт по архетипу) + Herkunft/Zutaten #}
@@ -333,6 +340,8 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
         <div class="grid grid-cols-2 gap-3">
           {% for field in form %}{% if field.name == 'base_price' or field.name == 'vat_rate' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
         </div>
+        {# O-1: UVP — Streichpreis gegen die Herstellerempfehlung (Outlet). #}
+        {% for field in form %}{% if field.name == 'list_price' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
         <div class="grid grid-cols-2 gap-3">
           {% for field in form %}{% if field.name == 'stock_quantity' or field.name == 'reorder_point' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
         </div>
