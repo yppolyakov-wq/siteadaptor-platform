@@ -10,6 +10,7 @@
     {% for row in deal_lines %}
       <div class="dl-row py-2 text-sm border-b border-gray-50" data-deal-line>
         <span class="text-gray-400 tabular-nums dl-idx">{{ forloop.counter }}</span>
+        <span class="dl-photo" aria-hidden="true">{% if row.image %}<img src="{{ row.image }}" alt="" loading="lazy">{% endif %}</span>
         <span class="min-w-0 dl-name">
           <span class="block">{{ row.label }}</span>
           {% if row.note %}<span class="block text-xs text-gray-400">{{ row.note }}</span>{% endif %}

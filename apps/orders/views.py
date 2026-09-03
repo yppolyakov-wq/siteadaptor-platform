@@ -233,7 +233,7 @@ def order_detail(request, pk):
         "orders/order_detail.html",
         {
             "order": order,
-            "items": order.items.all(),
+            "items": order.items.select_related("product", "variant", "combo"),  # SH-21: фото строк
             "allowed_targets": allowed,
             "nav": "orders",
             # SH группа B: правка доступна, пока заказ не закрыт (решение владельца

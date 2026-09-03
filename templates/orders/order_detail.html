@@ -34,6 +34,7 @@ Menge · Summe — количество ПОСЛЕ цены за штуку, н�
         {% for item in items %}
           <div class="dl-row py-2 text-sm">
             <span class="text-xs text-gray-300 tabular-nums dl-idx">{{ forloop.counter }}</span>
+            <span class="dl-photo" aria-hidden="true">{% if item.image_url %}<img src="{{ item.image_url }}" alt="" loading="lazy">{% endif %}</span>
             <span class="min-w-0 truncate dl-name">{{ item.title_snapshot }}{% if item.sku %} <span class="text-gray-400">· Art.-Nr. {{ item.sku }}</span>{% endif %}{% if item.modifiers_label %} <span class="text-gray-400">({{ item.modifiers_label }})</span>{% endif %}</span>
             <span class="text-right text-xs text-gray-500 tabular-nums dl-vat">{% if item.vat_rate %}{{ item.vat_rate|floatformat:0 }} %{% else %}—{% endif %}</span>
             <span class="text-right text-gray-500 tabular-nums whitespace-nowrap dl-unit">{{ item.unit_price|floatformat:2 }} €</span>
@@ -52,12 +53,10 @@ Menge · Summe — количество ПОСЛЕ цены за штуку, н�
       <form method="post" action="{% url 'orders:order-edit' order.pk %}" class="mt-2 flex flex-wrap items-end gap-2">
         {% csrf_token %}
         <input type="hidden" name="action" value="add_item">
-        <label class="text-xs text-gray-500">{% trans "Aus dem Sortiment" %}
-          <select name="part" class="block rounded-lg border border-gray-300 px-2 py-1.5 text-sm max-w-xs">
-            <option value="">— {% trans "freie Position" %} —</option>
-            {% for p in parts %}<option value="{{ p.value }}">{{ p.label }}</option>{% endfor %}
-          </select>
-        </label>
+        {% comment %}SH-21: пикер списком с миниатюрами (тот же name="part" → приёмник прежний).{% endcomment %}
+        <div class="w-full text-xs text-gray-500">{% trans "Aus dem Sortiment" %}
+          {% include "core/_part_picker.html" with parts=parts %}
+        </div>
         <label class="text-xs text-gray-500">{% trans "Bezeichnung" %}
           <input type="text" name="title" class="block rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
         </label>
@@ -75,6 +74,7 @@ Menge · Summe — количество ПОСЛЕ цены за штуку, н�
       {% for item in items %}
         <div class="dl-row py-2 text-sm">
           <span class="text-xs text-gray-300 tabular-nums dl-idx">{{ forloop.counter }}</span>
+          <span class="dl-photo" aria-hidden="true">{% if item.image_url %}<img src="{{ item.image_url }}" alt="" loading="lazy">{% endif %}</span>
           <span class="min-w-0 truncate dl-name">{{ item.title_snapshot }}{% if item.sku %} <span class="text-gray-400">· Art.-Nr. {{ item.sku }}</span>{% endif %}{% if item.modifiers_label %} <span class="text-gray-400">({{ item.modifiers_label }})</span>{% endif %}</span>
           <span class="text-right text-xs text-gray-500 tabular-nums dl-vat">{% if item.vat_rate %}{{ item.vat_rate|floatformat:0 }} %{% else %}—{% endif %}</span>
           <span class="text-right text-gray-500 tabular-nums whitespace-nowrap dl-unit">{{ item.unit_price|floatformat:2 }} €</span>

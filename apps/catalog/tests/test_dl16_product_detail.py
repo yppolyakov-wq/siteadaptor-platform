@@ -187,7 +187,10 @@ def test_recent_fragment_caps_at_eight():
         _req("/sortiment/zuletzt/", params={"ids": ids})
     ).content.decode()
     assert body.count(CARD_WRAP) == 8
-    assert "R8" not in body and "R9" not in body
+    # CI #2326: голый substring ловил случайный CSRF-токен («…5GR8iyd…») — сверяем
+    # заголовок карточки, а не любой байт страницы.
+    assert ">R8</h3>" not in body and ">R9</h3>" not in body
+    assert ">R0</h3>" in body
 
 
 # --- Studio: селект «Aufbau» --------------------------------------------------

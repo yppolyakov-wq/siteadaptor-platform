@@ -21783,3 +21783,7 @@ msgid "%(m)s group"
 msgid_plural "%(m)s groups"
 msgstr[0] "%(m)s group"
 msgstr[1] "%(m)s groups"
+
+#: templates/core/_part_picker.html
+msgid "Sortiment durchsuchen …"
+msgstr "Search the assortment …"

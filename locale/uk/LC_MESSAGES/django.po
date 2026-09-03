@@ -21996,3 +21996,7 @@ msgstr[0] "%(m)s група"
 msgstr[1] "%(m)s групи"
 msgstr[2] "%(m)s груп"
 msgstr[3] "%(m)s груп"
+
+#: templates/core/_part_picker.html
+msgid "Sortiment durchsuchen …"
+msgstr "Пошук по асортименту …"

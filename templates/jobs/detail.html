@@ -57,6 +57,7 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
       <div class="dl-row py-1" data-qt-row="1"
            {% if not row.visible %}hidden style="display:none"{% endif %}>
         <span class="text-xs text-gray-300 tabular-nums dl-idx">{{ forloop.counter }}</span>
+        <span class="dl-photo" aria-hidden="true">{% if row.line and row.line.image_url %}<img src="{{ row.line.image_url }}" alt="" loading="lazy">{% endif %}</span>
         {% comment %}VF-9b (фидбэк 2026-08-24 «зачем эти данные выводить? если
         нужно — просто выбираем из каталога»): селект каталога В КАЖДОЙ строке
         убран — выбор из ассортимента живёт у «＋ Position» (как у заказа).
@@ -111,10 +112,9 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
   <div class="mt-2 flex flex-wrap items-center gap-3">
     <button type="button" data-qt-add class="text-sm font-medium text-indigo-600 hover:underline">＋ {% trans "Position hinzufügen" %}</button>
     {% if parts %}
-      <select data-qt-addpick class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm bg-white max-w-xs" aria-label="{% trans 'Aus dem Sortiment' %}">
-        <option value="">— {% trans "Aus dem Sortiment" %} —</option>
-        {% for p in parts %}<option value="{{ p.value }}" data-title="{{ p.title|default:p.label }}" data-price="{{ p.price|default_if_none:'' }}">{{ p.label }}</option>{% endfor %}
-      </select>
+      {% comment %}SH-21: пикер списком с миниатюрами (радио name="qt_part" — в приёмник не
+      уходит, строки несут line_part_i); JS ниже слушает change радио.{% endcomment %}
+      <div data-qt-addpick class="w-full">{% include "core/_part_picker.html" with parts=parts field_name="qt_part" %}</div>
     {% endif %}
   </div>
   {% if parts %}
@@ -236,17 +236,24 @@ document (партиал может перерисовываться — уро�
   // видимую строку (или раскрывает следующую скрытую): текст+цена сразу,
   // привязка — в hidden line_part_i (склад и снимки делает сервер).
   document.addEventListener("change", function (e) {
-    var pick = e.target.closest && e.target.closest("[data-qt-addpick]");
-    if (!pick || !pick.value) return;
-    var opt = pick.options[pick.selectedIndex];
+    // SH-21: пикер — список радио с миниатюрами (общий партиал core/_part_picker);
+    // выбранное радио несёт data-title/data-price, как раньше <option>.
+    var box = e.target.closest && e.target.closest("[data-qt-addpick]");
+    if (!box || e.target.type !== "radio" || !e.target.value) return;
+    var opt = e.target;
+    var pick = { value: opt.value };
     var row = null;
     document.querySelectorAll("[data-qt-row]:not([hidden])").forEach(function (r) {
       var txt = r.querySelector('input[name^="line_text_"]');
       if (!row && txt && !String(txt.value).trim()) row = r;
     });
+    var resetPick = function () {
+      var free = box.querySelector('input[type="radio"][value=""]');
+      if (free) free.checked = true;
+    };
     if (!row) {
       row = nextHidden();
-      if (!row) { pick.value = ""; return; }
+      if (!row) { resetPick(); return; }
       row.hidden = false;
       row.style.display = "";
     }
@@ -255,13 +262,13 @@ document (партиал может перерисовываться — уро�
     var price = row.querySelector("[data-qt-price]");
     var linked = row.querySelector("[data-qt-linked]");
     if (part) part.value = pick.value;
-    if (text) text.value = opt.getAttribute("data-title") || opt.text;
+    if (text) text.value = opt.getAttribute("data-title") || "";
     var value = opt.getAttribute("data-price") || "";
     if (price) price.value = value ? String(value).replace(".", ",") : "";
     // 📦-подпись — только у строк со складской привязкой (p:/v:); услуга и
     // комбо едут снимком без FK.
     if (linked) linked.classList.toggle("hidden", !/^[pv]:/.test(pick.value));
-    pick.value = "";
+    resetPick();
     var qty = row.querySelector("[data-qt-qty]");
     if (qty) qty.focus();
     recalc();
