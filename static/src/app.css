@@ -1360,12 +1360,28 @@ input[type="datetime-local"] {
     display: grid !important;
     grid-auto-flow: dense;
   }
+  /* стенд DL-20: spread (DL-14) задаёт ДЕТЯМ фиксированную ширину под --sf-n
+     (специфичность выше за счёт :not) — в сетке бенто плитка была уже своей
+     ячейки (117 px при ячейке ~300). Ячейка теперь задаёт размер сама. */
+  [data-grid][data-cat-bento] > * {
+    width: auto !important;
+    flex: none !important;
+    max-width: none !important;
+  }
   [data-grid][data-cat-bento] > *:first-child {
     grid-column: span 2;
     grid-row: span 2;
   }
   [data-grid][data-cat-bento] > *:nth-child(6n + 4) {
     grid-column: span 2;
+  }
+  /* стенд DL-20: у формы «Lookbook» кадр 3:4 — плитка на две ячейки вырастала до
+     1373 px. В мозаике кадр задаёт ячейка: герой — квадрат, широкая плитка — 2:1. */
+  [data-grid][data-cat-bento] > *:first-child [data-sf-media-box] {
+    aspect-ratio: 1 / 1 !important;
+  }
+  [data-grid][data-cat-bento] > *:nth-child(6n + 4) [data-sf-media-box] {
+    aspect-ratio: 2 / 1 !important;
   }
 }
 

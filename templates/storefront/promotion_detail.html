@@ -258,29 +258,11 @@
       b.classList.toggle("ring-transparent", b !== t);
     });
   });
-  // Сегментный отсчёт промо-баннера (референс 2026-07-29): Tage|Std|Min|Sek.
-  (function () {
-    var box = document.querySelector("[data-cd]");
-    if (!box) return;
-    var end = new Date(box.getAttribute("data-cd")).getTime();
-    if (isNaN(end)) return;
-    var el = {
-      d: box.querySelector("[data-cd-d]"), h: box.querySelector("[data-cd-h]"),
-      m: box.querySelector("[data-cd-m]"), s: box.querySelector("[data-cd-s]"),
-    };
-    function pad(n) { return String(n).padStart(2, "0"); }
-    function tick() {
-      var diff = Math.max(0, Math.floor((end - Date.now()) / 1000));
-      el.d.textContent = Math.floor(diff / 86400);
-      el.h.textContent = pad(Math.floor((diff % 86400) / 3600));
-      el.m.textContent = pad(Math.floor((diff % 3600) / 60));
-      el.s.textContent = pad(diff % 60);
-    }
-    tick(); setInterval(tick, 1000);
-  })();
+  // Сегментный отсчёт промо-баннера — общий партиал _countdown_script.html (DL-20).
   // Ошибки формы после POST — модал уже открыт (без hidden) → зафиксировать скролл.
   var m0 = document.getElementById("promo-reserve-modal");
   if (m0 && !m0.classList.contains("hidden")) document.body.style.overflow = "hidden";
 })();
 </script>
+{% include "storefront/_countdown_script.html" %}
 {% endblock %}

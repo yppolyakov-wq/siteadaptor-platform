@@ -69,7 +69,11 @@ def test_catalog_filter_panel_is_collapsible():
     должна быть кнопка сворачивания, связанная с панелью по ключу."""
     body = (TEMPLATES / "products.html").read_text(encoding="utf-8")
     assert '_filter_toggle.html" with filter_key="catalog"' in body
-    assert 'data-filter-panel="catalog"' in body
+    # DL-20: сама панель вынесена в партиал (рендерится над сеткой ИЛИ в боковой
+    # колонке «Navigator»); связь по ключу держит партиал, страница его включает.
+    assert 'include "storefront/_catalog_filters.html"' in body
+    panel = (TEMPLATES / "_catalog_filters.html").read_text(encoding="utf-8")
+    assert 'data-filter-panel="catalog"' in panel
     assert (TEMPLATES / "_filter_toggle.html").exists()
 
 

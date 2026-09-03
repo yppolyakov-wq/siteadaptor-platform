@@ -3659,10 +3659,15 @@ AKTIONSMARKT = DemoKit(
         "hero_style": "split",
         "nav": {"cta": True},
         "wishlist": True,
-        "site_defaults": {"hero_widget": "aktionsmarkt"},
+        # DL-20: страница ГРУППЫ акций — «Prospekt» на весь сайт (дискаунтер) …
+        "site_defaults": {"hero_widget": "aktionsmarkt", "promo_group_style": "prospekt"},
         # DL-17.2: группы акций — лентами со стрелками (A3); без ключа страница
         # рисовала сетки, и «карусели из макета» в демо не было видно.
         "promo_layout": "slider",
+        # … и ДВЕ группы со своим шаблоном поверх общего — приоритет виден на
+        # витрине: распродажа идёт на одну дату (Countdown), у спасённых
+        # продуктов есть «паровоз» — Überraschungstüte (Schaufenster).
+        "promo_groups": {"Räumung": "countdown", "Anti-Food-Waste": "schaufenster"},
     },
     # DL-4: акции на главной — витриной «Deal der Woche» (spotlight: featured-
     # карточка + полоса «Endet bald»; макет-референс канваса Sparfuchs).
@@ -4208,6 +4213,8 @@ AKTIONSMARKT = DemoKit(
             ],
             "grocery-bag",  # DS-9: фото плитки (было SVG)
             "Gerettete Ware vom Vortag — jeden Abend neu gepackt.",
+            # DL-20 (P1): у направления есть флагман — первая тюта ведёт страницу.
+            "schaufenster",
         ),
         # DL-11: товары ДОПИСАНЫ В КОНЕЦ — индексы promotions_spec.product целы.
         (
@@ -5607,7 +5614,14 @@ CLOTHING = DemoKit(
     bundle="fokus_lookbook",
     # DL-18.3: акции магазина одежды — группами-лентами (Sale · Accessoire-Deals),
     # как в продуктовом демо; страница /aktionen/ становится Sale-витриной.
-    config_patch={"hero_style": "split", "nav": {"cta": True}, "promo_layout": "slider"},
+    config_patch={
+        "hero_style": "split",
+        "nav": {"cta": True},
+        "promo_layout": "slider",
+        # DL-20: страница категории — «Navigator» на весь сайт (большой каталог с
+        # фасетами размера/цвета); Herren и Accessoires ниже переопределяют его.
+        "site_defaults": {"category_page_style": "navigator"},
+    },
     subdomain="mode",
     accent="#1e293b",  # Fashion-Navy
     hero_image_kw="fashion,boutique",
@@ -6063,6 +6077,9 @@ CLOTHING = DemoKit(
                 ),
             ],
             "sweater",  # DS-9: фото плитки (linen-shirt.webp — брак набора: выпечка)
+            # DL-20 (P3): мало позиций с описанием — обложка + крупные карточки.
+            "Hemden, Strick und Hosen — Basics, die bleiben.",
+            "magazin",
         ),
         (
             "Accessoires",
@@ -6107,6 +6124,9 @@ CLOTHING = DemoKit(
                 ),
             ],
             "canvas-bag",  # DS-9: фото плитки (было SVG)
+            # DL-20 (P4): сильные фото — плитки разного размера поверх «Navigator».
+            "Taschen, Gürtel, Schals — kleine Stücke, große Wirkung.",
+            "mosaik",
         ),
     ],
     product_reviews=[

@@ -1,0 +1,27 @@
+{% comment %}Сегментный отсчёт Tage|Std|Min|Sek (референс владельца 2026-07-29). DL-20:
+вынесен из детали акции, потому что теперь нужен и шапке группы «Countdown». Каждый
+тик ЗАНОВО ищет [data-cd] — страница акций меняет вид через fetch-своп корня листинга,
+и уже запущенный интервал подхватывает новую шапку без повторного исполнения скрипта
+(инлайн-скрипт после innerHTML не исполняется — урок HF). Гвард — на странице может
+быть два включения.{% endcomment %}
+<script>
+(function () {
+  if (window.__sfCountdownInit) return;
+  window.__sfCountdownInit = true;
+  function pad(n) { return String(n).padStart(2, "0"); }
+  function tick() {
+    document.querySelectorAll("[data-cd]").forEach(function (box) {
+      var end = new Date(box.getAttribute("data-cd")).getTime();
+      if (isNaN(end)) return;
+      var diff = Math.max(0, Math.floor((end - Date.now()) / 1000));
+      var d = box.querySelector("[data-cd-d]"), h = box.querySelector("[data-cd-h]"),
+          m = box.querySelector("[data-cd-m]"), s = box.querySelector("[data-cd-s]");
+      if (d) d.textContent = Math.floor(diff / 86400);
+      if (h) h.textContent = pad(Math.floor((diff % 86400) / 3600));
+      if (m) m.textContent = pad(Math.floor((diff % 3600) / 60));
+      if (s) s.textContent = pad(diff % 60);
+    });
+  }
+  tick(); setInterval(tick, 1000);
+})();
+</script>

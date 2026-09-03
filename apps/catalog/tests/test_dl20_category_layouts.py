@@ -6,6 +6,7 @@
 """
 
 import itertools
+import re
 from decimal import Decimal
 
 import pytest
@@ -199,7 +200,11 @@ def test_magazin_shows_a_cover_and_a_teaser_under_each_card():
 
 def test_mosaik_marks_the_grid_as_bento():
     body = _page("mosaik")
-    assert "data-cat-bento" in body
+    grid = re.search(r'<div data-grid="catalog"[^>]*>', body).group(0)
+    assert "data-cat-bento" in grid
+    # стенд DL-20: бенто — grid со спанами; хвост spread (flex + широкая одиночная
+    # карточка DL-15) на него не действует → вьюха отдаёт tail=show
+    assert 'data-sf-tail="show"' in grid
 
 
 def test_kompakt_shows_a_column_index_instead_of_tiles():
@@ -222,3 +227,15 @@ def test_the_five_layouts_differ_structurally_not_only_by_classes():
         body = _page(style, subcats=3)
         seen[style] = tuple(m for m in marks if m in body)
     assert len(set(seen.values())) == 5, seen
+
+
+@pytest.mark.parametrize(
+    "style,lg",
+    [("magazin", "lg:grid-cols-2"), ("mosaik", "lg:grid-cols-4"), ("kompakt", "lg:grid-cols-6")],
+)
+def test_layout_density_really_changes_the_grid(style, lg):
+    """Стенд DL-20: нормализованный catalog_layout несёт явные cols, и normalize_layout
+    ставил их выше пресета — «cols4» менял только ярлык, сетка оставалась 3-колоночной."""
+    body = _page(style, products=8)
+    grid = re.search(r'<div data-grid="catalog"[^>]*>', body).group(0)
+    assert lg in grid, grid

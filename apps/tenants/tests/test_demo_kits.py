@@ -1606,3 +1606,31 @@ def test_every_kit_defines_opening_hours():
     неполной готовностью — так и было у `moto` до сверки 2026-08-19."""
     missing = [k for k, kit in demo_kits.KITS.items() if not kit.opening_hours_text]
     assert missing == [], f"киты без часов работы: {missing}"
+
+
+def test_dl20_aktionsmarkt_group_pages_inherit_and_override():
+    """DL-20: у страницы группы акций — общий дефолт «Prospekt» и ДВЕ группы со
+    своим шаблоном поверх него (приоритет виден на витрине); у направления
+    Überraschungstüten — свой шаблон страницы категории «Schaufenster»."""
+    from apps.catalog.models import Category
+
+    t = TenantFactory(slug="dl20a", name="DL20A", business_type="grocery")
+    assert demo_kits.apply_kit(t, "aktionsmarkt")
+    cfg = t.site_config
+    assert cfg["site_defaults"]["promo_group_style"] == "prospekt"
+    assert cfg["promo_groups"] == {"Räumung": "countdown", "Anti-Food-Waste": "schaufenster"}
+    # прежние оси site_defaults не затёрты мерджем config_patch (один уровень вглубь)
+    assert cfg["site_defaults"]["card_style"] == "regal"
+    assert Category.objects.get(slug="ueberraschungstueten").page_style == "schaufenster"
+
+
+def test_dl20_clothing_category_pages_inherit_and_override():
+    """DL-20: «Navigator» на весь сайт + Herren → Magazin, Accessoires → Mosaik;
+    Damen без своего значения наследует общий."""
+    from apps.catalog.models import Category
+
+    t = TenantFactory(slug="dl20c", name="DL20C", business_type="clothing")
+    assert demo_kits.apply_kit(t, "clothing")
+    assert t.site_config["site_defaults"]["category_page_style"] == "navigator"
+    styles = dict(Category.objects.filter(parent=None).values_list("slug", "page_style"))
+    assert styles == {"damen": "", "herren": "magazin", "accessoires": "mosaik"}
