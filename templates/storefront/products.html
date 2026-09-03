@@ -5,6 +5,11 @@
 {% comment %}UB1-3: каталог на каркасе listing.html. Разметка блоков перенесена без
 изменений (замки — apps/catalog/tests/test_listing_parity.py + test_storefront).{% endcomment %}
 
+{% comment %}DL-20: действующий шаблон СТРАНИЦЫ категории — атрибутом на корне
+листинга. Ставится только на странице категории (на общем /sortiment/ шаблона нет),
+пустое значение атрибута не даёт вовсе → прежняя разметка байт-в-байт.{% endcomment %}
+{% block listing_root_attrs %}{% if is_category_page and category_page_style %} data-cat-layout="{{ category_page_style }}"{% endif %}{% endblock %}
+
 {% block structured_data %}{{ block.super }}{% if catalog_breadcrumb_ld %}<script type="application/ld+json">{{ catalog_breadcrumb_ld|safe }}</script>{% endif %}{% endblock %}
 
 {% block listing_header %}

@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.catalog import category_styles
 from apps.catalog.option_styles import VARIANT_STYLES
 from apps.core import card_forms, detail_sections, presence, vat
 from apps.tenants import domains
@@ -1828,6 +1829,9 @@ def home_builder_view(request):
             "card_style": request.POST.get("sd_card_style", ""),
             # O-2: дефолтный вид выбора вариантов для всего магазина ("" = список).
             "variant_style": request.POST.get("sd_variant_style", ""),
+            # DL-20: шаблон страницы категории на весь сайт ("" = Standard; своё
+            # значение категории его побеждает).
+            "category_page_style": request.POST.get("sd_category_page_style", ""),
             # DL-10: форма кадра на карточках ("" = как в разметке).
             "media_shape": request.POST.get("sd_media_shape", ""),
             # DL-16.4: форма карточки акции и листание фото на карточке товара.
@@ -2406,6 +2410,9 @@ def home_builder_view(request):
             # DL-19: варианты формы карточки для плиток-предпросмотра (реестр)
             "card_forms_product": card_forms.forms_for(card_forms.PRODUCT),
             "card_forms_promo": card_forms.forms_for(card_forms.PROMO),
+            # DL-20: шаблон страницы категории — префилл + реестр для плиток.
+            "category_page_style": config["site_defaults"].get("category_page_style", ""),
+            "category_page_styles": category_styles.CATEGORY_PAGE_STYLES,
             "media_shape": config["site_defaults"].get("media_shape", ""),  # DL-10
             "promo_card": config["site_defaults"].get("promo_card", ""),  # DL-16.4
             "card_slider": config["site_defaults"].get("card_slider", ""),

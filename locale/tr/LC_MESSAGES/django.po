@@ -21787,3 +21787,36 @@ msgstr "Kapın"
 
 msgid "To the offer"
 msgstr "Fırsata git"
+
+msgid "Showcase"
+msgstr "Vitrin"
+
+msgid ""
+"The first product as a wide card with text and button, the rest as a grid."
+msgstr "İlk ürün metin ve düğmeli geniş bir kart, kalanlar ızgara olarak."
+
+msgid "Navigator"
+msgstr "Navigatör"
+
+msgid "Subcategories and filters in a side column, products on the right."
+msgstr "Alt kategoriler ve filtreler yan sütunda, ürünler sağda."
+
+msgid "Cover image, then two large cards per row with a description."
+msgstr "Kapak görseli, ardından satır başına açıklamalı iki büyük kart."
+
+msgid "Mosaic"
+msgstr "Mozaik"
+
+msgid "Tiles of different sizes — needs strong photos."
+msgstr "Farklı boyutlarda kutular — güçlü fotoğraflar gerektirir."
+
+msgid "Subcategory index in columns and a dense grid — for large ranges."
+msgstr ""
+"Sütunlar hâlinde alt kategori dizini ve sık ızgara — geniş ürün yelpazeleri "
+"için."
+
+msgid "Applies where a category has no template of its own."
+msgstr "Kendi şablonu olmayan kategoriler için geçerlidir."
+
+msgid "Leave on Standard to follow the site-wide setting."
+msgstr "Site genelindeki ayarı kullanmak için Standart'ta bırakın."

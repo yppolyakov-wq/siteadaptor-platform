@@ -21660,3 +21660,35 @@ msgstr "Secure it"
 
 msgid "To the offer"
 msgstr "To the offer"
+
+msgid "Showcase"
+msgstr "Showcase"
+
+msgid ""
+"The first product as a wide card with text and button, the rest as a grid."
+msgstr ""
+"The first product as a wide card with text and button, the rest as a grid."
+
+msgid "Navigator"
+msgstr "Navigator"
+
+msgid "Subcategories and filters in a side column, products on the right."
+msgstr "Subcategories and filters in a side column, products on the right."
+
+msgid "Cover image, then two large cards per row with a description."
+msgstr "Cover image, then two large cards per row with a description."
+
+msgid "Mosaic"
+msgstr "Mosaic"
+
+msgid "Tiles of different sizes — needs strong photos."
+msgstr "Tiles of different sizes — needs strong photos."
+
+msgid "Subcategory index in columns and a dense grid — for large ranges."
+msgstr "Subcategory index in columns and a dense grid — for large ranges."
+
+msgid "Applies where a category has no template of its own."
+msgstr "Applies where a category has no template of its own."
+
+msgid "Leave on Standard to follow the site-wide setting."
+msgstr "Leave on Standard to follow the site-wide setting."

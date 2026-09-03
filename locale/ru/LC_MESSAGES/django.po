@@ -21886,3 +21886,36 @@ msgstr "Забрать"
 
 msgid "To the offer"
 msgstr "К предложению"
+
+msgid "Showcase"
+msgstr "Витрина"
+
+msgid ""
+"The first product as a wide card with text and button, the rest as a grid."
+msgstr "Первый товар — широкой картой с текстом и кнопкой, остальные сеткой."
+
+msgid "Navigator"
+msgstr "Навигатор"
+
+msgid "Subcategories and filters in a side column, products on the right."
+msgstr "Подкатегории и фильтры боковой колонкой, товары справа."
+
+msgid "Cover image, then two large cards per row with a description."
+msgstr "Обложка, затем по две крупные карточки в ряд с описанием."
+
+msgid "Mosaic"
+msgstr "Мозаика"
+
+msgid "Tiles of different sizes — needs strong photos."
+msgstr "Плитки разного размера — нужны сильные фото."
+
+msgid "Subcategory index in columns and a dense grid — for large ranges."
+msgstr ""
+"Указатель подкатегорий колонками и плотная сетка — для больших "
+"ассортиментов."
+
+msgid "Applies where a category has no template of its own."
+msgstr "Действует там, где у категории нет своего шаблона."
+
+msgid "Leave on Standard to follow the site-wide setting."
+msgstr "Оставьте «Standard», чтобы действовала настройка всего сайта."

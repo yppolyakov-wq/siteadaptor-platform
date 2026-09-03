@@ -30,7 +30,7 @@ UB1-1: единый каркас страницы-листинга (по обр�
 перезагрузки (fetch полной страницы → swap этого контейнера). Внутри неё НЕ
 должно быть инлайн-скриптов с прямым бинденгом — после swap они не исполняются
 (урок HF-волны); сорт-автосабмит делегирован в _grid_view_script.html.{% endcomment %}
-<div class="{% block listing_width %}{% endblock %}" data-listing-root>
+<div class="{% block listing_width %}{% endblock %}" data-listing-root{% block listing_root_attrs %}{% endblock %}>
 {% block listing_header %}{% endblock %}
 {% block listing_facets %}{% endblock %}
 {% block listing_toolbar %}

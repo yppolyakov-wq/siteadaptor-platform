@@ -316,6 +316,13 @@
             {% include "tenant/_cardform_picker.html" with name="sd_card_style" value=card_style items=card_forms_product title=_("Kartenform") %}
             {% include "tenant/_cardform_picker.html" with name="sd_promo_card" value=promo_card items=card_forms_promo title=_("Aktionskarte") %}
           </div>
+          {% comment %}DL-20: ШАБЛОН СТРАНИЦЫ категории — общий дефолт сайта. Своё значение
+             категории его побеждает (резолвер category_styles.page_style), поэтому подпись
+             честно говорит «если у категории не задан свой».{% endcomment %}
+          <div class="mt-4">
+            {% include "tenant/_cardform_picker.html" with name="sd_category_page_style" value=category_page_style items=category_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Category page (whole site)") %}
+            <p class="text-xs text-gray-500 mt-1">{% trans "Applies where a category has no template of its own." %}</p>
+          </div>
         </div>
         {% comment %} SE-2d: глобальный стиль карточек — «весь сайт» (мастер-настройка, наследуется
            всеми сетками; блок может переопределить своим visual). SE-8a: эксперт-только. {% endcomment %}
@@ -2302,12 +2309,15 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       var sdPromoCard = form.querySelector("[name='sd_promo_card']");
       var sdSlider = form.querySelector("input[name='sd_card_slider']");
       var sdVariant = form.querySelector("select[name='sd_variant_style']");
+      // DL-20: шаблон страницы категории на весь сайт (плитки + hidden).
+      var sdCatPage = form.querySelector("[name='sd_category_page_style']");
       payload.site_defaults = {
         card_radius: sdR ? parseInt(sdR.value, 10) || 0 : 0,
         card_shadow: !!(sdSh && sdSh.checked),
         card_padding: sdPad && sdPad.value !== "" ? parseInt(sdPad.value, 10) || 0 : 0,
         card_bg: sdBgOn && sdBgOn.checked && sdBg ? sdBg.value : "",
         card_style: sdStyle ? sdStyle.value : "",
+        category_page_style: sdCatPage ? sdCatPage.value : "",
         media_shape: sdMedia ? sdMedia.value : "",
         page_bg: sdPageBgOn && sdPageBgOn.checked && sdPageBg ? sdPageBg.value : "",
         card_chrome: sdChrome ? sdChrome.value : "",

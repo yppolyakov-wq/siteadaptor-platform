@@ -1,7 +1,8 @@
 {% load i18n %}{% comment %}DL-19 (запрос владельца «выбор из вариантов и предпросмотр»):
 форма карточки выбирается ПЛИТКАМИ с мини-макетом, а не строкой селекта. Значение держит
 hidden-инпут с прежним именем поля (`sd_card_style` / `sd_promo_card`) — сохранение и
-живой черновик билдера не меняются. Вход: name, value, items, title.{% endcomment %}
+живой черновик билдера не меняются. Вход: name, value, items, title; необязательный
+`thumb` — путь к набору мини-макетов (DL-20: у шаблонов СТРАНИЦЫ он свой).{% endcomment %}
 <div class="text-sm md:col-span-2" data-cardform-picker>
   <span class="block font-medium mb-1">{{ title }}</span>
   <input type="hidden" name="{{ name }}" value="{{ value }}">
@@ -10,7 +11,7 @@ hidden-инпут с прежним именем поля (`sd_card_style` / `sd
       <button type="button" data-cf-key="{{ key }}" title="{{ hint }}"
               aria-pressed="{% if value == key %}true{% else %}false{% endif %}"
               class="cf-tile rounded-lg border p-1.5 text-left {% if value == key %}border-indigo-500 ring-2 ring-indigo-200{% else %}border-gray-200 hover:border-gray-300{% endif %}">
-        {% include "tenant/_cardform_thumb.html" with key=key %}
+        {% include thumb|default:"tenant/_cardform_thumb.html" with key=key %}
         <span class="mt-1 block w-16 text-[10px] leading-tight text-gray-600 dark:text-gray-300 line-clamp-2">{{ label }}</span>
       </button>
     {% endfor %}

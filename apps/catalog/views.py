@@ -20,6 +20,7 @@ from apps.core.archetypes import FOOD_BUSINESS_TYPES as _FOOD_BUSINESS_TYPES
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
 from apps.inventory.services import log_catalog_change
 
+from . import category_styles
 from .forms import CategoryForm, ProductForm
 from .images import delete_stored_image, save_product_image
 from .models import (
@@ -589,7 +590,14 @@ def category_create(request):
     return render(
         request,
         "catalog/category_form.html",
-        {"form": form, "is_create": True, "nav": "categories", **_i18n_ctx(form, request)},
+        {
+            "form": form,
+            "is_create": True,
+            "nav": "categories",
+            # DL-20: реестр шаблонов страницы — плитки вместо селекта.
+            "category_page_styles": category_styles.CATEGORY_PAGE_STYLES,
+            **_i18n_ctx(form, request),
+        },
     )
 
 
@@ -611,6 +619,7 @@ def category_edit(request, pk):
             "is_create": False,
             "category": category,
             "nav": "categories",
+            "category_page_styles": category_styles.CATEGORY_PAGE_STYLES,
             **_i18n_ctx(form, request),
         },
     )

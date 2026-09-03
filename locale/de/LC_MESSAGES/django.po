@@ -21705,3 +21705,38 @@ msgstr "Sichern"
 
 msgid "To the offer"
 msgstr "Zum Angebot"
+
+msgid "Showcase"
+msgstr "Schaufenster"
+
+msgid ""
+"The first product as a wide card with text and button, the rest as a grid."
+msgstr ""
+"Das erste Produkt als breite Karte mit Text und Button, der Rest als Raster."
+
+msgid "Navigator"
+msgstr "Navigator"
+
+msgid "Subcategories and filters in a side column, products on the right."
+msgstr "Unterkategorien und Filter in einer Seitenspalte, Produkte rechts."
+
+msgid "Cover image, then two large cards per row with a description."
+msgstr "Titelbild, danach zwei große Karten pro Reihe mit Beschreibung."
+
+msgid "Mosaic"
+msgstr "Mosaik"
+
+msgid "Tiles of different sizes — needs strong photos."
+msgstr "Kacheln in verschiedenen Größen — braucht starke Fotos."
+
+msgid "Subcategory index in columns and a dense grid — for large ranges."
+msgstr ""
+"Unterkategorien als Spaltenverzeichnis und dichtes Raster — für große "
+"Sortimente."
+
+msgid "Applies where a category has no template of its own."
+msgstr "Gilt dort, wo eine Kategorie keine eigene Vorlage hat."
+
+msgid "Leave on Standard to follow the site-wide setting."
+msgstr ""
+"Auf Standard lassen, um die Einstellung für die ganze Website zu übernehmen."

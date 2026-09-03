@@ -61,11 +61,21 @@ main-колонка (языки/название/описание/фото) + п
     <aside class="space-y-4 mt-4 lg:mt-0">
       <div class="bg-white p-5 rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] space-y-3">
         <p class="text-sm font-semibold">🗂 {% trans "Struktur" %}</p>
-        {% for field in form %}{% if field.name == 'parent' or field.name == 'slug' or field.name == 'page_style' %}
+        {% for field in form %}{% if field.name == 'parent' or field.name == 'slug' %}
           <div>
             <label class="block text-xs font-medium text-gray-500 mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
             {% render_field field class="w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-indigo-400 focus:outline-none" %}
             {% if field.help_text %}<p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>{% endif %}
+            {% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}
+          </div>
+        {% endif %}{% endfor %}
+        {% comment %}DL-20: шаблон страницы категории — ПЛИТКИ с мини-макетом вместо
+           строки селекта (как формы карточки, DL-19). Пустое значение = «как задано для
+           всего сайта» — общий дефолт живёт в Studio, своё значение его побеждает.{% endcomment %}
+        {% for field in form %}{% if field.name == 'page_style' %}
+          <div>
+            {% include "tenant/_cardform_picker.html" with name="page_style" value=field.value|default:"" items=category_page_styles thumb="tenant/_pagelayout_thumb.html" title=field.label %}
+            <p class="text-xs text-gray-400 mt-1">{% trans "Leave on Standard to follow the site-wide setting." %}</p>
             {% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}
           </div>
         {% endif %}{% endfor %}

@@ -869,10 +869,23 @@ def product_list(request, slug=None):
             category = Category.objects.filter(slug=slug, is_active=True).first()
             if category is None:
                 return redirect("storefront-products")
-    # KAT-1: шаблон СТРАНИЦЫ категории (Category.page_style; мусор → Standard).
+    # M20U-7 (per-page): конфиг витрины. SE-2a-2: при ?preview=1 — черновик из сессии
+    # (раскладка/сортировка/фильтры/подкатегории видны на канве сразу).
+    from apps.tenants import siteconfig
+
+    is_preview = request.GET.get("preview") == "1"
+    raw_cfg = request.tenant.site_config
+    if is_preview and isinstance(request.session.get("site_preview_draft"), dict):
+        raw_cfg = request.session["site_preview_draft"]
+    cfg = siteconfig.normalize(raw_cfg)
+    # KAT-1/DL-20: шаблон СТРАНИЦЫ категории. Два слоя — своё значение категории
+    # побеждает общий дефолт сайта `site_defaults["category_page_style"]`; мусор в
+    # любом слое → Standard. Конфиг поднят выше по вьюхе именно ради этого дефолта
+    # (раньше он читался только к раскладке, ниже по коду).
     from apps.catalog.category_styles import page_style as _category_page_style
 
-    cat_style = _category_page_style(category) if category is not None else ""
+    _cat_style_default = cfg["site_defaults"].get("category_page_style", "")
+    cat_style = _category_page_style(category, _cat_style_default) if category is not None else ""
     # Снимок набора в рамках выбранной категории ДО фасет-фильтров — из него считаем
     # доступные значения фасетов (границы цены / присутствующие бейджи / есть ли
     # распроданное), чтобы показывать только релевантные фильтры и реальные диапазоны.
@@ -964,7 +977,10 @@ def product_list(request, slug=None):
     if path_mode and category is not None:
         if cat_style == "tabs" and subcategories:
             tabs_source = category
-        elif category.parent_id and _category_page_style(category.parent) == "tabs":
+        elif (
+            category.parent_id
+            and _category_page_style(category.parent, _cat_style_default) == "tabs"
+        ):
             tabs_source = category.parent
     category_tabs = []
     if tabs_source is not None:
@@ -1013,15 +1029,6 @@ def product_list(request, slug=None):
         catalog_breadcrumb_ld = _breadcrumb_ld(
             [(n, request.build_absolute_uri(u) if u else "") for n, u in catalog_breadcrumbs]
         )
-    # M20U-7 (per-page): конфиг витрины. SE-2a-2: при ?preview=1 — черновик из сессии
-    # (раскладка/сортировка/фильтры/подкатегории видны на канве сразу).
-    from apps.tenants import siteconfig
-
-    is_preview = request.GET.get("preview") == "1"
-    raw_cfg = request.tenant.site_config
-    if is_preview and isinstance(request.session.get("site_preview_draft"), dict):
-        raw_cfg = request.session["site_preview_draft"]
-    cfg = siteconfig.normalize(raw_cfg)
     # MEN-24d (фидбэк «переключатели видов рядом с сортировкой»): посетительский
     # вид каталога — серверный ?ansicht=<preset> (работает при ЛЮБОМ стиле
     # владельца, вкл. авторские karte/buch — class-swap их не умел). Мусор →

@@ -18,6 +18,7 @@ import uuid
 
 from django.utils.translation import gettext_lazy as _
 
+from apps.catalog.category_styles import VALID_PAGE_STYLES as _CATEGORY_PAGE_STYLES
 from apps.catalog.option_styles import VARIANT_STYLE_KEYS as _CATALOG_VARIANT_STYLE_KEYS
 from apps.core import card_forms, detail_sections
 from apps.core.hero_tiles import HERO_TILE_WIDGETS
@@ -39,6 +40,9 @@ HERO_WIDGETS = (
 # список не разъехался с витриной и кабинетом. "" отбрасываем: это дефолт,
 # в конфиге он не материализуется (golden целы).
 _VARIANT_STYLE_KEYS = tuple(k for k in _CATALOG_VARIANT_STYLE_KEYS if k)
+
+# DL-20: то же для шаблона страницы категории — источник один, реестр каталога.
+_CATEGORY_PAGE_STYLE_KEYS = tuple(k for k in _CATEGORY_PAGE_STYLES if k)
 
 # (key, подпись для кабинета, включена ли по умолчанию)
 SECTIONS = [
@@ -1286,6 +1290,11 @@ def normalize_site_defaults(raw) -> dict:
     # ("" = выпадающий список, как раньше → golden целы).
     if sd.get("variant_style") in _VARIANT_STYLE_KEYS:
         out["variant_style"] = sd["variant_style"]
+    # DL-20: ШАБЛОН СТРАНИЦЫ КАТЕГОРИИ на весь сайт; своё значение категории
+    # (`Category.page_style`) его побеждает — резолвер `category_styles.page_style`.
+    # Ключ ТОЛЬКО при валидном не-пустом значении ("" = Standard → golden целы).
+    if sd.get("category_page_style") in _CATEGORY_PAGE_STYLE_KEYS:
+        out["category_page_style"] = sd["category_page_style"]
     # E4 «задача-первым»: интерактивный hero — primary-виджет ВНУТРИ баннера
     # (первый экран = начало пути). "stays" — поиск дат; "services" — топ-услуги
     # с «Buchen». Ключ ТОЛЬКО при валидном значении ("" = обычный баннер →
