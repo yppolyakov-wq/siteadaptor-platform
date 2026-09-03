@@ -60,25 +60,36 @@ def test_badge_style_forces_amount_badge_even_with_percent():
         assert ">−25 %</span>" not in body
 
 
-def test_strikethrough_style_hides_badge_keeps_struck_price():
+def test_strikethrough_style_amount_badge_keeps_struck_price():
+    """DL-22 (фидбэк «на картинке нет скидки»): стили с акцентом на цене «statt»
+    дают на фото карточки бейдж СУММЫ «−X €»; зачёркнутая цена остаётся. Деталь
+    акции свой гейт не меняет (там бейдж — пилюля у цены, без shadow)."""
     promo = _discounted(discount_style="strikethrough", strikethrough_old_price=True)
-    for body in (_card(promo), _detail(promo)):
-        assert BADGE_MARK not in body  # бейджа нет
+    card = _card(promo)
+    assert BADGE_MARK in card and "−2,50 €" in card.split(BADGE_MARK)[1][:260]
+    assert ">−25 %</span>" not in card.split(BADGE_MARK)[0][-400:]  # на фото — не процент
+    for body in (card, _detail(promo)):
         assert "line-through" in body  # зачёркнутая старая цена осталась
 
 
-def test_festpreis_style_only_new_price():
+def test_festpreis_style_only_new_price_but_badge_on_photo():
+    """DL-22: «только новая цена» в блоке цены, но на ФОТО карточки — «−X €»
+    (владелец: скидка должна быть видна на картинке, если она вычислима)."""
     promo = _discounted(discount_style="festpreis")
-    for body in (_card(promo), _detail(promo)):
-        assert BADGE_MARK not in body
+    card = _card(promo)
+    assert BADGE_MARK in card and "−2,50 €" in card.split(BADGE_MARK)[1][:260]
+    assert BADGE_MARK not in _detail(promo)  # деталь: без пилюли, как прежде
+    for body in (card, _detail(promo)):
         assert "line-through" not in body
         assert "7,50" in body  # только новая цена (DE-локаль)
 
 
 def test_ab_style_from_price_prefix():
     promo = _discounted(discount_style="ab")
-    for body in (_card(promo), _detail(promo)):
-        assert BADGE_MARK not in body
+    card = _card(promo)
+    assert BADGE_MARK in card and "−2,50 €" in card.split(BADGE_MARK)[1][:260]  # DL-22
+    assert BADGE_MARK not in _detail(promo)
+    for body in (card, _detail(promo)):
         assert "line-through" not in body
         assert "ab" in body and "7,50" in body
 
@@ -88,7 +99,8 @@ def test_countdown_style_forces_timer_without_flag():
     promo = _discounted(discount_style="countdown", ends_at=ends, show_countdown=False)
     local_iso = timezone.localtime(ends).isoformat()
     card, detail = _card(promo), _detail(promo)
-    assert BADGE_MARK not in card
+    # DL-22: countdown — акцент на таймере, но процент на фото остаётся (Croissant −30 %)
+    assert BADGE_MARK in card and "−25 %" in card.split(BADGE_MARK)[1][:260]
     assert f'data-countdown="{local_iso}"' in card
     # деталь (2026-07-30, референс): сегментный баннер Tage|Std|Min|Sek
     assert BADGE_MARK not in detail
@@ -96,9 +108,11 @@ def test_countdown_style_forces_timer_without_flag():
     assert "data-cd-d" in detail
 
 
-def test_surprise_style_hides_badge_keeps_pill():
+def test_surprise_style_badge_and_pill():
+    """DL-22: Überraschungstüte 9,99 statt 25 — процент на фото (вычисленный) + пилюля."""
     promo = _discounted(discount_style="surprise", is_surprise=True)
-    assert BADGE_MARK not in _card(promo)
+    card = _card(promo)
+    assert BADGE_MARK in card and "−25 %" in card.split(BADGE_MARK)[1][:260]
     assert "Überraschungstüte" in _card(promo)
     assert "Überraschungstüte" in _detail(promo)
 
@@ -175,3 +189,31 @@ def test_non_mystery_detail_keeps_savings_offer_and_og():
     assert "data-mystery-extra" not in body
     assert '"offers"' in body
     assert 'property="og:image"' in body
+
+
+def test_badge_never_leaks_for_mystery_and_absent_without_saving():
+    """DL-22 адверсариально: mystery — по-прежнему без бейджа; акция без цен и без
+    процента — бейджа нет ни у одного стиля (нечего вычислять)."""
+    for style in (
+        "",
+        "percent",
+        "badge",
+        "strikethrough",
+        "festpreis",
+        "ab",
+        "countdown",
+        "surprise",
+    ):
+        promo = PromotionFactory(status="active", discount_style=style, discount_percent=None)
+        assert BADGE_MARK not in _card(promo), style
+    promo = _discounted(discount_style="mystery")
+    assert BADGE_MARK not in _card(promo)
+
+
+def test_wide_card_in_ending_soon_strip_keeps_badge_for_styled_promos():
+    """DL-22, скриншот владельца: полоса «Endet bald» (широкая форма DL-15) — у
+    countdown/surprise-акций бейдж на фото есть, как у акций без стиля."""
+    for style, mark in (("countdown", "−25 %"), ("surprise", "−25 %"), ("festpreis", "−2,50 €")):
+        promo = _discounted(discount_style=style, ends_at=timezone.now() + timedelta(hours=5))
+        body = render_to_string("storefront/_promo_card.html", {"p": promo, "wide": True})
+        assert BADGE_MARK in body and mark in body.split(BADGE_MARK)[1][:260], style

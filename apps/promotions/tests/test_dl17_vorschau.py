@@ -156,3 +156,30 @@ def test_promo_page_reads_builder_draft_in_preview():
 
     # без превью — сохранённый конфиг (сеток), черновик не влияет
     assert "data-promo-strip" not in _list(tenant)
+
+
+# --- DL-23: бакеты предпросмотра рядом колонками -------------------------------
+def test_small_preview_buckets_sit_side_by_side():
+    """Фидбэк 2026-09-03: три бакета по одной карточке занимали три пустых ряда →
+    при ≥2 бакетах по ≤2 карточки блоки идут колонками в одном ряду (без слайдера);
+    заголовки и маркеры бакетов сохраняются."""
+    tenant = _tenant("dl23a")
+    _promo("Diese Woche", status="scheduled", starts_in=1, discount_percent=10)
+    _promo("Nächste Woche", status="scheduled", starts_in=8, discount_percent=10)
+    _promo("Später", status="scheduled", starts_in=30, discount_percent=10)
+    body = _list(tenant)
+    assert 'data-upcoming-row="3"' in body and "md:grid-cols-3" in body
+    row = body[body.index("data-upcoming-row") :]
+    assert row.count("data-upcoming=") == 3 and row.count("data-upcoming-strip") == 3
+    assert "data-sf-slider" not in row[: row.index("data-grid")] if "data-grid" in row else True
+
+
+def test_preview_buckets_stay_as_strips_when_one_bucket_or_many_cards():
+    tenant = _tenant("dl23b")
+    _promo("Solo", status="scheduled", starts_in=1, discount_percent=10)
+    body = _list(tenant)
+    assert "data-upcoming-row" not in body and "data-sf-slider" in body  # один бакет — лента
+    for i in range(3):
+        _promo(f"Mehr {i}", status="scheduled", starts_in=8, discount_percent=10)
+    body = _list(tenant)
+    assert "data-upcoming-row" not in body  # в бакете 3 карточки — ленты, не колонки

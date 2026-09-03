@@ -610,6 +610,13 @@ def promotion_list(request):
         )
         if upcoming:
             upcoming_groups = _upcoming_buckets(upcoming, timezone.localtime())
+    # DL-23 (фидбэк «разделим блоками и сделаем их рядом»): бакетов ≥ 2 и в каждом ≤ 2
+    # карточек → блоки колонками в одном ряду (иначе три почти пустых ряда по карточке).
+    upcoming_columns = (
+        len(upcoming_groups)
+        if len(upcoming_groups) >= 2 and all(len(items) <= 2 for _k, _l, items in upcoming_groups)
+        else 0
+    )
 
     def _chip(label, param, value):
         """Чип-ссылка: тумблер своего параметра с carry остальных (состояние в URL)."""
@@ -695,6 +702,7 @@ def promotion_list(request):
             "promo_head_photo": promo_head_photo,
             "promo_total": len(promotions) + (1 if promo_hero else 0),
             "promo_group_count": len(groups),
+            "upcoming_columns": upcoming_columns,
             # DL-20: страница группы — заголовок и шаблон композиции.
             "group_label": group_label,
             "group_page_style": group_style,

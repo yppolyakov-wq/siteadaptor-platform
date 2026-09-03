@@ -95,17 +95,29 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
   {% if upcoming_groups %}
     {% comment %}DL-17.4 (A1 «Vorschau»): что начнётся — лентой над действующими
     предложениями. Карточки помечены «ab <дата>» и без счётчика/остатка (preview).{% endcomment %}
+    {% comment %}DL-23: при 2–3 бакетах по ≤2 карточки — блоки РЯДОМ колонками (владелец:
+    «разделим блоками и сделаем их рядом»); иначе — прежние ленты по одной на ряд.{% endcomment %}
+    {% if upcoming_columns %}<div class="grid gap-4 md:gap-6 mb-8 {% if upcoming_columns == 2 %}md:grid-cols-2{% else %}md:grid-cols-3{% endif %}" data-upcoming-row="{{ upcoming_columns }}">{% endif %}
     {% for key, label, items in upcoming_groups %}
-      <section class="mb-8" data-upcoming="{{ key }}">
+      <section class="{% if upcoming_columns %}rounded-2xl bg-white/60 ring-1 ring-gray-200 p-4{% else %}mb-8{% endif %}" data-upcoming="{{ key }}">
         <h2 class="text-lg font-bold mb-3">🗓 {{ label }}
           <span class="text-sm font-normal text-gray-400">· {{ items|length }}</span></h2>
+        {% if upcoming_columns %}
+        <div class="flex flex-col gap-4" data-upcoming-strip>
+          {% for p in items %}
+            <div class="flex [&>div]:w-full">{% include "storefront/_promo_card.html" with preview=True %}</div>
+          {% endfor %}
+        </div>
+        {% else %}
         <div class="flex gap-4 overflow-x-auto pb-2" data-upcoming-strip data-sf-slider>
           {% for p in items %}
             <div class="w-64 sm:w-72 shrink-0 flex [&>div]:w-full">{% include "storefront/_promo_card.html" with preview=True %}</div>
           {% endfor %}
         </div>
+        {% endif %}
       </section>
     {% endfor %}
+    {% if upcoming_columns %}</div>{% endif %}
   {% endif %}
   {% if grouped_promotions %}
     {% comment %}Фидбэк 2026-07-29: группы акций — секциями с заголовками (Prospekt-

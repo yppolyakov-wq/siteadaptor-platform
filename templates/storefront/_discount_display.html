@@ -13,20 +13,21 @@ UE1: badge_pos_class — переопределение позиции бейд�
 {% firstof promo.discount_style style_override as eff_style %}
 {% if part == "badge" %}
   {# Порядок классов — байт-в-байт исходный (замок test_discount_display_parity). #}
-  {% if eff_style == "percent" %}
-    {% if promo.discount_percent_display %}
-      {% if size == "lg" %}<span class="absolute {% firstof badge_pos_class 'top-4 left-4' %} bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.discount_percent_display }}">−{{ promo.discount_percent_display }} %</span>{% else %}<span class="absolute {% firstof badge_pos_class 'top-3 left-3' %} bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.discount_percent_display }}">−{{ promo.discount_percent_display }} %</span>{% endif %}
-    {% endif %}
-  {% elif eff_style == "badge" %}
+  {% comment %}DL-22 (фидбэк 2026-09-03 «на картинке нет скидки»): бейдж по СМЫСЛУ стиля, а не по
+  факту «стиль задан». percent/countdown/surprise/"" → «−N %» (вычисленный процент из цен, фолбэк
+  «−X €»); badge/strikethrough/festpreis/ab → «−X €» (акцент этих стилей — цена «statt»; фолбэк
+  «−N %», если сумма невычислима); mystery → ничего (SF-1.4). Разметка байт-в-байт прежняя.{% endcomment %}
+  {% if eff_style == "mystery" %}
+  {% elif eff_style == "badge" or eff_style == "strikethrough" or eff_style == "festpreis" or eff_style == "ab" %}
     {% if promo.discount_amount %}
       {% if size == "lg" %}<span class="absolute {% firstof badge_pos_class 'top-4 left-4' %} bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% else %}<span class="absolute {% firstof badge_pos_class 'top-3 left-3' %} bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% endif %}
+    {% elif promo.discount_percent_display %}
+      {% if size == "lg" %}<span class="absolute {% firstof badge_pos_class 'top-4 left-4' %} bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.discount_percent_display }}">−{{ promo.discount_percent_display }} %</span>{% else %}<span class="absolute {% firstof badge_pos_class 'top-3 left-3' %} bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.discount_percent_display }}">−{{ promo.discount_percent_display }} %</span>{% endif %}
     {% endif %}
-  {% elif eff_style %}
-    {# strikethrough/festpreis/ab/countdown/surprise — акцент на другой части, бейдж скрыт. #}
   {% elif promo.discount_percent_display %}
-    {% if size == "lg" %}<span class="absolute {% firstof badge_pos_class 'top-4 left-4' %} bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.discount_percent_display }}">−{{ promo.discount_percent_display }} %</span>{% else %}<span class="absolute {% firstof badge_pos_class 'top-3 left-3' %} bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.discount_percent_display }}">−{{ promo.discount_percent_display }} %</span>{% endif %}
+      {% if size == "lg" %}<span class="absolute {% firstof badge_pos_class 'top-4 left-4' %} bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.discount_percent_display }}">−{{ promo.discount_percent_display }} %</span>{% else %}<span class="absolute {% firstof badge_pos_class 'top-3 left-3' %} bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow" data-price-edit data-edit-model="promotion" data-price-field="discount_percent" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.discount_percent_display }}">−{{ promo.discount_percent_display }} %</span>{% endif %}
   {% elif promo.has_discount %}
-    {% if size == "lg" %}<span class="absolute {% firstof badge_pos_class 'top-4 left-4' %} bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% else %}<span class="absolute {% firstof badge_pos_class 'top-3 left-3' %} bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% endif %}
+      {% if size == "lg" %}<span class="absolute {% firstof badge_pos_class 'top-4 left-4' %} bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% else %}<span class="absolute {% firstof badge_pos_class 'top-3 left-3' %} bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% endif %}
   {% endif %}
 {% elif part == "surprise" %}
   {% if promo.is_surprise %}

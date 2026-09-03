@@ -124,6 +124,6 @@ def test_block_style_hint_cascade():
     assert "−30" in badge()  # без стиля и hint — легаси-бейдж
     assert "−30" in badge(override="percent")  # hint percent → бейдж есть
     # hint strikethrough при НЕзаданном стиле акции → бейдж скрыт (акцент на цене)
-    assert "−30" not in badge(override="strikethrough")
+    assert "−30" in badge(override="strikethrough")  # DL-22: подсказка = стиль; без цен — процент
     # стиль акции percent ГЛАВНЕЕ hint'а strikethrough → бейдж есть
     assert "−30" in badge(override="strikethrough", own_style="percent")
