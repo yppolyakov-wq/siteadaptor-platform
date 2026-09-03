@@ -35,6 +35,8 @@ METHOD_LABELS = {
     INVOICE: _("Kauf auf Rechnung"),
 }
 METHODS = tuple(METHOD_LABELS)
+# Для `choices` доменных моделей (порядок реестра = порядок в админке/формах).
+METHOD_CHOICES = [(code, label) for code, label in METHOD_LABELS.items()]
 
 # Тип покупателя: частное лицо или фирма (Р-3 — от него зависит доступность счёта).
 PRIVATE = "private"
@@ -118,3 +120,21 @@ def hold_days(tenant, method: str) -> int:
     if method == VORKASSE:
         return int(getattr(tenant, "vorkasse_hold_days", 0) or 3)
     return 0
+
+
+def picker_context(tenant, kind="order", *, customer_type=PRIVATE) -> dict:
+    """Данные для партиалов `_payment_picker.html` и `_billing_party.html`.
+
+    Список считаем ДЛЯ ФИРМЫ (счёт должен быть в разметке, чтобы переключатель
+    «Privat/Firma» мог его включить без перезагрузки) — сервер всё равно
+    пересчитывает по фактическому типу покупателя.
+    """
+    methods = available(
+        tenant, kind, customer_type=COMPANY if invoice_enabled(tenant) else customer_type
+    )
+    return {
+        "payment_methods": (
+            [{"code": m, "label": label(m)} for m in methods] if len(methods) > 1 else []
+        ),
+        "billing_party_enabled": invoice_enabled(tenant),
+    }

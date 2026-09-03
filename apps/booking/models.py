@@ -13,6 +13,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from apps.core import payment_methods
 from apps.core.i18n_seq import overlay_seq
 from apps.core.models import I18nMixin, TimestampedModel
 from apps.promotions.models import Customer
@@ -440,6 +441,19 @@ class Booking(TimestampedModel):
     ]
     deposit_cents = models.PositiveIntegerField(default=0)  # снимок с ресурса
     payment_state = models.CharField(max_length=10, choices=PAYMENT_STATES, default=PAYMENT_NONE)
+    # SH-23c: способ оплаты и тип покупателя — как у заказа (общий реестр
+    # `apps.core.payment_methods`). Пусто = сделка создана до волны или бизнес
+    # предлагает единственный способ; `payment_due_at` держит место до срока
+    # (решение владельца Р-4: счёт — до Zahlungsziel, Vorkasse — 3 дня).
+    payment_method = models.CharField(
+        max_length=16, choices=payment_methods.METHOD_CHOICES, blank=True, default=""
+    )
+    customer_type = models.CharField(
+        max_length=10, choices=payment_methods.CUSTOMER_TYPES, default=payment_methods.PRIVATE
+    )
+    billing_company = models.CharField(max_length=200, blank=True)
+    billing_vat_id = models.CharField(max_length=30, blank=True)
+    payment_due_at = models.DateTimeField(null=True, blank=True)
     stripe_payment_intent = models.CharField(max_length=200, blank=True)  # для refund
     # #7: снимок выбранных Extras [{label, price_cents}] — сумма входит в total_cents
     # (выручку), переживает изменение/удаление Extra.

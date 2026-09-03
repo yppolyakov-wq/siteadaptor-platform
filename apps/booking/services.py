@@ -117,6 +117,11 @@ def book(
     group_code="",
     notify=True,
     promotion=None,
+    payment_method="",
+    customer_type="private",
+    billing_company="",
+    billing_vat_id="",
+    payment_due_at=None,
 ):
     """Создать запись, атомарно проверив пересечения. Бросает SlotTaken /
     ResourceClosed / ValueError (кривой интервал) / PromoInvalid (B1.2).
@@ -175,6 +180,13 @@ def book(
         status=Booking.STATUS_CONFIRMED if auto_confirm else Booking.STATUS_PENDING,
         note=note,
         source_channel=(source_channel or "")[:50],
+        # SH-23c: способ оплаты, тип покупателя и срок оплаты — снимком
+        # (общий реестр `apps.core.payment_methods`; пусто = единственный способ).
+        payment_method=payment_method or "",
+        customer_type=customer_type or "private",
+        billing_company=(billing_company or "").strip()[:200],
+        billing_vat_id=(billing_vat_id or "").strip()[:30],
+        payment_due_at=payment_due_at,
     )
     # MX-2e: трекеры опций записи (пул/склад) — в той же atomic; book_many
     # проходит здесь же (extras несёт только первая бронь группы).

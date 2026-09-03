@@ -32,4 +32,55 @@
   <span>{% trans "Email me news and offers (optional) — a confirmation email follows, unsubscribe anytime." %}</span>
 </label>
 {% if deposit_note %}<p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{{ deposit_note }}</p>{% endif %}
+{% comment %}SH-23c: способ оплаты и «кто покупает» — общие блоки всех видов
+сделок. Поля несут form="buybox-form", потому что хвост может рендериться в
+портированном в body диалоге (HF-волна) и вне тега формы.{% endcomment %}
+{% if payment_methods %}
+  <div class="border-t border-gray-100 pt-3">
+    <p class="text-sm font-medium mb-1">{% trans "Wie möchten Sie bezahlen?" %}</p>
+    <div class="grid gap-2">
+      {% for m in payment_methods %}
+        <label class="flex items-center gap-2 text-sm rounded-lg border border-gray-200 px-3 py-2 cursor-pointer"><input type="radio" name="payment" value="{{ m.code }}" {% if forloop.first %}checked{% endif %} form="buybox-form"> {{ m.label }}</label>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+{% if billing_party_enabled %}
+  <div class="border-t border-gray-100 pt-3" data-billing-party>
+    <p class="text-sm font-medium mb-1">{% trans "Who is buying?" %}</p>
+    <div class="grid grid-cols-2 gap-2">
+      <label class="sf-seg flex items-center justify-center gap-2 text-sm font-medium rounded-lg border border-gray-200 px-3 py-2.5 cursor-pointer"><input type="radio" name="customer_type" value="private" class="sr-only" checked form="buybox-form"> {% trans "Private" %}</label>
+      <label class="sf-seg flex items-center justify-center gap-2 text-sm font-medium rounded-lg border border-gray-200 px-3 py-2.5 cursor-pointer"><input type="radio" name="customer_type" value="company" class="sr-only" form="buybox-form"> {% trans "Company" %}</label>
+    </div>
+    <div id="billing-company" class="hidden grid gap-3 mt-3">
+      <label class="text-sm">{% trans "Company name" %}
+        <input name="billing_company" type="text" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" form="buybox-form">
+      </label>
+      <label class="text-sm">{% trans "VAT ID (optional)" %}
+        <input name="billing_vat_id" type="text" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" form="buybox-form">
+      </label>
+    </div>
+  </div>
+  <script>
+    (function () {
+      if (window.__billingPartyBound) return;
+      window.__billingPartyBound = true;
+      document.addEventListener("change", function (e) {
+        if (!e.target || e.target.name !== "customer_type") return;
+        var company = e.target.value === "company";
+        var box = document.getElementById("billing-company");
+        if (box) box.classList.toggle("hidden", !company);
+        document.querySelectorAll('input[name="payment"][value="invoice"]').forEach(function (r) {
+          r.disabled = !company;
+          var l = r.closest("label");
+          if (l) l.classList.toggle("opacity-40", !company);
+          if (!company && r.checked) {
+            var first = document.querySelector('input[name="payment"]:not([disabled])');
+            if (first) first.checked = true;
+          }
+        });
+      });
+    })();
+  </script>
+{% endif %}
 <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700" form="buybox-form">{{ submit_label }}</button>

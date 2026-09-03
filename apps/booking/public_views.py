@@ -490,6 +490,8 @@ def service_slots(request, pk):
         ),
         "deposit_required": service.deposit_cents > 0
         and getattr(tenant, "payments_enabled", False),
+        # SH-23c: способ оплаты и «кто покупает» — общий реестр.
+        **_payment_ctx(tenant, "booking"),
         "deposit_eur": f"{service.deposit_cents / 100:.2f}".replace(".", ","),
         "passes_enabled": _passes_enabled(),  # G9: поле Mehrfachkarte-Code
         "prev_day": day - timedelta(days=1) if day > today else None,
@@ -639,6 +641,8 @@ def _service_rich_context(request, service, tenant) -> dict:
         "jobs_active": bool(tenant and tenant.is_module_active("jobs")),
         "deposit_required": service.deposit_cents > 0
         and getattr(tenant, "payments_enabled", False),
+        # SH-23c: способ оплаты и «кто покупает» — общий реестр.
+        **_payment_ctx(tenant, "booking"),
         "deposit_eur": f"{service.deposit_cents / 100:.2f}".replace(".", ","),
         # UA4-4b: отзывы об услуге (generic reviews.Review, только верифиц. клиенты).
         "reviews": list(review_services.published_for("service", service.pk)),
@@ -963,6 +967,8 @@ def termin_slots(request, pk):
         "selected": selected,
         # #7 доп-услуги; бронь РЕСУРСА (стол) — без сущности-услуги: scope-wide.
         "extras": extras_engine.active_for("booking"),
+        # SH-23c: способ оплаты и «кто покупает» — общий реестр.
+        **_payment_ctx(getattr(request, "tenant", None), "booking"),
         "deposit_required": resource.deposit_cents > 0
         and getattr(getattr(request, "tenant", None), "payments_enabled", False),
         "deposit_eur": f"{resource.deposit_cents / 100:.2f}".replace(".", ","),
@@ -1033,6 +1039,9 @@ def termin_book(request, pk):
             note=request.POST.get("note", "").strip()[:2000],
             source_channel=(request.GET.get("ch") or "")[:50],
             extras=extras_snap,
+            # SH-23c: способ оплаты и «кто покупает» — общий разбор (счёт юрлицу
+            # доступен только фирме, Р-3; срок оплаты по Р-2/Р-4).
+            **_payment_kwargs(request, "booking"),
         )
     except (services.SlotTaken, services.ResourceClosed):
         messages.error(request, _("This slot is no longer available. Please pick another."))
@@ -1164,3 +1173,37 @@ def termin_confirmation(request, code):
         },
         _is_embed(request),
     )
+
+
+def _payment_ctx(tenant, kind):
+    """SH-23c: контекст пикера оплаты и блока «Privat/Firma» для buy-box.
+
+    Показ решает общий реестр (`apps.core.payment_methods`): пикер появляется
+    только при выборе, счёт юрлицу — только когда бизнес его включил.
+    """
+    from apps.core import payment_methods as _pm
+
+    return _pm.picker_context(tenant, kind)
+
+
+def _payment_kwargs(request, kind):
+    """SH-23c: платёжные поля сделки из POST — способ, тип покупателя, реквизиты
+    фирмы и срок оплаты (Р-2/Р-4). Мусор и недоступный способ → первый доступный
+    (fail-closed, как на чекауте корзины)."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.core import payment_methods as _pm
+
+    tenant = getattr(request, "tenant", None)
+    ctype = _pm.customer_type_of(request.POST.get("customer_type"))
+    method = _pm.normalize(request.POST.get("payment"), tenant, kind, customer_type=ctype)
+    days = _pm.hold_days(tenant, method)
+    return {
+        "payment_method": method,
+        "customer_type": ctype,
+        "billing_company": request.POST.get("billing_company", "").strip()[:200],
+        "billing_vat_id": request.POST.get("billing_vat_id", "").strip()[:30],
+        "payment_due_at": (timezone.now() + timedelta(days=days)) if days else None,
+    }

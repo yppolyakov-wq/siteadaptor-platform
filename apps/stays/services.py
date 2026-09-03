@@ -194,6 +194,11 @@ def book_stay(
     rooms=1,
     enforce_restrictions=False,
     dynamic_pricing=False,
+    payment_method="",
+    customer_type="private",
+    billing_company="",
+    billing_vat_id="",
+    payment_due_at=None,
 ):
     """Создать бронь по датам, атомарно проверив занятость по ночам. Бросает
     ValueError (кривой диапазон), MinStay, MaxGuests, StayUnavailable, PromoInvalid.
@@ -303,6 +308,13 @@ def book_stay(
         note=note,
         source_channel=(source_channel or "")[:50],
         promotion=booked_promo,
+        # SH-23c: способ оплаты, тип покупателя и срок оплаты — снимком
+        # (Р-5: 100 % предоплаты допускает и банковский перевод, не только карту).
+        payment_method=payment_method or "",
+        customer_type=customer_type or "private",
+        billing_company=(billing_company or "").strip()[:200],
+        billing_vat_id=(billing_vat_id or "").strip()[:30],
+        payment_due_at=payment_due_at,
     )
     # MX-2e: трекеры опций — пул проверяется, склад списывается; исключение
     # откатывает всю бронь (паттерн OutOfStock).

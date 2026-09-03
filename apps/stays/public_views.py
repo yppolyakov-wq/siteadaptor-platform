@@ -435,6 +435,8 @@ def unterkunft_unit(request, pk):
         # #7 доп-услуги; MX-2 — scope-wide + адресные ЭТОЙ категории номера.
         "extras": extras_engine.active_for("stays", entity_kind="stay", entity_id=str(unit.pk)),
         "deposit_required": deposit_required,
+        # SH-23c: способ оплаты и «кто покупает» — общий реестр.
+        **_payment_ctx(tenant, "stay"),
         "deposit_eur": f"{unit.deposit_cents / 100:.2f}".replace(".", ","),
         "similar": similar,  # H3 похожие номера
         # C3: встроенный календарь наличия — начальный месяц = месяц заезда, а без
@@ -623,6 +625,9 @@ def unterkunft_book(request, pk):
             rooms=rooms,
             enforce_restrictions=True,  # G12: витрина уважает Verkaufsregeln
             dynamic_pricing=True,  # PMS-D: occupancy-правила цены (только витрина)
+            # SH-23c: способ оплаты и «кто покупает» — общий разбор (счёт юрлицу
+            # доступен только фирме, Р-3; срок оплаты по Р-2/Р-4).
+            **_payment_kwargs(request, "stay"),
         )
     except services.RestrictionViolated as exc:
         messages.error(request, restrictions.message(exc.code, exc.n))
@@ -1007,3 +1012,37 @@ def stays_feed(request):
         },
         json_dumps_params={"ensure_ascii": False},
     )
+
+
+def _payment_ctx(tenant, kind):
+    """SH-23c: контекст пикера оплаты и блока «Privat/Firma» для buy-box.
+
+    Показ решает общий реестр (`apps.core.payment_methods`): пикер появляется
+    только при выборе, счёт юрлицу — только когда бизнес его включил.
+    """
+    from apps.core import payment_methods as _pm
+
+    return _pm.picker_context(tenant, kind)
+
+
+def _payment_kwargs(request, kind):
+    """SH-23c: платёжные поля сделки из POST — способ, тип покупателя, реквизиты
+    фирмы и срок оплаты (Р-2/Р-4). Мусор и недоступный способ → первый доступный
+    (fail-closed, как на чекауте корзины)."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.core import payment_methods as _pm
+
+    tenant = getattr(request, "tenant", None)
+    ctype = _pm.customer_type_of(request.POST.get("customer_type"))
+    method = _pm.normalize(request.POST.get("payment"), tenant, kind, customer_type=ctype)
+    days = _pm.hold_days(tenant, method)
+    return {
+        "payment_method": method,
+        "customer_type": ctype,
+        "billing_company": request.POST.get("billing_company", "").strip()[:200],
+        "billing_vat_id": request.POST.get("billing_vat_id", "").strip()[:30],
+        "payment_due_at": (timezone.now() + timedelta(days=days)) if days else None,
+    }

@@ -12,6 +12,7 @@ from decimal import Decimal
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from apps.core import payment_methods
 from apps.core.models import I18nMixin, TimestampedModel
 from apps.promotions.models import Customer
 
@@ -668,6 +669,19 @@ class Ticket(TimestampedModel):
         (PAYMENT_REFUNDED, _("Refunded")),
     ]
     payment_state = models.CharField(max_length=12, choices=PAYMENT_STATES, default=PAYMENT_NONE)
+    # SH-23c: способ оплаты и тип покупателя — как у заказа (общий реестр
+    # `apps.core.payment_methods`). Пусто = сделка создана до волны или бизнес
+    # предлагает единственный способ; `payment_due_at` держит место до срока
+    # (решение владельца Р-4: счёт — до Zahlungsziel, Vorkasse — 3 дня).
+    payment_method = models.CharField(
+        max_length=16, choices=payment_methods.METHOD_CHOICES, blank=True, default=""
+    )
+    customer_type = models.CharField(
+        max_length=10, choices=payment_methods.CUSTOMER_TYPES, default=payment_methods.PRIVATE
+    )
+    billing_company = models.CharField(max_length=200, blank=True)
+    billing_vat_id = models.CharField(max_length=30, blank=True)
+    payment_due_at = models.DateTimeField(null=True, blank=True)
     # B2.3: напоминание о незавершённой оплате билета — дедуп «одно на билет».
     payment_reminder_sent_at = models.DateTimeField(null=True, blank=True)
     stripe_payment_intent = models.CharField(max_length=200, blank=True)
