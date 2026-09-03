@@ -96,10 +96,14 @@ def wide_rules(c: str, *, full_width: bool) -> list[str]:
         out.append(f"{horiz} {{ width: 100%; }}")
     link = f"{c} > a:has(> [data-sf-media-box] + div), a{c}:has(> [data-sf-media-box] + div)"
     out.append(f"{link} {{ display: flex; align-items: center; }}")
+    # SF-6 (фидбэк 2026-09-03 «на русском положение картинки меняется»): фото
+    # прижато к ВЕРХУ карточки. При align-items:center оно висело по центру, и его
+    # высота зависела от длины текста рядом — на ru/uk заголовок переносился на
+    # вторую строку, и в одном ряду соседние фото стояли на разной высоте.
     out.append(
         f"{c} > a:has(> [data-sf-media-box] + div) > [data-sf-media-box], "
         f"a{c}:has(> [data-sf-media-box] + div) > [data-sf-media-box] "
-        "{ width: 38%; flex: none; aspect-ratio: 3 / 2; }"
+        "{ width: 38%; flex: none; aspect-ratio: 3 / 2; align-self: flex-start; }"
     )
     out.append(
         f"{c} > a > [data-sf-media-box] + div, a{c} > [data-sf-media-box] + div "

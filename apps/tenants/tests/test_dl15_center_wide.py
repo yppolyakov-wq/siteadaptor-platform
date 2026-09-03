@@ -71,7 +71,9 @@ def test_css_solo_card_rules_only_for_tablet_and_desktop():
             not in css
         )
     assert "{ width: 100%; }" in css
-    assert "{ width: 38%; flex: none; aspect-ratio: 3 / 2; }" in css
+    # SF-6: фото прижато к верху карточки — при центрировании его высота зависела
+    # от длины текста рядом (на ru/uk заголовок в две строки → фото ниже соседнего).
+    assert "{ width: 38%; flex: none; aspect-ratio: 3 / 2; align-self: flex-start; }" in css
 
 
 def test_css_wide_form_targets_only_media_link_and_sf_wide():
