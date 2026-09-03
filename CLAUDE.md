@@ -2448,6 +2448,24 @@ Python 3.12, менеджер uv.
   на все 4 плитки страниц. Уроки: quickcheck не видит untracked-файлы (`git add` до гейта);
   `chinos.webp` в демо одежды — паста (фото-батч). ⚠️ ops: `seed_demo_tenants --kit
   aktionsmarkt --recreate` + `--kit clothing --recreate`.
+- **Самое свежее (2026-09-03, продолжение 3): фидбэк-волна по заказу — DL-22/23 + SH-19/20/21
+  (⚠️ миграции `orders/0022` + `jobs/0018`, аддитивные).** План `docs/order-feedback-plan-2026-09-03.md`
+  (8 пунктов владельца + решения Р-1..Р-8 §9). **DL-22** бейдж скидки на фото был у двух стилей из
+  девяти — один гейт глушил штамп там, где «Sie sparen …» уже печаталось; теперь бейдж по СМЫСЛУ
+  стиля («−N %» либо «−X €», mystery молчит), разметка байт-в-байт. **DL-23** три бакета «Vorschau»
+  по одной карточке давали три пустых ряда → при ≥2 бакетах и ≤2 карточках в каждом они встают
+  колонками рядом (`upcoming_columns`), иначе прежние ленты. **SH-19** артикул: демо-SKU у товаров
+  кита (его не было вовсе), поле `sku`/`gtin` в первом ряду формы, `Art.-Nr.` в корзине. **SH-20**
+  снимок артикула был только у `OrderItem` — предложение и смета его теряли, и он не доезжал в счёт
+  и PDF; добавлены `OfferLine.sku`/`JobLine.sku` (доктрина снимков ERP-1) + вывод в счёте/PDF/списке
+  продаж/KDS/письмах/публичных страницах/пикере. **SH-21** главное фото позиции между № и названием
+  во ВСЕХ карточках сделок (общий `core/_deal_lines` + `.dl-photo`, мобильная раскладка учтена;
+  источник `OrderItem.image_url`/`JobLine.image_url`), выбор позиции — список с миниатюрами и
+  фильтром (`core/_part_picker.html`) вместо `<select>`. Замки 18; стенд Playwright 11/11
+  (aktionsmarkt+catering). Грабли: `ruff format` сменил формат вывода — локальный grep-гейт
+  пропустил файл; `radio.check()` в стенде ждёт `checked=true`, а пикер по замыслу сбрасывается
+  сразу после выбора. **Дальше по плану: SH-22** (скидка акции отдельной строкой) → **SH-24**
+  (Abholung/Lieferung) → **SH-23** (способ оплаты + Privat/Firma, решения Р-1..Р-5).
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна VAT, 2026-08-26): `jobs/0017` (JobLine.vat_rate) + `catalog/0031` (Combo.vat_rate) — аддитивные; (волна DC, 2026-08-25): `booking/0024` + `stays/0033` + `jobs/0016` (внешний номер сделки) + `booking/0025` (связь записи со счётом) — аддитивные; (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `core/0010` (Extra.consume_qty, v2-опции) + `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate) + `events/0028` (SupplierBooking вне туров) + `booking/0023` (Service.pricing_mode) + `catalog/0030` (Product.primary_action) + `finance/0009` (SOURCES gift/pass, choices-only)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. **Волна ERP (2026-08-21): `orders/0020` (OrderItem.cost_price) + `finance/0010` (BankTransaction) + `finance/0011` (Invoice.mahn_level/mahned_at + ExpenseEntry supplier/due_date/paid_at/document) + `documents/0002` (owner nullable + kind receipt) + `inventory/0005` (qty_returned + kind'ы return_supplier/production, ERP-5/7) + `jobs/0015` (JobLine.cost_rate, ERP-6)** — аддитивные. **DL-19 (2026-09-03): `catalog/0032` (Product.card_style) + `promotions/0027` (Promotion.card_style)** — аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + `--kit pranasy --recreate` (кейтеринг-карта) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
