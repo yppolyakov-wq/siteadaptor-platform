@@ -66,7 +66,10 @@ def test_regale_renders_shelf_per_subcategory_and_hides_tiles():
     assert html.count("data-shelf=") == 3
     assert 'data-shelf="suppen"' in html and "· 2</span>" in html and "· 4</span>" in html
     assert html.count("data-sf-slider") >= 3
-    assert 'href="/sortiment/ragouts/"' in html  # «Alle anzeigen»
+    # SF-5 (фидбэк 2026-09-03): полка из 2–4 товаров показана целиком → ссылки
+    # «Alle anzeigen» нет (она вела бы в тот же набор). Обрезанная полка — в
+    # apps/promotions/tests/test_sf5_more_links.py.
+    assert 'href="/sortiment/ragouts/"' not in html
     assert "min-h-[4rem]" not in html  # текстовые плитки подкатегорий не дублируются
     assert "Choose a subcategory above." not in html
     # сетка ниже полок — только ПРЯМЫЕ товары направления (дублей карточек полок нет)

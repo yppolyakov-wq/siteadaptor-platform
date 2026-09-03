@@ -197,7 +197,7 @@
 {# DL-16.3 (AD3): другие акции той же группы (фолбэк — прочие активные) лентой-слайдером; раньше — только на 410-странице #}
 <section class="mt-10" data-promo-related>
   <h2 class="text-lg font-bold mb-3 flex items-baseline justify-between gap-3"><span>{% trans "Weitere Aktionen" %}</span>
-    <a href="{% url 'storefront-aktionen' %}" class="text-sm font-medium hover:underline" style="color: var(--accent, #4f46e5);">{% trans "Alle anzeigen" %} →</a></h2>
+    {% if related_more %}<a href="{% url 'storefront-aktionen' %}" class="text-sm font-medium hover:underline" style="color: var(--accent, #4f46e5);">{% trans "Alle anzeigen" %} →</a>{% endif %}</h2>
   <div class="flex gap-4 overflow-x-auto pb-2" data-sf-slider>
     {% for p in related_promos %}<div class="w-60 shrink-0 flex [&>div]:w-full">{% include "storefront/_promo_card.html" %}</div>{% endfor %}
   </div>

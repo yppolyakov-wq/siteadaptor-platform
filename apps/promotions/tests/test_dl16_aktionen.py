@@ -58,7 +58,11 @@ def test_groups_default_grid_unchanged_and_slider_mode_strips():
     html = _get(public_views.promotion_list, "/aktionen/", tenant)
     strips = re.findall(r'<div data-grid="promo_list" data-promo-strip[^>]*data-sf-slider>', html)
     assert len(strips) == 2
-    assert 'href="?gruppe=Wochenangebote"' in html and 'href="?gruppe=R%C3%A4umung"' in html
+    # SF-5 (фидбэк 2026-09-03): ссылка «Alle anzeigen» в шапке секции — только когда
+    # за ней БОЛЬШЕ, чем показано. Секции строятся по неотфильтрованной выдаче, группа
+    # видна целиком → ссылки нет; вход на страницу группы остаётся чипом сверху.
+    assert 'href="?gruppe=Wochenangebote"' not in html
+    assert "?gruppe=Wochenangebote" in html and "?gruppe=R%C3%A4umung" in html
     # внутри секции чип группы на карточке не дублируется
     assert "data-promo-group" not in html
 
@@ -77,7 +81,10 @@ def test_time_mode_slider_more_links_only_for_heute_and_woche():
     Promotion.objects.create(title={"de": "H"}, status="active", ends_at=today_end)
     Promotion.objects.create(title={"de": "D"}, status="active")  # dauerhaft
     html = _get(public_views.promotion_list, "/aktionen/", tenant)
-    assert 'href="?endet=heute"' in html
+    # SF-5: бакет показан целиком → ссылка секции гасится; вход в тот же срез —
+    # системный чип «Endet heute» (он и остаётся единственным).
+    assert 'href="?endet=heute"' not in html
+    assert 'href="/aktionen/?endet=heute"' in html  # системный чип — единственный вход
     assert "?endet=dauerhaft" not in html and "?endet=laenger" not in html
 
 

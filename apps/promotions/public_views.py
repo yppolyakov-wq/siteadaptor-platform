@@ -105,6 +105,9 @@ def _detail_ctx(request, promo, form) -> dict:
         "target_card": target_card,
         "conditions": rules_text.conditions_for(promo),  # DL-16.3 AD2
         "related_promos": _attach_lowest_30d(related),
+        # Фидбэк 2026-09-03: ссылка «Alle anzeigen» у ленты — только когда на
+        # /aktionen/ есть что-то сверх показанного (лента режется на 8).
+        "related_more": others.count() > len(related),
     }
 
 
@@ -559,8 +562,31 @@ def promotion_list(request):
     # offers»/länger/dauerhaft ссылки нет); 4-й элемент кортежа читает шаблон.
     if list_view:
         grouped = []  # A4: таблица — плоская, без секций и полосы «Endet bald»
+    # Фидбэк 2026-09-03 («зачем кнопка "показать все", если их всего 3 или 4»):
+    # ссылка у секции — ТОЛЬКО когда за ней больше, чем показано. Секции строятся
+    # по НЕотфильтрованной выдаче, поэтому сегодня группа показана целиком и ссылка
+    # гаснет; вход на страницу группы (свой шаблон DL-20) остаётся чипами сверху.
+    # Правило читает данные, а не статус-кво: появится обрезка — ссылка вернётся.
+    # ⚠️ order_by() снят: у `base` есть сортировка, а values().annotate() тащит её
+    # в GROUP BY и ломает агрегат (урок VS-2c).
+    _group_totals: dict[str, int] = {}
+    if grouped and promo_grouping != "time":
+        from django.db.models import Count as _Count
+
+        _group_totals = {
+            row["group"]: row["n"]
+            for row in base.order_by().values("group").annotate(n=_Count("pk"))
+        }
     grouped = [
-        (key, label, items, _group_more_url(key, promo_grouping)) for key, label, items in grouped
+        (
+            key,
+            label,
+            items,
+            _group_more_url(key, promo_grouping)
+            if _group_totals.get(key, len(items)) > len(items)
+            else "",
+        )
+        for key, label, items in grouped
     ]
 
     # DL-21.2: композиции обзора поверх секций.
@@ -1080,7 +1106,18 @@ def product_list(request, slug=None):
             items = list(sub_qs.order_by("-is_featured", "-created_at")[:8])
             if items:
                 _attach_promos_shelf(items)
-                shelves.append({"category": sub, "items": items, "total": sub_qs.count()})
+                _total = sub_qs.count()
+                # Фидбэк 2026-09-03: «Alle anzeigen» — только когда полка ОБРЕЗАНА
+                # (за ссылкой реально больше, чем показано); 3 товара из 3 — ссылка
+                # никуда не ведёт и мешает.
+                shelves.append(
+                    {
+                        "category": sub,
+                        "items": items,
+                        "total": _total,
+                        "more": _total > len(items),
+                    }
+                )
     # DL-16.5 (K3 «Tabs»): подкатегории табами; на странице подкатегории — табы родителя.
     tabs_source = None
     if path_mode and category is not None:
