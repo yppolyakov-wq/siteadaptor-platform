@@ -1,0 +1,56 @@
+
+<style>
+  body { margin: 0; font-family: Inter, "Segoe UI", sans-serif; color: #1f2937; }
+  .wf { width: 760px; background: #fff; box-sizing: border-box; border: 1px solid #e5e7eb; }
+  .bar { display: flex; align-items: center; justify-content: space-between;
+         padding: 9px 18px; border-bottom: 1px solid #e5e7eb; font-size: 11px; color: #6b7280; }
+  .bar b { color: #111827; font-size: 12px; }
+  .sec { padding: 14px 18px; }
+  .crumbs { font-size: 9px; color: #9ca3af; margin-bottom: 6px; }
+  .h1 { font-size: 17px; font-weight: 800; color: #111827; margin: 0 0 4px; }
+  .h1.sm { font-size: 14px; }
+  .sub { font-size: 10px; color: #6b7280; line-height: 1.5; }
+  .h2 { font-size: 11px; font-weight: 700; color: #111827; margin: 0 0 7px;
+        display: flex; justify-content: space-between; align-items: baseline; }
+  .h2 span { font-weight: 400; color: #9ca3af; font-size: 9px; }
+  .grid { display: grid; gap: 9px; }
+  .row { display: flex; gap: 9px; }
+  .ph { background: repeating-linear-gradient(135deg, #e5e7eb 0 6px, #f3f4f6 6px 12px); }
+  .card { border: 1px solid #e5e7eb; border-radius: 9px; overflow: hidden;
+          background: #fff; font-size: 10px; position: relative; }
+  .card .b { padding: 6px 8px; }
+  .name { font-weight: 600; color: #111827; font-size: 10px; line-height: 1.25; }
+  .price { font-weight: 800; color: #111827; font-size: 13px; }
+  .price.red { color: #dc2626; }
+  .old { color: #9ca3af; text-decoration: line-through; font-size: 9px; }
+  .save { color: #047857; font-size: 9px; font-weight: 600; }
+  .badge { background: #dc2626; color: #fff; font-weight: 700; font-size: 9px;
+           padding: 2px 6px; border-radius: 999px; display: inline-block; }
+  .chip { display: inline-block; border: 1px solid #d1d5db; border-radius: 999px;
+          padding: 2px 8px; font-size: 9px; color: #374151; margin: 0 4px 4px 0; background: #fff; }
+  .chip.on { background: #111827; color: #fff; border-color: #111827; }
+  .btn { background: #111827; color: #fff; border-radius: 6px; padding: 5px 9px;
+         font-size: 9px; font-weight: 600; text-align: center; display: inline-block; }
+  .btn.ghost { background: #fff; color: #374151; border: 1px solid #d1d5db; }
+  .tools { display: flex; justify-content: space-between; align-items: center;
+           border-top: 1px solid #f3f4f6; border-bottom: 1px solid #f3f4f6;
+           padding: 7px 18px; font-size: 9px; color: #6b7280; }
+  .box { border: 1px solid #e5e7eb; border-radius: 9px; }
+  .side { width: 150px; flex: 0 0 150px; }
+  .side .it { font-size: 9px; color: #374151; padding: 3px 0; }
+  .side .it.on { font-weight: 700; color: #111827; }
+  .cap { padding: 12px 18px 14px; background: #fafafa; border-top: 1px solid #e5e7eb;
+         font-size: 11px; line-height: 1.55; color: #374151; }
+  .cap b { color: #111827; }
+  .tag { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px;
+         border-radius: 999px; background: #dcfce7; color: #166534; margin-right: 4px; }
+  .tag.new { background: #dbeafe; color: #1e40af; }
+  .tag.warn { background: #fef3c7; color: #92400e; }
+  table.cmp { border-collapse: collapse; width: 100%; font-size: 10px; margin-top: 6px; }
+  table.cmp th, table.cmp td { border: 1px solid #e5e7eb; padding: 5px 7px;
+                               text-align: left; vertical-align: top; }
+  table.cmp th { background: #f9fafb; font-weight: 600; color: #111827; }
+  .strip { display: flex; gap: 9px; overflow: hidden; }
+  .strip > * { flex: 0 0 118px; }
+</style>
+<div class="wf"><div class="bar"><b>A4 · Countdown</b><span>Gruppenseite · alles läuft auf eine Frist zu</span></div><div class="sec" style="background:#fffbeb;border-bottom:1px solid #fde68a;padding:9px 18px"><div class="sub" style="color:#92400e"><b>Сегодня:</b> страницы группы акций не существует — <code>/aktionen/?gruppe=…</code> отдаёт плоскую сетку под общим заголовком «Aktuelle Angebote», названия группы на странице нет.</div></div><div class="sec" style="background:#111827;color:#fff;padding:11px 18px;text-align:center"><div style="font-size:10px;opacity:.8">Black Week endet in</div><div style="font-size:20px;font-weight:800;letter-spacing:1px">2 Tage 06 : 41 : 09</div></div><div class="sec" style="padding-bottom:6px"><div class="h2">Zuerst ablaufend <span>nach Restzeit sortiert</span></div></div><div class="sec" style="padding-top:0"><div class="grid" style="grid-template-columns:repeat(3,1fr)"><div class="card"><span class="badge" style="position:absolute;top:5px;left:5px">−40 %</span><div class="ph" style="height:48px"></div><div class="b"><div class="name">Winterjacke</div><div style="margin-top:3px"><span class="price red">89,00 €</span> <span class="old">149,00 €</span></div><div class="save">⏳ noch 6 Std.</div></div></div><div class="card"><span class="badge" style="position:absolute;top:5px;left:5px">−38 %</span><div class="ph" style="height:48px"></div><div class="b"><div class="name">Wollpullover</div><div style="margin-top:3px"><span class="price red">49,00 €</span> <span class="old">79,00 €</span></div><div class="save">⏳ noch 1 T.</div></div></div><div class="card"><span class="badge" style="position:absolute;top:5px;left:5px">−34 %</span><div class="ph" style="height:48px"></div><div class="b"><div class="name">Lederstiefel</div><div style="margin-top:3px"><span class="price red">119,00 €</span> <span class="old">179,00 €</span></div><div class="save">⏳ noch 2 T.</div></div></div><div class="card"><span class="badge" style="position:absolute;top:5px;left:5px">−34 %</span><div class="ph" style="height:48px"></div><div class="b"><div class="name">Schal</div><div style="margin-top:3px"><span class="price red">19,00 €</span> <span class="old">29,00 €</span></div><div class="save">⏳ noch 2 T.</div></div></div><div class="card"><span class="badge" style="position:absolute;top:5px;left:5px">−37 %</span><div class="ph" style="height:48px"></div><div class="b"><div class="name">Mütze</div><div style="margin-top:3px"><span class="price red">12,00 €</span> <span class="old">19,00 €</span></div><div class="save">⏳ noch 3 T.</div></div></div><div class="card"><span class="badge" style="position:absolute;top:5px;left:5px">−38 %</span><div class="ph" style="height:48px"></div><div class="b"><div class="name">Handschuhe</div><div style="margin-top:3px"><span class="price red">15,00 €</span> <span class="old">24,00 €</span></div><div class="save">⏳ noch 3 T.</div></div></div></div></div><div class="cap"><b>Общий таймер кампании и сортировка по остатку времени.</b> Сверху — до конца всей кампании, карточки идут от самой срочной. <b>Когда уместно:</b> кампания с одной датой окончания — Black Week, распродажа сезона, «последние дни». <span class="tag">реюз</span> сегментный отсчёт уже написан (волна aktionsmarkt), здесь он поднимается на уровень группы.</div></div>

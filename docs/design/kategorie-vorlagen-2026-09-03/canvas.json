@@ -1,0 +1,95 @@
+{
+ "artboards": [
+  {
+   "file": "Main.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 800,
+   "h": 1180,
+   "title": "Сводка"
+  },
+  {
+   "file": "P1.dc.html",
+   "x": 900,
+   "y": 0,
+   "w": 800,
+   "h": 690,
+   "title": "P1 · Schaufenster"
+  },
+  {
+   "file": "P2.dc.html",
+   "x": 1800,
+   "y": 0,
+   "w": 800,
+   "h": 600,
+   "title": "P2 · Navigator"
+  },
+  {
+   "file": "P3.dc.html",
+   "x": 2700,
+   "y": 0,
+   "w": 800,
+   "h": 700,
+   "title": "P3 · Magazin"
+  },
+  {
+   "file": "P4.dc.html",
+   "x": 3600,
+   "y": 0,
+   "w": 800,
+   "h": 620,
+   "title": "P4 · Mosaik"
+  },
+  {
+   "file": "P5.dc.html",
+   "x": 4500,
+   "y": 0,
+   "w": 800,
+   "h": 620,
+   "title": "P5 · Kompakt"
+  },
+  {
+   "file": "A1.dc.html",
+   "x": 900,
+   "y": 820,
+   "w": 800,
+   "h": 830,
+   "title": "A1 · Schaufenster"
+  },
+  {
+   "file": "A2.dc.html",
+   "x": 1800,
+   "y": 820,
+   "w": 800,
+   "h": 620,
+   "title": "A2 · Prospekt"
+  },
+  {
+   "file": "A3.dc.html",
+   "x": 2700,
+   "y": 820,
+   "w": 800,
+   "h": 700,
+   "title": "A3 · Magazin"
+  },
+  {
+   "file": "A4.dc.html",
+   "x": 3600,
+   "y": 820,
+   "w": 800,
+   "h": 780,
+   "title": "A4 · Countdown"
+  },
+  {
+   "file": "A5.dc.html",
+   "x": 4500,
+   "y": 820,
+   "w": 800,
+   "h": 620,
+   "title": "A5 · Vergleich"
+  }
+ ],
+ "launch": {
+  "view": "canvas"
+ }
+}
