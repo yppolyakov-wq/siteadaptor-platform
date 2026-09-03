@@ -3657,8 +3657,10 @@ AKTIONSMARKT = DemoKit(
     # DL-19 (N1): товары — «Regal»: цена ведёт, фото опознавательным квадратом.
     # Дискаунтер выбирают ценой, и на экран помещается вдвое больше позиций.
     card_style="regal",
-    # DL-17.2 (фидбэк «карусели нет в демо»): листание фото прямо на карточке —
-    # у товаров ниже по 2–3 кадра (P2, стрелки при наведении + свайп).
+    # DL-17.2 (фидбэк «карусели нет в демо»): листание фото прямо на карточке
+    # (стрелки при наведении + свайп). AMP-2: у большинства товаров остался ОДИН
+    # сильный реальный кадр — второй ставим только там, где он честно показывает
+    # тот же товар (Bio-Gemüsekiste); один хороший кадр продаёт лучше трёх слабых.
     card_slider="on",
     # SF-4a: Merkzettel у магазина акций (grocery-дефолт опции — False).
     # DL-4: site_defaults.hero_widget — config_patch мерджится ПОСЛЕ сборки
@@ -3690,21 +3692,21 @@ AKTIONSMARKT = DemoKit(
     hero_widget="aktionsmarkt",
     heroes=[
         {
-            "image_kw": "supermarket,sale",
+            "image_kw": "markt-hero",
             "title": "Aktionsmarkt Sparfuchs",
             "text": "Jede Woche neue Angebote — sparen bei allem, was Sie täglich brauchen.",
             "button_label": "Aktuelle Deals",
             "button_url": "/aktionen/",
         },
         {
-            "image_kw": "grocery,discount",
+            "image_kw": "markt-hero-vorrat",
             "title": "Dauertiefpreise",
             "text": "Grundnahrungsmittel dauerhaft günstig — ohne Kleingedrucktes.",
             "button_label": "Sortiment ansehen",
             "button_url": "/sortiment/",
         },
         {
-            "image_kw": "food,box",
+            "image_kw": "markt-hero-tueten",
             "title": "Überraschungstüten",
             "text": "Gerettete Lebensmittel zum halben Preis — solange der Vorrat reicht.",
             "button_label": "Zu den Aktionen",
@@ -3714,7 +3716,7 @@ AKTIONSMARKT = DemoKit(
     # DL-4: поле — ФОЛБЭК без look'а; фактический акцент даёт look_accent
     # (grocery×klar = зелёный), Sale-Rot живёт в чипах скидок (красные всегда).
     accent="#dc2626",
-    hero_image_kw="supermarket,sale",
+    hero_image_kw="markt-hero",
     hero_title="Aktionsmarkt Sparfuchs",
     hero_text="Jede Woche neue Angebote — sparen bei allem, was Sie täglich brauchen.",
     about_title="Über den Aktionsmarkt",
@@ -3729,7 +3731,14 @@ AKTIONSMARKT = DemoKit(
     city="Köln",
     opening_hours_text="Mo–Sa 8:00–20:00",
     opening_hours={d: ("08:00", "20:00") for d in range(6)},
-    gallery_kw=["supermarket", "grocery,shelf", "vegetables", "bakery", "shopping,cart", "sale"],
+    gallery_kw=[
+        "markt-galerie-markt",
+        "markt-galerie-regal",
+        "markt-galerie-gemuese",
+        "markt-galerie-backwaren",
+        "markt-galerie-einkauf",
+        "markt-galerie-angebote",
+    ],
     process=[
         ("Aktionen entdecken", "Stöbern Sie durch Wochenangebote, Räumung und mehr."),
         ("Code & Karte nutzen", "Gutschein-Code im Warenkorb, Stempel bei jedem Einkauf."),
@@ -3833,11 +3842,11 @@ AKTIONSMARKT = DemoKit(
             "ends_in_days": 5,
         },
         {
-            "title": "Waschmittel-Aktion 6,99 €",
-            "desc": "Vorschau: Festpreis statt 8,99 € — ab Montag in zwei Wochen.",
+            "title": "Sonnenblumenöl 1 L für 1,99 €",
+            "desc": "Vorschau: Festpreis statt 2,49 € — ab Montag in zwei Wochen.",
             "product": 13,
-            "new_price": 6.99,
-            "compare_at": 8.99,
+            "new_price": 1.99,
+            "compare_at": 2.49,
             "discount_style": "festpreis",
             "group": "Dauertiefpreis",
             "starts_in_days": 12,
@@ -3881,7 +3890,7 @@ AKTIONSMARKT = DemoKit(
         },
         {
             "title": "Gemahlener Kaffee −25 % (limitiert)",
-            "images": ["coffee,ground", "coffee,cafe", "espresso"],
+            "image": "markt-kaffee-aktion",
             "product": 10,
             # DL-19 (AK2): своя форма карточки — купон («резервируй и забери»)
             "card_style": "coupon",
@@ -3924,9 +3933,14 @@ AKTIONSMARKT = DemoKit(
             "ends_in_days": 7,
             "group": "Wochenangebote",
         },
-        {"title": "Waschmittel −40 % (Räumung)", "product": 13, "percent": 40, "group": "Räumung"},
         {
-            "title": "Toilettenpapier −35 % – Countdown",
+            "title": "Sonnenblumenöl −40 % (Räumung)",
+            "product": 13,
+            "percent": 40,
+            "group": "Räumung",
+        },
+        {
+            "title": "Basmatireis −35 % – Countdown",
             "product": 12,
             "percent": 35,
             "countdown": True,
@@ -3935,7 +3949,7 @@ AKTIONSMARKT = DemoKit(
         },
         {
             "title": "Bio-Gemüsekiste −20 % – nur 5 Stück",
-            "images": ["vegetables", "vegetable,box", "farm,vegetables"],
+            "image": "markt-gemuesekiste-inhalt",
             "product": 3,
             "type": "reservation",
             "percent": 20,
@@ -3947,7 +3961,9 @@ AKTIONSMARKT = DemoKit(
             # в showcase; цена скрыта до клика-раскрытия.
             "title": "Mystery-Deal der Woche",
             "new": True,
-            "product": 11,
+            # Носитель — Bergkäse (4,99 €): половина цены сходится с прайсом,
+            # а сам товар mystery-стиль всё равно скрывает до раскрытия.
+            "product": 19,
             "new_price": "2.49",
             "compare_at": "4.99",
             "discount_style": "mystery",
@@ -4000,7 +4016,7 @@ AKTIONSMARKT = DemoKit(
             "compare_at": "25.00",
             "group": "Anti-Food-Waste",
             "ends_in_days": 3,
-            "images": ["grocery,bag", "shopping,cart", "market,stall"],
+            "image": "markt-sparkiste",
             "desc": "Bunt gemischt aus allen Abteilungen — der Inhalt bleibt eine "
             "Überraschung, der Warenwert liegt bei rund 25 €.",
         },
@@ -4036,7 +4052,7 @@ AKTIONSMARKT = DemoKit(
             "desc": "Anschnitte und Restlaibe zum kleinen Preis — nichts wegwerfen.",
         },
         {
-            "title": "Spülmittel −30 % (Räumung)",
+            "title": "Nudeln −30 % (Räumung)",
             "product": 11,
             "percent": 30,
             "discount_style": "badge",
@@ -4046,10 +4062,12 @@ AKTIONSMARKT = DemoKit(
         },
     ],
     categories=[
-        # DL-18.2 (фидбэк «сделай демо продуктового магазина, а не картинки вразнобой»):
-        # каталог собран как настоящий супермаркет — четыре направления, внутри полки.
-        # Порядок ОБХОДА товаров сохранён (Obst → Backwaren → Getränke → Haushalt →
-        # Tüten → Molkerei), поэтому индексы `promotions_spec.product` остались целы.
+        # DL-18.2 + AMP-2 (2026-09-03, фидбэк «убери туалетную бумагу и бытовую химию»):
+        # каталог — как настоящий продуктовый: четыре направления, внутри полки, и
+        # НИЧЕГО непищевого. Бытовая химия заменена «Vorratskammer» (Nudeln/Reis/Öl)
+        # ПОЗИЦИЯ В ПОЗИЦИЮ: порядок обхода (Obst → Backwaren → Getränke →
+        # Vorratskammer → Tüten → Molkerei) и число товаров прежние, поэтому индексы
+        # `promotions_spec.product` остались целы.
         (
             "Frische",
             "frische",
@@ -4059,12 +4077,11 @@ AKTIONSMARKT = DemoKit(
                     "Obst & Gemüse",
                     "obst-gemuese",
                     [
-                        # DL-17.2: список ключей → 2–3 кадра на карточке (карусель).
                         _p(
                             "Äpfel 1 kg",
                             "2.49",
                             "Knackig und regional.",
-                            ["apples", "fresh-fruit"],
+                            "markt-aepfel",
                             unit="kg",
                             content=1,
                         ),
@@ -4072,7 +4089,7 @@ AKTIONSMARKT = DemoKit(
                             "Bananen 1 kg",
                             "1.79",
                             "Fair gehandelt.",
-                            ["bananas", "grocery,shelf"],
+                            "bananas",
                             unit="kg",
                             content=1,
                         ),
@@ -4080,7 +4097,7 @@ AKTIONSMARKT = DemoKit(
                             "Tomaten 500 g",
                             "2.99",
                             "Sonnengereift.",
-                            ["tomatoes", "cucumber,tomato"],
+                            "tomatoes",
                             unit="kg",
                             content=0.5,
                         ),
@@ -4088,7 +4105,7 @@ AKTIONSMARKT = DemoKit(
                             "Bio-Gemüsekiste",
                             "24.90",
                             "Bunte Auswahl der Saison.",
-                            ["vegetable,box", "farm,vegetables", "vegetables"],
+                            ["vegetable,box", "markt-gemuesekiste-inhalt"],
                         ),
                     ],
                     "fresh-fruit",  # DS-9: фото плитки (было SVG)
@@ -4101,7 +4118,7 @@ AKTIONSMARKT = DemoKit(
                             "Bauernbrot 750 g",
                             "1.99",
                             "Täglich frisch gebacken.",
-                            ["bread", "rye,bread", "bread,loaf"],
+                            "markt-bauernbrot",
                             allergens=["gluten"],
                             unit="kg",
                             content=0.75,
@@ -4110,18 +4127,18 @@ AKTIONSMARKT = DemoKit(
                             "Brötchen 6er",
                             "0.60",
                             "Knusprig und frisch.",
-                            ["bread,rolls", "wholegrain,roll"],
+                            "markt-broetchen",
                             allergens=["gluten"],
                         ),
                         _p(
                             "Croissant",
                             "1.50",
                             "Buttrig und zart.",
-                            ["croissant", "bakery,oven"],
+                            "markt-croissant",
                             allergens=["gluten", "milch"],
                         ),
                     ],
-                    "bread-rolls",  # DS-9: фото плитки (было SVG)
+                    "markt-backwaren",  # AMP: фото плитки (было SVG)
                 ),
             ],
             "Alles, was täglich frisch ins Regal kommt — Obst, Gemüse und Backwaren "
@@ -4130,8 +4147,8 @@ AKTIONSMARKT = DemoKit(
             "farm-vegetables",
         ),
         (
-            "Vorrat & Haushalt",
-            "vorrat-haushalt",
+            "Getränke & Vorrat",
+            "getraenke-vorrat",
             [],
             [
                 (
@@ -4144,7 +4161,7 @@ AKTIONSMARKT = DemoKit(
                             "Orangensaft 1 L",
                             "2.49",
                             "100 % Direktsaft.",
-                            ["orange,juice", "apple,juice"],
+                            "markt-orangensaft",
                             unit="l",
                             content=1,
                         ),
@@ -4152,7 +4169,7 @@ AKTIONSMARKT = DemoKit(
                             "Mineralwasser 1,5 L",
                             "0.79",
                             "Spritzig oder still.",
-                            "water,bottle",
+                            "markt-mineralwasser",
                             unit="l",
                             content=1.5,
                         ),
@@ -4160,7 +4177,7 @@ AKTIONSMARKT = DemoKit(
                             "Limonade 1,5 L",
                             "1.49",
                             "Eisgekühlt am besten.",
-                            ["lemonade,glass", "lemonade"],
+                            "markt-limonade",
                             unit="l",
                             content=1.5,
                         ),
@@ -4168,43 +4185,50 @@ AKTIONSMARKT = DemoKit(
                             "Gemahlener Kaffee 500 g",
                             "6.90",
                             "Kräftige Röstung.",
-                            ["coffee,ground", "coffee", "espresso"],
+                            "markt-kaffee",
                             unit="g",
                             content=500,
                         ),
                     ],
                     # DL-18.2: плитка «Getränke» показывала красное вино — в продуктовом
                     # дискаунтере рядом с соками это читалось как чужой кадр.
-                    "orange-juice",
+                    "markt-getraenke",
                 ),
                 (
-                    "Haushalt",
-                    "haushalt",
+                    "Vorratskammer",
+                    "vorratskammer",
                     [
                         _p(
-                            "Spülmittel 500 ml",
-                            "1.99",
-                            "Fettlöser-Power.",
-                            "dish,soap",
-                            unit="ml",
-                            content=500,
-                        ),
-                        _p("Toilettenpapier 10er", "4.99", "Weich und ergiebig.", "toilet,paper"),
-                        _p(
-                            "Waschmittel 2 kg",
-                            "8.99",
-                            "Für 40 Wäschen.",
-                            "laundry,detergent",
+                            "Nudeln 500 g",
+                            "1.29",
+                            "Hartweizengrieß, al dente.",
+                            "markt-nudeln",
                             unit="kg",
-                            content=2,
+                            content=0.5,
+                        ),
+                        _p(
+                            "Basmatireis 1 kg",
+                            "2.79",
+                            "Langkorn, locker und duftend.",
+                            "markt-reis",
+                            unit="kg",
+                            content=1,
+                        ),
+                        _p(
+                            "Sonnenblumenöl 1 L",
+                            "2.49",
+                            "Neutral im Geschmack.",
+                            "markt-oel",
+                            unit="l",
+                            content=1,
                         ),
                     ],
-                    "dish-soap",  # DS-9: фото плитки (было SVG)
+                    "markt-vorratskammer",
                 ),
             ],
-            "Getränke und Haushaltswaren zum Bevorraten — Dauertiefpreise das ganze Jahr.",
+            "Getränke und Vorräte zum Bevorraten — Dauertiefpreise das ganze Jahr.",
             "tabs",  # DL-16.5 (K3): полки табами со счётчиком — демо-потребитель вида
-            "grocery-shelf",
+            "markt-vorrat",
         ),
         (
             "Überraschungstüten",
@@ -4214,16 +4238,16 @@ AKTIONSMARKT = DemoKit(
                     "Backwaren-Tüte",
                     "15.00",
                     "Wert ca. 15 € — Anti-Food-Waste.",
-                    ["bakery,bag", "bakery,oven"],
+                    "markt-backtuete",
                 ),
                 _p(
                     "Obst & Gemüse-Tüte",
                     "12.00",
                     "Wert ca. 12 € — Anti-Food-Waste.",
-                    ["grocery,bag", "farm,vegetables"],
+                    "markt-obsttuete",
                 ),
             ],
-            "grocery-bag",  # DS-9: фото плитки (было SVG)
+            "markt-tueten",  # AMP: фото плитки (было SVG)
             "Gerettete Ware vom Vortag — jeden Abend neu gepackt.",
             # DL-20 (P1): у направления есть флагман — первая тюта ведёт страницу.
             "schaufenster",
@@ -4237,7 +4261,7 @@ AKTIONSMARKT = DemoKit(
                     "Gouda jung 400 g",
                     "3.49",
                     "Mild und cremig, am Stück.",
-                    ["cheese", "cheese,wheel"],
+                    "cheese,wheel",
                     unit="kg",
                     content=0.4,
                 ),
@@ -4247,10 +4271,10 @@ AKTIONSMARKT = DemoKit(
                     "Bergkäse am Stück",
                     "4.99",
                     "Würzig, 6 Monate gereift.",
-                    ["cheese,wheel", "cheese"],
+                    "markt-bergkaese",
                 ),
             ],
-            "cheese",
+            "markt-molkerei",
             "Käse, Butter und Eier von Höfen aus dem Umland.",
             "kopfbild",  # KAT-1: шапка направления с фото
         ),

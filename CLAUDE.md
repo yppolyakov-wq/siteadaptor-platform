@@ -2502,6 +2502,32 @@ Python 3.12, менеджер uv.
   переработка Студии** (двухуровневая структура «общий дизайн сайта» + «макет типа
   страницы», «применить всем / только этой странице»): владелец просил СНАЧАЛА варианты
   дизайна на утверждение.
+- **Самое свежее (2026-09-03, после SF-5/SF-6): волна AMP «фото демо продуктового
+  магазина» — БЕЗ миграций.** Запрос владельца: «переделай фотографии в акциях под
+  продуктовый магазин, сгенерируй все изображения товаров заново, чтоб был хороший
+  продаваемый сайт». Диагноз (резолвер, 69 ключей → 41 файл): кит собирался из ОБЩЕЙ
+  библиотеки, и у дискаунтера половина кадров чужая — средство для посуды показывало
+  пульверизатор, минеральная вода стакан, Gouda ресторанную тарелку **с бокалами вина**,
+  молотый кофе латте-арт, hero американский рынок с ценниками в долларах. Перезаписать
+  нельзя: 27 из 41 файла общие с bakery/cafe/shop/catering/restaurant → своё пространство
+  ключей `markt-*` (32 файла) + 9 библиотечных ключей там, где кадр и так верный.
+  **Два фидбэка владельца по ходу волны закрыты:** (1) «убери туалетную бумагу и бытовую
+  химию» — полка Haushalt заменена на `Vorratskammer` (Nudeln/Reis/Öl) ПОЗИЦИЯ В ПОЗИЦИЮ,
+  поэтому индексы `promotions_spec.product` целы (голден-таблица «акция → товар» замком),
+  направление → «Getränke & Vorrat», пять акций переписаны, носитель Mystery-Deal →
+  Bergkäse (цена сходится); (2) «на сгенерированном много пальцев и неестественно» —
+  **AI-генерация отменена целиком, на витрине только реальные CC0/PDM** (то же показала и
+  приёмка: судья+скептик отбраковали почти все AI-кадры). Новый
+  `scripts/fetch_cc0_photos.py` (Openverse, жёсткий `license=cc0,pdm`, провенанс);
+  грабля API — поиск по И, работают КОРОТКИЕ запросы (1–2 слова), 3+ слов дают 0.
+  Установка: cover-кроп 4:3/16:9, webp ≤150 KB, **дедуп по md5** (поймал реальный дубль
+  Brötchen↔Backwaren). `scripts/gen_demo_photos.py` (AI-канал) оставлен с замерами
+  (лимит 1 запрос на IP в очереди; псевдотекст на любой этикетке). Замки —
+  `test_aktionsmarkt_photos.py` (4): свой файл у каждого слота (ловит префиксный фолбэк,
+  который отдаёт кадр соседа и в `demo_photo_report` выглядит «закрыто») · нет непищевого
+  ассортимента · голден акций · `markt-*` не утекли в чужие киты. Детали — build-log,
+  план `docs/amp-grocery-photos-plan-2026-09-03.md`. ⚠️ ops: после деплоя
+  `seed_demo_tenants --kit aktionsmarkt --recreate`.
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна VAT, 2026-08-26): `jobs/0017` (JobLine.vat_rate) + `catalog/0031` (Combo.vat_rate) — аддитивные; (волна DC, 2026-08-25): `booking/0024` + `stays/0033` + `jobs/0016` (внешний номер сделки) + `booking/0025` (связь записи со счётом) — аддитивные; (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `core/0010` (Extra.consume_qty, v2-опции) + `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate) + `events/0028` (SupplierBooking вне туров) + `booking/0023` (Service.pricing_mode) + `catalog/0030` (Product.primary_action) + `finance/0009` (SOURCES gift/pass, choices-only)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. **Волна ERP (2026-08-21): `orders/0020` (OrderItem.cost_price) + `finance/0010` (BankTransaction) + `finance/0011` (Invoice.mahn_level/mahned_at + ExpenseEntry supplier/due_date/paid_at/document) + `documents/0002` (owner nullable + kind receipt) + `inventory/0005` (qty_returned + kind'ы return_supplier/production, ERP-5/7) + `jobs/0015` (JobLine.cost_rate, ERP-6)** — аддитивные. **DL-19 (2026-09-03): `catalog/0032` (Product.card_style) + `promotions/0027` (Promotion.card_style)** — аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + `--kit pranasy --recreate` (кейтеринг-карта) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
