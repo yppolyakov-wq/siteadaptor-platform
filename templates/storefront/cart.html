@@ -31,6 +31,7 @@
         <div class="flex items-center justify-between gap-3 px-4 py-2.5">
           <div class="min-w-0">
             <p class="font-medium truncate">{{ r.product }}{% if r.variant %} · {{ r.variant.label_localized }}{% endif %}</p>
+            {% firstof r.variant.sku r.product.sku as artno %}{% if artno %}<p class="text-[11px] text-gray-400" data-artno>{% trans "Art.-Nr." %}: {{ artno }}</p>{% endif %}
             {% if r.options %}<p class="text-xs text-gray-500">{% for o in r.options %}{{ o.label_localized }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
             <p class="text-xs text-gray-400">{{ r.qty }}× {{ r.unit_price }} {{ currency|cursym }}{% if r.is_promo %} <span class="line-through">{{ r.base_unit_price }} {{ currency|cursym }}</span> <span class="text-rose-600 font-medium">{% trans "Aktion" %}</span>{% endif %}</p>
           </div>

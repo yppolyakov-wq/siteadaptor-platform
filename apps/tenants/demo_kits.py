@@ -11177,7 +11177,10 @@ def apply_kit(tenant, key: str) -> bool:
             reorder_point=8 if stock is not None else None,
             reorder_target=24 if stock is not None else None,
             gtin=item.get("gtin", ""),  # A1 EAN
-            sku=item.get("sku", ""),
+            # SH-19 (фидбэк «артикул на витрине»): у демо-товаров SKU был пуст у ВСЕХ китов
+            # → Art.-Nr. нигде не показывался. Детерминированный артикул из ключа кита и
+            # порядкового номера (явный `sku` спеки сильнее).
+            sku=item.get("sku") or f"{key.upper()[:3]}-{lock:03d}",
             material=item.get("material", ""),  # M1 Textilkennzeichnung
             care=item.get("care", ""),
             # Ф2: состав блюда — витрина показывает «Zutaten», перевод локалей
@@ -11230,7 +11233,7 @@ def apply_kit(tenant, key: str) -> bool:
                     reorder_point=5 if vstock is not None else None,
                     reorder_target=15 if vstock is not None else None,
                     gtin=v.get("gtin", ""),
-                    sku=v.get("sku", ""),
+                    sku=v.get("sku") or f"{product.sku}-{vsort + 1}",  # SH-19: артикул варианта
                     sort_order=vsort,
                 )
                 if v.get("stock") is not None:

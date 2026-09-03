@@ -336,10 +336,15 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
         <div class="grid grid-cols-2 gap-3">
           {% for field in form %}{% if field.name == 'stock_quantity' or field.name == 'reorder_point' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
         </div>
+        {% comment %}SH-19 (фидбэк «артикул везде»): Art.-Nr. и EAN — на виду рядом с ценой, а не в
+        свёрнутом «Mehr anzeigen» (владелец поле не находил → у товаров пустой SKU).{% endcomment %}
+        <div class="grid grid-cols-2 gap-3">
+          {% for field in form %}{% if field.name == 'sku' or field.name == 'gtin' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+        </div>
         <details {% if form.errors %}open{% endif %}>
           <summary class="text-sm text-indigo-600 cursor-pointer select-none">{% trans "Mehr anzeigen" %}</summary>
           <div class="space-y-3 mt-3">
-            {% for field in form %}{% if field.name == 'unit' or field.name == 'content_amount' or field.name == 'currency' or field.name == 'sku' or field.name == 'gtin' or field.name == 'cost_price' or field.name == 'reorder_target' or field.name == 'primary_action' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+            {% for field in form %}{% if field.name == 'unit' or field.name == 'content_amount' or field.name == 'currency' or field.name == 'cost_price' or field.name == 'reorder_target' or field.name == 'primary_action' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
           </div>
         </details>
       </div>
