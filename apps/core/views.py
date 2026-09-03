@@ -701,7 +701,12 @@ def save_payment_settings(request) -> None:
     не затирает свои поля, guard потери). ОБЩИЙ для экрана `payment_settings` и слайда
     мастера «Zahlung» (AB6.2 payment); та же логика записи, что у старых экранов."""
     from apps.billing.views import save_stripe_methods
-    from apps.orders.views import save_delivery, save_prepay, save_vorkasse
+    from apps.orders.views import (
+        save_delivery,
+        save_invoice_b2b,
+        save_prepay,
+        save_vorkasse,
+    )
 
     tenant = request.tenant
     if request.POST.get("sec_stripe"):
@@ -712,6 +717,9 @@ def save_payment_settings(request) -> None:
         save_vorkasse(tenant, request)
     if request.POST.get("sec_delivery"):
         save_delivery(tenant, request)
+    # SH-23: счёт юрлицу (Kauf auf Rechnung) — свой сентинел.
+    if request.POST.get("sec_invoice"):
+        save_invoice_b2b(tenant, request)
 
 
 def payment_settings_context(request) -> dict:
@@ -731,6 +739,10 @@ def payment_settings_context(request) -> dict:
         "orders_active": _mod.is_module_active(tenant, "orders"),
         # SH-24: доставка настраивается и у архетипов на jobs (кейтеринг).
         "jobs_active": _mod.is_module_active(tenant, "jobs"),
+        # SH-23: счёт юрлицу — тумблер, срок оплаты, удержание по Vorkasse.
+        "invoice_b2b_enabled": tenant.invoice_b2b_enabled,
+        "invoice_terms_days": tenant.invoice_terms_days,
+        "vorkasse_hold_days": tenant.vorkasse_hold_days,
         # Stripe-Connect + Zahlarten (E7-3).
         "connect_configured": connect.is_connect_configured(),
         "connected": bool(tenant.stripe_connect_id),

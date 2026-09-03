@@ -113,6 +113,8 @@
         {% endif %}
 
         {# E7-2: способ оплаты — только при >1 доступного (первый — дефолт). #}
+        {% comment %}SH-23: «кто покупает» — перед способом оплаты (счёт только фирме).{% endcomment %}
+        {% include "storefront/_billing_party.html" %}
         {% if payment_methods %}
           <div class="{% if delivery_enabled %}border-t border-gray-100 pt-4{% endif %}">
             <h2 class="font-semibold mb-2">{% trans "How would you like to pay?" %}</h2>

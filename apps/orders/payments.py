@@ -8,26 +8,17 @@ application_fee=0). Подтверждение оплаты ставит веб�
 from apps.billing import connect
 
 
-def available_methods(tenant) -> list[str]:
-    """E7-2: способы оплаты, доступные на checkout этого бизнеса (реестр E-7).
+def available_methods(tenant, *, customer_type=None) -> list[str]:
+    """E7-2: способы оплаты, доступные на checkout этого бизнеса.
 
-    Порядок = порядок радио на форме, ПЕРВЫЙ — дефолт (checked; он же выбирается
-    при POST без/с невалидным `payment` — сохраняет поведение до пикера):
-    stripe — prepay+payments+Connect (раньше уводил на оплату автоматом);
-    vorkasse — тумблер + заполненный IBAN (guard); on_site — всегда."""
-    from .models import Order
+    SH-23: правила переехали в ОБЩИЙ реестр `apps.core.payment_methods` (тот же
+    порядок и те же guard'ы — stripe при prepay+Connect, vorkasse при IBAN,
+    on_site всегда), потому что способ оплаты теперь есть у всех видов сделок.
+    Новое здесь одно: фирме дополнительно предлагается счёт (решение Р-3), если
+    бизнес включил `invoice_b2b_enabled`."""
+    from apps.core import payment_methods as pm
 
-    methods = []
-    if (
-        getattr(tenant, "orders_prepay", False)
-        and getattr(tenant, "payments_enabled", False)
-        and connect.is_connect_configured()
-    ):
-        methods.append(Order.METHOD_STRIPE)
-    if getattr(tenant, "vorkasse_enabled", False) and getattr(tenant, "bank_iban", ""):
-        methods.append(Order.METHOD_VORKASSE)
-    methods.append(Order.METHOD_ON_SITE)
-    return methods
+    return pm.available(tenant, "order", customer_type=customer_type or pm.PRIVATE)
 
 
 def order_checkout_url(order, tenant, *, success_url: str, cancel_url: str) -> str:

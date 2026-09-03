@@ -1,0 +1,49 @@
+{% load i18n %}
+{% comment %}SH-23 (фидбэк владельца: «видимо нужен выбор — юрлицо покупает или
+физлицо»): тип покупателя + реквизиты фирмы. Общий партиал корзины, предложения
+и (позже) прочих чекаутов. Счёт юрлицу (Kauf auf Rechnung) предлагается ТОЛЬКО
+фирме (решение Р-3), поэтому выбор стоит ВЫШЕ пикера оплаты, а пикер реагирует
+на него: при «Privat» опция счёта отключается. Сервер решает то же самое сам
+(payment_methods.available), разметка лишь не даёт выбрать невозможное.{% endcomment %}
+{% if billing_party_enabled %}
+  <div data-billing-party>
+    <p class="text-sm font-medium mb-1">{% trans "Who is buying?" %}</p>
+    <div class="grid grid-cols-2 gap-2">
+      <label class="sf-seg flex items-center justify-center gap-2 text-sm font-medium rounded-lg border border-gray-200 px-3 py-2.5 cursor-pointer"><input type="radio" name="customer_type" value="private" class="sr-only" checked> {% trans "Private" %}</label>
+      <label class="sf-seg flex items-center justify-center gap-2 text-sm font-medium rounded-lg border border-gray-200 px-3 py-2.5 cursor-pointer"><input type="radio" name="customer_type" value="company" class="sr-only"> {% trans "Company" %}</label>
+    </div>
+    <div id="billing-company" class="hidden grid sm:grid-cols-2 gap-3 mt-3">
+      <div class="sm:col-span-2">
+        <label class="block text-sm font-medium mb-1" for="bp-company">{% trans "Company name" %}</label>
+        <input id="bp-company" name="billing_company" type="text" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+      <div class="sm:col-span-2">
+        <label class="block text-sm font-medium mb-1" for="bp-vat">{% trans "VAT ID (optional)" %}</label>
+        <input id="bp-vat" name="billing_vat_id" type="text" placeholder="DE123456789" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+      </div>
+    </div>
+  </div>
+  <script>
+    // Делегирование на document (урок HF: инлайн-биндинг в свапаемой зоне умирает).
+    (function () {
+      if (window.__billingPartyBound) return;
+      window.__billingPartyBound = true;
+      document.addEventListener("change", function (e) {
+        if (!e.target || e.target.name !== "customer_type") return;
+        var company = e.target.value === "company";
+        var box = document.getElementById("billing-company");
+        if (box) box.classList.toggle("hidden", !company);
+        // Счёт юрлицу доступен только фирме — гасим опцию и снимаем выбор.
+        document.querySelectorAll('input[name="payment"][value="invoice"]').forEach(function (r) {
+          r.disabled = !company;
+          var label = r.closest("label");
+          if (label) label.classList.toggle("opacity-40", !company);
+          if (!company && r.checked) {
+            var first = document.querySelector('input[name="payment"]:not([disabled])');
+            if (first) first.checked = true;
+          }
+        });
+      });
+    })();
+  </script>
+{% endif %}

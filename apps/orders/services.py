@@ -175,6 +175,10 @@ def create_order(
     combos=(),
     voucher_code="",
     payment_method="",
+    customer_type="private",
+    billing_company="",
+    billing_vat_id="",
+    payment_due_at=None,
     custom_lines=(),
     reserve_expires_at=None,
     apply_promotions=True,
@@ -296,6 +300,14 @@ def create_order(
         # E-7: способ оплаты известен ДО создания (пикер checkout) — письмо
         # `created` рендерится внутри этой функции и должно его видеть.
         payment_method=payment_method,
+        # SH-23: тип покупателя и реквизиты фирмы — снимком на заказе (счёт
+        # юрлицу требует их по § 14 UStG, и они не должны меняться задним числом).
+        customer_type=customer_type,
+        billing_company=(billing_company or "").strip()[:200],
+        billing_vat_id=(billing_vat_id or "").strip()[:30],
+        # SH-23 (Р-4): срок оплаты — счёт до Zahlungsziel, Vorkasse 3 дня;
+        # None = удержание не ограничено (оплата на месте / онлайн).
+        payment_due_at=payment_due_at,
         # M3 Boutique: дедлайн Anprobe-резерва задаётся ДО письма `created` —
         # enqueue_order_email ремапит его на unverbindlich-текст.
         reserve_expires_at=reserve_expires_at,

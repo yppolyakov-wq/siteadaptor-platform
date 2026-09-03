@@ -22026,3 +22026,45 @@ msgstr "Скидка · акция «%(name)s»"
 
 msgid "Rabatt „%(name)s“: −%(amount)s %(cur)s"
 msgstr "Скидка «%(name)s»: −%(amount)s %(cur)s"
+
+msgid "Company name"
+msgstr "Название компании"
+
+msgid "Hold without payment, bank transfer (days)"
+msgstr "Удержание без оплаты при переводе (дней)"
+
+msgid "Invoice for companies"
+msgstr "Счёт для юрлиц"
+
+msgid "Kauf auf Rechnung"
+msgstr "Оплата по счёту"
+
+msgid "Offer «Kauf auf Rechnung» to companies"
+msgstr "Предлагать юрлицам оплату по счёту"
+
+msgid "Payable by %(due)s"
+msgstr "Оплатить до %(due)s"
+
+msgid "Payment term (days)"
+msgstr "Срок оплаты (дней)"
+
+msgid "Private"
+msgstr "Частное лицо"
+
+msgid "Private customers always pay in advance, online or on site."
+msgstr "Частные лица платят предоплатой, онлайн или на месте."
+
+msgid "VAT ID (optional)"
+msgstr "ИНН/USt-IdNr. (необязательно)"
+
+msgid "Who is buying?"
+msgstr "Кто покупает?"
+
+msgid "You will receive an invoice by e-mail."
+msgstr "Счёт придёт на электронную почту."
+
+msgid "Sie erhalten die Rechnung per E-Mail."
+msgstr "Счёт придёт на электронную почту."
+
+msgid "Zahlbar bis %(due)s."
+msgstr "Оплатить до %(due)s."

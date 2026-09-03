@@ -742,8 +742,15 @@ def cart_view(request):
     ctx["is_preview"] = is_preview
     # E7-2: пикер способа оплаты — ТОЛЬКО при >1 доступного (один способ =
     # форма байт-в-байт прежняя, замок test_checkout_form_parity_single_method).
-    _methods = order_payments.available_methods(tenant)
+    # SH-23: список считаем ДЛЯ ФИРМЫ — счёт юрлицу должен быть в разметке, чтобы
+    # переключатель «Privat/Firma» мог его включить без перезагрузки; при отправке
+    # сервер пересчитывает способы по фактическому типу покупателя (fail-closed).
+    from apps.core import payment_methods as _pm
+
+    _methods = order_payments.available_methods(tenant, customer_type=_pm.COMPANY)
     _labels = dict(Order.PAYMENT_METHODS)
+    # Блок «кто покупает» имеет смысл только когда бизнес предлагает счёт фирмам.
+    ctx["billing_party_enabled"] = _pm.invoice_enabled(tenant)
     # MEN-9: в режиме «корзина = запрос на просчёт» оплаты нет вовсе — пикер
     # способов не рендерим (выбирать нечего), кнопка не §312j (см. cart.html).
     ctx["quote_cart"] = _cfg.get("quote_cart", False)
@@ -753,6 +760,19 @@ def cart_view(request):
         else ([{"code": m, "label": _labels[m]} for m in _methods] if len(_methods) > 1 else [])
     )
     return render(request, "storefront/cart.html", ctx)
+
+
+def _payment_due(tenant, method):
+    """SH-23 (Р-2/Р-4): дедлайн оплаты по способу — счёт до Zahlungsziel бизнеса
+    (по умолчанию 14 дней), Vorkasse 3 дня, прочие способы без дедлайна."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.core import payment_methods as _pm
+
+    days = _pm.hold_days(tenant, method)
+    return timezone.now() + timedelta(days=days) if days else None
 
 
 @require_POST
@@ -850,7 +870,13 @@ def checkout(request):
     # E7-2: способ оплаты — из пикера (radio `payment`); без/с невалидным POST —
     # первый доступный (= прежнее поведение: stripe при сконфигурированной
     # предоплате, иначе оплата при получении).
-    methods = order_payments.available_methods(tenant)
+    # SH-23: тип покупателя решает, доступен ли счёт юрлицу (решение Р-3) —
+    # поэтому способы считаем ПОСЛЕ разбора «Privat/Firma» (fail-closed: мусор в
+    # поле = частное лицо, и счёт из списка исчезает).
+    from apps.core import payment_methods as _pm
+
+    customer_type = _pm.customer_type_of(request.POST.get("customer_type"))
+    methods = order_payments.available_methods(tenant, customer_type=customer_type)
     chosen_method = request.POST.get("payment") or methods[0]
     if chosen_method not in methods:
         chosen_method = methods[0]
@@ -906,6 +932,13 @@ def checkout(request):
             shipping_cents=shipping_cents,
             voucher_code=request.session.get(PROMO_SESSION_KEY, ""),
             payment_method=chosen_method,
+            # SH-23: кто покупает + реквизиты фирмы (§14 UStG на счёте).
+            customer_type=customer_type,
+            billing_company=request.POST.get("billing_company", "").strip()[:200],
+            billing_vat_id=request.POST.get("billing_vat_id", "").strip()[:30],
+            # SH-23 (Р-2/Р-4): срок оплаты считаем ДО создания — письмо `created`
+            # рендерится внутри create_order и должно его назвать.
+            payment_due_at=_payment_due(tenant, chosen_method),
         )
     except EmptyOrder:
         messages.error(request, _("Your order is empty."))

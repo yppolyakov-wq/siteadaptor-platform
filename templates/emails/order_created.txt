@@ -7,7 +7,10 @@
 {% endfor %}{% trans "Gesamt" %}: {{ order.total }} {{ order.currency }}
 {% trans "Abhol-Code" %}: {{ order.reference_code }}
 
-{% if order.payment_method == 'vorkasse' %}{% blocktrans with total=order.total cur=order.currency %}Bitte überweisen Sie {{ total }} {{ cur }} im Voraus:{% endblocktrans %}
+{% if order.payment_method == 'invoice' %}{% trans "Sie erhalten die Rechnung per E-Mail." %}{% if order.payment_due_at %}
+{% blocktrans with due=order.payment_due_at|date:"d.m.Y" %}Zahlbar bis {{ due }}.{% endblocktrans %}{% endif %}
+{% trans "Verwendungszweck" %}: {{ order.reference_code }}
+{% elif order.payment_method == 'vorkasse' %}{% blocktrans with total=order.total cur=order.currency %}Bitte überweisen Sie {{ total }} {{ cur }} im Voraus:{% endblocktrans %}
 {% if bank_holder %}{% trans "Kontoinhaber" %}: {{ bank_holder }}
 {% endif %}IBAN: {{ bank_iban }}
 {% if bank_bic %}BIC: {{ bank_bic }}

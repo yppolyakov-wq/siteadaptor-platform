@@ -91,6 +91,13 @@ class Tenant(TenantMixin):
     # аккаунта (["card","paypal","klarna","sepa_debit"]). Пусто = параметр не
     # передаём (дефолт Stripe Dashboard бизнеса — текущее поведение).
     stripe_payment_methods = models.JSONField(default=list, blank=True)
+    # SH-23 (решения владельца Р-1..Р-4): счёт юрлицу как способ оплаты.
+    # invoice_b2b_enabled — предлагать «Kauf auf Rechnung» ФИРМАМ (частным лицам
+    # не предлагается никогда, Р-3); счёт выпускается автоматически на чекауте с
+    # письмом и PDF (Р-1). Срок оплаты (Р-2) и удержание места без оплаты (Р-4).
+    invoice_b2b_enabled = models.BooleanField(default=False)
+    invoice_terms_days = models.PositiveSmallIntegerField(default=14)
+    vorkasse_hold_days = models.PositiveSmallIntegerField(default=3)
 
     # G4: доставка/Versand для заказов (иначе только самовывоз). Плоский тариф +
     # бесплатно-от + Mindestbestellwert + текст зоны.

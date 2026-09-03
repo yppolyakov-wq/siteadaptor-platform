@@ -611,6 +611,33 @@ def save_vorkasse(tenant, request) -> None:
     )
 
 
+def save_invoice_b2b(tenant, request) -> None:
+    """SH-23: счёт юрлицу как способ оплаты (решения владельца Р-1..Р-4).
+
+    Тумблер + Zahlungsziel (дни) + сколько держать место без оплаты по Vorkasse.
+    Сентинел `sec_invoice` (как у остальных секций W4-3): скрытая секция свои
+    поля не затирает."""
+
+    def _days(name, default, cap):
+        try:
+            value = int((request.POST.get(name) or "").strip())
+        except ValueError:
+            return default
+        return max(1, min(value, cap))
+
+    tenant.invoice_b2b_enabled = bool(request.POST.get("invoice_b2b_enabled"))
+    tenant.invoice_terms_days = _days("invoice_terms_days", 14, 90)
+    tenant.vorkasse_hold_days = _days("vorkasse_hold_days", 3, 30)
+    tenant.save(
+        update_fields=[
+            "invoice_b2b_enabled",
+            "invoice_terms_days",
+            "vorkasse_hold_days",
+            "updated_at",
+        ]
+    )
+
+
 def save_prepay(tenant, request) -> None:
     """W4-3: сохранить онлайн-предоплату Click&Collect (P2.5c). Извлечено 1:1."""
     tenant.orders_prepay = bool(request.POST.get("orders_prepay"))

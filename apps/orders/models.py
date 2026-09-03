@@ -15,6 +15,7 @@ from decimal import Decimal
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from apps.core import payment_methods
 from apps.core.models import TimestampedModel
 from apps.promotions.models import Customer
 
@@ -54,10 +55,13 @@ class Order(TimestampedModel):
     METHOD_ON_SITE = "on_site"  # Barzahlung bei Abholung/Lieferung
     METHOD_STRIPE = "stripe"  # Online-Zahlung (Stripe Checkout, P2.5c)
     METHOD_VORKASSE = "vorkasse"  # Überweisung/Vorkasse (реквизиты в письме)
+    # SH-23: счёт юрлицу (Kauf auf Rechnung) — только фирмам (решение Р-3).
+    METHOD_INVOICE = "invoice"
     PAYMENT_METHODS = [
         (METHOD_ON_SITE, _("Barzahlung bei Abholung")),
         (METHOD_STRIPE, _("Online-Zahlung")),
         (METHOD_VORKASSE, _("Vorkasse (Überweisung)")),
+        (METHOD_INVOICE, _("Kauf auf Rechnung")),
     ]
 
     # PROTECT, как у Reservation: клиента с заказами нельзя удалить молча
@@ -76,8 +80,17 @@ class Order(TimestampedModel):
     payment_state = models.CharField(max_length=10, choices=PAYMENT_STATES, default=PAYMENT_UNPAID)
     # E-7: способ оплаты (см. PAYMENT_METHODS); "" = легаси до введения поля.
     payment_method = models.CharField(
-        max_length=10, choices=PAYMENT_METHODS, blank=True, default=""
+        max_length=16, choices=PAYMENT_METHODS, blank=True, default=""
     )
+    # SH-23: покупает частное лицо или фирма — от этого зависит доступность
+    # счёта (Р-3), реквизиты в документе (§14 UStG) и текст об отказе (Widerruf).
+    customer_type = models.CharField(
+        max_length=10, choices=payment_methods.CUSTOMER_TYPES, default=payment_methods.PRIVATE
+    )
+    billing_company = models.CharField(max_length=200, blank=True)
+    billing_vat_id = models.CharField(max_length=30, blank=True)  # USt-IdNr.
+    # Срок оплаты счёта (Р-2/Р-4): до него держим заказ неоплаченным без отмены.
+    payment_due_at = models.DateTimeField(null=True, blank=True)
     stripe_payment_intent = models.CharField(max_length=200, blank=True)  # P2.5c: для refund
     # Снимок суммы на момент заказа — цены каталога могут меняться.
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)

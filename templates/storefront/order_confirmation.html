@@ -47,6 +47,13 @@
       <p class="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2">✓ {% trans "Paid online." %}</p>
     {% elif just_paid %}
       <p class="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">{% trans "Payment received — we'll confirm shortly." %}</p>
+    {% elif order.payment_method == 'invoice' %}
+      {# SH-23 (Р-1/Р-2): счёт юрлицу — выставляется автоматически, платёж по сроку. #}
+      <div class="text-sm text-sky-900 bg-sky-50 rounded-lg px-3 py-2 space-y-0.5">
+        <p class="font-medium">{% trans "You will receive an invoice by e-mail." %}</p>
+        {% if order.payment_due_at %}<p>{% blocktrans with due=order.payment_due_at|date:"d.m.Y" %}Payable by {{ due }}{% endblocktrans %}</p>{% endif %}
+        <p>{% trans "Reference" %} (Verwendungszweck): <span class="font-mono font-medium">{{ order.reference_code }}</span></p>
+      </div>
     {% elif order.payment_method == 'vorkasse' %}
       {# E7-2: Vorkasse — реквизиты для перевода (Verwendungszweck = код заказа). #}
       <div class="text-sm text-sky-900 bg-sky-50 rounded-lg px-3 py-2 space-y-0.5">
