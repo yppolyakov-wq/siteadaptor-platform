@@ -78,7 +78,11 @@ def page(title, kicker, body, caption):
 
 
 def card(h=54, name="Produkt", price="4,90 €", old="", badge="", body_extra=""):
-    top = f'<span class="badge" style="position:absolute;top:5px;left:5px">{badge}</span>' if badge else ""
+    top = (
+        f'<span class="badge" style="position:absolute;top:5px;left:5px">{badge}</span>'
+        if badge
+        else ""
+    )
     old_html = f' <span class="old">{old}</span>' if old else ""
     return (
         f'<div class="card">{top}<div class="ph" style="height:{h}px"></div>'
@@ -89,7 +93,11 @@ def card(h=54, name="Produkt", price="4,90 €", old="", badge="", body_extra=""
 
 
 def grid(cards, cols=3):
-    return f'<div class="grid" style="grid-template-columns:repeat({cols},1fr)">' + "".join(cards) + "</div>"
+    return (
+        f'<div class="grid" style="grid-template-columns:repeat({cols},1fr)">'
+        + "".join(cards)
+        + "</div>"
+    )
 
 
 def crumbs(txt="Startseite › Sortiment › Backwaren"):
@@ -119,8 +127,16 @@ P1 = page(
     + '<span class="btn" style="margin-left:6px">In den Korb</span></div></div></div>'
     + tools()
     + '<div class="sec">'
-    + grid([card(name="Roggenmischbrot"), card(name="Dinkelbrot"), card(name="Baguette"),
-            card(name="Körnerbrötchen"), card(name="Laugenstange"), card(name="Croissant")])
+    + grid(
+        [
+            card(name="Roggenmischbrot"),
+            card(name="Dinkelbrot"),
+            card(name="Baguette"),
+            card(name="Körnerbrötchen"),
+            card(name="Laugenstange"),
+            card(name="Croissant"),
+        ]
+    )
     + "</div>",
     "<b>Одна позиция ведёт страницу.</b> Первый товар (рекомендованный или новинка) выведен "
     "широкой картой с описанием и кнопкой, остальные — обычной сеткой. "
@@ -133,7 +149,9 @@ P1 = page(
 P2 = page(
     "P2 · Navigator",
     "Kategorieseite · Filter und Struktur links",
-    '<div class="sec">' + crumbs() + '<div class="h1">Damenmode</div></div>'
+    '<div class="sec">'
+    + crumbs()
+    + '<div class="h1">Damenmode</div></div>'
     + '<div class="sec" style="padding-top:0"><div class="row">'
     + '<div class="side"><div class="box" style="padding:9px">'
     + '<div class="h2" style="margin-bottom:5px">Kategorien</div>'
@@ -147,9 +165,16 @@ P2 = page(
     + '<div style="flex:1">'
     + '<div class="tools" style="border-top:0;padding:0 0 7px">'
     + "<span>132 Artikel</span><span>Sortierung: Neu ▾ · ▦ ▤</span></div>"
-    + grid([card(name="Leinenkleid", price="79,00 €"), card(name="Strickpullover", price="59,00 €"),
-            card(name="Chino", price="49,00 €"), card(name="Seidenbluse", price="89,00 €"),
-            card(name="Wollschal", price="29,00 €"), card(name="Ledergürtel", price="39,00 €")])
+    + grid(
+        [
+            card(name="Leinenkleid", price="79,00 €"),
+            card(name="Strickpullover", price="59,00 €"),
+            card(name="Chino", price="49,00 €"),
+            card(name="Seidenbluse", price="89,00 €"),
+            card(name="Wollschal", price="29,00 €"),
+            card(name="Ledergürtel", price="39,00 €"),
+        ]
+    )
     + "</div></div></div>",
     "<b>Структура и фильтры — слева, товары справа.</b> Классическая раскладка большого "
     "каталога: подкатегории со счётчиками и фасеты всегда на виду, не занимают первый экран "
@@ -169,20 +194,38 @@ P3 = page(
     + "in kleiner Serie. Lieferzeit 4 – 6 Wochen.</div></div>"
     + tools(left="8 Stücke", right="Sortierung: Empfohlen")
     + '<div class="sec">'
-    + grid([
-        card(h=76, name="Esstisch «Eiche massiv»", price="1.290 €",
-             body_extra='<div class="sub" style="margin-top:4px">Geölte Wildeiche, '
-                        "220 × 100 cm, auf Maß.</div>"),
-        card(h=76, name="Sideboard «Linie»", price="890 €",
-             body_extra='<div class="sub" style="margin-top:4px">Drei Schubladen, '
-                        "grifflos, Nussbaum.</div>"),
-        card(h=76, name="Stuhl «Sprosse»", price="240 €",
-             body_extra='<div class="sub" style="margin-top:4px">Buche, geflochtene '
-                        "Sitzfläche.</div>"),
-        card(h=76, name="Regal «Turm»", price="640 €",
-             body_extra='<div class="sub" style="margin-top:4px">Fünf Böden, '
-                        "wandhängend.</div>"),
-    ], cols=2)
+    + grid(
+        [
+            card(
+                h=76,
+                name="Esstisch «Eiche massiv»",
+                price="1.290 €",
+                body_extra='<div class="sub" style="margin-top:4px">Geölte Wildeiche, '
+                "220 × 100 cm, auf Maß.</div>",
+            ),
+            card(
+                h=76,
+                name="Sideboard «Linie»",
+                price="890 €",
+                body_extra='<div class="sub" style="margin-top:4px">Drei Schubladen, '
+                "grifflos, Nussbaum.</div>",
+            ),
+            card(
+                h=76,
+                name="Stuhl «Sprosse»",
+                price="240 €",
+                body_extra='<div class="sub" style="margin-top:4px">Buche, geflochtene '
+                "Sitzfläche.</div>",
+            ),
+            card(
+                h=76,
+                name="Regal «Turm»",
+                price="640 €",
+                body_extra='<div class="sub" style="margin-top:4px">Fünf Böden, wandhängend.</div>',
+            ),
+        ],
+        cols=2,
+    )
     + "</div>",
     "<b>Обложка и крупные карточки с описанием.</b> Шапка категории — во всю ширину, дальше "
     "по 2 карточки в ряд, у каждой есть текст. <b>Когда уместно:</b> мало позиций и они дорогие "
@@ -194,7 +237,8 @@ P3 = page(
 P4 = page(
     "P4 · Mosaik",
     "Kategorieseite · Kacheln unterschiedlicher Größe",
-    '<div class="sec">' + crumbs("Startseite › Sortiment › Feinkost")
+    '<div class="sec">'
+    + crumbs("Startseite › Sortiment › Feinkost")
     + '<div class="h1">Feinkost</div></div>'
     + tools(left="Filter · 34 Artikel", right="▦ ▤")
     + '<div class="sec">'
@@ -225,7 +269,8 @@ P4 = page(
 P5 = page(
     "P5 · Kompakt",
     "Kategorieseite · viele Artikel auf einen Blick",
-    '<div class="sec" style="padding-bottom:8px">' + crumbs("Startseite › Sortiment › Ersatzteile")
+    '<div class="sec" style="padding-bottom:8px">'
+    + crumbs("Startseite › Sortiment › Ersatzteile")
     + '<div class="h1">Ersatzteile</div>'
     + '<div class="row" style="gap:18px;margin-top:7px">'
     + '<div style="flex:1"><div class="it" style="font-size:9px;font-weight:700">Bremsen</div>'
@@ -241,12 +286,20 @@ P5 = page(
     + '<div class="grid" style="grid-template-columns:repeat(6,1fr)">'
     + "".join(
         card(h=30, name=n, price=p)
-        for n, p in [("Bremsbelag VA", "34,90 €"), ("Bremsscheibe", "59,00 €"),
-                     ("Ölfilter", "9,40 €"), ("Luftfilter", "14,20 €"),
-                     ("Zündkerze", "6,90 €"), ("Zündspule", "48,00 €"),
-                     ("Innenraumfilter", "12,50 €"), ("Motoröl 5W-30", "39,90 €"),
-                     ("Keilriemen", "22,00 €"), ("Wasserpumpe", "78,00 €"),
-                     ("Thermostat", "26,50 €"), ("Kühlmittel", "11,90 €")]
+        for n, p in [
+            ("Bremsbelag VA", "34,90 €"),
+            ("Bremsscheibe", "59,00 €"),
+            ("Ölfilter", "9,40 €"),
+            ("Luftfilter", "14,20 €"),
+            ("Zündkerze", "6,90 €"),
+            ("Zündspule", "48,00 €"),
+            ("Innenraumfilter", "12,50 €"),
+            ("Motoröl 5W-30", "39,90 €"),
+            ("Keilriemen", "22,00 €"),
+            ("Wasserpumpe", "78,00 €"),
+            ("Thermostat", "26,50 €"),
+            ("Kühlmittel", "11,90 €"),
+        ]
     )
     + "</div></div>",
     "<b>Много позиций на экран.</b> Подкатегории — компактным указателем в несколько колонок "
@@ -266,8 +319,15 @@ AK_NOTE = (
 )
 
 
-def promo(h=48, name="Angebot", price="2,49 €", old="3,49 €", save="Sie sparen 1,00 €",
-          badge="−29 %", extra=""):
+def promo(
+    h=48,
+    name="Angebot",
+    price="2,49 €",
+    old="3,49 €",
+    save="Sie sparen 1,00 €",
+    badge="−29 %",
+    extra="",
+):
     return (
         f'<div class="card"><span class="badge" style="position:absolute;top:5px;left:5px">'
         f'{badge}</span><div class="ph" style="height:{h}px"></div>'
@@ -295,18 +355,52 @@ A1 = page(
     + '<span class="old">19,90 €</span> <span class="save">Sie sparen 8,00 €</span></div>'
     + '<div class="sub">⏳ Endet in 2 T. 6 Std. · nur solange Vorrat reicht</div></div></div></div>'
     + '<div class="sec" style="padding-top:0">'
-    + grid([promo(name="Bio-Milch 1 l", price="0,99 €", old="1,29 €", save="Sie sparen 0,30 €",
-                  badge="−23 %"),
-            promo(name="Butter 250 g", price="1,79 €", old="2,49 €", save="Sie sparen 0,70 €",
-                  badge="−28 %"),
-            promo(name="Eier 10er", price="2,29 €", old="2,99 €", save="Sie sparen 0,70 €",
-                  badge="−23 %"),
-            promo(name="Mehl 1 kg", price="0,79 €", old="1,09 €", save="Sie sparen 0,30 €",
-                  badge="−27 %"),
-            promo(name="Zucker 1 kg", price="0,89 €", old="1,19 €", save="Sie sparen 0,30 €",
-                  badge="−25 %"),
-            promo(name="Nudeln 500 g", price="0,69 €", old="0,99 €", save="Sie sparen 0,30 €",
-                  badge="−30 %")])
+    + grid(
+        [
+            promo(
+                name="Bio-Milch 1 l",
+                price="0,99 €",
+                old="1,29 €",
+                save="Sie sparen 0,30 €",
+                badge="−23 %",
+            ),
+            promo(
+                name="Butter 250 g",
+                price="1,79 €",
+                old="2,49 €",
+                save="Sie sparen 0,70 €",
+                badge="−28 %",
+            ),
+            promo(
+                name="Eier 10er",
+                price="2,29 €",
+                old="2,99 €",
+                save="Sie sparen 0,70 €",
+                badge="−23 %",
+            ),
+            promo(
+                name="Mehl 1 kg",
+                price="0,79 €",
+                old="1,09 €",
+                save="Sie sparen 0,30 €",
+                badge="−27 %",
+            ),
+            promo(
+                name="Zucker 1 kg",
+                price="0,89 €",
+                old="1,19 €",
+                save="Sie sparen 0,30 €",
+                badge="−25 %",
+            ),
+            promo(
+                name="Nudeln 500 g",
+                price="0,69 €",
+                old="0,99 €",
+                save="Sie sparen 0,30 €",
+                badge="−30 %",
+            ),
+        ]
+    )
     + "</div>",
     "<b>Заголовок группы + главный дил широкой картой.</b> Появляется то, чего сейчас нет "
     "вовсе: название группы, число акций и общий срок. <b>Когда уместно:</b> группа с одним "
@@ -327,11 +421,16 @@ A2 = page(
     + "".join(
         promo(h=32, name=n, price=p, old=o, save="", badge=b)
         for n, p, o, b in [
-            ("Bio-Milch", "0,99 €", "1,29 €", "−23 %"), ("Butter", "1,79 €", "2,49 €", "−28 %"),
-            ("Eier 10er", "2,29 €", "2,99 €", "−23 %"), ("Mehl", "0,79 €", "1,09 €", "−27 %"),
-            ("Zucker", "0,89 €", "1,19 €", "−25 %"), ("Nudeln", "0,69 €", "0,99 €", "−30 %"),
-            ("Reis", "1,49 €", "1,99 €", "−25 %"), ("Öl", "2,99 €", "3,99 €", "−25 %"),
-            ("Kaffee", "11,90 €", "19,90 €", "−40 %"), ("Tee", "2,49 €", "3,29 €", "−24 %"),
+            ("Bio-Milch", "0,99 €", "1,29 €", "−23 %"),
+            ("Butter", "1,79 €", "2,49 €", "−28 %"),
+            ("Eier 10er", "2,29 €", "2,99 €", "−23 %"),
+            ("Mehl", "0,79 €", "1,09 €", "−27 %"),
+            ("Zucker", "0,89 €", "1,19 €", "−25 %"),
+            ("Nudeln", "0,69 €", "0,99 €", "−30 %"),
+            ("Reis", "1,49 €", "1,99 €", "−25 %"),
+            ("Öl", "2,99 €", "3,99 €", "−25 %"),
+            ("Kaffee", "11,90 €", "19,90 €", "−40 %"),
+            ("Tee", "2,49 €", "3,29 €", "−24 %"),
         ]
     )
     + "</div></div>",
@@ -351,16 +450,31 @@ A3 = page(
     + '<div class="sub">Drei Anwendungen zum Kennenlernpreis — buchbar von Montag bis '
     + "Mittwoch, solange Termine frei sind.</div></div>"
     + '<div class="sec" style="padding-top:8px">'
-    + grid([
-        promo(h=64, name="Klassische Massage 60 Min.", price="49,00 €", old="69,00 €",
-              save="Sie sparen 20,00 €", badge="−29 %",
-              extra='<div class="sub" style="margin-top:4px">Mo – Mi · 10 – 14 Uhr · '
-                    "max. 2 pro Kunde</div>"),
-        promo(h=64, name="Gesichtsbehandlung", price="59,00 €", old="79,00 €",
-              save="Sie sparen 20,00 €", badge="−25 %",
-              extra='<div class="sub" style="margin-top:4px">Mo – Mi · Termin nach '
-                    "Absprache</div>"),
-    ], cols=2)
+    + grid(
+        [
+            promo(
+                h=64,
+                name="Klassische Massage 60 Min.",
+                price="49,00 €",
+                old="69,00 €",
+                save="Sie sparen 20,00 €",
+                badge="−29 %",
+                extra='<div class="sub" style="margin-top:4px">Mo – Mi · 10 – 14 Uhr · '
+                "max. 2 pro Kunde</div>",
+            ),
+            promo(
+                h=64,
+                name="Gesichtsbehandlung",
+                price="59,00 €",
+                old="79,00 €",
+                save="Sie sparen 20,00 €",
+                badge="−25 %",
+                extra='<div class="sub" style="margin-top:4px">Mo – Mi · Termin nach '
+                "Absprache</div>",
+            ),
+        ],
+        cols=2,
+    )
     + "</div>",
     "<b>Обложка группы, описание и условия.</b> У каждой акции под ценой видно, когда она "
     "действует и сколько раз можно взять. <b>Когда уместно:</b> услуги и пакеты — салон, отель, "
@@ -380,18 +494,40 @@ A4 = page(
     + '<div class="sec" style="padding-bottom:6px">'
     + '<div class="h2">Zuerst ablaufend <span>nach Restzeit sortiert</span></div></div>'
     + '<div class="sec" style="padding-top:0">'
-    + grid([promo(name="Winterjacke", price="89,00 €", old="149,00 €",
-                  save="⏳ noch 6 Std.", badge="−40 %"),
-            promo(name="Wollpullover", price="49,00 €", old="79,00 €",
-                  save="⏳ noch 1 T.", badge="−38 %"),
-            promo(name="Lederstiefel", price="119,00 €", old="179,00 €",
-                  save="⏳ noch 2 T.", badge="−34 %"),
-            promo(name="Schal", price="19,00 €", old="29,00 €",
-                  save="⏳ noch 2 T.", badge="−34 %"),
-            promo(name="Mütze", price="12,00 €", old="19,00 €",
-                  save="⏳ noch 3 T.", badge="−37 %"),
-            promo(name="Handschuhe", price="15,00 €", old="24,00 €",
-                  save="⏳ noch 3 T.", badge="−38 %")])
+    + grid(
+        [
+            promo(
+                name="Winterjacke",
+                price="89,00 €",
+                old="149,00 €",
+                save="⏳ noch 6 Std.",
+                badge="−40 %",
+            ),
+            promo(
+                name="Wollpullover",
+                price="49,00 €",
+                old="79,00 €",
+                save="⏳ noch 1 T.",
+                badge="−38 %",
+            ),
+            promo(
+                name="Lederstiefel",
+                price="119,00 €",
+                old="179,00 €",
+                save="⏳ noch 2 T.",
+                badge="−34 %",
+            ),
+            promo(name="Schal", price="19,00 €", old="29,00 €", save="⏳ noch 2 T.", badge="−34 %"),
+            promo(name="Mütze", price="12,00 €", old="19,00 €", save="⏳ noch 3 T.", badge="−37 %"),
+            promo(
+                name="Handschuhe",
+                price="15,00 €",
+                old="24,00 €",
+                save="⏳ noch 3 T.",
+                badge="−38 %",
+            ),
+        ]
+    )
     + "</div>",
     "<b>Общий таймер кампании и сортировка по остатку времени.</b> Сверху — до конца всей "
     "кампании, карточки идут от самой срочной. <b>Когда уместно:</b> кампания с одной датой "
@@ -403,14 +539,20 @@ A4 = page(
 _A5_COLS = [
     ("Basis", "89 €", "119 €", "✓ Ölwechsel<br>✓ Sichtprüfung<br>· · ·<br>· · ·", "", False),
     (
-        "Komfort", "149 €", "219 €",
+        "Komfort",
+        "149 €",
+        "219 €",
         "✓ Ölwechsel<br>✓ Sichtprüfung<br>✓ Bremsen<br>✓ Ersatzwagen",
-        "border-color:#111827;border-width:2px", True,
+        "border-color:#111827;border-width:2px",
+        True,
     ),
     (
-        "Premium", "249 €", "349 €",
+        "Premium",
+        "249 €",
+        "349 €",
         "✓ alles aus Komfort<br>✓ Klima-Service<br>✓ Hol- und Bringdienst<br>✓ TÜV",
-        "", False,
+        "",
+        False,
     ),
 ]
 
@@ -507,8 +649,16 @@ MAIN = page(
 
 FILES = {
     "Main.dc.html": MAIN,
-    "P1.dc.html": P1, "P2.dc.html": P2, "P3.dc.html": P3, "P4.dc.html": P4, "P5.dc.html": P5,
-    "A1.dc.html": A1, "A2.dc.html": A2, "A3.dc.html": A3, "A4.dc.html": A4, "A5.dc.html": A5,
+    "P1.dc.html": P1,
+    "P2.dc.html": P2,
+    "P3.dc.html": P3,
+    "P4.dc.html": P4,
+    "P5.dc.html": P5,
+    "A1.dc.html": A1,
+    "A2.dc.html": A2,
+    "A3.dc.html": A3,
+    "A4.dc.html": A4,
+    "A5.dc.html": A5,
 }
 for name, html in FILES.items():
     (HERE / name).write_text(html, encoding="utf-8")
@@ -521,7 +671,14 @@ canvas = {
         {"file": "P3.dc.html", "x": 2700, "y": 0, "w": 800, "h": 700, "title": "P3 · Magazin"},
         {"file": "P4.dc.html", "x": 3600, "y": 0, "w": 800, "h": 620, "title": "P4 · Mosaik"},
         {"file": "P5.dc.html", "x": 4500, "y": 0, "w": 800, "h": 620, "title": "P5 · Kompakt"},
-        {"file": "A1.dc.html", "x": 900, "y": 820, "w": 800, "h": 830, "title": "A1 · Schaufenster"},
+        {
+            "file": "A1.dc.html",
+            "x": 900,
+            "y": 820,
+            "w": 800,
+            "h": 830,
+            "title": "A1 · Schaufenster",
+        },
         {"file": "A2.dc.html", "x": 1800, "y": 820, "w": 800, "h": 620, "title": "A2 · Prospekt"},
         {"file": "A3.dc.html", "x": 2700, "y": 820, "w": 800, "h": 700, "title": "A3 · Magazin"},
         {"file": "A4.dc.html", "x": 3600, "y": 820, "w": 800, "h": 780, "title": "A4 · Countdown"},
@@ -529,5 +686,7 @@ canvas = {
     ],
     "launch": {"view": "canvas"},
 }
-(HERE / "canvas.json").write_text(json.dumps(canvas, ensure_ascii=False, indent=1), encoding="utf-8")
+(HERE / "canvas.json").write_text(
+    json.dumps(canvas, ensure_ascii=False, indent=1), encoding="utf-8"
+)
 print("готово:", ", ".join(FILES))

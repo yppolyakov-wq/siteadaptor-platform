@@ -1,0 +1,12 @@
+{% load i18n %}{% comment %}DL-20 (макет P5 «Kompakt»): указатель подкатегорий колонками —
+компактнее плиток, поэтому первый экран занимают сами товары. Дети подкатегорий тут не
+раскрываем: указатель обязан оставаться в 2–3 строки.{% endcomment %}
+{% if subcategories %}
+<nav class="mb-5 bg-white rounded-2xl shadow-sm p-4" data-subcat-index aria-label="{% trans 'Kategorien' %}">
+  <ul class="columns-2 sm:columns-3 lg:columns-4 gap-x-6 text-sm [&>li]:break-inside-avoid">
+    {% for c in subcategories %}
+    <li class="mb-1"><a href="{% url 'storefront-category' c.slug %}{% if ansicht %}?ansicht={{ ansicht }}{% endif %}" class="text-gray-600 hover:text-gray-900 hover:underline">{{ c }}</a></li>
+    {% endfor %}
+  </ul>
+</nav>
+{% endif %}

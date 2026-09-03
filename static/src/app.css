@@ -1301,6 +1301,74 @@ input[type="datetime-local"] {
 @media (max-width: 767.98px) { [data-grid].is-list > .sf-filler { display: none; } }
 /* /DL-11 fill-rows */
 
+/* DL-20: шаблоны СТРАНИЦЫ категории, которым нужна раскладка, а не разметка.
+
+   «Navigator» — две колонки из КОРНЯ листинга: его прямые дети уезжают во вторую
+   колонку, боковая панель занимает первую на всю высоту. Так не нужно оборачивать
+   блоки каркаса (header/facets/toolbar/grid — прямые дети корня, их число не
+   фиксировано). До lg боковая панель — display:contents: мобильный вид прежний,
+   панель фасетов остаётся выезжающим ящиком DS-6 с той же кнопкой. */
+[data-cat-side] {
+  display: contents;
+}
+@media (min-width: 1024px) {
+  [data-cat-layout="navigator"] {
+    display: grid;
+    grid-template-columns: 15rem minmax(0, 1fr);
+    column-gap: 1.5rem;
+    align-items: start;
+  }
+  [data-cat-layout="navigator"] > * {
+    grid-column: 2;
+    min-width: 0;
+  }
+  [data-cat-layout="navigator"] > [data-cat-head] {
+    grid-column: 1 / -1;
+  }
+  [data-cat-layout="navigator"] > [data-cat-side] {
+    display: block;
+    grid-column: 1;
+    grid-row: 2 / span 999;
+    position: sticky;
+    top: 5rem;
+  }
+  /* панель фасетов на месте, а не ящиком: .hidden снят, фиксация DS-6 отменена */
+  [data-cat-layout="navigator"] [data-cat-side] [data-filter-panel] {
+    display: flex !important;
+    position: static;
+    width: auto;
+    max-width: none;
+    z-index: auto;
+    overflow: visible;
+    margin: 0;
+    border-radius: 1rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    flex-direction: column;
+    align-items: stretch;
+  }
+  /* кнопка «Фильтры» на десктопе лишняя — панель и так на виду */
+  [data-cat-layout="navigator"] [data-filter-toggle] {
+    display: none;
+  }
+}
+
+/* «Mosaik» — плитки разного размера. Сетка листинга по умолчанию раскладывается
+   флексом (DL-14 spread), поэтому бенто явно возвращает grid и задаёт спаны:
+   первая плитка 2×2, каждая шестая — во всю ширину ряда. */
+@media (min-width: 640px) {
+  [data-grid][data-cat-bento] {
+    display: grid !important;
+    grid-auto-flow: dense;
+  }
+  [data-grid][data-cat-bento] > *:first-child {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+  [data-grid][data-cat-bento] > *:nth-child(6n + 4) {
+    grid-column: span 2;
+  }
+}
+
 /* DL-19: ГОРИЗОНТАЛЬНЫЕ формы карточки (Regal / Deal-Kachel) на телефоне занимают
    всю ширину. В сетке из двух колонок 190 px плашка цены сжимается так, что цена
    переносится, бейдж уезжает под неё, а название режется — стенд 390 px показал это

@@ -1,0 +1,30 @@
+{% load i18n %}{% load siteui %}{% comment %}DL-20 (макет P1 «Schaufenster»): ПЕРВЫЙ товар
+страницы ведёт категорию — широкой картой с описанием и кнопкой; остальные идут обычной
+сеткой ниже. Форма самой карточки (DL-19) тут ни при чём: это композиция СТРАНИЦЫ, поэтому
+разметка своя, а не ветка `_product_card`. Вход: p.{% endcomment %}
+<div class="sf-card relative mb-6 flex flex-col sm:flex-row items-stretch gap-4 bg-white rounded-2xl shadow-sm p-4" data-cat-hero-product>
+  {% include "storefront/cards/_canvas_edit.html" %}
+  <a href="{{ p.get_absolute_url }}" class="sm:w-2/5 shrink-0 rounded-xl overflow-hidden focus:outline-none focus:ring-2 focus:ring-indigo-500">
+    {% include "storefront/cards/_photo.html" with ratio="aspect-[4/3]" %}
+  </a>
+  <div class="flex flex-col min-w-0 flex-1">
+    <div class="flex items-baseline gap-2 flex-wrap">
+      {% if p.promo_badge %}<span class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">{{ p.promo_badge }}</span>
+      {% elif p.is_featured %}<span class="bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-0.5 rounded-full shadow">{% trans "Recommended" %}</span>{% endif %}
+    </div>
+    <h2 class="mt-1 text-xl md:text-2xl font-bold leading-tight" data-edit-model="product" data-edit-pk="{{ p.pk }}" data-edit-field="name"><a href="{{ p.get_absolute_url }}" class="hover:underline">{{ p }}</a></h2>
+    {% if p.review_avg %}<p class="text-sm mt-1"><span class="text-amber-500">★</span> <span class="font-medium">{{ p.review_avg|floatformat:1 }}</span> <span class="text-gray-400">({{ p.review_count }})</span></p>{% endif %}
+    {% with teaser=p.description_text|default:"" %}{% if teaser %}
+    <p class="mt-2 text-sm text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-3">{{ teaser|striptags|truncatewords:32 }}</p>
+    {% endif %}{% endwith %}
+    <div class="mt-auto pt-3 flex items-end justify-between gap-3 flex-wrap">
+      <div class="min-w-0">
+        <div class="text-2xl font-extrabold leading-none {% if p.promo_price %}text-red-600{% endif %}">{% if p.has_variants %}<span class="text-sm font-normal text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% elif p.promo_price %}{{ p.promo_price }}{% else %}{{ p.base_price }}{% endif %} {{ p.currency|cursym }}</div>
+        {% if p.promo_price %}<div class="text-xs text-gray-400 line-through mt-0.5">{{ p.base_price }} {{ p.currency|cursym }}</div>{% endif %}
+        {% if not p.has_variants %}{% with gp=p.grundpreis %}{% if gp %}<p class="text-[11px] text-gray-400 leading-tight">{{ gp.0 }} {{ p.currency|cursym }} / {{ gp.1 }}</p>{% endif %}{% endwith %}{% endif %}
+        {% if p.promo_price and p.promo_lowest is not None %}<p class="mt-0.5 text-[10px] leading-tight text-gray-400">{% blocktrans with p=p.promo_lowest %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>{% endif %}
+      </div>
+      {% include "storefront/cards/_add_button.html" with cls="shrink-0" %}
+    </div>
+  </div>
+</div>

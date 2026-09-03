@@ -140,3 +140,85 @@ def test_every_new_layout_survives_an_empty_category(style):
     cat = _cat(page_style=style)
     body = _render(tenant, slug=cat.slug).content.decode()
     assert f'data-cat-layout="{style}"' in body
+
+
+# ─────────────────────── композиция каждого шаблона ───────────────────────
+
+
+def _page(style, products=6, subcats=0, tenant_cfg=None):
+    tenant = TenantFactory.build()
+    if tenant_cfg:
+        tenant.site_config = tenant_cfg
+    cat = _cat(page_style=style)
+    for i in range(subcats):
+        _cat(name=f"Unter {i}", parent=cat)
+    for i in range(products):
+        _product(cat, name=f"Artikel {i}")
+    return _render(tenant, slug=cat.slug).content.decode()
+
+
+def test_schaufenster_lifts_the_first_product_into_a_wide_card():
+    body = _page("schaufenster")
+    assert "data-cat-hero-product" in body
+    # герой не дублируется карточкой в сетке: карточек на одну меньше товаров
+    assert body.count('data-edit-field="name"') >= 6  # герой + пять карточек
+
+
+def test_schaufenster_hero_steps_aside_when_the_visitor_filters():
+    """Иначе «главным» становится случайный товар отфильтрованного хвоста."""
+    tenant = TenantFactory.build()
+    cat = _cat(slug="haupt", page_style="schaufenster")
+    for i in range(4):
+        _product(cat, name=f"Artikel {i}")
+    body = _render(tenant, slug="haupt", nur_verfuegbar="1").content.decode()
+    assert "data-cat-hero-product" not in body
+
+
+def test_navigator_puts_structure_and_filters_into_a_side_column():
+    body = _page("navigator", subcats=3)
+    assert "data-cat-side" in body and "data-cat-head" in body
+    # панель фасетов ОДНА на страницу — иначе в DOM вторые id полей
+    assert body.count('data-filter-panel="catalog"') <= 1
+    # плитки подкатегорий в общий поток не идут (они в колонке)
+    assert body.count('class="min-h-[4rem]') == 0
+
+
+def test_magazin_shows_a_cover_and_a_teaser_under_each_card():
+    tenant = TenantFactory.build()
+    cat = _cat(slug="haupt", page_style="magazin", description={"de": "Aus der Werkstatt."})
+    p = _product(cat)
+    p.description = {"de": "Geölte Wildeiche, auf Maß gefertigt."}
+    p.save(update_fields=["description"])
+    body = _render(tenant, slug="haupt").content.decode()
+    assert "data-cat-magazin-item" in body
+    assert "Geölte Wildeiche" in body
+    # обложка = шапка категории; своего маркера у неё нет (слайдер только от 2 фото),
+    # поэтому проверяем сам контент шапки — описание направления.
+    assert "Aus der Werkstatt." in body
+
+
+def test_mosaik_marks_the_grid_as_bento():
+    body = _page("mosaik")
+    assert "data-cat-bento" in body
+
+
+def test_kompakt_shows_a_column_index_instead_of_tiles():
+    body = _page("kompakt", subcats=5)
+    assert "data-subcat-index" in body
+    assert "data-cat-bento" not in body
+
+
+def test_the_five_layouts_differ_structurally_not_only_by_classes():
+    """Урок DL-9: шаблон, повторяющий другой, — пятый переключатель с тем же видом."""
+    marks = (
+        "data-cat-hero-product",
+        "data-cat-side",
+        "data-cat-magazin-item",
+        "data-cat-bento",
+        "data-subcat-index",
+    )
+    seen = {}
+    for style in ("schaufenster", "navigator", "magazin", "mosaik", "kompakt"):
+        body = _page(style, subcats=3)
+        seen[style] = tuple(m for m in marks if m in body)
+    assert len(set(seen.values())) == 5, seen

@@ -1,0 +1,82 @@
+{% load i18n siteui %}{% comment %}DL-20: панель фасетов каталога вынесена из products.html
+БЕЗ изменений разметки — её нужно рендерить в двух местах: обычно над сеткой, а в
+шаблоне «Navigator» — в боковой колонке. Замки прежнего вида: test_listing_bar,
+test_storefront, test_listing_parity.{% endcomment %}
+{% if catalog_show_filters and show_price_filter or catalog_show_filters and badge_chips or catalog_show_filters and show_stock_filter or catalog_show_filters and origin_chips or catalog_show_filters and show_rating_filter or catalog_show_filters and size_chips or catalog_show_filters and diet_chips %}
+{% comment %}DS-10: панель отдаётся УЖЕ скрытой — CSS DS-6 делает видимую панель
+fixed-ящиком, и до инициализации JS она вспыхивала поверх контента. Без JS её
+показывает правило в <noscript> ниже (прогрессивное улучшение сохранено).{% endcomment %}
+<noscript><style>[data-filter-panel]{display:flex !important;position:static !important;width:auto !important;box-shadow:none !important;}</style></noscript>
+<form method="get" data-catalog-filters data-filter-panel="catalog" class="hidden mb-6 flex-wrap items-end gap-x-4 gap-y-3 bg-white rounded-2xl shadow-sm p-4">
+  {% for name, value in filter_form_hidden %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+  {% if diet_chips %}
+  <div>
+    <label class="block text-xs text-gray-500 mb-1" for="id_diet">{% trans "Diet" %}</label>
+    <select id="id_diet" name="diet" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+      <option value="">{% trans "All diets" %}</option>
+      {% for d in diet_chips %}<option value="{{ d.code }}" {% if active_diet == d.code %}selected{% endif %}>{{ d.icon }} {{ d.label }}</option>{% endfor %}
+    </select>
+  </div>
+  {% endif %}
+  {% if show_price_filter %}
+  <div>
+    <label class="block text-xs text-gray-500 mb-1">{% trans "Price" %} <span class="text-gray-400">({{ price_lo|floatformat:0 }}–{{ price_hi|floatformat:0 }} €)</span></label>
+    <div class="flex items-center gap-1">
+      <input type="number" name="preis_von" inputmode="decimal" min="0" step="0.01" value="{{ price_min_val }}" placeholder="{% trans 'from' %}" aria-label="{% trans 'Price from' %}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+      <span class="text-gray-400">–</span>
+      <input type="number" name="preis_bis" inputmode="decimal" min="0" step="0.01" value="{{ price_max_val }}" placeholder="{% trans 'to' %}" aria-label="{% trans 'Price to' %}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
+    </div>
+  </div>
+  {% endif %}
+  {% if badge_chips %}
+  <div>
+    <label class="block text-xs text-gray-500 mb-1" for="id_badge">{% trans "Label" %}</label>
+    <select id="id_badge" name="badge" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+      <option value="">{% trans "All" %}</option>
+      {% for code, label in badge_chips %}<option value="{{ code }}" {% if active_badge == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </div>
+  {% endif %}
+  {% if show_stock_filter %}
+  <label class="flex items-center gap-2 text-sm text-gray-600 pb-1.5">
+    <input type="checkbox" name="nur_verfuegbar" value="1" {% if only_available %}checked{% endif %} class="rounded border-gray-300">
+    {% trans "Only available" %}
+  </label>
+  {% endif %}
+  {% comment %}UB2-3: Bio/Regional-происхождение (Product.origin) — только реально
+  указанные значения; рейтинг (минимум звёзд из generic-отзывов) — когда есть отзывы.{% endcomment %}
+  {% if origin_chips %}
+  <div>
+    <label class="block text-xs text-gray-500 mb-1" for="id_herkunft">{% trans "Origin" %}</label>
+    <select id="id_herkunft" name="herkunft" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+      <option value="">{% trans "All" %}</option>
+      {% for o in origin_chips %}<option value="{{ o }}" {% if active_herkunft == o %}selected{% endif %}>{{ o }}</option>{% endfor %}
+    </select>
+  </div>
+  {% endif %}
+  {% if size_chips %}
+  {% comment %}M2 Boutique: фасет размера — селект из variant.label (в фильтр
+  попадают только товары, где размер доступен).{% endcomment %}
+  <div>
+    <label class="block text-xs text-gray-500 mb-1" for="id_groesse">{% trans "Größe" %}</label>
+    <select id="id_groesse" name="groesse" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+      <option value="">{% trans "All" %}</option>
+      {% for g in size_chips %}<option value="{{ g }}" {% if active_groesse == g %}selected{% endif %}>{{ g }}</option>{% endfor %}
+    </select>
+  </div>
+  {% endif %}
+  {% if show_rating_filter %}
+  <div>
+    <label class="block text-xs text-gray-500 mb-1" for="id_bewertung">{% trans "Rating" %}</label>
+    <select id="id_bewertung" name="bewertung" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+      <option value="">{% trans "All" %}</option>
+      {% for n in rating_thresholds %}<option value="{{ n }}" {% if active_bewertung == n %}selected{% endif %}>{% trans "from" %} {{ n }} ★</option>{% endfor %}
+    </select>
+  </div>
+  {% endif %}
+  <button type="submit" class="rounded-lg bg-gray-900 text-white text-sm font-medium px-4 py-1.5 hover:bg-gray-700">{% trans "Apply" %}</button>
+  {% if any_facet_active %}
+  <a href="{% if current_category %}{% url 'storefront-category' current_category.slug %}{% else %}{% url 'storefront-products' %}{% endif %}{% if is_preview %}?preview=1{% endif %}{% if ansicht %}{% if is_preview %}&amp;{% else %}?{% endif %}ansicht={{ ansicht }}{% endif %}" class="self-center text-sm text-gray-500 hover:underline">{% trans "Reset filters" %}</a>
+  {% endif %}
+</form>
+{% endif %}

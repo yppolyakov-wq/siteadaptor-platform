@@ -13,7 +13,7 @@
 {% block structured_data %}{{ block.super }}{% if catalog_breadcrumb_ld %}<script type="application/ld+json">{{ catalog_breadcrumb_ld|safe }}</script>{% endif %}{% endblock %}
 
 {% block listing_header %}
-<div class="mb-6">
+<div class="mb-6"{% if category_side_nav %} data-cat-head{% endif %}>
   <a href="{% url 'storefront-home' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Offers" %}</a>
   {% if catalog_breadcrumbs %}
   {# DL-16.5 (K1): видимые хлебные крошки страницы категории (JSON-LD BreadcrumbList — в head) #}
@@ -61,6 +61,11 @@
 {% endblock %}
 
 {% block listing_facets %}
+{% comment %}DL-20: боковая колонка «Navigator» — ПЕРВЫМ прямым ребёнком корня
+листинга: CSS раскладывает корень в две колонки по этому маркеру, поэтому позиция
+в разметке важна. Указатель подкатегорий «Kompakt» идёт над фильтрами.{% endcomment %}
+{% if category_side_nav %}{% include "storefront/category/_side_nav.html" %}{% endif %}
+{% if category_page_style == "kompakt" %}{% include "storefront/category/_subcat_index.html" %}{% endif %}
 {% if categories %}
 {% comment %}Фидбэк владельца 2026-08-07: «категории сделай картинками». Когда у
 категорий есть фото — сетка плиток (общий партиал с секцией главной, форма и
@@ -134,84 +139,7 @@
 фильтрах»): диета жила ОТДЕЛЬНОЙ строкой чипов над кнопкой «Filter», хотя цена,
 наличие, размер и происхождение — внутри панели. Теперь она такой же фасет формы;
 ссылки `?diet=<code>` из писем и поиска продолжают работать — вьюха читает GET.{% endcomment %}
-{% if catalog_show_filters and show_price_filter or catalog_show_filters and badge_chips or catalog_show_filters and show_stock_filter or catalog_show_filters and origin_chips or catalog_show_filters and show_rating_filter or catalog_show_filters and size_chips or catalog_show_filters and diet_chips %}
-{% comment %}DS-10: панель отдаётся УЖЕ скрытой — CSS DS-6 делает видимую панель
-fixed-ящиком, и до инициализации JS она вспыхивала поверх контента. Без JS её
-показывает правило в <noscript> ниже (прогрессивное улучшение сохранено).{% endcomment %}
-<noscript><style>[data-filter-panel]{display:flex !important;position:static !important;width:auto !important;box-shadow:none !important;}</style></noscript>
-<form method="get" data-catalog-filters data-filter-panel="catalog" class="hidden mb-6 flex-wrap items-end gap-x-4 gap-y-3 bg-white rounded-2xl shadow-sm p-4">
-  {% for name, value in filter_form_hidden %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
-  {% if diet_chips %}
-  <div>
-    <label class="block text-xs text-gray-500 mb-1" for="id_diet">{% trans "Diet" %}</label>
-    <select id="id_diet" name="diet" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
-      <option value="">{% trans "All diets" %}</option>
-      {% for d in diet_chips %}<option value="{{ d.code }}" {% if active_diet == d.code %}selected{% endif %}>{{ d.icon }} {{ d.label }}</option>{% endfor %}
-    </select>
-  </div>
-  {% endif %}
-  {% if show_price_filter %}
-  <div>
-    <label class="block text-xs text-gray-500 mb-1">{% trans "Price" %} <span class="text-gray-400">({{ price_lo|floatformat:0 }}–{{ price_hi|floatformat:0 }} €)</span></label>
-    <div class="flex items-center gap-1">
-      <input type="number" name="preis_von" inputmode="decimal" min="0" step="0.01" value="{{ price_min_val }}" placeholder="{% trans 'from' %}" aria-label="{% trans 'Price from' %}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
-      <span class="text-gray-400">–</span>
-      <input type="number" name="preis_bis" inputmode="decimal" min="0" step="0.01" value="{{ price_max_val }}" placeholder="{% trans 'to' %}" aria-label="{% trans 'Price to' %}" class="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
-    </div>
-  </div>
-  {% endif %}
-  {% if badge_chips %}
-  <div>
-    <label class="block text-xs text-gray-500 mb-1" for="id_badge">{% trans "Label" %}</label>
-    <select id="id_badge" name="badge" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
-      <option value="">{% trans "All" %}</option>
-      {% for code, label in badge_chips %}<option value="{{ code }}" {% if active_badge == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
-    </select>
-  </div>
-  {% endif %}
-  {% if show_stock_filter %}
-  <label class="flex items-center gap-2 text-sm text-gray-600 pb-1.5">
-    <input type="checkbox" name="nur_verfuegbar" value="1" {% if only_available %}checked{% endif %} class="rounded border-gray-300">
-    {% trans "Only available" %}
-  </label>
-  {% endif %}
-  {% comment %}UB2-3: Bio/Regional-происхождение (Product.origin) — только реально
-  указанные значения; рейтинг (минимум звёзд из generic-отзывов) — когда есть отзывы.{% endcomment %}
-  {% if origin_chips %}
-  <div>
-    <label class="block text-xs text-gray-500 mb-1" for="id_herkunft">{% trans "Origin" %}</label>
-    <select id="id_herkunft" name="herkunft" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
-      <option value="">{% trans "All" %}</option>
-      {% for o in origin_chips %}<option value="{{ o }}" {% if active_herkunft == o %}selected{% endif %}>{{ o }}</option>{% endfor %}
-    </select>
-  </div>
-  {% endif %}
-  {% if size_chips %}
-  {% comment %}M2 Boutique: фасет размера — селект из variant.label (в фильтр
-  попадают только товары, где размер доступен).{% endcomment %}
-  <div>
-    <label class="block text-xs text-gray-500 mb-1" for="id_groesse">{% trans "Größe" %}</label>
-    <select id="id_groesse" name="groesse" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
-      <option value="">{% trans "All" %}</option>
-      {% for g in size_chips %}<option value="{{ g }}" {% if active_groesse == g %}selected{% endif %}>{{ g }}</option>{% endfor %}
-    </select>
-  </div>
-  {% endif %}
-  {% if show_rating_filter %}
-  <div>
-    <label class="block text-xs text-gray-500 mb-1" for="id_bewertung">{% trans "Rating" %}</label>
-    <select id="id_bewertung" name="bewertung" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
-      <option value="">{% trans "All" %}</option>
-      {% for n in rating_thresholds %}<option value="{{ n }}" {% if active_bewertung == n %}selected{% endif %}>{% trans "from" %} {{ n }} ★</option>{% endfor %}
-    </select>
-  </div>
-  {% endif %}
-  <button type="submit" class="rounded-lg bg-gray-900 text-white text-sm font-medium px-4 py-1.5 hover:bg-gray-700">{% trans "Apply" %}</button>
-  {% if any_facet_active %}
-  <a href="{% if current_category %}{% url 'storefront-category' current_category.slug %}{% else %}{% url 'storefront-products' %}{% endif %}{% if is_preview %}?preview=1{% endif %}{% if ansicht %}{% if is_preview %}&amp;{% else %}?{% endif %}ansicht={{ ansicht }}{% endif %}" class="self-center text-sm text-gray-500 hover:underline">{% trans "Reset filters" %}</a>
-  {% endif %}
-</form>
-{% endif %}
+{% if not category_side_nav %}{% include "storefront/_catalog_filters.html" %}{% endif %}
 
 {# M20U-3: подкатегории выбранной категории — карточками первыми (тумблер в билдере) #}
 {% if category_tabs %}
@@ -304,9 +232,25 @@ MEN-22 остаётся механикой главной. Мобильный «
 </div>
 {% else %}
 {# SE-2a-2: маркер секции для on-canvas редактора (клик → инспектор раскладки каталога) #}
-<div data-grid="catalog" data-sf-section="catalog" class="{{ catalog_grid|default:'grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}" {% sf_grid_attrs catalog_layout count=page.items|length %}>
+{% comment %}DL-20 (P1 «Schaufenster»): первый товар — широкой картой над сеткой. Только
+на ПЕРВОЙ странице выдачи и только без активных фасетов: иначе «главным» становился бы
+случайный товар из отфильтрованного хвоста.{% endcomment %}
+{% if category_page_style == "schaufenster" and is_category_page and not any_facet_active %}
+  {% with p=page.items.0 %}{% include "storefront/category/_hero_product.html" %}{% endwith %}
+{% endif %}
+<div data-grid="catalog" data-sf-section="catalog" class="{{ catalog_grid|default:'grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}" {% sf_grid_attrs catalog_layout count=page.items|length %}{% if category_page_style == "mosaik" %} data-cat-bento{% endif %}>
   {% for p in page.items %}
-    {% include "storefront/_product_card.html" %}
+    {% if category_page_style == "schaufenster" and forloop.first and is_category_page and not any_facet_active %}{% comment %}уже показан героем{% endcomment %}
+    {% elif category_page_style == "magazin" %}
+      {% comment %}DL-20 (P3 «Magazin»): карточка остаётся той, что выбрал владелец (ось форм
+      карточки не подменяем) — композиция добавляет к ней тизер описания.{% endcomment %}
+      <div class="flex flex-col" data-cat-magazin-item>
+        {% include "storefront/_product_card.html" %}
+        {% with teaser=p.description_text|default:"" %}{% if teaser %}<p class="mt-2 text-sm text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-3">{{ teaser|striptags|truncatewords:28 }}</p>{% endif %}{% endwith %}
+      </div>
+    {% else %}
+      {% include "storefront/_product_card.html" %}
+    {% endif %}
   {% endfor %}
   {# DL-11: плитка-подсказка добивает неполный последний ряд (CSS по data-sf-cols) #}
   {% include "storefront/_grid_filler.html" %}

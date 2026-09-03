@@ -1036,9 +1036,18 @@ def product_list(request, slug=None):
     _owner_preset = cfg["catalog_layout"]["preset"]
     # KAT-1: шаблон категории «Preisliste» — прайс-вид как per-page ДЕФОЛТ этой
     # страницы (carry считает отличие от него → чистые URL без ?ansicht=).
-    if path_mode and cat_style == "preisliste":
+    # DL-20: у трёх новых шаблонов плотность сетки — часть композиции (журнал по 2,
+    # мозаика по 4, компакт по 6), поэтому они задают тот же per-page дефолт, что и
+    # «Preisliste». Посетительский `?ansicht=` остаётся сильнее (carry ниже).
+    _STYLE_PRESET = {
+        "preisliste": "preisliste",
+        "magazin": "cols2",
+        "mosaik": "cols4",
+        "kompakt": "cols6",
+    }
+    if path_mode and cat_style in _STYLE_PRESET:
         cfg["catalog_layout"] = siteconfig.normalize_layout(
-            {**cfg["catalog_layout"], "preset": "preisliste"},
+            {**cfg["catalog_layout"], "preset": _STYLE_PRESET[cat_style]},
             {"preset": _owner_preset},
             extra_presets=siteconfig.PAGE_EXTRA_PRESETS["catalog_layout"],
         )
@@ -1220,7 +1229,9 @@ def product_list(request, slug=None):
                 path_mode
                 and category is not None
                 and category.landing_ready
-                and cat_style in ("kopfbild", "sets")
+                # DL-20: «Magazin» и «Schaufenster» тоже открываются шапкой — она у них
+                # часть композиции (обложка / представление направления).
+                and cat_style in ("kopfbild", "sets", "magazin", "schaufenster")
             ),
             "category_photos": cat_photos[:6],
             "category_photo": (cat_photos[:1] or [""])[0],
@@ -1235,7 +1246,11 @@ def product_list(request, slug=None):
             # DL-16.5: «полки»/табы/крошки; плитки подкатегорий в этих шаблонах не дублируем
             "shelves": shelves,
             "category_tabs": category_tabs,
-            "subcats_hidden": cat_style in ("regale", "tabs"),
+            # DL-20: «Navigator» уводит подкатегории в боковую колонку, «Kompakt» —
+            # в компактный указатель; плитки в общем потоке в обоих случаях лишние.
+            "subcats_hidden": cat_style in ("regale", "tabs", "navigator", "kompakt"),
+            # DL-20: боковая колонка «Navigator» — фасеты и структура рядом с товарами.
+            "category_side_nav": cat_style == "navigator",
             "catalog_breadcrumbs": catalog_breadcrumbs,
             "catalog_breadcrumb_ld": catalog_breadcrumb_ld,
             # KAT-1/фидбэк 2026-08-26: у страницы категории — свой хост C-блоков
