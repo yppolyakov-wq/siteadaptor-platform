@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST
 
 from apps.catalog import category_styles
 from apps.catalog.option_styles import VARIANT_STYLES
-from apps.core import card_forms, detail_sections, presence, vat
+from apps.core import card_forms, detail_sections, presence, studio_pages, vat
 from apps.promotions import group_styles
 from apps.tenants import domains
 from apps.tenants.forms import BusinessSettingsForm
@@ -2343,6 +2343,11 @@ def home_builder_view(request):
             # тот кодирует дефисы (-) и ломает literal-сравнение путей.
             "preview_page_groups_json": _safe_json(
                 {p["url"]: p.get("group") or "home" for p in preview_pages}
+            ),
+            # STU-2: подписи типов страниц для уровня «эта страница». Клиент берёт
+            # код типа с <body> кадра (data-stu-page) — на пути тип не написан.
+            "studio_page_labels_json": _safe_json(
+                {p.code: str(p.label) for p in (*studio_pages.PAGE_TYPES, studio_pages.OTHER)}
             ),
             # UC6-6c: пресеты типов блоков для двухшагового инсертера «+».
             # UC6-6e: + props пресета — JS рисует миниатюру-картинку варианта.

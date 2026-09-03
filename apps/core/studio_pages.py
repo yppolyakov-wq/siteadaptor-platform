@@ -381,9 +381,23 @@ def resolve_page(path: str, query: dict | None = None) -> PageContext:
     except (Resolver404, ValueError):
         return PageContext(OTHER, path=clean, query=q)
 
-    pt = _BY_URL_NAME.get(match.url_name or "")
+    return resolve_match(match, q, path=clean)
+
+
+def resolve_match(match, query: dict | None = None, path: str = "") -> PageContext:
+    """То же, но по УЖЕ разобранному `request.resolver_match`.
+
+    На витрине Django резолвит путь сам, ещё до вьюхи, — второй разбор ради
+    `data-stu-page` был бы платой на каждом рендере страницы. `match` может быть
+    `None` (страница вне urlconf) — это честный `other`, а не ошибка.
+    """
+    q: dict[str, str] = dict(query or {})
+    if match is None:
+        return PageContext(OTHER, path=path, query=q)
+
+    pt = _BY_URL_NAME.get(getattr(match, "url_name", "") or "")
     if pt is None:
-        return PageContext(OTHER, path=clean, query=q)
+        return PageContext(OTHER, path=path, query=q)
 
     # Группа акций — тот же роут, что обзор, но с выбранной группой.
     if pt.code == "promos" and (q.get("gruppe") or "").strip():
@@ -392,7 +406,7 @@ def resolve_page(path: str, query: dict | None = None) -> PageContext:
             group,
             object_ref=q["gruppe"].strip(),
             block_host=group.block_host,
-            path=clean,
+            path=path,
             query=q,
         )
 
@@ -413,4 +427,4 @@ def resolve_page(path: str, query: dict | None = None) -> PageContext:
 
         host = category_host(ref) or pt.block_host
 
-    return PageContext(pt, object_ref=ref, block_host=host, path=clean, query=q)
+    return PageContext(pt, object_ref=ref, block_host=host, path=path, query=q)

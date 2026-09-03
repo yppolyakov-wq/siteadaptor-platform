@@ -204,3 +204,128 @@ def test_every_form_field_exists_in_the_studio_template():
         elif field not in names:
             missing.append((setting.code, field))
     assert not missing, f"поля реестра нет в форме Studio: {missing}"
+
+
+# ── STU-2: витрина сообщает редактору, ЧТО открыто ───────────────────────────
+
+
+@pytest.mark.django_db
+def test_storefront_body_carries_page_type(settings):
+    """Без этой подсказки панель «Эта страница» показывала бы настройки наугад:
+    по пути тип не читается (`/sortiment/<uuid>/` — товар, `/sortiment/<slug>/` —
+    категория), а второй разбор пути на каждом рендере витрины — лишняя плата,
+    поэтому берём УЖЕ разобранный `resolver_match`."""
+    from importlib import import_module
+
+    from django.conf import settings as dj_settings
+    from django.test import RequestFactory
+    from django.urls import resolve
+
+    from apps.promotions import public_views
+    from apps.tenants.tests.factories import TenantFactory
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = TenantFactory()
+    request = RequestFactory().get("/aktionen/")
+    request.session = import_module(dj_settings.SESSION_ENGINE).SessionStore()
+    request.tenant = tenant
+    request.resolver_match = resolve("/aktionen/", urlconf="config.urls_tenant")
+
+    html = public_views.promotion_list(request).content.decode()
+    assert 'data-stu-page="promos"' in html
+
+
+def test_resolve_match_tolerates_no_match():
+    """Страница вне urlconf (обработчик ошибки, статика) — честный `other`."""
+    ctx = sp.resolve_match(None, {}, path="/whatever/")
+    assert ctx.code == "other"
+
+
+# ── STU-2: уровень «Эта страница» в Studio ───────────────────────────────────
+
+
+def _builder_html(tenant):
+    from types import SimpleNamespace
+
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.core import views
+
+    req = RequestFactory().get("/dashboard/site/home/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    resp = views.home_builder_view(req)
+    assert resp.status_code == 200
+    return resp.content.decode()
+
+
+@pytest.fixture
+def builder_html(settings):
+    from apps.tenants.tests.factories import TenantFactory
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    return _builder_html(TenantFactory())
+
+
+@pytest.mark.django_db
+def test_rail_offers_two_levels(builder_html):
+    """Запрос владельца: «отдельная настройка слева "Общий макет", и далее уже
+    детально об этой [странице]». Раньше слева были ОБЛАСТИ, не совпадавшие с
+    содержимым панели."""
+    assert 'data-st-level="design"' in builder_html
+    assert 'data-st-level="page"' in builder_html
+    assert 'data-bld-area="page"' in builder_html
+    assert 'data-area="page"' in builder_html
+
+
+@pytest.mark.django_db
+def test_page_settings_are_tagged_by_type(builder_html):
+    """Настройки страницы акций и шаблона категории раньше жили в области «Тема» —
+    то есть были видны на ЛЮБОЙ странице, кроме своей."""
+    for marker in (
+        'data-stu-page="category"',
+        'data-stu-page="promo_group"',
+        'data-stu-page="promos promo_group"',
+    ):
+        assert marker in builder_html, marker
+
+
+@pytest.mark.django_db
+def test_no_control_is_lost_or_duplicated(builder_html):
+    """Инвариант W0/W6: перенос контролов между областями не имеет права ни потерять
+    поле (Save запишет дефолт вместо значения), ни удвоить его (в POST уедет
+    последнее, а владелец правил первое)."""
+    import re
+
+    for field in (
+        "catalog_preset",
+        "catalog_page_style",
+        "catalog_sort",
+        "catalog_show_filters",
+        "catalog_subcats_first",
+        "promo_page_style",
+        "promo_layout",
+        "promo_grouping",
+        "sd_category_page_style",
+        "sd_promo_group_style",
+        "sd_card_style",
+        "sd_promo_card",
+        "pd_layout",
+        "cart_show_upsell",
+        "pb_present",
+    ):
+        n = len(re.findall(rf'name="{field}"', builder_html))
+        assert n == 1, f"поле {field}: найдено {n} раз (ожидалось ровно одно)"
+
+
+@pytest.mark.django_db
+def test_type_labels_reach_the_client(builder_html):
+    """Подпись уровня = тип страницы на канве; коды приходят с <body> кадра, а
+    человеческие названия — картой из реестра."""
+    assert "studio_page_labels" not in builder_html, "переменная не подставлена"
+    for code in ("home", "category", "product", "promos", "other"):
+        assert f'"{code}"' in builder_html
