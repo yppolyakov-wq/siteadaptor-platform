@@ -10,7 +10,8 @@ from decimal import Decimal
 import pytest
 from django.utils import timezone
 
-from apps.core import payment_holds, payment_methods as pm, payments_page
+from apps.core import payment_holds, payments_page
+from apps.core import payment_methods as pm
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
