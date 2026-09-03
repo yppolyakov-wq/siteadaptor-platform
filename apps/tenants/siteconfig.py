@@ -19,6 +19,7 @@ import uuid
 from django.utils.translation import gettext_lazy as _
 
 from apps.catalog.category_styles import VALID_PAGE_STYLES as _CATEGORY_PAGE_STYLES
+from apps.catalog.category_styles import VALID_ROOT_STYLES as _ROOT_PAGE_STYLES
 from apps.catalog.option_styles import VARIANT_STYLE_KEYS as _CATALOG_VARIANT_STYLE_KEYS
 from apps.core import card_forms, detail_sections
 from apps.core.hero_tiles import HERO_TILE_WIDGETS
@@ -1608,6 +1609,7 @@ PAGE_CONFIG_KEYS = {
         "catalog_show_filters",
         "catalog_sort",
         "catalog_subcats_first",
+        "catalog_page_style",  # DL-21.1: шаблон корневой страницы каталога
     ),
     "cart": ("cart_show_upsell",),
     "info": (),
@@ -1641,6 +1643,13 @@ def apply_page_payload(cfg: dict, data: dict) -> None:
             cfg[key] = data[key]
     if data.get("catalog_sort") in CATALOG_SORT_KEYS:
         cfg["catalog_sort"] = data["catalog_sort"]
+    # DL-21.1: шаблон корневой страницы каталога — "" законно (снимает ключ).
+    if "catalog_page_style" in data:
+        cps = normalize_catalog_page_style(data.get("catalog_page_style"))
+        if cps:
+            cfg["catalog_page_style"] = cps
+        else:
+            cfg.pop("catalog_page_style", None)
 
 
 def page_config(config, page_type: str) -> dict:
@@ -2749,6 +2758,11 @@ _PROMO_GROUP_KEY_MAX = 50  # = Promotion.group.max_length
 _PROMO_GROUPS_MAX = 60
 
 
+def normalize_catalog_page_style(raw) -> str:
+    """DL-21.1: шаблон корневой `/sortiment/` — реестр каталога без «preisliste»."""
+    return raw if isinstance(raw, str) and raw in _ROOT_PAGE_STYLES and raw else ""
+
+
 def normalize_promo_groups(raw) -> dict:
     if not isinstance(raw, dict):
         return {}
@@ -2970,6 +2984,10 @@ def _normalize_impl(config) -> dict:
     promo_groups = normalize_promo_groups(config.get("promo_groups"))
     if promo_groups:
         normalized["promo_groups"] = promo_groups
+    # DL-21.1: шаблон КОРНЕВОЙ страницы каталога; ключ ТОЛЬКО при валидном значении.
+    catalog_page_style = normalize_catalog_page_style(config.get("catalog_page_style"))
+    if catalog_page_style:
+        normalized["catalog_page_style"] = catalog_page_style
     # AF-1: событийные поля формы /anfrage/; ключ ТОЛЬКО при непустом (golden-паритет).
     anfrage = normalize_anfrage(config.get("anfrage"))
     if anfrage:

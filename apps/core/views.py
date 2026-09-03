@@ -1755,6 +1755,14 @@ def home_builder_view(request):
             _cs = request.POST.get("catalog_sort", "")
             if _cs in siteconfig.CATALOG_SORT_KEYS:
                 config["catalog_sort"] = _cs
+        # DL-21.1: шаблон корневой страницы каталога — presence по самому полю
+        # (плитки шлют hidden всегда); "" = снять ключ (Standard).
+        if "catalog_page_style" in request.POST:
+            _cps = siteconfig.normalize_catalog_page_style(request.POST.get("catalog_page_style"))
+            if _cps:
+                config["catalog_page_style"] = _cps
+            else:
+                config.pop("catalog_page_style", None)
         # Корзина: показывать ли кросс-селл — presence-guard (cart_present шлётся панелью корзины).
         if request.tenant.is_module_active("catalog") and request.POST.get("cart_present"):
             config["cart_show_upsell"] = request.POST.get("cart_show_upsell") == "on"
@@ -2352,6 +2360,9 @@ def home_builder_view(request):
             "catalog_show_filters": config.get("catalog_show_filters", True),
             "catalog_sort": config.get("catalog_sort", "newest"),
             "catalog_subcats_first": config.get("catalog_subcats_first", True),
+            # DL-21.1: шаблон корневой страницы каталога + реестр (без preisliste).
+            "catalog_page_style": config.get("catalog_page_style", ""),
+            "catalog_root_styles": category_styles.root_styles(),
             "cart_show_upsell": config.get("cart_show_upsell", True),
             # ST-2: пикеры пресетов НЕ-home страниц (реестр page_presets) —
             # карточки в scoped-строках панели; рекомендованные типу бизнеса

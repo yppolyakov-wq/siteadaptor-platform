@@ -69,6 +69,29 @@ CATEGORY_PAGE_STYLES = [
 ]
 VALID_PAGE_STYLES = frozenset(code for code, _l, _h in CATEGORY_PAGE_STYLES)
 
+# DL-21.1: КОРНЕВАЯ страница каталога `/sortiment/` берёт тот же реестр — роль
+# подкатегорий играют корневые направления. «Preisliste» на корне не шаблон:
+# прайс-вид там уже даёт `catalog_layout.preset` в той же строке Studio, второй
+# переключатель того же — урок DL-9.
+ROOT_EXCLUDED = frozenset({"preisliste"})
+
+
+def root_styles() -> list[tuple[str, object, object]]:
+    return [entry for entry in CATEGORY_PAGE_STYLES if entry[0] not in ROOT_EXCLUDED]
+
+
+VALID_ROOT_STYLES = frozenset(code for code, _l, _h in root_styles())
+
+
+def root_page_style(raw) -> str:
+    """Шаблон корневой страницы каталога (`site_config["catalog_page_style"]`).
+
+    Дефолт КАТЕГОРИЙ сюда не наследуется (Р-2 плана DL-21): «поставил категориям
+    Navigator — корень стал Navigator» был бы сюрпризом. Мусор → Standard.
+    """
+    code = (raw or "").strip() if isinstance(raw, str) else ""
+    return code if code in VALID_ROOT_STYLES and code else ""
+
 
 def page_style(category, site_default: str = "") -> str:
     """Эффективный шаблон страницы категории.

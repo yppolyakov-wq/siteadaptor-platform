@@ -8,7 +8,7 @@
 {% comment %}DL-20: действующий шаблон СТРАНИЦЫ категории — атрибутом на корне
 листинга. Ставится только на странице категории (на общем /sortiment/ шаблона нет),
 пустое значение атрибута не даёт вовсе → прежняя разметка байт-в-байт.{% endcomment %}
-{% block listing_root_attrs %}{% if is_category_page and category_page_style %} data-cat-layout="{{ category_page_style }}"{% endif %}{% endblock %}
+{% block listing_root_attrs %}{% if category_page_style %} data-cat-layout="{{ category_page_style }}"{% endif %}{% endblock %}
 
 {% block structured_data %}{{ block.super }}{% if catalog_breadcrumb_ld %}<script type="application/ld+json">{{ catalog_breadcrumb_ld|safe }}</script>{% endif %}{% endblock %}
 
@@ -38,7 +38,7 @@
     <a href="{% url 'storefront-combos' %}" class="inline-block mt-2 text-sm font-medium" style="color: var(--accent);">🍔 {% trans "See our combos & menus" %} &rarr;</a>
   {% endif %}
 </div>
-{% if show_category_header %}{% include "storefront/_category_header.html" %}{% endif %}
+{% if show_category_header %}{% include "storefront/_category_header.html" %}{% elif show_root_header %}{% include "storefront/category/_root_header.html" %}{% endif %}
 {% comment %}Фидбэк владельца 2026-08-27: «блюда по 6 и НАД НИМИ перенести
 фильтр и переключатель видов». Секция наборов и заголовок блюд переехали из
 блока сетки в ШАПКУ листинга: тулбар каркаса (фильтры · сортировка · вид ·
@@ -64,8 +64,8 @@
 {% comment %}DL-20: боковая колонка «Navigator» — ПЕРВЫМ прямым ребёнком корня
 листинга: CSS раскладывает корень в две колонки по этому маркеру, поэтому позиция
 в разметке важна. Указатель подкатегорий «Kompakt» идёт над фильтрами.{% endcomment %}
-{% if category_side_nav %}{% include "storefront/category/_side_nav.html" %}{% endif %}
-{% if category_page_style == "kompakt" %}{% include "storefront/category/_subcat_index.html" %}{% endif %}
+{% if category_side_nav %}{% include "storefront/category/_side_nav.html" with subcategories=side_categories %}{% endif %}
+{% if category_page_style == "kompakt" %}{% include "storefront/category/_subcat_index.html" with subcategories=side_categories %}{% endif %}
 {% if categories %}
 {% comment %}Фидбэк владельца 2026-08-07: «категории сделай картинками». Когда у
 категорий есть фото — сетка плиток (общий партиал с секцией главной, форма и
@@ -78,6 +78,7 @@
 <div class="mb-6">
   <a href="{% url 'storefront-products' %}{% if ansicht %}?ansicht={{ ansicht }}{% endif %}" class="inline-block text-sm text-indigo-600 hover:underline">← {% trans "All" %}</a>
 </div>
+{% elif root_list_hidden %}{% comment %}DL-21.1: направления уже в полках/табах/колонке/указателе{% endcomment %}
 {% elif categories_have_images %}
 <div class="mb-6">
   <div data-grid="categories" class="{{ categories_grid }}" {% sf_grid_attrs categories_layout count=categories|length %}>
@@ -220,7 +221,8 @@ MEN-22 остаётся механикой главной. Мобильный «
 {% block listing_bar_view %}{% if catalog_preset|slice:":10" != "preisliste" %}{% comment %}KAT-4: плотность карточной сетки — только в карточном виде (в прайсе сетки нет).{% endcomment %}{% include "storefront/_density_control.html" with dc_mode="grid" dc_key="catalog" dc_default=catalog_cols %}{% endif %}{% include "storefront/_price_view_links.html" %}{% endblock %}
 
 {% block listing_grid %}
-{% if page.items %}
+{% if shelves_only %}{% comment %}DL-21.1: корень «Regale» — полки и есть страница{% endcomment %}
+{% elif page.items %}
 {% if catalog_preset|slice:":10" == "preisliste" %}
 {% comment %}DS-3a (Fokus): пресет «прайс-лист» — текущая ВЫДАЧА листинга (фасеты/
 поиск/пагинация провайдера UB уже применены) группируется по категориям строками.{% endcomment %}
@@ -235,12 +237,12 @@ MEN-22 остаётся механикой главной. Мобильный «
 {% comment %}DL-20 (P1 «Schaufenster»): первый товар — широкой картой над сеткой. Только
 на ПЕРВОЙ странице выдачи и только без активных фасетов: иначе «главным» становился бы
 случайный товар из отфильтрованного хвоста.{% endcomment %}
-{% if category_page_style == "schaufenster" and is_category_page and not any_facet_active %}
+{% if category_page_style == "schaufenster" and not any_facet_active %}
   {% with p=page.items.0 %}{% include "storefront/category/_hero_product.html" %}{% endwith %}
 {% endif %}
 <div data-grid="catalog" data-sf-section="catalog" class="{{ catalog_grid|default:'grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}" {% sf_grid_attrs catalog_layout count=page.items|length %}{% if category_page_style == "mosaik" %} data-cat-bento{% endif %}>
   {% for p in page.items %}
-    {% if category_page_style == "schaufenster" and forloop.first and is_category_page and not any_facet_active %}{% comment %}уже показан героем{% endcomment %}
+    {% if category_page_style == "schaufenster" and forloop.first and not any_facet_active %}{% comment %}уже показан героем{% endcomment %}
     {% elif category_page_style == "magazin" %}
       {% comment %}DL-20 (P3 «Magazin»): карточка остаётся той, что выбрал владелец (ось форм
       карточки не подменяем) — композиция добавляет к ней тизер описания.{% endcomment %}
@@ -260,7 +262,7 @@ MEN-22 остаётся механикой главной. Мобильный «
 {% endblock %}
 
 {% block listing_pagination %}
-{% if page.items and page.has_more %}
+{% if page.items and page.has_more and not shelves_only %}
 <div class="mt-8 text-center">
   {# Курсор привязан к фасетам+сортировке → несём все активные фасеты (filter_qs) + sort. #}
   <a href="?{% if filter_qs %}{{ filter_qs }}&amp;{% endif %}sort={{ sort }}&amp;cursor={{ page.next_cursor|urlencode }}"
@@ -270,7 +272,7 @@ MEN-22 остаётся механикой главной. Мобильный «
 {% endblock %}
 
 {% block listing_empty %}
-{% if not page.items %}
+{% if not page.items and not shelves_only %}
   {% if q %}
     <p class="text-gray-400">{% trans "Nothing found. Try a different search." %}</p>
   {% elif shelves or category_tabs %}

@@ -922,9 +922,14 @@ def product_list(request, slug=None):
     # любом слое → Standard. Конфиг поднят выше по вьюхе именно ради этого дефолта
     # (раньше он читался только к раскладке, ниже по коду).
     from apps.catalog.category_styles import page_style as _category_page_style
+    from apps.catalog.category_styles import root_page_style as _root_page_style
 
     _cat_style_default = cfg["site_defaults"].get("category_page_style", "")
     cat_style = _category_page_style(category, _cat_style_default) if category is not None else ""
+    # DL-21.1: у КОРНЯ /sortiment/ свой ключ `catalog_page_style` — дефолт категорий
+    # сюда не наследуется (Р-2 плана); роль подкатегорий играют корневые направления.
+    if not path_mode:
+        cat_style = _root_page_style(cfg.get("catalog_page_style", ""))
     # Снимок набора в рамках выбранной категории ДО фасет-фильтров — из него считаем
     # доступные значения фасетов (границы цены / присутствующие бейджи / есть ли
     # распроданное), чтобы показывать только релевантные фильтры и реальные диапазоны.
@@ -1002,11 +1007,18 @@ def product_list(request, slug=None):
     shelves = []
     # полки/табы считают по ВСЕМ активным товарам, не по отфильтрованной выдаче страницы
     _all_products = Product.objects.filter(is_active=True)
-    if path_mode and cat_style == "regale" and subcategories:
+    _shelf_sources = subcategories if path_mode else categories  # DL-21.1: корень — направления
+    if cat_style == "regale" and _shelf_sources:
         from .price_layer import attach_promos as _attach_promos_shelf
 
-        for sub in subcategories:
-            sub_qs = _all_products.filter(category=sub)
+        for sub in _shelf_sources:
+            if path_mode:
+                sub_qs = _all_products.filter(category=sub)
+            else:
+                # корневое направление держит товары в детях (KAT-1: контейнер включает
+                # прямых детей) — полка собирает поддерево на один уровень
+                _ids = [sub.pk, *sub.children.filter(is_active=True).values_list("pk", flat=True)]
+                sub_qs = _all_products.filter(category_id__in=_ids)
             items = list(sub_qs.order_by("-is_featured", "-created_at")[:8])
             if items:
                 _attach_promos_shelf(items)
@@ -1048,6 +1060,38 @@ def product_list(request, slug=None):
             }
             for sub in _subs
         ]
+    if not path_mode and cat_style == "tabs" and categories:
+        # DL-21.1: корень — «Alle» (актив) + корневые направления со счётчиком поддерева.
+        from django.db.models import Count as _Count
+
+        _child_ids = {
+            c.pk: [c.pk, *c.children.filter(is_active=True).values_list("pk", flat=True)]
+            for c in categories
+        }
+        _by_cat = {
+            r["category_id"]: r["n"]
+            for r in _all_products.filter(
+                category_id__in=[i for ids in _child_ids.values() for i in ids]
+            )
+            .values("category_id")
+            .annotate(n=_Count("id"))
+        }
+        category_tabs = [
+            {
+                "label": _("All"),
+                "url": reverse("storefront-products"),
+                "active": True,
+                "count": _all_products.count(),
+            }
+        ] + [
+            {
+                "label": c,
+                "url": reverse("storefront-category", args=[c.slug]),
+                "active": False,
+                "count": sum(_by_cat.get(i, 0) for i in _child_ids[c.pk]),
+            }
+            for c in categories
+        ]
     # DL-16.5 (K1): хлебные крошки страницы категории (видимые + BreadcrumbList).
     catalog_breadcrumbs = []
     catalog_breadcrumb_ld = ""
@@ -1084,7 +1128,7 @@ def product_list(request, slug=None):
         "mosaik": "cols4",
         "kompakt": "cols6",
     }
-    if path_mode and cat_style in _STYLE_PRESET:
+    if cat_style in _STYLE_PRESET:
         # Стенд DL-20: `cfg["catalog_layout"]` уже нормализован и несёт ЯВНЫЕ cols/
         # mobile/tablet — normalize_layout ставит их выше пресета, и «cols4» менял
         # только ярлык (сетка оставалась 3-колоночной). Шаблон задаёт плотность —
@@ -1255,6 +1299,10 @@ def product_list(request, slug=None):
         )
         if v
     ]
+    _heroes = cfg.get("heroes") or []
+    _root_header_photo = cfg.get("hero_image") or (
+        (_heroes[0] or {}).get("image", "") if _heroes and isinstance(_heroes[0], dict) else ""
+    )
     return render(
         request,
         "storefront/products.html",
@@ -1302,6 +1350,19 @@ def product_list(request, slug=None):
             "subcats_hidden": cat_style in ("regale", "tabs", "navigator", "kompakt"),
             # DL-20: боковая колонка «Navigator» — фасеты и структура рядом с товарами.
             "category_side_nav": cat_style == "navigator",
+            # DL-21.1: корень — те же композиции над корневыми направлениями.
+            "root_list_hidden": (
+                not path_mode and cat_style in ("regale", "tabs", "navigator", "kompakt")
+            ),
+            "side_categories": subcategories if path_mode else categories,
+            "show_root_header": bool(
+                not path_mode
+                and cat_style in ("kopfbild", "magazin", "schaufenster")
+                and (cfg.get("catalog_intro") or _root_header_photo)
+            ),
+            "root_header_photo": _root_header_photo,
+            # корень «Regale»: страница = полки; общая сетка всех товаров дублировала бы их
+            "shelves_only": bool(not path_mode and cat_style == "regale" and shelves),
             "catalog_breadcrumbs": catalog_breadcrumbs,
             "catalog_breadcrumb_ld": catalog_breadcrumb_ld,
             # KAT-1/фидбэк 2026-08-26: у страницы категории — свой хост C-блоков

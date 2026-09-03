@@ -1,0 +1,15 @@
+{% load i18n %}{% comment %}DL-21.1: шапка КОРНЕВОЙ страницы каталога для шаблонов
+kopfbild/magazin/schaufenster — интро каталога слева, фото сайта (hero) справа. Имя
+страницы остаётся в listing_header (замок порядка); без интро и без фото шапка не
+рендерится (гейт show_root_header во вьюхе).{% endcomment %}
+<section class="mb-8 grid md:grid-cols-2 gap-6 md:gap-10 items-center" data-root-header>
+  <div class="py-2 md:py-6">
+    <p class="text-[11px] font-bold tracking-[0.13em] uppercase mb-2" style="color: var(--accent, #4f46e5);">{{ request.tenant.get_business_type_display }}{% if request.tenant.city %} · {{ request.tenant.city }}{% endif %}</p>
+    {% if catalog_intro %}<p class="text-gray-600 max-w-md whitespace-pre-line" data-edit="catalog_intro">{{ catalog_intro }}</p>{% endif %}
+  </div>
+  {% if root_header_photo %}
+  <div class="relative min-h-[200px] md:min-h-[300px] rounded-2xl overflow-hidden bg-gray-100">
+    <img src="{{ root_header_photo }}" alt="" class="absolute inset-0 w-full h-full object-cover">
+  </div>
+  {% endif %}
+</section>

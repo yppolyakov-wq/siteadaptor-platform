@@ -750,6 +750,11 @@
             <label class="flex items-center gap-1.5 text-xs text-gray-600 w-full" title="{% trans 'Show subcategory cards first' %}">
               <input type="checkbox" name="catalog_subcats_first" {% if catalog_subcats_first %}checked{% endif %} class="rounded border-gray-300">{% trans "Subcategories first" %}
             </label>
+            {% comment %}DL-21.1: шаблон КОРНЕВОЙ страницы каталога — свой ключ, дефолт
+            категорий сюда не наследуется. Без «Preisliste»: прайс-вид даёт селект выше.{% endcomment %}
+            <div class="w-full">
+              {% include "tenant/_cardform_picker.html" with name="catalog_page_style" value=catalog_page_style items=catalog_root_styles thumb="tenant/_pagelayout_thumb.html" title=_("Seitenvorlage") %}
+            </div>
           </div>
           {% endif %}
           {% if has_events %}
@@ -2276,6 +2281,9 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     if (scChk) payload.catalog_subcats_first = scChk.checked;  // живо подкатегории-первыми
     var csSel = form.querySelector("select[name='catalog_sort']");
     if (csSel && csSel.value) payload.catalog_sort = csSel.value;  // живо дефолт-сортировка
+    // DL-21.1: шаблон корневой страницы каталога ("" законно — снимает ключ)
+    var cpsInp = form.querySelector("[name='catalog_page_style']");
+    if (cpsInp) payload.catalog_page_style = cpsInp.value;
     var csChk = form.querySelector("input[name='cart_show_upsell']");
     if (csChk) payload.cart_show_upsell = csChk.checked;  // живо вкл/выкл кросс-селл корзины
     // DL-17.3: страница акций — раскладка групп и режим группировки ("" законно:
