@@ -21902,3 +21902,59 @@ msgstr "Діє там, де в категорії немає власного ш
 
 msgid "Leave on Standard to follow the site-wide setting."
 msgstr "Залиште «Standard», щоб діяло налаштування всього сайту."
+
+msgid "Standard (grid)"
+msgstr "Стандарт (сітка)"
+
+msgid "As before: a plain grid of all offers in the group."
+msgstr "Як раніше: проста сітка всіх акцій групи."
+
+msgid "Group header and the main deal as a wide card, the rest as a grid."
+msgstr "Заголовок групи та головна акція широкою карткою, решта сіткою."
+
+msgid "Flyer"
+msgstr "Листівка"
+
+msgid ""
+"Coloured header with the validity period and a dense grid — like a leaflet."
+msgstr ""
+"Кольорова шапка з терміном дії та щільна сітка — як рекламна листівка."
+
+msgid "Cover, two offers per row, conditions right on the card."
+msgstr "Обкладинка, по дві акції в ряд, умови просто на картці."
+
+msgid "Countdown"
+msgstr "Зворотний відлік"
+
+msgid "One timer for the whole campaign, offers sorted by time left."
+msgstr "Один таймер на всю кампанію, акції за залишком часу."
+
+msgid "Comparison"
+msgstr "Порівняння"
+
+msgid "Offers side by side as columns — for packages and tariffs."
+msgstr "Акції колонками поруч — для пакетів і тарифів."
+
+msgid "Applies where a group has no template of its own."
+msgstr "Діє там, де у групи немає власного шаблону."
+
+msgid "Standard = wie in den Website-Einstellungen eingestellt."
+msgstr "«Standard» = як задано в налаштуваннях сайту."
+
+msgid "Vorlagen der Gruppenseiten"
+msgstr "Шаблони сторінок груп"
+
+msgid "Offer group page (whole site)"
+msgstr "Сторінка групи акцій (весь сайт)"
+
+msgid "Popular"
+msgstr "Популярне"
+
+msgid "Ends soon"
+msgstr "Скоро завершиться"
+
+msgid "valid until %(d)s"
+msgstr "діє до %(d)s"
+
+msgid "Category page (whole site)"
+msgstr "Сторінка категорії (весь сайт)"

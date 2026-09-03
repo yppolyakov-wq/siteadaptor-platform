@@ -21,7 +21,7 @@ from apps.core.documents import document_language
 from apps.core.fsm import IllegalTransition
 from apps.loyalty.models import LoyaltyCard, LoyaltyProgram, Voucher
 
-from . import services
+from . import group_styles, services
 from .forms import LoyaltyProgramForm, PromotionForm, VoucherCreateForm
 from .models import Customer, Promotion, Reservation
 from .poster import build_shop_poster_pdf
@@ -199,6 +199,10 @@ def promotion_list(request):
             # DL-13 C3: текущий режим страницы /aktionen/ (панель «gliedern»).
             "promo_grouping": _promo_grouping(request),
             "promo_layout": _promo_layout(request),  # DL-16.2 A3
+            # DL-20: шаблон страницы КАЖДОЙ группы (модели группы нет — ключ словаря
+            # site_config["promo_groups"] совпадает с ключом фасета `?gruppe=`).
+            "group_page_styles": group_styles.GROUP_PAGE_STYLES,
+            "promo_group_rows": _promo_group_rows(request),
         },
     )
 
@@ -209,6 +213,24 @@ def _promo_grouping(request) -> str:
     raw = getattr(getattr(request, "tenant", None), "site_config", None)
     raw = raw if isinstance(raw, dict) else {}
     return siteconfig.normalize_promo_grouping(raw.get("promo_grouping"))
+
+
+def _promo_group_rows(request):
+    """DL-20: живые группы владельца + выбранный шаблон страницы каждой.
+
+    Список строится по САМИМ акциям, а не по словарю настроек: группа —
+    свободный текст, и запись, осиротевшая после переименования, не должна
+    показываться владельцу как существующая группа.
+    """
+    from apps.tenants import siteconfig
+
+    raw = getattr(getattr(request, "tenant", None), "site_config", None)
+    raw = raw if isinstance(raw, dict) else {}
+    saved = siteconfig.normalize_promo_groups(raw.get("promo_groups"))
+    names = sorted(
+        {g for g in Promotion.objects.exclude(group="").values_list("group", flat=True) if g}
+    )
+    return [{"name": g, "style": saved.get(g, "")} for g in names]
 
 
 def _promo_layout(request) -> str:
@@ -242,6 +264,24 @@ def promotion_page_mode(request):
         cfg["promo_layout"] = layout
     else:
         cfg.pop("promo_layout", None)
+    # DL-20: шаблон страницы каждой группы. Поля приходят как `group_style:<имя>`;
+    # пустое значение = «как на всём сайте» (записи в словаре нет → presence-minimal).
+    groups = dict(siteconfig.normalize_promo_groups(cfg.get("promo_groups")))
+    for key, value in request.POST.items():
+        if not key.startswith("group_style:"):
+            continue
+        name = key[len("group_style:") :].strip()
+        if not name:
+            continue
+        if (value or "").strip():
+            groups[name] = value.strip()
+        else:
+            groups.pop(name, None)
+    groups = siteconfig.normalize_promo_groups(groups)
+    if groups:
+        cfg["promo_groups"] = groups
+    else:
+        cfg.pop("promo_groups", None)
     tenant.site_config = cfg
     tenant.save(update_fields=["site_config", "updated_at"])
     messages.success(request, _("Ansicht der Aktionsseite gespeichert."))

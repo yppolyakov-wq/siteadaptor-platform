@@ -1,0 +1,45 @@
+{% load i18n siteui %}{% comment %}DL-20: тело страницы группы акций. Пять композиций;
+пустой шаблон отдаёт прежнюю плоскую сетку БАЙТ-В-БАЙТ (замки test_promotions_parity,
+test_dl16_aktionen), поэтому ветка Standard живёт в самом promotions_list.html, а сюда
+попадают только выбранные шаблоны.{% endcomment %}
+{% if group_page_style == "schaufenster" %}
+  {% with p=promotions.0 %}{% include "storefront/_promo_featured.html" %}{% endwith %}
+  {% if promotions|length > 1 %}
+  <div data-grid="promo_list" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" {% sf_grid_attrs cols="2/2/3" count=promotions|length %}>
+    {% for p in promotions %}{% if not forloop.first %}{% include "storefront/_promo_card.html" with in_group=True %}{% endif %}{% endfor %}
+  </div>
+  {% endif %}
+{% elif group_page_style == "prospekt" %}
+  {% comment %}Плотная сетка «как в рекламной газете»: до шести в ряд, минимум текста.{% endcomment %}
+  <div data-grid="promo_list" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3" data-group-grid="prospekt" {% sf_grid_attrs cols="2/3/5" count=promotions|length %}>
+    {% for p in promotions %}{% include "storefront/_promo_card.html" with in_group=True %}{% endfor %}
+  </div>
+{% elif group_page_style == "magazin" %}
+  <div data-grid="promo_list" class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6" {% sf_grid_attrs cols="1/2/2" count=promotions|length %}>
+    {% for p in promotions %}
+    <div class="flex flex-col" data-group-item="magazin">
+      {% include "storefront/_promo_card.html" with in_group=True %}
+      {% if p.conditions %}
+      <ul class="mt-2 space-y-0.5 text-[11px] leading-tight text-gray-500 dark:text-gray-400">
+        {% for c in p.conditions %}<li>{{ c.icon }} {{ c.text }}</li>{% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+{% elif group_page_style == "countdown" %}
+  <div data-grid="promo_list" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" data-group-grid="countdown" {% sf_grid_attrs cols="2/2/3" count=promotions|length %}>
+    {% for p in promotions %}{% include "storefront/_promo_card.html" with in_group=True %}{% endfor %}
+  </div>
+{% elif group_page_style == "vergleich" %}
+  {% comment %}Колонки одинаковой высоты: акции группы сравнивают между собой (пакеты,
+  тарифы, абонементы). «Beliebt» — средняя колонка при нечётном числе.{% endcomment %}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch" data-group-compare>
+    {% for p in promotions %}
+    <div class="flex flex-col h-full{% if promo_middle == forloop.counter0 %} ring-2 ring-offset-2 rounded-2xl{% endif %}"{% if promo_middle == forloop.counter0 %} style="--tw-ring-color: var(--accent, #4f46e5);" data-group-featured{% endif %}>
+      {% if promo_middle == forloop.counter0 %}<p class="mb-1 text-center text-xs font-bold uppercase tracking-wide" style="color: var(--accent, #4f46e5);">{% trans "Popular" %}</p>{% endif %}
+      <div class="flex-1 flex [&>div]:w-full [&>div]:h-full">{% include "storefront/_promo_card.html" with in_group=True %}</div>
+    </div>
+    {% endfor %}
+  </div>
+{% endif %}

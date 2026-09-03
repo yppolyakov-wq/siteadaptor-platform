@@ -21692,3 +21692,59 @@ msgstr "Applies where a category has no template of its own."
 
 msgid "Leave on Standard to follow the site-wide setting."
 msgstr "Leave on Standard to follow the site-wide setting."
+
+msgid "Standard (grid)"
+msgstr "Standard (grid)"
+
+msgid "As before: a plain grid of all offers in the group."
+msgstr "As before: a plain grid of all offers in the group."
+
+msgid "Group header and the main deal as a wide card, the rest as a grid."
+msgstr "Group header and the main deal as a wide card, the rest as a grid."
+
+msgid "Flyer"
+msgstr "Flyer"
+
+msgid ""
+"Coloured header with the validity period and a dense grid — like a leaflet."
+msgstr ""
+"Coloured header with the validity period and a dense grid — like a leaflet."
+
+msgid "Cover, two offers per row, conditions right on the card."
+msgstr "Cover, two offers per row, conditions right on the card."
+
+msgid "Countdown"
+msgstr "Countdown"
+
+msgid "One timer for the whole campaign, offers sorted by time left."
+msgstr "One timer for the whole campaign, offers sorted by time left."
+
+msgid "Comparison"
+msgstr "Comparison"
+
+msgid "Offers side by side as columns — for packages and tariffs."
+msgstr "Offers side by side as columns — for packages and tariffs."
+
+msgid "Applies where a group has no template of its own."
+msgstr "Applies where a group has no template of its own."
+
+msgid "Standard = wie in den Website-Einstellungen eingestellt."
+msgstr "Standard = as set in the website settings."
+
+msgid "Vorlagen der Gruppenseiten"
+msgstr "Templates for group pages"
+
+msgid "Offer group page (whole site)"
+msgstr "Offer group page (whole site)"
+
+msgid "Popular"
+msgstr "Popular"
+
+msgid "Ends soon"
+msgstr "Ends soon"
+
+msgid "valid until %(d)s"
+msgstr "valid until %(d)s"
+
+msgid "Category page (whole site)"
+msgstr "Category page (whole site)"

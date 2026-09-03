@@ -28,7 +28,7 @@ from apps.core.pagecache import cache_storefront_page
 from apps.core.pagination import paginate
 from apps.core.seo import offer_ld
 from apps.loyalty.models import LoyaltyCard, LoyaltyProgram, Voucher
-from apps.promotions import rules_text
+from apps.promotions import group_styles, rules_text
 
 from .forms import PublicReservationForm, WaitlistForm
 from .models import (
@@ -484,9 +484,11 @@ def promotion_list(request):
     _base_qs.pop("ansicht", None)
     ansicht_base_qs = _base_qs.urlencode()
     # DL-16.2 (A3): раскладка групп — сетка или ленты-слайдеры (Studio-панель)
-    promo_layout = siteconfig.normalize_promo_layout(
-        _promo_page_config(request).get("promo_layout")  # DL-17.3: с учётом черновика
-    )
+    # DL-17.3: конфиг страницы с учётом черновика билдера (?preview=1) — один раз
+    # на запрос: из него берутся и раскладка групп (A3), и шаблон страницы группы (DL-20).
+    page_cfg = _promo_page_config(request)
+    cfg = siteconfig.normalize(page_cfg)
+    promo_layout = siteconfig.normalize_promo_layout(page_cfg.get("promo_layout"))
     # поиск ДО apply: фильтр «−N %+» материализует список (см. PromoFacets)
     promotions = _attach_lowest_30d(
         provider.sort(provider.apply(provider.search(base, q), request.GET), sort)
@@ -593,6 +595,33 @@ def promotion_list(request):
         *[_chip(f"−{n} %+", "rabatt", n) for n in DISCOUNT_PRESETS],
         _chip(_("Reservable"), "reservierbar", "1"),
     ]
+    # DL-20: страница ГРУППЫ акций. До этой волны её фактически не было — фильтр
+    # `?gruppe=` отдавал плоскую сетку под общим заголовком, и посетитель, пришедший
+    # по ссылке из меню, не видел даже названия открытой группы. Теперь у группы есть
+    # заголовок (всегда) и шаблон страницы: свой у группы → дефолт сайта → Standard.
+    group_label, group_style, group_ends_at, group_valid_until = "", "", None, None
+    if selected:
+        group_label = group_labels.get(selected, selected)
+        group_style = group_styles.group_style(
+            selected,
+            cfg.get("promo_groups"),
+            cfg["site_defaults"].get("promo_group_style", ""),
+        )
+        ends = [p.ends_at for p in promotions if p.ends_at]
+        group_ends_at = min(ends) if ends else None
+        group_valid_until = max(ends) if ends else None
+        if group_style == "countdown" and not sort:
+            # «Countdown» — про срочность: первыми истекающие. Явный выбор сорта
+            # посетителем сильнее (иначе его переключатель молча не работал бы).
+            promotions = sorted(
+                promotions, key=lambda p: (p.ends_at is None, p.ends_at or timezone.now())
+            )
+        if group_style == "magazin":
+            # DL-16.3: условия акции человеческим языком — на карточке, а не только
+            # на детальной (для группы услуг «Mo–Mi до 14:00» важнее размера скидки).
+            for promo in promotions:
+                promo.conditions = rules_text.conditions_for(promo)
+
     toolbar_hidden = [
         (k, v)
         for k, v in (
@@ -622,6 +651,16 @@ def promotion_list(request):
             "sort_options": provider.sort_options(),
             "toolbar_hidden": toolbar_hidden,
             "promo_layout": promo_layout,  # DL-16.2 A3
+            # DL-20: страница группы — заголовок и шаблон композиции.
+            "group_label": group_label,
+            "group_page_style": group_style,
+            "group_ends_at": group_ends_at,
+            "group_valid_until": group_valid_until,
+            # «Vergleich»: средняя колонка помечается «Popular» — при нечётном числе
+            # акций это середина, при чётном пометки нет (иначе выбор произволен).
+            "promo_middle": (
+                len(promotions) // 2 if group_style == "vergleich" and len(promotions) % 2 else None
+            ),
             "list_view": list_view,  # DL-16.2 A4
             "ansicht_base_qs": ansicht_base_qs,
         },
@@ -1046,8 +1085,20 @@ def product_list(request, slug=None):
         "kompakt": "cols6",
     }
     if path_mode and cat_style in _STYLE_PRESET:
+        # Стенд DL-20: `cfg["catalog_layout"]` уже нормализован и несёт ЯВНЫЕ cols/
+        # mobile/tablet — normalize_layout ставит их выше пресета, и «cols4» менял
+        # только ярлык (сетка оставалась 3-колоночной). Шаблон задаёт плотность —
+        # явные колонки снимаем, gap/width/tail владельца остаются.
+        _keep = {
+            k: v for k, v in cfg["catalog_layout"].items() if k not in ("cols", "mobile", "tablet")
+        }
+        if cat_style == "mosaik":
+            # Бенто — настоящая grid-сетка со спанами; хвост «spread» (DL-14) сделал бы
+            # контейнер flex, а DL-15 дорисовал бы широкую одиночную карточку поверх
+            # спанов. «show» = всё показать, ничего не распределять.
+            _keep["tail"] = "show"
         cfg["catalog_layout"] = siteconfig.normalize_layout(
-            {**cfg["catalog_layout"], "preset": _STYLE_PRESET[cat_style]},
+            {**_keep, "preset": _STYLE_PRESET[cat_style]},
             {"preset": _owner_preset},
             extra_presets=siteconfig.PAGE_EXTRA_PRESETS["catalog_layout"],
         )

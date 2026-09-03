@@ -21820,3 +21820,59 @@ msgstr "Kendi şablonu olmayan kategoriler için geçerlidir."
 
 msgid "Leave on Standard to follow the site-wide setting."
 msgstr "Site genelindeki ayarı kullanmak için Standart'ta bırakın."
+
+msgid "Standard (grid)"
+msgstr "Standart (ızgara)"
+
+msgid "As before: a plain grid of all offers in the group."
+msgstr "Eskisi gibi: gruptaki tüm tekliflerin düz bir ızgarası."
+
+msgid "Group header and the main deal as a wide card, the rest as a grid."
+msgstr "Grup başlığı ve ana fırsat geniş bir kart, kalanlar ızgara olarak."
+
+msgid "Flyer"
+msgstr "Broşür"
+
+msgid ""
+"Coloured header with the validity period and a dense grid — like a leaflet."
+msgstr ""
+"Geçerlilik süresini gösteren renkli başlık ve sık ızgara — broşür gibi."
+
+msgid "Cover, two offers per row, conditions right on the card."
+msgstr "Kapak, satır başına iki teklif, koşullar doğrudan kartın üzerinde."
+
+msgid "Countdown"
+msgstr "Geri sayım"
+
+msgid "One timer for the whole campaign, offers sorted by time left."
+msgstr "Tüm kampanya için tek sayaç, teklifler kalan süreye göre sıralanır."
+
+msgid "Comparison"
+msgstr "Karşılaştırma"
+
+msgid "Offers side by side as columns — for packages and tariffs."
+msgstr "Teklifler sütunlar hâlinde yan yana — paketler ve tarifeler için."
+
+msgid "Applies where a group has no template of its own."
+msgstr "Kendi şablonu olmayan gruplar için geçerlidir."
+
+msgid "Standard = wie in den Website-Einstellungen eingestellt."
+msgstr "Standart = web sitesi ayarlarında belirlendiği gibi."
+
+msgid "Vorlagen der Gruppenseiten"
+msgstr "Grup sayfası şablonları"
+
+msgid "Offer group page (whole site)"
+msgstr "Kampanya grubu sayfası (tüm site)"
+
+msgid "Popular"
+msgstr "Popüler"
+
+msgid "Ends soon"
+msgstr "Yakında bitiyor"
+
+msgid "valid until %(d)s"
+msgstr "%(d)s tarihine kadar geçerli"
+
+msgid "Category page (whole site)"
+msgstr "Kategori sayfası (tüm site)"

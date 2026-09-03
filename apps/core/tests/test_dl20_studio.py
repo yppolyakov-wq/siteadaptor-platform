@@ -16,6 +16,7 @@ from django.test import RequestFactory
 
 from apps.catalog import category_styles
 from apps.core import views
+from apps.promotions import group_styles
 from apps.tenants import siteconfig
 from apps.tenants.tests.factories import TenantFactory
 
@@ -82,3 +83,20 @@ def test_draft_channel_carries_the_page_template():
     body = _body(tenant)
     assert "sd_category_page_style" in body
     assert "category_page_style: sdCatPage" in body
+
+
+def test_studio_shows_the_group_page_default_too():
+    tenant = TenantFactory(schema_name="public", slug="dl20g2", name="DL20G2")
+    body = _body(tenant)
+    assert 'name="sd_promo_group_style"' in body
+    for code, _label, _hint in group_styles.GROUP_PAGE_STYLES:
+        assert f'data-cf-key="{code}"' in body, code
+
+
+def test_studio_saves_and_drafts_the_group_page_default():
+    tenant = TenantFactory(schema_name="public", slug="dl20g3", name="DL20G3")
+    cfg = _save(tenant, {"home_form": "1", "sd_promo_group_style": "prospekt"})
+    assert cfg["site_defaults"]["promo_group_style"] == "prospekt"
+    cfg = _save(tenant, {"home_form": "1", "sd_promo_group_style": ""})
+    assert "promo_group_style" not in cfg["site_defaults"]
+    assert "promo_group_style: sdGrpPage" in _body(tenant)

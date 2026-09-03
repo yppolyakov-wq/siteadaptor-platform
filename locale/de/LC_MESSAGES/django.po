@@ -21740,3 +21740,60 @@ msgstr "Gilt dort, wo eine Kategorie keine eigene Vorlage hat."
 msgid "Leave on Standard to follow the site-wide setting."
 msgstr ""
 "Auf Standard lassen, um die Einstellung für die ganze Website zu übernehmen."
+
+msgid "Standard (grid)"
+msgstr "Standard (Raster)"
+
+msgid "As before: a plain grid of all offers in the group."
+msgstr "Wie bisher: ein einfaches Raster aller Angebote der Gruppe."
+
+msgid "Group header and the main deal as a wide card, the rest as a grid."
+msgstr ""
+"Gruppen-Kopf und das Hauptangebot als breite Karte, der Rest als Raster."
+
+msgid "Flyer"
+msgstr "Prospekt"
+
+msgid ""
+"Coloured header with the validity period and a dense grid — like a leaflet."
+msgstr ""
+"Farbiger Kopf mit Gültigkeitszeitraum und dichtem Raster — wie ein Prospekt."
+
+msgid "Cover, two offers per row, conditions right on the card."
+msgstr "Titelbild, zwei Angebote pro Reihe, Bedingungen direkt auf der Karte."
+
+msgid "Countdown"
+msgstr "Countdown"
+
+msgid "One timer for the whole campaign, offers sorted by time left."
+msgstr "Ein Timer für die ganze Aktion, Angebote nach Restzeit sortiert."
+
+msgid "Comparison"
+msgstr "Vergleich"
+
+msgid "Offers side by side as columns — for packages and tariffs."
+msgstr "Angebote nebeneinander als Spalten — für Pakete und Tarife."
+
+msgid "Applies where a group has no template of its own."
+msgstr "Gilt dort, wo eine Gruppe keine eigene Vorlage hat."
+
+msgid "Standard = wie in den Website-Einstellungen eingestellt."
+msgstr "Standard = wie in den Website-Einstellungen eingestellt."
+
+msgid "Vorlagen der Gruppenseiten"
+msgstr "Vorlagen der Gruppenseiten"
+
+msgid "Offer group page (whole site)"
+msgstr "Gruppenseite für Aktionen (ganze Website)"
+
+msgid "Popular"
+msgstr "Beliebt"
+
+msgid "Ends soon"
+msgstr "Endet bald"
+
+msgid "valid until %(d)s"
+msgstr "gültig bis %(d)s"
+
+msgid "Category page (whole site)"
+msgstr "Kategorieseite (ganze Website)"

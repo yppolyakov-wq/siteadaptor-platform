@@ -59,6 +59,23 @@
       <option value="" {% if not promo_layout %}selected{% endif %}>{% trans "Raster (wie bisher)" %}</option>
       <option value="slider" {% if promo_layout == "slider" %}selected{% endif %}>{% trans "Slider (Gruppen als Leisten)" %}</option>
     </select>
+  {% comment %}DL-20: шаблон страницы КАЖДОЙ группы. Список строится по живым акциям,
+  а не по словарю настроек: группа — свободный текст, и осиротевшая после
+  переименования запись не должна показываться как существующая группа.
+  Поля идут в ту же форму (`group_style:<имя>`), сохранение — своей кнопкой:
+  плитки, в отличие от селектов выше, форму сами не отправляют.{% endcomment %}
+  {% if promo_group_rows %}
+  <details class="w-full mt-2" data-promo-group-styles>
+    <summary class="cursor-pointer text-sm text-gray-500">{% trans "Vorlagen der Gruppenseiten" %}</summary>
+    <div class="mt-3 space-y-4">
+      {% for row in promo_group_rows %}
+      {% include "tenant/_cardform_picker.html" with name="group_style:"|add:row.name value=row.style items=group_page_styles thumb="tenant/_pagelayout_thumb.html" title=row.name %}
+      {% endfor %}
+      <p class="text-xs text-gray-400">{% trans "Standard = wie in den Website-Einstellungen eingestellt." %}</p>
+      <button type="submit" class="rounded-xl bg-gray-900 text-white px-4 py-2 text-sm font-medium">{% trans "Save" %}</button>
+    </div>
+  </details>
+  {% endif %}
   </form>
   </div>
 

@@ -323,6 +323,10 @@
             {% include "tenant/_cardform_picker.html" with name="sd_category_page_style" value=category_page_style items=category_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Category page (whole site)") %}
             <p class="text-xs text-gray-500 mt-1">{% trans "Applies where a category has no template of its own." %}</p>
           </div>
+          <div class="mt-4">
+            {% include "tenant/_cardform_picker.html" with name="sd_promo_group_style" value=promo_group_style items=group_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Offer group page (whole site)") %}
+            <p class="text-xs text-gray-500 mt-1">{% trans "Applies where a group has no template of its own." %}</p>
+          </div>
         </div>
         {% comment %} SE-2d: глобальный стиль карточек — «весь сайт» (мастер-настройка, наследуется
            всеми сетками; блок может переопределить своим visual). SE-8a: эксперт-только. {% endcomment %}
@@ -2311,6 +2315,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       var sdVariant = form.querySelector("select[name='sd_variant_style']");
       // DL-20: шаблон страницы категории на весь сайт (плитки + hidden).
       var sdCatPage = form.querySelector("[name='sd_category_page_style']");
+      var sdGrpPage = form.querySelector("[name='sd_promo_group_style']");
       payload.site_defaults = {
         card_radius: sdR ? parseInt(sdR.value, 10) || 0 : 0,
         card_shadow: !!(sdSh && sdSh.checked),
@@ -2318,6 +2323,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         card_bg: sdBgOn && sdBgOn.checked && sdBg ? sdBg.value : "",
         card_style: sdStyle ? sdStyle.value : "",
         category_page_style: sdCatPage ? sdCatPage.value : "",
+        promo_group_style: sdGrpPage ? sdGrpPage.value : "",
         media_shape: sdMedia ? sdMedia.value : "",
         page_bg: sdPageBgOn && sdPageBgOn.checked && sdPageBg ? sdPageBg.value : "",
         card_chrome: sdChrome ? sdChrome.value : "",

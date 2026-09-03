@@ -4,8 +4,15 @@
 (Prospekt-логика, фидбэк 2026-07-29) сохранены байт-в-байт — замки
 test_promotions_parity; системные чипы/сорт/поиск — PromoFacets.{% endcomment %}
 
+{% comment %}DL-20: тикер шапки «Countdown» — ВНЕ [data-listing-root] (зона fetch-свопа,
+инлайн-скрипты там после подмены не исполняются).{% endcomment %}
+{% block content %}{{ block.super }}{% include "storefront/_countdown_script.html" %}{% endblock %}
+
 {% block listing_header %}
-  <h1 class="text-2xl md:text-3xl font-bold mb-4">{% trans "Current offers" %}</h1>
+  {% comment %}DL-20: у выбранной группы — своя шапка с названием и числом акций;
+  без группы — прежний заголовок страницы байт-в-байт.{% endcomment %}
+  {% if group_label %}{% include "storefront/promo_group/_header.html" %}
+  {% else %}<h1 class="text-2xl md:text-3xl font-bold mb-4">{% trans "Current offers" %}</h1>{% endif %}
 {% endblock %}
 
 {% block listing_facets %}
@@ -36,7 +43,8 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
     <input type="search" name="q" value="{{ q }}" placeholder="{% trans 'Aktionen durchsuchen …' %}" aria-label="{% trans 'Suchen' %}" class="h-9 w-full max-w-xs rounded-lg border border-gray-300 px-3 text-sm">
     <button type="submit" class="h-9 rounded-lg border border-gray-300 px-3 text-sm font-medium">{% trans "Suchen" %}</button>
   </form>
-  {% if result_count is not None %}
+  {% comment %}DL-20: под шапкой группы число акций уже стоит в ней — второй раз не печатаем.{% endcomment %}
+  {% if result_count is not None and not group_label %}
     <p class="text-sm text-gray-500 mb-4" data-result-count>{% blocktrans count n=result_count %}{{ n }} offer{% plural %}{{ n }} offers{% endblocktrans %}</p>
   {% endif %}
 {% endblock %}
@@ -116,6 +124,8 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
         {% endif %}
       </section>
     {% endfor %}
+  {% elif promotions and not list_view and group_page_style %}
+    {% include "storefront/promo_group/_grid.html" %}
   {% elif promotions and not list_view %}
     <div data-grid="promo_list" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" {% sf_grid_attrs cols="2/2/3" count=promotions|length %}>
       {% for p in promotions %}

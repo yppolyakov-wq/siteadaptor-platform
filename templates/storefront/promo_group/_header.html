@@ -1,0 +1,36 @@
+{% load i18n %}{% comment %}DL-20: шапка страницы группы акций. Ставится ВСЕГДА, когда
+группа выбрана, — до этой волны посетитель, пришедший по ссылке из меню, не видел даже
+названия того, что открыл (H1 оставался «Aktuelle Angebote»). Вид шапки зависит от
+шаблона: «Prospekt» — цветная плашка со сроком, «Countdown» — тёмная полоса с таймером,
+остальные — обычный заголовок.{% endcomment %}
+{% if group_page_style == "prospekt" %}
+<div class="mb-5 rounded-2xl px-4 py-3 text-white" style="background: var(--accent, #dc2626);" data-group-head="prospekt">
+  <h1 class="text-xl md:text-2xl font-extrabold leading-tight">{{ group_label }}</h1>
+  <p class="text-sm opacity-90 mt-0.5">
+    {% blocktrans count n=result_count %}{{ n }} offer{% plural %}{{ n }} offers{% endblocktrans %}{% if group_valid_until %} · {% blocktrans with d=group_valid_until|date:"d.m.Y" %}valid until {{ d }}{% endblocktrans %}{% endif %}
+  </p>
+</div>
+{% elif group_page_style == "countdown" %}
+<div class="mb-5 rounded-2xl bg-gray-900 text-white px-4 py-4 text-center" data-group-head="countdown">
+  <p class="text-xs uppercase tracking-wide text-white/70">{{ group_label }}</p>
+  {% if group_ends_at %}
+  {% comment %}Тот же сегментный отсчёт, что на детали акции (волна aktionsmarkt) —
+  общий page-тикер читает data-cd и заполняет d/h/m/s.{% endcomment %}
+  <div class="mt-2 mx-auto max-w-sm bg-white text-gray-900 rounded-lg px-3 py-2.5" data-cd="{{ group_ends_at|date:'c' }}">
+    <div class="grid grid-cols-4 divide-x divide-gray-200 text-center">
+      <div><p class="text-xl md:text-2xl font-bold tabular-nums" data-cd-d>–</p><p class="text-[11px] text-gray-500">{% trans "days" %}</p></div>
+      <div><p class="text-xl md:text-2xl font-bold tabular-nums" data-cd-h>–</p><p class="text-[11px] text-gray-500">{% trans "hrs" %}</p></div>
+      <div><p class="text-xl md:text-2xl font-bold tabular-nums" data-cd-m>–</p><p class="text-[11px] text-gray-500">{% trans "min" %}</p></div>
+      <div><p class="text-xl md:text-2xl font-bold tabular-nums" data-cd-s>–</p><p class="text-[11px] text-gray-500">{% trans "sec" %}</p></div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% else %}
+<div class="mb-4" data-group-head="{{ group_page_style|default:'standard' }}">
+  <h1 class="text-2xl md:text-3xl font-bold">{{ group_label }}</h1>
+  <p class="text-sm text-gray-500 mt-1">
+    {% blocktrans count n=result_count %}{{ n }} offer{% plural %}{{ n }} offers{% endblocktrans %}{% if group_ends_at %} · {% blocktrans with d=group_ends_at|date:"d.m.Y" %}until {{ d }}{% endblocktrans %}{% endif %}
+  </p>
+</div>
+{% endif %}

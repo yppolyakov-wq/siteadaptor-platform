@@ -22,6 +22,7 @@ from apps.catalog.category_styles import VALID_PAGE_STYLES as _CATEGORY_PAGE_STY
 from apps.catalog.option_styles import VARIANT_STYLE_KEYS as _CATALOG_VARIANT_STYLE_KEYS
 from apps.core import card_forms, detail_sections
 from apps.core.hero_tiles import HERO_TILE_WIDGETS
+from apps.promotions.group_styles import VALID_GROUP_STYLES as _GROUP_PAGE_STYLES
 
 # E4/2026-07-30: допустимые значения site_defaults.hero_widget — кастомные ветки
 # `sections/_hero_widget.html` + архетипы из реестра плиток `core.hero_tiles`
@@ -43,6 +44,7 @@ _VARIANT_STYLE_KEYS = tuple(k for k in _CATALOG_VARIANT_STYLE_KEYS if k)
 
 # DL-20: то же для шаблона страницы категории — источник один, реестр каталога.
 _CATEGORY_PAGE_STYLE_KEYS = tuple(k for k in _CATEGORY_PAGE_STYLES if k)
+_GROUP_PAGE_STYLE_KEYS = tuple(k for k in _GROUP_PAGE_STYLES if k)
 
 # (key, подпись для кабинета, включена ли по умолчанию)
 SECTIONS = [
@@ -1295,6 +1297,10 @@ def normalize_site_defaults(raw) -> dict:
     # Ключ ТОЛЬКО при валидном не-пустом значении ("" = Standard → golden целы).
     if sd.get("category_page_style") in _CATEGORY_PAGE_STYLE_KEYS:
         out["category_page_style"] = sd["category_page_style"]
+    # DL-20: то же для СТРАНИЦЫ ГРУППЫ АКЦИЙ; выбор конкретной группы живёт в
+    # top-level `promo_groups` (модели группы нет) и побеждает этот дефолт.
+    if sd.get("promo_group_style") in _GROUP_PAGE_STYLE_KEYS:
+        out["promo_group_style"] = sd["promo_group_style"]
     # E4 «задача-первым»: интерактивный hero — primary-виджет ВНУТРИ баннера
     # (первый экран = начало пути). "stays" — поиск дат; "services" — топ-услуги
     # с «Buchen». Ключ ТОЛЬКО при валидном значении ("" = обычный баннер →
@@ -2735,6 +2741,26 @@ def normalize_promo_layout(raw) -> str:
     return raw if raw in PROMO_LAYOUTS else ""
 
 
+# DL-20: шаблон страницы КОНКРЕТНОЙ группы акций — {<группа>: <стиль>}. Модели группы
+# нет (`Promotion.group` — свободный текст), поэтому выбор «только для этой группы»
+# хранится здесь, ключом служит то же плоское значение, что и у фасета `?gruppe=`.
+# Ключ верхнего уровня пишется ТОЛЬКО при непустом словаре → golden-эталоны целы.
+_PROMO_GROUP_KEY_MAX = 50  # = Promotion.group.max_length
+_PROMO_GROUPS_MAX = 60
+
+
+def normalize_promo_groups(raw) -> dict:
+    if not isinstance(raw, dict):
+        return {}
+    out: dict[str, str] = {}
+    for key, value in list(raw.items())[:_PROMO_GROUPS_MAX]:
+        name = str(key or "").strip()[:_PROMO_GROUP_KEY_MAX]
+        style = str(value or "").strip()
+        if name and style in _GROUP_PAGE_STYLE_KEYS:
+            out[name] = style
+    return out
+
+
 def normalize_presence(raw) -> dict:
     """LS-2 «Jetzt erreichbar»: {"mode": "on"|"off"}; auto — ДЕФОЛТ и в конфиг
     не пишется (presence-minimal, golden-паритет). Мусор → auto (пусто)."""
@@ -2940,6 +2966,10 @@ def _normalize_impl(config) -> dict:
     promo_layout = normalize_promo_layout(config.get("promo_layout"))
     if promo_layout:
         normalized["promo_layout"] = promo_layout
+    # DL-20: шаблоны страниц отдельных групп акций; ключ ТОЛЬКО при непустом словаре.
+    promo_groups = normalize_promo_groups(config.get("promo_groups"))
+    if promo_groups:
+        normalized["promo_groups"] = promo_groups
     # AF-1: событийные поля формы /anfrage/; ключ ТОЛЬКО при непустом (golden-паритет).
     anfrage = normalize_anfrage(config.get("anfrage"))
     if anfrage:
