@@ -490,3 +490,81 @@ def test_settings_moved_from_pages_screen_still_save(settings):
 def test_moved_settings_are_scoped_to_their_page_type(builder_html):
     assert 'data-stu-page="catalog category"' in builder_html
     assert 'data-stu-page="product"' in builder_html
+
+
+# ── STU-6: покрытие ВСЕХ типов страниц ───────────────────────────────────────
+
+
+def test_every_page_type_resolves_from_its_own_route():
+    """Сильнейший из дешёвых замков: каждый тип реестра обязан узнаваться по АДРЕСУ,
+    собранному из его же url_name.
+
+    Класс дефектов «узел молча выпал» (меню демо, hero-плитки): переименовали роут или
+    добавили тип без рабочего адреса — панель тихо показывает «Seite» вместо настроек,
+    и никто не замечает. Здесь адрес строится реверсом, а не руками, поэтому замок
+    ломается ровно тогда, когда ломается связь «тип ↔ роут».
+    """
+    from uuid import uuid4
+
+    from django.urls import NoReverseMatch, reverse
+
+    # Возможные наборы аргументов роутов витрины; берём ПЕРВЫЙ, которым адрес
+    # собирается, и проверяем, что реестр узнаёт по нему тот же тип.
+    arg_sets = (
+        {},
+        {"pk": uuid4()},
+        {"slug": "probe"},
+        {"pslug": "probe"},
+        {"cslug": "kategorie", "pslug": "probe"},
+    )
+
+    def _paths(name):
+        for kwargs in arg_sets:
+            try:
+                yield reverse(name, kwargs=kwargs, urlconf="config.urls_tenant")
+            except NoReverseMatch:
+                continue
+
+    unresolved = []
+    for pt in sp.PAGE_TYPES:
+        if pt.code == "promo_group":
+            continue  # тот же роут, что обзор; отличается ?gruppe= (свой замок выше)
+        ok = any(
+            sp.resolve_page(path).code == pt.code for name in pt.url_names for path in _paths(name)
+        )
+        if not ok:
+            unresolved.append(pt.code)
+    assert not unresolved, f"тип не узнаётся по собственному адресу: {unresolved}"
+
+
+def test_registry_covers_the_pages_the_owner_named():
+    """Владелец перечислил типы явно: «главная, категория, категория акции, вложенная
+    категория, страница товара, страница акции, текстовые страницы, корзина,
+    оформление заказа и т.д.». Замок держит именно этот состав."""
+    codes = {pt.code for pt in sp.PAGE_TYPES}
+    for required in (
+        "home",
+        "catalog",
+        "category",
+        "product",
+        "promos",
+        "promo_group",
+        "promo",
+        "text",
+        "cart",
+        "checkout",
+        "legal",
+    ):
+        assert required in codes, required
+
+
+@pytest.mark.django_db
+def test_home_block_rows_are_scoped_by_page_type(builder_html):
+    """STU-6 (нашёл стенд): «главная ли это» решает ТИП страницы.
+
+    Прежняя эвристика считала главной любую страницу без группы и без хоста
+    C-блоков — на `/galerie/` и `/kombi/` панель показывала блоки ГЛАВНОЙ, и
+    владелец правил бы не ту страницу. Тип известен всегда, кроме 404 — там
+    осталось прежнее поведение.
+    """
+    assert 'var isHome = curStuPage ? curStuPage === "home"' in builder_html
