@@ -87,6 +87,11 @@ SKIP_FILES = (
     "apps/tenants/demo.py",
     "apps/tenants/demo_i18n.py",
     "apps/tenants/archetype_pages.py",
+    # SH-23d: реестр `LANGUAGES` — названия языков НА СВОЁМ языке («Deutsch»,
+    # «Türkçe»): переводить их нельзя по определению, иначе переключатель
+    # перестанет быть узнаваемым. Полный проход каталог `config/` не смотрел,
+    # и файловый режим хука ругался на них при любой правке настроек.
+    "config/settings/base.py",
 )
 SKIP_DIR_PARTS = ("/migrations/", "/tests/", "/node_modules/", "/.venv/")
 

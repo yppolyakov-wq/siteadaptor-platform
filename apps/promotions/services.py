@@ -144,6 +144,11 @@ def purchase(
     fulfillment="",
     shipping_cents=0,
     shipping_address="",
+    payment_method="",
+    customer_type="private",
+    billing_company="",
+    billing_vat_id="",
+    payment_due_at=None,
 ):
     """P2 «ценовой слой»: чекаут акции СТАНДАРТНЫМ заказом (план
     promo-price-layer-plan-2026-08-03).
@@ -190,6 +195,12 @@ def purchase(
         fulfillment=fulfillment or "pickup",
         shipping_cents=shipping_cents,
         shipping_address=shipping_address,
+        # SH-23d: способ оплаты и покупатель — как у обычного чекаута.
+        payment_method=payment_method,
+        customer_type=customer_type,
+        billing_company=billing_company,
+        billing_vat_id=billing_vat_id,
+        payment_due_at=payment_due_at,
         custom_lines=[
             (
                 line_title,

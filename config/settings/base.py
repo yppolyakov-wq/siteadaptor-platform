@@ -333,6 +333,13 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.orders.tasks.expire_anprobe_reservations",
         "schedule": 300.0,
     },
+    # SH-23d (Р-4): снятие удержания с неоплаченных сделок по прошедшему сроку
+    # оплаты (счёт — до Zahlungsziel, Vorkasse — 3 дня). Тот же ритм, что у
+    # прочих просрочек: место не должно висеть занятым дольше договорённого.
+    "expire-payment-holds": {
+        "task": "apps.core.tasks.expire_payment_holds",
+        "schedule": 300.0,
+    },
     # C1: утренний дайджест владельцу — раз в час; внутри гейт «локальный час
     # тенанта == 7» (tenant.timezone) + дедуп по дате (unique dedupe_key).
     "owner-digests": {

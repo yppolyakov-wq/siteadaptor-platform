@@ -55,6 +55,26 @@ def send_digest_for_tenant(tenant, force_hour=False) -> bool:
 
 
 @shared_task
+def expire_payment_holds() -> int:
+    """Beat (SH-23d/Р-4): снять удержание с неоплаченных сделок, у которых прошёл
+    срок оплаты — иначе «счёт на 14 дней» держал бы место две недели.
+
+    Отмена идёт штатным FSM-путём (ёмкость, склад, лимит акции и письма как при
+    обычной отмене); один тенант не валит обход.
+    """
+    from apps.core import payment_holds
+
+    total = 0
+    for tenant in _iter_tenants():
+        with schema_context(tenant.schema_name):
+            try:
+                total += payment_holds.expire_overdue(tenant)
+            except Exception:  # noqa: BLE001 — один тенант не валит обход
+                continue
+    return total
+
+
+@shared_task
 def send_owner_digests() -> int:
     """Beat (раз в час): дайджест всем тенантам, у кого сейчас утро."""
     sent = 0

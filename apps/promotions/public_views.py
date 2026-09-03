@@ -95,6 +95,8 @@ def _detail_ctx(request, promo, form) -> dict:
         "waitlist_form": WaitlistForm(),
         # SH-24: данные выбора «Abholung | Lieferung» для общего партиала.
         **delivery_choice.context(getattr(request, "tenant", None)),
+        # SH-23d: пикер способа оплаты и блок «Privat/Firma».
+        **_pm_picker(getattr(request, "tenant", None)),
         "share_url": share_url,
         "qr_url": reverse("storefront-promotion-qr", args=[promo.pk]),
         "og_image": og_image,
@@ -1911,6 +1913,10 @@ def promotion_purchase(request, pk):
             fulfillment="delivery" if choice.delivery else "pickup",
             shipping_cents=choice.shipping_cents,
             shipping_address=choice.shipping_address,
+            # SH-23d: покупка по акции получила способ оплаты и тип покупателя —
+            # раньше заказ по акции всегда шёл «payment_method=пусто» и ни Stripe,
+            # ни Vorkasse, ни счёт юрлицу к ней не применялись.
+            **_promo_payment_kwargs(request),
         )
     except OutOfStock:
         if token_key:
@@ -2370,3 +2376,31 @@ def product_feed_xml(request):
         absolutize=request.build_absolute_uri,
     )
     return HttpResponse(xml, content_type="application/xml")
+
+
+def _promo_payment_kwargs(request):
+    """SH-23d: платёжные поля покупки по акции из POST (общий реестр + Р-2/Р-4)."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.core import payment_methods as _pm
+
+    tenant = getattr(request, "tenant", None)
+    ctype = _pm.customer_type_of(request.POST.get("customer_type"))
+    method = _pm.normalize(request.POST.get("payment"), tenant, "order", customer_type=ctype)
+    days = _pm.hold_days(tenant, method)
+    return {
+        "payment_method": method,
+        "customer_type": ctype,
+        "billing_company": request.POST.get("billing_company", "").strip()[:200],
+        "billing_vat_id": request.POST.get("billing_vat_id", "").strip()[:30],
+        "payment_due_at": (timezone.now() + timedelta(days=days)) if days else None,
+    }
+
+
+def _pm_picker(tenant):
+    """SH-23d: контекст пикера оплаты для детали акции (общий реестр)."""
+    from apps.core import payment_methods as _pm
+
+    return _pm.picker_context(tenant, "order")

@@ -4670,7 +4670,7 @@ def payments_page(request):
     tenant = request.tenant
     state = request.GET.get("state", "open")
     method = request.GET.get("method", "")
-    from apps.orders.models import Order
+    from apps.core import payment_methods as _pm
 
     return render(
         request,
@@ -4682,7 +4682,9 @@ def payments_page(request):
             "state": state,
             "method": method,
             "filters": pay.FILTERS,
-            "payment_methods": Order.PAYMENT_METHODS if tenant.is_module_active("orders") else (),
+            # SH-23d: фильтр по способу — по общему реестру (способ есть у всех
+            # видов сделок, а не только у заказов).
+            "payment_methods": _pm.METHOD_CHOICES,
             "finance_active": tenant.is_module_active("finance"),
         },
     )

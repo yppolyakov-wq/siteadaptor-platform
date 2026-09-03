@@ -16,7 +16,7 @@ from datetime import timedelta
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from apps.core import status_registry, transactions
+from apps.core import payment_methods, status_registry, transactions
 
 # Состояния оплаты per-kind: что считаем «оплачено» и «ждёт денег».
 # Зеркалит finance.bank._OPEN_PAYMENT_STATES (ERP-2): у броней `none` — оплата
@@ -64,10 +64,10 @@ def payment_rows(tenant, state: str = "open", method: str = "", limit: int = 200
         qs = model.objects.exclude(status__in=status_registry.cancelled_statuses_for(kind, tenant))
         if states_map is not None:
             qs = qs.filter(payment_state__in=states_map[kind])
-        if method and kind == "order":
+        # SH-23d: способ оплаты теперь есть у ВСЕХ видов сделок (SH-23c), поэтому
+        # фильтр больше не отбрасывает бронь/номер/билет/заявку молча.
+        if method:
             qs = qs.filter(payment_method=method)
-        elif method:
-            continue  # способ оплаты хранится только у заказа (E-7)
         for obj in qs.order_by("-created_at")[:limit]:
             tx = transactions.transaction_for(kind, obj)
             rows.append(
@@ -83,10 +83,12 @@ def payment_rows(tenant, state: str = "open", method: str = "", limit: int = 200
                     "payment_state": getattr(obj, "payment_state", ""),
                     "payment_method": getattr(obj, "payment_method", ""),
                     "payment_method_label": (
-                        obj.get_payment_method_display()
-                        if kind == "order" and getattr(obj, "payment_method", "")
+                        payment_methods.label(obj.payment_method)
+                        if getattr(obj, "payment_method", "")
                         else ""
                     ),
+                    # SH-23d: срок оплаты (Р-2/Р-4) — просроченное видно на месте.
+                    "payment_due_at": getattr(obj, "payment_due_at", None),
                     "created_at": obj.created_at,
                     "manage_url": tx.manage_url,
                 }
