@@ -93,3 +93,24 @@ isolation · platform_access · guards.
 * Ветка разработки: `claude/style-inheritance-sites-archetypes-i8mb17`.
 * Кода-правок пока НЕТ — только аудит и доки.
 * Ultracode: работать воркфлоу-агентами, каждое утверждение верифицировать.
+
+---
+
+## 6. Апдейт 2026-09-03 (после первого прогона)
+
+* Воркфлоу `wf_36de8d71-b98` **упал на лимите аккаунта** («session limit resets
+  11:30pm UTC»): из 19 агентов прошли 2 (`registries`, `storage`) — но прошли
+  хорошо, с эмпирикой (гоняли `normalize`/`apply_look`/`apply_bundle` на живом
+  конфиге). 17 агентов — ошибка лимита.
+* Результат сведён в **`docs/style-inheritance-audit-2026-09-03.md`** (запушен).
+* Остались непроверенными измерения: `resolution`, `newtenant`, `propagation`,
+  `css`, `isolation`, `platform_access`, `guards`.
+* **Перезапуск после сброса лимита (23:30 UTC):**
+  `Workflow({scriptPath: "/root/.claude/projects/-home-user-siteadaptor-platform/a267d1f9-23a3-5838-85e1-7884b6c350ca/workflows/scripts/style-inheritance-and-isolation-audit-wf_671d1aa7-26b.js", resumeFromRunId: "wf_36de8d71-b98"})`
+  — два прошедших агента реплеятся из кэша, остальные пойдут живьём.
+* Таймер на 23:34 UTC уже стоит (`trig_01B9nbCbAQrUJt9996mcQZrv`).
+* Найдено попутно (кандидаты в работу, кода не трогал):
+  1. демо-киты не пишут `design` → на демо нет `data-sf-look` → фирменный CSS-слой
+     Look'а не включается (`demo_kits.py:11705`, `_base.html:123`);
+  2. `design` = «метка клика», бейдж «✓ Aktiv» может врать;
+  3. `card_chrome`/`media_shape` захардкожены в двух местах.
