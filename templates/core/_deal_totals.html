@@ -18,6 +18,15 @@ Zwischensumme → Rabatt → Netto → MwSt. → Gesamt. ОДИН партиал
       <span class="tabular-nums">{{ deal_shipping_eur|floatformat:2 }} €</span>
     </div>
   {% endif %}
+  {% comment %}SH-22: скидки акций — отдельными строками ПЕРЕД ручной скидкой
+  владельца (несколько акций в заказе = несколько строк). У прочих видов сделок
+  список пуст — блок молчит.{% endcomment %}
+  {% for row in deal_promo_rows %}
+    <div class="flex items-center justify-between text-rose-700" data-promo-row>
+      <span>🏷 {% trans "Rabatt" %}{% if row.label %} · {% blocktrans with name=row.label %}Aktion „{{ name }}“{% endblocktrans %}{% endif %}</span>
+      <span class="tabular-nums">−{{ row.amount|floatformat:2 }} €</span>
+    </div>
+  {% endfor %}
   {% if deal_discount_cents %}
     <div class="flex items-center justify-between text-green-700">
       <span>🏷 {% trans "Rabatt" %}{% if deal_discount_note %} · {{ deal_discount_note }}{% endif %}</span>

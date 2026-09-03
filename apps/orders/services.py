@@ -143,6 +143,20 @@ def _get_or_create_customer(*, name, email, phone) -> Customer:
     )
 
 
+def _promo_title(promo) -> str:
+    """SH-22: название акции снимком (немецкое → любое → пусто).
+
+    Снимок, а не FK-чтение при показе: кампанию переименовывают и удаляют, а
+    уже проданная строка обязана печатать то, что видел клиент.
+    """
+    if promo is None:
+        return ""
+    title = getattr(promo, "title", None) or {}
+    if isinstance(title, dict):
+        return (title.get("de") or next(iter(title.values()), ""))[:200]
+    return str(title)[:200]
+
+
 @transaction.atomic
 def create_order(
     *,
@@ -200,15 +214,27 @@ def create_order(
         # VAT-2: 7-й элемент — ставка НДС строки (услуга/блюдо из свободной сборки
         # несут свою). None → снимок берётся из товара, иначе дефолт модели.
         vat = line[6] if len(line) > 6 else None
+        # SH-22: 8-й элемент — снимок скидки акции {"list_price", "promotion"}
+        # (промо-чекаут /p/<uuid>/kaufen/ знает обе цены; свободная строка — None).
+        promo_snap = line[7] if len(line) > 7 else None
         custom_norm.append(
-            (str(title), Decimal(str(unit_price)), int(qty), product, variant, mods, vat)
+            (
+                str(title),
+                Decimal(str(unit_price)),
+                int(qty),
+                product,
+                variant,
+                mods,
+                vat,
+                promo_snap,
+            )
         )
     if not norm and not combo_norm and not custom_norm:
         raise EmptyOrder()
     if (
         any(qty < 1 for _p, _v, qty, _o in norm)
         or any(q < 1 for _c, _o, q in combo_norm)
-        or any(q < 1 for _t, _u, q, _p, _v, _m, _r in custom_norm)
+        or any(q < 1 for _t, _u, q, _p, _v, _m, _r, _ps in custom_norm)
     ):
         raise ValueError("qty must be >= 1")
 
@@ -241,7 +267,9 @@ def create_order(
             claim_units(promo, total_qty)
     # R3: атомарное списание; OutOfStock → откат, заказа нет. Custom-строки с
     # привязкой к товару резервируют сток тем же путём (цена всё равно из строки).
-    custom_reserve = [(p, v, q, []) for _t, _u, q, p, v, _m, _r in custom_norm if p is not None]
+    custom_reserve = [
+        (p, v, q, []) for _t, _u, q, p, v, _m, _r, _ps in custom_norm if p is not None
+    ]
     _reserve_stock(norm + custom_reserve)
     customer = _get_or_create_customer(name=name, email=email, phone=phone)
     delivery = fulfillment == Order.FULFILLMENT_DELIVERY
@@ -281,8 +309,12 @@ def create_order(
         deltas = sum((Decimal(str(o.price_delta)) for o in options), Decimal("0"))
         # SF-4b: применимая акция заменяет БАЗУ строки (дельты опций — поверх).
         line_promo = line_promos.get(idx)
+        list_price = None
         if line_promo is not None:
             unit_price = line_promo[1] + deltas
+            # SH-22: листовая цена той же строки (база каталога + те же опции) —
+            # снимком, иначе показать выгоду позже нечем: цены акции живые.
+            list_price = Decimal(str(base)) + deltas
         else:
             unit_price = Decimal(str(base)) + deltas
         # Фидбэк 2026-08-04: артикул опции — в снимок (печать в заказе/PDF).
@@ -319,6 +351,10 @@ def create_order(
             vat_rate=product.vat_rate,
             # ERP-1: снимок EK — маржа истории больше не дрейфует с ценой закупки.
             cost_price=(variant.cost_value if variant is not None else product.cost_price),
+            # SH-22: снимок скидки акции (листовая цена + кампания + её название).
+            list_price=list_price,
+            promotion=(line_promo[0] if line_promo is not None else None),
+            promo_label=(_promo_title(line_promo[0]) if line_promo is not None else ""),
         )
         # U-D3: залогировать списание в склад-леджер (append-only, в той же atomic
         # create_order, что и декремент _reserve_stock). Только учитываемый остаток
@@ -356,7 +392,7 @@ def create_order(
             total += unit_price * qty
     # LS-3: custom-строки — цена/название заморожены (персональное предложение);
     # позиции с товаром логируют списание в леджер (как обычные), свободные — нет.
-    for title, unit_price, qty, product, variant, mods, line_vat in custom_norm:
+    for title, unit_price, qty, product, variant, mods, line_vat, promo_snap in custom_norm:
         label = variant.label if variant is not None else ""
         _sku = ""
         if variant is not None and variant.sku:
@@ -386,6 +422,10 @@ def create_order(
                 if variant is not None
                 else (product.cost_price if product is not None else None)
             ),
+            # SH-22: снимок скидки акции для промо-чекаута (см. 8-й слот).
+            list_price=(promo_snap or {}).get("list_price"),
+            promotion=(promo_snap or {}).get("promotion"),
+            promo_label=_promo_title((promo_snap or {}).get("promotion")),
         )
         tracked = variant if variant is not None else product
         if tracked is not None and tracked.stock_quantity is not None:

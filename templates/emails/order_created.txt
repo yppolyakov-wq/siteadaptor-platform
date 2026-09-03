@@ -2,7 +2,8 @@
 
 {% trans "vielen Dank für Ihre Bestellung! Wir melden uns, sobald sie bestätigt ist." %}
 
-{% for item in items %}{{ item.qty }}× {{ item.title_snapshot }}{% if item.sku %} [Art.-Nr. {{ item.sku }}]{% endif %}{% if item.modifiers_label %} ({{ item.modifiers_label }}){% endif %} — {{ item.line_total }} {{ order.currency }}
+{% for item in items %}{{ item.qty }}× {{ item.title_snapshot }}{% if item.sku %} [Art.-Nr. {{ item.sku }}]{% endif %}{% if item.modifiers_label %} ({{ item.modifiers_label }}){% endif %} — {{ item.line_total }} {{ order.currency }}{% if item.discount_per_unit %}
+   {% blocktrans with amount=item.discount_total|floatformat:2 cur=order.currency name=item.promo_name %}Rabatt „{{ name }}“: −{{ amount }} {{ cur }}{% endblocktrans %}{% endif %}
 {% endfor %}{% trans "Gesamt" %}: {{ order.total }} {{ order.currency }}
 {% trans "Abhol-Code" %}: {{ order.reference_code }}
 

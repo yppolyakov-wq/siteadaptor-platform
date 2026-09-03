@@ -22000,3 +22000,12 @@ msgstr[3] "%(m)s груп"
 #: templates/core/_part_picker.html
 msgid "Sortiment durchsuchen …"
 msgstr "Пошук по асортименту …"
+
+msgid "Aktion „%(name)s“"
+msgstr "Акція «%(name)s»"
+
+msgid "Rabatt · Aktion „%(name)s“"
+msgstr "Знижка · акція «%(name)s»"
+
+msgid "Rabatt „%(name)s“: −%(amount)s %(cur)s"
+msgstr "Знижка «%(name)s»: −%(amount)s %(cur)s"

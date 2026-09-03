@@ -36,9 +36,28 @@ def order_totals(order, *, small_business=False) -> dict:
     НДС посчитался бы с суммы, которую клиент не платил.
     Возвращает {"items", "discount", "shipping", "gross", "net", "vat", "rows"},
     где rows = [{"rate", "gross", "net", "vat"}] по убыванию ставки.
+
+    SH-22 добавляет два ключа показа: "list_items" (сумма по ЛИСТОВЫМ ценам, то
+    есть до скидок акций) и "promo_rows" ([{"label", "amount"}] по акциям, сумма
+    по убыванию). Инвариант: list_items − Σpromo_rows − discount + shipping ==
+    gross. Существующие ключи не меняются — их читают счёт и карточка сделки.
     """
     items = list(order.items.all())
     gross_items = sum((i.line_total for i in items), Decimal("0"))
+    list_items = sum((i.list_total for i in items), Decimal("0"))
+    # Скидки акций — по КАМПАНИИ (в заказе их может быть несколько): ключ =
+    # снимок названия, чтобы переименование кампании не переписало документ.
+    promo_by_label: dict[str, Decimal] = {}
+    for item in items:
+        amount = item.discount_total
+        if amount <= 0:
+            continue
+        label = item.promo_name
+        promo_by_label[label] = promo_by_label.get(label, Decimal("0")) + amount
+    promo_rows = [
+        {"label": label, "amount": _q(amount)}
+        for label, amount in sorted(promo_by_label.items(), key=lambda kv: (-kv[1], kv[0]))
+    ]
     discount = Decimal(order.discount_cents) / 100
     shipping = Decimal(order.shipping_cents) / 100 if order.is_delivery else Decimal("0")
     by_rate: dict[Decimal, Decimal] = {}
@@ -69,6 +88,10 @@ def order_totals(order, *, small_business=False) -> dict:
         rows.append({"rate": rate, "gross": gross, "net": net, "vat": vat})
     return {
         "items": _q(gross_items),
+        # SH-22: показные ключи (деньги не меняются — items остаётся нетто акций).
+        "list_items": _q(list_items),
+        "promo_rows": promo_rows,
+        "promo_discount": _q(sum((r["amount"] for r in promo_rows), Decimal("0"))),
         "discount": _q(discount),
         "shipping": _q(shipping),
         "gross": _q(sum((r["gross"] for r in rows), Decimal("0"))),

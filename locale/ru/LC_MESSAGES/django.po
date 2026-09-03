@@ -22017,3 +22017,12 @@ msgstr[3] "%(m)s групп"
 #: templates/core/_part_picker.html
 msgid "Sortiment durchsuchen …"
 msgstr "Поиск по ассортименту …"
+
+msgid "Aktion „%(name)s“"
+msgstr "Акция «%(name)s»"
+
+msgid "Rabatt · Aktion „%(name)s“"
+msgstr "Скидка · акция «%(name)s»"
+
+msgid "Rabatt „%(name)s“: −%(amount)s %(cur)s"
+msgstr "Скидка «%(name)s»: −%(amount)s %(cur)s"

@@ -171,6 +171,10 @@ def purchase(
     from apps.orders import services as order_services
 
     title = promotion.title.get("de") or next(iter(promotion.title.values()), "Aktion")
+    # SH-22: в строке заказа печатается ТОВАР, а название акции едет снимком
+    # рядом со скидкой — иначе владелец видел в составе «Sommer-Deal» и не мог
+    # понять, что именно продано. Свободная акция (без товара) остаётся собой.
+    line_title = str(promotion.product) if promotion.product_id else title
     order = order_services.create_order(
         items=[],
         name=name,
@@ -180,12 +184,15 @@ def purchase(
         source_channel=source_channel or "promo",
         custom_lines=[
             (
-                title,
+                line_title,
                 promotion.new_price,
                 quantity,
                 promotion.product,
                 None,
                 [{"promo": str(promotion.pk), "label": "Aktion"}],
+                None,
+                # SH-22: обе цены известны здесь — снимок листовой и кампании.
+                {"list_price": promotion.old_price, "promotion": promotion},
             )
         ],
     )

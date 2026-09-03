@@ -19,8 +19,8 @@
     <div class="divide-y divide-gray-100 border-y border-gray-100 mb-4">
       {% for item in order.items.all %}
         <div class="flex items-center justify-between py-2 text-sm">
-          <span>{{ item.qty }}× {{ item.title_snapshot }}{% if item.sku %} <span class="text-gray-400">· Art.-Nr. {{ item.sku }}</span>{% endif %}{% if item.modifiers_label %} <span class="text-gray-400">({{ item.modifiers_label }})</span>{% endif %}</span>
-          <span>{{ item.line_total }} {{ order.currency|cursym }}</span>
+          <span>{{ item.qty }}× {{ item.title_snapshot }}{% if item.sku %} <span class="text-gray-400">· Art.-Nr. {{ item.sku }}</span>{% endif %}{% if item.modifiers_label %} <span class="text-gray-400">({{ item.modifiers_label }})</span>{% endif %}{% comment %}SH-22: «показано = списано» — выгода видна и в подтверждении.{% endcomment %}{% if item.discount_per_unit %} <span class="text-rose-600">· −{{ item.discount_total|floatformat:2 }} {{ order.currency|cursym }}{% if item.promo_name %} {% blocktrans with name=item.promo_name %}Aktion „{{ name }}“{% endblocktrans %}{% endif %}</span>{% endif %}</span>
+          <span>{% if item.discount_per_unit %}<s class="text-gray-400">{{ item.list_total|floatformat:2 }} {{ order.currency|cursym }}</s> {% endif %}{{ item.line_total }} {{ order.currency|cursym }}</span>
         </div>
       {% endfor %}
       {% if order.is_delivery %}

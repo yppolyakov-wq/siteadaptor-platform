@@ -21787,3 +21787,12 @@ msgstr[1] "%(m)s groups"
 #: templates/core/_part_picker.html
 msgid "Sortiment durchsuchen …"
 msgstr "Search the assortment …"
+
+msgid "Aktion „%(name)s“"
+msgstr "Offer “%(name)s”"
+
+msgid "Rabatt · Aktion „%(name)s“"
+msgstr "Discount · offer “%(name)s”"
+
+msgid "Rabatt „%(name)s“: −%(amount)s %(cur)s"
+msgstr "Discount “%(name)s”: −%(amount)s %(cur)s"

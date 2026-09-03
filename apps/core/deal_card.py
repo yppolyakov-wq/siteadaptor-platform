@@ -181,6 +181,8 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
     # промежуточный итог и доставку для общих сумм берём из его же калькулятора —
     # иначе показ разошёлся бы с деньгами.
     subtotal = sum((r["total"] for r in lines), Decimal("0"))
+    # SH-22: строки скидок акций есть только у заказа (у прочих видов — пусто).
+    promo_rows = []
     shipping = None
     # DG-1: у сметы цены НЕТТО (остальные виды — брутто, PAngV), поэтому
     # промежуточный итог помечаем честно, а не молча смешиваем базы.
@@ -192,7 +194,10 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
             from apps.orders.totals import order_totals
 
             totals = order_totals(obj, small_business=small)
-            subtotal = totals["items"]
+            # SH-22: промежуточный итог — по ЛИСТОВЫМ ценам, скидки акций идут
+            # отдельными строками ниже (иначе выгода клиента невидима).
+            subtotal = totals["list_items"]
+            promo_rows = totals["promo_rows"]
             shipping = totals["shipping"] or None
         except Exception:  # noqa: BLE001 — суммы не должны ронять карточку
             pass
@@ -220,6 +225,9 @@ def card_context(request, kind: str, obj, *, sections=(), links=None, hide_targe
         "deal_discount_note": getattr(obj, "voucher_code", "") or "",
         # DF-4: строки состава для общего партиала `core/_deal_lines.html`.
         "deal_lines": lines,
+        # SH-22: скидки акций — строками между промежуточным итогом и ручной
+        # скидкой владельца (несколько акций в заказе = несколько строк).
+        "deal_promo_rows": promo_rows,
         # Промежуточный итог = сумма строк (брутто ДО скидки) — макет требует
         # его отдельной строкой над скидкой.
         "deal_lines_total": subtotal,

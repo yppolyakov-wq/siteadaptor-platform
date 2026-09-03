@@ -208,6 +208,23 @@ class OrderItem(TimestampedModel):
     # цена/НДС/артикул. NULL = легаси-позиция или товар без EK; маржа по ТЕКУЩЕМУ
     # cost_price дрейфовала после смены закупочной цены.
     cost_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    # SH-22 (фидбэк «при заказе товара со скидкой должна быть прописана скидка»):
+    # снимок ЛИСТОВОЙ цены ЗА ЕДИНИЦУ на момент продажи. NULL = скидки не было
+    # или легаси-строка — разницу не выдумываем: `old_price`/`title` акции живые
+    # и переживают правку кампании (доктрина снимков SH-4/ERP-1). Храним цену за
+    # единицу, а не сумму скидки: правка количества в кабинете масштабирует
+    # `(list_price − unit_price) × qty` сама.
+    list_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    # Акция-источник цены (SET_NULL: снимок переживает удаление кампании) и
+    # снимок её названия на момент продажи.
+    promotion = models.ForeignKey(
+        "promotions.Promotion",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="order_items",
+    )
+    promo_label = models.CharField(max_length=200, blank=True)
     title_snapshot = models.CharField(max_length=200)
     # Снимок выбранных модификаторов/Extras (A4b): [{"label","delta"}]. Надбавка
     # уже включена в unit_price; список — для отображения в заказе/письмах.
@@ -241,6 +258,35 @@ class OrderItem(TimestampedModel):
         return self.unit_price * self.qty
 
     @property
+    def discount_per_unit(self):
+        """SH-22: выгода за единицу (листовая − уплаченная). Легаси-строка без
+        снимка листовой цены → 0: «скидки не видно» честнее выдуманной."""
+        if self.list_price is None:
+            return Decimal("0")
+        return max(Decimal(str(self.list_price)) - Decimal(str(self.unit_price)), Decimal("0"))
+
+    @property
+    def discount_total(self):
+        """SH-22: выгода по строке — масштабируется правкой количества."""
+        return self.discount_per_unit * self.qty
+
+    @property
+    def list_total(self):
+        """SH-22: сумма строки по ЛИСТОВОЙ цене (Zwischensumme до скидок акций)."""
+        base = self.list_price if self.list_price is not None else self.unit_price
+        return Decimal(str(base)) * self.qty
+
+    @property
+    def promo_name(self) -> str:
+        """Название акции для показа: снимок → живая кампания → пусто."""
+        if self.promo_label:
+            return self.promo_label
+        if self.promotion_id and self.promotion is not None:
+            title = self.promotion.title or {}
+            return title.get("de") or next(iter(title.values()), "")
+        return ""
+
+    @property
     def modifiers_label(self) -> str:
         """«Pommes, Käse» — выбранные модификаторы для отображения (A4b).
 
@@ -248,6 +294,11 @@ class OrderItem(TimestampedModel):
         («Sirup [Art.-Nr. S-12]») — снимок пишет create_order."""
         parts = []
         for m in self.modifiers or []:
+            # SH-22: служебный маркер {"promo": id} печатался как «Aktion» —
+            # у строки со снимком акции это дублирует подпись «−X € · Aktion „…“».
+            # У легаси-строк (снимка нет) маркер печатаем как раньше.
+            if m.get("promo") and self.promo_label:
+                continue
             label = m.get("label", "")
             if m.get("sku"):
                 label = _("%(label)s [Art.-Nr. %(sku)s]") % {"label": label, "sku": m["sku"]}

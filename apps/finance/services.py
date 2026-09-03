@@ -288,17 +288,38 @@ def invoice_from_order(order, tenant=None):
     for item in order.items.all():
         rate = Decimal("0") if small else Decimal(str(item.vat_rate or 0))
         net_unit, _vat = split_gross(item.unit_price, rate)
+        # SH-22 (решение владельца Р-7): скидка акции — СТРУКТУРНО, позиция по
+        # листовой цене + минус-строка сразу за ней той же ставкой. Минус-строку
+        # считаем как РАЗНИЦУ уже посчитанных нетто (net_list − net_unit), а не
+        # отдельным делением: иначе округление двух независимых делений уводило
+        # бы счёт на цент от заказа (инвариант `Invoice.gross == Order.total`).
+        net_list = net_unit
+        if item.discount_per_unit:
+            net_list, _v = split_gross(item.list_price, rate)
         lines.append(
             {
                 "text": item.title_snapshot[:200],
                 "sku": item.sku,  # SH-20: Art.-Nr. едет в счёт (JSON; compute_totals ключ игнорирует)
                 "qty": item.qty,
-                "unit_price": str(net_unit),
+                "unit_price": str(net_list),
                 # VAT-4: ставка в снимке строки — иначе смешанный счёт считался бы
                 # по одной преобладающей и не сошёлся бы с итогом заказа.
                 "vat_rate": str(rate),
             }
         )
+        if item.discount_per_unit:
+            name = item.promo_name
+            text = (
+                str(_("Rabatt · Aktion „%(name)s“")) % {"name": name} if name else str(_("Rabatt"))
+            )
+            lines.append(
+                {
+                    "text": text[:200],
+                    "qty": item.qty,
+                    "unit_price": str(-(net_list - net_unit)),
+                    "vat_rate": str(rate),
+                }
+            )
     if order.is_delivery and order.shipping_cents:
         rate = totals["rows"][0]["rate"] if totals["rows"] else Decimal("0")
         net_ship, _vat = split_gross(Decimal(order.shipping_cents) / 100, rate)

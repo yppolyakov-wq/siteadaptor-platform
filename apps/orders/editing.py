@@ -160,6 +160,31 @@ def _vat_kwargs(product, vat_rate):
     return {}
 
 
+def _active_promo_for(product, variant, qty):
+    """Р-8 (решение владельца): кабинетное «Position hinzufügen» продаёт по
+    ДЕЙСТВУЮЩЕЙ акции и двигает её лимит — как корзина (SF-4b). Раньше владелец
+    добавлял позицию по листовой цене, и лимит кампании не списывался: заказ
+    из кабинета и заказ с сайта расходились в деньгах и в остатке акции.
+
+    Возвращает (промо-цена, акция) либо (None, None): нет акции, вариант со своей
+    ценой, исчерпанный лимит — продаём по листовой, а не роняем форму владельца.
+    """
+    if product is None:
+        return None, None
+    from apps.promotions.price_layer import claim_units, product_promo_map, promo_line_price
+    from apps.promotions.services import OutOfStock
+
+    promo = product_promo_map({product.pk}).get(product.pk)
+    price = promo_line_price(promo, product, variant)
+    if price is None:
+        return None, None
+    try:
+        claim_units(promo, qty)
+    except OutOfStock:
+        return None, None
+    return Decimal(str(price)), promo
+
+
 # ВНИМАНИЕ: декоратор относится к `add_item`. Хелпер, вставленный между
 # декоратором и функцией, забирает его себе — ровно так `add_item` осталась без
 # транзакции, и добавление товара с учётом остатка падало 500-й
@@ -184,9 +209,17 @@ def add_item(
     явно (услуга из пикера несёт свою ставку), иначе остаётся дефолт модели."""
     _require_editable(order, tenant)
     qty = max(int(qty), 1)
+    list_price = None
+    promo = None
     if product is not None:
         base = variant.price_value if variant is not None else product.base_price
         price = Decimal(str(unit_price)) if unit_price is not None else Decimal(str(base))
+        # Р-8: своя цена владельца сильнее акции (осознанный ввод); без неё —
+        # действующая акция и её лимит (SH-22 снимок листовой цены).
+        if unit_price is None:
+            promo_price, promo = _active_promo_for(product, variant, qty)
+            if promo_price is not None:
+                list_price, price = price, promo_price
         label = variant.label if variant is not None else ""
         name = title or (f"{product} · {label}" if label else str(product))
         sku = (variant.sku if variant is not None and variant.sku else product.sku) or ""
@@ -195,6 +228,8 @@ def add_item(
             raise ValueError("free line needs title and price")
         price, label, name, sku = Decimal(str(unit_price)), "", title, ""
     _move_stock(product=product, variant=variant, delta=-qty, order=order, title=name)
+    from apps.orders.services import _promo_title
+
     OrderItem.objects.create(
         order=order,
         product=product,
@@ -214,6 +249,12 @@ def add_item(
             if variant is not None
             else (product.cost_price if product is not None else None)
         ),
+        # SH-22: снимок скидки акции + маркер {"promo": id} — по нему отмена
+        # заказа и правка количества возвращают лимит кампании (SF-4b).
+        list_price=list_price,
+        promotion=promo,
+        promo_label=_promo_title(promo),
+        modifiers=([{"promo": str(promo.pk), "label": "Aktion"}] if promo is not None else []),
     )
     return recalc_total(order)
 
