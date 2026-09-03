@@ -21900,3 +21900,14 @@ msgstr "Ihre Rechnung %(n)s"
 
 msgid "anbei erhalten Sie die Rechnung %(n)s."
 msgstr "anbei erhalten Sie die Rechnung %(n)s."
+
+msgid "Reduced only"
+msgstr "Nur reduzierte Artikel"
+
+msgid "Remove filter"
+msgstr "Filter entfernen"
+
+msgid "%(counter)s article"
+msgid_plural "%(counter)s articles"
+msgstr[0] "%(counter)s Artikel"
+msgstr[1] "%(counter)s Artikel"

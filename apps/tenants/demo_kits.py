@@ -377,6 +377,7 @@ def _p(
     card_style="",
     vat="",
     ingredients="",
+    origin="",
 ):
     return {
         "name": name,
@@ -404,6 +405,10 @@ def _p(
         # Ф2/LMIV: «Zutaten» товара (переводится оверлеем ingredients_i18n —
         # demo_i18n заполняет локали из словарей).
         "ingredients": ingredients,
+        # UB2-3: Herkunft — фасет «Origin» на витрине. Поле модели и фильтр
+        # существовали с UB2-3, но задать их из кита было нечем, поэтому фильтр
+        # не был виден НИ В ОДНОМ демо (разведка 2026-09-03).
+        "origin": origin,
     }
 
 
@@ -11225,6 +11230,7 @@ def apply_kit(tenant, key: str) -> bool:
             sku=item.get("sku") or f"{key.upper()[:3]}-{lock:03d}",
             material=item.get("material", ""),  # M1 Textilkennzeichnung
             care=item.get("care", ""),
+            origin=item.get("origin", ""),  # UB2-3: Herkunft (фасет «Origin»)
             # Ф2: состав блюда — витрина показывает «Zutaten», перевод локалей
             # приезжает оверлеем ingredients_i18n (translate_tenant_content).
             ingredients=item.get("ingredients", ""),

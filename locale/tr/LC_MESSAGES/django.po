@@ -21978,3 +21978,14 @@ msgstr "Faturanız %(n)s"
 
 msgid "anbei erhalten Sie die Rechnung %(n)s."
 msgstr "ekte %(n)s numaralı faturayı bulabilirsiniz."
+
+msgid "Reduced only"
+msgstr "Sadece indirimli"
+
+msgid "Remove filter"
+msgstr "Filtreyi kaldır"
+
+msgid "%(counter)s article"
+msgid_plural "%(counter)s articles"
+msgstr[0] "%(counter)s ürün"
+msgstr[1] "%(counter)s ürün"

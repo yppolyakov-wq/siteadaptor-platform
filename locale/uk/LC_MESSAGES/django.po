@@ -22063,3 +22063,16 @@ msgstr "Ваш рахунок %(n)s"
 
 msgid "anbei erhalten Sie die Rechnung %(n)s."
 msgstr "у вкладенні рахунок %(n)s."
+
+msgid "Reduced only"
+msgstr "Лише зі знижкою"
+
+msgid "Remove filter"
+msgstr "Прибрати фільтр"
+
+msgid "%(counter)s article"
+msgid_plural "%(counter)s articles"
+msgstr[0] "%(counter)s товар"
+msgstr[1] "%(counter)s товари"
+msgstr[2] "%(counter)s товарів"
+msgstr[3] "%(counter)s товару"

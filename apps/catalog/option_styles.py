@@ -66,6 +66,32 @@ COLOR_HEX = {
     "creme": "#f5f0e1",
     "sand": "#e0cfa9",
     "gold": "#d4af37",
+    # 2026-09-03: современные оттенки модных коллекций. Без записи здесь кружок
+    # не рисуется вовсе, поэтому магазин с палитрой «Salbei/Terrakotta/Petrol»
+    # показывал бы вместо свотчей буквы — реестр, а не угадывание (см. выше).
+    "ecru": "#f0e9dc",
+    "taupe": "#b8a89a",
+    "khaki": "#a8a06a",
+    "salbei": "#a3b18a",
+    "mint": "#9ee2c4",
+    "petrol": "#0f766e",
+    "nachtblau": "#172554",
+    "jeansblau": "#3b6ea5",
+    "lavendel": "#c4b5fd",
+    "flieder": "#d8b4fe",
+    "altrosa": "#d8a7a1",
+    "rosé": "#e8b4b8",
+    "rose": "#e8b4b8",
+    "koralle": "#fb7185",
+    "rostrot": "#b7410e",
+    "terrakotta": "#c96f4a",
+    "curry": "#d69e2e",
+    "senf": "#c9a227",
+    "camel": "#c19a6b",
+    "cognac": "#9a4f20",
+    "aubergine": "#5b2333",
+    "waldgrün": "#14532d",
+    "waldgruen": "#14532d",
     "bunt": "",  # многоцветный — кружок не рисуем, покажем подпись
 }
 

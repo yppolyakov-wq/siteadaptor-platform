@@ -22080,3 +22080,16 @@ msgstr "Ваш счёт %(n)s"
 
 msgid "anbei erhalten Sie die Rechnung %(n)s."
 msgstr "во вложении счёт %(n)s."
+
+msgid "Reduced only"
+msgstr "Только со скидкой"
+
+msgid "Remove filter"
+msgstr "Убрать фильтр"
+
+msgid "%(counter)s article"
+msgid_plural "%(counter)s articles"
+msgstr[0] "%(counter)s товар"
+msgstr[1] "%(counter)s товара"
+msgstr[2] "%(counter)s товаров"
+msgstr[3] "%(counter)s товара"

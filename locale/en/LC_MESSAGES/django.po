@@ -21850,3 +21850,14 @@ msgstr "Your invoice %(n)s"
 
 msgid "anbei erhalten Sie die Rechnung %(n)s."
 msgstr "please find invoice %(n)s attached."
+
+msgid "Reduced only"
+msgstr "Reduced only"
+
+msgid "Remove filter"
+msgstr "Remove filter"
+
+msgid "%(counter)s article"
+msgid_plural "%(counter)s articles"
+msgstr[0] "%(counter)s article"
+msgstr[1] "%(counter)s articles"

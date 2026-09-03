@@ -1,5 +1,5 @@
 """UB2-1/2-2/2-3: провайдер каталога — фасеты категория/диета/цена/наличие/
-происхождение/рейтинг + поиск/сортировка.
+происхождение/рейтинг/размер/цвет/подборка/скидка + поиск/сортировка.
 
 Обобщает in-view логику `product_list` без изменения выдачи: apply — нативные
 поля БД / `pk__in` (composable с keyset-пагинацией); present — доступные значения
@@ -30,6 +30,23 @@ def _with_size_axis(variants):
     return variants.annotate(size_axis=Coalesce(NullIf(F("size"), Value("")), F("label")))
 
 
+def _multi(params, name) -> list:
+    """Значения мультивыбора: `?groesse=S&groesse=M` → ["S", "M"].
+
+    `params` бывает и обычным dict (path-режим страницы категории собирает его
+    сам), поэтому `getlist` — не гарантия; из простого dict читаем одно значение.
+    Порядок сохраняем, дубли и пустое отбрасываем — иначе повтор параметра
+    удлинял бы IN-список без смысла."""
+    getlist = getattr(params, "getlist", None)
+    raw = getlist(name) if callable(getlist) else [params.get(name, "")]
+    out = []
+    for value in raw:
+        value = (value or "").strip()
+        if value and value not in out:
+            out.append(value)
+    return out
+
+
 def _money(raw):
     """Decimal из пользовательского ввода цены («12,50» тоже); мусор/минус → None."""
     try:
@@ -58,11 +75,19 @@ class CatalogFacets(FacetProvider):
             "preis_bis": _money(params.get("preis_bis")),
             "nur_verfuegbar": params.get("nur_verfuegbar") == "1",
             "herkunft": (params.get("herkunft") or "").strip(),
-            # M2 Boutique: фасет размера (по variant.label, только доступные).
-            "groesse": (params.get("groesse") or "").strip(),
+            # M2 Boutique: фасет размера (ось `size`, иначе легаси-label) —
+            # мультивыбор: покупатель почти всегда носит два соседних размера.
+            "groesse": _multi(params, "groesse"),
+            # 2026-09-03: цвет. Ось `ProductVariant.color` и свотчи на детали
+            # были с M4-A, а фильтра на листинге не существовало вовсе.
+            "farbe": _multi(params, "farbe"),
             # M4-B Lookbook: подборка товаров владельца (M2M Collection).
             "kollektion": (params.get("kollektion") or "").strip(),
             "bewertung": bewertung if bewertung in RATING_THRESHOLDS else 0,
+            # 2026-09-03: «Nur reduzierte» — товары с действующей акцией. Считаем
+            # тем же резолвером, что рисует промо-цену на карточке (иначе фильтр
+            # и витрина разошлись бы).
+            "sale": params.get("sale") == "1",
         }
 
     def apply(self, items, params):
@@ -88,7 +113,7 @@ class CatalogFacets(FacetProvider):
             items = self._only_available(items)
         if sel["herkunft"]:
             items = items.filter(origin=sel["herkunft"])
-        if sel["groesse"]:
+        if sel["groesse"] or sel["farbe"]:
             from django.db.models import Q
 
             # M4-A: размер = ось `size`, а где её нет — легаси-label (смешанный
@@ -100,7 +125,13 @@ class CatalogFacets(FacetProvider):
             available = ProductVariant.objects.filter(product__in=items, is_active=True).filter(
                 Q(stock_quantity__isnull=True) | Q(stock_quantity__gt=0)
             )
-            matched = _with_size_axis(available).filter(size_axis=sel["groesse"])
+            matched = _with_size_axis(available)
+            # Обе оси сужают ОДИН вариант: «M» + «Sand» = есть песочный в размере M,
+            # а не «есть какой-то M и где-то песочный» (иначе выдача обманывает).
+            if sel["groesse"]:
+                matched = matched.filter(size_axis__in=sel["groesse"])
+            if sel["farbe"]:
+                matched = matched.filter(color__in=sel["farbe"])
             items = items.filter(pk__in=matched.values("product_id"))
         if sel["kollektion"]:
             # M2M-JOIN по slug активной подборки; distinct — товар может входить
@@ -110,6 +141,8 @@ class CatalogFacets(FacetProvider):
             ).distinct()
         if sel["bewertung"]:
             items = items.filter(pk__in=self._rated_ids(items, sel["bewertung"]))
+        if sel["sale"]:
+            items = items.filter(pk__in=self._discounted_ids(items))
         return items
 
     @staticmethod
@@ -130,6 +163,15 @@ class CatalogFacets(FacetProvider):
         )
 
     @staticmethod
+    def _discounted_ids(items):
+        """pk товаров текущего набора с действующей скидкой — тот же резолвер,
+        что навешивает промо-цену на карточку (`price_layer.product_promo_map`),
+        поэтому «Nur reduzierte» показывает ровно те карточки, где виден бейдж."""
+        from apps.promotions.price_layer import product_promo_map
+
+        return list(product_promo_map(items.values_list("pk", flat=True)).keys())
+
+    @staticmethod
     def _rated_ids(items, min_rating):
         """pk товаров текущего набора со средним ≥ min_rating — один bulk-агрегат."""
         from apps.reviews import services as review_services
@@ -141,12 +183,17 @@ class CatalogFacets(FacetProvider):
         from django.db.models import Max, Min
 
         from apps.catalog import food
-        from apps.catalog.models import Product, ProductVariant
+        from apps.catalog.models import ProductVariant
         from apps.reviews import services as review_services
 
-        present_diets = set()
-        for vals in Product.objects.filter(is_active=True).values_list("diets", flat=True):
-            present_diets.update(v for v in (vals or []) if v in food.VALID_DIETS)
+        # Диет-чипы считаем по ПЕРЕДАННОМУ срезу, а не по всему каталогу: на
+        # странице категории общий список предлагал диету, дающую ноль товаров
+        # (разведка 2026-09-03). `Product` остаётся в импортах — нужен для бейджей.
+        diet_counts: dict[str, int] = {}
+        for vals in items.values_list("diets", flat=True):
+            for v in vals or []:
+                if v in food.VALID_DIETS:
+                    diet_counts[v] = diet_counts.get(v, 0) + 1
         bounds = items.aggregate(lo=Min("base_price"), hi=Max("base_price"))
         price_lo, price_hi = bounds["lo"], bounds["hi"]
         # Тумблер наличия — только если что-то реально распродано (иначе шум).
@@ -158,9 +205,9 @@ class CatalogFacets(FacetProvider):
         )
         return {
             "diet_chips": [
-                {"code": c, "label": label, "icon": icon}
+                {"code": c, "label": label, "icon": icon, "count": diet_counts[c]}
                 for c, label, icon in food.DIETS
-                if c in present_diets
+                if c in diet_counts
             ],
             "price_lo": price_lo,
             "price_hi": price_hi,
@@ -169,7 +216,7 @@ class CatalogFacets(FacetProvider):
             and price_lo != price_hi,
             "show_stock_filter": show_stock,
             # UB2-3: Bio/Regional-Herkunft — только реально указанные значения.
-            "origin_chips": sorted(set(items.exclude(origin="").values_list("origin", flat=True))),
+            "origin_chips": self._origin_chips(items),
             # M4-B: чипы подборок — только те, где есть товары ЭТОГО набора.
             "collection_chips": collection_chips("products", items),
             # UB2-3: рейтинг-фасет показываем, лишь когда есть отзывы (bulk, без N+1).
@@ -180,7 +227,48 @@ class CatalogFacets(FacetProvider):
             # M2 Boutique: чипы размеров (порядок — по sort_order вариантов);
             # один размер на весь каталог = шум, чипы прячем.
             "size_chips": self._size_chips(items),
+            # 2026-09-03: цвет — свотчи из явного реестра option_styles.COLOR_HEX.
+            "color_chips": self._color_chips(items),
+            # 2026-09-03: «Nur reduzierte» показываем, лишь когда скидки есть.
+            "sale_count": len(self._discounted_ids(items)),
         }
+
+    @staticmethod
+    def _origin_chips(items) -> list:
+        """Значения Herkunft среза со счётчиком товаров."""
+        from django.db.models import Count
+
+        rows = (
+            items.exclude(origin="")
+            .values("origin")
+            .annotate(n=Count("id", distinct=True))
+            .order_by("origin")
+        )
+        return [{"value": r["origin"], "count": r["n"]} for r in rows]
+
+    @staticmethod
+    def _color_chips(items) -> list:
+        """Цвета среза: значение, счётчик товаров и hex из явного реестра.
+
+        Порядок — по первому появлению в вариантах (владелец расставил цвета
+        осмысленно), а не по алфавиту. Один цвет на весь срез = шум, прячем."""
+        from django.db.models import Count, Min
+
+        from apps.catalog.models import ProductVariant
+        from apps.catalog.option_styles import COLOR_HEX
+
+        rows = (
+            ProductVariant.objects.filter(product__in=items, is_active=True)
+            .exclude(color="")
+            .values("color")
+            .annotate(n=Count("product_id", distinct=True), o=Min("sort_order"))
+            .order_by("o", "color")
+        )
+        chips = [
+            {"value": r["color"], "count": r["n"], "hex": COLOR_HEX.get(r["color"].lower(), "")}
+            for r in rows
+        ]
+        return chips if len(chips) > 1 else []
 
     @staticmethod
     def _size_chips(items) -> list:
@@ -189,7 +277,7 @@ class CatalogFacets(FacetProvider):
 
         Без оси у товара с цветами чипы были бы декартовым произведением
         («S · Blau», «S · Rot», «M · Blau»…) и фильтр стал бы бессмысленным."""
-        from django.db.models import Min
+        from django.db.models import Count, Min
 
         from apps.catalog.models import ProductVariant
 
@@ -198,10 +286,10 @@ class CatalogFacets(FacetProvider):
             _with_size_axis(active)
             .exclude(size_axis="")
             .values("size_axis")
-            .annotate(o=Min("sort_order"))
+            .annotate(o=Min("sort_order"), n=Count("product_id", distinct=True))
             .order_by("o", "size_axis")
         )
-        sizes = [r["size_axis"] for r in rows]
+        sizes = [{"value": r["size_axis"], "count": r["n"]} for r in rows]
         return sizes if len(sizes) > 1 else []
 
     def search(self, items, q):
