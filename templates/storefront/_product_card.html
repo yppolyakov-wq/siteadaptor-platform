@@ -1,7 +1,10 @@
 {% load i18n %}{% load siteui %}{# Карточка товара витрины (Track C1): ожидает p (Product). T2c/R5: цена+кнопка в одну линию. #}
 {% comment %}ST-7c: глобальная ФОРМА карточки storefront_card_style — "" прежняя
 вертикальная | compact — строка-прайс (фото слева) | overlay — текст поверх фото.
-"" обязана рендерить прежнюю разметку байт-в-байт (замки test_card_style).{% endcomment %}
+"" обязана рендерить прежнюю разметку байт-в-байт (замки test_card_style).
+DL-19: `storefront_card_style` ниже — ДЕЙСТВУЮЩАЯ форма этой карточки: своя у
+товара (`Product.card_style`) побеждает дефолт сайта. Затенение имени намеренное —
+ветвление и замки разметки прежние, меняется только источник значения.{% endcomment %}{% card_form p "product" as storefront_card_style %}
 {% if storefront_card_style == "compact" %}
 <div class="sf-card relative group flex items-center gap-3 bg-white rounded-2xl shadow-sm p-3 hover:shadow-md transition">
   <a href="{% url 'catalog:product-edit' p.pk %}" target="_blank" rel="noopener"

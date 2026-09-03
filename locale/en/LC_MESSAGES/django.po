@@ -21582,3 +21582,60 @@ msgstr "Slider"
 
 msgid "Reihen: auffüllen"
 msgstr "Rows: fill up"
+
+msgid "Photo, name, price — the usual card."
+msgstr "Photo, name, price — the usual card."
+
+msgid "Text on photo"
+msgstr "Text on photo"
+
+msgid "Name and price over the photo — for strong images."
+msgstr "Name and price over the photo — for strong images."
+
+msgid "Compact row"
+msgstr "Compact row"
+
+msgid "Row with a small photo — for long menus."
+msgstr "Row with a small photo — for long menus."
+
+msgid "Price tag"
+msgstr "Price tag"
+
+msgid "Price on a plate in the corner of the photo."
+msgstr "Price on a plate in the corner of the photo."
+
+msgid "Price first"
+msgstr "Price first"
+
+msgid "Price block above the photo — discounter style."
+msgstr "Price block above the photo — discounter style."
+
+msgid "Shelf label"
+msgstr "Shelf label"
+
+msgid "Big price on a plate, small photo — reads like a shelf tag."
+msgstr "Big price on a plate, small photo — reads like a shelf tag."
+
+msgid "Lookbook"
+msgstr "Lookbook"
+
+msgid "Tall photo 3:4 and a quiet caption — fashion and interior."
+msgstr "Tall photo 3:4 and a quiet caption — fashion and interior."
+
+msgid "Deal tile"
+msgstr "Deal tile"
+
+msgid "Wide row: price, saving, condition and button at a glance."
+msgstr "Wide row: price, saving, condition and button at a glance."
+
+msgid "Coupon"
+msgstr "Coupon"
+
+msgid "Dashed cut-out with the value — like a voucher."
+msgstr "Dashed cut-out with the value — like a voucher."
+
+msgid "Countdown ring"
+msgstr "Countdown ring"
+
+msgid "Remaining time as a ring on the photo."
+msgstr "Remaining time as a ring on the photo."

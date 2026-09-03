@@ -6,6 +6,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 
+from apps.core import card_forms
 from apps.tenants import siteconfig, video
 
 register = template.Library()
@@ -523,6 +524,19 @@ _PL_TOGGLE_INITIAL = {
     "preisliste_foto_2sp": "cols",
     "preisliste_foto_3sp": "cols",
 }
+
+
+# DL-19: действующая ФОРМА карточки. Своя у товара/акции побеждает дефолт сайта
+# (`site_defaults.card_style` / `promo_card`); мусор в любом слое → "" (прежняя
+# форма). Партиалы карточек ЗАТЕНЯЮТ этими фильтрами одноимённые контекстные
+# переменные — ветвление и замки разметки остаются прежними, меняется только
+# источник значения.
+@register.simple_tag(takes_context=True)
+def card_form(context, entity, kind=card_forms.PRODUCT):
+    site_default = context.get(
+        "storefront_promo_card" if kind == card_forms.PROMO else "storefront_card_style", ""
+    )
+    return card_forms.card_form(entity, site_default, kind)
 
 
 @register.filter(name="has_more_rows")

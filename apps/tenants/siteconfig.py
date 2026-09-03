@@ -19,7 +19,7 @@ import uuid
 from django.utils.translation import gettext_lazy as _
 
 from apps.catalog.option_styles import VARIANT_STYLE_KEYS as _CATALOG_VARIANT_STYLE_KEYS
-from apps.core import detail_sections
+from apps.core import card_forms, detail_sections
 from apps.core.hero_tiles import HERO_TILE_WIDGETS
 
 # E4/2026-07-30: допустимые значения site_defaults.hero_widget — кастомные ветки
@@ -1266,10 +1266,12 @@ def normalize_site_defaults(raw) -> dict:
     # ST-7c: ФОРМА карточки (архетипный вид: overlay — текст поверх фото,
     # compact — узкая строка). Ключ ТОЛЬКО при валидном не-дефолте ("" =
     # текущая форма → golden целы).
-    if sd.get("card_style") in ("overlay", "compact", "etikett"):
+    # DL-19: допустимые значения — реестр `core.card_forms` (единственный источник;
+    # раньше тот же список был захардкожен здесь, в китах и в <option> Studio).
+    if sd.get("card_style") in card_forms.keys_for(card_forms.PRODUCT):
         out["card_style"] = sd["card_style"]
-    # DL-16.4: форма карточки АКЦИИ ("" | preis — блок цены сверху, дефолт дил-сборок)
-    if sd.get("promo_card") in ("preis",):
+    # DL-16.4/DL-19: форма карточки АКЦИИ ("" | preis | regal | lookbook | deal | coupon | ring)
+    if sd.get("promo_card") in card_forms.keys_for(card_forms.PROMO):
         out["promo_card"] = sd["promo_card"]
     # DL-16.4 (P2): фото на карточке товара листаются (точки/стрелки/свайп) — "on"
     if sd.get("card_slider") in ("on", True):

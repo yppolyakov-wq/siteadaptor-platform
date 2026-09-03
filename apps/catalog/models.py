@@ -193,6 +193,12 @@ class Product(SoftDeleteMixin, I18nMixin):
     # Пусто = дефолт магазина (site_defaults.variant_style), а он пуст = список.
     variant_style = models.CharField(max_length=12, blank=True, default="")
 
+    # DL-19: ФОРМА карточки этого товара на витрине (реестр core.card_forms).
+    # Пусто = форма из настроек сайта (site_defaults.card_style). Своё значение
+    # ПОБЕЖДАЕТ общее (решение владельца 2026-09-03); choices — в форме кабинета,
+    # чтобы реестр рос без миграций (прецедент variant_style / Category.page_style).
+    card_style = models.CharField(max_length=16, blank=True, default="")
+
     # Маркетинговый бейдж на витрине (T1): «Tagesgericht», «Neu», «Beliebt».
     # Пусто = без бейджа. is_featured (популярные на главной) — отдельно.
     BADGE_CHOICES = [

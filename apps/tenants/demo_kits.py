@@ -19,6 +19,8 @@ from decimal import Decimal
 from django.conf import settings
 from django.utils import timezone
 
+from apps.core import card_forms
+
 from . import siteconfig
 
 
@@ -11605,13 +11607,14 @@ def apply_kit(tenant, key: str) -> bool:
             if fam["theme"] == "dark":
                 cfg["theme"] = "dark"
             accent = sitetemplates.look_accent(kit.business_type, kit.look)
-    if kit.card_style in ("overlay", "compact", "etikett"):  # ST-7c: форма карточек
+    # ST-7c/DL-19: форма карточек — значения из реестра `core.card_forms`.
+    if kit.card_style in card_forms.keys_for(card_forms.PRODUCT):
         sd = dict(cfg.get("site_defaults") or {})
         sd["card_style"] = kit.card_style
         cfg["site_defaults"] = sd
-    if kit.promo_card == "preis":  # DL-16.4 AK1: карточка акции «Preis zuerst»
+    if kit.promo_card in card_forms.keys_for(card_forms.PROMO):  # DL-16.4 AK1 / DL-19
         sd = dict(cfg.get("site_defaults") or {})
-        sd["promo_card"] = "preis"
+        sd["promo_card"] = kit.promo_card
         cfg["site_defaults"] = sd
     if kit.card_slider:  # DL-16.4 P2: фото на карточке товара листаются
         sd = dict(cfg.get("site_defaults") or {})

@@ -21807,3 +21807,61 @@ msgstr "Слайдер"
 
 msgid "Reihen: auffüllen"
 msgstr "Ряды: заполнить"
+
+msgid "Photo, name, price — the usual card."
+msgstr "Фото, название, цена — обычная карточка."
+
+msgid "Text on photo"
+msgstr "Текст на фото"
+
+msgid "Name and price over the photo — for strong images."
+msgstr "Название и цена поверх фото — для сильных снимков."
+
+msgid "Compact row"
+msgstr "Компактная строка"
+
+msgid "Row with a small photo — for long menus."
+msgstr "Строка с маленьким фото — для длинных меню."
+
+msgid "Price tag"
+msgstr "Ценник"
+
+msgid "Price on a plate in the corner of the photo."
+msgstr "Цена на плашке в углу фото."
+
+msgid "Price first"
+msgstr "Сначала цена"
+
+msgid "Price block above the photo — discounter style."
+msgstr "Блок цены над фото — как у дискаунтера."
+
+msgid "Shelf label"
+msgstr "Полочный ценник"
+
+msgid "Big price on a plate, small photo — reads like a shelf tag."
+msgstr ""
+"Крупная цена на плашке, маленькое фото — читается как ценник на полке."
+
+msgid "Lookbook"
+msgstr "Лукбук"
+
+msgid "Tall photo 3:4 and a quiet caption — fashion and interior."
+msgstr "Высокое фото 3:4 и спокойная подпись — мода и интерьер."
+
+msgid "Deal tile"
+msgstr "Плитка предложения"
+
+msgid "Wide row: price, saving, condition and button at a glance."
+msgstr "Широкая строка: цена, выгода, условие и кнопка сразу видны."
+
+msgid "Coupon"
+msgstr "Купон"
+
+msgid "Dashed cut-out with the value — like a voucher."
+msgstr "Пунктирный вырез с номиналом — как ваучер."
+
+msgid "Countdown ring"
+msgstr "Кольцо обратного отсчёта"
+
+msgid "Remaining time as a ring on the photo."
+msgstr "Оставшееся время кольцом на фото."

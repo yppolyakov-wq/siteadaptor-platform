@@ -21709,3 +21709,60 @@ msgstr "Kaydırıcı"
 
 msgid "Reihen: auffüllen"
 msgstr "Satırlar: doldur"
+
+msgid "Photo, name, price — the usual card."
+msgstr "Fotoğraf, ad, fiyat — alışılmış kart."
+
+msgid "Text on photo"
+msgstr "Fotoğraf üzerinde yazı"
+
+msgid "Name and price over the photo — for strong images."
+msgstr "Ad ve fiyat fotoğrafın üzerinde — güçlü görseller için."
+
+msgid "Compact row"
+msgstr "Kompakt satır"
+
+msgid "Row with a small photo — for long menus."
+msgstr "Küçük fotoğraflı satır — uzun menüler için."
+
+msgid "Price tag"
+msgstr "Fiyat etiketi"
+
+msgid "Price on a plate in the corner of the photo."
+msgstr "Fiyat, fotoğrafın köşesinde bir levhada."
+
+msgid "Price first"
+msgstr "Önce fiyat"
+
+msgid "Price block above the photo — discounter style."
+msgstr "Fotoğrafın üstünde fiyat bloğu — indirim marketi tarzı."
+
+msgid "Shelf label"
+msgstr "Raf etiketi"
+
+msgid "Big price on a plate, small photo — reads like a shelf tag."
+msgstr "Levhada büyük fiyat, küçük fotoğraf — raf etiketi gibi okunur."
+
+msgid "Lookbook"
+msgstr "Lookbook"
+
+msgid "Tall photo 3:4 and a quiet caption — fashion and interior."
+msgstr "3:4 dikey fotoğraf ve sakin bir başlık — moda ve iç mekân."
+
+msgid "Deal tile"
+msgstr "Fırsat karosu"
+
+msgid "Wide row: price, saving, condition and button at a glance."
+msgstr "Geniş satır: fiyat, tasarruf, koşul ve düğme tek bakışta."
+
+msgid "Coupon"
+msgstr "Kupon"
+
+msgid "Dashed cut-out with the value — like a voucher."
+msgstr "Kesik çizgili kupür ve değeri — hediye çeki gibi."
+
+msgid "Countdown ring"
+msgstr "Geri sayım halkası"
+
+msgid "Remaining time as a ring on the photo."
+msgstr "Kalan süre fotoğraf üzerinde halka olarak."

@@ -258,6 +258,11 @@ class Promotion(SoftDeleteMixin, I18nMixin):
         max_length=20, choices=DISCOUNT_STYLES, default="", blank=True
     )
 
+    # DL-19: ФОРМА карточки этой акции (реестр core.card_forms). Пусто = форма из
+    # настроек сайта (site_defaults.promo_card); своя побеждает общую. Только
+    # презентация — цена/лимит/бронь от формы не зависят.
+    card_style = models.CharField(max_length=16, blank=True, default="")
+
     # Авто-повтор акции (Track B3b): beat клонирует завершившуюся со сдвигом окна
     # на интервал. Наследник один (recurrence уходит к нему, у родителя гасится),
     # поэтому цепочка не ветвится.

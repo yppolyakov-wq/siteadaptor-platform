@@ -21627,3 +21627,60 @@ msgstr "Slider"
 
 msgid "Reihen: auffüllen"
 msgstr "Reihen: auffüllen"
+
+msgid "Photo, name, price — the usual card."
+msgstr "Foto, Name, Preis — die übliche Karte."
+
+msgid "Text on photo"
+msgstr "Text auf Foto"
+
+msgid "Name and price over the photo — for strong images."
+msgstr "Name und Preis über dem Foto — für starke Bilder."
+
+msgid "Compact row"
+msgstr "Kompakte Zeile"
+
+msgid "Row with a small photo — for long menus."
+msgstr "Zeile mit kleinem Foto — für lange Karten."
+
+msgid "Price tag"
+msgstr "Preis-Etikett"
+
+msgid "Price on a plate in the corner of the photo."
+msgstr "Preis auf einem Schild in der Ecke des Fotos."
+
+msgid "Price first"
+msgstr "Preis zuerst"
+
+msgid "Price block above the photo — discounter style."
+msgstr "Preisblock über dem Foto — wie beim Discounter."
+
+msgid "Shelf label"
+msgstr "Regal-Preisschild"
+
+msgid "Big price on a plate, small photo — reads like a shelf tag."
+msgstr "Großer Preis auf dem Schild, kleines Foto — liest sich wie am Regal."
+
+msgid "Lookbook"
+msgstr "Lookbook"
+
+msgid "Tall photo 3:4 and a quiet caption — fashion and interior."
+msgstr "Hohes Foto 3:4 und ruhige Bildunterschrift — Mode und Interior."
+
+msgid "Deal tile"
+msgstr "Deal-Kachel"
+
+msgid "Wide row: price, saving, condition and button at a glance."
+msgstr "Breite Zeile: Preis, Ersparnis, Bedingung und Button auf einen Blick."
+
+msgid "Coupon"
+msgstr "Coupon"
+
+msgid "Dashed cut-out with the value — like a voucher."
+msgstr "Gestrichelter Ausschnitt mit dem Wert — wie ein Gutschein."
+
+msgid "Countdown ring"
+msgstr "Countdown-Ring"
+
+msgid "Remaining time as a ring on the photo."
+msgstr "Restzeit als Ring auf dem Foto."
