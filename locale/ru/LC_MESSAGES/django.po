@@ -22068,3 +22068,15 @@ msgstr "Счёт придёт на электронную почту."
 
 msgid "Zahlbar bis %(due)s."
 msgstr "Оплатить до %(due)s."
+
+msgid "Payable by"
+msgstr "Оплатить до"
+
+msgid "fällig %(due)s"
+msgstr "срок %(due)s"
+
+msgid "Ihre Rechnung %(n)s"
+msgstr "Ваш счёт %(n)s"
+
+msgid "anbei erhalten Sie die Rechnung %(n)s."
+msgstr "во вложении счёт %(n)s."

@@ -963,6 +963,17 @@ def checkout(request):
     request.session[COMBO_SESSION_KEY] = {}
     request.session.pop(PROMO_SESSION_KEY, None)
 
+    # SH-23b (Р-1): счёт юрлицу выпускается АВТОМАТИЧЕСКИ — с письмом и PDF.
+    # Сбой счёта не отменяет заказ: клиент уже оформил покупку, а владелец видит
+    # заказ в кабинете и может выставить счёт кнопкой.
+    if chosen_method == Order.METHOD_INVOICE:
+        try:
+            from apps.finance.services import issue_invoice_for_deal
+
+            issue_invoice_for_deal("order", order, tenant)
+        except Exception:  # noqa: BLE001
+            pass
+
     # E7-2: маршрутизация по выбранному способу. vorkasse → подтверждение с
     # реквизитами (без Stripe); stripe (P2.5c) → Stripe Checkout на счёт бизнеса;
     # on_site → оплата при получении (как раньше).

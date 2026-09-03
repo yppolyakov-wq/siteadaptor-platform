@@ -45,13 +45,30 @@ def notify(
     html: str = "",
     headers: dict | None = None,
     channel: str = Notification.EMAIL,
+    attachments: list | None = None,
 ) -> Notification | None:
-    """Создать уведомление (если ещё нет) и поставить доставку. None = дубль."""
+    """Создать уведомление (если ещё нет) и поставить доставку. None = дубль.
+
+    SH-23b: `attachments` — список (имя, содержимое-bytes, mime) для писем с
+    документом (счёт юрлицу приходит PDF-файлом). Хранится в payload base64,
+    потому что доставка идёт отдельной задачей и должна пережить перезапуск.
+    """
     payload = {"body": body}
     if html:
         payload["html"] = html
     if headers:
         payload["headers"] = headers
+    if attachments:
+        import base64
+
+        payload["attachments"] = [
+            {
+                "name": name,
+                "mime": mime,
+                "b64": base64.b64encode(content).decode("ascii"),
+            }
+            for name, content, mime in attachments
+        ]
 
     notification, created = Notification.objects.get_or_create(
         dedupe_key=dedupe_key,

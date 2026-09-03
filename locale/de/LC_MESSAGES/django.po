@@ -21888,3 +21888,15 @@ msgstr "Sie erhalten die Rechnung per E-Mail."
 
 msgid "Zahlbar bis %(due)s."
 msgstr "Zahlbar bis %(due)s."
+
+msgid "Payable by"
+msgstr "Zahlbar bis"
+
+msgid "fällig %(due)s"
+msgstr "fällig %(due)s"
+
+msgid "Ihre Rechnung %(n)s"
+msgstr "Ihre Rechnung %(n)s"
+
+msgid "anbei erhalten Sie die Rechnung %(n)s."
+msgstr "anbei erhalten Sie die Rechnung %(n)s."

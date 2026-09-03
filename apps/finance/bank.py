@@ -188,6 +188,13 @@ def open_items(tenant) -> list[dict]:
                     "customer": getattr(obj, "customer", None),
                     "age_days": (today - obj.created_at.date()).days,
                     "manage_url": t.manage_url,
+                    # SH-23b: срок оплаты сделки (Р-2/Р-4) — просроченное видно
+                    # сразу, а не по возрасту записи.
+                    "due_date": (
+                        getattr(obj, "payment_due_at", None).date()
+                        if getattr(obj, "payment_due_at", None)
+                        else None
+                    ),
                 }
             )
     for inv in Invoice.objects.filter(status="issued").order_by("issued_at")[:200]:
@@ -202,9 +209,12 @@ def open_items(tenant) -> list[dict]:
                 "customer": inv.customer,
                 "age_days": (today - inv.issued_at.date()).days if inv.issued_at else 0,
                 "manage_url": "",
+                "due_date": inv.due_date,
             }
         )
-    out.sort(key=lambda r: -r["age_days"])
+    # SH-23b: сначала просроченное (по сроку оплаты), затем самое старое —
+    # владелец видит «что горит», а не просто «что давно лежит».
+    out.sort(key=lambda r: (r.get("due_date") or today, -r["age_days"]))
     return out
 
 

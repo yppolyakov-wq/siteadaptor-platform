@@ -266,7 +266,13 @@ def offene_posten(request):
     return render(
         request,
         "finance/offene_posten.html",
-        {"nav": "finance", "items": items, "total": total},
+        {
+            "nav": "finance",
+            "items": items,
+            "total": total,
+            # SH-23b: «сегодня» для подсветки просроченных сроков оплаты.
+            "today": timezone.localdate(),
+        },
     )
 
 

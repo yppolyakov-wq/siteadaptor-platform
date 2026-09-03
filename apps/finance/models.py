@@ -119,6 +119,16 @@ class Invoice(TimestampedModel):
     vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     gross = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     issued_at = models.DateTimeField(null=True, blank=True)
+    # SH-23b (Р-1/Р-2): счёт юрлицу на чекауте. `due_date` — срок оплаты
+    # (Zahlungsziel, по умолчанию 14 дней), `payment_terms_days` — снимок этого
+    # срока на момент выпуска (настройку бизнеса потом меняют), `deal_kind`/
+    # `deal_id` — из какой сделки счёт (Offene Posten и Mahnwesen ведут к ней),
+    # `sent_at` — когда письмо со счётом ушло клиенту (дедуп повторной отправки).
+    due_date = models.DateField(null=True, blank=True)
+    payment_terms_days = models.PositiveSmallIntegerField(null=True, blank=True)
+    deal_kind = models.CharField(max_length=20, blank=True)
+    deal_id = models.CharField(max_length=64, blank=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
     # ERP-3 Mahnwesen v1: ступень напоминания (0=нет, 1=Zahlungserinnerung,
     # 2/3=Mahnung) + когда отправляли (дедуп «не чаще раза в день»).
     mahn_level = models.PositiveSmallIntegerField(default=0)

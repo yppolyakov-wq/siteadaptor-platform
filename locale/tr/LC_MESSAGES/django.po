@@ -21966,3 +21966,15 @@ msgstr "Faturayı e-posta ile alacaksınız."
 
 msgid "Zahlbar bis %(due)s."
 msgstr "Son ödeme tarihi %(due)s."
+
+msgid "Payable by"
+msgstr "Son ödeme"
+
+msgid "fällig %(due)s"
+msgstr "vade %(due)s"
+
+msgid "Ihre Rechnung %(n)s"
+msgstr "Faturanız %(n)s"
+
+msgid "anbei erhalten Sie die Rechnung %(n)s."
+msgstr "ekte %(n)s numaralı faturayı bulabilirsiniz."

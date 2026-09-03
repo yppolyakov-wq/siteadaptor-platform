@@ -1,0 +1,8 @@
+{% load i18n %}{% trans "Guten Tag," %}
+
+{% blocktrans with n=number %}anbei erhalten Sie die Rechnung {{ n }}.{% endblocktrans %}
+{% trans "Betrag" %}: {{ gross }} EUR
+{% if due %}{% blocktrans with due=due|date:"d.m.Y" %}Zahlbar bis {{ due }}.{% endblocktrans %}
+{% endif %}{% if reference %}{% trans "Verwendungszweck" %}: {{ reference }}
+{% endif %}
+{{ business_name }}

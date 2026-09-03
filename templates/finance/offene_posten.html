@@ -33,7 +33,7 @@
         <td class="px-4 py-2 font-mono text-xs">{% if i.manage_url %}<a href="{{ i.manage_url }}" class="text-indigo-600 hover:underline">{{ i.code }}</a>{% else %}{{ i.code }}{% endif %}</td>
         <td class="px-4 py-2">{{ i.customer|default:"—" }}</td>
         <td class="px-4 py-2 text-right font-medium">{{ i.amount|floatformat:2 }} €</td>
-        <td class="px-4 py-2 text-right {% if i.age_days > 14 %}text-red-600{% elif i.age_days > 7 %}text-amber-600{% endif %}">{% blocktrans with n=i.age_days %}{{ n }} Tage{% endblocktrans %}</td>
+        <td class="px-4 py-2 text-right {% if i.age_days > 14 %}text-red-600{% elif i.age_days > 7 %}text-amber-600{% endif %}">{% blocktrans with n=i.age_days %}{{ n }} Tage{% endblocktrans %}{% comment %}SH-23b: срок оплаты — просроченное красным.{% endcomment %}{% if i.due_date %}<span class="block text-xs {% if i.due_date < today %}text-red-600 font-medium{% else %}text-gray-400{% endif %}">{% blocktrans with due=i.due_date|date:"d.m.Y" %}fällig {{ due }}{% endblocktrans %}</span>{% endif %}</td>
         <td class="px-4 py-2 text-right">
           {% if i.kind == "invoice" %}
           <form method="post" action="{% url 'finance:invoice-mahnung' i.obj.pk %}" class="inline">{% csrf_token %}

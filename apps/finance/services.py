@@ -104,12 +104,18 @@ def compute_totals(lines, vat_rate, *, small_business=False):
     return net, vat, net + vat
 
 
-def issue_invoice(invoice):
+def issue_invoice(invoice, *, tenant=None, terms_days=None):
     """draft → issued: последовательный номер под блокировкой счётчика.
 
     Номер выдаётся только здесь — черновики не нумеруются, поэтому удаление
     черновика дыру в нумерации не оставляет (GoBD-последовательность).
+
+    SH-23b (решение владельца Р-2): при выпуске фиксируется срок оплаты —
+    Zahlungsziel бизнеса (по умолчанию 14 дней) снимком, чтобы позднее изменение
+    настройки не переписало уже выставленный документ.
     """
+    from datetime import timedelta
+
     from django.db import transaction
     from django.utils import timezone as tz
 
@@ -122,7 +128,15 @@ def issue_invoice(invoice):
         counter.save(update_fields=["last_number"])
         invoice.number = counter.last_number
         invoice.issued_at = tz.now()
-        invoice.save(update_fields=["number", "issued_at", "updated_at"])
+        fields = ["number", "issued_at", "updated_at"]
+        if invoice.due_date is None:
+            days = terms_days
+            if days is None:
+                days = int(getattr(tenant, "invoice_terms_days", 0) or 14)
+            invoice.payment_terms_days = days
+            invoice.due_date = (invoice.issued_at + timedelta(days=days)).date()
+            fields += ["due_date", "payment_terms_days"]
+        invoice.save(update_fields=fields)
         return InvoiceSM().apply(invoice, "issued")
 
 
@@ -360,3 +374,96 @@ def invoice_from_order(order, tenant=None):
         gross=gross,
         note=str(_("Auftrag %(code)s")) % {"code": order.reference_code},
     )
+
+
+def issue_invoice_for_deal(kind, obj, tenant, *, send_email=True):
+    """SH-23b (решение владельца Р-1): счёт юрлицу выпускается АВТОМАТИЧЕСКИ на
+    чекауте — с письмом и PDF.
+
+    Идемпотентно: у сделки со счётом второй не создаётся (повторный POST/ретрай
+    задачи). Модуль «Finanzen» не гейтит — счёт нужен покупателю независимо от
+    того, ведёт ли владелец финансы в кабинете; тот же документ потом виден в
+    «Offene Posten» и в Mahnwesen.
+
+    Возвращает `Invoice` (уже issued) либо None, если счёт построить нечем.
+    """
+    from django.db import connection
+
+    from apps.notifications.services import notify
+
+    from .models import Invoice
+
+    ref = str(getattr(obj, "reference_code", "") or getattr(obj, "pk", ""))
+    existing = Invoice.objects.filter(deal_kind=kind, deal_id=ref).first()
+    if existing is not None:
+        return existing
+    builder = {
+        "order": invoice_from_order,
+        "stay": invoice_from_stay,
+        "booking": invoice_from_booking,
+    }.get(kind)
+    if builder is None:
+        return None
+    invoice = builder(obj, tenant)
+    if invoice is None:
+        return None
+    invoice.deal_kind = kind
+    invoice.deal_id = ref[:64]
+    invoice.save(update_fields=["deal_kind", "deal_id", "updated_at"])
+    issue_invoice(invoice, tenant=tenant)
+    invoice.refresh_from_db()
+    if send_email:
+        email = getattr(getattr(obj, "customer", None), "email", "") or ""
+        if email:
+            _send_invoice_email(
+                invoice, tenant, email, schema=connection.schema_name, notify=notify
+            )
+    return invoice
+
+
+def _send_invoice_email(invoice, tenant, email, *, schema, notify):
+    """Письмо клиенту со счётом (PDF вложением). Сбой PDF не отменяет письмо —
+    в нём остаются номер, сумма и срок оплаты."""
+    from django.template.loader import render_to_string
+    from django.utils import timezone as tz
+    from django.utils import translation
+    from django.utils.translation import gettext as _
+
+    from apps.notifications.services import email_locale
+
+    ctx = {
+        "number": invoice.number_display,
+        "gross": f"{invoice.gross:.2f}".replace(".", ","),
+        "due": invoice.due_date,
+        "business_name": getattr(tenant, "name", "") or "",
+        "reference": invoice.deal_id,
+    }
+    with translation.override(email_locale()):
+        subject = render_to_string("emails/invoice_issued_subject.txt", ctx).strip()
+        body = render_to_string("emails/invoice_issued.txt", ctx)
+    attachments = []
+    try:
+        from .pdf import build_invoice_pdf
+
+        # Имя файла — на языке письма (msgid тот же, что в шапке PDF).
+        doc_name = _("Invoice")
+        attachments = [
+            (
+                f"{doc_name}-{invoice.number_display}.pdf",
+                build_invoice_pdf(invoice, tenant),
+                "application/pdf",
+            )
+        ]
+    except Exception:  # noqa: BLE001 — письмо важнее вложения
+        attachments = []
+    sent = notify(
+        dedupe_key=f"{schema}:invoice-issued:{invoice.pk}",
+        type="invoice_issued",
+        recipient=email,
+        subject=subject,
+        body=body,
+        attachments=attachments,
+    )
+    if sent is not None:
+        invoice.sent_at = tz.now()
+        invoice.save(update_fields=["sent_at", "updated_at"])

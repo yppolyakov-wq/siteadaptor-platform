@@ -21838,3 +21838,15 @@ msgstr "You will receive the invoice by e-mail."
 
 msgid "Zahlbar bis %(due)s."
 msgstr "Payable by %(due)s."
+
+msgid "Payable by"
+msgstr "Payable by"
+
+msgid "fällig %(due)s"
+msgstr "due %(due)s"
+
+msgid "Ihre Rechnung %(n)s"
+msgstr "Your invoice %(n)s"
+
+msgid "anbei erhalten Sie die Rechnung %(n)s."
+msgstr "please find invoice %(n)s attached."

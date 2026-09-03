@@ -93,6 +93,11 @@ def build_invoice_pdf(invoice, tenant) -> bytes:
     if invoice.issued_at:
         label_date = _("Date")
         c.drawRightString(page_w - x, y, f"{label_date}: {doc_date(invoice.issued_at)}")
+    # SH-23b (Р-2): срок оплаты на документе — иначе «Kauf auf Rechnung» не
+    # называет клиенту дату, до которой платить (и Mahnwesen опирается в пустоту).
+    if invoice.due_date:
+        label_due = _("Payable by")
+        c.drawRightString(page_w - x, y - 4.5 * mm, f"{label_due}: {doc_date(invoice.due_date)}")
 
     # Таблица позиций.
     y -= 12 * mm

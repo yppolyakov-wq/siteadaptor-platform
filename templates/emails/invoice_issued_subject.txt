@@ -1,0 +1,1 @@
+{% load i18n %}{% blocktrans with n=number %}Ihre Rechnung {{ n }}{% endblocktrans %}

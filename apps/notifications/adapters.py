@@ -20,6 +20,19 @@ def _send_email(notification) -> None:
     html = notification.payload.get("html")
     if html:
         message.attach_alternative(html, "text/html")
+    # SH-23b: вложения (счёт PDF) — payload хранит их base64, чтобы доставка
+    # пережила перезапуск воркера; битое вложение письмо не роняет.
+    for item in notification.payload.get("attachments") or []:
+        try:
+            import base64
+
+            message.attach(
+                item.get("name") or "anhang",
+                base64.b64decode(item.get("b64") or ""),
+                item.get("mime") or "application/octet-stream",
+            )
+        except (TypeError, ValueError):
+            continue
     message.send()
 
 
