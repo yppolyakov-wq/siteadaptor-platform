@@ -185,6 +185,10 @@ class JobLine(I18nMixin, TimestampedModel):
     position = models.PositiveSmallIntegerField(default=0)  # порядок отображения
     text = models.CharField(max_length=300)
     text_i18n = models.JSONField(default=dict, blank=True)  # I18N-12 (демо-сметы)
+    # SH-20: СНИМОК Art.-Nr. детали (вариант сильнее товара). FK product/variant —
+    # SET_NULL, живое поле нарушило бы контракт снимка: удалённая деталь стёрла бы
+    # артикул из уже отправленной сметы.
+    sku = models.CharField(max_length=100, blank=True, default="")
     qty = models.DecimalField(max_digits=7, decimal_places=2, default=1)  # дробное (A7a)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # нетто за ед.
     # ERP-6: ПЛАНОВАЯ себестоимость за единицу строки (интерн, в публичную смету
@@ -228,6 +232,17 @@ class JobLine(I18nMixin, TimestampedModel):
     @property
     def line_total(self) -> Decimal:
         return self.unit_price * self.qty
+
+    @property
+    def image_url(self) -> str:
+        """SH-21: фото детали в строке сметы (вариант → товар; свободная строка — пусто)."""
+        if self.variant_id and self.variant.image_url:
+            return self.variant.image_url
+        if self.product_id:
+            img = self.product.primary_image
+            if isinstance(img, dict):
+                return img.get("url", "") or ""
+        return ""
 
     def effective_vat_rate(self, document_rate=None) -> Decimal:
         """Ставка, по которой считается эта строка: своя, иначе ставка документа."""

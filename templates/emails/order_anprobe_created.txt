@@ -1,7 +1,7 @@
 {% load i18n %}{% blocktrans with name=order.customer.name %}Hallo {{ name }},{% endblocktrans %}
 
 {% trans "wir haben Folgendes für Sie in der Anprobe zurückgelegt:" %}
-{% for item in items %}- {{ item.title_snapshot }}{% if item.variant_label %} ({{ item.variant_label }}){% endif %}
+{% for item in items %}- {{ item.title_snapshot }}{% if item.variant_label %} ({{ item.variant_label }}){% endif %}{% if item.sku %} [{% trans "Art.-Nr." %} {{ item.sku }}]{% endif %}
 {% endfor %}
 {% blocktrans with until=order.reserve_expires_at|date:"d.m.Y H:i" %}Wir halten die Reservierung bis {{ until }} für Sie bereit.{% endblocktrans %}
 

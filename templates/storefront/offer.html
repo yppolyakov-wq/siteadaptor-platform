@@ -30,7 +30,7 @@
       </thead>
       <tbody>
         {% for ln in lines %}
-          <tr class="border-b border-gray-50"><td class="py-1.5">{{ ln.title }}</td><td class="py-1.5 text-right">{{ ln.qty }}</td><td class="py-1.5 text-right">{{ ln.line_total|floatformat:2 }} {{ offer.currency|cursym }}</td></tr>
+          <tr class="border-b border-gray-50"><td class="py-1.5">{{ ln.title }}{% if ln.sku %} <span class="text-xs text-gray-400">· {% trans "Art.-Nr." %} {{ ln.sku }}</span>{% endif %}</td><td class="py-1.5 text-right">{{ ln.qty }}</td><td class="py-1.5 text-right">{{ ln.line_total|floatformat:2 }} {{ offer.currency|cursym }}</td></tr>
         {% endfor %}
       </tbody>
     </table>

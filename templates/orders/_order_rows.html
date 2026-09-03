@@ -24,7 +24,7 @@
           {% if o.source_channel == "promo" %}<span class="text-xs font-medium text-rose-600">· 🏷 {% trans "Aktion" %}</span>{% endif %}
         </a>
         <p class="text-xs text-gray-500 truncate">👤 {{ o.customer }}<span class="text-gray-400"> ·
-          {% for item in o.items.all %}{{ item.qty }}× {{ item.title_snapshot }}{% if not forloop.last %}, {% endif %}{% endfor %}</span>
+          {% for item in o.items.all %}{{ item.qty }}× {{ item.title_snapshot }}{% if item.sku %} [{{ item.sku }}]{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}</span>
         </p>
       </div>
       <div class="flex items-center gap-2 shrink-0">

@@ -220,6 +220,23 @@ class OrderItem(TimestampedModel):
         return f"{self.qty}× {self.title_snapshot}"
 
     @property
+    def image_url(self) -> str:
+        """SH-21 (фидбэк «фото товара в строке заказа»): главное фото позиции —
+        фото варианта (M4-A) → главное фото товара → фото комбо; свободная строка —
+        пусто (плейсхолдер в шаблоне). Живые FK: удалённый товар → плейсхолдер."""
+        if self.variant_id:
+            url = self.variant.image_url
+            if url:
+                return url
+        if self.product_id:
+            img = self.product.primary_image
+            if isinstance(img, dict):
+                return img.get("url", "") or ""
+        if self.combo_id:
+            return self.combo.primary_image_url
+        return ""
+
+    @property
     def line_total(self):
         return self.unit_price * self.qty
 
@@ -322,6 +339,9 @@ class OfferLine(TimestampedModel):
     # str, не FK/int: pk источника бывает UUID (Product) — как Conversation.ref_id.
     ref_id = models.CharField(max_length=64, blank=True, default="")
     title = models.CharField(max_length=200)
+    # SH-20 (фидбэк «артикул везде»): снимок Art.-Nr. источника (товар/вариант) —
+    # ref_id не FK, товар может исчезнуть, а предложение обязано печатать артикул.
+    sku = models.CharField(max_length=100, blank=True, default="")
     qty = models.PositiveIntegerField(default=1)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     position = models.PositiveIntegerField(default=0)

@@ -109,7 +109,10 @@ def build_invoice_pdf(invoice, tenant) -> bytes:
         y -= 6 * mm
         qty_value = Decimal(str(line.get("qty", 1)))  # A7a: дробное кол-во
         unit_price = Decimal(str(line["unit_price"]))
-        c.drawString(x, y, str(line["text"])[:70])
+        text = str(line["text"])
+        if line.get("sku"):  # SH-20: Art.-Nr. рядом с позицией
+            text = f"{text} · {_('Art.-Nr.')} {line['sku']}"
+        c.drawString(x, y, text[:70])
         c.drawRightString(page_w - x - 60 * mm, y, f"{qty_value:.2f}".rstrip("0").rstrip("."))
         c.drawRightString(page_w - x - 30 * mm, y, money(unit_price))
         c.drawRightString(page_w - x, y, money(unit_price * qty_value))

@@ -137,6 +137,13 @@ def set_lines(job, lines, *, vat_rate=None, small_business=False) -> Job:
                     # G11: привязка строки к расходнику каталога (опц.).
                     product=line.get("product"),
                     variant=line.get("variant"),
+                    # SH-20: снимок Art.-Nr. (вариант сильнее товара; явный sku строки сильнее)
+                    sku=(
+                        line.get("sku")
+                        or getattr(line.get("variant"), "sku", "")
+                        or getattr(line.get("product"), "sku", "")
+                        or ""
+                    )[:100],
                 )
             )
         JobLine.objects.bulk_create(objs)
@@ -322,6 +329,7 @@ def lines_snapshot(job) -> list[dict]:
     return [
         {
             "text": ln.text,
+            "sku": ln.sku,  # SH-20
             "qty": str(ln.qty),
             "unit_price": str(ln.unit_price),
             # VAT-4: ставка позиции едет в счёт — иначе смешанная смета дала бы

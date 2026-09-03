@@ -88,7 +88,10 @@ def build_quote_pdf(job, tenant) -> bytes:
     c.setFont(font, 9)
     for line in job.lines.all():
         y -= 6 * mm
-        c.drawString(x, y, str(line.text)[:70])
+        text = str(line.text)
+        if line.sku:  # SH-20: Art.-Nr. рядом с позицией
+            text = f"{text} · {_('Art.-Nr.')} {line.sku}"
+        c.drawString(x, y, text[:70])
         c.drawRightString(page_w - x - 60 * mm, y, qty(line.qty))
         c.drawRightString(page_w - x - 30 * mm, y, money(line.unit_price))
         c.drawRightString(page_w - x, y, money(line.line_total))

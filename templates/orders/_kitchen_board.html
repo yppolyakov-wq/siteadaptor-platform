@@ -16,7 +16,7 @@
       <ul class="text-sm space-y-1 mb-3 flex-1">
         {% for it in o.items.all %}
           <li>
-            <span class="font-semibold">{{ it.qty }}×</span> {{ it.title_snapshot }}{% if it.variant_label %} ({{ it.variant_label }}){% endif %}
+            <span class="font-semibold">{{ it.qty }}×</span> {{ it.title_snapshot }}{% if it.variant_label %} ({{ it.variant_label }}){% endif %}{% if it.sku %} <span class="text-xs text-gray-400">[{{ it.sku }}]</span>{% endif %}
             {% if it.modifiers_label %}<span class="block text-xs text-gray-500 pl-5">+ {{ it.modifiers_label }}</span>{% endif %}
           </li>
         {% endfor %}

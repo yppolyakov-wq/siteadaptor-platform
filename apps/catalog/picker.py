@@ -10,6 +10,12 @@ from decimal import Decimal
 from django.utils.translation import gettext as _
 
 
+def _primary_url(product) -> str:
+    """SH-21: URL главного фото товара ('' без фото) — у Product нет image_url."""
+    img = product.primary_image
+    return (img.get("url", "") or "") if isinstance(img, dict) else ""
+
+
 def _catalog_parts(tenant=None, include_combos=False):
     """G11: активные позиции для пикера строки сметы (value/label + остаток).
 
@@ -28,13 +34,26 @@ def _catalog_parts(tenant=None, include_combos=False):
         if variants:
             for v in variants:
                 label = f"{p.name_text} · {v.label}"
+                title = label
+                sku = v.sku or p.sku
+                if sku:  # SH-20: артикул в подписи пикера (title — без него: им заполняется текст строки)
+                    label += f" · {sku}"
                 if v.stock_quantity is not None:
                     label += _(" (Lager: %(n)s)") % {"n": v.stock_quantity}
                 parts.append(
-                    {"value": f"v:{v.pk}", "label": label, "price": v.price_value, "title": label}
+                    {
+                        "value": f"v:{v.pk}",
+                        "label": label,
+                        "price": v.price_value,
+                        "title": title,
+                        "sku": sku,
+                        "image": v.image_url or _primary_url(p),  # SH-21: миниатюра в пикере
+                    }
                 )
         else:
             label = p.name_text
+            if p.sku:
+                label += f" · {p.sku}"
             if p.stock_quantity is not None:
                 label += _(" (Lager: %(n)s)") % {"n": p.stock_quantity}
             parts.append(
@@ -43,6 +62,8 @@ def _catalog_parts(tenant=None, include_combos=False):
                     "label": label,
                     "price": p.base_price,
                     "title": p.name_text,
+                    "sku": p.sku,
+                    "image": _primary_url(p),
                 }
             )
     # Комбо-наборы (Menü-Sets кейтеринга и т.п.) — по флагу вызывающего.
@@ -56,6 +77,7 @@ def _catalog_parts(tenant=None, include_combos=False):
                     "label": str(combo),
                     "price": combo.price,
                     "title": str(combo),
+                    "image": combo.primary_image_url,
                 }
             )
     # Услуги — только если модуль записи активен (у кейтеринга/Handwerker их нет).
@@ -69,6 +91,7 @@ def _catalog_parts(tenant=None, include_combos=False):
                     "label": str(svc),
                     "price": Decimal(svc.price_cents) / 100,
                     "title": str(svc),
+                    "image": getattr(svc, "image_url", "") or "",
                 }
             )
     return parts

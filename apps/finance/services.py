@@ -291,6 +291,7 @@ def invoice_from_order(order, tenant=None):
         lines.append(
             {
                 "text": item.title_snapshot[:200],
+                "sku": item.sku,  # SH-20: Art.-Nr. едет в счёт (JSON; compute_totals ключ игнорирует)
                 "qty": item.qty,
                 "unit_price": str(net_unit),
                 # VAT-4: ставка в снимке строки — иначе смешанный счёт считался бы

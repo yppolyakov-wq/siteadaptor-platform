@@ -1,5 +1,5 @@
 {% load i18n %}{% trans "Neue Anprobe-Reservierung — bitte zurücklegen:" %}
-{% for item in items %}- {{ item.title_snapshot }}{% if item.variant_label %} ({{ item.variant_label }}){% endif %}
+{% for item in items %}- {{ item.title_snapshot }}{% if item.variant_label %} ({{ item.variant_label }}){% endif %}{% if item.sku %} [{% trans "Art.-Nr." %} {{ item.sku }}]{% endif %}
 {% endfor %}
 {% blocktrans with until=order.reserve_expires_at|date:"d.m.Y H:i" %}Reserviert bis {{ until }} — danach wird automatisch freigegeben.{% endblocktrans %}
 

@@ -21,7 +21,7 @@
     <div class="divide-y divide-gray-100 border-y border-gray-100">
       {% for line in invoice.lines %}
         <div class="flex items-center justify-between py-2 text-sm">
-          <span>{{ line.qty }}× {{ line.text }}</span>
+          <span>{{ line.qty }}× {{ line.text }}{% if line.sku %} <span class="text-gray-400 text-xs">· {% trans "Art.-Nr." %} {{ line.sku }}</span>{% endif %}</span>
           <span>{{ line.unit_price }} EUR</span>
         </div>
       {% endfor %}

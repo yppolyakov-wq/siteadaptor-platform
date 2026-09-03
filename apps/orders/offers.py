@@ -56,16 +56,33 @@ def _clean_lines(lines) -> list[dict]:
         except (TypeError, ValueError):
             qty = 1
         ref_id = line.get("ref_id")
+        kind = str(line.get("kind") or "")[:10]
         out.append(
             {
-                "kind": str(line.get("kind") or "")[:10],
+                "kind": kind,
                 "ref_id": str(ref_id)[:64] if ref_id else "",
                 "title": title[:200],
+                "sku": _line_sku(kind, ref_id, line.get("sku")),
                 "unit_price": unit_price,
                 "qty": qty,
             }
         )
     return out
+
+
+def _line_sku(kind, ref_id, explicit=None) -> str:
+    """SH-20: снимок Art.-Nr. для строки предложения — явный sku композера, иначе
+    артикул товара по ref_id (кривой ref/не товар → пусто, не падение)."""
+    if explicit:
+        return str(explicit)[:100]
+    if kind != "product" or not ref_id:
+        return ""
+    from apps.catalog.models import Product
+
+    try:
+        return (Product.objects.filter(pk=ref_id).values_list("sku", flat=True).first() or "")[:100]
+    except (ValueError, ValidationError):
+        return ""
 
 
 @transaction.atomic

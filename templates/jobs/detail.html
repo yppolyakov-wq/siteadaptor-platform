@@ -65,7 +65,7 @@ line_*_i / data-qt-*), оплата с Angebot-ссылкой, детали об
         <input type="hidden" name="line_part_{{ row.i }}" value="{{ row.part_value }}">
         <div class="min-w-0 dl-name">
           <input name="line_text_{{ row.i }}" type="text" value="{% if row.line %}{{ row.line.text }}{% endif %}" placeholder="{% trans 'Position' %}" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm">
-          <span data-qt-linked class="mt-0.5 block text-[11px] text-gray-400{% if not row.part_value %} hidden{% endif %}">📦 {% trans "Aus dem Sortiment" %}</span>
+          <span data-qt-linked class="mt-0.5 block text-[11px] text-gray-400{% if not row.part_value %} hidden{% endif %}">📦 {% trans "Aus dem Sortiment" %}{% if row.line and row.line.sku %} · {% trans "Art.-Nr." %} {{ row.line.sku }}{% endif %}</span>
         </div>
         {% comment %}Фидбэк владельца 2026-08-20 (п.9 «при указании числа оно
         пропадает»): значение Decimal в немецкой локали рендерилось как «1,00», а

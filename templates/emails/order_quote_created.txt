@@ -1,7 +1,7 @@
 {% load i18n %}{% blocktrans with name=order.customer.name %}Hallo {{ name }},{% endblocktrans %}
 
 {% trans "vielen Dank für Ihre Anfrage! Wir haben folgende Wünsche notiert:" %}
-{% for item in items %}- {{ item.qty }}× {{ item.title_snapshot }}{% if item.modifiers_label %} ({{ item.modifiers_label }}){% endif %}
+{% for item in items %}- {{ item.qty }}× {{ item.title_snapshot }}{% if item.modifiers_label %} ({{ item.modifiers_label }}){% endif %}{% if item.sku %} [{% trans "Art.-Nr." %} {{ item.sku }}]{% endif %}
 {% endfor %}
 {% blocktrans with total=order.total %}Unverbindliche Kalkulation: {{ total }} €{% endblocktrans %}
 

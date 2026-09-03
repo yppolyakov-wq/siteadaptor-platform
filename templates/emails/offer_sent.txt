@@ -2,7 +2,7 @@
 
 {% blocktrans with business=business %}{{ business }} hat Ihnen ein persönliches Angebot geschickt:{% endblocktrans %}
 
-{% for line in offer.lines.all %}{{ line.qty }}× {{ line.title }} — {{ line.line_total }} {{ offer.currency }}
+{% for line in offer.lines.all %}{{ line.qty }}× {{ line.title }}{% if line.sku %} [{% trans "Art.-Nr." %} {{ line.sku }}]{% endif %} — {{ line.line_total }} {{ offer.currency }}
 {% endfor %}{% trans "Gesamt" %}: {{ offer.total }} {{ offer.currency }}
 {% if offer.valid_until %}{% trans "Gültig bis" %}: {{ offer.valid_until|date:"d.m.Y" }}
 {% endif %}{% if offer.note %}
