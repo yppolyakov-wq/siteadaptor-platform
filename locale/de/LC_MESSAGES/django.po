@@ -21945,3 +21945,12 @@ msgstr "Vorlage der Seite"
 
 msgid "Zimmerseite"
 msgstr "Zimmerseite"
+
+msgid "Für alle"
+msgstr "Für alle"
+
+msgid "Nur hier"
+msgstr "Nur hier"
+
+msgid "Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite."
+msgstr "Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite."

@@ -320,8 +320,14 @@
            поэтому save/live-draft/клик по Look'у не тронуты.{% endcomment %}
         <div class="mt-4 pt-4 border-t border-gray-100">
           <div class="grid sm:grid-cols-2 gap-4">
-            {% include "tenant/_cardform_picker.html" with name="sd_card_style" value=card_style items=card_forms_product title=_("Kartenform") %}
-            {% include "tenant/_cardform_picker.html" with name="sd_promo_card" value=promo_card items=card_forms_promo title=_("Aktionskarte") %}
+            <div>
+              {% include "tenant/_cardform_picker.html" with name="sd_card_style" value=card_style items=card_forms_product title=_("Kartenform") %}
+              {% include "tenant/_scope_pill.html" with setting="product_card_form" %}
+            </div>
+            <div>
+              {% include "tenant/_cardform_picker.html" with name="sd_promo_card" value=promo_card items=card_forms_promo title=_("Aktionskarte") %}
+              {% include "tenant/_scope_pill.html" with setting="promo_card_form" %}
+            </div>
           </div>
         </div>
         {% comment %} SE-2d: глобальный стиль карточек — «весь сайт» (мастер-настройка, наследуется
@@ -779,11 +785,11 @@
           <legend class="font-semibold mb-1">{% trans "Vorlage der Seite" %}</legend>
           <div class="stu-page-row mt-2" data-stu-page="category">
             {% include "tenant/_cardform_picker.html" with name="sd_category_page_style" value=category_page_style items=category_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Category page (whole site)") %}
-            <p class="text-xs text-gray-500 mt-1">{% trans "Applies where a category has no template of its own." %}</p>
+            {% include "tenant/_scope_pill.html" with setting="category_page_style" %}
           </div>
           <div class="stu-page-row mt-4" data-stu-page="promo_group">
             {% include "tenant/_cardform_picker.html" with name="sd_promo_group_style" value=promo_group_style items=group_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Offer group page (whole site)") %}
-            <p class="text-xs text-gray-500 mt-1">{% trans "Applies where a group has no template of its own." %}</p>
+            {% include "tenant/_scope_pill.html" with setting="promo_group_style" %}
           </div>
           <div class="stu-page-row mt-4" data-stu-page="promos promo_group">
             {% include "tenant/_cardform_picker.html" with name="promo_page_style" value=promo_page_style items=promo_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Aktionsseite: Vorlage") %}
@@ -3054,7 +3060,162 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     });
     var name = document.querySelector(".stu-page-name");
     if (name) name.textContent = label;
+    refreshScopePills();
   }
+
+  // ── STU-3: охват настройки «для всех / только здесь» ────────────────────────
+  // Данные трёхуровневые с DL-19/20/21 (объект → сайт → прежний вид), но объектный
+  // уровень правился только в формах кабинета: чтобы задать шаблон ОДНОЙ категории,
+  // владелец уходил из редактора в список категорий и обратно. Пилюля показывает
+  // текущий охват и пишет объектный уровень ТОЧЕЧНО (site-scope-save), мимо большой
+  // формы: та пересобирает site_config целиком, и промах в любом её контроле трогал
+  // бы чужие модели.
+  function csrfToken() {
+    var f = document.getElementById("home-form");
+    var el = f && f.querySelector("[name=csrfmiddlewaretoken]");
+    return (el && el.value) || "";
+  }
+  var SCOPE_STATE_URL = "{% url 'site-scope-state' %}";
+  var SCOPE_SAVE_URL = "{% url 'site-scope-save' %}";
+  var curStuRef = "";
+  var scopeOwn = {};    // код настройки → своё значение объекта ("" = наследует)
+  var scopeSite = {};   // значение уровня «для всех», каким его показывает форма
+  var scopeMode = {};   // "site" | "own" — что сейчас редактирует контрол
+
+  function scopePills() { return document.querySelectorAll("[data-stu-scope]"); }
+
+  function scopeControl(box) {
+    // Контрол уровня «для всех» лежит рядом — у пикеров это hidden-инпут с value.
+    var wrap = box.parentElement;
+    return wrap ? wrap.querySelector('input[type="hidden"][name], select[name]') : null;
+  }
+  function scopeBoxFor(el) {
+    // Ближайший предок, у которого есть своя пилюля (пикеры вложены на разную
+    // глубину, поэтому ищем вверх, а не по фиксированной структуре).
+    for (var n = el; n && n !== document; n = n.parentElement) {
+      var box = n.querySelector && n.querySelector(":scope > [data-stu-scope]");
+      if (box) return box;
+    }
+    return null;
+  }
+  function setScopeControl(box, value) {
+    // Пикер рисует плитки по hidden-инпуту; событие change перерисовывает выбор.
+    var ctl = scopeControl(box);
+    if (!ctl || ctl.value === value) return;
+    ctl.value = value;
+    ctl.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function paintScopePill(box) {
+    var code = box.getAttribute("data-stu-scope");
+    var known = Object.prototype.hasOwnProperty.call(scopeOwn, code);
+    // Пилюля видна ТОЛЬКО когда объект страницы известен: на списке товаров нет
+    // «этого товара», и предлагать «только здесь» там было бы обманом.
+    box.hidden = !known;
+    if (!known) { scopeMode[code] = "site"; return; }
+    var own = scopeMode[code] === "own";
+    box.querySelectorAll(".stu-scope-btn").forEach(function (b) {
+      var on = (b.getAttribute("data-stu-mode") === "own") === own;
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+      b.classList.toggle("bg-indigo-50", on);
+      b.classList.toggle("border-indigo-300", on);
+      b.classList.toggle("text-indigo-700", on);
+    });
+    var dot = box.querySelector(".stu-scope-dot");
+    if (dot) dot.classList.toggle("hidden", !scopeOwn[code]);
+    var hint = box.querySelector(".stu-scope-hint");
+    if (hint) {
+      hint.textContent = own && !scopeOwn[code]
+        ? "{% trans 'Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite.' %}"
+        : "";
+    }
+    // Контрол показывает то, что редактирует: в режиме «только здесь» — значение
+    // объекта, иначе — общий выбор сайта. Иначе владелец правит одно, а видит другое.
+    setScopeControl(box, own ? (scopeOwn[code] || "") : (scopeSite[code] || ""));
+  }
+
+  function refreshScopePills() {
+    var codes = [];
+    scopePills().forEach(function (box) {
+      var row = box.closest("[data-stu-page]");
+      if (row && row.classList.contains("hidden")) return;  // настройка не этой страницы
+      var code = box.getAttribute("data-stu-scope");
+      codes.push(code);
+      if (!(code in scopeSite)) {
+        var ctl = scopeControl(box);
+        scopeSite[code] = (ctl && ctl.value) || "";  // запоминаем ДО подмены
+      }
+    });
+    scopeOwn = {};
+    scopeMode = {};
+    if (!curStuRef || !codes.length) { scopePills().forEach(paintScopePill); return; }
+    fetch(SCOPE_STATE_URL + "?ref=" + encodeURIComponent(curStuRef) + "&settings=" + codes.join(","),
+          { credentials: "same-origin" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d || d.ref !== curStuRef) return;  // канва успела уйти на другую страницу
+        Object.keys(d.settings || {}).forEach(function (k) {
+          scopeOwn[k] = d.settings[k].own || "";
+          scopeSite[k] = d.settings[k].site || "";
+          scopeMode[k] = scopeOwn[k] ? "own" : "site";
+        });
+        scopePills().forEach(paintScopePill);
+      })
+      .catch(function () { scopePills().forEach(paintScopePill); });
+  }
+
+  function scopeSave(code, value, then) {
+    fetch(SCOPE_SAVE_URL, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", "X-CSRFToken": csrfToken() },
+      body: new URLSearchParams({ setting: code, ref: curStuRef, value: value }).toString(),
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { if (d && d.ok) { scopeOwn[code] = d.own || ""; if (then) then(); } })
+      .catch(function () {});
+  }
+
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest(".stu-scope-btn");
+    if (!btn) return;
+    var box = btn.closest("[data-stu-scope]");
+    if (!box || box.hidden) return;
+    e.preventDefault();
+    var code = box.getAttribute("data-stu-scope");
+    if (btn.getAttribute("data-stu-mode") === "own") {
+      scopeMode[code] = "own";
+      // Уже выбранный на сайте вариант переносим в объект сразу — так «только здесь»
+      // сразу становится правдой. Пустой выбор перенести нечем: "" в хранении и
+      // значит «наследовать», поэтому просто ждём выбора (подсказка в пилюле).
+      var seed = scopeOwn[code] || scopeSite[code] || "";
+      if (seed && !scopeOwn[code]) {
+        scopeSave(code, seed, function () { paintScopePill(box); hardReloadPreview(); });
+        return;
+      }
+      paintScopePill(box);
+      return;
+    }
+    scopeMode[code] = "site";
+    if (scopeOwn[code]) {
+      scopeSave(code, "", function () { paintScopePill(box); hardReloadPreview(); });
+      return;
+    }
+    paintScopePill(box);
+  });
+
+  // В режиме «только здесь» изменение контрола обязано уходить в объект, а не в сайт:
+  // иначе владелец видит «только здесь» и молча меняет весь сайт.
+  document.addEventListener("change", function (e) {
+    var box = scopeBoxFor(e.target);
+    if (!box || box.hidden) return;
+    var code = box.getAttribute("data-stu-scope");
+    if (scopeMode[code] !== "own") return;  // охват «для всех» — обычный путь через форму
+    var ctl = scopeControl(box);
+    if (!ctl) return;
+    scopeSave(code, ctl.value || "", function () { paintScopePill(box); hardReloadPreview(); });
+  });
+
   function applyPageScope(group) {
     // UC6-7b (fix): страница С хостом C-блоков — НЕ главная, даже если её путь
     // не перечислен в PAGE_GROUPS (2-я+ деталь, любая деталь услуги, blog: group="").
@@ -3165,7 +3326,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       try {
         var bodyEl = frame.contentDocument.body;
         curStuPage = (bodyEl && bodyEl.getAttribute("data-stu-page")) || "";
-      } catch (eStu) { curStuPage = ""; }
+        curStuRef = (bodyEl && bodyEl.getAttribute("data-stu-ref")) || "";
+      } catch (eStu) { curStuPage = ""; curStuRef = ""; }
       applyStuPageScope();
       var ppEl = document.getElementById("bld-page-path");
       if (ppEl) ppEl.value = previewPath;  // Save вернёт канву на эту страницу

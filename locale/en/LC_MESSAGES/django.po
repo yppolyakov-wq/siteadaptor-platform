@@ -21895,3 +21895,12 @@ msgstr "Page template"
 
 msgid "Zimmerseite"
 msgstr "Room page"
+
+msgid "Für alle"
+msgstr "For all"
+
+msgid "Nur hier"
+msgstr "Only here"
+
+msgid "Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite."
+msgstr "Choose a template — it will then apply to this page only."

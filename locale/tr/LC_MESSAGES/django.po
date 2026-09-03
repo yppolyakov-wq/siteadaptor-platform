@@ -22023,3 +22023,12 @@ msgstr "Sayfa şablonu"
 
 msgid "Zimmerseite"
 msgstr "Oda sayfası"
+
+msgid "Für alle"
+msgstr "Tümü için"
+
+msgid "Nur hier"
+msgstr "Sadece burada"
+
+msgid "Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite."
+msgstr "Bir şablon seçin — yalnızca bu sayfa için geçerli olur."

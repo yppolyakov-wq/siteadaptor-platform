@@ -22108,3 +22108,12 @@ msgstr "Шаблон сторінки"
 
 msgid "Zimmerseite"
 msgstr "Сторінка номера"
+
+msgid "Für alle"
+msgstr "Для всіх"
+
+msgid "Nur hier"
+msgstr "Тільки тут"
+
+msgid "Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite."
+msgstr "Виберіть шаблон — він діятиме лише на цій сторінці."
