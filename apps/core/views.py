@@ -1724,14 +1724,21 @@ def home_builder_view(request):
             config["page_templates"] = ptpls
             messages.success(request, _("Page saved as template."))
         # Пер-архетипные оверрайды тизеров (заголовок/описание/видимость).
+        # W6: форма билдера владеет ТОЛЬКО этими тремя ключами. Остальное у архетипа
+        # (intro, обложка hero_image, кнопка, галерея) пишет другой экран — загрузчик
+        # обложек; пересборка словаря с нуля стирала их каждым сохранением билдера.
         arch = dict(config.get("archetypes") or {})
         for spec in storefront.teaser_specs(request.tenant):
             key = spec["key"]
-            arch[key] = {
-                "label": request.POST.get(f"arch_label_{key}", "").strip(),
-                "blurb": request.POST.get(f"arch_blurb_{key}", "").strip(),
-                "hidden": request.POST.get(f"arch_visible_{key}") != "on",
-            }
+            entry = dict(arch.get(key) or {})
+            entry.update(
+                {
+                    "label": request.POST.get(f"arch_label_{key}", "").strip(),
+                    "blurb": request.POST.get(f"arch_blurb_{key}", "").strip(),
+                    "hidden": request.POST.get(f"arch_visible_{key}") != "on",
+                }
+            )
+            arch[key] = entry
         config["archetypes"] = arch
         # M20U-7: кастомные заголовки секций главной (normalize чистит/обрезает).
         titles = {}

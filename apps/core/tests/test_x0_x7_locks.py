@@ -101,6 +101,10 @@ EXPECTED_UNLISTED = frozenset(
         "site-cblock-photo-edit",
         "site-inline-edit",
         "site-preview-draft",
+        # STU-3: JSON-виды охвата настройки («для всех / только здесь») — служебные
+        # запросы Студии из её же панели, отдельного экрана у них нет.
+        "site-scope-save",
+        "site-scope-state",
         "site-share-preview",
         "stays:reports-export",
         "stays:stay-create",

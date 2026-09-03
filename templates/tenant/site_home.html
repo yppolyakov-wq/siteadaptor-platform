@@ -3533,6 +3533,28 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         setTimeout(function () { row.style.backgroundColor = ""; }, 1200);
       });
     });
+    // STU-4: клик по СОДЕРЖИМОМУ страницы открывает настройки ЭТОГО типа страницы.
+    // Раньше клик работал только там, где есть секция главной (data-sf-section) с
+    // одноимённой строкой формы: на листинге акций, странице группы, детали товара
+    // или услуги кликать было не по чему — панель с настройками этой страницы
+    // приходилось искать вручную. Якоря — каркас листингов (data-listing-root, KAT-5)
+    // и корень детали (data-stu-area), то есть новых меток витрине почти не добавлено.
+    doc.querySelectorAll("[data-listing-root], [data-stu-area]").forEach(function (area) {
+      if (area.closest("[data-sf-section]")) return;  // секция главной уже кликабельна
+      area.style.cursor = "pointer";
+      area.addEventListener("click", function (e) {
+        // Не перехватываем ни ссылки/поля витрины, ни существующие ручки редактора:
+        // клик по карточке товара должен вести на товар, а не открывать панель.
+        if (e.target.closest("a,button,input,textarea,select,[contenteditable]")) return;
+        if (e.target.closest("[data-sf-section],[data-ed-section],[data-edit],.sf-photo-edit")) return;
+        if (selectedSec) { try { selectedSec.style.outline = ""; } catch (e3) {} }
+        selectedSec = area;
+        area.style.outline = "2px solid rgba(99,102,241,.9)";
+        area.style.outlineOffset = "4px";
+        var tab = document.querySelector('#bld-area-tabs [data-area="page"]');
+        if (tab && !tab.matches('[aria-pressed="true"]')) tab.click();
+      });
+    });
     // E.3: вставить зону «+» после каждого блока превью → библиотека блоков.
     // UC6-7b: «+» работает на главной И на страницах с хостом C-блоков (curPbHost
     // из data-pb-host) — вставка уходит в page_blocks[хост].

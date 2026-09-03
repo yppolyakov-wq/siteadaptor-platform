@@ -329,3 +329,98 @@ def test_type_labels_reach_the_client(builder_html):
     assert "studio_page_labels" not in builder_html, "переменная не подставлена"
     for code in ("home", "category", "product", "promos", "other"):
         assert f'"{code}"' in builder_html
+
+
+# ── STU-4: клик по содержимому страницы открывает её настройки ────────────────
+
+
+@pytest.mark.django_db
+def test_builder_binds_click_on_page_content(builder_html):
+    """Раньше клик работал только там, где есть секция главной с одноимённой строкой
+    формы: на листинге акций, странице группы, детали товара кликать было не по чему."""
+    assert "[data-listing-root], [data-stu-area]" in builder_html
+    # клик не имеет права перехватывать ссылки и поля витрины
+    assert 'e.target.closest("a,button,input,textarea,select,[contenteditable]")' in builder_html
+
+
+@pytest.mark.django_db
+def test_listing_and_detail_carry_click_anchors(settings):
+    """Якоря — уже существующий каркас листингов (KAT-5) и корень детали: витрине
+    добавлена ровно одна новая метка, а не по метке на каждый тип страницы."""
+    from importlib import import_module
+
+    from django.conf import settings as dj_settings
+    from django.test import RequestFactory
+
+    from apps.catalog.models import Category, Product
+    from apps.promotions.public_views import product_detail, product_list
+    from apps.tenants.tests.factories import TenantFactory
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = TenantFactory()
+    Category.objects.create(name={"de": "Brot"}, slug="brot", is_active=True)
+    product = Product.objects.create(name={"de": "Roggen"}, slug="roggen", base_price="3.20")
+
+    def _get(view, *args, **kw):
+        req = RequestFactory().get("/sortiment/")
+        req.session = import_module(dj_settings.SESSION_ENGINE).SessionStore()
+        req.tenant = tenant
+        return view(req, *args, **kw).content.decode()
+
+    assert "data-listing-root" in _get(product_list)
+    assert 'data-stu-area="detail"' in _get(product_detail, pk=product.pk)
+
+
+# ── попутный дефект класса W6, найденный разведкой Студии ─────────────────────
+
+
+@pytest.mark.django_db
+def test_builder_save_keeps_section_cover_and_gallery(settings):
+    """Загрузил обложку раздела → нажал Save в билдере → обложка исчезла.
+
+    `normalize` хранит у архетипа восемь ключей (label/blurb/hidden + intro,
+    hero_image, button_label, button_url, gallery), а сохранение билдера
+    пересобирало словарь ровно из трёх: остальные писал ДРУГОЙ экран (загрузчик
+    обложек), и любое сохранение конструктора их стирало. Тот же класс, что
+    чинил W6 для ui_mode/board/seo.
+    """
+    from types import SimpleNamespace
+
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.core import views
+    from apps.tenants.tests.factories import TenantFactory
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = TenantFactory()
+    tenant.site_config = {
+        "archetypes": {
+            "catalog": {
+                "label": "Sortiment",
+                "blurb": "",
+                "hidden": False,
+                "intro": "Frisch jeden Tag",
+                "hero_image": "/media/cover.webp",
+                "button_label": "Ansehen",
+                "button_url": "/sortiment/",
+                "gallery": [],
+            }
+        }
+    }
+    tenant.save(update_fields=["site_config"])
+
+    req = RequestFactory().post("/dashboard/site/home/", {"arch_visible_catalog": "on"})
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    views.home_builder_view(req)
+
+    tenant.refresh_from_db()
+    saved = (tenant.site_config.get("archetypes") or {}).get("catalog") or {}
+    assert saved.get("hero_image") == "/media/cover.webp", "обложка раздела стёрта"
+    assert saved.get("intro") == "Frisch jeden Tag"
+    assert saved.get("button_label") == "Ansehen"
+    assert saved.get("button_url") == "/sortiment/"
