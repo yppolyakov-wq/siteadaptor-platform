@@ -327,6 +327,13 @@
             {% include "tenant/_cardform_picker.html" with name="sd_promo_group_style" value=promo_group_style items=group_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Offer group page (whole site)") %}
             <p class="text-xs text-gray-500 mt-1">{% trans "Applies where a group has no template of its own." %}</p>
           </div>
+          {% comment %}DL-21.2: шаблон ОБЗОРНОЙ страницы акций (группы как подкатегории) — рядом
+             с дефолтом групп и ВНЕ expert-блока (прецедент W11-5/DL-19: первичная настройка вида
+             должна быть видна и в Простом режиме редактора); «Regale» включает те же ленты, что
+             селект «Aufbau» в расширенных настройках.{% endcomment %}
+          <div class="mt-4">
+            {% include "tenant/_cardform_picker.html" with name="promo_page_style" value=promo_page_style items=promo_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Aktionsseite: Vorlage") %}
+          </div>
         </div>
         {% comment %} SE-2d: глобальный стиль карточек — «весь сайт» (мастер-настройка, наследуется
            всеми сетками; блок может переопределить своим visual). SE-8a: эксперт-только. {% endcomment %}
@@ -401,11 +408,6 @@
                 <option value="time" {% if promo_grouping == 'time' %}selected{% endif %}>{% trans "Nach Zeit" %}</option>
               </select>
             </label>
-            {% comment %}DL-21.2: шаблон ОБЗОРНОЙ страницы акций (группы как подкатегории);
-            «Regale» включает те же ленты, что селект «Aufbau» выше.{% endcomment %}
-            <div class="md:col-span-2">
-              {% include "tenant/_cardform_picker.html" with name="promo_page_style" value=promo_page_style items=promo_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Aktionsseite: Vorlage") %}
-            </div>
             <label class="text-sm flex items-center gap-2 md:mt-6">
               <input type="checkbox" name="sd_card_slider" value="on" {% if card_slider %}checked{% endif %} class="rounded border-gray-300">
               <span>{% trans "Fotos auf der Karte blättern" %}</span>

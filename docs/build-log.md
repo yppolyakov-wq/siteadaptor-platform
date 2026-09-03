@@ -13754,3 +13754,74 @@ Anti-Food-Waste→Schaufenster; категория Überraschungstüten→Schauf
 (6) · 2 кит-замка; счётчик плиток в `test_dl19_studio` обновлён осознанно (2→4).
 27 новых msgid × 5 каталогов. ⚠️ ops: `seed_demo_tenants --kit aktionsmarkt --recreate` +
 отдельно `--kit clothing --recreate`.
+
+## 2026-09-03 — DL-21 «шаблоны корневой /sortiment/ и обзорной /aktionen/ + идеи Too Good To Go»
+
+**Запрос владельца (после DL-20):** «можно ли эти 6 стилей, которые есть в категориях, так же к
+акциям применить? У категории так же, а главную категории sortiment нужно сделать с макетами,
+если нет. И посмотри togotogo — там есть что интересное посмотреть.» План —
+`docs/dl21-root-and-overview-templates-plan-2026-09-03.md` (решения Р-1..Р-9). БЕЗ миграций.
+
+**Разведка:** корень `/sortiment/` шаблон страницы не считал вовсе (`cat_style` отсекался
+условием `category is not None`), ось плотности/прайса на корне уже занята `catalog_preset`;
+у обзора акций «подкатегории» — это ГРУППЫ, «товары» — акции: именно туда ложатся шесть стилей
+категории (у страницы группы под-сущностей нет — там пятёрка DL-20).
+
+**21.1 Корень каталога.** Свой top-level ключ `catalog_page_style` (presence-minimal, в
+`PAGE_CONFIG_KEYS["listing"]` → live-draft Studio) — это ОДНА страница, а не дефолт для многих;
+реестр = `category_styles.root_styles()` (11 минус `preisliste` — прайс-вид корня уже даёт
+`catalog_preset` в той же строке Studio, второй переключатель того же = урок DL-9); **корень
+НЕ наследует дефолт категорий** (Р-2: «поставил категориям Navigator — и корень стал
+Navigator» — сюрприз; замок). Под-сущности корня — корневые направления: Regale = полки по
+направлениям (товары поддерева), Tabs = «Alle» + направления со счётчиками, Navigator/Kompakt —
+список/указатель направлений, Kopfbild = `catalog_title/intro` + фото сайта + направления
+плитками, Sets = полоса наборов над сеткой. Плитки — строка «Katalog» набора «Landing pages» Studio;
+вход владельца — клик по каталогу НА КАНВЕ `/sortiment/` → попап настроек страницы (SE-2a-2). Демо clothing: корень = Tabs.
+
+**21.2 Обзор акций.** Реестр `PROMO_PAGE_STYLES` (9: Standard + kopfbild/preisliste/regale/tabs
++ schaufenster/navigator/magazin/kompakt; **без `sets`** — у акций нет наборов, **без `mosaik`** —
+бенто режет цену/срок на малых плитках, честнее не обещать) + ключ `promo_page_style`
+(top-level presence-minimal, как `promo_layout`) + резолвер `group_styles.promo_page_style`.
+Действует только без выбранной группы (у группы — DL-20). Preisliste = таблица как вид
+ВЛАДЕЛЬЦА, посетитель возвращает карточки `?ansicht=karten`; Regale = ленты групп со стрелками
+БЕЗ порога 2 (= `promo_layout=slider`, Р-7); Tabs = «Alle» + группы (таб → страница группы,
+KAT-5-своп); Schaufenster = первый дил широкой картой (`_promo_featured`) + секции; Navigator =
+группы/системные чипы/поиск в боковой колонке (CSS grid из корня листинга, до lg
+`display:contents`), плоская сетка справа; Magazin/Kompakt = плоская сетка через
+`promo_group/_grid` без секций (по 2 с условиями / указатель групп + по 5). Kopfbild v1 = фото
+сайта + H1 + «N Angebote · M Gruppen» (свои тексты — v2, Р-8: `TEXT_FIELDS` материализуются,
+правка golden ради двух строк не стоит). `?ansicht=liste` глушит любой шаблон. Плитки: панель
+«Aktionsseite: Vorlage» в списке акций (endpoint `promotion_page_mode`, `page_style`) + Studio
+(область «Look», рядом с дефолтом групп). Демо aktionsmarkt: обзор = Kopfbild.
+
+**21.3 Too Good To Go** — разбор без кода (план §4): у нас уже есть фикс-цена/«Sie sparen»,
+«Nur noch X», Vorschau по `starts_at`, отзывы, Merkzettel, mystery-стиль; **нет** — окна выдачи
+у акции (⚠️ модель), отмены посетителем до N ч, подписки «снова есть тюты», post-pickup оценки,
+Impact-счётчика в ЛК, согласия «Inhalt nicht garantiert». Рекомендация порядка — §4; код по
+решению владельца.
+
+**Стенд Playwright 44/44** (mode корень 1440/390 + aktionsmarkt все 9 шаблонов обзора через
+прямую запись ключа + Studio/панель). Нашёл ОДИН реальный дефект: плитка «Aktionsseite» в
+Studio стояла ВНУТРИ `data-expert`-блока (рядом с `promo_layout`/`promo_grouping`) → в Простом
+режиме редактора невидима (класс W11-5/DL-19) → вынесена к дефолту групп; замок DL-19
+`test_card_form_picker_is_not_hidden_behind_expert_mode` расширен на все ЧЕТЫРЕ плитки
+страниц. Три ложные тревоги стенда: (1) «секции под Navigator» — это полосы «Endet bald»/
+Vorschau, не группы (селектор уточнён `:not([data-ending-soon]):not([data-upcoming])`);
+(2) у магазинного грида не было маркера `data-group-grid` (добавлен для паритета с
+prospekt/countdown); (3) набор «Landing pages» page-scoped, и открывает его НЕ рейка («Seiten» лишь
+раскрывает ленту страниц, «Blöcke» — инсертер), а клик по секции на канве (E.2/SE-2a-2) —
+стенд открывает `?page=/sortiment/`, ждёт загрузки кадра (скоуп применяется из load-хендлера)
+и кликает по каталогу в кадре; грабля: главный кадр тоже содержит «/sortiment/» (в `?page=`),
+кадр канвы искать по `pathname`. Попутно замечен дефект демо вне волны: `static/demo/photos/chinos.webp`
+(кит clothing, «Chino-Hose Deich») — фото ПАСТЫ; править фото-батчем.
+
+**Грабли:** (1) `scripts/i18n_quickcheck.py` не видит НЕОТСЛЕЖИВАЕМЫЕ файлы — новый партиал с
+`{% trans 'Gruppen' %}` прошёл локальный гейт и был пойман только pre-commit-хуком (реюзнут
+msgid «Groups»); перед гейтом новые файлы — `git add`; (2) `execSync` с Python-кодом через
+`JSON.stringify` ломает переводы строк в shell — код помощника стенда в файл + env-переменная,
+`cwd` явно; (3) прогон стенда, оборванный на середине, оставляет в БД чужой ключ — стенд сам
+возвращает кит-значение на старте.
+
+Замки: `test_dl21_root_layouts` (16) · `test_dl21_promo_overview` (16) · `test_dl21_studio` (4)
+· кит-замки ×2 · счётчик плиток `test_dl19_studio` 4→6 осознанно. 20 msgid × 5 каталогов.
+⚠️ ops: `seed_demo_tenants --kit aktionsmarkt --recreate` + отдельно `--kit clothing --recreate`.

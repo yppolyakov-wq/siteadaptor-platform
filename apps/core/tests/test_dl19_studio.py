@@ -73,7 +73,16 @@ def test_card_form_picker_is_not_hidden_behind_expert_mode():
     первичная настройка вида витрины, поэтому он ВНЕ [data-expert]."""
     tenant = TenantFactory(schema_name="public", slug="dl19e", name="DL19E")
     body = _body(tenant)
-    for name in ('name="sd_card_style"', 'name="sd_promo_card"'):
+    # DL-20/21: шаблоны страниц (категория/группа/корень каталога/обзор акций) —
+    # та же первичная настройка вида, тот же инвариант.
+    for name in (
+        'name="sd_card_style"',
+        'name="sd_promo_card"',
+        'name="sd_category_page_style"',
+        'name="sd_promo_group_style"',
+        'name="catalog_page_style"',
+        'name="promo_page_style"',
+    ):
         idx = body.index(name)
         expert_open = body.rfind('data-expert="1"', 0, idx)
         assert expert_open != -1  # expert-блоки на странице есть (иначе замок пуст)

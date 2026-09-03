@@ -15,7 +15,7 @@ test_dl16_aktionen), поэтому ветка Standard живёт в самом
     {% for p in promotions %}{% include "storefront/_promo_card.html" with in_group=True %}{% endfor %}
   </div>
 {% elif group_page_style == "magazin" %}
-  <div data-grid="promo_list" class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6" {% sf_grid_attrs cols="1/2/2" count=promotions|length %}>
+  <div data-grid="promo_list" class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6" data-group-grid="magazin" {% sf_grid_attrs cols="1/2/2" count=promotions|length %}>
     {% for p in promotions %}
     <div class="flex flex-col" data-group-item="magazin">
       {% include "storefront/_promo_card.html" with in_group=True %}
