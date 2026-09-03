@@ -21876,3 +21876,38 @@ msgstr "%(d)s tarihine kadar geçerli"
 
 msgid "Category page (whole site)"
 msgstr "Kategori sayfası (tüm site)"
+
+msgid "As before: groups as sections, offers as a grid."
+msgstr "Eskisi gibi: gruplar bölüm, teklifler ızgara olarak."
+
+msgid "Banner with photo and counts above the sections."
+msgstr "Bölümlerin üzerinde fotoğraf ve sayılar içeren afiş."
+
+msgid "Offers as a table by default — visitors can switch to cards."
+msgstr "Teklifler varsayılan olarak tablo — ziyaretçiler kartlara geçebilir."
+
+msgid "Every group as a strip with arrows, no minimum size."
+msgstr "Her grup oklu bir şerit olarak, asgari boyut yok."
+
+msgid "«All» plus one tab per group above the offers."
+msgstr "Tekliflerin üzerinde «Tümü» artı grup başına bir sekme."
+
+msgid "The main deal as a wide card, then the sections."
+msgstr "Ana fırsat geniş bir kart, ardından bölümler."
+
+msgid "Groups, filters and search in a side column, offers on the right."
+msgstr "Gruplar, filtreler ve arama yan sütunda, teklifler sağda."
+
+msgid "Two offers per row with their conditions."
+msgstr "Satır başına iki teklif ve koşulları."
+
+msgid "Group index in columns and a dense grid without sections."
+msgstr "Sütunlar hâlinde grup dizini ve bölümsüz sık ızgara."
+
+msgid "Aktionsseite: Vorlage"
+msgstr "Kampanya sayfası: şablon"
+
+msgid "%(m)s group"
+msgid_plural "%(m)s groups"
+msgstr[0] "%(m)s grup"
+msgstr[1] "%(m)s grup"

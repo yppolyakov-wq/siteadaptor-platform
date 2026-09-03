@@ -203,6 +203,9 @@ def promotion_list(request):
             # site_config["promo_groups"] совпадает с ключом фасета `?gruppe=`).
             "group_page_styles": group_styles.GROUP_PAGE_STYLES,
             "promo_group_rows": _promo_group_rows(request),
+            # DL-21.2: шаблон обзорной страницы /aktionen/.
+            "promo_page_style": _promo_page_style(request),
+            "promo_page_styles": group_styles.PROMO_PAGE_STYLES,
         },
     )
 
@@ -231,6 +234,14 @@ def _promo_group_rows(request):
         {g for g in Promotion.objects.exclude(group="").values_list("group", flat=True) if g}
     )
     return [{"name": g, "style": saved.get(g, "")} for g in names]
+
+
+def _promo_page_style(request) -> str:
+    from apps.tenants import siteconfig
+
+    raw = getattr(getattr(request, "tenant", None), "site_config", None)
+    raw = raw if isinstance(raw, dict) else {}
+    return siteconfig.normalize_promo_page_style(raw.get("promo_page_style"))
 
 
 def _promo_layout(request) -> str:
@@ -264,6 +275,13 @@ def promotion_page_mode(request):
         cfg["promo_layout"] = layout
     else:
         cfg.pop("promo_layout", None)
+    # DL-21.2: шаблон обзорной страницы — presence по полю (плитки шлют hidden всегда).
+    if "page_style" in request.POST:
+        _ps = siteconfig.normalize_promo_page_style(request.POST.get("page_style", ""))
+        if _ps:
+            cfg["promo_page_style"] = _ps
+        else:
+            cfg.pop("promo_page_style", None)
     # DL-20: шаблон страницы каждой группы. Поля приходят как `group_style:<имя>`;
     # пустое значение = «как на всём сайте» (записи в словаре нет → presence-minimal).
     groups = dict(siteconfig.normalize_promo_groups(cfg.get("promo_groups")))

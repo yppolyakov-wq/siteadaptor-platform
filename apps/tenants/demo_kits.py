@@ -3668,6 +3668,9 @@ AKTIONSMARKT = DemoKit(
         # витрине: распродажа идёт на одну дату (Countdown), у спасённых
         # продуктов есть «паровоз» — Überraschungstüte (Schaufenster).
         "promo_groups": {"Räumung": "countdown", "Anti-Food-Waste": "schaufenster"},
+        # DL-21.2: обзорная /aktionen/ — «Kopfbild» (фото сайта + «N Angebote · M Gruppen»),
+        # ленты групп (promo_layout) остаются.
+        "promo_page_style": "kopfbild",
     },
     # DL-4: акции на главной — витриной «Deal der Woche» (spotlight: featured-
     # карточка + полоса «Endet bald»; макет-референс канваса Sparfuchs).
@@ -5621,6 +5624,9 @@ CLOTHING = DemoKit(
         # DL-20: страница категории — «Navigator» на весь сайт (большой каталог с
         # фасетами размера/цвета); Herren и Accessoires ниже переопределяют его.
         "site_defaults": {"category_page_style": "navigator"},
+        # DL-21.1: КОРНЕВАЯ /sortiment/ — «Tabs»: «Alle» + Damen/Herren/Accessoires
+        # (свой ключ; дефолт категорий «Navigator» на корень не наследуется).
+        "catalog_page_style": "tabs",
     },
     subdomain="mode",
     accent="#1e293b",  # Fashion-Navy

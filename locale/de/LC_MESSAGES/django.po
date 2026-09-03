@@ -21797,3 +21797,39 @@ msgstr "gültig bis %(d)s"
 
 msgid "Category page (whole site)"
 msgstr "Kategorieseite (ganze Website)"
+
+msgid "As before: groups as sections, offers as a grid."
+msgstr "Wie bisher: Gruppen als Abschnitte, Angebote als Raster."
+
+msgid "Banner with photo and counts above the sections."
+msgstr "Banner mit Foto und Zahlen über den Abschnitten."
+
+msgid "Offers as a table by default — visitors can switch to cards."
+msgstr ""
+"Angebote standardmäßig als Tabelle — Besucher können zu Karten wechseln."
+
+msgid "Every group as a strip with arrows, no minimum size."
+msgstr "Jede Gruppe als Leiste mit Pfeilen, ohne Mindestgröße."
+
+msgid "«All» plus one tab per group above the offers."
+msgstr "„Alle“ plus ein Reiter je Gruppe über den Angeboten."
+
+msgid "The main deal as a wide card, then the sections."
+msgstr "Das Hauptangebot als breite Karte, dann die Abschnitte."
+
+msgid "Groups, filters and search in a side column, offers on the right."
+msgstr "Gruppen, Filter und Suche in einer Seitenspalte, Angebote rechts."
+
+msgid "Two offers per row with their conditions."
+msgstr "Zwei Angebote pro Reihe mit ihren Bedingungen."
+
+msgid "Group index in columns and a dense grid without sections."
+msgstr "Gruppenverzeichnis in Spalten und dichtes Raster ohne Abschnitte."
+
+msgid "Aktionsseite: Vorlage"
+msgstr "Aktionsseite: Vorlage"
+
+msgid "%(m)s group"
+msgid_plural "%(m)s groups"
+msgstr[0] "%(m)s Gruppe"
+msgstr[1] "%(m)s Gruppen"

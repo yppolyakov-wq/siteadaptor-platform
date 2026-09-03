@@ -59,6 +59,12 @@
       <option value="" {% if not promo_layout %}selected{% endif %}>{% trans "Raster (wie bisher)" %}</option>
       <option value="slider" {% if promo_layout == "slider" %}selected{% endif %}>{% trans "Slider (Gruppen als Leisten)" %}</option>
     </select>
+  {% comment %}DL-21.2: шаблон ОБЗОРНОЙ страницы /aktionen/ — плитки; сохраняются кнопкой
+  ниже (селекты выше отправляют форму сами и несут значение плитки с собой).{% endcomment %}
+  <div class="w-full mt-2">
+    {% include "tenant/_cardform_picker.html" with name="page_style" value=promo_page_style items=promo_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Aktionsseite: Vorlage") %}
+    <button type="submit" class="mt-2 rounded-xl bg-gray-900 text-white px-4 py-2 text-sm font-medium">{% trans "Save" %}</button>
+  </div>
   {% comment %}DL-20: шаблон страницы КАЖДОЙ группы. Список строится по живым акциям,
   а не по словарю настроек: группа — свободный текст, и осиротевшая после
   переименования запись не должна показываться как существующая группа.

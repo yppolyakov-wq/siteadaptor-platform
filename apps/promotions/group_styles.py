@@ -60,3 +60,48 @@ def group_style(group: str, per_group=None, site_default: str = "") -> str:
         return own
     site_default = (site_default or "").strip()
     return site_default if site_default in VALID_GROUP_STYLES else ""
+
+
+# ── DL-21.2: ОБЗОРНАЯ страница `/aktionen/` ────────────────────────────────────
+# Шесть стилей категории ложатся на акции именно здесь: «подкатегории» обзора —
+# группы, «товары» — акции. У страницы группы (выше) под-сущностей нет — там DL-20.
+# Без «sets» (у акций нет наборов) и без «mosaik» (бенто режет цену/срок на малых
+# плитках — честнее не обещать).
+PROMO_PAGE_STYLES = [
+    ("", _("Standard (grid)"), _("As before: groups as sections, offers as a grid.")),
+    ("kopfbild", _("Mit Kopfbild"), _("Banner with photo and counts above the sections.")),
+    (
+        "preisliste",
+        _("Preisliste"),
+        _("Offers as a table by default — visitors can switch to cards."),
+    ),
+    (
+        "regale",
+        _("Regale (Unterkategorien als Leisten)"),
+        _("Every group as a strip with arrows, no minimum size."),
+    ),
+    (
+        "tabs",
+        _("Tabs (Unterkategorien als Reiter)"),
+        _("«All» plus one tab per group above the offers."),
+    ),
+    (
+        "schaufenster",
+        _("Showcase"),
+        _("The main deal as a wide card, then the sections."),
+    ),
+    (
+        "navigator",
+        _("Navigator"),
+        _("Groups, filters and search in a side column, offers on the right."),
+    ),
+    ("magazin", _("Magazine"), _("Two offers per row with their conditions.")),
+    ("kompakt", _("Compact"), _("Group index in columns and a dense grid without sections.")),
+]
+VALID_PROMO_PAGE_STYLES = frozenset(code for code, _l, _h in PROMO_PAGE_STYLES)
+
+
+def promo_page_style(raw) -> str:
+    """Шаблон обзорной страницы акций (`site_config["promo_page_style"]`); мусор → ""."""
+    code = (raw or "").strip() if isinstance(raw, str) else ""
+    return code if code in VALID_PROMO_PAGE_STYLES and code else ""

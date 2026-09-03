@@ -21958,3 +21958,41 @@ msgstr "діє до %(d)s"
 
 msgid "Category page (whole site)"
 msgstr "Сторінка категорії (весь сайт)"
+
+msgid "As before: groups as sections, offers as a grid."
+msgstr "Як раніше: групи секціями, акції сіткою."
+
+msgid "Banner with photo and counts above the sections."
+msgstr "Банер із фото та числами над секціями."
+
+msgid "Offers as a table by default — visitors can switch to cards."
+msgstr ""
+"Акції за замовчуванням таблицею — відвідувач може перемкнути на картки."
+
+msgid "Every group as a strip with arrows, no minimum size."
+msgstr "Кожна група — стрічкою зі стрілками, без мінімального розміру."
+
+msgid "«All» plus one tab per group above the offers."
+msgstr "«Усі» плюс вкладка на кожну групу над акціями."
+
+msgid "The main deal as a wide card, then the sections."
+msgstr "Головна акція широкою карткою, далі секції."
+
+msgid "Groups, filters and search in a side column, offers on the right."
+msgstr "Групи, фільтри та пошук бічною колонкою, акції праворуч."
+
+msgid "Two offers per row with their conditions."
+msgstr "По дві акції в ряд з їхніми умовами."
+
+msgid "Group index in columns and a dense grid without sections."
+msgstr "Покажчик груп колонками і щільна сітка без секцій."
+
+msgid "Aktionsseite: Vorlage"
+msgstr "Сторінка акцій: шаблон"
+
+msgid "%(m)s group"
+msgid_plural "%(m)s groups"
+msgstr[0] "%(m)s група"
+msgstr[1] "%(m)s групи"
+msgstr[2] "%(m)s груп"
+msgstr[3] "%(m)s груп"

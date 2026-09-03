@@ -1,0 +1,9 @@
+{% load i18n %}{% comment %}DL-21.2 «Kopfbild» обзорной страницы акций: фото сайта (hero) +
+заголовок + «N Angebote · M Gruppen». Своих текстов у страницы нет (v1, решение Р-8).{% endcomment %}
+<section class="mb-6 relative rounded-2xl overflow-hidden bg-gray-900 text-white min-h-[180px] md:min-h-[240px] flex items-end" data-promo-head>
+  {% if promo_head_photo %}<img src="{{ promo_head_photo }}" alt="" class="absolute inset-0 w-full h-full object-cover opacity-60">{% endif %}
+  <div class="relative p-5 md:p-8">
+    <h1 class="text-2xl md:text-4xl font-extrabold leading-tight">{% trans "Current offers" %}</h1>
+    <p class="mt-1 text-sm md:text-base text-white/85">{% blocktrans count n=promo_total %}{{ n }} offer{% plural %}{{ n }} offers{% endblocktrans %}{% if promo_group_count %} · {% blocktrans count m=promo_group_count %}{{ m }} group{% plural %}{{ m }} groups{% endblocktrans %}{% endif %}</p>
+  </div>
+</section>

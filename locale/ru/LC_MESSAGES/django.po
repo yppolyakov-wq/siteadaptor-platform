@@ -21975,3 +21975,41 @@ msgstr "действует до %(d)s"
 
 msgid "Category page (whole site)"
 msgstr "Страница категории (весь сайт)"
+
+msgid "As before: groups as sections, offers as a grid."
+msgstr "Как раньше: группы секциями, акции сеткой."
+
+msgid "Banner with photo and counts above the sections."
+msgstr "Баннер с фото и числами над секциями."
+
+msgid "Offers as a table by default — visitors can switch to cards."
+msgstr ""
+"Акции по умолчанию таблицей — посетитель может переключить на карточки."
+
+msgid "Every group as a strip with arrows, no minimum size."
+msgstr "Каждая группа — лентой со стрелками, без минимального размера."
+
+msgid "«All» plus one tab per group above the offers."
+msgstr "«Все» плюс вкладка на каждую группу над акциями."
+
+msgid "The main deal as a wide card, then the sections."
+msgstr "Главная акция широкой картой, затем секции."
+
+msgid "Groups, filters and search in a side column, offers on the right."
+msgstr "Группы, фильтры и поиск боковой колонкой, акции справа."
+
+msgid "Two offers per row with their conditions."
+msgstr "По две акции в ряд с их условиями."
+
+msgid "Group index in columns and a dense grid without sections."
+msgstr "Указатель групп колонками и плотная сетка без секций."
+
+msgid "Aktionsseite: Vorlage"
+msgstr "Страница акций: шаблон"
+
+msgid "%(m)s group"
+msgid_plural "%(m)s groups"
+msgstr[0] "%(m)s группа"
+msgstr[1] "%(m)s группы"
+msgstr[2] "%(m)s групп"
+msgstr[3] "%(m)s групп"

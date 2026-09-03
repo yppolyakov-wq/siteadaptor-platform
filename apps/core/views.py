@@ -1882,6 +1882,11 @@ def home_builder_view(request):
             config["promo_grouping"] = siteconfig.normalize_promo_grouping(
                 request.POST.get("promo_grouping")
             )
+        # DL-21.2: шаблон обзорной страницы акций ("" = Standard → ключа нет).
+        if "promo_page_style" in request.POST:
+            config["promo_page_style"] = siteconfig.normalize_promo_page_style(
+                request.POST.get("promo_page_style")
+            )
         # S4: стартовая страница витрины (общая главная или один архетип).
         config["storefront_root"] = request.POST.get("storefront_root", "home").strip() or "home"
         # SE-7c: область «Меню» — стиль шапки + sticky. Presence-guard (правим лишь когда
@@ -2434,6 +2439,9 @@ def home_builder_view(request):
             # DL-17.3: страница акций — раскладка групп и режим группировки.
             "promo_layout": config.get("promo_layout", ""),
             "promo_grouping": config.get("promo_grouping", ""),
+            # DL-21.2: шаблон обзорной страницы акций + реестр для плиток.
+            "promo_page_style": config.get("promo_page_style", ""),
+            "promo_page_styles": group_styles.PROMO_PAGE_STYLES,
             # DL-2/DL-17.3: префилл контролов фона страницы и хрома карточек.
             "page_bg": config["site_defaults"].get("page_bg", ""),
             "card_chrome": config["site_defaults"].get("card_chrome", ""),

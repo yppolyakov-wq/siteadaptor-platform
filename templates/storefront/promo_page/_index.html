@@ -1,0 +1,11 @@
+{% load i18n %}{% comment %}DL-21.2 «Kompakt»: указатель групп колонками — как указатель
+подкатегорий (DL-20 P5); сама выдача — плотной сеткой без секций.{% endcomment %}
+{% if groups %}
+<nav class="mb-5 bg-white rounded-2xl shadow-sm p-4" data-promo-index aria-label="{% trans "Groups" %}">
+  <ul class="columns-2 sm:columns-3 lg:columns-4 gap-x-6 text-sm [&>li]:break-inside-avoid">
+    {% for g, g_label in groups %}
+    <li class="mb-1"><a href="{% url 'storefront-aktionen' %}?gruppe={{ g|urlencode }}" class="text-gray-600 hover:text-gray-900 hover:underline">{{ g_label }}</a></li>
+    {% endfor %}
+  </ul>
+</nav>
+{% endif %}

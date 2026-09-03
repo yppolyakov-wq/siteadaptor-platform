@@ -1352,6 +1352,34 @@ input[type="datetime-local"] {
   }
 }
 
+/* DL-21.2: «Navigator» обзорной страницы акций — та же двухколоночная схема из
+   корня листинга; шапка страницы (h1/Kopfbild) — первый ребёнок, тянется на обе. */
+@media (min-width: 1024px) {
+  [data-promo-page="navigator"] {
+    display: grid;
+    grid-template-columns: 15rem minmax(0, 1fr);
+    column-gap: 1.5rem;
+    align-items: start;
+  }
+  [data-promo-page="navigator"] > * {
+    grid-column: 2;
+    min-width: 0;
+  }
+  [data-promo-page="navigator"] > :first-child {
+    grid-column: 1 / -1;
+  }
+  [data-promo-page="navigator"] > [data-promo-side] {
+    grid-column: 1;
+    grid-row: 2 / span 999;
+    position: sticky;
+    top: 5rem;
+  }
+  [data-promo-page="navigator"] [data-promo-side] > div,
+  [data-promo-page="navigator"] [data-promo-side] > form {
+    flex-wrap: wrap;
+  }
+}
+
 /* «Mosaik» — плитки разного размера. Сетка листинга по умолчанию раскладывается
    флексом (DL-14 spread), поэтому бенто явно возвращает grid и задаёт спаны:
    первая плитка 2×2, каждая шестая — во всю ширину ряда. */

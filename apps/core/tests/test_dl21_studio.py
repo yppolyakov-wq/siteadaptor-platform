@@ -76,3 +76,20 @@ def test_draft_channel_and_page_payload_carry_the_root_template():
     assert cfg["catalog_page_style"] == "tabs"
     siteconfig.apply_page_payload(cfg, {"catalog_page_style": ""})
     assert "catalog_page_style" not in cfg
+
+
+def test_overview_template_tiles_save_and_draft():
+    """DL-21.2: плитки шаблона обзорной /aktionen/ в Studio (top-level ключ, как
+    promo_layout) — Save, снятие и живой черновик."""
+    from apps.promotions import group_styles
+
+    tenant = TenantFactory(schema_name="public", slug="dl21p", name="DL21P")
+    body = _body(tenant)
+    assert 'name="promo_page_style"' in body
+    for code, _l, _h in group_styles.PROMO_PAGE_STYLES:
+        assert f'data-cf-key="{code}"' in body, code
+    assert "payload.promo_page_style = ppInp.value" in body
+    cfg = _save(tenant, {"home_form": "1", "promo_page_style": "tabs"})
+    assert cfg["promo_page_style"] == "tabs"
+    cfg = _save(tenant, {"home_form": "1", "promo_page_style": ""})
+    assert "promo_page_style" not in cfg

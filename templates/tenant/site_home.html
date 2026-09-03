@@ -401,6 +401,11 @@
                 <option value="time" {% if promo_grouping == 'time' %}selected{% endif %}>{% trans "Nach Zeit" %}</option>
               </select>
             </label>
+            {% comment %}DL-21.2: шаблон ОБЗОРНОЙ страницы акций (группы как подкатегории);
+            «Regale» включает те же ленты, что селект «Aufbau» выше.{% endcomment %}
+            <div class="md:col-span-2">
+              {% include "tenant/_cardform_picker.html" with name="promo_page_style" value=promo_page_style items=promo_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Aktionsseite: Vorlage") %}
+            </div>
             <label class="text-sm flex items-center gap-2 md:mt-6">
               <input type="checkbox" name="sd_card_slider" value="on" {% if card_slider %}checked{% endif %} class="rounded border-gray-300">
               <span>{% trans "Fotos auf der Karte blättern" %}</span>
@@ -2292,6 +2297,9 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     if (plSel) payload.promo_layout = plSel.value;
     var pgSel = form.querySelector("select[name='promo_grouping']");
     if (pgSel) payload.promo_grouping = pgSel.value;
+    // DL-21.2: шаблон обзорной страницы акций ("" законно — снимает ключ)
+    var ppInp = form.querySelector("[name='promo_page_style']");
+    if (ppInp) payload.promo_page_style = ppInp.value;
     var evSel = form.querySelector("select[name='events_preset']");
     if (evSel && evSel.value) payload.events_index_layout = { preset: evSel.value };
     var stSel = form.querySelector("select[name='stay_preset']");

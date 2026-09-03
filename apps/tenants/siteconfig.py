@@ -24,6 +24,7 @@ from apps.catalog.option_styles import VARIANT_STYLE_KEYS as _CATALOG_VARIANT_ST
 from apps.core import card_forms, detail_sections
 from apps.core.hero_tiles import HERO_TILE_WIDGETS
 from apps.promotions.group_styles import VALID_GROUP_STYLES as _GROUP_PAGE_STYLES
+from apps.promotions.group_styles import VALID_PROMO_PAGE_STYLES as _PROMO_PAGE_STYLES
 
 # E4/2026-07-30: допустимые значения site_defaults.hero_widget — кастомные ветки
 # `sections/_hero_widget.html` + архетипы из реестра плиток `core.hero_tiles`
@@ -2763,6 +2764,11 @@ def normalize_catalog_page_style(raw) -> str:
     return raw if isinstance(raw, str) and raw in _ROOT_PAGE_STYLES and raw else ""
 
 
+def normalize_promo_page_style(raw) -> str:
+    """DL-21.2: шаблон обзорной `/aktionen/` — реестр `group_styles.PROMO_PAGE_STYLES`."""
+    return raw if isinstance(raw, str) and raw in _PROMO_PAGE_STYLES and raw else ""
+
+
 def normalize_promo_groups(raw) -> dict:
     if not isinstance(raw, dict):
         return {}
@@ -2988,6 +2994,10 @@ def _normalize_impl(config) -> dict:
     catalog_page_style = normalize_catalog_page_style(config.get("catalog_page_style"))
     if catalog_page_style:
         normalized["catalog_page_style"] = catalog_page_style
+    # DL-21.2: шаблон ОБЗОРНОЙ страницы акций; ключ ТОЛЬКО при валидном значении.
+    promo_page_style = normalize_promo_page_style(config.get("promo_page_style"))
+    if promo_page_style:
+        normalized["promo_page_style"] = promo_page_style
     # AF-1: событийные поля формы /anfrage/; ключ ТОЛЬКО при непустом (golden-паритет).
     anfrage = normalize_anfrage(config.get("anfrage"))
     if anfrage:

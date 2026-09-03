@@ -1622,6 +1622,7 @@ def test_dl20_aktionsmarkt_group_pages_inherit_and_override():
     # прежние оси site_defaults не затёрты мерджем config_patch (один уровень вглубь)
     assert cfg["site_defaults"]["card_style"] == "regal"
     assert Category.objects.get(slug="ueberraschungstueten").page_style == "schaufenster"
+    assert cfg["promo_page_style"] == "kopfbild"  # DL-21.2: обзорная /aktionen/
 
 
 def test_dl20_clothing_category_pages_inherit_and_override():
@@ -1634,3 +1635,4 @@ def test_dl20_clothing_category_pages_inherit_and_override():
     assert t.site_config["site_defaults"]["category_page_style"] == "navigator"
     styles = dict(Category.objects.filter(parent=None).values_list("slug", "page_style"))
     assert styles == {"damen": "", "herren": "magazin", "accessoires": "mosaik"}
+    assert t.site_config["catalog_page_style"] == "tabs"  # DL-21.1: корень — свой ключ

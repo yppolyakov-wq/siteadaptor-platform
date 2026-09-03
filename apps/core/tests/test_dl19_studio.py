@@ -56,9 +56,9 @@ def test_studio_shows_a_tile_with_a_preview_for_every_form():
     # считаем МАРКАП (атрибут с закрывающей скобкой): в партиале есть ещё JS-селекторы
     # «[data-cardform-picker]» — урок MEN: замок на голый маркер ловит строки скрипта.
     # DL-20 осознанно добавил две плитки-выборки (шаблоны СТРАНИЦ — категории и
-    # группы акций), DL-21 — третью (корневая страница каталога, строка «Katalog»)
-    # тем же партиалом — счётчик обновлён вместе с ними.
-    assert body.count("data-cardform-picker>") == 5
+    # группы акций), DL-21 — ещё две (корневая страница каталога в строке «Katalog»
+    # и обзорная страница акций) тем же партиалом — счётчик обновлён вместе с ними.
+    assert body.count("data-cardform-picker>") == 6
     assert 'name="sd_card_style"' in body and 'name="sd_promo_card"' in body
     for key in card_forms.keys_for("product") | card_forms.keys_for("promo"):
         assert f'data-cf-key="{key}"' in body, key

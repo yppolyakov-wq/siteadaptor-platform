@@ -489,6 +489,13 @@ def promotion_list(request):
     page_cfg = _promo_page_config(request)
     cfg = siteconfig.normalize(page_cfg)
     promo_layout = siteconfig.normalize_promo_layout(page_cfg.get("promo_layout"))
+    # DL-21.2: шаблон ОБЗОРА (только без выбранной группы — у группы свой, DL-20).
+    # «Preisliste» делает таблицу видом владельца; явный ?ansicht=karten сильнее.
+    page_style = (
+        group_styles.promo_page_style(cfg.get("promo_page_style")) if not sel["gruppe"] else ""
+    )
+    if page_style == "preisliste" and (request.GET.get("ansicht") or "") != "karten":
+        list_view = True
     # поиск ДО apply: фильтр «−N %+» материализует список (см. PromoFacets)
     promotions = _attach_lowest_30d(
         provider.sort(provider.apply(provider.search(base, q), request.GET), sort)
@@ -517,7 +524,7 @@ def promotion_list(request):
     promo_grouping = _promo_grouping_for(request)
     if not has_filters and promo_grouping == "time":
         grouped = _time_groups(promotions, timezone.localtime())
-    elif not has_filters and groups:
+    elif not has_filters and groups and page_style not in ("kompakt", "navigator", "magazin"):
         by_group: dict[str, list] = {}
         order: list[str] = []
         for promo in promotions:
@@ -533,7 +540,8 @@ def promotion_list(request):
         sections, rest = [], []
         for key in order:
             items = by_group[key]
-            if key and len(items) >= MIN_GROUP_SECTION:
+            # DL-21.2 «Regale»: лента — у КАЖДОЙ группы, порог секции не действует
+            if key and len(items) >= (1 if page_style == "regale" else MIN_GROUP_SECTION):
                 sections.append((key, group_labels.get(key, key), items))
             else:
                 rest.extend(items)
@@ -548,6 +556,35 @@ def promotion_list(request):
     grouped = [
         (key, label, items, _group_more_url(key, promo_grouping)) for key, label, items in grouped
     ]
+
+    # DL-21.2: композиции обзора поверх секций.
+    if page_style == "regale":
+        promo_layout = "slider"  # Regale = группы лентами со стрелками (та же лента A3)
+    promo_hero = None
+    if page_style == "schaufenster" and promotions and not has_filters and not list_view:
+        promo_hero = promotions[0]
+        # герой не дублируется в секциях/сетке
+        promotions = [p for p in promotions if p.pk != promo_hero.pk]
+        grouped = [
+            (k, lbl, [p for p in items if p.pk != promo_hero.pk], more)
+            for k, lbl, items, more in grouped
+        ]
+        grouped = [g for g in grouped if g[2]]
+    promo_tabs = []
+    if page_style == "tabs" and groups:
+        promo_tabs = [
+            {"label": _("All"), "url": reverse("storefront-aktionen"), "active": True}
+        ] + [
+            {"label": group_labels[g], "url": _group_more_url(g, ""), "active": False}
+            for g in groups
+        ]
+    if page_style == "magazin":
+        for promo in promotions:
+            promo.conditions = rules_text.conditions_for(promo)
+    _heroes = cfg.get("heroes") or []
+    promo_head_photo = cfg.get("hero_image") or (
+        (_heroes[0] or {}).get("image", "") if _heroes and isinstance(_heroes[0], dict) else ""
+    )
 
     # SF-2: компактная полоса «⏳ Endet bald» над секциями — только на чистом
     # виде и только если есть чем наполнить (пустые секции не показываем).
@@ -651,6 +688,13 @@ def promotion_list(request):
             "sort_options": provider.sort_options(),
             "toolbar_hidden": toolbar_hidden,
             "promo_layout": promo_layout,  # DL-16.2 A3
+            # DL-21.2: обзорная страница — шаблон композиции + её данные.
+            "promo_page_style": page_style,
+            "promo_hero": promo_hero,
+            "promo_tabs": promo_tabs,
+            "promo_head_photo": promo_head_photo,
+            "promo_total": len(promotions) + (1 if promo_hero else 0),
+            "promo_group_count": len(groups),
             # DL-20: страница группы — заголовок и шаблон композиции.
             "group_label": group_label,
             "group_page_style": group_style,
