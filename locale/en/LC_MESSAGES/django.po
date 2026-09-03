@@ -21850,3 +21850,48 @@ msgstr "Your invoice %(n)s"
 
 msgid "anbei erhalten Sie die Rechnung %(n)s."
 msgstr "please find invoice %(n)s attached."
+
+msgid "Abschnitte"
+msgstr "Sections"
+
+msgid "Aktionsseite"
+msgstr "Promotion page"
+
+msgid "Aufbau der Detailseite"
+msgstr "Detail page layout"
+
+msgid "Darstellung der Gruppen"
+msgstr "Group display"
+
+msgid "Gruppierung"
+msgstr "Grouping"
+
+msgid "Kasse"
+msgstr "Checkout"
+
+msgid "Katalog"
+msgstr "Catalog"
+
+msgid "Passt dazu"
+msgstr "Goes well with"
+
+msgid "Rechtliches"
+msgstr "Legal"
+
+msgid "Textseite"
+msgstr "Text page"
+
+msgid "Unterkategorien zuerst"
+msgstr "Subcategories first"
+
+msgid "Veranstaltungsseite"
+msgstr "Event page"
+
+msgid "Vorlage der Gruppenseite"
+msgstr "Group page template"
+
+msgid "Vorlage der Seite"
+msgstr "Page template"
+
+msgid "Zimmerseite"
+msgstr "Room page"

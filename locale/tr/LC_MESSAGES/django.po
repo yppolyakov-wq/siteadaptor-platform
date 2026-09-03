@@ -21978,3 +21978,48 @@ msgstr "Faturanız %(n)s"
 
 msgid "anbei erhalten Sie die Rechnung %(n)s."
 msgstr "ekte %(n)s numaralı faturayı bulabilirsiniz."
+
+msgid "Abschnitte"
+msgstr "Bölümler"
+
+msgid "Aktionsseite"
+msgstr "Kampanya sayfası"
+
+msgid "Aufbau der Detailseite"
+msgstr "Detay sayfası düzeni"
+
+msgid "Darstellung der Gruppen"
+msgstr "Grup görünümü"
+
+msgid "Gruppierung"
+msgstr "Gruplama"
+
+msgid "Kasse"
+msgstr "Ödeme"
+
+msgid "Katalog"
+msgstr "Katalog"
+
+msgid "Passt dazu"
+msgstr "Bununla iyi gider"
+
+msgid "Rechtliches"
+msgstr "Yasal"
+
+msgid "Textseite"
+msgstr "Metin sayfası"
+
+msgid "Unterkategorien zuerst"
+msgstr "Önce alt kategoriler"
+
+msgid "Veranstaltungsseite"
+msgstr "Etkinlik sayfası"
+
+msgid "Vorlage der Gruppenseite"
+msgstr "Grup sayfası şablonu"
+
+msgid "Vorlage der Seite"
+msgstr "Sayfa şablonu"
+
+msgid "Zimmerseite"
+msgstr "Oda sayfası"
