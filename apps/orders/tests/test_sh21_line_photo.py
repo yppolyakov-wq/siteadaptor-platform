@@ -35,7 +35,9 @@ def test_order_item_image_url_precedence():
 
 def test_combo_line_uses_combo_photo():
     combo = Combo.objects.create(
-        name="Menü", price=Decimal("20.00"), images=[{"url": "/media/kombo.webp", "is_primary": True}]
+        name="Menü",
+        price=Decimal("20.00"),
+        images=[{"url": "/media/kombo.webp", "is_primary": True}],
     )
     order = services.create_order(items=(), combos=[(combo, [], 1)], name="K")
     assert order.items.first().image_url == "/media/kombo.webp"
@@ -43,8 +45,12 @@ def test_combo_line_uses_combo_photo():
 
 def test_order_card_renders_a_photo_cell_for_every_line_including_free_ones():
     product = ProductFactory(base_price=Decimal("3.00"), images=IMG_P, stock_quantity=9)
-    order = services.create_order(items=[(product, 1)], custom_lines=[("Frei", "1.00", 1)], name="K")
-    body = views.order_detail(_req(path=f"/dashboard/orders/{order.pk}/"), order.pk).content.decode()
+    order = services.create_order(
+        items=[(product, 1)], custom_lines=[("Frei", "1.00", 1)], name="K"
+    )
+    body = views.order_detail(
+        _req(path=f"/dashboard/orders/{order.pk}/"), order.pk
+    ).content.decode()
     rows = body.split('class="dl-row py-2')[1:]
     assert len(rows) == 2
     assert all("dl-photo" in r for r in rows)
@@ -56,7 +62,9 @@ def test_order_card_renders_a_photo_cell_for_every_line_including_free_ones():
 
 def test_picker_parts_carry_thumbnails_and_the_value_contract_is_unchanged():
     product = ProductFactory(base_price=Decimal("3.00"), images=IMG_P, name={"de": "Brot"})
-    variant = ProductVariant.objects.create(product=product, label="XL", price=Decimal("4.00"), images=IMG_V)
+    variant = ProductVariant.objects.create(
+        product=product, label="XL", price=Decimal("4.00"), images=IMG_V
+    )
     parts = {p["value"]: p for p in _catalog_parts()}
     assert parts[f"v:{variant.pk}"]["image"] == "/media/variante.webp"
     assert parts[f"v:{variant.pk}"]["title"] == "Brot · XL"
