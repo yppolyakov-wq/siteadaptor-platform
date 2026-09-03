@@ -2,7 +2,7 @@
 между бронями — детектор, интеграция в G4-кандидаты, кабинет, автопредложение."""
 
 import uuid
-from datetime import date, timedelta
+from datetime import timedelta
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -16,7 +16,9 @@ from apps.stays.models import StaySettings, StayUnit
 
 pytestmark = pytest.mark.django_db
 
-D0 = date(2026, 9, 1)
+# Дата ОТНОСИТЕЛЬНАЯ: детектор коротких люк (`views._has_short_gaps`) смотрит
+# только вперёд от сегодня — с фиксированной датой замок протухал (CI 2026-09-03).
+D0 = timezone.localdate()
 
 
 @pytest.fixture(autouse=True)
