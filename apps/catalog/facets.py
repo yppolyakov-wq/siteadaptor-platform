@@ -23,11 +23,16 @@ def _with_size_axis(variants):
     """M4-A: аннотация `size_axis` = ось `size`, а если она пуста — легаси-label.
 
     Чипы и фильтр обязаны смотреть на ОДНО значение, иначе в смешанном каталоге
-    (часть товаров с осями, часть — со старым label) клик по чипу ничего не найдёт."""
-    from django.db.models import F, Value
+    (часть товаров с осями, часть — со старым label) клик по чипу ничего не найдёт.
+
+    O-9: легаси-фолбэк действует ТОЛЬКО у варианта без цвета. У цветового варианта
+    (`color` задан, `size` пуст) label и есть название цвета — без этой оговорки
+    «Anthrazit» и «Silber» вставали в список размеров рядом с «36» и «S»."""
+    from django.db.models import Case, F, Value, When
     from django.db.models.functions import Coalesce, NullIf
 
-    return variants.annotate(size_axis=Coalesce(NullIf(F("size"), Value("")), F("label")))
+    legacy = Case(When(color="", then=F("label")), default=Value(""))
+    return variants.annotate(size_axis=Coalesce(NullIf(F("size"), Value("")), legacy))
 
 
 def _money(raw):

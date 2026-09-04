@@ -1,6 +1,9 @@
 {% extends "storefront/listing.html" %}
 {% load i18n siteui %}
-{% block title %}{% trans "Our products" %} — {{ request.tenant.name }}{% endblock %}
+{% comment %}O-9: у направления и полки — своё имя во вкладке и в выдаче поиска.
+Раньше все страницы каталога звались одинаково («Unsere Produkte»): десять
+открытых вкладок были неразличимы, а поисковик видел дубли.{% endcomment %}
+{% block title %}{% if current_category %}{{ current_category }}{% else %}{% trans "Our products" %}{% endif %} — {{ request.tenant.name }}{% endblock %}
 
 {% comment %}UB1-3: каталог на каркасе listing.html. Разметка блоков перенесена без
 изменений (замки — apps/catalog/tests/test_listing_parity.py + test_storefront).{% endcomment %}

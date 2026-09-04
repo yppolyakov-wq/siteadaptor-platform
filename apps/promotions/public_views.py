@@ -665,11 +665,30 @@ def promotion_list(request):
             "url": f"{request.path}?{encoded}" if encoded else request.path,
         }
 
+    # O-9: системный чип не предлагается, если по нему нечего показать. Фильтр,
+    # уводящий на пустую страницу, читается как «в магазине пусто», хотя это лишь
+    # нерелевантный срез (то же правило, что у `nur_angebote` каталога). Гейт
+    # спрашивает САМ провайдер — дублировать условия фильтра нельзя, иначе они
+    # разойдутся; срез берём с учётом ?q=, но без других чипов, чтобы предложение
+    # не схлопывалось от собственного выбора посетителя.
+    chip_base = provider.search(base, q)
+
+    def _chip_if(label, param, value):
+        chip = _chip(label, param, value)
+        # активный остаётся всегда — иначе снять его можно только правкой адреса
+        if chip["active"] or provider.apply(chip_base, {param: str(value)})[:1]:
+            return chip
+        return None
+
     system_chips = [
-        _chip(_("Ends today"), "endet", "heute"),
-        _chip(_("This week"), "endet", "woche"),
-        *[_chip(f"−{n} %+", "rabatt", n) for n in DISCOUNT_PRESETS],
-        _chip(_("Reservable"), "reservierbar", "1"),
+        chip
+        for chip in (
+            _chip_if(_("Ends today"), "endet", "heute"),
+            _chip_if(_("This week"), "endet", "woche"),
+            *[_chip_if(f"−{n} %+", "rabatt", n) for n in DISCOUNT_PRESETS],
+            _chip_if(_("Reservable"), "reservierbar", "1"),
+        )
+        if chip
     ]
     # DL-20: страница ГРУППЫ акций. До этой волны её фактически не было — фильтр
     # `?gruppe=` отдавал плоскую сетку под общим заголовком, и посетитель, пришедший
