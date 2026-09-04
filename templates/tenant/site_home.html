@@ -1806,6 +1806,58 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   // дефисами/UUID сравниваются literal, escapejs их кодировал бы).
   var PAGE_GROUPS = {{ preview_page_groups_json|safe }};
 
+  // STU-7: параметры адреса, ЗАДАЮЩИЕ страницу (сегодня `?gruppe=` у группы акций).
+  // Канва обязана нести их вместе с путём: previewPath питает и перерисовку живого
+  // черновика, и `page_path` (куда Save вернёт канву). Раньше здесь была голая
+  // location.pathname — и первая же смена настройки на странице группы уводила
+  // владельца на общий обзор. Всё прочее (фильтры посетителя, служебные preview /
+  // look / bundle) намеренно отбрасываем — зеркало studio_pages.PAGE_QUERY_KEYS.
+  var STU_PAGE_QUERY_KEYS = {{ studio_page_query_keys_json|safe }};
+  function stuPageQuery(search) {
+    var keep = [];
+    try {
+      new URLSearchParams(search || "").forEach(function (v, k) {
+        if (STU_PAGE_QUERY_KEYS.indexOf(k) < 0 || !String(v).trim()) return;
+        if (keep.some(function (p) { return p[0] === k; })) return;
+        keep.push([k, v]);
+      });
+    } catch (e) { return ""; }
+    return keep.length
+      ? "?" + keep.map(function (p) {
+          return encodeURIComponent(p[0]) + "=" + encodeURIComponent(p[1]);
+        }).join("&")
+      : "";
+  }
+
+  // STU-7: состояние редактора по фактической странице кадра. Вынесено из
+  // instrumentFrame, потому что источников теперь ДВА: загрузка кадра и KAT-5
+  // pushState-своп (табы категорий/групп — без перезагрузки).
+  function syncFrameState(frame) {
+    try {
+      var fPath = frame.contentWindow.location.pathname || "/";
+      // путь + параметры, задающие страницу (fPath остаётся голым — по нему ищется
+      // группа панели в PAGE_GROUPS, ключи там без query).
+      previewPath = fPath + stuPageQuery(frame.contentWindow.location.search);
+      // UC6-7b: хост C-блоков страницы — прямо из канвы (data-pb-host на хост-регионе;
+      // работает и на произвольных детальных, чьи пути не перечислены в PAGE_GROUPS).
+      curPbHost = "";
+      try {
+        var pbHostEl = frame.contentDocument.querySelector("[data-pb-host]");
+        curPbHost = (pbHostEl && pbHostEl.getAttribute("data-pb-host")) || "";
+      } catch (ePb) {}
+      // STU-2: тип страницы кадра → скоуп уровня «эта страница».
+      try {
+        var bodyEl = frame.contentDocument.body;
+        curStuPage = (bodyEl && bodyEl.getAttribute("data-stu-page")) || "";
+        curStuRef = (bodyEl && bodyEl.getAttribute("data-stu-ref")) || "";
+      } catch (eStu) { curStuPage = ""; curStuRef = ""; }
+      applyStuPageScope();
+      var ppEl = document.getElementById("bld-page-path");
+      if (ppEl) ppEl.value = previewPath;  // Save вернёт канву на эту страницу
+      applyPageScope(PAGE_GROUPS[fPath] || (fPath === "/" ? "home" : ""));
+    } catch (eSync) {}
+  }
+
   // SE-7 (Вариант 3): рейл областей + фокус-панель. Клик по иконке рейла открывает
   // ОДНУ область (остальные скрыты) → без перегруза; повторный клик / ✕ сворачивает
   // панель в рейл (сайт на весь экран). На широких экранах стартует с области «sections».
@@ -3249,9 +3301,15 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     // STU-6: «главная ли это» решает ТИП страницы, если витрина его сообщила.
     // Прежняя эвристика (нет группы и нет хоста C-блоков) считала главной любую
     // незнакомую страницу — на /galerie/ и /kombi/ панель показывала блоки ГЛАВНОЙ,
-    // и владелец правил бы не ту страницу. Тип есть всегда, кроме 404/страницы вне
-    // urlconf — там остаётся прежнее поведение.
-    var isHome = curStuPage ? curStuPage === "home" : ((!group || group === "home") && !curPbHost);
+    // и владелец правил бы не ту страницу.
+    // STU-7: тип не сообщает ровно одна страница — кастомный 404 (SF-3 намеренно
+    // сделал его standalone, без extends: страница-страховка обязана рендериться,
+    // даже если хром витрины сломан). Замер обходом на два уровня по четырём демо:
+    // 258 страниц из 258 тип сообщают. Поэтому пустой тип теперь значит «неизвестная страница», а не
+    // «главная»: на 404 панель молчит, вместо того чтобы предлагать блоки главной.
+    // Явный сигнал главной остаётся (group === "home" ставится для fPath === "/"),
+    // так что сама главная защищена и без атрибута.
+    var isHome = curStuPage ? curStuPage === "home" : (group === "home" && !curPbHost);
     document.querySelectorAll('[data-scope="home"]').forEach(function (el) {
       el.classList.toggle("hidden", !isHome);
     });
@@ -3326,27 +3384,17 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     }
     // UC6-1b: скоуп панели следует за фактической страницей кадра (селектор
     // страниц убран из тулбара — навигация кликами прямо в канве).
+    syncFrameState(frame);
+    // STU-7: табы категорий и групп акций ходят через KAT-5 pushState — кадр НЕ
+    // перезагружается, load не приходит, и без этого слушателя редактор продолжал бы
+    // считать открытой ПРЕЖНЮЮ страницу (панель показывала бы её настройки, а
+    // ближайшая перерисовка вернула бы канву назад). Витрина после свопа переносит
+    // подсказки на <body> и шлёт «sf:navigated».
     try {
-      var fPath = frame.contentWindow.location.pathname || "/";
-      previewPath = fPath;
-      // UC6-7b: хост C-блоков страницы — прямо из канвы (data-pb-host на хост-регионе;
-      // работает и на произвольных детальных, чьи пути не перечислены в PAGE_GROUPS).
-      curPbHost = "";
-      try {
-        var pbHostEl = frame.contentDocument.querySelector("[data-pb-host]");
-        curPbHost = (pbHostEl && pbHostEl.getAttribute("data-pb-host")) || "";
-      } catch (ePb) {}
-      // STU-2: тип страницы кадра → скоуп уровня «эта страница».
-      try {
-        var bodyEl = frame.contentDocument.body;
-        curStuPage = (bodyEl && bodyEl.getAttribute("data-stu-page")) || "";
-        curStuRef = (bodyEl && bodyEl.getAttribute("data-stu-ref")) || "";
-      } catch (eStu) { curStuPage = ""; curStuRef = ""; }
-      applyStuPageScope();
-      var ppEl = document.getElementById("bld-page-path");
-      if (ppEl) ppEl.value = previewPath;  // Save вернёт канву на эту страницу
-      applyPageScope(PAGE_GROUPS[fPath] || (fPath === "/" ? "home" : ""));
-    } catch (eSync) {}
+      frame.contentDocument.addEventListener("sf:navigated", function () {
+        syncFrameState(frame);
+      });
+    } catch (eNav) {}
     var doc;
     try { doc = frame.contentDocument; } catch (e) { return; }
     if (!doc) return;
@@ -3997,7 +4045,11 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       if (strip) {
         strip.classList.remove("hidden");
         root.classList.add("st-pages-open");
-        var cur = (document.getElementById("bld-page-path") || {}).value || "/";
+        // STU-7: чипы ленты — голые пути (data-st-page = {{ p.url }}), а previewPath
+        // теперь может нести параметр страницы (?gruppe=). Сравниваем по пути, иначе
+        // на странице группы не подсвечивался НИ ОДИН чип — лента говорила «мы нигде»,
+        // хотя канва стоит внутри «Aktionen».
+        var cur = ((document.getElementById("bld-page-path") || {}).value || "/").split("?")[0];
         strip.querySelectorAll(".st-page-btn").forEach(function (b) {
           b.classList.toggle("st-active", b.getAttribute("data-st-page") === cur);
         });

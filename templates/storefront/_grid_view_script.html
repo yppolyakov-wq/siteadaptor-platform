@@ -375,6 +375,23 @@ document.addEventListener("change", function (e) {
         root.replaceWith(next);
         history.pushState({}, "", url);
         pushed = true;
+        /* STU-7: своп подменяет только зону листинга, а подсказки редактору
+           (data-stu-page/data-stu-ref) живут на <body> — без переноса Studio
+           продолжал бы считать, что открыта ПРЕЖНЯЯ страница: табы категорий и
+           групп акций ходят именно этим путём, без события load у кадра.
+           Событие — чтобы родитель (канва) пересчитал состояние; на обычной
+           витрине слушателя нет и оно ничего не стоит. */
+        try {
+          var nb = doc.body;
+          if (nb) {
+            ["data-stu-page", "data-stu-ref"].forEach(function (a) {
+              var v = nb.getAttribute(a);
+              if (v === null) document.body.removeAttribute(a);
+              else document.body.setAttribute(a, v);
+            });
+          }
+          document.dispatchEvent(new CustomEvent("sf:navigated", { detail: { url: url } }));
+        } catch (eStu) {}
         // делегированные обработчики живы (document); переинициализируем
         // состояние из localStorage для нового поддерева
         if (window.__sfPlvInit) window.__sfPlvInit();
