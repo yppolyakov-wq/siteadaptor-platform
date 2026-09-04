@@ -31,14 +31,24 @@ def test_demo_url_when_seeded():
 
 
 def test_shared_demo_mapping():
-    """Часть типов пока делит демо (online_shop/ритейл → shop); grocery — родной
-    aktionsmarkt. Развод на dedicated-киты — по волнам плана demo-kits-per-type."""
+    """Часть типов пока делит демо (ритейл → shop); grocery — родной aktionsmarkt.
+    Развод на dedicated-киты — по волнам плана demo-kits-per-type."""
     DomainFactory(domain="shop.siteadaptor.de", tenant=TenantFactory())
     DomainFactory(domain="aktionsmarkt.siteadaptor.de", tenant=TenantFactory(slug="am2"))
     cards = _cards()
-    for bt in ("online_shop", "retail"):
-        assert "shop.siteadaptor.de" in cards[bt]["demo_url"], bt
+    assert "shop.siteadaptor.de" in cards["retail"]["demo_url"]
     assert "aktionsmarkt.siteadaptor.de" in cards["grocery"]["demo_url"]
+
+
+def test_dedicated_demo_mapping_outlet():
+    """O-6: `online_shop` был последним типом без своего демо — делил фермерскую
+    лавку `shop`, где нет ни фасетов, ни B-Ware. Теперь ведёт в аутлет."""
+    DomainFactory(domain="outlet.siteadaptor.de", tenant=TenantFactory())
+    assert "outlet.siteadaptor.de" in _cards()["online_shop"]["demo_url"]
+
+    from apps.tenants import demo_kits
+
+    assert demo_kits.KITS["outlet"].subdomain == "outlet"
 
 
 def test_dedicated_demo_mapping_wave1():
