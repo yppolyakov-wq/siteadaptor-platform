@@ -594,3 +594,31 @@ def test_canvas_keeps_query_in_preview_path():
     tpl = (Path(dj_settings.BASE_DIR) / "templates" / "tenant" / "site_home.html").read_text()
     assert "previewPath = fPath + stuPageQuery(" in tpl
     assert "var STU_PAGE_QUERY_KEYS = {{ studio_page_query_keys_json|safe }};" in tpl
+
+
+def test_unknown_page_is_not_treated_as_home():
+    """STU-7: пустой тип = «неизвестная страница», а НЕ «главная». Замер по двум демо:
+    тип сообщают 70 страниц из 70, единственное исключение — кастомный 404 (SF-3 сделал
+    его standalone намеренно). Прежний `!group` показывал на нём блоки ГЛАВНОЙ: владелец
+    правил бы не ту страницу — тот же класс, что закрыт на /galerie/ и /kombi/."""
+    from pathlib import Path
+
+    from django.conf import settings as dj_settings
+
+    tpl = (Path(dj_settings.BASE_DIR) / "templates" / "tenant" / "site_home.html").read_text()
+    assert (
+        'var isHome = curStuPage ? curStuPage === "home" : (group === "home" && !curPbHost);' in tpl
+    )
+
+
+def test_custom_404_stays_standalone():
+    """Пара к замку выше: страница-страховка НЕ должна тянуть хром витрины ради
+    `data-stu-page` — она обязана рендериться, даже если хром сломан. Если 404 когда-то
+    начнёт наследовать базовый шаблон, фолбэк выше можно упростить осознанно."""
+    from pathlib import Path
+
+    from django.conf import settings as dj_settings
+
+    page = (Path(dj_settings.BASE_DIR) / "templates" / "404.html").read_text()
+    assert "{% extends" not in page
+    assert "data-stu-page" not in page
