@@ -34,8 +34,10 @@ def _html(tenant):
 def test_studio_rail_and_pages_strip_render():
     tenant = TenantFactory(slug="stsh", name="StSh", business_type="bakery")
     html = _html(tenant)
-    assert 'id="st-rail"' in html and 'data-st-level="look"' in html
-    assert 'data-st-level="pages"' in html and 'data-st-level="media"' in html
+    # STU-2: рейка стала УРОВНЯМИ настройки — «look/pages» переименованы в
+    # «design/page» осознанно (области ≠ уровни; см. test_studio_pages.py).
+    assert 'id="st-rail"' in html and 'data-st-level="design"' in html
+    assert 'data-st-level="page"' in html and 'data-st-level="media"' in html
     assert 'id="st-pages"' in html and "st-page-btn" in html
     assert ">Studio</span>" in html  # брендинг в топ-баре
     # кросс-фейд врезан в swapPreview

@@ -1,0 +1,12 @@
+{% load i18n %}
+{% comment %}STU-3 (вариант A владельца: «применить для всех или изменить только для
+   этого товара или категории»). Пилюля охвата рядом с настройкой: «для всех» пишет
+   дефолт сайта той же формой билдера, «только здесь» — точечным запросом в объект
+   страницы (site-scope-save). Точка на пилюле = у объекта есть СВОЁ значение, то есть
+   общий выбор его не касается; без такой отметки владелец правит сайт и не понимает,
+   почему одна страница не меняется.{% endcomment %}
+<div class="stu-scope mt-2 flex items-center gap-1 text-xs" data-stu-scope="{{ setting }}" hidden>
+  <button type="button" class="stu-scope-btn rounded-full border border-gray-300 px-2 py-0.5 text-gray-600" data-stu-mode="site" aria-pressed="true">{% trans "Für alle" %}</button>
+  <button type="button" class="stu-scope-btn rounded-full border border-gray-300 px-2 py-0.5 text-gray-600" data-stu-mode="own" aria-pressed="false">{% trans "Nur hier" %}<span class="stu-scope-dot ml-1 hidden text-indigo-600">●</span></button>
+  <span class="stu-scope-hint text-gray-400"></span>
+</div>

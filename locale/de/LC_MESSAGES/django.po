@@ -21901,6 +21901,60 @@ msgstr "Ihre Rechnung %(n)s"
 msgid "anbei erhalten Sie die Rechnung %(n)s."
 msgstr "anbei erhalten Sie die Rechnung %(n)s."
 
+msgid "Abschnitte"
+msgstr "Abschnitte"
+
+msgid "Aktionsseite"
+msgstr "Aktionsseite"
+
+msgid "Aufbau der Detailseite"
+msgstr "Aufbau der Detailseite"
+
+msgid "Darstellung der Gruppen"
+msgstr "Darstellung der Gruppen"
+
+msgid "Gruppierung"
+msgstr "Gruppierung"
+
+msgid "Kasse"
+msgstr "Kasse"
+
+msgid "Katalog"
+msgstr "Katalog"
+
+msgid "Passt dazu"
+msgstr "Passt dazu"
+
+msgid "Rechtliches"
+msgstr "Rechtliches"
+
+msgid "Textseite"
+msgstr "Textseite"
+
+msgid "Unterkategorien zuerst"
+msgstr "Unterkategorien zuerst"
+
+msgid "Veranstaltungsseite"
+msgstr "Veranstaltungsseite"
+
+msgid "Vorlage der Gruppenseite"
+msgstr "Vorlage der Gruppenseite"
+
+msgid "Vorlage der Seite"
+msgstr "Vorlage der Seite"
+
+msgid "Zimmerseite"
+msgstr "Zimmerseite"
+
+msgid "Für alle"
+msgstr "Für alle"
+
+msgid "Nur hier"
+msgstr "Nur hier"
+
+msgid "Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite."
+msgstr "Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite."
+
 msgid "Reduced only"
 msgstr "Nur reduzierte Artikel"
 

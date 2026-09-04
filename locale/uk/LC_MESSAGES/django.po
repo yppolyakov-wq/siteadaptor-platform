@@ -22064,6 +22064,60 @@ msgstr "Ваш рахунок %(n)s"
 msgid "anbei erhalten Sie die Rechnung %(n)s."
 msgstr "у вкладенні рахунок %(n)s."
 
+msgid "Abschnitte"
+msgstr "Розділи"
+
+msgid "Aktionsseite"
+msgstr "Сторінка акції"
+
+msgid "Aufbau der Detailseite"
+msgstr "Будова сторінки товару"
+
+msgid "Darstellung der Gruppen"
+msgstr "Вигляд груп"
+
+msgid "Gruppierung"
+msgstr "Групування"
+
+msgid "Kasse"
+msgstr "Оформлення замовлення"
+
+msgid "Katalog"
+msgstr "Каталог"
+
+msgid "Passt dazu"
+msgstr "Пасує до цього"
+
+msgid "Rechtliches"
+msgstr "Правові сторінки"
+
+msgid "Textseite"
+msgstr "Текстова сторінка"
+
+msgid "Unterkategorien zuerst"
+msgstr "Підкатегорії першими"
+
+msgid "Veranstaltungsseite"
+msgstr "Сторінка події"
+
+msgid "Vorlage der Gruppenseite"
+msgstr "Шаблон сторінки групи"
+
+msgid "Vorlage der Seite"
+msgstr "Шаблон сторінки"
+
+msgid "Zimmerseite"
+msgstr "Сторінка номера"
+
+msgid "Für alle"
+msgstr "Для всіх"
+
+msgid "Nur hier"
+msgstr "Тільки тут"
+
+msgid "Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite."
+msgstr "Виберіть шаблон — він діятиме лише на цій сторінці."
+
 msgid "Reduced only"
 msgstr "Лише зі знижкою"
 

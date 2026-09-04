@@ -61,6 +61,29 @@ def _cart_count(request) -> int:
     return total
 
 
+def _studio_page_ctx(request) -> dict:
+    """STU-2: `data-stu-page`/`data-stu-ref` на <body> витрины.
+
+    Studio грузит страницу сайта в кадр и должен понять, ЧТО именно открыто, —
+    иначе панель «Эта страница» показывает настройки наугад (сегодня она их и
+    показывает: настройки акций живут в области «Тема», то есть видны на любой
+    странице, кроме своей). Путь читать нечем: `/sortiment/<uuid>/` — товар, а
+    `/sortiment/<slug>/` — категория. Поэтому тип определяет РЕЕСТР по уже
+    разобранному `resolver_match`, а витрина просто выносит ответ в разметку.
+    """
+    from apps.core import studio_pages
+
+    try:
+        ctx = studio_pages.resolve_match(
+            getattr(request, "resolver_match", None),
+            request.GET.dict() if hasattr(request, "GET") else {},
+            path=getattr(request, "path", ""),
+        )
+    except Exception:  # витрина не должна падать из-за подсказки редактору
+        return {"storefront_page_type": "", "storefront_page_ref": ""}
+    return {"storefront_page_type": ctx.code, "storefront_page_ref": ctx.object_ref}
+
+
 def _demo_design_ctx(request, tenant):
     """DL-8e: данные пилюли «Design testen» на демо-витрине (None вне демо).
 
@@ -521,6 +544,11 @@ def modules_nav(request):
         "storefront_card_amenities": cfg.get("stay_card_amenities", []),
         # H1.2: тэглайн подвала (draft-aware) — правится инлайн (data-edit="footer_text").
         "storefront_footer_text": cfg.get("footer_text", ""),
+        # STU-2: тип страницы витрины для Studio — редактор читает его с <body>
+        # кадра и показывает настройки ИМЕННО этой страницы. Считаем по уже
+        # разобранному resolver_match (Django разрешил путь до вьюхи) — второго
+        # разбора на каждый рендер витрины не происходит.
+        **_studio_page_ctx(request),
         # Режим редактора (?preview=1): витрина показывает превью-аффордансы (пустые
         # C-блоки → плейсхолдер, пустые интро/тексты → редактируемые) на ВСЕХ страницах.
         # На публичной (без preview) пусто/чисто. Раньше задавался только в product_list.

@@ -22081,6 +22081,60 @@ msgstr "Ваш счёт %(n)s"
 msgid "anbei erhalten Sie die Rechnung %(n)s."
 msgstr "во вложении счёт %(n)s."
 
+msgid "Abschnitte"
+msgstr "Разделы"
+
+msgid "Aktionsseite"
+msgstr "Страница акции"
+
+msgid "Aufbau der Detailseite"
+msgstr "Устройство страницы товара"
+
+msgid "Darstellung der Gruppen"
+msgstr "Вид групп"
+
+msgid "Gruppierung"
+msgstr "Группировка"
+
+msgid "Kasse"
+msgstr "Оформление заказа"
+
+msgid "Katalog"
+msgstr "Каталог"
+
+msgid "Passt dazu"
+msgstr "Подойдёт к этому"
+
+msgid "Rechtliches"
+msgstr "Правовые страницы"
+
+msgid "Textseite"
+msgstr "Текстовая страница"
+
+msgid "Unterkategorien zuerst"
+msgstr "Подкатегории первыми"
+
+msgid "Veranstaltungsseite"
+msgstr "Страница события"
+
+msgid "Vorlage der Gruppenseite"
+msgstr "Шаблон страницы группы"
+
+msgid "Vorlage der Seite"
+msgstr "Шаблон страницы"
+
+msgid "Zimmerseite"
+msgstr "Страница номера"
+
+msgid "Für alle"
+msgstr "Для всех"
+
+msgid "Nur hier"
+msgstr "Только здесь"
+
+msgid "Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite."
+msgstr "Выберите шаблон — он будет действовать только на этой странице."
+
 msgid "Reduced only"
 msgstr "Только со скидкой"
 

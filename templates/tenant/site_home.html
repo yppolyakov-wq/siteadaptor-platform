@@ -98,12 +98,15 @@
   (#bld-editor-pane, оверлей слева) + канвас (#bld-preview-pane). Одна область за раз →
   без перегруза; свернул → рейл, сайт на всю ширину. Все id/логика сохранены.{% endcomment %}
   <div class="relative flex-1 min-h-0 flex">
-   {% comment %}ST-3a: рейка УРОВНЕЙ Studio (Look/Seiten/Blöcke/Medien) — тонкие обёртки
-      над существующими вызовами (showArea/инсертер/медиа-области); id НОВЫЕ, чтобы не
-      трогать замки старого хрома. Desktop-only (мобайл — прежние кнопки тулбара).{% endcomment %}
+   {% comment %}STU-2: рейка = ДВА УРОВНЯ настройки + инструменты. Раньше здесь были
+      «области» (Look/Seiten/Blöcke/Medien), не совпадавшие с содержимым панели, — отсюда
+      «непонятно, что и где настраивается». Теперь: «Design» — то, что общее для всего
+      сайта; «Diese Seite» — настройки ИМЕННО той страницы, что открыта на канве (подпись
+      = тип страницы); ниже — инструменты (блоки, медиа, быстрый старт).
+      Desktop-only (мобайл — прежние кнопки тулбара).{% endcomment %}
    <nav id="st-rail" class="hidden lg:flex shrink-0 w-16 flex-col items-stretch gap-1 bg-white border-r border-gray-200 py-2 z-10" aria-label="Studio">
-     <button type="button" class="st-level flex flex-col items-center gap-0.5 py-2 rounded-lg mx-1 text-gray-600 hover:text-indigo-700 hover:bg-indigo-50" data-st-level="look">{% icon "ic-star" "w-5 h-5" %}<span class="text-[10px] leading-none">Look</span></button>
-     <button type="button" class="st-level flex flex-col items-center gap-0.5 py-2 rounded-lg mx-1 text-gray-600 hover:text-indigo-700 hover:bg-indigo-50" data-st-level="pages">{% icon "ic-pages" "w-5 h-5" %}<span class="text-[10px] leading-none">{% trans "Seiten" %}</span></button>
+     <button type="button" class="st-level flex flex-col items-center gap-0.5 py-2 rounded-lg mx-1 text-gray-600 hover:text-indigo-700 hover:bg-indigo-50" data-st-level="design">{% icon "ic-star" "w-5 h-5" %}<span class="text-[10px] leading-none">{% trans "Design" %}</span></button>
+     <button type="button" id="st-level-page" class="st-level flex flex-col items-center gap-0.5 py-2 rounded-lg mx-1 text-gray-600 hover:text-indigo-700 hover:bg-indigo-50" data-st-level="page">{% icon "ic-pages" "w-5 h-5" %}<span class="st-level-label text-[10px] leading-none">{% trans "Seite" %}</span></button>
      <button type="button" class="st-level flex flex-col items-center gap-0.5 py-2 rounded-lg mx-1 text-gray-600 hover:text-indigo-700 hover:bg-indigo-50" data-st-level="blocks">{% icon "ic-offer" "w-5 h-5" %}<span class="text-[10px] leading-none">{% trans "Blöcke" %}</span></button>
      <button type="button" class="st-level flex flex-col items-center gap-0.5 py-2 rounded-lg mx-1 text-gray-600 hover:text-indigo-700 hover:bg-indigo-50" data-st-level="media">{% icon "ic-media" "w-5 h-5" %}<span class="text-[10px] leading-none">{% trans "Medien" %}</span></button>
      {% comment %}W11-5: quick-start (шаблоны + демо) со страницы «Site» — в рейку.{% endcomment %}
@@ -137,8 +140,11 @@
      <div id="bld-area-tabs" class="flex flex-wrap items-center gap-1 mb-2">
        <button type="button" aria-pressed="false" class="bld-rail-btn flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm text-gray-600 hover:bg-gray-100" data-area="theme"><span>🎨</span><span>{% trans "Theme" %}</span></button>
        <button type="button" aria-pressed="false" class="bld-rail-btn flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm text-gray-600 hover:bg-gray-100" data-area="banner"><span>🖼</span><span>{% trans "Banner" %}</span></button>
+      {% comment %}STU-2: вкладка уровня «эта страница». Подпись — тип страницы на канве
+         (ставится из JS по data-stu-page кадра), потому что «Seite» само по себе не
+         отвечает на вопрос «настройки чего я вижу».{% endcomment %}
+      <button type="button" aria-pressed="false" class="bld-rail-btn flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm text-gray-600 hover:bg-gray-100" data-area="page"><span>📄</span><span class="stu-area-label">{% trans "Seite" %}</span></button>
        <button type="button" aria-pressed="false" class="bld-rail-btn flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm text-gray-600 hover:bg-gray-100" data-area="menu"><span>☰</span><span>{% trans "Menu" %}</span></button>
-       <button type="button" aria-pressed="false" class="bld-rail-btn flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm text-gray-600 hover:bg-gray-100" data-area="footer"><span>🔻</span><span>{% trans "Footer" %}</span></button>
        <button type="button" aria-pressed="false" class="bld-rail-btn flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm text-gray-600 hover:bg-gray-100" data-area="library"><span>📚</span><span>{% trans "Templates" %}</span></button>
      </div>
      <form method="post" id="home-form" data-draft-url="{% url 'site-preview-draft' %}" class="space-y-6">
@@ -313,26 +319,14 @@
            поэтому save/live-draft/клик по Look'у не тронуты.{% endcomment %}
         <div class="mt-4 pt-4 border-t border-gray-100">
           <div class="grid sm:grid-cols-2 gap-4">
-            {% include "tenant/_cardform_picker.html" with name="sd_card_style" value=card_style items=card_forms_product title=_("Kartenform") %}
-            {% include "tenant/_cardform_picker.html" with name="sd_promo_card" value=promo_card items=card_forms_promo title=_("Aktionskarte") %}
-          </div>
-          {% comment %}DL-20: ШАБЛОН СТРАНИЦЫ категории — общий дефолт сайта. Своё значение
-             категории его побеждает (резолвер category_styles.page_style), поэтому подпись
-             честно говорит «если у категории не задан свой».{% endcomment %}
-          <div class="mt-4">
-            {% include "tenant/_cardform_picker.html" with name="sd_category_page_style" value=category_page_style items=category_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Category page (whole site)") %}
-            <p class="text-xs text-gray-500 mt-1">{% trans "Applies where a category has no template of its own." %}</p>
-          </div>
-          <div class="mt-4">
-            {% include "tenant/_cardform_picker.html" with name="sd_promo_group_style" value=promo_group_style items=group_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Offer group page (whole site)") %}
-            <p class="text-xs text-gray-500 mt-1">{% trans "Applies where a group has no template of its own." %}</p>
-          </div>
-          {% comment %}DL-21.2: шаблон ОБЗОРНОЙ страницы акций (группы как подкатегории) — рядом
-             с дефолтом групп и ВНЕ expert-блока (прецедент W11-5/DL-19: первичная настройка вида
-             должна быть видна и в Простом режиме редактора); «Regale» включает те же ленты, что
-             селект «Aufbau» в расширенных настройках.{% endcomment %}
-          <div class="mt-4">
-            {% include "tenant/_cardform_picker.html" with name="promo_page_style" value=promo_page_style items=promo_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Aktionsseite: Vorlage") %}
+            <div>
+              {% include "tenant/_cardform_picker.html" with name="sd_card_style" value=card_style items=card_forms_product title=_("Kartenform") %}
+              {% include "tenant/_scope_pill.html" with setting="product_card_form" %}
+            </div>
+            <div>
+              {% include "tenant/_cardform_picker.html" with name="sd_promo_card" value=promo_card items=card_forms_promo title=_("Aktionskarte") %}
+              {% include "tenant/_scope_pill.html" with setting="promo_card_form" %}
+            </div>
           </div>
         </div>
         {% comment %} SE-2d: глобальный стиль карточек — «весь сайт» (мастер-настройка, наследуется
@@ -390,24 +384,6 @@
                 <option value="line" {% if card_chrome == 'line' %}selected{% endif %}>{% trans "Feine Linie" %}</option>
               </select>
             </label>
-            {% comment %}DL-17.3: страница /aktionen/ — раскладка групп (сетка/ленты, DL-16.2 A3)
-            и режим группировки (по группам владельца / по времени, DL-13 C3). Ключи верхнего
-            уровня, presence-minimal; та же настройка есть на списке акций — здесь Save идёт
-            под presence-guard, поэтому чужая форма билдера её не роняет.{% endcomment %}
-            <label class="text-sm">
-              <span class="block font-medium mb-1">{% trans "Aktionsseite: Aufbau" %}</span>
-              <select name="promo_layout" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
-                <option value="">{% trans "Raster" %}</option>
-                <option value="slider" {% if promo_layout == 'slider' %}selected{% endif %}>{% trans "Slider" %}</option>
-              </select>
-            </label>
-            <label class="text-sm">
-              <span class="block font-medium mb-1">{% trans "Aktionsseite: Gruppierung" %}</span>
-              <select name="promo_grouping" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
-                <option value="">{% trans "Nach Gruppen" %}</option>
-                <option value="time" {% if promo_grouping == 'time' %}selected{% endif %}>{% trans "Nach Zeit" %}</option>
-              </select>
-            </label>
             <label class="text-sm flex items-center gap-2 md:mt-6">
               <input type="checkbox" name="sd_card_slider" value="on" {% if card_slider %}checked{% endif %} class="rounded border-gray-300">
               <span>{% trans "Fotos auf der Karte blättern" %}</span>
@@ -443,8 +419,7 @@
           <input type="checkbox" name="wishlist" {% if storefront_wishlist_enabled %}checked{% endif %} class="rounded border-gray-300 mt-0.5">
           <span>{% trans "Merkzettel (♡ on cards)" %}<span class="block text-xs text-gray-400">{% trans "Visitors save products and offers — on this device, no account." %}</span></span>
         </label>
-        <p class="text-xs text-gray-400 mt-3">{% trans "Grid layout of catalog / rooms / events pages lives under" %}
-          <a href="{% url 'site-pages' %}" class="text-indigo-600 hover:underline">{% trans "Pages" %}</a>.</p>
+        
       </fieldset>
 
       {% comment %}M1: лого бизнеса — в шапке витрины вместо текстового имени. Загрузка —
@@ -456,6 +431,21 @@
           {% if request.tenant.logo_url %}<img src="{{ request.tenant.logo_url }}" alt="" class="h-10 w-auto max-w-[140px] object-contain border border-gray-100 rounded">{% else %}<span class="text-sm text-gray-400">{% trans "No logo yet" %}</span>{% endif %}
           <button type="button" class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50" onclick="window.__sfShowArea('logo-media')">{% if request.tenant.logo_url %}{% trans "Change logo" %}{% else %}{% trans "Add logo" %}{% endif %}</button>
         </div>
+      </fieldset>
+      {% comment %}STU-5: содержимое вкладки «Footer» переехало сюда. Своих полей у
+         неё не было — только три указателя, а отдельная вкладка ради них делала ряд
+         длиннее и «настройки где-то ещё» заметнее.{% endcomment %}
+      <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-3" data-stu-footer-links>
+        <legend class="font-semibold mb-1">{% trans "Footer" %}</legend>
+        <p class="text-sm text-gray-600">{% trans "The footer shows your contact, opening hours and legal links. Edit them here:" %}</p>
+        <div class="flex flex-col gap-2 text-sm">
+          <a href="{% url 'settings' %}" class="text-indigo-600 hover:underline">→ {% trans "Contact & opening hours" %}</a>
+          <a href="{% url 'settings' %}" class="text-indigo-600 hover:underline">→ {% trans "Imprint / legal (address)" %}</a>
+        </div>
+        {# H1.2: тэглайн подвала правится прямо на сайте (вкл. «✏️ Править» → клик по тексту подвала). #}
+        <p class="text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">✍️ {% trans "A footer tagline can be edited directly on the page — click the footer text." %}</p>
+        <p class="text-xs text-gray-400">{% trans "Show/hide the contact block in" %}
+          <button type="button" class="text-indigo-600 hover:underline" onclick="window.__sfShowArea('sections')">{% trans "Sections" %}</button>.</p>
       </fieldset>
       </div>{% comment %}/область 🎨 Тема{% endcomment %}
 
@@ -722,6 +712,147 @@
         </div>
       </fieldset>
 
+
+      {% if archetype_specs %}
+      <fieldset class="bg-white rounded-2xl shadow-sm p-6" data-scope="home">
+        <legend class="font-semibold mb-1">{% trans "Our offerings (section cards)" %}</legend>
+        {% if not archetypes_enabled %}
+          <p class="text-xs text-amber-600 mb-3">{% trans 'Tip: enable the "Our offerings" block above to show these cards on your homepage.' %}</p>
+        {% endif %}
+        <p class="text-xs text-gray-400 mb-4">{% trans "Cards linking to each part of your site. Leave a field empty to use the default text." %}</p>
+        <div class="space-y-3">
+          {% for a in archetype_specs %}
+            <div class="border border-gray-100 rounded-xl px-4 py-3 space-y-2">
+              <label class="flex items-center gap-2 text-sm font-medium">
+                <input type="checkbox" name="arch_visible_{{ a.key }}" {% if a.visible %}checked{% endif %}
+                       class="rounded border-gray-300">
+                <span>{{ a.icon }} {{ a.default_label }}</span>
+              </label>
+              <div class="grid sm:grid-cols-2 gap-2">
+                <input type="text" name="arch_label_{{ a.key }}" value="{{ a.label }}" placeholder="{{ a.default_label }}"
+                       class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Title' %}">
+                <input type="text" name="arch_blurb_{{ a.key }}" value="{{ a.blurb }}" placeholder="{{ a.default_blurb }}"
+                       class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Description' %}">
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </fieldset>
+      {% endif %}
+
+      {% comment %}M20d: контент-секции (CTA/Testimonials/How it works/Team/Trust/FAQ) —
+         тот же общий партиал, что и на «Site». Каждая видна, когда её блок включён выше.{% endcomment %}
+      <details class="bg-white rounded-2xl shadow-sm group" data-scope="home">
+        <summary class="flex items-center justify-between cursor-pointer p-5 list-none">
+          <span><span class="font-semibold">📦 {% trans "Content sections" %}</span>
+            <span class="block text-xs text-gray-400 mt-0.5">{% trans "Fill the text for each block — it shows when the block is enabled above." %}</span></span>
+          <span class="text-gray-400 group-open:rotate-180 transition">▾</span>
+        </summary>
+        <div class="px-5 pb-5 border-t border-gray-100 pt-4 space-y-6">
+          {% include "tenant/_section_fields.html" %}
+        </div>
+      </details>
+
+      {# D.2b: C-блоки («кубики») — правка содержимого и порядка; добавление — ниже. #}
+      {% if cblocks %}
+      {% comment %}UC6-7b (fix): data-scope="home" — блоки ГЛАВНОЙ (cb_id → sections)
+         прячутся на подстраницах, чтобы их не путали с блоками страницы (page_blocks).{% endcomment %}
+      <details class="bg-white rounded-2xl shadow-sm group" data-scope="home">
+        <summary class="flex items-center justify-between gap-3 px-5 py-4 cursor-pointer list-none">
+          <span class="font-semibold">{% trans "Content blocks" %}
+            <span class="block text-xs text-gray-400 mt-0.5">{% trans "Free building blocks (text, image, button). Reorder via position, remove with the checkbox." %}</span></span>
+          <span class="text-gray-400 group-open:rotate-180 transition">▾</span>
+        </summary>
+        <div class="px-5 pb-5 border-t border-gray-100 pt-4 space-y-4">
+          {% comment %}UC6-7b: разметка строки вынесена в общий партиал (реюз для
+             page_blocks в наборе «Landing pages»).{% endcomment %}
+          {% for b in cblocks %}{% include "tenant/_cb_row.html" %}{% endfor %}
+        </div>
+      </details>
+      {% endif %}
+
+      <div class="flex items-center gap-2 flex-wrap">
+        <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+        {% comment %} SE-4b: сохранить ВСЮ компоновку секций как шаблон страницы. Сабмитит #home-form
+           с action=save_page_template (снимок из POST — ловит несохранённые правки). {% endcomment %}
+        <input type="text" name="page_tpl_label" placeholder="{% trans 'Page template name' %}"
+               class="rounded border border-gray-200 px-2 py-1.5 text-sm">
+        <button type="submit" name="action" value="save_page_template" formnovalidate
+                class="text-sm border border-gray-300 rounded-lg px-3 py-1 hover:border-indigo-400 hover:text-indigo-700">🗂 {% trans "Save page as template" %}</button>
+      </div>
+      </div>{% comment %}/область 🧱 Основная{% endcomment %}
+
+      {% comment %}SE-7c область ☰ Меню: стиль шапки + липкость. Пункты меню — в полном
+      билдере /dashboard/site/menu/ (ссылка ниже). Поля в #home-form → сабмит с Save.{% endcomment %}
+      {% comment %}STU-2: УРОВЕНЬ «Эта страница». До этого настройки страницы жили
+         вперемешку: шаблон категории и вид страницы акций — в области «Тема» (то есть
+         видны на любой странице, кроме своей), раскладки лендингов — в области секций
+         главной. Здесь собрано ровно то, что относится к странице НА КАНВЕ: сервер
+         подписывает контролы `data-stu-page` (коды типов из apps/core/studio_pages.py),
+         клиент показывает подходящие по `data-stu-page` с <body> кадра. Значения полей
+         остаются в форме всегда — скрытие только CSS-классом (инвариант W0), иначе Save
+         с одной страницы стирал бы настройки других.{% endcomment %}
+      <div data-bld-area="page" class="bld-area space-y-6 hidden">
+        <p class="stu-page-name text-xs text-gray-500"></p>
+        <fieldset class="bg-white rounded-2xl shadow-sm p-6" data-stu-any="1">
+          <legend class="font-semibold mb-1">{% trans "Vorlage der Seite" %}</legend>
+          <div class="stu-page-row mt-2" data-stu-page="category">
+            {% include "tenant/_cardform_picker.html" with name="sd_category_page_style" value=category_page_style items=category_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Category page (whole site)") %}
+            {% include "tenant/_scope_pill.html" with setting="category_page_style" %}
+          </div>
+          <div class="stu-page-row mt-4" data-stu-page="promo_group">
+            {% include "tenant/_cardform_picker.html" with name="sd_promo_group_style" value=promo_group_style items=group_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Offer group page (whole site)") %}
+            {% include "tenant/_scope_pill.html" with setting="promo_group_style" %}
+          </div>
+          <div class="stu-page-row mt-4" data-stu-page="promos promo_group">
+            {% include "tenant/_cardform_picker.html" with name="promo_page_style" value=promo_page_style items=promo_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Aktionsseite: Vorlage") %}
+          </div>
+          <div class="stu-page-row mt-4 grid sm:grid-cols-2 gap-4" data-stu-page="promos promo_group">
+            <label class="text-sm">
+              <span class="block font-medium mb-1">{% trans "Aktionsseite: Aufbau" %}</span>
+              <select name="promo_layout" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+                <option value="">{% trans "Raster" %}</option>
+                <option value="slider" {% if promo_layout == 'slider' %}selected{% endif %}>{% trans "Slider" %}</option>
+              </select>
+            </label>
+            <label class="text-sm">
+              <span class="block font-medium mb-1">{% trans "Aktionsseite: Gruppierung" %}</span>
+              <select name="promo_grouping" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+                <option value="">{% trans "Nach Gruppen" %}</option>
+                <option value="time" {% if promo_grouping == 'time' %}selected{% endif %}>{% trans "Nach Zeit" %}</option>
+              </select>
+            </label>
+          </div>
+          {% comment %}STU-5: перенос со страницы «Pages» — она была ВТОРЫМ писателем
+             раскладок и держала три настройки, которых в Студии не было. Сентинел
+             cl_present сохранён (W0: чужой POST не роняет ключи), поэтому семантика
+             сохранения та же, что и на прежнем экране.{% endcomment %}
+          {% if has_catalog %}
+          <div class="stu-page-row mt-4 space-y-2" data-stu-page="catalog category">
+            <input type="hidden" name="cl_present" value="1">
+            {% if not orders_active_for_prices %}
+            <label class="flex items-center gap-2 text-sm text-gray-600">
+              <input type="checkbox" name="menu_show_prices" {% if menu_prices_on %}checked{% endif %} class="rounded border-gray-300">
+              {% trans "Preise in der Speisekarte anzeigen" %}
+            </label>
+            {% endif %}
+            {% if is_food_type %}
+            <label class="flex items-center gap-2 text-sm text-gray-600">
+              <input type="checkbox" name="menu_labels" {% if menu_labels_on %}checked{% endif %} class="rounded border-gray-300">
+              {% trans "Kennzeichnung in der Speisekarte (Diäten, Allergene)" %}
+            </label>
+            {% endif %}
+          </div>
+          <label class="stu-page-row mt-4 block text-sm" data-stu-page="product">
+            <span class="block font-medium mb-1">{% trans "Related products grid" %}</span>
+            <span class="block text-xs text-gray-400 mb-1.5">{% trans "“More from this category” on a product page." %}</span>
+            <select name="related_preset" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if pk == related_preset %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+            </select>
+          </label>
+          {% endif %}
+          <p class="stu-page-empty hidden text-xs text-gray-500">{% trans "This page is edited directly on the canvas — click a heading, price or photo." %}</p>
+        </fieldset>
       {% comment %} SE-2a-2/SE-2b-1: per-page инспектор лендингов — клик по гриду на канве
          переносит контрол в попап (data-page-key). Раскладка → черновик/Save. {% endcomment %}
       {% if has_catalog or has_events or has_stays or has_booking or page_cblocks or page_preset_ui %}
@@ -929,78 +1060,7 @@
         </div>
       </fieldset>
       {% endif %}
-
-      {% if archetype_specs %}
-      <fieldset class="bg-white rounded-2xl shadow-sm p-6" data-scope="home">
-        <legend class="font-semibold mb-1">{% trans "Our offerings (section cards)" %}</legend>
-        {% if not archetypes_enabled %}
-          <p class="text-xs text-amber-600 mb-3">{% trans 'Tip: enable the "Our offerings" block above to show these cards on your homepage.' %}</p>
-        {% endif %}
-        <p class="text-xs text-gray-400 mb-4">{% trans "Cards linking to each part of your site. Leave a field empty to use the default text." %}</p>
-        <div class="space-y-3">
-          {% for a in archetype_specs %}
-            <div class="border border-gray-100 rounded-xl px-4 py-3 space-y-2">
-              <label class="flex items-center gap-2 text-sm font-medium">
-                <input type="checkbox" name="arch_visible_{{ a.key }}" {% if a.visible %}checked{% endif %}
-                       class="rounded border-gray-300">
-                <span>{{ a.icon }} {{ a.default_label }}</span>
-              </label>
-              <div class="grid sm:grid-cols-2 gap-2">
-                <input type="text" name="arch_label_{{ a.key }}" value="{{ a.label }}" placeholder="{{ a.default_label }}"
-                       class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Title' %}">
-                <input type="text" name="arch_blurb_{{ a.key }}" value="{{ a.blurb }}" placeholder="{{ a.default_blurb }}"
-                       class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Description' %}">
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-      </fieldset>
-      {% endif %}
-
-      {% comment %}M20d: контент-секции (CTA/Testimonials/How it works/Team/Trust/FAQ) —
-         тот же общий партиал, что и на «Site». Каждая видна, когда её блок включён выше.{% endcomment %}
-      <details class="bg-white rounded-2xl shadow-sm group" data-scope="home">
-        <summary class="flex items-center justify-between cursor-pointer p-5 list-none">
-          <span><span class="font-semibold">📦 {% trans "Content sections" %}</span>
-            <span class="block text-xs text-gray-400 mt-0.5">{% trans "Fill the text for each block — it shows when the block is enabled above." %}</span></span>
-          <span class="text-gray-400 group-open:rotate-180 transition">▾</span>
-        </summary>
-        <div class="px-5 pb-5 border-t border-gray-100 pt-4 space-y-6">
-          {% include "tenant/_section_fields.html" %}
-        </div>
-      </details>
-
-      {# D.2b: C-блоки («кубики») — правка содержимого и порядка; добавление — ниже. #}
-      {% if cblocks %}
-      {% comment %}UC6-7b (fix): data-scope="home" — блоки ГЛАВНОЙ (cb_id → sections)
-         прячутся на подстраницах, чтобы их не путали с блоками страницы (page_blocks).{% endcomment %}
-      <details class="bg-white rounded-2xl shadow-sm group" data-scope="home">
-        <summary class="flex items-center justify-between gap-3 px-5 py-4 cursor-pointer list-none">
-          <span class="font-semibold">{% trans "Content blocks" %}
-            <span class="block text-xs text-gray-400 mt-0.5">{% trans "Free building blocks (text, image, button). Reorder via position, remove with the checkbox." %}</span></span>
-          <span class="text-gray-400 group-open:rotate-180 transition">▾</span>
-        </summary>
-        <div class="px-5 pb-5 border-t border-gray-100 pt-4 space-y-4">
-          {% comment %}UC6-7b: разметка строки вынесена в общий партиал (реюз для
-             page_blocks в наборе «Landing pages»).{% endcomment %}
-          {% for b in cblocks %}{% include "tenant/_cb_row.html" %}{% endfor %}
-        </div>
-      </details>
-      {% endif %}
-
-      <div class="flex items-center gap-2 flex-wrap">
-        <button type="submit" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
-        {% comment %} SE-4b: сохранить ВСЮ компоновку секций как шаблон страницы. Сабмитит #home-form
-           с action=save_page_template (снимок из POST — ловит несохранённые правки). {% endcomment %}
-        <input type="text" name="page_tpl_label" placeholder="{% trans 'Page template name' %}"
-               class="rounded border border-gray-200 px-2 py-1.5 text-sm">
-        <button type="submit" name="action" value="save_page_template" formnovalidate
-                class="text-sm border border-gray-300 rounded-lg px-3 py-1 hover:border-indigo-400 hover:text-indigo-700">🗂 {% trans "Save page as template" %}</button>
       </div>
-      </div>{% comment %}/область 🧱 Основная{% endcomment %}
-
-      {% comment %}SE-7c область ☰ Меню: стиль шапки + липкость. Пункты меню — в полном
-      билдере /dashboard/site/menu/ (ссылка ниже). Поля в #home-form → сабмит с Save.{% endcomment %}
       <div data-bld-area="menu" class="bld-area space-y-6 hidden">
       <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
         <legend class="font-semibold mb-1">{% trans "Header & menu" %}</legend>
@@ -1079,20 +1139,7 @@
 
       {% comment %}SE-7d область 🔻 Подвал: видимость секции контактов + ссылки в настройки
       (контакты/часы/Impressum — поля Tenant, правятся в «Settings», не дублируем здесь).{% endcomment %}
-      <div data-bld-area="footer" class="bld-area space-y-6 hidden">
-      <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-3">
-        <legend class="font-semibold mb-1">{% trans "Footer" %}</legend>
-        <p class="text-sm text-gray-600">{% trans "The footer shows your contact, opening hours and legal links. Edit them here:" %}</p>
-        <div class="flex flex-col gap-2 text-sm">
-          <a href="{% url 'settings' %}" class="text-indigo-600 hover:underline">→ {% trans "Contact & opening hours" %}</a>
-          <a href="{% url 'settings' %}" class="text-indigo-600 hover:underline">→ {% trans "Imprint / legal (address)" %}</a>
-        </div>
-        {# H1.2: тэглайн подвала правится прямо на сайте (вкл. «✏️ Править» → клик по тексту подвала). #}
-        <p class="text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">✍️ {% trans "A footer tagline can be edited directly on the page — click the footer text." %}</p>
-        <p class="text-xs text-gray-400">{% trans "Show/hide the contact block in" %}
-          <button type="button" class="text-indigo-600 hover:underline" onclick="window.__sfShowArea('sections')">{% trans "Sections" %}</button>.</p>
-      </fieldset>
-      </div>{% comment %}/область 🔻 Подвал{% endcomment %}
+
     </form>
 
     {% comment %}SE-7 область 📚 Шаблоны: ТОЛЬКО шаблоны (UC6-6e, фидбэк владельца) —
@@ -1172,7 +1219,6 @@
       <div class="flex flex-col gap-2 text-sm">
         <a href="{% url 'site-seo' %}" class="text-indigo-600 hover:underline">🔎 {% trans "SEO" %} — {% trans "Titles & descriptions for Google, with live preview." %}</a>
         <a href="{% url 'site-sections' %}" class="text-indigo-600 hover:underline">🖼️ {% trans "Section covers" %} — {% trans "Intro text & banner on each part of the site." %}</a>
-        <a href="{% url 'site-pages' %}" class="text-indigo-600 hover:underline">📄 {% trans "Pages" %} — {% trans "Grid layout of catalog, rooms and events pages." %}</a>
         <a href="{% url 'site-preview' %}" class="text-indigo-600 hover:underline">👁 {% trans "Preview" %} — {% trans "Live site in desktop / tablet / mobile." %}</a>
         <a href="{% url 'site-menu' %}" class="text-indigo-600 hover:underline">🧭 {% trans "Navigation menu" %} — {% trans "Header & bottom menu, sub-menus, links." %}</a>
       </div>
@@ -3009,8 +3055,6 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   }
 
   // SE-2a-1: переключатель страницы превью — грузит выбранный URL с черновиком.
-  var pageSel = document.getElementById("home-prev-page");
-
   // Part D: «блоки только своей группы вывода». При настройке детальной/категории/
   // лендинга в панели показываем ТОЛЬКО блоки этой страницы — на главной блоки главной,
   // на лендинге/детали — пер-страничные контролы; чужие группы скрываем (значения полей
@@ -3019,12 +3063,195 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   // UC6-7b: хост C-блоков текущей страницы канвы (data-pb-host из кадра) —
   // источник page_key для инсертера и фолбэк скоупа (about/blog не в SCOPE_PAGE_KEY).
   var curPbHost = "";
+  // STU-2: тип страницы на канве (код реестра apps/core/studio_pages.py) — витрина
+  // сообщает его атрибутом data-stu-page на <body>. По пути тип не читается:
+  // /sortiment/<uuid>/ — товар, /sortiment/<slug>/ — категория.
+  var curStuPage = "";
+  var STU_LABELS = {{ studio_page_labels_json|safe }};
+  function applyStuPageScope() {
+    var code = curStuPage || "other";
+    var shown = 0;
+    document.querySelectorAll("[data-stu-page]").forEach(function (el) {
+      var codes = (el.getAttribute("data-stu-page") || "").split(/\s+/);
+      var on = codes.indexOf(code) !== -1;
+      el.classList.toggle("hidden", !on);  // W0: поля остаются в форме, прячем только CSS
+      if (on) shown++;
+    });
+    var empty = document.querySelector(".stu-page-empty");
+    if (empty) empty.classList.toggle("hidden", shown > 0);
+    var label = STU_LABELS[code] || STU_LABELS.other || "";
+    document.querySelectorAll(".stu-area-label, .st-level-label").forEach(function (el) {
+      el.textContent = label;
+    });
+    var name = document.querySelector(".stu-page-name");
+    if (name) name.textContent = label;
+    refreshScopePills();
+  }
+
+  // ── STU-3: охват настройки «для всех / только здесь» ────────────────────────
+  // Данные трёхуровневые с DL-19/20/21 (объект → сайт → прежний вид), но объектный
+  // уровень правился только в формах кабинета: чтобы задать шаблон ОДНОЙ категории,
+  // владелец уходил из редактора в список категорий и обратно. Пилюля показывает
+  // текущий охват и пишет объектный уровень ТОЧЕЧНО (site-scope-save), мимо большой
+  // формы: та пересобирает site_config целиком, и промах в любом её контроле трогал
+  // бы чужие модели.
+  function csrfToken() {
+    var f = document.getElementById("home-form");
+    var el = f && f.querySelector("[name=csrfmiddlewaretoken]");
+    return (el && el.value) || "";
+  }
+  var SCOPE_STATE_URL = "{% url 'site-scope-state' %}";
+  var SCOPE_SAVE_URL = "{% url 'site-scope-save' %}";
+  var curStuRef = "";
+  var scopeOwn = {};    // код настройки → своё значение объекта ("" = наследует)
+  var scopeSite = {};   // значение уровня «для всех», каким его показывает форма
+  var scopeMode = {};   // "site" | "own" — что сейчас редактирует контрол
+
+  function scopePills() { return document.querySelectorAll("[data-stu-scope]"); }
+
+  function scopeControl(box) {
+    // Контрол уровня «для всех» лежит рядом — у пикеров это hidden-инпут с value.
+    var wrap = box.parentElement;
+    return wrap ? wrap.querySelector('input[type="hidden"][name], select[name]') : null;
+  }
+  function scopeBoxFor(el) {
+    // Ближайший предок, у которого есть своя пилюля (пикеры вложены на разную
+    // глубину, поэтому ищем вверх, а не по фиксированной структуре).
+    for (var n = el; n && n !== document; n = n.parentElement) {
+      var box = n.querySelector && n.querySelector(":scope > [data-stu-scope]");
+      if (box) return box;
+    }
+    return null;
+  }
+  function setScopeControl(box, value) {
+    // Пикер рисует плитки по hidden-инпуту; событие change перерисовывает выбор.
+    var ctl = scopeControl(box);
+    if (!ctl || ctl.value === value) return;
+    ctl.value = value;
+    ctl.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function paintScopePill(box) {
+    var code = box.getAttribute("data-stu-scope");
+    var known = Object.prototype.hasOwnProperty.call(scopeOwn, code);
+    // Пилюля видна ТОЛЬКО когда объект страницы известен: на списке товаров нет
+    // «этого товара», и предлагать «только здесь» там было бы обманом.
+    box.hidden = !known;
+    if (!known) { scopeMode[code] = "site"; return; }
+    var own = scopeMode[code] === "own";
+    box.querySelectorAll(".stu-scope-btn").forEach(function (b) {
+      var on = (b.getAttribute("data-stu-mode") === "own") === own;
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+      b.classList.toggle("bg-indigo-50", on);
+      b.classList.toggle("border-indigo-300", on);
+      b.classList.toggle("text-indigo-700", on);
+    });
+    var dot = box.querySelector(".stu-scope-dot");
+    if (dot) dot.classList.toggle("hidden", !scopeOwn[code]);
+    var hint = box.querySelector(".stu-scope-hint");
+    if (hint) {
+      hint.textContent = own && !scopeOwn[code]
+        ? "{% trans 'Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite.' %}"
+        : "";
+    }
+    // Контрол показывает то, что редактирует: в режиме «только здесь» — значение
+    // объекта, иначе — общий выбор сайта. Иначе владелец правит одно, а видит другое.
+    setScopeControl(box, own ? (scopeOwn[code] || "") : (scopeSite[code] || ""));
+  }
+
+  function refreshScopePills() {
+    var codes = [];
+    scopePills().forEach(function (box) {
+      var row = box.closest("[data-stu-page]");
+      if (row && row.classList.contains("hidden")) return;  // настройка не этой страницы
+      var code = box.getAttribute("data-stu-scope");
+      codes.push(code);
+      if (!(code in scopeSite)) {
+        var ctl = scopeControl(box);
+        scopeSite[code] = (ctl && ctl.value) || "";  // запоминаем ДО подмены
+      }
+    });
+    scopeOwn = {};
+    scopeMode = {};
+    if (!curStuRef || !codes.length) { scopePills().forEach(paintScopePill); return; }
+    fetch(SCOPE_STATE_URL + "?ref=" + encodeURIComponent(curStuRef) + "&settings=" + codes.join(","),
+          { credentials: "same-origin" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d || d.ref !== curStuRef) return;  // канва успела уйти на другую страницу
+        Object.keys(d.settings || {}).forEach(function (k) {
+          scopeOwn[k] = d.settings[k].own || "";
+          scopeSite[k] = d.settings[k].site || "";
+          scopeMode[k] = scopeOwn[k] ? "own" : "site";
+        });
+        scopePills().forEach(paintScopePill);
+      })
+      .catch(function () { scopePills().forEach(paintScopePill); });
+  }
+
+  function scopeSave(code, value, then) {
+    fetch(SCOPE_SAVE_URL, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", "X-CSRFToken": csrfToken() },
+      body: new URLSearchParams({ setting: code, ref: curStuRef, value: value }).toString(),
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { if (d && d.ok) { scopeOwn[code] = d.own || ""; if (then) then(); } })
+      .catch(function () {});
+  }
+
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest(".stu-scope-btn");
+    if (!btn) return;
+    var box = btn.closest("[data-stu-scope]");
+    if (!box || box.hidden) return;
+    e.preventDefault();
+    var code = box.getAttribute("data-stu-scope");
+    if (btn.getAttribute("data-stu-mode") === "own") {
+      scopeMode[code] = "own";
+      // Уже выбранный на сайте вариант переносим в объект сразу — так «только здесь»
+      // сразу становится правдой. Пустой выбор перенести нечем: "" в хранении и
+      // значит «наследовать», поэтому просто ждём выбора (подсказка в пилюле).
+      var seed = scopeOwn[code] || scopeSite[code] || "";
+      if (seed && !scopeOwn[code]) {
+        scopeSave(code, seed, function () { paintScopePill(box); hardReloadPreview(); });
+        return;
+      }
+      paintScopePill(box);
+      return;
+    }
+    scopeMode[code] = "site";
+    if (scopeOwn[code]) {
+      scopeSave(code, "", function () { paintScopePill(box); hardReloadPreview(); });
+      return;
+    }
+    paintScopePill(box);
+  });
+
+  // В режиме «только здесь» изменение контрола обязано уходить в объект, а не в сайт:
+  // иначе владелец видит «только здесь» и молча меняет весь сайт.
+  document.addEventListener("change", function (e) {
+    var box = scopeBoxFor(e.target);
+    if (!box || box.hidden) return;
+    var code = box.getAttribute("data-stu-scope");
+    if (scopeMode[code] !== "own") return;  // охват «для всех» — обычный путь через форму
+    var ctl = scopeControl(box);
+    if (!ctl) return;
+    scopeSave(code, ctl.value || "", function () { paintScopePill(box); hardReloadPreview(); });
+  });
+
   function applyPageScope(group) {
     // UC6-7b (fix): страница С хостом C-блоков — НЕ главная, даже если её путь
     // не перечислен в PAGE_GROUPS (2-я+ деталь, любая деталь услуги, blog: group="").
     // Без `&& !curPbHost` фолбэк на curPbHost был недостижим → на таких страницах
     // показывались контролы главной, а блоки страницы были неуправляемы из панели.
-    var isHome = (!group || group === "home") && !curPbHost;
+    // STU-6: «главная ли это» решает ТИП страницы, если витрина его сообщила.
+    // Прежняя эвристика (нет группы и нет хоста C-блоков) считала главной любую
+    // незнакомую страницу — на /galerie/ и /kombi/ панель показывала блоки ГЛАВНОЙ,
+    // и владелец правил бы не ту страницу. Тип есть всегда, кроме 404/страницы вне
+    // urlconf — там остаётся прежнее поведение.
+    var isHome = curStuPage ? curStuPage === "home" : ((!group || group === "home") && !curPbHost);
     document.querySelectorAll('[data-scope="home"]').forEach(function (el) {
       el.classList.toggle("hidden", !isHome);
     });
@@ -3054,26 +3281,10 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       }
     }
   }
-  function currentScopeGroup() {
-    if (!pageSel) return "home";
-    var opt = pageSel.options[pageSel.selectedIndex];
-    return (opt && opt.getAttribute("data-group")) || "home";
-  }
-
-  if (pageSel) {
-    pageSel.addEventListener("change", function () {
-      previewPath = pageSel.value || "/";
-      applyPageScope(currentScopeGroup());
-      frame.contentWindow.location.replace(previewUrl());
-    });
-    // T-6.1: deep-link — если стартовая страница есть в селекторе, синхронизируем
-    // его (панель покажет блоки этой страницы); нет в списке — селектор остаётся
-    // на главной, страница правится прямо на канве.
-    if (previewPath !== "/")
-      for (var ppi = 0; ppi < pageSel.options.length; ppi++)
-        if (pageSel.options[ppi].value === previewPath) { pageSel.selectedIndex = ppi; break; }
-    applyPageScope(currentScopeGroup());  // стартовая синхронизация
-  }
+  // STU-5: код селектора страниц (#home-prev-page) удалён — самого элемента в
+  // шаблоне нет с UC6-1b, поэтому ветка не выполнялась НИКОГДА, вместе с её
+  // «стартовой синхронизацией» скоупа. Скоуп панели синхронизирует instrumentFrame
+  // по фактической странице кадра (PAGE_GROUPS + data-pb-host + data-stu-page).
 
   // M20 WYSIWYG: тексты [data-edit] в превью редактируются прямо в билдере
   // (как на отдельной странице Preview) — сохранение на blur в site_config.
@@ -3125,6 +3336,13 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         var pbHostEl = frame.contentDocument.querySelector("[data-pb-host]");
         curPbHost = (pbHostEl && pbHostEl.getAttribute("data-pb-host")) || "";
       } catch (ePb) {}
+      // STU-2: тип страницы кадра → скоуп уровня «эта страница».
+      try {
+        var bodyEl = frame.contentDocument.body;
+        curStuPage = (bodyEl && bodyEl.getAttribute("data-stu-page")) || "";
+        curStuRef = (bodyEl && bodyEl.getAttribute("data-stu-ref")) || "";
+      } catch (eStu) { curStuPage = ""; curStuRef = ""; }
+      applyStuPageScope();
       var ppEl = document.getElementById("bld-page-path");
       if (ppEl) ppEl.value = previewPath;  // Save вернёт канву на эту страницу
       applyPageScope(PAGE_GROUPS[fPath] || (fPath === "/" ? "home" : ""));
@@ -3327,6 +3545,28 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         row.style.transition = "background-color .3s";
         row.style.backgroundColor = "rgba(99,102,241,.15)";
         setTimeout(function () { row.style.backgroundColor = ""; }, 1200);
+      });
+    });
+    // STU-4: клик по СОДЕРЖИМОМУ страницы открывает настройки ЭТОГО типа страницы.
+    // Раньше клик работал только там, где есть секция главной (data-sf-section) с
+    // одноимённой строкой формы: на листинге акций, странице группы, детали товара
+    // или услуги кликать было не по чему — панель с настройками этой страницы
+    // приходилось искать вручную. Якоря — каркас листингов (data-listing-root, KAT-5)
+    // и корень детали (data-stu-area), то есть новых меток витрине почти не добавлено.
+    doc.querySelectorAll("[data-listing-root], [data-stu-area]").forEach(function (area) {
+      if (area.closest("[data-sf-section]")) return;  // секция главной уже кликабельна
+      area.style.cursor = "pointer";
+      area.addEventListener("click", function (e) {
+        // Не перехватываем ни ссылки/поля витрины, ни существующие ручки редактора:
+        // клик по карточке товара должен вести на товар, а не открывать панель.
+        if (e.target.closest("a,button,input,textarea,select,[contenteditable]")) return;
+        if (e.target.closest("[data-sf-section],[data-ed-section],[data-edit],.sf-photo-edit")) return;
+        if (selectedSec) { try { selectedSec.style.outline = ""; } catch (e3) {} }
+        selectedSec = area;
+        area.style.outline = "2px solid rgba(99,102,241,.9)";
+        area.style.outlineOffset = "4px";
+        var tab = document.querySelector('#bld-area-tabs [data-area="page"]');
+        if (tab && !tab.matches('[aria-pressed="true"]')) tab.click();
       });
     });
     // E.3: вставить зону «+» после каждого блока превью → библиотека блоков.
@@ -3744,16 +3984,19 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     var btn = e.target.closest("[data-st-level]");
     if (!btn) return;
     var lv = btn.getAttribute("data-st-level");
-    if (lv === "look") {
+    if (lv === "design") {
       clickTab("theme");
       setTimeout(function () {
         var lk = document.querySelector(".bld-look");
         if (lk) lk.scrollIntoView({ block: "center", behavior: "smooth" });
       }, 80);
-    } else if (lv === "pages" && strip) {
-      var open = !strip.classList.toggle("hidden");
-      root.classList.toggle("st-pages-open", open);
-      if (open) {
+    } else if (lv === "page") {
+      // STU-2: уровень «эта страница» — своя область + лента страниц под канвой
+      // (переход между страницами и есть смена того, что настраивается).
+      clickTab("page");
+      if (strip) {
+        strip.classList.remove("hidden");
+        root.classList.add("st-pages-open");
         var cur = (document.getElementById("bld-page-path") || {}).value || "/";
         strip.querySelectorAll(".st-page-btn").forEach(function (b) {
           b.classList.toggle("st-active", b.getAttribute("data-st-page") === cur);

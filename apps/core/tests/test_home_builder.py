@@ -1239,10 +1239,11 @@ def test_all_editor_entrypoints_survive_freely_edited_config():
         },
     )
     # W11-5: site_view — редирект (не страница), в цикле GET-200 ему не место.
+    # STU-5: pages_view тоже стал редиректом (настройки переехали в уровень
+    # «эта страница» Студии) — из цикла GET-200 убран осознанно.
     for view in (
         views.home_builder_view,
         views.menu_builder_view,
-        views.pages_view,
         views.sections_view,
     ):
         resp = view(_request("get", "/dashboard/site/", tenant=tenant))
@@ -1600,8 +1601,10 @@ def test_home_builder_double_buffered_canvas_swap():
     assert "/^https?:$/" in body  # гейт about:blank/chrome-error (порча previewPath)
     assert "hardReloadPreview" in body  # фолбэк на прежний путь (сеть/ошибка/таймаут)
     # push() больше НЕ навигирует видимый кадр напрямую: location.replace остался
-    # только в hardReloadPreview (фолбэк) и переключателе страниц pageSel.
-    assert body.count("frame.contentWindow.location.replace(previewUrl())") == 2
+    # ТОЛЬКО в hardReloadPreview (фолбэк). STU-5: второе вхождение жило в обработчике
+    # селектора страниц #home-prev-page — самого элемента в шаблоне нет с UC6-1b,
+    # ветка не выполнялась никогда и удалена вместе с кодом.
+    assert body.count("frame.contentWindow.location.replace(previewUrl())") == 1
 
 
 def test_home_builder_se7_rail_and_areas():
@@ -1669,7 +1672,11 @@ def test_home_builder_menu_presence_guard_keeps_nav():
 
 
 def test_home_builder_se7d_banner_and_footer_areas():
-    """SE-7d: области 🖼 Баннер (hero) + 🔻 Подвал в рейле; hero сохраняется."""
+    """SE-7d: область 🖼 Баннер (hero) в рейле; hero сохраняется.
+
+    STU-5: отдельной вкладки «Подвал» больше нет — своих полей у неё не было, только
+    три указателя, и они переехали в уровень «Дизайн». Ряд вкладок стал короче, а
+    сами ссылки на месте (проверяем их, а не вкладку)."""
     tenant = TenantFactory(
         schema_name="public", slug="hbse7d", name="HBSE7D", site_config={"hero_title": "Alt"}
     )
@@ -1677,7 +1684,8 @@ def test_home_builder_se7d_banner_and_footer_areas():
         _request("get", "/dashboard/site/home/", tenant=tenant)
     ).content.decode()
     assert 'data-area="banner"' in body and 'data-bld-area="banner"' in body
-    assert 'data-area="footer"' in body and 'data-bld-area="footer"' in body
+    assert 'data-area="footer"' not in body, "вкладка «Подвал» снята"
+    assert "data-stu-footer-links" in body, "указатели подвала должны остаться"
     assert 'name="hero_title"' in body and "Alt" in body  # pre-filled
     # POST с баннером → hero_title/text сохранены
     data = {
@@ -1928,7 +1936,10 @@ def test_home_builder_saves_gallery_video_without_touching_sections():
 
 def test_home_builder_links_to_sibling_site_screens():
     """W11-5 (И-3): страница «Site» умирает — её навигационные карточки жили только
-    там; экраны SEO/обложки/раскладки/превью достижимы из Studio (принцип W7b)."""
+    там; экраны SEO/обложки/превью достижимы из Studio (принцип W7b).
+
+    STU-5: ссылка на «Pages» убрана осознанно — экран умер (был вторым писателем
+    раскладок), его настройки живут в уровне «эта страница» самой Студии."""
     tenant = TenantFactory(schema_name="public", slug="hbnav", name="HBNAV")
     html = views.home_builder_view(
         _request("get", "/dashboard/site/home/", None, tenant)
@@ -1936,11 +1947,11 @@ def test_home_builder_links_to_sibling_site_screens():
     for path in (
         "/dashboard/site/seo/",
         "/dashboard/site/sections/",
-        "/dashboard/site/pages/",
         "/dashboard/site/preview/",
         "/dashboard/site/menu/",
     ):
         assert path in html, path
+    assert "/dashboard/site/pages/" not in html, "мёртвый экран не должен иметь входов"
 
 
 def test_quick_add_toggle_is_not_expert_only():

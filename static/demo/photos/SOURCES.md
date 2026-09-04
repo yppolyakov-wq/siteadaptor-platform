@@ -371,6 +371,48 @@ license=cc0,pdm) и Wikimedia Commons (haswbstatement CC0/Public domain);
 - `rice-plain.webp` — https://www.rawpixel.com/image/5904594/photo-image-public-domain-sunlight-summer — CC0 1.0 (rawpixel)
 - `cucumber-raita.webp` — https://commons.wikimedia.org/w/index.php?curid=178399183 — CC0 1.0 (Wikimedia Commons, автор: Miansari66)
 
+## Волна AMP — Aktionsmarkt Sparfuchs (2026-09-03)
+
+Демо продуктового магазина пересобрано под ассортимент дискаунтера: собственное
+пространство ключей `markt-*`, **только реальные фотографии** (CC0/PDM через Openverse —
+rawpixel/Wikimedia/WordPress-Fotoverzeichnis). AI-генерация для этого набора НЕ
+использовалась: у доступной в среде модели (`image.pollinations.ai`, sana) еда выходила
+пластиковой, а на кадрах с руками появлялись лишние пальцы — владелец отклонил такие кадры.
+Лицензии проверены по метаданным Openverse (`license=cc0,pdm`), каждый кадр просмотрен.
+
+- `markt-aepfel.webp` — CC0, «A close-up of fresh apples in shades of red and green, piled together » / Bigul Malayi — https://wordpress.org/photos/photo/91069293e7/
+- `markt-backtuete.webp` — CC0, «Assortment of bread» / Markus Spiske — https://www.rawpixel.com/image/432562/free-photo-image-bread-spelt-assortment
+- `markt-backwaren.webp` — CC0, «Composition Bread Wicker Basket» / unbekannt — https://www.rawpixel.com/image/5965204/composition-with-bread-wicker-basket
+- `markt-bauernbrot.webp` — CC0, «Free close fresh homemade bread» / unbekannt — https://www.rawpixel.com/image/5917980/image-public-domain-wood-kitchen
+- `markt-bergkaese.webp` — CC0, «Meule du Plateau cheese wheels in the ripening cellar, Terre de fromag» / DimiTalen — https://commons.wikimedia.org/w/index.php?curid=178503892
+- `markt-broetchen.webp` — CC0, «A woven basket filled with several soft, golden-brown bread rolls.» / Vishnu Chandra — https://wordpress.org/photos/photo/8269bbadd7/
+- `markt-croissant.webp` — CC0, «Original public domain image Wikimedia» / unbekannt — https://www.rawpixel.com/image/3294516/free-photo-image-bakery-baking-bread
+- `markt-galerie-angebote.webp` — CC0, «Local summer fruit market» / Jakub Kapusnak — https://www.rawpixel.com/image/448400/free-photo-image-fruit-farmers-market-summer
+- `markt-galerie-backwaren.webp` — CC0, «Free bread loaf bakery's display» / unbekannt — https://www.rawpixel.com/image/5914820/image-public-domain-free-menu
+- `markt-galerie-einkauf.webp` — CC0, «Free vegetables basket image» / unbekannt — https://www.rawpixel.com/image/5916958/image-public-domain-plant-greens
+- `markt-galerie-gemuese.webp` — CC0, «» / unbekannt — https://www.rawpixel.com/image/5951649/free-public-domain-cc0-photo
+- `markt-galerie-markt.webp` — CC0, «Radishes vine-ripened tomatoes vegetable stand» / unbekannt — https://www.rawpixel.com/image/3303930/free-photo-image-chalk-salad-blur-background
+- `markt-galerie-regal.webp` — CC0, «Free apple image» / unbekannt — https://www.rawpixel.com/image/5927233/free-apple-image-public-domain-fruit-cc0-photo
+- `markt-gemuesekiste-inhalt.webp` — CC0, «Free variety vegetables wooden table» / unbekannt — https://www.rawpixel.com/image/5910473/image-background-public-domain-plant
+- `markt-getraenke.webp` — CC0, «Free juice bottle image» / unbekannt — https://www.rawpixel.com/image/5904475/photo-image-background-public-domain-fruit
+- `markt-hero.webp` — CC0, «Free farmers market, vegetables display» / unbekannt — https://www.rawpixel.com/image/5913183/photo-image-public-domain-wooden-free
+- `markt-hero-tueten.webp` — CC0, «French bread rolls» / unbekannt — https://www.rawpixel.com/image/8812012/french-bread-rolls
+- `markt-hero-vorrat.webp` — CC0, «» / unbekannt — https://www.rawpixel.com/image/5944526/free-public-domain-cc0-photo
+- `markt-kaffee.webp` — CC0, «Ground coffee portafilter» / unbekannt — https://www.rawpixel.com/image/6023348/photo-image-background-public-domain-coffee
+- `markt-kaffee-aktion.webp` — CC0, «Free coffee cup beans wooden» / unbekannt — https://www.rawpixel.com/image/5902433/photo-image-public-domain-wooden-coffee
+- `markt-limonade.webp` — CC0, «Free lemonade pitcher, summer, pool» / unbekannt — https://www.rawpixel.com/image/5917531/image-public-domain-summer-lemons
+- `markt-mineralwasser.webp` — CC0, «Lemon sparkling water image» / unbekannt — https://www.rawpixel.com/image/5912059/image-public-domain-fruit-food
+- `markt-molkerei.webp` — CC0, «Free cheese shop image» / unbekannt — https://www.rawpixel.com/image/5926800/photo-image-public-domain-food-free
+- `markt-nudeln.webp` — CC0, «Free spaghetti image» / unbekannt — https://www.rawpixel.com/image/5907896/image-public-domain-food-free
+- `markt-obsttuete.webp` — CC0, «Free variety vegetables wooden table» / unbekannt — https://www.rawpixel.com/image/5907956/image-public-domain-leaf-plant
+- `markt-oel.webp` — CC0, «Olive oil bottles» / unbekannt — https://www.rawpixel.com/image/6037430/photo-image-public-domain-free-olive
+- `markt-orangensaft.webp` — CC0, «A glass of Orange juice» / unbekannt — https://www.rawpixel.com/image/8718218/glass-orange-juice
+- `markt-reis.webp` — CC0, «Free uncooked rice grain mat» / unbekannt — https://www.rawpixel.com/image/5922922/photo-image-public-domain-food-free
+- `markt-sparkiste.webp` — CC0, «Free variety vegetables wooden table» / unbekannt — https://www.rawpixel.com/image/5910392/image-background-public-domain-plant
+- `markt-tueten.webp` — CC0, «Free assorted vegetables wooden table» / unbekannt — https://www.rawpixel.com/image/5910360/image-background-public-domain-plant
+- `markt-vorrat.webp` — CC0, «Free juice bottle image» / unbekannt — https://www.rawpixel.com/image/5920184/photo-image-background-public-domain-fruit
+- `markt-vorratskammer.webp` — CC0, «Free lentils tricolor image» / unbekannt — https://www.rawpixel.com/image/5919013/image-public-domain-food-free
+
 <!-- OS-SET:BEGIN -->
 Набор 2026-09-03/04 (волна online_shop, демо «Weitwerk»): Openverse API,
 `license=cc0,pdm`; поиск в ДВА прохода — сначала фото-стоки
