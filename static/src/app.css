@@ -1303,6 +1303,14 @@ input[type="datetime-local"] {
   .sf-wide:has(> a > [data-sf-media-box] + div):has(> a ~ div) > a:focus-visible > [data-sf-media-box] + div { outline: 2px solid var(--accent, #4f46e5); outline-offset: -2px; }
 }
 .sf-more { display: none; grid-column: 1 / -1; justify-content: center; }
+
+/* O-9: полоса «Endet bald» на /aktionen/ — своя фикс-сетка в две колонки, поэтому
+   правило DL-15 («одна карточка в последнем ряду — во всю ширину») её не покрывало:
+   оно ищет data-sf-cols/data-sf-tail. При нечётном числе акций последняя оставалась
+   одна слева, а справа зияла дыра — ровно то, из-за чего заводили DL-11/14/15. */
+@media (min-width: 640px) {
+  [data-ending-grid] > :nth-child(odd):last-child { grid-column: 1 / -1; }
+}
 @media (max-width: 767.98px) { [data-grid].is-list > .sf-filler { display: none; } }
 /* /DL-11 fill-rows */
 

@@ -583,3 +583,15 @@ Slots ohne ehrliches Foto behalten den thematischen SVG-Platzhalter.
 - `ol-watch-steel.webp` — https://www.rawpixel.com/image/6283229/png-sticker-public-domain — CC0 1.0
 - `ol-webcam.webp` — https://www.rawpixel.com/image/5907091/photo-image-public-domain-technology-computer — CC0 1.0
 - `ol-yogamat.webp` — https://www.rawpixel.com/image/11515776/rolled-teal-yoga-mat-its-side — CC0 1.0
+
+### Дополнение (O-9, 2026-09-04) — плитки категорий без кадра
+
+Обход витрины показал плейсхолдеры на двух из десяти плиток направлений
+(они видны прямо на главной) и на пяти плитках полок. Подобраны те, для которых
+нашёлся ЧЕСТНЫЙ кадр; остальным оставлен тематический плейсхолдер — чужое фото
+на плитке хуже отсутствующего.
+
+- `ol-cat-gaming.webp` — https://stocksnap.io/photo/game-controller-D9ET42KESB — CC0 1.0 (Matthew Henry)
+- `ol-cat-haushalt.webp` — https://commons.wikimedia.org/w/index.php?curid=94226242 — CC0 1.0 (Yapparina)
+- `ol-sub-damen-oberteile.webp` — https://stocksnap.io/photo/clothes-sweaters-OA0AFM3HYZ — CC0 1.0 (Michal Kulesza)
+- `ol-sub-pflege.webp` — https://www.rawpixel.com/image/5902320/photo-image-background-public-domain-free — CC0 1.0

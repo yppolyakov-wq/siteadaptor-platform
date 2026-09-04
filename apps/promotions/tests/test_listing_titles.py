@@ -71,3 +71,19 @@ def test_promo_group_page_title_names_the_group():
     # молчит и «своим именем» законно оказывается имя магазина; ловим сам симптом —
     # заголовок, начинающийся с разделителя, то есть страницу без названия.
     assert generic.strip() and not generic.lstrip().startswith(("—", "·", "-"))
+
+
+def test_catalog_back_link_names_where_it_goes():
+    """Ссылка «наверх» с каталога вела на ГЛАВНУЮ, а подписана была «Angebote» —
+    наследие времён, когда главной витриной служила страница акций. У магазина
+    «Angebote» — это ещё и отдельная страница (/aktionen/, /kombi/), поэтому
+    подпись не просто неточная, а уводит не туда."""
+    import re
+
+    ProductFactory(name={"de": "Kleid"})
+    html = public_views.product_list(_request("/sortiment/")).content.decode()
+    # именно ссылка «наверх» листинга (в шапке сайта тоже есть href="/" — логотип)
+    link = re.search(r'<a href="/" class="text-sm text-gray-500[^"]*">(.*?)</a>', html)
+    assert link, "ссылки «наверх» на каталоге не стало"
+    assert "Angebote" not in link.group(1)
+    assert "Startseite" in link.group(1)
