@@ -321,7 +321,7 @@
        role="dialog" aria-modal="true" aria-label="{% trans 'Image viewer' %}">
     <button type="button" data-lightbox-close aria-label="{% trans 'Close' %}"
             class="absolute top-3 right-4 text-white/90 hover:text-white text-4xl leading-none">&times;</button>
-    <img id="sf-lightbox-img" src="" alt="" class="max-h-[90vh] max-w-[95vw] object-contain rounded-lg shadow-2xl">
+    <img id="sf-lightbox-img" alt="" class="max-h-[90vh] max-w-[95vw] object-contain rounded-lg shadow-2xl">
   </div>
   <script>
     (function () {
@@ -334,7 +334,9 @@
       }
       function close() {
         box.classList.add("hidden"); box.classList.remove("flex");
-        img.src = ""; document.body.style.overflow = "";
+        // Пустой src браузер разрешает в АДРЕС СТРАНИЦЫ и грузит её второй раз —
+        // поэтому атрибут снимаем, а не обнуляем.
+        img.removeAttribute("src"); document.body.style.overflow = "";
       }
       document.addEventListener("click", function (e) {
         var t = e.target.closest("[data-lightbox]");
