@@ -21880,3 +21880,6 @@ msgstr ""
 
 msgid "Ruhiger Concept-Store: warmes Off-White, randlose Karten, viel Luft."
 msgstr "Calm concept store: warm off-white, borderless cards, plenty of air."
+
+msgid "Sets & Pakete"
+msgstr "Sets & bundles"

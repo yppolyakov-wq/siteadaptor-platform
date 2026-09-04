@@ -978,7 +978,6 @@ def _facet_pills(facets: dict, chips: dict, badge_chips) -> list:
 
     Мультивыбор даёт по пилюле на значение (сняли «M», «L» остался). Подписи
     человеческие: код диеты/бейджа заменяется на его метку, «1» тумблера — на текст."""
-    from django.utils.translation import gettext as _t
 
     def drop(key, value=None):
         rest = dict(facets)
@@ -1001,11 +1000,12 @@ def _facet_pills(facets: dict, chips: dict, badge_chips) -> list:
         if value:
             pills.append({"label": labels.get(key, {}).get(value, value), "qs": drop(key)})
     if facets.get("nur_verfuegbar"):
-        pills.append({"label": _t("Only available"), "qs": drop("nur_verfuegbar")})
+        pills.append({"label": _("Only available"), "qs": drop("nur_verfuegbar")})
     if facets.get("sale"):
-        pills.append({"label": _t("Reduced only"), "qs": drop("sale")})
+        pills.append({"label": _("Reduced only"), "qs": drop("sale")})
     if facets.get("bewertung"):
-        pills.append({"label": f"{_t('from')} {facets['bewertung']} ★", "qs": drop("bewertung")})
+        from_label = _("from")
+        pills.append({"label": f"{from_label} {facets['bewertung']} ★", "qs": drop("bewertung")})
     if facets.get("preis_von") or facets.get("preis_bis"):
         lo, hi = facets.get("preis_von") or "0", facets.get("preis_bis") or "∞"
         rest = dict(facets, preis_von="", preis_bis="")
@@ -1551,6 +1551,14 @@ def product_list(request, slug=None):
             "diet_chips": diet_chips,  # A4: фасет-чипы диет (только встречающиеся)
             # GK-13: кнопка «Speisekarte (PDF)» — гастро-типам, при непустом каталоге
             # (по ВСЕМ товарам, не по текущему фильтру — карта всегда полная).
+            # 2026-09-03: у непищевого магазина полоса комбо называлась
+            # «Menü-Pakete» — гастро-слово на витрине с посудой и рюкзаками.
+            # Гастро-подпись остаётся дословно (паритет), прочим — «Sets».
+            "combos_title": (
+                _("Menü-Pakete")
+                if request.tenant.business_type in _FOOD_TYPES
+                else _("Sets & Pakete")
+            ),
             "menu_pdf_available": (
                 request.tenant.business_type in _FOOD_TYPES
                 and Product.objects.filter(is_active=True).exists()

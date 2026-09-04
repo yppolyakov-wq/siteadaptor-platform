@@ -22113,3 +22113,6 @@ msgid "Ruhiger Concept-Store: warmes Off-White, randlose Karten, viel Luft."
 msgstr ""
 "Спокойный концепт-стор: тёплый небелый фон, карточки без рамок, много "
 "воздуха."
+
+msgid "Sets & Pakete"
+msgstr "Наборы и комплекты"
