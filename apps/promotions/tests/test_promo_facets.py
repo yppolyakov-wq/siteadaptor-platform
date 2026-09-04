@@ -158,3 +158,30 @@ def test_system_chips_carry_other_params():
     assert "gruppe=Wochenangebote" in body and "rabatt=30" in body
     # тулбар сортировки несёт активные фасеты hidden-полями
     assert '<input type="hidden" name="gruppe" value="Wochenangebote">' in body
+
+
+def test_system_chip_is_not_offered_when_it_leads_to_an_empty_page():
+    """Стенд аутлета: чип «Endet heute» предлагался, а акций, истекающих сегодня,
+    не было — клик уводил на пустую страницу. Фильтр-тупик читается как «в
+    магазине пусто», хотя это лишь нерелевантный срез (то же правило, что у
+    `nur_angebote` в каталоге: предлагаем, только если есть что показать)."""
+    t = _tenant("pf8")
+    _promo("Läuft lange", discount_percent=20, ends_at=timezone.now() + timedelta(days=30))
+
+    body = _body(t)
+    assert "endet=woche" not in body  # через месяц — не «на этой неделе»
+    assert "endet=heute" not in body
+    assert "rabatt=20" in body  # чип, у которого выдача есть, остаётся
+
+    # у акции, истекающей сегодня, чип появляется
+    _promo("Heute vorbei", discount_percent=20, ends_at=timezone.now() + timedelta(hours=2))
+    assert "endet=heute" in _body(t)
+
+
+def test_active_system_chip_stays_offered_so_it_can_be_switched_off():
+    """Гейт не должен запирать посетителя: даже если срез пуст, активный чип
+    остаётся на странице — иначе снять его можно только правкой адреса."""
+    t = _tenant("pf9")
+    _promo("Läuft lange", discount_percent=20, ends_at=timezone.now() + timedelta(days=30))
+    body = _body(t, {"endet": "heute"})
+    assert "Endet heute" in body or "Ends today" in body

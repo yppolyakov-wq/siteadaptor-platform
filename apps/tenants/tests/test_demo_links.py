@@ -48,6 +48,19 @@ def test_dedicated_online_shop_demo():
     assert "onlineshop.siteadaptor.de" in cards["online_shop"]["demo_url"]
 
 
+def test_outlet_is_the_second_online_shop_demo():
+    """O-3/O-6: у типа ДВА демо разного жанра — бутик «Weitwerk» и аутлет
+    «Zweitgut Outlet». Кнопка типа одна, поэтому её держит бутик, а аутлет
+    доступен своим поддоменом и через реестр «функция → живое демо»
+    (фильтры и B-Ware/UVP). Замок держит именно это разделение ролей."""
+    from apps.tenants import demo_kits, feature_demos
+
+    assert demo_kits.KITS["outlet"].subdomain == "outlet"
+    assert demo_kits.KITS["outlet"].business_type == "online_shop"
+    hosts = {item["host"] for item in feature_demos.FEATURE_DEMOS}
+    assert "outlet" in hosts, "аутлет обязан быть достижим хотя бы из feature_demos"
+
+
 def test_dedicated_demo_mapping_wave1():
     """Волна 1: у пекарни и мясной СВОИ демо (не общий рынок) — «чтоб лучше продать».
     Кит-поддомены: baeckerei (Backhaus Krume) и metzgerei (Metzgerei Bergmann)."""

@@ -83,14 +83,44 @@ def _product(obj, locale):
         "gallery": _gallery_urls(obj.images),
         "price_value": base,
         "price_currency": obj.currency,
-        "ld_extra": {
-            "offer": {
-                "availability": "https://schema.org/InStock"
-                if obj.in_stock
-                else "https://schema.org/OutOfStock"
-            }
-        },
+        "ld_extra": _product_ld_extra(obj),
     }
+
+
+#: O-1: Zustand → schema.org/OfferItemCondition. Google wertet das Feld für
+#: Shopping/Rich Results aus, und für B-Ware ist es der Unterschied zwischen
+#: «neu» und «refurbished» in der Suche. "" (Neuware) → NewCondition.
+ITEM_CONDITION = {
+    "": "https://schema.org/NewCondition",
+    "neu": "https://schema.org/NewCondition",
+    "neu_ohne_ovp": "https://schema.org/NewCondition",
+    "ausstellung": "https://schema.org/UsedCondition",
+    "retoure": "https://schema.org/RefurbishedCondition",
+    "wie_neu": "https://schema.org/UsedCondition",
+    "gut": "https://schema.org/UsedCondition",
+}
+
+
+def _product_ld_extra(obj) -> dict:
+    offer = {
+        "availability": "https://schema.org/InStock"
+        if obj.in_stock
+        else "https://schema.org/OutOfStock",
+        "itemCondition": ITEM_CONDITION.get(
+            getattr(obj, "condition", "") or "", "https://schema.org/NewCondition"
+        ),
+    }
+    extra = {"offer": offer}
+    brand = getattr(obj, "brand", "")
+    if brand:
+        extra["brand"] = {"@type": "Brand", "name": brand}
+    gtin = getattr(obj, "gtin", "")
+    if gtin:
+        extra["gtin"] = gtin
+    sku = getattr(obj, "sku", "")
+    if sku:
+        extra["sku"] = sku
+    return extra
 
 
 def _service(obj, locale):

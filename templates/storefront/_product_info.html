@@ -2,6 +2,10 @@
 (EU 1007/2011, M1 Boutique) — общий партиал правой колонки и панели «Details» раскладки «Tabs».
 Гейт по наличию данных (product_has_info) — у вызывающего шаблона.{% endcomment %}
 <div class="mt-5 rounded-xl bg-gray-50 border border-gray-100 p-4 text-sm text-gray-700 space-y-1">
+  {% comment %}O-1: Zustand steht ZUERST — bei Outlet-/B-Ware ist er die Kaufentscheidung.
+  Ist ein Mangel bekannt, MUSS er benannt werden (§ 476 Abs. 2 BGB), dafür `condition_note`.{% endcomment %}
+  {% if product.condition %}<p><span class="font-medium">{% trans "Zustand" %}:</span> {{ product.condition_label }}{% if product.condition_note %} — {{ product.condition_note_localized }}{% endif %}</p>{% endif %}
+  {% if product.brand %}<p><span class="font-medium">{% trans "Marke" %}:</span> {{ product.brand }}</p>{% endif %}
   {% if product.material %}<p><span class="font-medium">{% trans "Material" %}:</span> {{ product.material_localized }}</p>{% endif %}
   {% if product.care %}<p><span class="font-medium">{% trans "Care" %}:</span> {{ product.care_localized }}</p>{% endif %}
   {% if product.origin %}<p><span class="font-medium">{% trans "Origin" %}:</span> {{ product.origin_localized }}</p>{% endif %}

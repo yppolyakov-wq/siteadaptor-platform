@@ -506,6 +506,30 @@ LOOK_FAMILIES = [
         "hero_style": "split",
         "theme": "",
     },
+    # O-5 (Outlet, 2026-09-03): «Lager» — язык дискаунт-ритейла 2025/26:
+    # узкий гротеск в заголовках, нулевые радиусы, жёсткая рамка и сигнальный
+    # акцент только на цене. Плотная сетка вместо воздуха — в аутлете на экран
+    # должно помещаться много позиций, а решение принимается по цене и состоянию.
+    {
+        "key": "lager",
+        "label": _("Lager"),
+        "description_de": _(
+            "Hallen-Optik: schmale Versalien, harte Kanten, Signalfarbe nur am Preis."
+        ),
+        "font": "condensed",  # Barlow Condensed 700
+        "typography": {"weight_head": 700, "line_height": 1.45},
+        "site_defaults": {
+            "card_radius": 0,
+            "card_shadow": False,
+            "card_bg": "#ffffff",
+            "card_padding": 0,
+            "page_bg": "#f4f4f5",  # холодный бетон — товар на нём читается
+            "card_chrome": "hard",
+        },
+        "nav_style": "minimal",
+        "hero_style": "split",
+        "theme": "",
+    },
 ]
 
 _FAMILY_BY_KEY = {f["key"]: f for f in LOOK_FAMILIES}
@@ -538,6 +562,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#d62828",
         # 2026-09-03: atelier
         "#78350f",
+        # O-5: lager
+        "#b45309",
     ),
     "butcher": (
         "#b91c1c",
@@ -559,6 +585,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#d62828",
         # 2026-09-03: atelier
         "#7f1d1d",
+        # O-5: lager
+        "#b91c1c",
     ),
     "grocery": (
         "#15803d",
@@ -580,6 +608,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#d62828",
         # 2026-09-03: atelier
         "#3f6212",
+        # O-5: lager
+        "#dc2626",
     ),
     "clothing": (
         "#111827",
@@ -601,6 +631,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#1d3f9e",
         # 2026-09-03: atelier
         "#1f2937",
+        # O-5: lager
+        "#111827",
     ),
     "restaurant": (
         "#b45309",
@@ -622,6 +654,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#d62828",
         # 2026-09-03: atelier
         "#44403c",
+        # O-5: lager
+        "#c2410c",
     ),
     "cafe": (
         "#92400e",
@@ -643,6 +677,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#1d3f9e",
         # 2026-09-03: atelier
         "#6b4423",
+        # O-5: lager
+        "#a16207",
     ),
     "retail": (
         "#4f46e5",
@@ -664,6 +700,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#1d3f9e",
         # 2026-09-03: atelier
         "#334155",
+        # O-5: lager
+        "#e11d48",
     ),
     "online_shop": (
         "#4f46e5",
@@ -685,6 +723,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#1d3f9e",
         # 2026-09-03: atelier
         "#26303f",
+        # O-5: lager
+        "#e11d48",
     ),
     "tour_operator": (
         "#0e7490",
@@ -706,6 +746,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#1d3f9e",
         # 2026-09-03: atelier
         "#155e75",
+        # O-5: lager
+        "#0f766e",
     ),
     "hotel": (
         "#0e7490",
@@ -726,6 +768,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#12233a",
         "#1d3f9e",
         # 2026-09-03: atelier
+        "#1e3a5f",
+        # O-5: lager
         "#1e3a5f",
     ),
     "friseur": (
@@ -748,6 +792,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#d62828",
         # 2026-09-03: atelier
         "#4c1d3d",
+        # O-5: lager
+        "#9d174d",
     ),
     "handwerker": (
         "#ea580c",
@@ -769,6 +815,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#f2c230",
         # 2026-09-03: atelier
         "#3f3f46",
+        # O-5: lager
+        "#c2410c",
     ),
     "werkstatt": (
         "#1e40af",
@@ -790,6 +838,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#1d3f9e",
         # 2026-09-03: atelier
         "#312e2b",
+        # O-5: lager
+        "#1d4ed8",
     ),
     "events": (
         "#7c3aed",
@@ -811,6 +861,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#d62828",
         # 2026-09-03: atelier
         "#4c1d95",
+        # O-5: lager
+        "#7c3aed",
     ),
     # GK-1: frisch/bio-грин + тёплый warm
     "catering": (
@@ -833,6 +885,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#1d3f9e",
         # 2026-09-03: atelier
         "#3f4a3a",
+        # O-5: lager
+        "#15803d",
     ),
     # fmt: on
 }
@@ -1550,6 +1604,51 @@ BUNDLES = [
     },
     # ── DL-13: шесть дизайнов канваса «Neue Design-Richtungen» — КАЖДЫЙ в
     # своей композиции (анализ DL-12 §4.1, утверждено владельцем 2026-09-02).
+    {
+        # O-5 (Outlet): дискаунтер техники и моды — на первом экране «что у нас
+        # есть» (направления), сразу под ним «что горит» (акции), и только потом
+        # доверие. Витрина на 200 позиций: плотная сетка 4 колонки, карточка
+        # «Regal» (цена ведёт), хвост «Verteilen» — ряды без дыр.
+        "key": "deal_lager",
+        "label": _("Lager"),
+        "composition": "sortiment",
+        "description_de": _(
+            "Outlet-Halle: Kategorien zuerst, Preis groß, dichtes Raster — "
+            "für Sortimente mit vielen Einzelstücken."
+        ),
+        "recommended_for": ("online_shop", "retail"),
+        "look": "lager",
+        "config": _deal(
+            {
+                "hero_style": "split",
+                "nav_style": "minimal",
+                "promo_card": "preis",
+                "catalog_layout": {"preset": "cols4"},
+                "section_layouts": {
+                    "categories": {"preset": "cols5"},
+                    "products": {"preset": "cols4"},
+                },
+                "sections_on": ("hero", "categories", "promotions", "products", "usp_bar", "trust"),
+                "sections_order": (
+                    "hero",
+                    "categories",
+                    "promotions",
+                    "products",
+                    "usp_bar",
+                    "trust",
+                    "contact",
+                ),
+                "section_styles": {
+                    "categories": "square",
+                    "promotions": "rows",
+                    "usp_bar": "compact",
+                    "trust": "badges",
+                    "contact": "compact",
+                },
+                "page_presets": {"cart": "empfehlung"},
+            }
+        ),
+    },
     {
         "key": "deal_monochrom",
         "label": _("Monochrom"),

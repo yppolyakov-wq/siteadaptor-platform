@@ -568,3 +568,185 @@ rawpixel/Wikimedia/WordPress-Fotoverzeichnis). AI-генерация для эт
 Цвет каждого файла берётся из реестра `apps.catalog.option_styles.COLOR_HEX`,
 поэтому `mode-<товар>-<цвет>.webp` совпадает со свотчем варианта на витрине.
 <!-- MODE-SET:END -->
+## Outlet-Demo «Zweitgut» (Welle O, 2026-09-03) — 171 Bilder, Präfix `ol-`
+
+Quelle: Openverse mit hartem Filter `license=cc0,pdm`; jedes Bild einzeln
+angesehen (51 Kontaktbögen, 611 Kandidaten → 171 angenommen ≈ 28 %).
+Verworfen: Clipart statt Foto, falscher Gegenstand, erkennbare Gesichter,
+Kinder, Markenlogos, historische Museumsstücke statt Ware.
+Slots ohne ehrliches Foto behalten den thematischen SVG-Platzhalter.
+
+- `ol-action-cam.webp` — https://www.rawpixel.com/image/3303210/free-photo-image-video-camera-macbook-gopro — CC0 1.0
+- `ol-bag-laptop.webp` — https://wordpress.org/photos/photo/71169d9203/ — CC0 1.0 (Mohammed Kateregga)
+- `ol-bag-shopper.webp` — https://www.rawpixel.com/image/5921479/photo-image-public-domain-shadow-black — CC0 1.0
+- `ol-blender.webp` — https://www.rawpixel.com/image/447947/free-photo-image-smoothie-blender-orange — CC0 1.0 (Jakub Kapusnak)
+- `ol-boots-ankle.webp` — https://wordpress.org/photos/photo/18368adf10/ — CC0 1.0 (Guste Cibulskyte)
+- `ol-boots-chelsea.webp` — https://stocksnap.io/photo/leather-shoes-DC246EC89C — CC0 1.0 (Markus Spiske)
+- `ol-boots-hiking.webp` — https://www.rawpixel.com/image/6023251/photo-image-public-domain-nature-person — CC0 1.0
+- `ol-boots-rubber.webp` — https://www.rawpixel.com/image/432160/free-photo-image-rubber-boots-blue — CC0 1.0 (Markus Spiske)
+- `ol-boots-winter.webp` — https://www.rawpixel.com/image/3284437/free-photo-image-apparel-bean-boots-bokeh — CC0 1.0
+- `ol-bottle.webp` — https://www.rawpixel.com/image/5958970/free-public-domain-cc0-photo — CC0 1.0
+- `ol-cable.webp` — https://www.rawpixel.com/image/5912780/image-public-domain-technology-free — CC0 1.0
+- `ol-camera.webp` — https://stocksnap.io/photo/technology-gadgets-3ILV0PLWO4 — CC0 1.0 (Jean-Pierre Brungs)
+- `ol-camera-bag.webp` — https://www.rawpixel.com/image/6112460/camera-bag-location-unknown-nov-2014 — CC0 1.0
+- `ol-camera-lens.webp` — https://stocksnap.io/photo/camera-lens-OAIDO9GSRD — CC0 1.0 (Skitter Photo)
+- `ol-cat-accessoires.webp` — https://stocksnap.io/photo/leather-purse-Y4IBN1USSQ — CC0 1.0 (Snufkin)
+- `ol-cat-damen.webp` — https://www.rawpixel.com/image/5924744/photo-image-public-domain-fashion-free — CC0 1.0
+- `ol-cat-herren.webp` — https://www.rawpixel.com/image/5925818/photo-image-public-domain-fashion-free — CC0 1.0
+- `ol-cat-notebooks.webp` — https://stocksnap.io/photo/macbook-laptop-DWLWL9USBG — CC0 1.0 (Lia Leslie)
+- `ol-cat-smartphones.webp` — https://stocksnap.io/photo/office-work-QK8UF7C718 — CC0 1.0 (Negative Space)
+- `ol-cat-sport.webp` — https://www.rawpixel.com/image/6038283/photo-image-public-domain-free-sport — CC0 1.0
+- `ol-cat-tv.webp` — https://stocksnap.io/photo/interior-living-6SMA09U7Y8 — CC0 1.0 (Jaros%u0142aw%20Ceborski)
+- `ol-coffee-machine.webp` — https://www.rawpixel.com/image/5926293/photo-image-public-domain-free-drink — CC0 1.0
+- `ol-controller.webp` — https://www.rawpixel.com/image/6026166/photo-image-public-domain-technology-free — CC0 1.0
+- `ol-convertible.webp` — https://stocksnap.io/photo/laptop-computer-5UQ2YS94N1 — CC0 1.0 (Monoar Rahman)
+- `ol-daypack.webp` — https://stocksnap.io/photo/guy-man-BJVMVQEOP4 — CC0 1.0 (Jake Ingle)
+- `ol-duffel.webp` — https://www.rawpixel.com/image/3286872/free-photo-image-vintage-bag-luggage — CC0 1.0
+- `ol-dumbbells.webp` — https://stocksnap.io/photo/weights-fitness-3H89EH3WIJ — CC0 1.0 (%u0141ukasz%20Popardowski)
+- `ol-earbuds.webp` — https://wordpress.org/photos/photo/368688e0a7/ — CC0 1.0 (Alina Kakshapati)
+- `ol-earbuds-anc.webp` — https://www.rawpixel.com/image/11524342/photo-image-headphones-public-domain-technology — CC0 1.0
+- `ol-earbuds-sport.webp` — https://www.rawpixel.com/image/5966114/ipad-earphones — CC0 1.0
+- `ol-espresso.webp` — https://www.rawpixel.com/image/6042184/photo-image-public-domain-coffee-free — CC0 1.0
+- `ol-filter-coffee.webp` — https://www.rawpixel.com/image/3283223/free-photo-image-coffee-maker-banister — CC0 1.0
+- `ol-fitness-tracker.webp` — https://stocksnap.io/photo/green-band-RZZSPG2ROJ — CC0 1.0 (Matthew Henry)
+- `ol-flipflops.webp` — https://www.rawpixel.com/image/5928036/photo-image-public-domain-tropical-beach — CC0 1.0
+- `ol-foam-roller.webp` — https://www.rawpixel.com/image/6112646/photo-image-public-domain-yoga-white — CC0 1.0
+- `ol-gaming-headset.webp` — https://www.rawpixel.com/image/5948623/free-public-domain-cc0-photo — CC0 1.0
+- `ol-hairclips.webp` — https://www.rawpixel.com/image/6036249/photo-image-public-domain-kid-person — CC0 1.0
+- `ol-hand-blender.webp` — https://www.rawpixel.com/image/5941460/free-public-domain-cc0-photo — CC0 1.0
+- `ol-headphones.webp` — https://wordpress.org/photos/photo/18766603c1/ — CC0 1.0 (Nilo Velez)
+- `ol-headphones-wire.webp` — https://stocksnap.io/photo/wireless-headphones-EXCBJA3FFQ — CC0 1.0 (Burst)
+- `ol-headset-usb.webp` — https://stocksnap.io/photo/microphone-blackandwhite-5M608TQP1S — CC0 1.0 (Barthy Bonhomme)
+- `ol-instant-camera.webp` — https://stocksnap.io/photo/polaroid-photo-TMLML1EO09 — CC0 1.0 (Lisa Fotios)
+- `ol-iron.webp` — https://www.rawpixel.com/image/8809317/photo-image-public-domain-product — CC0 1.0
+- `ol-jewelry-box.webp` — https://www.rawpixel.com/image/9322860/sewing-jewelry-box-costurero-joyero-unidentified-artist — CC0 1.0 (lacma)
+- `ol-jump-rope.webp` — https://www.rawpixel.com/image/6049220/free-public-domain-cc0-photo — CC0 1.0
+- `ol-kettle.webp` — https://stocksnap.io/photo/kitchen-teapot-ND9JSEK2QN — CC0 1.0 (Matt Bango)
+- `ol-kettlebell.webp` — https://www.rawpixel.com/image/5903677/photo-image-public-domain-blue-free — CC0 1.0
+- `ol-keyboard.webp` — https://www.rawpixel.com/image/3298523/free-photo-image-laptop-computer-awesome — CC0 1.0
+- `ol-laptop-grey.webp` — https://www.rawpixel.com/image/5904855/photo-image-background-phone-public-domain — CC0 1.0
+- `ol-laptop-open.webp` — https://stocksnap.io/photo/laptop-closeup-2MNAETNOZM — CC0 1.0 (Birch Landing Home)
+- `ol-laptop-silver.webp` — https://stocksnap.io/photo/office-work-I9INCIK831 — CC0 1.0 (Ch%E2u%20Th%F4ng%20Phan)
+- `ol-m-blazer.webp` — https://stocksnap.io/photo/guy-man-UAOOGH6M48 — CC0 1.0 (Freestocks.org)
+- `ol-m-flannel.webp` — https://www.rawpixel.com/image/3284728/free-photo-image-dress-long-jeans-dance — CC0 1.0
+- `ol-m-halfzip.webp` — https://www.rawpixel.com/image/3283514/free-photo-image-blazer-men-coat-apparel — CC0 1.0
+- `ol-m-hoodie.webp` — https://www.rawpixel.com/image/6430499/png-sticker-watercolor — CC0 1.0
+- `ol-m-jeans.webp` — https://www.rawpixel.com/image/3284429/free-photo-image-denim-running-man-apparel — CC0 1.0
+- `ol-m-jogger.webp` — https://wordpress.org/photos/photo/170645e302/ — CC0 1.0 (Tomek Lach)
+- `ol-m-knit.webp` — https://stocksnap.io/photo/clothes-sweaters-OA0AFM3HYZ — CC0 1.0 (Michal Kulesza)
+- `ol-m-puffer.webp` — https://wordpress.org/photos/photo/596691e923/ — CC0 1.0 (shirishpoudel07)
+- `ol-m-shirt-linen.webp` — https://www.rawpixel.com/image/6029979/white-tome-shirts-free-public-domain-cc0-photo — CC0 1.0
+- `ol-m-sweatjacket.webp` — https://stocksnap.io/photo/people-hoodie-EU4KRTXEQH — CC0 1.0 (Creative Vix)
+- `ol-m-tshirt.webp` — https://stocksnap.io/photo/stack-sheets-WNPRW5MEWD — CC0 1.0 (Alex Andrews)
+- `ol-m-underwear.webp` — https://www.rawpixel.com/image/11524378/photo-image-floral-public-domain-products — CC0 1.0
+- `ol-memory-card.webp` — https://www.rawpixel.com/image/6111632/photo-image-background-public-domain-logo — CC0 1.0
+- `ol-microphone.webp` — https://stocksnap.io/photo/microphone-audio-IQVHQYS3GL — CC0 1.0 (Maciej Korsan)
+- `ol-monitor-24.webp` — https://stocksnap.io/photo/seo-computer-959IURDRGJ — CC0 1.0 (Serpstat)
+- `ol-monitor-qhd.webp` — https://stocksnap.io/photo/computer-monitors-SLZRDLFT96 — CC0 1.0 (Tran Mau Tri Tam)
+- `ol-mouse.webp` — https://stocksnap.io/photo/mouse-laptop-FLR8CB5IUO — CC0 1.0 (50Fish)
+- `ol-phone-black.webp` — https://stocksnap.io/photo/iphone-marble-VAZ7FDIJG7 — CC0 1.0 (Birch Landing Home)
+- `ol-phone-camera.webp` — https://stocksnap.io/photo/smartphone-camera-TBGNSSQV6B — CC0 1.0 (Retro 56)
+- `ol-phone-case.webp` — https://www.rawpixel.com/image/11524357/photo-image-paper-iphone-airplanes — CC0 1.0
+- `ol-phone-flat.webp` — https://www.rawpixel.com/image/6113894/photo-image-phone-public-domain-laptop — CC0 1.0
+- `ol-phone-mount.webp` — https://stocksnap.io/photo/mobile-photography-FI8FVKZLJ1 — CC0 1.0 (Matheus Bertelli)
+- `ol-powerbank.webp` — https://www.rawpixel.com/image/5910321/image-background-phone-public-domain — CC0 1.0
+- `ol-projector.webp` — https://www.rawpixel.com/image/5959356/free-public-domain-cc0-photo — CC0 1.0
+- `ol-ring-light.webp` — https://wordpress.org/photos/photo/449640f51e/ — CC0 1.0 (Nilo Velez)
+- `ol-robot-vacuum.webp` — https://stocksnap.io/photo/robot-vacuum-VJCXHQGRVO — CC0 1.0 (Jens Mahnke)
+- `ol-run-neutral.webp` — https://www.rawpixel.com/image/432815/free-photo-image-running-shoes-footwear-fitness — CC0 1.0 (Markus Spiske)
+- `ol-run-trail.webp` — https://stocksnap.io/photo/still-items-3XZIRNDALD — CC0 1.0 (Markus Spiske)
+- `ol-run-women.webp` — https://www.rawpixel.com/image/6042118/photo-image-public-domain-black-person — CC0 1.0
+- `ol-s-jacket.webp` — https://stocksnap.io/photo/woman-sneakers-7SOVYEAFVL — CC0 1.0 (Burst)
+- `ol-s-leggings.webp` — https://www.rawpixel.com/image/5926642/photo-image-public-domain-free-running — CC0 1.0
+- `ol-scale.webp` — https://www.rawpixel.com/image/5942277/free-public-domain-cc0-photo — CC0 1.0
+- `ol-scarf-silk.webp` — https://stocksnap.io/photo/colorful-sari-DC17RTS8K9 — CC0 1.0 (Seacoast Sage)
+- `ol-selfie-stick.webp` — https://www.rawpixel.com/image/5969834/selfie-stick — CC0 1.0
+- `ol-shaver.webp` — https://www.rawpixel.com/image/5902320/photo-image-background-public-domain-free — CC0 1.0
+- `ol-shoes-ballerina.webp` — https://www.rawpixel.com/image/6032458/photo-image-public-domain-fashion-free — CC0 1.0
+- `ol-shoes-loafer.webp` — https://wordpress.org/photos/photo/45168aff86/ — CC0 1.0 (Alina Kakshapati)
+- `ol-slippers-plush.webp` — https://www.rawpixel.com/image/5964190/free-public-domain-cc0-photo — CC0 1.0
+- `ol-smart-bulb.webp` — https://www.rawpixel.com/image/5960371/free-public-domain-cc0-photo — CC0 1.0
+- `ol-smart-plug.webp` — https://www.rawpixel.com/image/6018638/photo-image-public-domain-free — CC0 1.0
+- `ol-smart-speaker.webp` — https://www.rawpixel.com/image/5919285/image-frame-white-background-phone — CC0 1.0
+- `ol-smart-thermostat.webp` — https://www.rawpixel.com/image/5919904/photo-image-public-domain-free — CC0 1.0
+- `ol-smartwatch.webp` — https://www.rawpixel.com/image/5926461/photo-image-background-public-domain-black — CC0 1.0
+- `ol-sneaker-canvas.webp` — https://www.rawpixel.com/image/5970294/shoelaces — CC0 1.0
+- `ol-sneaker-high.webp` — https://www.rawpixel.com/image/11524161/photo-image-lights-blue-public-domain — CC0 1.0
+- `ol-sneaker-retro.webp` — https://www.rawpixel.com/image/593227/one-blue-shoe — CC0 1.0 (Markus Spiske)
+- `ol-sneaker-white.webp` — https://stocksnap.io/photo/people-couple-S84ER7ZOFC — CC0 1.0 (Freestocks.org)
+- `ol-soundbar.webp` — https://stocksnap.io/photo/speaker-music-WKV40ATLIY — CC0 1.0 (Krzysztof%20Puszczy%u0144ski)
+- `ol-speaker-bt.webp` — https://wordpress.org/photos/photo/3716979810/ — CC0 1.0 (Faisal Ahammad)
+- `ol-streaming-stick.webp` — https://commons.wikimedia.org/w/index.php?curid=39647698 — CC0 1.0 (ubahnverleih)
+- `ol-sub-brillen.webp` — https://stocksnap.io/photo/sunglasses-summer-EVAARS1W4M — CC0 1.0 (Jakub Rostkowski)
+- `ol-sub-business-schuhe.webp` — https://www.rawpixel.com/image/3291877/free-photo-image-apparel-cc0-clothing — CC0 1.0
+- `ol-sub-damen-jacken.webp` — https://www.rawpixel.com/image/6039258/photo-image-public-domain-pink-pattern — CC0 1.0
+- `ol-sub-fitness.webp` — https://www.rawpixel.com/image/11524307/rolled-and-tied-teal-yoga-mat — CC0 1.0
+- `ol-sub-gaming.webp` — https://www.rawpixel.com/image/3298255/free-photo-image-playstation-game-controller-gaming-control — CC0 1.0
+- `ol-sub-guertel.webp` — https://www.rawpixel.com/image/6040795/leather-belt-free-public-domain-cc0-photo — CC0 1.0
+- `ol-sub-handys.webp` — https://stocksnap.io/photo/news-newspaper-OJXHDWMWV9 — CC0 1.0 (Wilfred Iven)
+- `ol-sub-hausschuhe.webp` — https://stocksnap.io/photo/woman-wearing-URKEQ42LMR — CC0 1.0 (Lisa Fotios)
+- `ol-sub-herren-hemden.webp` — https://www.rawpixel.com/image/5924394/photo-image-public-domain-shirt-free — CC0 1.0
+- `ol-sub-herren-hosen.webp` — https://stocksnap.io/photo/blue-denim-QBSVGRFT2Y — CC0 1.0 (it's me neosiam)
+- `ol-sub-herren-jacken.webp` — https://stocksnap.io/photo/suit-jacket-J18ZCO3IPA — CC0 1.0 (Olu Eletu)
+- `ol-sub-herren-strick.webp` — https://www.rawpixel.com/image/5921020/photo-image-public-domain-fashion-free — CC0 1.0
+- `ol-sub-huellen.webp` — https://www.rawpixel.com/image/11524357/photo-image-paper-iphone-airplanes — CC0 1.0
+- `ol-sub-inear.webp` — https://wordpress.org/photos/photo/14568e4010/ — CC0 1.0 (Nur Nobi)
+- `ol-sub-kaffee.webp` — https://www.rawpixel.com/image/6111473/photo-image-public-domain-free-game — CC0 1.0
+- `ol-sub-kameras.webp` — https://stocksnap.io/photo/camera-photography-KLYLIW8AZY — CC0 1.0 (Pawel Kadysz)
+- `ol-sub-kopfhoerer.webp` — https://www.rawpixel.com/image/3301986/free-photo-image-headphones-music-background — CC0 1.0
+- `ol-sub-kuechengeraete.webp` — https://www.rawpixel.com/image/5941460/free-public-domain-cc0-photo — CC0 1.0
+- `ol-sub-laufschuhe.webp` — https://www.rawpixel.com/image/6042118/photo-image-public-domain-black-person — CC0 1.0
+- `ol-sub-lautsprecher.webp` — https://www.rawpixel.com/image/5919265/photo-image-white-background-phone-public-domain — CC0 1.0
+- `ol-sub-licht.webp` — https://www.rawpixel.com/image/6021726/led-light-bulb-free-public-domain-cc0-photo — CC0 1.0
+- `ol-sub-monitore.webp` — https://stocksnap.io/photo/domain-seo-KIJQ4DNA7K — CC0 1.0 (Serpstat)
+- `ol-sub-notebooks.webp` — https://stocksnap.io/photo/laptop-notebook-K8GKAB1OYI — CC0 1.0 (Jeffrey Betts)
+- `ol-sub-powerbanks.webp` — https://www.rawpixel.com/image/5910321/image-background-phone-public-domain — CC0 1.0
+- `ol-sub-reinigen.webp` — https://www.rawpixel.com/image/5903507/photo-image-public-domain-room-free — CC0 1.0
+- `ol-sub-rucksaecke.webp` — https://stocksnap.io/photo/backpacking-hiking-40ZTQ6FVOF — CC0 1.0 (Kristin Hardwick)
+- `ol-sub-sneaker.webp` — https://stocksnap.io/photo/white-sneakers-EA7TDORJBT — CC0 1.0 (Ylanite Koppens)
+- `ol-sub-stiefel.webp` — https://www.rawpixel.com/image/3284270/free-photo-image-shoe-man-apparel-beauty — CC0 1.0
+- `ol-sub-tablets.webp` — https://stocksnap.io/photo/tablet-computer-KCEVT4PCQ1 — CC0 1.0 (Birch Landing Home)
+- `ol-sub-taschen.webp` — https://www.rawpixel.com/image/3305481/free-photo-image-briefcase-leather-bag — CC0 1.0
+- `ol-sub-tv.webp` — https://www.rawpixel.com/image/5917364/photo-image-public-domain-free — CC0 1.0
+- `ol-sub-uhren.webp` — https://commons.wikimedia.org/w/index.php?curid=98179573 — CC0 1.0 (Unknown authorUnknown author)
+- `ol-sub-zubehoer.webp` — https://stocksnap.io/photo/mac-desktop-UCEBZORVVB — CC0 1.0 (Andrew Pons)
+- `ol-sunglasses.webp` — https://stocksnap.io/photo/girl-woman-AU9LJF62Y8 — CC0 1.0 (Tatiana%20Ni%F1o)
+- `ol-sunglasses-sport.webp` — https://www.rawpixel.com/image/4036953/photo-image-tree-people-nature — CC0 1.0 (National Park Service)
+- `ol-tablet.webp` — https://stocksnap.io/photo/tablet-computer-KCEVT4PCQ1 — CC0 1.0 (Birch Landing Home)
+- `ol-tablet-case.webp` — https://stocksnap.io/photo/tablet-keyboard-5EWM2TS69A — CC0 1.0 (Wilfred Iven)
+- `ol-toaster.webp` — https://stocksnap.io/photo/toaster-toast-0UTZ00FWC6 — CC0 1.0 (%u0141ukasz%20Popardowski)
+- `ol-toothbrush.webp` — https://stocksnap.io/photo/toothbrush-toothpaste-IGGCN0W9BJ — CC0 1.0 (George Becker)
+- `ol-tripod.webp` — https://www.rawpixel.com/image/6113173/photo-image-public-domain-black-technology — CC0 1.0
+- `ol-turntable.webp` — https://stocksnap.io/photo/still-items-SBF5I57H4V — CC0 1.0 (Markus Spiske)
+- `ol-tv-43.webp` — https://stocksnap.io/photo/video-game-UXVE8KR1TN — CC0 1.0 (Humphrey Muleba)
+- `ol-tv-55.webp` — https://www.rawpixel.com/image/5917364/photo-image-public-domain-free — CC0 1.0
+- `ol-tv-stand.webp` — https://stocksnap.io/photo/livingroom-house-PQBKOX33PD — CC0 1.0 (Dan Gold)
+- `ol-umbrella.webp` — https://stocksnap.io/photo/umbrellas-sky-MIFDXUR2VY — CC0 1.0 (Adrianna Calvo)
+- `ol-vr-headset.webp` — https://www.rawpixel.com/image/430435/free-photo-image-headset-grass-garden — CC0 1.0 (Scott Webb)
+- `ol-w-bathrobe.webp` — https://www.rawpixel.com/image/6070620/free-public-domain-cc0-photo — CC0 1.0
+- `ol-w-cardigan.webp` — https://www.rawpixel.com/image/3292132/free-photo-image-apparel-apple-images-photos-cardigan — CC0 1.0
+- `ol-w-coat.webp` — https://www.rawpixel.com/image/6039258/photo-image-public-domain-pink-pattern — CC0 1.0
+- `ol-w-dress.webp` — https://www.rawpixel.com/image/3284308/free-photo-image-fashion-flower-dress — CC0 1.0
+- `ol-w-hat.webp` — https://www.rawpixel.com/image/5923445/photo-image-background-face-design — CC0 1.0
+- `ol-w-jeans.webp` — https://stocksnap.io/photo/fashion-waist-PCVPBKR7XG — CC0 1.0 (Matt Moloney)
+- `ol-w-scarf-set.webp` — https://www.rawpixel.com/image/9658709/knitted-scarf — CC0 1.0
+- `ol-w-socks.webp` — https://www.rawpixel.com/image/5914326/photo-image-public-domain-pattern-free — CC0 1.0
+- `ol-w-tights.webp` — https://www.rawpixel.com/image/5947966/free-public-domain-cc0-photo — CC0 1.0
+- `ol-w-vest-top.webp` — https://www.rawpixel.com/image/3291716/free-photo-image-tank-top-accessory-apparel — CC0 1.0
+- `ol-wallet.webp` — https://wordpress.org/photos/photo/2036a1d3e5/ — CC0 1.0 (Rashed Hossain)
+- `ol-watch-leather.webp` — https://www.rawpixel.com/image/5967643/wood-and-leather-watches — CC0 1.0
+- `ol-watch-steel.webp` — https://www.rawpixel.com/image/6283229/png-sticker-public-domain — CC0 1.0
+- `ol-webcam.webp` — https://www.rawpixel.com/image/5907091/photo-image-public-domain-technology-computer — CC0 1.0
+- `ol-yogamat.webp` — https://www.rawpixel.com/image/11515776/rolled-teal-yoga-mat-its-side — CC0 1.0
+
+### Дополнение (O-9, 2026-09-04) — плитки категорий без кадра
+
+Обход витрины показал плейсхолдеры на двух из десяти плиток направлений
+(они видны прямо на главной) и на пяти плитках полок. Подобраны те, для которых
+нашёлся ЧЕСТНЫЙ кадр; остальным оставлен тематический плейсхолдер — чужое фото
+на плитке хуже отсутствующего.
+
+- `ol-cat-gaming.webp` — https://stocksnap.io/photo/game-controller-D9ET42KESB — CC0 1.0 (Matthew Henry)
+- `ol-cat-haushalt.webp` — https://commons.wikimedia.org/w/index.php?curid=94226242 — CC0 1.0 (Yapparina)
+- `ol-sub-damen-oberteile.webp` — https://stocksnap.io/photo/clothes-sweaters-OA0AFM3HYZ — CC0 1.0 (Michal Kulesza)
+- `ol-sub-pflege.webp` — https://www.rawpixel.com/image/5902320/photo-image-background-public-domain-free — CC0 1.0

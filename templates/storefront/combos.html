@@ -1,6 +1,6 @@
 {% extends "storefront/_base.html" %}
-{% load i18n %}{% load siteui %}
-{% block title %}{% trans "Combos" %} · {{ request.tenant.name }}{% endblock %}
+{% load i18n %}
+{% block title %}{{ combos_title }} · {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
 <h1 class="text-2xl md:text-3xl font-bold mb-6">{{ combos_title }}</h1>

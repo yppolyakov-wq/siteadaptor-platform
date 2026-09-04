@@ -5,8 +5,10 @@ test_storefront, test_listing_parity.
 
 2026-09-03: размер и цвет — мультивыбор чипами (чекбоксы внутри той же GET-формы,
 поэтому работает и без JS), у значений — счётчики, добавлены «Nur reduzierte» и
-свотчи цвета из реестра option_styles.COLOR_HEX.{% endcomment %}
-{% if catalog_show_filters and show_price_filter or catalog_show_filters and badge_chips or catalog_show_filters and show_stock_filter or catalog_show_filters and origin_chips or catalog_show_filters and show_rating_filter or catalog_show_filters and size_chips or catalog_show_filters and diet_chips or catalog_show_filters and color_chips or catalog_show_filters and sale_count %}
+свотчи цвета из реестра option_styles.COLOR_HEX.
+
+O-2 (Outlet): состояние и марка — те же правила показа, что у остальных осей.{% endcomment %}
+{% if catalog_show_filters and show_price_filter or catalog_show_filters and badge_chips or catalog_show_filters and show_stock_filter or catalog_show_filters and origin_chips or catalog_show_filters and show_rating_filter or catalog_show_filters and size_chips or catalog_show_filters and diet_chips or catalog_show_filters and color_chips or catalog_show_filters and condition_chips or catalog_show_filters and brand_chips or catalog_show_filters and sale_count %}
 {% comment %}DS-10: панель отдаётся УЖЕ скрытой — CSS DS-6 делает видимую панель
 fixed-ящиком, и до инициализации JS она вспыхивала поверх контента. Без JS её
 показывает правило в <noscript> ниже (прогрессивное улучшение сохранено).{% endcomment %}
@@ -98,6 +100,33 @@ fixed-ящиком, и до инициализации JS она вспыхив�
       {% endfor %}
     </div>
   </fieldset>
+  {% endif %}
+  {% comment %}O-2 (Outlet): состояние и марка — то, чем в аутлете выбирают в первую
+  очередь. Цвет живёт ВЫШЕ чипами-свотчами (мультивыбор), второго контрола на ту же
+  ось не заводим: при мерже волн он дал на странице два разных «Farbe».{% endcomment %}
+  {% if condition_chips %}
+  <div>
+    <label class="block text-xs text-gray-500 mb-1" for="id_zustand">{% trans "Zustand" %}</label>
+    <select id="id_zustand" name="zustand" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+      <option value="">{% trans "All" %}</option>
+      {% for z in condition_chips %}<option value="{{ z.value }}" {% if active_zustand == z.value %}selected{% endif %}>{{ z.label }} ({{ z.count }})</option>{% endfor %}
+    </select>
+  </div>
+  {% endif %}
+  {% if brand_chips %}
+  <div>
+    <label class="block text-xs text-gray-500 mb-1" for="id_marke">{% trans "Marke" %}</label>
+    <select id="id_marke" name="marke" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
+      <option value="">{% trans "All" %}</option>
+      {% for b in brand_chips %}<option value="{{ b.value }}" {% if active_marke == b.value %}selected{% endif %}>{{ b.value }} ({{ b.count }})</option>{% endfor %}
+    </select>
+  </div>
+  {% endif %}
+  {% if show_deal_filter %}
+  <label class="flex items-center gap-2 text-sm text-gray-600 pb-1.5">
+    <input type="checkbox" name="nur_angebote" value="1" {% if only_deals %}checked{% endif %} class="rounded border-gray-300">
+    {% trans "Nur reduziert" %}
+  </label>
   {% endif %}
   {% if show_rating_filter %}
   <div>

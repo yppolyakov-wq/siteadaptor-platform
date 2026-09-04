@@ -2569,6 +2569,25 @@ Python 3.12, менеджер uv.
   и редактор считал открытой прежнюю страницу (шире групп акций: у категорий тоже
   есть объектный уровень); починка двусторонняя — витрина переносит подсказки через
   своп и шлёт `sf:navigated`, редактор пересобирает состояние.
+  **STU-8 ✅ (2026-09-04) — «не вижу изменений в студии».** Все 13 коммитов волны были
+  в main и на проде, но центральное обещание — «панель показывает настройки ТОГО типа,
+  на котором стоит канва» — выполнялось на 6 строках из 23. Часть 1: уровень «Эта
+  страница» открывал область `page`, где лежат строки ЧУЖИХ типов, а собственные
+  настройки главной живут в области `sections` — на главной владелец видел чужое и ни
+  одного своего (правило «если главная — показать ВСЕ строки» довершало картину);
+  уровень стал выбирать область по типу. Часть 2: КАЖДАЯ настройка получила свою строку
+  с `data-stu-setting`+`data-stu-page` (типы из реестра); реестр дополнен до полноты
+  (`catalog_menu_prices`/`catalog_menu_labels`/`product_related`); «Вид баннера» и формы
+  карточки товара/акции переехали из «Дизайна сайта» в панель страницы (артборды
+  PHome/A1/PCat/PPromo; имена полей прежние → save/live-draft/Look целы); новая
+  `site_defaults.text_width` (артборд PText, presence-minimal, golden целы); у
+  типизированных строк ЕДИНСТВЕННЫЙ владелец класса hidden — `applyStuPageScope`.
+  Замок `test_registry_and_panel_agree` сверяет реестр и разметку в обе стороны и сразу
+  нашёл действующий дефект: на странице группы акций панель предлагала «шаблон обзора»
+  и «раскладку групп», которые там не действуют (`has_filters` → `grouped=[]`,
+  `page_style` пуст при `?gruppe=`). Грабля стенда: локальный dev-сервер не успевает в
+  12-секундный watchdog двойной буферизации → фикс-ожидание Playwright врёт («ничего не
+  скрыто»); стенд ждёт фактической инструментации кадра. БЕЗ миграций.
 - **Самое свежее (2026-09-03, после SF-5/SF-6): волна AMP «фото демо продуктового
   магазина» — БЕЗ миграций.** Запрос владельца: «переделай фотографии в акциях под
   продуктовый магазин, сгенерируй все изображения товаров заново, чтоб был хороший
@@ -2659,6 +2678,35 @@ Python 3.12, менеджер uv.
   цвета (мультивыбор), фильтр «Nur reduzierte» и реестр подписей наборов — при своде
   веток мой дубль снят целиком, оставлена реализация main. ⚠️ ops: после деплоя
   `seed_demo_tenants --kit clothing --recreate`.
+- **Самое свежее (2026-09-04): ВОЛНА O «Аутлет» — демо `online_shop` + восемь дефектов
+  витрины (⚠️ миграция `catalog/0033`, аддитивная).** Запрос владельца: магазин распродаж,
+  10 направлений по 20 позиций, фильтры цвет/размер/наборы, современный дизайн, «пройди по
+  каждому пункту сайта, юзабилити, фильтрам». **O-1/O-2** `Product` += `list_price` (UVP) /
+  `condition` (7 состояний B-Ware) / `condition_note` / `brand` + фасеты цвет/состояние/марка/
+  «только со скидкой». **O-3** кит «Zweitgut Outlet»: 10 направлений × 39 полок × 200 позиций,
+  у каждой — состояние с КОНКРЕТНЫМ примечанием (§ 476 Abs. 2 BGB), UVP выше цены, марка,
+  мелкий остаток, SKU; оси размер×цвет; 21 акция всех девяти стилей в пяти группах; наборы,
+  подборки, Look «Lager» и дил-сборка. **O-4** 171 кадр CC0/PDM в своём пространстве ключей
+  `ol-*`. **O-5/O-8** перевод демо на en/ru/uk/tr (97–98 %). **O-6** `online_shop` был
+  последним из 16 типов без своего демо. ⚠️ **Параллельная сессия закрыла тот же пробел
+  своим китом** — бутик «Weitwerk» (волна OS). При мерже пересечения сведены по существу
+  (детали — в коммите мержа): карту `DEMO_KIT_HOST` держит бутик, аутлет доступен своим
+  поддоменом и через `feature_demos`; фасеты сведены на мультивыбор main + мои оси
+  состояния/марки; Look-семейств стало 18 (`atelier` + `lager`); поле оплаты кита —
+  общее `payments`. **O-7/O-9 — обход витрины
+  (97 страниц + стенд 1440/390 + сквозная покупка) нашёл восемь дефектов, семь из них
+  ПЛАТФОРМЕННЫЕ:** страница-«полки» молча игнорировала фасет · фильтр «Größe» показывал ЦВЕТА
+  (легаси-фолбэк M4-A не различал вариант без осей и вариант только по цвету) · чип «Endet
+  heute» вёл на пустую страницу · все 10 направлений, 39 полок и страницы групп акций звались
+  одинаково («Unsere Produkte»/«Aktionen») · ссылка «наверх» вела на главную, а звалась
+  «Angebote» · у заказа с ДОСТАВКОЙ не было способа оплаты (единственный был «на месте», пикер
+  E7 показывается от двух) → кит получил поле `payment`, аутлету включена Vorkasse · рваный ряд
+  в полосе «Endet bald» (DL-15 её не покрывал) · две плитки направлений в плейсхолдере.
+  **Грабли цикла:** локальный `--reuse-db` дал 7 ложных падений из 8 (параллельные прогоны +
+  остаточные `rl:*` в Redis) — арбитром был CI на свежей БД; правило CSS внутри генерируемого
+  блока роняет три замка свежести; `{% block %}` внутри `{% if %}` Django собирает ВСЁ РАВНО
+  (обзор акций остался с пустым заголовком). ⚠️ ops: после деплоя `seed_demo_tenants --kit
+  outlet --recreate`.
 - **Самое свежее (2026-09-04, вечер): I18N-14 — демо-киты `online_shop` и `stadtfuehrung`
   переведены на en/ru/uk/tr (БЕЗ миграций).** Запрос владельца «переведи» после отчёта, что
   кит `online_shop` (влит параллельной сессией) переведён на 2 %. Объём: 903 строки
@@ -2677,8 +2725,7 @@ Python 3.12, менеджер uv.
   «60 °C.» — перевод был бы identity, поэтому en/tr честно показывают не 100 %.
   ⚠️ ops: перевод накладывается при сидинге — после деплоя `seed_demo_tenants --kit
   online_shop --recreate` + `--kit stadtfuehrung --recreate`.
-- Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна VAT, 2026-08-26): `jobs/0017` (JobLine.vat_rate) + `catalog/0031` (Combo.vat_rate) — аддитивные; (волна DC, 2026-08-25): `booking/0024` + `stays/0033` + `jobs/0016` (внешний номер сделки) + `booking/0025` (связь записи со счётом) — аддитивные; (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `core/0010` (Extra.consume_qty, v2-опции) + `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate) + `events/0028` (SupplierBooking вне туров) + `booking/0023` (Service.pricing_mode) + `catalog/0030` (Product.primary_action) + `finance/0009` (SOURCES gift/pass, choices-only)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. **Волна ERP (2026-08-21): `orders/0020` (OrderItem.cost_price) + `finance/0010` (BankTransaction) + `finance/0011` (Invoice.mahn_level/mahned_at + ExpenseEntry supplier/due_date/paid_at/document) + `documents/0002` (owner nullable + kind receipt) + `inventory/0005` (qty_returned + kind'ы return_supplier/production, ERP-5/7) + `jobs/0015` (JobLine.cost_rate, ERP-6)** — аддитивные. **DL-19 (2026-09-03): `catalog/0032` (Product.card_style) + `promotions/0027` (Promotion.card_style)** — аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + `--kit pranasy --recreate` (кейтеринг-карта) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
-
+- Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна VAT, 2026-08-26): `jobs/0017` (JobLine.vat_rate) + `catalog/0031` (Combo.vat_rate) — аддитивные; (волна DC, 2026-08-25): `booking/0024` + `stays/0033` + `jobs/0016` (внешний номер сделки) + `booking/0025` (связь записи со счётом) — аддитивные; (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `core/0010` (Extra.consume_qty, v2-опции) + `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate) + `events/0028` (SupplierBooking вне туров) + `booking/0023` (Service.pricing_mode) + `catalog/0030` (Product.primary_action) + `finance/0009` (SOURCES gift/pass, choices-only)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. **Волна ERP (2026-08-21): `orders/0020` (OrderItem.cost_price) + `finance/0010` (BankTransaction) + `finance/0011` (Invoice.mahn_level/mahned_at + ExpenseEntry supplier/due_date/paid_at/document) + `documents/0002` (owner nullable + kind receipt) + `inventory/0005` (qty_returned + kind'ы return_supplier/production, ERP-5/7) + `jobs/0015` (JobLine.cost_rate, ERP-6)** — аддитивные. **DL-19 (2026-09-03): `catalog/0032` (Product.card_style) + `promotions/0027` (Promotion.card_style)** — аддитивные. **Волна O «Аутлет» (2026-09-04): `catalog/0033`** (UVP/состояние/примечание/марка) — аддитивная; после деплоя `seed_demo_tenants --kit outlet --recreate`. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + `--kit pranasy --recreate` (кейтеринг-карта) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».
 

@@ -136,3 +136,27 @@ def test_variant_photo_exposed_for_swap(settings):
     html = render_to_string("storefront/_add_to_cart_form.html", {"product": p})
     assert 'data-image="/media/blau.webp"' in html
     assert "js-media-main" in html  # цель подмены — существующая галерея
+
+
+def test_color_only_variant_label_is_not_offered_as_a_size():
+    """Стенд аутлета: у ноутбуков в списке РАЗМЕРОВ стояли «Anthrazit» и «Silber».
+
+    Причина — легаси-фолбэк `size` → `label`: у цветового варианта (`color` задан,
+    `size` пуст) label и ЕСТЬ название цвета. Фолбэк нужен только там, где вариант
+    не разложен по осям вовсе, поэтому он действует лишь при пустом цвете."""
+    from apps.catalog.facets import CatalogFacets
+
+    laptop, shirt = _product("Notebook"), _product("Hemd")
+    for color in ("Anthrazit", "Silber"):
+        ProductVariant.objects.create(product=laptop, label=color, color=color)
+    ProductVariant.objects.create(product=shirt, label="", size="M", color="Blau")
+
+    facets = CatalogFacets()
+    chips = facets.present(Product.objects.filter(is_active=True), {})["size_chips"]
+    assert chips == []  # единственный настоящий размер — «M», одного мало для чипов
+    assert "Anthrazit" not in chips and "Silber" not in chips
+    # цвет остаётся находимым СВОИМ фасетом
+    colors = facets.present(Product.objects.filter(is_active=True), {})["color_chips"]
+    assert sorted(c["value"] for c in colors) == ["Anthrazit", "Blau", "Silber"]
+    # и «размер = цвет» больше не выдаёт товар
+    assert list(facets.apply(Product.objects.all(), {"groesse": "Anthrazit"})) == []

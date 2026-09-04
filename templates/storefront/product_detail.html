@@ -35,6 +35,15 @@
     ценой (канва-правка пишет base_price; промо — производная).{% endcomment %}
     {% if product.has_variants %}{% trans "from" %} {{ product.price_from }}{% elif target_promo and target_promo.new_price is not None %}<span class="text-rose-600">{{ target_promo.new_price }}</span> <span class="text-base font-normal text-gray-400 line-through" data-price-edit data-edit-pk="{{ product.pk }}" data-price="{{ product.base_price }}">{{ product.base_price }}</span>{% else %}<span data-price-edit data-edit-pk="{{ product.pk }}" data-price="{{ product.base_price }}">{{ product.base_price }}</span>{% endif %} {{ product.currency|cursym }}
   </div>
+  {% comment %}O-1: UVP-Streichpreis + Ersparnis. Nur wenn KEINE Aktion läuft —
+  sonst stünden zwei Referenzpreise nebeneinander und der Kunde weiß nicht, worauf
+  sich «gespart» bezieht.{% endcomment %}
+  {% if product.savings and not target_promo %}
+    <p class="mt-1 text-sm text-gray-500">
+      {% trans "UVP" %} <span class="line-through">{{ product.list_price }} {{ product.currency|cursym }}</span>
+      · <span class="text-rose-600 font-semibold">{% blocktrans with s=product.savings c=product.currency|cursym %}Sie sparen {{ s }} {{ c }}{% endblocktrans %}</span>
+    </p>
+  {% endif %}
   {% if not product.has_variants %}{% with gp=product.grundpreis %}{% if gp %}
     <p class="text-sm text-gray-500">{{ gp.0 }} {{ product.currency|cursym }} / {{ gp.1 }}</p>
   {% endif %}{% endwith %}{% endif %}

@@ -86,14 +86,18 @@ def test_catering_promo_presets_exist():
 
 # --- online_shop (решение владельца 2026-07-10): «просто онлайн-магазин» -----
 def test_online_shop_type_registered_and_wired():
-    """Тип в choices; карточка с иконкой/blurb; демо-маппинг на shop; primary=orders
-    активен из коробки; универсальные модули не выключены (урок default_disabled_for)."""
+    """Тип в choices; карточка с иконкой/blurb; демо-маппинг на СВОЙ кит; primary=orders
+    активен из коробки; универсальные модули не выключены (урок default_disabled_for).
+
+    O-6 (2026-09-03): маппинг переехал с generic-лавки `shop` на выделенный
+    аутлет `outlet` — `online_shop` был последним типом без своего демо."""
     from apps.tenants import onboarding
 
     assert "online_shop" in dict(Tenant.BUSINESS_TYPES)
     icon, blurb = onboarding.BUSINESS_TYPE_META["online_shop"]
     assert icon and "Online-Shop" in blurb
     # 2026-09-03: у типа появилось СВОЁ демо «Weitwerk» (кит online_shop).
+    # Аутлет (O-3) — второе демо того же типа, его адрес отдаёт feature_demos.
     assert onboarding.DEMO_KIT_HOST["online_shop"] == "onlineshop"
     disabled = modules.default_disabled_for("online_shop")
     assert "orders" not in disabled  # primary: продажи

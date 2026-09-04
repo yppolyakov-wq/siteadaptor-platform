@@ -21991,3 +21991,113 @@ msgstr "Sets & Pakete"
 #: templates/storefront/products.html:38
 msgid "See our sets & bundles"
 msgstr "Sehen Sie sich unsere Sets & Pakete an"
+msgid "Neu ohne OVP"
+msgstr ""
+
+msgid "Ausstellungsstück"
+msgstr ""
+
+msgid "Retoure – geprüft"
+msgstr ""
+
+msgid "Gebraucht – wie neu"
+msgstr ""
+
+msgid "Gebraucht – gut"
+msgstr ""
+
+msgid "Zustand"
+msgstr ""
+
+msgid "Marke"
+msgstr ""
+
+msgid "Nur reduziert"
+msgstr ""
+
+msgid "UVP"
+msgstr ""
+
+msgid "Sie sparen %(s)s %(c)s"
+msgstr ""
+
+msgid "Hinweis zum Zustand"
+msgstr ""
+
+msgid "Marke & Zustand"
+msgstr ""
+
+msgid "Nur für Outlet-, Retouren- und Restposten-Ware. Leer = Neuware."
+msgstr ""
+
+msgid ""
+"Bekannte Gebrauchsspuren MÜSSEN benannt werden, z. B. „Karton geöffnet, "
+"Gerät neu“ oder „Kratzer am Standfuß“."
+msgstr ""
+
+msgid "Hersteller/Marke — wird als Filter auf der Website angeboten."
+msgstr ""
+
+msgid ""
+"Unverbindliche Preisempfehlung des Herstellers. Wird durchgestrichen neben "
+"dem Preis gezeigt; nur eintragen, wenn sie echt ist."
+msgstr ""
+
+msgid "keine Angabe"
+msgstr ""
+
+msgid "Neu & originalverpackt"
+msgstr ""
+
+msgid ""
+"Hallen-Optik: schmale Versalien, harte Kanten, Signalfarbe nur am Preis."
+msgstr ""
+
+msgid ""
+"Outlet-Halle: Kategorien zuerst, Preis groß, dichtes Raster — für Sortimente"
+" mit vielen Einzelstücken."
+msgstr ""
+
+msgid "Filter & Facetten"
+msgstr ""
+
+msgid ""
+"Zustand, Marke, Größe, Farbe, Preis und „nur reduziert“ — ein Katalog mit "
+"über 200 Einzelstücken."
+msgstr ""
+
+msgid "Zustand & UVP"
+msgstr ""
+
+msgid ""
+"Neu ohne OVP, Ausstellungsstück, geprüfte Retoure — mit Streichpreis gegen "
+"die UVP und ehrlichem Hinweis zum Zustand."
+msgstr ""
+
+msgid "Sets"
+msgstr ""
+
+msgid "Sets & Bundles"
+msgstr ""
+
+msgid "See our sets"
+msgstr "Sehen Sie sich unsere Sets an"
+
+msgid "Browse the range"
+msgstr "Sortiment durchstöbern"
+
+#: templates/tenant/site_home.html
+msgid "Textbreite"
+msgstr ""
+
+#: templates/tenant/site_home.html
+msgid "Schmale Spalte (Standard)"
+msgstr ""
+
+#: templates/tenant/site_home.html
+msgid "Breite Spalte"
+msgstr ""
+
+#: templates/tenant/site_home.html
+msgid "Volle Breite"
+msgstr ""

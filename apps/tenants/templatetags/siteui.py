@@ -394,6 +394,46 @@ def render_block(context, block):
     return mark_safe(html)
 
 
+#: STU-8: ширина текстовой колонки. Классы ПЕРЕЧИСЛЕНЫ литералами — Tailwind
+#: собирает CSS сканированием исходников, и составленная в рантайме строка в
+#: сборку не попадёт (грабля класса «новый arbitrary-класс требует пересборки»).
+_TEXT_WIDTHS = {
+    "": "max-w-2xl mx-auto",
+    "wide": "max-w-4xl mx-auto",
+    "full": "",
+}
+
+
+@register.simple_tag(takes_context=True, name="text_width_class")
+def text_width_class(context):
+    """Классы контейнера текстовых страниц («О нас», правовые, блог).
+
+    Пусто в конфиге = прежняя узкая колонка, поэтому вид существующих сайтов не
+    меняется, пока владелец сам не выберет другую ширину в Studio.
+
+    Берём `site` из контекста, а где его нет (правовые страницы отдают только
+    заголовок и текст) — нормализуем конфиг тенанта с памяткой на request:
+    тег зовётся раз на страницу, но правило «не платить за нормализацию дважды»
+    держим явно. Нет ни того, ни другого → узкая колонка (fail-safe).
+    """
+    site = context.get("site")
+    if not site:
+        request = context.get("request")
+        site = getattr(request, "_sf_text_width_site", None)
+        if site is None:
+            tenant = getattr(request, "tenant", None)
+            site = (
+                siteconfig.normalize(getattr(tenant, "site_config", None) or {}) if tenant else {}
+            )
+            if request is not None:
+                try:
+                    request._sf_text_width_site = site
+                except Exception:
+                    pass
+    sd = (site or {}).get("site_defaults") or {}
+    return _TEXT_WIDTHS.get(sd.get("text_width") or "", _TEXT_WIDTHS[""])
+
+
 @register.simple_tag(name="grid_classes")
 def grid_classes(site, key):
     """M20R-1: purge-safe Tailwind-грид секции `key` из site_config.
@@ -780,3 +820,16 @@ def categories_with_min_price(categories):
         {"c": c, "min_price": agg.get(c.pk, (None, 0))[0], "count": agg.get(c.pk, (None, 0))[1]}
         for c in categories
     ]
+
+
+@register.filter(name="is_food_business")
+def is_food_business(tenant) -> bool:
+    """O-7 (стенд аутлета): гастро-язык на витрине НЕ-гастро тенанта.
+
+    Страница наборов называлась «Kombinationen & Menüs» и звала 🍔 «Menüs»
+    даже в магазине техники: «Menü» — слово общепита, у аутлета набор это
+    «Set». Реестр типов один — `core.archetypes.FOOD_BUSINESS_TYPES`.
+    """
+    from apps.core.archetypes import FOOD_BUSINESS_TYPES
+
+    return getattr(tenant, "business_type", "") in FOOD_BUSINESS_TYPES

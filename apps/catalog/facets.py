@@ -23,11 +23,16 @@ def _with_size_axis(variants):
     """M4-A: аннотация `size_axis` = ось `size`, а если она пуста — легаси-label.
 
     Чипы и фильтр обязаны смотреть на ОДНО значение, иначе в смешанном каталоге
-    (часть товаров с осями, часть — со старым label) клик по чипу ничего не найдёт."""
-    from django.db.models import F, Value
+    (часть товаров с осями, часть — со старым label) клик по чипу ничего не найдёт.
+
+    O-9: легаси-фолбэк действует ТОЛЬКО у варианта без цвета. У цветового варианта
+    (`color` задан, `size` пуст) label и есть название цвета — без этой оговорки
+    «Anthrazit» и «Silber» вставали в список размеров рядом с «36» и «S»."""
+    from django.db.models import Case, F, Value, When
     from django.db.models.functions import Coalesce, NullIf
 
-    return variants.annotate(size_axis=Coalesce(NullIf(F("size"), Value("")), F("label")))
+    legacy = Case(When(color="", then=F("label")), default=Value(""))
+    return variants.annotate(size_axis=Coalesce(NullIf(F("size"), Value("")), legacy))
 
 
 def _multi(params, name) -> list:
@@ -81,6 +86,11 @@ class CatalogFacets(FacetProvider):
             # 2026-09-03: цвет. Ось `ProductVariant.color` и свотчи на детали
             # были с M4-A, а фильтра на листинге не существовало вовсе.
             "farbe": _multi(params, "farbe"),
+            # O-2 (Outlet): состояние товара и марка — своя ось у B-Ware. Здесь
+            # мультивыбора нет намеренно: «Neu ohne OVP» и «Retoure» покупатель
+            # выбирает по одному, а марок в аутлете десятки (список, не чипы).
+            "zustand": (params.get("zustand") or "").strip(),
+            "marke": (params.get("marke") or "").strip(),
             # M4-B Lookbook: подборка товаров владельца (M2M Collection).
             "kollektion": (params.get("kollektion") or "").strip(),
             "bewertung": bewertung if bewertung in RATING_THRESHOLDS else 0,
@@ -133,6 +143,10 @@ class CatalogFacets(FacetProvider):
             if sel["farbe"]:
                 matched = matched.filter(color__in=sel["farbe"])
             items = items.filter(pk__in=matched.values("product_id"))
+        if sel["zustand"]:
+            items = items.filter(condition=sel["zustand"])
+        if sel["marke"]:
+            items = items.filter(brand=sel["marke"])
         if sel["kollektion"]:
             # M2M-JOIN по slug активной подборки; distinct — товар может входить
             # в несколько (тот же приём, что у услуг/номеров UB3-2).
@@ -166,7 +180,11 @@ class CatalogFacets(FacetProvider):
     def _discounted_ids(items):
         """pk товаров текущего набора с действующей скидкой — тот же резолвер,
         что навешивает промо-цену на карточку (`price_layer.product_promo_map`),
-        поэтому «Nur reduzierte» показывает ровно те карточки, где виден бейдж."""
+        поэтому «Nur reduzierte» показывает ровно те карточки, где виден бейдж.
+
+        Намеренно НЕ считаем сюда «UVP выше цены»: UVP — сравнение с чужой
+        рекомендацией производителя и в аутлете стоит у всей витрины, поэтому
+        такой фильтр показывал бы «всё» и был бы чипом-обманкой."""
         from apps.promotions.price_layer import product_promo_map
 
         return list(product_promo_map(items.values_list("pk", flat=True)).keys())
@@ -229,6 +247,10 @@ class CatalogFacets(FacetProvider):
             "size_chips": self._size_chips(items),
             # 2026-09-03: цвет — свотчи из явного реестра option_styles.COLOR_HEX.
             "color_chips": self._color_chips(items),
+            # O-2 (Outlet): состояние и марка — те же правила, что у размера:
+            # ось показываем, только когда в наборе БОЛЬШЕ ОДНОГО значения.
+            "condition_chips": self._condition_chips(items),
+            "brand_chips": self._brand_chips(items),
             # 2026-09-03: «Nur reduzierte» показываем, лишь когда скидки есть.
             "sale_count": len(self._discounted_ids(items)),
         }
@@ -271,6 +293,41 @@ class CatalogFacets(FacetProvider):
         return chips if len(chips) > 1 else []
 
     @staticmethod
+    def _condition_chips(items) -> list:
+        """O-2 (Outlet): состояния, реально встречающиеся в наборе — в порядке
+        реестра (от нового к подержанному), а не по алфавиту: это шкала."""
+        from django.db.models import Count
+
+        from apps.catalog.models import Product
+
+        counts = {
+            r["condition"]: r["n"]
+            for r in items.exclude(condition="")
+            .values("condition")
+            .annotate(n=Count("id", distinct=True))
+        }
+        chips = [
+            {"value": code, "label": label, "count": counts[code]}
+            for code, label in Product.CONDITION_CHOICES
+            if code and code in counts
+        ]
+        return chips if len(chips) > 1 else []
+
+    @staticmethod
+    def _brand_chips(items) -> list:
+        """O-2 (Outlet): марки набора со счётчиком — по алфавиту (шкалы нет)."""
+        from django.db.models import Count
+
+        rows = (
+            items.exclude(brand="")
+            .values("brand")
+            .annotate(n=Count("id", distinct=True))
+            .order_by("brand")
+        )
+        chips = [{"value": r["brand"], "count": r["n"]} for r in rows]
+        return chips if len(chips) > 1 else []
+
+    @staticmethod
     def _size_chips(items) -> list:
         """Чипы размера. M4-A: ось `size`, а где её нет — label (тот же резолвер,
         что у фильтра — иначе клик по чипу ничего не нашёл бы).
@@ -297,7 +354,15 @@ class CatalogFacets(FacetProvider):
         if not q:
             return items
         # name/description — JSON i18n {"de","en"}: ищем по всем локалям реестра.
-        return items.filter(i18n_icontains_q(q, json_fields=("name", "description")))
+        # O-2: + марка и артикул — в аутлете ищут «Nordvolt» и «OUT-014», а не
+        # только слово из названия (тот же приём, что у поиска сделок VS-3).
+        from django.db.models import Q
+
+        return items.filter(
+            i18n_icontains_q(q, json_fields=("name", "description"))
+            | Q(brand__icontains=q)
+            | Q(sku__icontains=q)
+        )
 
     def sort_keys(self) -> dict:
         return {

@@ -127,6 +127,10 @@ _EMOJI = [
     ("campfire", "🔥"),
     ("buffet", "🍽️"),
     ("catering", "🍽️"),
+    # O-4: «tablet»/«portable» ДОЛЖНЫ стоять перед «table» — поиск идёт
+    # подстрокой, первый выигрывает («por-table-monitor» иначе = тарелка).
+    ("tablet", "📱"),
+    ("portable", "🖥️"),
     ("table", "🍽️"),
     ("restaurant", "🍽️"),
     ("festival", "🎪"),
@@ -381,6 +385,210 @@ _EMOJI = [
     ("handfilter", "☕"),
     ("milchkaennchen", "🥛"),
     ("gaestetuch", "🧻"),
+    # O-4 (Outlet, 2026-09-03): реестр знал только гастро/сервис, поэтому у
+    # техники и одежды темы не было и плейсхолдер вырождался в «✨». Порядок
+    # значим — частное перед общим; поиск идёт ПОДСТРОКОЙ по ключу слота
+    # (ключи аутлета — «ol-…», поэтому темы ловятся хвостом ключа).
+    # --- Техника
+    ("laptop", "💻"),
+    ("notebook", "💻"),
+    ("ultrabook", "💻"),
+    ("convertible", "💻"),
+    ("mini-pc", "🖥️"),
+    ("monitor", "🖥️"),
+    ("bildschirm", "🖥️"),
+    ("tablet", "📱"),
+    ("phone", "📱"),
+    ("handy", "📱"),
+    ("smartphone", "📱"),
+    ("tv", "📺"),
+    ("fernseher", "📺"),
+    ("beamer", "📽️"),
+    ("projector", "📽️"),
+    ("kopfhoerer", "🎧"),
+    ("headphone", "🎧"),
+    ("headset", "🎧"),
+    ("earbud", "🎧"),
+    ("inear", "🎧"),
+    ("speaker", "🔊"),
+    ("lautsprecher", "🔊"),
+    ("soundbar", "🔊"),
+    ("turntable", "🎛️"),
+    ("mikrofon", "🎙️"),
+    ("microphone", "🎙️"),
+    ("kamera", "📷"),
+    ("camera", "📷"),
+    ("objektiv", "📷"),
+    ("tripod", "📷"),
+    ("konsole", "🎮"),
+    ("console", "🎮"),
+    ("controller", "🎮"),
+    ("gaming", "🎮"),
+    ("vr-", "🕶️"),
+    ("maus", "🖱️"),
+    ("mouse", "🖱️"),
+    ("keyboard", "⌨️"),
+    ("tastatur", "⌨️"),
+    ("docking", "🔌"),
+    ("kabel", "🔌"),
+    ("cable", "🔌"),
+    ("charger", "🔌"),
+    ("netzteil", "🔌"),
+    ("powerbank", "🔋"),
+    ("akku", "🔋"),
+    ("battery", "🔋"),
+    ("ssd", "💾"),
+    ("memory", "💾"),
+    ("speicher", "💾"),
+    ("webcam", "📹"),
+    ("smart", "🏠"),
+    ("sensor", "🚨"),
+    ("doorbell", "🔔"),
+    ("lock", "🔐"),
+    ("schloss", "🔐"),
+    ("licht", "💡"),
+    ("lamp", "💡"),
+    ("bulb", "💡"),
+    ("led", "💡"),
+    ("thermostat", "🌡️"),
+    ("watch", "⌚"),
+    ("uhr", "⌚"),
+    ("tracker", "⌚"),
+    # --- Быт и кухня
+    ("staubsauger", "🧹"),
+    ("vacuum", "🧹"),
+    ("reinig", "🧹"),
+    ("steam", "🧹"),
+    ("bügel", "🧺"),
+    ("iron", "🧺"),
+    ("mikrowelle", "♨️"),
+    ("microwave", "♨️"),
+    ("toaster", "🍞"),
+    ("kettle", "🫖"),
+    ("wasserkocher", "🫖"),
+    ("mixer", "🥤"),
+    ("blender", "🥤"),
+    ("fryer", "🍟"),
+    ("espresso", "☕"),
+    ("rasier", "🪒"),
+    ("shaver", "🪒"),
+    ("zahnbürste", "🪥"),
+    ("toothbrush", "🪥"),
+    ("haartrockner", "💇"),
+    ("hairdryer", "💇"),
+    ("straightener", "💇"),
+    ("waage", "⚖️"),
+    ("scale", "⚖️"),
+    ("massage", "💆"),
+    # --- Одежда, обувь, аксессуары
+    ("jacke", "🧥"),
+    ("jacket", "🧥"),
+    ("mantel", "🧥"),
+    ("coat", "🧥"),
+    ("puffer", "🧥"),
+    ("trench", "🧥"),
+    ("blazer", "🧥"),
+    ("weste", "🦺"),
+    ("vest", "🦺"),
+    ("hemd", "👔"),
+    ("shirt", "👕"),
+    ("polo", "👕"),
+    ("tshirt", "👕"),
+    ("bluse", "👚"),
+    ("blouse", "👚"),
+    ("top", "👚"),
+    ("kleid", "👗"),
+    ("dress", "👗"),
+    ("rock", "👗"),
+    ("skirt", "👗"),
+    ("hose", "👖"),
+    ("jeans", "👖"),
+    ("chino", "👖"),
+    ("jogger", "👖"),
+    ("shorts", "🩳"),
+    ("strick", "🧶"),
+    ("knit", "🧶"),
+    ("cardigan", "🧶"),
+    ("pullover", "🧶"),
+    ("hoodie", "🧥"),
+    ("halfzip", "🧥"),
+    ("sweat", "🧥"),
+    ("socken", "🧦"),
+    ("socks", "🧦"),
+    ("tights", "🧦"),
+    ("strumpf", "🧦"),
+    ("pyjama", "🛌"),
+    ("lounge", "🛌"),
+    ("bathrobe", "🛁"),
+    ("bademantel", "🛁"),
+    ("underwear", "🩲"),
+    ("sneaker", "👟"),
+    ("schuh", "👟"),
+    ("shoes", "👟"),
+    ("loafer", "👞"),
+    ("derby", "👞"),
+    ("monk", "👞"),
+    ("ballerina", "🩰"),
+    ("stiefel", "🥾"),
+    ("boots", "🥾"),
+    ("sandal", "🩴"),
+    ("flipflop", "🩴"),
+    ("slipper", "🥿"),
+    ("hausschuh", "🥿"),
+    ("tasche", "👜"),
+    ("bag", "👜"),
+    ("shopper", "👜"),
+    ("wallet", "👛"),
+    ("geldbörse", "👛"),
+    ("cardholder", "💳"),
+    ("rucksack", "🎒"),
+    ("backpack", "🎒"),
+    ("daypack", "🎒"),
+    ("koffer", "🧳"),
+    ("suitcase", "🧳"),
+    ("trolley", "🧳"),
+    ("duffel", "🧳"),
+    ("travel", "🧳"),
+    ("guertel", "🪢"),
+    ("belt", "🪢"),
+    ("schal", "🧣"),
+    ("scarf", "🧣"),
+    ("mütze", "🧢"),
+    ("hat", "🧢"),
+    ("handschuh", "🧤"),
+    ("glove", "🧤"),
+    ("brille", "🕶️"),
+    ("sunglasses", "🕶️"),
+    ("schmuck", "💍"),
+    ("jewelry", "💍"),
+    ("regenschirm", "☂️"),
+    ("umbrella", "☂️"),
+    ("keychain", "🔑"),
+    ("haarspange", "💈"),
+    # --- Спорт
+    ("hantel", "🏋️"),
+    ("dumbbell", "🏋️"),
+    ("kettlebell", "🏋️"),
+    ("fitness", "🏋️"),
+    ("yoga", "🧘"),
+    ("matte", "🧘"),
+    ("roller", "🧘"),
+    ("seil", "🤸"),
+    ("rope", "🤸"),
+    ("laufschuh", "👟"),
+    ("running", "👟"),
+    ("flasche", "🧴"),
+    ("bottle", "🧴"),
+    ("sport", "🏃"),
+    # O-4 (доводка после прогона по слотам кита): темы, которых не нашлось.
+    ("glasses", "🕶️"),
+    ("light", "💡"),
+    ("resistance", "🤸"),
+    ("oberteil", "👚"),
+    ("pflege", "🧴"),
+    ("trousers", "👖"),
+    ("waesche", "🧺"),
+    ("smarthome", "🏠"),
 ]
 
 # Палитры градиентов (тёплые/свежие/зелёные) — выбор детерминирован по хэшу.
@@ -432,18 +640,26 @@ def _clamp(value, lo: int, hi: int, default: int) -> int:
         return default
 
 
-def svg_for(keyword: str, *, w: int = 800, h: int = 600, lock: int = 1) -> str:
-    """Сгенерировать тематический SVG-плейсхолдер (детерминирован по keyword+lock)."""
+def svg_for(keyword: str, *, w: int = 800, h: int = 600, lock: int = 1, cap: str = "") -> str:
+    """Сгенерировать тематический SVG-плейсхолдер (детерминирован по keyword+lock).
+
+    O-7 (стенд аутлета): без `cap` подпись выводилась из КЛЮЧА, и на витрине
+    стояло «Ol-w-blazer» — плейсхолдер читался как сломанная картинка. `cap` —
+    человеческое имя позиции (передаёт сидер), ключ остаётся фолбэком."""
     w = _clamp(w, 16, 2400, 800)
     h = _clamp(h, 16, 2400, 600)
     lock = _clamp(lock, 0, 10**6, 1)
     digest = hashlib.md5(f"{keyword}|{lock}".encode()).hexdigest()
     c1, c2 = _PALETTES[int(digest[:4], 16) % len(_PALETTES)]
     emoji = _emoji_for(keyword)
-    caption = _xml_escape(_caption(keyword))
+    caption = _xml_escape(cap.strip()[:60] or _caption(keyword))
     short = min(w, h)
     emoji_size = round(short * 0.42)
-    cap_size = max(11, round(short * 0.075))
+    # O-7: длинное имя позиции («Homewear-Set Kastanie Weich») при фиксированном
+    # кегле вылезало за края плитки. Кегль подбираем под ДЛИНУ подписи и ширину
+    # кадра (0.55 ширины на символ — эмпирика для system-ui 600), пол — 10 px.
+    fit_size = int(w * 0.86 / max(len(caption), 1) / 0.55) if caption else 0
+    cap_size = max(10, min(round(short * 0.075), fit_size or 10**6))
     # Подпись — только если фото достаточно крупное (иконкам/аватаркам не нужна).
     cap = (
         f'<text x="50%" y="76%" text-anchor="middle" font-size="{cap_size}" '
@@ -562,7 +778,9 @@ def photo_static_name(keyword: str, *, lock: int = 1) -> str | None:
     return None
 
 
-def demo_image_url(keyword: str, *, w: int = 800, h: int = 600, lock: int = 1) -> str:
+def demo_image_url(
+    keyword: str, *, w: int = 800, h: int = 600, lock: int = 1, cap: str = ""
+) -> str:
     """URL локальной демо-картинки (для FileRef в демо-китах): реальное фото из
     static/demo/photos/ (если положено) или тематический SVG-плейсхолдер.
 
@@ -578,7 +796,10 @@ def demo_image_url(keyword: str, *, w: int = 800, h: int = 600, lock: int = 1) -
 
         base = (getattr(settings, "STATIC_URL", "/static/") or "/static/").rstrip("/")
         return f"{base}/{_PHOTO_DIR}/{photo}"
-    qs = urlencode({"kw": keyword, "w": w, "h": h, "lock": lock})
+    params = {"kw": keyword, "w": w, "h": h, "lock": lock}
+    if cap:  # O-7: человеческая подпись вместо технического ключа
+        params["cap"] = cap[:60]
+    qs = urlencode(params)
     return f"{DEMO_IMAGE_PATH}?{qs}"
 
 
@@ -592,6 +813,7 @@ def demo_image_view(request):
         w=request.GET.get("w"),
         h=request.GET.get("h"),
         lock=request.GET.get("lock"),
+        cap=request.GET.get("cap", "")[:60],
     )
     resp = HttpResponse(svg, content_type="image/svg+xml")
     resp["Cache-Control"] = "public, max-age=31536000, immutable"

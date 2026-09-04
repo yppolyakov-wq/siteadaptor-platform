@@ -423,9 +423,12 @@ def translate_tenant_content(tenant, locales) -> None:
         # I18N-10: характеристики товара — overlay-поля (Herkunft/Zutaten с Ф2,
         # Material/Pflegehinweise с M1 Boutique). Витрина их показывает, но обход
         # их не заполнял → на не-немецкой витрине они оставались немецкими.
+        # O-1: `condition_note` («Karton geöffnet, Gerät neu») — тот же класс:
+        # витрина печатает его в строке «Zustand», и без обхода он остался бы
+        # немецким на всех локалях (замок test_every_overlay_field_is_reachable).
         char_changed = [
             f
-            for f in ("origin", "ingredients", "material", "care")
+            for f in ("origin", "ingredients", "material", "care", "condition_note")
             if _fill_overlay(prod, f, f"{f}_i18n", locales)
         ]
         if char_changed:

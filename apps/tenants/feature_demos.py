@@ -92,6 +92,31 @@ FEATURE_DEMOS = [
         "host": "baeckerei",
         "path": "/finder/",
     },
+    {
+        # O-6: фильтры — то, чего в реестре не было вовсе, а спрашивают о нём
+        # первым делом («можно ли фильтровать по размеру и цвету»).
+        "key": "facets",
+        "icon": "🎛",
+        "title": _("Filter & Facetten"),
+        "blurb": _(
+            "Zustand, Marke, Größe, Farbe, Preis und „nur reduziert“ — "
+            "ein Katalog mit über 200 Einzelstücken."
+        ),
+        "host": "outlet",
+        "path": "/sortiment/damenmode/",
+    },
+    {
+        # O-6: B-Ware/Restposten — второй разрез того же демо: цена и состояние.
+        "key": "condition",
+        "icon": "🏷",
+        "title": _("Zustand & UVP"),
+        "blurb": _(
+            "Neu ohne OVP, Ausstellungsstück, geprüfte Retoure — mit "
+            "Streichpreis gegen die UVP und ehrlichem Hinweis zum Zustand."
+        ),
+        "host": "outlet",
+        "path": "/aktionen/",
+    },
 ]
 
 

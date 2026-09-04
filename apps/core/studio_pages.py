@@ -169,6 +169,36 @@ SETTINGS: dict[str, Setting] = {
         ),
         # ── корзина
         _s("cart_upsell", _("Passt dazu"), "cart_show_upsell", ("cart_show_upsell",)),
+        # ── STU-8: настройки, которые панель показывала, а реестр не знал. Реестр —
+        # единственный источник ответа «что настраивается на этой странице», поэтому
+        # список обязан быть полным: замок test_registry_and_panel_agree сверяет его
+        # с разметкой билдера в обе стороны.
+        _s(
+            "catalog_menu_prices",
+            _("Preise in der Speisekarte anzeigen"),
+            "menu_show_prices",
+            ("menu_show_prices",),
+        ),
+        _s(
+            "catalog_menu_labels",
+            _("Kennzeichnung in der Speisekarte (Diäten, Allergene)"),
+            "menu_labels",
+            ("menu_labels",),
+        ),
+        _s(
+            "product_related",
+            _("Related products grid"),
+            "related_preset",
+            ("detail_related_layout", "preset"),
+        ),
+        # STU-8: ширина текстовой колонки — артборд «Тип: Текстовая страница».
+        # Ключ presence-minimal ("" = прежняя узкая колонка → golden целы).
+        _s(
+            "text_width",
+            _("Textbreite"),
+            "sd_text_width",
+            ("site_defaults", "text_width"),
+        ),
     )
 }
 
@@ -205,7 +235,14 @@ PAGE_TYPES: tuple[PageType, ...] = (
         "catalog",
         _("Katalog"),
         ("storefront-products",),
-        ("catalog_page_style", "catalog_layout", "catalog_sort", "catalog_filters"),
+        (
+            "catalog_page_style",
+            "catalog_layout",
+            "catalog_sort",
+            "catalog_filters",
+            "catalog_menu_prices",
+            "catalog_menu_labels",
+        ),
         block_host="catalog",
     ),
     PageType(
@@ -218,6 +255,8 @@ PAGE_TYPES: tuple[PageType, ...] = (
             "catalog_filters",
             "catalog_subcats",
             "product_card_form",
+            "catalog_menu_prices",
+            "catalog_menu_labels",
         ),
         block_host="catalog",
         object_kind=OBJECT_CATEGORY,
@@ -227,7 +266,12 @@ PAGE_TYPES: tuple[PageType, ...] = (
         "product",
         _("Produktseite"),
         ("storefront-product", "storefront-product-slug", "storefront-product-seo"),
-        ("product_detail_layout", "product_detail_sections", "product_card_form"),
+        (
+            "product_detail_layout",
+            "product_detail_sections",
+            "product_card_form",
+            "product_related",
+        ),
         block_host="product_detail",
         object_kind=OBJECT_PRODUCT,
         object_args=("pk", "pslug"),
@@ -242,7 +286,12 @@ PAGE_TYPES: tuple[PageType, ...] = (
         "promo_group",
         _("Aktionsgruppe"),
         ("storefront-aktionen",),  # тот же роут + ?gruppe=<ключ>
-        ("promo_group_style", "promo_layout", "promo_card_form"),
+        # STU-8: раньше сюда же были записаны `promo_layout` и (в разметке) шаблон
+        # обзора. На странице группы они не действуют: выбранная группа делает
+        # `has_filters` истинным, секций групп нет вовсе (`grouped = []`), а шаблон
+        # берётся групповой (public_views: page_style пуст при `?gruppe=`). Панель
+        # предлагала настройки, которые здесь ничего не меняют.
+        ("promo_group_style", "promo_card_form"),
         object_kind=OBJECT_PROMO_GROUP,
         object_args=("gruppe",),
     ),
@@ -302,9 +351,16 @@ PAGE_TYPES: tuple[PageType, ...] = (
         "text",
         _("Textseite"),
         ("storefront-about", "storefront-team", "storefront-gallery", "storefront-reviews"),
+        ("text_width",),
         block_host="info",
     ),
-    PageType("blog", _("Blog"), ("storefront-blog", "storefront-blog-post"), block_host="blog"),
+    PageType(
+        "blog",
+        _("Blog"),
+        ("storefront-blog", "storefront-blog-post"),
+        ("text_width",),
+        block_host="blog",
+    ),
     PageType(
         "legal",
         _("Rechtliches"),
@@ -314,6 +370,7 @@ PAGE_TYPES: tuple[PageType, ...] = (
             "storefront-withdrawal",
             "storefront-agb",
         ),
+        ("text_width",),
     ),
 )
 

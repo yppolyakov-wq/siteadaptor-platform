@@ -197,13 +197,18 @@ BUSINESS_TYPE_META = {
 # живут на стабильных поддоменах (kit.subdomain или «<kit>-demo»). Тип бизнеса → kit-
 # поддомен ближайшего демо. Идёт волновой развод общих демо на dedicated-киты
 # (план docs/demo-kits-per-type-plan-2026-07-10.md): волны 1–3 — bakery/butcher/cafe/
-# clothing/tour_operator ✅; пока делят: online_shop/ритейл → магазин; события → retreat.
+# clothing/tour_operator ✅; O-6: online_shop → dedicated «Zweitgut Outlet»;
+# пока делят: ритейл → магазин; события → retreat.
 DEMO_KIT_HOST = {
     "bakery": "baeckerei",  # dedicated «Backhaus Krume» (волна 1)
     "butcher": "metzgerei",  # dedicated «Metzgerei Bergmann» (волна 1)
     "grocery": "aktionsmarkt",
     "clothing": "mode",  # dedicated «Studio Nordwind» (волна 2)
-    "online_shop": "onlineshop",  # dedicated «Weitwerk» (2026-09-03)
+    # Кнопку «Demo ansehen» типа держит бутик «Weitwerk» (2026-09-03). Аутлет
+    # «Zweitgut Outlet» (O-3) — второе демо того же типа, другого жанра: он
+    # доступен по своему поддомену и заведён в feature_demos как живой пример
+    # B-Ware/UVP и фильтров состояния (карта типа отдаёт ОДИН адрес).
+    "online_shop": "onlineshop",
     "restaurant": "restaurant-demo",
     "cafe": "cafe",  # dedicated «Café Morgenrot» (волна 2)
     "retail": "shop",

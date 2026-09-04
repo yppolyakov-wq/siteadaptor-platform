@@ -666,11 +666,30 @@ def promotion_list(request):
             "url": f"{request.path}?{encoded}" if encoded else request.path,
         }
 
+    # O-9: системный чип не предлагается, если по нему нечего показать. Фильтр,
+    # уводящий на пустую страницу, читается как «в магазине пусто», хотя это лишь
+    # нерелевантный срез (то же правило, что у `sale` каталога). Гейт
+    # спрашивает САМ провайдер — дублировать условия фильтра нельзя, иначе они
+    # разойдутся; срез берём с учётом ?q=, но без других чипов, чтобы предложение
+    # не схлопывалось от собственного выбора посетителя.
+    chip_base = provider.search(base, q)
+
+    def _chip_if(label, param, value):
+        chip = _chip(label, param, value)
+        # активный остаётся всегда — иначе снять его можно только правкой адреса
+        if chip["active"] or provider.apply(chip_base, {param: str(value)})[:1]:
+            return chip
+        return None
+
     system_chips = [
-        _chip(_("Ends today"), "endet", "heute"),
-        _chip(_("This week"), "endet", "woche"),
-        *[_chip(f"−{n} %+", "rabatt", n) for n in DISCOUNT_PRESETS],
-        _chip(_("Reservable"), "reservierbar", "1"),
+        chip
+        for chip in (
+            _chip_if(_("Ends today"), "endet", "heute"),
+            _chip_if(_("This week"), "endet", "woche"),
+            *[_chip_if(f"−{n} %+", "rabatt", n) for n in DISCOUNT_PRESETS],
+            _chip_if(_("Reservable"), "reservierbar", "1"),
+        )
+        if chip
     ]
     # DL-20: страница ГРУППЫ акций. До этой волны её фактически не было — фильтр
     # `?gruppe=` отдавал плоскую сетку под общим заголовком, и посетитель, пришедший
@@ -1014,6 +1033,32 @@ def _facet_pills(facets: dict, chips: dict, badge_chips) -> list:
     return pills
 
 
+#: O-7: какие выбранные значения провайдера реально СУЖАЮТ выдачу. Категория
+#: сюда не входит: в path-режиме она приходит из адреса страницы, а не от
+#: покупателя, и не должна отменять витрину полок.
+_NARROWING_FACETS = (
+    "diet",
+    "preis_von",
+    "preis_bis",
+    "nur_verfuegbar",
+    "herkunft",
+    "groesse",
+    "farbe",
+    "zustand",
+    "marke",
+    "kollektion",
+    "bewertung",
+)
+
+
+def _facets_narrow(sel: dict, params) -> bool:
+    """Покупатель что-то отфильтровал (или ищет)? — тогда обзорные раскладки
+    (полки/табы) должны уступить место отфильтрованной сетке."""
+    if (params.get("q") or "").strip():
+        return True
+    return any(sel.get(key) for key in _NARROWING_FACETS)
+
+
 def product_list(request, slug=None):
     """Публичный каталог витрины (Track C1): активные товары + фасет-фильтры + сортировка.
 
@@ -1090,7 +1135,14 @@ def product_list(request, slug=None):
     # DL-16.5 (K2 «Regale»): товары подкатегорий уже стоят на «полках» — сетка ниже показывает
     # только ПРЯМЫЕ товары направления (иначе всё дублировалось бы; семантика KAT-1 «контейнер
     # включает детей» остаётся у Standard/прочих шаблонов).
-    if path_mode and category is not None and cat_style == "regale":
+    # O-7 (аудит юзабилити): полки СЧИТАЮТСЯ ПО ВСЕМ товарам (см. ниже), поэтому
+    # при активном фасете страница-«витрина полок» показывала прежний набор, хотя
+    # панель фильтров стояла рядом и «Filter zurücksetzen» уже появлялась — фильтр
+    # молча ничего не делал. Как только покупатель фильтрует, он хочет РЕЗУЛЬТАТ:
+    # полки уступают место обычной отфильтрованной сетке (семантика KAT-1
+    # «контейнер включает прямых детей» при этом возвращается).
+    shelf_mode = cat_style == "regale" and not _facets_narrow(sel, request.GET)
+    if path_mode and category is not None and shelf_mode:
         products = products.filter(category=category)
     # Доступные значения фасетов — из снимка категории (present провайдера).
     chips = provider.present(facet_base, request.GET)
@@ -1107,6 +1159,10 @@ def product_list(request, slug=None):
     farbe = sel.get("farbe") or []  # 2026-09-03: цвета (мультивыбор)
     only_sale = sel.get("sale", False)  # 2026-09-03: только со скидкой
     kollektion = sel.get("kollektion", "")  # M4-B Lookbook: подборка товаров
+    # O-2 (Outlet): состояние (B-Ware) и марка. Цвет и «только со скидкой»
+    # живут выше под именами `farbe` (мультивыбор) и `sale`.
+    zustand = sel.get("zustand", "")
+    marke = sel.get("marke", "")
 
     # --- Фасет-бейдж (Neu/Beliebt/Angebot/Tagesgericht…): только присутствующие;
     # остаётся во вьюхе (вне единого набора UB2-3). ---
@@ -1151,7 +1207,7 @@ def product_list(request, slug=None):
     # полки/табы считают по ВСЕМ активным товарам, не по отфильтрованной выдаче страницы
     _all_products = Product.objects.filter(is_active=True)
     _shelf_sources = subcategories if path_mode else categories  # DL-21.1: корень — направления
-    if cat_style == "regale" and _shelf_sources:
+    if shelf_mode and _shelf_sources:
         from .price_layer import attach_promos as _attach_promos_shelf
 
         for sub in _shelf_sources:
@@ -1387,6 +1443,8 @@ def product_list(request, slug=None):
         or only_sale
         or kollektion
         or bewertung
+        or zustand
+        or marke
         or q
     )
     has_combos = request.tenant.is_module_active("orders") and active_combos().exists()
@@ -1434,6 +1492,8 @@ def product_list(request, slug=None):
         "farbe": farbe,  # 2026-09-03: цвета (список)
         "sale": "1" if only_sale else "",  # 2026-09-03: только со скидкой
         "kollektion": kollektion,  # M4-B: подборка (лукбук)
+        "zustand": zustand,  # O-2: состояние (B-Ware)
+        "marke": marke,  # O-2: марка
         "bewertung": str(bewertung) if bewertung else "",  # UB2-3: минимум звёзд
         "q": q,  # UB2-2: поиск — полноправный фасет в carry
         "ansicht": ansicht,  # MEN-24d: посетительский вид (пусто = вид владельца)
@@ -1536,7 +1596,7 @@ def product_list(request, slug=None):
             ),
             "root_header_photo": _root_header_photo,
             # корень «Regale»: страница = полки; общая сетка всех товаров дублировала бы их
-            "shelves_only": bool(not path_mode and cat_style == "regale" and shelves),
+            "shelves_only": bool(not path_mode and shelf_mode and shelves),
             "catalog_breadcrumbs": catalog_breadcrumbs,
             "catalog_breadcrumb_ld": catalog_breadcrumb_ld,
             # KAT-1/фидбэк 2026-08-26: у страницы категории — свой хост C-блоков
@@ -1608,6 +1668,11 @@ def product_list(request, slug=None):
             # M4-B Lookbook: чипы подборок владельца (?kollektion=<slug>).
             "collection_chips": chips["collection_chips"],
             "active_kollektion": kollektion,
+            # O-2 (Outlet): состояние (B-Ware) и марка — свои оси аутлета.
+            "condition_chips": chips.get("condition_chips", []),
+            "active_zustand": zustand,
+            "brand_chips": chips.get("brand_chips", []),
+            "active_marke": marke,
             # UB2-3: рейтинг-фасет (минимум звёзд) — только когда есть отзывы.
             "show_rating_filter": chips["show_rating_filter"],
             "rating_thresholds": chips["rating_thresholds"],
@@ -1743,6 +1808,10 @@ def product_detail(request, pk=None, pslug=None, cslug=None):
                 or product.additive_labels
                 or product.material
                 or product.care
+                # O-1: у B-Ware состояние — обязательная часть описания товара
+                # (§ 476 BGB: известный недостаток должен быть назван).
+                or product.condition
+                or product.brand
             ),
         },
     )

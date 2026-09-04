@@ -1320,6 +1320,10 @@ def normalize_site_defaults(raw) -> dict:
     # значении ("" = прежний облик → golden целы).
     if sd.get("card_chrome") in ("hard", "hairline", "line"):
         out["card_chrome"] = sd["card_chrome"]
+    # STU-8: ширина текстовой колонки («О нас», правовые, блог). "" = прежняя узкая
+    # колонка (max-w-2xl) → ключ presence-minimal, golden-эталоны целы.
+    if sd.get("text_width") in ("wide", "full"):
+        out["text_width"] = sd["text_width"]
     return out
 
 

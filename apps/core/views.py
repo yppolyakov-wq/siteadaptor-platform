@@ -1959,6 +1959,14 @@ def home_builder_view(request):
                 else request.POST.get("sd_page_bg", "")
             ),
             "card_chrome": request.POST.get("sd_card_chrome", ""),
+            # STU-8: ширина текстовой колонки (панель типа «Текстовая страница»).
+            # Сентинел tw_present — контрол живёт в области «Seite»: POST без него
+            # (Look-клик, чужая форма) не имеет права уронить выбор владельца (W0).
+            "text_width": (
+                request.POST.get("sd_text_width", "")
+                if request.POST.get("tw_present") == "1"
+                else prev_sd.get("text_width", "")
+            ),
         }
         # DL-2 (класс W0/W6): ключи БЕЗ контролов в форме билдера переживают Save
         # из прежнего конфига — иначе пересборка site_defaults их стирала
@@ -2559,6 +2567,7 @@ def home_builder_view(request):
             # DL-2/DL-17.3: префилл контролов фона страницы и хрома карточек.
             "page_bg": config["site_defaults"].get("page_bg", ""),
             "card_chrome": config["site_defaults"].get("card_chrome", ""),
+            "text_width": config["site_defaults"].get("text_width", ""),
             # O-2: дефолтный вид выбора вариантов + реестр видов для селекта.
             "variant_style": config["site_defaults"].get("variant_style", ""),
             "variant_styles": VARIANT_STYLES,

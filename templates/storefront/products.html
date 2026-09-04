@@ -1,6 +1,9 @@
 {% extends "storefront/listing.html" %}
 {% load i18n siteui %}
-{% block title %}{% trans "Our products" %} — {{ request.tenant.name }}{% endblock %}
+{% comment %}O-9: у направления и полки — своё имя во вкладке и в выдаче поиска.
+Раньше все страницы каталога звались одинаково («Unsere Produkte»): десять
+открытых вкладок были неразличимы, а поисковик видел дубли.{% endcomment %}
+{% block title %}{% if current_category %}{{ current_category }}{% else %}{% trans "Our products" %}{% endif %} — {{ request.tenant.name }}{% endblock %}
 
 {% comment %}UB1-3: каталог на каркасе listing.html. Разметка блоков перенесена без
 изменений (замки — apps/catalog/tests/test_listing_parity.py + test_storefront).{% endcomment %}
@@ -14,7 +17,9 @@
 
 {% block listing_header %}
 <div class="mb-6"{% if category_side_nav %} data-cat-head{% endif %}>
-  <a href="{% url 'storefront-home' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Offers" %}</a>
+  {# O-9: ссылка ведёт на ГЛАВНУЮ, а звалась «Angebote» — наследие времён, когда #}
+  {# главной витриной была страница акций; у магазина «Angebote» — своя страница. #}
+  <a href="{% url 'storefront-home' %}" class="text-sm text-gray-500 hover:underline">← {% trans "Startseite" %}</a>
   {% if catalog_breadcrumbs %}
   {# DL-16.5 (K1): видимые хлебные крошки страницы категории (JSON-LD BreadcrumbList — в head) #}
   <nav aria-label="Breadcrumb" class="mt-1 text-sm text-gray-500 flex flex-wrap items-center gap-1" data-breadcrumbs>

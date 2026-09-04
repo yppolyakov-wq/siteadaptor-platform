@@ -1,5 +1,11 @@
 {% extends "storefront/listing.html" %}
 {% load i18n siteui %}
+{% comment %}O-9: у страницы группы (DL-20) заголовок на странице был, а во
+вкладке она звалась просто «Aktionen» — как и обзор всех акций. Условие стоит
+ВНУТРИ блока намеренно: объявление блока Django собирает даже из-под условия,
+и обзор получил бы заголовок с пустым первым сегментом. Разделитель — то же
+« · », что у движка мета (SEO-1), иначе группа выбивалась бы из ряда.{% endcomment %}
+{% block title %}{% if group_label %}{{ group_label }} · {{ request.tenant.name }}{% else %}{{ block.super }}{% endif %}{% endblock %}
 {% comment %}SF-2: /aktionen/ на каркасе listing.html (U-B). Секции-групп
 (Prospekt-логика, фидбэк 2026-07-29) сохранены байт-в-байт — замки
 test_promotions_parity; системные чипы/сорт/поиск — PromoFacets.{% endcomment %}
