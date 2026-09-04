@@ -312,12 +312,12 @@ def test_outlet_offers_a_payment_method_that_works_for_delivery():
 
     kit = KITS["outlet"]
     assert kit.delivery.get("enabled"), "у аутлета доставка включена — предпосылка теста"
-    assert kit.payment.get("vorkasse"), "кит обязан задать Vorkasse"
-    assert kit.payment.get("iban"), "без IBAN гейт E7 не пустит Vorkasse в пикер"
+    assert kit.payments.get("vorkasse"), "кит обязан задать Vorkasse"
+    assert kit.payments.get("bank_iban"), "без IBAN гейт E7 не пустит Vorkasse в пикер"
 
     class _T:  # тенант, каким его сделает apply_kit
         vorkasse_enabled = True
-        bank_iban = kit.payment["iban"]
+        bank_iban = kit.payments["bank_iban"]
         stripe_payment_methods: list = []
         stripe_account_id = ""
         stripe_charges_enabled = False

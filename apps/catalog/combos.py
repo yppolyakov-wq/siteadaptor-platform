@@ -166,3 +166,24 @@ __all__ = [
     "active_combos",
     "get_active",
 ]
+
+
+def combo_labels(business_type: str) -> dict:
+    """Подписи наборов по типу бизнеса — ОДИН источник на все поверхности.
+
+    «Menü-Pakete» и бургер уместны у гастро и выглядят ошибкой на магазине с
+    рюкзаками и посудой (фидбэк 2026-09-04). Гастро-формулировка сохранена
+    дословно — паритет; всем прочим — нейтральные «Sets».
+    """
+    from django.utils.translation import gettext_lazy as _
+
+    from apps.core.archetypes import FOOD_BUSINESS_TYPES
+
+    gastro = business_type in FOOD_BUSINESS_TYPES
+    return {
+        "combos_title": _("Menü-Pakete") if gastro else _("Sets & Pakete"),
+        "combos_teaser_label": (
+            _("See our combos & menus") if gastro else _("See our sets & bundles")
+        ),
+        "combos_teaser_icon": "🍔" if gastro else "🎁",
+    }

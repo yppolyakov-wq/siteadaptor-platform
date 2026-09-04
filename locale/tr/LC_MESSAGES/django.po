@@ -22033,6 +22033,43 @@ msgstr "Sadece burada"
 msgid "Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite."
 msgstr "Bir şablon seçin — yalnızca bu sayfa için geçerli olur."
 
+msgid "Reduced only"
+msgstr "Sadece indirimli"
+
+msgid "Remove filter"
+msgstr "Filtreyi kaldır"
+
+msgid "%(counter)s article"
+msgid_plural "%(counter)s articles"
+msgstr[0] "%(counter)s ürün"
+msgstr[1] "%(counter)s ürün"
+
+msgid "Atelier"
+msgstr "Atölye"
+
+msgid "Boutique"
+msgstr "Butik"
+
+msgid "Boutique: Kategorien → Neuheiten → Sale"
+msgstr "Butik: kategoriler → yenilikler → indirim"
+
+msgid ""
+"Concept-Store: Kategorien als Einstieg, Neuheiten darunter, reduzierte "
+"Artikel am Schluss."
+msgstr ""
+"Concept store: önce kategoriler, altında yenilikler, sonda indirimli "
+"ürünler."
+
+msgid "Ruhiger Concept-Store: warmes Off-White, randlose Karten, viel Luft."
+msgstr ""
+"Sakin concept store: sıcak kırık beyaz, çerçevesiz kartlar, bol boşluk."
+
+msgid "Sets & Pakete"
+msgstr "Setler ve paketler"
+
+#: templates/storefront/products.html:38
+msgid "See our sets & bundles"
+msgstr "Setlerimize ve paketlerimize göz atın"
 msgid "Neu ohne OVP"
 msgstr "Yeni, orijinal kutusuz"
 

@@ -20,6 +20,7 @@ from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
+from apps.catalog.combos import combo_labels
 from apps.catalog.price_history import lowest_price_30d
 from apps.catalog.views import FOOD_BUSINESS_TYPES as _FOOD_TYPES
 from apps.core import grid_filler, ratelimit
@@ -667,7 +668,7 @@ def promotion_list(request):
 
     # O-9: системный чип не предлагается, если по нему нечего показать. Фильтр,
     # уводящий на пустую страницу, читается как «в магазине пусто», хотя это лишь
-    # нерелевантный срез (то же правило, что у `nur_angebote` каталога). Гейт
+    # нерелевантный срез (то же правило, что у `sale` каталога). Гейт
     # спрашивает САМ провайдер — дублировать условия фильтра нельзя, иначе они
     # разойдутся; срез берём с учётом ?q=, но без других чипов, чтобы предложение
     # не схлопывалось от собственного выбора посетителя.
@@ -976,10 +977,60 @@ def loyalty_page(request):
 
 
 def _carry_qs(params: dict) -> str:
-    """urlencode непустых параметров (для «Show more»/диет-чипов/скрытых полей)."""
+    """urlencode непустых параметров (для «Show more»/диет-чипов/скрытых полей).
+
+    Значение-список = мультивыбор фасета (размер/цвет): `doseq` разворачивает его
+    в повторяющийся параметр, иначе в ссылку уехало бы «groesse=%5B%27S%27%5D»."""
     from urllib.parse import urlencode
 
-    return urlencode({k: v for k, v in params.items() if v not in (None, "", False)})
+    clean = {}
+    for k, v in params.items():
+        if isinstance(v, (list, tuple)):
+            if v:
+                clean[k] = list(v)
+        elif v not in (None, "", False):
+            clean[k] = v
+    return urlencode(clean, doseq=True)
+
+
+def _facet_pills(facets: dict, chips: dict, badge_chips) -> list:
+    """Пилюли активных фильтров: [{label, qs}], где `qs` — carry БЕЗ этого значения.
+
+    Мультивыбор даёт по пилюле на значение (сняли «M», «L» остался). Подписи
+    человеческие: код диеты/бейджа заменяется на его метку, «1» тумблера — на текст."""
+
+    def drop(key, value=None):
+        rest = dict(facets)
+        if value is not None and isinstance(rest.get(key), (list, tuple)):
+            rest[key] = [v for v in rest[key] if v != value]
+        else:
+            rest[key] = ""
+        return _carry_qs(rest)
+
+    labels = {
+        "diet": {c["code"]: c["label"] for c in chips.get("diet_chips", [])},
+        "badge": dict(badge_chips or []),
+    }
+    pills = []
+    for key in ("groesse", "farbe"):
+        for value in facets.get(key) or []:
+            pills.append({"label": value, "qs": drop(key, value)})
+    for key in ("diet", "badge", "herkunft", "kollektion", "q"):
+        value = facets.get(key)
+        if value:
+            pills.append({"label": labels.get(key, {}).get(value, value), "qs": drop(key)})
+    if facets.get("nur_verfuegbar"):
+        pills.append({"label": _("Only available"), "qs": drop("nur_verfuegbar")})
+    if facets.get("sale"):
+        pills.append({"label": _("Reduced only"), "qs": drop("sale")})
+    if facets.get("bewertung"):
+        from_label = _("from")
+        pills.append({"label": f"{from_label} {facets['bewertung']} ★", "qs": drop("bewertung")})
+    if facets.get("preis_von") or facets.get("preis_bis"):
+        lo, hi = facets.get("preis_von") or "0", facets.get("preis_bis") or "∞"
+        rest = dict(facets, preis_von="", preis_bis="")
+        pills.append({"label": f"{lo}–{hi} €", "qs": _carry_qs(rest)})
+    return pills
 
 
 #: O-7: какие выбранные значения провайдера реально СУЖАЮТ выдачу. Категория
@@ -995,7 +1046,6 @@ _NARROWING_FACETS = (
     "farbe",
     "zustand",
     "marke",
-    "nur_angebote",
     "kollektion",
     "bewertung",
 )
@@ -1066,7 +1116,13 @@ def product_list(request, slug=None):
     facet_base = provider.apply(products, {"kategorie": slug})
     # KAT-1: при path-режиме категория приходит ИЗ ПУТИ — провайдер получает её
     # мерджем (request.GET её не содержит; явный ?kategorie= в GET подавляется).
-    _params = {**request.GET.dict(), "kategorie": slug} if path_mode else request.GET
+    if path_mode:
+        # `request.GET.dict()` схлопывает мультивыбор до последнего значения —
+        # копия QueryDict сохраняет ?groesse=S&groesse=M на странице категории.
+        _params = request.GET.copy()
+        _params.setlist("kategorie", [slug])
+    else:
+        _params = request.GET
     sel = provider.selected(_params)
     diet = sel["diet"]
     # UB2-1/2-3: все фасеты провайдера одним вызовом — категория/диета/цена/наличие/
@@ -1099,13 +1155,14 @@ def product_list(request, slug=None):
     price_max_val = request.GET.get("preis_bis", "").strip() if price_max is not None else ""
     only_available = sel["nur_verfuegbar"]
     herkunft, bewertung = sel["herkunft"], sel["bewertung"]
-    groesse = sel.get("groesse", "")  # M2 Boutique: фасет размера
+    groesse = sel.get("groesse") or []  # M2 Boutique: размеры (мультивыбор)
+    farbe = sel.get("farbe") or []  # 2026-09-03: цвета (мультивыбор)
+    only_sale = sel.get("sale", False)  # 2026-09-03: только со скидкой
     kollektion = sel.get("kollektion", "")  # M4-B Lookbook: подборка товаров
-    # O-2 (Outlet): цвет / состояние / марка / «только со скидкой».
-    farbe = sel.get("farbe", "")
+    # O-2 (Outlet): состояние (B-Ware) и марка. Цвет и «только со скидкой»
+    # живут выше под именами `farbe` (мультивыбор) и `sale`.
     zustand = sel.get("zustand", "")
     marke = sel.get("marke", "")
-    nur_angebote = sel.get("nur_angebote", False)
 
     # --- Фасет-бейдж (Neu/Beliebt/Angebot/Tagesgericht…): только присутствующие;
     # остаётся во вьюхе (вне единого набора UB2-3). ---
@@ -1382,12 +1439,12 @@ def product_list(request, slug=None):
         or only_available
         or herkunft
         or groesse
+        or farbe
+        or only_sale
         or kollektion
         or bewertung
-        or farbe
         or zustand
         or marke
-        or nur_angebote
         or q
     )
     has_combos = request.tenant.is_module_active("orders") and active_combos().exists()
@@ -1431,22 +1488,35 @@ def product_list(request, slug=None):
         "preis_bis": price_max_val,
         "nur_verfuegbar": "1" if only_available else "",
         "herkunft": herkunft,  # UB2-3: Bio/Regional-происхождение
-        "groesse": groesse,  # M2: размер
+        "groesse": groesse,  # M2: размеры (список — мультивыбор)
+        "farbe": farbe,  # 2026-09-03: цвета (список)
+        "sale": "1" if only_sale else "",  # 2026-09-03: только со скидкой
         "kollektion": kollektion,  # M4-B: подборка (лукбук)
-        "farbe": farbe,  # O-2: цвет варианта
         "zustand": zustand,  # O-2: состояние (B-Ware)
         "marke": marke,  # O-2: марка
-        "nur_angebote": "1" if nur_angebote else "",  # O-2: только со скидкой
         "bewertung": str(bewertung) if bewertung else "",  # UB2-3: минимум звёзд
         "q": q,  # UB2-2: поиск — полноправный фасет в carry
         "ansicht": ansicht,  # MEN-24d: посетительский вид (пусто = вид владельца)
         "preview": "1" if is_preview else "",
     }
-    filter_hidden = [(k, v) for k, v in _facets.items() if v]
+    filter_hidden = [
+        (k, one)
+        for k, v in _facets.items()
+        if v
+        for one in (v if isinstance(v, (list, tuple)) else [v])
+    ]
     filter_qs = _carry_qs(_facets)
     # MEN-24d: qs для ссылок самого переключателя — carry БЕЗ ansicht (иначе
     # параметр дублировался бы в href «?…&ansicht=X»).
     ansicht_base_qs = _carry_qs({k: v for k, v in _facets.items() if k != "ansicht"})
+    # 2026-09-03: чипы подборок собирали ссылку с нуля и роняли активные фильтры
+    # и поиск. Тот же приём, что у переключателя вида: carry БЕЗ своего параметра.
+    kollektion_base_qs = _carry_qs(
+        {k: v for k, v in _facets.items() if k not in ("kollektion", "cursor")}
+    )
+    # 2026-09-03: пилюли активных фильтров с ✕ — единственным способом снять
+    # ОДИН фильтр был «Reset filters», сбрасывавший всё сразу.
+    active_filter_pills = _facet_pills(_facets, chips, badge_chips)
     # Фидбэк 2026-08-07: диета переехала В панель фильтров (видимый селект), так
     # что скрытым полем её больше не носим — иначе в форме было бы два `diet`.
     filter_form_hidden = [
@@ -1454,6 +1524,9 @@ def product_list(request, slug=None):
         for k, v in (
             ("kategorie", _facets["kategorie"]),  # KAT-1: в path-режиме пусто
             ("q", q),
+            # 2026-09-03: подборки в панели нет, а без скрытого поля «Anwenden»
+            # молча сбрасывал активный чип ?kollektion= (разведка фасетов).
+            ("kollektion", kollektion),
             ("sort", sort if sort != "newest" else ""),
             ("ansicht", ansicht),  # MEN-24d: «Anwenden» панели не сбрасывает вид
             ("preview", _facets["preview"]),
@@ -1539,6 +1612,13 @@ def product_list(request, slug=None):
             "diet_chips": diet_chips,  # A4: фасет-чипы диет (только встречающиеся)
             # GK-13: кнопка «Speisekarte (PDF)» — гастро-типам, при непустом каталоге
             # (по ВСЕМ товарам, не по текущему фильтру — карта всегда полная).
+            # 2026-09-03: у непищевого магазина полоса комбо называлась
+            # «Menü-Pakete» — гастро-слово на витрине с посудой и рюкзаками.
+            # Гастро-подпись остаётся дословно (паритет), прочим — «Sets».
+            # Подписи наборов — из одного источника (combos.combo_labels):
+            # заголовок полосы, тизер над сеткой и иконка расходились по трём
+            # местам, и «🍔 …und Menüs» жило на магазине с рюкзаками.
+            **combo_labels(request.tenant.business_type),
             "menu_pdf_available": (
                 request.tenant.business_type in _FOOD_TYPES
                 and Product.objects.filter(is_active=True).exists()
@@ -1557,6 +1637,7 @@ def product_list(request, slug=None):
             # MEN-24d: серверный переключатель видов у сортировки.
             "ansicht": ansicht,
             "ansicht_base_qs": ansicht_base_qs,
+            "kollektion_base_qs": kollektion_base_qs,
             "owner_preset": _owner_preset,
             # Билдер: показывать ли фильтры на странице каталога (group=catalog).
             "catalog_show_filters": cfg.get("catalog_show_filters", True),
@@ -1572,6 +1653,12 @@ def product_list(request, slug=None):
             # Тумблер «только в наличии» — показываем только если что-то распродано.
             "show_stock_filter": show_stock_filter,
             "only_available": only_available,
+            # 2026-09-03: «Nur reduzierte» — тумблер и его счётчик.
+            "only_sale": only_sale,
+            "sale_count": chips["sale_count"],
+            # 2026-09-03: цвет — свотчи мультивыбора.
+            "color_chips": chips["color_chips"],
+            "active_farbe": farbe,
             # UB2-3: происхождение (Bio/Regional) — чипы реально указанных значений.
             "origin_chips": chips["origin_chips"],
             "active_herkunft": herkunft,
@@ -1581,21 +1668,21 @@ def product_list(request, slug=None):
             # M4-B Lookbook: чипы подборок владельца (?kollektion=<slug>).
             "collection_chips": chips["collection_chips"],
             "active_kollektion": kollektion,
-            # O-2 (Outlet): цвет (ось вариантов), состояние и марка + «reduziert».
-            "color_chips": chips.get("color_chips", []),
-            "active_farbe": farbe,
+            # O-2 (Outlet): состояние (B-Ware) и марка — свои оси аутлета.
             "condition_chips": chips.get("condition_chips", []),
             "active_zustand": zustand,
             "brand_chips": chips.get("brand_chips", []),
             "active_marke": marke,
-            "show_deal_filter": chips.get("show_deal_filter", False),
-            "only_deals": nur_angebote,
             # UB2-3: рейтинг-фасет (минимум звёзд) — только когда есть отзывы.
             "show_rating_filter": chips["show_rating_filter"],
             "rating_thresholds": chips["rating_thresholds"],
             "active_bewertung": bewertung,
             # Активен ли хоть один фасет (для кнопки сброса / подавления комбо-тизера).
             "any_facet_active": any_facet_active,
+            "active_filter_pills": active_filter_pills,
+            # 2026-09-03: число найденного — покупатель видит объём выдачи,
+            # а не только первую страницу (пагинация каталога — курсорная).
+            "result_count": products.count(),
             # Carry-over для формы сорта и ссылки «Show more».
             "filter_hidden": filter_hidden,
             "filter_qs": filter_qs,

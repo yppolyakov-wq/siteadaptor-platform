@@ -39,6 +39,13 @@ def kit_keywords(kit) -> list[tuple[str, str]]:
         # строка итерировалась как список подкатегорий.
         for p in entry[2]:
             add(p.get("img"), "товар (800×600)")
+            # M4-A: фото варианта подменяет главный кадр при выборе цвета —
+            # такой же кадр витрины, как у товара. Вариант-КОРТЕЖ (label, price)
+            # фото не несёт: `.get` на нём упал бы (форма спеки разная).
+            for v in p.get("variants") or []:
+                if isinstance(v, dict):
+                    for kw in v.get("images") or []:
+                        add(kw, "вариант (800×600)")
         extra = entry[3] if len(entry) > 3 else []
         if isinstance(extra, str):
             add(extra, "плитка категории (800×600)")
@@ -63,6 +70,23 @@ def kit_keywords(kit) -> list[tuple[str, str]]:
         if isinstance(t, dict):
             for kw in t.get("photos", []):
                 add(kw, "тур (800×600)")
+    for c in kit.combos:  # MEN-6: фото набора (карточка /kombi/ и полоса категории)
+        if isinstance(c, dict):
+            for kw in c.get("photos", []):
+                add(kw, "набор (800×600)")
+    for entry in kit.collections:  # M4-B Lookbook: обложка /lookbook/<slug>/
+        members = entry[1] if len(entry) > 1 else {}
+        if isinstance(members, dict):
+            for kw in members.get("photos") or []:
+                add(kw, "подборка (800×600)")
+    for spec in kit.promotions_spec:
+        if not isinstance(spec, dict):
+            continue
+        # Спека несёт либо один `image`, либо галерею `images` (2026-07-29) —
+        # ровно как читает сидер, иначе отчёт разойдётся с витриной.
+        add(spec.get("image"), "акция (800×600)")
+        for kw in spec.get("images") or []:
+            add(kw, "акция (800×600)")
     for b in kit.blog_posts:
         add(b[3] if len(b) > 3 else "", "блог-обложка (800×450)")
     for cover in kit.archetype_covers.values():

@@ -31,8 +31,8 @@ def test_demo_url_when_seeded():
 
 
 def test_shared_demo_mapping():
-    """Часть типов пока делит демо (ритейл → shop); grocery — родной aktionsmarkt.
-    Развод на dedicated-киты — по волнам плана demo-kits-per-type."""
+    """Ритейл смотрит на фермерский магазин, grocery — на рынок акций. Интернет-
+    магазин с 2026-09-03 получил СВОЁ демо (см. следующий замок)."""
     DomainFactory(domain="shop.siteadaptor.de", tenant=TenantFactory())
     DomainFactory(domain="aktionsmarkt.siteadaptor.de", tenant=TenantFactory(slug="am2"))
     cards = _cards()
@@ -40,15 +40,25 @@ def test_shared_demo_mapping():
     assert "aktionsmarkt.siteadaptor.de" in cards["grocery"]["demo_url"]
 
 
-def test_dedicated_demo_mapping_outlet():
-    """O-6: `online_shop` был последним типом без своего демо — делил фермерскую
-    лавку `shop`, где нет ни фасетов, ни B-Ware. Теперь ведёт в аутлет."""
-    DomainFactory(domain="outlet.siteadaptor.de", tenant=TenantFactory())
-    assert "outlet.siteadaptor.de" in _cards()["online_shop"]["demo_url"]
+def test_dedicated_online_shop_demo():
+    """Волна online_shop: тип больше не делит витрину с лавкой — у него свой
+    поддомен onlineshop (кит «Weitwerk»)."""
+    DomainFactory(domain="onlineshop.siteadaptor.de", tenant=TenantFactory())
+    cards = _cards()
+    assert "onlineshop.siteadaptor.de" in cards["online_shop"]["demo_url"]
 
-    from apps.tenants import demo_kits
+
+def test_outlet_is_the_second_online_shop_demo():
+    """O-3/O-6: у типа ДВА демо разного жанра — бутик «Weitwerk» и аутлет
+    «Zweitgut Outlet». Кнопка типа одна, поэтому её держит бутик, а аутлет
+    доступен своим поддоменом и через реестр «функция → живое демо»
+    (фильтры и B-Ware/UVP). Замок держит именно это разделение ролей."""
+    from apps.tenants import demo_kits, feature_demos
 
     assert demo_kits.KITS["outlet"].subdomain == "outlet"
+    assert demo_kits.KITS["outlet"].business_type == "online_shop"
+    hosts = {item["host"] for item in feature_demos.FEATURE_DEMOS}
+    assert "outlet" in hosts, "аутлет обязан быть достижим хотя бы из feature_demos"
 
 
 def test_dedicated_demo_mapping_wave1():

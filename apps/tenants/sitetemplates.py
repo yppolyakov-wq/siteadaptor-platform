@@ -485,6 +485,27 @@ LOOK_FAMILIES = [
         "hero_style": "bento",
         "theme": "",
     },
+    {
+        # 2026-09-03 (волна online_shop): «кожа» современного концепт-стора —
+        # тёплый небелый фон, карточки без тени с волосяной рамкой, много воздуха.
+        # Собственного шрифта не заводим: Manrope уже в наборе DL-13.
+        "key": "atelier",
+        "label": _("Atelier"),
+        "description_de": _("Ruhiger Concept-Store: warmes Off-White, randlose Karten, viel Luft."),
+        "font": "manrope",
+        "typography": {"weight_head": 700, "line_height": 1.55},
+        "site_defaults": {
+            "card_radius": 4,
+            "card_shadow": False,
+            "card_bg": "#ffffff",
+            "card_padding": 0,
+            "page_bg": "#f7f5f2",
+            "card_chrome": "hairline",
+        },
+        "nav_style": "minimal",
+        "hero_style": "split",
+        "theme": "",
+    },
     # O-5 (Outlet, 2026-09-03): «Lager» — язык дискаунт-ритейла 2025/26:
     # узкий гротеск в заголовках, нулевые радиусы, жёсткая рамка и сигнальный
     # акцент только на цене. Плотная сетка вместо воздуха — в аутлете на экран
@@ -539,6 +560,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#b8860b",
         "#3f2a14",
         "#d62828",
+        # 2026-09-03: atelier
+        "#78350f",
         # O-5: lager
         "#b45309",
     ),
@@ -560,6 +583,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#b08d57",
         "#3b0a0a",
         "#d62828",
+        # 2026-09-03: atelier
+        "#7f1d1d",
         # O-5: lager
         "#b91c1c",
     ),
@@ -581,6 +606,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#c6a15b",
         "#17181c",
         "#d62828",
+        # 2026-09-03: atelier
+        "#3f6212",
         # O-5: lager
         "#dc2626",
     ),
@@ -602,6 +629,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#c9a96e",
         "#17181c",
         "#1d3f9e",
+        # 2026-09-03: atelier
+        "#1f2937",
         # O-5: lager
         "#111827",
     ),
@@ -623,6 +652,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#c6a15b",
         "#2a1a12",
         "#d62828",
+        # 2026-09-03: atelier
+        "#44403c",
         # O-5: lager
         "#c2410c",
     ),
@@ -644,6 +675,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#b8860b",
         "#2b1d16",
         "#1d3f9e",
+        # 2026-09-03: atelier
+        "#6b4423",
         # O-5: lager
         "#a16207",
     ),
@@ -665,6 +698,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#c0a062",
         "#17181c",
         "#1d3f9e",
+        # 2026-09-03: atelier
+        "#334155",
         # O-5: lager
         "#e11d48",
     ),
@@ -686,6 +721,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#c0a062",
         "#17181c",
         "#1d3f9e",
+        # 2026-09-03: atelier
+        "#26303f",
         # O-5: lager
         "#e11d48",
     ),
@@ -707,6 +744,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#b39a5c",
         "#0f2f3a",
         "#1d3f9e",
+        # 2026-09-03: atelier
+        "#155e75",
         # O-5: lager
         "#0f766e",
     ),
@@ -728,6 +767,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#c6a15b",
         "#12233a",
         "#1d3f9e",
+        # 2026-09-03: atelier
+        "#1e3a5f",
         # O-5: lager
         "#1e3a5f",
     ),
@@ -749,6 +790,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#cdb07a",
         "#2a1229",
         "#d62828",
+        # 2026-09-03: atelier
+        "#4c1d3d",
         # O-5: lager
         "#9d174d",
     ),
@@ -770,6 +813,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#b39a5c",
         "#1f2937",
         "#f2c230",
+        # 2026-09-03: atelier
+        "#3f3f46",
         # O-5: lager
         "#c2410c",
     ),
@@ -791,6 +836,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#a89060",
         "#17181c",
         "#1d3f9e",
+        # 2026-09-03: atelier
+        "#312e2b",
         # O-5: lager
         "#1d4ed8",
     ),
@@ -812,6 +859,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#c6a15b",
         "#1e1b4b",
         "#d62828",
+        # 2026-09-03: atelier
+        "#4c1d95",
         # O-5: lager
         "#7c3aed",
     ),
@@ -834,6 +883,8 @@ ARCHETYPE_LOOK_ACCENTS = {
         "#b8a06a",
         "#14301f",
         "#1d3f9e",
+        # 2026-09-03: atelier
+        "#3f4a3a",
         # O-5: lager
         "#15803d",
     ),
@@ -1093,6 +1144,7 @@ COMPOSITIONS = {
     "magazin": _("Magazin: Geschichte & Bilder"),
     "vollbild": _("Vollbild-Foto mit Angebot des Tages"),
     "bento": _("Bento: Kacheln-Mosaik als erster Bildschirm"),
+    "boutique": _("Boutique: Kategorien → Neuheiten → Sale"),
 }
 
 
@@ -1773,6 +1825,65 @@ BUNDLES = [
                 "page_presets": {"cart": "empfehlung"},
             }
         ),
+    },
+    {
+        # 2026-09-03 (волна online_shop): композиция магазина с большим
+        # ассортиментом — сначала направления, потом новинки, потом сниженные
+        # цены. Fokus здесь не годится: у магазина не «одно действие», а полка.
+        "key": "boutique",
+        "label": _("Boutique"),
+        "description_de": _(
+            "Concept-Store: Kategorien als Einstieg, Neuheiten darunter, "
+            "reduzierte Artikel am Schluss."
+        ),
+        "recommended_for": ("online_shop", "clothing", "retail"),
+        "look": "atelier",
+        "composition": "boutique",
+        "config": {
+            "hero_style": "split",
+            "nav_cta": True,
+            "nav_style": "minimal",
+            "hero_widget": "none",
+            "media_shape": "wide",
+            "catalog_layout": {"preset": "cols4"},
+            "sections_on": (
+                "hero",
+                "usp_bar",
+                "categories",
+                "products",
+                "promotions",
+                "trust",
+                "reviews",
+                "about",
+                "faq",
+            ),
+            # testimonials гасим: у магазина есть настоящие отзывы (reviews), и
+            # две секции с заголовком «Das sagen unsere Kunden» подряд читаются
+            # как ошибка вёрстки (стенд 2026-09-03).
+            "sections_off": (
+                "archetypes",
+                "team",
+                "gallery",
+                "before_after",
+                "process",
+                "testimonials",
+            ),
+            "sections_order": (
+                "hero",
+                "usp_bar",
+                "categories",
+                "products",
+                "promotions",
+                "trust",
+                "reviews",
+                "about",
+                "faq",
+                "contact",
+            ),
+            "section_styles": {"trust": "compact", "categories": "square", "usp_bar": "pillars"},
+            "section_layouts": {"categories": {"preset": "cols5"}, "products": {"preset": "cols4"}},
+            "page_presets": {"cart": "vertrauen", "info": "geschichte"},
+        },
     },
 ]
 

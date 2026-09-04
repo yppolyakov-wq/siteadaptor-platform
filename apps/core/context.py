@@ -80,8 +80,36 @@ def _studio_page_ctx(request) -> dict:
             path=getattr(request, "path", ""),
         )
     except Exception:  # витрина не должна падать из-за подсказки редактору
-        return {"storefront_page_type": "", "storefront_page_ref": ""}
-    return {"storefront_page_type": ctx.code, "storefront_page_ref": ctx.object_ref}
+        return {
+            "storefront_page_type": "",
+            "storefront_page_ref": "",
+            "storefront_edit_target": getattr(request, "path", "") or "/",
+        }
+    return {
+        "storefront_page_type": ctx.code,
+        "storefront_page_ref": ctx.object_ref,
+        # STU-7: адрес для кнопки «Edit design». Раньше она слала ГОЛЫЙ request.path,
+        # поэтому владелец, стоя на странице группы акций, попадал в редактор на общий
+        # обзор — санитайзер `?page=` параметр уже принимает, а producer его не давал.
+        # Список параметров — тот же реестр, что у санитайзера и у канвы.
+        "storefront_edit_target": _edit_target(request),
+    }
+
+
+def _edit_target(request) -> str:
+    """Путь + параметры, ЗАДАЮЩИЕ страницу — значение для `?page=` кнопки «Edit design»."""
+    from urllib.parse import urlencode
+
+    from apps.core import studio_pages
+
+    path = getattr(request, "path", "") or "/"
+    keep = [
+        (key, value)
+        for key in studio_pages.PAGE_QUERY_KEYS
+        for value in [(request.GET.get(key) or "").strip()]
+        if value
+    ]
+    return f"{path}?{urlencode(keep)}" if keep else path
 
 
 def _demo_design_ctx(request, tenant):

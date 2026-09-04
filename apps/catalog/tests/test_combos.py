@@ -4,6 +4,7 @@ from decimal import Decimal
 
 import pytest
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
@@ -11,6 +12,7 @@ from django.test import RequestFactory
 from apps.catalog import combos, views
 from apps.catalog.models import Combo, ComboGroup, ComboOption
 from apps.catalog.tests.factories import ProductFactory
+from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -268,3 +270,39 @@ def test_free_pool_skips_inactive_child_category():
         name="Freie Auswahl", price=Decimal("0.00"), free_pool=True, category=parent
     )
     assert hidden.pk not in {p.pk for p in combos.pool_products(combo)}
+
+
+@pytest.mark.django_db
+def test_combo_wording_is_gastro_only():
+    """Полоса и тизер наборов не имеют права говорить «Menüs» вне гастро.
+
+    Демо-магазин с рюкзаками и посудой показывал «🍔 Kombi-Angebote und Menüs»
+    и заголовок «Menü-Pakete» — гастро-слово поверх непищевого ассортимента.
+    Гастро-подпись остаётся дословно (паритет), прочим — «Sets». Проверяем по
+    РЕНДЕРУ: именно его видит посетитель.
+    """
+    from django.test import RequestFactory
+
+    from apps.promotions.public_views import product_list
+
+    ProductFactory(name={"de": "Rucksack"}, base_price=Decimal("59.00"))
+    Combo.objects.create(name="Set", price=Decimal("99.00"), is_active=True)
+
+    def page(business_type):
+        tenant = TenantFactory(business_type=business_type)
+        req = RequestFactory().get("/sortiment/")
+        req.tenant = tenant
+        req.user = AnonymousUser()
+        return product_list(req).content.decode()
+
+    # Сверяем ИМЕННО подписи наборов: голое слово «Menü» ловит хром
+    # (aria-label гамбургера) — класс ложных срабатываний из волны MEN.
+    gastro = page("restaurant")
+    assert "Menü-Pakete" in gastro  # гастро-формулировка сохранена дословно
+    assert "🍔" in gastro
+
+    shop = page("online_shop")
+    assert "Menü-Pakete" not in shop, "гастро-заголовок на непищевом магазине"
+    assert "Sets &amp; Pakete" in shop or "Sets & Pakete" in shop
+    assert "🍔" not in shop, "бургер-эмодзи на магазине с рюкзаками"
+    assert "🎁" in shop

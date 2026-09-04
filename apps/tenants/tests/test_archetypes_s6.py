@@ -96,7 +96,9 @@ def test_online_shop_type_registered_and_wired():
     assert "online_shop" in dict(Tenant.BUSINESS_TYPES)
     icon, blurb = onboarding.BUSINESS_TYPE_META["online_shop"]
     assert icon and "Online-Shop" in blurb
-    assert onboarding.DEMO_KIT_HOST["online_shop"] == "outlet"
+    # 2026-09-03: у типа появилось СВОЁ демо «Weitwerk» (кит online_shop).
+    # Аутлет (O-3) — второе демо того же типа, его адрес отдаёт feature_demos.
+    assert onboarding.DEMO_KIT_HOST["online_shop"] == "onlineshop"
     disabled = modules.default_disabled_for("online_shop")
     assert "orders" not in disabled  # primary: продажи
     for mod in ("reviews", "gift", "blog", "inbox", "customer_account", "promotions"):

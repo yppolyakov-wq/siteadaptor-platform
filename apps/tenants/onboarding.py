@@ -204,7 +204,11 @@ DEMO_KIT_HOST = {
     "butcher": "metzgerei",  # dedicated «Metzgerei Bergmann» (волна 1)
     "grocery": "aktionsmarkt",
     "clothing": "mode",  # dedicated «Studio Nordwind» (волна 2)
-    "online_shop": "outlet",  # dedicated «Zweitgut Outlet» — аутлет техники и моды (O-3)
+    # Кнопку «Demo ansehen» типа держит бутик «Weitwerk» (2026-09-03). Аутлет
+    # «Zweitgut Outlet» (O-3) — второе демо того же типа, другого жанра: он
+    # доступен по своему поддомену и заведён в feature_demos как живой пример
+    # B-Ware/UVP и фильтров состояния (карта типа отдаёт ОДИН адрес).
+    "online_shop": "onlineshop",
     "restaurant": "restaurant-demo",
     "cafe": "cafe",  # dedicated «Café Morgenrot» (волна 2)
     "retail": "shop",

@@ -21905,6 +21905,42 @@ msgstr "Only here"
 msgid "Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite."
 msgstr "Choose a template — it will then apply to this page only."
 
+msgid "Reduced only"
+msgstr "Reduced only"
+
+msgid "Remove filter"
+msgstr "Remove filter"
+
+msgid "%(counter)s article"
+msgid_plural "%(counter)s articles"
+msgstr[0] "%(counter)s article"
+msgstr[1] "%(counter)s articles"
+
+msgid "Atelier"
+msgstr "Atelier"
+
+msgid "Boutique"
+msgstr "Boutique"
+
+msgid "Boutique: Kategorien → Neuheiten → Sale"
+msgstr "Boutique: categories → new arrivals → sale"
+
+msgid ""
+"Concept-Store: Kategorien als Einstieg, Neuheiten darunter, reduzierte "
+"Artikel am Schluss."
+msgstr ""
+"Concept store: categories first, new arrivals below, reduced items at the "
+"end."
+
+msgid "Ruhiger Concept-Store: warmes Off-White, randlose Karten, viel Luft."
+msgstr "Calm concept store: warm off-white, borderless cards, plenty of air."
+
+msgid "Sets & Pakete"
+msgstr "Sets & bundles"
+
+#: templates/storefront/products.html:38
+msgid "See our sets & bundles"
+msgstr "See our sets & bundles"
 msgid "Neu ohne OVP"
 msgstr "New, without original box"
 

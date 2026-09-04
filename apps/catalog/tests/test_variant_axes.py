@@ -58,7 +58,8 @@ def test_size_chips_use_axis_not_cartesian_label():
         for color in ("Blau", "Rot"):
             ProductVariant.objects.create(product=p, label="", size=size, color=color)
     chips = CatalogFacets().present(Product.objects.filter(is_active=True), {})["size_chips"]
-    assert sorted(chips) == ["M", "S"]
+    # 2026-09-03: чип стал {value, count} (мультивыбор + счётчик) — семантика та же.
+    assert sorted(c["value"] for c in chips) == ["M", "S"]
 
 
 def test_size_chips_fall_back_to_label_without_axes():
@@ -69,7 +70,7 @@ def test_size_chips_fall_back_to_label_without_axes():
     ProductVariant.objects.create(product=p, label="100 g")
     ProductVariant.objects.create(product=p, label="250 g")
     chips = CatalogFacets().present(Product.objects.filter(is_active=True), {})["size_chips"]
-    assert sorted(chips) == ["100 g", "250 g"]
+    assert sorted(c["value"] for c in chips) == ["100 g", "250 g"]
 
 
 def test_size_facet_filters_by_axis():
@@ -93,7 +94,7 @@ def test_mixed_catalog_keeps_legacy_label_sizes():
     ProductVariant.objects.create(product=legacy, label="100 g")
     facets = CatalogFacets()
     chips = facets.present(Product.objects.filter(is_active=True), {})["size_chips"]
-    assert sorted(chips) == ["100 g", "S"]
+    assert sorted(c["value"] for c in chips) == ["100 g", "S"]
     assert list(facets.apply(Product.objects.all(), {"groesse": "100 g"})) == [legacy]
     assert list(facets.apply(Product.objects.all(), {"groesse": "S"})) == [axed]
 
@@ -155,13 +156,7 @@ def test_color_only_variant_label_is_not_offered_as_a_size():
     assert chips == []  # единственный настоящий размер — «M», одного мало для чипов
     assert "Anthrazit" not in chips and "Silber" not in chips
     # цвет остаётся находимым СВОИМ фасетом
-    assert sorted(
-        facets.present(Product.objects.filter(is_active=True), {})["color_chips"],
-        key=lambda c: c["code"],
-    ) == [
-        {"code": "Anthrazit", "label": "Anthrazit"},
-        {"code": "Blau", "label": "Blau"},
-        {"code": "Silber", "label": "Silber"},
-    ]
+    colors = facets.present(Product.objects.filter(is_active=True), {})["color_chips"]
+    assert sorted(c["value"] for c in colors) == ["Anthrazit", "Blau", "Silber"]
     # и «размер = цвет» больше не выдаёт товар
     assert list(facets.apply(Product.objects.all(), {"groesse": "Anthrazit"})) == []
