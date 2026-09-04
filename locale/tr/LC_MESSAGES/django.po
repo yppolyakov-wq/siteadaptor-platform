@@ -22107,3 +22107,35 @@ msgid ""
 msgstr ""
 "Outlet deposu: önce kategoriler, büyük fiyat, sık ızgara — çok sayıda tekil "
 "ürün içeren ürün yelpazeleri için."
+
+msgid "Filter & Facetten"
+msgstr "Filtreler ve yönler"
+
+msgid ""
+"Zustand, Marke, Größe, Farbe, Preis und „nur reduziert“ — ein Katalog mit "
+"über 200 Einzelstücken."
+msgstr ""
+"Durum, marka, beden, renk, fiyat ve „sadece indirimli“ — 200'den fazla tekil"
+" ürünlü bir katalog."
+
+msgid "Zustand & UVP"
+msgstr "Durum ve tavsiye edilen fiyat"
+
+msgid ""
+"Neu ohne OVP, Ausstellungsstück, geprüfte Retoure — mit Streichpreis gegen "
+"die UVP und ehrlichem Hinweis zum Zustand."
+msgstr ""
+"Kutusuz sıfır, teşhir ürünü, test edilmiş iade — üstü çizili tavsiye fiyatı "
+"ve durum hakkında dürüst bir notla."
+
+msgid "Sets"
+msgstr "Setler"
+
+msgid "Sets & Bundles"
+msgstr "Setler ve paketler"
+
+msgid "See our sets"
+msgstr "Setlerimize göz atın"
+
+msgid "Browse the range"
+msgstr "Ürünlere göz atın"

@@ -963,6 +963,33 @@ def _carry_qs(params: dict) -> str:
     return urlencode({k: v for k, v in params.items() if v not in (None, "", False)})
 
 
+#: O-7: какие выбранные значения провайдера реально СУЖАЮТ выдачу. Категория
+#: сюда не входит: в path-режиме она приходит из адреса страницы, а не от
+#: покупателя, и не должна отменять витрину полок.
+_NARROWING_FACETS = (
+    "diet",
+    "preis_von",
+    "preis_bis",
+    "nur_verfuegbar",
+    "herkunft",
+    "groesse",
+    "farbe",
+    "zustand",
+    "marke",
+    "nur_angebote",
+    "kollektion",
+    "bewertung",
+)
+
+
+def _facets_narrow(sel: dict, params) -> bool:
+    """Покупатель что-то отфильтровал (или ищет)? — тогда обзорные раскладки
+    (полки/табы) должны уступить место отфильтрованной сетке."""
+    if (params.get("q") or "").strip():
+        return True
+    return any(sel.get(key) for key in _NARROWING_FACETS)
+
+
 def product_list(request, slug=None):
     """Публичный каталог витрины (Track C1): активные товары + фасет-фильтры + сортировка.
 
@@ -1033,7 +1060,14 @@ def product_list(request, slug=None):
     # DL-16.5 (K2 «Regale»): товары подкатегорий уже стоят на «полках» — сетка ниже показывает
     # только ПРЯМЫЕ товары направления (иначе всё дублировалось бы; семантика KAT-1 «контейнер
     # включает детей» остаётся у Standard/прочих шаблонов).
-    if path_mode and category is not None and cat_style == "regale":
+    # O-7 (аудит юзабилити): полки СЧИТАЮТСЯ ПО ВСЕМ товарам (см. ниже), поэтому
+    # при активном фасете страница-«витрина полок» показывала прежний набор, хотя
+    # панель фильтров стояла рядом и «Filter zurücksetzen» уже появлялась — фильтр
+    # молча ничего не делал. Как только покупатель фильтрует, он хочет РЕЗУЛЬТАТ:
+    # полки уступают место обычной отфильтрованной сетке (семантика KAT-1
+    # «контейнер включает прямых детей» при этом возвращается).
+    shelf_mode = cat_style == "regale" and not _facets_narrow(sel, request.GET)
+    if path_mode and category is not None and shelf_mode:
         products = products.filter(category=category)
     # Доступные значения фасетов — из снимка категории (present провайдера).
     chips = provider.present(facet_base, request.GET)
@@ -1097,7 +1131,7 @@ def product_list(request, slug=None):
     # полки/табы считают по ВСЕМ активным товарам, не по отфильтрованной выдаче страницы
     _all_products = Product.objects.filter(is_active=True)
     _shelf_sources = subcategories if path_mode else categories  # DL-21.1: корень — направления
-    if cat_style == "regale" and _shelf_sources:
+    if shelf_mode and _shelf_sources:
         from .price_layer import attach_promos as _attach_promos_shelf
 
         for sub in _shelf_sources:
@@ -1470,7 +1504,7 @@ def product_list(request, slug=None):
             ),
             "root_header_photo": _root_header_photo,
             # корень «Regale»: страница = полки; общая сетка всех товаров дублировала бы их
-            "shelves_only": bool(not path_mode and cat_style == "regale" and shelves),
+            "shelves_only": bool(not path_mode and shelf_mode and shelves),
             "catalog_breadcrumbs": catalog_breadcrumbs,
             "catalog_breadcrumb_ld": catalog_breadcrumb_ld,
             # KAT-1/фидбэк 2026-08-26: у страницы категории — свой хост C-блоков

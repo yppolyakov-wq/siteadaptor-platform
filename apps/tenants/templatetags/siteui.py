@@ -780,3 +780,16 @@ def categories_with_min_price(categories):
         {"c": c, "min_price": agg.get(c.pk, (None, 0))[0], "count": agg.get(c.pk, (None, 0))[1]}
         for c in categories
     ]
+
+
+@register.filter(name="is_food_business")
+def is_food_business(tenant) -> bool:
+    """O-7 (стенд аутлета): гастро-язык на витрине НЕ-гастро тенанта.
+
+    Страница наборов называлась «Kombinationen & Menüs» и звала 🍔 «Menüs»
+    даже в магазине техники: «Menü» — слово общепита, у аутлета набор это
+    «Set». Реестр типов один — `core.archetypes.FOOD_BUSINESS_TYPES`.
+    """
+    from apps.core.archetypes import FOOD_BUSINESS_TYPES
+
+    return getattr(tenant, "business_type", "") in FOOD_BUSINESS_TYPES

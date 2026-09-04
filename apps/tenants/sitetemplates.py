@@ -1570,7 +1570,6 @@ BUNDLES = [
             {
                 "hero_style": "split",
                 "nav_style": "minimal",
-                "card_style": "regal",
                 "promo_card": "preis",
                 "catalog_layout": {"preset": "cols4"},
                 "section_layouts": {

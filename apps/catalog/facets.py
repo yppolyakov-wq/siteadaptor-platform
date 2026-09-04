@@ -155,17 +155,15 @@ class CatalogFacets(FacetProvider):
 
     @staticmethod
     def _discounted_ids(items):
-        """O-2: pk товаров, которые ДЕЙСТВИТЕЛЬНО дешевле обычного — либо на них
-        висит активная акция (bulk-карта, без N+1), либо у них есть UVP выше
-        собственной цены (штатный механизм аутлета). Пустой фильтр не врёт:
-        товар без обоих признаков сюда не попадает."""
-        from django.db.models import F
+        """O-2: pk товаров с ДЕЙСТВУЮЩЕЙ акцией (bulk-карта, без N+1).
 
+        Намеренно НЕ считаем сюда «UVP выше цены»: UVP — сравнение с чужой
+        рекомендацией производителя и в аутлете стоит у всей витрины, поэтому
+        такой фильтр показывал бы «всё» и был бы чипом-обманкой. «Reduziert» =
+        дешевле, чем этот товар стоит здесь обычно, а это ровно акция."""
         from apps.promotions.price_layer import product_promo_map
 
-        ids = set(items.filter(list_price__gt=F("base_price")).values_list("pk", flat=True))
-        ids.update(product_promo_map(items.values_list("pk", flat=True)).keys())
-        return ids
+        return set(product_promo_map(items.values_list("pk", flat=True)).keys())
 
     @staticmethod
     def _rated_ids(items, min_rating):
@@ -223,8 +221,10 @@ class CatalogFacets(FacetProvider):
             "color_chips": self._color_chips(items),
             "condition_chips": self._condition_chips(items),
             "brand_chips": self._brand_chips(items),
-            # O-2: тумблер «только со скидкой» — лишь если есть что показать.
-            "show_deal_filter": bool(self._discounted_ids(items)),
+            # O-2: тумблер «только со скидкой» показываем, лишь когда он реально
+            # СУЖАЕТ выдачу. В аутлете UVP стоит у всех позиций, и фильтр «всё»
+            # был бы чипом-обманкой: покупатель жмёт и ничего не меняется.
+            "show_deal_filter": 0 < len(self._discounted_ids(items)) < items.count(),
         }
 
     @staticmethod

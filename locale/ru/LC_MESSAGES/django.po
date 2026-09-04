@@ -22209,3 +22209,35 @@ msgid ""
 msgstr ""
 "Аутлет-склад: сначала категории, крупная цена, плотная сетка — для "
 "ассортимента из множества единичных позиций."
+
+msgid "Filter & Facetten"
+msgstr "Фильтры и фасеты"
+
+msgid ""
+"Zustand, Marke, Größe, Farbe, Preis und „nur reduziert“ — ein Katalog mit "
+"über 200 Einzelstücken."
+msgstr ""
+"Состояние, бренд, размер, цвет, цена и «только со скидкой» — каталог из "
+"более чем 200 единичных позиций."
+
+msgid "Zustand & UVP"
+msgstr "Состояние и реком. цена"
+
+msgid ""
+"Neu ohne OVP, Ausstellungsstück, geprüfte Retoure — mit Streichpreis gegen "
+"die UVP und ehrlichem Hinweis zum Zustand."
+msgstr ""
+"Новый без упаковки, витринный образец, проверенный возврат — с зачёркнутой "
+"рекомендованной ценой и честным примечанием о состоянии."
+
+msgid "Sets"
+msgstr "Наборы"
+
+msgid "Sets & Bundles"
+msgstr "Наборы и комплекты"
+
+msgid "See our sets"
+msgstr "Посмотрите наши наборы"
+
+msgid "Browse the range"
+msgstr "Посмотреть ассортимент"

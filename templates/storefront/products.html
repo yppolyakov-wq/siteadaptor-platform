@@ -35,7 +35,7 @@
   наборов стояли ПЕРВЫМ блоком каталога, раньше категорий и товаров. Наверху
   остаётся компактная ссылка, а сами карточки — под сеткой товаров.{% endcomment %}
   {% if has_combos %}
-    <a href="{% url 'storefront-combos' %}" class="inline-block mt-2 text-sm font-medium" style="color: var(--accent);">🍔 {% trans "See our combos & menus" %} &rarr;</a>
+    <a href="{% url 'storefront-combos' %}" class="inline-block mt-2 text-sm font-medium" style="color: var(--accent);">{% if request.tenant|is_food_business %}🍔 {% trans "See our combos & menus" %}{% else %}📦 {% trans "See our sets" %}{% endif %} &rarr;</a>
   {% endif %}
 </div>
 {% if show_category_header %}{% include "storefront/_category_header.html" %}{% elif show_root_header %}{% include "storefront/category/_root_header.html" %}{% endif %}

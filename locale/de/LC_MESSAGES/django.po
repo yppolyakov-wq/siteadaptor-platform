@@ -22021,3 +22021,31 @@ msgid ""
 "Outlet-Halle: Kategorien zuerst, Preis groß, dichtes Raster — für Sortimente"
 " mit vielen Einzelstücken."
 msgstr ""
+
+msgid "Filter & Facetten"
+msgstr ""
+
+msgid ""
+"Zustand, Marke, Größe, Farbe, Preis und „nur reduziert“ — ein Katalog mit "
+"über 200 Einzelstücken."
+msgstr ""
+
+msgid "Zustand & UVP"
+msgstr ""
+
+msgid ""
+"Neu ohne OVP, Ausstellungsstück, geprüfte Retoure — mit Streichpreis gegen "
+"die UVP und ehrlichem Hinweis zum Zustand."
+msgstr ""
+
+msgid "Sets"
+msgstr ""
+
+msgid "Sets & Bundles"
+msgstr ""
+
+msgid "See our sets"
+msgstr "Sehen Sie sich unsere Sets an"
+
+msgid "Browse the range"
+msgstr "Sortiment durchstöbern"

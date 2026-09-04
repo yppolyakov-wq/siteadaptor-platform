@@ -26,7 +26,12 @@
     </div>
   {% endif %}
   <input type="number" name="qty" value="1" min="1" max="50" class="w-20 rounded-lg border border-gray-300 px-3 py-2.5" aria-label="{% trans 'Quantity' %}">
-  <button type="submit" class="flex-1 bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% trans "Order for pickup" %}</button>
+  {% comment %}O-7 (стенд аутлета): подпись была ЖЁСТКО «Bestellung zur Abholung» —
+  магазин с доставкой звал клиента забрать товар в лавке, хотя чуть ниже сам
+  предлагал «Lieferung». Когда доставка включена, способ выбирается на чекауте
+  (SH-24), поэтому кнопка нейтральная; чисто-самовывозной магазин подпись
+  сохраняет байт-в-байт.{% endcomment %}
+  <button type="submit" class="flex-1 bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% if request.tenant.delivery_enabled %}{% trans "In den Warenkorb" %}{% else %}{% trans "Order for pickup" %}{% endif %}</button>
 </form>
 
 {% comment %}M4-A: подмена главного фото при выборе варианта с собственным фото

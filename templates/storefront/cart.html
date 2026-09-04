@@ -264,7 +264,9 @@
 <div class="text-center py-16">
   <div class="text-5xl mb-3">🛒</div>
   <p class="text-gray-500 mb-4">{% trans "Your order is empty." %}</p>
-  <a href="{% url 'storefront-products' %}" class="inline-block rounded-lg px-5 py-2.5 text-white font-medium" style="background: var(--accent);">{% trans "Browse the menu" %} →</a>
+  {% comment %}O-7: «Das Menü durchblättern» — язык общепита; в магазине техники
+  пустая корзина звала «полистать меню».{% endcomment %}
+  <a href="{% url 'storefront-products' %}" class="inline-block rounded-lg px-5 py-2.5 text-white font-medium" style="background: var(--accent);">{% if request.tenant|is_food_business %}{% trans "Browse the menu" %}{% else %}{% trans "Browse the range" %}{% endif %} →</a>
 </div>
 {% endif %}
 {% page_blocks "cart" %}
