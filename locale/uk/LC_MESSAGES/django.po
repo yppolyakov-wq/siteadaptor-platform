@@ -22099,3 +22099,7 @@ msgstr ""
 
 msgid "Sets & Pakete"
 msgstr "Набори та комплекти"
+
+#: templates/storefront/products.html:38
+msgid "See our sets & bundles"
+msgstr "Подивіться наші набори та комплекти"

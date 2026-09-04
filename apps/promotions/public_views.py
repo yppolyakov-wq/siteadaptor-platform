@@ -20,6 +20,7 @@ from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
+from apps.catalog.combos import combo_labels
 from apps.catalog.price_history import lowest_price_30d
 from apps.catalog.views import FOOD_BUSINESS_TYPES as _FOOD_TYPES
 from apps.core import grid_filler, ratelimit
@@ -1554,11 +1555,10 @@ def product_list(request, slug=None):
             # 2026-09-03: у непищевого магазина полоса комбо называлась
             # «Menü-Pakete» — гастро-слово на витрине с посудой и рюкзаками.
             # Гастро-подпись остаётся дословно (паритет), прочим — «Sets».
-            "combos_title": (
-                _("Menü-Pakete")
-                if request.tenant.business_type in _FOOD_TYPES
-                else _("Sets & Pakete")
-            ),
+            # Подписи наборов — из одного источника (combos.combo_labels):
+            # заголовок полосы, тизер над сеткой и иконка расходились по трём
+            # местам, и «🍔 …und Menüs» жило на магазине с рюкзаками.
+            **combo_labels(request.tenant.business_type),
             "menu_pdf_available": (
                 request.tenant.business_type in _FOOD_TYPES
                 and Product.objects.filter(is_active=True).exists()

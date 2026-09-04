@@ -22116,3 +22116,7 @@ msgstr ""
 
 msgid "Sets & Pakete"
 msgstr "Наборы и комплекты"
+
+#: templates/storefront/products.html:38
+msgid "See our sets & bundles"
+msgstr "Посмотрите наши наборы и комплекты"

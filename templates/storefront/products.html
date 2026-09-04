@@ -35,7 +35,7 @@
   наборов стояли ПЕРВЫМ блоком каталога, раньше категорий и товаров. Наверху
   остаётся компактная ссылка, а сами карточки — под сеткой товаров.{% endcomment %}
   {% if has_combos %}
-    <a href="{% url 'storefront-combos' %}" class="inline-block mt-2 text-sm font-medium" style="color: var(--accent);">🍔 {% trans "See our combos & menus" %} &rarr;</a>
+    <a href="{% url 'storefront-combos' %}" class="inline-block mt-2 text-sm font-medium" style="color: var(--accent);">{{ combos_teaser_icon }} {{ combos_teaser_label }} &rarr;</a>
   {% endif %}
 </div>
 {% if show_category_header %}{% include "storefront/_category_header.html" %}{% elif show_root_header %}{% include "storefront/category/_root_header.html" %}{% endif %}
@@ -312,7 +312,7 @@ Kombo/Tagesgericht на виду. Только на 1-й странице без
 {% if combos_teaser %}
 <section data-reveal class="mb-8">
   <div class="flex items-end justify-between mb-3">
-    <h2 class="text-lg md:text-xl font-bold">🍔 {% trans "Combos & menus" %}</h2>
+    <h2 class="text-lg md:text-xl font-bold">{{ combos_teaser_icon }} {{ combos_title }}</h2>
     <a href="{% url 'storefront-combos' %}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>
   </div>
   {% include "storefront/_combo_grid.html" with combos=combos_teaser %}

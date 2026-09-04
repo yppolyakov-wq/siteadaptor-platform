@@ -15,6 +15,7 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.catalog.combos import combo_labels
 from apps.core import ratelimit
 
 from . import delivery_choice
@@ -686,6 +687,9 @@ def cart_view(request):
     ctx = {
         "rows": rows,
         "combo_rows": combo_rows,
+        # Бургер у строки набора — из общего источника: на магазине с рюкзаками
+        # он выглядел ошибкой (фидбэк 2026-09-04).
+        "combos_teaser_icon": combo_labels(request.tenant.business_type)["combos_teaser_icon"],
         "total": total,
         "discount": discount,
         "grand_total": total - discount,

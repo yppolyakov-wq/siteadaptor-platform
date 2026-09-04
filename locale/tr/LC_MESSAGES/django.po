@@ -22012,3 +22012,7 @@ msgstr ""
 
 msgid "Sets & Pakete"
 msgstr "Setler ve paketler"
+
+#: templates/storefront/products.html:38
+msgid "See our sets & bundles"
+msgstr "Setlerimize ve paketlerimize göz atın"

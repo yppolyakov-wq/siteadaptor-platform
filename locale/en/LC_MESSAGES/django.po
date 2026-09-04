@@ -21883,3 +21883,7 @@ msgstr "Calm concept store: warm off-white, borderless cards, plenty of air."
 
 msgid "Sets & Pakete"
 msgstr "Sets & bundles"
+
+#: templates/storefront/products.html:38
+msgid "See our sets & bundles"
+msgstr "See our sets & bundles"
