@@ -218,7 +218,8 @@ def test_catalog_origin_facet():
     ProductFactory(name={"de": "Mehl"})
     qs = Product.objects.filter(is_active=True)
     provider = core_facets.provider_for("product")
-    assert provider.present(qs, {})["origin_chips"] == ["Hof Müller"]
+    # 2026-09-03: чип стал {value, count} — значения те же.
+    assert provider.present(qs, {})["origin_chips"] == [{"value": "Hof Müller", "count": 1}]
     assert list(provider.apply(qs, {"herkunft": "Hof Müller"})) == [hof]
     assert provider.apply(qs, {"herkunft": "Anderswo"}).count() == 0
 

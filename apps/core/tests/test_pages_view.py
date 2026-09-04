@@ -1,4 +1,11 @@
-"""M20U-7 «Pages»: per-page настройки витрины (раскладки сеток страниц)."""
+"""STU-5/6: экран «Pages» умер — те же гарантии держит Studio.
+
+Экран был ВТОРЫМ писателем раскладок листингов, поэтому схлопнут (302 на Studio).
+Но его тесты защищали НАСТОЯЩИЕ гарантии, и терять их вместе с экраном нельзя:
+раскладки страниц, порядок и видимость секций детали события, сетка «Passt dazu»,
+гейт по активным модулям и «сохранение не роняет чужие ключи». Здесь они
+перенесены на форму Studio — источник тот же `site_config`, путь другой.
+"""
 
 from types import SimpleNamespace
 
@@ -19,78 +26,90 @@ def _urlconf(settings):
     settings.ROOT_URLCONF = "config.urls_tenant"
 
 
-def _request(method, data=None, tenant=None):
-    req = getattr(RequestFactory(), method)("/dashboard/site/pages/", data or {})
-    SessionMiddleware(lambda r: None).process_request(req)
-    MessageMiddleware(lambda r: None).process_request(req)
-    req.user = SimpleNamespace(is_authenticated=True)
-    req.tenant = tenant
-    return req
+def _builder(method, data=None, tenant=None):
+    request = getattr(RequestFactory(), method)("/dashboard/site/home/", data or {})
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.user = SimpleNamespace(is_authenticated=True)
+    request.tenant = tenant
+    return views.home_builder_view(request)
 
 
-def test_pages_view_saves_per_page_layouts():
-    tenant = TenantFactory(schema_name="public", slug="pv", name="PV")
-    data = {
-        "catalog_preset": "gallery",
-        "stay_index_preset": "cols4",
-        "events_index_preset": "cols3",
-    }
-    resp = views.pages_view(_request("post", data, tenant))
-    assert resp.status_code == 302
+def test_dead_screen_redirects_to_studio():
+    tenant = TenantFactory(schema_name="public", slug="pv0", name="PV0")
+    request = RequestFactory().get("/dashboard/site/pages/")
+    request.user = SimpleNamespace(is_authenticated=True)
+    request.tenant = tenant
+    resp = views.pages_view(request)
+    assert resp.status_code == 302 and resp.url == "/dashboard/site/home/"
+
+
+def test_studio_saves_per_page_layouts():
+    tenant = TenantFactory(schema_name="public", slug="pv1", name="PV1", disabled_modules=[])
+    _builder(
+        "post",
+        {
+            "catalog_preset": "cols2",
+            "stay_preset": "cols4",
+            "events_preset": "cols3",
+        },
+        tenant,
+    )
     cfg = siteconfig.normalize(tenant.site_config)
-    assert cfg["catalog_layout"]["preset"] == "gallery"
+    assert cfg["catalog_layout"]["preset"] == "cols2"
     assert cfg["stay_index_layout"]["preset"] == "cols4"
     assert cfg["events_index_layout"]["preset"] == "cols3"
 
 
-def test_pages_view_saves_event_detail_order():
+def test_studio_saves_event_detail_order():
     """M20U-4: порядок/видимость секций детальной события сохраняются."""
-    tenant = TenantFactory(schema_name="public", slug="ped", name="PED")
-    data = {
-        # faq первым, idea скрыта; остальным — большой порядок
-        "ed_order_faq": "1",
-        "ed_visible_faq": "on",
-        "ed_order_for_whom": "2",
-        "ed_visible_for_whom": "on",
-        "ed_order_idea": "3",  # ed_visible_idea не прислан → скрыта
-    }
-    resp = views.pages_view(_request("post", data, tenant))
-    assert resp.status_code == 302
+    tenant = TenantFactory(schema_name="public", slug="ped", name="PED", disabled_modules=[])
+    _builder(
+        "post",
+        {
+            # faq первым, idea скрыта; остальным — большой порядок
+            "ed_order_faq": "1",
+            "ed_visible_faq": "on",
+            "ed_order_for_whom": "2",
+            "ed_visible_for_whom": "on",
+            "ed_order_idea": "3",  # ed_visible_idea не прислан → скрыта
+        },
+        tenant,
+    )
     cfg = siteconfig.normalize(tenant.site_config)
     order = siteconfig.event_detail_order(cfg)
-    # faq поднят первым, for_whom виден, idea скрыта (чекбокс не прислан)
     assert order[0] == "faq" and "for_whom" in order and "idea" not in order
     assert order.index("faq") < order.index("for_whom")
 
 
-def test_pages_view_get_renders_event_sections_when_events_active():
+def test_studio_renders_event_sections_when_events_active():
     tenant = TenantFactory(schema_name="public", slug="ped2", name="PED2", disabled_modules=[])
-    body = views.pages_view(_request("get", tenant=tenant)).content.decode()
+    body = _builder("get", tenant=tenant).content.decode()
     assert 'name="ed_order_faq"' in body and 'name="ed_visible_idea"' in body
 
 
-def test_pages_view_saves_related_layout():
-    tenant = TenantFactory(schema_name="public", slug="pvr", name="PVR")
-    resp = views.pages_view(_request("post", {"related_preset": "cols3"}, tenant))
-    assert resp.status_code == 302
+def test_studio_saves_related_layout():
+    """STU-5: сетка «Passt dazu» переехала с умершего экрана в уровень «эта страница»."""
+    tenant = TenantFactory(schema_name="public", slug="pvr", name="PVR", disabled_modules=[])
+    _builder("post", {"related_preset": "cols3"}, tenant)
     assert siteconfig.normalize(tenant.site_config)["detail_related_layout"]["preset"] == "cols3"
 
 
-def test_pages_view_get_renders_active_pages_only():
-    # catalog активен, stays/events выключены → только селектор каталога.
+def test_studio_renders_active_pages_only():
+    """Гейт по модулям: у тенанта без номеров и событий их раскладок в форме нет."""
     tenant = TenantFactory(
         schema_name="public", slug="pv2", name="PV2", disabled_modules=["stays", "events"]
     )
-    body = views.pages_view(_request("get", tenant=tenant)).content.decode()
+    body = _builder("get", tenant=tenant).content.decode()
     assert 'name="catalog_preset"' in body
-    assert 'name="stay_index_preset"' not in body
-    assert 'name="events_index_preset"' not in body
+    assert 'name="stay_preset"' not in body
+    assert 'name="events_preset"' not in body
 
 
-def test_pages_view_save_preserves_other_config():
+def test_studio_save_preserves_other_config():
     tenant = TenantFactory(
         schema_name="public", slug="pv3", name="PV3", site_config={"hero_title": "Hallo"}
     )
-    views.pages_view(_request("post", {"catalog_preset": "cols2"}, tenant))
+    _builder("post", {"catalog_preset": "cols2", "hero_title": "Hallo"}, tenant)
     cfg = siteconfig.normalize(tenant.site_config)
     assert cfg["hero_title"] == "Hallo" and cfg["catalog_layout"]["preset"] == "cols2"

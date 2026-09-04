@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST
 
 from apps.catalog import category_styles
 from apps.catalog.option_styles import VARIANT_STYLES
-from apps.core import card_forms, detail_sections, presence, vat
+from apps.core import card_forms, detail_sections, presence, studio_pages, studio_scope, vat
 from apps.promotions import group_styles
 from apps.tenants import domains
 from apps.tenants.forms import BusinessSettingsForm
@@ -1724,14 +1724,21 @@ def home_builder_view(request):
             config["page_templates"] = ptpls
             messages.success(request, _("Page saved as template."))
         # Пер-архетипные оверрайды тизеров (заголовок/описание/видимость).
+        # W6: форма билдера владеет ТОЛЬКО этими тремя ключами. Остальное у архетипа
+        # (intro, обложка hero_image, кнопка, галерея) пишет другой экран — загрузчик
+        # обложек; пересборка словаря с нуля стирала их каждым сохранением билдера.
         arch = dict(config.get("archetypes") or {})
         for spec in storefront.teaser_specs(request.tenant):
             key = spec["key"]
-            arch[key] = {
-                "label": request.POST.get(f"arch_label_{key}", "").strip(),
-                "blurb": request.POST.get(f"arch_blurb_{key}", "").strip(),
-                "hidden": request.POST.get(f"arch_visible_{key}") != "on",
-            }
+            entry = dict(arch.get(key) or {})
+            entry.update(
+                {
+                    "label": request.POST.get(f"arch_label_{key}", "").strip(),
+                    "blurb": request.POST.get(f"arch_blurb_{key}", "").strip(),
+                    "hidden": request.POST.get(f"arch_visible_{key}") != "on",
+                }
+            )
+            arch[key] = entry
         config["archetypes"] = arch
         # M20U-7: кастомные заголовки секций главной (normalize чистит/обрезает).
         titles = {}
@@ -1777,6 +1784,16 @@ def home_builder_view(request):
                 config["catalog_page_style"] = _cps
             else:
                 config.pop("catalog_page_style", None)
+        # STU-5: три настройки со страницы «Pages» переехали в уровень «эта страница»
+        # Студии (та была ВТОРЫМ писателем раскладок). Семантика — прежняя:
+        # cl_present как сентинел (W0), скрытие цен только у browse-only витрины
+        # (PAngV), маркировка — гейт гастро-типа держит и витрина.
+        if request.tenant.is_module_active("catalog") and request.POST.get("cl_present"):
+            config["menu_labels"] = request.POST.get("menu_labels") == "on"
+            if not request.tenant.is_module_active("orders"):
+                config["menu_show_prices"] = request.POST.get("menu_show_prices") == "on"
+        if request.tenant.is_module_active("catalog") and "related_preset" in request.POST:
+            config["detail_related_layout"] = {"preset": request.POST.get("related_preset", "")}
         # Корзина: показывать ли кросс-селл — presence-guard (cart_present шлётся панелью корзины).
         if request.tenant.is_module_active("catalog") and request.POST.get("cart_present"):
             config["cart_show_upsell"] = request.POST.get("cart_show_upsell") == "on"
@@ -2344,6 +2361,11 @@ def home_builder_view(request):
             "preview_page_groups_json": _safe_json(
                 {p["url"]: p.get("group") or "home" for p in preview_pages}
             ),
+            # STU-2: подписи типов страниц для уровня «эта страница». Клиент берёт
+            # код типа с <body> кадра (data-stu-page) — на пути тип не написан.
+            "studio_page_labels_json": _safe_json(
+                {p.code: str(p.label) for p in (*studio_pages.PAGE_TYPES, studio_pages.OTHER)}
+            ),
             # UC6-6c: пресеты типов блоков для двухшагового инсертера «+».
             # UC6-6e: + props пресета — JS рисует миниатюру-картинку варианта.
             "cblock_variants_json": _safe_json(
@@ -2383,6 +2405,12 @@ def home_builder_view(request):
             "catalog_page_style": config.get("catalog_page_style", ""),
             "catalog_root_styles": category_styles.root_styles(),
             "cart_show_upsell": config.get("cart_show_upsell", True),
+            # STU-5: переехало со страницы «Pages» (см. save-блок выше).
+            "menu_prices_on": config.get("menu_show_prices") is not False,
+            "menu_labels_on": bool(config.get("menu_labels")),
+            "orders_active_for_prices": request.tenant.is_module_active("orders"),
+            "is_food_type": _pages_is_food_type(request),
+            "related_preset": config["detail_related_layout"]["preset"],
             # ST-2: пикеры пресетов НЕ-home страниц (реестр page_presets) —
             # карточки в scoped-строках панели; рекомендованные типу бизнеса
             # первыми, актив подсвечен current_preset.
@@ -2983,129 +3011,14 @@ def _pages_is_food_type(request) -> bool:
 
 @login_required
 def pages_view(request):
-    """M20U-7 «Pages»: per-page настройки витрины — раскладки сеток страниц
-    каталога /sortiment/, номеров /unterkunft/ и списка событий /veranstaltung/.
-    Сохранение мёржит в site_config, прочие настройки не затрагивая."""
-    from apps.tenants import siteconfig
+    """STU-5: экран «Pages» умер — он был ВТОРЫМ писателем раскладок листингов.
 
-    if request.method == "POST":
-        config = siteconfig.normalize(request.tenant.site_config)
-        config["catalog_layout"] = {"preset": request.POST.get("catalog_preset", "")}
-        # DS-7: тумблеры каталожного блока (сентинел cl_present — чужой POST не
-        # роняет ключи, класс W0). Скрытие цен — только browse-only (PAngV);
-        # при активном orders чекбокс не рендерится и ключ не трогаем.
-        if request.POST.get("cl_present"):
-            # KAT-1: тумблер category_landings умер (категория всегда страница).
-            # MEN-24a: маркировка (диеты/аллергены) в прайс-листе — чекбокс
-            # рендерится только FOOD-типам, но ключ пишем под общим сентинелом:
-            # не-FOOD тип его и не включит (гейт витрины двойной).
-            config["menu_labels"] = request.POST.get("menu_labels") == "on"
-            from apps.core import modules as _modules
-
-            if not _modules.is_module_active(request.tenant, "orders"):
-                config["menu_show_prices"] = request.POST.get("menu_show_prices") == "on"
-        config["detail_related_layout"] = {"preset": request.POST.get("related_preset", "")}
-        # MEN-18 (фидбэк «не нашёл, где изменить вид услуг»): листинг услуг
-        # настраивается и отсюда, не только с канвы. Семантика — как у канвы
-        # (home_builder): пустой выбор «Standard» УДАЛЯЕТ ключ (легаси-грид),
-        # сентинел присутствия — чужой POST ключ не трогает (класс W0).
-        if "service_index_preset" in request.POST:
-            svc_preset = request.POST.get("service_index_preset", "")
-            if svc_preset:
-                config["service_index_layout"] = {"preset": svc_preset}
-            else:
-                config.pop("service_index_layout", None)
-        config["stay_index_layout"] = {
-            "preset": request.POST.get("stay_index_preset", ""),
-            "mobile": 1,
-        }
-        config["events_index_layout"] = {"preset": request.POST.get("events_index_preset", "")}
-        # M20U-4: порядок/видимость тематических секций детальной события.
-        ed_rows = []
-        for key in siteconfig.EVENT_DETAIL_SECTION_KEYS:
-            try:
-                order = int(request.POST.get(f"ed_order_{key}", "999"))
-            except (TypeError, ValueError):
-                order = 999
-            ed_rows.append((order, key, request.POST.get(f"ed_visible_{key}") == "on"))
-        ed_rows.sort(key=lambda r: r[0])
-        config["event_detail"] = {
-            "order": [k for _o, k, _v in ed_rows],
-            "hidden": [k for _o, k, v in ed_rows if not v],
-        }
-        request.tenant.site_config = siteconfig.normalize(config)
-        request.tenant.save(update_fields=["site_config", "updated_at"])
-        messages.success(request, _("Gespeichert."))
-        return redirect("site-pages")
-
-    config = siteconfig.normalize(request.tenant.site_config)
-    preset_options = [
-        ("list", _("List")),
-        ("cols2", _("2 per row")),
-        ("cols3", _("3 per row")),
-        ("cols4", _("4 per row")),
-        ("cols5", _("5 per row")),  # DS-6
-        ("cols6", _("6 per row")),  # DS-6
-        ("gallery", _("Gallery")),
-    ]
-    # MEN-18: прайс-виды листинга услуг (список / с фото / 2 колонки).
-    service_preset_options = preset_options + [
-        (key, siteconfig.SECTION_STYLE_LABELS.get(key, key))
-        for key in siteconfig.PAGE_EXTRA_PRESETS["service_index_layout"]
-    ]
-    # DS-3a: страничные extra-виды каталога (прайс-листы) — только его пикер.
-    # Ревью MEN-14/16: список был ЗАХАРДКОЖЕН и отстал на три новых вида —
-    # сохранённый preisliste_buch не совпадал ни с одной опцией, браузер слал
-    # первую («list») и Save молча откатывал вид (тот же класс, что DS-5c на
-    # канве). Источник опций — реестр: новый вид появляется здесь сам.
-    catalog_preset_options = preset_options + [
-        (key, siteconfig.SECTION_STYLE_LABELS.get(key, key))
-        for key in siteconfig.PAGE_EXTRA_PRESETS["catalog_layout"]
-    ]
-    from apps.core import modules
-
-    # M20U-4: секции детальной события в текущем порядке + видимость.
-    ed = config["event_detail"]
-    ed_hidden = set(ed["hidden"])
-    ed_seen = set(ed["order"])
-    ed_full = ed["order"] + [k for k in siteconfig.EVENT_DETAIL_SECTION_KEYS if k not in ed_seen]
-    _event_labels = detail_sections.section_labels("events")
-    event_sections = [
-        {
-            "key": k,
-            "label": _event_labels.get(k, k),
-            "order": i + 1,
-            "visible": k not in ed_hidden,
-        }
-        for i, k in enumerate(ed_full)
-    ]
-    return render(
-        request,
-        "tenant/site_pages.html",
-        {
-            "nav": "site",
-            "preset_options": preset_options,
-            "catalog_preset_options": catalog_preset_options,  # DS-3a
-            "catalog_preset": config["catalog_layout"]["preset"],
-            # DS-7: текущие значения тумблеров каталожного блока.
-            "menu_prices_on": config.get("menu_show_prices") is not False,
-            "menu_labels_on": bool(config.get("menu_labels")),  # MEN-24a
-            "is_food_type": _pages_is_food_type(request),  # MEN-24a: гейт чекбокса
-            "orders_active_for_prices": modules.is_module_active(request.tenant, "orders"),
-            "related_preset": config["detail_related_layout"]["preset"],
-            "stay_index_preset": config["stay_index_layout"]["preset"],
-            "events_index_preset": config["events_index_layout"]["preset"],
-            # MEN-18: раскладка услуг (ключ presence-minimal: нет = «Standard»).
-            "service_index_preset": config.get("service_index_layout", {}).get("preset", ""),
-            "service_preset_options": service_preset_options,
-            "event_sections": event_sections,
-            # Показываем настройку страницы, только если её модуль активен.
-            "has_catalog": modules.is_module_active(request.tenant, "catalog"),
-            "has_stays": modules.is_module_active(request.tenant, "stays"),
-            "has_events": modules.is_module_active(request.tenant, "events"),
-            "has_booking": modules.is_module_active(request.tenant, "booking"),
-        },
-    )
+    Все его настройки (раскладки каталога/номеров/событий/услуг, цены и маркировка
+    в меню, сетка «Passt dazu», порядок секций детали события) живут в уровне
+    «эта страница» Студии. Здесь остаётся редирект, чтобы старые ссылки и закладки
+    не ломались (прецедент W10-6/W11-5).
+    """
+    return redirect("site-home")
 
 
 @login_required
@@ -3483,6 +3396,53 @@ def domain_remove(request, pk):
     domains.remove(custom)
     messages.success(request, _("Domain removed."))
     return redirect("domains")
+
+
+@login_required
+def studio_scope_state(request):
+    """STU-3: чем сейчас живёт объект открытой страницы — своим значением или общим.
+
+    Билдер спрашивает это при каждой смене страницы канвы: пилюля «для всех / только
+    здесь» обязана показывать ПРАВДУ, а объект (категория, товар, акция, группа) от
+    страницы к странице разный. Ошибка запроса — пустой ответ, а не 500: редактор
+    должен открываться и там, где объектного уровня нет.
+    """
+    from django.http import JsonResponse
+
+    ref = (request.GET.get("ref") or "").strip()
+    out = {}
+    for code in (request.GET.get("settings") or "").split(","):
+        code = code.strip()
+        if not code:
+            continue
+        try:
+            state = studio_scope.read_state(request.tenant, code, ref)
+        except studio_scope.ScopeError:
+            continue
+        out[code] = {"own": state.own_value, "site": state.site_value}
+    return JsonResponse({"ref": ref, "settings": out})
+
+
+@login_required
+@require_POST
+def studio_scope_save(request):
+    """STU-3: записать значение ТОЛЬКО для объекта открытой страницы (или снять его).
+
+    Точечная запись мимо большой формы билдера: та пересобирает site_config целиком,
+    и промах в любом её контроле трогал бы чужие модели.
+    """
+    from django.http import JsonResponse
+
+    try:
+        state = studio_scope.write_value(
+            request.tenant,
+            request.POST.get("setting", ""),
+            request.POST.get("ref", ""),
+            request.POST.get("value", ""),
+        )
+    except studio_scope.ScopeError as exc:
+        return JsonResponse({"ok": False, "error": str(exc)}, status=400)
+    return JsonResponse({"ok": True, "own": state.own_value, "site": state.site_value})
 
 
 @login_required

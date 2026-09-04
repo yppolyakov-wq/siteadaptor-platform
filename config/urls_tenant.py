@@ -68,6 +68,8 @@ from apps.core.views import (
     status_labels_save,
     status_manager,
     status_manager_save,
+    studio_scope_save,
+    studio_scope_state,
     transitions_save,
     verkaeufe,
     verkaeufe_view_set,
@@ -134,6 +136,10 @@ urlpatterns = [
     # DL-7b: переключатель шаблонов вне Studio (подпункт Website).
     path("dashboard/design/", design_view, name="design"),
     path("dashboard/site/home/", home_builder_view, name="site-home"),
+    # STU-3: точечные чтение/запись объектного уровня настройки (охват «только здесь»)
+    # — мимо большой формы билдера, чтобы промах в её контролах не трогал чужие модели.
+    path("dashboard/site/scope/", studio_scope_state, name="site-scope-state"),
+    path("dashboard/site/scope/save/", studio_scope_save, name="site-scope-save"),
     path("dashboard/site/menu/", menu_builder_view, name="site-menu"),
     path("dashboard/site/seo/", seo_settings_view, name="site-seo"),
     path("dashboard/site/sections/", sections_view, name="site-sections"),

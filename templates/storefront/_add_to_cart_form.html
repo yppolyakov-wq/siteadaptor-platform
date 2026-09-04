@@ -26,7 +26,11 @@
     </div>
   {% endif %}
   <input type="number" name="qty" value="1" min="1" max="50" class="w-20 rounded-lg border border-gray-300 px-3 py-2.5" aria-label="{% trans 'Quantity' %}">
-  <button type="submit" class="flex-1 bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% trans "Order for pickup" %}</button>
+  {% comment %}2026-09-04: подпись кнопки следует ФАКТУ доставки. «Bestellung zur
+  Abholung» — формулировка Click&Collect: у магазина с доставкой она обещает
+  самовывоз ещё до того, как покупатель выбрал способ получения (выбор живёт на
+  чекауте, SH-24). Лавке без доставки подпись остаётся прежней.{% endcomment %}
+  <button type="submit" class="flex-1 bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% if request.tenant.delivery_enabled %}{% trans "Add to cart" %}{% else %}{% trans "Order for pickup" %}{% endif %}</button>
 </form>
 
 {% comment %}M4-A: подмена главного фото при выборе варианта с собственным фото

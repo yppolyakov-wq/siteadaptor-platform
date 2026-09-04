@@ -90,7 +90,8 @@ def test_size_facet_filters_available():
     got = f.apply(items, {"groesse": "M"})
     assert list(got) == [a] or set(got) == {a}
     chips = f.present(items, {})
-    assert "M" in chips["size_chips"] or chips["size_chips"] == []  # один размер → скрыто
+    _sizes = [c["value"] for c in chips["size_chips"]]
+    assert "M" in _sizes or _sizes == []  # один размер → скрыто
 
 
 def test_size_table_rows_parse_and_render():

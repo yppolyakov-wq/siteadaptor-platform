@@ -17,7 +17,9 @@ M20U-4: единый каркас детальной страницы (това�
 {% comment %}UA4-4b: per-entity JSON-LD (Product/Service/Event/LodgingBusiness) +
 AggregateRating из отзывов — из контракта sellable, на всех детальных страницах разом.{% endcomment %}
 {% entity_jsonld sellable review_summary %}
-<div class="max-w-5xl mx-auto">
+{% comment %}STU-4: якорь клика для редактора — клик по детали открывает панель
+   настроек ЭТОГО типа страницы. На витрине атрибут ничего не делает.{% endcomment %}
+<div class="max-w-5xl mx-auto" data-stu-area="detail">
   {% block detail_back %}{% endblock %}
 
   {# Первый экран: галерея слева + sticky-карточка справа #}

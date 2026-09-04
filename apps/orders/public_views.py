@@ -15,6 +15,7 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.catalog.combos import combo_labels
 from apps.core import ratelimit
 
 from . import delivery_choice
@@ -231,7 +232,7 @@ def combo_list_public(request):
     KAT-2: ?kategorie=<slug> — фильтр наборов направления («Alle Sets» со
     страницы категории); неизвестный/пустой слаг → все наборы (fail-open)."""
     _require_combos_visible(request)
-    from apps.catalog.combos import active_combos, combos_title
+    from apps.catalog.combos import active_combos
 
     combos = active_combos()
     kategorie = (request.GET.get("kategorie") or "").strip()
@@ -248,8 +249,8 @@ def combo_list_public(request):
         {
             "combos": combos,
             "current_category": current_category,
-            # Заголовок по архетипу: гастро — «Menü-Pakete», магазин — «Sets & Looks».
-            "combos_title": combos_title(request.tenant),
+            # Заголовок по архетипу — общий реестр подписей (гастро/прочие).
+            "combos_title": combo_labels(request.tenant.business_type)["combos_title"],
         },
     )
 
@@ -688,6 +689,9 @@ def cart_view(request):
     ctx = {
         "rows": rows,
         "combo_rows": combo_rows,
+        # Бургер у строки набора — из общего источника: на магазине с рюкзаками
+        # он выглядел ошибкой (фидбэк 2026-09-04).
+        "combos_teaser_icon": combo_labels(request.tenant.business_type)["combos_teaser_icon"],
         "total": total,
         "discount": discount,
         "grand_total": total - discount,

@@ -1,0 +1,106 @@
+<!-- STU canvas -->
+<style>
+  body { margin: 0; font-family: Inter, "Segoe UI", sans-serif; color: #1f2937; }
+  .wf { width: 900px; background: #fff; box-sizing: border-box; border: 1px solid #e5e7eb; }
+  .hd { padding: 11px 16px 10px; border-bottom: 1px solid #e5e7eb; background: #fff; }
+  .hd .k { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+           color: #4f46e5; }
+  .hd h2 { margin: 2px 0 0; font-size: 16px; color: #111827; }
+  .hd p { margin: 3px 0 0; font-size: 11px; color: #6b7280; line-height: 1.5; }
+  .app { display: flex; height: 330px; background: #f2f4f7; }
+  .top { display: flex; align-items: center; gap: 9px; padding: 7px 13px;
+         border-bottom: 1px solid #e5e7eb; background: #fff; font-size: 10px; color: #6b7280; }
+  .top .brand { font-weight: 800; color: #111827; font-size: 12px; }
+  .top .sp { flex: 1; }
+  .rail { width: 126px; flex: 0 0 126px; background: #fff; border-right: 1px solid #e5e7eb;
+          padding: 9px 7px; }
+  .rail .it { display: flex; gap: 6px; align-items: flex-start; padding: 6px 7px;
+              border-radius: 8px; font-size: 10px; color: #374151; margin-bottom: 3px; }
+  .rail .it.on { background: #eef2ff; color: #3730a3; font-weight: 700; }
+  .rail .it small { display: block; font-weight: 400; color: #9ca3af; font-size: 8px;
+                    margin-top: 1px; line-height: 1.3; }
+  .canvas { flex: 1; padding: 10px; min-width: 0; }
+  .frame { background: #fff; border: 1px solid #d1d5db; border-radius: 8px; height: 100%;
+           box-sizing: border-box; padding: 9px; position: relative; overflow: hidden; }
+  .pane { width: 244px; flex: 0 0 244px; background: #fff; border-left: 1px solid #e5e7eb;
+          padding: 9px; box-sizing: border-box; }
+  .pane h4 { margin: 0 0 2px; font-size: 11px; color: #111827; }
+  .pane .ctx { font-size: 9px; color: #6b7280; margin-bottom: 8px; }
+  .fld { margin-bottom: 8px; }
+  .fld .lb { font-size: 9px; color: #6b7280; margin-bottom: 3px; display: flex;
+             justify-content: space-between; align-items: center; gap: 6px; }
+  .ctrl { border: 1px solid #d1d5db; border-radius: 6px; padding: 5px 7px; font-size: 9px;
+          color: #374151; background: #fff; }
+  .tiles { display: flex; gap: 5px; }
+  .tiles .t { flex: 1; border: 1px solid #d1d5db; border-radius: 6px; height: 28px;
+              background: repeating-linear-gradient(135deg,#eef2f7 0 4px,#f8fafc 4px 8px); }
+  .tiles .t.on { border-color: #4f46e5; box-shadow: 0 0 0 2px #e0e7ff inset; }
+  .seg { display: flex; border: 1px solid #d1d5db; border-radius: 7px; overflow: hidden;
+         font-size: 9px; margin-bottom: 9px; }
+  .seg div { flex: 1; text-align: center; padding: 5px 3px; color: #6b7280; }
+  .seg div.on { background: #111827; color: #fff; font-weight: 700; }
+  .pill { border: 1px solid #d1d5db; border-radius: 999px; padding: 1px 7px; font-size: 8px;
+          color: #6b7280; background: #fff; white-space: nowrap; }
+  .pill.own { border-color: #4f46e5; color: #3730a3; background: #eef2ff; font-weight: 700; }
+  .dot { width: 5px; height: 5px; border-radius: 999px; background: #4f46e5;
+         display: inline-block; margin-right: 3px; }
+  .ph { background: repeating-linear-gradient(135deg, #e5e7eb 0 6px, #f3f4f6 6px 12px); }
+  .mock .cap2 { height: 20px; border-bottom: 1px solid #eef2f7; display: flex; gap: 5px;
+                align-items: center; font-size: 8px; color: #9ca3af; }
+  .mock .row { display: flex; gap: 6px; margin-top: 7px; }
+  .mock .box { border: 1px solid #e5e7eb; border-radius: 6px; flex: 1; height: 54px; }
+  .mock .sel { outline: 2px solid #4f46e5; outline-offset: 1px; position: relative; }
+  .mock .sel::after { content: "⚙ настройки этой области"; position: absolute; top: -8px; left: 5px;
+                      background: #4f46e5; color: #fff; font-size: 7px; padding: 1px 5px;
+                      border-radius: 999px; }
+  .cap { padding: 11px 16px 13px; background: #fafafa; border-top: 1px solid #e5e7eb;
+         font-size: 11px; line-height: 1.55; color: #374151; }
+  .cap b { color: #111827; }
+  .tag { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px;
+         border-radius: 999px; background: #dcfce7; color: #166534; margin-right: 4px; }
+  .tag.warn { background: #fef3c7; color: #92400e; }
+  .tag.bad { background: #fee2e2; color: #991b1b; }
+  .tag.new { background: #dbeafe; color: #1e40af; }
+  .doc { padding: 18px 22px; box-sizing: border-box; }
+  .doc h1 { font-size: 19px; margin: 0 0 3px; color: #111827; }
+  .doc h2 { font-size: 12px; margin: 15px 0 5px; color: #111827; }
+  .doc p, .doc li { font-size: 11px; line-height: 1.6; color: #374151; }
+  .doc ul { margin: 4px 0 0; padding-left: 17px; }
+  .doc .lead { color: #6b7280; font-size: 11px; margin-bottom: 2px; }
+  table.cmp { border-collapse: collapse; width: 100%; font-size: 10px; margin-top: 6px; }
+  table.cmp th, table.cmp td { border: 1px solid #e5e7eb; padding: 5px 7px;
+                               text-align: left; vertical-align: top; }
+  table.cmp th { background: #f9fafb; font-weight: 600; color: #111827; }
+  .ask { border: 1px solid #4f46e5; background: #eef2ff; border-radius: 9px;
+         padding: 10px 12px; margin: 9px 0; }
+  .ask b { color: #3730a3; }
+  .ask p { margin: 3px 0 0; }
+  .abc { display: flex; gap: 10px; padding: 12px 16px; }
+  .abc > div { flex: 1; border: 1px solid #e5e7eb; border-radius: 9px; padding: 10px; }
+  .abc h5 { margin: 0 0 6px; font-size: 11px; color: #111827; }
+  .abc .note { font-size: 10px; color: #6b7280; line-height: 1.45; margin-top: 7px; }
+</style>
+
+<div class="wf" style="width:900px"><div class="hd"><div class="k">Что не так сегодня</div><h2>Настройки лежат не там, где их ищут</h2><p>Один и тот же экран Студии показывает всё сразу — и то, что относится ко всему сайту, и то, что относится к одной странице. Настройки страницы акций вообще лежат в «Теме».</p></div>
+  <div style="padding:12px 16px 16px">
+    <table class="cmp">
+      <tr><th style="width:190px">Что настраиваю</th><th>Где это сегодня</th><th>Проблема</th></tr>
+      <tr><td>Цвет, шрифт, Look — <b>весь сайт</b></td><td>Студия → «Тема»</td>
+          <td>то же самое ещё на двух экранах: <i>/design/</i> и мастер</td></tr>
+      <tr><td>Секции главной</td><td>Студия → «sections»</td><td>ок</td></tr>
+      <tr><td>Шаблон страницы <b>акций</b></td><td>Студия → «Тема» (!)</td>
+          <td>видно на любой странице и <b>не видно на своей</b></td></tr>
+      <tr><td>Раскладка каталога / услуг / номеров</td><td>Студия <b>и</b> отдельный экран
+          <i>/site/pages/</i></td><td>два экрана пишут одно и то же</td></tr>
+      <tr><td>Шаблон <b>конкретной категории</b></td><td>только форма категории</td>
+          <td><b>в Студии нет вообще</b></td></tr>
+      <tr><td>Форма карточки <b>конкретного товара / акции</b></td><td>только форма товара / акции</td>
+          <td><b>в Студии нет вообще</b></td></tr>
+      <tr><td>Шаблон <b>группы акций</b></td><td>только список акций</td>
+          <td><b>в Студии нет вообще</b></td></tr>
+    </table>
+    <p style="font-size:11px;color:#374151;line-height:1.6;margin-top:9px">
+      <span class="tag bad">итог</span> В данных давно есть три уровня: <b>весь сайт → тип страницы
+      → конкретный товар/категория</b>, и «своё побеждает общее» уже работает. В интерфейсе этих
+      уровней нет — поэтому и ощущение каши.</p>
+  </div></div>

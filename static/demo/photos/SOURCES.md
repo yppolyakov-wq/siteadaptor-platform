@@ -84,7 +84,7 @@ license=cc0,pdm) и Wikimedia Commons (haswbstatement CC0/Public domain);
 - `lake-forest.webp` — https://stocksnap.io/photo/lake-forest-XIWN1FUXG0 — CC0 1.0 (stocksnap, автор: JJ Skys the Limit)
 - `lake-view.webp` — https://commons.wikimedia.org/w/index.php?curid=38286682 — CC0 1.0 (wikimedia, автор: Thomson200)
 - `lasagne.webp` — https://www.rawpixel.com/image/5904337/free-lasagne-image-public-domain-food-cc0-photo — CC0 1.0 (rawpixel)
-- `laundry-detergent.webp` — https://commons.wikimedia.org/w/index.php?curid=189083995 — CC0 1.0 (wikimedia, автор: Liilia Moroz)
+- `laundry-detergent.webp` — https://commons.wikimedia.org/w/index.php?curid=189083995 — CC0 1.0 (wikimedia, автор: Liilia Moroz) — ⚠️ чужой бренд в кадре — на витрине не показывать
 - `lemonade.webp` — https://commons.wikimedia.org/w/index.php?curid=88939081 — CC0 1.0 (wikimedia, автор: Obsidian Soul)
 - `liver-sausage.webp` — https://commons.wikimedia.org/wiki/File:Underwood_Liverwurst_Spread.jpg — CC0 (wikimedia, автор: Ll1324)
 - `market-stall.webp` — https://www.flickr.com/photos/104736837@N03/52986314949 — CC0 1.0 (flickr, автор: Amsterdam city in free download photos)
@@ -196,7 +196,7 @@ license=cc0,pdm) и Wikimedia Commons (haswbstatement CC0/Public domain);
 
 Сгенерировано моделью `black-forest-labs/flux-schnell` (Replicate) под недостающие ключи `demo_photo_report`. Промпты — немецкие (еда/товар/интерьер/место; дневной свет, без текста и логотипов). Портреты — фиктивные лица (не существующие люди). Формат webp, cover под нужную пропорцию (4:3 товары/галереи, 16:9 hero, 1:1 портреты), <150 KB.
 
-- `accessories.webp` — AI-generated, FLUX.1-schnell
+- `accessories.webp` — AI-generated, FLUX.1-schnell — ⚠️ БРАК НАБОРА: клубника и сумка — читается как еда, не аксессуары
 - `air-filter.webp` — AI-generated, FLUX.1-schnell
 - `antifreeze.webp` — AI-generated, FLUX.1-schnell
 - `apartment-living.webp` — AI-generated, FLUX.1-schnell
@@ -226,7 +226,7 @@ license=cc0,pdm) и Wikimedia Commons (haswbstatement CC0/Public domain);
 - `cardigan.webp` — AI-generated, FLUX.1-schnell
 - `castle.webp` — AI-generated, FLUX.1-schnell
 - `chef-woman.webp` — AI-generated, FLUX.1-schnell
-- `chinos.webp` — AI-generated, FLUX.1-schnell
+- `chinos.webp` — AI-generated, FLUX.1-schnell — ⚠️ БРАК НАБОРА: на снимке паста, не брюки — не использовать для одежды
 - `chocolate-cake.webp` — AI-generated, FLUX.1-schnell
 - `cinnamon-roll.webp` — AI-generated, FLUX.1-schnell
 - `city-tour.webp` — AI-generated, FLUX.1-schnell
@@ -255,8 +255,8 @@ license=cc0,pdm) и Wikimedia Commons (haswbstatement CC0/Public domain);
 - `hair-color.webp` — AI-generated, FLUX.1-schnell
 - `hair-colorist.webp` — AI-generated, FLUX.1-schnell
 - `hair-conditioner.webp` — AI-generated, FLUX.1-schnell
-- `hair-oil.webp` — AI-generated, FLUX.1-schnell
-- `hair-products.webp` — AI-generated, FLUX.1-schnell
+- `hair-oil.webp` — AI-generated, FLUX.1-schnell — ⚠️ БРАК НАБОРА: напиток в стакане, не косметическое масло
+- `hair-products.webp` — AI-generated, FLUX.1-schnell — ⚠️ искажённые AI-буквы на упаковках
 - `hair-salon.webp` — AI-generated, FLUX.1-schnell
 - `hair-spray.webp` — AI-generated, FLUX.1-schnell
 - `hairstyle.webp` — AI-generated, FLUX.1-schnell
@@ -274,7 +274,7 @@ license=cc0,pdm) и Wikimedia Commons (haswbstatement CC0/Public domain);
 - `latte.webp` — AI-generated, FLUX.1-schnell
 - `latte-art.webp` — AI-generated, FLUX.1-schnell
 - `leather-belt.webp` — AI-generated, FLUX.1-schnell
-- `linen-blouse.webp` — AI-generated, FLUX.1-schnell
+- `linen-blouse.webp` — AI-generated, FLUX.1-schnell — ⚠️ БРАК НАБОРА: тканевый мешочек, не блузка
 - `linen-shirt.webp` — AI-generated, FLUX.1-schnell ⚠️ БРАК НАБОРА: на снимке выпечка, не рубашка (найдено DS-9, 2026-08-13) — не использовать для одежды
 - `mechanic.webp` — AI-generated, FLUX.1-schnell
 - `mechanic-man.webp` — AI-generated, FLUX.1-schnell
@@ -294,7 +294,7 @@ license=cc0,pdm) и Wikimedia Commons (haswbstatement CC0/Public domain);
 - `scrambled-eggs.webp` — AI-generated, FLUX.1-schnell
 - `shop-assistant.webp` — AI-generated, FLUX.1-schnell
 - `spiced-potato.webp` — AI-generated, FLUX.1-schnell
-- `summer-dress.webp` — AI-generated, FLUX.1-schnell
+- `summer-dress.webp` — AI-generated, FLUX.1-schnell — ⚠️ БРАК НАБОРА: пустая стена, предмета в кадре нет
 - `sweater.webp` — AI-generated, FLUX.1-schnell
 - `tiles-bathroom.webp` — AI-generated, FLUX.1-schnell
 - `tire-change.webp` — AI-generated, FLUX.1-schnell
@@ -313,7 +313,7 @@ license=cc0,pdm) и Wikimedia Commons (haswbstatement CC0/Public domain);
 - `wine-cellar.webp` — AI-generated, FLUX.1-schnell
 - `wiper-blade.webp` — AI-generated, FLUX.1-schnell
 - `wool-scarf.webp` — AI-generated, FLUX.1-schnell
-- `yoga-mat.webp` — AI-generated, FLUX.1-schnell
+- `yoga-mat.webp` — AI-generated, FLUX.1-schnell — ⚠️ БРАК НАБОРА: AI-артефакты на коврике (еда) — брать yoga-products.webp
 - `yoga-studio.webp` — AI-generated, FLUX.1-schnell
 - `yoga-teacher-woman.webp` — AI-generated, FLUX.1-schnell
 
@@ -370,6 +370,184 @@ license=cc0,pdm) и Wikimedia Commons (haswbstatement CC0/Public domain);
 
 - `rice-plain.webp` — https://www.rawpixel.com/image/5904594/photo-image-public-domain-sunlight-summer — CC0 1.0 (rawpixel)
 - `cucumber-raita.webp` — https://commons.wikimedia.org/w/index.php?curid=178399183 — CC0 1.0 (Wikimedia Commons, автор: Miansari66)
+
+## Волна AMP — Aktionsmarkt Sparfuchs (2026-09-03)
+
+Демо продуктового магазина пересобрано под ассортимент дискаунтера: собственное
+пространство ключей `markt-*`, **только реальные фотографии** (CC0/PDM через Openverse —
+rawpixel/Wikimedia/WordPress-Fotoverzeichnis). AI-генерация для этого набора НЕ
+использовалась: у доступной в среде модели (`image.pollinations.ai`, sana) еда выходила
+пластиковой, а на кадрах с руками появлялись лишние пальцы — владелец отклонил такие кадры.
+Лицензии проверены по метаданным Openverse (`license=cc0,pdm`), каждый кадр просмотрен.
+
+- `markt-aepfel.webp` — CC0, «A close-up of fresh apples in shades of red and green, piled together » / Bigul Malayi — https://wordpress.org/photos/photo/91069293e7/
+- `markt-backtuete.webp` — CC0, «Assortment of bread» / Markus Spiske — https://www.rawpixel.com/image/432562/free-photo-image-bread-spelt-assortment
+- `markt-backwaren.webp` — CC0, «Composition Bread Wicker Basket» / unbekannt — https://www.rawpixel.com/image/5965204/composition-with-bread-wicker-basket
+- `markt-bauernbrot.webp` — CC0, «Free close fresh homemade bread» / unbekannt — https://www.rawpixel.com/image/5917980/image-public-domain-wood-kitchen
+- `markt-bergkaese.webp` — CC0, «Meule du Plateau cheese wheels in the ripening cellar, Terre de fromag» / DimiTalen — https://commons.wikimedia.org/w/index.php?curid=178503892
+- `markt-broetchen.webp` — CC0, «A woven basket filled with several soft, golden-brown bread rolls.» / Vishnu Chandra — https://wordpress.org/photos/photo/8269bbadd7/
+- `markt-croissant.webp` — CC0, «Original public domain image Wikimedia» / unbekannt — https://www.rawpixel.com/image/3294516/free-photo-image-bakery-baking-bread
+- `markt-galerie-angebote.webp` — CC0, «Local summer fruit market» / Jakub Kapusnak — https://www.rawpixel.com/image/448400/free-photo-image-fruit-farmers-market-summer
+- `markt-galerie-backwaren.webp` — CC0, «Free bread loaf bakery's display» / unbekannt — https://www.rawpixel.com/image/5914820/image-public-domain-free-menu
+- `markt-galerie-einkauf.webp` — CC0, «Free vegetables basket image» / unbekannt — https://www.rawpixel.com/image/5916958/image-public-domain-plant-greens
+- `markt-galerie-gemuese.webp` — CC0, «» / unbekannt — https://www.rawpixel.com/image/5951649/free-public-domain-cc0-photo
+- `markt-galerie-markt.webp` — CC0, «Radishes vine-ripened tomatoes vegetable stand» / unbekannt — https://www.rawpixel.com/image/3303930/free-photo-image-chalk-salad-blur-background
+- `markt-galerie-regal.webp` — CC0, «Free apple image» / unbekannt — https://www.rawpixel.com/image/5927233/free-apple-image-public-domain-fruit-cc0-photo
+- `markt-gemuesekiste-inhalt.webp` — CC0, «Free variety vegetables wooden table» / unbekannt — https://www.rawpixel.com/image/5910473/image-background-public-domain-plant
+- `markt-getraenke.webp` — CC0, «Free juice bottle image» / unbekannt — https://www.rawpixel.com/image/5904475/photo-image-background-public-domain-fruit
+- `markt-hero.webp` — CC0, «Free farmers market, vegetables display» / unbekannt — https://www.rawpixel.com/image/5913183/photo-image-public-domain-wooden-free
+- `markt-hero-tueten.webp` — CC0, «French bread rolls» / unbekannt — https://www.rawpixel.com/image/8812012/french-bread-rolls
+- `markt-hero-vorrat.webp` — CC0, «» / unbekannt — https://www.rawpixel.com/image/5944526/free-public-domain-cc0-photo
+- `markt-kaffee.webp` — CC0, «Ground coffee portafilter» / unbekannt — https://www.rawpixel.com/image/6023348/photo-image-background-public-domain-coffee
+- `markt-kaffee-aktion.webp` — CC0, «Free coffee cup beans wooden» / unbekannt — https://www.rawpixel.com/image/5902433/photo-image-public-domain-wooden-coffee
+- `markt-limonade.webp` — CC0, «Free lemonade pitcher, summer, pool» / unbekannt — https://www.rawpixel.com/image/5917531/image-public-domain-summer-lemons
+- `markt-mineralwasser.webp` — CC0, «Lemon sparkling water image» / unbekannt — https://www.rawpixel.com/image/5912059/image-public-domain-fruit-food
+- `markt-molkerei.webp` — CC0, «Free cheese shop image» / unbekannt — https://www.rawpixel.com/image/5926800/photo-image-public-domain-food-free
+- `markt-nudeln.webp` — CC0, «Free spaghetti image» / unbekannt — https://www.rawpixel.com/image/5907896/image-public-domain-food-free
+- `markt-obsttuete.webp` — CC0, «Free variety vegetables wooden table» / unbekannt — https://www.rawpixel.com/image/5907956/image-public-domain-leaf-plant
+- `markt-oel.webp` — CC0, «Olive oil bottles» / unbekannt — https://www.rawpixel.com/image/6037430/photo-image-public-domain-free-olive
+- `markt-orangensaft.webp` — CC0, «A glass of Orange juice» / unbekannt — https://www.rawpixel.com/image/8718218/glass-orange-juice
+- `markt-reis.webp` — CC0, «Free uncooked rice grain mat» / unbekannt — https://www.rawpixel.com/image/5922922/photo-image-public-domain-food-free
+- `markt-sparkiste.webp` — CC0, «Free variety vegetables wooden table» / unbekannt — https://www.rawpixel.com/image/5910392/image-background-public-domain-plant
+- `markt-tueten.webp` — CC0, «Free assorted vegetables wooden table» / unbekannt — https://www.rawpixel.com/image/5910360/image-background-public-domain-plant
+- `markt-vorrat.webp` — CC0, «Free juice bottle image» / unbekannt — https://www.rawpixel.com/image/5920184/photo-image-background-public-domain-fruit
+- `markt-vorratskammer.webp` — CC0, «Free lentils tricolor image» / unbekannt — https://www.rawpixel.com/image/5919013/image-public-domain-food-free
+
+<!-- OS-SET:BEGIN -->
+Набор 2026-09-03/04 (волна online_shop, демо «Weitwerk»): Openverse API,
+`license=cc0,pdm`; поиск в ДВА прохода — сначала фото-стоки
+(`source=rawpixel,stocksnap`), затем свободный добор с чёрным списком
+оцифрованных музейных собраний (по общему слову они дают экспонат, а не товар).
+Лицензия каждой записи перепроверена по метаданным API. Каждый кадр просмотрен
+на контактном листе (`scripts/demo_photo_sheet.py`) и принят вручную; отбракованы
+чужие бренды в кадре, водяные знаки, узнаваемые лица и чужой предмет. Портреты
+команды НЕ искали — взяты из AI-набора (вымышленные лица). Сжатие: webp,
+товары/обложки ≤800×600, баннеры ≤1600×900, <150 KB.
+
+- `aktion-decke-sofa.webp` — https://www.rawpixel.com/image/5915185/photo-image-light-public-domain-art — CC0 1.0 (rawpixel, автор: —)
+- `aktion-ueberraschung-paket.webp` — https://stocksnap.io/photo/gift-box-PIHUS3UFDJ — CC0 1.0 (stocksnap, автор: Altered Reality)
+- `backpacks-shelf.webp` — https://stocksnap.io/photo/backpacking-trip-KTEGIF3PEA — CC0 1.0 (stocksnap, автор: Kristin Hardwick)
+- `bags-collection.webp` — https://www.rawpixel.com/image/3305481/free-photo-image-briefcase-leather-bag — CC0 1.0 (rawpixel, автор: —)
+- `becher-faust-steinzeug.webp` — https://www.rawpixel.com/image/5965017/white-ceramic-mug — CC0 1.0 (rawpixel, автор: —)
+- `becher-glaeser-regal.webp` — https://www.rawpixel.com/image/3283727/free-photo-image-coffee-table-wooden — CC0 1.0 (rawpixel, автор: —)
+- `bereich-boots.webp` — https://www.rawpixel.com/image/3284270/free-photo-image-shoe-man-apparel-beauty — CC0 1.0 (rawpixel, автор: —)
+- `bereich-halbschuhe.webp` — https://stocksnap.io/photo/fashion-clothes-3WTQ3M15W8 — CC0 1.0 (stocksnap, автор: Terje Sollie)
+- `bereich-sandalen.webp` — https://www.rawpixel.com/image/5908527/image-background-public-domain-wooden — CC0 1.0 (rawpixel, автор: —)
+- `bereich-sneaker.webp` — https://stocksnap.io/photo/sneakers-shoes-U20YIXFQBC — CC0 1.0 (stocksnap, автор: Kristin Hardwick)
+- `bleistift-werkbank-set.webp` — https://stocksnap.io/photo/pencils-writing-0P6FVF3Q5L — CC0 1.0 (stocksnap, автор: Marcin Czaja)
+- `blog-mischgewebe-stoff.webp` — https://www.rawpixel.com/image/5905281/photo-image-texture-public-domain-fabric — CC0 1.0 (rawpixel, автор: —)
+- `brett-scheibe-eiche.webp` — https://www.rawpixel.com/image/6035660/photo-image-public-domain-food-free — CC0 1.0 (rawpixel, автор: —)
+- `buersten-zubehoer-holz.webp` — https://www.rawpixel.com/image/6026714/photo-image-white-background-public-domain-brush — CC0 1.0 (rawpixel, автор: —)
+- `camp-licht-zelt.webp` — https://stocksnap.io/photo/tent-camping-6PIG1JQLBY — CC0 1.0 (stocksnap, автор: Ben Duchac)
+- `cat-schmuck.webp` — https://www.rawpixel.com/image/6037276/photo-image-public-domain-free-metal — CC0 1.0 (rawpixel, автор: —)
+- `decke-fjord-lambswool.webp` — https://stocksnap.io/photo/blanket-scarf-LQZSN13S95 — CC0 1.0 (stocksnap, автор: Kelly Sikkema)
+- `decken-kissen-sofa.webp` — https://stocksnap.io/photo/chair-pillow-V24XMHT4Q6 — CC0 1.0 (stocksnap, автор: Breather)
+- `flasche-quelle-stahl.webp` — https://www.rawpixel.com/image/5958970/free-public-domain-cc0-photo — CC0 1.0 (rawpixel, автор: —)
+- `geschirr-stapel-steinzeug.webp` — https://stocksnap.io/photo/kitchen-cabinet-CTKGR7O9UB — CC0 1.0 (stocksnap, автор: Matt Bango)
+- `gesicht-koerper-oel.webp` — https://www.rawpixel.com/image/11524208/photo-image-face-public-domain-products — CC0 1.0 (rawpixel, автор: —)
+- `handbags-shelf.webp` — https://www.rawpixel.com/image/5960411/free-public-domain-cc0-photo — CC0 1.0 (rawpixel, автор: —)
+- `handtuecher-stapel-frottee.webp` — https://www.rawpixel.com/image/5907616/bath-towels-free-public-domain-cc0-photo — CC0 1.0 (rawpixel, автор: —)
+- `hemd-sund-leinen.webp` — https://www.rawpixel.com/image/5928099/photo-image-public-domain-shirt-minimal — CC0 1.0 (rawpixel, автор: —)
+- `holz-besteck-brett.webp` — https://www.rawpixel.com/image/5913099/image-public-domain-wood-kitchen — CC0 1.0 (rawpixel, автор: —)
+- `honig-lindenbluete-glas.webp` — https://www.rawpixel.com/image/6035650/honey-jar-free-public-domain-cc0-photo — CC0 1.0 (rawpixel, автор: —)
+- `hosen-kleider-buegel.webp` — https://stocksnap.io/photo/blue-denim-QBSVGRFT2Y — CC0 1.0 (stocksnap, автор: it's me neosiam)
+- `jacken-westen-garderobe.webp` — https://www.rawpixel.com/image/6039264/jacket-hanger-free-public-domain-cc0-photo — CC0 1.0 (rawpixel, автор: —)
+- `kaffee-bohnen-schale.webp` — https://www.rawpixel.com/image/6039156/photo-image-background-public-domain-coffee — CC0 1.0 (rawpixel, автор: —)
+- `kaffee-morgenlicht-filter.webp` — https://www.rawpixel.com/image/5907776/photo-image-public-domain-black-coffee — CC0 1.0 (rawpixel, автор: —)
+- `kaffee-tee-uebersicht.webp` — https://stocksnap.io/photo/coffee-beans-X2JNLNHCT9 — CC0 1.0 (stocksnap, автор: Negative Space)
+- `kalender-planer-wand.webp` — https://www.rawpixel.com/image/3303840/free-photo-image-pencil-book-cc0 — CC0 1.0 (rawpixel, автор: —)
+- `kategorie-schuhe.webp` — https://www.rawpixel.com/image/6042769/photo-image-public-domain-fashion-free — CC0 1.0 (rawpixel, автор: —)
+- `kerze-zeder-salz.webp` — https://stocksnap.io/photo/candle-jar-SHPHVPLC7T — CC0 1.0 (stocksnap, автор: Burst)
+- `kissen-grasnarbe-leinen.webp` — https://www.rawpixel.com/image/5969574/sofa-couch — CC0 1.0 (rawpixel, автор: —)
+- `kochen-braten-pfanne.webp` — https://www.rawpixel.com/image/7319082/vector-public-domain-black-illustrations — CC0 1.0 (rawpixel, автор: —)
+- `korb-seegras-gross.webp` — https://n2t.net/ark:/65665/dl8c5433e35-198b-4974-9bf4-634b6d03748a — CC0 1.0 (smithsonian_anacostia_museum, автор: Ira Blount)
+- `kueche-tafel-uebersicht.webp` — https://stocksnap.io/photo/kitchen-table-B3M57Q3I7H — CC0 1.0 (stocksnap, автор: Patryk Dziejma)
+- `licht-duft-kerzen.webp` — https://stocksnap.io/photo/candle-decoration-OVEFAJUOXU — CC0 1.0 (stocksnap, автор: Christian Mackie)
+- `loeffel-drei-olivenholz.webp` — https://stocksnap.io/photo/kitchen-spoon-49FQQBTLIN — CC0 1.0 (stocksnap, автор: Jess Watters)
+- `look-herbst-mantel.webp` — https://stocksnap.io/photo/wooden-hangers-LTQSRPX2A4 — CC0 1.0 (stocksnap, автор: Matt Bango)
+- `look-naturfaser-leinen.webp` — https://stocksnap.io/photo/linen-fabric-KXTLKQCVOS — CC0 1.0 (stocksnap, автор: Seacoast Sage)
+- `luggage-shelf.webp` — https://stocksnap.io/photo/luggage-dufflebag-B3KGCPF50Y — CC0 1.0 (stocksnap, автор: Erol Ahmed)
+- `mode-basics-uebersicht.webp` — https://www.rawpixel.com/image/3283850/free-photo-image-clothes-closet-dressing-room — CC0 1.0 (rawpixel, автор: —)
+- `muehle-kurbel-hand.webp` — https://www.rawpixel.com/image/6026200/photo-image-public-domain-coffee-free — CC0 1.0 (rawpixel, автор: —)
+- `notizbuch-leinen-a5.webp` — https://stocksnap.io/photo/notebook-pen-2H0QPGDVGZ — CC0 1.0 (stocksnap, автор: Negative Space)
+- `notizbuecher-stapel-leinen.webp` — https://www.rawpixel.com/image/5908233/image-paper-book-public-domain — CC0 1.0 (rawpixel, автор: —)
+- `oberteile-stapel-baumwolle.webp` — https://www.rawpixel.com/image/11515803/stack-folded-t-shirts — CC0 1.0 (rawpixel, автор: —)
+- `ordnung-ablage-schreibtisch.webp` — https://stocksnap.io/photo/cup-flatlay-K8YFYQJSXA — CC0 1.0 (stocksnap, автор: Copper and Wild)
+- `papeterie-buero-uebersicht.webp` — https://www.rawpixel.com/image/3301780/free-photo-image-desk-calendar-alloy-wheel-apparel — CC0 1.0 (rawpixel, автор: —)
+- `pfanne-feuer-gusseisen.webp` — https://www.rawpixel.com/image/3304072/free-photo-image-bake-biscuit-bowl — CC0 1.0 (rawpixel, автор: —)
+- `pflege-bad-uebersicht.webp` — https://stocksnap.io/photo/bath-soap-BAP2TUBT3D — CC0 1.0 (stocksnap, автор: Healthy Living)
+- `polo-deich-pique.webp` — https://stocksnap.io/photo/collar-man-HVFMRYVEAZ — CC0 1.0 (stocksnap, автор: Matt Moloney)
+- `pressstempel-klar-glas.webp` — https://www.rawpixel.com/image/5921512/photo-image-phone-public-domain-person — CC0 1.0 (rawpixel, автор: —)
+- `pullover-kliff-wolle.webp` — https://www.rawpixel.com/image/3301353/free-photo-image-animal-apparel-blanket — CC0 1.0 (rawpixel, автор: —)
+- `rucksaecke-touren-wandern.webp` — https://stocksnap.io/photo/backpacking-trip-W50PW8YI9U — CC0 1.0 (stocksnap, автор: Kristin Hardwick)
+- `schokolade-dunkel-tafel.webp` — https://www.rawpixel.com/image/5920475/photo-image-public-domain-chocolate-free — CC0 1.0 (rawpixel, автор: —)
+- `schreiben-fueller-tinte.webp` — https://www.rawpixel.com/image/6038156/fountain-pen-free-public-domain-cc0-photo — CC0 1.0 (rawpixel, автор: —)
+- `seife-dusche-stueck.webp` — https://www.rawpixel.com/image/5958811/free-public-domain-cc0-photo — CC0 1.0 (rawpixel, автор: —)
+- `seife-salzluft-stueck.webp` — https://stocksnap.io/photo/bath-soap-BXMC5UNN4G — CC0 1.0 (stocksnap, автор: Healthy Living)
+- `set-bad-regal.webp` — https://www.rawpixel.com/image/5965106/photo-image-flower-public-domain-floral — CC0 1.0 (rawpixel, автор: —)
+- `set-morgen-tisch.webp` — https://stocksnap.io/photo/journal-notepad-DPKNIIN5X3 — CC0 1.0 (stocksnap, автор: Cathryn Lavery)
+- `set-schreibtisch-oben.webp` — https://stocksnap.io/photo/writing-desk-E8VATIYGAF — CC0 1.0 (stocksnap, автор: Burst)
+- `set-sofaabend-decke.webp` — https://www.rawpixel.com/image/6036369/chair-and-blanket-free-public-domain-cc0-photo — CC0 1.0 (rawpixel, автор: —)
+- `set-tafel-gedeckt.webp` — https://www.rawpixel.com/image/5923944/photo-image-background-public-domain-table — CC0 1.0 (rawpixel, автор: —)
+- `set-wohnung-kueche.webp` — https://stocksnap.io/photo/kitchen-utensils-F908L9RJSI — CC0 1.0 (stocksnap, автор: Jeff Sheldon)
+- `shirt-halm-basic.webp` — https://stocksnap.io/photo/stack-sheets-WNPRW5MEWD — CC0 1.0 (stocksnap, автор: Alex Andrews)
+- `shirt-nebel-rollkragen.webp` — https://nmaahc.si.edu/object/nmaahc_2007.3.604.1-.3 — CC0 1.0 (smithsonian_african_american_history_museum, автор: Sean John, American, founded 1998)
+- `shop-atelier-detail.webp` — https://stocksnap.io/photo/fabric-texture-VP6XCPG662 — CC0 1.0 (stocksnap, автор: Birch Landing Home)
+- `shop-atelier-mode.webp` — https://stocksnap.io/photo/fashion-clothes-ZN97ZIF3ZU — CC0 1.0 (stocksnap, автор: Hannah Morgan)
+- `shop-atelier-regal.webp` — https://www.rawpixel.com/image/3294774/free-photo-image-living-room-apparel-architecture — CC0 1.0 (rawpixel, автор: —)
+- `shop-atelier-tisch.webp` — https://stocksnap.io/photo/dining-table-LTCQNB2L7A — CC0 1.0 (stocksnap, автор: Matt Bango)
+- `shop-atelier-versand.webp` — https://stocksnap.io/photo/cardboard-parcel-BEFFXYPHRA — CC0 1.0 (stocksnap, автор: Jess Watters)
+- `sport-outdoor-uebersicht.webp` — https://www.rawpixel.com/image/5925870/photo-image-public-domain-free — CC0 1.0 (rawpixel, автор: —)
+- `strick-sweat-wolle.webp` — https://stocksnap.io/photo/clothes-sweaters-OA0AFM3HYZ — CC0 1.0 (stocksnap, автор: Michal Kulesza)
+- `sub-brillen.webp` — https://stocksnap.io/photo/sunglasses-summer-EVAARS1W4M — CC0 1.0 (stocksnap, автор: Jakub Rostkowski)
+- `sub-feinschmuck.webp` — https://www.rawpixel.com/image/6034460/photo-image-public-domain-blue-fashion — CC0 1.0 (rawpixel, автор: —)
+- `sub-guertel.webp` — https://www.rawpixel.com/image/6040795/leather-belt-free-public-domain-cc0-photo — CC0 1.0 (rawpixel, автор: —)
+- `sub-schals.webp` — https://www.rawpixel.com/image/9655764/woven-wool-textile — CC0 1.0 (rawpixel, автор: clevelandart)
+- `suesses-schokolade-tafel.webp` — https://stocksnap.io/photo/dark-chocolate-Z7A3GBMGOX — CC0 1.0 (stocksnap, автор: Micha%u0142%20Grosicki)
+- `tee-blaetter-loeffel.webp` — https://www.rawpixel.com/image/11515823/jars-tea-leaves — CC0 1.0 (rawpixel, автор: —)
+- `teppiche-laeufer-boden.webp` — https://stocksnap.io/photo/rug-floor-3269D623A7 — CC0 1.0 (stocksnap, автор: Catt Liu)
+- `trinken-kochen-flasche.webp` — https://www.rawpixel.com/image/3305627/free-photo-image-cup-water-coffee-beverage — CC0 1.0 (rawpixel, автор: —)
+- `trinkglas-rille-set.webp` — https://www.rawpixel.com/image/8627286/photo-image-art-vintage-public-domain — CC0 1.0 (rawpixel, автор: —)
+- `vase-krug-steinzeug.webp` — https://www.rawpixel.com/image/7455766/photo-image-public-domain-color-africa — CC0 1.0 (rawpixel, автор: —)
+- `vasen-koerbe-regal.webp` — https://www.rawpixel.com/image/11800244/jarlet — CC0 1.0 (rawpixel, автор: lacma)
+- `wallets-shelf.webp` — https://www.rawpixel.com/image/5920849/empty-wallet-free-public-domain-cc0-image — CC0 1.0 (rawpixel, автор: —)
+- `wohnen-textil-uebersicht.webp` — https://stocksnap.io/photo/house-interior-WDVIQZEXML — CC0 1.0 (stocksnap, автор: Nathan Fertig)
+- `yoga-training-matte.webp` — https://www.rawpixel.com/image/11515790/teal-yoga-mat — CC0 1.0 (rawpixel, автор: —)
+- `zubereitung-french-press.webp` — https://stocksnap.io/photo/pour-over-UE2INO4TXK — CC0 1.0 (stocksnap, автор: Kristin Hardwick)
+<!-- OS-SET:END -->
+
+**Замена брака 2026-09-04** (аудит витрины кита `shop` на стенде): четыре кадра
+показывали не тот предмет — `sausage` (хот-доги в булках вместо колбасы),
+`jam-jar` (сливовое повидло у клубничного джема), `apple-juice` (тёмно-красный
+морс у яблочного сока), `potatoes` (запечённая «гармошка» у сырого картофеля).
+Файлы перезаписаны, записи выше по этим ключам недействительны:
+- `sausage.webp` — https://www.rawpixel.com/image/5925581/free-salami-image-public-domain-food-cc0-photo — CC0 1.0 (rawpixel, автор: —)
+- `jam-jar.webp` — https://www.rawpixel.com/image/432036/strawberry-jam-and-marmalade — CC0 1.0 (rawpixel, автор: Markus Spiske)
+- `apple-juice.webp` — https://www.rawpixel.com/image/6058638/free-public-domain-cc0-photo — CC0 1.0 (rawpixel, автор: —)
+- `potatoes.webp` — https://www.rawpixel.com/image/5965720/golden-potatoes-basket — CC0 1.0 (rawpixel, автор: —)
+
+<!-- OS-ROUND2:BEGIN -->
+**Второй набор волны OS (2026-09-04).** Кадры подобраны по контактным листам
+(`scripts/demo_photo_sheet.py`), каждый просмотрен глазами; отклонены детские и
+музейно-архивные кадры, чужие бренды и повторы уже занятых кадров. Ключи, для
+которых честного кадра не нашлось, остаются на тематическом плейсхолдере — это
+осознанно: неверное фото хуже отсутствия фото.
+
+- `duschtuch-frottee-gross.webp` — https://www.rawpixel.com/image/5944628/free-public-domain-cc0-photo — CC0 1.0 (rawpixel, автор: —)
+- `geschenkpapier-bogen-drei.webp` — https://www.rawpixel.com/image/3283758/free-photo-image-paper-flower-flat-lay — CC0 1.0 (rawpixel, автор: —)
+- `notizbuch-taschen-a6.webp` — https://www.rawpixel.com/image/3301817/free-photo-image-accessory-cc0-creative-commons — CC0 1.0 (rawpixel, автор: —)
+- `schuessel-mulde-holz.webp` — https://stocksnap.io/photo/wooden-bowl-TIERIRY9RY — CC0 1.0 (stocksnap, автор: The World is a Stage)
+- `shop-atelier-sale.webp` — https://www.rawpixel.com/image/6042681/photo-image-background-public-domain-banner — CC0 1.0 (rawpixel, автор: —)
+- `shop-atelier-werkstatt.webp` — https://stocksnap.io/photo/carpenter-workshop-YPM6VH3FCW — CC0 1.0 (stocksnap, автор: James Frid)
+- `skizzenbuch-grau-a4.webp` — https://www.rawpixel.com/image/5948132/free-public-domain-cc0-photo — CC0 1.0 (rawpixel, автор: —)
+- `sneaker-bahnsteig.webp` — https://www.flickr.com/photos/43296902@N00/7181223091 — CC0 1.0 (flickr, автор: Dennis S. Hurd)
+- `spiegel-rund-metall.webp` — https://stocksnap.io/photo/mirror-livingroom-JRHSFSKQZQ — CC0 1.0 (stocksnap, автор: Studio 7042)
+- `stempel-datum-holz.webp` — https://www.rawpixel.com/image/5948686/free-public-domain-cc0-photo — CC0 1.0 (rawpixel, автор: —)
+- `stiefel-faehrmann.webp` — https://www.rawpixel.com/image/6023074/photo-image-public-domain-nature-fashion — CC0 1.0 (rawpixel, автор: —)
+
+Снято при приёмке (файла в фонде НЕТ, записи по этим ключам выше
+недействительны): `haarbuerste-ahorn-holz`, `haarspange-wolke`, `pullover-reet-zopf`, `ring-dorn`, `rucksack-pfad-tag`, `sandale-ebbe`, `sandale-kiesbett`, `shirt-halm-basic`, `sneaker-deich`, `thermoskanne-lager-liter`, `tuch-ahorn`.
+<!-- OS-ROUND2:END -->
 
 <!-- MODE-SET:BEGIN -->
 ## Набор 2026-09-04 — каталог одежды `mode` (процедурная генерация)

@@ -21901,8 +21901,93 @@ msgstr "Ihre Rechnung %(n)s"
 msgid "anbei erhalten Sie die Rechnung %(n)s."
 msgstr "anbei erhalten Sie die Rechnung %(n)s."
 
-msgid "Only reduced"
-msgstr "Nur reduziert"
+msgid "Abschnitte"
+msgstr "Abschnitte"
 
-msgid "Sets & Looks"
-msgstr "Sets & Looks"
+msgid "Aktionsseite"
+msgstr "Aktionsseite"
+
+msgid "Aufbau der Detailseite"
+msgstr "Aufbau der Detailseite"
+
+msgid "Darstellung der Gruppen"
+msgstr "Darstellung der Gruppen"
+
+msgid "Gruppierung"
+msgstr "Gruppierung"
+
+msgid "Kasse"
+msgstr "Kasse"
+
+msgid "Katalog"
+msgstr "Katalog"
+
+msgid "Passt dazu"
+msgstr "Passt dazu"
+
+msgid "Rechtliches"
+msgstr "Rechtliches"
+
+msgid "Textseite"
+msgstr "Textseite"
+
+msgid "Unterkategorien zuerst"
+msgstr "Unterkategorien zuerst"
+
+msgid "Veranstaltungsseite"
+msgstr "Veranstaltungsseite"
+
+msgid "Vorlage der Gruppenseite"
+msgstr "Vorlage der Gruppenseite"
+
+msgid "Vorlage der Seite"
+msgstr "Vorlage der Seite"
+
+msgid "Zimmerseite"
+msgstr "Zimmerseite"
+
+msgid "Für alle"
+msgstr "Für alle"
+
+msgid "Nur hier"
+msgstr "Nur hier"
+
+msgid "Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite."
+msgstr "Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite."
+
+msgid "Reduced only"
+msgstr "Nur reduzierte Artikel"
+
+msgid "Remove filter"
+msgstr "Filter entfernen"
+
+msgid "%(counter)s article"
+msgid_plural "%(counter)s articles"
+msgstr[0] "%(counter)s Artikel"
+msgstr[1] "%(counter)s Artikel"
+
+msgid "Atelier"
+msgstr "Atelier"
+
+msgid "Boutique"
+msgstr "Boutique"
+
+msgid "Boutique: Kategorien → Neuheiten → Sale"
+msgstr "Boutique: Kategorien → Neuheiten → Sale"
+
+msgid ""
+"Concept-Store: Kategorien als Einstieg, Neuheiten darunter, reduzierte "
+"Artikel am Schluss."
+msgstr ""
+"Concept-Store: Kategorien als Einstieg, Neuheiten darunter, reduzierte "
+"Artikel am Schluss."
+
+msgid "Ruhiger Concept-Store: warmes Off-White, randlose Karten, viel Luft."
+msgstr "Ruhiger Concept-Store: warmes Off-White, randlose Karten, viel Luft."
+
+msgid "Sets & Pakete"
+msgstr "Sets & Pakete"
+
+#: templates/storefront/products.html:38
+msgid "See our sets & bundles"
+msgstr "Sehen Sie sich unsere Sets & Pakete an"

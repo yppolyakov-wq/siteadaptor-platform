@@ -203,7 +203,7 @@ DEMO_KIT_HOST = {
     "butcher": "metzgerei",  # dedicated «Metzgerei Bergmann» (волна 1)
     "grocery": "aktionsmarkt",
     "clothing": "mode",  # dedicated «Studio Nordwind» (волна 2)
-    "online_shop": "shop",  # generic-магазин с Versand; dedicated — по спросу
+    "online_shop": "onlineshop",  # dedicated «Weitwerk» (2026-09-03)
     "restaurant": "restaurant-demo",
     "cafe": "cafe",  # dedicated «Café Morgenrot» (волна 2)
     "retail": "shop",

@@ -22064,8 +22064,96 @@ msgstr "Ваш рахунок %(n)s"
 msgid "anbei erhalten Sie die Rechnung %(n)s."
 msgstr "у вкладенні рахунок %(n)s."
 
-msgid "Only reduced"
+msgid "Abschnitte"
+msgstr "Розділи"
+
+msgid "Aktionsseite"
+msgstr "Сторінка акції"
+
+msgid "Aufbau der Detailseite"
+msgstr "Будова сторінки товару"
+
+msgid "Darstellung der Gruppen"
+msgstr "Вигляд груп"
+
+msgid "Gruppierung"
+msgstr "Групування"
+
+msgid "Kasse"
+msgstr "Оформлення замовлення"
+
+msgid "Katalog"
+msgstr "Каталог"
+
+msgid "Passt dazu"
+msgstr "Пасує до цього"
+
+msgid "Rechtliches"
+msgstr "Правові сторінки"
+
+msgid "Textseite"
+msgstr "Текстова сторінка"
+
+msgid "Unterkategorien zuerst"
+msgstr "Підкатегорії першими"
+
+msgid "Veranstaltungsseite"
+msgstr "Сторінка події"
+
+msgid "Vorlage der Gruppenseite"
+msgstr "Шаблон сторінки групи"
+
+msgid "Vorlage der Seite"
+msgstr "Шаблон сторінки"
+
+msgid "Zimmerseite"
+msgstr "Сторінка номера"
+
+msgid "Für alle"
+msgstr "Для всіх"
+
+msgid "Nur hier"
+msgstr "Тільки тут"
+
+msgid "Wählen Sie eine Vorlage — sie gilt dann nur für diese Seite."
+msgstr "Виберіть шаблон — він діятиме лише на цій сторінці."
+
+msgid "Reduced only"
 msgstr "Лише зі знижкою"
 
-msgid "Sets & Looks"
-msgstr "Комплекти та образи"
+msgid "Remove filter"
+msgstr "Прибрати фільтр"
+
+msgid "%(counter)s article"
+msgid_plural "%(counter)s articles"
+msgstr[0] "%(counter)s товар"
+msgstr[1] "%(counter)s товари"
+msgstr[2] "%(counter)s товарів"
+msgstr[3] "%(counter)s товару"
+
+msgid "Atelier"
+msgstr "Ательє"
+
+msgid "Boutique"
+msgstr "Бутик"
+
+msgid "Boutique: Kategorien → Neuheiten → Sale"
+msgstr "Бутік: розділи → новинки → знижки"
+
+msgid ""
+"Concept-Store: Kategorien als Einstieg, Neuheiten darunter, reduzierte "
+"Artikel am Schluss."
+msgstr ""
+"Концепт-стор: спершу розділи, нижче новинки, наприкінці — знижені ціни."
+
+msgid "Ruhiger Concept-Store: warmes Off-White, randlose Karten, viel Luft."
+msgstr ""
+"Спокійний концепт-стор: теплий небілий фон, картки без рамок, багато "
+"повітря."
+
+msgid "Sets & Pakete"
+msgstr "Набори та комплекти"
+
+#: templates/storefront/products.html:38
+msgid "See our sets & bundles"
+msgstr "Подивіться наші набори та комплекти"
