@@ -3,7 +3,7 @@
 {% block title %}{% trans "Combos" %} · {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl md:text-3xl font-bold mb-6">{% trans "Combos & menus" %}</h1>
+<h1 class="text-2xl md:text-3xl font-bold mb-6">{{ combos_title }}</h1>
 
 {% if current_category %}
 {% comment %}KAT-2: фильтр направления («Alle Sets» со страницы категории).{% endcomment %}

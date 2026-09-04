@@ -60,6 +60,11 @@ class CatalogFacets(FacetProvider):
             "herkunft": (params.get("herkunft") or "").strip(),
             # M2 Boutique: фасет размера (по variant.label, только доступные).
             "groesse": (params.get("groesse") or "").strip(),
+            # MODE-1: цвет — ось `ProductVariant.color` (легаси-label сюда НЕ
+            # подмешиваем: в нём у смешанного каталога лежит размер).
+            "farbe": (params.get("farbe") or "").strip(),
+            # MODE-1: «только со скидкой» — товар является целью активной акции.
+            "sale": params.get("sale") == "1",
             # M4-B Lookbook: подборка товаров владельца (M2M Collection).
             "kollektion": (params.get("kollektion") or "").strip(),
             "bewertung": bewertung if bewertung in RATING_THRESHOLDS else 0,
@@ -102,6 +107,19 @@ class CatalogFacets(FacetProvider):
             )
             matched = _with_size_axis(available).filter(size_axis=sel["groesse"])
             items = items.filter(pk__in=matched.values("product_id"))
+        if sel["farbe"]:
+            from django.db.models import Q
+
+            from apps.catalog.models import ProductVariant
+
+            available = ProductVariant.objects.filter(product__in=items, is_active=True).filter(
+                Q(stock_quantity__isnull=True) | Q(stock_quantity__gt=0)
+            )
+            items = items.filter(
+                pk__in=available.filter(color__iexact=sel["farbe"]).values("product_id")
+            )
+        if sel["sale"]:
+            items = items.filter(pk__in=self._discounted_ids(items))
         if sel["kollektion"]:
             # M2M-JOIN по slug активной подборки; distinct — товар может входить
             # в несколько (тот же приём, что у услуг/номеров UB3-2).
@@ -128,6 +146,16 @@ class CatalogFacets(FacetProvider):
             Q(_has_var=True, _has_stock_var=True)
             | (Q(_has_var=False) & (Q(stock_quantity__isnull=True) | Q(stock_quantity__gt=0)))
         )
+
+    @staticmethod
+    def _discounted_ids(items):
+        """pk товаров, у которых есть ДЕЙСТВУЮЩАЯ акция с ценой (P6 «ценовой слой»).
+
+        Тот же источник, что у бейджа скидки на карточке (`product_promo_map`), —
+        иначе фильтр показывал бы не то, что видно глазом."""
+        from apps.promotions.price_layer import product_promo_map
+
+        return list(product_promo_map(items.values_list("pk", flat=True)))
 
     @staticmethod
     def _rated_ids(items, min_rating):
@@ -180,7 +208,32 @@ class CatalogFacets(FacetProvider):
             # M2 Boutique: чипы размеров (порядок — по sort_order вариантов);
             # один размер на весь каталог = шум, чипы прячем.
             "size_chips": self._size_chips(items),
+            # MODE-1: свотчи цвета (кружок = тот же HEX, что у выбора варианта).
+            "color_chips": self._color_chips(items),
+            # MODE-1: тумблер «только reduziert» — лишь когда скидки реально есть.
+            "show_sale_filter": bool(self._discounted_ids(items)),
         }
+
+    @staticmethod
+    def _color_chips(items) -> list:
+        """Цвета набора: [{name, label, hex}] в порядке вариантов. Один цвет на
+        весь каталог = шум, как и у размеров, — чипы прячем."""
+        from django.db.models import Min
+
+        from apps.catalog.models import ProductVariant
+        from apps.catalog.option_styles import color_hex
+
+        rows = (
+            ProductVariant.objects.filter(product__in=items, is_active=True)
+            .exclude(color="")
+            .values("color")
+            .annotate(o=Min("sort_order"))
+            .order_by("o", "color")
+        )
+        chips = [
+            {"name": r["color"], "label": r["color"], "hex": color_hex(r["color"])} for r in rows
+        ]
+        return chips if len(chips) > 1 else []
 
     @staticmethod
     def _size_chips(items) -> list:

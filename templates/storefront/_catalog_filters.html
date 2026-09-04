@@ -2,7 +2,7 @@
 БЕЗ изменений разметки — её нужно рендерить в двух местах: обычно над сеткой, а в
 шаблоне «Navigator» — в боковой колонке. Замки прежнего вида: test_listing_bar,
 test_storefront, test_listing_parity.{% endcomment %}
-{% if catalog_show_filters and show_price_filter or catalog_show_filters and badge_chips or catalog_show_filters and show_stock_filter or catalog_show_filters and origin_chips or catalog_show_filters and show_rating_filter or catalog_show_filters and size_chips or catalog_show_filters and diet_chips %}
+{% if catalog_show_filters and show_price_filter or catalog_show_filters and badge_chips or catalog_show_filters and show_stock_filter or catalog_show_filters and origin_chips or catalog_show_filters and show_rating_filter or catalog_show_filters and size_chips or catalog_show_filters and color_chips or catalog_show_filters and show_sale_filter or catalog_show_filters and diet_chips %}
 {% comment %}DS-10: панель отдаётся УЖЕ скрытой — CSS DS-6 делает видимую панель
 fixed-ящиком, и до инициализации JS она вспыхивала поверх контента. Без JS её
 показывает правило в <noscript> ниже (прогрессивное улучшение сохранено).{% endcomment %}
@@ -64,6 +64,33 @@ fixed-ящиком, и до инициализации JS она вспыхив�
       {% for g in size_chips %}<option value="{{ g }}" {% if active_groesse == g %}selected{% endif %}>{{ g }}</option>{% endfor %}
     </select>
   </div>
+  {% endif %}
+  {% if color_chips %}
+  {% comment %}MODE-1: свотчи цвета — кружок красится тем же HEX, что кружок
+  выбора варианта на карточке (реестр catalog.option_styles.COLOR_HEX). Радио,
+  а не ссылки: панель — форма, выбор уезжает вместе с остальными фасетами.{% endcomment %}
+  <div>
+    <span class="block text-xs text-gray-500 mb-1">{% trans "Colour" %}</span>
+    <div class="flex flex-wrap items-center gap-1.5">
+      <label class="cursor-pointer">
+        <input type="radio" name="farbe" value="" class="sr-only peer" {% if not active_farbe %}checked{% endif %}>
+        <span class="inline-flex h-7 items-center rounded-full border border-gray-300 px-2.5 text-xs text-gray-600 peer-checked:border-gray-900 peer-checked:bg-gray-900 peer-checked:text-white">{% trans "All" %}</span>
+      </label>
+      {% for c in color_chips %}
+      <label class="cursor-pointer" title="{{ c.label }}">
+        <input type="radio" name="farbe" value="{{ c.name }}" class="sr-only peer"{% if active_farbe == c.name %} checked{% endif %}>
+        {% if c.hex %}<span class="block h-7 w-7 rounded-full border border-gray-300 ring-offset-1 peer-checked:ring-2 peer-checked:ring-gray-900" style="background:{{ c.hex }}"><span class="sr-only">{{ c.label }}</span></span>
+        {% else %}<span class="inline-flex h-7 items-center rounded-full border border-gray-300 px-2.5 text-xs text-gray-600 peer-checked:border-gray-900 peer-checked:bg-gray-900 peer-checked:text-white">{{ c.label }}</span>{% endif %}
+      </label>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  {% if show_sale_filter %}
+  <label class="flex items-center gap-2 text-sm text-gray-600 pb-1.5">
+    <input type="checkbox" name="sale" value="1" {% if only_sale %}checked{% endif %} class="rounded border-gray-300">
+    {% trans "Only reduced" %}
+  </label>
   {% endif %}
   {% if show_rating_filter %}
   <div>

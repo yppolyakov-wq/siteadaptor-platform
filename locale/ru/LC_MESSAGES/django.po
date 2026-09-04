@@ -22080,3 +22080,9 @@ msgstr "Ваш счёт %(n)s"
 
 msgid "anbei erhalten Sie die Rechnung %(n)s."
 msgstr "во вложении счёт %(n)s."
+
+msgid "Only reduced"
+msgstr "Только со скидкой"
+
+msgid "Sets & Looks"
+msgstr "Комплекты и образы"

@@ -22063,3 +22063,9 @@ msgstr "Ваш рахунок %(n)s"
 
 msgid "anbei erhalten Sie die Rechnung %(n)s."
 msgstr "у вкладенні рахунок %(n)s."
+
+msgid "Only reduced"
+msgstr "Лише зі знижкою"
+
+msgid "Sets & Looks"
+msgstr "Комплекти та образи"

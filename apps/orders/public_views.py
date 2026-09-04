@@ -231,7 +231,7 @@ def combo_list_public(request):
     KAT-2: ?kategorie=<slug> — фильтр наборов направления («Alle Sets» со
     страницы категории); неизвестный/пустой слаг → все наборы (fail-open)."""
     _require_combos_visible(request)
-    from apps.catalog.combos import active_combos
+    from apps.catalog.combos import active_combos, combos_title
 
     combos = active_combos()
     kategorie = (request.GET.get("kategorie") or "").strip()
@@ -248,6 +248,8 @@ def combo_list_public(request):
         {
             "combos": combos,
             "current_category": current_category,
+            # Заголовок по архетипу: гастро — «Menü-Pakete», магазин — «Sets & Looks».
+            "combos_title": combos_title(request.tenant),
         },
     )
 

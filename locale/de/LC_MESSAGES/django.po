@@ -21900,3 +21900,9 @@ msgstr "Ihre Rechnung %(n)s"
 
 msgid "anbei erhalten Sie die Rechnung %(n)s."
 msgstr "anbei erhalten Sie die Rechnung %(n)s."
+
+msgid "Only reduced"
+msgstr "Nur reduziert"
+
+msgid "Sets & Looks"
+msgstr "Sets & Looks"

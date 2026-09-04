@@ -5606,19 +5606,204 @@ CAFE = DemoKit(
 )
 
 
+# --- A1/A2 Mode-Boutique: словарь материалов/ухода -------------------------
+# Один и тот же состав у нескольких вещей — так и в жизни; для демо это ещё и
+# экономия переводов (словари demo_i18n_<loc>.json держат строку один раз).
+_M_BIO = "100 % Bio-Baumwolle (GOTS)"
+_M_JERSEY = "95 % Bio-Baumwolle, 5 % Elasthan"
+_M_LEINEN = "100 % Leinen"
+_M_MUSSELIN = "100 % Bio-Baumwoll-Musselin"
+_M_VISKOSE = "100 % Viskose (LENZING™ ECOVERO™)"
+_M_TENCEL = "100 % TENCEL™ Lyocell"
+_M_SEIDE = "100 % Seide"
+_M_MERINO = "100 % Merinowolle (mulesingfrei)"
+_M_WOLLE = "70 % Schurwolle, 30 % Polyamid"
+_M_KASCHMIR = "100 % Kaschmir"
+_M_DENIM = "99 % Bio-Baumwolle, 1 % Elasthan"
+_M_CORD = "98 % Bio-Baumwolle, 2 % Elasthan"
+_M_LEDER = "Rindsleder, pflanzlich gegerbt"
+_M_CANVAS = "100 % Baumwoll-Canvas"
+_M_RECYCELT = "100 % recyceltes Polyamid, PFC-freie Imprägnierung"
+
+_C_30 = "30 °C Schonwäsche, nicht in den Trockner"
+_C_40 = "40 °C Buntwäsche, trocknergeeignet"
+_C_LINKS = "30 °C waschen, auf links, nicht in den Trockner"
+_C_BUEGEL = "30 °C Schonwäsche, bügelfeucht bügeln"
+_C_WOLLE = "Handwäsche kalt oder Wollprogramm, liegend trocknen"
+_C_HAND = "Handwäsche kalt"
+_C_LEDER = "Mit Lederpflege behandeln, nicht waschen"
+_C_ABWISCHEN = "Feucht abwischen"
+
+# Размерные линейки бутика.
+_SZ_DAMEN = ("XS", "S", "M", "L", "XL")
+_SZ_KONF = ("34", "36", "38", "40", "42")
+_SZ_HERREN = ("S", "M", "L", "XL", "XXL")
+_SZ_HOSE = ("46", "48", "50", "52", "54")
+_SZ_KIND = ("86/92", "98/104", "110/116", "122/128", "134/140")
+_SZ_BABY = ("50/56", "62/68", "74/80")
+_SZ_GUERTEL = ("85", "95", "105")
+_SZ_SOCKEN = ("35–38", "39–42", "43–46")
+
+_UMLAUT = str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"})
+
+
+def _cslug(color: str) -> str:
+    """«Türkis» → «tuerkis» — суффикс файла фото варианта (scripts/gen_demo_garments.py)."""
+    return color.lower().translate(_UMLAUT)
+
+
+def _mp(
+    name,
+    price,
+    desc,
+    key,
+    *,
+    sizes=(),
+    colors=(),
+    stock=None,
+    soldout=(),
+    material="",
+    care="",
+    badge="",
+    sku="",
+    gtin="",
+    variant_style="",
+    card_style="",
+):
+    """Товар бутика: размеры × цвета → варианты с фото ЦВЕТА.
+
+    `key` — ключ фото (`mode-…`); у не-базового цвета берётся `mode-…-<цвет>`,
+    поэтому выбор свотча на витрине реально меняет картинку. `soldout` —
+    пары (размер, цвет) или просто размеры с нулевым остатком: витрина
+    предлагает Warteliste (M2), а не молчит.
+    """
+    imgs = [key] + [f"{key}-{_cslug(c)}" for c in colors[1:]]
+    variants = []
+    if sizes and colors:
+        for c in colors:
+            for si, s in enumerate(sizes):
+                gone = (s, c) in soldout or s in soldout
+                variants.append(
+                    {
+                        "size": s,
+                        "color": c,
+                        "price": price,
+                        "stock": 0 if gone else 2 + (si * 3 + len(c)) % 7,
+                        "images": [key if c == colors[0] else f"{key}-{_cslug(c)}"],
+                    }
+                )
+    elif sizes:
+        for si, s in enumerate(sizes):
+            variants.append(
+                {"label": s, "price": price, "stock": 0 if s in soldout else 3 + (si * 4) % 6}
+            )
+    elif len(colors) > 1:
+        for c in colors:
+            variants.append(
+                {
+                    "label": c,
+                    "price": price,
+                    "stock": 4 + len(c) % 8,
+                    "images": [key if c == colors[0] else f"{key}-{_cslug(c)}"],
+                }
+            )
+    return _p(
+        name,
+        price,
+        desc,
+        imgs,
+        variants=variants,
+        stock=stock if not variants else None,
+        material=material,
+        care=care,
+        badge=badge,
+        sku=sku,
+        gtin=gtin,
+        variant_style=variant_style,
+        card_style=card_style,
+    )
+
+
 CLOTHING_MENUS = {
     "top": {
         "style": "classic",
         "sticky": True,
         "items": [
-            {"label": "Damen", "type": "category", "target": "damen"},
-            {"label": "Herren", "type": "category", "target": "herren"},
-            {"label": "Accessoires", "type": "category", "target": "accessoires"},
+            {
+                "label": "Damen",
+                "type": "category",
+                "target": "damen",
+                "children": [
+                    {"label": "Kleider & Röcke", "type": "category", "target": "damen-kleider"},
+                    {"label": "Oberteile", "type": "category", "target": "damen-oberteile"},
+                    {"label": "Strick", "type": "category", "target": "damen-strick"},
+                    {"label": "Hosen & Jeans", "type": "category", "target": "damen-hosen"},
+                    {"label": "Jacken & Mäntel", "type": "category", "target": "damen-jacken"},
+                ],
+            },
+            {
+                "label": "Herren",
+                "type": "category",
+                "target": "herren",
+                "children": [
+                    {"label": "Hemden", "type": "category", "target": "herren-hemden"},
+                    {"label": "Shirts & Polos", "type": "category", "target": "herren-shirts"},
+                    {"label": "Strick & Sweat", "type": "category", "target": "herren-strick"},
+                    {"label": "Hosen", "type": "category", "target": "herren-hosen"},
+                    {"label": "Jacken & Mäntel", "type": "category", "target": "herren-jacken"},
+                ],
+            },
+            {
+                "label": "Kinder",
+                "type": "category",
+                "target": "kinder",
+                "children": [
+                    {"label": "Baby (0–2)", "type": "category", "target": "kinder-baby"},
+                    {"label": "Mädchen", "type": "category", "target": "kinder-maedchen"},
+                    {"label": "Jungen", "type": "category", "target": "kinder-jungen"},
+                    {
+                        "label": "Mützen & Socken",
+                        "type": "category",
+                        "target": "kinder-accessoires",
+                    },
+                ],
+            },
+            {
+                "label": "Accessoires",
+                "type": "category",
+                "target": "accessoires",
+                "children": [
+                    {"label": "Taschen", "type": "category", "target": "accessoires-taschen"},
+                    {
+                        "label": "Schals & Mützen",
+                        "type": "category",
+                        "target": "accessoires-schals",
+                    },
+                    {
+                        "label": "Handschuhe & Gürtel",
+                        "type": "category",
+                        "target": "accessoires-guertel",
+                    },
+                    {
+                        "label": "Socken & Kleines",
+                        "type": "category",
+                        "target": "accessoires-kleines",
+                    },
+                ],
+            },
+            {"label": "Looks", "type": "page", "target": "combos"},
             {"label": "Sale", "type": "promo_group", "target": "Sale"},
-            {"label": "Galerie", "type": "page", "target": "gallery"},
-            {"label": "Bewertungen", "type": "page", "target": "reviews"},
-            {"label": "Unser Team", "type": "page", "target": "team"},
-            {"label": "Über uns", "type": "page", "target": "about"},
+            {
+                "label": "Mehr",
+                "type": "page",
+                "target": "about",
+                "children": [
+                    {"label": "Galerie", "type": "page", "target": "gallery"},
+                    {"label": "Bewertungen", "type": "page", "target": "reviews"},
+                    {"label": "Unser Team", "type": "page", "target": "team"},
+                    {"label": "Über uns", "type": "page", "target": "about"},
+                ],
+            },
         ],
     },
     "bottom": {
@@ -5626,49 +5811,48 @@ CLOTHING_MENUS = {
         "items": [
             {"label": "Shop", "type": "archetype", "target": "catalog", "icon": "👗"},
             {"label": "Sale", "type": "archetype", "target": "promotions", "icon": "🔥"},
+            {"label": "Merkliste", "type": "page", "target": "wishlist", "icon": "❤️"},
             {"label": "Korb", "type": "archetype", "target": "orders", "icon": "🧺"},
         ],
     },
 }
 
-# A1/A2 Mode-Boutique (dedicated, волна 2): одежда с РАЗМЕРНЫМИ вариантами S–XL и
-# per-size остатком (ausverkauft → Warteliste), Versand deutschlandweit (без PLZ-зон),
-# Sale-акции. Multi-axis (цвет×размер) — гэп D3 в roadmap; демо честно на размерах.
+
+# A1/A2 Mode-Boutique (dedicated): полноценный магазин одежды — четыре
+# направления (Damen/Herren/Kinder/Accessoires) по 20 позиций в подкатегориях,
+# варианты «размер × цвет» с per-size остатком (ausverkauft → Warteliste),
+# фасеты размера и ЦВЕТА, комплекты-образы (Combo), лукбук и Sale-акции.
+# Фото — процедурные иллюстрации (scripts/gen_demo_garments.py): цвет картинки
+# совпадает с цветом варианта, поэтому свотч реально меняет изображение.
 CLOTHING = DemoKit(
-    card_slider="on",  # DL-16.4 (P2): 3–4 фото на товар — листаются на карточке
+    card_slider="on",  # DL-16.4 (P2): 2–4 фото на товар — листаются на карточке
     key="clothing",
-    # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
-    section_layouts={"gallery": {"preset": "cols3"}},
-    look="nacht",  # ST-1: тёмный Look (мода)
-    # DL-19 (N2): «Lookbook» — высокий кадр 3:4 и тихая подпись. До волны ближайшей
-    # формой был overlay (текст поверх фото); теперь у моды есть своя.
-    card_style="lookbook",
+    section_layouts={"gallery": {"preset": "cols3"}, "categories": {"preset": "cols4"}},
+    look="fein",  # DS-1: Playfair на креме — редакционный «бутиковый» тон
+    card_style="lookbook",  # DL-19 (N2): высокий кадр 3:4 и тихая подпись
     variant_style="axes",  # O-2: цвет кружками + размеры кнопками
     label="Studio Nordwind",
     business_type="clothing",
-    # DS-9: дизайн «Fokus» для архетипа — своя композиция (реестр BUNDLES).
     bundle="fokus_lookbook",
-    # DL-18.3: акции магазина одежды — группами-лентами (Sale · Accessoire-Deals),
-    # как в продуктовом демо; страница /aktionen/ становится Sale-витриной.
     config_patch={
         "hero_style": "split",
         "nav": {"cta": True},
         "promo_layout": "slider",
-        # DL-20: страница категории — «Navigator» на весь сайт (большой каталог с
-        # фасетами размера/цвета); Herren и Accessoires ниже переопределяют его.
+        # Магазин большой → страница направления с фасетами в боковой колонке.
         "site_defaults": {"category_page_style": "navigator"},
-        # DL-21.1: КОРНЕВАЯ /sortiment/ — «Tabs»: «Alle» + Damen/Herren/Accessoires
-        # (свой ключ; дефолт категорий «Navigator» на корень не наследуется).
-        "catalog_page_style": "tabs",
+        # Корень /sortiment/ — «Regale»: четыре направления лентами.
+        "catalog_page_style": "regale",
+        "promo_page_style": "schaufenster",
+        "wishlist": True,  # SF-4a: Merkzettel — must-have бутика
+        "quick_add": True,
     },
     subdomain="mode",
-    accent="#1e293b",  # Fashion-Navy
+    city="Hamburg",
+    accent="#1e293b",
     hero_image_kw="fashion,boutique",
     hero_title="Studio Nordwind",
     hero_text="Faire Mode aus kleinen europäischen Manufakturen — kuratiert in "
     "Hamburg, versandkostenfrei ab 80 €.",
-    # M0 (план mode-boutique-plan-2026-07-30): главная «ловит направления» —
-    # слайдер (3 слайда) + плитки hero_widget="mode" (Sale/Sortiment/Neuheiten/Gutschein).
     hero_widget="mode",
     heroes=[
         {
@@ -5687,14 +5871,13 @@ CLOTHING = DemoKit(
         },
         {
             "image_kw": "dress",
-            "title": "Sale bis −30 %",
+            "title": "Sale bis −40 %",
             "text": "Ausgewählte Teile der Saison reduziert.",
             "button_label": "Zum Sale",
             "button_url": "/aktionen/",
         },
     ],
     about_title="Über Studio Nordwind",
-    # M2 (2026-07-30): Warteliste per-size реализована — текст снова честен.
     about_text="Wir wählen jedes Teil selbst aus: faire Produktion, natürliche "
     "Materialien, Schnitte, die bleiben. Bestellt bis 15 Uhr, versenden wir noch am "
     "selben Tag mit DHL. Ist Ihre Größe ausverkauft, trägt die Warteliste Sie ein — "
@@ -5703,7 +5886,7 @@ CLOTHING = DemoKit(
     address="Speicherstraße 7, 20457 Hamburg",
     opening_hours_text="Showroom: Do–Sa 11:00–18:00 · Online-Shop rund um die Uhr",
     opening_hours={d: ("11:00", "18:00") for d in (3, 4, 5)},
-    gallery_kw=["fashion", "clothing,rack", "dress", "knitwear", "denim", "accessories"],
+    gallery_kw=["fashion", "clothing,rack", "dress", "knitwear", "denim", "fashion,boutique"],
     process=[
         ("Aussuchen", "Größe wählen — Größentabelle bei jedem Artikel."),
         ("Bestellen", "Versand in 24 h, kostenlos ab 80 €."),
@@ -5723,6 +5906,8 @@ CLOTHING = DemoKit(
     testimonials=[
         ("Meike S.", "Qualität, die man sofort spürt — und ehrliche Größenangaben."),
         ("Jan H.", "Größe war ausverkauft, Warteliste hat funktioniert: 5 Tage später bestellt."),
+        ("Sarah B.", "Die Kindersachen halten drei Geschwister aus. Sagt alles."),
+        ("Tom R.", "Größentabelle stimmt auf den Zentimeter — nichts zurückgeschickt."),
     ],
     reviews_seed=[
         (5, "Qualität, die man sofort spürt.", "nw.meike@example.de"),
@@ -5746,6 +5931,11 @@ CLOTHING = DemoKit(
             "automatisch eine E-Mail, sobald die Größe wieder da ist.",
         ),
         (
+            "Kann ich vor dem Kauf anprobieren?",
+            "Ja — «In der Anprobe reservieren» legt das Teil 48 Stunden im Showroom "
+            "für Sie zurück, ohne Bezahlung.",
+        ),
+        (
             "Woher kommt die Ware?",
             "Kleine Manufakturen in Portugal, Litauen und Dänemark — faire "
             "Produktion, natürliche Materialien.",
@@ -5758,35 +5948,52 @@ CLOTHING = DemoKit(
         "button_url": "/sortiment/",
     },
     enable_modules=["orders", "loyalty"],
-    # M0: направления ловят плитки hero_widget="mode" (архетип-секция выкл).
     enable_archetypes_section=False,
+    enable_categories_section=True,  # GK-15: направления плитками под первым экраном
     storefront_root="home",
     seed_records=True,
     menus=CLOTHING_MENUS,
     enable_anprobe=True,  # M3: Click&Reserve — киллер-механика бутика
-    # M4-B Lookbook: подборки товаров с фото → страницы /lookbook/<slug>/
-    # (индексы — позиции товаров в порядке создания сидером).
-    collections=[
-        (
-            "Herbst-Looks",
-            # DL-18.3: coat/boots/blazer-кадров в библиотеке нет — «boots,autumn»
-            # уезжал по префикс-группе в autumn-hair.webp (причёска в лукбуке одежды).
-            {"products": [0, 1, 2], "photos": ["knitwear", "clothing,rack", "fashion,boutique"]},
-        ),
-        (
-            "Business",
-            {"products": [3, 4], "photos": ["fashion,designer", "chinos"]},
-        ),
-        ("Basics", {"products": [5, 6, 7]}),  # без фото → обычный фасет-чип
-    ],
     size_tables={
-        "damen": "Größe | Brust (cm) | Taille (cm)\nS | 86–90 | 68–72\nM | 91–95 | 73–77\nL | 96–101 | 78–83\nXL | 102–108 | 84–90",
-        "herren": "Größe | Brust (cm) | Bund (cm)\n48 | 94–97 | 82–85\n50 | 98–101 | 86–89\n52 | 102–105 | 90–94",
+        "damen-kleider": "Größe | Brust (cm) | Taille (cm) | Hüfte (cm)\n"
+        "XS | 82–85 | 64–67 | 90–93\nS | 86–90 | 68–72 | 94–97\n"
+        "M | 91–95 | 73–77 | 98–101\nL | 96–101 | 78–83 | 102–106\n"
+        "XL | 102–108 | 84–90 | 107–112",
+        "damen-oberteile": "Größe | Brust (cm) | Taille (cm)\nXS | 82–85 | 64–67\n"
+        "S | 86–90 | 68–72\nM | 91–95 | 73–77\nL | 96–101 | 78–83\nXL | 102–108 | 84–90",
+        "damen-strick": "Größe | Brust (cm) | Taille (cm)\nXS | 82–85 | 64–67\n"
+        "S | 86–90 | 68–72\nM | 91–95 | 73–77\nL | 96–101 | 78–83\nXL | 102–108 | 84–90",
+        "damen-hosen": "Konfektion | Taille (cm) | Hüfte (cm) | Innenbein (cm)\n"
+        "34 | 66–69 | 92–95 | 78\n36 | 70–73 | 96–99 | 79\n38 | 74–77 | 100–103 | 80\n"
+        "40 | 78–82 | 104–107 | 81\n42 | 83–87 | 108–112 | 82",
+        "damen-jacken": "Größe | Brust (cm) | Ärmellänge (cm)\nXS | 82–85 | 59\n"
+        "S | 86–90 | 60\nM | 91–95 | 61\nL | 96–101 | 62\nXL | 102–108 | 63",
+        "herren-hemden": "Größe | Brust (cm) | Bund (cm) | Kragen (cm)\nS | 94–97 | 82–85 | 38\n"
+        "M | 98–101 | 86–89 | 40\nL | 102–105 | 90–94 | 42\nXL | 106–110 | 95–99 | 44\n"
+        "XXL | 111–116 | 100–105 | 46",
+        "herren-shirts": "Größe | Brust (cm) | Länge (cm)\nS | 94–97 | 69\nM | 98–101 | 71\n"
+        "L | 102–105 | 73\nXL | 106–110 | 75\nXXL | 111–116 | 77",
+        "herren-strick": "Größe | Brust (cm) | Ärmellänge (cm)\nS | 94–97 | 63\nM | 98–101 | 64\n"
+        "L | 102–105 | 65\nXL | 106–110 | 66\nXXL | 111–116 | 67",
+        "herren-hosen": "Konfektion | Bund (cm) | Innenbein (cm)\n46 | 78–81 | 80\n"
+        "48 | 82–85 | 81\n50 | 86–89 | 82\n52 | 90–94 | 83\n54 | 95–99 | 84",
+        "herren-jacken": "Größe | Brust (cm) | Ärmellänge (cm)\nS | 94–97 | 63\nM | 98–101 | 64\n"
+        "L | 102–105 | 65\nXL | 106–110 | 66\nXXL | 111–116 | 67",
+        "kinder-baby": "Größe | Körpergröße (cm) | Alter\n50/56 | 50–56 | 0–2 Mon.\n"
+        "62/68 | 62–68 | 3–6 Mon.\n74/80 | 74–80 | 9–12 Mon.",
+        "kinder-maedchen": "Größe | Körpergröße (cm) | Alter\n86/92 | 86–92 | 1–2 J.\n"
+        "98/104 | 98–104 | 3–4 J.\n110/116 | 110–116 | 5–6 J.\n122/128 | 122–128 | 7–8 J.\n"
+        "134/140 | 134–140 | 9–10 J.",
+        "kinder-jungen": "Größe | Körpergröße (cm) | Alter\n86/92 | 86–92 | 1–2 J.\n"
+        "98/104 | 98–104 | 3–4 J.\n110/116 | 110–116 | 5–6 J.\n122/128 | 122–128 | 7–8 J.\n"
+        "134/140 | 134–140 | 9–10 J.",
+        "accessoires-guertel": "Größe | Bundweite (cm) | Gesamtlänge (cm)\n85 | 75–85 | 100\n"
+        "95 | 85–95 | 110\n105 | 95–105 | 120",
     },
     delivery={
         "enabled": True,
         "fee_cents": 490,
-        "free_cents": 8000,  # frei ab 80 €
+        "free_cents": 8000,
         "min_cents": 0,
         "pickup_min_cents": 0,
         "area": "Versand deutschlandweit mit DHL — 2–4 Werktage. Kostenlos ab 80 €.",
@@ -5796,384 +6003,1347 @@ CLOTHING = DemoKit(
     vouchers=[
         {"code": "NORDWIND10", "label": "−10 % für Neukunden", "percent": 10, "max_uses": 200},
     ],
-    promotions_spec=[
-        # DL-18.3 (фидбэк «тематическое демо одежды со скидками»): Sale-витрина —
-        # шесть действующих акций в двух группах (лентами) + предпросмотр зимней
-        # распродажи (A1 «Vorschau»: `starts_in_days` → статус scheduled).
-        {
-            "title": "Winter-Sale: −40 % ab Montag",
-            "desc": "Vorschau: Strick, Mäntel und Schals stark reduziert.",
-            "product": 7,
-            "percent": 40,
-            "group": "Sale",
-            "starts_in_days": 5,
-            "ends_in_days": 14,
-        },
-        {
-            "title": "Leinenbluse Küste −25 %",
-            "desc": "Luftiges Leinen zum Saisonende.",
-            "product": 2,
-            "percent": 25,
-            "group": "Sale",
-            "discount_style": "percent",
-            "ends_in_days": 12,
-        },
-        {
-            "title": "Chino-Hose Deich statt 59,90 € nur 44,90 €",
-            "desc": "Zwei Farben, solange der Vorrat reicht.",
-            "product": 8,
-            "new_price": 44.90,
-            "compare_at": 59.90,
-            "discount_style": "strikethrough",
-            "group": "Sale",
-            "ends_in_days": 9,
-        },
-        {
-            "title": "Canvas-Tasche −20 %",
-            "desc": "Der Alltagsbegleiter aus schwerem Baumwoll-Canvas.",
-            "product": 12,
-            "percent": 20,
-            "group": "Accessoire-Deals",
-            "ends_in_days": 10,
-        },
-        # Sale-Ядро: %-скидка на hero-товар. Заголовок/desc СОХРАНЕНЫ дословно —
-        # у них уже есть переводы в demo_i18n_{en,ru,tr,uk}.json.
-        {
-            "title": "Schlussverkauf: Sommerkleider −30 %",
-            "product": 0,  # Sommerkleid Nordlicht 45,00 € (было 0 — верно)
-            "percent": 30,
-            "discount_style": "percent",
-            "group": "Sale",
-            "ends_in_days": 14,
-            "image": "summer,dress",
-            "desc": "Nur solange die Größen reichen.",
-        },
-        # ФИКС индекса: 1 → 2 (после вставки «Seidentuch Aurora» акция висела на платке).
-        # Направление «sale со strikethrough+compare_at»: 39,90 → 31,90 = ровно −20 %,
-        # поэтому прежний заголовок остаётся честным (и сохраняет свои 4 перевода).
-        {
-            "title": "Style der Woche: Leinenbluse −20 %",
-            "product": 2,  # Leinenbluse Küste 39,90 €
-            "new_price": "31.90",
-            "compare_at": "39.90",
-            "discount_style": "strikethrough",
-            "recurrence": "weekly",
-            "ends_in_days": 7,
-            "group": "Sale",
-            "image": "linen,blouse",
-            "desc": "Jede Woche ein Lieblingsteil reduziert — diese Woche die Leinenbluse Küste.",
-        },
-        # ФИКС индекса: 4 → 5 (акция «Festpreis 14,90 €» стояла на джинсах за 59,90 €).
-        # + limit: лимит кампании на обычной скидке («Nur noch N», стоп после 50 продаж).
-        {
-            "title": "Basic T-Shirt zum Festpreis 14,90 €",
-            "product": 5,  # Basic T-Shirt Bio-Baumwolle 19,90 €
-            "new_price": "14.90",
-            "compare_at": "19.90",
-            "discount_style": "festpreis",
-            "limit": 50,
-            "ends_in_days": 21,
-            "group": "Sale",
-            "image": "tshirt",
-            "desc": "Weiß und Schwarz, Größen S–XL — solange der Aktionsvorrat reicht.",
-        },
-        # НОВОЕ: резервирование + Anprobe im Showroom (кит уже с enable_anprobe=True).
-        # У кардигана размер M ausverkauft (stock 0) → история «letzte Größen» честна.
-        {
-            "title": "Letzte Größen: Strickcardigan Wolke −40 %",
-            "product": 3,  # Strickcardigan Wolke 54,90 € → 32,94 €
-            "type": "reservation",
-            "percent": 40,
-            "available_quantity": 4,
-            "ends_in_days": 10,
-            "group": "Sale",
-            "images": ["cardigan", "knitwear", "clothing,rack"],
-            "desc": "Nur noch S und L — online sichern und im Showroom anprobieren.",
-        },
-        # НОВОЕ: «ab»-цена. Носитель выбран осознанно — у платка варианты стоят
-        # по-разному (Dessin Uni 22,90 €, übrige 24,90 €), поэтому «ab» читается честно.
-        {
-            "title": "Seidentuch Aurora — Aktionspreis ab 19,90 €",
-            "product": 1,  # Seidentuch Aurora 24,90 €
-            "new_price": "19.90",
-            "discount_style": "ab",
-            "recurrence": "weekly",
-            "ends_in_days": 7,
-            "group": "Accessoire-Deals",
-            "image": "accessories",
-            "desc": "Drei Dessins — Blüte, Streifen und Uni — im Aktionspreis ab 19,90 €.",
-        },
-        # НОВОЕ: mystery — цена скрыта до клика (UE2-3) + таймер. Заголовок намеренно
-        # нейтральный (как Mystery-Deal у aktionsmarkt), товар-носитель не называется.
-        {
-            "title": "Mystery-Accessoire der Woche",
-            "new": True,
-            "product": 12,  # Canvas-Tasche 16,90 € (Lager 25)
-            "new_price": "9.90",
-            "compare_at": "16.90",
-            "discount_style": "mystery",
-            "countdown": True,
-            "ends_in_days": 3,
-            "group": "Accessoire-Deals",
-            "image": "fashion",
-            "desc": "Ein Überraschungs-Accessoire aus dem Sale — der Preis erscheint erst beim Klick.",
-        },
-    ],
     categories=[
         (
             "Damen",
             "damen",
+            [],
             [
-                _p(
-                    "Sommerkleid Nordlicht",
-                    "45.00",
-                    "Leichte Viskose, Midi-Länge. Fällt normal aus.",
-                    ["summer,dress", "dress", "fashion"],
-                    # M4-A: размер × цвет + фото варианта (label собирается сам).
-                    variants=[
-                        {
-                            "size": "S",
-                            "color": "Blau",
-                            "price": "45.00",
-                            "stock": 3,
-                            "images": ["dress"],
-                        },
-                        {
-                            "size": "M",
-                            "color": "Blau",
-                            "price": "45.00",
-                            "stock": 4,
-                            "images": ["dress"],
-                        },
-                        {
-                            "size": "L",
-                            "color": "Blau",
-                            "price": "45.00",
-                            "stock": 2,
-                            "images": ["dress"],
-                        },
-                        {
-                            "size": "S",
-                            "color": "Sand",
-                            "price": "45.00",
-                            "stock": 3,
-                            "images": ["fashion"],
-                        },
-                        {
-                            "size": "M",
-                            "color": "Sand",
-                            "price": "45.00",
-                            "stock": 4,
-                            "images": ["fashion"],
-                        },
-                        {
-                            "size": "L",
-                            "color": "Sand",
-                            "price": "45.00",
-                            "stock": 2,
-                            "images": ["fashion"],
-                        },
+                (
+                    "Kleider & Röcke",
+                    "damen-kleider",
+                    [
+                        _mp(
+                            "Sommerkleid Nordlicht",
+                            "45.00",
+                            "Leichte Viskose, Midi-Länge, fällt normal aus.",
+                            "mode-sommerkleid-nordlicht",
+                            sizes=_SZ_DAMEN,
+                            colors=("Blau", "Sand"),
+                            material=_M_VISKOSE,
+                            care=_C_30,
+                            badge="beliebt",
+                            sku="NW-KL-101",
+                            gtin="4260000012101",
+                        ),
+                        _mp(
+                            "Wickelkleid Deichgold",
+                            "79.00",
+                            "Fließender TENCEL™, Wickeloptik mit Bindegürtel.",
+                            "mode-wickelkleid-deichgold",
+                            sizes=_SZ_DAMEN,
+                            colors=("Oliv", "Bordeaux"),
+                            material=_M_TENCEL,
+                            care=_C_30,
+                            sku="NW-KL-102",
+                        ),
+                        _mp(
+                            "Strickkleid Winterlicht",
+                            "89.00",
+                            "Warmes Merino-Strickkleid mit Rollkragen.",
+                            "mode-strickkleid-winterlicht",
+                            sizes=_SZ_DAMEN,
+                            colors=("Anthrazit", "Creme"),
+                            soldout=("XS",),
+                            material=_M_MERINO,
+                            care=_C_WOLLE,
+                            sku="NW-KL-103",
+                        ),
+                        _mp(
+                            "Midirock Elbwelle",
+                            "59.00",
+                            "Leinenrock mit weitem Fall und Taschen.",
+                            "mode-midirock-elbwelle",
+                            sizes=_SZ_KONF,
+                            colors=("Sand", "Navy"),
+                            material=_M_LEINEN,
+                            care=_C_BUEGEL,
+                            sku="NW-RO-104",
+                        ),
+                        _mp(
+                            "Plisseerock Alster",
+                            "69.00",
+                            "Feine Plissee-Falten, elastischer Bund.",
+                            "mode-plisseerock-alster",
+                            sizes=_SZ_KONF,
+                            colors=("Schwarz", "Rosa"),
+                            material=_M_TENCEL,
+                            care=_C_HAND,
+                            sku="NW-RO-105",
+                        ),
                     ],
-                    badge="beliebt",
-                    material="100 % Viskose (LENZING™ ECOVERO™)",
-                    care="30 °C Schonwäsche, nicht trocknergeeignet",
+                    "mode-kat-kleider",
                 ),
-                _p(
-                    "Seidentuch Aurora",
-                    "24.90",
-                    "Seidiges Tuch, drei Dessins — Auswahl als Foto-Kacheln.",
-                    # DL-18.3: ключей scarf-* в библиотеке нет — товар уезжал в
-                    # SVG-заглушку; берём кадры, которые реально существуют.
-                    ["accessories", "fashion,designer"],
-                    # O-2: НОСИТЕЛЬ вида "photo" — варианты фото-плитками
-                    # (фидбэк владельца 2026-08-03 «негде попробовать»).
-                    variant_style="photo",
-                    variants=[
-                        {
-                            "label": "Dessin Blüte",
-                            "price": "24.90",
-                            "stock": 6,
-                            "images": ["accessories"],
-                        },
-                        {
-                            "label": "Dessin Streifen",
-                            "price": "24.90",
-                            "stock": 4,
-                            "images": ["fashion,designer"],
-                        },
-                        {
-                            "label": "Dessin Uni",
-                            "price": "22.90",
-                            "stock": 8,
-                            "images": ["scarf"],
-                        },
+                (
+                    "Oberteile",
+                    "damen-oberteile",
+                    [
+                        _mp(
+                            "Leinenbluse Küste",
+                            "39.90",
+                            "100 % Leinen, luftig geschnitten.",
+                            "mode-leinenbluse-kueste",
+                            sizes=_SZ_DAMEN,
+                            colors=("Weiß", "Hellblau"),
+                            material=_M_LEINEN,
+                            care=_C_BUEGEL,
+                            badge="beliebt",
+                            sku="NW-BL-106",
+                        ),
+                        _mp(
+                            "Seidenbluse Aurora",
+                            "89.00",
+                            "Reine Seide, matter Glanz, fließender Fall.",
+                            "mode-seidenbluse-aurora",
+                            sizes=_SZ_DAMEN,
+                            colors=("Creme", "Bordeaux"),
+                            material=_M_SEIDE,
+                            care=_C_HAND,
+                            sku="NW-BL-107",
+                        ),
+                        _mp(
+                            "Basic-Shirt Möwe",
+                            "24.90",
+                            "Schwerer Jersey, gerader Schnitt, hält die Form.",
+                            "mode-shirt-moewe",
+                            sizes=_SZ_DAMEN,
+                            colors=("Weiß", "Schwarz", "Navy"),
+                            material=_M_BIO,
+                            care=_C_40,
+                            sku="NW-SH-108",
+                            gtin="4260000012108",
+                        ),
+                        _mp(
+                            "Ringelshirt Hafenkante",
+                            "29.90",
+                            "Klassische Streifen, langärmlig.",
+                            "mode-ringelshirt-hafenkante",
+                            sizes=_SZ_DAMEN,
+                            colors=("Navy", "Rot"),
+                            material=_M_BIO,
+                            care=_C_40,
+                            sku="NW-SH-109",
+                        ),
+                        _mp(
+                            "Trägertop Sommerbrise",
+                            "19.90",
+                            "Breite Träger, weiche Bio-Baumwolle.",
+                            "mode-traegertop-sommerbrise",
+                            sizes=_SZ_DAMEN,
+                            colors=("Creme", "Rosa"),
+                            material=_M_JERSEY,
+                            care=_C_30,
+                            sku="NW-TO-110",
+                        ),
                     ],
-                    material="100 % Seide",
-                    care="Handwäsche kalt",
+                    "mode-kat-oberteile",
                 ),
-                _p(
-                    "Leinenbluse Küste",
-                    "39.90",
-                    "100 % Leinen, luftig geschnitten.",
-                    # DL-18.3: linen-shirt.webp — брак набора (на кадре выпечка).
-                    ["linen,blouse", "tshirt"],
-                    variants=[
-                        {"label": "S", "price": "39.90", "stock": 5},
-                        {"label": "M", "price": "39.90", "stock": 7},
-                        {"label": "L", "price": "39.90", "stock": 3},
+                (
+                    "Strick",
+                    "damen-strick",
+                    [
+                        _mp(
+                            "Strickcardigan Wolke",
+                            "54.90",
+                            "Weicher Feinstrick, offene Front, tiefe Taschen.",
+                            "mode-cardigan-wolke",
+                            sizes=("S", "M", "L"),
+                            colors=("Beige", "Braun"),
+                            soldout=(("M", "Beige"),),
+                            material=_M_WOLLE,
+                            care=_C_WOLLE,
+                            sku="NW-ST-111",
+                        ),
+                        _mp(
+                            "Merinopullover Nordwind",
+                            "79.00",
+                            "Feine Merinowolle, kratzt nicht, wärmt sofort.",
+                            "mode-merinopullover-nordwind",
+                            sizes=_SZ_DAMEN,
+                            colors=("Grau", "Grün"),
+                            material=_M_MERINO,
+                            care=_C_WOLLE,
+                            badge="empfehlung",
+                            sku="NW-ST-112",
+                        ),
+                        _mp(
+                            "Grobstrickpullover Fischer",
+                            "99.00",
+                            "Zopfmuster aus schwerer Schurwolle.",
+                            "mode-grobstrick-fischer",
+                            sizes=_SZ_DAMEN,
+                            colors=("Creme", "Navy"),
+                            material=_M_WOLLE,
+                            care=_C_WOLLE,
+                            sku="NW-ST-113",
+                        ),
+                        _mp(
+                            "Feinstrickweste Möwenflug",
+                            "49.90",
+                            "Ärmellos, gerippt, gut über Blusen.",
+                            "mode-strickweste-moewenflug",
+                            sizes=("S", "M", "L"),
+                            colors=("Schwarz", "Sand"),
+                            material=_M_BIO,
+                            care=_C_WOLLE,
+                            sku="NW-ST-114",
+                        ),
                     ],
-                    material="100 % Leinen",
-                    care="30 °C Schonwäsche, bügelfeucht bügeln",
+                    "mode-kat-strick",
                 ),
-                _p(
-                    "Strickcardigan Wolke",
-                    "54.90",
-                    "Weicher Feinstrick aus Bio-Baumwolle.",
-                    ["cardigan", "knitwear", "fashion"],
-                    variants=[
-                        {"label": "S", "price": "54.90", "stock": 4},
-                        {"label": "M", "price": "54.90", "stock": 0},  # ausverkauft → Warteliste
-                        {"label": "L", "price": "54.90", "stock": 2},
+                (
+                    "Hosen & Jeans",
+                    "damen-hosen",
+                    [
+                        _mp(
+                            "Jeans High-Waist Deich",
+                            "59.90",
+                            "Stretch-Denim, gerades Bein, hoher Bund.",
+                            "mode-jeans-deich",
+                            sizes=_SZ_KONF,
+                            colors=("Blau", "Schwarz"),
+                            material=_M_DENIM,
+                            care=_C_LINKS,
+                            badge="beliebt",
+                            sku="NW-HO-115",
+                        ),
+                        _mp(
+                            "Marlenehose Kontor",
+                            "69.00",
+                            "Weites Bein, Bundfalte, fällt schwer.",
+                            "mode-marlenehose-kontor",
+                            sizes=_SZ_KONF,
+                            colors=("Oliv", "Anthrazit"),
+                            material=_M_TENCEL,
+                            care=_C_30,
+                            sku="NW-HO-116",
+                        ),
+                        _mp(
+                            "Leinenhose Sommerdeich",
+                            "55.00",
+                            "Luftiges Leinen mit Tunnelzug.",
+                            "mode-leinenhose-sommerdeich",
+                            sizes=_SZ_KONF,
+                            colors=("Creme", "Sand"),
+                            material=_M_LEINEN,
+                            care=_C_BUEGEL,
+                            sku="NW-HO-117",
+                        ),
                     ],
-                    material="70 % Wolle, 30 % Polyamid",
-                    care="Handwäsche kalt, liegend trocknen",
+                    "mode-kat-hosen",
                 ),
-                _p(
-                    "Jeans High-Waist",
-                    "59.90",
-                    "Stretch-Denim, gerades Bein.",
-                    "jeans",
-                    variants=[
-                        {"label": "36", "price": "59.90", "stock": 5},
-                        {"label": "38", "price": "59.90", "stock": 6},
-                        {"label": "40", "price": "59.90", "stock": 4},
-                        {"label": "42", "price": "59.90", "stock": 3},
+                (
+                    "Jacken & Mäntel",
+                    "damen-jacken",
+                    [
+                        _mp(
+                            "Steppjacke Elbnebel",
+                            "119.00",
+                            "Leichte Steppjacke, recycelt gefüttert.",
+                            "mode-steppjacke-elbnebel",
+                            sizes=_SZ_DAMEN,
+                            colors=("Anthrazit", "Oliv"),
+                            material=_M_RECYCELT,
+                            care=_C_30,
+                            sku="NW-JA-118",
+                        ),
+                        _mp(
+                            "Wollmantel Winterhafen",
+                            "199.00",
+                            "Schurwollmantel mit Reverskragen, knielang.",
+                            "mode-wollmantel-winterhafen",
+                            sizes=_SZ_DAMEN,
+                            colors=("Bordeaux", "Anthrazit"),
+                            material=_M_WOLLE,
+                            care=_C_ABWISCHEN,
+                            sku="NW-JA-119",
+                        ),
+                        _mp(
+                            "Regenjacke Nordsee",
+                            "129.00",
+                            "Wasserdicht, PFC-frei, mit Kapuze.",
+                            "mode-regenjacke-nordsee",
+                            sizes=_SZ_DAMEN,
+                            colors=("Gelb", "Navy"),
+                            material=_M_RECYCELT,
+                            care=_C_30,
+                            sku="NW-JA-120",
+                        ),
                     ],
-                    material="99 % Baumwolle, 1 % Elasthan",
-                    care="30 °C, auf links waschen, nicht trocknergeeignet",
+                    "mode-kat-jacken",
                 ),
             ],
-            "summer-dress",  # DS-9: фото плитки (было SVG)
+            "Kleider, Strick und Hosen — Lieblingsstücke, die bleiben.",
+            "regale",
+            "mode-kat-damen",
         ),
         (
             "Herren",
             "herren",
+            [],
             [
-                _p(
-                    "Basic T-Shirt Bio-Baumwolle",
-                    "19.90",
-                    "Schwerer Jersey, sitzt gerade.",
-                    "tshirt",
-                    # M4-A: размер × цвет (без фото — фолбэк на фото товара).
-                    variants=[
-                        {"size": size, "color": color, "price": "19.90", "stock": stock}
-                        for size, stock in (("S", 5), ("M", 6), ("L", 4), ("XL", 3))
-                        for color in ("Weiß", "Schwarz")
+                (
+                    "Hemden",
+                    "herren-hemden",
+                    [
+                        _mp(
+                            "Leinenhemd Hafen",
+                            "39.90",
+                            "Locker geschnitten, knitterfreundlich.",
+                            "mode-leinenhemd-hafen",
+                            sizes=_SZ_HERREN,
+                            colors=("Weiß", "Hellblau"),
+                            material=_M_LEINEN,
+                            care=_C_BUEGEL,
+                            sku="NW-HE-201",
+                        ),
+                        _mp(
+                            "Oxfordhemd Kontor",
+                            "59.00",
+                            "Klassisches Oxford-Gewebe, Button-Down-Kragen.",
+                            "mode-oxfordhemd-kontor",
+                            sizes=_SZ_HERREN,
+                            colors=("Weiß", "Blau"),
+                            material=_M_BIO,
+                            care=_C_40,
+                            badge="beliebt",
+                            sku="NW-HE-202",
+                        ),
+                        _mp(
+                            "Flanellhemd Werft",
+                            "69.00",
+                            "Angerauter Flanell, wärmt an kühlen Tagen.",
+                            "mode-flanellhemd-werft",
+                            sizes=_SZ_HERREN,
+                            colors=("Rot", "Oliv"),
+                            soldout=("XXL",),
+                            material=_M_BIO,
+                            care=_C_40,
+                            sku="NW-HE-203",
+                        ),
+                        _mp(
+                            "Kurzarmhemd Sommerdock",
+                            "49.90",
+                            "Kurzer Arm, offener Kragen, reines Leinen.",
+                            "mode-kurzarmhemd-sommerdock",
+                            sizes=_SZ_HERREN,
+                            material=_M_LEINEN,
+                            care=_C_BUEGEL,
+                            sku="NW-HE-204",
+                        ),
                     ],
-                    badge="beliebt",
-                    gtin="4260000011001",
-                    material="100 % Bio-Baumwolle (GOTS)",
-                    care="40 °C Buntwäsche, trocknergeeignet",
+                    "mode-kat-hemden",
                 ),
-                _p(
-                    "Leinenhemd Hafen",
-                    "39.90",
-                    "Locker geschnitten, knitterfreundlich.",
-                    ["fashion", "clothing,rack"],  # DL-18.3: было linen,shirt (выпечка)
-                    variants=[
-                        {"label": "M", "price": "39.90", "stock": 5},
-                        {"label": "L", "price": "39.90", "stock": 6},
-                        {"label": "XL", "price": "39.90", "stock": 3},
+                (
+                    "Shirts & Polos",
+                    "herren-shirts",
+                    [
+                        _mp(
+                            "Basic T-Shirt Bio",
+                            "19.90",
+                            "Schwerer Jersey, sitzt gerade, hält die Form.",
+                            "mode-basic-tshirt",
+                            sizes=_SZ_HERREN,
+                            colors=("Weiß", "Schwarz", "Navy", "Oliv"),
+                            material=_M_BIO,
+                            care=_C_40,
+                            badge="beliebt",
+                            sku="NW-TS-205",
+                            gtin="4260000012205",
+                        ),
+                        _mp(
+                            "Jersey-Shirt Docker",
+                            "29.90",
+                            "Schwerer 220-g-Jersey, breiter Halsbund.",
+                            "mode-jerseyshirt-docker",
+                            sizes=_SZ_HERREN,
+                            material=_M_BIO,
+                            care=_C_40,
+                            sku="NW-TS-206",
+                        ),
+                        _mp(
+                            "Longsleeve Nordkap",
+                            "34.90",
+                            "Langarm mit Daumenloch am Bündchen.",
+                            "mode-longsleeve-nordkap",
+                            sizes=_SZ_HERREN,
+                            colors=("Navy", "Grau"),
+                            material=_M_BIO,
+                            care=_C_40,
+                            sku="NW-TS-207",
+                        ),
+                        _mp(
+                            "Poloshirt Reederei",
+                            "44.90",
+                            "Piqué-Strick mit gestrickter Blende.",
+                            "mode-poloshirt-reederei",
+                            sizes=_SZ_HERREN,
+                            colors=("Navy", "Weiß"),
+                            material=_M_BIO,
+                            care=_C_40,
+                            sku="NW-TS-208",
+                        ),
+                        _mp(
+                            "Ringelshirt Seemann",
+                            "32.90",
+                            "Bretonische Streifen, langärmlig.",
+                            "mode-ringelshirt-seemann",
+                            sizes=_SZ_HERREN,
+                            colors=("Weiß", "Navy"),
+                            material=_M_BIO,
+                            care=_C_40,
+                            sku="NW-TS-209",
+                        ),
                     ],
-                    material="100 % Leinen",
-                    care="30 °C Schonwäsche, bügelfeucht bügeln",
+                    "mode-kat-shirts",
                 ),
-                _p(
-                    "Strickpullover Merino",
-                    "69.90",
-                    "100 % Merinowolle, mulesingfrei.",
-                    "sweater",
-                    variants=[
-                        {"label": "M", "price": "69.90", "stock": 4},
-                        {"label": "L", "price": "69.90", "stock": 3},
+                (
+                    "Strick & Sweat",
+                    "herren-strick",
+                    [
+                        _mp(
+                            "Merinopullover Steg",
+                            "89.00",
+                            "Feinstrick aus mulesingfreier Merinowolle.",
+                            "mode-merinopullover-herren",
+                            sizes=_SZ_HERREN,
+                            colors=("Anthrazit", "Braun"),
+                            material=_M_MERINO,
+                            care=_C_WOLLE,
+                            badge="empfehlung",
+                            sku="NW-SW-210",
+                        ),
+                        _mp(
+                            "Strickjacke Kapitän",
+                            "99.00",
+                            "Grober Zopfstrick mit Hornknöpfen.",
+                            "mode-strickjacke-kapitaen",
+                            sizes=_SZ_HERREN,
+                            colors=("Navy", "Grau"),
+                            material=_M_WOLLE,
+                            care=_C_WOLLE,
+                            sku="NW-SW-211",
+                        ),
+                        _mp(
+                            "Rollkragen Fischer",
+                            "69.00",
+                            "Hoher Rollkragen, weicher Merino-Feinstrick.",
+                            "mode-rollkragen-fischer",
+                            sizes=_SZ_HERREN,
+                            colors=("Creme", "Schwarz"),
+                            material=_M_MERINO,
+                            care=_C_WOLLE,
+                            sku="NW-SW-212",
+                        ),
+                        _mp(
+                            "Sweatshirt Werfthalle",
+                            "59.00",
+                            "Angerauter Innenstoff, Kängurutasche.",
+                            "mode-sweatshirt-werfthalle",
+                            sizes=_SZ_HERREN,
+                            colors=("Grau", "Oliv"),
+                            material=_M_JERSEY,
+                            care=_C_LINKS,
+                            sku="NW-SW-213",
+                        ),
                     ],
-                    badge="empfehlung",
-                    material="100 % Merinowolle (mulesingfrei)",
-                    care="Handwäsche kalt oder Wollprogramm",
+                    "mode-kat-strick",
                 ),
-                _p(
-                    "Chino-Hose Deich",
-                    "49.90",
-                    "Bio-Baumwolle, leicht verjüngt.",
-                    "chinos",
-                    variants=[
-                        {"label": "48", "price": "49.90", "stock": 4},
-                        {"label": "50", "price": "49.90", "stock": 5},
-                        {"label": "52", "price": "49.90", "stock": 3},
+                (
+                    "Hosen",
+                    "herren-hosen",
+                    [
+                        _mp(
+                            "Chino Deich",
+                            "49.90",
+                            "Leicht verjüngt, mit Stretch-Anteil.",
+                            "mode-chino-deich",
+                            sizes=_SZ_HOSE,
+                            colors=("Beige", "Oliv"),
+                            material=_M_CORD,
+                            care=_C_LINKS,
+                            sku="NW-HH-214",
+                        ),
+                        _mp(
+                            "Jeans Straight Elbe",
+                            "69.00",
+                            "Gerader Schnitt aus festem Denim.",
+                            "mode-jeans-elbe",
+                            sizes=_SZ_HOSE,
+                            colors=("Blau", "Anthrazit"),
+                            material=_M_DENIM,
+                            care=_C_LINKS,
+                            badge="beliebt",
+                            sku="NW-HH-215",
+                        ),
+                        _mp(
+                            "Cordhose Kontor",
+                            "65.00",
+                            "Feiner Babycord, warm und weich.",
+                            "mode-cordhose-kontor",
+                            sizes=_SZ_HOSE,
+                            colors=("Braun", "Oliv"),
+                            material=_M_CORD,
+                            care=_C_LINKS,
+                            sku="NW-HH-216",
+                        ),
+                        _mp(
+                            "Leinenhose Hafenbrise",
+                            "55.00",
+                            "Leichtes Leinen, elastischer Bund.",
+                            "mode-leinenhose-hafenbrise",
+                            sizes=_SZ_HOSE,
+                            colors=("Creme", "Sand"),
+                            material=_M_LEINEN,
+                            care=_C_BUEGEL,
+                            sku="NW-HH-217",
+                        ),
                     ],
-                    material="98 % Bio-Baumwolle, 2 % Elasthan",
-                    care="30 °C, auf links waschen",
+                    "mode-kat-hosen",
+                ),
+                (
+                    "Jacken & Mäntel",
+                    "herren-jacken",
+                    [
+                        _mp(
+                            "Steppjacke Nordwind",
+                            "129.00",
+                            "Leicht, warm, mit recyceltem Füllmaterial.",
+                            "mode-steppjacke-nordwind",
+                            sizes=_SZ_HERREN,
+                            colors=("Schwarz", "Oliv"),
+                            material=_M_RECYCELT,
+                            care=_C_30,
+                            sku="NW-JH-218",
+                        ),
+                        _mp(
+                            "Wollmantel Reeder",
+                            "219.00",
+                            "Zweireihiger Schurwollmantel, gefüttert.",
+                            "mode-wollmantel-reeder",
+                            sizes=_SZ_HERREN,
+                            colors=("Anthrazit", "Braun"),
+                            material=_M_WOLLE,
+                            care=_C_ABWISCHEN,
+                            sku="NW-JH-219",
+                        ),
+                        _mp(
+                            "Regenjacke Sturmflut",
+                            "119.00",
+                            "Wassersäule 10.000 mm, PFC-frei.",
+                            "mode-regenjacke-sturmflut",
+                            sizes=_SZ_HERREN,
+                            colors=("Gelb", "Navy"),
+                            material=_M_RECYCELT,
+                            care=_C_30,
+                            sku="NW-JH-220",
+                        ),
+                    ],
+                    "mode-kat-jacken",
                 ),
             ],
-            "sweater",  # DS-9: фото плитки (linen-shirt.webp — брак набора: выпечка)
-            # DL-20 (P3): мало позиций с описанием — обложка + крупные карточки.
             "Hemden, Strick und Hosen — Basics, die bleiben.",
-            "magazin",
+            "regale",
+            "mode-kat-herren",
+        ),
+        (
+            "Kinder",
+            "kinder",
+            [],
+            [
+                (
+                    "Baby (0–2)",
+                    "kinder-baby",
+                    [
+                        _mp(
+                            "Strampler Seestern",
+                            "24.90",
+                            "Mit Druckknöpfen am Bein — schnelles Wickeln.",
+                            "mode-strampler-seestern",
+                            sizes=_SZ_BABY,
+                            colors=("Hellblau", "Rosa"),
+                            material=_M_BIO,
+                            care=_C_40,
+                            badge="beliebt",
+                            sku="NW-BA-301",
+                        ),
+                        _mp(
+                            "Baby-Body Doppelpack Muschel",
+                            "19.90",
+                            "Zwei Bodys mit Umschlagausschnitt.",
+                            "mode-babybody-muschel",
+                            sizes=_SZ_BABY,
+                            colors=("Creme", "Weiß"),
+                            material=_M_BIO,
+                            care=_C_40,
+                            sku="NW-BA-302",
+                        ),
+                        _mp(
+                            "Baby-Strickjacke Wolke",
+                            "34.90",
+                            "Weicher Feinstrick mit Holzknöpfen.",
+                            "mode-babystrickjacke-wolke",
+                            sizes=_SZ_BABY,
+                            colors=("Creme", "Rosa"),
+                            material=_M_MERINO,
+                            care=_C_WOLLE,
+                            sku="NW-BA-303",
+                        ),
+                        _mp(
+                            "Latzhose Krabbe",
+                            "29.90",
+                            "Robuster Denim mit verstellbaren Trägern.",
+                            "mode-latzhose-krabbe",
+                            sizes=_SZ_BABY,
+                            colors=("Blau", "Oliv"),
+                            material=_M_DENIM,
+                            care=_C_40,
+                            sku="NW-BA-304",
+                        ),
+                        _mp(
+                            "Musselintuch Nordlicht",
+                            "19.90",
+                            "Doppellagiger Musselin — Spucktuch und Decke.",
+                            "mode-musselintuch-nordlicht",
+                            colors=("Creme", "Hellblau"),
+                            material=_M_MUSSELIN,
+                            care=_C_40,
+                            sku="NW-BA-305",
+                        ),
+                    ],
+                    "mode-kat-baby",
+                ),
+                (
+                    "Mädchen",
+                    "kinder-maedchen",
+                    [
+                        _mp(
+                            "Mädchenkleid Sommerwiese",
+                            "34.90",
+                            "Luftiges Sommerkleid mit Taschen.",
+                            "mode-maedchenkleid-sommerwiese",
+                            sizes=_SZ_KIND,
+                            colors=("Rosa", "Gelb"),
+                            material=_M_BIO,
+                            care=_C_40,
+                            sku="NW-KI-306",
+                        ),
+                        _mp(
+                            "Jerseykleid Regenbogen",
+                            "29.90",
+                            "Weicher Jersey, dehnt sich mit.",
+                            "mode-jerseykleid-regenbogen",
+                            sizes=_SZ_KIND,
+                            colors=("Türkis", "Lila"),
+                            material=_M_JERSEY,
+                            care=_C_40,
+                            sku="NW-KI-307",
+                        ),
+                        _mp(
+                            "Kinderrock Löwenzahn",
+                            "24.90",
+                            "Weiter Schnitt mit elastischem Bund.",
+                            "mode-kinderrock-loewenzahn",
+                            sizes=_SZ_KIND,
+                            colors=("Gelb", "Rosa"),
+                            material=_M_BIO,
+                            care=_C_40,
+                            sku="NW-KI-308",
+                        ),
+                        _mp(
+                            "Kinderleggings Seehund",
+                            "17.90",
+                            "Bequem, hält viele Wäschen aus.",
+                            "mode-kinderleggings-seehund",
+                            sizes=_SZ_KIND,
+                            colors=("Schwarz", "Grau"),
+                            material=_M_JERSEY,
+                            care=_C_40,
+                            sku="NW-KI-309",
+                        ),
+                        _mp(
+                            "Kinderpullover Nordstern",
+                            "39.90",
+                            "Merino-Feinstrick, kratzt nicht.",
+                            "mode-kinderpullover-nordstern",
+                            sizes=_SZ_KIND,
+                            colors=("Creme", "Blau"),
+                            soldout=("98/104",),
+                            material=_M_MERINO,
+                            care=_C_WOLLE,
+                            sku="NW-KI-310",
+                        ),
+                        _mp(
+                            "Kinderlongsleeve Anker",
+                            "19.90",
+                            "Langarmshirt mit Ringeln.",
+                            "mode-kinderlongsleeve-anker",
+                            sizes=_SZ_KIND,
+                            colors=("Navy", "Rot"),
+                            material=_M_BIO,
+                            care=_C_40,
+                            sku="NW-KI-311",
+                        ),
+                    ],
+                    "mode-kat-maedchen",
+                ),
+                (
+                    "Jungen",
+                    "kinder-jungen",
+                    [
+                        _mp(
+                            "Kindershirt Leuchtturm",
+                            "16.90",
+                            "Kurzarmshirt mit Druck auf der Brust.",
+                            "mode-kindershirt-leuchtturm",
+                            sizes=_SZ_KIND,
+                            colors=("Weiß", "Gelb"),
+                            material=_M_BIO,
+                            care=_C_40,
+                            badge="neu",
+                            sku="NW-KJ-312",
+                        ),
+                        _mp(
+                            "Kindersweatshirt Möwe",
+                            "29.90",
+                            "Angeraut innen, Bündchen an Arm und Saum.",
+                            "mode-kindersweat-moewe",
+                            sizes=_SZ_KIND,
+                            colors=("Grau", "Grün"),
+                            material=_M_JERSEY,
+                            care=_C_40,
+                            sku="NW-KJ-313",
+                        ),
+                        _mp(
+                            "Kinderjeans Werft",
+                            "34.90",
+                            "Verstellbarer Bund, verstärkte Knie.",
+                            "mode-kinderjeans-werft",
+                            sizes=_SZ_KIND,
+                            material=_M_DENIM,
+                            care=_C_LINKS,
+                            sku="NW-KJ-314",
+                        ),
+                        _mp(
+                            "Kindershorts Sandkiste",
+                            "19.90",
+                            "Kurze Hose mit Seitentaschen.",
+                            "mode-kindershorts-sandkiste",
+                            sizes=_SZ_KIND,
+                            colors=("Sand", "Navy"),
+                            material=_M_BIO,
+                            care=_C_40,
+                            sku="NW-KJ-315",
+                        ),
+                        _mp(
+                            "Kinderregenjacke Pfütze",
+                            "49.90",
+                            "Wasserdicht, mit abnehmbarer Kapuze.",
+                            "mode-kinderregenjacke-pfuetze",
+                            sizes=_SZ_KIND,
+                            colors=("Gelb", "Türkis"),
+                            material=_M_RECYCELT,
+                            care=_C_30,
+                            sku="NW-KJ-316",
+                        ),
+                    ],
+                    "mode-kat-jungen",
+                ),
+                (
+                    "Mützen & Socken",
+                    "kinder-accessoires",
+                    [
+                        _mp(
+                            "Babymütze Sturmhaube",
+                            "14.90",
+                            "Mit Ohrenklappen und Bindeband.",
+                            "mode-babymuetze-sturmhaube",
+                            sizes=("0–6 Mon.", "6–12 Mon."),
+                            colors=("Hellblau", "Rosa"),
+                            material=_M_MERINO,
+                            care=_C_HAND,
+                            sku="NW-KA-317",
+                        ),
+                        _mp(
+                            "Kindermütze Sternchen",
+                            "16.90",
+                            "Doppelt gestrickt, wärmt richtig.",
+                            "mode-kindermuetze-sternchen",
+                            sizes=("S", "M"),
+                            colors=("Rot", "Türkis"),
+                            material=_M_MERINO,
+                            care=_C_HAND,
+                            sku="NW-KA-318",
+                        ),
+                        _mp(
+                            "Kindersocken 3er-Pack Krabbe",
+                            "12.90",
+                            "Drei Paar, verstärkte Ferse.",
+                            "mode-kindersocken-krabbe",
+                            sizes=("23–26", "27–30", "31–34"),
+                            colors=("Grau", "Rosa"),
+                            material=_M_BIO,
+                            care=_C_40,
+                            sku="NW-KA-319",
+                        ),
+                        _mp(
+                            "Turnbeutel Seepferd",
+                            "14.90",
+                            "Leichter Beutel für Kita und Sport.",
+                            "mode-turnbeutel-seepferd",
+                            colors=("Türkis", "Gelb"),
+                            material=_M_CANVAS,
+                            care=_C_30,
+                            sku="NW-KA-320",
+                        ),
+                    ],
+                    "mode-kat-kindermuetzen",
+                ),
+            ],
+            "Vom Strampler bis zur Regenjacke — mitwachsend und robust.",
+            "regale",
+            "mode-kat-kinder",
         ),
         (
             "Accessoires",
             "accessoires",
+            [],
             [
-                _p(
-                    "Wollschal",
-                    "24.90",
-                    "Lammwolle, extra lang.",
-                    "wool,scarf",
-                    stock=15,
-                    material="100 % Lammwolle",
-                    care="Handwäsche kalt",
-                ),
-                _p(
-                    "Ledergürtel",
-                    "29.90",
-                    "Pflanzlich gegerbt, made in Portugal.",
-                    "leather,belt",
-                    variants=[
-                        {"label": "85", "price": "29.90", "stock": 5},
-                        {"label": "95", "price": "29.90", "stock": 6},
-                        {"label": "105", "price": "29.90", "stock": 4},
+                (
+                    "Taschen",
+                    "accessoires-taschen",
+                    [
+                        _mp(
+                            "Canvas-Tasche Hafen",
+                            "16.90",
+                            "Schwerer Canvas mit Innentasche.",
+                            "mode-canvastasche-hafen",
+                            colors=("Beige", "Navy"),
+                            material=_M_CANVAS,
+                            care=_C_30,
+                            badge="neu",
+                            sku="NW-TA-401",
+                        ),
+                        _mp(
+                            "Ledershopper Kontor",
+                            "89.00",
+                            "Pflanzlich gegerbtes Leder, wird schöner mit der Zeit.",
+                            "mode-ledershopper-kontor",
+                            colors=("Braun", "Schwarz"),
+                            material=_M_LEDER,
+                            care=_C_LEDER,
+                            sku="NW-TA-402",
+                        ),
+                        _mp(
+                            "Rucksack Wattenmeer",
+                            "79.00",
+                            'Laptopfach 15", gepolsterte Träger.',
+                            "mode-rucksack-wattenmeer",
+                            colors=("Anthrazit", "Oliv"),
+                            material=_M_LEDER,
+                            care=_C_LEDER,
+                            sku="NW-TA-403",
+                        ),
+                        _mp(
+                            "Umhängetasche Elbe",
+                            "59.00",
+                            "Verstellbarer Gurt, Magnetverschluss.",
+                            "mode-umhaengetasche-elbe",
+                            colors=("Schwarz", "Braun"),
+                            material=_M_LEDER,
+                            care=_C_LEDER,
+                            sku="NW-TA-404",
+                        ),
+                        _mp(
+                            "Turnbeutel Deich",
+                            "24.90",
+                            "Leichter Beutel aus festem Canvas.",
+                            "mode-turnbeutel-deich",
+                            stock=30,
+                            material=_M_CANVAS,
+                            care=_C_30,
+                            sku="NW-TA-405",
+                        ),
                     ],
+                    "mode-kat-taschen",
                 ),
-                _p(
-                    "Strickmütze",
-                    "14.90",
-                    "Merino, doppelt gestrickt.",
-                    "beanie",
-                    stock=20,
-                    material="100 % Merinowolle",
-                    care="Handwäsche kalt",
+                (
+                    "Schals & Mützen",
+                    "accessoires-schals",
+                    [
+                        _mp(
+                            "Wollschal Nordwind",
+                            "24.90",
+                            "Lammwolle, extra lang.",
+                            "mode-wollschal-nordwind",
+                            colors=("Grau", "Bordeaux"),
+                            material=_M_WOLLE,
+                            care=_C_HAND,
+                            sku="NW-SC-406",
+                        ),
+                        _mp(
+                            "Seidentuch Aurora",
+                            "24.90",
+                            "Seidiges Tuch in drei Dessins.",
+                            "mode-seidentuch-aurora",
+                            colors=("Rosa", "Creme"),
+                            material=_M_SEIDE,
+                            care=_C_HAND,
+                            variant_style="photo",
+                            sku="NW-SC-407",
+                        ),
+                        _mp(
+                            "Kaschmirschal Winterlicht",
+                            "89.00",
+                            "Reiner Kaschmir, leicht und warm.",
+                            "mode-kaschmirschal-winterlicht",
+                            colors=("Creme", "Anthrazit"),
+                            material=_M_KASCHMIR,
+                            care=_C_HAND,
+                            badge="empfehlung",
+                            sku="NW-SC-408",
+                        ),
+                        _mp(
+                            "Strickmütze Leuchtturm",
+                            "14.90",
+                            "Merino, doppelt gestrickt.",
+                            "mode-strickmuetze-leuchtturm",
+                            colors=("Rot", "Navy"),
+                            material=_M_MERINO,
+                            care=_C_HAND,
+                            sku="NW-SC-409",
+                        ),
+                        _mp(
+                            "Cap Segeltuch",
+                            "19.90",
+                            "Sechs-Panel-Cap mit Metallschließe.",
+                            "mode-cap-segeltuch",
+                            colors=("Navy", "Beige"),
+                            material=_M_CANVAS,
+                            care=_C_HAND,
+                            sku="NW-SC-410",
+                        ),
+                        _mp(
+                            "Stirnband Deichwind",
+                            "12.90",
+                            "Breites Strickband, deckt die Ohren.",
+                            "mode-stirnband-deichwind",
+                            colors=("Anthrazit", "Rosa"),
+                            material=_M_MERINO,
+                            care=_C_HAND,
+                            sku="NW-SC-411",
+                        ),
+                    ],
+                    "mode-kat-schals",
                 ),
-                _p(
-                    "Canvas-Tasche",
-                    "16.90",
-                    "Schwerer Canvas, Innentasche.",
-                    "canvas,bag",
-                    stock=25,
-                    badge="neu",
+                (
+                    "Handschuhe & Gürtel",
+                    "accessoires-guertel",
+                    [
+                        _mp(
+                            "Handschuhe Winterhafen",
+                            "29.90",
+                            "Lederhandschuhe mit Strickfutter.",
+                            "mode-handschuhe-winterhafen",
+                            sizes=("S", "M", "L"),
+                            colors=("Schwarz", "Braun"),
+                            material=_M_LEDER,
+                            care=_C_LEDER,
+                            sku="NW-GU-412",
+                        ),
+                        _mp(
+                            "Fäustlinge Nordlicht",
+                            "24.90",
+                            "Dicker Wollstrick, gefüttert.",
+                            "mode-faeustlinge-nordlicht",
+                            sizes=("S", "M", "L"),
+                            colors=("Bordeaux", "Grau"),
+                            material=_M_WOLLE,
+                            care=_C_HAND,
+                            sku="NW-GU-413",
+                        ),
+                        _mp(
+                            "Ledergürtel Werft",
+                            "29.90",
+                            "Pflanzlich gegerbt, made in Portugal.",
+                            "mode-lederguertel-werft",
+                            sizes=_SZ_GUERTEL,
+                            colors=("Braun", "Schwarz"),
+                            material=_M_LEDER,
+                            care=_C_LEDER,
+                            sku="NW-GU-414",
+                        ),
+                        _mp(
+                            "Stoffgürtel Sommerdeich",
+                            "19.90",
+                            "Gewebtes Band mit Metallschnalle.",
+                            "mode-stoffguertel-sommerdeich",
+                            sizes=_SZ_GUERTEL,
+                            colors=("Sand", "Navy"),
+                            material=_M_CANVAS,
+                            care=_C_30,
+                            sku="NW-GU-415",
+                        ),
+                        _mp(
+                            "Portemonnaie Kontor",
+                            "39.90",
+                            "Acht Kartenfächer, Münzfach mit Reißverschluss.",
+                            "mode-portemonnaie-kontor",
+                            colors=("Braun", "Schwarz"),
+                            material=_M_LEDER,
+                            care=_C_LEDER,
+                            sku="NW-GU-416",
+                        ),
+                    ],
+                    "mode-kat-kleinleder",
+                ),
+                (
+                    "Socken & Kleines",
+                    "accessoires-kleines",
+                    [
+                        _mp(
+                            "Kartenetui Anker",
+                            "24.90",
+                            "Flach, für vier Karten und Scheine.",
+                            "mode-kartenetui-anker",
+                            colors=("Schwarz", "Bordeaux"),
+                            material=_M_LEDER,
+                            care=_C_LEDER,
+                            sku="NW-KL-417",
+                        ),
+                        _mp(
+                            "Socken 3er-Pack Möwe",
+                            "14.90",
+                            "Drei Paar aus Bio-Baumwolle.",
+                            "mode-socken-moewe",
+                            sizes=_SZ_SOCKEN,
+                            colors=("Grau", "Navy"),
+                            material=_M_BIO,
+                            care=_C_40,
+                            sku="NW-KL-418",
+                        ),
+                        _mp(
+                            "Kniestrümpfe Winterhafen",
+                            "16.90",
+                            "Warme Wollmischung, weiches Bündchen.",
+                            "mode-kniestruempfe-winterhafen",
+                            sizes=_SZ_SOCKEN,
+                            colors=("Anthrazit", "Creme"),
+                            material=_M_WOLLE,
+                            care=_C_HAND,
+                            sku="NW-KL-419",
+                        ),
+                        _mp(
+                            "Sonnenbrille Küste",
+                            "49.00",
+                            "UV400, Acetatfassung, mit Etui.",
+                            "mode-sonnenbrille-kueste",
+                            colors=("Schwarz", "Braun"),
+                            material="Acetat, UV400-Gläser",
+                            care=_C_ABWISCHEN,
+                            sku="NW-KL-420",
+                        ),
+                    ],
+                    "mode-kat-kleines",
                 ),
             ],
-            "canvas-bag",  # DS-9: фото плитки (было SVG)
-            # DL-20 (P4): сильные фото — плитки разного размера поверх «Navigator».
-            "Taschen, Gürtel, Schals — kleine Stücke, große Wirkung.",
-            "mosaik",
+            "Taschen, Schals und Kleinleder — kleine Stücke, große Wirkung.",
+            # Своего шаблона НЕТ — направление наследует общий «Navigator»
+            # (фасеты цвета/размера в боковой колонке; DL-20 инвариант
+            # наследования остаётся видимым в демо).
+            "",
+            "mode-kat-accessoires",
         ),
+    ],
+    promotions_spec=[
+        # Sale-витрина: четыре группы-ленты (Sale · Herren · Familie · Accessoires).
+        {
+            "title": "Sommerkleid Nordlicht −30 %",
+            "desc": "Nur solange die Größen reichen.",
+            "product": 0,
+            "percent": 30,
+            "discount_style": "percent",
+            "group": "Sale",
+            "ends_in_days": 14,
+            "image": "mode-sommerkleid-nordlicht",
+        },
+        {
+            "title": "Leinenbluse Küste −25 %",
+            "desc": "Luftiges Leinen zum Saisonende.",
+            "product": 5,
+            "percent": 25,
+            "discount_style": "percent",
+            "group": "Sale",
+            "ends_in_days": 12,
+            "image": "mode-leinenbluse-kueste",
+        },
+        {
+            "title": "Jeans Straight Elbe statt 69,00 € nur 49,00 €",
+            "desc": "Zwei Waschungen, solange der Vorrat reicht.",
+            "product": 34,
+            "new_price": "49.00",
+            "compare_at": "69.00",
+            "discount_style": "strikethrough",
+            "group": "Sale",
+            "ends_in_days": 9,
+            "image": "mode-jeans-elbe",
+        },
+        {
+            "title": "Letzte Größen: Strickcardigan Wolke −40 %",
+            "desc": "Nur noch S und L — online sichern und im Showroom anprobieren.",
+            "product": 10,
+            "type": "reservation",
+            "percent": 40,
+            "available_quantity": 4,
+            "group": "Sale",
+            "ends_in_days": 10,
+            "images": ["mode-cardigan-wolke", "mode-cardigan-wolke-braun", "mode-kat-strick"],
+        },
+        {
+            "title": "Vorschau: Wollmäntel −40 % ab Montag",
+            "desc": "Der Winter-Sale startet — Mäntel und schwerer Strick.",
+            "product": 18,
+            "percent": 40,
+            "group": "Sale",
+            "starts_in_days": 5,
+            "ends_in_days": 14,
+            "image": "mode-wollmantel-winterhafen",
+        },
+        {
+            "title": "Merinopullover Steg −20 %",
+            "desc": "Feinstrick, der nicht kratzt — jetzt reduziert.",
+            "product": 29,
+            "percent": 20,
+            "discount_style": "percent",
+            "group": "Herren-Deals",
+            "ends_in_days": 11,
+            "image": "mode-merinopullover-herren",
+        },
+        {
+            "title": "Oxfordhemd Kontor statt 59,00 € nur 45,00 €",
+            "desc": "Beide Farben im Aktionspreis.",
+            "product": 21,
+            "new_price": "45.00",
+            "compare_at": "59.00",
+            "discount_style": "badge",
+            "group": "Herren-Deals",
+            "ends_in_days": 16,
+            "image": "mode-oxfordhemd-kontor",
+        },
+        {
+            "title": "Chino Deich zum Festpreis 39,90 €",
+            "desc": "Beide Farben, Größen 46–54 — solange der Aktionsvorrat reicht.",
+            "product": 33,
+            "new_price": "39.90",
+            "compare_at": "49.90",
+            "discount_style": "festpreis",
+            "limit": 40,
+            "group": "Herren-Deals",
+            "ends_in_days": 21,
+            "image": "mode-chino-deich",
+        },
+        {
+            "title": "Baby-Body Doppelpack −20 %",
+            "desc": "Zwei Bodys aus Bio-Baumwolle — der Klassiker im Wickelalltag.",
+            "product": 41,
+            "percent": 20,
+            "discount_style": "percent",
+            "group": "Familien-Deals",
+            "ends_in_days": 20,
+            "image": "mode-babybody-muschel",
+        },
+        {
+            "title": "Kinderregenjacke Pfütze −30 %",
+            "desc": "Herbstaktion: wasserdicht durch die Pfützenzeit.",
+            "product": 55,
+            "percent": 30,
+            "discount_style": "countdown",
+            "countdown": True,
+            "new": True,
+            "group": "Familien-Deals",
+            "ends_in_days": 6,
+            "image": "mode-kinderregenjacke-pfuetze",
+        },
+        {
+            "title": "Mädchenkleid Sommerwiese −25 %",
+            "desc": "Zwei Farben, Größen 86/92 bis 134/140.",
+            "product": 45,
+            "percent": 25,
+            "group": "Familien-Deals",
+            # Вторая запланированная акция: лента «Ab nächster Woche» набирает
+            # два бакета, а действующих остаётся 12 — ряды полные (DL-11).
+            "starts_in_days": 3,
+            "ends_in_days": 18,
+            "image": "mode-maedchenkleid-sommerwiese",
+        },
+        {
+            "title": "Seidentuch Aurora — Aktionspreis ab 19,90 €",
+            "desc": "Zwei Dessins im Aktionspreis, wöchentlich wechselnd.",
+            "product": 66,
+            "new_price": "19.90",
+            "discount_style": "ab",
+            "recurrence": "weekly",
+            "group": "Accessoire-Deals",
+            "ends_in_days": 7,
+            "image": "mode-seidentuch-aurora",
+        },
+        {
+            "title": "Ledergürtel Werft −20 %",
+            "desc": "Pflanzlich gegerbt, made in Portugal.",
+            "product": 73,
+            "percent": 20,
+            "discount_style": "percent",
+            "group": "Accessoire-Deals",
+            "ends_in_days": 15,
+            "image": "mode-lederguertel-werft",
+        },
+        {
+            "title": "Mystery-Accessoire der Woche",
+            "desc": "Ein Überraschungsstück aus dem Sale — der Preis erscheint erst beim Klick.",
+            "product": 60,
+            # Без чипа «Neu»: он поднимал скрытую акцию в начало сортировки
+            # «Neueste» — витрину Sale открывала карточка без цены и фото.
+            "new_price": "9.90",
+            "compare_at": "16.90",
+            "discount_style": "mystery",
+            "countdown": True,
+            "group": "Accessoire-Deals",
+            "ends_in_days": 3,
+            "image": "mode-canvastasche-hafen",
+        },
+    ],
+    # Комплекты-образы: три с фиксированным составом, один со свободным выбором.
+    combos=[
+        {
+            "name": "Look Sonntagsspaziergang",
+            "description": "Leinenbluse und Midirock — zusammen 10 € günstiger.",
+            "price": "89.00",
+            "category": "damen",
+            "photos": ["mode-set-sonntag"],
+            "groups": [
+                {
+                    "label": "Im Set enthalten",
+                    "included": True,
+                    "products": ["Leinenbluse Küste", "Midirock Elbwelle"],
+                }
+            ],
+        },
+        {
+            "name": "Look Büro-Basics",
+            "description": "Oxfordhemd, Chino und Ledergürtel — fertig angezogen.",
+            "price": "129.00",
+            "category": "herren",
+            "photos": ["mode-set-buero"],
+            "groups": [
+                {
+                    "label": "Im Set enthalten",
+                    "included": True,
+                    "products": ["Oxfordhemd Kontor", "Chino Deich", "Ledergürtel Werft"],
+                }
+            ],
+        },
+        {
+            "name": "Look Winterhafen",
+            "description": "Wollmantel, Kaschmirschal und Lederhandschuhe.",
+            "price": "299.00",
+            "category": "damen",
+            "photos": ["mode-set-winter"],
+            "groups": [
+                {
+                    "label": "Im Set enthalten",
+                    "included": True,
+                    "products": [
+                        "Wollmantel Winterhafen",
+                        "Kaschmirschal Winterlicht",
+                        "Handschuhe Winterhafen",
+                    ],
+                }
+            ],
+        },
+        {
+            "name": "Baby-Erstausstattung",
+            "description": "Strampler, Body-Doppelpack und Mütze — das Nötigste für den Anfang.",
+            "price": "54.90",
+            "category": "kinder",
+            "photos": ["mode-set-erstausstattung"],
+            "groups": [
+                {
+                    "label": "Im Set enthalten",
+                    "included": True,
+                    "products": [
+                        "Strampler Seestern",
+                        "Baby-Body Doppelpack Muschel",
+                        "Babymütze Sturmhaube",
+                    ],
+                }
+            ],
+        },
+        {
+            "name": "Wochenend-Look nach Wahl",
+            "description": "Oberteil und Hose selbst zusammenstellen — Rucksack inklusive.",
+            "price": "159.00",
+            "category": "herren",
+            "photos": ["mode-set-wochenende"],
+            "groups": [
+                {
+                    "label": "Oberteil wählen",
+                    "products": [
+                        "Sweatshirt Werfthalle",
+                        "Rollkragen Fischer",
+                        ("Strickjacke Kapitän", "20.00"),
+                    ],
+                },
+                {
+                    "label": "Hose wählen",
+                    "products": [
+                        "Chino Deich",
+                        "Jeans Straight Elbe",
+                        ("Cordhose Kontor", "10.00"),
+                    ],
+                },
+                {
+                    "label": "Im Set enthalten",
+                    "included": True,
+                    "products": ["Rucksack Wattenmeer"],
+                },
+            ],
+        },
+    ],
+    # M4-B Lookbook: подборки с фото → страницы /lookbook/<slug>/.
+    collections=[
+        (
+            "Herbst-Looks",
+            {"products": [10, 14, 65, 68], "photos": ["mode-look-herbst", "mode-kat-strick"]},
+        ),
+        (
+            "Business",
+            {"products": [21, 33, 63, 73], "photos": ["mode-look-business", "mode-kat-hemden"]},
+        ),
+        (
+            "Am Strand",
+            {"products": [0, 16, 60, 79], "photos": ["mode-look-strand", "mode-kat-kleider"]},
+        ),
+        (
+            "Kids-Favoriten",
+            {"products": [45, 51, 59, 57], "photos": ["mode-look-kids", "mode-kat-kinder"]},
+        ),
+        ("Basics", {"products": [7, 24, 14, 77]}),
     ],
     product_reviews=[
         (0, 5, "Meike S.", "nw.rev1@example.de", "Das Kleid sitzt perfekt — Größentabelle stimmt."),
-        # DL-18.3: индексы съехали (5 = Basic T-Shirt, 7 = Strickpullover Merino) —
-        # отзывы сидели на джинсах и льняной рубашке.
-        (5, 5, "Jan H.", "nw.rev2@example.de", "Bestes Basic-Shirt, das ich je hatte."),
-        (7, 5, "Ines W.", "nw.rev3@example.de", "Merino-Pulli kratzt null. Liebe."),
+        (5, 5, "Ines W.", "nw.rev2@example.de", "Leinen knittert schön, nicht schlampig."),
+        (10, 4, "Sarah B.", "nw.rev3@example.de", "Cardigan ist kuschelig, fällt etwas weit aus."),
+        (11, 5, "Anna K.", "nw.rev4@example.de", "Merino kratzt null. Trage ihn jeden Tag."),
+        (14, 5, "Lisa M.", "nw.rev5@example.de", "Endlich eine Jeans, die am Bund nicht klafft."),
+        (21, 5, "Jan H.", "nw.rev6@example.de", "Oxfordhemd wie früher — dicker Stoff, gute Naht."),
+        (24, 5, "Tom R.", "nw.rev7@example.de", "Bestes Basic-Shirt, das ich je hatte."),
+        (29, 5, "Björn L.", "nw.rev8@example.de", "Merino-Pulli hält warm, ohne dick aufzutragen."),
+        (34, 4, "Kai S.", "nw.rev9@example.de", "Sitzt gut, Länge 82 wäre noch schöner."),
+        (40, 5, "Nina P.", "nw.rev10@example.de", "Druckknöpfe halten auch nach 30 Wäschen."),
+        (45, 5, "Julia F.", "nw.rev11@example.de", "Kleid hat drei Kindergartenjahre überlebt."),
+        (55, 5, "Marek D.", "nw.rev12@example.de", "Regenjacke bleibt wirklich dicht."),
+        (61, 4, "Eva N.", "nw.rev13@example.de", "Leder riecht gut und wird schöner."),
+        (67, 5, "Clara W.", "nw.rev14@example.de", "Kaschmir ist federleicht und warm."),
     ],
 )
 

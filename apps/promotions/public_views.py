@@ -1047,6 +1047,8 @@ def product_list(request, slug=None):
     only_available = sel["nur_verfuegbar"]
     herkunft, bewertung = sel["herkunft"], sel["bewertung"]
     groesse = sel.get("groesse", "")  # M2 Boutique: фасет размера
+    farbe = sel.get("farbe", "")  # MODE-1: фасет цвета (ось ProductVariant.color)
+    only_sale = sel.get("sale", False)  # MODE-1: «только reduziert»
     kollektion = sel.get("kollektion", "")  # M4-B Lookbook: подборка товаров
 
     # --- Фасет-бейдж (Neu/Beliebt/Angebot/Tagesgericht…): только присутствующие;
@@ -1314,7 +1316,7 @@ def product_list(request, slug=None):
     # M20U/A4: показываем тизер-карточками вверху меню (до 3) — не только текст-ссылкой,
     # — чтобы Kombo/Tagesgericht были на виду (сильный апселл гастро). Только на 1-й
     # странице каталога без выбранной категории (чтобы не дублировать при пагинации/фильтре).
-    from apps.catalog.combos import active_combos
+    from apps.catalog.combos import active_combos, combos_title
 
     any_facet_active = bool(
         diet
@@ -1324,6 +1326,8 @@ def product_list(request, slug=None):
         or only_available
         or herkunft
         or groesse
+        or farbe
+        or only_sale
         or kollektion
         or bewertung
         or q
@@ -1370,6 +1374,8 @@ def product_list(request, slug=None):
         "nur_verfuegbar": "1" if only_available else "",
         "herkunft": herkunft,  # UB2-3: Bio/Regional-происхождение
         "groesse": groesse,  # M2: размер
+        "farbe": farbe,  # MODE-1: цвет
+        "sale": "1" if only_sale else "",  # MODE-1: только со скидкой
         "kollektion": kollektion,  # M4-B: подборка (лукбук)
         "bewertung": str(bewertung) if bewertung else "",  # UB2-3: минимум звёзд
         "q": q,  # UB2-2: поиск — полноправный фасет в carry
@@ -1511,7 +1517,12 @@ def product_list(request, slug=None):
             "active_herkunft": herkunft,
             # M2 Boutique: фасет размера (чипы из вариантов, только доступные).
             "size_chips": chips["size_chips"],
+            "combos_title": combos_title(request.tenant),
+            "color_chips": chips["color_chips"],
+            "show_sale_filter": chips["show_sale_filter"],
             "active_groesse": groesse,
+            "active_farbe": farbe,
+            "only_sale": only_sale,
             # M4-B Lookbook: чипы подборок владельца (?kollektion=<slug>).
             "collection_chips": chips["collection_chips"],
             "active_kollektion": kollektion,

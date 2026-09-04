@@ -55,13 +55,13 @@ test_public (порядок CTA/точные href). Двухшаговость (
   <div class="mt-6 bg-white rounded-2xl shadow-sm p-5">
     <h2 class="font-semibold mb-1">{% trans "Zur Aktion buchen" %}</h2>
     <p class="text-sm text-gray-500 mb-4">{% trans "Der Aktionspreis wird bei passendem Termin automatisch angewendet." %}</p>
-    <a href="{% url 'storefront-service-slots' promotion.service_id %}" class="block text-center w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% trans "Termin wählen" %} →</a>
+    <a href="{% url 'storefront-service-slots' promotion.service_id %}" class="block text-center w-full text-white rounded-lg px-4 py-3 font-medium hover:opacity-90" style="background: var(--accent);">{% trans "Termin wählen" %} →</a>
   </div>
   {% elif promotion.target_kind == "stay" %}
   <div class="mt-6 bg-white rounded-2xl shadow-sm p-5">
     <h2 class="font-semibold mb-1">{% trans "Zur Aktion buchen" %}</h2>
     <p class="text-sm text-gray-500 mb-4">{% trans "Der Aktionspreis wird bei passenden Daten automatisch angewendet." %}</p>
-    <a href="{% url 'storefront-unterkunft-unit' promotion.stay_unit_id %}" class="block text-center w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700">{% trans "Zimmer ansehen & buchen" %} →</a>
+    <a href="{% url 'storefront-unterkunft-unit' promotion.stay_unit_id %}" class="block text-center w-full text-white rounded-lg px-4 py-3 font-medium hover:opacity-90" style="background: var(--accent);">{% trans "Zimmer ansehen & buchen" %} →</a>
   </div>
   {% else %}
   {% comment %}P5: товар/набор/свободная акция — та же форма, но результат =
@@ -89,7 +89,7 @@ test_public (порядок CTA/точные href). Двухшаговость (
       на чекауте корзины (раньше покупка по акции способ не спрашивала вовсе).{% endcomment %}
       {% include "storefront/_billing_party.html" %}
       {% include "storefront/_payment_picker.html" %}
-      <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">
+      <button type="submit" class="w-full text-white rounded-lg px-4 py-3 font-medium hover:opacity-90 focus:ring-2 focus:ring-gray-400" style="background: var(--accent);">
         {% trans "Jetzt kaufen" %}
       </button>
     </form>

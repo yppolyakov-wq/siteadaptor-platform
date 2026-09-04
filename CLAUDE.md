@@ -2502,6 +2502,36 @@ Python 3.12, менеджер uv.
   переработка Студии** (двухуровневая структура «общий дизайн сайта» + «макет типа
   страницы», «применить всем / только этой странице»): владелец просил СНАЧАЛА варианты
   дизайна на утверждение.
+- **Самое свежее (2026-09-04): ВОЛНА MODE «демо-магазин одежды» — каталог 80 позиций,
+  свой генератор товарных фото, фасеты цвета и Sale (БЕЗ миграций).** Запрос владельца:
+  «перепроверь фото mode, найди/сгенерируй под все категории; мужское/женское/детское/
+  аксессуары; нормальные акции; ≥20 товаров в категории; фильтры цвет/размер/комплекты;
+  модный дизайн на все страницы; пройди по каждому пункту сайта». План
+  `docs/mode-shop-wave-2026-09-04.md`. **Фото:** визуальный аудит показал, что 6 из 22
+  кадров кита показывали не то (chinos = тарелка пасты, summer-dress = пустая стена,
+  linen-blouse = сумочка, accessories = ягоды, linen-shirt = выпечка); прогон Openverse
+  (`cc0,pdm`, 68 запросов, 217 кандидатов) дал винтажные плакаты, музейные экспонаты и
+  лица — товарной съёмки одежды в CC0 НЕТ, ключа генеративной модели в окружении тоже
+  нет → **`scripts/gen_demo_garments.py`**: детерминированные иллюстрации «студийного
+  flat-lay» (38 безье-силуэтов, фактуры трикотаж/твил/вельвет/лён/кожа, складки, тени,
+  зерно), **цвет картинки = цвет варианта** (общий `option_styles.COLOR_HEX` — свотч
+  реально меняет фото), 188 файлов ≈ 1,2 МБ, перерисовка `--only <префикс>`. **Каталог:**
+  Damen/Herren/Kinder/Accessoires по 20 позиций в подкатегориях, варианты «размер × цвет»
+  с per-size остатком (распроданные → Warteliste), состав ткани (EU 1007/2011), уход,
+  артикулы, 13 размерных таблиц; 14 акций в 4 группах-лентах (все механики, две
+  «Vorschau»); 5 комплектов-образов + 5 лукбуков. **MODE-1:** фасет ЦВЕТА (`?farbe=`,
+  свотчи тем же HEX, только варианты в наличии) и «Nur reduziert» (`?sale=1`, источник —
+  `product_promo_map`, тот же что у бейджа скидки). **MODE-2 — дефекты платформы:**
+  `_sellable_card` не имел ветки товара и печатал пустую длительность «min» вместо цены
+  (лукбук, Finder) · счётчик фильтров считал пункт «Alle» радио-группы (кнопка «Filter»
+  показывала «1» без фильтров) · гастро-заголовок «Menü-Pakete» над образами бутика →
+  архетипный `combos_title` · главная кнопка покупки была захардкожена `bg-indigo-600` и
+  спорила с акцентом Look'а → `var(--accent)`. **Дизайн:** Look «Nacht» → «Fein»
+  (Playfair на креме), корень и три направления — «Regale», Accessoires наследует
+  «Navigator» (инвариант DL-20 виден в демо). **Переводы:** 261–264 записи × 4 словаря,
+  покрытие кита 24 % → en 95 / ru 97 / uk 97 / tr 96 %, строк без пути — 0. Замки:
+  `test_mode_facets.py` (5) + осознанно обновлены 5 замков прежней формы кита; широкий
+  прогон 3452 passed. ⚠️ ops: после деплоя `seed_demo_tenants --kit clothing --recreate`.
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна VAT, 2026-08-26): `jobs/0017` (JobLine.vat_rate) + `catalog/0031` (Combo.vat_rate) — аддитивные; (волна DC, 2026-08-25): `booking/0024` + `stays/0033` + `jobs/0016` (внешний номер сделки) + `booking/0025` (связь записи со счётом) — аддитивные; (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `core/0010` (Extra.consume_qty, v2-опции) + `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate) + `events/0028` (SupplierBooking вне туров) + `booking/0023` (Service.pricing_mode) + `catalog/0030` (Product.primary_action) + `finance/0009` (SOURCES gift/pass, choices-only)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. **Волна ERP (2026-08-21): `orders/0020` (OrderItem.cost_price) + `finance/0010` (BankTransaction) + `finance/0011` (Invoice.mahn_level/mahned_at + ExpenseEntry supplier/due_date/paid_at/document) + `documents/0002` (owner nullable + kind receipt) + `inventory/0005` (qty_returned + kind'ы return_supplier/production, ERP-5/7) + `jobs/0015` (JobLine.cost_rate, ERP-6)** — аддитивные. **DL-19 (2026-09-03): `catalog/0032` (Product.card_style) + `promotions/0027` (Promotion.card_style)** — аддитивные. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + `--kit pranasy --recreate` (кейтеринг-карта) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,

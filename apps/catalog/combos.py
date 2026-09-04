@@ -166,3 +166,18 @@ __all__ = [
     "active_combos",
     "get_active",
 ]
+
+
+def combos_title(tenant):
+    """Заголовок полосы наборов на каталоге.
+
+    Гастро продаёт «Menü-Pakete», магазин одежды — «Sets & Looks». Литерал был
+    захардкожен в products.html, из-за чего на витрине бутика над образами стояла
+    «Menü-Pakete» (фидбэк по демо `mode`)."""
+    from django.utils.translation import gettext_lazy
+
+    from apps.core.archetypes import FOOD_BUSINESS_TYPES
+
+    if getattr(tenant, "business_type", "") in FOOD_BUSINESS_TYPES:
+        return gettext_lazy("Menü-Pakete")
+    return gettext_lazy("Sets & Looks")

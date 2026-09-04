@@ -60,7 +60,12 @@
     var n = 0;
     box.querySelectorAll("input, select").forEach(function (f) {
       if (f.type === "hidden" || f.type === "submit" || f.disabled) return;
-      if (f.type === "checkbox" || f.type === "radio") { if (f.checked) n++; return; }
+      // MODE-1: у радио-группы фасета есть пункт «Alle» с ПУСТЫМ значением —
+      // он отмечен по умолчанию и считался бы активным фильтром.
+      if (f.type === "checkbox" || f.type === "radio") {
+        if (f.checked && (f.value || "").trim()) n++;
+        return;
+      }
       if ((f.value || "").trim()) n++;
     });
     return n;

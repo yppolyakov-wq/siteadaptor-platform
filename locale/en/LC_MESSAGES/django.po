@@ -21850,3 +21850,9 @@ msgstr "Your invoice %(n)s"
 
 msgid "anbei erhalten Sie die Rechnung %(n)s."
 msgstr "please find invoice %(n)s attached."
+
+msgid "Only reduced"
+msgstr "Only reduced"
+
+msgid "Sets & Looks"
+msgstr "Sets & looks"

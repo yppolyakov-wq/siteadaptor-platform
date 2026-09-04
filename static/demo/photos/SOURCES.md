@@ -370,3 +370,23 @@ license=cc0,pdm) и Wikimedia Commons (haswbstatement CC0/Public domain);
 
 - `rice-plain.webp` — https://www.rawpixel.com/image/5904594/photo-image-public-domain-sunlight-summer — CC0 1.0 (rawpixel)
 - `cucumber-raita.webp` — https://commons.wikimedia.org/w/index.php?curid=178399183 — CC0 1.0 (Wikimedia Commons, автор: Miansari66)
+
+<!-- MODE-SET:BEGIN -->
+## Набор 2026-09-04 — каталог одежды `mode` (процедурная генерация)
+
+Файлы `mode-*.webp` (188 шт.) — НЕ фотографии и не AI-генерация: они рисуются
+детерминированно скриптом `scripts/gen_demo_garments.py` (безье-силуэты вещей,
+фактура ткани, тени, зерно). Причина: правило библиотеки допускает только CC0/PD
+или AI-набор, а честного CC0-набора товарной съёмки одежды не существует —
+прогон Openverse (`license=cc0,pdm`, 68 запросов, 217 кандидатов) дал винтажные
+рекламные плакаты, музейные экспонаты и снимки людей с узнаваемыми лицами;
+ключа генеративной модели в окружении нет.
+
+Лицензия: собственная генерация проекта (как и SVG-плейсхолдеры). Перерисовка:
+
+    uv run python scripts/gen_demo_garments.py            # весь набор
+    uv run python scripts/gen_demo_garments.py --only mode-kat-   # часть
+
+Цвет каждого файла берётся из реестра `apps.catalog.option_styles.COLOR_HEX`,
+поэтому `mode-<товар>-<цвет>.webp` совпадает со свотчем варианта на витрине.
+<!-- MODE-SET:END -->
