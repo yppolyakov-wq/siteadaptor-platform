@@ -101,17 +101,9 @@ fixed-ящиком, и до инициализации JS она вспыхив�
     </div>
   </fieldset>
   {% endif %}
-  {% comment %}O-2 (Outlet): цвет — вторая ось вариантов рядом с размером; состояние
-  и марка — то, чем в аутлете выбирают в первую очередь; «reduziert» — тумблер.{% endcomment %}
-  {% if color_chips %}
-  <div>
-    <label class="block text-xs text-gray-500 mb-1" for="id_farbe">{% trans "Farbe" %}</label>
-    <select id="id_farbe" name="farbe" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
-      <option value="">{% trans "All" %}</option>
-      {% for c in color_chips %}<option value="{{ c.code }}" {% if active_farbe == c.code %}selected{% endif %}>{{ c.label }}</option>{% endfor %}
-    </select>
-  </div>
-  {% endif %}
+  {% comment %}O-2 (Outlet): состояние и марка — то, чем в аутлете выбирают в первую
+  очередь. Цвет живёт ВЫШЕ чипами-свотчами (мультивыбор), второго контрола на ту же
+  ось не заводим: при мерже волн он дал на странице два разных «Farbe».{% endcomment %}
   {% if condition_chips %}
   <div>
     <label class="block text-xs text-gray-500 mb-1" for="id_zustand">{% trans "Zustand" %}</label>
