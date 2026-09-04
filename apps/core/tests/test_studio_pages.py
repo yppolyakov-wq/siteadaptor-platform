@@ -568,3 +568,29 @@ def test_home_block_rows_are_scoped_by_page_type(builder_html):
     осталось прежнее поведение.
     """
     assert 'var isHome = curStuPage ? curStuPage === "home"' in builder_html
+
+
+# ── STU-7: канва держит страницу с параметром ─────────────────────────────────
+
+
+@pytest.mark.django_db
+def test_page_query_whitelist_reaches_the_client(builder_html):
+    """Список «параметров, задающих страницу» клиент получает ИЗ РЕЕСТРА, а не хранит
+    свой: иначе серверный санитайзер и канва разойдутся, и страница группы акций снова
+    начнёт сбрасываться на обзор при первой же смене настройки."""
+    assert "studio_page_query_keys_json" not in builder_html, "переменная не подставлена"
+    for key in sp.PAGE_QUERY_KEYS:
+        assert f'"{key}"' in builder_html
+
+
+def test_canvas_keeps_query_in_preview_path():
+    """Скан-замок: previewPath собирается из пути И отфильтрованных параметров. Голая
+    location.pathname возвращает дефект STU-7 (перерисовка уводит на обзор), а тесты
+    рендера его не видят — он живёт только в браузере."""
+    from pathlib import Path
+
+    from django.conf import settings as dj_settings
+
+    tpl = (Path(dj_settings.BASE_DIR) / "templates" / "tenant" / "site_home.html").read_text()
+    assert "previewPath = fPath + stuPageQuery(" in tpl
+    assert "var STU_PAGE_QUERY_KEYS = {{ studio_page_query_keys_json|safe }};" in tpl

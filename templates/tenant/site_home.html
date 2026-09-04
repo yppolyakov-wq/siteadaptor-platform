@@ -1806,6 +1806,29 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   // дефисами/UUID сравниваются literal, escapejs их кодировал бы).
   var PAGE_GROUPS = {{ preview_page_groups_json|safe }};
 
+  // STU-7: параметры адреса, ЗАДАЮЩИЕ страницу (сегодня `?gruppe=` у группы акций).
+  // Канва обязана нести их вместе с путём: previewPath питает и перерисовку живого
+  // черновика, и `page_path` (куда Save вернёт канву). Раньше здесь была голая
+  // location.pathname — и первая же смена настройки на странице группы уводила
+  // владельца на общий обзор. Всё прочее (фильтры посетителя, служебные preview /
+  // look / bundle) намеренно отбрасываем — зеркало studio_pages.PAGE_QUERY_KEYS.
+  var STU_PAGE_QUERY_KEYS = {{ studio_page_query_keys_json|safe }};
+  function stuPageQuery(search) {
+    var keep = [];
+    try {
+      new URLSearchParams(search || "").forEach(function (v, k) {
+        if (STU_PAGE_QUERY_KEYS.indexOf(k) < 0 || !String(v).trim()) return;
+        if (keep.some(function (p) { return p[0] === k; })) return;
+        keep.push([k, v]);
+      });
+    } catch (e) { return ""; }
+    return keep.length
+      ? "?" + keep.map(function (p) {
+          return encodeURIComponent(p[0]) + "=" + encodeURIComponent(p[1]);
+        }).join("&")
+      : "";
+  }
+
   // SE-7 (Вариант 3): рейл областей + фокус-панель. Клик по иконке рейла открывает
   // ОДНУ область (остальные скрыты) → без перегруза; повторный клик / ✕ сворачивает
   // панель в рейл (сайт на весь экран). На широких экранах стартует с области «sections».
@@ -3328,7 +3351,9 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     // страниц убран из тулбара — навигация кликами прямо в канве).
     try {
       var fPath = frame.contentWindow.location.pathname || "/";
-      previewPath = fPath;
+      // STU-7: путь + параметры, задающие страницу (fPath остаётся голым — по нему
+      // ищется группа панели в PAGE_GROUPS, ключи там без query).
+      previewPath = fPath + stuPageQuery(frame.contentWindow.location.search);
       // UC6-7b: хост C-блоков страницы — прямо из канвы (data-pb-host на хост-регионе;
       // работает и на произвольных детальных, чьи пути не перечислены в PAGE_GROUPS).
       curPbHost = "";

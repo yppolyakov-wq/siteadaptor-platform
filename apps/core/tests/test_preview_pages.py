@@ -231,3 +231,70 @@ def test_safe_preview_page_deep_link_guard():
     assert views._safe_preview_page("/x\\y") == "/"
     assert views._safe_preview_page("/dashboard/site/home/") == "/"
     assert views._safe_preview_page("/accounts/login/") == "/"
+
+
+def test_safe_preview_page_keeps_page_defining_query():
+    """STU-7: параметр, ЗАДАЮЩИЙ страницу, переживает санитайзер — иначе группа акций
+    недостижима адресом, а живая перерисовка черновика уводит канву на обзор."""
+    assert views._safe_preview_page("/aktionen/?gruppe=Wochenangebote") == (
+        "/aktionen/?gruppe=Wochenangebote"
+    )
+    # умляут не теряется на round-trip (parse_qsl → urlencode)
+    assert views._safe_preview_page("/aktionen/?gruppe=R%C3%A4umung") == (
+        "/aktionen/?gruppe=R%C3%A4umung"
+    )
+
+
+def test_safe_preview_page_drops_everything_but_the_whitelist():
+    """Фильтры посетителя страницу не адресуют, а `look`/`bundle`/`preview` подменили бы
+    вид канвы (stateless-превью ST-1b) — их не пропускаем. Фрагмент отбрасываем всегда."""
+    assert views._safe_preview_page("/aktionen/?ansicht=liste&q=milch") == "/aktionen/"
+    assert views._safe_preview_page("/aktionen/?look=nacht&bundle=deal_retro&gruppe=A") == (
+        "/aktionen/?gruppe=A"
+    )
+    assert views._safe_preview_page("/aktionen/?preview=1") == "/aktionen/"
+    assert views._safe_preview_page("/aktionen/#frag") == "/aktionen/"
+    assert views._safe_preview_page("/aktionen/?gruppe=") == "/aktionen/"
+    assert views._safe_preview_page("/aktionen/?gruppe=a&gruppe=b") == "/aktionen/?gruppe=a"
+    long_value = "x" * (views._PREVIEW_QUERY_VALUE_MAX + 1)
+    assert views._safe_preview_page(f"/aktionen/?gruppe={long_value}") == "/aktionen/"
+    # атака сквозь query не открывает чужой origin и не оживляет схему
+    assert views._safe_preview_page("javascript:alert(1)") == "/"
+    assert views._safe_preview_page("//evil.example/?gruppe=A") == "/"
+
+
+def test_preview_page_query_round_trip_through_redirect():
+    """Возврат из инсертера (`page_path` → `?page=`) переживает кодирование: канва
+    открывается на ТОЙ ЖЕ странице группы, а не на обзоре."""
+    from urllib.parse import parse_qs, quote, urlsplit
+
+    page_path = views._safe_preview_page("/aktionen/?gruppe=Wochenangebote")
+    back = parse_qs(urlsplit(f"/dashboard/site/home/?page={quote(page_path)}").query)["page"][0]
+    assert views._safe_preview_page(back) == page_path
+
+
+def test_page_query_whitelist_is_not_decorative():
+    """Адверсариальный замок: каждый ключ whitelist'а ДЕЙСТВИТЕЛЬНО задаёт страницу —
+    без него резолвер даёт другой тип. Иначе список тихо выродится в сквозной проброс
+    query, а вместе с ним — в подмену вида канвы."""
+    from apps.core import studio_pages
+
+    assert studio_pages.PAGE_QUERY_KEYS, "whitelist пуст — санитайзер режет всё"
+    for key in studio_pages.PAGE_QUERY_KEYS:
+        bare = studio_pages.resolve_page("/aktionen/")
+        with_key = studio_pages.resolve_page(f"/aktionen/?{key}=probe")
+        assert with_key.code != bare.code, f"ключ {key!r} ничего не задаёт"
+
+
+def test_safe_preview_page_closes_whitespace_bypass_of_the_killswitch():
+    """Побочная находка STU-7: старая проверка шла по СЫРОЙ строке, а браузер (WHATWG)
+    вырезает из URL таб/перевод строки — `/<TAB>dashboard/site/home/` не совпадал с
+    DENY-префиксом, но грузился в кадр как страница кабинета: XFO DENY, мёртвая канва
+    (ровно то, от чего поставлен killswitch T-6). `urlsplit` вырезает их ДО проверки."""
+    for probe in (
+        "/\tdashboard/site/home/",
+        "/\ndashboard/site/home/",
+        "/da\tshboard/site/home/",
+        "/\raccounts/login/",
+    ):
+        assert views._safe_preview_page(probe) == "/", probe

@@ -1173,24 +1173,57 @@ def site_view(request):
 # KEYS+LABELS+ICONS вместе); вьюха читает их через siteconfig. Дефолт — 🧩.
 
 
+#: STU-7: сколько символов допускаем в значении параметра, задающего страницу
+#: (слаг группы акций). Кап — против абсурдного адреса, а не против атаки: origin
+#: уже удержан требованием ведущего «/» и пустых scheme/netloc.
+_PREVIEW_QUERY_VALUE_MAX = 120
+
+
 def _safe_preview_page(raw):
     """T-6.1: стартовая страница канвы из ?page= (deep-link «Edit design» с витрины).
 
     Только внутренний path витрины: абсолютные URL/схемы, протокол-relative
     (``//…``), бэкслэши и DENY-зона кабинета (killswitch канвы, см. T-6)
     откатываются на главную.
+
+    STU-7: параметры, ЗАДАЮЩИЕ страницу (`studio_pages.PAGE_QUERY_KEYS` — сегодня
+    `?gruppe=` страницы группы акций), сохраняются. Раньше query срезался целиком, и
+    группа акций была недостижима адресом, а живая перерисовка черновика сбрасывала
+    владельца на обзор. Всё остальное отбрасываем сознательно: фильтры посетителя
+    страницу не адресуют, а служебные `preview`/`look`/`bundle` подменили бы вид
+    канвы (stateless-превью ST-1b) втихую. Фрагмент отбрасывается всегда.
     """
+    from urllib.parse import parse_qsl, urlencode, urlsplit
+
+    from apps.core import studio_pages
     from apps.core.middleware import StorefrontFrameOptionsMiddleware
 
-    raw = (raw or "").split("?")[0]
+    raw = raw or ""
+    if "\\" in raw:
+        return "/"
+    parts = urlsplit(raw)
+    path = parts.path
     if (
-        not raw.startswith("/")
-        or raw.startswith("//")
-        or "\\" in raw
-        or raw.startswith(StorefrontFrameOptionsMiddleware._BLOCK_PREFIXES)
+        parts.scheme
+        or parts.netloc
+        or not path.startswith("/")
+        or path.startswith("//")
+        or path.startswith(StorefrontFrameOptionsMiddleware._BLOCK_PREFIXES)
     ):
         return "/"
-    return raw
+    keep, seen = [], set()
+    for key, value in parse_qsl(parts.query):
+        value = (value or "").strip()
+        if (
+            key not in studio_pages.PAGE_QUERY_KEYS
+            or key in seen
+            or not value
+            or len(value) > _PREVIEW_QUERY_VALUE_MAX
+        ):
+            continue
+        seen.add(key)
+        keep.append((key, value))
+    return f"{path}?{urlencode(keep)}" if keep else path
 
 
 def _redirect_builder(request):
@@ -2361,6 +2394,9 @@ def home_builder_view(request):
             "preview_page_groups_json": _safe_json(
                 {p["url"]: p.get("group") or "home" for p in preview_pages}
             ),
+            # STU-7: параметры адреса, ЗАДАЮЩИЕ страницу. Клиент удерживает их в
+            # previewPath вместе с путём (реестр — единственный источник списка).
+            "studio_page_query_keys_json": _safe_json(list(studio_pages.PAGE_QUERY_KEYS)),
             # STU-2: подписи типов страниц для уровня «эта страница». Клиент берёт
             # код типа с <body> кадра (data-stu-page) — на пути тип не написан.
             "studio_page_labels_json": _safe_json(

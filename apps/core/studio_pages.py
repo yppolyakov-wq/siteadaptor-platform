@@ -42,6 +42,15 @@ OBJECT_CATEGORY = "category"
 OBJECT_PROMOTION = "promotion"
 OBJECT_PROMO_GROUP = "promo_group"
 
+#: Параметр адреса, которым страница группы акций отличается от обзора.
+GROUP_PARAM = "gruppe"
+
+#: Параметры адреса, ЗАДАЮЩИЕ страницу (а не фильтр посетителя). STU-7: канва обязана
+#: удерживать их вместе с путём — иначе перерисовка живого черновика уводит владельца
+#: с настраиваемой страницы на обзор, а `?page=` не может её адресовать вовсе.
+#: Реестр — единственный источник списка (клиент получает его же, см. site_home.html).
+PAGE_QUERY_KEYS: tuple[str, ...] = (GROUP_PARAM,)
+
 
 @dataclass(frozen=True)
 class Setting:
@@ -400,11 +409,11 @@ def resolve_match(match, query: dict | None = None, path: str = "") -> PageConte
         return PageContext(OTHER, path=path, query=q)
 
     # Группа акций — тот же роут, что обзор, но с выбранной группой.
-    if pt.code == "promos" and (q.get("gruppe") or "").strip():
+    if pt.code == "promos" and (q.get(GROUP_PARAM) or "").strip():
         group = _BY_CODE["promo_group"]
         return PageContext(
             group,
-            object_ref=q["gruppe"].strip(),
+            object_ref=q[GROUP_PARAM].strip(),
             block_host=group.block_host,
             path=path,
             query=q,
