@@ -300,3 +300,29 @@ def test_uvp_is_always_above_the_selling_price():
     for entry in kit.categories:
         walk(entry)
     assert not bad, "UVP не выше цены продажи: " + repr(bad)
+
+
+def test_outlet_offers_a_payment_method_that_works_for_delivery():
+    """O-9c: у аутлета включена доставка, а способов оплаты был ровно один —
+    «на месте». Оплатить на месте доставленный заказ нельзя, поэтому у заказа с
+    доставкой не было пути к оплате вовсе, и пикер способов (E7) не появлялся.
+    Vorkasse — классика немецкой розницы: не требует Stripe и закрывает дыру."""
+    from apps.core.payment_methods import available
+    from apps.tenants.demo_kits import KITS
+
+    kit = KITS["outlet"]
+    assert kit.delivery.get("enabled"), "у аутлета доставка включена — предпосылка теста"
+    assert kit.payment.get("vorkasse"), "кит обязан задать Vorkasse"
+    assert kit.payment.get("iban"), "без IBAN гейт E7 не пустит Vorkasse в пикер"
+
+    class _T:  # тенант, каким его сделает apply_kit
+        vorkasse_enabled = True
+        bank_iban = kit.payment["iban"]
+        stripe_payment_methods: list = []
+        stripe_account_id = ""
+        stripe_charges_enabled = False
+        invoice_b2b_enabled = False
+
+    codes = set(available(_T()))
+    assert "vorkasse" in codes
+    assert len(codes) > 1, "пикер способов показывается только при двух и более"

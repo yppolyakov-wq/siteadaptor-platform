@@ -163,6 +163,10 @@ class DemoKit:
     enable_modules: list = field(default_factory=list)
     # Конфиг доставки (Click&Collect + Lieferung) — задаётся на Tenant при apply_kit.
     delivery: dict = field(default_factory=dict)
+    # O-9c: способы оплаты (E7). Пикер на checkout появляется только при ДВУХ и
+    # более способах, поэтому у магазина с доставкой одного «на месте» мало:
+    # доставленный заказ им не оплатить. {"vorkasse", "holder", "iban", "bic"}.
+    payment: dict = field(default_factory=dict)
     # Программа лояльности (штампы): {"label","stamps","reward"} — при активном loyalty.
     loyalty: dict = field(default_factory=dict)
     # --- Конструктор витрины (S1–S8): новые возможности демо ------------------
@@ -10960,6 +10964,15 @@ OUTLET = DemoKit(
         "Ab 50 € kostenlos. Abholung im Lagerverkauf Essen.",
         "zones": [],
     },
+    # O-9c: интернет-магазину нужен способ оплаты, работающий при ДОСТАВКЕ.
+    # Vorkasse — классика немецкой розницы: не требует Stripe-аккаунта, а поток
+    # (реквизиты + Verwendungszweck в письме и подтверждении) готов с E7-2.
+    payment={
+        "vorkasse": True,
+        "holder": "Zweitgut Handel GmbH",
+        "iban": "DE02120300000000202051",  # тестовый IBAN, не боевой счёт
+        "bic": "BYLADEM1001",
+    },
     usp=[
         ("quality", "Jedes Gerät geprüft"),
         ("payment", "Versand ab 50 € kostenlos"),
@@ -15725,6 +15738,14 @@ def apply_kit(tenant, key: str) -> bool:
     update_fields = ["site_config", "primary_color", "updated_at"]
     if kit.enable_modules:
         update_fields.append("disabled_modules")
+    if kit.payment.get("vorkasse") and kit.payment.get("iban"):
+        # Гейт E7 пускает Vorkasse в пикер только при заполненном IBAN
+        # (иначе клиенту некуда платить) — поэтому условие на оба поля.
+        tenant.vorkasse_enabled = True
+        tenant.bank_holder = kit.payment.get("holder", "")
+        tenant.bank_iban = kit.payment["iban"]
+        tenant.bank_bic = kit.payment.get("bic", "")
+        update_fields += ["vorkasse_enabled", "bank_holder", "bank_iban", "bank_bic"]
     if kit.delivery.get("enabled"):
         d = kit.delivery
         tenant.delivery_enabled = True
