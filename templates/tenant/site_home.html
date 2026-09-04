@@ -3120,6 +3120,14 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   // /sortiment/<uuid>/ — товар, /sortiment/<slug>/ — категория.
   var curStuPage = "";
   var STU_LABELS = {{ studio_page_labels_json|safe }};
+  // STU-8: какая область панели ЕСТЬ уровень «эта страница» для текущего типа.
+  // Главная — «sections» (её собственные настройки), все прочие — «page».
+  function stuPageArea() {
+    return curStuPage === "home" ? "sections" : "page";
+  }
+  // Рейка живёт в СОСЕДНЕМ замыкании — отдаём хелпер наружу явно (как __sfShowArea).
+  window.__stuPageArea = stuPageArea;
+
   function applyStuPageScope() {
     var code = curStuPage || "other";
     var shown = 0;
@@ -3137,6 +3145,17 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     });
     var name = document.querySelector(".stu-page-name");
     if (name) name.textContent = label;
+    // STU-8: канва ушла на другой тип, а уровень «эта страница» открыт — переклеить
+    // его на область этого типа (иначе с главной на категорию панель осталась бы на
+    // «sections», то есть снова показывала бы настройки не той страницы).
+    try {
+      var rail = document.querySelector('#st-rail [data-st-level="page"]');
+      if (rail && rail.getAttribute("aria-pressed") === "true") {
+        var a = stuPageArea();
+        if (a === "sections") { if (window.__sfShowArea) window.__sfShowArea("sections"); }
+        else if (window.__stuClickTab) window.__stuClickTab(a);
+      }
+    } catch (eArea) {}
     refreshScopePills();
   }
 
@@ -3319,7 +3338,11 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     var shown = 0;
     landing.querySelectorAll(".page-block").forEach(function (row) {
       var match = pageKey && row.getAttribute("data-page-key") === pageKey;
-      row.classList.toggle("hidden", isHome ? false : !match);
+      // STU-8: раньше на главной показывались ВСЕ строки лендингов (каталог, события,
+      // номера, услуги, корзина, секции деталей) — ни одна из них к главной не
+      // относится (среди data-page-key нет "home"). Теперь правило одно для всех
+      // типов: строка видна только на своей странице.
+      row.classList.toggle("hidden", !match);
       if (match) shown++;
     });
     // Лендинг-набор виден на не-главной; на главной — прячем (там блоки главной).
@@ -4028,6 +4051,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     var b = document.querySelector('#bld-area-tabs [data-area="' + area + '"]');
     if (b) b.click();
   }
+  window.__stuClickTab = clickTab;
   rail.addEventListener("click", function (e) {
     var btn = e.target.closest("[data-st-level]");
     if (!btn) return;
@@ -4041,7 +4065,20 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     } else if (lv === "page") {
       // STU-2: уровень «эта страница» — своя область + лента страниц под канвой
       // (переход между страницами и есть смена того, что настраивается).
-      clickTab("page");
+      // STU-8: у ГЛАВНОЙ её собственные настройки (порядок и состав секций, вид
+      // баннера, секция акций, ряды плиток) живут в области «sections» — уровень
+      // обязан открывать ИХ. Раньше он всегда открывал «page», где лежат строки
+      // ЧУЖИХ типов (каталог, события, номера, услуги, корзина): владелец на главной
+      // видел настройки других страниц и ни одной своей — ровно то «вперемешку»,
+      // которое утверждённый макет требует прекратить.
+      // STU-8: у ГЛАВНОЙ её собственные настройки (порядок и состав секций, вид
+      // баннера, секция акций, ряды плиток) живут в области «sections», и КНОПКИ у
+      // неё нет намеренно (UC6-6g) — открываем тем же штатным путём, что медиа и
+      // Schnellstart. Без этого уровень «эта страница» на главной открывал «page»,
+      // где лежат строки ЧУЖИХ типов, и ни одной настройки самой главной.
+      var stuArea = window.__stuPageArea ? window.__stuPageArea() : "page";
+      if (stuArea === "sections") { if (window.__sfShowArea) window.__sfShowArea("sections"); }
+      else clickTab(stuArea);
       if (strip) {
         strip.classList.remove("hidden");
         root.classList.add("st-pages-open");
