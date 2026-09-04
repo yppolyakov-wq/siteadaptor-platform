@@ -1829,6 +1829,35 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       : "";
   }
 
+  // STU-7: состояние редактора по фактической странице кадра. Вынесено из
+  // instrumentFrame, потому что источников теперь ДВА: загрузка кадра и KAT-5
+  // pushState-своп (табы категорий/групп — без перезагрузки).
+  function syncFrameState(frame) {
+    try {
+      var fPath = frame.contentWindow.location.pathname || "/";
+      // путь + параметры, задающие страницу (fPath остаётся голым — по нему ищется
+      // группа панели в PAGE_GROUPS, ключи там без query).
+      previewPath = fPath + stuPageQuery(frame.contentWindow.location.search);
+      // UC6-7b: хост C-блоков страницы — прямо из канвы (data-pb-host на хост-регионе;
+      // работает и на произвольных детальных, чьи пути не перечислены в PAGE_GROUPS).
+      curPbHost = "";
+      try {
+        var pbHostEl = frame.contentDocument.querySelector("[data-pb-host]");
+        curPbHost = (pbHostEl && pbHostEl.getAttribute("data-pb-host")) || "";
+      } catch (ePb) {}
+      // STU-2: тип страницы кадра → скоуп уровня «эта страница».
+      try {
+        var bodyEl = frame.contentDocument.body;
+        curStuPage = (bodyEl && bodyEl.getAttribute("data-stu-page")) || "";
+        curStuRef = (bodyEl && bodyEl.getAttribute("data-stu-ref")) || "";
+      } catch (eStu) { curStuPage = ""; curStuRef = ""; }
+      applyStuPageScope();
+      var ppEl = document.getElementById("bld-page-path");
+      if (ppEl) ppEl.value = previewPath;  // Save вернёт канву на эту страницу
+      applyPageScope(PAGE_GROUPS[fPath] || (fPath === "/" ? "home" : ""));
+    } catch (eSync) {}
+  }
+
   // SE-7 (Вариант 3): рейл областей + фокус-панель. Клик по иконке рейла открывает
   // ОДНУ область (остальные скрыты) → без перегруза; повторный клик / ✕ сворачивает
   // панель в рейл (сайт на весь экран). На широких экранах стартует с области «sections».
@@ -3355,29 +3384,17 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     }
     // UC6-1b: скоуп панели следует за фактической страницей кадра (селектор
     // страниц убран из тулбара — навигация кликами прямо в канве).
+    syncFrameState(frame);
+    // STU-7: табы категорий и групп акций ходят через KAT-5 pushState — кадр НЕ
+    // перезагружается, load не приходит, и без этого слушателя редактор продолжал бы
+    // считать открытой ПРЕЖНЮЮ страницу (панель показывала бы её настройки, а
+    // ближайшая перерисовка вернула бы канву назад). Витрина после свопа переносит
+    // подсказки на <body> и шлёт «sf:navigated».
     try {
-      var fPath = frame.contentWindow.location.pathname || "/";
-      // STU-7: путь + параметры, задающие страницу (fPath остаётся голым — по нему
-      // ищется группа панели в PAGE_GROUPS, ключи там без query).
-      previewPath = fPath + stuPageQuery(frame.contentWindow.location.search);
-      // UC6-7b: хост C-блоков страницы — прямо из канвы (data-pb-host на хост-регионе;
-      // работает и на произвольных детальных, чьи пути не перечислены в PAGE_GROUPS).
-      curPbHost = "";
-      try {
-        var pbHostEl = frame.contentDocument.querySelector("[data-pb-host]");
-        curPbHost = (pbHostEl && pbHostEl.getAttribute("data-pb-host")) || "";
-      } catch (ePb) {}
-      // STU-2: тип страницы кадра → скоуп уровня «эта страница».
-      try {
-        var bodyEl = frame.contentDocument.body;
-        curStuPage = (bodyEl && bodyEl.getAttribute("data-stu-page")) || "";
-        curStuRef = (bodyEl && bodyEl.getAttribute("data-stu-ref")) || "";
-      } catch (eStu) { curStuPage = ""; curStuRef = ""; }
-      applyStuPageScope();
-      var ppEl = document.getElementById("bld-page-path");
-      if (ppEl) ppEl.value = previewPath;  // Save вернёт канву на эту страницу
-      applyPageScope(PAGE_GROUPS[fPath] || (fPath === "/" ? "home" : ""));
-    } catch (eSync) {}
+      frame.contentDocument.addEventListener("sf:navigated", function () {
+        syncFrameState(frame);
+      });
+    } catch (eNav) {}
     var doc;
     try { doc = frame.contentDocument; } catch (e) { return; }
     if (!doc) return;

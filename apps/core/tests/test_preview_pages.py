@@ -307,3 +307,23 @@ def test_safe_preview_page_survives_urls_that_urlsplit_refuses():
     билдере — и на редиректе после вставки блока, когда блок уже сохранён."""
     for probe in ("//[", "//[::1", "http://[", "//[]", "/x?y=//["):
         assert views._safe_preview_page(probe) in ("/", "/x"), probe
+
+
+def test_deny_zone_survives_url_normalisation():
+    """Ревью ветки: сравнение по СЫРОЙ строке дырявое — браузер сам приводит адрес к
+    каноническому виду, поэтому `%`-кодирование и dot-сегменты проносили путь в DENY-зону
+    кабинета мимо killswitch'а T-6 (страница кабинета в кадре = XFO DENY = мёртвая канва).
+    Дыра пред-существующая: у старой проверки были ровно те же прорехи."""
+    for probe in (
+        "/dashboard/site/home/",
+        "/dashboard/site/home",
+        "/%64ashboard/site/home/",
+        "/a/../dashboard/site/home/",
+        "/./dashboard/site/home/",
+        "/%2e/dashboard/x/",
+        "/accounts/login",
+    ):
+        assert views._safe_preview_page(probe) == "/", probe
+    # витринные пути не должны пострадать от нормализации
+    for good in ("/sortiment/frische/", "/p/abc-123/", "/", "/ueber-uns/"):
+        assert views._safe_preview_page(good) == good, good

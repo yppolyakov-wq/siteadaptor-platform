@@ -634,3 +634,43 @@ def test_page_ribbon_matches_chip_by_bare_path():
 
     tpl = (Path(dj_settings.BASE_DIR) / "templates" / "tenant" / "site_home.html").read_text()
     assert '.value || "/").split("?")[0];' in tpl
+
+
+@pytest.mark.django_db
+def test_edit_design_link_carries_the_page_parameter(settings, client):
+    """Ревью ветки: кнопка витрины «Edit design» слала ГОЛЫЙ request.path, поэтому с
+    страницы группы акций владелец попадал в редактор на общий обзор — санитайзер
+    параметр уже принимал, а единственный producer его не давал."""
+    from apps.core import context as core_context
+
+    class _Req:
+        path = "/aktionen/"
+        GET = {"gruppe": "Räumung", "ansicht": "liste"}
+
+    assert core_context._edit_target(_Req()) == "/aktionen/?gruppe=R%C3%A4umung"
+
+    class _Plain:
+        path = "/sortiment/"
+        GET = {"ansicht": "liste"}
+
+    assert core_context._edit_target(_Plain()) == "/sortiment/"
+
+
+def test_editor_resyncs_after_pushstate_navigation():
+    """Ревью ветки: табы категорий и групп акций ходят через KAT-5 pushState — кадр НЕ
+    перезагружается, `load` не приходит. Проверено снятием слушателя на стенде: без него
+    `#bld-page-path` остаётся на прежней странице, то есть панель показывает чужие
+    настройки, а Save возвращает канву не туда. Обе половины обязательны: витрина
+    переносит подсказки через своп и шлёт событие, редактор его слушает."""
+    from pathlib import Path
+
+    from django.conf import settings as dj_settings
+
+    base = Path(dj_settings.BASE_DIR)
+    editor = (base / "templates" / "tenant" / "site_home.html").read_text()
+    assert 'frame.contentDocument.addEventListener("sf:navigated"' in editor
+    assert "function syncFrameState(frame)" in editor
+
+    swap = (base / "templates" / "storefront" / "_grid_view_script.html").read_text()
+    assert 'dispatchEvent(new CustomEvent("sf:navigated"' in swap
+    assert '["data-stu-page", "data-stu-ref"].forEach' in swap

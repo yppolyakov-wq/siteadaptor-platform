@@ -1179,6 +1179,36 @@ def site_view(request):
 _PREVIEW_QUERY_VALUE_MAX = 120
 
 
+def _hits_deny_zone(path: str) -> bool:
+    """Попадает ли путь в DENY-зону кабинета (killswitch канвы T-6) ПОСЛЕ нормализации.
+
+    Сравнение по сырой строке дырявое: браузер приводит адрес к каноническому виду сам,
+    поэтому `/%64ashboard/site/home/`, `/a/../dashboard/site/home/` и `/./dashboard/...`
+    не совпадали с префиксом, но грузились в кадр как страница кабинета — XFO DENY,
+    мёртвая канва. (Дыра пред-существующая, класс тот же, что закрытый пробельный обход:
+    urlsplit режет таб/CR/LF, а эти формы — нет.) Проверяем ВСЕ формы, до которых адрес
+    может свернуться: как есть, после %-декодирования и после снятия dot-сегментов.
+    """
+    from posixpath import normpath
+    from urllib.parse import unquote
+
+    from apps.core.middleware import StorefrontFrameOptionsMiddleware
+
+    forms = {path}
+    try:
+        forms.add(unquote(path))
+    except Exception:  # pragma: no cover — unquote на str не бросает, но контракт узкий
+        pass
+    for form in list(forms):
+        if form.startswith("/"):
+            # normpath снимает «..»/«.» и схлопывает слэши; хвостовой слэш не важен —
+            # префиксы DENY-зоны оканчиваются на «/», поэтому сверяем и с ним.
+            collapsed = normpath(form)
+            forms.add(collapsed)
+            forms.add(collapsed + "/")
+    return any(f.startswith(StorefrontFrameOptionsMiddleware._BLOCK_PREFIXES) for f in forms)
+
+
 def _safe_preview_page(raw):
     """T-6.1: стартовая страница канвы из ?page= (deep-link «Edit design» с витрины).
 
@@ -1196,7 +1226,6 @@ def _safe_preview_page(raw):
     from urllib.parse import parse_qsl, urlencode, urlsplit
 
     from apps.core import studio_pages
-    from apps.core.middleware import StorefrontFrameOptionsMiddleware
 
     raw = raw or ""
     if "\\" in raw:
@@ -1215,7 +1244,7 @@ def _safe_preview_page(raw):
         or parts.netloc
         or not path.startswith("/")
         or path.startswith("//")
-        or path.startswith(StorefrontFrameOptionsMiddleware._BLOCK_PREFIXES)
+        or _hits_deny_zone(path)
     ):
         return "/"
     keep, seen = [], set()
