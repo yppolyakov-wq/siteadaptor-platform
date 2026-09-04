@@ -29,35 +29,82 @@ OK_LICENSES = {"cc0", "pdm"}
 UA = "siteadaptor-demo-photo-fetch/1.0 (CC0 demo assets)"
 CELL = 260
 COLS = 4
+#: Источники современной фотографии (первый проход поиска).
+PHOTO_SOURCES = "rawpixel,stocksnap"
+#: Оцифрованные собрания: по общему слову отдают экспонат, а не товар.
+ARCHIVE_SOURCES = {
+    "met",
+    "smithsonian",
+    "clevelandmuseum",
+    "brooklynmuseum",
+    "rijksmuseum",
+    "statensmuseum",
+    "thorvaldsensmuseum",
+    "digitaltmuseum",
+    "nypl",
+    "sciencemuseum",
+    "museumsvictoria",
+    "svgsilh",
+    "biodiversity",
+    "floraon",
+    "geographorguk",
+    "wordpress",
+    "spacex",
+    "nasa",
+    "phylopic",
+    "bio_diversity",
+    "wellcome_collection",
+}
+
+
+def _page(term: str, page: int, source: str = "") -> list[dict]:
+    params = {"q": term, "license": "cc0,pdm", "page_size": 20, "page": page, "mature": "false"}
+    if source:
+        params["source"] = source
+    try:
+        r = requests.get(
+            f"{API}?{urlencode(params)}",
+            headers={"Accept": "application/json", "User-Agent": UA},
+            timeout=40,
+        )
+        r.raise_for_status()
+        return r.json().get("results", [])
+    except Exception:  # noqa: BLE001 — сеть/квота: отдаём что есть
+        return []
 
 
 def _search(term: str, limit: int) -> list[dict]:
-    out: list[dict] = []
-    page = 1
-    while len(out) < limit and page <= 3:
-        qs = urlencode(
-            {"q": term, "license": "cc0,pdm", "page_size": 20, "page": page, "mature": "false"}
-        )
-        try:
-            r = requests.get(
-                f"{API}?{qs}", headers={"Accept": "application/json", "User-Agent": UA}, timeout=40
-            )
-            r.raise_for_status()
-            results = r.json().get("results", [])
-        except Exception:  # noqa: BLE001 — сеть/квота: отдаём что есть
-            break
-        if not results:
-            break
+    """Кандидаты: сначала СОВРЕМЕННАЯ фотография, потом всё остальное.
+
+    Без этого разделения общий запрос («ceramic plate», «teapot») отдаёт почти
+    исключительно оцифрованные музейные собрания — археологическая керамика
+    вместо посуды, которую можно поставить в магазин. Поэтому первый проход
+    ограничен фото-стоками, а свободный добор идёт следом и без музейных
+    источников."""
+    out, seen = [], set()
+
+    def collect(results):
         for item in results:
+            url = str(item.get("url", ""))
             if str(item.get("license", "")).lower() not in OK_LICENSES:
                 continue
             # Вектор/иконка на витрине смотрится инородно — отбрасываем сразу.
-            if str(item.get("url", "")).lower().endswith(".svg"):
+            if url.lower().endswith(".svg") or url in seen:
                 continue
+            if str(item.get("source", "")).lower() in ARCHIVE_SOURCES:
+                continue
+            seen.add(url)
             out.append(item)
             if len(out) >= limit:
-                break
-        page += 1
+                return True
+        return False
+
+    for page in (1, 2):
+        if collect(_page(term, page, PHOTO_SOURCES)):
+            return out
+    for page in (1, 2, 3):
+        if collect(_page(term, page)):
+            break
     return out
 
 
@@ -75,8 +122,31 @@ def _thumb(item: dict) -> Image.Image | None:
     return None
 
 
+def _search_many(terms: list, limit: int) -> list[dict]:
+    """Кандидаты по нескольким формулировкам, по очереди из каждой.
+
+    Одно слово часто промахивается («ceramic plate» отдаёт археологию, а
+    «plate table setting» — сервировку), поэтому кит даёт 2-3 запроса, а лист
+    показывает смесь: если первая формулировка пустая, вторая спасает ключ."""
+    pools = [_search(t, limit) for t in terms if t]
+    out, seen = [], set()
+    for i in range(limit):
+        for pool in pools:
+            if i >= len(pool):
+                continue
+            url = pool[i].get("url")
+            if url in seen:
+                continue
+            seen.add(url)
+            out.append(pool[i])
+            if len(out) >= limit:
+                return out
+    return out
+
+
 def sheet(key: str, term: str, out_dir: Path, limit: int = 12) -> dict:
-    items = _search(term, limit)
+    # «q1|q2|q3» — несколько формулировок одного мотива.
+    items = _search_many([t.strip() for t in term.split("|")], limit)
     with ThreadPoolExecutor(max_workers=8) as pool:
         thumbs = list(pool.map(_thumb, items))
 

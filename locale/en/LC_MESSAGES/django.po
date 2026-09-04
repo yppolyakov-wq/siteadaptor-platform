@@ -21861,3 +21861,22 @@ msgid "%(counter)s article"
 msgid_plural "%(counter)s articles"
 msgstr[0] "%(counter)s article"
 msgstr[1] "%(counter)s articles"
+
+msgid "Atelier"
+msgstr "Atelier"
+
+msgid "Boutique"
+msgstr "Boutique"
+
+msgid "Boutique: Kategorien → Neuheiten → Sale"
+msgstr "Boutique: categories → new arrivals → sale"
+
+msgid ""
+"Concept-Store: Kategorien als Einstieg, Neuheiten darunter, reduzierte "
+"Artikel am Schluss."
+msgstr ""
+"Concept store: categories first, new arrivals below, reduced items at the "
+"end."
+
+msgid "Ruhiger Concept-Store: warmes Off-White, randlose Karten, viel Luft."
+msgstr "Calm concept store: warm off-white, borderless cards, plenty of air."

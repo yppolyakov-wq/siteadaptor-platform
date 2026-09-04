@@ -22076,3 +22076,23 @@ msgstr[0] "%(counter)s товар"
 msgstr[1] "%(counter)s товари"
 msgstr[2] "%(counter)s товарів"
 msgstr[3] "%(counter)s товару"
+
+msgid "Atelier"
+msgstr "Ательє"
+
+msgid "Boutique"
+msgstr "Бутик"
+
+msgid "Boutique: Kategorien → Neuheiten → Sale"
+msgstr "Бутік: розділи → новинки → знижки"
+
+msgid ""
+"Concept-Store: Kategorien als Einstieg, Neuheiten darunter, reduzierte "
+"Artikel am Schluss."
+msgstr ""
+"Концепт-стор: спершу розділи, нижче новинки, наприкінці — знижені ціни."
+
+msgid "Ruhiger Concept-Store: warmes Off-White, randlose Karten, viel Luft."
+msgstr ""
+"Спокійний концепт-стор: теплий небілий фон, картки без рамок, багато "
+"повітря."
