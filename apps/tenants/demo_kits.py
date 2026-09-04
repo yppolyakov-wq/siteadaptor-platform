@@ -16736,6 +16736,7 @@ ONLINE_SHOP = DemoKit(
         },
         {
             "title": "Leinenhemd „Sund“ statt 99 € nur 74 €",
+            "image": "hemd-sund-leinen",
             "product": 2,
             "new_price": "74.00",
             "compare_at": "99.00",
@@ -16747,6 +16748,7 @@ ONLINE_SHOP = DemoKit(
         },
         {
             "title": "Espresso „Werkbank“ 1 kg zum Festpreis 44 €",
+            "image": "kaffee-werkbank-espresso",
             "product": 122,
             "new_price": "44.00",
             "compare_at": "52.90",
@@ -16758,6 +16760,7 @@ ONLINE_SHOP = DemoKit(
         },
         {
             "title": "Handtücher „Frottee“ ab 19 €",
+            "image": "handtuch-frottee-hand",
             "product": 157,
             "new_price": "19.00",
             "compare_at": "26.00",
@@ -16768,6 +16771,7 @@ ONLINE_SHOP = DemoKit(
         },
         {
             "title": "Spiegel „Rund“ −30 % (nur 4 Stück)",
+            "image": "spiegel-rund-metall",
             "product": 100,
             "percent": 30,
             "discount_style": "countdown",
@@ -16780,6 +16784,7 @@ ONLINE_SHOP = DemoKit(
         },
         {
             "title": "Bräter „Sonntag“ −18 %",
+            "image": "braeter-sonntag-emaille",
             "product": 111,
             "percent": 18,
             "discount_style": "badge",
@@ -16790,6 +16795,7 @@ ONLINE_SHOP = DemoKit(
         },
         {
             "title": "Duft „Nordwind“ −20 €",
+            "image": "duft-nordwind-flakon",
             "product": 151,
             "new_price": "89.00",
             "compare_at": "109.00",
@@ -16833,6 +16839,7 @@ ONLINE_SHOP = DemoKit(
         },
         {
             "title": "Kissenhülle „Grasnarbe“ −20 %",
+            "image": "kissen-grasnarbe-leinen",
             "product": 83,
             "percent": 20,
             "discount_style": "percent",
@@ -16843,6 +16850,7 @@ ONLINE_SHOP = DemoKit(
         },
         {
             "title": "Yogamatte „Grund“ −15 %",
+            "image": "yogamatte-grund-kautschuk",
             "product": 186,
             "percent": 15,
             "discount_style": "percent",
@@ -16853,6 +16861,7 @@ ONLINE_SHOP = DemoKit(
         },
         {
             "title": "Ab Freitag: Kaffee-Woche −15 %",
+            "image": "kaffee-morgenlicht-filter",
             "product": 121,
             "percent": 15,
             "discount_style": "percent",
@@ -16863,6 +16872,7 @@ ONLINE_SHOP = DemoKit(
         },
         {
             "title": "Ab nächster Woche: Wanderstöcke „Schritt“ für 89 €",
+            "image": "wanderstoecke-schritt-paar",
             "product": 195,
             "new_price": "89.00",
             "compare_at": "109.00",
@@ -16874,6 +16884,7 @@ ONLINE_SHOP = DemoKit(
         },
         {
             "title": "Ab Montag: Strick & Wolle −20 %",
+            "image": "pullover-kliff-wolle",
             "product": 87,
             "percent": 20,
             "discount_style": "percent",

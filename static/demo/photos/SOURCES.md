@@ -483,3 +483,26 @@ license=cc0,pdm) и Wikimedia Commons (haswbstatement CC0/Public domain);
 - `jam-jar.webp` — https://www.rawpixel.com/image/432036/strawberry-jam-and-marmalade — CC0 1.0 (rawpixel, автор: Markus Spiske)
 - `apple-juice.webp` — https://www.rawpixel.com/image/6058638/free-public-domain-cc0-photo — CC0 1.0 (rawpixel, автор: —)
 - `potatoes.webp` — https://www.rawpixel.com/image/5965720/golden-potatoes-basket — CC0 1.0 (rawpixel, автор: —)
+
+<!-- OS-ROUND2:BEGIN -->
+**Второй набор волны OS (2026-09-04).** Кадры подобраны по контактным листам
+(`scripts/demo_photo_sheet.py`), каждый просмотрен глазами; отклонены детские и
+музейно-архивные кадры, чужие бренды и повторы уже занятых кадров. Ключи, для
+которых честного кадра не нашлось, остаются на тематическом плейсхолдере — это
+осознанно: неверное фото хуже отсутствия фото.
+
+- `duschtuch-frottee-gross.webp` — https://www.rawpixel.com/image/5944628/free-public-domain-cc0-photo — CC0 1.0 (rawpixel, автор: —)
+- `geschenkpapier-bogen-drei.webp` — https://www.rawpixel.com/image/3283758/free-photo-image-paper-flower-flat-lay — CC0 1.0 (rawpixel, автор: —)
+- `notizbuch-taschen-a6.webp` — https://www.rawpixel.com/image/3301817/free-photo-image-accessory-cc0-creative-commons — CC0 1.0 (rawpixel, автор: —)
+- `schuessel-mulde-holz.webp` — https://stocksnap.io/photo/wooden-bowl-TIERIRY9RY — CC0 1.0 (stocksnap, автор: The World is a Stage)
+- `shop-atelier-sale.webp` — https://www.rawpixel.com/image/6042681/photo-image-background-public-domain-banner — CC0 1.0 (rawpixel, автор: —)
+- `shop-atelier-werkstatt.webp` — https://stocksnap.io/photo/carpenter-workshop-YPM6VH3FCW — CC0 1.0 (stocksnap, автор: James Frid)
+- `skizzenbuch-grau-a4.webp` — https://www.rawpixel.com/image/5948132/free-public-domain-cc0-photo — CC0 1.0 (rawpixel, автор: —)
+- `sneaker-bahnsteig.webp` — https://www.flickr.com/photos/43296902@N00/7181223091 — CC0 1.0 (flickr, автор: Dennis S. Hurd)
+- `spiegel-rund-metall.webp` — https://stocksnap.io/photo/mirror-livingroom-JRHSFSKQZQ — CC0 1.0 (stocksnap, автор: Studio 7042)
+- `stempel-datum-holz.webp` — https://www.rawpixel.com/image/5948686/free-public-domain-cc0-photo — CC0 1.0 (rawpixel, автор: —)
+- `stiefel-faehrmann.webp` — https://www.rawpixel.com/image/6023074/photo-image-public-domain-nature-fashion — CC0 1.0 (rawpixel, автор: —)
+
+Снято при приёмке (файла в фонде НЕТ, записи по этим ключам выше
+недействительны): `haarbuerste-ahorn-holz`, `haarspange-wolke`, `pullover-reet-zopf`, `ring-dorn`, `rucksack-pfad-tag`, `sandale-ebbe`, `sandale-kiesbett`, `shirt-halm-basic`, `sneaker-deich`, `thermoskanne-lager-liter`, `tuch-ahorn`.
+<!-- OS-ROUND2:END -->
