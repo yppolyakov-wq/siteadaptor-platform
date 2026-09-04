@@ -1,10 +1,9 @@
 {% extends "storefront/_base.html" %}
-{% load i18n %}{% load siteui %}
-{% block title %}{% if request.tenant|is_food_business %}{% trans "Combos" %}{% else %}{% trans "Sets" %}{% endif %} · {{ request.tenant.name }}{% endblock %}
+{% load i18n %}
+{% block title %}{{ combos_title }} · {{ request.tenant.name }}{% endblock %}
 
 {% block content %}
-{% comment %}O-7: «Menüs» — слово общепита; у магазина техники набор это «Set».{% endcomment %}
-<h1 class="text-2xl md:text-3xl font-bold mb-6">{% if request.tenant|is_food_business %}{% trans "Combos & menus" %}{% else %}{% trans "Sets & Bundles" %}{% endif %}</h1>
+<h1 class="text-2xl md:text-3xl font-bold mb-6">{{ combos_title }}</h1>
 
 {% if current_category %}
 {% comment %}KAT-2: фильтр направления («Alle Sets» со страницы категории).{% endcomment %}

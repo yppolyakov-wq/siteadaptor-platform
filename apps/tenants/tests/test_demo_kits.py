@@ -1074,20 +1074,29 @@ def test_apply_clothing_kit_dedicated_boutique():
     tenant = TenantFactory(schema_name="public", slug="nw", name="NW", business_type="clothing")
     assert demo_kits.apply_kit(tenant, "clothing") is True
 
-    # размерные варианты: у кардигана размер M ausverkauft (склад 0) → Warteliste
+    # MODE-3: магазин — четыре направления по 20 позиций в подкатегориях.
+    assert Product.objects.count() == 80
+    for slug in ("damen", "herren", "kinder", "accessoires"):
+        assert Product.objects.filter(category__parent__slug=slug).count() == 20, slug
+    # размерные варианты: у кардигана размер M в бежевом ausverkauft → Warteliste
     cardigan = Product.objects.get(name__de="Strickcardigan Wolke")
     sizes = {v.label: v.stock_quantity for v in ProductVariant.objects.filter(product=cardigan)}
-    assert sizes == {"S": 4, "M": 0, "L": 2}
-    # M4-A: футболка — 4 размера × 2 цвета, label собран из осей («S · Weiß»)
-    shirt = Product.objects.get(name__de="Basic T-Shirt Bio-Baumwolle")
+    assert sizes["M · Beige"] == 0 and sizes["S · Beige"] > 0
+    # M4-A: футболка — 5 размеров × 4 цвета, label собран из осей («S · Weiß»)
+    shirt = Product.objects.get(name__de="Basic T-Shirt Bio")
     shirt_variants = ProductVariant.objects.filter(product=shirt)
-    assert shirt_variants.count() == 8
-    assert set(shirt_variants.values_list("size", flat=True)) == {"S", "M", "L", "XL"}
-    assert set(shirt_variants.values_list("color", flat=True)) == {"Weiß", "Schwarz"}
+    assert shirt_variants.count() == 20
+    assert set(shirt_variants.values_list("size", flat=True)) == {"S", "M", "L", "XL", "XXL"}
+    assert set(shirt_variants.values_list("color", flat=True)) == {
+        "Weiß",
+        "Schwarz",
+        "Navy",
+        "Oliv",
+    }
     assert shirt_variants.filter(size="S", color="Weiß").first().label == "S · Weiß"
     # M4-A: у платья фото на цвет — подмена главного фото при выборе варианта
     dress = Product.objects.get(name__de="Sommerkleid Nordlicht")
-    assert ProductVariant.objects.filter(product=dress).count() == 6
+    assert ProductVariant.objects.filter(product=dress).count() == 10
     assert all(v.image_url for v in ProductVariant.objects.filter(product=dress))
     # Versand: доставка включена БЕЗ PLZ-зон (deutschlandweit, flat 4,90/frei ab 80)
     assert tenant.delivery_enabled and tenant.delivery_zones == []
@@ -1287,10 +1296,12 @@ def test_friseur_new_ideology_video_presence_look():
     assert "theme" not in cfg  # warm — светлый Look
 
 
-def test_clothing_new_ideology_dark_lookbook():
+def test_clothing_new_ideology_editorial_lookbook():
     t = TenantFactory(slug="ni2", name="NI2", business_type="clothing")
     assert demo_kits.apply_kit(t, "clothing")
-    assert t.site_config.get("theme") == "dark"  # ST-1 nacht
+    # MODE-3: тёмный «Nacht» сменён на светлый «Fein» (серифный редакционный тон
+    # бутика) — замок обновлён осознанно; ключ theme у светлого Look'а не пишется.
+    assert "theme" not in t.site_config
     # DL-19: у моды появилась своя форма — кадр 3:4 с тихой подписью. До волны
     # ближайшей был overlay (текст поверх фото), замок обновлён осознанно.
     assert t.site_config["site_defaults"]["card_style"] == "lookbook"
@@ -1634,5 +1645,12 @@ def test_dl20_clothing_category_pages_inherit_and_override():
     assert demo_kits.apply_kit(t, "clothing")
     assert t.site_config["site_defaults"]["category_page_style"] == "navigator"
     styles = dict(Category.objects.filter(parent=None).values_list("slug", "page_style"))
-    assert styles == {"damen": "", "herren": "magazin", "accessoires": "mosaik"}
-    assert t.site_config["catalog_page_style"] == "tabs"  # DL-21.1: корень — свой ключ
+    # MODE-3: три направления — «Regale» (полки подкатегорий), Accessoires без
+    # своего значения наследует общий «Navigator» (инвариант наследования).
+    assert styles == {
+        "damen": "regale",
+        "herren": "regale",
+        "kinder": "regale",
+        "accessoires": "",
+    }
+    assert t.site_config["catalog_page_style"] == "regale"  # DL-21.1: корень — свой ключ

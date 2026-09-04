@@ -249,6 +249,8 @@ def combo_list_public(request):
         {
             "combos": combos,
             "current_category": current_category,
+            # Заголовок по архетипу — общий реестр подписей (гастро/прочие).
+            "combos_title": combo_labels(request.tenant.business_type)["combos_title"],
         },
     )
 

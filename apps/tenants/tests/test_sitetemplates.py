@@ -416,6 +416,10 @@ def test_clothing_kit_slider_widget_honest_texts():
     assert len(kit.heroes) == 3
     assert kit.enable_archetypes_section is False
     assert "Warteliste" in kit.about_text
-    assert set(kit.size_tables) == {"damen", "herren"}
+    # MODE-3: размерные таблицы переехали на ПОДкатегории (женская/мужская/
+    # детская сетки и длины ремней различаются) — замок обновлён осознанно.
+    assert {"damen-kleider", "herren-hemden", "kinder-baby", "accessoires-guertel"} <= set(
+        kit.size_tables
+    )
     cfg = siteconfig.normalize({"site_defaults": {"hero_widget": "mode"}})
     assert cfg["site_defaults"]["hero_widget"] == "mode"
