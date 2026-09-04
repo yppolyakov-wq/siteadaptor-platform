@@ -4028,7 +4028,11 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       if (strip) {
         strip.classList.remove("hidden");
         root.classList.add("st-pages-open");
-        var cur = (document.getElementById("bld-page-path") || {}).value || "/";
+        // STU-7: чипы ленты — голые пути (data-st-page = {{ p.url }}), а previewPath
+        // теперь может нести параметр страницы (?gruppe=). Сравниваем по пути, иначе
+        // на странице группы не подсвечивался НИ ОДИН чип — лента говорила «мы нигде»,
+        // хотя канва стоит внутри «Aktionen».
+        var cur = ((document.getElementById("bld-page-path") || {}).value || "/").split("?")[0];
         strip.querySelectorAll(".st-page-btn").forEach(function (b) {
           b.classList.toggle("st-active", b.getAttribute("data-st-page") === cur);
         });

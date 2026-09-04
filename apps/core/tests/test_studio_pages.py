@@ -622,3 +622,15 @@ def test_custom_404_stays_standalone():
     page = (Path(dj_settings.BASE_DIR) / "templates" / "404.html").read_text()
     assert "{% extends" not in page
     assert "data-stu-page" not in page
+
+
+def test_page_ribbon_matches_chip_by_bare_path():
+    """STU-7 (нашло ревью ветки): чипы ленты страниц — голые пути, а previewPath теперь
+    может нести `?gruppe=`. Без среза параметра на странице группы не подсвечивался ни
+    один чип: лента показывала «мы нигде», хотя канва внутри «Aktionen»."""
+    from pathlib import Path
+
+    from django.conf import settings as dj_settings
+
+    tpl = (Path(dj_settings.BASE_DIR) / "templates" / "tenant" / "site_home.html").read_text()
+    assert '.value || "/").split("?")[0];' in tpl

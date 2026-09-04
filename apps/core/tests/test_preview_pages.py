@@ -298,3 +298,12 @@ def test_safe_preview_page_closes_whitespace_bypass_of_the_killswitch():
         "/\raccounts/login/",
     ):
         assert views._safe_preview_page(probe) == "/", probe
+
+
+def test_safe_preview_page_survives_urls_that_urlsplit_refuses():
+    """Регрессия перехода на urlsplit (нашло ревью ветки): `//[` и другие незакрытые
+    IPv6-скобки urlsplit НЕ разбирает, а бросает ValueError. Старая проверка по сырой
+    строке бросить не могла, поэтому без перехвата `?page=//[` отдавал бы 500 на самом
+    билдере — и на редиректе после вставки блока, когда блок уже сохранён."""
+    for probe in ("//[", "//[::1", "http://[", "//[]", "/x?y=//["):
+        assert views._safe_preview_page(probe) in ("/", "/x"), probe

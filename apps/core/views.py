@@ -1201,7 +1201,14 @@ def _safe_preview_page(raw):
     raw = raw or ""
     if "\\" in raw:
         return "/"
-    parts = urlsplit(raw)
+    try:
+        parts = urlsplit(raw)
+    except ValueError:
+        # `//[` и подобные незакрытые IPv6-скобки: urlsplit БРОСАЕТ, а не разбирает.
+        # Старая проверка по сырой строке бросить не могла, и без этого перехвата
+        # `?page=//[` отдавал бы 500 на самом билдере (и на редиректе после вставки
+        # блока — уже сохранённого). Контракт функции: что угодно подозрительное → «/».
+        return "/"
     path = parts.path
     if (
         parts.scheme
