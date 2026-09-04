@@ -161,12 +161,18 @@ def test_every_site_key_resolves_in_normalized_config():
             "card_style": "regal",
             "promo_card": "coupon",
             "promo_group_style": "prospekt",
+            # STU-8: presence-minimal ключ — без явного значения в
+            # нормализованном конфиге его нет по замыслу.
+            "text_width": "wide",
         },
         "product_detail": {"layout": "tabs"},
         "promo_page_style": "kompakt",
         "promo_layout": "slider",
         "promo_grouping": "time",
         "service_index_layout": {"preset": "cols3"},
+        "menu_show_prices": False,
+        "menu_labels": True,
+        "detail_related_layout": {"preset": "cols3"},
     }
     cfg = siteconfig.normalize(raw)
     missing = []
@@ -285,11 +291,18 @@ def test_rail_offers_two_levels(builder_html):
 @pytest.mark.django_db
 def test_page_settings_are_tagged_by_type(builder_html):
     """Настройки страницы акций и шаблона категории раньше жили в области «Тема» —
-    то есть были видны на ЛЮБОЙ странице, кроме своей."""
+    то есть были видны на ЛЮБОЙ странице, кроме своей.
+
+    STU-8: список маркеров осознанно переписан. Прежний ждал строку
+    `data-stu-page="promos promo_group"` — так были подписаны шаблон обзора и
+    раскладка групп, хотя на СТРАНИЦЕ ГРУППЫ ни то, ни другое не действует
+    (см. `PageType("promo_group")`). Полное соответствие реестру держит
+    test_registry_and_panel_agree, здесь остаётся дымовая проверка.
+    """
     for marker in (
         'data-stu-page="category"',
         'data-stu-page="promo_group"',
-        'data-stu-page="promos promo_group"',
+        'data-stu-page="promos"',
     ):
         assert marker in builder_html, marker
 
@@ -674,3 +687,109 @@ def test_editor_resyncs_after_pushstate_navigation():
     swap = (base / "templates" / "storefront" / "_grid_view_script.html").read_text()
     assert 'dispatchEvent(new CustomEvent("sf:navigated"' in swap
     assert '["data-stu-page", "data-stu-ref"].forEach' in swap
+
+
+# ── STU-8: реестр и панель обязаны совпадать ──────────────────────────────────
+
+
+@pytest.fixture
+def builder_html_all_modules(settings):
+    """Билдер тенанта, у которого видны ВСЕ строки настроек.
+
+    Две строки спрятаны бизнес-гейтами, а не типом страницы: цены в меню
+    показываются лишь при выключённом модуле orders (browse-only витрина), а
+    маркировка — только гастро-типам. Тенант «ресторан без orders» открывает обе,
+    поэтому охват реестра меряется на нём, а не на дефолтном.
+    """
+    from apps.tenants.tests.factories import TenantFactory
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    return _builder_html(TenantFactory(business_type="restaurant", disabled_modules=["orders"]))
+
+
+def _tagged_rows(html: str) -> dict[str, str]:
+    """`data-stu-setting` → значение `data-stu-page` того же тега (пусто — атрибута нет)."""
+    import re
+
+    rows: dict[str, str] = {}
+    for tag in re.findall(r"<[a-zA-Z][^>]*data-stu-setting=\"[^\"]+\"[^>]*>", html):
+        code = re.search(r'data-stu-setting="([^"]+)"', tag).group(1)
+        assert code not in rows, f"настройка {code} отрендерена дважды"
+        page = re.search(r'data-stu-page="([^"]*)"', tag)
+        rows[code] = page.group(1) if page else ""
+    return rows
+
+
+@pytest.mark.django_db
+def test_registry_and_panel_agree(builder_html_all_modules):
+    """ГЛАВНЫЙ инвариант волны STU: реестр знает, какие настройки у типа страницы, —
+    панель обязана ровно их и спрашивать.
+
+    Дефект, из-за которого замок появился: реестр объявлял 23 настройки, а панель
+    подписывала типами 6 строк. Владелец стоял на главной и не видел НИ ОДНОЙ её
+    настройки (они лежат в области секций), зато видел раскладки каталога, событий и
+    номеров — «каша», которую волна и должна была убрать. Без замка разрыв
+    «реестр знает — панель не спрашивает» вернулся бы незамеченным: он не роняет
+    ни один тест и не виден в диффе.
+    """
+    rows = _tagged_rows(builder_html_all_modules)
+
+    missing = sorted(set(sp.SETTINGS) - set(rows))
+    assert not missing, f"настройка реестра не отрендерена в панели: {missing}"
+
+    extra = sorted(set(rows) - set(sp.SETTINGS))
+    assert not extra, f"панель подписана кодом, которого нет в реестре: {extra}"
+
+    for code in sp.SETTINGS:
+        expected = {pt.code for pt in sp.PAGE_TYPES if code in pt.settings}
+        actual = {c for c in rows[code].split() if c}
+        assert actual == expected, (
+            f"настройка {code}: панель показывает на {sorted(actual)}, "
+            f"реестр объявляет {sorted(expected)}"
+        )
+
+
+@pytest.mark.django_db
+def test_every_stu_page_code_is_a_known_type(builder_html_all_modules):
+    """Опечатка в `data-stu-page` не роняет ничего — строка просто перестаёт
+    показываться. Молча, на всех страницах сразу (класс «узел молча выпал»)."""
+    import re
+
+    known = {pt.code for pt in sp.PAGE_TYPES} | {sp.OTHER.code}
+    seen = set()
+    for value in re.findall(r'data-stu-page="([^"]*)"', builder_html_all_modules):
+        seen |= {c for c in value.split() if c}
+    unknown = sorted(seen - known)
+    assert not unknown, f"в разметке типы, которых нет в реестре: {unknown}"
+
+
+@pytest.mark.django_db
+def test_home_settings_live_in_the_home_panel(builder_html_all_modules):
+    """Артборд «Тип: Главная»: состав секций и вид баннера — настройки ГЛАВНОЙ.
+    Вид баннера до STU-8 стоял в уровне «Дизайн сайта» (то есть «на весь сайт»),
+    хотя баннер есть ровно на одной странице."""
+    rows = _tagged_rows(builder_html_all_modules)
+    assert rows["home_sections"] == "home"
+    assert rows["home_hero"] == "home"
+
+
+@pytest.mark.django_db
+def test_scope_pills_stand_next_to_their_control(builder_html_all_modules):
+    """Пилюля охвата ищет контрол в СВОЁМ родителе (scopeControl): перенос пикера в
+    другую обёртку без пилюли молча превратил бы «только здесь» в no-op."""
+
+    body = builder_html_all_modules
+    for code in (
+        "category_page_style",
+        "promo_group_style",
+        "product_card_form",
+        "promo_card_form",
+    ):
+        setting = sp.SETTINGS[code]
+        assert setting.has_object_scope, code
+        i = body.index(f'data-stu-setting="{code}"')
+        row = body[i : body.index("</div>", i)]
+        assert f'name="{setting.form_field}"' in row or "_cardform_picker" in row
+        assert f'setting="{code}"' in row or f'data-stu-scope="{code}"' in row, (
+            f"у настройки {code} есть объектный уровень, но пилюли охвата рядом нет"
+        )

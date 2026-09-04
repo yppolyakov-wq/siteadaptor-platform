@@ -1,11 +1,11 @@
 {% extends "storefront/_base.html" %}
-{% load i18n seo %}
+{% load i18n seo siteui %}
 {% block title %}{{ post.title_localized }} — {{ request.tenant.name }}{% endblock %}
 {% block meta_description %}{{ post.excerpt|default:post.title }}{% endblock %}
 {% block structured_data %}{% blogposting_jsonld post %}{% endblock %}
 
 {% block content %}
-<article class="max-w-2xl mx-auto">
+<article class="{% text_width_class %}">
   <a href="{% url 'storefront-blog' %}" class="text-sm text-gray-500 hover:underline">← {% trans "All posts" %}</a>
   {% if post.cover_url %}<img src="{{ post.cover_url }}" alt="{{ post.title_localized }}" class="w-full aspect-[16/9] object-cover rounded-2xl mt-3 mb-4">{% endif %}
   {% if post.published_at %}<p class="text-sm text-gray-400 mt-3">{{ post.published_at|date:"d.m.Y" }}</p>{% endif %}

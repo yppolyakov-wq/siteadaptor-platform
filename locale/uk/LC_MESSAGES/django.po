@@ -22263,3 +22263,19 @@ msgstr "Подивіться наші набори"
 
 msgid "Browse the range"
 msgstr "Переглянути асортимент"
+
+#: templates/tenant/site_home.html
+msgid "Textbreite"
+msgstr "Ширина тексту"
+
+#: templates/tenant/site_home.html
+msgid "Schmale Spalte (Standard)"
+msgstr "Вузька колонка (за замовчуванням)"
+
+#: templates/tenant/site_home.html
+msgid "Breite Spalte"
+msgstr "Широка колонка"
+
+#: templates/tenant/site_home.html
+msgid "Volle Breite"
+msgstr "На всю ширину"

@@ -286,16 +286,6 @@
               {% endfor %}
             </select>
           </label>
-          {% comment %}DL-13 C1/C2: стиль баннера — селект из 5 стилей (был чекбокс
-          «accent»: Save писал accent/plain безусловно и затирал split сборки Fokus).{% endcomment %}
-          <label class="text-sm">
-            <span class="block font-medium mb-1">{% trans "Banner" %}</span>
-            <select name="hero_style" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-              {% for key, label in hero_style_options %}
-                <option value="{{ key }}" {% if key == hero_style %}selected{% endif %}>{{ label }}</option>
-              {% endfor %}
-            </select>
-          </label>
           {# SE-3b: типографика — начертание заголовков + межстрочный интервал тела. #}
           <label class="text-sm" data-expert="1">
             <span class="block font-medium mb-1">{% trans "Heading weight" %}</span>
@@ -311,23 +301,6 @@
               {% for lh in typo_line_height_options %}<option value="{{ lh }}" {% if typo_line_height == lh %}selected{% endif %}>{{ lh }}</option>{% endfor %}
             </select>
           </label>
-        </div>
-        {% comment %}ST-7c/DL-19: ФОРМА карточек — плитки с мини-макетом (варианты видно,
-           а не читать). ВНЕ data-expert-блока: это первичная настройка вида витрины, а в
-           Простом режиме expert-блок скрыт целиком — прецедент W11-5 (quick_add был спрятан
-           там же, и владелец его не находил). Значения — в hidden-инпутах ПРЕЖНИХ имён,
-           поэтому save/live-draft/клик по Look'у не тронуты.{% endcomment %}
-        <div class="mt-4 pt-4 border-t border-gray-100">
-          <div class="grid sm:grid-cols-2 gap-4">
-            <div>
-              {% include "tenant/_cardform_picker.html" with name="sd_card_style" value=card_style items=card_forms_product title=_("Kartenform") %}
-              {% include "tenant/_scope_pill.html" with setting="product_card_form" %}
-            </div>
-            <div>
-              {% include "tenant/_cardform_picker.html" with name="sd_promo_card" value=promo_card items=card_forms_promo title=_("Aktionskarte") %}
-              {% include "tenant/_scope_pill.html" with setting="promo_card_form" %}
-            </div>
-          </div>
         </div>
         {% comment %} SE-2d: глобальный стиль карточек — «весь сайт» (мастер-настройка, наследуется
            всеми сетками; блок может переопределить своим visual). SE-8a: эксперт-только. {% endcomment %}
@@ -508,8 +481,25 @@
         </div>
       </div>
 
-      <fieldset class="bg-white rounded-2xl shadow-sm p-6" data-scope="home">
+      {% comment %}STU-8: строка реестра `home_sections` — состав и порядок секций главной.
+         Скоуп ведёт applyStuPageScope по data-stu-page (единственный владелец класса
+         hidden у таких элементов); data-scope="home" оставлен как якорь прежней
+         механики для остальных наборов главной.{% endcomment %}
+      <fieldset class="bg-white rounded-2xl shadow-sm p-6" data-scope="home"
+                data-stu-setting="home_sections" data-stu-page="home">
         <legend class="font-semibold mb-1">{% trans "Homepage blocks" %}</legend>
+        {% comment %}STU-8: «Вид баннера» переехал сюда из уровня «Дизайн сайта» — баннер
+           есть только на главной, и артборд PHome ставит его в её панель.{% endcomment %}
+        <div class="stu-page-row mb-4" data-stu-setting="home_hero" data-stu-page="home">
+          <label class="block text-sm">
+            <span class="block font-medium mb-1">{% trans "Banner" %}</span>
+            <select name="hero_style" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              {% for key, label in hero_style_options %}
+                <option value="{{ key }}" {% if key == hero_style %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+        </div>
         <p class="text-xs text-gray-400 mb-4">{% trans "Drag ⠿ to reorder, or type a number. Untick to hide a block." %}</p>
         {% comment %}SE-9g: в Простом режиме при выбранной версии 📱/▭ показываем настройки этой версии
            (колонки на устройстве, скрыть на устройстве) — крутить мобильную версию без Эксперта.{% endcomment %}
@@ -796,26 +786,34 @@
         <p class="stu-page-name text-xs text-gray-500"></p>
         <fieldset class="bg-white rounded-2xl shadow-sm p-6" data-stu-any="1">
           <legend class="font-semibold mb-1">{% trans "Vorlage der Seite" %}</legend>
-          <div class="stu-page-row mt-2" data-stu-page="category">
+          {% comment %}STU-8: КАЖДАЯ настройка — своя строка с `data-stu-setting` (код
+             реестра) и `data-stu-page` (типы страниц из реестра). Инвариант держит замок
+             test_registry_and_panel_agree: реестр знает — панель обязана спросить, и
+             наоборот. Раньше типы стояли на СБОРНЫХ строках, поэтому «Sortierung»
+             (только корень каталога) показывалась и в категории, а «Gruppierung»
+             (только обзор акций) — и на странице группы.{% endcomment %}
+          <div class="stu-page-row mt-2" data-stu-setting="category_page_style" data-stu-page="category">
             {% include "tenant/_cardform_picker.html" with name="sd_category_page_style" value=category_page_style items=category_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Category page (whole site)") %}
             {% include "tenant/_scope_pill.html" with setting="category_page_style" %}
           </div>
-          <div class="stu-page-row mt-4" data-stu-page="promo_group">
+          <div class="stu-page-row mt-4" data-stu-setting="promo_page_style" data-stu-page="promos">
+            {% include "tenant/_cardform_picker.html" with name="promo_page_style" value=promo_page_style items=promo_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Aktionsseite: Vorlage") %}
+          </div>
+          <div class="stu-page-row mt-4" data-stu-setting="promo_group_style" data-stu-page="promo_group">
             {% include "tenant/_cardform_picker.html" with name="sd_promo_group_style" value=promo_group_style items=group_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Offer group page (whole site)") %}
             {% include "tenant/_scope_pill.html" with setting="promo_group_style" %}
           </div>
-          <div class="stu-page-row mt-4" data-stu-page="promos promo_group">
-            {% include "tenant/_cardform_picker.html" with name="promo_page_style" value=promo_page_style items=promo_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Aktionsseite: Vorlage") %}
-          </div>
-          <div class="stu-page-row mt-4 grid sm:grid-cols-2 gap-4" data-stu-page="promos promo_group">
-            <label class="text-sm">
+          <div class="stu-page-row mt-4" data-stu-setting="promo_layout" data-stu-page="promos">
+            <label class="text-sm block">
               <span class="block font-medium mb-1">{% trans "Aktionsseite: Aufbau" %}</span>
               <select name="promo_layout" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
                 <option value="">{% trans "Raster" %}</option>
                 <option value="slider" {% if promo_layout == 'slider' %}selected{% endif %}>{% trans "Slider" %}</option>
               </select>
             </label>
-            <label class="text-sm">
+          </div>
+          <div class="stu-page-row mt-4" data-stu-setting="promo_grouping" data-stu-page="promos">
+            <label class="text-sm block">
               <span class="block font-medium mb-1">{% trans "Aktionsseite: Gruppierung" %}</span>
               <select name="promo_grouping" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
                 <option value="">{% trans "Nach Gruppen" %}</option>
@@ -823,34 +821,68 @@
               </select>
             </label>
           </div>
+          {% comment %}ST-7c/DL-19 → STU-8: ФОРМА карточки переехала сюда из уровня
+             «Дизайн сайта». Артборды A1/PCat/PPromo ставят её в панель страницы: «Дизайн
+             сайта» — это Look, цвет и шрифт «на всё», а форма карточки настраивается там,
+             где эти карточки видно, и с выбором охвата. Имена полей ПРЕЖНИЕ — save,
+             live-draft и клик по Look'у не тронуты (они ищут по name, не по области).{% endcomment %}
+          {% if has_catalog %}
+          <div class="stu-page-row mt-4" data-stu-setting="product_card_form" data-stu-page="category product">
+            {% include "tenant/_cardform_picker.html" with name="sd_card_style" value=card_style items=card_forms_product title=_("Kartenform") %}
+            {% include "tenant/_scope_pill.html" with setting="product_card_form" %}
+          </div>
+          {% endif %}
+          <div class="stu-page-row mt-4" data-stu-setting="promo_card_form" data-stu-page="promos promo_group promo">
+            {% include "tenant/_cardform_picker.html" with name="sd_promo_card" value=promo_card items=card_forms_promo title=_("Aktionskarte") %}
+            {% include "tenant/_scope_pill.html" with setting="promo_card_form" %}
+          </div>
           {% comment %}STU-5: перенос со страницы «Pages» — она была ВТОРЫМ писателем
              раскладок и держала три настройки, которых в Студии не было. Сентинел
              cl_present сохранён (W0: чужой POST не роняет ключи), поэтому семантика
-             сохранения та же, что и на прежнем экране.{% endcomment %}
+             сохранения та же, что и на прежнем экране. Он ВНЕ строк: строка прячется
+             CSS-классом, а guard обязан уезжать в POST на любой странице.{% endcomment %}
           {% if has_catalog %}
-          <div class="stu-page-row mt-4 space-y-2" data-stu-page="catalog category">
-            <input type="hidden" name="cl_present" value="1">
-            {% if not orders_active_for_prices %}
+          <input type="hidden" name="cl_present" value="1">
+          {% if not orders_active_for_prices %}
+          <div class="stu-page-row mt-4" data-stu-setting="catalog_menu_prices" data-stu-page="catalog category">
             <label class="flex items-center gap-2 text-sm text-gray-600">
               <input type="checkbox" name="menu_show_prices" {% if menu_prices_on %}checked{% endif %} class="rounded border-gray-300">
               {% trans "Preise in der Speisekarte anzeigen" %}
             </label>
-            {% endif %}
-            {% if is_food_type %}
+          </div>
+          {% endif %}
+          {% if is_food_type %}
+          <div class="stu-page-row mt-2" data-stu-setting="catalog_menu_labels" data-stu-page="catalog category">
             <label class="flex items-center gap-2 text-sm text-gray-600">
               <input type="checkbox" name="menu_labels" {% if menu_labels_on %}checked{% endif %} class="rounded border-gray-300">
               {% trans "Kennzeichnung in der Speisekarte (Diäten, Allergene)" %}
             </label>
-            {% endif %}
           </div>
-          <label class="stu-page-row mt-4 block text-sm" data-stu-page="product">
-            <span class="block font-medium mb-1">{% trans "Related products grid" %}</span>
-            <span class="block text-xs text-gray-400 mb-1.5">{% trans "“More from this category” on a product page." %}</span>
-            <select name="related_preset" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if pk == related_preset %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
-            </select>
-          </label>
           {% endif %}
+          <div class="stu-page-row mt-4" data-stu-setting="product_related" data-stu-page="product">
+            <label class="block text-sm">
+              <span class="block font-medium mb-1">{% trans "Related products grid" %}</span>
+              <span class="block text-xs text-gray-400 mb-1.5">{% trans "“More from this category” on a product page." %}</span>
+              <select name="related_preset" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if pk == related_preset %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+              </select>
+            </label>
+          </div>
+          {% endif %}
+          {% comment %}STU-8: ширина текстовой колонки (артборд «Тип: Текстовая страница»).
+             Раньше на «О нас», правовых и блоге настраивать было нечего, кроме блоков.
+             Ключ presence-minimal: "" = прежняя узкая колонка → golden-эталоны целы.{% endcomment %}
+          <div class="stu-page-row mt-4" data-stu-setting="text_width" data-stu-page="text legal blog">
+            <input type="hidden" name="tw_present" value="1">
+            <label class="block text-sm">
+              <span class="block font-medium mb-1">{% trans "Textbreite" %}</span>
+              <select name="sd_text_width" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                <option value="">{% trans "Schmale Spalte (Standard)" %}</option>
+                <option value="wide" {% if text_width == 'wide' %}selected{% endif %}>{% trans "Breite Spalte" %}</option>
+                <option value="full" {% if text_width == 'full' %}selected{% endif %}>{% trans "Volle Breite" %}</option>
+              </select>
+            </label>
+          </div>
           <p class="stu-page-empty hidden text-xs text-gray-500">{% trans "This page is edited directly on the canvas — click a heading, price or photo." %}</p>
         </fieldset>
       {% comment %} SE-2a-2/SE-2b-1: per-page инспектор лендингов — клик по гриду на канве
@@ -865,38 +897,53 @@
         <input type="hidden" name="pb_present" value="1">
         <div class="space-y-3">
           {% if has_catalog %}
-          <div class="page-block flex flex-wrap items-center gap-3" data-page-key="catalog">
+          {% comment %}STU-8: строка каталога показывается на корне И в категории (реестр:
+             раскладка/фильтры применимы к обеим), но КАЖДАЯ настройка внутри знает свои
+             типы: сортировка и шаблон корневой — только корень, «подкатегории первыми» —
+             только категория. Раньше они висели одним блоком, и в категории владелец видел
+             настройки, которые её не касаются.{% endcomment %}
+          <div class="page-block flex flex-wrap items-center gap-3" data-page-key="catalog" data-stu-page="catalog category">
             <span class="text-sm font-medium flex-1">{% trans "Catalog: grid layout" %}</span>
-            <select name="catalog_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
-              {# DS-5c: + прайс-виды — иначе сохранённый preisliste* не матчился и Save откатывал в "list" (W0) #}
-              {% for pk, plabel in catalog_preset_options|default:preset_options %}<option value="{{ pk }}" {% if catalog_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
-            </select>
-            {# Дефолтная сортировка каталога (покупатель может сменить дропдауном на витрине). #}
-            <label class="flex items-center gap-1.5 text-xs text-gray-600 w-full" title="{% trans 'Default product sorting' %}">
-              {% trans "Sort" %}
-              <select name="catalog_sort" class="rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
-                <option value="newest" {% if catalog_sort == 'newest' %}selected{% endif %}>{% trans "Newest" %}</option>
-                <option value="price_asc" {% if catalog_sort == 'price_asc' %}selected{% endif %}>{% trans "Price: low to high" %}</option>
-                <option value="price_desc" {% if catalog_sort == 'price_desc' %}selected{% endif %}>{% trans "Price: high to low" %}</option>
+            <div class="stu-page-row w-full" data-stu-setting="catalog_layout" data-stu-page="catalog category">
+              <select name="catalog_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
+                {# DS-5c: + прайс-виды — иначе сохранённый preisliste* не матчился и Save откатывал в "list" (W0) #}
+                {% for pk, plabel in catalog_preset_options|default:preset_options %}<option value="{{ pk }}" {% if catalog_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
               </select>
-            </label>
-            {# Показывать фильтры (диеты) + подкатегории-первыми. presence-guard cf_present. #}
+            </div>
+            {# Дефолтная сортировка каталога (покупатель может сменить дропдауном на витрине). #}
+            <div class="stu-page-row w-full" data-stu-setting="catalog_sort" data-stu-page="catalog">
+              <label class="flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Default product sorting' %}">
+                {% trans "Sort" %}
+                <select name="catalog_sort" class="rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
+                  <option value="newest" {% if catalog_sort == 'newest' %}selected{% endif %}>{% trans "Newest" %}</option>
+                  <option value="price_asc" {% if catalog_sort == 'price_asc' %}selected{% endif %}>{% trans "Price: low to high" %}</option>
+                  <option value="price_desc" {% if catalog_sort == 'price_desc' %}selected{% endif %}>{% trans "Price: high to low" %}</option>
+                </select>
+              </label>
+            </div>
+            {% comment %}Показывать фильтры (диеты) + подкатегории-первыми. presence-guard
+               cf_present — ВНЕ строк: строка прячется CSS, а guard обязан уезжать в POST
+               всегда (инвариант W0).{% endcomment %}
             <input type="hidden" name="cf_present" value="1">
-            <label class="flex items-center gap-1.5 text-xs text-gray-600 w-full" title="{% trans 'Show diet filters on the catalog page' %}">
-              <input type="checkbox" name="catalog_show_filters" {% if catalog_show_filters %}checked{% endif %} class="rounded border-gray-300">{% trans "Show filters" %}
-            </label>
-            <label class="flex items-center gap-1.5 text-xs text-gray-600 w-full" title="{% trans 'Show subcategory cards first' %}">
-              <input type="checkbox" name="catalog_subcats_first" {% if catalog_subcats_first %}checked{% endif %} class="rounded border-gray-300">{% trans "Subcategories first" %}
-            </label>
+            <div class="stu-page-row w-full" data-stu-setting="catalog_filters" data-stu-page="catalog category">
+              <label class="flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Show diet filters on the catalog page' %}">
+                <input type="checkbox" name="catalog_show_filters" {% if catalog_show_filters %}checked{% endif %} class="rounded border-gray-300">{% trans "Show filters" %}
+              </label>
+            </div>
+            <div class="stu-page-row w-full" data-stu-setting="catalog_subcats" data-stu-page="category">
+              <label class="flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Show subcategory cards first' %}">
+                <input type="checkbox" name="catalog_subcats_first" {% if catalog_subcats_first %}checked{% endif %} class="rounded border-gray-300">{% trans "Subcategories first" %}
+              </label>
+            </div>
             {% comment %}DL-21.1: шаблон КОРНЕВОЙ страницы каталога — свой ключ, дефолт
             категорий сюда не наследуется. Без «Preisliste»: прайс-вид даёт селект выше.{% endcomment %}
-            <div class="w-full">
+            <div class="stu-page-row w-full" data-stu-setting="catalog_page_style" data-stu-page="catalog">
               {% include "tenant/_cardform_picker.html" with name="catalog_page_style" value=catalog_page_style items=catalog_root_styles thumb="tenant/_pagelayout_thumb.html" title=_("Seitenvorlage") %}
             </div>
           </div>
           {% endif %}
           {% if has_events %}
-          <div class="page-block flex items-center gap-3" data-page-key="events">
+          <div class="page-block flex items-center gap-3" data-page-key="events" data-stu-setting="events_layout" data-stu-page="events">
             <span class="text-sm font-medium flex-1">{% trans "Events: grid layout" %}</span>
             <select name="events_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if events_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
@@ -904,7 +951,7 @@
           </div>
           {% endif %}
           {% if has_stays %}
-          <div class="page-block flex items-center gap-3" data-page-key="stay_rooms">
+          <div class="page-block flex items-center gap-3" data-page-key="stay_rooms" data-stu-setting="stay_layout" data-stu-page="stays">
             <span class="text-sm font-medium flex-1">{% trans "Rooms: grid layout" %}</span>
             <select name="stay_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if stay_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
@@ -914,7 +961,7 @@
           {% comment %} UB1-1: раскладка листинга услуг /termin/. Пустой выбор «Standard» =
              ключ не задан → легаси-грид (узкий, max-w-3xl); POST удаляет ключ. {% endcomment %}
           {% if has_booking %}
-          <div class="page-block flex items-center gap-3" data-page-key="services">
+          <div class="page-block flex items-center gap-3" data-page-key="services" data-stu-setting="service_layout" data-stu-page="services">
             <span class="text-sm font-medium flex-1">{% trans "Services: grid layout" %}</span>
             <select name="service_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               <option value="">{% trans "Standard" %}</option>
@@ -924,7 +971,7 @@
           {% endif %}
           {% comment %} SE-2d-4: применить одну раскладку ко всем лендингам разом (каталог+события+
              номера). Фронт: ставит значения всех селекторов → live-preview/Save. {% endcomment %}
-          <div class="flex items-center gap-2 flex-wrap pt-3 border-t border-gray-100">
+          <div class="stu-page-row flex items-center gap-2 flex-wrap pt-3 border-t border-gray-100" data-stu-page="catalog category events stays services">
             <span class="text-sm text-gray-500">{% trans "Apply layout to all landing pages" %}:</span>
             <select id="apply-all-preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               {% for pk, plabel in preset_options %}<option value="{{ pk }}">{{ plabel }}</option>{% endfor %}
@@ -934,7 +981,7 @@
           {% comment %} SE-2b-2: порядок/видимость тематических секций детальной события — клик по
              блоку секций на канве (event detail ?preview=1) переносит этот инспектор сюда. {% endcomment %}
           {% if has_events %}
-          <div class="page-block" data-page-key="event_detail">
+          <div class="page-block" data-page-key="event_detail" data-stu-setting="event_detail_sections" data-stu-page="event">
             <span class="text-sm font-medium block mb-2">{% trans "Event page: sections" %}</span>
             <ul id="ed-sections" class="space-y-1">
               {% for s in event_sections %}
@@ -956,7 +1003,7 @@
           {% comment %}Опц. секции детальной ТОВАРА (показ/скрытие). Клик по детальной товара
              (?preview=1) переносит инспектор сюда; правки — в черновик/Save (live-preview).{% endcomment %}
           {% if has_catalog %}
-          <div class="page-block" data-page-key="product_detail">
+          <div class="page-block" data-page-key="product_detail" data-stu-setting="product_detail_sections" data-stu-page="product">
             <span class="text-sm font-medium block mb-2">{% trans "Product page: sections" %}</span>
             <input type="hidden" name="pd_present" value="1">
             <ul class="space-y-1">
@@ -970,19 +1017,21 @@
               {% endfor %}
             </ul>
             {# DL-16.6 (D2): раскладка секций детали товара — друг под другом или табами #}
-            <label class="mt-2 flex items-center gap-2 text-sm">
-              <span class="text-gray-500">{% trans "Aufbau" %}</span>
-              <select name="pd_layout" class="rounded-lg border border-gray-300 px-2 py-1 text-sm text-gray-600">
-                <option value="">{% trans "Untereinander" %}</option>
-                <option value="tabs" {% if product_detail_layout == 'tabs' %}selected{% endif %}>{% trans "Tabs" %}</option>
-              </select>
-            </label>
+            <div class="stu-page-row" data-stu-setting="product_detail_layout" data-stu-page="product">
+              <label class="mt-2 flex items-center gap-2 text-sm">
+                <span class="text-gray-500">{% trans "Aufbau" %}</span>
+                <select name="pd_layout" class="rounded-lg border border-gray-300 px-2 py-1 text-sm text-gray-600">
+                  <option value="">{% trans "Untereinander" %}</option>
+                  <option value="tabs" {% if product_detail_layout == 'tabs' %}selected{% endif %}>{% trans "Tabs" %}</option>
+                </select>
+              </label>
+            </div>
           </div>
           {% endif %}
           {% comment %}UA4-1 slice C: секции детальной УСЛУГИ (booking) — тот же hide-only
              инспектор; клик по детали услуги (?preview=1) переносит его сюда.{% endcomment %}
           {% if has_booking %}
-          <div class="page-block" data-page-key="service_detail">
+          <div class="page-block" data-page-key="service_detail" data-stu-setting="service_detail_sections" data-stu-page="service">
             <span class="text-sm font-medium block mb-2">{% trans "Service page: sections" %}</span>
             <input type="hidden" name="sd_present" value="1">
             <ul class="space-y-1">
@@ -999,7 +1048,7 @@
           {% endif %}
           {% comment %}UA4-1 slice C: секции детальной НОМЕРА (stays).{% endcomment %}
           {% if has_stays %}
-          <div class="page-block" data-page-key="stay_detail">
+          <div class="page-block" data-page-key="stay_detail" data-stu-setting="stay_detail_sections" data-stu-page="stay">
             <span class="text-sm font-medium block mb-2">{% trans "Room page: sections" %}</span>
             <input type="hidden" name="std_present" value="1">
             <ul class="space-y-1">
@@ -1017,7 +1066,7 @@
           {% comment %}Настройки страницы КОРЗИНЫ: блок кросс-селла «Passt dazu»
              (показ/скрытие). Заголовок блока правится инлайн на самой странице.{% endcomment %}
           {% if has_catalog %}
-          <div class="page-block" data-page-key="cart">
+          <div class="page-block" data-page-key="cart" data-stu-setting="cart_upsell" data-stu-page="cart">
             <span class="text-sm font-medium block mb-2">{% trans "Cart page" %}</span>
             <input type="hidden" name="cart_present" value="1">
             <label class="flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Show the “Goes well with this” block in the cart' %}">
@@ -2432,6 +2481,9 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       // DL-20: шаблон страницы категории на весь сайт (плитки + hidden).
       var sdCatPage = form.querySelector("[name='sd_category_page_style']");
       var sdGrpPage = form.querySelector("[name='sd_promo_group_style']");
+      // STU-8: ширина текстовой колонки — в черновик, иначе выбор был бы виден
+      // только после Save (грабля DL-17.3: контрол есть, в payload его нет).
+      var sdTextW = form.querySelector("select[name='sd_text_width']");
       payload.site_defaults = {
         card_radius: sdR ? parseInt(sdR.value, 10) || 0 : 0,
         card_shadow: !!(sdSh && sdSh.checked),
@@ -2446,6 +2498,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         promo_card: sdPromoCard ? sdPromoCard.value : "",
         card_slider: sdSlider && sdSlider.checked ? "on" : "",
         variant_style: sdVariant ? sdVariant.value : "",
+        text_width: sdTextW ? sdTextW.value : "",
       };
     }
     // UC6-7b: C-блоки СТРАНИЦ (pb-строки) → черновик {хост: [entry,…]}. Шлём ВСЕ
@@ -3330,6 +3383,11 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     // так что сама главная защищена и без атрибута.
     var isHome = curStuPage ? curStuPage === "home" : (group === "home" && !curPbHost);
     document.querySelectorAll('[data-scope="home"]').forEach(function (el) {
+      // STU-8: у типизированных наборов ЕДИНСТВЕННЫЙ владелец класса hidden —
+      // applyStuPageScope (он отработал выше, в syncFrameState). Два механизма,
+      // толкающие один и тот же класс, рано или поздно разойдутся в трактовке
+      // «что такое главная» — поэтому здесь такие элементы не трогаем.
+      if (el.hasAttribute("data-stu-page")) return;
       el.classList.toggle("hidden", !isHome);
     });
     var landing = document.querySelector('[data-scope="landing"]');
@@ -3337,6 +3395,14 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     var pageKey = SCOPE_PAGE_KEY[group] || (isHome ? "" : curPbHost);
     var shown = 0;
     landing.querySelectorAll(".page-block").forEach(function (row) {
+      // STU-8 (часть 2): строка с типами из реестра — её видимость уже решил
+      // applyStuPageScope; здесь только считаем, чтобы подсказка внизу говорила
+      // правду. Хостовые строки (C-блоки страницы, пресеты) типов не имеют — их
+      // ключ динамический, и правило остаётся прежним: своя страница по хосту.
+      if (row.hasAttribute("data-stu-page")) {
+        if (!row.classList.contains("hidden")) shown++;
+        return;
+      }
       var match = pageKey && row.getAttribute("data-page-key") === pageKey;
       // STU-8: раньше на главной показывались ВСЕ строки лендингов (каталог, события,
       // номера, услуги, корзина, секции деталей) — ни одна из них к главной не

@@ -22046,3 +22046,19 @@ msgstr "See our sets"
 
 msgid "Browse the range"
 msgstr "Browse the range"
+
+#: templates/tenant/site_home.html
+msgid "Textbreite"
+msgstr "Text width"
+
+#: templates/tenant/site_home.html
+msgid "Schmale Spalte (Standard)"
+msgstr "Narrow column (default)"
+
+#: templates/tenant/site_home.html
+msgid "Breite Spalte"
+msgstr "Wide column"
+
+#: templates/tenant/site_home.html
+msgid "Volle Breite"
+msgstr "Full width"

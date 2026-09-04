@@ -22176,3 +22176,19 @@ msgstr "Setlerimize göz atın"
 
 msgid "Browse the range"
 msgstr "Ürünlere göz atın"
+
+#: templates/tenant/site_home.html
+msgid "Textbreite"
+msgstr "Metin genişliği"
+
+#: templates/tenant/site_home.html
+msgid "Schmale Spalte (Standard)"
+msgstr "Dar sütun (varsayılan)"
+
+#: templates/tenant/site_home.html
+msgid "Breite Spalte"
+msgstr "Geniş sütun"
+
+#: templates/tenant/site_home.html
+msgid "Volle Breite"
+msgstr "Tam genişlik"
