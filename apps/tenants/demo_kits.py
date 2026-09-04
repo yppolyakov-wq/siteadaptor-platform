@@ -11744,6 +11744,22 @@ def apply_kit(tenant, key: str) -> bool:
         from apps.tenants import sitetemplates as _sitetemplates
 
         _sitetemplates.apply_bundle_config(cfg, kit.bundle)
+    # DL-8a: ключ `design` — не украшение. По нему витрина ставит
+    # body[data-sf-look] (context.py) и включает фирменный CSS-слой семейства:
+    # рамки/бейджи/цены Look'а и глобальную замену indigo на акцент. apply_look/
+    # apply_bundle его пишут, а kit-путь — нет, поэтому ВСЕ демо-витрины
+    # показывали кожу наполовину (аудит 2026-09-03 §9.2, дефект 1).
+    # Пишем то, что реально применено: семейство кита (не bundle["look"] —
+    # визуал выше берётся из kit.look) и композицию сборки.
+    from apps.tenants import sitetemplates as _st
+
+    design = {}
+    if kit.look and _st.get_look_family(kit.look) is not None:
+        design["look"] = kit.look
+    if kit.bundle and _st.get_bundle(kit.bundle) is not None:
+        design["bundle"] = kit.bundle
+    if design:
+        cfg["design"] = design
     if kit.config_patch:  # DS-4 (Fokus): точечные оси сборки поверх look-оверлея
         for _k, _v in kit.config_patch.items():
             if isinstance(_v, dict) and isinstance(cfg.get(_k), dict):

@@ -27,7 +27,7 @@ from django.test import RequestFactory
 
 from apps.core import modules as module_registry
 from apps.promotions import public_views
-from apps.tenants import siteconfig, sitetemplates
+from apps.tenants import demo_kits, siteconfig, sitetemplates
 from apps.tenants.models import Tenant
 from apps.tenants.tests.factories import TenantFactory
 
@@ -138,6 +138,48 @@ def test_apply_is_idempotent_at_render_level(business_type):
     first = _render_pages(tenant)["/"]
     sitetemplates.apply_look(tenant, family)
     assert _render_pages(tenant)["/"] == first
+
+
+def test_every_kit_names_a_real_look_and_bundle():
+    """Опечатка в ключе кожи/сборки кита не должна быть тихой.
+
+    Реестр китов ссылается на реестры Look'ов и сборок строками; неизвестный
+    ключ сейчас просто игнорируется — демо молча остаётся без кожи.
+    """
+    for key, kit in demo_kits.KITS.items():
+        if kit.look:
+            assert sitetemplates.get_look_family(kit.look) is not None, f"{key}: {kit.look}"
+        if kit.bundle:
+            assert sitetemplates.get_bundle(kit.bundle) is not None, f"{key}: {kit.bundle}"
+
+
+# Ключи берём из реестра, а не литералами — переименование кита не должно
+# тихо выключать замок (взяли два первых кита с кожей).
+_KITS_WITH_LOOK = sorted(key for key, kit in demo_kits.KITS.items() if kit.look)[:2]
+
+
+@pytest.mark.parametrize("kit_key", _KITS_WITH_LOOK)
+def test_demo_kit_look_reaches_the_storefront(kit_key):
+    """Демо-витрина показывает кожу ЦЕЛИКОМ, а не наполовину.
+
+    Кит копирует визуал семейства (шрифт, типографику, site_defaults), но до
+    аудита не писал ключ `design` — а именно по нему витрина ставит
+    `data-sf-look` и включает фирменный CSS-слой Look'а. Дефект был не виден
+    ни одним замком: конфиг «правильный», а страница выглядит иначе.
+    """
+    # НЕ schema_name="public": на public контекст-процессор витрины отдаёт
+    # пустой набор (грабля ST-3), и замок бы молча ничего не проверял.
+    tenant = TenantFactory(slug=f"kit-{kit_key}", name="Kit")
+    assert demo_kits.apply_kit(tenant, kit_key) is True
+
+    kit = demo_kits.KITS[kit_key]
+    stored = siteconfig.normalize(tenant.site_config)
+    if kit.look:
+        assert stored["design"]["look"] == kit.look
+        html = _render(tenant, "/", public_views.storefront_home).content.decode()
+        assert f'data-sf-look="{kit.look}"' in html
+    if kit.bundle:
+        assert stored["design"]["bundle"] == kit.bundle
 
 
 @pytest.mark.xfail(
