@@ -22070,6 +22070,7 @@ msgstr "Setler ve paketler"
 #: templates/storefront/products.html:38
 msgid "See our sets & bundles"
 msgstr "Setlerimize ve paketlerimize göz atın"
+
 msgid "Neu ohne OVP"
 msgstr "Yeni, orijinal kutusuz"
 
@@ -22182,13 +22183,17 @@ msgid "Textbreite"
 msgstr "Metin genişliği"
 
 #: templates/tenant/site_home.html
-msgid "Schmale Spalte (Standard)"
-msgstr "Dar sütun (varsayılan)"
-
-#: templates/tenant/site_home.html
 msgid "Breite Spalte"
 msgstr "Geniş sütun"
 
 #: templates/tenant/site_home.html
 msgid "Volle Breite"
 msgstr "Tam genişlik"
+
+#: templates/tenant/site_home.html
+msgid "Schmale Spalte"
+msgstr "Dar sütun"
+
+#: templates/tenant/site_home.html
+msgid "Wie bisher"
+msgstr "Öncekiyle aynı"

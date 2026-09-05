@@ -21941,6 +21941,7 @@ msgstr "Sets & bundles"
 #: templates/storefront/products.html:38
 msgid "See our sets & bundles"
 msgstr "See our sets & bundles"
+
 msgid "Neu ohne OVP"
 msgstr "New, without original box"
 
@@ -22052,13 +22053,17 @@ msgid "Textbreite"
 msgstr "Text width"
 
 #: templates/tenant/site_home.html
-msgid "Schmale Spalte (Standard)"
-msgstr "Narrow column (default)"
-
-#: templates/tenant/site_home.html
 msgid "Breite Spalte"
 msgstr "Wide column"
 
 #: templates/tenant/site_home.html
 msgid "Volle Breite"
 msgstr "Full width"
+
+#: templates/tenant/site_home.html
+msgid "Schmale Spalte"
+msgstr "Narrow column"
+
+#: templates/tenant/site_home.html
+msgid "Wie bisher"
+msgstr "As before"

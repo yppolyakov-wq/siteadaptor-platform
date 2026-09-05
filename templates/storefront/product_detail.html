@@ -279,6 +279,10 @@
       box.hidden = false;
       if (window.__sfSliderInit) window.__sfSliderInit();
       if (window.__sfCardImgsInit) window.__sfCardImgsInit();
+      // STU-11: в канве редактора эти карточки вставлены ПОСЛЕ инструментации кадра,
+      // поэтому оставались инертными (имя/цена не правятся, 📷 и «✎» скрыты). Тот же
+      // сигнал, что шлёт своп листинга, — редактор довешивает обработчики.
+      document.dispatchEvent(new Event('sf:navigated'));
     }).catch(function () {});
 })();
 </script>

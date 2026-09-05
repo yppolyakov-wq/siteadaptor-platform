@@ -1071,3 +1071,65 @@ def test_about_preset_blocks_survive_normalize():
         }
         cleaned = siteconfig.normalize_page_blocks(raw)
         assert len(cleaned.get("info", [])) == len(preset["blocks"]), preset["key"]
+
+
+@pytest.mark.django_db
+def test_detail_slide_keeps_other_site_defaults():
+    """Плитка вида карточки на слайде «Produktseite» не имеет права уносить остальное.
+
+    STU-11 (доигровка скептиков ревью): пресет описывает ЧЕТЫРЕ ключа, а слайд
+    присваивал `site_defaults` целиком — клик молча стирал ширину текста, форму
+    карточки, вид выбора вариантов, шаблон категории и hero_widget (класс W6).
+    Ловушка была самоусиливающейся: подсветка «текущего» пресета сравнивала ВЕСЬ
+    словарь, поэтому у владельца с любым лишним ключом ни одна плитка не выбрана —
+    его прямо приглашали кликнуть.
+    """
+    from apps.core import setup_steps
+
+    tenant = TenantFactory(business_type="shop")
+    config = siteconfig.normalize(tenant.site_config)
+    config["site_defaults"] = {
+        **config.get("site_defaults", {}),
+        "text_width": "full",
+        "card_style": "regal",
+        "variant_style": "color",
+        "category_page_style": "magazin",
+    }
+    tenant.site_config = siteconfig.normalize(config)
+    tenant.save(update_fields=["site_config"])
+
+    request = _req("post", {"card_style": "weich"}, tenant=tenant)
+    setup_steps.HANDLERS["detail"].post(request)
+
+    sd = siteconfig.normalize(tenant.site_config)["site_defaults"]
+    assert sd.get("card_radius") == 16, "пресет обязан примениться"
+    for key, value in (
+        ("text_width", "full"),
+        ("card_style", "regal"),
+        ("variant_style", "color"),
+        ("category_page_style", "magazin"),
+    ):
+        assert sd.get(key) == value, f"слайд стёр чужой ключ {key}"
+
+
+@pytest.mark.django_db
+def test_detail_slide_marks_the_current_preset_despite_other_keys():
+    """Подсветка пресета обязана смотреть ТОЛЬКО на его ключи."""
+    from apps.core import setup_steps
+
+    tenant = TenantFactory(business_type="shop")
+    config = siteconfig.normalize(tenant.site_config)
+    config["site_defaults"] = {
+        **config.get("site_defaults", {}),
+        "card_radius": 16,
+        "card_shadow": True,
+        "card_bg": "",
+        "card_padding": 0,
+        "text_width": "full",  # посторонний ключ — не должен ломать сравнение
+    }
+    tenant.site_config = siteconfig.normalize(config)
+    tenant.save(update_fields=["site_config"])
+
+    ctx = setup_steps.HANDLERS["detail"].context(_req(tenant=tenant))
+    checked = [p["key"] for p in ctx["card_styles"] if p["checked"]]
+    assert checked == ["weich"], f"ожидали подсветку «weich», получили {checked}"

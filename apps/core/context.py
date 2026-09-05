@@ -308,7 +308,17 @@ def modules_nav(request):
             cfg = dict(cfg)
             cfg["font"] = _fam["font"]
             cfg["typography"] = siteconfig.normalize_typography(_fam["typography"])
-            cfg["site_defaults"] = siteconfig.normalize_site_defaults(_fam["site_defaults"])
+            # STU-11 (ревью): превью обязано показывать то, что даст ПРИМЕНЕНИЕ. После
+            # STU-9 серверный `apply_look` бережёт ключи, которых не описывает ни одно
+            # семейство (ширина текста, форма карточки, вид выбора вариантов), а оверлей
+            # продолжал заменять словарь целиком — «Vorschau» и демо-переключатель
+            # показывали не тот сайт, который получится после клика.
+            _fam_sd = dict(_fam["site_defaults"])
+            _own_sd = cfg.get("site_defaults") or {}
+            for _k, _v in _own_sd.items():
+                if _v not in ("", None, [], {}) and _k not in sitetemplates.look_family_sd_keys():
+                    _fam_sd.setdefault(_k, _v)
+            cfg["site_defaults"] = siteconfig.normalize_site_defaults(_fam_sd)
             _nav = dict(cfg.get("nav") or {})
             _nav["style"] = _fam["nav_style"]
             cfg["nav"] = _nav

@@ -14,6 +14,7 @@
 """
 
 import pathlib
+import re
 
 import pytest
 from django.urls import get_resolver
@@ -852,7 +853,16 @@ def test_level_reglue_does_not_depend_on_aria_pressed():
     # Комментарии не код: в них «aria-pressed» упомянут как объяснение дефекта.
     code_only = "\n".join(line for line in scope.splitlines() if not line.lstrip().startswith("//"))
     assert "aria-pressed" not in code_only, "переклейка снова завязана на aria-pressed"
-    assert "data-bld-area]:not(.hidden)" in scope, "источник факта — открытая область"
+    # STU-11 (осознанная переписка): источником факта была «видимая область», но при
+    # ЗАКРЫТОЙ панели её div остаётся видимым (closePanel не ставит .hidden) — навигация
+    # канвы распахивала панель, которую владелец только что закрыл. Теперь факт —
+    # curArea (что панель ОТКРЫЛА), и переключение идёт не кликом по вкладке (тот —
+    # тоггл и мог ЗАКРЫТЬ панель), а прямым открытием области.
+    assert "__sfOpenArea" in scope, "источник факта — какая область ОТКРЫТА, а не видима"
+    assert "data-bld-area]:not(.hidden)" not in scope, (
+        "видимость области ничего не говорит о том, открыта ли панель"
+    )
+    assert "__stuClickTab" not in scope, "переключение области не должно идти через тоггл"
     assert "lastStuPage" in scope, "переклейка обязана срабатывать только на СМЕНЕ типа"
 
 
@@ -882,10 +892,15 @@ def test_level_this_page_opens_the_home_area_on_home():
     body = pathlib.Path("templates/tenant/site_home.html").read_text()
     i = body.index("function stuPageArea()")
     resolver = body[i : body.index("}", i)]
-    assert 'curStuPage === "home"' in resolver, "резолвер обязан различать главную"
-    assert '"sections"' in resolver, "у главной уровень «эта страница» = область sections"
+    # STU-11: подстрочная проверка обходилась инверсией (`home ? "page" : "sections"`
+    # содержит обе искомые подстроки) — сверяем направление целиком.
+    assert 'curStuPage === "home" ? "sections" : "page"' in resolver, (
+        "у главной уровень «эта страница» = область sections, у остальных — page"
+    )
 
-    j = body.index("window.__stuPageArea()")
+    # Якорь — именно обработчик УРОВНЯ рейки: тот же вызов есть теперь и во вкладке
+    # областей (STU-11), и поиск по голому имени нашёл бы её.
+    j = body.index("var stuArea = window.__stuPageArea")
     handler = body[j : j + 400]
     assert 'stuArea === "sections"' in handler, "обработчик уровня обязан читать резолвер"
     assert '__sfShowArea("sections")' in handler, "и открывать область главной через него"
@@ -905,7 +920,11 @@ def test_home_own_settings_live_in_the_area_the_level_opens(builder_html_all_mod
     # Область заканчивается там, где начинается следующая — берём ближайшую.
     nxt = body.find('data-bld-area="', start + 10)
     sections_area = body[start : nxt if nxt != -1 else len(body)]
-    for code in ("home_sections", "home_hero"):
+    # STU-11: коды берём из реестра, а не литералами — третья настройка главной,
+    # добавленная в область `page`, обязана уронить замок, а не проскочить.
+    from apps.core import studio_pages as sp
+
+    for code in sp.page_type("home").settings:
         assert f'data-stu-setting="{code}"' in sections_area, (
             f"строка {code} обязана жить в области sections — её открывает уровень «эта страница»"
         )
@@ -962,3 +981,125 @@ def test_canvas_rebinds_content_after_listing_swap():
         assert "sfOnce(" in head, (
             "проход вешает слушатель без гварда идемпотентности: " + chunk[:80]
         )
+
+
+@pytest.mark.django_db
+def test_every_registry_control_is_unique_in_the_panel(builder_html_all_modules):
+    """Ни одно поле реестра не потеряно и не удвоено.
+
+    STU-11: замок `test_no_control_is_lost_or_duplicated` держал РУЧНОЙ список имён —
+    ровно так hero_style и просочился. Скептик показал обход фактом: дубль
+    `service_preset` / `stay_preset` / `events_preset` / `related_preset` /
+    `menu_labels` не видел ни один тест, а `request.POST.get` берёт ПОСЛЕДНЕЕ
+    значение — владелец правит видимую строку, Save пишет чужой дубль. Перечень
+    выводим из реестра.
+    """
+    from apps.core import studio_pages as sp
+
+    body = builder_html_all_modules
+    for setting in sp.SETTINGS.values():
+        field = setting.form_field
+        if not field or "*" in field:
+            continue  # шаблонные имена (per-модуль) считаем отдельными замками
+        found = len(re.findall(rf'name="{re.escape(field)}"', body))
+        assert found == 1, f"поле {field}: найдено {found} раз (ожидалось ровно одно)"
+
+
+def test_undo_restores_site_value_in_scope_controls():
+    """Ctrl+Z не имеет права вернуть значение ОБЪЕКТА в поле САЙТА.
+
+    STU-11: снимок истории мог быть сделан, когда канва стояла на странице объекта, —
+    тогда в нём лежит значение объекта под именем сайтового поля. applySnapshot
+    возвращает его молча (change не диспатчится, плитки не перерисовываются), и
+    следующий push/Save уходит с ним. Перекрашиваем пилюли после отката.
+    """
+    body = pathlib.Path("templates/tenant/site_home.html").read_text()
+    i = body.index("function applySnapshot(s)")
+    fn = body[i : body.index("var past = [], future = []", i)]
+    assert "__stuRepaintScopePills" in fn, "после отката пилюли обязаны перекраситься"
+    assert "window.__stuRepaintScopePills = function" in body, "перекраска не экспортирована"
+
+
+def test_page_tab_follows_the_same_resolver_as_the_rail():
+    """Вкладка «эта страница» обязана вести в ТУ ЖЕ область, что уровень рейки.
+
+    STU-11: на главной клик по вкладке открывал область `page`, где для home нет ни
+    одной строки, — пустая панель с подсказкой «правьте на канве». На узком экране
+    рейки нет вовсе (`hidden lg:flex`), так что это был единственный вход.
+    """
+    body = pathlib.Path("templates/tenant/site_home.html").read_text()
+    i = body.index("railBtns.forEach(function (b) {")
+    handler = body[i : body.index("function activate(which)", i)]
+    assert '__stuPageArea() === "sections"' in handler, (
+        "вкладка обязана спрашивать резолвер, а не открывать `page` вслепую"
+    )
+
+
+@pytest.mark.django_db
+def test_empty_page_hint_is_not_shown_when_settings_live_elsewhere(builder_html_all_modules):
+    """Подсказка «правьте прямо на канве» верна только при ПОЛНОМ отсутствии настроек.
+
+    STU-11: у home и cart настройки есть, но лежат в другой карточке (области секций /
+    наборе лендингов) — подсказка там дезинформировала. Считаем строки типа во всей
+    панели, а не только в своей карточке.
+    """
+    body = builder_html_all_modules
+    i = body.index("function applyStuPageScope()")
+    fn = body[i : body.index("refreshScopePills();", i)]
+    assert "anywhere" in fn, "нужен счёт строк типа во ВСЕЙ панели"
+    assert 'toggle("hidden", shown > 0 || anywhere > 0)' in fn, (
+        "подсказка обязана молчать, когда настройки типа есть где-то ещё"
+    )
+
+
+def test_block_affordances_are_rebound_after_listing_swap():
+    """«+»-вставка и ручка перетаскивания обязаны пережить своп листинга.
+
+    STU-11: на НЕ-главной цели «+»/drag — `[data-pb-host] [data-sf-section]`, а этот
+    хост лежит ВНУТРИ подменяемого `[data-listing-root]`. После смены вида или таба
+    на странице каталога не оставалось ни одной «+»-кнопки и ни одной ручки.
+    """
+    body = pathlib.Path("templates/tenant/site_home.html").read_text()
+    assert "function bindCanvasBlocks()" in body
+    i = body.index('addEventListener("sf:navigated"')
+    handler = body[i : i + 500]
+    assert "bindCanvasBlocks(" in handler, "после свопа блочные аффордансы не возвращаются"
+    fn = body[body.index("function bindCanvasBlocks()") : body.index("    bindCanvasBlocks();")]
+    assert 'sfOnce(sec, "insBar")' in fn, "«+» без гварда вставится дважды"
+    assert 'sfOnce(sec, "dragHandle")' in fn, "ручка без гварда навесится дважды"
+
+
+@pytest.mark.django_db
+def test_text_width_draft_is_visible_on_the_storefront(settings):
+    """Живое превью ширины текста: черновик билдера обязан доезжать до страницы.
+
+    STU-11: у фикса STU-9 не было регрессионного замка — откат тега к чтению
+    `context["site"]` проходил весь CI молча (замки билдера витрину не рендерят).
+    Плюс «Schmale Spalte» стала ЯВНЫМ значением: на /team/ и /galerie/ ограничителя
+    исторически не было, и без неё пункт был визуальным no-op.
+    """
+    from importlib import import_module
+
+    from django.conf import settings as dj_settings
+    from django.test import RequestFactory
+
+    from apps.promotions import public_views
+    from apps.tenants.tests.factories import TenantFactory
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    tenant = TenantFactory(business_type="shop")
+
+    def render(draft):
+        request = RequestFactory().get("/ueber-uns/", {"preview": "1"})
+        request.session = import_module(dj_settings.SESSION_ENGINE).SessionStore()
+        request.session["site_preview_draft"] = {"site_defaults": {"text_width": draft}}
+        request.tenant = tenant
+        request.user = None
+        return public_views.about_page(request).content.decode()
+
+    assert "max-w-4xl mx-auto" in render("wide"), "черновик «широкая колонка» не виден"
+    assert "max-w-2xl mx-auto" in render("narrow"), "черновик «узкая колонка» не виден"
+    full = render("full")
+    assert "max-w-4xl mx-auto" not in full and "max-w-2xl mx-auto" not in full, (
+        "«Volle Breite» обязана снять ограничитель"
+    )

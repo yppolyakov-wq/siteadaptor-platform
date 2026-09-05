@@ -553,3 +553,54 @@ def test_bundle_sd_axes_match_the_writer():
         f"_apply_bundle_axes пишет {sorted(written)}, "
         f"а _BUNDLE_SD_AXES объявляет {sorted(sitetemplates._BUNDLE_SD_AXES)}"
     )
+
+
+def test_look_preview_overlay_keeps_owner_keys():
+    """Превью Look'а обязано показывать то, что даст ПРИМЕНЕНИЕ.
+
+    STU-11: `apply_look` после STU-9 бережёт ключи, которых не описывает ни одно
+    семейство, а оверлей превью (`?preview=1&look=`, демо-переключатель, «Vorschau»
+    сборки) продолжал заменять `site_defaults` целиком — витрина в предпросмотре
+    выглядела иначе, чем после клика.
+    """
+    from importlib import import_module
+
+    from django.conf import settings as dj_settings
+    from django.test import RequestFactory
+
+    from apps.core import context as core_context
+
+    tenant = TenantFactory(business_type="shop")
+    config = siteconfig.normalize(tenant.site_config)
+    config["site_defaults"] = {**config.get("site_defaults", {}), "text_width": "full"}
+    tenant.site_config = siteconfig.normalize(config)
+    tenant.save(update_fields=["site_config"])
+
+    request = RequestFactory().get("/", {"preview": "1", "look": "warm"})
+    request.session = import_module(dj_settings.SESSION_ENGINE).SessionStore()
+    request.tenant = tenant
+    request.user = None
+    ctx = core_context.modules_nav(request)
+    assert ctx["storefront_text_width"] == "full", (
+        "оверлей превью стёр ключ владельца — предпросмотр врёт относительно применения"
+    )
+
+
+def test_builder_look_click_does_not_clear_card_style():
+    """Клик по Look-карточке в билдере не имеет права стирать форму карточки.
+
+    STU-11: ни одно семейство не объявляет `card_style`, поэтому безусловное
+    присваивание всегда ставило "" — первый же Save терял выбор владельца, тогда как
+    серверный `apply_look` его бережёт. Два входа «Look» давали разный результат.
+    """
+    import pathlib
+
+    body = pathlib.Path("templates/tenant/site_home.html").read_text()
+    i = body.index("setVal(form, \"select[name='sd_card_chrome']\"")
+    tail = body[i : i + 800]
+    assert '"card_style" in lk' in tail, (
+        "поле формы карточки трогаем только если семейство несёт значение"
+    )
+    assert "card_style" not in sitetemplates.look_family_sd_keys(), (
+        "если семейство начнёт описывать card_style — этот замок и правку надо пересмотреть"
+    )

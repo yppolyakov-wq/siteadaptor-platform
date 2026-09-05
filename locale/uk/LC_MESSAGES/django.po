@@ -22157,6 +22157,7 @@ msgstr "Набори та комплекти"
 #: templates/storefront/products.html:38
 msgid "See our sets & bundles"
 msgstr "Подивіться наші набори та комплекти"
+
 msgid "Neu ohne OVP"
 msgstr "Новий, без упаковки"
 
@@ -22269,13 +22270,17 @@ msgid "Textbreite"
 msgstr "Ширина тексту"
 
 #: templates/tenant/site_home.html
-msgid "Schmale Spalte (Standard)"
-msgstr "Вузька колонка (за замовчуванням)"
-
-#: templates/tenant/site_home.html
 msgid "Breite Spalte"
 msgstr "Широка колонка"
 
 #: templates/tenant/site_home.html
 msgid "Volle Breite"
 msgstr "На всю ширину"
+
+#: templates/tenant/site_home.html
+msgid "Schmale Spalte"
+msgstr "Вузька колонка"
+
+#: templates/tenant/site_home.html
+msgid "Wie bisher"
+msgstr "Як було"

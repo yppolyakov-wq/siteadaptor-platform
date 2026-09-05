@@ -21991,6 +21991,7 @@ msgstr "Sets & Pakete"
 #: templates/storefront/products.html:38
 msgid "See our sets & bundles"
 msgstr "Sehen Sie sich unsere Sets & Pakete an"
+
 msgid "Neu ohne OVP"
 msgstr ""
 
@@ -22091,13 +22092,17 @@ msgid "Textbreite"
 msgstr ""
 
 #: templates/tenant/site_home.html
-msgid "Schmale Spalte (Standard)"
-msgstr ""
-
-#: templates/tenant/site_home.html
 msgid "Breite Spalte"
 msgstr ""
 
 #: templates/tenant/site_home.html
 msgid "Volle Breite"
+msgstr ""
+
+#: templates/tenant/site_home.html
+msgid "Schmale Spalte"
+msgstr ""
+
+#: templates/tenant/site_home.html
+msgid "Wie bisher"
 msgstr ""

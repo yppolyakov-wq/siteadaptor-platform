@@ -255,7 +255,12 @@
               setChecked(form, "input[name='sd_page_bg_on']", !!lk.page_bg);
               if (lk.page_bg) setVal(form, "input[name='sd_page_bg']", lk.page_bg);
               setVal(form, "select[name='sd_card_chrome']", lk.card_chrome || "");
-              setVal(form, "[name='sd_card_style']", lk.card_style || "");
+              // STU-11 (ревью, класс W6): форму карточки Look НЕ описывает — ни одно
+              // семейство не объявляет `card_style`, и безусловное присваивание всегда
+              // ставило "" → первый же Save стирал выбор владельца. Серверный apply_look
+              // такой ключ бережёт (STU-9), клиентский Look-клик обязан вести себя так же:
+              // трогаем поле, только если семейство действительно несёт значение.
+              if ("card_style" in lk) setVal(form, "[name='sd_card_style']", lk.card_style || "");
             });
           });
         })();
@@ -877,7 +882,8 @@
             <label class="block text-sm">
               <span class="block font-medium mb-1">{% trans "Textbreite" %}</span>
               <select name="sd_text_width" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-                <option value="">{% trans "Schmale Spalte (Standard)" %}</option>
+                <option value="">{% trans "Wie bisher" %}</option>
+                <option value="narrow" {% if text_width == 'narrow' %}selected{% endif %}>{% trans "Schmale Spalte" %}</option>
                 <option value="wide" {% if text_width == 'wide' %}selected{% endif %}>{% trans "Breite Spalte" %}</option>
                 <option value="full" {% if text_width == 'full' %}selected{% endif %}>{% trans "Volle Breite" %}</option>
               </select>
@@ -1971,6 +1977,13 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       var wasFocus = secArea && secArea.classList.contains("focus-on");
       closeBlockPopup();  // #2: переключение области — выход из фокуса блока (вернуть строку, снять .focus-on)
       if (wasFocus && area === "sections") { showArea("sections"); return; }  // фокус → список блоков
+      // STU-11: вкладка «эта страница» обязана слушать тот же резолвер, что и уровень
+      // рейки. Без этого на главной клик по ней открывал область `page`, где для home
+      // нет ни одной строки, — владелец видел пустую панель с подсказкой «правьте на
+      // канве» (а на узком экране рейки нет вовсе, и это единственный вход).
+      if (area === "page" && window.__stuPageArea && window.__stuPageArea() === "sections") {
+        area = "sections";
+      }
       if (curArea === area) closePanel(); else showArea(area);  // повторный клик — свернуть
     });
   });
@@ -2007,6 +2020,11 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   try { localStorage.removeItem("sf_cur_area"); } catch (e) {}
   // SE-9b: открыть область с блока (gallery-media / catalog-add) с подписью панели.
   // Подписи в JS-карте (не в onclick) → апостроф в переводе не ломает кавычки атрибута.
+  // STU-11 (ревью): наружу — какая область панели ОТКРЫТА (null = панель свёрнута).
+  // Переклейка уровня опиралась на «видимую» область, а видимой она остаётся и у
+  // ЗАКРЫТОЙ панели (closePanel не ставит .hidden), поэтому навигация канвы
+  // распахивала панель, которую владелец только что закрыл.
+  window.__sfOpenArea = function () { return curArea; };
   window.__sfShowArea = function (area) {
     var titles = { "gallery-media": "🖼 {% trans 'Photo gallery' %}", "catalog-add": "＋ {% trans 'Add category' %}", "logo-media": "🏷 {% trans 'Logo' %}", "banner-media": "🖼 {% trans 'Banner slides' %}", "covers-media": "🖼 {% trans 'Section cover photos' %}", "quickstart": "⚡ {% trans 'Quick start' %}" };
     showArea(area, titles[area]);
@@ -2607,6 +2625,12 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         el.value = s[el.name];
       }
     });
+    // STU-11 (ревью): снимок мог быть сделан, когда канва стояла на странице объекта, —
+    // тогда в нём лежит ЗНАЧЕНИЕ ОБЪЕКТА в поле САЙТА (так работает пилюля охвата).
+    // Ctrl+Z возвращает его молча: change не диспатчится, плитки пикера не
+    // перерисовываются, а следующий push() уже шлёт это значение как сайтовое.
+    // Перекрашиваем пилюли: для скрытой (объект неизвестен) это вернёт сайтовое.
+    try { if (window.__stuRepaintScopePills) window.__stuRepaintScopePills(); } catch (e) {}
   }
   var past = [], future = [], present = null, restoring = false;
   var HISTORY_MAX = 20;
@@ -3196,7 +3220,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
 
   function applyStuPageScope() {
     var code = curStuPage || "other";
-    var shown = 0;
+    var shown = 0;      // строки ЭТОЙ карточки
+    var anywhere = 0;   // строки этого типа где угодно в панели
     var panel = document.querySelector("[data-stu-any]");
     document.querySelectorAll("[data-stu-page]").forEach(function (el) {
       var codes = (el.getAttribute("data-stu-page") || "").split(/\s+/);
@@ -3205,10 +3230,16 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       // STU-9 (ревью): считаем ТОЛЬКО строки своей карточки. Раньше счёт шёл по
       // всему документу, поэтому на типах, чьи строки живут в наборе лендингов,
       // карточка «Vorlage der Seite» оставалась пустой и без подсказки.
+      if (on) anywhere++;
       if (on && panel && panel.contains(el)) shown++;
     });
+    // STU-11 (ревью): подсказка «правьте прямо на канве» верна ТОЛЬКО когда у типа нет
+    // настроек вовсе. У home и cart они есть, но лежат в другой карточке (области
+    // секций / наборе лендингов) — там подсказка врала. Пустую карточку в этом случае
+    // просто убираем: настройка рядом, а рамка без содержимого сбивает.
     var empty = document.querySelector(".stu-page-empty");
-    if (empty) empty.classList.toggle("hidden", shown > 0);
+    if (empty) empty.classList.toggle("hidden", shown > 0 || anywhere > 0);
+    if (panel) panel.classList.toggle("hidden", shown === 0 && anywhere > 0);
     var label = STU_LABELS[code] || STU_LABELS.other || "";
     document.querySelectorAll(".stu-area-label, .st-level-label").forEach(function (el) {
       el.textContent = label;
@@ -3228,14 +3259,14 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       var typeChanged = code !== lastStuPage;
       lastStuPage = code;
       if (typeChanged && code !== "other") {
-        var openArea = document.querySelector('[data-bld-area]:not(.hidden)');
-        var openKey = openArea ? openArea.getAttribute("data-bld-area") : "";
+        // STU-11: источник факта — curArea (что панель ОТКРЫЛА), а не «видимый div»:
+        // при закрытой панели её область остаётся видимой в DOM. И открываем
+        // напрямую, а не кликом по вкладке: тот — ТОГГЛ, и при совпадении области
+        // (после попапа блока, который делает «sections» видимой) он бы ЗАКРЫЛ панель.
+        var openKey = window.__sfOpenArea ? window.__sfOpenArea() : "";
         if (openKey === "sections" || openKey === "page") {
           var want = stuPageArea();
-          if (want !== openKey) {
-            if (want === "sections") { if (window.__sfShowArea) window.__sfShowArea("sections"); }
-            else if (window.__stuClickTab) window.__stuClickTab(want);
-          }
+          if (want !== openKey && window.__sfShowArea) window.__sfShowArea(want);
         }
       }
     } catch (eArea) {}
@@ -3413,6 +3444,9 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   }
   var scopeForm = document.getElementById("home-form");
   if (scopeForm) scopeForm.addEventListener("submit", restoreSiteValuesForSubmit);
+  // STU-11: история Undo живёт в СОСЕДНЕМ замыкании — отдаём перекраску наружу
+  // (applySnapshot зовёт её, иначе Ctrl+Z вернул бы значение объекта в поле сайта).
+  window.__stuRepaintScopePills = function () { scopePills().forEach(paintScopePill); };
   window.__stuSiteValueFor = function (name) {
     // Живой черновик собирает поля по name — ему тоже нужен САЙТОВЫЙ выбор,
     // иначе превью показало бы объектное значение как общее.
@@ -3555,6 +3589,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         syncFrameState(frame);
         // STU-10: своп заменил узлы листинга — вернуть им обработчики канвы.
         try { bindCanvasContent(frame.contentDocument); } catch (eBind) {}
+        try { bindCanvasBlocks(); } catch (eBlocks) {}
       });
     } catch (eNav) {}
     var doc;
@@ -3808,38 +3843,6 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     // E.3: вставить зону «+» после каждого блока превью → библиотека блоков.
     // UC6-7b: «+» работает на главной И на страницах с хостом C-блоков (curPbHost
     // из data-pb-host) — вставка уходит в page_blocks[хост].
-    // UC6-7c (ревью-фикс): на СТРАНИЦЕ цели «+»/drag — ТОЛЬКО реальные C-блоки хоста
-    // ([data-pb-host] …, вкл. пустой якорь), НЕ фикс-секции витрины (листинг/отзывы/
-    // похожие/детали тоже несут data-sf-section, но это не page_blocks — ручка/«+» на
-    // них были бы пустышками). На главной — все секции главной, как прежде.
-    var sfEditTargets = previewPath === "/"
-      ? Array.prototype.slice.call(doc.querySelectorAll("[data-sf-section]"))
-      : (curPbHost ? Array.prototype.slice.call(doc.querySelectorAll('[data-pb-host] [data-sf-section]')) : []);
-    sfEditTargets.forEach(function (sec) {
-      var bar = doc.createElement("div");
-      bar.setAttribute("style", "position:relative;height:0;");
-      bar.setAttribute("data-sf-ins", "1");
-      if (!editOn) bar.style.display = "none";  // SE-9d: «+» вставки видны только в режиме правки
-      var btn = doc.createElement("button");
-      btn.type = "button";
-      btn.textContent = "+";
-      btn.title = "{% trans "Block einfügen" %}";
-      btn.setAttribute("style",
-        "position:absolute;left:50%;top:-15px;transform:translateX(-50%);width:30px;" +
-        "height:30px;border-radius:9999px;border:2px solid #4f46e5;background:#fff;" +
-        "color:#4f46e5;font-size:18px;line-height:1;cursor:pointer;z-index:50;opacity:.35;" +
-        "box-shadow:0 1px 5px rgba(0,0,0,.18);transition:opacity .15s;");
-      btn.addEventListener("mouseenter", function () { btn.style.opacity = "1"; });
-      btn.addEventListener("mouseleave", function () { btn.style.opacity = ".35"; });
-      btn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        var fr = frame.getBoundingClientRect();
-        var r = btn.getBoundingClientRect();
-        showInserter(sec.getAttribute("data-sf-section"), fr.left + r.left - 60, fr.top + r.bottom + 4);
-      });
-      bar.appendChild(btn);
-      sec.parentNode.insertBefore(bar, sec.nextSibling);
-    });
     // E.4 / SE-4c: drag-on-canvas — ручка ⠿ на каждом блоке; перетаскивание меняет
     // порядок. SE-4c: видимый индикатор позиции вставки (линия) во время перетаскивания.
     var win = frame.contentWindow;
@@ -3855,101 +3858,140 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       dropLine.style.display = "block";
     }
     function hideDropLine() { dropLine.style.display = "none"; }
-    // UC6-7c-1: drag-перестановка работает на главной И на страницах с хостом
-    // C-блоков — цели те же sfEditTargets (на странице только page_blocks, ревью-
-    // фикс: фикс-секции витрины исключены), так что drag меняет порядок именно
-    // блоков этой страницы.
-    sfEditTargets.forEach(function (sec) {
-      var box = sec.firstElementChild;
-      if (!box) return;
-      if (win.getComputedStyle(box).position === "static") box.style.position = "relative";
-      var h = doc.createElement("div");
-      h.textContent = "⠿";
-      h.draggable = true;
-      h.title = "{% trans "Ziehen zum Verschieben" %}";
-      h.setAttribute("data-sf-drag", "1");
-      h.setAttribute("style",
-        "position:absolute;left:6px;top:6px;width:26px;height:26px;border-radius:6px;" +
-        "background:rgba(79,70,229,.92);color:#fff;display:flex;align-items:center;" +
-        "justify-content:center;cursor:grab;z-index:60;font-size:14px;opacity:.45;" +
-        "transition:opacity .15s;");
-      if (!editOn) h.style.display = "none";  // SE-9d: ручки видны только в режиме правки
-      h.addEventListener("mouseenter", function () { h.style.opacity = "1"; });
-      h.addEventListener("mouseleave", function () { h.style.opacity = ".45"; });
-      h.addEventListener("click", function (e) { e.stopPropagation(); });
-      h.addEventListener("dragstart", function (e) {
-        draggedKey = sec.getAttribute("data-sf-section");
-        if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
+    // STU-11 (ревью): блочные аффордансы («+», ручка ⠿) на НЕ-главной живут ВНУТРИ
+    // [data-pb-host], а он лежит внутри [data-listing-root] — то есть ровно в зоне,
+    // которую своп KAT-5 заменяет. После смены вида/таба на странице каталога не
+    // оставалось ни одной «+»-кнопки и ни одной ручки: вставить и переставить блок
+    // было нельзя до перезагрузки канвы. Пересчитываем цели и довешиваем недостающее;
+    // повторный вызов идемпотентен (sfOnce на узел — иначе «+» вставился бы дважды).
+    function bindCanvasBlocks() {
+      var sfEditTargets = previewPath === "/"
+        ? Array.prototype.slice.call(doc.querySelectorAll("[data-sf-section]"))
+        : (curPbHost ? Array.prototype.slice.call(doc.querySelectorAll('[data-pb-host] [data-sf-section]')) : []);
+      sfEditTargets.forEach(function (sec) {
+        if (!sfOnce(sec, "insBar")) return;
+        var bar = doc.createElement("div");
+        bar.setAttribute("style", "position:relative;height:0;");
+        bar.setAttribute("data-sf-ins", "1");
+        if (!editOn) bar.style.display = "none";  // SE-9d: «+» вставки видны только в режиме правки
+        var btn = doc.createElement("button");
+        btn.type = "button";
+        btn.textContent = "+";
+        btn.title = "{% trans "Block einfügen" %}";
+        btn.setAttribute("style",
+          "position:absolute;left:50%;top:-15px;transform:translateX(-50%);width:30px;" +
+          "height:30px;border-radius:9999px;border:2px solid #4f46e5;background:#fff;" +
+          "color:#4f46e5;font-size:18px;line-height:1;cursor:pointer;z-index:50;opacity:.35;" +
+          "box-shadow:0 1px 5px rgba(0,0,0,.18);transition:opacity .15s;");
+        btn.addEventListener("mouseenter", function () { btn.style.opacity = "1"; });
+        btn.addEventListener("mouseleave", function () { btn.style.opacity = ".35"; });
+        btn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          var fr = frame.getBoundingClientRect();
+          var r = btn.getBoundingClientRect();
+          showInserter(sec.getAttribute("data-sf-section"), fr.left + r.left - 60, fr.top + r.bottom + 4);
+        });
+        bar.appendChild(btn);
+        sec.parentNode.insertBefore(bar, sec.nextSibling);
       });
-      h.addEventListener("dragend", function () { hideDropLine(); draggedKey = null; });
-      box.appendChild(h);
-      box.addEventListener("dragover", function (e) {
-        if (!draggedKey) return;
-        e.preventDefault();
-        var b = box.getBoundingClientRect();
-        showDropLine(b, e.clientY < b.top + b.height / 2);  // SE-4c: индикатор позиции
+      // UC6-7c-1: drag-перестановка работает на главной И на страницах с хостом
+      // C-блоков — цели те же sfEditTargets (на странице только page_blocks, ревью-
+      // фикс: фикс-секции витрины исключены), так что drag меняет порядок именно
+      // блоков этой страницы.
+      sfEditTargets.forEach(function (sec) {
+        var box = sec.firstElementChild;
+        if (!box) return;
+        if (!sfOnce(sec, "dragHandle")) return;
+        if (win.getComputedStyle(box).position === "static") box.style.position = "relative";
+        var h = doc.createElement("div");
+        h.textContent = "⠿";
+        h.draggable = true;
+        h.title = "{% trans "Ziehen zum Verschieben" %}";
+        h.setAttribute("data-sf-drag", "1");
+        h.setAttribute("style",
+          "position:absolute;left:6px;top:6px;width:26px;height:26px;border-radius:6px;" +
+          "background:rgba(79,70,229,.92);color:#fff;display:flex;align-items:center;" +
+          "justify-content:center;cursor:grab;z-index:60;font-size:14px;opacity:.45;" +
+          "transition:opacity .15s;");
+        if (!editOn) h.style.display = "none";  // SE-9d: ручки видны только в режиме правки
+        h.addEventListener("mouseenter", function () { h.style.opacity = "1"; });
+        h.addEventListener("mouseleave", function () { h.style.opacity = ".45"; });
+        h.addEventListener("click", function (e) { e.stopPropagation(); });
+        h.addEventListener("dragstart", function (e) {
+          draggedKey = sec.getAttribute("data-sf-section");
+          if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
+        });
+        h.addEventListener("dragend", function () { hideDropLine(); draggedKey = null; });
+        box.appendChild(h);
+        box.addEventListener("dragover", function (e) {
+          if (!draggedKey) return;
+          e.preventDefault();
+          var b = box.getBoundingClientRect();
+          showDropLine(b, e.clientY < b.top + b.height / 2);  // SE-4c: индикатор позиции
+        });
+        box.addEventListener("dragleave", function (e) {
+          // прячем линию, только когда курсор реально покинул блок (не дочерний элемент)
+          if (e.relatedTarget && box.contains(e.relatedTarget)) return;
+          hideDropLine();
+        });
+        box.addEventListener("drop", function (e) {
+          if (!draggedKey) return;
+          e.preventDefault();
+          hideDropLine();
+          var tKey = sec.getAttribute("data-sf-section");
+          var b = box.getBoundingClientRect();
+          var before = e.clientY < b.top + b.height / 2;
+          // Оптимистичная перестановка: двигаем сам блок в кадре СРАЗУ (как
+          // contenteditable для текста) — мгновенно и без «прыжка». Двигаем только
+          // между истинными соседями (полноширинные блоки — прямые дети контейнера);
+          // при row-группировке узких блоков структуру рядов пересобирает сервер, это
+          // поправит сверяющая перезагрузка (со сохранённой прокруткой). Общий путь
+          // для главной и страниц.
+          try {
+            var dragNode = doc.querySelector('[data-sf-section="' + draggedKey + '"]');
+            if (dragNode && dragNode !== sec && sec.parentNode &&
+                dragNode.parentNode === sec.parentNode) {
+              sec.parentNode.insertBefore(dragNode, before ? sec : sec.nextSibling);
+            }
+          } catch (eMove) {}
+          // UC6-7c-1: на странице переставляем page_blocks (order_cb хоста),
+          // на главной — секции главной (order_<key>).
+          if (curPbHost) movePageBlock(draggedKey, tKey, before, curPbHost);
+          else moveBlock(draggedKey, tKey, before);
+          draggedKey = null;
+        });
       });
-      box.addEventListener("dragleave", function (e) {
-        // прячем линию, только когда курсор реально покинул блок (не дочерний элемент)
-        if (e.relatedTarget && box.contains(e.relatedTarget)) return;
-        hideDropLine();
+      // UC2-2 слайс 2: drag тематических секций ДЕТАЛИ СОБЫТИЯ — переставляет
+      // скрытые ed_order_* per-page инспектора (драфт публикует через Save;
+      // превью перерисовывается через schedule → payload.event_detail.order).
+      var draggedEd = null;
+      doc.querySelectorAll("[data-ed-section]").forEach(function (sec) {
+        if (!sec.firstElementChild) return;  // пустая секция (контента нет) — не таскаем
+        sec.setAttribute("draggable", "true");
+        if (editOn) sec.style.cursor = "grab";
+        sec.addEventListener("dragstart", function (e) {
+          if (!editOn) { e.preventDefault(); return; }
+          draggedEd = sec.getAttribute("data-ed-section");
+          if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
+        });
+        sec.addEventListener("dragend", function () { hideDropLine(); draggedEd = null; });
+        sec.addEventListener("dragover", function (e) {
+          if (!draggedEd) return;
+          e.preventDefault();
+          var b = sec.getBoundingClientRect();
+          showDropLine(b, e.clientY < b.top + b.height / 2);
+        });
+        sec.addEventListener("drop", function (e) {
+          if (!draggedEd) return;
+          e.preventDefault();
+          hideDropLine();
+          var b = sec.getBoundingClientRect();
+          moveEdSection(draggedEd, sec.getAttribute("data-ed-section"), e.clientY < b.top + b.height / 2);
+          draggedEd = null;
+        });
       });
-      box.addEventListener("drop", function (e) {
-        if (!draggedKey) return;
-        e.preventDefault();
-        hideDropLine();
-        var tKey = sec.getAttribute("data-sf-section");
-        var b = box.getBoundingClientRect();
-        var before = e.clientY < b.top + b.height / 2;
-        // Оптимистичная перестановка: двигаем сам блок в кадре СРАЗУ (как
-        // contenteditable для текста) — мгновенно и без «прыжка». Двигаем только
-        // между истинными соседями (полноширинные блоки — прямые дети контейнера);
-        // при row-группировке узких блоков структуру рядов пересобирает сервер, это
-        // поправит сверяющая перезагрузка (со сохранённой прокруткой). Общий путь
-        // для главной и страниц.
-        try {
-          var dragNode = doc.querySelector('[data-sf-section="' + draggedKey + '"]');
-          if (dragNode && dragNode !== sec && sec.parentNode &&
-              dragNode.parentNode === sec.parentNode) {
-            sec.parentNode.insertBefore(dragNode, before ? sec : sec.nextSibling);
-          }
-        } catch (eMove) {}
-        // UC6-7c-1: на странице переставляем page_blocks (order_cb хоста),
-        // на главной — секции главной (order_<key>).
-        if (curPbHost) movePageBlock(draggedKey, tKey, before, curPbHost);
-        else moveBlock(draggedKey, tKey, before);
-        draggedKey = null;
-      });
-    });
-    // UC2-2 слайс 2: drag тематических секций ДЕТАЛИ СОБЫТИЯ — переставляет
-    // скрытые ed_order_* per-page инспектора (драфт публикует через Save;
-    // превью перерисовывается через schedule → payload.event_detail.order).
-    var draggedEd = null;
-    doc.querySelectorAll("[data-ed-section]").forEach(function (sec) {
-      if (!sec.firstElementChild) return;  // пустая секция (контента нет) — не таскаем
-      sec.setAttribute("draggable", "true");
-      if (editOn) sec.style.cursor = "grab";
-      sec.addEventListener("dragstart", function (e) {
-        if (!editOn) { e.preventDefault(); return; }
-        draggedEd = sec.getAttribute("data-ed-section");
-        if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
-      });
-      sec.addEventListener("dragend", function () { hideDropLine(); draggedEd = null; });
-      sec.addEventListener("dragover", function (e) {
-        if (!draggedEd) return;
-        e.preventDefault();
-        var b = sec.getBoundingClientRect();
-        showDropLine(b, e.clientY < b.top + b.height / 2);
-      });
-      sec.addEventListener("drop", function (e) {
-        if (!draggedEd) return;
-        e.preventDefault();
-        hideDropLine();
-        var b = sec.getBoundingClientRect();
-        moveEdSection(draggedEd, sec.getAttribute("data-ed-section"), e.clientY < b.top + b.height / 2);
-        draggedEd = null;
-      });
-    });
+    }
+    bindCanvasBlocks();
   }
   frame.addEventListener("load", instrumentFrame);
   function schedule() { clearTimeout(timer); timer = setTimeout(push, 400); }

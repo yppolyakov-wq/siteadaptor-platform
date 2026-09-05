@@ -739,7 +739,13 @@ def _post_detail(request):
         (p for p in _CARD_STYLE_PRESETS if p["key"] == request.POST.get("card_style")), None
     )
     if preset is not None:
-        cfg["site_defaults"] = dict(preset["defaults"])
+        # STU-11 (ревью, класс W6): пресет описывает ЧЕТЫРЕ ключа вида карточки, а
+        # присваивание заменяло `site_defaults` целиком — клик по плитке молча уносил
+        # всё остальное (ширину текста, форму карточки, вид выбора вариантов, шаблон
+        # категории, hero_widget). Ловушка была самоусиливающейся: `current` ниже
+        # сравнивал ВЕСЬ словарь с пресетом, поэтому у владельца с любым лишним ключом
+        # ни одна плитка не подсвечена — его прямо приглашали кликнуть. Мержим.
+        cfg["site_defaults"] = {**(cfg.get("site_defaults") or {}), **preset["defaults"]}
     key = siteconfig.detail_section_config_key(module)
     nd = siteconfig.normalize_detail_sections(cfg.get(key), module)
     hideable = [s.key for s in detail_sections.sections_for(module) if s.hideable]
@@ -757,7 +763,16 @@ def _ctx_detail(request):
     module = _offer_kind(tenant)
     cfg = siteconfig.normalize(tenant.site_config)
     sd = siteconfig.normalize_site_defaults(cfg.get("site_defaults"))
-    current = next((p["key"] for p in _CARD_STYLE_PRESETS if p["defaults"] == sd), "")
+    # STU-11: сравниваем ТОЛЬКО ключи пресета. Полное сравнение словаря давало «ни одна
+    # плитка не выбрана» любому, у кого есть хоть один посторонний ключ site_defaults.
+    current = next(
+        (
+            p["key"]
+            for p in _CARD_STYLE_PRESETS
+            if all(sd.get(k) == v for k, v in p["defaults"].items())
+        ),
+        "",
+    )
     hidden = siteconfig.detail_section_hidden(cfg, module) if module else set()
     return {
         "card_styles": [{**p, "checked": p["key"] == current} for p in _CARD_STYLE_PRESETS],

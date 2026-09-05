@@ -1320,9 +1320,12 @@ def normalize_site_defaults(raw) -> dict:
     # значении ("" = прежний облик → golden целы).
     if sd.get("card_chrome") in ("hard", "hairline", "line"):
         out["card_chrome"] = sd["card_chrome"]
-    # STU-8: ширина текстовой колонки («О нас», правовые, блог). "" = прежняя узкая
-    # колонка (max-w-2xl) → ключ presence-minimal, golden-эталоны целы.
-    if sd.get("text_width") in ("wide", "full"):
+    # STU-8: ширина текстовой колонки («О нас», правовые, блог). "" = страница как
+    # была → ключ presence-minimal, golden-эталоны целы.
+    # STU-11: добавлена ЯВНАЯ «narrow». Без неё пункт «Schmale Spalte (Standard)» был
+    # визуальным no-op на /team/, /galerie/, /bewertungen/, /blog/ — там ограничителя
+    # не было изначально, поэтому "" и «Volle Breite» рисовали одно и то же.
+    if sd.get("text_width") in ("narrow", "wide", "full"):
         out["text_width"] = sd["text_width"]
     return out
 

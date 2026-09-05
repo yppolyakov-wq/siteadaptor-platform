@@ -963,7 +963,7 @@ def template_cards(business_type):
     ]
 
 
-def _look_family_sd_keys() -> frozenset:
+def look_family_sd_keys() -> frozenset:
     """Ключи `site_defaults`, которые описывает ХОТЬ ОДНО семейство Look'ов.
 
     Всё остальное в `site_defaults` — выбор владельца, к коже отношения не имеющий;
@@ -1045,12 +1045,12 @@ def _apply(tenant, template, *, family=None, accent=None, keep_owner_sd=True) ->
         # уносил и ключи, которых не объявляет НИ ОДНА сборка и НИ ОДНО семейство, —
         # например ширину текстовой колонки. Поэтому сбрасываем ровно объединение
         # «ключи семейств ∪ ключи сборок», остальное принадлежит владельцу (W6).
-        owned_by_design = _look_family_sd_keys() | _bundle_sd_keys()
+        owned_by_design = look_family_sd_keys() | _bundle_sd_keys()
         for key, value in prev_sd.items():
             if value in ("", None, [], {}):
                 continue
             if keep_owner_sd:
-                if key not in _look_family_sd_keys():
+                if key not in look_family_sd_keys():
                     fam_sd.setdefault(key, value)
             elif key not in owned_by_design:
                 fam_sd.setdefault(key, value)
