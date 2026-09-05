@@ -864,3 +864,101 @@ def test_scope_pill_value_does_not_leak_into_site_save():
     assert "restoreSiteValuesForSubmit" in body
     assert 'scopeForm.addEventListener("submit", restoreSiteValuesForSubmit)' in body
     assert "__stuSiteValueFor" in body, "живой черновик тоже обязан слать сайтовое значение"
+
+
+def test_level_this_page_opens_the_home_area_on_home():
+    """Уровень «Эта страница» на ГЛАВНОЙ обязан открывать область `sections`.
+
+    STU-10 (доигровка скептиков): поведение части 1 не было закрыто ничем —
+    скептик показал ДВЕ независимые мутации, каждая из которых проходила CI молча:
+    вернуть резолверу `return "page";` либо оставить резолвер, но замкнуть
+    обработчик уровня на безусловный `clickTab("page")`. Тогда владелец на главной
+    жмёт «Seite» и снова видит настройки каталога/событий/номеров и ни одной своей —
+    ровно тот дефект, ради которого сделана часть 1.
+
+    Поэтому замок держит ОБА конца: резолвер отдаёт «sections» именно для `home`,
+    и обработчик уровня маршрутизирует ПО резолверу, а не мимо него.
+    """
+    body = pathlib.Path("templates/tenant/site_home.html").read_text()
+    i = body.index("function stuPageArea()")
+    resolver = body[i : body.index("}", i)]
+    assert 'curStuPage === "home"' in resolver, "резолвер обязан различать главную"
+    assert '"sections"' in resolver, "у главной уровень «эта страница» = область sections"
+
+    j = body.index("window.__stuPageArea()")
+    handler = body[j : j + 400]
+    assert 'stuArea === "sections"' in handler, "обработчик уровня обязан читать резолвер"
+    assert '__sfShowArea("sections")' in handler, "и открывать область главной через него"
+
+
+@pytest.mark.django_db
+def test_home_own_settings_live_in_the_area_the_level_opens(builder_html_all_modules):
+    """Строки настроек главной обязаны лежать в области `sections` — той, которую
+    открывает уровень «Эта страница» на главной.
+
+    Без этого пара «резолвер + атрибут» расходится молча: строку можно перенести в
+    «Тему»/`page`, сохранив `data-stu-page="home"`, и `test_home_settings_live_in_the_home_panel`
+    останется зелёным, а владелец на главной снова ничего своего не увидит.
+    """
+    body = builder_html_all_modules
+    start = body.index('data-bld-area="sections"')
+    # Область заканчивается там, где начинается следующая — берём ближайшую.
+    nxt = body.find('data-bld-area="', start + 10)
+    sections_area = body[start : nxt if nxt != -1 else len(body)]
+    for code in ("home_sections", "home_hero"):
+        assert f'data-stu-setting="{code}"' in sections_area, (
+            f"строка {code} обязана жить в области sections — её открывает уровень «эта страница»"
+        )
+
+
+def test_scope_pill_restores_site_value_when_object_state_resets():
+    """Уход канвы на страницу, где объекта нет, обязан ВЕРНУТЬ контролу сайтовое
+    значение.
+
+    STU-10: фикс STU-9 закрыл только отправку формы (`restoreSiteValuesForSubmit`),
+    а она пропускает скрытые пилюли — и именно скрытой пилюля становится, когда
+    объект неизвестен. Сценарий скептика: канва на странице товара со своим
+    `card_style` → пилюля пишет значение объекта в поле САЙТА `sd_card_style` →
+    владелец уводит канву на главную/список → состояние сбрасывается, пилюля
+    прячется, восстановление на submit её пропускает → Save делает выбор одного
+    товара дефолтом всего сайта (класс W6).
+    """
+    body = pathlib.Path("templates/tenant/site_home.html").read_text()
+    i = body.index("function paintScopePill(box)")
+    branch = body[i : body.index("var own = scopeMode[code]", i)]
+    assert "setScopeControl(box, scopeSite[code]" in branch, (
+        "ветка «объект неизвестен» обязана вернуть контролу сайтовое значение"
+    )
+    assert "hasOwnProperty.call(scopeSite, code)" in branch, (
+        "восстанавливаем только известное сайтовое значение — иначе стёрли бы серверный рендер"
+    )
+
+
+def test_canvas_rebinds_content_after_listing_swap():
+    """Своп листинга (KAT-5: fetch + pushState) обязан возвращать новым узлам
+    обработчики канвы.
+
+    STU-10: гвард инструментатора стоит на <body>, а при свопе body тот же —
+    поэтому инлайн-правка названия/цены, замена фото и клик по листингу (STU-4)
+    молча умирали до перезагрузки канвы. Дополнительный инвариант: повторный
+    вызов обязан быть идемпотентным — проход, который вешает слушатель, обязан
+    помечать узел, иначе один blur отправил бы две записи.
+    """
+    body = pathlib.Path("templates/tenant/site_home.html").read_text()
+    start = body.index("function bindCanvasContent(doc)")
+    fn = body[start : body.index("bindCanvasContent(doc);", start)]
+
+    nav = body.index('addEventListener("sf:navigated"')
+    assert "bindCanvasContent(" in body[nav : nav + 400], (
+        "после sf:navigated привязки не переустанавливаются"
+    )
+
+    passes = fn.split("doc.querySelectorAll(")[1:]
+    assert len(passes) >= 6, "проходы привязки потерялись"
+    for chunk in passes:
+        if "addEventListener" not in chunk:
+            continue  # проход без слушателя (снятие класса) — гвард не нужен
+        head = chunk[: chunk.index("addEventListener")]
+        assert "sfOnce(" in head, (
+            "проход вешает слушатель без гварда идемпотентности: " + chunk[:80]
+        )

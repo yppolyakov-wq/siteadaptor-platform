@@ -976,6 +976,26 @@ def _look_family_sd_keys() -> frozenset:
     return frozenset(keys)
 
 
+# STU-10: ключи `site_defaults`, которые пишет `_apply_bundle_axes` (ось сборки).
+# Замок `test_bundle_sd_axes_match_the_writer` держит список равным фактическим
+# записям в `sd[...]`, чтобы новая ось не разъехалась с этим перечнем.
+_BUNDLE_SD_AXES = ("media_shape", "card_style", "promo_card", "hero_widget")
+
+
+def _bundle_sd_keys() -> frozenset:
+    """Ключи `site_defaults`, которые описывает ХОТЬ ОДНА сборка.
+
+    Ровно их сборка обязана СБРАСЫВАТЬ: иначе переключение сборок накапливало бы
+    оси прежней (замок `test_bundles_carry_media_shape`). Всё остальное — выбор
+    владельца, к композиции отношения не имеющий.
+    """
+    keys: set = set()
+    for bundle in BUNDLES:
+        over = bundle.get("config") or {}
+        keys.update(k for k in _BUNDLE_SD_AXES if k in over)
+    return frozenset(keys)
+
+
 def _apply(tenant, template, *, family=None, accent=None, keep_owner_sd=True) -> None:
     """Общее применение шаблона/Look'а к Tenant.site_config.
 
@@ -1018,13 +1038,22 @@ def _apply(tenant, template, *, family=None, accent=None, keep_owner_sd=True) ->
         # в одном семействе, Look не описывает — значит он принадлежит владельцу.
         # Ключи семейства по-прежнему перетираются (контракт «Look = кожа»).
         #
-        # keep_owner_sd=False — путь СБОРКИ: она задаёт композицию целиком, и её замок
+        # keep_owner_sd=False — путь СБОРКИ. Она задаёт композицию целиком, и её замок
         # требует, чтобы ось, которой новая сборка не объявляет, сбрасывалась
-        # (test_bundles_carry_media_shape). Смешивать эти две семантики нельзя.
-        if keep_owner_sd:
-            for key, value in prev_sd.items():
-                if value not in ("", None, [], {}) and key not in _look_family_sd_keys():
+        # (test_bundles_carry_media_shape). Но «целиком» относится к ОСЯМ СБОРОК, а не
+        # ко всему словарю: STU-10 (доигровка скептиков) показала, что Startpaket молча
+        # уносил и ключи, которых не объявляет НИ ОДНА сборка и НИ ОДНО семейство, —
+        # например ширину текстовой колонки. Поэтому сбрасываем ровно объединение
+        # «ключи семейств ∪ ключи сборок», остальное принадлежит владельцу (W6).
+        owned_by_design = _look_family_sd_keys() | _bundle_sd_keys()
+        for key, value in prev_sd.items():
+            if value in ("", None, [], {}):
+                continue
+            if keep_owner_sd:
+                if key not in _look_family_sd_keys():
                     fam_sd.setdefault(key, value)
+            elif key not in owned_by_design:
+                fam_sd.setdefault(key, value)
         config["site_defaults"] = fam_sd
         nav = dict(config.get("nav") or {})
         nav["style"] = family["nav_style"]

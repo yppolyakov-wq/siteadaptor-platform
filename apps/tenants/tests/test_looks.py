@@ -515,3 +515,41 @@ def test_bundles_carry_media_shape():
     assert tenant.site_config["site_defaults"]["media_shape"] == "wide"
     sitetemplates.apply_bundle(tenant, "deal_neon")
     assert "media_shape" not in tenant.site_config["site_defaults"]
+
+
+def test_bundle_keeps_owner_keys_no_bundle_declares():
+    """Startpaket сбрасывает ОСИ СБОРОК, а не весь `site_defaults`.
+
+    STU-10 (доигровка скептиков ревью STU-9): исправив `apply_look`, я оставил
+    путь сборки как есть — и он продолжал молча уносить ключи, которых не
+    объявляет НИ ОДНА сборка и НИ ОДНО семейство (ширина текстовой колонки).
+    Владелец применял Startpaket и без единого сообщения терял выбор (класс W6).
+    """
+    tenant = TenantFactory()
+    config = siteconfig.normalize(tenant.site_config)
+    config["site_defaults"] = {**config.get("site_defaults", {}), "text_width": "full"}
+    tenant.site_config = siteconfig.normalize(config)
+    tenant.save(update_fields=["site_config"])
+
+    for bundle in sitetemplates.BUNDLES:
+        assert sitetemplates.apply_bundle(tenant, bundle["key"])
+        kept = siteconfig.normalize(tenant.site_config)["site_defaults"]
+        assert kept.get("text_width") == "full", (
+            f"сборка {bundle['key']} стёрла ключ, которого не объявляет ни одна сборка"
+        )
+
+
+def test_bundle_sd_axes_match_the_writer():
+    """Перечень осей `site_defaults`, которые пишет `_apply_bundle_axes`, обязан
+    совпадать с `_BUNDLE_SD_AXES` — иначе новая ось не попадёт в сброс, и
+    переключение сборок начнёт накапливать прежнюю (или, наоборот, ось владельца
+    будет теряться)."""
+    import inspect
+    import re
+
+    src = inspect.getsource(sitetemplates._apply_bundle_axes)
+    written = set(re.findall(r'sd\["([a-z_]+)"\]', src))
+    assert written == set(sitetemplates._BUNDLE_SD_AXES), (
+        f"_apply_bundle_axes пишет {sorted(written)}, "
+        f"а _BUNDLE_SD_AXES объявляет {sorted(sitetemplates._BUNDLE_SD_AXES)}"
+    )

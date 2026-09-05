@@ -3291,7 +3291,20 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     // Пилюля видна ТОЛЬКО когда объект страницы известен: на списке товаров нет
     // «этого товара», и предлагать «только здесь» там было бы обманом.
     box.hidden = !known;
-    if (!known) { scopeMode[code] = "site"; return; }
+    if (!known) {
+      scopeMode[code] = "site";
+      // STU-10: состояние объекта сброшено — канва ушла на страницу, где «этого
+      // товара/категории» нет. Контрол при этом ДЕРЖИТ значение объекта, а его
+      // name — поле САЙТА, и restoreSiteValuesForSubmit такую пилюлю пропускает
+      // (она скрыта). Без восстановления следующий Save большой формы делал бы
+      // выбор одной страницы дефолтом всего сайта (класс W6).
+      // Восстанавливаем ТОЛЬКО когда сайтовое значение известно: иначе контрол
+      // ещё держит серверный рендер, и запись "" стёрла бы его.
+      if (Object.prototype.hasOwnProperty.call(scopeSite, code)) {
+        setScopeControl(box, scopeSite[code] || "");
+      }
+      return;
+    }
     var own = scopeMode[code] === "own";
     box.querySelectorAll(".stu-scope-btn").forEach(function (b) {
       var on = (b.getAttribute("data-stu-mode") === "own") === own;
@@ -3540,185 +3553,235 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     try {
       frame.contentDocument.addEventListener("sf:navigated", function () {
         syncFrameState(frame);
+        // STU-10: своп заменил узлы листинга — вернуть им обработчики канвы.
+        try { bindCanvasContent(frame.contentDocument); } catch (eBind) {}
       });
     } catch (eNav) {}
     var doc;
     try { doc = frame.contentDocument; } catch (e) { return; }
     if (!doc) return;
     lastEditDoc = doc;  // SE-9d: запомнить док для переключения режима правки «на лету»
-    doc.querySelectorAll("[data-edit]").forEach(function (el) {
-      styleEditable(el, editOn);
-      el.addEventListener("blur", function () {
-        fetch(editUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },
-          body: JSON.stringify({ field: el.getAttribute("data-edit"), value: el.innerText }),
-        }).then(function (r) { if (r.ok) markSaved(); });
-      });
-    });
-    // SE-2c-3: инлайн-правка имени категории на канве каталога (чип data-cat-edit)
-    // → запись Category.name['de'] на blur (новый эндпоинт catalog).
-    doc.querySelectorAll("[data-cat-edit]").forEach(function (el) {
-      styleEditable(el, editOn);
-      el.addEventListener("blur", function () {
-        var v = el.innerText.trim();
-        if (!v) return;  // пустое имя не сохраняем (эндпоинт всё равно отклонит)
-        fetch(catEditUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },
-          body: JSON.stringify({ category_pk: el.getAttribute("data-cat-edit"), value: v }),
-        }).then(function (r) { if (r.ok) markSaved(); });
-      });
-    });
-    // Фаза 1 (inline-content): инлайн-правка ТЕКСТА данных (имя товара и т.п.) на канве.
-    // Элемент часто внутри ссылки-карточки → в режиме правки гасим навигацию по клику.
-    doc.querySelectorAll("[data-edit-model]").forEach(function (el) {
-      styleEditable(el, editOn);
-      el.addEventListener("click", function (e) {
-        if (el.getAttribute("contenteditable")) { e.preventDefault(); e.stopPropagation(); }
-      });
-      el.addEventListener("blur", function () {
-        if (!el.getAttribute("contenteditable")) return;
-        var url = MODEL_EDIT_URLS[el.getAttribute("data-edit-model")];
-        if (!url) return;
-        fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },
-          body: JSON.stringify({
-            pk: el.getAttribute("data-edit-pk"),
-            field: el.getAttribute("data-edit-field"),
-            value: el.innerText,
-          }),
-        }).then(function (r) { if (r.ok) markSaved(); });
-      });
-    });
-    // #7-A: «✎ к форме» на карточках товара — раскрываем в превью редактора (владелец).
-    // На публичной витрине этот JS не выполняется → ссылка остаётся hidden.
-    doc.querySelectorAll(".sf-edit-link").forEach(function (el) { el.classList.remove("hidden"); });
-    // Замена/добавление/удаление фото на канве — пер-слайд (data-photo-op + data-img-id):
-    //   replace — заменить КОНКРЕТНЫЙ слайд по id (одиночное фото → честная замена);
-    //   add — добавить фото; remove — удалить слайд (с подтверждением, без файла).
-    // Видны в режиме правки; эндпоинт — по data-edit-model (товар/событие/номер/услуга).
-    doc.querySelectorAll("[data-photo-edit]").forEach(function (btn) {
-      btn.classList.toggle("hidden", !editOn);
-      btn.addEventListener("click", function (e) {
-        e.preventDefault(); e.stopPropagation();
-        if (!editOn) return;
-        var pk = btn.getAttribute("data-edit-pk");
-        var phModel = btn.getAttribute("data-edit-model") || "product";
-        var phUrl = MODEL_PHOTO_URLS[phModel] || PHOTO_EDIT_URL;
-        var op = btn.getAttribute("data-photo-op") || "replace";
-        var imageId = btn.getAttribute("data-img-id") || "";
-        function postPhoto(fd) {
-          if (status) status.textContent = "…";
-          fetch(phUrl, { method: "POST", headers: { "X-CSRFToken": token, "X-Requested-With": "fetch" }, body: fd })
-            .then(function (r) {
-              if (!r.ok) { if (status) status.textContent = ""; return; }
-              return r.json().catch(function () { return {}; }).then(function (d) {
-                // UC6-4: url фото C-блока живёт и в форме билдера — синхронизируем
-                // ДО пере-рендера черновика (иначе push() откатит фото на старое).
-                if (phModel === "cblock" && d && d.url) {
-                  var uInp = form.querySelector("[name='cb_" + pk + "_url']");
-                  if (uInp) uInp.value = d.url;
-                }
-                markSaved(); schedule();
-              });
-            })
-            .catch(function () { if (status) status.textContent = ""; });
-        }
-        if (op === "remove") {
-          // Подтверждение перед удалением — защита от случайного клика по 🗑.
-          if (!window.confirm("{% trans 'Remove this photo?' %}")) return;
-          var fdr = new FormData();
-          fdr.append("pk", pk); fdr.append("op", "remove"); fdr.append("image_id", imageId);
-          postPhoto(fdr);
-          return;
-        }
-        var inp = doc.createElement("input");
-        inp.type = "file"; inp.accept = "image/*"; inp.style.display = "none";
-        doc.body.appendChild(inp);
-        inp.addEventListener("change", function () {
-          var f = inp.files && inp.files[0];
-          if (!f) { inp.remove(); return; }
-          var fd = new FormData();
-          fd.append("pk", pk); fd.append("op", op); fd.append("image_id", imageId); fd.append("image", f);
-          postPhoto(fd);
-          inp.remove();
-        });
-        inp.click();
-      });
-    });
-    // #7-B: инлайн-цена — клик по цене (товар без вариантов) в режиме правки → инпут-поповер
-    // → POST base_price → перерисовка превью (новая цена + Grundpreis). Уважает editOn (SE-9d).
-    doc.querySelectorAll("[data-price-edit]").forEach(function (el) {
-      el.style.cursor = editOn ? "pointer" : "";
-      if (editOn) { el.style.outline = "1px dashed rgba(16,185,129,.7)"; el.style.outlineOffset = "2px"; }
-      el.addEventListener("click", function (e) {
-        if (!editOn || el.querySelector("input.sf-price-inp")) return;
-        e.preventDefault(); e.stopPropagation();
-        var pk = el.getAttribute("data-edit-pk"), orig = el.innerHTML;
-        var inp = doc.createElement("input");
-        inp.type = "number"; inp.step = "0.01"; inp.min = "0"; inp.className = "sf-price-inp";
-        inp.value = el.getAttribute("data-price") || "";
-        inp.setAttribute("style", "width:5.5rem;font:inherit;color:inherit;padding:0 4px;border:1px solid #6366f1;border-radius:4px;background:#fff;");
-        el.innerHTML = ""; el.appendChild(inp); inp.focus(); inp.select();
-        var done = false;
-        function finish(saveIt) {
-          if (done) return; done = true;
-          var v = (inp.value || "").trim().replace(",", ".");
-          if (!saveIt || v === "" || isNaN(parseFloat(v)) || parseFloat(v) < 0) { el.innerHTML = orig; return; }
-          // Модель/поле цены — из атрибутов (товар base_price по умолчанию; акция → promotion/price_override).
-          var pModel = el.getAttribute("data-edit-model") || "product";
-          var pField = el.getAttribute("data-price-field") || "base_price";
-          fetch(MODEL_EDIT_URLS[pModel] || MODEL_EDIT_URLS.product, {
+    // STU-10 (доигровка скептиков ревью): привязки к СОДЕРЖИМОМУ канвы вынесены в
+    // именованную функцию, потому что листинг подменяется без перезагрузки кадра
+    // (KAT-5: смена вида/таба делает fetch + pushState и заменяет [data-listing-root]).
+    // Гвард инструментатора стоит на <body>, а body при свопе тот же — поэтому новые
+    // узлы оставались без обработчиков: инлайн-правка имени/цены, 📷 замена фото и
+    // клик по листингу (STU-4) переставали работать до перезагрузки канвы.
+    // Повторный вызов безопасен: каждый узел помечается sfOnce (двойной blur-
+    // обработчик отправил бы две записи). Секции/«+»/drag сюда НЕ входят — они
+    // живут вне подменяемой зоны, а их проход ещё и ВСТАВЛЯЕТ узлы.
+    function sfOnce(el, key) {
+      var k = "__sf_" + key;
+      if (el[k]) return false;
+      el[k] = true;
+      return true;
+    }
+    function bindCanvasContent(doc) {
+      if (!doc) return;
+      doc.querySelectorAll("[data-edit]").forEach(function (el) {
+        if (!sfOnce(el, "edit")) return;
+        styleEditable(el, editOn);
+        el.addEventListener("blur", function () {
+          fetch(editUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },
-            body: JSON.stringify({ pk: pk, field: pField, value: v }),
-          }).then(function (r) { if (r.ok) { markSaved(); schedule(); } else { el.innerHTML = orig; } })
-            .catch(function () { el.innerHTML = orig; });
-        }
-        inp.addEventListener("keydown", function (ev) {
-          if (ev.key === "Enter") { ev.preventDefault(); finish(true); }
-          else if (ev.key === "Escape") { ev.preventDefault(); finish(false); }
+            body: JSON.stringify({ field: el.getAttribute("data-edit"), value: el.innerText }),
+          }).then(function (r) { if (r.ok) markSaved(); });
         });
-        inp.addEventListener("blur", function () { finish(true); });
       });
-    });
-    // UE3-1: инлайн-срок акции — клик по countdown/«Gültig bis» в режиме правки →
-    // datetime-local попап → POST ends_at (ISO, сервер нормализует TZ) → перерисовка.
-    doc.querySelectorAll("[data-dt-edit]").forEach(function (el) {
-      el.style.cursor = editOn ? "pointer" : "";
-      if (editOn) { el.style.outline = "1px dashed rgba(16,185,129,.7)"; el.style.outlineOffset = "2px"; }
-      el.addEventListener("click", function (e) {
-        if (!editOn || el.querySelector("input.sf-dt-inp")) return;
-        e.preventDefault(); e.stopPropagation();
-        var pk = el.getAttribute("data-edit-pk"), orig = el.innerHTML;
-        var inp = doc.createElement("input");
-        inp.type = "datetime-local"; inp.className = "sf-dt-inp";
-        inp.value = el.getAttribute("data-dt") || "";
-        inp.setAttribute("style", "font:inherit;color:#111;padding:0 4px;border:1px solid #6366f1;border-radius:4px;background:#fff;");
-        el.innerHTML = ""; el.appendChild(inp); inp.focus();
-        var done = false;
-        function finish(saveIt) {
-          if (done) return; done = true;
-          var v = (inp.value || "").trim();
-          if (!saveIt || v === "") { el.innerHTML = orig; return; }
-          var dModel = el.getAttribute("data-dt-model") || "promotion";
-          var dField = el.getAttribute("data-dt-field") || "ends_at";
-          fetch(MODEL_EDIT_URLS[dModel] || MODEL_EDIT_URLS.promotion, {
+      // SE-2c-3: инлайн-правка имени категории на канве каталога (чип data-cat-edit)
+      // → запись Category.name['de'] на blur (новый эндпоинт catalog).
+      doc.querySelectorAll("[data-cat-edit]").forEach(function (el) {
+        if (!sfOnce(el, "catEdit")) return;
+        styleEditable(el, editOn);
+        el.addEventListener("blur", function () {
+          var v = el.innerText.trim();
+          if (!v) return;  // пустое имя не сохраняем (эндпоинт всё равно отклонит)
+          fetch(catEditUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },
-            body: JSON.stringify({ pk: pk, field: dField, value: v }),
-          }).then(function (r) { if (r.ok) { markSaved(); schedule(); } else { el.innerHTML = orig; } })
-            .catch(function () { el.innerHTML = orig; });
-        }
-        inp.addEventListener("keydown", function (ev) {
-          if (ev.key === "Enter") { ev.preventDefault(); finish(true); }
-          else if (ev.key === "Escape") { ev.preventDefault(); finish(false); }
+            body: JSON.stringify({ category_pk: el.getAttribute("data-cat-edit"), value: v }),
+          }).then(function (r) { if (r.ok) markSaved(); });
         });
-        inp.addEventListener("blur", function () { finish(true); });
       });
-    });
+      // Фаза 1 (inline-content): инлайн-правка ТЕКСТА данных (имя товара и т.п.) на канве.
+      // Элемент часто внутри ссылки-карточки → в режиме правки гасим навигацию по клику.
+      doc.querySelectorAll("[data-edit-model]").forEach(function (el) {
+        if (!sfOnce(el, "editModel")) return;
+        styleEditable(el, editOn);
+        el.addEventListener("click", function (e) {
+          if (el.getAttribute("contenteditable")) { e.preventDefault(); e.stopPropagation(); }
+        });
+        el.addEventListener("blur", function () {
+          if (!el.getAttribute("contenteditable")) return;
+          var url = MODEL_EDIT_URLS[el.getAttribute("data-edit-model")];
+          if (!url) return;
+          fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },
+            body: JSON.stringify({
+              pk: el.getAttribute("data-edit-pk"),
+              field: el.getAttribute("data-edit-field"),
+              value: el.innerText,
+            }),
+          }).then(function (r) { if (r.ok) markSaved(); });
+        });
+      });
+      // #7-A: «✎ к форме» на карточках товара — раскрываем в превью редактора (владелец).
+      // На публичной витрине этот JS не выполняется → ссылка остаётся hidden.
+      doc.querySelectorAll(".sf-edit-link").forEach(function (el) { el.classList.remove("hidden"); });
+      // Замена/добавление/удаление фото на канве — пер-слайд (data-photo-op + data-img-id):
+      //   replace — заменить КОНКРЕТНЫЙ слайд по id (одиночное фото → честная замена);
+      //   add — добавить фото; remove — удалить слайд (с подтверждением, без файла).
+      // Видны в режиме правки; эндпоинт — по data-edit-model (товар/событие/номер/услуга).
+      doc.querySelectorAll("[data-photo-edit]").forEach(function (btn) {
+        if (!sfOnce(btn, "photoEdit")) return;
+        btn.classList.toggle("hidden", !editOn);
+        btn.addEventListener("click", function (e) {
+          e.preventDefault(); e.stopPropagation();
+          if (!editOn) return;
+          var pk = btn.getAttribute("data-edit-pk");
+          var phModel = btn.getAttribute("data-edit-model") || "product";
+          var phUrl = MODEL_PHOTO_URLS[phModel] || PHOTO_EDIT_URL;
+          var op = btn.getAttribute("data-photo-op") || "replace";
+          var imageId = btn.getAttribute("data-img-id") || "";
+          function postPhoto(fd) {
+            if (status) status.textContent = "…";
+            fetch(phUrl, { method: "POST", headers: { "X-CSRFToken": token, "X-Requested-With": "fetch" }, body: fd })
+              .then(function (r) {
+                if (!r.ok) { if (status) status.textContent = ""; return; }
+                return r.json().catch(function () { return {}; }).then(function (d) {
+                  // UC6-4: url фото C-блока живёт и в форме билдера — синхронизируем
+                  // ДО пере-рендера черновика (иначе push() откатит фото на старое).
+                  if (phModel === "cblock" && d && d.url) {
+                    var uInp = form.querySelector("[name='cb_" + pk + "_url']");
+                    if (uInp) uInp.value = d.url;
+                  }
+                  markSaved(); schedule();
+                });
+              })
+              .catch(function () { if (status) status.textContent = ""; });
+          }
+          if (op === "remove") {
+            // Подтверждение перед удалением — защита от случайного клика по 🗑.
+            if (!window.confirm("{% trans 'Remove this photo?' %}")) return;
+            var fdr = new FormData();
+            fdr.append("pk", pk); fdr.append("op", "remove"); fdr.append("image_id", imageId);
+            postPhoto(fdr);
+            return;
+          }
+          var inp = doc.createElement("input");
+          inp.type = "file"; inp.accept = "image/*"; inp.style.display = "none";
+          doc.body.appendChild(inp);
+          inp.addEventListener("change", function () {
+            var f = inp.files && inp.files[0];
+            if (!f) { inp.remove(); return; }
+            var fd = new FormData();
+            fd.append("pk", pk); fd.append("op", op); fd.append("image_id", imageId); fd.append("image", f);
+            postPhoto(fd);
+            inp.remove();
+          });
+          inp.click();
+        });
+      });
+      // #7-B: инлайн-цена — клик по цене (товар без вариантов) в режиме правки → инпут-поповер
+      // → POST base_price → перерисовка превью (новая цена + Grundpreis). Уважает editOn (SE-9d).
+      doc.querySelectorAll("[data-price-edit]").forEach(function (el) {
+        if (!sfOnce(el, "priceEdit")) return;
+        el.style.cursor = editOn ? "pointer" : "";
+        if (editOn) { el.style.outline = "1px dashed rgba(16,185,129,.7)"; el.style.outlineOffset = "2px"; }
+        el.addEventListener("click", function (e) {
+          if (!editOn || el.querySelector("input.sf-price-inp")) return;
+          e.preventDefault(); e.stopPropagation();
+          var pk = el.getAttribute("data-edit-pk"), orig = el.innerHTML;
+          var inp = doc.createElement("input");
+          inp.type = "number"; inp.step = "0.01"; inp.min = "0"; inp.className = "sf-price-inp";
+          inp.value = el.getAttribute("data-price") || "";
+          inp.setAttribute("style", "width:5.5rem;font:inherit;color:inherit;padding:0 4px;border:1px solid #6366f1;border-radius:4px;background:#fff;");
+          el.innerHTML = ""; el.appendChild(inp); inp.focus(); inp.select();
+          var done = false;
+          function finish(saveIt) {
+            if (done) return; done = true;
+            var v = (inp.value || "").trim().replace(",", ".");
+            if (!saveIt || v === "" || isNaN(parseFloat(v)) || parseFloat(v) < 0) { el.innerHTML = orig; return; }
+            // Модель/поле цены — из атрибутов (товар base_price по умолчанию; акция → promotion/price_override).
+            var pModel = el.getAttribute("data-edit-model") || "product";
+            var pField = el.getAttribute("data-price-field") || "base_price";
+            fetch(MODEL_EDIT_URLS[pModel] || MODEL_EDIT_URLS.product, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },
+              body: JSON.stringify({ pk: pk, field: pField, value: v }),
+            }).then(function (r) { if (r.ok) { markSaved(); schedule(); } else { el.innerHTML = orig; } })
+              .catch(function () { el.innerHTML = orig; });
+          }
+          inp.addEventListener("keydown", function (ev) {
+            if (ev.key === "Enter") { ev.preventDefault(); finish(true); }
+            else if (ev.key === "Escape") { ev.preventDefault(); finish(false); }
+          });
+          inp.addEventListener("blur", function () { finish(true); });
+        });
+      });
+      // UE3-1: инлайн-срок акции — клик по countdown/«Gültig bis» в режиме правки →
+      // datetime-local попап → POST ends_at (ISO, сервер нормализует TZ) → перерисовка.
+      doc.querySelectorAll("[data-dt-edit]").forEach(function (el) {
+        if (!sfOnce(el, "dtEdit")) return;
+        el.style.cursor = editOn ? "pointer" : "";
+        if (editOn) { el.style.outline = "1px dashed rgba(16,185,129,.7)"; el.style.outlineOffset = "2px"; }
+        el.addEventListener("click", function (e) {
+          if (!editOn || el.querySelector("input.sf-dt-inp")) return;
+          e.preventDefault(); e.stopPropagation();
+          var pk = el.getAttribute("data-edit-pk"), orig = el.innerHTML;
+          var inp = doc.createElement("input");
+          inp.type = "datetime-local"; inp.className = "sf-dt-inp";
+          inp.value = el.getAttribute("data-dt") || "";
+          inp.setAttribute("style", "font:inherit;color:#111;padding:0 4px;border:1px solid #6366f1;border-radius:4px;background:#fff;");
+          el.innerHTML = ""; el.appendChild(inp); inp.focus();
+          var done = false;
+          function finish(saveIt) {
+            if (done) return; done = true;
+            var v = (inp.value || "").trim();
+            if (!saveIt || v === "") { el.innerHTML = orig; return; }
+            var dModel = el.getAttribute("data-dt-model") || "promotion";
+            var dField = el.getAttribute("data-dt-field") || "ends_at";
+            fetch(MODEL_EDIT_URLS[dModel] || MODEL_EDIT_URLS.promotion, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },
+              body: JSON.stringify({ pk: pk, field: dField, value: v }),
+            }).then(function (r) { if (r.ok) { markSaved(); schedule(); } else { el.innerHTML = orig; } })
+              .catch(function () { el.innerHTML = orig; });
+          }
+          inp.addEventListener("keydown", function (ev) {
+            if (ev.key === "Enter") { ev.preventDefault(); finish(true); }
+            else if (ev.key === "Escape") { ev.preventDefault(); finish(false); }
+          });
+          inp.addEventListener("blur", function () { finish(true); });
+        });
+      });
+      // STU-4: клик по СОДЕРЖИМОМУ страницы открывает настройки ЭТОГО типа страницы.
+      // Раньше клик работал только там, где есть секция главной (data-sf-section) с
+      // одноимённой строкой формы: на листинге акций, странице группы, детали товара
+      // или услуги кликать было не по чему — панель с настройками этой страницы
+      // приходилось искать вручную. Якоря — каркас листингов (data-listing-root, KAT-5)
+      // и корень детали (data-stu-area), то есть новых меток витрине почти не добавлено.
+      doc.querySelectorAll("[data-listing-root], [data-stu-area]").forEach(function (area) {
+        if (area.closest("[data-sf-section]")) return;  // секция главной уже кликабельна
+        if (!sfOnce(area, "areaClick")) return;
+        area.style.cursor = "pointer";
+        area.addEventListener("click", function (e) {
+          // Не перехватываем ни ссылки/поля витрины, ни существующие ручки редактора:
+          // клик по карточке товара должен вести на товар, а не открывать панель.
+          if (e.target.closest("a,button,input,textarea,select,[contenteditable]")) return;
+          if (e.target.closest("[data-sf-section],[data-ed-section],[data-edit],.sf-photo-edit")) return;
+          if (selectedSec) { try { selectedSec.style.outline = ""; } catch (e3) {} }
+          selectedSec = area;
+          area.style.outline = "2px solid rgba(99,102,241,.9)";
+          area.style.outlineOffset = "4px";
+          var tab = document.querySelector('#bld-area-tabs [data-area="page"]');
+          if (tab && !tab.matches('[aria-pressed="true"]')) tab.click();
+        });
+      });
+    }
+    bindCanvasContent(doc);
     // E.2: клик по секции в превью → попап её настроек (фолбэк M20U-7 B: прокрутка
     // к контролам в редакторе, если попап-row для секции не найден).
     doc.querySelectorAll("[data-sf-section]").forEach(function (sec) {
@@ -3740,28 +3803,6 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         row.style.transition = "background-color .3s";
         row.style.backgroundColor = "rgba(99,102,241,.15)";
         setTimeout(function () { row.style.backgroundColor = ""; }, 1200);
-      });
-    });
-    // STU-4: клик по СОДЕРЖИМОМУ страницы открывает настройки ЭТОГО типа страницы.
-    // Раньше клик работал только там, где есть секция главной (data-sf-section) с
-    // одноимённой строкой формы: на листинге акций, странице группы, детали товара
-    // или услуги кликать было не по чему — панель с настройками этой страницы
-    // приходилось искать вручную. Якоря — каркас листингов (data-listing-root, KAT-5)
-    // и корень детали (data-stu-area), то есть новых меток витрине почти не добавлено.
-    doc.querySelectorAll("[data-listing-root], [data-stu-area]").forEach(function (area) {
-      if (area.closest("[data-sf-section]")) return;  // секция главной уже кликабельна
-      area.style.cursor = "pointer";
-      area.addEventListener("click", function (e) {
-        // Не перехватываем ни ссылки/поля витрины, ни существующие ручки редактора:
-        // клик по карточке товара должен вести на товар, а не открывать панель.
-        if (e.target.closest("a,button,input,textarea,select,[contenteditable]")) return;
-        if (e.target.closest("[data-sf-section],[data-ed-section],[data-edit],.sf-photo-edit")) return;
-        if (selectedSec) { try { selectedSec.style.outline = ""; } catch (e3) {} }
-        selectedSec = area;
-        area.style.outline = "2px solid rgba(99,102,241,.9)";
-        area.style.outlineOffset = "4px";
-        var tab = document.querySelector('#bld-area-tabs [data-area="page"]');
-        if (tab && !tab.matches('[aria-pressed="true"]')) tab.click();
       });
     });
     // E.3: вставить зону «+» после каждого блока превью → библиотека блоков.
