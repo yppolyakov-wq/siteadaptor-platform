@@ -122,6 +122,11 @@ SETTINGS: dict[str, Setting] = {
             "pd_visible_*",
             ("product_detail", "hidden"),
         ),
+        # STU-9: `site_defaults.card_style` рисует карточки товаров И карточки
+        # услуг/номеров/событий (`_sellable_card`) — то есть действует на КАЖДОЙ
+        # странице витрины. Пока настройка стояла только у типов category/product,
+        # у отеля и салона (ни одной категории и ни одного товара) она была
+        # недостижима из интерфейса вообще, продолжая менять вид их карточек.
         _s(
             "product_card_form",
             _("Kartenform"),
@@ -229,6 +234,11 @@ PAGE_TYPES: tuple[PageType, ...] = (
         "home",
         _("Startseite"),
         ("storefront-home",),
+        # STU-9: форму карточки главной НЕ объявляем — её строка живёт в области
+        # «page», а уровень «эта страница» на главной открывает «sections» (там её
+        # собственные настройки). Обещать настройку, которую панель показать не
+        # может, — тот же дефект, что и чинили. Задаётся с любой страницы списка
+        # или детали, где карточки и видно.
         ("home_sections", "home_hero"),
     ),
     PageType(
@@ -242,6 +252,7 @@ PAGE_TYPES: tuple[PageType, ...] = (
             "catalog_filters",
             "catalog_menu_prices",
             "catalog_menu_labels",
+            "product_card_form",
         ),
         block_host="catalog",
     ),
@@ -255,6 +266,11 @@ PAGE_TYPES: tuple[PageType, ...] = (
             "catalog_filters",
             "catalog_subcats",
             "product_card_form",
+            # STU-9: сортировка по умолчанию действует и в КАТЕГОРИИ — страницу
+            # обслуживает та же вьюха product_list (KAT-1), `catalog_sort`
+            # читается из конфига до фасетов. Раньше настройка была объявлена
+            # только у корня, и в категории задать её было нечем.
+            "catalog_sort",
             "catalog_menu_prices",
             "catalog_menu_labels",
         ),
@@ -307,42 +323,48 @@ PAGE_TYPES: tuple[PageType, ...] = (
         "services",
         _("Leistungen"),
         ("storefront-termin",),
-        ("service_layout",),
+        ("service_layout", "product_card_form"),
         block_host="services",
     ),
     PageType(
         "service",
         _("Leistung"),
         ("storefront-service-detail", "storefront-service-slots"),
-        ("service_detail_sections",),
+        ("service_detail_sections", "product_card_form"),
         block_host="service_detail",
     ),
     PageType(
         "stays",
         _("Zimmer"),
         ("storefront-unterkunft",),
-        ("stay_layout",),
+        ("stay_layout", "product_card_form"),
         block_host="stay_rooms",
     ),
     PageType(
         "stay",
         _("Zimmerseite"),
         ("storefront-unterkunft-unit",),
-        ("stay_detail_sections",),
+        ("stay_detail_sections", "product_card_form"),
         block_host="stay_detail",
     ),
     PageType(
         "events",
         _("Veranstaltungen"),
-        ("storefront-events", "storefront-tours"),
-        ("events_layout",),
+        ("storefront-events",),
+        ("events_layout", "product_card_form"),
         block_host="events",
     ),
+    # STU-9: у списка поездок СВОЙ тип. Раньше он был склеен с «Veranstaltungen»,
+    # и панель предлагала там две вещи, которых на этой странице нет: раскладку
+    # (`tour_index` её не читает — список строится группами по странам) и блоки
+    # `page_blocks "events"` (шаблон их не выводит). Своих настроек у страницы пока
+    # нет — честнее показать это, чем предлагать неработающее.
+    PageType("tours", _("Reisen"), ("storefront-tours",)),
     PageType(
         "event",
         _("Veranstaltungsseite"),
         ("storefront-event", "storefront-tour"),
-        ("event_detail_sections",),
+        ("event_detail_sections", "product_card_form"),
         block_host="event_detail",
     ),
     PageType("cart", _("Warenkorb"), ("storefront-cart",), ("cart_upsell",), block_host="cart"),

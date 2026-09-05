@@ -109,7 +109,11 @@ def test_live_draft_still_reads_the_same_field_names():
     body = _body(tenant)
     assert "form.querySelector(\"[name='sd_card_style']\")" in body
     assert "form.querySelector(\"[name='sd_promo_card']\")" in body
-    assert 'card_style: sdStyle ? sdStyle.value : ""' in body
+    # STU-9: буквальное выражение заменено на sdVal(...) — контрол с пилюлей
+    # охвата в режиме «только здесь» держит значение ОБЪЕКТА, а в общий черновик
+    # обязано уехать сайтовое. Замок держит СМЫСЛ: поле ищется по тому же имени
+    # и ключ по-прежнему уезжает в payload.
+    assert "card_style: sdVal(sdStyle)" in body
 
 
 # --- кабинет: per-объект --------------------------------------------------------

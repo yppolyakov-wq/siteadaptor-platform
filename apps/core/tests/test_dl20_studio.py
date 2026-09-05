@@ -82,7 +82,7 @@ def test_draft_channel_carries_the_page_template():
     tenant = TenantFactory(schema_name="public", slug="dl20d", name="DL20D")
     body = _body(tenant)
     assert "sd_category_page_style" in body
-    assert "category_page_style: sdCatPage" in body
+    assert "category_page_style: sdVal(sdCatPage)" in body  # STU-9: сайтовое значение
 
 
 def test_studio_shows_the_group_page_default_too():
@@ -99,4 +99,4 @@ def test_studio_saves_and_drafts_the_group_page_default():
     assert cfg["site_defaults"]["promo_group_style"] == "prospekt"
     cfg = _save(tenant, {"home_form": "1", "sd_promo_group_style": ""})
     assert "promo_group_style" not in cfg["site_defaults"]
-    assert "promo_group_style: sdGrpPage" in _body(tenant)
+    assert "promo_group_style: sdVal(sdGrpPage)" in _body(tenant)  # STU-9: сайтовое значение

@@ -398,40 +398,33 @@ def render_block(context, block):
 #: собирает CSS сканированием исходников, и составленная в рантайме строка в
 #: сборку не попадёт (грабля класса «новый arbitrary-класс требует пересборки»).
 _TEXT_WIDTHS = {
-    "": "max-w-2xl mx-auto",
     "wide": "max-w-4xl mx-auto",
     "full": "",
 }
 
+#: Ширина, если владелец ничего не выбрал. Зависит от страницы: у «О нас» и
+#: правовых узкая колонка была ВСЕГДА, а у команды/галереи/отзывов/блог-ленты
+#: ограничителя не было вовсе — навязать им max-w-2xl «по умолчанию» значило бы
+#: сузить страницу задним числом (STU-9).
+_TEXT_WIDTH_DEFAULTS = {
+    "narrow": "max-w-2xl mx-auto",
+    "none": "",
+}
+
 
 @register.simple_tag(takes_context=True, name="text_width_class")
-def text_width_class(context):
-    """Классы контейнера текстовых страниц («О нас», правовые, блог).
+def text_width_class(context, default="narrow"):
+    """Классы контейнера текстовых страниц («О нас», правовые, блог, команда…).
 
-    Пусто в конфиге = прежняя узкая колонка, поэтому вид существующих сайтов не
-    меняется, пока владелец сам не выберет другую ширину в Studio.
-
-    Берём `site` из контекста, а где его нет (правовые страницы отдают только
-    заголовок и текст) — нормализуем конфиг тенанта с памяткой на request:
-    тег зовётся раз на страницу, но правило «не платить за нормализацию дважды»
-    держим явно. Нет ни того, ни другого → узкая колонка (fail-safe).
+    Значение берём из контекст-процессора витрины: он уже учёл черновик
+    `?preview=1`, поэтому выбор виден вживую, и работает на страницах, куда вьюха
+    не кладёт `site` (правовые). Нет значения — ширина страницы такая же, какой
+    была до появления настройки (аргумент `default`).
     """
-    site = context.get("site")
-    if not site:
-        request = context.get("request")
-        site = getattr(request, "_sf_text_width_site", None)
-        if site is None:
-            tenant = getattr(request, "tenant", None)
-            site = (
-                siteconfig.normalize(getattr(tenant, "site_config", None) or {}) if tenant else {}
-            )
-            if request is not None:
-                try:
-                    request._sf_text_width_site = site
-                except Exception:
-                    pass
-    sd = (site or {}).get("site_defaults") or {}
-    return _TEXT_WIDTHS.get(sd.get("text_width") or "", _TEXT_WIDTHS[""])
+    value = context.get("storefront_text_width") or ""
+    if value in _TEXT_WIDTHS:
+        return _TEXT_WIDTHS[value]
+    return _TEXT_WIDTH_DEFAULTS.get(default, _TEXT_WIDTH_DEFAULTS["narrow"])
 
 
 @register.simple_tag(name="grid_classes")

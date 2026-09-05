@@ -551,6 +551,11 @@ def modules_nav(request):
         "storefront_page_bg": cfg["site_defaults"].get("page_bg", ""),
         # ST-7c: глобальная ФОРМА карточки ("" | overlay | compact; draft-aware).
         "storefront_card_style": cfg["site_defaults"].get("card_style", ""),
+        # STU-9: ширина текстовой колонки — отсюда, потому что здесь уже учтён
+        # черновик ?preview=1; тег, читавший конфиг тенанта сам, живого превью
+        # не давал и на правовых страницах (там нет `site`) работал по
+        # СОХРАНЁННОМУ конфигу.
+        "storefront_text_width": cfg["site_defaults"].get("text_width", ""),
         # DL-2: ХРОМ карточек ("" | hard | hairline | line) — рамка/тень
         # семейства Look'а; body несёт data-sf-chrome, правила в _base.html.
         "storefront_card_chrome": cfg["site_defaults"].get("card_chrome", ""),

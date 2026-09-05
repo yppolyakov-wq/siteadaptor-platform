@@ -12,10 +12,9 @@
 как в остальных тестах витрины; Http404 от гейта модуля это законный ответ и
 отличается от падения рендера.
 
-Дефекты, найденные аудитом и НЕ починенные (их чинит отдельный инкремент, здесь
-они помечены xfail, чтобы починка стала видна как XPASS, а не потерялась):
-§9.2 дефект 5 (`apply_look` затирает `site_defaults` целиком) и дефект 1
-(демо/сборка без ключа `design` не включают CSS-слой Look'а).
+Дефект §9.2 №5 (`apply_look` затирал `site_defaults` целиком) ПОЧИНЕН в STU-9 —
+xfail снят, замок работает обычным тестом. Дефект №1 (демо/сборка без ключа
+`design` не включают CSS-слой Look'а) остаётся помеченным xfail.
 """
 
 from importlib import import_module
@@ -182,23 +181,25 @@ def test_demo_kit_look_reaches_the_storefront(kit_key):
         assert stored["design"]["bundle"] == kit.bundle
 
 
-@pytest.mark.xfail(
-    reason="Аудит §9.2 дефект 5: apply_look заменяет site_defaults целиком",
-    strict=False,
-)
 def test_apply_look_keeps_owner_choices_in_site_defaults():
     """Смена кожи не должна стирать выбор владельца по другим осям.
 
     Look — это ВИЗУАЛЬНАЯ тема (шрифт, скругления, хром карточек). Шаблон
     страницы категории, форма карточки акции, вид выбора вариантов — отдельные
-    оси, владелец задаёт их сам, и смена кожи их роняет.
+    оси, владелец задаёт их сам.
+
+    STU-9: xfail снят — `_apply` сохраняет ключи `site_defaults`, которых нет ни
+    в одном семействе Look'ов. Заодно исправлено значение в самой фикстуре:
+    «swatches» такого вида выбора вариантов не существует (валидны axes/buttons/
+    color/list/photo), normalize его отбрасывал — то есть эта строка не прошла бы
+    и при идеальной реализации.
     """
     tenant = _fresh_tenant("shop")
     config = siteconfig.normalize(tenant.site_config)
     config["site_defaults"] = {
         **config.get("site_defaults", {}),
         "category_page_style": "schaufenster",
-        "variant_style": "swatches",
+        "variant_style": "color",
         "promo_card": "preis",
     }
     tenant.site_config = siteconfig.normalize(config)
@@ -208,5 +209,5 @@ def test_apply_look_keeps_owner_choices_in_site_defaults():
 
     kept = siteconfig.normalize(tenant.site_config)["site_defaults"]
     assert kept.get("category_page_style") == "schaufenster"
-    assert kept.get("variant_style") == "swatches"
+    assert kept.get("variant_style") == "color"
     assert kept.get("promo_card") == "preis"

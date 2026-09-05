@@ -963,7 +963,20 @@ def template_cards(business_type):
     ]
 
 
-def _apply(tenant, template, *, family=None, accent=None) -> None:
+def _look_family_sd_keys() -> frozenset:
+    """Ключи `site_defaults`, которые описывает ХОТЬ ОДНО семейство Look'ов.
+
+    Всё остальное в `site_defaults` — выбор владельца, к коже отношения не имеющий;
+    смена Look'а обязана его сохранить (STU-9). Считается по реестру, а не списком
+    руками, — иначе новый ключ семейства пришлось бы помнить в двух местах.
+    """
+    keys: set = set()
+    for fam in LOOK_FAMILIES:
+        keys.update((fam.get("site_defaults") or {}).keys())
+    return frozenset(keys)
+
+
+def _apply(tenant, template, *, family=None, accent=None, keep_owner_sd=True) -> None:
     """Общее применение шаблона/Look'а к Tenant.site_config.
 
     ST-1 (исправлен латентный баг класса W6): база = ПОЛНАЯ копия текущего
@@ -994,9 +1007,24 @@ def _apply(tenant, template, *, family=None, accent=None) -> None:
         # а выбор раскладки первого экрана (E4): сохраняем существующий выбор
         # тенанта, чтобы смена Look'а не сбрасывала date-search-в-hero.
         fam_sd = dict(family["site_defaults"])
-        prev_hw = (current.get("site_defaults") or {}).get("hero_widget")
+        prev_sd = current.get("site_defaults") or {}
+        prev_hw = prev_sd.get("hero_widget")
         if prev_hw in ("stays", "services", "gastro"):
             fam_sd["hero_widget"] = prev_hw
+        # STU-9 (ревью, класс W6): Look ЗАМЕНЯЛ site_defaults целиком, поэтому смена
+        # кожи молча стирала настройки владельца, к визуалу семейства не относящиеся
+        # (ширина текстовой колонки, шаблон страницы категории/группы, форма карточки,
+        # вид выбора вариантов). Правило вместо ручного списка: ключ, которого нет ни
+        # в одном семействе, Look не описывает — значит он принадлежит владельцу.
+        # Ключи семейства по-прежнему перетираются (контракт «Look = кожа»).
+        #
+        # keep_owner_sd=False — путь СБОРКИ: она задаёт композицию целиком, и её замок
+        # требует, чтобы ось, которой новая сборка не объявляет, сбрасывалась
+        # (test_bundles_carry_media_shape). Смешивать эти две семантики нельзя.
+        if keep_owner_sd:
+            for key, value in prev_sd.items():
+                if value not in ("", None, [], {}) and key not in _look_family_sd_keys():
+                    fam_sd.setdefault(key, value)
         config["site_defaults"] = fam_sd
         nav = dict(config.get("nav") or {})
         nav["style"] = family["nav_style"]
@@ -1939,7 +1967,9 @@ def apply_bundle(tenant, key) -> bool:
     bundle = _BUNDLE_BY_KEY.get(key)
     if bundle is None:
         return False
-    apply_look(tenant, bundle["look"])
+    # Сборка = композиция целиком: оси, которых она не объявляет, обязаны
+    # сброситься к семейству (иначе переключение сборок «накапливало» бы прежние).
+    apply_look(tenant, bundle["look"], keep_owner_sd=False)
     config = siteconfig.normalize(tenant.site_config)
     _apply_bundle_axes(config, bundle["config"])
     # DL-8a: запомнить выбранную сборку (бейдж «Aktiv» страницы Design).
@@ -2033,7 +2063,7 @@ def _apply_bundle_axes(config: dict, over: dict) -> None:
         page_presets.apply_page_preset(config, host, preset_id)
 
 
-def apply_look(tenant, family_key) -> bool:
+def apply_look(tenant, family_key, *, keep_owner_sd=True) -> bool:
     """ST-1: применить Look (семейство × архетипный акцент × секции шаблона
     архетипа). False — неизвестное семейство. Идемпотентно (двойной normalize);
     чужие ключи конфига целы (_apply — полная копия)."""
@@ -2042,7 +2072,13 @@ def apply_look(tenant, family_key) -> bool:
         return False
     business_type = getattr(tenant, "business_type", "") or "retail"
     template = templates_for(business_type)[0]  # рекомендованный архетипу первым
-    _apply(tenant, template, family=family, accent=look_accent(business_type, family_key))
+    _apply(
+        tenant,
+        template,
+        family=family,
+        accent=look_accent(business_type, family_key),
+        keep_owner_sd=keep_owner_sd,
+    )
     # DL-8a: запомнить выбранную кожу (бейдж «Aktiv» страницы Design +
     # data-sf-look витрины). Прежний bundle-ключ сохраняется: Look меняет
     # только оптику, композиция сборки остаётся.

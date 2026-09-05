@@ -827,7 +827,7 @@
              где эти карточки видно, и с выбором охвата. Имена полей ПРЕЖНИЕ — save,
              live-draft и клик по Look'у не тронуты (они ищут по name, не по области).{% endcomment %}
           {% if has_catalog %}
-          <div class="stu-page-row mt-4" data-stu-setting="product_card_form" data-stu-page="category product">
+          <div class="stu-page-row mt-4" data-stu-setting="product_card_form" data-stu-page="catalog category product services service stays stay events event">
             {% include "tenant/_cardform_picker.html" with name="sd_card_style" value=card_style items=card_forms_product title=_("Kartenform") %}
             {% include "tenant/_scope_pill.html" with setting="product_card_form" %}
           </div>
@@ -911,7 +911,7 @@
               </select>
             </div>
             {# Дефолтная сортировка каталога (покупатель может сменить дропдауном на витрине). #}
-            <div class="stu-page-row w-full" data-stu-setting="catalog_sort" data-stu-page="catalog">
+            <div class="stu-page-row w-full" data-stu-setting="catalog_sort" data-stu-page="catalog category">
               <label class="flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Default product sorting' %}">
                 {% trans "Sort" %}
                 <select name="catalog_sort" class="rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
@@ -2484,18 +2484,27 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       // STU-8: ширина текстовой колонки — в черновик, иначе выбор был бы виден
       // только после Save (грабля DL-17.3: контрол есть, в payload его нет).
       var sdTextW = form.querySelector("select[name='sd_text_width']");
+      // STU-9 (ревью): у контролов с пилюлей охвата в режиме «только здесь» лежит
+      // значение ОБЪЕКТА — в общий черновик обязано уехать САЙТОВОЕ, иначе превью
+      // покажет выбор одной категории как дефолт всего сайта.
+      var sdVal = function (el) {
+        if (!el) return "";
+        var name = el.getAttribute("name");
+        var site = window.__stuSiteValueFor ? window.__stuSiteValueFor(name) : null;
+        return site !== null && site !== undefined ? site : el.value;
+      };
       payload.site_defaults = {
         card_radius: sdR ? parseInt(sdR.value, 10) || 0 : 0,
         card_shadow: !!(sdSh && sdSh.checked),
         card_padding: sdPad && sdPad.value !== "" ? parseInt(sdPad.value, 10) || 0 : 0,
         card_bg: sdBgOn && sdBgOn.checked && sdBg ? sdBg.value : "",
-        card_style: sdStyle ? sdStyle.value : "",
-        category_page_style: sdCatPage ? sdCatPage.value : "",
-        promo_group_style: sdGrpPage ? sdGrpPage.value : "",
+        card_style: sdVal(sdStyle),
+        category_page_style: sdVal(sdCatPage),
+        promo_group_style: sdVal(sdGrpPage),
         media_shape: sdMedia ? sdMedia.value : "",
         page_bg: sdPageBgOn && sdPageBgOn.checked && sdPageBg ? sdPageBg.value : "",
         card_chrome: sdChrome ? sdChrome.value : "",
-        promo_card: sdPromoCard ? sdPromoCard.value : "",
+        promo_card: sdVal(sdPromoCard),
         card_slider: sdSlider && sdSlider.checked ? "on" : "",
         variant_style: sdVariant ? sdVariant.value : "",
         text_width: sdTextW ? sdTextW.value : "",
@@ -3181,14 +3190,22 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   // Рейка живёт в СОСЕДНЕМ замыкании — отдаём хелпер наружу явно (как __sfShowArea).
   window.__stuPageArea = stuPageArea;
 
+  // STU-9: тип страницы предыдущего вызова — переклейка уровня срабатывает только
+  // на СМЕНЕ типа (навигация канвы), а не на каждой перерисовке.
+  var lastStuPage = "";
+
   function applyStuPageScope() {
     var code = curStuPage || "other";
     var shown = 0;
+    var panel = document.querySelector("[data-stu-any]");
     document.querySelectorAll("[data-stu-page]").forEach(function (el) {
       var codes = (el.getAttribute("data-stu-page") || "").split(/\s+/);
       var on = codes.indexOf(code) !== -1;
       el.classList.toggle("hidden", !on);  // W0: поля остаются в форме, прячем только CSS
-      if (on) shown++;
+      // STU-9 (ревью): считаем ТОЛЬКО строки своей карточки. Раньше счёт шёл по
+      // всему документу, поэтому на типах, чьи строки живут в наборе лендингов,
+      // карточка «Vorlage der Seite» оставалась пустой и без подсказки.
+      if (on && panel && panel.contains(el)) shown++;
     });
     var empty = document.querySelector(".stu-page-empty");
     if (empty) empty.classList.toggle("hidden", shown > 0);
@@ -3198,15 +3215,28 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     });
     var name = document.querySelector(".stu-page-name");
     if (name) name.textContent = label;
-    // STU-8: канва ушла на другой тип, а уровень «эта страница» открыт — переклеить
-    // его на область этого типа (иначе с главной на категорию панель осталась бы на
-    // «sections», то есть снова показывала бы настройки не той страницы).
+    // STU-8/STU-9: канва ушла на ДРУГОЙ тип, а уровень «эта страница» открыт —
+    // переклеить его на область этого типа (иначе, уйдя с главной на категорию,
+    // панель осталась бы на «sections», то есть снова показывала бы чужие настройки).
+    //
+    // STU-9 (ревью): первая версия смотрела на aria-pressed кнопки рейки — а его
+    // не ставит НИКТО (обработчик рейки только открывает область), поэтому ветка
+    // была мертва и переклейка не работала ни разу. Сигнал берём из факта: какая
+    // область открыта сейчас. Переклеиваем ТОЛЬКО при смене типа — иначе владелец,
+    // сам открывший «Seite» на главной, отскакивал бы обратно на «sections».
     try {
-      var rail = document.querySelector('#st-rail [data-st-level="page"]');
-      if (rail && rail.getAttribute("aria-pressed") === "true") {
-        var a = stuPageArea();
-        if (a === "sections") { if (window.__sfShowArea) window.__sfShowArea("sections"); }
-        else if (window.__stuClickTab) window.__stuClickTab(a);
+      var typeChanged = code !== lastStuPage;
+      lastStuPage = code;
+      if (typeChanged && code !== "other") {
+        var openArea = document.querySelector('[data-bld-area]:not(.hidden)');
+        var openKey = openArea ? openArea.getAttribute("data-bld-area") : "";
+        if (openKey === "sections" || openKey === "page") {
+          var want = stuPageArea();
+          if (want !== openKey) {
+            if (want === "sections") { if (window.__sfShowArea) window.__sfShowArea("sections"); }
+            else if (window.__stuClickTab) window.__stuClickTab(want);
+          }
+        }
       }
     } catch (eArea) {}
     refreshScopePills();
@@ -3355,6 +3385,34 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
 
   // В режиме «только здесь» изменение контрола обязано уходить в объект, а не в сайт:
   // иначе владелец видит «только здесь» и молча меняет весь сайт.
+  // STU-9 (ревью, класс W6): в режиме «только здесь» контрол показывает значение
+  // ОБЪЕКТА, но его `name` — это поле САЙТА (sd_category_page_style и др.). Save
+  // большой формы отправил бы объектный выбор как общий дефолт, то есть «только для
+  // этой категории» молча становилось бы «для всех». Перед отправкой возвращаем в
+  // такие контролы сайтовое значение — объектное уже сохранено точечным site-scope-save.
+  function restoreSiteValuesForSubmit() {
+    scopePills().forEach(function (box) {
+      var code = box.getAttribute("data-stu-scope");
+      if (box.hidden || scopeMode[code] !== "own") return;
+      var ctl = scopeControl(box);
+      if (ctl) ctl.value = scopeSite[code] || "";
+    });
+  }
+  var scopeForm = document.getElementById("home-form");
+  if (scopeForm) scopeForm.addEventListener("submit", restoreSiteValuesForSubmit);
+  window.__stuSiteValueFor = function (name) {
+    // Живой черновик собирает поля по name — ему тоже нужен САЙТОВЫЙ выбор,
+    // иначе превью показало бы объектное значение как общее.
+    var found = null;
+    scopePills().forEach(function (box) {
+      var code = box.getAttribute("data-stu-scope");
+      if (found !== null || box.hidden || scopeMode[code] !== "own") return;
+      var ctl = scopeControl(box);
+      if (ctl && ctl.getAttribute("name") === name) found = scopeSite[code] || "";
+    });
+    return found;
+  };
+
   document.addEventListener("change", function (e) {
     var box = scopeBoxFor(e.target);
     if (!box || box.hidden) return;

@@ -228,7 +228,7 @@ def test_builder_payload_collects_new_keys():
     assert "payload.promo_layout = plSel.value" in body
     assert "payload.promo_grouping = pgSel.value" in body
     assert "if (tailSel && tailSel.value) lay.tail = tailSel.value;" in body
-    assert 'promo_card: sdPromoCard ? sdPromoCard.value : "",' in body
+    assert "promo_card: sdVal(sdPromoCard)," in body  # STU-9: sdVal — сайтовое значение
     assert 'card_slider: sdSlider && sdSlider.checked ? "on" : "",' in body
     assert 'variant_style: sdVariant ? sdVariant.value : "",' in body
     assert 'layout: pdLay ? pdLay.value : ""' in body

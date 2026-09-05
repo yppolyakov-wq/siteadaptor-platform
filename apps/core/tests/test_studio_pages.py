@@ -13,6 +13,8 @@
    а не 500 (редактор должен открываться где угодно).
 """
 
+import pathlib
+
 import pytest
 from django.urls import get_resolver
 
@@ -329,6 +331,10 @@ def test_no_control_is_lost_or_duplicated(builder_html):
         "sd_promo_card",
         "pd_layout",
         "cart_show_upsell",
+        # STU-9: ровно те два поля, которые STU-8 переносил между областями, в
+        # замке не значились — то есть перенос был не покрыт вовсе.
+        "hero_style",
+        "sd_text_width",
         "pb_present",
     ):
         n = len(re.findall(rf'name="{field}"', builder_html))
@@ -788,8 +794,73 @@ def test_scope_pills_stand_next_to_their_control(builder_html_all_modules):
         setting = sp.SETTINGS[code]
         assert setting.has_object_scope, code
         i = body.index(f'data-stu-setting="{code}"')
-        row = body[i : body.index("</div>", i)]
-        assert f'name="{setting.form_field}"' in row or "_cardform_picker" in row
-        assert f'setting="{code}"' in row or f'data-stu-scope="{code}"' in row, (
+        # До закрывающего тега СВОЕЙ строки: пикер внутри содержит вложенные div'ы,
+        # поэтому ищем следующий маркер строки (или конец панели), а не первый </div>.
+        nxt = body.find('data-stu-setting="', i + 1)
+        row = body[i : nxt if nxt != -1 else i + 4000]
+        # Ищем ИМЕННО маркер пилюли. Первая версия замка искала `setting="<код>"` —
+        # а это подстрока самого `data-stu-setting="<код>"`, то есть замок проверял
+        # сам себя и оставался зелёным при полностью удалённой пилюле (STU-9).
+        assert f'data-stu-scope="{code}"' in row, (
             f"у настройки {code} есть объектный уровень, но пилюли охвата рядом нет"
         )
+
+
+# ── STU-9: находки ревью, каждая со своим замком ──────────────────────────────
+
+
+@pytest.mark.django_db
+def test_card_form_is_reachable_on_every_page_that_shows_cards(builder_html_all_modules):
+    """`site_defaults.card_style` рисует карточки товаров И услуг/номеров/событий,
+    то есть действует на всей витрине.
+
+    Пока настройка была объявлена только у типов category/product, у отеля и салона
+    (ни одной категории и ни одного товара) она была недостижима из интерфейса
+    ВООБЩЕ — при том, что продолжала менять вид их карточек.
+    """
+    types = {pt.code for pt in sp.PAGE_TYPES if "product_card_form" in pt.settings}
+    # «home» намеренно НЕ в списке: строка живёт в области «page», а уровень «эта
+    # страница» на главной открывает «sections» — обещание без исполнения.
+    assert "home" not in types
+    for code in ("catalog", "stays", "stay", "services", "service", "events", "event"):
+        assert code in types, f"форму карточки нельзя задать со страницы типа {code}"
+    row = _tagged_rows(builder_html_all_modules)["product_card_form"]
+    assert set(row.split()) == types, "разметка и реестр разошлись"
+
+
+@pytest.mark.django_db
+def test_catalog_sort_is_offered_where_it_applies(builder_html_all_modules):
+    """Дефолтную сортировку читает `product_list`, а он обслуживает и корень,
+    и страницу категории (KAT-1) — значит настройка нужна на обоих типах."""
+    types = {pt.code for pt in sp.PAGE_TYPES if "catalog_sort" in pt.settings}
+    assert types == {"catalog", "category"}
+
+
+def test_level_reglue_does_not_depend_on_aria_pressed():
+    """Переклейка уровня «эта страница» при смене типа канвы обязана опираться на
+    ФАКТ (какая область открыта), а не на `aria-pressed` кнопок рейки.
+
+    Первая версия STU-8 проверяла именно `aria-pressed`, которое обработчик рейки
+    не ставит нигде — ветка была мертва, и, уходя с главной на категорию, панель
+    оставалась на области главной.
+    """
+    body = pathlib.Path("templates/tenant/site_home.html").read_text()
+    i = body.index("function applyStuPageScope()")
+    # Только тело applyStuPageScope: дальше идёт секция пилюль охвата, где
+    # aria-pressed используется законно (состояние кнопок «Für alle / Nur hier»).
+    scope = body[i : body.index("STU-3: охват настройки", i)]
+    # Комментарии не код: в них «aria-pressed» упомянут как объяснение дефекта.
+    code_only = "\n".join(line for line in scope.splitlines() if not line.lstrip().startswith("//"))
+    assert "aria-pressed" not in code_only, "переклейка снова завязана на aria-pressed"
+    assert "data-bld-area]:not(.hidden)" in scope, "источник факта — открытая область"
+    assert "lastStuPage" in scope, "переклейка обязана срабатывать только на СМЕНЕ типа"
+
+
+def test_scope_pill_value_does_not_leak_into_site_save():
+    """В режиме «только здесь» контрол держит значение ОБЪЕКТА, а его `name` —
+    поле САЙТА. Без восстановления перед отправкой Save большой формы превращал
+    выбор одной категории в дефолт всего сайта (класс W6)."""
+    body = pathlib.Path("templates/tenant/site_home.html").read_text()
+    assert "restoreSiteValuesForSubmit" in body
+    assert 'scopeForm.addEventListener("submit", restoreSiteValuesForSubmit)' in body
+    assert "__stuSiteValueFor" in body, "живой черновик тоже обязан слать сайтовое значение"
