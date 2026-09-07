@@ -31,6 +31,22 @@ def test_broken_tenant_admins_unregistered():
     assert "promotions" not in labels
     assert "djstripe" not in labels
     assert {"tenants", "aggregator", "support"} <= labels
+    # P0-5 (аудит 2026-09-03 §9.3): чистка — ПРАВИЛО «все tenant-only приложения»,
+    # а не список ярлыков: `loyalty` в список не попал, и LoyaltyCard (данные
+    # клиентов бизнеса) стоял в платформенной админке.
+    assert "loyalty" not in labels
+    from django.apps import apps as django_apps
+    from django.conf import settings
+
+    tenant_only_labels = {
+        cfg.label for cfg in django_apps.get_app_configs() if cfg.name in settings.TENANT_ONLY_APPS
+    }
+    leaked = sorted(
+        f"{m._meta.app_label}.{m._meta.model_name}"
+        for m in admin.site._registry
+        if m._meta.app_label in tenant_only_labels
+    )
+    assert leaked == [], leaked
 
 
 @pytest.mark.django_db

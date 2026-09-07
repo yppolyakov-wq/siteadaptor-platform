@@ -78,6 +78,13 @@ TENANT_APPS = [
 
 INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
 
+# P0-5 (аудит 2026-09-03): приложения, живущие ТОЛЬКО в схемах тенантов. Считается
+# здесь, ДО переопределения SHARED_APPS в test.py (там все tenant-апп делаются
+# SHARED ради одной схемы) — поэтому список верен и в тестах. Потребители:
+# чистка платформенной админки (apps.core.admin) — их моделей в public нет и
+# быть не должно, независимо от того, кто и когда зарегистрировал admin.
+TENANT_ONLY_APPS = [app for app in TENANT_APPS if app not in SHARED_APPS]
+
 TENANT_MODEL = "tenants.Tenant"
 TENANT_DOMAIN_MODEL = "tenants.Domain"
 
