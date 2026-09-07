@@ -35,11 +35,49 @@ def bump_storefront_cache(schema: str) -> None:
         pass
 
 
+def _cacheable(request, response) -> bool:
+    """P0-1 (аудит 2026-09-03 §9.3): в ОБЩИЙ кэш нельзя класть персональное.
+
+    Раньше в кэш попадало тело с `{% csrf_token %}`, а на хите отдавался голый
+    HttpResponse без Set-Cookie — в течение TTL все анонимы получали токен
+    ПЕРВОГО посетителя без своей куки, и любой POST давал 403 (воспроизведено
+    пробником). Два признака персонального ответа:
+    * `CSRF_COOKIE_NEEDS_UPDATE` — Django 5.1 ставит его в `get_token()` всегда
+      (`csrf.py:111`), то есть страница использовала токен; проверяем ДО
+      CsrfViewMiddleware.process_response, который флаг сбрасывает;
+    * `response.cookies` — вьюха выставила куку (сессия/корзина/согласие).
+    Цена: страницы с формами перестают кэшироваться для анонимов (состояние до
+    SE-5a). Возврат кэша на них — токен вне тела (JS из куки), отдельный шаг.
+    """
+    if response.status_code != 200 or getattr(response, "streaming", False):
+        return False
+    if response.cookies:
+        return False
+    meta = getattr(request, "META", None) or {}
+    return not meta.get("CSRF_COOKIE_NEEDS_UPDATE")
+
+
+def _pack(response) -> tuple:
+    # Vary из вьюхи (напр. Accept-Language) обязан пережить хит: без него
+    # промежуточные кэши склеили бы варианты. Middleware-Vary патчится позже
+    # и на хит-ответ ложится сам.
+    return (response.content, response.get("Content-Type", "text/html"), response.get("Vary", ""))
+
+
+def _unpack(hit) -> HttpResponse:
+    content, content_type, vary = hit
+    response = HttpResponse(content, content_type=content_type)
+    if vary:
+        response["Vary"] = vary
+    return response
+
+
 def cache_storefront_page(view):
     """SE-5a: кэш HTML витрины тенанта. Как `cache_public_page`, но ключ включает
     версию `site_config` тенанта → публикация (bump_storefront_cache) мгновенно
     инвалидирует выдачу, а не только по TTL. Мимо кэша: непустая сессия (владелец
-    залогинен / есть корзина), query-параметры (?preview=1, ?tisch=N), не-GET."""
+    залогинен / есть корзина), query-параметры (?preview=1, ?tisch=N), не-GET,
+    и — P0-1 — любой ответ с CSRF-токеном или Set-Cookie (см. `_cacheable`)."""
 
     @wraps(view)
     def wrapped(request, *args, **kwargs):
@@ -50,19 +88,20 @@ def cache_storefront_page(view):
             return view(request, *args, **kwargs)
 
         lang = getattr(request, "LANGUAGE_CODE", "de")
-        key = f"sfpage:{schema}:{request.path}:{lang}:v{_sf_version(schema)}"
+        # sfpage2: формат записи сменился (кортеж из трёх) — старые ключи
+        # осиротеют по TTL, смешивать форматы нельзя.
+        key = f"sfpage2:{schema}:{request.path}:{lang}:v{_sf_version(schema)}"
         try:
             hit = cache.get(key)
         except Exception:  # noqa: BLE001
             hit = None
         if hit is not None:
-            content, content_type = hit
-            return HttpResponse(content, content_type=content_type)
+            return _unpack(hit)
 
         response = view(request, *args, **kwargs)
-        if response.status_code == 200 and not getattr(response, "streaming", False):
+        if _cacheable(request, response):
             try:
-                cache.set(key, (response.content, response.get("Content-Type", "text/html")), ttl)
+                cache.set(key, _pack(response), ttl)
             except Exception:  # noqa: BLE001
                 pass
         return response
@@ -81,19 +120,18 @@ def cache_public_page(view):
             return view(request, *args, **kwargs)
 
         lang = getattr(request, "LANGUAGE_CODE", "de")
-        key = f"pubpage:{request.get_host()}:{request.path}:{lang}"
+        key = f"pubpage2:{request.get_host()}:{request.path}:{lang}"
         try:
             hit = cache.get(key)
         except Exception:  # noqa: BLE001 — кэш недоступен: рендерим как обычно
             hit = None
         if hit is not None:
-            content, content_type = hit
-            return HttpResponse(content, content_type=content_type)
+            return _unpack(hit)
 
         response = view(request, *args, **kwargs)
-        if response.status_code == 200 and not response.streaming:
+        if _cacheable(request, response):
             try:
-                cache.set(key, (response.content, response.get("Content-Type", "text/html")), ttl)
+                cache.set(key, _pack(response), ttl)
             except Exception:  # noqa: BLE001
                 pass
         return response

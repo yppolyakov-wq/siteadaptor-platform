@@ -120,3 +120,92 @@ def test_signal_skips_when_site_config_not_in_update_fields():
     tenant.name = "Renamed"
     tenant.save(update_fields=["name"])
     assert pagecache._sf_version(tenant.schema_name) == before  # не сброшен
+
+
+# --- P0-1 (аудит 2026-09-03 §9.3): CSRF-токен и куки НЕ попадают в общий кэш ---
+
+
+def _real_req(path="/", schema="acme"):
+    """Настоящий HttpRequest (нужен META для get_token), с атрибутами витрины."""
+    from importlib import import_module
+
+    from django.conf import settings as dj_settings
+    from django.test import RequestFactory
+
+    request = RequestFactory().get(path)
+    request.session = import_module(dj_settings.SESSION_ENGINE).SessionStore()
+    request.tenant = SimpleNamespace(schema_name=schema)
+    request.LANGUAGE_CODE = "de"
+    return request
+
+
+@override_settings(CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_page_with_csrf_token_is_never_served_from_cache():
+    """Страница, использовавшая {% csrf_token %}, не кэшируется: второй посетитель
+    получает СВОЙ токен, а не токен первого (воспроизведённая утечка)."""
+    from django.middleware.csrf import get_token
+
+    cache.clear()
+    calls = {"n": 0}
+
+    @pagecache.cache_storefront_page
+    def view(request):
+        calls["n"] += 1
+        return HttpResponse(f"token={get_token(request)}")
+
+    first = view(_real_req()).content
+    second = view(_real_req()).content
+    assert calls["n"] == 2, "ответ с CSRF-токеном попал в кэш"
+    assert first != second, "второй посетитель получил чужой токен"
+
+
+@override_settings(CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_response_with_set_cookie_is_not_cached_and_keeps_cookie():
+    cache.clear()
+    calls = {"n": 0}
+
+    @pagecache.cache_storefront_page
+    def view(request):
+        calls["n"] += 1
+        response = HttpResponse("x")
+        response.set_cookie("visitor", "1")
+        return response
+
+    view(_real_req())
+    second = view(_real_req())
+    assert calls["n"] == 2
+    assert "visitor" in second.cookies  # своя кука, а не пустой Set-Cookie с хита
+
+
+@override_settings(CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_cache_hit_preserves_vary_header():
+    cache.clear()
+
+    @pagecache.cache_storefront_page
+    def view(request):
+        response = HttpResponse("x")
+        response["Vary"] = "Accept-Language"
+        return response
+
+    view(_real_req())
+    hit = view(_real_req())
+    assert hit.get("Vary") == "Accept-Language"
+
+
+@override_settings(CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_public_page_with_csrf_token_is_never_served_from_cache():
+    """Тот же класс дефекта у cache_public_page (агрегатор/порталы)."""
+    from django.middleware.csrf import get_token
+
+    cache.clear()
+    calls = {"n": 0}
+
+    @pagecache.cache_public_page
+    def view(request):
+        calls["n"] += 1
+        return HttpResponse(f"token={get_token(request)}")
+
+    first = view(_real_req()).content
+    second = view(_real_req()).content
+    assert calls["n"] == 2
+    assert first != second
