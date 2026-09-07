@@ -10,18 +10,69 @@ import base64
 import hashlib
 from functools import lru_cache
 
-from cryptography.fernet import Fernet, InvalidToken
+from cryptography.fernet import Fernet, InvalidToken, MultiFernet
 from django.conf import settings
 
 
-@lru_cache(maxsize=1)
-def _fernet() -> Fernet:
-    key = getattr(settings, "SECRETS_ENCRYPTION_KEY", "") or ""
-    if key:
-        return Fernet(key.encode() if isinstance(key, str) else key)
-    # Фолбэк: ключ из SECRET_KEY (детерминированный) — dev/CI.
+def _derived_key() -> bytes:
+    """Производный ключ из SECRET_KEY (детерминированный) — dev/CI и легаси прода."""
     digest = hashlib.sha256(settings.SECRET_KEY.encode()).digest()
-    return Fernet(base64.urlsafe_b64encode(digest))
+    return base64.urlsafe_b64encode(digest)
+
+
+def _explicit_key() -> bytes | None:
+    key = getattr(settings, "SECRETS_ENCRYPTION_KEY", "") or ""
+    if not key:
+        return None
+    return key.encode() if isinstance(key, str) else key
+
+
+@lru_cache(maxsize=1)
+def _fernet() -> MultiFernet:
+    """P0-3 (аудит 2026-09-03 §9.3): явный ключ ПЕРВЫМ, производный — вторым.
+
+    MultiFernet шифрует первым ключом и читает любым. Поэтому задать
+    SECRETS_ENCRYPTION_KEY в проде безопасно: всё, что было зашифровано
+    производным ключом (токены ботов, Meldeschein, документы), продолжает
+    читаться, а новое уже не зависит от SECRET_KEY. Довести до конца —
+    `manage.py rotate_secrets --apply`: перешифровывает старое явным ключом,
+    после чего утечка SECRET_KEY ничего не раскрывает.
+    """
+    keys = []
+    explicit = _explicit_key()
+    if explicit:
+        keys.append(Fernet(explicit))
+    keys.append(Fernet(_derived_key()))
+    return MultiFernet(keys)
+
+
+def needs_rotation(token) -> bool:
+    """True — шифротекст читается ТОЛЬКО производным ключом (ждёт ротации).
+
+    False — уже явным ключом, явного ключа нет (ротировать не во что), пусто,
+    либо это вообще не наш шифротекст (легаси-плейнтекст, мусор) — такое не трогаем.
+    """
+    if not token:
+        return False
+    explicit = _explicit_key()
+    if not explicit:
+        return False
+    data = token.encode() if isinstance(token, str) else token
+    try:
+        Fernet(explicit).decrypt(data)
+        return False
+    except (InvalidToken, ValueError):
+        pass
+    try:
+        _fernet().decrypt(data)
+        return True
+    except (InvalidToken, ValueError):
+        return False
+
+
+def rotate_bytes(token: bytes) -> bytes:
+    """Перешифровать явным ключом (MultiFernet.rotate) — для файлов документов."""
+    return _fernet().rotate(token)
 
 
 def encrypt(raw: str) -> str:

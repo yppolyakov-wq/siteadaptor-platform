@@ -30,16 +30,16 @@ COMPOSE="docker compose --env-file .env.prod -f docker-compose.prod.yml $PROFILE
 
 cd "$REPO_DIR"
 
-echo "==> [1/8] Pull $BRANCH from git"
+echo "==> [1/9] Pull $BRANCH from git"
 git fetch origin "$BRANCH"
 git checkout "$BRANCH"
 git pull --ff-only origin "$BRANCH"
 
-echo "==> [2/8] Build images"
+echo "==> [2/9] Build images"
 $COMPOSE build
 
 if [ "$MODE" = "single" ]; then
-	echo "==> [3/8] Start local Postgres and wait for healthy"
+	echo "==> [3/9] Start local Postgres and wait for healthy"
 	$COMPOSE up -d db
 	for i in $(seq 1 30); do
 		if $COMPOSE exec -T db pg_isready -U "${DB_USER:-platform}" >/dev/null 2>&1; then
@@ -49,26 +49,34 @@ if [ "$MODE" = "single" ]; then
 		sleep 2
 	done
 else
-	echo "==> [3/8] External Postgres (DB_HOST in .env.prod) — skip local db"
+	echo "==> [3/9] External Postgres (DB_HOST in .env.prod) — skip local db"
 fi
 
-echo "==> [4/8] Migrate shared (public) schema"
+echo "==> [4/9] Preflight: deploy checks (fail-closed)"
+# P0-3 (аудит 2026-09-03): раньше стоял последним шагом под `|| true` — Error
+# secrets.E001 (нет отдельного SECRETS_ENCRYPTION_KEY, ключ выводится из
+# SECRET_KEY) деплой не останавливал. Теперь ДО миграций и рестарта: упал —
+# контейнеры и схемы не тронуты, владелец правит .env.prod и запускает снова.
+# Ключ задать безопасно: crypto читает старые шифротексты производным ключом
+# (MultiFernet), довести до конца — `manage.py rotate_secrets --apply`.
+$COMPOSE run --rm web python manage.py check --deploy
+
+echo "==> [5/9] Migrate shared (public) schema"
 $COMPOSE run --rm web python manage.py migrate_schemas --shared
 
-echo "==> [5/8] Migrate tenant schemas"
+echo "==> [6/9] Migrate tenant schemas"
 $COMPOSE run --rm web python manage.py migrate_schemas
 
-echo "==> [6/8] Collect static"
+echo "==> [7/9] Collect static"
 $COMPOSE run --rm web python manage.py collectstatic --noinput
 # L4/T1-b: .mo компилируются при СБОРКЕ ОБРАЗА (Dockerfile, msgfmt). Шаг
 # `compose run --rm … compilemessages` убран: он писал .mo в эфемерный
 # контейнер — рабочий web их не видел (в проде переводы не работали).
 
-echo "==> [7/8] Restart services"
+echo "==> [8/9] Restart services"
 $COMPOSE up -d
 
-echo "==> [8/8] Deploy checks"
-$COMPOSE exec -T web python manage.py check --deploy || true
+echo "==> [9/9] Deploy checks"
 # Сверка миграций ПО ВСЕМ СХЕМАМ: обычный showmigrations видит только public, из-за
 # чего очередь миграций в памяти проекта разъезжалась с реальностью (аудит 01.08).
 # Печатает только отставание — «Всё применено» и есть ожидаемый вывод.
