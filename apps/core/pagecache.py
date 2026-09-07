@@ -16,6 +16,7 @@ from functools import wraps
 from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpResponse
+from django.utils.cache import patch_vary_headers
 
 
 def _sf_version(schema: str) -> int:
@@ -46,12 +47,28 @@ def _cacheable(request, response) -> bool:
       (`csrf.py:111`), то есть страница использовала токен; проверяем ДО
       CsrfViewMiddleware.process_response, который флаг сбрасывает;
     * `response.cookies` — вьюха выставила куку (сессия/корзина/согласие).
-    Цена: страницы с формами перестают кэшироваться для анонимов (состояние до
-    SE-5a). Возврат кэша на них — токен вне тела (JS из куки), отдельный шаг.
+    Цена: кэшируемых вьюх четыре (главная витрины + три страницы агрегатора);
+    их рендеры с формой в разметке перестают кэшироваться для анонимов
+    (состояние до SE-5a). Возврат кэша — токен вне тела (JS из куки), отдельно.
     """
     if response.status_code != 200 or getattr(response, "streaming", False):
         return False
+    # Ленивый TemplateResponse ещё не отрендерен — флаги ниже не выставлены, а
+    # `.content` бросил бы ContentNotRenderedError. Не кэшируем ПО ПОСТРОЕНИЮ,
+    # а не потому, что исключение случайно проглотилось.
+    if not getattr(response, "is_rendered", True):
+        return False
     if response.cookies:
+        return False
+    # Куки от middleware (sessionid, messages) в `response.cookies` ЗДЕСЬ не
+    # видны — их ставит process_response позже. Зеркалим их условия: сессия,
+    # изменённая во время рендера, и добавленные flash-сообщения = персональный
+    # ответ, чужому посетителю его отдавать нельзя.
+    session = getattr(request, "session", None)
+    if session is not None and getattr(session, "modified", False):
+        return False
+    messages = getattr(request, "_messages", None)
+    if messages is not None and getattr(messages, "added_new", False):
         return False
     meta = getattr(request, "META", None) or {}
     return not meta.get("CSRF_COOKIE_NEEDS_UPDATE")
@@ -59,16 +76,24 @@ def _cacheable(request, response) -> bool:
 
 def _pack(response) -> tuple:
     # Vary из вьюхи (напр. Accept-Language) обязан пережить хит: без него
-    # промежуточные кэши склеили бы варианты. Middleware-Vary патчится позже
-    # и на хит-ответ ложится сам.
+    # промежуточные кэши склеили бы варианты. Vary от middleware (Locale,
+    # Session на промахе) ложится на хит-ответ позже сама.
     return (response.content, response.get("Content-Type", "text/html"), response.get("Vary", ""))
 
 
-def _unpack(hit) -> HttpResponse:
+def _unpack(hit) -> HttpResponse | None:
+    # Формат записи — кортеж из трёх; старые двухэлементные (`sfpage:`/`pubpage:`)
+    # живут под другим префиксом, но чужой формат честно считаем промахом.
+    if not (isinstance(hit, tuple) and len(hit) == 3):
+        return None
     content, content_type, vary = hit
     response = HttpResponse(content, content_type=content_type)
     if vary:
         response["Vary"] = vary
+    # Ключ кэша ключуется сессией (непустая — мимо кэша), но на хите сессию
+    # никто не читает и SessionMiddleware `Vary: Cookie` не ставит — говорим
+    # это промежуточным кэшам сами, симметрично промаху.
+    patch_vary_headers(response, ("Cookie",))
     return response
 
 
@@ -95,8 +120,9 @@ def cache_storefront_page(view):
             hit = cache.get(key)
         except Exception:  # noqa: BLE001
             hit = None
-        if hit is not None:
-            return _unpack(hit)
+        cached = _unpack(hit) if hit is not None else None
+        if cached is not None:
+            return cached
 
         response = view(request, *args, **kwargs)
         if _cacheable(request, response):
@@ -125,8 +151,9 @@ def cache_public_page(view):
             hit = cache.get(key)
         except Exception:  # noqa: BLE001 — кэш недоступен: рендерим как обычно
             hit = None
-        if hit is not None:
-            return _unpack(hit)
+        cached = _unpack(hit) if hit is not None else None
+        if cached is not None:
+            return cached
 
         response = view(request, *args, **kwargs)
         if _cacheable(request, response):

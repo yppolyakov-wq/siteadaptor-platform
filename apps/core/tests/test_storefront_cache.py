@@ -189,7 +189,9 @@ def test_cache_hit_preserves_vary_header():
 
     view(_real_req())
     hit = view(_real_req())
-    assert hit.get("Vary") == "Accept-Language"
+    vary = hit.get("Vary", "")
+    assert "Accept-Language" in vary  # Vary из вьюхи пережил хит…
+    assert "Cookie" in vary  # …и хит объявляет ключевание по куке (симметрично промаху)
 
 
 @override_settings(CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
@@ -209,3 +211,120 @@ def test_public_page_with_csrf_token_is_never_served_from_cache():
     second = view(_real_req()).content
     assert calls["n"] == 2
     assert first != second
+
+
+# --- P0-1, по ревью скептика: паритет двух декораторов + ветки, которых не было ---
+
+_DECORATORS = [pagecache.cache_storefront_page, pagecache.cache_public_page]
+
+
+@pytest.mark.parametrize("decorator", _DECORATORS)
+@override_settings(CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_real_request_without_personal_data_is_cached(decorator):
+    """Позитивный замок на НАСТОЯЩЕМ HttpRequest (с META): гейт не задушил кэш."""
+    cache.clear()
+    calls = {"n": 0}
+
+    @decorator
+    def view(request):
+        calls["n"] += 1
+        return HttpResponse("x")
+
+    view(_real_req())
+    hit = view(_real_req())
+    assert calls["n"] == 1
+    assert "Cookie" in hit.get("Vary", "")  # хит честно объявляет Vary: Cookie
+
+
+@pytest.mark.parametrize("decorator", _DECORATORS)
+@override_settings(CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_csrf_token_with_existing_cookie_branch_is_not_cached(decorator):
+    """Вторая ветка get_token (кука уже есть, csrf.py:107-111) — тоже персональна."""
+    from django.middleware.csrf import CsrfViewMiddleware, get_token
+
+    cache.clear()
+    calls = {"n": 0}
+
+    @decorator
+    def view(request):
+        calls["n"] += 1
+        return HttpResponse(f"token={get_token(request)}")
+
+    for _ in range(2):
+        request = _real_req()
+        request.COOKIES["csrftoken"] = "a" * 32
+        CsrfViewMiddleware(lambda r: None).process_request(request)
+        view(request)
+    assert calls["n"] == 2
+
+
+@pytest.mark.parametrize("decorator", _DECORATORS)
+@override_settings(CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_session_modified_during_render_is_not_cached(decorator):
+    """Куку sessionid ставит middleware ПОСЛЕ декоратора — виден только флаг modified."""
+    cache.clear()
+    calls = {"n": 0}
+
+    @decorator
+    def view(request):
+        calls["n"] += 1
+        request.session["visitor"] = 1
+        return HttpResponse("x")
+
+    view(_real_req())
+    view(_real_req())
+    assert calls["n"] == 2
+
+
+@pytest.mark.parametrize("decorator", _DECORATORS)
+@override_settings(CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_set_cookie_not_cached_for_both_decorators(decorator):
+    cache.clear()
+    calls = {"n": 0}
+
+    @decorator
+    def view(request):
+        calls["n"] += 1
+        response = HttpResponse("x")
+        response.set_cookie("visitor", "1")
+        return response
+
+    view(_real_req())
+    assert "visitor" in view(_real_req()).cookies
+    assert calls["n"] == 2
+
+
+@pytest.mark.parametrize("decorator", _DECORATORS)
+@override_settings(CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_unrendered_template_response_is_not_cached_and_does_not_raise(decorator):
+    from django.template import engines
+    from django.template.response import TemplateResponse
+
+    cache.clear()
+    calls = {"n": 0}
+    template = engines["django"].from_string("lazy")
+
+    @decorator
+    def view(request):
+        calls["n"] += 1
+        return TemplateResponse(request, template)
+
+    view(_real_req())
+    view(_real_req())
+    assert calls["n"] == 2
+
+
+@override_settings(CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_legacy_two_tuple_cache_entry_is_treated_as_miss():
+    """Старый формат записи (кортеж из двух) новый код не распаковывает."""
+    cache.clear()
+    calls = {"n": 0}
+
+    @pagecache.cache_storefront_page
+    def view(request):
+        calls["n"] += 1
+        return HttpResponse("fresh")
+
+    cache.set("sfpage2:acme:/:de:v0", (b"old", "text/html"), 60)
+    assert view(_real_req()).content == b"fresh"
+    assert calls["n"] == 1
