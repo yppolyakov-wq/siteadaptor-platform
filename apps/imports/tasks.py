@@ -112,7 +112,11 @@ def run_import(dedupe_key=None, schema_name=None, job_id=None):
                 job.save(update_fields=["processed_rows", "updated_at"])
 
             job.status = "completed"
-            job.save(update_fields=["status", "updated_at"])
+            # P0-2: файл больше не нужен (строки уже в job.rows) — не держим
+            # загрузку клиента в общем /media/ бессрочно.
+            if job.source_file:
+                job.source_file.delete(save=False)
+            job.save(update_fields=["status", "source_file", "updated_at"])
     except Exception as exc:  # noqa: BLE001
         _mark_failed(schema_name, job_id, f"{exc}\n{traceback.format_exc()}")
         raise

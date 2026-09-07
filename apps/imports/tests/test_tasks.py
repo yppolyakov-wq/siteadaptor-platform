@@ -67,3 +67,20 @@ def test_run_update_existing_does_not_duplicate():
     assert Product.objects.filter(sku="BR-1").count() == 1
     updated = Product.objects.get(sku="BR-1")
     assert updated.name["de"] == "Brot"
+
+
+@pytest.mark.django_db
+def test_completed_import_deletes_its_source_file():
+    """P0-2: после успешного импорта файл не нужен (run_import читает job.rows) —
+    держать загрузку клиента в общем /media/ бессрочно незачем."""
+    from django.core.files.storage import default_storage
+
+    job = _make_job()
+    preview_import(dedupe_key=None, schema_name="public", job_id=str(job.id))
+    path = job.source_file.name
+    assert default_storage.exists(path)
+    run_import(dedupe_key=None, schema_name="public", job_id=str(job.id))
+    job.refresh_from_db()
+    assert job.status == "completed"
+    assert not job.source_file
+    assert not default_storage.exists(path)

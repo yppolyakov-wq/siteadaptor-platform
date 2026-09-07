@@ -5,6 +5,9 @@
 tenant-контекста.
 """
 
+import uuid
+from pathlib import Path
+
 from django.contrib.auth.decorators import login_required
 from django.db import connection
 from django.shortcuts import get_object_or_404, redirect, render
@@ -106,10 +109,15 @@ def import_start(request):
             resource_type = request.POST.get("resource_type", "product")
             if resource_type not in RESOURCE_FIELDS:
                 resource_type = "product"
+            upload = form.cleaned_data["source_file"]
+            # P0-2 (аудит 2026-09-03 §9.3): имя файла — не путь. Раньше загрузка
+            # ложилась как imports/<исходное имя> и угадывалась с любого хоста.
+            # Расширение сохраняем: по нему tabular.is_excel выбирает парсер.
+            upload.name = f"{uuid.uuid4().hex}{Path(upload.name).suffix.lower()[:8]}"
             job = ImportJob.objects.create(
                 resource_type=resource_type,
                 status="uploaded",
-                source_file=form.cleaned_data["source_file"],
+                source_file=upload,
             )
             return redirect("imports:map", pk=job.pk)
 

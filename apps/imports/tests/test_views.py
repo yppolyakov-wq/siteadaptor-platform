@@ -91,3 +91,21 @@ def test_map_post_sets_mapping_and_status(user, monkeypatch):
         "SKU": "sku",
     }
     assert job.options.get("update_existing") is True
+
+
+def test_upload_is_stored_under_random_name_keeping_extension(user):
+    """P0-2 (аудит 2026-09-03 §9.3): исходное имя файла не должно быть путём —
+    `imports/<исходное имя>` угадывалось и отдавалось с любого хоста. Расширение
+    сохраняем: по нему `tabular.is_excel` выбирает парсер."""
+    req = RequestFactory().post(
+        "/imports/start/",
+        {"source_file": SimpleUploadedFile("Preisliste Sommer 2026.xlsx", b"PK\x03\x04")},
+    )
+    _attach_session_user(req, user)
+    views.import_start(req)
+    job = ImportJob.objects.latest("created_at")
+    name = job.source_file.name
+    assert name.startswith("imports/") and name.endswith(".xlsx")
+    assert "Preisliste" not in name and "Sommer" not in name
+    stem = name[len("imports/") : -len(".xlsx")]
+    assert len(stem) == 32 and all(c in "0123456789abcdef" for c in stem)
