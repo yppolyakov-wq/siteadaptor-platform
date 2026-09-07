@@ -1,0 +1,187 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+
+<style>
+  body { margin: 0; font-family: ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+         color: #1f2937; }
+  .wf { width: 940px; background: #fff; box-sizing: border-box; border: 1px solid #e5e7eb;
+        border-radius: 16px; overflow: hidden; }
+  .hd { padding: 12px 18px 11px; border-bottom: 1px solid #e5e7eb; background: #fff; }
+  .hd .k { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+           color: #4f46e5; }
+  .hd h2 { margin: 2px 0 0; font-size: 16px; color: #111827; }
+  .hd p { margin: 3px 0 0; font-size: 11px; color: #6b7280; line-height: 1.5; }
+
+  /* ── хром Студии ── */
+  .top { display: flex; align-items: center; gap: 8px; padding: 6px 12px; height: 34px;
+         box-sizing: border-box; border-bottom: 1px solid #e5e7eb; background: #fff;
+         font-size: 10px; color: #6b7280; }
+  .top .brand { font-weight: 800; color: #111827; font-size: 12px; letter-spacing: -.01em; }
+  .top .sp { flex: 1; }
+  .top .btn { border: 1px solid #d1d5db; border-radius: 8px; padding: 3px 8px; color: #374151;
+              background: #fff; }
+  .top .btn.on { background: #eef2ff; border-color: #c7d2fe; color: #3730a3; font-weight: 700; }
+  .top .save { background: #4f46e5; color: #fff; border-color: #4f46e5; font-weight: 700; }
+  .top .ico { width: 14px; height: 14px; display: inline-block; vertical-align: -3px; }
+
+  .app { display: flex; height: 400px; background: #f2f4f7; position: relative; }
+  .rail { width: 64px; flex: 0 0 64px; background: #fff; border-right: 1px solid #e5e7eb;
+          padding: 6px 4px; display: flex; flex-direction: column; gap: 2px; }
+  .rail .lv { display: flex; flex-direction: column; align-items: center; gap: 3px;
+              padding: 7px 2px; border-radius: 8px; color: #4b5563; font-size: 9px; }
+  .rail .lv svg { width: 18px; height: 18px; stroke: currentColor; fill: none;
+                  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .rail .lv.on { background: #eef2ff; color: #3730a3; font-weight: 700; }
+  .canvas { flex: 1; min-width: 0; padding: 10px; display: flex; flex-direction: column; }
+  .frame { background: #fff; border: 1px solid #d1d5db; border-radius: 8px; flex: 1;
+           box-sizing: border-box; padding: 10px; position: relative; overflow: hidden; }
+  .pages { height: 26px; display: flex; gap: 4px; align-items: center; padding: 0 2px;
+           margin-top: 6px; }
+  .pages .pg { border: 1px solid #e5e7eb; border-radius: 999px; padding: 2px 8px;
+               font-size: 8px; color: #6b7280; background: #fff; white-space: nowrap; }
+  .pages .pg.on { border-color: #4f46e5; color: #3730a3; background: #eef2ff; font-weight: 700; }
+
+  .pane { width: 262px; flex: 0 0 262px; background: #fff; border-left: 1px solid #e5e7eb;
+          padding: 8px 10px; box-sizing: border-box; overflow: hidden; }
+  .pane .ttl { font-size: 11px; font-weight: 700; color: #374151; margin-bottom: 6px;
+               display: flex; align-items: center; gap: 6px; }
+  .pane .ttl .x { margin-left: auto; color: #9ca3af; font-weight: 400; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 8px; }
+  .tabs .tb { font-size: 8px; color: #6b7280; padding: 2px 6px; border-radius: 6px; }
+  .tabs .tb.on { background: #eef2ff; color: #3730a3; font-weight: 700; }
+  .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 8px 9px; margin-bottom: 7px;
+          background: #fff; }
+  .card .lg { font-size: 10px; font-weight: 700; color: #111827; margin-bottom: 5px; }
+  .fld { margin-bottom: 7px; }
+  .fld:last-child { margin-bottom: 0; }
+  .fld .lb { font-size: 8.5px; color: #6b7280; margin-bottom: 3px; display: flex;
+             justify-content: space-between; align-items: center; gap: 6px; }
+  .ctrl { border: 1px solid #d1d5db; border-radius: 6px; padding: 4px 7px; font-size: 8.5px;
+          color: #374151; background: #fff; display: flex; justify-content: space-between; }
+  .ctrl .ch { color: #9ca3af; }
+  .tiles { display: flex; gap: 4px; }
+  .tiles .t { flex: 1; border: 1px solid #d1d5db; border-radius: 6px; height: 26px;
+              background: repeating-linear-gradient(135deg,#eef2f7 0 4px,#f8fafc 4px 8px);
+              position: relative; }
+  .tiles .t.on { border-color: #4f46e5; box-shadow: 0 0 0 2px #e0e7ff inset; }
+  .tiles .t span { position: absolute; left: 0; right: 0; bottom: 2px; text-align: center;
+                   font-size: 7px; color: #6b7280; }
+  .chips { display: flex; flex-wrap: wrap; gap: 3px; }
+  .chip { border: 1px solid #d1d5db; border-radius: 6px; padding: 2px 6px; font-size: 8px;
+          color: #374151; background: #fff; }
+  .chip.on { background: #111827; color: #fff; border-color: #111827; }
+  .chk { display: flex; align-items: center; gap: 5px; font-size: 8.5px; color: #374151; }
+  .chk i { width: 10px; height: 10px; border: 1px solid #9ca3af; border-radius: 3px;
+           display: inline-block; background: #fff; }
+  .chk i.on { background: #4f46e5; border-color: #4f46e5; }
+  .rows .r { display: flex; align-items: center; gap: 5px; font-size: 8.5px; color: #374151;
+             padding: 3px 4px; border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 3px;
+             background: #fafafa; }
+  .rows .r .h { color: #9ca3af; font-size: 9px; }
+  .rows .r .eye { margin-left: auto; color: #9ca3af; }
+
+  /* пилюля охвата — как в проде: две кнопки-«таблетки» + точка «есть своё» */
+  .scope { display: flex; align-items: center; gap: 3px; margin-top: 4px; }
+  .pill { border: 1px solid #d1d5db; border-radius: 999px; padding: 1px 7px; font-size: 8px;
+          color: #6b7280; background: #fff; white-space: nowrap; }
+  .pill.on { border-color: #c7d2fe; color: #3730a3; background: #eef2ff; font-weight: 700; }
+  .dot { width: 5px; height: 5px; border-radius: 999px; background: #4f46e5;
+         display: inline-block; margin-left: 3px; vertical-align: 1px; }
+  .hint { font-size: 7.5px; color: #9ca3af; }
+
+  /* ── скетч витрины на канве ── */
+  .ph { background: repeating-linear-gradient(135deg, #e5e7eb 0 6px, #f3f4f6 6px 12px);
+        border-radius: 4px; }
+  .sf-nav { height: 18px; display: flex; gap: 6px; align-items: center; font-size: 8px;
+            color: #9ca3af; border-bottom: 1px solid #eef2f7; margin-bottom: 8px; }
+  .sf-nav b { color: #374151; }
+  .sf-hero { height: 64px; border-radius: 6px; margin-bottom: 8px; position: relative; }
+  .sf-hero .t { position: absolute; left: 10px; bottom: 8px; font-size: 10px; font-weight: 800;
+                color: #111827; }
+  .sf-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .sf-grid .c { height: 58px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 4px;
+                box-sizing: border-box; }
+  .sf-grid .c .img { height: 30px; border-radius: 3px; }
+  .sf-grid .c .ln { height: 5px; width: 70%; background: #e5e7eb; border-radius: 2px;
+                    margin-top: 5px; }
+  .sf-grid .c .ln.s { width: 40%; }
+  .sf-sec { font-size: 8px; color: #6b7280; margin: 6px 0 4px; display: flex;
+            justify-content: space-between; }
+  .sel { outline: 2px solid rgba(99,102,241,.9); outline-offset: 3px; border-radius: 6px; }
+  .tag { position: absolute; right: 12px; top: 12px; font-size: 8px; background: #111827;
+         color: #fff; border-radius: 999px; padding: 2px 7px; }
+  .sf-text { max-width: 60%; margin: 0 auto; }
+  .sf-text .h { height: 9px; width: 55%; background: #d1d5db; border-radius: 2px;
+                margin-bottom: 8px; }
+  .sf-text .p { height: 5px; background: #e5e7eb; border-radius: 2px; margin-bottom: 4px; }
+  .sf-text .p.s { width: 80%; }
+
+  /* ── справочные листы ── */
+  .sheet { padding: 12px 18px 16px; }
+  table { border-collapse: collapse; width: 100%; font-size: 9.5px; }
+  th { text-align: left; font-size: 8.5px; color: #6b7280; font-weight: 600; padding: 4px 8px;
+       border-bottom: 1px solid #e5e7eb; }
+  td { padding: 4px 8px; border-bottom: 1px solid #f3f4f6; vertical-align: top; color: #374151; }
+  td.code { font-family: ui-monospace, Menlo, monospace; font-size: 8.5px; color: #6b7280;
+            white-space: nowrap; }
+  td.lbl { font-weight: 700; color: #111827; white-space: nowrap; }
+  td .st { display: inline-block; border: 1px solid #e5e7eb; border-radius: 6px; padding: 1px 6px;
+           margin: 1px 3px 1px 0; background: #fafafa; font-size: 8.5px; }
+  td .st.sc { border-color: #c7d2fe; background: #eef2ff; color: #3730a3; }
+  td .none { color: #9ca3af; font-style: italic; }
+  .note { font-size: 9.5px; color: #6b7280; line-height: 1.55; }
+  .note b { color: #111827; }
+  .cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .st8 { border: 1px solid #e5e7eb; border-radius: 12px; padding: 10px; background: #fff; }
+  .st8 .k { font-size: 9px; font-weight: 800; color: #4f46e5; text-transform: uppercase;
+            letter-spacing: .06em; margin-bottom: 6px; }
+  .st8 .desc { font-size: 9px; color: #6b7280; margin-top: 8px; line-height: 1.5; }
+  .arrow { font-size: 9px; color: #6b7280; padding: 8px 10px; border: 1px dashed #c7d2fe;
+           border-radius: 10px; background: #f8f9ff; margin-top: 12px; line-height: 1.55; }
+</style>
+
+</helmet>
+<div class="wf" style="width: 940px">
+<div class="hd"><div class="k">Studio · Textseite</div><h2>Одна настройка — и честные значения</h2><p>«Textbreite» действует на всех страницах типов Textseite, Blog и Rechtliches. Четыре значения: «Wie bisher» (ничего не навязывать), узкая, широкая, во всю ширину. На «Über uns» ширина держит всю страницу — вводный блок, контакты и блоки страницы.</p></div>
+<div class="top">
+  <span class="brand">Studio</span><span>· Hofladen Sonnenfeld</span>
+  <span class="sp"></span>
+  <span class="btn on">✏️ Bearbeiten</span><span class="btn">⚙️ Vorlage</span>
+  <span class="btn">↶</span><span class="btn">↷</span>
+  <span class="btn save">Speichern</span>
+</div><div class="app" style="height:344px"><div class="rail"><div class="lv"><svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.4 6.8 19.2l1-5.9L3.5 9.2l5.9-.8z"/></svg><span>Design</span></div><div class="lv on"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span>Textseite</span></div><div class="lv"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg><span>Blöcke</span></div><div class="lv"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-6 6-2-2-5 5"/></svg><span>Medien</span></div><div class="lv"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg><span>Start</span></div></div><div class="canvas"><div class="frame">
+<div class="sf-nav"><b>Hofladen Sonnenfeld</b><span>Sortiment</span><span>Aktionen</span><b>Über uns</b></div>
+<div class="sf-text sel" style="padding:8px">
+  <div class="h"></div>
+  <div class="p"></div><div class="p"></div><div class="p s"></div>
+  <div style="height:8px"></div>
+  <div class="p"></div><div class="p"></div><div class="p"></div><div class="p s"></div>
+  <div style="height:8px"></div>
+  <div class="ph" style="height:36px"></div>
+</div>
+<span class="tag">Textseite</span></div><div class="pages"><span class="pg">Startseite</span><span class="pg">Sortiment</span><span class="pg">Getränke &amp; Vorrat</span><span class="pg">Aktionen</span><span class="pg">Räumung</span><span class="pg on">Über uns</span><span class="pg">Impressum</span><span class="pg">Kontakt</span></div></div>
+<div class="pane">
+  <div class="ttl">📄 Textseite <span class="x">✕</span></div>
+  <div class="tabs"><span class="tb">🎨 Theme</span><span class="tb">🖼 Banner</span><span class="tb on">📄 Textseite</span><span class="tb">☰ Menu</span><span class="tb">📚 Templates</span></div>
+  <div class="card">
+    <div class="lg">Textbreite</div>
+    <div class="fld">
+      <div class="ctrl"><span>Schmale Spalte</span><span class="ch">▾</span></div>
+      <div class="chips" style="margin-top:5px">
+        <span class="chip">Wie bisher</span><span class="chip on">Schmale Spalte</span><span class="chip">Breite Spalte</span><span class="chip">Volle Breite</span>
+      </div>
+    </div>
+  </div>
+  <div class="note" style="padding:4px 2px">Одна настройка на все текстовые страницы: «Über uns», правовые, блог, команда, галерея, отзывы. «Wie bisher» — страница как была (у «Über uns» узкая, у команды и галереи без ограничителя), остальные три задают ширину явно. Выбор виден на канве сразу, без сохранения.</div>
+</div></div>
+</div>
+</x-dc>
+</body>
+</html>
