@@ -327,10 +327,14 @@ def _voucher_cap_percent() -> int:
         from django.db import connection
         from django_tenants.utils import get_tenant_model, schema_context
 
+        # P0-4 (аудит 2026-09-03): имя схемы снимаем ДО входа в контекст — внутри
+        # `schema_context("public")` оно уже "public", и настройка владельца не
+        # применялась никогда (потолок читался у public-тенанта, у него 0).
+        schema = connection.schema_name
         with schema_context("public"):
             tenant = (
                 get_tenant_model()
-                .objects.filter(schema_name=connection.schema_name)
+                .objects.filter(schema_name=schema)
                 .only("voucher_max_percent")
                 .first()
             )
