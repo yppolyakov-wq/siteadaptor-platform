@@ -217,6 +217,62 @@ CSS = """
   .answer { margin-top: 10px; border: 1px dashed #c7d2fe; background: #f8f9ff; border-radius: 10px;
             padding: 8px 10px; font-size: 10px; color: #374151; line-height: 1.5; }
   .answer b { color: #111827; }
+
+  /* ── v5: панели-пересборка — поповеры, тулбар, флайаут, телефон ── */
+  .pop { position: absolute; width: 232px; background: #fff; border: 1px solid #d1d5db; z-index: 4;
+         border-radius: 10px; box-shadow: 0 12px 32px rgba(22,24,29,.18); padding: 7px 9px 8px;
+         font-size: 8.5px; }
+  .pop .ph2 { display: flex; align-items: center; gap: 6px; font-size: 9.5px; font-weight: 700;
+              color: #111827; margin-bottom: 6px; }
+  .pop .ph2 .x { margin-left: auto; color: #9ca3af; font-weight: 400; }
+  .pop .ph2 .kind { font-size: 7.5px; font-weight: 600; color: #6b7280; background: #f3f4f6;
+                    border-radius: 999px; padding: 1px 6px; }
+  .pop::before { content: ""; position: absolute; width: 10px; height: 10px; background: #fff;
+                 border-left: 1px solid #d1d5db; border-top: 1px solid #d1d5db; transform: rotate(-45deg); }
+  .pop.ar-l::before { left: -6px; top: 14px; }
+  .pop.ar-t::before { top: -6px; left: 18px; transform: rotate(45deg); }
+  .pop.ar-r::before { right: -6px; top: 14px; transform: rotate(135deg); }
+  .pop.ar-b::before { bottom: -6px; left: 18px; transform: rotate(225deg); }
+  .pop .more { margin-top: 6px; font-size: 8px; color: #4f46e5; font-weight: 700; }
+  .ftb { position: absolute; display: flex; gap: 2px; align-items: center; background: #111827;
+         color: #fff; border-radius: 8px; padding: 3px 4px; font-size: 8px; z-index: 4;
+         box-shadow: 0 6px 18px rgba(22,24,29,.25); white-space: nowrap; }
+  .ftb .b { padding: 2px 6px; border-radius: 5px; }
+  .ftb .b.on { background: #4f46e5; }
+  .ftb .sep { width: 1px; height: 12px; background: #4b5563; margin: 0 2px; }
+  .ftb .nm { font-weight: 700; padding: 2px 6px; color: #c7d2fe; }
+  .flyout { width: 250px; flex: 0 0 250px; background: #fff; border-right: 1px solid #e5e7eb;
+            padding: 8px 10px; box-sizing: border-box; overflow: hidden; }
+  .flyout .ttl { font-size: 11px; font-weight: 700; color: #374151; margin-bottom: 6px;
+                 display: flex; align-items: center; gap: 6px; }
+  .flyout .ttl .x { margin-left: auto; color: #9ca3af; font-weight: 400; }
+  .rail .lv .cnt { position: absolute; top: 3px; right: 6px; font-size: 7px; background: #4f46e5;
+                   color: #fff; border-radius: 999px; padding: 0 4px; }
+  .rail .lv { position: relative; }
+  .sel-el { outline: 2px solid rgba(99,102,241,.9); outline-offset: 2px; border-radius: 4px; }
+  .dim { opacity: .55; }
+  .phone { width: 390px; background: #fff; border: 1px solid #e5e7eb; border-radius: 16px;
+           overflow: hidden; box-sizing: border-box; }
+  .phone .top { height: 34px; }
+  .phone .app { height: 520px; display: block; }
+  .phone .frame { height: 100%; border-radius: 0; border: 0; }
+  .sheet-m { position: absolute; left: 0; right: 0; bottom: 0; background: #fff; z-index: 5;
+             border-top-left-radius: 14px; border-top-right-radius: 14px; padding: 8px 12px 12px;
+             box-shadow: 0 -8px 24px rgba(22,24,29,.14); font-size: 9px; }
+  .sheet-m .grab { width: 36px; height: 4px; border-radius: 999px; background: #d1d5db; margin: 0 auto 8px; }
+  .tabbar { position: absolute; left: 0; right: 0; bottom: 0; height: 40px; background: #fff;
+            border-top: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-around;
+            font-size: 8px; color: #4b5563; z-index: 4; }
+  .tabbar .tb { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .tabbar .tb svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .tabbar .tb.on { color: #3730a3; font-weight: 700; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .inv { border: 1px solid #e5e7eb; border-radius: 12px; padding: 10px 12px; background: #fff; }
+  .inv .k { font-size: 9px; font-weight: 800; color: #4f46e5; text-transform: uppercase;
+            letter-spacing: .06em; margin-bottom: 6px; }
+  .inv ul { margin: 0; padding-left: 14px; font-size: 9px; color: #374151; line-height: 1.5; }
+  .inv li b { color: #111827; }
+  .inv li .n { color: #9ca3af; font-size: 8px; }
 </style>
 """
 
@@ -843,6 +899,34 @@ def studio(top_html: str, rail_html: str, sketch: str, tag: str, pane_html: str,
     return (top_html + f'<div class="app">{rail_html}'
             + f'<div class="canvas"><div class="frame">{sketch}<span class="tag">{tag}</span></div>{canvas_extra}</div>'
             + pane_html + "</div>")
+
+
+
+# ── v5: помощники пересборки панелей (заполняются по итогам воркфлоу) ──────────
+LEVELS_DEC = [("page", "Startseite"), ("menu", "Menü"), ("blocks", "Blöcke"), ("media", "Medien")]
+
+
+def top_dec(page: str, mode: str = "sel", extra: str = "") -> str:
+    """Верхняя строка по решениям 1B+3A: «Seite ▾» + ссылка «Design des Shops →»."""
+    link = '<span class="link">Design des Shops →</span>'
+    return top_v4(page, mode=mode, extra=link + extra)
+
+
+def pop(x: int, y: int, title: str, body: str, kind: str = "", arrow: str = "l", width: int = 232,
+        more: str = "") -> str:
+    k = f'<span class="kind">{kind}</span>' if kind else ""
+    m = f'<div class="more">{more}</div>' if more else ""
+    return (f'<div class="pop ar-{arrow}" style="left:{x}px;top:{y}px;width:{width}px">'
+            f'<div class="ph2">{title}{k}<span class="x">✕</span></div>{body}{m}</div>')
+
+
+def ftb(x: int, y: int, name: str, buttons: list) -> str:
+    bs = "".join(f'<span class="b{" on" if on else ""}">{b}</span>' for b, on in buttons)
+    return f'<div class="ftb" style="left:{x}px;top:{y}px"><span class="nm">{name}</span><span class="sep"></span>{bs}</div>'
+
+
+def flyout(title: str, body: str) -> str:
+    return f'<div class="flyout"><div class="ttl">{title}<span class="x">✕</span></div>{body}</div>'
 
 
 # ── 0 · бланк выбора ───────────────────────────────────────────────────────────
