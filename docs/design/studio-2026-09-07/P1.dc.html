@@ -1,0 +1,283 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+
+<style>
+  body { margin: 0; font-family: ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+         color: #1f2937; }
+  .wf { width: 940px; background: #fff; box-sizing: border-box; border: 1px solid #e5e7eb;
+        border-radius: 16px; overflow: hidden; }
+  .hd { padding: 12px 18px 11px; border-bottom: 1px solid #e5e7eb; background: #fff; }
+  .hd .k { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+           color: #4f46e5; }
+  .hd h2 { margin: 2px 0 0; font-size: 16px; color: #111827; }
+  .hd p { margin: 3px 0 0; font-size: 11px; color: #6b7280; line-height: 1.5; }
+
+  /* ── хром Студии ── */
+  .top { display: flex; align-items: center; gap: 8px; padding: 6px 12px; height: 34px;
+         box-sizing: border-box; border-bottom: 1px solid #e5e7eb; background: #fff;
+         font-size: 10px; color: #6b7280; }
+  .top .brand { font-weight: 800; color: #111827; font-size: 12px; letter-spacing: -.01em; }
+  .top .sp { flex: 1; }
+  .top .btn { border: 1px solid #d1d5db; border-radius: 8px; padding: 3px 8px; color: #374151;
+              background: #fff; }
+  .top .btn.on { background: #eef2ff; border-color: #c7d2fe; color: #3730a3; font-weight: 700; }
+  .top .save { background: #4f46e5; color: #fff; border-color: #4f46e5; font-weight: 700; }
+  .top .ico { width: 14px; height: 14px; display: inline-block; vertical-align: -3px; }
+
+  .app { display: flex; height: 400px; background: #f2f4f7; position: relative; }
+  .rail { width: 64px; flex: 0 0 64px; background: #fff; border-right: 1px solid #e5e7eb;
+          padding: 6px 4px; display: flex; flex-direction: column; gap: 2px; }
+  .rail .lv { display: flex; flex-direction: column; align-items: center; gap: 3px;
+              padding: 7px 2px; border-radius: 8px; color: #4b5563; font-size: 9px; }
+  .rail .lv svg { width: 18px; height: 18px; stroke: currentColor; fill: none;
+                  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .rail .lv.on { background: #eef2ff; color: #3730a3; font-weight: 700; }
+  .canvas { flex: 1; min-width: 0; padding: 10px; display: flex; flex-direction: column;
+            position: relative; }
+  .frame { background: #fff; border: 1px solid #d1d5db; border-radius: 8px; flex: 1;
+           box-sizing: border-box; padding: 10px; position: relative; overflow: hidden; }
+  .pages { height: 26px; display: flex; gap: 4px; align-items: center; padding: 0 2px;
+           margin-top: 6px; }
+  .pages .pg { border: 1px solid #e5e7eb; border-radius: 999px; padding: 2px 8px;
+               font-size: 8px; color: #6b7280; background: #fff; white-space: nowrap; }
+  .pages .pg.on { border-color: #4f46e5; color: #3730a3; background: #eef2ff; font-weight: 700; }
+
+  .pane { width: 262px; flex: 0 0 262px; background: #fff; border-left: 1px solid #e5e7eb;
+          padding: 8px 10px; box-sizing: border-box; overflow: hidden; }
+  .pane .ttl { font-size: 11px; font-weight: 700; color: #374151; margin-bottom: 6px;
+               display: flex; align-items: center; gap: 6px; }
+  .pane .ttl .x { margin-left: auto; color: #9ca3af; font-weight: 400; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 8px; }
+  .tabs .tb { font-size: 8px; color: #6b7280; padding: 2px 6px; border-radius: 6px; }
+  .tabs .tb.on { background: #eef2ff; color: #3730a3; font-weight: 700; }
+  .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 8px 9px; margin-bottom: 7px;
+          background: #fff; }
+  .card .lg { font-size: 10px; font-weight: 700; color: #111827; margin-bottom: 5px; }
+  .fld { margin-bottom: 7px; }
+  .fld:last-child { margin-bottom: 0; }
+  .fld .lb { font-size: 8.5px; color: #6b7280; margin-bottom: 3px; display: flex;
+             justify-content: space-between; align-items: center; gap: 6px; }
+  .ctrl { border: 1px solid #d1d5db; border-radius: 6px; padding: 4px 7px; font-size: 8.5px;
+          color: #374151; background: #fff; display: flex; justify-content: space-between; }
+  .ctrl .ch { color: #9ca3af; }
+  .tiles { display: flex; gap: 4px; }
+  .tiles .t { flex: 1; border: 1px solid #d1d5db; border-radius: 6px; height: 26px;
+              background: repeating-linear-gradient(135deg,#eef2f7 0 4px,#f8fafc 4px 8px);
+              position: relative; }
+  .tiles .t.on { border-color: #4f46e5; box-shadow: 0 0 0 2px #e0e7ff inset; }
+  .tiles .t span { position: absolute; left: 0; right: 0; bottom: 2px; text-align: center;
+                   font-size: 7px; color: #6b7280; }
+  .chips { display: flex; flex-wrap: wrap; gap: 3px; }
+  .chip { border: 1px solid #d1d5db; border-radius: 6px; padding: 2px 6px; font-size: 8px;
+          color: #374151; background: #fff; }
+  .chip.on { background: #111827; color: #fff; border-color: #111827; }
+  .chk { display: flex; align-items: center; gap: 5px; font-size: 8.5px; color: #374151; }
+  .chk i { width: 10px; height: 10px; border: 1px solid #9ca3af; border-radius: 3px;
+           display: inline-block; background: #fff; }
+  .chk i.on { background: #4f46e5; border-color: #4f46e5; }
+  .rows .r { display: flex; align-items: center; gap: 5px; font-size: 8.5px; color: #374151;
+             padding: 3px 4px; border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 3px;
+             background: #fafafa; }
+  .rows .r .h { color: #9ca3af; font-size: 9px; }
+  .rows .r .eye { margin-left: auto; color: #9ca3af; }
+
+  /* пилюля охвата — как в проде: две кнопки-«таблетки» + точка «есть своё» */
+  .scope { display: flex; align-items: center; gap: 3px; margin-top: 4px; }
+  .pill { border: 1px solid #d1d5db; border-radius: 999px; padding: 1px 7px; font-size: 8px;
+          color: #6b7280; background: #fff; white-space: nowrap; }
+  .pill.on { border-color: #c7d2fe; color: #3730a3; background: #eef2ff; font-weight: 700; }
+  .dot { width: 5px; height: 5px; border-radius: 999px; background: #4f46e5;
+         display: inline-block; margin-left: 3px; vertical-align: 1px; }
+  .hint { font-size: 7.5px; color: #9ca3af; }
+
+  /* ── скетч витрины на канве ── */
+  .ph { background: repeating-linear-gradient(135deg, #e5e7eb 0 6px, #f3f4f6 6px 12px);
+        border-radius: 4px; }
+  .sf-nav { height: 18px; display: flex; gap: 6px; align-items: center; font-size: 8px;
+            color: #9ca3af; border-bottom: 1px solid #eef2f7; margin-bottom: 8px; }
+  .sf-nav b { color: #374151; }
+  .sf-hero { height: 64px; border-radius: 6px; margin-bottom: 8px; position: relative; }
+  .sf-hero .t { position: absolute; left: 10px; bottom: 8px; font-size: 10px; font-weight: 800;
+                color: #111827; }
+  .sf-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .sf-grid .c { height: 58px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 4px;
+                box-sizing: border-box; }
+  .sf-grid .c .img { height: 30px; border-radius: 3px; }
+  .sf-grid .c .ln { height: 5px; width: 70%; background: #e5e7eb; border-radius: 2px;
+                    margin-top: 5px; }
+  .sf-grid .c .ln.s { width: 40%; }
+  .sf-sec { font-size: 8px; color: #6b7280; margin: 6px 0 4px; display: flex;
+            justify-content: space-between; }
+  .sel { outline: 2px solid rgba(99,102,241,.9); outline-offset: 3px; border-radius: 6px; }
+  .tag { position: absolute; right: 12px; top: 12px; font-size: 8px; background: #111827;
+         color: #fff; border-radius: 999px; padding: 2px 7px; }
+  .sf-text { max-width: 60%; margin: 0 auto; }
+  .sf-text .h { height: 9px; width: 55%; background: #d1d5db; border-radius: 2px;
+                margin-bottom: 8px; }
+  .sf-text .p { height: 5px; background: #e5e7eb; border-radius: 2px; margin-bottom: 4px; }
+  .sf-text .p.s { width: 80%; }
+
+  /* ── справочные листы ── */
+  .sheet { padding: 12px 18px 16px; }
+  table { border-collapse: collapse; width: 100%; font-size: 9.5px; }
+  th { text-align: left; font-size: 8.5px; color: #6b7280; font-weight: 600; padding: 4px 8px;
+       border-bottom: 1px solid #e5e7eb; }
+  td { padding: 4px 8px; border-bottom: 1px solid #f3f4f6; vertical-align: top; color: #374151; }
+  td.code { font-family: ui-monospace, Menlo, monospace; font-size: 8.5px; color: #6b7280;
+            white-space: nowrap; }
+  td.lbl { font-weight: 700; color: #111827; white-space: nowrap; }
+  td .st { display: inline-block; border: 1px solid #e5e7eb; border-radius: 6px; padding: 1px 6px;
+           margin: 1px 3px 1px 0; background: #fafafa; font-size: 8.5px; }
+  td .st.sc { border-color: #c7d2fe; background: #eef2ff; color: #3730a3; }
+  td .none { color: #9ca3af; font-style: italic; }
+  .note { font-size: 9.5px; color: #6b7280; line-height: 1.55; }
+  .note b { color: #111827; }
+  .cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .st8 { border: 1px solid #e5e7eb; border-radius: 12px; padding: 10px; background: #fff; }
+  .st8 .k { font-size: 9px; font-weight: 800; color: #4f46e5; text-transform: uppercase;
+            letter-spacing: .06em; margin-bottom: 6px; }
+  .st8 .desc { font-size: 9px; color: #6b7280; margin-top: 8px; line-height: 1.5; }
+  .arrow { font-size: 9px; color: #6b7280; padding: 8px 10px; border: 1px dashed #c7d2fe;
+           border-radius: 10px; background: #f8f9ff; margin-top: 12px; line-height: 1.55; }
+
+  /* ── v3: предложение ── */
+  .top .pgsel { border: 1px solid #d1d5db; border-radius: 8px; padding: 3px 8px; color: #111827;
+                background: #fff; font-weight: 600; display: flex; gap: 5px; align-items: center; }
+  .top .pgsel .ch { color: #9ca3af; font-weight: 400; }
+  .acc { border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 5px; overflow: hidden; }
+  .acc > .h { display: flex; align-items: center; gap: 6px; padding: 6px 8px; font-size: 9.5px;
+            font-weight: 700; color: #111827; background: #fafafa; }
+  .acc > .h .sum { margin-left: auto; font-weight: 400; color: #9ca3af; font-size: 8px;
+                 white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+  .acc > .h .car { color: #9ca3af; font-size: 8px; width: 8px; }
+  .acc .b { padding: 7px 8px 8px; border-top: 1px solid #eef2f7; }
+  .acc.open > .h { background: #fff; }
+  .diff { width: 100%; border-collapse: collapse; font-size: 9.5px; }
+  .diff th { text-align: left; font-size: 8.5px; color: #6b7280; font-weight: 600; padding: 5px 8px;
+             border-bottom: 1px solid #e5e7eb; }
+  .diff td { padding: 6px 8px; border-bottom: 1px solid #f3f4f6; vertical-align: top;
+             color: #374151; line-height: 1.45; }
+  .diff td.was { color: #9ca3af; }
+  .diff td.now { color: #111827; }
+  .diff td.why { color: #6b7280; font-size: 9px; }
+  .link { color: #4f46e5; font-weight: 700; }
+  .inset { position: absolute; right: 22px; bottom: 22px; width: 300px; background: #fff;
+           border: 1px solid #c7d2fe; border-radius: 10px; box-shadow: 0 8px 24px rgba(22,24,29,.12);
+           padding: 8px 9px; font-size: 8.5px; }
+  .inset .cap { font-size: 8px; font-weight: 800; color: #4f46e5; text-transform: uppercase;
+                letter-spacing: .06em; margin-bottom: 5px; }
+  .warn { border: 1px dashed #fca5a5; background: #fff7f7; color: #991b1b; border-radius: 8px;
+          padding: 6px 8px; font-size: 8.5px; line-height: 1.45; margin-top: 6px; }
+
+  /* ── v4: страница «Entscheidungen» ── */
+  .hd .badge { display: inline-block; background: #111827; color: #fff; font-size: 12px;
+               font-weight: 800; letter-spacing: 0; border-radius: 7px; padding: 2px 8px;
+               margin-right: 8px; vertical-align: middle; text-transform: none; }
+  .hd .badge.rec { background: #4f46e5; }
+  .hd .rectag { margin-left: 8px; color: #15803d; background: #dcfce7; border-radius: 999px;
+                padding: 1px 7px; font-size: 9px; text-transform: none; letter-spacing: 0;
+                font-weight: 700; }
+  .top .pgsel.open { background: #eef2ff; border-color: #c7d2fe; color: #3730a3; }
+  .top .pglabel { color: #111827; font-weight: 600; padding: 3px 4px; }
+  .dd { position: absolute; left: 104px; top: 2px; width: 196px; background: #fff; z-index: 3;
+        border: 1px solid #d1d5db; border-radius: 10px; box-shadow: 0 10px 28px rgba(22,24,29,.16);
+        padding: 5px; font-size: 8.5px; }
+  .dd .g { font-size: 7.5px; font-weight: 800; color: #9ca3af; text-transform: uppercase;
+           letter-spacing: .06em; padding: 4px 6px 2px; }
+  .dd .it { padding: 3px 6px; border-radius: 6px; color: #374151; display: flex; gap: 6px; }
+  .dd .it.on { background: #eef2ff; color: #3730a3; font-weight: 700; }
+  .dd .it .k { margin-left: auto; color: #9ca3af; font-size: 7.5px; }
+  .dd .it.rare { color: #111827; font-weight: 600; }
+  .callout { position: absolute; right: 16px; top: 54px; width: 214px; background: #fff;
+             border: 1px solid #c7d2fe; border-radius: 10px; padding: 7px 9px; font-size: 8.5px;
+             line-height: 1.45; color: #374151; box-shadow: 0 8px 24px rgba(22,24,29,.12); z-index: 3; }
+  .callout b { color: #111827; }
+  .sf-nav .cart { margin-left: auto; color: #111827; font-weight: 700; }
+  .sf-nav .cart.sel-i { outline: 2px solid rgba(99,102,241,.9); outline-offset: 2px; border-radius: 4px; }
+  .diff td.rec { color: #15803d; font-weight: 700; white-space: nowrap; }
+  .diff td .opt { display: inline-block; background: #111827; color: #fff; font-size: 8.5px;
+                  font-weight: 800; border-radius: 5px; padding: 1px 5px; margin-right: 5px; }
+  .diff td .opt.rec { background: #4f46e5; }
+  .answer { margin-top: 10px; border: 1px dashed #c7d2fe; background: #f8f9ff; border-radius: 10px;
+            padding: 8px 10px; font-size: 10px; color: #374151; line-height: 1.5; }
+  .answer b { color: #111827; }
+
+  /* ── v5: панели-пересборка — поповеры, тулбар, флайаут, телефон ── */
+  .pop { position: absolute; width: 232px; background: #fff; border: 1px solid #d1d5db; z-index: 4;
+         border-radius: 10px; box-shadow: 0 12px 32px rgba(22,24,29,.18); padding: 7px 9px 8px;
+         font-size: 8.5px; }
+  .pop .ph2 { display: flex; align-items: center; gap: 6px; font-size: 9.5px; font-weight: 700;
+              color: #111827; margin-bottom: 6px; }
+  .pop .ph2 .x { margin-left: auto; color: #9ca3af; font-weight: 400; }
+  .pop .ph2 .kind { font-size: 7.5px; font-weight: 600; color: #6b7280; background: #f3f4f6;
+                    border-radius: 999px; padding: 1px 6px; }
+  .pop::before { content: ""; position: absolute; width: 10px; height: 10px; background: #fff;
+                 border-left: 1px solid #d1d5db; border-top: 1px solid #d1d5db; transform: rotate(-45deg); }
+  .pop.ar-l::before { left: -6px; top: 14px; }
+  .pop.ar-t::before { top: -6px; left: 18px; transform: rotate(45deg); }
+  .pop.ar-r::before { right: -6px; top: 14px; transform: rotate(135deg); }
+  .pop.ar-b::before { bottom: -6px; left: 18px; transform: rotate(225deg); }
+  .pop .more { margin-top: 6px; font-size: 8px; color: #4f46e5; font-weight: 700; }
+  .ftb { position: absolute; display: flex; gap: 2px; align-items: center; background: #111827;
+         color: #fff; border-radius: 8px; padding: 3px 4px; font-size: 8px; z-index: 4;
+         box-shadow: 0 6px 18px rgba(22,24,29,.25); white-space: nowrap; }
+  .ftb .b { padding: 2px 6px; border-radius: 5px; }
+  .ftb .b.on { background: #4f46e5; }
+  .ftb .sep { width: 1px; height: 12px; background: #4b5563; margin: 0 2px; }
+  .ftb .nm { font-weight: 700; padding: 2px 6px; color: #c7d2fe; }
+  .flyout { width: 250px; flex: 0 0 250px; background: #fff; border-right: 1px solid #e5e7eb;
+            padding: 8px 10px; box-sizing: border-box; overflow: hidden; }
+  .flyout .ttl { font-size: 11px; font-weight: 700; color: #374151; margin-bottom: 6px;
+                 display: flex; align-items: center; gap: 6px; }
+  .flyout .ttl .x { margin-left: auto; color: #9ca3af; font-weight: 400; }
+  .rail .lv .cnt { position: absolute; top: 3px; right: 6px; font-size: 7px; background: #4f46e5;
+                   color: #fff; border-radius: 999px; padding: 0 4px; }
+  .rail .lv { position: relative; }
+  .sel-el { outline: 2px solid rgba(99,102,241,.9); outline-offset: 2px; border-radius: 4px; }
+  .dim { opacity: .55; }
+  .phone { width: 390px; background: #fff; border: 1px solid #e5e7eb; border-radius: 16px;
+           overflow: hidden; box-sizing: border-box; }
+  .phone .top { height: 34px; }
+  .phone .app { height: 520px; display: block; }
+  .phone .frame { height: 100%; border-radius: 0; border: 0; }
+  .sheet-m { position: absolute; left: 0; right: 0; bottom: 0; background: #fff; z-index: 5;
+             border-top-left-radius: 14px; border-top-right-radius: 14px; padding: 8px 12px 12px;
+             box-shadow: 0 -8px 24px rgba(22,24,29,.14); font-size: 9px; }
+  .sheet-m .grab { width: 36px; height: 4px; border-radius: 999px; background: #d1d5db; margin: 0 auto 8px; }
+  .tabbar { position: absolute; left: 0; right: 0; bottom: 0; height: 40px; background: #fff;
+            border-top: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-around;
+            font-size: 8px; color: #4b5563; z-index: 4; }
+  .tabbar .tb { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .tabbar .tb svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .tabbar .tb.on { color: #3730a3; font-weight: 700; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .inv { border: 1px solid #e5e7eb; border-radius: 12px; padding: 10px 12px; background: #fff; }
+  .inv .k { font-size: 9px; font-weight: 800; color: #4f46e5; text-transform: uppercase;
+            letter-spacing: .06em; margin-bottom: 6px; }
+  .inv ul { margin: 0; padding-left: 14px; font-size: 9px; color: #374151; line-height: 1.5; }
+  .inv li b { color: #111827; }
+  .inv li .n { color: #9ca3af; font-size: 8px; }
+
+  .pane .crumb { font-size: 8px; color: #9ca3af; margin-bottom: 1px; }
+  .pane .ttl .seg, .sheet-m .seg { display: inline-flex; border: 1px solid #d1d5db; border-radius: 6px; overflow: hidden;
+                    font-size: 7.5px; font-weight: 600; margin-left: auto; }
+  .pane .ttl .seg span, .sheet-m .seg span { padding: 1px 5px; color: #6b7280; }
+  .pane .ttl .seg span.on, .sheet-m .seg span.on { background: #eef2ff; color: #3730a3; }
+  .pane .ttl .dots { color: #9ca3af; font-weight: 400; margin-left: 6px; }
+  .pane .ttl .x { margin-left: 4px; }
+</style>
+
+</helmet>
+<div class="wf" style="width: 940px">
+<div class="hd"><div class="k">Panels · Funktionskarte</div><h2>Каждая функция: где сегодня → где будет</h2><p>Полный список из инвентаризации. Правило раскладки (по 14 редакторам рынка): слева — навигация и добавление; справа — ОДНА панель со свойствами того, что выбрано (без вкладок, с крошкой «где я»); на канве — плашка действий у выбранного блока, а мелкие попапы — только быстрые выборы до 7 плиток. Строки с пометкой F5–F8 — развилки на «Wahlzettel 2».</p></div><div class="sheet"><table class="diff"><tr><th>Funktion</th><th>heute</th><th>neu</th><th>Ort</th></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Rail «Design»</td><td class="was">→ область Theme</td><td class="now">уходит; ссылка «Design des Shops →» в верхней строке → экран кабинета (1B)</td><td><span style="display:inline-block;background:#fdf2f8;color:#9d174d;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Kabinett</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Rail «Seite ‹тип›»</td><td class="was">область sections/page + лента страниц внизу</td><td class="now">остаётся: открывает панель «Diese Seite: ‹тип›»; ленты нет</td><td><span style="display:inline-block;background:#eef2ff;color:#3730a3;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Rail</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Rail «Blöcke»</td><td class="was">поповер «+» (в конец страницы)</td><td class="now">остаётся: тот же поповер вставки у кнопки рейки</td><td><span style="display:inline-block;background:#eef2ff;color:#3730a3;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Rail</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Rail «Medien»</td><td class="was">только Fotogalerie</td><td class="now">остаётся: панель «Medien» — Fotogalerie · Banner-Slides · Titelbilder · Logo</td><td><span style="display:inline-block;background:#eef2ff;color:#3730a3;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Rail</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Rail «Start»</td><td class="was">quickstart (демо + Layout-Vorlagen)</td><td class="now">уходит → секция «Vorlagen» на экране кабинета (4A)</td><td><span style="display:inline-block;background:#fdf2f8;color:#9d174d;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Kabinett</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">НОВЫЙ rail «Menü»</td><td class="was">вкладка Menü / ☰ в верхней строке</td><td class="now">уровень рейки: панель «Kopf- &amp; Fußzeile» (2B)</td><td><span style="display:inline-block;background:#eef2ff;color:#3730a3;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Rail</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Лента страниц внизу</td><td class="was">чипы, полная перезагрузка</td><td class="now">уходит → «Seite: … ▾» в верхней строке (3A); Warenkorb/Kasse оттуда</td><td><span style="display:inline-block;background:#f3f4f6;color:#374151;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Topbar</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Topbar: ← Übersicht · Studio · ↶ ↷ · статус</td><td class="was">всегда</td><td class="now">остаются</td><td><span style="display:inline-block;background:#f3f4f6;color:#374151;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Topbar</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Topbar: имя блока · Einfach|Experte · ▾ · ✕</td><td class="was">при выбранном блоке</td><td class="now">переезжают в шапку панели (крошка «Startseite › Produkte»)</td><td><span style="display:inline-block;background:#ecfdf5;color:#065f46;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Panel</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Topbar: 🖥 ▭ 📱</td><td class="was">всегда</td><td class="now">остаётся</td><td><span style="display:inline-block;background:#f3f4f6;color:#374151;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Topbar</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Topbar: 🔍 Kompakt</td><td class="was">плотность инспектора</td><td class="now">в меню «⋯» шапки панели</td><td><span style="display:inline-block;background:#ecfdf5;color:#065f46;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Panel</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Topbar: ☰ Menü · 🧱 Blöcke · ⚙️ Vorlage</td><td class="was">дубли рейки/областей</td><td class="now">уходят: рейка Menü/Blöcke; Vorlage — на экране кабинета</td><td><span style="display:inline-block;background:#fee2e2;color:#991b1b;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">weg</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Topbar: 🔗 Vorschau teilen · Speichern</td><td class="was">всегда</td><td class="now">остаются</td><td><span style="display:inline-block;background:#f3f4f6;color:#374151;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Topbar</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Вкладки панели (🎨 🖼 📄 ☰ 📚)</td><td class="was">вторая навигация</td><td class="now">уходят: панель показывает то, что выбрано (рейка или клик по канве)</td><td><span style="display:inline-block;background:#fee2e2;color:#991b1b;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">weg</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Theme: Startseite (storefront_root)</td><td class="was">область Theme</td><td class="now">панель «Diese Seite: Startseite»</td><td><span style="display:inline-block;background:#ecfdf5;color:#065f46;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Panel</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Theme: Look · Startpaket · Farbe · Schrift · Typografie · Karten/Fotos/Chrome/Fond</td><td class="was">область Theme (живой черновик)</td><td class="now">экран кабинета «Design des Shops» (1B); превью-плитки как сегодня, живой канвы нет</td><td><span style="display:inline-block;background:#fdf2f8;color:#9d174d;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Kabinett</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Theme: Logo · Footer →</td><td class="was">кнопки в Theme</td><td class="now">панель «Menü» (Logo, Fußzeile)</td><td><span style="display:inline-block;background:#ecfdf5;color:#065f46;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Panel</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Banner: Überschrift · Text</td><td class="was">область Banner + inline</td><td class="now">inline на канве + группа «Inhalt» секции Banner</td><td><span style="display:inline-block;background:#f3f4f6;color:#374151;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Canvas</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Banner: Folien · Titelbilder · Bild-URL</td><td class="was">кнопки → медиа-области</td><td class="now">панель «Medien» (Slides, Titelbilder); фото — 📷 на канве</td><td><span style="display:inline-block;background:#ecfdf5;color:#065f46;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Panel</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Sections: Banner-Stil</td><td class="was">select в области sections</td><td class="now">группа «Darstellung» секции Banner + «Stil ▾» на плашке действий</td><td><span style="display:inline-block;background:#fff7ed;color:#9a3412;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Popover</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Sections: список секций (⠿ № ▲▼ ☑ имя ⚙)</td><td class="was">область sections</td><td class="now">панель «Diese Seite: Startseite» (⠿ 👁 имя); ▲▼ 👁 — на плашке действий у секции</td><td><span style="display:inline-block;background:#ecfdf5;color:#065f46;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Panel</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Sections: «Unser Angebot» (карточки архетипов)</td><td class="was">fieldset в sections</td><td class="now">группа «Inhalt» секции «Unser Angebot»</td><td><span style="display:inline-block;background:#ecfdf5;color:#065f46;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Panel</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Sections: 📦 Inhaltsabschnitte (тексты FAQ/Team/CTA/…)</td><td class="was">details в sections</td><td class="now">группа «Inhalt» СВОЕЙ секции (F8)</td><td><span style="display:inline-block;background:#ecfdf5;color:#065f46;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Panel</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Sections: «Seite als Vorlage speichern»</td><td class="was">низ области</td><td class="now">аккордеон «Vorlagen &amp; Versionen» панели главной</td><td><span style="display:inline-block;background:#ecfdf5;color:#065f46;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Panel</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Page: 27 настроек реестра (Vorlage der Seite · Raster · Sortierung · Filter …)</td><td class="was">область page, по типу</td><td class="now">панель «Diese Seite: ‹тип›» — те же строки, без вкладок</td><td><span style="display:inline-block;background:#ecfdf5;color:#065f46;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Panel</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Page: пилюля Für alle / Nur hier (4 настройки)</td><td class="was">рядом с плиткой</td><td class="now">рядом с плиткой — в панели и в быстром поповере</td><td><span style="display:inline-block;background:#ecfdf5;color:#065f46;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Panel</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Page: C-блоки страницы</td><td class="was">строки в page</td><td class="now">список «Blöcke auf dieser Seite» в панели; настройки — по клику на блок</td><td><span style="display:inline-block;background:#ecfdf5;color:#065f46;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Panel</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Menü: Kopfzeilenstil · Feste Kopfzeile · Beispiele</td><td class="was">область menu</td><td class="now">панель «Menü»: плитки Classic/Zentriert/Minimal + ☑ fest + ☑ CTA</td><td><span style="display:inline-block;background:#ecfdf5;color:#065f46;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Panel</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Menü: пункты меню</td><td class="was">экран Menü-Generator</td><td class="now">список в панели «Menü» (F6)</td><td><span style="display:inline-block;background:#ecfdf5;color:#065f46;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Panel</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Library: сохранённые блок-шаблоны</td><td class="was">вкладка Vorlagen</td><td class="now">только в поповере «+» (там и так есть)</td><td><span style="display:inline-block;background:#fff7ed;color:#9a3412;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Popover</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Library: шаблоны страниц · Versionsverlauf</td><td class="was">вкладка Vorlagen</td><td class="now">аккордеон «Vorlagen &amp; Versionen» панели главной</td><td><span style="display:inline-block;background:#ecfdf5;color:#065f46;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Panel</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Library: ссылки SEO · Titelbilder · Menü-Generator</td><td class="was">вкладка Vorlagen</td><td class="now">уходят (есть в подменю Website кабинета)</td><td><span style="display:inline-block;background:#fee2e2;color:#991b1b;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">weg</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Медиа-области ×4</td><td class="was">разбросаны</td><td class="now">панель «Medien» аккордеоном</td><td><span style="display:inline-block;background:#ecfdf5;color:#065f46;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Panel</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">«Kategorie hinzufügen»</td><td class="was">область catalog-add</td><td class="now">поповер «＋ Kategorie» из плашки действий секции Kategorien</td><td><span style="display:inline-block;background:#fff7ed;color:#9a3412;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Popover</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Лента блока: настройки секции (4–34)</td><td class="was">правая колонка</td><td class="now">панель блока: Inhalt · Darstellung · Erweitert (F8); Einfach|Experte в шапке</td><td><span style="display:inline-block;background:#ecfdf5;color:#065f46;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Panel</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Лента C-блока: Position · Sichtbar · Entfernen</td><td class="was">голова строки</td><td class="now">плашка действий у блока: ▲ ▼ 👁 🗑</td><td><span style="display:inline-block;background:#fef9c3;color:#854d0e;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Leiste</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Лента C-блока: Breite · Position · Neue Zeile</td><td class="was">хвост строки</td><td class="now">«Breite ▾» на плашке действий (поповер) + группа Darstellung</td><td><span style="display:inline-block;background:#fff7ed;color:#9a3412;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Popover</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Лента: Stil-варианты · Raster</td><td class="was">select/плитки в колонке</td><td class="now">«Stil ▾» / «Raster ▾» на плашке действий — поповер ≤ 7 плиток (F5)</td><td><span style="display:inline-block;background:#fff7ed;color:#9a3412;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Popover</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Kartenform на листингах</td><td class="was">строка в page</td><td class="now">«Kartenform ▾» на плашке действий сетки — поповер с пилюлей охвата (F5)</td><td><span style="display:inline-block;background:#fff7ed;color:#9a3412;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Popover</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Canvas: текст · цена · дата · 📷/🗑 · «+» · ⠿</td><td class="was">уже на канве</td><td class="now">остаются без изменений</td><td><span style="display:inline-block;background:#f3f4f6;color:#374151;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Canvas</span></td></tr><tr><td class="lbl" style="white-space:normal;max-width:190px">Canvas: клик по секции/контенту</td><td class="was">открывает колонку</td><td class="now">открывает панель в нужном охвате + показывает плашку действий</td><td><span style="display:inline-block;background:#f3f4f6;color:#374151;border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">Canvas</span></td></tr></table></div>
+</div>
+</x-dc>
+</body>
+</html>

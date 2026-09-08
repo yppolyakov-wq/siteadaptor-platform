@@ -197,6 +197,96 @@
    "h": 660,
    "title": "Heute · alle Funktionen",
    "page": "panels"
+  },
+  {
+   "file": "P1.dc.html",
+   "x": 1040,
+   "y": 0,
+   "w": 940,
+   "h": 1660,
+   "title": "Funktionskarte · heute → neu",
+   "page": "panels"
+  },
+  {
+   "file": "P2.dc.html",
+   "x": 0,
+   "y": 1900,
+   "w": 940,
+   "h": 556,
+   "title": "Vorschlag · Startseite, nichts gewählt",
+   "page": "panels"
+  },
+  {
+   "file": "P3.dc.html",
+   "x": 1040,
+   "y": 1900,
+   "w": 940,
+   "h": 556,
+   "title": "Vorschlag · Abschnitt gewählt",
+   "page": "panels"
+  },
+  {
+   "file": "P4.dc.html",
+   "x": 0,
+   "y": 2596,
+   "w": 940,
+   "h": 556,
+   "title": "F5 · Schnell-Popover «Stil ▾»",
+   "page": "panels"
+  },
+  {
+   "file": "P5.dc.html",
+   "x": 1040,
+   "y": 2596,
+   "w": 940,
+   "h": 556,
+   "title": "T1 · Kategorie: Kartenform nur hier",
+   "page": "panels"
+  },
+  {
+   "file": "P6.dc.html",
+   "x": 0,
+   "y": 3292,
+   "w": 940,
+   "h": 556,
+   "title": "2B · Ebene «Menü»",
+   "page": "panels"
+  },
+  {
+   "file": "P7.dc.html",
+   "x": 1040,
+   "y": 3292,
+   "w": 940,
+   "h": 556,
+   "title": "Ebene «Medien»",
+   "page": "panels"
+  },
+  {
+   "file": "P8.dc.html",
+   "x": 0,
+   "y": 3988,
+   "w": 940,
+   "h": 740,
+   "title": "F7 · Telefon",
+   "page": "panels"
+  },
+  {
+   "file": "P9.dc.html",
+   "x": 0,
+   "y": 800,
+   "w": 940,
+   "h": 460,
+   "title": "Wahlzettel 2 · F5–F8",
+   "page": "panels"
+  },
+  {
+   "file": "P10.dc.html",
+   "x": 1040,
+   "y": 3988,
+   "w": 940,
+   "h": 640,
+   "title": "1B+4A · Kabinett «Design des Shops»",
+   "page": "panels"
   }
  ],
  "launch": {
