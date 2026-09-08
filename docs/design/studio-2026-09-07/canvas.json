@@ -11,6 +11,10 @@
   {
    "id": "entscheidungen",
    "name": "Entscheidungen"
+  },
+  {
+   "id": "panels",
+   "name": "Panels"
   }
  ],
  "artboards": [
@@ -184,10 +188,19 @@
    "h": 556,
    "title": "4B · Start bleibt eigene Ebene",
    "page": "entscheidungen"
+  },
+  {
+   "file": "P0.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 940,
+   "h": 660,
+   "title": "Heute · alle Funktionen",
+   "page": "panels"
   }
  ],
  "launch": {
   "view": "canvas",
-  "page": "entscheidungen"
+  "page": "panels"
  }
 }

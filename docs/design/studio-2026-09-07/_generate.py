@@ -1105,6 +1105,64 @@ def e4b() -> str:
     return wrap(body)
 
 
+# ── страница «Panels»: карта функций (данные — из инвентаризации кода 2026-09-08) ──
+# (группа, функция, где сегодня, контролы) — «где завтра» дописывается в PROPOSAL
+FUNCS_LEFT = [
+    ("Rail", "Design", "→ область «Theme» справа", "1 кнопка"),
+    ("Rail", "Seite ‹тип›", "→ область sections (главная) / page (18 типов) + лента страниц снизу", "1 кнопка + лента 8–15 чипов"),
+    ("Rail", "Blöcke", "→ поповер «+» (вставка В КОНЕЦ страницы)", "1 кнопка"),
+    ("Rail", "Medien", "→ область gallery-media (только фотогалерея)", "1 кнопка"),
+    ("Rail", "Start", "→ область quickstart (демо + Layout-шаблоны)", "1 кнопка"),
+    ("Topbar", "← Übersicht · Studio · ↶ ↷ · статус · подсказка", "всегда", "5"),
+    ("Topbar", "Контекст блока: имя · Einfach|Experte · ▾ · ✕", "только при выбранном блоке", "4"),
+    ("Topbar", "🖥 Desktop · ▭ Tablet · 📱 Mobil (+ размеры)", "всегда", "3"),
+    ("Topbar", "🔍 Kompakt · ☰ Menü · 🧱 Blöcke · ⚙️ Vorlage", "дубли рейки/областей", "4"),
+    ("Topbar", "🔗 Vorschau teilen · Speichern", "всегда", "2"),
+]
+FUNCS_RIGHT = [
+    ("Tabs", "🎨 Design · 🖼 Banner · 📄 ‹тип› · ☰ Menü · 📚 Vorlagen", "шапка панели — вторая навигация", "5 вкладок"),
+    ("Theme", "Startseite (storefront_root) · Look/Startpaket · Farbe · Schrift · Typografie · Karten/Fotos/Chrome/Fond · Logo → · Footer →", "вкладка Design / рейка Design / ⚙️ Vorlage", "~35 (21 expert)"),
+    ("Banner", "Überschrift · Text · Folien verwalten → · Titelbilder → · Bild-URL", "вкладка Banner", "5"),
+    ("Sections (главная)", "Banner-Stil · список секций (⠿ · № · ▲▼ · ☑ · имя · ⚙) · «Unser Angebot» · 📦 Inhaltsabschnitte (тексты FAQ/Team/CTA…) · C-блоки · «Seite als Vorlage»", "рейка Seite на главной / клик по секции", "≈10–25 строк"),
+    ("Page (18 типов)", "«Vorlage der Seite» 13 типизированных строк · «Landingpages» 13 · C-блоки страницы · пилюля Für alle/Nur hier (4)", "рейка Seite / вкладка 📄 / клик по контенту (STU-4)", "27 настроек реестра"),
+    ("Menü", "Kopfzeilenstil (classic/centered/minimal) · Feste Kopfzeile · Beispiele ×3 · ссылка Menü-Generator", "вкладка Menü / ☰ Menü", "3+1+3+1"),
+    ("Vorlagen (library)", "сохранённые блок-шаблоны · шаблоны страниц · Versionsverlauf · ссылки SEO/Titelbilder/…", "вкладка Vorlagen", "N + 4 ссылки"),
+    ("Quickstart", "Demo-Inhalte laden/löschen · Layout-Vorlagen (Anwenden)", "рейка Start", "1 + N карт"),
+    ("Медиа-области", "Fotogalerie (upload/✕/Video) · Logo · Banner-Slides (≤6) · Titelbilder", "рейка Medien / кнопки «→» из Theme/Banner", "формы вне #home-form"),
+    ("Kategorie +", "«Kategorie hinzufügen» (имя + родитель)", "кнопка в строке секции Kategorien", "3"),
+    ("Лента блока", "секция: Layout · Spalten · Letzte Reihe · Titel · Quelle · Stil · Breite · Radius/Schatten/Fond · Sichtbarkeit… (hero 4 базовых, products ≈30)", "клик по секции на канве → та же правая колонка", "4–30 на блок"),
+    ("Лента C-блока", "Position · Sichtbar · Entfernen · поля типа (Titel/Text/URL/Ausrichtung/Größe/Farbe…) · Breite · Position · Neue Zeile · Schatten/Radius/Fond · Als Vorlage speichern", "клик по блоку на канве", "≈14–20"),
+]
+FUNCS_CANVAS = [
+    ("Canvas", "Текст: contenteditable на data-edit / категории / товаре / акции", "клик по тексту, сохранение по blur", ""),
+    ("Canvas", "Цена и дата: инлайн-поповер (Enter/Esc/blur)", "клик по цене/сроку", ""),
+    ("Canvas", "Фото: 📷 заменить/добавить · 🗑 удалить", "кнопки на фото", ""),
+    ("Canvas", "«+» между секциями → поповер вставки (тип → пресет)", "единственный настоящий поповер сегодня", ""),
+    ("Canvas", "⠿ перетаскивание секций и блоков, линия-индикатор", "ручка на блоке", ""),
+    ("Canvas", "Клик по секции/блоку/контенту → строка настроек в правой колонке", "STU-4", ""),
+]
+
+
+def inv_card(title: str, rows: list) -> str:
+    lis = "".join(f'<li><b>{g} · {n}</b> — {w}{(" <span class=n>· " + c + "</span>") if c else ""}</li>'
+                  for g, n, w, c in rows)
+    return f'<div class="inv"><div class="k">{title}</div><ul>{lis}</ul></div>'
+
+
+def p0_heute() -> str:
+    body = (hd("Panels · heute", "Все функции левой и правой панели — из кода, не по памяти",
+               "Инвентаризация 2026-09-08 (site_home.html 4318 строк + реестр). Левая рейка — 5 уровней, но три из них лишь "
+               "открывают область справа; правая колонка делится между 12 областями (5 в общей форме, 7 — отдельные формы) и "
+               "лентой блока, которая физически переносит строку формы в ту же колонку. Настоящий поповер сегодня один — «+».")
+            + '<div class="sheet"><div class="two">'
+            + inv_card("Слева: рейка и верхняя строка", FUNCS_LEFT)
+            + inv_card("Прямо на канве (уже мелкие попапы)", FUNCS_CANVAS)
+            + '</div><div style="height:12px"></div>'
+            + inv_card("Справа: области панели и лента блока", FUNCS_RIGHT)
+            + '</div>')
+    return wrap(body)
+
+
 ARTBOARDS = {
     "Main": (main_home, 940, 556, "Studio · Startseite"),
     "Kategorie": (kategorie, 940, 556, "Studio · Kategorie"),
@@ -1127,10 +1185,12 @@ ARTBOARDS = {
     "E3B": (e3b, 940, 556, "3B · keine Liste, nur Leinwand"),
     "E4A": (e4a, 940, 556, "4A · Start als Sektion «Vorlagen»"),
     "E4B": (e4b, 940, 556, "4B · Start bleibt eigene Ebene"),
+    # ── страница «Panels» ──
+    "P0": (p0_heute, 940, 660, "Heute · alle Funktionen"),
 }
 
-PAGE_OF = {k: ("entscheidungen" if k.startswith("E") else "vorschlag" if k.startswith("V3") else "heute")
-           for k in ARTBOARDS}
+PAGE_OF = {k: ("panels" if k.startswith("P") else "entscheidungen" if k.startswith("E")
+               else "vorschlag" if k.startswith("V3") else "heute") for k in ARTBOARDS}
 
 LAYOUT = {
     "Main": (0, 0), "Kategorie": (1040, 0),
@@ -1143,6 +1203,7 @@ LAYOUT = {
     "E2A": (0, 1256), "E2B": (1040, 1256),
     "E3A": (0, 1952), "E3B": (1040, 1952),
     "E4A": (0, 2648), "E4B": (1040, 2648),
+    "P0": (0, 0),
 }
 
 
@@ -1156,9 +1217,10 @@ def main() -> None:
     (HERE / "canvas.json").write_text(
         json.dumps({
             "pages": [{"id": "heute", "name": "Heute"}, {"id": "vorschlag", "name": "Vorschlag"},
-                      {"id": "entscheidungen", "name": "Entscheidungen"}],
+                      {"id": "entscheidungen", "name": "Entscheidungen"},
+                      {"id": "panels", "name": "Panels"}],
             "artboards": boards,
-            "launch": {"view": "canvas", "page": "entscheidungen"},
+            "launch": {"view": "canvas", "page": "panels"},
         }, ensure_ascii=False, indent=1),
         encoding="utf-8",
     )
