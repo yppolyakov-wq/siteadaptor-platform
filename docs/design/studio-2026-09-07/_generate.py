@@ -48,7 +48,8 @@ CSS = """
   .rail .lv svg { width: 18px; height: 18px; stroke: currentColor; fill: none;
                   stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .rail .lv.on { background: #eef2ff; color: #3730a3; font-weight: 700; }
-  .canvas { flex: 1; min-width: 0; padding: 10px; display: flex; flex-direction: column; }
+  .canvas { flex: 1; min-width: 0; padding: 10px; display: flex; flex-direction: column;
+            position: relative; }
   .frame { background: #fff; border: 1px solid #d1d5db; border-radius: 8px; flex: 1;
            box-sizing: border-box; padding: 10px; position: relative; overflow: hidden; }
   .pages { height: 26px; display: flex; gap: 4px; align-items: center; padding: 0 2px;
@@ -154,6 +155,35 @@ CSS = """
   .st8 .desc { font-size: 9px; color: #6b7280; margin-top: 8px; line-height: 1.5; }
   .arrow { font-size: 9px; color: #6b7280; padding: 8px 10px; border: 1px dashed #c7d2fe;
            border-radius: 10px; background: #f8f9ff; margin-top: 12px; line-height: 1.55; }
+
+  /* ── v3: предложение ── */
+  .top .pgsel { border: 1px solid #d1d5db; border-radius: 8px; padding: 3px 8px; color: #111827;
+                background: #fff; font-weight: 600; display: flex; gap: 5px; align-items: center; }
+  .top .pgsel .ch { color: #9ca3af; font-weight: 400; }
+  .acc { border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 5px; overflow: hidden; }
+  .acc .h { display: flex; align-items: center; gap: 6px; padding: 6px 8px; font-size: 9.5px;
+            font-weight: 700; color: #111827; background: #fafafa; }
+  .acc .h .sum { margin-left: auto; font-weight: 400; color: #9ca3af; font-size: 8px;
+                 white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+  .acc .h .car { color: #9ca3af; font-size: 8px; width: 8px; }
+  .acc .b { padding: 7px 8px 8px; border-top: 1px solid #eef2f7; }
+  .acc.open .h { background: #fff; }
+  .diff { width: 100%; border-collapse: collapse; font-size: 9.5px; }
+  .diff th { text-align: left; font-size: 8.5px; color: #6b7280; font-weight: 600; padding: 5px 8px;
+             border-bottom: 1px solid #e5e7eb; }
+  .diff td { padding: 6px 8px; border-bottom: 1px solid #f3f4f6; vertical-align: top;
+             color: #374151; line-height: 1.45; }
+  .diff td.was { color: #9ca3af; }
+  .diff td.now { color: #111827; }
+  .diff td.why { color: #6b7280; font-size: 9px; }
+  .link { color: #4f46e5; font-weight: 700; }
+  .inset { position: absolute; right: 22px; bottom: 22px; width: 300px; background: #fff;
+           border: 1px solid #c7d2fe; border-radius: 10px; box-shadow: 0 8px 24px rgba(22,24,29,.12);
+           padding: 8px 9px; font-size: 8.5px; }
+  .inset .cap { font-size: 8px; font-weight: 800; color: #4f46e5; text-transform: uppercase;
+                letter-spacing: .06em; margin-bottom: 5px; }
+  .warn { border: 1px dashed #fca5a5; background: #fff7f7; color: #991b1b; border-radius: 8px;
+          padding: 6px 8px; font-size: 8.5px; line-height: 1.45; margin-top: 6px; }
 </style>
 """
 
@@ -280,6 +310,64 @@ TEXT_SKETCH = """
   <div class="ph" style="height:36px"></div>
 </div>
 """
+
+
+
+# ── v3: компоненты предложения ────────────────────────────────────────────────
+def top_v3(page: str, extra: str = "") -> str:
+    return f"""
+<div class="top">
+  <span class="brand">Studio</span><span>· Hofladen Sonnenfeld</span>
+  <span class="pgsel">Seite: {page}<span class="ch">▾</span></span>
+  <span class="sp"></span>{extra}
+  <span class="btn on">✏️ Bearbeiten</span>
+  <span class="btn">↶</span><span class="btn">↷</span>
+  <span class="btn save">Speichern</span>
+</div>"""
+
+
+def rail_v3(active: str, page_label: str, with_design: bool = True) -> str:
+    levels = ([("design", "Design")] if with_design else []) + [
+        ("page", page_label), ("blocks", "Blöcke"), ("media", "Medien")]
+    out = ['<div class="rail">']
+    for key, label in levels:
+        on = " on" if key == active else ""
+        out.append(f'<div class="lv{on}">{ICONS[key]}<span>{label}</span></div>')
+    out.append("</div>")
+    return "".join(out)
+
+
+def acc(title: str, summary: str, body: str = "", open_: bool = False) -> str:
+    car = "▾" if open_ else "▸"
+    b = f'<div class="b">{body}</div>' if open_ else ""
+    return (f'<div class="acc{" open" if open_ else ""}"><div class="h"><span class="car">{car}</span>'
+            f'{title}<span class="sum">{summary}</span></div>{b}</div>')
+
+
+def design_pane_v3() -> str:
+    look = ('<div class="tiles"><div class="t"><span>Klar</span></div><div class="t on"><span>Warm</span></div>'
+            '<div class="t"><span>Nacht</span></div><div class="t"><span>Fein</span></div><div class="t"><span>Natur</span></div></div>'
+            '<div class="hint" style="margin-top:4px">Look = Farbe, Schrift und Kartenstil auf einmal. Ihre Seitenvorlagen bleiben.</div>')
+    return f"""
+<div class="pane">
+  <div class="ttl">Design des Shops <span class="x">✕</span></div>
+  {acc("Look", "Warm", look, open_=True)}
+  {acc("Farbe &amp; Schrift", "● #b45309 · Nunito")}
+  {acc("Karten &amp; Fotos", "Regal · rund · Hairline")}
+  {acc("Kopf- &amp; Fußzeile", "Classic · CTA an · 6 Punkte")}
+  {acc("Vorlagen", "Startpaket · Layout · Demo")}
+</div>"""
+
+
+def page_pane_v3(page_label: str, body: str) -> str:
+    return f"""
+<div class="pane">
+  <div class="ttl">Diese Seite: {page_label} <span class="x">✕</span></div>
+  {body}
+</div>"""
+
+
+CATEGORY_BODY_V3 = None  # заполняется ниже, после scope()
 
 
 # ── артборды ──────────────────────────────────────────────────────────────────
@@ -499,6 +587,126 @@ def umfang() -> str:
     return wrap(body)
 
 
+
+def v3_home() -> str:
+    body = (hd("Вариант A · один уровень для всего глобального",
+               "«Design des Shops»: пять секций-аккордеон вместо пяти входов",
+               "Рейка — два уровня и два инструмента: Design · Diese Seite · Blöcke · Medien. "
+               "Ни вкладок в панели, ни «⚙️ Vorlage» в верхней строке, ни ленты страниц внизу: "
+               "«где я» и переход к редким страницам — одна выпадашка «Seite: … ▾». Свёрнутая секция "
+               "показывает текущее значение одной строкой — состояние читается без раскрытия. "
+               "Экран кабинета «Design» ведёт сюда же.")
+            + top_v3("Startseite")
+            + f'<div class="app">{rail_v3("design", "Startseite")}'
+            + f'<div class="canvas"><div class="frame">{HOME_SKETCH}<span class="tag">Startseite</span></div></div>'
+            + design_pane_v3() + "</div>")
+    return wrap(body)
+
+
+def v3_kategorie() -> str:
+    body_pane = f"""
+  <div class="card">
+    <div class="lg">Vorlage der Seite</div>
+    <div class="fld">
+      <div class="tiles"><div class="t"><span>Standard</span></div><div class="t"><span>Kopfbild</span></div><div class="t on"><span>Regale</span></div><div class="t"><span>Navigator</span></div></div>
+      {scope("own", own=True)}
+    </div>
+    <div class="fld"><div class="lb">Kartenform</div>
+      <div class="tiles"><div class="t on"><span>Regal</span></div><div class="t"><span>Lookbook</span></div><div class="t"><span>Deal</span></div></div>
+      {scope("site")}
+    </div>
+  </div>
+  <div class="card">
+    <div class="lg">Raster &amp; Anzeige</div>
+    <div class="fld"><div class="lb">Raster</div><div class="chips"><span class="chip">3</span><span class="chip on">4</span><span class="chip">5</span><span class="chip">6</span><span class="chip">Preisliste</span></div></div>
+    <div class="fld"><div class="lb">Sortierung</div><div class="ctrl"><span>Neueste zuerst</span><span class="ch">▾</span></div></div>
+    <div class="fld"><div class="chk"><i class="on"></i>Filter anzeigen</div></div>
+    <div class="fld"><div class="chk"><i class="on"></i>Unterkategorien zuerst</div></div>
+  </div>"""
+    body = (hd("Вариант A · на категории",
+               "Кликнул категорию на канве — панель уже её",
+               "Никакого выбора страницы: канва — живой сайт, категорию открываешь кликом по ней, "
+               "товар — по товару, право — из подвала. Подпись уровня и заголовок панели — тип "
+               "страницы; состав — ровно реестр (как сегодня). Пилюля охвата там же.")
+            + top_v3("Getränke &amp; Vorrat")
+            + f'<div class="app">{rail_v3("page", "Kategorie")}'
+            + f'<div class="canvas"><div class="frame">{CATEGORY_SKETCH}<span class="tag">Kategorie</span></div></div>'
+            + page_pane_v3("Kategorie", body_pane) + "</div>")
+    return wrap(body)
+
+
+def v3_alt() -> str:
+    inset = """
+<div class="inset">
+  <div class="cap">Kabinett · Design</div>
+  <div class="fld"><div class="lb">Look</div><div class="tiles"><div class="t"><span>Klar</span></div><div class="t on"><span>Warm</span></div><div class="t"><span>Nacht</span></div><div class="t"><span>Fein</span></div></div></div>
+  <div class="fld"><div class="lb">Farbe &amp; Schrift</div><div class="ctrl"><span>● #b45309 · Nunito</span><span class="ch">▾</span></div></div>
+  <div class="fld"><div class="lb">Karten &amp; Fotos</div><div class="ctrl"><span>Regal · rund · Hairline</span><span class="ch">▾</span></div></div>
+  <div class="fld"><div class="lb">Kopf- &amp; Fußzeile</div><div class="ctrl"><span>Classic · CTA an</span><span class="ch">▾</span></div></div>
+  <div class="warn">Живого превью нет: результат виден после сохранения, когда вернёшься в Студию.</div>
+</div>"""
+    pane = page_pane_v3("Startseite", """
+  <div class="card">
+    <div class="lg">Abschnitte</div>
+    <div class="rows">
+      <div class="r"><span class="h">⠿</span>Banner<span class="eye">👁</span></div>
+      <div class="r"><span class="h">⠿</span>Kategorien<span class="eye">👁</span></div>
+      <div class="r"><span class="h">⠿</span>Produkte<span class="eye">👁</span></div>
+      <div class="r"><span class="h">⠿</span>Aktionen<span class="eye">👁</span></div>
+    </div>
+  </div>
+  <div class="card"><div class="lg">Banner</div>
+    <div class="tiles"><div class="t"><span>Klar</span></div><div class="t on"><span>Split</span></div><div class="t"><span>Vollbild</span></div></div>
+  </div>""")
+    body = (hd("Вариант B · глобальное — вон из Студии",
+               "Студия только постраничная; «Design des Shops» — экран кабинета",
+               "Рейка без уровня Design; в верхней строке одна ссылка «Design des Shops →», которая "
+               "уводит на экран кабинета (сегодняшний /dashboard/design/, расширенный цветом, "
+               "шрифтом, шапкой и подвалом). Минус: цвет и форму карточек меняешь вслепую — канвы "
+               "рядом нет. Плюс: Студия становится совсем простой.")
+            + top_v3("Startseite", '<span class="link">Design des Shops →</span>')
+            + f'<div class="app">{rail_v3("page", "Startseite", with_design=False)}'
+            + f'<div class="canvas"><div class="frame">{HOME_SKETCH}<span class="tag">Startseite</span></div>{inset}</div>'
+            + pane + "</div>")
+    return wrap(body)
+
+
+def v3_diff() -> str:
+    rows = [
+        ("Входов в дизайн",
+         "5: уровень «Design» · ⚙️ Vorlage · вкладка 🎨 Theme · 📚 Templates · экран /dashboard/design/",
+         "1: уровень «Design des Shops»; экран кабинета ведёт сюда же",
+         "Три из пяти открывали одну и ту же область — наслоения W1 → ST-3 → DL-7"),
+        ("Вкладки внутри панели",
+         "Theme · Banner · Seite · Menu · Templates — вторая навигация поверх рейки",
+         "нет: панель = то, что выбрано на рейке",
+         "Две навигации по одному и тому же — источник «каши»"),
+        ("Лента страниц внизу",
+         "чипы всех страниц, постоянно",
+         "убрана; «Seite: … ▾» в верхней строке для редких страниц (корзина, касса)",
+         "Канва — живой сайт: категория, товар, право открываются кликом"),
+        ("Рейка",
+         "Design · Seite · Blöcke · Medien · Start",
+         "Design des Shops · Diese Seite: ‹тип› · Blöcke · Medien",
+         "«Start» — шаблоны и демо — становится секцией «Vorlagen» внутри Design"),
+        ("Меню и подвал",
+         "отдельная область «Menu» + подвал внутри «Дизайна»",
+         "секция «Kopf- &amp; Fußzeile» в Design",
+         "Шапка и подвал — глобальные, как цвет и шрифт"),
+        ("Настройки типа страницы",
+         "реестр, подпись «Seite»",
+         "реестр без изменений, подпись «Diese Seite: Kategorie»",
+         "Это уже работает — трогать не нужно"),
+    ]
+    tr = "".join(f'<tr><td class="lbl">{a}</td><td class="was">{b}</td><td class="now">{c}</td><td class="why">{d}</td></tr>'
+                 for a, b, c, d in rows)
+    body = (hd("Что меняется", "Сегодня → предложение, построчно",
+               "Общее для обоих вариантов: один вход в дизайн, панель без вкладок, без ленты страниц. "
+               "Различие только в том, ГДЕ живёт глобальное — внутри Студии (A) или на экране кабинета (B).")
+            + f'<div class="sheet"><table class="diff"><tr><th>что</th><th>сегодня</th><th>предложение</th><th>почему</th></tr>{tr}</table></div>')
+    return wrap(body)
+
+
 ARTBOARDS = {
     "Main": (main_home, 940, 556, "Studio · Startseite"),
     "Kategorie": (kategorie, 940, 556, "Studio · Kategorie"),
@@ -506,12 +714,20 @@ ARTBOARDS = {
     "Textseite": (textseite, 940, 500, "Studio · Textseite"),
     "Register": (register, 940, 640, "Реестр: тип → настройки"),
     "Umfang": (umfang, 940, 360, "Охват: Für alle / Nur hier"),
+    # ── страница «Vorschlag» ──
+    "V3Home": (v3_home, 940, 556, "A · Design des Shops"),
+    "V3Kategorie": (v3_kategorie, 940, 556, "A · Diese Seite: Kategorie"),
+    "V3Alt": (v3_alt, 940, 556, "B · глобальное вне Студии"),
+    "V3Diff": (v3_diff, 940, 404, "Что меняется"),
 }
+PAGE_OF = {k: ("vorschlag" if k.startswith("V3") else "heute") for k in ARTBOARDS}
 
 LAYOUT = {
     "Main": (0, 0), "Kategorie": (1040, 0),
     "Aktionsgruppe": (0, 696), "Textseite": (1040, 696),
     "Register": (0, 1336), "Umfang": (1040, 1336),
+    "V3Home": (0, 0), "V3Kategorie": (1040, 0),
+    "V3Alt": (0, 696), "V3Diff": (1040, 696),
 }
 
 
@@ -520,9 +736,14 @@ def main() -> None:
     for name, (fn, w, h, title) in ARTBOARDS.items():
         (HERE / f"{name}.dc.html").write_text(fn(), encoding="utf-8")
         x, y = LAYOUT[name]
-        boards.append({"file": f"{name}.dc.html", "x": x, "y": y, "w": w, "h": h, "title": title})
+        boards.append({"file": f"{name}.dc.html", "x": x, "y": y, "w": w, "h": h, "title": title,
+                       "page": PAGE_OF[name]})
     (HERE / "canvas.json").write_text(
-        json.dumps({"artboards": boards, "launch": {"view": "canvas"}}, ensure_ascii=False, indent=1),
+        json.dumps({
+            "pages": [{"id": "heute", "name": "Heute"}, {"id": "vorschlag", "name": "Vorschlag"}],
+            "artboards": boards,
+            "launch": {"view": "canvas", "page": "vorschlag"},
+        }, ensure_ascii=False, indent=1),
         encoding="utf-8",
     )
     print("артбордов:", len(boards))

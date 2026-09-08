@@ -1,4 +1,14 @@
 {
+ "pages": [
+  {
+   "id": "heute",
+   "name": "Heute"
+  },
+  {
+   "id": "vorschlag",
+   "name": "Vorschlag"
+  }
+ ],
  "artboards": [
   {
    "file": "Main.dc.html",
@@ -6,7 +16,8 @@
    "y": 0,
    "w": 940,
    "h": 556,
-   "title": "Studio · Startseite"
+   "title": "Studio · Startseite",
+   "page": "heute"
   },
   {
    "file": "Kategorie.dc.html",
@@ -14,7 +25,8 @@
    "y": 0,
    "w": 940,
    "h": 556,
-   "title": "Studio · Kategorie"
+   "title": "Studio · Kategorie",
+   "page": "heute"
   },
   {
    "file": "Aktionsgruppe.dc.html",
@@ -22,7 +34,8 @@
    "y": 696,
    "w": 940,
    "h": 500,
-   "title": "Studio · Aktionsgruppe"
+   "title": "Studio · Aktionsgruppe",
+   "page": "heute"
   },
   {
    "file": "Textseite.dc.html",
@@ -30,7 +43,8 @@
    "y": 696,
    "w": 940,
    "h": 500,
-   "title": "Studio · Textseite"
+   "title": "Studio · Textseite",
+   "page": "heute"
   },
   {
    "file": "Register.dc.html",
@@ -38,7 +52,8 @@
    "y": 1336,
    "w": 940,
    "h": 640,
-   "title": "Реестр: тип → настройки"
+   "title": "Реестр: тип → настройки",
+   "page": "heute"
   },
   {
    "file": "Umfang.dc.html",
@@ -46,10 +61,48 @@
    "y": 1336,
    "w": 940,
    "h": 360,
-   "title": "Охват: Für alle / Nur hier"
+   "title": "Охват: Für alle / Nur hier",
+   "page": "heute"
+  },
+  {
+   "file": "V3Home.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 940,
+   "h": 556,
+   "title": "A · Design des Shops",
+   "page": "vorschlag"
+  },
+  {
+   "file": "V3Kategorie.dc.html",
+   "x": 1040,
+   "y": 0,
+   "w": 940,
+   "h": 556,
+   "title": "A · Diese Seite: Kategorie",
+   "page": "vorschlag"
+  },
+  {
+   "file": "V3Alt.dc.html",
+   "x": 0,
+   "y": 696,
+   "w": 940,
+   "h": 556,
+   "title": "B · глобальное вне Студии",
+   "page": "vorschlag"
+  },
+  {
+   "file": "V3Diff.dc.html",
+   "x": 1040,
+   "y": 696,
+   "w": 940,
+   "h": 404,
+   "title": "Что меняется",
+   "page": "vorschlag"
   }
  ],
  "launch": {
-  "view": "canvas"
+  "view": "canvas",
+  "page": "vorschlag"
  }
 }

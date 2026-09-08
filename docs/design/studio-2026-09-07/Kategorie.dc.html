@@ -39,7 +39,8 @@
   .rail .lv svg { width: 18px; height: 18px; stroke: currentColor; fill: none;
                   stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .rail .lv.on { background: #eef2ff; color: #3730a3; font-weight: 700; }
-  .canvas { flex: 1; min-width: 0; padding: 10px; display: flex; flex-direction: column; }
+  .canvas { flex: 1; min-width: 0; padding: 10px; display: flex; flex-direction: column;
+            position: relative; }
   .frame { background: #fff; border: 1px solid #d1d5db; border-radius: 8px; flex: 1;
            box-sizing: border-box; padding: 10px; position: relative; overflow: hidden; }
   .pages { height: 26px; display: flex; gap: 4px; align-items: center; padding: 0 2px;
@@ -145,6 +146,35 @@
   .st8 .desc { font-size: 9px; color: #6b7280; margin-top: 8px; line-height: 1.5; }
   .arrow { font-size: 9px; color: #6b7280; padding: 8px 10px; border: 1px dashed #c7d2fe;
            border-radius: 10px; background: #f8f9ff; margin-top: 12px; line-height: 1.55; }
+
+  /* ── v3: предложение ── */
+  .top .pgsel { border: 1px solid #d1d5db; border-radius: 8px; padding: 3px 8px; color: #111827;
+                background: #fff; font-weight: 600; display: flex; gap: 5px; align-items: center; }
+  .top .pgsel .ch { color: #9ca3af; font-weight: 400; }
+  .acc { border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 5px; overflow: hidden; }
+  .acc .h { display: flex; align-items: center; gap: 6px; padding: 6px 8px; font-size: 9.5px;
+            font-weight: 700; color: #111827; background: #fafafa; }
+  .acc .h .sum { margin-left: auto; font-weight: 400; color: #9ca3af; font-size: 8px;
+                 white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+  .acc .h .car { color: #9ca3af; font-size: 8px; width: 8px; }
+  .acc .b { padding: 7px 8px 8px; border-top: 1px solid #eef2f7; }
+  .acc.open .h { background: #fff; }
+  .diff { width: 100%; border-collapse: collapse; font-size: 9.5px; }
+  .diff th { text-align: left; font-size: 8.5px; color: #6b7280; font-weight: 600; padding: 5px 8px;
+             border-bottom: 1px solid #e5e7eb; }
+  .diff td { padding: 6px 8px; border-bottom: 1px solid #f3f4f6; vertical-align: top;
+             color: #374151; line-height: 1.45; }
+  .diff td.was { color: #9ca3af; }
+  .diff td.now { color: #111827; }
+  .diff td.why { color: #6b7280; font-size: 9px; }
+  .link { color: #4f46e5; font-weight: 700; }
+  .inset { position: absolute; right: 22px; bottom: 22px; width: 300px; background: #fff;
+           border: 1px solid #c7d2fe; border-radius: 10px; box-shadow: 0 8px 24px rgba(22,24,29,.12);
+           padding: 8px 9px; font-size: 8.5px; }
+  .inset .cap { font-size: 8px; font-weight: 800; color: #4f46e5; text-transform: uppercase;
+                letter-spacing: .06em; margin-bottom: 5px; }
+  .warn { border: 1px dashed #fca5a5; background: #fff7f7; color: #991b1b; border-radius: 8px;
+          padding: 6px 8px; font-size: 8.5px; line-height: 1.45; margin-top: 6px; }
 </style>
 
 </helmet>
