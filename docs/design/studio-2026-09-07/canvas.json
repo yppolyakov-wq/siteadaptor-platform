@@ -7,6 +7,10 @@
   {
    "id": "vorschlag",
    "name": "Vorschlag"
+  },
+  {
+   "id": "entscheidungen",
+   "name": "Entscheidungen"
   }
  ],
  "artboards": [
@@ -99,10 +103,91 @@
    "h": 404,
    "title": "Что меняется",
    "page": "vorschlag"
+  },
+  {
+   "file": "E0.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 940,
+   "h": 420,
+   "title": "Wahlzettel · 1A/1B · 2A/2B · 3A/3B · 4A/4B",
+   "page": "entscheidungen"
+  },
+  {
+   "file": "E1A.dc.html",
+   "x": 0,
+   "y": 560,
+   "w": 940,
+   "h": 556,
+   "title": "1A · Design in der Studio-Leiste",
+   "page": "entscheidungen"
+  },
+  {
+   "file": "E1B.dc.html",
+   "x": 1040,
+   "y": 560,
+   "w": 940,
+   "h": 556,
+   "title": "1B · Design als Kabinett-Bildschirm",
+   "page": "entscheidungen"
+  },
+  {
+   "file": "E2A.dc.html",
+   "x": 0,
+   "y": 1256,
+   "w": 940,
+   "h": 556,
+   "title": "2A · Kopf/Fuß als Sektion im Design",
+   "page": "entscheidungen"
+  },
+  {
+   "file": "E2B.dc.html",
+   "x": 1040,
+   "y": 1256,
+   "w": 940,
+   "h": 556,
+   "title": "2B · Kopf/Fuß als eigene Ebene «Menü»",
+   "page": "entscheidungen"
+  },
+  {
+   "file": "E3A.dc.html",
+   "x": 0,
+   "y": 1952,
+   "w": 940,
+   "h": 556,
+   "title": "3A · Ausklappliste «Seite: … ▾»",
+   "page": "entscheidungen"
+  },
+  {
+   "file": "E3B.dc.html",
+   "x": 1040,
+   "y": 1952,
+   "w": 940,
+   "h": 556,
+   "title": "3B · keine Liste, nur Leinwand",
+   "page": "entscheidungen"
+  },
+  {
+   "file": "E4A.dc.html",
+   "x": 0,
+   "y": 2648,
+   "w": 940,
+   "h": 556,
+   "title": "4A · Start als Sektion «Vorlagen»",
+   "page": "entscheidungen"
+  },
+  {
+   "file": "E4B.dc.html",
+   "x": 1040,
+   "y": 2648,
+   "w": 940,
+   "h": 556,
+   "title": "4B · Start bleibt eigene Ebene",
+   "page": "entscheidungen"
   }
  ],
  "launch": {
   "view": "canvas",
-  "page": "vorschlag"
+  "page": "entscheidungen"
  }
 }

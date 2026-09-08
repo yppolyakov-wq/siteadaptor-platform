@@ -161,13 +161,13 @@ CSS = """
                 background: #fff; font-weight: 600; display: flex; gap: 5px; align-items: center; }
   .top .pgsel .ch { color: #9ca3af; font-weight: 400; }
   .acc { border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 5px; overflow: hidden; }
-  .acc .h { display: flex; align-items: center; gap: 6px; padding: 6px 8px; font-size: 9.5px;
+  .acc > .h { display: flex; align-items: center; gap: 6px; padding: 6px 8px; font-size: 9.5px;
             font-weight: 700; color: #111827; background: #fafafa; }
-  .acc .h .sum { margin-left: auto; font-weight: 400; color: #9ca3af; font-size: 8px;
+  .acc > .h .sum { margin-left: auto; font-weight: 400; color: #9ca3af; font-size: 8px;
                  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
-  .acc .h .car { color: #9ca3af; font-size: 8px; width: 8px; }
+  .acc > .h .car { color: #9ca3af; font-size: 8px; width: 8px; }
   .acc .b { padding: 7px 8px 8px; border-top: 1px solid #eef2f7; }
-  .acc.open .h { background: #fff; }
+  .acc.open > .h { background: #fff; }
   .diff { width: 100%; border-collapse: collapse; font-size: 9.5px; }
   .diff th { text-align: left; font-size: 8.5px; color: #6b7280; font-weight: 600; padding: 5px 8px;
              border-bottom: 1px solid #e5e7eb; }
@@ -184,6 +184,39 @@ CSS = """
                 letter-spacing: .06em; margin-bottom: 5px; }
   .warn { border: 1px dashed #fca5a5; background: #fff7f7; color: #991b1b; border-radius: 8px;
           padding: 6px 8px; font-size: 8.5px; line-height: 1.45; margin-top: 6px; }
+
+  /* ── v4: страница «Entscheidungen» ── */
+  .hd .badge { display: inline-block; background: #111827; color: #fff; font-size: 12px;
+               font-weight: 800; letter-spacing: 0; border-radius: 7px; padding: 2px 8px;
+               margin-right: 8px; vertical-align: middle; text-transform: none; }
+  .hd .badge.rec { background: #4f46e5; }
+  .hd .rectag { margin-left: 8px; color: #15803d; background: #dcfce7; border-radius: 999px;
+                padding: 1px 7px; font-size: 9px; text-transform: none; letter-spacing: 0;
+                font-weight: 700; }
+  .top .pgsel.open { background: #eef2ff; border-color: #c7d2fe; color: #3730a3; }
+  .top .pglabel { color: #111827; font-weight: 600; padding: 3px 4px; }
+  .dd { position: absolute; left: 104px; top: 2px; width: 196px; background: #fff; z-index: 3;
+        border: 1px solid #d1d5db; border-radius: 10px; box-shadow: 0 10px 28px rgba(22,24,29,.16);
+        padding: 5px; font-size: 8.5px; }
+  .dd .g { font-size: 7.5px; font-weight: 800; color: #9ca3af; text-transform: uppercase;
+           letter-spacing: .06em; padding: 4px 6px 2px; }
+  .dd .it { padding: 3px 6px; border-radius: 6px; color: #374151; display: flex; gap: 6px; }
+  .dd .it.on { background: #eef2ff; color: #3730a3; font-weight: 700; }
+  .dd .it .k { margin-left: auto; color: #9ca3af; font-size: 7.5px; }
+  .dd .it.rare { color: #111827; font-weight: 600; }
+  .callout { position: absolute; right: 16px; top: 54px; width: 214px; background: #fff;
+             border: 1px solid #c7d2fe; border-radius: 10px; padding: 7px 9px; font-size: 8.5px;
+             line-height: 1.45; color: #374151; box-shadow: 0 8px 24px rgba(22,24,29,.12); z-index: 3; }
+  .callout b { color: #111827; }
+  .sf-nav .cart { margin-left: auto; color: #111827; font-weight: 700; }
+  .sf-nav .cart.sel-i { outline: 2px solid rgba(99,102,241,.9); outline-offset: 2px; border-radius: 4px; }
+  .diff td.rec { color: #15803d; font-weight: 700; white-space: nowrap; }
+  .diff td .opt { display: inline-block; background: #111827; color: #fff; font-size: 8.5px;
+                  font-weight: 800; border-radius: 5px; padding: 1px 5px; margin-right: 5px; }
+  .diff td .opt.rec { background: #4f46e5; }
+  .answer { margin-top: 10px; border: 1px dashed #c7d2fe; background: #f8f9ff; border-radius: 10px;
+            padding: 8px 10px; font-size: 10px; color: #374151; line-height: 1.5; }
+  .answer b { color: #111827; }
 </style>
 """
 
@@ -194,6 +227,7 @@ ICONS = {
     "blocks": '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>',
     "media": '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-6 6-2-2-5 5"/></svg>',
     "start": '<svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>',
+    "menu": '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>',
 }
 
 
@@ -707,6 +741,286 @@ def v3_diff() -> str:
     return wrap(body)
 
 
+# ── v4: страница «Entscheidungen» — четыре развилки, каждая двумя картинками ─────
+def hd2(badge: str, kicker: str, title: str, text: str, rec: bool = False) -> str:
+    b = f'<span class="badge{" rec" if rec else ""}">{badge}</span>'
+    r = '<span class="rectag">✓ empfohlen</span>' if rec else ""
+    return f'<div class="hd"><div class="k">{b}{kicker}{r}</div><h2>{title}</h2><p>{text}</p></div>'
+
+
+def rail_v4(active: str, levels: list) -> str:
+    out = ['<div class="rail">']
+    for key, label in levels:
+        on = " on" if key == active else ""
+        out.append(f'<div class="lv{on}">{ICONS[key]}<span>{label}</span></div>')
+    out.append("</div>")
+    return "".join(out)
+
+
+LEVELS_4 = [("design", "Design"), ("page", "Startseite"), ("blocks", "Blöcke"), ("media", "Medien")]
+
+
+def top_v4(page: str, mode: str = "sel", extra: str = "") -> str:
+    """mode: sel — выпадашка закрыта · open — раскрыта · plain — только подпись."""
+    if mode == "plain":
+        pg = f'<span class="pglabel">{page}</span>'
+    else:
+        pg = f'<span class="pgsel{" open" if mode == "open" else ""}">Seite: {page}<span class="ch">▾</span></span>'
+    return f"""
+<div class="top">
+  <span class="brand">Studio</span><span>· Hofladen Sonnenfeld</span>
+  {pg}
+  <span class="sp"></span>{extra}
+  <span class="btn on">✏️ Bearbeiten</span>
+  <span class="btn">↶</span><span class="btn">↷</span>
+  <span class="btn save">Speichern</span>
+</div>"""
+
+
+LOOK_BODY = ('<div class="tiles"><div class="t"><span>Klar</span></div><div class="t on"><span>Warm</span></div>'
+             '<div class="t"><span>Nacht</span></div><div class="t"><span>Fein</span></div><div class="t"><span>Natur</span></div></div>'
+             '<div class="hint" style="margin-top:4px">Look = Farbe, Schrift und Kartenstil auf einmal. Ihre Seitenvorlagen bleiben.</div>')
+
+MENU_ROWS = ('<div class="rows">'
+             '<div class="r"><span class="h">⠿</span>Sortiment<span class="eye">👁</span></div>'
+             '<div class="r"><span class="h">⠿</span>Aktionen<span class="eye">👁</span></div>'
+             '<div class="r"><span class="h">⠿</span>Kontakt<span class="eye">👁</span></div></div>')
+
+KOPF_FIELDS = (
+    '<div class="fld"><div class="lb">Kopfzeile</div><div class="tiles"><div class="t on"><span>Classic</span></div>'
+    '<div class="t"><span>Zentriert</span></div><div class="t"><span>Minimal</span></div></div></div>'
+    '<div class="fld"><div class="chk"><i class="on"></i>CTA-Button „Jetzt bestellen“</div></div>'
+    f'<div class="fld"><div class="lb">Menüpunkte<span class="hint">⠿ ziehen · 👁 ausblenden</span></div>{MENU_ROWS}</div>'
+    '<div class="fld"><div class="lb">Fußzeile</div><div class="chips"><span class="chip on">Kontakt</span>'
+    '<span class="chip on">Öffnungszeiten</span><span class="chip on">Social</span><span class="chip">Newsletter</span></div></div>'
+)
+
+VORLAGEN_FIELDS = (
+    '<div class="fld"><div class="lb">Startpaket<span class="hint">Komposition + Look</span></div>'
+    '<div class="tiles"><div class="t on"><span>Fokus</span></div><div class="t"><span>Prospekt</span></div><div class="t"><span>Boutique</span></div></div></div>'
+    '<div class="fld"><div class="lb">Layout-Vorlage<span class="hint">nur Abschnitte</span></div>'
+    '<div class="ctrl"><span>Hofladen (empfohlen)</span><span class="ch">▾</span></div></div>'
+    '<div class="fld"><div class="lb">Demo-Inhalte</div>'
+    '<div class="ctrl" style="justify-content:center;color:#3730a3;border-color:#c7d2fe;font-weight:700">Demo-Inhalte laden</div>'
+    '<div class="hint" style="margin-top:3px">Beispielprodukte und eine Aktion — jederzeit wieder löschbar.</div></div>'
+)
+
+
+def design_pane_v4(open_key: str, with_kopf: bool = True, with_vorlagen: bool = True) -> str:
+    secs = [("look", "Look", "Warm", LOOK_BODY),
+            ("farbe", "Farbe &amp; Schrift", "● #b45309 · Nunito", ""),
+            ("karten", "Karten &amp; Fotos", "Regal · rund · Hairline", "")]
+    if with_kopf:
+        secs.append(("kopf", "Kopf- &amp; Fußzeile", "Classic · CTA an · 3 Punkte", KOPF_FIELDS))
+    if with_vorlagen:
+        secs.append(("vorlagen", "Vorlagen", "Fokus · Hofladen · Demo", VORLAGEN_FIELDS))
+    body = "".join(acc(t, s, b, open_=(k == open_key)) for k, t, s, b in secs)
+    return f'<div class="pane"><div class="ttl">Design des Shops <span class="x">✕</span></div>{body}</div>'
+
+
+HOME_SKETCH_NAV = HOME_SKETCH.replace('<div class="sf-nav">', '<div class="sf-nav sel">', 1).replace(
+    '<div class="sf-hero ph sel">', '<div class="sf-hero ph">', 1)
+HOME_SKETCH_CART = HOME_SKETCH.replace(
+    '<span>Kontakt</span></div>', '<span>Kontakt</span><span class="cart sel-i">🛒 2</span></div>', 1).replace(
+    '<div class="sf-hero ph sel">', '<div class="sf-hero ph">', 1)
+
+HOME_PAGE_PANE = page_pane_v3("Startseite", """
+  <div class="card">
+    <div class="lg">Abschnitte</div>
+    <div class="rows">
+      <div class="r"><span class="h">⠿</span>Banner<span class="eye">👁</span></div>
+      <div class="r"><span class="h">⠿</span>Kategorien<span class="eye">👁</span></div>
+      <div class="r"><span class="h">⠿</span>Produkte<span class="eye">👁</span></div>
+      <div class="r"><span class="h">⠿</span>Aktionen<span class="eye">👁</span></div>
+    </div>
+  </div>
+  <div class="card"><div class="lg">Banner</div>
+    <div class="tiles"><div class="t"><span>Klar</span></div><div class="t on"><span>Split</span></div><div class="t"><span>Vollbild</span></div></div>
+  </div>""")
+
+
+def studio(top_html: str, rail_html: str, sketch: str, tag: str, pane_html: str, canvas_extra: str = "") -> str:
+    return (top_html + f'<div class="app">{rail_html}'
+            + f'<div class="canvas"><div class="frame">{sketch}<span class="tag">{tag}</span></div>{canvas_extra}</div>'
+            + pane_html + "</div>")
+
+
+# ── 0 · бланк выбора ───────────────────────────────────────────────────────────
+def e0_wahlzettel() -> str:
+    rows = [
+        ("1", "Wo lebt das globale Design (Look, Farbe, Schrift, Karten)?",
+         "In der Studio-Leiste als Ebene «Design des Shops» — Änderung sofort auf der Leinwand",
+         "Eigener Kabinett-Bildschirm; Studio bleibt nur seitenweise",
+         "1A", "цвет и форму карточек хочется видеть живьём"),
+        ("2", "Kopf- &amp; Fußzeile (Menüpunkte, CTA, Footer)",
+         "Sektion innerhalb «Design des Shops»",
+         "Eigene Leisten-Ebene «Menü»",
+         "2A", "шапка глобальна, как цвет; пятый уровень — снова много входов"),
+        ("3", "Seiten, die man auf der Leinwand nicht anklicken kann (Warenkorb, Kasse)",
+         "Ausklappliste «Seite: … ▾» in der oberen Zeile",
+         "Keine Liste — nur über die Leinwand (Korb-Symbol → Warenkorb → Kasse)",
+         "3A", "две страницы, к которым иначе нужен полный корзинный сценарий"),
+        ("4", "Bereich «⚡ Start» (Layout-Vorlagen, Demo-Inhalte)",
+         "Sektion «Vorlagen» innerhalb «Design des Shops»",
+         "Bleibt eigene Leisten-Ebene «Start»",
+         "4A", "нужно раз при старте; уровень рейки — для ежедневного"),
+    ]
+    tr = "".join(
+        f'<tr><td class="lbl">{n}</td><td>{q}</td>'
+        f'<td class="now"><span class="opt{" rec" if r == n + "A" else ""}">{n}A</span>{a}</td>'
+        f'<td class="now"><span class="opt{" rec" if r == n + "B" else ""}">{n}B</span>{b}</td>'
+        f'<td class="rec">{r}</td><td class="why">{w}</td></tr>'
+        for n, q, a, b, r, w in rows)
+    body = (hd("Wahlzettel", "Четыре развилки — ответ в форме «1A · 2A · 3A · 4A»",
+               "Ниже каждая развилка — парой артбордов, слева A, справа B; на картинках отличается "
+               "только то, что решается. Развилки независимы, кроме одной оговорки: при 1B "
+               "секции из 2A и 4A живут на экране кабинета, а не в панели Студии.")
+            + '<div class="sheet"><table class="diff"><tr><th>№</th><th>Frage</th><th>A</th><th>B</th>'
+            + f'<th>Empf.</th><th>почему</th></tr>{tr}</table>'
+            + '<div class="answer"><b>Общее для всех вариантов</b> (уже решено предложением): один вход в дизайн, '
+              'панель без вкладок, лента страниц внизу убрана, настройки типа страницы — как сегодня, '
+              'экран кабинета «Design» ведёт в Студию.</div></div>')
+    return wrap(body)
+
+
+# ── 1 · где живёт глобальный дизайн ───────────────────────────────────────────
+def e1a() -> str:
+    body = (hd2("1A", "Globales Design", "Ebene «Design des Shops» in der Studio-Leiste",
+                "Look, цвет, шрифт, карточки, шапка и шаблоны — одной панелью-аккордеоном. "
+                "Свёрнутая секция показывает текущее значение строкой. Каждое изменение сразу на "
+                "канве; Undo и Save — штатные.", rec=True)
+            + studio(top_v4("Startseite"), rail_v4("design", LEVELS_4), HOME_SKETCH, "Startseite",
+                     design_pane_v4("look")))
+    return wrap(body)
+
+
+def e1b() -> str:
+    inset = """
+<div class="inset">
+  <div class="cap">Kabinett · Design des Shops</div>
+  <div class="fld"><div class="lb">Look</div><div class="tiles"><div class="t"><span>Klar</span></div><div class="t on"><span>Warm</span></div><div class="t"><span>Nacht</span></div><div class="t"><span>Fein</span></div></div></div>
+  <div class="fld"><div class="lb">Farbe &amp; Schrift</div><div class="ctrl"><span>● #b45309 · Nunito</span><span class="ch">▾</span></div></div>
+  <div class="fld"><div class="lb">Karten &amp; Fotos</div><div class="ctrl"><span>Regal · rund · Hairline</span><span class="ch">▾</span></div></div>
+  <div class="warn">Живого превью нет: результат виден после сохранения, когда вернёшься в Студию.</div>
+</div>"""
+    body = (hd2("1B", "Globales Design", "Eigener Kabinett-Bildschirm; Studio nur seitenweise",
+                "Рейка без уровня Design; ссылка «Design des Shops →» уводит на экран кабинета "
+                "(сегодняшний /dashboard/design/, расширенный цветом и шрифтом). Студия проще, "
+                "но цвет и форму карточек меняешь вслепую.")
+            + studio(top_v4("Startseite", extra='<span class="link">Design des Shops →</span>'),
+                     rail_v4("page", LEVELS_4[1:]), HOME_SKETCH, "Startseite", HOME_PAGE_PANE, inset))
+    return wrap(body)
+
+
+# ── 2 · шапка и подвал ────────────────────────────────────────────────────────
+def e2a() -> str:
+    body = (hd2("2A", "Kopf- &amp; Fußzeile", "Sektion innerhalb «Design des Shops»",
+                "Клик по шапке на канве раскрывает секцию «Kopf- &amp; Fußzeile» в панели дизайна: "
+                "вид шапки, CTA-кнопка, пункты меню (перетаскивание, скрытие), состав подвала. "
+                "Рейка остаётся из четырёх уровней.", rec=True)
+            + studio(top_v4("Startseite"), rail_v4("design", LEVELS_4), HOME_SKETCH_NAV, "Kopfzeile",
+                     design_pane_v4("kopf")))
+    return wrap(body)
+
+
+def e2b() -> str:
+    pane = f"""
+<div class="pane">
+  <div class="ttl">Kopf- &amp; Fußzeile <span class="x">✕</span></div>
+  <div class="card"><div class="lg">Kopfzeile</div>
+    <div class="fld"><div class="tiles"><div class="t on"><span>Classic</span></div><div class="t"><span>Zentriert</span></div><div class="t"><span>Minimal</span></div></div></div>
+    <div class="fld"><div class="chk"><i class="on"></i>CTA-Button „Jetzt bestellen“</div></div>
+  </div>
+  <div class="card"><div class="lg">Menüpunkte</div>{MENU_ROWS}</div>
+  <div class="card"><div class="lg">Fußzeile</div>
+    <div class="chips"><span class="chip on">Kontakt</span><span class="chip on">Öffnungszeiten</span><span class="chip on">Social</span><span class="chip">Newsletter</span></div>
+  </div>
+</div>"""
+    levels = [("design", "Design"), ("page", "Startseite"), ("menu", "Menü"), ("blocks", "Blöcke"), ("media", "Medien")]
+    body = (hd2("2B", "Kopf- &amp; Fußzeile", "Eigene Leisten-Ebene «Menü»",
+                "Пятый уровень на рейке со своей панелью; «Design des Shops» остаётся из четырёх "
+                "секций (Look · Farbe &amp; Schrift · Karten &amp; Fotos · Vorlagen). Содержимое то же, "
+                "что в 2A, — отличается только место.")
+            + studio(top_v4("Startseite"), rail_v4("menu", levels), HOME_SKETCH_NAV, "Kopfzeile", pane))
+    return wrap(body)
+
+
+# ── 3 · страницы, до которых не дойти кликом ──────────────────────────────────
+def e3a() -> str:
+    dd = """
+<div class="dd">
+  <div class="g">Über die Website erreichbar</div>
+  <div class="it on">Startseite</div>
+  <div class="it">Katalog · Kategorie · Produkt<span class="k">klicken</span></div>
+  <div class="it">Aktionen · Gruppe · Aktion<span class="k">klicken</span></div>
+  <div class="it">Über uns · Blog · Rechtliches<span class="k">klicken</span></div>
+  <div class="g">Nur von hier</div>
+  <div class="it rare">Warenkorb</div>
+  <div class="it rare">Kasse</div>
+</div>"""
+    body = (hd2("3A", "Seltene Seiten", "Ausklappliste «Seite: … ▾» in der oberen Zeile",
+                "Одна выпадашка вместо ленты чипов: показывает, где стоишь, и ведёт к двум "
+                "страницам, которые на канве кликом не открыть, — Warenkorb и Kasse. Все прочие "
+                "типы открываются кликом по содержимому (список для ориентира).", rec=True)
+            + studio(top_v4("Startseite", mode="open"), rail_v4("page", LEVELS_4), HOME_SKETCH, "Startseite",
+                     HOME_PAGE_PANE, dd))
+    return wrap(body)
+
+
+def e3b() -> str:
+    callout = """
+<div class="callout">
+  <b>Ohne Liste:</b> Warenkorb — über das Korb-Symbol auf der Leinwand; Kasse — aus dem Warenkorb
+  über „Zur Kasse“ (dafür muss im Vorschau-Korb etwas liegen).
+  <div class="warn">Пустая корзина = до Kasse из Студии не дойти; настройки касcы тогда только через реестр без канвы.</div>
+</div>"""
+    body = (hd2("3B", "Seltene Seiten", "Keine Liste — nur über die Leinwand",
+                "В верхней строке только подпись «где стою». Корзина и касса достигаются как "
+                "посетителем: иконка корзины → Warenkorb → «Zur Kasse». Совсем без второго "
+                "элемента навигации, но с оговоркой про пустую корзину.")
+            + studio(top_v4("Startseite", mode="plain"), rail_v4("page", LEVELS_4), HOME_SKETCH_CART, "Startseite",
+                     HOME_PAGE_PANE, callout))
+    return wrap(body)
+
+
+# ── 4 · область «Start» ───────────────────────────────────────────────────────
+def e4a() -> str:
+    body = (hd2("4A", "Bereich «Start»", "Sektion «Vorlagen» innerhalb «Design des Shops»",
+                "Startpaket (композиция + Look), Layout-Vorlage (только состав секций) и "
+                "Demo-Inhalte — одной секцией внизу панели дизайна. Уровень «Start» с рейки уходит.",
+                rec=True)
+            + studio(top_v4("Startseite"), rail_v4("design", LEVELS_4), HOME_SKETCH, "Startseite",
+                     design_pane_v4("vorlagen")))
+    return wrap(body)
+
+
+def e4b() -> str:
+    tpl = ('<div class="rows"><div class="r" style="background:#fff"><span style="width:7px;height:7px;border-radius:999px;background:#b45309;display:inline-block"></span>'
+           'Hofladen<span class="eye" style="color:#15803d;font-size:7.5px">empfohlen</span></div>'
+           '<div class="r" style="background:#fff"><span style="width:7px;height:7px;border-radius:999px;background:#4f46e5;display:inline-block"></span>Klassisch<span class="eye">Anwenden</span></div>'
+           '<div class="r" style="background:#fff"><span style="width:7px;height:7px;border-radius:999px;background:#0f766e;display:inline-block"></span>Minimal<span class="eye">Anwenden</span></div></div>')
+    pane = f"""
+<div class="pane">
+  <div class="ttl">⚡ Start <span class="x">✕</span></div>
+  <div class="card"><div class="lg">Demo-Inhalte</div>
+    <div class="hint" style="margin-bottom:5px">Beispielprodukte und eine Aktion. Jederzeit wieder löschbar.</div>
+    <div class="ctrl" style="justify-content:center;color:#3730a3;border-color:#c7d2fe;font-weight:700">Demo-Inhalte laden</div>
+  </div>
+  <div class="card"><div class="lg">Layout-Vorlagen</div>
+    <div class="hint" style="margin-bottom:5px">Fertiger Aufbau. Ihre Texte bleiben — nur leere Felder werden gefüllt.</div>
+    {tpl}
+  </div>
+  <div class="hint">Startpaket bleibt unter Design → Look.</div>
+</div>"""
+    levels = LEVELS_4 + [("start", "Start")]
+    body = (hd2("4B", "Bereich «Start»", "Bleibt eigene Leisten-Ebene «Start»",
+                "Как сегодня: пятый уровень с демо-контентом и Layout-шаблонами; Startpaket "
+                "остаётся в Design → Look. Плюс — быстрый вход при первом заходе, минус — второй "
+                "уровень про шаблоны.")
+            + studio(top_v4("Startseite"), rail_v4("start", levels), HOME_SKETCH, "Startseite", pane))
+    return wrap(body)
+
+
 ARTBOARDS = {
     "Main": (main_home, 940, 556, "Studio · Startseite"),
     "Kategorie": (kategorie, 940, 556, "Studio · Kategorie"),
@@ -719,8 +1033,20 @@ ARTBOARDS = {
     "V3Kategorie": (v3_kategorie, 940, 556, "A · Diese Seite: Kategorie"),
     "V3Alt": (v3_alt, 940, 556, "B · глобальное вне Студии"),
     "V3Diff": (v3_diff, 940, 404, "Что меняется"),
+    # ── страница «Entscheidungen» ──
+    "E0": (e0_wahlzettel, 940, 420, "Wahlzettel · 1A/1B · 2A/2B · 3A/3B · 4A/4B"),
+    "E1A": (e1a, 940, 556, "1A · Design in der Studio-Leiste"),
+    "E1B": (e1b, 940, 556, "1B · Design als Kabinett-Bildschirm"),
+    "E2A": (e2a, 940, 556, "2A · Kopf/Fuß als Sektion im Design"),
+    "E2B": (e2b, 940, 556, "2B · Kopf/Fuß als eigene Ebene «Menü»"),
+    "E3A": (e3a, 940, 556, "3A · Ausklappliste «Seite: … ▾»"),
+    "E3B": (e3b, 940, 556, "3B · keine Liste, nur Leinwand"),
+    "E4A": (e4a, 940, 556, "4A · Start als Sektion «Vorlagen»"),
+    "E4B": (e4b, 940, 556, "4B · Start bleibt eigene Ebene"),
 }
-PAGE_OF = {k: ("vorschlag" if k.startswith("V3") else "heute") for k in ARTBOARDS}
+
+PAGE_OF = {k: ("entscheidungen" if k.startswith("E") else "vorschlag" if k.startswith("V3") else "heute")
+           for k in ARTBOARDS}
 
 LAYOUT = {
     "Main": (0, 0), "Kategorie": (1040, 0),
@@ -728,6 +1054,11 @@ LAYOUT = {
     "Register": (0, 1336), "Umfang": (1040, 1336),
     "V3Home": (0, 0), "V3Kategorie": (1040, 0),
     "V3Alt": (0, 696), "V3Diff": (1040, 696),
+    "E0": (0, 0),
+    "E1A": (0, 560), "E1B": (1040, 560),
+    "E2A": (0, 1256), "E2B": (1040, 1256),
+    "E3A": (0, 1952), "E3B": (1040, 1952),
+    "E4A": (0, 2648), "E4B": (1040, 2648),
 }
 
 
@@ -740,9 +1071,10 @@ def main() -> None:
                        "page": PAGE_OF[name]})
     (HERE / "canvas.json").write_text(
         json.dumps({
-            "pages": [{"id": "heute", "name": "Heute"}, {"id": "vorschlag", "name": "Vorschlag"}],
+            "pages": [{"id": "heute", "name": "Heute"}, {"id": "vorschlag", "name": "Vorschlag"},
+                      {"id": "entscheidungen", "name": "Entscheidungen"}],
             "artboards": boards,
-            "launch": {"view": "canvas", "page": "vorschlag"},
+            "launch": {"view": "canvas", "page": "entscheidungen"},
         }, ensure_ascii=False, indent=1),
         encoding="utf-8",
     )

@@ -152,13 +152,13 @@
                 background: #fff; font-weight: 600; display: flex; gap: 5px; align-items: center; }
   .top .pgsel .ch { color: #9ca3af; font-weight: 400; }
   .acc { border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 5px; overflow: hidden; }
-  .acc .h { display: flex; align-items: center; gap: 6px; padding: 6px 8px; font-size: 9.5px;
+  .acc > .h { display: flex; align-items: center; gap: 6px; padding: 6px 8px; font-size: 9.5px;
             font-weight: 700; color: #111827; background: #fafafa; }
-  .acc .h .sum { margin-left: auto; font-weight: 400; color: #9ca3af; font-size: 8px;
+  .acc > .h .sum { margin-left: auto; font-weight: 400; color: #9ca3af; font-size: 8px;
                  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
-  .acc .h .car { color: #9ca3af; font-size: 8px; width: 8px; }
+  .acc > .h .car { color: #9ca3af; font-size: 8px; width: 8px; }
   .acc .b { padding: 7px 8px 8px; border-top: 1px solid #eef2f7; }
-  .acc.open .h { background: #fff; }
+  .acc.open > .h { background: #fff; }
   .diff { width: 100%; border-collapse: collapse; font-size: 9.5px; }
   .diff th { text-align: left; font-size: 8.5px; color: #6b7280; font-weight: 600; padding: 5px 8px;
              border-bottom: 1px solid #e5e7eb; }
@@ -175,6 +175,39 @@
                 letter-spacing: .06em; margin-bottom: 5px; }
   .warn { border: 1px dashed #fca5a5; background: #fff7f7; color: #991b1b; border-radius: 8px;
           padding: 6px 8px; font-size: 8.5px; line-height: 1.45; margin-top: 6px; }
+
+  /* ── v4: страница «Entscheidungen» ── */
+  .hd .badge { display: inline-block; background: #111827; color: #fff; font-size: 12px;
+               font-weight: 800; letter-spacing: 0; border-radius: 7px; padding: 2px 8px;
+               margin-right: 8px; vertical-align: middle; text-transform: none; }
+  .hd .badge.rec { background: #4f46e5; }
+  .hd .rectag { margin-left: 8px; color: #15803d; background: #dcfce7; border-radius: 999px;
+                padding: 1px 7px; font-size: 9px; text-transform: none; letter-spacing: 0;
+                font-weight: 700; }
+  .top .pgsel.open { background: #eef2ff; border-color: #c7d2fe; color: #3730a3; }
+  .top .pglabel { color: #111827; font-weight: 600; padding: 3px 4px; }
+  .dd { position: absolute; left: 104px; top: 2px; width: 196px; background: #fff; z-index: 3;
+        border: 1px solid #d1d5db; border-radius: 10px; box-shadow: 0 10px 28px rgba(22,24,29,.16);
+        padding: 5px; font-size: 8.5px; }
+  .dd .g { font-size: 7.5px; font-weight: 800; color: #9ca3af; text-transform: uppercase;
+           letter-spacing: .06em; padding: 4px 6px 2px; }
+  .dd .it { padding: 3px 6px; border-radius: 6px; color: #374151; display: flex; gap: 6px; }
+  .dd .it.on { background: #eef2ff; color: #3730a3; font-weight: 700; }
+  .dd .it .k { margin-left: auto; color: #9ca3af; font-size: 7.5px; }
+  .dd .it.rare { color: #111827; font-weight: 600; }
+  .callout { position: absolute; right: 16px; top: 54px; width: 214px; background: #fff;
+             border: 1px solid #c7d2fe; border-radius: 10px; padding: 7px 9px; font-size: 8.5px;
+             line-height: 1.45; color: #374151; box-shadow: 0 8px 24px rgba(22,24,29,.12); z-index: 3; }
+  .callout b { color: #111827; }
+  .sf-nav .cart { margin-left: auto; color: #111827; font-weight: 700; }
+  .sf-nav .cart.sel-i { outline: 2px solid rgba(99,102,241,.9); outline-offset: 2px; border-radius: 4px; }
+  .diff td.rec { color: #15803d; font-weight: 700; white-space: nowrap; }
+  .diff td .opt { display: inline-block; background: #111827; color: #fff; font-size: 8.5px;
+                  font-weight: 800; border-radius: 5px; padding: 1px 5px; margin-right: 5px; }
+  .diff td .opt.rec { background: #4f46e5; }
+  .answer { margin-top: 10px; border: 1px dashed #c7d2fe; background: #f8f9ff; border-radius: 10px;
+            padding: 8px 10px; font-size: 10px; color: #374151; line-height: 1.5; }
+  .answer b { color: #111827; }
 </style>
 
 </helmet>
