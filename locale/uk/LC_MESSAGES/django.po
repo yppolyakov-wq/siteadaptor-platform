@@ -22352,3 +22352,79 @@ msgstr "Вигляд"
 #: templates/tenant/site_home.html
 msgid "Height"
 msgstr "Висота"
+
+#: templates/tenant/design.html
+msgid "Breit"
+msgstr "Широке"
+
+#: templates/tenant/design.html
+msgid "Card style"
+msgstr "Стиль картки"
+
+#: templates/tenant/design.html
+msgid "Dark theme"
+msgstr "Темна тема"
+
+#: templates/tenant/design.html
+msgid "Demo-Inhalte laden"
+msgstr "Завантажити демо-контент"
+
+#: templates/tenant/design.html
+msgid "Demo-Inhalte löschen"
+msgstr "Видалити демо-контент"
+
+#: templates/tenant/design.html
+msgid "Farbe & Schrift"
+msgstr "Колір і шрифт"
+
+#: templates/tenant/design.html
+msgid "Fotos auf der Karte durchblättern"
+msgstr "Гортати фото на картці"
+
+#: templates/tenant/design.html
+msgid "Hairline"
+msgstr "Тонка рамка"
+
+#: templates/tenant/design.html
+msgid "Hard"
+msgstr "Жорстка рамка"
+
+#: templates/tenant/design.html
+msgid "Headline weight"
+msgstr "Насиченість заголовків"
+
+#: templates/tenant/design.html
+msgid "Karten & Fotos"
+msgstr "Картки та фото"
+
+#: templates/tenant/design.html
+msgid "Line height"
+msgstr "Міжрядковий інтервал"
+
+#: templates/tenant/design.html
+msgid "Merkzettel (♡ auf Karten)"
+msgstr "Обране (♡ на картках)"
+
+#: templates/tenant/design.html
+msgid "Page background"
+msgstr "Тло сторінки"
+
+#: templates/tenant/design.html
+msgid "Quick order from cards (＋ button / configurator)"
+msgstr "Швидке замовлення з карток (＋ / конфігуратор)"
+
+#: templates/tenant/design.html
+msgid "Varianten"
+msgstr "Варіанти"
+
+#: templates/tenant/design.html
+msgid ""
+"Vorlage übernehmen? Leere Texte werden gefüllt, die Abschnitte der "
+"Startseite werden neu gesetzt."
+msgstr ""
+"Застосувати шаблон? Порожні тексти заповняться, а секції головної буде "
+"задано заново."
+
+#: templates/tenant/design.html
+msgid "Übernehmen"
+msgstr "Застосувати"

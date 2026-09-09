@@ -22174,3 +22174,79 @@ msgstr "Darstellung"
 #: templates/tenant/site_home.html
 msgid "Height"
 msgstr "Höhe"
+
+#: templates/tenant/design.html
+msgid "Breit"
+msgstr "Breit"
+
+#: templates/tenant/design.html
+msgid "Card style"
+msgstr "Kartenstil"
+
+#: templates/tenant/design.html
+msgid "Dark theme"
+msgstr "Dunkles Design"
+
+#: templates/tenant/design.html
+msgid "Demo-Inhalte laden"
+msgstr "Demo-Inhalte laden"
+
+#: templates/tenant/design.html
+msgid "Demo-Inhalte löschen"
+msgstr "Demo-Inhalte löschen"
+
+#: templates/tenant/design.html
+msgid "Farbe & Schrift"
+msgstr "Farbe & Schrift"
+
+#: templates/tenant/design.html
+msgid "Fotos auf der Karte durchblättern"
+msgstr "Fotos auf der Karte durchblättern"
+
+#: templates/tenant/design.html
+msgid "Hairline"
+msgstr "Haarlinie"
+
+#: templates/tenant/design.html
+msgid "Hard"
+msgstr "Kräftig"
+
+#: templates/tenant/design.html
+msgid "Headline weight"
+msgstr "Schriftstärke der Überschrift"
+
+#: templates/tenant/design.html
+msgid "Karten & Fotos"
+msgstr "Karten & Fotos"
+
+#: templates/tenant/design.html
+msgid "Line height"
+msgstr "Zeilenhöhe"
+
+#: templates/tenant/design.html
+msgid "Merkzettel (♡ auf Karten)"
+msgstr "Merkzettel (♡ auf Karten)"
+
+#: templates/tenant/design.html
+msgid "Page background"
+msgstr "Seitenhintergrund"
+
+#: templates/tenant/design.html
+msgid "Quick order from cards (＋ button / configurator)"
+msgstr "Schnellbestellung über Karten (＋ / Konfigurator)"
+
+#: templates/tenant/design.html
+msgid "Varianten"
+msgstr "Varianten"
+
+#: templates/tenant/design.html
+msgid ""
+"Vorlage übernehmen? Leere Texte werden gefüllt, die Abschnitte der "
+"Startseite werden neu gesetzt."
+msgstr ""
+"Vorlage übernehmen? Leere Texte werden gefüllt, die Abschnitte der "
+"Startseite werden neu gesetzt."
+
+#: templates/tenant/design.html
+msgid "Übernehmen"
+msgstr "Übernehmen"

@@ -22135,3 +22135,79 @@ msgstr "Appearance"
 #: templates/tenant/site_home.html
 msgid "Height"
 msgstr "Height"
+
+#: templates/tenant/design.html
+msgid "Breit"
+msgstr "Wide"
+
+#: templates/tenant/design.html
+msgid "Card style"
+msgstr "Card style"
+
+#: templates/tenant/design.html
+msgid "Dark theme"
+msgstr "Dark theme"
+
+#: templates/tenant/design.html
+msgid "Demo-Inhalte laden"
+msgstr "Load demo content"
+
+#: templates/tenant/design.html
+msgid "Demo-Inhalte löschen"
+msgstr "Delete demo content"
+
+#: templates/tenant/design.html
+msgid "Farbe & Schrift"
+msgstr "Colour & font"
+
+#: templates/tenant/design.html
+msgid "Fotos auf der Karte durchblättern"
+msgstr "Flip through photos on the card"
+
+#: templates/tenant/design.html
+msgid "Hairline"
+msgstr "Hairline"
+
+#: templates/tenant/design.html
+msgid "Hard"
+msgstr "Hard"
+
+#: templates/tenant/design.html
+msgid "Headline weight"
+msgstr "Headline weight"
+
+#: templates/tenant/design.html
+msgid "Karten & Fotos"
+msgstr "Cards & photos"
+
+#: templates/tenant/design.html
+msgid "Line height"
+msgstr "Line height"
+
+#: templates/tenant/design.html
+msgid "Merkzettel (♡ auf Karten)"
+msgstr "Wishlist (♡ on cards)"
+
+#: templates/tenant/design.html
+msgid "Page background"
+msgstr "Page background"
+
+#: templates/tenant/design.html
+msgid "Quick order from cards (＋ button / configurator)"
+msgstr "Quick order from cards (＋ button / configurator)"
+
+#: templates/tenant/design.html
+msgid "Varianten"
+msgstr "Variants"
+
+#: templates/tenant/design.html
+msgid ""
+"Vorlage übernehmen? Leere Texte werden gefüllt, die Abschnitte der "
+"Startseite werden neu gesetzt."
+msgstr ""
+"Apply this template? Empty texts are filled and the homepage sections are "
+"reset."
+
+#: templates/tenant/design.html
+msgid "Übernehmen"
+msgstr "Apply"

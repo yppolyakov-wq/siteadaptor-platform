@@ -22369,3 +22369,79 @@ msgstr "Вид"
 #: templates/tenant/site_home.html
 msgid "Height"
 msgstr "Высота"
+
+#: templates/tenant/design.html
+msgid "Breit"
+msgstr "Широкое"
+
+#: templates/tenant/design.html
+msgid "Card style"
+msgstr "Стиль карточки"
+
+#: templates/tenant/design.html
+msgid "Dark theme"
+msgstr "Тёмная тема"
+
+#: templates/tenant/design.html
+msgid "Demo-Inhalte laden"
+msgstr "Загрузить демо-контент"
+
+#: templates/tenant/design.html
+msgid "Demo-Inhalte löschen"
+msgstr "Удалить демо-контент"
+
+#: templates/tenant/design.html
+msgid "Farbe & Schrift"
+msgstr "Цвет и шрифт"
+
+#: templates/tenant/design.html
+msgid "Fotos auf der Karte durchblättern"
+msgstr "Листать фото на карточке"
+
+#: templates/tenant/design.html
+msgid "Hairline"
+msgstr "Тонкая рамка"
+
+#: templates/tenant/design.html
+msgid "Hard"
+msgstr "Жёсткая рамка"
+
+#: templates/tenant/design.html
+msgid "Headline weight"
+msgstr "Насыщенность заголовков"
+
+#: templates/tenant/design.html
+msgid "Karten & Fotos"
+msgstr "Карточки и фото"
+
+#: templates/tenant/design.html
+msgid "Line height"
+msgstr "Межстрочный интервал"
+
+#: templates/tenant/design.html
+msgid "Merkzettel (♡ auf Karten)"
+msgstr "Избранное (♡ на карточках)"
+
+#: templates/tenant/design.html
+msgid "Page background"
+msgstr "Фон страницы"
+
+#: templates/tenant/design.html
+msgid "Quick order from cards (＋ button / configurator)"
+msgstr "Быстрый заказ с карточек (＋ / конфигуратор)"
+
+#: templates/tenant/design.html
+msgid "Varianten"
+msgstr "Варианты"
+
+#: templates/tenant/design.html
+msgid ""
+"Vorlage übernehmen? Leere Texte werden gefüllt, die Abschnitte der "
+"Startseite werden neu gesetzt."
+msgstr ""
+"Применить шаблон? Пустые тексты заполнятся, а секции главной будут заданы "
+"заново."
+
+#: templates/tenant/design.html
+msgid "Übernehmen"
+msgstr "Применить"

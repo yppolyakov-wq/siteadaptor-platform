@@ -22265,3 +22265,79 @@ msgstr "Görünüm"
 #: templates/tenant/site_home.html
 msgid "Height"
 msgstr "Yükseklik"
+
+#: templates/tenant/design.html
+msgid "Breit"
+msgstr "Geniş"
+
+#: templates/tenant/design.html
+msgid "Card style"
+msgstr "Kart stili"
+
+#: templates/tenant/design.html
+msgid "Dark theme"
+msgstr "Koyu tema"
+
+#: templates/tenant/design.html
+msgid "Demo-Inhalte laden"
+msgstr "Demo içeriği yükle"
+
+#: templates/tenant/design.html
+msgid "Demo-Inhalte löschen"
+msgstr "Demo içeriğini sil"
+
+#: templates/tenant/design.html
+msgid "Farbe & Schrift"
+msgstr "Renk ve yazı tipi"
+
+#: templates/tenant/design.html
+msgid "Fotos auf der Karte durchblättern"
+msgstr "Karttaki fotoğrafları çevir"
+
+#: templates/tenant/design.html
+msgid "Hairline"
+msgstr "İnce çizgi"
+
+#: templates/tenant/design.html
+msgid "Hard"
+msgstr "Sert"
+
+#: templates/tenant/design.html
+msgid "Headline weight"
+msgstr "Başlık kalınlığı"
+
+#: templates/tenant/design.html
+msgid "Karten & Fotos"
+msgstr "Kartlar ve fotoğraflar"
+
+#: templates/tenant/design.html
+msgid "Line height"
+msgstr "Satır yüksekliği"
+
+#: templates/tenant/design.html
+msgid "Merkzettel (♡ auf Karten)"
+msgstr "Favoriler (kartlarda ♡)"
+
+#: templates/tenant/design.html
+msgid "Page background"
+msgstr "Sayfa arka planı"
+
+#: templates/tenant/design.html
+msgid "Quick order from cards (＋ button / configurator)"
+msgstr "Kartlardan hızlı sipariş (＋ / yapılandırıcı)"
+
+#: templates/tenant/design.html
+msgid "Varianten"
+msgstr "Varyantlar"
+
+#: templates/tenant/design.html
+msgid ""
+"Vorlage übernehmen? Leere Texte werden gefüllt, die Abschnitte der "
+"Startseite werden neu gesetzt."
+msgstr ""
+"Şablon uygulansın mı? Boş metinler doldurulur ve ana sayfa bölümleri "
+"sıfırlanır."
+
+#: templates/tenant/design.html
+msgid "Übernehmen"
+msgstr "Uygula"
