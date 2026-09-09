@@ -1,6 +1,7 @@
 """Общие tenant-facing вьюхи (живут в схеме арендатора)."""
 
 import re
+from urllib.parse import quote
 
 from django.conf import settings
 from django.contrib import messages
@@ -2143,6 +2144,57 @@ def home_builder_view(request):
             preview_pages.append({"label": label, "url": reverse(url_name), "group": "text"})
         except NoReverseMatch:
             continue
+    # STU-12a (решение 3A): «Seite ▾» в верхней строке — единственный путь к
+    # страницам, до которых кликом по канве не дойти. Kasse в preview_pages не
+    # было вовсе; страницы групп акций адресуются параметром (?gruppe=, STU-7).
+    # Ключ `section` делит список на «кликабельно на сайте» / «только отсюда» /
+    # «группы акций» — рейки больше нет, и это единственная навигация кроме канвы.
+    if request.tenant.is_module_active("catalog"):
+        try:
+            preview_pages.append(
+                {
+                    "label": _("Kasse"),
+                    "url": reverse("storefront-checkout"),
+                    "group": "checkout",
+                    "section": "here",
+                }
+            )
+        except NoReverseMatch:
+            pass
+    if request.tenant.is_module_active("promotions"):
+        from apps.promotions.models import Promotion
+
+        seen_groups: set[str] = set()
+        try:
+            _aktionen = reverse("storefront-aktionen")
+        except NoReverseMatch:
+            _aktionen = ""
+        if _aktionen:
+            for _promo in (
+                Promotion.objects.filter(status="active").exclude(group="").order_by("group")
+            ):
+                if _promo.group in seen_groups:
+                    continue
+                seen_groups.add(_promo.group)
+                preview_pages.append(
+                    {
+                        "label": _promo.group_localized,
+                        "url": f"{_aktionen}?gruppe={quote(_promo.group)}",
+                        "group": "promo_group",
+                        "section": "groups",
+                    }
+                )
+    for _p in preview_pages:
+        _p.setdefault("section", "here" if _p.get("group") == "cart" else "site")
+    studio_page_menu = [
+        {"key": key, "label": label, "items": [p for p in preview_pages if p["section"] == key]}
+        for key, label in (
+            ("site", _("Auf der Website erreichbar")),
+            ("here", _("Nur von hier erreichbar")),
+            ("groups", _("Aktionsgruppen")),
+        )
+    ]
+    studio_page_menu = [sec for sec in studio_page_menu if sec["items"]]
     # Фикс-секции и C-блоки идут в одном `config["sections"]`; index = глобальный
     # порядок (его пишем в order_*-поля, чтобы при сохранении сохранить чередование).
     sections = []
@@ -2432,6 +2484,7 @@ def home_builder_view(request):
             "archetypes_enabled": archetypes_enabled,
             "root_options": root_options,
             "preview_pages": preview_pages,
+            "studio_page_menu": studio_page_menu,
             # UC6-1b: карта «путь → группа» для авто-скоупа панели по фактической
             # странице кадра (селектор страниц из тулбара убран). JSON, не escapejs —
             # тот кодирует дефисы (-) и ломает literal-сравнение путей.
@@ -2475,6 +2528,11 @@ def home_builder_view(request):
             ),
             # T-6.1: deep-link — канва стартует со страницы, где нажали «Edit design».
             "preview_start_path": _safe_preview_page(request.GET.get("page")),
+            # STU-12a (1B): «Design des Shops →» уводит в кабинет и обязан вернуть на
+            # ТУ ЖЕ страницу канвы (JS обновляет адрес при навигации кадра).
+            "studio_return_url": (
+                f"{request.path}?page={quote(_safe_preview_page(request.GET.get('page')), safe='/')}"
+            ),
             # SE-2a-2/SE-2b-1: per-page инспектор раскладки лендингов (по активным модулям).
             "has_catalog": request.tenant.is_module_active("catalog"),
             "catalog_preset": (config.get("catalog_layout") or {}).get("preset", ""),

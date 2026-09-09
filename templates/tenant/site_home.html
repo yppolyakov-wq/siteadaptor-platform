@@ -14,6 +14,23 @@
          в кабинет, иначе кнопка возвращала бы на редирект в саму себя.{% endcomment %}
       <a href="{% url 'dashboard' %}" class="text-sm text-gray-600 hover:text-indigo-700 flex items-center gap-1 shrink-0">←<span class="hidden sm:inline">{% trans "Übersicht" %}</span></a>
       <span class="hidden md:inline text-sm font-semibold text-gray-800 shrink-0 select-none">Studio</span>
+      {% comment %}STU-12a (решение 3A): «Seite ▾» — где стоит канва и единственный путь к
+         страницам, до которых кликом по канве не дойти (Warenkorb, Kasse, группы акций).
+         Лента страниц снизу и левая рейка сняты решением владельца 2026-09-09: всё
+         остальное открывается кликом по содержимому живого сайта.{% endcomment %}
+      <details id="st-page-switch" class="relative shrink-0">
+        <summary class="list-none cursor-pointer inline-flex items-center gap-1 text-xs border border-gray-300 rounded-lg px-2.5 py-1 bg-white hover:border-indigo-400 select-none">
+          <span class="text-gray-500">{% trans "Seite" %}:</span><span id="st-page-name" class="st-page-name font-semibold text-gray-800 max-w-[9rem] truncate"></span><span class="text-gray-400">▾</span>
+        </summary>
+        <div id="st-page-menu" class="absolute left-0 top-full mt-1 z-50 w-72 max-h-[70vh] overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-xl p-1 text-sm">
+          {% for sec in studio_page_menu %}
+            <div class="px-2 pt-2 pb-1 text-[10px] uppercase tracking-wide text-gray-400" data-st-section="{{ sec.key }}">{{ sec.label }}</div>
+            {% for p in sec.items %}
+              <button type="button" class="st-page-btn block w-full text-left px-2 py-1 rounded-lg text-gray-700 hover:bg-gray-100" data-st-page="{{ p.url }}">{{ p.label }}</button>
+            {% endfor %}
+          {% endfor %}
+        </div>
+      </details>
       {% comment %}UC6-9: Undo/Redo + статус + подсказка правки — в верхней строке (полоса
          над канвой убрана). Те же id → JS не тронут.{% endcomment %}
       <span class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-xs bg-white shrink-0">
@@ -50,19 +67,14 @@
         </div>
         <span id="home-dev-dim" class="hidden xl:inline text-[11px] text-gray-400 tabular-nums"></span>
       </span>
-      {% comment %}Фидбэк владельца 2026-07-13 «дать ещё способ уменьшить редактор без
-         потери функционала»: 🔍 Kompakt — плотный режим инспектора (поля/отступы/шрифт
-         тоньше, все контролы на месте). Вместе с ручкой ресайза (теперь до 230px) панель
-         можно сделать заметно уже. Чистый CSS-класс bld-dense, персист sf_editor_dense.{% endcomment %}
-      <button type="button" id="bld-compact-btn" title="{% trans 'Compact inspector — denser fields, all controls kept' %}" aria-pressed="false" class="text-sm border border-gray-300 rounded-lg px-2.5 py-1 hover:border-indigo-400 hover:text-indigo-700">🔍<span class="hidden xl:inline"> {% trans "Compact" %}</span></button>
-      {% comment %}UC6-7d (фидбэк владельца «добавь для меню настройки и примеры в тулбар»):
-         быстрый доступ из верхнего тулбара — «☰ Menu» открывает настройки шапки/меню,
-         «🧱 Blocks» открывает библиотеку блоков (примеры с миниатюрами) для вставки в
-         конец текущей страницы. Оба — шорткаты к существующим механизмам (showArea/
-         инсертер), «⚙️ Template» остаётся глобальными настройками шаблона.{% endcomment %}
-      <button type="button" id="bld-menu-btn" title="{% trans 'Header & menu settings' %}" class="text-sm border border-gray-300 rounded-lg px-3 py-1 hover:border-indigo-400 hover:text-indigo-700">☰<span class="hidden xl:inline"> {% trans "Menu" %}</span></button>
-      <button type="button" id="bld-blocks-btn" title="{% trans 'Add a content block (with examples)' %}" class="text-sm border border-gray-300 rounded-lg px-3 py-1 hover:border-indigo-400 hover:text-indigo-700">🧱<span class="hidden xl:inline"> {% trans "Blocks" %}</span></button>
-      <button type="button" id="bld-drawer-toggle" class="text-sm border border-gray-300 rounded-lg px-3 py-1 hover:border-indigo-400 hover:text-indigo-700">⚙️<span class="hidden xl:inline"> {% trans "Template" %}</span></button>
+      {% comment %}STU-12a: 🔍 Kompakt / ☰ Menü / 🧱 Blöcke / ⚙️ Vorlage сняты — дублировали
+         рейку и области (тема уехала в кабинет решением 1B, блоки вставляет «+» на канве,
+         шапка открывается кликом по ней). На телефоне (< lg) рейки не было и раньше —
+         «⚙» открывает настройки открытой страницы листом (F7A).{% endcomment %}
+      <button type="button" id="st-page-btn" class="lg:hidden text-sm border border-gray-300 rounded-lg px-2.5 py-1 hover:border-indigo-400 hover:text-indigo-700" title="{% trans 'Seiteneinstellungen' %}" aria-label="{% trans 'Seiteneinstellungen' %}">⚙</button>
+      {% comment %}1B: глобальный дизайн (Look, цвет, шрифт, карточки) — экран кабинета;
+         адрес возврата обновляет JS при навигации кадра (data-base + ?next=).{% endcomment %}
+      <a id="st-design-link" data-base="{% url 'design' %}" href="{% url 'design' %}?next={{ studio_return_url|urlencode }}" class="text-sm text-indigo-700 hover:underline px-1 shrink-0 whitespace-nowrap">🎨<span class="hidden xl:inline"> {% trans "Design des Shops" %}</span> →</a>
       {% comment %}A4: share-ссылка на read-only превью черновика (снапшот в момент клика).{% endcomment %}
       <button type="button" id="bld-share-preview" data-share-url="{% url 'site-share-preview' %}" title="{% trans 'Copy a read-only preview link of your draft to share.' %}"
               class="text-sm border border-gray-300 rounded-lg px-3 py-1 hover:border-indigo-400 hover:text-indigo-700">🔗<span class="hidden xl:inline"> {% trans "Share preview" %}</span></button>
@@ -98,31 +110,10 @@
   (#bld-editor-pane, оверлей слева) + канвас (#bld-preview-pane). Одна область за раз →
   без перегруза; свернул → рейл, сайт на всю ширину. Все id/логика сохранены.{% endcomment %}
   <div class="relative flex-1 min-h-0 flex">
-   {% comment %}STU-2: рейка = ДВА УРОВНЯ настройки + инструменты. Раньше здесь были
-      «области» (Look/Seiten/Blöcke/Medien), не совпадавшие с содержимым панели, — отсюда
-      «непонятно, что и где настраивается». Теперь: «Design» — то, что общее для всего
-      сайта; «Diese Seite» — настройки ИМЕННО той страницы, что открыта на канве (подпись
-      = тип страницы); ниже — инструменты (блоки, медиа, быстрый старт).
-      Desktop-only (мобайл — прежние кнопки тулбара).{% endcomment %}
-   <nav id="st-rail" class="hidden lg:flex shrink-0 w-16 flex-col items-stretch gap-1 bg-white border-r border-gray-200 py-2 z-10" aria-label="Studio">
-     <button type="button" class="st-level flex flex-col items-center gap-0.5 py-2 rounded-lg mx-1 text-gray-600 hover:text-indigo-700 hover:bg-indigo-50" data-st-level="design">{% icon "ic-star" "w-5 h-5" %}<span class="text-[10px] leading-none">{% trans "Design" %}</span></button>
-     <button type="button" id="st-level-page" class="st-level flex flex-col items-center gap-0.5 py-2 rounded-lg mx-1 text-gray-600 hover:text-indigo-700 hover:bg-indigo-50" data-st-level="page">{% icon "ic-pages" "w-5 h-5" %}<span class="st-level-label text-[10px] leading-none">{% trans "Seite" %}</span></button>
-     <button type="button" class="st-level flex flex-col items-center gap-0.5 py-2 rounded-lg mx-1 text-gray-600 hover:text-indigo-700 hover:bg-indigo-50" data-st-level="blocks">{% icon "ic-offer" "w-5 h-5" %}<span class="text-[10px] leading-none">{% trans "Blöcke" %}</span></button>
-     <button type="button" class="st-level flex flex-col items-center gap-0.5 py-2 rounded-lg mx-1 text-gray-600 hover:text-indigo-700 hover:bg-indigo-50" data-st-level="media">{% icon "ic-media" "w-5 h-5" %}<span class="text-[10px] leading-none">{% trans "Medien" %}</span></button>
-     {% comment %}W11-5: quick-start (шаблоны + демо) со страницы «Site» — в рейку.{% endcomment %}
-     <button type="button" class="st-level flex flex-col items-center gap-0.5 py-2 rounded-lg mx-1 text-gray-600 hover:text-indigo-700 hover:bg-indigo-50" data-st-level="quickstart">{% icon "ic-bolt" "w-5 h-5" %}<span class="text-[10px] leading-none">{% trans "Start" %}</span></button>
-   </nav>
-   {% comment %}ST-3b: page-лента снизу — навигация канвы по страницам сайта
-      (reloadBuilderPage-семантика: ?page=; активная = #bld-page-path).{% endcomment %}
-   <div id="st-pages" class="hidden absolute bottom-0 left-16 right-0 z-10 bg-white border-t border-gray-200 px-2 py-1.5 overflow-x-auto whitespace-nowrap">
-     {% for p in preview_pages %}
-       <button type="button" class="st-page-btn inline-block text-xs border rounded-full px-3 py-1 mr-1 border-gray-200 text-gray-600 hover:border-indigo-400" data-st-page="{{ p.url }}">{{ p.label }}</button>
-     {% endfor %}
-   </div>
-   {% comment %}W1: левый рейл областей удалён — его кнопки переехали в горизонтальный
-      переключатель в шапке выпадающего листа (#bld-area-tabs). toggleRail сам становится
-      no-op (railNav отсутствует). Канва занимает всю ширину.{% endcomment %}
-   {% comment %}Канвас-область: фокус-панель (оверлей слева, у рейла) + превью-канвас.{% endcomment %}
+   {% comment %}STU-12a: левой рейки (#st-rail) и ленты страниц (#st-pages) больше нет —
+      решение владельца 2026-09-09: у рейки не осталось функций, которых нет у клика по
+      канве, «+» и «Seite ▾» в верхней строке.{% endcomment %}
+   {% comment %}Канвас-область: колонка настроек (справа) + превью-канвас.{% endcomment %}
    <div class="relative flex-1 min-w-0">
     <div id="bld-drawer-backdrop" class="hidden absolute inset-0 z-20 bg-black/20 lg:hidden"></div>
     {% comment %}Правый инспектор (2026-07-13, решение владельца «A + мелочи из B», план
@@ -135,18 +126,8 @@
        <span id="bld-panel-title" class="text-sm font-semibold text-gray-700">✏️ {% trans "Edit" %}</span>
        <button type="button" id="bld-drawer-close" class="text-gray-400 text-xl leading-none hover:text-gray-700" aria-label="{% trans 'Close' %}">✕</button>
      </div>
-     {% comment %}W1: переключатель областей (бывший левый рейл) — горизонтальные вкладки
-        в шапке выпадающего листа. Те же .bld-rail-btn/data-area → JS не тронут.{% endcomment %}
-     <div id="bld-area-tabs" class="flex flex-wrap items-center gap-1 mb-2">
-       <button type="button" aria-pressed="false" class="bld-rail-btn flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm text-gray-600 hover:bg-gray-100" data-area="theme"><span>🎨</span><span>{% trans "Theme" %}</span></button>
-       <button type="button" aria-pressed="false" class="bld-rail-btn flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm text-gray-600 hover:bg-gray-100" data-area="banner"><span>🖼</span><span>{% trans "Banner" %}</span></button>
-      {% comment %}STU-2: вкладка уровня «эта страница». Подпись — тип страницы на канве
-         (ставится из JS по data-stu-page кадра), потому что «Seite» само по себе не
-         отвечает на вопрос «настройки чего я вижу».{% endcomment %}
-      <button type="button" aria-pressed="false" class="bld-rail-btn flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm text-gray-600 hover:bg-gray-100" data-area="page"><span>📄</span><span class="stu-area-label">{% trans "Seite" %}</span></button>
-       <button type="button" aria-pressed="false" class="bld-rail-btn flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm text-gray-600 hover:bg-gray-100" data-area="menu"><span>☰</span><span>{% trans "Menu" %}</span></button>
-       <button type="button" aria-pressed="false" class="bld-rail-btn flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm text-gray-600 hover:bg-gray-100" data-area="library"><span>📚</span><span>{% trans "Templates" %}</span></button>
-     </div>
+     {% comment %}STU-12a: вкладок областей (#bld-area-tabs) нет — панель без вкладок
+        показывает то, что выбрано: страницу (по умолчанию), блок, шапку, медиа.{% endcomment %}
      <form method="post" id="home-form" data-draft-url="{% url 'site-preview-draft' %}" class="space-y-6">
       {% csrf_token %}
       {% comment %}UC6-7b: текущая страница канвы — после Save/действий ленты канва
@@ -463,7 +444,7 @@
           <input type="text" name="hero_image" value="{{ config.hero_image }}" placeholder="https://…" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
         </label>
         <p class="text-xs text-gray-400">{% trans "Banner background image: click the banner on the canvas. Accent background is in" %}
-          <button type="button" class="text-indigo-600 hover:underline" onclick="document.querySelector('.bld-rail-btn[data-area=&quot;theme&quot;]').click()">{% trans "Theme" %}</button>.</p>
+          <button type="button" class="text-indigo-600 hover:underline" onclick="window.__sfShowArea &amp;&amp; window.__sfShowArea('theme')">{% trans "Theme" %}</button>.</p>
       </fieldset>
       </div>{% comment %}/область 🖼 Баннер{% endcomment %}
 
@@ -1688,13 +1669,9 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
 @media (max-width: 1023px) {
   #bld-editor-pane { top: auto; left: 0; right: 0; bottom: 0; width: 100%; max-height: 78vh; border-left: 0; border-top: 1px solid #e5e7eb; border-radius: 1rem 1rem 0 0; }
 }
-/* ST-3a/b: рейка уровней слева и page-лента снизу — канва сдвигается (не
-   перекрывается); ResizeObserver applyDevice пересчитает масштаб. */
-@media (min-width: 1024px) {
-  #bld-root:has(#st-rail) #bld-preview-pane { left: 4rem; }
-  #bld-root.st-pages-open #bld-preview-pane { bottom: 2.75rem; }
-}
-.st-page-btn.st-active { background: #111827; color: #fff; border-color: #111827; }
+/* STU-12a: рейки и ленты страниц нет — канва от левого края до колонки. Активный
+   пункт «Seite ▾» подсвечивает JS (previewPath ↔ data-st-page). */
+.st-page-btn.st-active { background: #eef2ff; color: #3730a3; font-weight: 600; }
 /* Канва СЖИМАЕТСЯ (не перекрывается) при открытой панели/ленте — desktop-масштаб
    пересчитывает ResizeObserver в applyDevice-блоке. */
 @media (min-width: 1024px) {
@@ -1709,7 +1686,6 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   #bld-root.bld-dense #bld-editor-pane.space-y-6 > * + * { margin-top: .7rem; }
   #bld-root.bld-dense #bld-editor-pane fieldset { padding: .7rem; }
   #bld-root.bld-dense #bld-editor-pane fieldset > * + * { margin-top: .5rem; }
-  #bld-root.bld-dense #bld-area-tabs .bld-rail-btn { padding: .12rem .4rem; font-size: 11px; }
   /* Лента настроек блока — ещё плотнее (заголовки/контролы полей). */
   #bld-root.bld-dense .bld-ribbon-open #bld-block-popup .home-block-settings { gap: .3rem; }
   #bld-root.bld-dense .bld-ribbon-open #bld-block-popup .home-block-settings label,
@@ -1718,9 +1694,6 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   #bld-root.bld-dense .bld-ribbon-open #bld-block-popup label > input:not([type="checkbox"]):not([type="color"]),
   #bld-root.bld-dense .bld-ribbon-open #bld-block-popup label > output { font-size: 11px; }
 }
-/* W1: горизонтальный переключатель областей (бывший левый рейл) — вкладки в шапке листа. */
-#bld-area-tabs .bld-rail-btn { flex-direction: row; width: auto; }
-#bld-area-tabs .bld-rail-btn[aria-pressed="true"] { background: #eef2ff; color: #4338ca; }
 /* Свёртка/ресайз правого инспектора (фидбэк владельца 2026-07-13). Шеврон
    #bld-panel-toggle прячет ОТКРЫТУЮ панель (класс bld-panel-min на #bld-root,
    visibility — без display-войны с .bld-ribbon-open) и возвращает; ручка
@@ -1907,8 +1880,14 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         curStuRef = (bodyEl && bodyEl.getAttribute("data-stu-ref")) || "";
       } catch (eStu) { curStuPage = ""; curStuRef = ""; }
       applyStuPageScope();
+      if (window.__stuDefaultOpen) window.__stuDefaultOpen();
       var ppEl = document.getElementById("bld-page-path");
       if (ppEl) ppEl.value = previewPath;  // Save вернёт канву на эту страницу
+      // STU-12a: «Design des Shops →» возвращает на ТУ ЖЕ страницу канвы; «Seite ▾»
+      // подсвечивает, где стоим.
+      var dl = document.getElementById("st-design-link");
+      if (dl) dl.href = dl.getAttribute("data-base") + "?next=" + encodeURIComponent(window.location.pathname + "?page=" + previewPath);
+      if (window.__stuMarkPageMenu) window.__stuMarkPageMenu(previewPath);
       applyPageScope(PAGE_GROUPS[fPath] || (fPath === "/" ? "home" : ""));
     } catch (eSync) {}
   }
@@ -1918,106 +1897,43 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   // панель в рейл (сайт на весь экран). На широких экранах стартует с области «sections».
   var edPane = document.getElementById("bld-editor-pane");
   var backdrop = document.getElementById("bld-drawer-backdrop");
-  var drawerToggle = document.getElementById("bld-drawer-toggle");
   var drawerClose = document.getElementById("bld-drawer-close");
-  var railBtns = document.querySelectorAll(".bld-rail-btn");
   var panelTitle = document.getElementById("bld-panel-title");
   var areas = edPane ? edPane.querySelectorAll("[data-bld-area]") : [];
   var isNarrow = !window.matchMedia("(min-width: 1024px)").matches;
   var curArea = null;
-  // UC6-1: рейл областей виден только в режиме «⚙️ Шаблон» (канва-first).
-  var railNav = document.getElementById("bld-rail");
-  function toggleRail(show) {
-    // W1-fix: подсветку/aria-pressed кнопки «⚙️ Template» ставим ДО выхода — рейла больше
-    // нет (railNav === null), но кнопка тулбара должна отражать «панель открыта».
-    if (drawerToggle) {
-      drawerToggle.setAttribute("aria-pressed", show ? "true" : "false");
-      drawerToggle.classList.toggle("bg-indigo-50", show);
-      drawerToggle.classList.toggle("text-indigo-700", show);
-    }
-    if (!railNav) return;
-    railNav.classList.toggle("hidden", !show);
-    railNav.classList.toggle("flex", show);
-  }
   function closePanel() {
     closeBlockPopup();  // #2: свёртка панели — выйти из фокуса блока и вернуть его строку в список
     curArea = null;
-    try { localStorage.removeItem("sf_cur_area"); } catch (e) {}  // FIX item2: свёрнули — не восстанавливать
     if (edPane) edPane.classList.add("bld-collapsed");
     if (backdrop) backdrop.classList.add("hidden");
-    toggleRail(false);  // UC6-1: закрыли панель — вернуться к чистой канве
-    railBtns.forEach(function (b) {
-      b.classList.remove("bg-indigo-50", "text-indigo-700");
-      b.setAttribute("aria-pressed", "false");  // SE-7 a11y: панель свёрнута
-    });
   }
   function showArea(area, title) {  // всегда открывает (без переключения); title — для областей без кнопки рейла
     if (!edPane) return;
     if (window.__bldUnminPanel) window.__bldUnminPanel();  // явное открытие снимает свёртку
     curArea = area;
-    // FIX item2: помним активную область → после сохранения-перезагрузки (слайд/обложка/лого/секции)
-    // возвращаемся к ней, а не к дефолту.
-    try { localStorage.setItem("sf_cur_area", area); } catch (e) {}
     areas.forEach(function (a) { a.classList.toggle("hidden", a.getAttribute("data-bld-area") !== area); });
     edPane.classList.remove("bld-collapsed");
     if (backdrop) backdrop.classList.toggle("hidden", !isNarrow);
-    railBtns.forEach(function (b) {
-      var on = b.getAttribute("data-area") === area;
-      b.classList.toggle("bg-indigo-50", on); b.classList.toggle("text-indigo-700", on);
-      b.setAttribute("aria-pressed", on ? "true" : "false");  // SE-7 a11y: активная область
-    });
+    // STU-12a: вкладок нет — заголовок называет ОХВАТ («Diese Seite: Kategorie»),
+    // подпись даёт реестр типов (panelTitleFor в блоке STU ниже).
     if (panelTitle) {
-      var btn = document.querySelector('.bld-rail-btn[data-area="' + area + '"]');
-      panelTitle.textContent = title || (btn ? btn.textContent.trim() : "");
+      panelTitle.textContent = title || (window.__stuPanelTitle ? window.__stuPanelTitle(area) : "");
     }
   }
-  railBtns.forEach(function (b) {
-    b.addEventListener("click", function () {
-      var area = b.getAttribute("data-area");
-      var wasFocus = secArea && secArea.classList.contains("focus-on");
-      closeBlockPopup();  // #2: переключение области — выход из фокуса блока (вернуть строку, снять .focus-on)
-      if (wasFocus && area === "sections") { showArea("sections"); return; }  // фокус → список блоков
-      // STU-11: вкладка «эта страница» обязана слушать тот же резолвер, что и уровень
-      // рейки. Без этого на главной клик по ней открывал область `page`, где для home
-      // нет ни одной строки, — владелец видел пустую панель с подсказкой «правьте на
-      // канве» (а на узком экране рейки нет вовсе, и это единственный вход).
-      if (area === "page" && window.__stuPageArea && window.__stuPageArea() === "sections") {
-        area = "sections";
-      }
-      if (curArea === area) closePanel(); else showArea(area);  // повторный клик — свернуть
-    });
-  });
   // back-compat: click-to-edit (фикс-секции/блоки) гарантированно открывает «sections».
   function activate(which) { if (which === "editor") showArea("sections"); }
-  if (drawerToggle) {
-    drawerToggle.addEventListener("click", function () {
-      // UC6-1: «⚙️ Шаблон» — глобальные настройки: рейл областей + тема.
-      if (curArea) closePanel(); else { toggleRail(true); showArea("theme"); }
-    });
-  }
   if (drawerClose) drawerClose.addEventListener("click", closePanel);
   if (backdrop) backdrop.addEventListener("click", closePanel);
-  // UC6-7d: тулбар-шорткат к настройкам меню (та же область, что «Menu» в рейле).
-  var menuBtn = document.getElementById("bld-menu-btn");
-  if (menuBtn) menuBtn.addEventListener("click", function () {
-    if (curArea === "menu") { closePanel(); return; }  // повторный клик — свернуть
-    toggleRail(true);
-    showArea("menu");
+  // STU-12a (F7A, часть 1): на телефоне рейки нет и ☰/⚙️ сняты — «⚙» в верхней строке
+  // открывает лист настроек ОТКРЫТОЙ страницы (тот же резолвер, что и по умолчанию).
+  var pageBtn = document.getElementById("st-page-btn");
+  if (pageBtn) pageBtn.addEventListener("click", function () {
+    var a = window.__stuPageArea ? window.__stuPageArea() : "page";
+    if (curArea === a) closePanel(); else showArea(a);
   });
-  // UC6-7d: тулбар-шорткат к библиотеке блоков (примеры с миниатюрами) — вставка в
-  // КОНЕЦ текущей страницы/главной (add_after="" → сервер добавляет в конец; page_key/
-  // page_path берутся из curPbHost/previewPath в addBlockInsert). stopPropagation —
-  // чтобы глобальный outside-click не закрыл инсертер сразу же.
-  var blocksBtn = document.getElementById("bld-blocks-btn");
-  if (blocksBtn) blocksBtn.addEventListener("click", function (e) {
-    e.stopPropagation();
-    var r = blocksBtn.getBoundingClientRect();
-    showInserter("", Math.max(8, Math.min(r.left, window.innerWidth - 200)), r.bottom + 6);
-  });
-  // W1: НЕ авто-открываем область при входе (канва-first). Прежде здесь восстанавливалась
-  // сохранённая область из localStorage — это и давало «панель прыгает/появляется при входе».
-  // Настройки теперь открываются явно кнопками тулбара (⚙️/☰) как выпадающий лист.
-  try { localStorage.removeItem("sf_cur_area"); } catch (e) {}
+  // STU-12a: тулбар-шорткатов ☰/🧱/⚙️ и восстановления области из localStorage нет —
+  // колонку открывает по умолчанию stuDefaultOpen() (блок STU), остальное — клик по канве.
   // SE-9b: открыть область с блока (gallery-media / catalog-add) с подписью панели.
   // Подписи в JS-карте (не в onclick) → апостроф в переводе не ломает кавычки атрибута.
   // STU-11 (ревью): наружу — какая область панели ОТКРЫТА (null = панель свёрнута).
@@ -3211,8 +3127,55 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   function stuPageArea() {
     return curStuPage === "home" ? "sections" : "page";
   }
-  // Рейка живёт в СОСЕДНЕМ замыкании — отдаём хелпер наружу явно (как __sfShowArea).
+  // Панель живёт в СОСЕДНЕМ замыкании — отдаём хелперы наружу явно (как __sfShowArea).
   window.__stuPageArea = stuPageArea;
+  // STU-12a: заголовок колонки без вкладок называет ОХВАТ. Страница — по типу из
+  // реестра («Diese Seite: Kategorie»); остальные области — свои подписи.
+  var AREA_TITLES = { theme: "🎨 {% trans 'Design' %}", banner: "🖼 {% trans 'Banner' %}", menu: "☰ {% trans 'Menu' %}", library: "📚 {% trans 'Templates' %}" };
+  function panelTitleFor(area) {
+    if (area === "page" || area === "sections") {
+      var lbl = STU_LABELS[curStuPage] || STU_LABELS.other || "";
+      return "{% trans 'Diese Seite' %}: " + lbl;
+    }
+    return AREA_TITLES[area] || "";
+  }
+  window.__stuPanelTitle = panelTitleFor;
+  // STU-12a: без рейки единственный вход в настройки страницы — сама колонка, поэтому
+  // при входе она ОТКРЫТА на уровне «эта страница» (W1 «канва-first» пересмотрен
+  // решением владельца 2026-09-09). Один раз за загрузку; на телефоне колонка —
+  // лист поверх канвы, её открывает «⚙» (F7A).
+  var stuDefaultOpened = false;
+  function stuDefaultOpen() {
+    if (stuDefaultOpened) return;
+    stuDefaultOpened = true;
+    try { if (!window.matchMedia("(min-width: 1024px)").matches) return; } catch (eM) {}
+    if (window.__sfOpenArea && window.__sfOpenArea()) return;
+    if (window.__sfShowArea) window.__sfShowArea(stuPageArea());
+  }
+  window.__stuDefaultOpen = stuDefaultOpen;
+  // STU-12a (3A): «Seite ▾» — навигация той же семантикой, что прежняя лента
+  // (?page= → санитайзер _safe_preview_page, STU-7 держит ?gruppe=).
+  (function () {
+    var sw = document.getElementById("st-page-switch");
+    var menu = document.getElementById("st-page-menu");
+    if (!sw || !menu) return;
+    menu.addEventListener("click", function (e) {
+      var b = e.target.closest(".st-page-btn");
+      if (!b) return;
+      window.location = window.location.pathname + "?page=" + encodeURIComponent(b.getAttribute("data-st-page"));
+    });
+    document.addEventListener("click", function (e) { if (sw.open && !sw.contains(e.target)) sw.removeAttribute("open"); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && sw.open) sw.removeAttribute("open"); });
+  })();
+  // Подсветка активного пункта «Seite ▾» по фактической странице кадра (путь + параметры
+  // страницы); зовётся из syncFrameState.
+  window.__stuMarkPageMenu = function (cur) {
+    var norm = function (u) { try { return decodeURIComponent(u || ""); } catch (eD) { return u || ""; } };
+    var c = norm(cur);
+    document.querySelectorAll("#st-page-menu .st-page-btn").forEach(function (b) {
+      b.classList.toggle("st-active", norm(b.getAttribute("data-st-page")) === c);
+    });
+  };
 
   // STU-9: тип страницы предыдущего вызова — переклейка уровня срабатывает только
   // на СМЕНЕ типа (навигация канвы), а не на каждой перерисовке.
@@ -3241,7 +3204,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     if (empty) empty.classList.toggle("hidden", shown > 0 || anywhere > 0);
     if (panel) panel.classList.toggle("hidden", shown === 0 && anywhere > 0);
     var label = STU_LABELS[code] || STU_LABELS.other || "";
-    document.querySelectorAll(".stu-area-label, .st-level-label").forEach(function (el) {
+    document.querySelectorAll(".stu-area-label, .st-level-label, .st-page-name").forEach(function (el) {
       el.textContent = label;
     });
     var name = document.querySelector(".stu-page-name");
@@ -3811,8 +3774,10 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
           selectedSec = area;
           area.style.outline = "2px solid rgba(99,102,241,.9)";
           area.style.outlineOffset = "4px";
-          var tab = document.querySelector('#bld-area-tabs [data-area="page"]');
-          if (tab && !tab.matches('[aria-pressed="true"]')) tab.click();
+          // STU-12a: вкладок нет — открываем область ЭТОЙ страницы напрямую (без тоггла),
+          // по тому же резолверу, что «⚙» и открытие по умолчанию (главная → sections).
+          var stuArea = window.__stuPageArea ? window.__stuPageArea() : "page";
+          if (window.__sfOpenArea && window.__sfOpenArea() !== stuArea && window.__sfShowArea) window.__sfShowArea(stuArea);
         });
       });
     }
@@ -4246,73 +4211,4 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
 })();
 </script>
 
-<script>
-(function () {
-  // ST-3a/b: рейка уровней Studio + page-лента — тонкие обёртки над существующим
-  // хромом (клики по area-вкладкам/инсертеру/медиа-областям; навигация = ?page=).
-  var root = document.getElementById("bld-root");
-  var rail = document.getElementById("st-rail");
-  var strip = document.getElementById("st-pages");
-  if (!root || !rail) return;
-  function clickTab(area) {
-    var b = document.querySelector('#bld-area-tabs [data-area="' + area + '"]');
-    if (b) b.click();
-  }
-  window.__stuClickTab = clickTab;
-  rail.addEventListener("click", function (e) {
-    var btn = e.target.closest("[data-st-level]");
-    if (!btn) return;
-    var lv = btn.getAttribute("data-st-level");
-    if (lv === "design") {
-      clickTab("theme");
-      setTimeout(function () {
-        var lk = document.querySelector(".bld-look");
-        if (lk) lk.scrollIntoView({ block: "center", behavior: "smooth" });
-      }, 80);
-    } else if (lv === "page") {
-      // STU-2: уровень «эта страница» — своя область + лента страниц под канвой
-      // (переход между страницами и есть смена того, что настраивается).
-      // STU-8: у ГЛАВНОЙ её собственные настройки (порядок и состав секций, вид
-      // баннера, секция акций, ряды плиток) живут в области «sections» — уровень
-      // обязан открывать ИХ. Раньше он всегда открывал «page», где лежат строки
-      // ЧУЖИХ типов (каталог, события, номера, услуги, корзина): владелец на главной
-      // видел настройки других страниц и ни одной своей — ровно то «вперемешку»,
-      // которое утверждённый макет требует прекратить.
-      // STU-8: у ГЛАВНОЙ её собственные настройки (порядок и состав секций, вид
-      // баннера, секция акций, ряды плиток) живут в области «sections», и КНОПКИ у
-      // неё нет намеренно (UC6-6g) — открываем тем же штатным путём, что медиа и
-      // Schnellstart. Без этого уровень «эта страница» на главной открывал «page»,
-      // где лежат строки ЧУЖИХ типов, и ни одной настройки самой главной.
-      var stuArea = window.__stuPageArea ? window.__stuPageArea() : "page";
-      if (stuArea === "sections") { if (window.__sfShowArea) window.__sfShowArea("sections"); }
-      else clickTab(stuArea);
-      if (strip) {
-        strip.classList.remove("hidden");
-        root.classList.add("st-pages-open");
-        // STU-7: чипы ленты — голые пути (data-st-page = {{ p.url }}), а previewPath
-        // теперь может нести параметр страницы (?gruppe=). Сравниваем по пути, иначе
-        // на странице группы не подсвечивался НИ ОДИН чип — лента говорила «мы нигде»,
-        // хотя канва стоит внутри «Aktionen».
-        var cur = ((document.getElementById("bld-page-path") || {}).value || "/").split("?")[0];
-        strip.querySelectorAll(".st-page-btn").forEach(function (b) {
-          b.classList.toggle("st-active", b.getAttribute("data-st-page") === cur);
-        });
-      }
-    } else if (lv === "blocks") {
-      var bb = document.getElementById("bld-blocks-btn");
-      if (bb) bb.click();
-    } else if (lv === "media") {
-      if (window.__sfShowArea) window.__sfShowArea("gallery-media");
-    } else if (lv === "quickstart") {
-      // W11-5: область «Schnellstart» (шаблоны + демо) — перенос со страницы «Site».
-      if (window.__sfShowArea) window.__sfShowArea("quickstart");
-    }
-  });
-  if (strip) strip.addEventListener("click", function (e) {
-    var b = e.target.closest(".st-page-btn");
-    if (!b) return;
-    window.location = window.location.pathname + "?page=" + encodeURIComponent(b.getAttribute("data-st-page"));
-  });
-})();
-</script>
 {% endblock %}

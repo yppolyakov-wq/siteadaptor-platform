@@ -22106,3 +22106,31 @@ msgstr ""
 #: templates/tenant/site_home.html
 msgid "Wie bisher"
 msgstr ""
+
+#: apps/core/views.py
+msgid "Auf der Website erreichbar"
+msgstr ""
+
+#: apps/core/views.py
+msgid "Nur von hier erreichbar"
+msgstr ""
+
+#: apps/core/views.py
+msgid "Aktionsgruppen"
+msgstr ""
+
+#: templates/tenant/site_home.html
+msgid "Design des Shops"
+msgstr ""
+
+#: templates/tenant/design.html
+msgid "Zurück ins Studio"
+msgstr ""
+
+#: templates/tenant/site_home.html
+msgid "Seiteneinstellungen"
+msgstr ""
+
+#: templates/tenant/site_home.html
+msgid "Diese Seite"
+msgstr ""

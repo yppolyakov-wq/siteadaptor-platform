@@ -437,7 +437,9 @@ def test_home_builder_get_renders_edit_on_site_toggle():
     body = resp.content.decode()
     # UC6-6g (перепин): кнопка «Edit» убрана — правка всегда включена.
     assert 'id="bld-edit-toggle"' not in body
-    assert 'id="bld-drawer-toggle"' in body  # «Шаблон» остался
+    # STU-12a: кнопка «Шаблон» (тоггл шторки) снесена вместе с рейкой — колонка
+    # настроек открыта по умолчанию, вход в область — клик по канве/«Seite ▾».
+    assert 'id="bld-drawer-toggle"' not in body
     assert "function applyEditMode" in body  # переключение режима
     assert "function styleEditable" in body  # вкл/выкл редактируемости текста
     assert "sf_edit_on" in body  # запоминается (localStorage)
@@ -1578,7 +1580,7 @@ def test_home_builder_se6_fullscreen_overlay_shell():
         _request("get", "/dashboard/site/home/", tenant=tenant)
     ).content.decode()
     assert 'id="bld-root"' in body  # полноэкранный корень
-    assert 'id="bld-drawer-toggle"' in body  # тоггл шторки в топ-баре
+    assert 'id="bld-drawer-toggle"' not in body  # STU-12a: тоггла нет, колонка открыта сама
     assert 'id="bld-drawer-close"' in body  # ✕ закрыть шторку
     assert 'id="bld-editor-pane"' in body  # шторка-инспектор (id сохранён → JS работает)
     assert 'id="home-prev-frame"' in body  # канвас-iframe сохранён
@@ -1613,16 +1615,16 @@ def test_home_builder_se7_rail_and_areas():
     body = views.home_builder_view(
         _request("get", "/dashboard/site/home/", tenant=tenant)
     ).content.decode()
-    # W1: вертикальный левый рейл убран — переключатель областей переехал в
-    # горизонтальные вкладки #bld-area-tabs в шапке выпадающего сверху листа-тулбара.
+    # W1: вертикальный левый рейл убран; STU-12a: и горизонтальные вкладки
+    # #bld-area-tabs тоже — областями управляют клик по канве, «Seite ▾» и
+    # ссылки внутри колонки (window.__sfShowArea), кнопок-переключателей нет.
     assert 'id="bld-rail"' not in body  # старого рейла больше нет
-    assert 'id="bld-area-tabs"' in body  # горизонтальный переключатель областей
-    assert 'class="bld-rail-btn' in body and 'data-area="theme"' in body
-    # UC6-6g (перепин): «Шаблон» = только глобальные — кнопки Sections в рейле
-    # нет, но сама ОБЛАСТЬ (data-bld-area, форма) живёт для канва-фолбэка.
+    assert 'id="bld-area-tabs"' not in body  # STU-12a: вкладок областей нет
+    assert 'class="bld-rail-btn' not in body
+    assert 'data-area="' not in body  # ни одной кнопки-переключателя областей
+    # UC6-6g (перепин): сама ОБЛАСТЬ (data-bld-area, форма) живёт для канва-фолбэка.
     assert 'data-bld-area="sections"' in body
-    assert 'data-area="library"' in body
-    assert 'data-area="sections"' not in body  # кнопки рейла нет
+    assert 'data-bld-area="library"' in body
     assert 'data-bld-area="theme"' in body  # контент области Тема
     assert 'data-bld-area="sections"' in body  # контент области Секции
     assert "function showArea" in body  # JS переключения областей
@@ -1646,7 +1648,7 @@ def test_home_builder_se7c_menu_area_and_save():
     body = views.home_builder_view(
         _request("get", "/dashboard/site/home/", tenant=tenant)
     ).content.decode()
-    assert 'data-bld-area="menu"' in body and 'data-area="menu"' in body
+    assert 'data-bld-area="menu"' in body  # STU-12a: кнопки data-area нет, область есть
     assert 'name="nav_style"' in body and 'name="nav_sticky"' in body
     # POST со стилем меню → сохранён
     data = {"nav_style": "centered", "order_hero": "1", "enabled_hero": "on"}
@@ -1683,7 +1685,7 @@ def test_home_builder_se7d_banner_and_footer_areas():
     body = views.home_builder_view(
         _request("get", "/dashboard/site/home/", tenant=tenant)
     ).content.decode()
-    assert 'data-area="banner"' in body and 'data-bld-area="banner"' in body
+    assert 'data-bld-area="banner"' in body  # STU-12a: кнопки data-area нет, область есть
     assert 'data-area="footer"' not in body, "вкладка «Подвал» снята"
     assert "data-stu-footer-links" in body, "указатели подвала должны остаться"
     assert 'name="hero_title"' in body and "Alt" in body  # pre-filled
@@ -1874,7 +1876,7 @@ def test_home_builder_renders_quickstart_area():
         _request("get", "/dashboard/site/home/", None, tenant)
     ).content.decode()
     assert 'data-bld-area="quickstart"' in html
-    assert 'data-st-level="quickstart"' in html
+    assert 'data-st-level="quickstart"' not in html  # STU-12a: рейки уровней нет
     assert "Klassischer Laden" in html  # карточка шаблона в галерее
     assert 'value="load_demo"' in html  # свежий тенант — демо ещё не загружено
 

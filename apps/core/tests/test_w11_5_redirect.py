@@ -66,7 +66,8 @@ def test_redirect_target_renders_end_to_end():
     assert page.status_code == 200
     html = page.content.decode()
     assert 'id="bld-root"' in html  # канва редактора
-    assert 'id="st-rail"' in html  # рейка Studio
+    assert 'id="st-rail"' not in html  # STU-12a: рейки нет
+    assert 'id="st-page-switch"' in html  # верхняя строка «Seite ▾»
 
 
 def test_studio_carries_all_site_page_functions():

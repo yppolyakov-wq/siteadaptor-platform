@@ -22197,3 +22197,31 @@ msgstr "Dar sütun"
 #: templates/tenant/site_home.html
 msgid "Wie bisher"
 msgstr "Öncekiyle aynı"
+
+#: apps/core/views.py
+msgid "Auf der Website erreichbar"
+msgstr "Web sitesinden erişilebilir"
+
+#: apps/core/views.py
+msgid "Nur von hier erreichbar"
+msgstr "Yalnızca buradan erişilebilir"
+
+#: apps/core/views.py
+msgid "Aktionsgruppen"
+msgstr "Kampanya grupları"
+
+#: templates/tenant/site_home.html
+msgid "Design des Shops"
+msgstr "Mağaza tasarımı"
+
+#: templates/tenant/design.html
+msgid "Zurück ins Studio"
+msgstr "Studio'ya geri dön"
+
+#: templates/tenant/site_home.html
+msgid "Seiteneinstellungen"
+msgstr "Sayfa ayarları"
+
+#: templates/tenant/site_home.html
+msgid "Diese Seite"
+msgstr "Bu sayfa"

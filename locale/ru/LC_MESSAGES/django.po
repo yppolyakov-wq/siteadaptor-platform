@@ -22301,3 +22301,31 @@ msgstr "Узкая колонка"
 #: templates/tenant/site_home.html
 msgid "Wie bisher"
 msgstr "Как было"
+
+#: apps/core/views.py
+msgid "Auf der Website erreichbar"
+msgstr "Доступно с сайта"
+
+#: apps/core/views.py
+msgid "Nur von hier erreichbar"
+msgstr "Доступно только отсюда"
+
+#: apps/core/views.py
+msgid "Aktionsgruppen"
+msgstr "Группы акций"
+
+#: templates/tenant/site_home.html
+msgid "Design des Shops"
+msgstr "Дизайн магазина"
+
+#: templates/tenant/design.html
+msgid "Zurück ins Studio"
+msgstr "Назад в Студию"
+
+#: templates/tenant/site_home.html
+msgid "Seiteneinstellungen"
+msgstr "Настройки страницы"
+
+#: templates/tenant/site_home.html
+msgid "Diese Seite"
+msgstr "Эта страница"

@@ -321,7 +321,7 @@ def hd(kicker: str, title: str, text: str) -> str:
 
 
 def top(page_label: str) -> str:
-    return f"""
+    return """
 <div class="top">
   <span class="brand">Studio</span><span>· Hofladen Sonnenfeld</span>
   <span class="sp"></span>
@@ -332,8 +332,13 @@ def top(page_label: str) -> str:
 
 
 def rail(active: str, page_label: str = "Seite") -> str:
-    levels = [("design", "Design"), ("page", page_label), ("blocks", "Blöcke"),
-              ("media", "Medien"), ("start", "Start")]
+    levels = [
+        ("design", "Design"),
+        ("page", page_label),
+        ("blocks", "Blöcke"),
+        ("media", "Medien"),
+        ("start", "Start"),
+    ]
     out = ['<div class="rail">']
     for key, label in levels:
         on = " on" if key == active else ""
@@ -343,34 +348,60 @@ def rail(active: str, page_label: str = "Seite") -> str:
 
 
 def pages(active: str) -> str:
-    chips = ["Startseite", "Sortiment", "Getränke &amp; Vorrat", "Aktionen", "Räumung",
-             "Über uns", "Impressum", "Kontakt"]
-    return '<div class="pages">' + "".join(
-        f'<span class="pg{" on" if c == active else ""}">{c}</span>' for c in chips
-    ) + "</div>"
+    chips = [
+        "Startseite",
+        "Sortiment",
+        "Getränke &amp; Vorrat",
+        "Aktionen",
+        "Räumung",
+        "Über uns",
+        "Impressum",
+        "Kontakt",
+    ]
+    return (
+        '<div class="pages">'
+        + "".join(f'<span class="pg{" on" if c == active else ""}">{c}</span>' for c in chips)
+        + "</div>"
+    )
 
 
 def tabs(active: str, page_label: str) -> str:
-    items = [("theme", "🎨 Theme"), ("banner", "🖼 Banner"), ("page", f"📄 {page_label}"),
-             ("menu", "☰ Menu"), ("library", "📚 Templates")]
-    return '<div class="tabs">' + "".join(
-        f'<span class="tb{" on" if k == active else ""}">{l}</span>' for k, l in items
-    ) + "</div>"
+    items = [
+        ("theme", "🎨 Theme"),
+        ("banner", "🖼 Banner"),
+        ("page", f"📄 {page_label}"),
+        ("menu", "☰ Menu"),
+        ("library", "📚 Templates"),
+    ]
+    return (
+        '<div class="tabs">'
+        + "".join(
+            f'<span class="tb{" on" if k == active else ""}">{lbl}</span>' for k, lbl in items
+        )
+        + "</div>"
+    )
 
 
 def scope(mode: str = "site", own: bool = False, hint: str = "") -> str:
     """Пилюля охвата: mode = site|own; own=True рисует точку «у объекта есть своё»."""
     dot = '<span class="dot"></span>' if own else ""
-    return (f'<div class="scope"><span class="pill{" on" if mode == "site" else ""}">Für alle</span>'
-            f'<span class="pill{" on" if mode == "own" else ""}">Nur hier{dot}</span>'
-            f'<span class="hint">{hint}</span></div>')
+    return (
+        f'<div class="scope"><span class="pill{" on" if mode == "site" else ""}">Für alle</span>'
+        f'<span class="pill{" on" if mode == "own" else ""}">Nur hier{dot}</span>'
+        f'<span class="hint">{hint}</span></div>'
+    )
 
 
 # ── скетчи витрины ────────────────────────────────────────────────────────────
 def sf_cards(n: int = 4) -> str:
-    return '<div class="sf-grid">' + "".join(
-        '<div class="c"><div class="img ph"></div><div class="ln"></div><div class="ln s"></div></div>'
-        for _ in range(n)) + "</div>"
+    return (
+        '<div class="sf-grid">'
+        + "".join(
+            '<div class="c"><div class="img ph"></div><div class="ln"></div><div class="ln s"></div></div>'
+            for _ in range(n)
+        )
+        + "</div>"
+    )
 
 
 HOME_SKETCH = f"""
@@ -410,7 +441,6 @@ TEXT_SKETCH = """
 """
 
 
-
 # ── v3: компоненты предложения ────────────────────────────────────────────────
 def top_v3(page: str, extra: str = "") -> str:
     return f"""
@@ -426,7 +456,10 @@ def top_v3(page: str, extra: str = "") -> str:
 
 def rail_v3(active: str, page_label: str, with_design: bool = True) -> str:
     levels = ([("design", "Design")] if with_design else []) + [
-        ("page", page_label), ("blocks", "Blöcke"), ("media", "Medien")]
+        ("page", page_label),
+        ("blocks", "Blöcke"),
+        ("media", "Medien"),
+    ]
     out = ['<div class="rail">']
     for key, label in levels:
         on = " on" if key == active else ""
@@ -438,14 +471,18 @@ def rail_v3(active: str, page_label: str, with_design: bool = True) -> str:
 def acc(title: str, summary: str, body: str = "", open_: bool = False) -> str:
     car = "▾" if open_ else "▸"
     b = f'<div class="b">{body}</div>' if open_ else ""
-    return (f'<div class="acc{" open" if open_ else ""}"><div class="h"><span class="car">{car}</span>'
-            f'{title}<span class="sum">{summary}</span></div>{b}</div>')
+    return (
+        f'<div class="acc{" open" if open_ else ""}"><div class="h"><span class="car">{car}</span>'
+        f'{title}<span class="sum">{summary}</span></div>{b}</div>'
+    )
 
 
 def design_pane_v3() -> str:
-    look = ('<div class="tiles"><div class="t"><span>Klar</span></div><div class="t on"><span>Warm</span></div>'
-            '<div class="t"><span>Nacht</span></div><div class="t"><span>Fein</span></div><div class="t"><span>Natur</span></div></div>'
-            '<div class="hint" style="margin-top:4px">Look = Farbe, Schrift und Kartenstil auf einmal. Ihre Seitenvorlagen bleiben.</div>')
+    look = (
+        '<div class="tiles"><div class="t"><span>Klar</span></div><div class="t on"><span>Warm</span></div>'
+        '<div class="t"><span>Nacht</span></div><div class="t"><span>Fein</span></div><div class="t"><span>Natur</span></div></div>'
+        '<div class="hint" style="margin-top:4px">Look = Farbe, Schrift und Kartenstil auf einmal. Ihre Seitenvorlagen bleiben.</div>'
+    )
     return f"""
 <div class="pane">
   <div class="ttl">Design des Shops <span class="x">✕</span></div>
@@ -492,17 +529,22 @@ def main_home() -> str:
     </div>
   </div>
 </div>"""
-    body = (hd("Studio · Startseite",
-               "Уровень «Seite» на главной открывает её собственные настройки",
-               "Рейка слева — уровни: Design (кожа на весь сайт), Seite (настройки того типа, что "
-               "на канве), Blöcke, Medien, Start. Подпись уровня и вкладки берётся из типа "
-               "страницы — на главной это «Startseite», и панель показывает ровно две её "
-               "настройки из реестра: порядок разделов и вид баннера. Клик по баннеру на канве "
-               "открывает эту же панель.")
-            + top("Startseite")
-            + f'<div class="app">{rail("page", "Startseite")}'
-            + f'<div class="canvas"><div class="frame">{HOME_SKETCH}<span class="tag">Startseite</span></div>{pages("Startseite")}</div>'
-            + pane + "</div>")
+    body = (
+        hd(
+            "Studio · Startseite",
+            "Уровень «Seite» на главной открывает её собственные настройки",
+            "Рейка слева — уровни: Design (кожа на весь сайт), Seite (настройки того типа, что "
+            "на канве), Blöcke, Medien, Start. Подпись уровня и вкладки берётся из типа "
+            "страницы — на главной это «Startseite», и панель показывает ровно две её "
+            "настройки из реестра: порядок разделов и вид баннера. Клик по баннеру на канве "
+            "открывает эту же панель.",
+        )
+        + top("Startseite")
+        + f'<div class="app">{rail("page", "Startseite")}'
+        + f'<div class="canvas"><div class="frame">{HOME_SKETCH}<span class="tag">Startseite</span></div>{pages("Startseite")}</div>'
+        + pane
+        + "</div>"
+    )
     return wrap(body)
 
 
@@ -530,16 +572,21 @@ def kategorie() -> str:
     <div class="fld"><div class="chk"><i class="on"></i>Unterkategorien zuerst</div></div>
   </div>
 </div>"""
-    body = (hd("Studio · Kategorie",
-               "Панель = реестр: категория спрашивает свои восемь настроек",
-               "У «Vorlage der Seite» и «Kartenform» — пилюля охвата. Точка на «Nur hier» означает, "
-               "что у ЭТОЙ категории есть своё значение, и общий выбор сайта её не касается: "
-               "«Regale» здесь, «Standard» — на остальных. Когда канва уходит на страницу без объекта, "
-               "контрол возвращается к значению сайта.")
-            + top("Kategorie")
-            + f'<div class="app">{rail("page", "Kategorie")}'
-            + f'<div class="canvas"><div class="frame">{CATEGORY_SKETCH}<span class="tag">Kategorie</span></div>{pages("Getränke &amp; Vorrat")}</div>'
-            + pane + "</div>")
+    body = (
+        hd(
+            "Studio · Kategorie",
+            "Панель = реестр: категория спрашивает свои восемь настроек",
+            "У «Vorlage der Seite» и «Kartenform» — пилюля охвата. Точка на «Nur hier» означает, "
+            "что у ЭТОЙ категории есть своё значение, и общий выбор сайта её не касается: "
+            "«Regale» здесь, «Standard» — на остальных. Когда канва уходит на страницу без объекта, "
+            "контрол возвращается к значению сайта.",
+        )
+        + top("Kategorie")
+        + f'<div class="app">{rail("page", "Kategorie")}'
+        + f'<div class="canvas"><div class="frame">{CATEGORY_SKETCH}<span class="tag">Kategorie</span></div>{pages("Getränke &amp; Vorrat")}</div>'
+        + pane
+        + "</div>"
+    )
     return wrap(body)
 
 
@@ -561,16 +608,21 @@ def aktionsgruppe() -> str:
   </div>
   <div class="note" style="padding:4px 2px">Только две настройки — потому что на странице группы не действуют ни «Vorlage der Seite» обзора акций, ни «Darstellung der Gruppen»: реестр их сюда не кладёт.</div>
 </div>"""
-    body = (hd("Studio · Aktionsgruppe",
-               "Реестр не предлагает того, что на странице не действует",
-               "Страница группы акций /aktionen/?gruppe=… — у неё ровно две настройки: шаблон "
-               "группы (со своим значением для «Räumung» — Countdown) и форма карточки. Обзор "
-               "акций получил бы ещё «Vorlage der Seite» и «Darstellung der Gruppen». Канва держит "
-               "параметр группы при любой смене настройки.")
-            + top("Aktionsgruppe")
-            + f'<div class="app" style="height:344px">{rail("page", "Aktionsgruppe")}'
-            + f'<div class="canvas"><div class="frame">{PROMO_GROUP_SKETCH}<span class="tag">Aktionsgruppe</span></div>{pages("Räumung")}</div>'
-            + pane + "</div>")
+    body = (
+        hd(
+            "Studio · Aktionsgruppe",
+            "Реестр не предлагает того, что на странице не действует",
+            "Страница группы акций /aktionen/?gruppe=… — у неё ровно две настройки: шаблон "
+            "группы (со своим значением для «Räumung» — Countdown) и форма карточки. Обзор "
+            "акций получил бы ещё «Vorlage der Seite» и «Darstellung der Gruppen». Канва держит "
+            "параметр группы при любой смене настройки.",
+        )
+        + top("Aktionsgruppe")
+        + f'<div class="app" style="height:344px">{rail("page", "Aktionsgruppe")}'
+        + f'<div class="canvas"><div class="frame">{PROMO_GROUP_SKETCH}<span class="tag">Aktionsgruppe</span></div>{pages("Räumung")}</div>'
+        + pane
+        + "</div>"
+    )
     return wrap(body)
 
 
@@ -590,15 +642,20 @@ def textseite() -> str:
   </div>
   <div class="note" style="padding:4px 2px">Одна настройка на все текстовые страницы: «Über uns», правовые, блог, команда, галерея, отзывы. «Wie bisher» — страница как была (у «Über uns» узкая, у команды и галереи без ограничителя), остальные три задают ширину явно. Выбор виден на канве сразу, без сохранения.</div>
 </div>"""
-    body = (hd("Studio · Textseite",
-               "Одна настройка — и честные значения",
-               "«Textbreite» действует на всех страницах типов Textseite, Blog и Rechtliches. "
-               "Четыре значения: «Wie bisher» (ничего не навязывать), узкая, широкая, во всю ширину. "
-               "На «Über uns» ширина держит всю страницу — вводный блок, контакты и блоки страницы.")
-            + top("Textseite")
-            + f'<div class="app" style="height:344px">{rail("page", "Textseite")}'
-            + f'<div class="canvas"><div class="frame">{TEXT_SKETCH}<span class="tag">Textseite</span></div>{pages("Über uns")}</div>'
-            + pane + "</div>")
+    body = (
+        hd(
+            "Studio · Textseite",
+            "Одна настройка — и честные значения",
+            "«Textbreite» действует на всех страницах типов Textseite, Blog и Rechtliches. "
+            "Четыре значения: «Wie bisher» (ничего не навязывать), узкая, широкая, во всю ширину. "
+            "На «Über uns» ширина держит всю страницу — вводный блок, контакты и блоки страницы.",
+        )
+        + top("Textseite")
+        + f'<div class="app" style="height:344px">{rail("page", "Textseite")}'
+        + f'<div class="canvas"><div class="frame">{TEXT_SKETCH}<span class="tag">Textseite</span></div>{pages("Über uns")}</div>'
+        + pane
+        + "</div>"
+    )
     return wrap(body)
 
 
@@ -606,12 +663,43 @@ def textseite() -> str:
 # помечены классом sc (per-объект значение: категория / акция / группа / товар).
 REGISTRY = [
     ("home", "Startseite", ["Abschnitte", "Banner"]),
-    ("catalog", "Katalog", ["Vorlage der Seite", "Raster", "Sortierung", "Filter",
-                            "Preise in der Speisekarte", "Kennzeichnung", "Kartenform"]),
-    ("category", "Kategorie", ["Vorlage der Seite*", "Raster", "Filter", "Unterkategorien zuerst",
-                               "Kartenform*", "Sortierung", "Preise in der Speisekarte", "Kennzeichnung"]),
-    ("product", "Produktseite", ["Aufbau der Detailseite", "Abschnitte", "Kartenform*", "Ähnliche Produkte"]),
-    ("promos", "Aktionen", ["Vorlage der Seite", "Darstellung der Gruppen", "Gruppierung", "Kartenform*"]),
+    (
+        "catalog",
+        "Katalog",
+        [
+            "Vorlage der Seite",
+            "Raster",
+            "Sortierung",
+            "Filter",
+            "Preise in der Speisekarte",
+            "Kennzeichnung",
+            "Kartenform",
+        ],
+    ),
+    (
+        "category",
+        "Kategorie",
+        [
+            "Vorlage der Seite*",
+            "Raster",
+            "Filter",
+            "Unterkategorien zuerst",
+            "Kartenform*",
+            "Sortierung",
+            "Preise in der Speisekarte",
+            "Kennzeichnung",
+        ],
+    ),
+    (
+        "product",
+        "Produktseite",
+        ["Aufbau der Detailseite", "Abschnitte", "Kartenform*", "Ähnliche Produkte"],
+    ),
+    (
+        "promos",
+        "Aktionen",
+        ["Vorlage der Seite", "Darstellung der Gruppen", "Gruppierung", "Kartenform*"],
+    ),
     ("promo_group", "Aktionsgruppe", ["Vorlage der Gruppenseite*", "Kartenform*"]),
     ("promo", "Aktionsseite", ["Kartenform*"]),
     ("services", "Leistungen", ["Raster", "Kartenform"]),
@@ -635,22 +723,30 @@ def register() -> str:
         if settings:
             cells = "".join(
                 f'<span class="st{" sc" if s.endswith("*") else ""}">{s.rstrip("*")}</span>'
-                for s in settings)
+                for s in settings
+            )
         else:
             cells = '<span class="none">нет настроек — правится прямо на канве</span>'
-        rows.append(f'<tr><td class="code">{code}</td><td class="lbl">{label}</td><td>{cells}</td></tr>')
-    body = (hd("Реестр · тип страницы → настройки",
-               "Единственный источник ответа «что у этой страницы настраивается»",
-               "apps/core/studio_pages.py. Тип канва сообщает сама (атрибут на body — по уже "
-               "разобранному маршруту), панель показывает строки только своего типа; замок сверяет "
-               "реестр и разметку в обе стороны. Синие — настройки с пилюлей охвата «Für alle / Nur hier».")
-            + '<div class="sheet"><table><tr><th>код</th><th>тип на канве</th><th>настройки в панели «Seite»</th></tr>'
-            + "".join(rows) + "</table></div>")
+        rows.append(
+            f'<tr><td class="code">{code}</td><td class="lbl">{label}</td><td>{cells}</td></tr>'
+        )
+    body = (
+        hd(
+            "Реестр · тип страницы → настройки",
+            "Единственный источник ответа «что у этой страницы настраивается»",
+            "apps/core/studio_pages.py. Тип канва сообщает сама (атрибут на body — по уже "
+            "разобранному маршруту), панель показывает строки только своего типа; замок сверяет "
+            "реестр и разметку в обе стороны. Синие — настройки с пилюлей охвата «Für alle / Nur hier».",
+        )
+        + '<div class="sheet"><table><tr><th>код</th><th>тип на канве</th><th>настройки в панели «Seite»</th></tr>'
+        + "".join(rows)
+        + "</table></div>"
+    )
     return wrap(body)
 
 
 def umfang() -> str:
-    col1 = f"""
+    col1 = """
 <div class="st8"><div class="k">① Объекта нет</div>
   <div class="fld"><div class="lb">Vorlage der Seite</div>
     <div class="tiles"><div class="t on"><span>Standard</span></div><div class="t"><span>Regale</span></div><div class="t"><span>Navigator</span></div></div>
@@ -673,31 +769,39 @@ def umfang() -> str:
   </div>
   <div class="desc">У категории своё значение — точка на пилюле. Контрол показывает ЕГО и пишет точечно в объект; общий выбор сайта его не трогает.</div>
 </div>"""
-    body = (hd("Охват · Für alle / Nur hier",
-               "Три состояния одной пилюли — и правило, которое их держит",
-               "Вариант A: пилюля у КАЖДОЙ настройки, у которой есть объектный уровень (категория, "
-               "товар, акция, группа акций). Две кнопки, точка = «у объекта есть своё».")
-            + f'<div class="sheet"><div class="cols">{col1}{col2}{col3}</div>'
-            + '<div class="arrow"><b style="color:#111827">Правило.</b> Контрол один, а значений два — объекта и сайта. '
-              'В режиме «Nur hier» он держит значение объекта; как только канва уходит на страницу, где объекта нет, '
-              'контрол возвращается к значению сайта — ещё до сохранения, и то же самое после Ctrl+Z. '
-              'Иначе выбор одной категории стал бы дефолтом всего сайта.</div></div>')
+    body = (
+        hd(
+            "Охват · Für alle / Nur hier",
+            "Три состояния одной пилюли — и правило, которое их держит",
+            "Вариант A: пилюля у КАЖДОЙ настройки, у которой есть объектный уровень (категория, "
+            "товар, акция, группа акций). Две кнопки, точка = «у объекта есть своё».",
+        )
+        + f'<div class="sheet"><div class="cols">{col1}{col2}{col3}</div>'
+        + '<div class="arrow"><b style="color:#111827">Правило.</b> Контрол один, а значений два — объекта и сайта. '
+        "В режиме «Nur hier» он держит значение объекта; как только канва уходит на страницу, где объекта нет, "
+        "контрол возвращается к значению сайта — ещё до сохранения, и то же самое после Ctrl+Z. "
+        "Иначе выбор одной категории стал бы дефолтом всего сайта.</div></div>"
+    )
     return wrap(body)
 
 
-
 def v3_home() -> str:
-    body = (hd("Вариант A · один уровень для всего глобального",
-               "«Design des Shops»: пять секций-аккордеон вместо пяти входов",
-               "Рейка — два уровня и два инструмента: Design · Diese Seite · Blöcke · Medien. "
-               "Ни вкладок в панели, ни «⚙️ Vorlage» в верхней строке, ни ленты страниц внизу: "
-               "«где я» и переход к редким страницам — одна выпадашка «Seite: … ▾». Свёрнутая секция "
-               "показывает текущее значение одной строкой — состояние читается без раскрытия. "
-               "Экран кабинета «Design» ведёт сюда же.")
-            + top_v3("Startseite")
-            + f'<div class="app">{rail_v3("design", "Startseite")}'
-            + f'<div class="canvas"><div class="frame">{HOME_SKETCH}<span class="tag">Startseite</span></div></div>'
-            + design_pane_v3() + "</div>")
+    body = (
+        hd(
+            "Вариант A · один уровень для всего глобального",
+            "«Design des Shops»: пять секций-аккордеон вместо пяти входов",
+            "Рейка — два уровня и два инструмента: Design · Diese Seite · Blöcke · Medien. "
+            "Ни вкладок в панели, ни «⚙️ Vorlage» в верхней строке, ни ленты страниц внизу: "
+            "«где я» и переход к редким страницам — одна выпадашка «Seite: … ▾». Свёрнутая секция "
+            "показывает текущее значение одной строкой — состояние читается без раскрытия. "
+            "Экран кабинета «Design» ведёт сюда же.",
+        )
+        + top_v3("Startseite")
+        + f'<div class="app">{rail_v3("design", "Startseite")}'
+        + f'<div class="canvas"><div class="frame">{HOME_SKETCH}<span class="tag">Startseite</span></div></div>'
+        + design_pane_v3()
+        + "</div>"
+    )
     return wrap(body)
 
 
@@ -721,15 +825,20 @@ def v3_kategorie() -> str:
     <div class="fld"><div class="chk"><i class="on"></i>Filter anzeigen</div></div>
     <div class="fld"><div class="chk"><i class="on"></i>Unterkategorien zuerst</div></div>
   </div>"""
-    body = (hd("Вариант A · на категории",
-               "Кликнул категорию на канве — панель уже её",
-               "Никакого выбора страницы: канва — живой сайт, категорию открываешь кликом по ней, "
-               "товар — по товару, право — из подвала. Подпись уровня и заголовок панели — тип "
-               "страницы; состав — ровно реестр (как сегодня). Пилюля охвата там же.")
-            + top_v3("Getränke &amp; Vorrat")
-            + f'<div class="app">{rail_v3("page", "Kategorie")}'
-            + f'<div class="canvas"><div class="frame">{CATEGORY_SKETCH}<span class="tag">Kategorie</span></div></div>'
-            + page_pane_v3("Kategorie", body_pane) + "</div>")
+    body = (
+        hd(
+            "Вариант A · на категории",
+            "Кликнул категорию на канве — панель уже её",
+            "Никакого выбора страницы: канва — живой сайт, категорию открываешь кликом по ней, "
+            "товар — по товару, право — из подвала. Подпись уровня и заголовок панели — тип "
+            "страницы; состав — ровно реестр (как сегодня). Пилюля охвата там же.",
+        )
+        + top_v3("Getränke &amp; Vorrat")
+        + f'<div class="app">{rail_v3("page", "Kategorie")}'
+        + f'<div class="canvas"><div class="frame">{CATEGORY_SKETCH}<span class="tag">Kategorie</span></div></div>'
+        + page_pane_v3("Kategorie", body_pane)
+        + "</div>"
+    )
     return wrap(body)
 
 
@@ -743,7 +852,9 @@ def v3_alt() -> str:
   <div class="fld"><div class="lb">Kopf- &amp; Fußzeile</div><div class="ctrl"><span>Classic · CTA an</span><span class="ch">▾</span></div></div>
   <div class="warn">Живого превью нет: результат виден после сохранения, когда вернёшься в Студию.</div>
 </div>"""
-    pane = page_pane_v3("Startseite", """
+    pane = page_pane_v3(
+        "Startseite",
+        """
   <div class="card">
     <div class="lg">Abschnitte</div>
     <div class="rows">
@@ -755,53 +866,78 @@ def v3_alt() -> str:
   </div>
   <div class="card"><div class="lg">Banner</div>
     <div class="tiles"><div class="t"><span>Klar</span></div><div class="t on"><span>Split</span></div><div class="t"><span>Vollbild</span></div></div>
-  </div>""")
-    body = (hd("Вариант B · глобальное — вон из Студии",
-               "Студия только постраничная; «Design des Shops» — экран кабинета",
-               "Рейка без уровня Design; в верхней строке одна ссылка «Design des Shops →», которая "
-               "уводит на экран кабинета (сегодняшний /dashboard/design/, расширенный цветом, "
-               "шрифтом, шапкой и подвалом). Минус: цвет и форму карточек меняешь вслепую — канвы "
-               "рядом нет. Плюс: Студия становится совсем простой.")
-            + top_v3("Startseite", '<span class="link">Design des Shops →</span>')
-            + f'<div class="app">{rail_v3("page", "Startseite", with_design=False)}'
-            + f'<div class="canvas"><div class="frame">{HOME_SKETCH}<span class="tag">Startseite</span></div>{inset}</div>'
-            + pane + "</div>")
+  </div>""",
+    )
+    body = (
+        hd(
+            "Вариант B · глобальное — вон из Студии",
+            "Студия только постраничная; «Design des Shops» — экран кабинета",
+            "Рейка без уровня Design; в верхней строке одна ссылка «Design des Shops →», которая "
+            "уводит на экран кабинета (сегодняшний /dashboard/design/, расширенный цветом, "
+            "шрифтом, шапкой и подвалом). Минус: цвет и форму карточек меняешь вслепую — канвы "
+            "рядом нет. Плюс: Студия становится совсем простой.",
+        )
+        + top_v3("Startseite", '<span class="link">Design des Shops →</span>')
+        + f'<div class="app">{rail_v3("page", "Startseite", with_design=False)}'
+        + f'<div class="canvas"><div class="frame">{HOME_SKETCH}<span class="tag">Startseite</span></div>{inset}</div>'
+        + pane
+        + "</div>"
+    )
     return wrap(body)
 
 
 def v3_diff() -> str:
     rows = [
-        ("Входов в дизайн",
-         "5: уровень «Design» · ⚙️ Vorlage · вкладка 🎨 Theme · 📚 Templates · экран /dashboard/design/",
-         "1: уровень «Design des Shops»; экран кабинета ведёт сюда же",
-         "Три из пяти открывали одну и ту же область — наслоения W1 → ST-3 → DL-7"),
-        ("Вкладки внутри панели",
-         "Theme · Banner · Seite · Menu · Templates — вторая навигация поверх рейки",
-         "нет: панель = то, что выбрано на рейке",
-         "Две навигации по одному и тому же — источник «каши»"),
-        ("Лента страниц внизу",
-         "чипы всех страниц, постоянно",
-         "убрана; «Seite: … ▾» в верхней строке для редких страниц (корзина, касса)",
-         "Канва — живой сайт: категория, товар, право открываются кликом"),
-        ("Рейка",
-         "Design · Seite · Blöcke · Medien · Start",
-         "Design des Shops · Diese Seite: ‹тип› · Blöcke · Medien",
-         "«Start» — шаблоны и демо — становится секцией «Vorlagen» внутри Design"),
-        ("Меню и подвал",
-         "отдельная область «Menu» + подвал внутри «Дизайна»",
-         "секция «Kopf- &amp; Fußzeile» в Design",
-         "Шапка и подвал — глобальные, как цвет и шрифт"),
-        ("Настройки типа страницы",
-         "реестр, подпись «Seite»",
-         "реестр без изменений, подпись «Diese Seite: Kategorie»",
-         "Это уже работает — трогать не нужно"),
+        (
+            "Входов в дизайн",
+            "5: уровень «Design» · ⚙️ Vorlage · вкладка 🎨 Theme · 📚 Templates · экран /dashboard/design/",
+            "1: уровень «Design des Shops»; экран кабинета ведёт сюда же",
+            "Три из пяти открывали одну и ту же область — наслоения W1 → ST-3 → DL-7",
+        ),
+        (
+            "Вкладки внутри панели",
+            "Theme · Banner · Seite · Menu · Templates — вторая навигация поверх рейки",
+            "нет: панель = то, что выбрано на рейке",
+            "Две навигации по одному и тому же — источник «каши»",
+        ),
+        (
+            "Лента страниц внизу",
+            "чипы всех страниц, постоянно",
+            "убрана; «Seite: … ▾» в верхней строке для редких страниц (корзина, касса)",
+            "Канва — живой сайт: категория, товар, право открываются кликом",
+        ),
+        (
+            "Рейка",
+            "Design · Seite · Blöcke · Medien · Start",
+            "Design des Shops · Diese Seite: ‹тип› · Blöcke · Medien",
+            "«Start» — шаблоны и демо — становится секцией «Vorlagen» внутри Design",
+        ),
+        (
+            "Меню и подвал",
+            "отдельная область «Menu» + подвал внутри «Дизайна»",
+            "секция «Kopf- &amp; Fußzeile» в Design",
+            "Шапка и подвал — глобальные, как цвет и шрифт",
+        ),
+        (
+            "Настройки типа страницы",
+            "реестр, подпись «Seite»",
+            "реестр без изменений, подпись «Diese Seite: Kategorie»",
+            "Это уже работает — трогать не нужно",
+        ),
     ]
-    tr = "".join(f'<tr><td class="lbl">{a}</td><td class="was">{b}</td><td class="now">{c}</td><td class="why">{d}</td></tr>'
-                 for a, b, c, d in rows)
-    body = (hd("Что меняется", "Сегодня → предложение, построчно",
-               "Общее для обоих вариантов: один вход в дизайн, панель без вкладок, без ленты страниц. "
-               "Различие только в том, ГДЕ живёт глобальное — внутри Студии (A) или на экране кабинета (B).")
-            + f'<div class="sheet"><table class="diff"><tr><th>что</th><th>сегодня</th><th>предложение</th><th>почему</th></tr>{tr}</table></div>')
+    tr = "".join(
+        f'<tr><td class="lbl">{a}</td><td class="was">{b}</td><td class="now">{c}</td><td class="why">{d}</td></tr>'
+        for a, b, c, d in rows
+    )
+    body = (
+        hd(
+            "Что меняется",
+            "Сегодня → предложение, построчно",
+            "Общее для обоих вариантов: один вход в дизайн, панель без вкладок, без ленты страниц. "
+            "Различие только в том, ГДЕ живёт глобальное — внутри Студии (A) или на экране кабинета (B).",
+        )
+        + f'<div class="sheet"><table class="diff"><tr><th>что</th><th>сегодня</th><th>предложение</th><th>почему</th></tr>{tr}</table></div>'
+    )
     return wrap(body)
 
 
@@ -841,14 +977,18 @@ def top_v4(page: str, mode: str = "sel", extra: str = "") -> str:
 </div>"""
 
 
-LOOK_BODY = ('<div class="tiles"><div class="t"><span>Klar</span></div><div class="t on"><span>Warm</span></div>'
-             '<div class="t"><span>Nacht</span></div><div class="t"><span>Fein</span></div><div class="t"><span>Natur</span></div></div>'
-             '<div class="hint" style="margin-top:4px">Look = Farbe, Schrift und Kartenstil auf einmal. Ihre Seitenvorlagen bleiben.</div>')
+LOOK_BODY = (
+    '<div class="tiles"><div class="t"><span>Klar</span></div><div class="t on"><span>Warm</span></div>'
+    '<div class="t"><span>Nacht</span></div><div class="t"><span>Fein</span></div><div class="t"><span>Natur</span></div></div>'
+    '<div class="hint" style="margin-top:4px">Look = Farbe, Schrift und Kartenstil auf einmal. Ihre Seitenvorlagen bleiben.</div>'
+)
 
-MENU_ROWS = ('<div class="rows">'
-             '<div class="r"><span class="h">⠿</span>Sortiment<span class="eye">👁</span></div>'
-             '<div class="r"><span class="h">⠿</span>Aktionen<span class="eye">👁</span></div>'
-             '<div class="r"><span class="h">⠿</span>Kontakt<span class="eye">👁</span></div></div>')
+MENU_ROWS = (
+    '<div class="rows">'
+    '<div class="r"><span class="h">⠿</span>Sortiment<span class="eye">👁</span></div>'
+    '<div class="r"><span class="h">⠿</span>Aktionen<span class="eye">👁</span></div>'
+    '<div class="r"><span class="h">⠿</span>Kontakt<span class="eye">👁</span></div></div>'
+)
 
 KOPF_FIELDS = (
     '<div class="fld"><div class="lb">Kopfzeile</div><div class="tiles"><div class="t on"><span>Classic</span></div>'
@@ -871,9 +1011,11 @@ VORLAGEN_FIELDS = (
 
 
 def design_pane_v4(open_key: str, with_kopf: bool = True, with_vorlagen: bool = True) -> str:
-    secs = [("look", "Look", "Warm", LOOK_BODY),
-            ("farbe", "Farbe &amp; Schrift", "● #b45309 · Nunito", ""),
-            ("karten", "Karten &amp; Fotos", "Regal · rund · Hairline", "")]
+    secs = [
+        ("look", "Look", "Warm", LOOK_BODY),
+        ("farbe", "Farbe &amp; Schrift", "● #b45309 · Nunito", ""),
+        ("karten", "Karten &amp; Fotos", "Regal · rund · Hairline", ""),
+    ]
     if with_kopf:
         secs.append(("kopf", "Kopf- &amp; Fußzeile", "Classic · CTA an · 3 Punkte", KOPF_FIELDS))
     if with_vorlagen:
@@ -882,13 +1024,18 @@ def design_pane_v4(open_key: str, with_kopf: bool = True, with_vorlagen: bool = 
     return f'<div class="pane"><div class="ttl">Design des Shops <span class="x">✕</span></div>{body}</div>'
 
 
-HOME_SKETCH_NAV = HOME_SKETCH.replace('<div class="sf-nav">', '<div class="sf-nav sel">', 1).replace(
-    '<div class="sf-hero ph sel">', '<div class="sf-hero ph">', 1)
+HOME_SKETCH_NAV = HOME_SKETCH.replace(
+    '<div class="sf-nav">', '<div class="sf-nav sel">', 1
+).replace('<div class="sf-hero ph sel">', '<div class="sf-hero ph">', 1)
 HOME_SKETCH_CART = HOME_SKETCH.replace(
-    '<span>Kontakt</span></div>', '<span>Kontakt</span><span class="cart sel-i">🛒 2</span></div>', 1).replace(
-    '<div class="sf-hero ph sel">', '<div class="sf-hero ph">', 1)
+    "<span>Kontakt</span></div>",
+    '<span>Kontakt</span><span class="cart sel-i">🛒 2</span></div>',
+    1,
+).replace('<div class="sf-hero ph sel">', '<div class="sf-hero ph">', 1)
 
-HOME_PAGE_PANE = page_pane_v3("Startseite", """
+HOME_PAGE_PANE = page_pane_v3(
+    "Startseite",
+    """
   <div class="card">
     <div class="lg">Abschnitte</div>
     <div class="rows">
@@ -900,14 +1047,20 @@ HOME_PAGE_PANE = page_pane_v3("Startseite", """
   </div>
   <div class="card"><div class="lg">Banner</div>
     <div class="tiles"><div class="t"><span>Klar</span></div><div class="t on"><span>Split</span></div><div class="t"><span>Vollbild</span></div></div>
-  </div>""")
+  </div>""",
+)
 
 
-def studio(top_html: str, rail_html: str, sketch: str, tag: str, pane_html: str, canvas_extra: str = "") -> str:
-    return (top_html + f'<div class="app">{rail_html}'
-            + f'<div class="canvas"><div class="frame">{sketch}<span class="tag">{tag}</span></div>{canvas_extra}</div>'
-            + pane_html + "</div>")
-
+def studio(
+    top_html: str, rail_html: str, sketch: str, tag: str, pane_html: str, canvas_extra: str = ""
+) -> str:
+    return (
+        top_html
+        + f'<div class="app">{rail_html}'
+        + f'<div class="canvas"><div class="frame">{sketch}<span class="tag">{tag}</span></div>{canvas_extra}</div>'
+        + pane_html
+        + "</div>"
+    )
 
 
 # ── v5: помощники пересборки панелей (заполняются по итогам воркфлоу) ──────────
@@ -920,12 +1073,22 @@ def top_dec(page: str, mode: str = "sel", extra: str = "") -> str:
     return top_v4(page, mode=mode, extra=link + extra)
 
 
-def pop(x: int, y: int, title: str, body: str, kind: str = "", arrow: str = "l", width: int = 232,
-        more: str = "") -> str:
+def pop(
+    x: int,
+    y: int,
+    title: str,
+    body: str,
+    kind: str = "",
+    arrow: str = "l",
+    width: int = 232,
+    more: str = "",
+) -> str:
     k = f'<span class="kind">{kind}</span>' if kind else ""
     m = f'<div class="more">{more}</div>' if more else ""
-    return (f'<div class="pop ar-{arrow}" style="left:{x}px;top:{y}px;width:{width}px">'
-            f'<div class="ph2">{title}{k}<span class="x">✕</span></div>{body}{m}</div>')
+    return (
+        f'<div class="pop ar-{arrow}" style="left:{x}px;top:{y}px;width:{width}px">'
+        f'<div class="ph2">{title}{k}<span class="x">✕</span></div>{body}{m}</div>'
+    )
 
 
 def ftb(x: int, y: int, name: str, buttons: list) -> str:
@@ -940,49 +1103,80 @@ def flyout(title: str, body: str) -> str:
 # ── 0 · бланк выбора ───────────────────────────────────────────────────────────
 def e0_wahlzettel() -> str:
     rows = [
-        ("1", "Wo lebt das globale Design (Look, Farbe, Schrift, Karten)?",
-         "In der Studio-Leiste als Ebene «Design des Shops» — Änderung sofort auf der Leinwand",
-         "Eigener Kabinett-Bildschirm; Studio bleibt nur seitenweise",
-         "1A", "цвет и форму карточек хочется видеть живьём"),
-        ("2", "Kopf- &amp; Fußzeile (Menüpunkte, CTA, Footer)",
-         "Sektion innerhalb «Design des Shops»",
-         "Eigene Leisten-Ebene «Menü»",
-         "2A", "шапка глобальна, как цвет; пятый уровень — снова много входов"),
-        ("3", "Seiten, die man auf der Leinwand nicht anklicken kann (Warenkorb, Kasse)",
-         "Ausklappliste «Seite: … ▾» in der oberen Zeile",
-         "Keine Liste — nur über die Leinwand (Korb-Symbol → Warenkorb → Kasse)",
-         "3A", "две страницы, к которым иначе нужен полный корзинный сценарий"),
-        ("4", "Bereich «⚡ Start» (Layout-Vorlagen, Demo-Inhalte)",
-         "Sektion «Vorlagen» innerhalb «Design des Shops»",
-         "Bleibt eigene Leisten-Ebene «Start»",
-         "4A", "нужно раз при старте; уровень рейки — для ежедневного"),
+        (
+            "1",
+            "Wo lebt das globale Design (Look, Farbe, Schrift, Karten)?",
+            "In der Studio-Leiste als Ebene «Design des Shops» — Änderung sofort auf der Leinwand",
+            "Eigener Kabinett-Bildschirm; Studio bleibt nur seitenweise",
+            "1A",
+            "цвет и форму карточек хочется видеть живьём",
+        ),
+        (
+            "2",
+            "Kopf- &amp; Fußzeile (Menüpunkte, CTA, Footer)",
+            "Sektion innerhalb «Design des Shops»",
+            "Eigene Leisten-Ebene «Menü»",
+            "2A",
+            "шапка глобальна, как цвет; пятый уровень — снова много входов",
+        ),
+        (
+            "3",
+            "Seiten, die man auf der Leinwand nicht anklicken kann (Warenkorb, Kasse)",
+            "Ausklappliste «Seite: … ▾» in der oberen Zeile",
+            "Keine Liste — nur über die Leinwand (Korb-Symbol → Warenkorb → Kasse)",
+            "3A",
+            "две страницы, к которым иначе нужен полный корзинный сценарий",
+        ),
+        (
+            "4",
+            "Bereich «⚡ Start» (Layout-Vorlagen, Demo-Inhalte)",
+            "Sektion «Vorlagen» innerhalb «Design des Shops»",
+            "Bleibt eigene Leisten-Ebene «Start»",
+            "4A",
+            "нужно раз при старте; уровень рейки — для ежедневного",
+        ),
     ]
     tr = "".join(
         f'<tr><td class="lbl">{n}</td><td>{q}</td>'
         f'<td class="now"><span class="opt{" rec" if r == n + "A" else ""}">{n}A</span>{a}</td>'
         f'<td class="now"><span class="opt{" rec" if r == n + "B" else ""}">{n}B</span>{b}</td>'
         f'<td class="rec">{r}</td><td class="why">{w}</td></tr>'
-        for n, q, a, b, r, w in rows)
-    body = (hd("Wahlzettel", "Четыре развилки — ответ в форме «1A · 2A · 3A · 4A»",
-               "Ниже каждая развилка — парой артбордов, слева A, справа B; на картинках отличается "
-               "только то, что решается. Развилки независимы, кроме одной оговорки: при 1B "
-               "секции из 2A и 4A живут на экране кабинета, а не в панели Студии.")
-            + '<div class="sheet"><table class="diff"><tr><th>№</th><th>Frage</th><th>A</th><th>B</th>'
-            + f'<th>Empf.</th><th>почему</th></tr>{tr}</table>'
-            + '<div class="answer"><b>Общее для всех вариантов</b> (уже решено предложением): один вход в дизайн, '
-              'панель без вкладок, лента страниц внизу убрана, настройки типа страницы — как сегодня, '
-              'экран кабинета «Design» ведёт в Студию.</div></div>')
+        for n, q, a, b, r, w in rows
+    )
+    body = (
+        hd(
+            "Wahlzettel",
+            "Четыре развилки — ответ в форме «1A · 2A · 3A · 4A»",
+            "Ниже каждая развилка — парой артбордов, слева A, справа B; на картинках отличается "
+            "только то, что решается. Развилки независимы, кроме одной оговорки: при 1B "
+            "секции из 2A и 4A живут на экране кабинета, а не в панели Студии.",
+        )
+        + '<div class="sheet"><table class="diff"><tr><th>№</th><th>Frage</th><th>A</th><th>B</th>'
+        + f"<th>Empf.</th><th>почему</th></tr>{tr}</table>"
+        + '<div class="answer"><b>Общее для всех вариантов</b> (уже решено предложением): один вход в дизайн, '
+        "панель без вкладок, лента страниц внизу убрана, настройки типа страницы — как сегодня, "
+        "экран кабинета «Design» ведёт в Студию.</div></div>"
+    )
     return wrap(body)
 
 
 # ── 1 · где живёт глобальный дизайн ───────────────────────────────────────────
 def e1a() -> str:
-    body = (hd2("1A", "Globales Design", "Ebene «Design des Shops» in der Studio-Leiste",
-                "Look, цвет, шрифт, карточки, шапка и шаблоны — одной панелью-аккордеоном. "
-                "Свёрнутая секция показывает текущее значение строкой. Каждое изменение сразу на "
-                "канве; Undo и Save — штатные.", rec=True)
-            + studio(top_v4("Startseite"), rail_v4("design", LEVELS_4), HOME_SKETCH, "Startseite",
-                     design_pane_v4("look")))
+    body = hd2(
+        "1A",
+        "Globales Design",
+        "Ebene «Design des Shops» in der Studio-Leiste",
+        "Look, цвет, шрифт, карточки, шапка и шаблоны — одной панелью-аккордеоном. "
+        "Свёрнутая секция показывает текущее значение строкой. Каждое изменение сразу на "
+        "канве; Undo и Save — штатные.",
+        rec=True,
+    ) + studio(
+        top_v4("Startseite"),
+        rail_v4("design", LEVELS_4),
+        HOME_SKETCH,
+        "Startseite",
+        design_pane_v4("look"),
+    )
     return wrap(body)
 
 
@@ -995,23 +1189,41 @@ def e1b() -> str:
   <div class="fld"><div class="lb">Karten &amp; Fotos</div><div class="ctrl"><span>Regal · rund · Hairline</span><span class="ch">▾</span></div></div>
   <div class="warn">Живого превью нет: результат виден после сохранения, когда вернёшься в Студию.</div>
 </div>"""
-    body = (hd2("1B", "Globales Design", "Eigener Kabinett-Bildschirm; Studio nur seitenweise",
-                "Рейка без уровня Design; ссылка «Design des Shops →» уводит на экран кабинета "
-                "(сегодняшний /dashboard/design/, расширенный цветом и шрифтом). Студия проще, "
-                "но цвет и форму карточек меняешь вслепую.")
-            + studio(top_v4("Startseite", extra='<span class="link">Design des Shops →</span>'),
-                     rail_v4("page", LEVELS_4[1:]), HOME_SKETCH, "Startseite", HOME_PAGE_PANE, inset))
+    body = hd2(
+        "1B",
+        "Globales Design",
+        "Eigener Kabinett-Bildschirm; Studio nur seitenweise",
+        "Рейка без уровня Design; ссылка «Design des Shops →» уводит на экран кабинета "
+        "(сегодняшний /dashboard/design/, расширенный цветом и шрифтом). Студия проще, "
+        "но цвет и форму карточек меняешь вслепую.",
+    ) + studio(
+        top_v4("Startseite", extra='<span class="link">Design des Shops →</span>'),
+        rail_v4("page", LEVELS_4[1:]),
+        HOME_SKETCH,
+        "Startseite",
+        HOME_PAGE_PANE,
+        inset,
+    )
     return wrap(body)
 
 
 # ── 2 · шапка и подвал ────────────────────────────────────────────────────────
 def e2a() -> str:
-    body = (hd2("2A", "Kopf- &amp; Fußzeile", "Sektion innerhalb «Design des Shops»",
-                "Клик по шапке на канве раскрывает секцию «Kopf- &amp; Fußzeile» в панели дизайна: "
-                "вид шапки, CTA-кнопка, пункты меню (перетаскивание, скрытие), состав подвала. "
-                "Рейка остаётся из четырёх уровней.", rec=True)
-            + studio(top_v4("Startseite"), rail_v4("design", LEVELS_4), HOME_SKETCH_NAV, "Kopfzeile",
-                     design_pane_v4("kopf")))
+    body = hd2(
+        "2A",
+        "Kopf- &amp; Fußzeile",
+        "Sektion innerhalb «Design des Shops»",
+        "Клик по шапке на канве раскрывает секцию «Kopf- &amp; Fußzeile» в панели дизайна: "
+        "вид шапки, CTA-кнопка, пункты меню (перетаскивание, скрытие), состав подвала. "
+        "Рейка остаётся из четырёх уровней.",
+        rec=True,
+    ) + studio(
+        top_v4("Startseite"),
+        rail_v4("design", LEVELS_4),
+        HOME_SKETCH_NAV,
+        "Kopfzeile",
+        design_pane_v4("kopf"),
+    )
     return wrap(body)
 
 
@@ -1028,12 +1240,21 @@ def e2b() -> str:
     <div class="chips"><span class="chip on">Kontakt</span><span class="chip on">Öffnungszeiten</span><span class="chip on">Social</span><span class="chip">Newsletter</span></div>
   </div>
 </div>"""
-    levels = [("design", "Design"), ("page", "Startseite"), ("menu", "Menü"), ("blocks", "Blöcke"), ("media", "Medien")]
-    body = (hd2("2B", "Kopf- &amp; Fußzeile", "Eigene Leisten-Ebene «Menü»",
-                "Пятый уровень на рейке со своей панелью; «Design des Shops» остаётся из четырёх "
-                "секций (Look · Farbe &amp; Schrift · Karten &amp; Fotos · Vorlagen). Содержимое то же, "
-                "что в 2A, — отличается только место.")
-            + studio(top_v4("Startseite"), rail_v4("menu", levels), HOME_SKETCH_NAV, "Kopfzeile", pane))
+    levels = [
+        ("design", "Design"),
+        ("page", "Startseite"),
+        ("menu", "Menü"),
+        ("blocks", "Blöcke"),
+        ("media", "Medien"),
+    ]
+    body = hd2(
+        "2B",
+        "Kopf- &amp; Fußzeile",
+        "Eigene Leisten-Ebene «Menü»",
+        "Пятый уровень на рейке со своей панелью; «Design des Shops» остаётся из четырёх "
+        "секций (Look · Farbe &amp; Schrift · Karten &amp; Fotos · Vorlagen). Содержимое то же, "
+        "что в 2A, — отличается только место.",
+    ) + studio(top_v4("Startseite"), rail_v4("menu", levels), HOME_SKETCH_NAV, "Kopfzeile", pane)
     return wrap(body)
 
 
@@ -1050,12 +1271,22 @@ def e3a() -> str:
   <div class="it rare">Warenkorb</div>
   <div class="it rare">Kasse</div>
 </div>"""
-    body = (hd2("3A", "Seltene Seiten", "Ausklappliste «Seite: … ▾» in der oberen Zeile",
-                "Одна выпадашка вместо ленты чипов: показывает, где стоишь, и ведёт к двум "
-                "страницам, которые на канве кликом не открыть, — Warenkorb и Kasse. Все прочие "
-                "типы открываются кликом по содержимому (список для ориентира).", rec=True)
-            + studio(top_v4("Startseite", mode="open"), rail_v4("page", LEVELS_4), HOME_SKETCH, "Startseite",
-                     HOME_PAGE_PANE, dd))
+    body = hd2(
+        "3A",
+        "Seltene Seiten",
+        "Ausklappliste «Seite: … ▾» in der oberen Zeile",
+        "Одна выпадашка вместо ленты чипов: показывает, где стоишь, и ведёт к двум "
+        "страницам, которые на канве кликом не открыть, — Warenkorb и Kasse. Все прочие "
+        "типы открываются кликом по содержимому (список для ориентира).",
+        rec=True,
+    ) + studio(
+        top_v4("Startseite", mode="open"),
+        rail_v4("page", LEVELS_4),
+        HOME_SKETCH,
+        "Startseite",
+        HOME_PAGE_PANE,
+        dd,
+    )
     return wrap(body)
 
 
@@ -1066,31 +1297,50 @@ def e3b() -> str:
   über „Zur Kasse“ (dafür muss im Vorschau-Korb etwas liegen).
   <div class="warn">Пустая корзина = до Kasse из Студии не дойти; настройки касcы тогда только через реестр без канвы.</div>
 </div>"""
-    body = (hd2("3B", "Seltene Seiten", "Keine Liste — nur über die Leinwand",
-                "В верхней строке только подпись «где стою». Корзина и касса достигаются как "
-                "посетителем: иконка корзины → Warenkorb → «Zur Kasse». Совсем без второго "
-                "элемента навигации, но с оговоркой про пустую корзину.")
-            + studio(top_v4("Startseite", mode="plain"), rail_v4("page", LEVELS_4), HOME_SKETCH_CART, "Startseite",
-                     HOME_PAGE_PANE, callout))
+    body = hd2(
+        "3B",
+        "Seltene Seiten",
+        "Keine Liste — nur über die Leinwand",
+        "В верхней строке только подпись «где стою». Корзина и касса достигаются как "
+        "посетителем: иконка корзины → Warenkorb → «Zur Kasse». Совсем без второго "
+        "элемента навигации, но с оговоркой про пустую корзину.",
+    ) + studio(
+        top_v4("Startseite", mode="plain"),
+        rail_v4("page", LEVELS_4),
+        HOME_SKETCH_CART,
+        "Startseite",
+        HOME_PAGE_PANE,
+        callout,
+    )
     return wrap(body)
 
 
 # ── 4 · область «Start» ───────────────────────────────────────────────────────
 def e4a() -> str:
-    body = (hd2("4A", "Bereich «Start»", "Sektion «Vorlagen» innerhalb «Design des Shops»",
-                "Startpaket (композиция + Look), Layout-Vorlage (только состав секций) и "
-                "Demo-Inhalte — одной секцией внизу панели дизайна. Уровень «Start» с рейки уходит.",
-                rec=True)
-            + studio(top_v4("Startseite"), rail_v4("design", LEVELS_4), HOME_SKETCH, "Startseite",
-                     design_pane_v4("vorlagen")))
+    body = hd2(
+        "4A",
+        "Bereich «Start»",
+        "Sektion «Vorlagen» innerhalb «Design des Shops»",
+        "Startpaket (композиция + Look), Layout-Vorlage (только состав секций) и "
+        "Demo-Inhalte — одной секцией внизу панели дизайна. Уровень «Start» с рейки уходит.",
+        rec=True,
+    ) + studio(
+        top_v4("Startseite"),
+        rail_v4("design", LEVELS_4),
+        HOME_SKETCH,
+        "Startseite",
+        design_pane_v4("vorlagen"),
+    )
     return wrap(body)
 
 
 def e4b() -> str:
-    tpl = ('<div class="rows"><div class="r" style="background:#fff"><span style="width:7px;height:7px;border-radius:999px;background:#b45309;display:inline-block"></span>'
-           'Hofladen<span class="eye" style="color:#15803d;font-size:7.5px">empfohlen</span></div>'
-           '<div class="r" style="background:#fff"><span style="width:7px;height:7px;border-radius:999px;background:#4f46e5;display:inline-block"></span>Klassisch<span class="eye">Anwenden</span></div>'
-           '<div class="r" style="background:#fff"><span style="width:7px;height:7px;border-radius:999px;background:#0f766e;display:inline-block"></span>Minimal<span class="eye">Anwenden</span></div></div>')
+    tpl = (
+        '<div class="rows"><div class="r" style="background:#fff"><span style="width:7px;height:7px;border-radius:999px;background:#b45309;display:inline-block"></span>'
+        'Hofladen<span class="eye" style="color:#15803d;font-size:7.5px">empfohlen</span></div>'
+        '<div class="r" style="background:#fff"><span style="width:7px;height:7px;border-radius:999px;background:#4f46e5;display:inline-block"></span>Klassisch<span class="eye">Anwenden</span></div>'
+        '<div class="r" style="background:#fff"><span style="width:7px;height:7px;border-radius:999px;background:#0f766e;display:inline-block"></span>Minimal<span class="eye">Anwenden</span></div></div>'
+    )
     pane = f"""
 <div class="pane">
   <div class="ttl">⚡ Start <span class="x">✕</span></div>
@@ -1105,11 +1355,14 @@ def e4b() -> str:
   <div class="hint">Startpaket bleibt unter Design → Look.</div>
 </div>"""
     levels = LEVELS_4 + [("start", "Start")]
-    body = (hd2("4B", "Bereich «Start»", "Bleibt eigene Leisten-Ebene «Start»",
-                "Как сегодня: пятый уровень с демо-контентом и Layout-шаблонами; Startpaket "
-                "остаётся в Design → Look. Плюс — быстрый вход при первом заходе, минус — второй "
-                "уровень про шаблоны.")
-            + studio(top_v4("Startseite"), rail_v4("start", levels), HOME_SKETCH, "Startseite", pane))
+    body = hd2(
+        "4B",
+        "Bereich «Start»",
+        "Bleibt eigene Leisten-Ebene «Start»",
+        "Как сегодня: пятый уровень с демо-контентом и Layout-шаблонами; Startpaket "
+        "остаётся в Design → Look. Плюс — быстрый вход при первом заходе, минус — второй "
+        "уровень про шаблоны.",
+    ) + studio(top_v4("Startseite"), rail_v4("start", levels), HOME_SKETCH, "Startseite", pane)
     return wrap(body)
 
 
@@ -1117,7 +1370,12 @@ def e4b() -> str:
 # (группа, функция, где сегодня, контролы) — «где завтра» дописывается в PROPOSAL
 FUNCS_LEFT = [
     ("Rail", "Design", "→ область «Theme» справа", "1 кнопка"),
-    ("Rail", "Seite ‹тип›", "→ область sections (главная) / page (18 типов) + лента страниц снизу", "1 кнопка + лента 8–15 чипов"),
+    (
+        "Rail",
+        "Seite ‹тип›",
+        "→ область sections (главная) / page (18 типов) + лента страниц снизу",
+        "1 кнопка + лента 8–15 чипов",
+    ),
     ("Rail", "Blöcke", "→ поповер «+» (вставка В КОНЕЦ страницы)", "1 кнопка"),
     ("Rail", "Medien", "→ область gallery-media (только фотогалерея)", "1 кнопка"),
     ("Rail", "Start", "→ область quickstart (демо + Layout-шаблоны)", "1 кнопка"),
@@ -1128,53 +1386,133 @@ FUNCS_LEFT = [
     ("Topbar", "🔗 Vorschau teilen · Speichern", "всегда", "2"),
 ]
 FUNCS_RIGHT = [
-    ("Tabs", "🎨 Design · 🖼 Banner · 📄 ‹тип› · ☰ Menü · 📚 Vorlagen", "шапка панели — вторая навигация", "5 вкладок"),
-    ("Theme", "Startseite (storefront_root) · Look/Startpaket · Farbe · Schrift · Typografie · Karten/Fotos/Chrome/Fond · Logo → · Footer →", "вкладка Design / рейка Design / ⚙️ Vorlage", "~35 (21 expert)"),
-    ("Banner", "Überschrift · Text · Folien verwalten → · Titelbilder → · Bild-URL", "вкладка Banner", "5"),
-    ("Sections (главная)", "Banner-Stil · список секций (⠿ · № · ▲▼ · ☑ · имя · ⚙) · «Unser Angebot» · 📦 Inhaltsabschnitte (тексты FAQ/Team/CTA…) · C-блоки · «Seite als Vorlage»", "рейка Seite на главной / клик по секции", "≈10–25 строк"),
-    ("Page (18 типов)", "«Vorlage der Seite» 13 типизированных строк · «Landingpages» 13 · C-блоки страницы · пилюля Für alle/Nur hier (4)", "рейка Seite / вкладка 📄 / клик по контенту (STU-4)", "27 настроек реестра"),
-    ("Menü", "Kopfzeilenstil (classic/centered/minimal) · Feste Kopfzeile · Beispiele ×3 · ссылка Menü-Generator", "вкладка Menü / ☰ Menü", "3+1+3+1"),
-    ("Vorlagen (library)", "сохранённые блок-шаблоны · шаблоны страниц · Versionsverlauf · ссылки SEO/Titelbilder/…", "вкладка Vorlagen", "N + 4 ссылки"),
-    ("Quickstart", "Demo-Inhalte laden/löschen · Layout-Vorlagen (Anwenden)", "рейка Start", "1 + N карт"),
-    ("Медиа-области", "Fotogalerie (upload/✕/Video) · Logo · Banner-Slides (≤6) · Titelbilder", "рейка Medien / кнопки «→» из Theme/Banner", "формы вне #home-form"),
-    ("Kategorie +", "«Kategorie hinzufügen» (имя + родитель)", "кнопка в строке секции Kategorien", "3"),
-    ("Лента блока", "секция: Layout · Spalten · Letzte Reihe · Titel · Quelle · Stil · Breite · Radius/Schatten/Fond · Sichtbarkeit… (hero 4 базовых, products ≈30)", "клик по секции на канве → та же правая колонка", "4–30 на блок"),
-    ("Лента C-блока", "Position · Sichtbar · Entfernen · поля типа (Titel/Text/URL/Ausrichtung/Größe/Farbe…) · Breite · Position · Neue Zeile · Schatten/Radius/Fond · Als Vorlage speichern", "клик по блоку на канве", "≈14–20"),
+    (
+        "Tabs",
+        "🎨 Design · 🖼 Banner · 📄 ‹тип› · ☰ Menü · 📚 Vorlagen",
+        "шапка панели — вторая навигация",
+        "5 вкладок",
+    ),
+    (
+        "Theme",
+        "Startseite (storefront_root) · Look/Startpaket · Farbe · Schrift · Typografie · Karten/Fotos/Chrome/Fond · Logo → · Footer →",
+        "вкладка Design / рейка Design / ⚙️ Vorlage",
+        "~35 (21 expert)",
+    ),
+    (
+        "Banner",
+        "Überschrift · Text · Folien verwalten → · Titelbilder → · Bild-URL",
+        "вкладка Banner",
+        "5",
+    ),
+    (
+        "Sections (главная)",
+        "Banner-Stil · список секций (⠿ · № · ▲▼ · ☑ · имя · ⚙) · «Unser Angebot» · 📦 Inhaltsabschnitte (тексты FAQ/Team/CTA…) · C-блоки · «Seite als Vorlage»",
+        "рейка Seite на главной / клик по секции",
+        "≈10–25 строк",
+    ),
+    (
+        "Page (18 типов)",
+        "«Vorlage der Seite» 13 типизированных строк · «Landingpages» 13 · C-блоки страницы · пилюля Für alle/Nur hier (4)",
+        "рейка Seite / вкладка 📄 / клик по контенту (STU-4)",
+        "27 настроек реестра",
+    ),
+    (
+        "Menü",
+        "Kopfzeilenstil (classic/centered/minimal) · Feste Kopfzeile · Beispiele ×3 · ссылка Menü-Generator",
+        "вкладка Menü / ☰ Menü",
+        "3+1+3+1",
+    ),
+    (
+        "Vorlagen (library)",
+        "сохранённые блок-шаблоны · шаблоны страниц · Versionsverlauf · ссылки SEO/Titelbilder/…",
+        "вкладка Vorlagen",
+        "N + 4 ссылки",
+    ),
+    (
+        "Quickstart",
+        "Demo-Inhalte laden/löschen · Layout-Vorlagen (Anwenden)",
+        "рейка Start",
+        "1 + N карт",
+    ),
+    (
+        "Медиа-области",
+        "Fotogalerie (upload/✕/Video) · Logo · Banner-Slides (≤6) · Titelbilder",
+        "рейка Medien / кнопки «→» из Theme/Banner",
+        "формы вне #home-form",
+    ),
+    (
+        "Kategorie +",
+        "«Kategorie hinzufügen» (имя + родитель)",
+        "кнопка в строке секции Kategorien",
+        "3",
+    ),
+    (
+        "Лента блока",
+        "секция: Layout · Spalten · Letzte Reihe · Titel · Quelle · Stil · Breite · Radius/Schatten/Fond · Sichtbarkeit… (hero 4 базовых, products ≈30)",
+        "клик по секции на канве → та же правая колонка",
+        "4–30 на блок",
+    ),
+    (
+        "Лента C-блока",
+        "Position · Sichtbar · Entfernen · поля типа (Titel/Text/URL/Ausrichtung/Größe/Farbe…) · Breite · Position · Neue Zeile · Schatten/Radius/Fond · Als Vorlage speichern",
+        "клик по блоку на канве",
+        "≈14–20",
+    ),
 ]
 FUNCS_CANVAS = [
-    ("Canvas", "Текст: contenteditable на data-edit / категории / товаре / акции", "клик по тексту, сохранение по blur", ""),
+    (
+        "Canvas",
+        "Текст: contenteditable на data-edit / категории / товаре / акции",
+        "клик по тексту, сохранение по blur",
+        "",
+    ),
     ("Canvas", "Цена и дата: инлайн-поповер (Enter/Esc/blur)", "клик по цене/сроку", ""),
     ("Canvas", "Фото: 📷 заменить/добавить · 🗑 удалить", "кнопки на фото", ""),
-    ("Canvas", "«+» между секциями → поповер вставки (тип → пресет)", "единственный настоящий поповер сегодня", ""),
+    (
+        "Canvas",
+        "«+» между секциями → поповер вставки (тип → пресет)",
+        "единственный настоящий поповер сегодня",
+        "",
+    ),
     ("Canvas", "⠿ перетаскивание секций и блоков, линия-индикатор", "ручка на блоке", ""),
     ("Canvas", "Клик по секции/блоку/контенту → строка настроек в правой колонке", "STU-4", ""),
 ]
 
 
 def inv_card(title: str, rows: list) -> str:
-    lis = "".join(f'<li><b>{g} · {n}</b> — {w}{(" <span class=n>· " + c + "</span>") if c else ""}</li>'
-                  for g, n, w, c in rows)
+    lis = "".join(
+        f"<li><b>{g} · {n}</b> — {w}{(' <span class=n>· ' + c + '</span>') if c else ''}</li>"
+        for g, n, w, c in rows
+    )
     return f'<div class="inv"><div class="k">{title}</div><ul>{lis}</ul></div>'
 
 
 def p0_heute() -> str:
-    body = (hd("Panels · heute", "Все функции левой и правой панели — из кода, не по памяти",
-               "Инвентаризация 2026-09-08 (site_home.html 4318 строк + реестр). Левая рейка — 5 уровней, но три из них лишь "
-               "открывают область справа; правая колонка делится между 12 областями (5 в общей форме, 7 — отдельные формы) и "
-               "лентой блока, которая физически переносит строку формы в ту же колонку. Настоящий поповер сегодня один — «+».")
-            + '<div class="sheet"><div class="two">'
-            + inv_card("Слева: рейка и верхняя строка", FUNCS_LEFT)
-            + inv_card("Прямо на канве (уже мелкие попапы)", FUNCS_CANVAS)
-            + '</div><div style="height:12px"></div>'
-            + inv_card("Справа: области панели и лента блока", FUNCS_RIGHT)
-            + '</div>')
+    body = (
+        hd(
+            "Panels · heute",
+            "Все функции левой и правой панели — из кода, не по памяти",
+            "Инвентаризация 2026-09-08 (site_home.html 4318 строк + реестр). Левая рейка — 5 уровней, но три из них лишь "
+            "открывают область справа; правая колонка делится между 12 областями (5 в общей форме, 7 — отдельные формы) и "
+            "лентой блока, которая физически переносит строку формы в ту же колонку. Настоящий поповер сегодня один — «+».",
+        )
+        + '<div class="sheet"><div class="two">'
+        + inv_card("Слева: рейка и верхняя строка", FUNCS_LEFT)
+        + inv_card("Прямо на канве (уже мелкие попапы)", FUNCS_CANVAS)
+        + '</div><div style="height:12px"></div>'
+        + inv_card("Справа: области панели и лента блока", FUNCS_RIGHT)
+        + "</div>"
+    )
     return wrap(body)
 
 
 # ── v6: страница «Panels» — предложение (синтез 2026-09-08) ──────────────────
 def top_new(page: str, status: str = "Gespeichert ✓", mode: str = "sel") -> str:
-    pg = (f'<span class="pgsel{" open" if mode == "open" else ""}">Seite: {page}<span class="ch">▾</span></span>'
-          if mode != "plain" else f'<span class="pglabel">{page}</span>')
+    pg = (
+        f'<span class="pgsel{" open" if mode == "open" else ""}">Seite: {page}<span class="ch">▾</span></span>'
+        if mode != "plain"
+        else f'<span class="pglabel">{page}</span>'
+    )
     return f"""
 <div class="top">
   <span class="brand">Studio</span><span>· Hofladen Sonnenfeld</span>
@@ -1189,33 +1527,56 @@ def top_new(page: str, status: str = "Gespeichert ✓", mode: str = "sel") -> st
 
 
 def rail_new(active: str, page_label: str = "Startseite") -> str:
-    return rail_v4(active, [("page", page_label), ("menu", "Menü"), ("blocks", "Blöcke"), ("media", "Medien")])
+    return rail_v4(
+        active, [("page", page_label), ("menu", "Menü"), ("blocks", "Blöcke"), ("media", "Medien")]
+    )
 
 
 def pane_new(title: str, body: str, crumb: str = "", mode: bool = False, width: int = 262) -> str:
-    seg = ('<span class="seg"><span class="on">Einfach</span><span>Experte</span></span>' if mode else "")
+    seg = (
+        '<span class="seg"><span class="on">Einfach</span><span>Experte</span></span>'
+        if mode
+        else ""
+    )
     cr = f'<div class="crumb">{crumb}</div>' if crumb else ""
-    return (f'<div class="pane" style="width:{width}px;flex-basis:{width}px">{cr}'
-            f'<div class="ttl">{title}{seg}<span class="dots">⋯</span><span class="x">✕</span></div>{body}</div>')
+    return (
+        f'<div class="pane" style="width:{width}px;flex-basis:{width}px">{cr}'
+        f'<div class="ttl">{title}{seg}<span class="dots">⋯</span><span class="x">✕</span></div>{body}</div>'
+    )
 
 
-HOME_SKETCH_PROD = HOME_SKETCH.replace('<div class="sf-hero ph sel">', '<div class="sf-hero ph">', 1).replace(
+HOME_SKETCH_PROD = HOME_SKETCH.replace(
+    '<div class="sf-hero ph sel">', '<div class="sf-hero ph">', 1
+).replace(
     f'<div class="sf-sec"><span>Unsere Produkte</span><span>Alle anzeigen →</span></div>\n{sf_cards(4)}',
-    f'<div class="sel" style="padding:4px;margin-top:4px"><div class="sf-sec" style="margin-top:0"><span>Unsere Produkte</span><span>Alle anzeigen →</span></div>{sf_cards(4)}</div>', 1)
+    f'<div class="sel" style="padding:4px;margin-top:4px"><div class="sf-sec" style="margin-top:0"><span>Unsere Produkte</span><span>Alle anzeigen →</span></div>{sf_cards(4)}</div>',
+    1,
+)
 
 PHONE_SKETCH = f"""
 <div class="sf-nav"><b>Hofladen Sonnenfeld</b><span style="margin-left:auto">☰</span></div>
 <div class="sf-hero ph" style="height:54px"><span class="t">Frisch vom Feld</span></div>
 <div class="sel" style="padding:4px"><div class="sf-sec" style="margin-top:0"><span>Unsere Produkte</span><span>Alle →</span></div>
-<div class="sf-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">{''.join('<div class="c"><div class="img ph"></div><div class="ln"></div><div class="ln s"></div></div>' for _ in range(4))}</div></div>
+<div class="sf-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">{"".join('<div class="c"><div class="img ph"></div><div class="ln"></div><div class="ln s"></div></div>' for _ in range(4))}</div></div>
 <div class="sf-sec"><span>Aktionen</span><span>Alle →</span></div>
-<div class="sf-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">{''.join('<div class="c"><div class="img ph"></div><div class="ln"></div><div class="ln s"></div></div>' for _ in range(2))}</div>
+<div class="sf-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">{"".join('<div class="c"><div class="img ph"></div><div class="ln"></div><div class="ln s"></div></div>' for _ in range(2))}</div>
 """
 
-ROWS_HOME = ('<div class="rows">'
-             + "".join(f'<div class="r"><span class="h">⠿</span>{n}<span class="eye">👁</span></div>'
-                       for n in ("Banner", "Kategorien", "Produkte", "Aktionen", "FAQ", "Kontakt &amp; Öffnungszeiten"))
-             + "</div>")
+ROWS_HOME = (
+    '<div class="rows">'
+    + "".join(
+        f'<div class="r"><span class="h">⠿</span>{n}<span class="eye">👁</span></div>'
+        for n in (
+            "Banner",
+            "Kategorien",
+            "Produkte",
+            "Aktionen",
+            "FAQ",
+            "Kontakt &amp; Öffnungszeiten",
+        )
+    )
+    + "</div>"
+)
 
 
 def home_pane_new() -> str:
@@ -1231,132 +1592,388 @@ def home_pane_new() -> str:
 
 
 def block_pane_new(open_group: str = "inhalt") -> str:
-    inhalt = ('<div class="fld"><div class="lb">Titel</div><div class="ctrl"><span>Unsere Produkte</span></div></div>'
-              '<div class="fld"><div class="lb">Einleitung</div><div class="ctrl" style="color:#9ca3af"><span>optional</span></div></div>'
-              '<div class="fld"><div class="lb">Quelle</div><div class="ctrl"><span>Neueste zuerst</span><span class="ch">▾</span></div></div>'
-              '<div class="fld"><div class="lb">Anzahl</div><div class="ctrl"><span>8</span></div></div>'
-              '<div class="fld"><div class="chk"><i class="on"></i>Link „Alle anzeigen“</div></div>')
-    darst = ('<div class="fld"><div class="lb">Raster</div><div class="chips"><span class="chip">Liste</span><span class="chip">3</span><span class="chip on">4</span><span class="chip">5</span><span class="chip">6</span><span class="chip">Galerie</span></div></div>'
-             '<div class="fld"><div class="lb">Stil</div><div class="tiles"><div class="t on"><span>Standard</span></div><div class="t"><span>Preisliste</span></div><div class="t"><span>Mit Fotos</span></div><div class="t"><span>Kacheln</span></div></div></div>'
-             '<div class="fld"><div class="lb">Letzte Reihe</div><div class="ctrl"><span>Reihen: verteilen</span><span class="ch">▾</span></div></div>')
-    body = (acc("Inhalt", "Titel · Quelle · 8", inhalt, open_=(open_group == "inhalt"))
-            + acc("Darstellung", "4 pro Zeile · Standard", darst, open_=(open_group == "darst"))
-            + acc("Erweitert <span class=\"kind\" style=\"font-size:7px;background:#f3f4f6;border-radius:999px;padding:0 5px;font-weight:600;color:#6b7280\">Experte</span>",
-                  "Spalten je Gerät · Abstand · Fond", "")
-            + '<div class="hint" style="margin-top:6px">▲ ▼ Reihenfolge und 👁 Ausblenden: in der Leiste am Abschnitt · 💾 Als Vorlage speichern</div>')
+    inhalt = (
+        '<div class="fld"><div class="lb">Titel</div><div class="ctrl"><span>Unsere Produkte</span></div></div>'
+        '<div class="fld"><div class="lb">Einleitung</div><div class="ctrl" style="color:#9ca3af"><span>optional</span></div></div>'
+        '<div class="fld"><div class="lb">Quelle</div><div class="ctrl"><span>Neueste zuerst</span><span class="ch">▾</span></div></div>'
+        '<div class="fld"><div class="lb">Anzahl</div><div class="ctrl"><span>8</span></div></div>'
+        '<div class="fld"><div class="chk"><i class="on"></i>Link „Alle anzeigen“</div></div>'
+    )
+    darst = (
+        '<div class="fld"><div class="lb">Raster</div><div class="chips"><span class="chip">Liste</span><span class="chip">3</span><span class="chip on">4</span><span class="chip">5</span><span class="chip">6</span><span class="chip">Galerie</span></div></div>'
+        '<div class="fld"><div class="lb">Stil</div><div class="tiles"><div class="t on"><span>Standard</span></div><div class="t"><span>Preisliste</span></div><div class="t"><span>Mit Fotos</span></div><div class="t"><span>Kacheln</span></div></div></div>'
+        '<div class="fld"><div class="lb">Letzte Reihe</div><div class="ctrl"><span>Reihen: verteilen</span><span class="ch">▾</span></div></div>'
+    )
+    body = (
+        acc("Inhalt", "Titel · Quelle · 8", inhalt, open_=(open_group == "inhalt"))
+        + acc("Darstellung", "4 pro Zeile · Standard", darst, open_=(open_group == "darst"))
+        + acc(
+            'Erweitert <span class="kind" style="font-size:7px;background:#f3f4f6;border-radius:999px;padding:0 5px;font-weight:600;color:#6b7280">Experte</span>',
+            "Spalten je Gerät · Abstand · Fond",
+            "",
+        )
+        + '<div class="hint" style="margin-top:6px">▲ ▼ Reihenfolge und 👁 Ausblenden: in der Leiste am Abschnitt · 💾 Als Vorlage speichern</div>'
+    )
     return pane_new("Produkte", body, crumb="Startseite › Abschnitt", mode=True)
 
 
-ACTBAR_PROD = [("▲", False), ("▼", False), ("👁", False), ("Raster ▾", False), ("Stil ▾", False), ("⚙", True)]
+ACTBAR_PROD = [
+    ("▲", False),
+    ("▼", False),
+    ("👁", False),
+    ("Raster ▾", False),
+    ("Stil ▾", False),
+    ("⚙", True),
+]
 
 
 # ── P1 · карта функций ────────────────────────────────────────────────────────
 FMAP = [
     # (функция, сегодня, новое место, тип-бейдж)
-    ("Rail «Design»", "→ область Theme", "уходит; ссылка «Design des Shops →» в верхней строке → экран кабинета (1B)", "Kabinett"),
-    ("Rail «Seite ‹тип›»", "область sections/page + лента страниц внизу", "остаётся: открывает панель «Diese Seite: ‹тип›»; ленты нет", "Rail"),
-    ("Rail «Blöcke»", "поповер «+» (в конец страницы)", "остаётся: тот же поповер вставки у кнопки рейки; после вставки сразу открывается панель нового блока (сегодня — ничего); на страницах без хоста блоков кнопка серая", "Rail"),
-    ("Rail «Medien»", "только Fotogalerie", "остаётся: панель «Medien» — Fotogalerie · Banner-Slides · Titelbilder · Logo", "Rail"),
-    ("Rail «Start»", "quickstart (демо + Layout-Vorlagen)", "уходит → секция «Vorlagen» на экране кабинета (4A)", "Kabinett"),
-    ("НОВЫЙ rail «Menü»", "вкладка Menü / ☰ в верхней строке", "уровень рейки: панель «Kopf- &amp; Fußzeile» (2B)", "Rail"),
-    ("Лента страниц внизу", "чипы, полная перезагрузка", "уходит → «Seite: … ▾» в верхней строке (3A); Warenkorb/Kasse оттуда", "Topbar"),
+    (
+        "Rail «Design»",
+        "→ область Theme",
+        "уходит; ссылка «Design des Shops →» в верхней строке → экран кабинета (1B)",
+        "Kabinett",
+    ),
+    (
+        "Rail «Seite ‹тип›»",
+        "область sections/page + лента страниц внизу",
+        "остаётся: открывает панель «Diese Seite: ‹тип›»; ленты нет",
+        "Rail",
+    ),
+    (
+        "Rail «Blöcke»",
+        "поповер «+» (в конец страницы)",
+        "остаётся: тот же поповер вставки у кнопки рейки; после вставки сразу открывается панель нового блока (сегодня — ничего); на страницах без хоста блоков кнопка серая",
+        "Rail",
+    ),
+    (
+        "Rail «Medien»",
+        "только Fotogalerie",
+        "остаётся: панель «Medien» — Fotogalerie · Banner-Slides · Titelbilder · Logo",
+        "Rail",
+    ),
+    (
+        "Rail «Start»",
+        "quickstart (демо + Layout-Vorlagen)",
+        "уходит → секция «Vorlagen» на экране кабинета (4A)",
+        "Kabinett",
+    ),
+    (
+        "НОВЫЙ rail «Menü»",
+        "вкладка Menü / ☰ в верхней строке",
+        "уровень рейки: панель «Kopf- &amp; Fußzeile» (2B)",
+        "Rail",
+    ),
+    (
+        "Лента страниц внизу",
+        "чипы, полная перезагрузка",
+        "уходит → «Seite: … ▾» в верхней строке (3A); Warenkorb/Kasse оттуда",
+        "Topbar",
+    ),
     ("Topbar: ← Übersicht · Studio · ↶ ↷ · статус", "всегда", "остаются", "Topbar"),
-    ("Topbar: имя блока · Einfach|Experte · ▾ · ✕", "при выбранном блоке", "переезжают в шапку панели (крошка «Startseite › Produkte»)", "Panel"),
+    (
+        "Topbar: имя блока · Einfach|Experte · ▾ · ✕",
+        "при выбранном блоке",
+        "переезжают в шапку панели (крошка «Startseite › Produkte»)",
+        "Panel",
+    ),
     ("Topbar: 🖥 ▭ 📱", "всегда", "остаётся", "Topbar"),
     ("Topbar: 🔍 Kompakt", "плотность инспектора", "в меню «⋯» шапки панели", "Panel"),
-    ("Topbar: ☰ Menü · 🧱 Blöcke · ⚙️ Vorlage", "дубли рейки/областей", "уходят: рейка Menü/Blöcke; Vorlage — на экране кабинета", "weg"),
+    (
+        "Topbar: ☰ Menü · 🧱 Blöcke · ⚙️ Vorlage",
+        "дубли рейки/областей",
+        "уходят: рейка Menü/Blöcke; Vorlage — на экране кабинета",
+        "weg",
+    ),
     ("Topbar: 🔗 Vorschau teilen · Speichern", "всегда", "остаются", "Topbar"),
-    ("Вкладки панели (🎨 🖼 📄 ☰ 📚)", "вторая навигация", "уходят: панель показывает то, что выбрано (рейка или клик по канве)", "weg"),
-    ("Theme: Startseite (storefront_root)", "область Theme", "панель «Diese Seite: Startseite»", "Panel"),
-    ("Theme: Look · Startpaket · Farbe · Schrift · Typografie · Karten/Fotos/Chrome/Fond", "область Theme (живой черновик)", "экран кабинета «Design des Shops» (1B); превью-плитки как сегодня, живой канвы нет", "Kabinett"),
+    (
+        "Вкладки панели (🎨 🖼 📄 ☰ 📚)",
+        "вторая навигация",
+        "уходят: панель показывает то, что выбрано (рейка или клик по канве)",
+        "weg",
+    ),
+    (
+        "Theme: Startseite (storefront_root)",
+        "область Theme",
+        "панель «Diese Seite: Startseite»",
+        "Panel",
+    ),
+    (
+        "Theme: Look · Startpaket · Farbe · Schrift · Typografie · Karten/Fotos/Chrome/Fond",
+        "область Theme (живой черновик)",
+        "экран кабинета «Design des Shops» (1B); превью-плитки как сегодня, живой канвы нет",
+        "Kabinett",
+    ),
     ("Theme: Logo · Footer →", "кнопки в Theme", "панель «Menü» (Logo, Fußzeile)", "Panel"),
-    ("Banner: Überschrift · Text", "область Banner + inline", "inline на канве + группа «Inhalt» секции Banner", "Canvas"),
-    ("Banner: Folien · Titelbilder · Bild-URL", "кнопки → медиа-области", "панель «Medien» (Slides, Titelbilder); фото — 📷 на канве", "Panel"),
-    ("Sections: Banner-Stil", "select в области sections", "группа «Darstellung» секции Banner + «Stil ▾» на плашке действий", "Popover"),
-    ("Sections: список секций (⠿ № ▲▼ ☑ имя ⚙)", "область sections", "панель «Diese Seite: Startseite» (⠿ 👁 имя); ▲▼ 👁 — на плашке действий у секции", "Panel"),
-    ("Sections: «Unser Angebot» (карточки архетипов)", "fieldset в sections", "группа «Inhalt» секции «Unser Angebot»", "Panel"),
-    ("Sections: 📦 Inhaltsabschnitte (тексты FAQ/Team/CTA/…)", "details в sections", "группа «Inhalt» СВОЕЙ секции (F8)", "Panel"),
-    ("Sections: «Seite als Vorlage speichern»", "низ области", "аккордеон «Vorlagen &amp; Versionen» панели главной", "Panel"),
-    ("Page: 27 настроек реестра (Vorlage der Seite · Raster · Sortierung · Filter …)", "область page, по типу", "панель «Diese Seite: ‹тип›» — те же строки, без вкладок", "Panel"),
-    ("Page: пилюля Für alle / Nur hier (4 настройки)", "рядом с плиткой", "рядом с плиткой — в панели и в быстром поповере", "Panel"),
-    ("Page: C-блоки страницы", "строки в page", "список «Blöcke auf dieser Seite» в панели; настройки — по клику на блок", "Panel"),
-    ("Menü: Kopfzeilenstil · Feste Kopfzeile · Beispiele", "область menu", "панель «Menü»: плитки Classic/Zentriert/Minimal + ☑ fest + ☑ CTA", "Panel"),
-    ("Menü: пункты меню", "экран Menü-Generator", "список в панели «Menü» (F6); второй писатель menus → свежая загрузка при открытии + presence-guard; подменю/цели — в Menü-Generator", "Panel"),
-    ("Library: сохранённые блок-шаблоны", "вкладка Vorlagen", "только в поповере «+» (там и так есть)", "Popover"),
-    ("Library: шаблоны страниц · Versionsverlauf", "вкладка Vorlagen", "аккордеон «Vorlagen &amp; Versionen» панели главной", "Panel"),
-    ("Library: ссылки SEO · Titelbilder · Menü-Generator", "вкладка Vorlagen", "уходят (есть в подменю Website кабинета)", "weg"),
+    (
+        "Banner: Überschrift · Text",
+        "область Banner + inline",
+        "inline на канве + группа «Inhalt» секции Banner",
+        "Canvas",
+    ),
+    (
+        "Banner: Folien · Titelbilder · Bild-URL",
+        "кнопки → медиа-области",
+        "панель «Medien» (Slides, Titelbilder); фото — 📷 на канве",
+        "Panel",
+    ),
+    (
+        "Sections: Banner-Stil",
+        "select в области sections",
+        "группа «Darstellung» секции Banner + «Stil ▾» на плашке действий",
+        "Popover",
+    ),
+    (
+        "Sections: список секций (⠿ № ▲▼ ☑ имя ⚙)",
+        "область sections",
+        "панель «Diese Seite: Startseite» (⠿ 👁 имя); ▲▼ 👁 — на плашке действий у секции",
+        "Panel",
+    ),
+    (
+        "Sections: «Unser Angebot» (карточки архетипов)",
+        "fieldset в sections",
+        "группа «Inhalt» секции «Unser Angebot»",
+        "Panel",
+    ),
+    (
+        "Sections: 📦 Inhaltsabschnitte (тексты FAQ/Team/CTA/…)",
+        "details в sections",
+        "группа «Inhalt» СВОЕЙ секции (F8)",
+        "Panel",
+    ),
+    (
+        "Sections: «Seite als Vorlage speichern»",
+        "низ области",
+        "аккордеон «Vorlagen &amp; Versionen» панели главной",
+        "Panel",
+    ),
+    (
+        "Page: 27 настроек реестра (Vorlage der Seite · Raster · Sortierung · Filter …)",
+        "область page, по типу",
+        "панель «Diese Seite: ‹тип›» — те же строки, без вкладок",
+        "Panel",
+    ),
+    (
+        "Page: пилюля Für alle / Nur hier (4 настройки)",
+        "рядом с плиткой",
+        "рядом с плиткой — в панели и в быстром поповере",
+        "Panel",
+    ),
+    (
+        "Page: C-блоки страницы",
+        "строки в page",
+        "список «Blöcke auf dieser Seite» в панели; настройки — по клику на блок",
+        "Panel",
+    ),
+    (
+        "Menü: Kopfzeilenstil · Feste Kopfzeile · Beispiele",
+        "область menu",
+        "панель «Menü»: плитки Classic/Zentriert/Minimal + ☑ fest + ☑ CTA",
+        "Panel",
+    ),
+    (
+        "Menü: пункты меню",
+        "экран Menü-Generator",
+        "список в панели «Menü» (F6); второй писатель menus → свежая загрузка при открытии + presence-guard; подменю/цели — в Menü-Generator",
+        "Panel",
+    ),
+    (
+        "Library: сохранённые блок-шаблоны",
+        "вкладка Vorlagen",
+        "только в поповере «+» (там и так есть)",
+        "Popover",
+    ),
+    (
+        "Library: шаблоны страниц · Versionsverlauf",
+        "вкладка Vorlagen",
+        "аккордеон «Vorlagen &amp; Versionen» панели главной",
+        "Panel",
+    ),
+    (
+        "Library: ссылки SEO · Titelbilder · Menü-Generator",
+        "вкладка Vorlagen",
+        "уходят (есть в подменю Website кабинета)",
+        "weg",
+    ),
     ("Медиа-области ×4", "разбросаны", "панель «Medien» аккордеоном", "Panel"),
-    ("«Kategorie hinzufügen»", "область catalog-add", "поповер «＋ Kategorie» из плашки действий секции Kategorien", "Popover"),
-    ("Лента блока: настройки секции (4–34)", "правая колонка", "панель блока: Inhalt · Darstellung · Erweitert (F8); Einfach|Experte в шапке; имя C-блока переведено (сегодня сырой ключ); высота Abstand редактируема (сегодня только при вставке)", "Panel"),
-    ("Лента C-блока: Position · Sichtbar · Entfernen", "голова строки", "плашка действий у блока: ▲ ▼ 👁 🗑", "Leiste"),
-    ("Лента C-блока: Breite · Position · Neue Zeile", "хвост строки", "«Breite ▾» на плашке действий (поповер) + группа Darstellung", "Popover"),
-    ("Лента: Stil-варианты · Raster", "select/плитки в колонке", "«Stil ▾» / «Raster ▾» на плашке действий — поповер ≤ 7 плиток (F5)", "Popover"),
-    ("Kartenform на листингах", "строка в page", "«Kartenform ▾» на плашке действий сетки — поповер с пилюлей охвата (F5)", "Popover"),
-    ("Canvas: текст · цена · дата · 📷/🗑 · «+» · ⠿", "уже на канве", "остаются без изменений", "Canvas"),
-    ("Canvas: клик по секции/контенту", "открывает колонку", "открывает панель в нужном охвате + показывает плашку действий", "Canvas"),
+    (
+        "«Kategorie hinzufügen»",
+        "область catalog-add",
+        "поповер «＋ Kategorie» из плашки действий секции Kategorien",
+        "Popover",
+    ),
+    (
+        "Лента блока: настройки секции (4–34)",
+        "правая колонка",
+        "панель блока: Inhalt · Darstellung · Erweitert (F8); Einfach|Experte в шапке; имя C-блока переведено (сегодня сырой ключ); высота Abstand редактируема (сегодня только при вставке)",
+        "Panel",
+    ),
+    (
+        "Лента C-блока: Position · Sichtbar · Entfernen",
+        "голова строки",
+        "плашка действий у блока: ▲ ▼ 👁 🗑",
+        "Leiste",
+    ),
+    (
+        "Лента C-блока: Breite · Position · Neue Zeile",
+        "хвост строки",
+        "«Breite ▾» на плашке действий (поповер) + группа Darstellung",
+        "Popover",
+    ),
+    (
+        "Лента: Stil-варианты · Raster",
+        "select/плитки в колонке",
+        "«Stil ▾» / «Raster ▾» на плашке действий — поповер ≤ 7 плиток (F5)",
+        "Popover",
+    ),
+    (
+        "Kartenform на листингах",
+        "строка в page",
+        "«Kartenform ▾» на плашке действий сетки — поповер с пилюлей охвата (F5)",
+        "Popover",
+    ),
+    (
+        "Canvas: текст · цена · дата · 📷/🗑 · «+» · ⠿",
+        "уже на канве",
+        "остаются без изменений",
+        "Canvas",
+    ),
+    (
+        "Canvas: клик по секции/контенту",
+        "открывает колонку",
+        "открывает панель в нужном охвате + показывает плашку действий",
+        "Canvas",
+    ),
 ]
 
-BADGE_CSS = {"Rail": "#eef2ff;#3730a3", "Panel": "#ecfdf5;#065f46", "Popover": "#fff7ed;#9a3412", "Leiste": "#fef9c3;#854d0e",
-             "Canvas": "#f3f4f6;#374151", "Kabinett": "#fdf2f8;#9d174d", "Topbar": "#f3f4f6;#374151", "weg": "#fee2e2;#991b1b"}
+BADGE_CSS = {
+    "Rail": "#eef2ff;#3730a3",
+    "Panel": "#ecfdf5;#065f46",
+    "Popover": "#fff7ed;#9a3412",
+    "Leiste": "#fef9c3;#854d0e",
+    "Canvas": "#f3f4f6;#374151",
+    "Kabinett": "#fdf2f8;#9d174d",
+    "Topbar": "#f3f4f6;#374151",
+    "weg": "#fee2e2;#991b1b",
+}
 
 
 def p1_funktionskarte() -> str:
     tr = []
     for f, was, neu, kind in FMAP:
         bg, fg = BADGE_CSS[kind].split(";")
-        tr.append(f'<tr><td class="lbl" style="white-space:normal;max-width:190px">{f}</td><td class="was">{was}</td>'
-                  f'<td class="now">{neu}</td><td><span style="display:inline-block;background:{bg};color:{fg};border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">{kind}</span></td></tr>')
-    body = (hd("Panels · Funktionskarte", "Каждая функция: где сегодня → где будет",
-               "Полный список из инвентаризации. Правило раскладки (по 14 редакторам рынка): слева — навигация и добавление; "
-               "справа — ОДНА панель со свойствами того, что выбрано (без вкладок, с крошкой «где я»); на канве — плашка действий "
-               "у выбранного блока, а мелкие попапы — только быстрые выборы до 7 плиток. Строки с пометкой F5–F8 — развилки на «Wahlzettel 2».")
-            + '<div class="sheet"><table class="diff"><tr><th>Funktion</th><th>heute</th><th>neu</th><th>Ort</th></tr>'
-            + "".join(tr) + '</table></div>')
+        tr.append(
+            f'<tr><td class="lbl" style="white-space:normal;max-width:190px">{f}</td><td class="was">{was}</td>'
+            f'<td class="now">{neu}</td><td><span style="display:inline-block;background:{bg};color:{fg};border-radius:6px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap">{kind}</span></td></tr>'
+        )
+    body = (
+        hd(
+            "Panels · Funktionskarte",
+            "Каждая функция: где сегодня → где будет",
+            "Полный список из инвентаризации. Правило раскладки (по 14 редакторам рынка): слева — навигация и добавление; "
+            "справа — ОДНА панель со свойствами того, что выбрано (без вкладок, с крошкой «где я»); на канве — плашка действий "
+            "у выбранного блока, а мелкие попапы — только быстрые выборы до 7 плиток. Строки с пометкой F5–F8 — развилки на «Wahlzettel 2».",
+        )
+        + '<div class="sheet"><table class="diff"><tr><th>Funktion</th><th>heute</th><th>neu</th><th>Ort</th></tr>'
+        + "".join(tr)
+        + "</table></div>"
+    )
     return wrap(body)
 
 
 # ── P2 · главная, ничего не выбрано ───────────────────────────────────────────
 def p2_home() -> str:
-    body = (hd2("Vorschlag", "Panels", "Startseite — nichts gewählt: панель = страница",
-                "Рейка по решениям (Seite · Menü · Blöcke · Medien), верхняя строка без дублей: «Seite ▾», ↶ ↷, устройства, "
-                "«Design des Shops →», Teilen, Speichern. Справа — одна панель «Diese Seite: Startseite»: список секций, "
-                "настройки самой главной, свёрнутые Vorlagen &amp; Versionen. Вкладок нет.")
-            + studio(top_new("Startseite"), rail_new("page"), HOME_SKETCH.replace(' sel"', '"'), "Startseite", home_pane_new()))
+    body = hd2(
+        "Vorschlag",
+        "Panels",
+        "Startseite — nichts gewählt: панель = страница",
+        "Рейка по решениям (Seite · Menü · Blöcke · Medien), верхняя строка без дублей: «Seite ▾», ↶ ↷, устройства, "
+        "«Design des Shops →», Teilen, Speichern. Справа — одна панель «Diese Seite: Startseite»: список секций, "
+        "настройки самой главной, свёрнутые Vorlagen &amp; Versionen. Вкладок нет.",
+    ) + studio(
+        top_new("Startseite"),
+        rail_new("page"),
+        HOME_SKETCH.replace(' sel"', '"'),
+        "Startseite",
+        home_pane_new(),
+    )
     return wrap(body)
 
 
 # ── P3 · секция выбрана: плашка действий + панель блока ────────────────────────────────
 def p3_block() -> str:
     bar = ftb(196, 100, "Produkte", ACTBAR_PROD)
-    body = (hd2("Vorschlag", "Panels", "Abschnitt gewählt — Leiste am Block + Panel mit Krümel",
-                "Клик по секции: над ней тёмная плашка действий (имя · ▲ ▼ · 👁 · Raster ▾ · Stil ▾ · ⚙), панель переключается на блок "
-                "с крошкой «Startseite › Abschnitt» и группами Inhalt · Darstellung · Erweitert; Einfach|Experte — в шапке панели, "
-                "а не в верхней строке. Одна панель вместо «область + лента».")
-            + studio(top_new("Startseite", status="Nicht gespeicherte Vorschau"), rail_new("page"), HOME_SKETCH_PROD, "Produkte",
-                     block_pane_new("inhalt"), bar))
+    body = hd2(
+        "Vorschlag",
+        "Panels",
+        "Abschnitt gewählt — Leiste am Block + Panel mit Krümel",
+        "Клик по секции: над ней тёмная плашка действий (имя · ▲ ▼ · 👁 · Raster ▾ · Stil ▾ · ⚙), панель переключается на блок "
+        "с крошкой «Startseite › Abschnitt» и группами Inhalt · Darstellung · Erweitert; Einfach|Experte — в шапке панели, "
+        "а не в верхней строке. Одна панель вместо «область + лента».",
+    ) + studio(
+        top_new("Startseite", status="Nicht gespeicherte Vorschau"),
+        rail_new("page"),
+        HOME_SKETCH_PROD,
+        "Produkte",
+        block_pane_new("inhalt"),
+        bar,
+    )
     return wrap(body)
 
 
 # ── P4 · быстрый поповер из плашки действий ────────────────────────────────────────────
 def p4_pop() -> str:
-    bar = ftb(196, 112, "Produkte", [("▲", False), ("▼", False), ("👁", False), ("Raster ▾", False), ("Stil ▾", True), ("⚙", False)])
-    tiles = ('<div class="tiles"><div class="t on"><span>Standard</span></div><div class="t"><span>Preisliste</span></div><div class="t"><span>Mit Fotos</span></div></div>'
-             '<div class="tiles" style="margin-top:4px"><div class="t"><span>2-spaltig</span></div><div class="t"><span>Kacheln</span></div><div class="t"><span>Kompakt</span></div></div>')
+    bar = ftb(
+        196,
+        112,
+        "Produkte",
+        [
+            ("▲", False),
+            ("▼", False),
+            ("👁", False),
+            ("Raster ▾", False),
+            ("Stil ▾", True),
+            ("⚙", False),
+        ],
+    )
+    tiles = (
+        '<div class="tiles"><div class="t on"><span>Standard</span></div><div class="t"><span>Preisliste</span></div><div class="t"><span>Mit Fotos</span></div></div>'
+        '<div class="tiles" style="margin-top:4px"><div class="t"><span>2-spaltig</span></div><div class="t"><span>Kacheln</span></div><div class="t"><span>Kompakt</span></div></div>'
+    )
     popover = pop(378, 12, "Stil", tiles, kind="Produkte", arrow="b")
-    body = (hd2("Vorschlag · F5", "Panels", "Schnell-Popover: Stil ▾ — bis zu 7 Kacheln, sofort auf der Leinwand",
-                "Кнопки плашки действий «Stil ▾» / «Raster ▾» / «Breite ▾» открывают маленький поповер с плитками — это те же контролы "
-                "формы, перенесённые в поповер (не копии, W0). Открывается НАД плашкой, чтобы не закрывать саму секцию. Живой черновик перекрашивает канву сразу; Esc/клик мимо закрывает; "
-                "всё остальное — в панели по ⚙. Это единственное новое место для «мелких попапов».", rec=True)
-            + studio(top_new("Startseite", status="Nicht gespeicherte Vorschau"), rail_new("page"), HOME_SKETCH_PROD, "Produkte",
-                     block_pane_new("darst"), bar + popover))
+    body = hd2(
+        "Vorschlag · F5",
+        "Panels",
+        "Schnell-Popover: Stil ▾ — bis zu 7 Kacheln, sofort auf der Leinwand",
+        "Кнопки плашки действий «Stil ▾» / «Raster ▾» / «Breite ▾» открывают маленький поповер с плитками — это те же контролы "
+        "формы, перенесённые в поповер (не копии, W0). Открывается НАД плашкой, чтобы не закрывать саму секцию. Живой черновик перекрашивает канву сразу; Esc/клик мимо закрывает; "
+        "всё остальное — в панели по ⚙. Это единственное новое место для «мелких попапов».",
+        rec=True,
+    ) + studio(
+        top_new("Startseite", status="Nicht gespeicherte Vorschau"),
+        rail_new("page"),
+        HOME_SKETCH_PROD,
+        "Produkte",
+        block_pane_new("darst"),
+        bar + popover,
+    )
     return wrap(body)
 
 
 # ── P5 · категория: Kartenform + охват ────────────────────────────────────────
 def p5_kat() -> str:
-    bar = ftb(196, 116, "Produktraster", [("Vorlage ▾", True), ("Raster ▾", False), ("Kartenform ▾", False), ("⚙", False)])
-    tiles = ('<div class="tiles"><div class="t"><span>Standard</span></div><div class="t"><span>Kopfbild</span></div><div class="t on"><span>Regale</span></div><div class="t"><span>Navigator</span></div></div>'
-             + scope("own", own=True, hint="Gilt nur für „Getränke &amp; Vorrat“"))
+    bar = ftb(
+        196,
+        116,
+        "Produktraster",
+        [("Vorlage ▾", True), ("Raster ▾", False), ("Kartenform ▾", False), ("⚙", False)],
+    )
+    tiles = (
+        '<div class="tiles"><div class="t"><span>Standard</span></div><div class="t"><span>Kopfbild</span></div><div class="t on"><span>Regale</span></div><div class="t"><span>Navigator</span></div></div>'
+        + scope("own", own=True, hint="Gilt nur für „Getränke &amp; Vorrat“")
+    )
     popover = pop(318, 28, "Vorlage der Seite", tiles, kind="Kategorie", arrow="b", width=250)
     pane_body = f"""
   <div class="card"><div class="lg">Vorlage der Seite</div>
@@ -1371,21 +1988,35 @@ def p5_kat() -> str:
     <div class="fld"><div class="chk"><i class="on"></i>Unterkategorien zuerst</div></div>
   </div>
   {acc("Blöcke auf dieser Seite", "2", "")}"""
-    body = (hd2("Vorschlag · T1", "Panels", "Kategorie: Vorlage nur hier — 3 Klicks",
-                "Клик по сетке → плашка «Produktraster» → «Vorlage ▾» → плитка + пилюля «Nur hier». Пилюля стоит рядом с контролом "
-                "и в поповере, и в панели. <b>Честно (нашёл дизайнер-скептик):</b> «Kartenform nur hier» на категории сегодня "
-                "невозможна — у категории нет поля card_style, пилюля есть только у шаблона категории, товара, акции и группы; "
-                "per-категорийная форма карточки = новое поле с миграцией (F9).")
-            + studio(top_new("Getränke &amp; Vorrat"), rail_new("page", "Kategorie"), CATEGORY_SKETCH, "Kategorie",
-                     pane_new("Diese Seite: Kategorie", pane_body), bar + popover))
+    body = hd2(
+        "Vorschlag · T1",
+        "Panels",
+        "Kategorie: Vorlage nur hier — 3 Klicks",
+        "Клик по сетке → плашка «Produktraster» → «Vorlage ▾» → плитка + пилюля «Nur hier». Пилюля стоит рядом с контролом "
+        "и в поповере, и в панели. <b>Честно (нашёл дизайнер-скептик):</b> «Kartenform nur hier» на категории сегодня "
+        "невозможна — у категории нет поля card_style, пилюля есть только у шаблона категории, товара, акции и группы; "
+        "per-категорийная форма карточки = новое поле с миграцией (F9).",
+    ) + studio(
+        top_new("Getränke &amp; Vorrat"),
+        rail_new("page", "Kategorie"),
+        CATEGORY_SKETCH,
+        "Kategorie",
+        pane_new("Diese Seite: Kategorie", pane_body),
+        bar + popover,
+    )
     return wrap(body)
 
 
 # ── P6 · уровень Menü ─────────────────────────────────────────────────────────
 def p6_menu() -> str:
-    rows = ('<div class="rows">'
-            + "".join(f'<div class="r"><span class="h">⠿</span>{n}<span class="eye">👁</span></div>' for n in ("Sortiment", "Aktionen", "Über uns", "Kontakt"))
-            + '</div><div class="hint" style="margin-top:3px">＋ Punkt · Dropdowns im Menü-Generator →</div>')
+    rows = (
+        '<div class="rows">'
+        + "".join(
+            f'<div class="r"><span class="h">⠿</span>{n}<span class="eye">👁</span></div>'
+            for n in ("Sortiment", "Aktionen", "Über uns", "Kontakt")
+        )
+        + '</div><div class="hint" style="margin-top:3px">＋ Punkt · Dropdowns im Menü-Generator →</div>'
+    )
     pane_body = f"""
   <div class="card"><div class="lg">Kopfzeile</div>
     <div class="fld"><div class="tiles"><div class="t on"><span>Classic</span></div><div class="t"><span>Zentriert</span></div><div class="t"><span>Minimal</span></div></div></div>
@@ -1396,94 +2027,183 @@ def p6_menu() -> str:
   <div class="card"><div class="lg">Menüpunkte</div>{rows}</div>
   <div class="card"><div class="lg">Fußzeile</div><div class="chips"><span class="chip on">Kontakt</span><span class="chip on">Öffnungszeiten</span><span class="chip on">Social</span><span class="chip">Newsletter</span></div></div>"""
     bar = ftb(196, 44, "Kopfzeile", [("Stil ▾", False), ("⚙", True)])
-    body = (hd2("Vorschlag · 2B", "Panels", "Ebene «Menü»: Kopfzeile · Logo · Menüpunkte · Fußzeile",
-                "Клик по шапке на канве или по уровню «Menü» — одна панель со всем, что относится к шапке и подвалу. "
-                "Пункты меню (перетаскивание, скрытие) — здесь (F6); выпадающие подменю остаются в Menü-Generator.")
-            + studio(top_new("Startseite"), rail_new("menu"), HOME_SKETCH_NAV, "Kopfzeile", pane_new("Kopf- &amp; Fußzeile", pane_body), bar))
+    body = hd2(
+        "Vorschlag · 2B",
+        "Panels",
+        "Ebene «Menü»: Kopfzeile · Logo · Menüpunkte · Fußzeile",
+        "Клик по шапке на канве или по уровню «Menü» — одна панель со всем, что относится к шапке и подвалу. "
+        "Пункты меню (перетаскивание, скрытие) — здесь (F6); выпадающие подменю остаются в Menü-Generator.",
+    ) + studio(
+        top_new("Startseite"),
+        rail_new("menu"),
+        HOME_SKETCH_NAV,
+        "Kopfzeile",
+        pane_new("Kopf- &amp; Fußzeile", pane_body),
+        bar,
+    )
     return wrap(body)
 
 
 # ── P7 · Medien ───────────────────────────────────────────────────────────────
 def p7_media() -> str:
-    thumbs = '<div class="tiles">' + "".join('<div class="t" style="height:34px"></div>' for _ in range(4)) + '</div>'
-    gal = (thumbs + '<div class="ctrl" style="margin-top:5px;justify-content:center;color:#3730a3;border-color:#c7d2fe;font-weight:700">Fotos hochladen</div>'
-           '<div class="fld" style="margin-top:6px"><div class="lb">Video (YouTube/Vimeo)</div><div class="ctrl" style="color:#9ca3af"><span>https://…</span></div></div>')
-    body_pane = (acc("Fotogalerie", "12 Fotos", gal, open_=True) + acc("Banner-Slides", "3 von 6", "")
-                 + acc("Titelbilder", "Sortiment · Aktionen", "") + acc("Logo", "logo.png", ""))
-    body = (hd2("Vorschlag", "Panels", "Ebene «Medien»: alle Uploads an einem Ort",
-                "Сегодня четыре медиа-области разбросаны по кнопкам внутри Theme/Banner; уровень «Medien» собирает их аккордеоном. "
-                "Это отдельные формы загрузки (вне общей формы) — панель, не поповер: списки и файлы.")
-            + studio(top_new("Startseite"), rail_new("media"), HOME_SKETCH.replace(' sel"', '"'), "Startseite", pane_new("Medien", body_pane)))
+    thumbs = (
+        '<div class="tiles">'
+        + "".join('<div class="t" style="height:34px"></div>' for _ in range(4))
+        + "</div>"
+    )
+    gal = (
+        thumbs
+        + '<div class="ctrl" style="margin-top:5px;justify-content:center;color:#3730a3;border-color:#c7d2fe;font-weight:700">Fotos hochladen</div>'
+        '<div class="fld" style="margin-top:6px"><div class="lb">Video (YouTube/Vimeo)</div><div class="ctrl" style="color:#9ca3af"><span>https://…</span></div></div>'
+    )
+    body_pane = (
+        acc("Fotogalerie", "12 Fotos", gal, open_=True)
+        + acc("Banner-Slides", "3 von 6", "")
+        + acc("Titelbilder", "Sortiment · Aktionen", "")
+        + acc("Logo", "logo.png", "")
+    )
+    body = hd2(
+        "Vorschlag",
+        "Panels",
+        "Ebene «Medien»: alle Uploads an einem Ort",
+        "Сегодня четыре медиа-области разбросаны по кнопкам внутри Theme/Banner; уровень «Medien» собирает их аккордеоном. "
+        "Это отдельные формы загрузки (вне общей формы) — панель, не поповер: списки и файлы.",
+    ) + studio(
+        top_new("Startseite"),
+        rail_new("media"),
+        HOME_SKETCH.replace(' sel"', '"'),
+        "Startseite",
+        pane_new("Medien", body_pane),
+    )
     return wrap(body)
 
 
 # ── P8 · телефон ──────────────────────────────────────────────────────────────
 def phone_frame(inner: str, sheet: str = "") -> str:
-    bar = ('<div class="tabbar">'
-           + "".join(f'<div class="tb{" on" if k == "page" else ""}">{ICONS[k]}<span>{l}</span></div>'
-                     for k, l in (("page", "Seite"), ("menu", "Menü"), ("blocks", "Blöcke"), ("media", "Medien")))
-           + '</div>')
-    return (f'<div class="phone"><div class="top"><span class="brand">Studio</span>'
-            f'<span class="pgsel">Startseite<span class="ch">▾</span></span><span class="sp"></span>'
-            f'<span class="btn">↶</span><span class="btn save">Speichern</span></div>'
-            f'<div class="app"><div class="frame">{inner}</div>{bar}{sheet}</div></div>')
+    bar = (
+        '<div class="tabbar">'
+        + "".join(
+            f'<div class="tb{" on" if k == "page" else ""}">{ICONS[k]}<span>{lbl}</span></div>'
+            for k, lbl in (
+                ("page", "Seite"),
+                ("menu", "Menü"),
+                ("blocks", "Blöcke"),
+                ("media", "Medien"),
+            )
+        )
+        + "</div>"
+    )
+    return (
+        f'<div class="phone"><div class="top"><span class="brand">Studio</span>'
+        f'<span class="pgsel">Startseite<span class="ch">▾</span></span><span class="sp"></span>'
+        f'<span class="btn">↶</span><span class="btn save">Speichern</span></div>'
+        f'<div class="app"><div class="frame">{inner}</div>{bar}{sheet}</div></div>'
+    )
 
 
 def p8_phone() -> str:
-    a = phone_frame(PHONE_SKETCH + ftb(60, 80, "Produkte", [("▲", False), ("▼", False), ("👁", False), ("Stil ▾", False), ("⚙", True)]))
-    sheet = ('<div class="sheet-m"><div class="grab"></div>'
-             '<div class="ttl" style="display:flex;gap:6px;align-items:center;font-size:11px;font-weight:700;color:#374151;margin-bottom:6px">'
-             '<span style="color:#9ca3af;font-weight:400;font-size:9px">Startseite ›</span>Produkte<span class="seg" style="margin-left:auto"><span class="on">Einfach</span><span>Experte</span></span><span class="x">✕</span></div>'
-             + acc("Inhalt", "Titel · Quelle · 8",
-                   '<div class="fld"><div class="lb">Titel</div><div class="ctrl"><span>Unsere Produkte</span></div></div>'
-                   '<div class="fld"><div class="lb">Quelle</div><div class="ctrl"><span>Neueste zuerst</span><span class="ch">▾</span></div></div>', open_=True)
-             + acc("Darstellung", "2 pro Zeile · Standard", "") + '</div>')
+    a = phone_frame(
+        PHONE_SKETCH
+        + ftb(
+            60,
+            80,
+            "Produkte",
+            [("▲", False), ("▼", False), ("👁", False), ("Stil ▾", False), ("⚙", True)],
+        )
+    )
+    sheet = (
+        '<div class="sheet-m"><div class="grab"></div>'
+        '<div class="ttl" style="display:flex;gap:6px;align-items:center;font-size:11px;font-weight:700;color:#374151;margin-bottom:6px">'
+        '<span style="color:#9ca3af;font-weight:400;font-size:9px">Startseite ›</span>Produkte<span class="seg" style="margin-left:auto"><span class="on">Einfach</span><span>Experte</span></span><span class="x">✕</span></div>'
+        + acc(
+            "Inhalt",
+            "Titel · Quelle · 8",
+            '<div class="fld"><div class="lb">Titel</div><div class="ctrl"><span>Unsere Produkte</span></div></div>'
+            '<div class="fld"><div class="lb">Quelle</div><div class="ctrl"><span>Neueste zuerst</span><span class="ch">▾</span></div></div>',
+            open_=True,
+        )
+        + acc("Darstellung", "2 pro Zeile · Standard", "")
+        + "</div>"
+    )
     b = phone_frame(PHONE_SKETCH, sheet)
-    body = (hd2("Vorschlag · F7", "Panels", "Telefon (390 px): untere Leiste + Bottom-Sheet",
-                "Сегодня на телефоне рейки нет вовсе — «Seite», «Medien» недостижимы. Предложение: четыре уровня в нижней полосе "
-                "(как таб-бар кабинета), плашка действий у выбранного блока всегда видна (касание, без hover), панель и поповеры "
-                "становятся bottom-sheet. Слева — выбор блока, справа — открытые настройки.")
-            + f'<div class="sheet" style="display:flex;gap:60px;justify-content:center;background:#f2f4f7">{a}{b}</div>')
+    body = (
+        hd2(
+            "Vorschlag · F7",
+            "Panels",
+            "Telefon (390 px): untere Leiste + Bottom-Sheet",
+            "Сегодня на телефоне рейки нет вовсе — «Seite», «Medien» недостижимы. Предложение: четыре уровня в нижней полосе "
+            "(как таб-бар кабинета), плашка действий у выбранного блока всегда видна (касание, без hover), панель и поповеры "
+            "становятся bottom-sheet. Слева — выбор блока, справа — открытые настройки.",
+        )
+        + f'<div class="sheet" style="display:flex;gap:60px;justify-content:center;background:#f2f4f7">{a}{b}</div>'
+    )
     return wrap(body)
 
 
 # ── P9 · Wahlzettel 2 ─────────────────────────────────────────────────────────
 def p9_wahl2() -> str:
     rows = [
-        ("F5", "Schnell-Popover aus der Leiste (Stil · Raster · Breite · Kartenform)",
-         "Ja: ≤ 7 Kacheln, dieselben Formularfelder (verschoben, nicht kopiert), sofort live; alles Weitere im Panel per ⚙",
-         "Nein: die Leiste öffnet nur das Panel (Shopify-Muster, null Popover)",
-         "F5A", "это единственное честное место для «мелких попапов»: быстрый выбор с мгновенной обратной связью"),
-        ("F6", "Menüpunkte (Reihenfolge, ausblenden, umbenennen)",
-         "Liste im Studio-Panel «Menü» mit ⠿ und 👁; Dropdown-Untermenüs bleiben im Menü-Generator",
-         "Nur Kopfzeilenstil/CTA/Logo/Fußzeile im Studio; Menüpunkte weiter im Menü-Generator (Link)",
-         "F6A", "уровень «Menü» без пунктов меню — пустая обещалка; списки — дело панели"),
-        ("F7", "Telefon (&lt; 1024 px)",
-         "Untere Leiste Seite · Menü · Blöcke · Medien + Leiste am Block + Bottom-Sheet für Panel/Popover",
-         "Telefon = Vorschau + Inline-Text/Foto; Einstellungen ab Tablet",
-         "F7A", "сегодня телефон — половина функций недостижима; bottom-sheet уже есть в коде"),
-        ("F8", "Block-Panel: Gruppen Inhalt · Darstellung · Erweitert",
-         "Ja: Texte der Sektion (FAQ, Team, CTA …) beim Block, nicht in «Inhaltsabschnitte»; Einfach|Experte = Gruppe «Erweitert»",
-         "Wie heute: Block-Panel nur Layout; Texte weiter in «📦 Inhaltsabschnitte»",
-         "F8A", "рынок: одно место на один объект; сегодня контент секции — в четырёх местах"),
-        ("F9", "Kartenform je Kategorie («Nur hier» auf der Kategorieseite)",
-         "Neues Feld Category.card_style (Migration) + Auflösung Produkt → Kategorie → Website",
-         "Bleibt website-weit; Ausnahme pro Produkt/Aktion wie heute (DL-19)",
-         "F9B", "нашёл скептик: сегодня это невозможно; спрос на per-категорию не заявлен — не расширять модель впрок"),
+        (
+            "F5",
+            "Schnell-Popover aus der Leiste (Stil · Raster · Breite · Kartenform)",
+            "Ja: ≤ 7 Kacheln, dieselben Formularfelder (verschoben, nicht kopiert), sofort live; alles Weitere im Panel per ⚙",
+            "Nein: die Leiste öffnet nur das Panel (Shopify-Muster, null Popover)",
+            "F5A",
+            "это единственное честное место для «мелких попапов»: быстрый выбор с мгновенной обратной связью",
+        ),
+        (
+            "F6",
+            "Menüpunkte (Reihenfolge, ausblenden, umbenennen)",
+            "Liste im Studio-Panel «Menü» mit ⠿ und 👁; Dropdown-Untermenüs bleiben im Menü-Generator",
+            "Nur Kopfzeilenstil/CTA/Logo/Fußzeile im Studio; Menüpunkte weiter im Menü-Generator (Link)",
+            "F6A",
+            "уровень «Menü» без пунктов меню — пустая обещалка; списки — дело панели",
+        ),
+        (
+            "F7",
+            "Telefon (&lt; 1024 px)",
+            "Untere Leiste Seite · Menü · Blöcke · Medien + Leiste am Block + Bottom-Sheet für Panel/Popover",
+            "Telefon = Vorschau + Inline-Text/Foto; Einstellungen ab Tablet",
+            "F7A",
+            "сегодня телефон — половина функций недостижима; bottom-sheet уже есть в коде",
+        ),
+        (
+            "F8",
+            "Block-Panel: Gruppen Inhalt · Darstellung · Erweitert",
+            "Ja: Texte der Sektion (FAQ, Team, CTA …) beim Block, nicht in «Inhaltsabschnitte»; Einfach|Experte = Gruppe «Erweitert»",
+            "Wie heute: Block-Panel nur Layout; Texte weiter in «📦 Inhaltsabschnitte»",
+            "F8A",
+            "рынок: одно место на один объект; сегодня контент секции — в четырёх местах",
+        ),
+        (
+            "F9",
+            "Kartenform je Kategorie («Nur hier» auf der Kategorieseite)",
+            "Neues Feld Category.card_style (Migration) + Auflösung Produkt → Kategorie → Website",
+            "Bleibt website-weit; Ausnahme pro Produkt/Aktion wie heute (DL-19)",
+            "F9B",
+            "нашёл скептик: сегодня это невозможно; спрос на per-категорию не заявлен — не расширять модель впрок",
+        ),
     ]
     tr = "".join(
         f'<tr><td class="lbl">{n}</td><td>{q}</td>'
         f'<td class="now"><span class="opt{" rec" if r == n + "A" else ""}">{n}A</span>{a}</td>'
         f'<td class="now"><span class="opt{" rec" if r == n + "B" else ""}">{n}B</span>{b}</td>'
         f'<td class="rec">{r}</td><td class="why">{w}</td></tr>'
-        for n, q, a, b, r, w in rows)
-    body = (hd("Wahlzettel 2", "Панели: пять развилок — ответ в форме «F5A · F6A · F7A · F8A · F9B»",
-               "Всё остальное на «Funktionskarte» решено предложением: одна панель без вкладок (свойства выбранного, крошка «где я»), "
-               "рейка = навигация и добавление, плашка действий у блока, верхняя строка без дублей, глобальный дизайн — в кабинете (1B/4A).")
-            + '<div class="sheet"><table class="diff"><tr><th>№</th><th>Frage</th><th>A</th><th>B</th><th>Empf.</th><th>почему</th></tr>'
-            + tr + '</table>'
-            + '<div class="answer"><b>Что НЕ меняется:</b> все inline-редакторы на канве (текст, цена, дата, 📷, «+», ⠿), реестр настроек '
-              'по типам страниц, пилюля охвата, живой черновик, Undo/Save, Einfach|Experte редактора.</div></div>')
+        for n, q, a, b, r, w in rows
+    )
+    body = (
+        hd(
+            "Wahlzettel 2",
+            "Панели: пять развилок — ответ в форме «F5A · F6A · F7A · F8A · F9B»",
+            "Всё остальное на «Funktionskarte» решено предложением: одна панель без вкладок (свойства выбранного, крошка «где я»), "
+            "рейка = навигация и добавление, плашка действий у блока, верхняя строка без дублей, глобальный дизайн — в кабинете (1B/4A).",
+        )
+        + '<div class="sheet"><table class="diff"><tr><th>№</th><th>Frage</th><th>A</th><th>B</th><th>Empf.</th><th>почему</th></tr>'
+        + tr
+        + "</table>"
+        + '<div class="answer"><b>Что НЕ меняется:</b> все inline-редакторы на канве (текст, цена, дата, 📷, «+», ⠿), реестр настроек '
+        "по типам страниц, пилюля охвата, живой черновик, Undo/Save, Einfach|Experte редактора.</div></div>"
+    )
     return wrap(body)
 
 
@@ -1492,32 +2212,60 @@ def p10_kabinett() -> str:
     def card(title, inner, note=""):
         n = f'<div class="hint" style="margin-top:5px">{note}</div>' if note else ""
         return f'<div class="inv"><div class="k">{title}</div>{inner}{n}</div>'
-    look = ('<div class="tiles">' + "".join(f'<div class="t{" on" if i == 1 else ""}" style="height:44px"><span>{n}</span></div>'
-                                             for i, n in enumerate(("Klar", "Warm", "Nacht", "Fein", "Natur", "Prospekt"))) + '</div>')
-    paket = '<div class="tiles">' + "".join(f'<div class="t{" on" if i == 0 else ""}" style="height:44px"><span>{n}</span></div>' for i, n in enumerate(("Fokus", "Prospekt", "Boutique"))) + '</div>'
-    farbe = ('<div class="two" style="gap:8px"><div class="fld"><div class="lb">Akzentfarbe</div><div class="ctrl"><span>● #b45309</span></div></div>'
-             '<div class="fld"><div class="lb">Schrift</div><div class="ctrl"><span>Nunito</span><span class="ch">▾</span></div></div>'
-             '<div class="fld"><div class="lb">Überschriften</div><div class="ctrl"><span>Groß</span><span class="ch">▾</span></div></div>'
-             '<div class="fld"><div class="lb">Seitenhintergrund</div><div class="ctrl"><span>● Creme</span></div></div></div>')
-    karten = ('<div class="two" style="gap:8px"><div class="fld"><div class="lb">Kartenform (Standard)</div><div class="tiles"><div class="t on"><span>Regal</span></div><div class="t"><span>Lookbook</span></div><div class="t"><span>Deal</span></div></div></div>'
-              '<div class="fld"><div class="lb">Fotoform</div><div class="chips"><span class="chip on">Standard</span><span class="chip">Rund</span><span class="chip">Breit</span></div></div>'
-              '<div class="fld"><div class="lb">Kartenrahmen</div><div class="chips"><span class="chip">Hart</span><span class="chip on">Hairline</span><span class="chip">Linie</span></div></div>'
-              '<div class="fld"><div class="lb">Ecken</div><div class="chips"><span class="chip">Eckig</span><span class="chip on">Rund</span></div></div></div>')
-    vorlagen = ('<div class="rows"><div class="r" style="background:#fff">Hofladen<span class="eye" style="color:#15803d">empfohlen</span></div>'
-                '<div class="r" style="background:#fff">Klassisch<span class="eye">Anwenden</span></div><div class="r" style="background:#fff">Minimal<span class="eye">Anwenden</span></div></div>'
-                '<div class="ctrl" style="margin-top:6px;justify-content:center;color:#3730a3;border-color:#c7d2fe;font-weight:700">Demo-Inhalte laden</div>')
-    page = (f'<div class="sheet" style="background:#f2f4f7"><div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px">'
-            f'<span style="font-size:14px;font-weight:800;color:#111827">Design des Shops</span><span class="hint">Einstellungen › Website</span>'
-            f'<span class="link" style="margin-left:auto;font-size:9px">Im Studio feinschleifen →</span></div>'
-            f'<div class="two">{card("✨ Look", look, "18 Looks · Vorschau-Kacheln wie heute (iframe), kein Live-Canvas")}'
-            f'{card("🎁 Startpaket", paket, "Komposition + Look auf einmal")}'
-            f'{card("Farbe &amp; Schrift", farbe)}{card("Karten &amp; Fotos", karten, "Standard für alle Seiten; „Nur hier“ im Studio überschreibt")}</div>'
-            f'<div style="height:12px"></div>{card("Vorlagen (Layout) &amp; Demo-Inhalte", vorlagen, "war Ebene «Start» (4A)")}</div>')
-    body = (hd2("1B + 4A", "Kabinett", "«Design des Shops» — куда уехало всё глобальное",
-                "Экран кабинета (подпункт Website): Look · Startpaket · Farbe &amp; Schrift · Karten &amp; Fotos · Vorlagen/Demo. "
-                "Сегодня там только Look и Startpaket; цвет/шрифт/карточки/типографика переезжают из области Theme, "
-                "Layout-Vorlagen и Demo — из области Start. Живого превью здесь нет (принято решением 1B). Для реализации: apply_look на этом экране должен менять ТОЛЬКО оптику (сегодня он сбрасывает порядок секций главной), а черновик Студии — перестать слать ключи темы, иначе перекроет выбранный здесь Look.")
-            + page)
+
+    look = (
+        '<div class="tiles">'
+        + "".join(
+            f'<div class="t{" on" if i == 1 else ""}" style="height:44px"><span>{n}</span></div>'
+            for i, n in enumerate(("Klar", "Warm", "Nacht", "Fein", "Natur", "Prospekt"))
+        )
+        + "</div>"
+    )
+    paket = (
+        '<div class="tiles">'
+        + "".join(
+            f'<div class="t{" on" if i == 0 else ""}" style="height:44px"><span>{n}</span></div>'
+            for i, n in enumerate(("Fokus", "Prospekt", "Boutique"))
+        )
+        + "</div>"
+    )
+    farbe = (
+        '<div class="two" style="gap:8px"><div class="fld"><div class="lb">Akzentfarbe</div><div class="ctrl"><span>● #b45309</span></div></div>'
+        '<div class="fld"><div class="lb">Schrift</div><div class="ctrl"><span>Nunito</span><span class="ch">▾</span></div></div>'
+        '<div class="fld"><div class="lb">Überschriften</div><div class="ctrl"><span>Groß</span><span class="ch">▾</span></div></div>'
+        '<div class="fld"><div class="lb">Seitenhintergrund</div><div class="ctrl"><span>● Creme</span></div></div></div>'
+    )
+    karten = (
+        '<div class="two" style="gap:8px"><div class="fld"><div class="lb">Kartenform (Standard)</div><div class="tiles"><div class="t on"><span>Regal</span></div><div class="t"><span>Lookbook</span></div><div class="t"><span>Deal</span></div></div></div>'
+        '<div class="fld"><div class="lb">Fotoform</div><div class="chips"><span class="chip on">Standard</span><span class="chip">Rund</span><span class="chip">Breit</span></div></div>'
+        '<div class="fld"><div class="lb">Kartenrahmen</div><div class="chips"><span class="chip">Hart</span><span class="chip on">Hairline</span><span class="chip">Linie</span></div></div>'
+        '<div class="fld"><div class="lb">Ecken</div><div class="chips"><span class="chip">Eckig</span><span class="chip on">Rund</span></div></div></div>'
+    )
+    vorlagen = (
+        '<div class="rows"><div class="r" style="background:#fff">Hofladen<span class="eye" style="color:#15803d">empfohlen</span></div>'
+        '<div class="r" style="background:#fff">Klassisch<span class="eye">Anwenden</span></div><div class="r" style="background:#fff">Minimal<span class="eye">Anwenden</span></div></div>'
+        '<div class="ctrl" style="margin-top:6px;justify-content:center;color:#3730a3;border-color:#c7d2fe;font-weight:700">Demo-Inhalte laden</div>'
+    )
+    page = (
+        f'<div class="sheet" style="background:#f2f4f7"><div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px">'
+        f'<span style="font-size:14px;font-weight:800;color:#111827">Design des Shops</span><span class="hint">Einstellungen › Website</span>'
+        f'<span class="link" style="margin-left:auto;font-size:9px">Im Studio feinschleifen →</span></div>'
+        f'<div class="two">{card("✨ Look", look, "18 Looks · Vorschau-Kacheln wie heute (iframe), kein Live-Canvas")}'
+        f"{card('🎁 Startpaket', paket, 'Komposition + Look auf einmal')}"
+        f"{card('Farbe &amp; Schrift', farbe)}{card('Karten &amp; Fotos', karten, 'Standard für alle Seiten; „Nur hier“ im Studio überschreibt')}</div>"
+        f'<div style="height:12px"></div>{card("Vorlagen (Layout) &amp; Demo-Inhalte", vorlagen, "war Ebene «Start» (4A)")}</div>'
+    )
+    body = (
+        hd2(
+            "1B + 4A",
+            "Kabinett",
+            "«Design des Shops» — куда уехало всё глобальное",
+            "Экран кабинета (подпункт Website): Look · Startpaket · Farbe &amp; Schrift · Karten &amp; Fotos · Vorlagen/Demo. "
+            "Сегодня там только Look и Startpaket; цвет/шрифт/карточки/типографика переезжают из области Theme, "
+            "Layout-Vorlagen и Demo — из области Start. Живого превью здесь нет (принято решением 1B). Для реализации: apply_look на этом экране должен менять ТОЛЬКО оптику (сегодня он сбрасывает порядок секций главной), а черновик Студии — перестать слать ключи темы, иначе перекроет выбранный здесь Look.",
+        )
+        + page
+    )
     return wrap(body)
 
 
@@ -1526,26 +2274,42 @@ def top_final(page: str, status: str = "Gespeichert ✓") -> str:
     return top_new(page, status=status)
 
 
-def studio_norail(top_html: str, sketch: str, tag: str, pane_html: str, canvas_extra: str = "") -> str:
-    return (top_html + '<div class="app">'
-            + f'<div class="canvas"><div class="frame">{sketch}<span class="tag">{tag}</span></div>{canvas_extra}</div>'
-            + pane_html + "</div>")
+def studio_norail(
+    top_html: str, sketch: str, tag: str, pane_html: str, canvas_extra: str = ""
+) -> str:
+    return (
+        top_html
+        + '<div class="app">'
+        + f'<div class="canvas"><div class="frame">{sketch}<span class="tag">{tag}</span></div>{canvas_extra}</div>'
+        + pane_html
+        + "</div>"
+    )
 
 
 def f1_home() -> str:
-    body = (hd2("Final", "Studio ohne Rail", "Verhalten: Topbar + Leinwand + eine Spalte rechts",
-                "Левой рейки нет. Ничего не выбрано → колонка показывает настройки открытой страницы. "
-                "Всё остальное — кликом по канве: секция, блок, шапка, подвал, фото; «+» между секциями вставляет блок; "
-                "«Seite ▾» ведёт на страницы, до которых кликом не дойти; «Design des Shops →» — экран кабинета (1B).",
-                rec=True)
-            + studio_norail(top_final("Startseite"), HOME_SKETCH.replace(' sel"', '"'), "Startseite", home_pane_new()))
+    body = hd2(
+        "Final",
+        "Studio ohne Rail",
+        "Verhalten: Topbar + Leinwand + eine Spalte rechts",
+        "Левой рейки нет. Ничего не выбрано → колонка показывает настройки открытой страницы. "
+        "Всё остальное — кликом по канве: секция, блок, шапка, подвал, фото; «+» между секциями вставляет блок; "
+        "«Seite ▾» ведёт на страницы, до которых кликом не дойти; «Design des Shops →» — экран кабинета (1B).",
+        rec=True,
+    ) + studio_norail(
+        top_final("Startseite"), HOME_SKETCH.replace(' sel"', '"'), "Startseite", home_pane_new()
+    )
     return wrap(body)
 
 
 def f2_header() -> str:
-    rows = ('<div class="rows">'
-            + "".join(f'<div class="r"><span class="h">⠿</span>{n}<span class="eye">👁</span></div>' for n in ("Sortiment", "Aktionen", "Über uns", "Kontakt"))
-            + '</div><div class="hint" style="margin-top:3px">＋ Punkt · Untermenüs im Menü-Generator →</div>')
+    rows = (
+        '<div class="rows">'
+        + "".join(
+            f'<div class="r"><span class="h">⠿</span>{n}<span class="eye">👁</span></div>'
+            for n in ("Sortiment", "Aktionen", "Über uns", "Kontakt")
+        )
+        + '</div><div class="hint" style="margin-top:3px">＋ Punkt · Untermenüs im Menü-Generator →</div>'
+    )
     pane_body = f"""
   <div class="card"><div class="lg">Kopfzeile</div>
     <div class="fld"><div class="tiles"><div class="t on"><span>Classic</span></div><div class="t"><span>Zentriert</span></div><div class="t"><span>Minimal</span></div></div></div>
@@ -1556,34 +2320,78 @@ def f2_header() -> str:
   <div class="card"><div class="lg">Menüpunkte</div>{rows}</div>
   <div class="card"><div class="lg">Fußzeile</div><div class="chips"><span class="chip on">Kontakt</span><span class="chip on">Öffnungszeiten</span><span class="chip on">Social</span><span class="chip">Newsletter</span></div></div>"""
     bar = ftb(196, 44, "Kopfzeile", [("Stil ▾", False), ("⚙", True)])
-    body = (hd2("Final", "Studio ohne Rail", "Klick auf die Kopfzeile → Spalte «Kopf- &amp; Fußzeile»",
-                "Шапка и подвал есть на каждой странице, поэтому уровень «Menü» не нужен: клик по шапке открывает ту же "
-                "колонку с пресетом шапки, CTA, логотипом, пунктами меню (F6A: порядок/скрытие здесь, подменю — в "
-                "Menü-Generator) и составом подвала. Крошка «Website › Kopfzeile» говорит, что это глобально.")
-            + studio_norail(top_final("Startseite"), HOME_SKETCH_NAV, "Kopfzeile",
-                            pane_new("Kopf- &amp; Fußzeile", pane_body, crumb="Website › gilt auf allen Seiten"), bar))
+    body = hd2(
+        "Final",
+        "Studio ohne Rail",
+        "Klick auf die Kopfzeile → Spalte «Kopf- &amp; Fußzeile»",
+        "Шапка и подвал есть на каждой странице, поэтому уровень «Menü» не нужен: клик по шапке открывает ту же "
+        "колонку с пресетом шапки, CTA, логотипом, пунктами меню (F6A: порядок/скрытие здесь, подменю — в "
+        "Menü-Generator) и составом подвала. Крошка «Website › Kopfzeile» говорит, что это глобально.",
+    ) + studio_norail(
+        top_final("Startseite"),
+        HOME_SKETCH_NAV,
+        "Kopfzeile",
+        pane_new("Kopf- &amp; Fußzeile", pane_body, crumb="Website › gilt auf allen Seiten"),
+        bar,
+    )
     return wrap(body)
 
 
 def f3_entschieden() -> str:
     rows = [
-        ("Глобальный дизайн (Look, цвет, шрифт, карточки)", "экран кабинета «Design des Shops», не в Студии", "1B"),
-        ("Шапка и подвал", "клик по шапке/подвалу на любой странице → колонка «Kopf- &amp; Fußzeile» (уровень «Menü» отпал вместе с рейкой)", "2B → снято"),
+        (
+            "Глобальный дизайн (Look, цвет, шрифт, карточки)",
+            "экран кабинета «Design des Shops», не в Студии",
+            "1B",
+        ),
+        (
+            "Шапка и подвал",
+            "клик по шапке/подвалу на любой странице → колонка «Kopf- &amp; Fußzeile» (уровень «Menü» отпал вместе с рейкой)",
+            "2B → снято",
+        ),
         ("Страницы, недостижимые кликом (Warenkorb, Kasse)", "«Seite: … ▾» в верхней строке", "3A"),
         ("Область «Start» (Layout-Vorlagen, Demo)", "секция «Vorlagen» на экране кабинета", "4A"),
-        ("Левая рейка", "убрана целиком: всё открывается кликом по канве, «+» и «Seite ▾»", "1 · убрать"),
-        ("Колонка настроек", "справа, одна, без вкладок; по умолчанию — настройки открытой страницы; при выборе — блок с крошкой", "2 · справа"),
-        ("Быстрые поповеры из плашки у блока (Stil · Raster · Breite)", "да, ≤ 7 плиток, те же поля формы", "F5A"),
-        ("Пункты меню", "в колонке Студии (порядок, скрыть, переименовать); подменю — Menü-Generator", "F6A"),
+        (
+            "Левая рейка",
+            "убрана целиком: всё открывается кликом по канве, «+» и «Seite ▾»",
+            "1 · убрать",
+        ),
+        (
+            "Колонка настроек",
+            "справа, одна, без вкладок; по умолчанию — настройки открытой страницы; при выборе — блок с крошкой",
+            "2 · справа",
+        ),
+        (
+            "Быстрые поповеры из плашки у блока (Stil · Raster · Breite)",
+            "да, ≤ 7 плиток, те же поля формы",
+            "F5A",
+        ),
+        (
+            "Пункты меню",
+            "в колонке Студии (порядок, скрыть, переименовать); подменю — Menü-Generator",
+            "F6A",
+        ),
         ("Телефон", "настройки доступны: bottom-sheet + «⚙» в верхней строке", "F7A"),
-        ("Панель блока", "группы Inhalt · Darstellung · Erweitert; тексты секции при секции", "F8A"),
+        (
+            "Панель блока",
+            "группы Inhalt · Darstellung · Erweitert; тексты секции при секции",
+            "F8A",
+        ),
         ("Форма карточки для одной категории", "открыто — см. пояснение в чате", "F9 ?"),
     ]
-    tr = "".join(f'<tr><td class="lbl" style="white-space:normal;max-width:240px">{a}</td><td class="now">{b}</td><td class="rec">{c}</td></tr>' for a, b, c in rows)
-    body = (hd("Entschieden · 2026-09-09", "Что решено по Студии — одним листом",
-               "Итог двух раундов (страницы «Entscheidungen» и «Panels»). Студия = верхняя строка + канва + одна колонка. "
-               "План волны реализации — `docs/stu12-studio-simplification-plan-2026-09-09.md`.")
-            + f'<div class="sheet"><table class="diff"><tr><th>Что</th><th>Решение</th><th>Код</th></tr>{tr}</table></div>')
+    tr = "".join(
+        f'<tr><td class="lbl" style="white-space:normal;max-width:240px">{a}</td><td class="now">{b}</td><td class="rec">{c}</td></tr>'
+        for a, b, c in rows
+    )
+    body = (
+        hd(
+            "Entschieden · 2026-09-09",
+            "Что решено по Студии — одним листом",
+            "Итог двух раундов (страницы «Entscheidungen» и «Panels»). Студия = верхняя строка + канва + одна колонка. "
+            "План волны реализации — `docs/stu12-studio-simplification-plan-2026-09-09.md`.",
+        )
+        + f'<div class="sheet"><table class="diff"><tr><th>Что</th><th>Решение</th><th>Код</th></tr>{tr}</table></div>'
+    )
     return wrap(body)
 
 
@@ -1627,27 +2435,55 @@ ARTBOARDS = {
     "F3": (f3_entschieden, 940, 520, "Entschieden · 2026-09-09"),
 }
 
-PAGE_OF = {k: ("final" if k.startswith("F") else "panels" if k.startswith("P") else "entscheidungen" if k.startswith("E")
-               else "vorschlag" if k.startswith("V3") else "heute") for k in ARTBOARDS}
+PAGE_OF = {
+    k: (
+        "final"
+        if k.startswith("F")
+        else "panels"
+        if k.startswith("P")
+        else "entscheidungen"
+        if k.startswith("E")
+        else "vorschlag"
+        if k.startswith("V3")
+        else "heute"
+    )
+    for k in ARTBOARDS
+}
 
 LAYOUT = {
-    "Main": (0, 0), "Kategorie": (1040, 0),
-    "Aktionsgruppe": (0, 696), "Textseite": (1040, 696),
-    "Register": (0, 1336), "Umfang": (1040, 1336),
-    "V3Home": (0, 0), "V3Kategorie": (1040, 0),
-    "V3Alt": (0, 696), "V3Diff": (1040, 696),
+    "Main": (0, 0),
+    "Kategorie": (1040, 0),
+    "Aktionsgruppe": (0, 696),
+    "Textseite": (1040, 696),
+    "Register": (0, 1336),
+    "Umfang": (1040, 1336),
+    "V3Home": (0, 0),
+    "V3Kategorie": (1040, 0),
+    "V3Alt": (0, 696),
+    "V3Diff": (1040, 696),
     "E0": (0, 0),
-    "E1A": (0, 560), "E1B": (1040, 560),
-    "E2A": (0, 1256), "E2B": (1040, 1256),
-    "E3A": (0, 1952), "E3B": (1040, 1952),
-    "E4A": (0, 2648), "E4B": (1040, 2648),
-    "P0": (0, 0), "P1": (1040, 0),
+    "E1A": (0, 560),
+    "E1B": (1040, 560),
+    "E2A": (0, 1256),
+    "E2B": (1040, 1256),
+    "E3A": (0, 1952),
+    "E3B": (1040, 1952),
+    "E4A": (0, 2648),
+    "E4B": (1040, 2648),
+    "P0": (0, 0),
+    "P1": (1040, 0),
     "P9": (0, 800),
-    "P2": (0, 1900), "P3": (1040, 1900),
-    "P4": (0, 2596), "P5": (1040, 2596),
-    "P6": (0, 3292), "P7": (1040, 3292),
-    "P8": (0, 3988), "P10": (1040, 3988),
-    "F3": (0, 0), "F1": (0, 660), "F2": (1040, 660),
+    "P2": (0, 1900),
+    "P3": (1040, 1900),
+    "P4": (0, 2596),
+    "P5": (1040, 2596),
+    "P6": (0, 3292),
+    "P7": (1040, 3292),
+    "P8": (0, 3988),
+    "P10": (1040, 3988),
+    "F3": (0, 0),
+    "F1": (0, 660),
+    "F2": (1040, 660),
 }
 
 
@@ -1656,16 +2492,33 @@ def main() -> None:
     for name, (fn, w, h, title) in ARTBOARDS.items():
         (HERE / f"{name}.dc.html").write_text(fn(), encoding="utf-8")
         x, y = LAYOUT[name]
-        boards.append({"file": f"{name}.dc.html", "x": x, "y": y, "w": w, "h": h, "title": title,
-                       "page": PAGE_OF[name]})
+        boards.append(
+            {
+                "file": f"{name}.dc.html",
+                "x": x,
+                "y": y,
+                "w": w,
+                "h": h,
+                "title": title,
+                "page": PAGE_OF[name],
+            }
+        )
     (HERE / "canvas.json").write_text(
-        json.dumps({
-            "pages": [{"id": "heute", "name": "Heute"}, {"id": "vorschlag", "name": "Vorschlag"},
-                      {"id": "entscheidungen", "name": "Entscheidungen"},
-                      {"id": "panels", "name": "Panels"}, {"id": "final", "name": "Final"}],
-            "artboards": boards,
-            "launch": {"view": "canvas", "page": "final"},
-        }, ensure_ascii=False, indent=1),
+        json.dumps(
+            {
+                "pages": [
+                    {"id": "heute", "name": "Heute"},
+                    {"id": "vorschlag", "name": "Vorschlag"},
+                    {"id": "entscheidungen", "name": "Entscheidungen"},
+                    {"id": "panels", "name": "Panels"},
+                    {"id": "final", "name": "Final"},
+                ],
+                "artboards": boards,
+                "launch": {"view": "canvas", "page": "final"},
+            },
+            ensure_ascii=False,
+            indent=1,
+        ),
         encoding="utf-8",
     )
     print("артбордов:", len(boards))

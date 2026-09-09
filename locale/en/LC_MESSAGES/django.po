@@ -22067,3 +22067,31 @@ msgstr "Narrow column"
 #: templates/tenant/site_home.html
 msgid "Wie bisher"
 msgstr "As before"
+
+#: apps/core/views.py
+msgid "Auf der Website erreichbar"
+msgstr "Reachable from the website"
+
+#: apps/core/views.py
+msgid "Nur von hier erreichbar"
+msgstr "Only reachable from here"
+
+#: apps/core/views.py
+msgid "Aktionsgruppen"
+msgstr "Deal groups"
+
+#: templates/tenant/site_home.html
+msgid "Design des Shops"
+msgstr "Shop design"
+
+#: templates/tenant/design.html
+msgid "Zurück ins Studio"
+msgstr "Back to Studio"
+
+#: templates/tenant/site_home.html
+msgid "Seiteneinstellungen"
+msgstr "Page settings"
+
+#: templates/tenant/site_home.html
+msgid "Diese Seite"
+msgstr "This page"

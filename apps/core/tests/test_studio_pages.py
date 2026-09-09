@@ -284,11 +284,17 @@ def builder_html(settings):
 def test_rail_offers_two_levels(builder_html):
     """Запрос владельца: «отдельная настройка слева "Общий макет", и далее уже
     детально об этой [странице]». Раньше слева были ОБЛАСТИ, не совпадавшие с
-    содержимым панели."""
-    assert 'data-st-level="design"' in builder_html
-    assert 'data-st-level="page"' in builder_html
+    содержимым панели.
+
+    STU-12a: рейки уровней больше нет (решение владельца «Убрать»): уровень
+    «Дизайн» уехал на экран кабинета («Design des Shops →» в верхней строке),
+    уровень «Эта страница» — единственная колонка, открытая по умолчанию.
+    Область страницы (форма) осталась — её открывает канва и «Seite ▾»."""
+    assert 'data-st-level="design"' not in builder_html
+    assert 'data-st-level="page"' not in builder_html
     assert 'data-bld-area="page"' in builder_html
-    assert 'data-area="page"' in builder_html
+    assert 'id="st-design-link"' in builder_html
+    assert 'id="st-page-switch"' in builder_html
 
 
 @pytest.mark.django_db
@@ -644,16 +650,25 @@ def test_custom_404_stays_standalone():
     assert "data-stu-page" not in page
 
 
-def test_page_ribbon_matches_chip_by_bare_path():
-    """STU-7 (нашло ревью ветки): чипы ленты страниц — голые пути, а previewPath теперь
-    может нести `?gruppe=`. Без среза параметра на странице группы не подсвечивался ни
-    один чип: лента показывала «мы нигде», хотя канва внутри «Aktionen»."""
+def test_page_menu_marks_item_by_path_and_page_query():
+    """STU-7 (нашло ревью ветки): чипы ленты страниц были голыми путями, а previewPath
+    может нести `?gruppe=` — без среза параметра на странице группы не подсвечивался
+    ни один чип.
+
+    STU-12a: ленты нет, её сменил список «Seite ▾», и у него есть пункты С параметром
+    (группы акций: `/aktionen/?gruppe=…`). Поэтому сравнение теперь идёт по ПОЛНОМУ
+    адресу страницы (путь + ключи из PAGE_QUERY_KEYS, оба декодированы): на странице
+    группы подсвечен пункт группы, а не общий «Aktionen»; срез по «?» сделал бы
+    невозможным различить группы."""
     from pathlib import Path
 
     from django.conf import settings as dj_settings
 
     tpl = (Path(dj_settings.BASE_DIR) / "templates" / "tenant" / "site_home.html").read_text()
-    assert '.value || "/").split("?")[0];' in tpl
+    assert '.value || "/").split("?")[0];' not in tpl
+    assert "window.__stuMarkPageMenu = function (cur)" in tpl
+    assert 'norm(b.getAttribute("data-st-page")) === c' in tpl
+    assert "decodeURIComponent(u" in tpl
 
 
 @pytest.mark.django_db
@@ -886,8 +901,11 @@ def test_level_this_page_opens_the_home_area_on_home():
     жмёт «Seite» и снова видит настройки каталога/событий/номеров и ни одной своей —
     ровно тот дефект, ради которого сделана часть 1.
 
-    Поэтому замок держит ОБА конца: резолвер отдаёт «sections» именно для `home`,
-    и обработчик уровня маршрутизирует ПО резолверу, а не мимо него.
+    STU-12a: рейки и её обработчика уровня больше нет; «уровень» открывают три
+    входа — открытие колонки по умолчанию (stuDefaultOpen), «⚙» верхней строки на
+    телефоне (#st-page-btn) и клик по содержимому канвы (STU-4). Замок держит ОБА
+    конца: резолвер отдаёт «sections» именно для `home`, и каждый вход
+    маршрутизирует ПО резолверу, а не мимо него.
     """
     body = pathlib.Path("templates/tenant/site_home.html").read_text()
     i = body.index("function stuPageArea()")
@@ -898,12 +916,14 @@ def test_level_this_page_opens_the_home_area_on_home():
         "у главной уровень «эта страница» = область sections, у остальных — page"
     )
 
-    # Якорь — именно обработчик УРОВНЯ рейки: тот же вызов есть теперь и во вкладке
-    # областей (STU-11), и поиск по голому имени нашёл бы её.
-    j = body.index("var stuArea = window.__stuPageArea")
-    handler = body[j : j + 400]
-    assert 'stuArea === "sections"' in handler, "обработчик уровня обязан читать резолвер"
-    assert '__sfShowArea("sections")' in handler, "и открывать область главной через него"
+    j = body.index("function stuDefaultOpen()")
+    opener = body[j : j + 500]
+    assert "__sfShowArea(stuPageArea())" in opener, "открытие по умолчанию — через резолвер"
+
+    k = body.index('var pageBtn = document.getElementById("st-page-btn")')
+    handler = body[k : k + 400]
+    assert "window.__stuPageArea()" in handler, "«⚙» обязана читать резолвер"
+    assert "showArea(a)" in handler, "и открывать область, которую он отдал"
 
 
 @pytest.mark.django_db
@@ -1020,19 +1040,21 @@ def test_undo_restores_site_value_in_scope_controls():
     assert "window.__stuRepaintScopePills = function" in body, "перекраска не экспортирована"
 
 
-def test_page_tab_follows_the_same_resolver_as_the_rail():
-    """Вкладка «эта страница» обязана вести в ТУ ЖЕ область, что уровень рейки.
+def test_canvas_click_follows_the_same_resolver_as_the_default_entry():
+    """Клик по содержимому канвы обязан вести в ТУ ЖЕ область, что открытие по умолчанию.
 
     STU-11: на главной клик по вкладке открывал область `page`, где для home нет ни
-    одной строки, — пустая панель с подсказкой «правьте на канве». На узком экране
-    рейки нет вовсе (`hidden lg:flex`), так что это был единственный вход.
+    одной строки, — пустая панель с подсказкой «правьте на канве». STU-12a: вкладки
+    сняты, а клик по канве (STU-4) стал одним из трёх входов в уровень «эта
+    страница» — и нигде не должно остаться жёсткого `__sfShowArea("page")`.
     """
     body = pathlib.Path("templates/tenant/site_home.html").read_text()
-    i = body.index("railBtns.forEach(function (b) {")
-    handler = body[i : body.index("function activate(which)", i)]
-    assert '__stuPageArea() === "sections"' in handler, (
-        "вкладка обязана спрашивать резолвер, а не открывать `page` вслепую"
+    i = body.index("STU-12a: вкладок нет — открываем область ЭТОЙ страницы")
+    handler = body[i : i + 400]
+    assert "window.__stuPageArea()" in handler, (
+        "клик по канве обязан спрашивать резолвер, а не открывать `page` вслепую"
     )
+    assert '__sfShowArea("page")' not in body, "жёсткого открытия области page быть не должно"
 
 
 @pytest.mark.django_db

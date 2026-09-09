@@ -1,8 +1,11 @@
-"""ST-3: Studio-оболочка — рейка уровней + page-лента + брендинг.
+"""ST-3 → STU-12a: Studio-оболочка.
 
-План st3-studio-shell-plan-2026-07-19.md: переупаковка существующего хрома —
-существующие id/классы билдера НЕ переименованы (их держат замки
-test_home_builder); новый хром отсутствует в «Klassische Ansicht».
+ST-3 (2026-07-19) переупаковал хром в рейку уровней + page-ленту; STU-12a
+(2026-09-09, решение владельца «Убрать») снёс рейку, ленту страниц и вкладки
+областей: страницу выбирает «Seite ▾» в верхней строке, глобальный дизайн —
+ссылка «Design des Shops →» на экран кабинета, колонка настроек одна и открыта
+по умолчанию. Существующие id билдера НЕ переименованы (их держат замки
+test_home_builder); брендинг «Studio» и кросс-фейд свопа остались.
 """
 
 import uuid
@@ -31,17 +34,18 @@ def _html(tenant):
     return core_views.home_builder_view(request).content.decode()
 
 
-def test_studio_rail_and_pages_strip_render():
+def test_studio_shell_without_rail_renders():
     tenant = TenantFactory(slug="stsh", name="StSh", business_type="bakery")
     html = _html(tenant)
-    # STU-2: рейка стала УРОВНЯМИ настройки — «look/pages» переименованы в
-    # «design/page» осознанно (области ≠ уровни; см. test_studio_pages.py).
-    assert 'id="st-rail"' in html and 'data-st-level="design"' in html
-    assert 'data-st-level="page"' in html and 'data-st-level="media"' in html
-    assert 'id="st-pages"' in html and "st-page-btn" in html
+    # STU-12a: рейки уровней и ленты страниц нет — их работу несут верхняя строка
+    # («Seite ▾» + «Design des Shops →») и клик по канве.
+    assert 'id="st-rail"' not in html and "data-st-level=" not in html
+    assert 'id="st-pages"' not in html
+    assert 'id="st-page-switch"' in html and 'id="st-design-link"' in html
     assert ">Studio</span>" in html  # брендинг в топ-баре
     # кросс-фейд врезан в swapPreview
     assert "transition:opacity" in html
     # существующие якоря хрома целы (замки старого билдера)
-    assert 'id="bld-root"' in html and 'id="bld-area-tabs"' in html
+    assert 'id="bld-root"' in html and 'id="bld-editor-pane"' in html
+    assert 'id="bld-area-tabs"' not in html  # вкладок областей тоже нет
     assert 'id="home-prev-frame"' in html
