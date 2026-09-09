@@ -22316,3 +22316,7 @@ msgstr "Erst die Geschichte in breiter Textspalte, Foto daneben."
 #. STU-15a
 msgid "Offer page (whole site)"
 msgstr "Aktionsseite (ganze Website)"
+
+#: apps/imports/views.py
+msgid "Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch."
+msgstr ""

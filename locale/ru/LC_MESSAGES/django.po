@@ -22508,3 +22508,7 @@ msgstr "Сначала рассказ широкой колонкой, фото 
 #. STU-15a
 msgid "Offer page (whole site)"
 msgstr "Страница акции (весь сайт)"
+
+#: apps/imports/views.py
+msgid "Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch."
+msgstr "Файл импорта уже удалён. Пожалуйста, загрузите его заново."

@@ -109,3 +109,37 @@ def test_upload_is_stored_under_random_name_keeping_extension(user):
     assert "Preisliste" not in name and "Sommer" not in name
     stem = name[len("imports/") : -len(".xlsx")]
     assert len(stem) == 32 and all(c in "0123456789abcdef" for c in stem)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("method", ["get", "post"])
+def test_map_without_source_file_redirects_to_status(user, method, monkeypatch):
+    """P0-2: после completed файл удалён (или его добрал cleanup_import_files) —
+    шаг маппинга без файла раньше падал бы на read_headers. Теперь честный
+    редирект на статус с сообщением, задача в очередь не ставится."""
+    calls = []
+    monkeypatch.setattr(views.preview_import, "delay", lambda **kw: calls.append(kw))
+    job = ImportJob.objects.create(resource_type="product", status="completed", source_file="")
+    req = getattr(RequestFactory(), method)(f"/imports/{job.pk}/map/", {"delimiter": "auto"})
+    _attach_session_user(req, user)
+    resp = views.import_map(req, pk=job.pk)
+    assert resp.status_code == 302
+    assert resp["Location"].endswith(f"/{job.pk}/status/")
+    assert calls == []
+    assert [m.message for m in req._messages]  # владелец видит, почему не шаг маппинга
+
+
+@pytest.mark.django_db
+def test_uppercase_excel_extension_still_selects_excel_parser(user):
+    """Расширение нормализуется в нижний регистр — `tabular.is_excel` сверяет
+    суффикс по lower(), но замок держит саму связку «PREISE.XLSX → парсер Excel»."""
+    from apps.imports.tabular import is_excel
+
+    req = RequestFactory().post(
+        "/imports/start/", {"source_file": SimpleUploadedFile("PREISE.XLSX", b"PK\x03\x04")}
+    )
+    _attach_session_user(req, user)
+    views.import_start(req)
+    job = ImportJob.objects.latest("created_at")
+    assert job.source_file.name.endswith(".xlsx")
+    assert is_excel(job.source_file)

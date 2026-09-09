@@ -40,3 +40,8 @@ STORAGES["staticfiles"] = {
 }
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+# P0-2: маршрут /media/ строится в urlconf при импорте по этому флагу. В base.py
+# он зависит от окружения (AWS_ACCESS_KEY_ID в env → S3 → False), и тогда гейт
+# `core.media_views.serve_media` в тестах не резолвится вовсе. Хранилище выше
+# уже файловое — держим и раздачу детерминированно включённой.
+SERVE_MEDIA = True

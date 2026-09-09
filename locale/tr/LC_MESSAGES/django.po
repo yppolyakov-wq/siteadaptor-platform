@@ -22405,3 +22405,7 @@ msgstr "Önce geniş metin sütununda hikâye, yanında fotoğraf."
 #. STU-15a
 msgid "Offer page (whole site)"
 msgstr "Kampanya sayfası (tüm site)"
+
+#: apps/imports/views.py
+msgid "Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch."
+msgstr "İçe aktarma dosyası zaten kaldırıldı. Lütfen yeniden yükleyin."

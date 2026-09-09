@@ -8,6 +8,7 @@ tenant-контекста.
 import uuid
 from pathlib import Path
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import connection
 from django.shortcuts import get_object_or_404, redirect, render
@@ -132,6 +133,14 @@ def import_start(request):
 @login_required
 def import_map(request, pk):
     job = get_object_or_404(ImportJob, pk=pk)
+    # P0-2: после completed файл удалён (и `cleanup_import_files` чистит
+    # брошенные) — шаг маппинга без файла падал бы на read_headers. Честно
+    # отправляем на статус: строки уже в job.rows, а новый импорт = новая загрузка.
+    if not job.source_file:
+        messages.info(
+            request, _("Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch.")
+        )
+        return redirect("imports:status", pk=job.pk)
 
     if request.method == "POST":
         delimiter = request.POST.get("delimiter", "auto")

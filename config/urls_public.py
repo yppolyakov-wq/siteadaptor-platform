@@ -113,5 +113,5 @@ urlpatterns = [
 # Раздача загруженных медиа Django, когда нет S3 (single-сервер).
 if getattr(settings, "SERVE_MEDIA", False):
     urlpatterns += [
-        path("media/<path:path>", serve_media, {"document_root": settings.MEDIA_ROOT}),
+        path("media/<path:path>", serve_media),  # корень читает гейт при запросе
     ]

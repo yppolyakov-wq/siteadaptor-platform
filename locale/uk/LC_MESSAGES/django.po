@@ -22492,3 +22492,7 @@ msgstr "Спочатку розповідь широкою колонкою, ф�
 #. STU-15a
 msgid "Offer page (whole site)"
 msgstr "Сторінка акції (весь сайт)"
+
+#: apps/imports/views.py
+msgid "Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch."
+msgstr "Файл імпорту вже видалено. Будь ласка, завантажте його знову."

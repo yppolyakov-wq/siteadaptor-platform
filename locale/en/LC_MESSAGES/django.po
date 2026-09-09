@@ -22277,3 +22277,7 @@ msgstr "Story first with a wide text column, photo alongside."
 #. STU-15a
 msgid "Offer page (whole site)"
 msgstr "Offer page (whole site)"
+
+#: apps/imports/views.py
+msgid "Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch."
+msgstr "The import file has already been removed. Please upload it again."

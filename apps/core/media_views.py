@@ -9,25 +9,72 @@
 
 Это минимальный гейт, не изоляция: публичные префиксы (фото товаров/номеров/
 логотипы — uuid-имена) остаются доступны как были. Настоящая изоляция (префикс
-схемы в путях + проверка «файл принадлежит хосту») — отдельная волна.
+схемы в путях + проверка «файл принадлежит хосту») — отдельная волна. Режим S3
+(`SERVE_MEDIA=False`) этой вьюхи не касается: там раздаёт бакет, и приватность
+префиксов — вопрос его политики (в бэклоге той же волны).
 """
 
-import posixpath
+import os
 
 from django.conf import settings
+from django.core.exceptions import SuspiciousFileOperation
 from django.http import Http404
+from django.utils._os import safe_join
 from django.views.static import serve as static_serve
 
-#: Что НЕ отдаём напрямую: загрузки импорта и документы (у документов есть
-#: своя proxy-вьюха в apps.documents — с проверкой доступа и расшифровкой).
-PRIVATE_PREFIXES = ("imports/", "documents/")
+#: Первый сегмент пути, который НЕ отдаём напрямую: загрузки импорта и документы
+#: (у документов есть своя proxy-вьюха в apps.documents — с проверкой доступа и
+#: расшифровкой).
+PRIVATE_PREFIXES = frozenset({"imports", "documents"})
+
+#: Инвентарь ПУБЛИЧНЫХ папок загрузок (uuid-имена, содержимое и так на витрине).
+#: Замок `test_every_upload_folder_is_classified` сверяет литералы `folder=`/
+#: `upload_to=` в коде с объединением обоих множеств: новая папка обязана быть
+#: осознанно отнесена к публичным или приватным, иначе тест красный.
+PUBLIC_PREFIXES = frozenset(
+    {
+        "products",
+        "variants",
+        "categories",
+        "combos",
+        "collections",
+        "community",
+        "services",
+        "stays",
+        "events",
+        "tours",
+        "blog",
+        "posts",
+        "promotions",
+        "hero",
+        "extras",
+        "logo",
+        "gallery",
+        "cover",
+        "cblock",
+        # Фото к заявке (/anfrage/): имя — uuid (jobs.services.save_job_photos),
+        # кабинет ссылается на файл напрямую; proxy-вьюха — та же отдельная волна.
+        "job_photos",
+    }
+)
 
 
 def serve_media(request, path, document_root=None):
-    # Нормализуем ДО проверки — ровно так же, как это делает static.serve:
-    # иначе `./imports/x`, `products/../imports/x` и `/imports/x` обошли бы
-    # префикс, а до файла всё равно бы дошли.
-    normalized = posixpath.normpath(path).lstrip("/")
-    if normalized.startswith(PRIVATE_PREFIXES) or normalized in ("imports", "documents"):
+    """Гейт по пути, РЕШЁННОМУ ОТНОСИТЕЛЬНО КОРНЯ, а не по сырой строке.
+
+    Первая версия проверяла префикс после `posixpath.normpath`, но тот
+    сохраняет ведущие `..`: `../media/imports/x.csv` не начинается с `imports/`,
+    а `safe_join` в static.serve сворачивал его в `<root>/imports/x.csv` — и
+    отдавал (поймано ревью плана). Поэтому сначала `safe_join` (выход за корень
+    → 404, а не 400: существование ничего не подтверждаем), затем relpath от
+    корня и проверка ПЕРВОГО сегмента.
+    """
+    root = os.path.abspath(str(document_root or settings.MEDIA_ROOT))
+    try:
+        full = safe_join(root, path)
+    except (SuspiciousFileOperation, ValueError):
+        raise Http404 from None
+    rel = os.path.relpath(full, root)
+    if rel == os.curdir or rel.split(os.sep, 1)[0] in PRIVATE_PREFIXES:
         raise Http404
-    return static_serve(request, normalized, document_root=document_root or settings.MEDIA_ROOT)
+    return static_serve(request, rel, document_root=root)
