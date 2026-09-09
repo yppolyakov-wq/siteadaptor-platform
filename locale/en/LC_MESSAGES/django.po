@@ -22277,3 +22277,22 @@ msgstr "Story first with a wide text column, photo alongside."
 #. STU-15a
 msgid "Offer page (whole site)"
 msgstr "Offer page (whole site)"
+
+msgid "Add question"
+msgstr "Add question"
+
+msgid "Tell your story in a few sentences."
+msgstr "Tell your story in a few sentences."
+
+msgid ""
+"Address, phone and opening hours come from your business settings — this "
+"block shows them."
+msgstr ""
+"Address, phone and opening hours come from your business settings — this "
+"block shows them."
+
+msgid "Open business settings"
+msgstr "Open business settings"
+
+msgid "Apply this layout to the other lists too"
+msgstr "Apply this layout to the other lists too"

@@ -22316,3 +22316,22 @@ msgstr "Erst die Geschichte in breiter Textspalte, Foto daneben."
 #. STU-15a
 msgid "Offer page (whole site)"
 msgstr "Aktionsseite (ganze Website)"
+
+msgid "Add question"
+msgstr "Frage hinzufügen"
+
+msgid "Tell your story in a few sentences."
+msgstr "Erzählen Sie Ihre Geschichte in wenigen Sätzen."
+
+msgid ""
+"Address, phone and opening hours come from your business settings — this "
+"block shows them."
+msgstr ""
+"Adresse, Telefon und Öffnungszeiten kommen aus Ihren Geschäftseinstellungen "
+"— dieser Block zeigt sie an."
+
+msgid "Open business settings"
+msgstr "Geschäftseinstellungen öffnen"
+
+msgid "Apply this layout to the other lists too"
+msgstr "Dieses Raster auch für die anderen Listen übernehmen"

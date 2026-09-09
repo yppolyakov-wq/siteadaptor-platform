@@ -22508,3 +22508,22 @@ msgstr "Сначала рассказ широкой колонкой, фото 
 #. STU-15a
 msgid "Offer page (whole site)"
 msgstr "Страница акции (весь сайт)"
+
+msgid "Add question"
+msgstr "Добавить вопрос"
+
+msgid "Tell your story in a few sentences."
+msgstr "Расскажите о себе в нескольких предложениях."
+
+msgid ""
+"Address, phone and opening hours come from your business settings — this "
+"block shows them."
+msgstr ""
+"Адрес, телефон и часы работы берутся из настроек бизнеса — этот блок их "
+"показывает."
+
+msgid "Open business settings"
+msgstr "Открыть настройки бизнеса"
+
+msgid "Apply this layout to the other lists too"
+msgstr "Применить эту раскладку и к остальным спискам"

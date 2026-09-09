@@ -771,14 +771,14 @@
               </label>
             </div>
           {% endif %}
-          {% comment %} SE-2d-4: применить одну раскладку ко всем лендингам разом (каталог+события+
-             номера). Фронт: ставит значения всех селекторов → live-preview/Save. {% endcomment %}
+          {% comment %} SE-2d-4 → LAY-1c: применить раскладку и к остальным спискам.
+             Раньше здесь стоял ВТОРОЙ селектор с собственным набором пресетов — он писал
+             те же ключи, что строка выше, не знал про расширенные пресеты каталога
+             (прайс-вид молча сбрасывался) и не был помечен как настройка. Теперь это
+             ДЕЙСТВИЕ без своего значения: берёт раскладку ОТКРЫТОЙ страницы и копирует
+             её в остальные списки — один источник истины, как просил владелец. {% endcomment %}
           <div class="stu-page-row flex items-center gap-2 flex-wrap pt-3 border-t border-gray-100" data-stu-page="catalog category events stays services">
-            <span class="text-sm text-gray-500">{% trans "Apply layout to all landing pages" %}:</span>
-            <select id="apply-all-preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
-              {% for pk, plabel in preset_options %}<option value="{{ pk }}">{{ plabel }}</option>{% endfor %}
-            </select>
-            <button type="button" id="apply-all-landings" class="text-sm border border-gray-300 rounded-lg px-3 py-1 hover:border-indigo-400 hover:text-indigo-700">{% trans "Apply" %}</button>
+            <button type="button" id="apply-all-landings" class="text-sm border border-gray-300 rounded-lg px-3 py-1 hover:border-indigo-400 hover:text-indigo-700">{% trans "Apply this layout to the other lists too" %}</button>
           </div>
           {% comment %} SE-2b-2: порядок/видимость тематических секций детальной события — клик по
              блоку секций на канве (event detail ?preview=1) переносит этот инспектор сюда. {% endcomment %}
@@ -2859,10 +2859,48 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     if (window.__bldUnminPanel) window.__bldUnminPanel();  // клик по блоку снимает свёртку
     popup.classList.remove("hidden");
     syncGroupSummaries(row);   // STU-13: свёрнутая группа показывает свои значения
+    hideEmptyGroups(row);      // LAY-1a: пустую группу не рисуем (владелец искал в ней содержание)
     ensureGroupHint(row);      // STU-13: где живут порядок и видимость
     syncRibbonPad();
     highlightBlkBtn(key);  // SE-9c-3: подсветить иконку этого блока в рейле
     return true;
+  }
+
+  // LAY-1b: «＋ Frage» добавляет пару полей на месте. Делегируем на document (урок Ф1:
+  // строка блока переезжает в колонку, инлайн-биндинг бы умер), кап — тот же _MAX_ITEMS.
+  if (typeof document !== "undefined") {
+    document.addEventListener("click", function (e) {
+      var btn = e.target && e.target.closest && e.target.closest("[data-faq-add]");
+      if (!btn) return;
+      var box = btn.closest("[data-faq-editor]");
+      if (!box) return;
+      var rows = box.querySelectorAll("[data-faq-row]");
+      if (!rows.length || rows.length >= 12) return;
+      var clone = rows[rows.length - 1].cloneNode(true);
+      var idx = rows.length;
+      clone.querySelectorAll("input, textarea").forEach(function (el) {
+        el.name = (el.name || "").replace(/_\d+$/, "_" + idx);
+        el.value = "";
+      });
+      box.insertBefore(clone, btn);
+      var first = clone.querySelector("input");
+      if (first) first.focus();
+    });
+  }
+
+  // LAY-1a (фидбэк владельца «в содержании пусто»): группа без единого контрола и без
+  // текста — это рамка с подписью и ничем внутри. У блоков «О нас» и «Контакты» такой
+  // была именно «Содержание», и владелец решил, что настройки потеряны. Считаем факт, а
+  // не ведём второй список ключей: реестр секций растёт, а список бы отставал.
+  // W0: прячем ТОЛЬКО CSS — поля (в т.ч. hidden-сентинелы) остаются в форме.
+  function hideEmptyGroups(row) {
+    (row || document).querySelectorAll(".bld-grp").forEach(function (grp) {
+      var body = grp.querySelector(".bld-grp-body");
+      if (!body) return;
+      var hasControl = !!body.querySelector("input:not([type=hidden]), select, textarea, button, a");
+      var hasText = (body.textContent || "").replace(/\s+/g, "").length > 0;
+      grp.classList.toggle("hidden", !hasControl && !hasText);
+    });
   }
 
   // STU-13 (макет P3): у свёрнутой группы справа — СВОДКА её значений («Titel · Quelle · 8»),
@@ -3501,6 +3539,15 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   var scopeOwn = {};    // код настройки → своё значение объекта ("" = наследует)
   var scopeSite = {};   // значение уровня «для всех», каким его показывает форма
   var scopeMode = {};   // "site" | "own" — что сейчас редактирует контрол
+  // LAY-1c: настройки, которые владелец уже поменял, но ещё НЕ сохранил. Уровень
+  // «для всех» живёт только в черновике формы, а `site-scope-state` отвечает из
+  // СОХРАНЁННОГО конфига — без этой пометки ответ сервера (он приходит через ~секунду
+  // после каждой правки, вместе с перерисовкой канвы) возвращал контрол к прежнему
+  // значению. Владелец видел ровно то, на что жаловался: «выбрал одно, вернулось то,
+  // что стояло». Пометка живёт до перезагрузки билдера (Save её и делает).
+  var scopeDirty = {};
+  var scopeProgrammatic = false;  // идёт ли change, который поставил сам редактор
+  var lastScopeRef = null;  // объект, для которого последний раз читали состояние
 
   function scopePills() { return document.querySelectorAll("[data-stu-scope]"); }
 
@@ -3521,9 +3568,19 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   function setScopeControl(box, value) {
     // Пикер рисует плитки по hidden-инпуту; событие change перерисовывает выбор.
     var ctl = scopeControl(box);
-    if (!ctl || ctl.value === value) return;
+    if (!ctl) return;
+    if (ctl.value === value) {
+      // LAY-1c: значение совпало — change не шлём (лишняя правка черновика), но
+      // подсветку плиток обновить обязаны: она могла остаться от прежнего рендера.
+      if (window.__cfPickerSync) window.__cfPickerSync(ctl);
+      return;
+    }
     ctl.value = value;
-    ctl.dispatchEvent(new Event("change", { bubbles: true }));
+    // LAY-1c: событие ПРОГРАММНОЕ — пометка «владелец правил» ставиться не должна,
+    // иначе первая же перерисовка панели объявила бы контрол грязным навсегда.
+    scopeProgrammatic = true;
+    try { ctl.dispatchEvent(new Event("change", { bubbles: true })); }
+    finally { scopeProgrammatic = false; }
   }
 
   function paintScopePill(box) {
@@ -3564,7 +3621,12 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     }
     // Контрол показывает то, что редактирует: в режиме «только здесь» — значение
     // объекта, иначе — общий выбор сайта. Иначе владелец правит одно, а видит другое.
-    setScopeControl(box, own ? (scopeOwn[code] || "") : (scopeSite[code] || ""));
+    // LAY-1c: несохранённый выбор уровня «для всех» — источник истины до Save.
+    if (own || !scopeDirty[code]) {
+      setScopeControl(box, own ? (scopeOwn[code] || "") : (scopeSite[code] || ""));
+    } else if (window.__cfPickerSync) {
+      window.__cfPickerSync(scopeControl(box));
+    }
   }
 
   function refreshScopePills() {
@@ -3580,7 +3642,12 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       }
     });
     scopeOwn = {};
-    scopeMode = {};
+    // LAY-1c: режим сбрасываем ТОЛЬКО при смене объекта. Раньше он пересчитывался на
+    // каждом обновлении, поэтому владелец, переключившийся на «для всех», через секунду
+    // снова оказывался в «только здесь» — с чужим значением в контроле.
+    var refChanged = curStuRef !== lastScopeRef;
+    lastScopeRef = curStuRef;
+    if (refChanged) scopeMode = {};
     if (!curStuRef || !codes.length) { scopePills().forEach(paintScopePill); return; }
     fetch(SCOPE_STATE_URL + "?ref=" + encodeURIComponent(curStuRef)
       + "&page=" + encodeURIComponent(curStuPage || "")  // STU-12j: объект зависит от типа
@@ -3591,8 +3658,9 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         if (!d || d.ref !== curStuRef) return;  // канва успела уйти на другую страницу
         Object.keys(d.settings || {}).forEach(function (k) {
           scopeOwn[k] = d.settings[k].own || "";
-          scopeSite[k] = d.settings[k].site || "";
-          scopeMode[k] = scopeOwn[k] ? "own" : "site";
+          // LAY-1c: сохранённое значение сайта НЕ перетирает несохранённый выбор.
+          if (!scopeDirty[k]) scopeSite[k] = d.settings[k].site || "";
+          if (refChanged || !(k in scopeMode)) scopeMode[k] = scopeOwn[k] ? "own" : "site";
         });
         scopePills().forEach(paintScopePill);
       })
@@ -3676,7 +3744,14 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     var box = scopeBoxFor(e.target);
     if (!box || box.hidden) return;
     var code = box.getAttribute("data-stu-scope");
-    if (scopeMode[code] !== "own") return;  // охват «для всех» — обычный путь через форму
+    if (scopeMode[code] !== "own") {
+      // LAY-1c: охват «для всех» — обычный путь через форму, значение живёт в черновике
+      // до Save. Помечаем, чтобы ответ site-scope-state его не откатил.
+      if (scopeProgrammatic) return;
+      scopeDirty[code] = true;
+      scopeSite[code] = (scopeControl(box) || {}).value || "";
+      return;
+    }
     var ctl = scopeControl(box);
     if (!ctl) return;
     scopeSave(code, ctl.value || "", function () { paintScopePill(box); hardReloadPreview(); });
@@ -3837,6 +3912,16 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     }
     function bindCanvasContent(doc) {
       if (!doc) return;
+      // LAY-1b: у FAQ-аккордеона вопрос лежит В `<summary>` — родной клик схлопывал бы
+      // блок ровно в тот момент, когда владелец ставит в него курсор. В режиме правки
+      // гасим родное поведение; вне режима аккордеон работает как у посетителя.
+      if (doc.body && sfOnce(doc.body, "faqSummary")) {
+        doc.addEventListener("click", function (ev) {
+          var t = ev.target;
+          if (!editOn || !t || !t.closest) return;
+          if (t.closest("summary [data-edit]")) ev.preventDefault();
+        }, true);
+      }
       doc.querySelectorAll("[data-edit]").forEach(function (el) {
         if (!sfOnce(el, "edit")) return;
         styleEditable(el, editOn);
@@ -4789,16 +4874,26 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
 
   // SE-2d-4: применить одну раскладку ко всем лендингам разом (каталог/события/номера/услуги).
   var applyAllBtn = document.getElementById("apply-all-landings");
+  // LAY-1c: раскладку берём у ОТКРЫТОЙ страницы (её же контрол выше), а не у второго
+  // селектора: два писателя одного ключа и были той «кашей», на которую жаловался
+  // владелец. Пресет каталога может быть расширенным (прайс-вид) — копируем как есть,
+  // а чужой список молча его не примет (normalize отбросит неизвестный код).
+  var APPLY_ALL_SOURCE = {
+    catalog: "catalog_preset", category: "catalog_preset",
+    events: "events_preset", stays: "stay_preset", services: "service_preset",
+  };
   if (applyAllBtn) {
     applyAllBtn.addEventListener("click", function () {
-      var sel = document.getElementById("apply-all-preset");
+      var srcName = APPLY_ALL_SOURCE[curStuPage || ""] || "catalog_preset";
+      var sel = form.querySelector("select[name='" + srcName + "']");
       if (!sel) return;
       ["catalog_preset", "events_preset", "stay_preset", "service_preset"].forEach(function (n) {
         var el = form.querySelector("select[name='" + n + "']");
-        if (el) {
-          el.value = sel.value;
-          el.dispatchEvent(new Event("change", { bubbles: true }));  // SE-7b: синхрон миниатюр + превью
-        }
+        // Список, у которого такого пресета нет (расширенные — только у каталога),
+        // ПРОПУСКАЕМ: присвоение несуществующего value обнулило бы его раскладку.
+        if (!el || el === sel || !el.querySelector("option[value='" + sel.value + "']")) return;
+        el.value = sel.value;
+        el.dispatchEvent(new Event("change", { bubbles: true }));  // SE-7b: синхрон миниатюр + превью
       });
       schedule();  // пере-сериализация черновика → live-preview (Save сохранит значения)
     });

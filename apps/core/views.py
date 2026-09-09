@@ -2018,6 +2018,11 @@ def home_builder_view(request):
         if "hero_title" in request.POST:
             config["hero_title"] = request.POST.get("hero_title", "").strip()
             config["hero_text"] = request.POST.get("hero_text", "").strip()
+        # LAY-1a: тексты «О нас» — теперь и в панели (раньше только инлайн на канве).
+        # Тот же presence-guard: POST без блока «О нас» не должен их стирать (W0).
+        if "about_title" in request.POST:
+            config["about_title"] = request.POST.get("about_title", "").strip()
+            config["about_text"] = request.POST.get("about_text", "").strip()
         # W11-5: фон баннера по URL (перенос со страницы «Site») — presence-guard.
         if "hero_image" in request.POST:
             config["hero_image"] = request.POST.get("hero_image", "").strip()
@@ -2638,6 +2643,13 @@ def home_builder_view(request):
             # M20d: контент-секции — те же поля/партиал, что на «Site».
             "config": config,
             "faq_text": siteconfig.pairs_to_text(config["faq"], "q", "a"),
+            # LAY-1b: FAQ правится ПАРАМИ полей (запрос владельца) — слоты дорастают
+            # после Save на один пустой, как в редакторе Finder (FD-3) и в attributes/
+            # FAQ услуги. `faq_text` оставлен: его читают старые формы и демо-киты.
+            "faq_rows": [
+                {"i": i, "q": f.get("q", ""), "a": f.get("a", "")}
+                for i, f in enumerate(list(config["faq"]) + [{}])
+            ],
             "testimonials_text": siteconfig.testimonials_to_text(config["testimonials"]),
             "process_text": siteconfig.pairs_to_text(config["process"], "title", "text"),
             "team_text": "\n".join(
@@ -2942,6 +2954,10 @@ def site_preview_draft(request):
     # «Site» в билдер; в превью, иначе правка видна только после Save.
     if isinstance(data.get("hero_image"), str):
         cfg["hero_image"] = data["hero_image"].strip()
+    # LAY-1a: тексты «О нас» — в живой черновик (иначе правка видна только после Save).
+    for _about in ("about_title", "about_text"):
+        if isinstance(data.get(_about), str):
+            cfg[_about] = data[_about].strip()
     if isinstance(data.get("quick_add"), bool):
         cfg["quick_add"] = data["quick_add"]
     if isinstance(data.get("wishlist"), bool):
@@ -3098,6 +3114,21 @@ def site_inline_edit(request):
         titles = dict(cfg.get("section_titles") or {})
         titles[key] = value  # пусто → normalize вернёт дефолтный i18n-заголовок
         cfg["section_titles"] = titles
+    elif field and field.startswith("faq."):
+        # LAY-1b: пара FAQ правится прямо в блоке на канве («faq.<i>.q» / «faq.<i>.a»).
+        # Индекс обязан существовать: контент-эндпоинт не создаёт новых вопросов —
+        # их добавляют в панели, иначе мусорный индекс молча плодил бы пустые пары.
+        parts = field.split(".")
+        if len(parts) != 3 or parts[2] not in ("q", "a") or not parts[1].isdigit():
+            return HttpResponseBadRequest()
+        idx = int(parts[1])
+        pairs = [dict(f) for f in (cfg.get("faq") or [])]
+        if idx >= len(pairs):
+            return HttpResponseBadRequest()
+        if parts[2] == "q" and not value:
+            return HttpResponseBadRequest()  # пустой вопрос удалил бы пару в normalize
+        pairs[idx][parts[2]] = value
+        cfg["faq"] = pairs
     elif field and field.startswith("section_intros."):
         # H1: описания секций главной правятся инлайн на превью (как заголовки).
         key = field.split(".", 1)[1]

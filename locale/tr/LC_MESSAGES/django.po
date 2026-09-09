@@ -22405,3 +22405,22 @@ msgstr "Önce geniş metin sütununda hikâye, yanında fotoğraf."
 #. STU-15a
 msgid "Offer page (whole site)"
 msgstr "Kampanya sayfası (tüm site)"
+
+msgid "Add question"
+msgstr "Soru ekle"
+
+msgid "Tell your story in a few sentences."
+msgstr "Hikâyenizi birkaç cümleyle anlatın."
+
+msgid ""
+"Address, phone and opening hours come from your business settings — this "
+"block shows them."
+msgstr ""
+"Adres, telefon ve çalışma saatleri işletme ayarlarınızdan gelir — bu blok "
+"onları gösterir."
+
+msgid "Open business settings"
+msgstr "İşletme ayarlarını aç"
+
+msgid "Apply this layout to the other lists too"
+msgstr "Bu düzeni diğer listelere de uygula"

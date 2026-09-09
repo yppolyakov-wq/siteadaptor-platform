@@ -1088,7 +1088,13 @@ def test_home_builder_get_renders_micro_templates():
 
 
 def test_home_builder_get_renders_apply_all_landings():
-    """SE-2d-4: контрол «применить раскладку ко всем лендингам» отрисован."""
+    """SE-2d-4: действие «применить раскладку ко всем лендингам» отрисовано.
+
+    LAY-1c (осознанная переписка): у действия БОЛЬШЕ НЕТ своего селектора пресета —
+    он был вторым писателем тех же ключей раскладки, со своим (усечённым) набором
+    вариантов, и «применить» молча сбрасывало прайс-вид каталога. Источник значения
+    теперь один: контрол раскладки открытой страницы.
+    """
     tenant = TenantFactory(
         schema_name="public",
         slug="hbaa",
@@ -1098,8 +1104,9 @@ def test_home_builder_get_renders_apply_all_landings():
     body = views.home_builder_view(
         _request("get", "/dashboard/site/home/", tenant=tenant)
     ).content.decode()
-    assert 'id="apply-all-landings"' in body and 'id="apply-all-preset"' in body
-    assert "apply-all-landings" in body and 'name="catalog_preset"' in body  # связка с селекторами
+    assert 'id="apply-all-landings"' in body
+    assert 'id="apply-all-preset"' not in body, "второй селектор раскладки вернулся"
+    assert 'name="catalog_preset"' in body  # источник значения — контрол страницы
 
 
 def test_site_url_is_redirect_to_studio_and_touches_nothing():

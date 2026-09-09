@@ -22492,3 +22492,22 @@ msgstr "Спочатку розповідь широкою колонкою, ф�
 #. STU-15a
 msgid "Offer page (whole site)"
 msgstr "Сторінка акції (весь сайт)"
+
+msgid "Add question"
+msgstr "Додати запитання"
+
+msgid "Tell your story in a few sentences."
+msgstr "Розкажіть про себе кількома реченнями."
+
+msgid ""
+"Address, phone and opening hours come from your business settings — this "
+"block shows them."
+msgstr ""
+"Адреса, телефон і години роботи беруться з налаштувань бізнесу — цей блок їх"
+" показує."
+
+msgid "Open business settings"
+msgstr "Відкрити налаштування бізнесу"
+
+msgid "Apply this layout to the other lists too"
+msgstr "Застосувати це розкладення й до інших списків"

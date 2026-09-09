@@ -2299,6 +2299,7 @@ CONTENT_FIELDS = (
     "cta_button_label",
     "cta_button_url",
     "faq_text",
+    "faq_present",  # LAY-1b: сентинел пар полей FAQ (см. _faq_from_form)
     "testimonials_text",
     "process_text",
     "team_text",
@@ -2306,6 +2307,28 @@ CONTENT_FIELDS = (
     "trust_marks",
     "usp_text",
 )
+
+
+def _faq_from_form(get) -> list[dict]:
+    """LAY-1b: FAQ приходит парами полей `faq_q_<i>` / `faq_a_<i>`.
+
+    Владелец просил «заголовок и описание отдельными полями и кнопочку добавить»
+    вместо одной простыни «Вопрос | Ответ» — слоты нумерованные, пустые строки
+    отбрасываются (как и раньше), кап `_MAX_ITEMS` держит анти-флуд.
+
+    Обратная совместимость обязательна: `faq_text` шлют старые формы, демо-киты и
+    прежний живой черновик. Сентинел `faq_present` рисует новая форма — по нему и
+    различаем, иначе POST без FAQ-полей стёр бы список.
+    """
+    if not _s(get("faq_present", "")):
+        return text_to_pairs(get("faq_text", "") or "", "q", "a")
+    pairs = []
+    for i in range(_MAX_ITEMS):
+        q = _s(get(f"faq_q_{i}", ""))
+        if not q:
+            continue
+        pairs.append({"q": q, "a": _s(get(f"faq_a_{i}", ""))})
+    return pairs
 
 
 def parse_content_sections(get) -> dict:
@@ -2325,7 +2348,7 @@ def parse_content_sections(get) -> dict:
             "button_label": g("cta_button_label"),
             "button_url": g("cta_button_url"),
         },
-        "faq": text_to_pairs(g("faq_text"), "q", "a"),
+        "faq": _faq_from_form(get),
         "testimonials": text_to_testimonials(g("testimonials_text")),  # GK-6: 4-part
         "process": text_to_pairs(g("process_text"), "title", "text"),
         "team": [

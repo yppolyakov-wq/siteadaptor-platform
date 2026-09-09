@@ -1,6 +1,9 @@
 {% load i18n seo %}
 {% comment %}Секция FAQ (M20 ⑤a): вопрос/ответ из site_config. UC6-6d: 5 видов по
-section_row.style — "" аккордеон (текущий) | list | twocol | cards | numbered.{% endcomment %}
+section_row.style — "" аккордеон (текущий) | list | twocol | cards | numbered.
+LAY-1b (фидбэк владельца «нельзя отредактировать сразу в блоке на сайте»): вопрос и ответ
+несут `data-edit="faq.<i>.q|a"` — общий канал канвы (blur → site_inline_edit). Пустой ответ
+теперь рисуется пустым абзацем, иначе его нечем было бы начать править.{% endcomment %}
 {% if site.faq %}
 {% faqpage_jsonld site.faq %}{# SEO-3: FAQPage JSON-LD рядом с видимым FAQ #}
 <section data-reveal class="mb-10 bg-white rounded-2xl shadow-sm p-6 md:p-8">
@@ -9,8 +12,8 @@ section_row.style — "" аккордеон (текущий) | list | twocol | c
     <div class="space-y-5">
       {% for f in site.faq %}
         <div>
-          <p class="font-medium text-gray-800">{{ f.q }}</p>
-          {% if f.a %}<p class="mt-1 text-gray-600 whitespace-pre-line">{{ f.a }}</p>{% endif %}
+          <p class="font-medium text-gray-800" data-edit="faq.{{ forloop.counter0 }}.q">{{ f.q }}</p>
+          <p class="mt-1 text-gray-600 whitespace-pre-line" data-edit="faq.{{ forloop.counter0 }}.a">{{ f.a }}</p>
         </div>
       {% endfor %}
     </div>
@@ -18,8 +21,8 @@ section_row.style — "" аккордеон (текущий) | list | twocol | c
     <div class="grid md:grid-cols-2 gap-x-8 gap-y-5">
       {% for f in site.faq %}
         <div>
-          <p class="font-medium text-gray-800">{{ f.q }}</p>
-          {% if f.a %}<p class="mt-1 text-gray-600 whitespace-pre-line">{{ f.a }}</p>{% endif %}
+          <p class="font-medium text-gray-800" data-edit="faq.{{ forloop.counter0 }}.q">{{ f.q }}</p>
+          <p class="mt-1 text-gray-600 whitespace-pre-line" data-edit="faq.{{ forloop.counter0 }}.a">{{ f.a }}</p>
         </div>
       {% endfor %}
     </div>
@@ -27,8 +30,8 @@ section_row.style — "" аккордеон (текущий) | list | twocol | c
     <div class="grid md:grid-cols-2 gap-4">
       {% for f in site.faq %}
         <div class="bg-gray-50 rounded-xl p-4">
-          <p class="font-medium text-gray-800">{{ f.q }}</p>
-          {% if f.a %}<p class="mt-1 text-gray-600 whitespace-pre-line">{{ f.a }}</p>{% endif %}
+          <p class="font-medium text-gray-800" data-edit="faq.{{ forloop.counter0 }}.q">{{ f.q }}</p>
+          <p class="mt-1 text-gray-600 whitespace-pre-line" data-edit="faq.{{ forloop.counter0 }}.a">{{ f.a }}</p>
         </div>
       {% endfor %}
     </div>
@@ -38,8 +41,8 @@ section_row.style — "" аккордеон (текущий) | list | twocol | c
         <li class="flex gap-3">
           <span class="shrink-0 w-7 h-7 rounded-full text-white text-sm font-bold flex items-center justify-center" style="background:var(--accent);">{{ forloop.counter }}</span>
           <div>
-            <p class="font-medium text-gray-800">{{ f.q }}</p>
-            {% if f.a %}<p class="mt-1 text-gray-600 whitespace-pre-line">{{ f.a }}</p>{% endif %}
+            <p class="font-medium text-gray-800" data-edit="faq.{{ forloop.counter0 }}.q">{{ f.q }}</p>
+            <p class="mt-1 text-gray-600 whitespace-pre-line" data-edit="faq.{{ forloop.counter0 }}.a">{{ f.a }}</p>
           </div>
         </li>
       {% endfor %}
@@ -49,10 +52,10 @@ section_row.style — "" аккордеон (текущий) | list | twocol | c
       {% for f in site.faq %}
         <details class="py-3 group">
           <summary class="cursor-pointer font-medium text-gray-800 flex items-center justify-between">
-            <span>{{ f.q }}</span>
+            <span data-edit="faq.{{ forloop.counter0 }}.q">{{ f.q }}</span>
             <span class="text-gray-400 group-open:rotate-180 transition">⌄</span>
           </summary>
-          {% if f.a %}<p class="mt-2 text-gray-600 whitespace-pre-line">{{ f.a }}</p>{% endif %}
+          <p class="mt-2 text-gray-600 whitespace-pre-line" data-edit="faq.{{ forloop.counter0 }}.a">{{ f.a }}</p>
         </details>
       {% endfor %}
     </div>

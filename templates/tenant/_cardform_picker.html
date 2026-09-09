@@ -50,5 +50,12 @@ hidden-инпут с прежним именем поля (`sd_card_style` / `sd
     var box = e.target.closest ? e.target.closest("[data-cardform-picker]") : null;
     if (box) sync(box);  // Look-клик выставляет значение программно — плитки следуют
   });
+  // LAY-1c: перекрасить плитки БЕЗ события change. Нужно охвату «для всех / только
+  // здесь»: он иногда обязан лишь освежить подсветку (значение уже верное), а лишний
+  // change ушёл бы в черновик и в перерисовку канвы.
+  window.__cfPickerSync = function (el) {
+    var box = el && el.closest ? el.closest("[data-cardform-picker]") : null;
+    if (box) sync(box);
+  };
 })();
 </script>

@@ -44,8 +44,37 @@ trust_marks_text, usp_text, faq_text.{% endcomment %}
   <textarea name="usp_text" rows="4" placeholder="shipping | Versand ab 4,90 €&#10;bio | 100 % Bio | Zutaten von Höfen aus der Region&#10;payment | Sichere Zahlung" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ usp_text }}</textarea>
 </div>
 {% elif key == "faq" %}
-<div class="space-y-2">
-  <p class="text-xs text-gray-400">{% trans "One per line: Question | Answer." %}</p>
-  <textarea name="faq_text" rows="4" placeholder="Habt ihr Parkplätze? | Ja, direkt vor dem Laden." class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ faq_text }}</textarea>
+{% comment %}LAY-1b (фидбэк владельца): вопрос и ответ — ОТДЕЛЬНЫМИ полями, а не одной
+   простынёй «Вопрос | Ответ». Сентинел faq_present различает новую форму от старой
+   (без него POST без FAQ-полей стёр бы список — класс W0). Слоты дорастают на один
+   пустой после каждого Save; «＋» добавляет слот на месте, без перезагрузки.{% endcomment %}
+<div class="space-y-2 w-full" data-faq-editor>
+  <input type="hidden" name="faq_present" value="1">
+  {% for row in faq_rows %}
+    <div class="faq-row space-y-1 border border-gray-100 rounded-lg p-2" data-faq-row>
+      <input type="text" name="faq_q_{{ row.i }}" value="{{ row.q }}" placeholder="{% trans 'Question' %}"
+             class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Question' %}">
+      <textarea name="faq_a_{{ row.i }}" rows="2" placeholder="{% trans 'Answer' %}"
+                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Answer' %}">{{ row.a }}</textarea>
+    </div>
+  {% endfor %}
+  <button type="button" data-faq-add class="text-xs border border-indigo-200 text-indigo-700 rounded-lg px-2.5 py-1 hover:bg-indigo-50">＋ {% trans "Add question" %}</button>
+</div>
+{% elif key == "about" %}
+{% comment %}LAY-1a: тексты «О нас» правились ТОЛЬКО инлайн на канве — в панели группа
+   «Содержание» была пуста. Те же поля site_config (TEXT_FIELDS), presence-guard в Save.{% endcomment %}
+<div class="space-y-2 w-full">
+  <input type="text" name="about_title" value="{{ config.about_title }}" placeholder="{% trans 'About us' %}"
+         class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Headline' %}">
+  <textarea name="about_text" rows="4" placeholder="{% trans 'Tell your story in a few sentences.' %}"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Text' %}">{{ config.about_text }}</textarea>
+</div>
+{% elif key == "contact" %}
+{% comment %}LAY-1a: у блока контактов данных в site_config НЕТ — адрес, телефон и часы
+   работы это поля бизнеса. Панель обязана сказать, где они лежат, а не молчать пустой
+   рамкой (владелец искал «содержание» и не находил).{% endcomment %}
+<div class="w-full text-sm text-gray-500 space-y-2" data-lay-hint="contact">
+  <p>{% trans "Address, phone and opening hours come from your business settings — this block shows them." %}</p>
+  <a href="{% url 'settings' %}" target="_top" class="inline-flex items-center gap-1 text-xs border border-indigo-200 text-indigo-700 rounded-lg px-2.5 py-1 hover:bg-indigo-50">{% trans "Open business settings" %} →</a>
 </div>
 {% endif %}
