@@ -157,7 +157,9 @@ def test_upload_rename_is_the_only_way_a_job_gets_a_file():
 
     root = Path(__file__).resolve().parents[3]
     # Создание, а не объявление: `class ImportJob(...)` в models.py не в счёт.
-    creation = re.compile(r"(?<!class )\bImportJob(?:\.objects\.create)?\s*\(")
+    # `\w*create` покрывает create/get_or_create/bulk_create/update_or_create:
+    # прежняя регулярка видела только прямой конструктор и .objects.create(.
+    creation = re.compile(r"(?<!class )\bImportJob(?:\.objects\.\w*create)?\s*\(")
     sites = []
     for py in sorted((root / "apps").rglob("*.py")):
         parts = py.relative_to(root).parts

@@ -93,8 +93,13 @@ def status(token) -> str:
             return CURRENT
         except (InvalidToken, ValueError, TypeError):
             pass
+    # Связка строится ВНЕ try по той же причине, что и явный ключ выше: негодный
+    # ПРЕЖНИЙ ключ должен падать ошибкой конфигурации, а не маскироваться под
+    # «нечитаемо» (иначе команда сообщила бы про потерянные данные вместо того,
+    # чтобы указать на кривую переменную).
+    bundle = _fernet()
     try:
-        _fernet().decrypt(data)
+        bundle.decrypt(data)
         # Явного ключа нет — ротировать не во что, состояние «актуальное».
         return ROTATABLE if explicit else CURRENT
     except (InvalidToken, ValueError, TypeError):

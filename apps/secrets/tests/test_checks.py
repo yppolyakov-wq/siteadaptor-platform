@@ -70,3 +70,28 @@ def test_validity_check_is_not_deploy_only():
 @override_settings(SECRETS_ENCRYPTION_KEY=_KEY, DEBUG=True)
 def test_valid_key_is_silent_everywhere():
     assert secrets_encryption_key_valid(None) == []
+
+
+@override_settings(SECRETS_ENCRYPTION_KEY=_KEY, SECRETS_ENCRYPTION_KEY_PREVIOUS=["b'abc'"])
+def test_errors_when_a_previous_key_is_unusable():
+    """Смена ключа — ровно тот момент, когда владелец вставляет ВТОРОЙ ключ и
+    может ошибиться так же. Негодный прежний ключ проходил деплой зелёным, а
+    затем каждый вызов связки бросал ValueError: гостевой Online-Checkin,
+    сохранение токена бота и загрузка документа падали 500."""
+    msgs = secrets_encryption_key_valid(None)
+    assert [m.id for m in msgs] == ["secrets.E003"]
+    assert "PREVIOUS[1]" in msgs[0].msg
+
+
+@override_settings(SECRETS_ENCRYPTION_KEY=_KEY + "," + _KEY, DEBUG=False)
+def test_errors_when_two_keys_are_crammed_into_one_variable():
+    """base64-декод останавливается на паддинге, поэтому Fernet('K2,K1')
+    побайтово равен Fernet('K2') — перечислить оба ключа через запятую (соседняя
+    переменная именно список!) значило бы молча использовать только первый."""
+    msgs = secrets_encryption_key_valid(None)
+    assert [m.id for m in msgs] == ["secrets.E002"]
+
+
+@override_settings(SECRETS_ENCRYPTION_KEY=_KEY, SECRETS_ENCRYPTION_KEY_PREVIOUS=[])
+def test_valid_pair_of_keys_is_silent():
+    assert secrets_encryption_key_valid(None) == []

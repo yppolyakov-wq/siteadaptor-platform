@@ -334,7 +334,13 @@ def test_legacy_two_tuple_cache_entry_is_treated_as_miss():
         calls["n"] += 1
         return HttpResponse("fresh")
 
-    cache.set("sfpage2:acme:/:de:v0", (b"old", "text/html"), 60)
+    # Ключ собираем ТЕМ ЖЕ выражением, что и декоратор: посеянный вручную
+    # «sfpage2:acme:/:de:v0» после добавления хоста в ключ не читался никогда,
+    # и замок стал холостым — зелёным при любом поведении `_unpack`.
+    request = _real_req()
+    key = pagecache._sf_key(request, "acme", "de", pagecache._cache_host(request))
+    cache.set(key, (b"old", "text/html"), 60)
+    assert cache.get(key) is not None, "замок сеет ключ, которого декоратор не ищет"
     assert view(_real_req()).content == b"fresh"
     assert calls["n"] == 1
 
@@ -512,3 +518,36 @@ def test_real_storefront_home_with_a_form_is_not_cached():
     body = public_views.storefront_home(req()).content.decode()
     assert "csrfmiddlewaretoken" in body, "секция заявки не отрисовала форму — замок бессмыслен"
     assert cache.get("sfpage2:testserver:public:/:de:v0") is None
+
+
+@pytest.mark.parametrize("decorator", _DECORATORS)
+@override_settings(CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_host_with_port_does_not_mint_cache_entries(decorator):
+    """Ревью раунда 2: сырой `get_host()` в ключе — способ засорить Redis.
+
+    ALLOWED_HOSTS проверяет домен БЕЗ порта, `TenantMainMiddleware` порт срезает,
+    поэтому аноним доходит до вьюхи, меняя только `Host: shop.example.de:1`,
+    `:2`, `:31337` — и каждая проба минтила бы свою запись в том же Redis, где
+    сессии. Такие запросы просто не кэшируются.
+    """
+    from django.test import RequestFactory
+
+    cache.clear()
+
+    @decorator
+    def view(request):
+        return HttpResponse("x")
+
+    def req(host):
+        request = RequestFactory().get("/", HTTP_HOST=host)
+        request.session = _real_req().session
+        request.tenant = SimpleNamespace(schema_name="acme")
+        request.LANGUAGE_CODE = "de"
+        return request
+
+    for port in ("1", "2", "31337", "0000009"):
+        view(req(f"shop.example.de:{port}"))
+    assert len(cache._cache) == 0, [str(k) for k in cache._cache]
+
+    view(req("shop.example.de"))  # обычный хост по-прежнему кэшируется
+    assert len(cache._cache) == 1

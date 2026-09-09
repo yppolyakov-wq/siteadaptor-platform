@@ -12,6 +12,8 @@
   обязаны краснеть сразу.
 """
 
+import base64
+
 from cryptography.fernet import Fernet
 from django.conf import settings
 from django.core.checks import Error, Tags, Warning, register
@@ -19,6 +21,32 @@ from django.core.checks import Error, Tags, Warning, register
 
 def _key() -> str:
     return getattr(settings, "SECRETS_ENCRYPTION_KEY", "") or ""
+
+
+def _key_problem(value) -> str:
+    """Причина непригодности ключа или '' — если ключ годен.
+
+    Помимо конструктора Fernet ловим «хвост после base64-паддинга»: декодер
+    останавливается на `=`, поэтому `Fernet("KEY2,KEY1")` побайтово равен
+    `Fernet("KEY2")` — перечислить оба ключа через запятую (соседняя переменная
+    именно список!) или оставить хвостовой комментарий значило бы молча
+    использовать только первый, а чек рапортовал бы «годен».
+    """
+    raw = value.encode() if isinstance(value, str) else value
+    try:
+        Fernet(raw)
+    except (ValueError, TypeError) as exc:
+        return str(exc)
+    try:
+        canonical = base64.urlsafe_b64encode(base64.urlsafe_b64decode(raw))
+    except Exception:  # noqa: BLE001 — Fernet уже принял, до сюда не доходит
+        return ""
+    if canonical != (raw.strip() if isinstance(raw, bytes) else raw):
+        return (
+            "значение содержит лишнее после ключа (запятая, пробел, комментарий) — "
+            "использовалась бы только первая часть"
+        )
+    return ""
 
 
 @register(Tags.security)
@@ -31,26 +59,43 @@ def secrets_encryption_key_valid(app_configs, **kwargs):
     окружения. Прежний гейт проверял только непустоту — деплой рапортовал успех,
     а в проде интеграции молча умирали.
     """
+    hint = (
+        "Нужны 32 байта в urlsafe-base64, ОДНО значение. Сгенерировать: python -c "
+        '"from cryptography.fernet import Fernet; '
+        "print(Fernet.generate_key().decode())\". Значение без префикса b'…' и без "
+        "хвоста. Старый ключ при смене — в SECRETS_ENCRYPTION_KEY_PREVIOUS (список "
+        "через запятую). Не нужен ключ в dev? Оставьте переменную ПУСТОЙ — тогда "
+        "работает производный ключ из SECRET_KEY."
+    )
+    issues = []
     key = _key()
-    if not key:
-        return []  # «не задан» — вопрос другого чека (deploy-only)
-    try:
-        Fernet(key.encode() if isinstance(key, str) else key)
-    except (ValueError, TypeError) as exc:
-        return [
-            Error(
-                f"SECRETS_ENCRYPTION_KEY задан, но не является ключом Fernet: {exc}",
-                hint=(
-                    "Нужны 32 байта в urlsafe-base64. Сгенерировать: python -c "
-                    '"from cryptography.fernet import Fernet; '
-                    "print(Fernet.generate_key().decode())\". Значение без префикса b'…'. "
-                    "Не нужен ключ в dev? Оставьте переменную ПУСТОЙ — тогда работает "
-                    "производный ключ из SECRET_KEY."
-                ),
-                id="secrets.E002",
+    if key:  # «не задан» — вопрос другого чека (deploy-only)
+        problem = _key_problem(key)
+        if problem:
+            issues.append(
+                Error(
+                    f"SECRETS_ENCRYPTION_KEY непригоден: {problem}",
+                    hint=hint,
+                    id="secrets.E002",
+                )
             )
-        ]
-    return []
+    # Прежние ключи — тот же класс значения и тот же способ ошибиться. Без этой
+    # проверки негодный прежний ключ проходил деплой зелёным, а потом каждый
+    # вызов `_fernet()` бросал ValueError: гостевой Online-Checkin, сохранение
+    # токена бота и загрузка документа падали 500, чтение молча отдавало пусто.
+    from apps.secrets import crypto
+
+    for i, previous in enumerate(crypto._previous_keys(), 1):
+        problem = _key_problem(previous)
+        if problem:
+            issues.append(
+                Error(
+                    f"SECRETS_ENCRYPTION_KEY_PREVIOUS[{i}] непригоден: {problem}",
+                    hint=hint,
+                    id="secrets.E003",
+                )
+            )
+    return issues
 
 
 @register(Tags.security, deploy=True)

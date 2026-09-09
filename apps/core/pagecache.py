@@ -16,6 +16,7 @@ from functools import wraps
 from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpResponse
+from django.http.request import split_domain_port
 from django.utils.cache import patch_vary_headers
 
 
@@ -34,6 +35,30 @@ def bump_storefront_cache(schema: str) -> None:
         cache.set(f"sfver:{schema}", _sf_version(schema) + 1, None)
     except Exception:  # noqa: BLE001
         pass
+
+
+def _cache_host(request) -> str:
+    """Хост для ключа — ТОЛЬКО валидный домен без порта; иначе '' (мимо кэша).
+
+    Сырой `get_host()` в ключе — способ засорить Redis: ALLOWED_HOSTS проверяет
+    домен БЕЗ порта, `TenantMainMiddleware` порт срезает, поэтому аноним, меняя
+    `Host: shop.example.de:1`, `:2`, `:31337`, доходит до вьюхи и минтил бы по
+    записи на каждый вариант — в том же Redis, где сессии. Хост с портом просто
+    не кэшируем: потерять кэш на нестандартном порту дешевле, чем чинить Redis.
+    """
+    host = request.get_host()
+    domain = split_domain_port(host)[0]
+    return domain if domain and domain == host.lower() else ""
+
+
+def _sf_key(request, schema: str, lang: str, host: str) -> str:
+    """Ключ кэша витрины. Отдельная функция, чтобы тесты собирали его тем же
+    выражением: иначе смена формата ключа не роняет замки, а обесценивает их."""
+    return f"sfpage2:{host}:{schema}:{request.path}:{lang}:v{_sf_version(schema)}"
+
+
+def _pub_key(request, lang: str, host: str) -> str:
+    return f"pubpage2:{host}:{request.path}:{lang}"
 
 
 def _cacheable(request, response) -> bool:
@@ -114,18 +139,26 @@ def cache_storefront_page(view):
         ttl = getattr(settings, "PUBLIC_PAGE_CACHE_TTL", 0)
         has_session = hasattr(request, "session") and not request.session.is_empty()
         schema = getattr(getattr(request, "tenant", None), "schema_name", None)
-        if not ttl or request.method != "GET" or request.GET or has_session or not schema:
+        # Хост — часть ключа (как в cache_public_page, как обещает докстринг
+        # модуля): у тенанта одновременно живут субдомен провижининга и
+        # подтверждённый кастом-домен, оба проксируются в тот же Django, а тело
+        # главной несёт абсолютный URL в LocalBusiness JSON-LD. Без хоста в ключе
+        # посетитель кастом-домена получал разметку с адресом субдомена.
+        host = _cache_host(request)
+        if (
+            not ttl
+            or request.method != "GET"
+            or request.GET
+            or has_session
+            or not schema
+            or not host
+        ):
             return view(request, *args, **kwargs)
 
         lang = getattr(request, "LANGUAGE_CODE", "de")
         # sfpage2: формат записи сменился (кортеж из трёх) — старые ключи
         # осиротеют по TTL, смешивать форматы нельзя.
-        # Хост — часть ключа (как в cache_public_page, как обещает докстринг
-        # модуля): у тенанта одновременно живут субдомен провижининга и
-        # подтверждённый кастом-домен, оба проксируются в тот же Django, а тело
-        # главной несёт абсолютный URL в LocalBusiness JSON-LD. Без хоста в
-        # ключе посетитель кастом-домена получал разметку с адресом субдомена.
-        key = f"sfpage2:{request.get_host()}:{schema}:{request.path}:{lang}:v{_sf_version(schema)}"
+        key = _sf_key(request, schema, lang, host)
         try:
             hit = cache.get(key)
         except Exception:  # noqa: BLE001
@@ -152,11 +185,12 @@ def cache_public_page(view):
         # Непустая сессия = персонализированная страница (вход клиента портала,
         # P2.3) — мимо кэша; анонимы и краулеры сессии не имеют.
         has_session = hasattr(request, "session") and not request.session.is_empty()
-        if not ttl or request.method != "GET" or request.GET or has_session:
+        host = _cache_host(request)
+        if not ttl or request.method != "GET" or request.GET or has_session or not host:
             return view(request, *args, **kwargs)
 
         lang = getattr(request, "LANGUAGE_CODE", "de")
-        key = f"pubpage2:{request.get_host()}:{request.path}:{lang}"
+        key = _pub_key(request, lang, host)
         try:
             hit = cache.get(key)
         except Exception:  # noqa: BLE001 — кэш недоступен: рендерим как обычно
