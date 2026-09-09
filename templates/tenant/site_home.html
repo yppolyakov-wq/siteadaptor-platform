@@ -127,8 +127,18 @@
          возвращается на неё (JS синкает при навигации кадра; сервер валидирует).{% endcomment %}
       <input type="hidden" name="page_path" id="bld-page-path" value="{{ preview_start_path }}">
 
-      {% comment %}SE-7 область 🎨 Тема: стартовая страница + дизайн (шрифт/акцент/типографика/карточки).{% endcomment %}
-      <div data-bld-area="theme" class="bld-area space-y-6">
+      {% comment %}STU-12g (1B): область «Тема» удалена — глобальный дизайн (акцент, шрифт,
+      типографика, тема, «Карточки и фото», Look/Startpaket, шаблоны витрины) живёт на
+      экране кабинета «Design des Shops». В Студии остались настройки СТРАНИЦЫ, а
+      стартовая страница витрины переехала в панель главной (ниже).{% endcomment %}
+
+      {% comment %}SE-7d область 🖼 Баннер: заголовок/текст hero. Картинка баннера — на канве
+      (клик по баннеру) или в галерее. Поля в #home-form → сабмит с Save.{% endcomment %}
+
+      {% comment %}SE-7 область 🧱 Основная (секции): блоки главной + лендинги + тизеры + C-блоки.{% endcomment %}
+      <div data-bld-area="sections" class="bld-area space-y-6 hidden">
+      {% comment %}STU-12g: стартовая страница витрины — здесь, в панели главной: она
+      отвечает на вопрос «что открывается первым», а не «как выглядит сайт».{% endcomment %}
       <fieldset class="bg-white rounded-2xl shadow-sm p-6">
         <legend class="font-semibold mb-1">{% trans "Start page" %}</legend>
         <p class="text-xs text-gray-400 mb-3">{% trans 'What visitors see first. "Combined homepage" shows the blocks below; or jump straight into one section.' %}</p>
@@ -139,250 +149,6 @@
         </select>
       </fieldset>
 
-      {% if looks %}
-      {% comment %}ST-1b: Look'и архетипа — клик выставляет ВСЕ контролы дизайна ниже
-      (accent/font/typo/карточки/тема) и шлёт change → живой draft-канал перекрашивает
-      канву без перезагрузки; Undo — обычный стек; Save персистит как всегда. Секции
-      в билдере НЕ трогаем (их владелец курирует канвой; полный Look — слайд мастера).
-      {% endcomment %}
-      <fieldset class="bg-white rounded-2xl shadow-sm p-6">
-        <legend class="font-semibold mb-1">✨ Look</legend>
-        <p class="text-xs text-gray-400 mb-3">{% trans "Fertige Design-Pakete für deine Branche — ein Klick färbt die Vorschau um." %}</p>
-        {% if bundles %}
-        {% comment %}DS-3c: сборки (Startpakete) — Look + виды вывода одним кликом.
-        В отличие от Look-кнопок ниже это СЕРВЕРНОЕ применение (виды вывода живут
-        вне draft-канала) — обычный POST-action с подтверждением через messages.{% endcomment %}
-        <div class="grid gap-2 mb-3">
-          {% for b in bundles %}
-          <button type="submit" name="action" value="use_bundle:{{ b.key }}"
-                  class="rounded-xl border-2 border-emerald-200 p-3 text-left hover:ring-1 hover:ring-emerald-300">
-            <span class="flex items-center gap-2"><span class="text-sm font-medium">✨ {{ b.label }}</span>
-              <span class="text-[10px] bg-emerald-100 text-emerald-800 rounded-full px-1.5 py-0.5">{% trans "Startpaket" %}</span></span>
-            <span class="block text-[11px] text-gray-400 mt-1">{{ b.description_de }}</span>
-          </button>
-          {% endfor %}
-        </div>
-        {% endif %}
-        <div class="grid grid-cols-3 gap-2">
-          {% for lk in looks %}
-            <button type="button" class="bld-look rounded-xl border border-gray-200 p-3 text-left hover:ring-1 hover:ring-indigo-300"
-                    data-look='{"accent":"{{ lk.accent }}","font":"{{ lk.font }}","hero_style":"{{ lk.hero_style }}","theme":"{{ lk.theme }}","nav_style":"{{ lk.nav_style }}","weight_head":{{ lk.typography.weight_head|stringformat:"d" }},"line_height":{{ lk.typography.line_height|stringformat:"g" }},"card_radius":{{ lk.site_defaults.card_radius|stringformat:"d" }},"card_shadow":{{ lk.site_defaults.card_shadow|yesno:"true,false" }},"card_padding":{{ lk.site_defaults.card_padding|stringformat:"d" }},"card_bg":"{{ lk.site_defaults.card_bg }}","page_bg":"{{ lk.site_defaults.page_bg|default:'' }}","card_chrome":"{{ lk.site_defaults.card_chrome|default:'' }}","card_style":"{{ lk.site_defaults.card_style|default:'' }}"}'>
-              <span class="flex items-center gap-2">
-                <span class="inline-block w-3 h-3 rounded-full shrink-0" style="background: {{ lk.accent }};"></span>
-                <span class="text-sm font-medium">{{ lk.label }}</span>
-                {% if lk.theme == 'dark' %}<span class="text-[10px] bg-gray-800 text-gray-100 rounded-full px-1.5 py-0.5">Dark</span>{% endif %}
-              </span>
-              <span class="block text-[11px] text-gray-400 mt-1">{{ lk.description }}</span>
-            </button>
-          {% endfor %}
-        </div>
-        <script>
-        (function () {
-          // ST-1b: клик по Look — выставить ВСЕ контролы дизайна + тему; change
-          // (bubbles) ловит делегированный листенер формы → живой draft-канал
-          // перекрашивает канву; Undo/Save — штатные механизмы билдера.
-          function fire(el) { el.dispatchEvent(new Event("change", { bubbles: true })); }
-          function setVal(form, sel, value) {
-            var el = form.querySelector(sel);
-            if (el) { el.value = value; fire(el); }
-          }
-          function setChecked(form, sel, on) {
-            var el = form.querySelector(sel);
-            if (el) { el.checked = !!on; fire(el); }
-          }
-          function setSelectNum(form, sel, num) {
-            // Опции могут быть локализованы («1,6») — матчим численно.
-            var el = form.querySelector(sel);
-            if (!el) return;
-            for (var i = 0; i < el.options.length; i++) {
-              var v = parseFloat(String(el.options[i].value).replace(",", "."));
-              if ((num && Math.abs(v - num) < 0.001) || (!num && (el.options[i].value === "0" || v === 0))) {
-                el.selectedIndex = i;
-                break;
-              }
-            }
-            fire(el);
-          }
-          document.querySelectorAll(".bld-look").forEach(function (btn) {
-            btn.addEventListener("click", function () {
-              var form = btn.closest("form");
-              var lk;
-              try { lk = JSON.parse(btn.getAttribute("data-look") || "{}"); } catch (e) { return; }
-              if (!form || !lk.accent) return;
-              setVal(form, "input[name='accent']", lk.accent);
-              setVal(form, "select[name='font']", lk.font);
-              setVal(form, "select[name='hero_style']", lk.hero_style || "plain");  // DL-13: селект стиля баннера
-              setVal(form, "input[name='theme']", lk.theme || "");
-              var navRadio = form.querySelector('input[name="nav_style"][value="' + lk.nav_style + '"]');
-              if (navRadio) { navRadio.checked = true; fire(navRadio); }
-              setSelectNum(form, "select[name='typo_weight_head']", lk.weight_head || 0);
-              setSelectNum(form, "select[name='typo_line_height']", lk.line_height || 0);
-              setVal(form, "input[name='sd_card_radius']", String(lk.card_radius || 0));
-              setChecked(form, "input[name='sd_card_shadow']", lk.card_shadow);
-              setVal(form, "input[name='sd_card_padding']", String(lk.card_padding || 0));
-              setChecked(form, "input[name='sd_card_bg_on']", !!lk.card_bg);
-              if (lk.card_bg) setVal(form, "input[name='sd_card_bg']", lk.card_bg);
-              // DL-2: фон страницы + хром + форма карточки семейства ("" законно —
-              // Look без ключа снимает прежнее значение).
-              // DL-17.3: фон страницы — color-инпут + тумблер (как card_bg: пустое
-              // значение color-инпут не умеет, «нет фона» = снятый тумблер).
-              setChecked(form, "input[name='sd_page_bg_on']", !!lk.page_bg);
-              if (lk.page_bg) setVal(form, "input[name='sd_page_bg']", lk.page_bg);
-              setVal(form, "select[name='sd_card_chrome']", lk.card_chrome || "");
-              // STU-11 (ревью, класс W6): форму карточки Look НЕ описывает — ни одно
-              // семейство не объявляет `card_style`, и безусловное присваивание всегда
-              // ставило "" → первый же Save стирал выбор владельца. Серверный apply_look
-              // такой ключ бережёт (STU-9), клиентский Look-клик обязан вести себя так же:
-              // трогаем поле, только если семейство действительно несёт значение.
-              if ("card_style" in lk) setVal(form, "[name='sd_card_style']", lk.card_style || "");
-            });
-          });
-        })();
-        </script>
-      </fieldset>
-      {% endif %}
-
-      <fieldset class="bg-white rounded-2xl shadow-sm p-6">
-        <legend class="font-semibold mb-1">{% trans "Design" %}</legend>
-        <p class="text-xs text-gray-400 mb-4">{% trans "Accent colour, font and banner style — the preview updates as you change them." %}</p>
-        {# ST-1b: тема сайта (тёмный Look) — hidden, round-trip при Save (W0-инвариант). #}
-        <input type="hidden" name="theme" id="bld-theme" value="{{ theme }}">
-        {% comment %}DL-17.3: фон страницы + хром карточек — ВИДИМЫЕ контролы ниже (в блоке
-        «стиль карточек»); Look-клик продолжает их выставлять по name. Сентинел присутствия
-        тумблера фона — чтобы «снять фон» работало с color-инпутом (он не умеет пустое
-        значение), а старые POST-ы без сентинела сохраняли прежнюю семантику (W0/DL-2).{% endcomment %}
-        <input type="hidden" name="sd_page_bg_present" value="1">
-        <div class="grid sm:grid-cols-3 gap-4">
-          <label class="text-sm">
-            <span class="block font-medium mb-1">{% trans "Accent colour" %}</span>
-            <input type="color" name="accent" value="{{ accent }}" class="h-10 w-full rounded-lg border border-gray-300 p-1">
-          </label>
-          <label class="text-sm">
-            <span class="block font-medium mb-1">{% trans "Font" %}</span>
-            <select name="font" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-              {% for key, label in font_options %}
-                <option value="{{ key }}" {% if key == font %}selected{% endif %}>{{ label }}</option>
-              {% endfor %}
-            </select>
-          </label>
-          {# SE-3b: типографика — начертание заголовков + межстрочный интервал тела. #}
-          <label class="text-sm" data-expert="1">
-            <span class="block font-medium mb-1">{% trans "Heading weight" %}</span>
-            <select name="typo_weight_head" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-              <option value="0" {% if not typo_weight_head %}selected{% endif %}>{% trans "Default" %}</option>
-              {% for w, wl in typo_weight_options %}<option value="{{ w }}" {% if typo_weight_head == w %}selected{% endif %}>{{ wl }}</option>{% endfor %}
-            </select>
-          </label>
-          <label class="text-sm" data-expert="1">
-            <span class="block font-medium mb-1">{% trans "Line spacing" %}</span>
-            <select name="typo_line_height" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-              <option value="0" {% if not typo_line_height %}selected{% endif %}>{% trans "Default" %}</option>
-              {% for lh in typo_line_height_options %}<option value="{{ lh }}" {% if typo_line_height == lh %}selected{% endif %}>{{ lh }}</option>{% endfor %}
-            </select>
-          </label>
-        </div>
-        {% comment %} SE-2d: глобальный стиль карточек — «весь сайт» (мастер-настройка, наследуется
-           всеми сетками; блок может переопределить своим visual). SE-8a: эксперт-только. {% endcomment %}
-        <div class="mt-4 pt-4 border-t border-gray-100" data-expert="1">
-          <p class="text-sm font-medium mb-2">🌐 {% trans "Card style (whole site)" %}</p>
-          <div class="grid sm:grid-cols-2 gap-4">
-            <label class="text-sm">
-              <span class="block font-medium mb-1">{% trans "Rounded corners" %}: <span id="sd-r-out">{{ card_radius }}</span>px</span>
-              <input type="range" name="sd_card_radius" min="0" max="24" value="{{ card_radius }}" class="w-full">
-            </label>
-            <label class="flex items-center gap-2 text-sm sm:pt-6">
-              <input type="checkbox" name="sd_card_shadow" {% if card_shadow %}checked{% endif %} class="rounded border-gray-300">
-              {% trans "Card shadow" %}
-            </label>
-            {# SE-3d: глобальный фон + отступы карточек («весь сайт»). #}
-            <label class="text-sm">
-              <span class="block font-medium mb-1">{% trans "Inner padding" %}: <span id="sd-pad-out">{{ card_padding }}</span>px</span>
-              <input type="range" name="sd_card_padding" min="0" max="32" value="{{ card_padding }}" class="w-full">
-            </label>
-            <label class="text-sm">
-              <span class="block font-medium mb-1">{% trans "Card background" %}</span>
-              <span class="flex items-center gap-2">
-                <input type="color" name="sd_card_bg" value="{{ card_bg|default:'#ffffff' }}" class="h-9 w-12 rounded border border-gray-300 p-0.5">
-                <button type="button" id="sd-bg-clear" class="text-xs text-gray-500 hover:text-indigo-600">{% trans "Clear" %}</button>
-                {# Пустой фон = «не задан»: чекбокс «использовать фон». Без него sd_card_bg игнорируется. #}
-                <label class="flex items-center gap-1 text-xs text-gray-500"><input type="checkbox" name="sd_card_bg_on" {% if card_bg %}checked{% endif %} class="rounded border-gray-300">{% trans "use" %}</label>
-              </span>
-            </label>
-            {% comment %}DL-17.3 (DS-1): фон СТРАНИЦЫ (тёплая подложка Look-семейств).
-            Был только hidden-инпут под Look-клик — из Studio цвет было не выбрать.{% endcomment %}
-            <label class="text-sm">
-              <span class="block font-medium mb-1">{% trans "Seitenhintergrund" %}</span>
-              <span class="flex items-center gap-2">
-                <input type="color" name="sd_page_bg" value="{{ page_bg|default:'#ffffff' }}" class="h-9 w-12 rounded border border-gray-300 p-0.5">
-                <label class="flex items-center gap-1 text-xs text-gray-500"><input type="checkbox" name="sd_page_bg_on" {% if page_bg %}checked{% endif %} class="rounded border-gray-300">{% trans "use" %}</label>
-              </span>
-            </label>
-            {% comment %}O-2: дефолтный вид выбора вариантов для всего магазина.
-            Товар может переопределить своим полем в форме товара.{% endcomment %}
-            <label class="text-sm">
-              <span class="block font-medium mb-1">{% trans "Auswahl der Varianten" %}</span>
-              <select name="sd_variant_style" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
-                {% for key, label, hint in variant_styles %}<option value="{{ key }}" {% if variant_style == key %}selected{% endif %} title="{{ hint }}">{{ label }}</option>{% endfor %}
-              </select>
-            </label>
-            {% comment %}DL-17.3 (DL-2): ХРОМ карточек — рамка/тень семейства. Был hidden
-            под Look-клик; теперь выбирается и вручную ("" = прежний облик).{% endcomment %}
-            <label class="text-sm">
-              <span class="block font-medium mb-1">{% trans "Kartenrahmen" %}</span>
-              <select name="sd_card_chrome" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
-                <option value="">{% trans "Standard" %}</option>
-                <option value="hard" {% if card_chrome == 'hard' %}selected{% endif %}>{% trans "Kräftiger Rahmen" %}</option>
-                <option value="hairline" {% if card_chrome == 'hairline' %}selected{% endif %}>{% trans "Haarlinie" %}</option>
-                <option value="line" {% if card_chrome == 'line' %}selected{% endif %}>{% trans "Feine Linie" %}</option>
-              </select>
-            </label>
-            <label class="text-sm flex items-center gap-2 md:mt-6">
-              <input type="checkbox" name="sd_card_slider" value="on" {% if card_slider %}checked{% endif %} class="rounded border-gray-300">
-              <span>{% trans "Fotos auf der Karte blättern" %}</span>
-            </label>
-            {# DL-10: ФОРМА КАДРА — квадрат (как в разметке) / круглое фото / шире. #}
-            <label class="text-sm">
-              <span class="block font-medium mb-1">{% trans "Fotoform" %}</span>
-              <select name="sd_media_shape" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
-                <option value="">{% trans "Standard" %}</option>
-                <option value="round" {% if media_shape == 'round' %}selected{% endif %}>{% trans "Rund" %}</option>
-                <option value="wide" {% if media_shape == 'wide' %}selected{% endif %}>{% trans "Breit (16:9)" %}</option>
-              </select>
-            </label>
-          </div>
-          <p class="text-xs text-gray-400 mt-2">{% trans "Applies to all cards across the site; a single block can override it." %}</p>
-        </div>
-        {% comment %}W11-5: тумблер быстрого заказа на карточках — перенос со страницы «Site».
-           ВНЕ data-expert-блока: на «Site» настройка была доступна всегда, и она про
-           поведение витрины, а не про тонкий стиль (стенд поймал пропажу в Простом).
-           Сентинел quick_add_present: unchecked чекбокс не шлётся, без сентинела прочие
-           сохранения формы гасили бы тумблер (W0-инвариант).{% endcomment %}
-        <label class="flex items-start gap-2 text-sm mt-4 pt-4 border-t border-gray-100">
-          <input type="hidden" name="quick_add_present" value="1">
-          <input type="checkbox" name="quick_add" {% if config.quick_add %}checked{% endif %} class="rounded border-gray-300 mt-0.5">
-          <span>{% trans "Quick order on cards (+ button / configurator)" %}<span class="block text-xs text-gray-400">{% trans "Off: cards just link to the product page." %}</span></span>
-        </label>
-        {% comment %}SF-4a: тумблер Merkzettel — раньше ключ site_config["wishlist"]
-        существовал (дефолт по архетипу), но ни одна форма кабинета его не писала:
-        включить опцию не-ритейл архетипу было невозможно. Тот же W0-паттерн
-        сентинела, что у quick_add.{% endcomment %}
-        <label class="flex items-start gap-2 text-sm mt-3">
-          <input type="hidden" name="wishlist_present" value="1">
-          <input type="checkbox" name="wishlist" {% if storefront_wishlist_enabled %}checked{% endif %} class="rounded border-gray-300 mt-0.5">
-          <span>{% trans "Merkzettel (♡ on cards)" %}<span class="block text-xs text-gray-400">{% trans "Visitors save products and offers — on this device, no account." %}</span></span>
-        </label>
-        
-      </fieldset>
-
-      {% comment %}M1: лого бизнеса — в шапке витрины вместо текстового имени. Загрузка —
-         в отдельной области logo-media (multipart, вне #home-form).{% endcomment %}
-      </div>{% comment %}/область 🎨 Тема{% endcomment %}
-
-      {% comment %}SE-7d область 🖼 Баннер: заголовок/текст hero. Картинка баннера — на канве
-      (клик по баннеру) или в галерее. Поля в #home-form → сабмит с Save.{% endcomment %}
-
-      {% comment %}SE-7 область 🧱 Основная (секции): блоки главной + лендинги + тизеры + C-блоки.{% endcomment %}
-      <div data-bld-area="sections" class="bld-area space-y-6 hidden">
 
       {% comment %}#2: фокус-панель «только выбранный блок» — клик по блоку переносит сюда его
          реальные контролы (живёт ВНУТРИ формы → правки идут в сабмит/превью). При открытии
@@ -1406,61 +1172,9 @@
     {% comment %}W11-5: «Schnellstart» — шаблоны витрины + демо-контент (перенос со страницы
        «Site»). Отдельные action-формы ВНЕ #home-form; каждая бьёт в early-return-ветку
        вьюхи (fall-through в main-save стёр бы секции — план w11-5-website-studio-plan §2d).{% endcomment %}
-    <div data-bld-area="quickstart" class="bld-area space-y-6 hidden">
-    <div class="bg-white rounded-2xl shadow-sm p-5">
-      <div class="flex items-center justify-between gap-3 flex-wrap">
-        <div><h3 class="font-medium text-sm">{% trans "Demo content" %}</h3>
-          <p class="text-xs text-gray-400">{% trans "Fill the site with example products and an offer. Remove any time." %}</p></div>
-        <form method="post">{% csrf_token %}
-          {% if has_demo %}
-            <input type="hidden" name="action" value="clear_demo">
-            <button class="text-sm border border-red-200 text-red-700 rounded-lg px-3 py-1.5 hover:bg-red-50">{% trans "Delete demo content" %}</button>
-          {% else %}
-            <input type="hidden" name="action" value="load_demo">
-            <button class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Load demo content" %}</button>
-          {% endif %}
-        </form>
-      </div>
-    </div>
-    <div class="bg-white rounded-2xl shadow-sm p-5">
-      <h3 class="font-medium text-sm mb-1">{% trans "Templates" %}</h3>
-      <p class="text-xs text-gray-400 mb-3">{% trans "Pick a ready-made layout. Your texts are kept — only empty fields are filled." %}</p>
-      <div class="grid grid-cols-1 gap-4">
-        {% for t in site_templates %}
-          <div class="border border-gray-200 rounded-xl p-4 flex flex-col">
-            <div class="flex items-center gap-2 mb-1">
-              {% if t.accent %}<span class="inline-block w-3 h-3 rounded-full shrink-0" style="background: {{ t.accent }};" title="{{ t.accent }}"></span>{% endif %}
-              <span class="font-medium">{{ t.label }}</span>
-              {% if t.recommended %}<span class="text-[11px] bg-green-100 text-green-700 rounded-full px-2 py-0.5">{% trans "Recommended" %}</span>{% endif %}
-            </div>
-            <p class="text-xs text-gray-500 mb-3">{{ t.description }}</p>
-            <div class="rounded-lg border border-gray-100 bg-gray-50 p-2 mb-3 space-y-1" aria-hidden="true">
-              {% for s in t.sections %}
-                {% if s.key == 'hero' %}
-                  <div class="rounded h-6 flex items-center justify-center text-[10px] font-medium {% if t.hero_style == 'accent' %}text-white{% else %}text-gray-600 border border-gray-200{% endif %}"
-                       style="{% if t.hero_style == 'accent' %}background: {{ t.accent|default:'#4f46e5' }};{% else %}background:#fff;{% endif %}">{{ s.label }}</div>
-                {% else %}
-                  <div class="rounded h-4 bg-white border border-gray-200 flex items-center px-2 text-[10px] text-gray-500">{{ s.label }}</div>
-                {% endif %}
-              {% endfor %}
-            </div>
-            <form method="post" class="mt-auto"
-                  onsubmit="return confirm('{% trans "Apply this template? The section layout will be replaced." %}');">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="apply_template">
-              <input type="hidden" name="template" value="{{ t.key }}">
-              <button class="w-full text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Apply" %}</button>
-            </form>
-          </div>
-        {% endfor %}
-      </div>
-    </div>
-    </div>{% comment %}/область quickstart{% endcomment %}
-
-    {% comment %}SE-9b: медиа/действия — на блок, общая «Медиа» убрана. Две области ВНЕ #home-form
-       (мультипарт нельзя вкладывать в форму): «catalog-add» (открывается кнопкой с блока «Категории»)
-       и «gallery-media» (с блока «Галерея»). showArea их находит по data-bld-area; кнопки рейла нет.{% endcomment %}
-    {% comment %} SE-2c-1: быстро добавить категорию каталога (отдельная форма — создаёт живую
+    {% comment %}STU-12g (4A): область «Schnellstart» удалена — шаблоны витрины и
+       демо-контент живут на экране кабинета «Design des Shops».{% endcomment %}
+{% comment %} SE-2c-1: быстро добавить категорию каталога (отдельная форма — создаёт живую
        Category и сразу видна чипом на канве /sortiment/; полная правка — в кабинете). {% endcomment %}
     {% comment %}STU-12f: одна колонка «Medien» — четыре out-of-form набора форм (галерея,
        логотип, слайды баннера, обложки) аккордеоном. Прежние имена областей
@@ -2166,7 +1880,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   // распахивала панель, которую владелец только что закрыл.
   window.__sfOpenArea = function () { return curArea; };
   window.__sfShowArea = function (area) {
-    var titles = { "gallery-media": "🖼 {% trans 'Media' %}", "catalog-add": "＋ {% trans 'Add category' %}", "logo-media": "🖼 {% trans 'Media' %}", "banner-media": "🖼 {% trans 'Media' %}", "covers-media": "🖼 {% trans 'Media' %}", "media": "🖼 {% trans 'Media' %}", "quickstart": "⚡ {% trans 'Quick start' %}" };
+    var titles = { "gallery-media": "🖼 {% trans 'Media' %}", "catalog-add": "＋ {% trans 'Add category' %}", "logo-media": "🖼 {% trans 'Media' %}", "banner-media": "🖼 {% trans 'Media' %}", "covers-media": "🖼 {% trans 'Media' %}", "media": "🖼 {% trans 'Media' %}" };
     showArea(area, titles[area]);
   };
 
@@ -2548,13 +2262,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     form.querySelectorAll("input[name^='title_']").forEach(function (inp) {
       if (inp.value) sectionTitles[inp.name.slice(6)] = inp.value;
     });
-    // M20f: дизайн вживую — шрифт, стиль hero, акцент.
-    var fontEl = form.querySelector("[name=font]");
-    var heroEl = form.querySelector("select[name=hero_style]");  // DL-13: селект стиля баннера
-    var accentEl = form.querySelector("[name=accent]");
-    // SE-3b: глобальная типографика (начертание заголовков + межстрочный интервал).
-    var twhEl = form.querySelector("select[name='typo_weight_head']");
-    var tlhEl = form.querySelector("select[name='typo_line_height']");
+    // DL-13: селект стиля баннера (композиция главной — остаётся в Студии).
+    var heroEl = form.querySelector("select[name=hero_style]");
     // SE-8b: Меню (стиль шапки + sticky) и Баннер (заголовок/текст) — в превью, чтобы
     // правки были видны вживую (раньше collect их не слал → видно лишь после Save).
     var navStyleEl = form.querySelector("[name=nav_style]:checked");
@@ -2569,17 +2278,11 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     // W11-5: фон баннера (URL) и быстрый заказ на карточках — перенесены со страницы
     // «Site»; шлём в черновик, иначе правка была бы видна только после Save.
     var heroImgEl = form.querySelector("[name=hero_image]");
-    var quickAddEl = form.querySelector("input[name='quick_add']");
-    // ST-1b: тема сайта (тёмный Look) — hidden всегда в форме; "" снимает dark.
-    var themeEl = form.querySelector("input[name='theme']");
     var payload = {
       sections: sections,
       archetypes: archetypes,
       section_titles: sectionTitles,
-      theme: themeEl ? themeEl.value : undefined,
-      font: fontEl ? fontEl.value : "system",
       hero_style: heroEl ? heroEl.value : "plain",
-      accent: accentEl ? accentEl.value : "",
       nav_style: navStyleEl ? navStyleEl.value : undefined,
       nav_sticky: !!(navStickyEl && navStickyEl.checked),
       nav_cta: navCtaEl ? navCtaEl.checked : undefined,
@@ -2587,11 +2290,6 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       hero_title: heroTitleEl ? heroTitleEl.value : undefined,
       hero_text: heroTextEl ? heroTextEl.value : undefined,
       hero_image: heroImgEl ? heroImgEl.value : undefined,
-      quick_add: quickAddEl ? quickAddEl.checked : undefined,
-      typography: {
-        weight_head: twhEl ? parseInt(twhEl.value, 10) || 0 : 0,
-        line_height: tlhEl ? parseFloat(tlhEl.value) || 0 : 0,
-      },
     };
     // SE-2a-2/SE-2b-1: раскладки лендингов (per-page) → в черновик, чтобы превью
     // соответствующей страницы (?preview=1) показало их сразу.
@@ -2625,27 +2323,17 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     // строится из сохранённого конфига заново → превью само откатится).
     var svcSel = form.querySelector("select[name='service_preset']");
     if (svcSel && svcSel.value) payload.service_index_layout = { preset: svcSel.value };
-    // SE-2d: глобальный стиль карточек («весь сайт») → в черновик для live-preview.
-    var sdR = form.querySelector("input[name='sd_card_radius']");
-    var sdSh = form.querySelector("input[name='sd_card_shadow']");
-    if (sdR || sdSh) {
-      // SE-3d: + фон/отступы (фон лишь при включённом тоггле sd_card_bg_on).
-      var sdPad = form.querySelector("input[name='sd_card_padding']");
-      var sdBgOn = form.querySelector("input[name='sd_card_bg_on']");
-      var sdBg = form.querySelector("input[name='sd_card_bg']");
-      // ST-7c/DL-19: форма карточки (плитки + hidden sd_card_style; "" = прежняя).
-      var sdStyle = form.querySelector("[name='sd_card_style']");
-      // DL-10: форма кадра (select sd_media_shape; "" = как в разметке).
-      var sdMedia = form.querySelector("select[name='sd_media_shape']");
-      // DL-17.3: фон страницы (color + тумблер, как card_bg) и хром карточек (select).
-      var sdPageBg = form.querySelector("input[name='sd_page_bg']");
-      var sdPageBgOn = form.querySelector("input[name='sd_page_bg_on']");
-      var sdChrome = form.querySelector("[name='sd_card_chrome']");
-      // DL-17.3: карточка акции / листание фото / вид выбора вариантов — контролы
-      // были, а в черновик не ехали (правка была видна только после Save).
-      var sdPromoCard = form.querySelector("[name='sd_promo_card']");
-      var sdSlider = form.querySelector("input[name='sd_card_slider']");
-      var sdVariant = form.querySelector("select[name='sd_variant_style']");
+    // STU-12g: в черновик едут только настройки СТРАНИЦЫ — глобальный дизайн
+    // (radius/shadow/padding/card_bg/page_bg/chrome/media_shape/variant_style/slider)
+    // переехал на экран «Design des Shops». Приёмник черновика МЕРДЖИТ site_defaults
+    // (DL-17.3), поэтому глобальные оси берутся из сохранённого конфига.
+    // ST-7c/DL-19: форма карточки (плитки + hidden sd_card_style; "" = прежняя).
+    var sdStyle = form.querySelector("[name='sd_card_style']");
+    // DL-17.3: карточка акции.
+    var sdPromoCard = form.querySelector("[name='sd_promo_card']");
+    // Гейт перевязан со снесённых sd_card_radius/sd_card_shadow на страничные
+    // контролы: иначе с уходом темы черновик потерял бы и card_style/promo_card/… .
+    if (sdStyle || sdPromoCard) {
       // DL-20: шаблон страницы категории на весь сайт (плитки + hidden).
       var sdCatPage = form.querySelector("[name='sd_category_page_style']");
       var sdGrpPage = form.querySelector("[name='sd_promo_group_style']");
@@ -2662,19 +2350,10 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         return site !== null && site !== undefined ? site : el.value;
       };
       payload.site_defaults = {
-        card_radius: sdR ? parseInt(sdR.value, 10) || 0 : 0,
-        card_shadow: !!(sdSh && sdSh.checked),
-        card_padding: sdPad && sdPad.value !== "" ? parseInt(sdPad.value, 10) || 0 : 0,
-        card_bg: sdBgOn && sdBgOn.checked && sdBg ? sdBg.value : "",
         card_style: sdVal(sdStyle),
         category_page_style: sdVal(sdCatPage),
         promo_group_style: sdVal(sdGrpPage),
-        media_shape: sdMedia ? sdMedia.value : "",
-        page_bg: sdPageBgOn && sdPageBgOn.checked && sdPageBg ? sdPageBg.value : "",
-        card_chrome: sdChrome ? sdChrome.value : "",
         promo_card: sdVal(sdPromoCard),
-        card_slider: sdSlider && sdSlider.checked ? "on" : "",
-        variant_style: sdVariant ? sdVariant.value : "",
         text_width: sdTextW ? sdTextW.value : "",
       };
     }
@@ -3410,7 +3089,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   window.__stuPageLabel = function () { return (curStuPage && STU_LABELS[curStuPage]) || ""; };
   // STU-12a: заголовок колонки без вкладок называет ОХВАТ. Страница — по типу из
   // реестра («Diese Seite: Kategorie»); остальные области — свои подписи.
-  var AREA_TITLES = { theme: "🎨 {% trans 'Design' %}", media: "🖼 {% trans 'Media' %}", menu: "☰ {% trans 'Kopf- & Fußzeile' %}", library: "📚 {% trans 'Templates' %}" };
+  var AREA_TITLES = { media: "🖼 {% trans 'Media' %}", menu: "☰ {% trans 'Kopf- & Fußzeile' %}", library: "📚 {% trans 'Templates' %}" };
   // STU-12c: подстрочная крошка колонки — охват настроек области.
   var AREA_SUBS = { menu: "{% trans 'Website · gilt auf allen Seiten' %}",
                     media: "{% trans 'Website · gilt auf allen Seiten' %}" };
@@ -4778,26 +4457,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     });
   }
 
-  // SE-2d: показ значения глобального радиуса карточек (живой текст рядом со слайдером).
-  var sdRange = document.querySelector("input[name='sd_card_radius']");
-  var sdOut = document.getElementById("sd-r-out");
-  if (sdRange && sdOut) {
-    sdRange.addEventListener("input", function() { sdOut.textContent = sdRange.value; });
-  }
-  // SE-3d: показ значения глобального отступа + «Clear» фона карточек.
-  var sdPadRange = document.querySelector("input[name='sd_card_padding']");
-  var sdPadOut = document.getElementById("sd-pad-out");
-  if (sdPadRange && sdPadOut) {
-    sdPadRange.addEventListener("input", function() { sdPadOut.textContent = sdPadRange.value; });
-  }
-  var sdBgClear = document.getElementById("sd-bg-clear");
-  if (sdBgClear) {
-    sdBgClear.addEventListener("click", function() {
-      var on = form.querySelector("input[name='sd_card_bg_on']");
-      if (on) { on.checked = false; }
-      schedule();  // снять фон в превью
-    });
-  }
+  // STU-12g: ползунки радиуса/отступа и «Clear» фона карточек уехали на экран
+  // «Design des Shops» вместе со своими контролами.
 
   // SE-3a: микрошаблоны «Quick styles» — один клик распаковывает облик (layout+visual)
   // в обычные инпуты секции → live-preview; Save сохраняет распакованные значения.

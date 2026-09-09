@@ -193,7 +193,7 @@ bottom-sheet (существующие правила 78vh/55vh + backdrop); п�
   поповер с переносом контрола (форма категории живёт ВНЕ `#home-form`). Стенд нашёл
   дефект: клик по логотипу уводил канву на главную. Детали — build-log 2026-09-09.
 
-### 12g · 1B/4A: глобальный дизайн и «Start» — в кабинет (параллелится с 12c–12f)
+### 12g ✅ · 1B/4A: глобальный дизайн и «Start» — в кабинет (параллелится с 12c–12f)
 - `/dashboard/design/` (`design.html`, `design_view`): + карточки «Farbe & Schrift» (accent, font,
   typography-ranges), «Karten & Fotos» (`sd_card_style`, `media_shape`, `card_chrome`, `page_bg`, `variant_style`,
   `quick_add`, `wishlist`), «Vorlagen» (Layout-Vorlagen `apply_template` + «Demo-Inhalte laden/löschen»);

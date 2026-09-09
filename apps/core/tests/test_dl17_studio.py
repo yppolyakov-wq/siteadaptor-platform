@@ -60,15 +60,8 @@ def test_builder_renders_missing_visual_controls():
     assert 'name="promo_layout"' in body
     assert 'name="promo_grouping"' in body
     assert 'value="slider"' in body and 'value="time"' in body
-    # хром карточек — видимый селект (был hidden под Look-клик)
-    assert 'name="sd_card_chrome"' in body
-    assert '<select name="sd_card_chrome"' in body
-    for chrome in ("hard", "hairline", "line"):
-        assert f'value="{chrome}"' in body
-    # фон страницы — видимый color-инпут + тумблер и сентинел присутствия
-    assert '<input type="color" name="sd_page_bg"' in body
-    assert 'name="sd_page_bg_on"' in body
-    assert 'name="sd_page_bg_present"' in body
+    # STU-12g: хром карточек и фон страницы — глобальный дизайн, их контролы
+    # переехали на экран «Design des Shops» (round-trip там же, test_stu12_design_screen).
     # хвост неполного ряда: недостающий вид «добить плиткой-подсказкой»
     assert 'value="fill"' in body
 
@@ -98,32 +91,8 @@ def test_save_promo_page_keys():
     assert "promo_layout" not in cfg and "promo_grouping" not in cfg
 
 
-def test_save_card_chrome_and_page_bg_from_visible_controls():
-    tenant = TenantFactory(schema_name="public", slug="dl17c", name="DL17C")
-    cfg = _save(
-        tenant,
-        {
-            "font": "system",
-            "sd_card_chrome": "hairline",
-            "sd_page_bg_present": "1",
-            "sd_page_bg_on": "on",
-            "sd_page_bg": "#faf6ef",
-        },
-    )
-    assert cfg["site_defaults"]["card_chrome"] == "hairline"
-    assert cfg["site_defaults"]["page_bg"] == "#faf6ef"
-    # снятый тумблер при сентинеле = «фон не задан» (color-инпут пустое не умеет)
-    cfg = _save(
-        tenant,
-        {
-            "font": "system",
-            "sd_card_chrome": "",
-            "sd_page_bg_present": "1",
-            "sd_page_bg": "#faf6ef",
-        },
-    )
-    assert "card_chrome" not in cfg["site_defaults"]
-    assert "page_bg" not in cfg["site_defaults"]
+# STU-12g: сохранение хрома/фона страницы проверяется на экране «Design des Shops»
+# (test_stu12_design_screen) — его контролы Студия больше не несёт.
 
 
 def test_save_layout_tail_fill():
@@ -229,6 +198,9 @@ def test_builder_payload_collects_new_keys():
     assert "payload.promo_grouping = pgSel.value" in body
     assert "if (tailSel && tailSel.value) lay.tail = tailSel.value;" in body
     assert "promo_card: sdVal(sdPromoCard)," in body  # STU-9: sdVal — сайтовое значение
-    assert 'card_slider: sdSlider && sdSlider.checked ? "on" : "",' in body
-    assert 'variant_style: sdVariant ? sdVariant.value : "",' in body
+    # STU-12g: card_slider/variant_style — глобальный дизайн, они уехали на экран
+    # «Design des Shops» вместе со своими контролами; в черновике Студии остались
+    # только настройки СТРАНИЦЫ (приёмник мерджит site_defaults, DL-17.3).
+    assert "card_slider:" not in body and "variant_style:" not in body
+    assert "card_style: sdVal(sdStyle)," in body
     assert 'layout: pdLay ? pdLay.value : ""' in body

@@ -110,12 +110,13 @@ def test_builder_save_does_not_touch_legacy_nav_without_menu_area():
         },
     )
     resp = views.home_builder_view(
-        _request("post", "/dashboard/site/home/", {"font": "serif"}, tenant)
+        _request("post", "/dashboard/site/home/", {"hero_accent": "on"}, tenant)
     )
     assert resp.status_code == 302
     cfg = siteconfig.normalize(tenant.site_config)
     assert cfg["nav"]["style"] == "minimal"  # не сброшен в classic
-    assert cfg["font"] == "serif"  # дизайн-поле сохранилось
+    # STU-12g: шрифт правится на экране «Design des Shops», Студия владеет стилем баннера
+    assert cfg["hero_style"] == "accent"
 
 
 def test_builder_offers_categories_node_with_readable_targets():

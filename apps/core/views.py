@@ -1403,27 +1403,8 @@ def home_builder_view(request):
         if request.POST.get("action") == "upload_cover_hero":
             _upload_cover_hero(request, request.POST.get("archetype", ""))
             return _redirect_builder(request)
-        # W11-5 (Website-свод): quick-start со страницы «Site» — шаблоны витрины
-        # и демо-контент теперь в Studio (область «Schnellstart»). Те же библиотеки,
-        # что у мастера; early-return ДО main-save (fall-through стёр бы секции).
-        if request.POST.get("action") == "apply_template":
-            if sitetemplates.apply_template(request.tenant, request.POST.get("template", "")):
-                messages.success(request, _("Vorlage übernommen."))
-            else:
-                messages.error(request, _("Unbekannte Vorlage."))
-            return _redirect_builder(request)
-        if request.POST.get("action") == "load_demo":
-            if demo.load_demo(request.tenant):
-                messages.success(request, _("Demo-Inhalte geladen."))
-            else:
-                messages.info(request, _("Demo-Inhalte sind bereits vorhanden."))
-            return _redirect_builder(request)
-        if request.POST.get("action") == "clear_demo":
-            if demo.clear_demo(request.tenant):
-                messages.success(request, _("Demo-Inhalte gelöscht."))
-            else:
-                messages.info(request, _("Keine Demo-Inhalte vorhanden."))
-            return _redirect_builder(request)
+        # STU-12g (4A): шаблоны витрины и демо-контент живут на экране «Design des
+        # Shops» (design_page). Ветки-дубли из Студии удалены вместе с их областью.
         # D.2b: добавить пустой C-блок (text/image/…) — появится в списке для правки.
         # E.3: необязательный `add_after` (ключ фикс-секции или id C-блока) — вставить
         # новый блок сразу ПОСЛЕ него (инсертер «+» на канвасе); иначе — в конец.
@@ -1557,15 +1538,6 @@ def home_builder_view(request):
         # use_page_preset:<host>:<id> — идемпотентная замена посеянных блоков
         # page_blocks[host] + плоские ключи; блоки владельца целы. Редирект
         # через _redirect_builder — канва остаётся на настраиваемой странице.
-        # DS-3c: сборка (Startpaket) — Look + виды вывода одним кликом (серверное
-        # применение: виды вывода живут вне draft-канала Look-кнопок).
-        if action.startswith("use_bundle:"):
-            from apps.tenants import sitetemplates
-
-            _verb, _sep, bkey = action.partition(":")
-            if sitetemplates.apply_bundle(request.tenant, bkey):
-                messages.success(request, _("Startpaket angewendet."))
-            return _redirect_builder(request)
         if action.startswith("use_page_preset:"):
             from apps.core import page_presets
 
@@ -1577,6 +1549,7 @@ def home_builder_view(request):
                 request.tenant.save(update_fields=["site_config", "updated_at"])
                 messages.success(request, _("Page template applied."))
             return _redirect_builder(request)
+        # STU-12g: сборки (Startpaket) применяются на экране «Design des Shops».
         # A3: сохранить ИМЕНОВАННУЮ версию текущего конфига (снимок в начало истории;
         # публикация не меняется — безопасная точка отката перед экспериментами).
         if action == "save_version":
@@ -1937,69 +1910,32 @@ def home_builder_view(request):
                     if request.POST.get(f"std_visible_{k}") != "on"
                 ]
             }
-        # SE-3b: глобальная типографика (начертание заголовков + межстрочный интервал).
-        # normalize_typography валидирует/клампит; пустые/0 = дефолт без регрессии.
-        config["typography"] = {
-            "weight_head": request.POST.get("typo_weight_head", ""),
-            "line_height": request.POST.get("typo_line_height", ""),
-        }
+        # STU-12g: типографику пишет ТОЛЬКО экран «Design des Shops» (решение 1B).
+        # Раньше эта ветка писала ключ БЕЗУСЛОВНО — после переезда полей первый же
+        # Save Студии обнулил бы выбор владельца (класс W6).
         # SE-2d: глобальный стиль карточек («весь сайт»). normalize_site_defaults
         # клампит radius (0..24) и приводит мусор к 0 → дефолт = текущее поведение.
         prev_sd = dict(config.get("site_defaults") or {})
-        config["site_defaults"] = {
-            "card_radius": request.POST.get("sd_card_radius", ""),
-            "card_shadow": request.POST.get("sd_card_shadow") == "on",
-            # SE-3d: глобальные фон/отступы карточек («весь сайт»). Фон применяется
-            # лишь при включённом тоггле (color-input всегда шлёт значение).
-            "card_bg": (
-                request.POST.get("sd_card_bg", "")
-                if request.POST.get("sd_card_bg_on") == "on"
-                else ""
-            ),
-            "card_padding": request.POST.get("sd_card_padding", ""),
-            # ST-7c: форма карточки ("" = прежняя; normalize отбрасывает мусор).
-            "card_style": request.POST.get("sd_card_style", ""),
-            # O-2: дефолтный вид выбора вариантов для всего магазина ("" = список).
-            "variant_style": request.POST.get("sd_variant_style", ""),
-            # DL-20: шаблон страницы категории на весь сайт ("" = Standard; своё
-            # значение категории его побеждает).
-            "category_page_style": request.POST.get("sd_category_page_style", ""),
-            "promo_group_style": request.POST.get("sd_promo_group_style", ""),
-            # DL-10: форма кадра на карточках ("" = как в разметке).
-            "media_shape": request.POST.get("sd_media_shape", ""),
-            # DL-16.4: форма карточки акции и листание фото на карточке товара.
-            "promo_card": request.POST.get("sd_promo_card", ""),
-            "card_slider": "on" if request.POST.get("sd_card_slider") == "on" else "",
-            # DL-2/DL-17.3: фон страницы и хром карточек — видимые контролы
-            # билдера (их выставляет и клик по Look-карточке). Фон правится
-            # color-инпутом, а он не умеет пустое значение → «нет фона» несёт
-            # тумблер `sd_page_bg_on` при сентинеле `sd_page_bg_present`; POST
-            # без сентинела (старый клиент/тест) сохраняет прежнюю семантику.
-            "page_bg": (
-                ""
-                if request.POST.get("sd_page_bg_present") == "1"
-                and request.POST.get("sd_page_bg_on") != "on"
-                else request.POST.get("sd_page_bg", "")
-            ),
-            "card_chrome": request.POST.get("sd_card_chrome", ""),
-            # STU-8: ширина текстовой колонки (панель типа «Текстовая страница»).
-            # Сентинел tw_present — контрол живёт в области «Seite»: POST без него
-            # (Look-клик, чужая форма) не имеет права уронить выбор владельца (W0).
-            "text_width": (
-                request.POST.get("sd_text_width", "")
-                if request.POST.get("tw_present") == "1"
-                else prev_sd.get("text_width", "")
-            ),
-        }
-        # DL-2 (класс W0/W6): ключи БЕЗ контролов в форме билдера переживают Save
-        # из прежнего конфига — иначе пересборка site_defaults их стирала
-        # (page_bg/hero_widget терялись первым же сохранением билдера).
-        if "sd_page_bg" not in request.POST and prev_sd.get("page_bg"):
-            config["site_defaults"]["page_bg"] = prev_sd["page_bg"]
-        if "sd_card_chrome" not in request.POST and prev_sd.get("card_chrome"):
-            config["site_defaults"]["card_chrome"] = prev_sd["card_chrome"]
-        if prev_sd.get("hero_widget"):
-            config["site_defaults"]["hero_widget"] = prev_sd["hero_widget"]
+        # STU-12g: глобальный дизайн («Карточки и фото»: radius/shadow/padding/card_bg/
+        # page_bg/card_chrome/media_shape/variant_style/card_slider) переехал на экран
+        # «Design des Shops». Студия владеет только настройками СТРАНИЦЫ, поэтому
+        # пересборка стартует с прежнего словаря — иначе Save канвы стирал бы дизайн,
+        # выставленный в кабинете (класс W6; раньше словарь собирался с нуля).
+        sd = dict(prev_sd)
+        # ST-7c: форма карточки ("" = прежняя; normalize отбрасывает мусор).
+        sd["card_style"] = request.POST.get("sd_card_style", "")
+        # DL-20: шаблон страницы категории на весь сайт ("" = Standard; своё
+        # значение категории его побеждает).
+        sd["category_page_style"] = request.POST.get("sd_category_page_style", "")
+        sd["promo_group_style"] = request.POST.get("sd_promo_group_style", "")
+        # DL-16.4: форма карточки акции.
+        sd["promo_card"] = request.POST.get("sd_promo_card", "")
+        # STU-8: ширина текстовой колонки (панель типа «Текстовая страница»).
+        # Сентинел tw_present — контрол живёт в области «Seite»: POST без него
+        # (чужая форма) не имеет права уронить выбор владельца (W0).
+        if request.POST.get("tw_present") == "1":
+            sd["text_width"] = request.POST.get("sd_text_width", "")
+        config["site_defaults"] = sd
         # DL-17.3: страница /aktionen/ — раскладка групп (сетка/ленты) и режим
         # группировки (по группам владельца / по времени). Presence-guard (W0/W7a):
         # у ключей есть второй писатель (панель на списке акций), и форма билдера
@@ -2019,7 +1955,12 @@ def home_builder_view(request):
                 request.POST.get("promo_page_style")
             )
         # S4: стартовая страница витрины (общая главная или один архетип).
-        config["storefront_root"] = request.POST.get("storefront_root", "home").strip() or "home"
+        # STU-12g: presence-guard — поле живёт в панели главной, и POST со страницы
+        # без него (панель другого типа) сбрасывал бы витрину на «home» молча.
+        if "storefront_root" in request.POST:
+            config["storefront_root"] = (
+                request.POST.get("storefront_root", "home").strip() or "home"
+            )
         # STU-12c: верхний уровень меню правится в колонке «Kopf- & Fußzeile» (hidden
         # menus_json в #home-form). Presence-guard + валидность: без поля или с битым/
         # чужим payload `menus` НЕ трогаем (второй писатель — Menü-Generator; normalize
@@ -2067,15 +2008,7 @@ def home_builder_view(request):
         # W11-5: фон баннера по URL (перенос со страницы «Site») — presence-guard.
         if "hero_image" in request.POST:
             config["hero_image"] = request.POST.get("hero_image", "").strip()
-        # W11-5: быстрый заказ на карточках — чекбокс, поэтому сентинел присутствия
-        # (unchecked не шлётся; без сентинела любое иное сохранение гасило бы тумблер).
-        if request.POST.get("quick_add_present") == "1":
-            config["quick_add"] = request.POST.get("quick_add") == "on"
-        # SF-4a: Merkzettel — та же механика (опция витрины, сентинел присутствия).
-        if request.POST.get("wishlist_present") == "1":
-            config["wishlist"] = request.POST.get("wishlist") == "on"
-        # M20f: дизайн — шрифт + стиль hero (site_config); акцент — поле Tenant.
-        config["font"] = request.POST.get("font", config.get("font", "system"))
+        # STU-12g: quick_add, wishlist и шрифт правятся на экране «Design des Shops».
         # DL-13 C1: стиль баннера — селект hero_style (5 стилей). Легаси-чекбокс
         # hero_accent (старые формы) — прежняя семантика. Раньше Save писал
         # accent/plain БЕЗУСЛОВНО и затирал split любой сборки Fokus (класс W0).
@@ -2084,25 +2017,15 @@ def home_builder_view(request):
             config["hero_style"] = hero_style
         else:
             config["hero_style"] = "accent" if request.POST.get("hero_accent") == "on" else "plain"
-        # ST-1b: тёмный Look — hidden-input `theme` ВСЕГДА в форме (W0-инвариант,
-        # пред-заполнен текущим значением); "dark" → ключ, иначе снимаем (билдер —
-        # единый источник темы, W6). Presence-guard: без поля в POST не трогаем.
-        if "theme" in request.POST:
-            if request.POST.get("theme") == "dark":
-                config["theme"] = "dark"
-            else:
-                config.pop("theme", None)
+        # STU-12g: тёмная тема — тумблер экрана «Design des Shops» (сентинел theme_present).
         # M20d: контент-секции (CTA/FAQ/Testimonials/Process/Team/Trust) — тот же парсер.
         # STU-12e: парсер пишет ВСЕ 11 ключей без presence-гарда, а поля переехали из общего
         # ящика в строки своих секций. POST без них (чужая форма, будущий гейт строки) стёр бы
         # тексты — поэтому гейт по сентинелу, который рисует сама форма конструктора.
         if "content_sections_present" in request.POST:
             config.update(siteconfig.parse_content_sections(request.POST.get))
+        # STU-12g: акцент (Tenant.primary_color) — поле экрана «Design des Shops».
         update_fields = ["site_config", "updated_at"]
-        accent = (request.POST.get("accent") or "").strip()
-        if re.fullmatch(r"#[0-9a-fA-F]{6}", accent) and accent != request.tenant.primary_color:
-            request.tenant.primary_color = accent
-            update_fields.insert(1, "primary_color")
         # SE-5b: снимок текущей опубликованной версии в историю перед публикацией новой
         # (точки отката = явные «Сохранить»; инкрементальные действия историю не пишут).
         config["history"] = siteconfig.push_history(

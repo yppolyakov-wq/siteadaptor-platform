@@ -66,8 +66,11 @@ def test_builder_save_preserves_foreign_keys():
 
 
 def test_builder_theme_controls_are_the_single_source():
-    """Тема живёт ТОЛЬКО в конструкторе главной: его форма всегда несёт font/
-    hero_accent, и они применяются (единый источник W6)."""
+    """STU-12g: единый источник ТЕМЫ переехал в кабинет («Design des Shops»).
+
+    Инвариант W6 сохраняется, но с обратным знаком: Студия шрифт не пишет И не
+    роняет, а стилем баннера (композиция главной) по-прежнему владеет она.
+    """
     tenant = TenantFactory(
         disabled_modules=[], site_config={"font": "rounded", "hero_style": "accent"}
     )
@@ -75,14 +78,17 @@ def test_builder_theme_controls_are_the_single_source():
         _req("post", _user("w6b"), tenant, {"hero_title": "X", "font": "serif"})
     )
     tenant.refresh_from_db()
-    assert tenant.site_config.get("font") == "serif"
+    assert tenant.site_config.get("font") == "rounded", "POST Студии шрифт не меняет"
     assert tenant.site_config.get("hero_style") == "plain"  # hero_accent не прислан
 
 
 def test_theme_pickers_live_only_in_builder(settings):
-    """W6/W11-5: контролы темы существуют в ОДНОМ месте — конструкторе главной."""
+    """W6/W11-5/STU-12g: у каждого контрола ОДНО место.
+
+    Стиль баннера — Студия (композиция главной), шрифт — экран «Design des Shops».
+    """
     settings.ROOT_URLCONF = "config.urls_tenant"
     tenant = TenantFactory(disabled_modules=[])
     html = core_views.home_builder_view(_req("get", _user("w6c"), tenant)).content.decode()
     assert 'name="hero_style"' in html  # DL-13: селект стиля баннера (был чекбокс)
-    assert 'name="font"' in html
+    assert 'name="font"' not in html  # STU-12g: шрифт — на /dashboard/design/

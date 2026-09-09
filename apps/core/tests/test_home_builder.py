@@ -352,7 +352,9 @@ def test_home_builder_get_renders():
     body = resp.content.decode()
     assert "order_hero" in body  # форма секций отрисована
     assert "arch_visible_catalog" in body  # карточки архетипов
-    assert 'name="accent"' in body and 'name="font"' in body  # M20f: контролы дизайна
+    # STU-12g: акцент/шрифт переехали на экран «Design des Shops»; в Студии остались
+    # контролы композиции (стиль баннера) и настройки страницы.
+    assert 'name="hero_style"' in body
 
 
 def test_home_builder_get_renders_menu_examples():
@@ -543,7 +545,11 @@ def test_home_builder_inserter_lists_block_templates():
 
 
 def test_home_builder_saves_design():
-    """M20f: билдер сохраняет шрифт/стиль hero (site_config) и акцент (Tenant)."""
+    """M20f/STU-12g: билдер сохраняет ТОЛЬКО стиль баннера.
+
+    Шрифт (site_config) и акцент (Tenant.primary_color) переехали на экран
+    «Design des Shops» — Студия их больше не пишет и, главное, не роняет.
+    """
     tenant = TenantFactory(
         schema_name="public",
         slug="hbd",
@@ -563,8 +569,9 @@ def test_home_builder_saves_design():
     assert resp.status_code == 302
     tenant.refresh_from_db()
     cfg = siteconfig.normalize(tenant.site_config)
-    assert cfg["font"] == "serif" and cfg["hero_style"] == "accent"
-    assert tenant.primary_color == "#ff8800"
+    assert cfg["hero_style"] == "accent"
+    assert cfg["font"] == "system", "шрифт из POST Студии игнорируется"
+    assert tenant.primary_color == "#000000", "акцент правится на экране Design"
 
 
 def test_home_builder_saves_content_sections():
@@ -1034,29 +1041,6 @@ def test_home_builder_get_renders_add_category_form():
     assert 'value="add_category"' in body and 'name="name_de"' in body
 
 
-def test_home_builder_saves_global_card_bg_padding():
-    """SE-3d: глобальные фон/отступы карточек сохраняются (фон — лишь при включённом тоггле)."""
-    tenant = TenantFactory(schema_name="public", slug="hbsdbp", name="HBSDBP")
-    data = {
-        "order_hero": "1",
-        "enabled_hero": "on",
-        "sd_card_padding": "16",
-        "sd_card_bg": "#112233",
-        "sd_card_bg_on": "on",
-    }
-    views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
-    sd = siteconfig.normalize(tenant.site_config)["site_defaults"]
-    assert sd["card_padding"] == 16 and sd["card_bg"] == "#112233"
-
-
-def test_home_builder_global_bg_ignored_without_toggle():
-    """SE-3d: без тоггла sd_card_bg_on фон не применяется (color-input всегда шлёт значение)."""
-    tenant = TenantFactory(schema_name="public", slug="hbsdbn", name="HBSDBN")
-    data = {"order_hero": "1", "enabled_hero": "on", "sd_card_bg": "#112233"}  # без _on
-    views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
-    assert siteconfig.normalize(tenant.site_config)["site_defaults"]["card_bg"] == ""
-
-
 def test_home_builder_saves_section_visual_padding():
     """SE-3d: пер-секционный отступ карточек сохраняется в visual.padding."""
     tenant = TenantFactory(schema_name="public", slug="hbsvp", name="HBSVP")
@@ -1103,50 +1087,6 @@ def test_home_builder_get_renders_micro_templates():
     assert ".mt-btn" in body  # JS-обработчик распаковки
 
 
-def test_home_builder_saves_typography():
-    """SE-3b: начертание заголовков + межстрочный интервал сохраняются (валидируются)."""
-    tenant = TenantFactory(schema_name="public", slug="hbty", name="HBTY")
-    data = {
-        "order_hero": "1",
-        "enabled_hero": "on",
-        "typo_weight_head": "700",
-        "typo_line_height": "1.6",
-    }
-    views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
-    typo = siteconfig.normalize(tenant.site_config)["typography"]
-    assert typo == {"weight_head": 700, "line_height": 1.6}
-
-
-def test_home_builder_typography_invalid_resets():
-    """SE-3b: невалидный вес/интервал → 0 (= дефолт, без регрессии)."""
-    tenant = TenantFactory(schema_name="public", slug="hbtyi", name="HBTYI")
-    data = {
-        "order_hero": "1",
-        "enabled_hero": "on",
-        "typo_weight_head": "0",
-        "typo_line_height": "0",
-    }
-    views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
-    assert siteconfig.normalize(tenant.site_config)["typography"] == {
-        "weight_head": 0,
-        "line_height": 0.0,
-    }
-
-
-def test_home_builder_get_renders_typography_controls():
-    """SE-3b: селекторы начертания/интервала отрисованы с текущими значениями."""
-    tenant = TenantFactory(
-        schema_name="public",
-        slug="hbtyg",
-        name="HBTYG",
-        site_config={"typography": {"weight_head": 600, "line_height": 1.8}},
-    )
-    body = views.home_builder_view(
-        _request("get", "/dashboard/site/home/", tenant=tenant)
-    ).content.decode()
-    assert 'name="typo_weight_head"' in body and 'name="typo_line_height"' in body
-
-
 def test_home_builder_get_renders_apply_all_landings():
     """SE-2d-4: контрол «применить раскладку ко всем лендингам» отрисован."""
     tenant = TenantFactory(
@@ -1160,47 +1100,6 @@ def test_home_builder_get_renders_apply_all_landings():
     ).content.decode()
     assert 'id="apply-all-landings"' in body and 'id="apply-all-preset"' in body
     assert "apply-all-landings" in body and 'name="catalog_preset"' in body  # связка с селекторами
-
-
-def test_home_builder_saves_global_card_style():
-    """SE-2d-3: глобальный стиль карточек (site_defaults) сохраняется из конструктора."""
-    tenant = TenantFactory(schema_name="public", slug="hbsd", name="HBSD")
-    data = {
-        "order_hero": "1",
-        "enabled_hero": "on",
-        "sd_card_radius": "12",
-        "sd_card_shadow": "on",
-    }
-    resp = views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
-    assert resp.status_code == 302
-    cfg = siteconfig.normalize(tenant.site_config)
-    assert cfg["site_defaults"]["card_radius"] == 12 and cfg["site_defaults"]["card_shadow"] is True
-
-
-def test_home_builder_global_card_radius_clamped():
-    """SE-2d-3: глобальный radius клампится 0..24 (мусор/перебор → 24)."""
-    tenant = TenantFactory(schema_name="public", slug="hbsdc", name="HBSDC")
-    data = {"order_hero": "1", "enabled_hero": "on", "sd_card_radius": "999"}
-    views.home_builder_view(_request("post", "/dashboard/site/home/", data, tenant))
-    cfg = siteconfig.normalize(tenant.site_config)
-    assert (
-        cfg["site_defaults"]["card_radius"] == 24 and cfg["site_defaults"]["card_shadow"] is False
-    )
-
-
-def test_home_builder_get_renders_global_card_style():
-    """SE-2d-3: контрол глобального стиля карточек отрисован с текущим значением."""
-    tenant = TenantFactory(
-        schema_name="public",
-        slug="hbsdg",
-        name="HBSDG",
-        site_config={"site_defaults": {"card_radius": 8}},
-    )
-    body = views.home_builder_view(
-        _request("get", "/dashboard/site/home/", tenant=tenant)
-    ).content.decode()
-    assert 'name="sd_card_radius" min="0" max="24" value="8"' in body
-    assert 'name="sd_card_shadow"' in body
 
 
 def test_site_url_is_redirect_to_studio_and_touches_nothing():
@@ -1634,7 +1533,8 @@ def test_home_builder_se7_rail_and_areas():
     # UC6-6g (перепин): сама ОБЛАСТЬ (data-bld-area, форма) живёт для канва-фолбэка.
     assert 'data-bld-area="sections"' in body
     assert 'data-bld-area="library"' in body
-    assert 'data-bld-area="theme"' in body  # контент области Тема
+    # STU-12g: область «Тема» удалена — глобальный дизайн живёт на /dashboard/design/.
+    assert 'data-bld-area="theme"' not in body
     assert 'data-bld-area="sections"' in body  # контент области Секции
     assert "function showArea" in body  # JS переключения областей
 
@@ -1804,98 +1704,11 @@ def test_home_builder_save_preserves_site_page_scalars():
     assert cfg["gallery_video"] == "https://youtu.be/abc123"
 
 
-def test_home_builder_apply_template_switches_sections_and_keeps_builder_keys():
-    """W11-5 (И-1): apply_template из Studio — 302, секции сменились, builder-only
-    ключи целы (класс W6: _apply-база ST-1a стартует с полной копии)."""
-    tenant = TenantFactory(
-        schema_name="public",
-        slug="hbtpl",
-        name="HBTPL",
-        business_type="cafe",
-        site_config={
-            "notify": {"customer": {"email": True}},
-            "board": {"labels": {"intake": "Posteingang"}, "hidden": ["terminal"]},
-            "seo": {"templates": {"home": {"title": "Mein Titel"}}},
-        },
-    )
-    resp = views.home_builder_view(
-        _request(
-            "post",
-            "/dashboard/site/home/",
-            {"action": "apply_template", "template": "gastro"},
-            tenant,
-        )
-    )
-    assert resp.status_code == 302
+def test_home_builder_saves_hero_image():
+    """W11-5 (И-2): поля со страницы «Site» сохраняются из билдера…
 
-    cfg = siteconfig.normalize(tenant.site_config)
-    enabled = [s["key"] for s in cfg["sections"] if s["enabled"]]
-    assert enabled == ["hero", "products", "promotions", "contact"]
-    raw = tenant.site_config
-    assert raw.get("notify") == {"customer": {"email": True}}
-    assert raw.get("board", {}).get("labels", {}).get("intake") == "Posteingang"
-    assert raw.get("seo", {}).get("templates", {}).get("home", {}).get("title") == "Mein Titel"
-
-
-def test_home_builder_apply_unknown_template_keeps_config():
-    """W11-5 (И-1): неизвестный ключ шаблона — редирект с ошибкой, конфиг цел."""
-    tenant = TenantFactory(
-        schema_name="public", slug="hbtpl2", name="HBTPL2", site_config={"hero_title": "Alt"}
-    )
-    before = siteconfig.normalize(tenant.site_config)["sections"]
-    resp = views.home_builder_view(
-        _request(
-            "post",
-            "/dashboard/site/home/",
-            {"action": "apply_template", "template": "nope"},
-            tenant,
-        )
-    )
-    assert resp.status_code == 302
-    cfg = siteconfig.normalize(tenant.site_config)
-    assert cfg["sections"] == before
-    assert cfg["hero_title"] == "Alt"
-
-
-def test_home_builder_demo_actions_early_return_keep_sections():
-    """W11-5 (И-1): load/clear demo из Studio — early-return: пустая форма действия
-    НЕ пересобирает секции (анти-fall-through в main-save)."""
-    from apps.tenants import demo
-
-    tenant = TenantFactory(
-        schema_name="public", slug="hbdemo", name="HBDemo", business_type="bakery"
-    )
-    before = siteconfig.normalize(tenant.site_config)["sections"]
-
-    resp = views.home_builder_view(
-        _request("post", "/dashboard/site/home/", {"action": "load_demo"}, tenant)
-    )
-    assert resp.status_code == 302
-    assert demo.has_demo(tenant) is True
-    assert siteconfig.normalize(tenant.site_config)["sections"] == before
-
-    resp = views.home_builder_view(
-        _request("post", "/dashboard/site/home/", {"action": "clear_demo"}, tenant)
-    )
-    assert resp.status_code == 302
-    assert demo.has_demo(tenant) is False
-
-
-def test_home_builder_renders_quickstart_area():
-    """W11-5 (И-1): в Studio есть область «Schnellstart» — рейка + карточки шаблонов
-    + кнопка демо (порт замка галереи со страницы «Site»)."""
-    tenant = TenantFactory(schema_name="public", slug="hbqsr", name="HBQSR", business_type="bakery")
-    html = views.home_builder_view(
-        _request("get", "/dashboard/site/home/", None, tenant)
-    ).content.decode()
-    assert 'data-bld-area="quickstart"' in html
-    assert 'data-st-level="quickstart"' not in html  # STU-12a: рейки уровней нет
-    assert "Klassischer Laden" in html  # карточка шаблона в галерее
-    assert 'value="load_demo"' in html  # свежий тенант — демо ещё не загружено
-
-
-def test_home_builder_saves_hero_image_and_quick_add():
-    """W11-5 (И-2): поля со страницы «Site» сохраняются из билдера…"""
+    STU-12g: тумблер быстрого заказа переехал на экран «Design des Shops».
+    """
     tenant = TenantFactory(schema_name="public", slug="hbf", name="HBF")
     data = {
         "order_hero": "1",
@@ -1909,7 +1722,6 @@ def test_home_builder_saves_hero_image_and_quick_add():
 
     cfg = siteconfig.normalize(tenant.site_config)
     assert cfg["hero_image"] == "https://cdn.example/bg.jpg"  # обрезан
-    assert cfg["quick_add"] is False
 
 
 def test_home_builder_save_without_new_fields_keeps_them():
@@ -1967,21 +1779,3 @@ def test_home_builder_links_to_sibling_site_screens():
     ):
         assert path in html, path
     assert "/dashboard/site/pages/" not in html, "мёртвый экран не должен иметь входов"
-
-
-def test_quick_add_toggle_is_not_expert_only():
-    """W11-5 (стенд поймал): тумблер быстрого заказа на странице «Site» был доступен
-    ВСЕГДА. В Studio он не должен оказаться внутри expert-блока — иначе в Простом
-    режиме владелец не может его выключить (инвариант W0: скрытие только CSS, но
-    базовая настройка не должна быть под expert-гейтом)."""
-    tenant = TenantFactory(schema_name="public", slug="hbqa", name="HBQA")
-    html = views.home_builder_view(
-        _request("get", "/dashboard/site/home/", None, tenant)
-    ).content.decode()
-
-    idx = html.index('name="quick_add"')
-    # Ближайший предшествующий открывающий тег контейнера expert-блока не должен
-    # обрамлять тумблер: проверяем, что между ним и полем закрылся его div.
-    expert_open = html.rfind('data-expert="1"', 0, idx)
-    assert expert_open != -1  # expert-блоки на странице есть (иначе тест бессмыслен)
-    assert "</div>" in html[expert_open:idx], "тумблер оказался внутри expert-блока"

@@ -71,20 +71,30 @@ def test_redirect_target_renders_end_to_end():
 
 
 def test_studio_carries_all_site_page_functions():
-    """Функции умершей страницы живут в Studio: quick-start (шаблоны + демо),
-    фон баннера, быстрый заказ, видео галереи, галерея фото, контент-секции."""
+    """Функции умершей страницы «Site» никуда не делись.
+
+    STU-12g: глобальные из них (шаблоны витрины, демо-контент, быстрый заказ)
+    переехали ещё раз — на экран кабинета «Design des Shops»; остальное живёт
+    в Студии. Проверяем оба адреса, чтобы ни одна функция не потерялась.
+    """
     tenant = TenantFactory(schema_name="public", slug="w115b", name="W115B", business_type="bakery")
     req = _req("get", "/dashboard/site/home/", tenant=tenant)
     req.user = SimpleNamespace(is_authenticated=True)
     html = views.home_builder_view(req).content.decode()
 
-    assert 'data-bld-area="quickstart"' in html  # шаблоны + демо
-    assert 'value="apply_template"' in html
     assert 'name="hero_image"' in html  # фон баннера
-    assert 'name="quick_add"' in html  # быстрый заказ на карточках
     assert 'name="gallery_video"' in html  # видео галереи
     assert 'value="upload_gallery"' in html  # фото галереи (было и раньше)
     assert 'name="faq_text"' in html  # контент-секции (общий партиал)
+
+    from apps.core import design_page
+
+    dreq = _req("get", "/dashboard/design/", tenant=tenant)
+    dreq.user = SimpleNamespace(is_authenticated=True)
+    design = design_page.design_view(dreq).content.decode()
+    assert 'value="apply_template"' in design  # шаблоны витрины
+    assert 'value="load_demo"' in design or 'value="clear_demo"' in design  # демо-контент
+    assert 'name="quick_add"' in design  # быстрый заказ на карточках
 
 
 def test_website_anchor_points_at_studio():

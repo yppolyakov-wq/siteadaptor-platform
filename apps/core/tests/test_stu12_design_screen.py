@@ -192,3 +192,11 @@ def test_dark_theme_can_be_switched_off_from_this_screen():
     assert "theme" not in cfg, "тёмная тема обязана выключаться с этого экрана"
     body = _html(tenant)
     assert 'name="theme_present"' in body
+
+
+def test_page_background_toggle_off_clears_it():
+    """Color-инпут не умеет пустого значения — «нет фона» несёт тумблер (DL-17.3)."""
+    tenant = TenantFactory(slug="dsg9", name="Dsg9")
+    base = {"action": "design_settings", "sd_page_bg_present": "1", "sd_page_bg": "#faf6ef"}
+    assert _post(tenant, {**base, "sd_page_bg_on": "on"})["site_defaults"]["page_bg"] == "#faf6ef"
+    assert "page_bg" not in _post(tenant, base)["site_defaults"]

@@ -242,13 +242,16 @@ def test_apply_unknown_template_is_noop():
 
 
 def test_builder_apply_template(rf, settings):
-    # W11-5: галерея шаблонов переехала со страницы «Site» в Studio (область
-    # «Schnellstart»); ветка apply_template — та же библиотека.
+    # W11-5 → STU-12g (4A): галерея шаблонов переехала со страницы «Site» сперва в
+    # Studio, а затем на экран кабинета «Design des Shops» — ветка apply_template
+    # живёт там, и это та же библиотека.
+    from apps.core.design_page import design_view
+
     settings.ROOT_URLCONF = "config.urls_tenant"
     tenant = TenantFactory(schema_name="t_view", business_type="cafe", site_config={})
     user = get_user_model().objects.create_user("u", "u@test.de", "pw12345678")
 
-    resp = home_builder_view(
+    resp = design_view(
         _request(rf, "post", user, tenant, {"action": "apply_template", "template": "gastro"})
     )
     assert resp.status_code in (301, 302)
@@ -257,11 +260,13 @@ def test_builder_apply_template(rf, settings):
 
 
 def test_builder_template_gallery_renders(rf, settings):
+    from apps.core.design_page import design_view
+
     settings.ROOT_URLCONF = "config.urls_tenant"
     tenant = TenantFactory(schema_name="t_view2", business_type="bakery", disabled_modules=[])
     user = get_user_model().objects.create_user("u2", "u2@test.de", "pw12345678")
 
-    html = home_builder_view(_request(rf, "get", user, tenant)).content.decode()
+    html = design_view(_request(rf, "get", user, tenant)).content.decode()
     assert "Klassischer Laden" in html  # карточка шаблона в галерее (bakery)
     # DL-7a: чужой отраслевой пресет в галерее больше не показывается.
     assert "Café &amp; Restaurant" not in html

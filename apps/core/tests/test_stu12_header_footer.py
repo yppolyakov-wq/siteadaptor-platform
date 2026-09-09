@@ -111,11 +111,10 @@ def test_menu_column_carries_cta_logo_items_and_footer():
     assert "data-menu-items" in area and 'id="menu-add-item"' in area
     assert "__sfShowArea('logo-media')" in area  # Logo → Medien/Logo
     assert "data-stu-footer-links" in area  # указатели подвала переехали сюда
-    # STU-12e: области «Banner» больше нет (её поля — в строке секции hero), поэтому
-    # «указатели не остались в теме» проверяем по самой области «Дизайн».
-    assert "data-stu-footer-links" not in _segment(
-        body, 'data-bld-area="theme"', 'data-bld-area="menu"'
-    )
+    # STU-12g: областей «Banner» и «Тема» больше нет (поля баннера — в строке секции
+    # hero, глобальный дизайн — на экране «Design des Shops»), поэтому «указатели не
+    # разъехались» проверяем по единственности маркера.
+    assert body.count("data-stu-footer-links") == 1
     # hidden JSON внутри #home-form, с текущим деревом
     form = _segment(body, 'id="home-form"', "</form>")
     assert 'id="menus_json"' in form

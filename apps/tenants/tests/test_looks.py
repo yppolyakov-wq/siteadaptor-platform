@@ -244,8 +244,12 @@ def test_wizard_stil_template_renders_lazy_iframes():
 
 
 def test_builder_theme_roundtrip_and_look_cards():
-    """Hidden `theme` пред-заполнен и переживает Save (W0/W6); карточки Look'ов
-    в разметке нового вида, в classic — нет."""
+    """STU-12g: тема и карточки Look'ов живут на экране «Design des Shops».
+
+    Раньше единственным источником был конструктор главной (hidden `theme` +
+    `.bld-look`); после переезда проверяем round-trip там, а от Студии требуем
+    обратного — она тему не показывает и, главное, не роняет.
+    """
     import uuid as _uuid
 
     from django.contrib.auth import get_user_model
@@ -268,22 +272,36 @@ def test_builder_theme_roundtrip_and_look_cards():
         request.tenant = tenant
         return request
 
-    html = core_views.home_builder_view(_req()).content.decode()
-    assert 'name="theme" id="bld-theme" value="dark"' in html  # round-trip префилл
-    assert 'class="bld-look' in html and "data-look=" in html  # карточки Look'ов
+    from apps.core import design_page
 
-    # Save с theme="" (светлый) → ключ снят; с "dark" → сохранён.
-    resp = core_views.home_builder_view(_req("post", {"theme": "", "font": "system"}))
+    def _dreq(method="get", data=None):
+        request = _req(method, data)
+        request.path = "/dashboard/design/"
+        return request
+
+    design = design_page.design_view(_dreq()).content.decode()
+    assert 'name="theme"' in design and "checked" in design  # round-trip префилл
+    assert 'id="design-looks"' in design and 'name="look"' in design  # карточки Look'ов
+
+    # Save с сентинелом и без чекбокса (светлый) → ключ снят; с "dark" → сохранён.
+    resp = design_page.design_view(
+        _dreq("post", {"action": "design_settings", "theme_present": "1"})
+    )
     assert resp.status_code == 302
     tenant.refresh_from_db()
     assert "theme" not in tenant.site_config
-    core_views.home_builder_view(_req("post", {"theme": "dark", "font": "system"}))
+    design_page.design_view(
+        _dreq("post", {"action": "design_settings", "theme_present": "1", "theme": "dark"})
+    )
     tenant.refresh_from_db()
     assert tenant.site_config["theme"] == "dark"
 
-    # W-CL: карточки Look'ов в билдере — всегда (classic-гейт снесён).
+    # STU-12g: Студия темой не владеет — ни контрола, ни записи.
     html = core_views.home_builder_view(_req()).content.decode()
-    assert "bld-look" in html
+    assert 'name="theme"' not in html and 'name="look"' not in html
+    core_views.home_builder_view(_req("post", {"theme": "", "font": "system"}))
+    tenant.refresh_from_db()
+    assert tenant.site_config["theme"] == "dark", "POST Студии тему не гасит"
 
 
 def test_preview_draft_accepts_theme():
@@ -463,27 +481,23 @@ def test_builder_save_preserves_lookonly_site_defaults():
         request.tenant = tenant
         return core_views.home_builder_view(request)
 
-    # Save-форма без DL-2 hidden-инпутов (старый клиент/другая область).
+    # STU-12g: контролов page_bg/card_chrome в Студии больше нет — любой её Save
+    # обязан их сохранить (класс W6), включая ключи без контрола вообще (hero_widget).
     assert _post({"font": "system"}).status_code == 302
     tenant.refresh_from_db()
     sd = tenant.site_config["site_defaults"]
     assert sd["page_bg"] == "#faf6ef"
     assert sd["card_chrome"] == "hard"
     assert sd["hero_widget"] == "stays"
-    # С инпутами — присланные значения побеждают ("" законно снимает ключ).
+    # Даже если чужая форма пришлёт эти поля — Студия их не пишет.
     assert (
         _post({"font": "system", "sd_page_bg": "#f4f6f9", "sd_card_chrome": "line"}).status_code
         == 302
     )
     tenant.refresh_from_db()
     sd = tenant.site_config["site_defaults"]
-    assert sd["page_bg"] == "#f4f6f9"
-    assert sd["card_chrome"] == "line"
-    assert _post({"font": "system", "sd_page_bg": "", "sd_card_chrome": ""}).status_code == 302
-    tenant.refresh_from_db()
-    sd = tenant.site_config["site_defaults"]
-    assert "page_bg" not in sd
-    assert "card_chrome" not in sd
+    assert sd["page_bg"] == "#faf6ef"
+    assert sd["card_chrome"] == "hard"
     assert sd["hero_widget"] == "stays"  # E4-выбор переживает любой Save
 
 
@@ -587,20 +601,21 @@ def test_look_preview_overlay_keeps_owner_keys():
 
 
 def test_builder_look_click_does_not_clear_card_style():
-    """Клик по Look-карточке в билдере не имеет права стирать форму карточки.
+    """Look не имеет права стирать форму карточки.
 
-    STU-11: ни одно семейство не объявляет `card_style`, поэтому безусловное
-    присваивание всегда ставило "" — первый же Save терял выбор владельца, тогда как
-    серверный `apply_look` его бережёт. Два входа «Look» давали разный результат.
+    STU-11: клиентский Look-клик в Студии присваивал `card_style` безусловно, а ни одно
+    семейство его не объявляет → первый Save терял выбор владельца. STU-12g снял развилку
+    в корне: Look'и живут на экране «Design des Shops» и применяются ТОЛЬКО серверным
+    `apply_look`, который чужие ключи бережёт (срез 1).
     """
     import pathlib
 
     body = pathlib.Path("templates/tenant/site_home.html").read_text()
-    i = body.index("setVal(form, \"select[name='sd_card_chrome']\"")
-    tail = body[i : i + 800]
-    assert '"card_style" in lk' in tail, (
-        "поле формы карточки трогаем только если семейство несёт значение"
-    )
+    assert "setVal(form," not in body, "клиентской установки Look'а в Студии больше нет"
     assert "card_style" not in sitetemplates.look_family_sd_keys(), (
         "если семейство начнёт описывать card_style — этот замок и правку надо пересмотреть"
     )
+    tenant = TenantFactory(site_config={"site_defaults": {"card_style": "overlay"}})
+    sitetemplates.apply_look(tenant, "prospekt")
+    tenant.refresh_from_db()
+    assert tenant.site_config["site_defaults"]["card_style"] == "overlay"
