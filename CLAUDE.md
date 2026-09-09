@@ -2762,8 +2762,24 @@ Python 3.12, менеджер uv.
   витрины стала draft-aware) · **12d** (плашка действий у выбранного блока + поповеры Stil/Raster/
   Breite, переносящие РЕАЛЬНЫЙ контрол; попутно закрыт пред-существующий провал двойной
   буферизации — `about:blank` буфера считался ошибкой рендера, канва после первой живой правки
-  теряла всю оснастку редактора). Всё БЕЗ миграций. **Дальше: 12e** (группы Inhalt/Darstellung/
-  Erweitert) → 12f → 12g → 12h → 12i → 12j (⚠️ миграция `Category.card_style`).
+  теряла всю оснастку редактора) · **12e** (настройки строки тремя группами Inhalt · Darstellung ·
+  Erweitert; тексты контент-секций, поля баннера и карточки архетипов переехали В СТРОКУ СВОЕЙ
+  СЕКЦИИ — те же `name=`, внутри `#home-form`, W0; общий ящик снесён, Save гейтится сентинелом
+  `content_sections_present`; высота отступа стала контролом — её теряли ВСЕ Save) · **12f**
+  (четыре набора медиа-форм собраны в ОДНУ колонку аккордеоном; вход = клик по самому медиа на
+  канве — витрина метит слоты `data-sf-media-slot`; каждая форма несёт `page_path`, поэтому
+  аплоад с подстраницы больше не выкидывает на главную; «＋ Kategorie» на плашке своей секции) ·
+  **12g ЦЕЛИКОМ, три среза** (1B/4A: глобальный дизайн и «Start» — на экране кабинета «Design des
+  Shops»): срез 1 — `apply_look` только кожа (клик по «настроению» пересобирал секции главной);
+  срез 2 — экран Design несёт цвет/шрифт/типографику/тему/«Карточки и фото» + шаблоны витрины +
+  демо-контент, запись targeted-write (W9-3), `sd_card_style` ОСТАЁТСЯ настройкой страницы;
+  срез 3 — Студия эти ключи не шлёт и не пишет, области «Тема»/«Schnellstart» снесены,
+  `storefront_root` в панели главной. **Найдены и закрыты три латентных дефекта класса W6:**
+  тёмную тему было НЕ ВЫКЛЮЧИТЬ с нового экрана (снятый чекбокс браузер не шлёт → сентинел
+  `theme_present`); `typography` и `site_defaults` писались БЕЗУСЛОВНО, а `storefront_root` — без
+  presence-guard, то есть первый же Save канвы обнулил бы выбор владельца. 27 замков прежнего
+  поведения переписаны осознанно (карта — build-log). Всё БЕЗ миграций. **Дальше: 12h**
+  (телефон, bottom-sheet) → 12i (сводный стенд + доки) → 12j (⚠️ миграция `Category.card_style`).
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна VAT, 2026-08-26): `jobs/0017` (JobLine.vat_rate) + `catalog/0031` (Combo.vat_rate) — аддитивные; (волна DC, 2026-08-25): `booking/0024` + `stays/0033` + `jobs/0016` (внешний номер сделки) + `booking/0025` (связь записи со счётом) — аддитивные; (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `core/0010` (Extra.consume_qty, v2-опции) + `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate) + `events/0028` (SupplierBooking вне туров) + `booking/0023` (Service.pricing_mode) + `catalog/0030` (Product.primary_action) + `finance/0009` (SOURCES gift/pass, choices-only)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. **Волна ERP (2026-08-21): `orders/0020` (OrderItem.cost_price) + `finance/0010` (BankTransaction) + `finance/0011` (Invoice.mahn_level/mahned_at + ExpenseEntry supplier/due_date/paid_at/document) + `documents/0002` (owner nullable + kind receipt) + `inventory/0005` (qty_returned + kind'ы return_supplier/production, ERP-5/7) + `jobs/0015` (JobLine.cost_rate, ERP-6)** — аддитивные. **DL-19 (2026-09-03): `catalog/0032` (Product.card_style) + `promotions/0027` (Promotion.card_style)** — аддитивные. **Волна O «Аутлет» (2026-09-04): `catalog/0033`** (UVP/состояние/примечание/марка) — аддитивная; после деплоя `seed_demo_tenants --kit outlet --recreate`. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + `--kit pranasy --recreate` (кейтеринг-карта) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».
