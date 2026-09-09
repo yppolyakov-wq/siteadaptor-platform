@@ -996,27 +996,36 @@ def _bundle_sd_keys() -> frozenset:
     return frozenset(keys)
 
 
-def _apply(tenant, template, *, family=None, accent=None, keep_owner_sd=True) -> None:
+def _apply(
+    tenant, template, *, family=None, accent=None, keep_owner_sd=True, skin_only=False
+) -> None:
     """Общее применение шаблона/Look'а к Tenant.site_config.
 
     ST-1 (исправлен латентный баг класса W6): база = ПОЛНАЯ копия текущего
     конфига — применение шаблона больше не стирает чужие ключи (board/
     seo/presence/page_blocks/menus/…). Переписываются только раскладка секций,
     пустые тексты, hero_style и — при family — пачка ключей Look'а.
+
+    STU-12g: `skin_only=True` (путь `apply_look`) — КОЖА, а не композиция: состав и
+    порядок секций главной и пустые тексты не трогаются. Раньше выбор Look'а молча
+    возвращал раскладку рекомендованного шаблона архетипа, то есть терял курированную
+    композицию владельца. У `apply_bundle`/`apply_template` семантика обратная — они и
+    есть композиция, там путь прежний.
     """
     current = siteconfig.normalize(tenant.site_config)
     config = dict(current)
-    enabled = set(template["sections"])
-    # Все известные секции явно: сначала включённые из шаблона (в его порядке),
-    # затем прочие — выключенными.
-    ordered = list(template["sections"])
-    for sec_key, _label, _default in siteconfig.SECTIONS:
-        if sec_key not in enabled:
-            ordered.append(sec_key)
-    config["sections"] = [{"key": k, "enabled": k in enabled} for k in ordered]
-    for field in siteconfig.TEXT_FIELDS:
-        # Непустой текст владельца не трогаем; пустой — заполняем дефолтом шаблона.
-        config[field] = current.get(field) or template["texts"].get(field, "")
+    if not skin_only:
+        enabled = set(template["sections"])
+        # Все известные секции явно: сначала включённые из шаблона (в его порядке),
+        # затем прочие — выключенными.
+        ordered = list(template["sections"])
+        for sec_key, _label, _default in siteconfig.SECTIONS:
+            if sec_key not in enabled:
+                ordered.append(sec_key)
+        config["sections"] = [{"key": k, "enabled": k in enabled} for k in ordered]
+        for field in siteconfig.TEXT_FIELDS:
+            # Непустой текст владельца не трогаем; пустой — заполняем дефолтом шаблона.
+            config[field] = current.get(field) or template["texts"].get(field, "")
     config["hero_style"] = (family or template).get("hero_style", "plain")
 
     if family is not None:
@@ -2107,6 +2116,7 @@ def apply_look(tenant, family_key, *, keep_owner_sd=True) -> bool:
         family=family,
         accent=look_accent(business_type, family_key),
         keep_owner_sd=keep_owner_sd,
+        skin_only=True,  # STU-12g: Look — кожа; композицию главной не трогаем
     )
     # DL-8a: запомнить выбранную кожу (бейдж «Aktiv» страницы Design +
     # data-sf-look витрины). Прежний bundle-ключ сохраняется: Look меняет
