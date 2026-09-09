@@ -45,6 +45,20 @@ logger = logging.getLogger(__name__)
 class Command(BaseCommand):
     help = "Перешифровать секреты явным ключом (dry-run по умолчанию; --apply пишет)."
 
+    #: Значения, которые не читаются НИ ОДНИМ ключом. Собираем отдельно от работы:
+    #: это не «нечего ротировать», а признак неверной конфигурации ключей (чаще
+    #: всего — сменили SECRETS_ENCRYPTION_KEY, не положив старый в
+    #: SECRETS_ENCRYPTION_KEY_PREVIOUS). Молча пройти мимо нельзя: прод в этот
+    #: момент читает эти значения как '' и работает «без ошибок».
+    unreadable: list
+
+    def _rotatable(self, value, where: str) -> bool:
+        """needs_rotation + учёт нечитаемого. Единственная точка проверки."""
+        state = crypto.status(value)
+        if state == crypto.UNREADABLE:
+            self.unreadable.append(where)
+        return state == crypto.ROTATABLE
+
     def add_arguments(self, parser):
         parser.add_argument(
             "--apply", action="store_true", help="Записать изменения (иначе только отчёт)."
@@ -55,6 +69,7 @@ class Command(BaseCommand):
             raise CommandError("SECRETS_ENCRYPTION_KEY не задан — ротировать не во что.")
         mode = "apply" if apply else "dry-run"
         failed = []
+        self.unreadable = []
         total = 0
         try:
             total = self._platform_secrets(apply)
@@ -83,6 +98,17 @@ class Command(BaseCommand):
                 self.stdout.write(f"{schema}: {n}")
             total += n
         self.stdout.write(f"[{mode}] секретов к перешифровке: {total}")
+        if self.unreadable:
+            shown = ", ".join(self.unreadable[:10])
+            more = f" (и ещё {len(self.unreadable) - 10})" if len(self.unreadable) > 10 else ""
+            self.stderr.write(
+                f"НЕ ЧИТАЕТСЯ НИ ОДНИМ КЛЮЧОМ: {len(self.unreadable)} значений — {shown}{more}"
+            )
+            raise CommandError(
+                "часть шифротекстов не читается ни одним ключом. Скорее всего сменили "
+                "SECRETS_ENCRYPTION_KEY, не положив прежний в SECRETS_ENCRYPTION_KEY_PREVIOUS. "
+                "Верните старый ключ туда и повторите — иначе эти значения потеряны."
+            )
         if failed:
             # Ненулевой код + перечень: «ротация выполнена» не должно быть ложью,
             # а повторить точечно можно по именам из сообщения.
@@ -95,12 +121,25 @@ class Command(BaseCommand):
     def _platform_secrets(self, apply: bool) -> int:
         n = 0
         for pk, token in PlatformSecret.objects.values_list("pk", "value_encrypted"):
-            if not crypto.needs_rotation(token):
+            if not self._rotatable(token, f"PlatformSecret[{pk}]"):
                 continue
             n += 1
             if apply:
-                plain = crypto.decrypt(token)
-                PlatformSecret.objects.filter(pk=pk).update(value_encrypted=crypto.encrypt(plain))
+                # Тот же перечит под блокировкой, что и у полей тенанта: админ
+                # платформы может сохранять секрет в unfold-админке ровно сейчас,
+                # и запись по снимку молча вернула бы старое значение.
+                with transaction.atomic():
+                    fresh = (
+                        PlatformSecret.objects.select_for_update()
+                        .filter(pk=pk)
+                        .values_list("value_encrypted", flat=True)
+                        .first()
+                    )
+                    if fresh is None or not crypto.needs_rotation(fresh):
+                        continue
+                    PlatformSecret.objects.filter(pk=pk).update(
+                        value_encrypted=crypto.encrypt(crypto.decrypt(fresh))
+                    )
         return n
 
     # --- схема тенанта ---
@@ -115,12 +154,12 @@ class Command(BaseCommand):
             ("документы", self._documents),
         ):
             try:
-                n += step(apply)
+                n += step(apply, errors)
             except Exception as exc:  # noqa: BLE001
                 errors.append(f"{name}: {exc!r}")
         return n
 
-    def _encrypted_fields(self, apply: bool) -> int:
+    def _encrypted_fields(self, apply: bool, errors: list | None = None) -> int:
         n = 0
         for model in apps.get_models():
             fields = [f for f in model._meta.get_fields() if isinstance(f, EncryptedTextField)]
@@ -131,7 +170,7 @@ class Command(BaseCommand):
                     _raw=Cast(field.name, output_field=TextField())
                 ).values_list("pk", "_raw")
                 for pk, raw in rows:
-                    if not crypto.needs_rotation(raw):
+                    if not self._rotatable(raw, f"{model._meta.label}.{field.name}[{pk}]"):
                         continue
                     n += 1
                     if apply:
@@ -159,7 +198,7 @@ class Command(BaseCommand):
             # update() → get_prep_value поля → шифруется явным ключом.
             model._default_manager.filter(pk=pk).update(**{field.name: crypto.decrypt(fresh)})
 
-    def _channel_configs(self, apply: bool) -> int:
+    def _channel_configs(self, apply: bool, errors: list | None = None) -> int:
         from apps.publishing.models import Channel
         from apps.publishing.secrets import SECRET_KEYS
 
@@ -168,7 +207,8 @@ class Command(BaseCommand):
             stale = [
                 key
                 for key in SECRET_KEYS
-                if isinstance((config or {}).get(key), str) and crypto.needs_rotation(config[key])
+                if isinstance((config or {}).get(key), str)
+                and self._rotatable(config[key], f"Channel[{pk}].config.{key}")
             ]
             if not stale:
                 continue
@@ -193,7 +233,7 @@ class Command(BaseCommand):
                     Channel.objects.filter(pk=pk).update(config=cfg)
         return n
 
-    def _documents(self, apply: bool) -> int:
+    def _documents(self, apply: bool, errors: list | None = None) -> int:
         from apps.documents.models import SecureDocument
 
         n = 0
@@ -202,7 +242,7 @@ class Command(BaseCommand):
                 continue
             with default_storage.open(path, "rb") as fh:
                 blob = fh.read()
-            if not crypto.needs_rotation(blob):
+            if not self._rotatable(blob, f"SecureDocument[{pk}] {path}"):
                 continue
             n += 1
             if apply:
@@ -216,7 +256,9 @@ class Command(BaseCommand):
                 saved = default_storage.save(
                     f"{folder}/{uuid.uuid4().hex}.enc", ContentFile(rotated)
                 )
-                if SecureDocument.objects.filter(pk=pk).update(path=saved) == 0:
+                # `path=path` в фильтре: указатель могли сменить параллельно,
+                # и тогда наш новый файл лишний — привязывать его нельзя.
+                if SecureDocument.objects.filter(pk=pk, path=path).update(path=saved) == 0:
                     # Строку убрали по ходу прогона (ретеншн-чистка `purge_expired`
                     # или владелец из кабинета). Ретеншн ходит ПО СТРОКАМ, поэтому
                     # оставленный файл пережил бы собственную дату удаления и
@@ -225,6 +267,15 @@ class Command(BaseCommand):
                     continue
                 try:
                     default_storage.delete(path)
-                except Exception:  # noqa: BLE001 — указатель уже переключён
+                except Exception as exc:  # noqa: BLE001 — указатель уже переключён
+                    # Не просто лог: НЕудалённый старый blob по-прежнему читается
+                    # производным от SECRET_KEY ключом, то есть цель ротации не
+                    # достигнута. Молчаливый успех здесь — ровно та ложь, которую
+                    # эта же волна убирала из кода возврата.
                     logger.warning("rotate_secrets: старый blob %s не удалён", path)
+                    if errors is not None:
+                        errors.append(
+                            f"старый шифротекст {path} НЕ удалён ({exc!r}) — он всё ещё "
+                            "читается ключом из SECRET_KEY"
+                        )
         return n

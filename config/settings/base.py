@@ -582,6 +582,11 @@ META_GRAPH_API_VERSION = env("META_GRAPH_API_VERSION", default="v21.0")
 #   python -c "from cryptography.fernet import Fernet;print(Fernet.generate_key().decode())"
 # ---------------------------------------------------------------------------
 SECRETS_ENCRYPTION_KEY = env("SECRETS_ENCRYPTION_KEY", default="")
+# Прежние ключи — только для ЧТЕНИЯ (смена ключа: новый в SECRETS_ENCRYPTION_KEY,
+# старый сюда, затем `manage.py rotate_secrets --apply`, затем строку можно
+# убрать). Без этого смена ключа делала всё зашифрованное нечитаемым, а команда
+# честно отвечала «нечего ротировать».
+SECRETS_ENCRYPTION_KEY_PREVIOUS = env.list("SECRETS_ENCRYPTION_KEY_PREVIOUS", default=[])
 
 # ---------------------------------------------------------------------------
 # In-app OAuth подключение каналов (OAuth-A). Callback — единый на основном

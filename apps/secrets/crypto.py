@@ -27,6 +27,24 @@ def _explicit_key() -> bytes | None:
     return key.encode() if isinstance(key, str) else key
 
 
+def _previous_keys() -> list[bytes]:
+    """Прежние явные ключи — ТОЛЬКО для чтения (смена ключа KEY1 → KEY2).
+
+    Без них смена ключа означала бы, что всё зашифрованное перестаёт читаться, а
+    `rotate_secrets` при этом честно отвечает «нечего ротировать»: ротация ищет
+    то, что читается СТАРЫМ ключом, а старого ключа в связке нет.
+    """
+    raw = getattr(settings, "SECRETS_ENCRYPTION_KEY_PREVIOUS", None) or []
+    if isinstance(raw, (str, bytes)):
+        raw = [raw]
+    out = []
+    for key in raw:
+        key = (key or "").strip() if isinstance(key, str) else key
+        if key:
+            out.append(key.encode() if isinstance(key, str) else key)
+    return out
+
+
 @lru_cache(maxsize=1)
 def _fernet() -> MultiFernet:
     """P0-3 (аудит 2026-09-03 §9.3): явный ключ ПЕРВЫМ, производный — вторым.
@@ -42,36 +60,56 @@ def _fernet() -> MultiFernet:
     explicit = _explicit_key()
     if explicit:
         keys.append(Fernet(explicit))
+    keys.extend(Fernet(key) for key in _previous_keys())
     keys.append(Fernet(_derived_key()))
     return MultiFernet(keys)
 
 
-def needs_rotation(token) -> bool:
-    """True — шифротекст читается ТОЛЬКО производным ключом (ждёт ротации).
+#: Все токены Fernet начинаются с версии 0x80 → в urlsafe-base64 это «gAAAAA».
+_TOKEN_PREFIX = b"gAAAAA"
 
-    False — уже явным ключом, явного ключа нет (ротировать не во что), пусто,
-    либо это вообще не наш шифротекст (легаси-плейнтекст, мусор) — такое не трогаем.
-    """
+#: Состояния значения относительно текущей связки ключей.
+CURRENT = "current"  # читается АКТУАЛЬНЫМ явным ключом — ротировать нечего
+ROTATABLE = "rotatable"  # читается старым (производным/прежним явным) — под ротацию
+UNREADABLE = "unreadable"  # похоже на наш шифротекст, но НИ ОДИН ключ его не читает
+NOT_OURS = "not_ours"  # пусто или легаси-плейнтекст — не трогаем
+
+
+def status(token) -> str:
+    """Состояние значения. Отдельная функция, потому что «нечего ротировать» и
+    «ничего не читается» — разные вещи: при смене ключа без
+    SECRETS_ENCRYPTION_KEY_PREVIOUS второе выглядело бы как первое, и команда
+    рапортовала бы «0 к перешифровке», пока прод молча читает всё как ''."""
     if not token:
-        return False
-    explicit = _explicit_key()
-    if not explicit:
-        return False
+        return NOT_OURS
     data = token.encode() if isinstance(token, str) else token
-    # Конструктор — ВНЕ try: кривой ключ (hex вместо base64, python-repr) должен
-    # падать, а не выдавать «нечего ротировать». Раньше ValueError конструктора
-    # ловился здесь же, и `rotate_secrets` при негодном ключе честно печатал «0».
-    explicit_fernet = Fernet(explicit)
-    try:
-        explicit_fernet.decrypt(data)
-        return False
-    except (InvalidToken, ValueError, TypeError):
-        pass
+    explicit = _explicit_key()
+    if explicit:
+        # Конструктор — ВНЕ try: кривой ключ (hex вместо base64, python-repr)
+        # должен падать, а не выдавать «нечего ротировать» или «нечитаемо».
+        explicit_fernet = Fernet(explicit)
+        try:
+            explicit_fernet.decrypt(data)
+            return CURRENT
+        except (InvalidToken, ValueError, TypeError):
+            pass
     try:
         _fernet().decrypt(data)
-        return True
-    except (InvalidToken, ValueError):
-        return False
+        # Явного ключа нет — ротировать не во что, состояние «актуальное».
+        return ROTATABLE if explicit else CURRENT
+    except (InvalidToken, ValueError, TypeError):
+        pass
+    return UNREADABLE if data[: len(_TOKEN_PREFIX)] == _TOKEN_PREFIX else NOT_OURS
+
+
+def needs_rotation(token) -> bool:
+    """True — шифротекст читается старым ключом (производным или прежним явным).
+
+    False — уже актуальным явным, явного ключа нет (ротировать не во что), пусто,
+    не наш шифротекст, а также нечитаемое НИ ОДНИМ ключом: последнее — не работа
+    для ротации, а сигнал о неверной конфигурации ключей (см. `status`).
+    """
+    return status(token) == ROTATABLE
 
 
 def rotate_bytes(token: bytes) -> bytes:

@@ -213,20 +213,20 @@ def test_concurrent_write_during_rotation_is_not_rolled_back(monkeypatch):
             return cur.fetchone()[0]
 
     snapshot = raw_token()
-    real_needs_rotation = crypto.needs_rotation
+    real_status = crypto.status
     state = {"raced": False}
 
-    def racing_needs_rotation(token):
+    def racing_status(token):
         # Момент ПОСЛЕ снятия снимка: приложение пишет своё значение (уже явным
         # ключом). Дальше команда обязана перечитать строку и не трогать свежее.
         if token == snapshot and not state["raced"]:
             state["raced"] = True
             TelegramBot.objects.filter(pk=bot.pk).update(token="neu:token")
-        return real_needs_rotation(token)
+        return real_status(token)
 
     with override_settings(SECRETS_ENCRYPTION_KEY=NEW_KEY):
         crypto._fernet.cache_clear()
-        monkeypatch.setattr(crypto, "needs_rotation", racing_needs_rotation)
+        monkeypatch.setattr(crypto, "status", racing_status)
         call_command("rotate_secrets", "--apply")
     assert state["raced"], "гонка не смоделирована — снимок не совпал"
     assert TelegramBot.objects.get(pk=bot.pk).token == "neu:token"
@@ -313,5 +313,140 @@ def test_env_examples_do_not_ship_an_unusable_key():
     for name in (".env.prod.example", ".env.example"):
         for line in (root / name).read_text().splitlines():
             stripped = line.strip()
-            if stripped.startswith("SECRETS_ENCRYPTION_KEY="):
-                assert stripped == "SECRETS_ENCRYPTION_KEY=", f"{name}: {stripped}"
+            if stripped.startswith(("SECRETS_ENCRYPTION_KEY=", "SECRETS_ENCRYPTION_KEY_PREVIOUS=")):
+                assert stripped.endswith("="), f"{name}: {stripped}"
+        text = (root / name).read_text()
+        assert "SECRETS_ENCRYPTION_KEY_PREVIOUS" in text, f"{name}: смена ключа не описана"
+
+
+def test_key_change_without_previous_key_is_loud_not_silent():
+    """HIGH из ревью: инструкция «смени ключ и прогони rotate_secrets» приводила
+    к тому, что НИЧЕГО не читается, а команда честно печатала «0 к перешифровке»
+    и выходила успешно. Теперь нечитаемое считается отдельно и валит команду."""
+    from apps.tenants.tests.factories import TenantFactory
+
+    key1 = Fernet.generate_key().decode()
+    key2 = Fernet.generate_key().decode()
+    with override_settings(SECRETS_ENCRYPTION_KEY=key1):
+        crypto._fernet.cache_clear()
+        PlatformSecret.objects.create(key="meta_app_secret", value_encrypted=crypto.encrypt("pw"))
+    TenantFactory(schema_name="rot_keychg", slug="rot-keychg")
+
+    with override_settings(SECRETS_ENCRYPTION_KEY=key2, SECRETS_ENCRYPTION_KEY_PREVIOUS=[]):
+        crypto._fernet.cache_clear()
+        with pytest.raises(CommandError) as exc:
+            call_command("rotate_secrets")  # уже DRY-RUN обязан кричать
+    assert "PREVIOUS" in str(exc.value)
+
+
+def test_key_change_with_previous_key_rotates_and_keeps_data():
+    """Обратная сторона: со старым ключом в SECRETS_ENCRYPTION_KEY_PREVIOUS смена
+    ключа работает — старое читается, перешифровывается новым, данные целы."""
+    from apps.tenants.tests.factories import TenantFactory
+
+    key1 = Fernet.generate_key().decode()
+    key2 = Fernet.generate_key().decode()
+    with override_settings(SECRETS_ENCRYPTION_KEY=key1):
+        crypto._fernet.cache_clear()
+        secret = PlatformSecret.objects.create(
+            key="meta_app_secret", value_encrypted=crypto.encrypt("pw")
+        )
+    TenantFactory(schema_name="rot_keychg2", slug="rot-keychg2")
+
+    with override_settings(SECRETS_ENCRYPTION_KEY=key2, SECRETS_ENCRYPTION_KEY_PREVIOUS=[key1]):
+        crypto._fernet.cache_clear()
+        call_command("rotate_secrets", "--apply")
+        assert PlatformSecret.objects.get(pk=secret.pk).get_value() == "pw"
+        fresh = PlatformSecret.objects.get(pk=secret.pk).value_encrypted
+        assert crypto.status(fresh) == crypto.CURRENT
+
+    # и новый шифротекст больше не читается ПЕРВЫМ ключом
+    with override_settings(SECRETS_ENCRYPTION_KEY=key1, SECRETS_ENCRYPTION_KEY_PREVIOUS=[]):
+        crypto._fernet.cache_clear()
+        assert crypto.decrypt(fresh) == ""
+
+
+def test_failed_delete_of_the_old_blob_is_reported_not_just_logged(monkeypatch):
+    """Неудалённый старый blob по-прежнему читается ключом из SECRET_KEY — то
+    есть цель ротации НЕ достигнута. Молчаливый успех здесь и есть та ложь,
+    которую волна убирала из кода возврата."""
+    from django.core.files.storage import default_storage
+
+    from apps.documents import storage as doc_storage
+    from apps.documents.models import SecureDocument
+    from apps.tenants.tests.factories import TenantFactory
+
+    with override_settings(SECRETS_ENCRYPTION_KEY=""):
+        crypto._fernet.cache_clear()
+        path, mime, size = doc_storage.save_encrypted(ContentFile(PNG, name="x.png"))
+        SecureDocument.objects.create(path=path, mime=mime, size=size)
+    crypto._fernet.cache_clear()
+    TenantFactory(schema_name="rot_nodel", slug="rot-nodel")
+
+    monkeypatch.setattr(
+        default_storage, "delete", lambda *a, **kw: (_ for _ in ()).throw(OSError("AccessDenied"))
+    )
+    with override_settings(SECRETS_ENCRYPTION_KEY=NEW_KEY):
+        crypto._fernet.cache_clear()
+        with pytest.raises(CommandError):
+            call_command("rotate_secrets", "--apply")
+
+
+def test_platform_secret_concurrent_write_is_not_rolled_back(monkeypatch):
+    """Тот же перечит под блокировкой, что у полей тенанта: докстринг команды
+    обещал его для всего, а public-проход писал по снимку — свежая правка
+    секрета в админке платформы молча терялась."""
+    from apps.tenants.tests.factories import TenantFactory
+
+    with override_settings(SECRETS_ENCRYPTION_KEY=""):
+        crypto._fernet.cache_clear()
+        secret = PlatformSecret.objects.create(
+            key="meta_app_secret", value_encrypted=crypto.encrypt("alt")
+        )
+    crypto._fernet.cache_clear()
+    TenantFactory(schema_name="rot_psrace", slug="rot-psrace")
+
+    snapshot = PlatformSecret.objects.get(pk=secret.pk).value_encrypted
+    real_status = crypto.status
+    state = {"raced": False}
+
+    def racing_status(token):
+        if token == snapshot and not state["raced"]:
+            state["raced"] = True
+            fresh = PlatformSecret.objects.get(pk=secret.pk)
+            fresh.set_value("neu")
+            fresh.save(update_fields=["value_encrypted"])
+        return real_status(token)
+
+    with override_settings(SECRETS_ENCRYPTION_KEY=NEW_KEY):
+        crypto._fernet.cache_clear()
+        monkeypatch.setattr(crypto, "status", racing_status)
+        call_command("rotate_secrets", "--apply")
+    assert state["raced"]
+    assert PlatformSecret.objects.get(pk=secret.pk).get_value() == "neu"
+
+
+def test_purge_removes_the_blob_even_if_rotation_moved_it(monkeypatch):
+    """Ретеншн документов ходит ПО СТРОКАМ и работал по снимку пути. Ротация
+    ключей переносит blob на новое имя — purge удалял бы СТАРЫЙ путь и сносил
+    строку, а новый шифротекст с PII оставался в бакете навсегда."""
+    from django.core.files.storage import default_storage
+
+    from apps.documents import services as doc_services
+    from apps.documents import storage as doc_storage
+    from apps.documents.models import SecureDocument
+
+    with override_settings(SECRETS_ENCRYPTION_KEY=""):
+        crypto._fernet.cache_clear()
+        path, mime, size = doc_storage.save_encrypted(ContentFile(PNG, name="x.png"))
+        doc = SecureDocument.objects.create(path=path, mime=mime, size=size)
+    crypto._fernet.cache_clear()
+
+    # blob «переехал» после того, как ретеншн снял свой снимок
+    moved = doc_storage.default_storage.save(
+        "documents/moved.enc", ContentFile(crypto.encrypt_bytes(PNG))
+    )
+    SecureDocument.objects.filter(pk=doc.pk).update(path=moved)
+
+    doc_services.purge(doc)  # doc в памяти всё ещё держит СТАРЫЙ путь
+    assert not default_storage.exists(moved), "новый шифротекст остался в бакете"
