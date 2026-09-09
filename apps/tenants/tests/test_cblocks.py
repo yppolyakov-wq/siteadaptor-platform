@@ -468,7 +468,9 @@ def test_normalize_page_blocks_whitelist_and_clean():
         {
             "page_blocks": {
                 "services": [{"key": "text", "id": "s1", "data": {"title": "T"}, "width": "w12"}],
-                "legal": [{"key": "text", "id": "l1", "data": {"title": "X"}}],  # вне whitelist
+                # STU-14: `legal` стал валидным хостом (правовые получили C-блоки),
+                # поэтому пример «вне whitelist» — заведомо несуществующий ключ.
+                "nirgendwo": [{"key": "text", "id": "l1", "data": {"title": "X"}}],
                 "catalog": "junk",
             }
         }
