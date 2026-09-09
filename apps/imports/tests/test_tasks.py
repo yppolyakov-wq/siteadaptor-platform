@@ -94,7 +94,13 @@ def test_import_stays_completed_when_source_file_delete_fails(monkeypatch):
     from django.core.files.storage import default_storage
     from django.db.models.fields.files import FieldFile
 
+    seen = {}
+
     def boom(self, save=True):
+        # Момент удаления: статус в БД обязан быть уже completed, иначе сбой
+        # storage откатывал бы состоявшийся импорт (порядок иначе не наблюдаем
+        # снаружи, и замок фиксировал бы только глотание исключения).
+        seen["status"] = ImportJob.objects.values_list("status", flat=True).first()
         raise OSError("storage down")
 
     monkeypatch.setattr(FieldFile, "delete", boom)
@@ -102,6 +108,7 @@ def test_import_stays_completed_when_source_file_delete_fails(monkeypatch):
     preview_import(dedupe_key=None, schema_name="public", job_id=str(job.id))
     path = job.source_file.name
     run_import(dedupe_key=None, schema_name="public", job_id=str(job.id))
+    assert seen.get("status") == "completed"
     job.refresh_from_db()
     assert job.status == "completed"
     assert Product.objects.filter(sku="BR-1").exists()

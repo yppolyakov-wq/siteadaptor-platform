@@ -13,7 +13,7 @@ from apps.tenants.tests.factories import TenantFactory
 LOCMEM = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
 
 
-def _req(*, method="GET", get=None, session_empty=True, schema="acme", path="/"):
+def _req(*, method="GET", get=None, session_empty=True, schema="acme", path="/", host="acme.test"):
     return SimpleNamespace(
         method=method,
         GET=get or {},
@@ -21,6 +21,9 @@ def _req(*, method="GET", get=None, session_empty=True, schema="acme", path="/")
         tenant=SimpleNamespace(schema_name=schema),
         LANGUAGE_CODE="de",
         path=path,
+        # Настоящий HttpRequest это умеет; ключ кэша витрины включает хост
+        # (у тенанта одновременно живут субдомен и кастом-домен).
+        get_host=lambda: host,
     )
 
 
@@ -313,6 +316,12 @@ def test_unrendered_template_response_is_not_cached_and_does_not_raise(decorator
     view(_real_req())
     assert calls["n"] == 2
 
+    # Ветка `is_rendered` заперта ПРЯМО: без неё ContentNotRenderedError глотался
+    # бы общим except вокруг cache.set, тест остался бы зелёным, и отказ
+    # кэшировать стал бы побочным эффектом, а не решением.
+    unrendered = TemplateResponse(_real_req(), "storefront/home.html", {})
+    assert pagecache._cacheable(_real_req(), unrendered) is False
+
 
 @override_settings(CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
 def test_legacy_two_tuple_cache_entry_is_treated_as_miss():
@@ -381,3 +390,125 @@ def test_cache_hit_does_not_touch_csrf_or_session(decorator):
     assert view(request).content == b"shared"
     assert "CSRF_COOKIE_NEEDS_UPDATE" not in request.META
     assert not request.session.modified
+
+
+@override_settings(CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_storefront_cache_is_per_host():
+    """Ревью диффа: у тенанта одновременно живут субдомен провижининга и
+    подтверждённый кастом-домен — оба идут в тот же Django. Тело главной несёт
+    абсолютный URL (LocalBusiness JSON-LD), поэтому общий на два хоста кэш отдавал
+    посетителю кастом-домена разметку с адресом субдомена."""
+    from django.test import RequestFactory
+
+    cache.clear()
+
+    @pagecache.cache_storefront_page
+    def view(request):
+        return HttpResponse(f'"url":"https://{request.get_host()}/"')
+
+    def req(host):
+        request = RequestFactory().get("/", HTTP_HOST=host)
+        request.session = _real_req().session
+        request.tenant = SimpleNamespace(schema_name="acme")
+        request.LANGUAGE_CODE = "de"
+        return request
+
+    first = view(req("baeckerei.siteadaptor.de")).content.decode()
+    second = view(req("www.baeckerei.de")).content.decode()
+    assert "baeckerei.siteadaptor.de" in first
+    assert "www.baeckerei.de" in second
+
+    # оба хоста по-прежнему кэшируются (второй визит — без вызова вьюхи)
+    calls = {"n": 0}
+
+    @pagecache.cache_storefront_page
+    def counted(request):
+        calls["n"] += 1
+        return HttpResponse("x")
+
+    counted(req("shop.siteadaptor.de"))
+    counted(req("shop.siteadaptor.de"))
+    assert calls["n"] == 1
+
+
+# --- Ревью диффа: позитивный замок на РЕАЛЬНОЙ главной, а не на HttpResponse("x") ---
+
+
+@pytest.mark.django_db
+@override_settings(CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60, ROOT_URLCONF="config.urls_tenant")
+def test_real_storefront_home_is_still_cached_by_default():
+    """Цена P0-1 измерена на живой странице, а не на синтетической вьюхе.
+
+    Опасение ревью: с дефолтным `quick_add` главная всегда несёт форму с токеном,
+    значит кэш витрины умер целиком и молча (все прежние позитивные замки —
+    `HttpResponse("x")`). Замер: дефолтный конфиг + активный orders + товар в
+    наличии → токена в теле НЕТ, страница кэшируется. Замок фиксирует именно это:
+    если главная начнёт рендерить форму, тест покраснеет и цена станет видимой.
+    """
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.catalog.models import Product
+    from apps.promotions import public_views
+    from apps.tenants.tests.factories import TenantFactory
+
+    cache.clear()
+    tenant = TenantFactory(
+        schema_name="public", slug="sfcache", name="SF", disabled_modules=[], site_config={}
+    )
+    Product.objects.create(
+        name={"de": "Brot"}, base_price="2.00", is_active=True, is_featured=True, stock_quantity=5
+    )
+
+    def req():
+        request = RequestFactory().get("/")
+        SessionMiddleware(lambda r: None).process_request(request)
+        request.tenant = tenant
+        return request
+
+    body = public_views.storefront_home(req()).content.decode()
+    assert "Brot" in body  # товар реально отрисован, страница не пустая
+    assert "csrfmiddlewaretoken" not in body
+    assert cache.get("sfpage2:testserver:public:/:de:v0") is not None
+
+    # и хит действительно обслуживается кэшем — без повторного рендера
+    from unittest.mock import patch
+
+    with patch.object(
+        public_views, "_capture_channel", side_effect=AssertionError("вьюха вызвана")
+    ):
+        assert "Brot" in public_views.storefront_home(req()).content.decode()
+
+
+@pytest.mark.django_db
+@override_settings(CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60, ROOT_URLCONF="config.urls_tenant")
+def test_real_storefront_home_with_a_form_is_not_cached():
+    """Обратная сторона того же замка на живой странице: как только на главной
+    появляется форма с токеном (C-блок подписки), страница становится
+    персональной и в общий кэш не попадает."""
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.promotions import public_views
+    from apps.tenants.tests.factories import TenantFactory
+
+    cache.clear()
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="sfcache2",
+        name="SF2",
+        disabled_modules=[],
+        # C-блок подписки рендерит форму БЕЗУСЛОВНО (GK-8) — надёжный носитель
+        # токена на главной, не зависящий от гейтов архетипа.
+        site_config={"sections": [{"key": "newsletter", "enabled": True}]},
+    )
+
+    def req():
+        request = RequestFactory().get("/")
+        SessionMiddleware(lambda r: None).process_request(request)
+        request.tenant = tenant
+        return request
+
+    body = public_views.storefront_home(req()).content.decode()
+    assert "csrfmiddlewaretoken" in body, "секция заявки не отрисовала форму — замок бессмыслен"
+    assert cache.get("sfpage2:testserver:public:/:de:v0") is None

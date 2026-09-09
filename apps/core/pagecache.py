@@ -120,7 +120,12 @@ def cache_storefront_page(view):
         lang = getattr(request, "LANGUAGE_CODE", "de")
         # sfpage2: формат записи сменился (кортеж из трёх) — старые ключи
         # осиротеют по TTL, смешивать форматы нельзя.
-        key = f"sfpage2:{schema}:{request.path}:{lang}:v{_sf_version(schema)}"
+        # Хост — часть ключа (как в cache_public_page, как обещает докстринг
+        # модуля): у тенанта одновременно живут субдомен провижининга и
+        # подтверждённый кастом-домен, оба проксируются в тот же Django, а тело
+        # главной несёт абсолютный URL в LocalBusiness JSON-LD. Без хоста в
+        # ключе посетитель кастом-домена получал разметку с адресом субдомена.
+        key = f"sfpage2:{request.get_host()}:{schema}:{request.path}:{lang}:v{_sf_version(schema)}"
         try:
             hit = cache.get(key)
         except Exception:  # noqa: BLE001
