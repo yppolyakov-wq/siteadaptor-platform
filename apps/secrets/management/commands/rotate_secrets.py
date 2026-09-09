@@ -9,14 +9,28 @@ EncryptedTextField, секретные подключи Channel.config (publishi
 
 По умолчанию dry-run — только считает. `--apply` пишет. Идемпотентна: уже
 перешифрованное не трогает (crypto.needs_rotation). Ошибка в одной схеме не
-валит обход — печатается, идём дальше.
+валит обход — печатается, идём дальше; но в конце команда падает с перечнем
+сбойных схем: «прошло без ошибок» и «выход 0» обязаны значить одно и то же,
+иначе владелец сочтёт ротацию выполненной и решит, что утечка SECRET_KEY уже
+безопасна.
+
+Прод во время ротации РАБОТАЕТ, поэтому пишем не по снимку: значение
+перечитывается под блокировкой строки, и свежая запись приложения переживает
+проход. Файлы документов пишутся в НОВОЕ имя (старое удаляется только после
+переключения указателя) — сбой хранилища между delete и save уничтожал бы
+единственный экземпляр шифротекста.
 """
+
+import logging
+import posixpath
+import uuid
 
 from django.apps import apps
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
 from django.db.models import TextField
 from django.db.models.functions import Cast
 from django_tenants.utils import get_public_schema_name, get_tenant_model, schema_context
@@ -24,6 +38,8 @@ from django_tenants.utils import get_public_schema_name, get_tenant_model, schem
 from apps.secrets import crypto
 from apps.secrets.fields import EncryptedTextField
 from apps.secrets.models import PlatformSecret
+
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -38,7 +54,13 @@ class Command(BaseCommand):
         if not (getattr(settings, "SECRETS_ENCRYPTION_KEY", "") or ""):
             raise CommandError("SECRETS_ENCRYPTION_KEY не задан — ротировать не во что.")
         mode = "apply" if apply else "dry-run"
-        total = self._platform_secrets(apply)
+        failed = []
+        total = 0
+        try:
+            total = self._platform_secrets(apply)
+        except Exception as exc:  # noqa: BLE001 — public не валит обход схем
+            self.stderr.write(f"public: ОШИБКА {exc!r}")
+            failed.append(get_public_schema_name())
         self.stdout.write(f"public: PlatformSecret — {total}")
 
         tenant_model = get_tenant_model()
@@ -46,16 +68,27 @@ class Command(BaseCommand):
             "schema_name", flat=True
         )
         for schema in schemas:
+            errors = []
+            n = 0
             try:
                 with schema_context(schema):
-                    n = self._tenant_schema(apply)
+                    n = self._tenant_schema(apply, errors)
             except Exception as exc:  # noqa: BLE001 — одна схема не валит обход
-                self.stderr.write(f"{schema}: ОШИБКА {exc!r}")
-                continue
+                errors.append(repr(exc))
+            for err in errors:
+                self.stderr.write(f"{schema}: ОШИБКА {err}")
+            if errors:
+                failed.append(schema)
             if n:
                 self.stdout.write(f"{schema}: {n}")
             total += n
         self.stdout.write(f"[{mode}] секретов к перешифровке: {total}")
+        if failed:
+            # Ненулевой код + перечень: «ротация выполнена» не должно быть ложью,
+            # а повторить точечно можно по именам из сообщения.
+            raise CommandError(
+                "схемы с ошибками (секреты в них НЕ перешифрованы полностью): " + ", ".join(failed)
+            )
 
     # --- public ---
 
@@ -72,8 +105,20 @@ class Command(BaseCommand):
 
     # --- схема тенанта ---
 
-    def _tenant_schema(self, apply: bool) -> int:
-        return self._encrypted_fields(apply) + self._channel_configs(apply) + self._documents(apply)
+    def _tenant_schema(self, apply: bool, errors: list) -> int:
+        """Три прохода НЕЗАВИСИМЫ: падение документов не должно обнулять уже
+        сделанную работу по полям и каналам (и их вклад в счётчик)."""
+        n = 0
+        for name, step in (
+            ("поля", self._encrypted_fields),
+            ("каналы", self._channel_configs),
+            ("документы", self._documents),
+        ):
+            try:
+                n += step(apply)
+            except Exception as exc:  # noqa: BLE001
+                errors.append(f"{name}: {exc!r}")
+        return n
 
     def _encrypted_fields(self, apply: bool) -> int:
         n = 0
@@ -90,28 +135,62 @@ class Command(BaseCommand):
                         continue
                     n += 1
                     if apply:
-                        # update() → get_prep_value поля → шифруется явным ключом.
-                        plain = crypto.decrypt(raw)
-                        model._default_manager.filter(pk=pk).update(**{field.name: plain})
+                        self._rotate_field(model, field, pk)
         return n
+
+    def _rotate_field(self, model, field, pk) -> None:
+        """Перечитать значение ПОД БЛОКИРОВКОЙ строки и только потом писать.
+
+        Снимок `rows` снимается до начала записи, а обход всех моделей всех схем
+        идёт минутами: за это время гость сохранит Meldeschein, владелец сменит
+        токен бота. Запись по снимку молча вернула бы старое значение —
+        расхождение необнаружимо (поле шифрованное, по нему не отфильтруешь).
+        """
+        with transaction.atomic():
+            fresh = (
+                model._default_manager.select_for_update()
+                .annotate(_raw=Cast(field.name, output_field=TextField()))
+                .filter(pk=pk)
+                .values_list("_raw", flat=True)
+                .first()
+            )
+            if fresh is None or not crypto.needs_rotation(fresh):
+                return  # строку удалили или приложение уже переписало её явным ключом
+            # update() → get_prep_value поля → шифруется явным ключом.
+            model._default_manager.filter(pk=pk).update(**{field.name: crypto.decrypt(fresh)})
 
     def _channel_configs(self, apply: bool) -> int:
         from apps.publishing.models import Channel
         from apps.publishing.secrets import SECRET_KEYS
 
         n = 0
-        for channel in Channel.objects.all().iterator():
-            cfg = dict(channel.config or {})
-            changed = False
-            for key in SECRET_KEYS:
-                value = cfg.get(key)
-                if isinstance(value, str) and crypto.needs_rotation(value):
-                    n += 1
-                    changed = True
-                    if apply:
+        for pk, config in Channel.objects.values_list("pk", "config").iterator():
+            stale = [
+                key
+                for key in SECRET_KEYS
+                if isinstance((config or {}).get(key), str) and crypto.needs_rotation(config[key])
+            ]
+            if not stale:
+                continue
+            n += len(stale)
+            if not apply:
+                continue
+            # Весь JSON пишется целиком (так же его пишут oauth/views), поэтому
+            # мутируем СВЕЖИЙ словарь под блокировкой строки: иначе параллельное
+            # переподключение канала было бы молча откачено снимком.
+            with transaction.atomic():
+                channel = Channel.objects.select_for_update().filter(pk=pk).first()
+                if channel is None:
+                    continue
+                cfg = dict(channel.config or {})
+                changed = False
+                for key in SECRET_KEYS:
+                    value = cfg.get(key)
+                    if isinstance(value, str) and crypto.needs_rotation(value):
                         cfg[key] = crypto.encrypt(crypto.decrypt(value))
-            if apply and changed:
-                Channel.objects.filter(pk=channel.pk).update(config=cfg)
+                        changed = True
+                if changed:
+                    Channel.objects.filter(pk=pk).update(config=cfg)
         return n
 
     def _documents(self, apply: bool) -> int:
@@ -127,9 +206,19 @@ class Command(BaseCommand):
                 continue
             n += 1
             if apply:
+                # Пишем в НОВОЕ имя и только потом переключаем указатель. Раньше
+                # было delete(path) → save(path, …): сбой хранилища между ними
+                # (5xx, обрыв, OOM) уничтожал единственный экземпляр шифротекста —
+                # плейнтекст живёт только в памяти процесса. Осиротевший старый
+                # файл безопаснее уничтоженного нового.
                 rotated = crypto.rotate_bytes(blob)
-                default_storage.delete(path)
-                saved = default_storage.save(path, ContentFile(rotated))
-                if saved != path:  # хранилище переименовало — путь в БД должен совпасть
-                    SecureDocument.objects.filter(pk=pk).update(path=saved)
+                folder = posixpath.dirname(path) or "documents"
+                saved = default_storage.save(
+                    f"{folder}/{uuid.uuid4().hex}.enc", ContentFile(rotated)
+                )
+                SecureDocument.objects.filter(pk=pk).update(path=saved)
+                try:
+                    default_storage.delete(path)
+                except Exception:  # noqa: BLE001 — указатель уже переключён
+                    logger.warning("rotate_secrets: старый blob %s не удалён", path)
         return n

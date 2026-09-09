@@ -6,6 +6,7 @@ dev/CI, где фолбэк ключа из SECRET_KEY допустим наме
 зашифрованные секреты.
 """
 
+from cryptography.fernet import Fernet
 from django.conf import settings
 from django.core.checks import Error, Tags, Warning, register
 
@@ -14,6 +15,26 @@ from django.core.checks import Error, Tags, Warning, register
 def secrets_encryption_key_set(app_configs, **kwargs):
     key = getattr(settings, "SECRETS_ENCRYPTION_KEY", "") or ""
     if key:
+        # Проверяем ПРИГОДНОСТЬ, а не факт наличия: деплой стал fail-closed по
+        # этой переменной, и владелец задаёт её впервые. Естественные варианты
+        # — `openssl rand -hex 32` (64 hex) или скопированный python-repr
+        # `b'…='` — Fernet отвергает, но прежний гейт (`if key`) их пропускал:
+        # деплой рапортовал успех, а в проде ВСЕ секреты читались как ''
+        # (decrypt глотает ValueError), и интеграции молча умирали.
+        try:
+            Fernet(key.encode() if isinstance(key, str) else key)
+        except (ValueError, TypeError) as exc:
+            return [
+                Error(
+                    f"SECRETS_ENCRYPTION_KEY задан, но не является ключом Fernet: {exc}",
+                    hint=(
+                        "Нужны 32 байта в urlsafe-base64. Сгенерировать: python -c "
+                        '"from cryptography.fernet import Fernet; '
+                        "print(Fernet.generate_key().decode())\". Значение без префикса b'…'."
+                    ),
+                    id="secrets.E002",
+                )
+            ]
         return []
     msg = (
         "SECRETS_ENCRYPTION_KEY не задан — ключ шифрования секретов выводится из "

@@ -58,10 +58,14 @@ def needs_rotation(token) -> bool:
     if not explicit:
         return False
     data = token.encode() if isinstance(token, str) else token
+    # Конструктор — ВНЕ try: кривой ключ (hex вместо base64, python-repr) должен
+    # падать, а не выдавать «нечего ротировать». Раньше ValueError конструктора
+    # ловился здесь же, и `rotate_secrets` при негодном ключе честно печатал «0».
+    explicit_fernet = Fernet(explicit)
     try:
-        Fernet(explicit).decrypt(data)
+        explicit_fernet.decrypt(data)
         return False
-    except (InvalidToken, ValueError):
+    except (InvalidToken, ValueError, TypeError):
         pass
     try:
         _fernet().decrypt(data)
