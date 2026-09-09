@@ -173,6 +173,8 @@ def test_double_buffering_instruments_the_new_canvas():
         "about:blank буфера — не провал рендера, а нормальный первый load"
     )
     inst = _segment(tpl, "function instrumentFrame(", "function schedule()")
-    assert "lastInstrumentedDoc === gDoc" in inst, "гвард оснастки — по ДОКУМЕНТУ, не по <body> frame"
-    swap = _segment(tpl, "frame = buf;", "old.removeAttribute(\"id\")")
+    assert "lastInstrumentedDoc === gDoc" in inst, (
+        "гвард оснастки — по ДОКУМЕНТУ, не по <body> frame"
+    )
+    swap = _segment(tpl, "frame = buf;", 'old.removeAttribute("id")')
     assert "instrumentFrame()" in swap, "новый кадр оснащается сразу после подмены"
