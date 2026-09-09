@@ -1,0 +1,20 @@
+{% load i18n %}{% comment %}STU-15b: тело детали услуги/номера — один рендер на две раскладки.
+
+`sections` — те же `body_sections` (UA4-2: key/label/template/visible), поэтому порядок
+и состав секций не зависят от раскладки (паритет-замки целы). При «Tabs» каждая видимая
+секция становится панелью общего скрипта `_detail_tabs_script.html`: на телефоне —
+аккордеон, на md+ — вкладки. Пустой `layout` — прежний поток секций друг под другом.
+{% endcomment %}{% if layout == "tabs" %}
+<div class="mt-8" data-pd-tabs>
+  <div class="hidden gap-1 border-b border-gray-200 mb-4" data-pd-tablist role="tablist"></div>
+  {% for s in sections %}{% if s.visible %}
+  <details class="rounded-xl border border-gray-200 px-4 py-3 mb-2" data-pd-panel="{{ s.key }}"{% if forloop.first %} open{% endif %}>
+    <summary class="cursor-pointer font-semibold select-none">{{ s.label }}</summary>
+    {% include s.template %}
+  </details>
+  {% endif %}{% endfor %}
+</div>
+{% include "storefront/_detail_tabs_script.html" %}
+{% else %}
+{% for s in sections %}{% if s.visible %}{% include s.template %}{% endif %}{% endfor %}
+{% endif %}

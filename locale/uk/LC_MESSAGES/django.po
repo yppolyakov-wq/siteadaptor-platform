@@ -22449,3 +22449,42 @@ msgstr "Порядок і видимість — на панелі над бло
 #. STU-14: тип страницы «деталь статьи»
 msgid "Blogbeitrag"
 msgstr "Стаття блогу"
+
+#. STU-15a
+msgid "Standard (2 Spalten)"
+msgstr "Стандарт (2 колонки)"
+
+#. STU-15a
+msgid "As before: photo on the left, price and CTA on the right."
+msgstr "Як раніше: фото ліворуч, ціна і кнопка праворуч."
+
+#. STU-15a
+msgid "Plakat"
+msgstr "Плакат"
+
+#. STU-15a
+msgid "Wide photo across the top, price and button centred underneath."
+msgstr "Широке фото вгорі, ціна і кнопка по центру під ним."
+
+#. STU-15a
+msgid "Angebotszettel"
+msgstr "Листівка акції"
+
+#. STU-15a
+msgid ""
+"Coloured price band first, photo and conditions below — like a leaflet."
+msgstr ""
+"Спочатку кольорова плашка з ціною, нижче фото й умови — як у листівці."
+
+#. STU-15a
+msgid ""
+"Narrow column, small photo — for offers where the price is the message."
+msgstr "Вузька колонка, невелике фото — коли повідомлення і є ціна."
+
+#. STU-15a
+msgid "Magazin"
+msgstr "Журнал"
+
+#. STU-15a
+msgid "Story first with a wide text column, photo alongside."
+msgstr "Спочатку розповідь широкою колонкою, фото поруч."

@@ -206,7 +206,17 @@ def termin_index(request):
     services_base = Service.objects.filter(is_active=True)
     if services_base.exists():  # G10: бизнес услуг — выбираем услугу, не ресурс
         q = (request.GET.get("q") or "").strip()
-        sort = request.GET.get("sort") or ""
+        # STU-15c: посетитель сильнее владельца — его `?sort=` побеждает дефолт из
+        # настроек страницы (тот действует, пока выбора нет). Читаем СЫРОЙ конфиг:
+        # значение клампится реестром сортировок провайдера.
+        from apps.tenants import siteconfig as _sc
+
+        _lcfg = getattr(request.tenant, "site_config", {}) or {}
+        sort = request.GET.get("sort") or (
+            _lcfg.get("services_sort")
+            if _lcfg.get("services_sort") in _sc.listing_sort_keys("services_sort")
+            else ""
+        )
         selected = provider.selected(request.GET)
         kollektion = selected["kollektion"]
         services_qs = provider.sort(
@@ -618,9 +628,13 @@ def _service_rich_context(request, service, tenant) -> dict:
         "reviews": "storefront/_entity_reviews.html",
         "upsell": "storefront/sections/detail/_service_upsell.html",
     }
+    # STU-15b: подпись секции — из ЕДИНОГО реестра (UA4-1). Нужна раскладке «Tabs»:
+    # заголовок вкладки обязан звучать так же, как пункт в инспекторе Studio.
+    _labels = detail_sections.section_labels("booking")
     body_sections = [
         {
             "key": k,
+            "label": _labels.get(k, k),
             "template": _section_template[k],
             "visible": _present.get(k, False) and k not in _hidden,
         }
@@ -653,6 +667,8 @@ def _service_rich_context(request, service, tenant) -> dict:
         "detail_hidden": _hidden,
         # UA4-2: упорядоченные секции тела детали (data-driven рендер).
         "body_sections": body_sections,
+        # STU-15b: раскладка страницы детали услуги ("" | tabs | breit).
+        "detail_layout": siteconfig.detail_layout(_raw, "service"),
     }
 
 

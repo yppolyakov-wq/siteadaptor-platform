@@ -45,7 +45,22 @@
   порядка.{% endcomment %}
   <div data-sf-section="event_detail">
     {# UC2-2/2: пер-секционная обёртка — drag на канве переставляет ed_order_*. #}
+    {% if detail_layout == "tabs" %}
+    {% comment %}STU-15b: те же секции того же порядка, но панелями вкладок (на телефоне
+    аккордеон). Обёртка data-ed-section сохранена — drag на канве продолжает работать.{% endcomment %}
+    <div data-pd-tabs>
+      <div class="hidden gap-1 border-b border-gray-200 mb-4" data-pd-tablist role="tablist"></div>
+      {% for t in event_detail_tabs %}<div data-ed-section="{{ t.key }}">
+        <details class="rounded-xl border border-gray-200 px-4 py-3 mb-2" data-pd-panel="{{ t.key }}"{% if forloop.first %} open{% endif %}>
+          <summary class="cursor-pointer font-semibold select-none">{{ t.label }}</summary>
+          {% include "storefront/_event_thematic.html" with k=t.key %}
+        </details>
+      </div>{% endfor %}
+    </div>
+    {% include "storefront/_detail_tabs_script.html" %}
+    {% else %}
     {% for k in event_detail_order %}<div data-ed-section="{{ k }}">{% include "storefront/_event_thematic.html" with k=k %}</div>{% endfor %}
+    {% endif %}
   </div>
 
   {# 14. Begrenzte Plätze #}

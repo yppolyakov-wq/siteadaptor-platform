@@ -19,7 +19,10 @@
 в документе не меняется (левая колонка идёт перед правой), поэтому реестровый
 паритет description → amenities → reviews → similar цел.{% endcomment %}
 <div class="mt-4 space-y-4" data-sf-section="stay_detail">
-{% for s in body_sections %}{% if s.visible and s.key in under_gallery_keys %}{% include s.template %}{% endif %}{% endfor %}
+{% comment %}STU-15b: в раскладке «Tabs» деления «под галереей / в теле» нет —
+иначе вкладки собрали бы только часть секций, а рассказ о номере остался бы
+снаружи. Все секции уходят в тело одной панелью вкладок.{% endcomment %}
+{% if detail_layout != "tabs" %}{% for s in body_sections %}{% if s.visible and s.key in under_gallery_keys %}{% include s.template %}{% endif %}{% endfor %}{% endif %}
 </div>{% endblock %}
 
 {% block detail_aside %}
@@ -69,7 +72,7 @@
    Замок паритета — test_stay_detail_section_order_parity.{% endcomment %}
 {# UC2-2: обёртка data-sf-section — клик на канве открывает инспектор секций страницы. #}
 <div data-sf-section="stay_detail">
-{% for s in body_sections %}{% if s.visible and s.key not in under_gallery_keys %}{% include s.template %}{% endif %}{% endfor %}
+{% if detail_layout == "tabs" %}{% include "storefront/_detail_sections.html" with sections=body_sections layout=detail_layout %}{% else %}{% for s in body_sections %}{% if s.visible and s.key not in under_gallery_keys %}{% include s.template %}{% endif %}{% endfor %}{% endif %}
 </div>
 {% endblock %}
 

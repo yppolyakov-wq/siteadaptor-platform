@@ -90,8 +90,22 @@ def _detail_ctx(request, promo, form) -> dict:
         related = list(others[:8])
     from apps.orders import delivery_choice
 
+    # STU-15a: ШАБЛОН страницы этой акции — своё поле акции побеждает дефолт сайта.
+    # Конфиг берём тем же путём, что обзор акций (_promo_page_config), чтобы выбор
+    # в Studio был виден на канве ДО «Опубликовать» (?preview=1 → черновик). Читаем
+    # СЫРОЙ site_defaults (без normalize — лишняя работа на каждый показ детали):
+    # значение всё равно клампится реестром внутри резолвера.
+    # `getattr` — как у соседних строк контекста: деталь акции рендерят и вьюхи,
+    # собранные RequestFactory (замки), где тенанта на запросе нет.
+    _cfg_raw = _promo_page_config(request) if getattr(request, "tenant", None) else {}
+    _sd = (_cfg_raw or {}).get("site_defaults")
+    detail_style = group_styles.promotion_detail_style(
+        promo.page_style, (_sd or {}).get("promo_detail_style", "") if isinstance(_sd, dict) else ""
+    )
+
     return {
         "promotion": promo,
+        "promo_detail_style": detail_style,
         "form": form,
         "waitlist_form": WaitlistForm(),
         # SH-24: данные выбора «Abholung | Lieferung» для общего партиала.
@@ -1800,6 +1814,9 @@ def product_detail(request, pk=None, pslug=None, cslug=None):
             # DL-16.6 (D2): "" — описание/Kennzeichnung в правой колонке, отзывы телом;
             # "tabs" — все три панелями тела (аккордеон <md, табы md+).
             "product_detail_layout": siteconfig.product_detail_layout(_cfg),
+            # STU-15b: та же ось, что у услуги/номера/события — каркас детали читает её
+            # для раскладки «breit» (кадр во всю ширину). "tabs" у товара своя разметка.
+            "detail_layout": siteconfig.detail_layout(_cfg, "product"),
             # Гейт панели/блока Kennzeichnung — есть хоть одно поле (LMIV/Textil).
             "product_has_info": bool(
                 product.origin

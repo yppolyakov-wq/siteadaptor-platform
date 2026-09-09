@@ -182,22 +182,58 @@ SETTINGS: dict[str, Setting] = {
             OBJECT_PROMO_GROUP,
             "style",
         ),
+        # STU-15a: у страницы одной акции шаблона не было вовсе — при том что у
+        # товара, категории и группы акций он есть. «Только здесь» пишет саму
+        # акцию: длинный рассказ у одной и короткий флаер у другой — норма.
+        _s(
+            "promo_detail_style",
+            _("Vorlage der Seite"),
+            "sd_promo_detail_style",
+            ("site_defaults", "promo_detail_style"),
+            OBJECT_PROMOTION,
+            "page_style",
+        ),
         # ── услуги / номера / события
         _s("service_layout", _("Raster"), "service_preset", ("service_index_layout",)),
+        # STU-15c: дефолт сортировки листинга — у каталога он есть с UB2-2, у трёх
+        # других листингов владелец не мог задать порядок вообще.
+        _s("services_sort", _("Sortierung"), "services_sort", ("services_sort",)),
         _s(
             "service_detail_sections",
             _("Abschnitte"),
             "sd_visible_*",
             ("service_detail", "hidden"),
         ),
+        # STU-15b: раскладка страницы — у услуги/номера/события её не было, хотя тело
+        # у них устроено так же, как у товара (data-driven цикл секций UA4-2).
+        _s(
+            "service_detail_layout",
+            _("Aufbau der Detailseite"),
+            "sd_layout",
+            ("service_detail", "layout"),
+        ),
         _s("stay_layout", _("Raster"), "stay_preset", ("stay_index_layout",)),
+        _s("stays_sort", _("Sortierung"), "stays_sort", ("stays_sort",)),
         _s("stay_detail_sections", _("Abschnitte"), "std_visible_*", ("stay_detail", "hidden")),
+        _s(
+            "stay_detail_layout",
+            _("Aufbau der Detailseite"),
+            "std_layout",
+            ("stay_detail", "layout"),
+        ),
         _s("events_layout", _("Raster"), "events_preset", ("events_index_layout",)),
+        _s("events_sort", _("Sortierung"), "events_sort", ("events_sort",)),
         _s(
             "event_detail_sections",
             _("Abschnitte"),
             "ed_visible_*",
             ("event_detail", "hidden"),
+        ),
+        _s(
+            "event_detail_layout",
+            _("Aufbau der Detailseite"),
+            "ed_layout",
+            ("event_detail", "layout"),
         ),
         # ── корзина
         _s("cart_upsell", _("Passt dazu"), "cart_show_upsell", ("cart_show_upsell",)),
@@ -342,7 +378,7 @@ PAGE_TYPES: tuple[PageType, ...] = (
         "promo",
         _("Aktionsseite"),
         ("storefront-promotion",),
-        ("promo_card_form",),
+        ("promo_detail_style", "promo_card_form"),
         object_kind=OBJECT_PROMOTION,
         object_args=("pk",),
     ),
@@ -350,35 +386,35 @@ PAGE_TYPES: tuple[PageType, ...] = (
         "services",
         _("Leistungen"),
         ("storefront-termin",),
-        ("service_layout", "product_card_form"),
+        ("service_layout", "services_sort", "product_card_form"),
         block_host="services",
     ),
     PageType(
         "service",
         _("Leistung"),
         ("storefront-service-detail", "storefront-service-slots"),
-        ("service_detail_sections", "product_card_form"),
+        ("service_detail_sections", "service_detail_layout", "product_card_form"),
         block_host="service_detail",
     ),
     PageType(
         "stays",
         _("Zimmer"),
         ("storefront-unterkunft",),
-        ("stay_layout", "product_card_form"),
+        ("stay_layout", "stays_sort", "product_card_form"),
         block_host="stay_rooms",
     ),
     PageType(
         "stay",
         _("Zimmerseite"),
         ("storefront-unterkunft-unit",),
-        ("stay_detail_sections", "product_card_form"),
+        ("stay_detail_sections", "stay_detail_layout", "product_card_form"),
         block_host="stay_detail",
     ),
     PageType(
         "events",
         _("Veranstaltungen"),
         ("storefront-events",),
-        ("events_layout", "product_card_form"),
+        ("events_layout", "events_sort", "product_card_form"),
         block_host="events",
     ),
     # STU-9: у списка поездок СВОЙ тип. Раньше он был склеен с «Veranstaltungen»,
@@ -393,7 +429,7 @@ PAGE_TYPES: tuple[PageType, ...] = (
         "event",
         _("Veranstaltungsseite"),
         ("storefront-event", "storefront-tour"),
-        ("event_detail_sections", "product_card_form"),
+        ("event_detail_sections", "event_detail_layout", "product_card_form"),
         block_host="event_detail",
     ),
     PageType("cart", _("Warenkorb"), ("storefront-cart",), ("cart_upsell",), block_host="cart"),

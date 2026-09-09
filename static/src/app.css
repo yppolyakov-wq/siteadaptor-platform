@@ -1455,3 +1455,106 @@ input[type="datetime-local"] {
   outline: 2px solid var(--accent, #4f46e5);
   outline-offset: 2px;
 }
+
+/* ── STU-15a: ШАБЛОНЫ СТРАНИЦЫ АКЦИИ (`/p/<uuid>/`) ─────────────────────────
+   Разметка детали одна на все шаблоны (паритет-замки и inline-edit целы) — вид
+   задаёт каскад по `data-promo-detail` на корне, как у страницы категории
+   (`data-cat-layout`, DL-20) и обзора акций (`data-promo-page`, DL-21).
+   Колонки помечены `data-promo-col="media|info"`, фото-бокс `data-promo-media`,
+   карточка цены `data-promo-price`. Мобильный вид у всех шаблонов один
+   (одна колонка) — перестройки начинаются с ширины планшета. */
+
+/* Plakat: широкий кадр во всю ширину, цена и кнопка по центру под ним. */
+[data-promo-detail="plakat"] {
+  max-width: 56rem;
+  margin-inline: auto;
+}
+[data-promo-detail="kompakt"] {
+  max-width: 34rem;
+  margin-inline: auto;
+}
+[data-promo-detail="prospekt"] {
+  max-width: 48rem;
+  margin-inline: auto;
+}
+@media (min-width: 768px) {
+  /* одноколоночные шаблоны: сетка 2×N схлопывается в поток */
+  [data-promo-detail="plakat"],
+  [data-promo-detail="kompakt"],
+  [data-promo-detail="prospekt"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  [data-promo-detail="plakat"] [data-promo-media] {
+    aspect-ratio: 16 / 9;
+  }
+  [data-promo-detail="plakat"] [data-promo-col="info"] {
+    text-align: center;
+    max-width: 40rem;
+    margin-inline: auto;
+  }
+  /* центрирование текста не должно ломать строки-«ключ · значение» карточки */
+  [data-promo-detail="plakat"] [data-promo-price] {
+    text-align: left;
+  }
+  /* Angebotszettel: сначала цена и срок, фото под ними. */
+  [data-promo-detail="prospekt"] [data-promo-col="info"] {
+    order: 1;
+  }
+  [data-promo-detail="prospekt"] [data-promo-col="media"] {
+    order: 2;
+  }
+  [data-promo-detail="prospekt"] [data-promo-media] {
+    aspect-ratio: 16 / 9;
+  }
+  /* Magazin: рассказ слева широкой колонкой, кадр справа. */
+  [data-promo-detail="magazin"] {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  }
+  [data-promo-detail="magazin"] [data-promo-col="info"] {
+    order: 1;
+  }
+  [data-promo-detail="magazin"] [data-promo-col="media"] {
+    order: 2;
+  }
+}
+/* Kompakt: цена — сообщение, кадр вспомогательный (и на телефоне тоже). */
+[data-promo-detail="kompakt"] [data-promo-media] {
+  aspect-ratio: 4 / 3;
+}
+/* Angebotszettel: карточка цены как отрывной купон — акцентная рамка и полоса. */
+[data-promo-detail="prospekt"] [data-promo-price] {
+  border: 2px solid var(--accent, #dc2626);
+  box-shadow: none;
+  position: relative;
+  overflow: hidden;
+}
+[data-promo-detail="prospekt"] [data-promo-price]::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 0.5rem;
+  background: var(--accent, #dc2626);
+}
+[data-promo-detail="prospekt"] [data-promo-price] {
+  padding-top: 1.5rem;
+}
+
+/* ── STU-15b: раскладка страницы детали (услуга · номер · событие) ───────────
+   «breit» — кадр во всю ширину и широкое тело: для номера с панорамой и события
+   с афишей узкая колонка первого экрана обесценивала главное фото. Разметка та же
+   (каркас `detail.html`), меняется только каскад — как у страницы категории. */
+[data-detail-layout="breit"] {
+  max-width: 72rem;
+}
+@media (min-width: 1024px) {
+  [data-detail-layout="breit"] > .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* правая колонка перестаёт быть липкой — она идёт под кадром, а не рядом */
+  [data-detail-layout="breit"] > .grid > .lg\:sticky {
+    position: static;
+  }
+}
+[data-detail-layout="breit"] .max-w-3xl {
+  max-width: none;
+}

@@ -127,6 +127,10 @@ def test_page_config_keys_registry_consistent_with_apply_groups():
         | set(siteconfig._PAGE_BOOL_KEYS)
         | set(siteconfig._PAGE_STYLE_KEYS)  # DL-21.1: шаблон корневой страницы каталога
         | {"catalog_sort"}
+        # STU-15c: дефолты сортировки листингов услуг/номеров/событий — своя группа
+        # применения (валидация идёт по реестру сортировок провайдера, не по
+        # CATALOG_SORT_KEYS), поэтому в ожидаемое множество входят явно.
+        | set(siteconfig.LISTING_SORT_KINDS)
     )
     assert from_registry == from_apply
 
@@ -189,6 +193,12 @@ def test_buybox_boundary_not_canvas_configurable():
         keys = detail_sections.section_keys(module)
         assert not any("buybox" in k or "buchen" in k or "kaufen" in k for k in keys), module
     ev = open("templates/storefront/event_detail.html").read()
-    ed_line = next(line for line in ev.splitlines() if "data-ed-section" in line)
-    assert "_event_thematic" in ed_line  # drag только у тематических секций
-    assert "_buybox" not in ed_line
+    # STU-15b: drag-обёрток стало две (обычное тело и раскладка «Tabs»), и в
+    # табах include стоит НЕ на той же строке — проверяем каждое вхождение по
+    # его окну, а не первую строку с маркером (иначе замок ловил бы комментарий).
+    starts = [i for i in range(len(ev)) if ev.startswith("<div data-ed-section", i)]
+    assert starts, "drag-обёртка тематических секций исчезла"
+    for i in starts:
+        window = ev[i : i + 500]
+        assert "_event_thematic" in window  # drag только у тематических секций
+        assert "_buybox" not in window

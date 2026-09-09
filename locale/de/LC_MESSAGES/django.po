@@ -22273,3 +22273,42 @@ msgstr ""
 #. STU-14: тип страницы «деталь статьи»
 msgid "Blogbeitrag"
 msgstr "Blogbeitrag"
+
+#. STU-15a
+msgid "Standard (2 Spalten)"
+msgstr "Standard (2 Spalten)"
+
+#. STU-15a
+msgid "As before: photo on the left, price and CTA on the right."
+msgstr "Wie bisher: Foto links, Preis und Button rechts."
+
+#. STU-15a
+msgid "Plakat"
+msgstr "Plakat"
+
+#. STU-15a
+msgid "Wide photo across the top, price and button centred underneath."
+msgstr "Breites Foto oben, Preis und Button mittig darunter."
+
+#. STU-15a
+msgid "Angebotszettel"
+msgstr "Angebotszettel"
+
+#. STU-15a
+msgid ""
+"Coloured price band first, photo and conditions below — like a leaflet."
+msgstr ""
+"Farbiges Preisband zuerst, Foto und Bedingungen darunter — wie ein Prospekt."
+
+#. STU-15a
+msgid ""
+"Narrow column, small photo — for offers where the price is the message."
+msgstr "Schmale Spalte, kleines Foto — wenn der Preis die Botschaft ist."
+
+#. STU-15a
+msgid "Magazin"
+msgstr "Magazin"
+
+#. STU-15a
+msgid "Story first with a wide text column, photo alongside."
+msgstr "Erst die Geschichte in breiter Textspalte, Foto daneben."

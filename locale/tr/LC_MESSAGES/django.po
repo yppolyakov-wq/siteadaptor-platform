@@ -22363,3 +22363,41 @@ msgstr "Sıra ve görünürlük, tuvalde bloğun üzerindeki çubukta bulunur."
 #. STU-14: тип страницы «деталь статьи»
 msgid "Blogbeitrag"
 msgstr "Blog yazısı"
+
+#. STU-15a
+msgid "Standard (2 Spalten)"
+msgstr "Standart (2 sütun)"
+
+#. STU-15a
+msgid "As before: photo on the left, price and CTA on the right."
+msgstr "Önceki gibi: solda fotoğraf, sağda fiyat ve buton."
+
+#. STU-15a
+msgid "Plakat"
+msgstr "Afiş"
+
+#. STU-15a
+msgid "Wide photo across the top, price and button centred underneath."
+msgstr "Üstte geniş fotoğraf, altında ortalanmış fiyat ve buton."
+
+#. STU-15a
+msgid "Angebotszettel"
+msgstr "Kampanya broşürü"
+
+#. STU-15a
+msgid ""
+"Coloured price band first, photo and conditions below — like a leaflet."
+msgstr "Önce renkli fiyat bandı, altında fotoğraf ve koşullar — broşür gibi."
+
+#. STU-15a
+msgid ""
+"Narrow column, small photo — for offers where the price is the message."
+msgstr "Dar sütun, küçük fotoğraf — mesaj fiyatın kendisi olduğunda."
+
+#. STU-15a
+msgid "Magazin"
+msgstr "Dergi"
+
+#. STU-15a
+msgid "Story first with a wide text column, photo alongside."
+msgstr "Önce geniş metin sütununda hikâye, yanında fotoğraf."

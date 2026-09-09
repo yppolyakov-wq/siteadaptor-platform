@@ -105,7 +105,7 @@
 
     {# Anzeige: перечёркнутая цена, обратный отсчёт, форма карточки (DL-19) #}
     <div data-pf-panel="anz" class="space-y-3 pt-2 hidden">
-      {% for field in form %}{% if field.name == 'strikethrough_old_price' or field.name == 'show_countdown' or field.name == 'card_style' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
+      {% for field in form %}{% if field.name == 'strikethrough_old_price' or field.name == 'show_countdown' or field.name == 'card_style' or field.name == 'page_style' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}
     </div>
 
     {% for err in form.non_field_errors %}<p class="text-sm text-red-600">{{ err }}</p>{% endfor %}

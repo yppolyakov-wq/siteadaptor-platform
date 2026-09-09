@@ -50,7 +50,16 @@ def veranstaltung_index(request):
     events = provider.apply(base, request.GET)
     # UB2-2: поиск ?q= (как фасет — present считан ДО) + user-facing сортировка.
     q = (request.GET.get("q") or "").strip()
-    sort = request.GET.get("sort") or ""
+    # STU-15c: `?sort=` посетителя сильнее дефолта владельца (тот действует, пока
+    # выбора нет). Сырой конфиг — значение клампится реестром сортировок провайдера.
+    from apps.tenants import siteconfig as _sc
+
+    _lcfg = getattr(request.tenant, "site_config", {}) or {}
+    sort = request.GET.get("sort") or (
+        _lcfg.get("events_sort")
+        if _lcfg.get("events_sort") in _sc.listing_sort_keys("events_sort")
+        else ""
+    )
     events = provider.sort(provider.search(events, q), sort)
     # 6c: серия/заезды тура — ОДНОЙ карточкой (владелец: «одинаковые, разные
     # даты — группируем»). Представитель группы = первый в ТЕКУЩЕМ порядке
@@ -318,6 +327,7 @@ def veranstaltung_detail(request, pk):
     ):
         _raw = request.session["site_preview_draft"]
 
+    from apps.core import detail_sections
     from apps.core.sellable import sellable_for
     from apps.reviews import services as review_services
 
@@ -356,6 +366,15 @@ def veranstaltung_detail(request, pk):
         "installment_offer": _installment_offer(event),  # R10 предпросмотр рассрочки
         # M20U-4: порядок/видимость тематических секций детальной.
         "event_detail_order": siteconfig.event_detail_order(_raw),
+        # STU-15b: раскладка страницы события ("" | tabs | breit).
+        "detail_layout": siteconfig.detail_layout(_raw, "event"),
+        # STU-15b: пары «ключ + подпись» для раскладки «Tabs» (порядок тот же, что у
+        # `event_detail_order` — вкладки не имеют права разойтись с обычным телом).
+        # Фильтра-словаря в проекте нет, поэтому подписи приезжают готовым списком.
+        "event_detail_tabs": [
+            {"key": k, "label": detail_sections.section_labels("events").get(k, k)}
+            for k in siteconfig.event_detail_order(_raw)
+        ],
     }
     if lat is not None and lng is not None and not event.is_online:  # R6 карта (RT2: не для онлайн)
         lat, lng = float(lat), float(lng)

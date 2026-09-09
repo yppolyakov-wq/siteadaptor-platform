@@ -52,7 +52,7 @@ UA1-1 (E-1): страница-деталь услуги на едином кар
    Замок паритета — test_service_detail_section_order_parity.{% endcomment %}
 {# UC2-2: обёртка data-sf-section — клик на канве открывает инспектор секций страницы. #}
 <div data-sf-section="service_detail">
-{% for s in body_sections %}{% if s.visible %}{% include s.template %}{% endif %}{% endfor %}
+{% include "storefront/_detail_sections.html" with sections=body_sections layout=detail_layout %}
 </div>
 {% endblock %}
 

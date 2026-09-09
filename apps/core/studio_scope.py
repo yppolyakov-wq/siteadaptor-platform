@@ -40,21 +40,30 @@ class ScopeState:
 
 
 def _valid_values(setting: studio_pages.Setting) -> frozenset[str]:
-    """Допустимые коды объектного уровня — из тех же реестров, что и витрина."""
+    """Допустимые коды объектного уровня — из тех же реестров, что и витрина.
+
+    Набор принадлежит НАСТРОЙКЕ, а не виду объекта: на одной модели живут разные
+    настройки с разными реестрами (у акции `card_style` — формы карточки, а
+    `page_style` — шаблоны страницы; у категории то же самое). Пока диспетчер шёл
+    по `object_kind`, второй настройке на той же модели доставался чужой словарь —
+    и её законное значение отвергалось бы как мусор. Замок
+    `test_every_object_scoped_setting_has_its_own_value_set` держит карту полной.
+    """
     from apps.catalog import category_styles
     from apps.core import card_forms
     from apps.promotions import group_styles
 
-    kind = setting.object_kind
-    if kind == studio_pages.OBJECT_CATEGORY:
-        return category_styles.VALID_PAGE_STYLES
-    if kind == studio_pages.OBJECT_PRODUCT:
-        return card_forms.keys_for(card_forms.PRODUCT)
-    if kind == studio_pages.OBJECT_PROMOTION:
-        return card_forms.keys_for(card_forms.PROMO)
-    if kind == studio_pages.OBJECT_PROMO_GROUP:
-        return group_styles.VALID_GROUP_STYLES
-    raise ScopeError(f"нет объектного уровня у настройки {setting.code}")
+    by_setting = {
+        "category_page_style": category_styles.VALID_PAGE_STYLES,
+        "product_card_form": card_forms.keys_for(card_forms.PRODUCT),
+        "promo_card_form": card_forms.keys_for(card_forms.PROMO),
+        "promo_group_style": group_styles.VALID_GROUP_STYLES,
+        "promo_detail_style": group_styles.VALID_PROMOTION_DETAIL_STYLES,
+    }
+    values = by_setting.get(setting.code)
+    if values is None:
+        raise ScopeError(f"нет объектного уровня у настройки {setting.code}")
+    return frozenset(values)
 
 
 def _site_value(tenant, setting: studio_pages.Setting) -> str:

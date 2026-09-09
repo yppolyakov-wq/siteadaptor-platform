@@ -22233,3 +22233,43 @@ msgstr "Order and visibility live on the bar above the block on the canvas."
 #. STU-14: тип страницы «деталь статьи»
 msgid "Blogbeitrag"
 msgstr "Blog post"
+
+#. STU-15a
+msgid "Standard (2 Spalten)"
+msgstr "Standard (two columns)"
+
+#. STU-15a
+msgid "As before: photo on the left, price and CTA on the right."
+msgstr "As before: photo on the left, price and CTA on the right."
+
+#. STU-15a
+msgid "Plakat"
+msgstr "Poster"
+
+#. STU-15a
+msgid "Wide photo across the top, price and button centred underneath."
+msgstr "Wide photo across the top, price and button centred underneath."
+
+#. STU-15a
+msgid "Angebotszettel"
+msgstr "Offer leaflet"
+
+#. STU-15a
+msgid ""
+"Coloured price band first, photo and conditions below — like a leaflet."
+msgstr ""
+"Coloured price band first, photo and conditions below — like a leaflet."
+
+#. STU-15a
+msgid ""
+"Narrow column, small photo — for offers where the price is the message."
+msgstr ""
+"Narrow column, small photo — for offers where the price is the message."
+
+#. STU-15a
+msgid "Magazin"
+msgstr "Magazine"
+
+#. STU-15a
+msgid "Story first with a wide text column, photo alongside."
+msgstr "Story first with a wide text column, photo alongside."

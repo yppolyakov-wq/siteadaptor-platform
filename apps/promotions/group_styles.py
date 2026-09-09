@@ -105,3 +105,52 @@ def promo_page_style(raw) -> str:
     """Шаблон обзорной страницы акций (`site_config["promo_page_style"]`); мусор → ""."""
     code = (raw or "").strip() if isinstance(raw, str) else ""
     return code if code in VALID_PROMO_PAGE_STYLES and code else ""
+
+
+# ── STU-15a: ШАБЛОН СТРАНИЦЫ ОДНОЙ АКЦИИ (`/p/<uuid>/`) ───────────────────────
+# Проверка STU-14 показала последнюю дыру охвата: у страницы товара шаблон есть
+# (`product_detail.layout`), у категории и группы акций — тоже, а у детали акции
+# не было ни одного. Между тем именно у акции выбор осмыслен НА КАЖДУЮ: одна —
+# длинный рассказ («почему этот сет выгоден»), другая — короткий флаер, где важны
+# только цена, срок и кнопка.
+#
+# Хранение — как у формы карточки (DL-19): поле `Promotion.page_style` («только эта
+# акция») побеждает `site_defaults["promo_detail_style"]` («для всех»).
+PROMOTION_DETAIL_STYLES = [
+    ("", _("Standard (2 Spalten)"), _("As before: photo on the left, price and CTA on the right.")),
+    (
+        "plakat",
+        _("Plakat"),
+        _("Wide photo across the top, price and button centred underneath."),
+    ),
+    (
+        "prospekt",
+        _("Angebotszettel"),
+        _("Coloured price band first, photo and conditions below — like a leaflet."),
+    ),
+    (
+        "kompakt",
+        _("Kompakt"),
+        _("Narrow column, small photo — for offers where the price is the message."),
+    ),
+    (
+        "magazin",
+        _("Magazin"),
+        _("Story first with a wide text column, photo alongside."),
+    ),
+]
+VALID_PROMOTION_DETAIL_STYLES = frozenset(code for code, _l, _h in PROMOTION_DETAIL_STYLES)
+
+
+def promotion_detail_style(own: str, site_default: str = "") -> str:
+    """Эффективный шаблон страницы акции: своё у акции → дефолт сайта → Standard.
+
+    Правило и fail-safe те же, что у формы карточки и шаблона категории: мусор в
+    любом слое проваливается ниже, а не роняет страницу (значение приезжает и из
+    старых конфигов, и из формы, и из живого черновика канвы).
+    """
+    own = (own or "").strip() if isinstance(own, str) else ""
+    if own and own in VALID_PROMOTION_DETAIL_STYLES:
+        return own
+    site_default = (site_default or "").strip() if isinstance(site_default, str) else ""
+    return site_default if site_default in VALID_PROMOTION_DETAIL_STYLES else ""

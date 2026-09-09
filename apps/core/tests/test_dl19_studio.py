@@ -58,7 +58,8 @@ def test_studio_shows_a_tile_with_a_preview_for_every_form():
     # DL-20 осознанно добавил две плитки-выборки (шаблоны СТРАНИЦ — категории и
     # группы акций), DL-21 — ещё две (корневая страница каталога в строке «Katalog»
     # и обзорная страница акций) тем же партиалом — счётчик обновлён вместе с ними.
-    assert body.count("data-cardform-picker>") == 6
+    # STU-15a: седьмая — шаблон страницы ОДНОЙ акции (у детали акции его не было).
+    assert body.count("data-cardform-picker>") == 7
     assert 'name="sd_card_style"' in body and 'name="sd_promo_card"' in body
     for key in card_forms.keys_for("product") | card_forms.keys_for("promo"):
         assert f'data-cf-key="{key}"' in body, key

@@ -65,7 +65,7 @@
 {% comment %}Секции услуги — тот же data-driven цикл, что на детали (описание/видео/
 характеристики/FAQ/команда/отзывы/кросс-селл); порядок и видимость из реестра.{% endcomment %}
 <div data-sf-section="service_detail">
-{% for s in body_sections %}{% if s.visible %}{% include s.template %}{% endif %}{% endfor %}
+{% include "storefront/_detail_sections.html" with sections=body_sections layout=detail_layout %}
 </div>
 {% endblock %}
 

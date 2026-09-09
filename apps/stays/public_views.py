@@ -167,7 +167,16 @@ def unterkunft_index(request):
 
     provider = facets_registry.provider_for("stay")
     q = (request.GET.get("q") or "").strip()
-    sort = request.GET.get("sort") or ""
+    # STU-15c: `?sort=` посетителя сильнее дефолта владельца (тот действует, пока
+    # выбора нет). Сырой конфиг — значение клампится реестром сортировок провайдера.
+    from apps.tenants import siteconfig as _sc
+
+    _lcfg = getattr(request.tenant, "site_config", {}) or {}
+    sort = request.GET.get("sort") or (
+        _lcfg.get("stays_sort")
+        if _lcfg.get("stays_sort") in _sc.listing_sort_keys("stays_sort")
+        else ""
+    )
     units_base = StayUnit.objects.filter(is_active=True)
     # UB3-2 (apply=подборка) → UB2-2 (поиск) → сортировка; чипы — из снимка ДО фасета.
     units = list(provider.sort(provider.search(provider.apply(units_base, request.GET), q), sort))
@@ -385,9 +394,12 @@ def unterkunft_unit(request, pk):
         "amenities": "storefront/sections/detail/_stay_amenities.html",
         "reviews": "storefront/_entity_reviews.html",
     }
+    # STU-15b: подпись секции из единого реестра — заголовок вкладки в раскладке «Tabs».
+    _labels = detail_sections.section_labels("stays")
     body_sections = [
         {
             "key": k,
+            "label": _labels.get(k, k),
             "template": _stay_templates[k],
             "visible": _present.get(k, False) and k not in _hidden,
         }
@@ -411,6 +423,8 @@ def unterkunft_unit(request, pk):
         "detail_hidden": _hidden,
         # UA4-2: упорядоченные секции тела (data-driven) + флаг блока «похожие» (detail_wide).
         "body_sections": body_sections,
+        # STU-15b: раскладка страницы номера ("" | tabs | breit).
+        "detail_layout": siteconfig.detail_layout(_raw, "stay"),
         # HF-3: какие секции рендерить ПОД галереей (левая колонка), а не в теле —
         # рассказ о номере читается рядом с фото, под ним не остаётся пустоты.
         "under_gallery_keys": ("description", "amenities"),

@@ -181,52 +181,7 @@
   </details>
   {% endif %}
 </div>
-<script>
-(function () {
-  var root = document.querySelector('[data-pd-tabs]');
-  if (!root) return;
-  var list = root.querySelector('[data-pd-tablist]');
-  var panels = Array.prototype.slice.call(root.querySelectorAll('[data-pd-panel]'));
-  if (!panels.length) return;
-  var mq = window.matchMedia('(min-width: 768px)');
-  var cur = 0;
-  panels.forEach(function (p, i) {
-    var b = document.createElement('button');
-    b.type = 'button'; b.className = 'pd-tab'; b.setAttribute('role', 'tab');
-    b.textContent = p.querySelector('summary').textContent.trim();
-    b.addEventListener('click', function () { select(i); });
-    list.appendChild(b);
-  });
-  function select(i) {
-    cur = i;
-    panels.forEach(function (p, k) { p.hidden = k !== i; if (k === i) p.open = true; });
-    Array.prototype.forEach.call(list.querySelectorAll('.pd-tab'), function (b, k) {
-      b.classList.toggle('is-on', k === i);
-      b.setAttribute('aria-selected', k === i ? 'true' : 'false');
-    });
-  }
-  function apply() {
-    if (mq.matches) {
-      root.classList.add('pd-tabs-on'); list.classList.remove('hidden'); list.classList.add('flex'); select(cur);
-    } else {
-      root.classList.remove('pd-tabs-on'); list.classList.add('hidden'); list.classList.remove('flex');
-      panels.forEach(function (p) { p.hidden = false; });
-    }
-  }
-  function byHash() {
-    if (location.hash !== '#bewertungen') return;
-    for (var i = 0; i < panels.length; i++) {
-      if (panels[i].dataset.pdPanel === 'reviews') {
-        cur = i;
-        if (mq.matches) select(i); else panels[i].open = true;
-      }
-    }
-  }
-  byHash(); apply();
-  if (mq.addEventListener) mq.addEventListener('change', apply); else mq.addListener(apply);
-  window.addEventListener('hashchange', byHash);
-})();
-</script>
+{% include "storefront/_detail_tabs_script.html" %}
 {% else %}
 {% if 'reviews' not in product_detail_hidden %}{% include "storefront/_product_reviews.html" %}{% endif %}
 {% endif %}

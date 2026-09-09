@@ -19,7 +19,10 @@ AggregateRating из отзывов — из контракта sellable, на �
 {% entity_jsonld sellable review_summary %}
 {% comment %}STU-4: якорь клика для редактора — клик по детали открывает панель
    настроек ЭТОГО типа страницы. На витрине атрибут ничего не делает.{% endcomment %}
-<div class="max-w-5xl mx-auto" data-stu-area="detail">
+{% comment %}STU-15b: РАСКЛАДКА страницы детали ("" | tabs | breit). Разметка одна
+на все раскладки — «breit» задаёт каскад в app.css (кадр во всю ширину, тело шире),
+«tabs» собирает секции тела вкладками в самих наследниках.{% endcomment %}
+<div class="max-w-5xl mx-auto" data-stu-area="detail"{% if detail_layout %} data-detail-layout="{{ detail_layout }}"{% endif %}>
   {% block detail_back %}{% endblock %}
 
   {# Первый экран: галерея слева + sticky-карточка справа #}

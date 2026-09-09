@@ -263,6 +263,12 @@ class Promotion(SoftDeleteMixin, I18nMixin):
     # презентация — цена/лимит/бронь от формы не зависят.
     card_style = models.CharField(max_length=16, blank=True, default="")
 
+    # STU-15a: ШАБЛОН СТРАНИЦЫ этой акции (реестр `promotions.group_styles`). Пусто =
+    # шаблон из настроек сайта (`site_defaults.promo_detail_style`); своё побеждает
+    # общее — то же правило, что у формы карточки и у шаблона категории (DL-19/DL-20).
+    # Только презентация: цена, лимит и бронь от шаблона не зависят.
+    page_style = models.CharField(max_length=16, blank=True, default="")
+
     # Авто-повтор акции (Track B3b): beat клонирует завершившуюся со сдвигом окна
     # на интервал. Наследник один (recurrence уходит к нему, у родителя гасится),
     # поэтому цепочка не ветвится.

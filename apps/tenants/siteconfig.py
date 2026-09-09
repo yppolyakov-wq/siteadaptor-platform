@@ -15,6 +15,7 @@ site_config = {
 
 import re
 import uuid
+from functools import cache
 
 from django.utils.translation import gettext_lazy as _
 
@@ -25,6 +26,9 @@ from apps.core import card_forms, detail_sections
 from apps.core.hero_tiles import HERO_TILE_WIDGETS
 from apps.promotions.group_styles import VALID_GROUP_STYLES as _GROUP_PAGE_STYLES
 from apps.promotions.group_styles import VALID_PROMO_PAGE_STYLES as _PROMO_PAGE_STYLES
+from apps.promotions.group_styles import (
+    VALID_PROMOTION_DETAIL_STYLES as _PROMO_DETAIL_STYLES,
+)
 
 # E4/2026-07-30: допустимые значения site_defaults.hero_widget — кастомные ветки
 # `sections/_hero_widget.html` + архетипы из реестра плиток `core.hero_tiles`
@@ -47,6 +51,8 @@ _VARIANT_STYLE_KEYS = tuple(k for k in _CATALOG_VARIANT_STYLE_KEYS if k)
 # DL-20: то же для шаблона страницы категории — источник один, реестр каталога.
 _CATEGORY_PAGE_STYLE_KEYS = tuple(k for k in _CATEGORY_PAGE_STYLES if k)
 _GROUP_PAGE_STYLE_KEYS = tuple(k for k in _GROUP_PAGE_STYLES if k)
+# STU-15a: шаблон страницы ОДНОЙ акции — тот же приём (реестр акций, "" отбрасываем).
+_PROMO_DETAIL_STYLE_KEYS = tuple(k for k in _PROMO_DETAIL_STYLES if k)
 
 # (key, подпись для кабинета, включена ли по умолчанию)
 SECTIONS = [
@@ -1341,6 +1347,10 @@ def normalize_site_defaults(raw) -> dict:
     # top-level `promo_groups` (модели группы нет) и побеждает этот дефолт.
     if sd.get("promo_group_style") in _GROUP_PAGE_STYLE_KEYS:
         out["promo_group_style"] = sd["promo_group_style"]
+    # STU-15a: шаблон СТРАНИЦЫ АКЦИИ на весь сайт; своё значение акции
+    # (`Promotion.page_style`) его побеждает — резолвер `promotion_detail_style`.
+    if sd.get("promo_detail_style") in _PROMO_DETAIL_STYLE_KEYS:
+        out["promo_detail_style"] = sd["promo_detail_style"]
     # E4 «задача-первым»: интерактивный hero — primary-виджет ВНУТРИ баннера
     # (первый экран = начало пути). "stays" — поиск дат; "services" — топ-услуги
     # с «Buchen». Ключ ТОЛЬКО при валидном значении ("" = обычный баннер →
@@ -1404,22 +1414,39 @@ def detail_section_config_key(module: str) -> str:
     return _DETAIL_SECTION_CONFIG_KEY.get(module, f"{module}_detail")
 
 
+# STU-15b: РАСКЛАДКА страницы детали — одна ось на все четыре вида сущностей.
+# "" = прежний вид (галерея слева, тело под ней); "tabs" = секции тела вкладками
+# (на телефоне аккордеон); "breit" = кадр во всю ширину, тело шире. Ключ вложен в
+# `<kind>_detail` рядом с `hidden`, presence-minimal — golden-эталоны целы.
+DETAIL_LAYOUTS = ("tabs", "breit")
+
+
 def normalize_detail_sections(raw, module: str) -> dict:
     """Привести `config['<module>_detail']` к нормальному виду по реестру:
     orderable-модуль (event) → {order:[known], hidden:[known]}; hide-only (product) →
-    {hidden:[known]}. Неизвестные ключи отбрасываются."""
+    {hidden:[known]}. Неизвестные ключи отбрасываются.
+
+    STU-15b: сюда же переехала раскладка (`layout`) — она была только у товара
+    (DL-16.6), хотя у услуги, номера и события тело устроено так же (data-driven
+    цикл секций UA4-2). Ключ добавляется ТОЛЬКО при валидном значении.
+    """
     keys = detail_sections.section_keys(module)
     orderable = any(s.orderable for s in detail_sections.sections_for(module))
     d = raw if isinstance(raw, dict) else {}
     hidden = sorted({k for k in (d.get("hidden") or []) if k in keys})
+    out = {"hidden": hidden}
     if not orderable:
-        return {"hidden": hidden}
-    order, seen = [], set()
-    for k in d.get("order") or []:
-        if k in keys and k not in seen:
-            order.append(k)
-            seen.add(k)
-    return {"order": order, "hidden": hidden}
+        pass
+    else:
+        order, seen = [], set()
+        for k in d.get("order") or []:
+            if k in keys and k not in seen:
+                order.append(k)
+                seen.add(k)
+        out = {"order": order, "hidden": hidden}
+    if d.get("layout") in DETAIL_LAYOUTS:
+        out["layout"] = d["layout"]
+    return out
 
 
 def detail_section_hidden(config, module: str) -> set:
@@ -1455,22 +1482,44 @@ def event_detail_order(config) -> list[str]:
 
 
 def normalize_product_detail(raw) -> dict:
-    out = normalize_detail_sections(raw, "catalog")
-    # DL-16.6 (D2): раскладка секций детали товара — "" (друг под другом) | "tabs"
-    # (табы на десктопе / аккордеон на мобайле); presence-minimal, golden целы.
-    if isinstance(raw, dict) and raw.get("layout") == "tabs":
-        out["layout"] = "tabs"
-    return out
+    # DL-16.6 (D2) → STU-15b: раскладку держит generic-нормализатор (одна ось на все
+    # виды деталей), здесь остаётся обёртка ради прежних импортов.
+    return normalize_detail_sections(raw, "catalog")
 
 
 def product_detail_hidden(config) -> set:
     return detail_section_hidden(config, "catalog")
 
 
+# STU-15b: kind витрины → ключ конфига детали. `product`/`catalog` — синонимы:
+# на витрине сущность зовётся product, в конфиге модуль — catalog.
+_DETAIL_LAYOUT_KEYS = {
+    "product": "product_detail",
+    "catalog": "product_detail",
+    "service": "service_detail",
+    "booking": "service_detail",
+    "stay": "stay_detail",
+    "stays": "stay_detail",
+    "event": "event_detail",
+    "events": "event_detail",
+}
+
+
+def detail_layout(config, kind: str) -> str:
+    """Раскладка страницы детали для вида сущности: "" | "tabs" | "breit".
+
+    Читает и нормализованный, и СЫРОЙ конфиг (значение приезжает из живого черновика
+    канвы). Незнакомый вид или мусорное значение → "" (прежний вид), а не ошибка.
+    """
+    key = _DETAIL_LAYOUT_KEYS.get((kind or "").strip())
+    node = (config or {}).get(key) if key and isinstance(config, dict) else None
+    val = node.get("layout") if isinstance(node, dict) else None
+    return val if val in DETAIL_LAYOUTS else ""
+
+
 def product_detail_layout(config) -> str:
-    """DL-16.6: "" | "tabs" — из нормализованного или сырого конфига."""
-    pd = (config or {}).get("product_detail") if isinstance(config, dict) else None
-    return "tabs" if isinstance(pd, dict) and pd.get("layout") == "tabs" else ""
+    """DL-16.6: "" | "tabs" — обёртка над generic-резолвером (прежние вызовы целы)."""
+    return detail_layout(config, "product")
 
 
 # --- UC1-1 (U-C): единый реестр секций по ТИПУ СТРАНИЦЫ ---------------------
@@ -1624,6 +1673,25 @@ def page_sections(config, page_type: str) -> list[str]:
 # не JSON-имя). Маппинг ключ→(поле, descending) живёт во вьюхе product_list.
 CATALOG_SORT_KEYS = ("newest", "price_asc", "price_desc")
 
+# STU-15c: ДЕФОЛТ СОРТИРОВКИ листингов услуг/номеров/событий. У каталога такая
+# настройка есть с UB2-2 (`catalog_sort`), а на трёх других листингах владелец мог
+# менять только раскладку: порядок был жёстко задан вьюхой, хотя сами провайдеры
+# фасетов (UB2-1) сортировать умеют. Ключи presence-minimal → golden целы.
+# Допустимые значения берём У ПРОВАЙДЕРА (единый источник с витринным тулбаром),
+# лениво и с кэшем: siteconfig не должен тянуть доменные модули на загрузке.
+LISTING_SORT_KINDS = {"services_sort": "service", "stays_sort": "stay", "events_sort": "event"}
+
+
+@cache
+def listing_sort_keys(config_key: str) -> tuple[str, ...]:
+    """Ключи сортировки листинга — те же, что предлагает его тулбар посетителю."""
+    kind = LISTING_SORT_KINDS.get(config_key or "")
+    if not kind:
+        return ()
+    from apps.core.facets import provider_for
+
+    return tuple(provider_for(kind).sort_keys().keys())
+
 
 # --- UC2-1: page-scoped draft-модуль --------------------------------------------
 # Единая декларация «какие плоские конфиг-ключи принадлежат какому page_type» +
@@ -1659,6 +1727,10 @@ PAGE_CONFIG_KEYS = {
         "catalog_sort",
         "catalog_subcats_first",
         "catalog_page_style",  # DL-21.1: шаблон корневой страницы каталога
+        # STU-15c: дефолт сортировки листингов услуг/номеров/событий.
+        "services_sort",
+        "stays_sort",
+        "events_sort",
     ),
     "cart": ("cart_show_upsell",),
     "info": (),
@@ -1692,6 +1764,14 @@ def apply_page_payload(cfg: dict, data: dict) -> None:
             cfg[key] = data[key]
     if data.get("catalog_sort") in CATALOG_SORT_KEYS:
         cfg["catalog_sort"] = data["catalog_sort"]
+    # STU-15c: дефолт сортировки листингов — "" законно (снимает ключ).
+    for key in LISTING_SORT_KINDS:
+        if key not in data:
+            continue
+        if data.get(key) in listing_sort_keys(key):
+            cfg[key] = data[key]
+        else:
+            cfg.pop(key, None)
     # DL-21.1: шаблон корневой страницы каталога — "" законно (снимает ключ).
     for key in _PAGE_STYLE_KEYS:
         if key not in data:
@@ -3261,6 +3341,13 @@ def _normalize_impl(config) -> dict:
     # Сортировка каталога по умолчанию (keyset-пагинация поддерживает поле+направление).
     _sort = config.get("catalog_sort")
     normalized["catalog_sort"] = _sort if _sort in CATALOG_SORT_KEYS else "newest"
+    # STU-15c: дефолт сортировки листингов услуг/номеров/событий. В отличие от
+    # каталога ключ НЕ материализуется: его отсутствие = порядок вьюхи (Meta ordering
+    # услуг, ближайшая дата у событий) — ненастроенные витрины не меняются.
+    for _lk in LISTING_SORT_KINDS:
+        _lv = config.get(_lk)
+        if _lv in listing_sort_keys(_lk):
+            normalized[_lk] = _lv
     # Показывать ли подкатегории карточками первыми (при выбранной категории). Дефолт True.
     normalized["catalog_subcats_first"] = bool(config.get("catalog_subcats_first", True))
     # Показывать ли блок кросс-селла («Passt dazu») в корзине. Дефолт True (как было).

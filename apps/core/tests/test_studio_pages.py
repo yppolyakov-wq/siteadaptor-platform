@@ -166,8 +166,17 @@ def test_every_site_key_resolves_in_normalized_config():
             # STU-8: presence-minimal ключ — без явного значения в
             # нормализованном конфиге его нет по замыслу.
             "text_width": "wide",
+            "promo_detail_style": "plakat",  # STU-15a: шаблон страницы акции
         },
         "product_detail": {"layout": "tabs"},
+        # STU-15b/c: раскладка деталей и дефолт сортировки листингов — тоже
+        # presence-minimal, поэтому в фикстуру они входят со значением.
+        "service_detail": {"layout": "tabs"},
+        "stay_detail": {"layout": "breit"},
+        "event_detail": {"layout": "tabs"},
+        "services_sort": "price_asc",
+        "stays_sort": "price_desc",
+        "events_sort": "price_asc",
         "promo_page_style": "kompakt",
         "promo_layout": "slider",
         "promo_grouping": "time",

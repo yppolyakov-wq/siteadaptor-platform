@@ -564,6 +564,13 @@
             {% include "tenant/_cardform_picker.html" with name="sd_promo_group_style" value=promo_group_style items=group_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Offer group page (whole site)") %}
             {% include "tenant/_scope_pill.html" with setting="promo_group_style" %}
           </div>
+          {% comment %}STU-15a: шаблон страницы ОДНОЙ акции. Пилюля охвата пишет
+             `Promotion.page_style` («только эта акция»), общий контрол —
+             site_defaults.promo_detail_style.{% endcomment %}
+          <div class="stu-page-row mt-4" data-stu-setting="promo_detail_style" data-stu-page="promo">
+            {% include "tenant/_cardform_picker.html" with name="sd_promo_detail_style" value=promo_detail_style items=promo_detail_styles thumb="tenant/_pagelayout_thumb.html" title=_("Offer page (whole site)") %}
+            {% include "tenant/_scope_pill.html" with setting="promo_detail_style" %}
+          </div>
           <div class="stu-page-row mt-4" data-stu-setting="promo_layout" data-stu-page="promos">
             <label class="text-sm block">
               <span class="block font-medium mb-1">{% trans "Aktionsseite: Aufbau" %}</span>
@@ -711,6 +718,17 @@
               {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if events_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
             </select>
           </div>
+            {% comment %}STU-15c: дефолт сортировки листинга — у каталога он есть с UB2-2,
+               а здесь порядок задавала только вьюха. Посетитель по-прежнему сильнее:
+               его выбор в тулбаре (?sort=) перекрывает этот дефолт.{% endcomment %}
+            <div class="stu-page-row w-full mt-2" data-stu-setting="events_sort" data-stu-page="events">
+              <label class="flex items-center gap-2 text-sm">
+                <span class="text-gray-500 flex-1">{% trans "Sortierung" %}</span>
+                <select name="events_sort" class="rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
+                  {% for sk, slabel in event_sort_options %}<option value="{{ sk }}" {% if events_sort == sk %}selected{% endif %}>{{ slabel }}</option>{% endfor %}
+                </select>
+              </label>
+            </div>
           {% endif %}
           {% if has_stays %}
           <div class="page-block flex items-center gap-3" data-page-key="stay_rooms" data-stu-setting="stay_layout" data-stu-page="stays">
@@ -719,6 +737,17 @@
               {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if stay_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
             </select>
           </div>
+            {% comment %}STU-15c: дефолт сортировки листинга — у каталога он есть с UB2-2,
+               а здесь порядок задавала только вьюха. Посетитель по-прежнему сильнее:
+               его выбор в тулбаре (?sort=) перекрывает этот дефолт.{% endcomment %}
+            <div class="stu-page-row w-full mt-2" data-stu-setting="stays_sort" data-stu-page="stays">
+              <label class="flex items-center gap-2 text-sm">
+                <span class="text-gray-500 flex-1">{% trans "Sortierung" %}</span>
+                <select name="stays_sort" class="rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
+                  {% for sk, slabel in stay_sort_options %}<option value="{{ sk }}" {% if stays_sort == sk %}selected{% endif %}>{{ slabel }}</option>{% endfor %}
+                </select>
+              </label>
+            </div>
           {% endif %}
           {% comment %} UB1-1: раскладка листинга услуг /termin/. Пустой выбор «Standard» =
              ключ не задан → легаси-грид (узкий, max-w-3xl); POST удаляет ключ. {% endcomment %}
@@ -730,6 +759,17 @@
               {% for pk, plabel in service_preset_options|default:preset_options %}<option value="{{ pk }}" {% if service_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
             </select>
           </div>
+            {% comment %}STU-15c: дефолт сортировки листинга — у каталога он есть с UB2-2,
+               а здесь порядок задавала только вьюха. Посетитель по-прежнему сильнее:
+               его выбор в тулбаре (?sort=) перекрывает этот дефолт.{% endcomment %}
+            <div class="stu-page-row w-full mt-2" data-stu-setting="services_sort" data-stu-page="services">
+              <label class="flex items-center gap-2 text-sm">
+                <span class="text-gray-500 flex-1">{% trans "Sortierung" %}</span>
+                <select name="services_sort" class="rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
+                  {% for sk, slabel in service_sort_options %}<option value="{{ sk }}" {% if services_sort == sk %}selected{% endif %}>{{ slabel }}</option>{% endfor %}
+                </select>
+              </label>
+            </div>
           {% endif %}
           {% comment %} SE-2d-4: применить одну раскладку ко всем лендингам разом (каталог+события+
              номера). Фронт: ставит значения всех селекторов → live-preview/Save. {% endcomment %}
@@ -760,6 +800,18 @@
               </li>
               {% endfor %}
             </ul>
+            {% comment %}STU-15b: раскладка страницы — у услуги/номера/события её не было
+               вовсе, хотя тело у них устроено так же (data-driven цикл секций).{% endcomment %}
+            <div class="stu-page-row" data-stu-setting="event_detail_layout" data-stu-page="event">
+              <label class="mt-2 flex items-center gap-2 text-sm">
+                <span class="text-gray-500">{% trans "Aufbau" %}</span>
+                <select name="ed_layout" class="rounded-lg border border-gray-300 px-2 py-1 text-sm text-gray-600">
+                  <option value="">{% trans "Untereinander" %}</option>
+                  <option value="tabs" {% if event_detail_layout == 'tabs' %}selected{% endif %}>{% trans "Tabs" %}</option>
+                  <option value="breit" {% if event_detail_layout == 'breit' %}selected{% endif %}>{% trans "Volle Breite" %}</option>
+                </select>
+              </label>
+            </div>
           </div>
           {% endif %}
           {% comment %}Опц. секции детальной ТОВАРА (показ/скрытие). Клик по детальной товара
@@ -785,6 +837,8 @@
                 <select name="pd_layout" class="rounded-lg border border-gray-300 px-2 py-1 text-sm text-gray-600">
                   <option value="">{% trans "Untereinander" %}</option>
                   <option value="tabs" {% if product_detail_layout == 'tabs' %}selected{% endif %}>{% trans "Tabs" %}</option>
+                  {# STU-15b: «breit» читает КАРКАС детали — доступна всем четырём видам. #}
+                  <option value="breit" {% if product_detail_layout == 'breit' %}selected{% endif %}>{% trans "Volle Breite" %}</option>
                 </select>
               </label>
             </div>
@@ -806,6 +860,18 @@
               </li>
               {% endfor %}
             </ul>
+            {% comment %}STU-15b: раскладка страницы — у услуги/номера/события её не было
+               вовсе, хотя тело у них устроено так же (data-driven цикл секций).{% endcomment %}
+            <div class="stu-page-row" data-stu-setting="service_detail_layout" data-stu-page="service">
+              <label class="mt-2 flex items-center gap-2 text-sm">
+                <span class="text-gray-500">{% trans "Aufbau" %}</span>
+                <select name="sd_layout" class="rounded-lg border border-gray-300 px-2 py-1 text-sm text-gray-600">
+                  <option value="">{% trans "Untereinander" %}</option>
+                  <option value="tabs" {% if service_detail_layout == 'tabs' %}selected{% endif %}>{% trans "Tabs" %}</option>
+                  <option value="breit" {% if service_detail_layout == 'breit' %}selected{% endif %}>{% trans "Volle Breite" %}</option>
+                </select>
+              </label>
+            </div>
           </div>
           {% endif %}
           {% comment %}UA4-1 slice C: секции детальной НОМЕРА (stays).{% endcomment %}
@@ -823,6 +889,18 @@
               </li>
               {% endfor %}
             </ul>
+            {% comment %}STU-15b: раскладка страницы — у услуги/номера/события её не было
+               вовсе, хотя тело у них устроено так же (data-driven цикл секций).{% endcomment %}
+            <div class="stu-page-row" data-stu-setting="stay_detail_layout" data-stu-page="stay">
+              <label class="mt-2 flex items-center gap-2 text-sm">
+                <span class="text-gray-500">{% trans "Aufbau" %}</span>
+                <select name="std_layout" class="rounded-lg border border-gray-300 px-2 py-1 text-sm text-gray-600">
+                  <option value="">{% trans "Untereinander" %}</option>
+                  <option value="tabs" {% if stay_detail_layout == 'tabs' %}selected{% endif %}>{% trans "Tabs" %}</option>
+                  <option value="breit" {% if stay_detail_layout == 'breit' %}selected{% endif %}>{% trans "Volle Breite" %}</option>
+                </select>
+              </label>
+            </div>
           </div>
           {% endif %}
           {% comment %}Настройки страницы КОРЗИНЫ: блок кросс-селла «Passt dazu»
@@ -2429,6 +2507,12 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     if (scChk) payload.catalog_subcats_first = scChk.checked;  // живо подкатегории-первыми
     var csSel = form.querySelector("select[name='catalog_sort']");
     if (csSel && csSel.value) payload.catalog_sort = csSel.value;  // живо дефолт-сортировка
+    // STU-15c: дефолт сортировки листингов услуг/номеров/событий — тоже в черновик
+    // ("" законно: снимает ключ, порядок возвращается к дефолту вьюхи).
+    ["services_sort", "stays_sort", "events_sort"].forEach(function (k) {
+      var el = form.querySelector("select[name='" + k + "']");
+      if (el) payload[k] = el.value;
+    });
     // DL-21.1: шаблон корневой страницы каталога ("" законно — снимает ключ)
     var cpsInp = form.querySelector("[name='catalog_page_style']");
     if (cpsInp) payload.catalog_page_style = cpsInp.value;
@@ -2465,6 +2549,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       // DL-20: шаблон страницы категории на весь сайт (плитки + hidden).
       var sdCatPage = form.querySelector("[name='sd_category_page_style']");
       var sdGrpPage = form.querySelector("[name='sd_promo_group_style']");
+      // STU-15a: шаблон страницы одной акции.
+      var sdPromoDetail = form.querySelector("[name='sd_promo_detail_style']");
       // STU-8: ширина текстовой колонки — в черновик, иначе выбор был бы виден
       // только после Save (грабля DL-17.3: контрол есть, в payload его нет).
       var sdTextW = form.querySelector("select[name='sd_text_width']");
@@ -2481,6 +2567,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         card_style: sdVal(sdStyle),
         category_page_style: sdVal(sdCatPage),
         promo_group_style: sdVal(sdGrpPage),
+        promo_detail_style: sdVal(sdPromoDetail),
         promo_card: sdVal(sdPromoCard),
         text_width: sdTextW ? sdTextW.value : "",
       };
@@ -2517,7 +2604,9 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         var vis = form.querySelector("input[name='ed_visible_" + key + "']");
         if (!(vis && vis.checked)) edHidden.push(key);
       });
-      payload.event_detail = { order: edOrder, hidden: edHidden };
+      // STU-15b: раскладка страницы — в черновик, иначе выбор виден только после Save.
+      var edLay = form.querySelector("select[name='ed_layout']");
+      payload.event_detail = { order: edOrder, hidden: edHidden, layout: edLay ? edLay.value : "" };
     }
     // Видимость опц. секций детальной товара → в черновик (превью товара ?preview=1).
     var pdInputs = Array.prototype.slice.call(form.querySelectorAll("input[name^='pd_visible_']"));
@@ -2538,7 +2627,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       sdInputs.forEach(function (inp) {
         if (!inp.checked) sdHidden.push(inp.name.slice(11));  // "sd_visible_".length === 11
       });
-      payload.service_detail = { hidden: sdHidden };
+      var sdLay = form.querySelector("select[name='sd_layout']");  // STU-15b
+      payload.service_detail = { hidden: sdHidden, layout: sdLay ? sdLay.value : "" };
     }
     var stdInputs = Array.prototype.slice.call(form.querySelectorAll("input[name^='std_visible_']"));
     if (stdInputs.length) {
@@ -2546,7 +2636,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       stdInputs.forEach(function (inp) {
         if (!inp.checked) stdHidden.push(inp.name.slice(12));  // "std_visible_".length === 12
       });
-      payload.stay_detail = { hidden: stdHidden };
+      var stdLay = form.querySelector("select[name='std_layout']");  // STU-15b
+      payload.stay_detail = { hidden: stdHidden, layout: stdLay ? stdLay.value : "" };
     }
     // M20d: контент-секции (CTA/FAQ/Testimonials/…) — отдаём как есть, сервер парсит.
     [

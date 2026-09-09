@@ -1880,6 +1880,8 @@ def home_builder_view(request):
             config["event_detail"] = {
                 "order": [k for _o, k, _v in ed_rows],
                 "hidden": [k for _o, k, v in ed_rows if not v],
+                # STU-15b: раскладка страницы ("" = как раньше; normalize клампит).
+                "layout": request.POST.get("ed_layout", ""),
             }
         # Видимость опц. секций детальной товара (group=catalog_detail). Presence-guard:
         # пишем только если инспектор прислан (есть pd_present), иначе не трогаем.
@@ -1890,8 +1892,9 @@ def home_builder_view(request):
                     for k in siteconfig.PRODUCT_DETAIL_SECTION_KEYS
                     if request.POST.get(f"pd_visible_{k}") != "on"
                 ],
-                # DL-16.6 (D2): раскладка секций ("" = как раньше; normalize дропает пустое)
-                "layout": "tabs" if request.POST.get("pd_layout") == "tabs" else "",
+                # DL-16.6 (D2) → STU-15b: раскладка страницы ("" = как раньше; клампит
+                # normalize по реестру DETAIL_LAYOUTS, поэтому «breit» доезжает тоже).
+                "layout": request.POST.get("pd_layout", ""),
             }
         # UA4-1 slice C: видимость секций детальной услуги/номера (hide-only, presence-guard).
         if request.tenant.is_module_active("booking") and request.POST.get("sd_present"):
@@ -1900,7 +1903,8 @@ def home_builder_view(request):
                     k
                     for k in detail_sections.section_keys("booking")
                     if request.POST.get(f"sd_visible_{k}") != "on"
-                ]
+                ],
+                "layout": request.POST.get("sd_layout", ""),  # STU-15b
             }
         if request.tenant.is_module_active("stays") and request.POST.get("std_present"):
             config["stay_detail"] = {
@@ -1908,7 +1912,8 @@ def home_builder_view(request):
                     k
                     for k in detail_sections.section_keys("stays")
                     if request.POST.get(f"std_visible_{k}") != "on"
-                ]
+                ],
+                "layout": request.POST.get("std_layout", ""),  # STU-15b
             }
         # STU-12g: типографику пишет ТОЛЬКО экран «Design des Shops» (решение 1B).
         # Раньше эта ветка писала ключ БЕЗУСЛОВНО — после переезда полей первый же
@@ -1928,6 +1933,8 @@ def home_builder_view(request):
         # значение категории его побеждает).
         sd["category_page_style"] = request.POST.get("sd_category_page_style", "")
         sd["promo_group_style"] = request.POST.get("sd_promo_group_style", "")
+        # STU-15a: шаблон СТРАНИЦЫ АКЦИИ на весь сайт (своё значение акции сильнее).
+        sd["promo_detail_style"] = request.POST.get("sd_promo_detail_style", "")
         # DL-16.4: форма карточки акции.
         sd["promo_card"] = request.POST.get("sd_promo_card", "")
         # STU-8: ширина текстовой колонки (панель типа «Текстовая страница»).
@@ -1941,6 +1948,12 @@ def home_builder_view(request):
         # у ключей есть второй писатель (панель на списке акций), и форма билдера
         # без этих полей не должна ронять уже сохранённый выбор. Пустое значение
         # законно — normalize (presence-minimal) снимет ключ.
+        # STU-15c: дефолт сортировки листингов услуг/номеров/событий. Presence-guard
+        # (W0): ключ есть у формы билдера, но её POST не должен ронять выбор, если
+        # контрола в разметке не было (чужая форма). Пустое значение законно — снимает.
+        for _sk in siteconfig.LISTING_SORT_KINDS:
+            if _sk in request.POST:
+                config[_sk] = request.POST.get(_sk, "")
         if "promo_layout" in request.POST:
             config["promo_layout"] = siteconfig.normalize_promo_layout(
                 request.POST.get("promo_layout")
@@ -2277,6 +2290,10 @@ def home_builder_view(request):
         (k, siteconfig.SECTION_STYLE_LABELS.get(k, k))
         for k in siteconfig.PAGE_EXTRA_PRESETS["catalog_layout"]
     ]
+    # STU-15c: варианты сортировки листингов — из провайдеров фасетов (единый
+    # источник с витринным тулбаром: подписи не разъезжаются).
+    from apps.core import facets as facets_registry
+
     # MEN-18: у листинга услуг — свои прайс-виды (тот же класс W0: опция обязана
     # существовать, иначе Save молча откатывает сохранённый вид).
     service_preset_options = preset_options + [
@@ -2311,6 +2328,18 @@ def home_builder_view(request):
             "event_sections": event_sections,
             "product_sections": product_sections,
             "product_detail_layout": siteconfig.product_detail_layout(config),  # DL-16.6
+            # STU-15c: дефолт сортировки листингов — префилл + варианты ИЗ провайдеров
+            # (те же подписи, что видит посетитель в тулбаре листинга).
+            "services_sort": config.get("services_sort", ""),
+            "stays_sort": config.get("stays_sort", ""),
+            "events_sort": config.get("events_sort", ""),
+            "service_sort_options": facets_registry.provider_for("service").sort_options(),
+            "stay_sort_options": facets_registry.provider_for("stay").sort_options(),
+            "event_sort_options": facets_registry.provider_for("event").sort_options(),
+            # STU-15b: раскладка страницы услуги/номера/события — префилл селектов.
+            "service_detail_layout": siteconfig.detail_layout(config, "service"),
+            "stay_detail_layout": siteconfig.detail_layout(config, "stay"),
+            "event_detail_layout": siteconfig.detail_layout(config, "event"),
             "service_sections": service_sections,
             "stay_sections": stay_sections,
             "catalog_categories": catalog_categories,
@@ -2587,6 +2616,9 @@ def home_builder_view(request):
             "category_page_styles": category_styles.CATEGORY_PAGE_STYLES,
             "promo_group_style": config["site_defaults"].get("promo_group_style", ""),
             "group_page_styles": group_styles.GROUP_PAGE_STYLES,
+            # STU-15a: шаблон страницы одной акции — префилл + реестр для плиток.
+            "promo_detail_style": config["site_defaults"].get("promo_detail_style", ""),
+            "promo_detail_styles": group_styles.PROMOTION_DETAIL_STYLES,
             "media_shape": config["site_defaults"].get("media_shape", ""),  # DL-10
             "promo_card": config["site_defaults"].get("promo_card", ""),  # DL-16.4
             "card_slider": config["site_defaults"].get("card_slider", ""),
