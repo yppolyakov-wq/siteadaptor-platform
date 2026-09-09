@@ -239,14 +239,14 @@ def test_malformed_key_stops_the_deploy_instead_of_silently_emptying_secrets():
     пригодность ключа, а не факт его наличия."""
     from django.core.checks import Error
 
-    from apps.secrets.checks import secrets_encryption_key_set
+    from apps.secrets.checks import secrets_encryption_key_valid
 
     with override_settings(SECRETS_ENCRYPTION_KEY="0" * 64, DEBUG=False):
-        issues = secrets_encryption_key_set(None)
+        issues = secrets_encryption_key_valid(None)
     assert issues and isinstance(issues[0], Error) and issues[0].id == "secrets.E002"
 
     with override_settings(SECRETS_ENCRYPTION_KEY=NEW_KEY, DEBUG=False):
-        assert secrets_encryption_key_set(None) == []
+        assert secrets_encryption_key_valid(None) == []
 
 
 def test_malformed_key_is_not_swallowed_by_needs_rotation():
@@ -266,3 +266,52 @@ def test_env_example_documents_the_now_mandatory_key():
         text = (root / name).read_text()
         assert "SECRETS_ENCRYPTION_KEY" in text, name
         assert "Fernet.generate_key" in text, name
+
+
+def test_orphan_blob_is_removed_when_the_row_vanishes_mid_rotation(monkeypatch):
+    """LOW, но с правовым хвостом: ретеншн-задача документов ходит ПО СТРОКАМ.
+
+    Если строку SecureDocument убрали между save нового файла и update указателя
+    (beat `purge_expired` или удаление владельцем), апдейт затрагивает 0 строк, а
+    новый шифротекст остаётся в бакете навсегда — скан документа переживает свою
+    дату удаления, и найти его можно только руками. Проверяем rowcount и убираем
+    за собой."""
+    from django.core.files.storage import default_storage
+
+    from apps.documents import storage as doc_storage
+    from apps.documents.models import SecureDocument
+    from apps.tenants.tests.factories import TenantFactory
+
+    with override_settings(SECRETS_ENCRYPTION_KEY=""):
+        crypto._fernet.cache_clear()
+        path, mime, size = doc_storage.save_encrypted(ContentFile(PNG, name="x.png"))
+        doc = SecureDocument.objects.create(path=path, mime=mime, size=size)
+    crypto._fernet.cache_clear()
+    TenantFactory(schema_name="rot_purge", slug="rot-purge")
+
+    real_rotate = crypto.rotate_bytes
+
+    def rotate_and_purge(blob):
+        # Эмуляция гонки с ретеншн-чисткой: строки уже нет.
+        SecureDocument.objects.filter(pk=doc.pk).delete()
+        return real_rotate(blob)
+
+    before = set(default_storage.listdir("documents")[1])
+    with override_settings(SECRETS_ENCRYPTION_KEY=NEW_KEY):
+        crypto._fernet.cache_clear()
+        monkeypatch.setattr(crypto, "rotate_bytes", rotate_and_purge)
+        call_command("rotate_secrets", "--apply")
+    after = set(default_storage.listdir("documents")[1])
+    assert after <= before, f"осиротевший шифротекст остался: {sorted(after - before)}"
+
+
+def test_env_examples_do_not_ship_an_unusable_key():
+    """CHANGE-ME в примере ХУЖЕ отсутствия: `_explicit_key` считает ключ заданным,
+    чтение молча отдаёт '', запись падает 500. Пустое/закомментированное значение
+    = штатный производный ключ, и dev работает."""
+    root = Path(__file__).resolve().parents[3]
+    for name in (".env.prod.example", ".env.example"):
+        for line in (root / name).read_text().splitlines():
+            stripped = line.strip()
+            if stripped.startswith("SECRETS_ENCRYPTION_KEY="):
+                assert stripped == "SECRETS_ENCRYPTION_KEY=", f"{name}: {stripped}"

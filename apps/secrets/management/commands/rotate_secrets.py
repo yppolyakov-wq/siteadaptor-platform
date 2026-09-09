@@ -216,7 +216,13 @@ class Command(BaseCommand):
                 saved = default_storage.save(
                     f"{folder}/{uuid.uuid4().hex}.enc", ContentFile(rotated)
                 )
-                SecureDocument.objects.filter(pk=pk).update(path=saved)
+                if SecureDocument.objects.filter(pk=pk).update(path=saved) == 0:
+                    # Строку убрали по ходу прогона (ретеншн-чистка `purge_expired`
+                    # или владелец из кабинета). Ретеншн ходит ПО СТРОКАМ, поэтому
+                    # оставленный файл пережил бы собственную дату удаления и
+                    # нашёлся бы только руками в бакете. Убираем за собой.
+                    default_storage.delete(saved)
+                    continue
                 try:
                     default_storage.delete(path)
                 except Exception:  # noqa: BLE001 — указатель уже переключён
