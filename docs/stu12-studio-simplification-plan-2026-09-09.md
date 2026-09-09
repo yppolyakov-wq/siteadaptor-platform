@@ -211,7 +211,7 @@ bottom-sheet (существующие правила 78vh/55vh + backdrop); п�
   видна на тач; `▲▼` всегда в листах; `●` статус у Speichern (< md); `isNarrow` через `matchMedia`
   listener. Стенд 390 px: T2 (текст inline) и T1' (шаблон категории «Nur hier»).
 
-### 12i · Стенд + доки
+### 12i ✅ · Стенд + доки (браузерная часть → серверный обход: среда)
 - Playwright (`config.settings.stand`, порт 8021, демо-тенант `aktionsmarkt` из сидера) по 19 типам
   страниц × 1440/1024/390: колонка по умолчанию, клик секции/шапки/сетки, поповеры, «Seite ▾» → Warenkorb/
   Kasse, Undo/Save, 0 JS-ошибок; build-log, CLAUDE.md §3, task-catalog.
