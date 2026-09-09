@@ -2790,6 +2790,30 @@ Python 3.12, менеджер uv.
   «Für alle / Nur hier» на странице категории пишет её поле, плитки формы — в форме категории.
   **ВОЛНА STU-12 ИСПОЛНЕНА ЦЕЛИКОМ (12a–12j).** Остаток — демо-носитель: категория со своей
   формой карточки в ките одежды (стиль категории хранится в кортеже кита позиционно).
+- **Самое свежее (2026-09-09, вечер): STU-13 «Студия по макету» + STU-14 «редактируемость всех
+  типов страниц» — фидбэк владельца по скриншоту, обе в main, БЕЗ миграций.** **STU-13**
+  (план `stu13-canvas-parity-plan-2026-09-09.md`, эталон — артборды P3/P4/F1/F2 канваса
+  `studio-2026-09-07`): волна STU-12 дала ПОВЕДЕНИЕ, вид оставался черновым → тёмная плашка
+  блока С ИМЕНЕМ и центрированием по якорю (липла к левому краю → уезжала в угол экрана),
+  выделение выбранного блока (`markSelected`/`clearSelected`, класс + кольцо), группы панели
+  КАРТОЧКАМИ со сводкой значений, подписи 9px-капс → 11px обычным регистром, голова строки
+  блока в панели скрыта (дублировала плашку) → подсказка внизу, поповер 320→380px с шапкой
+  «настройка · блок · ✕» и ПЛИТКАМИ в три колонки (строятся из опций select, сам select
+  остаётся в поповере — W0), топбар иконками (статус перестал обрезаться до буквы).
+  **Диагноз «панель не переведена» — не в `.po`:** язык КАБИНЕТА отдельный от языка витрины
+  (T1-a), а переключателя в полноэкранной Студии не было → селектор языка кабинета добавлен
+  в её топбар. Стенд 18/18 нашёл 4 дефекта мимо серверных замков (рекурсия `clearSelected` —
+  в файле УЖЕ была функция с этим именем; NaN-позиция поповера из-за прямоугольника без
+  `right`; многострочный `{# #}`, утёкший ТЕКСТОМ в топбар; англ. подсказка).
+  **STU-14** (план `stu14-page-coverage-plan-2026-09-09.md`): класс «обещание без исполнения» —
+  «Kasse» в «Seite ▾» вела в 405 (`storefront-checkout` = POST-приёмник корзины, СТРАНИЦЫ НЕТ
+  → тип и пункт сняты, 2 замка переписаны осознанно); четыре текстовые страницы делили хост
+  `info`, а выводился он только в `about.html` (блок на /team/ и /galerie/ не появлялся нигде);
+  лендинги архетипа и /merkzettel//kombi//finder//lookbook/ были вне реестра → пустая панель.
+  `PAGE_BLOCK_HOSTS` += 15 (каждый ВЫВОДИТСЯ шаблоном — главный замок волны), `PAGE_TYPES` += 12.
+  Стенд: 6 новых типов узнаются и показывают свои строки; 14 страниц четырёх демо отдают 200.
+  **Остаток за решением владельца (нужны миграции):** шаблон страницы у детали акции и деталей
+  услуги/номера/события, сортировка и фильтры листингов услуг/номеров/событий.
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна VAT, 2026-08-26): `jobs/0017` (JobLine.vat_rate) + `catalog/0031` (Combo.vat_rate) — аддитивные; (волна DC, 2026-08-25): `booking/0024` + `stays/0033` + `jobs/0016` (внешний номер сделки) + `booking/0025` (связь записи со счётом) — аддитивные; (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `core/0010` (Extra.consume_qty, v2-опции) + `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate) + `events/0028` (SupplierBooking вне туров) + `booking/0023` (Service.pricing_mode) + `catalog/0030` (Product.primary_action) + `finance/0009` (SOURCES gift/pass, choices-only)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. **Волна ERP (2026-08-21): `orders/0020` (OrderItem.cost_price) + `finance/0010` (BankTransaction) + `finance/0011` (Invoice.mahn_level/mahned_at + ExpenseEntry supplier/due_date/paid_at/document) + `documents/0002` (owner nullable + kind receipt) + `inventory/0005` (qty_returned + kind'ы return_supplier/production, ERP-5/7) + `jobs/0015` (JobLine.cost_rate, ERP-6)** — аддитивные. **DL-19 (2026-09-03): `catalog/0032` (Product.card_style) + `promotions/0027` (Promotion.card_style)** — аддитивные. **Волна O «Аутлет» (2026-09-04): `catalog/0033`** (UVP/состояние/примечание/марка) — аддитивная; после деплоя `seed_demo_tenants --kit outlet --recreate`. **STU-12j (2026-09-09): `catalog/0034`** (Category.card_style + дрейф снимка choices `Product.condition`) — аддитивная. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + `--kit pranasy --recreate` (кейтеринг-карта) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».
