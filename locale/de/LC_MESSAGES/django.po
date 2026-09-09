@@ -22250,3 +22250,7 @@ msgstr ""
 #: templates/tenant/design.html
 msgid "Übernehmen"
 msgstr "Übernehmen"
+
+#: templates/tenant/site_home.html:0
+msgid "Nicht gespeicherte Änderungen"
+msgstr ""

@@ -22445,3 +22445,7 @@ msgstr ""
 #: templates/tenant/design.html
 msgid "Übernehmen"
 msgstr "Применить"
+
+#: templates/tenant/site_home.html:0
+msgid "Nicht gespeicherte Änderungen"
+msgstr "Несохранённые изменения"

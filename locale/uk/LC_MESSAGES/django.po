@@ -22428,3 +22428,7 @@ msgstr ""
 #: templates/tenant/design.html
 msgid "Übernehmen"
 msgstr "Застосувати"
+
+#: templates/tenant/site_home.html:0
+msgid "Nicht gespeicherte Änderungen"
+msgstr "Незбережені зміни"

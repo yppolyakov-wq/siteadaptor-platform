@@ -68,7 +68,14 @@
       {% comment %}A4: share-ссылка на read-only превью черновика (снапшот в момент клика).{% endcomment %}
       <button type="button" id="bld-share-preview" data-share-url="{% url 'site-share-preview' %}" title="{% trans 'Copy a read-only preview link of your draft to share.' %}"
               class="text-sm border border-gray-300 rounded-lg px-3 py-1 hover:border-indigo-400 hover:text-indigo-700">🔗<span class="hidden xl:inline"> {% trans "Share preview" %}</span></button>
-      <button type="submit" form="home-form" class="bg-indigo-600 text-white rounded-lg px-4 py-1 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+      {% comment %}STU-12h (F7A): на узком экране текстовый статус «Gespeichert ✓» не
+      помещается в верхнюю строку и скрыт — поэтому у кнопки живёт точка: есть
+      несохранённые правки (амбер) или всё сохранено (гаснет).{% endcomment %}
+      <span class="relative inline-flex shrink-0">
+        <button type="submit" form="home-form" class="bg-indigo-600 text-white rounded-lg px-4 py-1 text-sm font-medium hover:bg-indigo-700">{% trans "Save" %}</button>
+        <span id="bld-save-dot" hidden title="{% trans 'Nicht gespeicherte Änderungen' %}"
+              aria-label="{% trans 'Nicht gespeicherte Änderungen' %}"></span>
+      </span>
     </span>
   </div>
 
@@ -1511,6 +1518,13 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
    панели-формы (контрол поповера обязан остаться в #home-form), поэтому при
    СВЁРНУТОЙ панели (display:none) хост форсим видимым-но-прозрачным, а сами
    плашку/поповер возвращаем в видимость точечно. */
+/* STU-12h: маркер несохранённого у «Speichern» (виден всегда, но нужен прежде всего
+   на узком экране, где текстовый статус спрятан). */
+#bld-save-dot {
+  position: absolute; top: -3px; right: -3px; width: 9px; height: 9px;
+  border-radius: 9999px; background: #f59e0b; box-shadow: 0 0 0 2px #fff;
+}
+#bld-save-dot[hidden] { display: none; }
 #bld-action-bar, #bld-quick-pop { display: none; }
 #bld-action-bar.bld-ab-on {
   /* margin:0 обязателен: у формы класс space-y-6 (margin-top 1.5rem детям), а у
@@ -1528,6 +1542,12 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
 }
 #bld-action-bar button:hover { background: #eef2ff; color: #3730a3; }
 #bld-action-bar button[hidden] { display: none; }
+/* STU-12h: у тач-устройства нет hover — плашка обязана быть заметной и попадаемой
+   пальцем сама по себе (она единственный вход в Stil/Raster/Breite). */
+@media (hover: none) {
+  #bld-action-bar.bld-ab-on { padding: .3rem; gap: .2rem; }
+  #bld-action-bar button { font-size: 13px; padding: .5rem .55rem; min-height: 36px; }
+}
 .bld-ab-sep { width: 1px; height: 16px; background: #e5e7eb; margin: 0 .15rem; }
 #bld-quick-pop.bld-quick-on {
   margin: 0 !important;
@@ -1535,6 +1555,14 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   background: #fff; border: 1px solid #e5e7eb; border-radius: .75rem; padding: .6rem;
   box-shadow: 0 14px 34px -12px rgba(0,0,0,.45);
   visibility: visible; pointer-events: auto;
+}
+/* STU-12h (F7A): на телефоне поповер — ЛИСТ СНИЗУ: у плашки, приклеенной к блоку,
+   на 390px просто нет места сбоку, и всплывашка уезжала за край экрана. */
+#bld-quick-pop.bld-quick-sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; top: auto;
+  width: auto; max-height: 70vh; overflow-y: auto;
+  border-radius: .9rem .9rem 0 0; padding: .9rem .9rem 1.2rem;
+  box-shadow: 0 -14px 34px -12px rgba(0,0,0,.45);
 }
 #bld-quick-pop label { display: block; font-size: 12px; color: #374151; }
 #bld-quick-pop select, #bld-quick-pop input:not([type="checkbox"]) { width: 100%; margin-top: .25rem; }
@@ -1822,7 +1850,22 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
           || a === edPane.querySelector('[data-bld-area="media"]');
       })
     : [];
-  var isNarrow = !window.matchMedia("(min-width: 1024px)").matches;
+  // STU-12h (F7A): ширина окна МЕНЯЕТСЯ (поворот планшета, ресайз, панель инструментов).
+  // Раньше значение считалось один раз при загрузке, и сузивший окно владелец оставался
+  // с десктопным поведением панели — без затемнения и с боковой колонкой вместо листа.
+  var narrowMq = window.matchMedia("(max-width: 1023px)");
+  var isNarrow = narrowMq.matches;
+  function onNarrowChange(e) {
+    isNarrow = e.matches;
+    // затемнение под листом есть только на узком экране; открытую панель не закрываем
+    if (backdrop && edPane && !edPane.classList.contains("bld-collapsed")) {
+      backdrop.classList.toggle("hidden", !isNarrow);
+    }
+    if (typeof placeQuick === "function") placeQuick();
+    if (typeof positionBar === "function") positionBar();
+  }
+  if (narrowMq.addEventListener) narrowMq.addEventListener("change", onNarrowChange);
+  else if (narrowMq.addListener) narrowMq.addListener(onNarrowChange);
   var curArea = null;
   function closePanel() {
     closeBlockPopup(false);  // #2: свёртка панели — выйти из фокуса блока и вернуть его строку в список
@@ -3476,6 +3519,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   // Замена фото по архетипам: эндпоинт по data-edit-model (товар/событие/номер/услуга).
   var MODEL_PHOTO_URLS = { product: PHOTO_EDIT_URL, event: "{% url 'events:event-photo-edit' %}", stay: "{% url 'stays:stay-photo-edit' %}", service: "{% url 'booking:service-photo-edit' %}", promotion: "{% url 'promotions:promotion-photo-edit' %}", cblock: "{% url 'site-cblock-photo-edit' %}" };  // UC6-4: фото C-блока
   function markSaved() {
+    var dot = document.getElementById("bld-save-dot");
+    if (dot) dot.hidden = true;
     if (status) {
       status.textContent = "{% trans 'Saved' %} ✓";
       setTimeout(function () { status.textContent = ""; }, 1500);
@@ -3991,7 +4036,9 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     } catch (eAb) {}
   }
   frame.addEventListener("load", instrumentFrame);
-  function schedule() { clearTimeout(timer); timer = setTimeout(push, 400); }
+  var saveDot = document.getElementById("bld-save-dot");
+  function markDirty() { if (saveDot) saveDot.hidden = false; }
+  function schedule() { markDirty(); clearTimeout(timer); timer = setTimeout(push, 400); }
 
   form.addEventListener("input", schedule);
   form.addEventListener("change", schedule);
@@ -4072,6 +4119,12 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   }
   function placeQuick() {
     if (!quickPop || !quickPop.classList.contains("bld-quick-on")) return;
+    // STU-12h: на телефоне это лист снизу — геометрию задаёт CSS, якорить не к чему.
+    quickPop.classList.toggle("bld-quick-sheet", isNarrow);
+    if (isNarrow) {
+      quickPop.style.top = quickPop.style.left = "";
+      return;
+    }
     var b = actionBar.getBoundingClientRect();
     placeAnchored(quickPop, { top: b.top, bottom: b.bottom, left: b.left }, 6, "below");
   }

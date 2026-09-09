@@ -22211,3 +22211,7 @@ msgstr ""
 #: templates/tenant/design.html
 msgid "Übernehmen"
 msgstr "Apply"
+
+#: templates/tenant/site_home.html:0
+msgid "Nicht gespeicherte Änderungen"
+msgstr "Unsaved changes"
