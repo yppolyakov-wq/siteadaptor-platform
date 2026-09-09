@@ -328,3 +328,56 @@ def test_legacy_two_tuple_cache_entry_is_treated_as_miss():
     cache.set("sfpage2:acme:/:de:v0", (b"old", "text/html"), 60)
     assert view(_real_req()).content == b"fresh"
     assert calls["n"] == 1
+
+
+@pytest.mark.parametrize("decorator", _DECORATORS)
+@override_settings(CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_flash_message_from_cookie_rendered_in_body_is_not_cached(decorator):
+    """Ревью плана (P0-1 регрессии): сообщение пришло с cookie ПРЕДЫДУЩЕГО ответа
+    (added_new=False), шаблон его отрисовал (итерация → used=True). Тело содержит
+    личный текст первого посетителя — второму его отдавать нельзя."""
+    from django.contrib.messages import constants
+    from django.contrib.messages.storage.base import Message
+    from django.contrib.messages.storage.cookie import CookieStorage
+
+    cache.clear()
+    calls = {"n": 0}
+
+    def req_with_flash():
+        request = _real_req()
+        request.COOKIES["messages"] = CookieStorage(request)._encode(
+            [Message(constants.INFO, "Ihr Angebot 4711 wurde gesendet")]
+        )
+        request._messages = CookieStorage(request)
+        return request
+
+    @decorator
+    def view(request):
+        calls["n"] += 1
+        return HttpResponse(", ".join(m.message for m in request._messages) or "leer")
+
+    first = view(req_with_flash())
+    assert b"4711" in first.content
+    plain = _real_req()
+    plain._messages = CookieStorage(plain)  # у второго посетителя своих сообщений нет
+    second = view(plain)
+    assert calls["n"] == 2
+    assert b"4711" not in second.content
+
+
+@pytest.mark.parametrize("decorator", _DECORATORS)
+@override_settings(CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_cache_hit_does_not_touch_csrf_or_session(decorator):
+    """На хите вьюха не зовётся: флаг CSRF не выставлен, сессия не тронута —
+    иначе middleware поставил бы куки поверх общего тела."""
+    cache.clear()
+
+    @decorator
+    def view(request):
+        return HttpResponse("shared")
+
+    view(_real_req())
+    request = _real_req()
+    assert view(request).content == b"shared"
+    assert "CSRF_COOKIE_NEEDS_UPDATE" not in request.META
+    assert not request.session.modified

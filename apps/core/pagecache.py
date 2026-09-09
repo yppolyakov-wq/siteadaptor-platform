@@ -67,8 +67,13 @@ def _cacheable(request, response) -> bool:
     session = getattr(request, "session", None)
     if session is not None and getattr(session, "modified", False):
         return False
+    # Flash-сообщения: `added_new` — добавлены за рендер; `used` — прочитаны из
+    # cookie/сессии и ОТРИСОВАНЫ в теле (итерация storage ставит флаг), после
+    # чего middleware стирает cookie. Оба признака = чужой личный текст в HTML.
     messages = getattr(request, "_messages", None)
-    if messages is not None and getattr(messages, "added_new", False):
+    if messages is not None and (
+        getattr(messages, "added_new", False) or getattr(messages, "used", False)
+    ):
         return False
     meta = getattr(request, "META", None) or {}
     return not meta.get("CSRF_COOKIE_NEEDS_UPDATE")
