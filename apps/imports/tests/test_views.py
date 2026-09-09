@@ -5,6 +5,8 @@
 напрямую (паттерн _attach_session_user из catalog/tests/test_views.py).
 """
 
+from pathlib import Path
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
@@ -143,3 +145,29 @@ def test_uppercase_excel_extension_still_selects_excel_parser(user):
     job = ImportJob.objects.latest("created_at")
     assert job.source_file.name.endswith(".xlsx")
     assert is_excel(job.source_file)
+
+
+def test_upload_rename_is_the_only_way_a_job_gets_a_file():
+    """План P0-2 обещал callable `upload_to`; реализовано переименованием во
+    вьюхе, потому что смена `upload_to` — миграция ради нулевого DDL. Гарантия
+    держится, ПОКА место создания одно: второй колл-сайт (админка, API, сидер)
+    молча вернул бы `imports/<исходное имя>`, а имя файла клиента снова стало бы
+    угадываемым путём. Замок по исходнику — вместо миграции."""
+    import re
+
+    root = Path(__file__).resolve().parents[3]
+    # Создание, а не объявление: `class ImportJob(...)` в models.py не в счёт.
+    creation = re.compile(r"(?<!class )\bImportJob(?:\.objects\.create)?\s*\(")
+    sites = []
+    for py in sorted((root / "apps").rglob("*.py")):
+        parts = py.relative_to(root).parts
+        if "tests" in parts or "migrations" in parts:
+            continue
+        for i, line in enumerate(py.read_text().splitlines(), 1):
+            if creation.search(line):
+                sites.append(f"{py.relative_to(root)}:{i}")
+    # Сверяем ФАЙЛЫ, а не строки: номер строки поедет от любой правки выше и
+    # покраснеет без причины; строки печатаем для диагностики.
+    assert sorted({site.split(":")[0] for site in sites}) == ["apps/imports/views.py"], sites
+    view_src = (root / "apps/imports/views.py").read_text()
+    assert "uuid.uuid4().hex" in view_src
