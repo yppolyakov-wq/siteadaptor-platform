@@ -1369,10 +1369,10 @@ def home_builder_view(request):
         # с «Site» хелперы; обрабатываем до основной формы композиции.
         if request.POST.get("action") == "upload_gallery":
             _upload_gallery_images(request)
-            return redirect("site-home")
+            return _redirect_builder(request)
         if request.POST.get("action") == "delete_gallery_image":
             _delete_gallery_image(request, request.POST.get("image_id", ""))
-            return redirect("site-home")
+            return _redirect_builder(request)
         # W11-5: видео галереи (перенос со страницы «Site») — targeted-write одним
         # ключом; early-return, чтобы форма области не проваливалась в main-save.
         if request.POST.get("action") == "save_gallery_video":
@@ -1381,28 +1381,28 @@ def home_builder_view(request):
             request.tenant.site_config = siteconfig.normalize(cfg)
             request.tenant.save(update_fields=["site_config", "updated_at"])
             messages.success(request, _("Gespeichert."))
-            return redirect("site-home")
+            return _redirect_builder(request)
         # M1: лого бизнеса (multipart) — в шапку витрины.
         if request.POST.get("action") == "upload_logo":
             _save_logo(request)
-            return redirect("site-home")
+            return _redirect_builder(request)
         if request.POST.get("action") == "delete_logo":
             _delete_logo(request)
-            return redirect("site-home")
+            return _redirect_builder(request)
         # M2: слайды баннера (heroes[]) — создать/обновить/удалить/переставить (multipart).
         if request.POST.get("action") == "save_hero_slide":
             _save_hero_slide(request)
-            return redirect("site-home")
+            return _redirect_builder(request)
         if request.POST.get("action") == "delete_hero_slide":
             _delete_hero_slide(request)
-            return redirect("site-home")
+            return _redirect_builder(request)
         if request.POST.get("action") == "move_hero_slide":
             _move_hero_slide(request)
-            return redirect("site-home")
+            return _redirect_builder(request)
         # M3: обложка раздела (archetypes[key].hero_image) — загрузка прямо из билдера.
         if request.POST.get("action") == "upload_cover_hero":
             _upload_cover_hero(request, request.POST.get("archetype", ""))
-            return redirect("site-home")
+            return _redirect_builder(request)
         # W11-5 (Website-свод): quick-start со страницы «Site» — шаблоны витрины
         # и демо-контент теперь в Studio (область «Schnellstart»). Те же библиотеки,
         # что у мастера; early-return ДО main-save (fall-through стёр бы секции).
@@ -1411,19 +1411,19 @@ def home_builder_view(request):
                 messages.success(request, _("Vorlage übernommen."))
             else:
                 messages.error(request, _("Unbekannte Vorlage."))
-            return redirect("site-home")
+            return _redirect_builder(request)
         if request.POST.get("action") == "load_demo":
             if demo.load_demo(request.tenant):
                 messages.success(request, _("Demo-Inhalte geladen."))
             else:
                 messages.info(request, _("Demo-Inhalte sind bereits vorhanden."))
-            return redirect("site-home")
+            return _redirect_builder(request)
         if request.POST.get("action") == "clear_demo":
             if demo.clear_demo(request.tenant):
                 messages.success(request, _("Demo-Inhalte gelöscht."))
             else:
                 messages.info(request, _("Keine Demo-Inhalte vorhanden."))
-            return redirect("site-home")
+            return _redirect_builder(request)
         # D.2b: добавить пустой C-блок (text/image/…) — появится в списке для правки.
         # E.3: необязательный `add_after` (ключ фикс-секции или id C-блока) — вставить
         # новый блок сразу ПОСЛЕ него (инсертер «+» на канвасе); иначе — в конец.
@@ -1652,7 +1652,8 @@ def home_builder_view(request):
                 else:
                     first = next(iter(form.errors.values()))[0]
                     messages.error(request, first)
-            return redirect("site-home")
+            # STU-12f: «＋ Kategorie» вызывается с канвы любой страницы — возвращаем туда же.
+            return _redirect_builder(request)
         from apps.core import archetypes
 
         config = siteconfig.normalize(request.tenant.site_config)

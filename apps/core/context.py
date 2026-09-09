@@ -361,6 +361,9 @@ def modules_nav(request):
                 if img.get("url") and img["url"] not in slides:
                     slides.append(img["url"])
             archetype_cover = {
+                # STU-12f: ключ архетипа нужен слоту медиа на витрине — клик по обложке
+                # в Студии открывает её загрузку (`cover:<key>`). Пустой случай не меняем.
+                "key": ckey,
                 "intro": ov.get("intro", ""),
                 "slides": slides,
                 "button_label": ov.get("button_label", ""),

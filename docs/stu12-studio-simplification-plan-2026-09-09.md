@@ -181,12 +181,17 @@ bottom-sheet (существующие правила 78vh/55vh + backdrop); п�
   переезда полей в строки POST без них стёр бы тексты), удалена недостижимая область
   «Banner», вставка из библиотеки шаблонов получила свой id. Детали — build-log 2026-09-09.
 
-### 12f · Medien + Kategorie-Popover
+### 12f · Medien + Kategorie-Popover — ✅ сделано 2026-09-09
 - Колонка «Medien»: 4 out-of-form области (`gallery-media`, `banner-media`, `covers-media`, `logo-media`)
   аккордеоном; входы: клик по галерее/логотипу/баннеру/обложке (витрина помечает `data-sf-media="gallery|logo|hero|cover:<key>"`);
   каждая форма несёт hidden `page_path` → `_redirect_builder` возвращает канву на ту же страницу.
   `catalog-add` — поповер «＋ Kategorie» из плашки секции Kategorien.
 - **Замки:** upload возвращает на ту же страницу; add_category из поповера создаёт категорию.
+- **Сделано** (`test_stu12_media.py`, 8 замков; стенды `stu12f_stand.mjs` 9/9 и
+  `stu12f_gallery.mjs` 4/4). Отличия от плана: имя атрибута слота — `data-sf-media-slot`
+  (`data-sf-media` занято формой фото витрины), «＋ Kategorie» — кнопка плашки, а не
+  поповер с переносом контрола (форма категории живёт ВНЕ `#home-form`). Стенд нашёл
+  дефект: клик по логотипу уводил канву на главную. Детали — build-log 2026-09-09.
 
 ### 12g · 1B/4A: глобальный дизайн и «Start» — в кабинет (параллелится с 12c–12f)
 - `/dashboard/design/` (`design.html`, `design_view`): + карточки «Farbe & Schrift» (accent, font,

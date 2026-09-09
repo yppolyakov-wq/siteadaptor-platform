@@ -1,6 +1,8 @@
 {% load i18n siteui %}{# Секция «галерея фото/видео» (M20 ⑤b + T1): сетка изображений + опц. видео. #}
 {% if site.gallery or site.gallery_video %}
-<section data-reveal class="mb-10">
+{% comment %}STU-12f: слот медиа — клик по галерее в Студии открывает её фото. Имя
+   атрибута ОТДЕЛЬНОЕ: `data-sf-media` уже занято формой фото витрины (round|wide).{% endcomment %}
+<section data-reveal class="mb-10" data-sf-media-slot="gallery">
   {% comment %}ST-8: секция — тизер (свой заголовок + ссылка «Все …»). На самой
   странице /galerie/ партиал включается с as_page=True: там заголовок уже стоит
   выше, а ссылка вела бы на эту же страницу.{% endcomment %}

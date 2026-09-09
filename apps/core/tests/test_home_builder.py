@@ -411,15 +411,21 @@ def test_home_builder_mobile_layout_unlocks_in_simple_mode():
 
 
 def test_home_builder_media_moved_into_blocks():
-    """SE-9b: общая область «Медиа» убрана; медиа/действия открываются с блока —
-    галерея → область gallery-media (кнопка на блоке), категория → catalog-add."""
+    """SE-9b: медиа/действия открываются С БЛОКА — галерея → область gallery-media
+    (кнопка на блоке), категория → catalog-add.
+
+    STU-12f (осознанно): запрет на общую область «Медиа» снят — четыре набора форм
+    снова живут в ОДНОЙ колонке (решение владельца по ТЗ 12f), но входы остались
+    прежними: кнопка на блоке и клик по самому медиа на канве, а имена областей
+    (`gallery-media` и т.д.) сохранены на частях аккордеона. Икона рейла не вернулась
+    (рейки нет с 12a) — это и проверяем.
+    """
     tenant = TenantFactory(schema_name="public", slug="hbmib", name="HBMIB")
     resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
     body = resp.content.decode()
-    # общей иконки/области «Медиа» больше нет
+    # кнопки рейла «Медиа» по-прежнему нет
     assert 'data-area="media"' not in body
-    assert 'data-bld-area="media"' not in body
-    # вместо неё — две области вне формы
+    # части колонки сохраняют прежние имена областей
     assert 'data-bld-area="gallery-media"' in body
     assert 'data-bld-area="catalog-add"' in body
     # кнопка галереи на блоке открывает её область; загрузчик жив (тот же action)

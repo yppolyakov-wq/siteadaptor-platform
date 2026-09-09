@@ -1306,6 +1306,9 @@
         <button type="button" data-ab="quick" data-quick="style" title="{% trans 'Display style' %}">{% trans "Stil" %} ▾</button>
         <button type="button" data-ab="quick" data-quick="layout" title="{% trans 'Layout' %}">{% trans "Raster" %} ▾</button>
         <button type="button" data-ab="quick" data-quick="width" title="{% trans 'Width' %}">{% trans "Breite" %} ▾</button>
+        {% comment %}STU-12f: «＋ Kategorie» прямо с плашки секции «Kategorien» — раньше
+           вход был только кнопкой в строке блока, которую надо было сперва открыть.{% endcomment %}
+        <button type="button" data-ab="addcat" title="{% trans 'Add category' %}">＋ {% trans "Kategorie" %}</button>
         <span class="bld-ab-sep"></span>
         <button type="button" data-ab="settings" title="{% trans 'Settings' %}" aria-label="{% trans 'Settings' %}">⚙</button>
         <button type="button" data-ab="del" title="{% trans 'Remove' %}" aria-label="{% trans 'Remove' %}">🗑</button>
@@ -1459,9 +1462,175 @@
        и «gallery-media» (с блока «Галерея»). showArea их находит по data-bld-area; кнопки рейла нет.{% endcomment %}
     {% comment %} SE-2c-1: быстро добавить категорию каталога (отдельная форма — создаёт живую
        Category и сразу видна чипом на канве /sortiment/; полная правка — в кабинете). {% endcomment %}
+    {% comment %}STU-12f: одна колонка «Medien» — четыре out-of-form набора форм (галерея,
+       логотип, слайды баннера, обложки) аккордеоном. Прежние имена областей
+       (`gallery-media` и т.д.) сохранены на <details>: по ним ходят входы из строк
+       блоков и клик по канве; showArea резолвит их в эту колонку.{% endcomment %}
+    <div data-bld-area="media" class="bld-area space-y-3 hidden">
+    <details class="bld-media-part bg-white rounded-2xl shadow-sm" data-bld-area="gallery-media" data-media-part="gallery">
+      <summary class="cursor-pointer px-5 py-3 font-semibold list-none">🖼 {% trans "Photo gallery" %}</summary>
+      <div class="px-1 pb-1 space-y-6">
+    <div class="bg-white rounded-2xl shadow-sm p-6">
+      <h3 class="font-semibold mb-1">{% trans "Photo gallery" %}</h3>
+      <p class="text-xs text-gray-400 mb-3">{% trans 'JPEG/PNG/WEBP, max 5 MB. Enable the "Photo gallery" block above to show them.' %}</p>
+      {% if config.gallery %}
+        <div class="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-4">
+          {% for img in config.gallery %}
+            <div class="relative">
+              <div class="aspect-square rounded-lg overflow-hidden bg-gray-100"><img src="{{ img.url }}" alt="" class="w-full h-full object-cover"></div>
+              <form method="post" class="absolute top-1 right-1">
+        <input type="hidden" name="page_path" value="{{ preview_start_path|default:'/' }}">{% csrf_token %}
+                <input type="hidden" name="action" value="delete_gallery_image">
+                <input type="hidden" name="image_id" value="{{ img.id }}">
+                <button aria-label="{% trans 'Delete' %}" class="w-6 h-6 rounded-full bg-white/90 shadow text-red-600 text-xs leading-none hover:bg-white">✕</button>
+              </form>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      <form method="post" enctype="multipart/form-data" class="flex items-center gap-3 flex-wrap">
+        <input type="hidden" name="page_path" value="{{ preview_start_path|default:'/' }}">{% csrf_token %}
+        <input type="hidden" name="action" value="upload_gallery">
+        <input type="file" name="images" accept="image/*" multiple
+               class="text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-3 file:py-1.5">
+        <button class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Upload" %}</button>
+      </form>
+      {% comment %}W11-5: видео галереи — перенос со страницы «Site». Отдельная форма
+         (область вне #home-form) с action → early-return-веткой и targeted-write.{% endcomment %}
+      <form method="post" class="mt-5 pt-4 border-t border-gray-100">
+        <input type="hidden" name="page_path" value="{{ preview_start_path|default:'/' }}">{% csrf_token %}
+        <input type="hidden" name="action" value="save_gallery_video">
+        <h3 class="font-medium text-sm mb-1">{% trans "Gallery video" %}</h3>
+        <p class="text-xs text-gray-400 mb-2">{% trans "YouTube, Vimeo or direct .mp4. Loaded only on click (GDPR-friendly)." %}</p>
+        <div class="flex items-center gap-2 flex-wrap">
+          <input name="gallery_video" type="url" value="{{ config.gallery_video }}" placeholder="https://youtu.be/…"
+                 class="flex-1 min-w-[12rem] rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <button class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Save" %}</button>
+        </div>
+      </form>
+    </div>
+      </div>
+    </details>{% comment %}/часть медиа gallery{% endcomment %}
+    <details class="bld-media-part bg-white rounded-2xl shadow-sm" data-bld-area="logo-media" data-media-part="logo">
+      <summary class="cursor-pointer px-5 py-3 font-semibold list-none">🏷 {% trans "Logo" %}</summary>
+      <div class="px-1 pb-1 space-y-6">
+    <div class="bg-white rounded-2xl shadow-sm p-6">
+      <h3 class="font-semibold mb-1">{% trans "Logo" %}</h3>
+      <p class="text-xs text-gray-400 mb-3">{% trans "JPEG/PNG/WEBP, max 5 MB. Replaces the text site name in the header." %}</p>
+      {% if request.tenant.logo_url %}
+        <div class="flex items-center gap-3 mb-4">
+          <div class="h-12 px-2 flex items-center bg-gray-50 border border-gray-100 rounded-lg"><img src="{{ request.tenant.logo_url }}" alt="" class="h-10 w-auto max-w-[180px] object-contain"></div>
+          <form method="post">
+        <input type="hidden" name="page_path" value="{{ preview_start_path|default:'/' }}">{% csrf_token %}
+            <input type="hidden" name="action" value="delete_logo">
+            <button class="text-sm text-red-600 hover:underline">{% trans "Remove logo" %}</button>
+          </form>
+        </div>
+      {% endif %}
+      <form method="post" enctype="multipart/form-data" class="flex items-center gap-3 flex-wrap">
+        <input type="hidden" name="page_path" value="{{ preview_start_path|default:'/' }}">{% csrf_token %}
+        <input type="hidden" name="action" value="upload_logo">
+        <input type="file" name="logo" accept="image/*"
+               class="text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-3 file:py-1.5">
+        <button class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Upload" %}</button>
+      </form>
+    </div>
+      </div>
+    </details>{% comment %}/часть медиа logo{% endcomment %}
+    <details class="bld-media-part bg-white rounded-2xl shadow-sm" data-bld-area="banner-media" data-media-part="banner">
+      <summary class="cursor-pointer px-5 py-3 font-semibold list-none">🎞 {% trans "Banner slides (slider)" %}</summary>
+      <div class="px-1 pb-1 space-y-6">
+    <div class="bg-white rounded-2xl shadow-sm p-6">
+      <h3 class="font-semibold mb-1">{% trans "Banner slides" %}</h3>
+      <p class="text-xs text-gray-400 mb-4">{% trans "Up to 6 slides — photo, heading, text and a button. Two or more slides rotate automatically. JPEG/PNG/WEBP, max 5 MB." %}</p>
+      {% for h in config.heroes %}
+        {# FIX: фото+контролы сверху, форма во всю ширину панели — без бокового скролла (узкая панель). #}
+        <div class="border border-gray-100 rounded-xl p-4 mb-4 min-w-0">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-24 shrink-0">
+              {% if h.image %}<div class="aspect-video rounded-lg overflow-hidden bg-gray-100"><img src="{{ h.image }}" alt="" class="w-full h-full object-cover"></div>{% else %}<div class="aspect-video rounded-lg bg-gray-100 flex items-center justify-center text-gray-300 text-[11px]">{% trans "No photo" %}</div>{% endif %}
+            </div>
+            <div class="flex items-center gap-2 ml-auto text-base">
+              <form method="post">
+        <input type="hidden" name="page_path" value="{{ preview_start_path|default:'/' }}">{% csrf_token %}<input type="hidden" name="action" value="move_hero_slide"><input type="hidden" name="slide_index" value="{{ forloop.counter0 }}"><input type="hidden" name="dir" value="up"><button class="text-gray-400 hover:text-indigo-600 px-1 disabled:opacity-30" title="{% trans 'Move up' %}" {% if forloop.first %}disabled{% endif %}>▲</button></form>
+              <form method="post">
+        <input type="hidden" name="page_path" value="{{ preview_start_path|default:'/' }}">{% csrf_token %}<input type="hidden" name="action" value="move_hero_slide"><input type="hidden" name="slide_index" value="{{ forloop.counter0 }}"><input type="hidden" name="dir" value="down"><button class="text-gray-400 hover:text-indigo-600 px-1 disabled:opacity-30" title="{% trans 'Move down' %}" {% if forloop.last %}disabled{% endif %}>▼</button></form>
+              <form method="post" onsubmit="return confirm('{% trans "Remove this slide?" %}')">
+        <input type="hidden" name="page_path" value="{{ preview_start_path|default:'/' }}">{% csrf_token %}<input type="hidden" name="action" value="delete_hero_slide"><input type="hidden" name="slide_index" value="{{ forloop.counter0 }}"><button class="text-red-600 hover:text-red-800 px-1" title="{% trans 'Remove slide' %}">✕</button></form>
+            </div>
+          </div>
+          <form method="post" enctype="multipart/form-data" class="space-y-2 min-w-0">
+        <input type="hidden" name="page_path" value="{{ preview_start_path|default:'/' }}">{% csrf_token %}
+            <input type="hidden" name="action" value="save_hero_slide">
+            <input type="hidden" name="slide_index" value="{{ forloop.counter0 }}">
+            <input type="text" name="hero_s_title" value="{{ h.title }}" placeholder="{% trans 'Heading' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <textarea name="hero_s_text" rows="2" placeholder="{% trans 'Text' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ h.text }}</textarea>
+            <input type="text" name="hero_s_btn_label" value="{{ h.button_label }}" placeholder="{% trans 'Button text' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <input type="text" name="hero_s_btn_url" value="{{ h.button_url }}" placeholder="{% trans 'Button link (e.g. /sortiment/)' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <div class="flex items-center gap-2 flex-wrap">
+              <input type="file" name="hero_s_image" accept="image/*" class="text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-2 file:py-1">
+              <button class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Save slide" %}</button>
+            </div>
+          </form>
+        </div>
+      {% endfor %}
+      {% if config.heroes|length < 6 %}
+        <div class="border border-dashed border-gray-300 rounded-xl p-4">
+          <p class="text-sm font-medium mb-2">＋ {% trans "New slide" %}</p>
+          <form method="post" enctype="multipart/form-data" class="space-y-2">
+        <input type="hidden" name="page_path" value="{{ preview_start_path|default:'/' }}">{% csrf_token %}
+            <input type="hidden" name="action" value="save_hero_slide">
+            <input type="hidden" name="slide_index" value="">
+            <input type="text" name="hero_s_title" placeholder="{% trans 'Heading' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <textarea name="hero_s_text" rows="2" placeholder="{% trans 'Text' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
+            <input type="text" name="hero_s_btn_label" placeholder="{% trans 'Button text' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <input type="text" name="hero_s_btn_url" placeholder="{% trans 'Button link (e.g. /sortiment/)' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <div class="flex items-center gap-2 flex-wrap">
+              <input type="file" name="hero_s_image" accept="image/*" class="text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-2 file:py-1">
+              <button class="text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Add slide" %}</button>
+            </div>
+          </form>
+        </div>
+      {% endif %}
+    </div>
+      </div>
+    </details>{% comment %}/часть медиа banner{% endcomment %}
+    <details class="bld-media-part bg-white rounded-2xl shadow-sm" data-bld-area="covers-media" data-media-part="covers">
+      <summary class="cursor-pointer px-5 py-3 font-semibold list-none">🏞 {% trans "Section cover photos" %}</summary>
+      <div class="px-1 pb-1 space-y-6">
+    <div class="bg-white rounded-2xl shadow-sm p-6">
+      <h3 class="font-semibold mb-1">{% trans "Section cover photos" %}</h3>
+      <p class="text-xs text-gray-400 mb-4">{% trans "Banner photo on each section's landing page (catalog, events, …). JPEG/PNG/WEBP, max 5 MB." %}</p>
+      {% for c in cover_specs %}
+        <div class="border border-gray-100 rounded-xl p-4 mb-3 min-w-0">
+          <div class="flex items-center gap-2 mb-2"><span class="text-lg">{{ c.icon }}</span><span class="text-sm font-medium">{{ c.label }}</span></div>
+          <div class="flex items-center gap-3">
+            <div class="w-24 shrink-0">
+              {% if c.hero_image %}<div class="aspect-video rounded-lg overflow-hidden bg-gray-100"><img src="{{ c.hero_image }}" alt="" class="w-full h-full object-cover"></div>{% else %}<div class="aspect-video rounded-lg bg-gray-100 flex items-center justify-center text-gray-300 text-[11px]">{% trans "No photo" %}</div>{% endif %}
+            </div>
+            <form method="post" enctype="multipart/form-data" class="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
+        <input type="hidden" name="page_path" value="{{ preview_start_path|default:'/' }}">{% csrf_token %}
+              <input type="hidden" name="action" value="upload_cover_hero">
+              <input type="hidden" name="archetype" value="{{ c.key }}">
+              <input type="file" name="image" accept="image/*" class="text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-2 file:py-1">
+              <button class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% if c.hero_image %}{% trans "Replace" %}{% else %}{% trans "Upload" %}{% endif %}</button>
+            </form>
+          </div>
+        </div>
+      {% empty %}
+        <p class="text-sm text-gray-400">{% trans "No sections with cover photos yet." %}</p>
+      {% endfor %}
+      <p class="text-xs text-gray-400 mt-2">{% trans "Intro text and section galleries are under" %}
+        <a href="{% url 'site-sections' %}" class="text-indigo-600 hover:underline">{% trans "Sections" %}</a>.</p>
+    </div>
+      </div>
+    </details>{% comment %}/часть медиа covers{% endcomment %}
+    </div>{% comment %}/область 🖼 Медиа{% endcomment %}
+
     <div data-bld-area="catalog-add" class="bld-area space-y-6 hidden">
     {% if has_catalog %}
     <form method="post" class="bg-white rounded-2xl shadow-sm p-5 flex items-center gap-2 flex-wrap">
+        <input type="hidden" name="page_path" value="{{ preview_start_path|default:'/' }}">
       {% csrf_token %}
       <input type="hidden" name="action" value="add_category">
       <span class="text-sm font-medium mr-1">{% trans "Add category" %}:</span>
@@ -1481,147 +1650,12 @@
     </div>{% comment %}/область catalog-add{% endcomment %}
 
     {# M20e/SE-9b: фото галереи (multipart, отдельные формы — НЕ в #home-form), область блока «Галерея». #}
-    <div data-bld-area="gallery-media" class="bld-area space-y-6 hidden">
-    <div class="bg-white rounded-2xl shadow-sm p-6">
-      <h3 class="font-semibold mb-1">{% trans "Photo gallery" %}</h3>
-      <p class="text-xs text-gray-400 mb-3">{% trans 'JPEG/PNG/WEBP, max 5 MB. Enable the "Photo gallery" block above to show them.' %}</p>
-      {% if config.gallery %}
-        <div class="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-4">
-          {% for img in config.gallery %}
-            <div class="relative">
-              <div class="aspect-square rounded-lg overflow-hidden bg-gray-100"><img src="{{ img.url }}" alt="" class="w-full h-full object-cover"></div>
-              <form method="post" class="absolute top-1 right-1">{% csrf_token %}
-                <input type="hidden" name="action" value="delete_gallery_image">
-                <input type="hidden" name="image_id" value="{{ img.id }}">
-                <button aria-label="{% trans 'Delete' %}" class="w-6 h-6 rounded-full bg-white/90 shadow text-red-600 text-xs leading-none hover:bg-white">✕</button>
-              </form>
-            </div>
-          {% endfor %}
-        </div>
-      {% endif %}
-      <form method="post" enctype="multipart/form-data" class="flex items-center gap-3 flex-wrap">{% csrf_token %}
-        <input type="hidden" name="action" value="upload_gallery">
-        <input type="file" name="images" accept="image/*" multiple
-               class="text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-3 file:py-1.5">
-        <button class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Upload" %}</button>
-      </form>
-      {% comment %}W11-5: видео галереи — перенос со страницы «Site». Отдельная форма
-         (область вне #home-form) с action → early-return-веткой и targeted-write.{% endcomment %}
-      <form method="post" class="mt-5 pt-4 border-t border-gray-100">{% csrf_token %}
-        <input type="hidden" name="action" value="save_gallery_video">
-        <h3 class="font-medium text-sm mb-1">{% trans "Gallery video" %}</h3>
-        <p class="text-xs text-gray-400 mb-2">{% trans "YouTube, Vimeo or direct .mp4. Loaded only on click (GDPR-friendly)." %}</p>
-        <div class="flex items-center gap-2 flex-wrap">
-          <input name="gallery_video" type="url" value="{{ config.gallery_video }}" placeholder="https://youtu.be/…"
-                 class="flex-1 min-w-[12rem] rounded-lg border border-gray-300 px-3 py-2 text-sm">
-          <button class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Save" %}</button>
-        </div>
-      </form>
-    </div>
-    </div>{% comment %}/область gallery-media{% endcomment %}
 
     {# M1: лого (multipart, отдельная форма — НЕ в #home-form). #}
-    <div data-bld-area="logo-media" class="bld-area space-y-6 hidden">
-    <div class="bg-white rounded-2xl shadow-sm p-6">
-      <h3 class="font-semibold mb-1">{% trans "Logo" %}</h3>
-      <p class="text-xs text-gray-400 mb-3">{% trans "JPEG/PNG/WEBP, max 5 MB. Replaces the text site name in the header." %}</p>
-      {% if request.tenant.logo_url %}
-        <div class="flex items-center gap-3 mb-4">
-          <div class="h-12 px-2 flex items-center bg-gray-50 border border-gray-100 rounded-lg"><img src="{{ request.tenant.logo_url }}" alt="" class="h-10 w-auto max-w-[180px] object-contain"></div>
-          <form method="post">{% csrf_token %}
-            <input type="hidden" name="action" value="delete_logo">
-            <button class="text-sm text-red-600 hover:underline">{% trans "Remove logo" %}</button>
-          </form>
-        </div>
-      {% endif %}
-      <form method="post" enctype="multipart/form-data" class="flex items-center gap-3 flex-wrap">{% csrf_token %}
-        <input type="hidden" name="action" value="upload_logo">
-        <input type="file" name="logo" accept="image/*"
-               class="text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-3 file:py-1.5">
-        <button class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Upload" %}</button>
-      </form>
-    </div>
-    </div>{% comment %}/область logo-media{% endcomment %}
 
     {# M2: слайды баннера (multipart, отдельные формы — НЕ в #home-form). #}
-    <div data-bld-area="banner-media" class="bld-area space-y-6 hidden">
-    <div class="bg-white rounded-2xl shadow-sm p-6">
-      <h3 class="font-semibold mb-1">{% trans "Banner slides" %}</h3>
-      <p class="text-xs text-gray-400 mb-4">{% trans "Up to 6 slides — photo, heading, text and a button. Two or more slides rotate automatically. JPEG/PNG/WEBP, max 5 MB." %}</p>
-      {% for h in config.heroes %}
-        {# FIX: фото+контролы сверху, форма во всю ширину панели — без бокового скролла (узкая панель). #}
-        <div class="border border-gray-100 rounded-xl p-4 mb-4 min-w-0">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-24 shrink-0">
-              {% if h.image %}<div class="aspect-video rounded-lg overflow-hidden bg-gray-100"><img src="{{ h.image }}" alt="" class="w-full h-full object-cover"></div>{% else %}<div class="aspect-video rounded-lg bg-gray-100 flex items-center justify-center text-gray-300 text-[11px]">{% trans "No photo" %}</div>{% endif %}
-            </div>
-            <div class="flex items-center gap-2 ml-auto text-base">
-              <form method="post">{% csrf_token %}<input type="hidden" name="action" value="move_hero_slide"><input type="hidden" name="slide_index" value="{{ forloop.counter0 }}"><input type="hidden" name="dir" value="up"><button class="text-gray-400 hover:text-indigo-600 px-1 disabled:opacity-30" title="{% trans 'Move up' %}" {% if forloop.first %}disabled{% endif %}>▲</button></form>
-              <form method="post">{% csrf_token %}<input type="hidden" name="action" value="move_hero_slide"><input type="hidden" name="slide_index" value="{{ forloop.counter0 }}"><input type="hidden" name="dir" value="down"><button class="text-gray-400 hover:text-indigo-600 px-1 disabled:opacity-30" title="{% trans 'Move down' %}" {% if forloop.last %}disabled{% endif %}>▼</button></form>
-              <form method="post" onsubmit="return confirm('{% trans "Remove this slide?" %}')">{% csrf_token %}<input type="hidden" name="action" value="delete_hero_slide"><input type="hidden" name="slide_index" value="{{ forloop.counter0 }}"><button class="text-red-600 hover:text-red-800 px-1" title="{% trans 'Remove slide' %}">✕</button></form>
-            </div>
-          </div>
-          <form method="post" enctype="multipart/form-data" class="space-y-2 min-w-0">{% csrf_token %}
-            <input type="hidden" name="action" value="save_hero_slide">
-            <input type="hidden" name="slide_index" value="{{ forloop.counter0 }}">
-            <input type="text" name="hero_s_title" value="{{ h.title }}" placeholder="{% trans 'Heading' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            <textarea name="hero_s_text" rows="2" placeholder="{% trans 'Text' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ h.text }}</textarea>
-            <input type="text" name="hero_s_btn_label" value="{{ h.button_label }}" placeholder="{% trans 'Button text' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            <input type="text" name="hero_s_btn_url" value="{{ h.button_url }}" placeholder="{% trans 'Button link (e.g. /sortiment/)' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            <div class="flex items-center gap-2 flex-wrap">
-              <input type="file" name="hero_s_image" accept="image/*" class="text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-2 file:py-1">
-              <button class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% trans "Save slide" %}</button>
-            </div>
-          </form>
-        </div>
-      {% endfor %}
-      {% if config.heroes|length < 6 %}
-        <div class="border border-dashed border-gray-300 rounded-xl p-4">
-          <p class="text-sm font-medium mb-2">＋ {% trans "New slide" %}</p>
-          <form method="post" enctype="multipart/form-data" class="space-y-2">{% csrf_token %}
-            <input type="hidden" name="action" value="save_hero_slide">
-            <input type="hidden" name="slide_index" value="">
-            <input type="text" name="hero_s_title" placeholder="{% trans 'Heading' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            <textarea name="hero_s_text" rows="2" placeholder="{% trans 'Text' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
-            <input type="text" name="hero_s_btn_label" placeholder="{% trans 'Button text' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            <input type="text" name="hero_s_btn_url" placeholder="{% trans 'Button link (e.g. /sortiment/)' %}" class="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            <div class="flex items-center gap-2 flex-wrap">
-              <input type="file" name="hero_s_image" accept="image/*" class="text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-2 file:py-1">
-              <button class="text-sm bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700">{% trans "Add slide" %}</button>
-            </div>
-          </form>
-        </div>
-      {% endif %}
-    </div>
-    </div>{% comment %}/область banner-media{% endcomment %}
 
     {# M3: обложки разделов (archetypes[key].hero_image) — multipart, отдельные формы (НЕ в #home-form). #}
-    <div data-bld-area="covers-media" class="bld-area space-y-6 hidden">
-    <div class="bg-white rounded-2xl shadow-sm p-6">
-      <h3 class="font-semibold mb-1">{% trans "Section cover photos" %}</h3>
-      <p class="text-xs text-gray-400 mb-4">{% trans "Banner photo on each section's landing page (catalog, events, …). JPEG/PNG/WEBP, max 5 MB." %}</p>
-      {% for c in cover_specs %}
-        <div class="border border-gray-100 rounded-xl p-4 mb-3 min-w-0">
-          <div class="flex items-center gap-2 mb-2"><span class="text-lg">{{ c.icon }}</span><span class="text-sm font-medium">{{ c.label }}</span></div>
-          <div class="flex items-center gap-3">
-            <div class="w-24 shrink-0">
-              {% if c.hero_image %}<div class="aspect-video rounded-lg overflow-hidden bg-gray-100"><img src="{{ c.hero_image }}" alt="" class="w-full h-full object-cover"></div>{% else %}<div class="aspect-video rounded-lg bg-gray-100 flex items-center justify-center text-gray-300 text-[11px]">{% trans "No photo" %}</div>{% endif %}
-            </div>
-            <form method="post" enctype="multipart/form-data" class="flex-1 min-w-0 flex items-center gap-2 flex-wrap">{% csrf_token %}
-              <input type="hidden" name="action" value="upload_cover_hero">
-              <input type="hidden" name="archetype" value="{{ c.key }}">
-              <input type="file" name="image" accept="image/*" class="text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:px-2 file:py-1">
-              <button class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50">{% if c.hero_image %}{% trans "Replace" %}{% else %}{% trans "Upload" %}{% endif %}</button>
-            </form>
-          </div>
-        </div>
-      {% empty %}
-        <p class="text-sm text-gray-400">{% trans "No sections with cover photos yet." %}</p>
-      {% endfor %}
-      <p class="text-xs text-gray-400 mt-2">{% trans "Intro text and section galleries are under" %}
-        <a href="{% url 'site-sections' %}" class="text-indigo-600 hover:underline">{% trans "Sections" %}</a>.</p>
-    </div>
-    </div>{% comment %}/область covers-media{% endcomment %}
    </aside>{% comment %}/#bld-editor-pane (фокус-панель){% endcomment %}
 
     {% comment %}SE-6: канвас — превью на весь экран (фон под шторкой). UC6-9: отдельная
@@ -2063,7 +2097,17 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   var drawerClose = document.getElementById("bld-drawer-close");
   var panelTitle = document.getElementById("bld-panel-title");
   var panelSub = document.getElementById("bld-panel-sub");  // STU-12c
-  var areas = edPane ? edPane.querySelectorAll("[data-bld-area]") : [];
+  // STU-12f: части колонки «Медиа» (галерея/логотип/баннер/обложки) сохранили свои имена
+  // областей ради прежних входов, но они ВЛОЖЕНЫ в неё — переключать их нельзя, иначе
+  // колонка окажется пустой. Прочие области лежат на разной глубине (theme/sections/page/
+  // menu — внутри #home-form), поэтому фильтруем по вложенности, а не по уровню.
+  var areas = edPane
+    ? Array.prototype.filter.call(edPane.querySelectorAll("[data-bld-area]"), function (a) {
+        return a.getAttribute("data-bld-area") === "media"
+          || !a.closest('[data-bld-area="media"]')
+          || a === edPane.querySelector('[data-bld-area="media"]');
+      })
+    : [];
   var isNarrow = !window.matchMedia("(min-width: 1024px)").matches;
   var curArea = null;
   function closePanel() {
@@ -2072,9 +2116,23 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     if (edPane) edPane.classList.add("bld-collapsed");
     if (backdrop) backdrop.classList.add("hidden");
   }
+  // STU-12f: части колонки «Медиа» — их имена остались адресами входов (кнопки строк
+  // блоков, клик по канве), но открывают они ОДНУ колонку с раскрытой частью.
+  var MEDIA_PARTS = { "gallery-media": "gallery", "logo-media": "logo",
+                      "banner-media": "banner", "covers-media": "covers" };
+  function openMediaPart(part) {
+    if (!edPane) return;
+    edPane.querySelectorAll("[data-media-part]").forEach(function (d) {
+      d.open = d.getAttribute("data-media-part") === part;
+    });
+    var el = edPane.querySelector('[data-media-part="' + part + '"]');
+    if (el) try { el.scrollIntoView({ block: "start" }); } catch (eSv) {}
+  }
   function showArea(area, title) {  // всегда открывает (без переключения); title — для областей без кнопки рейла
     if (!edPane) return;
     if (window.__bldUnminPanel) window.__bldUnminPanel();  // явное открытие снимает свёртку
+    var part = MEDIA_PARTS[area];
+    if (part) { area = "media"; }
     curArea = area;
     areas.forEach(function (a) { a.classList.toggle("hidden", a.getAttribute("data-bld-area") !== area); });
     edPane.classList.remove("bld-collapsed");
@@ -2085,6 +2143,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       panelTitle.textContent = title || (window.__stuPanelTitle ? window.__stuPanelTitle(area) : "");
     }
     if (panelSub) panelSub.textContent = window.__stuPanelSub ? window.__stuPanelSub(area) : "";
+    if (part) openMediaPart(part);
   }
   // back-compat: click-to-edit (фикс-секции/блоки) гарантированно открывает «sections».
   function activate(which) { if (which === "editor") showArea("sections"); }
@@ -2107,7 +2166,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   // распахивала панель, которую владелец только что закрыл.
   window.__sfOpenArea = function () { return curArea; };
   window.__sfShowArea = function (area) {
-    var titles = { "gallery-media": "🖼 {% trans 'Photo gallery' %}", "catalog-add": "＋ {% trans 'Add category' %}", "logo-media": "🏷 {% trans 'Logo' %}", "banner-media": "🖼 {% trans 'Banner slides' %}", "covers-media": "🖼 {% trans 'Section cover photos' %}", "quickstart": "⚡ {% trans 'Quick start' %}" };
+    var titles = { "gallery-media": "🖼 {% trans 'Media' %}", "catalog-add": "＋ {% trans 'Add category' %}", "logo-media": "🖼 {% trans 'Media' %}", "banner-media": "🖼 {% trans 'Media' %}", "covers-media": "🖼 {% trans 'Media' %}", "media": "🖼 {% trans 'Media' %}", "quickstart": "⚡ {% trans 'Quick start' %}" };
     showArea(area, titles[area]);
   };
 
@@ -3351,9 +3410,10 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   window.__stuPageLabel = function () { return (curStuPage && STU_LABELS[curStuPage]) || ""; };
   // STU-12a: заголовок колонки без вкладок называет ОХВАТ. Страница — по типу из
   // реестра («Diese Seite: Kategorie»); остальные области — свои подписи.
-  var AREA_TITLES = { theme: "🎨 {% trans 'Design' %}", menu: "☰ {% trans 'Kopf- & Fußzeile' %}", library: "📚 {% trans 'Templates' %}" };
+  var AREA_TITLES = { theme: "🎨 {% trans 'Design' %}", media: "🖼 {% trans 'Media' %}", menu: "☰ {% trans 'Kopf- & Fußzeile' %}", library: "📚 {% trans 'Templates' %}" };
   // STU-12c: подстрочная крошка колонки — охват настроек области.
-  var AREA_SUBS = { menu: "{% trans 'Website · gilt auf allen Seiten' %}" };
+  var AREA_SUBS = { menu: "{% trans 'Website · gilt auf allen Seiten' %}",
+                    media: "{% trans 'Website · gilt auf allen Seiten' %}" };
   window.__stuPanelSub = function (area) { return AREA_SUBS[area] || ""; };
   function panelTitleFor(area) {
     if (area === "page" || area === "sections") {
@@ -4018,12 +4078,42 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         });
       });
     }
+    // STU-12f: клик по медиа-слоту витрины → своя часть колонки «Медиа». Слоты бывают и
+    // ВНЕ [data-sf-section] (обложка раздела рендерится из _base), поэтому кроме ветки в
+    // обработчике секции вешаем делегированный слушатель на документ канвы.
+    function openMediaSlot(ev) {
+      var target = ev && ev.target;
+      var slot = target && target.closest && target.closest("[data-sf-media-slot]");
+      if (!slot) return false;
+      // Найдено стендом: логотип — ССЫЛКА на главную. Без preventDefault клик открывал
+      // колонку и ТУТ ЖЕ уводил канву на главную; дальше канва жила без выбора блока.
+      ev.preventDefault();
+      var sv = slot.getAttribute("data-sf-media-slot") || "";
+      var areaOf = { gallery: "gallery-media", logo: "logo-media", hero: "banner-media" };
+      var area = sv.indexOf("cover:") === 0 ? "covers-media" : areaOf[sv];
+      if (!area) return false;
+      closeBlockPopup(false);
+      if (selectedSec) { try { selectedSec.style.outline = ""; } catch (eOl) {} }
+      selectedSec = null;
+      hideBar();  // у медиа нет строки блока — плашке нечем править
+      if (window.__sfShowArea) window.__sfShowArea(area);
+      return true;
+    }
+    if (sfOnce(doc.body, "mediaSlots")) {
+      doc.addEventListener("click", function (e) {
+        if (!e.target.closest("[data-sf-section]")) openMediaSlot(e);
+      });
+    }
     bindCanvasContent(doc);
     // E.2: клик по секции в превью → попап её настроек (фолбэк M20U-7 B: прокрутка
     // к контролам в редакторе, если попап-row для секции не найден).
     doc.querySelectorAll("[data-sf-section]").forEach(function (sec) {
       sec.style.cursor = "pointer";
       sec.addEventListener("click", function (e) {
+        // STU-12f: слот медиа (галерея/лого/баннер/обложка) ведёт в колонку «Медиа».
+        // Проверяем ДО отсечки ссылок и до ветки шапки: логотип — это <a> ВНУТРИ
+        // <header>, иначе клик по нему либо гасился, либо открывал меню.
+        if (openMediaSlot(e)) return;
         if (e.target.closest("a,button,input,textarea,select,[contenteditable]")) return;
         var key = sec.getAttribute("data-sf-section");
         // STU-12c: шапка/подвал — общие для ВСЕХ страниц → колонка «Kopf- & Fußzeile»
@@ -4357,6 +4447,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   function barBtn(act) { return actionBar ? actionBar.querySelector('[data-ab="' + act + '"]') : null; }
   function barAction(act) {
     if (!abKey) return;
+    // STU-12f: «＋ Kategorie» — вход в область добавления прямо с плашки секции.
+    if (act === "addcat") { if (window.__sfShowArea) window.__sfShowArea("catalog-add"); return; }
     var cbOrd = form.querySelector('[name="order_cb_' + abKey + '"]');
     var row = cbOrd ? cbOrd.closest(".cb-row") : null;
     var host = row ? row.getAttribute("data-pb-page") : "";
@@ -4406,8 +4498,12 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     var box = form.querySelector('[name="enabled_' + abKey + '"]')
       || form.querySelector('[name="enabled_cb_' + abKey + '"]');
     var del = form.querySelector('[name="delete_cb_' + abKey + '"]');
+    // STU-12f: «＋ Kategorie» — только у секции категорий и только когда область
+    // добавления реально отрисована (модуль каталога активен).
+    var canAddCat = abKey === "categories"
+      && !!document.querySelector('[data-bld-area="catalog-add"] [name="name_de"]');
     [["up", canOrder], ["down", canOrder], ["vis", !!box], ["del", !!del],
-     ["settings", true]].forEach(function (pair) {
+     ["addcat", canAddCat], ["settings", true]].forEach(function (pair) {
       var b = barBtn(pair[0]);
       if (b) b.hidden = !pair[1];
     });

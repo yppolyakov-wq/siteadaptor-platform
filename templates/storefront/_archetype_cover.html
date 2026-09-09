@@ -5,7 +5,8 @@
 без фото — прежний текстовый абзац (intro). Кнопка: настроенная в кабинете
 (button_label/button_url) либо дефолтный якорь «вниз к содержимому».{% endcomment %}
 {% if archetype_cover.slides %}
-<section data-reveal class="mb-6" data-cover-hero>
+{# STU-12f: слот медиа обложки раздела; ключ архетипа даёт context.archetype_cover.key. #}
+<section data-reveal class="mb-6" data-cover-hero data-sf-media-slot="cover:{{ archetype_cover.key|default:'' }}">
   <div class="relative h-56 md:h-64 rounded-2xl overflow-hidden bg-gray-800">
     {% for img in archetype_cover.slides %}
       <div class="absolute inset-0 bg-cover bg-center transition-opacity duration-700 {% if not forloop.first %}opacity-0{% endif %}"
