@@ -68,10 +68,31 @@ class Setting:
     site_key: tuple[str, ...]
     object_kind: str = ""
     object_field: str = ""
+    #: STU-12j (F9): у настройки может быть РАЗНЫЙ объектный уровень на разных типах
+    #: страниц — форма карточки на странице товара пишет товар, а на странице
+    #: категории категорию. Ключ — код типа страницы, значение — (вид, поле).
+    object_by_type: tuple[tuple[str, tuple[str, str]], ...] = ()
 
     @property
     def has_object_scope(self) -> bool:
-        return bool(self.object_kind and self.object_field)
+        return bool((self.object_kind and self.object_field) or self.object_by_type)
+
+    def object_for(self, page_code: str) -> tuple[str, str]:
+        """(вид объекта, поле) для этого типа страницы; ("", "") — объекта нет.
+
+        Пустой `page_code` (старый клиент, прямой вызов сервиса) — прежний,
+        единственный вид настройки: обратная совместимость важнее строгости.
+        """
+        if self.object_by_type and page_code:
+            # карта ИСЧЕРПЫВАЮЩАЯ: тип, которого в ней нет, объектного уровня не имеет
+            # (на главной у формы карточки объекта нет — только дефолт сайта).
+            for code, pair in self.object_by_type:
+                if code == page_code:
+                    return pair
+            return ("", "")
+        if self.object_kind and self.object_field:
+            return (self.object_kind, self.object_field)
+        return ("", "")
 
 
 def _s(*args, **kw) -> Setting:
@@ -134,6 +155,12 @@ SETTINGS: dict[str, Setting] = {
             ("site_defaults", "card_style"),
             OBJECT_PRODUCT,
             "card_style",
+            # STU-12j: на странице категории «только здесь» пишет КАТЕГОРИЮ —
+            # до этого пилюля обещала выбор, которого не существовало.
+            object_by_type=(
+                ("product", (OBJECT_PRODUCT, "card_style")),
+                ("category", (OBJECT_CATEGORY, "card_style")),
+            ),
         ),
         # ── акции
         _s("promo_page_style", _("Vorlage der Seite"), "promo_page_style", ("promo_page_style",)),

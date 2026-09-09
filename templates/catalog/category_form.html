@@ -79,6 +79,15 @@ main-колонка (языки/название/описание/фото) + п
             {% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}
           </div>
         {% endif %}{% endfor %}
+        {% comment %}STU-12j (F9): форма карточек ТОВАРОВ этой категории — слой между
+           товаром и сайтом. Пустое = как на сайте; своё у товара побеждает.{% endcomment %}
+        {% for field in form %}{% if field.name == 'card_style' %}
+          <div>
+            {% include "tenant/_cardform_picker.html" with name="card_style" value=field.value|default:"" items=category_card_forms title=field.label %}
+            <p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>
+            {% for err in field.errors %}<p class="text-xs text-red-600 mt-1" data-field-error>{{ err }}</p>{% endfor %}
+          </div>
+        {% endif %}{% endfor %}
         <div class="grid grid-cols-2 gap-3">
           {% for field in form %}{% if field.name == 'icon' or field.name == 'sort_order' %}
             <div>

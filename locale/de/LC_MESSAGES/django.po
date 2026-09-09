@@ -22254,3 +22254,12 @@ msgstr "Übernehmen"
 #: templates/tenant/site_home.html:0
 msgid "Nicht gespeicherte Änderungen"
 msgstr ""
+
+#: apps/catalog/forms.py:0
+msgid "Wie auf der Website"
+msgstr ""
+
+#: apps/catalog/forms.py:0
+msgid ""
+"Gilt für die Produkte dieser Kategorie. Eigene Wahl am Produkt gewinnt."
+msgstr ""

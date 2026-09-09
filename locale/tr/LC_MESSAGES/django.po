@@ -22345,3 +22345,13 @@ msgstr "Uygula"
 #: templates/tenant/site_home.html:0
 msgid "Nicht gespeicherte Änderungen"
 msgstr "Kaydedilmemiş değişiklikler"
+
+#: apps/catalog/forms.py:0
+msgid "Wie auf der Website"
+msgstr "Web sitesindeki gibi"
+
+#: apps/catalog/forms.py:0
+msgid ""
+"Gilt für die Produkte dieser Kategorie. Eigene Wahl am Produkt gewinnt."
+msgstr ""
+"Bu kategorideki ürünler için geçerlidir. Ürünün kendi seçimi öncelikli."

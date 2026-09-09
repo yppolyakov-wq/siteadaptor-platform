@@ -86,5 +86,12 @@ def card_form(entity, site_default: str = "", kind: str = PRODUCT) -> str:
     own = (getattr(entity, "card_style", "") or "").strip()
     if own in allowed:
         return own
+    # STU-12j (F9): слой КАТЕГОРИИ между товаром и сайтом — «эта полка выглядит иначе».
+    # Мусор в любом слое проваливается в следующий, а не роняет страницу; у стабов
+    # секций главной категории нет вовсе (SimpleNamespace) — getattr с фолбэком.
+    cat = getattr(entity, "category", None)
+    cat_style = (getattr(cat, "card_style", "") or "").strip() if cat is not None else ""
+    if cat_style in allowed and cat_style:
+        return cat_style
     site_default = (site_default or "").strip()
     return site_default if site_default in allowed else ""

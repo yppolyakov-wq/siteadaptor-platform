@@ -22215,3 +22215,13 @@ msgstr "Apply"
 #: templates/tenant/site_home.html:0
 msgid "Nicht gespeicherte Änderungen"
 msgstr "Unsaved changes"
+
+#: apps/catalog/forms.py:0
+msgid "Wie auf der Website"
+msgstr "As on the website"
+
+#: apps/catalog/forms.py:0
+msgid ""
+"Gilt für die Produkte dieser Kategorie. Eigene Wahl am Produkt gewinnt."
+msgstr ""
+"Applies to the products of this category. A product's own choice wins."

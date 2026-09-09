@@ -3343,7 +3343,9 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     scopeOwn = {};
     scopeMode = {};
     if (!curStuRef || !codes.length) { scopePills().forEach(paintScopePill); return; }
-    fetch(SCOPE_STATE_URL + "?ref=" + encodeURIComponent(curStuRef) + "&settings=" + codes.join(","),
+    fetch(SCOPE_STATE_URL + "?ref=" + encodeURIComponent(curStuRef)
+      + "&page=" + encodeURIComponent(curStuPage || "")  // STU-12j: объект зависит от типа
+      + "&settings=" + codes.join(","),
           { credentials: "same-origin" })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (d) {
@@ -3363,7 +3365,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       method: "POST",
       credentials: "same-origin",
       headers: { "Content-Type": "application/x-www-form-urlencoded", "X-CSRFToken": csrfToken() },
-      body: new URLSearchParams({ setting: code, ref: curStuRef, value: value }).toString(),
+      body: new URLSearchParams({ setting: code, ref: curStuRef, value: value, page: curStuPage || "" }).toString(),
     })
       .then(function (r) { return r.json(); })
       .then(function (d) { if (d && d.ok) { scopeOwn[code] = d.own || ""; if (then) then(); } })

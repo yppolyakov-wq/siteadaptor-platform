@@ -15,7 +15,7 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from apps.core import vat
+from apps.core import card_forms, vat
 from apps.core.archetypes import FOOD_BUSINESS_TYPES as _FOOD_BUSINESS_TYPES
 from apps.core.i18n_input import apply_i18n_overlay, extra_locales, i18n_inputs_for
 from apps.inventory.services import log_catalog_change
@@ -596,6 +596,8 @@ def category_create(request):
             "nav": "categories",
             # DL-20: реестр шаблонов страницы — плитки вместо селекта.
             "category_page_styles": category_styles.CATEGORY_PAGE_STYLES,
+            # STU-12j (F9): формы карточки товаров ЭТОЙ категории (плитки, как у товара)
+            "category_card_forms": card_forms.forms_for(card_forms.PRODUCT),
             **_i18n_ctx(form, request),
         },
     )
@@ -620,6 +622,8 @@ def category_edit(request, pk):
             "category": category,
             "nav": "categories",
             "category_page_styles": category_styles.CATEGORY_PAGE_STYLES,
+            # STU-12j (F9): формы карточки товаров ЭТОЙ категории (плитки, как у товара)
+            "category_card_forms": card_forms.forms_for(card_forms.PRODUCT),
             **_i18n_ctx(form, request),
         },
     )

@@ -3550,13 +3550,14 @@ def studio_scope_state(request):
     from django.http import JsonResponse
 
     ref = (request.GET.get("ref") or "").strip()
+    page = (request.GET.get("page") or "").strip()  # STU-12j: тип страницы решает объект
     out = {}
     for code in (request.GET.get("settings") or "").split(","):
         code = code.strip()
         if not code:
             continue
         try:
-            state = studio_scope.read_state(request.tenant, code, ref)
+            state = studio_scope.read_state(request.tenant, code, ref, page)
         except studio_scope.ScopeError:
             continue
         out[code] = {"own": state.own_value, "site": state.site_value}
@@ -3579,6 +3580,7 @@ def studio_scope_save(request):
             request.POST.get("setting", ""),
             request.POST.get("ref", ""),
             request.POST.get("value", ""),
+            request.POST.get("page", ""),
         )
     except studio_scope.ScopeError as exc:
         return JsonResponse({"ok": False, "error": str(exc)}, status=400)

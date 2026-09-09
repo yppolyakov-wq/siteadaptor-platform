@@ -55,6 +55,12 @@ class Category(SoftDeleteMixin, I18nMixin):
     # байт-в-байт; choices живут в форме (прецедент Product.variant_style).
     page_style = models.CharField(max_length=20, blank=True, default="")
 
+    # STU-12j (F9): ФОРМА карточки товаров ЭТОЙ категории (реестр core.card_forms).
+    # Пусто = дефолт сайта (site_defaults.card_style). Слой между товаром и сайтом:
+    # своё у товара ПОБЕЖДАЕТ категорию, категория побеждает сайт. choices не
+    # фиксируем — реестр форм растёт без миграций (прецедент page_style).
+    card_style = models.CharField(max_length=16, blank=True, default="")
+
     class Meta:
         verbose_name_plural = "Categories"
         ordering = ["sort_order", "slug"]

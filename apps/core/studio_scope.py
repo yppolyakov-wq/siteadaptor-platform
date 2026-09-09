@@ -69,9 +69,21 @@ def _site_value(tenant, setting: studio_pages.Setting) -> str:
     return node if isinstance(node, str) else ""
 
 
-def _fetch(setting: studio_pages.Setting, ref: str):
+def _object_spec(setting: studio_pages.Setting, page: str) -> tuple[str, str]:
+    """STU-12j: (вид, поле) объектного уровня для ОТКРЫТОГО типа страницы.
+
+    У формы карточки их два: на странице товара пишем товар, на странице категории —
+    категорию. Пустой `page` (старый клиент) — прежний, единственный вид настройки.
+    """
+    kind, field = setting.object_for((page or "").strip())
+    if not (kind and field):
+        raise ScopeError(f"настройка {setting.code!r} не имеет объектного уровня здесь")
+    return kind, field
+
+
+def _fetch(setting: studio_pages.Setting, ref: str, kind: str = ""):
     """Объект по ссылке из адреса канвы. Группа акций модели не имеет — None."""
-    kind = setting.object_kind
+    kind = kind or setting.object_kind
     ref = (ref or "").strip()
     if not ref:
         raise ScopeError("страница канвы не указывает объект")
@@ -109,22 +121,23 @@ def _by_uuid(model, ref: str):
         return None
 
 
-def read_state(tenant, setting_code: str, ref: str) -> ScopeState:
+def read_state(tenant, setting_code: str, ref: str, page: str = "") -> ScopeState:
     """Что сейчас у объекта и что он унаследовал бы."""
     setting = studio_pages.SETTINGS.get(setting_code or "")
     if setting is None or not setting.has_object_scope:
         raise ScopeError(f"настройка {setting_code!r} не имеет охвата «только здесь»")
 
+    kind, field = _object_spec(setting, page)
     site_value = _site_value(tenant, setting)
-    if setting.object_kind == studio_pages.OBJECT_PROMO_GROUP:
+    if kind == studio_pages.OBJECT_PROMO_GROUP:
         per_group = (tenant.site_config or {}).get("promo_groups") or {}
         own = per_group.get((ref or "").strip(), "")
     else:
-        own = getattr(_fetch(setting, ref), setting.object_field, "") or ""
+        own = getattr(_fetch(setting, ref, kind), field, "") or ""
     return ScopeState(setting.code, site_value, str(own or ""))
 
 
-def write_value(tenant, setting_code: str, ref: str, value: str) -> ScopeState:
+def write_value(tenant, setting_code: str, ref: str, value: str, page: str = "") -> ScopeState:
     """Записать значение объектного уровня; пустое — вернуть объект к наследованию."""
     setting = studio_pages.SETTINGS.get(setting_code or "")
     if setting is None or not setting.has_object_scope:
@@ -134,13 +147,14 @@ def write_value(tenant, setting_code: str, ref: str, value: str) -> ScopeState:
     if value and value not in _valid_values(setting):
         raise ScopeError(f"недопустимое значение {value!r} для {setting.code}")
 
-    if setting.object_kind == studio_pages.OBJECT_PROMO_GROUP:
+    kind, field = _object_spec(setting, page)
+    if kind == studio_pages.OBJECT_PROMO_GROUP:
         _write_promo_group(tenant, (ref or "").strip(), value)
     else:
-        obj = _fetch(setting, ref)
-        setattr(obj, setting.object_field, value)
-        obj.save(update_fields=[setting.object_field])  # точечно: чужие поля не трогаем
-    return read_state(tenant, setting_code, ref)
+        obj = _fetch(setting, ref, kind)
+        setattr(obj, field, value)
+        obj.save(update_fields=[field])  # точечно: чужие поля не трогаем
+    return read_state(tenant, setting_code, ref, page)
 
 
 def _write_promo_group(tenant, group: str, value: str) -> None:

@@ -30,10 +30,22 @@ class CategoryForm(DynamicI18nFormMixin, forms.ModelForm):
 
     # KAT-1: шаблон страницы категории (реестр category_styles; "" = Standard).
     page_style = forms.ChoiceField(label=_("Seitenvorlage"), required=False)
+    # STU-12j (F9): форма карточек ТОВАРОВ этой категории (реестр core.card_forms;
+    # "" = как на сайте). Слой между товаром и сайтом.
+    card_style = forms.ChoiceField(label=_("Kartenform"), required=False)
 
     class Meta:
         model = Category
-        fields = ["parent", "slug", "page_style", "icon", "sort_order", "is_active", "size_table"]
+        fields = [
+            "parent",
+            "slug",
+            "page_style",
+            "card_style",
+            "icon",
+            "sort_order",
+            "is_active",
+            "size_table",
+        ]
         labels = {
             "size_table": _("Größentabelle"),
             # I18N-13: иначе Django печатает «Parent»/«Sort order» на всех языках.
@@ -63,6 +75,15 @@ class CategoryForm(DynamicI18nFormMixin, forms.ModelForm):
         ]
         self.fields["page_style"].help_text = _(
             "Wie die Seite /sortiment/<slug>/ dieser Kategorie aufgebaut ist."
+        )
+        from apps.core import card_forms as _cf
+
+        self.fields["card_style"].choices = [
+            (key, label if key else _("Wie auf der Website"))
+            for key, label, _hint in _cf.forms_for(_cf.PRODUCT)
+        ]
+        self.fields["card_style"].help_text = _(
+            "Gilt für die Produkte dieser Kategorie. Eigene Wahl am Produkt gewinnt."
         )
         self.init_i18n_fields(tenant)  # L3d.5: динамика + initial всех локалей
 

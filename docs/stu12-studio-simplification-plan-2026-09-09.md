@@ -216,7 +216,7 @@ bottom-sheet (существующие правила 78vh/55vh + backdrop); п�
   страниц × 1440/1024/390: колонка по умолчанию, клик секции/шапки/сетки, поповеры, «Seite ▾» → Warenkorb/
   Kasse, Undo/Save, 0 JS-ошибок; build-log, CLAUDE.md §3, task-catalog.
 
-### 12j · F9: форма карточки для одной категории (⚠️ миграция `catalog/00NN`, аддитивная)
+### 12j ✅ (кроме демо-носителя) · F9: форма карточки для одной категории (⚠️ миграция `catalog/00NN`, аддитивная)
 - Модель: `Category.card_style = CharField(max_length=32, blank=True, default="")` (значения — реестр
   `apps/core/card_forms.py`, валидация в форме/normalize, choices в модели НЕ фиксируем — реестр растёт
   без миграций).

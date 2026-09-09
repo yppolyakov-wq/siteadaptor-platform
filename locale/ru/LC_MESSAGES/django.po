@@ -22449,3 +22449,12 @@ msgstr "Применить"
 #: templates/tenant/site_home.html:0
 msgid "Nicht gespeicherte Änderungen"
 msgstr "Несохранённые изменения"
+
+#: apps/catalog/forms.py:0
+msgid "Wie auf der Website"
+msgstr "Как на сайте"
+
+#: apps/catalog/forms.py:0
+msgid ""
+"Gilt für die Produkte dieser Kategorie. Eigene Wahl am Produkt gewinnt."
+msgstr "Действует для товаров этой категории. Свой выбор у товара побеждает."
