@@ -39,6 +39,10 @@ PY_TRANS_JOINED = re.compile(
     re.S,
 )
 LITERAL = re.compile(r"\"(?:[^\"\\]|\\.)*\"|'(?:[^'\\]|\\.)*'")
+# STU-15 (повтор класса DL-20): `_("…")` встречается и В ШАБЛОНАХ — в аргументах
+# `{% include … title=_("…") %}` и тегов. makemessages их берёт (templatize), а
+# этот скрипт смотрел только `{% trans %}` → msgid ловил один CI. Ловим и здесь.
+TPL_PY = re.compile(r"_\(\s*([\"'])(.+?)\1\s*\)")
 
 
 def _unescape(text: str) -> str:
@@ -113,6 +117,14 @@ def main(argv: list[str]) -> int:
         # попадает в .po как «%%» (нашлось на units.html: «Preisänderung (%…)»).
         for m in TRANS.finditer(src):
             lit = m.group(2)
+            if "%" in lit and "%(" not in lit:
+                lit = lit.replace("%", "%%")
+            wanted.add(lit)
+        # STU-15: `_("…")` в аргументах тегов/include того же шаблона.
+        for m in TPL_PY.finditer(src):
+            lit = m.group(2)
+            if "\\" in lit:
+                continue
             if "%" in lit and "%(" not in lit:
                 lit = lit.replace("%", "%%")
             wanted.add(lit)

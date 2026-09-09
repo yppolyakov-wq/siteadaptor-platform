@@ -22312,3 +22312,7 @@ msgstr "Magazin"
 #. STU-15a
 msgid "Story first with a wide text column, photo alongside."
 msgstr "Erst die Geschichte in breiter Textspalte, Foto daneben."
+
+#. STU-15a
+msgid "Offer page (whole site)"
+msgstr "Aktionsseite (ganze Website)"

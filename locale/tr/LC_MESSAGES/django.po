@@ -22401,3 +22401,7 @@ msgstr "Dergi"
 #. STU-15a
 msgid "Story first with a wide text column, photo alongside."
 msgstr "Önce geniş metin sütununda hikâye, yanında fotoğraf."
+
+#. STU-15a
+msgid "Offer page (whole site)"
+msgstr "Kampanya sayfası (tüm site)"

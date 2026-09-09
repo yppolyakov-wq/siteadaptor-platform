@@ -22488,3 +22488,7 @@ msgstr "Журнал"
 #. STU-15a
 msgid "Story first with a wide text column, photo alongside."
 msgstr "Спочатку розповідь широкою колонкою, фото поруч."
+
+#. STU-15a
+msgid "Offer page (whole site)"
+msgstr "Сторінка акції (весь сайт)"
