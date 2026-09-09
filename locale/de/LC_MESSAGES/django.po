@@ -22162,3 +22162,7 @@ msgstr ""
 #: templates/tenant/site_home.html
 msgid "Untermenü"
 msgstr ""
+
+#: templates/tenant/site_home.html
+msgid "Breite"
+msgstr ""

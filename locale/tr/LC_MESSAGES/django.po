@@ -22253,3 +22253,7 @@ msgstr "Alt menüler, hedefler ve çeviriler:"
 #: templates/tenant/site_home.html
 msgid "Untermenü"
 msgstr "Alt menü"
+
+#: templates/tenant/site_home.html
+msgid "Breite"
+msgstr "Genişlik"

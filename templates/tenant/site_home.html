@@ -1294,6 +1294,25 @@
       </script>
       </div>{% comment %}/область ☰ Меню{% endcomment %}
 
+      {% comment %}STU-12d (F5A): плашка действий выбранного блока + быстрый поповер.
+         Живут В ФОРМЕ: поповер ПРИНИМАЕТ настоящий контрол блока (style_/layout_preset_/
+         width_) на время открытия — контрол не покидает #home-form, значит сабмит и
+         live-черновик работают как обычно (W0). Сами кнопки без name= — ничего не шлют.
+         Позиционирование — fixed по координатам элемента в кадре (см. placeAnchored).{% endcomment %}
+      <div id="bld-action-bar" aria-label="{% trans 'Block' %}">
+        <button type="button" data-ab="up" title="{% trans 'Move up' %}" aria-label="{% trans 'Move up' %}">▲</button>
+        <button type="button" data-ab="down" title="{% trans 'Move down' %}" aria-label="{% trans 'Move down' %}">▼</button>
+        <button type="button" data-ab="vis" title="{% trans 'Visible' %}" aria-label="{% trans 'Visible' %}">👁</button>
+        <span class="bld-ab-sep"></span>
+        <button type="button" data-ab="quick" data-quick="style" title="{% trans 'Display style' %}">{% trans "Stil" %} ▾</button>
+        <button type="button" data-ab="quick" data-quick="layout" title="{% trans 'Layout' %}">{% trans "Raster" %} ▾</button>
+        <button type="button" data-ab="quick" data-quick="width" title="{% trans 'Width' %}">{% trans "Breite" %} ▾</button>
+        <span class="bld-ab-sep"></span>
+        <button type="button" data-ab="settings" title="{% trans 'Settings' %}" aria-label="{% trans 'Settings' %}">⚙</button>
+        <button type="button" data-ab="del" title="{% trans 'Remove' %}" aria-label="{% trans 'Remove' %}">🗑</button>
+      </div>
+      <div id="bld-quick-pop"><div id="bld-quick-pop-body"></div></div>
+
       {% comment %}SE-7d область 🔻 Подвал: видимость секции контактов + ссылки в настройки
       (контакты/часы/Impressum — поля Tenant, правятся в «Settings», не дублируем здесь).{% endcomment %}
 
@@ -1741,6 +1760,42 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   .bld-ribbon-open #bld-block-popup .cb-row > input[type="text"] { width: 100%; flex: none; }
 }
 #bld-inserter > div { max-height: min(72vh, 520px); overflow-y: auto; }
+/* STU-12d: плашка действий у выбранного блока и быстрый поповер. Оба лежат внутри
+   панели-формы (контрол поповера обязан остаться в #home-form), поэтому при
+   СВЁРНУТОЙ панели (display:none) хост форсим видимым-но-прозрачным, а сами
+   плашку/поповер возвращаем в видимость точечно. */
+#bld-action-bar, #bld-quick-pop { display: none; }
+#bld-action-bar.bld-ab-on {
+  /* margin:0 обязателен: у формы класс space-y-6 (margin-top 1.5rem детям), а у
+     позиционированного элемента top отсчитывается до КРАЯ ПОЛЕЙ — плашка уезжала
+     на 24px вниз от блока. */
+  margin: 0 !important;
+  display: flex; align-items: center; gap: .1rem; position: fixed; z-index: 72;
+  background: #fff; border: 1px solid #e5e7eb; border-radius: .6rem; padding: .2rem;
+  box-shadow: 0 8px 22px -10px rgba(0,0,0,.45); transition: opacity .12s;
+  visibility: visible; pointer-events: auto;
+}
+#bld-action-bar button {
+  font-size: 12px; line-height: 1; color: #4b5563; background: transparent;
+  border: 0; border-radius: .4rem; padding: .3rem .4rem; cursor: pointer; white-space: nowrap;
+}
+#bld-action-bar button:hover { background: #eef2ff; color: #3730a3; }
+#bld-action-bar button[hidden] { display: none; }
+.bld-ab-sep { width: 1px; height: 16px; background: #e5e7eb; margin: 0 .15rem; }
+#bld-quick-pop.bld-quick-on {
+  margin: 0 !important;
+  display: block; position: fixed; z-index: 74; width: min(320px, 92vw);
+  background: #fff; border: 1px solid #e5e7eb; border-radius: .75rem; padding: .6rem;
+  box-shadow: 0 14px 34px -12px rgba(0,0,0,.45);
+  visibility: visible; pointer-events: auto;
+}
+#bld-quick-pop label { display: block; font-size: 12px; color: #374151; }
+#bld-quick-pop select, #bld-quick-pop input:not([type="checkbox"]) { width: 100%; margin-top: .25rem; }
+#bld-quick-pop .bld-thumbs { gap: .4rem; }
+#bld-editor-pane.bld-collapsed:has(#bld-action-bar.bld-ab-on),
+#bld-editor-pane.bld-collapsed:has(#bld-quick-pop.bld-quick-on) {
+  display: block !important; visibility: hidden; pointer-events: none;
+}
 /* Контролы C-блока в ленте текут горизонтально (Word-style). */
 .bld-ribbon-open #bld-block-popup .cb-row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
 .bld-ribbon-open #bld-block-popup .cb-row > input[type="text"] { width: auto; flex: 1 1 240px; }
@@ -2151,6 +2206,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       x.classList.toggle("text-white", on);
     });
     try { localStorage.setItem("sf_preview_device", dev); } catch (e) {}
+    positionBar();  // STU-12d: масштаб/габариты кадра изменились — плашка следом
   }
   document.querySelectorAll(".home-dev-btn").forEach(function (b) {
     b.addEventListener("click", function () { applyDevice(b.getAttribute("data-dev")); });
@@ -3050,6 +3106,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   }
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Escape") return;
+    // STU-12d: Esc ступенчато — сначала быстрый поповер, потом блок, потом панель.
+    if (quickPop && quickPop.classList.contains("bld-quick-on")) { closeQuickPop(); return; }
     var hadPopup = popup && !popup.classList.contains("hidden");
     if (hadPopup) closeBlockPopup();
     hideInserter();
@@ -3167,6 +3225,15 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     var baseCss = frame.style.cssText;
     buf.style.cssText = baseCss + ";position:absolute;left:0;top:0;visibility:hidden;";
     buf.addEventListener("load", function onFirstLoad() {
+      // STU-12d (найдено стендом): свежесозданный iframe отдаёт load СВОЕГО about:blank
+      // ещё до навигации по src. Прежний код считал это провалом рендера (bufOk=false) и
+      // сваливался в hardReloadPreview — то есть двойная буферизация не работала НИ РАЗУ:
+      // каждая живая правка перезагружала канву (прыжок прокрутки) и оставляла её без
+      // оснастки редактора («+», инлайн-правка, ручки drag, клик-выбор). Ждём настоящую
+      // загрузку, слушатель НЕ снимаем; невыполнимую загрузку по-прежнему ловит вотчдог.
+      var proto0 = "";
+      try { proto0 = buf.contentWindow.location.protocol; } catch (eP0) {}
+      if (proto0 === "about:") return;
       buf.removeEventListener("load", onFirstLoad);
       if (buf.__sfCancelled) return;
       pendingBuf = null;
@@ -3189,6 +3256,10 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       var liveCss = old.style.cssText;
       frame = buf;  // все замыкания редактора читают var frame в момент вызова — переключаются разом
       try { buf.contentWindow.scrollTo(0, pendingScrollY || 0); } catch (eSc) {}
+      // STU-12d: оснащаем НОВЫЙ документ сразу после переключения `frame` — второй
+      // load-слушатель ниже станет no-op (гвард по документу). Без этого оснастка
+      // зависела от порядка слушателей и терялась при подмене.
+      try { instrumentFrame(); } catch (eIf) {}
       old.removeAttribute("id");
       buf.id = "home-prev-frame";  // внешние lookup'ы (applyDevice) находят активный кадр
       // ST-3c: кросс-фейд — буфер проявляется ПОВЕРХ старого (opacity ⊥ transform
@@ -3652,6 +3723,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   // двойной буферизации (swapPreview): вешается и на iframe-буферы; guard по
   // <body> (новый элемент на каждый рендер) не даёт инструментировать документ
   // дважды, каким бы путём (load кадра / load буфера) вызов ни пришёл.
+  var lastInstrumentedDoc = null;  // какой документ канвы уже оснащён (см. гвард ниже)
   function instrumentFrame() {
     try {
       // about:blank (стартовый пустой кадр) / chrome-error — НЕ канва: их pathname
@@ -3659,8 +3731,17 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       // /dashboard/site/home/blank?preview=1 (404 + XFO DENY). В старом потоке
       // навигация видимого кадра самоизлечивала эту гонку — теперь гейтим явно.
       if (!/^https?:$/.test(frame.contentWindow.location.protocol)) return;
-      var gBody = frame.contentDocument && frame.contentDocument.body;
-      if (!gBody || gBody.__sfInstrumented) return;
+      // STU-12d (найдено стендом): гвард был флагом на <body> ТЕКУЩЕГО frame, а при
+      // подмене кадра (двойная буферизация) instrumentFrame успевал отработать, пока
+      // `frame` ещё указывал на СТАРЫЙ кадр — флаг старого тела гасил вызов, и НОВАЯ
+      // канва оставалась без оснастки: после первой же живой правки пропадали «+»,
+      // инлайн-правка текста, ручки drag и клик-выбор блока (проверено: insBars 10→0,
+      // contenteditable 54→0). Гвардим по САМОМУ ДОКУМЕНТУ — повторный вызов для того
+      // же документа по-прежнему no-op, а новый документ оснащается всегда.
+      var gDoc = frame.contentDocument;
+      var gBody = gDoc && gDoc.body;
+      if (!gBody || lastInstrumentedDoc === gDoc) return;
+      lastInstrumentedDoc = gDoc;
       gBody.__sfInstrumented = true;
     } catch (eGuard) { return; }
     // Вернуть прокрутку кадра на прежнее место, чтобы применение изменения блока
@@ -3906,6 +3987,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
           selectedSec = area;
           area.style.outline = "2px solid rgba(99,102,241,.9)";
           area.style.outlineOffset = "4px";
+          hideBar();  // STU-12d: область страницы — не блок, плашки нет
           // STU-12a: вкладок нет — открываем область ЭТОЙ страницы напрямую (без тоггла),
           // по тому же резолверу, что «⚙» и открытие по умолчанию (главная → sections).
           var stuArea = window.__stuPageArea ? window.__stuPageArea() : "page";
@@ -3929,6 +4011,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
           selectedSec = sec;
           sec.style.outline = "2px solid rgba(99,102,241,.9)";
           sec.style.outlineOffset = "2px";
+          hideBar();  // STU-12d: у шапки/подвала нет строки блока — плашке нечем править
           if (window.__sfShowArea) window.__sfShowArea("menu");
           return;
         }
@@ -3937,6 +4020,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         selectedSec = sec;
         sec.style.outline = "2px solid rgba(99,102,241,.9)";
         sec.style.outlineOffset = "2px";
+        showBarFor(sec, key);  // STU-12d: плашка действий над блоком
         if (opened) return;
         var ctl = form.querySelector('[name="order_' + key + '"]');
         var row = ctl ? ctl.closest(".home-block") : null;
@@ -4105,6 +4189,14 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       });
     }
     bindCanvasBlocks();
+    // STU-12d: живая правка перерисовывает канву двойной буферизацией — выбранный
+    // узел становится ДРУГИМ. Возвращаем выделение и плашку на блок с тем же ключом,
+    // иначе после первой же смены настройки плашка указывала бы в никуда.
+    reselectAfterSwap();
+    try {
+      frame.contentWindow.addEventListener("scroll", positionBar, { passive: true });
+      frame.contentDocument.addEventListener("click", quickOutsideClose);
+    } catch (eAb) {}
   }
   frame.addEventListener("load", instrumentFrame);
   function schedule() { clearTimeout(timer); timer = setTimeout(push, 400); }
@@ -4127,6 +4219,260 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       if (node) node.style.display = t.checked ? "" : "none";
     } catch (eVis) {}
   });
+
+  // ── STU-12d (F5A): плашка действий + быстрые поповеры ────────────────────────
+  // Правка выбранного блока НА МЕСТЕ: порядок/видимость/удаление/⚙ зовут те же
+  // обработчики, что колонка (moveByOrder/movePageBlock, чекбоксы формы,
+  // openBlockPopup), а «Stil/Raster/Breite» ПЕРЕНОСЯТ в поповер настоящий контрол
+  // формы и возвращают его на место (клон отправил бы в сабмит второе значение
+  // того же поля — W0).
+  var actionBar = document.getElementById("bld-action-bar");
+  var quickPop = document.getElementById("bld-quick-pop");
+  var quickBody = document.getElementById("bld-quick-pop-body");
+  var abKey = "";         // ключ выбранного блока (data-sf-section)
+  var quickNodes = null;  // перенесённые узлы контрола
+  var quickAnchor = null; // комментарий-якорь их места в форме
+
+  function frameScale() {
+    // applyDevice масштабирует кадр трансформом (десктоп 1280px в узкой канве),
+    // поэтому координаты элементов ВНУТРИ кадра идут в экранные через масштаб.
+    try {
+      var w = frame.offsetWidth;
+      return w ? frame.getBoundingClientRect().width / w : 1;
+    } catch (eFs) { return 1; }
+  }
+  function anchorTarget(el) {
+    // Обёртка секции главной — display:contents (SE-3e «contained»), у неё НЕТ бокса
+    // и getBoundingClientRect() отдаёт нули: якорем берём первого потомка с боксом,
+    // иначе плашка липла бы к углу кадра и сама себя гасила как «за краем канвы».
+    try {
+      var r0 = el.getBoundingClientRect();
+      if (r0.width > 0 && r0.height > 0) return el;
+      var kids = el.children || [];
+      for (var i = 0; i < kids.length; i++) {
+        var kr = kids[i].getBoundingClientRect();
+        if (kr.width > 0 && kr.height > 0) return kids[i];
+      }
+    } catch (eAt) {}
+    return el;
+  }
+  function anchorRect(el) {
+    var s = frameScale();
+    var fr = frame.getBoundingClientRect();
+    var r = anchorTarget(el).getBoundingClientRect();  // внутри кадра — уже с учётом его прокрутки
+    return {
+      left: fr.left + r.left * s, top: fr.top + r.top * s,
+      right: fr.left + r.right * s, bottom: fr.top + r.bottom * s,
+      frameTop: fr.top, frameBottom: fr.bottom,
+    };
+  }
+  function placeAnchored(node, rect, gap, prefer) {
+    // Дефолт — НАД якорем; не влезло (или просили ниже и снизу есть место) — below.
+    var w = node.offsetWidth, h = node.offsetHeight;
+    var above = rect.top - h - gap, below = rect.bottom + gap;
+    var top = prefer === "below"
+      ? (below + h <= window.innerHeight - 8 || above < 8 ? below : above)
+      : (above >= 8 ? above : below);
+    top = Math.max(8, Math.min(top, window.innerHeight - h - 8));
+    var left = Math.max(8, Math.min(rect.left, window.innerWidth - w - 8));
+    node.style.top = Math.round(top) + "px";
+    node.style.left = Math.round(left) + "px";
+  }
+  function placeQuick() {
+    if (!quickPop || !quickPop.classList.contains("bld-quick-on")) return;
+    var b = actionBar.getBoundingClientRect();
+    placeAnchored(quickPop, { top: b.top, bottom: b.bottom, left: b.left }, 6, "below");
+  }
+  function quickCtl(kind, key) {
+    // Кнопка показывается ТОЛЬКО когда под ней есть реальный контрол этого блока —
+    // иначе поповер открывался бы пустым.
+    var names = kind === "style" ? ["style_" + key, "cb_" + key + "_style_hint"]
+      : kind === "layout" ? ["layout_preset_" + key]
+      : ["width_" + key, "width_cb_" + key];
+    for (var i = 0; i < names.length; i++) {
+      var el = form.querySelector('[name="' + names[i] + '"]');
+      if (el) return el;
+    }
+    return null;
+  }
+  function quickUnit(ctl) {
+    // Что переносим: контрол с подписью целиком (label) либо селект вместе с
+    // миниатюрами раскладки — их энхансер кладёт СОСЕДОМ и прячет сам селект.
+    var lab = ctl.closest("label");
+    if (lab) return [lab];
+    var prev = ctl.previousElementSibling;
+    return prev && prev.classList.contains("bld-thumbs") ? [prev, ctl] : [ctl];
+  }
+  function openQuickPop(kind) {
+    var ctl = abKey ? quickCtl(kind, abKey) : null;
+    if (!ctl || !quickPop) return;
+    closeQuickPop();
+    quickNodes = quickUnit(ctl);
+    quickAnchor = document.createComment("quick");
+    quickNodes[0].parentNode.insertBefore(quickAnchor, quickNodes[0]);
+    quickNodes.forEach(function (n) { quickBody.appendChild(n); });
+    quickPop.classList.add("bld-quick-on");
+    placeQuick();
+  }
+  function closeQuickPop() {
+    if (quickNodes && quickAnchor && quickAnchor.parentNode) {
+      var parent = quickAnchor.parentNode;
+      quickNodes.forEach(function (n) { parent.insertBefore(n, quickAnchor); });
+      quickAnchor.parentNode.removeChild(quickAnchor);
+    }
+    quickNodes = null; quickAnchor = null;
+    if (quickPop) quickPop.classList.remove("bld-quick-on");
+  }
+  function quickOutsideClose(e) {
+    if (!quickPop || !quickPop.classList.contains("bld-quick-on")) return;
+    if (e && e.target && e.target.nodeType === 1) {
+      if (quickPop.contains(e.target)) return;
+      if (actionBar && actionBar.contains(e.target)) return;
+    }
+    closeQuickPop();
+  }
+  function barBtn(act) { return actionBar ? actionBar.querySelector('[data-ab="' + act + '"]') : null; }
+  function barAction(act) {
+    if (!abKey) return;
+    var cbOrd = form.querySelector('[name="order_cb_' + abKey + '"]');
+    var row = cbOrd ? cbOrd.closest(".cb-row") : null;
+    var host = row ? row.getAttribute("data-pb-page") : "";
+    if (act === "up" || act === "down") {
+      var dir = act === "up" ? -1 : 1;
+      if (host) {
+        // Блоки страниц живут в СВОЁМ order-пространстве хоста (UC6-7c): цель
+        // переноса — сосед по порядку, дальше работает штатный movePageBlock.
+        var ids = Array.prototype.slice
+          .call(form.querySelectorAll('.cb-row[data-pb-page="' + host + '"]'))
+          .map(function (r2) { return r2.getAttribute("data-cb-id"); })
+          .sort(function (a, b) {
+            var ia = form.querySelector('[name="order_cb_' + a + '"]');
+            var ib = form.querySelector('[name="order_cb_' + b + '"]');
+            return (parseInt(ia && ia.value, 10) || 999) - (parseInt(ib && ib.value, 10) || 999);
+          });
+        var at = ids.indexOf(abKey), target = ids[at + dir];
+        if (target) movePageBlock(abKey, target, dir < 0, host);
+        return;
+      }
+      moveByOrder(cbOrd ? "cb_" + abKey : abKey, dir);
+      return;
+    }
+    if (act === "vis") {
+      var box = form.querySelector('[name="enabled_' + abKey + '"]')
+        || form.querySelector('[name="enabled_cb_' + abKey + '"]');
+      if (!box) return;
+      box.checked = !box.checked;
+      box.dispatchEvent(new Event("change", { bubbles: true }));  // тот же путь, что чекбокс колонки
+      syncBar();
+      return;
+    }
+    if (act === "del") {
+      var del = form.querySelector('[name="delete_cb_' + abKey + '"]');
+      if (!del) return;
+      del.checked = true;
+      del.dispatchEvent(new Event("change", { bubbles: true }));  // collect() выбросит блок из черновика
+      hideBar();
+      return;
+    }
+    if (act === "settings") { closeQuickPop(); openBlockPopup(abKey); }
+  }
+  function syncBar() {
+    if (!actionBar || !abKey) return;
+    var canOrder = !!(form.querySelector('[name="order_' + abKey + '"]')
+      || form.querySelector('[name="order_cb_' + abKey + '"]'));
+    var box = form.querySelector('[name="enabled_' + abKey + '"]')
+      || form.querySelector('[name="enabled_cb_' + abKey + '"]');
+    var del = form.querySelector('[name="delete_cb_' + abKey + '"]');
+    [["up", canOrder], ["down", canOrder], ["vis", !!box], ["del", !!del],
+     ["settings", true]].forEach(function (pair) {
+      var b = barBtn(pair[0]);
+      if (b) b.hidden = !pair[1];
+    });
+    if (box) { var vb = barBtn("vis"); if (vb) vb.textContent = box.checked ? "👁" : "🙈"; }
+    actionBar.querySelectorAll("[data-quick]").forEach(function (b) {
+      b.hidden = !quickCtl(b.getAttribute("data-quick"), abKey);
+    });
+  }
+  function ensureFrameHooks() {
+    // Кадр подменяется (двойная буферизация) — слушатели вешаем на ТЕКУЩЕЕ окно,
+    // по одному разу на документ.
+    try {
+      var w = frame.contentWindow;
+      if (w && !w.__sfBarHooked) {
+        w.__sfBarHooked = true;
+        w.addEventListener("scroll", positionBar, { passive: true });
+        frame.contentDocument.addEventListener("click", quickOutsideClose);
+      }
+    } catch (eH) {}
+  }
+  function positionBar() {
+    if (!actionBar || !abKey) return;
+    try {
+      ensureFrameHooks();
+      var doc0 = frame.contentDocument;
+      if (!selectedSec || !selectedSec.isConnected || selectedSec.ownerDocument !== doc0) {
+        // Канва пересобрана — узел ДРУГОЙ. Ищем блок с тем же ключом в текущем
+        // документе (какой бы путь перерисовки ни сработал: буфер, hard-reload,
+        // pushState листинга), иначе плашка указывала бы в мёртвый узел.
+        var again = doc0 && doc0.querySelector('[data-sf-section="' + abKey + '"]');
+        if (!again) { hideBar(); return; }
+        selectedSec = again;
+        again.style.outline = "2px solid rgba(99,102,241,.9)";
+        again.style.outlineOffset = "2px";
+        syncBar();
+      }
+      var r = anchorRect(selectedSec);
+      // Найдено стендом: у СКРЫТОГО владельцем блока (display:none) коробки нет вовсе —
+      // вырожденный прямоугольник попадал в условие «укручен за край канвы», плашка
+      // гасла, и вернуть блок с неё было нельзя: кнопка 👁 работала в одну сторону.
+      // Скрытый блок — не «за краем»: плашку держим живой (её 🙈 и вернёт блок), просто
+      // прижимаем к верху канвы, потому что якорю больше негде быть.
+      var flat = r.bottom - r.top < 2 && r.right - r.left < 2;
+      var off = !flat && (r.bottom < r.frameTop + 4 || r.top > r.frameBottom - 4);
+      actionBar.style.opacity = off ? "0" : "";
+      actionBar.style.pointerEvents = off ? "none" : "";
+      placeAnchored(actionBar, r, 8, flat ? "below" : "");
+      placeQuick();
+    } catch (ePb) { hideBar(); }
+  }
+  function showBarFor(el, key) {
+    if (!actionBar) return;
+    closeQuickPop();
+    abKey = key || "";
+    actionBar.classList.add("bld-ab-on");
+    syncBar();
+    positionBar();
+  }
+  function hideBar() {
+    closeQuickPop();
+    abKey = "";
+    if (actionBar) actionBar.classList.remove("bld-ab-on");
+  }
+  function reselectAfterSwap() {
+    // Вызов из instrumentFrame — быстрый путь; сам перенос делает positionBar,
+    // поэтому плашка возвращается на блок и когда инструментатор не отработал.
+    if (!abKey) return;
+    positionBar();
+  }
+  if (actionBar) {
+    actionBar.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-ab]");
+      if (!b) return;
+      e.preventDefault();
+      if (b.getAttribute("data-ab") === "quick") openQuickPop(b.getAttribute("data-quick"));
+      else barAction(b.getAttribute("data-ab"));
+    });
+    // Выбор значения закрывает поповер (контрол уезжает назад в форму сам).
+    if (quickBody) quickBody.addEventListener("change", function () { setTimeout(closeQuickPop, 120); });
+    document.addEventListener("click", quickOutsideClose);
+    window.addEventListener("resize", positionBar);
+    // Канва анимирует масштаб/габариты (transition-all у #home-prev-shell) —
+    // координаты во время перехода промежуточные, добираем по его окончании.
+    if (shell) shell.addEventListener("transitionend", positionBar);
+    // Тик — страховка от путей перерисовки, которые не зовут инструментатор
+    // (иначе плашка «зависает» на месте старого блока). 4 чтения rect в секунду.
+    setInterval(function () { if (abKey) positionBar(); }, 250);
+  }
 
   // V2: drag-drop порядка блоков (нативный HTML5 DnD, без библиотек).
   var list = document.getElementById("home-blocks");

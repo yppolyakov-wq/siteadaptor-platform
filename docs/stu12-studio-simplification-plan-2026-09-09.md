@@ -147,7 +147,7 @@ bottom-sheet (существующие правила 78vh/55vh + backdrop); п�
 - **Замки:** клик по шапке → колонка Kopf; Save без `menus_json` не трогает `menus`; невалидный JSON →
   `menus` цел; `nav_cta` round-trip и presence; dead-config: `nav.cta` у китов DS-3b рендерится.
 
-### 12d · Плашка действий + быстрые поповеры (F5A)
+### 12d · Плашка действий + быстрые поповеры (F5A) — ✅ сделано 2026-09-09
 - Плашка: fixed-контейнер над выбранным элементом (координаты из `getBoundingClientRect` элемента в iframe
   × `scale` из `applyDevice` + смещение кадра; общий `placeAnchored(rect, size)` с clamp/flip; пересчёт
   после `load`/hard-reload и `sf:navigated`); кнопки → существующие обработчики (`blk-up/blk-down`,
@@ -159,6 +159,13 @@ bottom-sheet (существующие правила 78vh/55vh + backdrop); п�
   один поповер за раз; live-draft штатный.
 - **Замки:** контролы не клонируются (счётчик `name=`); закрытие возвращает контрол; юнит `placeAnchored`
   учитывает scale; поповер над плашкой при нехватке места.
+- **Сделано** (`test_stu12_actionbar.py`, 9 замков; стенды `stu12d_stand.mjs` 25/25 и
+  `stu12d_cblock.mjs` 8/8). Сверх плана закрыты четыре дефекта, найденных стендом:
+  секции-обёртки `display:contents` (якорь = первый ребёнок с коробкой), `space-y-6`
+  формы сдвигал плашку на 24 px (`margin:0 !important`), **пред-существующий провал
+  двойной буферизации** (`about:blank`-load буфера считался ошибкой → hard-reload на
+  каждую правку, канва теряла оснастку) и односторонняя 👁 (у скрытого блока нет
+  коробки → плашка гасла и вернуть блок было нечем). Детали — build-log 2026-09-09.
 
 ### 12e · Группы Inhalt · Darstellung · Erweitert (F8A)
 - Тексты секций из `_section_fields.html` (faq_text, team_text, testimonials_text, process_text,

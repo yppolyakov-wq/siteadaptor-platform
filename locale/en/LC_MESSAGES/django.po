@@ -22123,3 +22123,7 @@ msgstr "Submenus, targets and translations: in the"
 #: templates/tenant/site_home.html
 msgid "Untermenü"
 msgstr "Submenu"
+
+#: templates/tenant/site_home.html
+msgid "Breite"
+msgstr "Width"

@@ -22357,3 +22357,7 @@ msgstr "Подменю, цели и переводы — в"
 #: templates/tenant/site_home.html
 msgid "Untermenü"
 msgstr "Подменю"
+
+#: templates/tenant/site_home.html
+msgid "Breite"
+msgstr "Ширина"

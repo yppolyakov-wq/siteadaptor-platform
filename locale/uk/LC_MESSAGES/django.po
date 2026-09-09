@@ -22340,3 +22340,7 @@ msgstr "Підменю, цілі та переклади — у"
 #: templates/tenant/site_home.html
 msgid "Untermenü"
 msgstr "Підменю"
+
+#: templates/tenant/site_home.html
+msgid "Breite"
+msgstr "Ширина"
