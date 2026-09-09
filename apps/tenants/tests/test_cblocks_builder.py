@@ -285,7 +285,10 @@ def test_add_block_with_page_key_goes_to_page_blocks():
     blocks = _page_blocks(tenant, "services")
     assert len(blocks) == 1 and blocks[0]["key"] == "text"
     assert _cblocks(tenant) == []  # главная не тронута
-    assert resp.url == "/dashboard/site/home/?page=/termin/"
+    # STU-12e (осознанно): к возврату на ту же страницу добавился `&block=<id>` —
+    # вставленный блок открывается сразу, иначе владелец искал бы его в списке руками.
+    assert resp.url.startswith("/dashboard/site/home/?page=/termin/&block=")
+    assert resp.url.endswith(blocks[0]["id"])
 
 
 def test_add_block_with_unknown_page_key_falls_back_to_home():
