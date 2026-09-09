@@ -22527,3 +22527,36 @@ msgstr "Открыть настройки бизнеса"
 
 msgid "Apply this layout to the other lists too"
 msgstr "Применить эту раскладку и к остальным спискам"
+
+msgid "Ausgabe"
+msgstr "Вывод"
+
+msgid "Verteilen"
+msgstr "Распределить"
+
+msgid "Alles zeigen"
+msgstr "Показать все"
+
+msgid "Volle Reihen"
+msgstr "Полные ряды"
+
+msgid "Reihen"
+msgstr "Рядов"
+
+msgid "Pro Seite"
+msgstr "На странице"
+
+msgid "Tempo (Sek.)"
+msgstr "Скорость (сек.)"
+
+msgid "aus"
+msgstr "выкл"
+
+msgid "Anzahl der Elemente = Spalten × Reihen. Leer = alle zeigen."
+msgstr "Количество элементов = колонки × ряды. Пусто — показывать все."
+
+msgid "Wie viele Einträge pro Seite. Leer = wie bisher."
+msgstr "Сколько записей на странице. Пусто — как было."
+
+msgid "Sekunden zwischen den Folien. Leer = nicht automatisch drehen."
+msgstr "Секунд между слайдами. Пусто — не прокручивать автоматически."

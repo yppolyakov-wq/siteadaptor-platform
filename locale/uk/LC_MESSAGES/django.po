@@ -22511,3 +22511,36 @@ msgstr "Відкрити налаштування бізнесу"
 
 msgid "Apply this layout to the other lists too"
 msgstr "Застосувати це розкладення й до інших списків"
+
+msgid "Ausgabe"
+msgstr "Вивід"
+
+msgid "Verteilen"
+msgstr "Розподілити"
+
+msgid "Alles zeigen"
+msgstr "Показати все"
+
+msgid "Volle Reihen"
+msgstr "Повні ряди"
+
+msgid "Reihen"
+msgstr "Рядів"
+
+msgid "Pro Seite"
+msgstr "На сторінці"
+
+msgid "Tempo (Sek.)"
+msgstr "Швидкість (сек.)"
+
+msgid "aus"
+msgstr "вимк"
+
+msgid "Anzahl der Elemente = Spalten × Reihen. Leer = alle zeigen."
+msgstr "Кількість елементів = колонки × ряди. Порожньо — показувати всі."
+
+msgid "Wie viele Einträge pro Seite. Leer = wie bisher."
+msgstr "Скільки записів на сторінці. Порожньо — як було."
+
+msgid "Sekunden zwischen den Folien. Leer = nicht automatisch drehen."
+msgstr "Секунд між слайдами. Порожньо — не гортати автоматично."

@@ -828,6 +828,13 @@ input[type="datetime-local"] {
    тач — нативный свайп + точки. Полоса прокрутки прячется у улучшенной ленты. */
 .sf-slider { position: relative; }
 .sf-slider-strip { scroll-behavior: smooth; scrollbar-width: none; outline: none; }
+/* LAY-3b (запрос владельца «сколько строк» у слайдера): лента в N строк — плитки
+   укладываются колонками, а прокрутка остаётся горизонтальной. Без атрибута —
+   прежняя одна строка, разметка не менялась. */
+.sf-scroll-grid[data-sf-rows="2"] { display: grid; grid-auto-flow: column; grid-template-rows: repeat(2, auto); }
+.sf-scroll-grid[data-sf-rows="3"] { display: grid; grid-auto-flow: column; grid-template-rows: repeat(3, auto); }
+.sf-scroll-grid[data-sf-rows="4"] { display: grid; grid-auto-flow: column; grid-template-rows: repeat(4, auto); }
+.sf-scroll-grid[data-sf-rows] > * { flex: none; }
 .sf-slider-strip::-webkit-scrollbar { display: none; }
 .sf-slider-strip:focus-visible { outline: 2px solid var(--accent, #4f46e5); outline-offset: 2px; }
 .sf-slider-arrow { position: absolute; top: 40%; transform: translateY(-50%); width: 2.25rem; height: 2.25rem; border-radius: 9999px; background: #fff; color: #111827; border: 1px solid #e5e7eb; box-shadow: 0 2px 8px rgba(0,0,0,.14); font-size: 1.35rem; line-height: 1; display: none; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: opacity .15s; z-index: 2; }

@@ -1352,6 +1352,30 @@ def _add_block_fetch_response(request, new_id, host):
     return JsonResponse({"ok": True, "id": new_id, "host": host, "row_html": row_html})
 
 
+def _page_layout_payload(post, field, preset):
+    """LAY-3b: раскладка страничного листинга из формы Studio.
+
+    Кроме пресета переносим параметры «типа вывода»: слайдер вместо сетки, число
+    рядов (эффективный лимит = колонки × ряды), размер страницы пагинации и паузу
+    автопрокрутки. Валидацию и клампы делает `normalize_layout` — здесь только
+    собираем сырьё, поэтому мусор из формы не может попасть в конфиг.
+
+    Пустые поля НЕ пишутся: у всех трёх параметров «нет ключа» значит «как раньше»
+    (показывать всё, считать размер страницы по-старому, не крутить).
+    """
+    payload = {"preset": preset}
+    if post.get(f"{field}_mode") == "slider":
+        payload["scroll"] = True
+    for suffix in ("rows", "page_size", "speed"):
+        raw = (post.get(f"{field}_{suffix}") or "").strip()
+        if raw:
+            payload[suffix] = raw
+    tail = post.get(f"{field}_tail", "")
+    if tail:
+        payload["tail"] = tail
+    return payload
+
+
 @login_required
 def home_builder_view(request):
     """Конструктор главной (S2b): порядок/видимость блоков главной + тизеры
@@ -1828,7 +1852,12 @@ def home_builder_view(request):
             if preset in siteconfig.LAYOUT_PRESETS or preset in siteconfig.PAGE_EXTRA_PRESETS.get(
                 cfg_key, ()
             ):
-                config[cfg_key] = {"preset": preset}
+                # LAY-3b: вместе с пресетом сохраняем параметры «типа вывода» —
+                # сетка или слайдер, сколько рядов, сколько на странице, скорость.
+                # Раньше здесь писался ОДИН ключ preset, и всё остальное в
+                # раскладке молча стиралось; поэтому и хвост (`tail`) у страничных
+                # раскладок было невозможно задать из Студии.
+                config[cfg_key] = _page_layout_payload(request.POST, fld, preset)
             elif cfg_key == "service_index_layout" and fld in request.POST and not preset:
                 # UB1-1: «Standard» (пустой выбор) удаляет ключ → легаси-грид услуг
                 # (у соседей пустого выбора нет — их ключ всегда материализован).
@@ -2544,6 +2573,13 @@ def home_builder_view(request):
             # SE-2a-2/SE-2b-1: per-page инспектор раскладки лендингов (по активным модулям).
             "has_catalog": request.tenant.is_module_active("catalog"),
             "catalog_preset": (config.get("catalog_layout") or {}).get("preset", ""),
+            # LAY-3b: сами раскладки — для контролов «типа вывода» (сетка/слайдер,
+            # ряды, размер страницы, скорость). Пресет остаётся отдельной строкой:
+            # его читают прежние селекты и миниатюры.
+            "catalog_layout": config.get("catalog_layout") or {},
+            "events_layout": config.get("events_index_layout") or {},
+            "stay_layout": config.get("stay_index_layout") or {},
+            "service_layout": config.get("service_index_layout") or {},
             "catalog_show_filters": config.get("catalog_show_filters", True),
             "catalog_sort": config.get("catalog_sort", "newest"),
             "catalog_subcats_first": config.get("catalog_subcats_first", True),

@@ -22296,3 +22296,36 @@ msgstr "Open business settings"
 
 msgid "Apply this layout to the other lists too"
 msgstr "Apply this layout to the other lists too"
+
+msgid "Ausgabe"
+msgstr "Output"
+
+msgid "Verteilen"
+msgstr "Distribute"
+
+msgid "Alles zeigen"
+msgstr "Show all"
+
+msgid "Volle Reihen"
+msgstr "Full rows"
+
+msgid "Reihen"
+msgstr "Rows"
+
+msgid "Pro Seite"
+msgstr "Per page"
+
+msgid "Tempo (Sek.)"
+msgstr "Speed (sec.)"
+
+msgid "aus"
+msgstr "off"
+
+msgid "Anzahl der Elemente = Spalten × Reihen. Leer = alle zeigen."
+msgstr "Number of items = columns × rows. Empty = show all."
+
+msgid "Wie viele Einträge pro Seite. Leer = wie bisher."
+msgstr "How many entries per page. Empty = as before."
+
+msgid "Sekunden zwischen den Folien. Leer = nicht automatisch drehen."
+msgstr "Seconds between slides. Empty = do not rotate automatically."

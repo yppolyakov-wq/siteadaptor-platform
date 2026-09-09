@@ -10,6 +10,7 @@ product (UB1-3).
 from django import template
 from django.utils.translation import get_language
 
+from apps.core import card_forms
 from apps.core.sellable import sellable_for
 
 register = template.Library()
@@ -50,10 +51,15 @@ def sellable_card(
     return {
         "card": card,
         "obj": obj,
-        # ST-7c: глобальная ФОРМА карточки (site_defaults.card_style) — из
-        # processor-переменной вызывающего контекста (inclusion-шаблон иначе
-        # её не видит); "" = прежняя форма.
-        "card_style": context.get("storefront_card_style", ""),
+        # ST-7c → LAY-4: ФОРМА карточки через ОБЩИЙ резолвер `card_forms.card_form`
+        # (своё у объекта → у его категории → дефолт сайта). Раньше здесь брался
+        # только сайтовый дефолт, поэтому на листингах услуг/номеров/событий и в
+        # лукбуке выбор «только для этого товара / этой категории» не действовал
+        # вовсе — пилюля охвата в Studio обманывала. Сайтовый дефолт по-прежнему
+        # приходит processor-переменной: inclusion-шаблон её сам не видит.
+        "card_style": card_forms.card_form(
+            obj, context.get("storefront_card_style", ""), "product"
+        ),
         # HF-2: пиктограммы удобств на карточке номера (пересечение выбора
         # владельца с удобствами номера; у прочих kind — пусто).
         "amenities": (

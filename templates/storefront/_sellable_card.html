@@ -7,10 +7,22 @@ home-секций. Идентичность/медиа/ссылка/CTA-подп
 Класс sf-card — глобальный стиль карточек SE-2d действует и на листингах
 (решение владельца 2026-07-02).
 {% endcomment %}
-{% comment %}ST-7c: card_style — compact ⇒ горизонтальная строка (реюз ветки),
-overlay ⇒ заголовок поверх фото в вертикальной; "" = прежний вид байт-в-байт.{% endcomment %}
-{% if variant == "horizontal" or card_style == "compact" %}
-<a href="{{ href }}" class="sf-card group relative flex items-center justify-between gap-4 bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition">
+{% comment %}ST-7c → LAY-4: формы карточки. Раньше здесь понимались только две
+(compact, overlay), хотя Studio предлагала семь на услугах, номерах, событиях и в
+лукбуке — остальные молча падали в стандартную (класс «обещание без исполнения»,
+правило STU-9). Теперь реализованы все, на данных контракта `SellableEntity`:
+
+* compact / deal — горизонтальная строка (у deal она шире и с крупной ценой);
+* overlay — имя поверх фото;
+* regal — ценник-полка: цена на плашке ведёт, фото опознавательное;
+* lookbook — кадр 3:4 и тихая подпись;
+* etikett — ценник плашкой в углу фото;
+* "" — прежний вид байт-в-байт.
+
+У товара те же формы богаче (скидка, наличие, быстрый заказ): там карточка знает
+модель, здесь — только контракт. Это осознанная асимметрия, а не недоделка.{% endcomment %}
+{% if variant == "horizontal" or card_style == "compact" or card_style == "deal" %}
+<a href="{{ href }}" class="sf-card group relative flex items-center justify-between gap-4 bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition{% if card_style == "deal" %} sf-sell-deal{% endif %}">
   {% if edit %}<span data-photo-edit data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-2 left-2 z-20 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>{% endif %}
   {% if card.image_url %}
     <img src="{{ card.image_url }}" alt="{{ card.name }}" loading="lazy" decoding="async"
@@ -40,16 +52,35 @@ overlay ⇒ заголовок поверх фото в вертикальной
 {% else %}
 <a href="{{ href }}" class="sf-card relative block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
   {% if edit %}<span data-photo-edit data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>{% endif %}
+  {% comment %}LAY-4: «Ценник-полка» — цена ведёт, фото лишь опознаёт товар. Плашка
+  СВЕРХУ, до фото: так ряд ценников читается как полка в магазине.{% endcomment %}
+  {% if card_style == "regal" %}
+    <div class="px-4 pt-4 pb-2">
+      {% if badge %}<span class="inline-block text-[10px] font-semibold uppercase tracking-wide text-emerald-700 bg-emerald-50 rounded px-1.5 py-0.5">{{ badge }}</span>{% endif %}
+      {% if card.price_display %}<p class="text-2xl font-extrabold leading-none">{{ card.price_display }}</p>{% endif %}
+    </div>
+  {% endif %}
   {% if card.image_url %}
-    {% if card.kind == "stay" %}<div class="{% if card_style == "overlay" %}relative {% endif %}aspect-[4/3] bg-gray-100"><img src="{{ card.image_url }}" alt="{{ card.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover">{% if card_style == "overlay" %}<div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-4 pb-3 pt-10"><span class="text-white font-semibold text-lg"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="name"{% endif %}>{{ card.name }}</span></div>{% endif %}</div>
+    {% comment %}LAY-4: «Лукбук» — высокий кадр 3:4 без хрома; «Ценник-полка» — мелкий
+    квадрат; «Этикетка» — обычный кадр с ценой плашкой в углу.{% endcomment %}
+    {% if card_style == "lookbook" %}<span class="block aspect-[3/4] bg-gray-100" data-sf-media-box><img src="{{ card.image_url }}" alt="{{ card.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover"></span>
+    {% elif card_style == "regal" %}<span class="block aspect-square bg-gray-100" data-sf-media-box><img src="{{ card.image_url }}" alt="{{ card.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover"></span>
+    {% elif card_style == "etikett" %}<span class="relative block aspect-[3/2] bg-gray-100" data-sf-media-box><img src="{{ card.image_url }}" alt="{{ card.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover">{% if card.price_display %}<span class="absolute bottom-2 right-2 rounded-lg bg-white/95 px-2 py-1 text-sm font-bold shadow ring-1 ring-black/5">{{ card.price_display }}</span>{% endif %}</span>
+    {% elif card.kind == "stay" %}<div class="{% if card_style == "overlay" %}relative {% endif %}aspect-[4/3] bg-gray-100"><img src="{{ card.image_url }}" alt="{{ card.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover">{% if card_style == "overlay" %}<div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-4 pb-3 pt-10"><span class="text-white font-semibold text-lg"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="name"{% endif %}>{{ card.name }}</span></div>{% endif %}</div>
     {% elif card_style == "overlay" %}<div class="relative"><img src="{{ card.image_url }}" alt="{{ card.name }}" loading="lazy" decoding="async" class="w-full aspect-[3/2] object-cover"><div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-4 pb-3 pt-10"><span class="text-white font-semibold text-lg"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="name"{% endif %}>{{ card.name }}</span></div></div>
     {% else %}<span class="block aspect-[3/2] bg-gray-100" data-sf-media-box><img src="{{ card.image_url }}" alt="{{ card.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover"></span>{% endif %}
   {% endif %}
-  <div class="p-5">
-    {% if card_style == "overlay" and card.image_url %}{% comment %}имя уже поверх фото{% endcomment %}
+  <div class="{% if card_style == "lookbook" or card_style == "regal" %}px-4 py-3{% else %}p-5{% endif %}">
+    {% comment %}LAY-4: у «Лукбука» подпись тихая — имя и цена одной строкой мелким
+    кеглем, чтобы кадр оставался главным.{% endcomment %}
+    {% if card_style == "lookbook" %}
+      <p class="text-sm font-medium truncate"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="name"{% endif %}>{{ card.name }}</p>
+      {% if card.price_display %}<p class="text-sm text-gray-500">{{ card.price_display }}</p>{% endif %}
+    {% elif card_style == "overlay" and card.image_url %}{% comment %}имя уже поверх фото{% endcomment %}
     {% elif h2 %}<h2 class="font-semibold text-lg"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="name"{% endif %}>{{ card.name }}</h2>
     {% else %}<h3 class="font-semibold text-lg"{% if edit %} data-edit-model="{{ edit_model }}" data-edit-pk="{{ card.pk }}" data-edit-field="name"{% endif %}>{{ card.name }}</h3>{% endif %}
-    {% if card.kind == "stay" %}
+    {% if card_style == "lookbook" %}{% comment %}подпись уже выведена{% endcomment %}
+    {% elif card.kind == "stay" %}
       <p class="text-sm text-gray-500">{{ obj.get_type_display }} · {% blocktrans with n=obj.max_guests %}up to {{ n }} guests{% endblocktrans %}{% if show_area and obj.area_sqm %} · {{ obj.area_sqm }} m²{% endif %}</p>
       {% comment %}HF-2 (фидбэк владельца 2026-07-31, п. 5): пиктограммы удобств прямо
       в карточке — гость видит WLAN/балкон/парковку не открывая номер. Что показывать,

@@ -109,6 +109,7 @@ def veranstaltung_index(request):
         _raw = request.session["site_preview_draft"]
     ev_layout = siteconfig.normalize(_raw)["events_index_layout"]
     events_is_list = ev_layout["preset"] == "list"
+    # LAY-3a: раскладка уходит в шаблон целиком (`data-sf-*`), не только классами.
     events_grid = siteconfig.grid_class_string(ev_layout)
     return render(
         request,
@@ -122,6 +123,7 @@ def veranstaltung_index(request):
             "total": len(base),
             "events_is_list": events_is_list,
             "events_grid": events_grid,
+            "events_layout": ev_layout,
             # UB2-2: тулбар каркаса; активные фасеты несём в carry (поиск их не
             # сбрасывает), форма фасетов симметрично несёт q/sort.
             "show_listing_toolbar": True,

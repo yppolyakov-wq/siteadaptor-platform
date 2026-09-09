@@ -429,7 +429,11 @@ PAGE_TYPES: tuple[PageType, ...] = (
         "event",
         _("Veranstaltungsseite"),
         ("storefront-event", "storefront-tour"),
-        ("event_detail_sections", "event_detail_layout", "product_card_form"),
+        # LAY-4: `product_card_form` снят ОСОЗНАННО. На детали события и тура нет
+        # ни одной карточки сущности: «Weitere Termine» — чипы дат, а не карточки.
+        # Настройка там ничего не меняла (класс «обещание без исполнения», STU-9);
+        # форма карточки событий задаётся со ЛИСТИНГА (`events`).
+        ("event_detail_sections", "event_detail_layout"),
         block_host="event_detail",
     ),
     PageType("cart", _("Warenkorb"), ("storefront-cart",), ("cart_upsell",), block_host="cart"),

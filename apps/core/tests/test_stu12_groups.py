@@ -35,7 +35,11 @@ SECTION_FIELDS = {
     "team": ("team_text",),
     "trust": ("trust_since", "trust_marks"),
     "usp_bar": ("usp_text",),
-    "faq": ("faq_text",),
+    # LAY-1b (осознанная переписка): FAQ правится ПАРАМИ полей — владелец просил
+    # «заголовок и описание отдельными полями и кнопочку добавить» вместо одной
+    # простыни «Вопрос | Ответ». Сентинел `faq_present` отличает новую форму от
+    # старой; `faq_text` остаётся в парсере ради демо-китов и прежнего черновика.
+    "faq": ("faq_q_0", "faq_a_0", "faq_present"),
     "hero": ("hero_title", "hero_text", "hero_image"),
 }
 
@@ -81,7 +85,7 @@ def test_section_texts_live_in_their_own_row():
         for name in fields:
             assert f'name="{name}"' in row, f"{name} обязан быть в строке секции {key}"
     # общий ящик «Content sections» больше не нужен — иначе поля были бы в двух местах
-    for name in ("faq_text", "cta_title", "usp_text", "hero_title"):
+    for name in ("faq_q_0", "cta_title", "usp_text", "hero_title"):
         assert body.count(f'name="{name}"') == 1, f"{name} не должен дублироваться"
 
 

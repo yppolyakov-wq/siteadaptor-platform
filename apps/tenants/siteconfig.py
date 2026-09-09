@@ -1047,7 +1047,75 @@ def normalize_layout(raw, default=None, extra_presets=()) -> dict:
     tail = raw.get("tail")
     if tail in _LAYOUT_TAILS:
         out["tail"] = tail
+    # LAY-3b (уточнение владельца 2026-09-09): «сколько рядов показывать»,
+    # «сколько выводить на странице» и «скорость переключения» слайдера. Все три
+    # presence-minimal — golden-эталоны целы, старые конфиги не переписываются.
+    #
+    # Ряды, а не абсолютное число: владелец сформулировал цель как «10 — как раз
+    # 2 ряда по 5». Абсолютный лимит перестаёт быть ровным при смене колонок
+    # (5 → 4, и 10 даёт полтора ряда) — ровно та рваная картина, которую лечили
+    # DL-11/DL-14/DL-15. Эффективный лимит считает `effective_limit`.
+    rows = _clamp_int(raw.get("rows"), _MIN_ROWS, _MAX_ROWS)
+    if rows:
+        out["rows"] = rows
+    page_size = _clamp_int(raw.get("page_size"), _MIN_PAGE_SIZE, _MAX_PAGE_SIZE)
+    if page_size:
+        out["page_size"] = page_size
+    # Автопрокрутка ВЫКЛЮЧЕНА по умолчанию и остаётся таковой: карусель, которая
+    # уезжает сама, вредит доступности и конверсии (решение DL-16.1 «слайдер без
+    # автопрокрутки»). Ключ появляется, только когда владелец включил её сам.
+    speed = _clamp_int(raw.get("speed"), _MIN_SPEED, _MAX_SPEED)
+    if speed:
+        out["speed"] = speed
     return out
+
+
+# LAY-3b: границы новых параметров оси вывода.
+_MIN_ROWS, _MAX_ROWS = 1, 6
+_MIN_PAGE_SIZE, _MAX_PAGE_SIZE = 6, 96
+_MIN_SPEED, _MAX_SPEED = 3, 15  # секунды между слайдами; 0/пусто = не крутить
+
+
+def _clamp_int(raw, low: int, high: int) -> int:
+    """Целое в границах; мусор и «не задано» → 0 (ключ не пишется).
+
+    Ноль намеренно значит «не задано», а не «ноль штук»: у всех трёх параметров
+    ноль бессмыслен (ноль рядов, нулевая страница, нулевая пауза), а «нет ключа»
+    — обычная для конфига семантика «как раньше».
+    """
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return 0
+    if value <= 0:
+        return 0
+    return max(low, min(high, value))
+
+
+def output_mode(layout) -> str:
+    """Тип вывода поверхности: "grid" | "slider".
+
+    Производное от существующего ключа `scroll` — новый ключ не заводим, чтобы
+    не переписывать конфиги живых сайтов (инвариант волны LAY, Р-2).
+    """
+    return "slider" if (layout or {}).get("scroll") else "grid"
+
+
+def effective_limit(layout, explicit=None):
+    """Сколько элементов показать на поверхности; None = все.
+
+    Приоритет: явное число (у секций главной оно уже есть — `limit_<ключ>`) →
+    `cols × rows` → «все». Ноль в `explicit` значит «не задано» (формы шлют
+    пустое поле как 0), а не «не показывать ничего».
+    """
+    if explicit:
+        return int(explicit)
+    layout = layout or {}
+    rows = layout.get("rows") or 0
+    if not rows:
+        return None
+    cols = layout.get("cols") or LAYOUT_PRESETS.get(layout.get("preset"), {}).get("cols") or 1
+    return int(cols) * int(rows)
 
 
 # DL-14: + spread («Verteilen») — неполный последний ряд раскладывается по ширине
@@ -1122,7 +1190,16 @@ def grid_attr_string(layout, cols=None, tail=None, count=None, more=False, defau
     if lay.get("scroll"):
         # DL-16.1 (S1): лента получает слайдер-примитив (стрелки/точки) даром; правила
         # полных рядов к ней не применяются.
-        return 'data-sf-slider="1"'
+        # LAY-3b: параметры слайдера уезжают в разметку — сколько строк в слайде и
+        # с какой паузой крутить. Без них контролы владельца ничего бы не меняли
+        # (класс «обещание без исполнения», правило STU-9). Пауза = 0/нет ключа —
+        # слайдер стоит на месте, как и было до волны.
+        attrs = 'data-sf-slider="1"'
+        if lay.get("rows"):
+            attrs += f' data-sf-rows="{lay["rows"]}"'
+        if lay.get("speed"):
+            attrs += f' data-sf-speed="{lay["speed"]}"'
+        return attrs
     if lay.get("balance"):
         return ""
     if isinstance(cols, str) and _COLS_TRIPLET_RE.match(cols):
@@ -1758,7 +1835,14 @@ def apply_page_payload(cfg: dict, data: dict) -> None:
             lay.get("preset") in LAYOUT_PRESETS
             or lay.get("preset") in PAGE_EXTRA_PRESETS.get(key, ())
         ):
-            cfg[key] = {"preset": lay["preset"]}
+            # LAY-3b: параметры «типа вывода» тоже уезжают в черновик — иначе
+            # выбор «слайдер / 2 ряда / 24 на странице» был бы виден только после
+            # Save. Клампы делает normalize_layout ниже по общему пути.
+            cfg[key] = {
+                k: lay[k]
+                for k in ("preset", "scroll", "tail", "rows", "page_size", "speed")
+                if k in lay
+            }
     for key in _PAGE_BOOL_KEYS:
         if isinstance(data.get(key), bool):
             cfg[key] = data[key]

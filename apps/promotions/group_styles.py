@@ -10,42 +10,23 @@
 (ключ = то же плоское значение, что и у фасета `?gruppe=`), а общий дефолт — в
 `site_defaults["promo_group_style"]`. Оба presence-minimal → golden-эталоны целы,
 миграций нет.
+
+**LAY-2 (2026-09-09):** состав всех трёх реестров переехал в
+`apps/core/compositions.py` — владелец назвал «кашей» то, что одни и те же коды
+живут в четырёх местах (`schaufenster` описан трижды, `magazin` четырежды, а
+`kompakt` обзора рендерит буквально тот же include, что `prospekt` группы).
+Здесь остались РЕЗОЛВЕРЫ (какой шаблон действует у этой страницы); публичная
+форма модуля прежняя — тройки (код, метка, подсказка) в том же порядке.
 """
 
 from __future__ import annotations
 
-from django.utils.translation import gettext_lazy as _
+from apps.core import compositions
 
 # (код, метка, подсказка «когда уместно»). Порядок = порядок плиток выбора.
-GROUP_PAGE_STYLES = [
-    ("", _("Standard (grid)"), _("As before: a plain grid of all offers in the group.")),
-    (
-        "schaufenster",
-        _("Showcase"),
-        _("Group header and the main deal as a wide card, the rest as a grid."),
-    ),
-    (
-        "prospekt",
-        _("Flyer"),
-        _("Coloured header with the validity period and a dense grid — like a leaflet."),
-    ),
-    (
-        "magazin",
-        _("Magazine"),
-        _("Cover, two offers per row, conditions right on the card."),
-    ),
-    (
-        "countdown",
-        _("Countdown"),
-        _("One timer for the whole campaign, offers sorted by time left."),
-    ),
-    (
-        "vergleich",
-        _("Comparison"),
-        _("Offers side by side as columns — for packages and tariffs."),
-    ),
-]
-VALID_GROUP_STYLES = frozenset(code for code, _l, _h in GROUP_PAGE_STYLES)
+# LAY-2: производное представление единого реестра `apps.core.compositions`.
+GROUP_PAGE_STYLES = compositions.styles_for("promo_group")
+VALID_GROUP_STYLES = compositions.valid_for("promo_group")
 
 
 def group_style(group: str, per_group=None, site_default: str = "") -> str:
@@ -67,38 +48,8 @@ def group_style(group: str, per_group=None, site_default: str = "") -> str:
 # группы, «товары» — акции. У страницы группы (выше) под-сущностей нет — там DL-20.
 # Без «sets» (у акций нет наборов) и без «mosaik» (бенто режет цену/срок на малых
 # плитках — честнее не обещать).
-PROMO_PAGE_STYLES = [
-    ("", _("Standard (grid)"), _("As before: groups as sections, offers as a grid.")),
-    ("kopfbild", _("Mit Kopfbild"), _("Banner with photo and counts above the sections.")),
-    (
-        "preisliste",
-        _("Preisliste"),
-        _("Offers as a table by default — visitors can switch to cards."),
-    ),
-    (
-        "regale",
-        _("Regale (Unterkategorien als Leisten)"),
-        _("Every group as a strip with arrows, no minimum size."),
-    ),
-    (
-        "tabs",
-        _("Tabs (Unterkategorien als Reiter)"),
-        _("«All» plus one tab per group above the offers."),
-    ),
-    (
-        "schaufenster",
-        _("Showcase"),
-        _("The main deal as a wide card, then the sections."),
-    ),
-    (
-        "navigator",
-        _("Navigator"),
-        _("Groups, filters and search in a side column, offers on the right."),
-    ),
-    ("magazin", _("Magazine"), _("Two offers per row with their conditions.")),
-    ("kompakt", _("Compact"), _("Group index in columns and a dense grid without sections.")),
-]
-VALID_PROMO_PAGE_STYLES = frozenset(code for code, _l, _h in PROMO_PAGE_STYLES)
+PROMO_PAGE_STYLES = compositions.styles_for("promos")
+VALID_PROMO_PAGE_STYLES = compositions.valid_for("promos")
 
 
 def promo_page_style(raw) -> str:
@@ -116,30 +67,8 @@ def promo_page_style(raw) -> str:
 #
 # Хранение — как у формы карточки (DL-19): поле `Promotion.page_style` («только эта
 # акция») побеждает `site_defaults["promo_detail_style"]` («для всех»).
-PROMOTION_DETAIL_STYLES = [
-    ("", _("Standard (2 Spalten)"), _("As before: photo on the left, price and CTA on the right.")),
-    (
-        "plakat",
-        _("Plakat"),
-        _("Wide photo across the top, price and button centred underneath."),
-    ),
-    (
-        "prospekt",
-        _("Angebotszettel"),
-        _("Coloured price band first, photo and conditions below — like a leaflet."),
-    ),
-    (
-        "kompakt",
-        _("Kompakt"),
-        _("Narrow column, small photo — for offers where the price is the message."),
-    ),
-    (
-        "magazin",
-        _("Magazin"),
-        _("Story first with a wide text column, photo alongside."),
-    ),
-]
-VALID_PROMOTION_DETAIL_STYLES = frozenset(code for code, _l, _h in PROMOTION_DETAIL_STYLES)
+PROMOTION_DETAIL_STYLES = compositions.styles_for("promo")
+VALID_PROMOTION_DETAIL_STYLES = compositions.valid_for("promo")
 
 
 def promotion_detail_style(own: str, site_default: str = "") -> str:

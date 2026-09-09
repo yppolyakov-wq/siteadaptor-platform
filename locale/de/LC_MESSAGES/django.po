@@ -22335,3 +22335,36 @@ msgstr "Geschäftseinstellungen öffnen"
 
 msgid "Apply this layout to the other lists too"
 msgstr "Dieses Raster auch für die anderen Listen übernehmen"
+
+msgid "Ausgabe"
+msgstr "Ausgabe"
+
+msgid "Verteilen"
+msgstr "Verteilen"
+
+msgid "Alles zeigen"
+msgstr "Alles zeigen"
+
+msgid "Volle Reihen"
+msgstr "Volle Reihen"
+
+msgid "Reihen"
+msgstr "Reihen"
+
+msgid "Pro Seite"
+msgstr "Pro Seite"
+
+msgid "Tempo (Sek.)"
+msgstr "Tempo (Sek.)"
+
+msgid "aus"
+msgstr "aus"
+
+msgid "Anzahl der Elemente = Spalten × Reihen. Leer = alle zeigen."
+msgstr "Anzahl der Elemente = Spalten × Reihen. Leer = alle zeigen."
+
+msgid "Wie viele Einträge pro Seite. Leer = wie bisher."
+msgstr "Wie viele Einträge pro Seite. Leer = wie bisher."
+
+msgid "Sekunden zwischen den Folien. Leer = nicht automatisch drehen."
+msgstr "Sekunden zwischen den Folien. Leer = nicht automatisch drehen."

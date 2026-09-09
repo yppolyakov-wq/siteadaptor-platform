@@ -22424,3 +22424,36 @@ msgstr "İşletme ayarlarını aç"
 
 msgid "Apply this layout to the other lists too"
 msgstr "Bu düzeni diğer listelere de uygula"
+
+msgid "Ausgabe"
+msgstr "Görünüm"
+
+msgid "Verteilen"
+msgstr "Dağıt"
+
+msgid "Alles zeigen"
+msgstr "Hepsini göster"
+
+msgid "Volle Reihen"
+msgstr "Tam satırlar"
+
+msgid "Reihen"
+msgstr "Satır"
+
+msgid "Pro Seite"
+msgstr "Sayfa başına"
+
+msgid "Tempo (Sek.)"
+msgstr "Hız (sn.)"
+
+msgid "aus"
+msgstr "kapalı"
+
+msgid "Anzahl der Elemente = Spalten × Reihen. Leer = alle zeigen."
+msgstr "Öğe sayısı = sütun × satır. Boş = hepsini göster."
+
+msgid "Wie viele Einträge pro Seite. Leer = wie bisher."
+msgstr "Sayfa başına kaç kayıt. Boş = eskisi gibi."
+
+msgid "Sekunden zwischen den Folien. Leer = nicht automatisch drehen."
+msgstr "Slaytlar arası saniye. Boş = otomatik döndürme."

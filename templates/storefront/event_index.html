@@ -1,5 +1,5 @@
 {% extends "storefront/listing.html" %}
-{% load i18n siteui %}
+{% load i18n siteui sellable_ui %}
 {% block title %}{% trans "Events" %} — {{ request.tenant.name }}{% endblock %}
 
 {% comment %}UB1-3: листинг событий на каркасе listing.html. Разметка карточек/фасетов
@@ -110,8 +110,15 @@
     {% else %}
     {% comment %}RV3: грид крупных обложек (как BookRetreats) — фото сверху, бейджи
     оверлеем (категория + countdown/sold-out), мета снизу.{% endcomment %}
-    <div data-grid="events" data-sf-section="events" class="{{ events_grid }}">
+    {# LAY-3a: атрибуты сетки — иначе контрол хвоста на листинге событий мёртв. #}
+    <div data-grid="events" data-sf-section="events" class="{{ events_grid }}" {% sf_grid_attrs events_layout count=events|length %}>
       {% for e in events %}
+        {% comment %}LAY-4: ВЫБРАННАЯ владельцем форма карточки действует и здесь —
+        раньше листинг событий рисовал только свою разметку и настройку игнорировал.
+        Без выбора формы («") остаётся прежняя богатая карточка байт-в-байт: у неё
+        есть бейджи категории, «Sold out», countdown и «+N Termine», которых нет в
+        контракте, и терять их по умолчанию было бы регрессом.{% endcomment %}
+        {% if storefront_card_style %}{% sellable_card 'event' e h2=True %}{% else %}
         <a href="{% url 'storefront-event' e.pk %}" class="sf-card group flex flex-col bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
           <div class="relative aspect-[4/3] bg-gray-100 overflow-hidden">
             <span data-photo-edit data-edit-model="event" data-edit-pk="{{ e.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute bottom-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>
@@ -139,6 +146,7 @@
             </div>
           </div>
         </a>
+        {% endif %}
       {% endfor %}
     </div>
     {% endif %}

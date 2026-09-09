@@ -85,7 +85,8 @@ def test_studio_carries_all_site_page_functions():
     assert 'name="hero_image"' in html  # фон баннера
     assert 'name="gallery_video"' in html  # видео галереи
     assert 'value="upload_gallery"' in html  # фото галереи (было и раньше)
-    assert 'name="faq_text"' in html  # контент-секции (общий партиал)
+    # LAY-1b: FAQ — пары полей вместо одной textarea (запрос владельца).
+    assert 'name="faq_q_0"' in html  # контент-секции (общий партиал)
 
     from apps.core import design_page
 

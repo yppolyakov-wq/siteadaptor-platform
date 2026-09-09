@@ -1,8 +1,26 @@
 {% load i18n %}
 {% comment %}MT-D2: карточка тура — одна разметка для плоского списка и групп по странам.{% endcomment %}
+{% comment %}LAY-4: тур тоже подчиняется форме карточки — раньше это была вторая
+карточка витрины (после набора), которую ось вывода не задевала вовсе. Формы, у
+которых для тура есть данные: lookbook (высокий кадр), compact/deal (строка),
+regal (цена сверху); остальное падает в прежний вид байт-в-байт.{% endcomment %}
+{% with card_style=storefront_card_style %}
+{% if card_style == "compact" or card_style == "deal" %}
+<a href="{% url 'storefront-tour' tour.slug %}" class="sf-card group flex items-center gap-4 rounded-2xl border p-4 hover:shadow-md transition">
+  {% if tour.image_url %}<img src="{{ tour.image_url }}" alt="{{ tour.title_text }}" loading="lazy" decoding="async" class="w-20 h-20 rounded-xl object-cover shrink-0">{% endif %}
+  <div class="min-w-0 flex-1">
+    <h3 class="font-semibold truncate group-hover:text-indigo-700">{{ tour.title_text }}</h3>
+    {% if tour.region_text %}<p class="text-sm text-gray-500 mt-0.5 truncate">📍 {{ tour.region_text }}</p>{% endif %}
+  </div>
+  {% if tour.from_price_cents %}<span class="font-semibold shrink-0 whitespace-nowrap">{% trans "from" %} {{ tour.from_price_eur|floatformat:2 }} €</span>{% endif %}
+</a>
+{% else %}
 <a href="{% url 'storefront-tour' tour.slug %}" class="sf-card group block overflow-hidden rounded-2xl border hover:shadow-md transition">
+  {% if card_style == "regal" and tour.from_price_cents %}
+    <p class="px-4 pt-4 pb-2 text-2xl font-extrabold leading-none">{% trans "from" %} {{ tour.from_price_eur|floatformat:2 }} €</p>
+  {% endif %}
   {% if tour.image_url %}
-    <img src="{{ tour.image_url }}" alt="{{ tour.title_text }}" loading="lazy" decoding="async" class="w-full aspect-video object-cover">
+    <img src="{{ tour.image_url }}" alt="{{ tour.title_text }}" loading="lazy" decoding="async" class="w-full {% if card_style == "lookbook" %}aspect-[3/4]{% elif card_style == "regal" %}aspect-square{% else %}aspect-video{% endif %} object-cover">
   {% endif %}
   <div class="p-4">
     <h3 class="font-semibold group-hover:text-indigo-700">{{ tour.title_text }}</h3>
@@ -27,3 +45,5 @@
     </p>
   </div>
 </a>
+{% endif %}
+{% endwith %}

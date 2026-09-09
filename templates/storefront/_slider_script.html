@@ -2,7 +2,9 @@
 с атрибутом data-sf-slider (scroll-раскладки сеток, strip-галерея, похожие наборы, ленты
 акций/товаров). Прогрессивное улучшение: без JS — обычная overflow-лента. Стрелки ‹ › —
 только при наведении (решение владельца; CSS @media (hover:hover)), точки = «страницы»
-(≤ 12), клавиатура ← →, свайп нативный, автопрокрутки нет (R5). Идемпотентно (dataset.init),
+(≤ 12), клавиатура ← →, свайп нативный. Автопрокрутки по умолчанию нет (R5); LAY-3b добавил её
+ОПЦИЕЙ владельца — data-sf-speed в секундах, с паузой при наведении/фокусе/скрытой
+вкладке и уважением prefers-reduced-motion. Идемпотентно (dataset.init),
 window.__sfSliderInit — повторная инициализация после KAT-5 fetch-свопа.{% endcomment %}
 <script>
 (function () {
@@ -53,6 +55,36 @@ window.__sfSliderInit — повторная инициализация посл
     strip.addEventListener("scroll", function () { if (t) return; t = setTimeout(function () { t = null; renderDots(); }, 80); }, { passive: true });
     if (window.ResizeObserver) new ResizeObserver(renderDots).observe(strip);
     renderDots();
+    autoplay(strip, next);
+  }
+  // LAY-3b (запрос владельца «скорость переключения»): автопрокрутка по
+  // data-sf-speed (секунды). По умолчанию её НЕТ — ключ пишется, только когда
+  // владелец включил её сам (решение DL-16.1 остаётся дефолтом). Останавливаемся
+  // при наведении, фокусе, свайпе и когда вкладка не видна; уважаем
+  // prefers-reduced-motion — карусель, которую нельзя остановить, недоступна.
+  function autoplay(strip, next) {
+    var sec = Number(strip.getAttribute("data-sf-speed") || 0);
+    if (!sec) return;
+    try {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    } catch (e) {}
+    var timer = null, paused = false;
+    function step() {
+      if (paused || document.hidden) return;
+      var max = strip.scrollWidth - strip.clientWidth - 1;
+      if (strip.scrollLeft >= max) strip.scrollTo({ left: 0, behavior: "smooth" });
+      else next.click();
+    }
+    function start() { if (!timer) timer = setInterval(step, sec * 1000); }
+    function stop() { if (timer) { clearInterval(timer); timer = null; } }
+    ["mouseenter", "focusin", "touchstart"].forEach(function (ev) {
+      strip.addEventListener(ev, function () { paused = true; }, { passive: true });
+    });
+    ["mouseleave", "focusout"].forEach(function (ev) {
+      strip.addEventListener(ev, function () { paused = false; });
+    });
+    document.addEventListener("visibilitychange", function () { document.hidden ? stop() : start(); });
+    start();
   }
   function init() { document.querySelectorAll("[data-sf-slider]").forEach(build); }
   window.__sfSliderInit = init;

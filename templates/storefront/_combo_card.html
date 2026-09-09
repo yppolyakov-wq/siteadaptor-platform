@@ -5,9 +5,35 @@ min_persons, описание, цена под PAngV/DS-7b-гейтом, CTA «C
 разметки. Ожидает `c` (Combo).{% endcomment %}
 {% comment %}Фидбэк 2026-08-26: маркеры data-combo-card/img/body — якоря каскада
 видов Liste/Kompakt (_combo_grid.html). Содержимое карточки не меняется.{% endcomment %}
+{% comment %}LAY-4: форма карточки действует и на наборах. Раньше набор был
+единственной карточкой витрины, которая ось вывода игнорировала целиком: владелец
+выбирал «Лукбук» или «Компактная строка», а полоса наборов не менялась.
+Реализованы три формы, которые набору осмысленны (у него нет ни скидки, ни
+наличия): lookbook — высокий кадр, compact/deal — строка, regal — цена сверху.
+Форму берём из общего контекста сайта: у `Combo` своего поля нет и заводить его
+миграцией под одну полосу незачем.{% endcomment %}
+{% with card_style=storefront_card_style %}
+{% if card_style == "compact" or card_style == "deal" %}
+<a href="{% url 'storefront-combo' c.pk %}" data-combo-card class="group flex items-center gap-4 bg-white sf-card rounded-2xl shadow-sm p-5 hover:shadow-md transition">
+  {% if c.primary_image_url %}<img data-combo-img src="{{ c.primary_image_url }}" alt="{{ c.name_localized }}" loading="lazy" class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover shrink-0">{% endif %}
+  <span data-combo-body class="block min-w-0 flex-1">
+    <h3 class="font-bold text-lg truncate group-hover:underline">{{ c.name_localized }}</h3>
+    {% if c.description_localized %}<span class="block text-sm text-gray-500 mt-0.5 line-clamp-2">{{ c.description_localized }}</span>{% endif %}
+  </span>
+  <span class="text-right shrink-0">
+    {% if storefront_orders_active or site.menu_show_prices != False %}{% if not c.free_pool or c.price %}
+      <span class="block font-bold text-lg whitespace-nowrap">{{ c.price }} {{ c.currency|cursym }}</span>
+    {% endif %}{% endif %}
+    <span class="block mt-1 text-sm font-medium" style="color: var(--accent);">{% trans "Configure" %} &rarr;</span>
+  </span>
+</a>
+{% else %}
 <a href="{% url 'storefront-combo' c.pk %}" data-combo-card class="group block bg-white sf-card rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition motion-safe:hover:-translate-y-1">
-  {% if c.primary_image_url %}<span data-combo-img class="block aspect-[4/3] bg-gray-100"><img src="{{ c.primary_image_url }}" alt="{{ c.name_localized }}" loading="lazy" class="w-full h-full object-cover"></span>{% endif %}
-  <span data-combo-body class="block p-5">
+  {% if card_style == "regal" and c.price %}{% if storefront_orders_active or site.menu_show_prices != False %}
+    <span class="block px-4 pt-4 pb-2 text-2xl font-extrabold leading-none">{{ c.price }} {{ c.currency|cursym }}</span>
+  {% endif %}{% endif %}
+  {% if c.primary_image_url %}<span data-combo-img class="block {% if card_style == "lookbook" %}aspect-[3/4]{% elif card_style == "regal" %}aspect-square{% else %}aspect-[4/3]{% endif %} bg-gray-100"><img src="{{ c.primary_image_url }}" alt="{{ c.name_localized }}" loading="lazy" class="w-full h-full object-cover"></span>{% endif %}
+  <span data-combo-body class="block {% if card_style == "lookbook" or card_style == "regal" %}px-4 py-3{% else %}p-5{% endif %}">
     <h3 class="font-bold text-lg group-hover:underline">{{ c.name_localized }}</h3>
     {% if c.free_pool %}<span class="inline-block mt-1 text-[11px] font-medium rounded-full bg-gray-100 text-gray-600 px-2 py-0.5">{% trans "Free choice from category" %}</span>
     {% elif c.min_persons %}<span class="inline-block mt-1 text-[11px] font-medium rounded-full bg-gray-100 text-gray-600 px-2 py-0.5">{% blocktrans with n=c.min_persons %}ab {{ n }} Personen{% endblocktrans %}</span>{% endif %}
@@ -22,3 +48,5 @@ min_persons, описание, цена под PAngV/DS-7b-гейтом, CTA «C
     <span class="inline-block mt-2 text-sm font-medium" style="color: var(--accent);">{% trans "Configure" %} &rarr;</span>
   </span>
 </a>
+{% endif %}
+{% endwith %}

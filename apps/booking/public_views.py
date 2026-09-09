@@ -236,8 +236,15 @@ def termin_index(request):
             raw_cfg = request.session["site_preview_draft"]
         services_grid = None
         service_preset = ""
+        # LAY-3a: раскладка уезжает в шаблон ЦЕЛИКОМ, а не только классами — иначе
+        # `data-sf-*` не эмитятся и хвост неполного ряда с авто-колонками
+        # (DL-11/DL-14/DL-15) на этом листинге мертвы, хотя контрол в Studio есть.
+        # Ключ presence-minimal: без явного выбора владельца остаётся легаси-грид
+        # шаблона, и атрибутов не будет — иначе они описали бы ДРУГУЮ сетку.
+        services_layout = None
         if isinstance((raw_cfg or {}).get("service_index_layout"), dict):
             cfg = siteconfig.normalize(raw_cfg)
+            services_layout = cfg["service_index_layout"]
             services_grid = siteconfig.grid_class_string(cfg["service_index_layout"])
             # MEN-18: прайс-вид услуг — шаблон ветвится по префиксу "preisliste"
             # (как каталог по catalog_preset); сеточные пресеты идут через grid.
@@ -249,6 +256,7 @@ def termin_index(request):
                 "services": services_qs,
                 "has_pass_plans": has_pass_plans,
                 "services_grid": services_grid,
+                "services_layout": services_layout,
                 "service_preset": service_preset,
                 # UB2-2: тулбар каркаса (поиск + сортировка); embed/подборку несём в carry.
                 "show_listing_toolbar": True,

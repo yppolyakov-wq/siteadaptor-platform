@@ -849,8 +849,12 @@ def test_card_form_is_reachable_on_every_page_that_shows_cards(builder_html_all_
     # «home» намеренно НЕ в списке: строка живёт в области «page», а уровень «эта
     # страница» на главной открывает «sections» — обещание без исполнения.
     assert "home" not in types
-    for code in ("catalog", "stays", "stay", "services", "service", "events", "event"):
+    for code in ("catalog", "stays", "stay", "services", "service", "events"):
         assert code in types, f"форму карточки нельзя задать со страницы типа {code}"
+    # LAY-4 (осознанная переписка): «event» — деталь события/тура — из списка убран.
+    # Карточек сущностей там нет вовсе («Weitere Termine» — чипы дат), и настройка
+    # была обещанием без исполнения. Форма карточек событий живёт на их листинге.
+    assert "event" not in types
     row = _tagged_rows(builder_html_all_modules)["product_card_form"]
     assert set(row.split()) == types, "разметка и реестр разошлись"
 

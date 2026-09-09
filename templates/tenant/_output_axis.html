@@ -1,0 +1,41 @@
+{% load i18n %}{% comment %}LAY-3b: параметры «типа вывода» одной поверхности.
+Запрос владельца 2026-09-09: «тип слайдер (сколько карточек, скорость переключения,
+сколько строк) или тип сетка: сколько колонок; сколько элементов показывать —
+например их 50, показываем 10, как раз 2 ряда по 5; не задано — показывать все;
+пагинация — сколько выводить на странице».
+
+Вход: `field` — префикс имён полей (тот же, что у селекта пресета: catalog_preset и
+т.д.), `layout` — текущая раскладка. Пустые поля НЕ сохраняются: «нет ключа» значит
+«как раньше» (показывать всё, размер страницы по-старому, не крутить).
+
+Число элементов задаём РЯДАМИ, а не абсолютным числом: «10 = 2 ряда по 5» остаётся
+ровным при смене колонок, абсолютное число — нет (рваные ряды DL-11/14/15).{% endcomment %}
+<div class="mt-2 grid grid-cols-2 gap-2 text-xs text-gray-500">
+  <label class="block">{% trans "Ausgabe" %}
+    <select name="{{ field }}_mode" class="mt-0.5 w-full rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
+      <option value="grid" {% if not layout.scroll %}selected{% endif %}>{% trans "Raster" %}</option>
+      <option value="slider" {% if layout.scroll %}selected{% endif %}>{% trans "Slider" %}</option>
+    </select>
+  </label>
+  <label class="block">{% trans "Letzte Reihe" %}
+    <select name="{{ field }}_tail" class="mt-0.5 w-full rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
+      <option value="" {% if not layout.tail %}selected{% endif %}>{% trans "Verteilen" %}</option>
+      <option value="show" {% if layout.tail == "show" %}selected{% endif %}>{% trans "Alles zeigen" %}</option>
+      <option value="fill" {% if layout.tail == "fill" %}selected{% endif %}>{% trans "Volle Reihen" %}</option>
+    </select>
+  </label>
+  <label class="block" title="{% trans 'Anzahl der Elemente = Spalten × Reihen. Leer = alle zeigen.' %}">{% trans "Reihen" %}
+    <input type="number" name="{{ field }}_rows" min="1" max="6" value="{{ layout.rows|default_if_none:'' }}"
+           placeholder="{% trans 'alle' %}" class="mt-0.5 w-full rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
+  </label>
+  <label class="block" title="{% trans 'Wie viele Einträge pro Seite. Leer = wie bisher.' %}">{% trans "Pro Seite" %}
+    <input type="number" name="{{ field }}_page_size" min="6" max="96" value="{{ layout.page_size|default_if_none:'' }}"
+           placeholder="{% trans 'Standard' %}" class="mt-0.5 w-full rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
+  </label>
+  {% comment %}Скорость — только у слайдера. Пусто = не крутить: автопрокрутка мешает
+  читать и вредит доступности, поэтому включается ОСОЗНАННО (решение DL-16.1).{% endcomment %}
+  <label class="block col-span-2" title="{% trans 'Sekunden zwischen den Folien. Leer = nicht automatisch drehen.' %}">{% trans "Tempo (Sek.)" %}
+    <input type="number" name="{{ field }}_speed" min="3" max="15" value="{{ layout.speed|default_if_none:'' }}"
+           placeholder="{% trans 'aus' %}" class="mt-0.5 w-full rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
+  </label>
+</div>

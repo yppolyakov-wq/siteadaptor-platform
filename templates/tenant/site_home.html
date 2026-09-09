@@ -595,7 +595,7 @@
              где эти карточки видно, и с выбором охвата. Имена полей ПРЕЖНИЕ — save,
              live-draft и клик по Look'у не тронуты (они ищут по name, не по области).{% endcomment %}
           {% if has_catalog %}
-          <div class="stu-page-row mt-4" data-stu-setting="product_card_form" data-stu-page="catalog category product services service stays stay events event lookbook">
+          <div class="stu-page-row mt-4" data-stu-setting="product_card_form" data-stu-page="catalog category product services service stays stay events lookbook">
             {% include "tenant/_cardform_picker.html" with name="sd_card_style" value=card_style items=card_forms_product title=_("Kartenform") %}
             {% include "tenant/_scope_pill.html" with setting="product_card_form" %}
           </div>
@@ -678,6 +678,7 @@
                 {# DS-5c: + прайс-виды — иначе сохранённый preisliste* не матчился и Save откатывал в "list" (W0) #}
                 {% for pk, plabel in catalog_preset_options|default:preset_options %}<option value="{{ pk }}" {% if catalog_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
               </select>
+              {% include "tenant/_output_axis.html" with field="catalog_preset" layout=catalog_layout %}
             </div>
             {# Дефолтная сортировка каталога (покупатель может сменить дропдауном на витрине). #}
             <div class="stu-page-row w-full" data-stu-setting="catalog_sort" data-stu-page="catalog category">
@@ -717,6 +718,7 @@
             <select name="events_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if events_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
             </select>
+            {% include "tenant/_output_axis.html" with field="events_preset" layout=events_layout %}
           </div>
             {% comment %}STU-15c: дефолт сортировки листинга — у каталога он есть с UB2-2,
                а здесь порядок задавала только вьюха. Посетитель по-прежнему сильнее:
@@ -736,6 +738,7 @@
             <select name="stay_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if stay_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
             </select>
+            {% include "tenant/_output_axis.html" with field="stay_preset" layout=stay_layout %}
           </div>
             {% comment %}STU-15c: дефолт сортировки листинга — у каталога он есть с UB2-2,
                а здесь порядок задавала только вьюха. Посетитель по-прежнему сильнее:
@@ -758,6 +761,7 @@
               <option value="">{% trans "Standard" %}</option>
               {% for pk, plabel in service_preset_options|default:preset_options %}<option value="{{ pk }}" {% if service_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
             </select>
+            {% include "tenant/_output_axis.html" with field="service_preset" layout=service_layout %}
           </div>
             {% comment %}STU-15c: дефолт сортировки листинга — у каталога он есть с UB2-2,
                а здесь порядок задавала только вьюха. Посетитель по-прежнему сильнее:

@@ -242,7 +242,10 @@ def unterkunft_index(request):
         request.session.get("site_preview_draft"), dict
     ):
         _raw = request.session["site_preview_draft"]
-    rooms_grid = siteconfig.grid_class_string(siteconfig.normalize(_raw)["stay_index_layout"])
+    # LAY-3a: кроме классов отдаём саму раскладку — шаблон эмитит `data-sf-*`,
+    # иначе «Verteilen / Volle Reihen» на этом листинге ничего не делают.
+    rooms_layout = siteconfig.normalize(_raw)["stay_index_layout"]
+    rooms_grid = siteconfig.grid_class_string(rooms_layout)
     return _render_embed(
         request,
         "storefront/stay_index.html",
@@ -259,6 +262,7 @@ def unterkunft_index(request):
             "next_free_stay": next_free_stay,  # R3: ближайший свободный диапазон
             "search_qs": search_qs,
             "rooms_grid": rooms_grid,
+            "rooms_layout": rooms_layout,
             # UB2-2: тулбар каркаса. Даты/гостей несём в carry (поиск не сбрасывает
             # date-search); сортировка — только в browse (searched сортирует движок).
             "show_listing_toolbar": True,
@@ -453,6 +457,15 @@ def unterkunft_unit(request, pk):
         **_payment_ctx(tenant, "stay"),
         "deposit_eur": f"{unit.deposit_cents / 100:.2f}".replace(".", ","),
         "similar": similar,  # H3 похожие номера
+        # LAY-4: «похожие» рисуются ОБЩЕЙ карточкой, а она клеит `query` к
+        # detail_url — собираем строку здесь (в шаблоне даты не сцепить). Даты и
+        # embed переносятся как раньше: гость не теряет выбранный период.
+        "similar_qs": (
+            f"?von={von:%Y-%m-%d}&bis={bis:%Y-%m-%d}&erw={adults}&kinder={children}"
+            + ("&embed=1" if _is_embed(request) else "")
+            if von and bis
+            else ("?embed=1" if _is_embed(request) else "")
+        ),
         # C3: встроенный календарь наличия — начальный месяц = месяц заезда, а без
         # дат — первый месяц, где ВООБЩЕ есть что выбрать (HF-0, см. _calendar_start).
         **_calendar_context(

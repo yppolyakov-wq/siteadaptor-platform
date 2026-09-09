@@ -1,86 +1,39 @@
-"""KAT-1: реестр шаблонов СТРАНИЦЫ категории /sortiment/<slug>/.
+"""KAT-1: шаблоны СТРАНИЦЫ категории /sortiment/<slug>/ и корня каталога.
 
 Шаблон выбирает владелец per-категория (Category.page_style, select в форме);
 "" = Standard — прежний вид фильтра байт-в-байт (замки характеризации целы).
 Каждый шаблон собирается из ЖИВЫХ данных категории и деградирует сам: нет фото —
 шапка текстовая, нет комбо — полосы нет (fail-soft, страница не пустеет).
 Прецедент механики — catalog/option_styles.py (Product.variant_style).
+
+**LAY-2 (2026-09-09): состав реестров переехал в `apps/core/compositions.py`.**
+Владелец назвал «кашей» то, что одни и те же коды описаны в четырёх местах
+(`schaufenster` — трижды, `magazin` — четырежды). Здесь остались РЕЗОЛВЕРЫ
+(какой шаблон действует у этой категории) — а список кодов, порядок плиток и
+подписи берутся из единого реестра. Публичная форма модуля не менялась:
+`CATEGORY_PAGE_STYLES` и `root_styles()` по-прежнему отдают тройки
+(код, метка, подсказка) в прежнем порядке (замки `test_lay2_compositions`).
 """
 
-from django.utils.translation import gettext_lazy as _
+from apps.core import compositions
 
-# (код, метка, подсказка). Порядок = порядок в select'е формы.
-CATEGORY_PAGE_STYLES = [
-    ("", _("Standard (Raster)"), _("Wie bisher: Filter, Unterkategorien, Produktraster.")),
-    (
-        "kopfbild",
-        _("Mit Kopfbild"),
-        _("Hero mit Foto und Beschreibung, Unterkategorien als Foto-Kacheln."),
-    ),
-    (
-        "sets",
-        _("Sets & Menüs zuerst"),
-        _("Menü-Sets dieser Kategorie als Karten über dem Raster."),
-    ),
-    (
-        "preisliste",
-        _("Preisliste"),
-        _("Produkte dieser Kategorie als Preisliste statt Raster."),
-    ),
-    # DL-16.5 (K2/K3): направления с подкатегориями — «полки» лентами или табы.
-    (
-        "regale",
-        _("Regale (Unterkategorien als Leisten)"),
-        _("Jede Unterkategorie als horizontale Leiste mit Pfeilen — alles auf einen Blick."),
-    ),
-    (
-        "tabs",
-        _("Tabs (Unterkategorien als Reiter)"),
-        _("Unterkategorien als Reiter über dem Raster — Wechsel ohne Neuladen."),
-    ),
-    # DL-20 (канвас «Kategorie-Vorlagen» 2026-09-03): пять композиций сверх
-    # существующих. Каждая отличается НАБОРОМ или ПОРЯДКОМ блоков, а не только
-    # классами (урок DL-9: иначе получается пятый переключатель с тем же видом).
-    (
-        "schaufenster",
-        _("Showcase"),
-        _("The first product as a wide card with text and button, the rest as a grid."),
-    ),
-    (
-        "navigator",
-        _("Navigator"),
-        _("Subcategories and filters in a side column, products on the right."),
-    ),
-    (
-        "magazin",
-        _("Magazine"),
-        _("Cover image, then two large cards per row with a description."),
-    ),
-    (
-        "mosaik",
-        _("Mosaic"),
-        _("Tiles of different sizes — needs strong photos."),
-    ),
-    (
-        "kompakt",
-        _("Compact"),
-        _("Subcategory index in columns and a dense grid — for large ranges."),
-    ),
-]
-VALID_PAGE_STYLES = frozenset(code for code, _l, _h in CATEGORY_PAGE_STYLES)
+# Производные представления единого реестра (LAY-2). Порядок = порядок плиток.
+CATEGORY_PAGE_STYLES = compositions.styles_for("category")
+VALID_PAGE_STYLES = compositions.valid_for("category")
 
-# DL-21.1: КОРНЕВАЯ страница каталога `/sortiment/` берёт тот же реестр — роль
+# DL-21.1: КОРНЕВАЯ страница каталога `/sortiment/` берёт тот же список — роль
 # подкатегорий играют корневые направления. «Preisliste» на корне не шаблон:
 # прайс-вид там уже даёт `catalog_layout.preset` в той же строке Studio, второй
-# переключатель того же — урок DL-9.
+# переключатель того же — урок DL-9. Исключение живёт в реестре с причиной
+# (`compositions.EXCLUDED_REASONS`), а не молчаливым отсутствием.
 ROOT_EXCLUDED = frozenset({"preisliste"})
 
 
 def root_styles() -> list[tuple[str, object, object]]:
-    return [entry for entry in CATEGORY_PAGE_STYLES if entry[0] not in ROOT_EXCLUDED]
+    return compositions.styles_for("catalog")
 
 
-VALID_ROOT_STYLES = frozenset(code for code, _l, _h in root_styles())
+VALID_ROOT_STYLES = compositions.valid_for("catalog")
 
 
 def root_page_style(raw) -> str:
