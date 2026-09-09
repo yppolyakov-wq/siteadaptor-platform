@@ -1521,6 +1521,72 @@ def p10_kabinett() -> str:
     return wrap(body)
 
 
+# ── v7: ФИНАЛ по решениям 2026-09-09 — Студия без рейки ───────────────────────
+def top_final(page: str, status: str = "Gespeichert ✓") -> str:
+    return top_new(page, status=status)
+
+
+def studio_norail(top_html: str, sketch: str, tag: str, pane_html: str, canvas_extra: str = "") -> str:
+    return (top_html + '<div class="app">'
+            + f'<div class="canvas"><div class="frame">{sketch}<span class="tag">{tag}</span></div>{canvas_extra}</div>'
+            + pane_html + "</div>")
+
+
+def f1_home() -> str:
+    body = (hd2("Final", "Studio ohne Rail", "Verhalten: Topbar + Leinwand + eine Spalte rechts",
+                "Левой рейки нет. Ничего не выбрано → колонка показывает настройки открытой страницы. "
+                "Всё остальное — кликом по канве: секция, блок, шапка, подвал, фото; «+» между секциями вставляет блок; "
+                "«Seite ▾» ведёт на страницы, до которых кликом не дойти; «Design des Shops →» — экран кабинета (1B).",
+                rec=True)
+            + studio_norail(top_final("Startseite"), HOME_SKETCH.replace(' sel"', '"'), "Startseite", home_pane_new()))
+    return wrap(body)
+
+
+def f2_header() -> str:
+    rows = ('<div class="rows">'
+            + "".join(f'<div class="r"><span class="h">⠿</span>{n}<span class="eye">👁</span></div>' for n in ("Sortiment", "Aktionen", "Über uns", "Kontakt"))
+            + '</div><div class="hint" style="margin-top:3px">＋ Punkt · Untermenüs im Menü-Generator →</div>')
+    pane_body = f"""
+  <div class="card"><div class="lg">Kopfzeile</div>
+    <div class="fld"><div class="tiles"><div class="t on"><span>Classic</span></div><div class="t"><span>Zentriert</span></div><div class="t"><span>Minimal</span></div></div></div>
+    <div class="fld"><div class="chk"><i class="on"></i>Feste Kopfzeile</div></div>
+    <div class="fld"><div class="chk"><i class="on"></i>CTA-Button „Jetzt bestellen“</div></div>
+  </div>
+  <div class="card"><div class="lg">Logo</div><div class="ctrl" style="justify-content:center;color:#3730a3;border-color:#c7d2fe;font-weight:700">Logo ändern</div></div>
+  <div class="card"><div class="lg">Menüpunkte</div>{rows}</div>
+  <div class="card"><div class="lg">Fußzeile</div><div class="chips"><span class="chip on">Kontakt</span><span class="chip on">Öffnungszeiten</span><span class="chip on">Social</span><span class="chip">Newsletter</span></div></div>"""
+    bar = ftb(196, 44, "Kopfzeile", [("Stil ▾", False), ("⚙", True)])
+    body = (hd2("Final", "Studio ohne Rail", "Klick auf die Kopfzeile → Spalte «Kopf- &amp; Fußzeile»",
+                "Шапка и подвал есть на каждой странице, поэтому уровень «Menü» не нужен: клик по шапке открывает ту же "
+                "колонку с пресетом шапки, CTA, логотипом, пунктами меню (F6A: порядок/скрытие здесь, подменю — в "
+                "Menü-Generator) и составом подвала. Крошка «Website › Kopfzeile» говорит, что это глобально.")
+            + studio_norail(top_final("Startseite"), HOME_SKETCH_NAV, "Kopfzeile",
+                            pane_new("Kopf- &amp; Fußzeile", pane_body, crumb="Website › gilt auf allen Seiten"), bar))
+    return wrap(body)
+
+
+def f3_entschieden() -> str:
+    rows = [
+        ("Глобальный дизайн (Look, цвет, шрифт, карточки)", "экран кабинета «Design des Shops», не в Студии", "1B"),
+        ("Шапка и подвал", "клик по шапке/подвалу на любой странице → колонка «Kopf- &amp; Fußzeile» (уровень «Menü» отпал вместе с рейкой)", "2B → снято"),
+        ("Страницы, недостижимые кликом (Warenkorb, Kasse)", "«Seite: … ▾» в верхней строке", "3A"),
+        ("Область «Start» (Layout-Vorlagen, Demo)", "секция «Vorlagen» на экране кабинета", "4A"),
+        ("Левая рейка", "убрана целиком: всё открывается кликом по канве, «+» и «Seite ▾»", "1 · убрать"),
+        ("Колонка настроек", "справа, одна, без вкладок; по умолчанию — настройки открытой страницы; при выборе — блок с крошкой", "2 · справа"),
+        ("Быстрые поповеры из плашки у блока (Stil · Raster · Breite)", "да, ≤ 7 плиток, те же поля формы", "F5A"),
+        ("Пункты меню", "в колонке Студии (порядок, скрыть, переименовать); подменю — Menü-Generator", "F6A"),
+        ("Телефон", "настройки доступны: bottom-sheet + «⚙» в верхней строке", "F7A"),
+        ("Панель блока", "группы Inhalt · Darstellung · Erweitert; тексты секции при секции", "F8A"),
+        ("Форма карточки для одной категории", "открыто — см. пояснение в чате", "F9 ?"),
+    ]
+    tr = "".join(f'<tr><td class="lbl" style="white-space:normal;max-width:240px">{a}</td><td class="now">{b}</td><td class="rec">{c}</td></tr>' for a, b, c in rows)
+    body = (hd("Entschieden · 2026-09-09", "Что решено по Студии — одним листом",
+               "Итог двух раундов (страницы «Entscheidungen» и «Panels»). Студия = верхняя строка + канва + одна колонка. "
+               "План волны реализации — `docs/stu12-studio-simplification-plan-2026-09-09.md`.")
+            + f'<div class="sheet"><table class="diff"><tr><th>Что</th><th>Решение</th><th>Код</th></tr>{tr}</table></div>')
+    return wrap(body)
+
+
 ARTBOARDS = {
     "Main": (main_home, 940, 556, "Studio · Startseite"),
     "Kategorie": (kategorie, 940, 556, "Studio · Kategorie"),
@@ -1555,9 +1621,13 @@ ARTBOARDS = {
     "P8": (p8_phone, 940, 740, "F7 · Telefon"),
     "P9": (p9_wahl2, 940, 520, "Wahlzettel 2 · F5–F9"),
     "P10": (p10_kabinett, 940, 640, "1B+4A · Kabinett «Design des Shops»"),
+    # ── страница «Final» ──
+    "F1": (f1_home, 940, 556, "Final · Studio ohne Rail"),
+    "F2": (f2_header, 940, 556, "Final · Klick auf die Kopfzeile"),
+    "F3": (f3_entschieden, 940, 520, "Entschieden · 2026-09-09"),
 }
 
-PAGE_OF = {k: ("panels" if k.startswith("P") else "entscheidungen" if k.startswith("E")
+PAGE_OF = {k: ("final" if k.startswith("F") else "panels" if k.startswith("P") else "entscheidungen" if k.startswith("E")
                else "vorschlag" if k.startswith("V3") else "heute") for k in ARTBOARDS}
 
 LAYOUT = {
@@ -1577,6 +1647,7 @@ LAYOUT = {
     "P4": (0, 2596), "P5": (1040, 2596),
     "P6": (0, 3292), "P7": (1040, 3292),
     "P8": (0, 3988), "P10": (1040, 3988),
+    "F3": (0, 0), "F1": (0, 660), "F2": (1040, 660),
 }
 
 
@@ -1591,9 +1662,9 @@ def main() -> None:
         json.dumps({
             "pages": [{"id": "heute", "name": "Heute"}, {"id": "vorschlag", "name": "Vorschlag"},
                       {"id": "entscheidungen", "name": "Entscheidungen"},
-                      {"id": "panels", "name": "Panels"}],
+                      {"id": "panels", "name": "Panels"}, {"id": "final", "name": "Final"}],
             "artboards": boards,
-            "launch": {"view": "canvas", "page": "panels"},
+            "launch": {"view": "canvas", "page": "final"},
         }, ensure_ascii=False, indent=1),
         encoding="utf-8",
     )

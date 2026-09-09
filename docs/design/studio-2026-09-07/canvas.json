@@ -15,6 +15,10 @@
   {
    "id": "panels",
    "name": "Panels"
+  },
+  {
+   "id": "final",
+   "name": "Final"
   }
  ],
  "artboards": [
@@ -287,10 +291,37 @@
    "h": 640,
    "title": "1B+4A · Kabinett «Design des Shops»",
    "page": "panels"
+  },
+  {
+   "file": "F1.dc.html",
+   "x": 0,
+   "y": 660,
+   "w": 940,
+   "h": 556,
+   "title": "Final · Studio ohne Rail",
+   "page": "final"
+  },
+  {
+   "file": "F2.dc.html",
+   "x": 1040,
+   "y": 660,
+   "w": 940,
+   "h": 556,
+   "title": "Final · Klick auf die Kopfzeile",
+   "page": "final"
+  },
+  {
+   "file": "F3.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 940,
+   "h": 520,
+   "title": "Entschieden · 2026-09-09",
+   "page": "final"
   }
  ],
  "launch": {
   "view": "canvas",
-  "page": "panels"
+  "page": "final"
  }
 }
