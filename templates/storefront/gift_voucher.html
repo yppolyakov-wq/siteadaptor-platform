@@ -1,4 +1,5 @@
 {% extends "storefront/_base.html" %}
+{% load siteui %}
 {% load i18n %}
 {% block title %}{% trans "Gift voucher" %} — {{ request.tenant.name }}{% endblock %}
 
@@ -54,4 +55,5 @@
     });
   });
 </script>
+  {% page_blocks "gift" %}
 {% endblock %}

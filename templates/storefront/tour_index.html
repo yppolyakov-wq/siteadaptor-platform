@@ -1,4 +1,5 @@
 {% extends "storefront/listing.html" %}
+{% load siteui %}
 {% load i18n %}
 {% comment %}MT-1: листинг тур-продуктов на едином каркасе (UB1-1).
 MT-D2: при нескольких странах — секции по странам с якорь-чипами.{% endcomment %}
@@ -45,6 +46,7 @@ MT-D2: при нескольких странах — секции по стра
       <a href="{{ private_tour_url }}" class="mt-4 inline-block rounded-lg bg-indigo-600 px-5 py-3 font-medium text-white hover:bg-indigo-700">{% trans "Request a private tour" %}</a>
     </section>
   {% endif %}
+  {% page_blocks "tours" %}
 {% endblock %}
 
 {% block listing_empty %}

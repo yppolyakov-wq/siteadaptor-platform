@@ -22269,3 +22269,7 @@ msgid "Order and visibility live on the bar above the block on the canvas."
 msgstr ""
 "Reihenfolge und Sichtbarkeit liegen auf der Leiste über dem Block auf der "
 "Leinwand."
+
+#. STU-14: тип страницы «деталь статьи»
+msgid "Blogbeitrag"
+msgstr "Blogbeitrag"

@@ -1,4 +1,5 @@
 {% extends "storefront/_base.html" %}
+{% load siteui %}
 {% load i18n %}
 {% block content %}
 <section class="mb-10 max-w-2xl mx-auto">
@@ -32,4 +33,5 @@
     <p class="mt-6 text-sm text-gray-500">{% trans "Ask for your stamp card on your next visit." %}</p>
   {% endif %}
 </section>
+  {% page_blocks "loyalty" %}
 {% endblock %}

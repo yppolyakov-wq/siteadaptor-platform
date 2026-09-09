@@ -2120,18 +2120,10 @@ def home_builder_view(request):
     # было вовсе; страницы групп акций адресуются параметром (?gruppe=, STU-7).
     # Ключ `section` делит список на «кликабельно на сайте» / «только отсюда» /
     # «группы акций» — рейки больше нет, и это единственная навигация кроме канвы.
-    if request.tenant.is_module_active("catalog"):
-        try:
-            preview_pages.append(
-                {
-                    "label": _("Kasse"),
-                    "url": reverse("storefront-checkout"),
-                    "group": "checkout",
-                    "section": "here",
-                }
-            )
-        except NoReverseMatch:
-            pass
+    # STU-14: пункт «Kasse» снят — СТРАНИЦЫ КАССЫ НЕТ. `storefront-checkout` это
+    # POST-приёмник корзины (@require_POST): переход из Студии открывал 405, а панель
+    # «Diese Seite» была пуста по построению. Оформление шага оплаты правится на
+    # странице корзины (тип `cart`), где эти блоки и живут.
     if request.tenant.is_module_active("promotions"):
         from apps.promotions.models import Promotion
 

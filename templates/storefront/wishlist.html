@@ -1,4 +1,5 @@
 {% extends "storefront/_base.html" %}
+{% load siteui %}
 {% load i18n %}
 {% comment %}M4-C «Merkzettel»: отложенное обычными карточками (единая форма ST-7c
 действует и здесь). Список живёт в сессии — про посетителя ничего не сохраняется
@@ -63,4 +64,5 @@
 {% endif %}
 
 <a href="{% url 'storefront-products' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Zum Sortiment" %} →</a>
+  {% page_blocks "wishlist" %}
 {% endblock %}

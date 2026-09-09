@@ -22229,3 +22229,7 @@ msgstr ""
 #. STU-13: подсказка панели блока
 msgid "Order and visibility live on the bar above the block on the canvas."
 msgstr "Order and visibility live on the bar above the block on the canvas."
+
+#. STU-14: тип страницы «деталь статьи»
+msgid "Blogbeitrag"
+msgstr "Blog post"

@@ -386,7 +386,9 @@ PAGE_TYPES: tuple[PageType, ...] = (
     # (`tour_index` её не читает — список строится группами по странам) и блоки
     # `page_blocks "events"` (шаблон их не выводит). Своих настроек у страницы пока
     # нет — честнее показать это, чем предлагать неработающее.
-    PageType("tours", _("Reisen"), ("storefront-tours",)),
+    # STU-14: раскладку страница по-прежнему не читает (список строится группами по
+    # странам), но блоки и ширина текста ей доступны — панель больше не пуста.
+    PageType("tours", _("Reisen"), ("storefront-tours",), ("text_width",), block_host="tours"),
     PageType(
         "event",
         _("Veranstaltungsseite"),
@@ -395,20 +397,65 @@ PAGE_TYPES: tuple[PageType, ...] = (
         block_host="event_detail",
     ),
     PageType("cart", _("Warenkorb"), ("storefront-cart",), ("cart_upsell",), block_host="cart"),
-    PageType("checkout", _("Kasse"), ("storefront-checkout",)),
+    PageType("text", _("Über uns"), ("storefront-about",), ("text_width",), block_host="info"),
+    # STU-14: раньше все четыре страницы делили хост `info`, а выводился он ТОЛЬКО на
+    # «О нас» — блок, поставленный на команду или галерею, не появлялся нигде.
+    PageType("team", _("Team"), ("storefront-team",), ("text_width",), block_host="team"),
     PageType(
-        "text",
-        _("Textseite"),
-        ("storefront-about", "storefront-team", "storefront-gallery", "storefront-reviews"),
-        ("text_width",),
-        block_host="info",
+        "gallery", _("Galerie"), ("storefront-gallery",), ("text_width",), block_host="gallery"
     ),
     PageType(
-        "blog",
-        _("Blog"),
-        ("storefront-blog", "storefront-blog-post"),
+        "reviews", _("Bewertungen"), ("storefront-reviews",), ("text_width",), block_host="reviews"
+    ),
+    PageType("blog", _("Blog"), ("storefront-blog",), ("text_width",), block_host="blog"),
+    PageType(
+        "blog_post",
+        _("Blogbeitrag"),
+        ("storefront-blog-post",),
         ("text_width",),
-        block_host="blog",
+        block_host="blog_post",
+    ),
+    # STU-14: лендинги архетипа доступны из «Seite ▾» (modules.storefront_landing) —
+    # без своего типа владелец переходил туда и упирался в пустую панель.
+    PageType(
+        "loyalty",
+        _("Treueprogramm"),
+        ("storefront-loyalty",),
+        ("text_width",),
+        block_host="loyalty",
+    ),
+    PageType(
+        "gift", _("Gutscheine"), ("storefront-gutschein",), ("text_width",), block_host="gift"
+    ),
+    PageType(
+        "anfrage", _("Anfrage"), ("storefront-anfrage",), ("text_width",), block_host="anfrage"
+    ),
+    PageType(
+        "contact", _("Kontakt"), ("storefront-message",), ("text_width",), block_host="message"
+    ),
+    PageType(
+        "wishlist",
+        _("Merkzettel"),
+        ("storefront-wishlist",),
+        ("text_width",),
+        block_host="wishlist",
+    ),
+    PageType(
+        "combos",
+        _("Kombis"),
+        ("storefront-combos",),
+        # Набор рисуется своей карточкой (`_combo_card`) — форму карточки ТОВАРА здесь
+        # не обещаем (правило STU-9: не предлагать настройку, которой страница не читает).
+        ("text_width",),
+        block_host="combos",
+    ),
+    PageType("finder", _("Finder"), ("storefront-finder",), ("text_width",), block_host="finder"),
+    PageType(
+        "lookbook",
+        _("Lookbook"),
+        ("storefront-lookbook",),
+        ("text_width", "product_card_form"),
+        block_host="lookbook",
     ),
     PageType(
         "legal",
@@ -420,6 +467,7 @@ PAGE_TYPES: tuple[PageType, ...] = (
             "storefront-agb",
         ),
         ("text_width",),
+        block_host="legal",
     ),
 )
 

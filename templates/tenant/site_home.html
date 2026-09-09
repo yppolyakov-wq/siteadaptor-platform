@@ -588,7 +588,7 @@
              где эти карточки видно, и с выбором охвата. Имена полей ПРЕЖНИЕ — save,
              live-draft и клик по Look'у не тронуты (они ищут по name, не по области).{% endcomment %}
           {% if has_catalog %}
-          <div class="stu-page-row mt-4" data-stu-setting="product_card_form" data-stu-page="catalog category product services service stays stay events event">
+          <div class="stu-page-row mt-4" data-stu-setting="product_card_form" data-stu-page="catalog category product services service stays stay events event lookbook">
             {% include "tenant/_cardform_picker.html" with name="sd_card_style" value=card_style items=card_forms_product title=_("Kartenform") %}
             {% include "tenant/_scope_pill.html" with setting="product_card_form" %}
           </div>
@@ -633,7 +633,7 @@
           {% comment %}STU-8: ширина текстовой колонки (артборд «Тип: Текстовая страница»).
              Раньше на «О нас», правовых и блоге настраивать было нечего, кроме блоков.
              Ключ presence-minimal: "" = прежняя узкая колонка → golden-эталоны целы.{% endcomment %}
-          <div class="stu-page-row mt-4" data-stu-setting="text_width" data-stu-page="text legal blog">
+          <div class="stu-page-row mt-4" data-stu-setting="text_width" data-stu-page="text team gallery reviews legal blog blog_post tours loyalty gift anfrage contact wishlist combos finder lookbook">
             <input type="hidden" name="tw_present" value="1">
             <label class="block text-sm">
               <span class="block font-medium mb-1">{% trans "Textbreite" %}</span>

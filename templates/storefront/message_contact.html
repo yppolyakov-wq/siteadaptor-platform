@@ -1,4 +1,5 @@
 {% extends "storefront/_base.html" %}
+{% load siteui %}
 {% load i18n %}
 {% block title %}{% trans "Ask a question" %} — {{ request.tenant.name }}{% endblock %}
 
@@ -19,4 +20,5 @@
 {% endif %}
 {% include "storefront/_message_form.html" %}
 </div>
+  {% page_blocks "message" %}
 {% endblock %}

@@ -1,4 +1,5 @@
 {% extends "storefront/_base.html" %}
+{% load siteui %}
 {% load i18n sellable_ui %}
 {% comment %}M4-B Lookbook (план m4-boutique-plan-2026-07-30 §B): страница образа —
 галерея подборки + товары, из которых он собран. Карточки — общий тег
@@ -29,4 +30,5 @@
 {% else %}
 <p class="text-gray-400">{% trans "Zu diesem Look sind noch keine Artikel zugeordnet." %}</p>
 {% endif %}
+  {% page_blocks "lookbook" %}
 {% endblock %}

@@ -1,4 +1,5 @@
 {% extends "storefront/_base.html" %}
+{% load siteui %}
 {% load i18n %}
 {% block title %}{{ combos_title }} · {{ request.tenant.name }}{% endblock %}
 
@@ -15,4 +16,5 @@
 {% else %}
 <p class="text-gray-500">{% trans "No combos available right now." %}</p>
 {% endif %}
+  {% page_blocks "combos" %}
 {% endblock %}

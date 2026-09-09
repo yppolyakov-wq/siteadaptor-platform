@@ -79,7 +79,6 @@ def test_block_hosts_are_valid():
         ("/sortiment/brot/", "category"),
         ("/aktionen/", "promos"),
         ("/warenkorb/", "cart"),
-        ("/warenkorb/bestellen/", "checkout"),
         ("/termin/", "services"),
         ("/unterkunft/", "stays"),
         ("/veranstaltung/", "events"),
@@ -578,7 +577,10 @@ def test_registry_covers_the_pages_the_owner_named():
         "promo",
         "text",
         "cart",
-        "checkout",
+        # STU-14: «checkout» больше НЕ тип страницы — `storefront-checkout` это
+        # POST-приёмник корзины (@require_POST), страницы с таким адресом не
+        # существует, и Студия вела туда в 405. Оформление шага оплаты живёт на
+        # странице корзины.
         "legal",
     ):
         assert required in codes, required

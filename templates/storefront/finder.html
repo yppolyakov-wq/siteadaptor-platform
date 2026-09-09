@@ -1,4 +1,5 @@
 {% extends "storefront/_base.html" %}
+{% load siteui %}
 {% load i18n sellable_ui %}
 {% comment %}FD-1: Finder «вопросы → 3 предложения». Шаги — серверные (чипы = ссылки,
 ответы копятся в ?a=), выдача — 3 карточки контракта SellableEntity, лучшая В
@@ -42,4 +43,5 @@
     </div>
   {% endif %}
 </section>
+  {% page_blocks "finder" %}
 {% endblock %}

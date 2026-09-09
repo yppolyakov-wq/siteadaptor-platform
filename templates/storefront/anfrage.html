@@ -1,4 +1,5 @@
 {% extends "storefront/_base.html" %}
+{% load siteui %}
 {% load i18n %}
 {% block title %}{% trans "Request a quote" %} — {{ request.tenant.name }}{% endblock %}
 
@@ -50,4 +51,5 @@ PLZ; показываем только если бизнес её задал (Ha
 
 {% comment %}A9: schema.org AutoRepair — структурная разметка автосервиса (SEO/Map Pack).{% endcomment %}
 {% if autorepair_ld %}<script type="application/ld+json">{{ autorepair_ld|safe }}</script>{% endif %}
+  {% page_blocks "anfrage" %}
 {% endblock %}

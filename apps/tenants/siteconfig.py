@@ -645,6 +645,24 @@ PAGE_BLOCK_HOSTS = (
     "stay_detail",
     "info",
     "blog",
+    # STU-14: страницы, у которых блоков не было вовсе. Каждый хост ОБЯЗАН выводиться
+    # шаблоном витрины (замок `test_every_declared_block_host_is_actually_rendered`) —
+    # иначе владелец ставит блок, сохраняет и не находит его на странице.
+    "tours",  # /touren/
+    "promos",  # /aktionen/ — единственный листинг без блоков
+    "legal",  # правовые страницы
+    "team",  # /team/ — раньше делили общий хост `info` с «О нас»…
+    "gallery",  # /galerie/ — …и блок, добавленный там, не выводился нигде
+    "reviews",  # /bewertungen/
+    "blog_post",  # деталь статьи (индекс имел свой хост, деталь — нет)
+    "loyalty",  # /treue/ — лендинги архетипа: доступны из «Seite ▾»…
+    "gift",  # /gutschein/
+    "anfrage",  # /anfrage/
+    "message",  # /nachricht/ (контакт)
+    "wishlist",  # /merkzettel/
+    "combos",  # /kombi/
+    "finder",  # /finder/
+    "lookbook",  # /lookbook/<slug>/
 )
 
 # UC2-3(b) («да» владельца 2026-07-19): ссылочные секции-справочники — типы
