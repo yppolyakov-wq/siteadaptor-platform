@@ -22441,3 +22441,7 @@ msgstr "Як на сайті"
 msgid ""
 "Gilt für die Produkte dieser Kategorie. Eigene Wahl am Produkt gewinnt."
 msgstr "Діє для товарів цієї категорії. Власний вибір у товару перемагає."
+
+#. STU-13: подсказка панели блока
+msgid "Order and visibility live on the bar above the block on the canvas."
+msgstr "Порядок і видимість — на панелі над блоком на полотні."

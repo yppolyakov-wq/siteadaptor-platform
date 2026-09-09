@@ -22225,3 +22225,7 @@ msgid ""
 "Gilt für die Produkte dieser Kategorie. Eigene Wahl am Produkt gewinnt."
 msgstr ""
 "Applies to the products of this category. A product's own choice wins."
+
+#. STU-13: подсказка панели блока
+msgid "Order and visibility live on the bar above the block on the canvas."
+msgstr "Order and visibility live on the bar above the block on the canvas."

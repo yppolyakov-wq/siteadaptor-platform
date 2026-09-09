@@ -51,9 +51,9 @@
          вместе с глобальными контролами.{% endcomment %}
       <span class="inline-flex items-center gap-1.5">
         <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden text-xs bg-white">
-          <button type="button" data-w="100%" data-dev="desktop" class="home-dev-btn px-2.5 py-1 bg-indigo-600 text-white">🖥<span class="hidden xl:inline"> {% trans "Desktop" %}</span></button>
-          <button type="button" data-w="834px" data-dev="tablet" class="home-dev-btn px-2.5 py-1 border-l border-gray-300">▭<span class="hidden xl:inline"> {% trans "Tablet" %}</span></button>
-          <button type="button" data-w="390px" data-dev="mobile" class="home-dev-btn px-2.5 py-1 border-l border-gray-300">📱<span class="hidden xl:inline"> {% trans "Mobile" %}</span></button>
+          <button type="button" data-w="100%" data-dev="desktop" title="{% trans "Desktop" %}" aria-label="{% trans "Desktop" %}" class="home-dev-btn px-2.5 py-1 bg-indigo-600 text-white">🖥<span class="bld-device-label"> {% trans "Desktop" %}</span></button>
+          <button type="button" data-w="834px" data-dev="tablet" title="{% trans "Tablet" %}" aria-label="{% trans "Tablet" %}" class="home-dev-btn px-2.5 py-1 border-l border-gray-300">▭<span class="bld-device-label"> {% trans "Tablet" %}</span></button>
+          <button type="button" data-w="390px" data-dev="mobile" title="{% trans "Mobile" %}" aria-label="{% trans "Mobile" %}" class="home-dev-btn px-2.5 py-1 border-l border-gray-300">📱<span class="bld-device-label"> {% trans "Mobile" %}</span></button>
         </div>
         <span id="home-dev-dim" class="hidden xl:inline text-[11px] text-gray-400 tabular-nums"></span>
       </span>
@@ -65,9 +65,22 @@
       {% comment %}1B: глобальный дизайн (Look, цвет, шрифт, карточки) — экран кабинета;
          адрес возврата обновляет JS при навигации кадра (data-base + ?next=).{% endcomment %}
       <a id="st-design-link" data-base="{% url 'design' %}" href="{% url 'design' %}?next={{ studio_return_url|urlencode }}" class="text-sm text-indigo-700 hover:underline px-1 shrink-0 whitespace-nowrap">🎨<span class="hidden xl:inline"> {% trans "Design des Shops" %}</span> →</a>
+      {% comment %}STU-13: Студия — полноэкранный оверлей, шапки кабинета с селектором 🗣 в
+         ней нет. Владелец, переключивший язык ВИТРИНЫ на русский, видел немецкую панель и
+         счёл, что перевода нет вовсе. Форма отдельная — топбар вне #home-form (W0 цел).{% endcomment %}
+      {% if cabinet_langs|length > 1 %}
+      <form method="post" action="{% url 'set-cabinet-lang' %}" class="shrink-0" title="{% trans 'Cabinet language' %}">
+        {% csrf_token %}
+        {# Возврат — по Referer: вьюха пускает только свои /dashboard/-адреса. #}
+        <select name="lang" onchange="this.form.submit()" aria-label="{% trans 'Cabinet language' %}"
+                class="text-xs bg-white border border-gray-300 rounded-lg px-1.5 py-1 text-gray-600 cursor-pointer">
+          {% for l in cabinet_langs %}<option value="{{ l.code }}"{% if l.code == cabinet_lang %} selected{% endif %}>{{ l.label }}</option>{% endfor %}
+        </select>
+      </form>
+      {% endif %}
       {% comment %}A4: share-ссылка на read-only превью черновика (снапшот в момент клика).{% endcomment %}
       <button type="button" id="bld-share-preview" data-share-url="{% url 'site-share-preview' %}" title="{% trans 'Copy a read-only preview link of your draft to share.' %}"
-              class="text-sm border border-gray-300 rounded-lg px-3 py-1 hover:border-indigo-400 hover:text-indigo-700">🔗<span class="hidden xl:inline"> {% trans "Share preview" %}</span></button>
+              class="text-sm border border-gray-300 rounded-lg px-3 py-1 hover:border-indigo-400 hover:text-indigo-700">🔗<span class="bld-device-label"> {% trans "Share preview" %}</span></button>
       {% comment %}STU-12h (F7A): на узком экране текстовый статус «Gespeichert ✓» не
       помещается в верхнюю строку и скрыт — поэтому у кнопки живёт точка: есть
       несохранённые правки (амбер) или всё сохранено (гаснет).{% endcomment %}
@@ -1072,12 +1085,15 @@
          live-черновик работают как обычно (W0). Сами кнопки без name= — ничего не шлют.
          Позиционирование — fixed по координатам элемента в кадре (см. placeAnchored).{% endcomment %}
       <div id="bld-action-bar" aria-label="{% trans 'Block' %}">
+        {# STU-13 (макет P3): слева ИМЯ выбранного блока — плашка должна сама говорить, чем правит. #}
+        <span data-ab="name"></span>
+        <span class="bld-ab-sep"></span>
         <button type="button" data-ab="up" title="{% trans 'Move up' %}" aria-label="{% trans 'Move up' %}">▲</button>
         <button type="button" data-ab="down" title="{% trans 'Move down' %}" aria-label="{% trans 'Move down' %}">▼</button>
         <button type="button" data-ab="vis" title="{% trans 'Visible' %}" aria-label="{% trans 'Visible' %}">👁</button>
         <span class="bld-ab-sep"></span>
-        <button type="button" data-ab="quick" data-quick="style" title="{% trans 'Display style' %}">{% trans "Stil" %} ▾</button>
         <button type="button" data-ab="quick" data-quick="layout" title="{% trans 'Layout' %}">{% trans "Raster" %} ▾</button>
+        <button type="button" data-ab="quick" data-quick="style" title="{% trans 'Display style' %}">{% trans "Stil" %} ▾</button>
         <button type="button" data-ab="quick" data-quick="width" title="{% trans 'Width' %}">{% trans "Breite" %} ▾</button>
         {% comment %}STU-12f: «＋ Kategorie» прямо с плашки секции «Kategorien» — раньше
            вход был только кнопкой в строке блока, которую надо было сперва открыть.{% endcomment %}
@@ -1086,7 +1102,14 @@
         <button type="button" data-ab="settings" title="{% trans 'Settings' %}" aria-label="{% trans 'Settings' %}">⚙</button>
         <button type="button" data-ab="del" title="{% trans 'Remove' %}" aria-label="{% trans 'Remove' %}">🗑</button>
       </div>
-      <div id="bld-quick-pop"><div id="bld-quick-pop-body"></div></div>
+      <div id="bld-quick-pop">
+        {# STU-13 (макет P4): шапка поповера — что настраиваем, у какого блока и ✕. #}
+        <div id="bld-quick-pop-head">
+          <span data-qp="title"></span><span class="bld-qp-block" data-qp="block"></span>
+          <button type="button" data-qp="close" aria-label="{% trans 'Close' %}">✕</button>
+        </div>
+        <div id="bld-quick-pop-body"></div>
+      </div>
 
       {% comment %}SE-7d область 🔻 Подвал: видимость секции контактов + ссылки в настройки
       (контакты/часы/Impressum — поля Tenant, правятся в «Settings», не дублируем здесь).{% endcomment %}
@@ -1467,7 +1490,10 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
 /* UC6-10: имя блока переехало в тулбар → в ленте прячем дублирующую подпись,
    а голову (чекбокс скрытия + ⚙) кладём В ОДНУ СТРОКУ с настройками: для простого
    блока лента = одна узкая строка (тулбар + строка полей = «2 узких строчки»). */
-.bld-ribbon-open #bld-block-popup .home-block-head .blk-edit.flex-1 { display: none; }
+/* STU-13 (макет P3): в панели блока головы строки нет вовсе — имя уже в шапке панели,
+   а порядок/видимость/настройки живут на плашке у самого блока. Раньше ▲▼⚙ ехали в
+   панель вместе со строкой и дублировали плашку. Скрытие — CSS, поля в DOM (W0). */
+.bld-ribbon-open #bld-block-popup .home-block-head { display: none; }
 .bld-ribbon-open #bld-block-popup .home-block-settings { display: flex; flex-wrap: wrap; align-items: stretch; gap: .4rem; width: auto; margin-top: 0; }
 .bld-ribbon-open #bld-block-popup .home-block-settings > div.w-full { display: contents; }
 .bld-ribbon-open #bld-block-popup .home-block-settings [class*="border-t"] { border-top: 0; margin-top: 0; padding-top: 0; }
@@ -1477,9 +1503,9 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
 .bld-ribbon-open #bld-block-popup .home-block-settings label,
 .bld-ribbon-open #bld-block-popup .cb-row label {
   display: inline-flex; flex-direction: column; align-items: flex-start; justify-content: center;
-  gap: 0; border: 1px solid #e5e7eb; border-radius: .4rem; padding: .05rem .4rem;
-  background: #f9fafb; font-size: 9px; line-height: 1.1; color: #6b7280;
-  text-transform: uppercase; letter-spacing: .01em; white-space: nowrap;
+  gap: 0; border: 1px solid #e5e7eb; border-radius: .4rem; padding: .1rem .45rem;
+  background: #f9fafb; font-size: 11px; line-height: 1.25; color: #6b7280;
+  letter-spacing: normal; white-space: nowrap;
 }
 .bld-ribbon-open #bld-block-popup label > select,
 .bld-ribbon-open #bld-block-popup label > input,
@@ -1532,15 +1558,25 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
      на 24px вниз от блока. */
   margin: 0 !important;
   display: flex; align-items: center; gap: .1rem; position: fixed; z-index: 72;
-  background: #fff; border: 1px solid #e5e7eb; border-radius: .6rem; padding: .2rem;
-  box-shadow: 0 8px 22px -10px rgba(0,0,0,.45); transition: opacity .12s;
+  /* STU-13 (макет P3): плашка — ТЁМНАЯ пилюля с именем блока слева. Светлая карточка
+     сливалась с канвой и без имени читалась как случайная панель инструментов. */
+  background: #111827; border: 1px solid #111827; border-radius: 999px; padding: .2rem .3rem;
+  box-shadow: 0 8px 22px -10px rgba(0,0,0,.55); transition: opacity .12s;
   visibility: visible; pointer-events: auto;
 }
 #bld-action-bar button {
-  font-size: 12px; line-height: 1; color: #4b5563; background: transparent;
-  border: 0; border-radius: .4rem; padding: .3rem .4rem; cursor: pointer; white-space: nowrap;
+  font-size: 12px; line-height: 1; color: #e5e7eb; background: transparent;
+  border: 0; border-radius: 999px; padding: .3rem .45rem; cursor: pointer; white-space: nowrap;
 }
-#bld-action-bar button:hover { background: #eef2ff; color: #3730a3; }
+#bld-action-bar button:hover { background: rgba(255,255,255,.16); color: #fff; }
+/* Имя блока — первым, как в макете («Produkte │ ▲ ▼ │ 👁 │ …»). */
+#bld-action-bar [data-ab="name"] {
+  font-size: 12px; font-weight: 600; color: #fff; padding: 0 .35rem 0 .5rem;
+  max-width: 12rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* ⚙ — акцентная кнопка (в макете синий кружок): единственный вход в полные настройки. */
+#bld-action-bar button[data-ab="settings"] { background: #4f46e5; color: #fff; }
+#bld-action-bar button[data-ab="settings"]:hover { background: #4338ca; }
 #bld-action-bar button[hidden] { display: none; }
 /* STU-12h: у тач-устройства нет hover — плашка обязана быть заметной и попадаемой
    пальцем сама по себе (она единственный вход в Stil/Raster/Breite). */
@@ -1548,14 +1584,35 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   #bld-action-bar.bld-ab-on { padding: .3rem; gap: .2rem; }
   #bld-action-bar button { font-size: 13px; padding: .5rem .55rem; min-height: 36px; }
 }
-.bld-ab-sep { width: 1px; height: 16px; background: #e5e7eb; margin: 0 .15rem; }
+/* STU-13 (макет F1): в верхней строке устройства и «поделиться» — ИКОНКАМИ. Подписи
+   остаются в DOM для скринридера (и W0), визуально сняты: с ними строка переполнялась и
+   статус «Gespeichert ✓» обрезался до одной буквы. */
+.bld-device-label {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.bld-ab-sep { width: 1px; height: 16px; background: rgba(255,255,255,.25); margin: 0 .15rem; }
 #bld-quick-pop.bld-quick-on {
   margin: 0 !important;
-  display: block; position: fixed; z-index: 74; width: min(320px, 92vw);
+  /* STU-13 (макет P4): поповер шире — варианты лежат ПЛИТКАМИ в три колонки, а не
+     столбиком селектов; на 320px плитки не помещались и выбор читался как список. */
+  display: block; position: fixed; z-index: 74; width: min(380px, 92vw);
   background: #fff; border: 1px solid #e5e7eb; border-radius: .75rem; padding: .6rem;
   box-shadow: 0 14px 34px -12px rgba(0,0,0,.45);
   visibility: visible; pointer-events: auto;
 }
+/* Шапка поповера: что настраиваем + у какого блока + ✕ (в макете — «Stil · Produkte ✕»). */
+#bld-quick-pop-head {
+  display: flex; align-items: center; gap: .4rem; margin: -.1rem 0 .5rem;
+  font-size: 13px; font-weight: 600; color: #111827;
+}
+#bld-quick-pop-head .bld-qp-block {
+  font-weight: 500; font-size: 11px; color: #6b7280; background: #f3f4f6;
+  border-radius: 999px; padding: .1rem .45rem; max-width: 9rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+#bld-quick-pop-head button { margin-left: auto; color: #9ca3af; font-size: 14px; line-height: 1; }
+#bld-quick-pop-head button:hover { color: #4338ca; }
 /* STU-12h (F7A): на телефоне поповер — ЛИСТ СНИЗУ: у плашки, приклеенной к блоку,
    на 390px просто нет места сбоку, и всплывашка уезжала за край экрана. */
 #bld-quick-pop.bld-quick-sheet {
@@ -1566,7 +1623,19 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
 }
 #bld-quick-pop label { display: block; font-size: 12px; color: #374151; }
 #bld-quick-pop select, #bld-quick-pop input:not([type="checkbox"]) { width: 100%; margin-top: .25rem; }
-#bld-quick-pop .bld-thumbs { gap: .4rem; }
+/* Плитка варианта: подпись читается целиком, выбранная — рамкой акцента (макет P4). */
+#bld-quick-pop .bld-qp-tile {
+  border: 1px solid #e5e7eb; border-radius: .5rem; background: #f9fafb; padding: .4rem .3rem;
+  font-size: 11px; line-height: 1.2; color: #374151; cursor: pointer; min-height: 2.4rem;
+}
+#bld-quick-pop .bld-qp-tile:hover { border-color: #a5b4fc; }
+#bld-quick-pop .bld-qp-tile.is-on { border-color: #4f46e5; box-shadow: inset 0 0 0 1px #4f46e5; color: #3730a3; background: #eef2ff; }
+/* Родной select остаётся в DOM (W0) — прячем только визуально. */
+#bld-quick-pop .bld-qp-native { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+/* Плитки вариантов — сеткой в три колонки (макет P4), а не в одну строку со скроллом. */
+#bld-quick-pop .bld-thumbs {
+  display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .4rem;
+}
 #bld-editor-pane.bld-collapsed:has(#bld-action-bar.bld-ab-on),
 #bld-editor-pane.bld-collapsed:has(#bld-quick-pop.bld-quick-on) {
   display: block !important; visibility: hidden; pointer-events: none;
@@ -1581,16 +1650,32 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
 #home-blocks .home-block-settings { display: none; }
 /* STU-12e (F8A): настройки блока тремя группами — Inhalt (данные) · Darstellung (вид) ·
    Erweitert (продвинутое). Группа — обычный <details>, чтобы работать без JS. */
-.bld-grp { border-top: 1px solid #f3f4f6; padding-top: .4rem; margin-top: .4rem; }
-.bld-grp:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+/* STU-13 (макет P3): группа — КАРТОЧКА с рамкой; заголовок обычным регистром, справа
+   сводка значений («Titel · Quelle · 8»), чтобы свёрнутая группа читалась без раскрытия. */
+.bld-grp {
+  border: 1px solid #e5e7eb; border-radius: .6rem; background: #fff;
+  padding: .45rem .6rem; margin-top: .5rem; width: 100%;
+}
+.bld-grp:first-child { margin-top: 0; }
 .bld-grp-sum {
-  cursor: pointer; list-style: none; font-size: 11px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: .04em; color: #6b7280; padding: .15rem 0;
+  cursor: pointer; list-style: none; display: flex; align-items: center; gap: .4rem;
+  font-size: 13px; font-weight: 600; color: #111827; padding: .05rem 0;
 }
 .bld-grp-sum::-webkit-details-marker { display: none; }
-.bld-grp-sum::before { content: "▸ "; color: #9ca3af; }
-.bld-grp[open] > .bld-grp-sum::before { content: "▾ "; }
-.bld-grp-body { padding: .35rem 0 .15rem; }
+.bld-grp-sum::before { content: "▸"; color: #9ca3af; font-size: 11px; }
+.bld-grp[open] > .bld-grp-sum::before { content: "▾"; }
+.bld-grp-val {
+  margin-left: auto; font-size: 11px; font-weight: 400; color: #9ca3af;
+  max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bld-grp[open] > .bld-grp-sum > .bld-grp-val { display: none; }
+.bld-grp-badge {
+  font-size: 10px; font-weight: 600; color: #4338ca; background: #eef2ff;
+  border-radius: 999px; padding: .05rem .35rem;
+}
+.bld-grp-body { padding: .45rem 0 .1rem; }
+/* Подсказка вместо снятых из панели ▲▼/⚙: они живут на плашке у самого блока. */
+.bld-grp-hint { font-size: 11px; color: #9ca3af; padding: .5rem .1rem 0; line-height: 1.35; }
 /* Правый инспектор (A+B, 2026-07-13): область настроек — узкая панель СПРАВА во всю
    высоту (вертикаль экрана не тратим). Свёрнута = display:none (нет «прыжка»). */
 #bld-editor-pane { top: 2.5rem; right: 0; bottom: 0; left: auto; width: min(var(--bld-panel-w, 380px), 92vw); border-left: 1px solid #e5e7eb; }
@@ -2566,11 +2651,32 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   var popupCrumb = document.getElementById("bld-block-crumb");  // STU-12b: «‹Seite› › »
   var popupBack = document.getElementById("bld-block-back");
   var popupRow = null, popupAnchor = null, selectedSec = null;
+  // STU-13 (макет P3): выделение выбранного блока — через КЛАСС `sf-ed-selected` (плюс
+  // inline-стили: CSS витрины про класс не знает, а канва — чужой документ). Владелец
+  // жаловался, что «было больше выделено»: тонкая рамка терялась на пёстрой канве.
+  function markSelected(el) {
+    clearSelected();
+    if (!el) return;
+    selectedSec = el;
+    try {
+      el.classList.add("sf-ed-selected");
+      el.style.outline = "2px solid rgba(79,70,229,.95)";
+      el.style.outlineOffset = "2px";
+      el.style.borderRadius = el.style.borderRadius || ".25rem";
+      el.style.boxShadow = "0 0 0 6px rgba(79,70,229,.12)";
+    } catch (eMs) {}
+  }
+  function clearSelected() {
+    if (!selectedSec) return;
+    try {
+      selectedSec.classList.remove("sf-ed-selected");
+      selectedSec.style.outline = "";
+      selectedSec.style.boxShadow = "";
+    } catch (eCs) {}
+    selectedSec = null;
+  }
   // #2: контейнер секции-области — на него вешаем .focus-on (CSS прячет всё, кроме выбранного блока).
   var secArea = (edPane || document).querySelector('[data-bld-area="sections"]');
-  function clearSelected() {
-    if (selectedSec) { try { selectedSec.style.outline = ""; } catch (e) {} selectedSec = null; }
-  }
   // SE-9c-3: подсветка активной иконки блока в рейле, пока открыт её попап (key=null — снять).
   function highlightBlkBtn(key) {
     document.querySelectorAll(".bld-blk-btn").forEach(function (x) {
@@ -2661,9 +2767,49 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     if (rootEl) rootEl.classList.add("bld-has-block");
     if (window.__bldUnminPanel) window.__bldUnminPanel();  // клик по блоку снимает свёртку
     popup.classList.remove("hidden");
+    syncGroupSummaries(row);   // STU-13: свёрнутая группа показывает свои значения
+    ensureGroupHint(row);      // STU-13: где живут порядок и видимость
     syncRibbonPad();
     highlightBlkBtn(key);  // SE-9c-3: подсветить иконку этого блока в рейле
     return true;
+  }
+
+  // STU-13 (макет P3): у свёрнутой группы справа — СВОДКА её значений («Titel · Quelle · 8»),
+  // иначе владелец обязан раскрыть все три группы, чтобы понять состояние блока.
+  function groupSummary(grp) {
+    var out = [];
+    grp.querySelectorAll("select, input, textarea").forEach(function (c) {
+      if (out.length >= 3 || c.type === "hidden") return;
+      var v = "";
+      if (c.type === "checkbox") { if (c.checked) v = (c.closest("label") || c).textContent.trim(); }
+      else if (c.tagName === "SELECT") { v = c.selectedIndex >= 0 ? c.options[c.selectedIndex].text : ""; }
+      else { v = (c.value || "").trim(); }
+      v = (v || "").replace(/\s+/g, " ").trim();
+      if (v && v.length < 28 && out.indexOf(v) < 0) out.push(v);
+    });
+    return out.join(" · ");
+  }
+  if (typeof document !== "undefined") {
+    document.addEventListener("change", function (e) {
+      var g = e.target && e.target.closest && e.target.closest(".bld-grp");
+      if (g) syncGroupSummaries(g.parentNode || g);
+    });
+  }
+  function syncGroupSummaries(row) {
+    (row || document).querySelectorAll(".bld-grp").forEach(function (grp) {
+      var sum = grp.querySelector(".bld-grp-sum");
+      if (!sum) return;
+      var val = sum.querySelector(".bld-grp-val");
+      if (!val) { val = document.createElement("span"); val.className = "bld-grp-val"; sum.appendChild(val); }
+      val.textContent = groupSummary(grp);
+    });
+  }
+  function ensureGroupHint(row) {
+    if (!popupBody || popupBody.querySelector(".bld-grp-hint")) return;
+    var hint = document.createElement("p");
+    hint.className = "bld-grp-hint";
+    hint.textContent = window.__stuHintOrder || "";
+    if (hint.textContent) popupBody.appendChild(hint);
   }
   if (popupClose) popupClose.addEventListener("click", closeBlockPopup);
   // STU-12b: «‹» в крошке = тот же путь назад к странице, что и «✕».
@@ -3128,6 +3274,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   window.__stuPageArea = stuPageArea;
   // STU-12b: попап блока (соседнее замыкание) спрашивает «мы на главной?» (порядок
   // поиска строки) и подпись страницы для крошки «‹Seite› › ‹блок›».
+  // STU-13: подсказка под настройками блока — куда переехали порядок и видимость.
+  window.__stuHintOrder = "{% trans 'Order and visibility live on the bar above the block on the canvas.' %}";
   window.__stuIsHome = function () { return curStuPage === "home"; };
   window.__stuPageLabel = function () { return (curStuPage && STU_LABELS[curStuPage]) || ""; };
   // STU-12a: заголовок колонки без вкладок называет ОХВАТ. Страница — по типу из
@@ -3792,10 +3940,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
           // клик по карточке товара должен вести на товар, а не открывать панель.
           if (e.target.closest("a,button,input,textarea,select,[contenteditable]")) return;
           if (e.target.closest("[data-sf-section],[data-ed-section],[data-edit],.sf-photo-edit")) return;
-          if (selectedSec) { try { selectedSec.style.outline = ""; } catch (e3) {} }
-          selectedSec = area;
-          area.style.outline = "2px solid rgba(99,102,241,.9)";
-          area.style.outlineOffset = "4px";
+          markSelected(area);
           hideBar();  // STU-12d: область страницы — не блок, плашки нет
           // STU-12a: вкладок нет — открываем область ЭТОЙ страницы напрямую (без тоггла),
           // по тому же резолверу, что «⚙» и открытие по умолчанию (главная → sections).
@@ -3819,8 +3964,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       var area = sv.indexOf("cover:") === 0 ? "covers-media" : areaOf[sv];
       if (!area) return false;
       closeBlockPopup(false);
-      if (selectedSec) { try { selectedSec.style.outline = ""; } catch (eOl) {} }
-      selectedSec = null;
+      clearSelected();
       hideBar();  // у медиа нет строки блока — плашке нечем править
       if (window.__sfShowArea) window.__sfShowArea(area);
       return true;
@@ -3846,19 +3990,14 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         // (область menu), а не строка секции (её у них нет).
         if (key === "header" || key === "footer") {
           closeBlockPopup(false);
-          if (selectedSec) { try { selectedSec.style.outline = ""; } catch (e4) {} }
-          selectedSec = sec;
-          sec.style.outline = "2px solid rgba(99,102,241,.9)";
-          sec.style.outlineOffset = "2px";
+          markSelected(sec);
           hideBar();  // STU-12d: у шапки/подвала нет строки блока — плашке нечем править
           if (window.__sfShowArea) window.__sfShowArea("menu");
           return;
         }
         var opened = openBlockPopup(key);  // closeBlockPopup внутри снимет прошлую подсветку
         // SE-1b: подсветить выбранную секцию (инспектор слева показывает её настройки).
-        selectedSec = sec;
-        sec.style.outline = "2px solid rgba(99,102,241,.9)";
-        sec.style.outlineOffset = "2px";
+        markSelected(sec);
         showBarFor(sec, key);  // STU-12d: плашка действий над блоком
         if (opened) return;
         var ctl = form.querySelector('[name="order_' + key + '"]');
@@ -4107,7 +4246,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       frameTop: fr.top, frameBottom: fr.bottom,
     };
   }
-  function placeAnchored(node, rect, gap, prefer) {
+  function placeAnchored(node, rect, gap, prefer, align) {
     // Дефолт — НАД якорем; не влезло (или просили ниже и снизу есть место) — below.
     var w = node.offsetWidth, h = node.offsetHeight;
     var above = rect.top - h - gap, below = rect.bottom + gap;
@@ -4115,7 +4254,12 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       ? (below + h <= window.innerHeight - 8 || above < 8 ? below : above)
       : (above >= 8 ? above : below);
     top = Math.max(8, Math.min(top, window.innerHeight - h - 8));
-    var left = Math.max(8, Math.min(rect.left, window.innerWidth - w - 8));
+    // STU-13 (макет P3): по умолчанию плашка/поповер центрируются по якорю. С привязкой
+    // к ЛЕВОМУ краю секция, начинающаяся от края канвы, уводила плашку в угол экрана,
+    // и она читалась как отдельная панель инструментов, а не как ручка блока.
+    var wish = align === "left" ? rect.left : rect.left + (rect.right - rect.left - w) / 2;
+    if (!isFinite(wish)) wish = rect.left;  // якорь без `right` — не роняем позицию в NaN
+    var left = Math.max(8, Math.min(wish, window.innerWidth - w - 8));
     node.style.top = Math.round(top) + "px";
     node.style.left = Math.round(left) + "px";
   }
@@ -4128,7 +4272,9 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       return;
     }
     var b = actionBar.getBoundingClientRect();
-    placeAnchored(quickPop, { top: b.top, bottom: b.bottom, left: b.left }, 6, "below");
+    // `right` обязателен: с STU-13 placeAnchored центрирует по якорю, а без правой
+    // границы центр считался NaN и поповер оставался за краем экрана (поймано стендом).
+    placeAnchored(quickPop, { top: b.top, bottom: b.bottom, left: b.left, right: b.right }, 6, "below");
   }
   function quickCtl(kind, key) {
     // Кнопка показывается ТОЛЬКО когда под ней есть реальный контрол этого блока —
@@ -4158,10 +4304,57 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     quickAnchor = document.createComment("quick");
     quickNodes[0].parentNode.insertBefore(quickAnchor, quickNodes[0]);
     quickNodes.forEach(function (n) { quickBody.appendChild(n); });
+    quickTiles();
+    var head = document.getElementById("bld-quick-pop-head");
+    if (head) {
+      var btn = actionBar && actionBar.querySelector('[data-quick="' + kind + '"]');
+      var t = head.querySelector('[data-qp="title"]');
+      var bl = head.querySelector('[data-qp="block"]');
+      if (t) t.textContent = btn ? btn.textContent.replace(/\s*▾\s*$/, "") : "";
+      var nm = actionBar && actionBar.querySelector('[data-ab="name"]');
+      if (bl) bl.textContent = nm ? nm.textContent : "";
+    }
     quickPop.classList.add("bld-quick-on");
     placeQuick();
+    // Ширину поповер получает вместе с классом; первый замер может прийти на старой
+    // геометрии — повторяем в следующем кадре, иначе он вылезает за край экрана.
+    requestAnimationFrame(placeQuick);
+  }
+  // STU-13 (макет P4): варианты в поповере — ПЛИТКАМИ. Часть настроек уже приходит с
+  // миниатюрами (.bld-thumbs), у остальных контрол — голый <select>: строим плитки из его
+  // опций. Сам select остаётся в поповере (W0: контрол не покидает форму) — плитка лишь
+  // выставляет значение и шлёт change, поэтому живой черновик и сабмит работают как были.
+  function quickTiles() {
+    if (!quickBody || quickBody.querySelector(".bld-thumbs")) return;
+    var sel = quickBody.querySelector("select");
+    if (!sel || sel.options.length < 2 || sel.options.length > 8) return;
+    var wrap = document.createElement("div");
+    wrap.className = "bld-thumbs bld-qp-tiles";
+    Array.prototype.forEach.call(sel.options, function (o) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "bld-qp-tile" + (o.selected ? " is-on" : "");
+      btn.textContent = o.text;
+      btn.addEventListener("click", function () {
+        sel.value = o.value;
+        sel.dispatchEvent(new Event("change", { bubbles: true }));
+        wrap.querySelectorAll(".bld-qp-tile").forEach(function (x) { x.classList.remove("is-on"); });
+        btn.classList.add("is-on");
+      });
+      wrap.appendChild(btn);
+    });
+    quickBody.insertBefore(wrap, quickBody.firstChild);
+    // Селект прячем ВИЗУАЛЬНО (в DOM он остаётся — иначе значение не уедет в сабмит).
+    var lab = sel.closest("label") || sel;
+    lab.classList.add("bld-qp-native");
   }
   function closeQuickPop() {
+    // Сгенерированные плитки — принадлежат поповеру: снимаем ДО возврата контрола в
+    // панель, иначе родной select уехал бы туда скрытым и настройка стала бы недоступна.
+    if (quickBody) {
+      quickBody.querySelectorAll(".bld-qp-tiles").forEach(function (w) { w.remove(); });
+      quickBody.querySelectorAll(".bld-qp-native").forEach(function (n) { n.classList.remove("bld-qp-native"); });
+    }
     if (quickNodes && quickAnchor && quickAnchor.parentNode) {
       var parent = quickAnchor.parentNode;
       quickNodes.forEach(function (n) { parent.insertBefore(n, quickAnchor); });
@@ -4173,6 +4366,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   function quickOutsideClose(e) {
     if (!quickPop || !quickPop.classList.contains("bld-quick-on")) return;
     if (e && e.target && e.target.nodeType === 1) {
+      // STU-13: ✕ в шапке поповера — клик ВНУТРИ него, поэтому закрываем до guard'а ниже.
+      if (e.target.closest('[data-qp="close"]')) { closeQuickPop(); return; }
       if (quickPop.contains(e.target)) return;
       if (actionBar && actionBar.contains(e.target)) return;
     }
@@ -4242,6 +4437,14 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       if (b) b.hidden = !pair[1];
     });
     if (box) { var vb = barBtn("vis"); if (vb) vb.textContent = box.checked ? "👁" : "🙈"; }
+    // STU-13: имя блока на плашке — берём подпись из строки блока (там она уже переведена
+    // и учитывает CBLOCK_LABELS), фолбэк — ключ секции.
+    var nameEl = actionBar.querySelector('[data-ab="name"]');
+    if (nameEl) {
+      var lbl = form.querySelector('.blk-edit.flex-1[data-key="' + abKey + '"]')
+        || form.querySelector('[data-cb-title][data-key="' + abKey + '"]');
+      nameEl.textContent = (lbl ? lbl.textContent : "").trim() || abKey;
+    }
     actionBar.querySelectorAll("[data-quick]").forEach(function (b) {
       b.hidden = !quickCtl(b.getAttribute("data-quick"), abKey);
     });
@@ -4269,9 +4472,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         // pushState листинга), иначе плашка указывала бы в мёртвый узел.
         var again = doc0 && doc0.querySelector('[data-sf-section="' + abKey + '"]');
         if (!again) { hideBar(); return; }
-        selectedSec = again;
-        again.style.outline = "2px solid rgba(99,102,241,.9)";
-        again.style.outlineOffset = "2px";
+        markSelected(again);
         syncBar();
       }
       var r = anchorRect(selectedSec);

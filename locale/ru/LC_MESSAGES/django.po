@@ -22458,3 +22458,7 @@ msgstr "Как на сайте"
 msgid ""
 "Gilt für die Produkte dieser Kategorie. Eigene Wahl am Produkt gewinnt."
 msgstr "Действует для товаров этой категории. Свой выбор у товара побеждает."
+
+#. STU-13: подсказка панели блока
+msgid "Order and visibility live on the bar above the block on the canvas."
+msgstr "Порядок и видимость — на плашке над блоком на канве."
