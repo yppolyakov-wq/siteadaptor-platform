@@ -22166,3 +22166,11 @@ msgstr ""
 #: templates/tenant/site_home.html
 msgid "Breite"
 msgstr ""
+
+#: templates/tenant/site_home.html
+msgid "Appearance"
+msgstr "Darstellung"
+
+#: templates/tenant/site_home.html
+msgid "Height"
+msgstr "Höhe"

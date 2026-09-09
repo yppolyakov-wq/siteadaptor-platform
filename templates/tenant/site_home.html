@@ -380,43 +380,6 @@
 
       {% comment %}SE-7d область 🖼 Баннер: заголовок/текст hero. Картинка баннера — на канве
       (клик по баннеру) или в галерее. Поля в #home-form → сабмит с Save.{% endcomment %}
-      <div data-bld-area="banner" class="bld-area space-y-6 hidden">
-      <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-        <legend class="font-semibold mb-1">{% trans "Banner / hero" %}</legend>
-        <label class="block text-sm">
-          <span class="block font-medium mb-1">{% trans "Banner heading" %}</span>
-          <input type="text" name="hero_title" value="{{ hero_title }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-        </label>
-        <label class="block text-sm">
-          <span class="block font-medium mb-1">{% trans "Banner text" %}</span>
-          <textarea name="hero_text" rows="3" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ hero_text }}</textarea>
-        </label>
-        {% comment %}M2: слайдер баннера (heroes[]) — менеджер слайдов в области banner-media
-           (фото-файл + заголовок/текст/кнопка, до 6, авто-ротация). Открывается тут и кликом по
-           баннеру на канве.{% endcomment %}
-        <div class="pt-2 border-t border-gray-100">
-          <p class="text-sm font-medium mb-2">{% trans "Banner slides (slider)" %}</p>
-          <button type="button" class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50" onclick="window.__sfShowArea('banner-media')">🖼 {% trans "Manage slides" %}{% if config.heroes %} ({{ config.heroes|length }}){% endif %}</button>
-          <p class="text-xs text-gray-400 mt-1">{% trans "Photo + heading + text + button per slide; multiple slides rotate. Slides override the single banner above." %}</p>
-        </div>
-        {% comment %}M3: обложки разделов (фото-баннер лендинга каждого архетипа) — область covers-media.{% endcomment %}
-        {% if cover_specs %}
-        <div class="pt-2 border-t border-gray-100">
-          <p class="text-sm font-medium mb-2">{% trans "Section cover photos" %}</p>
-          <button type="button" class="text-sm border border-indigo-200 text-indigo-700 rounded-lg px-3 py-1.5 hover:bg-indigo-50" onclick="window.__sfShowArea('covers-media')">🖼 {% trans "Cover photos" %} ({{ cover_specs|length }})</button>
-          <p class="text-xs text-gray-400 mt-1">{% trans "Banner photo on each section's landing page (catalog, events, rooms …)." %}</p>
-        </div>
-        {% endif %}
-        {% comment %}W11-5: фон баннера по URL — перенос со страницы «Site» (единственное
-           место ввода; слайды/клик по канве остаются). Поле в #home-form → Save + live.{% endcomment %}
-        <label class="block text-sm pt-2 border-t border-gray-100">
-          <span class="block font-medium mb-1">{% trans "Banner background image (URL)" %}</span>
-          <input type="text" name="hero_image" value="{{ config.hero_image }}" placeholder="https://…" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-        </label>
-        <p class="text-xs text-gray-400">{% trans "Banner background image: click the banner on the canvas. Accent background is in" %}
-          <button type="button" class="text-indigo-600 hover:underline" onclick="window.__sfShowArea &amp;&amp; window.__sfShowArea('theme')">{% trans "Theme" %}</button>.</p>
-      </fieldset>
-      </div>{% comment %}/область 🖼 Баннер{% endcomment %}
 
       {% comment %}SE-7 область 🧱 Основная (секции): блоки главной + лендинги + тизеры + C-блоки.{% endcomment %}
       <div data-bld-area="sections" class="bld-area space-y-6 hidden">
@@ -482,6 +445,9 @@
         <p class="bld-device-hint hidden text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 mb-4">
           📱 {% trans "Editing the phone/tablet version — per-device settings (columns, hide on device) are unlocked below." %}
         </p>
+        {% comment %}STU-12e: сентинел «поля контент-секций пришли» — парсер на сервере
+           пишет все 11 ключей без presence-гарда (см. views.home_builder_view).{% endcomment %}
+        <input type="hidden" name="content_sections_present" value="1">
         <div id="home-blocks" class="space-y-3">
           {% for s in sections %}
             <div class="home-block border border-gray-100 rounded-xl px-3 py-3 bg-white" draggable="true">
@@ -503,175 +469,246 @@
                 <button type="button" class="blk-edit shrink-0 text-gray-400 hover:text-indigo-700 px-1" data-key="{{ s.key }}" title="{% trans 'Settings' %}" aria-label="{% trans 'Settings' %}">⚙</button>
               </div>
               <div class="home-block-settings flex flex-wrap items-center gap-2 mt-2">
-              {% if s.is_grid %}
-                {# M20U-7: пресет раскладки секции-сетки (анти-Битрикс: один клик) #}
-                <select name="layout_preset_{{ s.key }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
-                  {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if s.layout_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
-                </select>
-                {% comment %} SE-3c: пер-девайс число колонок (📱 телефон / ▭ планшет / 🖥 десктоп).
-                   Пусто/0 = «как пресет/авто». Expert-режим. {% endcomment %}
-                <span class="flex items-center gap-1 text-xs text-gray-500" data-expert="1" data-device-ctl="1" title="{% trans 'Columns per device' %}">
-                  📱<input type="number" name="mobile_{{ s.key }}" value="{{ s.layout_mobile }}" min="1" max="2" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on phone' %}">
-                  ▭<input type="number" name="tablet_{{ s.key }}" value="{% if s.layout_tablet %}{{ s.layout_tablet }}{% endif %}" min="1" max="4" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on tablet' %}">
-                  🖥<input type="number" name="cols_{{ s.key }}" value="{{ s.layout_cols }}" min="1" max="6" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on desktop' %}">
-                </span>
-                {% comment %}DL-11: хвост неполного последнего ряда — обрезать (дефолт, ряды
-                всегда полные на любой ширине) или показать всё. Пусто = дефолт (ключ не
-                пишется, golden целы). Ausgleichen/Scrollen (DS-5) — своя механика.{% endcomment %}
-                <select name="tail_{{ s.key }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Letzte Reihe' %}" title="{% trans 'Unvollständige letzte Reihe: abschneiden (Reihen immer voll) oder alles zeigen' %}">
-                  <option value="" {% if not s.layout_tail %}selected{% endif %}>{% trans "Reihen: voll" %}</option>
-                  <option value="show" {% if s.layout_tail == "show" %}selected{% endif %}>{% trans "Reihen: alles zeigen" %}</option>
-                  {# DL-14: неполный ряд распределяется по ширине (отступы больше) #}
-                  <option value="spread" {% if s.layout_tail == "spread" %}selected{% endif %}>{% trans "Reihen: zentrieren" %}</option>
-                  {# DL-17.3: неполный ряд добивается плиткой-подсказкой (DL-11 `fill`) #}
-                  <option value="fill" {% if s.layout_tail == "fill" %}selected{% endif %}>{% trans "Reihen: auffüllen" %}</option>
-                </select>
-                {% comment %}DS-5: симметрия неполного ряда / горизонтальная лента.
-                Scroll побеждает balance (grid_class_string).{% endcomment %}
-                <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap" data-expert="1" title="{% trans 'Unvollständige Reihe zentrieren' %}">
-                  <input type="checkbox" name="balance_{{ s.key }}" {% if s.layout_balance %}checked{% endif %} class="rounded border-gray-300"> {% trans "Ausgleichen" %}
-                </label>
-                <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap" data-expert="1" title="{% trans 'Kacheln in einer Reihe mit seitlichem Scrollen' %}">
-                  <input type="checkbox" name="scroll_{{ s.key }}" {% if s.layout_scroll %}checked{% endif %} class="rounded border-gray-300"> {% trans "Scrollen" %}
-                </label>
-              {% endif %}
-              {% if s.key == "categories" %}
-                {% comment %}DS-5: высота фото плитки (пусто = аспект по стилю) и
-                инфо-строка (ab-цена / число товаров).{% endcomment %}
-                <input type="number" name="img_h_categories" value="{% if s.img_h %}{{ s.img_h }}{% endif %}" min="80" max="480" step="10" placeholder="{% trans 'Bildhöhe' %}" data-expert="1"
-                       class="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Bildhöhe (px)' %}" title="{% trans 'Bildhöhe (px)' %}">
-                <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap" data-expert="1">
-                  <input type="checkbox" name="tile_price_categories" {% if "price" in s.tile_info %}checked{% endif %} class="rounded border-gray-300"> {% trans "ab-Preis" %}
-                </label>
-                <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap" data-expert="1">
-                  <input type="checkbox" name="tile_count_categories" {% if "count" in s.tile_info %}checked{% endif %} class="rounded border-gray-300"> {% trans "Produktanzahl" %}
-                </label>
-              {% endif %}
-              {% if s.has_limit %}
-                {# M20U-7: число элементов секции-превью на главной #}
-                <input type="number" name="limit_{{ s.key }}" value="{{ s.limit }}" min="1" max="30" data-expert="1"
-                       class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'How many to show' %}" title="{% trans 'How many to show' %}">
-              {% endif %}
-              {% if s.key == "products" %}
-                {# MEN-24c: кап строк прайс-вида («по 3 в категории» + Mehr anzeigen); пусто = все #}
-                <input type="number" name="rows_products" value="{{ s.rows }}" min="1" max="20" data-expert="1" placeholder="{% trans 'Zeilen' %}"
-                       class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Zeilen je Kategorie (Preisliste)' %}" title="{% trans 'Zeilen je Kategorie (Preisliste)' %}">
-              {% endif %}
-              {% if s.has_title %}
-                {# M20U-7: свой заголовок секции (иначе — стандартный) #}
-                <input type="text" name="title_{{ s.key }}" value="{{ s.title }}" maxlength="80"
-                       placeholder="{{ s.label }}"
-                       class="w-36 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Custom heading' %}" title="{% trans 'Custom heading' %}" data-expert="1">
-              {% endif %}
-              {% if s.has_source %}
-                {# M20U-7: какие товары показывать в превью #}
-                <select name="source_{{ s.key }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Which items' %}" title="{% trans 'Which items' %}" data-expert="1">
-                  {% for sk, slabel in source_options %}<option value="{{ sk }}" {% if s.source == sk %}selected{% endif %}>{{ slabel }}</option>{% endfor %}
-                </select>
-              {% endif %}
-              {% if s.has_viewall %}
-                {# M20U-7: показывать ссылку «View all» секции #}
-                <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap" title="{% trans 'Show "View all" link' %}" data-expert="1">
-                  <input type="checkbox" name="show_all_{{ s.key }}" {% if s.show_all %}checked{% endif %} class="rounded border-gray-300">{% trans "View all" %}</label>
-              {% endif %}
-              {% if s.style_options %}
-                {% comment %}UC6-6d: вариант отображения секции (FAQ: аккордеон/список/
-                   2 колонки/карты/нумерация) — реестр SECTION_STYLES.{% endcomment %}
-                <label class="flex items-center gap-1.5 text-xs text-gray-600">
-                  {% trans "Display style" %}
-                  <select name="style_{{ s.key }}" class="rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
-                    <option value="">{% trans "Standard" %}</option>
-                    {% for sk, slabel in s.style_options %}
-                      <option value="{{ sk }}" {% if s.style == sk %}selected{% endif %}>{{ slabel }}</option>
+                {% comment %}STU-12e (F8A): настройки блока в трёх группах — Inhalt (данные),
+                   Darstellung (вид), Erweitert (продвинутое, только в режиме «Эксперт»).{% endcomment %}
+                <details class="bld-grp w-full" data-grp="inhalt" open>
+                  <summary class="bld-grp-sum">{% trans "Content" %}</summary>
+                  <div class="bld-grp-body flex flex-wrap items-center gap-2">
+                {% comment %}STU-12e: поля баннера правятся В СТРОКЕ своей секции (область
+                   «Banner» стала недостижимой после сноса рейки в 12a); те же name=, W0.{% endcomment %}
+                {% if s.key == "hero" %}
+                  <div class="w-full space-y-3">
+                    <label class="block text-sm">
+                      <span class="block font-medium mb-1">{% trans "Banner heading" %}</span>
+                      <input type="text" name="hero_title" value="{{ hero_title }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                    </label>
+                    <label class="block text-sm">
+                      <span class="block font-medium mb-1">{% trans "Banner text" %}</span>
+                      <textarea name="hero_text" rows="3" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ hero_text }}</textarea>
+                    </label>
+                    <label class="block text-sm">
+                      <span class="block font-medium mb-1">{% trans "Banner background image (URL)" %}</span>
+                      <input type="text" name="hero_image" value="{{ config.hero_image }}" placeholder="https://…" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                    </label>
+                    {% comment %}M2/M3: слайды и обложки — мультипарт-формы ВНЕ #home-form (области медиа).{% endcomment %}
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <button type="button" class="text-xs border border-indigo-200 text-indigo-700 rounded-lg px-2.5 py-1 hover:bg-indigo-50"
+                              onclick="window.__sfShowArea('banner-media')">🖼 {% trans "Manage slides" %}{% if config.heroes %} ({{ config.heroes|length }}){% endif %}</button>
+                      {% if cover_specs %}
+                        <button type="button" class="text-xs border border-indigo-200 text-indigo-700 rounded-lg px-2.5 py-1 hover:bg-indigo-50"
+                                onclick="window.__sfShowArea('covers-media')">🖼 {% trans "Cover photos" %} ({{ cover_specs|length }})</button>
+                      {% endif %}
+                    </div>
+                    <p class="text-xs text-gray-400">{% trans "Photo + heading + text + button per slide; multiple slides rotate. Slides override the single banner above." %}</p>
+                  </div>
+                {% endif %}
+                {% comment %}STU-12e: карточки «Unser Angebot» — в строке своей секции.{% endcomment %}
+                {% if s.key == "archetypes" and archetype_specs %}
+                  <div class="w-full space-y-3">
+                    <p class="text-xs text-gray-400">{% trans "Cards linking to each part of your site. Leave a field empty to use the default text." %}</p>
+                    {% for a in archetype_specs %}
+                      <div class="border border-gray-100 rounded-xl px-4 py-3 space-y-2">
+                        <label class="flex items-center gap-2 text-sm font-medium">
+                          <input type="checkbox" name="arch_visible_{{ a.key }}" {% if a.visible %}checked{% endif %}
+                                 class="rounded border-gray-300">
+                          <span>{{ a.icon }} {{ a.default_label }}</span>
+                        </label>
+                        <div class="grid sm:grid-cols-2 gap-2">
+                          <input type="text" name="arch_label_{{ a.key }}" value="{{ a.label }}" placeholder="{{ a.default_label }}"
+                                 class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Title' %}">
+                          <input type="text" name="arch_blurb_{{ a.key }}" value="{{ a.blurb }}" placeholder="{{ a.default_blurb }}"
+                                 class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Description' %}">
+                        </div>
+                      </div>
                     {% endfor %}
+                  </div>
+                {% endif %}
+                {% comment %}STU-12e: текст контент-секции (CTA/FAQ/Team/…) — в её же строке,
+                   рисует общий партиал по ключу.{% endcomment %}
+                <div class="w-full">{% include "tenant/_section_fields.html" with key=s.key %}</div>
+                {% if s.has_title %}
+                  {# M20U-7: свой заголовок секции (иначе — стандартный) #}
+                  <input type="text" name="title_{{ s.key }}" value="{{ s.title }}" maxlength="80"
+                         placeholder="{{ s.label }}"
+                         class="w-36 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Custom heading' %}" title="{% trans 'Custom heading' %}" data-expert="1">
+                {% endif %}
+                {% if s.has_limit %}
+                  {# M20U-7: число элементов секции-превью на главной #}
+                  <input type="number" name="limit_{{ s.key }}" value="{{ s.limit }}" min="1" max="30" data-expert="1"
+                         class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'How many to show' %}" title="{% trans 'How many to show' %}">
+                {% endif %}
+                {% if s.key == "products" %}
+                  {# MEN-24c: кап строк прайс-вида («по 3 в категории» + Mehr anzeigen); пусто = все #}
+                  <input type="number" name="rows_products" value="{{ s.rows }}" min="1" max="20" data-expert="1" placeholder="{% trans 'Zeilen' %}"
+                         class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Zeilen je Kategorie (Preisliste)' %}" title="{% trans 'Zeilen je Kategorie (Preisliste)' %}">
+                {% endif %}
+                {% if s.has_source %}
+                  {# M20U-7: какие товары показывать в превью #}
+                  <select name="source_{{ s.key }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Which items' %}" title="{% trans 'Which items' %}" data-expert="1">
+                    {% for sk, slabel in source_options %}<option value="{{ sk }}" {% if s.source == sk %}selected{% endif %}>{{ slabel }}</option>{% endfor %}
                   </select>
-                </label>
-              {% endif %}
-              {# SE-3d: визуальные параметры блока #}
-              <div class="w-full mt-2 pt-2 border-t border-gray-100 flex items-center gap-3 flex-wrap">
-                {% comment %}SE-3e: ширина контейнера секции (по контейнеру / во всю ширину).
-                   Basic — простая, частая настройка; общий размер контейнера задан в шаблоне.{% endcomment %}
-                <label class="flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Section width on the page' %}">
-                  {% trans "Width" %}
-                  <select name="width_{{ s.key }}" class="rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600 sf-width-select" data-key="{{ s.key }}">
-                    <option value="contained" {% if s.width != 'full' %}selected{% endif %}>{% trans "Contained" %}</option>
-                    <option value="full" {% if s.width == 'full' %}selected{% endif %}>{% trans "Full width" %}</option>
+                {% endif %}
+                {% if s.has_viewall %}
+                  {# M20U-7: показывать ссылку «View all» секции #}
+                  <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap" title="{% trans 'Show "View all" link' %}" data-expert="1">
+                    <input type="checkbox" name="show_all_{{ s.key }}" {% if s.show_all %}checked{% endif %} class="rounded border-gray-300">{% trans "View all" %}</label>
+                {% endif %}
+                {% comment %}SE-9b: медиа/действия блока открывают свою область (вне #home-form).{% endcomment %}
+                {% if s.key == "gallery" %}
+                  <div class="w-full mt-2">
+                    <button type="button" class="text-xs border border-indigo-200 text-indigo-700 rounded-lg px-2.5 py-1 hover:bg-indigo-50"
+                            onclick="window.__sfShowArea('gallery-media')">🖼 {% trans "Photos" %}{% if config.gallery %} ({{ config.gallery|length }}){% endif %}</button>
+                  </div>
+                {% endif %}
+                {% if s.key == "categories" and has_catalog %}
+                  <div class="w-full mt-2">
+                    <button type="button" class="text-xs border border-indigo-200 text-indigo-700 rounded-lg px-2.5 py-1 hover:bg-indigo-50"
+                            onclick="window.__sfShowArea('catalog-add')">＋ {% trans "Add category" %}</button>
+                  </div>
+                {% endif %}
+                  </div>
+                </details>
+                <details class="bld-grp w-full" data-grp="darstellung" open>
+                  <summary class="bld-grp-sum">{% trans "Appearance" %}</summary>
+                  <div class="bld-grp-body flex flex-wrap items-center gap-2">
+                {% if s.is_grid %}
+                  {# M20U-7: пресет раскладки секции-сетки (анти-Битрикс: один клик) #}
+                  <select name="layout_preset_{{ s.key }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
+                    {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if s.layout_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
                   </select>
-                </label>
-                {% comment %}H1.5: шрифт текста секции (оверрайд глобального). «Standard» = наследовать.{% endcomment %}
-                <label class="flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Font for this section text' %}">
-                  {% trans "Font" %}
-                  <select name="font_{{ s.key }}" class="rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
-                    <option value="" {% if not s.font %}selected{% endif %}>{% trans "Standard" %}</option>
-                    {% for fk, flabel in font_options %}<option value="{{ fk }}" {% if s.font == fk %}selected{% endif %}>{{ flabel }}</option>{% endfor %}
+                  {% comment %}DL-11: хвост неполного последнего ряда — обрезать (дефолт, ряды
+                  всегда полные на любой ширине) или показать всё. Пусто = дефолт (ключ не
+                  пишется, golden целы). Ausgleichen/Scrollen (DS-5) — своя механика.{% endcomment %}
+                  <select name="tail_{{ s.key }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Letzte Reihe' %}" title="{% trans 'Unvollständige letzte Reihe: abschneiden (Reihen immer voll) oder alles zeigen' %}">
+                    <option value="" {% if not s.layout_tail %}selected{% endif %}>{% trans "Reihen: voll" %}</option>
+                    <option value="show" {% if s.layout_tail == "show" %}selected{% endif %}>{% trans "Reihen: alles zeigen" %}</option>
+                    {# DL-14: неполный ряд распределяется по ширине (отступы больше) #}
+                    <option value="spread" {% if s.layout_tail == "spread" %}selected{% endif %}>{% trans "Reihen: zentrieren" %}</option>
+                    {# DL-17.3: неполный ряд добивается плиткой-подсказкой (DL-11 `fill`) #}
+                    <option value="fill" {% if s.layout_tail == "fill" %}selected{% endif %}>{% trans "Reihen: auffüllen" %}</option>
                   </select>
-                </label>
-                {# Basic: простой тоггл скругления #}
-                <label class="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer">
-                  <input type="checkbox" name="visual_radius_{{ s.key }}"
-                         {% if s.visual_radius %}checked{% endif %}
-                         class="rounded border-gray-300 sf-visual-radius-toggle"
-                         data-key="{{ s.key }}">
-                  {% trans "Round corners" %}
-                </label>
-                {# Expert: точный radius (slider) #}
-                <label class="flex items-center gap-1.5 text-xs text-gray-600" data-expert="1">
-                  {% trans "Radius" %}
-                  <input type="range" name="visual_radius_px_{{ s.key }}"
-                         value="{{ s.visual_radius_px|default:0 }}" min="0" max="24" step="2"
-                         class="w-20" data-key="{{ s.key }}" id="sfr-{{ s.key }}">
-                  <output for="sfr-{{ s.key }}" id="sfr-out-{{ s.key }}">{{ s.visual_radius_px|default:0 }}</output>px
-                </label>
-                {# Expert: тень #}
-                <label class="flex items-center gap-1.5 text-xs text-gray-600" data-expert="1">
-                  <input type="checkbox" name="visual_shadow_{{ s.key }}"
-                         {% if s.visual_shadow %}checked{% endif %}
-                         class="rounded border-gray-300">
-                  {% trans "Shadow" %}
-                </label>
-                {# Expert SE-3d: отступы + фон карточек секции (override глобального) #}
-                <label class="flex items-center gap-1.5 text-xs text-gray-600" data-expert="1">
-                  {% trans "Padding" %}
-                  <input type="range" name="visual_padding_{{ s.key }}"
-                         value="{{ s.visual_padding|default:0 }}" min="0" max="32" step="2" class="w-20">
-                </label>
-                <label class="flex items-center gap-1.5 text-xs text-gray-600" data-expert="1" title="{% trans 'Card background' %}">
-                  <input type="checkbox" name="visual_bg_on_{{ s.key }}" {% if s.visual_bg %}checked{% endif %} class="rounded border-gray-300">
-                  <input type="color" name="visual_bg_{{ s.key }}" value="{{ s.visual_bg|default:'#ffffff' }}" class="h-6 w-8 rounded border border-gray-300 p-0.5">
-                </label>
-              </div>
-              {# SE-3c-mid: скрыть секцию на устройстве (📱 телефон / ▭ планшет / 🖥 десктоп). #}
-              <div class="w-full flex items-center gap-2 text-xs text-gray-500" data-expert="1" data-device-ctl="1" title="{% trans 'Hide on device' %}">
-                <span>{% trans "Hide on" %}:</span>
-                <label class="flex items-center gap-1"><input type="checkbox" name="hide_mobile_{{ s.key }}" {% if 'mobile' in s.hidden_on %}checked{% endif %} class="rounded border-gray-300">📱</label>
-                <label class="flex items-center gap-1"><input type="checkbox" name="hide_tablet_{{ s.key }}" {% if 'tablet' in s.hidden_on %}checked{% endif %} class="rounded border-gray-300">▭</label>
-                <label class="flex items-center gap-1"><input type="checkbox" name="hide_desktop_{{ s.key }}" {% if 'desktop' in s.hidden_on %}checked{% endif %} class="rounded border-gray-300">🖥</label>
-              </div>
-              {% comment %} SE-3a: микрошаблоны «Quick styles» — один клик задаёт облик (layout+visual)
-                 секции-сетки. Распаковка на фронте в обычные инпуты → live-preview/Save. {% endcomment %}
-              {% if s.is_grid %}
-              <div class="w-full mt-2 flex items-center gap-1.5 flex-wrap">
-                <span class="text-xs text-gray-500">{% trans "Quick styles" %}:</span>
-                {% for mt in micro_templates %}
-                  <button type="button" class="mt-btn text-xs border border-gray-200 rounded-md px-2 py-0.5 hover:border-indigo-400 hover:text-indigo-700"
-                          data-key="{{ s.key }}" data-preset="{{ mt.preset }}" data-radius="{{ mt.radius }}"
-                          data-shadow="{{ mt.shadow|yesno:'1,0' }}" data-padding="{{ mt.padding }}">{{ mt.label }}</button>
-                {% endfor %}
-              </div>
-              {% endif %}
-              {% comment %}SE-9b: медиа/действия блока открывают свою область (вне #home-form).{% endcomment %}
-              {% if s.key == "gallery" %}
-                <div class="w-full mt-2">
-                  <button type="button" class="text-xs border border-indigo-200 text-indigo-700 rounded-lg px-2.5 py-1 hover:bg-indigo-50"
-                          onclick="window.__sfShowArea('gallery-media')">🖼 {% trans "Photos" %}{% if config.gallery %} ({{ config.gallery|length }}){% endif %}</button>
+                  {% comment %}DS-5: симметрия неполного ряда / горизонтальная лента.
+                  Scroll побеждает balance (grid_class_string).{% endcomment %}
+                  <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap" data-expert="1" title="{% trans 'Unvollständige Reihe zentrieren' %}">
+                    <input type="checkbox" name="balance_{{ s.key }}" {% if s.layout_balance %}checked{% endif %} class="rounded border-gray-300"> {% trans "Ausgleichen" %}
+                  </label>
+                  <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap" data-expert="1" title="{% trans 'Kacheln in einer Reihe mit seitlichem Scrollen' %}">
+                    <input type="checkbox" name="scroll_{{ s.key }}" {% if s.layout_scroll %}checked{% endif %} class="rounded border-gray-300"> {% trans "Scrollen" %}
+                  </label>
+                {% endif %}
+                {% if s.key == "categories" %}
+                  {% comment %}DS-5: высота фото плитки (пусто = аспект по стилю) и
+                  инфо-строка (ab-цена / число товаров).{% endcomment %}
+                  <input type="number" name="img_h_categories" value="{% if s.img_h %}{{ s.img_h }}{% endif %}" min="80" max="480" step="10" placeholder="{% trans 'Bildhöhe' %}" data-expert="1"
+                         class="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Bildhöhe (px)' %}" title="{% trans 'Bildhöhe (px)' %}">
+                  <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap" data-expert="1">
+                    <input type="checkbox" name="tile_price_categories" {% if "price" in s.tile_info %}checked{% endif %} class="rounded border-gray-300"> {% trans "ab-Preis" %}
+                  </label>
+                  <label class="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap" data-expert="1">
+                    <input type="checkbox" name="tile_count_categories" {% if "count" in s.tile_info %}checked{% endif %} class="rounded border-gray-300"> {% trans "Produktanzahl" %}
+                  </label>
+                {% endif %}
+                {% if s.style_options %}
+                  {% comment %}UC6-6d: вариант отображения секции (FAQ: аккордеон/список/
+                     2 колонки/карты/нумерация) — реестр SECTION_STYLES.{% endcomment %}
+                  <label class="flex items-center gap-1.5 text-xs text-gray-600">
+                    {% trans "Display style" %}
+                    <select name="style_{{ s.key }}" class="rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
+                      <option value="">{% trans "Standard" %}</option>
+                      {% for sk, slabel in s.style_options %}
+                        <option value="{{ sk }}" {% if s.style == sk %}selected{% endif %}>{{ slabel }}</option>
+                      {% endfor %}
+                    </select>
+                  </label>
+                {% endif %}
+                {# SE-3d: визуальные параметры блока #}
+                <div class="w-full mt-2 pt-2 border-t border-gray-100 flex items-center gap-3 flex-wrap">
+                  {% comment %}SE-3e: ширина контейнера секции (по контейнеру / во всю ширину).
+                     Basic — простая, частая настройка; общий размер контейнера задан в шаблоне.{% endcomment %}
+                  <label class="flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Section width on the page' %}">
+                    {% trans "Width" %}
+                    <select name="width_{{ s.key }}" class="rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600 sf-width-select" data-key="{{ s.key }}">
+                      <option value="contained" {% if s.width != 'full' %}selected{% endif %}>{% trans "Contained" %}</option>
+                      <option value="full" {% if s.width == 'full' %}selected{% endif %}>{% trans "Full width" %}</option>
+                    </select>
+                  </label>
+                  {% comment %}H1.5: шрифт текста секции (оверрайд глобального). «Standard» = наследовать.{% endcomment %}
+                  <label class="flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Font for this section text' %}">
+                    {% trans "Font" %}
+                    <select name="font_{{ s.key }}" class="rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
+                      <option value="" {% if not s.font %}selected{% endif %}>{% trans "Standard" %}</option>
+                      {% for fk, flabel in font_options %}<option value="{{ fk }}" {% if s.font == fk %}selected{% endif %}>{{ flabel }}</option>{% endfor %}
+                    </select>
+                  </label>
+                  {# Basic: простой тоггл скругления #}
+                  <label class="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer">
+                    <input type="checkbox" name="visual_radius_{{ s.key }}"
+                           {% if s.visual_radius %}checked{% endif %}
+                           class="rounded border-gray-300 sf-visual-radius-toggle"
+                           data-key="{{ s.key }}">
+                    {% trans "Round corners" %}
+                  </label>
+                  {# Expert: точный radius (slider) #}
+                  <label class="flex items-center gap-1.5 text-xs text-gray-600" data-expert="1">
+                    {% trans "Radius" %}
+                    <input type="range" name="visual_radius_px_{{ s.key }}"
+                           value="{{ s.visual_radius_px|default:0 }}" min="0" max="24" step="2"
+                           class="w-20" data-key="{{ s.key }}" id="sfr-{{ s.key }}">
+                    <output for="sfr-{{ s.key }}" id="sfr-out-{{ s.key }}">{{ s.visual_radius_px|default:0 }}</output>px
+                  </label>
+                  {# Expert: тень #}
+                  <label class="flex items-center gap-1.5 text-xs text-gray-600" data-expert="1">
+                    <input type="checkbox" name="visual_shadow_{{ s.key }}"
+                           {% if s.visual_shadow %}checked{% endif %}
+                           class="rounded border-gray-300">
+                    {% trans "Shadow" %}
+                  </label>
+                  {# Expert SE-3d: отступы + фон карточек секции (override глобального) #}
+                  <label class="flex items-center gap-1.5 text-xs text-gray-600" data-expert="1">
+                    {% trans "Padding" %}
+                    <input type="range" name="visual_padding_{{ s.key }}"
+                           value="{{ s.visual_padding|default:0 }}" min="0" max="32" step="2" class="w-20">
+                  </label>
+                  <label class="flex items-center gap-1.5 text-xs text-gray-600" data-expert="1" title="{% trans 'Card background' %}">
+                    <input type="checkbox" name="visual_bg_on_{{ s.key }}" {% if s.visual_bg %}checked{% endif %} class="rounded border-gray-300">
+                    <input type="color" name="visual_bg_{{ s.key }}" value="{{ s.visual_bg|default:'#ffffff' }}" class="h-6 w-8 rounded border border-gray-300 p-0.5">
+                  </label>
                 </div>
-              {% endif %}
-              {% if s.key == "categories" and has_catalog %}
-                <div class="w-full mt-2">
-                  <button type="button" class="text-xs border border-indigo-200 text-indigo-700 rounded-lg px-2.5 py-1 hover:bg-indigo-50"
-                          onclick="window.__sfShowArea('catalog-add')">＋ {% trans "Add category" %}</button>
+                {% comment %} SE-3a: микрошаблоны «Quick styles» — один клик задаёт облик (layout+visual)
+                   секции-сетки. Распаковка на фронте в обычные инпуты → live-preview/Save. {% endcomment %}
+                {% if s.is_grid %}
+                <div class="w-full mt-2 flex items-center gap-1.5 flex-wrap">
+                  <span class="text-xs text-gray-500">{% trans "Quick styles" %}:</span>
+                  {% for mt in micro_templates %}
+                    <button type="button" class="mt-btn text-xs border border-gray-200 rounded-md px-2 py-0.5 hover:border-indigo-400 hover:text-indigo-700"
+                            data-key="{{ s.key }}" data-preset="{{ mt.preset }}" data-radius="{{ mt.radius }}"
+                            data-shadow="{{ mt.shadow|yesno:'1,0' }}" data-padding="{{ mt.padding }}">{{ mt.label }}</button>
+                  {% endfor %}
                 </div>
-              {% endif %}
+                {% endif %}
+                  </div>
+                </details>
+                <details class="bld-grp w-full" data-grp="erweitert" data-expert="1">
+                  <summary class="bld-grp-sum">{% trans "Erweitert" %}</summary>
+                  <div class="bld-grp-body flex flex-wrap items-center gap-2">
+                    {% if s.is_grid %}
+                  {% comment %} SE-3c: пер-девайс число колонок (📱 телефон / ▭ планшет / 🖥 десктоп).
+                     Пусто/0 = «как пресет/авто». Expert-режим. {% endcomment %}
+                  <span class="flex items-center gap-1 text-xs text-gray-500" data-expert="1" data-device-ctl="1" title="{% trans 'Columns per device' %}">
+                    📱<input type="number" name="mobile_{{ s.key }}" value="{{ s.layout_mobile }}" min="1" max="2" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on phone' %}">
+                    ▭<input type="number" name="tablet_{{ s.key }}" value="{% if s.layout_tablet %}{{ s.layout_tablet }}{% endif %}" min="1" max="4" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on tablet' %}">
+                    🖥<input type="number" name="cols_{{ s.key }}" value="{{ s.layout_cols }}" min="1" max="6" class="w-11 rounded border border-gray-300 px-1 py-1" aria-label="{% trans 'Columns on desktop' %}">
+                  </span>
+                    {% endif %}
+                {# SE-3c-mid: скрыть секцию на устройстве (📱 телефон / ▭ планшет / 🖥 десктоп). #}
+                <div class="w-full flex items-center gap-2 text-xs text-gray-500" data-expert="1" data-device-ctl="1" title="{% trans 'Hide on device' %}">
+                  <span>{% trans "Hide on" %}:</span>
+                  <label class="flex items-center gap-1"><input type="checkbox" name="hide_mobile_{{ s.key }}" {% if 'mobile' in s.hidden_on %}checked{% endif %} class="rounded border-gray-300">📱</label>
+                  <label class="flex items-center gap-1"><input type="checkbox" name="hide_tablet_{{ s.key }}" {% if 'tablet' in s.hidden_on %}checked{% endif %} class="rounded border-gray-300">▭</label>
+                  <label class="flex items-center gap-1"><input type="checkbox" name="hide_desktop_{{ s.key }}" {% if 'desktop' in s.hidden_on %}checked{% endif %} class="rounded border-gray-300">🖥</label>
+                </div>
+                  </div>
+                </details>
               </div>{% comment %}/.home-block-settings{% endcomment %}
             </div>
           {% endfor %}
@@ -679,45 +716,7 @@
       </fieldset>
 
 
-      {% if archetype_specs %}
-      <fieldset class="bg-white rounded-2xl shadow-sm p-6" data-scope="home">
-        <legend class="font-semibold mb-1">{% trans "Our offerings (section cards)" %}</legend>
-        {% if not archetypes_enabled %}
-          <p class="text-xs text-amber-600 mb-3">{% trans 'Tip: enable the "Our offerings" block above to show these cards on your homepage.' %}</p>
-        {% endif %}
-        <p class="text-xs text-gray-400 mb-4">{% trans "Cards linking to each part of your site. Leave a field empty to use the default text." %}</p>
-        <div class="space-y-3">
-          {% for a in archetype_specs %}
-            <div class="border border-gray-100 rounded-xl px-4 py-3 space-y-2">
-              <label class="flex items-center gap-2 text-sm font-medium">
-                <input type="checkbox" name="arch_visible_{{ a.key }}" {% if a.visible %}checked{% endif %}
-                       class="rounded border-gray-300">
-                <span>{{ a.icon }} {{ a.default_label }}</span>
-              </label>
-              <div class="grid sm:grid-cols-2 gap-2">
-                <input type="text" name="arch_label_{{ a.key }}" value="{{ a.label }}" placeholder="{{ a.default_label }}"
-                       class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Title' %}">
-                <input type="text" name="arch_blurb_{{ a.key }}" value="{{ a.blurb }}" placeholder="{{ a.default_blurb }}"
-                       class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" aria-label="{% trans 'Description' %}">
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-      </fieldset>
-      {% endif %}
 
-      {% comment %}M20d: контент-секции (CTA/Testimonials/How it works/Team/Trust/FAQ) —
-         тот же общий партиал, что и на «Site». Каждая видна, когда её блок включён выше.{% endcomment %}
-      <details class="bg-white rounded-2xl shadow-sm group" data-scope="home">
-        <summary class="flex items-center justify-between cursor-pointer p-5 list-none">
-          <span><span class="font-semibold">📦 {% trans "Content sections" %}</span>
-            <span class="block text-xs text-gray-400 mt-0.5">{% trans "Fill the text for each block — it shows when the block is enabled above." %}</span></span>
-          <span class="text-gray-400 group-open:rotate-180 transition">▾</span>
-        </summary>
-        <div class="px-5 pb-5 border-t border-gray-100 pt-4 space-y-6">
-          {% include "tenant/_section_fields.html" %}
-        </div>
-      </details>
 
       {# D.2b: C-блоки («кубики») — правка содержимого и порядка; добавление — ниже. #}
       {% if cblocks %}
@@ -1804,6 +1803,18 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
    секции (.home-block-settings) скрыты. Когда строку переносят в фокус-панель
    (#bld-block-popup-body, вне #home-blocks) — правило не действует → настройки видны. */
 #home-blocks .home-block-settings { display: none; }
+/* STU-12e (F8A): настройки блока тремя группами — Inhalt (данные) · Darstellung (вид) ·
+   Erweitert (продвинутое). Группа — обычный <details>, чтобы работать без JS. */
+.bld-grp { border-top: 1px solid #f3f4f6; padding-top: .4rem; margin-top: .4rem; }
+.bld-grp:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+.bld-grp-sum {
+  cursor: pointer; list-style: none; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .04em; color: #6b7280; padding: .15rem 0;
+}
+.bld-grp-sum::-webkit-details-marker { display: none; }
+.bld-grp-sum::before { content: "▸ "; color: #9ca3af; }
+.bld-grp[open] > .bld-grp-sum::before { content: "▾ "; }
+.bld-grp-body { padding: .35rem 0 .15rem; }
 /* Правый инспектор (A+B, 2026-07-13): область настроек — узкая панель СПРАВА во всю
    высоту (вертикаль экрана не тратим). Свёрнута = display:none (нет «прыжка»). */
 #bld-editor-pane { top: 2.5rem; right: 0; bottom: 0; left: auto; width: min(var(--bld-panel-w, 380px), 92vw); border-left: 1px solid #e5e7eb; }
@@ -1969,6 +1980,10 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   // design» с витрины). UC6-1b: селектора страниц больше нет — previewPath
   // синхронизируется с фактическим путём кадра в обработчике load.
   var previewPath = "{{ preview_start_path|default:"/"|escapejs }}";
+  // STU-12e: вставленный блок открывается сразу — иначе владелец ищет его в списке
+  // руками (после вставки на главной страница перезагружается, идентичность блока
+  // терялась). Ключ приходит в `?block=` от `_redirect_builder`.
+  var BLD_OPEN_BLOCK = "{{ open_block|escapejs }}";
   function previewUrl() {
     return previewPath + (previewPath.indexOf("?") < 0 ? "?" : "&") + "preview=1";
   }
@@ -2023,6 +2038,12 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       } catch (eStu) { curStuPage = ""; curStuRef = ""; }
       applyStuPageScope();
       if (window.__stuDefaultOpen) window.__stuDefaultOpen();
+      // STU-12e: вставленный блок открываем ОДИН раз — после того, как колонка встала
+      // на уровень страницы (иначе stuDefaultOpen тут же закрыл бы его).
+      if (BLD_OPEN_BLOCK) {
+        var _ob = BLD_OPEN_BLOCK; BLD_OPEN_BLOCK = "";
+        try { openBlockPopup(_ob); } catch (eOb) {}
+      }
       var ppEl = document.getElementById("bld-page-path");
       if (ppEl) ppEl.value = previewPath;  // Save вернёт канву на эту страницу
       // STU-12a: «Design des Shops →» возвращает на ТУ ЖЕ страницу канвы; «Seite ▾»
@@ -2323,9 +2344,11 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       var cb = { key: typeEl ? typeEl.value : "", id: cbId, enabled: !!(en && en.checked), data: {} };
       var ordEl = form.querySelector("input[name='order_cb_" + cbId + "']");
       cb._ord = ordEl ? parseInt(ordEl.value, 10) || 999 : 999;
-      ["title", "body", "url", "label", "caption", "side",
+      // STU-12e: список полей данных C-блока для черновика; «height» — отступ (12e).
+      var CB_DATA_FIELDS = ["title", "body", "url", "label", "caption", "side",
        "promo_pk", "align", "badge_pos", "button_label",
-       "size", "color", "rounded", "style_hint", "rows"].forEach(function (f) {  // UC6-2/4/6f + GK-4
+       "size", "color", "rounded", "style_hint", "rows", "height"];
+      CB_DATA_FIELDS.forEach(function (f) {  // UC6-2/4/6f + GK-4
         var el = form.querySelector("[name='cb_" + cbId + "_" + f + "']");
         if (el && el.value !== "") cb.data[f] = el.value;
       });
@@ -3328,7 +3351,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   window.__stuPageLabel = function () { return (curStuPage && STU_LABELS[curStuPage]) || ""; };
   // STU-12a: заголовок колонки без вкладок называет ОХВАТ. Страница — по типу из
   // реестра («Diese Seite: Kategorie»); остальные области — свои подписи.
-  var AREA_TITLES = { theme: "🎨 {% trans 'Design' %}", banner: "🖼 {% trans 'Banner' %}", menu: "☰ {% trans 'Kopf- & Fußzeile' %}", library: "📚 {% trans 'Templates' %}" };
+  var AREA_TITLES = { theme: "🎨 {% trans 'Design' %}", menu: "☰ {% trans 'Kopf- & Fußzeile' %}", library: "📚 {% trans 'Templates' %}" };
   // STU-12c: подстрочная крошка колонки — охват настроек области.
   var AREA_SUBS = { menu: "{% trans 'Website · gilt auf allen Seiten' %}" };
   window.__stuPanelSub = function (area) { return AREA_SUBS[area] || ""; };

@@ -570,6 +570,9 @@ def test_home_builder_saves_content_sections():
         site_config={"sections": [{"key": "cta", "enabled": True}]},
     )
     data = {
+        # STU-12e (осознанно): поля контент-секций переехали в строки своих секций, а
+        # парсер пишет все 11 ключей без presence-гарда → он гейтится сентинелом формы.
+        "content_sections_present": "1",
         "enabled_cta": "on",
         "order_cta": "1",
         "cta_title": "Jetzt buchen",
@@ -1685,7 +1688,11 @@ def test_home_builder_se7d_banner_and_footer_areas():
     body = views.home_builder_view(
         _request("get", "/dashboard/site/home/", tenant=tenant)
     ).content.decode()
-    assert 'data-bld-area="banner"' in body  # STU-12a: кнопки data-area нет, область есть
+    # STU-12e (осознанно): области «Banner» больше нет — её поля переехали в строку
+    # секции «hero» (вход в неё — клик по баннеру на канве; сама область стала
+    # недостижимой ещё в 12a вместе с рейкой). Медиа-область слайдов осталась.
+    assert 'data-bld-area="banner"' not in body
+    assert "__sfShowArea('banner-media')" in body, "менеджер слайдов остаётся"
     assert 'data-area="footer"' not in body, "вкладка «Подвал» снята"
     assert "data-stu-footer-links" in body, "указатели подвала должны остаться"
     assert 'name="hero_title"' in body and "Alt" in body  # pre-filled

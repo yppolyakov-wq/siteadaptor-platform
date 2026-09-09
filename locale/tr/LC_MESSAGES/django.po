@@ -22257,3 +22257,11 @@ msgstr "Alt menü"
 #: templates/tenant/site_home.html
 msgid "Breite"
 msgstr "Genişlik"
+
+#: templates/tenant/site_home.html
+msgid "Appearance"
+msgstr "Görünüm"
+
+#: templates/tenant/site_home.html
+msgid "Height"
+msgstr "Yükseklik"

@@ -167,7 +167,7 @@ bottom-sheet (существующие правила 78vh/55vh + backdrop); п�
   каждую правку, канва теряла оснастку) и односторонняя 👁 (у скрытого блока нет
   коробки → плашка гасла и вернуть блок было нечем). Детали — build-log 2026-09-09.
 
-### 12e · Группы Inhalt · Darstellung · Erweitert (F8A)
+### 12e · Группы Inhalt · Darstellung · Erweitert (F8A) — ✅ сделано 2026-09-09
 - Тексты секций из `_section_fields.html` (faq_text, team_text, testimonials_text, process_text,
   trust_since/trust_marks, usp_text, cta_*) и `hero_title/hero_text/hero_image` (область Banner),
   карточки архетипов («Unser Angebot») — переезжают в СТРОКУ СВОЕЙ СЕКЦИИ с теми же `name=`
@@ -176,6 +176,10 @@ bottom-sheet (существующие правила 78vh/55vh + backdrop); п�
   как control, не только пресет при вставке). После вставки блока — `openBlockPopup(new_id)`.
 - **Замки:** golden normalize цел; `collect()`-payload не меняется от переноса; spacer height round-trip;
   after-insert открывает блок.
+- **Сделано** (`test_stu12_groups.py`, 9 замков; стенд `stu12e_stand.mjs` 10/10). Сверх плана:
+  сентинел `content_sections_present` (парсер пишет 11 ключей без presence-гарда — после
+  переезда полей в строки POST без них стёр бы тексты), удалена недостижимая область
+  «Banner», вставка из библиотеки шаблонов получила свой id. Детали — build-log 2026-09-09.
 
 ### 12f · Medien + Kategorie-Popover
 - Колонка «Medien»: 4 out-of-form области (`gallery-media`, `banner-media`, `covers-media`, `logo-media`)

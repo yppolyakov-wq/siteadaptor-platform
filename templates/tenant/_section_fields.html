@@ -1,9 +1,12 @@
-{% load i18n %}{% comment %}M20d: поля контент-секций (CTA/Testimonials/Process/Team/Trust/FAQ).
-Общий партиал формы «Site» (tenant/site.html) и конструктора главной (site_home.html).
-Контекст: config (cta.*, trust.since), testimonials_text, process_text, team_text,
-trust_marks_text, faq_text. Парсинг на сервере — siteconfig.parse_content_sections.{% endcomment %}
+{% load i18n %}{% comment %}M20d/STU-12e: поля контент-секции. Раньше партиал рисовал ВСЕ секции подряд
+одним ящиком «Content sections» внизу конструктора; с 12e он рисует поля ОДНОЙ секции —
+в её собственной строке блока (`{% include … with key=s.key %}`), чтобы текст правился там же,
+где вид. `name=` не менялись; парсинг на сервере — siteconfig.parse_content_sections
+(гейт: сентинел `content_sections_present`, который рисует форма конструктора).
+Контекст: key + config (cta.*, trust.since), testimonials_text, process_text, team_text,
+trust_marks_text, usp_text, faq_text.{% endcomment %}
+{% if key == "cta" %}
 <div class="space-y-2">
-  <p class="text-sm font-medium">{% trans "Call to action" %}</p>
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
     <input name="cta_title" type="text" value="{{ config.cta.title }}" placeholder="{% trans 'Headline' %}" class="rounded-lg border border-gray-300 px-3 py-2">
     <input name="cta_button_label" type="text" value="{{ config.cta.button_label }}" placeholder="{% trans 'Button text' %}" class="rounded-lg border border-gray-300 px-3 py-2">
@@ -11,37 +14,38 @@ trust_marks_text, faq_text. Парсинг на сервере — siteconfig.pa
   <textarea name="cta_text" rows="2" placeholder="{% trans 'Text (optional)' %}" class="w-full rounded-lg border border-gray-300 px-3 py-2">{{ config.cta.text }}</textarea>
   <input name="cta_button_url" type="text" value="{{ config.cta.button_url }}" placeholder="https://… {% trans 'or' %} /termin/" class="w-full rounded-lg border border-gray-300 px-3 py-2">
 </div>
-<div class="space-y-2 border-t border-gray-100 pt-4">
-  <p class="text-sm font-medium">{% trans "Testimonials" %}</p>
+{% elif key == "testimonials" %}
+<div class="space-y-2">
   <p class="text-xs text-gray-400">{% trans "One per line: Name | Text | Stars 1–5 | Photo URL (both optional)." %}</p>
   <textarea name="testimonials_text" rows="3" placeholder="Anna M. | Toller Service, immer wieder gern! | 5" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ testimonials_text }}</textarea>
 </div>
-<div class="space-y-2 border-t border-gray-100 pt-4">
-  <p class="text-sm font-medium">{% trans "How it works" %}</p>
+{% elif key == "process" %}
+<div class="space-y-2">
   <p class="text-xs text-gray-400">{% trans "One step per line: Title | Description." %}</p>
   <textarea name="process_text" rows="3" placeholder="Reservieren | Tisch online sichern" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ process_text }}</textarea>
 </div>
-<div class="space-y-2 border-t border-gray-100 pt-4">
-  <p class="text-sm font-medium">{% trans "Team" %}</p>
+{% elif key == "team" %}
+<div class="space-y-2">
   <p class="text-xs text-gray-400">{% trans "One per line: Name | Role." %}</p>
   <textarea name="team_text" rows="3" placeholder="Maria Rossi | Küchenchefin" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ team_text }}</textarea>
 </div>
-<div class="space-y-3 border-t border-gray-100 pt-4">
-  <p class="text-sm font-medium">{% trans "Trust & credentials" %}</p>
+{% elif key == "trust" %}
+<div class="space-y-3">
   <p class="text-xs text-gray-400">{% trans "Star rating appears automatically from your reviews." %}</p>
   <div><label class="block text-sm mb-1" for="id_trust_since">{% trans "Founded in (year)" %}</label>
     <input id="id_trust_since" name="trust_since" type="text" value="{{ config.trust.since }}" placeholder="1998" class="w-full rounded-lg border border-gray-300 px-3 py-2"></div>
   <div><label class="block text-sm mb-1" for="id_trust_marks">{% trans "Credentials (one per line)" %}</label>
     <textarea id="id_trust_marks" name="trust_marks" rows="3" placeholder="Meisterbetrieb&#10;Bio-zertifiziert" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ trust_marks_text }}</textarea></div>
 </div>
-<div class="space-y-2 border-t border-gray-100 pt-4">
-  <p class="text-sm font-medium">{% trans "Trust bar (under banner)" %}</p>
+{% elif key == "usp_bar" %}
+<div class="space-y-2">
   <p class="text-xs text-gray-400">{% trans "One per line: icon | title | description (optional, for the “Pillars” style)." %}
     {% trans "Icons:" %} shipping · returns · payment · secure · local · meister · support · quality · bio · clock · check</p>
   <textarea name="usp_text" rows="4" placeholder="shipping | Versand ab 4,90 €&#10;bio | 100 % Bio | Zutaten von Höfen aus der Region&#10;payment | Sichere Zahlung" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ usp_text }}</textarea>
 </div>
-<div class="space-y-2 border-t border-gray-100 pt-4">
-  <p class="text-sm font-medium">{% trans "FAQ" %}</p>
+{% elif key == "faq" %}
+<div class="space-y-2">
   <p class="text-xs text-gray-400">{% trans "One per line: Question | Answer." %}</p>
   <textarea name="faq_text" rows="4" placeholder="Habt ihr Parkplätze? | Ja, direkt vor dem Laden." class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">{{ faq_text }}</textarea>
 </div>
+{% endif %}

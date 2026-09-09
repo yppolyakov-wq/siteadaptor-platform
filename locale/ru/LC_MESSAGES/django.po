@@ -22361,3 +22361,11 @@ msgstr "Подменю"
 #: templates/tenant/site_home.html
 msgid "Breite"
 msgstr "Ширина"
+
+#: templates/tenant/site_home.html
+msgid "Appearance"
+msgstr "Вид"
+
+#: templates/tenant/site_home.html
+msgid "Height"
+msgstr "Высота"

@@ -440,6 +440,10 @@ def _read_cblock_data(post, bid: str, btype: str) -> dict:
     if btype == "newsletter":
         # GK-8: оверрайды заголовка/текста/кнопки (normalize держит непустые).
         return {"title": f("title"), "body": f("body"), "button_label": f("button_label")}
+    if btype == "spacer":
+        # STU-12e: высота отступа. Ветки не было вовсе — Save ТЕРЯЛ высоту, заданную
+        # пресетом вставки (normalize её знает: "sm"/"lg"/"xl", пусто = стандарт).
+        return {"height": f("height")}
     if btype == "stats":
         # GK-4: textarea «wert | label» построчно — канонизацию в rows-список
         # делает строковая ветка _clean_cblock_data (normalize).
@@ -1263,17 +1267,25 @@ def _safe_preview_page(raw):
     return f"{path}?{urlencode(keep)}" if keep else path
 
 
-def _redirect_builder(request):
+def _redirect_builder(request, block_id: str = ""):
     """UC6-7b: возврат в билдер ПОСЛЕ действия инсертера — канва открывается на той
-    же странице, где вставляли (page_path из POST → ?page= deep-link, см. T-6.1)."""
+    же странице, где вставляли (page_path из POST → ?page= deep-link, см. T-6.1).
+
+    STU-12e: `block_id` (вставленный блок) уезжает как `?block=` — билдер откроет его
+    настройки сразу. Без этого владелец после вставки искал новый блок в списке руками.
+    """
     from urllib.parse import quote
 
     from django.urls import reverse
 
     page_path = _safe_preview_page(request.POST.get("page_path"))
+    params = []
     if page_path != "/":
-        return redirect(f"{reverse('site-home')}?page={quote(page_path)}")
-    return redirect("site-home")
+        params.append(f"page={quote(page_path)}")
+    if block_id:
+        params.append(f"block={quote(block_id)}")
+    base = reverse("site-home")
+    return redirect(f"{base}?{'&'.join(params)}" if params else base)
 
 
 def _page_preset_ui(tenant, config):
@@ -1462,7 +1474,7 @@ def home_builder_view(request):
                     messages.success(request, _("Block added."))
             if is_fetch:
                 return _add_block_fetch_response(request, new_id, host)
-            return _redirect_builder(request)
+            return _redirect_builder(request, block_id=new_id)
         # SE-4a: блок-шаблоны (многоразовые C-блоки). action кодирует id через ":" —
         # save_block_template:<cb_id> (сохранить текущий C-блок как шаблон, данные из
         # POST → ловим несохранённые правки), use_block_template:<tpl_id> (вставить
@@ -1477,6 +1489,7 @@ def home_builder_view(request):
             verb, _sep, ident = action.partition(":")
             cfg = siteconfig.normalize(request.tenant.site_config)
             tpls = dict(cfg.get("block_templates") or {})
+            inserted_id = ""  # STU-12e: заполняется только веткой вставки
             if verb == "save_block_template":
                 btype = request.POST.get(f"cb_type_{ident}", "")
                 if btype in siteconfig.REPEATABLE_BLOCKS:
@@ -1489,7 +1502,15 @@ def home_builder_view(request):
                     messages.success(request, _("Block saved as template."))
             elif verb == "use_block_template" and ident in tpls:
                 tpl = tpls[ident]
-                new_block = {"key": tpl["key"], "enabled": True, "data": copy.deepcopy(tpl["data"])}
+                # STU-12e: id задаём здесь (а не оставляем normalize) — только так вставленный
+                # блок можно открыть сразу (`?block=`), как и при обычной вставке.
+                inserted_id = uuid.uuid4().hex[:12]
+                new_block = {
+                    "key": tpl["key"],
+                    "enabled": True,
+                    "data": copy.deepcopy(tpl["data"]),
+                    "id": inserted_id,
+                }
                 # SE-4c: опц. insert_after (инсертер «+» на канвасе) → вставка в позицию;
                 # иначе в конец (back-compat с кнопкой «Insert» в библиотеке).
                 # UC6-7b: на НЕ-главной (page_key) шаблон вставляется в page_blocks[хост].
@@ -1511,7 +1532,7 @@ def home_builder_view(request):
             cfg["block_templates"] = tpls
             request.tenant.site_config = siteconfig.normalize(cfg)
             request.tenant.save(update_fields=["site_config", "updated_at"])
-            return _redirect_builder(request)
+            return _redirect_builder(request, block_id=inserted_id)
         # SE-4b: применить/удалить шаблон страницы. use_page_template:<id> ЗАМЕНЯЕТ весь
         # набор секций снимком (это шаблон СТРАНИЦЫ, не вставка); delete_page_template:<id>
         # убирает из библиотеки. Сохранение шаблона — в основном потоке (ниже), чтобы
@@ -2071,7 +2092,11 @@ def home_builder_view(request):
             else:
                 config.pop("theme", None)
         # M20d: контент-секции (CTA/FAQ/Testimonials/Process/Team/Trust) — тот же парсер.
-        config.update(siteconfig.parse_content_sections(request.POST.get))
+        # STU-12e: парсер пишет ВСЕ 11 ключей без presence-гарда, а поля переехали из общего
+        # ящика в строки своих секций. POST без них (чужая форма, будущий гейт строки) стёр бы
+        # тексты — поэтому гейт по сентинелу, который рисует сама форма конструктора.
+        if "content_sections_present" in request.POST:
+            config.update(siteconfig.parse_content_sections(request.POST.get))
         update_fields = ["site_config", "updated_at"]
         accent = (request.POST.get("accent") or "").strip()
         if re.fullmatch(r"#[0-9a-fA-F]{6}", accent) and accent != request.tenant.primary_color:
@@ -2559,6 +2584,8 @@ def home_builder_view(request):
             ),
             # T-6.1: deep-link — канва стартует со страницы, где нажали «Edit design».
             "preview_start_path": _safe_preview_page(request.GET.get("page")),
+            # STU-12e: `?block=<id|key>` — открыть настройки этого блока сразу (вставка).
+            "open_block": re.sub(r"[^A-Za-z0-9_:-]", "", request.GET.get("block", ""))[:40],
             # STU-12a (1B): «Design des Shops →» уводит в кабинет и обязан вернуть на
             # ТУ ЖЕ страницу канвы (JS обновляет адрес при навигации кадра).
             "studio_return_url": (

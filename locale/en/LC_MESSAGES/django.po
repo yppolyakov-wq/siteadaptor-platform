@@ -22127,3 +22127,11 @@ msgstr "Submenu"
 #: templates/tenant/site_home.html
 msgid "Breite"
 msgstr "Width"
+
+#: templates/tenant/site_home.html
+msgid "Appearance"
+msgstr "Appearance"
+
+#: templates/tenant/site_home.html
+msgid "Height"
+msgstr "Height"

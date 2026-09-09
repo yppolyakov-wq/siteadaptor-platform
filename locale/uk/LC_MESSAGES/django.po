@@ -22344,3 +22344,11 @@ msgstr "Підменю"
 #: templates/tenant/site_home.html
 msgid "Breite"
 msgstr "Ширина"
+
+#: templates/tenant/site_home.html
+msgid "Appearance"
+msgstr "Вигляд"
+
+#: templates/tenant/site_home.html
+msgid "Height"
+msgstr "Висота"

@@ -133,6 +133,17 @@ collect()/save работают без переименований. data-cb-id 
     <textarea name="cb_{{ b.id }}_rows" rows="4" placeholder="12 | Jahre Erfahrung&#10;500+ | zufriedene Kunden&#10;4,9 ★ | Bewertung" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">{{ b.data.rows|stats_text }}</textarea>
     <p class="text-[11px] text-gray-400">{% trans "One line per figure: value | caption (max 4)" %}</p>
   {% endif %}
+  {% if b.type == "spacer" %}
+    {% comment %}STU-12e: высота отступа — КОНТРОЛ (была только пресетом вставки).{% endcomment %}
+    <label class="flex items-center gap-1.5 text-xs text-gray-600">{% trans "Height" %}
+      <select name="cb_{{ b.id }}_height" class="rounded border border-gray-300 px-2 py-1 text-sm">
+        <option value="">{% trans "Standard" %}</option>
+        <option value="sm" {% if b.data.height == 'sm' %}selected{% endif %}>{% trans "Schmal" %}</option>
+        <option value="lg" {% if b.data.height == 'lg' %}selected{% endif %}>{% trans "Groß" %}</option>
+        <option value="xl" {% if b.data.height == 'xl' %}selected{% endif %}>{% trans "Sehr groß" %}</option>
+      </select>
+    </label>
+  {% endif %}
   {% comment %}UC6-3/3a/3b: ширина блока (доли контейнера до 1/6) + положение.
      Узкие блоки подряд автоматически встают В РЯД; чекбокс «с новой
      строки» разрывает ряд. pos влияет только на узкие (дефолт — центр).{% endcomment %}
