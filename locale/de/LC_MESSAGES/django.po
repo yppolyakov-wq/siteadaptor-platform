@@ -22134,3 +22134,31 @@ msgstr ""
 #: templates/tenant/site_home.html
 msgid "Diese Seite"
 msgstr ""
+
+#: templates/tenant/site_home.html
+msgid "Kopf- & Fußzeile"
+msgstr ""
+
+#: templates/tenant/site_home.html
+msgid "Website · gilt auf allen Seiten"
+msgstr ""
+
+#: templates/tenant/site_home.html
+msgid "CTA-Button in der Kopfzeile"
+msgstr ""
+
+#: templates/tenant/site_home.html
+msgid "Punkt hinzufügen"
+msgstr ""
+
+#: templates/tenant/site_home.html
+msgid "Neuer Punkt"
+msgstr ""
+
+#: templates/tenant/site_home.html
+msgid "Untermenüs, Ziele und Übersetzungen: im"
+msgstr ""
+
+#: templates/tenant/site_home.html
+msgid "Untermenü"
+msgstr ""

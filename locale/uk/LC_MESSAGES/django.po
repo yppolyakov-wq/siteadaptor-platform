@@ -22312,3 +22312,31 @@ msgstr "Налаштування сторінки"
 #: templates/tenant/site_home.html
 msgid "Diese Seite"
 msgstr "Ця сторінка"
+
+#: templates/tenant/site_home.html
+msgid "Kopf- & Fußzeile"
+msgstr "Шапка та підвал"
+
+#: templates/tenant/site_home.html
+msgid "Website · gilt auf allen Seiten"
+msgstr "Сайт · діє на всіх сторінках"
+
+#: templates/tenant/site_home.html
+msgid "CTA-Button in der Kopfzeile"
+msgstr "CTA-кнопка в шапці"
+
+#: templates/tenant/site_home.html
+msgid "Punkt hinzufügen"
+msgstr "Додати пункт"
+
+#: templates/tenant/site_home.html
+msgid "Neuer Punkt"
+msgstr "Новий пункт"
+
+#: templates/tenant/site_home.html
+msgid "Untermenüs, Ziele und Übersetzungen: im"
+msgstr "Підменю, цілі та переклади — у"
+
+#: templates/tenant/site_home.html
+msgid "Untermenü"
+msgstr "Підменю"

@@ -22225,3 +22225,31 @@ msgstr "Sayfa ayarları"
 #: templates/tenant/site_home.html
 msgid "Diese Seite"
 msgstr "Bu sayfa"
+
+#: templates/tenant/site_home.html
+msgid "Kopf- & Fußzeile"
+msgstr "Üst bilgi ve alt bilgi"
+
+#: templates/tenant/site_home.html
+msgid "Website · gilt auf allen Seiten"
+msgstr "Web sitesi · tüm sayfalarda geçerli"
+
+#: templates/tenant/site_home.html
+msgid "CTA-Button in der Kopfzeile"
+msgstr "Üst bilgide CTA düğmesi"
+
+#: templates/tenant/site_home.html
+msgid "Punkt hinzufügen"
+msgstr "Öğe ekle"
+
+#: templates/tenant/site_home.html
+msgid "Neuer Punkt"
+msgstr "Yeni öğe"
+
+#: templates/tenant/site_home.html
+msgid "Untermenüs, Ziele und Übersetzungen: im"
+msgstr "Alt menüler, hedefler ve çeviriler:"
+
+#: templates/tenant/site_home.html
+msgid "Untermenü"
+msgstr "Alt menü"

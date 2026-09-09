@@ -22329,3 +22329,31 @@ msgstr "Настройки страницы"
 #: templates/tenant/site_home.html
 msgid "Diese Seite"
 msgstr "Эта страница"
+
+#: templates/tenant/site_home.html
+msgid "Kopf- & Fußzeile"
+msgstr "Шапка и подвал"
+
+#: templates/tenant/site_home.html
+msgid "Website · gilt auf allen Seiten"
+msgstr "Сайт · действует на всех страницах"
+
+#: templates/tenant/site_home.html
+msgid "CTA-Button in der Kopfzeile"
+msgstr "CTA-кнопка в шапке"
+
+#: templates/tenant/site_home.html
+msgid "Punkt hinzufügen"
+msgstr "Добавить пункт"
+
+#: templates/tenant/site_home.html
+msgid "Neuer Punkt"
+msgstr "Новый пункт"
+
+#: templates/tenant/site_home.html
+msgid "Untermenüs, Ziele und Übersetzungen: im"
+msgstr "Подменю, цели и переводы — в"
+
+#: templates/tenant/site_home.html
+msgid "Untermenü"
+msgstr "Подменю"

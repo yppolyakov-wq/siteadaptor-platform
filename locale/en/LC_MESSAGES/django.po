@@ -22095,3 +22095,31 @@ msgstr "Page settings"
 #: templates/tenant/site_home.html
 msgid "Diese Seite"
 msgstr "This page"
+
+#: templates/tenant/site_home.html
+msgid "Kopf- & Fußzeile"
+msgstr "Header & footer"
+
+#: templates/tenant/site_home.html
+msgid "Website · gilt auf allen Seiten"
+msgstr "Website · applies to all pages"
+
+#: templates/tenant/site_home.html
+msgid "CTA-Button in der Kopfzeile"
+msgstr "CTA button in the header"
+
+#: templates/tenant/site_home.html
+msgid "Punkt hinzufügen"
+msgstr "Add item"
+
+#: templates/tenant/site_home.html
+msgid "Neuer Punkt"
+msgstr "New item"
+
+#: templates/tenant/site_home.html
+msgid "Untermenüs, Ziele und Übersetzungen: im"
+msgstr "Submenus, targets and translations: in the"
+
+#: templates/tenant/site_home.html
+msgid "Untermenü"
+msgstr "Submenu"

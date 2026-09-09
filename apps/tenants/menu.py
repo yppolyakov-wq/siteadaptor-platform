@@ -481,17 +481,26 @@ def _resolve(tenant, node: dict):
     }
 
 
-def resolve_menu(tenant, side: str) -> list[dict]:
+def _menus_of(tenant, cfg=None) -> dict:
+    """STU-12c: дерево меню из ПЕРЕДАННОГО нормализованного конфига (черновик
+    превью `?preview=1`), иначе — из сохранённого. Раньше шапка витрины читала только
+    сохранённый конфиг, и правки стиля/пунктов в Студии были видны лишь после Save."""
+    if isinstance(cfg, dict) and isinstance(cfg.get("menus"), dict):
+        return cfg["menus"]
+    return siteconfig.normalize(tenant.site_config)["menus"]
+
+
+def resolve_menu(tenant, side: str, cfg=None) -> list[dict]:
     """Готовое дерево пунктов для стороны меню ('top' | 'bottom')."""
-    cfg = siteconfig.normalize(tenant.site_config)["menus"].get(side, {})
-    return [r for r in (_resolve(tenant, n) for n in cfg.get("items", [])) if r]
+    side_cfg = _menus_of(tenant, cfg).get(side, {})
+    return [r for r in (_resolve(tenant, n) for n in side_cfg.get("items", [])) if r]
 
 
-def top_meta(tenant) -> tuple[str, bool]:
+def top_meta(tenant, cfg=None) -> tuple[str, bool]:
     """(style, sticky) верхнего меню."""
-    top = siteconfig.normalize(tenant.site_config)["menus"]["top"]
+    top = _menus_of(tenant, cfg)["top"]
     return top["style"], top["sticky"]
 
 
-def bottom_enabled(tenant) -> bool:
-    return siteconfig.normalize(tenant.site_config)["menus"]["bottom"]["enabled"]
+def bottom_enabled(tenant, cfg=None) -> bool:
+    return _menus_of(tenant, cfg)["bottom"]["enabled"]

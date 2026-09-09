@@ -247,9 +247,6 @@ def modules_nav(request):
     from apps.tenants import menu as menu_mod
 
     nav_items, _legacy_style, _legacy_sticky = _storefront_nav(tenant)
-    # S7: многоуровневое меню — top (дерево с подменю) + опц. кастомный bottom.
-    storefront_menu = menu_mod.resolve_menu(tenant, "top")
-    nav_style, nav_sticky = menu_mod.top_meta(tenant)
     # CA4: вошедший клиент (для автозаполнения форм заказа/брони именем/почтой).
     account_customer = None
     if modules.is_module_active(tenant, "customer_account"):
@@ -280,6 +277,11 @@ def modules_nav(request):
         siteconfig.normalize(_draft if _draft is not None else tenant.site_config),
         get_language(),
     )
+    # S7: многоуровневое меню — top (дерево с подменю) + опц. кастомный bottom.
+    # STU-12c: из draft-aware cfg — под ?preview=1 шапка показывает черновик
+    # (стиль/sticky/пункты/CTA) ДО Save, как остальные настройки Студии.
+    storefront_menu = menu_mod.resolve_menu(tenant, "top", cfg)
+    nav_style, nav_sticky = menu_mod.top_meta(tenant, cfg)
     # Акцент — поле Tenant (не в site_config). Отдаём готовое значение: в превью —
     # override из черновика (`_accent`), иначе tenant.primary_color. Шаблон НЕ
     # обращается к request.tenant сам (в фильтре-аргументе это падало бы на
@@ -365,7 +367,7 @@ def modules_nav(request):
                 "button_url": ov.get("button_url", ""),
             }
     # S7: нижнее меню — кастомное (из menus.bottom) либо авто таб-бар (T2b).
-    if menu_mod.bottom_enabled(tenant):
+    if menu_mod.bottom_enabled(tenant, cfg):
         # Доводка bottom-nav ТЗ (решение владельца 2026-07-03: доводим S7, а не
         # отдельный bottom_nav-ключ): узел-корзина в кастомном меню сохраняет
         # семантику авто-таб-бара — акцент (kind=primary) + бейдж позиций.
@@ -384,7 +386,7 @@ def modules_nav(request):
                 "kind": "primary" if _cart_url and i["url"] == _cart_url else "default",
                 "badge": _n_cart if _cart_url and i["url"] == _cart_url else 0,
             }
-            for i in menu_mod.resolve_menu(tenant, "bottom")
+            for i in menu_mod.resolve_menu(tenant, "bottom", cfg)
             if i["url"]
         ][:5]
     else:

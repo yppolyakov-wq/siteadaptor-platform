@@ -1998,6 +1998,28 @@ def home_builder_view(request):
             )
         # S4: стартовая страница витрины (общая главная или один архетип).
         config["storefront_root"] = request.POST.get("storefront_root", "home").strip() or "home"
+        # STU-12c: верхний уровень меню правится в колонке «Kopf- & Fußzeile» (hidden
+        # menus_json в #home-form). Presence-guard + валидность: без поля или с битым/
+        # чужим payload `menus` НЕ трогаем (второй писатель — Menü-Generator; normalize
+        # санитайзит дерево). Идёт ДО зеркала стиля — оно ложится поверх дерева.
+        if "menus_json" in request.POST:
+            import json as _json
+
+            try:
+                _menus = _json.loads(request.POST.get("menus_json") or "")
+            except (ValueError, TypeError):
+                _menus = None
+            if isinstance(_menus, dict) and ("top" in _menus or "bottom" in _menus):
+                config["menus"] = _menus
+        # STU-12c: CTA-Button в шапке (nav.cta, DS-3b) — впервые в UI; чекбокс →
+        # сентинел присутствия (unchecked не шлётся; без сентинела не трогаем).
+        if request.POST.get("nav_cta_present") == "1":
+            _nav = dict(config.get("nav") or {})
+            if request.POST.get("nav_cta") == "on":
+                _nav["cta"] = True
+            else:
+                _nav.pop("cta", None)
+            config["nav"] = _nav
         # SE-7c: область «Меню» — стиль шапки + sticky. Presence-guard (правим лишь когда
         # инспектор Меню прислан, т.е. есть nav_style), иначе config["nav"] остаётся как был
         # (пункты меню — в полном билдере /dashboard/site/menu/, их не трогаем).
@@ -2356,6 +2378,10 @@ def home_builder_view(request):
             "nav_style": config["nav"]["style"],
             "nav_sticky": config["nav"]["sticky"],
             "nav_styles": siteconfig.NAV_STYLES,
+            # STU-12c: колонка «Kopf- & Fußzeile» — CTA шапки + верхний уровень меню.
+            "nav_cta": bool(config["nav"].get("cta")),
+            "menu_top_items": config["menus"]["top"]["items"],
+            "menus_json": _safe_json(config["menus"]),
             # SE-7d: область «Баннер» — заголовок/текст hero (картинка — на канве/в галерее).
             "hero_title": config["hero_title"],
             "hero_text": config["hero_text"],
@@ -2908,12 +2934,31 @@ def site_preview_draft(request):
             cfg["theme"] = "dark"
         else:
             cfg.pop("theme", None)
+    # STU-12c: дерево меню из колонки «Kopf- & Fußzeile» → в превью (только валидное;
+    # мусор не трогает сохранённое). Идёт ДО стиля — зеркало стиля ложится поверх.
+    _menus = data.get("menus")
+    if isinstance(_menus, dict) and ("top" in _menus or "bottom" in _menus):
+        cfg["menus"] = _menus
+    # STU-12c: CTA шапки (nav.cta) — bool, иначе не трогаем.
+    if isinstance(data.get("nav_cta"), bool):
+        _nav = dict(cfg.get("nav") or {})
+        if data["nav_cta"]:
+            _nav["cta"] = True
+        else:
+            _nav.pop("cta", None)
+        cfg["nav"] = _nav
     # SE-8b: стиль шапки (Меню) + заголовок/текст баннера → в превью (видно вживую).
     if data.get("nav_style") in siteconfig.NAV_STYLES:
         nav = dict(cfg.get("nav") or {})
         nav["style"] = data["nav_style"]
         nav["sticky"] = bool(data.get("nav_sticky"))
         cfg["nav"] = nav
+        # STU-12c: шапка читает menus.top (top_meta) — зеркалим стиль/sticky и в
+        # материализованное дерево, как делает Save (иначе в превью стиль не менялся).
+        _mm = cfg.get("menus")
+        if isinstance(_mm, dict) and isinstance(_mm.get("top"), dict):
+            _mm["top"]["style"] = nav["style"]
+            _mm["top"]["sticky"] = nav["sticky"]
     if isinstance(data.get("hero_title"), str):
         cfg["hero_title"] = data["hero_title"].strip()
     if isinstance(data.get("hero_text"), str):
