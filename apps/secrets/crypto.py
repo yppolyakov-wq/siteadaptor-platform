@@ -56,12 +56,16 @@ def _fernet() -> MultiFernet:
     `manage.py rotate_secrets --apply`: перешифровывает старое явным ключом,
     после чего утечка SECRET_KEY ничего не раскрывает.
     """
-    keys = []
+    # Позиция 0 = ключ ШИФРОВАНИЯ. Если явного нет, туда обязан встать
+    # производный, а не «прежний»: иначе при пустом SECRETS_ENCRYPTION_KEY и
+    # заполненном PREVIOUS все новые секреты шифровались бы отставным ключом,
+    # который докстринг обещает «только для чтения».
+    derived = Fernet(_derived_key())
     explicit = _explicit_key()
-    if explicit:
-        keys.append(Fernet(explicit))
+    keys = [Fernet(explicit)] if explicit else [derived]
     keys.extend(Fernet(key) for key in _previous_keys())
-    keys.append(Fernet(_derived_key()))
+    if explicit:
+        keys.append(derived)
     return MultiFernet(keys)
 
 

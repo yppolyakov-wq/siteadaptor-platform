@@ -11,7 +11,7 @@ InvalidToken. Поэтому: MultiFernet (шифруем явным, читае
 from pathlib import Path
 
 import pytest
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 from django.core.files.base import ContentFile
 from django.core.management import call_command
 from django.core.management.base import CommandError
@@ -450,3 +450,22 @@ def test_purge_removes_the_blob_even_if_rotation_moved_it(monkeypatch):
 
     doc_services.purge(doc)  # doc в памяти всё ещё держит СТАРЫЙ путь
     assert not default_storage.exists(moved), "новый шифротекст остался в бакете"
+
+
+def test_previous_key_never_takes_the_encryption_slot():
+    """MultiFernet шифрует ПЕРВЫМ ключом. При пустом SECRETS_ENCRYPTION_KEY и
+    заполненном PREVIOUS первым оказывался отставной ключ — новые секреты
+    шифровались бы тем, что владелец вывел из обращения."""
+    retired = Fernet.generate_key().decode()
+    with override_settings(SECRETS_ENCRYPTION_KEY="", SECRETS_ENCRYPTION_KEY_PREVIOUS=[retired]):
+        crypto._fernet.cache_clear()
+        token = crypto.encrypt("neues-geheimnis")
+    # Отставной ключ САМ ПО СЕБЕ не читает то, что зашифровано сейчас — значит
+    # шифровали не им. (Через `crypto.decrypt` не проверить: связка всегда
+    # содержит производный ключ и прочтёт токен любым из них.)
+    with pytest.raises(InvalidToken):
+        Fernet(retired.encode()).decrypt(token.encode())
+    # а производный (штатный фолбэк без явного ключа) — читает
+    with override_settings(SECRETS_ENCRYPTION_KEY="", SECRETS_ENCRYPTION_KEY_PREVIOUS=[]):
+        crypto._fernet.cache_clear()
+        assert crypto.decrypt(token) == "neues-geheimnis"

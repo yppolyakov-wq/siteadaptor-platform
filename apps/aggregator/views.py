@@ -407,6 +407,11 @@ def city_listing(request, city, business_type=None):
     from . import geo
 
     pool = listings_for(city=city, business_type=business_type)
+    # Роут принимает ЛЮБУЮ строку и на выдуманном городе отдаёт пустую страницу
+    # с кодом 200 — значит аноним (или краулер) минтил бы по записи кэша на
+    # каждый придуманный адрес, в том же Redis, где сессии. Пустую выдачу не
+    # кэшируем: ускорять нечего, а ось пути перестаёт быть безграничной.
+    known_city = pool.exists()
     # A8: сортировка выдачи (keyset-совместимая — поле есть на листинге).
     sort = request.GET.get("sort")
     if sort not in _LISTING_SORTS:
@@ -476,7 +481,7 @@ def city_listing(request, city, business_type=None):
             if v
         ]
     )
-    return render(
+    response = render(
         request,
         "aggregator/listing.html",
         {
@@ -503,6 +508,9 @@ def city_listing(request, city, business_type=None):
             "business_link": True,
         },
     )
+    if not known_city:
+        response.no_store = True  # см. `known_city` выше: ось пути не безгранична
+    return response
 
 
 def sitemap_xml(request):

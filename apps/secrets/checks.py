@@ -12,7 +12,7 @@
   обязаны краснеть сразу.
 """
 
-import base64
+import re
 
 from cryptography.fernet import Fernet
 from django.conf import settings
@@ -23,6 +23,13 @@ def _key() -> str:
     return getattr(settings, "SECRETS_ENCRYPTION_KEY", "") or ""
 
 
+#: Ключ целиком = base64-токен. ОБА алфавита законны: Fernet принимает и
+#: urlsafe («-_», как у Fernet.generate_key()), и стандартный («+/», как у
+#: `openssl rand -base64 32`). Всё, что вне этого набора (запятая, пробел,
+#: комментарий, кавычки, префикс b'), — хвост, а не ключ.
+_TOKEN_RE = re.compile(rb"[A-Za-z0-9+/_-]+={0,2}\Z")
+
+
 def _key_problem(value) -> str:
     """Причина непригодности ключа или '' — если ключ годен.
 
@@ -31,17 +38,19 @@ def _key_problem(value) -> str:
     `Fernet("KEY2")` — перечислить оба ключа через запятую (соседняя переменная
     именно список!) или оставить хвостовой комментарий значило бы молча
     использовать только первый, а чек рапортовал бы «годен».
+
+    Проверяем именно ХВОСТ, а не канонический алфавит: сравнение с
+    `urlsafe_b64encode(urlsafe_b64decode(...))` отвергало РАБОЧИЕ ключи из
+    `openssl rand -base64 32` (в них «+»/«/» примерно в трёх случаях из четырёх),
+    причём с ложным диагнозом «лишнее после ключа» — и владелец, следуя подсказке,
+    обрезал бы рабочий ключ, потеряв доступ ко всем шифротекстам.
     """
     raw = value.encode() if isinstance(value, str) else value
     try:
         Fernet(raw)
     except (ValueError, TypeError) as exc:
         return str(exc)
-    try:
-        canonical = base64.urlsafe_b64encode(base64.urlsafe_b64decode(raw))
-    except Exception:  # noqa: BLE001 — Fernet уже принял, до сюда не доходит
-        return ""
-    if canonical != (raw.strip() if isinstance(raw, bytes) else raw):
+    if not isinstance(raw, bytes) or not _TOKEN_RE.fullmatch(raw.strip()):
         return (
             "значение содержит лишнее после ключа (запятая, пробел, комментарий) — "
             "использовалась бы только первая часть"
@@ -85,7 +94,20 @@ def secrets_encryption_key_valid(app_configs, **kwargs):
     # токена бота и загрузка документа падали 500, чтение молча отдавало пусто.
     from apps.secrets import crypto
 
-    for i, previous in enumerate(crypto._previous_keys(), 1):
+    previous_keys = crypto._previous_keys()
+    if previous_keys and not key:
+        issues.append(
+            Error(
+                "SECRETS_ENCRYPTION_KEY_PREVIOUS задан, а SECRETS_ENCRYPTION_KEY пуст.",
+                hint=(
+                    "Прежние ключи — только для чтения. Без актуального ключа новые "
+                    "секреты шифровались бы производным из SECRET_KEY, а смена ключа "
+                    "выглядела бы выполненной. Задайте SECRETS_ENCRYPTION_KEY."
+                ),
+                id="secrets.E004",
+            )
+        )
+    for i, previous in enumerate(previous_keys, 1):
         problem = _key_problem(previous)
         if problem:
             issues.append(

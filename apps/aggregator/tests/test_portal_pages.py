@@ -243,3 +243,28 @@ def test_city_listing_with_shortlist_forms_is_personal_and_not_cached():
     assert "csrfmiddlewaretoken" in first
     assert first != second  # у каждого посетителя свой токен
     assert cache.get("pubpage2:testserver:/entdecken/Hilden/:de") is None
+
+
+@override_settings(ROOT_URLCONF="config.urls_public", CACHES=_LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_made_up_cities_do_not_mint_cache_entries():
+    """Роут листинга принимает ЛЮБУЮ строку и отдаёт пустую страницу с кодом 200
+    — значит аноним (или краулер) минтил бы по записи кэша на каждый выдуманный
+    адрес, в том же Redis, где сессии. Ось хоста закрыта нормализацией домена,
+    ось пути — отказом кэшировать пустую выдачу."""
+    from importlib import import_module
+
+    from django.conf import settings as dj_settings
+
+    from apps.aggregator import views
+
+    cache.clear()
+    _listing(city="Hilden")
+
+    def req(path):
+        request = RequestFactory().get(path)
+        request.session = import_module(dj_settings.SESSION_ENGINE).SessionStore()
+        return request
+
+    for i in range(5):
+        assert views.city_listing(req(f"/entdecken/muell-{i}/"), f"muell-{i}").status_code == 200
+    assert len(cache._cache) == 0, [str(k) for k in cache._cache]

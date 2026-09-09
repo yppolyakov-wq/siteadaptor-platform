@@ -2,6 +2,10 @@
 SECRET_KEY. Fail-closed — в проде (DEBUG=False) это Error (деплой-гейт), в dev/CI
 (DEBUG=True) — Warning."""
 
+import base64
+import os
+
+import pytest
 from cryptography.fernet import Fernet
 from django.test import override_settings
 
@@ -92,6 +96,48 @@ def test_errors_when_two_keys_are_crammed_into_one_variable():
     assert [m.id for m in msgs] == ["secrets.E002"]
 
 
-@override_settings(SECRETS_ENCRYPTION_KEY=_KEY, SECRETS_ENCRYPTION_KEY_PREVIOUS=[])
-def test_valid_pair_of_keys_is_silent():
-    assert secrets_encryption_key_valid(None) == []
+def _std_alphabet_key() -> str:
+    """Рабочий ключ в СТАНДАРТНОМ base64 («+»/«/»), как даёт `openssl rand -base64 32`.
+
+    Fernet такие принимает; чек их отвергал, потому что сверял алфавит с urlsafe.
+    Генерируем, пока в значении не появится хотя бы один «+» или «/», иначе тест
+    проходил бы вхолостую на ключе, случайно совпавшем по алфавиту.
+    """
+    while True:
+        key = base64.b64encode(os.urandom(32)).decode()
+        if "+" in key or "/" in key:
+            return key
+
+
+@pytest.mark.parametrize(
+    "form",
+    [
+        "urlsafe",  # Fernet.generate_key()
+        "standard",  # openssl rand -base64 32 → «+» и «/»
+        "trailing_newline",  # значение из env-файла
+    ],
+)
+def test_valid_key_in_any_legal_form_is_silent(form):
+    """Цена ложного срабатывания здесь выше, чем пропуска: чек НЕ deploy-only,
+    поэтому Error валит любую manage.py-команду и старт, а деплой обрывается на
+    префлайте. Плюс диагноз «лишнее после ключа» уводит владельца обрезать
+    РАБОЧИЙ ключ — а обрезанный ключ значит потерю всех шифротекстов.
+    """
+    key = {
+        "urlsafe": _KEY,
+        "standard": _std_alphabet_key(),
+        "trailing_newline": _KEY + "\n",
+    }[form]
+    with override_settings(SECRETS_ENCRYPTION_KEY=key, SECRETS_ENCRYPTION_KEY_PREVIOUS=[]):
+        assert secrets_encryption_key_valid(None) == []
+    # и та же форма ПРЕЖНЕГО ключа обязана молчать: смена ключа — ровно тот
+    # момент, когда рабочий старый ключ кладут во вторую переменную
+    with override_settings(SECRETS_ENCRYPTION_KEY=_KEY, SECRETS_ENCRYPTION_KEY_PREVIOUS=[key]):
+        assert secrets_encryption_key_valid(None) == []
+
+
+def test_previous_keys_without_a_current_key_is_an_error():
+    """Прежние ключи — только для чтения. Без актуального ключа позиция шифрования
+    досталась бы отставному ключу, а смена ключа выглядела бы выполненной."""
+    with override_settings(SECRETS_ENCRYPTION_KEY="", SECRETS_ENCRYPTION_KEY_PREVIOUS=[_KEY]):
+        assert [m.id for m in secrets_encryption_key_valid(None)] == ["secrets.E004"]

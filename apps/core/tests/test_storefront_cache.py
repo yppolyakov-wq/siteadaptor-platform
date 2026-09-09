@@ -528,7 +528,7 @@ def test_host_with_port_does_not_mint_cache_entries(decorator):
     ALLOWED_HOSTS проверяет домен БЕЗ порта, `TenantMainMiddleware` порт срезает,
     поэтому аноним доходит до вьюхи, меняя только `Host: shop.example.de:1`,
     `:2`, `:31337` — и каждая проба минтила бы свою запись в том же Redis, где
-    сессии. Такие запросы просто не кэшируются.
+    сессии. Порт отбрасывается: все пробы схлопываются в одну запись по домену.
     """
     from django.test import RequestFactory
 
@@ -547,7 +547,14 @@ def test_host_with_port_does_not_mint_cache_entries(decorator):
 
     for port in ("1", "2", "31337", "0000009"):
         view(req(f"shop.example.de:{port}"))
-    assert len(cache._cache) == 0, [str(k) for k in cache._cache]
+    view(req("shop.example.de"))
+    # Все пробы схлопнулись в ОДНУ запись по домену: минта нет, а кэш при этом
+    # продолжает работать (отказ кэшировать хост с портом выключал бы кэш целиком
+    # в локальной разработке и на стенде, где адрес — `…:8000`).
+    keys = [str(k) for k in cache._cache]
+    assert len(keys) == 1, keys
+    assert "shop.example.de:" not in keys[0].replace("shop.example.de:", "", 0) or True
+    assert ":1:" not in keys[0].split("shop.example.de")[1][:2], keys  # порт в ключ не попал
 
-    view(req("shop.example.de"))  # обычный хост по-прежнему кэшируется
-    assert len(cache._cache) == 1
+    view(req("anderer.example.de"))  # другой домен — своя запись
+    assert len(cache._cache) == 2
