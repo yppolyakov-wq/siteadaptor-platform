@@ -1255,7 +1255,7 @@ FMAP = [
     # (функция, сегодня, новое место, тип-бейдж)
     ("Rail «Design»", "→ область Theme", "уходит; ссылка «Design des Shops →» в верхней строке → экран кабинета (1B)", "Kabinett"),
     ("Rail «Seite ‹тип›»", "область sections/page + лента страниц внизу", "остаётся: открывает панель «Diese Seite: ‹тип›»; ленты нет", "Rail"),
-    ("Rail «Blöcke»", "поповер «+» (в конец страницы)", "остаётся: тот же поповер вставки у кнопки рейки", "Rail"),
+    ("Rail «Blöcke»", "поповер «+» (в конец страницы)", "остаётся: тот же поповер вставки у кнопки рейки; после вставки сразу открывается панель нового блока (сегодня — ничего); на страницах без хоста блоков кнопка серая", "Rail"),
     ("Rail «Medien»", "только Fotogalerie", "остаётся: панель «Medien» — Fotogalerie · Banner-Slides · Titelbilder · Logo", "Rail"),
     ("Rail «Start»", "quickstart (демо + Layout-Vorlagen)", "уходит → секция «Vorlagen» на экране кабинета (4A)", "Kabinett"),
     ("НОВЫЙ rail «Menü»", "вкладка Menü / ☰ в верхней строке", "уровень рейки: панель «Kopf- &amp; Fußzeile» (2B)", "Rail"),
@@ -1281,13 +1281,13 @@ FMAP = [
     ("Page: пилюля Für alle / Nur hier (4 настройки)", "рядом с плиткой", "рядом с плиткой — в панели и в быстром поповере", "Panel"),
     ("Page: C-блоки страницы", "строки в page", "список «Blöcke auf dieser Seite» в панели; настройки — по клику на блок", "Panel"),
     ("Menü: Kopfzeilenstil · Feste Kopfzeile · Beispiele", "область menu", "панель «Menü»: плитки Classic/Zentriert/Minimal + ☑ fest + ☑ CTA", "Panel"),
-    ("Menü: пункты меню", "экран Menü-Generator", "список в панели «Menü» (F6)", "Panel"),
+    ("Menü: пункты меню", "экран Menü-Generator", "список в панели «Menü» (F6); второй писатель menus → свежая загрузка при открытии + presence-guard; подменю/цели — в Menü-Generator", "Panel"),
     ("Library: сохранённые блок-шаблоны", "вкладка Vorlagen", "только в поповере «+» (там и так есть)", "Popover"),
     ("Library: шаблоны страниц · Versionsverlauf", "вкладка Vorlagen", "аккордеон «Vorlagen &amp; Versionen» панели главной", "Panel"),
     ("Library: ссылки SEO · Titelbilder · Menü-Generator", "вкладка Vorlagen", "уходят (есть в подменю Website кабинета)", "weg"),
     ("Медиа-области ×4", "разбросаны", "панель «Medien» аккордеоном", "Panel"),
     ("«Kategorie hinzufügen»", "область catalog-add", "поповер «＋ Kategorie» из плашки действий секции Kategorien", "Popover"),
-    ("Лента блока: настройки секции (4–34)", "правая колонка", "панель блока: Inhalt · Darstellung · Erweitert (F8); Einfach|Experte в шапке", "Panel"),
+    ("Лента блока: настройки секции (4–34)", "правая колонка", "панель блока: Inhalt · Darstellung · Erweitert (F8); Einfach|Experte в шапке; имя C-блока переведено (сегодня сырой ключ); высота Abstand редактируема (сегодня только при вставке)", "Panel"),
     ("Лента C-блока: Position · Sichtbar · Entfernen", "голова строки", "плашка действий у блока: ▲ ▼ 👁 🗑", "Leiste"),
     ("Лента C-блока: Breite · Position · Neue Zeile", "хвост строки", "«Breite ▾» на плашке действий (поповер) + группа Darstellung", "Popover"),
     ("Лента: Stil-варианты · Raster", "select/плитки в колонке", "«Stil ▾» / «Raster ▾» на плашке действий — поповер ≤ 7 плиток (F5)", "Popover"),
@@ -1354,14 +1354,15 @@ def p4_pop() -> str:
 
 # ── P5 · категория: Kartenform + охват ────────────────────────────────────────
 def p5_kat() -> str:
-    bar = ftb(196, 116, "Produktraster", [("Raster ▾", False), ("Kartenform ▾", True), ("⚙", False)])
-    tiles = ('<div class="tiles"><div class="t on"><span>Regal</span></div><div class="t"><span>Lookbook</span></div><div class="t"><span>Deal</span></div><div class="t"><span>Kompakt</span></div></div>'
+    bar = ftb(196, 116, "Produktraster", [("Vorlage ▾", True), ("Raster ▾", False), ("Kartenform ▾", False), ("⚙", False)])
+    tiles = ('<div class="tiles"><div class="t"><span>Standard</span></div><div class="t"><span>Kopfbild</span></div><div class="t on"><span>Regale</span></div><div class="t"><span>Navigator</span></div></div>'
              + scope("own", own=True, hint="Gilt nur für „Getränke &amp; Vorrat“"))
-    popover = pop(318, 28, "Kartenform", tiles, kind="Kategorie", arrow="b", width=250)
+    popover = pop(318, 28, "Vorlage der Seite", tiles, kind="Kategorie", arrow="b", width=250)
     pane_body = f"""
   <div class="card"><div class="lg">Vorlage der Seite</div>
     <div class="tiles"><div class="t"><span>Standard</span></div><div class="t"><span>Kopfbild</span></div><div class="t on"><span>Regale</span></div><div class="t"><span>Navigator</span></div></div>
-    {scope("site")}
+    {scope("own", own=True)}
+    <div class="fld" style="margin-top:6px"><div class="lb">Kartenform<span class="hint">gilt für alle Karten</span></div><div class="tiles"><div class="t on"><span>Regal</span></div><div class="t"><span>Lookbook</span></div><div class="t"><span>Deal</span></div></div></div>
   </div>
   <div class="card"><div class="lg">Raster &amp; Anzeige</div>
     <div class="fld"><div class="lb">Raster</div><div class="chips"><span class="chip">3</span><span class="chip on">4</span><span class="chip">5</span><span class="chip">6</span><span class="chip">Preisliste</span></div></div>
@@ -1370,9 +1371,11 @@ def p5_kat() -> str:
     <div class="fld"><div class="chk"><i class="on"></i>Unterkategorien zuerst</div></div>
   </div>
   {acc("Blöcke auf dieser Seite", "2", "")}"""
-    body = (hd2("Vorschlag · T1", "Panels", "Kategorie: Kartenform nur hier — 3 Klicks",
-                "Клик по сетке товаров → плашка действий «Produktraster» → «Kartenform ▾» → плитка + пилюля «Nur hier». Пилюля стоит рядом "
-                "с контролом и в поповере, и в панели (там же, где сегодня). Панель показывает строки реестра типа «Kategorie».")
+    body = (hd2("Vorschlag · T1", "Panels", "Kategorie: Vorlage nur hier — 3 Klicks",
+                "Клик по сетке → плашка «Produktraster» → «Vorlage ▾» → плитка + пилюля «Nur hier». Пилюля стоит рядом с контролом "
+                "и в поповере, и в панели. <b>Честно (нашёл дизайнер-скептик):</b> «Kartenform nur hier» на категории сегодня "
+                "невозможна — у категории нет поля card_style, пилюля есть только у шаблона категории, товара, акции и группы; "
+                "per-категорийная форма карточки = новое поле с миграцией (F9).")
             + studio(top_new("Getränke &amp; Vorrat"), rail_new("page", "Kategorie"), CATEGORY_SKETCH, "Kategorie",
                      pane_new("Diese Seite: Kategorie", pane_body), bar + popover))
     return wrap(body)
@@ -1463,6 +1466,10 @@ def p9_wahl2() -> str:
          "Ja: Texte der Sektion (FAQ, Team, CTA …) beim Block, nicht in «Inhaltsabschnitte»; Einfach|Experte = Gruppe «Erweitert»",
          "Wie heute: Block-Panel nur Layout; Texte weiter in «📦 Inhaltsabschnitte»",
          "F8A", "рынок: одно место на один объект; сегодня контент секции — в четырёх местах"),
+        ("F9", "Kartenform je Kategorie («Nur hier» auf der Kategorieseite)",
+         "Neues Feld Category.card_style (Migration) + Auflösung Produkt → Kategorie → Website",
+         "Bleibt website-weit; Ausnahme pro Produkt/Aktion wie heute (DL-19)",
+         "F9B", "нашёл скептик: сегодня это невозможно; спрос на per-категорию не заявлен — не расширять модель впрок"),
     ]
     tr = "".join(
         f'<tr><td class="lbl">{n}</td><td>{q}</td>'
@@ -1470,7 +1477,7 @@ def p9_wahl2() -> str:
         f'<td class="now"><span class="opt{" rec" if r == n + "B" else ""}">{n}B</span>{b}</td>'
         f'<td class="rec">{r}</td><td class="why">{w}</td></tr>'
         for n, q, a, b, r, w in rows)
-    body = (hd("Wahlzettel 2", "Панели: четыре развилки — ответ в форме «F5A · F6A · F7A · F8A»",
+    body = (hd("Wahlzettel 2", "Панели: пять развилок — ответ в форме «F5A · F6A · F7A · F8A · F9B»",
                "Всё остальное на «Funktionskarte» решено предложением: одна панель без вкладок (свойства выбранного, крошка «где я»), "
                "рейка = навигация и добавление, плашка действий у блока, верхняя строка без дублей, глобальный дизайн — в кабинете (1B/4A).")
             + '<div class="sheet"><table class="diff"><tr><th>№</th><th>Frage</th><th>A</th><th>B</th><th>Empf.</th><th>почему</th></tr>'
@@ -1509,7 +1516,7 @@ def p10_kabinett() -> str:
     body = (hd2("1B + 4A", "Kabinett", "«Design des Shops» — куда уехало всё глобальное",
                 "Экран кабинета (подпункт Website): Look · Startpaket · Farbe &amp; Schrift · Karten &amp; Fotos · Vorlagen/Demo. "
                 "Сегодня там только Look и Startpaket; цвет/шрифт/карточки/типографика переезжают из области Theme, "
-                "Layout-Vorlagen и Demo — из области Start. Живого превью здесь нет (принято решением 1B).")
+                "Layout-Vorlagen и Demo — из области Start. Живого превью здесь нет (принято решением 1B). Для реализации: apply_look на этом экране должен менять ТОЛЬКО оптику (сегодня он сбрасывает порядок секций главной), а черновик Студии — перестать слать ключи темы, иначе перекроет выбранный здесь Look.")
             + page)
     return wrap(body)
 
@@ -1538,7 +1545,7 @@ ARTBOARDS = {
     "E4B": (e4b, 940, 556, "4B · Start bleibt eigene Ebene"),
     # ── страница «Panels» ──
     "P0": (p0_heute, 940, 660, "Heute · alle Funktionen"),
-    "P1": (p1_funktionskarte, 940, 1660, "Funktionskarte · heute → neu"),
+    "P1": (p1_funktionskarte, 940, 1740, "Funktionskarte · heute → neu"),
     "P2": (p2_home, 940, 556, "Vorschlag · Startseite, nichts gewählt"),
     "P3": (p3_block, 940, 556, "Vorschlag · Abschnitt gewählt"),
     "P4": (p4_pop, 940, 556, "F5 · Schnell-Popover «Stil ▾»"),
@@ -1546,7 +1553,7 @@ ARTBOARDS = {
     "P6": (p6_menu, 940, 556, "2B · Ebene «Menü»"),
     "P7": (p7_media, 940, 556, "Ebene «Medien»"),
     "P8": (p8_phone, 940, 740, "F7 · Telefon"),
-    "P9": (p9_wahl2, 940, 460, "Wahlzettel 2 · F5–F8"),
+    "P9": (p9_wahl2, 940, 520, "Wahlzettel 2 · F5–F9"),
     "P10": (p10_kabinett, 940, 640, "1B+4A · Kabinett «Design des Shops»"),
 }
 
