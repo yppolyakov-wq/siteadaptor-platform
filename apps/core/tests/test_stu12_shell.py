@@ -90,15 +90,20 @@ def test_topbar_duplicates_are_gone_but_shell_ids_survive():
 
 # ── «Seite ▾» (3A) ────────────────────────────────────────────────────────────
 def test_page_switcher_lists_cart_checkout_and_promo_groups():
-    """«Seite ▾» — единственный путь к страницам, до которых кликом по канве не
-    дойти: Warenkorb, Kasse и страницы групп акций (`?gruppe=`, STU-7)."""
+    """«Seite ▾» — единственный путь к страницам, до которых кликом по канве не дойти:
+    Warenkorb и страницы групп акций (`?gruppe=`, STU-7).
+
+    STU-14: пункт «Kasse» СНЯТ — `storefront-checkout` это POST-приёмник корзины
+    (@require_POST), страницы по этому адресу нет и переход из Студии давал 405.
+    Замок теперь стережёт обратное: чтобы её не вернули в список.
+    """
     tenant = TenantFactory()
     PromotionFactory(group="Räumung", status="active")
     PromotionFactory(group="Entwurf-Gruppe", status="draft")
     html = _html(tenant)
     assert 'id="st-page-menu"' in html and 'id="st-page-name"' in html
     assert f'data-st-page="{reverse("storefront-cart")}"' in html
-    assert f'data-st-page="{reverse("storefront-checkout")}"' in html
+    assert f'data-st-page="{reverse("storefront-checkout")}"' not in html
     assert 'data-st-page="/aktionen/?gruppe=R%C3%A4umung"' in html
     assert "Entwurf-Gruppe" not in html, "черновики акций страницы не образуют"
     # группы списка: клик-достижимые отдельно от «только отсюда»

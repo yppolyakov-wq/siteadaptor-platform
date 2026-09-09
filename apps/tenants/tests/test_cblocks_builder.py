@@ -292,10 +292,14 @@ def test_add_block_with_page_key_goes_to_page_blocks():
 
 
 def test_add_block_with_unknown_page_key_falls_back_to_home():
-    """UC6-7b: page_key вне whitelist (в т.ч. legal) — блок идёт на главную."""
+    """UC6-7b: page_key вне whitelist — блок идёт на главную.
+
+    STU-14: пример «неизвестного хоста» сменился с `legal` (он стал валидным — правовые
+    страницы получили свои C-блоки) на заведомо несуществующий.
+    """
     tenant = TenantFactory(slug="pb2", name="X")
     core_views.home_builder_view(
-        _req({"action": "add_block", "block_type": "text", "page_key": "legal"}, tenant)
+        _req({"action": "add_block", "block_type": "text", "page_key": "nirgendwo"}, tenant)
     )
     tenant.refresh_from_db()
     assert len(_cblocks(tenant)) == 1
@@ -388,8 +392,9 @@ def test_save_rebuilds_page_blocks_from_pb_rows():
         "pb_page_ccc": "cart",
         "cb_type_ccc": "text",
         "delete_cb_ccc": "on",
-        # zzz: хост вне whitelist — отбрасывается
-        "pb_page_zzz": "legal",
+        # zzz: хост вне whitelist — отбрасывается (STU-14: `legal` стал валидным,
+        # поэтому пример неизвестного хоста — заведомо несуществующий ключ)
+        "pb_page_zzz": "nirgendwo",
         "cb_type_zzz": "text",
         "cb_zzz_title": "Nope",
     }
@@ -400,7 +405,7 @@ def test_save_rebuilds_page_blocks_from_pb_rows():
     assert [b["id"] for b in svc] == ["bbb", "aaa"]  # пересортировано по order
     assert svc[1]["data"]["title"] == "Neu"
     assert "cart" not in pb  # последний блок хоста удалён → хост исчез
-    assert "legal" not in pb
+    assert "nirgendwo" not in pb
 
 
 def test_save_without_pb_present_keeps_page_blocks():

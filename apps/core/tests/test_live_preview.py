@@ -711,7 +711,9 @@ def test_draft_endpoint_accepts_page_blocks():
                     {"key": "button", "id": "b2", "enabled": True, "data": {"label": "M"}},
                 ],
                 "cart": [],  # все блоки хоста удалены в форме
-                "legal": [{"key": "text", "id": "l1", "data": {"title": "X"}}],  # вне whitelist
+                # STU-14: `legal` стал валидным хостом (правовые получили C-блоки),
+                # поэтому пример «вне whitelist» — заведомо несуществующий ключ.
+                "nirgendwo": [{"key": "text", "id": "l1", "data": {"title": "X"}}],
             }
         }
     )
