@@ -2388,44 +2388,49 @@ def home_builder_view(request):
             "block_types": [
                 {
                     "value": "text",
-                    "label": _("Text"),
+                    "label": siteconfig.CBLOCK_LABELS["text"],
                     "icon": "📝",
                     "hint": _("Heading + paragraph"),
                 },
                 {
                     "value": "image",
-                    "label": _("Image"),
+                    "label": siteconfig.CBLOCK_LABELS["image"],
                     "icon": "🖼️",
                     "hint": _("Photo with caption"),
                 },
                 {
                     "value": "image_text",
-                    "label": _("Image + text"),
+                    "label": siteconfig.CBLOCK_LABELS["image_text"],
                     "icon": "🏞️",
                     "hint": _("Photo beside text"),
                 },
-                {"value": "button", "label": _("Button"), "icon": "🔘", "hint": _("Link button")},
+                {
+                    "value": "button",
+                    "label": siteconfig.CBLOCK_LABELS["button"],
+                    "icon": "🔘",
+                    "hint": _("Link button"),
+                },
                 {
                     "value": "spacer",
-                    "label": _("Spacer"),
+                    "label": siteconfig.CBLOCK_LABELS["spacer"],
                     "icon": "↕️",
                     "hint": _("Vertical spacing"),
                 },
                 {
                     "value": "promo",
-                    "label": _("Promotion"),
+                    "label": siteconfig.CBLOCK_LABELS["promo"],
                     "icon": "🏷️",
                     "hint": _("Live promotion"),
                 },  # UE1
                 {
                     "value": "stats",
-                    "label": _("Numbers"),
+                    "label": siteconfig.CBLOCK_LABELS["stats"],
                     "icon": "🔢",
                     "hint": _("2–4 key figures with captions"),
                 },  # GK-4
                 {
                     "value": "newsletter",
-                    "label": _("Newsletter"),
+                    "label": siteconfig.CBLOCK_LABELS["newsletter"],
                     "icon": "📧",
                     "hint": _("Signup form with double opt-in"),
                 },  # GK-8
@@ -2433,28 +2438,28 @@ def home_builder_view(request):
                 # (page_only → JS прячет на главной; контент общий с главной).
                 {
                     "value": "faq_ref",
-                    "label": _("FAQ anzeigen"),
+                    "label": siteconfig.CBLOCK_LABELS["faq_ref"],
                     "icon": "❓",
                     "hint": _("Der FAQ-Block der Startseite — auch auf dieser Seite"),
                     "page_only": True,
                 },
                 {
                     "value": "team_ref",
-                    "label": _("Team anzeigen"),
+                    "label": siteconfig.CBLOCK_LABELS["team_ref"],
                     "icon": "👥",
                     "hint": _("Der Team-Block der Startseite — auch auf dieser Seite"),
                     "page_only": True,
                 },
                 {
                     "value": "gallery_ref",
-                    "label": _("Galerie anzeigen"),
+                    "label": siteconfig.CBLOCK_LABELS["gallery_ref"],
                     "icon": "🖼️",
                     "hint": _("Die Galerie der Startseite — auch auf dieser Seite"),
                     "page_only": True,
                 },
                 {
                     "value": "testimonials_ref",
-                    "label": _("Stimmen anzeigen"),
+                    "label": siteconfig.CBLOCK_LABELS["testimonials_ref"],
                     "icon": "💬",
                     "hint": _("Kundenstimmen der Startseite — auch auf dieser Seite"),
                     "page_only": True,
@@ -2463,14 +2468,14 @@ def home_builder_view(request):
                 # рендер гейтится модулем (jobs/inbox выключен → блок пуст).
                 {
                     "value": "anfrage_ref",
-                    "label": _("Anfrage-Formular"),
+                    "label": siteconfig.CBLOCK_LABELS["anfrage_ref"],
                     "icon": "📝",
                     "hint": _("Angebot-Anfrage direkt auf dieser Seite (Modul Aufträge)"),
                     "page_only": True,
                 },
                 {
                     "value": "message_ref",
-                    "label": _("Kontaktformular"),
+                    "label": siteconfig.CBLOCK_LABELS["message_ref"],
                     "icon": "✉️",
                     "hint": _("Frage-stellen-Formular direkt auf dieser Seite (Modul Nachrichten)"),
                     "page_only": True,

@@ -110,6 +110,15 @@ _STAGE_BADGES = {
 
 
 @register.filter
+def cblock_label(block_type):
+    """STU-12b: переводимое имя типа C-блока (реестр siteconfig.CBLOCK_LABELS);
+    незнакомый тип — как есть (мусор в конфиге не роняет форму)."""
+    from apps.tenants import siteconfig
+
+    return siteconfig.CBLOCK_LABELS.get(block_type, block_type)
+
+
+@register.filter
 def stage_badge(stage):
     """SH-11: стадия пайплайна → классы пилюли статуса в строке списка.
 

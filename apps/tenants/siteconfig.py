@@ -664,6 +664,26 @@ PAGE_REF_BLOCKS = (
     "message_ref",
 )
 
+# STU-12b: ЕДИНЫЕ переводимые имена типов C-блоков — библиотека блоков (инсертер),
+# строки формы и крошка колонки называют тип одним словом (раньше строка формы
+# печатала сырой ключ `image_text`). Ключи = REPEATABLE_BLOCKS + PAGE_REF_BLOCKS.
+CBLOCK_LABELS = {
+    "text": _("Text"),
+    "image": _("Image"),
+    "image_text": _("Image + text"),
+    "button": _("Button"),
+    "spacer": _("Spacer"),
+    "promo": _("Promotion"),
+    "stats": _("Numbers"),
+    "newsletter": _("Newsletter"),
+    "faq_ref": _("FAQ anzeigen"),
+    "team_ref": _("Team anzeigen"),
+    "gallery_ref": _("Galerie anzeigen"),
+    "testimonials_ref": _("Stimmen anzeigen"),
+    "anfrage_ref": _("Anfrage-Formular"),
+    "message_ref": _("Kontaktformular"),
+}
+
 
 # Фидбэк 2026-08-26 («добавь на страницу кейтеринга галерею, отзывы, команду»):
 # «catalog» — ОДИН хост на весь каталог, блоки появились бы и на /sortiment/, и на

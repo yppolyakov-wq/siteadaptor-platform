@@ -13,7 +13,7 @@ collect()/save работают без переименований. data-cb-id 
   {% endif %}
   <input type="hidden" name="cb_type_{{ b.id }}" value="{{ b.type }}">
   <div class="flex items-center justify-between gap-3 text-sm">
-    <span class="font-medium">{{ b.type }}</span>
+    <span class="font-medium">{{ b.type|cblock_label }}</span>
     <span class="flex items-center gap-3">
       <label class="flex items-center gap-1">{% trans "Position" %}
         <input type="number" name="order_cb_{{ b.id }}" value="{{ b.order }}" min="1" max="40" class="w-16 rounded border border-gray-300 px-2 py-1"></label>

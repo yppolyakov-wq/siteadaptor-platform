@@ -41,19 +41,9 @@
       </span>
       <span id="home-prev-status" class="hidden md:inline text-xs text-gray-400 truncate"></span>
       <span id="bld-edit-hint" class="hidden xl:inline text-[11px] text-indigo-600 truncate">✍️ {% trans "Click text on the page to edit" %}</span>
-      {% comment %}UC6-10 (фидбэк владельца «эксперт/простой и имя блока — в верхнюю
-         строку»): контекст выбранного блока прямо в тулбаре — имя + Простой/Эксперт +
-         свернуть/закрыть. Виден ТОЛЬКО когда лента открыта (#bld-root.bld-has-block).
-         Элементы переехали из шапки ленты; те же id → JS/обработчики не тронуты.{% endcomment %}
-      <span class="bld-ctx items-center gap-2 min-w-0 pl-2 ml-1 border-l border-gray-200">
-        <span id="bld-block-popup-title" class="text-sm font-semibold text-gray-700 truncate max-w-[7rem] sm:max-w-[11rem]"></span>
-        <span class="flex rounded-md border border-gray-200 overflow-hidden text-xs shrink-0">
-          <button type="button" id="bld-mode-basic" class="px-2 py-1 bg-indigo-600 text-white font-medium">{% trans "Simple" %}</button>
-          <button type="button" id="bld-mode-expert" class="px-2 py-1 text-gray-600 hover:bg-gray-100">{% trans "Expert" %}</button>
-        </span>
-        <button type="button" id="bld-ribbon-collapse" class="text-sm text-gray-500 hover:text-indigo-700 px-1 shrink-0" title="{% trans 'Collapse' %}" aria-label="{% trans 'Collapse' %}">▾</button>
-        <button type="button" id="bld-block-popup-close" class="text-sm font-medium text-gray-500 hover:text-indigo-700 px-1 shrink-0" aria-label="{% trans 'Close' %}">✕</button>
-      </span>
+      {% comment %}STU-12b: контекст выбранного блока (UC6-10: имя + Простой/Эксперт + ▾/✕)
+         из верхней строки ушёл в шапку КОЛОНКИ (#bld-block-head) — блок правится там же,
+         где страница; верхняя строка держит только глобальное.{% endcomment %}
     </div>
     <span class="flex items-center gap-2 shrink-0">
       {% comment %}UC6-6g (фидбэк владельца): правка всегда включена (кнопка «Edit» убрана),
@@ -122,7 +112,7 @@
        съедают верх). На мобиле — нижний лист. Геометрия — в <style> ниже
        (#bld-editor-pane); схлопывание = display:none (нет «прыжка» при входе).{% endcomment %}
     <aside id="bld-editor-pane" class="fixed z-40 bg-white shadow-xl overflow-y-auto p-4 space-y-6 bld-collapsed">
-     <div class="flex items-center justify-between sticky -top-4 -mx-4 px-4 py-2 bg-white border-b border-gray-100 z-10">
+     <div id="bld-panel-head" class="flex items-center justify-between sticky -top-4 -mx-4 px-4 py-2 bg-white border-b border-gray-100 z-10">
        <span id="bld-panel-title" class="text-sm font-semibold text-gray-700">✏️ {% trans "Edit" %}</span>
        <button type="button" id="bld-drawer-close" class="text-gray-400 text-xl leading-none hover:text-gray-700" aria-label="{% trans 'Close' %}">✕</button>
      </div>
@@ -458,10 +448,30 @@
       {% comment %}UC6-6a: контейнер стал ЛЕНТОЙ над канвой (fixed при .bld-ribbon-open
          на панели; на мобильном — bottom-sheet). Живёт внутри формы — контролы
          блока остаются в сабмите. Вкладки Просто/Эксперт — в шапке ленты.{% endcomment %}
-      {% comment %}UC6-10: шапка ленты (имя блока + Просто/Эксперт + свернуть/закрыть)
-         переехала в ВЕРХНИЙ тулбар (.bld-ctx). Лента = только тело-настройки → для
-         простого блока весь редактор ≤2 узких строчки (тулбар + строка полей).{% endcomment %}
+      {% comment %}STU-12b: блок правится В ТОЙ ЖЕ колонке, что страница (решение владельца:
+         одна колонка, без вкладок). Шапка блока — крошка «‹Seite› › ‹блок›» + Einfach|Experte
+         + ⋯ + ✕ — сменяет шапку панели (#bld-panel-head прячется по .bld-has-block); тело —
+         перенесённая строка формы (комментарий-якорь, W0: контролы не покидают #home-form).
+         Кнопки шапки без name= — ничего не сабмитят.{% endcomment %}
       <div id="bld-block-popup" class="hidden">
+        <div id="bld-block-head" class="flex items-center gap-2 sticky -top-4 -mx-4 px-4 py-2 bg-white border-b border-gray-100 z-10">
+          <button type="button" id="bld-block-back" class="text-lg leading-none text-gray-500 hover:text-indigo-700 px-1 shrink-0" title="{% trans 'Back' %}" aria-label="{% trans 'Back' %}">‹</button>
+          <span class="min-w-0 flex-1 text-sm leading-tight">
+            <span id="bld-block-crumb" class="block truncate text-[11px] text-gray-500"></span>
+            <span id="bld-block-popup-title" class="block truncate font-semibold text-gray-700"></span>
+          </span>
+          <span class="flex rounded-md border border-gray-200 overflow-hidden text-xs shrink-0">
+            <button type="button" id="bld-mode-basic" class="px-2 py-1 bg-indigo-600 text-white font-medium">{% trans "Simple" %}</button>
+            <button type="button" id="bld-mode-expert" class="px-2 py-1 text-gray-600 hover:bg-gray-100">{% trans "Expert" %}</button>
+          </span>
+          <details id="bld-block-more" class="relative shrink-0">
+            <summary class="list-none cursor-pointer select-none px-1 text-gray-500 hover:text-indigo-700" title="{% trans 'More' %}" aria-label="{% trans 'More' %}">⋯</summary>
+            <div class="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg p-1 text-sm z-20">
+              <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-50 cursor-pointer"><input type="checkbox" id="bld-dense-toggle" class="rounded border-gray-300">{% trans "Compact" %}</label>
+            </div>
+          </details>
+          <button type="button" id="bld-block-popup-close" class="text-sm font-medium text-gray-500 hover:text-indigo-700 px-1 shrink-0" aria-label="{% trans 'Close' %}">✕</button>
+        </div>
         <div class="bg-white rounded-xl border border-indigo-200 shadow-sm mb-4">
           <div id="bld-block-popup-body" class="p-3"></div>
         </div>
@@ -1538,54 +1548,32 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
 #bld-root[data-mode=expert] #bld-mode-expert { background: #4f46e5; color: #fff; }
 /* UC6-10: контекст выбранного блока (имя+режим+закрыть) в тулбаре — виден только
    когда лента открыта (класс bld-has-block ставит openBlockPopup). */
-.bld-ctx { display: none; }
-#bld-root.bld-has-block .bld-ctx { display: inline-flex; }
+/* STU-12b: пока открыт блок, шапка панели уступает место шапке блока (одна шапка за раз). */
+#bld-root.bld-has-block #bld-panel-head { display: none; }
 /* UC6-10: при выбранном блоке подсказка «Click text to edit» и статус превью
    уступают место имени блока в верхней строке (иначе имя схлопывается до 0). */
-#bld-root.bld-has-block #bld-edit-hint,
-#bld-root.bld-has-block #home-prev-status { display: none; }
 #bld-block-popup-title { min-width: 3.5rem; }
 /* #2 (легаси, flows без ленты): фокус блока внутри секции-области. */
 [data-bld-area="sections"].focus-on > :not(#bld-block-popup) { display: none !important; }
-/* UC6-6a: ЛЕНТА настроек блока над канвой (Word-style). Панель-хозяин формы
-   становится невидимой через visibility (НЕ display — контролы остаются в
-   сабмите), transform снимается (иначе fixed-потомок позиционируется от
-   транслированной панели), а попап всплывает fixed. На мобильном — bottom-sheet. */
+/* STU-12b: блок правится В КОЛОНКЕ. Класс .bld-ribbon-open остался как хук стилей
+   «полей» (UC6-9) и признак «блок открыт»; fixed-лента UC6-6a и её мобильный
+   bottom-sheet сняты — геометрию даёт сама панель (справа на десктопе, лист снизу
+   на телефоне), контролы блока по-прежнему живут в #home-form. */
 #bld-editor-pane.bld-ribbon-open {
-  /* W1-fix: панель-хозяин ленты может нести .bld-collapsed (display:none, канва-first).
-     Лента (#bld-block-popup) — её ПОТОМОК, поэтому display:none предка скрыл бы ленту
-     целиком. Форсим display:block (спецификость (1,1,0)+!important бьёт .bld-collapsed) —
-     хост остаётся невидим (visibility:hidden), а лента-потомок показывается своим
-     visibility:visible. Прежде это делал transform:none (свёртка была translateX). */
+  /* W1-fix: панель могла нести .bld-collapsed (display:none, канва-first) — при
+     открытом блоке она обязана быть видна. */
   display: block !important;
   transform: none !important;
-  visibility: hidden;
-  pointer-events: none;
 }
-/* Правый инспектор (A+B, 2026-07-13): настройки блока — узкая панель СПРАВА во всю
-   высоту (была лента во всю ширину — съедала вертикаль поверх хрома браузера).
-   Мобайл ниже переопределяет в нижний лист. */
 .bld-ribbon-open #bld-block-popup {
-  visibility: visible;
-  pointer-events: auto;
-  position: fixed;
-  z-index: 60;
-  top: 2.5rem;  /* вплотную под тулбаром (py-1) */
-  left: auto;
-  right: 0;
-  bottom: 0;
-  width: min(var(--bld-panel-w, 380px), 92vw);
-  transform: none;
+  position: static;
+  width: auto;
 }
 .bld-ribbon-open #bld-block-popup > div {
-  height: 100%;
-  max-height: none;
-  overflow-y: auto;
   margin-bottom: 0;
   border: 0;
-  border-left: 1px solid #e5e7eb;
   border-radius: 0;
-  box-shadow: -10px 0 24px -14px rgba(0,0,0,.18);
+  box-shadow: none;
 }
 .bld-ribbon-open #bld-block-popup-body { padding: .2rem .6rem; }
 /* UC6-9 (фидбэк владельца): настройки ленты — «поля». Каждый параметр = отдельный
@@ -1640,17 +1628,6 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   .bld-ribbon-open #bld-block-popup label > output { width: 100%; font-size: 13px; }
   .bld-ribbon-open #bld-block-popup .cb-row { flex-direction: column; align-items: stretch; gap: .45rem; }
   .bld-ribbon-open #bld-block-popup .cb-row > input[type="text"] { width: 100%; flex: none; }
-}
-@media (max-width: 1023px) {
-  .bld-ribbon-open #bld-block-popup { top: auto; left: 0; right: 0; bottom: 0; width: 100%; }
-  .bld-ribbon-open #bld-block-popup > div { border-radius: 1rem 1rem 0 0; border-bottom: 0; border-left: 0; border-top: 1px solid #e5e7eb; height: auto; max-height: 55vh; }
-}
-/* Свёртка ▾ в боковом режиме: панель прячется целиком (подглядеть канву во всю
-   ширину), канва расправляется; ▸ в тулбаре возвращает. */
-#bld-block-popup.bld-ribbon-min #bld-block-popup-body { display: none; }
-.bld-ribbon-open #bld-block-popup.bld-ribbon-min { visibility: hidden; pointer-events: none; }
-@media (min-width: 1024px) {
-  #bld-root.bld-has-block:has(#bld-block-popup.bld-ribbon-min) #bld-preview-pane { right: 0; }
 }
 #bld-inserter > div { max-height: min(72vh, 520px); overflow-y: auto; }
 /* Контролы C-блока в ленте текут горизонтально (Word-style). */
@@ -1717,7 +1694,6 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   }
   #bld-panel-resizer:hover, #bld-panel-resizer.dragging { background: rgba(99,102,241,.25); }
   /* Свёрнуто: панель невидима, канва во всю ширину, шеврон у правого края. */
-  #bld-root.bld-panel-min .bld-ribbon-open #bld-block-popup,
   #bld-root.bld-panel-min #bld-editor-pane:not(.bld-collapsed) { visibility: hidden !important; pointer-events: none !important; }
   #bld-root.bld-panel-min #bld-preview-pane { right: 0 !important; }
   #bld-root.bld-panel-min #bld-panel-toggle { right: 0; border-radius: .5rem 0 0 .5rem; }
@@ -1903,7 +1879,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   var isNarrow = !window.matchMedia("(min-width: 1024px)").matches;
   var curArea = null;
   function closePanel() {
-    closeBlockPopup();  // #2: свёртка панели — выйти из фокуса блока и вернуть его строку в список
+    closeBlockPopup(false);  // #2: свёртка панели — выйти из фокуса блока и вернуть его строку в список
     curArea = null;
     if (edPane) edPane.classList.add("bld-collapsed");
     if (backdrop) backdrop.classList.add("hidden");
@@ -2607,6 +2583,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   var popupBody = document.getElementById("bld-block-popup-body");
   var popupTitle = document.getElementById("bld-block-popup-title");
   var popupClose = document.getElementById("bld-block-popup-close");
+  var popupCrumb = document.getElementById("bld-block-crumb");  // STU-12b: «‹Seite› › »
+  var popupBack = document.getElementById("bld-block-back");
   var popupRow = null, popupAnchor = null, selectedSec = null;
   // #2: контейнер секции-области — на него вешаем .focus-on (CSS прячет всё, кроме выбранного блока).
   var secArea = (edPane || document).querySelector('[data-bld-area="sections"]');
@@ -2647,8 +2625,11 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       requestAnimationFrame(function () { edPane.style.transition = ""; });
     }
     syncRibbonPad();
-    if (restorePanel !== false && curArea) showArea(curArea);
+    // STU-12b: назад — на уровень «эта страница» (та же область, что открывается
+    // по умолчанию); блок мог быть открыт кликом по канве при закрытой панели.
+    if (restorePanel !== false) showArea(curArea || (window.__stuPageArea ? window.__stuPageArea() : "sections"));
   }
+  window.__sfCloseBlock = closeBlockPopup;  // навигация канвы закрывает чужой блок (STU-12b)
   // Правый инспектор (A+B, 2026-07-13): канву сжимает CSS (right у #bld-preview-pane
   // по .bld-has-block/:has) — вертикальный пад НЕ нужен. Легаси-пад (UC6-6g, лента
   // была ГОРИЗОНТАЛЬНОЙ полосой сверху) ставил paddingTop = высота попапа; с панелью
@@ -2661,10 +2642,15 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   function openBlockPopup(key) {
     if (!popup) return false;
     var ord = form.querySelector('[name="order_' + key + '"]');
-    var row = ord ? ord.closest(".home-block") : null;
-    if (!row) row = form.querySelector('.cb-row[data-cb-id="' + key + '"]');
+    var byOrd = ord ? ord.closest(".home-block") : null;
+    var byCb = form.querySelector('.cb-row[data-cb-id="' + key + '"]');
     // SE-2a-2: per-page инспектор (каталог и др.) — контрол по data-page-key.
-    if (!row) row = form.querySelector('.page-block[data-page-key="' + key + '"]');
+    var byPage = form.querySelector('.page-block[data-page-key="' + key + '"]');
+    // STU-12b (грабля ТЗ): ключи секций подстраниц совпадают с секциями главной
+    // (services/events/stay_rooms/reviews) — вне главной строка СТРАНИЦЫ первой,
+    // иначе клик по сетке услуг на /termin/ открывал бы настройки секции главной.
+    var onHome = window.__stuIsHome ? window.__stuIsHome() : true;
+    var row = onHome ? (byOrd || byCb || byPage) : (byPage || byCb || byOrd);
     if (!row) return false;
     closeBlockPopup(false);  // UC6-6g: без восстановления панели (не мигает сбоку)
     popupAnchor = document.createComment("blk");
@@ -2675,34 +2661,50 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     // H1.3: имя секции — в кнопке .blk-edit (label из шапки убран); фолбэк — label/span.
     var lab = row.querySelector(".blk-edit") || row.querySelector(".font-medium") || row.querySelector("label") || row.querySelector("span");  // UC6-6g: у C-блока — тип, не «Position»
     popupTitle.textContent = ((lab ? lab.textContent : key) || key).trim() || key;
-    // UC6-6a: ЛЕНТА НАД КАНВОЙ (Word-style; фидбэк владельца) вместо фокуса в
-    // левой панели: канва остаётся во весь экран. Контролы блока НЕ покидают
-    // <form id="home-form"> (сабмит/collect живы) — панель-хозяин прячется
-    // visibility (класс bld-ribbon-open снимает и transform, иначе fixed-лента
-    // позиционировалась бы от транслированной панели), попап всплывает fixed.
+    // STU-12b: крошка «‹Seite› › » из реестра типов (подпись открытой страницы канвы).
+    var pageLbl = window.__stuPageLabel ? window.__stuPageLabel() : "";
+    if (popupCrumb) popupCrumb.textContent = pageLbl ? pageLbl + " ›" : "";
+    // STU-12b: блок — в КОЛОНКЕ (одна колонка, без вкладок). Контролы блока НЕ
+    // покидают <form id="home-form"> (сабмит/collect живы): строка переносится в
+    // #bld-block-popup внутри области sections, область получает .focus-on — CSS
+    // прячет всё, кроме блока. Класс bld-ribbon-open остаётся хуком стилей полей.
     if (edPane) {
       edPane.style.transition = "none";  // UC6-6g: без бокового «выезда»
       edPane.classList.add("bld-ribbon-open");
       requestAnimationFrame(function () { edPane.style.transition = ""; });
       areas.forEach(function (a) { a.classList.toggle("hidden", a.getAttribute("data-bld-area") !== "sections"); });
+      edPane.classList.remove("bld-collapsed");
     }
-    // UC6-10: показать контекст-группу тулбара (имя блока + Simple/Expert + ▾/✕).
+    if (secArea) secArea.classList.add("focus-on");
+    // .bld-has-block: шапка панели уступает место шапке блока; шеврон/ресайзер живы.
     var rootEl = document.getElementById("bld-root");
     if (rootEl) rootEl.classList.add("bld-has-block");
     if (window.__bldUnminPanel) window.__bldUnminPanel();  // клик по блоку снимает свёртку
     popup.classList.remove("hidden");
-    popup.classList.remove("bld-ribbon-min");
     syncRibbonPad();
     highlightBlkBtn(key);  // SE-9c-3: подсветить иконку этого блока в рейле
     return true;
   }
   if (popupClose) popupClose.addEventListener("click", closeBlockPopup);
-  // UC6-6a: свёртка ленты до шапки (▾ ↔ ▸) — настройки под рукой, канва не перекрыта.
-  var ribbonCollapse = document.getElementById("bld-ribbon-collapse");
-  if (ribbonCollapse) ribbonCollapse.addEventListener("click", function () {
-    var min = popup.classList.toggle("bld-ribbon-min");
-    ribbonCollapse.textContent = min ? "▸" : "▾";
-    syncRibbonPad();  // UC6-6g: канва подтягивается под свёрнутую ленту
+  // STU-12b: «‹» в крошке = тот же путь назад к странице, что и «✕».
+  if (popupBack) popupBack.addEventListener("click", function () { closeBlockPopup(); });
+  // STU-12b: «⋯ → Kompakt» — плотность инспектора (бывший 🔍 Kompakt тулбара, UC6-9):
+  // класс bld-dense на корне, персист sf_editor_dense.
+  var denseToggle = document.getElementById("bld-dense-toggle");
+  if (denseToggle) {
+    var rootForDense = document.getElementById("bld-root");
+    var denseOn = false;
+    try { denseOn = localStorage.getItem("sf_editor_dense") === "1"; } catch (eDn) {}
+    denseToggle.checked = denseOn;
+    if (rootForDense) rootForDense.classList.toggle("bld-dense", denseOn);
+    denseToggle.addEventListener("change", function () {
+      if (rootForDense) rootForDense.classList.toggle("bld-dense", denseToggle.checked);
+      try { localStorage.setItem("sf_editor_dense", denseToggle.checked ? "1" : "0"); } catch (eDs) {}
+    });
+  }
+  var blockMore = document.getElementById("bld-block-more");
+  if (blockMore) document.addEventListener("click", function (e) {
+    if (blockMore.open && !blockMore.contains(e.target)) blockMore.removeAttribute("open");
   });
   // SE-9c-1: иконки блоков в рейле открывают панель именно этого блока (реюз openBlockPopup,
   // который сам открывает область sections и позиционирует попап). Репитабл-блоки — в мастере.
@@ -3129,6 +3131,10 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   }
   // Панель живёт в СОСЕДНЕМ замыкании — отдаём хелперы наружу явно (как __sfShowArea).
   window.__stuPageArea = stuPageArea;
+  // STU-12b: попап блока (соседнее замыкание) спрашивает «мы на главной?» (порядок
+  // поиска строки) и подпись страницы для крошки «‹Seite› › ‹блок›».
+  window.__stuIsHome = function () { return curStuPage === "home"; };
+  window.__stuPageLabel = function () { return (curStuPage && STU_LABELS[curStuPage]) || ""; };
   // STU-12a: заголовок колонки без вкладок называет ОХВАТ. Страница — по типу из
   // реестра («Diese Seite: Kategorie»); остальные области — свои подписи.
   var AREA_TITLES = { theme: "🎨 {% trans 'Design' %}", banner: "🖼 {% trans 'Banner' %}", menu: "☰ {% trans 'Menu' %}", library: "📚 {% trans 'Templates' %}" };
@@ -3222,6 +3228,9 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       var typeChanged = code !== lastStuPage;
       lastStuPage = code;
       if (typeChanged && code !== "other") {
+        // STU-12b: блок ПРЕЖНЕЙ страницы в колонке — закрыть (строка вернётся в свой
+        // список), иначе крошка и настройки описывали бы чужую страницу.
+        if (window.__sfCloseBlock) window.__sfCloseBlock(false);
         // STU-11: источник факта — curArea (что панель ОТКРЫЛА), а не «видимый div»:
         // при закрытой панели её область остаётся видимой в DOM. И открываем
         // напрямую, а не кликом по вкладке: тот — ТОГГЛ, и при совпадении области
