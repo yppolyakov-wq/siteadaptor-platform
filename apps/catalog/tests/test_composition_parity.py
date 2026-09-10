@@ -146,3 +146,28 @@ def test_which_compositions_change_markup_is_pinned():
         f"состав композиций с собственной разметкой изменился: "
         f"добавились {sorted(changed - CHANGES_MARKUP)}, пропали {sorted(CHANGES_MARKUP - changed)}"
     )
+
+
+def test_tabs_keep_the_visitor_view_across_navigation():
+    """Переход по вкладке СОХРАНЯЕТ посетительский вид (`?ansicht=`).
+
+    При выносе вкладок в партиал способ сборки параметра изменился (шаблонное
+    `{% if %}` → аргумент `carry`), и потеря переноса выглядела бы так: посетитель
+    выбрал «список», кликнул подкатегорию — и снова видит плитки.
+    """
+    parent = CategoryFactory(slug="carry", name={"de": "Brot"}, page_style="tabs")
+    child = CategoryFactory(slug="carry-weizen", name={"de": "Weizen"}, parent=parent)
+    ProductFactory(name={"de": "Weizenbrot"}, category=child)
+
+    # Ключ пресета — `list`, а не «liste»: неизвестное значение нормализатор
+    # отбрасывает, и `ansicht` в контексте становится пустым (проверено на исходном
+    # коде — замок на «liste» краснел бы и ДО выноса вкладок в партиал).
+    request = RequestFactory().get("/sortiment/carry/", {"ansicht": "list"})
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.tenant = TenantFactory.build(name="B", address="H 1")
+    body = public_views.product_list(request, slug="carry").content.decode()
+
+    nav = body[body.index("data-category-tabs") :]
+    nav = nav[: nav.index("</nav>")]
+    assert "?ansicht=list" in nav, "вкладки потеряли посетительский вид при переходе"

@@ -1,0 +1,20 @@
+{% load i18n %}{% comment %}STU-18d (d-pre): композиция «Вкладки» — переиспользуемый партиал.
+
+До выноса разметка жила веткой внутри `products.html` и была доступна только
+каталогу. Владелец решил (Р-2) включить композиции на девяти других листингах;
+копировать ветку в девять шаблонов значило бы размножить код, который волна LAY
+только что сводила. Поэтому композиция принимает КОНТРАКТ под-сущностей, а не
+объекты каталога.
+
+Вход: `tabs` — список `{label, url, active, count}` (`label` — строка или объект
+с `__str__`: у каталога это Category, у туров будет страна, у услуг — подборка);
+необязательный `carry` — параметры, которые переход обязан сохранить.
+
+Разметка перенесена БАЙТ-В-БАЙТ (замок test_composition_parity): переход =
+ссылка `data-listing-nav` → fetch-своп KAT-5 без перезагрузки; на телефоне —
+горизонтальный скролл.{% endcomment %}
+{% if tabs %}
+<nav class="sticky top-16 z-10 -mx-4 px-4 sm:mx-0 sm:px-0 mb-4 bg-white/95 backdrop-blur border-b border-gray-200 flex gap-1 overflow-x-auto" data-category-tabs aria-label="{% trans 'Kategorien' %}">
+  {% for t in tabs %}<a href="{{ t.url }}{{ carry }}" data-listing-nav {% if t.active %}aria-current="page"{% endif %} class="shrink-0 whitespace-nowrap px-3 py-2.5 text-sm border-b-2 -mb-px {% if t.active %}border-gray-900 text-gray-900 font-semibold{% else %}border-transparent text-gray-500 hover:text-gray-900{% endif %}">{{ t.label }} <span class="text-xs text-gray-400">· {{ t.count }}</span></a>{% endfor %}
+</nav>
+{% endif %}
