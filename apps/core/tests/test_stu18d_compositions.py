@@ -280,3 +280,82 @@ def test_cover_without_a_photo_falls_back_to_the_grid():
 def test_cover_renders_the_site_photo():
     body = _services_page({"services": "kopfbild"}, hero="/media/x.jpg")
     assert "data-comp-hero" in body and "/media/x.jpg" in body
+
+
+# ── витрина: номера, события, поездки (d2) ───────────────────────────────────
+
+
+def _render_listing(view, path, page_styles, seed):
+    """Общий стенд листинга: тенант с выбранной композицией + данные из `seed`."""
+    import uuid
+    from types import SimpleNamespace
+
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.test import RequestFactory
+
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(schema_name="public", slug=f"stu18d{uuid.uuid4().hex[:6]}")
+    cfg = dict(tenant.site_config or {})
+    cfg["page_styles"] = page_styles
+    tenant.site_config = cfg
+    tenant.save(update_fields=["site_config"])
+    seed()
+
+    req = RequestFactory().get(path)
+    req.META["REMOTE_ADDR"] = f"10.{uuid.uuid4().int % 250}.{uuid.uuid4().int % 250}.9"
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = SimpleNamespace(is_authenticated=False)
+    req.tenant = tenant
+    resp = view(req)
+    assert resp.status_code == 200
+    return resp.content.decode()
+
+
+def test_stays_listing_renders_tabs():
+    from apps.collections.models import Collection
+    from apps.stays import public_views
+    from apps.stays.models import StayUnit
+
+    def _seed():
+        # два номера: с одним листинг сразу редиректит на его страницу
+        unit = StayUnit.objects.create(name="Doppelzimmer", price_cents=9000)
+        StayUnit.objects.create(name="Einzelzimmer", price_cents=6000)
+        coll = Collection.objects.create(name={"de": "Seeblick"}, slug="seeblick", is_active=True)
+        unit.collections.add(coll)
+
+    body = _render_listing(public_views.unterkunft_index, "/unterkunft/", {"stays": "tabs"}, _seed)
+    assert 'data-sf-page="tabs"' in body and "?kollektion=seeblick" in body
+
+
+def test_events_listing_renders_shelves_by_theme():
+    """Под-сущность событий — ТЕМА (`Event.category`), та же, что даёт фасет ?cat=."""
+    from django.utils import timezone
+
+    from apps.events import public_views
+    from apps.events.models import Event
+
+    def _seed():
+        Event.objects.create(
+            title="Waldbaden",
+            category="yoga",
+            status=Event.STATUS_PUBLISHED,
+            starts_at=timezone.now() + __import__("datetime").timedelta(days=7),
+        )
+
+    body = _render_listing(
+        public_views.veranstaltung_index, "/veranstaltung/", {"events": "regale"}, _seed
+    )
+    assert 'data-shelf="yoga"' in body and "Waldbaden" in body
+
+
+def test_tours_offer_only_the_cover():
+    """У поездок страница САМА группирует по странам (MT-D2) — вкладки и полки
+    дублировали бы встроенную группировку, поэтому не предлагаются."""
+    offered = {code for code, _l, _h in compositions.styles_for("tours")}
+    assert offered == {"", "kopfbild"}
+    # чтение ШИРЕ предложения (инвариант LAY: живые сайты не меняем), но вьюха
+    # поездок под-сущностей не отдаёт — значит «Полки» и там проваливаются в сетку
+    assert compositions.resolve("tours", "regale", has_children=False) == ""

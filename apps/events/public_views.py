@@ -18,7 +18,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.billing import connect
-from apps.core import option_trackers, ratelimit
+from apps.core import listing_composition, option_trackers, ratelimit
 from apps.stays.services import StayUnavailable
 
 from . import installments, payments, services
@@ -111,6 +111,48 @@ def veranstaltung_index(request):
     events_is_list = ev_layout["preset"] == "list"
     # LAY-3a: раскладка уходит в шаблон целиком (`data-sf-*`), не только классами.
     events_grid = siteconfig.grid_class_string(ev_layout)
+    # STU-18d: композиция страницы. Под-сущность листинга событий — ТЕМА
+    # (`Event.category`): та же таксономия, что даёт фасет ?cat=, включая свои
+    # категории владельца вне пресета (MX-6).
+    _base_url = reverse("storefront-events")
+
+    def _entries():
+        return [
+            {
+                "label": label,
+                "url": f"{_base_url}?cat={key}",
+                "active": selected.get("cat") == key,
+                "count": sum(1 for e in base if e.category == key),
+            }
+            for key, label in facets["cat"]
+        ]
+
+    def _shelves():
+        out = []
+        for key, label in facets["cat"]:
+            items = [e for e in base if e.category == key]
+            if not items:
+                continue
+            out.append(
+                {
+                    "label": label,
+                    "slug": key,
+                    "url": f"{_base_url}?cat={key}",
+                    "items": items[:8],
+                    "total": len(items),
+                    "more": len(items) > 8,
+                }
+            )
+        return out
+
+    comp = listing_composition.context(
+        _raw,
+        "events",
+        entries=_entries,
+        shelves=_shelves,
+        hero=lambda: listing_composition.hero_from_tenant(request.tenant, _raw),
+        kind="event",
+    )
     return render(
         request,
         "storefront/event_index.html",
@@ -131,6 +173,7 @@ def veranstaltung_index(request):
             "sort": sort,
             "sort_options": provider.sort_options(),
             "toolbar_hidden": [(k, v) for k, v in selected.items() if v],
+            **comp,
         },
     )
 
@@ -766,6 +809,15 @@ def touren_index(request):
             "country_groups": groups,
             # LAY-3a-2: раскладка сетки поездок (пусто → прежние классы шаблона).
             **_page_layout(request, "tours_layout", "tours"),
+            # STU-18d: у поездок из композиций доступна только обложка — группировку
+            # по странам страница делает сама (EXCLUDED_REASONS в реестре).
+            **listing_composition.context(
+                getattr(request.tenant, "site_config", {}) or {},
+                "tours",
+                hero=lambda: listing_composition.hero_from_tenant(
+                    request.tenant, getattr(request.tenant, "site_config", {}) or {}
+                ),
+            ),
             # Разбивка по странам имеет смысл только когда стран НЕСКОЛЬКО —
             # иначе это лишний заголовок над единственным списком.
             "grouped": len(named) > 1,

@@ -19,7 +19,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.billing import connect
-from apps.core import option_trackers, ratelimit
+from apps.core import listing_composition, option_trackers, ratelimit
 from apps.loyalty.public_views import gift_purchase_active as _gift_purchase_active
 
 from . import availability, payments, pricing, restrictions, services
@@ -246,6 +246,51 @@ def unterkunft_index(request):
     # иначе «Verteilen / Volle Reihen» на этом листинге ничего не делают.
     rooms_layout = siteconfig.normalize(_raw)["stay_index_layout"]
     rooms_grid = siteconfig.grid_class_string(rooms_layout)
+    # STU-18d: композиция страницы. Под-сущность листинга номеров — ПОДБОРКА
+    # владельца (та же, что даёт чипы фасета ?kollektion=), второй таксономии не
+    # заводим. Полки/вкладки исчезают сами, если подборок нет (resolve fail-safe).
+    _base_url = reverse("storefront-unterkunft")
+    _embed_q = "&embed=1" if embed else ""
+
+    def _entries():
+        return [
+            {
+                "label": c["label"],
+                "url": f"{_base_url}?kollektion={c['slug']}{_embed_q}",
+                "active": kollektion == c["slug"],
+                "count": units_base.filter(collections__slug=c["slug"]).count(),
+            }
+            for c in collection_chips
+        ]
+
+    def _shelves():
+        out = []
+        for c in collection_chips:
+            qs = units_base.filter(collections__slug=c["slug"])
+            items = list(qs[:8])
+            if not items:
+                continue
+            total = qs.count()
+            out.append(
+                {
+                    "label": c["label"],
+                    "slug": c["slug"],
+                    "url": f"{_base_url}?kollektion={c['slug']}{_embed_q}",
+                    "items": items,
+                    "total": total,
+                    "more": total > len(items),
+                }
+            )
+        return out
+
+    comp = listing_composition.context(
+        _raw,
+        "stays",
+        entries=_entries,
+        shelves=_shelves,
+        hero=lambda: listing_composition.hero_from_tenant(tenant, _raw),
+        kind="stay",
+    )
     return _render_embed(
         request,
         "storefront/stay_index.html",
@@ -279,6 +324,7 @@ def unterkunft_index(request):
             "active_kollektion": kollektion,
             # G1→B1.1 ссылка на гутшайны — единый гейт (модуль gift + оплата).
             "gift_active": _gift_purchase_active(tenant),
+            **comp,
         },
         embed,
     )
