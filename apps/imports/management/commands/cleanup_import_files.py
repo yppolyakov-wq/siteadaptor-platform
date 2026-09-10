@@ -19,7 +19,12 @@ from datetime import timedelta
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from django_tenants.utils import get_public_schema_name, get_tenant_model, schema_context
+from django_tenants.utils import (
+    get_public_schema_name,
+    get_tenant_model,
+    schema_context,
+    schema_exists,
+)
 
 from apps.imports.models import ImportJob
 from apps.imports.tasks import drop_source_file
@@ -44,16 +49,23 @@ class Command(BaseCommand):
         schemas = tenant_model.objects.exclude(schema_name=get_public_schema_name()).values_list(
             "schema_name", flat=True
         )
+        missing = []
         for schema in schemas:
             try:
                 with schema_context(schema):
                     n = self._schema(apply, older_than_days)
             except Exception as exc:  # noqa: BLE001 — одна схема не валит обход
-                self.stderr.write(f"{schema}: ОШИБКА {exc!r}")
+                # Строка Tenant без PG-схемы — не ошибка обхода (см. rotate_secrets).
+                if not schema_exists(schema):
+                    missing.append(schema)
+                else:
+                    self.stderr.write(f"{schema}: ОШИБКА {exc!r}")
                 continue
             if n:
                 self.stdout.write(f"{schema}: {n}")
             total += n
+        if missing:
+            self.stdout.write(f"СХЕМЫ ОТСУТСТВУЮТ: {', '.join(missing)}")
         self.stdout.write(f"[{mode}] файлов импорта к удалению: {total}")
 
     def _schema(self, apply: bool, older_than_days: int) -> int:

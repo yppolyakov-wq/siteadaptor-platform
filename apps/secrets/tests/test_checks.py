@@ -56,8 +56,6 @@ def test_invalid_key_is_reported_outside_deploy_too():
     проверка пригодности — обычный чек, а не deploy-only: `manage.py check` и
     старт runserver обязаны краснеть, а не ждать деплоя."""
     assert [m.id for m in secrets_encryption_key_valid(None)] == ["secrets.E002"]
-    # а «ключ не задан» остаётся deploy-only: в dev производный ключ намеренно ок
-    assert secrets_encryption_key_valid.tags != secrets_encryption_key_set.tags or True
 
 
 def test_validity_check_is_not_deploy_only():
@@ -141,3 +139,16 @@ def test_previous_keys_without_a_current_key_is_an_error():
     досталась бы отставному ключу, а смена ключа выглядела бы выполненной."""
     with override_settings(SECRETS_ENCRYPTION_KEY="", SECRETS_ENCRYPTION_KEY_PREVIOUS=[_KEY]):
         assert [m.id for m in secrets_encryption_key_valid(None)] == ["secrets.E004"]
+
+
+def test_missing_key_check_stays_deploy_only():
+    """«Ключ не задан» обязан остаться deploy-only: в dev/CI производный ключ
+    допустим намеренно, и потеря `deploy=True` начала бы валить любую
+    manage.py-команду. Проверяем РЕЕСТР, а не `.tags` (deploy-ность живёт не в
+    тегах — прежняя ассерция была ложной и держалась на `or True`)."""
+    from django.core.checks import registry
+
+    assert secrets_encryption_key_set in registry.registry.deployment_checks
+    assert secrets_encryption_key_set not in registry.registry.get_checks(
+        include_deployment_checks=False
+    )

@@ -1,5 +1,6 @@
 """SE-5a: кэш HTML витрины тенанта + сброс при публикации (версия в ключе)."""
 
+import re
 from types import SimpleNamespace
 
 import pytest
@@ -553,8 +554,10 @@ def test_host_with_port_does_not_mint_cache_entries(decorator):
     # в локальной разработке и на стенде, где адрес — `…:8000`).
     keys = [str(k) for k in cache._cache]
     assert len(keys) == 1, keys
-    assert "shop.example.de:" not in keys[0].replace("shop.example.de:", "", 0) or True
-    assert ":1:" not in keys[0].split("shop.example.de")[1][:2], keys  # порт в ключ не попал
+    # Порт в ключ не попал. Проверяем формой ключа, а не игрой с подстроками:
+    # прежние две ассерции были декоративными (одна — заведомо ложная под
+    # `or True`), и работу делала только проверка количества.
+    assert not re.search(r"shop\.example\.de:\d", keys[0]), keys
 
     view(req("anderer.example.de"))  # другой домен — своя запись
     assert len(cache._cache) == 2

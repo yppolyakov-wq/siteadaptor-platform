@@ -79,3 +79,22 @@ def test_older_than_days_is_configurable():
     job = _job("failed", days_old=5)
     call_command("cleanup_import_files", "--apply", "--older-than-days", "3")
     assert not _refreshed(job).source_file
+
+
+def test_tenant_row_without_a_schema_is_named_not_treated_as_failure(capsys, monkeypatch):
+    """Симметрично `rotate_secrets`: схемы нет — говорим это прямо и идём дальше."""
+    from django.db import ProgrammingError
+
+    from apps.imports.management.commands import cleanup_import_files as cmd
+
+    TenantFactory(schema_name="ghost_imports", slug="ghost-imports")
+    # В тестах все таблицы в public, поэтому обход не падает сам — воспроизводим
+    # прод, где таблиц по search_path нет.
+    monkeypatch.setattr(
+        cmd.Command,
+        "_schema",
+        lambda self, *a, **kw: (_ for _ in ()).throw(ProgrammingError("no table")),
+    )
+    call_command("cleanup_import_files", "--apply")
+    out = capsys.readouterr().out
+    assert "СХЕМЫ ОТСУТСТВУЮТ" in out and "ghost_imports" in out

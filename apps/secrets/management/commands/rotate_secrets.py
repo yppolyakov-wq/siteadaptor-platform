@@ -33,7 +33,12 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.db.models import TextField
 from django.db.models.functions import Cast
-from django_tenants.utils import get_public_schema_name, get_tenant_model, schema_context
+from django_tenants.utils import (
+    get_public_schema_name,
+    get_tenant_model,
+    schema_context,
+    schema_exists,
+)
 
 from apps.secrets import crypto
 from apps.secrets.fields import EncryptedTextField
@@ -82,6 +87,7 @@ class Command(BaseCommand):
         schemas = tenant_model.objects.exclude(schema_name=get_public_schema_name()).values_list(
             "schema_name", flat=True
         )
+        missing = []
         for schema in schemas:
             errors = []
             n = 0
@@ -90,6 +96,14 @@ class Command(BaseCommand):
                     n = self._tenant_schema(apply, errors)
             except Exception as exc:  # noqa: BLE001 — одна схема не валит обход
                 errors.append(repr(exc))
+            if errors and not schema_exists(schema):
+                # Строка Tenant есть, а PG-схемы нет (провалившийся провижининг).
+                # Называть это «ошибкой ротации» нельзя: код возврата стал бы
+                # ненулевым НАВСЕГДА, а ops-инструкция «повторить после
+                # устранения причины» — невыполнимой, устранять нечего. Тот же
+                # диагноз, что у `manage.py migration_state`.
+                missing.append(schema)
+                errors = []
             for err in errors:
                 self.stderr.write(f"{schema}: ОШИБКА {err}")
             if errors:
@@ -97,6 +111,11 @@ class Command(BaseCommand):
             if n:
                 self.stdout.write(f"{schema}: {n}")
             total += n
+        if missing:
+            self.stdout.write(
+                "СХЕМЫ ОТСУТСТВУЮТ (строка Tenant есть, схемы нет — провижининг не "
+                f"завершился): {', '.join(missing)}"
+            )
         self.stdout.write(f"[{mode}] секретов к перешифровке: {total}")
         if self.unreadable:
             shown = ", ".join(self.unreadable[:10])

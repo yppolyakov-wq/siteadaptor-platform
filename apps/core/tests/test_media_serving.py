@@ -113,7 +113,13 @@ def test_no_urlconf_uses_bare_static_serve(urlconf):
     assert "django.views.static import serve" not in text, f"{urlconf}: голый static.serve"
 
 
-_FOLDER_LITERAL = re.compile(r"""(?:folder|upload_to)\s*=\s*["']([A-Za-z0-9_]+)""")
+#: Папку загрузок задают тремя способами: `folder=`/`upload_to=` и прямой
+#: `default_storage.save("<папка>/…")`. Третий сканер раньше не видел — новая
+#: приватная папка молча оказалась бы «не классифицированной, но публичной».
+_FOLDER_LITERAL = re.compile(
+    r"""(?:folder|upload_to)\s*=\s*["']([A-Za-z0-9_]+)"""
+    r"""|(?:default_storage|storage)\.save\(\s*f?["']([A-Za-z0-9_]+)/"""
+)
 
 
 def _upload_folders_in_code() -> set[str]:
@@ -122,7 +128,8 @@ def _upload_folders_in_code() -> set[str]:
         parts = py.relative_to(ROOT).parts
         if "tests" in parts or "migrations" in parts:
             continue
-        found.update(_FOLDER_LITERAL.findall(py.read_text()))
+        for groups in _FOLDER_LITERAL.findall(py.read_text()):
+            found.update(g for g in groups if g)
     return found
 
 

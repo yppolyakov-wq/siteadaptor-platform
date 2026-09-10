@@ -268,3 +268,9 @@ def test_made_up_cities_do_not_mint_cache_entries():
     for i in range(5):
         assert views.city_listing(req(f"/entdecken/muell-{i}/"), f"muell-{i}").status_code == 200
     assert len(cache._cache) == 0, [str(k) for k in cache._cache]
+
+    # И с параметрами тоже: сегодня query и так уводит мимо кэша, но признак
+    # «пусто» считается по фактическим карточкам, а не по политике декоратора —
+    # расширение кэша на сортировку/фильтры не должно открывать вектор заново.
+    marked = views.city_listing(req("/entdecken/muell-9/?sort=neueste"), "muell-9")
+    assert getattr(marked, "no_store", False) is True

@@ -15,7 +15,7 @@ from cryptography.fernet import Fernet, InvalidToken
 from django.core.files.base import ContentFile
 from django.core.management import call_command
 from django.core.management.base import CommandError
-from django.db import connection
+from django.db import ProgrammingError, connection
 from django.test import override_settings
 
 from apps.secrets import crypto
@@ -35,6 +35,22 @@ def _fresh_fernet():
     crypto._fernet.cache_clear()
     yield
     crypto._fernet.cache_clear()
+
+
+def _tenant_with_schema(schema_name: str, slug: str):
+    """Тенант, у которого PG-схема реально существует.
+
+    Фабрика создаёт только строку (`auto_create_schema=False`), а команда
+    отличает «сбой в живой схеме» (ошибка, ненулевой код) от «строки Tenant без
+    схемы» (диагноз, код 0). Тесты про НАСТОЯЩИЙ сбой обязаны быть в первой
+    категории, иначе они проверяют не то.
+    """
+    from apps.tenants.tests.factories import TenantFactory
+
+    tenant = TenantFactory(schema_name=schema_name, slug=slug)
+    with connection.cursor() as cur:
+        cur.execute(f'CREATE SCHEMA IF NOT EXISTS "{schema_name}"')
+    return tenant
 
 
 def _legacy(plain: str) -> str:
@@ -152,14 +168,13 @@ def test_document_blob_survives_a_storage_failure_during_rotation(monkeypatch):
 
     from apps.documents import storage as doc_storage
     from apps.documents.models import SecureDocument
-    from apps.tenants.tests.factories import TenantFactory
 
     with override_settings(SECRETS_ENCRYPTION_KEY=""):
         crypto._fernet.cache_clear()
         path, mime, size = doc_storage.save_encrypted(ContentFile(PNG, name="x.png"))
         doc = SecureDocument.objects.create(path=path, mime=mime, size=size)
     crypto._fernet.cache_clear()
-    TenantFactory(schema_name="rot_fail", slug="rot-fail")
+    _tenant_with_schema("rot_fail", "rot-fail")
 
     real_save = default_storage.save
     monkeypatch.setattr(
@@ -182,9 +197,7 @@ def test_failing_schema_makes_the_command_exit_nonzero():
     часть секретов всё ещё читается производным от SECRET_KEY ключом."""
     from unittest.mock import patch
 
-    from apps.tenants.tests.factories import TenantFactory
-
-    TenantFactory(schema_name="rot_bad", slug="rot-bad")
+    _tenant_with_schema("rot_bad", "rot-bad")
     with override_settings(SECRETS_ENCRYPTION_KEY=NEW_KEY):
         crypto._fernet.cache_clear()
         with patch.object(Command, "_channel_configs", side_effect=RuntimeError("boom")):
@@ -374,14 +387,13 @@ def test_failed_delete_of_the_old_blob_is_reported_not_just_logged(monkeypatch):
 
     from apps.documents import storage as doc_storage
     from apps.documents.models import SecureDocument
-    from apps.tenants.tests.factories import TenantFactory
 
     with override_settings(SECRETS_ENCRYPTION_KEY=""):
         crypto._fernet.cache_clear()
         path, mime, size = doc_storage.save_encrypted(ContentFile(PNG, name="x.png"))
         SecureDocument.objects.create(path=path, mime=mime, size=size)
     crypto._fernet.cache_clear()
-    TenantFactory(schema_name="rot_nodel", slug="rot-nodel")
+    _tenant_with_schema("rot_nodel", "rot-nodel")
 
     monkeypatch.setattr(
         default_storage, "delete", lambda *a, **kw: (_ for _ in ()).throw(OSError("AccessDenied"))
@@ -469,3 +481,24 @@ def test_previous_key_never_takes_the_encryption_slot():
     with override_settings(SECRETS_ENCRYPTION_KEY="", SECRETS_ENCRYPTION_KEY_PREVIOUS=[]):
         crypto._fernet.cache_clear()
         assert crypto.decrypt(token) == "neues-geheimnis"
+
+
+def test_tenant_row_without_a_schema_does_not_make_the_command_unpassable(capsys):
+    """Строка Tenant без PG-схемы (провалившийся провижининг) не должна навсегда
+    делать код возврата ненулевым: ops-инструкция «повторить после устранения
+    причины» стала бы невыполнимой — устранять нечего. Тот же диагноз, что у
+    `manage.py migration_state`: «СХЕМЫ ОТСУТСТВУЮТ», а не «ошибка схемы»."""
+    from unittest.mock import patch
+
+    from apps.tenants.tests.factories import TenantFactory
+
+    TenantFactory(schema_name="ghost_schema", slug="ghost")  # схемы в БД нет
+    with override_settings(SECRETS_ENCRYPTION_KEY=NEW_KEY):
+        crypto._fernet.cache_clear()
+        # В тестовой конфигурации все таблицы лежат в public, поэтому обход
+        # такой схемы не падает сам — воспроизводим прод: таблиц по search_path
+        # нет, шаг бросает ProgrammingError.
+        with patch.object(Command, "_encrypted_fields", side_effect=ProgrammingError("no table")):
+            call_command("rotate_secrets", "--apply")  # НЕ бросает
+    out = capsys.readouterr().out
+    assert "СХЕМЫ ОТСУТСТВУЮТ" in out and "ghost_schema" in out
