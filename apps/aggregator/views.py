@@ -411,7 +411,9 @@ def city_listing(request, city, business_type=None):
     # с кодом 200 — значит аноним (или краулер) минтил бы по записи кэша на
     # каждый придуманный адрес, в том же Redis, где сессии. Пустую выдачу не
     # кэшируем: ускорять нечего, а ось пути перестаёт быть безграничной.
-    known_city = pool.exists()
+    # Запрос с параметрами и так идёт мимо кэша (cache_public_page), поэтому
+    # лишний EXISTS там не нужен.
+    known_city = True if request.GET else pool.exists()
     # A8: сортировка выдачи (keyset-совместимая — поле есть на листинге).
     sort = request.GET.get("sort")
     if sort not in _LISTING_SORTS:
