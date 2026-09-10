@@ -150,8 +150,8 @@ CSS-правила** — весь вид собран из утилит Tailwind
 | `services` | **— НЕТ** | ✓ `service_layout` | ✓ | сорт |
 | `stays` | **— НЕТ** | ✓ `stay_layout` | ✓ | сорт |
 | `events` | **— НЕТ** | ✓ `events_layout` | ✓ | сорт |
-| `tours` | **— НЕТ** | ✓ `tours_layout` | ⚠ 2 формы из 6 | ширина текста |
-| `combos` | **— НЕТ** | ✓ `combos_layout` | ⚠ 2 формы из 6 | ширина текста |
+| `tours` | **— НЕТ** | ✓ `tours_layout` | ⚠ 4 формы из 6 (Д-2) | ширина текста |
+| `combos` | **— НЕТ** | ✓ `combos_layout` | ⚠ 4 формы из 6 (Д-2) | ширина текста |
 | `lookbook` | **— НЕТ** | ✓ `lookbook_layout` | ✓ | ширина текста |
 | `wishlist` | **— НЕТ** | ✓ `wishlist_layout` | ✓ | ширина текста |
 | `blog` | **— НЕТ** | ✓ `blog_index_layout` | — (свои карточки) | ширина текста |
