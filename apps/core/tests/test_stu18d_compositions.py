@@ -84,15 +84,10 @@ def test_surface_declares_composition_only_if_its_page_uses_the_shell():
             f"{surface}: композиция объявлена, но страница не на каркасе listing.html — "
             "хром рисовать некому"
         )
-    # пять отложенных — с ЗАПИСАННОЙ причиной, а не молчаливым отсутствием
-    assert set(compositions.PENDING_SURFACES) == {
-        "combos",
-        "lookbook",
-        "wishlist",
-        "blog",
-        "reviews",
-    }
+    # d3 свёл последние пять страниц на каркас — отложенных не осталось; словарь
+    # причин пуст, но существует: он и есть место для будущих исключений.
     assert not (set(compositions.PENDING_SURFACES) & compositions.LISTING_SURFACES)
+    assert len(compositions.LISTING_SURFACES) == 9
 
 
 def test_in_grid_compositions_are_not_offered_on_listings():
@@ -285,7 +280,7 @@ def test_cover_renders_the_site_photo():
 # ── витрина: номера, события, поездки (d2) ───────────────────────────────────
 
 
-def _render_listing(view, path, page_styles, seed):
+def _render_listing(view, path, page_styles, seed, config=None):
     """Общий стенд листинга: тенант с выбранной композицией + данные из `seed`."""
     import uuid
     from types import SimpleNamespace
@@ -298,6 +293,7 @@ def _render_listing(view, path, page_styles, seed):
 
     tenant = TenantFactory(schema_name="public", slug=f"stu18d{uuid.uuid4().hex[:6]}")
     cfg = dict(tenant.site_config or {})
+    cfg.update(config or {})
     cfg["page_styles"] = page_styles
     tenant.site_config = cfg
     tenant.save(update_fields=["site_config"])
@@ -359,3 +355,49 @@ def test_tours_offer_only_the_cover():
     # чтение ШИРЕ предложения (инвариант LAY: живые сайты не меняем), но вьюха
     # поездок под-сущностей не отдаёт — значит «Полки» и там проваливаются в сетку
     assert compositions.resolve("tours", "regale", has_children=False) == ""
+
+
+# ── витрина: пять сведённых на каркас страниц (d3) ───────────────────────────
+
+
+def test_combos_listing_renders_tabs_by_category():
+    """Под-сущность наборов — НАПРАВЛЕНИЕ (`Combo.category`), ключ фасета ?kategorie=."""
+    from apps.catalog.models import Category, Combo
+    from apps.orders import public_views
+
+    def _seed():
+        cat = Category.objects.create(name={"de": "Menüs"}, slug="menues", is_active=True)
+        Combo.objects.create(name="Menü A", price="15.00", is_active=True, category=cat)
+
+    body = _render_listing(public_views.combo_list_public, "/kombi/", {"combos": "tabs"}, _seed)
+    assert 'data-sf-page="tabs"' in body and "?kategorie=menues" in body
+
+
+def test_cover_only_pages_get_the_cover():
+    """У блога под-сущностей нет — но обложка работает, если у сайта есть фото."""
+    from apps.events import public_views
+    from apps.events.models import BlogPost
+
+    def _seed():
+        BlogPost.objects.create(title="Post", slug="post", is_published=True)
+
+    body = _render_listing(
+        public_views.blog_index,
+        "/blog/",
+        {"blog": "kopfbild"},
+        _seed,
+        config={"hero_image": "/media/hero.jpg"},
+    )
+    assert "data-comp-hero" in body and "/media/hero.jpg" in body
+
+
+def test_panel_hides_the_cover_without_a_site_photo():
+    """Плитка «С обложкой» не должна обещать то, чего страница не отрисует."""
+    from apps.core import views as core_views
+
+    off = core_views._composition_gate({})
+    assert "kopfbild" in off["blog"]
+    on = core_views._composition_gate({"hero_image": "/media/hero.jpg"})
+    assert "kopfbild" not in on["blog"]
+    # у категории «С обложкой» берёт СВОЁ фото — гейт по фото сайта её не трогает
+    assert "kopfbild" not in core_views._composition_gate({})["category"]

@@ -1,20 +1,30 @@
-{% extends "storefront/_base.html" %}
+{% extends "storefront/listing.html" %}
 {% load siteui %}
 {% load i18n %}
+{% comment %}STU-18d (d3): страница на каркасе `listing.html` — иначе хром композиции
+(его рисует каркас) до неё не доходил, и композицию нельзя было даже объявить.
+Разметка перенесена байт-в-байт; строка инструментов подавлена — фильтров у
+страницы нет, а пустая полоса добавила бы отступ, которого не было.{% endcomment %}
 {% block title %}{{ combos_title }} · {{ request.tenant.name }}{% endblock %}
 
-{% block content %}
+{% block listing_header %}
 <h1 class="text-2xl md:text-3xl font-bold mb-6">{{ combos_title }}</h1>
 
 {% if current_category %}
 {% comment %}KAT-2: фильтр направления («Alle Sets» со страницы категории).{% endcomment %}
 <p class="-mt-4 mb-6 text-sm text-gray-500">{{ current_category }} · <a href="{% url 'storefront-combos' %}" class="text-indigo-600 hover:underline">{% trans "Alle anzeigen" %}</a></p>
 {% endif %}
+{% endblock %}
+
+{% block listing_toolbar %}{% endblock %}
+
+{% block listing_grid %}
 {% if combos %}
 {% comment %}MEN-4/KAT-2: единая карточка набора — _combo_card.html (реюз со страницей категории и тизером каталога).{% endcomment %}
 {% include "storefront/_combo_grid.html" with combos=combos cg_cls=combos_grid|default:"grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4" cg_layout=combos_layout %}
-{% else %}
-<p class="text-gray-500">{% trans "No combos available right now." %}</p>
 {% endif %}
-  {% page_blocks "combos" %}
 {% endblock %}
+
+{% block listing_empty %}{% if not combos %}<p class="text-gray-500">{% trans "No combos available right now." %}</p>{% endif %}{% endblock %}
+
+{% block listing_after %}{% page_blocks "combos" %}{% endblock %}

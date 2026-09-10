@@ -73,6 +73,11 @@ def _scan(template_name, seen=None):
         source = open(get_template(template_name).origin.name, encoding="utf-8").read()
     except Exception:  # noqa: BLE001 — шаблона нет/не читается: не наша забота
         return (False, False)
+    # STU-18d: пояснительные блоки — не разметка. Пока их не вырезали, ЛЮБАЯ
+    # страница на каркасе `listing.html` считалась рисующей карточку: имя
+    # `_product_card.html` встречается в описании контракта полок. Сканер обязан
+    # смотреть на то, что рендерится, иначе краснеет на прозе.
+    source = re.sub(r"{%\s*comment\s*%}.*?{%\s*endcomment\s*%}", "", source, flags=re.S)
     card = bool(CARD_MARKERS.search(source))
     grid = bool(GRID_MARKERS.search(source))
     for name in _INCLUDE.findall(source):

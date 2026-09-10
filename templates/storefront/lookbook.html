@@ -1,12 +1,13 @@
-{% extends "storefront/_base.html" %}
+{% extends "storefront/listing.html" %}
 {% load siteui %}
 {% load i18n sellable_ui %}
 {% comment %}M4-B Lookbook (план m4-boutique-plan-2026-07-30 §B): страница образа —
 галерея подборки + товары, из которых он собран. Карточки — общий тег
-`sellable_card` (единая форма карточек ST-7c действует и здесь).{% endcomment %}
+`sellable_card` (единая форма карточек ST-7c действует и здесь).
+STU-18d (d3): страница на каркасе `listing.html` (см. combos.html).{% endcomment %}
 {% block title %}{{ collection_name }} — {{ request.tenant.name }}{% endblock %}
 
-{% block content %}
+{% block listing_header %}
 <nav class="text-sm text-gray-500 mb-4">
   <a href="{% url 'storefront-products' %}" class="hover:underline">{% trans "Our products" %}</a>
   <span class="mx-1">›</span>{{ collection_name }}
@@ -20,15 +21,20 @@
   <img src="{{ img.url }}" alt="{{ collection_name }}" loading="lazy" class="w-full aspect-[3/4] object-cover rounded-2xl">
   {% endfor %}
 </div>
+{% endblock %}
 
+{% block listing_toolbar %}{% endblock %}
+
+{% block listing_grid %}
 {% if products %}
 <h2 class="text-xl font-semibold mb-4">{% trans "Diese Teile gehören zum Look" %}</h2>
 <div class="{{ lookbook_grid|default:'grid sm:grid-cols-2 lg:grid-cols-4 gap-4' }} mb-8" {% sf_grid_attrs lookbook_layout cols="1/2/4" count=products|length %}>
   {% for p in products %}{% sellable_card 'product' p %}{% endfor %}
 </div>
 <a href="{% url 'storefront-products' %}?kollektion={{ collection.slug }}" class="text-sm text-indigo-600 hover:underline">{% trans "Alle Teile im Sortiment ansehen" %} →</a>
-{% else %}
-<p class="text-gray-400">{% trans "Zu diesem Look sind noch keine Artikel zugeordnet." %}</p>
 {% endif %}
-  {% page_blocks "lookbook" %}
 {% endblock %}
+
+{% block listing_empty %}{% if not products %}<p class="text-gray-400">{% trans "Zu diesem Look sind noch keine Artikel zugeordnet." %}</p>{% endif %}{% endblock %}
+
+{% block listing_after %}{% page_blocks "lookbook" %}{% endblock %}

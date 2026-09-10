@@ -596,14 +596,14 @@ PAGE_TYPES: tuple[PageType, ...] = (
         "reviews",
         _("Bewertungen"),
         ("storefront-reviews",),
-        ("reviews_page_layout", "text_width"),
+        ("reviews_page_style", "reviews_page_layout", "text_width"),
         block_host="reviews",
     ),
     PageType(
         "blog",
         _("Blog"),
         ("storefront-blog",),
-        ("blog_index_layout", "text_width"),
+        ("blog_page_style", "blog_index_layout", "text_width"),
         block_host="blog",
     ),
     PageType(
@@ -637,7 +637,7 @@ PAGE_TYPES: tuple[PageType, ...] = (
         ("storefront-wishlist",),
         # STU-17: список собран из `_product_card` и `_promo_card` — обе формы здесь
         # действуют (ключ у них общий, `site_defaults.card_style`).
-        ("wishlist_layout", "product_card_form", "text_width"),
+        ("wishlist_page_style", "wishlist_layout", "product_card_form", "text_width"),
         block_host="wishlist",
     ),
     PageType(
@@ -647,7 +647,7 @@ PAGE_TYPES: tuple[PageType, ...] = (
         # STU-9 оставлял страницу без формы карточки: тогда `_combo_card` её не читал.
         # LAY-4 научил — карточка набора берёт ту же `site_defaults.card_style`, что и
         # товарная, поэтому ось действует и обязана быть предложена (STU-17).
-        ("combos_layout", "product_card_form", "text_width"),
+        ("combos_page_style", "combos_layout", "product_card_form", "text_width"),
         block_host="combos",
     ),
     PageType(
@@ -663,7 +663,7 @@ PAGE_TYPES: tuple[PageType, ...] = (
         "lookbook",
         _("Lookbook"),
         ("storefront-lookbook",),
-        ("lookbook_layout", "text_width", "product_card_form"),
+        ("lookbook_page_style", "lookbook_layout", "text_width", "product_card_form"),
         block_host="lookbook",
     ),
     PageType(

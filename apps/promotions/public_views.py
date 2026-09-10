@@ -935,6 +935,23 @@ def team_page(request):
     )
 
 
+def _cover_composition(tenant, surface: str) -> dict:
+    """STU-18d: композиция листинга без под-сущностей — только «С обложкой».
+
+    Под-сущностей (подборок, тем, направлений) у страницы нет, поэтому из реестра
+    доступна одна композиция; без фото сайта она честно проваливается в обычную
+    сетку (гейт `NEEDS_PHOTO`).
+    """
+    from apps.core import listing_composition
+
+    cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
+    return listing_composition.context(
+        cfg,
+        surface,
+        hero=lambda: listing_composition.hero_from_tenant(tenant, cfg),
+    )
+
+
 def reviews_page(request):
     """ST-8: отдельная страница «Отзывы» /bewertungen/.
 
@@ -963,6 +980,7 @@ def reviews_page(request):
             "business_rating_value": business_rating(),
             # LAY-3a-2: раскладка сетки отзывов (пусто → прежние классы шаблона).
             **siteconfig.page_layout_ctx(site, "reviews_page_layout", "reviews_page"),
+            **_cover_composition(request.tenant, "reviews"),
         },
     )
 

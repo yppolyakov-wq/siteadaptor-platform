@@ -872,7 +872,18 @@ def blog_index(request):
     from .models import BlogPost
 
     posts = BlogPost.objects.filter(is_published=True)
-    ctx = {"posts": posts, **_page_layout(request, "blog_index_layout", "blog_index")}
+    # STU-18d: под-сущностей (рубрик) у блога нет — из реестра доступна только
+    # обложка; без фото сайта она проваливается в обычную сетку (NEEDS_PHOTO).
+    _cfg = getattr(request.tenant, "site_config", {}) or {}
+    ctx = {
+        "posts": posts,
+        **_page_layout(request, "blog_index_layout", "blog_index"),
+        **listing_composition.context(
+            _cfg,
+            "blog",
+            hero=lambda: listing_composition.hero_from_tenant(request.tenant, _cfg),
+        ),
+    }
     return render(request, "storefront/blog_index.html", ctx)
 
 

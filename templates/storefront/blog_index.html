@@ -1,10 +1,17 @@
-{% extends "storefront/_base.html" %}
+{% extends "storefront/listing.html" %}
 {% load i18n siteui %}
+{% comment %}STU-18d (d3): страница на каркасе `listing.html` (см. combos.html).{% endcomment %}
 {% block title %}{% trans "Blog" %} — {{ request.tenant.name }}{% endblock %}
 
-{% block content %}
-<div class="{% text_width_class default="none" %}">
+{% block listing_width %}{% text_width_class default="none" %}{% endblock %}
+
+{% block listing_header %}
 <h1 class="text-2xl md:text-3xl font-bold mb-6">{% trans "Blog" %}</h1>
+{% endblock %}
+
+{% block listing_toolbar %}{% endblock %}
+
+{% block listing_grid %}
 {% if posts %}
   <div class="{{ blog_index_grid|default:'grid sm:grid-cols-2 lg:grid-cols-3 gap-6' }}" {% sf_grid_attrs blog_index_layout cols="1/2/3" count=posts|length %}>
     {% for p in posts %}
@@ -18,10 +25,9 @@
       </a>
     {% endfor %}
   </div>
-{% else %}
-  <p class="text-gray-400">{% trans "No posts yet." %}</p>
 {% endif %}
-{% page_blocks "blog" %}
-</div>
 {% endblock %}
 
+{% block listing_empty %}{% if not posts %}<p class="text-gray-400">{% trans "No posts yet." %}</p>{% endif %}{% endblock %}
+
+{% block listing_after %}{% page_blocks "blog" %}{% endblock %}

@@ -1,9 +1,12 @@
-{% extends "storefront/_base.html" %}
+{% extends "storefront/listing.html" %}
 {% load i18n siteui %}
 {% comment %}ST-8: отдельная страница отзывов — полный список (на главной остаётся
-тизер). Данные — те же отзывы о бизнесе с портала.{% endcomment %}
-{% block content %}
-<div class="{% text_width_class default="none" %}">
+тизер). Данные — те же отзывы о бизнесе с портала.
+STU-18d (d3): страница переведена на каркас `listing.html` (см. combos.html) —
+разметка байт-в-байт, строка инструментов подавлена.{% endcomment %}
+{% block listing_width %}{% text_width_class default="none" %}{% endblock %}
+
+{% block listing_header %}
 <div class="mb-6">
   <h1 class="text-2xl md:text-3xl font-bold">{% trans "Bewertungen" %}</h1>
   {% if business_rating_value %}
@@ -16,6 +19,11 @@
       <span class="text-gray-400 text-sm">{% blocktrans count n=request.tenant.google_rating_count %}{{ n }} Google-Bewertung{% plural %}{{ n }} Google-Bewertungen{% endblocktrans %}</span></p>
   {% endif %}
 </div>
+{% endblock %}
+
+{% block listing_toolbar %}{% endblock %}
+
+{% block listing_grid %}
 <div class="{{ reviews_page_grid|default:'grid gap-4 sm:grid-cols-2' }}" {% sf_grid_attrs reviews_page_layout cols="1/2/2" %}>
   {% comment %}Кураторские отзывы владельца (site_config.testimonials) идут рядом
   с портальными — для гостя это один раздел «что о нас говорят».{% endcomment %}
@@ -33,6 +41,6 @@
     </figure>
   {% endfor %}
 </div>
-</div>
-  {% page_blocks "reviews" %}
 {% endblock %}
+
+{% block listing_after %}{% page_blocks "reviews" %}{% endblock %}

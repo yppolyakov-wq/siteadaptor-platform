@@ -1441,7 +1441,7 @@ def _design_look_label(config: dict) -> str:
     return key
 
 
-def _composition_gate() -> dict[str, set[str]]:
+def _composition_gate(config: dict | None = None) -> dict[str, set[str]]:
     """Коды композиций, которым на этой ВИТРИНЕ нечего показать.
 
     Считаем фактами тенанта: полки и вкладки бессмысленны без под-сущностей,
@@ -1480,11 +1480,21 @@ def _composition_gate() -> dict[str, set[str]]:
         "events": _safe(Event.objects.exclude(category="")),
         "tours": _safe(Tour.objects.exclude(country="")),
         "combos": _safe(_Combo.objects.filter(category__isnull=False)),
+        # у лукбука, мерклиста, блога и отзывов таксономии нет вовсе — из
+        # композиций им доступна обложка (гейт по фото ниже)
         "lookbook": False,
         "wishlist": False,
         "blog": False,
         "reviews": False,
     }
+    # STU-18d: «С обложкой» на листинге показывает ФОТО САЙТА. Нет фото — нет и
+    # композиции: иначе плитка обещала бы то, чего страница не отрисует.
+    cfg = config or {}
+    _heroes = cfg.get("heroes") or []
+    has_photo = bool(
+        cfg.get("hero_image")
+        or (isinstance(_heroes, list) and _heroes and (_heroes[0] or {}).get("image"))
+    )
 
     out: dict[str, set[str]] = {}
     for surface, has_children in (
@@ -1499,7 +1509,12 @@ def _composition_gate() -> dict[str, set[str]]:
         ok = {
             code
             for code, _l, _h in compositions.available_for(
-                surface, has_children=has_children, has_combos=combos
+                surface,
+                has_children=has_children,
+                has_combos=combos,
+                # фото сайта важно только листингам: у категории «С обложкой»
+                # берёт СВОЁ фото и описание
+                has_photo=has_photo or surface not in compositions.LISTING_SURFACES,
             )
         }
         out[surface] = offered - ok
@@ -2583,7 +2598,7 @@ def home_builder_view(request):
     _menu_targets = _menu_mod.target_options(request.tenant)
     # STU-18c/18d: гейт композиций считается ОДИН раз — его читают и плитки
     # каталога/акций (`comp_off`), и строки девяти листингов.
-    _comp_gate = _composition_gate()
+    _comp_gate = _composition_gate(config)
     return render(
         request,
         "tenant/site_home.html",

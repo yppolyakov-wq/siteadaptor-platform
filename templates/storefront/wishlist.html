@@ -1,16 +1,21 @@
-{% extends "storefront/_base.html" %}
+{% extends "storefront/listing.html" %}
 {% load siteui %}
 {% load i18n %}
 {% comment %}M4-C «Merkzettel»: отложенное обычными карточками (единая форма ST-7c
 действует и здесь). Список живёт в сессии — про посетителя ничего не сохраняется
 в БД. SF-4a: + акции; закончившиеся позиции не выпадают молча — плитка «Beendet»
-с кнопкой убрать (у акций — ссылка на актуальные).{% endcomment %}
+с кнопкой убрать (у акций — ссылка на актуальные).
+STU-18d (d3): страница на каркасе `listing.html` (см. combos.html).{% endcomment %}
 {% block title %}{% trans "Merkzettel" %} — {{ request.tenant.name }}{% endblock %}
 
-{% block content %}
+{% block listing_header %}
 <h1 class="text-2xl md:text-3xl font-bold mb-1">{% trans "Merkzettel" %}</h1>
 <p class="text-gray-500 mb-6">{% trans "Ihre gemerkten Teile — nur auf diesem Gerät gespeichert." %}</p>
+{% endblock %}
 
+{% block listing_toolbar %}{% endblock %}
+
+{% block listing_grid %}
 {% if wish_promotions %}
 <section class="mb-8">
   <h2 class="text-lg font-bold mb-3">{% trans "Current offers" %}</h2>
@@ -58,11 +63,15 @@
   {% endfor %}
 </div>
 {% endif %}
+{% endblock %}
 
+{% block listing_empty %}
 {% if not products and not wish_promotions %}
 <p class="text-gray-400 mb-6">{% trans "Noch nichts gemerkt. Tippen Sie auf ♡ an einem Artikel." %}</p>
 {% endif %}
+{% endblock %}
 
+{% block listing_after %}
 <a href="{% url 'storefront-products' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Zum Sortiment" %} →</a>
   {% page_blocks "wishlist" %}
 {% endblock %}

@@ -235,6 +235,68 @@ def _page_layout(request, key: str, name: str) -> dict:
     return siteconfig.page_layout_ctx(siteconfig.normalize(cfg), key, name)
 
 
+def _cover_composition(tenant, surface: str) -> dict:
+    """STU-18d: композиция листинга без под-сущностей — только «С обложкой»."""
+    from apps.core import listing_composition
+
+    cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
+    return listing_composition.context(
+        cfg,
+        surface,
+        hero=lambda: listing_composition.hero_from_tenant(tenant, cfg),
+    )
+
+
+def _combos_composition(request, combos) -> dict:
+    """STU-18d: контекст композиции страницы наборов.
+
+    Под-сущность — направление набора (`Combo.category`), тот же ключ, что у
+    фасета `?kategorie=`. Считаем по ВСЕМ активным наборам, а не по текущей
+    выдаче: иначе вкладка исчезала бы ровно тогда, когда по ней перешли.
+    """
+    from apps.catalog.combos import active_combos
+    from apps.core import listing_composition
+
+    cfg = request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
+    base_url = reverse("storefront-combos")
+    current = (request.GET.get("kategorie") or "").strip()
+
+    def _cats():
+        seen = {}
+        for combo in active_combos().select_related("category"):
+            if combo.category_id and combo.category.is_active:
+                seen.setdefault(combo.category.slug, [combo.category, 0])
+                seen[combo.category.slug][1] += 1
+        return [
+            {
+                "label": cat,
+                "slug": slug,
+                "url": f"{base_url}?kategorie={slug}",
+                "active": current == slug,
+                "count": count,
+            }
+            for slug, (cat, count) in seen.items()
+        ]
+
+    def _shelves():
+        out = []
+        for entry in _cats():
+            items = [c for c in active_combos() if getattr(c.category, "slug", "") == entry["slug"]]
+            if not items:
+                continue
+            out.append({**entry, "items": items[:8], "total": len(items), "more": len(items) > 8})
+        return out
+
+    return listing_composition.context(
+        cfg,
+        "combos",
+        entries=_cats,
+        shelves=_shelves,
+        hero=lambda: listing_composition.hero_from_tenant(request.tenant, cfg),
+        item_template="storefront/_combo_card.html",
+    )
+
+
 def combo_list_public(request):
     """Витрина комбо-наборов (A4): /kombi/. MEN-3: гейт по видимости каталога.
 
@@ -262,6 +324,9 @@ def combo_list_public(request):
             "combos_title": combo_labels(request.tenant.business_type)["combos_title"],
             # LAY-3a-2: раскладка сетки наборов (пусто → прежние классы шаблона).
             **_page_layout(request, "combos_layout", "combos"),
+            # STU-18d: композиция страницы. Под-сущность наборов — НАПРАВЛЕНИЕ
+            # (`Combo.category`): тот же ключ, что у фасета ?kategorie=.
+            **_combos_composition(request, combos),
         },
     )
 
@@ -559,6 +624,9 @@ def wishlist_view(request):
             "promotions_active": modules.is_module_active(request.tenant, "promotions"),
             # LAY-3a-2: обе сетки страницы (акции и товары) — одна ось вывода.
             **_page_layout(request, "wishlist_layout", "wishlist"),
+            # STU-18d: под-сущностей у страницы нет — из реестра доступна только
+            # обложка (без фото сайта она проваливается в обычную сетку).
+            **_cover_composition(request.tenant, "wishlist"),
         },
     )
 
