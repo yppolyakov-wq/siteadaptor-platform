@@ -42,7 +42,10 @@ def _tree(style):
 
 def test_registry_has_regale_and_tabs():
     assert {"regale", "tabs"} <= VALID_PAGE_STYLES
-    assert [c for c, _l, _h in CATEGORY_PAGE_STYLES][:4] == ["", "kopfbild", "sets", "preisliste"]
+    # LAY-5 (осознанная переписка): «preisliste» снят из ПЛИТОК страницы категории —
+    # он дублировал ось сетки, где прайс-видов восемь. Код остаётся читаемым
+    # (`compositions.valid_for("category")`), поэтому старые конфиги не меняются.
+    assert [c for c, _l, _h in CATEGORY_PAGE_STYLES][:3] == ["", "kopfbild", "sets"]
 
 
 def test_breadcrumbs_on_category_page_only():

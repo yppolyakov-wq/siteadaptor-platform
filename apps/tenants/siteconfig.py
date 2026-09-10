@@ -1794,6 +1794,38 @@ _PAGE_LAYOUT_KEYS = (
     "stay_index_layout",
     "service_index_layout",
 )
+# LAY-5: дефолты страничных раскладок в ОДНОМ месте — по ним резолвер понимает,
+# трогал ли владелец сетку. Раньше они были рассыпаны по normalize и по вьюхам,
+# и «шаблон уважает выбор владельца» было не на чем построить.
+PAGE_LAYOUT_DEFAULTS = {
+    "catalog_layout": {"preset": "cols3"},
+    "events_index_layout": {"preset": "list"},
+    "stay_index_layout": {"preset": "cols3", "mobile": 1},
+    "service_index_layout": {"preset": "cols2"},
+}
+
+
+def layout_is_untouched(layout, key: str) -> bool:
+    """Раскладка страницы `key` равна её дефолту (владелец сетку не менял)?
+
+    Нужен решению владельца Р-3 (волна LAY): плотность, которую подразумевает
+    шаблон страницы, — рекомендация, а не приказ. Раньше выбор шаблона снимал
+    явные колонки («выставил 5 в ряд, выбрал Magazin — стало 2»).
+
+    `tail` и параметры «типа вывода» из сравнения исключены (прецедент
+    `layout_is_default` для секций главной): они описывают не плотность, а
+    поведение хвоста и ленты, и не должны запрещать рекомендацию.
+    """
+    default = normalize_layout(
+        None,
+        PAGE_LAYOUT_DEFAULTS.get(key),
+        extra_presets=PAGE_EXTRA_PRESETS.get(key, ()),
+    )
+    skip = ("tail", "rows", "page_size", "speed", "scroll", "balance")
+    current = {k: v for k, v in (layout or {}).items() if k not in skip}
+    return current == {k: v for k, v in default.items() if k not in skip}
+
+
 _PAGE_BOOL_KEYS = ("catalog_show_filters", "catalog_subcats_first", "cart_show_upsell")
 # DL-21.1: строковые шаблоны СТРАНИЦ (валидатор → "" = снять ключ); группа объявлена явно,
 # чтобы замок «реестр PAGE_CONFIG_KEYS = группы применения» видел ключ, а не ad-hoc ветку.
@@ -2517,6 +2549,115 @@ def _deep_overlay(base: dict, ov: dict) -> None:
                     cur[i] = item
         else:
             base[key] = val
+
+
+def _put(node, key, value):
+    """Записать `value` в `node[key]`, где узел — dict или список (числовой ключ)."""
+    if isinstance(key, int):
+        while len(node) <= key:
+            node.append({})
+        node[key] = value
+    else:
+        node[key] = value
+
+
+def _child(node, key, next_key):
+    """Достать (или создать) контейнер под `key`, зная форму следующего сегмента."""
+    empty_type = list if isinstance(next_key, int) else dict
+    if isinstance(key, int):
+        while len(node) <= key:
+            node.append(empty_type())
+        if not isinstance(node[key], empty_type):
+            node[key] = empty_type()
+        return node[key]
+    cur = node.get(key)
+    if not isinstance(cur, empty_type):
+        cur = empty_type()
+        node[key] = cur
+    return cur
+
+
+def set_value(config: dict, path, value) -> None:
+    """Записать значение в БАЗУ конфига по пути ("faq", 0, "q").
+
+    Числовой сегмент означает список. Промежуточные узлы создаются по форме
+    СЛЕДУЮЩЕГО сегмента, поэтому путь не может «сломать» структуру.
+    """
+    node = config
+    for i, key in enumerate(path[:-1]):
+        node = _child(node, key, path[i + 1])
+    _put(node, path[-1], value)
+
+
+def set_overlay_value(config: dict, locale: str, path, value) -> None:
+    """LAY-6c: записать ПЕРЕВОД (`config["i18n"][locale]`) по тому же пути.
+
+    Оверлей — зеркало формы базы (см. контракт выше), поэтому путь один и тот же;
+    отличается только корень. Недостающие элементы списка добиваются пустыми:
+    `_deep_overlay` мёржит списки позиционно, и «дыра» в оверлее означает
+    «перевода нет», то есть показывается база.
+    """
+    root = config.get("i18n")
+    if not isinstance(root, dict):
+        root = {}
+        config["i18n"] = root
+    node = root.get(locale)
+    if not isinstance(node, dict):
+        node = {}
+        root[locale] = node
+    set_value(node, path, value)
+
+
+# LAY-6d: списки контента (`faq`, `testimonials`, `process`, `team`) оверлеятся
+# ПОЗИЦИОННО. Пока владелец добавляет в конец, это работает; удалит второй вопрос
+# или поменяет порядок — переводы садятся на чужие элементы (русский ответ под
+# немецким вопросом, к которому не относится). Ключ, по которому узнаём «тот же
+# элемент», — главное текстовое поле записи.
+LIST_OVERLAY_KEYS = {"faq": "q", "testimonials": "name", "process": "title", "team": "name"}
+
+
+def realign_list_overlays(config: dict, new_lists: dict, key_fields: dict | None = None) -> dict:
+    """Переставить переводы списков вслед за изменившейся базой.
+
+    `config` — конфиг СО СТАРОЙ базой и оверлеями; `new_lists` — новые значения
+    списков (то, что владелец только что сохранил). Возвращает config с оверлеями,
+    выровненными по новой базе: перевод едет за своим элементом, удалённый элемент
+    забирает перевод с собой, у нового элемента перевода нет (пустая «дыра» в
+    оверлее = показывать базу).
+
+    Приём тот же, что у моделей (`core.i18n_seq.apply_seq_overlay`, волна I18N-12),
+    но ключ здесь — содержимое базового элемента, а не позиция: только так
+    перестановка не путает переводы.
+    """
+    overlay = config.get("i18n")
+    if not isinstance(overlay, dict) or not overlay:
+        return config
+    keys = key_fields or LIST_OVERLAY_KEYS
+    for list_key, new_items in (new_lists or {}).items():
+        field = keys.get(list_key)
+        if not field or not isinstance(new_items, list):
+            continue
+        old_items = config.get(list_key)
+        if not isinstance(old_items, list):
+            continue
+        # старое значение ключа → индекс в старой базе (первое вхождение)
+        index_of = {}
+        for i, item in enumerate(old_items):
+            if isinstance(item, dict):
+                index_of.setdefault(str(item.get(field, "")), i)
+        for node in overlay.values():
+            if not isinstance(node, dict) or not isinstance(node.get(list_key), list):
+                continue
+            old_tr = node[list_key]
+            node[list_key] = [
+                old_tr[index_of[str((it or {}).get(field, ""))]]
+                if isinstance(it, dict)
+                and str(it.get(field, "")) in index_of
+                and index_of[str(it.get(field, ""))] < len(old_tr)
+                else {}
+                for it in new_items
+            ]
+    return config
 
 
 def localize(config: dict, locale: str | None) -> dict:

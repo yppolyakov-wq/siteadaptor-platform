@@ -1352,25 +1352,36 @@ def product_list(request, slug=None):
         "mosaik": "cols4",
         "kompakt": "cols6",
     }
+    # LAY-5 (решение владельца Р-3): плотность, которую подразумевает композиция, —
+    # РЕКОМЕНДАЦИЯ, а не приказ. Раньше выбор шаблона снимал явные колонки владельца
+    # («выставил 5 в ряд, выбрал Magazin — стало 2»), а «Mosaik» вдобавок перебивал
+    # его хвост. Теперь рекомендация действует только там, где владелец сетку НЕ
+    # трогал: раскладка равна дефолту страницы. Прайс-вид — исключение: «Preisliste»
+    # это не плотность, а другой способ показа, ради него шаблон и выбирают.
     if cat_style in _STYLE_PRESET:
-        # Стенд DL-20: `cfg["catalog_layout"]` уже нормализован и несёт ЯВНЫЕ cols/
-        # mobile/tablet — normalize_layout ставит их выше пресета, и «cols4» менял
-        # только ярлык (сетка оставалась 3-колоночной). Шаблон задаёт плотность —
-        # явные колонки снимаем, gap/width/tail владельца остаются.
-        _keep = {
-            k: v for k, v in cfg["catalog_layout"].items() if k not in ("cols", "mobile", "tablet")
-        }
-        if cat_style == "mosaik":
-            # Бенто — настоящая grid-сетка со спанами; хвост «spread» (DL-14) сделал бы
-            # контейнер flex, а DL-15 дорисовал бы широкую одиночную карточку поверх
-            # спанов. «show» = всё показать, ничего не распределять.
-            _keep["tail"] = "show"
-        cfg["catalog_layout"] = siteconfig.normalize_layout(
-            {**_keep, "preset": _STYLE_PRESET[cat_style]},
-            {"preset": _owner_preset},
-            extra_presets=siteconfig.PAGE_EXTRA_PRESETS["catalog_layout"],
-        )
-        _owner_preset = cfg["catalog_layout"]["preset"]
+        _owner_touched = not siteconfig.layout_is_untouched(cfg["catalog_layout"], "catalog_layout")
+        if cat_style == "preisliste" or not _owner_touched:
+            # Стенд DL-20: `cfg["catalog_layout"]` уже нормализован и несёт ЯВНЫЕ cols/
+            # mobile/tablet — normalize_layout ставит их выше пресета, и «cols4» менял
+            # только ярлык (сетка оставалась 3-колоночной). Шаблон задаёт плотность —
+            # явные колонки снимаем, gap/width/tail владельца остаются.
+            _keep = {
+                k: v
+                for k, v in cfg["catalog_layout"].items()
+                if k not in ("cols", "mobile", "tablet")
+            }
+            if cat_style == "mosaik" and not _keep.get("tail"):
+                # Бенто — настоящая grid-сетка со спанами; хвост «spread» (DL-14) сделал бы
+                # контейнер flex, а DL-15 дорисовал бы широкую одиночную карточку поверх
+                # спанов. «show» = всё показать, ничего не распределять. Но если владелец
+                # хвост ВЫБРАЛ — уважаем его (LAY-5).
+                _keep["tail"] = "show"
+            cfg["catalog_layout"] = siteconfig.normalize_layout(
+                {**_keep, "preset": _STYLE_PRESET[cat_style]},
+                {"preset": _owner_preset},
+                extra_presets=siteconfig.PAGE_EXTRA_PRESETS["catalog_layout"],
+            )
+            _owner_preset = cfg["catalog_layout"]["preset"]
     _ansicht_raw = (request.GET.get("ansicht") or "").strip()
     if _ansicht_raw:
         cfg["catalog_layout"] = siteconfig.normalize_layout(

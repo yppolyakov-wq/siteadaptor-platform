@@ -52,7 +52,9 @@ def _render(tenant, slug=None, **params):
 
 def test_registry_keeps_the_six_old_styles_and_adds_five():
     codes = [code for code, _l, _h in category_styles.CATEGORY_PAGE_STYLES]
-    assert codes[:6] == ["", "kopfbild", "sets", "preisliste", "regale", "tabs"]
+    # LAY-5 (осознанная переписка): «preisliste» больше не предлагается плиткой —
+    # прайс-вид задаётся осью сетки. Резолвер его по-прежнему знает (Р-2).
+    assert codes[:5] == ["", "kopfbild", "sets", "regale", "tabs"]
     for new in ("schaufenster", "navigator", "magazin", "mosaik", "kompakt"):
         assert new in codes, new
     # Код обязан влезать в CharField(max_length=20) — иначе DataError на save.

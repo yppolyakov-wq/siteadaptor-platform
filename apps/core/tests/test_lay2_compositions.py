@@ -14,11 +14,14 @@
 import pytest
 
 # Снимок ДО слияния: коды в том порядке, в каком их видит владелец в плитках.
+# LAY-5 (осознанная переписка): «preisliste» СНЯТ из плиток страницы категории —
+# он дублировал ось сетки, где прайс-видов восемь против одного «шаблона». Код
+# остаётся читаемым (старые конфиги рендерят прайс-лист как раньше, Р-2), поэтому
+# ниже проверяется именно ПРЕДЛОЖЕНИЕ, а `valid_for` его по-прежнему знает.
 CATEGORY_CODES = [
     "",
     "kopfbild",
     "sets",
-    "preisliste",
     "regale",
     "tabs",
     "schaufenster",
@@ -27,7 +30,7 @@ CATEGORY_CODES = [
     "mosaik",
     "kompakt",
 ]
-ROOT_CODES = [c for c in CATEGORY_CODES if c != "preisliste"]
+ROOT_CODES = list(CATEGORY_CODES)  # на корне прайс-вида не было и раньше
 PROMO_PAGE_CODES = [
     "",
     "kopfbild",
@@ -142,3 +145,12 @@ def test_derived_views_are_built_from_the_single_registry():
     assert _codes(compositions.styles_for("promos")) == _codes(group_styles.PROMO_PAGE_STYLES)
     assert _codes(compositions.styles_for("promo_group")) == _codes(group_styles.GROUP_PAGE_STYLES)
     assert _codes(compositions.styles_for("promo")) == _codes(group_styles.PROMOTION_DETAIL_STYLES)
+
+
+def test_legacy_codes_stay_readable_even_when_no_longer_offered():
+    """Р-2: снятый из плиток код обязан резолвиться — иначе у выбравших его
+    владельцев витрина сменилась бы молча."""
+    from apps.core import compositions
+
+    assert "preisliste" in compositions.valid_for("category")
+    assert "preisliste" not in compositions.valid_for("category", offered_only=True)

@@ -277,6 +277,11 @@ COMPOSITIONS: dict[str, Composition] = {
 # иначе через полгода никто не вспомнит, почему «Preisliste» нет на корне.
 EXCLUDED_REASONS = {
     ("catalog", "preisliste"): "прайс-вид корня уже даёт catalog_layout.preset (DL-21.1)",
+    # LAY-5: тот же дубль был и на СТРАНИЦЕ КАТЕГОРИИ — два контрола писали одно и то
+    # же, причём ось сетки предлагает восемь прайс-видов против одного «шаблона».
+    # Именно это владелец называл «кашей». Код остаётся ЧИТАЕМЫМ (старые конфиги
+    # рендерятся как раньше, Р-2), но больше не предлагается.
+    ("category", "preisliste"): "прайс-вид задаётся осью сетки (там их восемь), LAY-5",
 }
 
 
@@ -293,9 +298,17 @@ def styles_for(surface: str) -> list[tuple[str, object, object]]:
     ]
 
 
-def valid_for(surface: str) -> frozenset:
-    """Допустимые коды поверхности — единственный источник для резолверов."""
-    return frozenset(code for code, _l, _h in styles_for(surface))
+def valid_for(surface: str, *, offered_only: bool = False) -> frozenset:
+    """Допустимые коды поверхности — единственный источник для резолверов.
+
+    По умолчанию ЧТЕНИЕ шире ПРЕДЛОЖЕНИЯ: код, снятый из плиток (`EXCLUDED_REASONS`),
+    всё ещё резолвится, иначе у тех, кто выбрал его раньше, витрина сменилась бы
+    молча (инвариант волны LAY: живые сайты не меняются, Р-2).
+    `offered_only=True` даёт ровно то, что видно владельцу в плитках.
+    """
+    if offered_only:
+        return frozenset(code for code, _l, _h in styles_for(surface))
+    return frozenset(spec.code for spec in COMPOSITIONS.values() if surface in spec.applies_to)
 
 
 def available_for(surface: str, *, has_children: bool = True, has_combos: bool = True):

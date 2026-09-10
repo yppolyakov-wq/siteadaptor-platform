@@ -2079,7 +2079,12 @@ def home_builder_view(request):
         # ящика в строки своих секций. POST без них (чужая форма, будущий гейт строки) стёр бы
         # тексты — поэтому гейт по сентинелу, который рисует сама форма конструктора.
         if "content_sections_present" in request.POST:
-            config.update(siteconfig.parse_content_sections(request.POST.get))
+            _sections = siteconfig.parse_content_sections(request.POST.get)
+            # LAY-6d: переводы списков переставляем ВСЛЕД за базой, пока старая база
+            # ещё в `config`. Иначе удаление второго вопроса сдвигало бы русские
+            # ответы на чужие вопросы: оверлей мёржится позиционно.
+            siteconfig.realign_list_overlays(config, _sections)
+            config.update(_sections)
         # STU-12g: акцент (Tenant.primary_color) — поле экрана «Design des Shops».
         update_fields = ["site_config", "updated_at"]
         # SE-5b: снимок текущей опубликованной версии в историю перед публикацией новой
@@ -3145,22 +3150,22 @@ def site_inline_edit(request):
     value = data.get("value", "")
     value = value.strip() if isinstance(value, str) else ""
     cfg = siteconfig.normalize(request.tenant.site_config)
+    # LAY-6c: сначала РАЗБИРАЕМ поле в путь, потом решаем, куда писать — в базу или
+    # в перевод. Раньше запись была вшита в каждую ветку, и локаль учесть было негде:
+    # правка русского текста уходила в немецкое поле, немецкая витрина показывала
+    # русскую фразу, а на канве правка не появлялась вовсе (оверлей замещает базу).
+    path = None
     if field in siteconfig.TEXT_FIELDS:
-        cfg[field] = value
+        path = (field,)
     elif field in siteconfig.NESTED_TEXT_FIELDS:
         # M20: вложенное поле секции ("cta.title") — пишем в дочерний словарь.
-        parent, child = field.split(".", 1)
-        section = dict(cfg.get(parent) or {})
-        section[child] = value
-        cfg[parent] = section
+        path = tuple(field.split(".", 1))
     elif field and field.startswith("section_titles."):
         # V3+: заголовки секций главной правятся прямо на превью (клик по «heading»).
         key = field.split(".", 1)[1]
         if key not in siteconfig.SECTION_TITLE_KEYS:
             return HttpResponseBadRequest()
-        titles = dict(cfg.get("section_titles") or {})
-        titles[key] = value  # пусто → normalize вернёт дефолтный i18n-заголовок
-        cfg["section_titles"] = titles
+        path = ("section_titles", key)  # пусто → normalize вернёт дефолтный заголовок
     elif field and field.startswith("faq."):
         # LAY-1b: пара FAQ правится прямо в блоке на канве («faq.<i>.q» / «faq.<i>.a»).
         # Индекс обязан существовать: контент-эндпоинт не создаёт новых вопросов —
@@ -3169,23 +3174,35 @@ def site_inline_edit(request):
         if len(parts) != 3 or parts[2] not in ("q", "a") or not parts[1].isdigit():
             return HttpResponseBadRequest()
         idx = int(parts[1])
-        pairs = [dict(f) for f in (cfg.get("faq") or [])]
-        if idx >= len(pairs):
+        if idx >= len(cfg.get("faq") or []):
             return HttpResponseBadRequest()
         if parts[2] == "q" and not value:
             return HttpResponseBadRequest()  # пустой вопрос удалил бы пару в normalize
-        pairs[idx][parts[2]] = value
-        cfg["faq"] = pairs
+        path = ("faq", idx, parts[2])
     elif field and field.startswith("section_intros."):
         # H1: описания секций главной правятся инлайн на превью (как заголовки).
         key = field.split(".", 1)[1]
         if key not in siteconfig.SECTION_INTRO_KEYS:
             return HttpResponseBadRequest()
-        intros = dict(cfg.get("section_intros") or {})
-        intros[key] = value  # пусто → normalize уберёт ключ (на витрине описания нет)
-        cfg["section_intros"] = intros
+        path = ("section_intros", key)  # пусто → normalize уберёт ключ
     else:
         return HttpResponseBadRequest()
+    # Локаль присылает КАДР (`documentElement.lang` витрины) — сервер её узнать не
+    # может: панель живёт на пути кабинета, где активен язык кабинета, а канва — на
+    # пути витрины с языком посетителя. Неизвестная или выключенная у тенанта локаль
+    # игнорируется (fail-closed): пишем базу, мусорного оверлея не создаём.
+    locale = (data.get("locale") or "").strip()
+    base_locale = getattr(request.tenant, "default_locale", "") or settings.LANGUAGE_CODE
+    active = set(getattr(request.tenant, "active_locales", None) or [])
+    if (
+        locale
+        and locale != base_locale
+        and locale in active
+        and locale in siteconfig.overlay_locales()
+    ):
+        siteconfig.set_overlay_value(cfg, locale, path, value)
+    else:
+        siteconfig.set_value(cfg, path, value)
     request.tenant.site_config = siteconfig.normalize(cfg)
     request.tenant.save(update_fields=["site_config", "updated_at"])
     return HttpResponse(status=204)

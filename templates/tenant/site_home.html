@@ -3941,7 +3941,15 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
           fetch(editUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json", "X-CSRFToken": token, "X-Requested-With": "fetch" },
-            body: JSON.stringify({ field: el.getAttribute("data-edit"), value: el.innerText }),
+            // LAY-6c: канва рендерится на языке ПОСЕТИТЕЛЯ, а панель живёт на пути
+            // кабинета со своим языком — сервер язык кадра узнать не может. Шлём его
+            // сами: витрина ставит его в <html lang>. Без локали сервер пишет базу,
+            // как раньше.
+            body: JSON.stringify({
+              field: el.getAttribute("data-edit"),
+              value: el.innerText,
+              locale: (doc.documentElement && doc.documentElement.lang) || "",
+            }),
           }).then(function (r) { if (r.ok) markSaved(); });
         });
       });
