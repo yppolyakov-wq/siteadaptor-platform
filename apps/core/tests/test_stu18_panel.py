@@ -9,6 +9,7 @@
 сама обрезка меряется стендом (docs/stu18-panel-ia-plan-2026-09-10.md §1.2).
 """
 
+import re
 from pathlib import Path
 
 import pytest
@@ -74,3 +75,61 @@ def test_panel_partials_have_no_multiline_django_comment(partial):
     for chunk in src.split("{#")[1:]:
         head = chunk.split("#}")[0]
         assert "\n" not in head, f"{partial}: многострочный {{# #}} — используйте {{% comment %}}"
+
+
+# ── STU-18b: три оси как структура ───────────────────────────────────────────
+
+
+def test_every_setting_declares_a_known_axis():
+    """У каждой настройки ровно одна ось из реестра.
+
+    Ось — свойство записи, а не второй словарь рядом (прецедент compositions.py):
+    иначе он разъезжается с реестром ровно так же, как разъехались четыре реестра
+    шаблонов страницы до волны LAY.
+    """
+    from apps.core import studio_pages as sp
+
+    known = {code for code, _label in sp.AXES}
+    assert len(known) == 4, "осей должно быть четыре: композиция · сетка · карточка · содержание"
+    for code, setting in sp.SETTINGS.items():
+        assert setting.axis in known, f"{code}: ось {setting.axis!r} не из реестра"
+
+
+def test_axis_order_is_fixed():
+    """Порядок групп в панели неизменен: от «что вокруг» к «как одна плитка»."""
+    from apps.core import studio_pages as sp
+
+    assert [code for code, _l in sp.AXES] == [
+        sp.AXIS_COMPOSITION,
+        sp.AXIS_GRID,
+        sp.AXIS_CARD,
+        sp.AXIS_CONTENT,
+    ]
+
+
+@pytest.mark.django_db
+def test_panel_marks_every_row_with_its_axis(settings):
+    """Панель подписывает строку осью из реестра — по этому атрибуту она группируется.
+
+    Замок держит обе стороны: строка без оси не попадёт ни в одну группу и молча
+    исчезнет из панели, а чужая ось означала бы, что настройка показана не там.
+    Тенант тот же, что у `test_registry_and_panel_agree`: «ресторан без orders»
+    открывает две строки, спрятанные бизнес-гейтами, а не типом страницы.
+    """
+    from apps.core import studio_pages as sp
+    from apps.core.tests.test_studio_pages import _builder_html
+    from apps.tenants.tests.factories import TenantFactory
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    markup = _builder_html(TenantFactory(business_type="restaurant", disabled_modules=["orders"]))
+
+    found: dict[str, str] = {}
+    for tag in re.findall(r"<[a-zA-Z][^>]*data-stu-setting=\"[^\"]+\"[^>]*>", markup):
+        code = re.search(r'data-stu-setting="([^"]+)"', tag).group(1)
+        axis = re.search(r'data-stu-axis="([^"]*)"', tag)
+        found[code] = axis.group(1) if axis else ""
+
+    missing = sorted(c for c in sp.SETTINGS if not found.get(c))
+    assert not missing, f"строки без data-stu-axis: {missing}"
+    wrong = {c: (found[c], sp.SETTINGS[c].axis) for c in found if found[c] != sp.SETTINGS[c].axis}
+    assert not wrong, f"ось строки разошлась с реестром: {wrong}"

@@ -14,7 +14,7 @@ hidden-инпут с прежним именем поля (`sd_card_style` / `sd
               aria-pressed="{% if value == key %}true{% else %}false{% endif %}"
               class="cf-tile w-full rounded-lg border p-1.5 text-left {% if value == key %}border-indigo-500 ring-2 ring-indigo-200{% else %}border-gray-200 hover:border-gray-300{% endif %}">
         {% include thumb|default:"tenant/_cardform_thumb.html" with key=key %}
-        <span class="mt-1 block text-[10px] leading-tight text-gray-600 dark:text-gray-300 break-words">{{ label }}</span>
+        <span class="cf-cap mt-1 block text-[10px] leading-tight text-gray-600 dark:text-gray-300 break-words">{{ label }}</span>
       </button>
     {% endfor %}
   </div>

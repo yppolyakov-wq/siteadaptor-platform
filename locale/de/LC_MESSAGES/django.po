@@ -22421,3 +22421,7 @@ msgstr "Auf der Startseite öffnen"
 #: templates/tenant/site_home.html
 msgid "Das Raster dieser Seite kommt vom gleichnamigen Block der Startseite."
 msgstr "Das Raster dieser Seite kommt vom gleichnamigen Block der Startseite."
+
+#: apps/core/studio_pages.py:0
+msgid "Inhalt der Seite"
+msgstr "Inhalt der Seite"

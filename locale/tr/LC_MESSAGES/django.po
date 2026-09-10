@@ -22510,3 +22510,7 @@ msgstr "Ana sayfada aç"
 #: templates/tenant/site_home.html
 msgid "Das Raster dieser Seite kommt vom gleichnamigen Block der Startseite."
 msgstr "Bu sayfanın ızgarası ana sayfadaki aynı adlı bloktan gelir."
+
+#: apps/core/studio_pages.py:0
+msgid "Inhalt der Seite"
+msgstr "Sayfa içeriği"

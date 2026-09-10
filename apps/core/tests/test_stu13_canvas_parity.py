@@ -12,6 +12,7 @@
 """
 
 import pathlib
+import re
 from types import SimpleNamespace
 
 import pytest
@@ -38,9 +39,18 @@ def _builder(tenant):
 
 
 def _css_rule(src: str, selector: str) -> str:
-    """Тело CSS-правила по селектору (первое вхождение) — вид проверяем по стилям."""
-    i = src.index(selector)
-    return src[i : src.index("}", i)]
+    """Тело CSS-правила по селектору (первое вхождение) — вид проверяем по стилям.
+
+    STU-18b: правило может обслуживать НЕСКОЛЬКО селекторов («.bld-grp, .stu-grp {»),
+    когда группа осей переиспользует компонент настроек блока. Поэтому ищем ИМЯ с
+    границей (запятая, пробел или «{»), а не точную строку: точная краснела бы на
+    списке, а голое вхождение поймало бы «.bld-grp» внутри «.bld-grp-sum».
+    """
+    name = selector.rstrip(" {")
+    m = re.search(re.escape(name) + r"(?=[\s,{])", src)
+    if not m:
+        raise ValueError(f"правило {selector!r} не найдено")
+    return src[m.start() : src.index("}", src.index("{", m.start()))]
 
 
 # ── A. Плашка действий у блока (макет P3) ────────────────────────────────────

@@ -229,11 +229,11 @@
          hidden у таких элементов); data-scope="home" оставлен как якорь прежней
          механики для остальных наборов главной.{% endcomment %}
       <fieldset class="bg-white rounded-2xl shadow-sm p-6" data-scope="home"
-                data-stu-setting="home_sections" data-stu-page="home">
+                data-stu-setting="home_sections" data-stu-axis="content" data-stu-page="home">
         <legend class="font-semibold mb-1">{% trans "Homepage blocks" %}</legend>
         {% comment %}STU-8: «Вид баннера» переехал сюда из уровня «Дизайн сайта» — баннер
            есть только на главной, и артборд PHome ставит его в её панель.{% endcomment %}
-        <div class="stu-page-row mb-4" data-stu-setting="home_hero" data-stu-page="home">
+        <div class="stu-page-row mb-4" data-stu-setting="home_hero" data-stu-axis="composition" data-stu-page="home">
           <label class="block text-sm">
             <span class="block font-medium mb-1">{% trans "Banner" %}</span>
             <select name="hero_style" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
@@ -571,6 +571,29 @@
          с одной страницы стирал бы настройки других.{% endcomment %}
       <div data-bld-area="page" class="bld-area space-y-6 hidden">
         <p class="stu-page-name text-xs text-gray-500"></p>
+        {% comment %}STU-18b (решение владельца Р-1): панель собрана ПО ОСЯМ ВЫВОДА.
+           До этого сорок строк лежали в двух карточках, чьи заголовки не описывали
+           содержимое: на каталоге карточка «Vorlage der Seite» содержала ФОРМУ
+           КАРТОЧКИ, а настоящий шаблон страницы — во второй карточке «Landing pages».
+           Ни одна карточка не называла ось, поэтому владелец читал панель как кашу.
+
+           Каркас групп рендерит сервер, строки в них переносит клиент по
+           `data-stu-axis` (тот же приём, что «виртуальный фасад» UC2-1): строки
+           остаются ТЕМИ ЖЕ узлами внутри #home-form — не меняются ни имена полей, ни
+           гейты `{% templatetag openblock %} if {% templatetag closeblock %}`, ни JS-хуки,
+           ни инвариант W0. Замок test_registry_and_panel_agree держит соответствие
+           реестру, потому что коды и типы страниц не тронуты.{% endcomment %}
+        <div id="stu-groups" class="space-y-2">
+          {% for axis_code, axis_label in studio_axes %}
+            <details class="stu-grp" data-stu-group="{{ axis_code }}" hidden {% if forloop.first %}open{% endif %}>
+              <summary class="stu-grp-sum">
+                <span class="stu-grp-nm">{{ axis_label }}</span>
+                <span class="stu-grp-val"></span>
+              </summary>
+              <div class="stu-grp-body" data-stu-slot="{{ axis_code }}"></div>
+            </details>
+          {% endfor %}
+        </div>
         <fieldset class="bg-white rounded-2xl shadow-sm p-6" data-stu-any="1">
           <legend class="font-semibold mb-1">{% trans "Vorlage der Seite" %}</legend>
           {% comment %}STU-8: КАЖДАЯ настройка — своя строка с `data-stu-setting` (код
@@ -579,25 +602,25 @@
              наоборот. Раньше типы стояли на СБОРНЫХ строках, поэтому «Sortierung»
              (только корень каталога) показывалась и в категории, а «Gruppierung»
              (только обзор акций) — и на странице группы.{% endcomment %}
-          <div class="stu-page-row mt-2" data-stu-setting="category_page_style" data-stu-page="category">
+          <div class="stu-page-row mt-2" data-stu-setting="category_page_style" data-stu-axis="composition" data-stu-page="category">
             {% include "tenant/_cardform_picker.html" with name="sd_category_page_style" value=category_page_style items=category_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Category page (whole site)") %}
             {% include "tenant/_scope_pill.html" with setting="category_page_style" %}
           </div>
-          <div class="stu-page-row mt-4" data-stu-setting="promo_page_style" data-stu-page="promos">
+          <div class="stu-page-row mt-4" data-stu-setting="promo_page_style" data-stu-axis="composition" data-stu-page="promos">
             {% include "tenant/_cardform_picker.html" with name="promo_page_style" value=promo_page_style items=promo_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Aktionsseite: Vorlage") %}
           </div>
-          <div class="stu-page-row mt-4" data-stu-setting="promo_group_style" data-stu-page="promo_group">
+          <div class="stu-page-row mt-4" data-stu-setting="promo_group_style" data-stu-axis="composition" data-stu-page="promo_group">
             {% include "tenant/_cardform_picker.html" with name="sd_promo_group_style" value=promo_group_style items=group_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Offer group page (whole site)") %}
             {% include "tenant/_scope_pill.html" with setting="promo_group_style" %}
           </div>
           {% comment %}STU-15a: шаблон страницы ОДНОЙ акции. Пилюля охвата пишет
              `Promotion.page_style` («только эта акция»), общий контрол —
              site_defaults.promo_detail_style.{% endcomment %}
-          <div class="stu-page-row mt-4" data-stu-setting="promo_detail_style" data-stu-page="promo">
+          <div class="stu-page-row mt-4" data-stu-setting="promo_detail_style" data-stu-axis="composition" data-stu-page="promo">
             {% include "tenant/_cardform_picker.html" with name="sd_promo_detail_style" value=promo_detail_style items=promo_detail_styles thumb="tenant/_pagelayout_thumb.html" title=_("Offer page (whole site)") %}
             {% include "tenant/_scope_pill.html" with setting="promo_detail_style" %}
           </div>
-          <div class="stu-page-row mt-4" data-stu-setting="promo_grouping" data-stu-page="promos">
+          <div class="stu-page-row mt-4" data-stu-setting="promo_grouping" data-stu-axis="content" data-stu-page="promos">
             <label class="text-sm block">
               <span class="stu-lb">{% trans "Aktionsseite: Gruppierung" %}</span>
               <select name="promo_grouping" class="stu-ctrl">
@@ -609,7 +632,7 @@
           {% comment %}LAY-3a-2: ось вывода на страницах, где сетка была зашита в
              шаблоне (план LAY §13). Ключ presence-minimal: «Standard» снимает его и
              страница снова рисуется прежними классами.{% endcomment %}
-          <div class="page-block mt-4" data-stu-setting="promo_index_layout" data-stu-page="promos promo_group">
+          <div class="page-block mt-4" data-stu-setting="promo_index_layout" data-stu-axis="grid" data-stu-page="promos promo_group">
             <span class="stu-lb">{% trans "Aktionen: Raster" %}</span>
             <select name="promo_index_preset" class="stu-ctrl" aria-label="{% trans 'Layout' %}" data-thumb>
               <option value="">{% trans "Standard" %}</option>
@@ -617,7 +640,7 @@
             </select>
             {% include "tenant/_output_axis.html" with field="promo_index_preset" layout=promo_index_layout %}
           </div>
-          <div class="page-block mt-4" data-stu-setting="combos_layout" data-stu-page="combos">
+          <div class="page-block mt-4" data-stu-setting="combos_layout" data-stu-axis="grid" data-stu-page="combos">
             <span class="stu-lb">{% trans "Kombis: Raster" %}</span>
             <select name="combos_preset" class="stu-ctrl" aria-label="{% trans 'Layout' %}" data-thumb>
               <option value="">{% trans "Standard" %}</option>
@@ -625,7 +648,7 @@
             </select>
             {% include "tenant/_output_axis.html" with field="combos_preset" layout=combos_layout %}
           </div>
-          <div class="page-block mt-4" data-stu-setting="tours_layout" data-stu-page="tours">
+          <div class="page-block mt-4" data-stu-setting="tours_layout" data-stu-axis="grid" data-stu-page="tours">
             <span class="stu-lb">{% trans "Reisen: Raster" %}</span>
             <select name="tours_preset" class="stu-ctrl" aria-label="{% trans 'Layout' %}" data-thumb>
               <option value="">{% trans "Standard" %}</option>
@@ -633,7 +656,7 @@
             </select>
             {% include "tenant/_output_axis.html" with field="tours_preset" layout=tours_layout %}
           </div>
-          <div class="page-block mt-4" data-stu-setting="lookbook_layout" data-stu-page="lookbook">
+          <div class="page-block mt-4" data-stu-setting="lookbook_layout" data-stu-axis="grid" data-stu-page="lookbook">
             <span class="stu-lb">{% trans "Lookbook: Raster" %}</span>
             <select name="lookbook_preset" class="stu-ctrl" aria-label="{% trans 'Layout' %}" data-thumb>
               <option value="">{% trans "Standard" %}</option>
@@ -641,7 +664,7 @@
             </select>
             {% include "tenant/_output_axis.html" with field="lookbook_preset" layout=lookbook_layout %}
           </div>
-          <div class="page-block mt-4" data-stu-setting="reviews_page_layout" data-stu-page="reviews">
+          <div class="page-block mt-4" data-stu-setting="reviews_page_layout" data-stu-axis="grid" data-stu-page="reviews">
             <span class="stu-lb">{% trans "Bewertungen: Raster" %}</span>
             <select name="reviews_page_preset" class="stu-ctrl" aria-label="{% trans 'Layout' %}" data-thumb>
               <option value="">{% trans "Standard" %}</option>
@@ -649,7 +672,7 @@
             </select>
             {% include "tenant/_output_axis.html" with field="reviews_page_preset" layout=reviews_page_layout %}
           </div>
-          <div class="page-block mt-4" data-stu-setting="wishlist_layout" data-stu-page="wishlist">
+          <div class="page-block mt-4" data-stu-setting="wishlist_layout" data-stu-axis="grid" data-stu-page="wishlist">
             <span class="stu-lb">{% trans "Merkzettel: Raster" %}</span>
             <select name="wishlist_preset" class="stu-ctrl" aria-label="{% trans 'Layout' %}" data-thumb>
               <option value="">{% trans "Standard" %}</option>
@@ -657,7 +680,7 @@
             </select>
             {% include "tenant/_output_axis.html" with field="wishlist_preset" layout=wishlist_layout %}
           </div>
-          <div class="page-block mt-4" data-stu-setting="blog_index_layout" data-stu-page="blog">
+          <div class="page-block mt-4" data-stu-setting="blog_index_layout" data-stu-axis="grid" data-stu-page="blog">
             <span class="stu-lb">{% trans "Blog: Raster" %}</span>
             <select name="blog_index_preset" class="stu-ctrl" aria-label="{% trans 'Layout' %}" data-thumb>
               <option value="">{% trans "Standard" %}</option>
@@ -671,12 +694,12 @@
              где эти карточки видно, и с выбором охвата. Имена полей ПРЕЖНИЕ — save,
              live-draft и клик по Look'у не тронуты (они ищут по name, не по области).{% endcomment %}
           {% if has_catalog %}
-          <div class="stu-page-row mt-4" data-stu-setting="product_card_form" data-stu-page="catalog category product services service stays stay events lookbook tours combos wishlist finder cart">
+          <div class="stu-page-row mt-4" data-stu-setting="product_card_form" data-stu-axis="card" data-stu-page="catalog category product services service stays stay events lookbook tours combos wishlist finder cart">
             {% include "tenant/_cardform_picker.html" with name="sd_card_style" value=card_style items=card_forms_product title=_("Kartenform") %}
             {% include "tenant/_scope_pill.html" with setting="product_card_form" %}
           </div>
           {% endif %}
-          <div class="stu-page-row mt-4" data-stu-setting="promo_card_form" data-stu-page="promos promo_group promo">
+          <div class="stu-page-row mt-4" data-stu-setting="promo_card_form" data-stu-axis="card" data-stu-page="promos promo_group promo">
             {% include "tenant/_cardform_picker.html" with name="sd_promo_card" value=promo_card items=card_forms_promo title=_("Aktionskarte") %}
             {% include "tenant/_scope_pill.html" with setting="promo_card_form" %}
           </div>
@@ -688,7 +711,7 @@
           {% if has_catalog %}
           <input type="hidden" name="cl_present" value="1">
           {% if not orders_active_for_prices %}
-          <div class="stu-page-row mt-4" data-stu-setting="catalog_menu_prices" data-stu-page="catalog category">
+          <div class="stu-page-row mt-4" data-stu-setting="catalog_menu_prices" data-stu-axis="content" data-stu-page="catalog category">
             <label class="flex items-center gap-2 text-sm text-gray-600">
               <input type="checkbox" name="menu_show_prices" {% if menu_prices_on %}checked{% endif %} class="rounded border-gray-300">
               {% trans "Preise in der Speisekarte anzeigen" %}
@@ -696,14 +719,14 @@
           </div>
           {% endif %}
           {% if is_food_type %}
-          <div class="stu-page-row mt-2" data-stu-setting="catalog_menu_labels" data-stu-page="catalog category">
+          <div class="stu-page-row mt-2" data-stu-setting="catalog_menu_labels" data-stu-axis="content" data-stu-page="catalog category">
             <label class="flex items-center gap-2 text-sm text-gray-600">
               <input type="checkbox" name="menu_labels" {% if menu_labels_on %}checked{% endif %} class="rounded border-gray-300">
               {% trans "Kennzeichnung in der Speisekarte (Diäten, Allergene)" %}
             </label>
           </div>
           {% endif %}
-          <div class="stu-page-row mt-4" data-stu-setting="product_related" data-stu-page="product">
+          <div class="stu-page-row mt-4" data-stu-setting="product_related" data-stu-axis="grid" data-stu-page="product">
             <label class="block text-sm">
               <span class="stu-lb">{% trans "Related products grid" %}</span>
               <span class="block text-xs text-gray-400 mb-1.5">{% trans "“More from this category” on a product page." %}</span>
@@ -716,7 +739,7 @@
           {% comment %}STU-8: ширина текстовой колонки (артборд «Тип: Текстовая страница»).
              Раньше на «О нас», правовых и блоге настраивать было нечего, кроме блоков.
              Ключ presence-minimal: "" = прежняя узкая колонка → golden-эталоны целы.{% endcomment %}
-          <div class="stu-page-row mt-4" data-stu-setting="text_width" data-stu-page="text team gallery reviews legal blog blog_post tours loyalty gift anfrage contact wishlist combos finder lookbook">
+          <div class="stu-page-row mt-4" data-stu-setting="text_width" data-stu-axis="content" data-stu-page="text team gallery reviews legal blog blog_post tours loyalty gift anfrage contact wishlist combos finder lookbook">
             <input type="hidden" name="tw_present" value="1">
             <label class="block text-sm">
               <span class="stu-lb">{% trans "Textbreite" %}</span>
@@ -761,7 +784,7 @@
              настройки, которые её не касаются.{% endcomment %}
           <div class="page-block" data-page-key="catalog" data-stu-page="catalog category">
             <span class="stu-lb">{% trans "Catalog: grid layout" %}</span>
-            <div class="stu-page-row w-full" data-stu-setting="catalog_layout" data-stu-page="catalog category">
+            <div class="stu-page-row w-full" data-stu-setting="catalog_layout" data-stu-axis="grid" data-stu-page="catalog category">
               <select name="catalog_preset" class="stu-ctrl" aria-label="{% trans 'Layout' %}" data-thumb>
                 {# DS-5c: + прайс-виды — иначе сохранённый preisliste* не матчился и Save откатывал в "list" (W0) #}
                 {% for pk, plabel in catalog_preset_options|default:preset_options %}<option value="{{ pk }}" {% if catalog_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
@@ -769,7 +792,7 @@
               {% include "tenant/_output_axis.html" with field="catalog_preset" layout=catalog_layout %}
             </div>
             {# Дефолтная сортировка каталога (покупатель может сменить дропдауном на витрине). #}
-            <div class="stu-page-row w-full" data-stu-setting="catalog_sort" data-stu-page="catalog category">
+            <div class="stu-page-row w-full" data-stu-setting="catalog_sort" data-stu-axis="content" data-stu-page="catalog category">
               <label class="flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Default product sorting' %}">
                 {% trans "Sort" %}
                 <select name="catalog_sort" class="stu-ctrl">
@@ -783,25 +806,25 @@
                cf_present — ВНЕ строк: строка прячется CSS, а guard обязан уезжать в POST
                всегда (инвариант W0).{% endcomment %}
             <input type="hidden" name="cf_present" value="1">
-            <div class="stu-page-row w-full" data-stu-setting="catalog_filters" data-stu-page="catalog category">
+            <div class="stu-page-row w-full" data-stu-setting="catalog_filters" data-stu-axis="content" data-stu-page="catalog category">
               <label class="flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Show diet filters on the catalog page' %}">
                 <input type="checkbox" name="catalog_show_filters" {% if catalog_show_filters %}checked{% endif %} class="rounded border-gray-300">{% trans "Show filters" %}
               </label>
             </div>
-            <div class="stu-page-row w-full" data-stu-setting="catalog_subcats" data-stu-page="category">
+            <div class="stu-page-row w-full" data-stu-setting="catalog_subcats" data-stu-axis="content" data-stu-page="category">
               <label class="flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Show subcategory cards first' %}">
                 <input type="checkbox" name="catalog_subcats_first" {% if catalog_subcats_first %}checked{% endif %} class="rounded border-gray-300">{% trans "Subcategories first" %}
               </label>
             </div>
             {% comment %}DL-21.1: шаблон КОРНЕВОЙ страницы каталога — свой ключ, дефолт
             категорий сюда не наследуется. Без «Preisliste»: прайс-вид даёт селект выше.{% endcomment %}
-            <div class="stu-page-row w-full" data-stu-setting="catalog_page_style" data-stu-page="catalog">
+            <div class="stu-page-row w-full" data-stu-setting="catalog_page_style" data-stu-axis="composition" data-stu-page="catalog">
               {% include "tenant/_cardform_picker.html" with name="catalog_page_style" value=catalog_page_style items=catalog_root_styles thumb="tenant/_pagelayout_thumb.html" title=_("Seitenvorlage") %}
             </div>
           </div>
           {% endif %}
           {% if has_events %}
-          <div class="page-block" data-page-key="events" data-stu-setting="events_layout" data-stu-page="events">
+          <div class="page-block" data-page-key="events" data-stu-setting="events_layout" data-stu-axis="grid" data-stu-page="events">
             <span class="stu-lb">{% trans "Events: grid layout" %}</span>
             <select name="events_preset" class="stu-ctrl" aria-label="{% trans 'Layout' %}" data-thumb>
               {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if events_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
@@ -811,7 +834,7 @@
             {% comment %}STU-15c: дефолт сортировки листинга — у каталога он есть с UB2-2,
                а здесь порядок задавала только вьюха. Посетитель по-прежнему сильнее:
                его выбор в тулбаре (?sort=) перекрывает этот дефолт.{% endcomment %}
-            <div class="stu-page-row w-full mt-2" data-stu-setting="events_sort" data-stu-page="events">
+            <div class="stu-page-row w-full mt-2" data-stu-setting="events_sort" data-stu-axis="content" data-stu-page="events">
               <label class="block">
                 <span class="stu-lb">{% trans "Sortierung" %}</span>
                 <select name="events_sort" class="stu-ctrl">
@@ -821,7 +844,7 @@
             </div>
           {% endif %}
           {% if has_stays %}
-          <div class="page-block" data-page-key="stay_rooms" data-stu-setting="stay_layout" data-stu-page="stays">
+          <div class="page-block" data-page-key="stay_rooms" data-stu-setting="stay_layout" data-stu-axis="grid" data-stu-page="stays">
             <span class="stu-lb">{% trans "Rooms: grid layout" %}</span>
             <select name="stay_preset" class="stu-ctrl" aria-label="{% trans 'Layout' %}" data-thumb>
               {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if stay_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
@@ -831,7 +854,7 @@
             {% comment %}STU-15c: дефолт сортировки листинга — у каталога он есть с UB2-2,
                а здесь порядок задавала только вьюха. Посетитель по-прежнему сильнее:
                его выбор в тулбаре (?sort=) перекрывает этот дефолт.{% endcomment %}
-            <div class="stu-page-row w-full mt-2" data-stu-setting="stays_sort" data-stu-page="stays">
+            <div class="stu-page-row w-full mt-2" data-stu-setting="stays_sort" data-stu-axis="content" data-stu-page="stays">
               <label class="block">
                 <span class="stu-lb">{% trans "Sortierung" %}</span>
                 <select name="stays_sort" class="stu-ctrl">
@@ -843,7 +866,7 @@
           {% comment %} UB1-1: раскладка листинга услуг /termin/. Пустой выбор «Standard» =
              ключ не задан → легаси-грид (узкий, max-w-3xl); POST удаляет ключ. {% endcomment %}
           {% if has_booking %}
-          <div class="page-block" data-page-key="services" data-stu-setting="service_layout" data-stu-page="services">
+          <div class="page-block" data-page-key="services" data-stu-setting="service_layout" data-stu-axis="grid" data-stu-page="services">
             <span class="stu-lb">{% trans "Services: grid layout" %}</span>
             <select name="service_preset" class="stu-ctrl" aria-label="{% trans 'Layout' %}" data-thumb>
               <option value="">{% trans "Standard" %}</option>
@@ -854,7 +877,7 @@
             {% comment %}STU-15c: дефолт сортировки листинга — у каталога он есть с UB2-2,
                а здесь порядок задавала только вьюха. Посетитель по-прежнему сильнее:
                его выбор в тулбаре (?sort=) перекрывает этот дефолт.{% endcomment %}
-            <div class="stu-page-row w-full mt-2" data-stu-setting="services_sort" data-stu-page="services">
+            <div class="stu-page-row w-full mt-2" data-stu-setting="services_sort" data-stu-axis="content" data-stu-page="services">
               <label class="block">
                 <span class="stu-lb">{% trans "Sortierung" %}</span>
                 <select name="services_sort" class="stu-ctrl">
@@ -875,7 +898,7 @@
           {% comment %} SE-2b-2: порядок/видимость тематических секций детальной события — клик по
              блоку секций на канве (event detail ?preview=1) переносит этот инспектор сюда. {% endcomment %}
           {% if has_events %}
-          <div class="page-block" data-page-key="event_detail" data-stu-setting="event_detail_sections" data-stu-page="event">
+          <div class="page-block" data-page-key="event_detail" data-stu-setting="event_detail_sections" data-stu-axis="content" data-stu-page="event">
             <span class="text-sm font-medium block mb-2">{% trans "Event page: sections" %}</span>
             <ul id="ed-sections" class="space-y-1">
               {% for s in event_sections %}
@@ -894,7 +917,7 @@
             </ul>
             {% comment %}STU-15b: раскладка страницы — у услуги/номера/события её не было
                вовсе, хотя тело у них устроено так же (data-driven цикл секций).{% endcomment %}
-            <div class="stu-page-row" data-stu-setting="event_detail_layout" data-stu-page="event">
+            <div class="stu-page-row" data-stu-setting="event_detail_layout" data-stu-axis="composition" data-stu-page="event">
               <label class="block mt-2">
                 <span class="stu-lb">{% trans "Aufbau" %}</span>
                 <select name="ed_layout" class="stu-ctrl">
@@ -909,7 +932,7 @@
           {% comment %}Опц. секции детальной ТОВАРА (показ/скрытие). Клик по детальной товара
              (?preview=1) переносит инспектор сюда; правки — в черновик/Save (live-preview).{% endcomment %}
           {% if has_catalog %}
-          <div class="page-block" data-page-key="product_detail" data-stu-setting="product_detail_sections" data-stu-page="product">
+          <div class="page-block" data-page-key="product_detail" data-stu-setting="product_detail_sections" data-stu-axis="content" data-stu-page="product">
             <span class="text-sm font-medium block mb-2">{% trans "Product page: sections" %}</span>
             <input type="hidden" name="pd_present" value="1">
             <ul class="space-y-1">
@@ -923,7 +946,7 @@
               {% endfor %}
             </ul>
             {# DL-16.6 (D2): раскладка секций детали товара — друг под другом или табами #}
-            <div class="stu-page-row" data-stu-setting="product_detail_layout" data-stu-page="product">
+            <div class="stu-page-row" data-stu-setting="product_detail_layout" data-stu-axis="composition" data-stu-page="product">
               <label class="block mt-2">
                 <span class="stu-lb">{% trans "Aufbau" %}</span>
                 <select name="pd_layout" class="stu-ctrl">
@@ -939,7 +962,7 @@
           {% comment %}UA4-1 slice C: секции детальной УСЛУГИ (booking) — тот же hide-only
              инспектор; клик по детали услуги (?preview=1) переносит его сюда.{% endcomment %}
           {% if has_booking %}
-          <div class="page-block" data-page-key="service_detail" data-stu-setting="service_detail_sections" data-stu-page="service">
+          <div class="page-block" data-page-key="service_detail" data-stu-setting="service_detail_sections" data-stu-axis="content" data-stu-page="service">
             <span class="text-sm font-medium block mb-2">{% trans "Service page: sections" %}</span>
             <input type="hidden" name="sd_present" value="1">
             <ul class="space-y-1">
@@ -954,7 +977,7 @@
             </ul>
             {% comment %}STU-15b: раскладка страницы — у услуги/номера/события её не было
                вовсе, хотя тело у них устроено так же (data-driven цикл секций).{% endcomment %}
-            <div class="stu-page-row" data-stu-setting="service_detail_layout" data-stu-page="service">
+            <div class="stu-page-row" data-stu-setting="service_detail_layout" data-stu-axis="composition" data-stu-page="service">
               <label class="block mt-2">
                 <span class="stu-lb">{% trans "Aufbau" %}</span>
                 <select name="sd_layout" class="stu-ctrl">
@@ -968,7 +991,7 @@
           {% endif %}
           {% comment %}UA4-1 slice C: секции детальной НОМЕРА (stays).{% endcomment %}
           {% if has_stays %}
-          <div class="page-block" data-page-key="stay_detail" data-stu-setting="stay_detail_sections" data-stu-page="stay">
+          <div class="page-block" data-page-key="stay_detail" data-stu-setting="stay_detail_sections" data-stu-axis="content" data-stu-page="stay">
             <span class="text-sm font-medium block mb-2">{% trans "Room page: sections" %}</span>
             <input type="hidden" name="std_present" value="1">
             <ul class="space-y-1">
@@ -983,7 +1006,7 @@
             </ul>
             {% comment %}STU-15b: раскладка страницы — у услуги/номера/события её не было
                вовсе, хотя тело у них устроено так же (data-driven цикл секций).{% endcomment %}
-            <div class="stu-page-row" data-stu-setting="stay_detail_layout" data-stu-page="stay">
+            <div class="stu-page-row" data-stu-setting="stay_detail_layout" data-stu-axis="composition" data-stu-page="stay">
               <label class="block mt-2">
                 <span class="stu-lb">{% trans "Aufbau" %}</span>
                 <select name="std_layout" class="stu-ctrl">
@@ -998,7 +1021,7 @@
           {% comment %}Настройки страницы КОРЗИНЫ: блок кросс-селла «Passt dazu»
              (показ/скрытие). Заголовок блока правится инлайн на самой странице.{% endcomment %}
           {% if has_catalog %}
-          <div class="page-block" data-page-key="cart" data-stu-setting="cart_upsell" data-stu-page="cart">
+          <div class="page-block" data-page-key="cart" data-stu-setting="cart_upsell" data-stu-axis="content" data-stu-page="cart">
             <span class="text-sm font-medium block mb-2">{% trans "Cart page" %}</span>
             <input type="hidden" name="cart_present" value="1">
             <label class="flex items-center gap-1.5 text-xs text-gray-600" title="{% trans 'Show the “Goes well with this” block in the cart' %}">
@@ -1881,28 +1904,33 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
 #bld-root.bld-panel-xnarrow .stu-two { grid-template-columns: minmax(0, 1fr); }
 
 
-.bld-grp {
+.bld-grp, .stu-grp {
   border: 1px solid #e5e7eb; border-radius: .6rem; background: #fff;
   padding: .45rem .6rem; margin-top: .5rem; width: 100%;
 }
-.bld-grp:first-child { margin-top: 0; }
-.bld-grp-sum {
+.bld-grp:first-child, .stu-grp:first-child { margin-top: 0; }
+.bld-grp-sum, .stu-grp-sum {
   cursor: pointer; list-style: none; display: flex; align-items: center; gap: .4rem;
   font-size: 13px; font-weight: 600; color: #111827; padding: .05rem 0;
 }
-.bld-grp-sum::-webkit-details-marker { display: none; }
-.bld-grp-sum::before { content: "▸"; color: #9ca3af; font-size: 11px; }
-.bld-grp[open] > .bld-grp-sum::before { content: "▾"; }
-.bld-grp-val {
+.bld-grp-sum::-webkit-details-marker, .stu-grp-sum::-webkit-details-marker { display: none; }
+.bld-grp-sum::before, .stu-grp-sum::before { content: "▸"; color: #9ca3af; font-size: 11px; }
+.bld-grp[open] > .bld-grp-sum::before,
+.stu-grp[open] > .stu-grp-sum::before { content: "▾"; }
+.bld-grp-val, .stu-grp-val {
   margin-left: auto; font-size: 11px; font-weight: 400; color: #9ca3af;
   max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.bld-grp[open] > .bld-grp-sum > .bld-grp-val { display: none; }
+.bld-grp[open] > .bld-grp-sum > .bld-grp-val,
+.stu-grp[open] > .stu-grp-sum > .stu-grp-val { display: none; }
 .bld-grp-badge {
   font-size: 10px; font-weight: 600; color: #4338ca; background: #eef2ff;
   border-radius: 999px; padding: .05rem .35rem;
 }
-.bld-grp-body { padding: .45rem 0 .1rem; }
+.bld-grp-body, .stu-grp-body { padding: .45rem 0 .1rem; }
+/* STU-18b: группа оси переиспользует компонент настроек БЛОКА — до этого в одной
+   панели жили два визуальных языка, и лучший из них доставался только блокам. */
+.stu-grp[hidden] { display: none; }
 /* Подсказка вместо снятых из панели ▲▼/⚙: они живут на плашке у самого блока. */
 .bld-grp-hint { font-size: 11px; color: #9ca3af; padding: .5rem .1rem 0; line-height: 1.35; }
 /* Правый инспектор (A+B, 2026-07-13): область настроек — узкая панель СПРАВА во всю
@@ -3610,8 +3638,78 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   // на СМЕНЕ типа (навигация канвы), а не на каждой перерисовке.
   var lastStuPage = "";
 
+  // ── STU-18b: панель собрана по осям вывода ───────────────────────────────────
+  // Каркас групп рендерит сервер, строки переносит клиент: узлы остаются ТЕМИ ЖЕ и
+  // внутри #home-form, поэтому имена полей, гейты шаблона, JS-хуки и инвариант W0
+  // не затронуты — меняется только порядок и вложенность в панели.
+  var stuGrouped = false;
+  function groupPanelRows() {
+    if (stuGrouped) return;
+    var box = document.getElementById("stu-groups");
+    var form = document.getElementById("home-form");
+    if (!box || !form) return;
+    form.querySelectorAll("[data-stu-axis]").forEach(function (row) {
+      var slot = box.querySelector('[data-stu-slot="' + row.getAttribute("data-stu-axis") + '"]');
+      if (slot) slot.appendChild(row);
+    });
+    stuGrouped = true;
+  }
+
+  // Значение строки для свёрнутого заголовка: владелец видит выбор, не разворачивая.
+  function stuRowValue(row) {
+    var picker = row.querySelector("[data-cardform-picker]");
+    if (picker) {
+      // Список селекторов через запятую вернул бы ПЕРВЫЙ по порядку документа, а
+      // внутри мини-макета плитки лежат вложенные пустые <span> — сводка выходила
+      // пустой (поймано стендом). Спрашиваем подпись явно.
+      var tile = picker.querySelector('[data-cf-key][aria-pressed="true"]');
+      var cap = tile && tile.querySelector(".cf-cap");
+      if (cap) return (cap.textContent || "").trim();
+      if (tile) return (tile.textContent || "").trim();
+    }
+    var sel = row.querySelector("select:not(.sr-only)");
+    if (sel && sel.selectedIndex >= 0) return (sel.options[sel.selectedIndex].text || "").trim();
+    var box = row.querySelector('input[type="checkbox"]');
+    if (box) return box.checked ? "✓" : "—";
+    var num = row.querySelector('input[type="number"], input[type="text"]');
+    if (num) return (num.value || num.placeholder || "").trim();
+    return "";
+  }
+
+  // Группа без применимых строк НЕ рисуется: пустая рамка сбивает сильнее, чем её
+  // отсутствие (то же правило, что у карточки `data-stu-any`).
+  function syncPanelGroups() {
+    var box = document.getElementById("stu-groups");
+    if (!box) return;
+    box.querySelectorAll("[data-stu-group]").forEach(function (grp) {
+      var rows = [].slice.call(grp.querySelectorAll("[data-stu-axis]")).filter(function (r) {
+        return !r.classList.contains("hidden");
+      });
+      grp.hidden = rows.length === 0;
+      var val = grp.querySelector(".stu-grp-val");
+      if (!val) return;
+      // Одна строка — показываем ЗНАЧЕНИЕ (владелец видит выбор не разворачивая).
+      // Несколько — только их число: склейка вида «— · Самые новые · ✓» шумит, а
+      // число понятно без перевода (плюрал в ru потребовал бы четырёх форм).
+      val.textContent = rows.length === 1 ? stuRowValue(rows[0]) : rows.length ? String(rows.length) : "";
+      // Несколько настроек названы ПО СВОЕЙ ОСИ («Vorlage der Seite» у каталога,
+      // категории и акции), и внутри группы заголовок повторялся дословно.
+      var gname = ((grp.querySelector(".stu-grp-nm") || {}).textContent || "").trim();
+      rows.forEach(function (r) {
+        r.querySelectorAll(".stu-lb, [data-cardform-picker] > span:first-child").forEach(function (lb) {
+          if ((lb.textContent || "").trim() === gname) lb.classList.add("hidden");
+        });
+      });
+    });
+  }
+  document.addEventListener("change", function (e) {
+    if (e.target && e.target.closest && e.target.closest("[data-stu-axis]")) syncPanelGroups();
+  });
+
+
   function applyStuPageScope() {
     var code = curStuPage || "other";
+    groupPanelRows();  // ДО подсчёта: иначе старая карточка сочтёт уехавшие строки своими
     var shown = 0;      // строки ЭТОЙ карточки
     var anywhere = 0;   // строки этого типа где угодно в панели
     var panel = document.querySelector("[data-stu-any]");
@@ -3629,6 +3727,19 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     // настроек вовсе. У home и cart они есть, но лежат в другой карточке (области
     // секций / наборе лендингов) — там подсказка врала. Пустую карточку в этом случае
     // просто убираем: настройка рядом, а рамка без содержимого сбивает.
+    // STU-18b: обёртки с подписью (`data-page-key="catalog"` и т.п.) сами несут
+    // `data-stu-page`, поэтому их видимость решает ЭТА функция — единственный
+    // владелец класса hidden (урок STU-8). Их строки уехали в группы осей, и на
+    // своей странице обёртка осталась бы пустой рамкой с заголовком «Каталог: сетка».
+    // Скрытые сентинелы (`cf_present`) за живой контрол не считаем: они намеренно
+    // лежат вне строк, а display:none сабмит поля не отменяет (W0).
+    document.querySelectorAll("[data-stu-page]:not([data-stu-setting])").forEach(function (el) {
+      if (el.classList.contains("hidden")) return;
+      if (el.querySelector("[data-stu-setting]")) return;
+      if (!el.querySelector("input:not([type=hidden]), select, textarea, button")) {
+        el.classList.add("hidden");
+      }
+    });
     var empty = document.querySelector(".stu-page-empty");
     if (empty) empty.classList.toggle("hidden", shown > 0 || anywhere > 0);
     if (panel) panel.classList.toggle("hidden", shown === 0 && anywhere > 0);
@@ -3665,6 +3776,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         }
       }
     } catch (eArea) {}
+    syncPanelGroups();
     refreshScopePills();
   }
 
@@ -3948,15 +4060,17 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     if (!landing) return;
     var pageKey = SCOPE_PAGE_KEY[group] || (isHome ? "" : curPbHost);
     var shown = 0;
+    // STU-18b: строки с типами из реестра ПЕРЕЕХАЛИ в группы осей и больше не лежат
+    // под `[data-scope="landing"]` — считаем их по форме, иначе подсказка внизу снова
+    // начнёт врать («правьте на канве» там, где настройки есть).
+    var formEl = document.getElementById("home-form");
+    (formEl || document).querySelectorAll("[data-stu-axis]").forEach(function (row) {
+      if (!row.classList.contains("hidden")) shown++;
+    });
     landing.querySelectorAll(".page-block").forEach(function (row) {
-      // STU-8 (часть 2): строка с типами из реестра — её видимость уже решил
-      // applyStuPageScope; здесь только считаем, чтобы подсказка внизу говорила
-      // правду. Хостовые строки (C-блоки страницы, пресеты) типов не имеют — их
-      // ключ динамический, и правило остаётся прежним: своя страница по хосту.
-      if (row.hasAttribute("data-stu-page")) {
-        if (!row.classList.contains("hidden")) shown++;
-        return;
-      }
+      // Хостовые строки (C-блоки страницы, пресеты) типов не имеют — их ключ
+      // динамический, и правило остаётся прежним: своя страница по хосту.
+      if (row.hasAttribute("data-stu-page")) return;
       var match = pageKey && row.getAttribute("data-page-key") === pageKey;
       // STU-8: раньше на главной показывались ВСЕ строки лендингов (каталог, события,
       // номера, услуги, корзина, секции деталей) — ни одна из них к главной не

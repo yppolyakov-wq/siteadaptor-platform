@@ -22597,3 +22597,7 @@ msgstr "Відкрити на головній"
 #: templates/tenant/site_home.html
 msgid "Das Raster dieser Seite kommt vom gleichnamigen Block der Startseite."
 msgstr "Сітку цієї сторінки задає однойменний блок головної."
+
+#: apps/core/studio_pages.py:0
+msgid "Inhalt der Seite"
+msgstr "Вміст сторінки"

@@ -22613,3 +22613,7 @@ msgstr "Открыть на главной"
 #: templates/tenant/site_home.html
 msgid "Das Raster dieser Seite kommt vom gleichnamigen Block der Startseite."
 msgstr "Сетка этой страницы задаётся одноимённым блоком главной."
+
+#: apps/core/studio_pages.py:0
+msgid "Inhalt der Seite"
+msgstr "Содержание страницы"

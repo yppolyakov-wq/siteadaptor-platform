@@ -68,6 +68,12 @@ class Setting:
     site_key: tuple[str, ...]
     object_kind: str = ""
     object_field: str = ""
+    #: STU-18b (решение владельца Р-1): ось вывода, к которой относится настройка.
+    #: Панель собирает строки в четыре группы В ЭТОМ порядке — от «что вокруг сетки»
+    #: к «как выглядит одна плитка», затем содержание страницы. До этого строки шли
+    #: в историческом порядке двух карточек, чьи заголовки не описывали содержимое:
+    #: «Шаблон страницы» на каталоге содержала ФОРМУ КАРТОЧКИ.
+    axis: str = ""
     #: STU-12j (F9): у настройки может быть РАЗНЫЙ объектный уровень на разных типах
     #: страниц — форма карточки на странице товара пишет товар, а на странице
     #: категории категорию. Ключ — код типа страницы, значение — (вид, поле).
@@ -95,6 +101,22 @@ class Setting:
         return ("", "")
 
 
+#: Оси вывода (план LAY §4). Порядок кортежа = порядок групп в панели.
+AXIS_COMPOSITION = "composition"  # что вокруг сетки: шапка-фото, полки, вкладки, витрина
+AXIS_GRID = "grid"  # сколько и как плиток: колонки, ряды, хвост, лента
+AXIS_CARD = "card"  # как выглядит одна плитка
+AXIS_CONTENT = "content"  # что на странице: сортировка, фильтры, состав секций
+AXES: tuple[tuple[str, str], ...] = (
+    (AXIS_COMPOSITION, _("Vorlage der Seite")),
+    (AXIS_GRID, _("Ausgabe")),
+    # НЕ `_("Karte")`: этот msgid уже занят СПИСКОМ БЛЮД и переведён как «Меню»
+    # (по-русски и по-турецки). Омоним поймал стенд — в панели ось «Карточка»
+    # называлась «Меню». `Kartenform` — тот же msgid, что у самой настройки.
+    (AXIS_CARD, _("Kartenform")),
+    (AXIS_CONTENT, _("Inhalt der Seite")),
+)
+
+
 def _s(*args, **kw) -> Setting:
     return Setting(*args, **kw)
 
@@ -104,23 +126,31 @@ SETTINGS: dict[str, Setting] = {
     s.code: s
     for s in (
         # ── главная
-        _s("home_sections", _("Abschnitte"), "order_*", ("sections",)),
-        _s("home_hero", _("Banner"), "hero_style", ("hero_style",)),
+        _s("home_sections", _("Abschnitte"), "order_*", ("sections",), axis=AXIS_CONTENT),
+        _s("home_hero", _("Banner"), "hero_style", ("hero_style",), axis=AXIS_COMPOSITION),
         # ── каталог: корень и категория
         _s(
             "catalog_page_style",
             _("Vorlage der Seite"),
             "catalog_page_style",
             ("catalog_page_style",),
+            axis=AXIS_COMPOSITION,
         ),
-        _s("catalog_layout", _("Raster"), "catalog_preset", ("catalog_layout",)),
-        _s("catalog_sort", _("Sortierung"), "catalog_sort", ("catalog_sort",)),
-        _s("catalog_filters", _("Filter"), "catalog_show_filters", ("catalog_show_filters",)),
+        _s("catalog_layout", _("Raster"), "catalog_preset", ("catalog_layout",), axis=AXIS_GRID),
+        _s("catalog_sort", _("Sortierung"), "catalog_sort", ("catalog_sort",), axis=AXIS_CONTENT),
+        _s(
+            "catalog_filters",
+            _("Filter"),
+            "catalog_show_filters",
+            ("catalog_show_filters",),
+            axis=AXIS_CONTENT,
+        ),
         _s(
             "catalog_subcats",
             _("Unterkategorien zuerst"),
             "catalog_subcats_first",
             ("catalog_subcats_first",),
+            axis=AXIS_CONTENT,
         ),
         _s(
             "category_page_style",
@@ -129,6 +159,7 @@ SETTINGS: dict[str, Setting] = {
             ("site_defaults", "category_page_style"),
             OBJECT_CATEGORY,
             "page_style",
+            axis=AXIS_COMPOSITION,
         ),
         # ── товар
         _s(
@@ -136,12 +167,14 @@ SETTINGS: dict[str, Setting] = {
             _("Aufbau der Detailseite"),
             "pd_layout",
             ("product_detail", "layout"),
+            axis=AXIS_COMPOSITION,
         ),
         _s(
             "product_detail_sections",
             _("Abschnitte"),
             "pd_visible_*",
             ("product_detail", "hidden"),
+            axis=AXIS_CONTENT,
         ),
         # STU-9: `site_defaults.card_style` рисует карточки товаров И карточки
         # услуг/номеров/событий (`_sellable_card`) — то есть действует на КАЖДОЙ
@@ -161,10 +194,23 @@ SETTINGS: dict[str, Setting] = {
                 ("product", (OBJECT_PRODUCT, "card_style")),
                 ("category", (OBJECT_CATEGORY, "card_style")),
             ),
+            axis=AXIS_CARD,
         ),
         # ── акции
-        _s("promo_page_style", _("Vorlage der Seite"), "promo_page_style", ("promo_page_style",)),
-        _s("promo_grouping", _("Gruppierung"), "promo_grouping", ("promo_grouping",)),
+        _s(
+            "promo_page_style",
+            _("Vorlage der Seite"),
+            "promo_page_style",
+            ("promo_page_style",),
+            axis=AXIS_COMPOSITION,
+        ),
+        _s(
+            "promo_grouping",
+            _("Gruppierung"),
+            "promo_grouping",
+            ("promo_grouping",),
+            axis=AXIS_CONTENT,
+        ),
         _s(
             "promo_card_form",
             _("Kartenform"),
@@ -172,6 +218,7 @@ SETTINGS: dict[str, Setting] = {
             ("site_defaults", "promo_card"),
             OBJECT_PROMOTION,
             "card_style",
+            axis=AXIS_CARD,
         ),
         _s(
             "promo_group_style",
@@ -180,6 +227,7 @@ SETTINGS: dict[str, Setting] = {
             ("site_defaults", "promo_group_style"),
             OBJECT_PROMO_GROUP,
             "style",
+            axis=AXIS_COMPOSITION,
         ),
         # STU-15a: у страницы одной акции шаблона не было вовсе — при том что у
         # товара, категории и группы акций он есть. «Только здесь» пишет саму
@@ -191,17 +239,27 @@ SETTINGS: dict[str, Setting] = {
             ("site_defaults", "promo_detail_style"),
             OBJECT_PROMOTION,
             "page_style",
+            axis=AXIS_COMPOSITION,
         ),
         # ── услуги / номера / события
-        _s("service_layout", _("Raster"), "service_preset", ("service_index_layout",)),
+        _s(
+            "service_layout",
+            _("Raster"),
+            "service_preset",
+            ("service_index_layout",),
+            axis=AXIS_GRID,
+        ),
         # STU-15c: дефолт сортировки листинга — у каталога он есть с UB2-2, у трёх
         # других листингов владелец не мог задать порядок вообще.
-        _s("services_sort", _("Sortierung"), "services_sort", ("services_sort",)),
+        _s(
+            "services_sort", _("Sortierung"), "services_sort", ("services_sort",), axis=AXIS_CONTENT
+        ),
         _s(
             "service_detail_sections",
             _("Abschnitte"),
             "sd_visible_*",
             ("service_detail", "hidden"),
+            axis=AXIS_CONTENT,
         ),
         # STU-15b: раскладка страницы — у услуги/номера/события её не было, хотя тело
         # у них устроено так же, как у товара (data-driven цикл секций UA4-2).
@@ -210,41 +268,75 @@ SETTINGS: dict[str, Setting] = {
             _("Aufbau der Detailseite"),
             "sd_layout",
             ("service_detail", "layout"),
+            axis=AXIS_COMPOSITION,
         ),
         # LAY-3a-2: ось вывода там, где сетка была зашита в шаблоне (план LAY §13).
         # Настройка одна и та же по смыслу, поэтому и подпись одна — «Raster».
-        _s("promo_index_layout", _("Raster"), "promo_index_preset", ("promo_index_layout",)),
-        _s("combos_layout", _("Raster"), "combos_preset", ("combos_layout",)),
-        _s("tours_layout", _("Raster"), "tours_preset", ("tours_layout",)),
-        _s("lookbook_layout", _("Raster"), "lookbook_preset", ("lookbook_layout",)),
-        _s("reviews_page_layout", _("Raster"), "reviews_page_preset", ("reviews_page_layout",)),
-        _s("wishlist_layout", _("Raster"), "wishlist_preset", ("wishlist_layout",)),
-        _s("blog_index_layout", _("Raster"), "blog_index_preset", ("blog_index_layout",)),
-        _s("stay_layout", _("Raster"), "stay_preset", ("stay_index_layout",)),
-        _s("stays_sort", _("Sortierung"), "stays_sort", ("stays_sort",)),
-        _s("stay_detail_sections", _("Abschnitte"), "std_visible_*", ("stay_detail", "hidden")),
+        _s(
+            "promo_index_layout",
+            _("Raster"),
+            "promo_index_preset",
+            ("promo_index_layout",),
+            axis=AXIS_GRID,
+        ),
+        _s("combos_layout", _("Raster"), "combos_preset", ("combos_layout",), axis=AXIS_GRID),
+        _s("tours_layout", _("Raster"), "tours_preset", ("tours_layout",), axis=AXIS_GRID),
+        _s("lookbook_layout", _("Raster"), "lookbook_preset", ("lookbook_layout",), axis=AXIS_GRID),
+        _s(
+            "reviews_page_layout",
+            _("Raster"),
+            "reviews_page_preset",
+            ("reviews_page_layout",),
+            axis=AXIS_GRID,
+        ),
+        _s("wishlist_layout", _("Raster"), "wishlist_preset", ("wishlist_layout",), axis=AXIS_GRID),
+        _s(
+            "blog_index_layout",
+            _("Raster"),
+            "blog_index_preset",
+            ("blog_index_layout",),
+            axis=AXIS_GRID,
+        ),
+        _s("stay_layout", _("Raster"), "stay_preset", ("stay_index_layout",), axis=AXIS_GRID),
+        _s("stays_sort", _("Sortierung"), "stays_sort", ("stays_sort",), axis=AXIS_CONTENT),
+        _s(
+            "stay_detail_sections",
+            _("Abschnitte"),
+            "std_visible_*",
+            ("stay_detail", "hidden"),
+            axis=AXIS_CONTENT,
+        ),
         _s(
             "stay_detail_layout",
             _("Aufbau der Detailseite"),
             "std_layout",
             ("stay_detail", "layout"),
+            axis=AXIS_COMPOSITION,
         ),
-        _s("events_layout", _("Raster"), "events_preset", ("events_index_layout",)),
-        _s("events_sort", _("Sortierung"), "events_sort", ("events_sort",)),
+        _s("events_layout", _("Raster"), "events_preset", ("events_index_layout",), axis=AXIS_GRID),
+        _s("events_sort", _("Sortierung"), "events_sort", ("events_sort",), axis=AXIS_CONTENT),
         _s(
             "event_detail_sections",
             _("Abschnitte"),
             "ed_visible_*",
             ("event_detail", "hidden"),
+            axis=AXIS_CONTENT,
         ),
         _s(
             "event_detail_layout",
             _("Aufbau der Detailseite"),
             "ed_layout",
             ("event_detail", "layout"),
+            axis=AXIS_COMPOSITION,
         ),
         # ── корзина
-        _s("cart_upsell", _("Passt dazu"), "cart_show_upsell", ("cart_show_upsell",)),
+        _s(
+            "cart_upsell",
+            _("Passt dazu"),
+            "cart_show_upsell",
+            ("cart_show_upsell",),
+            axis=AXIS_CONTENT,
+        ),
         # ── STU-8: настройки, которые панель показывала, а реестр не знал. Реестр —
         # единственный источник ответа «что настраивается на этой странице», поэтому
         # список обязан быть полным: замок test_registry_and_panel_agree сверяет его
@@ -254,18 +346,21 @@ SETTINGS: dict[str, Setting] = {
             _("Preise in der Speisekarte anzeigen"),
             "menu_show_prices",
             ("menu_show_prices",),
+            axis=AXIS_CONTENT,
         ),
         _s(
             "catalog_menu_labels",
             _("Kennzeichnung in der Speisekarte (Diäten, Allergene)"),
             "menu_labels",
             ("menu_labels",),
+            axis=AXIS_CONTENT,
         ),
         _s(
             "product_related",
             _("Related products grid"),
             "related_preset",
             ("detail_related_layout", "preset"),
+            axis=AXIS_GRID,
         ),
         # STU-8: ширина текстовой колонки — артборд «Тип: Текстовая страница».
         # Ключ presence-minimal ("" = прежняя узкая колонка → golden целы).
@@ -274,6 +369,7 @@ SETTINGS: dict[str, Setting] = {
             _("Textbreite"),
             "sd_text_width",
             ("site_defaults", "text_width"),
+            axis=AXIS_CONTENT,
         ),
     )
 }

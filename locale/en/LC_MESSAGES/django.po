@@ -22383,3 +22383,7 @@ msgstr "Open on the homepage"
 msgid "Das Raster dieser Seite kommt vom gleichnamigen Block der Startseite."
 msgstr ""
 "This page's grid comes from the block of the same name on the homepage."
+
+#: apps/core/studio_pages.py:0
+msgid "Inhalt der Seite"
+msgstr "Page content"

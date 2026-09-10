@@ -2792,6 +2792,8 @@ def home_builder_view(request):
             "card_padding": config["site_defaults"]["card_padding"],
             "card_style": config["site_defaults"].get("card_style", ""),  # ST-7c
             # DL-19: варианты формы карточки для плиток-предпросмотра (реестр)
+            # STU-18b: порядок групп панели — из реестра, а не из разметки.
+            "studio_axes": studio_pages.AXES,
             "card_forms_product": card_forms.forms_for(card_forms.PRODUCT),
             "card_forms_promo": card_forms.forms_for(card_forms.PROMO),
             # DL-20: шаблон страницы категории — префилл + реестр для плиток.
