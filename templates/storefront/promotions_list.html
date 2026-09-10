@@ -140,8 +140,11 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
         {% endif %}
         {% if promo_layout == "slider" %}
         {% comment %}DL-16.2 (A3): группа — горизонтальная лента со слайдером-примитивом
-        (стрелки при наведении, точки, свайп); все группы видны без прокрутки вниз.{% endcomment %}
-        <div data-grid="promo_list" data-promo-strip class="flex gap-4 overflow-x-auto pb-2" data-sf-slider>
+        (стрелки при наведении, точки, свайп); все группы видны без прокрутки вниз.
+        LAY-7b: «Reihen» и «Tempo» из оси вывода доезжают и сюда — иначе контролы
+        панели на этой странице ничего не меняли бы (класс «обещание без исполнения»).
+        Разметку и ширину карточек НЕ трогаем: без ключей лента прежняя.{% endcomment %}
+        <div data-grid="promo_list" data-promo-strip class="flex gap-4 overflow-x-auto pb-2" data-sf-slider {% sf_slider_attrs promo_index_layout %}>
           {% for p in items %}
             <div class="w-64 sm:w-72 shrink-0 flex [&>div]:w-full">{% include "storefront/_promo_card.html" with in_group=True %}</div>
           {% endfor %}

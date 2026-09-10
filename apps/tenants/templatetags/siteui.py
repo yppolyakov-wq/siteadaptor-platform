@@ -463,17 +463,48 @@ def grid_attrs(site, key, cols="", tail="", count=0, more=False):
 def sf_grid_attrs(layout=None, cols="", tail="", count=0, default_tail="spread", more=False):
     """DL-14: атрибуты «полных рядов» для сеток БЕЗ секции главной (листинги,
     хардкоженные сетки): раскладка страницы (dict) и/или триплет `cols`; дефолт
-    хвоста — spread (листинги контент не прячут, неполный ряд распределяется)."""
+    хвоста — spread (листинги контент не прячут, неполный ряд распределяется).
+
+    LAY-7d: литеральный `cols` здесь описывает ПРЕЖНЮЮ жёсткую вёрстку шаблона,
+    то есть это ФОЛБЭК на случай «владелец раскладку не задавал» (ключи страниц
+    presence-minimal → приходит None). Раньше литерал побеждал всегда, и на 13
+    колл-сайтах, где передаются ОБА аргумента, класс шёл от владельца (напр. 4
+    колонки), а `data-sf-cols` — от литерала (3): CSS «полных рядов» считал ряды
+    не для той сетки, и хвост обрезался/распределялся неверно. У секций главной
+    (`grid_attrs`) семантика ДРУГАЯ — там раскладка есть всегда, а литерал метит
+    стиль с жёсткой сеткой, поэтому правило живёт здесь, а не в `grid_attr_string`.
+    """
+    lay = layout if isinstance(layout, dict) and layout else None
     return mark_safe(
         siteconfig.grid_attr_string(
-            layout if isinstance(layout, dict) else None,
-            cols or None,
+            lay,
+            None if lay else (cols or None),
             tail or None,
             count=int(count or 0),
             more=bool(more),
             default_tail=default_tail,
         )
     )
+
+
+@register.simple_tag(name="sf_slider_attrs")
+def sf_slider_attrs(layout=None):
+    """LAY-7b: параметры слайдера для ГОТОВОЙ flex-ленты (не сетки).
+
+    Лента групп на /aktionen/ рисуется своей разметкой (`flex overflow-x-auto`,
+    ширина карточки классом), поэтому общий `sf_grid_attrs` ей не подходит: он
+    навесил бы `data-sf-cols`/`data-sf-tail`, которые на flex-полосе ничего не
+    значат, и увёл бы разметку от паритета. Отдаём ровно два атрибута оси —
+    «сколько строк» и «с какой паузой крутить». Ключей нет → пусто, лента
+    прежняя.
+    """
+    lay = layout if isinstance(layout, dict) else {}
+    out = ""
+    if lay.get("rows"):
+        out += f' data-sf-rows="{int(lay["rows"])}"'
+    if lay.get("speed"):
+        out += f' data-sf-speed="{int(lay["speed"])}"'
+    return mark_safe(out.strip())
 
 
 @register.simple_tag(name="layout_is_default")
