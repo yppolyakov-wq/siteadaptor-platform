@@ -51,8 +51,9 @@ def test_topbar_context_group_is_gone_and_block_head_lives_in_the_column():
         'id="bld-block-back"',
         'id="bld-block-crumb"',
         'id="bld-block-popup-title"',
-        'id="bld-mode-basic"',
-        'id="bld-mode-expert"',
+        # STU-16c (осознанно): пилюли Einfach|Experte из шапки блока УБРАНЫ —
+        # владелец попросил «оставь только эксперт везде». Остальной состав шапки
+        # (крошка, ⋯, ✕) — прежний, его строка и держит.
         'id="bld-block-more"',
         'id="bld-dense-toggle"',
         'id="bld-block-popup-close"',
@@ -61,6 +62,7 @@ def test_topbar_context_group_is_gone_and_block_head_lives_in_the_column():
     # W0: шапка блока живёт внутри #home-form, но НИЧЕГО не сабмитит — ни одного name=
     head = _segment(body, 'id="bld-block-head"', 'id="bld-block-popup-body"')
     assert 'name="' not in head
+    assert "bld-mode-" not in head, "режим Простой/Эксперт снят (STU-16c)"
     # шапка самой панели прячется, пока открыт блок (одна шапка за раз)
     assert 'id="bld-panel-head"' in body
     assert "#bld-root.bld-has-block #bld-panel-head { display: none; }" in body

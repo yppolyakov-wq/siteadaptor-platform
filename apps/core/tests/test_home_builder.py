@@ -395,17 +395,26 @@ def test_home_builder_get_renders_device_version_toggle():
     assert "sf_preview_device" in body  # выбор запоминается (localStorage)
 
 
-def test_home_builder_mobile_layout_unlocks_in_simple_mode():
-    """SE-9g: при выборе версии 📱/▭ в Простом режиме раскрываются пер-девайс настройки
-    (колонки/скрытие на устройстве), помеченные data-device-ctl, + подсказка."""
+def test_home_builder_per_device_controls_need_no_mode():
+    """SE-9g, переписан ОСОЗНАННО в STU-16c.
+
+    Было: пер-девайс настройки (колонки/скрытие на устройстве) прятал Простой режим,
+    а два CSS-правила `[data-mode=basic][data-device=…]` раскрывали их обратно при
+    выбранном телефоне/планшете — костыль поверх пряталки.
+
+    Стало: режима Простой/Эксперт в панели нет (решение владельца «оставь только
+    эксперт везде»), прятать нечем — значит и раскрывать нечего. Инвариант теперь
+    прямой: контролы помечены, видны всегда, версия и подсказка на месте. Замок
+    держит именно это, а не исчезнувшие правила.
+    """
     tenant = TenantFactory(schema_name="public", slug="hbmlu", name="HBMLU")
     resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
     body = resp.content.decode()
-    # пер-девайс контролы помечены маркером раскрытия
+    # пер-девайс контролы помечены (маркер жив — по нему их находит редактор)
     assert 'data-device-ctl="1"' in body
-    # CSS раскрывает их в Простом режиме при выбранном телефоне/планшете
-    assert "[data-mode=basic][data-device=mobile] [data-device-ctl]" in body
-    assert "[data-mode=basic][data-device=tablet] [data-device-ctl]" in body
+    # правил-пряталок и их перекрытий больше нет НИ ОДНОГО (сверяем СЕЛЕКТОР:
+    # слово `data-mode=basic` осталось в пояснении, почему правила удалены)
+    assert "#bld-root[data-mode=basic]" not in body
     # редактор помечается активной версией (applyDevice → data-device на #bld-root)
     assert 'setAttribute("data-device"' in body
     # подсказка «правишь телефонную версию»
@@ -654,16 +663,21 @@ def test_home_builder_saves_visual_shadow():
     assert siteconfig.section_visual(cfg, "products")["shadow"] is True
 
 
-def test_home_builder_get_renders_mode_toggle_and_visual_controls():
-    """SE-1f/SE-3d: режим Обычный/Эксперт + визуальные контролы отрисованы в билдере."""
+def test_home_builder_renders_visual_controls_without_a_mode_toggle():
+    """SE-3d + STU-16c (осознанная переписка SE-1f).
+
+    Тумблер Обычный/Эксперт снесён (решение владельца «оставь только эксперт
+    везде»), вместе с ним ушёл и localStorage-ключ режима. Визуальные контролы
+    блока это НЕ затронуло — они и были смыслом строки; замок теперь про них.
+    """
     tenant = TenantFactory(schema_name="public", slug="hbmt", name="HBMT")
     resp = views.home_builder_view(_request("get", "/dashboard/site/home/", tenant=tenant))
     body = resp.content.decode()
-    assert 'id="bld-mode-basic"' in body and 'id="bld-mode-expert"' in body  # SE-1f тумблер
-    assert "sf_editor_mode" in body  # localStorage-ключ режима
-    assert 'name="visual_radius_products"' in body  # basic-тоггл скругления
-    assert 'name="visual_radius_px_products"' in body  # expert-slider радиуса
-    assert 'name="visual_shadow_products"' in body  # expert-тень
+    assert 'id="bld-mode-basic"' not in body and 'id="bld-mode-expert"' not in body
+    assert "sf_editor_mode" not in body  # ключ режима больше не хранится
+    assert 'name="visual_radius_products"' in body  # тоггл скругления
+    assert 'name="visual_radius_px_products"' in body  # слайдер радиуса
+    assert 'name="visual_shadow_products"' in body  # тень
 
 
 def test_home_builder_get_renders_move_buttons():
@@ -1634,20 +1648,25 @@ def test_home_builder_banner_presence_guard_keeps_hero():
     assert cfg["hero_title"] == "Keep"
 
 
-def test_home_builder_se8a_global_simple_expert_mode():
-    """SE-8a: глобальный тумблер Простой/Эксперт прячет [data-expert] во всём редакторе."""
+def test_home_builder_has_no_simple_mode_left():
+    """SE-8a переписан ОСОЗНАННО в STU-16c: прятать технику больше нечем.
+
+    Прежний замок держал ПРЯТАЛКУ (`#bld-root[data-mode=basic] [data-expert]`) и
+    старт редактора в Простом. Владелец попросил «оставь только эксперт везде», и
+    механизм снесён целиком — значит инвариант обратный: ни кнопок, ни ключа, ни
+    правила, а `#bld-root` всегда в экспертном состоянии. Маркеры [data-expert] в
+    разметке остаются: они помечают технические контролы, но ничего не скрывают.
+    """
     tenant = TenantFactory(schema_name="public", slug="hbse8a", name="HBSE8A")
     body = views.home_builder_view(
         _request("get", "/dashboard/site/home/", tenant=tenant)
     ).content.decode()
-    assert 'data-mode="basic"' in body  # #bld-root стартует в Простом
-    # UC6-6g (перепин): глобальный тумблер убран (дубль) — вкладки в ленте блока.
+    assert 'data-mode="basic"' not in body
+    assert 'data-mode="expert"' in body
     assert 'class="bld-mode-btn' not in body
-    assert 'id="bld-mode-expert"' in body  # вкладка Эксперт в ленте
-    assert (
-        "#bld-root[data-mode=basic] [data-expert]" in body
-    )  # CSS прячет технику во всём редакторе
-    assert "function setEditorMode" in body
+    assert 'id="bld-mode-expert"' not in body
+    assert "#bld-root[data-mode=basic] [data-expert]" not in body
+    assert "function setEditorMode" not in body
 
 
 def test_named_version_save_and_rename(settings):
