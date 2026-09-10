@@ -71,6 +71,10 @@ def context(
         has_photo=bool((hero_data or {}).get("photo")),
     )
     ctx: dict = {"page_composition": code}
+    # Композиция, которая САМА выводит под-сущности, забирает их себе: чипы того
+    # же фасета на странице стали бы вторым списком тех же подборок. Стенд поймал
+    # это сразу — над вкладками «Damen · Herren» висел точно такой же ряд чипов.
+    ctx["comp_owns_entries"] = code in _ENTRY_CODES
     if code in _ENTRY_CODES:
         ctx["comp_entries"] = rows
         ctx["comp_carry"] = carry

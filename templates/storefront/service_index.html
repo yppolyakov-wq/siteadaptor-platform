@@ -15,10 +15,13 @@
 <div class="flex flex-wrap gap-2 mb-6">
   <a href="{% url 'storefront-termin' %}{% if embed %}?embed=1{% endif %}"
      class="px-3 py-1.5 rounded-full text-sm border {% if not active_kollektion and not active_video %}bg-gray-900 text-white border-gray-900{% else %}bg-white border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{% trans "All" %}</a>
-  {% for c in collection_chips %}
+  {% comment %}STU-18d: когда композиция (вкладки/полки/указатель/колонка) сама
+  выводит подборки, ряд чипов был бы вторым списком того же самого. «Alle» и чип
+  видео остаются — это другой фасет и способ сбросить фильтр.{% endcomment %}
+  {% if not comp_owns_entries %}{% for c in collection_chips %}
     <a href="?kollektion={{ c.slug }}{% if embed %}&embed=1{% endif %}"
        class="px-3 py-1.5 rounded-full text-sm border {% if active_kollektion == c.slug %}bg-gray-900 text-white border-gray-900{% else %}bg-white border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{{ c.label }}</a>
-  {% endfor %}
+  {% endfor %}{% endif %}
   {% if video_available %}
     {# LS-1: авто-чип видео-услуг (?video=1) — появляется при ≥1 услуге с is_video. #}
     <a href="?video=1{% if embed %}&embed=1{% endif %}"

@@ -401,3 +401,19 @@ def test_panel_hides_the_cover_without_a_site_photo():
     assert "kopfbild" not in on["blog"]
     # у категории «С обложкой» берёт СВОЁ фото — гейт по фото сайта её не трогает
     assert "kopfbild" not in core_views._composition_gate({})["category"]
+
+
+def test_composition_takes_the_entry_chips_over():
+    """Стенд поймал дубль: над вкладками «Damen · Herren» висел точно такой же ряд
+    чипов подборок. Композиция, выводящая под-сущности, забирает их себе."""
+    body = _services_page({"services": "tabs"})
+    assert "data-category-tabs" in body
+    # чип подборки исчез из ряда фасетов (он теперь вкладка), «Alle» остался
+    assert body.count("?kollektion=damen") == 1
+
+
+def test_without_composition_the_chips_stay():
+    """Обратная сторона: без композиции ряд чипов прежний (второй тенант — в своём
+    тесте: у стенда схема одна на прогон)."""
+    plain = _services_page({})
+    assert "?kollektion=damen" in plain and "data-category-tabs" not in plain
