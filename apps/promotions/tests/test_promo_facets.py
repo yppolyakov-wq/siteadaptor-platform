@@ -173,12 +173,15 @@ def test_system_chip_is_not_offered_when_it_leads_to_an_empty_page():
     assert "endet=heute" not in body
     assert "rabatt=20" in body  # чип, у которого выдача есть, остаётся
 
-    # У акции, истекающей сегодня, чип появляется.
-    # Флак (пойман 2026-09-09): «сейчас + 2 часа» после 22:00 по локальной зоне
-    # тенанта уже ЗАВТРА, и тест падал строго по ночам. Берём конец текущего
-    # локального дня — он «сегодня» в любой час.
-    _end_of_today = timezone.localtime().replace(hour=23, minute=59, second=0, microsecond=0)
-    _promo("Heute vorbei", discount_percent=20, ends_at=_end_of_today)
+    # у акции, истекающей сегодня, чип появляется. Срок — КОНЕЦ местного дня,
+    # а не «сейчас + 2 часа»: фильтр «heute» режет по местной полуночи, поэтому
+    # после 22:00 по Берлину такая акция уезжала на завтра и тест краснел каждый
+    # вечер (та же грабля, что снята в test_endet_filters_by_window).
+    _promo(
+        "Heute vorbei",
+        discount_percent=20,
+        ends_at=timezone.localtime().replace(hour=23, minute=59, second=59, microsecond=0),
+    )
     assert "endet=heute" in _body(t)
 
 

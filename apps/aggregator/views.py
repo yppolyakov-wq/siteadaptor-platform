@@ -476,7 +476,7 @@ def city_listing(request, city, business_type=None):
             if v
         ]
     )
-    return render(
+    response = render(
         request,
         "aggregator/listing.html",
         {
@@ -503,6 +503,14 @@ def city_listing(request, city, business_type=None):
             "business_link": True,
         },
     )
+    if not cards:
+        # Роут принимает ЛЮБУЮ строку и на выдуманном городе отдаёт пустую
+        # страницу с кодом 200 — значит аноним минтил бы по записи кэша на
+        # каждый придуманный адрес, в том же Redis, где сессии. Судим по
+        # фактическим карточкам: это верно и при любых параметрах, и не стоит
+        # лишнего запроса (в отличие от отдельного EXISTS).
+        response.no_store = True
+    return response
 
 
 def sitemap_xml(request):

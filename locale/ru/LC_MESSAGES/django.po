@@ -22584,3 +22584,6 @@ msgstr "Избранное: сетка"
 
 msgid "Blog: Raster"
 msgstr "Блог: сетка"
+#: apps/imports/views.py
+msgid "Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch."
+msgstr "Файл импорта уже удалён. Пожалуйста, загрузите его заново."

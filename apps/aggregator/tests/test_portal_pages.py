@@ -201,3 +201,76 @@ def test_portal_urlconf_keeps_health_probes():
 
     assert resolve("/health/", urlconf="config.urls_portal").func is health.liveness
     assert resolve("/health/ready/", urlconf="config.urls_portal").func is health.readiness
+
+
+# --- P0-1 (аудит 2026-09-03 §9.3): сквозной замок «кэш молча умер / молча ожил» ---
+
+_LOCMEM = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal", CACHES=_LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_portal_home_stays_cached_after_csrf_guard(_clear_portal_cache):
+    """На портале карточки без формы «В подборку» (shortlist только на главном
+    домене) → в разметке нет токена → общий HTML, кэш жив."""
+    cache.clear()
+    p = _portal(host="cache-e2e.siteadaptor.de")
+    _listing(city="München")
+    body = portal_views.portal_home(_get(p)).content.decode()
+    assert "csrfmiddlewaretoken" not in body
+    assert cache.get("pubpage2:testserver:/:de") is not None
+
+
+@override_settings(ROOT_URLCONF="config.urls_public", CACHES=_LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_city_listing_with_shortlist_forms_is_personal_and_not_cached():
+    """На главном домене у карточки форма «В подборку» с {% csrf_token %} →
+    страница персональна: у каждого визита свой токен, в кэше её нет."""
+    from importlib import import_module
+
+    from django.conf import settings as dj_settings
+
+    from apps.aggregator import views
+
+    cache.clear()
+    _listing(city="Hilden")
+
+    def req():
+        request = RequestFactory().get("/entdecken/Hilden/")
+        request.session = import_module(dj_settings.SESSION_ENGINE).SessionStore()
+        return request
+
+    first = views.city_listing(req(), "Hilden").content.decode()
+    second = views.city_listing(req(), "Hilden").content.decode()
+    assert "csrfmiddlewaretoken" in first
+    assert first != second  # у каждого посетителя свой токен
+    assert cache.get("pubpage2:testserver:/entdecken/Hilden/:de") is None
+
+
+@override_settings(ROOT_URLCONF="config.urls_public", CACHES=_LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_made_up_cities_do_not_mint_cache_entries():
+    """Роут листинга принимает ЛЮБУЮ строку и отдаёт пустую страницу с кодом 200
+    — значит аноним (или краулер) минтил бы по записи кэша на каждый выдуманный
+    адрес, в том же Redis, где сессии. Ось хоста закрыта нормализацией домена,
+    ось пути — отказом кэшировать пустую выдачу."""
+    from importlib import import_module
+
+    from django.conf import settings as dj_settings
+
+    from apps.aggregator import views
+
+    cache.clear()
+    _listing(city="Hilden")
+
+    def req(path):
+        request = RequestFactory().get(path)
+        request.session = import_module(dj_settings.SESSION_ENGINE).SessionStore()
+        return request
+
+    for i in range(5):
+        assert views.city_listing(req(f"/entdecken/muell-{i}/"), f"muell-{i}").status_code == 200
+    assert len(cache._cache) == 0, [str(k) for k in cache._cache]
+
+    # И с параметрами тоже: сегодня query и так уводит мимо кэша, но признак
+    # «пусто» считается по фактическим карточкам, а не по политике декоратора —
+    # расширение кэша на сортировку/фильтры не должно открывать вектор заново.
+    marked = views.city_listing(req("/entdecken/muell-9/?sort=neueste"), "muell-9")
+    assert getattr(marked, "no_store", False) is True

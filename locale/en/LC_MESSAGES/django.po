@@ -22353,3 +22353,6 @@ msgstr "Wishlist: grid layout"
 
 msgid "Blog: Raster"
 msgstr "Blog: grid layout"
+#: apps/imports/views.py
+msgid "Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch."
+msgstr "The import file has already been removed. Please upload it again."

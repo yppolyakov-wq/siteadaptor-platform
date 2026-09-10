@@ -10,18 +10,120 @@ import base64
 import hashlib
 from functools import lru_cache
 
-from cryptography.fernet import Fernet, InvalidToken
+from cryptography.fernet import Fernet, InvalidToken, MultiFernet
 from django.conf import settings
 
 
-@lru_cache(maxsize=1)
-def _fernet() -> Fernet:
-    key = getattr(settings, "SECRETS_ENCRYPTION_KEY", "") or ""
-    if key:
-        return Fernet(key.encode() if isinstance(key, str) else key)
-    # Фолбэк: ключ из SECRET_KEY (детерминированный) — dev/CI.
+def _derived_key() -> bytes:
+    """Производный ключ из SECRET_KEY (детерминированный) — dev/CI и легаси прода."""
     digest = hashlib.sha256(settings.SECRET_KEY.encode()).digest()
-    return Fernet(base64.urlsafe_b64encode(digest))
+    return base64.urlsafe_b64encode(digest)
+
+
+def _explicit_key() -> bytes | None:
+    key = getattr(settings, "SECRETS_ENCRYPTION_KEY", "") or ""
+    if not key:
+        return None
+    return key.encode() if isinstance(key, str) else key
+
+
+def _previous_keys() -> list[bytes]:
+    """Прежние явные ключи — ТОЛЬКО для чтения (смена ключа KEY1 → KEY2).
+
+    Без них смена ключа означала бы, что всё зашифрованное перестаёт читаться, а
+    `rotate_secrets` при этом честно отвечает «нечего ротировать»: ротация ищет
+    то, что читается СТАРЫМ ключом, а старого ключа в связке нет.
+    """
+    raw = getattr(settings, "SECRETS_ENCRYPTION_KEY_PREVIOUS", None) or []
+    if isinstance(raw, (str, bytes)):
+        raw = [raw]
+    out = []
+    for key in raw:
+        key = (key or "").strip() if isinstance(key, str) else key
+        if key:
+            out.append(key.encode() if isinstance(key, str) else key)
+    return out
+
+
+@lru_cache(maxsize=1)
+def _fernet() -> MultiFernet:
+    """P0-3 (аудит 2026-09-03 §9.3): явный ключ ПЕРВЫМ, производный — вторым.
+
+    MultiFernet шифрует первым ключом и читает любым. Поэтому задать
+    SECRETS_ENCRYPTION_KEY в проде безопасно: всё, что было зашифровано
+    производным ключом (токены ботов, Meldeschein, документы), продолжает
+    читаться, а новое уже не зависит от SECRET_KEY. Довести до конца —
+    `manage.py rotate_secrets --apply`: перешифровывает старое явным ключом,
+    после чего утечка SECRET_KEY ничего не раскрывает.
+    """
+    # Позиция 0 = ключ ШИФРОВАНИЯ. Если явного нет, туда обязан встать
+    # производный, а не «прежний»: иначе при пустом SECRETS_ENCRYPTION_KEY и
+    # заполненном PREVIOUS все новые секреты шифровались бы отставным ключом,
+    # который докстринг обещает «только для чтения».
+    derived = Fernet(_derived_key())
+    explicit = _explicit_key()
+    keys = [Fernet(explicit)] if explicit else [derived]
+    keys.extend(Fernet(key) for key in _previous_keys())
+    if explicit:
+        keys.append(derived)
+    return MultiFernet(keys)
+
+
+#: Все токены Fernet начинаются с версии 0x80 → в urlsafe-base64 это «gAAAAA».
+_TOKEN_PREFIX = b"gAAAAA"
+
+#: Состояния значения относительно текущей связки ключей.
+CURRENT = "current"  # читается АКТУАЛЬНЫМ явным ключом — ротировать нечего
+ROTATABLE = "rotatable"  # читается старым (производным/прежним явным) — под ротацию
+UNREADABLE = "unreadable"  # похоже на наш шифротекст, но НИ ОДИН ключ его не читает
+NOT_OURS = "not_ours"  # пусто или легаси-плейнтекст — не трогаем
+
+
+def status(token) -> str:
+    """Состояние значения. Отдельная функция, потому что «нечего ротировать» и
+    «ничего не читается» — разные вещи: при смене ключа без
+    SECRETS_ENCRYPTION_KEY_PREVIOUS второе выглядело бы как первое, и команда
+    рапортовала бы «0 к перешифровке», пока прод молча читает всё как ''."""
+    if not token:
+        return NOT_OURS
+    data = token.encode() if isinstance(token, str) else token
+    explicit = _explicit_key()
+    if explicit:
+        # Конструктор — ВНЕ try: кривой ключ (hex вместо base64, python-repr)
+        # должен падать, а не выдавать «нечего ротировать» или «нечитаемо».
+        explicit_fernet = Fernet(explicit)
+        try:
+            explicit_fernet.decrypt(data)
+            return CURRENT
+        except (InvalidToken, ValueError, TypeError):
+            pass
+    # Связка строится ВНЕ try по той же причине, что и явный ключ выше: негодный
+    # ПРЕЖНИЙ ключ должен падать ошибкой конфигурации, а не маскироваться под
+    # «нечитаемо» (иначе команда сообщила бы про потерянные данные вместо того,
+    # чтобы указать на кривую переменную).
+    bundle = _fernet()
+    try:
+        bundle.decrypt(data)
+        # Явного ключа нет — ротировать не во что, состояние «актуальное».
+        return ROTATABLE if explicit else CURRENT
+    except (InvalidToken, ValueError, TypeError):
+        pass
+    return UNREADABLE if data[: len(_TOKEN_PREFIX)] == _TOKEN_PREFIX else NOT_OURS
+
+
+def needs_rotation(token) -> bool:
+    """True — шифротекст читается старым ключом (производным или прежним явным).
+
+    False — уже актуальным явным, явного ключа нет (ротировать не во что), пусто,
+    не наш шифротекст, а также нечитаемое НИ ОДНИМ ключом: последнее — не работа
+    для ротации, а сигнал о неверной конфигурации ключей (см. `status`).
+    """
+    return status(token) == ROTATABLE
+
+
+def rotate_bytes(token: bytes) -> bytes:
+    """Перешифровать явным ключом (MultiFernet.rotate) — для файлов документов."""
+    return _fernet().rotate(token)
 
 
 def encrypt(raw: str) -> str:

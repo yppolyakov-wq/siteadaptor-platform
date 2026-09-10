@@ -22481,3 +22481,6 @@ msgstr "Not defteri: ızgara"
 
 msgid "Blog: Raster"
 msgstr "Blog: ızgara"
+#: apps/imports/views.py
+msgid "Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch."
+msgstr "İçe aktarma dosyası zaten kaldırıldı. Lütfen yeniden yükleyin."

@@ -38,3 +38,25 @@ def test_cap_zero_means_no_limit_and_preview_matches():
     assert preview_discount(voucher, 10000) == 2500  # превью = будущему списанию
     discount, _v = spend_voucher("P99", 10000)
     assert discount == 2500
+
+
+def test_cap_is_read_from_the_current_tenant_schema():
+    """P0-4 (аудит 2026-09-03 §9.3): потолок берётся у тенанта ТЕКУЩЕЙ схемы.
+
+    До правки `connection.schema_name` читался ВНУТРИ `schema_context("public")`
+    и всегда давал "public" — настройка владельца не применялась никогда. Тесты
+    выше этого не видели: их тенант сам живёт в схеме public.
+    """
+    from django.db import connection
+
+    from apps.promotions.services import _voucher_cap_percent
+
+    TenantFactory(schema_name="public", slug="cap-pub", voucher_max_percent=0)
+    TenantFactory(schema_name="cap_t1", slug="cap-t1", voucher_max_percent=25)
+    # Postgres игнорирует несуществующую схему в search_path — запросы по-прежнему
+    # уходят в public, где в тестах живут все таблицы.
+    connection.set_schema("cap_t1")
+    try:
+        assert _voucher_cap_percent() == 25
+    finally:
+        connection.set_schema_to_public()

@@ -5,6 +5,7 @@ schema_context(schema_name). Идемпотентность — через idemp
 (dedupe по dedupe_key). См. docs/references/patterns/csv-import-wizard.md.
 """
 
+import logging
 import traceback
 
 from django.db import transaction
@@ -17,6 +18,24 @@ from .processors import get_processor
 from .tabular import apply_mapping, read_rows
 
 BATCH_SIZE = 500
+logger = logging.getLogger(__name__)
+
+
+def drop_source_file(job) -> bool:
+    """P0-2: убрать загрузку клиента из общего /media/ (storage + поле). Best-effort:
+    сбой хранилища не должен превратить УСПЕШНЫЙ импорт в failed — поле тогда
+    остаётся заполненным, и `cleanup_import_files` доберёт файл позже. True —
+    поле очищено (файла нет)."""
+    if not job.source_file:
+        return False
+    name = job.source_file.name
+    try:
+        job.source_file.delete(save=False)
+    except Exception:  # noqa: BLE001 — storage недоступен: импорт уже состоялся
+        logger.warning("import %s: файл %s не удалён, повторит cleanup_import_files", job.pk, name)
+        return False
+    job.save(update_fields=["source_file", "updated_at"])
+    return True
 
 
 def _mark_failed(schema_name, job_id, exc):
@@ -113,6 +132,10 @@ def run_import(dedupe_key=None, schema_name=None, job_id=None):
 
             job.status = "completed"
             job.save(update_fields=["status", "updated_at"])
+            # P0-2: файл больше не нужен (строки уже в job.rows) — не держим
+            # загрузку клиента в общем /media/ бессрочно. Статус записан ДО
+            # удаления: сбой storage не откатывает состоявшийся импорт.
+            drop_source_file(job)
     except Exception as exc:  # noqa: BLE001
         _mark_failed(schema_name, job_id, f"{exc}\n{traceback.format_exc()}")
         raise

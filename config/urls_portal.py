@@ -8,12 +8,12 @@
 
 from django.conf import settings
 from django.urls import path
-from django.views.static import serve
 
 from apps.aggregator import account_views, portal_views, reviews_views
 from apps.aggregator import telegram_bot as portal_telegram
 from apps.aggregator import views as aggregator_views
 from apps.core import health
+from apps.core.media_views import serve_media
 
 urlpatterns = [
     path("", portal_views.portal_home, name="portal-home"),
@@ -55,5 +55,5 @@ urlpatterns = [
 # поэтому портальному хосту нужен тот же фолбэк, что и urls_public.
 if getattr(settings, "SERVE_MEDIA", False):
     urlpatterns = [
-        path("media/<path:path>", serve, {"document_root": settings.MEDIA_ROOT}),
+        path("media/<path:path>", serve_media),  # корень читает гейт при запросе
     ] + urlpatterns

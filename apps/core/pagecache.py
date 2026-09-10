@@ -16,6 +16,8 @@ from functools import wraps
 from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpResponse
+from django.http.request import split_domain_port
+from django.utils.cache import patch_vary_headers
 
 
 def _sf_version(schema: str) -> int:
@@ -35,34 +37,152 @@ def bump_storefront_cache(schema: str) -> None:
         pass
 
 
+def _cache_host(request) -> str:
+    """Хост для ключа — ДОМЕН без порта (нормализованный); '' = мимо кэша.
+
+    Сырой `get_host()` в ключе — способ засорить Redis: ALLOWED_HOSTS проверяет
+    домен БЕЗ порта, `TenantMainMiddleware` порт срезает, поэтому аноним, меняя
+    `Host: shop.example.de:1`, `:2`, `:31337`, доходит до вьюхи и минтил бы по
+    записи на каждый вариант — в том же Redis, где сессии.
+
+    Это ось ХОСТА. Ось пути ограничивают сами вьюхи через `response.no_store`
+    (см. `_cacheable`): роут с произвольным сегментом иначе даёт по записи на
+    каждый выдуманный адрес.
+
+    Порт отбрасываем, а не отказываемся кэшировать: отказ выключал кэш целиком в
+    локальной разработке и на стенде (`runserver :8000`, `TENANT_DOMAIN_BASE`
+    с портом) — молча, без единого сигнала, то есть отлаживать кэш-дефекты стало
+    бы негде. Для содержимого страницы порт не значим, а кардинальность ключей
+    ограничена доменами, которые платформа и так обслуживает.
+    """
+    return split_domain_port(request.get_host())[0]
+
+
+def _sf_key(request, schema: str, lang: str, host: str) -> str:
+    """Ключ кэша витрины. Отдельная функция, чтобы тесты собирали его тем же
+    выражением: иначе смена формата ключа не роняет замки, а обесценивает их."""
+    return f"sfpage2:{host}:{schema}:{request.path}:{lang}:v{_sf_version(schema)}"
+
+
+def _pub_key(request, lang: str, host: str) -> str:
+    return f"pubpage2:{host}:{request.path}:{lang}"
+
+
+def _cacheable(request, response) -> bool:
+    """P0-1 (аудит 2026-09-03 §9.3): в ОБЩИЙ кэш нельзя класть персональное.
+
+    Раньше в кэш попадало тело с `{% csrf_token %}`, а на хите отдавался голый
+    HttpResponse без Set-Cookie — в течение TTL все анонимы получали токен
+    ПЕРВОГО посетителя без своей куки, и любой POST давал 403 (воспроизведено
+    пробником). Два признака персонального ответа:
+    * `CSRF_COOKIE_NEEDS_UPDATE` — Django 5.1 ставит его в `get_token()` всегда
+      (`csrf.py:111`), то есть страница использовала токен; проверяем ДО
+      CsrfViewMiddleware.process_response, который флаг сбрасывает;
+    * `response.cookies` — вьюха выставила куку (сессия/корзина/согласие).
+    Цена: кэшируемых вьюх четыре (главная витрины + три страницы агрегатора);
+    их рендеры с формой в разметке перестают кэшироваться для анонимов
+    (состояние до SE-5a). Возврат кэша — токен вне тела (JS из куки), отдельно.
+    """
+    if response.status_code != 200 or getattr(response, "streaming", False):
+        return False
+    # Вьюха может отказаться от кэша сама (`response.no_store = True`) — так
+    # ограничивается ось ПУТИ: путь входит в ключ, и роут, принимающий любую
+    # строку, дал бы анониму столько записей, сколько он придумает адресов.
+    if getattr(response, "no_store", False):
+        return False
+    # Ленивый TemplateResponse ещё не отрендерен — флаги ниже не выставлены, а
+    # `.content` бросил бы ContentNotRenderedError. Не кэшируем ПО ПОСТРОЕНИЮ,
+    # а не потому, что исключение случайно проглотилось.
+    if not getattr(response, "is_rendered", True):
+        return False
+    if response.cookies:
+        return False
+    # Куки от middleware (sessionid, messages) в `response.cookies` ЗДЕСЬ не
+    # видны — их ставит process_response позже. Зеркалим их условия: сессия,
+    # изменённая во время рендера, и добавленные flash-сообщения = персональный
+    # ответ, чужому посетителю его отдавать нельзя.
+    session = getattr(request, "session", None)
+    if session is not None and getattr(session, "modified", False):
+        return False
+    # Flash-сообщения: `added_new` — добавлены за рендер; `used` — прочитаны из
+    # cookie/сессии и ОТРИСОВАНЫ в теле (итерация storage ставит флаг), после
+    # чего middleware стирает cookie. Оба признака = чужой личный текст в HTML.
+    messages = getattr(request, "_messages", None)
+    if messages is not None and (
+        getattr(messages, "added_new", False) or getattr(messages, "used", False)
+    ):
+        return False
+    meta = getattr(request, "META", None) or {}
+    return not meta.get("CSRF_COOKIE_NEEDS_UPDATE")
+
+
+def _pack(response) -> tuple:
+    # Vary из вьюхи (напр. Accept-Language) обязан пережить хит: без него
+    # промежуточные кэши склеили бы варианты. Vary от middleware (Locale,
+    # Session на промахе) ложится на хит-ответ позже сама.
+    return (response.content, response.get("Content-Type", "text/html"), response.get("Vary", ""))
+
+
+def _unpack(hit) -> HttpResponse | None:
+    # Формат записи — кортеж из трёх; старые двухэлементные (`sfpage:`/`pubpage:`)
+    # живут под другим префиксом, но чужой формат честно считаем промахом.
+    if not (isinstance(hit, tuple) and len(hit) == 3):
+        return None
+    content, content_type, vary = hit
+    response = HttpResponse(content, content_type=content_type)
+    if vary:
+        response["Vary"] = vary
+    # Ключ кэша ключуется сессией (непустая — мимо кэша), но на хите сессию
+    # никто не читает и SessionMiddleware `Vary: Cookie` не ставит — говорим
+    # это промежуточным кэшам сами, симметрично промаху.
+    patch_vary_headers(response, ("Cookie",))
+    return response
+
+
 def cache_storefront_page(view):
     """SE-5a: кэш HTML витрины тенанта. Как `cache_public_page`, но ключ включает
     версию `site_config` тенанта → публикация (bump_storefront_cache) мгновенно
     инвалидирует выдачу, а не только по TTL. Мимо кэша: непустая сессия (владелец
-    залогинен / есть корзина), query-параметры (?preview=1, ?tisch=N), не-GET."""
+    залогинен / есть корзина), query-параметры (?preview=1, ?tisch=N), не-GET,
+    и — P0-1 — любой ответ с CSRF-токеном или Set-Cookie (см. `_cacheable`)."""
 
     @wraps(view)
     def wrapped(request, *args, **kwargs):
         ttl = getattr(settings, "PUBLIC_PAGE_CACHE_TTL", 0)
         has_session = hasattr(request, "session") and not request.session.is_empty()
         schema = getattr(getattr(request, "tenant", None), "schema_name", None)
-        if not ttl or request.method != "GET" or request.GET or has_session or not schema:
+        # Хост — часть ключа (как в cache_public_page, как обещает докстринг
+        # модуля): у тенанта одновременно живут субдомен провижининга и
+        # подтверждённый кастом-домен, оба проксируются в тот же Django, а тело
+        # главной несёт абсолютный URL в LocalBusiness JSON-LD. Без хоста в ключе
+        # посетитель кастом-домена получал разметку с адресом субдомена.
+        host = _cache_host(request)
+        if (
+            not ttl
+            or request.method != "GET"
+            or request.GET
+            or has_session
+            or not schema
+            or not host
+        ):
             return view(request, *args, **kwargs)
 
         lang = getattr(request, "LANGUAGE_CODE", "de")
-        key = f"sfpage:{schema}:{request.path}:{lang}:v{_sf_version(schema)}"
+        # sfpage2: формат записи сменился (кортеж из трёх) — старые ключи
+        # осиротеют по TTL, смешивать форматы нельзя.
+        key = _sf_key(request, schema, lang, host)
         try:
             hit = cache.get(key)
         except Exception:  # noqa: BLE001
             hit = None
-        if hit is not None:
-            content, content_type = hit
-            return HttpResponse(content, content_type=content_type)
+        cached = _unpack(hit) if hit is not None else None
+        if cached is not None:
+            return cached
 
         response = view(request, *args, **kwargs)
-        if response.status_code == 200 and not getattr(response, "streaming", False):
+        if _cacheable(request, response):
             try:
-                cache.set(key, (response.content, response.get("Content-Type", "text/html")), ttl)
+                cache.set(key, _pack(response), ttl)
             except Exception:  # noqa: BLE001
                 pass
         return response
@@ -77,23 +197,24 @@ def cache_public_page(view):
         # Непустая сессия = персонализированная страница (вход клиента портала,
         # P2.3) — мимо кэша; анонимы и краулеры сессии не имеют.
         has_session = hasattr(request, "session") and not request.session.is_empty()
-        if not ttl or request.method != "GET" or request.GET or has_session:
+        host = _cache_host(request)
+        if not ttl or request.method != "GET" or request.GET or has_session or not host:
             return view(request, *args, **kwargs)
 
         lang = getattr(request, "LANGUAGE_CODE", "de")
-        key = f"pubpage:{request.get_host()}:{request.path}:{lang}"
+        key = _pub_key(request, lang, host)
         try:
             hit = cache.get(key)
         except Exception:  # noqa: BLE001 — кэш недоступен: рендерим как обычно
             hit = None
-        if hit is not None:
-            content, content_type = hit
-            return HttpResponse(content, content_type=content_type)
+        cached = _unpack(hit) if hit is not None else None
+        if cached is not None:
+            return cached
 
         response = view(request, *args, **kwargs)
-        if response.status_code == 200 and not response.streaming:
+        if _cacheable(request, response):
             try:
-                cache.set(key, (response.content, response.get("Content-Type", "text/html")), ttl)
+                cache.set(key, _pack(response), ttl)
             except Exception:  # noqa: BLE001
                 pass
         return response

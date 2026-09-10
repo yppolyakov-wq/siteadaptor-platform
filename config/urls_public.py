@@ -7,13 +7,13 @@ Django admin живёт ТОЛЬКО здесь (платформенный су
 from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
-from django.views.static import serve
 
 from apps.aggregator import reviews_views as aggregator_reviews_views
 from apps.aggregator import views as aggregator_views
 from apps.billing import views as billing_views
 from apps.billing.webhooks import stripe_webhook
 from apps.core import health
+from apps.core.media_views import serve_media
 from apps.partners import views as partners_views
 from apps.publishing import views as publishing_views
 from apps.tenants.views import (
@@ -113,5 +113,5 @@ urlpatterns = [
 # Раздача загруженных медиа Django, когда нет S3 (single-сервер).
 if getattr(settings, "SERVE_MEDIA", False):
     urlpatterns += [
-        path("media/<path:path>", serve, {"document_root": settings.MEDIA_ROOT}),
+        path("media/<path:path>", serve_media),  # корень читает гейт при запросе
     ]

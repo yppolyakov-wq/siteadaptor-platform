@@ -22392,3 +22392,6 @@ msgstr "Merkzettel: Raster"
 
 msgid "Blog: Raster"
 msgstr "Blog: Raster"
+#: apps/imports/views.py
+msgid "Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch."
+msgstr ""

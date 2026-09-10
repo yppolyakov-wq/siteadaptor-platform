@@ -67,3 +67,50 @@ def test_run_update_existing_does_not_duplicate():
     assert Product.objects.filter(sku="BR-1").count() == 1
     updated = Product.objects.get(sku="BR-1")
     assert updated.name["de"] == "Brot"
+
+
+@pytest.mark.django_db
+def test_completed_import_deletes_its_source_file():
+    """P0-2: после успешного импорта файл не нужен (run_import читает job.rows) —
+    держать загрузку клиента в общем /media/ бессрочно незачем."""
+    from django.core.files.storage import default_storage
+
+    job = _make_job()
+    preview_import(dedupe_key=None, schema_name="public", job_id=str(job.id))
+    path = job.source_file.name
+    assert default_storage.exists(path)
+    run_import(dedupe_key=None, schema_name="public", job_id=str(job.id))
+    job.refresh_from_db()
+    assert job.status == "completed"
+    assert not job.source_file
+    assert not default_storage.exists(path)
+
+
+@pytest.mark.django_db
+def test_import_stays_completed_when_source_file_delete_fails(monkeypatch):
+    """P0-2 (ревью плана): статус пишется ДО удаления файла, удаление — best-effort.
+    Иначе сбой storage превращал бы состоявшийся импорт (товары уже созданы) в
+    failed. Поле остаётся заполненным — `cleanup_import_files` доберёт позже."""
+    from django.core.files.storage import default_storage
+    from django.db.models.fields.files import FieldFile
+
+    seen = {}
+
+    def boom(self, save=True):
+        # Момент удаления: статус в БД обязан быть уже completed, иначе сбой
+        # storage откатывал бы состоявшийся импорт (порядок иначе не наблюдаем
+        # снаружи, и замок фиксировал бы только глотание исключения).
+        seen["status"] = ImportJob.objects.values_list("status", flat=True).first()
+        raise OSError("storage down")
+
+    monkeypatch.setattr(FieldFile, "delete", boom)
+    job = _make_job()
+    preview_import(dedupe_key=None, schema_name="public", job_id=str(job.id))
+    path = job.source_file.name
+    run_import(dedupe_key=None, schema_name="public", job_id=str(job.id))
+    assert seen.get("status") == "completed"
+    job.refresh_from_db()
+    assert job.status == "completed"
+    assert Product.objects.filter(sku="BR-1").exists()
+    assert job.source_file.name == path  # поле не очищено — есть что чистить позже
+    assert default_storage.exists(path)

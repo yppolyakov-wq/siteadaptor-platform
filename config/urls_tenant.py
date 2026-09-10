@@ -7,7 +7,6 @@
 
 from django.conf import settings
 from django.urls import include, path
-from django.views.static import serve
 
 from apps.billing import views as billing_views
 from apps.booking import public_views as booking_public
@@ -16,6 +15,7 @@ from apps.community import views as community_views
 from apps.core import health
 from apps.core.demo_switch import demo_design_switch
 from apps.core.design_page import design_view
+from apps.core.media_views import serve_media
 from apps.core.settings_home import einstellungen_home
 from apps.core.team import team_join, team_view
 from apps.core.views import (
@@ -638,5 +638,5 @@ urlpatterns = [
 # Раздача загруженных медиа Django, когда нет S3 (single-сервер).
 if getattr(settings, "SERVE_MEDIA", False):
     urlpatterns += [
-        path("media/<path:path>", serve, {"document_root": settings.MEDIA_ROOT}),
+        path("media/<path:path>", serve_media),  # корень читает гейт при запросе
     ]

@@ -22568,3 +22568,6 @@ msgstr "Обране: сітка"
 
 msgid "Blog: Raster"
 msgstr "Блог: сітка"
+#: apps/imports/views.py
+msgid "Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch."
+msgstr "Файл імпорту вже видалено. Будь ласка, завантажте його знову."

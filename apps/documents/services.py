@@ -66,8 +66,18 @@ def can_access(request, document) -> bool:
 
 
 def purge(document) -> None:
-    """Удалить и запись, и зашифрованный blob (иначе бакет копит PII)."""
-    delete_blob(document.path)
+    """Удалить и запись, и зашифрованный blob (иначе бакет копит PII).
+
+    Путь перечитывается: `purge_expired` работает по снимку, а ротация ключей
+    (`manage.py rotate_secrets`) в это же время переносит blob на новое имя.
+    По снимку мы удалили бы СТАРЫЙ путь (его уже нет), снесли строку — и новый
+    шифротекст остался бы в бакете навсегда: ретеншн ходит по строкам.
+    """
+    path = (
+        SecureDocument.objects.filter(pk=document.pk).values_list("path", flat=True).first()
+        or document.path
+    )
+    delete_blob(path)
     document.delete()
 
 
