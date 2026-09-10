@@ -30,7 +30,10 @@ def _seed_activity():
     )
     customer = Customer.objects.create(name="K", email="k@test.de")
     resource = Resource.objects.create(name="Stuhl 1")
-    start = timezone.localtime().replace(hour=23, minute=59)
+    # «Сегодня и ещё не наступило»: дайджест считает pending по `start__gte=now`,
+    # а bookings_today — по дате. В 23:59:xx запись, начинающаяся в 23:59:00, уже
+    # в прошлом, и замок падал (прогон CI 2026-09-10). Берём последний момент суток.
+    start = timezone.localtime().replace(hour=23, minute=59, second=59, microsecond=999999)
     Booking.objects.create(
         resource=resource, customer=customer, start=start, end=start + timedelta(hours=1)
     )

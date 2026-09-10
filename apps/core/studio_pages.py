@@ -34,6 +34,8 @@ from urllib.parse import urlsplit
 from django.urls import Resolver404, resolve
 from django.utils.translation import gettext_lazy as _
 
+from apps.core import compositions
+
 # ─────────────────────────── настройки ───────────────────────────
 
 #: Виды сущностей, у которых есть СВОЯ настройка, побеждающая общую.
@@ -119,6 +121,21 @@ AXES: tuple[tuple[str, str], ...] = (
 
 def _s(*args, **kw) -> Setting:
     return Setting(*args, **kw)
+
+
+#: STU-18d: композиция ДЕВЯТИ листингов. Форма записи у всех одна (ключ хранения
+#: `page_styles.<поверхность>`, ось «композиция»), поэтому и заводим их одним
+#: правилом: девять почти одинаковых блоков разъехались бы при первой же правке.
+_LISTING_COMPOSITIONS = {
+    f"{surface}_page_style": Setting(
+        f"{surface}_page_style",
+        _("Vorlage der Seite"),
+        f"{surface}_page_style",
+        ("page_styles", surface),
+        axis=AXIS_COMPOSITION,
+    )
+    for surface in sorted(compositions.LISTING_SURFACES)
+}
 
 
 #: Реестр настроек. Ключ = стабильный код, на который ссылаются типы страниц.
@@ -374,6 +391,8 @@ SETTINGS: dict[str, Setting] = {
     )
 }
 
+SETTINGS.update(_LISTING_COMPOSITIONS)
+
 
 # ─────────────────────────── типы страниц ───────────────────────────
 
@@ -499,7 +518,7 @@ PAGE_TYPES: tuple[PageType, ...] = (
         "services",
         _("Leistungen"),
         ("storefront-termin",),
-        ("service_layout", "services_sort", "product_card_form"),
+        ("services_page_style", "service_layout", "services_sort", "product_card_form"),
         block_host="services",
     ),
     PageType(
@@ -513,7 +532,7 @@ PAGE_TYPES: tuple[PageType, ...] = (
         "stays",
         _("Zimmer"),
         ("storefront-unterkunft",),
-        ("stay_layout", "stays_sort", "product_card_form"),
+        ("stays_page_style", "stay_layout", "stays_sort", "product_card_form"),
         block_host="stay_rooms",
     ),
     PageType(
@@ -527,7 +546,7 @@ PAGE_TYPES: tuple[PageType, ...] = (
         "events",
         _("Veranstaltungen"),
         ("storefront-events",),
-        ("events_layout", "events_sort", "product_card_form"),
+        ("events_page_style", "events_layout", "events_sort", "product_card_form"),
         block_host="events",
     ),
     # STU-9: у списка поездок СВОЙ тип. Раньше он был склеен с «Veranstaltungen»,
@@ -543,7 +562,7 @@ PAGE_TYPES: tuple[PageType, ...] = (
         ("storefront-tours",),
         # STU-17: `_tour_card` читает форму карточки (LAY-4) — значит она здесь
         # действует, и предложить её обязаны на этой же странице.
-        ("tours_layout", "product_card_form", "text_width"),
+        ("tours_page_style", "tours_layout", "product_card_form", "text_width"),
         block_host="tours",
     ),
     PageType(

@@ -1466,6 +1466,26 @@ def _composition_gate() -> dict[str, set[str]]:
     combos = _safe(Combo.objects.all())
     groups = _safe(Promotion.objects.exclude(group=""))
 
+    # STU-18d: под-сущности девяти листингов — у каждого свои (план §10):
+    # подборки у услуг и номеров, тема у события, страна у поездки, категория у
+    # набора; у лукбука/мерклиста/блога/отзывов таксономии нет вовсе.
+    from apps.booking.models import Service
+    from apps.catalog.models import Combo as _Combo
+    from apps.events.models import Event, Tour
+    from apps.stays.models import StayUnit
+
+    listing_children = {
+        "services": _safe(Service.objects.filter(collections__isnull=False)),
+        "stays": _safe(StayUnit.objects.filter(collections__isnull=False)),
+        "events": _safe(Event.objects.exclude(category="")),
+        "tours": _safe(Tour.objects.exclude(country="")),
+        "combos": _safe(_Combo.objects.filter(category__isnull=False)),
+        "lookbook": False,
+        "wishlist": False,
+        "blog": False,
+        "reviews": False,
+    }
+
     out: dict[str, set[str]] = {}
     for surface, has_children in (
         ("catalog", children),
@@ -1473,6 +1493,7 @@ def _composition_gate() -> dict[str, set[str]]:
         ("promos", groups),
         ("promo_group", groups),
         ("promo", False),
+        *sorted(listing_children.items()),
     ):
         offered = {code for code, _l, _h in compositions.styles_for(surface)}
         ok = {
@@ -2033,6 +2054,28 @@ def home_builder_view(request):
                 config["catalog_page_style"] = _cps
             else:
                 config.pop("catalog_page_style", None)
+        # STU-18d: композиция ДЕВЯТИ листингов — один ключ `page_styles`. Presence по
+        # самому полю (плитки шлют hidden всегда), "" снимает запись поверхности.
+        # Пишем поповерхностно, а не словарём целиком: панель показывает строку
+        # только открытого типа страницы, и целиковая запись стёрла бы остальные
+        # восемь (класс W6 — «Save одной страницы роняет чужие ключи»).
+        _pstyles = dict(config.get("page_styles") or {})
+        _pstyles_touched = False
+        for _surface in sorted(compositions.LISTING_SURFACES):
+            _field = f"{_surface}_page_style"
+            if _field not in request.POST:
+                continue
+            _pstyles_touched = True
+            _code = (request.POST.get(_field) or "").strip()
+            if _code and _code in compositions.valid_for(_surface):
+                _pstyles[_surface] = _code
+            else:
+                _pstyles.pop(_surface, None)
+        if _pstyles_touched:
+            if _pstyles:
+                config["page_styles"] = _pstyles
+            else:
+                config.pop("page_styles", None)
         # STU-5: три настройки со страницы «Pages» переехали в уровень «эта страница»
         # Студии (та была ВТОРЫМ писателем раскладок). Семантика — прежняя:
         # cl_present как сентинел (W0), скрытие цен только у browse-only витрины
@@ -2538,6 +2581,9 @@ def home_builder_view(request):
     from apps.tenants import menu as _menu_mod
 
     _menu_targets = _menu_mod.target_options(request.tenant)
+    # STU-18c/18d: гейт композиций считается ОДИН раз — его читают и плитки
+    # каталога/акций (`comp_off`), и строки девяти листингов.
+    _comp_gate = _composition_gate()
     return render(
         request,
         "tenant/site_home.html",
@@ -2864,7 +2910,20 @@ def home_builder_view(request):
             # STU-18c (Р-5): гейт доступности композиций. `available_for` описан
             # волной LAY, но не вызывался ни разу — «Полки» и «Вкладки»
             # предлагались там, где под-сущностей нет, и выбор ничего не менял.
-            "comp_off": _composition_gate(),
+            "comp_off": _comp_gate,
+            # STU-18d: строки композиции девяти листингов — данными, а не девятью
+            # почти одинаковыми блоками разметки (они разъехались бы при первой
+            # правке). Значение читается из ОДНОГО ключа `page_styles`.
+            "listing_composition_rows": [
+                {
+                    "surface": surface,
+                    "name": f"{surface}_page_style",
+                    "value": (config.get("page_styles") or {}).get(surface, ""),
+                    "items": compositions.styles_for(surface),
+                    "off": _comp_gate.get(surface, set()),
+                }
+                for surface in sorted(compositions.LISTING_SURFACES)
+            ],
             "comp_off_note": _("Ohne Unterkategorien oder Sets nicht verfügbar"),
             # STU-18e (Р-3): шрифт и цвет остаются на «Оформлении сайта», но панель
             # показывает, чем оформлен сайт, — иначе владелец правит страницу вслепую.

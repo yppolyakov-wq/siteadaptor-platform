@@ -631,6 +631,16 @@
             {% include "tenant/_cardform_picker.html" with name="sd_promo_detail_style" value=promo_detail_style items=promo_detail_styles thumb="tenant/_pagelayout_thumb.html" off=comp_off.promo off_note=comp_off_note title=_("Offer page (whole site)") %}
             {% include "tenant/_scope_pill.html" with setting="promo_detail_style" %}
           </div>
+          {% comment %}STU-18d (решение владельца Р-2 «все девять сразу»): композиция
+             девяти листингов. Строки собираются ЦИКЛОМ из реестра — девять почти
+             одинаковых блоков разметки разъехались бы при первой же правке, а
+             инвариант «реестр знает — панель спрашивает» держит замок
+             test_registry_and_panel_agree.{% endcomment %}
+          {% for row in listing_composition_rows %}
+          <div class="stu-page-row mt-4" data-stu-setting="{{ row.name }}" data-stu-axis="composition" data-stu-page="{{ row.surface }}">
+            {% include "tenant/_cardform_picker.html" with name=row.name value=row.value items=row.items thumb="tenant/_pagelayout_thumb.html" off=row.off off_note=comp_off_note title=_("Seitenvorlage") %}
+          </div>
+          {% endfor %}
           <div class="stu-page-row mt-4" data-stu-setting="promo_grouping" data-stu-axis="content" data-stu-page="promos">
             <label class="text-sm block">
               <span class="stu-lb">{% trans "Aktionsseite: Gruppierung" %}</span>

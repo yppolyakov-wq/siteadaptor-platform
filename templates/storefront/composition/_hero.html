@@ -1,0 +1,17 @@
+{% comment %}STU-18d: композиция «Mit Kopfbild» — шапка-баннер над листингом.
+
+Обобщение `category/_root_header.html`: строка-надзаголовок (вид бизнеса · город),
+текст страницы слева, фото справа. Всё приходит контрактом `comp_hero`
+`{eyebrow, text, photo}` — у каталога это интро каталога и hero сайта, у листинга
+услуг/номеров/событий своё; без фото колонка не рисуется вовсе.{% endcomment %}
+<section class="mb-8 grid md:grid-cols-2 gap-6 md:gap-10 items-center" data-comp-hero>
+  <div class="py-2 md:py-6">
+    {% if comp_hero.eyebrow %}<p class="text-[11px] font-bold tracking-[0.13em] uppercase mb-2" style="color: var(--accent, #4f46e5);">{{ comp_hero.eyebrow }}</p>{% endif %}
+    {% if comp_hero.text %}<p class="text-gray-600 max-w-md whitespace-pre-line">{{ comp_hero.text }}</p>{% endif %}
+  </div>
+  {% if comp_hero.photo %}
+  <div class="relative min-h-[200px] md:min-h-[300px] rounded-2xl overflow-hidden bg-gray-100">
+    <img src="{{ comp_hero.photo }}" alt="" class="absolute inset-0 w-full h-full object-cover">
+  </div>
+  {% endif %}
+</section>

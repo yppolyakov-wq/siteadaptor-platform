@@ -18,7 +18,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.billing import connect
-from apps.core import option_trackers, ratelimit
+from apps.core import listing_composition, option_trackers, ratelimit
 from apps.core.fsm import IllegalTransition
 from apps.promotions.services import OutOfStock as PromoSoldOut
 
@@ -249,6 +249,51 @@ def termin_index(request):
             # MEN-18: прайс-вид услуг — шаблон ветвится по префиксу "preisliste"
             # (как каталог по catalog_preset); сеточные пресеты идут через grid.
             service_preset = cfg["service_index_layout"]["preset"]
+        # STU-18d: композиция страницы (вкладки/полки/указатель/боковая колонка/
+        # обложка). Под-сущность листинга услуг — ПОДБОРКА владельца: та же, что
+        # даёт чипы фасета, поэтому второй таксономии не заводим.
+        _base_url = reverse("storefront-termin")
+        _embed_q = "&embed=1" if embed else ""
+
+        def _entries():
+            return [
+                {
+                    "label": c["label"],
+                    "url": f"{_base_url}?kollektion={c['slug']}{_embed_q}",
+                    "active": kollektion == c["slug"],
+                    "count": services_base.filter(collections__slug=c["slug"]).count(),
+                }
+                for c in collection_chips
+            ]
+
+        def _shelves():
+            out = []
+            for c in collection_chips:
+                qs = services_base.filter(collections__slug=c["slug"])
+                items = list(qs[:8])
+                if not items:
+                    continue
+                total = qs.count()
+                out.append(
+                    {
+                        "label": c["label"],
+                        "slug": c["slug"],
+                        "url": f"{_base_url}?kollektion={c['slug']}{_embed_q}",
+                        "items": items,
+                        "total": total,
+                        "more": total > len(items),
+                    }
+                )
+            return out
+
+        comp = listing_composition.context(
+            raw_cfg,
+            "services",
+            entries=_entries,
+            shelves=_shelves,
+            hero=lambda: listing_composition.hero_from_tenant(request.tenant, raw_cfg),
+            kind="service",
+        )
         return _render_embed(
             request,
             "storefront/service_index.html",
@@ -272,6 +317,7 @@ def termin_index(request):
                 # LS-1: чип «📹 Video-Beratung» (?video=1) — авто при ≥1 видео-услуге.
                 "video_available": presented["video_available"],
                 "active_video": selected["video"],
+                **comp,
             },
             embed,
         )

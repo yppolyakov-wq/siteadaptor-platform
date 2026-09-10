@@ -1,0 +1,4 @@
+{% load sellable_ui %}{% comment %}STU-18d: элемент полки на листингах, которые
+рисуют карточку тегом `sellable_card`, а не include-партиалом. Полки принимают
+`item_template`, потому что карточка — решение поверхности; здесь оно сводится к
+виду сущности (`comp_kind`), который вьюха уже знает.{% endcomment %}{% sellable_card comp_kind p %}

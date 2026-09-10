@@ -22,6 +22,11 @@ UB1-1: единый каркас страницы-листинга (по обр�
   listing_after      — хвостовые CTA под листингом (абонементы услуг и т. п.);
   listing_width      — классы контейнера страницы (events: max-w-3xl mx-auto;
                        остальные — пусто = обычная ширина main).
+STU-18d: каркас сам рисует ХРОМ композиции (шапка-фото, вкладки, полки, указатель,
+боковая колонка) по контексту вьюхи: `page_composition` + `comp_entries`
+`{label,url,active,count}` / `comp_shelves` / `comp_hero` / `comp_carry` /
+`comp_item_template`. Композиции, меняющие сам ЭЛЕМЕНТ (витрина/журнал/мозаика),
+сюда не входят — это оси сетки и карточки (план STU-18 §11.1).
 Слоты — через {% block %} (наследование шаблонов, не include): так наследник
 передаёт произвольную разметку без прокидывания контекста.
 {% endcomment %}
@@ -30,9 +35,23 @@ UB1-1: единый каркас страницы-листинга (по обр�
 перезагрузки (fetch полной страницы → swap этого контейнера). Внутри неё НЕ
 должно быть инлайн-скриптов с прямым бинденгом — после swap они не исполняются
 (урок HF-волны); сорт-автосабмит делегирован в _grid_view_script.html.{% endcomment %}
-<div class="{% block listing_width %}{% endblock %}" data-listing-root{% block listing_root_attrs %}{% endblock %}>
+{% comment %}STU-18d: композиция страницы — ОДИН атрибут на корне. У каталога и
+акций каскад привязан к своим `data-cat-layout`/`data-promo-page` (они остаются
+легаси-алиасами в тех же правилах CSS), третьего заводить не станем.{% endcomment %}
+<div class="{% block listing_width %}{% endblock %}" data-listing-root{% if page_composition %} data-sf-page="{{ page_composition }}"{% endif %}{% block listing_root_attrs %}{% endblock %}>
 {% block listing_header %}{% endblock %}
+{% if comp_hero %}{% include "storefront/composition/_hero.html" %}{% endif %}
+{% comment %}«Navigator»: боковая колонка = указатель под-сущностей + фасеты САМОЙ
+страницы. Фасеты приходят блоком шаблона, поэтому обёртку открываем и закрываем
+вокруг него; до lg `[data-cat-side]` — display:contents, то есть мобильный вид
+не меняется вовсе. Страницы, не задавшие композицию (каталог, акции), проходят
+мимо всех веток ниже: их разметку рисуют собственные шаблоны.{% endcomment %}
+{% if page_composition == "navigator" %}<aside data-cat-side>{% include "storefront/composition/_entry_nav.html" with entries=comp_entries carry=comp_carry %}{% endif %}
 {% block listing_facets %}{% endblock %}
+{% if page_composition == "navigator" %}</aside>{% endif %}
+{% if page_composition == "tabs" %}{% include "storefront/composition/_tabs.html" with tabs=comp_entries carry=comp_carry %}{% endif %}
+{% if page_composition == "kompakt" %}{% include "storefront/composition/_index.html" with entries=comp_entries carry=comp_carry %}{% endif %}
+{% if page_composition == "regale" %}{% include "storefront/composition/_shelves.html" with shelves=comp_shelves item_template=comp_item_template %}{% endif %}
 {% block listing_toolbar %}
 {% comment %}DS-10 (фидбэк владельца 2026-08-13): фильтр, сортировка и вид — ОДНОЙ
 строкой; поиск убран (он в шапке сайта, DS-6; ?q= из шапки продолжает работать —

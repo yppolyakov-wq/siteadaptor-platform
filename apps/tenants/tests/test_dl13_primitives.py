@@ -174,6 +174,13 @@ def test_time_grouping_sections_in_urgency_order():
         site_config={"promo_grouping": "time"},
     )
     now = timezone.localtime()
+    # Замок опирается на ЧАСЫ: «Heute-Deal» заканчивается сегодня в 23:59. В самом
+    # конце суток он уже закончился, секция «Endet heute» пропадает — CI 2026-09-10
+    # поймал это в 23:59. Сдвигать конец на 23:59:59.999 нельзя: у бакетов свои
+    # границы, и такой дил переезжает в ленту «Endet bald» выше секций. Поэтому
+    # честный пропуск в последние минуты дня, а не подгонка данных.
+    if (now.hour, now.minute) >= (23, 57):
+        pytest.skip("последние минуты суток: секции по сроку зависят от часов")
     end_today = now.replace(hour=23, minute=59)
     _promo("Dauer-Deal", group="Wochenangebote")
     _promo("Heute-Deal", ends_at=end_today)

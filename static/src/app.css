@@ -1331,21 +1331,31 @@ input[type="datetime-local"] {
 [data-cat-side] {
   display: contents;
 }
+/* STU-18d: тот же «Navigator» на девяти листингах — по ОБЩЕМУ атрибуту
+   `data-sf-page`, который эмитит каркас листинга. `data-cat-layout` остаётся
+   легаси-алиасом каталога: третий атрибут для той же композиции завёл бы ровно
+   ту кашу, которую разбирала волна LAY. У листингов нет маркера `data-cat-head`
+   (его ставит шапка каталога) — полосу на обе колонки тянет первый ребёнок, как
+   у обзора акций. */
 @media (min-width: 1024px) {
-  [data-cat-layout="navigator"] {
+  [data-cat-layout="navigator"],
+  [data-sf-page="navigator"] {
     display: grid;
     grid-template-columns: 15rem minmax(0, 1fr);
     column-gap: 1.5rem;
     align-items: start;
   }
-  [data-cat-layout="navigator"] > * {
+  [data-cat-layout="navigator"] > *,
+  [data-sf-page="navigator"] > * {
     grid-column: 2;
     min-width: 0;
   }
-  [data-cat-layout="navigator"] > [data-cat-head] {
+  [data-cat-layout="navigator"] > [data-cat-head],
+  [data-sf-page="navigator"] > :first-child {
     grid-column: 1 / -1;
   }
-  [data-cat-layout="navigator"] > [data-cat-side] {
+  [data-cat-layout="navigator"] > [data-cat-side],
+  [data-sf-page="navigator"] > [data-cat-side] {
     display: block;
     grid-column: 1;
     grid-row: 2 / span 999;
@@ -1353,7 +1363,8 @@ input[type="datetime-local"] {
     top: 5rem;
   }
   /* панель фасетов на месте, а не ящиком: .hidden снят, фиксация DS-6 отменена */
-  [data-cat-layout="navigator"] [data-cat-side] [data-filter-panel] {
+  [data-cat-layout="navigator"] [data-cat-side] [data-filter-panel],
+  [data-sf-page="navigator"] [data-cat-side] [data-filter-panel] {
     display: flex !important;
     position: static;
     width: auto;
@@ -1367,7 +1378,8 @@ input[type="datetime-local"] {
     align-items: stretch;
   }
   /* кнопка «Фильтры» на десктопе лишняя — панель и так на виду */
-  [data-cat-layout="navigator"] [data-filter-toggle] {
+  [data-cat-layout="navigator"] [data-filter-toggle],
+  [data-sf-page="navigator"] [data-filter-toggle] {
     display: none;
   }
 }

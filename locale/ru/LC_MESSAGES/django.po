@@ -22621,3 +22621,7 @@ msgstr "Содержание страницы"
 #: apps/core/views.py:0
 msgid "Ohne Unterkategorien oder Sets nicht verfügbar"
 msgstr "Недоступно без подкатегорий и наборов"
+
+#. STU-18d
+msgid "Wide photo above the list."
+msgstr "Широкое фото над списком."

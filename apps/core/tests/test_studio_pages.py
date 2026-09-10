@@ -19,6 +19,7 @@ import re
 import pytest
 from django.urls import get_resolver
 
+from apps.core import compositions
 from apps.core import studio_pages as sp
 
 
@@ -193,6 +194,9 @@ def test_every_site_key_resolves_in_normalized_config():
         "menu_show_prices": False,
         "menu_labels": True,
         "detail_related_layout": {"preset": "cols3"},
+        # STU-18d: композиция девяти листингов — ОДИН presence-minimal ключ
+        # `page_styles` (план STU-18 §11.3), поэтому в фикстуре со значениями.
+        "page_styles": {s: "tabs" for s in compositions.LISTING_SURFACES},
     }
     cfg = siteconfig.normalize(raw)
     missing = []
@@ -209,15 +213,28 @@ def test_every_site_key_resolves_in_normalized_config():
     assert not missing, f"site_key реестра не резолвится в normalize: {missing}"
 
 
-def test_every_form_field_exists_in_the_studio_template():
-    """Поля-шаблоны (`order_*`) проверяем по префиксу — их имена динамические."""
+@pytest.mark.django_db
+def test_every_form_field_exists_in_the_studio_template(builder_html):
+    """Поля-шаблоны (`order_*`) проверяем по префиксу — их имена динамические.
+
+    STU-18d: проверяем ОТРЕНДЕРЕННУЮ страницу, а не исходник шаблона. Часть строк
+    панели собирается циклом из реестра (девять листингов — одна форма записи), и
+    в исходнике имени поля нет вовсе. Рендер — более сильная проверка того же
+    инварианта: поле обязано доехать до формы, а не просто встретиться в тексте.
+    """
     import re
     from pathlib import Path
 
     from django.conf import settings as dj_settings
 
     tpl = Path(dj_settings.BASE_DIR) / "templates" / "tenant" / "site_home.html"
-    names = set(re.findall(r'name="([a-z_0-9]+)"', tpl.read_text(encoding="utf-8")))
+    source = tpl.read_text(encoding="utf-8")
+    # Источник ИЛИ рендер: часть полей гейтится модулями тенанта (скрытие цен —
+    # только у browse-only витрины, PAngV), и в рендере фабричного тенанта их
+    # законно нет; часть, наоборот, есть только в рендере (строки из реестра).
+    names = set(re.findall(r'name="([a-z_0-9]+)"', builder_html)) | set(
+        re.findall(r'name="([a-z_0-9]+)"', source)
+    )
 
     missing = []
     for setting in sp.SETTINGS.values():
@@ -225,7 +242,7 @@ def test_every_form_field_exists_in_the_studio_template():
         if field.endswith("*"):
             prefix = field[:-1]
             # динамические поля рисуются в шаблоне через {{ }} — ищем префикс в теле
-            if prefix not in tpl.read_text(encoding="utf-8"):
+            if prefix not in source and prefix not in builder_html:
                 missing.append((setting.code, field))
         elif field not in names:
             missing.append((setting.code, field))

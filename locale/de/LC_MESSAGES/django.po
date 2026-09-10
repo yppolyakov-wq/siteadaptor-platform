@@ -22429,3 +22429,7 @@ msgstr "Inhalt der Seite"
 #: apps/core/views.py:0
 msgid "Ohne Unterkategorien oder Sets nicht verfügbar"
 msgstr "Ohne Unterkategorien oder Sets nicht verfügbar"
+
+#. STU-18d
+msgid "Wide photo above the list."
+msgstr "Breites Foto über der Liste."

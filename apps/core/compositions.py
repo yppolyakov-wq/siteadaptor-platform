@@ -40,17 +40,45 @@ from dataclasses import dataclass, field
 
 from django.utils.translation import gettext_lazy as _
 
-# Поверхности вывода, которые уже умеют выбирать композицию. Список РАСТЁТ по
-# мере волны (LAY-3/LAY-4 добавят листинги услуг, номеров, событий, наборов и
-# туров) — но ровно тогда, когда рендер этих страниц действительно читает выбор.
-SURFACES = frozenset(
+# Поверхности вывода, которые умеют выбирать композицию. Список растёт ровно
+# тогда, когда рендер страницы действительно читает выбор (правило STU-9).
+#: STU-18d: листинги, которым композиция включена волной (решение владельца Р-2).
+#: На них ось композиции = ХРОМ вокруг сетки, тогда как «Витрина/Журнал/Мозаика» —
+#: правила ДЛЯ ЭЛЕМЕНТА и живут осями сетки и карточки (план STU-18 §11.1).
+LISTING_SURFACES = frozenset(
     {
-        "catalog",  # корень /sortiment/
-        "category",  # страница товарной категории
-        "promos",  # обзор /aktionen/
-        "promo_group",  # страница группы акций (?gruppe=)
-        "promo",  # деталь одной акции
+        "services",  # /termin/
+        "stays",  # /unterkunft/
+        "events",  # /veranstaltung/
+        "tours",  # /touren/
     }
+)
+
+#: Ещё пять листингов волны — и причина, по которой композиции у них пока НЕТ.
+#: Хром композиции рисует каркас `storefront/listing.html`, а эти пять страниц
+#: наследуются напрямую от `_base.html`. Объявить им настройку значило бы
+#: пообещать то, чего страница не рендерит, — ровно дефект STU-9, который волна и
+#: чинит. Сначала свод на каркас (масштаб UB1-3, с характеризационными замками),
+#: потом объявление. Инвариант держит замок test_stu18d_compositions.
+PENDING_SURFACES = {
+    "combos": "страница /kombi/ пока не на каркасе listing.html",
+    "lookbook": "страница подборки пока не на каркасе listing.html",
+    "wishlist": "страница /merkzettel/ пока не на каркасе listing.html",
+    "blog": "страница /blog/ пока не на каркасе listing.html",
+    "reviews": "страница /bewertungen/ пока не на каркасе listing.html",
+}
+
+SURFACES = (
+    frozenset(
+        {
+            "catalog",  # корень /sortiment/
+            "category",  # страница товарной категории
+            "promos",  # обзор /aktionen/
+            "promo_group",  # страница группы акций (?gruppe=)
+            "promo",  # деталь одной акции
+        }
+    )
+    | LISTING_SURFACES
 )
 
 # Требования по данным. Композиция, чьё требование не выполнено на конкретной
@@ -58,6 +86,10 @@ SURFACES = frozenset(
 # старого конфига: резолверы по-прежнему проваливаются в Standard).
 NEEDS_CHILDREN = "children"  # подкатегории (каталог) или группы (акции)
 NEEDS_COMBOS = "combos"  # наборы/меню
+#: STU-18d: «С обложкой» на листинге показывает ФОТО САЙТА — у категории для этого
+#: есть своё, у списка услуг или отзывов нет. Без фото композиция была бы пустым
+#: обещанием, поэтому это такое же требование по данным, как под-сущности.
+NEEDS_PHOTO = "photo"
 
 
 @dataclass(frozen=True)
@@ -77,6 +109,11 @@ class Composition:
     order: int
     orders: dict = field(default_factory=dict)
     requires: frozenset = frozenset()
+    #: требования, добавляемые ТОЛЬКО на отдельных поверхностях. «Навигатор» и
+    #: «Компактно» на каталоге осмысленны и без подкатегорий (там богатые фасеты),
+    #: а на листинге без под-сущностей боковая колонка и указатель были бы пустыми.
+    #: Выражаем это явно, а не одним `requires` на всех.
+    requires_extra: dict = field(default_factory=dict)
     recommended_grid: str = ""
     labels: dict = field(default_factory=dict)
     hints: dict = field(default_factory=dict)
@@ -84,6 +121,9 @@ class Composition:
     @property
     def needs_children(self) -> bool:
         return NEEDS_CHILDREN in self.requires
+
+    def requires_for(self, surface: str) -> frozenset:
+        return self.requires | self.requires_extra.get(surface, frozenset())
 
     def label_for(self, surface: str):
         return self.labels.get(surface, self.label)
@@ -96,6 +136,8 @@ class Composition:
 
 
 _LISTING = frozenset({"catalog", "category", "promos", "promo_group"})
+#: «Навигатор» и «Компактно» на листингах требуют под-сущностей (requires_extra)
+_LISTING_NEEDS_CHILDREN = {s: frozenset({NEEDS_CHILDREN}) for s in LISTING_SURFACES}
 _ALL = frozenset({"catalog", "category", "promos", "promo_group", "promo"})
 
 
@@ -110,7 +152,7 @@ COMPOSITIONS: dict[str, Composition] = {
             "",
             _("Standard (Raster)"),
             _("Wie bisher: Filter, Unterkategorien, Produktraster."),
-            _ALL,
+            _ALL | LISTING_SURFACES,
             0,
             hints={
                 "promos": _("As before: groups as sections, offers as a grid."),
@@ -128,9 +170,13 @@ COMPOSITIONS: dict[str, Composition] = {
             "kopfbild",
             _("Mit Kopfbild"),
             _("Hero mit Foto und Beschreibung, Unterkategorien als Foto-Kacheln."),
-            frozenset({"catalog", "category", "promos"}),
+            frozenset({"catalog", "category", "promos"}) | LISTING_SURFACES,
             10,
-            hints={"promos": _("Banner with photo and counts above the sections.")},
+            requires_extra={s: frozenset({NEEDS_PHOTO}) for s in LISTING_SURFACES},
+            hints={
+                "promos": _("Banner with photo and counts above the sections."),
+                **{s: _("Wide photo above the list.") for s in LISTING_SURFACES},
+            },
         ),
         _c(
             "sets",
@@ -152,7 +198,7 @@ COMPOSITIONS: dict[str, Composition] = {
             "regale",
             _("Regale (Unterkategorien als Leisten)"),
             _("Jede Unterkategorie als horizontale Leiste mit Pfeilen — alles auf einen Blick."),
-            frozenset({"catalog", "category", "promos"}),
+            frozenset({"catalog", "category", "promos"}) | LISTING_SURFACES,
             40,
             requires=frozenset({NEEDS_CHILDREN}),
             hints={"promos": _("Every group as a strip with arrows, no minimum size.")},
@@ -161,7 +207,7 @@ COMPOSITIONS: dict[str, Composition] = {
             "tabs",
             _("Tabs (Unterkategorien als Reiter)"),
             _("Unterkategorien als Reiter über dem Raster — Wechsel ohne Neuladen."),
-            frozenset({"catalog", "category", "promos"}),
+            frozenset({"catalog", "category", "promos"}) | LISTING_SURFACES,
             50,
             requires=frozenset({NEEDS_CHILDREN}),
             hints={"promos": _("«All» plus one tab per group above the offers.")},
@@ -184,8 +230,10 @@ COMPOSITIONS: dict[str, Composition] = {
             "navigator",
             _("Navigator"),
             _("Subcategories and filters in a side column, products on the right."),
-            frozenset({"catalog", "category", "promos"}),
+            frozenset({"catalog", "category", "promos"}) | LISTING_SURFACES,
             70,
+            # на листинге без под-сущностей боковая колонка была бы пустой
+            requires_extra=_LISTING_NEEDS_CHILDREN,
             hints={
                 "promos": _("Groups, filters and search in a side column, offers on the right.")
             },
@@ -217,8 +265,9 @@ COMPOSITIONS: dict[str, Composition] = {
             "kompakt",
             _("Compact"),
             _("Subcategory index in columns and a dense grid — for large ranges."),
-            frozenset({"catalog", "category", "promos", "promo"}),
+            frozenset({"catalog", "category", "promos", "promo"}) | LISTING_SURFACES,
             100,
+            requires_extra=_LISTING_NEEDS_CHILDREN,
             orders={"promo": 30},
             recommended_grid="cols6",
             hints={
@@ -311,7 +360,9 @@ def valid_for(surface: str, *, offered_only: bool = False) -> frozenset:
     return frozenset(spec.code for spec in COMPOSITIONS.values() if surface in spec.applies_to)
 
 
-def available_for(surface: str, *, has_children: bool = True, has_combos: bool = True):
+def available_for(
+    surface: str, *, has_children: bool = True, has_combos: bool = True, has_photo: bool = True
+):
     """Композиции, которые на ЭТОЙ странице действительно имеют смысл.
 
     Гейт доступности из §4 плана: «полки» и «вкладки» без под-сущностей и
@@ -321,12 +372,44 @@ def available_for(surface: str, *, has_children: bool = True, has_combos: bool =
     out = []
     for code, label, hint in styles_for(surface):
         spec = COMPOSITIONS[code]
-        if NEEDS_CHILDREN in spec.requires and not has_children:
+        needs = spec.requires_for(surface)
+        if NEEDS_CHILDREN in needs and not has_children:
             continue
-        if NEEDS_COMBOS in spec.requires and not has_combos:
+        if NEEDS_COMBOS in needs and not has_combos:
+            continue
+        if NEEDS_PHOTO in needs and not has_photo:
             continue
         out.append((code, label, hint))
     return out
+
+
+def resolve(
+    surface: str,
+    code,
+    *,
+    has_children: bool = True,
+    has_combos: bool = True,
+    has_photo: bool = True,
+) -> str:
+    """Композиция, которой страницу МОЖНО отрисовать сейчас ("" — обычная сетка).
+
+    Fail-safe в чистом виде: код из конфига проверяется и по поверхности, и по
+    данным. Иначе «Полки» на листинге, у которого владелец удалил все подборки,
+    дали бы пустую страницу вместо выдачи, а «Навигатор» — пустую колонку.
+    Чтение шире предложения (`valid_for` без `offered_only`): снятый из плиток
+    код продолжает рендериться — живые сайты волна не меняет.
+    """
+    code = (code or "").strip()
+    if not code or code not in valid_for(surface):
+        return ""
+    needs = COMPOSITIONS[code].requires_for(surface)
+    if NEEDS_CHILDREN in needs and not has_children:
+        return ""
+    if NEEDS_COMBOS in needs and not has_combos:
+        return ""
+    if NEEDS_PHOTO in needs and not has_photo:
+        return ""
+    return code
 
 
 def recommended_grid(code: str) -> str:

@@ -22518,3 +22518,7 @@ msgstr "Sayfa içeriği"
 #: apps/core/views.py:0
 msgid "Ohne Unterkategorien oder Sets nicht verfügbar"
 msgstr "Alt kategoriler veya setler olmadan kullanılamaz"
+
+#. STU-18d
+msgid "Wide photo above the list."
+msgstr "Listenin üstünde geniş bir fotoğraf."

@@ -50,7 +50,11 @@ def test_available_now_modes():
 def test_available_now_auto_follows_hours():
     open_now = TenantFactory.build(opening_hours_structured=ALL_HOURS)
     assert presence.mode(open_now) == "auto"
-    assert presence.available_now(open_now) is True
+    # Часы задаются с точностью до МИНУТЫ, поэтому «круглосуточно» — это 00:00–23:59,
+    # и последние 59 секунд суток бизнес закрыт по своим же часам. Прогон CI в 23:59
+    # ронял замок (2026-09-10) — гейт тот же, что у ветки «закрыто» ниже.
+    if timezone.localtime().strftime("%H:%M") < "23:59":
+        assert presence.available_now(open_now) is True
     # Часы есть, но не сейчас (окно в 1 минуту в полночь — почти наверняка закрыто).
     closed = TenantFactory.build(
         opening_hours_structured={str(timezone.localtime().weekday()): ["00:00", "00:01"]}

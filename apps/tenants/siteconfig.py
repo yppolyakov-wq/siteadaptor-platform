@@ -3458,6 +3458,32 @@ def normalize_catalog_page_style(raw) -> str:
     return raw if isinstance(raw, str) and raw in _ROOT_PAGE_STYLES and raw else ""
 
 
+def normalize_page_styles(raw) -> dict:
+    """STU-18d: композиция ЛИСТИНГОВ — {<поверхность>: <код>}.
+
+    Один presence-minimal ключ на девять страниц вместо девяти плоских: девять
+    ключей повторили бы ту самую раздробленность реестров, которую разбирала
+    волна LAY (план STU-18 §11.3). Значения валидируются реестром композиций —
+    он же гейтит, какие коды на поверхности вообще существуют, поэтому чужой
+    код (например «Мозаика», которая живёт осью сетки) просто не сохранится.
+    Ключ пишется ТОЛЬКО при непустом словаре → golden-эталоны целы.
+    """
+    from apps.core import compositions
+
+    if not isinstance(raw, dict):
+        return {}
+    out: dict[str, str] = {}
+    for surface in sorted(compositions.LISTING_SURFACES):
+        code = raw.get(surface)
+        if (
+            isinstance(code, str)
+            and code.strip()
+            and code.strip() in compositions.valid_for(surface)
+        ):
+            out[surface] = code.strip()
+    return out
+
+
 def normalize_promo_page_style(raw) -> str:
     """DL-21.2: шаблон обзорной `/aktionen/` — реестр `group_styles.PROMO_PAGE_STYLES`."""
     return raw if isinstance(raw, str) and raw in _PROMO_PAGE_STYLES and raw else ""
@@ -3692,6 +3718,10 @@ def _normalize_impl(config) -> dict:
     promo_page_style = normalize_promo_page_style(config.get("promo_page_style"))
     if promo_page_style:
         normalized["promo_page_style"] = promo_page_style
+    # STU-18d: композиция девяти листингов; ключ ТОЛЬКО при непустом словаре.
+    page_styles = normalize_page_styles(config.get("page_styles"))
+    if page_styles:
+        normalized["page_styles"] = page_styles
     # AF-1: событийные поля формы /anfrage/; ключ ТОЛЬКО при непустом (golden-паритет).
     anfrage = normalize_anfrage(config.get("anfrage"))
     if anfrage:
