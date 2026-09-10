@@ -1377,6 +1377,19 @@ def _page_layout_payload(post, field, preset):
     return payload
 
 
+def retires_legacy_promo_layout(post) -> bool:
+    """LAY-7c: Save оси вывода отправляет ЛЕГАСИ-ключ `promo_layout` на пенсию.
+
+    Ось — единственный контрол «сетка или лента», и её выбор обязан быть сильнее.
+    Но `scroll` presence-minimal: «Raster» = отсутствие ключа, то есть неотличимо
+    от «не настраивал». Пока рядом лежит легаси-ключ, резолвер честно включал бы
+    ленту, и ВЫКЛЮЧИТЬ её было бы нечем. Поэтому первое же осознанное касание
+    оси (её строка была в панели → поле пришло в POST) снимает легаси-ключ, и
+    дальше решает только ось. До этого касания легаси-ключ работает как раньше.
+    """
+    return "promo_index_preset" in post
+
+
 def _presence_layout_keys():
     """LAY-3a-2: раскладки, которые normalize НЕ материализует — «Standard» в панели
     снимает ключ, и страница снова рисуется прежними классами шаблона."""
@@ -1899,6 +1912,8 @@ def home_builder_view(request):
         ]
         for fld, cfg_key in _layout_fields:
             preset = request.POST.get(fld, "")
+            if cfg_key == "promo_index_layout" and retires_legacy_promo_layout(request.POST):
+                config.pop("promo_layout", None)
             # DS-3a: страничные extra-виды (напр. «preisliste» каталога) валидны
             # только для СВОЕЙ страницы (PAGE_EXTRA_PRESETS).
             if preset in siteconfig.LAYOUT_PRESETS or preset in siteconfig.PAGE_EXTRA_PRESETS.get(

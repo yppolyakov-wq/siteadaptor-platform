@@ -56,10 +56,14 @@ def test_builder_renders_missing_visual_controls():
     """Каждый ключ из карты разведки имеет СВОЙ контрол в билдере."""
     tenant = TenantFactory(schema_name="public", slug="dl17a", name="DL17A")
     body = _builder_body(tenant)
-    # страница акций: раскладка групп + режим группировки
-    assert 'name="promo_layout"' in body
+    # страница акций: режим группировки. LAY-7c (решение владельца 2026-09-10):
+    # контрол «Darstellung der Gruppen» (`promo_layout`) СНЯТ — «сетка или лента»
+    # это общая ось вывода, а два переключателя на одно и то же и были той «кашей»,
+    # ради которой затевалась волна LAY. Ключ остаётся в хранении (легаси-конфиги,
+    # демо-киты, композиция «Regale»), но панель его больше не пишет.
     assert 'name="promo_grouping"' in body
-    assert 'value="slider"' in body and 'value="time"' in body
+    assert 'name="promo_index_preset_mode"' in body  # ось вывода вместо снятого дубля
+    assert 'value="time"' in body
     # STU-12g: хром карточек и фон страницы — глобальный дизайн, их контролы
     # переехали на экран «Design des Shops» (round-trip там же, test_stu12_design_screen).
     # хвост неполного ряда: недостающий вид «добить плиткой-подсказкой»
@@ -80,15 +84,22 @@ def test_builder_no_longer_ships_hidden_only_design_keys():
 
 def test_save_promo_page_keys():
     tenant = TenantFactory(schema_name="public", slug="dl17p", name="DL17P")
-    cfg = _save(
-        tenant,
-        {"promo_layout": "slider", "promo_grouping": "time", "font": "system"},
-    )
-    assert cfg["promo_layout"] == "slider"
+    cfg = _save(tenant, {"promo_grouping": "time", "font": "system"})
     assert cfg["promo_grouping"] == "time"
     # "" законно снимает ключ (presence-minimal)
-    cfg = _save(tenant, {"promo_layout": "", "promo_grouping": "", "font": "system"})
-    assert "promo_layout" not in cfg and "promo_grouping" not in cfg
+    cfg = _save(tenant, {"promo_grouping": "", "font": "system"})
+    assert "promo_grouping" not in cfg
+
+
+def test_save_ignores_the_removed_promo_layout_control():
+    """LAY-7c: контрола нет — Save его и не пишет (ветка приёмника удалена).
+
+    Ключ живёт в хранении и читается витриной; что он ПЕРЕЖИВАЕТ чужой Save,
+    держит `test_foreign_save_keeps_studio_keys` (инвариант W0/W6).
+    """
+    tenant = TenantFactory(schema_name="public", slug="dl17pl", name="DL17PL")
+    cfg = _save(tenant, {"promo_layout": "slider", "font": "system"})
+    assert "promo_layout" not in cfg
 
 
 # STU-12g: сохранение хрома/фона страницы проверяется на экране «Design des Shops»
@@ -148,7 +159,6 @@ def test_draft_carries_new_visual_keys():
         tenant,
         {
             "sections": [{"key": "products", "enabled": True, "layout": {"tail": "fill"}}],
-            "promo_layout": "slider",
             "promo_grouping": "time",
             "product_detail": {"hidden": [], "layout": "tabs"},
             "site_defaults": {
@@ -162,7 +172,6 @@ def test_draft_carries_new_visual_keys():
     )
     products = next(s for s in draft["sections"] if s["key"] == "products")
     assert products["layout"]["tail"] == "fill"
-    assert draft["promo_layout"] == "slider"
     assert draft["promo_grouping"] == "time"
     assert siteconfig.product_detail_layout(draft) == "tabs"
     sd = draft["site_defaults"]
@@ -173,7 +182,7 @@ def test_draft_carries_new_visual_keys():
     assert sd["page_bg"] == "#faf6ef"
     # опубликованный конфиг не тронут — правки живут под `_draft`
     tenant.refresh_from_db()
-    assert "promo_layout" not in tenant.site_config
+    assert "promo_grouping" not in tenant.site_config
 
 
 def test_draft_empty_promo_keys_clear_them():
@@ -183,10 +192,10 @@ def test_draft_empty_promo_keys_clear_them():
         schema_name="public",
         slug="dl17dc",
         name="DL17DC",
-        site_config={"promo_layout": "slider", "promo_grouping": "time"},
+        site_config={"promo_grouping": "time"},
     )
-    draft = _draft(tenant, {"promo_layout": "", "promo_grouping": ""})
-    assert "promo_layout" not in draft and "promo_grouping" not in draft
+    draft = _draft(tenant, {"promo_grouping": ""})
+    assert "promo_grouping" not in draft
 
 
 def test_builder_payload_collects_new_keys():
@@ -194,7 +203,7 @@ def test_builder_payload_collects_new_keys():
     никогда бы их не увидела)."""
     tenant = TenantFactory(schema_name="public", slug="dl17j", name="DL17J")
     body = _builder_body(tenant)
-    assert "payload.promo_layout = plSel.value" in body
+    # LAY-7c: строка `payload.promo_layout` удалена вместе с контролом.
     assert "payload.promo_grouping = pgSel.value" in body
     assert "if (tailSel && tailSel.value) lay.tail = tailSel.value;" in body
     assert "promo_card: sdVal(sdPromoCard)," in body  # STU-9: sdVal — сайтовое значение

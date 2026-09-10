@@ -270,3 +270,45 @@ def test_panel_shows_the_mode_that_the_page_actually_renders():
     # Явный выбор владельца сильнее: сетка остаётся сеткой, если он её выбрал.
     explicit = {"preset": "cols4", "scroll": True}
     assert siteconfig.apply_legacy_promo_slider(explicit, "slider") is explicit
+
+
+# ── LAY-7c ч.2: второй писатель того же ключа ─────────────────────────────
+
+
+def test_cabinet_panel_no_longer_offers_the_second_control():
+    """Дубль был не только в Студии: тот же ключ писала панель списка акций.
+
+    Оставить её значило перенести дубль, а не снять его (решение владельца —
+    ОДИН контрол). Соседний селект «Aktionsseite gliedern» остаётся.
+    """
+    markup = open("templates/promotions/promotion_list.html", encoding="utf-8").read()
+    assert 'name="layout"' not in markup
+    assert 'name="mode"' in markup
+
+
+def test_grouping_change_does_not_wipe_the_legacy_key():
+    """W0: форма шлёт только `mode` — приёмник не имеет права снести `promo_layout`.
+
+    Читаем ИСХОДНИК приёмника: сама вьюха за `@login_required` и пишет в БД, а
+    проверяем мы отсутствие ветки «пусто → pop», то есть форму кода.
+    """
+    import inspect
+
+    from apps.promotions import views as promo_views
+
+    src = inspect.getsource(promo_views.promotion_page_mode)
+    assert 'cfg.pop("promo_layout"' not in src
+    assert 'cfg["promo_layout"]' not in src
+    assert 'request.POST.get("layout"' not in src
+
+
+def test_axis_save_retires_the_legacy_key():
+    """Ось — единственный контрол, значит её выбор обязан быть СИЛЬНЕЕ легаси.
+
+    `scroll` presence-minimal: «Raster» = отсутствие ключа, и без выхода на
+    пенсию легаси-ключа владелец не смог бы ВЫКЛЮЧИТЬ ленту вообще.
+    """
+    from apps.core import views as core_views
+
+    assert core_views.retires_legacy_promo_layout({"promo_index_preset": "cols4"}) is True
+    assert core_views.retires_legacy_promo_layout({"font": "system"}) is False

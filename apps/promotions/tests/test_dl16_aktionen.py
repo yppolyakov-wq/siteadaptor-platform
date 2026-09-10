@@ -141,7 +141,14 @@ def test_panel_saves_layout_presence_minimal(settings):
     tenant = TenantFactory(
         schema_name="public", slug="dl162e", name="E", site_config={"seo": {"x": 1}}
     )
-    for layout, expect in (("slider", "slider"), ("", None), ("zzz", None)):
+    # LAY-7c (решение владельца 2026-09-10 «оставить ОДИН контрол»): селект
+    # «Darstellung» снят с панели, и приёмник ключ `promo_layout` больше НЕ ПИШЕТ —
+    # «сетка или лента» задаёт общая ось вывода в Студии. Замок переписан осознанно:
+    # проверяем, что чужое поле в POST ключ не создаёт И не сносит уже сохранённый
+    # выбор (инвариант W0), а targeted-write остальной части конфига цел.
+    tenant.site_config = {"seo": {"x": 1}, "promo_layout": "slider"}
+    tenant.save(update_fields=["site_config"])
+    for layout in ("slider", "", "zzz"):
         req = RequestFactory().post("/promotions/page-mode/", {"mode": "", "layout": layout})
         SessionMiddleware(lambda r: None).process_request(req)
         MessageMiddleware(lambda r: None).process_request(req)
@@ -149,5 +156,5 @@ def test_panel_saves_layout_presence_minimal(settings):
         req.tenant = tenant
         assert views.promotion_page_mode(req).status_code == 302
         tenant.refresh_from_db()
-        assert tenant.site_config.get("promo_layout") == expect, (layout, tenant.site_config)
+        assert tenant.site_config.get("promo_layout") == "slider", (layout, tenant.site_config)
         assert tenant.site_config.get("seo") == {"x": 1}  # targeted-write

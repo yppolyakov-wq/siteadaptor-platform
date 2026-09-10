@@ -269,12 +269,10 @@ def promotion_page_mode(request):
         cfg["promo_grouping"] = mode
     else:
         cfg.pop("promo_grouping", None)
-    # DL-16.2 (A3): раскладка групп — сетка ("") или ленты-слайдеры ("slider")
-    layout = siteconfig.normalize_promo_layout(request.POST.get("layout", ""))
-    if layout:
-        cfg["promo_layout"] = layout
-    else:
-        cfg.pop("promo_layout", None)
+    # LAY-7c: `promo_layout` этой формой БОЛЬШЕ НЕ ПИШЕТСЯ (контрол снят —
+    # «сетка или лента» задаёт общая ось вывода). Ключ не трогаем вовсе: форма
+    # шлёт только `mode`, и «пусто → pop» снесло бы выбор владельца при смене
+    # группировки (класс W0).
     # DL-21.2: шаблон обзорной страницы — presence по полю (плитки шлют hidden всегда).
     if "page_style" in request.POST:
         _ps = siteconfig.normalize_promo_page_style(request.POST.get("page_style", ""))
