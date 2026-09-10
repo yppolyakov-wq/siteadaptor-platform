@@ -22425,3 +22425,7 @@ msgstr "Das Raster dieser Seite kommt vom gleichnamigen Block der Startseite."
 #: apps/core/studio_pages.py:0
 msgid "Inhalt der Seite"
 msgstr "Inhalt der Seite"
+
+#: apps/core/views.py:0
+msgid "Ohne Unterkategorien oder Sets nicht verfügbar"
+msgstr "Ohne Unterkategorien oder Sets nicht verfügbar"

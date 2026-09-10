@@ -603,21 +603,21 @@
              (только корень каталога) показывалась и в категории, а «Gruppierung»
              (только обзор акций) — и на странице группы.{% endcomment %}
           <div class="stu-page-row mt-2" data-stu-setting="category_page_style" data-stu-axis="composition" data-stu-page="category">
-            {% include "tenant/_cardform_picker.html" with name="sd_category_page_style" value=category_page_style items=category_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Category page (whole site)") %}
+            {% include "tenant/_cardform_picker.html" with name="sd_category_page_style" value=category_page_style items=category_page_styles thumb="tenant/_pagelayout_thumb.html" off=comp_off.category off_note=comp_off_note title=_("Category page (whole site)") %}
             {% include "tenant/_scope_pill.html" with setting="category_page_style" %}
           </div>
           <div class="stu-page-row mt-4" data-stu-setting="promo_page_style" data-stu-axis="composition" data-stu-page="promos">
-            {% include "tenant/_cardform_picker.html" with name="promo_page_style" value=promo_page_style items=promo_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Aktionsseite: Vorlage") %}
+            {% include "tenant/_cardform_picker.html" with name="promo_page_style" value=promo_page_style items=promo_page_styles thumb="tenant/_pagelayout_thumb.html" off=comp_off.promos off_note=comp_off_note title=_("Aktionsseite: Vorlage") %}
           </div>
           <div class="stu-page-row mt-4" data-stu-setting="promo_group_style" data-stu-axis="composition" data-stu-page="promo_group">
-            {% include "tenant/_cardform_picker.html" with name="sd_promo_group_style" value=promo_group_style items=group_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Offer group page (whole site)") %}
+            {% include "tenant/_cardform_picker.html" with name="sd_promo_group_style" value=promo_group_style items=group_page_styles thumb="tenant/_pagelayout_thumb.html" off=comp_off.promo_group off_note=comp_off_note title=_("Offer group page (whole site)") %}
             {% include "tenant/_scope_pill.html" with setting="promo_group_style" %}
           </div>
           {% comment %}STU-15a: шаблон страницы ОДНОЙ акции. Пилюля охвата пишет
              `Promotion.page_style` («только эта акция»), общий контрол —
              site_defaults.promo_detail_style.{% endcomment %}
           <div class="stu-page-row mt-4" data-stu-setting="promo_detail_style" data-stu-axis="composition" data-stu-page="promo">
-            {% include "tenant/_cardform_picker.html" with name="sd_promo_detail_style" value=promo_detail_style items=promo_detail_styles thumb="tenant/_pagelayout_thumb.html" title=_("Offer page (whole site)") %}
+            {% include "tenant/_cardform_picker.html" with name="sd_promo_detail_style" value=promo_detail_style items=promo_detail_styles thumb="tenant/_pagelayout_thumb.html" off=comp_off.promo off_note=comp_off_note title=_("Offer page (whole site)") %}
             {% include "tenant/_scope_pill.html" with setting="promo_detail_style" %}
           </div>
           <div class="stu-page-row mt-4" data-stu-setting="promo_grouping" data-stu-axis="content" data-stu-page="promos">
@@ -819,7 +819,7 @@
             {% comment %}DL-21.1: шаблон КОРНЕВОЙ страницы каталога — свой ключ, дефолт
             категорий сюда не наследуется. Без «Preisliste»: прайс-вид даёт селект выше.{% endcomment %}
             <div class="stu-page-row w-full" data-stu-setting="catalog_page_style" data-stu-axis="composition" data-stu-page="catalog">
-              {% include "tenant/_cardform_picker.html" with name="catalog_page_style" value=catalog_page_style items=catalog_root_styles thumb="tenant/_pagelayout_thumb.html" title=_("Seitenvorlage") %}
+              {% include "tenant/_cardform_picker.html" with name="catalog_page_style" value=catalog_page_style items=catalog_root_styles thumb="tenant/_pagelayout_thumb.html" off=comp_off.catalog off_note=comp_off_note title=_("Seitenvorlage") %}
             </div>
           </div>
           {% endif %}

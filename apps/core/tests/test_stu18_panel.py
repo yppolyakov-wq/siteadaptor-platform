@@ -133,3 +133,46 @@ def test_panel_marks_every_row_with_its_axis(settings):
     assert not missing, f"строки без data-stu-axis: {missing}"
     wrong = {c: (found[c], sp.SETTINGS[c].axis) for c in found if found[c] != sp.SETTINGS[c].axis}
     assert not wrong, f"ось строки разошлась с реестром: {wrong}"
+
+
+# ── STU-18c: панель не обещает того, чего нет (решение владельца Р-5) ─────────
+
+
+def test_composition_gate_is_wired():
+    """Гейт доступности композиций ВЫЗЫВАЕТСЯ в проде, а не лежит в реестре.
+
+    `available_for` описан волной LAY («полки и вкладки без под-сущностей не
+    предлагаются»), но до STU-18c у него было НОЛЬ вызовов: панель кормилась
+    ungated-списком, и владелец выбирал «Полки» там, где подкатегорий нет.
+    Это ровно тот класс, который он называет кашей: настройка есть, эффекта нет.
+    """
+    import subprocess
+
+    hits = subprocess.run(
+        ["grep", "-rn", "available_for(", "apps/", "templates/"],
+        capture_output=True,
+        text=True,
+    ).stdout.splitlines()
+    prod = [h for h in hits if "/tests/" not in h and "def available_for" not in h]
+    assert prod, "available_for() не вызывается в проде — гейт не подключён"
+
+
+@pytest.mark.django_db
+def test_shelves_are_not_offered_without_sub_entities(settings):
+    """У тенанта без подкатегорий и наборов «Полки», «Вкладки» и «Сеты» — недоступны.
+
+    Плитки остаются ВИДНЫ, но помечены недоступными с причиной: молча убрать их
+    значило бы оставить владельца гадать, почему выбор исчез.
+    """
+    from apps.core.tests.test_studio_pages import _builder_html
+    from apps.tenants.tests.factories import TenantFactory
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    markup = _builder_html(TenantFactory(business_type="restaurant"))
+
+    for key in ("regale", "tabs", "sets"):
+        tiles = re.findall(r'<button[^>]*data-cf-key="' + key + r'"[^>]*>', markup)
+        assert tiles, f"плитка {key} вообще не отрендерена"
+        assert all("data-cf-off" in t for t in tiles), (
+            f"плитка {key} предлагается как доступная, хотя под-сущностей нет"
+        )

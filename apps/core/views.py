@@ -14,7 +14,15 @@ from django.views.decorators.http import require_POST
 
 from apps.catalog import category_styles
 from apps.catalog.option_styles import VARIANT_STYLES
-from apps.core import card_forms, detail_sections, presence, studio_pages, studio_scope, vat
+from apps.core import (
+    card_forms,
+    compositions,
+    detail_sections,
+    presence,
+    studio_pages,
+    studio_scope,
+    vat,
+)
 from apps.promotions import group_styles
 from apps.tenants import domains
 from apps.tenants.forms import BusinessSettingsForm
@@ -1418,6 +1426,50 @@ def _menu_rows(items, options):
     return rows
 
 
+def _composition_gate() -> dict[str, set[str]]:
+    """Коды композиций, которым на этой ВИТРИНЕ нечего показать.
+
+    Считаем фактами тенанта: полки и вкладки бессмысленны без под-сущностей,
+    «Sets» — без наборов. Плитки не убираем, а помечаем недоступными (причина в
+    подсказке): исчезнувший выбор владелец читает как поломку, а не как гейт.
+
+    Ограничение v1: факт «есть подкатегории» — общий по витрине, а не по КОНКРЕТНОЙ
+    открытой категории; у тенанта с подкатегориями хотя бы где-то полки предлагаются
+    на любой категории. Точный пер-объектный гейт живёт в канале site-scope-state и
+    делается отдельным шагом.
+    """
+    from apps.catalog.models import Category, Combo
+    from apps.promotions.models import Promotion
+
+    def _safe(qs) -> bool:
+        try:
+            return qs.exists()
+        except Exception:  # noqa: BLE001 — панель обязана открыться и на битых данных
+            return True
+
+    children = _safe(Category.objects.filter(parent__isnull=False))
+    combos = _safe(Combo.objects.all())
+    groups = _safe(Promotion.objects.exclude(group=""))
+
+    out: dict[str, set[str]] = {}
+    for surface, has_children in (
+        ("catalog", children),
+        ("category", children),
+        ("promos", groups),
+        ("promo_group", groups),
+        ("promo", False),
+    ):
+        offered = {code for code, _l, _h in compositions.styles_for(surface)}
+        ok = {
+            code
+            for code, _l, _h in compositions.available_for(
+                surface, has_children=has_children, has_combos=combos
+            )
+        }
+        out[surface] = offered - ok
+    return out
+
+
 @login_required
 def home_builder_view(request):
     """Конструктор главной (S2b): порядок/видимость блоков главной + тизеры
@@ -2794,6 +2846,11 @@ def home_builder_view(request):
             # DL-19: варианты формы карточки для плиток-предпросмотра (реестр)
             # STU-18b: порядок групп панели — из реестра, а не из разметки.
             "studio_axes": studio_pages.AXES,
+            # STU-18c (Р-5): гейт доступности композиций. `available_for` описан
+            # волной LAY, но не вызывался ни разу — «Полки» и «Вкладки»
+            # предлагались там, где под-сущностей нет, и выбор ничего не менял.
+            "comp_off": _composition_gate(),
+            "comp_off_note": _("Ohne Unterkategorien oder Sets nicht verfügbar"),
             "card_forms_product": card_forms.forms_for(card_forms.PRODUCT),
             "card_forms_promo": card_forms.forms_for(card_forms.PROMO),
             # DL-20: шаблон страницы категории — префилл + реестр для плиток.

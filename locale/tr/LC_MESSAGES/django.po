@@ -22514,3 +22514,7 @@ msgstr "Bu sayfanın ızgarası ana sayfadaki aynı adlı bloktan gelir."
 #: apps/core/studio_pages.py:0
 msgid "Inhalt der Seite"
 msgstr "Sayfa içeriği"
+
+#: apps/core/views.py:0
+msgid "Ohne Unterkategorien oder Sets nicht verfügbar"
+msgstr "Alt kategoriler veya setler olmadan kullanılamaz"

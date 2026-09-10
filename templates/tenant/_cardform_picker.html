@@ -10,9 +10,13 @@ hidden-инпут с прежним именем поля (`sd_card_style` / `sd
   узкой панели её схлопывают уже существующие правила bld-panel-narrow.{% endcomment %}
   <div class="grid grid-cols-3 gap-2">
     {% for key, label, hint in items %}
-      <button type="button" data-cf-key="{{ key }}" title="{{ hint }}"
+      {% comment %}STU-18c: недоступная композиция остаётся ВИДНОЙ, но помечена
+      `data-cf-off` и объясняет причину: молча убрать её значило бы оставить
+      владельца гадать, почему выбор исчез. Гейт считает сервер (available_for).{% endcomment %}
+      <button type="button" data-cf-key="{{ key }}"
+              {% if key in off %}data-cf-off aria-disabled="true" title="{{ off_note }}"{% else %}title="{{ hint }}"{% endif %}
               aria-pressed="{% if value == key %}true{% else %}false{% endif %}"
-              class="cf-tile w-full rounded-lg border p-1.5 text-left {% if value == key %}border-indigo-500 ring-2 ring-indigo-200{% else %}border-gray-200 hover:border-gray-300{% endif %}">
+              class="cf-tile w-full rounded-lg border p-1.5 text-left {% if key in off %}opacity-40{% endif %} {% if value == key %}border-indigo-500 ring-2 ring-indigo-200{% else %}border-gray-200 hover:border-gray-300{% endif %}">
         {% include thumb|default:"tenant/_cardform_thumb.html" with key=key %}
         <span class="cf-cap mt-1 block text-[10px] leading-tight text-gray-600 dark:text-gray-300 break-words">{{ label }}</span>
       </button>
@@ -39,7 +43,7 @@ hidden-инпут с прежним именем поля (`sd_card_style` / `sd
   }
   document.addEventListener("click", function (e) {
     var btn = e.target.closest ? e.target.closest("[data-cf-key]") : null;
-    if (!btn) return;
+    if (!btn || btn.hasAttribute("data-cf-off")) return;  // STU-18c: недоступная композиция
     var box = btn.closest("[data-cardform-picker]");
     var inp = box && box.querySelector("input[type=hidden]");
     if (!inp) return;
