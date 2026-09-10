@@ -609,7 +609,7 @@
           {% comment %}LAY-3a-2: ось вывода на страницах, где сетка была зашита в
              шаблоне (план LAY §13). Ключ presence-minimal: «Standard» снимает его и
              страница снова рисуется прежними классами.{% endcomment %}
-          <div class="page-block flex flex-wrap items-center gap-3 mt-4" data-stu-setting="promo_index_layout" data-stu-page="promos">
+          <div class="page-block flex flex-wrap items-center gap-3 mt-4" data-stu-setting="promo_index_layout" data-stu-page="promos promo_group">
             <span class="text-sm font-medium flex-1">{% trans "Aktionen: Raster" %}</span>
             <select name="promo_index_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               <option value="">{% trans "Standard" %}</option>
@@ -671,7 +671,7 @@
              где эти карточки видно, и с выбором охвата. Имена полей ПРЕЖНИЕ — save,
              live-draft и клик по Look'у не тронуты (они ищут по name, не по области).{% endcomment %}
           {% if has_catalog %}
-          <div class="stu-page-row mt-4" data-stu-setting="product_card_form" data-stu-page="catalog category product services service stays stay events lookbook">
+          <div class="stu-page-row mt-4" data-stu-setting="product_card_form" data-stu-page="catalog category product services service stays stay events lookbook tours combos wishlist finder cart">
             {% include "tenant/_cardform_picker.html" with name="sd_card_style" value=card_style items=card_forms_product title=_("Kartenform") %}
             {% include "tenant/_scope_pill.html" with setting="product_card_form" %}
           </div>

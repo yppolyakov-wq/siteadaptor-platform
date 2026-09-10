@@ -90,8 +90,22 @@ def test_no_page_type_promises_a_card_form_without_a_card():
         "promos": ["templates/storefront/promotions_list.html"],
         "promo_group": ["templates/storefront/promo_group/_grid.html"],
         "promo": ["templates/storefront/promotion_detail.html"],
+        # STU-17: пять типов, у которых ось действовала, но панель её не предлагала.
+        # Замок фейл-клоузед (тип без записи = нарушитель) — и правильно: каждая
+        # строка ниже проверена глазами, что карточка там РЕАЛЬНО рисуется.
+        "tours": ["templates/storefront/tour_index.html"],
+        "combos": ["templates/storefront/_combo_grid.html"],
+        "wishlist": ["templates/storefront/wishlist.html"],
+        "finder": ["templates/storefront/finder.html"],
+        "cart": ["templates/storefront/cart.html"],
     }
-    CARD_MARKERS = ("_product_card.html", "_promo_card.html", "sellable_card", "_combo_card.html")
+    CARD_MARKERS = (
+        "_product_card.html",
+        "_promo_card.html",
+        "sellable_card",
+        "_combo_card.html",
+        "_tour_card.html",  # STU-17: карточка тура читает ту же ось (LAY-4b)
+    )
     offenders = []
     for page in studio_pages.PAGE_TYPES:
         forms = [c for c in page.settings if c.endswith("_card_form")]

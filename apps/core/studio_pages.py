@@ -383,7 +383,11 @@ PAGE_TYPES: tuple[PageType, ...] = (
         # `has_filters` истинным, секций групп нет вовсе (`grouped = []`), а шаблон
         # берётся групповой (public_views: page_style пуст при `?gruppe=`). Панель
         # предлагала настройки, которые здесь ничего не меняют.
-        ("promo_group_style", "promo_card_form"),
+        # STU-17: а вот СЕТКУ страница группы читает — все пять её композиций зовут
+        # `sf_grid_attrs promo_index_layout` (LAY-7a). Ключ тот же, что у обзора:
+        # одна настройка, показанная там, где она действует (это не дубль LAY-7c —
+        # там было ДВА контрола одного ключа на ОДНОЙ странице).
+        ("promo_group_style", "promo_index_layout", "promo_card_form"),
         object_kind=OBJECT_PROMO_GROUP,
         object_args=("gruppe",),
     ),
@@ -441,7 +445,9 @@ PAGE_TYPES: tuple[PageType, ...] = (
         "tours",
         _("Reisen"),
         ("storefront-tours",),
-        ("tours_layout", "text_width"),
+        # STU-17: `_tour_card` читает форму карточки (LAY-4) — значит она здесь
+        # действует, и предложить её обязаны на этой же странице.
+        ("tours_layout", "product_card_form", "text_width"),
         block_host="tours",
     ),
     PageType(
@@ -455,7 +461,15 @@ PAGE_TYPES: tuple[PageType, ...] = (
         ("event_detail_sections", "event_detail_layout"),
         block_host="event_detail",
     ),
-    PageType("cart", _("Warenkorb"), ("storefront-cart",), ("cart_upsell",), block_host="cart"),
+    PageType(
+        "cart",
+        _("Warenkorb"),
+        ("storefront-cart",),
+        # STU-17: `cart_upsell` — про НАЛИЧИЕ полосы «Passt dazu», форма карточки —
+        # про её вид; полосу рисует `_product_card`, значит ось здесь действует.
+        ("cart_upsell", "product_card_form"),
+        block_host="cart",
+    ),
     PageType("text", _("Über uns"), ("storefront-about",), ("text_width",), block_host="info"),
     # STU-14: раньше все четыре страницы делили хост `info`, а выводился он ТОЛЬКО на
     # «О нас» — блок, поставленный на команду или галерею, не появлялся нигде.
@@ -506,19 +520,30 @@ PAGE_TYPES: tuple[PageType, ...] = (
         "wishlist",
         _("Merkzettel"),
         ("storefront-wishlist",),
-        ("wishlist_layout", "text_width"),
+        # STU-17: список собран из `_product_card` и `_promo_card` — обе формы здесь
+        # действуют (ключ у них общий, `site_defaults.card_style`).
+        ("wishlist_layout", "product_card_form", "text_width"),
         block_host="wishlist",
     ),
     PageType(
         "combos",
         _("Kombis"),
         ("storefront-combos",),
-        # Набор рисуется своей карточкой (`_combo_card`) — форму карточки ТОВАРА здесь
-        # не обещаем (правило STU-9: не предлагать настройку, которой страница не читает).
-        ("combos_layout", "text_width"),
+        # STU-9 оставлял страницу без формы карточки: тогда `_combo_card` её не читал.
+        # LAY-4 научил — карточка набора берёт ту же `site_defaults.card_style`, что и
+        # товарная, поэтому ось действует и обязана быть предложена (STU-17).
+        ("combos_layout", "product_card_form", "text_width"),
         block_host="combos",
     ),
-    PageType("finder", _("Finder"), ("storefront-finder",), ("text_width",), block_host="finder"),
+    PageType(
+        "finder",
+        _("Finder"),
+        ("storefront-finder",),
+        # STU-17: результат подбора выводится тегом `{% sellable_card %}` — форма
+        # карточки действует и здесь.
+        ("product_card_form", "text_width"),
+        block_host="finder",
+    ),
     PageType(
         "lookbook",
         _("Lookbook"),
