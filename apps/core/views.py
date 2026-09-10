@@ -1426,6 +1426,21 @@ def _menu_rows(items, options):
     return rows
 
 
+def _design_look_label(config: dict) -> str:
+    """Читаемое имя применённого Look'а ("" — не применён ни один).
+
+    Ключ `design.look` пишут apply_look/apply_bundle (ST-1b/DL-8); метку берём из
+    реестра семейств, чтобы панель и экран оформления называли Look одинаково.
+    """
+    from apps.tenants import sitetemplates
+
+    key = ((config.get("design") or {}).get("look") or "").strip()
+    for fam in sitetemplates.LOOK_FAMILIES:
+        if fam.get("key") == key:
+            return fam.get("label") or key
+    return key
+
+
 def _composition_gate() -> dict[str, set[str]]:
     """Коды композиций, которым на этой ВИТРИНЕ нечего показать.
 
@@ -2851,6 +2866,9 @@ def home_builder_view(request):
             # предлагались там, где под-сущностей нет, и выбор ничего не менял.
             "comp_off": _composition_gate(),
             "comp_off_note": _("Ohne Unterkategorien oder Sets nicht verfügbar"),
+            # STU-18e (Р-3): шрифт и цвет остаются на «Оформлении сайта», но панель
+            # показывает, чем оформлен сайт, — иначе владелец правит страницу вслепую.
+            "design_look_label": _design_look_label(config),
             "card_forms_product": card_forms.forms_for(card_forms.PRODUCT),
             "card_forms_promo": card_forms.forms_for(card_forms.PROMO),
             # DL-20: шаблон страницы категории — префилл + реестр для плиток.

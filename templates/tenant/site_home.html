@@ -29,6 +29,16 @@
               <button type="button" class="st-page-btn block w-full text-left px-2 py-1 rounded-lg text-gray-700 hover:bg-gray-100" data-st-page="{{ p.url }}">{{ p.label }}</button>
             {% endfor %}
           {% endfor %}
+          {% comment %}STU-18e (Р-3): шрифт, цвет и тема остаются на «Оформлении сайта» —
+          глобальное рядом с постраничным и породило исходную кашу. Но владелец должен
+          видеть, ЧЕМ оформлен сайт, не уходя со страницы: здесь живая сводка и переход.{% endcomment %}
+          <a class="stu-design-summary" href="{% url 'design' %}?next={{ studio_return_url|urlencode }}">
+            <span class="stu-design-dot"></span>
+            <span class="stu-design-tx">{% trans "Design des Shops" %}
+              <small>{% if design_look_label %}{{ design_look_label }} · {% endif %}{{ font|default:"system" }}</small>
+            </span>
+            <span class="stu-design-go">→</span>
+          </a>
         </div>
       </details>
       {% comment %}UC6-9: Undo/Redo + статус + подсказка правки — в верхней строке (полоса
@@ -149,7 +159,8 @@
        СПРАВА во всю высоту (вертикальный пиксель дорог: хром браузера + тулбар уже
        съедают верх). На мобиле — нижний лист. Геометрия — в <style> ниже
        (#bld-editor-pane); схлопывание = display:none (нет «прыжка» при входе).{% endcomment %}
-    <aside id="bld-editor-pane" class="fixed z-40 bg-white shadow-xl overflow-y-auto p-4 space-y-6 bld-collapsed">
+    <aside id="bld-editor-pane" style="--stu-accent: {{ accent|default:"#4f46e5" }}"
+           class="fixed z-40 bg-white shadow-xl overflow-y-auto p-4 space-y-6 bld-collapsed">
      <div id="bld-panel-head" class="flex items-center justify-between sticky -top-4 -mx-4 px-4 py-2 bg-white border-b border-gray-100 z-10">
        <span class="min-w-0 leading-tight">
          <span id="bld-panel-title" class="block truncate text-sm font-semibold text-gray-700">✏️ {% trans "Edit" %}</span>
@@ -1902,6 +1913,15 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
    выцветший placeholder читался как «недоступно» (П-5). */
 .stu-num::placeholder { color: #6b7280; opacity: 1; }
 #bld-root.bld-panel-xnarrow .stu-two { grid-template-columns: minmax(0, 1fr); }
+.stu-design-summary { display: flex; align-items: center; gap: .5rem; width: 100%;
+                      margin-top: .5rem; padding: .5rem .6rem; border: 1px solid #e5e7eb;
+                      border-radius: .6rem; background: #fff; text-decoration: none; }
+.stu-design-dot { width: 14px; height: 14px; border-radius: 999px; flex: none;
+                  background: var(--stu-accent, #4f46e5); box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+.stu-design-tx { font-size: 11.5px; color: #374151; min-width: 0; }
+.stu-design-tx small { display: block; font-size: 10.5px; color: #9ca3af;
+                       overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stu-design-go { margin-left: auto; font-size: 11px; color: #4f46e5; }
 
 
 .bld-grp, .stu-grp {

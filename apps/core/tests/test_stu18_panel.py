@@ -193,3 +193,35 @@ def test_offered_card_forms_are_implemented(tpl):
     )
     missing = [k for k in card_forms.keys_for(card_forms.PRODUCT) if k and f'"{k}"' not in src]
     assert not missing, f"{tpl}: формы предлагаются, но не реализованы: {missing}"
+
+
+# ── STU-18e: палитра сайта в панели + сводка оформления (решение владельца Р-3) ──
+
+
+@pytest.mark.django_db
+def test_panel_shows_what_the_site_looks_like(settings):
+    """Внизу панели — живая сводка оформления: акцент, шрифт, Look, и переход.
+
+    Р-3: шрифт и цвет ОСТАЮТСЯ на «Оформлении сайта» (глобальное рядом с
+    постраничным и породило исходную кашу), но владелец должен видеть, чем
+    оформлен сайт, не уходя со страницы.
+    """
+    from apps.core.tests.test_studio_pages import _builder_html
+    from apps.tenants.tests.factories import TenantFactory
+
+    settings.ROOT_URLCONF = "config.urls_tenant"
+    markup = _builder_html(TenantFactory(business_type="restaurant"))
+    assert "stu-design-summary" in markup, "нет сводки оформления"
+    assert "--stu-accent" in markup, "акцент витрины не доезжает до панели"
+
+
+def test_tile_mockups_use_the_site_accent():
+    """Мини-макеты плиток рисуются палитрой САЙТА, а не фиксированной (Д-9).
+
+    Плитка «листовки» была красной, а «сетов» янтарной при любом акценте: владелец
+    выбирает «как будет выглядеть мой сайт» по картинке, нарисованной не его цветом.
+    """
+    src = _read("_pagelayout_thumb.html")
+    assert "--stu-accent" in src, "мини-макеты не знают акцента сайта"
+    for hard in ("bg-red-500", "bg-amber-200"):
+        assert hard not in src, f"в мини-макете остался фиксированный цвет {hard}"
