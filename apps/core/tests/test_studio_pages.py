@@ -1155,3 +1155,29 @@ def test_text_width_draft_is_visible_on_the_storefront(settings):
     assert "max-w-4xl mx-auto" not in full and "max-w-2xl mx-auto" not in full, (
         "«Volle Breite» обязана снять ограничитель"
     )
+
+
+@pytest.mark.django_db
+def test_team_and_gallery_get_an_honest_hint_instead_of_a_fake_control(
+    builder_html_all_modules,
+):
+    """STU-17 §3.2: вместо контрола-обманки — подсказка, и она обязана РАБОТАТЬ.
+
+    Ссылка помечена классом `st-page-btn`, а обработчик до STU-17 висел на самом
+    меню «Seite ▾» — снаружи он бы не сработал, и подсказка стала бы мёртвой
+    кнопкой (тот же класс дефектов, что волна и чинит). Поэтому замок держит и
+    строку, и делегирование на document.
+    """
+    import re
+
+    html = builder_html_all_modules
+    row = re.search(
+        r'<div class="stu-page-row[^"]*" data-stu-page="team gallery">(.*?)</div>', html, re.S
+    )
+    assert row, "нет строки-подсказки для team/gallery"
+    assert 'class="st-page-btn' in row.group(1), "подсказка без ссылки на главную"
+    assert 'data-st-page="/"' in row.group(1)
+    assert (
+        'document.addEventListener("click", function (e) {\n      var b = e.target.closest(".st-page-btn");'
+        in html
+    ), "клик по .st-page-btn обрабатывается не на document — ссылка вне меню мертва"

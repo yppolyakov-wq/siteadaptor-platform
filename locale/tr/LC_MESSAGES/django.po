@@ -22481,8 +22481,10 @@ msgstr "Not defteri: ızgara"
 
 msgid "Blog: Raster"
 msgstr "Blog: ızgara"
+
 #: apps/imports/views.py
-msgid "Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch."
+msgid ""
+"Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch."
 msgstr "İçe aktarma dosyası zaten kaldırıldı. Lütfen yeniden yükleyin."
 
 #: templates/tenant/site_home.html apps/tenants/menu.py
@@ -22500,3 +22502,11 @@ msgstr "Hedef seçin"
 #: templates/tenant/_menu_target_options.html
 msgid "noch leer"
 msgstr "henüz boş"
+
+#: templates/tenant/site_home.html
+msgid "Auf der Startseite öffnen"
+msgstr "Ana sayfada aç"
+
+#: templates/tenant/site_home.html
+msgid "Das Raster dieser Seite kommt vom gleichnamigen Block der Startseite."
+msgstr "Bu sayfanın ızgarası ana sayfadaki aynı adlı bloktan gelir."

@@ -22392,8 +22392,10 @@ msgstr "Merkzettel: Raster"
 
 msgid "Blog: Raster"
 msgstr "Blog: Raster"
+
 #: apps/imports/views.py
-msgid "Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch."
+msgid ""
+"Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch."
 msgstr ""
 
 #: templates/tenant/site_home.html apps/tenants/menu.py
@@ -22411,3 +22413,11 @@ msgstr "Ziel wählen"
 #: templates/tenant/_menu_target_options.html
 msgid "noch leer"
 msgstr "noch leer"
+
+#: templates/tenant/site_home.html
+msgid "Auf der Startseite öffnen"
+msgstr "Auf der Startseite öffnen"
+
+#: templates/tenant/site_home.html
+msgid "Das Raster dieser Seite kommt vom gleichnamigen Block der Startseite."
+msgstr "Das Raster dieser Seite kommt vom gleichnamigen Block der Startseite."

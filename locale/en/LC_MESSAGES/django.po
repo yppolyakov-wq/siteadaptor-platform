@@ -22353,8 +22353,10 @@ msgstr "Wishlist: grid layout"
 
 msgid "Blog: Raster"
 msgstr "Blog: grid layout"
+
 #: apps/imports/views.py
-msgid "Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch."
+msgid ""
+"Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch."
 msgstr "The import file has already been removed. Please upload it again."
 
 #: templates/tenant/site_home.html apps/tenants/menu.py
@@ -22372,3 +22374,12 @@ msgstr "Choose destination"
 #: templates/tenant/_menu_target_options.html
 msgid "noch leer"
 msgstr "still empty"
+
+#: templates/tenant/site_home.html
+msgid "Auf der Startseite öffnen"
+msgstr "Open on the homepage"
+
+#: templates/tenant/site_home.html
+msgid "Das Raster dieser Seite kommt vom gleichnamigen Block der Startseite."
+msgstr ""
+"This page's grid comes from the block of the same name on the homepage."

@@ -22584,8 +22584,10 @@ msgstr "Избранное: сетка"
 
 msgid "Blog: Raster"
 msgstr "Блог: сетка"
+
 #: apps/imports/views.py
-msgid "Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch."
+msgid ""
+"Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch."
 msgstr "Файл импорта уже удалён. Пожалуйста, загрузите его заново."
 
 #: templates/tenant/site_home.html apps/tenants/menu.py
@@ -22603,3 +22605,11 @@ msgstr "Выберите цель"
 #: templates/tenant/_menu_target_options.html
 msgid "noch leer"
 msgstr "пока пусто"
+
+#: templates/tenant/site_home.html
+msgid "Auf der Startseite öffnen"
+msgstr "Открыть на главной"
+
+#: templates/tenant/site_home.html
+msgid "Das Raster dieser Seite kommt vom gleichnamigen Block der Startseite."
+msgstr "Сетка этой страницы задаётся одноимённым блоком главной."

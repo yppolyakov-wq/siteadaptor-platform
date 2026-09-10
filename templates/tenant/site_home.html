@@ -728,6 +728,18 @@
               </select>
             </label>
           </div>
+          {% comment %}STU-17 §3.2: у «Команды» и «Галереи» сетку задаёт раскладка
+             ОДНОИМЁННОЙ секции главной — страницы переиспользуют её партиал. Второй
+             ключ ради «настройки на этой странице» был бы дублем, который волна LAY
+             только что вычищала, поэтому здесь честная подсказка со ссылкой, а не
+             контрол-обманка. Строка без data-stu-setting: она ничего не сохраняет,
+             и реестр-замок её справедливо не видит.{% endcomment %}
+          <div class="stu-page-row mt-4 hidden" data-stu-page="team gallery">
+            <p class="text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">
+              {% trans "Das Raster dieser Seite kommt vom gleichnamigen Block der Startseite." %}
+              <button type="button" class="st-page-btn underline font-medium" data-st-page="/">{% trans "Auf der Startseite öffnen" %}</button>
+            </p>
+          </div>
           <p class="stu-page-empty hidden text-xs text-gray-500">{% trans "This page is edited directly on the canvas — click a heading, price or photo." %}</p>
         </fieldset>
       {% comment %} SE-2a-2/SE-2b-1: per-page инспектор лендингов — клик по гриду на канве
@@ -3546,12 +3558,15 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   (function () {
     var sw = document.getElementById("st-page-switch");
     var menu = document.getElementById("st-page-menu");
-    if (!sw || !menu) return;
-    menu.addEventListener("click", function (e) {
+    // STU-17: делегируем на document, а не на само меню. Тем же классом помечена
+    // ссылка-подсказка в панели («сетка этой страницы — на главной»), и на меню она
+    // была бы мёртвой кнопкой — ровно тот класс дефектов, который тут и чинится.
+    document.addEventListener("click", function (e) {
       var b = e.target.closest(".st-page-btn");
       if (!b) return;
       window.location = window.location.pathname + "?page=" + encodeURIComponent(b.getAttribute("data-st-page"));
     });
+    if (!sw || !menu) return;
     document.addEventListener("click", function (e) { if (sw.open && !sw.contains(e.target)) sw.removeAttribute("open"); });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && sw.open) sw.removeAttribute("open"); });
   })();
