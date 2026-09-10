@@ -1270,7 +1270,14 @@ def product_list(request, slug=None):
                 # никуда не ведёт и мешает.
                 shelves.append(
                     {
-                        "category": sub,
+                        # STU-18d (d-pre): контракт под-сущности — метка, слаг и ССЫЛКА.
+                        # Партиал полок больше не строит url каталога сам: на других
+                        # листингах под-сущность своя (подборка, страна, категория
+                        # события), а её адрес знает только вьюха поверхности.
+                        "label": sub,
+                        "slug": sub.slug,
+                        "url": reverse("storefront-category", args=[sub.slug]),
+                        "category": sub,  # прежний ключ — на него смотрит остальной код
                         "items": items,
                         "total": _total,
                         "more": _total > len(items),

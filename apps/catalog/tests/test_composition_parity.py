@@ -56,7 +56,7 @@ FINGERPRINTS = {
     "": "",
     "kopfbild": "",
     "sets": "",
-    "regale": "",
+    "regale": "data-shelf=",
     "tabs": "data-category-tabs",
     "schaufenster": "",
     "navigator": "",
