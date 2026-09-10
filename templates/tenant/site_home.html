@@ -595,15 +595,6 @@
             {% include "tenant/_cardform_picker.html" with name="sd_promo_detail_style" value=promo_detail_style items=promo_detail_styles thumb="tenant/_pagelayout_thumb.html" title=_("Offer page (whole site)") %}
             {% include "tenant/_scope_pill.html" with setting="promo_detail_style" %}
           </div>
-          <div class="stu-page-row mt-4" data-stu-setting="promo_layout" data-stu-page="promos">
-            <label class="text-sm block">
-              <span class="block font-medium mb-1">{% trans "Aktionsseite: Aufbau" %}</span>
-              <select name="promo_layout" class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600">
-                <option value="">{% trans "Raster" %}</option>
-                <option value="slider" {% if promo_layout == 'slider' %}selected{% endif %}>{% trans "Slider" %}</option>
-              </select>
-            </label>
-          </div>
           <div class="stu-page-row mt-4" data-stu-setting="promo_grouping" data-stu-page="promos">
             <label class="text-sm block">
               <span class="block font-medium mb-1">{% trans "Aktionsseite: Gruppierung" %}</span>
@@ -2607,8 +2598,6 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     if (csChk) payload.cart_show_upsell = csChk.checked;  // живо вкл/выкл кросс-селл корзины
     // DL-17.3: страница акций — раскладка групп и режим группировки ("" законно:
     // снимает ключ, поэтому шлём значение как есть, а не «только непустое»).
-    var plSel = form.querySelector("select[name='promo_layout']");
-    if (plSel) payload.promo_layout = plSel.value;
     var pgSel = form.querySelector("select[name='promo_grouping']");
     if (pgSel) payload.promo_grouping = pgSel.value;
     // DL-21.2: шаблон обзорной страницы акций ("" законно — снимает ключ)

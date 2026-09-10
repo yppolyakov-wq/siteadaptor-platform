@@ -164,7 +164,6 @@ SETTINGS: dict[str, Setting] = {
         ),
         # ── акции
         _s("promo_page_style", _("Vorlage der Seite"), "promo_page_style", ("promo_page_style",)),
-        _s("promo_layout", _("Darstellung der Gruppen"), "promo_layout", ("promo_layout",)),
         _s("promo_grouping", _("Gruppierung"), "promo_grouping", ("promo_grouping",)),
         _s(
             "promo_card_form",
@@ -370,7 +369,6 @@ PAGE_TYPES: tuple[PageType, ...] = (
         ("storefront-aktionen",),
         (
             "promo_page_style",
-            "promo_layout",
             "promo_index_layout",
             "promo_grouping",
             "promo_card_form",

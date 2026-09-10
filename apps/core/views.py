@@ -2036,10 +2036,6 @@ def home_builder_view(request):
         for _sk in siteconfig.LISTING_SORT_KINDS:
             if _sk in request.POST:
                 config[_sk] = request.POST.get(_sk, "")
-        if "promo_layout" in request.POST:
-            config["promo_layout"] = siteconfig.normalize_promo_layout(
-                request.POST.get("promo_layout")
-            )
         if "promo_grouping" in request.POST:
             config["promo_grouping"] = siteconfig.normalize_promo_grouping(
                 request.POST.get("promo_grouping")
@@ -2673,7 +2669,19 @@ def home_builder_view(request):
             # LAY-3a-2: раскладки страниц, где сетка была зашита в шаблоне. Имя
             # переменной = ключ конфига, поэтому строка панели и Save читают одно и
             # то же (список живёт в реестре siteconfig.OPTIONAL_PAGE_LAYOUTS).
-            **{key: config.get(key) or {} for key in siteconfig.OPTIONAL_PAGE_LAYOUTS},
+            # LAY-7c: у страницы акций панель обязана показывать то, что видно на
+            # канве: легаси-ключ `promo_layout` включает ту же ленту, что и ось
+            # вывода, поэтому режим резолвится ОДНИМ правилом (иначе селект писал
+            # бы «Raster» над лентой — ровно та рассинхронизация, ради которой
+            # дубль и снимали).
+            **{
+                key: siteconfig.apply_legacy_promo_slider(
+                    config.get(key) or {}, config.get("promo_layout")
+                )
+                if key == "promo_index_layout"
+                else (config.get(key) or {})
+                for key in siteconfig.OPTIONAL_PAGE_LAYOUTS
+            },
             "catalog_show_filters": config.get("catalog_show_filters", True),
             "catalog_sort": config.get("catalog_sort", "newest"),
             "catalog_subcats_first": config.get("catalog_subcats_first", True),
@@ -2757,8 +2765,9 @@ def home_builder_view(request):
             "media_shape": config["site_defaults"].get("media_shape", ""),  # DL-10
             "promo_card": config["site_defaults"].get("promo_card", ""),  # DL-16.4
             "card_slider": config["site_defaults"].get("card_slider", ""),
-            # DL-17.3: страница акций — раскладка групп и режим группировки.
-            "promo_layout": config.get("promo_layout", ""),
+            # DL-17.3: страница акций — режим группировки (LAY-7c: «сетка или
+            # лента» переехало в общую ось вывода, отдельного контрола больше нет;
+            # ключ `promo_layout` остаётся только в хранении легаси-конфигов).
             "promo_grouping": config.get("promo_grouping", ""),
             # DL-21.2: шаблон обзорной страницы акций + реестр для плиток.
             "promo_page_style": config.get("promo_page_style", ""),
@@ -3034,10 +3043,8 @@ def site_preview_draft(request):
     # SE-3b: глобальная типографика → в превью (normalize_typography клампит).
     if isinstance(data.get("typography"), dict):
         cfg["typography"] = data["typography"]
-    # DL-17.3: страница акций — раскладка групп и режим группировки в черновик
-    # (пустое значение законно снимает ключ; normalize presence-minimal).
-    if "promo_layout" in data:
-        cfg["promo_layout"] = siteconfig.normalize_promo_layout(data.get("promo_layout"))
+    # DL-17.3: страница акций — режим группировки в черновик (пустое значение
+    # законно снимает ключ; normalize presence-minimal).
     if "promo_grouping" in data:
         cfg["promo_grouping"] = siteconfig.normalize_promo_grouping(data.get("promo_grouping"))
     # M20f: дизайн вживую — шрифт + стиль hero (поля site_config).

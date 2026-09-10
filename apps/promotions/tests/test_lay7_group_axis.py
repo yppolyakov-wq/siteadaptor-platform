@@ -202,3 +202,71 @@ def test_home_sections_keep_the_literal_triplet_of_a_hardcoded_style():
     assert 'data-sf-cols="1/2/3"' in siteconfig.grid_attr_string(
         {"preset": "cols4", "mobile": 2}, cols="1/2/3", count=8
     )
+
+
+# ── LAY-7c: ОДИН контрол на «сетка или лента» (решение владельца 2026-09-10) ──
+
+
+def test_axis_slider_mode_turns_groups_into_a_strip():
+    """Ось «Ausgabe: Slider» теперь и есть выключатель ленты групп."""
+    _grouped_promos()
+    tenant = _tenant({"promo_index_layout": {"preset": "cols4", "scroll": True}})
+    body = _render(tenant)
+    assert "data-promo-strip" in body
+    assert "sf-scroll-grid" in body
+
+
+def test_legacy_key_still_renders_a_strip_through_the_engine():
+    """Живые сайты и демо-киты писали `promo_layout` — ключ читаем дальше."""
+    _grouped_promos()
+    body = _render(_tenant({"promo_layout": "slider"}))
+    assert "data-promo-strip" in body
+    assert "sf-scroll-grid" in body
+
+
+def test_regale_composition_still_renders_strips():
+    """Композиция «Regale» включает ленту во вьюхе — путь тот же."""
+    _grouped_promos()
+    tenant = _tenant({"promo_page_style": "regale"})
+    assert "data-promo-strip" in _render(tenant)
+
+
+def test_grid_mode_has_no_strip():
+    _grouped_promos()
+    body = _render(_tenant())
+    assert "data-promo-strip" not in body
+    assert 'data-grid="promo_list" class="grid' in body
+
+
+def test_panel_no_longer_offers_the_duplicate_control():
+    """Дубль убран из панели: контрол «Darstellung der Gruppen» и его запись."""
+    from apps.core import studio_pages
+
+    assert "promo_layout" not in studio_pages.SETTINGS
+    used = {code for page in studio_pages.PAGE_TYPES for code in page.settings}
+    assert "promo_layout" not in used
+    markup = open("templates/tenant/site_home.html", encoding="utf-8").read()
+    assert 'name="promo_layout"' not in markup
+    assert 'data-stu-setting="promo_layout"' not in markup
+
+
+def test_save_without_the_control_keeps_the_legacy_key():
+    """Инвариант W0/W6: контрола нет — ключ живого сайта не должен пропасть."""
+    cfg = siteconfig.normalize({"promo_layout": "slider"})
+    assert cfg.get("promo_layout") == "slider"
+
+
+def test_panel_shows_the_mode_that_the_page_actually_renders():
+    """Легаси-ключ включает ленту — селект «Ausgabe» обязан показывать Slider.
+
+    Иначе мы бы заменили один дубль другой рассинхронизацией: страница-лента, а
+    панель пишет «Raster». Резолвер один на витрину и на панель.
+    """
+    layout = siteconfig.apply_legacy_promo_slider({}, "slider")
+    assert layout.get("scroll") is True
+    assert siteconfig.output_mode(layout) == "slider"
+    # Без легаси-ключа раскладку не трогаем (в т.ч. остаётся пустой).
+    assert siteconfig.apply_legacy_promo_slider({}, "") == {}
+    # Явный выбор владельца сильнее: сетка остаётся сеткой, если он её выбрал.
+    explicit = {"preset": "cols4", "scroll": True}
+    assert siteconfig.apply_legacy_promo_slider(explicit, "slider") is explicit

@@ -130,7 +130,7 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
     логика: Wochenangebote / Räumung / Anti-Food-Waste читаются с первого взгляда).{% endcomment %}
     {% for group, group_label, items, more_url in grouped_promotions %}
       <section class="mb-8">
-        {% if promo_layout == "slider" %}
+        {% if promo_output_mode == "slider" %}
         <h2 class="text-lg font-bold mb-3 flex items-baseline justify-between gap-3"><span>{% if group %}{{ group_label }}{% else %}{% trans "More offers" %}{% endif %}
           <span class="text-sm font-normal text-gray-400">· {{ items|length }}</span></span>
           {% if more_url %}<a href="{{ more_url }}" class="text-sm font-medium hover:underline" style="color: var(--accent, #4f46e5);">{% trans "Alle anzeigen" %} →</a>{% endif %}</h2>
@@ -138,25 +138,19 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
         <h2 class="text-lg font-bold mb-3">{% if group %}{{ group_label }}{% else %}{% trans "More offers" %}{% endif %}
           <span class="text-sm font-normal text-gray-400">· {{ items|length }}</span></h2>
         {% endif %}
-        {% if promo_layout == "slider" %}
-        {% comment %}DL-16.2 (A3): группа — горизонтальная лента со слайдером-примитивом
-        (стрелки при наведении, точки, свайп); все группы видны без прокрутки вниз.
-        LAY-7b: «Reihen» и «Tempo» из оси вывода доезжают и сюда — иначе контролы
-        панели на этой странице ничего не меняли бы (класс «обещание без исполнения»).
-        Разметку и ширину карточек НЕ трогаем: без ключей лента прежняя.{% endcomment %}
-        <div data-grid="promo_list" data-promo-strip class="flex gap-4 overflow-x-auto pb-2" data-sf-slider {% sf_slider_attrs promo_index_layout %}>
-          {% for p in items %}
-            <div class="w-64 sm:w-72 shrink-0 flex [&>div]:w-full">{% include "storefront/_promo_card.html" with in_group=True %}</div>
-          {% endfor %}
-        </div>
-        {% else %}
-        {# DL-14: неполный ряд группы распределяется по ширине (spread) + авто-колонки #}
-        <div data-grid="promo_list" class="{{ promo_index_grid|default:'grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}" {% sf_grid_attrs promo_index_layout cols="2/2/3" count=items|length %}>
+        {% comment %}LAY-7c (решение владельца 2026-09-10 «убрать Darstellung der
+        Gruppen»): контейнер группы ОДИН, сетка это или лента — решает ось вывода.
+        Раньше рядом жила своя разметка ленты (DL-16.2 A3) и отдельный контрол,
+        то есть на одну вещь было два переключателя. Теперь классы даёт движок
+        (`sf-scroll-grid` = flex + горизонтальная прокрутка + snap), а `sf_grid_attrs`
+        кладёт `data-sf-slider` вместе с «Reihen»/«Tempo»; `data-promo-strip` остаётся
+        маркером ленты. DL-14: в режиме сетки неполный ряд распределяется по
+        ширине + авто-колонки.{% endcomment %}
+        <div data-grid="promo_list"{% if promo_output_mode == "slider" %} data-promo-strip{% endif %} class="{{ promo_index_grid|default:'grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}" {% sf_grid_attrs promo_index_layout cols="2/2/3" count=items|length %}>
           {% for p in items %}
             {% include "storefront/_promo_card.html" with in_group=True %}
           {% endfor %}
         </div>
-        {% endif %}
       </section>
     {% endfor %}
   {% elif promotions and not list_view and group_page_style %}

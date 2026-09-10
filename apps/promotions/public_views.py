@@ -388,6 +388,27 @@ def _promo_grouping_for(request) -> str:
     return siteconfig.normalize_promo_grouping(raw.get("promo_grouping"))
 
 
+def _promo_output_ctx(cfg, promo_layout):
+    """LAY-7c: контекст вывода списка акций — раскладка + режим «сетка/лента».
+
+    До этого «лентой» управляли ДВА независимых переключателя: ось вывода
+    (`promo_index_layout.scroll`) и отдельный `promo_layout` (DL-16.2 A3), и оба
+    висели в панели Студии на одной странице. Решение владельца 2026-09-10 —
+    оставить ось. Ключ `promo_layout` продолжаем ЧИТАТЬ (его пишут конфиги живых
+    сайтов, демо-киты и композиция «Regale»), но он лишь включает тот же `scroll`,
+    поэтому дальше существует один путь рендера и один источник чисел.
+    """
+    from apps.tenants import siteconfig  # локальный импорт: круговая зависимость
+
+    ctx = siteconfig.page_layout_ctx(cfg, "promo_index_layout", "promo_index")
+    layout = siteconfig.apply_legacy_promo_slider(ctx.get("promo_index_layout"), promo_layout)
+    if layout is not ctx.get("promo_index_layout"):
+        ctx["promo_index_layout"] = layout
+        ctx["promo_index_grid"] = siteconfig.grid_class_string(layout)
+    ctx["promo_output_mode"] = siteconfig.output_mode(layout)
+    return ctx
+
+
 def _promo_page_config(request) -> dict:
     """DL-17.3: конфиг страницы акций — с учётом ЧЕРНОВИКА билдера при ?preview=1.
     Без этого правка «Aktionsseite: Aufbau/Gruppierung» в Studio не была видна на
@@ -760,9 +781,12 @@ def promotion_list(request):
             "sort": sort,
             "sort_options": provider.sort_options(),
             "toolbar_hidden": toolbar_hidden,
-            "promo_layout": promo_layout,  # DL-16.2 A3
             # LAY-3a-2: раскладка сетки акций (пусто → прежние классы шаблона).
-            **siteconfig.page_layout_ctx(cfg, "promo_index_layout", "promo_index"),
+            # LAY-7c: сетка это или лента — решает ОДНА ось вывода. Легаси-ключ
+            # `promo_layout` (конфиги живых сайтов, демо-киты) и композиция «Regale»
+            # включают ту же ленту, подставляя `scroll` в раскладку, — дальше всё
+            # идёт единым путём движка, и второго переключателя в панели нет.
+            **_promo_output_ctx(cfg, promo_layout),
             # DL-21.2: обзорная страница — шаблон композиции + её данные.
             "promo_page_style": page_style,
             "promo_hero": promo_hero,

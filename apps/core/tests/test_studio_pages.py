@@ -347,7 +347,13 @@ def test_no_control_is_lost_or_duplicated(builder_html):
         "catalog_show_filters",
         "catalog_subcats_first",
         "promo_page_style",
-        "promo_layout",
+        # LAY-7c: контрол `promo_layout` СНЯТ осознанно (решение владельца
+        # 2026-09-10 «убрать Darstellung der Gruppen»): «сетка или лента» —
+        # это общая ось вывода, а два переключателя на одно и то же и были
+        # той «кашей», ради которой затевалась волна. Ключ остаётся в хранении
+        # (легаси-конфиги, демо-киты, композиция «Regale»), но панель его не
+        # пишет — замок на единственность превратился бы в замок на его
+        # существование.
         "promo_grouping",
         "sd_category_page_style",
         "sd_promo_group_style",

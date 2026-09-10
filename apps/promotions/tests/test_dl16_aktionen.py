@@ -56,8 +56,13 @@ def test_groups_default_grid_unchanged_and_slider_mode_strips():
     tenant.site_config = {"promo_layout": "slider"}
     tenant.save()
     html = _get(public_views.promotion_list, "/aktionen/", tenant)
-    strips = re.findall(r'<div data-grid="promo_list" data-promo-strip[^>]*data-sf-slider>', html)
+    # LAY-7c: разметку ленты теперь даёт движок раскладок (`sf-scroll-grid` +
+    # `data-sf-slider` из `sf_grid_attrs`), а не своя вёрстка — контейнер группы
+    # ОДИН на оба режима. Замок переписан осознанно: маркер `data-promo-strip`
+    # и число лент прежние, меняется только источник классов.
+    strips = re.findall(r'<div data-grid="promo_list" data-promo-strip[^>]*>', html)
     assert len(strips) == 2
+    assert all("sf-scroll-grid" in s and "data-sf-slider" in s for s in strips)
     # SF-5 (фидбэк 2026-09-03): ссылка «Alle anzeigen» в шапке секции — только когда
     # за ней БОЛЬШЕ, чем показано. Секции строятся по неотфильтрованной выдаче, группа
     # видна целиком → ссылки нет; вход на страницу группы остаётся чипом сверху.
