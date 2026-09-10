@@ -20,7 +20,7 @@ STU-18a (замер панели, план §1-2): три правки вида,
    значило бы отнять свободу), но пустое состояние подписано как значение.
 3. «Скорость» помечена `data-axis-speed` и показывается ТОЛЬКО при слайдере: для сетки
    настройка не значит ничего и просто занимала строку у каждой поверхности.{% endcomment %}
-<div data-output-axis class="basis-full w-full">
+<div data-output-axis {% if paginates %}data-axis-paginates{% endif %} class="basis-full w-full">
   <div class="stu-row">
     <span class="stu-lb">{% trans "Ausgabe" %}</span>
     <select name="{{ field }}_mode" data-axis-mode class="stu-ctrl">
@@ -29,7 +29,10 @@ STU-18a (замер панели, план §1-2): три правки вида,
     </select>
   </div>
   <div class="stu-row stu-two">
-    <label class="block">
+    {% comment %}«Рядов» в режиме СЕТКИ ограничивает выдачу только там, где вьюха
+    читает лимит (сегодня каталог). В режиме слайдера это число строк в слайде и
+    работает везде — поэтому поле не убрано, а скрывается для сетки без лимита.{% endcomment %}
+    <label class="block" data-axis-rows {% if not paginates and not layout.scroll %}hidden{% endif %}>
       <span class="stu-lb">{% trans "Reihen" %}</span>
       <select name="{{ field }}_rows" class="stu-ctrl"
               title="{% trans 'Anzahl der Elemente = Spalten × Reihen. Leer = alle zeigen.' %}">
@@ -39,7 +42,7 @@ STU-18a (замер панели, план §1-2): три правки вида,
         {% endfor %}
       </select>
     </label>
-    <label class="block">
+    <label class="block" data-axis-pagesize {% if not paginates %}hidden{% endif %}>
       <span class="stu-lb">{% trans "Pro Seite" %}</span>
       <input type="number" name="{{ field }}_page_size" min="6" max="96" value="{{ layout.page_size|default_if_none:'' }}"
              placeholder="{% trans 'Standard' %}" class="stu-ctrl stu-num"
@@ -51,6 +54,11 @@ STU-18a (замер панели, план §1-2): три правки вида,
     <select name="{{ field }}_tail" class="stu-ctrl">
       <option value="" {% if not layout.tail %}selected{% endif %}>{% trans "Verteilen" %}</option>
       <option value="show" {% if layout.tail == "show" %}selected{% endif %}>{% trans "Alles zeigen" %}</option>
+      {% comment %}STU-18c (Д-5): «по центру» есть у секций главной, а у листингов
+      выбрать его было нечем — один и тот же смысл предлагался разными наборами.
+      Смысл ПУСТОГО значения не трогаем: он различается по построению
+      (`grid_attr_string(default_tail=…)`), и смена изменила бы живые витрины.{% endcomment %}
+      <option value="spread" {% if layout.tail == "spread" %}selected{% endif %}>{% trans "Reihen: zentrieren" %}</option>
       <option value="fill" {% if layout.tail == "fill" %}selected{% endif %}>{% trans "Volle Reihen" %}</option>
     </select>
   </div>

@@ -19,11 +19,18 @@ regal (цена сверху); остальное падает в прежний
   {% if card_style == "regal" and tour.from_price_cents %}
     <p class="px-4 pt-4 pb-2 text-2xl font-extrabold leading-none">{% trans "from" %} {{ tour.from_price_eur|floatformat:2 }} €</p>
   {% endif %}
+  {% comment %}STU-18c (Д-2): «Текст на фото» и «Ценник» предлагались на /touren/ и
+  молча ничего не делали. Разметка повторяет эталон `_sellable_card`.{% endcomment %}
   {% if tour.image_url %}
-    <img src="{{ tour.image_url }}" alt="{{ tour.title_text }}" loading="lazy" decoding="async" class="w-full {% if card_style == "lookbook" %}aspect-[3/4]{% elif card_style == "regal" %}aspect-square{% else %}aspect-video{% endif %} object-cover">
+    <span class="relative block" data-sf-media-box>
+      <img src="{{ tour.image_url }}" alt="{{ tour.title_text }}" loading="lazy" decoding="async" class="w-full {% if card_style == "lookbook" %}aspect-[3/4]{% elif card_style == "regal" %}aspect-square{% else %}aspect-video{% endif %} object-cover">
+      {% if card_style == "overlay" %}<span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-4 pb-3 pt-10"><span class="text-white font-semibold text-lg">{{ tour.title_text }}</span></span>
+      {% elif card_style == "etikett" and tour.from_price_cents %}<span class="absolute bottom-2 right-2 rounded-lg bg-white/95 px-2 py-1 text-sm font-bold shadow ring-1 ring-black/5">{% trans "from" %} {{ tour.from_price_eur|floatformat:2 }} €</span>{% endif %}
+    </span>
   {% endif %}
   <div class="p-4">
-    <h3 class="font-semibold group-hover:text-indigo-700">{{ tour.title_text }}</h3>
+    {% if card_style == "overlay" and tour.image_url %}{% comment %}имя уже поверх фото{% endcomment %}
+    {% else %}<h3 class="font-semibold group-hover:text-indigo-700">{{ tour.title_text }}</h3>{% endif %}
     {% if tour.region_text %}<p class="text-sm text-gray-500 mt-0.5">📍 {{ tour.region_text }}</p>{% endif %}
     {% if tour.summary_text %}<p class="text-sm text-gray-600 mt-2">{{ tour.summary_text|truncatechars:120 }}</p>{% endif %}
     <p class="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-500">

@@ -32,9 +32,15 @@ min_persons, описание, цена под PAngV/DS-7b-гейтом, CTA «C
   {% if card_style == "regal" and c.price %}{% if storefront_orders_active or site.menu_show_prices != False %}
     <span class="block px-4 pt-4 pb-2 text-2xl font-extrabold leading-none">{{ c.price }} {{ c.currency|cursym }}</span>
   {% endif %}{% endif %}
-  {% if c.primary_image_url %}<span data-combo-img class="block {% if card_style == "lookbook" %}aspect-[3/4]{% elif card_style == "regal" %}aspect-square{% else %}aspect-[4/3]{% endif %} bg-gray-100"><img src="{{ c.primary_image_url }}" alt="{{ c.name_localized }}" loading="lazy" class="w-full h-full object-cover"></span>{% endif %}
+  {% comment %}STU-18c (Д-2): «Текст на фото» и «Ценник» предлагались на /kombi/ и
+  молча ничего не делали — LAY-4 научил формам только `_sellable_card`. Разметка
+  повторяет эталон, чтобы вид набора и товара совпадал.{% endcomment %}
+  {% if c.primary_image_url %}<span data-combo-img class="relative block {% if card_style == "lookbook" %}aspect-[3/4]{% elif card_style == "regal" %}aspect-square{% else %}aspect-[4/3]{% endif %} bg-gray-100" data-sf-media-box><img src="{{ c.primary_image_url }}" alt="{{ c.name_localized }}" loading="lazy" class="w-full h-full object-cover">
+    {% if card_style == "overlay" %}<span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-4 pb-3 pt-10"><span class="text-white font-semibold text-lg">{{ c.name_localized }}</span></span>
+    {% elif card_style == "etikett" and c.price %}{% if storefront_orders_active or site.menu_show_prices != False %}<span class="absolute bottom-2 right-2 rounded-lg bg-white/95 px-2 py-1 text-sm font-bold shadow ring-1 ring-black/5">{{ c.price }} {{ c.currency|cursym }}</span>{% endif %}{% endif %}</span>{% endif %}
   <span data-combo-body class="block {% if card_style == "lookbook" or card_style == "regal" %}px-4 py-3{% else %}p-5{% endif %}">
-    <h3 class="font-bold text-lg group-hover:underline">{{ c.name_localized }}</h3>
+    {% if card_style == "overlay" and c.primary_image_url %}{% comment %}имя уже поверх фото{% endcomment %}
+    {% else %}<h3 class="font-bold text-lg group-hover:underline">{{ c.name_localized }}</h3>{% endif %}
     {% if c.free_pool %}<span class="inline-block mt-1 text-[11px] font-medium rounded-full bg-gray-100 text-gray-600 px-2 py-0.5">{% trans "Free choice from category" %}</span>
     {% elif c.min_persons %}<span class="inline-block mt-1 text-[11px] font-medium rounded-full bg-gray-100 text-gray-600 px-2 py-0.5">{% blocktrans with n=c.min_persons %}ab {{ n }} Personen{% endblocktrans %}</span>{% endif %}
     {% if c.description_localized %}<span class="block text-sm text-gray-500 mt-1 line-clamp-3">{{ c.description_localized }}</span>{% endif %}

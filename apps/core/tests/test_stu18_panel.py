@@ -176,3 +176,20 @@ def test_shelves_are_not_offered_without_sub_entities(settings):
         assert all("data-cf-off" in t for t in tiles), (
             f"плитка {key} предлагается как доступная, хотя под-сущностей нет"
         )
+
+
+@pytest.mark.parametrize("tpl", ["_combo_card.html", "_tour_card.html"])
+def test_offered_card_forms_are_implemented(tpl):
+    """Форма, предложенная на странице, обязана что-то менять в её карточке (Д-2).
+
+    LAY-4 научил формам `_sellable_card`, но наборы и туры остались с четырьмя из
+    шести: «Текст на фото» и «Ценник» на /kombi/ и /touren/ выбирались и молча
+    ничего не делали. Обратная сторона правила STU-9 — обещание без исполнения.
+    """
+    from apps.core import card_forms
+
+    src = (Path(__file__).resolve().parents[3] / "templates" / "storefront" / tpl).read_text(
+        encoding="utf-8"
+    )
+    missing = [k for k in card_forms.keys_for(card_forms.PRODUCT) if k and f'"{k}"' not in src]
+    assert not missing, f"{tpl}: формы предлагаются, но не реализованы: {missing}"
