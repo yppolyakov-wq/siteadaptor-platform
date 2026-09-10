@@ -1656,6 +1656,16 @@ def product_list(request, slug=None):
                 not path_mode and cat_style in ("regale", "tabs", "navigator", "kompakt")
             ),
             "side_categories": subcategories if path_mode else categories,
+            # STU-18d (d-pre): контракт под-сущностей для композиций «Kompakt» и
+            # «Navigator» — метка и ССЫЛКА. Адрес знает только вьюха поверхности
+            # (у каталога категория, у туров страна, у услуг подборка), поэтому
+            # партиалы его больше не собирают.
+            "side_entries": [
+                {"label": c, "url": reverse("storefront-category", args=[c.slug])}
+                for c in (subcategories if path_mode else categories)
+            ],
+            # хвост адреса, который переход между под-сущностями обязан сохранить
+            "comp_carry": f"?ansicht={ansicht}" if ansicht else "",
             "show_root_header": bool(
                 not path_mode
                 and cat_style in ("kopfbild", "magazin", "schaufenster")

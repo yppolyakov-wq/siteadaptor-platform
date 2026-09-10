@@ -1,0 +1,26 @@
+{% load i18n %}{% comment %}STU-18d (d-pre): композиция «Kompakt» — переиспользуемый партиал.
+
+Указатель под-сущностей колонками: компактнее плиток, поэтому первый экран
+занимают сами карточки. Второй уровень тут не раскрываем — указатель обязан
+оставаться в 2–3 строки.
+
+До выноса разметка жила в `category/_subcat_index.html` и умела только каталог:
+строила ссылку `storefront-category` из объекта Category. Ссылка — решение
+ПОВЕРХНОСТИ (у каталога категория, у туров страна, у услуг подборка), поэтому
+пришла контрактом.
+
+Вход:
+* `entries` — `{label, url}` под-сущностей;
+* `carry`   — хвост адреса (у каталога `?ansicht=…`), чтобы переход не сбрасывал
+  выбранный посетителем вид.
+
+Разметка перенесена БАЙТ-В-БАЙТ (замок test_composition_parity).{% endcomment %}
+{% if entries %}
+<nav class="mb-5 bg-white rounded-2xl shadow-sm p-4" data-subcat-index aria-label="{% trans 'Kategorien' %}">
+  <ul class="columns-2 sm:columns-3 lg:columns-4 gap-x-6 text-sm [&>li]:break-inside-avoid">
+    {% for e in entries %}
+    <li class="mb-1"><a href="{{ e.url }}{{ carry }}" class="text-gray-600 hover:text-gray-900 hover:underline">{{ e.label }}</a></li>
+    {% endfor %}
+  </ul>
+</nav>
+{% endif %}

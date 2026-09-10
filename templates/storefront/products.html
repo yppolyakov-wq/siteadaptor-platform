@@ -69,8 +69,10 @@
 {% comment %}DL-20: боковая колонка «Navigator» — ПЕРВЫМ прямым ребёнком корня
 листинга: CSS раскладывает корень в две колонки по этому маркеру, поэтому позиция
 в разметке важна. Указатель подкатегорий «Kompakt» идёт над фильтрами.{% endcomment %}
-{% if category_side_nav %}{% include "storefront/category/_side_nav.html" with subcategories=side_categories %}{% endif %}
-{% if category_page_style == "kompakt" %}{% include "storefront/category/_subcat_index.html" with subcategories=side_categories %}{% endif %}
+{% comment %}STU-18d (d-pre): обе композиции вынесены в переиспользуемые партиалы —
+под-сущности приходят контрактом (`side_entries`), фасеты — параметром.{% endcomment %}
+{% if category_side_nav %}{% include "storefront/composition/_side_nav.html" with entries=side_entries carry=comp_carry facets_template="storefront/_catalog_filters.html" %}{% endif %}
+{% if category_page_style == "kompakt" %}{% include "storefront/composition/_index.html" with entries=side_entries carry=comp_carry %}{% endif %}
 {% if categories %}
 {% comment %}Фидбэк владельца 2026-08-07: «категории сделай картинками». Когда у
 категорий есть фото — сетка плиток (общий партиал с секцией главной, форма и
@@ -168,8 +170,7 @@
 {# M20U-3: подкатегории выбранной категории — карточками первыми (тумблер в билдере) #}
 {% comment %}STU-18d (d-pre): композиция вынесена в переиспользуемый партиал —
 каталог теперь такой же её потребитель, как будущие девять листингов.{% endcomment %}
-{% if ansicht %}{% include "storefront/composition/_tabs.html" with tabs=category_tabs carry="?ansicht="|add:ansicht %}
-{% else %}{% include "storefront/composition/_tabs.html" with tabs=category_tabs carry="" %}{% endif %}
+{% include "storefront/composition/_tabs.html" with tabs=category_tabs carry=comp_carry %}
 {% comment %}STU-18d (d-pre): композиция вынесена в переиспользуемый партиал.
 Ссылка полки и карточка элемента пришли параметрами — это решения КАТАЛОГА, а не
 композиции, и на других листингах они будут своими.{% endcomment %}
