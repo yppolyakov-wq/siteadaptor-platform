@@ -312,3 +312,43 @@ def test_axis_save_retires_the_legacy_key():
 
     assert core_views.retires_legacy_promo_layout({"promo_index_preset": "cols4"}) is True
     assert core_views.retires_legacy_promo_layout({"font": "system"}) is False
+
+
+def test_axis_save_really_drops_the_legacy_key_end_to_end():
+    """Предикат сам по себе — обещание; замок держит ПУТЬ СОХРАНЕНИЯ целиком."""
+    from types import SimpleNamespace
+
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+
+    from apps.core import views as core_views
+
+    tenant = TenantFactory(
+        schema_name="public",
+        slug="lay7ret",
+        name="LAY7RET",
+        site_config={"promo_layout": "slider"},
+    )
+    req = RequestFactory().post(
+        "/dashboard/site/home/", {"promo_index_preset": "cols4", "font": "system"}
+    )
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    assert core_views.home_builder_view(req).status_code == 302
+    tenant.refresh_from_db()
+    assert "promo_layout" not in tenant.site_config
+    assert tenant.site_config["promo_index_layout"]["preset"] == "cols4"
+
+    # Чужой Save (без строки оси в панели) легаси-ключ НЕ трогает.
+    tenant.site_config = {"promo_layout": "slider"}
+    tenant.save(update_fields=["site_config"])
+    req2 = RequestFactory().post("/dashboard/site/home/", {"font": "system"})
+    SessionMiddleware(lambda r: None).process_request(req2)
+    MessageMiddleware(lambda r: None).process_request(req2)
+    req2.user = SimpleNamespace(is_authenticated=True)
+    req2.tenant = tenant
+    assert core_views.home_builder_view(req2).status_code == 302
+    tenant.refresh_from_db()
+    assert tenant.site_config.get("promo_layout") == "slider"
