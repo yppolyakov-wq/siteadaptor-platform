@@ -1,0 +1,147 @@
+{
+ "pages": [
+  {
+   "id": "vorschlag",
+   "name": "Предложение"
+  },
+  {
+   "id": "heute",
+   "name": "Сегодня"
+  },
+  {
+   "id": "system",
+   "name": "Компоненты и карта"
+  }
+ ],
+ "artboards": [
+  {
+   "file": "HeuteAktionen.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 980,
+   "h": 1110,
+   "title": "Сегодня: /aktionen/",
+   "page": "heute"
+  },
+  {
+   "file": "HeuteKatalog.dc.html",
+   "x": 1080,
+   "y": 0,
+   "w": 980,
+   "h": 1060,
+   "title": "Сегодня: /sortiment/",
+   "page": "heute"
+  },
+  {
+   "file": "Main.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 460,
+   "h": 1150,
+   "title": "Панель: список",
+   "page": "vorschlag"
+  },
+  {
+   "file": "Kategorie.dc.html",
+   "x": 560,
+   "y": 0,
+   "w": 460,
+   "h": 1010,
+   "title": "Панель: категория",
+   "page": "vorschlag"
+  },
+  {
+   "file": "Detail.dc.html",
+   "x": 1120,
+   "y": 0,
+   "w": 460,
+   "h": 670,
+   "title": "Панель: товар",
+   "page": "vorschlag"
+  },
+  {
+   "file": "TextSeite.dc.html",
+   "x": 1680,
+   "y": 0,
+   "w": 460,
+   "h": 480,
+   "title": "Панель: текстовая",
+   "page": "vorschlag"
+  },
+  {
+   "file": "Startseite.dc.html",
+   "x": 0,
+   "y": 1290,
+   "w": 460,
+   "h": 460,
+   "title": "Панель: главная",
+   "page": "vorschlag"
+  },
+  {
+   "file": "Telefon.dc.html",
+   "x": 560,
+   "y": 1290,
+   "w": 460,
+   "h": 790,
+   "title": "Телефон",
+   "page": "vorschlag"
+  },
+  {
+   "file": "Gestaltung.dc.html",
+   "x": 1120,
+   "y": 1290,
+   "w": 1020,
+   "h": 460,
+   "title": "Шрифты и палитра",
+   "page": "vorschlag"
+  },
+  {
+   "file": "Komponenten.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 780,
+   "h": 880,
+   "title": "Компоненты",
+   "page": "system"
+  },
+  {
+   "file": "Matrix.dc.html",
+   "x": 880,
+   "y": 0,
+   "w": 900,
+   "h": 880,
+   "title": "Матрица осей",
+   "page": "system"
+  }
+ ],
+ "annotations": [
+  {
+   "id": "note-heute",
+   "x": 0,
+   "y": -150,
+   "w": 700,
+   "page": "heute",
+   "text": "Замер на живом стенде (демо aktionsmarkt, панель 380 px, кабинет по-русски).\nВысоты строк и обрезанные подписи — из браузера, не по памяти.\nРазбор — docs/stu18-panel-ia-plan-2026-09-10.md §1-2."
+  },
+  {
+   "id": "note-vorschlag",
+   "x": 0,
+   "y": -170,
+   "w": 760,
+   "page": "vorschlag",
+   "text": "Одна структура на всех 30 типах: A Композиция · B Сетка · C Карточка · Содержание.\nГруппа без применимых настроек не рисуется. Где оси нет — строка-объяснение,\nа не контрол-обманка. Ключей хранения и миграций нет: строки перекладываются."
+  },
+  {
+   "id": "note-system",
+   "x": 0,
+   "y": -150,
+   "w": 700,
+   "page": "system",
+   "text": "Слева — пять компонентов, которыми верстаются все 40 строк реестра.\nСправа — карта «ось × тип страницы» на согласование (решение Р-2)."
+  }
+ ],
+ "launch": {
+  "view": "canvas",
+  "page": "vorschlag"
+ }
+}

@@ -58,3 +58,8 @@ Thumbs.db
 dump.rdb
 node_modules/
 docs/design/deal-card-2026-08-25/verkaufskarte.html
+
+# Канвасы дизайна: собранный payload (~2.6 MB) не коммитим — он пересобирается
+# из `_generate.py` + `.dc.html` хелпером скилла design. Сами артборды нужны.
+docs/design/*/*.html
+!docs/design/*/*.dc.html
