@@ -16,7 +16,7 @@
       <span class="text-gray-400 text-sm">{% blocktrans count n=request.tenant.google_rating_count %}{{ n }} Google-Bewertung{% plural %}{{ n }} Google-Bewertungen{% endblocktrans %}</span></p>
   {% endif %}
 </div>
-<div class="grid gap-4 sm:grid-cols-2">
+<div class="{{ reviews_page_grid|default:'grid gap-4 sm:grid-cols-2' }}" {% sf_grid_attrs reviews_page_layout cols="1/2/2" %}>
   {% comment %}Кураторские отзывы владельца (site_config.testimonials) идут рядом
   с портальными — для гостя это один раздел «что о нас говорят».{% endcomment %}
   {% for t in page_testimonials %}

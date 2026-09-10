@@ -11,6 +11,7 @@ from django.shortcuts import render
 from django.utils.translation import get_language
 
 from apps.catalog.models import Product
+from apps.tenants import siteconfig
 
 from .models import Collection
 
@@ -31,5 +32,9 @@ def lookbook(request, slug):
             "collection_name": collection.name_localized(locale),
             "collection_description": collection.description_localized(locale),
             "products": products,
+            # LAY-3a-2: раскладка сетки товаров образа (пусто → прежние классы).
+            **siteconfig.page_layout_ctx(
+                siteconfig.normalize(request.tenant.site_config), "lookbook_layout", "lookbook"
+            ),
         },
     )

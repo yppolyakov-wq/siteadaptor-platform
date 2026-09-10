@@ -761,6 +761,8 @@ def promotion_list(request):
             "sort_options": provider.sort_options(),
             "toolbar_hidden": toolbar_hidden,
             "promo_layout": promo_layout,  # DL-16.2 A3
+            # LAY-3a-2: раскладка сетки акций (пусто → прежние классы шаблона).
+            **siteconfig.page_layout_ctx(cfg, "promo_index_layout", "promo_index"),
             # DL-21.2: обзорная страница — шаблон композиции + её данные.
             "promo_page_style": page_style,
             "promo_hero": promo_hero,
@@ -916,6 +918,7 @@ def reviews_page(request):
     полным списком. 404, если отзывов нет.
     """
     from apps.core.templatetags.seo import business_rating, storefront_reviews
+    from apps.tenants import siteconfig
 
     site = _site_ctx(request)
     # Два источника: отзывы с портала (BusinessReview) и кураторские отзывы
@@ -934,6 +937,8 @@ def reviews_page(request):
             "page_reviews": reviews,
             "page_testimonials": testimonials,
             "business_rating_value": business_rating(),
+            # LAY-3a-2: раскладка сетки отзывов (пусто → прежние классы шаблона).
+            **siteconfig.page_layout_ctx(site, "reviews_page_layout", "reviews_page"),
         },
     )
 

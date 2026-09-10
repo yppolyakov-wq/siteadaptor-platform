@@ -23,7 +23,7 @@
 
 {% if products %}
 <h2 class="text-xl font-semibold mb-4">{% trans "Diese Teile gehören zum Look" %}</h2>
-<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+<div class="{{ lookbook_grid|default:'grid sm:grid-cols-2 lg:grid-cols-4 gap-4' }} mb-8" {% sf_grid_attrs lookbook_layout cols="1/2/4" count=products|length %}>
   {% for p in products %}{% sellable_card 'product' p %}{% endfor %}
 </div>
 <a href="{% url 'storefront-products' %}?kollektion={{ collection.slug }}" class="text-sm text-indigo-600 hover:underline">{% trans "Alle Teile im Sortiment ansehen" %} →</a>

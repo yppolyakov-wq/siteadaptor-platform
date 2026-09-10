@@ -740,6 +740,14 @@ def _private_tour_url(request, subject: str = "") -> str:
     return f"{url}?betreff={quote(subject)}" if subject else url
 
 
+def _page_layout(request, key: str, name: str) -> dict:
+    """LAY-3a-2: контекст раскладки страницы (`<name>_grid` / `<name>_layout`)."""
+    from apps.tenants import siteconfig
+
+    cfg = request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
+    return siteconfig.page_layout_ctx(siteconfig.normalize(cfg), key, name)
+
+
 def touren_index(request):
     """MT-1: публичный список туров (тур = контент, заезды = даты продажи)."""
     _require_events_active(request)
@@ -756,6 +764,8 @@ def touren_index(request):
         {
             "tours": tours,
             "country_groups": groups,
+            # LAY-3a-2: раскладка сетки поездок (пусто → прежние классы шаблона).
+            **_page_layout(request, "tours_layout", "tours"),
             # Разбивка по странам имеет смысл только когда стран НЕСКОЛЬКО —
             # иначе это лишний заголовок над единственным списком.
             "grouped": len(named) > 1,
@@ -810,7 +820,8 @@ def blog_index(request):
     from .models import BlogPost
 
     posts = BlogPost.objects.filter(is_published=True)
-    return render(request, "storefront/blog_index.html", {"posts": posts})
+    ctx = {"posts": posts, **_page_layout(request, "blog_index_layout", "blog_index")}
+    return render(request, "storefront/blog_index.html", ctx)
 
 
 def blog_detail(request, slug):

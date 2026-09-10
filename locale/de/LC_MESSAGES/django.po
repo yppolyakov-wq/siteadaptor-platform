@@ -22368,3 +22368,27 @@ msgstr "Wie viele Einträge pro Seite. Leer = wie bisher."
 
 msgid "Sekunden zwischen den Folien. Leer = nicht automatisch drehen."
 msgstr "Sekunden zwischen den Folien. Leer = nicht automatisch drehen."
+
+msgid "Inhaltssprache"
+msgstr "Inhaltssprache"
+
+msgid "Aktionen: Raster"
+msgstr "Aktionen: Raster"
+
+msgid "Kombis: Raster"
+msgstr "Kombis: Raster"
+
+msgid "Reisen: Raster"
+msgstr "Reisen: Raster"
+
+msgid "Lookbook: Raster"
+msgstr "Lookbook: Raster"
+
+msgid "Bewertungen: Raster"
+msgstr "Bewertungen: Raster"
+
+msgid "Merkzettel: Raster"
+msgstr "Merkzettel: Raster"
+
+msgid "Blog: Raster"
+msgstr "Blog: Raster"

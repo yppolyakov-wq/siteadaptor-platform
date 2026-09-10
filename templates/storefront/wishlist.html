@@ -14,7 +14,7 @@
 {% if wish_promotions %}
 <section class="mb-8">
   <h2 class="text-lg font-bold mb-3">{% trans "Current offers" %}</h2>
-  <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+  <div class="{{ wishlist_grid|default:'grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}" {% sf_grid_attrs wishlist_layout cols="2/2/3" count=wish_promotions|length %}>
     {% for p in wish_promotions %}
       {% if p.wish_ended %}
         <div class="rounded-2xl bg-gray-50 ring-1 ring-gray-200 p-4 flex flex-col" data-wish-ended>
@@ -40,7 +40,7 @@
 {% endif %}
 
 {% if products %}
-<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+<div class="{{ wishlist_grid|default:'grid sm:grid-cols-2 lg:grid-cols-4 gap-4' }} mb-8" {% sf_grid_attrs wishlist_layout cols="1/2/4" count=products|length %}>
   {% for p in products %}
     {% if p.wish_ended %}
       <div class="rounded-2xl bg-gray-50 ring-1 ring-gray-200 p-4 flex flex-col" data-wish-ended>

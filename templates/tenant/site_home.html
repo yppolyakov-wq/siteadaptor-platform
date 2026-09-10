@@ -68,6 +68,18 @@
       {% comment %}STU-13: Студия — полноэкранный оверлей, шапки кабинета с селектором 🗣 в
          ней нет. Владелец, переключивший язык ВИТРИНЫ на русский, видел немецкую панель и
          счёл, что перевода нет вовсе. Форма отдельная — топбар вне #home-form (W0 цел).{% endcomment %}
+      {% comment %}LAY-6a: язык КОНТЕНТА (то, на чём стоит канва) — отдельно от языка
+         кабинета: панель читает и Save пишет именно его. Источник один — кука витрины,
+         поэтому панель и кадр не расходятся; переключатель шлёт ?clang= (GET, вне
+         #home-form — W0 цел) и возвращает на тот же адрес.{% endcomment %}
+      {% if content_locales|length > 1 %}
+      <form method="get" class="shrink-0" title="{% trans 'Inhaltssprache' %}">
+        <select name="clang" onchange="this.form.submit()" aria-label="{% trans 'Inhaltssprache' %}"
+                class="text-xs bg-white border border-gray-300 rounded-lg px-1.5 py-1 text-gray-600 cursor-pointer">
+          {% for l in content_locales %}<option value="{{ l.code }}"{% if l.code == content_loc %} selected{% endif %}>🌐 {{ l.label }}</option>{% endfor %}
+        </select>
+      </form>
+      {% endif %}
       {% if cabinet_langs|length > 1 %}
       <form method="post" action="{% url 'set-cabinet-lang' %}" class="shrink-0" title="{% trans 'Cabinet language' %}">
         {% csrf_token %}
@@ -146,6 +158,10 @@
       {% comment %}UC6-7b: текущая страница канвы — после Save/действий ленты канва
          возвращается на неё (JS синкает при навигации кадра; сервер валидирует).{% endcomment %}
       <input type="hidden" name="page_path" id="bld-page-path" value="{{ preview_start_path }}">
+      {% comment %}LAY-6b: язык, в котором ОТРИСОВАНА эта форма. Save раскладывает по нему
+         тексты (перевод — в оверлей, база цела). Берём из формы, а не из куки: владелец
+         мог переключить язык в соседней вкладке уже после открытия редактора.{% endcomment %}
+      <input type="hidden" name="content_lang" value="{{ content_loc }}">
 
       {% comment %}STU-12g (1B): область «Тема» удалена — глобальный дизайн (акцент, шрифт,
       типографика, тема, «Карточки и фото», Look/Startpaket, шаблоны витрины) живёт на
@@ -596,6 +612,65 @@
                 <option value="time" {% if promo_grouping == 'time' %}selected{% endif %}>{% trans "Nach Zeit" %}</option>
               </select>
             </label>
+          </div>
+          {% comment %}LAY-3a-2: ось вывода на страницах, где сетка была зашита в
+             шаблоне (план LAY §13). Ключ presence-minimal: «Standard» снимает его и
+             страница снова рисуется прежними классами.{% endcomment %}
+          <div class="page-block flex items-center gap-3 mt-4" data-stu-setting="promo_index_layout" data-stu-page="promos">
+            <span class="text-sm font-medium flex-1">{% trans "Aktionen: Raster" %}</span>
+            <select name="promo_index_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
+              <option value="">{% trans "Standard" %}</option>
+              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if promo_index_layout.preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+            </select>
+            {% include "tenant/_output_axis.html" with field="promo_index_preset" layout=promo_index_layout %}
+          </div>
+          <div class="page-block flex items-center gap-3 mt-4" data-stu-setting="combos_layout" data-stu-page="combos">
+            <span class="text-sm font-medium flex-1">{% trans "Kombis: Raster" %}</span>
+            <select name="combos_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
+              <option value="">{% trans "Standard" %}</option>
+              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if combos_layout.preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+            </select>
+            {% include "tenant/_output_axis.html" with field="combos_preset" layout=combos_layout %}
+          </div>
+          <div class="page-block flex items-center gap-3 mt-4" data-stu-setting="tours_layout" data-stu-page="tours">
+            <span class="text-sm font-medium flex-1">{% trans "Reisen: Raster" %}</span>
+            <select name="tours_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
+              <option value="">{% trans "Standard" %}</option>
+              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if tours_layout.preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+            </select>
+            {% include "tenant/_output_axis.html" with field="tours_preset" layout=tours_layout %}
+          </div>
+          <div class="page-block flex items-center gap-3 mt-4" data-stu-setting="lookbook_layout" data-stu-page="lookbook">
+            <span class="text-sm font-medium flex-1">{% trans "Lookbook: Raster" %}</span>
+            <select name="lookbook_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
+              <option value="">{% trans "Standard" %}</option>
+              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if lookbook_layout.preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+            </select>
+            {% include "tenant/_output_axis.html" with field="lookbook_preset" layout=lookbook_layout %}
+          </div>
+          <div class="page-block flex items-center gap-3 mt-4" data-stu-setting="reviews_page_layout" data-stu-page="reviews">
+            <span class="text-sm font-medium flex-1">{% trans "Bewertungen: Raster" %}</span>
+            <select name="reviews_page_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
+              <option value="">{% trans "Standard" %}</option>
+              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if reviews_page_layout.preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+            </select>
+            {% include "tenant/_output_axis.html" with field="reviews_page_preset" layout=reviews_page_layout %}
+          </div>
+          <div class="page-block flex items-center gap-3 mt-4" data-stu-setting="wishlist_layout" data-stu-page="wishlist">
+            <span class="text-sm font-medium flex-1">{% trans "Merkzettel: Raster" %}</span>
+            <select name="wishlist_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
+              <option value="">{% trans "Standard" %}</option>
+              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if wishlist_layout.preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+            </select>
+            {% include "tenant/_output_axis.html" with field="wishlist_preset" layout=wishlist_layout %}
+          </div>
+          <div class="page-block flex items-center gap-3 mt-4" data-stu-setting="blog_index_layout" data-stu-page="blog">
+            <span class="text-sm font-medium flex-1">{% trans "Blog: Raster" %}</span>
+            <select name="blog_index_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
+              <option value="">{% trans "Standard" %}</option>
+              {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if blog_index_layout.preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
+            </select>
+            {% include "tenant/_output_axis.html" with field="blog_index_preset" layout=blog_index_layout %}
           </div>
           {% comment %}ST-7c/DL-19 → STU-8: ФОРМА карточки переехала сюда из уровня
              «Дизайн сайта». Артборды A1/PCat/PPromo ставят её в панель страницы: «Дизайн

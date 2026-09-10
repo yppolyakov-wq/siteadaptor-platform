@@ -22329,3 +22329,27 @@ msgstr "How many entries per page. Empty = as before."
 
 msgid "Sekunden zwischen den Folien. Leer = nicht automatisch drehen."
 msgstr "Seconds between slides. Empty = do not rotate automatically."
+
+msgid "Inhaltssprache"
+msgstr "Content language"
+
+msgid "Aktionen: Raster"
+msgstr "Offers: grid layout"
+
+msgid "Kombis: Raster"
+msgstr "Combos: grid layout"
+
+msgid "Reisen: Raster"
+msgstr "Trips: grid layout"
+
+msgid "Lookbook: Raster"
+msgstr "Lookbook: grid layout"
+
+msgid "Bewertungen: Raster"
+msgstr "Reviews: grid layout"
+
+msgid "Merkzettel: Raster"
+msgstr "Wishlist: grid layout"
+
+msgid "Blog: Raster"
+msgstr "Blog: grid layout"

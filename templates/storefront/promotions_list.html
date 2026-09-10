@@ -148,7 +148,7 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
         </div>
         {% else %}
         {# DL-14: неполный ряд группы распределяется по ширине (spread) + авто-колонки #}
-        <div data-grid="promo_list" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" {% sf_grid_attrs cols="2/2/3" count=items|length %}>
+        <div data-grid="promo_list" class="{{ promo_index_grid|default:'grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}" {% sf_grid_attrs promo_index_layout cols="2/2/3" count=items|length %}>
           {% for p in items %}
             {% include "storefront/_promo_card.html" with in_group=True %}
           {% endfor %}
@@ -163,7 +163,7 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
   {% elif promotions and not list_view and promo_page_style == "magazin" %}
     {% include "storefront/promo_group/_grid.html" with group_page_style="magazin" %}
   {% elif promotions and not list_view %}
-    <div data-grid="promo_list" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" {% sf_grid_attrs cols="2/2/3" count=promotions|length %}>
+    <div data-grid="promo_list" class="{{ promo_index_grid|default:'grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}" {% sf_grid_attrs promo_index_layout cols="2/2/3" count=promotions|length %}>
       {% for p in promotions %}
         {% include "storefront/_promo_card.html" %}
       {% endfor %}

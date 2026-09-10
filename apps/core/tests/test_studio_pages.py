@@ -177,6 +177,15 @@ def test_every_site_key_resolves_in_normalized_config():
         "services_sort": "price_asc",
         "stays_sort": "price_desc",
         "events_sort": "price_asc",
+        # LAY-3a-2: раскладки страниц с прежде захардкоженной сеткой — тоже
+        # presence-minimal (нет ключа = прежняя вёрстка), поэтому со значением.
+        "promo_index_layout": {"preset": "cols4"},
+        "combos_layout": {"preset": "cols3"},
+        "tours_layout": {"preset": "cols3"},
+        "lookbook_layout": {"preset": "cols3"},
+        "reviews_page_layout": {"preset": "cols3"},
+        "wishlist_layout": {"preset": "cols3"},
+        "blog_index_layout": {"preset": "cols2"},
         "promo_page_style": "kompakt",
         "promo_layout": "slider",
         "promo_grouping": "time",

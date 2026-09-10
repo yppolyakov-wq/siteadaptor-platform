@@ -22544,3 +22544,27 @@ msgstr "Скільки записів на сторінці. Порожньо �
 
 msgid "Sekunden zwischen den Folien. Leer = nicht automatisch drehen."
 msgstr "Секунд між слайдами. Порожньо — не гортати автоматично."
+
+msgid "Inhaltssprache"
+msgstr "Мова контенту"
+
+msgid "Aktionen: Raster"
+msgstr "Акції: сітка"
+
+msgid "Kombis: Raster"
+msgstr "Набори: сітка"
+
+msgid "Reisen: Raster"
+msgstr "Подорожі: сітка"
+
+msgid "Lookbook: Raster"
+msgstr "Лукбук: сітка"
+
+msgid "Bewertungen: Raster"
+msgstr "Відгуки: сітка"
+
+msgid "Merkzettel: Raster"
+msgstr "Обране: сітка"
+
+msgid "Blog: Raster"
+msgstr "Блог: сітка"

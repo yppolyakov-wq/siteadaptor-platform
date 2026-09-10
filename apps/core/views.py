@@ -1,5 +1,6 @@
 """Общие tenant-facing вьюхи (живут в схеме арендатора)."""
 
+import copy
 import re
 from urllib.parse import quote
 
@@ -1376,6 +1377,14 @@ def _page_layout_payload(post, field, preset):
     return payload
 
 
+def _presence_layout_keys():
+    """LAY-3a-2: раскладки, которые normalize НЕ материализует — «Standard» в панели
+    снимает ключ, и страница снова рисуется прежними классами шаблона."""
+    from apps.tenants import siteconfig
+
+    return {"service_index_layout"} | set(siteconfig.OPTIONAL_PAGE_LAYOUTS)
+
+
 @login_required
 def home_builder_view(request):
     """Конструктор главной (S2b): порядок/видимость блоков главной + тизеры
@@ -1387,6 +1396,20 @@ def home_builder_view(request):
     """
     from apps.core.seo import _dumps as _safe_json  # LOW: инлайн-<script>-safe JSON
     from apps.tenants import demo, siteconfig, sitetemplates, storefront
+
+    # LAY-6a: редактор работает в ОДНОМ языке контента — том, что показан на канве.
+    # Источник один (кука витрины), поэтому панель и кадр не могут разойтись.
+    # Переключение: `?clang=<локаль>` → валидация по включённым локалям → кука →
+    # возврат на тот же адрес без параметра (кадр перезагрузится уже с новой).
+    if request.method == "GET" and "clang" in request.GET:
+        params = request.GET.copy()
+        want = (params.pop("clang") or [""])[-1]
+        target = request.path + (("?" + params.urlencode()) if params else "")
+        resp = redirect(target)
+        if want in (getattr(request.tenant, "active_locales", None) or []):
+            resp.set_cookie(settings.LANGUAGE_COOKIE_NAME, want, max_age=60 * 60 * 24 * 365)
+        return resp
+    content_loc = siteconfig.content_locale(request, request.tenant)
 
     if request.method == "POST":
         # M20e: медиа галереи — отдельные multipart-формы (upload/delete), общие
@@ -1488,7 +1511,6 @@ def home_builder_view(request):
         if action.startswith(
             ("save_block_template:", "use_block_template:", "delete_block_template:")
         ):
-            import copy
             import uuid
 
             verb, _sep, ident = action.partition(":")
@@ -1543,8 +1565,6 @@ def home_builder_view(request):
         # убирает из библиотеки. Сохранение шаблона — в основном потоке (ниже), чтобы
         # снимок ловил несохранённые правки порядка/видимости из формы.
         if action.startswith(("use_page_template:", "delete_page_template:")):
-            import copy
-
             verb, _sep, ident = action.partition(":")
             cfg = siteconfig.normalize(request.tenant.site_config)
             ptpls = dict(cfg.get("page_templates") or {})
@@ -1654,6 +1674,23 @@ def home_builder_view(request):
         from apps.core import archetypes
 
         config = siteconfig.normalize(request.tenant.site_config)
+        # LAY-6b: панель показывает тексты ВЫБРАННОЙ локали, поэтому Save приносит их
+        # в базовых полях. Снимок базы делаем ДО сборки — по нему `split_translation`
+        # вернёт базовые строки на место, а правки уведёт в перевод. Локаль берём из
+        # скрытого поля формы (что было отрисовано, то и сохраняем), а не из куки:
+        # владелец мог переключить язык в соседней вкладке.
+        save_loc = (request.POST.get("content_lang") or "").strip() or content_loc
+        translating = siteconfig.is_translation_locale(request.tenant, save_loc)
+        base_snapshot = None
+        if translating:
+            base_snapshot = copy.deepcopy(config)
+            # Стартовый конфиг тоже локализуем — ровно то, что видела панель. Иначе
+            # поля, которых в форме НЕТ (чужая страница, свёрнутая группа), пришли бы
+            # базовыми, и разбор счёл бы «владелец вписал немецкий» — стёр бы перевод.
+            # Оверлеи прочих локалей возвращаем: `localize` служебный ключ убирает.
+            config = siteconfig.localize(config, save_loc)
+            if base_snapshot.get("i18n"):
+                config["i18n"] = copy.deepcopy(base_snapshot["i18n"])
         # H0: секции скрытых (нерелевантных архетипу) типов в форму не выводятся →
         # их полей в POST нет. Чтобы не затереть (enabled/layout/visual), сохраняем их
         # существующую запись как есть, на прежнем месте. Lookup по ключу фикс-секции.
@@ -1810,7 +1847,6 @@ def home_builder_view(request):
         # что собранного config["sections"] → ловит несохранённые правки порядка/видимости
         # (как save_block_template ловит правки C-блока). normalize() ниже санитизирует.
         if request.POST.get("action") == "save_page_template":
-            import copy
             import uuid
 
             ptpls = dict(config.get("page_templates") or {})
@@ -1849,12 +1885,19 @@ def home_builder_view(request):
         #  normalize сохраняет их при записи главной без изменений.)
         # SE-2a-2: раскладка каталога правится и на канве (per-page инспектор) —
         # сохраняем, если прислан валидный пресет (иначе не трогаем существующую).
-        for fld, cfg_key in (
+        # LAY-3a-2: к четырём листингам добавились страницы, где сетка была зашита
+        # в шаблоне (реестр siteconfig.OPTIONAL_PAGE_LAYOUTS). Имя поля выводим из
+        # ключа — иначе список пришлось бы держать в двух местах.
+        _layout_fields = [
             ("catalog_preset", "catalog_layout"),
             ("events_preset", "events_index_layout"),
             ("stay_preset", "stay_index_layout"),
             ("service_preset", "service_index_layout"),
-        ):
+        ] + [
+            (key.replace("_layout", "") + "_preset", key)
+            for key in siteconfig.OPTIONAL_PAGE_LAYOUTS
+        ]
+        for fld, cfg_key in _layout_fields:
             preset = request.POST.get(fld, "")
             # DS-3a: страничные extra-виды (напр. «preisliste» каталога) валидны
             # только для СВОЕЙ страницы (PAGE_EXTRA_PRESETS).
@@ -1867,9 +1910,10 @@ def home_builder_view(request):
                 # раскладке молча стиралось; поэтому и хвост (`tail`) у страничных
                 # раскладок было невозможно задать из Студии.
                 config[cfg_key] = _page_layout_payload(request.POST, fld, preset)
-            elif cfg_key == "service_index_layout" and fld in request.POST and not preset:
-                # UB1-1: «Standard» (пустой выбор) удаляет ключ → легаси-грид услуг
-                # (у соседей пустого выбора нет — их ключ всегда материализован).
+            elif fld in request.POST and not preset and cfg_key in _presence_layout_keys():
+                # UB1-1 / LAY-3a-2: «Standard» (пустой выбор) удаляет ключ → страница
+                # рисуется прежними классами шаблона. У материализованных соседей
+                # (каталог, события, номера) пустого выбора нет вовсе.
                 config.pop(cfg_key, None)
         # Категория: фильтры/сортировка/подкатегории — presence-guard (cf_present шлётся
         # панелью каталога; одним блоком, чтобы частичный POST не сбрасывал настройки).
@@ -2083,10 +2127,18 @@ def home_builder_view(request):
             # LAY-6d: переводы списков переставляем ВСЛЕД за базой, пока старая база
             # ещё в `config`. Иначе удаление второго вопроса сдвигало бы русские
             # ответы на чужие вопросы: оверлей мёржится позиционно.
-            siteconfig.realign_list_overlays(config, _sections)
+            # LAY-6b: при сохранении ПЕРЕВОДА база списков не меняется — выравнивать
+            # нечего, а сравнение русских строк с немецкой базой снесло бы переводы;
+            # там элементы сопоставляет `split_translation` (по переводу и по id).
+            if not translating:
+                siteconfig.realign_list_overlays(config, _sections)
             config.update(_sections)
         # STU-12g: акцент (Tenant.primary_color) — поле экрана «Design des Shops».
         update_fields = ["site_config", "updated_at"]
+        # LAY-6b: разложить собранное на базу и перевод — ДО истории, чтобы снимок
+        # версии хранил базовый конфиг, а не тексты одной локали.
+        if translating:
+            siteconfig.split_translation(config, base_snapshot, save_loc)
         # SE-5b: снимок текущей опубликованной версии в историю перед публикацией новой
         # (точки отката = явные «Сохранить»; инкрементальные действия историю не пишут).
         config["history"] = siteconfig.push_history(
@@ -2107,13 +2159,28 @@ def home_builder_view(request):
     # опубликованный конфиг (без регрессии).
     raw_cfg = request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
     db_draft = raw_cfg.get("_draft")
-    if isinstance(db_draft, dict):
+    # Черновок чужого языка не подставляем в форму (см. `_draft_lang` выше); он не
+    # удаляется — вернувшись на свой язык, владелец его снова увидит. Метки нет
+    # (черновик до LAY-6) → ведём себя как раньше.
+    draft_lang = raw_cfg.get("_draft_lang")
+    if isinstance(draft_lang, str) and draft_lang and draft_lang != content_loc:
+        db_draft = None
+    from_draft = isinstance(db_draft, dict)
+    if from_draft:
         config = siteconfig.normalize(db_draft)
         if hasattr(request, "session") and not request.session.get("site_preview_draft"):
             request.session["site_preview_draft"] = siteconfig.normalize(db_draft)
         messages.info(request, _("Restored your unpublished draft."))
     else:
         config = siteconfig.normalize(request.tenant.site_config)
+    # LAY-6a: панель показывает тексты ТОГО языка, на котором стоит канва. Раньше
+    # `localize` не звался ни разу: канва на русском — поля панели немецкие, владелец
+    # правил не то, что видит. Структура (порядок, раскладки, стили) от локали не
+    # зависит — `localize` накладывает только совпадающие по форме строки.
+    # Черновик своего языка локализовать НЕ нужно: он уже набран в нём, а наложение
+    # оверлея затёрло бы несохранённую правку опубликованным переводом.
+    if not from_draft and siteconfig.is_translation_locale(request.tenant, content_loc):
+        config = siteconfig.localize(config, content_loc)
     labels = {key: label for key, label, _default in siteconfig.SECTIONS}
     root_options = [{"key": "home", "label": _("Combined homepage")}] + [
         {"key": a.key, "label": a.label} for a in modules.storefront_archetypes(request.tenant)
@@ -2374,6 +2441,13 @@ def home_builder_view(request):
         "tenant/site_home.html",
         {
             "nav": "site",
+            # LAY-6a: язык контента (= язык канвы) и выбор из включённых локалей.
+            "content_loc": content_loc,
+            "content_locales": [
+                {"code": code, "label": label}
+                for code, label in settings.LANGUAGES
+                if code in (getattr(request.tenant, "active_locales", None) or [])
+            ],
             "sections": sections,
             "event_sections": event_sections,
             "product_sections": product_sections,
@@ -2596,6 +2670,10 @@ def home_builder_view(request):
             "events_layout": config.get("events_index_layout") or {},
             "stay_layout": config.get("stay_index_layout") or {},
             "service_layout": config.get("service_index_layout") or {},
+            # LAY-3a-2: раскладки страниц, где сетка была зашита в шаблоне. Имя
+            # переменной = ключ конфига, поэтому строка панели и Save читают одно и
+            # то же (список живёт в реестре siteconfig.OPTIONAL_PAGE_LAYOUTS).
+            **{key: config.get(key) or {} for key in siteconfig.OPTIONAL_PAGE_LAYOUTS},
             "catalog_show_filters": config.get("catalog_show_filters", True),
             "catalog_sort": config.get("catalog_sort", "newest"),
             "catalog_subcats_first": config.get("catalog_subcats_first", True),
@@ -3032,7 +3110,15 @@ def site_preview_draft(request):
     from apps.tenants.models import Tenant
 
     published = request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
-    new_cfg = {**published, "_draft": draft, "_draft_ts": timezone.now().isoformat()}
+    # LAY-6b: черновик помечаем языком, на котором он набран. Иначе русский черновик
+    # восстановился бы в НЕМЕЦКОЙ форме, и следующий Save записал бы русские строки в
+    # базу — та самая порча, ради которой затевалась волна.
+    new_cfg = {
+        **published,
+        "_draft": draft,
+        "_draft_ts": timezone.now().isoformat(),
+        "_draft_lang": siteconfig.content_locale(request, request.tenant),
+    }
     Tenant.objects.filter(pk=request.tenant.pk).update(site_config=new_cfg)
     return HttpResponse(status=204)
 
@@ -3191,15 +3277,11 @@ def site_inline_edit(request):
     # может: панель живёт на пути кабинета, где активен язык кабинета, а канва — на
     # пути витрины с языком посетителя. Неизвестная или выключенная у тенанта локаль
     # игнорируется (fail-closed): пишем базу, мусорного оверлея не создаём.
+    # База — `settings.LANGUAGE_CODE`, а не `default_locale` тенанта (§12.3 плана):
+    # у тенанта с русским дефолтом оверлей `ru` существует и замещает базу, так что
+    # правка, ушедшая в базу, не была бы видна вовсе.
     locale = (data.get("locale") or "").strip()
-    base_locale = getattr(request.tenant, "default_locale", "") or settings.LANGUAGE_CODE
-    active = set(getattr(request.tenant, "active_locales", None) or [])
-    if (
-        locale
-        and locale != base_locale
-        and locale in active
-        and locale in siteconfig.overlay_locales()
-    ):
+    if siteconfig.is_translation_locale(request.tenant, locale):
         siteconfig.set_overlay_value(cfg, locale, path, value)
     else:
         siteconfig.set_value(cfg, path, value)

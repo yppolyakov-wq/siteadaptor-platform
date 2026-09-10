@@ -25,13 +25,13 @@ MT-D2: при нескольких странах — секции по стра
     {% for g in country_groups %}
       <section id="land-{{ g.anchor }}" class="mb-10">
         <h2 class="text-xl font-semibold mb-4">{% if g.label %}{{ g.label }}{% else %}{% trans "More tours" %}{% endif %}</h2>
-        <div class="grid gap-6 sm:grid-cols-2" data-sf-section="tours">
+        <div class="{{ tours_grid|default:'grid gap-6 sm:grid-cols-2' }}" data-sf-section="tours" {% sf_grid_attrs tours_layout cols="1/2/2" count=g.tours|length %}>
           {% for tour in g.tours %}{% include "storefront/_tour_card.html" %}{% endfor %}
         </div>
       </section>
     {% endfor %}
   {% else %}
-    <div class="grid gap-6 sm:grid-cols-2" data-sf-section="tours">
+    <div class="{{ tours_grid|default:'grid gap-6 sm:grid-cols-2' }}" data-sf-section="tours" {% sf_grid_attrs tours_layout cols="1/2/2" count=tours|length %}>
       {% for tour in tours %}{% include "storefront/_tour_card.html" %}{% endfor %}
     </div>
   {% endif %}

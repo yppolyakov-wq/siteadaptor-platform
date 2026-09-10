@@ -1797,12 +1797,47 @@ _PAGE_LAYOUT_KEYS = (
 # LAY-5: дефолты страничных раскладок в ОДНОМ месте — по ним резолвер понимает,
 # трогал ли владелец сетку. Раньше они были рассыпаны по normalize и по вьюхам,
 # и «шаблон уважает выбор владельца» было не на чем построить.
+# LAY-3a-2: страницы, у которых сетка была зашита литералом в шаблоне (разведка —
+# план LAY §13). Ключ presence-minimal, как `service_index_layout`: пока владелец
+# не выбрал раскладку, ключа нет и страница рисуется прежними классами (пиксельная
+# неизменность ненастроенных витрин). Дефолт описывает ровно ту прежнюю сетку —
+# он нужен правилу Р-3 (`layout_is_untouched`), а не для материализации.
+OPTIONAL_PAGE_LAYOUTS = {
+    "promo_index_layout": {"preset": "cols3", "mobile": 2},  # /aktionen/
+    "combos_layout": {"preset": "cols4", "mobile": 2},  # /kombi/
+    "tours_layout": {"preset": "cols2", "mobile": 1},  # /touren/
+    "lookbook_layout": {"preset": "cols4", "mobile": 1},  # /lookbook/<slug>/
+    "reviews_page_layout": {"preset": "cols2", "mobile": 1},  # /bewertungen/
+    "wishlist_layout": {"preset": "cols4", "mobile": 1},  # /merkzettel/
+    "blog_index_layout": {"preset": "cols3", "mobile": 1},  # /blog/
+}
+
 PAGE_LAYOUT_DEFAULTS = {
     "catalog_layout": {"preset": "cols3"},
     "events_index_layout": {"preset": "list"},
     "stay_index_layout": {"preset": "cols3", "mobile": 1},
     "service_index_layout": {"preset": "cols2"},
+    **OPTIONAL_PAGE_LAYOUTS,
 }
+
+
+def optional_page_layout(config, key: str):
+    """LAY-3a-2: раскладка страницы из `OPTIONAL_PAGE_LAYOUTS` или `None`.
+
+    `None` означает «владелец сетку не задавал» — шаблон рисует прежние классы.
+    """
+    value = (config or {}).get(key)
+    return value if isinstance(value, dict) else None
+
+
+def page_layout_ctx(config, key: str, name: str) -> dict:
+    """Контекст витрины для такой раскладки: `<name>_grid` (классы Tailwind, пусто =
+    прежняя вёрстка) и `<name>_layout` (объект для `sf_grid_attrs`)."""
+    layout = optional_page_layout(config, key)
+    return {
+        f"{name}_grid": grid_class_string(layout) if layout else "",
+        f"{name}_layout": layout,
+    }
 
 
 def layout_is_untouched(layout, key: str) -> bool:
@@ -2614,6 +2649,259 @@ def set_overlay_value(config: dict, locale: str, path, value) -> None:
 # немецким вопросом, к которому не относится). Ключ, по которому узнаём «тот же
 # элемент», — главное текстовое поле записи.
 LIST_OVERLAY_KEYS = {"faq": "q", "testimonials": "name", "process": "title", "team": "name"}
+
+
+# LAY-6b: ключи site_config, которые несут ПЕРЕВОДИМЫЙ контент. Реестр появился в
+# обходе демо-переводов (`demo_i18n`) — по правилу волны (LAY-2, «один реестр»)
+# владелец списка теперь один, а demo_i18n его потребитель.
+TRANSLATABLE_KEYS = (
+    "hero_title",
+    "hero_text",
+    "about_title",
+    "about_text",
+    "section_titles",
+    "section_intros",
+    "cta",
+    "faq",
+    "testimonials",
+    "process",
+    "heroes",
+    "trust",
+    "archetypes",
+    "usp_bar",
+    "team",
+    "anfrage",
+    "before_after",
+)
+
+# Строковые поля, которые переводу НЕ подлежат: адреса, файлы, служебные коды и
+# токены оформления. Без этого списка правка ссылки кнопки, сделанная на русском,
+# уехала бы в перевод — на немецкой витрине ссылка осталась бы прежней. Список
+# чёрный, а не белый, осознанно: новое ТЕКСТОВОЕ поле должно переводиться само,
+# а имена нетекстовых стабильны (замок «URL и фото не уезжают в перевод»).
+NON_TRANSLATABLE_FIELDS = frozenset(
+    {
+        "id",
+        "key",
+        "type",
+        "slug",
+        "url",
+        "href",
+        "link",
+        "target",
+        "image",
+        "photo",
+        "icon",
+        "video",
+        "style",
+        "preset",
+        "variant",
+        "color",
+        "align",
+        "size",
+        "width",
+        "cols",
+        "layout",
+        "date",
+        "enabled",
+        "visible",
+    }
+)
+
+
+def _is_translatable_field(name) -> bool:
+    """Поле переводимо, если это не служебное имя и не «…_url/_image/_at»."""
+    if not isinstance(name, str):
+        return False
+    if name in NON_TRANSLATABLE_FIELDS:
+        return False
+    return not name.endswith(("_url", "_image", "_at", "_id", "_key", "_color", "_style"))
+
+
+def _item_identity(item, field: str) -> str:
+    """Ключ сопоставления элемента списка: свой id/key, иначе главное текстовое поле."""
+    if not isinstance(item, dict):
+        return ""
+    for k in ("id", "key"):
+        if item.get(k):
+            return f"{k}:{item[k]}"
+    return "t:" + str(item.get(field, ""))
+
+
+def _split_node(new, old, field: str, old_overlay=None):
+    """Разложить значение на (база, перевод). Перевод — только там, где ТЕКСТ
+    отличается от базового; структура (числа, флаги, коды, адреса) остаётся из
+    `new`. `None` во второй позиции = переводить нечего.
+
+    Списки сопоставляются по «личности» элемента (id/key, иначе главное текстовое
+    поле — в языке перевода тоже, поэтому передаётся старый оверлей): при
+    перестановке и удалении перевод едет за своим элементом, а не за позицией.
+    """
+    if isinstance(new, str):
+        if isinstance(old, str) and old and new != old:
+            return old, new
+        return new, None
+    if isinstance(new, dict):
+        base, ov = {}, {}
+        old = old if isinstance(old, dict) else {}
+        old_overlay = old_overlay if isinstance(old_overlay, dict) else {}
+        for key, val in new.items():
+            if not _is_translatable_field(key):
+                base[key] = val
+                continue
+            b, o = _split_node(val, old.get(key), field, old_overlay.get(key))
+            base[key] = b
+            if o is not None:
+                ov[key] = o
+        return base, (ov or None)
+    if isinstance(new, list):
+        old = old if isinstance(old, list) else []
+        old_overlay = old_overlay if isinstance(old_overlay, list) else []
+        # личность старого элемента: сперва по переводу (владелец правит переведённый
+        # текст), затем по базе — иначе элемент «не узнаётся» и терял бы перевод.
+        index_of = {}
+        for i, item in enumerate(old):
+            tr = old_overlay[i] if i < len(old_overlay) else None
+            for ident in (_item_identity(tr, field), _item_identity(item, field)):
+                if ident and ident not in ("t:", ""):
+                    index_of.setdefault(ident, i)
+        base, ov, any_tr = [], [], False
+        for item in new:
+            idx = index_of.get(_item_identity(item, field))
+            if idx is None:
+                base.append(item)  # новый элемент: базы у него нет (§12.4)
+                ov.append({} if isinstance(item, dict) else item)
+                continue
+            b, o = _split_node(
+                item, old[idx], field, old_overlay[idx] if idx < len(old_overlay) else None
+            )
+            base.append(b)
+            ov.append(o if o is not None else ({} if isinstance(item, dict) else item))
+            any_tr = any_tr or o is not None
+        return base, (ov if any_tr else None)
+    return new, None
+
+
+def split_translation(payload: dict, base: dict, locale: str) -> dict:
+    """LAY-6b: разложить сохраняемый конфиг на базу и ПЕРЕВОД локали.
+
+    Редактор работает в ОДНОМ языке (§12): панель показывает тексты выбранной
+    локали, поэтому Save приносит их в базовых полях. Здесь текст, отличающийся от
+    базового, уезжает в `payload["i18n"][locale]`, а базовая строка возвращается на
+    место. Структура (порядок, видимость, раскладки, стили, адреса, фото) — общая
+    для всех языков и остаётся из формы.
+
+    `payload` мутируется и возвращается.
+    """
+    if not isinstance(payload, dict) or not isinstance(base, dict) or not locale:
+        return payload
+    i18n = payload.get("i18n")
+    i18n = dict(i18n) if isinstance(i18n, dict) else {}
+    node = dict(i18n.get(locale) or {})
+    for key in TRANSLATABLE_KEYS:
+        if key not in payload:
+            continue
+        field = LIST_OVERLAY_KEYS.get(key, "title")
+        new_base, ov = _split_node(payload[key], base.get(key), field, node.get(key))
+        payload[key] = new_base
+        if ov is not None:
+            node[key] = ov
+        else:
+            node.pop(key, None)
+    # C-блоки: переводим только ДАННЫЕ блока (ключ, тип и оформление — структура).
+    for key in ("sections", "page_blocks"):
+        if key not in payload:
+            continue
+        new_base, ov = _split_blocks(payload[key], base.get(key), node.get(key))
+        payload[key] = new_base
+        if ov is not None:
+            node[key] = ov
+        else:
+            node.pop(key, None)
+    if node:
+        i18n[locale] = node
+    else:
+        i18n.pop(locale, None)
+    if i18n:
+        payload["i18n"] = i18n
+    else:
+        payload.pop("i18n", None)
+    return payload
+
+
+def _split_blocks(new, old, old_overlay):
+    """Блоки страницы/секции: список блоков или {хост: [блок…]}. Переводится `data`."""
+    if isinstance(new, dict):
+        base, ov = {}, {}
+        old = old if isinstance(old, dict) else {}
+        old_overlay = old_overlay if isinstance(old_overlay, dict) else {}
+        for host, rows in new.items():
+            b, o = _split_blocks(rows, old.get(host), old_overlay.get(host))
+            base[host] = b
+            if o is not None:
+                ov[host] = o
+        return base, (ov or None)
+    if not isinstance(new, list):
+        return new, None
+    old = old if isinstance(old, list) else []
+    old_overlay = old_overlay if isinstance(old_overlay, list) else []
+    index_of = {}
+    for i, item in enumerate(old):
+        ident = _item_identity(item, "title")
+        if ident:
+            index_of.setdefault(ident, i)
+    base, ov, any_tr = [], [], False
+    for item in new:
+        idx = index_of.get(_item_identity(item, "title"))
+        if idx is None or not isinstance(item, dict):
+            base.append(item)
+            ov.append({})
+            continue
+        old_item = old[idx] if isinstance(old[idx], dict) else {}
+        old_ov = old_overlay[idx] if idx < len(old_overlay) else None
+        old_ov = old_ov.get("data") if isinstance(old_ov, dict) else None
+        b, o = _split_node(item.get("data"), old_item.get("data"), "title", old_ov)
+        entry = dict(item)
+        if "data" in item:
+            entry["data"] = b
+        base.append(entry)
+        ov.append({"data": o} if o is not None else {})
+        any_tr = any_tr or o is not None
+    return base, (ov if any_tr else None)
+
+
+def content_locale(request, tenant) -> str:
+    """Язык КОНТЕНТА редактора = язык, на котором рендерится канва.
+
+    Источник один — cookie витрины (`django_language`), склампленная к
+    `active_locales` тем же правилом, что `StorefrontLocaleClampMiddleware`. Язык
+    кабинета живёт отдельно (сессия `cabinet_lang`), поэтому кука свободна и
+    гарантирует совпадение панели с кадром.
+    """
+    from django.conf import settings as _s
+
+    allowed = list(getattr(tenant, "active_locales", None) or []) or [_s.LANGUAGE_CODE]
+    loc = (request.COOKIES.get(_s.LANGUAGE_COOKIE_NAME) or "").strip()
+    if loc in allowed:
+        return loc
+    default = getattr(tenant, "default_locale", "") or ""
+    if default in allowed:
+        return default
+    return _s.LANGUAGE_CODE if _s.LANGUAGE_CODE in allowed else allowed[0]
+
+
+def is_translation_locale(tenant, locale: str) -> bool:
+    """Локаль — это ПЕРЕВОД (а не базовый слот плоских строк)?
+
+    База — `settings.LANGUAGE_CODE` (см. `overlay_locales`), а НЕ `default_locale`
+    тенанта: у тенанта с русским дефолтом оверлей `ru` существует (демо-киты его
+    сеют) и замещает базу — правка, ушедшая в базу, была бы не видна вовсе.
+    """
+    return bool(
+        locale
+        and locale in (getattr(tenant, "active_locales", None) or [])
+        and locale in overlay_locales()
+    )
 
 
 def realign_list_overlays(config: dict, new_lists: dict, key_fields: dict | None = None) -> dict:
@@ -3631,6 +3919,12 @@ def _normalize_impl(config) -> dict:
             # MEN-18: прайс-виды услуг (список/с фото/2 колонки) — как у каталога.
             extra_presets=PAGE_EXTRA_PRESETS["service_index_layout"],
         )
+    # LAY-3a-2: раскладки страниц с прежде захардкоженной сеткой. Как у
+    # `service_index_layout`: пишем ТОЛЬКО заданное владельцем — отсутствие ключа
+    # означает «прежняя вёрстка шаблона».
+    for _opt_key, _opt_default in OPTIONAL_PAGE_LAYOUTS.items():
+        if isinstance(config.get(_opt_key), dict):
+            normalized[_opt_key] = normalize_layout(config[_opt_key], _opt_default)
     # M20U-4: порядок/видимость тематических секций детальной события.
     normalized["event_detail"] = normalize_event_detail(config.get("event_detail"))
     # Видимость опциональных секций детальной товара (описание/инфо/отзывы/похожие).

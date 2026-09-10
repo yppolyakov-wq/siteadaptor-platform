@@ -226,6 +226,15 @@ def _require_combos_visible(request):
         raise Http404
 
 
+def _page_layout(request, key: str, name: str) -> dict:
+    """LAY-3a-2: контекст раскладки страницы (`<name>_grid` / `<name>_layout`).
+    Пусто, если владелец сетку не задавал — шаблон рисует прежние классы."""
+    from apps.tenants import siteconfig
+
+    cfg = request.tenant.site_config if isinstance(request.tenant.site_config, dict) else {}
+    return siteconfig.page_layout_ctx(siteconfig.normalize(cfg), key, name)
+
+
 def combo_list_public(request):
     """Витрина комбо-наборов (A4): /kombi/. MEN-3: гейт по видимости каталога.
 
@@ -251,6 +260,8 @@ def combo_list_public(request):
             "current_category": current_category,
             # Заголовок по архетипу — общий реестр подписей (гастро/прочие).
             "combos_title": combo_labels(request.tenant.business_type)["combos_title"],
+            # LAY-3a-2: раскладка сетки наборов (пусто → прежние классы шаблона).
+            **_page_layout(request, "combos_layout", "combos"),
         },
     )
 
@@ -546,6 +557,8 @@ def wishlist_view(request):
             # остаются с пометкой и ссылкой на актуальные.
             "wish_promotions": wishlist.promotions(request),
             "promotions_active": modules.is_module_active(request.tenant, "promotions"),
+            # LAY-3a-2: обе сетки страницы (акции и товары) — одна ось вывода.
+            **_page_layout(request, "wishlist_layout", "wishlist"),
         },
     )
 

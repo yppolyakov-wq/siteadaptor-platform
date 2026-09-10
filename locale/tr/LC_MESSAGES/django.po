@@ -22457,3 +22457,27 @@ msgstr "Sayfa başına kaç kayıt. Boş = eskisi gibi."
 
 msgid "Sekunden zwischen den Folien. Leer = nicht automatisch drehen."
 msgstr "Slaytlar arası saniye. Boş = otomatik döndürme."
+
+msgid "Inhaltssprache"
+msgstr "İçerik dili"
+
+msgid "Aktionen: Raster"
+msgstr "Kampanyalar: ızgara"
+
+msgid "Kombis: Raster"
+msgstr "Setler: ızgara"
+
+msgid "Reisen: Raster"
+msgstr "Geziler: ızgara"
+
+msgid "Lookbook: Raster"
+msgstr "Lookbook: ızgara"
+
+msgid "Bewertungen: Raster"
+msgstr "Değerlendirmeler: ızgara"
+
+msgid "Merkzettel: Raster"
+msgstr "Not defteri: ızgara"
+
+msgid "Blog: Raster"
+msgstr "Blog: ızgara"

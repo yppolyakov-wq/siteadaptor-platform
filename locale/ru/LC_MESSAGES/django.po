@@ -22560,3 +22560,27 @@ msgstr "Сколько записей на странице. Пусто — ка
 
 msgid "Sekunden zwischen den Folien. Leer = nicht automatisch drehen."
 msgstr "Секунд между слайдами. Пусто — не прокручивать автоматически."
+
+msgid "Inhaltssprache"
+msgstr "Язык контента"
+
+msgid "Aktionen: Raster"
+msgstr "Акции: сетка"
+
+msgid "Kombis: Raster"
+msgstr "Наборы: сетка"
+
+msgid "Reisen: Raster"
+msgstr "Поездки: сетка"
+
+msgid "Lookbook: Raster"
+msgstr "Лукбук: сетка"
+
+msgid "Bewertungen: Raster"
+msgstr "Отзывы: сетка"
+
+msgid "Merkzettel: Raster"
+msgstr "Избранное: сетка"
+
+msgid "Blog: Raster"
+msgstr "Блог: сетка"

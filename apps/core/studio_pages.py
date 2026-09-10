@@ -212,6 +212,15 @@ SETTINGS: dict[str, Setting] = {
             "sd_layout",
             ("service_detail", "layout"),
         ),
+        # LAY-3a-2: ось вывода там, где сетка была зашита в шаблоне (план LAY §13).
+        # Настройка одна и та же по смыслу, поэтому и подпись одна — «Raster».
+        _s("promo_index_layout", _("Raster"), "promo_index_preset", ("promo_index_layout",)),
+        _s("combos_layout", _("Raster"), "combos_preset", ("combos_layout",)),
+        _s("tours_layout", _("Raster"), "tours_preset", ("tours_layout",)),
+        _s("lookbook_layout", _("Raster"), "lookbook_preset", ("lookbook_layout",)),
+        _s("reviews_page_layout", _("Raster"), "reviews_page_preset", ("reviews_page_layout",)),
+        _s("wishlist_layout", _("Raster"), "wishlist_preset", ("wishlist_layout",)),
+        _s("blog_index_layout", _("Raster"), "blog_index_preset", ("blog_index_layout",)),
         _s("stay_layout", _("Raster"), "stay_preset", ("stay_index_layout",)),
         _s("stays_sort", _("Sortierung"), "stays_sort", ("stays_sort",)),
         _s("stay_detail_sections", _("Abschnitte"), "std_visible_*", ("stay_detail", "hidden")),
@@ -359,7 +368,13 @@ PAGE_TYPES: tuple[PageType, ...] = (
         "promos",
         _("Aktionen"),
         ("storefront-aktionen",),
-        ("promo_page_style", "promo_layout", "promo_grouping", "promo_card_form"),
+        (
+            "promo_page_style",
+            "promo_layout",
+            "promo_index_layout",
+            "promo_grouping",
+            "promo_card_form",
+        ),
     ),
     PageType(
         "promo_group",
@@ -424,7 +439,13 @@ PAGE_TYPES: tuple[PageType, ...] = (
     # нет — честнее показать это, чем предлагать неработающее.
     # STU-14: раскладку страница по-прежнему не читает (список строится группами по
     # странам), но блоки и ширина текста ей доступны — панель больше не пуста.
-    PageType("tours", _("Reisen"), ("storefront-tours",), ("text_width",), block_host="tours"),
+    PageType(
+        "tours",
+        _("Reisen"),
+        ("storefront-tours",),
+        ("tours_layout", "text_width"),
+        block_host="tours",
+    ),
     PageType(
         "event",
         _("Veranstaltungsseite"),
@@ -445,9 +466,19 @@ PAGE_TYPES: tuple[PageType, ...] = (
         "gallery", _("Galerie"), ("storefront-gallery",), ("text_width",), block_host="gallery"
     ),
     PageType(
-        "reviews", _("Bewertungen"), ("storefront-reviews",), ("text_width",), block_host="reviews"
+        "reviews",
+        _("Bewertungen"),
+        ("storefront-reviews",),
+        ("reviews_page_layout", "text_width"),
+        block_host="reviews",
     ),
-    PageType("blog", _("Blog"), ("storefront-blog",), ("text_width",), block_host="blog"),
+    PageType(
+        "blog",
+        _("Blog"),
+        ("storefront-blog",),
+        ("blog_index_layout", "text_width"),
+        block_host="blog",
+    ),
     PageType(
         "blog_post",
         _("Blogbeitrag"),
@@ -477,7 +508,7 @@ PAGE_TYPES: tuple[PageType, ...] = (
         "wishlist",
         _("Merkzettel"),
         ("storefront-wishlist",),
-        ("text_width",),
+        ("wishlist_layout", "text_width"),
         block_host="wishlist",
     ),
     PageType(
@@ -486,7 +517,7 @@ PAGE_TYPES: tuple[PageType, ...] = (
         ("storefront-combos",),
         # Набор рисуется своей карточкой (`_combo_card`) — форму карточки ТОВАРА здесь
         # не обещаем (правило STU-9: не предлагать настройку, которой страница не читает).
-        ("text_width",),
+        ("combos_layout", "text_width"),
         block_host="combos",
     ),
     PageType("finder", _("Finder"), ("storefront-finder",), ("text_width",), block_host="finder"),
@@ -494,7 +525,7 @@ PAGE_TYPES: tuple[PageType, ...] = (
         "lookbook",
         _("Lookbook"),
         ("storefront-lookbook",),
-        ("text_width", "product_card_form"),
+        ("lookbook_layout", "text_width", "product_card_form"),
         block_host="lookbook",
     ),
     PageType(
