@@ -9,37 +9,57 @@
 «как раньше» (показывать всё, размер страницы по-старому, не крутить).
 
 Число элементов задаём РЯДАМИ, а не абсолютным числом: «10 = 2 ряда по 5» остаётся
-ровным при смене колонок, абсолютное число — нет (рваные ряды DL-11/14/15).{% endcomment %}
-{% comment %}STU-16a: ось занимает ВСЮ ширину строки. Родитель — flex-строка
-(«заголовок + селект пресета»), и без `basis-full` флекс ужимал этот блок до
-~49 px: подписи («Скорость (сек.)») становились шире своих полей и наезжали —
-ровно та «каша», на которую указал владелец.{% endcomment %}
-<div data-output-axis class="mt-2 basis-full w-full grid grid-cols-2 gap-2 text-xs text-gray-500">
-  <label class="block">{% trans "Ausgabe" %}
-    <select name="{{ field }}_mode" class="mt-0.5 w-full rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
+ровным при смене колонок, абсолютное число — нет (рваные ряды DL-11/14/15).
+
+STU-18a (замер панели, план §1-2): три правки вида, семантика полей прежняя.
+1. Строки собраны компонентом `.stu-row` — один шаблон на всю панель вместо пяти
+   конкурирующих (подпись сверху, контрол во всю ширину, один размер).
+2. «Рядов» стало ВЫБОРОМ: пустое числовое поле с серым placeholder читалось как
+   «недоступно», а не как «сейчас показываются все». Диапазон и так был 1..6, поэтому
+   селект ничего не отнимает. «На странице» остаётся числовым (6..96 — селектом это
+   значило бы отнять свободу), но пустое состояние подписано как значение.
+3. «Скорость» помечена `data-axis-speed` и показывается ТОЛЬКО при слайдере: для сетки
+   настройка не значит ничего и просто занимала строку у каждой поверхности.{% endcomment %}
+<div data-output-axis class="basis-full w-full">
+  <div class="stu-row">
+    <span class="stu-lb">{% trans "Ausgabe" %}</span>
+    <select name="{{ field }}_mode" data-axis-mode class="stu-ctrl">
       <option value="grid" {% if not layout.scroll %}selected{% endif %}>{% trans "Raster" %}</option>
       <option value="slider" {% if layout.scroll %}selected{% endif %}>{% trans "Slider" %}</option>
     </select>
-  </label>
-  <label class="block">{% trans "Letzte Reihe" %}
-    <select name="{{ field }}_tail" class="mt-0.5 w-full rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
+  </div>
+  <div class="stu-row stu-two">
+    <label class="block">
+      <span class="stu-lb">{% trans "Reihen" %}</span>
+      <select name="{{ field }}_rows" class="stu-ctrl"
+              title="{% trans 'Anzahl der Elemente = Spalten × Reihen. Leer = alle zeigen.' %}">
+        <option value="" {% if not layout.rows %}selected{% endif %}>{% trans "alle" %}</option>
+        {% for n in "123456"|make_list %}
+          <option value="{{ n }}" {% if layout.rows|stringformat:"s" == n %}selected{% endif %}>{{ n }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="block">
+      <span class="stu-lb">{% trans "Pro Seite" %}</span>
+      <input type="number" name="{{ field }}_page_size" min="6" max="96" value="{{ layout.page_size|default_if_none:'' }}"
+             placeholder="{% trans 'Standard' %}" class="stu-ctrl stu-num"
+             title="{% trans 'Wie viele Einträge pro Seite. Leer = wie bisher.' %}">
+    </label>
+  </div>
+  <div class="stu-row">
+    <span class="stu-lb">{% trans "Letzte Reihe" %}</span>
+    <select name="{{ field }}_tail" class="stu-ctrl">
       <option value="" {% if not layout.tail %}selected{% endif %}>{% trans "Verteilen" %}</option>
       <option value="show" {% if layout.tail == "show" %}selected{% endif %}>{% trans "Alles zeigen" %}</option>
       <option value="fill" {% if layout.tail == "fill" %}selected{% endif %}>{% trans "Volle Reihen" %}</option>
     </select>
-  </label>
-  <label class="block" title="{% trans 'Anzahl der Elemente = Spalten × Reihen. Leer = alle zeigen.' %}">{% trans "Reihen" %}
-    <input type="number" name="{{ field }}_rows" min="1" max="6" value="{{ layout.rows|default_if_none:'' }}"
-           placeholder="{% trans 'alle' %}" class="mt-0.5 w-full rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
-  </label>
-  <label class="block" title="{% trans 'Wie viele Einträge pro Seite. Leer = wie bisher.' %}">{% trans "Pro Seite" %}
-    <input type="number" name="{{ field }}_page_size" min="6" max="96" value="{{ layout.page_size|default_if_none:'' }}"
-           placeholder="{% trans 'Standard' %}" class="mt-0.5 w-full rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
-  </label>
+  </div>
   {% comment %}Скорость — только у слайдера. Пусто = не крутить: автопрокрутка мешает
   читать и вредит доступности, поэтому включается ОСОЗНАННО (решение DL-16.1).{% endcomment %}
-  <label class="block col-span-2" title="{% trans 'Sekunden zwischen den Folien. Leer = nicht automatisch drehen.' %}">{% trans "Tempo (Sek.)" %}
+  <div class="stu-row" data-axis-speed {% if not layout.scroll %}hidden{% endif %}>
+    <span class="stu-lb">{% trans "Tempo (Sek.)" %}</span>
     <input type="number" name="{{ field }}_speed" min="3" max="15" value="{{ layout.speed|default_if_none:'' }}"
-           placeholder="{% trans 'aus' %}" class="mt-0.5 w-full rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
-  </label>
+           placeholder="{% trans 'aus' %}" class="stu-ctrl stu-num"
+           title="{% trans 'Sekunden zwischen den Folien. Leer = nicht automatisch drehen.' %}">
+  </div>
 </div>

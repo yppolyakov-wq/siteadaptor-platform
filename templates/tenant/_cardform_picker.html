@@ -6,13 +6,15 @@ hidden-инпут с прежним именем поля (`sd_card_style` / `sd
 <div class="text-sm md:col-span-2" data-cardform-picker>
   <span class="block font-medium mb-1">{{ title }}</span>
   <input type="hidden" name="{{ name }}" value="{{ value }}">
-  <div class="flex flex-wrap gap-2">
+  {% comment %}STU-18a: сетка вместо flex-wrap — ряды плиток выравниваются, а при
+  узкой панели её схлопывают уже существующие правила bld-panel-narrow.{% endcomment %}
+  <div class="grid grid-cols-3 gap-2">
     {% for key, label, hint in items %}
       <button type="button" data-cf-key="{{ key }}" title="{{ hint }}"
               aria-pressed="{% if value == key %}true{% else %}false{% endif %}"
-              class="cf-tile rounded-lg border p-1.5 text-left {% if value == key %}border-indigo-500 ring-2 ring-indigo-200{% else %}border-gray-200 hover:border-gray-300{% endif %}">
+              class="cf-tile w-full rounded-lg border p-1.5 text-left {% if value == key %}border-indigo-500 ring-2 ring-indigo-200{% else %}border-gray-200 hover:border-gray-300{% endif %}">
         {% include thumb|default:"tenant/_cardform_thumb.html" with key=key %}
-        <span class="mt-1 block w-16 text-[10px] leading-tight text-gray-600 dark:text-gray-300 line-clamp-2">{{ label }}</span>
+        <span class="mt-1 block text-[10px] leading-tight text-gray-600 dark:text-gray-300 break-words">{{ label }}</span>
       </button>
     {% endfor %}
   </div>

@@ -61,7 +61,12 @@ def test_output_axis_takes_the_whole_row():
         idx = markup.index(row)
         head = markup.rfind('<div class="page-block', 0, idx)
         opening = markup[head : markup.index(">", head) + 1]
-        assert "flex-wrap" in opening, f"строка без flex-wrap: {opening[:120]}"
+        # STU-18a: механизм сменился — строка больше НЕ флекс, настройки идут
+        # стопкой (подпись сверху, контрол во всю ширину). Инвариант тот же:
+        # ось не должна сжиматься родителем до нечитаемых 49 px. Поэтому флекс
+        # без переноса запрещён, а его отсутствие — норма.
+        if "flex" in opening:
+            assert "flex-wrap" in opening, f"флекс без переноса сожмёт ось: {opening[:120]}"
 
 
 # ── STU-16b: дубль «Header style» ↔ «Examples» ─────────────────────────────
