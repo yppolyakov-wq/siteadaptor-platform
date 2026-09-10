@@ -1420,7 +1420,13 @@ def product_list(request, slug=None):
         products,
         order_field=_field,
         descending=_desc,
-        limit=20 if cfg["catalog_layout"]["cols"] == 5 else 24,
+        # LAY-3c: сколько выводить на странице задаёт владелец («Pro Seite»).
+        # Не задал — прежняя формула: кратно числу колонок, иначе каждая страница
+        # кончалась бы обрывком ряда.
+        limit=(
+            cfg["catalog_layout"].get("page_size")
+            or (20 if cfg["catalog_layout"]["cols"] == 5 else 24)
+        ),
         cursor=request.GET.get("cursor"),
     )
     # A1/A2: рейтинг ★ на карточке каталога — bulk-агрегат по видимой странице (без N+1

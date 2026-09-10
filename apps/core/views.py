@@ -1707,6 +1707,15 @@ def home_builder_view(request):
                 # DL-11: хвост неполного ряда (пусто = дефолт «обрезать» → ключ не пишется)
                 if request.POST.get(f"tail_{key}", "") in siteconfig._LAYOUT_TAILS:
                     lay["tail"] = request.POST.get(f"tail_{key}")
+                # LAY-3c: «сколько рядов показывать» и скорость ленты. Имя поля
+                # `grid_rows_<ключ>`, а НЕ `rows_<ключ>`: `rows_products` уже занят
+                # капом строк прайс-вида (MEN-24c), и коллизия молча перепутала бы
+                # два разных числа. Пустое поле ключа не создаёт (клампы —
+                # в normalize_layout).
+                for _fld, _key in (("grid_rows", "rows"), ("speed", "speed")):
+                    _v = (request.POST.get(f"{_fld}_{key}", "") or "").strip()
+                    if _v:
+                        lay[_key] = _v
                 # DS-5: плитка категорий — высота фото + инфо-строка.
                 if key == "categories":
                     if request.POST.get("img_h_categories", ""):
@@ -2278,6 +2287,8 @@ def home_builder_view(request):
                 "layout_scroll": bool((s.get("layout") or {}).get("scroll")),
                 # DL-11: хвост неполного ряда ("" = обрезать, "show" = всё)
                 "layout_tail": (s.get("layout") or {}).get("tail", ""),
+                # LAY-3c: сколько рядов показывать в секции-превью (пусто = как раньше).
+                "layout_rows": (s.get("layout") or {}).get("rows", ""),
                 "img_h": s.get("img_h", 0),
                 "tile_info": s.get("tile_info", []),
                 "has_limit": s["key"] in siteconfig.GRID_SECTION_LIMITS,

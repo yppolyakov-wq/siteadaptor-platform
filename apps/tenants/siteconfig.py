@@ -1243,10 +1243,20 @@ def section_limit(config, key) -> int:
     """M20U-7: сколько элементов выводит секция-превью `key` (клампится 1..MAX).
 
     Берётся из конфига секции, иначе дефолт `GRID_SECTION_LIMITS`. Для секций без
-    настраиваемого лимита возвращает дефолт 8 (на всякий случай)."""
+    настраиваемого лимита возвращает дефолт 8 (на всякий случай).
+
+    LAY-3c: если владелец задал РЯДЫ (`layout.rows`), они побеждают — число
+    элементов считается как «колонки × ряды» и потому всегда даёт полные ряды.
+    Отличить «владелец выставил 8» от «8 — дефолт» здесь невозможно (`limit`
+    материализуется всегда), поэтому правило простое и предсказуемое: выставил
+    ряды — получил ряды; не трогал — работает прежний лимит.
+    """
     default = GRID_SECTION_LIMITS.get(key, 8)
     for item in (config or {}).get("sections", []):
         if isinstance(item, dict) and item.get("key") == key:
+            by_rows = effective_limit(item.get("layout"))
+            if by_rows:
+                return _clamp(by_rows, 1, _SECTION_LIMIT_MAX, default)
             return _clamp(item.get("limit"), 1, _SECTION_LIMIT_MAX, default)
     return default
 
