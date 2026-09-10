@@ -10,7 +10,11 @@
 
 Число элементов задаём РЯДАМИ, а не абсолютным числом: «10 = 2 ряда по 5» остаётся
 ровным при смене колонок, абсолютное число — нет (рваные ряды DL-11/14/15).{% endcomment %}
-<div class="mt-2 grid grid-cols-2 gap-2 text-xs text-gray-500">
+{% comment %}STU-16a: ось занимает ВСЮ ширину строки. Родитель — flex-строка
+(«заголовок + селект пресета»), и без `basis-full` флекс ужимал этот блок до
+~49 px: подписи («Скорость (сек.)») становились шире своих полей и наезжали —
+ровно та «каша», на которую указал владелец.{% endcomment %}
+<div data-output-axis class="mt-2 basis-full w-full grid grid-cols-2 gap-2 text-xs text-gray-500">
   <label class="block">{% trans "Ausgabe" %}
     <select name="{{ field }}_mode" class="mt-0.5 w-full rounded border-gray-300 px-1.5 py-1 text-xs text-gray-600">
       <option value="grid" {% if not layout.scroll %}selected{% endif %}>{% trans "Raster" %}</option>

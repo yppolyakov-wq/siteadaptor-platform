@@ -22356,3 +22356,19 @@ msgstr "Blog: grid layout"
 #: apps/imports/views.py
 msgid "Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch."
 msgstr "The import file has already been removed. Please upload it again."
+
+#: templates/tenant/site_home.html apps/tenants/menu.py
+msgid "Bereiche"
+msgstr "Sections"
+
+#: templates/tenant/site_home.html apps/tenants/menu.py
+msgid "Ziel"
+msgstr "Destination"
+
+#: templates/tenant/_menu_target_options.html
+msgid "Ziel wählen"
+msgstr "Choose destination"
+
+#: templates/tenant/_menu_target_options.html
+msgid "noch leer"
+msgstr "still empty"

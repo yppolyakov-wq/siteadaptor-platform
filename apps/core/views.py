@@ -1398,6 +1398,26 @@ def _presence_layout_keys():
     return {"service_index_layout"} | set(siteconfig.OPTIONAL_PAGE_LAYOUTS)
 
 
+def _menu_rows(items, options):
+    """STU-16d: строки редактора меню Студии = узел + его ЦЕЛЬ для селекта.
+
+    `target_value` — пара "<type>:<target>" (её же кладёт обратно JS). Узел, чья
+    пара не встречается в реестре целей (внешняя ссылка/якорь из «Menü-Generator»),
+    получает `target_unknown` — партиал добавит ему свою опцию, иначе селект
+    показал бы «— Ziel wählen —» у РАБОЧЕГО пункта и пометил бы его незаполненным.
+    """
+    known = {o["value"] for o in options}
+    rows = []
+    for node in items:
+        value = f"{node.get('type', '')}:{node.get('target', '')}"
+        row = dict(node)
+        row["target_value"] = value if value != ":" else ""
+        row["target_unknown"] = bool(row["target_value"]) and value not in known
+        row["target_raw"] = node.get("target") or node.get("type", "")
+        rows.append(row)
+    return rows
+
+
 @login_required
 def home_builder_view(request):
     """Конструктор главной (S2b): порядок/видимость блоков главной + тизеры
@@ -2447,6 +2467,10 @@ def home_builder_view(request):
         from apps.catalog.models import Category
 
         catalog_categories = list(Category.objects.filter(is_active=True))
+    # STU-16d: цели пунктов меню — тот же реестр, что у «Menü-Generator».
+    from apps.tenants import menu as _menu_mod
+
+    _menu_targets = _menu_mod.target_options(request.tenant)
     return render(
         request,
         "tenant/site_home.html",
@@ -2485,7 +2509,8 @@ def home_builder_view(request):
             "nav_styles": siteconfig.NAV_STYLES,
             # STU-12c: колонка «Kopf- & Fußzeile» — CTA шапки + верхний уровень меню.
             "nav_cta": bool(config["nav"].get("cta")),
-            "menu_top_items": config["menus"]["top"]["items"],
+            "menu_top_items": _menu_rows(config["menus"]["top"]["items"], _menu_targets),
+            "menu_target_options": _menu_targets,
             "menus_json": _safe_json(config["menus"]),
             # SE-7d: область «Баннер» — заголовок/текст hero (картинка — на канве/в галерее).
             "hero_title": config["hero_title"],
@@ -3395,7 +3420,6 @@ def menu_builder_view(request):
     """
     import json
 
-    from apps.core import modules
     from apps.tenants import siteconfig
 
     if request.method == "POST":
@@ -3417,70 +3441,15 @@ def menu_builder_view(request):
 
     tenant = request.tenant
     menus = siteconfig.normalize(tenant.site_config)["menus"]
-    # Доступные цели для выпадашек редактора.
-    archetype_targets = [
-        {"value": s.key, "label": s.storefront_label or s.label_de}
-        for s in modules.active_modules(tenant)
-        if s.storefront_landing
-    ]
-    category_targets = []
-    parent_targets = []
-    if modules.is_module_active(tenant, "catalog"):
-        from apps.catalog.models import Category
-
-        # MEN-15: подпись — локализованное имя. Раньше в селект уезжал сырой
-        # JSONField ({'de': 'Buffets'}), поэтому владелец выбирал цель вслепую.
-        # Порядок — как в каталоге (sort_order), а не по строке словаря.
-        cats = list(Category.objects.filter(is_active=True).order_by("sort_order", "slug"))
-        roots = [c for c in cats if c.parent_id is None]
-        kids = {}
-        for c in cats:
-            if c.parent_id is not None:
-                kids.setdefault(c.parent_id, []).append(c)
-        # Порядок селекта — как в каталоге: корневая, под ней её ветка с
-        # отступами по уровню (плоский список вперемешку читался как случайный).
-        # Ревью MEN-15: обход обязан покрыть ВСЕ живые категории. Первая версия
-        # выводила только корни и их прямых детей — категория 3-го уровня и
-        # активный ребёнок ВЫКЛЮЧЕННОГО родителя пропадали из селекта, и Save
-        # молча переставлял такой пункт меню на первую опцию (класс W0).
-        category_targets = []
-        seen = set()
-
-        def _walk(node, depth):
-            if node.pk in seen:
-                return
-            seen.add(node.pk)
-            prefix = "— " * depth
-            category_targets.append(
-                {"value": node.slug, "label": f"{prefix}{node.get_i18n('name')}"}
-            )
-            for child in kids.get(node.pk, []):
-                _walk(child, depth + 1)
-
-        for root in roots:
-            _walk(root, 0)
-        for cat in cats:  # осиротевшие ветки (родитель выключен/удалён) — в конце
-            _walk(cat, 0)
-        # Цели для узла «Kategorien»: пусто = корневые, иначе подкатегории этой.
-        parent_targets = [
-            {"value": "", "label": str(_("Alle Hauptkategorien"))},
-        ] + [{"value": c.slug, "label": c.get_i18n("name")} for c in roots]
-    # Аудит 2026-08-07: список был захардкожен как {home, about}, поэтому узел с
-    # любой другой целью (Galerie/Bewertungen/Team/Treue/…) не находил себя в
-    # селекте, браузер выбирал первый пункт, и после Save пункт вёл на главную.
-    # Источник — реестр страниц меню: новая страница появляется здесь сама.
-    page_targets = menu_mod.page_target_choices()
-    promo_group_targets = []
-    if modules.is_module_active(tenant, "promotions"):
-        from apps.promotions.models import Promotion
-
-        groups = (
-            Promotion.objects.filter(status="active")
-            .exclude(group="")
-            .values_list("group", flat=True)
-            .distinct()
-        )
-        promo_group_targets = [{"value": g, "label": g} for g in sorted(set(groups))]
+    # STU-16d: списки целей строит `menu.target_sets` — ОДИН источник для этого
+    # экрана и для селекта цели в панели Студии (иначе два редактора меню
+    # разъехались бы: новая страница появлялась бы в одном и не появлялась в другом).
+    targets = menu_mod.target_sets(tenant)
+    archetype_targets = targets["archetypes"]
+    category_targets = targets["categories"]
+    parent_targets = targets["category_parents"]
+    page_targets = targets["pages"]
+    promo_group_targets = targets["promo_groups"]
     builder = {
         "menus": menus,
         "types": list(siteconfig.MENU_NODE_TYPES),

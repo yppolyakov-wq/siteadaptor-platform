@@ -22484,3 +22484,19 @@ msgstr "Blog: ızgara"
 #: apps/imports/views.py
 msgid "Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch."
 msgstr "İçe aktarma dosyası zaten kaldırıldı. Lütfen yeniden yükleyin."
+
+#: templates/tenant/site_home.html apps/tenants/menu.py
+msgid "Bereiche"
+msgstr "Bölümler"
+
+#: templates/tenant/site_home.html apps/tenants/menu.py
+msgid "Ziel"
+msgstr "Hedef"
+
+#: templates/tenant/_menu_target_options.html
+msgid "Ziel wählen"
+msgstr "Hedef seçin"
+
+#: templates/tenant/_menu_target_options.html
+msgid "noch leer"
+msgstr "henüz boş"

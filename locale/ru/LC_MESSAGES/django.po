@@ -22587,3 +22587,19 @@ msgstr "Блог: сетка"
 #: apps/imports/views.py
 msgid "Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch."
 msgstr "Файл импорта уже удалён. Пожалуйста, загрузите его заново."
+
+#: templates/tenant/site_home.html apps/tenants/menu.py
+msgid "Bereiche"
+msgstr "Разделы"
+
+#: templates/tenant/site_home.html apps/tenants/menu.py
+msgid "Ziel"
+msgstr "Цель"
+
+#: templates/tenant/_menu_target_options.html
+msgid "Ziel wählen"
+msgstr "Выберите цель"
+
+#: templates/tenant/_menu_target_options.html
+msgid "noch leer"
+msgstr "пока пусто"

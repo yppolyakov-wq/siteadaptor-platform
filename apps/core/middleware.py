@@ -8,6 +8,7 @@ public-схему и пути вне реестра не трогаем.
 """
 
 from django.http import Http404, HttpResponseForbidden
+from django.utils.cache import patch_vary_headers
 from django.utils.translation import gettext as _
 
 from . import modules
@@ -89,13 +90,21 @@ class CabinetLocaleMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        if request.path.startswith(CABINET_PREFIXES):
-            from django.utils import translation
+        if not request.path.startswith(CABINET_PREFIXES):
+            return self.get_response(request)
+        from django.utils import translation
 
-            loc = resolve_cabinet_locale(request)
-            translation.activate(loc)
-            request.LANGUAGE_CODE = loc
-        return self.get_response(request)
+        loc = resolve_cabinet_locale(request)
+        translation.activate(loc)
+        request.LANGUAGE_CODE = loc
+        response = self.get_response(request)
+        # STU-16e: без выбора в сессии язык берётся из `Accept-Language` → ответ
+        # зависит от заголовка, и промежуточный кэш обязан это учитывать.
+        try:
+            patch_vary_headers(response, ("Accept-Language",))
+        except Exception:  # noqa: BLE001 — не-HTTP ответы (стримы/заглушки тестов)
+            pass
+        return response
 
 
 class ModuleGatingMiddleware:

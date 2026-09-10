@@ -6,7 +6,7 @@
 {% comment %}SE-6 (Вариант A): полноэкранный overlay-редактор. Билдер — fixed inset-0,
 перекрывает сайдбар кабинета (сайт на 100% ширины); инспектор `#bld-editor-pane` —
 плавающая шторка поверх канваса (тоггл в топ-баре). Все id сохранены → JS не тронут.{% endcomment %}
-<div id="bld-root" data-mode="basic" class="fixed inset-0 z-40 flex flex-col bg-gray-100">
+<div id="bld-root" data-mode="expert" class="fixed inset-0 z-40 flex flex-col bg-gray-100">
   {% comment %}Топ-бар: выход · заголовок · Простой/Эксперт · тоггл шторки · Save.{% endcomment %}
   <div class="shrink-0 flex items-center justify-between gap-2 bg-white border-b border-gray-200 px-3 py-1">
     <div class="flex items-center gap-2 min-w-0">
@@ -72,21 +72,27 @@
          кабинета: панель читает и Save пишет именно его. Источник один — кука витрины,
          поэтому панель и кадр не расходятся; переключатель шлёт ?clang= (GET, вне
          #home-form — W0 цел) и возвращает на тот же адрес.{% endcomment %}
+      {% comment %}STU-16e: два селектора языка стояли рядом одинаковыми пилюлями «Deutsch»
+         и были неотличимы — это и была половина «каши». Теперь каждый подписан своим
+         словом (на широком экране) и своим значком в каждом пункте: 🌐 = язык САЙТА,
+         который правишь, 🗣 = язык самого кабинета.{% endcomment %}
       {% if content_locales|length > 1 %}
-      <form method="get" class="shrink-0" title="{% trans 'Inhaltssprache' %}">
-        <select name="clang" onchange="this.form.submit()" aria-label="{% trans 'Inhaltssprache' %}"
+      <form method="get" class="shrink-0 flex items-center gap-1" title="{% trans 'Inhaltssprache' %}">
+        <span class="hidden 2xl:inline text-[11px] text-gray-400 whitespace-nowrap">{% trans "Inhaltssprache" %}</span>
+        <select name="clang" data-lang-content onchange="this.form.submit()" aria-label="{% trans 'Inhaltssprache' %}"
                 class="text-xs bg-white border border-gray-300 rounded-lg px-1.5 py-1 text-gray-600 cursor-pointer">
           {% for l in content_locales %}<option value="{{ l.code }}"{% if l.code == content_loc %} selected{% endif %}>🌐 {{ l.label }}</option>{% endfor %}
         </select>
       </form>
       {% endif %}
       {% if cabinet_langs|length > 1 %}
-      <form method="post" action="{% url 'set-cabinet-lang' %}" class="shrink-0" title="{% trans 'Cabinet language' %}">
+      <form method="post" action="{% url 'set-cabinet-lang' %}" class="shrink-0 flex items-center gap-1" title="{% trans 'Cabinet language' %}">
         {% csrf_token %}
         {# Возврат — по Referer: вьюха пускает только свои /dashboard/-адреса. #}
-        <select name="lang" onchange="this.form.submit()" aria-label="{% trans 'Cabinet language' %}"
+        <span class="hidden 2xl:inline text-[11px] text-gray-400 whitespace-nowrap">{% trans "Cabinet language" %}</span>
+        <select name="lang" data-lang-cabinet onchange="this.form.submit()" aria-label="{% trans 'Cabinet language' %}"
                 class="text-xs bg-white border border-gray-300 rounded-lg px-1.5 py-1 text-gray-600 cursor-pointer">
-          {% for l in cabinet_langs %}<option value="{{ l.code }}"{% if l.code == cabinet_lang %} selected{% endif %}>{{ l.label }}</option>{% endfor %}
+          {% for l in cabinet_langs %}<option value="{{ l.code }}"{% if l.code == cabinet_lang %} selected{% endif %}>🗣 {{ l.label }}</option>{% endfor %}
         </select>
       </form>
       {% endif %}
@@ -204,10 +210,6 @@
           <span class="min-w-0 flex-1 text-sm leading-tight">
             <span id="bld-block-crumb" class="block truncate text-[11px] text-gray-500"></span>
             <span id="bld-block-popup-title" class="block truncate font-semibold text-gray-700"></span>
-          </span>
-          <span class="flex rounded-md border border-gray-200 overflow-hidden text-xs shrink-0">
-            <button type="button" id="bld-mode-basic" class="px-2 py-1 bg-indigo-600 text-white font-medium">{% trans "Simple" %}</button>
-            <button type="button" id="bld-mode-expert" class="px-2 py-1 text-gray-600 hover:bg-gray-100">{% trans "Expert" %}</button>
           </span>
           <details id="bld-block-more" class="relative shrink-0">
             <summary class="list-none cursor-pointer select-none px-1 text-gray-500 hover:text-indigo-700" title="{% trans 'More' %}" aria-label="{% trans 'More' %}">⋯</summary>
@@ -607,7 +609,7 @@
           {% comment %}LAY-3a-2: ось вывода на страницах, где сетка была зашита в
              шаблоне (план LAY §13). Ключ presence-minimal: «Standard» снимает его и
              страница снова рисуется прежними классами.{% endcomment %}
-          <div class="page-block flex items-center gap-3 mt-4" data-stu-setting="promo_index_layout" data-stu-page="promos">
+          <div class="page-block flex flex-wrap items-center gap-3 mt-4" data-stu-setting="promo_index_layout" data-stu-page="promos">
             <span class="text-sm font-medium flex-1">{% trans "Aktionen: Raster" %}</span>
             <select name="promo_index_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               <option value="">{% trans "Standard" %}</option>
@@ -615,7 +617,7 @@
             </select>
             {% include "tenant/_output_axis.html" with field="promo_index_preset" layout=promo_index_layout %}
           </div>
-          <div class="page-block flex items-center gap-3 mt-4" data-stu-setting="combos_layout" data-stu-page="combos">
+          <div class="page-block flex flex-wrap items-center gap-3 mt-4" data-stu-setting="combos_layout" data-stu-page="combos">
             <span class="text-sm font-medium flex-1">{% trans "Kombis: Raster" %}</span>
             <select name="combos_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               <option value="">{% trans "Standard" %}</option>
@@ -623,7 +625,7 @@
             </select>
             {% include "tenant/_output_axis.html" with field="combos_preset" layout=combos_layout %}
           </div>
-          <div class="page-block flex items-center gap-3 mt-4" data-stu-setting="tours_layout" data-stu-page="tours">
+          <div class="page-block flex flex-wrap items-center gap-3 mt-4" data-stu-setting="tours_layout" data-stu-page="tours">
             <span class="text-sm font-medium flex-1">{% trans "Reisen: Raster" %}</span>
             <select name="tours_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               <option value="">{% trans "Standard" %}</option>
@@ -631,7 +633,7 @@
             </select>
             {% include "tenant/_output_axis.html" with field="tours_preset" layout=tours_layout %}
           </div>
-          <div class="page-block flex items-center gap-3 mt-4" data-stu-setting="lookbook_layout" data-stu-page="lookbook">
+          <div class="page-block flex flex-wrap items-center gap-3 mt-4" data-stu-setting="lookbook_layout" data-stu-page="lookbook">
             <span class="text-sm font-medium flex-1">{% trans "Lookbook: Raster" %}</span>
             <select name="lookbook_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               <option value="">{% trans "Standard" %}</option>
@@ -639,7 +641,7 @@
             </select>
             {% include "tenant/_output_axis.html" with field="lookbook_preset" layout=lookbook_layout %}
           </div>
-          <div class="page-block flex items-center gap-3 mt-4" data-stu-setting="reviews_page_layout" data-stu-page="reviews">
+          <div class="page-block flex flex-wrap items-center gap-3 mt-4" data-stu-setting="reviews_page_layout" data-stu-page="reviews">
             <span class="text-sm font-medium flex-1">{% trans "Bewertungen: Raster" %}</span>
             <select name="reviews_page_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               <option value="">{% trans "Standard" %}</option>
@@ -647,7 +649,7 @@
             </select>
             {% include "tenant/_output_axis.html" with field="reviews_page_preset" layout=reviews_page_layout %}
           </div>
-          <div class="page-block flex items-center gap-3 mt-4" data-stu-setting="wishlist_layout" data-stu-page="wishlist">
+          <div class="page-block flex flex-wrap items-center gap-3 mt-4" data-stu-setting="wishlist_layout" data-stu-page="wishlist">
             <span class="text-sm font-medium flex-1">{% trans "Merkzettel: Raster" %}</span>
             <select name="wishlist_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               <option value="">{% trans "Standard" %}</option>
@@ -655,7 +657,7 @@
             </select>
             {% include "tenant/_output_axis.html" with field="wishlist_preset" layout=wishlist_layout %}
           </div>
-          <div class="page-block flex items-center gap-3 mt-4" data-stu-setting="blog_index_layout" data-stu-page="blog">
+          <div class="page-block flex flex-wrap items-center gap-3 mt-4" data-stu-setting="blog_index_layout" data-stu-page="blog">
             <span class="text-sm font-medium flex-1">{% trans "Blog: Raster" %}</span>
             <select name="blog_index_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               <option value="">{% trans "Standard" %}</option>
@@ -787,7 +789,7 @@
           </div>
           {% endif %}
           {% if has_events %}
-          <div class="page-block flex items-center gap-3" data-page-key="events" data-stu-setting="events_layout" data-stu-page="events">
+          <div class="page-block flex flex-wrap items-center gap-3" data-page-key="events" data-stu-setting="events_layout" data-stu-page="events">
             <span class="text-sm font-medium flex-1">{% trans "Events: grid layout" %}</span>
             <select name="events_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if events_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
@@ -807,7 +809,7 @@
             </div>
           {% endif %}
           {% if has_stays %}
-          <div class="page-block flex items-center gap-3" data-page-key="stay_rooms" data-stu-setting="stay_layout" data-stu-page="stays">
+          <div class="page-block flex flex-wrap items-center gap-3" data-page-key="stay_rooms" data-stu-setting="stay_layout" data-stu-page="stays">
             <span class="text-sm font-medium flex-1">{% trans "Rooms: grid layout" %}</span>
             <select name="stay_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if stay_preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
@@ -829,7 +831,7 @@
           {% comment %} UB1-1: раскладка листинга услуг /termin/. Пустой выбор «Standard» =
              ключ не задан → легаси-грид (узкий, max-w-3xl); POST удаляет ключ. {% endcomment %}
           {% if has_booking %}
-          <div class="page-block flex items-center gap-3" data-page-key="services" data-stu-setting="service_layout" data-stu-page="services">
+          <div class="page-block flex flex-wrap items-center gap-3" data-page-key="services" data-stu-setting="service_layout" data-stu-page="services">
             <span class="text-sm font-medium flex-1">{% trans "Services: grid layout" %}</span>
             <select name="service_preset" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Layout' %}" data-thumb>
               <option value="">{% trans "Standard" %}</option>
@@ -1031,17 +1033,12 @@
       <div data-bld-area="menu" class="bld-area space-y-6 hidden">
       <fieldset class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
         <legend class="font-semibold mb-1">{% trans "Header & menu" %}</legend>
-        <div>
-          <span class="block text-sm font-medium mb-2">{% trans "Header style" %}</span>
-          <div class="flex gap-2 flex-wrap">
-            {% for st in nav_styles %}
-              <label class="cursor-pointer">
-                <input type="radio" name="nav_style" value="{{ st }}" {% if st == nav_style %}checked{% endif %} class="peer sr-only">
-                <span class="block px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 peer-checked:border-indigo-500 peer-checked:text-indigo-700 peer-checked:bg-indigo-50 capitalize">{{ st }}</span>
-              </label>
-            {% endfor %}
-          </div>
-        </div>
+        {% comment %}STU-16b (фидбэк владельца «2 раза одно и то же, оставь с картинкой»):
+   радио-список стилей шапки снят — тем же `nav_style` управляют плитки-мокапы
+   ниже (data-menu-examples). Значение остаётся в форме скрытым полем того же
+   имени: инвариант W0 — поле не исчезает из DOM, меняется только способ выбора.
+   Заодно ушли подписи-коды («classic/centered/minimal» через capitalize).{% endcomment %}
+        <input type="hidden" name="nav_style" value="{{ nav_style }}">
         <label class="flex items-center gap-2 text-sm">
           <input type="checkbox" name="nav_sticky" {% if nav_sticky %}checked{% endif %} class="rounded border-gray-300">
           {% trans "Sticky header (stays on top while scrolling)" %}
@@ -1116,6 +1113,12 @@
               <button type="button" class="mi-down px-1 text-gray-400 hover:text-indigo-600" title="{% trans 'Move down' %}" aria-label="{% trans 'Move down' %}">▼</button>
             </span>
             <input type="text" value="{{ it.label }}" class="mi-label flex-1 min-w-0 rounded border border-gray-200 px-2 py-1 text-sm" aria-label="{% trans 'Name' %}">
+            {% comment %}STU-16d: КУДА ведёт пункт. Раньше цель правилась только в
+               «Menü-Generator», а пункт, добавленный здесь, цели не получал вовсе —
+               витрина его молча выбрасывала («добавил, а ничего не произошло»).{% endcomment %}
+            <select class="mi-target shrink-0 max-w-[42%] rounded border border-gray-200 px-1.5 py-1 text-xs text-gray-600" aria-label="{% trans 'Ziel' %}">
+              {% include "tenant/_menu_target_options.html" with current=it.target_value unknown=it.target_unknown raw=it.target_raw %}
+            </select>
             {% if it.children %}<span class="text-[11px] text-gray-400 shrink-0" title="{% trans 'Untermenü' %}">▾{{ it.children|length }}</span>{% endif %}
             <label class="flex items-center gap-1 text-xs text-gray-500 shrink-0" title="{% trans 'Visible' %}"><input type="checkbox" class="mi-enabled rounded border-gray-300" {% if it.enabled %}checked{% endif %}>👁</label>
           </li>
@@ -1129,6 +1132,9 @@
               <button type="button" class="mi-down px-1 text-gray-400 hover:text-indigo-600" title="{% trans 'Move down' %}" aria-label="{% trans 'Move down' %}">▼</button>
             </span>
             <input type="text" value="" class="mi-label flex-1 min-w-0 rounded border border-gray-200 px-2 py-1 text-sm" aria-label="{% trans 'Name' %}">
+            <select class="mi-target shrink-0 max-w-[42%] rounded border border-gray-200 px-1.5 py-1 text-xs text-gray-600" aria-label="{% trans 'Ziel' %}">
+              {% include "tenant/_menu_target_options.html" %}
+            </select>
             <label class="flex items-center gap-1 text-xs text-gray-500 shrink-0" title="{% trans 'Visible' %}"><input type="checkbox" class="mi-enabled rounded border-gray-300" checked>👁</label>
           </li>
         </template>
@@ -1158,8 +1164,13 @@
             var form = btn.closest("form");
             if (!form) return;
             var style = btn.getAttribute("data-nav-style");
-            var radio = form.querySelector('input[name="nav_style"][value="' + style + '"]');
-            if (radio) { radio.checked = true; radio.dispatchEvent(new Event("change", { bubbles: true })); }
+            // STU-16b: выбор несёт скрытое поле (радио-дубль снят), значение —
+            // код стиля; change обязателен: на нём живёт лайв-превью канвы.
+            var styleField = form.querySelector('input[name="nav_style"]');
+            if (styleField) { styleField.value = style; styleField.dispatchEvent(new Event("change", { bubbles: true })); }
+            document.querySelectorAll("[data-menu-preset]").forEach(function (b) {
+              b.setAttribute("aria-pressed", b.getAttribute("data-nav-style") === style ? "true" : "false");
+            });
             var sticky = form.querySelector('input[name="nav_sticky"]');
             if (sticky) { sticky.checked = btn.getAttribute("data-nav-sticky") === "1"; sticky.dispatchEvent(new Event("change", { bubbles: true })); }
           });
@@ -1179,6 +1190,13 @@
         if (!M || typeof M !== "object" || !M.top || typeof M.top !== "object") return;  // нет дерева — редактор молчит
         var items = Array.isArray(M.top.items) ? M.top.items : (M.top.items = []);
         function rows() { return Array.prototype.slice.call(list.querySelectorAll("[data-menu-index]")); }
+        // STU-16d: строка без цели подсвечена — пункт без цели на сайт не попадёт.
+        function markIncomplete() {
+          rows().forEach(function (r) {
+            var tgt = r.querySelector(".mi-target");
+            if (tgt) r.classList.toggle("bld-menu-row-todo", !tgt.value);
+          });
+        }
         function sync() {
           var next = rows().map(function (r) {
             var it = items[parseInt(r.getAttribute("data-menu-index"), 10)];
@@ -1186,15 +1204,27 @@
             var lab = r.querySelector(".mi-label").value.trim();
             if (lab) it.label = lab;
             it.enabled = !!r.querySelector(".mi-enabled").checked;
+            // STU-16d: цель пункта — "<type>:<target>". Пустой выбор НЕ трогает узел
+            // (у сложных узлов «Menü-Generator» мог задать то, чего нет в списке),
+            // а выбранная цель ложится в type/target; для узла «categories» цель —
+            // пустая строка (все корневые), поэтому разбираем по ПЕРВОМУ двоеточию.
+            var tgt = r.querySelector(".mi-target");
+            var val = tgt ? tgt.value : "";
+            if (val) {
+              var at = val.indexOf(":");
+              it.type = val.slice(0, at);
+              it.target = val.slice(at + 1);
+            }
             return it;
           }).filter(Boolean);
           M.top.items = items = next;
           rows().forEach(function (r, i) { r.setAttribute("data-menu-index", String(i)); });
           hidden.value = JSON.stringify(M);
           hidden.dispatchEvent(new Event("change", { bubbles: true }));
+          markIncomplete();
         }
         list.addEventListener("input", function (e) { if (e.target.closest(".mi-label")) sync(); });
-        list.addEventListener("change", function (e) { if (e.target.closest(".mi-enabled")) sync(); });
+        list.addEventListener("change", function (e) { if (e.target.closest(".mi-enabled") || e.target.closest(".mi-target")) sync(); });
         list.addEventListener("click", function (e) {
           var up = e.target.closest(".mi-up"), down = e.target.closest(".mi-down");
           if (!up && !down) return;
@@ -1222,15 +1252,19 @@
         list.addEventListener("drop", function (e) { e.preventDefault(); if (dragRow) { dragRow = null; sync(); } });
         list.addEventListener("dragend", function () { if (dragRow) { dragRow = null; sync(); } });
         if (addBtn && tpl) addBtn.addEventListener("click", function () {
-          items.push({ label: "{% trans 'Neuer Punkt' %}", type: "url", target: "", enabled: true, icon: "", children: [] });
+          // STU-16d: новый пункт рождается БЕЗ цели — фокус сразу в селект цели, а
+          // строка помечена «нужна цель». Пункт без цели витрина отбрасывает (это и
+          // была жалоба «добавил, а ничего не произошло»), поэтому пометка живёт и
+          // после перезагрузки, пока цель не выбрана.
+          items.push({ label: "{% trans 'Neuer Punkt' %}", type: "page", target: "", enabled: true, icon: "", children: [] });
           var li = tpl.content.firstElementChild.cloneNode(true);
           li.setAttribute("data-menu-index", String(items.length - 1));
           li.querySelector(".mi-label").value = items[items.length - 1].label;
           list.appendChild(li);
           sync();
-          li.querySelector(".mi-label").focus();
-          li.querySelector(".mi-label").select();
+          li.querySelector(".mi-target").focus();
         });
+        markIncomplete();
       })();
       </script>
       </div>{% comment %}/область ☰ Меню{% endcomment %}
@@ -1600,15 +1634,12 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
 </div>
 
 <style>
-/* SE-8a: Простой режим прячет технические контролы во ВСЁМ редакторе (рейл/панели/попап),
-   а не только внутри попапа блока. Эксперт показывает всё. */
-#bld-root[data-mode=basic] [data-expert] { display: none !important; }
-#bld-mode-basic { background: #4f46e5; color: #fff; }
-#bld-mode-expert { background: transparent; color: #4b5563; }
+/* STU-16c: правило-пряталка Простого режима (`[data-mode=basic] [data-expert]`)
+   удалено вместе с самим режимом — прятать больше нечем и незачем. Маркеры
+   [data-expert] в разметке оставлены: они помечают технические контролы и ничего
+   не скрывают. */
 /* UC6-10: кнопки Простой/Эксперт переехали в тулбар (вне #bld-block-popup) —
    подсветку активного режима вешаем на #bld-root[data-mode] (setEditorMode ставит его). */
-#bld-root[data-mode=expert] #bld-mode-basic { background: transparent; color: #4b5563; }
-#bld-root[data-mode=expert] #bld-mode-expert { background: #4f46e5; color: #fff; }
 /* UC6-10: контекст выбранного блока (имя+режим+закрыть) в тулбаре — виден только
    когда лента открыта (класс bld-has-block ставит openBlockPopup). */
 /* STU-12b: пока открыт блок, шапка панели уступает место шапке блока (одна шапка за раз). */
@@ -1618,6 +1649,10 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
 #bld-block-popup-title { min-width: 3.5rem; }
 /* #2 (легаси, flows без ленты): фокус блока внутри секции-области. */
 [data-bld-area="sections"].focus-on > :not(#bld-block-popup) { display: none !important; }
+/* STU-16d: пункт меню без выбранной цели — витрина его не покажет, поэтому строка
+   редактора помечена, а не выглядит готовой. */
+.bld-menu-row-todo { border-color: #fbbf24; background: #fffbeb; }
+
 /* STU-12b: блок правится В КОЛОНКЕ. Класс .bld-ribbon-open остался как хук стилей
    «полей» (UC6-9) и признак «блок открыт»; fixed-лента UC6-6a и её мобильный
    bottom-sheet сняты — геометрию даёт сама панель (справа на десктопе, лист снизу
@@ -1911,13 +1946,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   overflow: hidden;
 }
 #home-prev-shell.device-frame > iframe { border-radius: 1.3rem; }
-/* SE-9g: в Простом режиме при выбранной версии телефон/планшет показываем настройки именно этой
-   версии (пер-девайс колонки/скрытие), хоть они и помечены [data-expert] — чтобы крутить
-   мобильную версию, не уходя в Эксперт. Специфичность выше правила-пряталки → перекрывает. */
-#bld-root[data-mode=basic][data-device=mobile] [data-device-ctl],
-#bld-root[data-mode=basic][data-device=tablet] [data-device-ctl] { display: flex !important; }
-#bld-root[data-mode=basic][data-device=mobile] .bld-device-hint,
-#bld-root[data-mode=basic][data-device=tablet] .bld-device-hint { display: block !important; }
+/* STU-16c: перекрытия SE-9g снесены вместе с Простым режимом — пер-девайс
+   контролы видны всегда, перекрывать нечего. */
 </style>
 
 <script>
@@ -4911,30 +4941,14 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
 
   push();  // первичный рендер черновика
 
-  // SE-1f/SE-8a: ГЛОБАЛЬНЫЙ тумблер Простой/Эксперт. Раньше data-mode был только на
-  // попапе блока (и скрывал [data-expert] лишь внутри него) — в рейле/панелях режим не
-  // работал. Теперь data-mode на #bld-root → CSS прячет [data-expert] во всём редакторе.
+  // STU-16c (решение владельца «оставь только эксперт везде»): режим редактора
+  // Простой/Эксперт снят. Прецеденты — classic_ui (W-CL) и режим кабинета (SM-1):
+  // второй набор видимости плодил вопрос «почему настройки нет», а прятал он
+  // ровно то, ради чего в редактор и заходят. Атрибут data-mode остаётся
+  // равным expert, чтобы CSS-правила [data-expert] показывали всё.
   var bldRoot = document.getElementById("bld-root");
-  var BLD_MODE_KEY = "sf_editor_mode";
-  function setEditorMode(m) {
-    var mode = m === "expert" ? "expert" : "basic";
-    if (bldRoot) bldRoot.setAttribute("data-mode", mode);
-    if (popup) popup.setAttribute("data-mode", mode);  // подсветка кнопок внутри попапа
-    document.querySelectorAll(".bld-mode-btn").forEach(function (b) {
-      var on = b.getAttribute("data-mode-val") === mode;
-      b.classList.toggle("bg-indigo-600", on); b.classList.toggle("text-white", on);
-      b.setAttribute("aria-pressed", on ? "true" : "false");
-    });
-    localStorage.setItem(BLD_MODE_KEY, mode);
-  }
-  var modeBasicBtn = document.getElementById("bld-mode-basic");
-  var modeExpertBtn = document.getElementById("bld-mode-expert");
-  if (modeBasicBtn) modeBasicBtn.addEventListener("click", function() { setEditorMode("basic"); });
-  if (modeExpertBtn) modeExpertBtn.addEventListener("click", function() { setEditorMode("expert"); });
-  document.querySelectorAll(".bld-mode-btn").forEach(function (b) {
-    b.addEventListener("click", function () { setEditorMode(b.getAttribute("data-mode-val")); });
-  });
-  setEditorMode(localStorage.getItem(BLD_MODE_KEY) === "expert" ? "expert" : "basic");  // дефолт — Простой
+  if (bldRoot) bldRoot.setAttribute("data-mode", "expert");
+  if (popup) popup.setAttribute("data-mode", "expert");
 
   // SE-3d: синхронизация radius-слайдера и тоггла «Round corners»
   document.querySelectorAll(".sf-visual-radius-toggle").forEach(function(cb) {

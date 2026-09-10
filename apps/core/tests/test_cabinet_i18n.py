@@ -32,7 +32,9 @@ def test_languages_have_labels():
 
 
 def test_resolve_default_is_de():
-    # без сессии-выбора кабинет = немецкий (как раньше)
+    # без выбора в сессии И без Accept-Language кабинет = немецкий (как раньше).
+    # STU-16e добавил ступень «язык браузера» МЕЖДУ сессией и этим фолбэком —
+    # RequestFactory заголовка не шлёт, поэтому здесь поведение не изменилось.
     assert i18n_cabinet.resolve_cabinet_locale(_req("/dashboard/")) == "de"
 
 

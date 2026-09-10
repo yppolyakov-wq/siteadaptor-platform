@@ -504,3 +504,135 @@ def top_meta(tenant, cfg=None) -> tuple[str, bool]:
 
 def bottom_enabled(tenant, cfg=None) -> bool:
     return _menus_of(tenant, cfg)["bottom"]["enabled"]
+
+
+def target_sets(tenant) -> dict:
+    """STU-16d: доступные цели пунктов меню — ОДИН источник для экрана
+    «Menü-Generator» и для селекта цели в панели Студии.
+
+    Возврат: {archetypes, categories, category_parents, pages, promo_groups} —
+    каждая запись `{value, label}`. Код перенесён из `menu_builder_view` без
+    изменений поведения (комментарии-уроки сохранены).
+    """
+    archetype_targets = [
+        {"value": s.key, "label": s.storefront_label or s.label_de}
+        for s in modules.active_modules(tenant)
+        if s.storefront_landing
+    ]
+    category_targets = []
+    parent_targets = []
+    if modules.is_module_active(tenant, "catalog"):
+        from apps.catalog.models import Category
+
+        # MEN-15: подпись — локализованное имя. Раньше в селект уезжал сырой
+        # JSONField ({'de': 'Buffets'}), поэтому владелец выбирал цель вслепую.
+        # Порядок — как в каталоге (sort_order), а не по строке словаря.
+        cats = list(Category.objects.filter(is_active=True).order_by("sort_order", "slug"))
+        roots = [c for c in cats if c.parent_id is None]
+        kids = {}
+        for c in cats:
+            if c.parent_id is not None:
+                kids.setdefault(c.parent_id, []).append(c)
+        # Порядок селекта — как в каталоге: корневая, под ней её ветка с
+        # отступами по уровню (плоский список вперемешку читался как случайный).
+        # Ревью MEN-15: обход обязан покрыть ВСЕ живые категории. Первая версия
+        # выводила только корни и их прямых детей — категория 3-го уровня и
+        # активный ребёнок ВЫКЛЮЧЕННОГО родителя пропадали из селекта, и Save
+        # молча переставлял такой пункт меню на первую опцию (класс W0).
+        category_targets = []
+        seen = set()
+
+        def _walk(node, depth):
+            if node.pk in seen:
+                return
+            seen.add(node.pk)
+            prefix = "— " * depth
+            category_targets.append(
+                {"value": node.slug, "label": f"{prefix}{node.get_i18n('name')}"}
+            )
+            for child in kids.get(node.pk, []):
+                _walk(child, depth + 1)
+
+        for root in roots:
+            _walk(root, 0)
+        for cat in cats:  # осиротевшие ветки (родитель выключен/удалён) — в конце
+            _walk(cat, 0)
+        # Цели для узла «Kategorien»: пусто = корневые, иначе подкатегории этой.
+        parent_targets = [
+            {"value": "", "label": str(_("Alle Hauptkategorien"))},
+        ] + [{"value": c.slug, "label": c.get_i18n("name")} for c in roots]
+    # Аудит 2026-08-07: список был захардкожен как {home, about}, поэтому узел с
+    # любой другой целью (Galerie/Bewertungen/Team/Treue/…) не находил себя в
+    # селекте, браузер выбирал первый пункт, и после Save пункт вёл на главную.
+    # Источник — реестр страниц меню: новая страница появляется здесь сама.
+    page_targets = page_target_choices()
+    promo_group_targets = []
+    if modules.is_module_active(tenant, "promotions"):
+        from apps.promotions.models import Promotion
+
+        groups = (
+            Promotion.objects.filter(status="active")
+            .exclude(group="")
+            .values_list("group", flat=True)
+            .distinct()
+        )
+        promo_group_targets = [{"value": g, "label": g} for g in sorted(set(groups))]
+    return {
+        "archetypes": archetype_targets,
+        "categories": category_targets,
+        "category_parents": parent_targets,
+        "pages": page_targets,
+        "promo_groups": promo_group_targets,
+    }
+
+
+def target_options(tenant) -> list[dict]:
+    """Плоский список целей для ОДНОГО селекта: [{group, value, label, available}].
+
+    `value` = "<type>:<target>" — ровно пара, которую кладёт в узел редактор
+    Студии. Узел «categories» (авто-подменю живых категорий) тоже здесь: без
+    него добавить в шапку выпадающий список категорий из Студии было нельзя.
+
+    `available=False` значит, что ИМЕННО СЕЙЧАС витрина такой пункт покажет не
+    сможет (страница пуста — гейт ST-8, модуль выключен): проверяем тем же
+    `_resolve`, что рисует меню, и такую цель селект показывает выключенной с
+    пометкой. Молча прятать нельзя (цель не найти), молча предлагать — тоже:
+    ровно так и появлялся пункт, который «добавил, а ничего не произошло».
+    """
+    sets = target_sets(tenant)
+    groups = (
+        (_("Seiten"), "page", sets["pages"]),
+        (_("Bereiche"), "archetype", sets["archetypes"]),
+        (_("Kategorien"), "category", sets["categories"]),
+        (_("Aktionsgruppen"), "promo_group", sets["promo_groups"]),
+    )
+    pairs = []
+    for label, ntype, items in groups:
+        for item in items:
+            pairs.append((str(label), ntype, item))
+        # Узел «Kategorien» кладём ВНУТРЬ своей группы: `regroup` в шаблоне режет
+        # список по соседству, и запись в конце открыла бы второй optgroup с тем
+        # же именем.
+        if ntype == "category" and items:
+            pairs.append(
+                (str(label), "categories", {"value": "", "label": str(_("Alle Kategorien"))})
+            )
+    out: list[dict] = []
+    for group, ntype, item in pairs:
+        node = {
+            "label": item["label"],
+            "type": ntype,
+            "target": item["value"],
+            "enabled": True,
+            "children": [],
+        }
+        available = _resolve(tenant, node) is not None
+        out.append(
+            {
+                "group": group,
+                "value": f"{ntype}:{item['value']}",
+                "label": item["label"],
+                "available": available,
+            }
+        )
+    return out

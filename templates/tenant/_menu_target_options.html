@@ -1,0 +1,12 @@
+{% load i18n %}{% comment %}STU-16d: опции цели пункта меню (реестр `menu.target_options`).
+Недостижимые СЕЙЧАС цели (пустая страница/выключенный модуль) — disabled с пометкой:
+выбрать нельзя, но видно, что цель есть и чего ей не хватает. Цель, которой нет в
+реестре (внешняя ссылка/якорь из «Menü-Generator»), получает СВОЮ опцию — иначе
+селект показал бы «Ziel wählen» у рабочего пункта.{% endcomment %}
+<option value="">— {% trans "Ziel wählen" %} —</option>
+{% if unknown %}<option value="{{ current }}" selected>{{ raw|default:current }}</option>{% endif %}
+{% regroup menu_target_options by group as target_groups %}
+{% for g in target_groups %}<optgroup label="{{ g.grouper }}">
+  {% for o in g.list %}<option value="{{ o.value }}"{% if o.value == current and not unknown %} selected{% endif %}{% if not o.available %} disabled{% endif %}>{{ o.label }}{% if not o.available %} ({% trans "noch leer" %}){% endif %}</option>
+  {% endfor %}</optgroup>
+{% endfor %}

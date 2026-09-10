@@ -22395,3 +22395,19 @@ msgstr "Blog: Raster"
 #: apps/imports/views.py
 msgid "Die Importdatei wurde bereits entfernt. Bitte laden Sie sie erneut hoch."
 msgstr ""
+
+#: templates/tenant/site_home.html apps/tenants/menu.py
+msgid "Bereiche"
+msgstr "Bereiche"
+
+#: templates/tenant/site_home.html apps/tenants/menu.py
+msgid "Ziel"
+msgstr "Ziel"
+
+#: templates/tenant/_menu_target_options.html
+msgid "Ziel wählen"
+msgstr "Ziel wählen"
+
+#: templates/tenant/_menu_target_options.html
+msgid "noch leer"
+msgstr "noch leer"
