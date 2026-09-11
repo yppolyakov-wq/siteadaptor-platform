@@ -3006,6 +3006,32 @@ Python 3.12, менеджер uv.
   ОСТАНАВЛИВАЕТСЯ на префлайте — это цель) → деплой → `manage.py rotate_secrets`
   (dry-run → `--apply`) → `manage.py cleanup_import_files` (dry-run → `--apply`).
   Детали и уроки — build-log 2026-09-09/10, handoff §§11–13.
+- **Самое свежее (2026-09-10/11): ВОЛНА STU-18 «панель Студии» — STU-18a…h, всё БЕЗ
+  миграций.** Разведка+дизайн (`docs/stu18-panel-ia-plan-2026-09-10.md`): реестр
+  композиций `apps/core/compositions.py` стал ЕДИНЫМ источником шаблонов страницы —
+  `SURFACES`/`LISTING_SURFACES` + гейты `requires`/`requires_extra` (`NEEDS_CHILDREN`/
+  `NEEDS_COMBOS`/`NEEDS_PHOTO`), поэтому панель не предлагает «Полки» там, где нет
+  под-сущностей (правило STU-9), а `EXCLUDED_REASONS` объясняет почему. **18a–e**
+  композиция доведена до ДЕВЯТИ листингов (`page_styles` + каркас `listing.html` у
+  оставшихся пяти — `combos`/`tours`/`wishlist`/`lookbook`/`reviews`; инвариант-замок
+  «поверхность в реестре ⇒ её шаблон наследует каркас», `PENDING_SURFACES` — осознанный
+  список исключений). **18f** пагинация — по решению владельца ТОЛЬКО каталог и
+  `/aktionen/`: новый `pagination.paginate_list` (offset, `?seite=N`), ключ `page_size`
+  presence-minimal, счётчики показывают ВЕСЬ результат, а не страницу (замер в браузере
+  поймал мою же регрессию), группы/секции не пагинируются. **18g — фидбэк владельца
+  «шаблон акций применяется только после Save»:** причина найдена замером, а не на глаз —
+  генерик-наложение черновика (UC2-1) знало РОВНО ОДИН ключ (`_PAGE_STYLE_KEYS =
+  ("catalog_page_style",)`), поэтому выбор для акций сервер молча выбрасывал; ключ стал
+  РЕЕСТРОМ «ключ → нормализатор», словарь `page_styles` девяти листингов клиент теперь
+  тоже шлёт. **Класс закрыт замком:** обещание выводится ИЗ САМОЙ ПАНЕЛИ (каждая плитка
+  выбора шаблона) и черновик обязан его принять — новая поверхность, забытая в приёмнике,
+  краснит CI сразу. **18h** демо: акции уже были полны (24 шт., у каждой фото, 4 группы),
+  тонким был каталог — два направления из четырёх без подразделов, поэтому «Полки»/
+  «Вкладки»/«Указатель»/«Навигатор» там нечего было рисовать; теперь у каждого по два
+  подраздела (+3 позиции на РЕАЛЬНЫХ кадрах фонда, инвариант AMP). Попутно цель акции
+  можно задавать ИМЕНЕМ товара, а не позицией в списке — вставка категории больше не
+  переставляет акции на чужие позиции (23 ссылки кита переписаны, голден-замок усилен).
+  ⚠️ ops: после деплоя `seed_demo_tenants --kit aktionsmarkt --recreate`.
 - Миграции: **⚠️ ЖДЁТ ДЕПЛОЯ (волна VAT, 2026-08-26): `jobs/0017` (JobLine.vat_rate) + `catalog/0031` (Combo.vat_rate) — аддитивные; (волна DC, 2026-08-25): `booking/0024` + `stays/0033` + `jobs/0016` (внешний номер сделки) + `booking/0025` (связь записи со счётом) — аддитивные; (ревью «Кабинет-X», 2026-08-19): `promotions/0026` (choices-only, DDL не порождает); (волна MT, 2026-08-13/14): `events/0024` (Tour + Event.tour), `events/0025` (SupplierBooking), `events/0026` (TourTask), `documents/0001` (SecureDocument), `community/0001` (FeedSpace/FeedPost/FeedComment), `stays/0032` (шифрование doc_number Meldeschein), `finance/0007` (ExpenseEntry); волна MT-D (2026-08-14): `events/0027` (Tour.country + оверлеи region/country/details/itinerary); MEN-21 (2026-08-17): `reviews/0005` (choices-only, DDL нет); KAT батч 1 (2026-08-18): `catalog/0027` (Category.page_style, аддитивная); KAT батч 2 (2026-08-18): `catalog/0028` (Product.slug + бэкфилл + partial-constraint, аддитивная); VS-3 (2026-08-20): `core/0008` (DealLink); волна SH (2026-08-20): `catalog/0029` (Product.vat_rate), `orders/0018` (OrderItem.vat_rate), `orders/0019` (external_code + billing_*)** — все аддитивные. **Программа MX (2026-08-21): `core/0010` (Extra.consume_qty, v2-опции) + `finance/0008` (ExpenseEntry ref-поля) + `core/0009` (Extra: адресность/трекер/пул/поставщик/vat_rate) + `events/0028` (SupplierBooking вне туров) + `booking/0023` (Service.pricing_mode) + `catalog/0030` (Product.primary_action) + `finance/0009` (SOURCES gift/pass, choices-only)** — аддитивные; после деплоя `seed_demo_tenants --kit moto --recreate`. **Волна ERP (2026-08-21): `orders/0020` (OrderItem.cost_price) + `finance/0010` (BankTransaction) + `finance/0011` (Invoice.mahn_level/mahned_at + ExpenseEntry supplier/due_date/paid_at/document) + `documents/0002` (owner nullable + kind receipt) + `inventory/0005` (qty_returned + kind'ы return_supplier/production, ERP-5/7) + `jobs/0015` (JobLine.cost_rate, ERP-6)** — аддитивные. **DL-19 (2026-09-03): `catalog/0032` (Product.card_style) + `promotions/0027` (Promotion.card_style)** — аддитивные. **Волна O «Аутлет» (2026-09-04): `catalog/0033`** (UVP/состояние/примечание/марка) — аддитивная; после деплоя `seed_demo_tenants --kit outlet --recreate`. **STU-12j (2026-09-09): `catalog/0034`** (Category.card_style + дрейф снимка choices `Product.condition`) — аддитивная. **STU-15a (2026-09-09): `promotions/0028`** (Promotion.page_style — шаблон страницы акции) — аддитивная. Плюс прежняя очередь: `catalog/0024` (I18N-10), `jobs/0013` (AF-1), `tenants/0028` (GK-1), `tenants/0029` (GK-9), `tenants/0030` (GK-11). После деплоя: `./scripts/deploy.sh single`, затем `seed_demo_tenants --kit moto --recreate` (демо мото-туров) + `--kit catering --recreate` (наборы меню/отзывы) + `--kit pranasy --recreate` (кейтеринг-карта) + прежние киты по прошлым записям. **Правило (2026-08-01):** очередь здесь — гипотеза до сверки; проверка одной командой `python manage.py migration_state` (T-7 печатает вердикт по ВСЕМ схемам, шаг встроен в deploy.sh).
 **Конвенция памяти:** завершая инкремент — дописывать строку в `docs/build-log.md`,
 а ЗДЕСЬ обновлять только верхнеуровневый статус и раздел «Дальше».
