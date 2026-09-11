@@ -21,6 +21,7 @@ from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
+from apps.core import studio_pages as sp
 from apps.core import views
 from apps.tenants import siteconfig
 from apps.tenants.tests.factories import TenantFactory
@@ -85,3 +86,59 @@ def test_builder_sends_listing_styles_in_the_draft_payload():
     # плоские ключи каталога и акций в словарь не попадают (у них свои поля)
     block = markup[markup.index("payload.page_styles") - 900 : markup.index("payload.page_styles")]
     assert 'surface === "catalog"' in block and 'surface === "promo"' in block
+
+
+def test_every_template_picker_in_the_panel_reaches_the_draft():
+    """Класс дефекта, ради которого писан файл: ключ ЗНАЮТ три места — панель,
+    Save и черновик. Достаточно выпасть из третьего, и владелец видит «шаблон не
+    применяется, пока не нажму Сохранить» (жалоба 2026-09-11).
+
+    Замок сам собирает обещание из ПАНЕЛИ: берёт каждую плитку-выбор шаблона, её
+    первое непустое значение — и требует, чтобы черновик это значение принял.
+    Новая поверхность, забытая в приёмнике черновика, краснит его сразу.
+
+    Граница: покрываем строки с плитками (`data-cf-key`) — это и есть шаблоны
+    страниц. Настройки-селекты (баннер, раскладка детали) едут в черновик своими
+    ветками и проверяются отдельно.
+    """
+    import re
+
+    tenant = TenantFactory(schema_name="public", slug="stu18gp")
+    req = RequestFactory().get("/dashboard/site/home/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.user = SimpleNamespace(is_authenticated=True)
+    req.tenant = tenant
+    html = views.home_builder_view(req).content.decode()
+
+    # Границу строки задаёт НАЧАЛО следующей: вложенные </div> считать бесполезно,
+    # а «до следующей строки» даёт ровно тот кусок разметки, что принадлежит этой.
+    marks = [(m.group(1), m.end()) for m in re.finditer(r'data-stu-setting="([a-z_0-9]+)"', html)]
+    checked = []
+    for i, (code, pos) in enumerate(marks):
+        body = html[pos : marks[i + 1][1] if i + 1 < len(marks) else len(html)]
+        if "data-cf-key" not in body:
+            continue
+        setting = sp.SETTINGS.get(code)
+        if setting is None:
+            continue
+        values = [v for v in re.findall(r'data-cf-key="([^"]*)"', body) if v]
+        if not values:
+            continue
+        value, path = values[0], setting.site_key
+        if len(path) == 1:
+            payload = {path[0]: value}
+        else:
+            payload = {path[0]: {path[1]: value}}
+        draft = _draft(tenant, payload)
+        got = draft.get(path[0])
+        got = got.get(path[1]) if len(path) > 1 and isinstance(got, dict) else got
+        assert got == value, (
+            f"{code}: панель предлагает «{value}», но черновик его не принял "
+            f"(получилось {got!r}) — правка будет видна только после Save"
+        )
+        checked.append(code)
+
+    # замок не имеет права молча опустеть при переименовании разметки
+    assert {"catalog_page_style", "promo_page_style"} <= set(checked), checked
+    assert len(checked) >= 5, f"проверено слишком мало строк: {checked}"
