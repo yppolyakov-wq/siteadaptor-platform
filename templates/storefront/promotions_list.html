@@ -178,4 +178,25 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
     {% endif %}
   {% endif %}
 {% endblock %}
+{% block listing_pagination %}
+{% comment %}STU-18f (решение владельца 2026-09-11): страницы у ПЛОСКОЙ выдачи.
+Разметка появляется только когда владелец задал «Pro Seite» и страниц больше одной —
+без ключа страница байт-в-байт прежняя (замок test_stu18f_pagination).
+Ссылки несут фасеты и сортировку (`promo_page_qs`), номер страницы в них НЕ
+переносится из чипов — смена фильтра всегда возвращает на первую.{% endcomment %}
+{% if promo_page and promo_page.pages > 1 %}
+<nav class="mt-8 flex items-center justify-center gap-3 text-sm" data-promo-pages aria-label="{% trans 'Seiten' %}">
+  {% if promo_page.has_prev %}
+    <a href="?{{ promo_page_qs }}seite={{ promo_page.page|add:'-1' }}" rel="prev"
+       class="px-4 py-2 rounded-lg bg-white border border-gray-300 font-medium hover:border-indigo-400">← {% trans "Zurück" %}</a>
+  {% endif %}
+  <span class="text-gray-500">{% blocktrans with n=promo_page.page total=promo_page.pages %}Page {{ n }} of {{ total }}{% endblocktrans %}</span>
+  {% if promo_page.has_next %}
+    <a href="?{{ promo_page_qs }}seite={{ promo_page.page|add:'1' }}" rel="next"
+       class="px-4 py-2 rounded-lg bg-white border border-gray-300 font-medium hover:border-indigo-400">{% trans "Weiter" %} →</a>
+  {% endif %}
+</nav>
+{% endif %}
+{% endblock %}
+
 {% block listing_after %}{% page_blocks "promos" %}{% endblock %}

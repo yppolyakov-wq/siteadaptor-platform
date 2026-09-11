@@ -22395,3 +22395,7 @@ msgstr "Not available without subcategories or sets"
 #. STU-18d
 msgid "Wide photo above the list."
 msgstr "Wide photo above the list."
+
+#. STU-18f
+msgid "Page %(n)s of %(total)s"
+msgstr "Page %(n)s of %(total)s"

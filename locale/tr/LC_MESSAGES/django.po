@@ -22522,3 +22522,7 @@ msgstr "Alt kategoriler veya setler olmadan kullanılamaz"
 #. STU-18d
 msgid "Wide photo above the list."
 msgstr "Listenin üstünde geniş bir fotoğraf."
+
+#. STU-18f
+msgid "Page %(n)s of %(total)s"
+msgstr "Sayfa %(n)s / %(total)s"

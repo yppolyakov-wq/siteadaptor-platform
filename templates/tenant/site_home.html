@@ -659,7 +659,10 @@
               <option value="">{% trans "Standard" %}</option>
               {% for pk, plabel in preset_options %}<option value="{{ pk }}" {% if promo_index_layout.preset == pk %}selected{% endif %}>{{ plabel }}</option>{% endfor %}
             </select>
-            {% include "tenant/_output_axis.html" with field="promo_index_preset" layout=promo_index_layout %}
+            {% comment %}STU-18f (решение владельца 2026-09-11): обзор акций и страница
+            группы теперь тоже пагинируются — значит «Pro Seite» там не обещание, а
+            настройка. Ключ у обеих страниц один (`promo_index_layout`, STU-17).{% endcomment %}
+            {% include "tenant/_output_axis.html" with field="promo_index_preset" layout=promo_index_layout paginates=1 %}
           </div>
           <div class="page-block mt-4" data-stu-setting="combos_layout" data-stu-axis="grid" data-stu-page="combos">
             <span class="stu-lb">{% trans "Kombis: Raster" %}</span>

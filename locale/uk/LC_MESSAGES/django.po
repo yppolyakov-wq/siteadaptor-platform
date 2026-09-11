@@ -22609,3 +22609,7 @@ msgstr "Недоступно без підкатегорій і наборів"
 #. STU-18d
 msgid "Wide photo above the list."
 msgstr "Широке фото над списком."
+
+#. STU-18f
+msgid "Page %(n)s of %(total)s"
+msgstr "Сторінка %(n)s з %(total)s"

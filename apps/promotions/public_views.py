@@ -495,6 +495,26 @@ def _group_more_url(key: str, grouping: str) -> str:
     return "?" + urlencode({"gruppe": key})
 
 
+#: STU-18f: номер страницы обзора акций. Отдельным именем, а не `page`: `?page=`
+#: занят редактором Студии (`?page=/aktionen/` открывает канву на этой странице).
+PAGE_PARAM = "seite"
+
+
+def _page_number(request) -> int:
+    try:
+        return max(1, int(request.GET.get(PAGE_PARAM) or 1))
+    except (TypeError, ValueError):  # мусор в адресе — первая страница, не 500
+        return 1
+
+
+def _page_carry(request) -> str:
+    """GET страницы БЕЗ номера — им ссылки «вперёд/назад» несут фасеты и сорт."""
+    params = request.GET.copy()
+    params.pop(PAGE_PARAM, None)
+    encoded = params.urlencode()
+    return f"{encoded}&" if encoded else ""
+
+
 def promotion_list(request):
     """Публичный список акций /aktionen/ (S6 → SF-2: рельсы U-B).
 
@@ -527,6 +547,9 @@ def promotion_list(request):
     list_view = (request.GET.get("ansicht") or "") == "liste"
     _base_qs = request.GET.copy()
     _base_qs.pop("ansicht", None)
+    # STU-18f: смена вида («Karten» ↔ «Liste») тоже возвращает на первую страницу —
+    # у видов разное число элементов на странице, и третья могла бы быть пустой.
+    _base_qs.pop(PAGE_PARAM, None)
     ansicht_base_qs = _base_qs.urlencode()
     # DL-16.2 (A3): раскладка групп — сетка или ленты-слайдеры (Studio-панель)
     # DL-17.3: конфиг страницы с учётом черновика билдера (?preview=1) — один раз
@@ -689,6 +712,9 @@ def promotion_list(request):
     def _chip(label, param, value):
         """Чип-ссылка: тумблер своего параметра с carry остальных (состояние в URL)."""
         params = request.GET.copy()
+        # STU-18f: смена фасета возвращает на первую страницу — иначе посетитель,
+        # применивший фильтр на 3-й, попал бы в пустоту.
+        params.pop(PAGE_PARAM, None)
         active = params.get(param) == str(value)
         if active:
             params.pop(param, None)
@@ -753,6 +779,20 @@ def promotion_list(request):
             for promo in promotions:
                 promo.conditions = rules_text.conditions_for(promo)
 
+    # STU-18f (решение владельца 2026-09-11 «пагинация нужна только на странице с
+    # каталогами / акциями»): страницы у ПЛОСКОЙ выдачи. Вид секциями не режем —
+    # это витрина-обзор, и у каждой секции свой вход «Alle anzeigen →» на страницу
+    # группы, а она плоская и пагинируется. Размер — «Pro Seite» владельца; ключа
+    # нет → показываем всё, как раньше (инвариант волны LAY).
+    promo_page = None
+    if not grouped:
+        from apps.core.pagination import paginate_list
+
+        _limit = (cfg.get("promo_index_layout") or {}).get("page_size")
+        promo_page = paginate_list(promotions, limit=_limit, page=_page_number(request))
+        if _limit:
+            promotions = promo_page.items
+
     toolbar_hidden = [
         (k, v)
         for k, v in (
@@ -775,7 +815,12 @@ def promotion_list(request):
             "upcoming_groups": upcoming_groups,
             "system_chips": system_chips,
             "has_filters": has_filters,
-            "result_count": len(promotions) if has_filters else None,
+            # STU-18f: счётчик — про ВСЮ выдачу, а не про текущую страницу. Стенд
+            # поймал: с «Pro Seite» = 6 и девятью акциями страница писала «6 offers»,
+            # хотя на второй ждали ещё три.
+            "result_count": (promo_page.total if promo_page else len(promotions))
+            if has_filters
+            else None,
             "show_listing_toolbar": True,
             "q": q,
             "sort": sort,
@@ -792,7 +837,8 @@ def promotion_list(request):
             "promo_hero": promo_hero,
             "promo_tabs": promo_tabs,
             "promo_head_photo": promo_head_photo,
-            "promo_total": len(promotions) + (1 if promo_hero else 0),
+            "promo_total": (promo_page.total if promo_page else len(promotions))
+            + (1 if promo_hero else 0),
             "promo_group_count": len(groups),
             "upcoming_columns": upcoming_columns,
             # DL-20: страница группы — заголовок и шаблон композиции.
@@ -805,6 +851,9 @@ def promotion_list(request):
             "promo_middle": (
                 len(promotions) // 2 if group_style == "vergleich" and len(promotions) % 2 else None
             ),
+            # STU-18f: страницы плоской выдачи (None — вид секциями).
+            "promo_page": promo_page,
+            "promo_page_qs": _page_carry(request),
             "list_view": list_view,  # DL-16.2 A4
             "ansicht_base_qs": ansicht_base_qs,
         },
