@@ -22669,3 +22669,48 @@ msgstr "Постоянная акция"
 #: apps/promotions/promo_types.py
 msgid "Repeats every day or every week."
 msgstr "Повторяется каждый день или каждую неделю."
+
+#: apps/promotions/views.py
+msgid "Aktionstypen"
+msgstr "Типы акций"
+
+#: apps/promotions/views.py
+msgid "Aktionstypen gespeichert."
+msgstr "Типы акций сохранены."
+
+#: apps/promotions/views.py
+msgid "Aktionstypen und ihre Darstellung"
+msgstr "Типы акций и их отображение"
+
+#: templates/promotions/promo_type_list.html
+msgid ""
+"Jeder Typ bekommt eine eigene Seite auf der Website — mit eigener Vorlage, "
+"eigenem Raster und eigener Kartenform."
+msgstr ""
+"У каждого типа своя страница на сайте — со своим шаблоном, сеткой и формой "
+"карточки."
+
+#: templates/promotions/promo_type_list.html
+msgid "Leer = wie auf der Aktionsseite insgesamt."
+msgstr "Пусто = как на странице акций в целом."
+
+#: templates/promotions/promo_type_list.html
+msgid ""
+"Noch keine Aktionstypen: Typen entstehen aus den Aktionen selbst — tragen "
+"Sie bei einer Aktion eine Gruppe ein oder legen Sie eine Mystery- bzw. "
+"Vorbestell-Aktion an."
+msgstr ""
+"Пока нет типов акций: типы берутся из самих акций — укажите у акции группу "
+"либо создайте mystery- или предзаказную акцию."
+
+#: templates/promotions/promo_type_list.html
+msgid "Seite ansehen"
+msgstr "Открыть страницу"
+
+#: templates/promotions/promo_type_list.html
+msgid "automatisch"
+msgstr "автоматически"
+
+#: templates/promotions/promo_type_list.html
+msgid "wie die Seite"
+msgstr "как у страницы"

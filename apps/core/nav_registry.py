@@ -485,6 +485,18 @@ ENTRIES: tuple[NavEntry, ...] = (
         "crm",
         search="coupon winback",
     ),
+    # PT-5: «Aktionstypen» — ось типов акции и их вывод (шаблон · раскладка ·
+    # сетка/лента · форма карточки). Стоит ПОСЛЕ Кампаний: правило VF-20b
+    # («Kampagnen сразу за Aktionen») — решение владельца, его замок держит.
+    _e(
+        "marketing",
+        "promotions:promo-type-list",
+        _("Aktionstypen"),
+        "promo-types",
+        "promotions",
+        True,
+        search="gruppen rubriken typen mystery vorbestellung",
+    ),
     _e(
         "marketing",
         "reviews:list",

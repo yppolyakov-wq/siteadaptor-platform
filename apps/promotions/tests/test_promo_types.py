@@ -164,3 +164,91 @@ def test_builtin_types_do_not_duplicate_sections():
 
     body = _body(t)
     assert body.count('data-grid="promo_list"') == 1
+
+
+# ────────────────────── PT-5: экран «Aktionstypen» ──────────────────────
+
+
+def _cabinet_request(method, path, data=None, tenant=None):
+    from django.contrib.auth import get_user_model
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+
+    r = getattr(RequestFactory(), method)(path, data or {})
+    SessionMiddleware(lambda x: None).process_request(r)
+    MessageMiddleware(lambda x: None).process_request(r)
+    r.user = get_user_model()(is_active=True)
+    r.tenant = tenant
+    return r
+
+
+def test_screen_lists_own_and_builtin_types_with_counts():
+    from apps.promotions import views
+
+    t = _tenant("pt8")
+    _promo("W1", promo_type="discount", discount_percent=10, group="Wochenangebote")
+    _promo("W2", promo_type="discount", discount_percent=10, group="Wochenangebote")
+    _promo("M1", promo_type="discount", discount_style="mystery", group="Wochenangebote")
+
+    rows = views._promo_type_rows(_cabinet_request("get", "/promotions/typen/", tenant=t))
+    by_key = {r["key"]: r for r in rows}
+    assert by_key["Wochenangebote"]["count"] == 3 and not by_key["Wochenangebote"]["builtin"]
+    assert by_key["sys:mystery"]["count"] == 1 and by_key["sys:mystery"]["builtin"]
+
+
+def test_screen_saves_all_four_axes_and_keeps_other_config():
+    from apps.promotions import views
+
+    # probe-ключ W6-класса: переживает normalize (как в замках волны SM)
+    t = _tenant("pt9", notify={"order_confirmed": {"email": False}})
+    _promo("W1", promo_type="discount", discount_percent=10, group="Räumung")
+
+    resp = views.promo_type_save(
+        _cabinet_request(
+            "post",
+            "/promotions/typen/speichern/",
+            {
+                "style:Räumung": "countdown",
+                "card:Räumung": "ring",
+                "mode:Räumung": "slider",
+                "cols:Räumung": "4",
+                "rows:Räumung": "2",
+            },
+            tenant=t,
+        )
+    )
+    assert resp.status_code == 302
+    t.refresh_from_db()
+    cfg = siteconfig.normalize(t.site_config)
+    entry = cfg["promo_groups"]["Räumung"]
+    assert entry["style"] == "countdown" and entry["card"] == "ring"
+    assert entry["layout"]["scroll"] is True and entry["layout"]["cols"] == 4
+    assert entry["layout"]["rows"] == 2
+    # targeted-write: соседние ключи конфига целы (W9-3)
+    assert cfg["notify"]["order_confirmed"]["email"] is False
+
+
+def test_clearing_all_axes_removes_the_record():
+    """Presence-minimal: пустой тип не материализует ключ (golden целы)."""
+    from apps.promotions import views
+
+    t = _tenant("pt10", promo_groups={"Räumung": {"style": "countdown", "card": "ring"}})
+    _promo("W1", promo_type="discount", discount_percent=10, group="Räumung")
+
+    views.promo_type_save(
+        _cabinet_request(
+            "post",
+            "/promotions/typen/speichern/",
+            {"style:Räumung": "", "card:Räumung": "", "mode:Räumung": "grid", "cols:Räumung": ""},
+            tenant=t,
+        )
+    )
+    t.refresh_from_db()
+    assert "promo_groups" not in siteconfig.normalize(t.site_config)
+
+
+def test_screen_has_a_navigation_entry():
+    """Инвариант X7: у каждого экрана кабинета есть вход из навигации."""
+    from apps.core import nav_registry
+
+    assert any(e.url_name == "promotions:promo-type-list" for e in nav_registry.ENTRIES)

@@ -22439,3 +22439,48 @@ msgstr "Recurring offer"
 #: apps/promotions/promo_types.py
 msgid "Repeats every day or every week."
 msgstr "Repeats every day or every week."
+
+#: apps/promotions/views.py
+msgid "Aktionstypen"
+msgstr "Promotion types"
+
+#: apps/promotions/views.py
+msgid "Aktionstypen gespeichert."
+msgstr "Promotion types saved."
+
+#: apps/promotions/views.py
+msgid "Aktionstypen und ihre Darstellung"
+msgstr "Promotion types and their display"
+
+#: templates/promotions/promo_type_list.html
+msgid ""
+"Jeder Typ bekommt eine eigene Seite auf der Website — mit eigener Vorlage, "
+"eigenem Raster und eigener Kartenform."
+msgstr ""
+"Each type gets its own page on the website — with its own template, grid and"
+" card form."
+
+#: templates/promotions/promo_type_list.html
+msgid "Leer = wie auf der Aktionsseite insgesamt."
+msgstr "Empty = same as the offers page overall."
+
+#: templates/promotions/promo_type_list.html
+msgid ""
+"Noch keine Aktionstypen: Typen entstehen aus den Aktionen selbst — tragen "
+"Sie bei einer Aktion eine Gruppe ein oder legen Sie eine Mystery- bzw. "
+"Vorbestell-Aktion an."
+msgstr ""
+"No promotion types yet: types come from the promotions themselves — set a "
+"group on a promotion or create a mystery or pre-order promotion."
+
+#: templates/promotions/promo_type_list.html
+msgid "Seite ansehen"
+msgstr "View page"
+
+#: templates/promotions/promo_type_list.html
+msgid "automatisch"
+msgstr "automatic"
+
+#: templates/promotions/promo_type_list.html
+msgid "wie die Seite"
+msgstr "same as page"

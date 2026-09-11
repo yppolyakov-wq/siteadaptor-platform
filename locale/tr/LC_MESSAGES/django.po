@@ -22566,3 +22566,48 @@ msgstr "Sürekli kampanya"
 #: apps/promotions/promo_types.py
 msgid "Repeats every day or every week."
 msgstr "Her gün veya her hafta tekrarlanır."
+
+#: apps/promotions/views.py
+msgid "Aktionstypen"
+msgstr "Kampanya türleri"
+
+#: apps/promotions/views.py
+msgid "Aktionstypen gespeichert."
+msgstr "Kampanya türleri kaydedildi."
+
+#: apps/promotions/views.py
+msgid "Aktionstypen und ihre Darstellung"
+msgstr "Kampanya türleri ve görünümleri"
+
+#: templates/promotions/promo_type_list.html
+msgid ""
+"Jeder Typ bekommt eine eigene Seite auf der Website — mit eigener Vorlage, "
+"eigenem Raster und eigener Kartenform."
+msgstr ""
+"Her tür web sitesinde kendi sayfasını alır — kendi şablonu, ızgarası ve kart"
+" biçimiyle."
+
+#: templates/promotions/promo_type_list.html
+msgid "Leer = wie auf der Aktionsseite insgesamt."
+msgstr "Boş = kampanya sayfasının genelindeki gibi."
+
+#: templates/promotions/promo_type_list.html
+msgid ""
+"Noch keine Aktionstypen: Typen entstehen aus den Aktionen selbst — tragen "
+"Sie bei einer Aktion eine Gruppe ein oder legen Sie eine Mystery- bzw. "
+"Vorbestell-Aktion an."
+msgstr ""
+"Henüz kampanya türü yok: türler kampanyaların kendisinden gelir — bir "
+"kampanyaya grup girin ya da mystery veya ön sipariş kampanyası oluşturun."
+
+#: templates/promotions/promo_type_list.html
+msgid "Seite ansehen"
+msgstr "Sayfayı görüntüle"
+
+#: templates/promotions/promo_type_list.html
+msgid "automatisch"
+msgstr "otomatik"
+
+#: templates/promotions/promo_type_list.html
+msgid "wie die Seite"
+msgstr "sayfayla aynı"

@@ -12,6 +12,10 @@ urlpatterns = [
     path("photo-edit/", views.promotion_photo_edit, name="promotion-photo-edit"),
     # DL-13 C3: режим страницы /aktionen/ (по группам | по времени) — targeted-write.
     path("aktionsseite/", views.promotion_page_mode, name="promotion-page-mode"),
+    # PT-5: «Aktionstypen» — ось типов акции (свои рубрики + встроенные механики)
+    # и их вывод: шаблон · раскладка · сетка/лента · форма карточки.
+    path("typen/", views.promo_type_list, name="promo-type-list"),
+    path("typen/speichern/", views.promo_type_save, name="promo-type-save"),
     path("new/", views.promotion_create, name="promotion-create"),
     path("<uuid:pk>/edit/", views.promotion_edit, name="promotion-edit"),
     path("<uuid:pk>/transition/", views.promotion_transition, name="promotion-transition"),

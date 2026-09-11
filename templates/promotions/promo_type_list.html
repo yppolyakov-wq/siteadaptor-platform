@@ -1,0 +1,77 @@
+{% extends "core/_base_dashboard.html" %}
+{% load i18n %}
+{% comment %}PT-5: экран «Aktionstypen» (план docs/pt-promo-types-plan-2026-09-11.md).
+
+Одна ось — один список: свои рубрики владельца (Wochenangebote, Räumung …) и
+встроенные механики (Mystery, Überraschungstüte, Vorbestellung …) стоят рядом,
+потому что для витрины это одно и то же: страница типа, пункт меню, чип-фильтр.
+Разница только в происхождении — встроенный тип выводится из полей акции, и
+владелец его не заводит и не переименовывает.
+
+На каждый тип четыре оси вывода (решение владельца Р-3): шаблон страницы ·
+сетка или лента · сколько колонок и рядов · форма карточки.{% endcomment %}
+
+{% block content %}
+<div class="max-w-5xl">
+  <div class="flex flex-wrap items-center justify-between gap-3 mb-1">
+    <h1 class="text-xl font-semibold">{% trans "Aktionstypen" %}</h1>
+    <a href="{% url 'promotions:promotion-list' %}" class="text-sm text-gray-500 hover:underline">{% trans "Zu den Aktionen" %} →</a>
+  </div>
+  <p class="text-sm text-gray-500 mb-5">{% trans "Jeder Typ bekommt eine eigene Seite auf der Website — mit eigener Vorlage, eigenem Raster und eigener Kartenform." %}</p>
+
+  {% if rows %}
+  <form method="post" action="{% url 'promotions:promo-type-save' %}" class="space-y-4">{% csrf_token %}
+    {% for row in rows %}
+    <section class="rounded-2xl border border-gray-200 bg-white p-4" data-promo-type="{{ row.key }}">
+      <div class="flex flex-wrap items-baseline gap-2 mb-3">
+        <h2 class="text-base font-semibold">{{ row.label }}</h2>
+        {% if row.builtin %}
+          <span class="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600">{% trans "automatisch" %}</span>
+        {% endif %}
+        <span class="text-sm text-gray-400">· {% blocktrans count n=row.count %}{{ n }} Aktion{% plural %}{{ n }} Aktionen{% endblocktrans %}</span>
+        <a href="{% url 'storefront-aktionen' %}?gruppe={{ row.key|urlencode }}" target="_blank" rel="noopener"
+           class="ml-auto text-sm text-gray-500 hover:underline">{% trans "Seite ansehen" %} →</a>
+      </div>
+      {% if row.hint %}<p class="-mt-2 mb-3 text-xs text-gray-400">{{ row.hint }}</p>{% endif %}
+
+      <div class="grid gap-4 md:grid-cols-2">
+        {% include "tenant/_cardform_picker.html" with name="style:"|add:row.key value=row.style items=group_page_styles thumb="tenant/_pagelayout_thumb.html" title=_("Vorlage der Seite") %}
+        {% include "tenant/_cardform_picker.html" with name="card:"|add:row.key value=row.card items=card_forms title=_("Kartenform") %}
+      </div>
+
+      {% comment %}Ось вывода: «сетка или лента» + сколько колонок и рядов. Пусто =
+      как на странице акций в целом (presence-minimal: записи в конфиге нет).{% endcomment %}
+      <div class="mt-4 flex flex-wrap items-end gap-4 text-sm">
+        <label class="flex flex-col gap-1">
+          <span class="text-xs font-medium text-gray-500">{% trans "Ausgabe" %}</span>
+          <select name="mode:{{ row.key }}" class="h-9 rounded-lg border border-gray-300 px-2">
+            <option value="grid" {% if row.mode != "slider" %}selected{% endif %}>{% trans "Raster" %}</option>
+            <option value="slider" {% if row.mode == "slider" %}selected{% endif %}>{% trans "Slider" %}</option>
+          </select>
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-xs font-medium text-gray-500">{% trans "Spalten" %}</span>
+          <input type="number" name="cols:{{ row.key }}" value="{{ row.cols }}" min="1" max="6"
+                 placeholder="{% trans 'wie die Seite' %}" class="h-9 w-32 rounded-lg border border-gray-300 px-2">
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class="text-xs font-medium text-gray-500">{% trans "Reihen" %}</span>
+          <input type="number" name="rows:{{ row.key }}" value="{{ row.rows }}" min="1" max="6"
+                 placeholder="{% trans 'alle' %}" class="h-9 w-32 rounded-lg border border-gray-300 px-2">
+        </label>
+      </div>
+    </section>
+    {% endfor %}
+    <div class="flex items-center gap-3">
+      <button type="submit" class="rounded-xl bg-gray-900 text-white px-4 py-2 text-sm font-medium">{% trans "Save" %}</button>
+      <span class="text-xs text-gray-400">{% trans "Leer = wie auf der Aktionsseite insgesamt." %}</span>
+    </div>
+  </form>
+  {% else %}
+  <p class="rounded-2xl border border-dashed border-gray-300 p-6 text-sm text-gray-500">
+    {% trans "Noch keine Aktionstypen: Typen entstehen aus den Aktionen selbst — tragen Sie bei einer Aktion eine Gruppe ein oder legen Sie eine Mystery- bzw. Vorbestell-Aktion an." %}
+    <a href="{% url 'promotions:promotion-list' %}" class="ml-1 font-medium text-gray-700 hover:underline">{% trans "Zu den Aktionen" %} →</a>
+  </p>
+  {% endif %}
+</div>
+{% endblock %}

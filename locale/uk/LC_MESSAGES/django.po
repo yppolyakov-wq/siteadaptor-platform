@@ -22653,3 +22653,48 @@ msgstr "Постійна акція"
 #: apps/promotions/promo_types.py
 msgid "Repeats every day or every week."
 msgstr "Повторюється щодня або щотижня."
+
+#: apps/promotions/views.py
+msgid "Aktionstypen"
+msgstr "Типи акцій"
+
+#: apps/promotions/views.py
+msgid "Aktionstypen gespeichert."
+msgstr "Типи акцій збережено."
+
+#: apps/promotions/views.py
+msgid "Aktionstypen und ihre Darstellung"
+msgstr "Типи акцій та їх відображення"
+
+#: templates/promotions/promo_type_list.html
+msgid ""
+"Jeder Typ bekommt eine eigene Seite auf der Website — mit eigener Vorlage, "
+"eigenem Raster und eigener Kartenform."
+msgstr ""
+"Кожен тип має власну сторінку на сайті — зі своїм шаблоном, сіткою та формою"
+" картки."
+
+#: templates/promotions/promo_type_list.html
+msgid "Leer = wie auf der Aktionsseite insgesamt."
+msgstr "Порожньо = як на сторінці акцій загалом."
+
+#: templates/promotions/promo_type_list.html
+msgid ""
+"Noch keine Aktionstypen: Typen entstehen aus den Aktionen selbst — tragen "
+"Sie bei einer Aktion eine Gruppe ein oder legen Sie eine Mystery- bzw. "
+"Vorbestell-Aktion an."
+msgstr ""
+"Поки немає типів акцій: типи беруться із самих акцій — вкажіть в акції групу"
+" або створіть mystery- чи передзамовну акцію."
+
+#: templates/promotions/promo_type_list.html
+msgid "Seite ansehen"
+msgstr "Відкрити сторінку"
+
+#: templates/promotions/promo_type_list.html
+msgid "automatisch"
+msgstr "автоматично"
+
+#: templates/promotions/promo_type_list.html
+msgid "wie die Seite"
+msgstr "як у сторінки"

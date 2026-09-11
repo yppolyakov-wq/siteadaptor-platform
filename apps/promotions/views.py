@@ -252,6 +252,135 @@ def _promo_layout(request) -> str:
     return siteconfig.normalize_promo_layout(raw.get("promo_layout"))
 
 
+def _promo_type_rows(request):
+    """PT-5: строки экрана «Aktionstypen» — свои рубрики + встроенные механики.
+
+    Обе половины оси в ОДНОМ списке (решение владельца Р-1). Свои строятся по
+    живым акциям, а не по словарю настроек: рубрика — свободный текст, и запись,
+    осиротевшая после переименования, не должна выглядеть существующим типом.
+    Встроенные — только те, у которых есть акции (правило STU-9).
+    """
+    from django.db.models import Count
+
+    from apps.tenants import siteconfig
+
+    from . import promo_types
+
+    raw = getattr(getattr(request, "tenant", None), "site_config", None)
+    raw = raw if isinstance(raw, dict) else {}
+    saved = siteconfig.normalize_promo_groups(raw.get("promo_groups"))
+    active = Promotion.objects.filter(status="active")
+
+    rows = []
+    counts = {
+        row["group"]: row["n"]
+        for row in active.exclude(group="").order_by().values("group").annotate(n=Count("pk"))
+    }
+    for name in sorted(counts):
+        rows.append({"key": name, "label": name, "count": counts[name], "builtin": False})
+    for key in promo_types.live_builtin_keys(active):
+        rows.append(
+            {
+                "key": key,
+                "label": str(promo_types.builtin_label(key)),
+                "hint": str(promo_types.builtin_hint(key)),
+                "count": promo_types.apply_type(active, key).count(),
+                "builtin": True,
+            }
+        )
+    for row in rows:
+        settings = promo_types.settings_for(saved, row["key"])
+        layout = settings.get("layout") or {}
+        row["style"] = settings.get("style", "")
+        row["card"] = settings.get("card", "")
+        row["mode"] = "slider" if layout.get("scroll") else "grid"
+        row["cols"] = layout.get("cols") or ""
+        row["rows"] = layout.get("rows") or ""
+        row["has_layout"] = bool(layout)
+    return rows
+
+
+@login_required
+def promo_type_list(request):
+    """PT-5: «Aktionstypen» — управление ОСЬЮ типов акции в одном месте.
+
+    До волны настройка типа была одна (шаблон страницы) и пряталась в ящике
+    `<details>` на списке акций. Решение владельца Р-3 добавило к типу раскладку,
+    режим «сетка/лента» и форму карточки — четыре оси уже не строка в ящике,
+    поэтому у них свой экран.
+    """
+    from apps.core import card_forms
+
+    return render(
+        request,
+        "promotions/promo_type_list.html",
+        {
+            "nav": "promo-types",
+            "rows": _promo_type_rows(request),
+            "group_page_styles": group_styles.GROUP_PAGE_STYLES,
+            "card_forms": card_forms.forms_for(card_forms.PROMO),
+        },
+    )
+
+
+@login_required
+@require_POST
+def promo_type_save(request):
+    """PT-5: targeted-write настроек типов — остальной site_config цел (W9-3).
+
+    Поля приходят с ключом типа в ИМЕНИ (`style:<ключ>`, `card:<ключ>`,
+    `mode:<ключ>`, `cols:<ключ>`, `rows:<ключ>`) — модели типа нет, ключ это
+    то же плоское значение, что у фасета `?gruppe=`. Пустая настройка = записи
+    в словаре нет (presence-minimal, golden-эталоны целы).
+    """
+    from apps.tenants import siteconfig
+
+    from . import promo_types
+
+    tenant = request.tenant
+    cfg = dict(tenant.site_config) if isinstance(tenant.site_config, dict) else {}
+    types = dict(siteconfig.normalize_promo_groups(cfg.get("promo_groups")))
+
+    keys = {
+        name.split(":", 1)[1].strip()
+        for name in request.POST
+        if name.split(":", 1)[0] in ("style", "card", "mode", "cols", "rows") and ":" in name
+    }
+    for key in keys:
+        if not key:
+            continue
+        # Прежнее значение: строка (легаси) или словарь — разбирает реестр типов.
+        entry = dict(promo_types.settings_for(types, key))
+        entry["style"] = (request.POST.get(f"style:{key}") or "").strip()
+        entry["card"] = (request.POST.get(f"card:{key}") or "").strip()
+        mode = (request.POST.get(f"mode:{key}") or "").strip()
+        cols = (request.POST.get(f"cols:{key}") or "").strip()
+        rows = (request.POST.get(f"rows:{key}") or "").strip()
+        layout: dict = {}
+        if mode == "slider":
+            layout["scroll"] = True
+        if cols.isdigit():
+            layout["preset"] = f"cols{max(1, min(6, int(cols)))}"
+            layout["cols"] = max(1, min(6, int(cols)))
+        if rows.isdigit() and int(rows):
+            layout["rows"] = max(1, min(6, int(rows)))
+        if layout:
+            entry["layout"] = layout
+        else:
+            entry.pop("layout", None)
+        types[key] = entry
+
+    types = siteconfig.normalize_promo_groups(types)
+    if types:
+        cfg["promo_groups"] = types
+    else:
+        cfg.pop("promo_groups", None)
+    tenant.site_config = cfg
+    tenant.save(update_fields=["site_config", "updated_at"])
+    messages.success(request, _("Aktionstypen gespeichert."))
+    return redirect("promotions:promo-type-list")
+
+
 @login_required
 @require_POST
 def promotion_page_mode(request):

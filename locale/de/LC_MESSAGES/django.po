@@ -22477,3 +22477,49 @@ msgstr "Dauerangebot"
 #: apps/promotions/promo_types.py
 msgid "Repeats every day or every week."
 msgstr "Wiederholt sich täglich oder wöchentlich."
+
+#: apps/promotions/views.py
+msgid "Aktionstypen"
+msgstr "Aktionstypen"
+
+#: apps/promotions/views.py
+msgid "Aktionstypen gespeichert."
+msgstr "Aktionstypen gespeichert."
+
+#: apps/promotions/views.py
+msgid "Aktionstypen und ihre Darstellung"
+msgstr "Aktionstypen und ihre Darstellung"
+
+#: templates/promotions/promo_type_list.html
+msgid ""
+"Jeder Typ bekommt eine eigene Seite auf der Website — mit eigener Vorlage, "
+"eigenem Raster und eigener Kartenform."
+msgstr ""
+"Jeder Typ bekommt eine eigene Seite auf der Website — mit eigener Vorlage, "
+"eigenem Raster und eigener Kartenform."
+
+#: templates/promotions/promo_type_list.html
+msgid "Leer = wie auf der Aktionsseite insgesamt."
+msgstr "Leer = wie auf der Aktionsseite insgesamt."
+
+#: templates/promotions/promo_type_list.html
+msgid ""
+"Noch keine Aktionstypen: Typen entstehen aus den Aktionen selbst — tragen "
+"Sie bei einer Aktion eine Gruppe ein oder legen Sie eine Mystery- bzw. "
+"Vorbestell-Aktion an."
+msgstr ""
+"Noch keine Aktionstypen: Typen entstehen aus den Aktionen selbst — tragen "
+"Sie bei einer Aktion eine Gruppe ein oder legen Sie eine Mystery- bzw. "
+"Vorbestell-Aktion an."
+
+#: templates/promotions/promo_type_list.html
+msgid "Seite ansehen"
+msgstr "Seite ansehen"
+
+#: templates/promotions/promo_type_list.html
+msgid "automatisch"
+msgstr "automatisch"
+
+#: templates/promotions/promo_type_list.html
+msgid "wie die Seite"
+msgstr "wie die Seite"
