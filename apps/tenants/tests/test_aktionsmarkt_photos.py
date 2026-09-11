@@ -175,11 +175,20 @@ def test_promotion_targets_still_match_their_products():
     for entry in kit.categories:
         walk(entry)
 
-    actual = [
-        (spec["title"], products[spec["product"]])
-        for spec in kit.promotions_spec or []
-        if isinstance(spec.get("product"), int)
-    ]
+    # STU-18h: цель акции указывается ИМЕНЕМ товара (индекс переставлял акции на
+    # чужие позиции при любой правке каталога). Голден прежний — проверяем ту же
+    # связь; имя вдобавок обязано существовать в каталоге кита, иначе акция молча
+    # осталась бы без товара.
+    actual = []
+    for spec in kit.promotions_spec or []:
+        ref = spec.get("product")
+        if isinstance(ref, int):
+            actual.append((spec["title"], products[ref]))
+        elif isinstance(ref, str):
+            assert ref in products, (
+                f"акция «{spec['title']}» ссылается на несуществующий товар {ref!r}"
+            )
+            actual.append((spec["title"], ref))
     assert actual == PROMO_TARGETS
 
 

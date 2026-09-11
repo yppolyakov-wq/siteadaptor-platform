@@ -3850,7 +3850,7 @@ AKTIONSMARKT = DemoKit(
         {
             "title": "Kaffee-Woche: −25 % ab Montag",
             "desc": "Nächste Woche ist Kaffee-Woche — alle Röstungen −25 %.",
-            "product": 10,
+            "product": "Gemahlener Kaffee 500 g",
             "percent": 25,
             "group": "Wochenangebote",
             "starts_in_days": 3,
@@ -3859,7 +3859,7 @@ AKTIONSMARKT = DemoKit(
         {
             "title": "Käse-Tage −20 %",
             "desc": "Ab nächster Woche: Gouda und Bergkäse günstiger.",
-            "product": 16,
+            "product": "Gouda jung 400 g",
             "percent": 20,
             "group": "Wochenangebote",
             "starts_in_days": 9,
@@ -3868,7 +3868,7 @@ AKTIONSMARKT = DemoKit(
         {
             "title": "Sonnenblumenöl 1 L für 1,99 €",
             "desc": "Vorschau: Festpreis statt 2,49 € — ab Montag in zwei Wochen.",
-            "product": 13,
+            "product": "Sonnenblumenöl 1 L",
             "new_price": 1.99,
             "compare_at": 2.49,
             "discount_style": "festpreis",
@@ -3878,7 +3878,7 @@ AKTIONSMARKT = DemoKit(
         },
         {
             "title": "Äpfel −20 %",
-            "product": 0,
+            "product": "Äpfel 1 kg",
             "percent": 20,
             "discount_style": "badge",
             "group": "Wochenangebote",
@@ -3888,7 +3888,7 @@ AKTIONSMARKT = DemoKit(
         {
             "title": "Croissant −30 % – nur heute!",
             "new": True,
-            "product": 6,
+            "product": "Croissant",
             "percent": 30,
             # DL-19 (AK3): остаток времени кольцом на фото — «горит сегодня»
             "card_style": "ring",
@@ -3899,7 +3899,7 @@ AKTIONSMARKT = DemoKit(
         },
         {
             "title": "Brot zum Festpreis 0,99 €",
-            "product": 4,
+            "product": "Bauernbrot 750 g",
             "new_price": "0.99",
             "discount_style": "festpreis",
             "compare_at": "1.99",
@@ -3907,7 +3907,7 @@ AKTIONSMARKT = DemoKit(
         },
         {
             "title": "Limonade Dauertiefpreis 0,79 €",
-            "product": 9,
+            "product": "Limonade 1,5 L",
             "new_price": "0.79",
             "discount_style": "strikethrough",
             "group": "Dauertiefpreis",
@@ -3915,7 +3915,7 @@ AKTIONSMARKT = DemoKit(
         {
             "title": "Gemahlener Kaffee −25 % (limitiert)",
             "image": "markt-kaffee-aktion",
-            "product": 10,
+            "product": "Gemahlener Kaffee 500 g",
             # DL-19 (AK2): своя форма карточки — купон («резервируй и забери»)
             "card_style": "coupon",
             "type": "reservation",
@@ -3925,7 +3925,7 @@ AKTIONSMARKT = DemoKit(
         },
         {
             "title": "Backwaren-Überraschungstüte 5 € statt 15 €",
-            "product": 14,
+            "product": "Backwaren-Tüte",
             "surprise": True,
             "new_price": "5.00",
             "compare_at": "15.00",
@@ -3934,7 +3934,7 @@ AKTIONSMARKT = DemoKit(
         },
         {
             "title": "Obst & Gemüse-Überraschungstüte 4 € statt 12 €",
-            "product": 15,
+            "product": "Obst & Gemüse-Tüte",
             "surprise": True,
             "new_price": "4.00",
             "compare_at": "12.00",
@@ -3942,7 +3942,7 @@ AKTIONSMARKT = DemoKit(
         },
         {
             "title": "Brötchen am Abend −50 %",
-            "product": 5,
+            "product": "Brötchen 6er",
             "percent": 50,
             "recurrence": "daily",
             "ends_in_days": 1,
@@ -3951,7 +3951,7 @@ AKTIONSMARKT = DemoKit(
         },
         {
             "title": "Mineralwasser −15 % (jede Woche)",
-            "product": 8,
+            "product": "Mineralwasser 1,5 L",
             "percent": 15,
             "recurrence": "weekly",
             "ends_in_days": 7,
@@ -3959,13 +3959,13 @@ AKTIONSMARKT = DemoKit(
         },
         {
             "title": "Sonnenblumenöl −40 % (Räumung)",
-            "product": 13,
+            "product": "Sonnenblumenöl 1 L",
             "percent": 40,
             "group": "Räumung",
         },
         {
             "title": "Basmatireis −35 % – Countdown",
-            "product": 12,
+            "product": "Basmatireis 1 kg",
             "percent": 35,
             "countdown": True,
             "ends_in_days": 1,
@@ -3974,7 +3974,7 @@ AKTIONSMARKT = DemoKit(
         {
             "title": "Bio-Gemüsekiste −20 % – nur 5 Stück",
             "image": "markt-gemuesekiste-inhalt",
-            "product": 3,
+            "product": "Bio-Gemüsekiste",
             "type": "reservation",
             "percent": 20,
             "available_quantity": 5,
@@ -3987,7 +3987,7 @@ AKTIONSMARKT = DemoKit(
             "new": True,
             # Носитель — Bergkäse (4,99 €): половина цены сходится с прайсом,
             # а сам товар mystery-стиль всё равно скрывает до раскрытия.
-            "product": 19,
+            "product": "Bergkäse am Stück",
             "new_price": "2.49",
             "compare_at": "4.99",
             "discount_style": "mystery",
@@ -3999,7 +3999,7 @@ AKTIONSMARKT = DemoKit(
         # механику «limit» (лимит кампании на ОБЫЧНОЙ скидке, не reservation).
         {
             "title": "Tomaten 500 g −25 %",
-            "product": 2,  # Tomaten 500 g 2,99 € → 2,24 €
+            "product": "Tomaten 500 g",  # Tomaten 500 g 2,99 € → 2,24 €
             "percent": 25,
             "discount_style": "percent",  # ← стиля percent в ките не было
             "group": "Wochenangebote",
@@ -4009,7 +4009,7 @@ AKTIONSMARKT = DemoKit(
         },
         {
             "title": "Bananen — dauerhaft ab 1,29 €",
-            "product": 1,  # Bananen 1 kg 1,79 €
+            "product": "Bananen 1 kg",  # Bananen 1 kg 1,79 €
             "new_price": "1.29",
             "discount_style": "ab",  # ← «ab»-Preis (kg-Ware: цена «ab» читается честно)
             "group": "Dauertiefpreis",
@@ -4020,7 +4020,7 @@ AKTIONSMARKT = DemoKit(
         {
             "title": "Orangensaft −20 % — nur 40 Flaschen",
             "new": True,
-            "product": 7,  # Orangensaft 1 L 2,49 € → 1,99 €
+            "product": "Orangensaft 1 L",  # Orangensaft 1 L 2,49 € → 1,99 €
             "percent": 20,
             "limit": 40,  # ← лимит кампании: «Nur noch N» + стоп после 40 продаж
             "group": "Wochenangebote",
@@ -4047,7 +4047,7 @@ AKTIONSMARKT = DemoKit(
         {
             # DL-11: 15-я активная акция — сетка после spotlight (3) = 12 = 4 ряда × 3
             "title": "Gouda jung −20 %",
-            "product": 16,  # Gouda jung 400 g 3,49 € → 2,79 €
+            "product": "Gouda jung 400 g",  # Gouda jung 400 g 3,49 € → 2,79 €
             "percent": 20,
             "discount_style": "badge",
             "group": "Wochenangebote",
@@ -4059,7 +4059,7 @@ AKTIONSMARKT = DemoKit(
         # «Endet bald» осталась на 4 карточках (2 колонки × 2).
         {
             "title": "Butter 250 g −30 % — MHD-Ware",
-            "product": 17,
+            "product": "Butter 250 g",
             "percent": 30,
             "discount_style": "percent",
             "group": "Anti-Food-Waste",
@@ -4068,7 +4068,7 @@ AKTIONSMARKT = DemoKit(
         },
         {
             "title": "Bergkäse-Anschnitt −25 % — Reste retten",
-            "product": 19,
+            "product": "Bergkäse am Stück",
             "percent": 25,
             "discount_style": "strikethrough",
             "group": "Anti-Food-Waste",
@@ -4077,7 +4077,7 @@ AKTIONSMARKT = DemoKit(
         },
         {
             "title": "Nudeln −30 % (Räumung)",
-            "product": 11,
+            "product": "Nudeln 500 g",
             "percent": 30,
             "discount_style": "badge",
             "group": "Räumung",
@@ -4257,50 +4257,105 @@ AKTIONSMARKT = DemoKit(
         (
             "Überraschungstüten",
             "ueberraschungstueten",
+            [],
+            # STU-18h (фидбэк владельца 2026-09-11 «засей демо, чтобы категории при
+            # выборе шаблонов были полными»): у направления появились подразделы.
+            # Без них «Полки», «Вкладки», «Указатель» и «Навигатор» на этой странице
+            # рисовать было нечего — владелец кликал шаблон и не видел разницы.
             [
-                _p(
-                    "Backwaren-Tüte",
-                    "15.00",
-                    "Wert ca. 15 € — Anti-Food-Waste.",
+                (
+                    "Backwaren-Tüten",
+                    "backwaren-tueten",
+                    [
+                        _p(
+                            "Backwaren-Tüte",
+                            "15.00",
+                            "Wert ca. 15 € — Anti-Food-Waste.",
+                            "markt-backtuete",
+                        ),
+                        _p(
+                            "Brot-Tüte XL",
+                            "18.00",
+                            "Brote und Brötchen vom Vortag — Wert ca. 18 €.",
+                            "bread-loaf",
+                        ),
+                    ],
                     "markt-backtuete",
                 ),
-                _p(
-                    "Obst & Gemüse-Tüte",
-                    "12.00",
-                    "Wert ca. 12 € — Anti-Food-Waste.",
+                (
+                    "Obst & Gemüse-Tüten",
+                    "obst-gemuese-tueten",
+                    [
+                        _p(
+                            "Obst & Gemüse-Tüte",
+                            "12.00",
+                            "Wert ca. 12 € — Anti-Food-Waste.",
+                            "markt-obsttuete",
+                        ),
+                        _p(
+                            "Bunte Restekiste",
+                            "9.00",
+                            "Krummes Gemüse und reifes Obst — Wert ca. 9 €.",
+                            "markt-gemuesekiste-inhalt",
+                        ),
+                    ],
                     "markt-obsttuete",
                 ),
             ],
-            "markt-tueten",  # AMP: фото плитки (было SVG)
             "Gerettete Ware vom Vortag — jeden Abend neu gepackt.",
             # DL-20 (P1): у направления есть флагман — первая тюта ведёт страницу.
             "schaufenster",
+            "markt-tueten",  # AMP: фото плитки (было SVG); 7-й элемент — у контейнера
         ),
         # DL-11: товары ДОПИСАНЫ В КОНЕЦ — индексы promotions_spec.product целы.
         (
             "Molkerei & Eier",
             "molkerei-eier",
+            [],
+            # STU-18h: те же позиции, но разложены по двум полкам — теперь и здесь
+            # структурные шаблоны («Полки», «Вкладки», «Указатель», «Навигатор»)
+            # показывают то, ради чего их выбирают.
             [
-                _p(
-                    "Gouda jung 400 g",
-                    "3.49",
-                    "Mild und cremig, am Stück.",
-                    "cheese,wheel",
-                    unit="kg",
-                    content=0.4,
+                (
+                    "Käse",
+                    "kaese",
+                    [
+                        _p(
+                            "Gouda jung 400 g",
+                            "3.49",
+                            "Mild und cremig, am Stück.",
+                            "cheese,wheel",
+                            unit="kg",
+                            content=0.4,
+                        ),
+                        _p(
+                            "Bergkäse am Stück",
+                            "4.99",
+                            "Würzig, 6 Monate gereift.",
+                            "markt-bergkaese",
+                        ),
+                        _p(
+                            "Schnittkäse-Platte",
+                            "5.49",
+                            "Drei Sorten, fertig aufgeschnitten.",
+                            "cheese",
+                        ),
+                    ],
+                    "cheese-wheel",
                 ),
-                _p("Butter 250 g", "1.99", "Süßrahm, aus der Region.", "butter"),
-                _p("Eier 10er Freiland", "2.79", "Aus Freilandhaltung.", "eggs"),
-                _p(
-                    "Bergkäse am Stück",
-                    "4.99",
-                    "Würzig, 6 Monate gereift.",
-                    "markt-bergkaese",
+                (
+                    "Butter & Eier",
+                    "butter-eier",
+                    [
+                        _p("Butter 250 g", "1.99", "Süßrahm, aus der Region.", "butter"),
+                        _p("Eier 10er Freiland", "2.79", "Aus Freilandhaltung.", "eggs"),
+                    ],
+                    "butter",
                 ),
             ],
-            "markt-molkerei",
             "Käse, Butter und Eier von Höfen aus dem Umland.",
             "kopfbild",  # KAT-1: шапка направления с фото
+            "markt-molkerei",
         ),
     ],
 )
@@ -22649,9 +22704,22 @@ def apply_kit(tenant, key: str) -> bool:
     def _create_spec_promo(spec, *, service=None, stay_unit=None):
         nonlocal lock
         idx = spec.get("product")
-        product = (
-            created_products[idx] if isinstance(idx, int) and idx < len(created_products) else None
-        )
+        # STU-18h: цель акции можно указать ИМЕНЕМ, а не только позицией. Индекс —
+        # позиция в общем списке товаров кита, поэтому добавление одной позиции в
+        # середину каталога молча переставляло акции на чужие товары (волна AMP
+        # прямо этого избегала: «порядок обхода и число товаров прежние»). Имя
+        # переживает правки каталога; неизвестное имя — как и неверный индекс,
+        # просто оставляет акцию без товара (демо не должно падать).
+        if isinstance(idx, str):
+            product = next(
+                (p for p in created_products if (p.name or {}).get("de", "") == idx), None
+            )
+        else:
+            product = (
+                created_products[idx]
+                if isinstance(idx, int) and idx < len(created_products)
+                else None
+            )
         fields = {
             "title": {"de": spec["title"]},
             "description": {"de": spec.get("desc", "")},
