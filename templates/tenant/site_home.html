@@ -2732,6 +2732,17 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     // DL-21.2: шаблон обзорной страницы акций ("" законно — снимает ключ)
     var ppInp = form.querySelector("[name='promo_page_style']");
     if (ppInp) payload.promo_page_style = ppInp.value;
+    // STU-18g: композиция ДЕВЯТИ листингов — один ключ-словарь `page_styles`.
+    // Собираем циклом по строкам панели: девять отдельных веток разъехались бы,
+    // а без черновика выбор был бы виден только после Save (жалоба владельца).
+    var ps = {};
+    form.querySelectorAll("[name$='_page_style']").forEach(function (inp) {
+      var surface = inp.name.replace(/_page_style$/, "");
+      // у каталога и обзора акций СВОИ плоские ключи (см. выше) — в словарь не кладём
+      if (surface === "catalog" || surface === "promo") return;
+      ps[surface] = inp.value;
+    });
+    payload.page_styles = ps;
     var evSel = form.querySelector("select[name='events_preset']");
     if (evSel && evSel.value) payload.events_index_layout = { preset: evSel.value };
     var stSel = form.querySelector("select[name='stay_preset']");

@@ -131,6 +131,10 @@ def test_page_config_keys_registry_consistent_with_apply_groups():
         # применения (валидация идёт по реестру сортировок провайдера, не по
         # CATALOG_SORT_KEYS), поэтому в ожидаемое множество входят явно.
         | set(siteconfig.LISTING_SORT_KINDS)
+        # STU-18g: композиция девяти листингов — ОДИН ключ-словарь со своей веткой
+        # применения (валидация через normalize_page_styles: и поверхность, и код),
+        # поэтому в ожидаемое множество входит явно, как catalog_sort выше.
+        | {"page_styles"}
     )
     assert from_registry == from_apply
 

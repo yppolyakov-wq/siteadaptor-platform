@@ -1864,7 +1864,23 @@ def layout_is_untouched(layout, key: str) -> bool:
 _PAGE_BOOL_KEYS = ("catalog_show_filters", "catalog_subcats_first", "cart_show_upsell")
 # DL-21.1: строковые шаблоны СТРАНИЦ (валидатор → "" = снять ключ); группа объявлена явно,
 # чтобы замок «реестр PAGE_CONFIG_KEYS = группы применения» видел ключ, а не ad-hoc ветку.
-_PAGE_STYLE_KEYS = ("catalog_page_style",)
+#: Ключ шаблона страницы → его нормализатор. Реестр, а не ветка `if`: у каждой
+#: поверхности свой набор допустимых кодов, и добавление новой не должно требовать
+#: правки `apply_page_payload`.
+#: STU-18g (фидбэк владельца 2026-09-11 «в каталоге шаблон меняется сразу при клике,
+#: у акций — только после Save и перезагрузки»): обзор акций отсутствовал здесь, и
+#: живой черновик его выбор молча выбрасывал — правка была видна только после Save.
+_PAGE_STYLE_KEYS = ("catalog_page_style", "promo_page_style")
+
+
+def _page_style_normalizers() -> dict:
+    """Ключ → нормализатор. Функцией, а не константой: сами нормализаторы
+    объявлены ниже по файлу, а порядок определений менять ради реестра незачем."""
+    return {
+        "catalog_page_style": normalize_catalog_page_style,
+        "promo_page_style": normalize_promo_page_style,
+    }
+
 
 PAGE_CONFIG_KEYS = {
     "home": (),  # sections/section_titles/… — собственный generic-путь драфта
@@ -1881,6 +1897,8 @@ PAGE_CONFIG_KEYS = {
         "catalog_sort",
         "catalog_subcats_first",
         "catalog_page_style",  # DL-21.1: шаблон корневой страницы каталога
+        "promo_page_style",  # DL-21.2: шаблон обзорной страницы акций (STU-18g)
+        "page_styles",  # STU-18d: композиция девяти листингов
         # STU-15c: дефолт сортировки листингов услуг/номеров/событий.
         "services_sort",
         "stays_sort",
@@ -1933,15 +1951,24 @@ def apply_page_payload(cfg: dict, data: dict) -> None:
             cfg[key] = data[key]
         else:
             cfg.pop(key, None)
-    # DL-21.1: шаблон корневой страницы каталога — "" законно (снимает ключ).
-    for key in _PAGE_STYLE_KEYS:
+    # DL-21.1/STU-18g: шаблоны страниц (каталог, обзор акций) — "" законно (снимает).
+    for key, _norm in _page_style_normalizers().items():
         if key not in data:
             continue
-        val = normalize_catalog_page_style(data.get(key))
+        val = _norm(data.get(key))
         if val:
             cfg[key] = val
         else:
             cfg.pop(key, None)
+    # STU-18g: композиция девяти листингов — ОДИН ключ-словарь; в черновике ведём
+    # себя как normalize (чужие коды и поверхности отбрасываются, пустой словарь
+    # снимает ключ), иначе выбор виден только после Save.
+    if "page_styles" in data:
+        styles = normalize_page_styles(data.get("page_styles"))
+        if styles:
+            cfg["page_styles"] = styles
+        else:
+            cfg.pop("page_styles", None)
 
 
 def page_config(config, page_type: str) -> dict:
