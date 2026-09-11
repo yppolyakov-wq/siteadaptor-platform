@@ -22399,3 +22399,43 @@ msgstr "Wide photo above the list."
 #. STU-18f
 msgid "Page %(n)s of %(total)s"
 msgstr "Page %(n)s of %(total)s"
+
+#: apps/promotions/promo_types.py
+msgid "Mystery deal"
+msgstr "Mystery deal"
+
+#: apps/promotions/promo_types.py
+msgid "Price stays hidden until the guest clicks."
+msgstr "Price stays hidden until the guest clicks."
+
+#: apps/promotions/promo_types.py
+msgid "Surprise bag"
+msgstr "Surprise bag"
+
+#: apps/promotions/promo_types.py
+msgid "Rescue leftovers — content is a surprise."
+msgstr "Rescue leftovers — content is a surprise."
+
+#: apps/promotions/promo_types.py
+msgid "Pre-order"
+msgstr "Pre-order"
+
+#: apps/promotions/promo_types.py
+msgid "Reserve online, pick up in store."
+msgstr "Reserve online, pick up in store."
+
+#: apps/promotions/promo_types.py
+msgid "Countdown offer"
+msgstr "Countdown offer"
+
+#: apps/promotions/promo_types.py
+msgid "Runs out soon — the timer is the point."
+msgstr "Runs out soon — the timer is the point."
+
+#: apps/promotions/promo_types.py
+msgid "Recurring offer"
+msgstr "Recurring offer"
+
+#: apps/promotions/promo_types.py
+msgid "Repeats every day or every week."
+msgstr "Repeats every day or every week."

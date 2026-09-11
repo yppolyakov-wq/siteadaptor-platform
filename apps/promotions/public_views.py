@@ -29,7 +29,7 @@ from apps.core.pagecache import cache_storefront_page
 from apps.core.pagination import paginate
 from apps.core.seo import offer_ld
 from apps.loyalty.models import LoyaltyCard, LoyaltyProgram, Voucher
-from apps.promotions import group_styles, rules_text
+from apps.promotions import group_styles, promo_types, rules_text
 
 from .forms import PublicReservationForm, WaitlistForm
 from .models import (
@@ -409,6 +409,44 @@ def _promo_output_ctx(cfg, promo_layout):
     return ctx
 
 
+def _type_output(cfg, key: str, page_ctx: dict) -> dict:
+    """PT-2/PT-3: оси вывода ОДНОГО типа акции: своя раскладка и форма карточки
+    побеждают общие настройки страницы, отсутствие ключа = как было.
+
+    До волны PT сетка была ОДНА на обзор и на все страницы типов
+    (`promo_index_layout`), поэтому «своя раскладка у типа» была невозможна по
+    построению. Теперь тип может нести собственную раскладку (включая
+    сетка/лента), а форма карточки типа встаёт слоем между акцией и сайтом:
+    приоритет «своё у акции → тип → сайт» — тот же, что у товара с категорией
+    (`card_forms.card_form`).
+    """
+    from apps.tenants import siteconfig
+
+    settings = promo_types.settings_for(cfg.get("promo_groups"), key)
+    # Форма карточки резолвится ЗДЕСЬ, а не в шаблоне: `{{ block.super }}` гасит
+    # VariableDoesNotExist родительского блока в пустую строку, поэтому ссылка на
+    # переменную context-processor'а внутри фильтра (`|default:storefront_promo_card`)
+    # молча стирала бы ВЕСЬ контент страницы вместо понятной ошибки.
+    card = settings.get("card") or (cfg.get("site_defaults") or {}).get("promo_card", "")
+    layout = settings.get("layout")
+    if layout:
+        layout = siteconfig.normalize_layout(
+            layout, siteconfig.PAGE_LAYOUT_DEFAULTS["promo_index_layout"]
+        )
+        return {
+            "layout": layout,
+            "grid": siteconfig.grid_class_string(layout),
+            "mode": siteconfig.output_mode(layout),
+            "card": card,
+        }
+    return {
+        "layout": page_ctx.get("promo_index_layout"),
+        "grid": page_ctx.get("promo_index_grid"),
+        "mode": page_ctx.get("promo_output_mode", "grid"),
+        "card": card,
+    }
+
+
 def _promo_page_config(request) -> dict:
     """DL-17.3: конфиг страницы акций — с учётом ЧЕРНОВИКА билдера при ?preview=1.
     Без этого правка «Aktionsseite: Aufbau/Gruppierung» в Studio не была видна на
@@ -575,7 +613,17 @@ def promotion_list(request):
     group_labels = {
         g: resolve_overlay(g, ov) for g, ov in base.values_list("group", "group_i18n") if g
     }
-    groups = sorted(group_labels)
+    own_groups = sorted(group_labels)
+    # PT-1: встроенные типы (Mystery / Überraschungstüte / Vorbestellung / Countdown /
+    # Dauerangebot) — та же ось и тот же параметр `?gruppe=`, что у своих рубрик.
+    # Предлагаем только те, у которых реально есть акции (правило STU-9: не обещать
+    # пустую страницу). Секции по ним НЕ строим: встроенный тип пересекается с
+    # рубрикой (mystery-акция лежит и в «Wochenangebote»), и вторая секция была бы
+    # дублем тех же карточек — вход к ним даёт чип и своя страница.
+    builtin_types = promo_types.live_builtin_keys(base)
+    for _key in builtin_types:
+        group_labels[_key] = str(promo_types.builtin_label(_key))
+    groups = own_groups + builtin_types
     selected = sel["gruppe"]
     has_filters = bool(
         selected or sel["endet"] or sel["rabatt"] or sel["reservierbar"] or q or sort
@@ -592,7 +640,7 @@ def promotion_list(request):
     promo_grouping = _promo_grouping_for(request)
     if not has_filters and promo_grouping == "time":
         grouped = _time_groups(promotions, timezone.localtime())
-    elif not has_filters and groups and page_style not in ("kompakt", "navigator", "magazin"):
+    elif not has_filters and own_groups and page_style not in ("kompakt", "navigator", "magazin"):
         by_group: dict[str, list] = {}
         order: list[str] = []
         for promo in promotions:
@@ -636,6 +684,14 @@ def promotion_list(request):
             row["group"]: row["n"]
             for row in base.order_by().values("group").annotate(n=_Count("pk"))
         }
+    # PT-2/PT-3: 5-й элемент секции — её собственные оси вывода. До волны PT сетка
+    # была одна на всю страницу, поэтому «Anti-Food-Waste лентой, Wochenangebote
+    # сеткой» было невозможно: у секций не было своего источника раскладки.
+    # DL-21.2 «Regale» = группы лентами; решается ДО осей вывода, иначе секции
+    # получили бы режим «сетка», а страница — «лента» (два ответа на один вопрос).
+    if page_style == "regale":
+        promo_layout = "slider"
+    _page_out = _promo_output_ctx(cfg, promo_layout)
     grouped = [
         (
             key,
@@ -644,21 +700,20 @@ def promotion_list(request):
             _group_more_url(key, promo_grouping)
             if _group_totals.get(key, len(items)) > len(items)
             else "",
+            _type_output(cfg, key, _page_out) if promo_grouping != "time" else _page_out,
         )
         for key, label, items in grouped
     ]
 
     # DL-21.2: композиции обзора поверх секций.
-    if page_style == "regale":
-        promo_layout = "slider"  # Regale = группы лентами со стрелками (та же лента A3)
     promo_hero = None
     if page_style == "schaufenster" and promotions and not has_filters and not list_view:
         promo_hero = promotions[0]
         # герой не дублируется в секциях/сетке
         promotions = [p for p in promotions if p.pk != promo_hero.pk]
         grouped = [
-            (k, lbl, [p for p in items if p.pk != promo_hero.pk], more)
-            for k, lbl, items, more in grouped
+            (k, lbl, [p for p in items if p.pk != promo_hero.pk], more, out)
+            for k, lbl, items, more, out in grouped
         ]
         grouped = [g for g in grouped if g[2]]
     promo_tabs = []
@@ -748,7 +803,11 @@ def promotion_list(request):
             _chip_if(_("Ends today"), "endet", "heute"),
             _chip_if(_("This week"), "endet", "woche"),
             *[_chip_if(f"−{n} %+", "rabatt", n) for n in DISCOUNT_PRESETS],
-            _chip_if(_("Reservable"), "reservierbar", "1"),
+            # PT-1: чип «Reservierbar» снят — он стал ТИПОМ `sys:reservation` и живёт
+            # в общем ряду типов, где у него есть ещё и свой шаблон, раскладка и
+            # форма карточки. Два контрола на один смысл — ровно то, что волна LAY
+            # из панели вычищала (прецедент LAY-7c). Параметр `?reservierbar=1`
+            # продолжает работать: старые ссылки и замки фильтра целы.
         )
         if chip
     ]
@@ -757,7 +816,17 @@ def promotion_list(request):
     # по ссылке из меню, не видел даже названия открытой группы. Теперь у группы есть
     # заголовок (всегда) и шаблон страницы: свой у группы → дефолт сайта → Standard.
     group_label, group_style, group_ends_at, group_valid_until = "", "", None, None
+    _selected_out: dict = {}
     if selected:
+        _out = _type_output(cfg, selected, _page_out)
+        _selected_out = {
+            "promo_index_layout": _out["layout"],
+            "promo_index_grid": _out["grid"],
+            "promo_output_mode": _out["mode"],
+            # `card` уже включает дефолт сайта, поэтому кладём безусловно:
+            # пусто = ровно то, что положил бы context-processor.
+            "storefront_promo_card": _out["card"],
+        }
         group_label = group_labels.get(selected, selected)
         group_style = group_styles.group_style(
             selected,
@@ -831,7 +900,12 @@ def promotion_list(request):
             # `promo_layout` (конфиги живых сайтов, демо-киты) и композиция «Regale»
             # включают ту же ленту, подставляя `scroll` в раскладку, — дальше всё
             # идёт единым путём движка, и второго переключателя в панели нет.
-            **_promo_output_ctx(cfg, promo_layout),
+            **_page_out,
+            # PT-2/PT-3: на странице ОДНОГО типа действуют его оси — своя сетка или
+            # лента и своя форма карточки (`storefront_promo_card` затеняет дефолт
+            # сайта из context-processor, поэтому приоритет прежний: своё у акции →
+            # тип → сайт). Тип без своих настроек = страница как была.
+            **_selected_out,
             # DL-21.2: обзорная страница — шаблон композиции + её данные.
             "promo_page_style": page_style,
             "promo_hero": promo_hero,

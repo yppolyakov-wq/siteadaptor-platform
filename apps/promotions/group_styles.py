@@ -36,7 +36,11 @@ def group_style(group: str, per_group=None, site_default: str = "") -> str:
     ключ в любом слое → "" (прежняя плоская сетка), а не 500: имя группы —
     свободный текст, и переименование в форме акции осиротит запись словаря.
     """
-    own = ((per_group or {}).get(group or "") or "").strip()
+    # PT-2: запись типа может быть строкой (легаси «только шаблон») или словарём
+    # с четырьмя осями вывода — разбор один на всех, в реестре типов.
+    from . import promo_types
+
+    own = (promo_types.settings_for(per_group, group or "").get("style") or "").strip()
     if own in VALID_GROUP_STYLES and own:
         return own
     site_default = (site_default or "").strip()

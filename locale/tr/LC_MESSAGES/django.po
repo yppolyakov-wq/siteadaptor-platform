@@ -22526,3 +22526,43 @@ msgstr "Listenin üstünde geniş bir fotoğraf."
 #. STU-18f
 msgid "Page %(n)s of %(total)s"
 msgstr "Sayfa %(n)s / %(total)s"
+
+#: apps/promotions/promo_types.py
+msgid "Mystery deal"
+msgstr "Mystery fırsat"
+
+#: apps/promotions/promo_types.py
+msgid "Price stays hidden until the guest clicks."
+msgstr "Misafir tıklayana kadar fiyat gizli kalır."
+
+#: apps/promotions/promo_types.py
+msgid "Surprise bag"
+msgstr "Sürpriz paket"
+
+#: apps/promotions/promo_types.py
+msgid "Rescue leftovers — content is a surprise."
+msgstr "Artıkları kurtarın — içerik sürpriz."
+
+#: apps/promotions/promo_types.py
+msgid "Pre-order"
+msgstr "Ön sipariş"
+
+#: apps/promotions/promo_types.py
+msgid "Reserve online, pick up in store."
+msgstr "Çevrimiçi ayırtın, mağazadan alın."
+
+#: apps/promotions/promo_types.py
+msgid "Countdown offer"
+msgstr "Geri sayımlı kampanya"
+
+#: apps/promotions/promo_types.py
+msgid "Runs out soon — the timer is the point."
+msgstr "Yakında bitiyor — bütün mesele geri sayım."
+
+#: apps/promotions/promo_types.py
+msgid "Recurring offer"
+msgstr "Sürekli kampanya"
+
+#: apps/promotions/promo_types.py
+msgid "Repeats every day or every week."
+msgstr "Her gün veya her hafta tekrarlanır."

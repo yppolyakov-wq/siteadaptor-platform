@@ -22613,3 +22613,43 @@ msgstr "Широке фото над списком."
 #. STU-18f
 msgid "Page %(n)s of %(total)s"
 msgstr "Сторінка %(n)s з %(total)s"
+
+#: apps/promotions/promo_types.py
+msgid "Mystery deal"
+msgstr "Mystery-акція"
+
+#: apps/promotions/promo_types.py
+msgid "Price stays hidden until the guest clicks."
+msgstr "Ціна прихована, доки гість не натисне."
+
+#: apps/promotions/promo_types.py
+msgid "Surprise bag"
+msgstr "Пакунок-сюрприз"
+
+#: apps/promotions/promo_types.py
+msgid "Rescue leftovers — content is a surprise."
+msgstr "Рятуємо залишки — вміст сюрприз."
+
+#: apps/promotions/promo_types.py
+msgid "Pre-order"
+msgstr "Передзамовлення"
+
+#: apps/promotions/promo_types.py
+msgid "Reserve online, pick up in store."
+msgstr "Бронювання онлайн, отримання в магазині."
+
+#: apps/promotions/promo_types.py
+msgid "Countdown offer"
+msgstr "Акція з таймером"
+
+#: apps/promotions/promo_types.py
+msgid "Runs out soon — the timer is the point."
+msgstr "Скоро завершиться — увесь сенс у таймері."
+
+#: apps/promotions/promo_types.py
+msgid "Recurring offer"
+msgstr "Постійна акція"
+
+#: apps/promotions/promo_types.py
+msgid "Repeats every day or every week."
+msgstr "Повторюється щодня або щотижня."

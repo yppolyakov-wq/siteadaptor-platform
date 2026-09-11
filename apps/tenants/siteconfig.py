@@ -3517,13 +3517,49 @@ def normalize_promo_page_style(raw) -> str:
 
 
 def normalize_promo_groups(raw) -> dict:
+    """PT-2/PT-3: настройки ТИПА акции — {<ключ типа>: <шаблон> | {...}}.
+
+    Ключ — то же плоское значение, что у фасета `?gruppe=`: своя рубрика
+    владельца либо встроенный тип с префиксом `sys:` (реестр
+    `apps.promotions.promo_types`). Значение исторически было одной строкой —
+    шаблоном страницы (DL-20); решение владельца Р-3 добавило к типу ещё три
+    оси вывода, поэтому значение может быть словарём:
+
+        {"style": <композиция>, "layout": {...}, "card": <форма карточки>}
+
+    Пока у типа задан ТОЛЬКО шаблон, значение сохраняется строкой — конфиги
+    живых сайтов и golden-эталоны не переписываются (инвариант волны LAY).
+    """
+    from apps.core import card_forms
+
     if not isinstance(raw, dict):
         return {}
-    out: dict[str, str] = {}
+    card_keys = card_forms.keys_for(card_forms.PROMO)
+    out: dict = {}
     for key, value in list(raw.items())[:_PROMO_GROUPS_MAX]:
         name = str(key or "").strip()[:_PROMO_GROUP_KEY_MAX]
+        if not name:
+            continue
+        if isinstance(value, dict):
+            entry: dict = {}
+            style = str(value.get("style") or "").strip()
+            if style in _GROUP_PAGE_STYLE_KEYS and style:
+                entry["style"] = style
+            layout = value.get("layout")
+            if isinstance(layout, dict) and layout:
+                entry["layout"] = normalize_layout(
+                    layout, PAGE_LAYOUT_DEFAULTS["promo_index_layout"]
+                )
+            card = str(value.get("card") or "").strip()
+            if card in card_keys:
+                entry["card"] = card
+            if not entry:
+                continue
+            # только шаблон → прежняя строковая форма (конфиги не переписываем)
+            out[name] = entry["style"] if set(entry) == {"style"} else entry
+            continue
         style = str(value or "").strip()
-        if name and style in _GROUP_PAGE_STYLE_KEYS:
+        if style in _GROUP_PAGE_STYLE_KEYS:
             out[name] = style
     return out
 

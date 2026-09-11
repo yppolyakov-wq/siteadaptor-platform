@@ -18,6 +18,8 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core.facets import FacetProvider, i18n_icontains_q
 
+from . import promo_types
+
 #: пресеты чипа «минимальная скидка» (валидация ?rabatt=)
 DISCOUNT_PRESETS = (20, 30, 50)
 
@@ -58,7 +60,9 @@ class PromoFacets(FacetProvider):
         in-memory: процент считается свойством из цен (в БД его нет)."""
         sel = self.selected(params)
         if sel["gruppe"]:
-            items = items.filter(group=sel["gruppe"])
+            # PT-1: один параметр на всю ось «тип акции» — своя рубрика владельца
+            # фильтрует по `group`, встроенный тип (`sys:*`) — своим Q из реестра.
+            items = promo_types.apply_type(items, sel["gruppe"])
         if sel["reservierbar"]:
             items = items.filter(promo_type="reservation")
         if sel["endet"]:
