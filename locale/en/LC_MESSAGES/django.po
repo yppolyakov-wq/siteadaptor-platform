@@ -22523,3 +22523,9 @@ msgstr ""
 "Optional. The type bundles promotions (e.g. “Weekly offers”, “Clearance”): "
 "its own page, its own template and its own grid under “Promotion types”, a "
 "filter on /aktionen/ and a menu item in the menu builder."
+
+#: templates/promotions/promo_type_list.html
+msgid "%(n)s Aktion"
+msgid_plural "%(n)s Aktionen"
+msgstr[0] "%(n)s promotion"
+msgstr[1] "%(n)s promotions"

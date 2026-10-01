@@ -22561,3 +22561,9 @@ msgstr ""
 "Optional. Der Typ bündelt Aktionen (z. B. „Wochenangebote“, „Räumung“): "
 "eigene Seite, eigene Vorlage und eigenes Raster unter „Aktionstypen“, Filter"
 " auf /aktionen/ und Menüpunkt im Menü-Generator."
+
+#: templates/promotions/promo_type_list.html
+msgid "%(n)s Aktion"
+msgid_plural "%(n)s Aktionen"
+msgstr[0] "%(n)s Aktion"
+msgstr[1] "%(n)s Aktionen"

@@ -22650,3 +22650,9 @@ msgstr ""
 "İsteğe bağlı. Tür, kampanyaları gruplar (örn. “Haftanın fırsatları”, "
 "“Tasfiye”): “Kampanya türleri” altında kendi sayfası, kendi şablonu ve kendi"
 " ızgarası, /aktionen/ üzerinde filtre ve menü oluşturucuda bir menü öğesi."
+
+#: templates/promotions/promo_type_list.html
+msgid "%(n)s Aktion"
+msgid_plural "%(n)s Aktionen"
+msgstr[0] "%(n)s kampanya"
+msgstr[1] "%(n)s kampanya"
