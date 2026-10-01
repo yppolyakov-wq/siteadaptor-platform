@@ -351,23 +351,31 @@ def promo_type_save(request):
             continue
         # Прежнее значение: строка (легаси) или словарь — разбирает реестр типов.
         entry = dict(promo_types.settings_for(types, key))
-        entry["style"] = (request.POST.get(f"style:{key}") or "").strip()
-        entry["card"] = (request.POST.get(f"card:{key}") or "").strip()
-        mode = (request.POST.get(f"mode:{key}") or "").strip()
-        cols = (request.POST.get(f"cols:{key}") or "").strip()
-        rows = (request.POST.get(f"rows:{key}") or "").strip()
-        layout: dict = {}
-        if mode == "slider":
-            layout["scroll"] = True
-        if cols.isdigit():
-            layout["preset"] = f"cols{max(1, min(6, int(cols)))}"
-            layout["cols"] = max(1, min(6, int(cols)))
-        if rows.isdigit() and int(rows):
-            layout["rows"] = max(1, min(6, int(rows)))
-        if layout:
-            entry["layout"] = layout
-        else:
-            entry.pop("layout", None)
+        # Инвариант W0: ось правится ТОЛЬКО когда её поле реально пришло. Форма
+        # экрана шлёт все пять на каждую строку, но безусловная запись значила бы,
+        # что частичный POST (чужая форма, будущий инлайн-контрол) молча стирает
+        # оси, которых в нём нет, — класс дефектов, на котором проект уже горел.
+        if f"style:{key}" in request.POST:
+            entry["style"] = (request.POST.get(f"style:{key}") or "").strip()
+        if f"card:{key}" in request.POST:
+            entry["card"] = (request.POST.get(f"card:{key}") or "").strip()
+        layout_fields = [f"{name}:{key}" for name in ("mode", "cols", "rows")]
+        if any(name in request.POST for name in layout_fields):
+            mode = (request.POST.get(f"mode:{key}") or "").strip()
+            cols = (request.POST.get(f"cols:{key}") or "").strip()
+            rows = (request.POST.get(f"rows:{key}") or "").strip()
+            layout: dict = {}
+            if mode == "slider":
+                layout["scroll"] = True
+            if cols.isdigit():
+                layout["preset"] = f"cols{max(1, min(6, int(cols)))}"
+                layout["cols"] = max(1, min(6, int(cols)))
+            if rows.isdigit() and int(rows):
+                layout["rows"] = max(1, min(6, int(rows)))
+            if layout:
+                entry["layout"] = layout
+            else:
+                entry.pop("layout", None)
         types[key] = entry
 
     types = siteconfig.normalize_promo_groups(types)

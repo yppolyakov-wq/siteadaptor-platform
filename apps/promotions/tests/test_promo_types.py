@@ -415,3 +415,23 @@ def test_card_form_on_a_type_page_writes_the_type_not_a_promotion():
     assert siteconfig.normalize(t.site_config)["promo_groups"]["Räumung"]["card"] == "coupon"
     # поле самой акции не тронуто — правили ТИП
     assert Promotion.objects.get(title={"de": "Restposten"}).card_style == ""
+
+
+def test_partial_post_does_not_wipe_the_other_axes():
+    """Инвариант W0: ось правится только когда её поле пришло в POST."""
+    from apps.promotions import views
+
+    t = _tenant(
+        "pt17",
+        promo_groups={"Räumung": {"style": "countdown", "card": "ring", "layout": {"cols": 4}}},
+    )
+    _promo("W1", promo_type="discount", discount_percent=10, group="Räumung")
+
+    # пришла ТОЛЬКО раскладка — шаблон и карточка обязаны выжить
+    views.promo_type_save(
+        _cabinet_request("post", "/promotions/typen/speichern/", {"cols:Räumung": "6"}, tenant=t)
+    )
+    t.refresh_from_db()
+    entry = siteconfig.normalize(t.site_config)["promo_groups"]["Räumung"]
+    assert entry["style"] == "countdown" and entry["card"] == "ring"
+    assert entry["layout"]["cols"] == 6
