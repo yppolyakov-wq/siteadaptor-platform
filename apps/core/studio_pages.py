@@ -235,6 +235,14 @@ SETTINGS: dict[str, Setting] = {
             ("site_defaults", "promo_card"),
             OBJECT_PROMOTION,
             "card_style",
+            # PT-7: на странице ТИПА «только здесь» пишет форму карточки ТИПА, а не
+            # акции — одной акции там нет вовсе, и до этой карты пилюля на странице
+            # типа падала в «объект страницы не найден» (искала Promotion по имени
+            # рубрики). Карта исчерпывающая: на обзоре /aktionen/ объекта нет.
+            object_by_type=(
+                ("promo", (OBJECT_PROMOTION, "card_style")),
+                ("promo_group", (OBJECT_PROMO_GROUP, "card")),
+            ),
             axis=AXIS_CARD,
         ),
         _s(

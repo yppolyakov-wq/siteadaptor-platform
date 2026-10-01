@@ -359,3 +359,59 @@ def test_block_type_is_allowed_on_every_page_host():
     for host in siteconfig.PAGE_BLOCK_HOSTS:
         cfg = siteconfig.normalize({"page_blocks": {host: [_promo_list_block("A")]}})
         assert cfg["page_blocks"][host][0]["key"] == "promo_list", host
+
+
+# ──────────── PT-7: охват Студии на странице типа ────────────
+
+
+def test_studio_scope_reads_the_right_field_not_the_whole_record():
+    """Запись типа стала словарём — пилюля охвата обязана читать своё поле."""
+    from apps.core import studio_scope
+
+    t = _tenant("pt14", promo_groups={"Räumung": {"style": "countdown", "card": "ring"}})
+
+    style = studio_scope.read_state(t, "promo_group_style", "Räumung", "promo_group")
+    assert style.own_value == "countdown" and style.overridden
+
+    card = studio_scope.read_state(t, "promo_card_form", "Räumung", "promo_group")
+    assert card.own_value == "ring" and card.overridden
+
+    # тип без своих настроек наследует: пилюля честно пишет «для всех»
+    empty = studio_scope.read_state(t, "promo_card_form", "Wochenangebote", "promo_group")
+    assert empty.own_value == "" and not empty.overridden
+
+
+def test_studio_scope_write_does_not_drop_the_other_axes():
+    """Класс W6 внутри одной записи: смена шаблона не должна стирать карточку."""
+    from apps.core import studio_scope
+
+    t = _tenant(
+        "pt15",
+        promo_groups={"Räumung": {"style": "countdown", "card": "ring", "layout": {"cols": 4}}},
+    )
+    studio_scope.write_value(t, "promo_group_style", "Räumung", "magazin", "promo_group")
+    t.refresh_from_db()
+    entry = siteconfig.normalize(t.site_config)["promo_groups"]["Räumung"]
+    assert entry["style"] == "magazin", "шаблон не записался"
+    assert entry["card"] == "ring", "форма карточки типа стёрта записью шаблона"
+    assert entry["layout"]["cols"] == 4, "раскладка типа стёрта записью шаблона"
+
+    # снятие последней оси убирает запись целиком (presence-minimal)
+    studio_scope.write_value(t, "promo_card_form", "Räumung", "", "promo_group")
+    studio_scope.write_value(t, "promo_group_style", "Räumung", "", "promo_group")
+    t.refresh_from_db()
+    left = siteconfig.normalize(t.site_config).get("promo_groups", {}).get("Räumung")
+    assert set(left) == {"layout"} and left["layout"]["cols"] == 4, left
+
+
+def test_card_form_on_a_type_page_writes_the_type_not_a_promotion():
+    """До карты object_by_type пилюля искала Promotion по имени рубрики → ошибка."""
+    from apps.core import studio_scope
+
+    t = _tenant("pt16")
+    _promo("Restposten", promo_type="discount", discount_percent=40, group="Räumung")
+    studio_scope.write_value(t, "promo_card_form", "Räumung", "coupon", "promo_group")
+    t.refresh_from_db()
+    assert siteconfig.normalize(t.site_config)["promo_groups"]["Räumung"]["card"] == "coupon"
+    # поле самой акции не тронуто — правили ТИП
+    assert Promotion.objects.get(title={"de": "Restposten"}).card_style == ""

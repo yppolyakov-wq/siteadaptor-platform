@@ -139,8 +139,13 @@ def read_state(tenant, setting_code: str, ref: str, page: str = "") -> ScopeStat
     kind, field = _object_spec(setting, page)
     site_value = _site_value(tenant, setting)
     if kind == studio_pages.OBJECT_PROMO_GROUP:
+        # PT-2/PT-3: запись типа — строка (легаси «только шаблон») или словарь из
+        # четырёх осей. Разбор один на всех, в реестре типов: иначе пилюля печатала
+        # бы словарь как значение и считала тип переопределённым всегда.
+        from apps.promotions import promo_types
+
         per_group = (tenant.site_config or {}).get("promo_groups") or {}
-        own = per_group.get((ref or "").strip(), "")
+        own = promo_types.settings_for(per_group, (ref or "").strip()).get(field, "")
     else:
         own = getattr(_fetch(setting, ref, kind), field, "") or ""
     return ScopeState(setting.code, site_value, str(own or ""))
@@ -158,7 +163,7 @@ def write_value(tenant, setting_code: str, ref: str, value: str, page: str = "")
 
     kind, field = _object_spec(setting, page)
     if kind == studio_pages.OBJECT_PROMO_GROUP:
-        _write_promo_group(tenant, (ref or "").strip(), value)
+        _write_promo_group(tenant, (ref or "").strip(), value, field)
     else:
         obj = _fetch(setting, ref, kind)
         setattr(obj, field, value)
@@ -166,18 +171,30 @@ def write_value(tenant, setting_code: str, ref: str, value: str, page: str = "")
     return read_state(tenant, setting_code, ref, page)
 
 
-def _write_promo_group(tenant, group: str, value: str) -> None:
-    """Группа акций — свободный текст без модели, поэтому её выбор лежит в конфиге.
+def _write_promo_group(tenant, group: str, value: str, field: str = "style") -> None:
+    """Тип акции — свободный текст без модели, поэтому его выбор лежит в конфиге.
 
     Пишем ТОЧЕЧНО (а не пересобирая конфиг): рядом живут ключи, которые Студия в этот
     момент не редактирует, и полная пересборка роняла бы их — класс дефектов W6.
+
+    PT-2/PT-3: у типа теперь ЧЕТЫРЕ оси, поэтому значение МЕРДЖИТСЯ в запись, а не
+    замещает её: запись строкой снесла бы раскладку и форму карточки, выставленные
+    на экране «Aktionstypen» (тот же класс W6, но внутри одной записи).
     """
+    from apps.promotions import promo_types
+
     if not group:
-        raise ScopeError("страница канвы не указывает группу акций")
+        raise ScopeError("страница канвы не указывает тип акции")
     cfg = dict(tenant.site_config or {})
     groups = dict(cfg.get("promo_groups") or {})
+    entry = dict(promo_types.settings_for(groups, group))
     if value:
-        groups[group] = value
+        entry[field] = value
+    else:
+        entry.pop(field, None)
+    if entry:
+        # только шаблон → прежняя строковая форма (конфиги живых сайтов не растут)
+        groups[group] = entry["style"] if set(entry) == {"style"} else entry
     else:
         groups.pop(group, None)
     if groups:
