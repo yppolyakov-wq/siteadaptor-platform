@@ -17,7 +17,24 @@ from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
 
-D0 = date(2026, 10, 1)  # в будущем относительно «сегодня» сессии
+
+def _future_month_start(months: int = 2) -> date:
+    """1-е число месяца через `months` месяцев от сегодня.
+
+    База дат файла СЧИТАЕТСЯ, а не прописывается: жёсткий `date(2026, 10, 1)`
+    «в будущем относительно сегодня» перестал быть будущим 1 октября 2026 — и
+    замки календаря начали падать не из-за кода, а из-за наступившей даты
+    (вьюха клампит прошлый месяц к текущему и прячет кнопку «назад»).
+    `date.today()` вместо `timezone.localdate()`: модуль импортируется до того,
+    как конкретный тест настроит часовой пояс, а для «месяц в будущем» разница
+    в сутки не значима.
+    """
+    today = date.today()
+    y, m = divmod(today.year * 12 + (today.month - 1) + months, 12)
+    return date(y, m + 1, 1)
+
+
+D0 = _future_month_start()  # 1-е число месяца в будущем — замки не истекают
 
 
 @pytest.fixture(autouse=True)
@@ -305,10 +322,11 @@ def _cal(unit, year, month, tenant=None):
 
 def test_calendar_renders_month_grid():
     unit = _unit()
-    body = _cal(unit, 2026, 10)  # будущий месяц (D0)
+    body = _cal(unit, D0.year, D0.month)  # будущий месяц (D0)
     assert 'id="stay-cal"' in body
     assert "grid-cols-7" in body  # сетка недели
-    assert 'data-date="2026-10-15"' in body  # свободный день месяца отрисован/кликабелен
+    mid = (D0 + timedelta(days=14)).isoformat()
+    assert f'data-date="{mid}"' in body  # свободный день месяца отрисован/кликабелен
 
 
 def test_calendar_gate_404_without_stays():
@@ -326,23 +344,47 @@ def test_calendar_marks_booked_and_free_days():
     unit = _unit(quantity=1)
     # бронь 1–4 окт → ночи 1,2,3 заняты; 4 (выезд) и 5 свободны
     services.book_stay(unit, arrival=D0, departure=D0 + timedelta(days=3), name="A", adults=2)
-    body = _cal(unit, 2026, 10)
+    body = _cal(unit, D0.year, D0.month)
     import re
 
-    assert re.search(r'stay-cal-day[^>]*data-date="2026-10-05"', body) or re.search(
-        r'data-date="2026-10-05"[^>]*class="stay-cal-day', body
+    free = (D0 + timedelta(days=4)).isoformat()  # 5-е: после выезда
+    busy = (D0 + timedelta(days=1)).isoformat()  # 2-е: внутри брони
+    assert re.search(rf'stay-cal-day[^>]*data-date="{free}"', body) or re.search(
+        rf'data-date="{free}"[^>]*class="stay-cal-day', body
     )  # свободный день — кнопка выбора
     # Батч B (checkout-only): занятая ночь — НЕ кнопка заезда (не .stay-cal-day),
     # но несёт data-date как кандидат в ВЫЕЗД (ночь выезда не потребляется).
-    assert not re.search(r'stay-cal-day[^>]*data-date="2026-10-02"', body)
-    assert re.search(r'stay-cal-busy[^>]*data-date="2026-10-02"', body)
+    assert not re.search(rf'stay-cal-day[^>]*data-date="{busy}"', body)
+    assert re.search(rf'stay-cal-busy[^>]*data-date="{busy}"', body)
+
+
+def _month_offset(months: int) -> tuple[int, int]:
+    """(год, месяц) через `months` месяцев от сегодня — для дата-независимых замков."""
+    from django.utils import timezone
+
+    today = timezone.localdate()
+    y, m = divmod(today.year * 12 + (today.month - 1) + months, 12)
+    return y, m + 1
 
 
 def test_calendar_month_navigation_links():
+    """Обе кнопки перелистывания — у месяца, который ТОЧНО не текущий.
+
+    Прежняя версия просила октябрь 2026 (жёсткий `D0` файла). 1 октября 2026 этот
+    месяц стал ТЕКУЩИМ, а у текущего месяца кнопки «назад» нет по замыслу (см.
+    `test_calendar_clamps_past_month_to_current`) — и замок падал не из-за кода, а
+    из-за наступившей даты. Месяц считаем от «сегодня», поэтому он не истечёт.
+    """
+    import re
+
     unit = _unit()
-    body = _cal(unit, 2026, 10)
-    assert "month=11" in body  # переход на следующий месяц
-    assert "month=9" in body  # и на предыдущий
+    year, month = _month_offset(2)
+    prev_year, prev_month = _month_offset(1)
+    next_year, next_month = _month_offset(3)
+    body = _cal(unit, year, month)
+    # month= сравниваем по границе: «month=1» иначе совпало бы с «month=10»
+    assert re.search(rf"year={next_year}&month={next_month}(?!\d)", body), "нет ссылки вперёд"
+    assert re.search(rf"year={prev_year}&month={prev_month}(?!\d)", body), "нет ссылки назад"
 
 
 def test_calendar_clamps_past_month_to_current():
@@ -360,17 +402,17 @@ def test_detail_embeds_availability_calendar():
     assert 'id="stay-cal"' in body  # календарь встроен
     assert "stay-cal-day" in body  # кликабельные свободные ночи
     assert "__stayCalSelectBound" in body  # выбор диапазона кликом
-    assert 'data-date="2026-10-' in body  # начальный месяц = месяц заезда (D0)
+    assert f'data-date="{D0:%Y-%m}-' in body  # начальный месяц = месяц заезда (D0)
 
 
 def test_calendar_embed_keeps_embed_in_nav():
     """A5/C4: в embed-режиме перелистывание сохраняет &embed=1 в nav-ссылках."""
     unit = _unit()
-    assert "embed=1" not in _cal(unit, 2026, 10)  # без embed — чисто
+    assert "embed=1" not in _cal(unit, D0.year, D0.month)  # без embed — чисто
     req = _req(
         "get",
         f"/unterkunft/{unit.pk}/kalender/",
-        {"year": "2026", "month": "10", "embed": "1"},
+        {"year": str(D0.year), "month": str(D0.month), "embed": "1"},
     )
     body = public_views.unterkunft_unit_calendar(req, pk=unit.pk).content.decode()
     assert "month=11&embed=1" in body or "month=11&amp;embed=1" in body  # next + embed
