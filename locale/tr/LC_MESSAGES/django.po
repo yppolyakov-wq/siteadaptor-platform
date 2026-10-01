@@ -22611,3 +22611,28 @@ msgstr "otomatik"
 #: templates/promotions/promo_type_list.html
 msgid "wie die Seite"
 msgstr "sayfayla aynı"
+
+#: apps/tenants/siteconfig.py
+msgid "Promotions of one type"
+msgstr "Tek türdeki kampanyalar"
+
+#: apps/tenants/siteconfig.py
+msgid "All promotions of one type"
+msgstr "Tek türdeki tüm kampanyalar"
+
+#: apps/tenants/siteconfig.py
+msgid "Aktionstyp wählen…"
+msgstr "Kampanya türü seçin…"
+
+#: apps/tenants/siteconfig.py
+msgid "Aktionstyp wählen — hier erscheinen dann alle Aktionen dieses Typs."
+msgstr ""
+"Bir kampanya türü seçin — bu türdeki tüm kampanyalar burada görünecek."
+
+#: apps/tenants/siteconfig.py
+msgid "Überschrift (leer = Name des Typs)"
+msgstr "Başlık (boş = türün adı)"
+
+#: apps/tenants/siteconfig.py
+msgid "Höchstens"
+msgstr "En fazla"

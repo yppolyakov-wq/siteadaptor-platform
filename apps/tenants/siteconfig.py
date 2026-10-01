@@ -159,6 +159,13 @@ REPEATABLE_BLOCKS = (
     "button",
     "spacer",
     "promo",
+    # PT-6 (решение владельца Р-2): «акции ОДНОГО типа» отдельным блоком, поэтому
+    # на главной их может быть несколько — «Anti-Food-Waste» лентой и
+    # «Wochenangebote» сеткой рядом. Фикс-секция `promotions` одна по построению
+    # (дедуп по ключу), а C-блок повторяемый: порядок, drag, «+» и настройки
+    # достаются даром. Соседний `promo` показывает ОДНУ акцию — та же семья,
+    # другая арность.
+    "promo_list",
     "stats",
     "newsletter",
 )
@@ -222,6 +229,19 @@ def _clean_cblock_data(key: str, raw) -> dict:
             "button_label": _s(d.get("button_label"))[:40],
             # UC6-6f: подсказка стиля скидки (каскад: акция главнее, см. PROMO_STYLE_HINTS).
             **({"style_hint": d["style_hint"]} if d.get("style_hint") in PROMO_STYLE_HINTS else {}),
+        }
+    if key == "promo_list":
+        # Ключ типа — то же плоское значение, что у фасета `?gruppe=` (своя рубрика
+        # или встроенный `sys:*`). Существование НЕ проверяем запросом в БД
+        # (purge-safe, как у promo_pk): пустой тип рендерится fail-safe.
+        try:
+            limit = int(d.get("limit") or 0)
+        except (TypeError, ValueError):
+            limit = 0
+        return {
+            "type": _s(d.get("type"))[:_PROMO_GROUP_KEY_MAX],
+            "title": _s(d.get("title"))[:120],
+            **({"limit": max(1, min(24, limit))} if limit else {}),
         }
     if key == "spacer":
         # ST-7a: высота отступа — только НЕ-дефолтные валидные значения
@@ -698,6 +718,7 @@ CBLOCK_LABELS = {
     "button": _("Button"),
     "spacer": _("Spacer"),
     "promo": _("Promotion"),
+    "promo_list": _("Promotions of one type"),
     "stats": _("Numbers"),
     "newsletter": _("Newsletter"),
     "faq_ref": _("FAQ anzeigen"),

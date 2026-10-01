@@ -1,0 +1,34 @@
+{% load i18n siteui %}
+{% comment %}PT-6: C-блок «акции одного типа» (план docs/pt-promo-types-plan-2026-09-11.md).
+
+Решение владельца Р-2: на главной может быть НЕСКОЛЬКО секций акций — по одной на
+тип, каждая со своим видом. Фикс-секция `promotions` одна по построению (дедуп по
+ключу), поэтому «несколько» даёт повторяемый C-блок: порядок, drag, «+» и настройки
+он получает от общей машинерии блоков.
+
+Оси вывода берутся из настроек ТИПА (экран «Aktionstypen»), а не задаются здесь
+заново: один источник — иначе секция и страница типа разошлись бы видом.
+Пустой/неизвестный тип → блок исчезает (fail-safe, как у блока одной акции);
+в превью редактора остаётся пунктирный якорь, чтобы блок можно было выбрать.{% endcomment %}
+{% promo_type_block block as pl %}
+{% if pl.promotions %}
+<section class="my-8" data-sf-promo-type="{{ block.type }}">
+  <div class="max-w-5xl mx-auto px-4">
+    <div class="flex items-baseline justify-between gap-3 mb-4">
+      <h2 class="text-xl md:text-2xl font-bold">{{ pl.label }}</h2>
+      <a href="{{ pl.url }}" class="text-sm font-medium hover:underline whitespace-nowrap" style="color: var(--accent, #4f46e5);">{% trans "Alle anzeigen" %} →</a>
+    </div>
+    <div data-grid="promo_list"{% if pl.mode == "slider" %} data-promo-strip{% endif %} class="{{ pl.grid|default:'grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}" {% sf_grid_attrs pl.layout cols="2/2/3" count=pl.promotions|length %}>
+      {% for p in pl.promotions %}
+        {% include "storefront/_promo_card.html" with in_group=True storefront_promo_card=pl.card %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% elif is_preview %}
+<section class="my-8" data-sf-promo-type="{{ block.type }}">
+  <div class="max-w-5xl mx-auto px-4">
+    <p class="rounded-2xl border border-dashed border-gray-300 p-6 text-sm text-gray-400">{% trans "Aktionstyp wählen — hier erscheinen dann alle Aktionen dieses Typs." %}</p>
+  </div>
+</section>
+{% endif %}

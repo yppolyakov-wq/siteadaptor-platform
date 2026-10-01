@@ -72,6 +72,8 @@ CBLOCK_TEMPLATES = {
     "button": "storefront/sections/_block_button.html",
     "spacer": "storefront/sections/_block_spacer.html",
     "promo": "storefront/sections/_block_promo.html",  # UE1: LIVE-промо по promo_pk
+    # PT-6: все акции ОДНОГО типа — секция с осями вывода этого типа.
+    "promo_list": "storefront/sections/_block_promo_list.html",
     "stats": "storefront/sections/_block_stats.html",  # GK-4: полоса цифр
     "newsletter": "storefront/sections/_block_newsletter.html",  # GK-8: подписка (DOI)
 }
@@ -262,6 +264,53 @@ def live_promo(pk):
         return Promotion.objects.filter(pk=pk, status="active").first()
     except (ValidationError, ValueError):
         return None
+
+
+@register.simple_tag(takes_context=True)
+def promo_type_block(context, block):
+    """PT-6: данные блока «акции одного типа» — сами акции + оси вывода ТИПА.
+
+    Оси берутся там же, где их берёт страница акций (`promo_groups[<тип>]`),
+    поэтому «Anti-Food-Waste лентой» выглядит одинаково и в секции главной, и на
+    своей странице — один источник, а не второй набор настроек. Неизвестный или
+    пустой тип → пустой список: блок исчезает fail-safe (как `promo` с мусорным
+    pk), а не роняет страницу.
+    """
+    from urllib.parse import urlencode
+
+    from django.urls import reverse
+
+    from apps.promotions import promo_types
+    from apps.promotions.models import Promotion
+
+    request = context.get("request")
+    tenant = getattr(request, "tenant", None)
+    data = block if isinstance(block, dict) else {}
+    key = (data.get("type") or "").strip()
+    if tenant is None or not key:
+        return {"promotions": [], "label": ""}
+    cfg = tenant.site_config if isinstance(tenant.site_config, dict) else {}
+    settings = promo_types.settings_for(
+        siteconfig.normalize_promo_groups(cfg.get("promo_groups")), key
+    )
+    layout = settings.get("layout") or siteconfig.optional_page_layout(cfg, "promo_index_layout")
+    items = list(
+        promo_types.apply_type(
+            Promotion.objects.filter(status="active").select_related("product"), key
+        ).order_by("-created_at")[: data.get("limit") or 12]
+    )
+    label = data.get("title") or promo_types.label_for(
+        key, {p.group: p.group_localized for p in items if p.group}
+    )
+    return {
+        "promotions": items,
+        "label": label,
+        "url": reverse("storefront-aktionen") + "?" + urlencode({"gruppe": key}),
+        "grid": siteconfig.grid_class_string(layout) if layout else "",
+        "layout": layout,
+        "mode": siteconfig.output_mode(layout),
+        "card": settings.get("card") or (cfg.get("site_defaults") or {}).get("promo_card", ""),
+    }
 
 
 @register.simple_tag(takes_context=True)

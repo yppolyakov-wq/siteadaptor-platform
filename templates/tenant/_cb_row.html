@@ -121,6 +121,21 @@ collect()/save работают без переименований. data-cb-id 
       </select>
     {% endif %}
   {% endif %}
+  {% if b.type == "promo_list" %}
+    {% comment %}PT-6: блок показывает ВСЕ акции выбранного типа. Вид (шаблон, сетка
+    или лента, форма карточки) настраивается один раз на экране «Aktionstypen» —
+    здесь его не дублируем, иначе на одну настройку стало бы два места.{% endcomment %}
+    <select name="cb_{{ b.id }}_type" class="w-full rounded border border-gray-300 px-2 py-1 text-sm">
+      <option value="">{% trans "Aktionstyp wählen…" %}</option>
+      {% for key, label in promo_types_for_blocks %}
+        <option value="{{ key }}" {% if b.data.type == key %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <input type="text" name="cb_{{ b.id }}_title" value="{{ b.data.title }}" maxlength="120" placeholder="{% trans 'Überschrift (leer = Name des Typs)' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
+    <label class="flex items-center gap-1.5 text-xs text-gray-600">{% trans "Höchstens" %}
+      <input type="number" name="cb_{{ b.id }}_limit" value="{{ b.data.limit }}" min="1" max="24" placeholder="12" class="w-20 rounded border border-gray-300 px-2 py-1 text-sm">
+    </label>
+  {% endif %}
   {% if b.type == "newsletter" %}
     {% comment %}GK-8: все поля опциональны — пусто = дефолтные подписи формы.{% endcomment %}
     <input type="text" name="cb_{{ b.id }}_title" value="{{ b.data.title }}" maxlength="80" placeholder="{% trans 'Title' %} ({% trans 'optional' %})" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">

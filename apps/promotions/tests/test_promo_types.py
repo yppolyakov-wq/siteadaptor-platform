@@ -252,3 +252,110 @@ def test_screen_has_a_navigation_entry():
     from apps.core import nav_registry
 
     assert any(e.url_name == "promotions:promo-type-list" for e in nav_registry.ENTRIES)
+
+
+# ──────────────── PT-6: несколько секций акций по типам ────────────────
+
+
+def _home(tenant):
+    from django.contrib.sessions.middleware import SessionMiddleware
+
+    req = RequestFactory().get("/")
+    SessionMiddleware(lambda x: None).process_request(req)
+    req.tenant = tenant
+    return public_views.storefront_home(req).content.decode()
+
+
+def _promo_list_block(type_key, **data):
+    return {"key": "promo_list", "id": f"b-{type_key}", "data": {"type": type_key, **data}}
+
+
+def test_home_can_show_several_promo_sections_one_per_type():
+    """Решение владельца Р-2: «Anti-Food-Waste» и «Wochenangebote» рядом, каждая своя."""
+    t = _tenant(
+        "pt11",
+        sections=[
+            _promo_list_block("Anti-Food-Waste"),
+            _promo_list_block("Wochenangebote"),
+        ],
+        promo_groups={"Anti-Food-Waste": {"layout": {"preset": "cols3", "scroll": True}}},
+    )
+    for i in range(2):
+        _promo(f"Rest{i}", promo_type="discount", discount_percent=50, group="Anti-Food-Waste")
+    for i in range(2):
+        _promo(f"Woche{i}", promo_type="discount", discount_percent=10, group="Wochenangebote")
+
+    body = _home(t)
+    assert 'data-sf-promo-type="Anti-Food-Waste"' in body
+    assert 'data-sf-promo-type="Wochenangebote"' in body
+    assert "Rest0" in body and "Woche0" in body
+    # оси ТИПА действуют и в секции: лентой ровно одна из двух
+    assert body.count("data-promo-strip") == 1
+
+
+def test_promo_section_block_is_failsafe_without_a_type():
+    """Мусор/пустой тип — блок исчезает, страница жива (как у блока одной акции)."""
+    t = _tenant("pt12", sections=[_promo_list_block(""), _promo_list_block("sys:erfunden")])
+    _promo("Irgendwas", promo_type="discount", discount_percent=10, group="Wochenangebote")
+    body = _home(t)
+    # сама акция на главной есть — её показывает штатная секция «Акции»; проверяем
+    # именно БЛОК: с пустым и с выдуманным типом он не рисуется вовсе.
+    assert "data-sf-promo-type" not in body
+
+
+def test_promo_section_block_survives_normalize():
+    """Блок повторяемый: два блока одного типа не схлопываются в один."""
+    cfg = siteconfig.normalize(
+        {"sections": [_promo_list_block("A", title="Erste"), _promo_list_block("A", limit=3)]}
+    )
+    blocks = [s for s in cfg["sections"] if s.get("key") == "promo_list"]
+    assert len(blocks) == 2
+    assert blocks[0]["data"]["title"] == "Erste"
+    assert blocks[1]["data"]["limit"] == 3
+    # лимит вне диапазона и мусор отбрасываются
+    bad = siteconfig.normalize({"sections": [_promo_list_block("A", limit="viel")]})
+    assert "limit" not in [s for s in bad["sections"] if s.get("key") == "promo_list"][0]["data"]
+
+
+def test_promo_section_block_works_on_any_page_not_only_home():
+    """Запрос владельца: блок с выбранным типом выводится В ЛЮБОМ МЕСТЕ.
+
+    Он повторяемый C-блок, поэтому живёт и в `page_blocks` — на каждом хосте из
+    `PAGE_BLOCK_HOSTS` (а каждый хост обязан выводиться шаблоном, замок STU-14).
+    Проверяем на «О нас» (хост `info`) и на странице корзины (хост `cart`).
+    """
+    from django.contrib.sessions.middleware import SessionMiddleware
+
+    t = _tenant(
+        "pt13",
+        page_blocks={
+            "info": [_promo_list_block("Räumung", title="Restposten")],
+            "cart": [_promo_list_block("sys:mystery")],
+        },
+    )
+    for i in range(2):
+        _promo(f"Rest{i}", promo_type="discount", discount_percent=40, group="Räumung")
+    _promo("Wundertüte", promo_type="discount", discount_style="mystery")
+
+    def _page(view, path):
+        req = RequestFactory().get(path)
+        SessionMiddleware(lambda x: None).process_request(req)
+        req.tenant = t
+        return view(req).content.decode()
+
+    about = _page(public_views.about_page, "/ueber-uns/")
+    assert 'data-sf-promo-type="Räumung"' in about
+    assert "Restposten" in about and "Rest0" in about
+
+    from apps.orders import public_views as orders_public
+
+    cart = _page(orders_public.cart_view, "/warenkorb/")
+    assert 'data-sf-promo-type="sys:mystery"' in cart
+    assert "Wundertüte" in cart
+
+
+def test_block_type_is_allowed_on_every_page_host():
+    """Инвариант: блок не должен выпадать на части страниц (класс «молча выпал»)."""
+    for host in siteconfig.PAGE_BLOCK_HOSTS:
+        cfg = siteconfig.normalize({"page_blocks": {host: [_promo_list_block("A")]}})
+        assert cfg["page_blocks"][host][0]["key"] == "promo_list", host

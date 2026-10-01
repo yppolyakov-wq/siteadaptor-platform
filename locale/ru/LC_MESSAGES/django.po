@@ -22714,3 +22714,27 @@ msgstr "автоматически"
 #: templates/promotions/promo_type_list.html
 msgid "wie die Seite"
 msgstr "как у страницы"
+
+#: apps/tenants/siteconfig.py
+msgid "Promotions of one type"
+msgstr "Акции одного типа"
+
+#: apps/tenants/siteconfig.py
+msgid "All promotions of one type"
+msgstr "Все акции одного типа"
+
+#: apps/tenants/siteconfig.py
+msgid "Aktionstyp wählen…"
+msgstr "Выберите тип акции…"
+
+#: apps/tenants/siteconfig.py
+msgid "Aktionstyp wählen — hier erscheinen dann alle Aktionen dieses Typs."
+msgstr "Выберите тип акции — здесь появятся все акции этого типа."
+
+#: apps/tenants/siteconfig.py
+msgid "Überschrift (leer = Name des Typs)"
+msgstr "Заголовок (пусто = название типа)"
+
+#: apps/tenants/siteconfig.py
+msgid "Höchstens"
+msgstr "Не больше"

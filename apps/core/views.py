@@ -517,6 +517,21 @@ def _promos_for_blocks(request):
         return []
 
 
+def _promo_types_for_blocks(request):
+    """PT-6: [(ключ, подпись)] живых типов акции для селектора блока.
+
+    Тот же список, что на экране «Aktionstypen»: свои рубрики + встроенные
+    механики с живыми акциями. Fail-safe: без модуля/при ошибке — пустой список
+    (блок тогда просто не выводится).
+    """
+    try:
+        from apps.promotions.views import _promo_type_rows
+
+        return [(row["key"], row["label"]) for row in _promo_type_rows(request)]
+    except Exception:  # noqa: BLE001
+        return []
+
+
 def _insert_after_section(sections: list, block: dict, after: str) -> None:
     """SE-4c: вставить block сразу ПОСЛЕ секции с key/id == after (инсертер «+» на
     канвасе). Пусто/не найдено → в конец. Общий путь для add_block и use_block_template."""
@@ -1354,6 +1369,8 @@ def _add_block_fetch_response(request, new_id, host):
             "b": b,
             "pb_page": host,
             "promos_for_blocks": _promos_for_blocks(request),
+            # PT-6: селектор типа у блока «акции одного типа».
+            "promo_types_for_blocks": _promo_types_for_blocks(request),
             "promo_style_options": _promo_style_options(),
         },
         request=request,
@@ -2665,6 +2682,8 @@ def home_builder_view(request):
             ],
             # UE1: селектор промо для промо-блока (активные+запланированные).
             "promos_for_blocks": _promos_for_blocks(request),
+            # PT-6: селектор типа у блока «акции одного типа».
+            "promo_types_for_blocks": _promo_types_for_blocks(request),
             # UC6-6f: стили вывода скидки для селекта промо-блока (fail-safe).
             "promo_style_options": _promo_style_options(),
             # UC6-5: карточки библиотеки блоков — иконка + подсказка (вставка
@@ -2706,6 +2725,12 @@ def home_builder_view(request):
                     "icon": "🏷️",
                     "hint": _("Live promotion"),
                 },  # UE1
+                {
+                    "value": "promo_list",
+                    "label": siteconfig.CBLOCK_LABELS["promo_list"],
+                    "icon": "🏷️",
+                    "hint": _("All promotions of one type"),
+                },  # PT-6
                 {
                     "value": "stats",
                     "label": siteconfig.CBLOCK_LABELS["stats"],
