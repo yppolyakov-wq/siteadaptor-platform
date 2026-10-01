@@ -3702,7 +3702,27 @@ AKTIONSMARKT = DemoKit(
         # … и ДВЕ группы со своим шаблоном поверх общего — приоритет виден на
         # витрине: распродажа идёт на одну дату (Countdown), у спасённых
         # продуктов есть «паровоз» — Überraschungstüte (Schaufenster).
-        "promo_groups": {"Räumung": "countdown", "Anti-Food-Waste": "schaufenster"},
+        # PT-8: у типов РАЗНЫЙ вид целиком, а не только шаблон страницы — чтобы
+        # «выводить только определённый тип со своей раскладкой» было видно в демо:
+        # распродажа идёт на одну дату (Countdown + кольцо таймера, сетка по 4),
+        # спасённые продукты — лентой купонов, недельные предложения — полками.
+        "promo_groups": {
+            "Räumung": {
+                "style": "countdown",
+                "card": "ring",
+                "layout": {"preset": "cols4", "cols": 4, "mobile": 2},
+            },
+            "Anti-Food-Waste": {
+                "style": "schaufenster",
+                "card": "coupon",
+                "layout": {"preset": "cols3", "cols": 3, "mobile": 2, "scroll": True},
+            },
+            # только шаблон → каноничная строковая форма (как у живых конфигов)
+            "Wochenangebote": "regale",
+            # встроенный тип: Mystery-акции получают свою страницу и форму карточки
+            # (ключ `sys:*` — тот же параметр `?gruppe=`, что у своих рубрик).
+            "sys:mystery": {"card": "deal"},
+        },
         # DL-21.2: обзорная /aktionen/ — «Kopfbild» (фото сайта + «N Angebote · M Gruppen»),
         # ленты групп (promo_layout) остаются.
         "promo_page_style": "kopfbild",
@@ -3710,6 +3730,21 @@ AKTIONSMARKT = DemoKit(
     # DL-4: акции на главной — витриной «Deal der Woche» (spotlight: featured-
     # карточка + полоса «Endet bald»; макет-референс канваса Sparfuchs).
     section_styles={"promotions": "spotlight"},
+    # PT-8: на главной — ДВЕ дополнительные секции акций по типу (решение Р-2):
+    # спасённые продукты лентой купонов и Mystery-деалы. Вид каждой берётся из
+    # настроек её типа (promo_groups выше), а не задаётся в блоке заново.
+    home_blocks=[
+        {
+            "after": "promotions",
+            "key": "promo_list",
+            "data": {"type": "Anti-Food-Waste", "title": "Reste retten", "limit": 6},
+        },
+        {
+            "after": "promotions",
+            "key": "promo_list",
+            "data": {"type": "sys:mystery", "limit": 3},
+        },
+    ],
     subdomain="aktionsmarkt",
     # 2026-07-30: слайдер + плитки hero_widget="aktionsmarkt"
     # (Deals/Sortiment/Treuepunkte/Newsletter).

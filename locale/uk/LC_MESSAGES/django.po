@@ -22722,3 +22722,17 @@ msgstr "Заголовок (порожньо = назва типу)"
 #: apps/tenants/siteconfig.py
 msgid "Höchstens"
 msgstr "Не більше"
+
+#: apps/promotions/forms.py
+msgid "Typ der Aktion (Rubrik)"
+msgstr "Тип акції (рубрика)"
+
+#: apps/promotions/forms.py
+msgid ""
+"Optional. Der Typ bündelt Aktionen (z. B. „Wochenangebote“, „Räumung“): "
+"eigene Seite, eigene Vorlage und eigenes Raster unter „Aktionstypen“, Filter"
+" auf /aktionen/ und Menüpunkt im Menü-Generator."
+msgstr ""
+"Необов’язково. Тип об’єднує акції (наприклад «Тижневі пропозиції», "
+"«Розпродаж»): власна сторінка, власний шаблон і власна сітка в розділі «Типи"
+" акцій», фільтр на /aktionen/ та пункт у конструкторі меню."

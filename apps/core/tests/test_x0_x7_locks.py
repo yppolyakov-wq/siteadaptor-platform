@@ -98,6 +98,8 @@ EXPECTED_UNLISTED = frozenset(
         "set-presence",
         # DL-13 C3: POST-only targeted-write режима страницы акций (панель в списке акций).
         "promotions:promotion-page-mode",
+        # PT-5: POST-only приёмник экрана «Aktionstypen» (сам экран в реестре есть).
+        "promotions:promo-type-save",
         "site-cblock-photo-edit",
         "site-inline-edit",
         "site-preview-draft",

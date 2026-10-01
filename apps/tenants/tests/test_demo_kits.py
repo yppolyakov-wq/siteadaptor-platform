@@ -1620,16 +1620,28 @@ def test_every_kit_defines_opening_hours():
 
 
 def test_dl20_aktionsmarkt_group_pages_inherit_and_override():
-    """DL-20: у страницы группы акций — общий дефолт «Prospekt» и ДВЕ группы со
-    своим шаблоном поверх него (приоритет виден на витрине); у направления
-    Überraschungstüten — свой шаблон страницы категории «Schaufenster»."""
+    """DL-20: у страницы группы акций — общий дефолт «Prospekt» и группы со своим
+    шаблоном поверх него (приоритет виден на витрине); у направления
+    Überraschungstüten — свой шаблон страницы категории «Schaufenster».
+
+    PT-8 (осознанная переписка): у типа теперь ЧЕТЫРЕ оси вывода, и демо задаёт их
+    целиком — чтобы «свой вид у каждого типа» было видно глазами. Смысл замка тот
+    же: общий дефолт + переопределение у конкретных типов.
+    """
     from apps.catalog.models import Category
 
     t = TenantFactory(slug="dl20a", name="DL20A", business_type="grocery")
     assert demo_kits.apply_kit(t, "aktionsmarkt")
     cfg = t.site_config
     assert cfg["site_defaults"]["promo_group_style"] == "prospekt"
-    assert cfg["promo_groups"] == {"Räumung": "countdown", "Anti-Food-Waste": "schaufenster"}
+    groups = cfg["promo_groups"]
+    assert groups["Räumung"]["style"] == "countdown"
+    assert groups["Anti-Food-Waste"]["style"] == "schaufenster"
+    # PT-8: вид типа задан целиком — карточка и раскладка, а не только шаблон
+    assert groups["Räumung"]["card"] == "ring"
+    assert groups["Anti-Food-Waste"]["layout"]["scroll"] is True
+    assert groups["Wochenangebote"] == "regale"  # только шаблон → прежняя строка
+    assert groups["sys:mystery"]["card"] == "deal"  # встроенный тип — та же ось
     # прежние оси site_defaults не затёрты мерджем config_patch (один уровень вглубь)
     assert cfg["site_defaults"]["card_style"] == "regal"
     assert Category.objects.get(slug="ueberraschungstueten").page_style == "schaufenster"

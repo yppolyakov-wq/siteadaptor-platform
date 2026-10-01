@@ -22509,3 +22509,17 @@ msgstr "Heading (empty = name of the type)"
 #: apps/tenants/siteconfig.py
 msgid "Höchstens"
 msgstr "At most"
+
+#: apps/promotions/forms.py
+msgid "Typ der Aktion (Rubrik)"
+msgstr "Promotion type (rubric)"
+
+#: apps/promotions/forms.py
+msgid ""
+"Optional. Der Typ bündelt Aktionen (z. B. „Wochenangebote“, „Räumung“): "
+"eigene Seite, eigene Vorlage und eigenes Raster unter „Aktionstypen“, Filter"
+" auf /aktionen/ und Menüpunkt im Menü-Generator."
+msgstr ""
+"Optional. The type bundles promotions (e.g. “Weekly offers”, “Clearance”): "
+"its own page, its own template and its own grid under “Promotion types”, a "
+"filter on /aktionen/ and a menu item in the menu builder."

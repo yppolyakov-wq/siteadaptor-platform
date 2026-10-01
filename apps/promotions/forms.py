@@ -77,7 +77,7 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
             "max_per_customer": _("Max. pro Kunde"),
             "reservation_ttl_hours": _("Reservierung gültig (Stunden)"),
             "auto_confirm": _("Automatisch bestätigen"),
-            "group": _("Section / group"),
+            "group": _("Typ der Aktion (Rubrik)"),
             "compare_at_price": _("Old price (struck through)"),
             "discount_percent": _("Discount %"),
             "price_override": _("New price"),
@@ -103,8 +103,9 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
                 "price, fixed price, from-price or countdown accent."
             ),
             "group": _(
-                "Optional. Groups offers into sections (e.g. „Fastfood“, „Fertiggerichte“) — "
-                "shown as filters on /aktionen/ and selectable in the menu builder."
+                "Optional. Der Typ bündelt Aktionen (z. B. „Wochenangebote“, „Räumung“): "
+                "eigene Seite, eigene Vorlage und eigenes Raster unter „Aktionstypen“, "
+                "Filter auf /aktionen/ und Menüpunkt im Menü-Generator."
             ),
         }
 
@@ -165,9 +166,28 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
         # `group` — flat+overlay (плоское значение = ключ фасета `?gruppe=`,
         # переводы = только метка), поэтому НЕ через DynamicI18nFormMixin:
         # базовая локаль остаётся полем `group`, прочие приезжают динамически.
+        # PT: подсказка существующих типов. Поле остаётся СВОБОДНЫМ текстом (новый
+        # тип завести по-прежнему можно), но владелец больше не угадывает написание:
+        # опечатка плодила бы второй тип с теми же акциями и своей страницей.
+        try:
+            existing = sorted(
+                {
+                    g
+                    for g in self._meta.model.objects.exclude(group="").values_list(
+                        "group", flat=True
+                    )
+                    if g
+                }
+            )
+        except Exception:  # noqa: BLE001
+            existing = []
+        #: существующие типы для <datalist> (шаблон рисует его рядом с полем)
+        self.promo_type_options = existing
+        if existing:
+            self.fields["group"].widget.attrs["list"] = "promo-type-options"
         self._group_locales = extra_locales(tenant)
         # msgid наружу: внутри f-строки xgettext его не видит (I18N-13).
-        group_label = _("Section / group")
+        group_label = _("Typ der Aktion (Rubrik)")
         overlay = getattr(self.instance, "group_i18n", None) or {}
         for loc in self._group_locales:
             self.fields[f"group_{loc}"] = forms.CharField(

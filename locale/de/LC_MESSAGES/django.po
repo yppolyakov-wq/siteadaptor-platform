@@ -22547,3 +22547,17 @@ msgstr "Überschrift (leer = Name des Typs)"
 #: apps/tenants/siteconfig.py
 msgid "Höchstens"
 msgstr "Höchstens"
+
+#: apps/promotions/forms.py
+msgid "Typ der Aktion (Rubrik)"
+msgstr "Typ der Aktion (Rubrik)"
+
+#: apps/promotions/forms.py
+msgid ""
+"Optional. Der Typ bündelt Aktionen (z. B. „Wochenangebote“, „Räumung“): "
+"eigene Seite, eigene Vorlage und eigenes Raster unter „Aktionstypen“, Filter"
+" auf /aktionen/ und Menüpunkt im Menü-Generator."
+msgstr ""
+"Optional. Der Typ bündelt Aktionen (z. B. „Wochenangebote“, „Räumung“): "
+"eigene Seite, eigene Vorlage und eigenes Raster unter „Aktionstypen“, Filter"
+" auf /aktionen/ und Menüpunkt im Menü-Generator."
