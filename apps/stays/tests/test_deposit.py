@@ -2,19 +2,20 @@
 ручная проверка, идемпотентность, маршрутизация вебхука по kind."""
 
 import uuid
-from datetime import date, timedelta
+from datetime import timedelta
 
 import pytest
 from django.db import connection
 
 from apps.billing import webhooks
+from apps.core.tests.dates import future_month_start
 from apps.promotions.models import Customer
 from apps.stays.models import StayBooking, StayUnit
 from apps.stays.payments import mark_stay_paid
 
 pytestmark = pytest.mark.django_db
 
-D0 = date(2026, 11, 1)
+D0 = future_month_start(3)  # заезд в будущем (дата считается, не истекает)
 
 
 def _booking(*, require_manual_confirm=False, status=StayBooking.STATUS_PENDING):

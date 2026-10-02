@@ -2,7 +2,7 @@
 гейтинг модуля, ре-валидация занятости."""
 
 import uuid
-from datetime import date, timedelta
+from datetime import timedelta
 
 import pytest
 from django.contrib.messages.middleware import MessageMiddleware
@@ -10,6 +10,7 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.http import Http404
 from django.test import RequestFactory
 
+from apps.core.tests.dates import future_month_start
 from apps.notifications.models import Notification
 from apps.stays import public_views, services
 from apps.stays.models import StayBooking, StayUnit
@@ -18,23 +19,7 @@ from apps.tenants.tests.factories import TenantFactory
 pytestmark = pytest.mark.django_db
 
 
-def _future_month_start(months: int = 2) -> date:
-    """1-е число месяца через `months` месяцев от сегодня.
-
-    База дат файла СЧИТАЕТСЯ, а не прописывается: жёсткий `date(2026, 10, 1)`
-    «в будущем относительно сегодня» перестал быть будущим 1 октября 2026 — и
-    замки календаря начали падать не из-за кода, а из-за наступившей даты
-    (вьюха клампит прошлый месяц к текущему и прячет кнопку «назад»).
-    `date.today()` вместо `timezone.localdate()`: модуль импортируется до того,
-    как конкретный тест настроит часовой пояс, а для «месяц в будущем» разница
-    в сутки не значима.
-    """
-    today = date.today()
-    y, m = divmod(today.year * 12 + (today.month - 1) + months, 12)
-    return date(y, m + 1, 1)
-
-
-D0 = _future_month_start()  # 1-е число месяца в будущем — замки не истекают
+D0 = future_month_start()  # 1-е число месяца в будущем — замки не истекают
 
 
 @pytest.fixture(autouse=True)

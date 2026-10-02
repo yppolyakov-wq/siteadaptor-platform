@@ -2,7 +2,7 @@
 
 import types
 import uuid
-from datetime import date, timedelta
+from datetime import timedelta
 from decimal import Decimal
 
 import pytest
@@ -12,12 +12,13 @@ from django.test import RequestFactory, override_settings
 from apps.aggregator import hotel_search
 from apps.aggregator.models import AggregatorListing, AggregatorPortal
 from apps.aggregator.portal_views import _collapse_hotels, portal_home
+from apps.core.tests.dates import future_month_start
 from apps.stays import services
 from apps.stays.models import StayUnit
 
 pytestmark = pytest.mark.django_db
 
-D0 = date(2026, 12, 1)
+D0 = future_month_start(3)  # заезд в будущем (дата считается, не истекает)
 
 
 def _su(**kwargs):

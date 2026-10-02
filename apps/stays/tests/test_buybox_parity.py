@@ -4,7 +4,7 @@
 
 import re
 import uuid
-from datetime import date, timedelta
+from datetime import timedelta
 
 import pytest
 from django.contrib.messages.middleware import MessageMiddleware
@@ -12,13 +12,14 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
 from apps.core.models import Extra
+from apps.core.tests.dates import future_month_start
 from apps.stays import public_views
 from apps.stays.models import RatePlan, StayUnit
 from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
 
-D0 = date(2026, 10, 1)  # в будущем относительно «сегодня» сессии
+D0 = future_month_start()  # заезд в будущем — форма брони выводится (дата считается)
 
 
 @pytest.fixture(autouse=True)

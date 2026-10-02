@@ -5,6 +5,7 @@ from datetime import date, timedelta
 
 import pytest
 
+from apps.core.tests.dates import future_month_start
 from apps.loyalty.models import Voucher
 from apps.stays import public_views, services
 from apps.stays.models import RatePlan, StayBooking, StayUnit
@@ -12,7 +13,7 @@ from apps.stays.state_machine import StayBookingSM
 
 pytestmark = pytest.mark.django_db
 
-D0 = date(2026, 11, 1)
+D0 = future_month_start(3)  # заезд в будущем (дата считается, не истекает)
 
 
 def _unit(**kwargs):
