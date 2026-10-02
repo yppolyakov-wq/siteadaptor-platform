@@ -457,6 +457,10 @@ def _read_cblock_data(post, bid: str, btype: str) -> dict:
         # GK-4: textarea «wert | label» построчно — канонизацию в rows-список
         # делает строковая ветка _clean_cblock_data (normalize).
         return {"rows": post.get(f"cb_{bid}_rows", "")}
+    if btype == "promo_list":
+        # PT-6: ветки не было — первый Save билдера стирал выбранный тип, и блок
+        # показывал ВСЕ акции (замок класса test_cblock_field_roundtrip).
+        return {"type": f("type"), "title": f("title"), "limit": f("limit")}
     return {}
 
 
