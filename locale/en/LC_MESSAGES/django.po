@@ -22638,3 +22638,27 @@ msgstr "same as website"
 #: templates/tenant/_cb_row.html
 msgid "Überschrift"
 msgstr "Heading"
+
+#: templates/tenant/_cb_row.html
+msgid "Ansicht gilt für"
+msgstr "View applies to"
+
+#: templates/tenant/_cb_row.html
+msgid "Nur diesen Block"
+msgstr "Only this block"
+
+#: templates/tenant/_cb_row.html
+msgid "Den ganzen Typ"
+msgstr "The whole type"
+
+#: templates/tenant/_cb_row.html
+msgid "Gilt für alle Blöcke dieses Typs und für seine Seite:"
+msgstr "Applies to all blocks of this type and to its page:"
+
+#: apps/core/list_blocks.py
+msgid "derzeit leer"
+msgstr "currently empty"
+
+#: apps/core/list_blocks.py
+msgid "nicht verfügbar"
+msgstr "not available"

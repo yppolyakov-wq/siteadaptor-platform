@@ -152,11 +152,12 @@ collect()/save работают без переименований. data-cb-id 
           <div data-lb-src="promotions" {% if src == "products" %}hidden{% endif %}>
             <div class="stu-row">
               <span class="stu-lb">{% trans "Aktionstyp" %}</span>
-              <select name="cb_{{ b.id }}_type" class="stu-ctrl">
+              <select name="cb_{{ b.id }}_type" data-lb-type class="stu-ctrl">
                 <option value="">{% trans "Alle Aktionen" %}</option>
                 {% for key, label in promo_types_for_blocks %}
                   <option value="{{ key }}" {% if b.data.type == key %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
+                {% if lh.orphan_type %}<option value="{{ lh.orphan_type.0 }}" selected>{{ lh.orphan_type.1 }}</option>{% endif %}
               </select>
             </div>
             <div class="stu-row stu-two">
@@ -187,6 +188,7 @@ collect()/save работают без переименований. data-cb-id 
                 {% for slug, label in list_categories_for_blocks %}
                   <option value="{{ slug }}" {% if b.data.category == slug %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
+                {% if lh.orphan_category %}<option value="{{ lh.orphan_category.0 }}" selected>{{ lh.orphan_category.1 }}</option>{% endif %}
               </select>
             </div>
             <div class="stu-row">
@@ -218,9 +220,21 @@ collect()/save работают без переименований. data-cb-id 
       <details class="bld-grp w-full" data-grp="darstellung" open>
         <summary class="bld-grp-sum">{% trans "Appearance" %}</summary>
         <div class="bld-grp-body">
+          {% comment %}LB-1b (план §10): охват вида. «Den ganzen Typ» — те же контролы
+          пишут настройки ТИПА (все его блоки и его страница), значения в них — значения
+          типа (карта lb-type-views). Поле служебное: в конфиге не хранится.{% endcomment %}
+          <div class="stu-row" data-lb-scope-row {% if src == "products" or not b.data.type %}hidden{% endif %}>
+            <span class="stu-lb">{% trans "Ansicht gilt für" %}</span>
+            <input type="hidden" name="cb_{{ b.id }}_scope" value="" data-lb-scope>
+            <div class="flex flex-wrap items-center gap-1 text-xs" role="group" aria-label="{% trans 'Ansicht gilt für' %}">
+              <button type="button" class="rounded-full border px-2 py-0.5 bg-indigo-50 border-indigo-300 text-indigo-700" data-lb-scope-btn="" aria-pressed="true">{% trans "Nur diesen Block" %}</button>
+              <button type="button" class="rounded-full border border-gray-300 px-2 py-0.5 text-gray-600" data-lb-scope-btn="type" aria-pressed="false">{% trans "Den ganzen Typ" %}</button>
+            </div>
+            <p class="mt-1 text-[11px] text-gray-400" data-lb-scope-note hidden>{% trans "Gilt für alle Blöcke dieses Typs und für seine Seite:" %} <b data-lb-scope-type>{{ lh.type_label }}</b></p>
+          </div>
           <div class="stu-row">
             <span class="stu-lb">{% trans "Ausgabe" %}</span>
-            <select name="cb_{{ b.id }}_out" data-lb-out data-inherit-mode="{{ lh.mode_key }}" class="stu-ctrl">
+            <select name="cb_{{ b.id }}_out" data-lb-out data-lb-axis="out" data-inherit-mode="{{ lh.mode_key }}" class="stu-ctrl">
               <option value="">{{ lh.layout_from }}: {{ lh.mode }}</option>
               <option value="grid" {% if b.data.out == "grid" %}selected{% endif %}>{% trans "Raster" %}</option>
               <option value="slider" {% if b.data.out == "slider" %}selected{% endif %}>{% trans "Slider" %}</option>
@@ -229,7 +243,7 @@ collect()/save работают без переименований. data-cb-id 
           <div class="stu-row stu-two">
             <label class="block">
               <span class="stu-lb">{% trans "Spalten" %}</span>
-              <select name="cb_{{ b.id }}_cols" class="stu-ctrl">
+              <select name="cb_{{ b.id }}_cols" data-lb-axis="cols" class="stu-ctrl">
                 <option value="">{{ lh.layout_from }}: {{ lh.cols }}</option>
                 {% for n in "123456"|make_list %}
                   <option value="{{ n }}" {% if b.data.cols|stringformat:"s" == n %}selected{% endif %}>{{ n }}</option>
@@ -238,7 +252,7 @@ collect()/save работают без переименований. data-cb-id 
             </label>
             <label class="block">
               <span class="stu-lb">{% trans "Reihen" %}</span>
-              <select name="cb_{{ b.id }}_rows" class="stu-ctrl" title="{% trans 'Raster: so viele Reihen zeigen. Slider: Reihen pro Folie.' %}">
+              <select name="cb_{{ b.id }}_rows" data-lb-axis="rows" class="stu-ctrl" title="{% trans 'Raster: so viele Reihen zeigen. Slider: Reihen pro Folie.' %}">
                 <option value="">{% if lh.rows %}{{ lh.layout_from }}: {{ lh.rows }}{% else %}{% trans "automatisch" %}{% endif %}</option>
                 {% for n in "123456"|make_list %}
                   <option value="{{ n }}" {% if b.data.rows|stringformat:"s" == n %}selected{% endif %}>{{ n }}</option>
@@ -248,11 +262,11 @@ collect()/save работают без переименований. data-cb-id 
           </div>
           <div class="stu-row" data-lb-speed {% if b.data.out != "slider" and b.data.out or not b.data.out and lh.mode_key != "slider" %}hidden{% endif %}>
             <span class="stu-lb">{% trans "Tempo (Sek.)" %}</span>
-            <input type="number" name="cb_{{ b.id }}_speed" min="3" max="15" value="{{ b.data.speed|default_if_none:'' }}" placeholder="{% trans 'aus' %}" class="stu-ctrl stu-num" title="{% trans 'Sekunden zwischen den Folien. Leer = nicht automatisch drehen.' %}">
+            <input type="number" name="cb_{{ b.id }}_speed" data-lb-axis="speed" min="3" max="15" value="{{ b.data.speed|default_if_none:'' }}" placeholder="{% trans 'aus' %}" class="stu-ctrl stu-num" title="{% trans 'Sekunden zwischen den Folien. Leer = nicht automatisch drehen.' %}">
           </div>
           <div class="stu-row">
             <span class="stu-lb">{% trans "Kartenform" %}</span>
-            <select name="cb_{{ b.id }}_card" class="stu-ctrl">
+            <select name="cb_{{ b.id }}_card" data-lb-axis="card" class="stu-ctrl">
               <option value="">{{ lh.card_from }}: {{ lh.card }}</option>
               {% for key, label, srcs in lh.cards %}
                 <option value="{{ key }}" data-lb-opt="{{ srcs }}" {% if src not in srcs %}hidden{% endif %} {% if b.data.card == key %}selected{% endif %}>{{ label }}</option>

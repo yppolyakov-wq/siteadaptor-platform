@@ -323,6 +323,10 @@ def promo_type_list(request):
     )
 
 
+# Оси раскладки типа, которыми управляет экран «Aktionstypen» (остальные — переносятся).
+_TYPE_SCREEN_AXES = ("scroll", "preset", "cols", "rows")
+
+
 @login_required
 @require_POST
 def promo_type_save(request):
@@ -364,15 +368,21 @@ def promo_type_save(request):
             mode = (request.POST.get(f"mode:{key}") or "").strip()
             cols = (request.POST.get(f"cols:{key}") or "").strip()
             rows = (request.POST.get(f"rows:{key}") or "").strip()
-            layout: dict = {}
+            managed: dict = {}
             if mode == "slider":
-                layout["scroll"] = True
+                managed["scroll"] = True
             if cols.isdigit():
-                layout["preset"] = f"cols{max(1, min(6, int(cols)))}"
-                layout["cols"] = max(1, min(6, int(cols)))
+                managed["preset"] = f"cols{max(1, min(6, int(cols)))}"
+                managed["cols"] = max(1, min(6, int(cols)))
             if rows.isdigit() and int(rows):
-                layout["rows"] = max(1, min(6, int(rows)))
-            if layout:
+                managed["rows"] = max(1, min(6, int(rows)))
+            if managed:
+                # LB-1b (W0): оси, которых у экрана нет (темп ленты, планшет, хвост),
+                # переносятся как были — их задаёт пилюля охвата блока «Liste», и
+                # пересборка раскладки из трёх полей экрана молча стирала бы их.
+                prev = entry.get("layout") if isinstance(entry.get("layout"), dict) else {}
+                layout = {k: v for k, v in prev.items() if k not in _TYPE_SCREEN_AXES}
+                layout.update(managed)
                 entry["layout"] = layout
             else:
                 entry.pop("layout", None)

@@ -22869,3 +22869,27 @@ msgstr "как на сайте"
 #: templates/tenant/_cb_row.html
 msgid "Überschrift"
 msgstr "Заголовок"
+
+#: templates/tenant/_cb_row.html
+msgid "Ansicht gilt für"
+msgstr "Вид применяется к"
+
+#: templates/tenant/_cb_row.html
+msgid "Nur diesen Block"
+msgstr "Только этому блоку"
+
+#: templates/tenant/_cb_row.html
+msgid "Den ganzen Typ"
+msgstr "Всему типу"
+
+#: templates/tenant/_cb_row.html
+msgid "Gilt für alle Blöcke dieses Typs und für seine Seite:"
+msgstr "Применяется ко всем блокам этого типа и к его странице:"
+
+#: apps/core/list_blocks.py
+msgid "derzeit leer"
+msgstr "сейчас пусто"
+
+#: apps/core/list_blocks.py
+msgid "nicht verfügbar"
+msgstr "недоступно"

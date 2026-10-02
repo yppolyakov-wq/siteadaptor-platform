@@ -22765,3 +22765,27 @@ msgstr "sitedeki gibi"
 #: templates/tenant/_cb_row.html
 msgid "Überschrift"
 msgstr "Başlık"
+
+#: templates/tenant/_cb_row.html
+msgid "Ansicht gilt für"
+msgstr "Görünüm şunun için geçerli"
+
+#: templates/tenant/_cb_row.html
+msgid "Nur diesen Block"
+msgstr "Yalnızca bu blok"
+
+#: templates/tenant/_cb_row.html
+msgid "Den ganzen Typ"
+msgstr "Türün tamamı"
+
+#: templates/tenant/_cb_row.html
+msgid "Gilt für alle Blöcke dieses Typs und für seine Seite:"
+msgstr "Bu türün tüm bloklarına ve sayfasına uygulanır:"
+
+#: apps/core/list_blocks.py
+msgid "derzeit leer"
+msgstr "şu anda boş"
+
+#: apps/core/list_blocks.py
+msgid "nicht verfügbar"
+msgstr "kullanılamıyor"

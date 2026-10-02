@@ -133,7 +133,17 @@ def list_block_hint(context, data):
     if not isinstance(cfg, dict) or "sections" not in cfg:
         tenant = getattr(context.get("request"), "tenant", None)
         cfg = siteconfig.normalize(getattr(tenant, "site_config", None) or {})
-    return list_blocks.view_hint(cfg, data if isinstance(data, dict) else {})
+    data = data if isinstance(data, dict) else {}
+    hint = list_blocks.view_hint(cfg, data)
+    # LB-1b: значение блока, которого нет в живых списках, остаётся выбранным (W0).
+    hint.update(
+        list_blocks.editor_options(
+            data,
+            context.get("promo_types_for_blocks"),
+            context.get("list_categories_for_blocks"),
+        )
+    )
+    return hint
 
 
 @register.filter

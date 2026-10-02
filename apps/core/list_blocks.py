@@ -366,3 +366,180 @@ def card_options() -> list[tuple[str, str, str]]:
         if srcs:
             out.append((key, str(label), " ".join(srcs)))
     return out
+
+
+# ─────────────────── LB-1b: пилюля охвата «Den ganzen Typ» ───────────────────
+#
+# План — `docs/lb-list-blocks-plan-2026-10-02.md` §10. Хранение не новое: тот же
+# `promo_groups[тип].layout/card`, что пишут экран «Aktionstypen» и страница типа.
+
+_VIEW_AXES = ("out", "cols", "rows", "speed", "card")
+_LAYOUT_AXES = ("out", "cols", "rows", "speed")
+
+
+def _list_blocks_of(cfg: dict) -> list[dict]:
+    """Блоки «Liste» конфига в порядке обхода: главная, затем страницы."""
+    found: list = []
+    sections = cfg.get("sections")
+    if isinstance(sections, list):
+        found.extend(sections)
+    pages = cfg.get("page_blocks")
+    if isinstance(pages, dict):
+        for rows in pages.values():
+            if isinstance(rows, list):
+                found.extend(rows)
+    return [
+        item
+        for item in found
+        if isinstance(item, dict)
+        and siteconfig.cblock_type(item.get("key")) == "list"
+        and isinstance(item.get("data"), dict)
+    ]
+
+
+def _axis_int(raw, low: int, high: int) -> int:
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return 0
+    return value if low <= value <= high else 0
+
+
+def _type_layout(cfg: dict, data: dict) -> dict:
+    """Раскладка типа из осей блока; {} — у типа своей раскладки нет.
+
+    Слой раскладки у типа «всё или ничего»: `base_view` берёт раскладку типа ЦЕЛИКОМ
+    и страницу уже не читает. Поэтому основа — действующая раскладка СТРАНИЦЫ, а оси
+    блока ложатся поверх: пустое «Spalten» с подписью «wie die Seite: 4» обязано дать
+    4, а не дефолт нормализации, и «Raster» поверх ленты страницы — сетку.
+    """
+    if not any(data.get(axis) for axis in _LAYOUT_AXES):
+        return {}
+    layout = dict(base_view(cfg, {"source": "promotions"})["layout"])
+    if data.get("out") == "slider":
+        layout["scroll"] = True
+    elif data.get("out") == "grid":
+        layout.pop("scroll", None)
+        layout.pop("balance", None)
+    cols = _axis_int(data.get("cols"), 1, 6)
+    if cols:
+        # как экран «Aktionstypen» (`promo_type_save`) — одно хранение, одна форма
+        layout["preset"] = f"cols{cols}"
+        layout["cols"] = cols
+    for axis, low, high in (("rows", 1, 6), ("speed", 3, 15)):
+        value = _axis_int(data.get(axis), low, high)
+        if value:
+            layout[axis] = value
+    return layout
+
+
+def apply_type_scope(cfg: dict) -> None:
+    """LB-1b: блоки в режиме «Den ganzen Typ» отдают свой вид ТИПУ акции.
+
+    Одна функция для Save билдера и для живого черновика — превью показывает ровно то,
+    что сохранится. Для блока `list` с `scope="type"`, источником «Aktionen» и типом:
+    оси вида уходят в `promo_groups[тип]` (пустые — тип снова наследует страницу), а у
+    блока очищаются — он следует за типом, как все блоки этого типа. Шаблон страницы
+    типа (`style`) и чужие типы не трогаются. `scope` — служебное поле формы и в
+    конфиге не остаётся ни у одного блока. Два блока одного типа в этом режиме —
+    побеждает последний по порядку обхода (главная, затем страницы).
+    """
+    if not isinstance(cfg, dict):
+        return
+    from apps.promotions import promo_types
+
+    types = None
+    for item in _list_blocks_of(cfg):
+        data = item["data"]
+        if data.pop("scope", None) != "type":
+            continue
+        kind = str(data.get("type") or "").strip()
+        if _source(data) != "promotions" or not kind:
+            continue
+        if types is None:
+            raw = cfg.get("promo_groups")
+            types = dict(raw) if isinstance(raw, dict) else {}
+        entry = dict(promo_types.settings_for(types, kind))
+        layout = _type_layout(cfg, data)
+        if layout:
+            entry["layout"] = layout
+        else:
+            entry.pop("layout", None)
+        card = str(data.get("card") or "").strip()
+        if card and card in card_forms.keys_for(card_forms.PROMO):
+            entry["card"] = card
+        else:
+            entry.pop("card", None)
+        types[kind] = entry
+        for axis in _VIEW_AXES:
+            data.pop(axis, None)
+    if types is not None:
+        cfg["promo_groups"] = types
+
+
+def type_views(cfg: dict, keys=()) -> dict:
+    """LB-1b: карта для пилюли охвата в строке редактора (один JSON на страницу).
+
+    `types` — что покажут контролы вида в режиме «Den ganzen Typ» (значения самого
+    типа, пусто = тип наследует); `page` — подписи пустых пунктов в этом режиме: тип
+    без своей оси берёт её у страницы акций.
+    """
+    from apps.promotions import promo_types
+
+    cfg = cfg or {}
+    per_type = cfg.get("promo_groups") if isinstance(cfg.get("promo_groups"), dict) else {}
+    names = [*keys, *per_type, *(b["data"].get("type") for b in _list_blocks_of(cfg))]
+    types: dict = {}
+    for key in dict.fromkeys(str(k or "").strip() for k in names):
+        if not key:
+            continue
+        settings = promo_types.settings_for(per_type, key)
+        layout = settings.get("layout") or {}
+        types[key] = {
+            "out": ("slider" if layout.get("scroll") else "grid") if layout else "",
+            "cols": str(layout.get("cols") or "") if layout else "",
+            "rows": str(layout.get("rows") or ""),
+            "speed": str(layout.get("speed") or ""),
+            "card": settings.get("card", ""),
+        }
+    page = view_hint(cfg, {"source": "promotions"})
+    return {
+        "types": types,
+        "page": {
+            "out": f"{page['layout_from']}: {page['mode']}",
+            "cols": f"{page['layout_from']}: {page['cols']}",
+            "rows": (
+                f"{page['layout_from']}: {page['rows']}" if page["rows"] else _("automatisch")
+            ),
+            "card": f"{page['card_from']}: {page['card']}",
+            "mode": page["mode_key"],
+        },
+    }
+
+
+def editor_options(data: dict, live_types=None, categories=None) -> dict:
+    """Пункты селекторов строки, которых нет в живых списках (класс W0).
+
+    Селектор типа строится из ЖИВЫХ типов, категорий — из активных. Без своего пункта
+    значение блока не было бы выбрано, браузер отправил бы первый пункт («Alle»), и
+    Save молча превратил бы блок «Räumung» в блок «все акции». Плюс подпись типа для
+    пилюли охвата.
+    """
+    from apps.promotions import promo_types
+
+    data = data if isinstance(data, dict) else {}
+    out: dict = {}
+    kind = str(data.get("type") or "")
+    if kind:
+        label = dict(live_types or []).get(kind)
+        if label is None:
+            # gettext — вне f-строки: xgettext выражения f-строк не извлекает (I18N-13)
+            empty = _("derzeit leer")
+            label = f"{promo_types.label_for(kind)} ({empty})"
+            out["orphan_type"] = (kind, label)
+        out["type_label"] = label
+    category = str(data.get("category") or "")
+    if category and category not in {slug for slug, _label in (categories or [])}:
+        gone = _("nicht verfügbar")
+        out["orphan_category"] = (category, f"{category} ({gone})")
+    return out

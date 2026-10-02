@@ -18,6 +18,7 @@ from apps.core import (
     card_forms,
     compositions,
     detail_sections,
+    list_blocks,
     presence,
     studio_pages,
     studio_scope,
@@ -429,6 +430,9 @@ _LIST_BLOCK_FIELDS = (
     "rows",
     "speed",
     "card",
+    # LB-1b: охват вида — «только этот блок» ("") или «весь тип» ("type"). Служебное
+    # поле формы: `list_blocks.apply_type_scope` разбирает его ДО normalize.
+    "scope",
 )
 
 
@@ -2066,6 +2070,10 @@ def home_builder_view(request):
                 host: [entry for _o, entry in sorted(rows, key=lambda r: r[0])]
                 for host, rows in pb_items.items()
             }
+        # LB-1b: блоки «Liste» в режиме «Den ganzen Typ» отдают свой вид типу акции —
+        # та же функция, что у живого черновика (превью = результат Save). До снимка
+        # шаблона страницы и до разборки перевода: оси вида — структура, не текст.
+        list_blocks.apply_type_scope(config)
         # SE-4b: сохранить текущую компоновку как шаблон страницы. Снимок берём из только
         # что собранного config["sections"] → ловит несохранённые правки порядка/видимости
         # (как save_block_template ловит правки C-блока). normalize() ниже санитизирует.
@@ -2686,6 +2694,9 @@ def home_builder_view(request):
     # STU-18c/18d: гейт композиций считается ОДИН раз — его читают и плитки
     # каталога/акций (`comp_off`), и строки девяти листингов.
     _comp_gate = _composition_gate(config)
+    # LB-1b: селекторы строк C-блоков считаются один раз — список живых типов питает
+    # и селектор типа, и карту видов типов для пилюли охвата блока «Liste».
+    _row_lists = _cblock_row_lists(request)
     return render(
         request,
         "tenant/site_home.html",
@@ -2751,7 +2762,11 @@ def home_builder_view(request):
                 for i, h in enumerate(config["history"])
             ],
             # Селекторы строк C-блоков (промо, тип акции, стиль скидки, категории LB-1).
-            **_cblock_row_lists(request),
+            **_row_lists,
+            # LB-1b: вид каждого типа акции — контролы строки в режиме «Den ganzen Typ».
+            "lb_type_views": list_blocks.type_views(
+                config, [key for key, _label in _row_lists["promo_types_for_blocks"]]
+            ),
             # UC6-5: карточки библиотеки блоков — иконка + подсказка (вставка
             # даёт демо-данные из siteconfig.CBLOCK_DEMO_DATA).
             "block_types": [
@@ -3384,6 +3399,8 @@ def site_preview_draft(request):
     # M20d: контент-секции — отражаем в превью, только если присланы (иначе не трём).
     if any(k in data for k in siteconfig.CONTENT_FIELDS):
         cfg.update(siteconfig.parse_content_sections(data.get))
+    # LB-1b: «Den ganzen Typ» — та же функция, что у Save билдера (превью = результат).
+    list_blocks.apply_type_scope(cfg)
     draft = siteconfig.normalize(cfg)
     # Акцент — отдельное поле Tenant; кладём override в черновик как `_accent`
     # (валидный hex), читается context-процессором под ?preview=1.

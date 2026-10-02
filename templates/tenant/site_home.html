@@ -2049,6 +2049,9 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
    контролы видны всегда, перекрывать нечего. */
 </style>
 
+{% comment %}LB-1b: вид каждого типа акции — для пилюли охвата блока «Liste» (один раз
+на страницу; строки, вставленные без перезагрузки, читают ту же карту).{% endcomment %}
+{{ lb_type_views|json_script:"lb-type-views" }}
 <script>
 (function () {
   var form = document.getElementById("home-form");
@@ -2536,7 +2539,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
        "promo_pk", "align", "badge_pos", "button_label",
        "size", "color", "rounded", "style_hint", "rows", "height", "type", "limit",
        "source", "intro", "endet", "rabatt", "category", "only", "sort",
-       "out", "cols", "speed", "card"];
+       "out", "cols", "speed", "card", "scope"];
       CB_DATA_FIELDS.forEach(function (f) {  // UC6-2/4/6f + GK-4
         var el = form.querySelector("[name='cb_" + cbId + "_" + f + "']");
         if (el && el.value !== "") cb.data[f] = el.value;
@@ -3168,6 +3171,101 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         speed.hidden = mode !== "slider";
       }
       syncGroupSummaries(row);  // сводка групп — уже по новому набору видимых полей
+    });
+    // LB-1b: пилюля охвата «Nur diesen Block · Den ganzen Typ». В режиме типа контролы
+    // вида показывают и правят значения ТИПА (карта lb-type-views), а значения самого
+    // блока ждут возврата; пустые пункты подписаны тем, что тип возьмёт у страницы.
+    // Сервер разбирает режим одной функцией и в Save, и в черновике
+    // (list_blocks.apply_type_scope) — канва сразу показывает все блоки типа.
+    var LB_VIEWS = (function () {
+      var el = document.getElementById("lb-type-views");
+      try { return el ? JSON.parse(el.textContent) : null; } catch (eLv) { return null; }
+    })() || { types: {}, page: {} };
+    var LB_AXES = ["out", "cols", "rows", "speed", "card"];
+    function lbAxis(row, axis) { return row.querySelector("[data-lb-axis='" + axis + "']"); }
+    function lbTypeKey(row) {
+      var src = row.querySelector("[data-lb-source]");
+      var typ = row.querySelector("[data-lb-type]");
+      return (!src || src.value === "promotions") && typ ? typ.value : "";
+    }
+    function lbPaintScope(row) {
+      var hidden = row.querySelector("[data-lb-scope]");
+      var mode = hidden ? hidden.value : "";
+      row.querySelectorAll("[data-lb-scope-btn]").forEach(function (b) {
+        var on = b.getAttribute("data-lb-scope-btn") === mode;
+        b.setAttribute("aria-pressed", on ? "true" : "false");
+        b.classList.toggle("bg-indigo-50", on);
+        b.classList.toggle("border-indigo-300", on);
+        b.classList.toggle("text-indigo-700", on);
+        b.classList.toggle("border-gray-300", !on);
+        b.classList.toggle("text-gray-600", !on);
+      });
+      var note = row.querySelector("[data-lb-scope-note]");
+      if (note) note.hidden = mode !== "type";
+      var name = row.querySelector("[data-lb-scope-type]");
+      var typ = row.querySelector("[data-lb-type]");
+      if (name && typ && typ.selectedIndex >= 0) name.textContent = typ.options[typ.selectedIndex].text;
+    }
+    // values — значения контролов; labels — подписи пустых пунктов (null = блока).
+    function lbLoad(row, values, labels, inheritMode) {
+      LB_AXES.forEach(function (axis) {
+        var c = lbAxis(row, axis);
+        if (!c) return;
+        var want = values[axis] || "";
+        c.value = want;
+        if (c.value !== want) c.value = "";  // пункта нет — «как у всех», а не пустой выбор
+        var opt = c.tagName === "SELECT" && c.options.length && c.options[0].value === "" ? c.options[0] : null;
+        if (!opt) return;
+        if (!opt.hasAttribute("data-lb-label-block")) opt.setAttribute("data-lb-label-block", opt.text);
+        opt.text = (labels && labels[axis]) || opt.getAttribute("data-lb-label-block");
+      });
+      var outSel = lbAxis(row, "out");
+      if (!outSel) return;
+      if (!outSel.hasAttribute("data-lb-inherit-block")) {
+        outSel.setAttribute("data-lb-inherit-block", outSel.getAttribute("data-inherit-mode") || "");
+      }
+      outSel.setAttribute("data-inherit-mode", inheritMode || outSel.getAttribute("data-lb-inherit-block"));
+    }
+    function lbSetScope(row, mode) {
+      var hidden = row.querySelector("[data-lb-scope]");
+      if (!hidden) return;
+      var key = lbTypeKey(row);
+      if (mode === "type" && !key) mode = "";
+      var cur = hidden.value || "";
+      if (mode === "type") {
+        if (cur !== "type") {  // значения самого блока — до возврата в «Nur diesen Block»
+          row._lbOwn = {};
+          LB_AXES.forEach(function (a) { var c = lbAxis(row, a); if (c) row._lbOwn[a] = c.value; });
+        }
+        var page = LB_VIEWS.page || {};
+        lbLoad(row, (LB_VIEWS.types || {})[key] || {}, page, page.mode || "grid");
+      } else if (cur === "type") {
+        lbLoad(row, row._lbOwn || {}, null, "");
+      }
+      hidden.value = mode;
+      lbPaintScope(row);
+      // «Tempo», скрытые пункты и сводки групп пересчитает обработчик строки выше,
+      // черновик — общий слушатель формы: change всплывает до #home-form.
+      (lbAxis(row, "out") || hidden).dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    document.addEventListener("click", function (e) {
+      var btn = e.target && e.target.closest && e.target.closest("[data-lb-scope-btn]");
+      var row = btn && btn.closest("[data-lb-row]");
+      if (!row) return;
+      e.preventDefault();
+      lbSetScope(row, btn.getAttribute("data-lb-scope-btn"));
+    });
+    document.addEventListener("change", function (e) {
+      var t = e.target;
+      var row = t && t.closest && t.closest("[data-lb-row]");
+      if (!row || !(t.matches("[data-lb-source]") || t.matches("[data-lb-type]"))) return;
+      var key = lbTypeKey(row);
+      var box = row.querySelector("[data-lb-scope-row]");
+      if (box) box.hidden = !key;
+      var hidden = row.querySelector("[data-lb-scope]");
+      // смена типа в режиме типа — значения нового типа; без типа — назад к блоку
+      if (hidden && hidden.value === "type") lbSetScope(row, key ? "type" : "");
+      else lbPaintScope(row);
     });
   }
   function syncGroupSummaries(row) {
