@@ -37,4 +37,5 @@ STU-18d (d3): страница на каркасе `listing.html` (см. combos.
 
 {% block listing_empty %}{% if not products %}<p class="text-gray-400">{% trans "Zu diesem Look sind noch keine Artikel zugeordnet." %}</p>{% endif %}{% endblock %}
 
+{% block listing_before %}{% page_blocks "lookbook" part="before" %}{% endblock %}
 {% block listing_after %}{% page_blocks "lookbook" %}{% endblock %}

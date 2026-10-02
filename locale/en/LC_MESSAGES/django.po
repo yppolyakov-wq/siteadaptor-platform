@@ -22662,3 +22662,15 @@ msgstr "currently empty"
 #: apps/core/list_blocks.py
 msgid "nicht verfügbar"
 msgstr "not available"
+
+#: templates/tenant/_cb_row.html
+msgid "Hauptliste"
+msgstr "Main list"
+
+#: templates/tenant/_cb_row.html
+msgid "Blöcke davor stehen über der Liste, danach unter ihr. Wie die Liste aussieht, stellen Sie oben bei dieser Seite ein."
+msgstr "Blocks before it appear above the list, blocks after it below. How the list looks is set above for this page."
+
+#: templates/tenant/site_home.html
+msgid "Block über der Liste einfügen"
+msgstr "Insert block above the list"

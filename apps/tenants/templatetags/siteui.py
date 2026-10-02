@@ -291,10 +291,15 @@ def list_block(context, block):
 
 
 @register.simple_tag(takes_context=True)
-def page_blocks(context, page_key):
+def page_blocks(context, page_key, part="after"):
     """UC6-7: C-блоки страницы (хост site_config.page_blocks[page_key]) —
     рендер как на главной (ряды узких блоков + _section_block: клик→лента,
-    📷, инлайн работают). При ?preview=1 — черновик сессии (live-preview)."""
+    📷, инлайн работают). При ?preview=1 — черновик сессии (live-preview).
+
+    LB-2: `part` — какая часть блоков листинга: "before" — над основным списком
+    (до маркера `main`), "after" — под ним. Без маркера всё под списком, как раньше.
+    Пунктирный якорь пустого хоста в превью рисует только "after" — иначе на пустой
+    странице было бы два «＋»."""
     request = context.get("request")
     tenant = getattr(request, "tenant", None)
     if request is None or tenant is None:
@@ -311,11 +316,11 @@ def page_blocks(context, page_key):
     # тег читал их из голого normalize, и текст C-блоков страниц («Über uns»,
     # корзина) оставался немецким на любой локали даже при готовом оверлее.
     site = siteconfig.localize(siteconfig.normalize(raw), get_language())
-    blocks = [
-        b for b in (site.get("page_blocks") or {}).get(page_key, []) if b.get("enabled", True)
-    ]
+    above, below = siteconfig.split_at_main((site.get("page_blocks") or {}).get(page_key, []))
+    before = part == "before"
+    blocks = [b for b in (above if before else below) if b.get("enabled", True)]
     is_preview = bool(context.get("is_preview"))
-    if not blocks and not is_preview:
+    if not blocks and (before or not is_preview):
         return ""
     rows = siteconfig.group_block_rows(blocks)
     ctx = {**context.flatten(), "pb_rows": rows, "pb_page_key": page_key}

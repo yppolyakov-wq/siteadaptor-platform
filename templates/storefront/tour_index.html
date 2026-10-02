@@ -37,6 +37,7 @@ MT-D2: при нескольких странах — секции по стра
   {% endif %}
 {% endblock %}
 
+{% block listing_before %}{% page_blocks "tours" part="before" %}{% endblock %}
 {% block listing_after %}
   {% if private_tour_url and tours %}
     {% comment %}MT-D3: приватный выезд — заявка с датой и числом участников.{% endcomment %}

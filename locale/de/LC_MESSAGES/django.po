@@ -22700,3 +22700,15 @@ msgstr "derzeit leer"
 #: apps/core/list_blocks.py
 msgid "nicht verfügbar"
 msgstr "nicht verfügbar"
+
+#: templates/tenant/_cb_row.html
+msgid "Hauptliste"
+msgstr "Hauptliste"
+
+#: templates/tenant/_cb_row.html
+msgid "Blöcke davor stehen über der Liste, danach unter ihr. Wie die Liste aussieht, stellen Sie oben bei dieser Seite ein."
+msgstr "Blöcke davor stehen über der Liste, danach unter ihr. Wie die Liste aussieht, stellen Sie oben bei dieser Seite ein."
+
+#: templates/tenant/site_home.html
+msgid "Block über der Liste einfügen"
+msgstr "Block über der Liste einfügen"

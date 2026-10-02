@@ -71,6 +71,7 @@ STU-18d (d3): страница на каркасе `listing.html` (см. combos.
 {% endif %}
 {% endblock %}
 
+{% block listing_before %}{% page_blocks "wishlist" part="before" %}{% endblock %}
 {% block listing_after %}
 <a href="{% url 'storefront-products' %}" class="text-sm text-indigo-600 hover:underline">{% trans "Zum Sortiment" %} →</a>
   {% page_blocks "wishlist" %}

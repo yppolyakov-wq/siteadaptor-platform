@@ -271,7 +271,7 @@
                  сами настройки — в `.home-block-settings` ниже (CSS прячет их в списке).{% endcomment %}
               <div class="home-block-head flex items-center gap-2">
                 <span class="drag-handle cursor-grab select-none text-gray-400 px-1" aria-hidden="true" data-expert="1" title="{% trans 'Drag to reorder' %}">⠿</span>
-                <input type="number" name="order_{{ s.key }}" value="{{ s.order }}" min="1" max="20"
+                <input type="number" name="order_{{ s.key }}" value="{{ s.order }}" min="1"
                        class="order-input w-14 rounded-lg border border-gray-300 px-2 py-1.5 text-sm" aria-label="{% trans 'Order' %}" data-expert="1">
                 {# SE-1c: дружелюбное перемещение ↑▼ (работает и в обычном режиме, value-based) #}
                 <span class="blk-move flex flex-col leading-none -my-1">
@@ -3465,8 +3465,12 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         tmp.innerHTML = j.row_html.trim();
         var newRow = tmp.firstElementChild;
         if (!newRow) return Promise.reject("norow");
-        var ref = fields.add_after ? hostBox.querySelector('.cb-row[data-cb-id="' + fields.add_after + '"]') : null;
-        if (ref) ref.parentNode.insertBefore(newRow, ref.nextSibling);
+        // LB-2: «＋» над основным списком (add_after="pbmain") — строка встаёт перед
+        // «Hauptliste», а не в конец.
+        var mainRow = fields.add_after === "pbmain" ? hostBox.querySelector(".cb-row[data-pb-main-row]") : null;
+        var ref = fields.add_after && !mainRow ? hostBox.querySelector('.cb-row[data-cb-id="' + fields.add_after + '"]') : null;
+        if (mainRow) mainRow.parentNode.insertBefore(newRow, mainRow);
+        else if (ref) ref.parentNode.insertBefore(newRow, ref.nextSibling);
         else hostBox.appendChild(newRow);
         // UC6-7c (ревью-фикс): переписать order_cb, СОХРАНЯЯ несохранённый порядок
         // перетаскивания. movePageBlock меняет ТОЛЬКО значения order_cb (DOM не двигает),
@@ -3483,7 +3487,10 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         others.sort(function (a, b) { return cbOrd(a) - cbOrd(b); });
         var ids = others.map(function (rw) { return rw.getAttribute("data-cb-id"); });
         var at = fields.add_after ? ids.indexOf(fields.add_after) : -1;
-        if (at >= 0) ids.splice(at + 1, 0, j.id);
+        if (mainRow) {
+          var atMain = ids.indexOf(mainRow.getAttribute("data-cb-id"));
+          ids.splice(atMain < 0 ? 0 : atMain, 0, j.id);
+        } else if (at >= 0) ids.splice(at + 1, 0, j.id);
         else ids.push(j.id);
         ids.forEach(function (id, i) {
           var inp = form.querySelector('[name="order_cb_' + id + '"]');
@@ -3583,6 +3590,14 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   // moveEdSection: у хоста ОТДЕЛЬНОЕ пространство order_cb (нет фикс-секций), поэтому
   // переписываем order_cb строк этого хоста 1..N по новому порядку. collect группирует
   // pb-строки по хосту и сортирует по order_cb → черновик/Save отражают перестановку.
+  // LB-2: строка «Hauptliste» того хоста, которому принадлежит блок (на странице
+  // категории блоков два хоста — у каждого свой основной список и своя позиция).
+  function mainMarkerFor(blockId) {
+    var row = form.querySelector('.cb-row[data-cb-id="' + blockId + '"][data-pb-page]');
+    var host = row && row.getAttribute("data-pb-page");
+    var marker = host && form.querySelector('.cb-row[data-pb-main-row][data-pb-page="' + host + '"]');
+    return marker ? { id: marker.getAttribute("data-cb-id"), host: host } : null;
+  }
   function movePageBlock(dKey, tKey, before, host) {
     if (!dKey || dKey === tKey || !host) return;
     var rows = Array.prototype.slice.call(
@@ -4774,6 +4789,55 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
           draggedKey = null;
         });
       });
+      // LB-2: основной список листинга. Блок, брошенный на его верхнюю половину,
+      // встаёт над списком, на нижнюю — под ним (value-based movePageBlock относительно
+      // строки «Hauptliste»; сверяющий рендер черновика поставит блок на место).
+      // «＋» над списком вставляет новый блок сразу над ним (add_after="pbmain").
+      var mainList = curPbHost ? doc.querySelector("[data-pb-main]") : null;
+      if (mainList && sfOnce(mainList, "pbMain")) {
+        var mBar = doc.createElement("div");
+        mBar.setAttribute("style", "position:relative;height:0;");
+        mBar.setAttribute("data-sf-ins", "1");
+        if (!editOn) mBar.style.display = "none";
+        var mBtn = doc.createElement("button");
+        mBtn.type = "button";
+        mBtn.textContent = "+";
+        mBtn.title = "{% trans "Block über der Liste einfügen" %}";
+        mBtn.setAttribute("style",
+          "position:absolute;left:50%;top:-15px;transform:translateX(-50%);width:30px;" +
+          "height:30px;border-radius:9999px;border:2px solid #4f46e5;background:#fff;" +
+          "color:#4f46e5;font-size:18px;line-height:1;cursor:pointer;z-index:50;opacity:.35;" +
+          "box-shadow:0 1px 5px rgba(0,0,0,.18);transition:opacity .15s;");
+        mBtn.addEventListener("mouseenter", function () { mBtn.style.opacity = "1"; });
+        mBtn.addEventListener("mouseleave", function () { mBtn.style.opacity = ".35"; });
+        mBtn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          var fr = frame.getBoundingClientRect();
+          var r = mBtn.getBoundingClientRect();
+          showInserter("pbmain", fr.left + r.left - 60, fr.top + r.bottom + 4);
+        });
+        mBar.appendChild(mBtn);
+        mainList.parentNode.insertBefore(mBar, mainList);
+        mainList.addEventListener("dragover", function (e) {
+          if (!draggedKey || !mainMarkerFor(draggedKey)) return;
+          e.preventDefault();
+          var b = mainList.getBoundingClientRect();
+          showDropLine(b, e.clientY < b.top + b.height / 2);
+        });
+        mainList.addEventListener("dragleave", function (e) {
+          if (e.relatedTarget && mainList.contains(e.relatedTarget)) return;
+          hideDropLine();
+        });
+        mainList.addEventListener("drop", function (e) {
+          var marker = draggedKey && mainMarkerFor(draggedKey);
+          if (!marker) return;
+          e.preventDefault();
+          hideDropLine();
+          var b = mainList.getBoundingClientRect();
+          movePageBlock(draggedKey, marker.id, e.clientY < b.top + b.height / 2, marker.host);
+          draggedKey = null;
+        });
+      }
       // UC2-2 слайс 2: drag тематических секций ДЕТАЛИ СОБЫТИЯ — переставляет
       // скрытые ed_order_* per-page инспектора (драфт публикует через Save;
       // превью перерисовывается через schedule → payload.event_detail.order).

@@ -611,6 +611,37 @@ def _cblock_row_lists(request) -> dict:
     }
 
 
+# LB-2: значение `add_after`/`insert_after` инсертера «＋» над основным списком.
+_ABOVE_MAIN = "pbmain"
+
+
+def _main_list_row(host: str, order: int) -> dict:
+    """LB-2: строка «Hauptliste» панели — у маркера нет данных; id уникален по хосту
+    (имена полей формы глобальны), хост несёт `pb_page_<id>`."""
+    from apps.tenants import siteconfig
+
+    return {
+        "id": "main-" + host.replace(":", "-"),
+        "type": siteconfig.MAIN_LIST_KEY,
+        "order": order,
+    }
+
+
+def _insert_page_block(rows: list, host: str, block: dict, after: str) -> list:
+    """Вставка C-блока на страницу. `after == "pbmain"` (инсертер над основным
+    списком) — сразу ПЕРЕД маркером; неявный маркер для этого материализуется."""
+    from apps.tenants import siteconfig
+
+    if after == _ABOVE_MAIN and siteconfig.has_main_list(host):
+        rows = siteconfig.main_list_sequence(host, rows)
+        at = next(i for i, b in enumerate(rows) if siteconfig.is_main_marker(b))
+        rows.insert(at, block)
+        return rows
+    rows = list(rows)
+    _insert_after_section(rows, block, after)
+    return rows
+
+
 def _insert_after_section(sections: list, block: dict, after: str) -> None:
     """SE-4c: вставить block сразу ПОСЛЕ секции с key/id == after (инсертер «+» на
     канвасе). Пусто/не найдено → в конец. Общий путь для add_block и use_block_template."""
@@ -1423,7 +1454,8 @@ def _add_block_fetch_response(request, new_id, host):
     if not new_id or not host:
         return JsonResponse({"ok": False})
     cfg = siteconfig.normalize(request.tenant.site_config)
-    container = (cfg.get("page_blocks") or {}).get(host, [])
+    # LB-2: нумерация как у формы — с маркером основного списка (неявный — первым).
+    container = siteconfig.main_list_sequence(host, (cfg.get("page_blocks") or {}).get(host, []))
     row, order = None, 1
     for i, s in enumerate(container, start=1):
         if s.get("id") == new_id:
@@ -1718,14 +1750,19 @@ def home_builder_view(request):
                 # UC6-7b: инсертер на НЕ-главной шлёт page_key (хост из data-pb-host
                 # канвы) → блок кладём в page_blocks[хост]; add_after="pbhost:<key>"
                 # (якорь пустой страницы) не матчится по id → append в конец.
+                # LB-2 §11.7: вставка в середину сдвигала переводы соседей — выравниваем.
                 if host:
                     pb = dict(cfg.get("page_blocks") or {})
-                    rows = list(pb.get(host) or [])
-                    _insert_after_section(rows, new_block, request.POST.get("add_after"))
-                    pb[host] = rows
+                    pb[host] = _insert_page_block(
+                        pb.get(host) or [], host, new_block, request.POST.get("add_after")
+                    )
+                    siteconfig.realign_block_overlays(cfg, new_page_blocks=pb)
                     cfg["page_blocks"] = pb
                 else:
-                    _insert_after_section(cfg["sections"], new_block, request.POST.get("add_after"))
+                    rows = list(cfg["sections"])
+                    _insert_after_section(rows, new_block, request.POST.get("add_after"))
+                    siteconfig.realign_block_overlays(cfg, new_sections=rows)
+                    cfg["sections"] = rows
                 request.tenant.site_config = siteconfig.normalize(cfg)
                 request.tenant.save(update_fields=["site_config", "updated_at"])
                 if not is_fetch:
@@ -1774,14 +1811,19 @@ def home_builder_view(request):
                 page_key = request.POST.get("page_key", "")
                 if siteconfig.is_page_block_host(page_key):
                     pb = dict(cfg.get("page_blocks") or {})
-                    rows = list(pb.get(page_key) or [])
-                    _insert_after_section(rows, new_block, request.POST.get("insert_after"))
-                    pb[page_key] = rows
+                    pb[page_key] = _insert_page_block(
+                        pb.get(page_key) or [],
+                        page_key,
+                        new_block,
+                        request.POST.get("insert_after"),
+                    )
+                    siteconfig.realign_block_overlays(cfg, new_page_blocks=pb)  # LB-2 §11.7
                     cfg["page_blocks"] = pb
                 else:
-                    _insert_after_section(
-                        cfg["sections"], new_block, request.POST.get("insert_after")
-                    )
+                    rows = list(cfg["sections"])
+                    _insert_after_section(rows, new_block, request.POST.get("insert_after"))
+                    siteconfig.realign_block_overlays(cfg, new_sections=rows)  # LB-2 §11.7
+                    cfg["sections"] = rows
                 messages.success(request, _("Template inserted."))
             elif verb == "delete_block_template" and ident in tpls:
                 tpls.pop(ident)
@@ -2041,7 +2083,14 @@ def home_builder_view(request):
                 order = 999
             items.append((order, _cblock_entry_from_post(request.POST, bid, btype)))
         items.sort(key=lambda row: row[0])
-        config["sections"] = [entry for _o, entry in items]
+        new_sections = [entry for _o, entry in items]
+        # LB-2 §11.7: переводы C-блоков едут за своим блоком — оверлей мёржится по
+        # позиции, и перестановка/удаление сдвигали бы их на чужие блоки. В языке
+        # перевода свою локаль выравнивает `split_translation` (ниже), остальные — здесь.
+        siteconfig.realign_block_overlays(
+            config, new_sections=new_sections, skip_locale=save_loc if translating else None
+        )
+        config["sections"] = new_sections
         # UC6-7b: C-блоки СТРАНИЦ (page_blocks) — пересборка целиком из pb_id-строк
         # под presence-guard (POST без формы страниц не должен стереть конфиг).
         # В форме рендерится строка КАЖДОГО непустого хоста (page_cblocks; пустых
@@ -2053,6 +2102,18 @@ def home_builder_view(request):
                 host = request.POST.get(f"pb_page_{bid}", "")
                 btype = request.POST.get(f"cb_type_{bid}", "")
                 if not siteconfig.is_page_block_host(host):
+                    continue
+                # LB-2: строка «Hauptliste» — маркер основного списка на своей позиции
+                # (normalize оставит его, только если над списком есть блоки).
+                if btype == siteconfig.MAIN_LIST_KEY:
+                    if siteconfig.has_main_list(host):
+                        try:
+                            order = int(request.POST.get(f"order_cb_{bid}", "999"))
+                        except (TypeError, ValueError):
+                            order = 999
+                        pb_items.setdefault(host, []).append(
+                            (order, {"key": siteconfig.MAIN_LIST_KEY})
+                        )
                     continue
                 # UC2-3(b): на страницах валидны и ссылочные секции-справочники.
                 if not siteconfig.cblock_type(btype) and btype not in siteconfig.PAGE_REF_BLOCKS:
@@ -2066,10 +2127,14 @@ def home_builder_view(request):
                 pb_items.setdefault(host, []).append(
                     (order, _cblock_entry_from_post(request.POST, bid, btype))
                 )
-            config["page_blocks"] = {
+            new_pages = {
                 host: [entry for _o, entry in sorted(rows, key=lambda r: r[0])]
                 for host, rows in pb_items.items()
             }
+            siteconfig.realign_block_overlays(
+                config, new_page_blocks=new_pages, skip_locale=save_loc if translating else None
+            )
+            config["page_blocks"] = new_pages
         # LB-1b: блоки «Liste» в режиме «Den ganzen Typ» отдают свой вид типу акции —
         # та же функция, что у живого черновика (превью = результат Save). До снимка
         # шаблона страницы и до разборки перевода: оси вида — структура, не текст.
@@ -2552,8 +2617,15 @@ def home_builder_view(request):
         if h not in siteconfig.PAGE_BLOCK_HOSTS and siteconfig.is_page_block_host(h)
     )
     for host in _hosts:
+        stored = (config.get("page_blocks") or {}).get(host) or []
+        if not stored:
+            continue
+        # LB-2: строка «Hauptliste» стоит среди блоков на своей позиции (неявная —
+        # первой): владелец видит и двигает основной список, как любой блок.
         host_rows = [
-            {
+            _main_list_row(host, index)
+            if siteconfig.is_main_marker(s)
+            else {
                 "id": s["id"],
                 "type": s["key"],
                 "enabled": s["enabled"],
@@ -2564,10 +2636,9 @@ def home_builder_view(request):
                 "newline": bool(s.get("newline")),
                 "visual": s.get("visual") or {},
             }
-            for index, s in enumerate((config.get("page_blocks") or {}).get(host) or [], start=1)
+            for index, s in enumerate(siteconfig.main_list_sequence(host, stored), start=1)
         ]
-        if host_rows:
-            page_cblocks.append({"page_key": host, "blocks": host_rows})
+        page_cblocks.append({"page_key": host, "blocks": host_rows})
     for index, s in enumerate(config["sections"], start=1):
         if s["key"] in siteconfig.REPEATABLE_BLOCKS:
             cblocks.append(
@@ -3303,6 +3374,8 @@ def site_preview_draft(request):
                     rows.append(cb)
                     seen.add(cbid)
         if rows:
+            # LB-2 §11.7: превью = результат Save — переводы за своими блоками.
+            siteconfig.realign_block_overlays(cfg, new_sections=rows)
             cfg["sections"] = rows
     if isinstance(data.get("archetypes"), dict):
         arch = dict(cfg.get("archetypes") or {})
@@ -3328,6 +3401,7 @@ def site_preview_draft(request):
     # формы, включая опустевшие после удаления); normalize_page_blocks чистит
     # (whitelist хостов, _clean_cblock, кап) на normalize ниже.
     if isinstance(data.get("page_blocks"), dict):
+        siteconfig.realign_block_overlays(cfg, new_page_blocks=data["page_blocks"])
         cfg["page_blocks"] = data["page_blocks"]
     # SE-2d: глобальный стиль карточек («весь сайт») — в превью (normalize_site_defaults
     # клампит). Применяется через context-процессор на любой странице под ?preview=1.

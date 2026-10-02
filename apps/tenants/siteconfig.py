@@ -902,6 +902,58 @@ def is_page_block_host(host) -> bool:
     return host in PAGE_BLOCK_HOSTS or bool(_CATEGORY_HOST_RE.match(host))
 
 
+# LB-2 (план lb-list-blocks §11, решение владельца Р-1а): страницы с ОСНОВНЫМ списком
+# (фильтры, поиск, страницы). Их блоки стоят над или под ним: маркер `{"key": "main"}`
+# в page_blocks[хост] делит блоки на «до списка» и «после». Маркер первым = вид, как
+# раньше (все блоки под списком), поэтому в этом положении он не хранится.
+MAIN_LIST_HOSTS = (
+    "catalog",
+    "promos",
+    "services",
+    "stay_rooms",
+    "events",
+    "tours",
+    "combos",
+    "lookbook",
+    "wishlist",
+    "blog",
+    "reviews",
+)
+MAIN_LIST_KEY = "main"
+
+
+def has_main_list(host) -> bool:
+    """Есть ли у страницы хоста основной список (листинги + страницы категорий)."""
+    if not isinstance(host, str):
+        return False
+    return host in MAIN_LIST_HOSTS or bool(_CATEGORY_HOST_RE.match(host))
+
+
+def is_main_marker(item) -> bool:
+    return isinstance(item, dict) and item.get("key") == MAIN_LIST_KEY
+
+
+def split_at_main(blocks) -> tuple[list, list]:
+    """(над основным списком, под ним). Без маркера — всё под списком, как раньше."""
+    blocks = list(blocks or [])
+    for i, item in enumerate(blocks):
+        if is_main_marker(item):
+            return blocks[:i], blocks[i + 1 :]
+    return [], blocks
+
+
+def main_list_sequence(host, blocks) -> list:
+    """Блоки хоста с маркером на своём месте — неявный маркер встаёт первым.
+
+    По этой последовательности нумеруют строки панели и вставка без перезагрузки:
+    «Position» основного списка всегда видна владельцу, даже пока маркер не хранится.
+    """
+    blocks = list(blocks or [])
+    if not has_main_list(host) or any(is_main_marker(b) for b in blocks):
+        return blocks
+    return [{"key": MAIN_LIST_KEY}, *blocks]
+
+
 def category_host(slug) -> str:
     """Хост блоков страницы категории (пустой слаг → «», рендер тихо пропустит)."""
     slug = _s(slug)
@@ -927,7 +979,17 @@ def normalize_page_blocks(raw) -> dict:
         if not isinstance(items, list):
             continue
         blocks = []
+        # LB-2: маркер основного списка — только на страницах с таким списком, один,
+        # без данных и вне капа блоков. Позиция = сколько блоков стоит над списком.
+        main_at = None
+        can_main = has_main_list(key)
         for item in items:
+            if is_main_marker(item):
+                if can_main and main_at is None:
+                    main_at = len(blocks)
+                continue
+            if len(blocks) >= _MAX_CBLOCKS:
+                continue  # кап, но маркер дальше по списку ещё ищем
             # UC2-3(b): на страницах, кроме обычных C-блоков, допускаются
             # ссылочные секции-справочники (PAGE_REF_BLOCKS); в home-sections
             # они по-прежнему невалидны.
@@ -935,9 +997,10 @@ def normalize_page_blocks(raw) -> dict:
                 cblock_type(item.get("key")) or item.get("key") in PAGE_REF_BLOCKS
             ):
                 blocks.append(_clean_cblock(item))
-            if len(blocks) >= _MAX_CBLOCKS:
-                break
         if blocks:
+            # маркер первым = «все блоки под списком» = вид, как раньше: не храним
+            if main_at:
+                blocks.insert(main_at, {"key": MAIN_LIST_KEY})
             out[key] = blocks
     return out
 
@@ -3155,6 +3218,59 @@ def realign_list_overlays(config: dict, new_lists: dict, key_fields: dict | None
                 for it in new_items
             ]
     return config
+
+
+def realign_block_overlays(
+    config: dict, new_sections=None, new_page_blocks=None, skip_locale=None
+) -> None:
+    """LB-2 §11.7: переводы C-блоков едут за своим БЛОКОМ, а не за позицией.
+
+    Оверлей `i18n[<локаль>]["sections"]` / `[…]["page_blocks"][<хост>]` мёржится
+    позиционно (`_deep_overlay`), поэтому перестановка, удаление или вставка блока в
+    середину сдвигали переводы на чужие блоки. Зовётся ДО замены списков: `config`
+    ещё со СТАРЫМИ (нормализованными) списками, `new_*` — новые в сыром виде; их
+    нормализуем здесь же, чтобы позиции совпали с тем, что сохранится. Сопоставление —
+    по личности элемента (`_item_identity`: id C-блока, key фикс-секции и маркера
+    основного списка). `skip_locale` — язык, который выравнивает `split_translation`
+    (Save в языке перевода); его не трогаем. Мутирует `config["i18n"]` на месте.
+    """
+    overlay = config.get("i18n") if isinstance(config, dict) else None
+    if not isinstance(overlay, dict) or not overlay:
+        return
+
+    def remap(old_items, new_items, old_tr):
+        index_of: dict = {}
+        for i, item in enumerate(old_items if isinstance(old_items, list) else []):
+            index_of.setdefault(_item_identity(item, "title"), i)
+        moved = []
+        for item in new_items:
+            idx = index_of.get(_item_identity(item, "title"))
+            moved.append(old_tr[idx] if idx is not None and idx < len(old_tr) else {})
+        while moved and not moved[-1]:
+            moved.pop()  # хвост без переводов не храним — как и раньше
+        return moved
+
+    sections = normalize_sections(new_sections) if new_sections is not None else None
+    pages = normalize_page_blocks(new_page_blocks) if new_page_blocks is not None else None
+    old_pages = config.get("page_blocks") if isinstance(config.get("page_blocks"), dict) else {}
+    for loc, node in overlay.items():
+        if loc == skip_locale or not isinstance(node, dict):
+            continue
+        if sections is not None and isinstance(node.get("sections"), list):
+            node["sections"] = remap(config.get("sections"), sections, node["sections"])
+            if not node["sections"]:
+                node.pop("sections")
+        if pages is not None and isinstance(node.get("page_blocks"), dict):
+            kept = {}
+            for host, rows in node["page_blocks"].items():
+                if isinstance(rows, list):
+                    rows = remap(old_pages.get(host), pages.get(host) or [], rows)
+                if rows:
+                    kept[host] = rows
+            if kept:
+                node["page_blocks"] = kept
+            else:
+                node.pop("page_blocks")
 
 
 def localize(config: dict, locale: str | None) -> dict:

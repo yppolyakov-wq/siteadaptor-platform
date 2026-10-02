@@ -27,4 +27,5 @@
 
 {% block listing_empty %}{% if not combos %}<p class="text-gray-500">{% trans "No combos available right now." %}</p>{% endif %}{% endblock %}
 
+{% block listing_before %}{% page_blocks "combos" part="before" %}{% endblock %}
 {% block listing_after %}{% page_blocks "combos" %}{% endblock %}

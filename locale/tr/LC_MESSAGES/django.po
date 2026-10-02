@@ -22789,3 +22789,15 @@ msgstr "şu anda boş"
 #: apps/core/list_blocks.py
 msgid "nicht verfügbar"
 msgstr "kullanılamıyor"
+
+#: templates/tenant/_cb_row.html
+msgid "Hauptliste"
+msgstr "Ana liste"
+
+#: templates/tenant/_cb_row.html
+msgid "Blöcke davor stehen über der Liste, danach unter ihr. Wie die Liste aussieht, stellen Sie oben bei dieser Seite ein."
+msgstr "Öncesindeki bloklar listenin üstünde, sonrasındakiler altında görünür. Listenin görünümünü yukarıda bu sayfa için ayarlarsınız."
+
+#: templates/tenant/site_home.html
+msgid "Block über der Liste einfügen"
+msgstr "Listenin üstüne blok ekle"

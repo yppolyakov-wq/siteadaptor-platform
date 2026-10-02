@@ -4,6 +4,23 @@
 Вынесена из site_home.html 1:1; имена полей глобально уникальны по b.id, поэтому
 collect()/save работают без переименований. data-cb-id нужен и pb-строкам —
 клик по блоку на канве ищет строку именно по нему (openBlockPopup).{% endcomment %}
+{% if b.type == "main" %}
+{% comment %}LB-2 (план lb-list-blocks §11): «Hauptliste» — основной список страницы
+среди её блоков. Только позиция: не скрывается и не удаляется (решение Р-1а). Блоки
+выше неё стоят над списком, ниже — под ним; вид самого списка — настройки страницы
+выше в панели (шаблон, раскладка, форма карточки).{% endcomment %}
+<div class="cb-row border border-dashed border-indigo-300 bg-indigo-50 rounded-xl p-4 space-y-1" data-cb-id="{{ b.id }}" data-pb-page="{{ pb_page }}" data-pb-main-row>
+  <input type="hidden" name="pb_id" value="{{ b.id }}">
+  <input type="hidden" name="pb_page_{{ b.id }}" value="{{ pb_page }}">
+  <input type="hidden" name="cb_type_{{ b.id }}" value="main">
+  <div class="flex items-center justify-between gap-3 text-sm">
+    <span class="font-medium">★ {% trans "Hauptliste" %}</span>
+    <label class="flex items-center gap-1">{% trans "Position" %}
+      <input type="number" name="order_cb_{{ b.id }}" value="{{ b.order }}" min="1" class="w-16 rounded border border-gray-300 px-2 py-1"></label>
+  </div>
+  <p class="text-[11px] text-gray-500">{% trans "Blöcke davor stehen über der Liste, danach unter ihr. Wie die Liste aussieht, stellen Sie oben bei dieser Seite ein." %}</p>
+</div>
+{% else %}
 <div class="cb-row border border-gray-200 rounded-xl p-4 space-y-2" data-cb-id="{{ b.id }}"{% if pb_page %} data-pb-page="{{ pb_page }}"{% endif %}>
   {% if pb_page %}
     <input type="hidden" name="pb_id" value="{{ b.id }}">
@@ -16,7 +33,7 @@ collect()/save работают без переименований. data-cb-id 
     <span class="font-medium">{{ b.type|cblock_label }}</span>
     <span class="flex items-center gap-3">
       <label class="flex items-center gap-1">{% trans "Position" %}
-        <input type="number" name="order_cb_{{ b.id }}" value="{{ b.order }}" min="1" max="40" class="w-16 rounded border border-gray-300 px-2 py-1"></label>
+        <input type="number" name="order_cb_{{ b.id }}" value="{{ b.order }}" min="1" class="w-16 rounded border border-gray-300 px-2 py-1"></label>
       <label class="flex items-center gap-1"><input type="checkbox" name="enabled_cb_{{ b.id }}" {% if b.enabled %}checked{% endif %} class="rounded border-gray-300">{% trans "Visible" %}</label>
       <label class="flex items-center gap-1 text-red-600"><input type="checkbox" name="delete_cb_{{ b.id }}" class="rounded border-gray-300">{% trans "Remove" %}</label>
     </span>
@@ -358,3 +375,4 @@ collect()/save работают без переименований. data-cb-id 
             class="text-xs border border-gray-300 rounded px-2 py-1 hover:border-indigo-400 hover:text-indigo-700">💾 {% trans "Save as template" %}</button>
   </div>
 </div>
+{% endif %}

@@ -41,6 +41,10 @@ STU-18d: каркас сам рисует ХРОМ композиции (шап�
 <div class="{% block listing_width %}{% endblock %}" data-listing-root{% if page_composition %} data-sf-page="{{ page_composition }}"{% endif %}{% block listing_root_attrs %}{% endblock %}>
 {% block listing_header %}{% endblock %}
 {% if comp_hero %}{% include "storefront/composition/_hero.html" %}{% endif %}
+{% comment %}LB-2: C-блоки над основным списком (до маркера «Hauptliste») — после шапки
+страницы, ДО указателя/фильтров/строки инструментов: фильтры остаются вплотную к
+сетке, которой управляют. Наследник кладёт сюда `page_blocks "<хост>" part="before"`.{% endcomment %}
+{% block listing_before %}{% endblock %}
 {% comment %}«Navigator»: боковая колонка = указатель под-сущностей + фасеты САМОЙ
 страницы. Фасеты приходят блоком шаблона, поэтому обёртку открываем и закрываем
 вокруг него; до lg `[data-cat-side]` — display:contents, то есть мобильный вид
@@ -89,9 +93,13 @@ STU-18d: каркас сам рисует ХРОМ композиции (шап�
 {% comment %}Автосабмит сорта — делегированно в _grid_view_script.html (KAT-5:
 инлайн-биндинг умирал бы после fetch-подмены data-listing-root).{% endcomment %}
 {% endblock %}
+{% comment %}LB-2: основной список страницы — цель перетаскивания блока на канве
+(бросить на верхнюю половину = поставить блок над списком).{% endcomment %}
+<div data-pb-main>
 {% block listing_grid %}{% endblock %}
 {% block listing_pagination %}{% endblock %}
 {% block listing_empty %}{% endblock %}
+</div>
 {% block listing_after %}{% endblock %}
 </div>
 {% endblock %}

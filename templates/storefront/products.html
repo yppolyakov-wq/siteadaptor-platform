@@ -300,6 +300,7 @@ MEN-22 остаётся механикой главной. Мобильный «
 {% endif %}
 {% endblock %}
 
+{% block listing_before %}{% page_blocks "catalog" part="before" %}{% if category_block_host %}{% page_blocks category_block_host part="before" %}{% endif %}{% endblock %}
 {% block listing_after %}
 {% comment %}A4: тизер комбо/меню-сетов ПОД сеткой товаров (карточками, не только ссылкой) —
 Kombo/Tagesgericht на виду. Только на 1-й странице без выбранной категории.{% endcomment %}
