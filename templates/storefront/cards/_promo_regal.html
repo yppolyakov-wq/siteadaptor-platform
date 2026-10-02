@@ -4,8 +4,8 @@
 <div class="sf-card group relative flex items-stretch bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition" data-card-form="regal"{% if p.discount_style == 'mystery' %} data-mystery-root="{{ p.pk }}"{% endif %}>
   {% include "storefront/_wish_heart.html" with kind="promotion" pos="absolute top-2 left-2" %}
   <a href="{% url 'storefront-promotion' p.pk %}" class="flex items-stretch flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
-    <div class="w-24 sm:w-28 shrink-0">
-      {% include "storefront/cards/_promo_photo.html" with ratio="h-full min-h-[6rem]" %}
+    <div class="w-24 sm:w-28 min-h-[6rem] shrink-0 flex flex-col justify-center">
+      {% include "storefront/cards/_promo_photo.html" with ratio="h-full min-h-[6rem]" side=True %}
     </div>
     <div class="flex-1 min-w-0 px-3 py-2.5 bg-amber-50 dark:bg-gray-800" data-price-plate>
       <div class="flex items-start gap-x-2 [&_span]:whitespace-nowrap">

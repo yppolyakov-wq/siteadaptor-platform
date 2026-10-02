@@ -1,6 +1,7 @@
 {% load i18n %}{% comment %}DL-19: фото акции для новых форм — та же семантика, что в прежних
-ветках (главное фото, mystery-блюр, кнопка правки на канве). Параметры: p, ratio.{% endcomment %}
-<div class="relative {{ ratio|default:'aspect-square' }} bg-gray-100 overflow-hidden" data-sf-media-box>
+ветках (главное фото, mystery-блюр, кнопка правки на канве). Параметры: p, ratio, side —
+боковое фото горизонтальной формы (DL-24, см. `_photo.html`).{% endcomment %}
+<div class="relative {{ ratio|default:'aspect-square' }} bg-gray-100 overflow-hidden" data-sf-media-box{% if side %}="side"{% endif %}>
   <button type="button" data-photo-edit data-edit-model="promotion" data-edit-pk="{{ p.pk }}"
      class="sf-photo-edit hidden absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center text-sm hover:text-indigo-600"
      title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</button>

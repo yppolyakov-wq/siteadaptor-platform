@@ -1,7 +1,9 @@
 {% load i18n %}{% comment %}DL-19: фото товара для новых форм — та же семантика, что в
 прежних ветках (primary_image, ленивая загрузка, плейсхолдер-иконка, листание
-`data-card-imgs` при включённой опции). Параметры: p, ratio (классы бокса).{% endcomment %}
-<div class="relative {{ ratio|default:'aspect-square' }} bg-gray-100 overflow-hidden" data-sf-media-box{% if storefront_card_slider and p.images|length > 1 %} data-card-imgs="{% for im in p.images %}{{ im.url }}{% if not forloop.last %}|{% endif %}{% endfor %}"{% endif %}>
+`data-card-imgs` при включённой опции). Параметры: p, ratio (классы бокса), side —
+боковое фото горизонтальной формы: высоту задаёт карточка (DL-24, форма фото витрины
+делает его миниатюрой по ширине колонки, а не раздувает за её пределы).{% endcomment %}
+<div class="relative {{ ratio|default:'aspect-square' }} bg-gray-100 overflow-hidden" data-sf-media-box{% if side %}="side"{% endif %}{% if storefront_card_slider and p.images|length > 1 %} data-card-imgs="{% for im in p.images %}{{ im.url }}{% if not forloop.last %}|{% endif %}{% endfor %}"{% endif %}>
   {% with img=p.primary_image %}
     {% if img %}
       <img src="{{ img.url }}" alt="{{ p }}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-[1.02] transition">

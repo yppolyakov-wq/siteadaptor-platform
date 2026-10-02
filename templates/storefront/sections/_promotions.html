@@ -1,12 +1,15 @@
 {% load i18n siteui %}{# Секция акций (Track C2); DL-3: стили spotlight/rows (deal-looks-wave-plan-2026-09-01), "" = прежний грид байт-в-байт. #}
 {% url 'storefront-aktionen' as more_url %}
 <section id="aktionen" data-reveal class="mb-10">
-<div class="flex items-center justify-between mb-6 gap-3">
+{% comment %}DL-24: шапка переносится (flex-wrap), правая группа держится справа
+(ml-auto) — на ru «Все акции →» + переключатель вида не помещались в 358 px и
+сдвигали страницу на 4 px вбок (стенд 390 px, все сборки).{% endcomment %}
+<div class="flex flex-wrap items-center justify-between mb-6 gap-3">
   {% section_title site 'promotions' as st %}
   <h2 class="text-2xl md:text-3xl font-bold" data-edit="section_titles.promotions">{% if st %}{{ st }}{% else %}{% trans "Current offers" %}{% endif %}</h2>
   {% comment %}Фидбэк владельца 2026-08-01: тот же переключатель — на всех сетках
   витрины; локальная реализация заменена общим партиалом.{% endcomment %}
-  <span class="flex items-center gap-3">
+  <span class="ml-auto flex items-center gap-3">
     {% comment %}DL-13 C4: секция показывает первые N (лимит Studio, дефолт 9) —
     ссылка «Alle Aktionen» ведёт на полную страницу (ключ show_all, как у products).{% endcomment %}
     {% section_show_all site 'promotions' as sa %}{% if sa %}<a href="{% url 'storefront-aktionen' %}" class="text-sm font-medium text-indigo-600 hover:underline whitespace-nowrap" data-promo-viewall>{% trans "Alle Aktionen" %} →</a>{% endif %}
