@@ -2531,9 +2531,12 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       var ordEl = form.querySelector("input[name='order_cb_" + cbId + "']");
       cb._ord = ordEl ? parseInt(ordEl.value, 10) || 999 : 999;
       // STU-12e: список полей данных C-блока для черновика; «height» — отступ (12e).
+      // LB-1: + поля блока «Liste» (источник, фильтр, сортировка, вид).
       var CB_DATA_FIELDS = ["title", "body", "url", "label", "caption", "side",
        "promo_pk", "align", "badge_pos", "button_label",
-       "size", "color", "rounded", "style_hint", "rows", "height", "type", "limit"];
+       "size", "color", "rounded", "style_hint", "rows", "height", "type", "limit",
+       "source", "intro", "endet", "rabatt", "category", "only", "sort",
+       "out", "cols", "speed", "card"];
       CB_DATA_FIELDS.forEach(function (f) {  // UC6-2/4/6f + GK-4
         var el = form.querySelector("[name='cb_" + cbId + "_" + f + "']");
         if (el && el.value !== "") cb.data[f] = el.value;
@@ -3124,7 +3127,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   function groupSummary(grp) {
     var out = [];
     grp.querySelectorAll("select, input, textarea").forEach(function (c) {
-      if (out.length >= 3 || c.type === "hidden") return;
+      // LB-1: поля скрытого источника блока «Liste» в сводку не идут — их не видно.
+      if (out.length >= 3 || c.type === "hidden" || c.closest("[hidden]")) return;
       var v = "";
       if (c.type === "checkbox") { if (c.checked) v = (c.closest("label") || c).textContent.trim(); }
       else if (c.tagName === "SELECT") { v = c.selectedIndex >= 0 ? c.options[c.selectedIndex].text : ""; }
@@ -3138,6 +3142,32 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     document.addEventListener("change", function (e) {
       var g = e.target && e.target.closest && e.target.closest(".bld-grp");
       if (g) syncGroupSummaries(g.parentNode || g);
+    });
+    // LB-1: строка блока «Liste» — поля и пункты чужого источника скрыты (W0: они
+    // остаются в форме, normalize хранит только поля выбранного источника); «Tempo»
+    // виден только у ленты. Делегирование на document — строка, вставленная без
+    // перезагрузки, работает так же (грабля Ф1).
+    document.addEventListener("change", function (e) {
+      var t = e.target;
+      var row = t && t.closest && t.closest("[data-lb-row]");
+      if (!row || !(t.matches("[data-lb-source]") || t.matches("[data-lb-out]"))) return;
+      var srcSel = row.querySelector("[data-lb-source]");
+      var src = srcSel ? srcSel.value : "promotions";
+      row.querySelectorAll("[data-lb-src]").forEach(function (box) {
+        box.hidden = box.getAttribute("data-lb-src") !== src;
+      });
+      row.querySelectorAll("option[data-lb-opt]").forEach(function (opt) {
+        var ok = (" " + opt.getAttribute("data-lb-opt") + " ").indexOf(" " + src + " ") >= 0;
+        opt.hidden = !ok;
+        if (!ok && opt.selected) opt.parentNode.value = "";
+      });
+      var outSel = row.querySelector("[data-lb-out]");
+      var speed = row.querySelector("[data-lb-speed]");
+      if (outSel && speed) {
+        var mode = outSel.value || outSel.getAttribute("data-inherit-mode") || "grid";
+        speed.hidden = mode !== "slider";
+      }
+      syncGroupSummaries(row);  // сводка групп — уже по новому набору видимых полей
     });
   }
   function syncGroupSummaries(row) {

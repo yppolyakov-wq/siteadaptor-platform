@@ -159,17 +159,134 @@ REPEATABLE_BLOCKS = (
     "button",
     "spacer",
     "promo",
-    # PT-6 (решение владельца Р-2): «акции ОДНОГО типа» отдельным блоком, поэтому
-    # на главной их может быть несколько — «Anti-Food-Waste» лентой и
-    # «Wochenangebote» сеткой рядом. Фикс-секция `promotions` одна по построению
-    # (дедуп по ключу), а C-блок повторяемый: порядок, drag, «+» и настройки
-    # достаются даром. Соседний `promo` показывает ОДНУ акцию — та же семья,
-    # другая арность.
-    "promo_list",
+    # LB-1 (решения владельца 2026-10-02, план docs/lb-list-blocks-plan-2026-10-02.md):
+    # блок «Liste» — ЧТО выводим (источник × фильтр × сортировка × лимит) и КАК
+    # (сетка/лента, колонки, ряды, форма карточки) на любой странице. Вырос из
+    # PT-6 «акции ОДНОГО типа»: тот стал частным случаем (источник = акции,
+    # фильтр = тип) и читается через LEGACY_CBLOCK_ALIASES. Фикс-секция
+    # `promotions` одна по построению (дедуп по ключу), а C-блок повторяемый —
+    # «Anti-Food-Waste» лентой и «Neu im Sortiment» сеткой рядом. Соседний `promo`
+    # показывает ОДНУ акцию — та же семья, другая арность.
+    "list",
     "stats",
     "newsletter",
 )
+# LB-1: легаси-ключи C-блоков → канонический тип. Псевдоним принимается на ВСЕХ
+# входах конфига (главная, страницы, сохранённые шаблоны блоков) и приёмниками
+# Save/вставки — вкладка Студии, открытая до деплоя, не уронит блок; в
+# нормализованном конфиге остаётся только канонический ключ.
+LEGACY_CBLOCK_ALIASES = {"promo_list": "list"}
 _MAX_CBLOCKS = 30
+
+
+def cblock_type(key) -> str:
+    """Канонический тип C-блока (легаси-псевдоним → новый ключ); "" — не C-блок."""
+    if not isinstance(key, str):
+        return ""
+    key = LEGACY_CBLOCK_ALIASES.get(key, key)
+    return key if key in REPEATABLE_BLOCKS else ""
+
+
+# LB-1: источники блока «Liste». `card` — вид сущности в реестре форм карточки
+# (`core.card_forms`), `facets` — kind провайдера фасетов: сортировки и фильтры
+# блок берёт У ПРОВАЙДЕРА, а не заводит свои (правило STU-9 «не обещать того,
+# чего выдача не умеет»).
+LIST_SOURCES = {
+    "promotions": {"card": card_forms.PROMO, "facets": "promotion", "label": _("Aktionen")},
+    "products": {"card": card_forms.PRODUCT, "facets": "product", "label": _("Produkte")},
+}
+LIST_SOURCE_DEFAULT = "promotions"  # легаси-блок PT-6 источника не знал
+LIST_PROMO_ENDS = ("heute", "woche")  # = чипы «Endet heute / diese Woche» /aktionen/
+LIST_PRODUCT_ONLY = ("featured", "sale", "available")
+# Сортировки сверх провайдера: «empfohlene zuerst» — порядок секции товаров главной.
+LIST_EXTRA_SORTS = {"products": ("featured",)}
+LIST_OUTPUTS = ("grid", "slider")
+LIST_LIMIT_DEFAULT = 12  # как у блока PT-6
+LIST_LIMIT_MAX = 24
+_LIST_SLUG_RE = re.compile(r"^[-\w]{1,80}$")
+
+
+@cache
+def list_sort_keys(source: str) -> frozenset:
+    """Допустимые сортировки источника — ключи его провайдера фасетов (+ свои)."""
+    from apps.core.facets import provider_for
+
+    spec = LIST_SOURCES.get(source)
+    if spec is None:
+        return frozenset()
+    keys = set(provider_for(spec["facets"]).sort_keys())
+    return frozenset(keys | set(LIST_EXTRA_SORTS.get(source, ())))
+
+
+def _int_in(raw, low: int, high: int) -> int:
+    """Целое в границах [low, high], иначе 0 (мусор и «вне диапазона» не пишутся)."""
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return 0
+    return value if low <= value <= high else 0
+
+
+def _clean_list_block(d: dict) -> dict:
+    """LB-1: данные блока «Liste» — только поля СВОЕГО источника, presence-minimal.
+
+    Пустое значение оси вида значит «как у всех» (тип → страница источника → сайт),
+    поэтому не пишется: иначе блок «запомнил» бы чужой дефолт и перестал следовать
+    за настройкой типа.
+    """
+    from apps.promotions.facets import DISCOUNT_PRESETS
+
+    source = d.get("source") if d.get("source") in LIST_SOURCES else LIST_SOURCE_DEFAULT
+    out = {"source": source}
+    if source == "promotions":
+        # Ключ типа — то же плоское значение, что у фасета `?gruppe=` (своя рубрика
+        # или встроенный `sys:*`). Существование НЕ проверяем запросом в БД
+        # (purge-safe): мусорный тип даёт пустую выдачу, и блок исчезает.
+        kind = _s(d.get("type"))[:_PROMO_GROUP_KEY_MAX]
+        if kind:
+            out["type"] = kind
+        if d.get("endet") in LIST_PROMO_ENDS:
+            out["endet"] = d["endet"]
+        rabatt = _int_in(d.get("rabatt"), 1, 100)
+        if rabatt in DISCOUNT_PRESETS:
+            out["rabatt"] = rabatt
+    else:
+        category = _s(d.get("category"))
+        if category and _LIST_SLUG_RE.match(category):
+            out["category"] = category
+        if d.get("only") in LIST_PRODUCT_ONLY:
+            out["only"] = d["only"]
+    sort = d.get("sort")
+    if isinstance(sort, str) and sort in list_sort_keys(source):
+        out["sort"] = sort
+    # «Höchstens 50» значит «как можно больше» — клампим к потолку, а не выбрасываем.
+    limit = _clamp_int(d.get("limit"), 1, LIST_LIMIT_MAX)
+    if limit:
+        out["limit"] = limit
+    title = _s(d.get("title"))[:120]
+    if title:
+        out["title"] = title
+    intro = _s(d.get("intro"))[:300]
+    if intro:
+        out["intro"] = intro
+    if d.get("out") in LIST_OUTPUTS:
+        out["out"] = d["out"]
+    cols = _int_in(d.get("cols"), 1, 6)
+    if cols:
+        out["cols"] = cols
+    rows = _int_in(d.get("rows"), _MIN_ROWS, _MAX_ROWS)
+    if rows:
+        out["rows"] = rows
+    # пауза автопрокрутки ленты; нет ключа = не крутить (решение DL-16.1)
+    speed = _int_in(d.get("speed"), _MIN_SPEED, _MAX_SPEED)
+    if speed:
+        out["speed"] = speed
+    card = d.get("card")
+    if isinstance(card, str) and card in card_forms.keys_for(LIST_SOURCES[source]["card"]):
+        out["card"] = card
+    return out
+
+
 _MAX_STAT_ITEMS = 4  # GK-4: пар «число+подпись» в полосе цифр (больше — шум)
 
 
@@ -230,19 +347,8 @@ def _clean_cblock_data(key: str, raw) -> dict:
             # UC6-6f: подсказка стиля скидки (каскад: акция главнее, см. PROMO_STYLE_HINTS).
             **({"style_hint": d["style_hint"]} if d.get("style_hint") in PROMO_STYLE_HINTS else {}),
         }
-    if key == "promo_list":
-        # Ключ типа — то же плоское значение, что у фасета `?gruppe=` (своя рубрика
-        # или встроенный `sys:*`). Существование НЕ проверяем запросом в БД
-        # (purge-safe, как у promo_pk): пустой тип рендерится fail-safe.
-        try:
-            limit = int(d.get("limit") or 0)
-        except (TypeError, ValueError):
-            limit = 0
-        return {
-            "type": _s(d.get("type"))[:_PROMO_GROUP_KEY_MAX],
-            "title": _s(d.get("title"))[:120],
-            **({"limit": max(1, min(24, limit))} if limit else {}),
-        }
+    if key == "list":
+        return _clean_list_block(d)
     if key == "spacer":
         # ST-7a: высота отступа — только НЕ-дефолтные валидные значения
         # ("" = py-6 как раньше → ключа нет, старые конфиги байт-в-байт).
@@ -344,6 +450,9 @@ CBLOCK_DEMO_DATA = {
         "side": "left",
     },
     "button": {"label": "Mehr erfahren", "url": "/ueber-uns/"},
+    # LB-1: вставка блока «Liste» сразу показывает живые акции (не пустой якорь);
+    # пресеты ниже переключают на товары/фильтры. Канон normalize (замок round-trip).
+    "list": {"source": "promotions", "title": "Aktuelle Angebote"},
     # GK-8: демо-оверрайды блока подписки (round-trip замок builder).
     "newsletter": {
         "title": "Bleiben Sie auf dem Laufenden",
@@ -366,6 +475,45 @@ CBLOCK_DEMO_DATA = {
 # данные CBLOCK_DEMO_DATA; каждый пресет — оверрайды поверх демо: data-ключи
 # и/или block-props (width/pos/newline/visual). Лейблы DE — как демо-контент.
 CBLOCK_VARIANTS = {
+    # LB-1: «что выводим» в один клик — примеры владельца «акции» и «новые
+    # предложения»; вид каждого пресета наследуется (тип/страница), кроме ленты.
+    "list": [
+        {
+            "key": "ending",
+            "label": _("Endet heute — Leiste"),
+            "data": {"endet": "heute", "title": "Nur noch heute", "out": "slider"},
+        },
+        {
+            "key": "deals",
+            "label": _("Stärkste Rabatte"),
+            "data": {"sort": "rabatt", "title": "Die stärksten Rabatte"},
+        },
+        {
+            "key": "new",
+            "label": _("Neu im Sortiment"),
+            "data": {"source": "products", "sort": "newest", "title": "Neu im Sortiment"},
+        },
+        {
+            "key": "featured",
+            "label": _("Empfehlungen"),
+            "data": {"source": "products", "only": "featured", "title": "Unsere Empfehlungen"},
+        },
+        {
+            "key": "sale",
+            "label": _("Reduzierte Produkte"),
+            "data": {"source": "products", "only": "sale", "title": "Jetzt reduziert"},
+        },
+        {
+            "key": "new_strip",
+            "label": _("Neuheiten als Leiste"),
+            "data": {
+                "source": "products",
+                "sort": "newest",
+                "title": "Frisch eingetroffen",
+                "out": "slider",
+            },
+        },
+    ],
     "text": [
         {"key": "intro", "label": _("Intro zentriert"), "data": {"align": "center", "size": "lg"}},
         {
@@ -626,8 +774,11 @@ def cblock_insert_preset(btype: str, variant: str) -> dict:
 
 
 def _clean_cblock(item: dict) -> dict:
-    """C-блок → {key, id, enabled, data}. id сохраняется (или генерится)."""
-    key = item["key"]
+    """C-блок → {key, id, enabled, data}. id сохраняется (или генерится).
+
+    LB-1: легаси-ключ переписывается в канонический тип (см. LEGACY_CBLOCK_ALIASES);
+    ссылочные секции страниц (PAGE_REF_BLOCKS) проходят как есть."""
+    key = cblock_type(item["key"]) or item["key"]
     bid = _s(item.get("id")) or uuid.uuid4().hex[:12]
     w = item.get("width")
     f = item.get("font")
@@ -718,7 +869,7 @@ CBLOCK_LABELS = {
     "button": _("Button"),
     "spacer": _("Spacer"),
     "promo": _("Promotion"),
-    "promo_list": _("Promotions of one type"),
+    "list": _("Liste"),
     "stats": _("Numbers"),
     "newsletter": _("Newsletter"),
     "faq_ref": _("FAQ anzeigen"),
@@ -781,7 +932,7 @@ def normalize_page_blocks(raw) -> dict:
             # ссылочные секции-справочники (PAGE_REF_BLOCKS); в home-sections
             # они по-прежнему невалидны.
             if isinstance(item, dict) and (
-                item.get("key") in REPEATABLE_BLOCKS or item.get("key") in PAGE_REF_BLOCKS
+                cblock_type(item.get("key")) or item.get("key") in PAGE_REF_BLOCKS
             ):
                 blocks.append(_clean_cblock(item))
             if len(blocks) >= _MAX_CBLOCKS:
@@ -844,9 +995,9 @@ def normalize_block_templates(raw) -> dict:
     raw = raw if isinstance(raw, dict) else {}
     out = {}
     for tid, tpl in list(raw.items())[:_MAX_BLOCK_TEMPLATES]:
-        if not isinstance(tpl, dict) or tpl.get("key") not in REPEATABLE_BLOCKS:
+        key = cblock_type(tpl.get("key")) if isinstance(tpl, dict) else ""
+        if not key:
             continue
-        key = tpl["key"]
         out[_s(tid) or uuid.uuid4().hex[:12]] = {
             "key": key,
             "label": _s(tpl.get("label"))[:120],
@@ -2753,6 +2904,16 @@ NON_TRANSLATABLE_FIELDS = frozenset(
         "date",
         "enabled",
         "visible",
+        # LB-1: кодовые поля блока «Liste» — смена источника/фильтра/вида в
+        # редакторе на ru иначе уехала бы в русский оверлей, а немецкая витрина
+        # продолжила бы показывать прежнюю выборку.
+        "source",
+        "endet",
+        "category",
+        "only",
+        "sort",
+        "out",
+        "card",
     }
 )
 
@@ -3202,7 +3363,7 @@ def normalize_sections(raw_sections) -> list:
         if key in _KNOWN and key not in seen:
             sections.append(_section_entry(key, bool(item.get("enabled")), item))
             seen.add(key)
-        elif key in REPEATABLE_BLOCKS and cblocks < _MAX_CBLOCKS:
+        elif cblock_type(key) and cblocks < _MAX_CBLOCKS:
             # D.2: C-блоки множественные — порядок сохраняем, по key не дедупим.
             sections.append(_clean_cblock(item))
             cblocks += 1

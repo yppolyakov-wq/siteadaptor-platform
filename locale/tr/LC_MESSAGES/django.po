@@ -22656,3 +22656,112 @@ msgid "%(n)s Aktion"
 msgid_plural "%(n)s Aktionen"
 msgstr[0] "%(n)s kampanya"
 msgstr[1] "%(n)s kampanya"
+
+#: apps/core/views.py
+msgid "Aktionen oder Produkte — Auswahl und Ansicht wählen Sie selbst"
+msgstr "Kampanyalar veya ürünler — seçimi ve görünümü siz belirlersiniz"
+
+#: templates/tenant/_cb_row.html
+msgid "Aktionstyp"
+msgstr "Kampanya türü"
+
+#: templates/storefront/sections/_block_list.html
+#, python-format
+msgid "Alle %(n)s"
+msgstr "Tümü (%(n)s)"
+
+#: templates/tenant/_cb_row.html
+msgid "Alle Produkte"
+msgstr "Tüm ürünler"
+
+#: templates/tenant/_cb_row.html
+msgid "Einleitung"
+msgstr "Giriş metni"
+
+#: apps/core/list_blocks.py
+msgid "Empfehlungen"
+msgstr "Önerilenler"
+
+#: apps/core/list_blocks.py
+msgid "Empfohlene zuerst"
+msgstr "Önce önerilenler"
+
+#: apps/tenants/siteconfig.py
+msgid "Endet heute — Leiste"
+msgstr "Bugün bitiyor — şerit"
+
+#: templates/storefront/sections/_block_list.html
+msgid "Hier erscheint die Liste — sobald etwas zu den Einstellungen des Blocks passt."
+msgstr "Blok ayarlarına uyan bir şey olduğunda liste burada görünür."
+
+#: templates/tenant/_cb_row.html
+msgid "Mindestrabatt"
+msgstr "En az indirim"
+
+#: apps/core/list_blocks.py
+msgid "Neu im Sortiment"
+msgstr "Yeni ürünler"
+
+#: apps/tenants/siteconfig.py
+msgid "Neuheiten als Leiste"
+msgstr "Şerit halinde yeni ürünler"
+
+#: templates/tenant/_cb_row.html
+msgid "Nur Empfehlungen"
+msgstr "Yalnızca önerilenler"
+
+#: templates/tenant/_cb_row.html
+msgid "Nur reduzierte"
+msgstr "Yalnızca indirimli"
+
+#: templates/tenant/_cb_row.html
+msgid "Nur verfügbare"
+msgstr "Yalnızca stokta olanlar"
+
+#: templates/tenant/_cb_row.html
+msgid "Raster: so viele Reihen zeigen. Slider: Reihen pro Folie."
+msgstr "Izgara: bu kadar satır göster. Kaydırıcı: slayt başına satır."
+
+#: apps/core/list_blocks.py
+msgid "Reduziert"
+msgstr "İndirimde"
+
+#: apps/tenants/siteconfig.py
+msgid "Reduzierte Produkte"
+msgstr "İndirimli ürünler"
+
+#: apps/core/list_blocks.py
+msgid "Sofort verfügbar"
+msgstr "Hemen teslim"
+
+#: apps/tenants/siteconfig.py
+msgid "Stärkste Rabatte"
+msgstr "En büyük indirimler"
+
+#: templates/tenant/_cb_row.html
+msgid "Was wird gezeigt"
+msgstr "Ne gösterilsin"
+
+#: templates/tenant/_cb_row.html
+msgid "Zeitraum"
+msgstr "Süre"
+
+#: templates/tenant/_cb_row.html
+msgid "beliebig"
+msgstr "herhangi"
+
+#: templates/tenant/_cb_row.html
+msgid "leer = passend zur Auswahl"
+msgstr "boş = seçime göre"
+
+#: apps/core/list_blocks.py
+msgid "wie der Typ"
+msgstr "türle aynı"
+
+#: apps/core/list_blocks.py
+msgid "wie die Website"
+msgstr "sitedeki gibi"
+
+#: templates/tenant/_cb_row.html
+msgid "Überschrift"
+msgstr "Başlık"

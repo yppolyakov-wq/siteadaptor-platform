@@ -294,27 +294,33 @@ def test_home_can_show_several_promo_sections_one_per_type():
 
 
 def test_promo_section_block_is_failsafe_without_a_type():
-    """Мусор/пустой тип — блок исчезает, страница жива (как у блока одной акции)."""
+    """Мусорный тип — блок исчезает, страница жива (как у блока одной акции).
+
+    LB-1 (осознанная переписка): блок PT-6 стал блоком «Liste», и ПУСТОЙ тип теперь
+    значит «все акции» (у нового блока «нет фильтра» = «всё»), а не «ничего». Метки
+    типа у такого блока нет — он не про один тип."""
     t = _tenant("pt12", sections=[_promo_list_block(""), _promo_list_block("sys:erfunden")])
     _promo("Irgendwas", promo_type="discount", discount_percent=10, group="Wochenangebote")
     body = _home(t)
-    # сама акция на главной есть — её показывает штатная секция «Акции»; проверяем
-    # именно БЛОК: с пустым и с выдуманным типом он не рисуется вовсе.
+    # выдуманный тип не рисуется вовсе; пустой — секцией всех акций, без метки типа
     assert "data-sf-promo-type" not in body
+    assert body.count('data-sf-list="promotions"') == 1
 
 
 def test_promo_section_block_survives_normalize():
-    """Блок повторяемый: два блока одного типа не схлопываются в один."""
+    """Блок повторяемый: два блока одного типа не схлопываются в один.
+
+    LB-1: легаси-ключ `promo_list` читается блоком «Liste» (источник — акции)."""
     cfg = siteconfig.normalize(
         {"sections": [_promo_list_block("A", title="Erste"), _promo_list_block("A", limit=3)]}
     )
-    blocks = [s for s in cfg["sections"] if s.get("key") == "promo_list"]
+    blocks = [s for s in cfg["sections"] if s.get("key") == "list"]
     assert len(blocks) == 2
-    assert blocks[0]["data"]["title"] == "Erste"
+    assert blocks[0]["data"] == {"source": "promotions", "type": "A", "title": "Erste"}
     assert blocks[1]["data"]["limit"] == 3
-    # лимит вне диапазона и мусор отбрасываются
+    # мусор вместо лимита отбрасывается
     bad = siteconfig.normalize({"sections": [_promo_list_block("A", limit="viel")]})
-    assert "limit" not in [s for s in bad["sections"] if s.get("key") == "promo_list"][0]["data"]
+    assert "limit" not in [s for s in bad["sections"] if s.get("key") == "list"][0]["data"]
 
 
 def test_promo_section_block_works_on_any_page_not_only_home():
@@ -358,7 +364,8 @@ def test_block_type_is_allowed_on_every_page_host():
     """Инвариант: блок не должен выпадать на части страниц (класс «молча выпал»)."""
     for host in siteconfig.PAGE_BLOCK_HOSTS:
         cfg = siteconfig.normalize({"page_blocks": {host: [_promo_list_block("A")]}})
-        assert cfg["page_blocks"][host][0]["key"] == "promo_list", host
+        # LB-1: легаси-ключ доезжает до каждой страницы уже блоком «Liste»
+        assert cfg["page_blocks"][host][0]["key"] == "list", host
 
 
 # ──────────── PT-7: охват Студии на странице типа ────────────

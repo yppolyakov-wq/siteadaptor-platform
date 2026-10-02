@@ -54,7 +54,8 @@ def tenant_with_every_block():
 def test_every_editor_field_is_read_by_save(tenant_with_every_block):
     fields = _editor_fields(tenant_with_every_block)
     # Санити: строка редактора выведена для каждого повторяемого блока с полями.
-    assert "promo_list" in fields and "spacer" in fields, sorted(fields)
+    # LB-1: «Aktionen eines Typs» (PT-6) стал блоком «Liste» — санити на новом ключе.
+    assert "list" in fields and "spacer" in fields, sorted(fields)
     lost = []
     for btype, names in fields.items():
         post = QueryDict(mutable=True)
@@ -77,7 +78,12 @@ def test_every_editor_field_reaches_the_live_draft(tenant_with_every_block):
 
 
 def test_promo_list_type_survives_builder_save():
-    """Сквозной сценарий владельца: выбрал тип, задал заголовок и лимит, нажал Save."""
+    """Сквозной сценарий владельца: выбрал тип, задал заголовок и лимит, нажал Save.
+
+    LB-1 (осознанная переписка): вкладка Студии, открытая ДО деплоя, шлёт легаси-тип
+    `promo_list` — Save его принимает и сохраняет блоком «Liste» с источником «акции»
+    (данные PT-6 подходят без преобразования), ничего не теряя.
+    """
     tenant = TenantFactory(
         slug="cbrt2",
         name="CbRt2",
@@ -100,4 +106,58 @@ def test_promo_list_type_survives_builder_save():
         },
     )
     block = next(s for s in cfg["sections"] if s.get("id") == "pl1")
-    assert block["data"] == {"type": "sys:mystery", "title": "Nur heute", "limit": 6}
+    assert block["key"] == "list"
+    assert block["data"] == {
+        "source": "promotions",
+        "type": "sys:mystery",
+        "title": "Nur heute",
+        "limit": 6,
+    }
+
+
+def test_list_block_survives_builder_save():
+    """LB-1: блок «Liste» товаров — фильтр, сортировка и вид переживают Save."""
+    tenant = TenantFactory(
+        slug="cbrt3",
+        name="CbRt3",
+        site_config={
+            "sections": [{"key": "list", "id": "lb1", "enabled": True, "order": 1, "data": {}}]
+        },
+    )
+    post = {
+        "cb_id": "lb1",
+        "cb_type_lb1": "list",
+        "enabled_cb_lb1": "on",
+        "order_cb_lb1": "1",
+        "cb_lb1_source": "products",
+        "cb_lb1_category": "kaese",
+        "cb_lb1_only": "sale",
+        "cb_lb1_sort": "price_asc",
+        "cb_lb1_limit": "8",
+        "cb_lb1_title": "Käse im Angebot",
+        "cb_lb1_intro": "Diese Woche günstiger.",
+        "cb_lb1_out": "slider",
+        "cb_lb1_cols": "4",
+        "cb_lb1_rows": "2",
+        "cb_lb1_speed": "5",
+        "cb_lb1_card": "regal",
+        # поля скрытого источника тоже приходят (W0) — normalize их не хранит
+        "cb_lb1_type": "Räumung",
+        "cb_lb1_endet": "heute",
+    }
+    cfg = _post_builder(tenant, post)
+    block = next(s for s in cfg["sections"] if s.get("id") == "lb1")
+    assert block["data"] == {
+        "source": "products",
+        "category": "kaese",
+        "only": "sale",
+        "sort": "price_asc",
+        "limit": 8,
+        "title": "Käse im Angebot",
+        "intro": "Diese Woche günstiger.",
+        "out": "slider",
+        "cols": 4,
+        "rows": 2,
+        "speed": 5,
+        "card": "regal",
+    }

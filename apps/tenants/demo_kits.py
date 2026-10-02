@@ -3730,19 +3730,40 @@ AKTIONSMARKT = DemoKit(
     # DL-4: акции на главной — витриной «Deal der Woche» (spotlight: featured-
     # карточка + полоса «Endet bald»; макет-референс канваса Sparfuchs).
     section_styles={"promotions": "spotlight"},
-    # PT-8: на главной — ДВЕ дополнительные секции акций по типу (решение Р-2):
-    # спасённые продукты лентой купонов и Mystery-деалы. Вид каждой берётся из
-    # настроек её типа (promo_groups выше), а не задаётся в блоке заново.
+    # PT-8 → LB-1: на главной — блоки «Liste»: ДВА по типу акции (решение Р-2) —
+    # спасённые продукты лентой купонов и Mystery-деалы; вид каждого берётся из
+    # настроек его типа (promo_groups выше), а не задаётся в блоке заново. И один по
+    # товарам — «Neu im Sortiment» лентой (пример владельца «новые предложения»):
+    # у него вид СВОЙ, поэтому видно, что блок умеет и наследовать, и задавать.
     home_blocks=[
         {
             "after": "promotions",
-            "key": "promo_list",
-            "data": {"type": "Anti-Food-Waste", "title": "Reste retten", "limit": 6},
+            "key": "list",
+            "data": {
+                "source": "promotions",
+                "type": "Anti-Food-Waste",
+                "title": "Reste retten",
+                "limit": 6,
+            },
         },
         {
             "after": "promotions",
-            "key": "promo_list",
-            "data": {"type": "sys:mystery", "limit": 3},
+            "key": "list",
+            # свой вид поверх типа: деал-строка во всю ширину, а не плитка ленты
+            # (лента у страницы акций — легаси-ось `promo_layout`, её тип наследует)
+            "data": {"source": "promotions", "type": "sys:mystery", "limit": 3, "out": "grid"},
+        },
+        {
+            "after": "products",
+            "key": "list",
+            "data": {
+                "source": "products",
+                "sort": "newest",
+                "title": "Neu im Sortiment",
+                "out": "slider",
+                "cols": 4,
+                "limit": 10,
+            },
         },
     ],
     subdomain="aktionsmarkt",

@@ -22744,3 +22744,112 @@ msgstr[0] "%(n)s акція"
 msgstr[1] "%(n)s акції"
 msgstr[2] "%(n)s акцій"
 msgstr[3] "%(n)s акції"
+
+#: apps/core/views.py
+msgid "Aktionen oder Produkte — Auswahl und Ansicht wählen Sie selbst"
+msgstr "Акції або товари — добірку і вигляд обираєте ви"
+
+#: templates/tenant/_cb_row.html
+msgid "Aktionstyp"
+msgstr "Тип акції"
+
+#: templates/storefront/sections/_block_list.html
+#, python-format
+msgid "Alle %(n)s"
+msgstr "Усі %(n)s"
+
+#: templates/tenant/_cb_row.html
+msgid "Alle Produkte"
+msgstr "Усі товари"
+
+#: templates/tenant/_cb_row.html
+msgid "Einleitung"
+msgstr "Вступ"
+
+#: apps/core/list_blocks.py
+msgid "Empfehlungen"
+msgstr "Рекомендуємо"
+
+#: apps/core/list_blocks.py
+msgid "Empfohlene zuerst"
+msgstr "Спершу рекомендовані"
+
+#: apps/tenants/siteconfig.py
+msgid "Endet heute — Leiste"
+msgstr "Закінчуються сьогодні — стрічка"
+
+#: templates/storefront/sections/_block_list.html
+msgid "Hier erscheint die Liste — sobald etwas zu den Einstellungen des Blocks passt."
+msgstr "Тут з'явиться список — щойно щось підійде під налаштування блоку."
+
+#: templates/tenant/_cb_row.html
+msgid "Mindestrabatt"
+msgstr "Мінімальна знижка"
+
+#: apps/core/list_blocks.py
+msgid "Neu im Sortiment"
+msgstr "Новинки"
+
+#: apps/tenants/siteconfig.py
+msgid "Neuheiten als Leiste"
+msgstr "Новинки стрічкою"
+
+#: templates/tenant/_cb_row.html
+msgid "Nur Empfehlungen"
+msgstr "Лише рекомендовані"
+
+#: templates/tenant/_cb_row.html
+msgid "Nur reduzierte"
+msgstr "Лише зі знижкою"
+
+#: templates/tenant/_cb_row.html
+msgid "Nur verfügbare"
+msgstr "Лише в наявності"
+
+#: templates/tenant/_cb_row.html
+msgid "Raster: so viele Reihen zeigen. Slider: Reihen pro Folie."
+msgstr "Сітка: показати стільки рядів. Слайдер: рядів на слайді."
+
+#: apps/core/list_blocks.py
+msgid "Reduziert"
+msgstr "Зі знижкою"
+
+#: apps/tenants/siteconfig.py
+msgid "Reduzierte Produkte"
+msgstr "Товари зі знижкою"
+
+#: apps/core/list_blocks.py
+msgid "Sofort verfügbar"
+msgstr "В наявності"
+
+#: apps/tenants/siteconfig.py
+msgid "Stärkste Rabatte"
+msgstr "Найбільші знижки"
+
+#: templates/tenant/_cb_row.html
+msgid "Was wird gezeigt"
+msgstr "Що показуємо"
+
+#: templates/tenant/_cb_row.html
+msgid "Zeitraum"
+msgstr "Термін"
+
+#: templates/tenant/_cb_row.html
+msgid "beliebig"
+msgstr "будь-яка"
+
+#: templates/tenant/_cb_row.html
+msgid "leer = passend zur Auswahl"
+msgstr "порожньо = за вибором"
+
+#: apps/core/list_blocks.py
+msgid "wie der Typ"
+msgstr "як у типу"
+
+#: apps/core/list_blocks.py
+msgid "wie die Website"
+msgstr "як на сайті"
+
+#: templates/tenant/_cb_row.html
+msgid "Überschrift"
+msgstr "Заголовок"

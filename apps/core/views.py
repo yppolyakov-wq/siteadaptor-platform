@@ -411,8 +411,33 @@ def setup_view(request):
     return render(request, "tenant/setup.html", context)
 
 
+# LB-1: поля строки редактора блока «Liste» (плоские, как у остальных C-блоков).
+# Поля ОБОИХ источников читаются всегда — normalize хранит только поля выбранного.
+_LIST_BLOCK_FIELDS = (
+    "source",
+    "type",
+    "endet",
+    "rabatt",
+    "category",
+    "only",
+    "sort",
+    "limit",
+    "title",
+    "intro",
+    "out",
+    "cols",
+    "rows",
+    "speed",
+    "card",
+)
+
+
 def _read_cblock_data(post, bid: str, btype: str) -> dict:
     """D.2b: собрать data C-блока из полей формы `cb_<id>_<field>` (normalize чистит)."""
+    from apps.tenants import siteconfig
+
+    # LB-1: легаси-ключ (вкладка Студии, открытая до деплоя) читается как новый тип.
+    btype = siteconfig.cblock_type(btype) or btype
 
     def f(name):
         return post.get(f"cb_{bid}_{name}", "").strip()
@@ -457,10 +482,10 @@ def _read_cblock_data(post, bid: str, btype: str) -> dict:
         # GK-4: textarea «wert | label» построчно — канонизацию в rows-список
         # делает строковая ветка _clean_cblock_data (normalize).
         return {"rows": post.get(f"cb_{bid}_rows", "")}
-    if btype == "promo_list":
-        # PT-6: ветки не было — первый Save билдера стирал выбранный тип, и блок
-        # показывал ВСЕ акции (замок класса test_cblock_field_roundtrip).
-        return {"type": f("type"), "title": f("title"), "limit": f("limit")}
+    if btype == "list":
+        # LB-1 (вырос из PT-6, где ветки не было и первый Save стирал выбранный тип —
+        # замок класса test_cblock_field_roundtrip).
+        return {name: f(name) for name in _LIST_BLOCK_FIELDS}
     return {}
 
 
@@ -468,8 +493,10 @@ def _cblock_entry_from_post(post, bid: str, btype: str) -> dict:
     """UC6-7b: полный entry C-блока из POST-строки формы (data + width/pos/newline/
     visual) — общий для блоков главной (cb_id) и блоков страниц (pb_id); normalize
     валидирует. enabled/order читает вызывающий цикл (маркеры у списков разные)."""
+    from apps.tenants import siteconfig
+
     return {
-        "key": btype,
+        "key": siteconfig.cblock_type(btype) or btype,
         "id": bid,
         "enabled": post.get(f"enabled_cb_{bid}") == "on",
         "data": _read_cblock_data(post, bid, btype),
@@ -534,6 +561,50 @@ def _promo_types_for_blocks(request):
         return [(row["key"], row["label"]) for row in _promo_type_rows(request)]
     except Exception:  # noqa: BLE001
         return []
+
+
+def _list_categories_for_blocks(request):
+    """LB-1: [(слаг, подпись)] категорий для фильтра блока «Liste» — направления и под
+    ними их подкатегории (выдача категории включает прямых детей, KAT-1).
+    Fail-safe: без каталога/при ошибке — пустой список (фильтр не предлагается)."""
+    try:
+        if not request.tenant.is_module_active("catalog"):
+            return []
+        from apps.catalog.models import Category
+
+        cats = list(Category.objects.filter(is_active=True).order_by("sort_order", "slug"))
+    except Exception:  # noqa: BLE001
+        return []
+    children: dict = {}
+    for cat in cats:
+        children.setdefault(cat.parent_id, []).append(cat)
+    out = []
+
+    def walk(parent_id, depth):
+        for cat in children.get(parent_id, []):
+            out.append((cat.slug, "— " * depth + str(cat)))
+            if depth < 3:
+                walk(cat.pk, depth + 1)
+
+    walk(None, 0)
+    return out
+
+
+def _cblock_row_lists(request) -> dict:
+    """Селекторы строки C-блока — ОДИН набор для формы билдера и для строки, вставленной
+    без перезагрузки (`_add_block_fetch_response`). Раньше списки перечислялись в двух
+    местах, и новый селектор легко было забыть во втором — вставленный блок показал бы
+    пустой выбор."""
+    return {
+        # UE1: селектор промо для промо-блока (активные+запланированные).
+        "promos_for_blocks": _promos_for_blocks(request),
+        # PT-6 → LB-1: тип акции у блока «Liste».
+        "promo_types_for_blocks": _promo_types_for_blocks(request),
+        # UC6-6f: стили вывода скидки для селекта промо-блока (fail-safe).
+        "promo_style_options": _promo_style_options(),
+        # LB-1: категории для фильтра товаров блока «Liste».
+        "list_categories_for_blocks": _list_categories_for_blocks(request),
+    }
 
 
 def _insert_after_section(sections: list, block: dict, after: str) -> None:
@@ -1372,10 +1443,7 @@ def _add_block_fetch_response(request, new_id, host):
         {
             "b": b,
             "pb_page": host,
-            "promos_for_blocks": _promos_for_blocks(request),
-            # PT-6: селектор типа у блока «акции одного типа».
-            "promo_types_for_blocks": _promo_types_for_blocks(request),
-            "promo_style_options": _promo_style_options(),
+            **_cblock_row_lists(request),
         },
         request=request,
     )
@@ -1630,6 +1698,7 @@ def home_builder_view(request):
             # UC2-3(b): ссылочные секции-справочники валидны ТОЛЬКО на странице
             # (host); на главной живут настоящие секции — там тип отклоняется.
             _allowed = siteconfig.REPEATABLE_BLOCKS + (siteconfig.PAGE_REF_BLOCKS if host else ())
+            btype = siteconfig.cblock_type(btype) or btype
             if btype in _allowed:
                 cfg = siteconfig.normalize(request.tenant.site_config)
                 new_id = uuid.uuid4().hex[:12]
@@ -1675,8 +1744,8 @@ def home_builder_view(request):
             tpls = dict(cfg.get("block_templates") or {})
             inserted_id = ""  # STU-12e: заполняется только веткой вставки
             if verb == "save_block_template":
-                btype = request.POST.get(f"cb_type_{ident}", "")
-                if btype in siteconfig.REPEATABLE_BLOCKS:
+                btype = siteconfig.cblock_type(request.POST.get(f"cb_type_{ident}", ""))
+                if btype:
                     label = (request.POST.get(f"tpl_label_{ident}") or "").strip()
                     tpls[uuid.uuid4().hex[:12]] = {
                         "key": btype,
@@ -1958,7 +2027,7 @@ def home_builder_view(request):
         # D.2b: C-блоки — читаем посланные строки (id+тип+данные), удалённые пропускаем.
         for bid in request.POST.getlist("cb_id"):
             btype = request.POST.get(f"cb_type_{bid}", "")
-            if btype not in siteconfig.REPEATABLE_BLOCKS:
+            if not siteconfig.cblock_type(btype):
                 continue
             if request.POST.get(f"delete_cb_{bid}") == "on":
                 continue  # удалён владельцем
@@ -1982,10 +2051,7 @@ def home_builder_view(request):
                 if not siteconfig.is_page_block_host(host):
                     continue
                 # UC2-3(b): на страницах валидны и ссылочные секции-справочники.
-                if (
-                    btype not in siteconfig.REPEATABLE_BLOCKS
-                    and btype not in siteconfig.PAGE_REF_BLOCKS
-                ):
+                if not siteconfig.cblock_type(btype) and btype not in siteconfig.PAGE_REF_BLOCKS:
                     continue
                 if request.POST.get(f"delete_cb_{bid}") == "on":
                     continue  # удалён владельцем
@@ -2684,12 +2750,8 @@ def home_builder_view(request):
                 {"idx": i, "ts": h["ts"], "label": h.get("label", "")}
                 for i, h in enumerate(config["history"])
             ],
-            # UE1: селектор промо для промо-блока (активные+запланированные).
-            "promos_for_blocks": _promos_for_blocks(request),
-            # PT-6: селектор типа у блока «акции одного типа».
-            "promo_types_for_blocks": _promo_types_for_blocks(request),
-            # UC6-6f: стили вывода скидки для селекта промо-блока (fail-safe).
-            "promo_style_options": _promo_style_options(),
+            # Селекторы строк C-блоков (промо, тип акции, стиль скидки, категории LB-1).
+            **_cblock_row_lists(request),
             # UC6-5: карточки библиотеки блоков — иконка + подсказка (вставка
             # даёт демо-данные из siteconfig.CBLOCK_DEMO_DATA).
             "block_types": [
@@ -2730,11 +2792,11 @@ def home_builder_view(request):
                     "hint": _("Live promotion"),
                 },  # UE1
                 {
-                    "value": "promo_list",
-                    "label": siteconfig.CBLOCK_LABELS["promo_list"],
-                    "icon": "🏷️",
-                    "hint": _("All promotions of one type"),
-                },  # PT-6
+                    "value": "list",
+                    "label": siteconfig.CBLOCK_LABELS["list"],
+                    "icon": "🗂️",
+                    "hint": _("Aktionen oder Produkte — Auswahl und Ansicht wählen Sie selbst"),
+                },  # LB-1 (вырос из PT-6 «Aktionen eines Typs»)
                 {
                     "value": "stats",
                     "label": siteconfig.CBLOCK_LABELS["stats"],
@@ -3201,7 +3263,7 @@ def site_preview_draft(request):
                     row["font"] = item["font"]
                 rows.append(row)
                 seen.add(key)
-            elif key in siteconfig.REPEATABLE_BLOCKS:
+            elif siteconfig.cblock_type(key):
                 # D.2b: C-блок (text/image/…) — ключ-ТИП повторяется, различаем по id
                 # (не дедупим по ключу!). Без этой ветки cblocks выпадали из черновика
                 # → только что добавленный блок «не появлялся» в live-preview редактора.

@@ -22567,3 +22567,112 @@ msgid "%(n)s Aktion"
 msgid_plural "%(n)s Aktionen"
 msgstr[0] "%(n)s Aktion"
 msgstr[1] "%(n)s Aktionen"
+
+#: apps/core/views.py
+msgid "Aktionen oder Produkte — Auswahl und Ansicht wählen Sie selbst"
+msgstr "Aktionen oder Produkte — Auswahl und Ansicht wählen Sie selbst"
+
+#: templates/tenant/_cb_row.html
+msgid "Aktionstyp"
+msgstr "Aktionstyp"
+
+#: templates/storefront/sections/_block_list.html
+#, python-format
+msgid "Alle %(n)s"
+msgstr "Alle %(n)s"
+
+#: templates/tenant/_cb_row.html
+msgid "Alle Produkte"
+msgstr "Alle Produkte"
+
+#: templates/tenant/_cb_row.html
+msgid "Einleitung"
+msgstr "Einleitung"
+
+#: apps/core/list_blocks.py
+msgid "Empfehlungen"
+msgstr "Empfehlungen"
+
+#: apps/core/list_blocks.py
+msgid "Empfohlene zuerst"
+msgstr "Empfohlene zuerst"
+
+#: apps/tenants/siteconfig.py
+msgid "Endet heute — Leiste"
+msgstr "Endet heute — Leiste"
+
+#: templates/storefront/sections/_block_list.html
+msgid "Hier erscheint die Liste — sobald etwas zu den Einstellungen des Blocks passt."
+msgstr "Hier erscheint die Liste — sobald etwas zu den Einstellungen des Blocks passt."
+
+#: templates/tenant/_cb_row.html
+msgid "Mindestrabatt"
+msgstr "Mindestrabatt"
+
+#: apps/core/list_blocks.py
+msgid "Neu im Sortiment"
+msgstr "Neu im Sortiment"
+
+#: apps/tenants/siteconfig.py
+msgid "Neuheiten als Leiste"
+msgstr "Neuheiten als Leiste"
+
+#: templates/tenant/_cb_row.html
+msgid "Nur Empfehlungen"
+msgstr "Nur Empfehlungen"
+
+#: templates/tenant/_cb_row.html
+msgid "Nur reduzierte"
+msgstr "Nur reduzierte"
+
+#: templates/tenant/_cb_row.html
+msgid "Nur verfügbare"
+msgstr "Nur verfügbare"
+
+#: templates/tenant/_cb_row.html
+msgid "Raster: so viele Reihen zeigen. Slider: Reihen pro Folie."
+msgstr "Raster: so viele Reihen zeigen. Slider: Reihen pro Folie."
+
+#: apps/core/list_blocks.py
+msgid "Reduziert"
+msgstr "Reduziert"
+
+#: apps/tenants/siteconfig.py
+msgid "Reduzierte Produkte"
+msgstr "Reduzierte Produkte"
+
+#: apps/core/list_blocks.py
+msgid "Sofort verfügbar"
+msgstr "Sofort verfügbar"
+
+#: apps/tenants/siteconfig.py
+msgid "Stärkste Rabatte"
+msgstr "Stärkste Rabatte"
+
+#: templates/tenant/_cb_row.html
+msgid "Was wird gezeigt"
+msgstr "Was wird gezeigt"
+
+#: templates/tenant/_cb_row.html
+msgid "Zeitraum"
+msgstr "Zeitraum"
+
+#: templates/tenant/_cb_row.html
+msgid "beliebig"
+msgstr "beliebig"
+
+#: templates/tenant/_cb_row.html
+msgid "leer = passend zur Auswahl"
+msgstr "leer = passend zur Auswahl"
+
+#: apps/core/list_blocks.py
+msgid "wie der Typ"
+msgstr "wie der Typ"
+
+#: apps/core/list_blocks.py
+msgid "wie die Website"
+msgstr "wie die Website"
+
+#: templates/tenant/_cb_row.html
+msgid "Überschrift"
+msgstr "Überschrift"

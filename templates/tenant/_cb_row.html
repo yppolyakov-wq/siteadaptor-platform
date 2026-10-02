@@ -121,20 +121,148 @@ collect()/save работают без переименований. data-cb-id 
       </select>
     {% endif %}
   {% endif %}
-  {% if b.type == "promo_list" %}
-    {% comment %}PT-6: блок показывает ВСЕ акции выбранного типа. Вид (шаблон, сетка
-    или лента, форма карточки) настраивается один раз на экране «Aktionstypen» —
-    здесь его не дублируем, иначе на одну настройку стало бы два места.{% endcomment %}
-    <select name="cb_{{ b.id }}_type" class="w-full rounded border border-gray-300 px-2 py-1 text-sm">
-      <option value="">{% trans "Aktionstyp wählen…" %}</option>
-      {% for key, label in promo_types_for_blocks %}
-        <option value="{{ key }}" {% if b.data.type == key %}selected{% endif %}>{{ label }}</option>
-      {% endfor %}
-    </select>
-    <input type="text" name="cb_{{ b.id }}_title" value="{{ b.data.title }}" maxlength="120" placeholder="{% trans 'Überschrift (leer = Name des Typs)' %}" class="w-full rounded border border-gray-300 px-3 py-2 text-sm">
-    <label class="flex items-center gap-1.5 text-xs text-gray-600">{% trans "Höchstens" %}
-      <input type="number" name="cb_{{ b.id }}_limit" value="{{ b.data.limit }}" min="1" max="24" placeholder="12" class="w-20 rounded border border-gray-300 px-2 py-1 text-sm">
-    </label>
+  {% if b.type == "list" %}
+    {% comment %}LB-1 (план docs/lb-list-blocks-plan-2026-10-02.md §9.4): ЧТО выводим
+    (источник, фильтр, сортировка, «Höchstens») и КАК (сетка/лента, колонки, ряды,
+    форма карточки). Поля ОБОИХ источников в DOM (W0) — переключение источника не теряет
+    набранного, normalize хранит только поля выбранного; чужие скрыты. Пустой пункт вида
+    = «как у всех», и подпись говорит, ОТКУДА придёт значение: без неё «пусто» читалось
+    бы как «ничего», хотя блок показывает вид своего типа или страницы.{% endcomment %}
+    {% list_block_hint b.data as lh %}
+    {% with src=b.data.source|default:"promotions" %}
+    <div data-lb-row>
+      <details class="bld-grp w-full" data-grp="inhalt" open>
+        <summary class="bld-grp-sum">{% trans "Content" %}</summary>
+        <div class="bld-grp-body">
+          <div class="stu-row">
+            <span class="stu-lb">{% trans "Was wird gezeigt" %}</span>
+            <select name="cb_{{ b.id }}_source" data-lb-source class="stu-ctrl">
+              <option value="promotions" {% if src != "products" %}selected{% endif %}>{% trans "Aktionen" %}</option>
+              <option value="products" {% if src == "products" %}selected{% endif %}>{% trans "Produkte" %}</option>
+            </select>
+          </div>
+          <div class="stu-row">
+            <span class="stu-lb">{% trans "Überschrift" %}</span>
+            <input type="text" name="cb_{{ b.id }}_title" value="{{ b.data.title }}" maxlength="120" placeholder="{% trans 'leer = passend zur Auswahl' %}" class="stu-ctrl">
+          </div>
+          <div class="stu-row">
+            <span class="stu-lb">{% trans "Einleitung" %}</span>
+            <textarea name="cb_{{ b.id }}_intro" rows="2" maxlength="300" placeholder="{% trans 'optional' %}" class="w-full rounded border border-gray-300 px-2 py-1 text-sm">{{ b.data.intro }}</textarea>
+          </div>
+          <div data-lb-src="promotions" {% if src == "products" %}hidden{% endif %}>
+            <div class="stu-row">
+              <span class="stu-lb">{% trans "Aktionstyp" %}</span>
+              <select name="cb_{{ b.id }}_type" class="stu-ctrl">
+                <option value="">{% trans "Alle Aktionen" %}</option>
+                {% for key, label in promo_types_for_blocks %}
+                  <option value="{{ key }}" {% if b.data.type == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="stu-row stu-two">
+              <label class="block">
+                <span class="stu-lb">{% trans "Zeitraum" %}</span>
+                <select name="cb_{{ b.id }}_endet" class="stu-ctrl">
+                  <option value="">{% trans "Alle" %}</option>
+                  <option value="heute" {% if b.data.endet == "heute" %}selected{% endif %}>{% trans "Endet heute" %}</option>
+                  <option value="woche" {% if b.data.endet == "woche" %}selected{% endif %}>{% trans "Endet diese Woche" %}</option>
+                </select>
+              </label>
+              <label class="block">
+                <span class="stu-lb">{% trans "Mindestrabatt" %}</span>
+                <select name="cb_{{ b.id }}_rabatt" class="stu-ctrl">
+                  <option value="">{% trans "beliebig" %}</option>
+                  {% for n in lh.discounts %}
+                    <option value="{{ n }}" {% if b.data.rabatt == n %}selected{% endif %}>−{{ n }} %</option>
+                  {% endfor %}
+                </select>
+              </label>
+            </div>
+          </div>
+          <div data-lb-src="products" {% if src != "products" %}hidden{% endif %}>
+            <div class="stu-row">
+              <span class="stu-lb">{% trans "Kategorie" %}</span>
+              <select name="cb_{{ b.id }}_category" class="stu-ctrl">
+                <option value="">{% trans "Alle Kategorien" %}</option>
+                {% for slug, label in list_categories_for_blocks %}
+                  <option value="{{ slug }}" {% if b.data.category == slug %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="stu-row">
+              <span class="stu-lb">{% trans "Auswahl" %}</span>
+              <select name="cb_{{ b.id }}_only" class="stu-ctrl">
+                <option value="">{% trans "Alle Produkte" %}</option>
+                <option value="featured" {% if b.data.only == "featured" %}selected{% endif %}>{% trans "Nur Empfehlungen" %}</option>
+                <option value="sale" {% if b.data.only == "sale" %}selected{% endif %}>{% trans "Nur reduzierte" %}</option>
+                <option value="available" {% if b.data.only == "available" %}selected{% endif %}>{% trans "Nur verfügbare" %}</option>
+              </select>
+            </div>
+          </div>
+          <div class="stu-row stu-two">
+            <label class="block">
+              <span class="stu-lb">{% trans "Sortierung" %}</span>
+              <select name="cb_{{ b.id }}_sort" class="stu-ctrl">
+                {% for key, label, srcs in lh.sorts %}
+                  <option value="{{ key }}" data-lb-opt="{{ srcs }}" {% if src not in srcs %}hidden{% endif %} {% if b.data.sort == key or not key and not b.data.sort %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            <label class="block">
+              <span class="stu-lb">{% trans "Höchstens" %}</span>
+              <input type="number" name="cb_{{ b.id }}_limit" value="{{ b.data.limit|default_if_none:'' }}" min="1" max="24" placeholder="{{ lh.limit }}" class="stu-ctrl stu-num">
+            </label>
+          </div>
+        </div>
+      </details>
+      <details class="bld-grp w-full" data-grp="darstellung" open>
+        <summary class="bld-grp-sum">{% trans "Appearance" %}</summary>
+        <div class="bld-grp-body">
+          <div class="stu-row">
+            <span class="stu-lb">{% trans "Ausgabe" %}</span>
+            <select name="cb_{{ b.id }}_out" data-lb-out data-inherit-mode="{{ lh.mode_key }}" class="stu-ctrl">
+              <option value="">{{ lh.layout_from }}: {{ lh.mode }}</option>
+              <option value="grid" {% if b.data.out == "grid" %}selected{% endif %}>{% trans "Raster" %}</option>
+              <option value="slider" {% if b.data.out == "slider" %}selected{% endif %}>{% trans "Slider" %}</option>
+            </select>
+          </div>
+          <div class="stu-row stu-two">
+            <label class="block">
+              <span class="stu-lb">{% trans "Spalten" %}</span>
+              <select name="cb_{{ b.id }}_cols" class="stu-ctrl">
+                <option value="">{{ lh.layout_from }}: {{ lh.cols }}</option>
+                {% for n in "123456"|make_list %}
+                  <option value="{{ n }}" {% if b.data.cols|stringformat:"s" == n %}selected{% endif %}>{{ n }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            <label class="block">
+              <span class="stu-lb">{% trans "Reihen" %}</span>
+              <select name="cb_{{ b.id }}_rows" class="stu-ctrl" title="{% trans 'Raster: so viele Reihen zeigen. Slider: Reihen pro Folie.' %}">
+                <option value="">{% if lh.rows %}{{ lh.layout_from }}: {{ lh.rows }}{% else %}{% trans "automatisch" %}{% endif %}</option>
+                {% for n in "123456"|make_list %}
+                  <option value="{{ n }}" {% if b.data.rows|stringformat:"s" == n %}selected{% endif %}>{{ n }}</option>
+                {% endfor %}
+              </select>
+            </label>
+          </div>
+          <div class="stu-row" data-lb-speed {% if b.data.out != "slider" and b.data.out or not b.data.out and lh.mode_key != "slider" %}hidden{% endif %}>
+            <span class="stu-lb">{% trans "Tempo (Sek.)" %}</span>
+            <input type="number" name="cb_{{ b.id }}_speed" min="3" max="15" value="{{ b.data.speed|default_if_none:'' }}" placeholder="{% trans 'aus' %}" class="stu-ctrl stu-num" title="{% trans 'Sekunden zwischen den Folien. Leer = nicht automatisch drehen.' %}">
+          </div>
+          <div class="stu-row">
+            <span class="stu-lb">{% trans "Kartenform" %}</span>
+            <select name="cb_{{ b.id }}_card" class="stu-ctrl">
+              <option value="">{{ lh.card_from }}: {{ lh.card }}</option>
+              {% for key, label, srcs in lh.cards %}
+                <option value="{{ key }}" data-lb-opt="{{ srcs }}" {% if src not in srcs %}hidden{% endif %} {% if b.data.card == key %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </details>
+    </div>
+    {% endwith %}
   {% endif %}
   {% if b.type == "newsletter" %}
     {% comment %}GK-8: все поля опциональны — пусто = дефолтные подписи формы.{% endcomment %}

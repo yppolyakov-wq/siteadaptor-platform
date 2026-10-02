@@ -118,6 +118,24 @@ def cblock_label(block_type):
     return siteconfig.CBLOCK_LABELS.get(block_type, block_type)
 
 
+@register.simple_tag(takes_context=True)
+def list_block_hint(context, data):
+    """LB-1: подписи и пункты строки редактора блока «Liste» (`list_blocks.view_hint`).
+
+    Тег, а не переменная вьюхи: строку рендерят и форма билдера, и вставка без
+    перезагрузки (`_add_block_fetch_response`) — так подпись не может разойтись.
+    Конфиг — из контекста билдера (`config`), иначе сохранённый конфиг тенанта.
+    """
+    from apps.core import list_blocks
+    from apps.tenants import siteconfig
+
+    cfg = context.get("config")
+    if not isinstance(cfg, dict) or "sections" not in cfg:
+        tenant = getattr(context.get("request"), "tenant", None)
+        cfg = siteconfig.normalize(getattr(tenant, "site_config", None) or {})
+    return list_blocks.view_hint(cfg, data if isinstance(data, dict) else {})
+
+
 @register.filter
 def stage_badge(stage):
     """SH-11: стадия пайплайна → классы пилюли статуса в строке списка.

@@ -125,11 +125,16 @@
   "Beschreiben Sie hier ein Angebot oder eine Besonderheit — das Foto können Sie jederzeit austauschen.",
   "Bildunterschrift — klicken und ersetzen",
   "Bleiben Sie auf dem Laufenden",
+  "Die stärksten Rabatte",
   "Erzählen Sie hier in zwei bis drei Sätzen, was Ihr Geschäft besonders macht — Ihre Geschichte, Ihre Spezialität, Ihr Team.",
+  "Frisch eingetroffen",
   "Frisch, regional, mit Herz",
   "Gäste bewirtet",
   "Jahre Erfahrung",
+  "Jetzt reduziert",
   "Neuigkeiten und Angebote — kein Spam, jederzeit abbestellbar.",
+  "Nur noch heute",
+  "Unsere Empfehlungen",
   "für Sie da",
   "zufriedene Kunden",
   "— Anna Muster, Gründerin",
@@ -154,7 +159,6 @@
   "12 | Jahre Erfahrung&#10;500+ | zufriedene Kunden&#10;4,9 ★ | Bewertung"
  ],
  "templates/tenant/_section_fields.html": [
-  "Habt ihr Parkplätze? | Ja, direkt vor dem Laden.",
   "Maria Rossi | Küchenchefin",
   "shipping | Versand ab 4,90 €&#10;bio | 100 % Bio | Zutaten von Höfen aus der Region&#10;payment | Sichere Zahlung"
  ],

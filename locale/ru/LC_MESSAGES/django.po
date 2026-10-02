@@ -22760,3 +22760,112 @@ msgstr[0] "%(n)s акция"
 msgstr[1] "%(n)s акции"
 msgstr[2] "%(n)s акций"
 msgstr[3] "%(n)s акции"
+
+#: apps/core/views.py
+msgid "Aktionen oder Produkte — Auswahl und Ansicht wählen Sie selbst"
+msgstr "Акции или товары — подборку и вид выбираете вы"
+
+#: templates/tenant/_cb_row.html
+msgid "Aktionstyp"
+msgstr "Тип акции"
+
+#: templates/storefront/sections/_block_list.html
+#, python-format
+msgid "Alle %(n)s"
+msgstr "Все %(n)s"
+
+#: templates/tenant/_cb_row.html
+msgid "Alle Produkte"
+msgstr "Все товары"
+
+#: templates/tenant/_cb_row.html
+msgid "Einleitung"
+msgstr "Вступление"
+
+#: apps/core/list_blocks.py
+msgid "Empfehlungen"
+msgstr "Рекомендуем"
+
+#: apps/core/list_blocks.py
+msgid "Empfohlene zuerst"
+msgstr "Сначала рекомендуемые"
+
+#: apps/tenants/siteconfig.py
+msgid "Endet heute — Leiste"
+msgstr "Заканчиваются сегодня — лента"
+
+#: templates/storefront/sections/_block_list.html
+msgid "Hier erscheint die Liste — sobald etwas zu den Einstellungen des Blocks passt."
+msgstr "Здесь появится список — как только что-то подойдёт под настройки блока."
+
+#: templates/tenant/_cb_row.html
+msgid "Mindestrabatt"
+msgstr "Минимальная скидка"
+
+#: apps/core/list_blocks.py
+msgid "Neu im Sortiment"
+msgstr "Новинки"
+
+#: apps/tenants/siteconfig.py
+msgid "Neuheiten als Leiste"
+msgstr "Новинки лентой"
+
+#: templates/tenant/_cb_row.html
+msgid "Nur Empfehlungen"
+msgstr "Только рекомендуемые"
+
+#: templates/tenant/_cb_row.html
+msgid "Nur reduzierte"
+msgstr "Только со скидкой"
+
+#: templates/tenant/_cb_row.html
+msgid "Nur verfügbare"
+msgstr "Только в наличии"
+
+#: templates/tenant/_cb_row.html
+msgid "Raster: so viele Reihen zeigen. Slider: Reihen pro Folie."
+msgstr "Сетка: показать столько рядов. Слайдер: рядов на слайде."
+
+#: apps/core/list_blocks.py
+msgid "Reduziert"
+msgstr "Со скидкой"
+
+#: apps/tenants/siteconfig.py
+msgid "Reduzierte Produkte"
+msgstr "Товары со скидкой"
+
+#: apps/core/list_blocks.py
+msgid "Sofort verfügbar"
+msgstr "В наличии"
+
+#: apps/tenants/siteconfig.py
+msgid "Stärkste Rabatte"
+msgstr "Самые большие скидки"
+
+#: templates/tenant/_cb_row.html
+msgid "Was wird gezeigt"
+msgstr "Что показываем"
+
+#: templates/tenant/_cb_row.html
+msgid "Zeitraum"
+msgstr "Срок"
+
+#: templates/tenant/_cb_row.html
+msgid "beliebig"
+msgstr "любая"
+
+#: templates/tenant/_cb_row.html
+msgid "leer = passend zur Auswahl"
+msgstr "пусто = по выбору"
+
+#: apps/core/list_blocks.py
+msgid "wie der Typ"
+msgstr "как у типа"
+
+#: apps/core/list_blocks.py
+msgid "wie die Website"
+msgstr "как на сайте"
+
+#: templates/tenant/_cb_row.html
+msgid "Überschrift"
+msgstr "Заголовок"

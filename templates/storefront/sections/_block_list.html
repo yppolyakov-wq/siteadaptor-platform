@@ -1,0 +1,37 @@
+{% load i18n siteui %}
+{% comment %}LB-1: блок «Liste» (план docs/lb-list-blocks-plan-2026-10-02.md §9).
+
+ЧТО выводим — источник (акции | товары) × фильтр × сортировка × лимит; КАК — сетка или
+лента, колонки, ряды, форма карточки. Пустые оси вида — по наследованию «тип акции →
+вид страницы источника → дефолт секции главной»; своя форма у самого объекта сильнее
+блока (DL-19). Выборка и вид считаются в apps/core/list_blocks.py, здесь — разметка.
+
+«Alle N →» — только когда показаны не все (правило SF-5), и ведёт туда, где виден весь
+список с тем же фильтром (тип → страница типа, решение N-4). Пустая выдача → блока нет;
+в превью редактора — пунктирный якорь, чтобы блок можно было выбрать.
+
+Маркеры прежнего блока «Aktionen eines Typs» (PT-6) сохранены — data-sf-promo-type и
+data-promo-strip: на них стоят замки и стенды.{% endcomment %}
+{% list_block block as lb %}
+{% if lb.items %}
+<section class="my-8" data-sf-list="{{ lb.source }}"{% if lb.type %} data-sf-promo-type="{{ lb.type }}"{% endif %}>
+  <div class="max-w-5xl mx-auto px-4">
+    <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 mb-4">
+      <h2 class="text-xl md:text-2xl font-bold">{{ lb.label }}</h2>
+      {% if lb.more %}<a data-sf-list-all href="{{ lb.url }}" class="text-sm font-medium hover:underline whitespace-nowrap" style="color: var(--accent, #4f46e5);">{% blocktrans with n=lb.total %}Alle {{ n }}{% endblocktrans %} →</a>{% endif %}
+    </div>
+    {% if lb.intro %}<p class="-mt-2 mb-4 text-gray-600 whitespace-pre-line max-w-2xl">{{ lb.intro }}</p>{% endif %}
+    <div data-grid="list"{% if lb.mode == "slider" and lb.source == "promotions" %} data-promo-strip{% endif %} class="{{ lb.grid }}" {% sf_grid_attrs lb.layout count=lb.items|length %}>
+      {% for p in lb.items %}
+        {% if lb.source == "products" %}{% include "storefront/_product_card.html" with storefront_card_style=lb.card %}{% else %}{% include "storefront/_promo_card.html" with in_group=lb.in_group storefront_promo_card=lb.card %}{% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% elif is_preview %}
+<section class="my-8" data-sf-list="{{ lb.source }}">
+  <div class="max-w-5xl mx-auto px-4">
+    <p class="rounded-2xl border border-dashed border-gray-300 p-6 text-sm text-gray-400">{% trans "Hier erscheint die Liste — sobald etwas zu den Einstellungen des Blocks passt." %}</p>
+  </div>
+</section>
+{% endif %}

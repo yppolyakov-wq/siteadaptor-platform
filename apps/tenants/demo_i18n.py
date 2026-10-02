@@ -101,7 +101,8 @@ from .siteconfig import TRANSLATABLE_KEYS as _TRANSLATABLE_CONFIG_KEYS  # noqa: 
 # лежат служебные токены (ключ блока, стиль, выравнивание), и совпадение такого
 # токена со словарной записью молча сломало бы структуру. Поэтому обходим ТОЛЬКО
 # поля данных, которые санитайзер `_clean_cblock_data` объявляет текстовыми.
-_CBLOCK_TEXT_FIELDS = ("title", "body", "caption", "label", "button_label")
+# LB-1: + `intro` — вступление блока «Liste».
+_CBLOCK_TEXT_FIELDS = ("title", "body", "caption", "label", "button_label", "intro")
 # Списки внутри данных блока: ключ → переводимые поля элемента. `value` у stats
 # обычно число («200+»), но бывает и текстом («seit 2012») — берём его тоже:
 # перевод подставляется ТОЛЬКО при точном совпадении со словарной записью,
