@@ -504,12 +504,22 @@ def test_sort_keys_are_the_providers_own():
 def test_editor_options_are_marked_with_their_source():
     """Пункты селекторов помечены источниками. LB-3d (осознанная переписка): формы
     карточки PRODUCT теперь и у услуг/номеров/событий, а строки сортировок сведены по
-    паре (ключ, подпись) — пустой пункт у каждого источника свой."""
+    паре (ключ, подпись) — пустой пункт у каждого источника свой. LB-3d-2 (осознанная
+    переписка): и у туров/наборов (их карточки знают формы с LAY-4/STU-18c); у плиток
+    категорий форм нет."""
     from apps.core import list_blocks
 
     cards = {key: srcs.split() for key, _label, srcs in list_blocks.card_options()}
     assert cards["coupon"] == ["promotions"]
-    assert sorted(cards["overlay"]) == ["events", "products", "services", "stays"]
+    assert sorted(cards["overlay"]) == [
+        "combos",
+        "events",
+        "products",
+        "services",
+        "stays",
+        "tours",
+    ]
+    assert not any("categories" in srcs for srcs in cards.values())
     assert {"products", "promotions"} <= set(cards["regal"])
     by_source: dict[str, set] = {}
     for key, _label, srcs in list_blocks.sort_options():
@@ -540,7 +550,9 @@ def test_builder_row_offers_both_sources_and_shows_where_the_view_comes_from():
     row = body[body.rindex("data-lb-row", 0, i) : body.index("</details>\n    </div>", i)]
     # поля ОБОИХ источников в DOM (W0), чужие скрыты
     assert f'name="cb_{bid}_type"' in row and f'name="cb_{bid}_category"' in row
-    assert 'data-lb-src="products" hidden' in row
+    # LB-3d-2 (осознанная переписка): «Kategorie» — одно поле товаров, наборов и
+    # категорий; у блока акций оно скрыто
+    assert 'data-lb-src="products combos categories" hidden' in row
     assert 'value="kaese"' in row  # категории каталога в фильтре товаров
     # пустой пункт вида знает, что придёт от ТИПА (у типа — лента)
     assert 'data-inherit-mode="slider"' in row

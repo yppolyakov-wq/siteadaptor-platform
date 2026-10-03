@@ -208,16 +208,21 @@ collect()/save работают без переименований. data-cb-id 
               </label>
             </div>
           </div>
-          <div data-lb-src="products" {% if src != "products" %}hidden{% endif %}>
+          {% comment %}LB-3d-2: «Kategorie» — одно поле товаров, наборов и категорий. У
+          категорий пустой пункт свой — «Hauptkategorien»: блок покажет направления, а
+          с выбранной категорией — её подкатегории.{% endcomment %}
+          <div data-lb-src="products combos categories" {% if src != "products" and src != "combos" and src != "categories" %}hidden{% endif %}>
             <div class="stu-row">
               <span class="stu-lb">{% trans "Kategorie" %}</span>
               <select name="cb_{{ b.id }}_category" class="stu-ctrl">
-                <option value="">{% trans "Alle Kategorien" %}</option>
+                <option value="" data-lb-opt="products combos" {% if src == "categories" %}hidden{% elif not b.data.category %}selected{% endif %}>{% trans "Alle Kategorien" %}</option>
+                <option value="" data-lb-opt="categories" {% if src != "categories" %}hidden{% elif not b.data.category %}selected{% endif %}>{% trans "Hauptkategorien" %}</option>
                 {% for slug, label in list_categories_for_blocks %}
                   <option value="{{ slug }}" {% if b.data.category == slug %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
                 {% if lh.orphan_category %}<option value="{{ lh.orphan_category.0 }}" selected>{{ lh.orphan_category.1 }}</option>{% endif %}
               </select>
+              <p class="mt-1 text-[11px] text-gray-400" data-lb-src="categories" {% if src != "categories" %}hidden{% endif %}>{% trans "Zeigt die Unterkategorien der gewählten Kategorie." %}</p>
             </div>
           </div>
           {% comment %}LB-3d: поля фильтра — по СМЫСЛУ, одно на все источники, которые его
@@ -243,6 +248,18 @@ collect()/save работают без переименований. data-cb-id 
               {% if lh.orphan_theme %}<option value="{{ lh.orphan_theme.0 }}" selected>{{ lh.orphan_theme.1 }}</option>{% endif %}
             </select>
           </div>
+          {% comment %}LB-3d-2: страна — БАЗОВОЕ значение (ключ группы /touren/), пункты —
+          страны опубликованных туров; страна блока без туров остаётся выбранной (W0).{% endcomment %}
+          <div class="stu-row" data-lb-src="tours" {% if src != "tours" %}hidden{% endif %}>
+            <span class="stu-lb">{% trans "Land" %}</span>
+            <select name="cb_{{ b.id }}_country" class="stu-ctrl">
+              <option value="">{% trans "Alle Länder" %}</option>
+              {% for key, label in tour_countries_for_blocks %}
+                <option value="{{ key }}" {% if b.data.country == key %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+              {% if lh.orphan_country %}<option value="{{ lh.orphan_country.0 }}" selected>{{ lh.orphan_country.1 }}</option>{% endif %}
+            </select>
+          </div>
           <div class="stu-row" data-lb-src="products services events" {% if src != "products" and src != "services" and src != "events" %}hidden{% endif %}>
             <span class="stu-lb">{% trans "Auswahl" %}</span>
             <select name="cb_{{ b.id }}_only" class="stu-ctrl">
@@ -254,7 +271,11 @@ collect()/save работают без переименований. data-cb-id 
               <option value="soon" data-lb-opt="events" {% if src != "events" %}hidden{% endif %} {% if b.data.only == "soon" %}selected{% endif %}>{% trans "In den nächsten 14 Tagen" %}</option>
             </select>
           </div>
+          {% comment %}LB-3d-2: сортировки есть не у всех источников (туры, наборы и
+          категории идут в порядке владельца) — строка скрыта по реестру. Обёртка без
+          display-класса: `hidden` на `label.block` утилита Tailwind перебила бы.{% endcomment %}
           <div class="stu-row stu-two">
+            <div data-lb-src="{{ lh.sort_sources }}" {% if src not in lh.sort_sources.split %}hidden{% endif %}>
             <label class="block">
               <span class="stu-lb">{% trans "Sortierung" %}</span>
               <select name="cb_{{ b.id }}_sort" class="stu-ctrl">
@@ -265,6 +286,7 @@ collect()/save работают без переименований. data-cb-id 
                 {% endfor %}
               </select>
             </label>
+            </div>
             <label class="block">
               <span class="stu-lb">{% trans "Höchstens" %}</span>
               <input type="number" name="cb_{{ b.id }}_limit" value="{{ b.data.limit|default_if_none:'' }}" min="1" max="24" placeholder="{{ lh.limit }}" class="stu-ctrl stu-num">
@@ -319,7 +341,7 @@ collect()/save работают без переименований. data-cb-id 
             <span class="stu-lb">{% trans "Tempo (Sek.)" %}</span>
             <input type="number" name="cb_{{ b.id }}_speed" data-lb-axis="speed" min="3" max="15" value="{{ b.data.speed|default_if_none:'' }}" placeholder="{% trans 'aus' %}" class="stu-ctrl stu-num" title="{% trans 'Sekunden zwischen den Folien. Leer = nicht automatisch drehen.' %}">
           </div>
-          <div class="stu-row">
+          <div class="stu-row" data-lb-src="{{ lh.card_sources }}" {% if src not in lh.card_sources.split %}hidden{% endif %}>
             <span class="stu-lb">{% trans "Kartenform" %}</span>
             <select name="cb_{{ b.id }}_card" data-lb-axis="card" class="stu-ctrl">
               <option value="">{{ lh.card_from }}: {{ lh.card }}</option>

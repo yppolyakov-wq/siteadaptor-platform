@@ -22748,3 +22748,12 @@ msgstr "Thema"
 
 msgid "derzeit aus"
 msgstr "derzeit aus"
+
+msgid "Alle Länder"
+msgstr "Alle Länder"
+
+msgid "Hauptkategorien"
+msgstr "Hauptkategorien"
+
+msgid "Zeigt die Unterkategorien der gewählten Kategorie."
+msgstr "Zeigt die Unterkategorien der gewählten Kategorie."

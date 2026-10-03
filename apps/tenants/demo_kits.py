@@ -7918,6 +7918,14 @@ MOTO = DemoKit(
         "anfrage": "Ab vier Fahrern fahren wir jede Route privat. Sagen Sie uns "
         "Wunschtermin und Gruppengröße — wir melden uns mit einem Angebot.",
     },
+    # LB-3d-2: блок «Liste» — поездки одной страны лентой (фильтр «Land»).
+    home_blocks=[
+        {
+            "after": "tours",
+            "key": "list",
+            "data": {"source": "tours", "country": "Nepal", "out": "slider"},
+        },
+    ],
     # Часы работы офиса: без них чек-лист готовности главной честно оставался
     # неполным у ЕДИНСТВЕННОГО кита без часов (сверка 2026-08-19).
     opening_hours_text="Büro: Mo–Fr 10:00–18:00 · Touren saisonal",
@@ -16504,6 +16512,20 @@ ONLINE_SHOP = DemoKit(
     section_intros={
         "categories": "Zehn Bereiche, ein Warenkorb — quer durch alles, was der Alltag braucht.",
     },
+    # LB-3d-2: блоки «Liste» — подкатегории одного направления плитками и наборы
+    # лентой (источники «Kategorien» и «Sets & Pakete»).
+    home_blocks=[
+        {
+            "after": "categories",
+            "key": "list",
+            "data": {"source": "categories", "category": "wohnen-textil"},
+        },
+        {
+            "after": "products",
+            "key": "list",
+            "data": {"source": "combos", "out": "slider"},
+        },
+    ],
     page_presets=[("cart", "vertrauen"), ("info", "geschichte")],
     size_tables={
         "mode-basics": "Größe | Brustumfang | Taille | Hüfte\n"

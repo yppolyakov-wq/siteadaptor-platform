@@ -33,6 +33,10 @@ _DEFAULTS = {
     "services": siteconfig.GRID_SECTION_DEFAULTS["services"],
     "stays": siteconfig.GRID_SECTION_DEFAULTS["stay_rooms"],
     "events": siteconfig.GRID_SECTION_DEFAULTS["events"],
+    "tours": siteconfig.GRID_SECTION_DEFAULTS["tours"],
+    # у наборов секции главной нет — дефолт страницы `/kombi/` (2 в ряд, на lg 4)
+    "combos": siteconfig.OPTIONAL_PAGE_LAYOUTS["combos_layout"],
+    "categories": siteconfig.GRID_SECTION_DEFAULTS["categories"],
 }
 # LB-3d: раскладка страницы-листинга источника — слой «page» наследования вида, и
 # его порядок по умолчанию (дефолт сортировки владельца, STU-15c).
@@ -40,6 +44,8 @@ _PAGE_LAYOUT_KEYS = {
     "services": "service_index_layout",
     "stays": "stay_index_layout",
     "events": "events_index_layout",
+    "tours": "tours_layout",
+    "combos": "combos_layout",
 }
 _PAGE_SORT_KEYS = {"services": "services_sort", "stays": "stays_sort", "events": "events_sort"}
 # Листинг источника — цель «Alle N →» (с теми же параметрами, что понимает его тулбар).
@@ -68,6 +74,20 @@ def source_active(tenant, data) -> bool:
     if tenant is None:
         return False
     return bool(tenant.is_module_active(SOURCE_MODULES[_source(data)]))
+
+
+def source_label(source: str, tenant=None) -> str:
+    """Подпись источника. У наборов — по типу бизнеса: «Menü-Pakete» у гастро и
+    «Sets & Pakete» прочим (`combo_labels` — одна подпись на все поверхности)."""
+    if source == "combos" and tenant is not None:
+        from apps.catalog.combos import combo_labels
+
+        return str(combo_labels(getattr(tenant, "business_type", "") or "")["combos_title"])
+    spec = (
+        siteconfig.LIST_SOURCES.get(source)
+        or siteconfig.LIST_SOURCES[siteconfig.LIST_SOURCE_DEFAULT]
+    )
+    return str(spec["label"])
 
 
 def base_view(cfg: dict, data: dict) -> dict:
@@ -101,7 +121,8 @@ def base_view(cfg: dict, data: dict) -> dict:
             return {"layout": layout, "card": card, "layout_from": "page", "card_from": card_from}
         layout = siteconfig.normalize_layout(None, _DEFAULTS[source])
         return {"layout": layout, "card": card, "layout_from": "default", "card_from": card_from}
-    card = site_defaults.get("card_style", "")
+    # у источника без форм карточки (плитки категорий) формы нет и наследовать нечего
+    card = site_defaults.get("card_style", "") if siteconfig.LIST_SOURCES[source]["card"] else ""
     if source in _PAGE_LAYOUT_KEYS:
         # LB-3d: вид страницы-листинга источника — только если владелец его менял.
         # Нетронутая страница событий — это список в одну колонку (пресет `list`),
@@ -118,13 +139,15 @@ def base_view(cfg: dict, data: dict) -> dict:
             return {"layout": layout, "card": card, "layout_from": "page", "card_from": "site"}
         layout = siteconfig.normalize_layout(None, _DEFAULTS[source])
         return {"layout": layout, "card": card, "layout_from": "default", "card_from": "site"}
-    catalog = cfg.get("catalog_layout")
-    # Прайс-виды каталога (`preisliste*`) — не сетка: блок их не наследует.
+    catalog = cfg.get("catalog_layout") if source == "products" else None
+    # Прайс-виды каталога (`preisliste*`) — не сетка: блок их не наследует. Сетка
+    # каталога — сетка ТОВАРОВ: плиткам категорий она не указ (LB-3d-2).
     if isinstance(catalog, dict) and catalog.get("preset") in siteconfig.LAYOUT_PRESETS:
         layout = siteconfig.normalize_layout(catalog, _DEFAULTS[source])
         return {"layout": layout, "card": card, "layout_from": "page", "card_from": "site"}
     layout = siteconfig.normalize_layout(None, _DEFAULTS[source])
-    return {"layout": layout, "card": card, "layout_from": "default", "card_from": "site"}
+    card_from = "site" if siteconfig.LIST_SOURCES[source]["card"] else "default"
+    return {"layout": layout, "card": card, "layout_from": "default", "card_from": card_from}
 
 
 def effective_view(cfg: dict, data: dict) -> dict:
@@ -323,6 +346,65 @@ def _events(data: dict, limit: int, cfg: dict):
     return shown, total
 
 
+def _tours(data: dict, limit: int, cfg: dict):
+    """LB-3d-2: туры — как `/touren/`: опубликованные в порядке владельца. Цена «ab» и
+    число дат — из предзагрузки будущих заездов: без неё карточка спрашивала бы БД
+    несколько раз на тур."""
+    from apps.events.models import Tour
+
+    items = Tour.objects.filter(is_published=True).prefetch_related(Tour.upcoming_prefetch())
+    if data.get("country"):
+        items = items.filter(country=data["country"])
+    return _cut(items, limit)
+
+
+def _combos(data: dict, limit: int, cfg: dict):
+    """LB-3d-2: наборы — как `/kombi/`: активные в порядке владельца; категория — живая
+    и активная (как `?kategorie=`). Карточка — общая `_combo_card`, а не
+    `sellable_card`: та печатала «0,00 €» у свободной сборки."""
+    from apps.catalog.models import Category, Combo
+
+    items = (
+        Combo.objects.filter(is_active=True)
+        .select_related("category")
+        .order_by("sort_order", "created_at")
+    )
+    if data.get("category"):
+        items = items.filter(
+            category__in=Category.objects.filter(slug=data["category"], is_active=True)
+        )
+    return _cut(items, limit)
+
+
+def _categories(data: dict, limit: int, cfg: dict):
+    """LB-3d-2: категории — направления, как на `/sortiment/` (только с товарами в
+    поддереве: плитка без товаров вела бы на пустую страницу), или активные
+    подкатегории выбранной категории, как на её странице. Мягко удалённый или
+    выключенный родитель — пустая выдача (блока нет)."""
+    from django.db.models import Q
+
+    from apps.catalog.models import Category
+
+    slug = data.get("category")
+    if slug:
+        parent = Category.objects.filter(slug=slug, is_active=True).first()
+        if parent is None:
+            return [], 0
+        items = (
+            Category.objects.filter(parent=parent, is_active=True)
+            .select_related("parent")
+            .order_by("sort_order", "slug")
+        )
+        return _cut(items, limit)
+    items = (
+        Category.objects.filter(is_active=True, parent__isnull=True)
+        .filter(Q(products__is_active=True) | Q(children__products__is_active=True))
+        .distinct()
+        .order_by("sort_order", "slug")
+    )
+    return _cut(items, limit)
+
+
 def _cut(items, limit: int):
     """Первые `limit` и сколько всего; COUNT — только когда показаны не все."""
     if isinstance(items, list):
@@ -358,6 +440,24 @@ def _all_url(data: dict) -> str:
             params["video"] = "1"
         if data.get("sort"):
             params["sort"] = data["sort"]
+    elif source == "tours":
+        # LB-3d-2: туры одной страны — её секция на `/touren/` (якорь той же формы,
+        # что строит `group_tours_by_country`; без разбивки по странам — верх страницы)
+        from django.utils.text import slugify
+
+        base = reverse("storefront-tours")
+        if data.get("country"):
+            return f"{base}#land-{slugify(data['country']) or 'weitere'}"
+    elif source == "combos":
+        base = reverse("storefront-combos")
+        if data.get("category"):
+            params["kategorie"] = data["category"]
+    elif source == "categories":
+        base = (
+            reverse("storefront-category", args=[data["category"]])
+            if data.get("category")
+            else reverse("storefront-products")
+        )
     else:
         base = (
             reverse("storefront-category", args=[data["category"]])
@@ -387,11 +487,26 @@ def _collection_label(slug: str) -> str:
     return found.name_localized(get_language()) if found else ""
 
 
-def _label(data: dict, items) -> str:
+def _label(data: dict, items, tenant=None) -> str:
     """Заголовок: свой у блока, иначе по выборке (тип, фильтр, категория)."""
     if data.get("title"):
         return data["title"]
     source = _source(data)
+    if source == "tours":
+        # LB-3d-2: страна на языке витрины (группа /touren/ — по базовому значению)
+        if data.get("country"):
+            for tour in items:
+                if tour.country == data["country"]:
+                    return tour.country_text or data["country"]
+            return data["country"]
+        return source_label(source, tenant)
+    if source in ("combos", "categories"):
+        # направление наборов / родитель подкатегорий — на языке витрины
+        if data.get("category") and items:
+            owner = items[0].category if source == "combos" else items[0].parent
+            if owner is not None and owner.slug == data["category"]:
+                return str(owner)
+        return source_label(source, tenant)
     if source in _LISTING_URLS:
         # LB-3d: подборка или тема говорят больше общего названия источника
         if data.get("collection"):
@@ -454,11 +569,24 @@ _FETCHERS = {
     "services": _services,
     "stays": _stays,
     "events": _events,
+    "tours": _tours,
+    "combos": _combos,
+    "categories": _categories,
 }
 
 
-def resolve(cfg: dict, data: dict) -> dict:
-    """Всё, что нужно разметке блока: карточки + вид + заголовок + «Alle N →»."""
+def _tile_aspect(cfg: dict) -> str:
+    """LB-3d-2: форма плитки категории — как у секции «Kategorien» главной."""
+    return siteconfig.CATEGORY_TILE_ASPECTS.get(
+        siteconfig.section_style(cfg, "categories"), "aspect-[4/3]"
+    )
+
+
+def resolve(cfg: dict, data: dict, tenant=None) -> dict:
+    """Всё, что нужно разметке блока: карточки + вид + заголовок + «Alle N →».
+
+    `tenant` нужен подписям по типу бизнеса («Menü-Pakete» у гастро); без него —
+    подпись реестра."""
     data = data or {}
     source = _source(data)
     view = effective_view(cfg, data)
@@ -473,8 +601,9 @@ def resolve(cfg: dict, data: dict) -> dict:
         "more": total > len(items) and not preview,
         "preview": preview,
         "url": _all_url(data),
-        "label": _label(data, items),
+        "label": _label(data, items, tenant),
         "intro": data.get("intro", ""),
+        "aspect": _tile_aspect(cfg) if source == "categories" else "",
         "type": data.get("type", "") if source == "promotions" else "",
         # у блока ОДНОГО типа метка типа на карточке — шум (все одинаковые); у
         # смешанной выдачи она говорит, откуда акция (как в результатах, N-2)
@@ -500,10 +629,10 @@ def resolve_for(request, cfg: dict, data: dict) -> dict:
         try:
             request._list_block_memo = memo
         except AttributeError:  # чужой объект без атрибутов — считаем без кэша
-            return resolve(cfg, data)
+            return resolve(cfg, data, getattr(request, "tenant", None))
     key = json.dumps(data, sort_keys=True, default=str)
     if key not in memo:
-        memo[key] = resolve(cfg, data)
+        memo[key] = resolve(cfg, data, getattr(request, "tenant", None))
     return memo[key]
 
 
@@ -604,6 +733,12 @@ def view_hint(cfg: dict, data: dict) -> dict:
         "sorts": sort_options(cfg),
         "cards": card_options(),
         "source_label": str(siteconfig.LIST_SOURCES[source]["label"]),
+        # LB-3d-2: строки, которым у источника нечего предложить, скрыты (STU-9):
+        # сортировки нет у туров/наборов/категорий, формы карточки — у категорий
+        "sort_sources": " ".join(
+            s for s in siteconfig.LIST_SOURCES if siteconfig.list_sort_keys(s)
+        ),
+        "card_sources": " ".join(s for s, spec in siteconfig.LIST_SOURCES.items() if spec["card"]),
     }
 
 
@@ -797,7 +932,13 @@ def type_views(cfg: dict, keys=()) -> dict:
 
 
 def editor_options(
-    data: dict, live_types=None, categories=None, sources=None, collections=None, themes=None
+    data: dict,
+    live_types=None,
+    categories=None,
+    sources=None,
+    collections=None,
+    themes=None,
+    countries=None,
 ) -> dict:
     """Пункты селекторов строки, которых нет в живых списках (класс W0).
 
@@ -842,4 +983,9 @@ def editor_options(
 
         named = taxonomy.category_label(theme) or theme
         out["orphan_theme"] = (theme, f"{named} ({empty})")
+    # LB-3d-2: страна, по которой больше нет опубликованных туров
+    country = str(data.get("country") or "")
+    if country and country not in {key for key, _label in (countries or [])}:
+        empty = _("derzeit leer")
+        out["orphan_country"] = (country, f"{country} ({empty})")
     return out

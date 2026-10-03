@@ -22925,3 +22925,12 @@ msgstr "Тема"
 
 msgid "derzeit aus"
 msgstr "зараз вимкнено"
+
+msgid "Alle Länder"
+msgstr "Усі країни"
+
+msgid "Hauptkategorien"
+msgstr "Основні категорії"
+
+msgid "Zeigt die Unterkategorien der gewählten Kategorie."
+msgstr "Показує підкатегорії вибраної категорії."

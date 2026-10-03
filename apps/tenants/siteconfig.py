@@ -232,6 +232,32 @@ LIST_SOURCES = {
         "module": "events",
         "filters": ("event_category", "only"),
     },
+    # LB-3d-2: у туров, наборов и категорий сортировок нет — порядок владельца
+    # (`sort_order`), как у `/touren/`, `/kombi/` и `/sortiment/`; `facets: None`.
+    "tours": {
+        "card": card_forms.PRODUCT,
+        "facets": None,
+        "label": _("Reisen"),
+        "module": "events",
+        "filters": ("country",),
+    },
+    "combos": {
+        "card": card_forms.PRODUCT,
+        "facets": None,
+        # у гастро — «Menü-Pakete» (`list_blocks.source_label`, по типу бизнеса)
+        "label": _("Sets & Pakete"),
+        "module": "catalog",
+        "filters": ("category",),
+    },
+    # Плитка категории форм карточки не знает — `card: None`, строка «Kartenform»
+    # у такого источника скрыта, а normalize форму не хранит.
+    "categories": {
+        "card": None,
+        "facets": None,
+        "label": _("Kategorien"),
+        "module": "catalog",
+        "filters": ("category",),
+    },
 }
 LIST_SOURCE_DEFAULT = "promotions"  # легаси-блок PT-6 источника не знал
 LIST_PROMO_ENDS = ("heute", "woche")  # = чипы «Endet heute / diese Woche» /aktionen/
@@ -248,6 +274,7 @@ LIST_ONLY = {
 }
 LIST_PRODUCT_ONLY = LIST_ONLY["products"]
 _EVENT_CATEGORY_MAX = 30  # = Event.category max_length
+_TOUR_COUNTRY_MAX = 80  # = Tour.country max_length
 # Сортировки сверх провайдера: «empfohlene zuerst» — порядок секции товаров главной.
 LIST_EXTRA_SORTS = {"products": ("featured",)}
 LIST_OUTPUTS = ("grid", "slider")
@@ -321,6 +348,11 @@ def _clean_list_block(d: dict) -> dict:
         theme = _s(d.get("event_category"))[:_EVENT_CATEGORY_MAX]
         if "event_category" in filters and theme:
             out["event_category"] = theme
+        # LB-3d-2: страна тура — БАЗОВОЕ значение (ключ группы /touren/); в нём бывают
+        # пробелы и «&», поэтому не слаг. Существование не проверяем (purge-safe).
+        country = _s(d.get("country"))[:_TOUR_COUNTRY_MAX]
+        if "country" in filters and country:
+            out["country"] = country
         if d.get("only") in LIST_ONLY.get(source, ()):
             out["only"] = d["only"]
     sort = d.get("sort")
@@ -3046,9 +3078,11 @@ NON_TRANSLATABLE_FIELDS = frozenset(
         "sort",
         "out",
         "card",
-        # LB-3d: фильтры новых источников — тоже коды (слаг подборки, тема события)
+        # LB-3d: фильтры новых источников — тоже коды (слаг подборки, тема события,
+        # страна тура — базовое значение, по которому /touren/ строит группы)
         "collection",
         "event_category",
+        "country",
     }
 )
 

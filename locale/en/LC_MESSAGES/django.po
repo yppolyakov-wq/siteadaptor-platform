@@ -22710,3 +22710,12 @@ msgstr "Topic"
 
 msgid "derzeit aus"
 msgstr "currently off"
+
+msgid "Alle Länder"
+msgstr "All countries"
+
+msgid "Hauptkategorien"
+msgstr "Main categories"
+
+msgid "Zeigt die Unterkategorien der gewählten Kategorie."
+msgstr "Shows the subcategories of the selected category."

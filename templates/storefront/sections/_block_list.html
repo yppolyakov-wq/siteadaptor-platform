@@ -15,7 +15,11 @@ data-promo-strip: на них стоят замки и стенды.
 
 LB-3d: карточка — та же, что у листинга источника: услуги и номера — общая карточка
 `sellable_card` (форма — из блока), события — богатая карточка листинга, а при
-выбранной форме — общая карточка (как на /veranstaltung/).
+выбранной форме — общая карточка (как на /veranstaltung/). Туры и наборы — карточки
+/touren/ и /kombi/ (они ждут `tour` и `c`, а цикл отдаёт `p` — передаём явно; именно
+этот разрыв ронял /kombi/ в «Regale»), категории — плитка /sortiment/ в форме плитки
+секции «Kategorien» и НЕ редакторская (`is_preview=False`: в Студии иначе подпись
+стала бы полем правки, а ссылка — мёртвой).
 
 LB-3: `id="lb-<id блока>"` — цель чипа Sprungleiste страницы акций. Якорь на самой
 секции, а не на обёртке блока: у обёртки `display:contents` нет бокса, и прокрутка к
@@ -38,6 +42,9 @@ LB-3: `id="lb-<id блока>"` — цель чипа Sprungleiste страни�
         {% elif lb.source == "services" %}{% with storefront_card_style=lb.card %}{% sellable_card 'service' p %}{% endwith %}
         {% elif lb.source == "stays" %}{% with storefront_card_style=lb.card %}{% sellable_card 'stay' p show_min_nights=True cta='purchase' %}{% endwith %}
         {% elif lb.source == "events" %}{% if lb.card %}{% with storefront_card_style=lb.card %}{% sellable_card 'event' p %}{% endwith %}{% else %}{% include "storefront/_event_card.html" with e=p %}{% endif %}
+        {% elif lb.source == "tours" %}{% include "storefront/_tour_card.html" with tour=p storefront_card_style=lb.card %}
+        {% elif lb.source == "combos" %}{% include "storefront/_combo_card.html" with c=p storefront_card_style=lb.card %}
+        {% elif lb.source == "categories" %}{% include "storefront/_category_tile.html" with c=p cat_aspect=lb.aspect cat_active=False is_preview=False %}
         {% else %}{% include "storefront/_promo_card.html" with in_group=lb.in_group storefront_promo_card=lb.card preview=lb.preview %}{% endif %}
       {% endfor %}
     </div>

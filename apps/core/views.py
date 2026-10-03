@@ -422,6 +422,7 @@ _LIST_BLOCK_FIELDS = (
     "category",
     "collection",
     "event_category",
+    "country",
     "only",
     "sort",
     "limit",
@@ -603,6 +604,7 @@ def _list_sources_for_blocks(request):
     источник самого блока остаётся выбранным, даже если модуль выключили (W0) —
     его добавляет `list_blocks.editor_options`.
     """
+    from apps.core import list_blocks
     from apps.tenants import siteconfig
 
     tenant = getattr(request, "tenant", None)
@@ -613,7 +615,8 @@ def _list_sources_for_blocks(request):
         except Exception:  # noqa: BLE001
             active = False
         if active:
-            out.append((key, str(spec["label"])))
+            # LB-3d-2: у наборов подпись по типу бизнеса («Menü-Pakete» у гастро)
+            out.append((key, list_blocks.source_label(key, tenant)))
     return out
 
 
@@ -666,6 +669,28 @@ def _event_categories_for_blocks(request):
         return []
 
 
+def _tour_countries_for_blocks(request):
+    """LB-3d-2: [(страна, подпись)] опубликованных туров — фильтр «Land» блока «Liste».
+
+    Значение — БАЗОВОЕ (по нему `/touren/` строит группы), подпись — на языке
+    кабинета; порядок — первого появления в порядке туров владельца, как группы
+    страницы. Fail-safe: без модуля событий/при ошибке — пустой список.
+    """
+    try:
+        if not request.tenant.is_module_active("events"):
+            return []
+        from apps.events.models import Tour
+
+        seen: dict = {}
+        for tour in Tour.objects.filter(is_published=True).exclude(country=""):
+            key = tour.country.strip()
+            if key and key not in seen:
+                seen[key] = tour.country_text or key
+        return list(seen.items())
+    except Exception:  # noqa: BLE001
+        return []
+
+
 def _cblock_row_lists(request) -> dict:
     """Селекторы строки C-блока — ОДИН набор для формы билдера и для строки, вставленной
     без перезагрузки (`_add_block_fetch_response`). Раньше списки перечислялись в двух
@@ -684,6 +709,8 @@ def _cblock_row_lists(request) -> dict:
         "list_sources_for_blocks": _list_sources_for_blocks(request),
         "list_collections_for_blocks": _list_collections_for_blocks(request),
         "event_categories_for_blocks": _event_categories_for_blocks(request),
+        # LB-3d-2: страны опубликованных туров
+        "tour_countries_for_blocks": _tour_countries_for_blocks(request),
     }
 
 

@@ -22837,3 +22837,12 @@ msgstr "Konu"
 
 msgid "derzeit aus"
 msgstr "şu anda kapalı"
+
+msgid "Alle Länder"
+msgstr "Tüm ülkeler"
+
+msgid "Hauptkategorien"
+msgstr "Ana kategoriler"
+
+msgid "Zeigt die Unterkategorien der gewählten Kategorie."
+msgstr "Seçilen kategorinin alt kategorilerini gösterir."
