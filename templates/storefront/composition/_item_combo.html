@@ -1,0 +1,4 @@
+{% comment %}Элемент полки наборов (`/kombi/`, композиция «Regale»). Полки перебирают элементы
+переменной `p` (так их читает карточка товара), а карточка набора ждёт `c`: без этого
+адаптера `{% templatetag openblock %} url 'storefront-combo' c.pk {% templatetag closeblock %}` получал пустой pk, и страница падала
+NoReverseMatch (найдено разведкой LB-3d). Тот же приём, что `_item_sellable.html`.{% endcomment %}{% include "storefront/_combo_card.html" with c=p %}

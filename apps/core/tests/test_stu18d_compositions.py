@@ -9,6 +9,8 @@
 стороны: не предлагать неисполнимого и не исполнять необъявленного.
 """
 
+import re
+
 import pytest
 from django.template.loader import get_template
 
@@ -371,6 +373,27 @@ def test_combos_listing_renders_tabs_by_category():
 
     body = _render_listing(public_views.combo_list_public, "/kombi/", {"combos": "tabs"}, _seed)
     assert 'data-sf-page="tabs"' in body and "?kategorie=menues" in body
+
+
+def test_combos_listing_renders_shelves_by_category():
+    """Найдено разведкой LB-3d: полки включают карточку элемента переменной `p`, а
+    карточка набора ждёт `c` — «Regale» на `/kombi/` падал NoReverseMatch (500).
+    Элемент полки наборов — адаптер `composition/_item_combo.html` (как у
+    `sellable_card`-поверхностей — `_item_sellable.html`)."""
+    from apps.catalog.models import Category, Combo
+    from apps.orders import public_views
+
+    def _seed():
+        for slug, name in (("menues", "Menüs"), ("buffets", "Buffets")):
+            cat = Category.objects.create(name={"de": name}, slug=slug, is_active=True)
+            Combo.objects.create(name=f"Set {slug}", price="15.00", is_active=True, category=cat)
+
+    body = _render_listing(public_views.combo_list_public, "/kombi/", {"combos": "regale"}, _seed)
+    assert 'data-sf-page="regale"' in body
+    shelves = re.findall(r"<section[^>]*data-shelf=.*?</section>", body, re.S)
+    assert len(shelves) == 2
+    # в каждой полке — карточка набора (полки стоят над полной сеткой, как у услуг)
+    assert all("data-combo-card" in shelf for shelf in shelves)
 
 
 def test_cover_only_pages_get_the_cover():

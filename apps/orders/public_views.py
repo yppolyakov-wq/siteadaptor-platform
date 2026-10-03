@@ -293,7 +293,8 @@ def _combos_composition(request, combos) -> dict:
         entries=_cats,
         shelves=_shelves,
         hero=lambda: listing_composition.hero_from_tenant(request.tenant, cfg),
-        item_template="storefront/_combo_card.html",
+        # карточка набора ждёт `c`, а полки перебирают элементы как `p` — адаптер
+        item_template="storefront/composition/_item_combo.html",
     )
 
 
