@@ -184,6 +184,16 @@ def _live_rubrics() -> list[str]:
     return seen
 
 
+def _list_signature(data) -> tuple:
+    """Выборка блока «Liste» (источник и фильтры, без вида и подписи) — для сравнения."""
+    from apps.tenants import siteconfig
+
+    clean = siteconfig._clean_list_block(data if isinstance(data, dict) else {})
+    return tuple(
+        clean.get(key) for key in ("source", "type", "endet", "rabatt", "phase", "category", "only")
+    )
+
+
 def presets_for(host, business_type=""):
     """Пресеты хоста, рекомендованные для business_type — первыми (паттерн
     template_cards): каждому даётся флаг `recommended` для бейджа в UI."""
@@ -215,6 +225,22 @@ def apply_page_preset(cfg, host, preset_id):
     specs = list(preset["blocks"])
     if preset.get("per_type"):
         specs += [("list", {"source": "promotions", "type": key}) for key in _live_rubrics()]
+    if specs:
+        from apps.tenants import siteconfig
+
+        # Ревью LB-3: блок с той же выборкой у владельца уже есть (например, добавлен
+        # подсказкой «＋ тип») — пресет его не дублирует: иначе рубрика вышла бы дважды,
+        # а в полосе прыжков — два одинаковых чипа.
+        owned = {
+            _list_signature(b.get("data"))
+            for b in keep
+            if siteconfig.cblock_type((b or {}).get("key")) == "list"
+        }
+        specs = [(k, d) for k, d in specs if k != "list" or _list_signature(d) not in owned]
+        # …и не вытесняет блоки владельца за кап страницы (normalize оставляет первые
+        # _MAX_CBLOCKS): лишним рубрикам место в основном списке — их секции в остатке.
+        room = siteconfig._MAX_CBLOCKS - sum(1 for b in keep if not siteconfig.is_main_marker(b))
+        specs = specs[: max(0, room)]
     seeded = [
         {
             "key": kind,

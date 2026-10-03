@@ -380,10 +380,10 @@ def overview_blocks(cfg: dict) -> dict:
     * `types` — рубрики, чья секция уходит из основного списка: блок «тип X» без
       сужающих фильтров. Встроенные типы (`sys:*`) ничего не гасят — они пересекают
       рубрики, и секций по ним нет;
-    * `ending` — блоки «Endet …» без типа: кандидаты погасить полосу «Ending soon»
-      (гасят, только если им есть что показать — решает вьюха по выдаче);
-    * `ends` — их значения (`heute`/`woche`): при группировке «по времени» гасят
-      бакеты срока;
+    * `ending` — блоки «Endet …» без типа и без «−N %»: кандидаты погасить полосу
+      «Ending soon» (гасят, только если им есть что показать — решает вьюха по выдаче);
+    * `ends` — их значения (`heute`/`woche`): при группировке «по времени» акции этих
+      сроков уходят из остатка — по фильтру, а не по названию бакета;
     * `upcoming` — есть блок «Demnächst» без типа: «Vorschau» не нужна.
     """
     from apps.promotions import promo_types
@@ -407,7 +407,9 @@ def overview_blocks(cfg: dict) -> dict:
             narrowed = data.get("endet") or data.get("rabatt")
             if not narrowed and not promo_types.is_builtin(kind):
                 types.add(kind)
-        elif data.get("endet"):
+        elif data.get("endet") and not data.get("rabatt"):
+            # «Endet … · ab −50 %» — уже выборка, чем «Ending soon» и срок целиком:
+            # такой блок — витрина поверх, а не замена (ревью LB-3)
             ending.append(block)
     active = any(_source(b["data"]) == "promotions" for b in above + below)
     return {

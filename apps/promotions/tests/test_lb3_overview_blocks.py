@@ -569,3 +569,92 @@ def test_aktionsmarkt_demo_promotions_page_is_built_from_blocks():
     assert len(_chips(body)) >= len(rubrics)
     # секции рубрик ушли в блоки: в остатке — только акции без рубрики
     assert set(_sections(body)) <= {""}
+
+
+# ─────────────── ревью LB-3 (2026-10-03): замки написаны ДО правок ───────────────
+
+
+def test_ending_block_narrowed_by_discount_keeps_ending_soon():
+    """«Endet … · ab −50 %» — не та же выборка, что «Ending soon»: полоса остаётся."""
+    t = _tenant(page_blocks={"promos": [_lb("b1", endet="woche", rabatt=50), MAIN]})
+    _promo("LB3-Halb", "", ends_in=2, discount_percent=60)
+    _promo("LB3-Wenig", "", ends_in=2, discount_percent=10)
+    body = _page(t)
+    assert "LB3-Wenig" in _segment(body, "data-ending-soon")
+
+
+def test_time_grouping_keeps_offers_a_narrowed_ending_block_does_not_show():
+    """Группировка «по времени»: блок «Endet diese Woche · ab −50 %» не забирает срок
+    целиком — акция −10 % с тем же сроком обязана остаться на странице."""
+    t = _tenant(
+        promo_grouping="time",
+        page_blocks={"promos": [_lb("b1", endet="woche", rabatt=50), MAIN]},
+    )
+    _promo("LB3-Halb", "", ends_in=2, discount_percent=60)
+    _promo("LB3-Wenig", "", ends_in=2, discount_percent=10)
+    _promo("LB3-Lange", "", ends_in=30)
+    main = _page(t)
+    main = main[main.index("data-pb-main") :]
+    assert "LB3-Wenig" in main
+
+
+def test_time_grouping_does_not_repeat_offers_an_ending_block_shows():
+    """Блок «Endet diese Woche» забирает из остатка ровно свои акции — по фильтру, а не
+    по названию бакета (в выходные «через 2 дня» уже следующая неделя)."""
+    t = _tenant(
+        promo_grouping="time",
+        page_blocks={"promos": [_lb("b1", endet="woche", title="LB3 Diese Woche"), MAIN]},
+    )
+    _promo("LB3-Bald-1", "", ends_in=2)
+    _promo("LB3-Bald-2", "", ends_in=3)
+    _promo("LB3-Lange", "", ends_in=30)
+    body = _page(t)
+    main = body[body.index("data-pb-main") :]
+    assert "LB3-Bald-1" not in main and "LB3-Bald-2" not in main
+    assert "LB3-Lange" in main
+    block = _segment(body, 'data-sf-list="promotions"')
+    assert "LB3-Bald-1" in block and "LB3-Bald-2" in block
+
+
+def test_time_grouping_with_everything_in_blocks_repeats_nothing():
+    t = _tenant(
+        promo_grouping="time",
+        page_blocks={"promos": [_lb("b1", endet="woche", title="LB3 Diese Woche"), MAIN]},
+    )
+    _promo("LB3-Bald-1", "", ends_in=2)
+    _promo("LB3-Bald-2", "", ends_in=3)
+    body = _page(t)
+    main = body[body.index("data-pb-main") :]
+    assert "LB3-Bald-1" not in main and 'id="aktionen-rest"' not in main
+    anchors = [anchor for anchor, _label, _n in _chips(body)]
+    assert "aktionen-rest" not in anchors
+
+
+def test_list_view_without_a_remainder_draws_no_empty_table():
+    t = _tenant(page_blocks={"promos": [_lb("b1", type="Räumung"), MAIN]})
+    _promo("LB3-Raeumung-1", "Räumung")
+    body = _page(t, ansicht="liste")
+    assert "LB3-Raeumung-1" in body
+    assert "data-promo-table" not in body
+
+
+def test_prospekt_preset_does_not_duplicate_the_owners_type_block():
+    _shop()
+    cfg = {"page_blocks": {"promos": [_lb("mine", type="Räumung"), MAIN]}}
+    page_presets.apply_page_preset(cfg, "promos", "prospekt")
+    rows = siteconfig.normalize(cfg)["page_blocks"]["promos"]
+    types = [b["data"].get("type") for b in rows if b.get("key") == "list"]
+    assert types.count("Räumung") == 1 and types.count("Wochenangebote") == 1
+
+
+def test_prospekt_preset_never_pushes_the_owners_blocks_over_the_cap():
+    """Много рубрик: блоки пресета не вытесняют блоки владельца за кап страницы —
+    рубрикам без места остаётся основной список (их секции в остатке)."""
+    for i in range(siteconfig._MAX_CBLOCKS + 3):
+        _promo(f"LB3-R{i}", f"Rubrik-{i:02d}")
+    mine = [_text(f"mine{i}", f"LB3-Meins-{i}") for i in range(3)]
+    cfg = {"page_blocks": {"promos": mine}}
+    page_presets.apply_page_preset(cfg, "promos", "prospekt")
+    rows = siteconfig.normalize(cfg)["page_blocks"]["promos"]
+    ids = [b.get("id") for b in rows]
+    assert all(f"mine{i}" in ids for i in range(3))

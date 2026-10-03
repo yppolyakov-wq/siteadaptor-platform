@@ -4,13 +4,14 @@
 без галки — тишина; форма содержит чекбокс без checked."""
 
 import uuid
-from datetime import date, timedelta
+from datetime import timedelta
 
 import pytest
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
+from apps.core.tests.dates import future_month_start
 from apps.notifications.models import Notification
 from apps.promotions.models import Customer
 from apps.stays import public_views
@@ -19,7 +20,9 @@ from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
 
-D0 = date(2026, 10, 1)
+# Дата-бомба 2026-10-03: жёсткое 1 октября стало прошлым, и форма брони (с галкой
+# согласия) по замыслу не выводится для прошедших дат. База считается от сегодня.
+D0 = future_month_start()
 
 
 @pytest.fixture(autouse=True)

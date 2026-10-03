@@ -701,12 +701,17 @@ def promotion_list(request):
     # в кабинете / ось сборки) — секции по сроку вместо тематических групп.
     promo_grouping = _promo_grouping_for(request)
     if not has_filters and promo_grouping == "time":
-        grouped = _time_groups(promotions, timezone.localtime())
         if block_mode and lb_plan["ends"]:
-            # LB-3: бакет срока, который уже показывает блок «Endet …», не дублируем;
-            # фильтр «woche» (7 дней) включает и сегодняшние — гасит оба бакета.
-            gone = {"heute"} | ({"woche"} if "woche" in lb_plan["ends"] else set())
-            grouped = [g for g in grouped if g[0] not in gone]
+            # LB-3 (ревью): при группировке по сроку блок «Endet …» и есть свой срок —
+            # его акции уходят из остатка. По ФИЛЬТРУ блока, а не по названию бакета:
+            # «7 дней» и «до конца недели» не совпадают (в выходные «через 2 дня» — уже
+            # следующая неделя), и убранный бакет оставлял бы дубли в соседнем — или
+            # пустой список, под которым плоская сетка показала бы те же акции ещё раз.
+            covered: set = set()
+            for ends in lb_plan["ends"]:
+                covered |= set(provider.apply(base, {"endet": ends}).values_list("pk", flat=True))
+            promotions = [p for p in promotions if p.pk not in covered]
+        grouped = _time_groups(promotions, timezone.localtime())
     elif not has_filters and own_groups and page_style not in ("kompakt", "navigator", "magazin"):
         by_group: dict[str, list] = {}
         order: list[str] = []

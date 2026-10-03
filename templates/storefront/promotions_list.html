@@ -71,7 +71,9 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
   блока над ним. Обычная страница — без заголовка, как раньше.{% endcomment %}
   {% if list_view %}
     {% if promo_jump and promotions %}{% include "storefront/promo_page/_rest_head.html" %}{% endif %}
-    {% include "storefront/_promo_table.html" %}
+    {% comment %}Ревью LB-3: в режиме блоков остаток бывает пуст (блоки показали всё) —
+    тогда таблицы нет вовсе; иначе висела бы шапка таблицы без единой строки.{% endcomment %}
+    {% if promotions or not promo_jump %}{% include "storefront/_promo_table.html" %}{% endif %}
   {% endif %}
   {% if promo_hero %}
     {% with p=promo_hero %}{% include "storefront/_promo_featured.html" %}{% endwith %}
