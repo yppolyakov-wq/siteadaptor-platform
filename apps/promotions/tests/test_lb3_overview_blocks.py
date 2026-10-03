@@ -658,3 +658,81 @@ def test_prospekt_preset_never_pushes_the_owners_blocks_over_the_cap():
     rows = siteconfig.normalize(cfg)["page_blocks"]["promos"]
     ids = [b.get("id") for b in rows]
     assert all(f"mine{i}" in ids for i in range(3))
+
+
+# ──────────── LB-3c: строка инструментов в режиме блоков (найдено стендом) ────────────
+#
+# На демо «Sort / Karten | Liste» стояла между блоками и «Ending soon», а при пустом
+# остатке «Liste» лишь убирала «Ending soon» — кнопка без видимого действия. Сорт — вход
+# в «Результаты», как поиск и фильтры, поэтому живёт в панели полосы рядом с ними;
+# строка инструментов в режиме блоков — только переключатель вида и только над тем, что
+# он переключает. Обычная страница — прежняя строка (сорт + вид).
+
+SORT_FORM = "data-listing-toolbar"
+
+
+def _bar(body):
+    return _segment(body, "data-listing-bar", end="<!--/listing-bar-->")
+
+
+def test_block_mode_sort_lives_in_the_jump_panel():
+    t = _tenant(page_blocks={"promos": [_lb("b1", type="Räumung"), MAIN]})
+    _shop()
+    body = _page(t)
+    # `data-promo-filter>` — сама панель (у ряда системных чипов `data-promo-filters`)
+    panel = _segment(body, "data-promo-filter>", end="</details>")
+    sort = _segment(panel, "data-promo-sort", end="</div>")
+    for key in ("endet", "rabatt", "preis"):
+        assert f"?sort={key}" in sort, key
+    # «Newest» — порядок по умолчанию, а не вход в результаты: чипа у него нет
+    assert sort.count("?sort=") == 3
+    assert SORT_FORM not in body
+
+
+def test_block_mode_toolbar_switches_the_view_of_the_remainder():
+    t = _tenant(page_blocks={"promos": [_lb("b1", type="Räumung"), MAIN]})
+    _shop()
+    bar = _bar(_page(t))
+    assert "data-promo-ansicht" in bar and SORT_FORM not in bar
+
+
+def test_block_mode_without_a_remainder_draws_no_toolbar():
+    t = _tenant(page_blocks={"promos": [_lb("b1", type="Räumung"), MAIN]})
+    _promo("LB3-Raeumung-1", "Räumung")
+    _promo("LB3-Bald-weg", "Räumung", ends_in=2)
+    body = _page(t)
+    # «Ending soon» стоит в основном списке, но переключать вид там нечего: «Liste»
+    # лишь убрала бы его
+    assert "data-ending-soon" in body
+    assert "data-listing-bar" not in body and "data-promo-ansicht" not in body
+
+
+def test_block_mode_list_view_keeps_the_way_back_to_cards():
+    t = _tenant(page_blocks={"promos": [_lb("b1", type="Räumung"), MAIN]})
+    _promo("LB3-Raeumung-1", "Räumung")
+    bar = _bar(_page(t, ansicht="liste"))
+    assert 'data-ansicht="karten"' in bar
+
+
+def test_block_mode_sort_chip_keeps_the_list_view():
+    t = _tenant(page_blocks={"promos": [_lb("b1", type="Räumung"), MAIN]})
+    _shop()
+    sort = _segment(_page(t, ansicht="liste"), "data-promo-sort", end="</div>")
+    assert "?sort=rabatt&amp;ansicht=liste" in sort
+
+
+def test_sort_opens_the_results_with_the_sort_in_the_toolbar():
+    t = _tenant(page_blocks={"promos": [_lb("b1", type="Räumung"), MAIN]})
+    _shop()
+    body = _page(t, sort="rabatt")
+    assert "data-promo-jump" not in body and 'data-sf-promo-type="Räumung"' not in body
+    assert SORT_FORM in _bar(body) and "data-promo-sort" not in body
+
+
+def test_page_without_blocks_keeps_the_sort_in_the_toolbar():
+    t = _tenant()
+    _shop()
+    body = _page(t)
+    bar = _bar(body)
+    assert SORT_FORM in bar and "data-promo-ansicht" in bar
+    assert "data-promo-sort" not in body

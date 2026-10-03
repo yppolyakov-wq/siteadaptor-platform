@@ -7,14 +7,18 @@ KAT-5 подменяет эту зону fetch'ем, и инлайн-скрип�
   header»): иначе отступ сверху — ноль.
 * Прыжок учитывает высоту шапки и самой полосы, иначе заголовок раздела уезжал бы под
   них. Уважает prefers-reduced-motion.
-* Текущий раздел — первый видимый в порядке страницы (IntersectionObserver); его чип
+* Текущий раздел — последний, чей верх дошёл до линии под полосой; его чип
   подсвечивается и прокручивается в видимую часть полосы (только по горизонтали — сама
-  страница от этого не дёргается).{% endcomment %}
+  страница от этого не дёргается). Считается по прокрутке (requestAnimationFrame).
+* LB-3c (найдено стендом): у дна страницы нижние разделы до линии не доезжают — клик
+  по последнему чипу подсвечивал предыдущий раздел. Поэтому у дна текущий — последний
+  видимый раздел, а после клика выбранный чип держится, пока идёт прокрутка к нему
+  (плавная прокрутка шлёт десятки событий; без фиксации подсветка «пробегала» бы по
+  всем разделам по пути и оставалась на соседнем).{% endcomment %}
 <script>
 (function () {
   if (window.__sfJumpBound) return;
   window.__sfJumpBound = true;
-  var io = null;
 
   function headH() {
     var head = document.querySelector('header[data-sf-section="header"]');
@@ -61,31 +65,61 @@ KAT-5 подменяет эту зону fetch'ем, и инлайн-скрип�
     var top = target.getBoundingClientRect().top + window.pageYOffset - offset();
     window.scrollTo({ top: Math.max(0, top), behavior: reduce ? "auto" : "smooth" });
     try { history.replaceState(null, "", "#" + target.id); } catch (err) {}
+    hold(target.id);
     setActive(target.id);
   });
 
+  var targets = [];
+  var lock = null;
+  var lockTimer = 0;
+  var raf = 0;
+
+  function pick() {
+    if (lock || !targets.length) return;
+    var line = offset() + 4;
+    var current = null;
+    for (var i = 0; i < targets.length; i++) {
+      if (targets[i].getBoundingClientRect().top <= line) current = targets[i];
+    }
+    var doc = document.documentElement;
+    if (window.innerHeight + window.pageYOffset >= doc.scrollHeight - 4) {
+      for (var j = targets.length - 1; j >= 0; j--) {
+        if (targets[j].getBoundingClientRect().top < window.innerHeight - 40) { current = targets[j]; break; }
+      }
+    }
+    if (!current && targets[0].getBoundingClientRect().top < window.innerHeight * 0.45) current = targets[0];
+    setActive(current ? current.id : null);
+  }
+  function schedule() {
+    if (lock) {
+      // прокрутка к выбранному разделу ещё идёт — держим чип, снимаем фиксацию после остановки
+      clearTimeout(lockTimer);
+      lockTimer = setTimeout(function () { lock = null; }, 200);
+      return;
+    }
+    if (!raf) raf = window.requestAnimationFrame(function () { raf = 0; pick(); });
+  }
+  function hold(id) {
+    lock = id;
+    clearTimeout(lockTimer);
+    // прокрутки может не быть вовсе (раздел уже на месте) — фиксация снимается и так
+    lockTimer = setTimeout(function () { lock = null; }, 1000);
+  }
+
   function init() {
     var b = bar();
-    if (io) { io.disconnect(); io = null; }
+    targets = [];
     if (!b) return;
     b.style.top = headH() + "px";
-    if (!("IntersectionObserver" in window)) return;
-    var targets = [];
     b.querySelectorAll("a[data-jump]").forEach(function (a) {
       var t = document.getElementById(a.getAttribute("data-jump"));
       if (t) targets.push(t);
     });
-    if (!targets.length) return;
-    var seen = {};
-    io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) { seen[en.target.id] = en.isIntersecting; });
-      for (var i = 0; i < targets.length; i++) {
-        if (seen[targets[i].id]) { setActive(targets[i].id); return; }
-      }
-    }, { rootMargin: "-" + offset() + "px 0px -55% 0px" });
-    targets.forEach(function (t) { io.observe(t); });
+    pick();
   }
 
+  window.addEventListener("scroll", schedule, { passive: true });
+  window.addEventListener("resize", schedule);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
   document.addEventListener("sf:navigated", init);

@@ -977,7 +977,9 @@ def promotion_list(request):
             "result_count": (promo_page.total if promo_page else len(promotions))
             if has_filters
             else None,
-            "show_listing_toolbar": True,
+            # LB-3c: в режиме блоков сортировка живёт в панели полосы прыжков (вход в
+            # «Результаты» рядом с поиском и фильтрами), в строке инструментов — нет.
+            "show_listing_toolbar": not block_mode,
             "q": q,
             "sort": sort,
             "sort_options": provider.sort_options(),

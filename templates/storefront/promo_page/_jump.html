@@ -6,9 +6,9 @@
 fetch-свопа KAT-5). Без JS чипы — обычные якорные ссылки.
 
 Справа — «Suchen & filtern»: поиск и все фильтры обычной страницы (типы → страницы
-типов, «Endet heute», «−N %+»). Это вход в состояние «Результаты»; в режиме блоков над
-списком этих рядов нет — иначе на странице было бы две навигации по одним и тем же
-типам. `<details>` работает без JS. Активный чип отличают классы data-on/data-off:
+типов, «Endet heute», «−N %+») и сортировка (LB-3c). Это вход в состояние «Результаты»;
+в режиме блоков над списком этих рядов нет — иначе на странице было бы две навигации
+по одним и тем же типам. `<details>` работает без JS. Активный чип отличают классы data-on/data-off:
 JS переключает их, а Tailwind видит классы в разметке и кладёт их в app.css.
 z-[15]: выше значков карточек (сердечко, 📷 — z-10), ниже шапки сайта с её меню (z-20).{% endcomment %}
 <nav data-promo-jump class="sticky top-0 z-[15] mb-4 py-2 bg-white/95 backdrop-blur" aria-label="{% trans 'Bereiche dieser Seite' %}">
@@ -24,6 +24,7 @@ z-[15]: выше значков карточек (сердечко, 📷 — z-1
         {% include "storefront/promo_page/_search.html" %}
         {% if groups %}{% include "storefront/promo_page/_type_chips.html" %}{% endif %}
         {% include "storefront/promo_page/_system_chips.html" %}
+        {% if sort_options %}{% include "storefront/promo_page/_sort_chips.html" %}{% endif %}
       </div>
     </details>
   </div>

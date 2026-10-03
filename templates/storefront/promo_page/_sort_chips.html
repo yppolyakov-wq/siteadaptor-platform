@@ -1,0 +1,12 @@
+{% load i18n %}{% comment %}LB-3c: сортировка в панели «Suchen & filtern» полосы прыжков (режим блоков).
+Сорт — вход в «Результаты» (плоская выдача всех акций), как поиск и фильтры, поэтому
+живёт рядом с ними, а не в строке инструментов посреди страницы (стенд: там она стояла
+между блоками и «Ending soon»). Чипы — обычные ссылки, как у системных фильтров;
+«Newest» — порядок по умолчанию, а не вход в результаты, поэтому чипа у него нет.
+Открытый вид «Liste» переносится — как у поиска.{% endcomment %}
+<div class="flex flex-wrap items-center gap-2" data-promo-sort>
+  <span class="text-xs text-gray-400">{% trans "Sort" %}</span>
+  {% for val, label in sort_options %}{% if val %}
+    <a href="{% url 'storefront-aktionen' %}?sort={{ val|urlencode }}{% if list_view %}&amp;ansicht=liste{% endif %}" class="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-sm border border-gray-300 text-gray-600 hover:bg-gray-100">{{ label }}</a>
+  {% endif %}{% endfor %}
+</div>
