@@ -190,10 +190,48 @@ def cblock_type(key) -> str:
 # LB-1: источники блока «Liste». `card` — вид сущности в реестре форм карточки
 # (`core.card_forms`), `facets` — kind провайдера фасетов: сортировки и фильтры
 # блок берёт У ПРОВАЙДЕРА, а не заводит свои (правило STU-9 «не обещать того,
-# чего выдача не умеет»).
+# чего выдача не умеет»). LB-3d: `module` — без него источник не показывается и
+# не предлагается в редакторе; `filters` — поля данных блока, которые источник
+# хранит (normalize отбрасывает чужие, правило LB-1). Поле фильтра называется по
+# СМЫСЛУ и одно на все источники, которые его используют: в строке редактора поля
+# всех источников живут в DOM (W0), и два контрола с одним именем дали бы два
+# значения в POST.
 LIST_SOURCES = {
-    "promotions": {"card": card_forms.PROMO, "facets": "promotion", "label": _("Aktionen")},
-    "products": {"card": card_forms.PRODUCT, "facets": "product", "label": _("Produkte")},
+    "promotions": {
+        "card": card_forms.PROMO,
+        "facets": "promotion",
+        "label": _("Aktionen"),
+        "module": "promotions",
+        "filters": ("type", "endet", "phase", "rabatt"),
+    },
+    "products": {
+        "card": card_forms.PRODUCT,
+        "facets": "product",
+        "label": _("Produkte"),
+        "module": "catalog",
+        "filters": ("category", "collection", "only"),
+    },
+    "services": {
+        "card": card_forms.PRODUCT,
+        "facets": "service",
+        "label": _("Leistungen"),
+        "module": "booking",
+        "filters": ("collection", "only"),
+    },
+    "stays": {
+        "card": card_forms.PRODUCT,
+        "facets": "stay",
+        "label": _("Zimmer"),
+        "module": "stays",
+        "filters": ("collection",),
+    },
+    "events": {
+        "card": card_forms.PRODUCT,
+        "facets": "event",
+        "label": _("Veranstaltungen"),
+        "module": "events",
+        "filters": ("event_category", "only"),
+    },
 }
 LIST_SOURCE_DEFAULT = "promotions"  # легаси-блок PT-6 источника не знал
 LIST_PROMO_ENDS = ("heute", "woche")  # = чипы «Endet heute / diese Woche» /aktionen/
@@ -201,7 +239,15 @@ LIST_PROMO_ENDS = ("heute", "woche")  # = чипы «Endet heute / diese Woche»
 # «Vorschau» страницы акций). В редакторе — пункт селекта «Zeitraum» рядом с
 # «Endet …» (одно поле `endet`), в хранении — свой ключ `phase`.
 LIST_PHASES = ("upcoming",)
-LIST_PRODUCT_ONLY = ("featured", "sale", "available")
+# Быстрый фильтр «Auswahl» по источнику: у товаров — подборки витрины, у услуг —
+# видео-консультации (LS-1), у событий — ближайшие две недели.
+LIST_ONLY = {
+    "products": ("featured", "sale", "available"),
+    "services": ("video",),
+    "events": ("soon",),
+}
+LIST_PRODUCT_ONLY = LIST_ONLY["products"]
+_EVENT_CATEGORY_MAX = 30  # = Event.category max_length
 # Сортировки сверх провайдера: «empfohlene zuerst» — порядок секции товаров главной.
 LIST_EXTRA_SORTS = {"products": ("featured",)}
 LIST_OUTPUTS = ("grid", "slider")
@@ -265,10 +311,17 @@ def _clean_list_block(d: dict) -> dict:
             if rabatt in DISCOUNT_PRESETS:
                 out["rabatt"] = rabatt
     else:
-        category = _s(d.get("category"))
-        if category and _LIST_SLUG_RE.match(category):
-            out["category"] = category
-        if d.get("only") in LIST_PRODUCT_ONLY:
+        filters = LIST_SOURCES[source]["filters"]
+        for field in ("category", "collection"):
+            value = _s(d.get(field))
+            if field in filters and value and _LIST_SLUG_RE.match(value):
+                out[field] = value
+        # LB-3d: тема события — ключ таксономии или своя категория владельца (MX-6),
+        # то есть свободный текст: существование не проверяем (purge-safe, как тип акции)
+        theme = _s(d.get("event_category"))[:_EVENT_CATEGORY_MAX]
+        if "event_category" in filters and theme:
+            out["event_category"] = theme
+        if d.get("only") in LIST_ONLY.get(source, ()):
             out["only"] = d["only"]
     sort = d.get("sort")
     # у «Demnächst» порядок один — по старту (сортировки провайдера про скидку и срок)
@@ -2993,6 +3046,9 @@ NON_TRANSLATABLE_FIELDS = frozenset(
         "sort",
         "out",
         "card",
+        # LB-3d: фильтры новых источников — тоже коды (слаг подборки, тема события)
+        "collection",
+        "event_category",
     }
 )
 

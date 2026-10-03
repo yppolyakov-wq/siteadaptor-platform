@@ -22907,3 +22907,21 @@ msgstr "Проспект (блоки)"
 
 msgid "Seitenaufbau"
 msgstr "Структура сторінки"
+
+msgid "Alle Themen"
+msgstr "Усі теми"
+
+msgid "In den nächsten 14 Tagen"
+msgstr "Найближчі 14 днів"
+
+msgid "Nur Video-Beratung"
+msgstr "Лише відеоконсультації"
+
+msgid "Sammlung"
+msgstr "Добірка"
+
+msgid "Thema"
+msgstr "Тема"
+
+msgid "derzeit aus"
+msgstr "зараз вимкнено"

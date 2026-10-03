@@ -153,9 +153,15 @@ collect()/save работают без переименований. data-cb-id 
         <div class="bld-grp-body">
           <div class="stu-row">
             <span class="stu-lb">{% trans "Was wird gezeigt" %}</span>
+            {% comment %}LB-3d: источники — из реестра, только с включённым модулем; свой
+            источник блока остаётся выбранным и тогда, когда модуль выключен (W0).{% endcomment %}
             <select name="cb_{{ b.id }}_source" data-lb-source class="stu-ctrl">
-              <option value="promotions" {% if src != "products" %}selected{% endif %}>{% trans "Aktionen" %}</option>
-              <option value="products" {% if src == "products" %}selected{% endif %}>{% trans "Produkte" %}</option>
+              {% for key, label in list_sources_for_blocks %}
+                <option value="{{ key }}" {% if key == src %}selected{% endif %}>{{ label }}</option>
+              {% empty %}
+                <option value="{{ src }}" selected>{{ lh.source_label }}</option>
+              {% endfor %}
+              {% if lh.orphan_source %}<option value="{{ lh.orphan_source.0 }}" selected>{{ lh.orphan_source.1 }}</option>{% endif %}
             </select>
           </div>
           <div class="stu-row">
@@ -166,7 +172,7 @@ collect()/save работают без переименований. data-cb-id 
             <span class="stu-lb">{% trans "Einleitung" %}</span>
             <textarea name="cb_{{ b.id }}_intro" rows="2" maxlength="300" placeholder="{% trans 'optional' %}" class="w-full rounded border border-gray-300 px-2 py-1 text-sm">{{ b.data.intro }}</textarea>
           </div>
-          <div data-lb-src="promotions" {% if src == "products" %}hidden{% endif %}>
+          <div data-lb-src="promotions" {% if src != "promotions" %}hidden{% endif %}>
             <div class="stu-row">
               <span class="stu-lb">{% trans "Aktionstyp" %}</span>
               <select name="cb_{{ b.id }}_type" data-lb-type class="stu-ctrl">
@@ -213,22 +219,49 @@ collect()/save работают без переименований. data-cb-id 
                 {% if lh.orphan_category %}<option value="{{ lh.orphan_category.0 }}" selected>{{ lh.orphan_category.1 }}</option>{% endif %}
               </select>
             </div>
-            <div class="stu-row">
-              <span class="stu-lb">{% trans "Auswahl" %}</span>
-              <select name="cb_{{ b.id }}_only" class="stu-ctrl">
-                <option value="">{% trans "Alle Produkte" %}</option>
-                <option value="featured" {% if b.data.only == "featured" %}selected{% endif %}>{% trans "Nur Empfehlungen" %}</option>
-                <option value="sale" {% if b.data.only == "sale" %}selected{% endif %}>{% trans "Nur reduzierte" %}</option>
-                <option value="available" {% if b.data.only == "available" %}selected{% endif %}>{% trans "Nur verfügbare" %}</option>
-              </select>
-            </div>
+          </div>
+          {% comment %}LB-3d: поля фильтра — по СМЫСЛУ, одно на все источники, которые его
+          используют (`data-lb-src` перечисляет их): два контрола с одним именем дали бы
+          два значения в POST. Пункты чужого источника скрыты, как у сортировок.{% endcomment %}
+          <div class="stu-row" data-lb-src="products services stays" {% if src != "products" and src != "services" and src != "stays" %}hidden{% endif %}>
+            <span class="stu-lb">{% trans "Sammlung" %}</span>
+            <select name="cb_{{ b.id }}_collection" class="stu-ctrl">
+              <option value="">{% trans "All collections" %}</option>
+              {% for slug, label, srcs in list_collections_for_blocks %}
+                <option value="{{ slug }}" data-lb-opt="{{ srcs }}" {% if src not in srcs.split %}hidden{% endif %} {% if b.data.collection == slug %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+              {% if lh.orphan_collection %}<option value="{{ lh.orphan_collection.0 }}" data-lb-opt="{{ lh.orphan_collection.2 }}" selected>{{ lh.orphan_collection.1 }}</option>{% endif %}
+            </select>
+          </div>
+          <div class="stu-row" data-lb-src="events" {% if src != "events" %}hidden{% endif %}>
+            <span class="stu-lb">{% trans "Thema" %}</span>
+            <select name="cb_{{ b.id }}_event_category" class="stu-ctrl">
+              <option value="">{% trans "Alle Themen" %}</option>
+              {% for key, label in event_categories_for_blocks %}
+                <option value="{{ key }}" {% if b.data.event_category == key %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+              {% if lh.orphan_theme %}<option value="{{ lh.orphan_theme.0 }}" selected>{{ lh.orphan_theme.1 }}</option>{% endif %}
+            </select>
+          </div>
+          <div class="stu-row" data-lb-src="products services events" {% if src != "products" and src != "services" and src != "events" %}hidden{% endif %}>
+            <span class="stu-lb">{% trans "Auswahl" %}</span>
+            <select name="cb_{{ b.id }}_only" class="stu-ctrl">
+              <option value="">{% trans "Alle" %}</option>
+              <option value="featured" data-lb-opt="products" {% if src != "products" %}hidden{% endif %} {% if b.data.only == "featured" %}selected{% endif %}>{% trans "Nur Empfehlungen" %}</option>
+              <option value="sale" data-lb-opt="products" {% if src != "products" %}hidden{% endif %} {% if b.data.only == "sale" %}selected{% endif %}>{% trans "Nur reduzierte" %}</option>
+              <option value="available" data-lb-opt="products" {% if src != "products" %}hidden{% endif %} {% if b.data.only == "available" %}selected{% endif %}>{% trans "Nur verfügbare" %}</option>
+              <option value="video" data-lb-opt="services" {% if src != "services" %}hidden{% endif %} {% if b.data.only == "video" %}selected{% endif %}>{% trans "Nur Video-Beratung" %}</option>
+              <option value="soon" data-lb-opt="events" {% if src != "events" %}hidden{% endif %} {% if b.data.only == "soon" %}selected{% endif %}>{% trans "In den nächsten 14 Tagen" %}</option>
+            </select>
           </div>
           <div class="stu-row stu-two">
             <label class="block">
               <span class="stu-lb">{% trans "Sortierung" %}</span>
               <select name="cb_{{ b.id }}_sort" class="stu-ctrl">
+                {% comment %}LB-3d: у каждого источника свой пункт «пусто» (свой порядок по
+                умолчанию) — выбранным помечаем только пункт СВОЕГО источника.{% endcomment %}
                 {% for key, label, srcs in lh.sorts %}
-                  <option value="{{ key }}" data-lb-opt="{{ srcs }}" {% if src not in srcs %}hidden{% endif %} {% if b.data.sort == key or not key and not b.data.sort %}selected{% endif %}>{{ label }}</option>
+                  <option value="{{ key }}" data-lb-opt="{{ srcs }}" {% if src not in srcs.split %}hidden{% endif %} {% if src in srcs.split %}{% if b.data.sort == key or not key and not b.data.sort %}selected{% endif %}{% endif %}>{{ label }}</option>
                 {% endfor %}
               </select>
             </label>
@@ -245,7 +278,7 @@ collect()/save работают без переименований. data-cb-id 
           {% comment %}LB-1b (план §10): охват вида. «Den ganzen Typ» — те же контролы
           пишут настройки ТИПА (все его блоки и его страница), значения в них — значения
           типа (карта lb-type-views). Поле служебное: в конфиге не хранится.{% endcomment %}
-          <div class="stu-row" data-lb-scope-row {% if src == "products" or not b.data.type %}hidden{% endif %}>
+          <div class="stu-row" data-lb-scope-row {% if src != "promotions" or not b.data.type %}hidden{% endif %}>
             <span class="stu-lb">{% trans "Ansicht gilt für" %}</span>
             <input type="hidden" name="cb_{{ b.id }}_scope" value="" data-lb-scope>
             <div class="flex flex-wrap items-center gap-1 text-xs" role="group" aria-label="{% trans 'Ansicht gilt für' %}">
@@ -291,7 +324,7 @@ collect()/save работают без переименований. data-cb-id 
             <select name="cb_{{ b.id }}_card" data-lb-axis="card" class="stu-ctrl">
               <option value="">{{ lh.card_from }}: {{ lh.card }}</option>
               {% for key, label, srcs in lh.cards %}
-                <option value="{{ key }}" data-lb-opt="{{ srcs }}" {% if src not in srcs %}hidden{% endif %} {% if b.data.card == key %}selected{% endif %}>{{ label }}</option>
+                <option value="{{ key }}" data-lb-opt="{{ srcs }}" {% if src not in srcs.split %}hidden{% endif %} {% if b.data.card == key %}selected{% endif %}>{{ label }}</option>
               {% endfor %}
             </select>
           </div>

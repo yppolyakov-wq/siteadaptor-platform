@@ -189,9 +189,12 @@ def _list_signature(data) -> tuple:
     from apps.tenants import siteconfig
 
     clean = siteconfig._clean_list_block(data if isinstance(data, dict) else {})
-    return tuple(
-        clean.get(key) for key in ("source", "type", "endet", "rabatt", "phase", "category", "only")
-    )
+    # LB-3d: все поля фильтра всех источников — из реестра, чтобы новый фильтр не
+    # выпал из сравнения (иначе два разных блока считались бы одной выборкой).
+    fields = ["source"]
+    for spec in siteconfig.LIST_SOURCES.values():
+        fields += [f for f in spec["filters"] if f not in fields]
+    return tuple(clean.get(key) for key in fields)
 
 
 def presets_for(host, business_type=""):

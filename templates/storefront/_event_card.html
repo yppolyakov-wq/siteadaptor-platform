@@ -1,0 +1,32 @@
+{% load i18n %}{% comment %}LB-3d: богатая карточка события — общая для сетки листинга `/veranstaltung/` и
+блока «Liste» с событиями (вынесена из event_index.html байт-в-байт). Бейджи категории,
+«Online», «Sold out» / отсчёт, «+N Termine», длительность, уровень, дата и место, цена и
+«осталось мест». Места читаются из подсказки выдачи (`events.listing.attach_seat_counts`),
+иначе каждая карточка спрашивала бы базу 3–5 раз. Ожидает `e` (Event).{% endcomment %}
+<a href="{% url 'storefront-event' e.pk %}" class="sf-card group flex flex-col bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
+  <div class="relative aspect-[4/3] bg-gray-100 overflow-hidden">
+    <span data-photo-edit data-edit-model="event" data-edit-pk="{{ e.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute bottom-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>
+    {% if e.image_url %}<img src="{{ e.image_url }}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">{% endif %}
+    <div class="absolute top-2 left-2 flex flex-wrap gap-1">
+      {% if e.category_label %}<span class="text-xs bg-white/90 text-indigo-700 rounded-full px-2 py-0.5 shadow-sm">{{ e.category_label }}</span>{% endif %}
+      {% if e.is_online %}<span class="text-xs bg-sky-600 text-white rounded-full px-2 py-0.5 shadow-sm">🖥 Online</span>{% endif %}
+    </div>
+    <div class="absolute top-2 right-2 flex flex-col items-end gap-1">
+      {% if e.is_sold_out %}<span class="text-xs bg-red-600 text-white rounded-full px-2 py-0.5 shadow-sm">{% trans "Sold out" %}</span>
+      {% elif e.starts_soon %}<span class="text-xs bg-amber-500 text-white rounded-full px-2 py-0.5 shadow-sm">⏳ {{ e.countdown_label }}</span>{% endif %}
+      {% if e.more_dates %}<span class="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">🗓 {% blocktrans with n=e.more_dates %}+{{ n }} Termine{% endblocktrans %}</span>{% endif %}
+    </div>
+  </div>
+  <div class="p-4 flex-1 flex flex-col">
+    <div class="flex flex-wrap gap-1 mb-1">
+      {% if e.ends_at %}<span class="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">{{ e.duration_label }}</span>{% endif %}
+      {% if e.level_label %}<span class="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">{{ e.level_label }}</span>{% endif %}
+    </div>
+    <div class="font-semibold leading-snug line-clamp-2" data-edit-model="event" data-edit-pk="{{ e.pk }}" data-edit-field="title">{{ e.title_text }}</div>
+    <div class="text-sm text-gray-500 mt-1">🗓 {{ e.starts_at|date:"d.m.Y" }}{% if e.is_online %} · 🖥 Online{% elif e.city %} · 📍 {{ e.city }}{% elif e.location %} · 📍 {{ e.location }}{% endif %}</div>
+    <div class="mt-2 pt-2 flex items-center gap-3 border-t border-gray-50">
+      <span class="font-medium">{% if e.has_tiers %}{% blocktrans with p=e.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif e.price_cents %}<span data-price-edit data-edit-model="event" data-price-field="price_eur" data-edit-pk="{{ e.pk }}" data-price="{{ e.price_eur|floatformat:2 }}">{{ e.price_eur }} €</span>{% else %}<span data-price-edit data-edit-model="event" data-price-field="price_eur" data-edit-pk="{{ e.pk }}" data-price="0">{% trans "Free" %}</span>{% endif %}</span>
+      {% if not e.is_sold_out and e.seats_left %}<span class="text-xs text-gray-400">{% blocktrans with n=e.seats_left %}{{ n }} seats left{% endblocktrans %}</span>{% endif %}
+    </div>
+  </div>
+</a>

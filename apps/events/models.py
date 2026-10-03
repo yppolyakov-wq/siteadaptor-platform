@@ -445,7 +445,13 @@ class Event(I18nMixin, TimestampedModel):
         """{tier_label: проданных мест} активных билетов (R11, один запрос).
 
         SM-3: «активные» — через реестр (built-in ∪ кастом-active тенанта), иначе
-        билет в кастом-статусе владельца выпадал бы из занятости."""
+        билет в кастом-статусе владельца выпадал бы из занятости.
+
+        LB-3d: подсказка `_tier_sold_hint` — те же числа, посчитанные одним запросом
+        на всю выдачу витрины (`events.listing.attach_seat_counts`)."""
+        hint = getattr(self, "_tier_sold_hint", None)
+        if hint is not None:
+            return dict(hint)
         from apps.core import status_registry
 
         rows = (
@@ -514,6 +520,11 @@ class Event(I18nMixin, TimestampedModel):
     @property
     def seats_sold(self) -> int:
         # SM-3: как tier_sold_map — кастом-active статусы тоже держат места.
+        # LB-3d: подсказка выдачи витрины (`listing.attach_seat_counts`), без неё —
+        # агрегат на каждый вызов (карточка зовёт его 3–5 раз).
+        hint = getattr(self, "_seats_sold_hint", None)
+        if hint is not None:
+            return hint
         from apps.core import status_registry
 
         agg = self.tickets.filter(

@@ -13,13 +13,17 @@
 Маркеры прежнего блока «Aktionen eines Typs» (PT-6) сохранены — data-sf-promo-type и
 data-promo-strip: на них стоят замки и стенды.
 
+LB-3d: карточка — та же, что у листинга источника: услуги и номера — общая карточка
+`sellable_card` (форма — из блока), события — богатая карточка листинга, а при
+выбранной форме — общая карточка (как на /veranstaltung/).
+
 LB-3: `id="lb-<id блока>"` — цель чипа Sprungleiste страницы акций. Якорь на самой
 секции, а не на обёртке блока: у обёртки `display:contents` нет бокса, и прокрутка к
 ней не работает. «Demnächst» — карточки-превью (preview) без счётчика и покупки.
 На странице (тег page_blocks кладёт pb_page_key) блок идёт во всю ширину колонки
 страницы — свой контейнер `max-w-5xl` нужен только главной, где у секций нет общего;
 на листинге он сужал блоки относительно шапки и сетки самой страницы.{% endcomment %}
-{% list_block block as lb %}
+{% load sellable_ui %}{% list_block block as lb %}
 {% if lb.items %}
 <section{% if block_id %} id="lb-{{ block_id }}"{% endif %} class="my-8 scroll-mt-28" data-sf-list="{{ lb.source }}"{% if lb.type %} data-sf-promo-type="{{ lb.type }}"{% endif %}>
   <div class="{% if not pb_page_key %}max-w-5xl mx-auto px-4{% endif %}">
@@ -30,7 +34,11 @@ LB-3: `id="lb-<id блока>"` — цель чипа Sprungleiste страни�
     {% if lb.intro %}<p class="-mt-2 mb-4 text-gray-600 whitespace-pre-line max-w-2xl">{{ lb.intro }}</p>{% endif %}
     <div data-grid="list"{% if lb.mode == "slider" and lb.source == "promotions" %} data-promo-strip{% endif %} class="{{ lb.grid }}" {% sf_grid_attrs lb.layout count=lb.items|length %}>
       {% for p in lb.items %}
-        {% if lb.source == "products" %}{% include "storefront/_product_card.html" with storefront_card_style=lb.card %}{% else %}{% include "storefront/_promo_card.html" with in_group=lb.in_group storefront_promo_card=lb.card preview=lb.preview %}{% endif %}
+        {% if lb.source == "products" %}{% include "storefront/_product_card.html" with storefront_card_style=lb.card %}
+        {% elif lb.source == "services" %}{% with storefront_card_style=lb.card %}{% sellable_card 'service' p %}{% endwith %}
+        {% elif lb.source == "stays" %}{% with storefront_card_style=lb.card %}{% sellable_card 'stay' p show_min_nights=True cta='purchase' %}{% endwith %}
+        {% elif lb.source == "events" %}{% if lb.card %}{% with storefront_card_style=lb.card %}{% sellable_card 'event' p %}{% endwith %}{% else %}{% include "storefront/_event_card.html" with e=p %}{% endif %}
+        {% else %}{% include "storefront/_promo_card.html" with in_group=lb.in_group storefront_promo_card=lb.card preview=lb.preview %}{% endif %}
       {% endfor %}
     </div>
   </div>

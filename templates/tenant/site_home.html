@@ -2555,8 +2555,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       var CB_DATA_FIELDS = ["title", "body", "url", "label", "caption", "side",
        "promo_pk", "align", "badge_pos", "button_label",
        "size", "color", "rounded", "style_hint", "rows", "height", "type", "limit",
-       "source", "intro", "endet", "rabatt", "category", "only", "sort",
-       "out", "cols", "speed", "card", "scope"];
+       "source", "intro", "endet", "rabatt", "category", "collection", "event_category",
+       "only", "sort", "out", "cols", "speed", "card", "scope"];
       CB_DATA_FIELDS.forEach(function (f) {  // UC6-2/4/6f + GK-4
         var el = form.querySelector("[name='cb_" + cbId + "_" + f + "']");
         if (el && el.value !== "") cb.data[f] = el.value;
@@ -3173,13 +3173,32 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       if (!row || !(t.matches("[data-lb-source]") || t.matches("[data-lb-out]"))) return;
       var srcSel = row.querySelector("[data-lb-source]");
       var src = srcSel ? srcSel.value : "promotions";
+      // LB-3d: `data-lb-src` перечисляет ВСЕ источники поля (одно поле фильтра на
+      // несколько источников — «Sammlung» у товаров, услуг и номеров).
       row.querySelectorAll("[data-lb-src]").forEach(function (box) {
-        box.hidden = box.getAttribute("data-lb-src") !== src;
+        box.hidden = (" " + box.getAttribute("data-lb-src") + " ").indexOf(" " + src + " ") < 0;
       });
       row.querySelectorAll("option[data-lb-opt]").forEach(function (opt) {
         var ok = (" " + opt.getAttribute("data-lb-opt") + " ").indexOf(" " + src + " ") >= 0;
         opt.hidden = !ok;
-        if (!ok && opt.selected) opt.parentNode.value = "";
+      });
+      // Выбранный пункт скрыт (чужой источник) — ВИДИМЫЙ пустой пункт («как у
+      // источника»), иначе первый видимый. Просто `value = ""` выбрал бы первый
+      // пункт с пустым значением, а у сортировки пустой пункт свой у каждого
+      // источника — мог оказаться чужим и скрытым. «Первый видимый» без поиска
+      // пустого (стенд LB-3d-1): у услуг первым стоит общий «Preis aufsteigend»
+      // (пункты сводятся по подписи), и смена источника туда-обратно молча
+      // меняла сортировку блока.
+      row.querySelectorAll("select").forEach(function (sel) {
+        var cur = sel.options[sel.selectedIndex];
+        if (!cur || !cur.hidden) return;
+        var first = -1;
+        for (var i = 0; i < sel.options.length; i++) {
+          if (sel.options[i].hidden) continue;
+          if (sel.options[i].value === "") { first = i; break; }
+          if (first < 0) first = i;
+        }
+        if (first >= 0) sel.selectedIndex = first;
       });
       var outSel = row.querySelector("[data-lb-out]");
       var speed = row.querySelector("[data-lb-speed]");

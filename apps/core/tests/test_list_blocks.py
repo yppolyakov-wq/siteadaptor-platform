@@ -502,15 +502,23 @@ def test_sort_keys_are_the_providers_own():
 
 
 def test_editor_options_are_marked_with_their_source():
+    """Пункты селекторов помечены источниками. LB-3d (осознанная переписка): формы
+    карточки PRODUCT теперь и у услуг/номеров/событий, а строки сортировок сведены по
+    паре (ключ, подпись) — пустой пункт у каждого источника свой."""
     from apps.core import list_blocks
 
     cards = {key: srcs.split() for key, _label, srcs in list_blocks.card_options()}
-    assert cards["coupon"] == ["promotions"] and cards["overlay"] == ["products"]
-    assert sorted(cards["regal"]) == ["products", "promotions"]
-    sorts = {key: srcs.split() for key, _label, srcs in list_blocks.sort_options()}
-    assert sorted(sorts[""]) == ["products", "promotions"]  # «новые первыми» у обоих
-    assert sorts["rabatt"] == ["promotions"] and sorts["price_asc"] == ["products"]
-    assert sorts["featured"] == ["products"]
+    assert cards["coupon"] == ["promotions"]
+    assert sorted(cards["overlay"]) == ["events", "products", "services", "stays"]
+    assert {"products", "promotions"} <= set(cards["regal"])
+    by_source: dict[str, set] = {}
+    for key, _label, srcs in list_blocks.sort_options():
+        for src in srcs.split():
+            by_source.setdefault(src, set()).add(key)
+    assert "" in by_source["products"] and "" in by_source["promotions"]
+    assert "rabatt" in by_source["promotions"] and "rabatt" not in by_source["products"]
+    assert "price_asc" in by_source["products"] and "price_asc" not in by_source["promotions"]
+    assert "featured" in by_source["products"] and "featured" not in by_source["services"]
 
 
 def _builder_html(tenant):

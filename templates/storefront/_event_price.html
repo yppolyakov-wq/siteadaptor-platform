@@ -1,0 +1,3 @@
+{% load i18n %}{% comment %}LB-3d: цена события одной строкой — «ab» по тирам, иначе цена, иначе «Free»
+(как у богатой карточки листинга). Общая для веток события в `_sellable_card.html`.
+Ожидает `e`.{% endcomment %}{% if e.has_tiers %}{% blocktrans with p=e.from_price_eur|floatformat:2 %}from {{ p }} €{% endblocktrans %}{% elif e.price_cents %}{% blocktrans with p=e.price_eur|floatformat:2 %}{{ p }} €{% endblocktrans %}{% else %}{% trans "Free" %}{% endif %}

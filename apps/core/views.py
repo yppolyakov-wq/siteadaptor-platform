@@ -420,6 +420,8 @@ _LIST_BLOCK_FIELDS = (
     "endet",
     "rabatt",
     "category",
+    "collection",
+    "event_category",
     "only",
     "sort",
     "limit",
@@ -594,6 +596,76 @@ def _list_categories_for_blocks(request):
     return out
 
 
+def _list_sources_for_blocks(request):
+    """LB-3d: [(ключ, подпись)] источников блока «Liste» с включённым модулем.
+
+    Источник выключенного модуля не предлагаем (правило STU-9 — не обещать пустого);
+    источник самого блока остаётся выбранным, даже если модуль выключили (W0) —
+    его добавляет `list_blocks.editor_options`.
+    """
+    from apps.tenants import siteconfig
+
+    tenant = getattr(request, "tenant", None)
+    out = []
+    for key, spec in siteconfig.LIST_SOURCES.items():
+        try:
+            active = bool(tenant and tenant.is_module_active(spec["module"]))
+        except Exception:  # noqa: BLE001
+            active = False
+        if active:
+            out.append((key, str(spec["label"])))
+    return out
+
+
+def _list_collections_for_blocks(request):
+    """LB-3d: [(слаг, подпись, источники)] активных подборок для фильтра блока «Liste».
+
+    Источники — где в подборке что-то есть (товары / услуги / номера): пункт виден
+    только у них, как сортировки и формы карточки. Fail-safe: пустой список.
+    """
+    from django.utils.translation import get_language
+
+    try:
+        from apps.collections.models import Collection
+
+        active = Collection.objects.filter(is_active=True)
+        # кто в какой подборке — три запроса на весь список, а не три на подборку
+        members = {
+            source: set(
+                active.filter(**{relation + "__isnull": False})
+                .values_list("pk", flat=True)
+                .distinct()
+            )
+            for source, relation in (
+                ("products", "products"),
+                ("services", "services"),
+                ("stays", "stay_units"),
+            )
+        }
+        locale = get_language()
+        out = []
+        for col in active.order_by("sort_order", "name"):
+            srcs = [source for source, ids in members.items() if col.pk in ids]
+            if srcs:
+                out.append((col.slug, col.name_localized(locale), " ".join(srcs)))
+        return out
+    except Exception:  # noqa: BLE001
+        return []
+
+
+def _event_categories_for_blocks(request):
+    """LB-3d: [(ключ, подпись)] тем предстоящих событий — пресет таксономии в его
+    порядке, затем свои категории владельца (MX-6), как фильтр «Thema» листинга."""
+    try:
+        if not request.tenant.is_module_active("events"):
+            return []
+        from apps.events import listing, public_views
+
+        return public_views._event_facets(listing.upcoming_events())["cat"]
+    except Exception:  # noqa: BLE001
+        return []
+
+
 def _cblock_row_lists(request) -> dict:
     """Селекторы строки C-блока — ОДИН набор для формы билдера и для строки, вставленной
     без перезагрузки (`_add_block_fetch_response`). Раньше списки перечислялись в двух
@@ -608,6 +680,10 @@ def _cblock_row_lists(request) -> dict:
         "promo_style_options": _promo_style_options(),
         # LB-1: категории для фильтра товаров блока «Liste».
         "list_categories_for_blocks": _list_categories_for_blocks(request),
+        # LB-3d: источники по включённым модулям, подборки и темы событий.
+        "list_sources_for_blocks": _list_sources_for_blocks(request),
+        "list_collections_for_blocks": _list_collections_for_blocks(request),
+        "event_categories_for_blocks": _event_categories_for_blocks(request),
     }
 
 

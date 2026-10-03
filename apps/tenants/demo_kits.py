@@ -3542,6 +3542,15 @@ HOTEL = DemoKit(
         ("Mit Seeblick", {"stay_units": [0]}),
         ("Familienzimmer", {"stay_units": [2, 3]}),
     ],
+    # LB-3d: блок «Liste» с номерами — подборка «Familienzimmer» лентой под всеми
+    # номерами (заголовок — имя подборки, «Alle →» ведёт на /unterkunft/ с фильтром).
+    home_blocks=[
+        {
+            "after": "stay_rooms",
+            "key": "list",
+            "data": {"source": "stays", "collection": "familienzimmer", "out": "slider"},
+        },
+    ],
     rate_plans=[  # H1: тарифы для всех номеров (гость выбирает при брони)
         {
             "name": "Basistarif",
@@ -9479,6 +9488,14 @@ FRISEUR = DemoKit(
         ("Herren", {"services": [1, 5]}),
         ("Färben & Pflege", {"services": [2, 3, 4]}),
     ],
+    # LB-3d: блок «Liste» с услугами — подборка «Färben & Pflege» после всех услуг.
+    home_blocks=[
+        {
+            "after": "services",
+            "key": "list",
+            "data": {"source": "services", "collection": "farben-pflege"},
+        },
+    ],
     service_reviews=[
         (
             0,
@@ -11445,6 +11462,14 @@ RETREAT = DemoKit(
     seed_records=True,
     menus=RETREAT_MENUS,
     page_layouts={"events": "cols2"},  # RV3: грид крупных обложек на индексе ретритов
+    # LB-3d: блок «Liste» с событиями одной темы — «Achtsamkeit» после всех событий.
+    home_blocks=[
+        {
+            "after": "events",
+            "key": "list",
+            "data": {"source": "events", "event_category": "achtsamkeit"},
+        },
+    ],
     archetype_covers={
         "events": {
             "intro": "Wochenend-Retreats, Tagesworkshops und Achtsamkeits-Abende — mit Programm.",

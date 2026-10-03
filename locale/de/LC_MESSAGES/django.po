@@ -22730,3 +22730,21 @@ msgstr "Prospekt (Blöcke)"
 
 msgid "Seitenaufbau"
 msgstr "Seitenaufbau"
+
+msgid "Alle Themen"
+msgstr "Alle Themen"
+
+msgid "In den nächsten 14 Tagen"
+msgstr "In den nächsten 14 Tagen"
+
+msgid "Nur Video-Beratung"
+msgstr "Nur Video-Beratung"
+
+msgid "Sammlung"
+msgstr "Sammlung"
+
+msgid "Thema"
+msgstr "Thema"
+
+msgid "derzeit aus"
+msgstr "derzeit aus"

@@ -26,16 +26,33 @@ from django.utils.translation import gettext_lazy
 from apps.core import card_forms
 from apps.tenants import siteconfig
 
-# Вид без каких-либо настроек — как у одноимённой секции главной (3 и 4 колонки).
+# Вид без каких-либо настроек — как у одноимённой секции главной.
 _DEFAULTS = {
     "promotions": siteconfig.GRID_SECTION_DEFAULTS["promotions"],
     "products": siteconfig.GRID_SECTION_DEFAULTS["products"],
+    "services": siteconfig.GRID_SECTION_DEFAULTS["services"],
+    "stays": siteconfig.GRID_SECTION_DEFAULTS["stay_rooms"],
+    "events": siteconfig.GRID_SECTION_DEFAULTS["events"],
+}
+# LB-3d: раскладка страницы-листинга источника — слой «page» наследования вида, и
+# его порядок по умолчанию (дефолт сортировки владельца, STU-15c).
+_PAGE_LAYOUT_KEYS = {
+    "services": "service_index_layout",
+    "stays": "stay_index_layout",
+    "events": "events_index_layout",
+}
+_PAGE_SORT_KEYS = {"services": "services_sort", "stays": "stays_sort", "events": "events_sort"}
+# Листинг источника — цель «Alle N →» (с теми же параметрами, что понимает его тулбар).
+_LISTING_URLS = {
+    "services": "storefront-termin",
+    "stays": "storefront-unterkunft",
+    "events": "storefront-events",
 }
 
 
 # Модуль, без которого источник не показывается: у выключенных акций нет ни страницы
 # `/aktionen/`, ни карточек — блок с ними вёл бы в 404 (урок hero-плиток «Deals»).
-SOURCE_MODULES = {"promotions": "promotions", "products": "catalog"}
+SOURCE_MODULES = {key: spec["module"] for key, spec in siteconfig.LIST_SOURCES.items()}
 
 
 _DEAL_MAX_COLS = 2  # «Deal» шириной меньше ~28rem нечитаем (см. effective_view)
@@ -85,6 +102,22 @@ def base_view(cfg: dict, data: dict) -> dict:
         layout = siteconfig.normalize_layout(None, _DEFAULTS[source])
         return {"layout": layout, "card": card, "layout_from": "default", "card_from": card_from}
     card = site_defaults.get("card_style", "")
+    if source in _PAGE_LAYOUT_KEYS:
+        # LB-3d: вид страницы-листинга источника — только если владелец его менял.
+        # Нетронутая страница событий — это список в одну колонку (пресет `list`),
+        # а блок — витрина: без выбора владельца он берёт вид секции главной.
+        # Прайс-виды услуг (`preisliste*`, MEN-18) — не сетка: их блок не наследует.
+        key = _PAGE_LAYOUT_KEYS[source]
+        page = cfg.get(key)
+        if (
+            isinstance(page, dict)
+            and page.get("preset") in siteconfig.LAYOUT_PRESETS
+            and not siteconfig.layout_is_untouched(page, key)
+        ):
+            layout = siteconfig.normalize_layout(page, _DEFAULTS[source])
+            return {"layout": layout, "card": card, "layout_from": "page", "card_from": "site"}
+        layout = siteconfig.normalize_layout(None, _DEFAULTS[source])
+        return {"layout": layout, "card": card, "layout_from": "default", "card_from": "site"}
     catalog = cfg.get("catalog_layout")
     # Прайс-виды каталога (`preisliste*`) — не сетка: блок их не наследует.
     if isinstance(catalog, dict) and catalog.get("preset") in siteconfig.LAYOUT_PRESETS:
@@ -198,6 +231,8 @@ def _products(data: dict, limit: int):
     params = {}
     if data.get("category"):
         params["kategorie"] = data["category"]
+    if data.get("collection"):
+        params["kollektion"] = data["collection"]
     only = data.get("only")
     if only == "sale":
         params["sale"] = "1"
@@ -229,6 +264,65 @@ def _products(data: dict, limit: int):
     return shown, total
 
 
+def _page_sort(cfg: dict, source: str) -> str:
+    """Порядок страницы-листинга источника по умолчанию (дефолт владельца, STU-15c).
+
+    Пустая сортировка блока = то, что покажет его «Alle N →» без `?sort=`.
+    """
+    key = _PAGE_SORT_KEYS.get(source)
+    value = (cfg or {}).get(key) if key else ""
+    return value if key and value in siteconfig.listing_sort_keys(key) else ""
+
+
+def _services(data: dict, limit: int, cfg: dict):
+    """LB-3d: услуги — тот же фильтрующий слой, что у `/termin/` (ServiceFacets)."""
+    from apps.booking.facets import ServiceFacets
+    from apps.booking.models import Service
+
+    provider = ServiceFacets()
+    params = {
+        "kollektion": data.get("collection", ""),
+        "video": "1" if data.get("only") == "video" else "",
+    }
+    items = provider.apply(Service.objects.filter(is_active=True), params)
+    items = provider.sort(items, data.get("sort") or _page_sort(cfg, "services"))
+    return _cut(items, limit)
+
+
+def _stays(data: dict, limit: int, cfg: dict):
+    """LB-3d: номера — обзорные карточки «ab X € / Nacht», как главная и `/unterkunft/`
+    без дат. Поиск по датам (наличие, цена диапазона) — дело страницы номера: у
+    движка он стоит несколько запросов на номер."""
+    from apps.stays.facets import StayDateFacets
+    from apps.stays.models import StayUnit
+
+    provider = StayDateFacets()
+    items = provider.apply(
+        StayUnit.objects.filter(is_active=True), {"kollektion": data.get("collection", "")}
+    )
+    items = provider.sort(items, data.get("sort") or _page_sort(cfg, "stays"))
+    return _cut(items, limit)
+
+
+def _events(data: dict, limit: int, cfg: dict):
+    """LB-3d: события — та же выдача, что у `/veranstaltung/` (`events/listing.py`):
+    будущие опубликованные, фильтр провайдера, сортировка, серия одной карточкой."""
+    from apps.events import listing
+    from apps.events.facets import EventFacets
+
+    provider = EventFacets()
+    items = listing.upcoming_events()
+    if data.get("event_category"):
+        items = provider.apply(items, {"cat": data["event_category"]})
+    if data.get("only") == "soon":
+        items = [e for e in items if listing.starts_within(e)]
+    items = provider.sort(items, data.get("sort") or _page_sort(cfg, "events"))
+    shown, total = _cut(listing.group_dates(items), limit)
+    listing.annotate_countdown(shown)
+    listing.attach_seat_counts(shown)
+    return shown, total
+
+
 def _cut(items, limit: int):
     """Первые `limit` и сколько всего; COUNT — только когда показаны не все."""
     if isinstance(items, list):
@@ -252,12 +346,26 @@ def _all_url(data: dict) -> str:
         if data.get("sort"):
             params["sort"] = data["sort"]
         base = reverse("storefront-aktionen")
+    elif source in _LISTING_URLS:
+        # LB-3d: листинг источника с ТЕМИ ЖЕ параметрами, что понимает его тулбар.
+        # Без явной сортировки страница сама применит дефолт владельца.
+        base = reverse(_LISTING_URLS[source])
+        if data.get("collection"):
+            params["kollektion"] = data["collection"]
+        if data.get("event_category"):
+            params["cat"] = data["event_category"]
+        if data.get("only") == "video":
+            params["video"] = "1"
+        if data.get("sort"):
+            params["sort"] = data["sort"]
     else:
         base = (
             reverse("storefront-category", args=[data["category"]])
             if data.get("category")
             else reverse("storefront-products")
         )
+        if data.get("collection"):
+            params["kollektion"] = data["collection"]
         only = data.get("only")
         if only == "sale":
             params["sale"] = "1"
@@ -269,11 +377,37 @@ def _all_url(data: dict) -> str:
     return base + ("?" + urlencode(params) if params else "")
 
 
+def _collection_label(slug: str) -> str:
+    """Имя подборки на языке витрины; пусто — подборки нет (или она выключена)."""
+    from django.utils.translation import get_language
+
+    from apps.collections.models import Collection
+
+    found = Collection.objects.filter(slug=slug, is_active=True).first()
+    return found.name_localized(get_language()) if found else ""
+
+
 def _label(data: dict, items) -> str:
     """Заголовок: свой у блока, иначе по выборке (тип, фильтр, категория)."""
     if data.get("title"):
         return data["title"]
-    if _source(data) == "promotions":
+    source = _source(data)
+    if source in _LISTING_URLS:
+        # LB-3d: подборка или тема говорят больше общего названия источника
+        if data.get("collection"):
+            named = _collection_label(data["collection"])
+            if named:
+                return named
+        if data.get("event_category"):
+            from apps.events import taxonomy
+
+            return taxonomy.category_label(data["event_category"]) or data["event_category"]
+        if data.get("only") == "video":
+            return _("Video-Beratung")
+        if data.get("only") == "soon":
+            return _("In den nächsten 14 Tagen")
+        return str(siteconfig.LIST_SOURCES[source]["label"])
+    if source == "promotions":
         soon = _("Demnächst")
         if data.get("type"):
             from apps.promotions import promo_types
@@ -296,6 +430,10 @@ def _label(data: dict, items) -> str:
         parent = getattr(cat, "parent", None) if cat is not None else None
         if parent is not None and getattr(parent, "slug", "") == data["category"]:
             return str(parent)
+    if data.get("collection"):
+        named = _collection_label(data["collection"])
+        if named:
+            return named
     only = data.get("only")
     if only == "featured" or data.get("sort") == "featured":
         return _("Empfehlungen")
@@ -308,15 +446,23 @@ def _label(data: dict, items) -> str:
     return _("Produkte")
 
 
+# LB-3d: выборка источника — одно место на источник (раньше всё, что не «products»,
+# молча уходило в ветку акций).
+_FETCHERS = {
+    "promotions": lambda data, limit, cfg: _promotions(data, limit),
+    "products": lambda data, limit, cfg: _products(data, limit),
+    "services": _services,
+    "stays": _stays,
+    "events": _events,
+}
+
+
 def resolve(cfg: dict, data: dict) -> dict:
     """Всё, что нужно разметке блока: карточки + вид + заголовок + «Alle N →»."""
     data = data or {}
     source = _source(data)
     view = effective_view(cfg, data)
-    if source == "products":
-        items, total = _products(data, view["limit"])
-    else:
-        items, total = _promotions(data, view["limit"])
+    items, total = _FETCHERS[source](data, view["limit"], cfg)
     # LB-3: «Demnächst» — карточки-превью («ab <дата>», без счётчика и покупки) и без
     # «Alle N →»: страницы будущих акций нет.
     preview = source == "promotions" and data.get("phase") == "upcoming"
@@ -455,27 +601,38 @@ def view_hint(cfg: dict, data: dict) -> dict:
         "card": str(card_forms.label_for(base["card"], kind) or _("Standard")),
         "limit": siteconfig.LIST_LIMIT_DEFAULT,
         "discounts": DISCOUNT_PRESETS,
-        "sorts": sort_options(),
+        "sorts": sort_options(cfg),
         "cards": card_options(),
+        "source_label": str(siteconfig.LIST_SOURCES[source]["label"]),
     }
 
 
-def sort_options() -> list[tuple[str, str, str]]:
+def sort_options(cfg: dict | None = None) -> list[tuple[str, str, str]]:
     """[(ключ, подпись, источники)] сортировок — подписи у провайдеров фасетов, те же,
-    что видит посетитель на витрине. Сортировка провайдера по умолчанию = пустой ключ."""
+    что видит посетитель на витрине. Сортировка провайдера по умолчанию = пустой ключ.
+
+    LB-3d: строки сводятся по паре (ключ, подпись), а не по ключу: пустой пункт значит
+    у каждого источника СВОЁ («новые» у акций, «по имени» у услуг, «по дате» у событий),
+    и общая подпись соврала бы. Если у страницы источника есть порядок владельца,
+    пустой пункт так и подписан — «wie die Seite: …», как пустые оси вида.
+    """
     from apps.core.facets import provider_for
 
-    merged: dict[str, list] = {}
+    merged: dict[tuple[str, str], list] = {}
     for source, spec in siteconfig.LIST_SOURCES.items():
         provider = provider_for(spec["facets"])
         options = list(provider.sort_options())
         if source == "products":
             options.insert(1, ("featured", _("Empfohlene zuerst")))
+        labels = {key: str(label) for key, label in options}
+        page = _page_sort(cfg, source) if cfg else ""
         for key, label in options:
             key = "" if key == provider.default_sort else key
-            row = merged.setdefault(key, [str(label), []])
-            row[1].append(source)
-    return [(key, label, " ".join(srcs)) for key, (label, srcs) in merged.items()]
+            label = str(label)
+            if key == "" and page:
+                label = f"{_FROM_LABELS['page']}: {labels.get(page, page)}"
+            merged.setdefault((key, label), []).append(source)
+    return [(key, label, " ".join(srcs)) for (key, label), srcs in merged.items()]
 
 
 def card_options() -> list[tuple[str, str, str]]:
@@ -639,7 +796,9 @@ def type_views(cfg: dict, keys=()) -> dict:
     }
 
 
-def editor_options(data: dict, live_types=None, categories=None) -> dict:
+def editor_options(
+    data: dict, live_types=None, categories=None, sources=None, collections=None, themes=None
+) -> dict:
     """Пункты селекторов строки, которых нет в живых списках (класс W0).
 
     Селектор типа строится из ЖИВЫХ типов, категорий — из активных. Без своего пункта
@@ -664,4 +823,23 @@ def editor_options(data: dict, live_types=None, categories=None) -> dict:
     if category and category not in {slug for slug, _label in (categories or [])}:
         gone = _("nicht verfügbar")
         out["orphan_category"] = (category, f"{category} ({gone})")
+    # LB-3d: источник выключенного модуля, удалённая подборка, тема без событий —
+    # значение блока остаётся в селекторе выбранным (иначе Save молча сменил бы его
+    # на первый пункт: блок номеров стал бы блоком акций).
+    source = _source(data)
+    if sources is not None and source not in {key for key, _label in sources}:
+        off = _("derzeit aus")
+        label = siteconfig.LIST_SOURCES[source]["label"]
+        out["orphan_source"] = (source, f"{label} ({off})")
+    collection = str(data.get("collection") or "")
+    if collection and collection not in {row[0] for row in (collections or [])}:
+        gone = _("nicht verfügbar")
+        out["orphan_collection"] = (collection, f"{collection} ({gone})", source)
+    theme = str(data.get("event_category") or "")
+    if theme and theme not in {key for key, _label in (themes or [])}:
+        empty = _("derzeit leer")
+        from apps.events import taxonomy
+
+        named = taxonomy.category_label(theme) or theme
+        out["orphan_theme"] = (theme, f"{named} ({empty})")
     return out

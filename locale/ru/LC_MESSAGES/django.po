@@ -22923,3 +22923,21 @@ msgstr "Проспект (блоки)"
 
 msgid "Seitenaufbau"
 msgstr "Структура страницы"
+
+msgid "Alle Themen"
+msgstr "Все темы"
+
+msgid "In den nächsten 14 Tagen"
+msgstr "В ближайшие 14 дней"
+
+msgid "Nur Video-Beratung"
+msgstr "Только видеоконсультации"
+
+msgid "Sammlung"
+msgstr "Подборка"
+
+msgid "Thema"
+msgstr "Тема"
+
+msgid "derzeit aus"
+msgstr "сейчас выключен"

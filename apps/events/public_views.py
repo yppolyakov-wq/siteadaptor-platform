@@ -36,11 +36,11 @@ def _require_events_active(request):
 
 def veranstaltung_index(request):
     _require_events_active(request)
-    base = list(
-        Event.objects.filter(status=Event.STATUS_PUBLISHED, starts_at__gte=timezone.now())
-        .prefetch_related("teachers")
-        .order_by("starts_at")
-    )
+    # LB-3d: выборка, свёртка серий, отсчёт и места — общие с блоком «Liste»
+    # (`events/listing.py`), чтобы две выдачи не разъехались.
+    from . import listing
+
+    base = listing.upcoming_events()
     # UB2-1: фасеты — через единый FacetProvider (делегирует _event_facets/_event_matches).
     from apps.core import facets as facets_registry
 
@@ -61,39 +61,13 @@ def veranstaltung_index(request):
         else ""
     )
     events = provider.sort(provider.search(events, q), sort)
-    # 6c: серия/заезды тура — ОДНОЙ карточкой (владелец: «одинаковые, разные
-    # даты — группируем»). Представитель группы = первый в ТЕКУЩЕМ порядке
-    # (дефолт по дате → ближайший; пользовательский сорт уважается); остальные
-    # даты — бейдж «+N Termine». Обычные события (без tour/series) не тронуты.
-    grouped, seen_groups = [], {}
-    for e in events:
-        gkey = (
-            ("tour", e.tour_id) if e.tour_id else (("series", e.series_id) if e.series_id else None)
-        )
-        if gkey is None:
-            grouped.append(e)
-            continue
-        if gkey in seen_groups:
-            seen_groups[gkey].more_dates += 1
-        else:
-            e.more_dates = 0
-            seen_groups[gkey] = e
-            grouped.append(e)
-    events = grouped
+    # 6c: серия/заезды тура — ОДНОЙ карточкой «+N Termine» (listing.group_dates).
+    events = listing.group_dates(events)
     active_filters = any(selected.values()) or bool(q)
-    # RV3: компактный отсчёт до старта (urgency-пилюля на карточке/гриде). Событие
-    # «скоро» (≤14 дней) получает метку Heute/Morgen/In N Tagen — конверсионный сигнал.
-    _today = timezone.localtime(timezone.now()).date()
-    for e in events:
-        _days = (timezone.localtime(e.starts_at).date() - _today).days
-        e.starts_soon = 0 <= _days <= 14
-        e.countdown_label = (
-            _("Today")
-            if _days <= 0
-            else _("Tomorrow")
-            if _days == 1
-            else _("In %(n)d days") % {"n": _days}
-        )
+    # RV3: компактный отсчёт до старта (urgency-пилюля на карточке/гриде).
+    listing.annotate_countdown(events)
+    # LB-3d: места — одним запросом на выдачу (карточка спрашивает их 3–5 раз).
+    listing.attach_seat_counts(events)
     # M20U-3: на маленькой витрине (≤ порога событий) фильтры — лишний шум.
     # Показываем панель фильтров, только если событий достаточно или фильтр уже
     # применён. Иначе — чистый список (анти-Битрикс простота).

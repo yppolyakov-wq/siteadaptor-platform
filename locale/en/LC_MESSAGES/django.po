@@ -22692,3 +22692,21 @@ msgstr "Flyer (blocks)"
 
 msgid "Seitenaufbau"
 msgstr "Page structure"
+
+msgid "Alle Themen"
+msgstr "All topics"
+
+msgid "In den nächsten 14 Tagen"
+msgstr "In the next 14 days"
+
+msgid "Nur Video-Beratung"
+msgstr "Video consultations only"
+
+msgid "Sammlung"
+msgstr "Collection"
+
+msgid "Thema"
+msgstr "Topic"
+
+msgid "derzeit aus"
+msgstr "currently off"

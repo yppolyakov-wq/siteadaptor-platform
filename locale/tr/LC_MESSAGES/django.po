@@ -22819,3 +22819,21 @@ msgstr "Broşür (bloklar)"
 
 msgid "Seitenaufbau"
 msgstr "Sayfa yapısı"
+
+msgid "Alle Themen"
+msgstr "Tüm konular"
+
+msgid "In den nächsten 14 Tagen"
+msgstr "Önümüzdeki 14 gün"
+
+msgid "Nur Video-Beratung"
+msgstr "Yalnızca görüntülü danışmanlık"
+
+msgid "Sammlung"
+msgstr "Koleksiyon"
+
+msgid "Thema"
+msgstr "Konu"
+
+msgid "derzeit aus"
+msgstr "şu anda kapalı"
