@@ -15,6 +15,8 @@ from django.utils.translation import gettext_lazy as _
 # host -> {"prefix": префикс id посеянных блоков, "presets": (пресеты…)}
 # Пресет: key/label/icon/blocks[(kind, data)]/flat{ключ: значение}/
 # recommended_for (business_type; пусто = нейтрален, порядок не меняется).
+# LB-3b: above=True — блоки встают НАД основным списком страницы (маркер LB-2);
+# per_type=True — плюс по блоку «Liste» на каждую живую рубрику акций.
 PAGE_PRESETS = {
     # «Über uns» — переезд _ABOUT_PRESETS (AB6.10); префикс pb-about- сохранён,
     # чтобы уже посеянные мастером конфиги узнавались как «текущий пресет».
@@ -139,6 +141,49 @@ PAGE_PRESETS = {
 }
 
 
+# LB-3b (план docs/lb-list-blocks-plan-2026-10-02.md §12.6, решение Р-5 (а)):
+# страница акций — обзор блоками. «Prospekt» один раз раскладывает встроенный обзор в
+# блоки, которые владелец дальше настраивает по одному: «Endet heute» лентой,
+# «Demnächst», по блоку на каждую живую рубрику — всё над основным списком; в нём
+# остаётся «всё, что выше не показано» (N-3). Заголовков у блоков нет намеренно:
+# подпись берётся по выборке и переводится (рубрика — своим переводом владельца).
+# «Standard» забирает назад только блоки пресета.
+PAGE_PRESETS["promos"] = {
+    "prefix": "pb-promos-",
+    "presets": (
+        {"key": "standard", "label": _("Standard-Übersicht"), "icon": "🗂️", "blocks": ()},
+        {
+            "key": "prospekt",
+            "label": _("Prospekt (Blöcke)"),
+            "icon": "📰",
+            "above": True,
+            "per_type": True,
+            "blocks": (
+                ("list", {"source": "promotions", "endet": "heute", "out": "slider"}),
+                ("list", {"source": "promotions", "phase": "upcoming"}),
+            ),
+        },
+    ),
+}
+
+
+def _live_rubrics() -> list[str]:
+    """Свои рубрики действующих акций — в порядке обзора (свежая первой)."""
+    from apps.promotions.models import Promotion
+
+    seen: list[str] = []
+    rows = (
+        Promotion.objects.filter(status="active")
+        .exclude(group="")
+        .order_by("-created_at")
+        .values_list("group", flat=True)
+    )
+    for group in rows:
+        if group not in seen:
+            seen.append(group)
+    return seen
+
+
 def presets_for(host, business_type=""):
     """Пресеты хоста, рекомендованные для business_type — первыми (паттерн
     template_cards): каждому даётся флаг `recommended` для бейджа в UI."""
@@ -167,6 +212,9 @@ def apply_page_preset(cfg, host, preset_id):
         for b in (pb.get(host) if isinstance(pb.get(host), list) else [])
         if not str((b or {}).get("id", "")).startswith(reg["prefix"])
     ]
+    specs = list(preset["blocks"])
+    if preset.get("per_type"):
+        specs += [("list", {"source": "promotions", "type": key}) for key in _live_rubrics()]
     seeded = [
         {
             "key": kind,
@@ -174,10 +222,20 @@ def apply_page_preset(cfg, host, preset_id):
             "enabled": True,
             "data": dict(data),
         }
-        for i, (kind, data) in enumerate(preset["blocks"], start=1)
+        for i, (kind, data) in enumerate(specs, start=1)
     ]
-    if keep + seeded:
-        pb[host] = keep + seeded
+    if preset.get("above"):
+        from apps.tenants import siteconfig
+
+        # LB-3b: над основным списком — блоки владельца, стоявшие над ним, остаются
+        # первыми; его блоки под списком — под ним (маркер LB-2 между частями).
+        above, below = siteconfig.split_at_main(keep)
+        head = above + seeded
+        rows = head + ([{"key": siteconfig.MAIN_LIST_KEY}] if head else []) + below
+    else:
+        rows = keep + seeded
+    if rows:
+        pb[host] = rows
     else:
         pb.pop(host, None)
     cfg["page_blocks"] = pb

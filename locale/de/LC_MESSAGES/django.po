@@ -22712,3 +22712,21 @@ msgstr "Blöcke davor stehen über der Liste, danach unter ihr. Wie die Liste au
 #: templates/tenant/site_home.html
 msgid "Block über der Liste einfügen"
 msgstr "Block über der Liste einfügen"
+
+msgid "Bereiche dieser Seite"
+msgstr "Bereiche dieser Seite"
+
+msgid "Suchen & filtern"
+msgstr "Suchen & filtern"
+
+msgid "Aktionstypen ohne eigenen Block:"
+msgstr "Aktionstypen ohne eigenen Block:"
+
+msgid "Standard-Übersicht"
+msgstr "Standard-Übersicht"
+
+msgid "Prospekt (Blöcke)"
+msgstr "Prospekt (Blöcke)"
+
+msgid "Seitenaufbau"
+msgstr "Seitenaufbau"

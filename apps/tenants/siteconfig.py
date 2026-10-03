@@ -197,6 +197,10 @@ LIST_SOURCES = {
 }
 LIST_SOURCE_DEFAULT = "promotions"  # легаси-блок PT-6 источника не знал
 LIST_PROMO_ENDS = ("heute", "woche")  # = чипы «Endet heute / diese Woche» /aktionen/
+# LB-3: «Demnächst» — запланированные акции с будущим стартом (как встроенная
+# «Vorschau» страницы акций). В редакторе — пункт селекта «Zeitraum» рядом с
+# «Endet …» (одно поле `endet`), в хранении — свой ключ `phase`.
+LIST_PHASES = ("upcoming",)
 LIST_PRODUCT_ONLY = ("featured", "sale", "available")
 # Сортировки сверх провайдера: «empfohlene zuerst» — порядок секции товаров главной.
 LIST_EXTRA_SORTS = {"products": ("featured",)}
@@ -245,11 +249,21 @@ def _clean_list_block(d: dict) -> dict:
         kind = _s(d.get("type"))[:_PROMO_GROUP_KEY_MAX]
         if kind:
             out["type"] = kind
-        if d.get("endet") in LIST_PROMO_ENDS:
-            out["endet"] = d["endet"]
-        rabatt = _int_in(d.get("rabatt"), 1, 100)
-        if rabatt in DISCOUNT_PRESETS:
-            out["rabatt"] = rabatt
+        # LB-3: «Demnächst» приходит из селекта «Zeitraum» значением `endet` (одно
+        # поле — приёмники Save/черновика не меняются) или ключом `phase` (пресеты,
+        # демо). У будущих акций нет ни срока «Endet …», ни покупки, поэтому
+        # фильтры срока и скидки у такого блока не хранятся — тип хранится.
+        phase = d.get("phase") if d.get("phase") in LIST_PHASES else ""
+        if not phase and d.get("endet") in LIST_PHASES:
+            phase = d["endet"]
+        if phase:
+            out["phase"] = phase
+        else:
+            if d.get("endet") in LIST_PROMO_ENDS:
+                out["endet"] = d["endet"]
+            rabatt = _int_in(d.get("rabatt"), 1, 100)
+            if rabatt in DISCOUNT_PRESETS:
+                out["rabatt"] = rabatt
     else:
         category = _s(d.get("category"))
         if category and _LIST_SLUG_RE.match(category):
@@ -257,7 +271,8 @@ def _clean_list_block(d: dict) -> dict:
         if d.get("only") in LIST_PRODUCT_ONLY:
             out["only"] = d["only"]
     sort = d.get("sort")
-    if isinstance(sort, str) and sort in list_sort_keys(source):
+    # у «Demnächst» порядок один — по старту (сортировки провайдера про скидку и срок)
+    if isinstance(sort, str) and sort in list_sort_keys(source) and "phase" not in out:
         out["sort"] = sort
     # «Höchstens 50» значит «как можно больше» — клампим к потолку, а не выбрасываем.
     limit = _clamp_int(d.get("limit"), 1, LIST_LIMIT_MAX)
@@ -2972,6 +2987,7 @@ NON_TRANSLATABLE_FIELDS = frozenset(
         # продолжила бы показывать прежнюю выборку.
         "source",
         "endet",
+        "phase",
         "category",
         "only",
         "sort",

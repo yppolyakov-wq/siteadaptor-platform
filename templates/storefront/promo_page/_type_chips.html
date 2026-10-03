@@ -1,0 +1,11 @@
+{% load i18n %}{% comment %}Чипы типов акций: «Alle» + своя рубрика/встроенный тип → страница типа (?gruppe=).
+LB-3: вынесены из promotions_list.html — тот же ряд стоит над списком (обычная страница)
+и в панели «Suchen & filtern» полосы прыжков (режим блоков).{% endcomment %}
+<div class="flex flex-wrap gap-2 mb-3">
+      <a href="{% url 'storefront-aktionen' %}"
+         class="px-3 py-1.5 rounded-full text-sm border {% if not selected_group %}bg-gray-900 text-white border-gray-900{% else %}border-gray-300 text-gray-600 hover:bg-gray-100{% endif %}">{% trans "All" %}</a>
+      {% for g, g_label in groups %}
+        <a href="{% url 'storefront-aktionen' %}?gruppe={{ g|urlencode }}"
+           class="px-3 py-1.5 rounded-full text-sm border {% if g == selected_group %}bg-gray-900 text-white border-gray-900{% else %}border-gray-300 text-gray-600 hover:bg-gray-100{% endif %}">{{ g_label }}</a>
+      {% endfor %}
+    </div>

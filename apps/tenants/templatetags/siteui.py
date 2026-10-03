@@ -287,7 +287,16 @@ def list_block(context, block):
     cfg = site if isinstance(site, dict) and "sections" in site else None
     if cfg is None:
         cfg = siteconfig.normalize(tenant.site_config)
-    return list_blocks.resolve(cfg, data)
+    # LB-3: та же выборка, что уже посчитала вьюха страницы акций (чипы Sprungleiste),
+    # — из кэша запроса, а не вторым набором запросов.
+    return list_blocks.resolve_for(request, cfg, data)
+
+
+def _is_promo_list(block) -> bool:
+    if siteconfig.cblock_type(block.get("key")) != "list":
+        return False
+    data = block.get("data") if isinstance(block.get("data"), dict) else {}
+    return (data.get("source") or siteconfig.LIST_SOURCE_DEFAULT) == "promotions"
 
 
 @register.simple_tag(takes_context=True)
@@ -319,6 +328,11 @@ def page_blocks(context, page_key, part="after"):
     above, below = siteconfig.split_at_main((site.get("page_blocks") or {}).get(page_key, []))
     before = part == "before"
     blocks = [b for b in (above if before else below) if b.get("enabled", True)]
+    if context.get("pb_hide_promo_lists"):
+        # LB-3 (план §12.4): на странице типа и в результатах поиска/фильтра блоки
+        # «Liste» с акциями — композиция ОБЗОРА: там они дублировали бы выдачу.
+        # Прочие блоки (текст, кнопка, товары) остаются, как раньше.
+        blocks = [b for b in blocks if not _is_promo_list(b)]
     is_preview = bool(context.get("is_preview"))
     if not blocks and (before or not is_preview):
         return ""

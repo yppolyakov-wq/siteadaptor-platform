@@ -22674,3 +22674,21 @@ msgstr "Blocks before it appear above the list, blocks after it below. How the l
 #: templates/tenant/site_home.html
 msgid "Block über der Liste einfügen"
 msgstr "Insert block above the list"
+
+msgid "Bereiche dieser Seite"
+msgstr "Sections on this page"
+
+msgid "Suchen & filtern"
+msgstr "Search & filter"
+
+msgid "Aktionstypen ohne eigenen Block:"
+msgstr "Offer types without their own block:"
+
+msgid "Standard-Übersicht"
+msgstr "Standard overview"
+
+msgid "Prospekt (Blöcke)"
+msgstr "Flyer (blocks)"
+
+msgid "Seitenaufbau"
+msgstr "Page structure"

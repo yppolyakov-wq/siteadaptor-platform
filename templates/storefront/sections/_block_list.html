@@ -11,11 +11,18 @@
 в превью редактора — пунктирный якорь, чтобы блок можно было выбрать.
 
 Маркеры прежнего блока «Aktionen eines Typs» (PT-6) сохранены — data-sf-promo-type и
-data-promo-strip: на них стоят замки и стенды.{% endcomment %}
+data-promo-strip: на них стоят замки и стенды.
+
+LB-3: `id="lb-<id блока>"` — цель чипа Sprungleiste страницы акций. Якорь на самой
+секции, а не на обёртке блока: у обёртки `display:contents` нет бокса, и прокрутка к
+ней не работает. «Demnächst» — карточки-превью (preview) без счётчика и покупки.
+На странице (тег page_blocks кладёт pb_page_key) блок идёт во всю ширину колонки
+страницы — свой контейнер `max-w-5xl` нужен только главной, где у секций нет общего;
+на листинге он сужал блоки относительно шапки и сетки самой страницы.{% endcomment %}
 {% list_block block as lb %}
 {% if lb.items %}
-<section class="my-8" data-sf-list="{{ lb.source }}"{% if lb.type %} data-sf-promo-type="{{ lb.type }}"{% endif %}>
-  <div class="max-w-5xl mx-auto px-4">
+<section{% if block_id %} id="lb-{{ block_id }}"{% endif %} class="my-8 scroll-mt-28" data-sf-list="{{ lb.source }}"{% if lb.type %} data-sf-promo-type="{{ lb.type }}"{% endif %}>
+  <div class="{% if not pb_page_key %}max-w-5xl mx-auto px-4{% endif %}">
     <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 mb-4">
       <h2 class="text-xl md:text-2xl font-bold">{{ lb.label }}</h2>
       {% if lb.more %}<a data-sf-list-all href="{{ lb.url }}" class="text-sm font-medium hover:underline whitespace-nowrap" style="color: var(--accent, #4f46e5);">{% blocktrans with n=lb.total %}Alle {{ n }}{% endblocktrans %} →</a>{% endif %}
@@ -23,14 +30,14 @@ data-promo-strip: на них стоят замки и стенды.{% endcommen
     {% if lb.intro %}<p class="-mt-2 mb-4 text-gray-600 whitespace-pre-line max-w-2xl">{{ lb.intro }}</p>{% endif %}
     <div data-grid="list"{% if lb.mode == "slider" and lb.source == "promotions" %} data-promo-strip{% endif %} class="{{ lb.grid }}" {% sf_grid_attrs lb.layout count=lb.items|length %}>
       {% for p in lb.items %}
-        {% if lb.source == "products" %}{% include "storefront/_product_card.html" with storefront_card_style=lb.card %}{% else %}{% include "storefront/_promo_card.html" with in_group=lb.in_group storefront_promo_card=lb.card %}{% endif %}
+        {% if lb.source == "products" %}{% include "storefront/_product_card.html" with storefront_card_style=lb.card %}{% else %}{% include "storefront/_promo_card.html" with in_group=lb.in_group storefront_promo_card=lb.card preview=lb.preview %}{% endif %}
       {% endfor %}
     </div>
   </div>
 </section>
 {% elif is_preview %}
 <section class="my-8" data-sf-list="{{ lb.source }}">
-  <div class="max-w-5xl mx-auto px-4">
+  <div class="{% if not pb_page_key %}max-w-5xl mx-auto px-4{% endif %}">
     <p class="rounded-2xl border border-dashed border-gray-300 p-6 text-sm text-gray-400">{% trans "Hier erscheint die Liste — sobald etwas zu den Einstellungen des Blocks passt." %}</p>
   </div>
 </section>

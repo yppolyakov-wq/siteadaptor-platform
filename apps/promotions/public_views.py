@@ -553,6 +553,52 @@ def _page_carry(request) -> str:
     return f"{encoded}&" if encoded else ""
 
 
+def _jump_chips(request, cfg, plan, ending_soon, upcoming_groups, grouped, rest_count):
+    """LB-3 (план §12.5): чипы Sprungleiste — разделы страницы в порядке показа.
+
+    Блоки над основным списком → «Ending soon» → «Vorschau» → секции остатка (или весь
+    остаток одним чипом, если секций нет) → блоки под списком. Блок, которому нечего
+    показать, на странице не рисуется — и чипа у него нет. Счётчик — сколько карточек
+    увидит посетитель, перейдя к разделу.
+    """
+    from apps.core import list_blocks
+
+    chips = []
+
+    def _blocks(rows):
+        for block in rows:
+            if not block.get("id"):
+                continue
+            lb = list_blocks.resolve_for(request, cfg, block["data"])
+            if lb["items"]:
+                chips.append(
+                    {"anchor": f"lb-{block['id']}", "label": lb["label"], "count": len(lb["items"])}
+                )
+
+    _blocks(plan["above"])
+    if ending_soon:
+        chips.append(
+            {"anchor": "aktionen-bald", "label": _("Ending soon"), "count": len(ending_soon)}
+        )
+    if upcoming_groups:
+        chips.append(
+            {
+                "anchor": "aktionen-vorschau",
+                "label": _("Demnächst"),
+                "count": sum(len(items) for _key, _label, items in upcoming_groups),
+            }
+        )
+    if grouped:
+        for i, (_key, label, items, _more, _out) in enumerate(grouped, start=1):
+            chips.append(
+                {"anchor": f"aktionen-{i}", "label": label or _("More offers"), "count": len(items)}
+            )
+    elif rest_count:
+        chips.append({"anchor": "aktionen-rest", "label": _("More offers"), "count": rest_count})
+    _blocks(plan["below"])
+    return chips
+
+
 def promotion_list(request):
     """Публичный список акций /aktionen/ (S6 → SF-2: рельсы U-B).
 
@@ -564,9 +610,10 @@ def promotion_list(request):
     from datetime import timedelta
 
     from django.utils import timezone
+    from django.utils.translation import get_language
 
     from apps.core import facets as facets_registry
-    from apps.core import modules
+    from apps.core import list_blocks, modules
     from apps.tenants import siteconfig
 
     from .facets import DISCOUNT_PRESETS
@@ -628,6 +675,21 @@ def promotion_list(request):
     has_filters = bool(
         selected or sel["endet"] or sel["rabatt"] or sel["reservierbar"] or q or sort
     )
+    # LB-3 (план §12): режим блоков — обзор без фильтров, на странице есть включённый
+    # блок «Liste» с акциями. Конфиг блоков — тот же, что у тега блоков страницы
+    # (черновик при ?preview=1, та же локализация): иначе кэш выборки (`resolve_for`)
+    # не совпал бы, и каждый блок считался бы дважды — для чипа и для рендера.
+    # Локализованная копия конфига строится только в режиме блоков.
+    lb_cfg, lb_plan = cfg, None
+    if not has_filters and list_blocks.overview_blocks(cfg)["active"]:
+        lb_cfg = siteconfig.localize(cfg, get_language())
+        lb_plan = list_blocks.overview_blocks(lb_cfg)
+    block_mode = lb_plan is not None
+    promo_count_all = len(promotions)
+    if block_mode and lb_plan["types"]:
+        # N-3: основной список в обзоре = остаток. Рубрика со своим блоком из него
+        # уходит; новая рубрика без блока появляется в остатке сама.
+        promotions = [p for p in promotions if (p.group or "") not in lb_plan["types"]]
 
     # Фидбэк 2026-07-29: группы акций (Wochenangebote/Räumung/…) — СЕКЦИЯМИ с
     # заголовками, а не только чипами-фильтрами (иначе типы акций не считывались).
@@ -640,6 +702,11 @@ def promotion_list(request):
     promo_grouping = _promo_grouping_for(request)
     if not has_filters and promo_grouping == "time":
         grouped = _time_groups(promotions, timezone.localtime())
+        if block_mode and lb_plan["ends"]:
+            # LB-3: бакет срока, который уже показывает блок «Endet …», не дублируем;
+            # фильтр «woche» (7 дней) включает и сегодняшние — гасит оба бакета.
+            gone = {"heute"} | ({"woche"} if "woche" in lb_plan["ends"] else set())
+            grouped = [g for g in grouped if g[0] not in gone]
     elif not has_filters and own_groups and page_style not in ("kompakt", "navigator", "magazin"):
         by_group: dict[str, list] = {}
         order: list[str] = []
@@ -735,7 +802,13 @@ def promotion_list(request):
     # SF-2: компактная полоса «⏳ Endet bald» над секциями — только на чистом
     # виде и только если есть чем наполнить (пустые секции не показываем).
     ending_soon = []
-    if not has_filters and not list_view:
+    # LB-3: «Ending soon» гасит блок «Endet …» без типа — но только когда ему есть
+    # что показать. Иначе в день без сегодняшних концов страница теряла бы выделение
+    # «скоро закончатся» целиком (у полосы окно шире — 3 дня).
+    ending_replaced = block_mode and any(
+        list_blocks.resolve_for(request, lb_cfg, b["data"])["items"] for b in lb_plan["ending"]
+    )
+    if not has_filters and not list_view and not ending_replaced:
         now = timezone.now()
         ending_soon = _attach_lowest_30d(
             base.filter(ends_at__gt=now, ends_at__lte=now + timedelta(days=3)).order_by("ends_at")[
@@ -747,7 +820,8 @@ def promotion_list(request):
     # Отдельным запросом (не в `base`): активные и будущие нельзя мешать в одной
     # выдаче — у будущих нет ни countdown, ни покупки, а фасеты «Endet …» им чужие.
     upcoming_groups = []
-    if not has_filters and not list_view:
+    # LB-3: «Vorschau» заменяет блок «Demnächst» без типа (та же выборка).
+    if not has_filters and not list_view and not (block_mode and lb_plan["upcoming"]):
         _now = timezone.now()
         upcoming = _attach_lowest_30d(
             Promotion.objects.filter(status="scheduled", starts_at__gt=_now)
@@ -862,6 +936,14 @@ def promotion_list(request):
         if _limit:
             promotions = promo_page.items
 
+    # LB-3 (N-1): Sprungleiste — чипы разделов страницы в их порядке. Нечего
+    # показывать (ни блоков с акциями, ни остатка) → полосы нет, страница прежняя.
+    rest_count = promo_page.total if promo_page else len(promotions)
+    promo_jump = (
+        _jump_chips(request, lb_cfg, lb_plan, ending_soon, upcoming_groups, grouped, rest_count)
+        if block_mode
+        else []
+    ) or None
     toolbar_hidden = [
         (k, v)
         for k, v in (
@@ -911,8 +993,11 @@ def promotion_list(request):
             "promo_hero": promo_hero,
             "promo_tabs": promo_tabs,
             "promo_head_photo": promo_head_photo,
-            "promo_total": (promo_page.total if promo_page else len(promotions))
-            + (1 if promo_hero else 0),
+            # LB-3: в режиме блоков основной список — лишь остаток; шапка страницы
+            # («N Angebote») считает ВСЕ акции, а не только оставшиеся в нём.
+            "promo_total": promo_count_all
+            if block_mode
+            else (promo_page.total if promo_page else len(promotions)) + (1 if promo_hero else 0),
             "promo_group_count": len(groups),
             "upcoming_columns": upcoming_columns,
             # DL-20: страница группы — заголовок и шаблон композиции.
@@ -930,6 +1015,11 @@ def promotion_list(request):
             "promo_page_qs": _page_carry(request),
             "list_view": list_view,  # DL-16.2 A4
             "ansicht_base_qs": ansicht_base_qs,
+            # LB-3: полоса прыжков (None — обычная страница), остаток основного
+            # списка и скрытие блоков «Liste» с акциями на странице типа/в результатах.
+            "promo_jump": promo_jump,
+            "promo_rest_count": rest_count,
+            "pb_hide_promo_lists": has_filters,
         },
     )
 

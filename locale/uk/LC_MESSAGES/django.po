@@ -22889,3 +22889,21 @@ msgstr "Блоки перед ним стоять над списком, піс�
 #: templates/tenant/site_home.html
 msgid "Block über der Liste einfügen"
 msgstr "Вставити блок над списком"
+
+msgid "Bereiche dieser Seite"
+msgstr "Розділи сторінки"
+
+msgid "Suchen & filtern"
+msgstr "Пошук і фільтри"
+
+msgid "Aktionstypen ohne eigenen Block:"
+msgstr "Типи акцій без власного блоку:"
+
+msgid "Standard-Übersicht"
+msgstr "Стандартний огляд"
+
+msgid "Prospekt (Blöcke)"
+msgstr "Проспект (блоки)"
+
+msgid "Seitenaufbau"
+msgstr "Структура сторінки"

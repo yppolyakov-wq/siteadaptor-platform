@@ -136,12 +136,37 @@ def effective_view(cfg: dict, data: dict) -> dict:
     }
 
 
+def _upcoming(data: dict, limit: int):
+    """LB-3: «Demnächst» — запланированные акции с будущим стартом, ближайшие первыми.
+
+    Та же выборка, что у встроенной «Vorschau» страницы акций (DL-17.4): активные и
+    будущие не смешиваются — у будущих нет ни счётчика, ни покупки, а фильтры «Endet
+    …» и «−N %+» им чужие. Тип сужает выборку, как везде (`?gruppe=`).
+    """
+    from django.utils import timezone
+
+    from apps.promotions import promo_types
+    from apps.promotions.models import Promotion
+    from apps.promotions.public_views import _attach_lowest_30d
+
+    items = (
+        Promotion.objects.filter(status="scheduled", starts_at__gt=timezone.now())
+        .select_related("product")
+        .order_by("starts_at")
+    )
+    items = promo_types.apply_type(items, data.get("type", ""))
+    shown, total = _cut(items, limit)
+    return _attach_lowest_30d(shown), total
+
+
 def _promotions(data: dict, limit: int):
     """Акции: тот же фильтрующий слой, что у `/aktionen/` (PromoFacets, SF-2)."""
     from apps.promotions.facets import PromoFacets
     from apps.promotions.models import Promotion
     from apps.promotions.public_views import _attach_lowest_30d
 
+    if data.get("phase") == "upcoming":
+        return _upcoming(data, limit)
     provider = PromoFacets()
     items = (
         Promotion.objects.filter(status="active").select_related("product").order_by("-created_at")
@@ -218,6 +243,8 @@ def _all_url(data: dict) -> str:
     """Где виден ВЕСЬ список с тем же фильтром (решение N-4: тип → страница типа)."""
     source = _source(data)
     params = {}
+    if source == "promotions" and data.get("phase") == "upcoming":
+        return ""  # LB-3: страницы «будущих акций» нет — и ссылке вести некуда
     if source == "promotions":
         for key, param in (("type", "gruppe"), ("endet", "endet"), ("rabatt", "rabatt")):
             if data.get(key):
@@ -247,11 +274,16 @@ def _label(data: dict, items) -> str:
     if data.get("title"):
         return data["title"]
     if _source(data) == "promotions":
+        soon = _("Demnächst")
         if data.get("type"):
             from apps.promotions import promo_types
 
             own = {p.group: p.group_localized for p in items if p.group}
-            return promo_types.label_for(data["type"], own)
+            label = promo_types.label_for(data["type"], own)
+            # gettext — вне f-строки: xgettext выражения f-строк не извлекает (I18N-13)
+            return f"{label} · {soon}" if data.get("phase") == "upcoming" else label
+        if data.get("phase") == "upcoming":
+            return soon
         if data.get("endet") == "heute":
             return _("Endet heute")
         if data.get("endet") == "woche":
@@ -285,11 +317,15 @@ def resolve(cfg: dict, data: dict) -> dict:
         items, total = _products(data, view["limit"])
     else:
         items, total = _promotions(data, view["limit"])
+    # LB-3: «Demnächst» — карточки-превью («ab <дата>», без счётчика и покупки) и без
+    # «Alle N →»: страницы будущих акций нет.
+    preview = source == "promotions" and data.get("phase") == "upcoming"
     return {
         "source": source,
         "items": items,
         "total": total,
-        "more": total > len(items),
+        "more": total > len(items) and not preview,
+        "preview": preview,
         "url": _all_url(data),
         "label": _label(data, items),
         "intro": data.get("intro", ""),
@@ -298,6 +334,90 @@ def resolve(cfg: dict, data: dict) -> dict:
         # смешанной выдачи она говорит, откуда акция (как в результатах, N-2)
         "in_group": bool(data.get("type")),
         **{k: view[k] for k in ("layout", "grid", "mode", "card")},
+    }
+
+
+def resolve_for(request, cfg: dict, data: dict) -> dict:
+    """`resolve` с кэшем на запрос: одна выборка на блок, сколько бы раз её ни спросили.
+
+    LB-3: чипам Sprungleiste страницы акций нужны подписи и счётчики блоков, а сами
+    блоки потом рисует тег `list_block`. Конфиг у них один (черновик при `?preview=1`,
+    та же локализация), поэтому ключом служат данные блока. Без `request` — без кэша.
+    """
+    import json
+
+    data = data or {}
+    try:
+        memo = request._list_block_memo
+    except AttributeError:
+        memo = {}
+        try:
+            request._list_block_memo = memo
+        except AttributeError:  # чужой объект без атрибутов — считаем без кэша
+            return resolve(cfg, data)
+    key = json.dumps(data, sort_keys=True, default=str)
+    if key not in memo:
+        memo[key] = resolve(cfg, data)
+    return memo[key]
+
+
+def _is_list(block) -> bool:
+    return (
+        isinstance(block, dict)
+        and block.get("enabled", True)
+        and siteconfig.cblock_type(block.get("key")) == "list"
+        and isinstance(block.get("data"), dict)
+    )
+
+
+def overview_blocks(cfg: dict) -> dict:
+    """LB-3: блоки «Liste» страницы акций и что из встроенного обзора они заменяют.
+
+    План §12.2/§12.8. Режим блоков включает ВКЛЮЧЁННЫЙ блок с акциями (над списком
+    или под ним); блок товаров его не включает. Встроенное гасит только РАВНОЗНАЧНЫЙ
+    блок — показывающий то же множество акций (лимит и сортировка не в счёт):
+
+    * `types` — рубрики, чья секция уходит из основного списка: блок «тип X» без
+      сужающих фильтров. Встроенные типы (`sys:*`) ничего не гасят — они пересекают
+      рубрики, и секций по ним нет;
+    * `ending` — блоки «Endet …» без типа: кандидаты погасить полосу «Ending soon»
+      (гасят, только если им есть что показать — решает вьюха по выдаче);
+    * `ends` — их значения (`heute`/`woche`): при группировке «по времени» гасят
+      бакеты срока;
+    * `upcoming` — есть блок «Demnächst» без типа: «Vorschau» не нужна.
+    """
+    from apps.promotions import promo_types
+
+    cfg = cfg or {}
+    rows = (cfg.get("page_blocks") or {}).get("promos") or []
+    above, below = siteconfig.split_at_main(rows)
+    above = [b for b in above if _is_list(b)]
+    below = [b for b in below if _is_list(b)]
+    types: set = set()
+    ending: list = []
+    upcoming = False
+    for block in above + below:
+        data = block["data"]
+        if _source(data) != "promotions":
+            continue
+        kind = str(data.get("type") or "")
+        if data.get("phase") == "upcoming":
+            upcoming = upcoming or not kind
+        elif kind:
+            narrowed = data.get("endet") or data.get("rabatt")
+            if not narrowed and not promo_types.is_builtin(kind):
+                types.add(kind)
+        elif data.get("endet"):
+            ending.append(block)
+    active = any(_source(b["data"]) == "promotions" for b in above + below)
+    return {
+        "active": active,
+        "above": above,
+        "below": below,
+        "types": types,
+        "ending": ending,
+        "ends": {b["data"]["endet"] for b in ending},
+        "upcoming": upcoming,
     }
 
 

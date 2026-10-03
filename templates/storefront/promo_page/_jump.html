@@ -1,0 +1,30 @@
+{% load i18n %}{% comment %}LB-3 (план §12.5, решение владельца N-1 (A)): Sprungleiste — липкая
+полоса под шапкой страницы акций в РЕЖИМЕ БЛОКОВ. Чипы — разделы страницы в порядке
+показа (блоки над списком → «Ending soon» → «Vorschau» → секции остатка → блоки под
+списком), подпись и число карточек считает вьюха (`_jump_chips`). Клик прокручивает к
+разделу, текущий подсвечивается при прокрутке (скрипт `_jump_script.html` — ВНЕ зоны
+fetch-свопа KAT-5). Без JS чипы — обычные якорные ссылки.
+
+Справа — «Suchen & filtern»: поиск и все фильтры обычной страницы (типы → страницы
+типов, «Endet heute», «−N %+»). Это вход в состояние «Результаты»; в режиме блоков над
+списком этих рядов нет — иначе на странице было бы две навигации по одним и тем же
+типам. `<details>` работает без JS. Активный чип отличают классы data-on/data-off:
+JS переключает их, а Tailwind видит классы в разметке и кладёт их в app.css.
+z-[15]: выше значков карточек (сердечко, 📷 — z-10), ниже шапки сайта с её меню (z-20).{% endcomment %}
+<nav data-promo-jump class="sticky top-0 z-[15] mb-4 py-2 bg-white/95 backdrop-blur" aria-label="{% trans 'Bereiche dieser Seite' %}">
+  <div class="flex items-center gap-2">
+    <div class="flex flex-1 min-w-0 gap-2 overflow-x-auto" data-promo-jump-chips>
+      {% for c in promo_jump %}
+        <a href="#{{ c.anchor }}" data-jump="{{ c.anchor }}" class="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-sm border border-gray-300 text-gray-600 hover:bg-gray-100" data-on="bg-gray-900 text-white border-gray-900" data-off="border-gray-300 text-gray-600 hover:bg-gray-100">{{ c.label }} <span class="ml-0.5 opacity-60" data-jump-count>{{ c.count }}</span></a>
+      {% endfor %}
+    </div>
+    <details class="relative shrink-0" data-promo-filter>
+      <summary class="list-none [&::-webkit-details-marker]:hidden cursor-pointer h-9 px-3 rounded-full border border-gray-300 text-sm text-gray-600 flex items-center gap-1 hover:bg-gray-100" title="{% trans 'Suchen & filtern' %}">🔍 <span class="hidden sm:inline">{% trans "Suchen & filtern" %}</span></summary>
+      <div class="absolute right-0 mt-2 w-80 max-w-[90vw] rounded-2xl bg-white shadow-lg ring-1 ring-gray-200 p-3 z-30">
+        {% include "storefront/promo_page/_search.html" %}
+        {% if groups %}{% include "storefront/promo_page/_type_chips.html" %}{% endif %}
+        {% include "storefront/promo_page/_system_chips.html" %}
+      </div>
+    </details>
+  </div>
+</nav>

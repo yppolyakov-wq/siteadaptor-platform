@@ -180,10 +180,15 @@ collect()/save работают без переименований. data-cb-id 
             <div class="stu-row stu-two">
               <label class="block">
                 <span class="stu-lb">{% trans "Zeitraum" %}</span>
+                {% comment %}LB-3: «Demnächst» — пункт того же селекта (одно поле `endet`,
+                приёмники Save/черновика прежние); normalize переводит его в ключ
+                `phase`. Будущие акции показываются превью, «−N %» и сортировка к ним
+                не применяются.{% endcomment %}
                 <select name="cb_{{ b.id }}_endet" class="stu-ctrl">
                   <option value="">{% trans "Alle" %}</option>
                   <option value="heute" {% if b.data.endet == "heute" %}selected{% endif %}>{% trans "Endet heute" %}</option>
                   <option value="woche" {% if b.data.endet == "woche" %}selected{% endif %}>{% trans "Endet diese Woche" %}</option>
+                  <option value="upcoming" {% if b.data.phase == "upcoming" %}selected{% endif %}>{% trans "Demnächst" %}</option>
                 </select>
               </label>
               <label class="block">

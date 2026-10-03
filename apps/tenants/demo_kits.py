@@ -3730,6 +3730,10 @@ AKTIONSMARKT = DemoKit(
     # DL-4: акции на главной — витриной «Deal der Woche» (spotlight: featured-
     # карточка + полоса «Endet bald»; макет-референс канваса Sparfuchs).
     section_styles={"promotions": "spotlight"},
+    # LB-3b: /aktionen/ собрана блоками — пресет «Prospekt»: «Endet heute» лентой,
+    # «Demnächst», по блоку на каждую рубрику (у каждой свой вид из promo_groups),
+    # над основным списком; сверху — полоса прыжков по разделам страницы.
+    page_presets=[("promos", "prospekt")],
     # PT-8 → LB-1: на главной — блоки «Liste»: ДВА по типу акции (решение Р-2) —
     # спасённые продукты лентой купонов и Mystery-деалы; вид каждого берётся из
     # настроек его типа (promo_groups выше), а не задаётся в блоке заново. И один по

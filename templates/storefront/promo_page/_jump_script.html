@@ -1,0 +1,93 @@
+{% comment %}LB-3 (план §12.5): поведение Sprungleiste. Подключается ВНЕ [data-listing-root]:
+KAT-5 подменяет эту зону fetch'ем, и инлайн-скрипт внутри неё после подмены не
+исполнился бы (урок HF). Клик делегирован на document; после подмены (событие
+`sf:navigated`) наблюдатель пересобирается по новым разделам.
+
+* Полоса липнет под шапкой сайта, только если шапка сама липкая (настройка «Sticky
+  header»): иначе отступ сверху — ноль.
+* Прыжок учитывает высоту шапки и самой полосы, иначе заголовок раздела уезжал бы под
+  них. Уважает prefers-reduced-motion.
+* Текущий раздел — первый видимый в порядке страницы (IntersectionObserver); его чип
+  подсвечивается и прокручивается в видимую часть полосы (только по горизонтали — сама
+  страница от этого не дёргается).{% endcomment %}
+<script>
+(function () {
+  if (window.__sfJumpBound) return;
+  window.__sfJumpBound = true;
+  var io = null;
+
+  function headH() {
+    var head = document.querySelector('header[data-sf-section="header"]');
+    if (!head) return 0;
+    var pos = window.getComputedStyle(head).position;
+    return pos === "sticky" || pos === "fixed" ? head.offsetHeight : 0;
+  }
+  function bar() { return document.querySelector("[data-promo-jump]"); }
+  function offset() {
+    var b = bar();
+    return headH() + (b ? b.offsetHeight : 0) + 8;
+  }
+  function swap(el, from, to) {
+    (from || "").split(/\s+/).forEach(function (c) { if (c) el.classList.remove(c); });
+    (to || "").split(/\s+/).forEach(function (c) { if (c) el.classList.add(c); });
+  }
+  function setActive(id) {
+    var b = bar();
+    if (!b) return;
+    b.querySelectorAll("a[data-jump]").forEach(function (a) {
+      var on = a.getAttribute("data-jump") === id;
+      if (on === (a.getAttribute("aria-current") === "true")) return;
+      if (on) {
+        a.setAttribute("aria-current", "true");
+        swap(a, a.getAttribute("data-off"), a.getAttribute("data-on"));
+        var row = a.parentElement;
+        if (row && (a.offsetLeft < row.scrollLeft || a.offsetLeft + a.offsetWidth > row.scrollLeft + row.clientWidth)) {
+          row.scrollLeft = Math.max(0, a.offsetLeft - 16);
+        }
+      } else {
+        a.removeAttribute("aria-current");
+        swap(a, a.getAttribute("data-on"), a.getAttribute("data-off"));
+      }
+    });
+  }
+
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("a[data-jump]");
+    if (!a) return;
+    var target = document.getElementById(a.getAttribute("data-jump"));
+    if (!target) return;
+    e.preventDefault();
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var top = target.getBoundingClientRect().top + window.pageYOffset - offset();
+    window.scrollTo({ top: Math.max(0, top), behavior: reduce ? "auto" : "smooth" });
+    try { history.replaceState(null, "", "#" + target.id); } catch (err) {}
+    setActive(target.id);
+  });
+
+  function init() {
+    var b = bar();
+    if (io) { io.disconnect(); io = null; }
+    if (!b) return;
+    b.style.top = headH() + "px";
+    if (!("IntersectionObserver" in window)) return;
+    var targets = [];
+    b.querySelectorAll("a[data-jump]").forEach(function (a) {
+      var t = document.getElementById(a.getAttribute("data-jump"));
+      if (t) targets.push(t);
+    });
+    if (!targets.length) return;
+    var seen = {};
+    io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { seen[en.target.id] = en.isIntersecting; });
+      for (var i = 0; i < targets.length; i++) {
+        if (seen[targets[i].id]) { setActive(targets[i].id); return; }
+      }
+    }, { rootMargin: "-" + offset() + "px 0px -55% 0px" });
+    targets.forEach(function (t) { io.observe(t); });
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+  document.addEventListener("sf:navigated", init);
+})();
+</script>

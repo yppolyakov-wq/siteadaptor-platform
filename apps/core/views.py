@@ -1428,17 +1428,37 @@ def _page_preset_ui(tenant, config):
     config — уже нормализованный site_config."""
     from apps.core import page_presets
 
-    hosts = (("info", True), ("cart", tenant.is_module_active("catalog")))
+    hosts = (
+        ("info", True),
+        ("cart", tenant.is_module_active("catalog")),
+        # LB-3b: страница акций — «Standard» или «Prospekt (Blöcke)»
+        ("promos", tenant.is_module_active("promotions")),
+    )
     return [
         {
             "host": host,
             "page_key": host,
             "presets": page_presets.presets_for(host, tenant.business_type),
             "current": page_presets.current_preset(config, host),
+            "type_hints": _promo_types_without_block(config) if host == "promos" else [],
         }
         for host, enabled in hosts
         if enabled
     ]
+
+
+def _promo_types_without_block(config) -> list[str]:
+    """LB-3b: живые рубрики, у которых на странице акций нет своего блока.
+
+    «Свой» = равнозначный блок (тип без сужающих фильтров, `list_blocks.overview_blocks`):
+    такой блок забирает секцию рубрики из основного списка. Без подсказки новая
+    рубрика тихо жила бы только в остатке, и владелец не знал бы, что её можно
+    вывести отдельным блоком со своим видом.
+    """
+    from apps.core import page_presets
+
+    covered = list_blocks.overview_blocks(config)["types"]
+    return [key for key in page_presets._live_rubrics() if key not in covered]
 
 
 def _add_block_fetch_response(request, new_id, host):
@@ -1860,10 +1880,43 @@ def home_builder_view(request):
             _verb, _sep, rest = action.partition(":")
             host, _sep2, preset_id = rest.partition(":")
             cfg = siteconfig.normalize(request.tenant.site_config)
+            old_blocks = cfg.get("page_blocks")
             if page_presets.apply_page_preset(cfg, host, preset_id):
+                # LB-2 §11.7: пресет вставляет и убирает блоки хоста — переводы блоков
+                # владельца едут за своими блоками. Выравнивание сравнивает СТАРЫЙ
+                # порядок с новым, поэтому на время вызова возвращаем прежний список.
+                new_blocks = cfg.get("page_blocks")
+                cfg["page_blocks"] = old_blocks
+                siteconfig.realign_block_overlays(cfg, new_page_blocks=new_blocks)
+                cfg["page_blocks"] = new_blocks
                 request.tenant.site_config = siteconfig.normalize(cfg)
                 request.tenant.save(update_fields=["site_config", "updated_at"])
                 messages.success(request, _("Page template applied."))
+            return _redirect_builder(request)
+        # LB-3b (план §12.6): «＋ <тип>» из подсказки «типы без своего блока» — блок
+        # «Liste» этого типа НАД основным списком страницы акций (там он гасит секцию
+        # типа в остатке, N-3). Вид блок не задаёт — наследует настройки типа.
+        if action.startswith("add_type_block:"):
+            import uuid
+
+            kind = action.partition(":")[2].strip()[: siteconfig._PROMO_GROUP_KEY_MAX]
+            if kind and request.tenant.is_module_active("promotions"):
+                cfg = siteconfig.normalize(request.tenant.site_config)
+                block = {
+                    "key": "list",
+                    "id": uuid.uuid4().hex[:12],
+                    "enabled": True,
+                    "data": {"source": "promotions", "type": kind},
+                }
+                pb = dict(cfg.get("page_blocks") or {})
+                pb["promos"] = _insert_page_block(
+                    pb.get("promos") or [], "promos", block, _ABOVE_MAIN
+                )
+                siteconfig.realign_block_overlays(cfg, new_page_blocks=pb)
+                cfg["page_blocks"] = pb
+                request.tenant.site_config = siteconfig.normalize(cfg)
+                request.tenant.save(update_fields=["site_config", "updated_at"])
+                messages.success(request, _("Block added."))
             return _redirect_builder(request)
         # STU-12g: сборки (Startpaket) применяются на экране «Design des Shops».
         # A3: сохранить ИМЕНОВАННУЮ версию текущего конфига (снимок в начало истории;

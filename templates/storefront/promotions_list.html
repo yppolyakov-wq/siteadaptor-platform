@@ -12,8 +12,10 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
 
 {% comment %}DL-20: тикер шапки «Countdown» — ВНЕ [data-listing-root] (зона fetch-свопа,
 инлайн-скрипты там после подмены не исполняются).{% endcomment %}
-{% block content %}{{ block.super }}{% include "storefront/_countdown_script.html" %}{% endblock %}
-{% block listing_root_attrs %}{% if promo_page_style and not group_label %} data-promo-page="{{ promo_page_style }}"{% endif %}{% endblock %}
+{% block content %}{{ block.super }}{% include "storefront/_countdown_script.html" %}{% if promo_jump %}{% include "storefront/promo_page/_jump_script.html" %}{% endif %}{% endblock %}
+{% comment %}LB-3: в режиме блоков «Navigator» не открывает боковую колонку — её чипы и
+поиск переехали в панель полосы прыжков, и колонка осталась бы пустой.{% endcomment %}
+{% block listing_root_attrs %}{% if promo_page_style and not group_label %}{% if not promo_jump or promo_page_style != "navigator" %} data-promo-page="{{ promo_page_style }}"{% endif %}{% endif %}{% endblock %}
 
 {% block listing_header %}
   {% comment %}DL-20: у выбранной группы — своя шапка с названием и числом акций;
@@ -21,49 +23,34 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
   {% if group_label %}{% include "storefront/promo_group/_header.html" %}
   {% elif promo_page_style == "kopfbild" %}{% include "storefront/promo_page/_head.html" %}
   {% else %}<h1 class="text-2xl md:text-3xl font-bold mb-4">{% trans "Current offers" %}</h1>{% endif %}
+  {% comment %}LB-3: полоса прыжков — сразу под шапкой, ДО блоков над списком (слот
+  listing_before каркаса): навигация по странице должна стоять первой.{% endcomment %}
+  {% if promo_jump %}{% include "storefront/promo_page/_jump.html" %}{% endif %}
 {% endblock %}
 
 {% block listing_facets %}
   {% comment %}DL-21.2: «Navigator» уводит группы/чипы/поиск в боковую колонку (CSS по
   data-promo-side из корня листинга, как у категории); «Tabs» заменяет чипы групп табами;
-  «Kompakt» — указателем. Standard — прежняя разметка байт-в-байт.{% endcomment %}
+  «Kompakt» — указателем. Standard — прежняя разметка байт-в-байт.
+  LB-3: в режиме блоков (есть полоса прыжков) всё это живёт в её панели «Suchen &
+  filtern» — над списком рядов нет. Типы, фильтры и поиск — общие партиалы.{% endcomment %}
+  {% if not promo_jump %}
   {% if promo_page_style == "navigator" %}<aside data-promo-side>{% endif %}
   {% if promo_tabs %}
     {% include "storefront/promo_page/_tabs.html" %}
   {% elif promo_page_style == "kompakt" %}
     {% include "storefront/promo_page/_index.html" %}
   {% elif groups %}
-    <div class="flex flex-wrap gap-2 mb-3">
-      <a href="{% url 'storefront-aktionen' %}"
-         class="px-3 py-1.5 rounded-full text-sm border {% if not selected_group %}bg-gray-900 text-white border-gray-900{% else %}border-gray-300 text-gray-600 hover:bg-gray-100{% endif %}">{% trans "All" %}</a>
-      {% for g, g_label in groups %}
-        <a href="{% url 'storefront-aktionen' %}?gruppe={{ g|urlencode }}"
-           class="px-3 py-1.5 rounded-full text-sm border {% if g == selected_group %}bg-gray-900 text-white border-gray-900{% else %}border-gray-300 text-gray-600 hover:bg-gray-100{% endif %}">{{ g_label }}</a>
-      {% endfor %}
-    </div>
+    {% include "storefront/promo_page/_type_chips.html" %}
   {% endif %}
-  {% comment %}Системные чипы (SF-2): тумблеры-ссылки, carry остальных параметров
-  в URL; на мобильном — горизонтальный скролл, не перенос в 3 строки.{% endcomment %}
-  <div class="flex gap-2 mb-4 overflow-x-auto" data-promo-filters>
-    {% for c in system_chips %}
-      <a href="{{ c.url }}"
-         class="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-sm border {% if c.active %}bg-gray-900 text-white border-gray-900{% else %}border-gray-300 text-gray-600 hover:bg-gray-100{% endif %}">{{ c.label }}</a>
-    {% endfor %}
-  </div>
-  {% comment %}DL-16.2 (A5): поиск по акциям — `?q=` вьюха понимала давно, а входа в UI
-  не было (шапка ищет по primary-листингу). Carry остальных параметров hidden-полями.{% endcomment %}
-  <form method="get" class="mb-4 flex items-center gap-2" data-promo-search>
-    {% for name, value in toolbar_hidden %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
-    {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
-    {% if list_view %}<input type="hidden" name="ansicht" value="liste">{% endif %}
-    <input type="search" name="q" value="{{ q }}" placeholder="{% trans 'Aktionen durchsuchen …' %}" aria-label="{% trans 'Suchen' %}" class="h-9 w-full max-w-xs rounded-lg border border-gray-300 px-3 text-sm">
-    <button type="submit" class="h-9 rounded-lg border border-gray-300 px-3 text-sm font-medium">{% trans "Suchen" %}</button>
-  </form>
+  {% include "storefront/promo_page/_system_chips.html" %}
+  {% include "storefront/promo_page/_search.html" %}
   {% comment %}DL-20: под шапкой группы число акций уже стоит в ней — второй раз не печатаем.{% endcomment %}
   {% if result_count is not None and not group_label %}
     <p class="text-sm text-gray-500 mb-4" data-result-count>{% blocktrans count n=result_count %}{{ n }} offer{% plural %}{{ n }} offers{% endblocktrans %}</p>
   {% endif %}
   {% if promo_page_style == "navigator" %}</aside>{% endif %}
+  {% endif %}
 {% endblock %}
 
 {% block listing_bar_view %}
@@ -79,7 +66,11 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
 {% endblock %}
 
 {% block listing_grid %}
+  {% comment %}LB-3: в режиме блоков у плоского остатка (таблица, сетка, композиции) —
+  заголовок «More offers» с якорем чипа полосы: без него он читался бы продолжением
+  блока над ним. Обычная страница — без заголовка, как раньше.{% endcomment %}
   {% if list_view %}
+    {% if promo_jump and promotions %}{% include "storefront/promo_page/_rest_head.html" %}{% endif %}
     {% include "storefront/_promo_table.html" %}
   {% endif %}
   {% if promo_hero %}
@@ -88,7 +79,7 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
   {% if ending_soon %}
     {% comment %}Компактная полоса «скоро закончатся»: максимум 4, горизонтальный
     скролл на мобильном; при пустом наборе секции нет вовсе (вьюха).{% endcomment %}
-    <section class="mb-8" data-ending-soon>
+    <section class="mb-8{% if promo_jump %} scroll-mt-28{% endif %}"{% if promo_jump %} id="aktionen-bald"{% endif %} data-ending-soon>
       <h2 class="text-lg font-bold mb-3">⏳ {% trans "Ending soon" %}</h2>
       {% comment %}Фидбэк 2026-09-02 «карточки поплыли по высоте»: обёртка — flex, карточка
       растягивается на высоту ряда (без flex обёртка тянулась, карточка внутри — нет).{% endcomment %}
@@ -103,9 +94,10 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
     предложениями. Карточки помечены «ab <дата>» и без счётчика/остатка (preview).{% endcomment %}
     {% comment %}DL-23: при 2–3 бакетах по ≤2 карточки — блоки РЯДОМ колонками (владелец:
     «разделим блоками и сделаем их рядом»); иначе — прежние ленты по одной на ряд.{% endcomment %}
-    {% if upcoming_columns %}<div class="grid gap-4 md:gap-6 mb-8 {% if upcoming_columns == 2 %}md:grid-cols-2{% else %}md:grid-cols-3{% endif %}" data-upcoming-row="{{ upcoming_columns }}">{% endif %}
+    {% comment %}LB-3: якорь чипа «Demnächst» — на ряду колонок или на первой ленте.{% endcomment %}
+    {% if upcoming_columns %}<div class="grid gap-4 md:gap-6 mb-8 {% if upcoming_columns == 2 %}md:grid-cols-2{% else %}md:grid-cols-3{% endif %}{% if promo_jump %} scroll-mt-28{% endif %}" data-upcoming-row="{{ upcoming_columns }}"{% if promo_jump %} id="aktionen-vorschau"{% endif %}>{% endif %}
     {% for key, label, items in upcoming_groups %}
-      <section class="{% if upcoming_columns %}rounded-2xl bg-white/60 ring-1 ring-gray-200 p-4{% else %}mb-8{% endif %}" data-upcoming="{{ key }}">
+      <section class="{% if upcoming_columns %}rounded-2xl bg-white/60 ring-1 ring-gray-200 p-4{% else %}mb-8{% if promo_jump and forloop.first %} scroll-mt-28{% endif %}{% endif %}"{% if promo_jump and forloop.first and not upcoming_columns %} id="aktionen-vorschau"{% endif %} data-upcoming="{{ key }}">
         <h2 class="text-lg font-bold mb-3">🗓 {{ label }}
           <span class="text-sm font-normal text-gray-400">· {{ items|length }}</span></h2>
         {% if upcoming_columns %}
@@ -128,8 +120,10 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
   {% if grouped_promotions %}
     {% comment %}Фидбэк 2026-07-29: группы акций — секциями с заголовками (Prospekt-
     логика: Wochenangebote / Räumung / Anti-Food-Waste читаются с первого взгляда).{% endcomment %}
+    {% comment %}LB-3: в режиме блоков секция остатка несёт якорь чипа полосы и ключ
+    (`data-promo-section`); обычная страница — прежний `<section class="mb-8">`.{% endcomment %}
     {% for group, group_label, items, more_url, out in grouped_promotions %}
-      <section class="mb-8">
+      <section class="mb-8{% if promo_jump %} scroll-mt-28{% endif %}"{% if promo_jump %} id="aktionen-{{ forloop.counter }}" data-promo-section="{{ group }}"{% endif %}>
         {% if out.mode == "slider" %}
         <h2 class="text-lg font-bold mb-3 flex items-baseline justify-between gap-3"><span>{% if group %}{{ group_label }}{% else %}{% trans "More offers" %}{% endif %}
           <span class="text-sm font-normal text-gray-400">· {{ items|length }}</span></span>
@@ -157,28 +151,34 @@ test_promotions_parity; системные чипы/сорт/поиск — Prom
         </div>
       </section>
     {% endfor %}
-  {% elif promotions and not list_view and group_page_style %}
-    {% include "storefront/promo_group/_grid.html" %}
-  {% elif promotions and not list_view and promo_page_style == "kompakt" %}
-    {% include "storefront/promo_group/_grid.html" with group_page_style="prospekt" %}
-  {% elif promotions and not list_view and promo_page_style == "magazin" %}
-    {% include "storefront/promo_group/_grid.html" with group_page_style="magazin" %}
   {% elif promotions and not list_view %}
+    {% if promo_jump %}{% include "storefront/promo_page/_rest_head.html" %}{% endif %}
+    {% if group_page_style %}
+    {% include "storefront/promo_group/_grid.html" %}
+    {% elif promo_page_style == "kompakt" %}
+    {% include "storefront/promo_group/_grid.html" with group_page_style="prospekt" %}
+    {% elif promo_page_style == "magazin" %}
+    {% include "storefront/promo_group/_grid.html" with group_page_style="magazin" %}
+    {% else %}
     <div data-grid="promo_list" class="{{ promo_index_grid|default:'grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6' }}" {% sf_grid_attrs promo_index_layout cols="2/2/3" count=promotions|length %}>
       {% for p in promotions %}
         {% include "storefront/_promo_card.html" %}
       {% endfor %}
     </div>
+    {% endif %}
   {% endif %}
 {% endblock %}
 
 {% block listing_empty %}
-  {% if not grouped_promotions and not promotions %}
+  {% comment %}LB-3: в режиме блоков остаток бывает пуст, хотя блоки над ним показывают
+  все акции, — «нет предложений» тогда был бы неправдой (полоса прыжков есть ⇒
+  на странице что-то показано).{% endcomment %}
+  {% if not grouped_promotions and not promotions and not promo_jump %}
     {% if has_filters %}
-      <p class="text-gray-400">{% trans "No offers match these filters." %}</p>
+      <p class="text-gray-400" data-promo-empty>{% trans "No offers match these filters." %}</p>
       <a href="{% url 'storefront-aktionen' %}" class="inline-block mt-2 text-sm text-indigo-600 hover:underline">{% trans "Filter zurücksetzen" %}</a>
     {% else %}
-      <p class="text-gray-400">{% trans "No current offers." %}</p>
+      <p class="text-gray-400" data-promo-empty>{% trans "No current offers." %}</p>
     {% endif %}
   {% endif %}
 {% endblock %}

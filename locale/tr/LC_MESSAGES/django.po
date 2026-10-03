@@ -22801,3 +22801,21 @@ msgstr "Öncesindeki bloklar listenin üstünde, sonrasındakiler altında gör�
 #: templates/tenant/site_home.html
 msgid "Block über der Liste einfügen"
 msgstr "Listenin üstüne blok ekle"
+
+msgid "Bereiche dieser Seite"
+msgstr "Bu sayfadaki bölümler"
+
+msgid "Suchen & filtern"
+msgstr "Ara ve filtrele"
+
+msgid "Aktionstypen ohne eigenen Block:"
+msgstr "Kendi bloğu olmayan kampanya türleri:"
+
+msgid "Standard-Übersicht"
+msgstr "Standart genel bakış"
+
+msgid "Prospekt (Blöcke)"
+msgstr "Broşür (bloklar)"
+
+msgid "Seitenaufbau"
+msgstr "Sayfa yapısı"
