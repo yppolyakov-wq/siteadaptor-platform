@@ -245,3 +245,25 @@ def test_builder_saves_spread_tail(settings):
     tenant.refresh_from_db()
     lay = siteconfig.section_layout(siteconfig.normalize(tenant.site_config), "products")
     assert lay.get("tail") == "spread"
+
+
+def test_every_grid_more_button_gets_its_url_outside_a_comment():
+    """Класс-замок (найдено разведкой LB-3d): у секции блога `{% url … as more_url %}`
+    стоял ВНУТРИ `{% comment %}` — Django его не исполнял, `more_url` был пуст, и
+    хвостовая кнопка «Alle anzeigen» не рисовалась никогда. Каждый шаблон, включающий
+    `_grid_more.html`, обязан получить адрес исполняемым тегом."""
+    from pathlib import Path
+
+    from django.conf import settings
+
+    root = Path(settings.BASE_DIR) / "templates"
+    lost = []
+    for path in sorted(root.rglob("*.html")):
+        src = path.read_text("utf-8")
+        if "storefront/_grid_more.html" not in src or path.name == "_grid_more.html":
+            continue
+        live = re.sub(r"\{% comment %\}.*?\{% endcomment %\}", "", src, flags=re.S)
+        live = re.sub(r"\{#.*?#\}", "", live)
+        if "as more_url" not in live and "more_url=" not in live:
+            lost.append(str(path.relative_to(root)))
+    assert not lost, f"хвостовая кнопка без адреса: {lost}"

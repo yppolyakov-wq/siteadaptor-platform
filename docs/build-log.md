@@ -16640,3 +16640,13 @@ Liste» в режиме блоков стояла посреди страниц�
 приёмом, что `_item_sellable.html` у поверхностей с тегом `sellable_card`. Замок
 `test_combos_listing_renders_shelves_by_category` (до правки падал NoReverseMatch): две
 полки, в каждой карточка набора. Без миграций.
+
+## 2026-10-03 — Hotfix: хвостовая кнопка «Alle anzeigen» у секции блога не рисовалась никогда
+
+Найдено разведкой LB-3d. В `sections/_blog.html` тег `{% url 'storefront-blog' as more_url %}`
+стоял внутри `{% comment %}` — Django содержимое комментария не исполняет, `more_url` был пуст,
+и кнопка DL-14 (показывается, когда «Reihen: voll» прячет неполный ряд) у секции новостей не
+появлялась вовсе. Тег вынесен из комментария. Замок на весь класс:
+`test_every_grid_more_button_gets_its_url_outside_a_comment` — каждый шаблон, включающий
+`_grid_more.html`, обязан получить адрес исполняемым тегом (до правки красный ровно на
+`_blog.html`). Без миграций.
