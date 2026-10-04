@@ -1,0 +1,14 @@
+{% load i18n %}
+{% comment %}LB-3d-3: карточка проверенного отзыва о сущности (reviews.Review) — блок «Liste»
+с источником «Bewertungen». Ожидает `r` с `entity_name`/`entity_url` (их ставит
+list_blocks._attach_review_entities одним запросом на вид). Текст — на языке витрины
+(`comment_localized`; у живого тенанта оверлей пуст — подлинный текст гостя, I18N-12).
+Ссылка — только на живую сущность включённого модуля, иначе подпись без ссылки.{% endcomment %}
+<figure class="sf-card bg-white rounded-2xl shadow-sm p-5 flex flex-col gap-2 h-full" data-review-card>
+  <p class="text-amber-500 tracking-wide" aria-label="{% blocktrans with n=r.rating %}{{ n }} von 5 Sternen{% endblocktrans %}">{{ r.stars }}</p>
+  {% with text=r.comment_localized %}{% if text %}<blockquote class="text-gray-700 whitespace-pre-line line-clamp-6">{{ text }}</blockquote>{% endif %}{% endwith %}
+  <figcaption class="mt-auto pt-2 text-sm text-gray-500">
+    <span class="font-medium text-gray-800">{{ r.author_name }}</span> · {{ r.created_at|date:"d.m.Y" }}
+    {% if r.entity_name %}<span class="block mt-0.5 truncate">{% if r.entity_url %}<a href="{{ r.entity_url }}" class="hover:underline" style="color: var(--accent, #4f46e5);">{{ r.entity_name }}</a>{% else %}{{ r.entity_name }}{% endif %}</span>{% endif %}
+  </figcaption>
+</figure>

@@ -423,6 +423,8 @@ _LIST_BLOCK_FIELDS = (
     "collection",
     "event_category",
     "country",
+    "entity",
+    "stars",
     "only",
     "sort",
     "limit",
@@ -691,6 +693,16 @@ def _tour_countries_for_blocks(request):
         return []
 
 
+def _review_kinds_for_blocks(request):
+    """LB-3d-3: [(вид, подпись)] сущностей отзывов с включённым модулем (fail-safe)."""
+    try:
+        from apps.core import list_blocks
+
+        return list_blocks.review_kinds(getattr(request, "tenant", None))
+    except Exception:  # noqa: BLE001
+        return []
+
+
 def _cblock_row_lists(request) -> dict:
     """Селекторы строки C-блока — ОДИН набор для формы билдера и для строки, вставленной
     без перезагрузки (`_add_block_fetch_response`). Раньше списки перечислялись в двух
@@ -711,6 +723,8 @@ def _cblock_row_lists(request) -> dict:
         "event_categories_for_blocks": _event_categories_for_blocks(request),
         # LB-3d-2: страны опубликованных туров
         "tour_countries_for_blocks": _tour_countries_for_blocks(request),
+        # LB-3d-3: виды отзываемых сущностей с включённым модулем
+        "review_kinds_for_blocks": _review_kinds_for_blocks(request),
     }
 
 

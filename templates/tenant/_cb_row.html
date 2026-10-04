@@ -260,7 +260,33 @@ collect()/save работают без переименований. data-cb-id 
               {% if lh.orphan_country %}<option value="{{ lh.orphan_country.0 }}" selected>{{ lh.orphan_country.1 }}</option>{% endif %}
             </select>
           </div>
-          <div class="stu-row" data-lb-src="products services events" {% if src != "products" and src != "services" and src != "events" %}hidden{% endif %}>
+          {% comment %}LB-3d-3: отзывы — о каких сущностях (виды включённых модулей; свой вид
+          блока остаётся выбранным, W0) и «ab N ★». Обёртка без display-класса: `.stu-two`
+          (display:grid) перебил бы атрибут `hidden`.{% endcomment %}
+          <div data-lb-src="reviews" {% if src != "reviews" %}hidden{% endif %}>
+          <div class="stu-row stu-two">
+            <label class="block">
+              <span class="stu-lb">{% trans "Bewertungen zu" %}</span>
+              <select name="cb_{{ b.id }}_entity" class="stu-ctrl">
+                <option value="">{% trans "Alles" %}</option>
+                {% for key, label in review_kinds_for_blocks %}
+                  <option value="{{ key }}" {% if b.data.entity == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+                {% if lh.orphan_entity %}<option value="{{ lh.orphan_entity.0 }}" selected>{{ lh.orphan_entity.1 }}</option>{% endif %}
+              </select>
+            </label>
+            <label class="block">
+              <span class="stu-lb">{% trans "Mindestbewertung" %}</span>
+              <select name="cb_{{ b.id }}_stars" class="stu-ctrl">
+                <option value="">{% trans "beliebig" %}</option>
+                <option value="3" {% if b.data.stars == 3 %}selected{% endif %}>★★★ +</option>
+                <option value="4" {% if b.data.stars == 4 %}selected{% endif %}>★★★★ +</option>
+                <option value="5" {% if b.data.stars == 5 %}selected{% endif %}>★★★★★</option>
+              </select>
+            </label>
+          </div>
+          </div>
+          <div class="stu-row" data-lb-src="products services events reviews" {% if src != "products" and src != "services" and src != "events" and src != "reviews" %}hidden{% endif %}>
             <span class="stu-lb">{% trans "Auswahl" %}</span>
             <select name="cb_{{ b.id }}_only" class="stu-ctrl">
               <option value="">{% trans "Alle" %}</option>
@@ -269,6 +295,7 @@ collect()/save работают без переименований. data-cb-id 
               <option value="available" data-lb-opt="products" {% if src != "products" %}hidden{% endif %} {% if b.data.only == "available" %}selected{% endif %}>{% trans "Nur verfügbare" %}</option>
               <option value="video" data-lb-opt="services" {% if src != "services" %}hidden{% endif %} {% if b.data.only == "video" %}selected{% endif %}>{% trans "Nur Video-Beratung" %}</option>
               <option value="soon" data-lb-opt="events" {% if src != "events" %}hidden{% endif %} {% if b.data.only == "soon" %}selected{% endif %}>{% trans "In den nächsten 14 Tagen" %}</option>
+              <option value="text" data-lb-opt="reviews" {% if src != "reviews" %}hidden{% endif %} {% if b.data.only == "text" %}selected{% endif %}>{% trans "Nur mit Text" %}</option>
             </select>
           </div>
           {% comment %}LB-3d-2: сортировки есть не у всех источников (туры, наборы и

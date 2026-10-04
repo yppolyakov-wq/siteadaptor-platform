@@ -22719,3 +22719,25 @@ msgstr "Main categories"
 
 msgid "Zeigt die Unterkategorien der gewählten Kategorie."
 msgstr "Shows the subcategories of the selected category."
+
+msgid "Bewertungen zu"
+msgstr "Reviews of"
+
+msgid "Alles"
+msgstr "Everything"
+
+msgid "Mindestbewertung"
+msgstr "Minimum rating"
+
+msgid "Nur mit Text"
+msgstr "Only with text"
+
+msgid "Neueste zuerst"
+msgstr "Newest first"
+
+msgid "Beste zuerst"
+msgstr "Best first"
+
+#, python-format
+msgid "%(n)s von 5 Sternen"
+msgstr "%(n)s out of 5 stars"

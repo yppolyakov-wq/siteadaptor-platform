@@ -22950,3 +22950,25 @@ msgstr "Основные категории"
 
 msgid "Zeigt die Unterkategorien der gewählten Kategorie."
 msgstr "Показывает подкатегории выбранной категории."
+
+msgid "Bewertungen zu"
+msgstr "Отзывы о"
+
+msgid "Alles"
+msgstr "Всё"
+
+msgid "Mindestbewertung"
+msgstr "Минимальная оценка"
+
+msgid "Nur mit Text"
+msgstr "Только с текстом"
+
+msgid "Neueste zuerst"
+msgstr "Сначала новые"
+
+msgid "Beste zuerst"
+msgstr "Сначала лучшие"
+
+#, python-format
+msgid "%(n)s von 5 Sternen"
+msgstr "%(n)s из 5 звёзд"

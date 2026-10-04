@@ -258,6 +258,22 @@ LIST_SOURCES = {
         "module": "catalog",
         "filters": ("category",),
     },
+    # LB-3d-3: проверенные отзывы о сущностях (reviews.Review) — нигде, кроме деталей,
+    # не выводились. Сортировка своя (провайдера фасетов у отзывов нет).
+    "reviews": {
+        "card": None,
+        "facets": None,
+        "label": _("Bewertungen"),
+        "module": "reviews",
+        "filters": ("entity", "stars", "only"),
+    },
+    "blog": {
+        "card": None,
+        "facets": None,
+        "label": _("Blog"),
+        "module": "blog",
+        "filters": (),
+    },
 }
 LIST_SOURCE_DEFAULT = "promotions"  # легаси-блок PT-6 источника не знал
 LIST_PROMO_ENDS = ("heute", "woche")  # = чипы «Endet heute / diese Woche» /aktionen/
@@ -271,12 +287,16 @@ LIST_ONLY = {
     "products": ("featured", "sale", "available"),
     "services": ("video",),
     "events": ("soon",),
+    "reviews": ("text",),  # LB-3d-3: только отзывы с текстом
 }
+# LB-3d-3: отзывы о каких сущностях (= reviews.Review.KIND_*) и «ab N ★».
+LIST_REVIEW_KINDS = ("product", "service", "stay", "event", "combo")
+LIST_REVIEW_STARS = (3, 4, 5)
 LIST_PRODUCT_ONLY = LIST_ONLY["products"]
 _EVENT_CATEGORY_MAX = 30  # = Event.category max_length
 _TOUR_COUNTRY_MAX = 80  # = Tour.country max_length
 # Сортировки сверх провайдера: «empfohlene zuerst» — порядок секции товаров главной.
-LIST_EXTRA_SORTS = {"products": ("featured",)}
+LIST_EXTRA_SORTS = {"products": ("featured",), "reviews": ("best",)}
 LIST_OUTPUTS = ("grid", "slider")
 LIST_LIMIT_DEFAULT = 12  # как у блока PT-6
 LIST_LIMIT_MAX = 24
@@ -353,6 +373,12 @@ def _clean_list_block(d: dict) -> dict:
         country = _s(d.get("country"))[:_TOUR_COUNTRY_MAX]
         if "country" in filters and country:
             out["country"] = country
+        # LB-3d-3: отзывы — вид сущности и «ab N ★»
+        if "entity" in filters and d.get("entity") in LIST_REVIEW_KINDS:
+            out["entity"] = d["entity"]
+        stars = _int_in(d.get("stars"), 1, 5)
+        if "stars" in filters and stars in LIST_REVIEW_STARS:
+            out["stars"] = stars
         if d.get("only") in LIST_ONLY.get(source, ()):
             out["only"] = d["only"]
     sort = d.get("sort")
@@ -3083,6 +3109,9 @@ NON_TRANSLATABLE_FIELDS = frozenset(
         "collection",
         "event_category",
         "country",
+        # LB-3d-3: вид отзываемой сущности и порог звёзд — коды выборки
+        "entity",
+        "stars",
     }
 )
 

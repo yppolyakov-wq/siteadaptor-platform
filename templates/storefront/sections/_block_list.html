@@ -19,7 +19,8 @@ LB-3d: карточка — та же, что у листинга источни
 /touren/ и /kombi/ (они ждут `tour` и `c`, а цикл отдаёт `p` — передаём явно; именно
 этот разрыв ронял /kombi/ в «Regale»), категории — плитка /sortiment/ в форме плитки
 секции «Kategorien» и НЕ редакторская (`is_preview=False`: в Студии иначе подпись
-стала бы полем правки, а ссылка — мёртвой).
+стала бы полем правки, а ссылка — мёртвой). Отзывы и статьи — общие карточки
+`_review_card` / `_blog_card` (вторая рисует и /blog/, и секцию «News» главной).
 
 LB-3: `id="lb-<id блока>"` — цель чипа Sprungleiste страницы акций. Якорь на самой
 секции, а не на обёртке блока: у обёртки `display:contents` нет бокса, и прокрутка к
@@ -45,6 +46,8 @@ LB-3: `id="lb-<id блока>"` — цель чипа Sprungleiste страни�
         {% elif lb.source == "tours" %}{% include "storefront/_tour_card.html" with tour=p storefront_card_style=lb.card %}
         {% elif lb.source == "combos" %}{% include "storefront/_combo_card.html" with c=p storefront_card_style=lb.card %}
         {% elif lb.source == "categories" %}{% include "storefront/_category_tile.html" with c=p cat_aspect=lb.aspect cat_active=False is_preview=False %}
+        {% elif lb.source == "reviews" %}{% include "storefront/_review_card.html" with r=p %}
+        {% elif lb.source == "blog" %}{% include "storefront/_blog_card.html" with post=p %}
         {% else %}{% include "storefront/_promo_card.html" with in_group=lb.in_group storefront_promo_card=lb.card preview=lb.preview %}{% endif %}
       {% endfor %}
     </div>

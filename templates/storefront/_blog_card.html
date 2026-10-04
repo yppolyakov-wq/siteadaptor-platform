@@ -1,0 +1,15 @@
+{% load i18n %}
+{% comment %}LB-3d-3: ОДНА карточка статьи блога — листинг /blog/, секция «News» главной и
+блок «Liste». До неё было две разметки, и обе печатали сырые поля: /blog/ — `title` и
+`excerpt`, секция — `excerpt` (переводы статей не показывались, класс C аудита
+I18N-11). Ожидает `post`; `heading="h2"` — на странице /blog/ (под её h1), иначе h3
+(под заголовком секции или блока).{% endcomment %}
+<a href="{% url 'storefront-blog-post' post.slug %}" class="sf-card bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition flex flex-col" data-blog-card>
+  {% if post.cover_url %}<img src="{{ post.cover_url }}" alt="" loading="lazy" decoding="async" class="w-full aspect-[16/9] object-cover">{% endif %}
+  <div class="p-4 flex flex-col gap-1 flex-1">
+    {% if post.published_at %}<p class="text-xs text-gray-400">{{ post.published_at|date:"d.m.Y" }}</p>{% endif %}
+    {% if heading == "h2" %}<h2 class="font-semibold text-lg leading-snug">{{ post.title_localized }}</h2>{% else %}<h3 class="font-semibold leading-snug">{{ post.title_localized }}</h3>{% endif %}
+    {% with excerpt=post.excerpt_localized %}{% if excerpt %}<p class="text-sm text-gray-600 line-clamp-3">{{ excerpt }}</p>{% endif %}{% endwith %}
+    <span class="mt-auto pt-2 inline-flex items-center gap-1 text-sm font-medium" style="color: var(--accent, #4f46e5);">{% trans "Read" %} →</span>
+  </div>
+</a>

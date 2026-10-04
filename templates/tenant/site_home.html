@@ -2556,7 +2556,8 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
        "promo_pk", "align", "badge_pos", "button_label",
        "size", "color", "rounded", "style_hint", "rows", "height", "type", "limit",
        "source", "intro", "endet", "rabatt", "category", "collection", "event_category",
-       "country", "only", "sort", "out", "cols", "speed", "card", "scope"];
+       "country", "entity", "stars", "only", "sort", "out", "cols", "speed", "card",
+       "scope"];
       CB_DATA_FIELDS.forEach(function (f) {  // UC6-2/4/6f + GK-4
         var el = form.querySelector("[name='cb_" + cbId + "_" + f + "']");
         if (el && el.value !== "") cb.data[f] = el.value;

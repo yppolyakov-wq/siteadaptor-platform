@@ -37,6 +37,8 @@ _DEFAULTS = {
     # у наборов секции главной нет — дефолт страницы `/kombi/` (2 в ряд, на lg 4)
     "combos": siteconfig.OPTIONAL_PAGE_LAYOUTS["combos_layout"],
     "categories": siteconfig.GRID_SECTION_DEFAULTS["categories"],
+    "reviews": siteconfig.GRID_SECTION_DEFAULTS["reviews"],
+    "blog": siteconfig.GRID_SECTION_DEFAULTS["blog"],
 }
 # LB-3d: раскладка страницы-листинга источника — слой «page» наследования вида, и
 # его порядок по умолчанию (дефолт сортировки владельца, STU-15c).
@@ -46,6 +48,7 @@ _PAGE_LAYOUT_KEYS = {
     "events": "events_index_layout",
     "tours": "tours_layout",
     "combos": "combos_layout",
+    "blog": "blog_index_layout",
 }
 _PAGE_SORT_KEYS = {"services": "services_sort", "stays": "stays_sort", "events": "events_sort"}
 # Листинг источника — цель «Alle N →» (с теми же параметрами, что понимает его тулбар).
@@ -405,6 +408,110 @@ def _categories(data: dict, limit: int, cfg: dict):
     return _cut(items, limit)
 
 
+def _reviews(data: dict, limit: int, cfg: dict):
+    """LB-3d-3: проверенные отзывы о сущностях — опубликованные; фильтры вид · «ab N ★»
+    · «только с текстом»; порядок — новые или лучшие (оценка, затем новизна)."""
+    from apps.reviews.models import Review
+
+    items = Review.objects.filter(is_published=True)
+    if data.get("entity"):
+        items = items.filter(entity_kind=data["entity"])
+    if data.get("stars"):
+        items = items.filter(rating__gte=data["stars"])
+    if data.get("only") == "text":
+        items = items.exclude(comment="")
+    if data.get("sort") == "best":
+        items = items.order_by("-rating", "-created_at")
+    else:
+        items = items.order_by("-created_at")
+    return _cut(items, limit)
+
+
+def _blog(data: dict, limit: int, cfg: dict):
+    """LB-3d-3: статьи блога — опубликованные, новые первыми; без даты — в конце
+    (Postgres ставит NULL первыми при DESC, а «без даты» — это не «самое новое»)."""
+    from django.db.models import F
+
+    from apps.events.models import BlogPost
+
+    items = BlogPost.objects.filter(is_published=True).order_by(
+        F("published_at").desc(nulls_last=True), "-created_at"
+    )
+    return _cut(items, limit)
+
+
+# LB-3d-3: сущность отзыва → (модуль, загрузчик, «живая ли», адрес, имя). Один запрос
+# на вид; ссылка — только у живой сущности включённого модуля.
+def _review_targets():
+    from apps.booking.models import Service
+    from apps.catalog.models import Combo, Product
+    from apps.events.models import Event
+    from apps.stays.models import StayUnit
+
+    return {
+        "product": (
+            "catalog",
+            lambda ids: Product.objects.filter(pk__in=ids).select_related("category"),
+            lambda o: o.is_active,
+            lambda o: o.get_absolute_url(),
+            str,
+        ),
+        "service": (
+            "booking",
+            lambda ids: Service.objects.filter(pk__in=ids),
+            lambda o: o.is_active,
+            lambda o: reverse("storefront-service-detail", args=[o.pk]),
+            lambda o: o.name_localized(),
+        ),
+        "stay": (
+            "stays",
+            lambda ids: StayUnit.objects.filter(pk__in=ids),
+            lambda o: o.is_active,
+            lambda o: reverse("storefront-unterkunft-unit", args=[o.pk]),
+            lambda o: o.name_localized(),
+        ),
+        "event": (
+            "events",
+            lambda ids: Event.objects.filter(pk__in=ids),
+            lambda o: o.status == Event.STATUS_PUBLISHED,
+            lambda o: reverse("storefront-event", args=[o.pk]),
+            lambda o: o.title_text,
+        ),
+        "combo": (
+            "catalog",
+            lambda ids: Combo.objects.filter(pk__in=ids),
+            lambda o: o.is_active,
+            lambda o: reverse("storefront-combo", args=[o.pk]),
+            lambda o: o.name_localized(),
+        ),
+    }
+
+
+def _attach_review_entities(reviews, tenant) -> None:
+    """Имя и адрес отзываемой сущности на каждый отзыв: `entity_name`, `entity_url`
+    ("" — без ссылки: сущность снята с витрины, модуль выключен или нет тенанта).
+    Удалённая сущность — без имени; сам отзыв остаётся (он о бизнесе)."""
+    by_kind: dict = {}
+    for review in reviews:
+        review.entity_name, review.entity_url = "", ""
+        by_kind.setdefault(review.entity_kind, []).append(review)
+    targets = _review_targets()
+    for kind, rows in by_kind.items():
+        spec = targets.get(kind)
+        if spec is None:
+            continue
+        module, load, live, url, name = spec
+        found = {o.pk: o for o in load([r.entity_id for r in rows])}
+        linked = bool(tenant is not None and tenant.is_module_active(module))
+        for review in rows:
+            obj = found.get(review.entity_id)
+            if obj is None:
+                continue
+            review.entity_name = name(obj)
+            if linked and live(obj):
+                review.entity_url = url(obj)
+
+
 def _cut(items, limit: int):
     """Первые `limit` и сколько всего; COUNT — только когда показаны не все."""
     if isinstance(items, list):
@@ -458,6 +565,10 @@ def _all_url(data: dict) -> str:
             if data.get("category")
             else reverse("storefront-products")
         )
+    elif source == "reviews":
+        return ""  # LB-3d-3: страницы проверенных отзывов нет — ссылке вести некуда
+    elif source == "blog":
+        base = reverse("storefront-blog")
     else:
         base = (
             reverse("storefront-category", args=[data["category"]])
@@ -499,6 +610,8 @@ def _label(data: dict, items, tenant=None) -> str:
                 if tour.country == data["country"]:
                     return tour.country_text or data["country"]
             return data["country"]
+        return source_label(source, tenant)
+    if source in ("reviews", "blog"):
         return source_label(source, tenant)
     if source in ("combos", "categories"):
         # направление наборов / родитель подкатегорий — на языке витрины
@@ -572,6 +685,8 @@ _FETCHERS = {
     "tours": _tours,
     "combos": _combos,
     "categories": _categories,
+    "reviews": _reviews,
+    "blog": _blog,
 }
 
 
@@ -591,16 +706,21 @@ def resolve(cfg: dict, data: dict, tenant=None) -> dict:
     source = _source(data)
     view = effective_view(cfg, data)
     items, total = _FETCHERS[source](data, view["limit"], cfg)
+    if source == "reviews":
+        _attach_review_entities(items, tenant)
     # LB-3: «Demnächst» — карточки-превью («ab <дата>», без счётчика и покупки) и без
     # «Alle N →»: страницы будущих акций нет.
     preview = source == "promotions" and data.get("phase") == "upcoming"
+    url = _all_url(data)
     return {
         "source": source,
         "items": items,
         "total": total,
-        "more": total > len(items) and not preview,
+        # «Alle N →» — только когда показаны не все и есть КУДА вести (у отзывов и
+        # «Demnächst» страницы всего списка нет)
+        "more": total > len(items) and not preview and bool(url),
         "preview": preview,
-        "url": _all_url(data),
+        "url": url,
         "label": _label(data, items, tenant),
         "intro": data.get("intro", ""),
         "aspect": _tile_aspect(cfg) if source == "categories" else "",
@@ -742,6 +862,12 @@ def view_hint(cfg: dict, data: dict) -> dict:
     }
 
 
+# LB-3d-3: источники без провайдера фасетов, но со своим порядком («пусто» — первый).
+_OWN_SORTS = {
+    "reviews": (("", gettext_lazy("Neueste zuerst")), ("best", gettext_lazy("Beste zuerst"))),
+}
+
+
 def sort_options(cfg: dict | None = None) -> list[tuple[str, str, str]]:
     """[(ключ, подпись, источники)] сортировок — подписи у провайдеров фасетов, те же,
     что видит посетитель на витрине. Сортировка провайдера по умолчанию = пустой ключ.
@@ -756,13 +882,14 @@ def sort_options(cfg: dict | None = None) -> list[tuple[str, str, str]]:
     merged: dict[tuple[str, str], list] = {}
     for source, spec in siteconfig.LIST_SOURCES.items():
         provider = provider_for(spec["facets"])
-        options = list(provider.sort_options())
+        options = list(_OWN_SORTS.get(source) or provider.sort_options())
+        default = "" if source in _OWN_SORTS else provider.default_sort
         if source == "products":
             options.insert(1, ("featured", _("Empfohlene zuerst")))
         labels = {key: str(label) for key, label in options}
         page = _page_sort(cfg, source) if cfg else ""
         for key, label in options:
-            key = "" if key == provider.default_sort else key
+            key = "" if key == default else key
             label = str(label)
             if key == "" and page:
                 label = f"{_FROM_LABELS['page']}: {labels.get(page, page)}"
@@ -939,6 +1066,7 @@ def editor_options(
     collections=None,
     themes=None,
     countries=None,
+    review_kinds=None,
 ) -> dict:
     """Пункты селекторов строки, которых нет в живых списках (класс W0).
 
@@ -988,4 +1116,39 @@ def editor_options(
     if country and country not in {key for key, _label in (countries or [])}:
         empty = _("derzeit leer")
         out["orphan_country"] = (country, f"{country} ({empty})")
+    # LB-3d-3: отзывы о сущностях выключенного модуля
+    entity = str(data.get("entity") or "")
+    if entity and entity not in {key for key, _label in (review_kinds or [])}:
+        off = _("derzeit aus")
+        out["orphan_entity"] = (entity, f"{review_kind_label(entity)} ({off})")
+    return out
+
+
+# LB-3d-3: подписи видов отзываемых сущностей (как источники блока) и их модули.
+_REVIEW_KIND_SOURCES = {
+    "product": "products",
+    "service": "services",
+    "stay": "stays",
+    "event": "events",
+    "combo": "combos",
+}
+
+
+def review_kind_label(kind: str, tenant=None) -> str:
+    """Подпись вида сущности отзыва — подпись одноимённого источника блока."""
+    source = _REVIEW_KIND_SOURCES.get(kind)
+    return source_label(source, tenant) if source else kind
+
+
+def review_kinds(tenant) -> list[tuple[str, str]]:
+    """[(вид, подпись)] видов сущностей отзыва с включённым модулем — пункты фильтра."""
+    out = []
+    for kind, source in _REVIEW_KIND_SOURCES.items():
+        module = siteconfig.LIST_SOURCES[source]["module"]
+        try:
+            active = bool(tenant is not None and tenant.is_module_active(module))
+        except Exception:  # noqa: BLE001
+            active = False
+        if active:
+            out.append((kind, review_kind_label(kind, tenant)))
     return out

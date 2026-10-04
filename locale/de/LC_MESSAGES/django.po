@@ -22757,3 +22757,25 @@ msgstr "Hauptkategorien"
 
 msgid "Zeigt die Unterkategorien der gewählten Kategorie."
 msgstr "Zeigt die Unterkategorien der gewählten Kategorie."
+
+msgid "Bewertungen zu"
+msgstr "Bewertungen zu"
+
+msgid "Alles"
+msgstr "Alles"
+
+msgid "Mindestbewertung"
+msgstr "Mindestbewertung"
+
+msgid "Nur mit Text"
+msgstr "Nur mit Text"
+
+msgid "Neueste zuerst"
+msgstr "Neueste zuerst"
+
+msgid "Beste zuerst"
+msgstr "Beste zuerst"
+
+#, python-format
+msgid "%(n)s von 5 Sternen"
+msgstr "%(n)s von 5 Sternen"

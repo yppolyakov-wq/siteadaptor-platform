@@ -22846,3 +22846,25 @@ msgstr "Ana kategoriler"
 
 msgid "Zeigt die Unterkategorien der gewählten Kategorie."
 msgstr "Seçilen kategorinin alt kategorilerini gösterir."
+
+msgid "Bewertungen zu"
+msgstr "Değerlendirme konusu"
+
+msgid "Alles"
+msgstr "Tümü"
+
+msgid "Mindestbewertung"
+msgstr "En düşük puan"
+
+msgid "Nur mit Text"
+msgstr "Yalnızca metinli"
+
+msgid "Neueste zuerst"
+msgstr "Önce en yeni"
+
+msgid "Beste zuerst"
+msgstr "Önce en iyi"
+
+#, python-format
+msgid "%(n)s von 5 Sternen"
+msgstr "5 üzerinden %(n)s yıldız"

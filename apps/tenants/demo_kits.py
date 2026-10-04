@@ -4483,6 +4483,14 @@ BAKERY = DemoKit(
     # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
     section_layouts={"gallery": {"preset": "cols3"}, "categories": {"preset": "cols2"}},
     page_presets=[("info", "team")],  # ST-2: шаблон «Über uns»
+    # LB-3d-3: блок «Liste» — проверенные отзывы о товарах (ab 4 ★, nur mit Text).
+    home_blocks=[
+        {
+            "after": "products",
+            "key": "list",
+            "data": {"source": "reviews", "entity": "product", "stars": 4, "only": "text"},
+        },
+    ],
     label="Backhaus Krume",
     # FB-3 Вариант B демо: свой статус заказа «In Kommissionierung» между Bestätigt и Fertig.
     status_defs={
@@ -9504,6 +9512,9 @@ FRISEUR = DemoKit(
             "data": {"source": "services", "collection": "farben-pflege"},
         },
     ],
+    # LB-3d-3: блок «Liste» со статьями блога — на странице «Über uns» (на главной
+    # блог уже есть секцией «News»).
+    page_blocks={"info": [("list", {"source": "blog", "limit": 3})]},
     service_reviews=[
         (
             0,
