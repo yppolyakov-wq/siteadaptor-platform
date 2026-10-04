@@ -17,6 +17,7 @@ from django.test import RequestFactory
 from django.utils import timezone
 
 from apps.catalog.tests.factories import ProductFactory
+from apps.core.tests.clock import freeze_wednesday_noon
 from apps.promotions import public_views
 from apps.promotions.models import Promotion
 from apps.tenants import siteconfig, sitetemplates
@@ -165,7 +166,7 @@ def _aktionen(tenant, params=None):
     return public_views.promotion_list(req).content.decode()
 
 
-def test_time_grouping_sections_in_urgency_order():
+def test_time_grouping_sections_in_urgency_order(monkeypatch):
     tenant = TenantFactory(
         schema_name="public",
         slug="tg1",
@@ -173,14 +174,11 @@ def test_time_grouping_sections_in_urgency_order():
         disabled_modules=[],
         site_config={"promo_grouping": "time"},
     )
-    now = timezone.localtime()
-    # Замок опирается на ЧАСЫ: «Heute-Deal» заканчивается сегодня в 23:59. В самом
-    # конце суток он уже закончился, секция «Endet heute» пропадает — CI 2026-09-10
-    # поймал это в 23:59. Сдвигать конец на 23:59:59.999 нельзя: у бакетов свои
-    # границы, и такой дил переезжает в ленту «Endet bald» выше секций. Поэтому
-    # честный пропуск в последние минуты дня, а не подгонка данных.
-    if (now.hour, now.minute) >= (23, 57):
-        pytest.skip("последние минуты суток: секции по сроку зависят от часов")
+    # Секции по сроку считаются от ЧАСОВ: в воскресенье «Endet diese Woche» не бывает
+    # (неделя кончается сегодня — CI 2026-10-04), в 23:59 «Heute-Deal» уже закончился
+    # (CI 2026-09-10). Среда в полдень даёт все четыре секции при любых часах.
+    now = freeze_wednesday_noon(monkeypatch)
+    assert now.weekday() == 2 and now.hour == 12
     end_today = now.replace(hour=23, minute=59)
     _promo("Dauer-Deal", group="Wochenangebote")
     _promo("Heute-Deal", ends_at=end_today)

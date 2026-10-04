@@ -15,6 +15,7 @@ from django.http import Http404
 from django.test import RequestFactory
 from django.utils import timezone
 
+from apps.core.tests.clock import freeze_wednesday_noon
 from apps.promotions import public_views
 from apps.promotions.models import Promotion
 from apps.tenants.tests.factories import TenantFactory
@@ -159,10 +160,15 @@ def test_promo_page_reads_builder_draft_in_preview():
 
 
 # --- DL-23: бакеты предпросмотра рядом колонками -------------------------------
-def test_small_preview_buckets_sit_side_by_side():
+def test_small_preview_buckets_sit_side_by_side(monkeypatch):
     """Фидбэк 2026-09-03: три бакета по одной карточке занимали три пустых ряда →
     при ≥2 бакетах по ≤2 карточки блоки идут колонками в одном ряду (без слайдера);
-    заголовки и маркеры бакетов сохраняются."""
+    заголовки и маркеры бакетов сохраняются.
+
+    Бакеты — по неделе НАЧАЛА, а неделя кончается в воскресенье: в воскресенье
+    «через день» — уже следующая неделя, и бакета «Ab dieser Woche» нет
+    (CI 2026-10-04). Часы — на среду."""
+    freeze_wednesday_noon(monkeypatch)
     tenant = _tenant("dl23a")
     _promo("Diese Woche", status="scheduled", starts_in=1, discount_percent=10)
     _promo("Nächste Woche", status="scheduled", starts_in=8, discount_percent=10)
