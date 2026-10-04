@@ -652,6 +652,19 @@ def card_form(context, entity, kind=card_forms.PRODUCT):
     return card_forms.card_form(entity, site_default, kind)
 
 
+@register.simple_tag(name="builtin_all_url")
+def builtin_all_url(row, fallback=""):
+    """LB-4: адрес «View all» встроенного списка главной — листинг с ТЕМ ЖЕ фильтром
+    строки (категория → её страница, тип акции → страница типа…). Не встроенная
+    строка или сбой — `fallback` (прежний адрес шаблона)."""
+    from apps.core import list_blocks
+
+    try:
+        return list_blocks.section_all_url(row) or fallback
+    except Exception:  # noqa: BLE001 — витрина не падает из-за ссылки
+        return fallback
+
+
 @register.filter(name="has_more_rows")
 def has_more_rows(groups):
     """MEN-24c: хотя бы одна группа прайса срезана капом строк (g["more"])."""
@@ -757,14 +770,17 @@ def _price_group_rows(products):
 
 
 @register.simple_tag
-def price_list_groups(limit=40, rows=0):
+def price_list_groups(limit=40, rows=0, row=None):
     """Секция главной в стиле «preisliste»: активные товары группами по
     категориям (собственный запрос — выполняется ТОЛЬКО при выбранном стиле;
     лимит секции-превью намеренно шире карточного — прайс сканируется).
 
     MEN-24c: rows>0 — кап СТРОК на группу (настройка секции «Zeilen»); срез
     помечается g["more"] → под списком появляется «Mehr anzeigen». Запрос при
-    капе расширяется: 40 товаров не хватает «по 3 в каждой из многих групп»."""
+    капе расширяется: 40 товаров не хватает «по 3 в каждой из многих групп».
+
+    LB-4: `row` — строка секции; её фильтр («ЧТО»: категория, подборка, «только…»)
+    действует и на прайс-вид, иначе выбор владельца менял бы лишь сетку."""
     from apps.catalog.models import Product
 
     try:
@@ -773,11 +789,13 @@ def price_list_groups(limit=40, rows=0):
         rows = 0
     if rows:
         limit = max(limit, 200)
-    qs = (
-        Product.objects.filter(is_active=True)
-        .select_related("category")
-        .order_by("category__sort_order", "-is_featured", "created_at")[:limit]
-    )
+    if isinstance(row, dict) and row.get("data"):
+        from apps.core import list_blocks
+
+        base = list_blocks.price_list_products(row)
+    else:
+        base = Product.objects.filter(is_active=True).select_related("category")
+    qs = base.order_by("category__sort_order", "-is_featured", "created_at")[:limit]
     groups = _price_group_rows(qs)
     if rows:
         for g in groups:

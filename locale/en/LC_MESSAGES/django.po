@@ -22741,3 +22741,13 @@ msgstr "Best first"
 #, python-format
 msgid "%(n)s von 5 Sternen"
 msgstr "%(n)s out of 5 stars"
+
+msgid "Als eigenen Block kopieren"
+msgstr "Copy as a separate block"
+
+msgid "Ein zweiter Liste-Block mit derselben Auswahl — zum Beispiel für eine andere Kategorie."
+msgstr "A second list block with the same selection — for example for another category."
+
+#, python-format
+msgid "Wie die Website (%(c)s)"
+msgstr "Like the website (%(c)s)"

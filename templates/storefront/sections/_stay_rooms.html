@@ -1,5 +1,5 @@
 {% load i18n siteui sellable_ui %}
-{% url 'storefront-unterkunft' as more_url %}
+{% url 'storefront-unterkunft' as rooms_url %}{% builtin_all_url section_row rooms_url as more_url %}
 {% comment %}
 Карточки номеров прямо на главной (для отелей/пансионов). Рендерится только при
 активном модуле stays и непустом stay_rooms. Каждая карточка ведёт на страницу
@@ -10,7 +10,7 @@
   <div class="flex items-end justify-between mb-4">
     {% section_title site 'stay_rooms' as st %}
     <h2 class="text-xl md:text-2xl font-bold" data-edit="section_titles.stay_rooms">{% if st %}{{ st }}{% else %}{% trans "Our rooms" %}{% endif %}</h2>
-    {% section_show_all site 'stay_rooms' as sa %}{% if sa %}<a href="{% url 'storefront-unterkunft' %}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
+    {% section_show_all site 'stay_rooms' as sa %}{% if sa %}<a href="{{ more_url }}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
     {% include "storefront/_grid_view.html" with grid_key="stay_rooms" %}
   </div>
   {% section_intro site 'stay_rooms' as si %}
@@ -18,9 +18,11 @@
   {% comment %}UB1-2: карточка — единый партиал _sellable_card.html (вертикаль h3,
   м² в мета-строке, цена/ночь + CTA-пилюля в одной строке).{% endcomment %}
   <div data-grid="stay_rooms" class="{% grid_classes site 'stay_rooms' %}" {% grid_attrs site 'stay_rooms' count=stay_rooms|length more=True %}>
+    {% with storefront_card_style=section_row.data.card|default:storefront_card_style %}
     {% for u in stay_rooms %}
       {% sellable_card 'stay' u cta='purchase' show_area=True %}
     {% endfor %}
+    {% endwith %}
     {% include "storefront/_grid_more.html" %}
   </div>
 </section>

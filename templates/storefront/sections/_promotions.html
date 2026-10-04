@@ -1,5 +1,5 @@
 {% load i18n siteui %}{# Секция акций (Track C2); DL-3: стили spotlight/rows (deal-looks-wave-plan-2026-09-01), "" = прежний грид байт-в-байт. #}
-{% url 'storefront-aktionen' as more_url %}
+{% url 'storefront-aktionen' as promos_url %}{% builtin_all_url section_row promos_url as more_url %}
 <section id="aktionen" data-reveal class="mb-10">
 {% comment %}DL-24: шапка переносится (flex-wrap), правая группа держится справа
 (ml-auto) — на ru «Все акции →» + переключатель вида не помещались в 358 px и
@@ -12,7 +12,7 @@
   <span class="ml-auto flex items-center gap-3">
     {% comment %}DL-13 C4: секция показывает первые N (лимит Studio, дефолт 9) —
     ссылка «Alle Aktionen» ведёт на полную страницу (ключ show_all, как у products).{% endcomment %}
-    {% section_show_all site 'promotions' as sa %}{% if sa %}<a href="{% url 'storefront-aktionen' %}" class="text-sm font-medium text-indigo-600 hover:underline whitespace-nowrap" data-promo-viewall>{% trans "Alle Aktionen" %} →</a>{% endif %}
+    {% section_show_all site 'promotions' as sa %}{% if sa %}<a href="{{ more_url }}" class="text-sm font-medium text-indigo-600 hover:underline whitespace-nowrap" data-promo-viewall>{% trans "Alle Aktionen" %} →</a>{% endif %}
     {% include "storefront/_grid_view.html" with grid_key="promotions" %}
   </span>
 </div>
@@ -40,7 +40,7 @@
   {% endfor %}
   {% if promotions|length > 1 %}
   <div id="promo-grid" data-grid="promotions" class="{% grid_classes site 'promotions' %}" {% grid_attrs site 'promotions' count=promotions|length|add:"-1" more=True %}>
-    {% for p in promotions %}{% if not forloop.first %}{% include "storefront/_promo_card.html" %}{% endif %}{% endfor %}
+    {% for p in promotions %}{% if not forloop.first %}{% include "storefront/_promo_card.html" with storefront_promo_card=section_row.data.card|default:storefront_promo_card %}{% endif %}{% endfor %}
     {% include "storefront/_grid_more.html" %}
   </div>
   {% endif %}
@@ -75,7 +75,7 @@
   </div>
   {% if promotions|length > 3 %}
   <div id="promo-grid" data-grid="promotions" class="{% grid_classes site 'promotions' %}" {% grid_attrs site 'promotions' count=promotions|length|add:"-3" more=True %}>
-    {% for p in promotions %}{% if forloop.counter > 3 %}{% include "storefront/_promo_card.html" %}{% endif %}{% endfor %}
+    {% for p in promotions %}{% if forloop.counter > 3 %}{% include "storefront/_promo_card.html" with storefront_promo_card=section_row.data.card|default:storefront_promo_card %}{% endif %}{% endfor %}
     {% include "storefront/_grid_more.html" %}
   </div>
   {% endif %}
@@ -100,7 +100,7 @@
 {% else %}
 <div id="promo-grid" data-grid="promotions" class="{% grid_classes site 'promotions' %}" {% grid_attrs site 'promotions' count=promotions|length more=True %}>
   {% for p in promotions %}
-    {% include "storefront/_promo_card.html" %}
+    {% include "storefront/_promo_card.html" with storefront_promo_card=section_row.data.card|default:storefront_promo_card %}
   {% endfor %}
     {% include "storefront/_grid_more.html" %}
 </div>

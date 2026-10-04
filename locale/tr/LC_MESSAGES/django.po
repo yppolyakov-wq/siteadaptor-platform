@@ -22868,3 +22868,13 @@ msgstr "Önce en iyi"
 #, python-format
 msgid "%(n)s von 5 Sternen"
 msgstr "5 üzerinden %(n)s yıldız"
+
+msgid "Als eigenen Block kopieren"
+msgstr "Ayrı blok olarak kopyala"
+
+msgid "Ein zweiter Liste-Block mit derselben Auswahl — zum Beispiel für eine andere Kategorie."
+msgstr "Aynı seçime sahip ikinci bir liste bloğu — örneğin başka bir kategori için."
+
+#, python-format
+msgid "Wie die Website (%(c)s)"
+msgstr "Sitedeki gibi (%(c)s)"

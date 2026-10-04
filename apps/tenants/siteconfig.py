@@ -413,6 +413,37 @@ def _clean_list_block(d: dict) -> dict:
     return out
 
 
+# LB-4 (план docs/lb4-home-lists-archetypes-plan-2026-10-04.md §2–§3): списочная
+# секция главной — это блок «Liste» с закреплённым источником. Ключ секции остаётся
+# её идентичностью (якоря меню, сборки, киты, переводы заголовков, golden), а оси
+# «ЧТО» блока — фильтр, сортировка, форма карточки — лежат в `row["data"]`.
+BUILTIN_LIST_SOURCES = {
+    "promotions": "promotions",
+    "products": "products",
+    "categories": "categories",
+    "services": "services",
+    "stay_rooms": "stays",
+    "events": "events",
+    "tours": "tours",
+    "blog": "blog",
+}
+# Чего у встроенной строки в `data` не бывает: источник задан ключом, лимит —
+# легаси-полем `limit`, заголовок/интро — `section_titles`/`section_intros`, а вид
+# (лента, колонки, ряды, темп) — полный `layout` строки.
+_BUILTIN_DATA_DROP = ("source", "limit", "title", "intro", "out", "cols", "rows", "speed")
+
+
+def clean_builtin_list_data(key, raw) -> dict:
+    """LB-4: оси «ЧТО» встроенного списка — поля его источника, presence-minimal."""
+    source = BUILTIN_LIST_SOURCES.get(key)
+    if source is None or not isinstance(raw, dict):
+        return {}
+    data = _clean_list_block({**raw, "source": source})
+    for field in _BUILTIN_DATA_DROP:
+        data.pop(field, None)
+    return data
+
+
 _MAX_STAT_ITEMS = 4  # GK-4: пар «число+подпись» в полосе цифр (больше — шум)
 
 
@@ -3597,6 +3628,12 @@ def _section_entry(key, enabled, raw_item):
     # (старые конфиги байт-в-байт, golden живы).
     if raw_item.get("style") in SECTION_STYLES.get(key, ()):
         entry["style"] = raw_item["style"]
+    # LB-4: оси «ЧТО» встроенного списка (фильтр/сортировка/форма карточки) —
+    # presence-minimal: без выбора владельца ключа нет, golden байт-в-байт.
+    if key in BUILTIN_LIST_SOURCES:
+        data = clean_builtin_list_data(key, raw_item.get("data"))
+        if data:
+            entry["data"] = data
     return entry
 
 

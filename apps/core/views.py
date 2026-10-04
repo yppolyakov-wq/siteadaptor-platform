@@ -441,6 +441,95 @@ _LIST_BLOCK_FIELDS = (
 )
 
 
+def _builtin_list_row(config, row) -> dict:
+    """LB-4b: что строке встроенного списка нужно в Студии — источник, действующие
+    данные блока (легаси-поле `source` товаров предзаполняет сортировку и «только…»),
+    сортировки и формы карточки ЕГО источника. Не встроенная строка — пусто."""
+    from apps.core import list_blocks
+    from apps.tenants import siteconfig
+
+    source = siteconfig.BUILTIN_LIST_SOURCES.get(row.get("key"))
+    if not source:
+        return {"builtin_source": ""}
+    return {
+        "builtin_source": source,
+        "list_data": list_blocks.section_data(row),
+        "list_sorts": list_blocks.builtin_sort_options(config, source),
+        "list_cards": list_blocks.builtin_card_options(source),
+    }
+
+
+def _read_builtin_what(post, key: str) -> dict:
+    """Поля «ЧТО» строки `key` из формы (`sl_<ключ>_<поле>`); normalize их чистит."""
+    from apps.core import list_blocks
+
+    return {
+        field: post.get(f"sl_{key}_{field}", "")
+        for field in list_blocks.BUILTIN_WHAT_FIELDS
+        if post.get(f"sl_{key}_{field}", "") != ""
+    }
+
+
+def _save_builtin_list_data(post, key: str, entry: dict, existing_fixed: dict) -> None:
+    """LB-4b: «ЧТО» встроенной строки → `entry["data"]` (presence-guard по сентинелу).
+
+    Без сентинела форма полей не рисовала (вкладка до деплоя) — сохранённые данные
+    строки переносятся как есть. У товаров выразимое легаси-полем `source` уходит в
+    него (`fold_product_source`): данные строки не растут у тех, кто ничего не менял."""
+    from apps.core import list_blocks
+
+    if post.get(f"sl_{key}_present") != "1":
+        saved = existing_fixed.get(key, (None, {}))[1]
+        if saved.get("data"):
+            entry["data"] = dict(saved["data"])
+        return
+    entry["data"] = _read_builtin_what(post, key)
+    if key == "products":
+        list_blocks.fold_product_source(entry)
+    if not entry["data"]:
+        entry.pop("data")
+
+
+def _copy_builtin_list(request, key: str):
+    """LB-4b: копия встроенного списка `key` блоком «Liste» сразу после него; id блока
+    или None (не встроенная строка)."""
+    import uuid
+
+    from apps.core import list_blocks
+    from apps.tenants import siteconfig
+
+    if key not in siteconfig.BUILTIN_LIST_SOURCES:
+        return None
+    cfg = siteconfig.normalize(request.tenant.site_config)
+    row = next((s for s in cfg["sections"] if s.get("key") == key and "id" not in s), None)
+    if row is None:
+        return None
+    current = dict(row)
+    if request.POST.get(f"sl_{key}_present") == "1":
+        current["data"] = _read_builtin_what(request.POST, key)
+    data = list_blocks.section_data(current)
+    layout = row.get("layout") or {}
+    if layout.get("scroll"):
+        data["out"] = "slider"
+    for axis in ("cols", "rows", "speed"):
+        if layout.get(axis):
+            data[axis] = layout[axis]
+    limit = list_blocks.section_limit(cfg, row)
+    if limit:
+        data["limit"] = min(int(limit), siteconfig.LIST_LIMIT_MAX)
+    title = (cfg.get("section_titles") or {}).get(key)
+    if title:
+        data["title"] = title
+    new_id = uuid.uuid4().hex[:12]
+    rows = list(cfg["sections"])
+    _insert_after_section(rows, {"key": "list", "id": new_id, "enabled": True, "data": data}, key)
+    siteconfig.realign_block_overlays(cfg, new_sections=rows)
+    cfg["sections"] = rows
+    request.tenant.site_config = siteconfig.normalize(cfg)
+    request.tenant.save(update_fields=["site_config", "updated_at"])
+    return new_id
+
+
 def _read_cblock_data(post, bid: str, btype: str) -> dict:
     """D.2b: собрать data C-блока из полей формы `cb_<id>_<field>` (normalize чистит)."""
     from apps.tenants import siteconfig
@@ -1912,6 +2001,14 @@ def home_builder_view(request):
         # POST → ловим несохранённые правки), use_block_template:<tpl_id> (вставить
         # копию в конец), delete_block_template:<tpl_id>.
         action = request.POST.get("action", "")
+        # LB-4b: «Als eigenen Block kopieren» — второй список того же источника рядом
+        # со встроенным: блок «Liste» с той же выборкой (её «ЧТО» — из формы, чтобы
+        # несохранённые правки не потерялись), колонками/лентой и лимитом строки.
+        if action.startswith("copy_builtin:"):
+            new_id = _copy_builtin_list(request, action.partition(":")[2])
+            if new_id:
+                messages.success(request, _("Block added."))
+            return _redirect_builder(request, block_id=new_id)
         if action.startswith(
             ("save_block_template:", "use_block_template:", "delete_block_template:")
         ):
@@ -2214,6 +2311,10 @@ def home_builder_view(request):
                 entry["source"] = request.POST.get("source_products", "")
                 # MEN-24c: кап строк прайс-вида (пусто → normalize ключ не пишет)
                 entry["rows"] = request.POST.get("rows_products", "")
+            # LB-4b: оси «ЧТО» встроенного списка (фильтр/сортировка/форма карточки) —
+            # под сентинелом: вкладка до деплоя их не шлёт, и данные строки целы (W0).
+            if key in siteconfig.BUILTIN_LIST_SOURCES:
+                _save_builtin_list_data(request.POST, key, entry, existing_fixed)
             if key in siteconfig.SECTION_VIEWALL_KEYS:
                 entry["show_all"] = request.POST.get(f"show_all_{key}") == "on"
             # SE-3d: визуальные параметры блока. Источник истины радиуса —
@@ -2881,6 +2982,7 @@ def home_builder_view(request):
                     (sk, siteconfig.SECTION_STYLE_LABELS.get(sk, sk))
                     for sk in siteconfig.SECTION_STYLES.get(s["key"], ())
                 ],
+                **_builtin_list_row(config, s),
             }
         )
     preset_options = [

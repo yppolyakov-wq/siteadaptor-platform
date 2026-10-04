@@ -1,17 +1,20 @@
-{% load i18n siteui %}{# M20U-2: ближайшие мероприятия/ретриты на главной (primary items для events). #}
-{% url 'storefront-events' as more_url %}
+{% load i18n siteui sellable_ui %}{# M20U-2: ближайшие мероприятия/ретриты на главной (primary items для events). #}
+{% url 'storefront-events' as events_url %}{% builtin_all_url section_row events_url as more_url %}
 {% if events_preview %}
 <section data-reveal class="mb-10">
   <div class="flex items-center justify-between mb-4">
     {% section_title site 'events' as st %}
     <h2 class="text-xl md:text-2xl font-bold" data-edit="section_titles.events">{% if st %}{{ st }}{% else %}{% trans "Upcoming events" %}{% endif %}</h2>
-    {% section_show_all site 'events' as sa %}{% if sa %}<a href="{% url 'storefront-events' %}" class="text-sm font-medium text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
+    {% section_show_all site 'events' as sa %}{% if sa %}<a href="{{ more_url }}" class="text-sm font-medium text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
     {% include "storefront/_grid_view.html" with grid_key="events" %}
   </div>
   {% section_intro site 'events' as si %}
   {% if si or is_preview %}<p class="mb-4 text-gray-600 whitespace-pre-line max-w-2xl" data-edit="section_intros.events">{{ si }}</p>{% endif %}
   <div data-grid="events" class="{% grid_classes site 'events' %}" {% grid_attrs site 'events' count=events_preview|length more=True %}>
     {% for e in events_preview %}
+      {% comment %}LB-4: своя форма карточки у строки → общая карточка (как у блока
+      «Liste» и /veranstaltung/); без неё — прежняя карточка с правкой на канве.{% endcomment %}
+      {% if section_row.data.card %}{% with storefront_card_style=section_row.data.card %}{% sellable_card 'event' e %}{% endwith %}{% else %}
       <a href="{% url 'storefront-event' e.pk %}" class="sf-card relative bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition flex flex-col">
         <span data-photo-edit data-edit-model="event" data-edit-pk="{{ e.pk }}" role="button" tabindex="-1" class="sf-photo-edit hidden absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/95 shadow ring-1 ring-gray-200 flex items-center justify-center hover:text-indigo-600" title="{% trans 'Replace photo' %}" aria-label="{% trans 'Replace photo' %}">📷</span>
         {% if e.image_url %}<img src="{{ e.image_url }}" alt="" loading="lazy" decoding="async" class="w-full h-40 object-cover">{% endif %}
@@ -23,6 +26,7 @@
           <span class="mt-2 inline-flex items-center gap-1 text-sm font-medium" style="color: var(--accent, #4f46e5);" data-purchase-action>{% purchase_label 'events' %} →</span>
         </div>
       </a>
+      {% endif %}
     {% endfor %}
     {% include "storefront/_grid_more.html" %}
   </div>

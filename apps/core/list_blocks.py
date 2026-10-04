@@ -247,11 +247,13 @@ def _promotions(data: dict, limit: int):
     return _attach_lowest_30d(shown), total
 
 
-def _products(data: dict, limit: int):
-    """Товары: тот же фильтрующий слой, что у каталога (CatalogFacets, UB2-1)."""
+def products_queryset(data: dict):
+    """Отфильтрованные и упорядоченные товары блока — без среза.
+
+    LB-4: им же питается прайс-лист встроенной секции товаров — фильтр строки
+    (категория, «только…») действует и на прайс-вид, а не только на сетку."""
     from apps.catalog.facets import CatalogFacets
     from apps.catalog.models import Product
-    from apps.promotions.price_layer import attach_promos
 
     provider = CatalogFacets()
     params = {}
@@ -273,10 +275,15 @@ def _products(data: dict, limit: int):
     sort = data.get("sort") or provider.default_sort
     if sort == "featured":
         # порядок секции товаров главной: избранные вперёд, затем новые
-        items = items.order_by("-is_featured", "-created_at")
-    else:
-        items = provider.sort(items, sort)
-    shown, total = _cut(items, limit)
+        return items.order_by("-is_featured", "-created_at")
+    return provider.sort(items, sort)
+
+
+def _products(data: dict, limit):
+    """Товары: тот же фильтрующий слой, что у каталога (CatalogFacets, UB2-1)."""
+    from apps.promotions.price_layer import attach_promos
+
+    shown, total = _cut(products_queryset(data), limit)
     if shown:
         # рейтинг ★ и промо-цена — по одному bulk-запросу, как в каталоге
         from apps.reviews import services as review_services
@@ -512,8 +519,13 @@ def _attach_review_entities(reviews, tenant) -> None:
                 review.entity_url = url(obj)
 
 
-def _cut(items, limit: int):
-    """Первые `limit` и сколько всего; COUNT — только когда показаны не все."""
+def _cut(items, limit):
+    """Первые `limit` и сколько всего; COUNT — только когда показаны не все.
+
+    LB-4: `limit=None` — все (встроенные услуги и номера главной лимита не знают)."""
+    if limit is None:
+        shown = list(items)
+        return shown, len(shown)
     if isinstance(items, list):
         return items[:limit], len(items)
     shown = list(items[: limit + 1])
@@ -754,6 +766,158 @@ def resolve_for(request, cfg: dict, data: dict) -> dict:
     if key not in memo:
         memo[key] = resolve(cfg, data, getattr(request, "tenant", None))
     return memo[key]
+
+
+# ─────────────────── LB-4: встроенные списки главной ───────────────────
+# План docs/lb4-home-lists-archetypes-plan-2026-10-04.md §3–§4. Списочная секция
+# главной (`products`, `promotions`, …) — блок «Liste» с закреплённым источником:
+# выборку делает тот же фетчер, что у блока, а её разметку — прежний шаблон секции.
+
+# Легаси-поле `source` секции товаров (M20U-7) → оси блока (сортировка, «только…»).
+_LEGACY_PRODUCT_SOURCES = {
+    "featured_first": ("featured", ""),
+    "newest": ("newest", ""),
+    "featured_only": ("newest", "featured"),
+}
+
+
+def section_data(row: dict) -> dict:
+    """Данные блока «Liste» для встроенной строки главной.
+
+    Источник — по ключу строки; явные оси «ЧТО» строки (`row["data"]`) сильнее
+    легаси-поля `source` товаров, которое лишь предзаполняет сортировку и «только…»."""
+    source = siteconfig.BUILTIN_LIST_SOURCES[row["key"]]
+    data = {"source": source, **(row.get("data") or {})}
+    if source == "products":
+        legacy = row.get("source") or siteconfig.PRODUCT_SOURCE_DEFAULT
+        sort, only = _LEGACY_PRODUCT_SOURCES.get(legacy, _LEGACY_PRODUCT_SOURCES["featured_first"])
+        data.setdefault("sort", sort)
+        if only and not data.get("only"):
+            data["only"] = only
+    return data
+
+
+def section_limit(cfg: dict, row: dict):
+    """Сколько карточек у встроенной строки: лимит секции (и её «ряды», LAY-3c), а у
+    услуг и номеров, где лимита нет, — все или «колонки × ряды», если ряды заданы
+    (раньше «Reihen» у них ничего не меняли)."""
+    key = row["key"]
+    if key in siteconfig.GRID_SECTION_LIMITS:
+        return siteconfig.section_limit(cfg, key)
+    return siteconfig.effective_limit(row.get("layout")) or None
+
+
+def resolve_section(cfg: dict, row: dict) -> dict:
+    """Выборка встроенной строки главной: карточки, сколько всего, «View all» с тем же
+    фильтром и форма карточки строки ("" — дефолт сайта)."""
+    data = section_data(row)
+    items, total = _FETCHERS[data["source"]](data, section_limit(cfg, row), cfg)
+    return {
+        "items": items,
+        "total": total,
+        "url": _all_url(data),
+        "card": data.get("card", ""),
+        "data": data,
+    }
+
+
+# LB-4b: поля «ЧТО» строки встроенного списка в Студии (`sl_<ключ>_<поле>`) — фильтры
+# всех источников + сортировка + форма карточки; normalize хранит только поля
+# источника строки.
+BUILTIN_WHAT_FIELDS = (
+    "type",
+    "endet",
+    "rabatt",
+    "category",
+    "collection",
+    "only",
+    "event_category",
+    "country",
+    "sort",
+    "card",
+)
+
+
+def fold_product_source(entry: dict) -> None:
+    """Выбор «сортировка + только…» секции товаров, выразимый легаси-полем `source`,
+    сохраняется им: данные строки не растут у тех, кто ничего не менял, а сборки,
+    киты и прежние шаблоны видят привычное значение."""
+    data = entry.get("data")
+    if not isinstance(data, dict):
+        return
+    sort = data.get("sort") or "newest"  # пустой пункт = порядок каталога по умолчанию
+    only = data.get("only") or ""
+    for legacy, (legacy_sort, legacy_only) in _LEGACY_PRODUCT_SOURCES.items():
+        if sort == legacy_sort and only == legacy_only:
+            entry["source"] = legacy
+            data.pop("sort", None)
+            data.pop("only", None)
+            return
+    entry["source"] = siteconfig.PRODUCT_SOURCE_DEFAULT
+
+
+def builtin_sort_options(cfg: dict, source: str) -> list[tuple[str, str]]:
+    """Сортировки строки встроенного списка: [(значение, подпись)] ЕГО источника.
+
+    У товаров пустой пункт блока («порядок каталога») здесь назван явно (`newest`):
+    пустое значение у строки означало бы легаси-дефолт «избранные вперёд»."""
+    from apps.core.facets import provider_for
+
+    spec = siteconfig.LIST_SOURCES[source]
+    default = provider_for(spec["facets"]).default_sort if source == "products" else ""
+    out = []
+    for key, label, srcs in sort_options(cfg):
+        if source in srcs.split():
+            out.append((key or default, label))
+    return out
+
+
+def builtin_card_options(source: str) -> list[tuple[str, str]]:
+    """Формы карточки строки встроенного списка — только формы её источника."""
+    return [(key, label) for key, label, srcs in card_options() if source in srcs.split()]
+
+
+def section_all_url(row) -> str:
+    """«View all» встроенной строки — туда, где виден весь список с тем же фильтром
+    (категория → её страница, тип акции → страница типа, подборка → `?kollektion=`).
+    Без фильтра — прежний адрес листинга."""
+    if not isinstance(row, dict) or row.get("key") not in siteconfig.BUILTIN_LIST_SOURCES:
+        return ""
+    return _all_url(section_data(row))
+
+
+def price_list_products(row):
+    """Товары прайс-вида встроенной секции: фильтры СТРОКИ («ЧТО» владельца) — без
+    легаси-поля `source`, которое прайс-лист никогда не учитывал (паритет)."""
+    data = {"source": "products", **((row or {}).get("data") or {})}
+    data.pop("sort", None)  # у прайс-листа свой порядок — по группам
+    return products_queryset(data)
+
+
+def promotions_ending_soon(data: dict, days: int = 3, limit: int = 4) -> list:
+    """Чипы «Ending soon» стилей spotlight/banner: акции ТОГО ЖЕ фильтра строки,
+    заканчивающиеся в ближайшие `days` дней — из полной выборки, не из среза."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.promotions.facets import PromoFacets
+    from apps.promotions.models import Promotion
+
+    if data.get("phase") == "upcoming":
+        return []  # у будущих акций срока «Endet …» нет
+    items = PromoFacets().apply(
+        Promotion.objects.filter(status="active").order_by("-created_at"),
+        {
+            "gruppe": data.get("type", ""),
+            "endet": data.get("endet", ""),
+            "rabatt": data.get("rabatt") or 0,
+        },
+    )
+    soon = timezone.now() + timedelta(days=days)
+    if isinstance(items, list):
+        return [p for p in items if p.ends_at and p.ends_at <= soon][:limit]
+    return list(items.filter(ends_at__isnull=False, ends_at__lte=soon)[:limit])
 
 
 def _is_list(block) -> bool:

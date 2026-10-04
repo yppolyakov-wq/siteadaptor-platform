@@ -1,5 +1,5 @@
 {% load i18n siteui sellable_ui %}
-{% url 'storefront-termin' as more_url %}
+{% url 'storefront-termin' as services_url %}{% builtin_all_url section_row services_url as more_url %}
 {% comment %}
 A3: блок «Leistungen & Preise» — услуги (Service) с ценой/длительностью на главной.
 Рендерится только при активном модуле booking и непустом services_preview. Карточка
@@ -10,7 +10,7 @@ A3: блок «Leistungen & Preise» — услуги (Service) с ценой/д
   <div class="flex items-end justify-between mb-4">
     {% section_title site 'services' as st %}
     <h2 class="text-xl md:text-2xl font-bold" data-edit="section_titles.services">{% if st %}{{ st }}{% else %}{% trans "Services & prices" %}{% endif %}</h2>
-    {% section_show_all site 'services' as sa %}{% if sa %}<a href="{% url 'storefront-termin' %}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
+    {% section_show_all site 'services' as sa %}{% if sa %}<a href="{{ more_url }}" class="text-sm text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
     {% include "storefront/_grid_view.html" with grid_key="services" %}
   </div>
   {% section_intro site 'services' as si %}
@@ -20,11 +20,13 @@ A3: блок «Leistungen & Preise» — услуги (Service) с ценой/д
   A9/A7 сигнал доверия «прозрачные фикс-цены»).{% endcomment %}
   <div data-grid="services" class="{% grid_classes site 'services' %}" {% grid_attrs site 'services' count=services_preview|length more=True %}>
     {% trans "Fixed price" as festpreis_label %}
+    {% with storefront_card_style=section_row.data.card|default:storefront_card_style %}
     {% for s in services_preview %}
       {% url 'storefront-service-slots' s.pk as slots_url %}
       {% if services_festpreis %}{% sellable_card 'service' s variant='horizontal' href=slots_url cta='purchase' badge=festpreis_label %}
       {% else %}{% sellable_card 'service' s variant='horizontal' href=slots_url cta='purchase' %}{% endif %}
     {% endfor %}
+    {% endwith %}
     {% include "storefront/_grid_more.html" %}
   </div>
 </section>

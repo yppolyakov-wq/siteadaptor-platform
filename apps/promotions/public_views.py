@@ -218,113 +218,56 @@ def storefront_home(request):
     # UC6-3a: последовательные узкие C-блоки → ряды (md:flex в home.html).
     section_blocks = siteconfig.group_block_rows([s for s in site["sections"] if s["enabled"]])
 
-    promos_all = (
-        list(
-            _attach_lowest_30d(
-                Promotion.objects.filter(status="active")
-                .select_related("product")
-                .order_by("-created_at")
-            )
-        )
-        if "promotions" in sections
-        else []
-    )
-    # DL-3 (стиль spotlight секции акций): чипы «Endet bald» над гридом —
-    # акции, заканчивающиеся в ближайшие 3 дня (как полоса /aktionen/, SF-2).
-    # DL-13 C4: полоса — из ПОЛНОЙ выборки, срез лимита ниже её не режет.
+    # LB-4 (план docs/lb4-home-lists-archetypes-plan-2026-10-04.md §4): списочные
+    # секции главной — блоки «Liste» с закреплённым источником. Выборку каждой делает
+    # фетчер блока (`list_blocks.resolve_section`): фильтр/сортировка/форма карточки
+    # строки, «View all» с тем же фильтром. Разметка — прежние шаблоны секций.
+    from apps.core import list_blocks, modules
+
+    builtin = {
+        s["key"]: s
+        for s in site["sections"]
+        if s.get("enabled") and s.get("key") in siteconfig.BUILTIN_LIST_SOURCES
+    }
+    # Модуль-гейт прежний: секция чужого архетипа на витрине не появляется.
+    gates = {
+        "stay_rooms": "stays",
+        "services": "booking",
+        "events": "events",
+        "tours": "events",
+        "blog": "blog",
+    }
+    lists = {}
+    for key, row in builtin.items():
+        module = gates.get(key)
+        if module and not modules.is_module_active(request.tenant, module):
+            continue
+        lists[key] = list_blocks.resolve_section(site, row)
+
+    def _items(key):
+        return lists[key]["items"] if key in lists else []
+
+    promos = _items("promotions")
+    # DL-3 (стиль spotlight секции акций): чипы «Endet bald» над гридом — акции,
+    # заканчивающиеся в ближайшие 3 дня (как полоса /aktionen/, SF-2). DL-13 C4:
+    # полоса — из ПОЛНОЙ выборки (того же фильтра строки), срез лимита её не режет.
     promo_ending_soon = []
-    if promos_all:
-        from datetime import timedelta
-
-        from django.utils import timezone as _tz
-
-        _soon = _tz.now() + timedelta(days=3)
-        promo_ending_soon = [p for p in promos_all if p.ends_at and p.ends_at <= _soon][:4]
-    # DL-13 C4 (решение владельца «лимит 9»): секция главной — первые N акций
-    # (настраивается в Studio, дефолт 9) + «Alle Aktionen»; раньше выводились ВСЕ.
-    promos = promos_all[: siteconfig.section_limit(site, "promotions")]
-    products_preview = []
-    if "products" in sections:
-        from apps.catalog.models import Product
-
-        # M20U-7: источник товаров секции (избранные/новые/избранные-первыми).
-        # KAT-3: select_related — карточки строят SEO-URL через category.slug.
-        prod_qs = Product.objects.filter(is_active=True).select_related("category")
-        source = siteconfig.product_source(site)
-        if source == "featured_only":
-            prod_qs = prod_qs.filter(is_featured=True).order_by("-created_at")
-        elif source == "newest":
-            prod_qs = prod_qs.order_by("-created_at")
-        else:  # featured_first
-            prod_qs = prod_qs.order_by("-is_featured", "-created_at")
-        from .price_layer import attach_promos
-
-        # SF-4b: главная показывает те же промо-цены, что каталог и корзина.
-        products_preview = attach_promos(prod_qs[: siteconfig.section_limit(site, "products")])
-    # M20U-2: сетка категорий каталога (верхний уровень, активные).
-    categories = []
-    if "categories" in sections:
-        from apps.catalog.models import Category
-
-        # DS-5: владелец задаёт число плиток (Anzahl в Studio; было — все).
-        categories = list(
-            Category.objects.filter(is_active=True, parent__isnull=True).order_by(
-                "sort_order", "slug"
-            )[: siteconfig.section_limit(site, "categories")]
-        )
+    if promos:
+        promo_ending_soon = list_blocks.promotions_ending_soon(lists["promotions"]["data"])
+    # SF-4b: промо-цены на карточках — внутри фетчера (как в каталоге и корзине).
+    products_preview = _items("products")
+    categories = _items("categories")
     # S2: сетка тизеров активных архетипов («Наши разделы»).
     archetype_teasers = []
     if "archetypes" in sections:
         from apps.tenants import storefront
 
         archetype_teasers = storefront.archetype_teasers(request.tenant)
-    # Карточки номеров на главной (только при активном модуле stays).
-    from apps.core import modules
-
-    stay_rooms = []
-    if "stay_rooms" in sections and modules.is_module_active(request.tenant, "stays"):
-        from apps.stays.models import StayUnit
-
-        stay_rooms = list(StayUnit.objects.filter(is_active=True))
-    # M20U-2: ближайшие мероприятия/ретриты (primary items архетипа events).
-    events_preview = []
-    if "events" in sections and modules.is_module_active(request.tenant, "events"):
-        from django.utils import timezone
-
-        from apps.events.models import Event
-
-        events_preview = list(
-            Event.objects.filter(
-                status=Event.STATUS_PUBLISHED, starts_at__gte=timezone.now()
-            ).order_by("starts_at")[: siteconfig.section_limit(site, "events")]
-        )
-    # MT-F1: поездки (тур-продукты) — главный товар тур-оператора. Гейт по
-    # ДАННЫМ, а не по типу бизнеса: у ретрит-кита туров нет, и его главная
-    # остаётся прежней даже при включённой секции.
-    tours_preview = []
-    if "tours" in sections and modules.is_module_active(request.tenant, "events"):
-        from apps.events.models import Tour
-
-        tours_preview = list(
-            Tour.objects.filter(is_published=True).prefetch_related(Tour.upcoming_prefetch())[
-                : siteconfig.section_limit(site, "tours")
-            ]
-        )
-    # HF-1: лента новостей (модуль blog). Черновики и запланированные посты сюда
-    # не попадают — на главную идёт только опубликованное.
-    blog_preview = []
-    if "blog" in sections and modules.is_module_active(request.tenant, "blog"):
-        from apps.events.models import BlogPost
-
-        blog_preview = list(
-            BlogPost.objects.filter(is_published=True)[: siteconfig.section_limit(site, "blog")]
-        )
-    # A3: блок «Leistungen & Preise» — услуги (Service) при активном модуле booking.
-    services_preview = []
-    if "services" in sections and modules.is_module_active(request.tenant, "booking"):
-        from apps.booking.models import Service
-
-        services_preview = list(Service.objects.filter(is_active=True))
+    stay_rooms = _items("stay_rooms")
+    events_preview = _items("events")
+    tours_preview = _items("tours")
+    blog_preview = _items("blog")
+    services_preview = _items("services")
     # A9/A7: у ремесла/автосервиса (активен модуль jobs — Angebot/Kostenvoranschlag)
     # услуги с ценой подаём как Festpreis — сигнал доверия (прозрачные фикс-цены).
     services_festpreis = modules.is_module_active(request.tenant, "jobs")

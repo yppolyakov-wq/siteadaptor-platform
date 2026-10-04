@@ -3,13 +3,13 @@
 опубликованных постов. Адрес хвостовой кнопки «Alle anzeigen» (DL-14) — тегом ВНЕ
 комментария: внутри него Django тег не исполняет, и кнопка не рисовалась никогда
 (найдено разведкой LB-3d).{% endcomment %}
-{% url 'storefront-blog' as more_url %}
+{% url 'storefront-blog' as blog_url %}{% builtin_all_url section_row blog_url as more_url %}
 {% if blog_preview %}
 <section data-reveal class="mb-10">
   <div class="flex items-center justify-between mb-4">
     {% section_title site 'blog' as st %}
     <h2 class="text-xl md:text-2xl font-bold" data-edit="section_titles.blog">{% if st %}{{ st }}{% else %}{% trans "News" %}{% endif %}</h2>
-    {% section_show_all site 'blog' as sa %}{% if sa %}<a href="{% url 'storefront-blog' %}" class="text-sm font-medium text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
+    {% section_show_all site 'blog' as sa %}{% if sa %}<a href="{{ more_url }}" class="text-sm font-medium text-indigo-600 hover:underline">{% trans "View all" %} →</a>{% endif %}
     {% include "storefront/_grid_view.html" with grid_key="blog" %}
   </div>
   {% section_intro site 'blog' as si %}
