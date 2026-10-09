@@ -366,6 +366,14 @@ class DemoKit:
     # (немецкий контент = база + оверлеи en/ru/uk/tr из demo_i18n). Первый =
     # default_locale. Пусто → только DE. Невалидные коды отбрасываются в apply_kit.
     enabled_locales: list = field(default_factory=lambda: ["de", "en", "ru", "uk", "tr"])
+    # T-8.1: профиль витрины ("" | "aktionen" — «Nur Aktionen»: визитка + акции, каталог и
+    # корзина скрыты), телефон бизнеса (→ Tenant.contact_phone: «Anrufen» на странице
+    # акции, звонок в нижнем баре) и координаты (→ Tenant.latitude/longitude: «Route
+    # planen», карта контакта, «рядом со мной» городского портала).
+    profile: str = ""
+    phone: str = ""
+    lat: str = ""
+    lng: str = ""
 
 
 # Товар: dict {name, price, desc, img(keyword), variants?, allergens?, modifiers?,
@@ -22444,6 +22452,557 @@ ONLINE_SHOP = DemoKit(
 )
 
 
+# --- T-8.1 «Nur Aktionen»: лёгкие демо пилота Solingen ------------------------------
+# План docs/t8-1-aktion-demos-plan-2026-10-09.md. Ступень 0 платформы: визитка + акции,
+# без каталога и корзины (profile="aktionen"). Свои имена (не копии полных демо —
+# иначе в городском каталоге Solingen были бы двойники), один город, координаты.
+# Акции — «свободные» (без товара): ровно то, что владелец создаст за 3 экрана.
+# До T-8.2 кнопка акции создаёт обычный заказ «оплата на месте» — поэтому модуль
+# orders включён явно (у cafe/hotel он выключен по умолчанию, и клиент получил бы
+# 404 на подтверждении). T-8.2 заменит кнопку на «Zurücklegen»/«Anfragen».
+
+
+def _lite_menus(neu_group: str = "Neu bei uns") -> dict:
+    return {
+        "top": {
+            "style": "classic",
+            "sticky": True,
+            "items": [
+                {"label": "Angebote", "type": "archetype", "target": "promotions"},
+                {"label": "Neu", "type": "promo_group", "target": neu_group},
+                {"label": "Kontakt", "type": "anchor", "target": "/#kontakt"},
+            ],
+        },
+    }
+
+
+_LITE_COMMON = {
+    "profile": "aktionen",
+    "primary_module": "promotions",
+    "city": "Solingen",
+    "nav_style": "classic",
+    "enable_archetypes_section": False,
+}
+
+LITE_BAKERY = DemoKit(
+    key="klingenbrot",
+    subdomain="klingenbrot",
+    label="Bäckerei Klingenbrot",
+    business_type="bakery",
+    accent="#b45309",
+    hero_image_kw="bread-bakery",
+    hero_title="Frisch aus Solingen-Mitte",
+    hero_text="Unsere Angebote von heute — zurücklegen lassen und abholen.",
+    heroes=[
+        {
+            "image_kw": "bakery-bag",
+            "title": "Feierabendtüte ab 17 Uhr",
+            "text": "Backwaren vom Tag zum halben Preis — solange der Vorrat reicht.",
+            "button_label": "Zu den Angeboten",
+            "button_url": "/aktionen/",
+        },
+        {
+            "image_kw": "bread-bakery",
+            "title": "Frisch aus Solingen-Mitte",
+            "text": "Unsere Angebote von heute — zurücklegen lassen und abholen.",
+            "button_label": "Zu den Angeboten",
+            "button_url": "/aktionen/",
+        },
+    ],
+    usp=[
+        ("clock", "Frisch ab 6 Uhr"),
+        ("local", "Mehl aus der Region"),
+        ("quality", "Meisterbetrieb"),
+    ],
+    about_title="Über uns",
+    about_text="Kleine Handwerksbäckerei in Solingen-Mitte. Was heute im Angebot ist, "
+    "sehen Sie hier — einfach vorbeikommen oder anrufen.",
+    address="Klingenweg 7, 42651 Solingen",
+    phone="+49 212 5550101",
+    whatsapp_number="+49 170 2000101",
+    lat="51.1652000",
+    lng="7.0671000",
+    opening_hours_text="Mo–Fr 6:30–18:00 · Sa 6:30–13:00",
+    opening_hours={**{d: ("06:30", "18:00") for d in range(5)}, 5: ("06:30", "13:00")},
+    menus=_lite_menus(),
+    enable_modules=["orders"],
+    promotions_spec=[
+        {
+            "title": "Feierabendtüte −50 %",
+            "desc": "Brot, Brötchen und Gebäck vom Tag zum halben Preis. Ab 17 Uhr, "
+            "solange der Vorrat reicht.",
+            "new_price": "5.00",
+            "compare_at": "10.00",
+            "ends_today": True,
+            "countdown": True,
+            "limit": 12,
+            "group": "Heute",
+            "image": "bakery-bag",
+        },
+        {
+            "title": "Sonntagsbrötchen 10 + 2 gratis",
+            "desc": "Zehn Brötchen bestellen, zwölf mitnehmen — jeden Sonntag bis 11 Uhr.",
+            "new_price": "4.50",
+            "compare_at": "5.40",
+            "recurrence": "weekly",
+            "ends_in_days": 7,
+            "group": "Diese Woche",
+            "image": "bread-rolls",
+        },
+        {
+            "title": "Kuchen der Woche: Apfelstrudel",
+            "desc": "Ein Stück Apfelstrudel mit Vanillesoße — diese Woche günstiger.",
+            "new_price": "2.50",
+            "compare_at": "3.20",
+            "ends_in_days": 6,
+            "group": "Diese Woche",
+            "image": "apple-strudel",
+        },
+        {
+            "title": "Butter-Croissant 3 Stück",
+            "desc": "Drei Croissants zum Frühstück — frisch aus dem Ofen.",
+            "new_price": "3.30",
+            "compare_at": "3.90",
+            "ends_in_days": 4,
+            "group": "Diese Woche",
+            "image": "croissant",
+        },
+        {
+            "title": "Neu: Dinkel-Vollkornbrötchen",
+            "desc": "Neu in unserer Theke: kerniges Dinkel-Vollkornbrötchen mit Saaten.",
+            "new_price": "0.80",
+            "new": True,
+            "ends_in_days": 30,
+            "group": "Neu bei uns",
+            "image": "wholegrain-roll",
+        },
+        {
+            "title": "Wunschtorte auf Bestellung",
+            "desc": "Geburtstag, Taufe oder Firmenfeier: Ihre Torte nach Wunsch, "
+            "mit 2 Tagen Vorlauf.",
+            "new_price": "29.00",
+            "discount_style": "ab",
+            "ends_in_days": 60,
+            "group": "Auf Bestellung",
+            "image": "strawberry-cake",
+        },
+    ],
+    **_LITE_COMMON,
+)
+
+LITE_CAFE = DemoKit(
+    key="ohligser_eck",
+    subdomain="ohligser-eck",
+    label="Café Ohligser Eck",
+    business_type="cafe",
+    accent="#7c3aed",
+    hero_image_kw="cafe-interior",
+    hero_title="Ihr Café in Ohligs",
+    hero_text="Happy Hour, Frühstück und Kuchen — die Angebote dieser Woche.",
+    heroes=[
+        {
+            "image_kw": "cappuccino",
+            "title": "Happy Hour: Cappuccino 2 €",
+            "text": "Montag bis Freitag, 14 bis 16 Uhr.",
+            "button_label": "Zu den Angeboten",
+            "button_url": "/aktionen/",
+        },
+        {
+            "image_kw": "cafe-interior",
+            "title": "Ihr Café in Ohligs",
+            "text": "Happy Hour, Frühstück und Kuchen — die Angebote dieser Woche.",
+            "button_label": "Zu den Angeboten",
+            "button_url": "/aktionen/",
+        },
+    ],
+    usp=[
+        ("clock", "Frühstück bis 14 Uhr"),
+        ("local", "Kuchen aus eigener Backstube"),
+        ("quality", "Fair gehandelter Kaffee"),
+    ],
+    about_title="Über uns",
+    about_text="Das Eckcafé am Ohligser Markt: Frühstück, Mittagstisch und Kuchen. "
+    "Unsere Angebote finden Sie hier — einfach vorbeikommen.",
+    address="Ohligser Bogen 12, 42697 Solingen",
+    phone="+49 212 5550202",
+    whatsapp_number="+49 170 2000102",
+    lat="51.1679000",
+    lng="7.0102000",
+    opening_hours_text="Mo–Fr 8:00–18:00 · Sa–So 9:00–17:00",
+    opening_hours={
+        **{d: ("08:00", "18:00") for d in range(5)},
+        5: ("09:00", "17:00"),
+        6: ("09:00", "17:00"),
+    },
+    menus=_lite_menus(),
+    enable_modules=["orders"],
+    promotions_spec=[
+        {
+            "title": "Happy Hour: Cappuccino 2 €",
+            "desc": "Montag bis Freitag von 14 bis 16 Uhr — jeder Cappuccino 2 €.",
+            "new_price": "2.00",
+            "compare_at": "3.40",
+            "recurrence": "weekly",
+            "ends_in_days": 14,
+            "group": "Diese Woche",
+            "image": "cappuccino",
+        },
+        {
+            "title": "Frühstück für zwei",
+            "desc": "Zwei Frühstücke mit Brötchen, Aufschnitt, Ei und zwei Heißgetränken.",
+            "new_price": "19.90",
+            "compare_at": "24.80",
+            "ends_in_days": 10,
+            "group": "Diese Woche",
+            "image": "breakfast",
+        },
+        {
+            "title": "Kuchen + Kaffee 4,90 €",
+            "desc": "Ein Stück Kuchen nach Wahl und eine Tasse Filterkaffee.",
+            "new_price": "4.90",
+            "compare_at": "6.30",
+            "ends_in_days": 7,
+            "group": "Diese Woche",
+            "image": "cheesecake",
+        },
+        {
+            "title": "Mittagstisch: Suppe des Tages",
+            "desc": "Hausgemachte Suppe mit Brot — heute Kürbissuppe.",
+            "new_price": "6.50",
+            "ends_today": True,
+            "group": "Heute",
+            "image": "pumpkin-soup",
+        },
+        {
+            "title": "Neu: Hafer-Latte",
+            "desc": "Neu auf der Karte: Latte mit Haferdrink — ohne Aufpreis.",
+            "new_price": "3.60",
+            "new": True,
+            "ends_in_days": 30,
+            "group": "Neu bei uns",
+            "image": "latte-art",
+        },
+        {
+            "title": "Neu: Kaffeebohnen zum Mitnehmen",
+            "desc": "Unsere Hausmischung, 250 g ganze Bohnen — frisch geröstet.",
+            "new_price": "7.90",
+            "new": True,
+            "ends_in_days": 30,
+            "group": "Neu bei uns",
+            "image": "kaffee-bohnen-schale",
+        },
+    ],
+    **_LITE_COMMON,
+)
+
+LITE_MODE = DemoKit(
+    key="walder_faden",
+    subdomain="walder-faden",
+    label="Modehaus Walder Faden",
+    business_type="clothing",
+    accent="#0f766e",
+    hero_image_kw="fashion-boutique",
+    hero_title="Mode in Solingen-Wald",
+    hero_text="Unsere Angebote — reservieren lassen und in Ruhe anprobieren.",
+    heroes=[
+        {
+            "image_kw": "look-herbst-mantel",
+            "title": "Wintermäntel −30 %",
+            "text": "Nur bis Sonntag — wir legen Ihr Modell zur Anprobe zurück.",
+            "button_label": "Zu den Angeboten",
+            "button_url": "/aktionen/",
+        },
+        {
+            "image_kw": "fashion-boutique",
+            "title": "Mode in Solingen-Wald",
+            "text": "Unsere Angebote — reservieren lassen und in Ruhe anprobieren.",
+            "button_label": "Zu den Angeboten",
+            "button_url": "/aktionen/",
+        },
+    ],
+    usp=[
+        ("quality", "Persönliche Beratung"),
+        ("local", "Änderungsschneiderei im Haus"),
+        ("clock", "Anprobe ohne Termin"),
+    ],
+    about_title="Über uns",
+    about_text="Inhabergeführtes Modehaus in Wald: Damen- und Herrenmode, persönliche "
+    "Beratung, kleine Änderungen im Haus.",
+    address="Walder Gasse 5, 42719 Solingen",
+    phone="+49 212 5550303",
+    whatsapp_number="+49 170 2000103",
+    lat="51.1825000",
+    lng="7.0436000",
+    opening_hours_text="Mo–Fr 10:00–19:00 · Sa 10:00–16:00",
+    opening_hours={**{d: ("10:00", "19:00") for d in range(5)}, 5: ("10:00", "16:00")},
+    menus=_lite_menus(),
+    enable_modules=["orders"],
+    promotions_spec=[
+        {
+            "title": "Wintermäntel −30 %",
+            "desc": "Wollmäntel für Damen und Herren — nur bis Sonntag. Wir legen Ihr "
+            "Modell 24 Stunden zur Anprobe zurück.",
+            "new_price": "139.00",
+            "compare_at": "199.00",
+            "ends_in_days": 4,
+            "countdown": True,
+            "group": "Sale",
+            "image": "mode-wollmantel-reeder",
+        },
+        {
+            "title": "Strick-Sale: Pullover ab 39 €",
+            "desc": "Strickpullover und Cardigans aus Wolle — ausgewählte Modelle reduziert.",
+            "new_price": "39.00",
+            "compare_at": "59.00",
+            "discount_style": "ab",
+            "ends_in_days": 10,
+            "group": "Sale",
+            "image": "mode-strickjacke-kapitaen",
+        },
+        {
+            "title": "Schal gratis zum Mantel",
+            "desc": "Zu jedem Wintermantel ein Wollschal Ihrer Wahl dazu.",
+            "ends_in_days": 7,
+            "group": "Sale",
+            "image": "mode-wollschal-nordwind",
+        },
+        {
+            "title": "Steppjacken −20 %",
+            "desc": "Leichte Steppjacken für den Übergang.",
+            "new_price": "95.00",
+            "compare_at": "119.00",
+            "ends_in_days": 8,
+            "group": "Sale",
+            "image": "mode-steppjacke-nordwind",
+        },
+        {
+            "title": "Neu: Herbstkollektion",
+            "desc": "Die neue Herbstkollektion ist da — Jacken, Strick und Jeans.",
+            "new_price": "49.00",
+            "new": True,
+            "discount_style": "ab",
+            "ends_in_days": 30,
+            "group": "Neu bei uns",
+            "image": "clothing-rack",
+        },
+        {
+            "title": "Neu: Jeans in neuen Passformen",
+            "desc": "Gerade, schmal oder weit — jetzt in allen Größen vorrätig.",
+            "new_price": "79.00",
+            "new": True,
+            "ends_in_days": 30,
+            "group": "Neu bei uns",
+            "image": "mode-jeans-elbe",
+        },
+    ],
+    **_LITE_COMMON,
+)
+
+LITE_HOFLADEN = DemoKit(
+    key="wupperhof",
+    subdomain="wupperhof",
+    label="Hofladen Wupperhof",
+    business_type="grocery",
+    accent="#15803d",
+    hero_image_kw="farm-shop",
+    hero_title="Vom Hof in Aufderhöhe",
+    hero_text="Gemüse, Eier und Saft vom Hof — die Angebote dieser Woche.",
+    heroes=[
+        {
+            "image_kw": "vegetable-box",
+            "title": "Wochenkiste 15 € statt 19 €",
+            "text": "Saisongemüse für vier Personen — Abholung freitags.",
+            "button_label": "Zu den Angeboten",
+            "button_url": "/aktionen/",
+        },
+        {
+            "image_kw": "farm-shop",
+            "title": "Vom Hof in Aufderhöhe",
+            "text": "Gemüse, Eier und Saft vom Hof — die Angebote dieser Woche.",
+            "button_label": "Zu den Angeboten",
+            "button_url": "/aktionen/",
+        },
+    ],
+    usp=[
+        ("local", "Direkt vom Hof"),
+        ("quality", "Saisonal geerntet"),
+        ("clock", "Abholung freitags"),
+    ],
+    about_title="Über uns",
+    about_text="Familienbetrieb in Aufderhöhe: Gemüse aus eigenem Anbau, Eier von "
+    "freilaufenden Hühnern, Apfelsaft von den Streuobstwiesen.",
+    address="Hofweg 2, 42699 Solingen",
+    phone="+49 212 5550404",
+    whatsapp_number="+49 170 2000104",
+    lat="51.1372000",
+    lng="7.0254000",
+    opening_hours_text="Di–Fr 9:00–18:00 · Sa 8:00–13:00",
+    opening_hours={**{d: ("09:00", "18:00") for d in range(1, 5)}, 5: ("08:00", "13:00")},
+    menus=_lite_menus(),
+    enable_modules=["orders"],
+    promotions_spec=[
+        {
+            "title": "Wochenkiste 15 € statt 19 €",
+            "desc": "Saisongemüse und Kartoffeln für vier Personen — Abholung freitags.",
+            "new_price": "15.00",
+            "compare_at": "19.00",
+            "limit": 25,
+            "ends_in_days": 5,
+            "group": "Diese Woche",
+            "image": "vegetable-box",
+        },
+        {
+            "title": "MHD-Rettung: Joghurt −40 %",
+            "desc": "Hofjoghurt kurz vor dem Mindesthaltbarkeitsdatum — einwandfrei.",
+            "new_price": "1.50",
+            "compare_at": "2.50",
+            "ends_today": True,
+            "group": "Heute",
+            "image": "farm-vegetables",
+        },
+        {
+            "title": "Eier aus Freilandhaltung, 10 Stück",
+            "desc": "Von unseren Hühnern — diese Woche günstiger.",
+            "new_price": "3.60",
+            "compare_at": "4.20",
+            "ends_in_days": 6,
+            "group": "Diese Woche",
+            "image": "eggs",
+        },
+        {
+            "title": "Blütenhonig 500 g",
+            "desc": "Honig von den Bienen am Hof.",
+            "new_price": "7.50",
+            "compare_at": "8.90",
+            "ends_in_days": 9,
+            "group": "Diese Woche",
+            "image": "honey-jar",
+        },
+        {
+            "title": "Neu: Apfelsaft von der Streuobstwiese",
+            "desc": "Naturtrüb, 1 Liter — neu im Hofladen.",
+            "new_price": "3.20",
+            "new": True,
+            "ends_in_days": 30,
+            "group": "Neu bei uns",
+            "image": "apple-juice",
+        },
+        {
+            "title": "Spargel auf Bestellung",
+            "desc": "Frischer Spargel in der Saison — vorbestellen, wir legen ihn zurück.",
+            "new_price": "12.00",
+            "discount_style": "ab",
+            "ends_in_days": 60,
+            "group": "Auf Bestellung",
+            "image": "asparagus-salad",
+        },
+    ],
+    **_LITE_COMMON,
+)
+
+LITE_PENSION = DemoKit(
+    key="brueckenblick",
+    subdomain="brueckenblick",
+    label="Pension Brückenblick",
+    business_type="hotel",
+    accent="#1d4ed8",
+    hero_image_kw="lake-forest",
+    hero_title="Übernachten an der Wupper",
+    hero_text="Ruhige Zimmer in Burg — unsere Angebote für Kurzentschlossene.",
+    heroes=[
+        {
+            "image_kw": "hotel-room",
+            "title": "Last-Minute-Wochenende −25 %",
+            "text": "Freitag bis Sonntag — fragen Sie einfach an.",
+            "button_label": "Zu den Angeboten",
+            "button_url": "/aktionen/",
+        },
+        {
+            "image_kw": "lake-forest",
+            "title": "Übernachten an der Wupper",
+            "text": "Ruhige Zimmer in Burg — unsere Angebote für Kurzentschlossene.",
+            "button_label": "Zu den Angeboten",
+            "button_url": "/aktionen/",
+        },
+    ],
+    usp=[
+        ("local", "Direkt am Wanderweg"),
+        ("quality", "Frühstück inklusive"),
+        ("clock", "Check-in ab 15 Uhr"),
+    ],
+    about_title="Über uns",
+    about_text="Kleine Pension mit sechs Zimmern unterhalb von Schloss Burg — "
+    "Wanderwege und Wupper direkt vor der Tür.",
+    address="Brückenblick 3, 42659 Solingen",
+    phone="+49 212 5550505",
+    whatsapp_number="+49 170 2000105",
+    lat="51.1408000",
+    lng="7.1490000",
+    opening_hours_text="Rezeption täglich 8:00–20:00",
+    opening_hours={d: ("08:00", "20:00") for d in range(7)},
+    menus=_lite_menus(),
+    enable_modules=["promotions", "orders"],
+    promotions_spec=[
+        {
+            "title": "Last-Minute-Wochenende −25 %",
+            "desc": "Zwei Nächte im Doppelzimmer mit Frühstück, Freitag bis Sonntag.",
+            "new_price": "149.00",
+            "compare_at": "198.00",
+            "ends_in_days": 3,
+            "countdown": True,
+            "group": "Diese Woche",
+            "image": "hotel-room",
+        },
+        {
+            "title": "3 Nächte zum Preis von 2",
+            "desc": "Unter der Woche: drei Nächte bleiben, zwei bezahlen.",
+            "new_price": "178.00",
+            "compare_at": "267.00",
+            "ends_in_days": 30,
+            "group": "Angebote",
+            "image": "hotel-bed",
+        },
+        {
+            "title": "Frühbucher Sommer −15 %",
+            "desc": "Jetzt für Juli und August anfragen und sparen.",
+            "new_price": "84.00",
+            "compare_at": "99.00",
+            "ends_in_days": 45,
+            "group": "Angebote",
+            "image": "lake-view",
+        },
+        {
+            "title": "Einzelzimmer für Geschäftsreisende",
+            "desc": "Ruhiges Einzelzimmer mit Schreibtisch und Frühstück.",
+            "new_price": "69.00",
+            "compare_at": "79.00",
+            "ends_in_days": 20,
+            "group": "Angebote",
+            "image": "hotel-single-room",
+        },
+        {
+            "title": "Neu: Wanderpaket Müngstener Brücke",
+            "desc": "Zwei Nächte, Lunchpaket und Wanderkarte zur Müngstener Brücke.",
+            "new_price": "189.00",
+            "new": True,
+            "ends_in_days": 40,
+            "group": "Neu bei uns",
+            "image": "suspension-bridge",
+        },
+        {
+            "title": "Neu: Familienzimmer",
+            "desc": "Neu renoviert: Familienzimmer für bis zu vier Personen.",
+            "new_price": "119.00",
+            "new": True,
+            "ends_in_days": 40,
+            "group": "Neu bei uns",
+            "image": "family-hotel-room",
+        },
+    ],
+    **_LITE_COMMON,
+)
+
+
 KITS = {
     RESTAURANT.key: RESTAURANT,
     PRANASY.key: PRANASY,
@@ -22466,6 +23025,12 @@ KITS = {
     # O-3: второе демо того же типа, другого жанра (аутлет техники и моды).
     # Кнопку типа держит бутик, аутлет живёт своим поддоменом и feature_demos.
     OUTLET.key: OUTLET,
+    # T-8.1: «Nur Aktionen» — лёгкие демо пилота Solingen (ступень 0).
+    LITE_BAKERY.key: LITE_BAKERY,
+    LITE_CAFE.key: LITE_CAFE,
+    LITE_MODE.key: LITE_MODE,
+    LITE_HOFLADEN.key: LITE_HOFLADEN,
+    LITE_PENSION.key: LITE_PENSION,
 }
 
 
@@ -23254,6 +23819,8 @@ def apply_kit(tenant, key: str) -> bool:
                 cfg[_k] = {**cfg[_k], **_v}
             else:
                 cfg[_k] = _v
+    if kit.profile:  # T-8.1: «Nur Aktionen» (normalize дропает неизвестное значение)
+        cfg["profile"] = kit.profile
     if kit.presence_mode in ("on", "off"):  # LS-2: «Jetzt erreichbar»
         cfg["presence"] = {"mode": kit.presence_mode}
     if kit.page_presets:  # ST-2: пресеты страниц (блоки выживают normalize — замок)
@@ -23338,6 +23905,13 @@ def apply_kit(tenant, key: str) -> bool:
     if kit.city:  # DS-4b: город кита сильнее дефолта сидера (eyebrow/SEO)
         tenant.city = kit.city
         update_fields.append("city")
+    if kit.phone:  # T-8.1: «Anrufen» на странице акции и в нижнем баре
+        tenant.contact_phone = kit.phone
+        update_fields.append("contact_phone")
+    if kit.lat and kit.lng:  # T-8.1: «Route planen», карта, «рядом» на портале
+        tenant.latitude = Decimal(kit.lat)
+        tenant.longitude = Decimal(kit.lng)
+        update_fields += ["latitude", "longitude"]
     if kit.socials:  # GK-15: иконки футера (GK-9) — whitelist полей Tenant
         for f in ("instagram", "facebook", "linkedin", "tiktok", "youtube"):
             if kit.socials.get(f):

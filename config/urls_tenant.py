@@ -17,6 +17,7 @@ from apps.core.demo_switch import demo_design_switch
 from apps.core.design_page import design_view
 from apps.core.media_views import serve_media
 from apps.core.settings_home import einstellungen_home
+from apps.core.storefront_profile import redirect_if_aktionen as _aktionen
 from apps.core.team import team_join, team_view
 from apps.core.views import (
     ablaeufe_view,
@@ -343,7 +344,11 @@ urlpatterns = [
     # Гейт — наличие контента: пусто → 404, пункт меню гаснет сам.
     path("galerie/", public_views.gallery_page, name="storefront-gallery"),
     # GK-13: печатная Speisekarte из живого каталога (404 без товаров).
-    path("speisekarte.pdf", public_views.speisekarte_pdf, name="storefront-speisekarte-pdf"),
+    path(
+        "speisekarte.pdf",
+        _aktionen(public_views.speisekarte_pdf),
+        name="storefront-speisekarte-pdf",
+    ),
     path("team/", public_views.team_page, name="storefront-team"),
     path("bewertungen/", public_views.reviews_page, name="storefront-reviews"),
     # FD-1: Finder «вопросы → 3 предложения» (опция; 404 пока не включён).
@@ -352,12 +357,18 @@ urlpatterns = [
     # DL-8e: смена шаблона на ДЕМО-витрине (сессия посетителя, 404 вне демо).
     path("design-testen/", demo_design_switch, name="storefront-design-testen"),
     # Каталог товаров на витрине (Track C1).
-    path("sortiment/", public_views.product_list, name="storefront-products"),
+    path("sortiment/", _aktionen(public_views.product_list), name="storefront-products"),
     # M4-B Lookbook: страница образа (подборка товаров с фото).
-    path("lookbook/<slug:slug>/", collections_public.lookbook, name="storefront-lookbook"),
-    path("sortiment/<uuid:pk>/", public_views.product_detail, name="storefront-product"),
+    path(
+        "lookbook/<slug:slug>/", _aktionen(collections_public.lookbook), name="storefront-lookbook"
+    ),
+    path("sortiment/<uuid:pk>/", _aktionen(public_views.product_detail), name="storefront-product"),
     # DL-16.6 (D4): фрагмент «Zuletzt angesehen» — ДО <slug>-роутов (слаг «zuletzt» зарезервирован).
-    path("sortiment/zuletzt/", public_views.products_recent, name="storefront-products-recent"),
+    path(
+        "sortiment/zuletzt/",
+        _aktionen(public_views.products_recent),
+        name="storefront-products-recent",
+    ),
     # M2 Boutique: Warteliste товара/размера («ausverkauft → benachrichtigen»).
     path(
         "sortiment/<uuid:pk>/warteliste/",
@@ -379,20 +390,26 @@ urlpatterns = [
     # KAT-1: СТРАНИЦА КАТЕГОРИИ (слияние лендинга /bereich/ и фильтра ?kategorie=).
     # После всех <uuid:…>-роутов: uuid-конвертер строгий — товар по UUID выигрывает,
     # остальное падает в категорию (неизвестный slug → 404 во вьюхе).
-    path("sortiment/<slug:slug>/", public_views.product_list, name="storefront-category"),
+    path(
+        "sortiment/<slug:slug>/", _aktionen(public_views.product_list), name="storefront-category"
+    ),
     # KAT-3: SEO-адреса товара. p/ — товар без категории (слаг "p" зарезервирован
     # в catalog.slugs.RESERVED_SLUGS, категория его занять не может); двухсегментный
     # <категория>/<товар> — после uuid-подпутей (uuid-строка матчит slug-паттерн,
     # но uuid-роуты выше выигрывают). POST-подпути (warteliste/bewerten/…) остаются
     # на uuid. Пустой слаг товара → живёт только на uuid-роуте.
-    path("sortiment/p/<slug:pslug>/", public_views.product_detail, name="storefront-product-slug"),
+    path(
+        "sortiment/p/<slug:pslug>/",
+        _aktionen(public_views.product_detail),
+        name="storefront-product-slug",
+    ),
     path(
         "sortiment/<slug:cslug>/<slug:pslug>/",
-        public_views.product_detail,
+        _aktionen(public_views.product_detail),
         name="storefront-product-seo",
     ),
     # Click & Collect (Track D / D2a): корзина-сессия + оформление самовывоза.
-    path("warenkorb/", orders_public.cart_view, name="storefront-cart"),
+    path("warenkorb/", _aktionen(orders_public.cart_view), name="storefront-cart"),
     path("warenkorb/add/", orders_public.cart_add, name="storefront-cart-add"),
     path("warenkorb/quick/<uuid:pk>/", orders_public.quick_add_form, name="storefront-quick-add"),
     # M4-C: список отложенного (сессия, без аккаунта).
@@ -412,9 +429,9 @@ urlpatterns = [
         "warenkorb/code-remove/", orders_public.cart_remove_code, name="storefront-cart-code-remove"
     ),
     # Комбо-наборы (A4): витрина + конфигуратор → корзина.
-    path("kombi/", orders_public.combo_list_public, name="storefront-combos"),
+    path("kombi/", _aktionen(orders_public.combo_list_public), name="storefront-combos"),
     path("kombi/add/", orders_public.combo_add, name="storefront-combo-add"),
-    path("kombi/<uuid:pk>/", orders_public.combo_detail_public, name="storefront-combo"),
+    path("kombi/<uuid:pk>/", _aktionen(orders_public.combo_detail_public), name="storefront-combo"),
     # MEN-21: отзыв о наборе (generic reviews, kind="combo") — образец product_review_submit.
     path(
         "kombi/<uuid:pk>/bewerten/",

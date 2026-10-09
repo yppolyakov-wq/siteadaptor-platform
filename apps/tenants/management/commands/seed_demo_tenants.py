@@ -13,6 +13,8 @@
     python manage.py seed_demo_tenants --kit handwerker · catering # → handwerker.<base> (A7: Angebot/Festpreis)
     python manage.py seed_demo_tenants --kit retreat    # → retreat.<base> (events/Tickets)
     python manage.py seed_demo_tenants --kit shop       # → shop.<base> (Retail: варианты/Grundpreis/остаток/Versand)
+    python manage.py seed_demo_tenants --kit klingenbrot  # T-8.1 «Nur Aktionen» (Solingen;
+                                                          # + ohligser_eck walder_faden wupperhof brueckenblick)
     python manage.py seed_demo_tenants --recreate      # пересоздать
     python manage.py seed_demo_tenants --delete        # удалить демо-тенанты
 

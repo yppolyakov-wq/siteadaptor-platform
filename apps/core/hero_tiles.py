@@ -323,10 +323,14 @@ def tiles_for(widget: str, tenant, deal=None) -> list[dict]:
     spec = HERO_TILE_SETS.get(widget or "")
     if not spec:
         return []
-    from apps.core import modules
+    from apps.core import modules, storefront_profile
 
+    aktionen = storefront_profile.is_aktionen(tenant)
     out = []
     for tile in spec:
+        # T-8.1: «Nur Aktionen» — плитки в каталог/корзину не показываем.
+        if aktionen and tile.get("url") in storefront_profile.CATALOG_URL_NAMES:
+            continue
         gate = tile.get("gate", "")
         if gate == "deal":
             # Плитка ведёт на /aktionen/, а страница гейтится модулем promotions:

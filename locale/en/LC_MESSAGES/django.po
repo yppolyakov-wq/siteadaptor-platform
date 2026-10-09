@@ -22970,3 +22970,28 @@ msgstr "Please confirm receipt and let us know your proposed solution."
 msgctxt "complaint"
 msgid "offen"
 msgstr "open"
+
+#: T-8.1b
+msgid "So finden Sie uns"
+msgstr "How to find us"
+
+#: T-8.1b
+msgid "Route planen"
+msgstr "Get directions"
+
+#: T-8.1b
+msgid "Anrufen"
+msgstr "Call"
+
+#: T-8.1b
+#, python-format
+msgid "Hallo, ich interessiere mich für: %(subject)s"
+msgstr "Hello, I'm interested in: %(subject)s"
+
+#: T-8.1c
+msgid "Nur Aktionen — ohne Shop"
+msgstr "Offers only — no shop"
+
+#: T-8.1c
+msgid "Visitenkarte mit Angeboten, Öffnungszeiten und Route — in Minuten online, ganz ohne Sortiment und Warenkorb."
+msgstr "A business card with offers, opening hours and directions — online in minutes, without a product range or cart."

@@ -2242,6 +2242,10 @@ def page_sections(config, page_type: str) -> list[str]:
 # не JSON-имя). Маппинг ключ→(поле, descending) живёт во вьюхе product_list.
 CATALOG_SORT_KEYS = ("newest", "price_asc", "price_desc")
 
+#: T-8.1: профили витрины (ключ `profile`). "aktionen" = «Nur Aktionen»: визитка + акции,
+#: каталог/корзина скрыты (`apps/core/storefront_profile.py`).
+STOREFRONT_PROFILES = ("aktionen",)
+
 # STU-15c: ДЕФОЛТ СОРТИРОВКИ листингов услуг/номеров/событий. У каталога такая
 # настройка есть с UB2-2 (`catalog_sort`), а на трёх других листингах владелец мог
 # менять только раскладку: порядок был жёстко задан вьюхой, хотя сами провайдеры
@@ -4562,6 +4566,11 @@ def _normalize_impl(config) -> dict:
     # говорят «Anfrage». Presence-minimal (ключ только при True — golden целы).
     if config.get("quote_cart"):
         normalized["quote_cart"] = True
+    # T-8.1: профиль витрины «Nur Aktionen» — визитка + акции, каталог и корзина не
+    # видны ниоткуда (apps/core/storefront_profile.py). Presence-minimal: ключ только
+    # при известном значении — golden целы, мусор дропается.
+    if config.get("profile") in STOREFRONT_PROFILES:
+        normalized["profile"] = config["profile"]
     # M20U-7 (per-page): раскладка сетки страницы каталога /sortiment/. Дефолт cols3
     # воспроизводит прежнюю захардкоженную сетку (grid-cols-2 lg:grid-cols-3).
     normalized["catalog_layout"] = normalize_layout(

@@ -3209,6 +3209,16 @@ Python 3.12, менеджер uv.
   городские маркетплейсы (Atalanda/Online City Wuppertal) не взлетели — мерило = визиты и выдачи, а не
   онлайн-оборот. T-8.12 операторы: модель B «оператор-партнёр» (доля, договор/биллинг/пул/ИИ-канал у
   нас), после пилота; вопросы О-1…О-4.
+  **T-8.1 ✅ (той же датой, БЕЗ миграций; план `t8-1-aktion-demos-plan-2026-10-09.md`):** профиль
+  витрины «Nur Aktionen» (`site_config["profile"]="aktionen"`, `apps/core/storefront_profile.py`:
+  каталог/корзина/наборы → 302 на главную, меню/нижний бар/поиск/hero-плитки/секции без входов в
+  каталог; главная = визитка) + карточка «So finden Sie uns» на странице акции у ВСЕХ тенантов
+  (`core/business_card.py`: часы, «Route planen», «Anrufen», WhatsApp) + 5 лёгких демо Solingen
+  (`klingenbrot`/`ohligser-eck`/`walder-faden`/`wupperhof`/`brueckenblick`, поля кита
+  profile/phone/lat/lng, рубрики «Neu bei uns»/«Auf Bestellung», переводы ×4). **Найден дефект
+  для T-8.2:** кнопка акции создаёт заказ без проверки модуля orders → у cafe/restaurant/friseur/
+  events/catering/other клиент получает 404 на подтверждении, владелец заказа не видит.
+  ⚠️ ops: `seed_demo_tenants --kit klingenbrot` (+ ohligser_eck walder_faden wupperhof brueckenblick).
 - **Самое свежее (2026-10-09): ERP-8 «Mängelanzeige» ✅ ЦЕЛИКОМ (⚠️ миграция `inventory/0006`).**
   Рекламация поставщику по § 377 HGB (бумажный бланк владельца): рекламация на поставку
   (`MA-…`) со строками-дефектами (5 видов), решение по строке ровно один раз — скидка

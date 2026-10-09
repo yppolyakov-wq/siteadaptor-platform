@@ -23097,3 +23097,28 @@ msgstr "Lütfen alındığını teyit edin ve çözüm önerinizi bize bildirin.
 msgctxt "complaint"
 msgid "offen"
 msgstr "açık"
+
+#: T-8.1b
+msgid "So finden Sie uns"
+msgstr "Bizi nasıl bulursunuz"
+
+#: T-8.1b
+msgid "Route planen"
+msgstr "Yol tarifi al"
+
+#: T-8.1b
+msgid "Anrufen"
+msgstr "Ara"
+
+#: T-8.1b
+#, python-format
+msgid "Hallo, ich interessiere mich für: %(subject)s"
+msgstr "Merhaba, şununla ilgileniyorum: %(subject)s"
+
+#: T-8.1c
+msgid "Nur Aktionen — ohne Shop"
+msgstr "Sadece kampanyalar — mağazasız"
+
+#: T-8.1c
+msgid "Visitenkarte mit Angeboten, Öffnungszeiten und Route — in Minuten online, ganz ohne Sortiment und Warenkorb."
+msgstr "Kampanyalar, çalışma saatleri ve yol tarifiyle kartvizit — dakikalar içinde yayında, ürün kataloğu ve sepet olmadan."

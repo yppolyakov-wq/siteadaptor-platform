@@ -23185,3 +23185,28 @@ msgstr "Просимо підтвердити отримання та повід
 msgctxt "complaint"
 msgid "offen"
 msgstr "відкрита"
+
+#: T-8.1b
+msgid "So finden Sie uns"
+msgstr "Як нас знайти"
+
+#: T-8.1b
+msgid "Route planen"
+msgstr "Прокласти маршрут"
+
+#: T-8.1b
+msgid "Anrufen"
+msgstr "Зателефонувати"
+
+#: T-8.1b
+#, python-format
+msgid "Hallo, ich interessiere mich für: %(subject)s"
+msgstr "Вітаю, мене цікавить: %(subject)s"
+
+#: T-8.1c
+msgid "Nur Aktionen — ohne Shop"
+msgstr "Лише акції — без магазину"
+
+#: T-8.1c
+msgid "Visitenkarte mit Angeboten, Öffnungszeiten und Route — in Minuten online, ganz ohne Sortiment und Warenkorb."
+msgstr "Візитка з акціями, годинами роботи та маршрутом — онлайн за хвилини, без каталогу й кошика."

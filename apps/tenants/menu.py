@@ -321,8 +321,30 @@ def _promo_group_url(tenant, group: str):
     return f"{base}?gruppe={quote(group)}"
 
 
+#: T-8.1: архетипы, чьи лендинги при «Nur Aktionen» скрыты (каталог и корзина).
+_AKTIONEN_HIDDEN_ARCHETYPES = frozenset({"catalog", "orders"})
+
+
+def _hidden_by_profile(tenant, node: dict) -> bool:
+    """T-8.1: узел ведёт в каталог/корзину, а у витрины профиль «Nur Aktionen»."""
+    from apps.core import storefront_profile
+
+    if not storefront_profile.is_aktionen(tenant):
+        return False
+    ntype, target = node["type"], node["target"]
+    if ntype in ("category", "categories"):
+        return True
+    if ntype == "archetype":
+        return target in _AKTIONEN_HIDDEN_ARCHETYPES
+    if ntype == "page":
+        return _PAGE_URL_NAMES.get(target) in storefront_profile.CATALOG_URL_NAMES
+    return False
+
+
 def _node_url(tenant, node: dict):
     ntype, target = node["type"], node["target"]
+    if _hidden_by_profile(tenant, node):
+        return None
     if ntype == "archetype":
         return _archetype_url(tenant, target)
     if ntype == "category":

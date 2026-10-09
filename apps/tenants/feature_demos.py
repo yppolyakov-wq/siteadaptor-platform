@@ -28,6 +28,18 @@ FEATURE_DEMOS = [
         "path": "/aktionen/",
     },
     {
+        # T-8.1: ступень 0 — визитка + акции без каталога (пилот Solingen).
+        "key": "aktion_start",
+        "icon": "📣",
+        "title": _("Nur Aktionen — ohne Shop"),
+        "blurb": _(
+            "Visitenkarte mit Angeboten, Öffnungszeiten und Route — in Minuten "
+            "online, ganz ohne Sortiment und Warenkorb."
+        ),
+        "host": "klingenbrot",
+        "path": "/",
+    },
+    {
         "key": "booking",
         "icon": "🗓",
         "title": _("Termine online buchen"),

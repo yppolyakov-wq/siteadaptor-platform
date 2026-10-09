@@ -23008,3 +23008,28 @@ msgstr ""
 msgctxt "complaint"
 msgid "offen"
 msgstr ""
+
+#: T-8.1b
+msgid "So finden Sie uns"
+msgstr "So finden Sie uns"
+
+#: T-8.1b
+msgid "Route planen"
+msgstr "Route planen"
+
+#: T-8.1b
+msgid "Anrufen"
+msgstr "Anrufen"
+
+#: T-8.1b
+#, python-format
+msgid "Hallo, ich interessiere mich für: %(subject)s"
+msgstr "Hallo, ich interessiere mich für: %(subject)s"
+
+#: T-8.1c
+msgid "Nur Aktionen — ohne Shop"
+msgstr "Nur Aktionen — ohne Shop"
+
+#: T-8.1c
+msgid "Visitenkarte mit Angeboten, Öffnungszeiten und Route — in Minuten online, ganz ohne Sortiment und Warenkorb."
+msgstr "Visitenkarte mit Angeboten, Öffnungszeiten und Route — in Minuten online, ganz ohne Sortiment und Warenkorb."

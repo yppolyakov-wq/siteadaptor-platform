@@ -174,12 +174,21 @@ def _storefront_bottom_nav(request, tenant):
                 return
         items.append({"url": url, "label": label, "icon": icon, "kind": kind, "badge": badge})
 
-    add("storefront-products", _("Menu"), "🍽")
+    from apps.core import storefront_profile
+
+    # T-8.1: «Nur Aktionen» — ни меню каталога, ни корзины; акции ведут на /aktionen/
+    # (якорь главной у визитки тоже есть, но страница акций — полный список).
+    aktionen = storefront_profile.is_aktionen(tenant)
+    if not aktionen:
+        add("storefront-products", _("Menu"), "🍽")
     if modules.is_module_active(tenant, "promotions"):
-        add("/#aktionen", _("Deals"), "🔥", is_url=True)
+        if aktionen:
+            add("storefront-aktionen", _("Deals"), "🔥", kind="primary")
+        else:
+            add("/#aktionen", _("Deals"), "🔥", is_url=True)
 
     # Главное действие по самому релевантному активному модулю.
-    if modules.is_module_active(tenant, "orders"):
+    if modules.is_module_active(tenant, "orders") and not aktionen:
         add("storefront-cart", _("Cart"), "🛒", kind="primary", badge=_cart_count(request))
     elif modules.is_module_active(tenant, "booking"):
         add("storefront-termin", _("Book"), "📅", kind="primary")
@@ -467,10 +476,16 @@ def modules_nav(request):
     from django.urls import NoReverseMatch as _NRM
     from django.urls import reverse as _rev
 
-    for _mod, _route in (
-        (_primary_search_module(tenant), None),
-        ("catalog", "storefront-products"),
-    ):
+    from apps.core import storefront_profile as _sfp
+
+    _aktionen = _sfp.is_aktionen(tenant)
+    # T-8.1: у «Nur Aktionen» поиск идёт по акциям (/aktionen/ понимает ?q=, SF-2).
+    _search_order = (
+        (("promotions", "storefront-aktionen"),)
+        if _aktionen
+        else ((_primary_search_module(tenant), None), ("catalog", "storefront-products"))
+    )
+    for _mod, _route in _search_order:
         if not _mod:
             continue
         _name = _route or _SEARCH_ROUTES.get(_mod)
@@ -510,7 +525,8 @@ def modules_nav(request):
         "storefront_jobs_enabled": modules.is_module_active(tenant, "jobs"),
         "storefront_inbox_enabled": modules.is_module_active(tenant, "inbox"),  # M22b
         "storefront_events_enabled": modules.is_module_active(tenant, "events"),  # A6c
-        "storefront_orders_enabled": modules.is_module_active(tenant, "orders"),  # T2c quick-add
+        # T-8.1: у «Nur Aktionen» корзины нет (иконка/quick-add скрыты).
+        "storefront_orders_enabled": modules.is_module_active(tenant, "orders") and not _aktionen,
         "storefront_gift_enabled": modules.is_module_active(tenant, "gift"),  # M0 mode-плитка
         # CA1: ЛК клиента (ссылка «Mein Konto» в шапке/таб-баре при активном модуле).
         "storefront_account_enabled": modules.is_module_active(tenant, "customer_account"),
@@ -525,7 +541,9 @@ def modules_nav(request):
         "storefront_wishlist_ids": _wishlist_ids(request),
         "storefront_wishlist_promo_ids": _wishlist_promo_ids(request),
         # T2c: «+»/модалка на карточках = orders активен И не отключён владельцем.
-        "storefront_quick_add": modules.is_module_active(tenant, "orders") and cfg["quick_add"],
+        "storefront_quick_add": modules.is_module_active(tenant, "orders")
+        and cfg["quick_add"]
+        and not _aktionen,
         # M20 ④: легаси-навигация (плоская) — на случай старых шаблонов.
         "storefront_nav": nav_items,
         # S7: многоуровневое меню витрины (дерево с подменю) + стиль/sticky.

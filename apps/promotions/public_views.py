@@ -56,6 +56,8 @@ def _abs_promo_url(request, pk) -> str:
 
 
 def _detail_ctx(request, promo, form) -> dict:
+    from apps.core import business_card
+
     img = promo.primary_image
     og_image = request.build_absolute_uri(img["url"]) if img and img.get("url") else ""
     if promo.discount_style == "mystery":
@@ -123,6 +125,10 @@ def _detail_ctx(request, promo, form) -> dict:
         # Фидбэк 2026-09-03: ссылка «Alle anzeigen» у ленты — только когда на
         # /aktionen/ есть что-то сверх показанного (лента режется на 8).
         "related_more": others.count() > len(related),
+        # T-8.1b: «So finden Sie uns» — адрес/Route/часы/телефон/WhatsApp.
+        "business_card": business_card.card_context(
+            getattr(request, "tenant", None), subject=promo.title_text
+        ),
     }
 
 
@@ -212,6 +218,20 @@ def storefront_home(request):
         from apps.tenants import sitetemplates
 
         site = sitetemplates.apply_preview_bundle(site, _ov_bundle)
+    # T-8.1: «Nur Aktionen» — секции каталога/наборов на главной не рендерим (копия
+    # рядов: конфиг владельца не трогаем, выключение обратимо снятием профиля).
+    from apps.core import storefront_profile
+
+    if storefront_profile.is_aktionen(request.tenant):
+        site = {
+            **site,
+            "sections": [
+                {**s, "enabled": False}
+                if s.get("key") in storefront_profile.HIDDEN_HOME_SECTIONS
+                else s
+                for s in site["sections"]
+            ],
+        }
     sections = [s["key"] for s in site["sections"] if s["enabled"]]
     # D.2: полные записи включённых секций (фикс + C-блоки с данными) для рендера
     # через {% render_block %}; `sections` (ключи) остаётся для гейтинга запросов.

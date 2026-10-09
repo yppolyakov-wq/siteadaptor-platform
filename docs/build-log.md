@@ -16952,3 +16952,41 @@ Qualitätsmangel · Sonstiges, описание, решение) + `BestellPosit
 наезд колонок в ru-бланке. Замки: `test_erp8_maengel` (12) + `test_erp8_cabinet` (26);
 inventory 136. 56 msgid × 5 каталогов (+2 с контекстом). ⚠️ ops: деплой миграции +
 `seed_demo_tenants --recreate` для shop clothing online_shop outlet aktionsmarkt bakery butcher.
+
+## 2026-10-09 — T-8.1 «Nur Aktionen»: профиль витрины + карточка бизнеса + 5 лёгких демо Solingen (БЕЗ миграций)
+
+План — `docs/t8-1-aktion-demos-plan-2026-10-09.md` (родитель — анализ T-8 §7.1, решения
+Р-1…Р-7 и О-1…О-4 по рекомендации). Две разведки (механика демо-китов; витрина без
+каталога + страница акции).
+
+- **8.1a профиль «Nur Aktionen»** — `site_config["profile"]="aktionen"` (presence-minimal,
+  `siteconfig.STOREFRONT_PROFILES`; golden целы), хелпер `apps/core/storefront_profile.py`.
+  Каталог — core-модуль, выключить его нельзя, поэтому профиль убирает ВХОДЫ: прямые адреса
+  каталога/категорий/товара/«zuletzt»/корзины/наборов/лукбука/PDF-меню → 302 на главную
+  (обёртка в `urls_tenant`, вьюхи не тронуты); узлы меню catalog/orders/category/categories/
+  page:combos отбрасываются; авто-нижний бар без «Menu» и корзины, «Deals» → `/aktionen/`
+  акцентом; поиск шапки → `/aktionen/?q=`; иконка корзины и quick-add скрыты; hero-плитки в
+  каталог отбрасываются; секции products/categories/combos главной не рендерятся (копия
+  рядов — конфиг владельца цел). Главная = визитка (hero + акции + контакт), а не редирект
+  на `/aktionen/` (там нет адреса и часов).
+- **8.1b «So finden Sie uns»** на странице акции — `apps/core/business_card.py` +
+  `_business_card.html`: статус «geöffnet», часы (оверлей локали), адрес + «Route planen»
+  (Google Maps directions: координаты → адрес), «Anrufen», WhatsApp с темой-акцией. Для
+  ВСЕХ тенантов с адресом или телефоном.
+- **8.1c пять лёгких демо Solingen** (свои имена, не копии полных демо): `klingenbrot`
+  (Mitte), `ohligser-eck` (Ohligs), `walder-faden` (Wald), `wupperhof` (Aufderhöhe),
+  `brueckenblick` (Burg). По 6 «свободных» акций с фото из фонда, рубрики «Heute»/«Diese
+  Woche»/«Neu bei uns»/«Auf Bestellung» (О-4: новинки и под заказ; «vorrätig» — с T-8.11),
+  меню «Angebote · Neu · Kontakt». Новые поля кита `profile`/`phone`/`lat`/`lng`.
+  `feature_demos` += «Nur Aktionen — ohne Shop» (12 карточек = 3 полных ряда).
+- **8.1d переводы** — 97 строк × en/ru/uk/tr в демо-словари; 6 msgid × 5 каталогов.
+
+**Найден дефект (вне T-8.1, закрывает T-8.2):** кнопка акции создаёт обычный заказ без
+проверки модуля `orders`, а `/bestellung/<code>/` за этим модулем. У cafe/restaurant/
+friseur/events/catering/other модуль заказов по умолчанию выключен → клиент видит 404 после
+«резервирования», владелец заказа не видит (вкладки Verkäufe — по активным модулям).
+Лёгкие демо до T-8.2 включают `orders` явно.
+
+Замки: `apps/core/tests/test_storefront_profile.py` (15) + `apps/tenants/tests/test_lite_demos.py`.
+⚠️ ops: после деплоя `seed_demo_tenants --kit klingenbrot` (+ `ohligser_eck`, `walder_faden`,
+`wupperhof`, `brueckenblick`); миграций нет.
