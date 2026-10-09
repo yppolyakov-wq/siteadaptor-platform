@@ -34,9 +34,23 @@ LB-3: `id="lb-<id блока>"` — цель чипа Sprungleiste страни�
   <div class="{% if not pb_page_key %}max-w-5xl mx-auto px-4{% endif %}">
     <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 mb-4">
       <h2 class="text-xl md:text-2xl font-bold">{{ lb.label }}</h2>
+      {% if lb.price_list %}{% include "storefront/_price_view_toggle.html" with pl_style=lb.style plv_key="lb-"|add:block_id %}{% endif %}
       {% if lb.more %}<a data-sf-list-all href="{{ lb.url }}" class="text-sm font-medium hover:underline whitespace-nowrap" style="color: var(--accent, #4f46e5);">{% blocktrans with n=lb.total %}Alle {{ n }}{% endblocktrans %} →</a>{% endif %}
     </div>
     {% if lb.intro %}<p class="-mt-2 mb-4 text-gray-600 whitespace-pre-line max-w-2xl">{{ lb.intro }}</p>{% endif %}
+    {% comment %}LB-4c: вид-композиция блока — те же партиалы, что у секций главной
+    (прайс-лист с фильтром блока, spotlight/banner/rows акций, строки категорий).{% endcomment %}
+    {% if lb.price_list %}
+    {% price_groups_from lb.items as price_groups %}
+    {% include "storefront/lists/_price_list_box.html" with pl_style=lb.style plv_key="lb-"|add:block_id plv_cols=lb.layout.cols plv_mobile=lb.layout.mobile all_url=lb.url %}
+    {% elif lb.source == "promotions" and lb.style %}
+    {% include "storefront/lists/_promo_composition.html" with promotions=lb.items promo_ending_soon=lb.ending_soon pstyle=lb.style pgrid=lb.grid playout=lb.layout ptail="spread" pmore=False pgrid_id="" pgrid_key="list" row_promo_card=lb.card %}
+    {% elif lb.source == "categories" and lb.style == "compact" %}
+    {% categories_with_min_price lb.items as cat_rows %}
+    <div data-grid="list" class="{{ lb.grid }}" {% sf_grid_attrs lb.layout count=cat_rows|length %}>
+      {% for r in cat_rows %}{% include "storefront/lists/_category_row.html" %}{% endfor %}
+    </div>
+    {% else %}
     <div data-grid="list"{% if lb.mode == "slider" and lb.source == "promotions" %} data-promo-strip{% endif %} class="{{ lb.grid }}" {% sf_grid_attrs lb.layout count=lb.items|length %}>
       {% for p in lb.items %}
         {% if lb.source == "products" %}{% include "storefront/_product_card.html" with storefront_card_style=lb.card %}
@@ -51,6 +65,7 @@ LB-3: `id="lb-<id блока>"` — цель чипа Sprungleiste страни�
         {% else %}{% include "storefront/_promo_card.html" with in_group=lb.in_group storefront_promo_card=lb.card preview=lb.preview %}{% endif %}
       {% endfor %}
     </div>
+    {% endif %}
   </div>
 </section>
 {% elif is_preview %}

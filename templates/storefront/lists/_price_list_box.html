@@ -1,0 +1,13 @@
+{% load i18n siteui %}{% comment %}LB-4c: прайс-лист товаров в карточке — общий вид секции главной и блока
+«Liste» (вынесен из sections/_products.html байт-в-байт, замок golden_lb4c). Ожидает
+`price_groups`, `pl_style`, `plv_key` (память вида посетителя: у секции «products», у
+блока «lb-<id>»), `plv_cols`/`plv_mobile` и `all_url` — весь список с тем же фильтром.{% endcomment %}
+<div class="sf-card bg-white rounded-2xl p-5 md:p-7">
+{% include "storefront/_price_list.html" %}
+{% with truncated=price_groups|has_more_rows %}
+<div class="mt-4 flex gap-2">
+  <a href="{{ all_url }}" class="inline-block rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:border-gray-400">{% if truncated %}{% trans "Mehr anzeigen" %}{% else %}{% trans "Ganze Speisekarte" %}{% endif %} →</a>
+  {% speisekarte_pdf_available as pdf_ok %}{% if pdf_ok %}<a href="{% url 'storefront-speisekarte-pdf' %}" target="_blank" rel="noopener" class="inline-block rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:border-gray-400">📄 {% trans "Menu as PDF" %}</a>{% endif %}
+</div>
+{% endwith %}
+</div>

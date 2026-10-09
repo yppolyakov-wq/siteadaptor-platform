@@ -64,6 +64,7 @@ _LISTING_URLS = {
 SOURCE_MODULES = {key: spec["module"] for key, spec in siteconfig.LIST_SOURCES.items()}
 
 
+_PRICE_LIST_LIMIT = 40  # LB-4c: прайс-вид блока без «Höchstens» — как у секции главной
 _DEAL_MAX_COLS = 2  # «Deal» шириной меньше ~28rem нечитаем (см. effective_view)
 
 
@@ -717,25 +718,45 @@ def resolve(cfg: dict, data: dict, tenant=None) -> dict:
     data = data or {}
     source = _source(data)
     view = effective_view(cfg, data)
-    items, total = _FETCHERS[source](data, view["limit"], cfg)
+    # LB-4c: вид-композиция блока — тот же реестр, что у секции главной его источника.
+    style = data.get("style", "") if data.get("style") in siteconfig.list_styles(source) else ""
+    price_list = source == "products" and style.startswith("preisliste")
+    limit = view["limit"]
+    if price_list and not data.get("limit"):
+        limit = _PRICE_LIST_LIMIT  # прайс сканируют, а не листают — как у секции главной
+    items, total = _FETCHERS[source](data, limit, cfg)
     if source == "reviews":
         _attach_review_entities(items, tenant)
     # LB-3: «Demnächst» — карточки-превью («ab <дата>», без счётчика и покупки) и без
     # «Alle N →»: страницы будущих акций нет.
     preview = source == "promotions" and data.get("phase") == "upcoming"
     url = _all_url(data)
+    aspect = ""
+    if source == "categories":
+        # свой вид блока сильнее секции «Kategorien»; без него — её форма плитки.
+        # Не `.get(style) or …`: у реестра есть ключ "" (дефолт 4:3), и пустой вид
+        # блока перебивал бы форму, выбранную владельцем у секции.
+        aspect = (siteconfig.CATEGORY_TILE_ASPECTS.get(style) if style else "") or _tile_aspect(cfg)
     return {
         "source": source,
         "items": items,
         "total": total,
         # «Alle N →» — только когда показаны не все и есть КУДА вести (у отзывов и
-        # «Demnächst» страницы всего списка нет)
-        "more": total > len(items) and not preview and bool(url),
+        # «Demnächst» страницы всего списка нет); у прайс-листа ссылка — в его карточке
+        "more": total > len(items) and not preview and bool(url) and not price_list,
         "preview": preview,
         "url": url,
         "label": _label(data, items, tenant),
         "intro": data.get("intro", ""),
-        "aspect": _tile_aspect(cfg) if source == "categories" else "",
+        "aspect": aspect,
+        "style": style,
+        "price_list": price_list,
+        # чипы «Ending soon» композиций spotlight/banner — из выборки ЭТОГО блока
+        "ending_soon": (
+            promotions_ending_soon(data)
+            if source == "promotions" and style in ("spotlight", "banner") and not preview
+            else []
+        ),
         "type": data.get("type", "") if source == "promotions" else "",
         # у блока ОДНОГО типа метка типа на карточке — шум (все одинаковые); у
         # смешанной выдачи она говорит, откуда акция (как в результатах, N-2)
@@ -1023,6 +1044,13 @@ def view_hint(cfg: dict, data: dict) -> dict:
             s for s in siteconfig.LIST_SOURCES if siteconfig.list_sort_keys(s)
         ),
         "card_sources": " ".join(s for s, spec in siteconfig.LIST_SOURCES.items() if spec["card"]),
+        # LB-4c: виды-композиции — по источнику (реестр видов секции главной)
+        "styles": [
+            (key, str(siteconfig.SECTION_STYLE_LABELS.get(key, key)), src)
+            for src, keys in siteconfig.LIST_STYLES.items()
+            for key in keys
+        ],
+        "style_sources": " ".join(siteconfig.LIST_STYLES),
     }
 
 

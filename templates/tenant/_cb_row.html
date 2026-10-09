@@ -327,6 +327,20 @@ collect()/save работают без переименований. data-cb-id 
           {% comment %}LB-1b (план §10): охват вида. «Den ganzen Typ» — те же контролы
           пишут настройки ТИПА (все его блоки и его страница), значения в них — значения
           типа (карта lb-type-views). Поле служебное: в конфиге не хранится.{% endcomment %}
+          {% comment %}LB-4c: вид-композиция — те же виды, что у секции главной источника
+          (прайс-листы товаров, spotlight/banner/rows акций, формы плиток категорий);
+          у остальных источников строки нет. Обёртка без display-класса (`hidden`).{% endcomment %}
+          <div data-lb-src="{{ lh.style_sources }}" {% if src not in lh.style_sources.split %}hidden{% endif %}>
+          <div class="stu-row">
+            <span class="stu-lb">{% trans "Display style" %}</span>
+            <select name="cb_{{ b.id }}_style" class="stu-ctrl">
+              <option value="">{% trans "Standard (grid)" %}</option>
+              {% for key, label, srcs in lh.styles %}
+                <option value="{{ key }}" data-lb-opt="{{ srcs }}" {% if src not in srcs.split %}hidden{% endif %} {% if b.data.style == key %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          </div>
           <div class="stu-row" data-lb-scope-row {% if src != "promotions" or not b.data.type %}hidden{% endif %}>
             <span class="stu-lb">{% trans "Ansicht gilt für" %}</span>
             <input type="hidden" name="cb_{{ b.id }}_scope" value="" data-lb-scope>

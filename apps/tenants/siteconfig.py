@@ -410,6 +410,11 @@ def _clean_list_block(d: dict) -> dict:
     card = d.get("card")
     if isinstance(card, str) and card in card_forms.keys_for(LIST_SOURCES[source]["card"]):
         out["card"] = card
+    # LB-4c: вид-композиция блока — из реестра видов секции его источника
+    # (прайс-листы товаров, spotlight/banner/rows акций, формы плиток категорий).
+    style = d.get("style")
+    if isinstance(style, str) and style in list_styles(source):
+        out["style"] = style
     return out
 
 
@@ -430,7 +435,17 @@ BUILTIN_LIST_SOURCES = {
 # Чего у встроенной строки в `data` не бывает: источник задан ключом, лимит —
 # легаси-полем `limit`, заголовок/интро — `section_titles`/`section_intros`, а вид
 # (лента, колонки, ряды, темп) — полный `layout` строки.
-_BUILTIN_DATA_DROP = ("source", "limit", "title", "intro", "out", "cols", "rows", "speed")
+_BUILTIN_DATA_DROP = (
+    "source",
+    "limit",
+    "title",
+    "intro",
+    "out",
+    "cols",
+    "rows",
+    "speed",
+    "style",  # LB-4c: вид встроенной строки — её легаси-поле `style`
+)
 
 
 def clean_builtin_list_data(key, raw) -> dict:
@@ -3507,6 +3522,22 @@ SECTION_STYLES = {
     # "" = прежний грид байт-в-байт.
     "promotions": ("spotlight", "rows", "banner"),  # DL-7d: + широкий баннер-дил
 }
+# LB-4c (план docs/lb4-home-lists-archetypes-plan-2026-10-04.md §6): виды блока
+# «Liste» — ТЕ ЖЕ, что у секции главной его источника (один реестр видов на сайт,
+# а не второй набор): прайс-листы товаров, spotlight/banner/rows акций, формы плиток
+# категорий. У остальных источников видов-композиций нет — у них есть форма карточки.
+LIST_STYLES = {
+    "products": SECTION_STYLES["products"],
+    "promotions": SECTION_STYLES["promotions"],
+    "categories": SECTION_STYLES["categories"],
+}
+
+
+def list_styles(source: str) -> tuple:
+    """Виды-композиции блока «Liste» источника `source` (пусто — видов нет)."""
+    return LIST_STYLES.get(source, ())
+
+
 #: Класс аспекта плитки категории по стилю секции (см. _category_tile.html).
 CATEGORY_TILE_ASPECTS = {
     "": "aspect-[4/3]",

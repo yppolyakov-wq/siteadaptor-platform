@@ -435,6 +435,7 @@ _LIST_BLOCK_FIELDS = (
     "rows",
     "speed",
     "card",
+    "style",  # LB-4c: вид-композиция (прайс-лист / spotlight / формы плиток)
     # LB-1b: охват вида — «только этот блок» ("") или «весь тип» ("type"). Служебное
     # поле формы: `list_blocks.apply_type_scope` разбирает его ДО normalize.
     "scope",
@@ -508,6 +509,9 @@ def _copy_builtin_list(request, key: str):
     if request.POST.get(f"sl_{key}_present") == "1":
         current["data"] = _read_builtin_what(request.POST, key)
     data = list_blocks.section_data(current)
+    # LB-4c: копия выглядит как оригинал — вид секции (прайс-лист, spotlight…) уходит в блок
+    if row.get("style") in siteconfig.list_styles(data["source"]):
+        data["style"] = row["style"]
     layout = row.get("layout") or {}
     if layout.get("scroll"):
         data["out"] = "slider"
