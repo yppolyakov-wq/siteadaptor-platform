@@ -167,6 +167,106 @@ PAGE_PRESETS["promos"] = {
 }
 
 
+# LB-4d-2 (план docs/lb4-home-lists-archetypes-plan-2026-10-04.md §12.2): листинги —
+# «Standard» и блочный пресет под архетип. `blocks` встают над основным списком
+# (`above`), `below` — под ним. Блок источника выключенного модуля пресет не кладёт,
+# пресет без единого доступного блока не предлагается (`presets_for(tenant=…)`).
+# Заголовков нет намеренно (как у «Prospekt»): подпись по выборке и переводится.
+def _listing(prefix, preset):
+    return {
+        "prefix": prefix,
+        "presets": (
+            {"key": "standard", "label": _("Standard"), "icon": "🗂️", "blocks": ()},
+            {**preset, "above": True},
+        ),
+    }
+
+
+PAGE_PRESETS["catalog"] = _listing(
+    "pb-catalog-",
+    {
+        "key": "neu_sale",
+        "label": _("Neuheiten + Sale"),
+        "icon": "✨",
+        "blocks": (
+            ("list", {"source": "products", "sort": "newest", "out": "slider"}),
+            ("list", {"source": "products", "only": "sale", "out": "slider"}),
+        ),
+        "recommended_for": ("retail", "clothing", "online_shop", "grocery"),
+    },
+)
+PAGE_PRESETS["services"] = _listing(
+    "pb-services-",
+    {
+        "key": "beratung",
+        "label": _("Beratung & Angebote"),
+        "icon": "🎥",
+        "blocks": (
+            ("list", {"source": "services", "only": "video", "out": "slider"}),
+            ("list", {"source": "promotions", "ziel": "service"}),
+        ),
+        "recommended_for": ("friseur", "werkstatt"),
+    },
+)
+PAGE_PRESETS["stay_rooms"] = _listing(
+    "pb-stays-",
+    {
+        "key": "angebote",
+        "label": _("Angebote & Stimmen"),
+        "icon": "🛎️",
+        "blocks": (("list", {"source": "promotions", "ziel": "stay"}),),
+        "below": (("list", {"source": "reviews", "entity": "stay", "stars": 4}),),
+        "recommended_for": ("hotel",),
+    },
+)
+PAGE_PRESETS["events"] = _listing(
+    "pb-events-",
+    {
+        "key": "bald",
+        "label": _("Bald & Highlights"),
+        "icon": "⏳",
+        "blocks": (("list", {"source": "events", "only": "soon", "out": "slider"}),),
+        "below": (("list", {"source": "reviews", "entity": "event", "stars": 4}),),
+        "recommended_for": ("events",),
+    },
+)
+# /touren/ уже разбит по странам (MT-D2) — блок на страну над списком был бы дублем;
+# пресет показывает ближайшие заезды над списком и отзывы путешественников под ним.
+PAGE_PRESETS["tours"] = _listing(
+    "pb-tours-",
+    {
+        "key": "termine",
+        "label": _("Termine & Stimmen"),
+        "icon": "🧭",
+        "blocks": (("list", {"source": "events", "only": "soon", "out": "slider"}),),
+        "below": (("list", {"source": "reviews", "entity": "event", "stars": 4}),),
+        "recommended_for": ("tour_operator",),
+    },
+)
+
+
+def _specs(preset) -> list:
+    """Все блоки пресета (над и под основным списком)."""
+    return list(preset.get("blocks", ())) + list(preset.get("below", ()))
+
+
+def _available(tenant, kind, data) -> bool:
+    """LB-4d-2: модуль источника блока «Liste» (и цели «Gilt für») включён."""
+    if tenant is None or kind != "list":
+        return True
+    from apps.core import list_blocks
+
+    source = data.get("source") or "promotions"
+    modules = [list_blocks.SOURCE_MODULES.get(source, "")]
+    if data.get("ziel") in list_blocks.TARGET_SOURCES:
+        modules.append(list_blocks.SOURCE_MODULES[list_blocks.TARGET_SOURCES[data["ziel"]]])
+    # отзывы о событиях без модуля событий — пустая выборка (вид сущности выключен)
+    entity_source = list_blocks._REVIEW_KIND_SOURCES.get(data.get("entity") or "")
+    if source == "reviews" and entity_source:
+        modules.append(list_blocks.SOURCE_MODULES[entity_source])
+    return all(list_blocks._module_on(tenant, m) for m in modules if m)
+
+
 def _live_rubrics() -> list[str]:
     """Свои рубрики действующих акций — в порядке обзора (свежая первой)."""
     from apps.promotions.models import Promotion
@@ -197,23 +297,30 @@ def _list_signature(data) -> tuple:
     return tuple(clean.get(key) for key in fields)
 
 
-def presets_for(host, business_type=""):
+def presets_for(host, business_type="", tenant=None):
     """Пресеты хоста, рекомендованные для business_type — первыми (паттерн
-    template_cards): каждому даётся флаг `recommended` для бейджа в UI."""
+    template_cards): каждому даётся флаг `recommended` для бейджа в UI.
+
+    LB-4d-2: с `tenant` — без пресетов, у которых не осталось ни одного блока
+    включённого модуля (пустой пресет обещал бы страницу, которой не будет)."""
     reg = PAGE_PRESETS.get(host)
     if reg is None:
         return []
     cards = [
         {**p, "recommended": business_type in (p.get("recommended_for") or ())}
         for p in reg["presets"]
+        if not _specs(p) or p.get("per_type") or any(_available(tenant, k, d) for k, d in _specs(p))
     ]
     return sorted(cards, key=lambda c: not c["recommended"])
 
 
-def apply_page_preset(cfg, host, preset_id):
+def apply_page_preset(cfg, host, preset_id, tenant=None):
     """Применить пресет к plain-dict конфигу (до normalize). Идемпотентно:
     блоки владельца (без префикса семейства) сохраняются, свои — заменяются;
-    плоские ключи пишутся поверх. Неизвестный host/preset → False, cfg цел."""
+    плоские ключи пишутся поверх. Неизвестный host/preset → False, cfg цел.
+
+    LB-4d-2: `below` — блоки под основным списком; с `tenant` блок источника
+    выключенного модуля не кладётся."""
     reg = PAGE_PRESETS.get(host)
     preset = next((p for p in (reg["presets"] if reg else ()) if p["key"] == preset_id), None)
     if preset is None:
@@ -225,9 +332,12 @@ def apply_page_preset(cfg, host, preset_id):
         for b in (pb.get(host) if isinstance(pb.get(host), list) else [])
         if not str((b or {}).get("id", "")).startswith(reg["prefix"])
     ]
-    specs = list(preset["blocks"])
+    specs = [(k, d) for k, d in preset["blocks"] if _available(tenant, k, d)]
     if preset.get("per_type"):
         specs += [("list", {"source": "promotions", "type": key}) for key in _live_rubrics()]
+    below = [(k, d) for k, d in preset.get("below", ()) if _available(tenant, k, d)]
+    n_above = len(specs)
+    specs += below
     if specs:
         from apps.tenants import siteconfig
 
@@ -239,30 +349,43 @@ def apply_page_preset(cfg, host, preset_id):
             for b in keep
             if siteconfig.cblock_type((b or {}).get("key")) == "list"
         }
-        specs = [(k, d) for k, d in specs if k != "list" or _list_signature(d) not in owned]
+        tagged = [(i < n_above, k, d) for i, (k, d) in enumerate(specs)]
+        tagged = [
+            (up, k, d) for up, k, d in tagged if k != "list" or _list_signature(d) not in owned
+        ]
         # …и не вытесняет блоки владельца за кап страницы (normalize оставляет первые
         # _MAX_CBLOCKS): лишним рубрикам место в основном списке — их секции в остатке.
         room = siteconfig._MAX_CBLOCKS - sum(1 for b in keep if not siteconfig.is_main_marker(b))
-        specs = specs[: max(0, room)]
-    seeded = [
-        {
-            "key": kind,
-            "id": f"{reg['prefix']}{preset['key']}-{i}",
-            "enabled": True,
-            "data": dict(data),
-        }
-        for i, (kind, data) in enumerate(specs, start=1)
-    ]
+        tagged = tagged[: max(0, room)]
+    else:
+        tagged = []
+
+    def _seed(items, start):
+        return [
+            {
+                "key": kind,
+                "id": f"{reg['prefix']}{preset['key']}-{i}",
+                "enabled": True,
+                "data": dict(data),
+            }
+            for i, (kind, data) in enumerate(items, start=start)
+        ]
+
+    seeded_up = _seed([(k, d) for up, k, d in tagged if up], 1)
+    seeded_down = _seed([(k, d) for up, k, d in tagged if not up], len(seeded_up) + 1)
     if preset.get("above"):
         from apps.tenants import siteconfig
 
         # LB-3b: над основным списком — блоки владельца, стоявшие над ним, остаются
         # первыми; его блоки под списком — под ним (маркер LB-2 между частями).
+        # LB-4d-2: блоки пресета «под списком» встают сразу под маркером, перед
+        # блоками владельца — у страницы и так есть место для своих снизу.
         above, below = siteconfig.split_at_main(keep)
-        head = above + seeded
-        rows = head + ([{"key": siteconfig.MAIN_LIST_KEY}] if head else []) + below
+        head = above + seeded_up
+        tail = seeded_down + below
+        rows = head + ([{"key": siteconfig.MAIN_LIST_KEY}] if head or tail else []) + tail
     else:
-        rows = keep + seeded
+        rows = keep + seeded_up + seeded_down
     if rows:
         pb[host] = rows
     else:
@@ -282,10 +405,10 @@ def current_preset(cfg, host):
         return ""
     ids = [str((b or {}).get("id", "")) for b in ((cfg.get("page_blocks") or {}).get(host) or [])]
     for p in reg["presets"]:
-        if p["blocks"] and any(i.startswith(f"{reg['prefix']}{p['key']}-") for i in ids):
+        if _specs(p) and any(i.startswith(f"{reg['prefix']}{p['key']}-") for i in ids):
             return p["key"]
     for p in reg["presets"]:
         flat = p.get("flat") or {}
-        if not p["blocks"] and flat and all(cfg.get(k) == v for k, v in flat.items()):
+        if not _specs(p) and flat and all(cfg.get(k) == v for k, v in flat.items()):
             return p["key"]
     return reg["presets"][0]["key"]

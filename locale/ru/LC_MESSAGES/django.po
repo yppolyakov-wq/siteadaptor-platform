@@ -22982,3 +22982,51 @@ msgstr "Второй блок «Список» с той же выборкой �
 #, python-format
 msgid "Wie die Website (%(c)s)"
 msgstr "Как на сайте (%(c)s)"
+
+msgid "Unsere Leistungen"
+msgstr "Наши услуги"
+
+msgid "Zimmer als Leiste"
+msgstr "Номера лентой"
+
+msgid "Nächste Termine"
+msgstr "Ближайшие даты"
+
+msgid "Unsere Reisen"
+msgstr "Наши поездки"
+
+msgid "Unsere Bereiche"
+msgstr "Наши разделы"
+
+msgid "Kundenstimmen ab 4 ★"
+msgstr "Отзывы клиентов от 4 ★"
+
+msgid "Aus dem Blog"
+msgstr "Из блога"
+
+msgid "Angebote für Zimmer"
+msgstr "Предложения на номера"
+
+msgid "Angebote für Leistungen"
+msgstr "Предложения на услуги"
+
+msgid "Angebote für Produkte"
+msgstr "Предложения на товары"
+
+msgid "Angebote für Pakete"
+msgstr "Предложения на наборы"
+
+msgid "Neuheiten + Sale"
+msgstr "Новинки + распродажа"
+
+msgid "Beratung & Angebote"
+msgstr "Консультации и предложения"
+
+msgid "Angebote & Stimmen"
+msgstr "Предложения и отзывы"
+
+msgid "Bald & Highlights"
+msgstr "Скоро и главное"
+
+msgid "Termine & Stimmen"
+msgstr "Даты и отзывы"

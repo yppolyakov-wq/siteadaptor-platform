@@ -22789,3 +22789,51 @@ msgstr "Ein zweiter Liste-Block mit derselben Auswahl — zum Beispiel für eine
 #, python-format
 msgid "Wie die Website (%(c)s)"
 msgstr "Wie die Website (%(c)s)"
+
+msgid "Unsere Leistungen"
+msgstr "Unsere Leistungen"
+
+msgid "Zimmer als Leiste"
+msgstr "Zimmer als Leiste"
+
+msgid "Nächste Termine"
+msgstr "Nächste Termine"
+
+msgid "Unsere Reisen"
+msgstr "Unsere Reisen"
+
+msgid "Unsere Bereiche"
+msgstr "Unsere Bereiche"
+
+msgid "Kundenstimmen ab 4 ★"
+msgstr "Kundenstimmen ab 4 ★"
+
+msgid "Aus dem Blog"
+msgstr "Aus dem Blog"
+
+msgid "Angebote für Zimmer"
+msgstr "Angebote für Zimmer"
+
+msgid "Angebote für Leistungen"
+msgstr "Angebote für Leistungen"
+
+msgid "Angebote für Produkte"
+msgstr "Angebote für Produkte"
+
+msgid "Angebote für Pakete"
+msgstr "Angebote für Pakete"
+
+msgid "Neuheiten + Sale"
+msgstr "Neuheiten + Sale"
+
+msgid "Beratung & Angebote"
+msgstr "Beratung & Angebote"
+
+msgid "Angebote & Stimmen"
+msgstr "Angebote & Stimmen"
+
+msgid "Bald & Highlights"
+msgstr "Bald & Highlights"
+
+msgid "Termine & Stimmen"
+msgstr "Termine & Stimmen"

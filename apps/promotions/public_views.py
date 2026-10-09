@@ -616,7 +616,7 @@ def promotion_list(request):
     groups = own_groups + builtin_types
     selected = sel["gruppe"]
     has_filters = bool(
-        selected or sel["endet"] or sel["rabatt"] or sel["reservierbar"] or q or sort
+        selected or sel["endet"] or sel["rabatt"] or sel["reservierbar"] or sel["ziel"] or q or sort
     )
     # LB-3 (план §12): режим блоков — обзор без фильтров, на странице есть включённый
     # блок «Liste» с акциями. Конфиг блоков — тот же, что у тега блоков страницы
@@ -819,6 +819,19 @@ def promotion_list(request):
             return chip
         return None
 
+    def _target_chips():
+        """LB-4d «Gilt für»: чип цели — только АКТИВНЫЙ. Фильтр приходит из «Alle N →»
+        блока «Angebote für Zimmer», и снять его посетитель должен в один клик. Сами
+        цели в ряд не выводим: страницу акций собирает владелец рубриками, и у отеля
+        «Zimmer-Angebote» рядом с «Angebote für Zimmer» читались бы дублем (стенд
+        LB-4d-1). Подпись — фраза цели целиком (у голой подписи источника в ru был бы
+        не тот падеж и число)."""
+        from apps.core import list_blocks
+
+        if not sel["ziel"]:
+            return []
+        return [_chip(list_blocks.target_label(sel["ziel"]), "ziel", sel["ziel"])]
+
     system_chips = [
         chip
         for chip in (
@@ -830,6 +843,7 @@ def promotion_list(request):
             # форма карточки. Два контрола на один смысл — ровно то, что волна LAY
             # из панели вычищала (прецедент LAY-7c). Параметр `?reservierbar=1`
             # продолжает работать: старые ссылки и замки фильтра целы.
+            *_target_chips(),
         )
         if chip
     ]
@@ -899,6 +913,7 @@ def promotion_list(request):
             ("endet", sel["endet"]),
             ("rabatt", str(sel["rabatt"] or "")),
             ("reservierbar", "1" if sel["reservierbar"] else ""),
+            ("ziel", sel["ziel"]),
         )
         if v
     ]

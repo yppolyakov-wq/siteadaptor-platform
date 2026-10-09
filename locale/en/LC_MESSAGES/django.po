@@ -22751,3 +22751,51 @@ msgstr "A second list block with the same selection — for example for another 
 #, python-format
 msgid "Wie die Website (%(c)s)"
 msgstr "Like the website (%(c)s)"
+
+msgid "Unsere Leistungen"
+msgstr "Our services"
+
+msgid "Zimmer als Leiste"
+msgstr "Rooms as a strip"
+
+msgid "Nächste Termine"
+msgstr "Upcoming dates"
+
+msgid "Unsere Reisen"
+msgstr "Our trips"
+
+msgid "Unsere Bereiche"
+msgstr "Our departments"
+
+msgid "Kundenstimmen ab 4 ★"
+msgstr "Customer reviews from 4 ★"
+
+msgid "Aus dem Blog"
+msgstr "From the blog"
+
+msgid "Angebote für Zimmer"
+msgstr "Offers for rooms"
+
+msgid "Angebote für Leistungen"
+msgstr "Offers for services"
+
+msgid "Angebote für Produkte"
+msgstr "Offers for products"
+
+msgid "Angebote für Pakete"
+msgstr "Offers for packages"
+
+msgid "Neuheiten + Sale"
+msgstr "New arrivals + sale"
+
+msgid "Beratung & Angebote"
+msgstr "Consultation & offers"
+
+msgid "Angebote & Stimmen"
+msgstr "Offers & reviews"
+
+msgid "Bald & Highlights"
+msgstr "Coming up & highlights"
+
+msgid "Termine & Stimmen"
+msgstr "Dates & reviews"

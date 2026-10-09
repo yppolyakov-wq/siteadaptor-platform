@@ -62,6 +62,16 @@ _LISTING_URLS = {
 # Модуль, без которого источник не показывается: у выключенных акций нет ни страницы
 # `/aktionen/`, ни карточек — блок с ними вёл бы в 404 (урок hero-плиток «Deals»).
 SOURCE_MODULES = {key: spec["module"] for key, spec in siteconfig.LIST_SOURCES.items()}
+# LB-4d: «Gilt für» — цель акции → источник блока, о котором она (модуль, подпись).
+TARGET_SOURCES = {"product": "products", "service": "services", "stay": "stays", "combo": "combos"}
+# подпись блока акций с целью и без своего заголовка («Angebote für Zimmer»): по
+# фразе на цель — у подписи источника в ru/uk/tr был бы не тот падеж
+_TARGET_LABELS = {
+    "product": gettext_lazy("Angebote für Produkte"),
+    "service": gettext_lazy("Angebote für Leistungen"),
+    "stay": gettext_lazy("Angebote für Zimmer"),
+    "combo": gettext_lazy("Angebote für Pakete"),
+}
 
 
 _PRICE_LIST_LIMIT = 40  # LB-4c: прайс-вид блока без «Höchstens» — как у секции главной
@@ -206,6 +216,7 @@ def _upcoming(data: dict, limit: int):
     from django.utils import timezone
 
     from apps.promotions import promo_types
+    from apps.promotions.facets import apply_target
     from apps.promotions.models import Promotion
     from apps.promotions.public_views import _attach_lowest_30d
 
@@ -215,6 +226,7 @@ def _upcoming(data: dict, limit: int):
         .order_by("starts_at")
     )
     items = promo_types.apply_type(items, data.get("type", ""))
+    items = apply_target(items, data.get("ziel", ""))  # LB-4d: «Gilt für»
     shown, total = _cut(items, limit)
     return _attach_lowest_30d(shown), total
 
@@ -237,6 +249,7 @@ def _promotions(data: dict, limit: int):
             "gruppe": data.get("type", ""),
             "endet": data.get("endet", ""),
             "rabatt": data.get("rabatt") or 0,
+            "ziel": data.get("ziel", ""),
         },
     )
     if data.get("sort"):
@@ -542,7 +555,12 @@ def _all_url(data: dict) -> str:
     if source == "promotions" and data.get("phase") == "upcoming":
         return ""  # LB-3: страницы «будущих акций» нет — и ссылке вести некуда
     if source == "promotions":
-        for key, param in (("type", "gruppe"), ("endet", "endet"), ("rabatt", "rabatt")):
+        for key, param in (
+            ("type", "gruppe"),
+            ("endet", "endet"),
+            ("rabatt", "rabatt"),
+            ("ziel", "ziel"),
+        ):
             if data.get(key):
                 params[param] = data[key]
         if data.get("sort"):
@@ -663,6 +681,8 @@ def _label(data: dict, items, tenant=None) -> str:
             return _("Endet heute")
         if data.get("endet") == "woche":
             return _("Endet diese Woche")
+        if data.get("ziel") in _TARGET_LABELS:
+            return target_label(data["ziel"])
         return _("Aktionen")
     if data.get("category") and items:
         cat = getattr(items[0], "category", None)
@@ -849,6 +869,7 @@ BUILTIN_WHAT_FIELDS = (
     "type",
     "endet",
     "rabatt",
+    "ziel",
     "category",
     "collection",
     "only",
@@ -933,6 +954,7 @@ def promotions_ending_soon(data: dict, days: int = 3, limit: int = 4) -> list:
             "gruppe": data.get("type", ""),
             "endet": data.get("endet", ""),
             "rabatt": data.get("rabatt") or 0,
+            "ziel": data.get("ziel", ""),
         },
     )
     soon = timezone.now() + timedelta(days=days)
@@ -981,13 +1003,17 @@ def overview_blocks(cfg: dict) -> dict:
         if _source(data) != "promotions":
             continue
         kind = str(data.get("type") or "")
+        # LB-4d: «Gilt für» сужает выборку, как скидка: «Wochen · für Zimmer» не
+        # заменяет рубрику, «Endet heute · für Zimmer» — полосу «Ending soon»,
+        # «Demnächst · für Zimmer» — «Vorschau» (иначе обзор терял бы акции других целей).
+        target = data.get("ziel")
         if data.get("phase") == "upcoming":
-            upcoming = upcoming or not kind
+            upcoming = upcoming or not (kind or target)
         elif kind:
-            narrowed = data.get("endet") or data.get("rabatt")
+            narrowed = data.get("endet") or data.get("rabatt") or target
             if not narrowed and not promo_types.is_builtin(kind):
                 types.add(kind)
-        elif data.get("endet") and not data.get("rabatt"):
+        elif data.get("endet") and not data.get("rabatt") and not target:
             # «Endet … · ab −50 %» — уже выборка, чем «Ending soon» и срок целиком:
             # такой блок — витрина поверх, а не замена (ревью LB-3)
             ending.append(block)
@@ -1259,6 +1285,7 @@ def editor_options(
     themes=None,
     countries=None,
     review_kinds=None,
+    targets=None,
 ) -> dict:
     """Пункты селекторов строки, которых нет в живых списках (класс W0).
 
@@ -1313,6 +1340,12 @@ def editor_options(
     if entity and entity not in {key for key, _label in (review_kinds or [])}:
         off = _("derzeit aus")
         out["orphan_entity"] = (entity, f"{review_kind_label(entity)} ({off})")
+    # LB-4d: цель акции выключенного модуля («Gilt für: Zimmer» без модуля номеров)
+    target = str(data.get("ziel") or "")
+    if target in TARGET_SOURCES and target not in {key for key, _label in (targets or [])}:
+        off = _("derzeit aus")
+        named = source_label(TARGET_SOURCES[target])
+        out["orphan_target"] = (target, f"{named} ({off})")
     return out
 
 
@@ -1344,3 +1377,115 @@ def review_kinds(tenant) -> list[tuple[str, str]]:
         if active:
             out.append((kind, review_kind_label(kind, tenant)))
     return out
+
+
+def target_label(target: str) -> str:
+    """«Angebote für Zimmer» — подпись цели акции на языке витрины (чип /aktionen/,
+    заголовок блока без своего). Фразой целиком: у подписи источника в ru/uk/tr был
+    бы не тот падеж и число («Номер» рядом с «Услуги»)."""
+    return str(_TARGET_LABELS[target]) if target in _TARGET_LABELS else ""
+
+
+def promo_targets(tenant) -> list[tuple[str, str]]:
+    """LB-4d: [(цель, подпись)] пунктов «Gilt für» — цели с включённым модулем."""
+    out = []
+    for target in siteconfig.LIST_PROMO_TARGETS:
+        source = TARGET_SOURCES[target]
+        if _module_on(tenant, SOURCE_MODULES[source]):
+            out.append((target, source_label(source, tenant)))
+    return out
+
+
+# ───────────────────────── LB-4d: библиотека «＋» ─────────────────────────
+
+# главный товар архетипа (секция главной) → источник блока
+_PRIMARY_SECTION_SOURCES = {
+    "products": "products",
+    "stay_rooms": "stays",
+    "services": "services",
+    "events": "events",
+    "promotions": "promotions",
+}
+# Чего проба наполненности не учитывает: вид и подпись ничего не меняют, а срок
+# («Endet heute», «Demnächst», «в ближайшие 14 дней») и скидка меняются день ото дня —
+# пресет «Endet heute» нужен и в день, когда сегодня ничего не заканчивается (блок
+# сам прячется, пока ему нечего показать).
+_PROBE_DROP = frozenset(
+    {"endet", "phase", "rabatt", "sort", "limit", "out", "cols", "rows", "speed"}
+    | {"card", "style", "title", "intro"}
+)
+
+
+def _module_on(tenant, module: str) -> bool:
+    try:
+        return bool(tenant is not None and tenant.is_module_active(module))
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def primary_source(tenant) -> str:
+    """Источник «главного товара» архетипа: номера у отеля, услуги у салона, товары у
+    магазина, туры у тур-оператора. Пусто — главного списка нет (заявки Handwerker)."""
+    from apps.core import archetypes
+
+    try:
+        source = _PRIMARY_SECTION_SOURCES.get(archetypes.primary_section(tenant) or "", "")
+        if source == "events" and archetypes.has_tours(tenant):
+            return "tours"
+    except Exception:  # noqa: BLE001
+        return ""
+    return source
+
+
+def _about(data: dict) -> str:
+    """О чём пресет: у «Angebote für Zimmer» — о номерах, иначе — его источник."""
+    target = data.get("ziel")
+    return TARGET_SOURCES[target] if target in TARGET_SOURCES else _source(data)
+
+
+def _shows_something(cfg: dict, data: dict, seen: dict) -> bool:
+    """Есть ли у выборки пресета что показать — тем же движком, что рисует блок."""
+    probe = {k: v for k, v in data.items() if k not in _PROBE_DROP}
+    if probe.get("only") == "soon":
+        probe.pop("only")
+    key = tuple(sorted(probe.items()))
+    if key not in seen:
+        try:
+            if probe["source"] == "products":
+                # каталогу хватает EXISTS: карточки (рейтинги, промо-цены) не нужны
+                items = products_queryset(probe)
+                seen[key] = items.exists() if hasattr(items, "exists") else bool(items)
+            else:
+                seen[key] = bool(_FETCHERS[probe["source"]](probe, 1, cfg)[0])
+        except Exception:  # noqa: BLE001
+            seen[key] = True  # проба упала — пресет предлагаем: пустой блок честно скажет
+    return seen[key]
+
+
+def library_presets(tenant, cfg: dict | None = None) -> list[dict]:
+    """LB-4d: пресеты блока «Liste» в библиотеке «＋» — для ЭТОГО бизнеса.
+
+    Пресет предлагается, если включён модуль его источника (у «Angebote für …» — ещё и
+    модуль цели) и выборке есть что показать: пустой блок обещал бы витрину, которой
+    нет (правило STU-9). Главный товар архетипа предлагается и пустым — его заводят
+    первым. Пресеты про главный товар — впереди, дальше — порядок реестра.
+    """
+    presets = siteconfig.CBLOCK_VARIANTS.get("list", [])
+    if tenant is None:
+        return list(presets)
+    if cfg is None:
+        cfg = siteconfig.normalize(getattr(tenant, "site_config", None) or {})
+    primary = primary_source(tenant)
+    seen: dict = {}
+    out = []
+    for preset in presets:
+        data = siteconfig._clean_list_block(preset.get("data") or {})
+        modules = [SOURCE_MODULES[data["source"]]]
+        if data.get("ziel"):
+            modules.append(SOURCE_MODULES[TARGET_SOURCES[data["ziel"]]])
+        if not all(_module_on(tenant, m) for m in modules):
+            continue
+        if data["source"] != primary and not _shows_something(cfg, data, seen):
+            continue
+        out.append((preset, _about(data) == primary))
+    return [preset for preset, _first in sorted(out, key=lambda pair: not pair[1])]

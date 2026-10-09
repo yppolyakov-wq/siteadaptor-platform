@@ -146,6 +146,7 @@ def list_block_hint(context, data):
             themes=context.get("event_categories_for_blocks"),
             countries=context.get("tour_countries_for_blocks"),
             review_kinds=context.get("review_kinds_for_blocks"),
+            targets=context.get("promo_targets_for_blocks"),
         )
     )
     return hint

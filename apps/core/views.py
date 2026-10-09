@@ -419,6 +419,7 @@ _LIST_BLOCK_FIELDS = (
     "type",
     "endet",
     "rabatt",
+    "ziel",
     "category",
     "collection",
     "event_category",
@@ -796,6 +797,33 @@ def _review_kinds_for_blocks(request):
         return []
 
 
+def _library_variants(request, config, btype, variants):
+    """UC6-6c → LB-4d: пресеты типа блока для инсертера «＋». У блока «Liste» —
+    библиотека ЭТОГО бизнеса (модули, наполненность, главный товар первым); у
+    наборов подпись по типу бизнеса («Menü-Pakete» у гастро)."""
+    if btype != "list":
+        return variants
+    from apps.core import list_blocks
+
+    tenant = getattr(request, "tenant", None)
+    out = []
+    for v in list_blocks.library_presets(tenant, config):
+        if (v.get("data") or {}).get("source") == "combos":
+            v = {**v, "label": list_blocks.source_label("combos", tenant)}
+        out.append(v)
+    return out
+
+
+def _promo_targets_for_blocks(request):
+    """LB-4d: [(цель, подпись)] пунктов «Gilt für» с включённым модулем (fail-safe)."""
+    try:
+        from apps.core import list_blocks
+
+        return list_blocks.promo_targets(getattr(request, "tenant", None))
+    except Exception:  # noqa: BLE001
+        return []
+
+
 def _cblock_row_lists(request) -> dict:
     """Селекторы строки C-блока — ОДИН набор для формы билдера и для строки, вставленной
     без перезагрузки (`_add_block_fetch_response`). Раньше списки перечислялись в двух
@@ -818,6 +846,8 @@ def _cblock_row_lists(request) -> dict:
         "tour_countries_for_blocks": _tour_countries_for_blocks(request),
         # LB-3d-3: виды отзываемых сущностей с включённым модулем
         "review_kinds_for_blocks": _review_kinds_for_blocks(request),
+        # LB-4d: «Gilt für» — цели акций с включённым модулем
+        "promo_targets_for_blocks": _promo_targets_for_blocks(request),
     }
 
 
@@ -1643,12 +1673,18 @@ def _page_preset_ui(tenant, config):
         ("cart", tenant.is_module_active("catalog")),
         # LB-3b: страница акций — «Standard» или «Prospekt (Blöcke)»
         ("promos", tenant.is_module_active("promotions")),
+        # LB-4d-2: листинги — «Standard» или блоки над/под списком под архетип
+        ("catalog", tenant.is_module_active("catalog")),
+        ("services", tenant.is_module_active("booking")),
+        ("stay_rooms", tenant.is_module_active("stays")),
+        ("events", tenant.is_module_active("events")),
+        ("tours", tenant.is_module_active("events")),
     )
     return [
         {
             "host": host,
             "page_key": host,
-            "presets": page_presets.presets_for(host, tenant.business_type),
+            "presets": page_presets.presets_for(host, tenant.business_type, tenant=tenant),
             "current": page_presets.current_preset(config, host),
             "type_hints": _promo_types_without_block(config) if host == "promos" else [],
         }
@@ -2099,7 +2135,7 @@ def home_builder_view(request):
             host, _sep2, preset_id = rest.partition(":")
             cfg = siteconfig.normalize(request.tenant.site_config)
             old_blocks = cfg.get("page_blocks")
-            if page_presets.apply_page_preset(cfg, host, preset_id):
+            if page_presets.apply_page_preset(cfg, host, preset_id, tenant=request.tenant):
                 # LB-2 §11.7: пресет вставляет и убирает блоки хоста — переводы блоков
                 # владельца едут за своими блоками. Выравнивание сравнивает СТАРЫЙ
                 # порядок с новым, поэтому на время вызова возвращаем прежний список.
@@ -3262,8 +3298,10 @@ def home_builder_view(request):
                             "height": (v.get("data") or {}).get("height", ""),
                             # GK-4: число пар полосы цифр (0 = демо-набор из 3).
                             "count": len((v.get("data") or {}).get("rows", []) or []),
+                            # LB-4d: миниатюра блока «Liste» — сетка или лента
+                            "out": (v.get("data") or {}).get("out", ""),
                         }
-                        for v in vs
+                        for v in _library_variants(request, config, t, vs)
                     ]
                     for t, vs in siteconfig.CBLOCK_VARIANTS.items()
                 }

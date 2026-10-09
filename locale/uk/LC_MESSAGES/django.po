@@ -22966,3 +22966,51 @@ msgstr "Другий блок «Список» з тим самим виборо
 #, python-format
 msgid "Wie die Website (%(c)s)"
 msgstr "Як на сайті (%(c)s)"
+
+msgid "Unsere Leistungen"
+msgstr "Наші послуги"
+
+msgid "Zimmer als Leiste"
+msgstr "Номери стрічкою"
+
+msgid "Nächste Termine"
+msgstr "Найближчі дати"
+
+msgid "Unsere Reisen"
+msgstr "Наші подорожі"
+
+msgid "Unsere Bereiche"
+msgstr "Наші розділи"
+
+msgid "Kundenstimmen ab 4 ★"
+msgstr "Відгуки клієнтів від 4 ★"
+
+msgid "Aus dem Blog"
+msgstr "З блогу"
+
+msgid "Angebote für Zimmer"
+msgstr "Пропозиції на номери"
+
+msgid "Angebote für Leistungen"
+msgstr "Пропозиції на послуги"
+
+msgid "Angebote für Produkte"
+msgstr "Пропозиції на товари"
+
+msgid "Angebote für Pakete"
+msgstr "Пропозиції на набори"
+
+msgid "Neuheiten + Sale"
+msgstr "Новинки + розпродаж"
+
+msgid "Beratung & Angebote"
+msgstr "Консультації та пропозиції"
+
+msgid "Angebote & Stimmen"
+msgstr "Пропозиції та відгуки"
+
+msgid "Bald & Highlights"
+msgstr "Незабаром і головне"
+
+msgid "Termine & Stimmen"
+msgstr "Дати та відгуки"

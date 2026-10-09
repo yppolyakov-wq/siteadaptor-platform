@@ -2536,7 +2536,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
   })();
 
   // LB-4b: поля «ЧТО» встроенных списков главной (= list_blocks.BUILTIN_WHAT_FIELDS).
-  var SL_DATA_FIELDS = ["type", "endet", "rabatt", "category", "collection", "only",
+  var SL_DATA_FIELDS = ["type", "endet", "rabatt", "ziel", "category", "collection", "only",
     "event_category", "country", "sort", "card"];
   function collect() {
     // UC6-7b: entry C-блока по id — ОБЩИЙ для блоков главной (sections) и блоков
@@ -2557,7 +2557,7 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
        "size", "color", "rounded", "style_hint", "rows", "height", "type", "limit",
        "source", "intro", "endet", "rabatt", "category", "collection", "event_category",
        "country", "entity", "stars", "only", "sort", "out", "cols", "speed", "card",
-       "style", "scope"];
+       "style", "scope", "ziel"];
       CB_DATA_FIELDS.forEach(function (f) {  // UC6-2/4/6f + GK-4
         var el = form.querySelector("[name='cb_" + cbId + "_" + f + "']");
         if (el && el.value !== "") cb.data[f] = el.value;
@@ -3442,6 +3442,11 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
         scols += '<span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;"><i style="display:block;width:70%;height:6px;background:' + accent + ';border-radius:1px;"></i><i style="display:block;width:90%;height:2px;background:#d1d5db;border-radius:1px;"></i></span>';
       }
       inner = '<span style="display:flex;gap:2px;width:100%;align-items:flex-end;">' + scols + "</span>";
+    } else if (btype === "list") {
+      // LB-4d: блок «Liste» — три карточки сеткой или лента с обрезом справа.
+      var card = '<i style="display:block;flex:none;width:30%;height:16px;background:' + gray + ';border-radius:2px;"></i>';
+      var lcards = card + card + card + (v.out === "slider" ? card : "");
+      inner = '<span style="display:flex;gap:2px;width:' + (v.out === "slider" ? "120%" : "100%") + ';">' + lcards + "</span>";
     } else if (btype === "spacer") {
       // ST-7a: полоса переменной высоты — «сколько воздуха» между блоками.
       var sh = v.height === "sm" ? 4 : v.height === "lg" ? 16 : v.height === "xl" ? 24 : 9;

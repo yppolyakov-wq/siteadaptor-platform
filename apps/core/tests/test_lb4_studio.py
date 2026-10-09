@@ -30,7 +30,8 @@ _N = itertools.count()
 
 # Поля «ЧТО» строки по ключу секции — ровно поля блока «Liste» её источника.
 WHAT = {
-    "promotions": {"type", "endet", "rabatt", "sort", "card"},
+    # LB-4d (осознанно): + «Gilt für» — цель акции
+    "promotions": {"type", "endet", "rabatt", "ziel", "sort", "card"},
     "products": {"category", "collection", "only", "sort", "card"},
     "services": {"collection", "only", "sort", "card"},
     "stay_rooms": {"collection", "sort", "card"},

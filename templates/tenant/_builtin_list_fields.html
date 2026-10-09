@@ -18,6 +18,14 @@ Save, что поля пришли (без него данные строки ц
         {% if lh.orphan_type %}<option value="{{ lh.orphan_type.0 }}" selected>{{ lh.orphan_type.1 }}</option>{% endif %}
       </select>
     </div>
+    <div class="stu-row">
+      <span class="stu-lb">{% trans "Gilt für" %}</span>
+      <select name="{{ pre }}ziel" class="stu-ctrl">
+        <option value="">{% trans "Alle" %}</option>
+        {% for key, label in promo_targets_for_blocks %}<option value="{{ key }}" {% if d.ziel == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        {% if lh.orphan_target %}<option value="{{ lh.orphan_target.0 }}" selected>{{ lh.orphan_target.1 }}</option>{% endif %}
+      </select>
+    </div>
     <div class="stu-row stu-two">
       <label class="block">
         <span class="stu-lb">{% trans "Zeitraum" %}</span>

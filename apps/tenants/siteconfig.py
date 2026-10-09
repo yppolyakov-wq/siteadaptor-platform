@@ -202,7 +202,8 @@ LIST_SOURCES = {
         "facets": "promotion",
         "label": _("Aktionen"),
         "module": "promotions",
-        "filters": ("type", "endet", "phase", "rabatt"),
+        # LB-4d: «Gilt für» — цель акции (волна PL): товар / услуга / номер / набор
+        "filters": ("type", "endet", "phase", "rabatt", "ziel"),
     },
     "products": {
         "card": card_forms.PRODUCT,
@@ -281,6 +282,9 @@ LIST_PROMO_ENDS = ("heute", "woche")  # = чипы «Endet heute / diese Woche»
 # «Vorschau» страницы акций). В редакторе — пункт селекта «Zeitraum» рядом с
 # «Endet …» (одно поле `endet`), в хранении — свой ключ `phase`.
 LIST_PHASES = ("upcoming",)
+# LB-4d: «Gilt für» — на что действует акция (FK волны PL). Ключи — те же виды
+# сущностей, что у отзывов (`LIST_REVIEW_KINDS`), кроме события: у акции его нет.
+LIST_PROMO_TARGETS = ("product", "service", "stay", "combo")
 # Быстрый фильтр «Auswahl» по источнику: у товаров — подборки витрины, у услуг —
 # видео-консультации (LS-1), у событий — ближайшие две недели.
 LIST_ONLY = {
@@ -351,7 +355,10 @@ def _clean_list_block(d: dict) -> dict:
             phase = d["endet"]
         if phase:
             out["phase"] = phase
-        else:
+        # LB-4d: цель сужает и действующие, и будущие акции — хранится при любой фазе
+        if d.get("ziel") in LIST_PROMO_TARGETS:
+            out["ziel"] = d["ziel"]
+        if not phase:
             if d.get("endet") in LIST_PROMO_ENDS:
                 out["endet"] = d["endet"]
             rabatt = _int_in(d.get("rabatt"), 1, 100)
@@ -685,6 +692,67 @@ CBLOCK_VARIANTS = {
                 "out": "slider",
             },
         },
+        # LB-4d: по пресету на каждый источник блока. Инсертер показывает только те,
+        # чей модуль включён и кому есть что показать (`list_blocks.library_presets`,
+        # главный товар архетипа — первым). Без «title» — подпись по выборке, она
+        # переводится (как у блоков «Prospekt»): «Video-Beratung», «Angebote für Zimmer».
+        {
+            "key": "services",
+            "label": _("Unsere Leistungen"),
+            "data": {"source": "services", "title": "Unsere Leistungen"},
+        },
+        {
+            "key": "video",
+            "label": _("Video-Beratung"),
+            "data": {"source": "services", "only": "video"},
+        },
+        {
+            "key": "rooms",
+            "label": _("Zimmer als Leiste"),
+            "data": {"source": "stays", "title": "Unsere Zimmer", "out": "slider"},
+        },
+        {
+            "key": "events_next",
+            "label": _("Nächste Termine"),
+            "data": {"source": "events", "title": "Nächste Termine"},
+        },
+        {
+            "key": "events_soon",
+            "label": _("In den nächsten 14 Tagen"),
+            "data": {"source": "events", "only": "soon", "out": "slider"},
+        },
+        {
+            "key": "tours",
+            "label": _("Unsere Reisen"),
+            "data": {"source": "tours", "title": "Unsere Reisen"},
+        },
+        # подпись — по типу бизнеса («Menü-Pakete» у гастро): вьюха берёт её у источника
+        {"key": "combos", "label": _("Sets & Pakete"), "data": {"source": "combos"}},
+        {
+            "key": "categories",
+            "label": _("Unsere Bereiche"),
+            "data": {"source": "categories", "title": "Unsere Bereiche"},
+        },
+        {
+            "key": "reviews",
+            "label": _("Kundenstimmen ab 4 ★"),
+            "data": {"source": "reviews", "stars": 4, "title": "Das sagen unsere Kunden"},
+        },
+        {
+            "key": "blog",
+            "label": _("Aus dem Blog"),
+            "data": {"source": "blog", "title": "Aus dem Blog"},
+        },
+        {
+            "key": "promo_rooms",
+            "label": _("Angebote für Zimmer"),
+            "data": {"source": "promotions", "ziel": "stay"},
+        },
+        {
+            "key": "promo_services",
+            "label": _("Angebote für Leistungen"),
+            "data": {"source": "promotions", "ziel": "service"},
+        },
     ],
     "text": [
         {"key": "intro", "label": _("Intro zentriert"), "data": {"align": "center", "size": "lg"}},
@@ -937,6 +1005,10 @@ def cblock_insert_preset(btype: str, variant: str) -> dict:
     out = {"data": dict(CBLOCK_DEMO_DATA.get(btype, {}))}
     for v in CBLOCK_VARIANTS.get(btype, []):
         if v["key"] == variant:
+            if btype == "list" and "title" not in v.get("data", {}):
+                # LB-4d: демо-заголовок («Aktuelle Angebote») — про стандартный блок
+                # акций; пресет без своего заголовка подписывается по выборке.
+                out["data"].pop("title", None)
             out["data"].update(v.get("data", {}))
             for prop in ("width", "pos", "newline", "visual"):
                 if prop in v:

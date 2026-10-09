@@ -22878,3 +22878,51 @@ msgstr "Aynı seçime sahip ikinci bir liste bloğu — örneğin başka bir kat
 #, python-format
 msgid "Wie die Website (%(c)s)"
 msgstr "Sitedeki gibi (%(c)s)"
+
+msgid "Unsere Leistungen"
+msgstr "Hizmetlerimiz"
+
+msgid "Zimmer als Leiste"
+msgstr "Şerit olarak odalar"
+
+msgid "Nächste Termine"
+msgstr "Yaklaşan tarihler"
+
+msgid "Unsere Reisen"
+msgstr "Gezilerimiz"
+
+msgid "Unsere Bereiche"
+msgstr "Bölümlerimiz"
+
+msgid "Kundenstimmen ab 4 ★"
+msgstr "4 ★ ve üzeri müşteri yorumları"
+
+msgid "Aus dem Blog"
+msgstr "Blogdan"
+
+msgid "Angebote für Zimmer"
+msgstr "Odalar için fırsatlar"
+
+msgid "Angebote für Leistungen"
+msgstr "Hizmetler için fırsatlar"
+
+msgid "Angebote für Produkte"
+msgstr "Ürünler için fırsatlar"
+
+msgid "Angebote für Pakete"
+msgstr "Paketler için fırsatlar"
+
+msgid "Neuheiten + Sale"
+msgstr "Yeni gelenler + indirim"
+
+msgid "Beratung & Angebote"
+msgstr "Danışmanlık ve fırsatlar"
+
+msgid "Angebote & Stimmen"
+msgstr "Fırsatlar ve yorumlar"
+
+msgid "Bald & Highlights"
+msgstr "Yakında ve öne çıkanlar"
+
+msgid "Termine & Stimmen"
+msgstr "Tarihler ve yorumlar"

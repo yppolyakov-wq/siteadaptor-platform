@@ -23,6 +23,17 @@ from . import promo_types
 #: пресеты чипа «минимальная скидка» (валидация ?rabatt=)
 DISCOUNT_PRESETS = (20, 30, 50)
 
+#: LB-4d «Gilt für» (?ziel=): цель акции волны PL → её FK. Ключи — те же, что у
+#: `siteconfig.LIST_PROMO_TARGETS`; одна точка истины для блока «Liste», секции
+#: главной, «Ending soon» и /aktionen/.
+TARGET_FIELDS = {"product": "product", "service": "service", "stay": "stay_unit", "combo": "combo"}
+
+
+def apply_target(items, target: str):
+    """Акции с целью `target` (товар/услуга/номер/набор); пустая/неизвестная — все."""
+    field = TARGET_FIELDS.get(target or "")
+    return items.filter(**{f"{field}__isnull": False}) if field else items
+
 
 def _pct(promo) -> int:
     return int(promo.discount_percent_display or 0)
@@ -48,11 +59,13 @@ class PromoFacets(FacetProvider):
             rabatt = int(params.get("rabatt") or 0)
         except (TypeError, ValueError):
             rabatt = 0
+        ziel = (params.get("ziel") or "").strip()
         return {
             "gruppe": (params.get("gruppe") or "").strip(),
             "endet": endet if endet in ("heute", "woche") else "",
             "rabatt": rabatt if rabatt in DISCOUNT_PRESETS else 0,
             "reservierbar": params.get("reservierbar") == "1",
+            "ziel": ziel if ziel in TARGET_FIELDS else "",
         }
 
     def apply(self, items, params):
@@ -65,6 +78,8 @@ class PromoFacets(FacetProvider):
             items = promo_types.apply_type(items, sel["gruppe"])
         if sel["reservierbar"]:
             items = items.filter(promo_type="reservation")
+        if sel["ziel"]:
+            items = apply_target(items, sel["ziel"])
         if sel["endet"]:
             now = timezone.now()
             local = timezone.localtime(now)
