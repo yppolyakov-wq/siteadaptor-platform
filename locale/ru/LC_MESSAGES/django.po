@@ -23226,3 +23226,22 @@ msgstr "Только акции — без магазина"
 #: T-8.1c
 msgid "Visitenkarte mit Angeboten, Öffnungszeiten und Route — in Minuten online, ganz ohne Sortiment und Warenkorb."
 msgstr "Визитка с акциями, часами работы и маршрутом — онлайн за минуты, без каталога и корзины."
+
+msgid "Stadtteil"
+msgstr "Район"
+
+msgid "Stadtteile"
+msgstr "Районы"
+
+msgid "Demo"
+msgstr "Демо"
+
+msgid "Ihr Stadtteil im Stadtportal: Kundschaft filtert Angebote danach."
+msgstr "Ваш район на городском портале: покупатели фильтруют по нему предложения."
+
+#, python-format
+msgid "Angebote in %(name)s, %(city)s"
+msgstr "Предложения: %(name)s, %(city)s"
+
+msgid "Vorschau mit Beispielgeschäften: Die mit «Demo» markierten Angebote sind erfunden und zeigen, wie das Portal funktionieren wird."
+msgstr "Предпросмотр с примерами: предложения с пометкой «Демо» вымышлены и показывают, как будет работать портал."

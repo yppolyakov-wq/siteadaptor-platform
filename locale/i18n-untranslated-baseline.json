@@ -16,6 +16,13 @@
   "Zahlende Kunden",
   "Zahlung überfällig"
  ],
+ "apps/core/districts.py": [
+  "Aufderhöhe",
+  "Burg/Höhscheid",
+  "Gräfrath",
+  "Höhscheid",
+  "Ohligs/Aufderhöhe/Merscheid"
+ ],
  "apps/core/page_presets.py": [
   "Abholung und Bezahlung vor Ort möglich — Ihre Bestellung liegt zur vereinbarten Zeit für Sie bereit.",
   "Bildunterschrift — klicken und ersetzen",
@@ -108,10 +115,17 @@
   "Bäckerei Test"
  ],
  "apps/tenants/management/commands/seed_demo_tenants.py": [
+  "Aktionen, Neuheiten und Angebote aus allen Stadtteilen.",
   "Direkt buchen — ohne Provision.",
   "Fehlt Ihr Kit? Der Container läuft evtl. auf einem alten Image — erst neu bauen:\n      ./scripts/deploy.sh single   (git pull + docker compose build + up -d)",
+  "Tüm semtlerden kampanyalar, yenilikler ve teklifler.",
+  "Was Geschäfte in",
   "gehört Tenant",
-  "» — wird übersprungen.\n    Verfügbare Kits:"
+  "heute anbieten — vor Ort abholen, reservieren oder anfragen.",
+  "işletmelerinin bugünkü teklifleri — gelip alın, ayırtın ya da sorun.",
+  "ohne Domain (404)",
+  "» — wird übersprungen.\n    Verfügbare Kits:",
+  "— kein Portal"
  ],
  "apps/tenants/models.py": [
   ".\n\nHinweis: Bitte passen Sie diesen Text an Ihr Geschäft an.",

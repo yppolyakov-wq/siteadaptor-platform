@@ -38,6 +38,13 @@ def _snapshot(promotion_id):
     }
 
 
+def _event_district(tenant, event_city: str) -> str:
+    """Район бизнеса для листинга события — только если событие в городе бизнеса."""
+    if event_city and event_city.strip().casefold() != (tenant.city or "").strip().casefold():
+        return ""
+    return tenant.district or ""
+
+
 def _logo_image(tenant) -> dict:
     """Карточка stay/event без своего фото — фолбэк на логотип бизнеса (A5/A6).
 
@@ -53,6 +60,8 @@ def _tenant_base_defaults(tenant) -> dict:
         "business_name": tenant.name,
         "business_type": tenant.business_type,
         "city": tenant.city,
+        "district": tenant.district or "",  # T-8.17: чипы/страницы районов портала
+        "is_demo": bool(getattr(tenant, "is_demo", False)),  # T-8.15
         "latitude": tenant.latitude,  # G8c: гео для карты/«рядом»
         "longitude": tenant.longitude,
     }
@@ -259,6 +268,8 @@ def sync_event_group_listing(tenant_schema, group_ref) -> str:
         defaults={
             **_tenant_base_defaults(tenant),
             "city": snap["city"] or _tenant_base_defaults(tenant)["city"],
+            # T-8.17: выездное событие в другом городе — район бизнеса к нему не относится
+            "district": _event_district(tenant, snap["city"]),
             "category": snap["category"],
             "promo_uuid": None,
             "title": {"de": tour_title} if tour_title else snap["title"],
@@ -320,6 +331,8 @@ def sync_event_listing(tenant_schema, event_id) -> str:
             **_tenant_base_defaults(tenant),
             # город события точнее города бизнеса (выездной/филиал) — если задан
             "city": snap["city"] or _tenant_base_defaults(tenant)["city"],
+            # T-8.17: выездное событие в другом городе — район бизнеса к нему не относится
+            "district": _event_district(tenant, snap["city"]),
             "category": snap["category"],  # R2b направление (фильтр агрегатора)
             "promo_uuid": None,
             "title": snap["title"],
@@ -720,3 +733,23 @@ def resync_on_combo_part_save(sender, instance, **kwargs):
             dedupe_key=dedupe, tenant_schema=schema, combo_id=str(combo_id)
         )
     )
+
+
+def refresh_tenant_fields(tenant) -> int:
+    """T-8.17: перенести поля бизнеса (имя/город/район/гео/демо) во ВСЕ его листинги.
+
+    Правка города или района в настройках раньше не доходила до пула — листинги
+    обновлялись только при правке самой акции/номера/события. Один UPDATE.
+    """
+    from .models import AggregatorListing
+
+    fields = _tenant_base_defaults(tenant)
+    city, district = fields.pop("city"), fields.pop("district")
+    qs = AggregatorListing.objects.filter(tenant_schema=tenant.schema_name)
+    n = qs.update(**fields)
+    # У события свой город (выездное/филиал) — его не трогаем, район — только в городе бизнеса.
+    events = qs.filter(listing_kind=AggregatorListing.KIND_EVENT)
+    qs.exclude(listing_kind=AggregatorListing.KIND_EVENT).update(city=city, district=district)
+    events.filter(city__iexact=city).update(district=district)
+    events.exclude(city__iexact=city).update(district="")
+    return n

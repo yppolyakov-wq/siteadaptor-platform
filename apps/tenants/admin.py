@@ -15,12 +15,15 @@ class TenantAdmin(ModelAdmin):
         "created_at",
     )
     search_fields = ("name", "slug", "schema_name")
-    list_filter = ("business_type", "subscription_status", "country")
+    list_filter = ("business_type", "subscription_status", "country", "is_demo")
     readonly_fields = ("schema_name", "created_at", "updated_at")
     ordering = ("-created_at",)
 
     fieldsets = (
-        (None, {"fields": ("name", "slug", "schema_name", "business_type", "is_active")}),
+        (
+            None,
+            {"fields": ("name", "slug", "schema_name", "business_type", "is_active", "is_demo")},
+        ),
         (
             "Location",
             {"fields": ("country", "city", "district", "address", "latitude", "longitude")},

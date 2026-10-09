@@ -40,11 +40,16 @@ class Tenant(TenantMixin):
 
     # Location
     city = models.CharField(max_length=100, blank=True)
+    # T-8.17: slug района из справочника apps.core.districts (не свободный текст).
     district = models.CharField(max_length=100, blank=True)
     country = models.CharField(max_length=2, default="DE")
     address = models.TextField(blank=True)
     latitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
     longitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
+
+    # T-8.15: демо-бизнес (засеян seed_demo_tenants). Его листинги не попадают в
+    # настоящие порталы (AggregatorPortal.show_demo=False) и помечены «Demo».
+    is_demo = models.BooleanField(default=False)
 
     # Localization
     default_locale = models.CharField(max_length=10, default="de")

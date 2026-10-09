@@ -54,6 +54,8 @@ def listings_for(
     event_type=None,
     price_from=None,
     price_to=None,
+    district=None,
+    include_demo=True,
 ):
     """Активные листинги по фильтру. Переиспользуется порталами Phase 2.
 
@@ -70,8 +72,12 @@ def listings_for(
     from django.utils import timezone
 
     qs = AggregatorListing.objects.filter(is_active=True)
+    if not include_demo:  # T-8.15: настоящий портал — без демо-бизнесов
+        qs = qs.filter(is_demo=False)
     if city:
         qs = qs.filter(city__iexact=city)
+    if district:  # T-8.17: slug района (apps.core.districts)
+        qs = qs.filter(district=district)
     if business_type:
         qs = qs.filter(business_type=business_type)
     if kind:

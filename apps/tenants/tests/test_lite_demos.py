@@ -19,7 +19,14 @@ from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
 
-LITE = ["klingenbrot", "ohligser_eck", "walder_faden", "wupperhof", "brueckenblick"]
+LITE = [
+    "klingenbrot",
+    "ohligser_eck",
+    "walder_faden",
+    "wupperhof",
+    "brueckenblick",
+    "graefrather_markt",  # T-8.16: Stadtbezirk Gräfrath
+]
 
 
 def _request(path, tenant):
@@ -49,6 +56,8 @@ def test_lite_kit_is_a_business_card_with_offers(key):
     assert storefront_profile.is_aktionen(tenant)
     assert siteconfig.normalize(tenant.site_config)["profile"] == "aktionen"
     assert tenant.city == "Solingen"
+    assert tenant.is_demo is True  # T-8.15: демо не попадают в настоящие порталы
+    assert tenant.district  # T-8.17: у каждого демо свой район
     assert tenant.latitude is not None and tenant.longitude is not None
     assert business_card.card_context(tenant)["route_url"].startswith("https://www.google.com/maps")
     assert tenant.is_module_active("promotions")

@@ -56,7 +56,8 @@
       var group = L.featureGroup(pts.map(function (p) {
         return L.marker([p.lat, p.lng]).bindPopup(popupContent(p));
       })).addTo(map);
-      map.fitBounds(group.getBounds().pad(0.2));
+      // T-8.17: один бизнес в районе — без потолка карта уходила в уровень дома.
+      map.fitBounds(group.getBounds().pad(0.2), { maxZoom: 15 });
     }
   }
 })();

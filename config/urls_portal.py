@@ -48,6 +48,13 @@ urlpatterns = [
     path("tg/<str:secret>/", portal_telegram.webhook, name="portal-telegram-webhook"),
     # D2.3: клик-счётчик featured (то же имя, что в urls_public) — до catch-all.
     path("klick/<int:pk>/", aggregator_views.featured_click, name="aggregator-featured-click"),
+    # T-8.17: страницы районов города (до catch-all <facet>).
+    path("stadtteil/<slug:district>/", portal_views.portal_home, name="portal-district"),
+    path(
+        "stadtteil/<slug:district>/<str:facet>/",
+        portal_views.portal_home,
+        name="portal-district-facet",
+    ),
     path("<str:facet>/", portal_views.portal_home, name="portal-facet"),
 ]
 

@@ -14,7 +14,8 @@
     python manage.py seed_demo_tenants --kit retreat    # → retreat.<base> (events/Tickets)
     python manage.py seed_demo_tenants --kit shop       # → shop.<base> (Retail: варианты/Grundpreis/остаток/Versand)
     python manage.py seed_demo_tenants --kit klingenbrot  # T-8.1 «Nur Aktionen» (Solingen;
-                                                          # + ohligser_eck walder_faden wupperhof brueckenblick)
+                                                          # + ohligser_eck walder_faden wupperhof brueckenblick
+                                                          # graefrather_markt; портал → solingen.<base>)
     python manage.py seed_demo_tenants --recreate      # пересоздать
     python manage.py seed_demo_tenants --delete        # удалить демо-тенанты
 
@@ -90,6 +91,11 @@ class Command(BaseCommand):
             # на архетип) поверх KIND_STAY + kind=vertical.
             if key == "hotel":
                 self._ensure_hotel_portal()
+            # T-8.18: лёгкие демо «Nur Aktionen» — городской портал на нашем субдомене
+            # (превью для партнёров: show_demo=True, полоса «Vorschau» на портале).
+            kit = demo_kits.KITS[key]
+            if kit.profile == "aktionen" and kit.city:
+                self._ensure_city_portal(kit.city)
             host = (
                 Domain.objects.filter(tenant=tenant, is_primary=True)
                 .values_list("domain", flat=True)
@@ -136,6 +142,79 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 f"  hotel-Portal: {'erstellt' if created else 'vorhanden'} · {dom_note} → https://{host}/"
+            )
+        )
+
+    def _ensure_city_portal(self, city: str):
+        """T-8.18: городской портал ``<город>.<base>`` (идемпотентно, + Domain → public).
+
+        До запуска показывает демо-бизнесы (show_demo=True) с полосой «Vorschau»;
+        к запуску — снять «show_demo» в админке портала. Свой домен владельца — позже
+        тем же порталом (create_portal / второй хост).
+        """
+        from django.conf import settings
+        from django_tenants.utils import get_public_schema_name
+
+        from apps.aggregator.models import AggregatorPortal
+        from apps.core import districts
+        from apps.tenants.models import Domain, Tenant
+
+        base = getattr(settings, "TENANT_DOMAIN_BASE", "siteadaptor.de").split(":")[0]
+        key = districts.city_key(city) or city.strip().lower()
+        host = f"{key}.{base}"
+        dom = Domain.objects.filter(domain=host).select_related("tenant").first()
+        public = Tenant.objects.filter(schema_name=get_public_schema_name()).first()
+        if dom is not None and public is not None and dom.tenant_id != public.id:
+            self.stdout.write(
+                self.style.WARNING(
+                    f"  ⚠ {host} gehört Tenant {dom.tenant.schema_name} — kein Portal"
+                )
+            )
+            return
+        _portal, created = AggregatorPortal.objects.get_or_create(
+            host=host,
+            defaults={
+                "kind": AggregatorPortal.KIND_CITY,
+                "city": city,
+                "show_demo": True,
+                "title": {
+                    "de": f"Angebote in {city}",
+                    "en": f"Offers in {city}",
+                    "ru": f"Предложения в {city}",
+                    "uk": f"Пропозиції в {city}",
+                    "tr": f"{city} fırsatları",
+                },
+                "tagline": {
+                    "de": "Aktionen, Neuheiten und Angebote aus allen Stadtteilen.",
+                    "en": "Deals, new arrivals and offers from every district.",
+                    "ru": "Акции, новинки и предложения из всех районов.",
+                    "uk": "Акції, новинки та пропозиції з усіх районів.",
+                    "tr": "Tüm semtlerden kampanyalar, yenilikler ve teklifler.",
+                },
+                "intro": {
+                    "de": f"Was Geschäfte in {city} heute anbieten — vor Ort abholen, "
+                    "reservieren oder anfragen.",
+                    "en": f"What shops in {city} offer today — pick up, reserve or ask.",
+                    "ru": f"Что сегодня предлагают магазины {city} — забрать, отложить "
+                    "или спросить.",
+                    "uk": f"Що сьогодні пропонують магазини {city} — забрати, відкласти "
+                    "або запитати.",
+                    "tr": f"{city} işletmelerinin bugünkü teklifleri — gelip alın, ayırtın "
+                    "ya da sorun.",
+                },
+            },
+        )
+        if public is None:
+            # Без public-тенанта хост некуда привязать — портал есть, но отдаёт 404.
+            self.stdout.write(
+                self.style.WARNING(f"  ⚠ Public-Tenant fehlt — {host} ohne Domain (404)")
+            )
+            return
+        if dom is None:
+            Domain.objects.create(domain=host, tenant=public, is_primary=False)
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"  Stadtportal: {'erstellt' if created else 'vorhanden'} → https://{host}/"
             )
         )
 

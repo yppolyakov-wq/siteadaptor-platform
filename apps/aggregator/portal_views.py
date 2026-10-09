@@ -31,10 +31,15 @@ def _free_axis(portal) -> str | None:
     return None
 
 
-def _facet_choices(portal) -> tuple[str | None, list[tuple[str, str]]]:
+def _facet_choices(portal, district=None) -> tuple[str | None, list[tuple[str, str]]]:
     """(ось, [(значение, подпись), …]) — значения свободной оси в пуле портала."""
     axis = _free_axis(portal)
-    base = listings_for(city=portal.city or None, business_type=portal.business_type or None)
+    base = listings_for(
+        city=portal.city or None,
+        business_type=portal.business_type or None,
+        district=district,
+        include_demo=portal.show_demo,
+    )
     if axis == "business_type":
         values = (
             base.exclude(business_type="")
@@ -47,6 +52,27 @@ def _facet_choices(portal) -> tuple[str | None, list[tuple[str, str]]]:
         values = base.exclude(city="").values_list("city", flat=True).distinct().order_by("city")
         return axis, [(v, v) for v in values]
     return None, []
+
+
+def _district_choices(portal) -> list[tuple[str, str]]:
+    """T-8.17: районы города портала, в которых есть предложения (пустой район —
+    мёртвый чип, его не показываем). Порядок — официальный (реестр)."""
+    from apps.core import districts
+
+    known = districts.choices_for(portal.city)
+    if not known:
+        return []
+    used = set(
+        listings_for(
+            city=portal.city,
+            business_type=portal.business_type or None,
+            include_demo=portal.show_demo,
+        )
+        .exclude(district="")
+        .values_list("district", flat=True)
+        .distinct()
+    )
+    return [(slug, name) for slug, name in known if slug in used]
 
 
 def _collapse_hotels(cards):
@@ -83,13 +109,21 @@ def _with_dates(url, von, bis, guests):
 
 
 @cache_public_page
-def portal_home(request, facet=None):
+def portal_home(request, facet=None, district=None):
     portal = getattr(request, "portal", None)
     if portal is None:  # urlconf портала без резолва хоста (прямой вызов)
         raise Http404
     city = portal.city or None
     business_type = portal.business_type or None
-    axis, facets = _facet_choices(portal)
+    district_label = None
+    if district is not None:  # T-8.17: /stadtteil/<slug>/
+        from apps.core import districts
+
+        district_label = districts.label(portal.city, district) if portal.city else ""
+        if not district_label:
+            raise Http404
+    axis, facets = _facet_choices(portal, district=district)
+    district_chips = _district_choices(portal)
 
     facet_label = None
     if facet:
@@ -105,7 +139,12 @@ def portal_home(request, facet=None):
     from . import geo
     from .views import split_featured
 
-    pool = listings_for(city=city, business_type=business_type)
+    pool = listings_for(
+        city=city,
+        business_type=business_type,
+        district=district,
+        include_demo=portal.show_demo,
+    )
     near_lat, near_lng = geo.parse_latlng(request)
     if near_lat is not None:  # G8c: «рядом» — ближайшие сверху, без пагинации
         cards = geo.nearest(pool, near_lat, near_lng)
@@ -146,7 +185,8 @@ def portal_home(request, facet=None):
 
     reviews.attach_ratings(cards)  # G8b: звёзды в выдаче
     canonical = request.build_absolute_uri(request.path)
-    page_name = f"{facet_label} — {portal.title_text}" if facet_label else portal.title_text
+    heading = " · ".join(str(p) for p in (district_label, facet_label) if p)
+    page_name = f"{heading} — {portal.title_text}" if heading else portal.title_text
     # Перелинковка сети (P2.2a): ссылки на остальные активные порталы.
     from .models import AggregatorPortal
 
@@ -177,6 +217,12 @@ def portal_home(request, facet=None):
             "facets": facets,
             "facet": facet,
             "facet_label": facet_label,
+            "heading": heading,
+            "district": district,
+            "district_label": district_label,
+            "district_chips": district_chips,
+            # T-8.15: портал показывает демо-бизнесы — честная полоса «Vorschau».
+            "shows_demo": portal.show_demo and any(getattr(c, "is_demo", False) for c in cards),
             "business_link": True,  # G8b: на порталах звёзды ведут на страницу бизнеса
             "near_active": near_lat is not None,  # G8c
             "map_points": geo.map_points(cards),
@@ -202,6 +248,10 @@ def portal_sitemap_xml(request):
     urls = [request.build_absolute_uri(reverse("portal-home"))]
     _, facets = _facet_choices(portal)
     urls += [request.build_absolute_uri(reverse("portal-facet", args=[v])) for v, _label in facets]
+    urls += [
+        request.build_absolute_uri(reverse("portal-district", args=[slug]))
+        for slug, _name in _district_choices(portal)
+    ]
     body = "".join(f"<url><loc>{escape(u)}</loc></url>" for u in urls)
     xml = (
         '<?xml version="1.0" encoding="UTF-8"?>'

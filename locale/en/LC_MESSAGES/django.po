@@ -22995,3 +22995,22 @@ msgstr "Offers only — no shop"
 #: T-8.1c
 msgid "Visitenkarte mit Angeboten, Öffnungszeiten und Route — in Minuten online, ganz ohne Sortiment und Warenkorb."
 msgstr "A business card with offers, opening hours and directions — online in minutes, without a product range or cart."
+
+msgid "Stadtteil"
+msgstr "District"
+
+msgid "Stadtteile"
+msgstr "Districts"
+
+msgid "Demo"
+msgstr "Demo"
+
+msgid "Ihr Stadtteil im Stadtportal: Kundschaft filtert Angebote danach."
+msgstr "Your district in the city portal: customers filter offers by it."
+
+#, python-format
+msgid "Angebote in %(name)s, %(city)s"
+msgstr "Offers in %(name)s, %(city)s"
+
+msgid "Vorschau mit Beispielgeschäften: Die mit «Demo» markierten Angebote sind erfunden und zeigen, wie das Portal funktionieren wird."
+msgstr "Preview with sample businesses: offers marked «Demo» are made up and show how the portal will work."

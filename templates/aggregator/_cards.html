@@ -17,13 +17,17 @@
         {% if l.discount_percent %}
           <span class="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow">−{{ l.discount_percent }} %</span>
         {% endif %}
+        {% if l.is_demo %}
+          {# T-8.15: вымышленный демо-бизнес — помечаем на любой поверхности каталога. #}
+          <span data-demo-badge class="absolute bottom-3 right-3 bg-gray-900/80 text-white text-[11px] font-semibold px-2 py-0.5 rounded-full">{% trans "Demo" %}</span>
+        {% endif %}
         {% if l.is_featured_now %}
           {# E-2/UWG §5a: платное размещение маркируем однозначно — «Anzeige», не «Empfohlen». #}
           <span class="absolute bottom-3 left-3 bg-amber-400 text-amber-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">{% trans "★ Anzeige" %}</span>
         {% endif %}
       </div>
       <div class="p-3 md:p-4">
-        <p class="text-xs text-gray-400 mb-0.5">{{ l.business_name }}{% if l.city %} · {{ l.city }}{% endif %}</p>
+        <p class="text-xs text-gray-400 mb-0.5">{{ l.business_name }}{% if l.city %} · {{ l.city }}{% endif %}{% if l.district_name %} · {{ l.district_name }}{% endif %}</p>
         {% if l.business_rating %}<p class="text-xs text-amber-500 mb-0.5">★ {{ l.business_rating.avg_rating }} <span class="text-gray-300">({{ l.business_rating.review_count }})</span></p>{% endif %}
         {% comment %}A8: live-статус «Jetzt geöffnet» на карточке города (богатая карточка
         бизнеса). Виден только при заданных часах (has_hours); открыт → зелёный «bis HH:MM»,

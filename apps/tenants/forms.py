@@ -83,6 +83,8 @@ class BusinessSettingsForm(forms.ModelForm):
             "name",
             "address",
             "city",
+            # T-8.17: район из справочника (select, если город знаком реестру).
+            "district",
             "contact_email",
             "contact_phone",
             "whatsapp_number",
@@ -112,6 +114,7 @@ class BusinessSettingsForm(forms.ModelForm):
             "name": _("Name"),
             "address": _("Address"),
             "city": _("City"),
+            "district": _("Stadtteil"),
             "contact_email": _("Email"),
             "contact_phone": _("Phone"),
             "website_url": _("Website"),
@@ -156,6 +159,34 @@ class BusinessSettingsForm(forms.ModelForm):
             "privacy_policy": _("Leave blank for a default template (please adapt)."),
             "withdrawal_policy": _("Leave blank for a default template (please adapt)."),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from apps.core import districts
+
+        city = (self.data.get("city") if self.is_bound else None) or self.instance.city
+        choices = districts.choices_for(city)
+        self.district_known = bool(choices)
+        if choices:
+            initial = self.instance.district
+            if not initial and not self.is_bound:  # подсказка по индексу из адреса
+                initial = districts.suggest(city, self.instance.address)
+            self.fields["district"] = forms.ChoiceField(
+                label=_("Stadtteil"),
+                required=False,
+                choices=[("", "—"), *choices],
+                initial=initial,
+                help_text=_("Ihr Stadtteil im Stadtportal: Kundschaft filtert Angebote danach."),
+            )
+        else:
+            # Город не в справочнике — поле остаётся в форме скрытым (W0: Save не затирает).
+            self.fields["district"].widget = forms.HiddenInput()
+
+    def clean_district(self):
+        from apps.core import districts
+
+        city = self.cleaned_data.get("city") or self.instance.city
+        return districts.normalize(city, self.cleaned_data.get("district") or "")
 
     def clean_voucher_max_percent(self):
         # B1.7: пусто = 0 (без лимита); клэмп 0..100.

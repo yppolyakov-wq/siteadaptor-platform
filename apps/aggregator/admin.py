@@ -56,7 +56,7 @@ class BusinessReviewAdmin(ModelAdmin):
 
 @admin.register(AggregatorPortal)
 class AggregatorPortalAdmin(ModelAdmin):
-    list_display = ("host", "kind", "city", "business_type", "is_active", "updated_at")
+    list_display = ("host", "kind", "city", "business_type", "show_demo", "is_active", "updated_at")
     search_fields = ("host", "city")
     list_filter = ("kind", "is_active", "business_type")
     readonly_fields = ("created_at", "updated_at")
@@ -64,7 +64,7 @@ class AggregatorPortalAdmin(ModelAdmin):
 
     fieldsets = (
         (None, {"fields": ("host", "kind", "is_active")}),
-        ("Filters", {"fields": ("city", "business_type")}),
+        ("Filters", {"fields": ("city", "business_type", "show_demo")}),
         ("Branding", {"fields": ("title", "tagline", "intro", "logo_url", "primary_color")}),
         ("Timestamps", {"fields": ("created_at", "updated_at")}),
     )

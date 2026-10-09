@@ -1,17 +1,36 @@
 {% extends "aggregator/portal_base.html" %}
 {% load i18n %}
-{% block title %}{% if facet_label %}{{ facet_label }} — {% endif %}{{ portal.title_text }}{% endblock %}
+{% block title %}{% if heading %}{{ heading }} — {% endif %}{{ portal.title_text }}{% endblock %}
 
 {% block structured_data %}{% if ld_collection %}<script type="application/ld+json">{{ ld_collection|safe }}</script>{% endif %}{% endblock %}
 
 {% block content %}
 <div class="mb-6">
-  {% if facet %}<a href="{% url 'portal-home' %}" class="text-sm text-gray-500 hover:underline">← {{ portal.title_text }}</a>{% endif %}
+  {% if facet or district %}<a href="{% url 'portal-home' %}" class="text-sm text-gray-500 hover:underline">← {{ portal.title_text }}</a>{% endif %}
   <h1 class="text-2xl md:text-3xl font-bold mt-1">
-    {% if facet_label %}{{ facet_label }}{% else %}{{ portal.title_text }}{% endif %}
+    {% if heading %}{{ heading }}{% else %}{{ portal.title_text }}{% endif %}
   </h1>
-  {% if not facet and portal.intro_text %}<p class="mt-2 text-gray-500 max-w-2xl">{{ portal.intro_text }}</p>{% endif %}
+  {% if district_label %}<p class="mt-1 text-gray-500">{% blocktrans with name=district_label city=portal.city %}Angebote in {{ name }}, {{ city }}{% endblocktrans %}</p>{% endif %}
+  {% if not facet and not district and portal.intro_text %}<p class="mt-2 text-gray-500 max-w-2xl">{{ portal.intro_text }}</p>{% endif %}
 </div>
+
+{% comment %}T-8.15: портал показывает демо-бизнесы (превью до запуска) — честно об этом.{% endcomment %}
+{% if shows_demo %}
+<p data-demo-notice class="mb-6 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-sm px-4 py-3">{% trans "Vorschau mit Beispielgeschäften: Die mit «Demo» markierten Angebote sind erfunden und zeigen, wie das Portal funktionieren wird." %}</p>
+{% endif %}
+
+{% comment %}T-8.17: районы города — чипы и страницы /stadtteil/<slug>/.{% endcomment %}
+{% if district_chips %}
+<nav data-district-chips aria-label="{% trans "Stadtteile" %}" class="flex flex-wrap items-center gap-2 mb-3">
+  <span class="text-sm font-medium text-gray-500 mr-1">{% trans "Stadtteil" %}:</span>
+  <a href="{% url 'portal-home' %}"
+     class="px-3 py-1.5 rounded-full text-sm border {% if not district %}bg-gray-900 text-white border-gray-900{% else %}bg-white border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{% trans "Alle" %}</a>
+  {% for slug, name in district_chips %}
+    <a href="{% url 'portal-district' district=slug %}"
+       class="px-3 py-1.5 rounded-full text-sm border {% if district == slug %}bg-gray-900 text-white border-gray-900{% else %}bg-white border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{{ name }}</a>
+  {% endfor %}
+</nav>
+{% endif %}
 
 {# H8b: поиск по датам на портале отелей #}
 {% if hotel_portal %}
@@ -36,11 +55,12 @@
 {% endif %}
 
 {% if facets %}
-<div class="flex flex-wrap gap-2 mb-6">
-  <a href="{% url 'portal-home' %}"
+<div class="flex flex-wrap items-center gap-2 mb-6">
+  {% if district_chips %}<span class="text-sm font-medium text-gray-500 mr-1">{% trans "Branche" %}:</span>{% endif %}
+  <a href="{% if district %}{% url 'portal-district' district=district %}{% else %}{% url 'portal-home' %}{% endif %}"
      class="px-3 py-1.5 rounded-full text-sm border {% if not facet %}bg-gray-900 text-white border-gray-900{% else %}bg-white border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{% trans "All" %}</a>
   {% for v, label in facets %}
-    <a href="{% url 'portal-facet' facet=v %}"
+    <a href="{% if district %}{% url 'portal-district-facet' district=district facet=v %}{% else %}{% url 'portal-facet' facet=v %}{% endif %}"
        class="px-3 py-1.5 rounded-full text-sm border {% if facet == v %}bg-gray-900 text-white border-gray-900{% else %}bg-white border-gray-200 text-gray-600 hover:border-gray-400{% endif %}">{{ label }}</a>
   {% endfor %}
 </div>

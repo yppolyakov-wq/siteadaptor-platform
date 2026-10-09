@@ -374,6 +374,9 @@ class DemoKit:
     phone: str = ""
     lat: str = ""
     lng: str = ""
+    # T-8.17: slug района (apps.core.districts) → Tenant.district → чипы/страницы
+    # районов городского портала.
+    district: str = ""
 
 
 # Товар: dict {name, price, desc, img(keyword), variants?, allergens?, modifiers?,
@@ -22492,6 +22495,7 @@ _LITE_COMMON = {
 LITE_BAKERY = DemoKit(
     key="klingenbrot",
     subdomain="klingenbrot",
+    district="mitte",
     label="Bäckerei Klingenbrot",
     business_type="bakery",
     accent="#b45309",
@@ -22598,6 +22602,7 @@ LITE_BAKERY = DemoKit(
 LITE_CAFE = DemoKit(
     key="ohligser_eck",
     subdomain="ohligser-eck",
+    district="ohligs-aufderhoehe-merscheid",
     label="Café Ohligser Eck",
     business_type="cafe",
     accent="#7c3aed",
@@ -22703,6 +22708,7 @@ LITE_CAFE = DemoKit(
 LITE_MODE = DemoKit(
     key="walder_faden",
     subdomain="walder-faden",
+    district="wald",
     label="Modehaus Walder Faden",
     business_type="clothing",
     accent="#0f766e",
@@ -22806,6 +22812,7 @@ LITE_MODE = DemoKit(
 LITE_HOFLADEN = DemoKit(
     key="wupperhof",
     subdomain="wupperhof",
+    district="ohligs-aufderhoehe-merscheid",
     label="Hofladen Wupperhof",
     business_type="grocery",
     accent="#15803d",
@@ -22908,6 +22915,7 @@ LITE_HOFLADEN = DemoKit(
 LITE_PENSION = DemoKit(
     key="brueckenblick",
     subdomain="brueckenblick",
+    district="burg-hoehscheid",
     label="Pension Brückenblick",
     business_type="hotel",
     accent="#1d4ed8",
@@ -23008,6 +23016,114 @@ LITE_PENSION = DemoKit(
 )
 
 
+# T-8.16: шестое демо — Stadtbezirk Gräfrath (в T-8.1 район был пропущен; владелец
+# 2026-10-09). Парикмахерская: в плане пилота она есть, а среди демо не было ни одной.
+LITE_FRISEUR = DemoKit(
+    key="graefrather_markt",
+    subdomain="graefrather-markt",
+    district="graefrath",
+    label="Salon am Gräfrather Markt",
+    business_type="friseur",
+    accent="#be185d",
+    hero_image_kw="salon-interior",
+    hero_title="Ihr Friseur in Gräfrath",
+    hero_text="Freie Termine und Angebote dieser Woche — anrufen oder vorbeikommen.",
+    heroes=[
+        {
+            "image_kw": "haircut",
+            "title": "Heute noch frei: −20 %",
+            "text": "Kurzfristige Termine am selben Tag zum Sonderpreis.",
+            "button_label": "Zu den Angeboten",
+            "button_url": "/aktionen/",
+        },
+        {
+            "image_kw": "salon-interior",
+            "title": "Ihr Friseur in Gräfrath",
+            "text": "Freie Termine und Angebote dieser Woche — anrufen oder vorbeikommen.",
+            "button_label": "Zu den Angeboten",
+            "button_url": "/aktionen/",
+        },
+    ],
+    usp=[
+        ("clock", "Termine auch samstags"),
+        ("local", "Direkt am historischen Markt"),
+        ("quality", "Meisterbetrieb"),
+    ],
+    about_title="Über uns",
+    about_text="Kleiner Salon in der Gräfrather Altstadt: Schnitt, Farbe und Pflege für "
+    "Damen und Herren. Unsere Angebote finden Sie hier — einfach anrufen.",
+    address="Klostergasse 3, 42653 Solingen",
+    phone="+49 212 5550606",
+    whatsapp_number="+49 170 2000106",
+    lat="51.2106000",
+    lng="7.0728000",
+    opening_hours_text="Di–Fr 9:00–18:30 · Sa 8:30–14:00",
+    opening_hours={**{d: ("09:00", "18:30") for d in range(1, 5)}, 5: ("08:30", "14:00")},
+    menus=_lite_menus(),
+    enable_modules=["orders"],
+    promotions_spec=[
+        {
+            "title": "Last-Minute-Termin heute −20 %",
+            "desc": "Ein Termin ist heute kurzfristig frei geworden: Schnitt zum Sonderpreis. "
+            "Einfach anrufen.",
+            "new_price": "31.20",
+            "compare_at": "39.00",
+            "ends_today": True,
+            "countdown": True,
+            "limit": 3,
+            "group": "Heute",
+            "image": "haircut",
+        },
+        {
+            "title": "Waschen, Schneiden, Föhnen 39 €",
+            "desc": "Damenschnitt mit Haarwäsche und Föhnfrisur — diese Woche zum Festpreis.",
+            "new_price": "39.00",
+            "compare_at": "49.00",
+            "ends_in_days": 7,
+            "group": "Diese Woche",
+            "image": "hairstyle",
+        },
+        {
+            "title": "Herrenschnitt + Bartpflege 29 €",
+            "desc": "Maschinen- oder Scherenschnitt und Bart in Form gebracht.",
+            "new_price": "29.00",
+            "compare_at": "36.00",
+            "ends_in_days": 6,
+            "group": "Diese Woche",
+            "image": "barber",
+        },
+        {
+            "title": "Strähnchen-Woche −15 %",
+            "desc": "Strähnchen oder Balayage mit Pflegekur — nur diese Woche günstiger.",
+            "new_price": "72.00",
+            "compare_at": "85.00",
+            "ends_in_days": 5,
+            "group": "Diese Woche",
+            "image": "hair-color",
+        },
+        {
+            "title": "Neu: Kopfhautmassage zum Schnitt",
+            "desc": "Neu bei uns: zehn Minuten entspannende Kopfhautmassage mit Pflegeöl.",
+            "new_price": "8.00",
+            "new": True,
+            "no_end": True,
+            "group": "Neu bei uns",
+            "image": "hair-oil",
+        },
+        {
+            "title": "Brautfrisur mit Probetermin",
+            "desc": "Hochzeit oder Fest: Frisur nach Wunsch inklusive Probetermin, "
+            "bitte zwei Wochen vorher anfragen.",
+            "new_price": "89.00",
+            "discount_style": "ab",
+            "no_end": True,
+            "group": "Auf Bestellung",
+            "image": "hairstylist-woman",
+        },
+    ],
+    **_LITE_COMMON,
+)
+
 KITS = {
     RESTAURANT.key: RESTAURANT,
     PRANASY.key: PRANASY,
@@ -23036,6 +23152,7 @@ KITS = {
     LITE_MODE.key: LITE_MODE,
     LITE_HOFLADEN.key: LITE_HOFLADEN,
     LITE_PENSION.key: LITE_PENSION,
+    LITE_FRISEUR.key: LITE_FRISEUR,
 }
 
 
@@ -23917,6 +24034,12 @@ def apply_kit(tenant, key: str) -> bool:
     if kit.phone:  # T-8.1: «Anrufen» на странице акции и в нижнем баре
         tenant.contact_phone = kit.phone
         update_fields.append("contact_phone")
+    # T-8.15: всё, что засеяно китом, — демо: в настоящие порталы не попадает.
+    tenant.is_demo = True
+    update_fields.append("is_demo")
+    if kit.district:  # T-8.17: район в городском портале
+        tenant.district = kit.district
+        update_fields.append("district")
     if kit.lat and kit.lng:  # T-8.1: «Route planen», карта, «рядом» на портале
         tenant.latitude = Decimal(kit.lat)
         tenant.longitude = Decimal(kit.lng)

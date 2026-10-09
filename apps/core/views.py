@@ -1049,6 +1049,10 @@ def settings_view(request):
                 "updated_at",
             ]
         )
+        # T-8.17: город/район/имя — в листинги каталога города (раньше не доходили).
+        from apps.aggregator.tasks import refresh_tenant_fields
+
+        refresh_tenant_fields(tenant)
         messages.success(request, _("Gespeichert."))
         return redirect("settings")
     from apps.core import modules as _mod

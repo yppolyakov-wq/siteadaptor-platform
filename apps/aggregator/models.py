@@ -34,6 +34,10 @@ class AggregatorListing(I18nMixin, models.Model):
     business_name = models.CharField(max_length=200)
     business_type = models.CharField(max_length=50, blank=True)
     city = models.CharField(max_length=100, blank=True)
+    # T-8.17: slug района (apps.core.districts) — чипы и страницы районов портала.
+    district = models.CharField(max_length=100, blank=True)
+    # T-8.15: листинг демо-бизнеса — скрыт на настоящих порталах, бейдж «Demo».
+    is_demo = models.BooleanField(default=False)
     # R2b: направление/тема для event-листингов (yoga/meditation/…; пусто у
     # promotion/stay). Фильтр «по каталогам/направлениям» в агрегаторе.
     category = models.CharField(max_length=30, blank=True)
@@ -123,6 +127,15 @@ class AggregatorListing(I18nMixin, models.Model):
         return self.get_i18n("teaser")
 
     @property
+    def district_name(self) -> str:
+        """T-8.17: подпись района для карточки (slug → «Gräfrath»)."""
+        if not self.district:
+            return ""
+        from apps.core import districts
+
+        return districts.label(self.city, self.district)
+
+    @property
     def is_featured_now(self) -> bool:
         from django.utils import timezone
 
@@ -161,6 +174,9 @@ class AggregatorPortal(I18nMixin, models.Model):
     intro = models.JSONField(default=dict, blank=True)
     logo_url = models.URLField(blank=True)
     primary_color = models.CharField(max_length=7, default="#111827")
+    # T-8.15: показывать листинги демо-бизнесов (превью для партнёров до запуска).
+    # Новый портал по умолчанию честный — только настоящие бизнесы.
+    show_demo = models.BooleanField(default=False)
 
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
