@@ -364,9 +364,11 @@ urlpatterns = [
     ),
     path("sortiment/<uuid:pk>/", _aktionen(public_views.product_detail), name="storefront-product"),
     # DL-16.6 (D4): фрагмент «Zuletzt angesehen» — ДО <slug>-роутов (слаг «zuletzt» зарезервирован).
+    # Фрагмент без профильного редиректа: его зовёт только деталь товара, а та при
+    # «Nur Aktionen» уже уводит на главную (и замок DL-16 сверяет вьюху по identity).
     path(
         "sortiment/zuletzt/",
-        _aktionen(public_views.products_recent),
+        public_views.products_recent,
         name="storefront-products-recent",
     ),
     # M2 Boutique: Warteliste товара/размера («ausverkauft → benachrichtigen»).
