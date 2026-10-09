@@ -16990,3 +16990,10 @@ friseur/events/catering/other модуль заказов по умолчани�
 Замки: `apps/core/tests/test_storefront_profile.py` (15) + `apps/tenants/tests/test_lite_demos.py`.
 ⚠️ ops: после деплоя `seed_demo_tenants --kit klingenbrot` (+ `ohligser_eck`, `walder_faden`,
 `wupperhof`, `brueckenblick`); миграций нет.
+
+**Продолжение (2026-10-09, решения О-1…О-4):** О-4 «правильно отсортированные» — у лёгких
+демо бессрочные «Neu»/«Auf Bestellung» без даты конца (новый ключ спеки `no_end`), главная
+`section_data promotions sort=endet`, `/aktionen/` — `promo_grouping="time"` (Endet heute →
+Diese Woche → Länger → Dauerhaft); замок `test_lite_offers_are_sorted_urgent_first`. О-1
+(единая система категорий), тематические платформы — концепция
+`docs/t8-concept-local-offers-platforms-2026-10-09.md`, задачи T-8.13a/b и T-8.14 в каталоге.

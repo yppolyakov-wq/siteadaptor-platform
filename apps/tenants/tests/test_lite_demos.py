@@ -66,3 +66,32 @@ def test_lite_kit_is_a_business_card_with_offers(key):
     promo = promos.first()
     detail = public_views.promotion_detail(_request(f"/p/{promo.pk}/", tenant), promo.pk)
     assert "data-business-card" in detail.content.decode()
+
+
+@pytest.mark.parametrize("key", LITE)
+def test_lite_offers_are_sorted_urgent_first(key):
+    """О-4: срочное первым, бессрочные «Neu»/«Auf Bestellung» — в конце.
+
+    На главной — сортировка «endet» (без даты конца — последними), на /aktionen/ —
+    секции по сроку. Раньше главная шла «новые сначала», и торт под заказ стоял
+    перед «Feierabendtüte до закрытия».
+    """
+    kit = demo_kits.KITS[key]
+    tenant = TenantFactory(schema_name="public", slug=f"lite-sort-{key}", name=kit.label)
+    demo_kits.apply_kit(tenant, key)
+    tenant.refresh_from_db()
+    html = public_views.storefront_home(_request("/", tenant)).content.decode()
+    section = html[html.index('id="aktionen"') :]
+    endless = [s["title"] for s in kit.promotions_spec if s.get("no_end")]
+    dated = [s["title"] for s in kit.promotions_spec if not s.get("no_end")]
+    assert endless and dated
+    shown = [t for t in dated + endless if f">{t}<" in section]
+    first_endless = min(section.index(f">{t}<") for t in endless if t in shown)
+    last_dated = max(section.index(f">{t}<") for t in dated if t in shown)
+    assert last_dated < first_endless
+
+    aktionen = public_views.promotion_list(_request("/aktionen/", tenant)).content.decode()
+    order = [aktionen.find(label) for label in ("Endet heute", "Dauerhaft")]
+    if all(i >= 0 for i in order):
+        assert order[0] < order[1]
+    assert "Dauerhaft" in aktionen

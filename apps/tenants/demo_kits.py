@@ -22477,6 +22477,11 @@ def _lite_menus(neu_group: str = "Neu bei uns") -> dict:
 
 
 _LITE_COMMON = {
+    # О-4 «правильно отсортированные»: на главной срочное первым (endet ↑, бессрочное
+    # в конце), на /aktionen/ — секции по сроку: Endet heute → Diese Woche → Länger →
+    # Dauerhaft (новинки и «под заказ»).
+    "section_data": {"promotions": {"sort": "endet"}},
+    "config_patch": {"promo_grouping": "time"},
     "profile": "aktionen",
     "primary_module": "promotions",
     "city": "Solingen",
@@ -22572,7 +22577,7 @@ LITE_BAKERY = DemoKit(
             "desc": "Neu in unserer Theke: kerniges Dinkel-Vollkornbrötchen mit Saaten.",
             "new_price": "0.80",
             "new": True,
-            "ends_in_days": 30,
+            "no_end": True,
             "group": "Neu bei uns",
             "image": "wholegrain-roll",
         },
@@ -22582,7 +22587,7 @@ LITE_BAKERY = DemoKit(
             "mit 2 Tagen Vorlauf.",
             "new_price": "29.00",
             "discount_style": "ab",
-            "ends_in_days": 60,
+            "no_end": True,
             "group": "Auf Bestellung",
             "image": "strawberry-cake",
         },
@@ -22678,7 +22683,7 @@ LITE_CAFE = DemoKit(
             "desc": "Neu auf der Karte: Latte mit Haferdrink — ohne Aufpreis.",
             "new_price": "3.60",
             "new": True,
-            "ends_in_days": 30,
+            "no_end": True,
             "group": "Neu bei uns",
             "image": "latte-art",
         },
@@ -22687,7 +22692,7 @@ LITE_CAFE = DemoKit(
             "desc": "Unsere Hausmischung, 250 g ganze Bohnen — frisch geröstet.",
             "new_price": "7.90",
             "new": True,
-            "ends_in_days": 30,
+            "no_end": True,
             "group": "Neu bei uns",
             "image": "kaffee-bohnen-schale",
         },
@@ -22781,7 +22786,7 @@ LITE_MODE = DemoKit(
             "new_price": "49.00",
             "new": True,
             "discount_style": "ab",
-            "ends_in_days": 30,
+            "no_end": True,
             "group": "Neu bei uns",
             "image": "clothing-rack",
         },
@@ -22790,7 +22795,7 @@ LITE_MODE = DemoKit(
             "desc": "Gerade, schmal oder weit — jetzt in allen Größen vorrätig.",
             "new_price": "79.00",
             "new": True,
-            "ends_in_days": 30,
+            "no_end": True,
             "group": "Neu bei uns",
             "image": "mode-jeans-elbe",
         },
@@ -22883,7 +22888,7 @@ LITE_HOFLADEN = DemoKit(
             "desc": "Naturtrüb, 1 Liter — neu im Hofladen.",
             "new_price": "3.20",
             "new": True,
-            "ends_in_days": 30,
+            "no_end": True,
             "group": "Neu bei uns",
             "image": "apple-juice",
         },
@@ -22892,7 +22897,7 @@ LITE_HOFLADEN = DemoKit(
             "desc": "Frischer Spargel in der Saison — vorbestellen, wir legen ihn zurück.",
             "new_price": "12.00",
             "discount_style": "ab",
-            "ends_in_days": 60,
+            "no_end": True,
             "group": "Auf Bestellung",
             "image": "asparagus-salad",
         },
@@ -22985,7 +22990,7 @@ LITE_PENSION = DemoKit(
             "desc": "Zwei Nächte, Lunchpaket und Wanderkarte zur Müngstener Brücke.",
             "new_price": "189.00",
             "new": True,
-            "ends_in_days": 40,
+            "no_end": True,
             "group": "Neu bei uns",
             "image": "suspension-bridge",
         },
@@ -22994,7 +22999,7 @@ LITE_PENSION = DemoKit(
             "desc": "Neu renoviert: Familienzimmer für bis zu vier Personen.",
             "new_price": "119.00",
             "new": True,
-            "ends_in_days": 40,
+            "no_end": True,
             "group": "Neu bei uns",
             "image": "family-hotel-room",
         },
@@ -23492,8 +23497,12 @@ def apply_kit(tenant, key: str) -> bool:
                 if spec.get("starts_in_days")
                 else (now if spec.get("new") else now - timedelta(days=10))
             ),
+            # T-8.1 (О-4): `no_end` — бессрочное предложение («Neu», «auf Bestellung»):
+            # без даты конца оно встаёт ПОСЛЕ срочных и в секцию «Dauerhaft».
             "ends_at": (
-                _ends_today(now)
+                None
+                if spec.get("no_end")
+                else _ends_today(now)
                 if spec.get("ends_today")
                 else now
                 + timedelta(days=spec.get("starts_in_days", 0) + spec.get("ends_in_days", 14))
