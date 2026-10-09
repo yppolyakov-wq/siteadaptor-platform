@@ -253,6 +253,9 @@ class BestellPosition(TimestampedModel):
     qty_received = models.PositiveIntegerField(default=0)
     # ERP-5: сколько из принятого вернулось поставщику (Rücksendung).
     qty_returned = models.PositiveIntegerField(default=0)
+    # ERP-8: сколько вернули поставщику НА ЗАМЕНУ (Mängelanzeige → Ersatzlieferung) —
+    # столько же штук строка снова ждёт к приёмке (`qty_open`).
+    qty_replacement = models.PositiveIntegerField(default=0)
     note = models.CharField(max_length=200, blank=True)
 
     class Meta:
@@ -268,14 +271,82 @@ class BestellPosition(TimestampedModel):
 
     @property
     def is_fully_received(self) -> bool:
-        return self.qty_received >= self.qty
+        # ERP-8: «открытого нет» — без замены совпадает с прежним qty_received >= qty
+        return self.qty_open == 0
 
     @property
     def qty_open(self) -> int:
-        """Ещё не принято по строке (для частичной приёмки)."""
-        return max(0, self.qty - self.qty_received)
+        """Ещё не принято по строке (для частичной приёмки); ERP-8: + ожидаемая замена."""
+        return max(0, self.qty + self.qty_replacement - self.qty_received)
 
     @property
     def qty_returnable(self) -> int:
         """ERP-5: сколько ещё можно вернуть поставщику (принято − уже возвращено)."""
         return max(0, self.qty_received - self.qty_returned)
+
+
+class Maengelanzeige(TimestampedModel):
+    """ERP-8: рекламация поставщику по поставке (§ 377 HGB, Rügepflicht).
+
+    Шапка бумажного бланка владельца: даты поставки и проверки, перевозчик, номер
+    накладной, результат проверки, кто проверял. Строки — `Mangel` (по позиции заказа).
+    Статус производный (`apps.inventory.maengel.status_of`): открыта, пока есть строка
+    без решения."""
+
+    bestellung = models.ForeignKey(Bestellung, on_delete=models.CASCADE, related_name="maengel")
+    reference = models.CharField(max_length=12, unique=True)  # "MA-XXXXXX"
+    delivery_date = models.DateField(null=True, blank=True)  # Lieferdatum
+    inspected_at = models.DateField(null=True, blank=True)  # Prüfdatum
+    carrier = models.CharField(max_length=150, blank=True)  # Frachtführer
+    delivery_note_ref = models.CharField(max_length=64, blank=True)  # Lieferschein-Nr.
+    result = models.TextField(blank=True)  # Prüfergebnis
+    inspected_by = models.CharField(max_length=150, blank=True)  # подпись на бланке
+    notified_at = models.DateTimeField(null=True, blank=True)  # заявлено поставщику
+    sent_count = models.PositiveIntegerField(default=0)  # отправок по e-mail
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.reference
+
+    @property
+    def status(self) -> str:
+        from .maengel import status_of
+
+        return status_of(self)
+
+
+class Mangel(TimestampedModel):
+    """ERP-8: строка рекламации — дефектная позиция поставки и решение по ней.
+
+    Решение применяется один раз (`resolved_at`): скидка — сторно-расход, возврат —
+    ERP-5 `return_po_line`, замена — возврат + строка заказа снова ждёт штуки."""
+
+    DECISIONS = [
+        ("discount", _("Annahme mit Preisnachlass")),
+        ("replacement", _("Ersatzlieferung")),
+        ("return", _("Rücksendung")),
+    ]
+
+    anzeige = models.ForeignKey(Maengelanzeige, on_delete=models.CASCADE, related_name="maengel")
+    position = models.ForeignKey(BestellPosition, on_delete=models.CASCADE, related_name="maengel")
+    qty = models.PositiveIntegerField(default=1)
+    defect_types = models.JSONField(default=list, blank=True)  # коды реестра DEFECT_TYPES
+    description = models.TextField(blank=True)
+    decision = models.CharField(max_length=12, choices=DECISIONS, blank=True)
+    discount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    resolved_qty = models.PositiveIntegerField(default=0)  # фактически вернулось
+    resolved_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"{self.anzeige} · {self.position}"
+
+    @property
+    def defect_labels(self) -> list[str]:
+        from .maengel import defect_labels
+
+        return defect_labels(self)

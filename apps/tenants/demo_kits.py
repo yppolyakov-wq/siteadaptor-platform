@@ -24224,37 +24224,129 @@ def _seed_demo_lots(kit: DemoKit, products: list) -> None:
         seeded += 1
 
 
+# ERP-8 (фидбэк владельца): закупки и рекламация поставщику нужны всем, кто ПРОДАЁТ
+# ТОВАРЫ, а не только еда-китам с партиями. Гастро-киты (меню блюд) сюда не входят:
+# закупать «блюда» оптом — абсурд, их закупки — сырьё, которого в каталоге нет.
+PURCHASING_DEMO_TYPES = frozenset(
+    {"retail", "clothing", "online_shop", "grocery", "bakery", "butcher"}
+)
+_FOOD_PURCHASING_TYPES = frozenset({"grocery", "bakery", "butcher"})
+# Поставщик под жанр магазина (контакты — вымышленные, домены .example).
+_DEMO_SUPPLIERS = {
+    "clothing": ("Textilgroßhandel Nord", "S. Albers", "auftrag@textil-nord.example"),
+    "online_shop": (
+        "Großhandel Wohnen & Technik",
+        "T. Kowalski",
+        "einkauf@wohnen-technik.example",
+    ),
+}
+_DEFAULT_SUPPLIER = (
+    "Großhandel Westfalen",
+    "H. Brinkmann",
+    "bestellung@grosshandel-westfalen.example",
+)
+
+
+def _purchasing_demo_on(kit: DemoKit) -> bool:
+    return bool(kit.enable_lots or kit.business_type in PURCHASING_DEMO_TYPES)
+
+
 def _seed_demo_purchasing(kit: DemoKit, products: list) -> None:
-    """Склад-2 E3: демо-закупки для еда-китов (enable_lots как маркер «склад важен»):
-    поставщик + одна received-Bestellung (история) + одна ordered (можно принять в демо).
+    """Склад-2 E3 + ERP-8: демо-закупки у китов, продающих товары: поставщик + одна
+    received-Bestellung (история, с рекламацией) + одна ordered (можно принять в демо).
     Приёмка received-заказа НЕ книжится повторно (демо-остатки уже выставлены) — просто
-    отмечаем qty_received, история движений не раздувается."""
-    if not kit.enable_lots:
+    отмечаем qty_received, история движений не раздувается. Строка заказа — складская
+    сущность: у товара с вариантами — его первый вариант."""
+    if not _purchasing_demo_on(kit):
         return
     from apps.inventory import purchasing
     from apps.inventory.models import Bestellung
 
-    plain = [p for p in products if getattr(p, "pk", None) is not None][:4]
-    if len(plain) < 2:
+    entities = []
+    for product in products:
+        if getattr(product, "pk", None) is None:
+            continue
+        variant = product.active_variants.first() if product.has_variants else None
+        entities.append((product, variant))
+        if len(entities) == 4:
+            break
+    if len(entities) < 2:
         return
+    name, contact, email = _DEMO_SUPPLIERS.get(kit.business_type, _DEFAULT_SUPPLIER)
     supplier = purchasing.Lieferant.objects.create(
-        name="Großhandel Westfalen",
-        contact_person="H. Brinkmann",
-        email="bestellung@grosshandel-westfalen.example",
+        name=name,
+        contact_person=contact,
+        email=email,
         phone="0231 555 0192",
         customer_number="K-40412",
     )
     done = purchasing.create_po(supplier=supplier, actor="demo", note="Wocheneinkauf")
-    for i, product in enumerate(plain[:2]):
-        line = purchasing.add_po_line(done, product=product, qty=10 + i * 5)
+    for i, (product, variant) in enumerate(entities[:2]):
+        line = purchasing.add_po_line(done, product=product, variant=variant, qty=10 + i * 5)
         line.qty_received = line.qty  # история: принят без повторной проводки склада
         line.save(update_fields=["qty_received", "updated_at"])
     purchasing.set_po_status(done, Bestellung.STATUS_ORDERED)
     purchasing.set_po_status(done, Bestellung.STATUS_RECEIVED)
     pending = purchasing.create_po(supplier=supplier, actor="demo", note="Nachbestellung")
-    for product in plain[2:4]:
-        purchasing.add_po_line(pending, product=product, qty=8)
+    for product, variant in entities[2:4]:
+        purchasing.add_po_line(pending, product=product, variant=variant, qty=8)
     purchasing.set_po_status(pending, Bestellung.STATUS_ORDERED)
+    # MHD-текст — только продуктовым типам; прочим — нейтральный (у «retail» бывает и
+    # фермерский магазин: «offene Nähte» у картофеля были бы абсурдом — стенд shop)
+    _seed_demo_maengel(done, food=kit.business_type in _FOOD_PURCHASING_TYPES or kit.enable_lots)
+
+
+def _seed_demo_maengel(bestellung, *, food=True) -> None:
+    """ERP-8: рекламация поставщику к принятому демо-заказу — одна строка решена
+    скидкой, вторая ждёт ответа поставщика. Решение пишем полями, БЕЗ проводок
+    (как и демо-приёмка выше): сторно-расход без расхода приёмки исказил бы Ergebnis."""
+    from django.utils import timezone as tz
+
+    from apps.inventory import maengel
+
+    lines = list(bestellung.positions.all())
+    if len(lines) < 2:
+        return
+    today = tz.localdate()
+    anzeige = maengel.create_anzeige(
+        bestellung,
+        lines=[
+            {
+                "position": lines[0],
+                "qty": 2,
+                "defect_types": ["packaging"],
+                "description": (
+                    "Zwei Gebinde beim Transport aufgerissen, Ware feucht."
+                    if food
+                    else "Zwei Kartons beim Transport eingedrückt, Ware beschädigt."
+                ),
+            },
+            {
+                "position": lines[1],
+                "qty": 3,
+                "defect_types": ["quality"],
+                "description": (
+                    "Mindesthaltbarkeit kürzer als vereinbart (unter 5 Tagen)."
+                    if food
+                    else "Ware entspricht nicht der vereinbarten Qualität (Abweichung vom Muster)."
+                ),
+            },
+        ],
+        actor="Einkauf",
+        delivery_date=today - timedelta(days=2),
+        inspected_at=today - timedelta(days=2),
+        carrier="Spedition Ruhrtrans",
+        delivery_note_ref="LS-208841",
+        result="Ware bei Anlieferung geprüft, Schäden fotografiert.",
+    )
+    if anzeige is None:
+        return
+    first = anzeige.maengel.order_by("created_at").first()
+    first.decision = "discount"
+    first.discount = Decimal("6.00")
+    first.resolved_at = tz.now()
+    first.save(update_fields=["decision", "discount", "resolved_at", "updated_at"])
+    maengel.mark_notified(anzeige)
 
 
 def _seed_kit_inbox() -> None:

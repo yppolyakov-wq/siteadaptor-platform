@@ -22799,3 +22799,174 @@ msgstr "Coming up & highlights"
 
 msgid "Termine & Stimmen"
 msgstr "Dates & reviews"
+
+msgid "Annahme mit Preisnachlass"
+msgstr "Accept with price reduction"
+
+msgid "Ersatzlieferung"
+msgstr "Replacement delivery"
+
+msgid "Verpackungsschaden"
+msgstr "Packaging damage"
+
+msgid "Artmangel / Falschlieferung"
+msgstr "Wrong item / incorrect delivery"
+
+msgid "Quantitätsmangel / falsche Menge"
+msgstr "Quantity defect / wrong quantity"
+
+msgid "Qualitätsmangel"
+msgstr "Quality defect"
+
+msgid "Our customer number"
+msgstr ""
+
+msgid "Notice of defects"
+msgstr ""
+
+msgid "Purchase order"
+msgstr ""
+
+msgid "Delivery note no."
+msgstr ""
+
+msgid "Delivery date"
+msgstr ""
+
+msgid "Inspection date"
+msgstr ""
+
+msgid "Carrier"
+msgstr ""
+
+msgid "Inspected by"
+msgstr ""
+
+msgid "We hereby give notice under § 377 HGB of the following defects in the delivery referred to above."
+msgstr ""
+
+msgid "Type of defect"
+msgstr ""
+
+msgid "Requested remedy"
+msgstr ""
+
+
+msgid "Inspection result"
+msgstr ""
+
+msgid "We reserve all rights arising from the defective delivery. Please confirm receipt of this notice."
+msgstr ""
+
+msgid "Place, date"
+msgstr ""
+
+msgid "Signature"
+msgstr ""
+
+msgid "Bitte bei mindestens einer Position eine Menge angeben."
+msgstr "Please enter a quantity for at least one item."
+
+#, python-format
+msgid "Mängelanzeige angelegt: %(ref)s"
+msgstr "Notice of defects created: %(ref)s"
+
+msgid "Entscheidung gebucht."
+msgstr "Decision booked."
+
+msgid "Keine Buchung — bereits entschieden oder Nachlass fehlt."
+msgstr "Nothing booked — already decided or price reduction missing."
+
+msgid "Mängelanzeige nicht gefunden."
+msgstr "Notice of defects not found."
+
+msgid "Als angezeigt markiert."
+msgstr "Marked as notified."
+
+msgid "Mängelanzeige an den Lieferanten gesendet."
+msgstr "Notice of defects sent to the supplier."
+
+msgid "Der Lieferant hat keine E-Mail-Adresse."
+msgstr "The supplier has no e-mail address."
+
+msgid "Offene Mängelanzeigen"
+msgstr "Open notices of defects"
+
+msgid "Mängelanzeigen"
+msgstr "Notices of defects"
+
+msgctxt "complaint"
+msgid "erledigt"
+msgstr "settled"
+
+#, python-format
+msgid "Angezeigt am %(d)s"
+msgstr "Notified on %(d)s"
+
+msgid "Noch nicht an den Lieferanten gemeldet — Rüge unverzüglich (§ 377 HGB)."
+msgstr "Not yet reported to the supplier — notify without delay (§ 377 HGB)."
+
+msgid "PDF"
+msgstr "PDF"
+
+msgid "An Lieferanten senden"
+msgstr "Send to supplier"
+
+msgid "Als angezeigt markieren"
+msgstr "Mark as notified"
+
+msgid "Stück"
+msgstr "pcs"
+
+msgid "Nachlass €"
+msgstr "Reduction €"
+
+msgid "Entscheiden"
+msgstr "Decide"
+
+msgid "Mängelanzeige erstellen"
+msgstr "Create notice of defects"
+
+msgid "Lieferdatum"
+msgstr "Delivery date"
+
+msgid "Prüfdatum"
+msgstr "Inspection date"
+
+msgid "Lieferschein-Nr."
+msgstr "Delivery note no."
+
+msgid "Frachtführer"
+msgstr "Carrier"
+
+#, python-format
+msgid "%(n)s empfangen"
+msgstr "%(n)s received"
+
+msgid "Beschreibung des Mangels"
+msgstr "Description of the defect"
+
+msgid "Prüfergebnis"
+msgstr "Inspection result"
+
+msgid "Mängelanzeige anlegen"
+msgstr "Create notice of defects"
+
+#, python-format
+msgid "Mängelanzeige %(ref)s zu Bestellung %(order)s"
+msgstr "Notice of defects %(ref)s for purchase order %(order)s"
+
+#, python-format
+msgid "Guten Tag %(name)s,"
+msgstr "Hello %(name)s,"
+
+#, python-format
+msgid "anbei erhalten Sie unsere Mängelanzeige %(ref)s zur Lieferung aus Bestellung %(order)s (§ 377 HGB)."
+msgstr "please find attached our notice of defects %(ref)s for the delivery from purchase order %(order)s (§ 377 HGB)."
+
+msgid "Bitte bestätigen Sie den Eingang und teilen Sie uns Ihre Lösung mit."
+msgstr "Please confirm receipt and let us know your proposed solution."
+
+msgctxt "complaint"
+msgid "offen"
+msgstr "open"

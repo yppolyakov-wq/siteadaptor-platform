@@ -6,13 +6,24 @@
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from . import purchasing, services
-from .models import BestellPosition, Bestellung, Lieferant, StockLocation
+from . import maengel, purchasing, services
+from .models import BestellPosition, Bestellung, Lieferant, Maengelanzeige, Mangel, StockLocation
 from .views import _int, _parse_date, _resolve_entity, _resolve_location, _threshold
+
+
+def _uuid(raw):
+    """UUID из POST или None: мусорная строка в фильтре по UUID-pk роняла бы 500."""
+    import uuid
+
+    try:
+        return uuid.UUID(str(raw))
+    except (TypeError, ValueError, AttributeError):
+        return None
 
 
 def _redirect(po=None):
@@ -25,8 +36,13 @@ def purchasing_view(request):
     if request.method == "POST":
         return _handle_post(request)
 
-    pos = Bestellung.objects.select_related("supplier").prefetch_related("positions")[:100]
+    pos = list(Bestellung.objects.select_related("supplier").prefetch_related("positions")[:100])
+    # ERP-8: бейдж открытых рекламаций в списке заказов (один запрос на страницу)
+    open_maengel = maengel.open_counts([po.pk for po in pos])
+    for po in pos:
+        po.open_maengel = open_maengel.get(po.pk, 0)
     current = None
+    anzeigen = []
     po_id = request.GET.get("po")
     if po_id:
         current = (
@@ -34,6 +50,12 @@ def purchasing_view(request):
             .prefetch_related("positions__product", "positions__variant")
             .filter(pk=po_id)
             .first()
+        )
+    if current is not None:
+        anzeigen = list(
+            current.maengel.prefetch_related(
+                "maengel__position__product", "maengel__position__variant"
+            )
         )
     return render(
         request,
@@ -49,8 +71,31 @@ def purchasing_view(request):
             "statuses": Bestellung.STATUSES,
             # E2: селектор Standort на приёмке (виден при локациях > 1)
             "stock_locations": list(StockLocation.objects.filter(is_active=True)),
+            # ERP-8: рекламации поставщику по этой поставке
+            "anzeigen": anzeigen,
+            "defect_types": maengel.DEFECT_TYPES,
+            "decisions": Mangel.DECISIONS,
         },
     )
+
+
+@login_required
+def maengel_pdf(request, pk):
+    """ERP-8: PDF-бланк «Mängelanzeige» — язык документа ссылкой `?lang=` (как Rechnung)."""
+    from django.utils import translation
+
+    from apps.core.documents import document_language
+
+    from .pdf import build_maengel_pdf
+
+    anzeige = get_object_or_404(
+        Maengelanzeige.objects.select_related("bestellung__supplier"), pk=pk
+    )
+    with translation.override(document_language(request)):
+        pdf = build_maengel_pdf(anzeige, request.tenant)
+    resp = HttpResponse(pdf, content_type="application/pdf")
+    resp["Content-Disposition"] = f'inline; filename="Maengelanzeige-{anzeige.reference}.pdf"'
+    return resp
 
 
 @require_POST
@@ -100,6 +145,73 @@ def _handle_post(request):
     if po is None:
         messages.error(request, _("Bestellung nicht gefunden."))
         return _redirect()
+
+    if action == "create_maengel":
+        # ERP-8: рекламация по поставке — строки из полей m_qty_/m_types_/m_desc_<строка>
+        lines = []
+        for line in po.positions.all():
+            lines.append(
+                {
+                    "position": line,
+                    "qty": _int(request.POST.get(f"m_qty_{line.pk}"), 0),
+                    "defect_types": request.POST.getlist(f"m_types_{line.pk}"),
+                    "description": request.POST.get(f"m_desc_{line.pk}") or "",
+                }
+            )
+        anzeige = maengel.create_anzeige(
+            po,
+            lines=lines,
+            actor=actor,
+            delivery_date=_parse_date(request.POST.get("delivery_date")),
+            inspected_at=_parse_date(request.POST.get("inspected_at")),
+            carrier=request.POST.get("carrier") or "",
+            delivery_note_ref=request.POST.get("delivery_note_ref") or "",
+            result=request.POST.get("result") or "",
+        )
+        if anzeige is None:
+            messages.error(request, _("Bitte bei mindestens einer Position eine Menge angeben."))
+        else:
+            messages.success(
+                request, _("Mängelanzeige angelegt: %(ref)s") % {"ref": anzeige.reference}
+            )
+        return _redirect(po)
+
+    if action == "resolve_mangel":
+        mangel = Mangel.objects.filter(
+            pk=_uuid(request.POST.get("mangel")), anzeige__bestellung=po
+        ).first()
+        if mangel is None:
+            messages.error(request, _("Position nicht gefunden."))
+            return _redirect(po)
+        raw = (request.POST.get("discount") or "").strip().replace(",", ".")
+        done = maengel.resolve(
+            mangel,
+            request.POST.get("decision", ""),
+            discount=raw or None,
+            actor=actor,
+            tenant=request.tenant,
+        )
+        if done:
+            messages.success(request, _("Entscheidung gebucht."))
+        else:
+            messages.error(request, _("Keine Buchung — bereits entschieden oder Nachlass fehlt."))
+        return _redirect(po)
+
+    if action in ("maengel_send", "maengel_notified"):
+        anzeige = Maengelanzeige.objects.filter(
+            pk=_uuid(request.POST.get("anzeige")), bestellung=po
+        ).first()
+        if anzeige is None:
+            messages.error(request, _("Mängelanzeige nicht gefunden."))
+            return _redirect(po)
+        if action == "maengel_notified":
+            maengel.mark_notified(anzeige)
+            messages.success(request, _("Als angezeigt markiert."))
+        elif maengel.send_to_supplier(anzeige, request.tenant):
+            messages.success(request, _("Mängelanzeige an den Lieferanten gesendet."))
+        else:
+            messages.error(request, _("Der Lieferant hat keine E-Mail-Adresse."))
+        return _redirect(po)
 
     if action == "add_line":
         product, variant = _resolve_entity(request.POST.get("entity"))
