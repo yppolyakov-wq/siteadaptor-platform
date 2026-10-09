@@ -652,6 +652,21 @@ def card_form(context, entity, kind=card_forms.PRODUCT):
     return card_forms.card_form(entity, site_default, kind)
 
 
+@register.simple_tag(takes_context=True, name="row_card")
+def row_card(context, row, kind=card_forms.PRODUCT):
+    """LB-4: форма карточки встроенного списка главной — своя у строки, иначе дефолт
+    сайта из контекст-процессора.
+
+    Тегом, а не `|default:storefront_card_style`: отсутствующая переменная в
+    АРГУМЕНТЕ фильтра бросает VariableDoesNotExist (а не пустую строку), и главная
+    без контекст-процессора витрины падала бы целиком."""
+    own = ""
+    if isinstance(row, dict) and isinstance(row.get("data"), dict):
+        own = row["data"].get("card", "") or ""
+    key = "storefront_promo_card" if kind == card_forms.PROMO else "storefront_card_style"
+    return own or context.get(key, "") or ""
+
+
 @register.simple_tag(name="builtin_all_url")
 def builtin_all_url(row, fallback=""):
     """LB-4: адрес «View all» встроенного списка главной — листинг с ТЕМ ЖЕ фильтром

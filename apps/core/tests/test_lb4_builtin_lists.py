@@ -49,7 +49,9 @@ def _tenant(*rows, disabled=(), **cfg):
     """Тенант, у которого включены ровно `rows` (встроенные строки главной)."""
     keys = {r["key"] for r in rows}
     sections = [{"enabled": True, **r} for r in rows]
-    sections += [{"key": k, "enabled": False} for k, _l, _on in siteconfig.SECTIONS if k not in keys]
+    sections += [
+        {"key": k, "enabled": False} for k, _l, _on in siteconfig.SECTIONS if k not in keys
+    ]
     t = TenantFactory(slug=f"lb4{next(_N)}", name="LB4", disabled_modules=list(disabled))
     t.site_config = {"sections": sections, **cfg}
     t.save(update_fields=["site_config"])

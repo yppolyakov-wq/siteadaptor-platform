@@ -20,6 +20,7 @@ from django.template import Context, Template
 from django.test import RequestFactory
 
 from apps.catalog.models import Category
+from apps.catalog.tests.factories import ProductFactory
 from apps.promotions import public_views
 from apps.tenants import siteconfig
 from apps.tenants.tests.factories import TenantFactory
@@ -164,7 +165,10 @@ def test_home_grids_carry_fill_rows_attrs():
     )
     tenant.save()
     for i in range(5):
-        Category.objects.create(name={"de": f"Kat {i}"}, slug=f"kat-{i}", is_active=True)
+        cat = Category.objects.create(name={"de": f"Kat {i}"}, slug=f"kat-{i}", is_active=True)
+        ProductFactory(
+            category=cat
+        )  # LB-4 §4.1: направление без товаров на главной не показывается
     html = _home(tenant)
     grids = re.findall(r'data-grid="categories"[^>]*', html)
     assert grids, html[:400]
@@ -177,7 +181,8 @@ def test_home_grid_tail_show_from_config():
         {"sections": [{"key": "categories", "enabled": True, "layout": {"tail": "show"}}]}
     )
     tenant.save()
-    Category.objects.create(name={"de": "Kat"}, slug="kat", is_active=True)
+    cat = Category.objects.create(name={"de": "Kat"}, slug="kat", is_active=True)
+    ProductFactory(category=cat)  # LB-4 §4.1: направление без товаров на главной не показывается
     html = _home(tenant)
     assert 'data-grid="categories"' in html
     assert re.search(r'data-grid="categories"[^>]*data-sf-tail="show"', html)

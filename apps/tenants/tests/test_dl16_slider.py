@@ -12,6 +12,7 @@ from django.template import Context, Template
 from django.test import RequestFactory
 
 from apps.catalog.models import Category
+from apps.catalog.tests.factories import ProductFactory
 from apps.promotions import public_views
 from apps.tenants import siteconfig
 from apps.tenants.tests.factories import TenantFactory
@@ -51,7 +52,10 @@ def test_home_scroll_section_renders_slider_marker():
     )
     tenant.save()
     for i in range(6):
-        Category.objects.create(name={"de": f"Kat {i}"}, slug=f"kat-{i}", is_active=True)
+        cat = Category.objects.create(name={"de": f"Kat {i}"}, slug=f"kat-{i}", is_active=True)
+        ProductFactory(
+            category=cat
+        )  # LB-4 §4.1: направление без товаров на главной не показывается
     html = _get(public_views.storefront_home, "/", tenant)
     assert re.search(
         r'data-grid="categories"[^>]*sf-scroll-grid[^>]*data-sf-slider="1"', html

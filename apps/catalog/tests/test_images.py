@@ -359,16 +359,21 @@ def test_photo_add_tile_on_promotion_form(user):
 @pytest.mark.django_db
 def test_storefront_category_tile_shows_image():
     from apps.catalog.models import Category
+    from apps.catalog.tests.factories import ProductFactory
     from apps.promotions import public_views
     from apps.tenants.tests.factories import TenantFactory
 
-    Category.objects.create(
+    with_photo = Category.objects.create(
         name={"de": "Mit Foto"},
         slug="mit-foto",
         is_active=True,
         images=[{"id": "a", "url": "/media/categories/a.png", "is_primary": True}],
     )
-    Category.objects.create(name={"de": "Ohne"}, slug="ohne", is_active=True)
+    without = Category.objects.create(name={"de": "Ohne"}, slug="ohne", is_active=True)
+    for cat in (with_photo, without):
+        ProductFactory(
+            category=cat
+        )  # LB-4 §4.1: направление без товаров на главной не показывается
     req = RequestFactory().get("/")
     SessionMiddleware(lambda r: None).process_request(req)
     MessageMiddleware(lambda r: None).process_request(req)

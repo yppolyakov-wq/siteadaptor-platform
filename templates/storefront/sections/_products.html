@@ -36,10 +36,10 @@
     {% endwith %}
     </div>
   {% else %}
-  {% builtin_all_url section_row products_url as more_url %}
+  {% builtin_all_url section_row products_url as more_url %}{% row_card section_row as row_card_style %}
   <div data-grid="products" class="{% grid_classes site 'products' %}" {% grid_attrs site 'products' count=products_preview|length more=True %}>
     {% for p in products_preview %}
-      {% include "storefront/_product_card.html" with storefront_card_style=section_row.data.card|default:storefront_card_style %}
+      {% include "storefront/_product_card.html" with storefront_card_style=row_card_style %}
     {% endfor %}
   {% include "storefront/_grid_more.html" %}
   </div>

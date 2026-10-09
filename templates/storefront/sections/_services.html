@@ -20,7 +20,7 @@ A3: блок «Leistungen & Preise» — услуги (Service) с ценой/д
   A9/A7 сигнал доверия «прозрачные фикс-цены»).{% endcomment %}
   <div data-grid="services" class="{% grid_classes site 'services' %}" {% grid_attrs site 'services' count=services_preview|length more=True %}>
     {% trans "Fixed price" as festpreis_label %}
-    {% with storefront_card_style=section_row.data.card|default:storefront_card_style %}
+    {% row_card section_row as row_card_style %}{% with storefront_card_style=row_card_style %}
     {% for s in services_preview %}
       {% url 'storefront-service-slots' s.pk as slots_url %}
       {% if services_festpreis %}{% sellable_card 'service' s variant='horizontal' href=slots_url cta='purchase' badge=festpreis_label %}

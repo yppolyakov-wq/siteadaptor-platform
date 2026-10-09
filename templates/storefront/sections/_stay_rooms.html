@@ -18,7 +18,7 @@
   {% comment %}UB1-2: карточка — единый партиал _sellable_card.html (вертикаль h3,
   м² в мета-строке, цена/ночь + CTA-пилюля в одной строке).{% endcomment %}
   <div data-grid="stay_rooms" class="{% grid_classes site 'stay_rooms' %}" {% grid_attrs site 'stay_rooms' count=stay_rooms|length more=True %}>
-    {% with storefront_card_style=section_row.data.card|default:storefront_card_style %}
+    {% row_card section_row as row_card_style %}{% with storefront_card_style=row_card_style %}
     {% for u in stay_rooms %}
       {% sellable_card 'stay' u cta='purchase' show_area=True %}
     {% endfor %}

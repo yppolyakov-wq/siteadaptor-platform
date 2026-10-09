@@ -341,6 +341,9 @@
                 {% comment %}STU-12e: текст контент-секции (CTA/FAQ/Team/…) — в её же строке,
                    рисует общий партиал по ключу.{% endcomment %}
                 <div class="w-full">{% include "tenant/_section_fields.html" with key=s.key %}</div>
+                {% comment %}LB-4b: списочная секция = блок «Liste» с закреплённым источником —
+                   оси «ЧТО» (фильтр, сортировка, форма карточки) в её строке.{% endcomment %}
+                {% if s.builtin_source %}{% include "tenant/_builtin_list_fields.html" %}{% endif %}
                 {% if s.has_title %}
                   {# M20U-7: свой заголовок секции (иначе — стандартный) #}
                   <input type="text" name="title_{{ s.key }}" value="{{ s.title }}" maxlength="80"
@@ -356,12 +359,6 @@
                   {# MEN-24c: кап строк прайс-вида («по 3 в категории» + Mehr anzeigen); пусто = все #}
                   <input type="number" name="rows_products" value="{{ s.rows }}" min="1" max="20" data-expert="1" placeholder="{% trans 'Zeilen' %}"
                          class="w-16 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Zeilen je Kategorie (Preisliste)' %}" title="{% trans 'Zeilen je Kategorie (Preisliste)' %}">
-                {% endif %}
-                {% if s.has_source %}
-                  {# M20U-7: какие товары показывать в превью #}
-                  <select name="source_{{ s.key }}" class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600" aria-label="{% trans 'Which items' %}" title="{% trans 'Which items' %}" data-expert="1">
-                    {% for sk, slabel in source_options %}<option value="{{ sk }}" {% if s.source == sk %}selected{% endif %}>{{ slabel }}</option>{% endfor %}
-                  </select>
                 {% endif %}
                 {% if s.has_viewall %}
                   {# M20U-7: показывать ссылку «View all» секции #}
@@ -2538,6 +2535,9 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
     applyDevice(saved && DEV[saved] ? saved : "desktop");  // десктоп тоже инициализируем (масштаб)
   })();
 
+  // LB-4b: поля «ЧТО» встроенных списков главной (= list_blocks.BUILTIN_WHAT_FIELDS).
+  var SL_DATA_FIELDS = ["type", "endet", "rabatt", "category", "collection", "only",
+    "event_category", "country", "sort", "card"];
   function collect() {
     // UC6-7b: entry C-блока по id — ОБЩИЙ для блоков главной (sections) и блоков
     // страниц (page_blocks); enabled/удаление читает сам, _ord — для сортировки
@@ -2640,9 +2640,18 @@ UC6-6g: внутренний скролл + кламп у нижнего кра�
       // M20U-7: число элементов секции-превью → в превью.
       var lim = form.querySelector("input[name='limit_" + r.key + "']");
       if (lim && lim.value) sec.limit = parseInt(lim.value, 10);
-      // M20U-7: источник товаров → в превью.
+      // M20U-7: источник товаров → в превью (легаси-вкладка; новая шлёт «ЧТО» ниже).
       var srcSel = form.querySelector("select[name='source_" + r.key + "']");
       if (srcSel && srcSel.value) sec.source = srcSel.value;
+      // LB-4b: оси «ЧТО» встроенного списка (sl_<ключ>_<поле>) → в превью.
+      if (form.querySelector("input[name='sl_" + r.key + "_present']")) {
+        var sd = {};
+        SL_DATA_FIELDS.forEach(function (f) {
+          var el = form.querySelector("[name='sl_" + r.key + "_" + f + "']");
+          if (el && el.value !== "") sd[f] = el.value;
+        });
+        if (Object.keys(sd).length) sec.data = sd;
+      }
       // MEN-24c: кап строк прайс-вида → в превью.
       var rowsInp = form.querySelector("input[name='rows_" + r.key + "']");
       if (rowsInp && rowsInp.value) sec.rows = parseInt(rowsInp.value, 10);

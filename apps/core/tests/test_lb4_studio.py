@@ -19,6 +19,7 @@ import re
 
 import pytest
 
+from apps.core import list_blocks
 from apps.core.tests.test_stu12_groups import TPL, _builder, _post_builder, _row, _segment
 from apps.tenants import siteconfig
 from apps.tenants.tests.factories import TenantFactory
@@ -41,9 +42,7 @@ WHAT = {
 
 
 def _tenant(**cfg):
-    return TenantFactory(
-        slug=f"lb4s{next(_N)}", name="LB4S", disabled_modules=[], site_config=cfg
-    )
+    return TenantFactory(slug=f"lb4s{next(_N)}", name="LB4S", disabled_modules=[], site_config=cfg)
 
 
 def _sl_fields(body) -> dict[str, set[str]]:
@@ -179,6 +178,8 @@ def test_live_draft_carries_every_what_field():
     draft = set(re.findall(r'"(\w+)"', _segment(TPL.read_text("utf-8"), "var SL_DATA_FIELDS", "]")))
     missing = sorted(set().union(*WHAT.values()) - draft)
     assert not missing, f"черновик не несёт поля встроенных списков: {missing}"
+    # один список полей на Save и черновик — без расхождения
+    assert draft == set(list_blocks.BUILTIN_WHAT_FIELDS)
 
 
 def test_copy_builtin_row_puts_a_list_block_next_to_it():
@@ -198,3 +199,32 @@ def test_copy_builtin_row_puts_a_list_block_next_to_it():
     assert block["key"] == "list"
     assert block["data"]["source"] == "products"
     assert block["data"]["category"] == "brot" and block["data"]["sort"] == "price_asc"
+
+
+def test_draft_endpoint_keeps_the_what_of_builtin_rows():
+    """Стенд LB-4b: клиент слал `data` строки товаров, а эндпоинт черновика пропускал у
+    фикс-секций только поля своего белого списка — фильтр без Save на канве не
+    действовал. Замок класса «клиент шлёт → сервер не роняет»."""
+    import json
+
+    from apps.core import views
+    from apps.core.tests.test_stu12_groups import _req
+
+    tenant = _tenant()
+    payload = {
+        "sections": [
+            {"key": "products", "enabled": True, "data": {"category": "torten", "sort": "newest"}},
+            {"key": "promotions", "enabled": True, "data": {"type": "Woche", "card": "coupon"}},
+            {"key": "faq", "enabled": True, "data": {"sort": "x"}},  # не список — не несёт
+        ]
+    }
+    req = _req("post", "/dashboard/site/preview/draft/", tenant)
+    req._body = json.dumps(payload).encode()
+    req.META["CONTENT_TYPE"] = "application/json"
+    resp = views.site_preview_draft(req)
+    assert resp.status_code == 204
+    draft = siteconfig.normalize(req.session["site_preview_draft"])
+    rows = {s["key"]: s for s in draft["sections"] if "id" not in s}
+    assert rows["products"]["data"] == {"category": "torten", "sort": "newest"}
+    assert rows["promotions"]["data"] == {"type": "Woche", "card": "coupon"}
+    assert "data" not in rows["faq"]

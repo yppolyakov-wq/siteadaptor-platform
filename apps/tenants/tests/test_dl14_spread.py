@@ -141,7 +141,10 @@ def test_home_grid_auto_cols_and_more_button():
     )
     tenant.save()
     for i in range(2):
-        Category.objects.create(name={"de": f"Kat {i}"}, slug=f"kat-{i}", is_active=True)
+        cat = Category.objects.create(name={"de": f"Kat {i}"}, slug=f"kat-{i}", is_active=True)
+        ProductFactory(
+            category=cat
+        )  # LB-4 §4.1: направление без товаров на главной не показывается
     html = _get(public_views.storefront_home, "/", tenant)
     grid = re.search(r'data-grid="categories"[^>]*', html).group(0)
     # cols4 дефолт (2/3/4) при 2 элементах → 2/2/3 + авто + кнопка «Alle anzeigen»
@@ -174,7 +177,10 @@ def test_home_spread_from_studio_key():
     )
     tenant.save()
     for i in range(5):
-        Category.objects.create(name={"de": f"Kat {i}"}, slug=f"kat-{i}", is_active=True)
+        cat = Category.objects.create(name={"de": f"Kat {i}"}, slug=f"kat-{i}", is_active=True)
+        ProductFactory(
+            category=cat
+        )  # LB-4 §4.1: направление без товаров на главной не показывается
     html = _get(public_views.storefront_home, "/", tenant)
     assert re.search(r'data-grid="categories"[^>]*data-sf-tail="spread"', html)
 

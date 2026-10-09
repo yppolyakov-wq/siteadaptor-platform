@@ -3619,6 +3619,11 @@ def site_preview_draft(request):
                 # H1.5: пер-секционный шрифт → в превью (normalize валидирует по FONTS).
                 if "font" in item:
                     row["font"] = item["font"]
+                # LB-4b: оси «ЧТО» встроенного списка (фильтр/сортировка/форма карточки)
+                # → в черновик; normalize оставит только поля источника строки. Без этой
+                # ветки фильтр строки на канве не действовал до Save (найдено стендом).
+                if key in siteconfig.BUILTIN_LIST_SOURCES and isinstance(item.get("data"), dict):
+                    row["data"] = item["data"]
                 rows.append(row)
                 seen.add(key)
             elif siteconfig.cblock_type(key):

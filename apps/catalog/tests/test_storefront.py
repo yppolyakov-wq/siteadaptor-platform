@@ -400,8 +400,11 @@ def test_home_archetype_default_skipped_when_sections_configured():
 
 def test_home_categories_section_when_enabled():
     """M20U-2: секция категорий на главной — карточки top-level → каталог с фильтром."""
-    CategoryFactory(slug="brot", name={"de": "Brot"}, sort_order=1)
-    CategoryFactory(slug="kuchen", name={"de": "Kuchen"}, sort_order=2)
+    for slug, name, order in (("brot", "Brot", 1), ("kuchen", "Kuchen", 2)):
+        cat = CategoryFactory(slug=slug, name={"de": name}, sort_order=order)
+        ProductFactory(
+            category=cat
+        )  # LB-4 §4.1: направление без товаров на главной не показывается
     req = _req("/")
     req.tenant.site_config = {"sections": [{"key": "categories", "enabled": True}]}
     body = public_views.storefront_home(req).content.decode()
