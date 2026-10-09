@@ -238,7 +238,8 @@ PAGE_PRESETS["tours"] = _listing(
         "key": "termine",
         "label": _("Termine & Stimmen"),
         "icon": "🧭",
-        "blocks": (("list", {"source": "events", "only": "soon", "out": "slider"}),),
+        # без окна «14 дней»: заезды тура планируют за месяцы (LB-4d-3, демо moto)
+        "blocks": (("list", {"source": "events", "out": "slider"}),),
         "below": (("list", {"source": "reviews", "entity": "event", "stars": 4}),),
         "recommended_for": ("tour_operator",),
     },

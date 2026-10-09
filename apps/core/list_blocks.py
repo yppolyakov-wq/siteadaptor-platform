@@ -665,6 +665,9 @@ def _label(data: dict, items, tenant=None) -> str:
             return _("Video-Beratung")
         if data.get("only") == "soon":
             return _("In den nächsten 14 Tagen")
+        if source == "events" and getattr(tenant, "business_type", "") == "tour_operator":
+            # LB-4d-3: у тур-оператора событие — заезд тура, а не «Veranstaltung»
+            return _("Nächste Termine")
         return str(siteconfig.LIST_SOURCES[source]["label"])
     if source == "promotions":
         soon = _("Demnächst")

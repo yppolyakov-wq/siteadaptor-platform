@@ -203,7 +203,8 @@ class DemoKit:
     #   {title, desc, product (индекс в created_products|None), type
     #    percent|price|reservation|surprise, percent, new_price, compare_at,
     #    available_quantity, countdown(bool), recurrence(daily|weekly), group,
-    #    ends_in_days}. Пусто → авто-скидки (как раньше).
+    #    ends_in_days | ends_today}. Пусто → авто-скидки (как раньше).
+    #    LB-4d-3: `ends_today` — акция кончается СЕГОДНЯ (блок «Endet heute»).
     # P6 «ценовой слой»: + service/stay_unit (индекс в refs["services"]/["stay_units"];
     #   такие акции создаются после _seed_kit_modules), rules (target_rules:
     #   weekdays/hour_from/hour_to/resource_id | stay_from/stay_to), limit
@@ -308,6 +309,9 @@ class DemoKit:
     # …}} — то же поле layout, что правит владелец в конструкторе (normalize
     # клампит). Пусто → дефолт секции (GRID_SECTION_DEFAULTS).
     section_layouts: dict = field(default_factory=dict)
+    # LB-4d-3: оси «ЧТО» встроенного списка главной {section_key: {"sort": "newest",
+    # "only": …}} — те же, что владелец задаёт в строке Студии (normalize чистит).
+    section_data: dict = field(default_factory=dict)
     # ST-2: пресеты страниц page_presets [(host, preset_id), …] — info/cart.
     page_presets: list = field(default_factory=list)
     # Фидбэк 2026-08-26: C-блоки КОНКРЕТНОЙ страницы — {host: [(key, data), …]}.
@@ -341,6 +345,10 @@ class DemoKit:
     # DS-4b: принудительно ВЫКЛЮЧИТЬ секции главной (контент кита остаётся —
     # страницы /galerie/ /team/ живы; главная = курированный макет).
     sections_off: list = field(default_factory=list)
+    # LB-4d-3: замена секции ПОСЛЕ сборки — {"tours": "events"}: сборка включает
+    # первую, но у кита её контента нет (Stadtgold продаёт экскурсии событиями, а не
+    # турами) → на её месте встаёт вторая. Иначе главная осталась бы без товара.
+    section_swap: dict = field(default_factory=dict)
     # DS-4b: per-секционный visual ({key: {"background": "#hex", ...}}) —
     # тонированные полосы макета (ось SE-3d, normalize валидирует).
     section_visuals: dict = field(default_factory=dict)
@@ -3027,6 +3035,7 @@ HOTEL_MENUS = {
 
 HOTEL = DemoKit(
     key="hotel",
+    page_presets=[("stay_rooms", "angebote")],  # LB-4d-3: пресет листинга архетипа
     # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
     section_layouts={"gallery": {"preset": "cols3"}, "stay_rooms": {"preset": "cols2"}},
     label="Pension Seeblick",
@@ -3963,7 +3972,7 @@ AKTIONSMARKT = DemoKit(
             "card_style": "ring",
             "discount_style": "countdown",
             "countdown": True,
-            "ends_in_days": 2,
+            "ends_today": True,
             "group": "Wochenangebote",
         },
         {
@@ -4014,7 +4023,7 @@ AKTIONSMARKT = DemoKit(
             "product": "Brötchen 6er",
             "percent": 50,
             "recurrence": "daily",
-            "ends_in_days": 1,
+            "ends_today": True,
             "group": "Anti-Food-Waste",
             "desc": "Jeden Abend ab 18 Uhr.",
         },
@@ -6007,6 +6016,7 @@ CLOTHING_MENUS = {
 CLOTHING = DemoKit(
     card_slider="on",  # DL-16.4 (P2): 2–4 фото на товар — листаются на карточке
     key="clothing",
+    page_presets=[("catalog", "neu_sale")],  # LB-4d-3: пресет листинга архетипа
     section_layouts={"gallery": {"preset": "cols3"}, "categories": {"preset": "cols4"}},
     look="fein",  # DS-1: Playfair на креме — редакционный «бутиковый» тон
     card_style="lookbook",  # DL-19 (N2): высокий кадр 3:4 и тихая подпись
@@ -7652,6 +7662,7 @@ TOURS = DemoKit(
     business_type="tour_operator",
     # DS-9: дизайн «Fokus» для архетипа — своя композиция (реестр BUNDLES).
     bundle="fokus_touren",
+    section_swap={"tours": "events"},  # LB-4d-3: экскурсии — события, не туры
     look="natur",  # DS-9: своя «кожа» семейства
     config_patch={"hero_style": "split", "nav": {"cta": True}},
     subdomain="touren",
@@ -7907,6 +7918,7 @@ MOTO_MENUS = {
 # waiver и анкету допуска к технике.
 MOTO = DemoKit(
     key="moto",
+    page_presets=[("tours", "termine")],  # LB-4d-3: пресет листинга архетипа
     label="Himalaya Riders",
     business_type="tour_operator",
     subdomain="moto",
@@ -9232,6 +9244,7 @@ FRISEUR_MENUS = {
 
 FRISEUR = DemoKit(
     key="friseur",
+    page_presets=[("services", "beratung")],  # LB-4d-3: пресет листинга архетипа
     # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
     section_layouts={"gallery": {"preset": "cols3"}},
     look="warm",  # ST-1: тёплый Look (архетип-акцент friseur)
@@ -11305,6 +11318,7 @@ RETREAT = DemoKit(
         },
     ],
     key="retreat",
+    page_presets=[("events", "bald")],  # LB-4d-3: пресет листинга архетипа
     # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
     section_layouts={"gallery": {"preset": "cols3"}, "services": {"preset": "cols3"}},
     spacers=[{"after": "gallery", "height": "lg"}],  # ST-7a
@@ -11842,7 +11856,7 @@ SHOP = DemoKit(
     key="shop",
     # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
     section_layouts={"gallery": {"preset": "cols3"}},
-    page_presets=[("cart", "vertrauen"), ("info", "geschichte")],  # ST-2
+    page_presets=[("cart", "vertrauen"), ("info", "geschichte"), ("catalog", "neu_sale")],  # ST-2
     label="Hofladen Sonnenfeld",
     business_type="retail",
     # DS-9: дизайн «Fokus» для архетипа — своя композиция (реестр BUNDLES).
@@ -12225,6 +12239,7 @@ OUTLET_MENUS = {
 # B-Ware, UVP-референс, мелкие остатки поштучно и акции всех видов сразу.
 OUTLET = DemoKit(
     key="outlet",
+    page_presets=[("catalog", "neu_sale")],  # LB-4d-3: пресет листинга архетипа
     label="Zweitgut Outlet",
     business_type="online_shop",
     subdomain="outlet",
@@ -12411,6 +12426,7 @@ OUTLET = DemoKit(
         "gallery": {"preset": "cols3"},
         "products": {"preset": "cols4"},
     },
+    section_data={"products": {"sort": "newest"}},  # LB-4d-3: заголовок про новинки
     section_titles={
         "categories": "Alles im Haus",
         "promotions": "Tagesdeals",
@@ -16086,6 +16102,7 @@ OUTLET = DemoKit(
 
 STADTFUEHRUNG = DemoKit(
     key="stadtfuehrung",
+    page_presets=[("tours", "termine")],  # LB-4d-3: пресет листинга архетипа
     # DL-11: колонки под число элементов — ряды плиток полные (scripts/demo_rows_audit.py)
     section_layouts={
         "gallery": {"preset": "cols3"},
@@ -16293,6 +16310,30 @@ STADTFUEHRUNG = DemoKit(
         (5, "Beste Stadtführung, die wir je hatten — witzig und fundiert.", "sf.rev1@example.de"),
         (5, "Katharina kennt jede Ecke. Die Brauhaustour ist ein Muss.", "sf.rev2@example.de"),
         (4, "Toller Themenabend, gern mit etwas mehr Zeit am Rhein.", "sf.rev3@example.de"),
+    ],
+    # LB-4d-3: отзывы о заездах — блок «Stimmen» под списком /touren/ (пресет «termine»)
+    event_reviews=[
+        (
+            0,
+            5,
+            "Julia K.",
+            "sf.ev1@example.de",
+            "Zwei Stunden Altstadt, kein Moment Langeweile — der Dom war der Höhepunkt.",
+        ),
+        (
+            2,
+            5,
+            "Tobias R.",
+            "sf.ev2@example.de",
+            "Vier Brauhäuser, viele Geschichten und ein Kölsch zu viel. Herrlich!",
+        ),
+        (
+            3,
+            4,
+            "Miriam S.",
+            "sf.ev3@example.de",
+            "Spannender Abend über Kölner Frauen, die man sonst nicht kennt.",
+        ),
     ],
 )
 
@@ -16515,6 +16556,7 @@ ONLINE_SHOP = DemoKit(
         "promotions": {"preset": "cols4"},
         "gallery": {"preset": "cols3"},
     },
+    section_data={"products": {"sort": "newest"}},  # LB-4d-3: заголовок про новинки
     section_titles={
         "categories": "Bereiche",
         "products": "Neu im Sortiment",
@@ -16537,7 +16579,7 @@ ONLINE_SHOP = DemoKit(
             "data": {"source": "combos", "out": "slider"},
         },
     ],
-    page_presets=[("cart", "vertrauen"), ("info", "geschichte")],
+    page_presets=[("cart", "vertrauen"), ("info", "geschichte"), ("catalog", "neu_sale")],
     size_tables={
         "mode-basics": "Größe | Brustumfang | Taille | Hüfte\n"
         "XS | 82–86 cm | 64–68 cm | 88–92 cm\n"
@@ -22498,6 +22540,28 @@ def _compact_menu(menus: dict | None) -> dict | None:
     return dict(menus, top=top)
 
 
+def _swap_sections(rows: list, swap: dict) -> list:
+    """LB-4d-3: секция `old` выключается, `new` встаёт сразу за ней включённой."""
+    rows = [dict(r) for r in rows]
+    for old, new in swap.items():
+        rows = [r for r in rows if r.get("key") != new]
+        idx = next((i for i, r in enumerate(rows) if r.get("key") == old), len(rows) - 1)
+        if 0 <= idx < len(rows):
+            rows[idx]["enabled"] = False
+        rows.insert(idx + 1, {"key": new, "enabled": True})
+    return rows
+
+
+def _ends_today(now):
+    """LB-4d-3: конец акции «сегодня» — до полуночи по местному времени.
+
+    Середина оставшегося дня, а не фикс. час: сид в 23:50 иначе дал бы акцию,
+    которая кончается завтра (блок «Endet heute» опустел бы)."""
+    local = timezone.localtime(now)
+    midnight = local.replace(hour=23, minute=59, second=0, microsecond=0)
+    return now + max((midnight - local) / 2, timedelta(seconds=1))
+
+
 def _kit_sections(kit: DemoKit) -> list[dict]:
     """Раскладка секций кита: фото-hero, меню, акции, галерея, отзывы, FAQ, CTA, контакты."""
     rows = [
@@ -22548,6 +22612,9 @@ def _kit_sections(kit: DemoKit) -> list[dict]:
         rows_cap = kit.section_rows.get(s["key"])
         if rows_cap:
             s["rows"] = rows_cap  # MEN-24c: кап строк прайс-вида (normalize клампит)
+        what = kit.section_data.get(s["key"])
+        if what:
+            s["data"] = dict(what)  # LB-4d-3: «Neu im Sortiment» — новинки, а не избранное
         lay = kit.section_layouts.get(s["key"])
         if lay:
             s["layout"] = dict(lay)  # фидбэк 2026-08-27: число колонок секции
@@ -22860,8 +22927,12 @@ def apply_kit(tenant, key: str) -> bool:
                 if spec.get("starts_in_days")
                 else (now if spec.get("new") else now - timedelta(days=10))
             ),
-            "ends_at": now
-            + timedelta(days=spec.get("starts_in_days", 0) + spec.get("ends_in_days", 14)),
+            "ends_at": (
+                _ends_today(now)
+                if spec.get("ends_today")
+                else now
+                + timedelta(days=spec.get("starts_in_days", 0) + spec.get("ends_in_days", 14))
+            ),
             "group": spec.get("group", ""),
             "show_countdown": bool(spec.get("countdown")),
             "is_surprise": bool(spec.get("surprise")),
@@ -23159,6 +23230,8 @@ def apply_kit(tenant, key: str) -> bool:
         from apps.tenants import sitetemplates as _sitetemplates
 
         _sitetemplates.apply_bundle_config(cfg, kit.bundle)
+    if kit.section_swap:
+        cfg["sections"] = _swap_sections(cfg.get("sections") or [], kit.section_swap)
     # DL-8a: ключ `design` — не украшение. По нему витрина ставит
     # body[data-sf-look] (context.py) и включает фирменный CSS-слой семейства:
     # рамки/бейджи/цены Look'а и глобальную замену indigo на акцент. apply_look/
@@ -23187,7 +23260,8 @@ def apply_kit(tenant, key: str) -> bool:
         from apps.core import page_presets as page_presets_mod
 
         for host, preset_id in kit.page_presets:
-            page_presets_mod.apply_page_preset(cfg, host, preset_id)
+            # LB-4d-3: с тенантом — блок выключенного модуля пресет не кладёт
+            page_presets_mod.apply_page_preset(cfg, host, preset_id, tenant=tenant)
     if kit.page_blocks:  # блоки конкретных страниц (в т.ч. «catalog:<slug>»)
         _pb = dict(cfg.get("page_blocks") or {})
         for _host, _specs in kit.page_blocks.items():

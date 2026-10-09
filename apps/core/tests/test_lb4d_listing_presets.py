@@ -213,3 +213,19 @@ def test_storefront_renders_preset_blocks_on_both_sides_of_the_list():
     # основной список (карточка номера) — между блоком акций и блоком отзывов
     room = body.index(f"/unterkunft/{unit.pk}/", body.index("</section>", promo))
     assert body.index('data-sf-list="reviews"', room) > room
+
+
+def test_tours_preset_shows_next_departures_without_a_two_week_window():
+    """LB-4d-3: заезды тур-оператора планируют за месяцы — окно «14 дней» у пресета
+    `/touren/` давало пустой блок (демо moto); блок — ближайшие заезды, подпись —
+    «Nächste Termine», а не общее «Veranstaltungen»."""
+    from apps.core import list_blocks
+
+    preset = next(p for p in page_presets.PAGE_PRESETS["tours"]["presets"] if p.get("blocks"))
+    kind, data = preset["blocks"][0]
+    assert kind == "list" and data["source"] == "events" and "only" not in data
+    tour_operator = SimpleNamespace(business_type="tour_operator")
+    assert list_blocks._label(data, [], tour_operator) == "Nächste Termine"
+    assert list_blocks._label(data, [], SimpleNamespace(business_type="events")) == (
+        "Veranstaltungen"
+    )
