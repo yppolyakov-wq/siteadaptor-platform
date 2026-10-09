@@ -1407,7 +1407,9 @@ GRID_SECTION_DEFAULTS = {
     "events": {"preset": "cols3"},  # M20U-2: карточки ближайших мероприятий
     "tours": {"preset": "cols2", "mobile": 1},  # MT-F1: карточка поездки — крупная
     "blog": {"preset": "cols3"},  # HF-1: карточки новостей
-    "services": {"preset": "cols2"},  # A3: услуги (как service_index sm:grid-cols-2)
+    # A3: услуги (как service_index sm:grid-cols-2). LB-4d-3: секция рисует СТРОЧНЫЕ
+    # карточки — на телефоне одна колонка при любом пресете (`mobile_max`).
+    "services": {"preset": "cols2", "mobile": 1, "mobile_max": 1},
     "products": {"preset": "cols4"},  # было grid-cols-2 lg:grid-cols-4 (mobile 2)
     "stay_rooms": {"preset": "cols3", "mobile": 1},  # было grid-cols-1 sm:2 lg:3
     "promotions": {"preset": "cols3"},  # было 2 mobile / 3 lg
@@ -1495,7 +1497,8 @@ def normalize_layout(raw, default=None, extra_presets=()) -> dict:
         **{k: v for k, v in default.items() if k != "preset"},
     }
     cols = _clamp(raw.get("cols", eff["cols"]), 1, 6, eff["cols"])  # DS-5: до 6
-    mobile = _clamp(raw.get("mobile", eff["mobile"]), 1, 2, eff["mobile"])
+    mobile_max = eff.get("mobile_max", 2)
+    mobile = min(_clamp(raw.get("mobile", eff["mobile"]), 1, 2, eff["mobile"]), mobile_max)
     # SE-3c: явный пер-девайс планшет (1..4). 0 = «авто» (вывод из cols/mobile, как было) —
     # back-compat: legacy без tablet → прежний планшетный шаг (_SM_FROM_COLS).
     tablet = _clamp(raw.get("tablet", eff.get("tablet", 0)), 0, 4, 0)

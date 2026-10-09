@@ -30,7 +30,9 @@ from apps.tenants import siteconfig
 _DEFAULTS = {
     "promotions": siteconfig.GRID_SECTION_DEFAULTS["promotions"],
     "products": siteconfig.GRID_SECTION_DEFAULTS["products"],
-    "services": siteconfig.GRID_SECTION_DEFAULTS["services"],
+    # блок рисует услуги ПЛИТКАМИ (форма из блока), а не строками секции — потолка
+    # «одна колонка на телефоне» (LB-4d-3) у него нет
+    "services": {"preset": "cols2"},
     "stays": siteconfig.GRID_SECTION_DEFAULTS["stay_rooms"],
     "events": siteconfig.GRID_SECTION_DEFAULTS["events"],
     "tours": siteconfig.GRID_SECTION_DEFAULTS["tours"],
