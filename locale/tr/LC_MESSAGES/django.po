@@ -22926,3 +22926,174 @@ msgstr "Yakında ve öne çıkanlar"
 
 msgid "Termine & Stimmen"
 msgstr "Tarihler ve yorumlar"
+
+msgid "Annahme mit Preisnachlass"
+msgstr "İndirimle kabul"
+
+msgid "Ersatzlieferung"
+msgstr "Yedek teslimat"
+
+msgid "Verpackungsschaden"
+msgstr "Ambalaj hasarı"
+
+msgid "Artmangel / Falschlieferung"
+msgstr "Yanlış ürün / hatalı teslimat"
+
+msgid "Quantitätsmangel / falsche Menge"
+msgstr "Miktar eksikliği / yanlış miktar"
+
+msgid "Qualitätsmangel"
+msgstr "Kalite kusuru"
+
+msgid "Our customer number"
+msgstr "Müşteri numaramız"
+
+msgid "Notice of defects"
+msgstr "Ayıp bildirimi"
+
+msgid "Purchase order"
+msgstr "Satın alma siparişi"
+
+msgid "Delivery note no."
+msgstr "İrsaliye no."
+
+msgid "Delivery date"
+msgstr "Teslim tarihi"
+
+msgid "Inspection date"
+msgstr "Kontrol tarihi"
+
+msgid "Carrier"
+msgstr "Taşıyıcı"
+
+msgid "Inspected by"
+msgstr "Kontrol eden"
+
+msgid "We hereby give notice under § 377 HGB of the following defects in the delivery referred to above."
+msgstr "İşbu yazı ile § 377 HGB uyarınca yukarıda belirtilen teslimattaki aşağıdaki ayıpları bildiririz."
+
+msgid "Type of defect"
+msgstr "Ayıp türü"
+
+msgid "Requested remedy"
+msgstr "Talep edilen çözüm"
+
+
+msgid "Inspection result"
+msgstr "Kontrol sonucu"
+
+msgid "We reserve all rights arising from the defective delivery. Please confirm receipt of this notice."
+msgstr "Ayıplı teslimattan doğan tüm haklarımız saklıdır. Lütfen bu bildirimin alındığını teyit ediniz."
+
+msgid "Place, date"
+msgstr "Yer, tarih"
+
+msgid "Signature"
+msgstr "İmza"
+
+msgid "Bitte bei mindestens einer Position eine Menge angeben."
+msgstr "Lütfen en az bir kalem için miktar girin."
+
+#, python-format
+msgid "Mängelanzeige angelegt: %(ref)s"
+msgstr "Ayıp bildirimi oluşturuldu: %(ref)s"
+
+msgid "Entscheidung gebucht."
+msgstr "Karar kaydedildi."
+
+msgid "Keine Buchung — bereits entschieden oder Nachlass fehlt."
+msgstr "Kayıt yapılmadı — karar zaten verilmiş veya indirim eksik."
+
+msgid "Mängelanzeige nicht gefunden."
+msgstr "Ayıp bildirimi bulunamadı."
+
+msgid "Als angezeigt markiert."
+msgstr "Bildirildi olarak işaretlendi."
+
+msgid "Mängelanzeige an den Lieferanten gesendet."
+msgstr "Ayıp bildirimi tedarikçiye gönderildi."
+
+msgid "Der Lieferant hat keine E-Mail-Adresse."
+msgstr "Tedarikçinin e-posta adresi yok."
+
+msgid "Offene Mängelanzeigen"
+msgstr "Açık ayıp bildirimleri"
+
+msgid "Mängelanzeigen"
+msgstr "Ayıp bildirimleri"
+
+msgctxt "complaint"
+msgid "erledigt"
+msgstr "çözüldü"
+
+#, python-format
+msgid "Angezeigt am %(d)s"
+msgstr "%(d)s tarihinde bildirildi"
+
+msgid "Noch nicht an den Lieferanten gemeldet — Rüge unverzüglich (§ 377 HGB)."
+msgstr "Henüz tedarikçiye bildirilmedi — gecikmeksizin bildirin (§ 377 HGB)."
+
+msgid "PDF"
+msgstr "PDF"
+
+msgid "An Lieferanten senden"
+msgstr "Tedarikçiye gönder"
+
+msgid "Als angezeigt markieren"
+msgstr "Bildirildi olarak işaretle"
+
+msgid "Stück"
+msgstr "adet"
+
+msgid "Nachlass €"
+msgstr "İndirim €"
+
+msgid "Entscheiden"
+msgstr "Karar ver"
+
+msgid "Mängelanzeige erstellen"
+msgstr "Ayıp bildirimi oluştur"
+
+msgid "Lieferdatum"
+msgstr "Teslim tarihi"
+
+msgid "Prüfdatum"
+msgstr "Kontrol tarihi"
+
+msgid "Lieferschein-Nr."
+msgstr "İrsaliye no."
+
+msgid "Frachtführer"
+msgstr "Taşıyıcı"
+
+#, python-format
+msgid "%(n)s empfangen"
+msgstr "%(n)s teslim alındı"
+
+msgid "Beschreibung des Mangels"
+msgstr "Ayıbın açıklaması"
+
+msgid "Prüfergebnis"
+msgstr "Kontrol sonucu"
+
+msgid "Mängelanzeige anlegen"
+msgstr "Ayıp bildirimi oluştur"
+
+#, python-format
+msgid "Mängelanzeige %(ref)s zu Bestellung %(order)s"
+msgstr "%(order)s siparişi için ayıp bildirimi %(ref)s"
+
+#, python-format
+msgid "Guten Tag %(name)s,"
+msgstr "Merhaba %(name)s,"
+
+#, python-format
+msgid "anbei erhalten Sie unsere Mängelanzeige %(ref)s zur Lieferung aus Bestellung %(order)s (§ 377 HGB)."
+msgstr "%(order)s siparişinden gelen teslimata ilişkin %(ref)s numaralı ayıp bildirimimiz ektedir (§ 377 HGB)."
+
+msgid "Bitte bestätigen Sie den Eingang und teilen Sie uns Ihre Lösung mit."
+msgstr "Lütfen alındığını teyit edin ve çözüm önerinizi bize bildirin."
+
+msgctxt "complaint"
+msgid "offen"
+msgstr "açık"

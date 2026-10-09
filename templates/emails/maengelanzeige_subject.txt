@@ -1,0 +1,1 @@
+{% load i18n %}{% blocktrans with ref=reference order=order %}Mängelanzeige {{ ref }} zu Bestellung {{ order }}{% endblocktrans %}

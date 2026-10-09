@@ -79,7 +79,7 @@ from apps.events import public_views as events_public
 from apps.events import views as events_views
 from apps.inbox import public_views as inbox_public
 from apps.inventory.views import stock as stock_view
-from apps.inventory.views_purchasing import purchasing_view
+from apps.inventory.views_purchasing import maengel_pdf, purchasing_view
 from apps.jobs import public_views as jobs_public
 from apps.loyalty import public_views as loyalty_public
 from apps.orders import public_views as orders_public
@@ -198,6 +198,12 @@ urlpatterns = [
     path("dashboard/stock/", stock_view, name="stock"),
     # Склад-2 E3: закупки (Lieferanten/Bestellungen/Wareneingang).
     path("dashboard/purchasing/", purchasing_view, name="purchasing"),
+    # ERP-8: PDF-бланк рекламации поставщику (Mängelanzeige)
+    path(
+        "dashboard/purchasing/maengel/<uuid:pk>.pdf",
+        maengel_pdf,
+        name="purchasing-maengel-pdf",
+    ),
     # Единая страница продаж (2026-08-03): вкладки по kind + виды на вкладку.
     path("dashboard/verkaeufe/", verkaeufe, name="verkaeufe"),
     path("dashboard/verkaeufe/view/", verkaeufe_view_set, name="verkaeufe-view"),

@@ -1,0 +1,91 @@
+{% load i18n %}
+{% comment %}ERP-8: рекламации поставщику по поставке (§ 377 HGB). Список рекламаций
+с решением по каждой строке + форма новой рекламации. Решение применяется один раз:
+скидка — сторно-расход, возврат — ERP-5, замена — возврат и строка снова ждёт приёмки.{% endcomment %}
+<div class="border-t border-gray-100 pt-3 mt-3" data-maengel>
+  <h3 class="text-sm font-semibold text-gray-700 mb-2">⚠ {% trans "Mängelanzeigen" %} <span class="text-xs font-normal text-gray-400">§ 377 HGB</span></h3>
+  {% for a in anzeigen %}
+    <div class="rounded-lg border {% if a.status == 'open' %}border-amber-200 bg-amber-50/40{% else %}border-gray-200{% endif %} p-3 mb-2 text-sm" data-maengel-anzeige="{{ a.reference }}">
+      <div class="flex items-center justify-between gap-2 flex-wrap mb-2">
+        <div class="min-w-0">
+          <span class="font-semibold">{{ a.reference }}</span>
+          <span class="text-xs text-gray-400">· {{ a.created_at|date:"d.m.Y" }}</span>
+          {% if a.status == 'open' %}
+            <span class="ml-1 text-xs rounded-full px-2 py-0.5 bg-amber-100 text-amber-800">{% trans "offen" context "complaint" %}</span>
+          {% else %}
+            <span class="ml-1 text-xs rounded-full px-2 py-0.5 bg-green-100 text-green-700">{% trans "erledigt" context "complaint" %}</span>
+          {% endif %}
+          {% if a.notified_at %}
+            <span class="block text-xs text-gray-500 mt-0.5">✉ {% blocktrans with d=a.notified_at|date:"d.m.Y" %}Angezeigt am {{ d }}{% endblocktrans %}</span>
+          {% else %}
+            <span class="block text-xs text-amber-700 mt-0.5">{% trans "Noch nicht an den Lieferanten gemeldet — Rüge unverzüglich (§ 377 HGB)." %}</span>
+          {% endif %}
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <a href="{% url 'purchasing-maengel-pdf' a.pk %}" target="_blank" class="text-xs border border-gray-300 rounded-lg px-2.5 py-1 hover:border-indigo-400">📄 {% trans "PDF" %}</a>
+          {% if current.supplier.email %}
+            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="maengel_send"><input type="hidden" name="po" value="{{ current.pk }}"><input type="hidden" name="anzeige" value="{{ a.pk }}"><button class="text-xs bg-indigo-600 text-white rounded-lg px-2.5 py-1 hover:bg-indigo-700">✉ {% trans "An Lieferanten senden" %}</button></form>
+          {% endif %}
+          {% if not a.notified_at %}
+            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="maengel_notified"><input type="hidden" name="po" value="{{ current.pk }}"><input type="hidden" name="anzeige" value="{{ a.pk }}"><button class="text-xs text-gray-500 hover:text-indigo-700 underline">{% trans "Als angezeigt markieren" %}</button></form>
+          {% endif %}
+        </div>
+      </div>
+      <ul class="space-y-2">
+        {% for m in a.maengel.all %}
+          <li class="rounded border border-gray-100 bg-white px-2.5 py-2">
+            <div class="font-medium">{{ m.qty }}× {{ m.position.product }}{% if m.position.variant %} · {{ m.position.variant.label }}{% endif %}</div>
+            {% if m.defect_labels %}<div class="text-xs text-gray-600">{{ m.defect_labels|join:", " }}</div>{% endif %}
+            {% if m.description %}<div class="text-xs text-gray-500">{{ m.description }}</div>{% endif %}
+            {% if m.resolved_at %}
+              <div class="text-xs text-green-700 mt-1">✓ {{ m.get_decision_display }}{% if m.decision == 'discount' %} · −{{ m.discount|floatformat:2 }} €{% elif m.resolved_qty %} · {{ m.resolved_qty }} {% trans "Stück" %}{% endif %}</div>
+            {% else %}
+              <form method="post" class="flex items-center gap-1.5 flex-wrap mt-1.5">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="resolve_mangel">
+                <input type="hidden" name="po" value="{{ current.pk }}">
+                <input type="hidden" name="mangel" value="{{ m.pk }}">
+                <select name="decision" class="rounded border border-gray-300 px-1.5 py-1 text-xs">
+                  {% for code, label in decisions %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+                </select>
+                <input type="text" name="discount" inputmode="decimal" placeholder="{% trans 'Nachlass €' %}" class="w-24 rounded border border-gray-300 px-1.5 py-1 text-xs">
+                <button class="text-xs border border-gray-300 rounded-lg px-2.5 py-1 hover:border-indigo-400">{% trans "Entscheiden" %}</button>
+              </form>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endfor %}
+
+  <details class="rounded-lg border border-gray-200 bg-white">
+    <summary class="cursor-pointer px-3 py-2 text-sm font-medium text-gray-700">＋ {% trans "Mängelanzeige erstellen" %}</summary>
+    <form method="post" class="px-3 pb-3 space-y-3">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create_maengel">
+      <input type="hidden" name="po" value="{{ current.pk }}">
+      <div class="grid gap-2 sm:grid-cols-2">
+        <label class="text-xs text-gray-500">{% trans "Lieferdatum" %}<input type="date" name="delivery_date" class="mt-0.5 w-full rounded border border-gray-300 px-2 py-1 text-sm"></label>
+        <label class="text-xs text-gray-500">{% trans "Prüfdatum" %}<input type="date" name="inspected_at" class="mt-0.5 w-full rounded border border-gray-300 px-2 py-1 text-sm"></label>
+        <label class="text-xs text-gray-500">{% trans "Lieferschein-Nr." %}<input type="text" name="delivery_note_ref" maxlength="64" class="mt-0.5 w-full rounded border border-gray-300 px-2 py-1 text-sm"></label>
+        <label class="text-xs text-gray-500">{% trans "Frachtführer" %}<input type="text" name="carrier" maxlength="150" class="mt-0.5 w-full rounded border border-gray-300 px-2 py-1 text-sm"></label>
+      </div>
+      <div class="space-y-2">
+        {% for line in current.positions.all %}
+          <fieldset class="rounded border border-gray-100 p-2">
+            <legend class="text-xs font-medium text-gray-700 px-1">{{ line.product }}{% if line.variant %} · {{ line.variant.label }}{% endif %} <span class="text-gray-400">({% blocktrans with n=line.qty_received %}{{ n }} empfangen{% endblocktrans %})</span></legend>
+            <div class="flex items-center gap-2 flex-wrap">
+              <label class="text-xs text-gray-500">{% trans "Menge" %} <input type="number" name="m_qty_{{ line.pk }}" min="0" max="{% if line.qty_received > line.qty %}{{ line.qty_received }}{% else %}{{ line.qty }}{% endif %}" placeholder="0" class="w-16 rounded border border-gray-300 px-1.5 py-1 text-xs"></label>
+              {% for code, label in defect_types %}
+                <label class="inline-flex items-center gap-1 text-xs text-gray-600"><input type="checkbox" name="m_types_{{ line.pk }}" value="{{ code }}" class="h-3 w-3">{{ label }}</label>
+              {% endfor %}
+            </div>
+            <input type="text" name="m_desc_{{ line.pk }}" maxlength="2000" placeholder="{% trans 'Beschreibung des Mangels' %}" class="mt-1.5 w-full rounded border border-gray-300 px-2 py-1 text-xs">
+          </fieldset>
+        {% endfor %}
+      </div>
+      <label class="block text-xs text-gray-500">{% trans "Prüfergebnis" %}<textarea name="result" rows="2" class="mt-0.5 w-full rounded border border-gray-300 px-2 py-1 text-sm"></textarea></label>
+      <button class="text-sm bg-amber-600 text-white rounded-lg px-3 py-1.5 hover:bg-amber-700">⚠ {% trans "Mängelanzeige anlegen" %}</button>
+    </form>
+  </details>
+</div>

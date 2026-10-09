@@ -1,0 +1,6 @@
+{% load i18n %}{% if contact %}{% blocktrans with name=contact %}Guten Tag {{ name }},{% endblocktrans %}{% else %}{% trans "Guten Tag," %}{% endif %}
+
+{% blocktrans with ref=reference order=order %}anbei erhalten Sie unsere Mängelanzeige {{ ref }} zur Lieferung aus Bestellung {{ order }} (§ 377 HGB).{% endblocktrans %}
+{% trans "Bitte bestätigen Sie den Eingang und teilen Sie uns Ihre Lösung mit." %}
+
+{{ business_name }}

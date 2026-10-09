@@ -23014,3 +23014,174 @@ msgstr "Незабаром і головне"
 
 msgid "Termine & Stimmen"
 msgstr "Дати та відгуки"
+
+msgid "Annahme mit Preisnachlass"
+msgstr "Прийняти зі знижкою"
+
+msgid "Ersatzlieferung"
+msgstr "Заміна товару"
+
+msgid "Verpackungsschaden"
+msgstr "Пошкодження упаковки"
+
+msgid "Artmangel / Falschlieferung"
+msgstr "Не той товар / помилкова поставка"
+
+msgid "Quantitätsmangel / falsche Menge"
+msgstr "Недостача / неправильна кількість"
+
+msgid "Qualitätsmangel"
+msgstr "Дефект якості"
+
+msgid "Our customer number"
+msgstr "Наш номер клієнта"
+
+msgid "Notice of defects"
+msgstr "Рекламація"
+
+msgid "Purchase order"
+msgstr "Замовлення постачальнику"
+
+msgid "Delivery note no."
+msgstr "№ накладної"
+
+msgid "Delivery date"
+msgstr "Дата поставки"
+
+msgid "Inspection date"
+msgstr "Дата перевірки"
+
+msgid "Carrier"
+msgstr "Перевізник"
+
+msgid "Inspected by"
+msgstr "Перевірив(ла)"
+
+msgid "We hereby give notice under § 377 HGB of the following defects in the delivery referred to above."
+msgstr "Цим відповідно до § 377 HGB заявляємо про такі недоліки зазначеної вище поставки."
+
+msgid "Type of defect"
+msgstr "Вид дефекту"
+
+msgid "Requested remedy"
+msgstr "Бажане рішення"
+
+
+msgid "Inspection result"
+msgstr "Результат перевірки"
+
+msgid "We reserve all rights arising from the defective delivery. Please confirm receipt of this notice."
+msgstr "Ми залишаємо за собою всі права, що випливають із поставки з недоліками. Просимо підтвердити отримання цього повідомлення."
+
+msgid "Place, date"
+msgstr "Місце, дата"
+
+msgid "Signature"
+msgstr "Підпис"
+
+msgid "Bitte bei mindestens einer Position eine Menge angeben."
+msgstr "Вкажіть кількість хоча б для однієї позиції."
+
+#, python-format
+msgid "Mängelanzeige angelegt: %(ref)s"
+msgstr "Рекламацію створено: %(ref)s"
+
+msgid "Entscheidung gebucht."
+msgstr "Рішення проведено."
+
+msgid "Keine Buchung — bereits entschieden oder Nachlass fehlt."
+msgstr "Нічого не проведено — рішення вже ухвалено або не вказано знижку."
+
+msgid "Mängelanzeige nicht gefunden."
+msgstr "Рекламацію не знайдено."
+
+msgid "Als angezeigt markiert."
+msgstr "Позначено як заявлене."
+
+msgid "Mängelanzeige an den Lieferanten gesendet."
+msgstr "Рекламацію надіслано постачальнику."
+
+msgid "Der Lieferant hat keine E-Mail-Adresse."
+msgstr "У постачальника немає адреси e-mail."
+
+msgid "Offene Mängelanzeigen"
+msgstr "Відкриті рекламації"
+
+msgid "Mängelanzeigen"
+msgstr "Рекламації"
+
+msgctxt "complaint"
+msgid "erledigt"
+msgstr "закрита"
+
+#, python-format
+msgid "Angezeigt am %(d)s"
+msgstr "Заявлено %(d)s"
+
+msgid "Noch nicht an den Lieferanten gemeldet — Rüge unverzüglich (§ 377 HGB)."
+msgstr "Ще не заявлено постачальнику — заявити негайно (§ 377 HGB)."
+
+msgid "PDF"
+msgstr "PDF"
+
+msgid "An Lieferanten senden"
+msgstr "Надіслати постачальнику"
+
+msgid "Als angezeigt markieren"
+msgstr "Позначити як заявлене"
+
+msgid "Stück"
+msgstr "шт."
+
+msgid "Nachlass €"
+msgstr "Знижка €"
+
+msgid "Entscheiden"
+msgstr "Ухвалити рішення"
+
+msgid "Mängelanzeige erstellen"
+msgstr "Створити рекламацію"
+
+msgid "Lieferdatum"
+msgstr "Дата поставки"
+
+msgid "Prüfdatum"
+msgstr "Дата перевірки"
+
+msgid "Lieferschein-Nr."
+msgstr "№ накладної"
+
+msgid "Frachtführer"
+msgstr "Перевізник"
+
+#, python-format
+msgid "%(n)s empfangen"
+msgstr "отримано %(n)s"
+
+msgid "Beschreibung des Mangels"
+msgstr "Опис дефекту"
+
+msgid "Prüfergebnis"
+msgstr "Результат перевірки"
+
+msgid "Mängelanzeige anlegen"
+msgstr "Створити рекламацію"
+
+#, python-format
+msgid "Mängelanzeige %(ref)s zu Bestellung %(order)s"
+msgstr "Рекламація %(ref)s до замовлення %(order)s"
+
+#, python-format
+msgid "Guten Tag %(name)s,"
+msgstr "Добрий день, %(name)s!"
+
+#, python-format
+msgid "anbei erhalten Sie unsere Mängelanzeige %(ref)s zur Lieferung aus Bestellung %(order)s (§ 377 HGB)."
+msgstr "у вкладенні — наша рекламація %(ref)s щодо поставки із замовлення %(order)s (§ 377 HGB)."
+
+msgid "Bitte bestätigen Sie den Eingang und teilen Sie uns Ihre Lösung mit."
+msgstr "Просимо підтвердити отримання та повідомити ваше рішення."
+
+msgctxt "complaint"
+msgid "offen"
+msgstr "відкрита"

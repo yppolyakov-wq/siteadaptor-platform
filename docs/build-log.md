@@ -16920,3 +16920,35 @@ Playwright (hotel): пресет рекомендован и применяет�
 `test_lb4d_listing_presets` +1. Без миграций, без новых msgid.
 ⚠️ ops: `seed_demo_tenants --recreate` для hotel friseur retreat moto stadtfuehrung shop
 clothing online_shop outlet aktionsmarkt tours.
+
+## 2026-10-09 — ERP-8: Mängelanzeige — рекламация поставщику (§ 377 HGB)
+
+План — `docs/erp8-maengelanzeige-plan-2026-10-09.md` (по бумажному бланку владельца; решения
+2026-09-09: полный цикл). **Модель** (⚠️ миграция `inventory/0006`, аддитивная):
+`Maengelanzeige` (поставка `BE-…` → `MA-…`; Liefer-/Prüfdatum, Frachtführer, Lieferschein-Nr.,
+Prüfergebnis, кто проверял, дата заявления, число отправок) + `Mangel` (строка: кол-во, виды
+дефектов из реестра — Verpackungsschaden · Artmangel/Falschlieferung · Quantitätsmangel ·
+Qualitätsmangel · Sonstiges, описание, решение) + `BestellPosition.qty_replacement`.
+**Решения** (`apps/inventory/maengel.py`, один раз на строку): скидка — сторно-расход
+(Gutschrift), склад не трогаем; возврат — ERP-5 `return_po_line` целиком; замена — возврат +
+строка снова ждёт штуки (`qty_open = qty + qty_replacement − qty_received`), принятый заказ
+возвращается в «bestellt» — деньги сходятся сами (приёмка + сторно + приёмка замены = одна
+оплата). Статус рекламации производный (открыта, пока есть строка без решения).
+**Кабинет «Einkauf»**: секция «⚠ Mängelanzeigen» на детали заказа (решение по строке, PDF,
+«An Lieferanten senden» / «Als angezeigt markieren», форма новой рекламации), бейдж «⚠ N»
+в списке заказов. **PDF-бланк** `/dashboard/purchasing/maengel/<pk>.pdf` поверх
+`core/documents.py` (язык `?lang=`, DejaVu для кириллицы): отправитель → поставщик →
+реквизиты поставки → строки → результат → правовая фраза § 377 HGB → подпись. **Письмо
+поставщику** с PDF-вложением (`notify`, язык бизнеса; повтор после правки разрешён, дубль
+клика гасит dedupe). **Демо** (фидбэк владельца «не только булочной — всем, где продаются
+товары»): демо-закупки и рекламация с решённой (скидка) и открытой строкой — у ВСЕХ
+товарных китов (`PURCHASING_DEMO_TYPES`: retail/clothing/online_shop/grocery/bakery/butcher;
+раньше закупки сеялись только китам с партиями), поставщик и тексты дефектов — под жанр
+(еда — MHD, прочим — нейтральные: у «retail» бывает и фермерский магазин — стенд shop), строка заказа у товара с вариантами — вариант.
+Гастро-киты не входят (закупать «блюда» оптом — абсурд). Сама функция кабинета от типа
+бизнеса не зависит — экран «Einkauf» есть у любого тенанта с каталогом.
+
+Стенд нашёл омоним «offen» (ru «не оплачено» от «Offene Posten» → контекст `complaint`) и
+наезд колонок в ru-бланке. Замки: `test_erp8_maengel` (12) + `test_erp8_cabinet` (26);
+inventory 136. 56 msgid × 5 каталогов (+2 с контекстом). ⚠️ ops: деплой миграции +
+`seed_demo_tenants --recreate` для shop clothing online_shop outlet aktionsmarkt bakery butcher.
