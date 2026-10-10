@@ -22,6 +22,10 @@
   <p class="text-sm text-gray-500 mt-4">
     {% trans "Please show this code or QR when you pick up your reservation." %}
   </p>
+  {% if reservation.expires_at and reservation.status == 'pending' or reservation.expires_at and reservation.status == 'confirmed' %}
+  {# T-8.2: клиент видит, до какого времени для него отложено. #}
+  <p class="text-sm font-medium text-gray-800 mt-2" data-hold-until>{% blocktrans with until=reservation.expires_at|date:"d.m.Y H:i" %}Wir halten die Reservierung bis {{ until }} für Sie bereit.{% endblocktrans %}</p>
+  {% endif %}
   {% if reservation.status == 'pending' %}
     <p class="text-sm text-amber-700 mt-2">{% trans "Status: awaiting confirmation by the business." %}</p>
   {% elif reservation.status == 'confirmed' %}

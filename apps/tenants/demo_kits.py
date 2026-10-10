@@ -22534,10 +22534,12 @@ LITE_BAKERY = DemoKit(
     opening_hours_text="Mo–Fr 6:30–18:00 · Sa 6:30–13:00",
     opening_hours={**{d: ("06:30", "18:00") for d in range(5)}, 5: ("06:30", "13:00")},
     menus=_lite_menus(),
-    enable_modules=["orders"],
+    enable_modules=["jobs"],
+    anfrage_form={"fields": ["date"]},
     promotions_spec=[
         {
             "title": "Feierabendtüte −50 %",
+            "hold_hours": 3,
             "desc": "Brot, Brötchen und Gebäck vom Tag zum halben Preis. Ab 17 Uhr, "
             "solange der Vorrat reicht.",
             "new_price": "5.00",
@@ -22587,6 +22589,7 @@ LITE_BAKERY = DemoKit(
         },
         {
             "title": "Wunschtorte auf Bestellung",
+            "response": "inquire",
             "desc": "Geburtstag, Taufe oder Firmenfeier: Ihre Torte nach Wunsch, "
             "mit 2 Tagen Vorlauf.",
             "new_price": "29.00",
@@ -22645,10 +22648,11 @@ LITE_CAFE = DemoKit(
         6: ("09:00", "17:00"),
     },
     menus=_lite_menus(),
-    enable_modules=["orders"],
+    enable_modules=[],
     promotions_spec=[
         {
             "title": "Happy Hour: Cappuccino 2 €",
+            "response": "show",
             "desc": "Montag bis Freitag von 14 bis 16 Uhr — jeder Cappuccino 2 €.",
             "new_price": "2.00",
             "compare_at": "3.40",
@@ -22668,6 +22672,7 @@ LITE_CAFE = DemoKit(
         },
         {
             "title": "Kuchen + Kaffee 4,90 €",
+            "response": "show",
             "desc": "Ein Stück Kuchen nach Wahl und eine Tasse Filterkaffee.",
             "new_price": "4.90",
             "compare_at": "6.30",
@@ -22677,6 +22682,7 @@ LITE_CAFE = DemoKit(
         },
         {
             "title": "Mittagstisch: Suppe des Tages",
+            "hold_hours": 2,
             "desc": "Hausgemachte Suppe mit Brot — heute Kürbissuppe.",
             "new_price": "6.50",
             "ends_today": True,
@@ -22685,6 +22691,7 @@ LITE_CAFE = DemoKit(
         },
         {
             "title": "Neu: Hafer-Latte",
+            "response": "show",
             "desc": "Neu auf der Karte: Latte mit Haferdrink — ohne Aufpreis.",
             "new_price": "3.60",
             "new": True,
@@ -22747,7 +22754,7 @@ LITE_MODE = DemoKit(
     opening_hours_text="Mo–Fr 10:00–19:00 · Sa 10:00–16:00",
     opening_hours={**{d: ("10:00", "19:00") for d in range(5)}, 5: ("10:00", "16:00")},
     menus=_lite_menus(),
-    enable_modules=["orders"],
+    enable_modules=[],
     promotions_spec=[
         {
             "title": "Wintermäntel −30 %",
@@ -22851,7 +22858,7 @@ LITE_HOFLADEN = DemoKit(
     opening_hours_text="Di–Fr 9:00–18:00 · Sa 8:00–13:00",
     opening_hours={**{d: ("09:00", "18:00") for d in range(1, 5)}, 5: ("08:00", "13:00")},
     menus=_lite_menus(),
-    enable_modules=["orders"],
+    enable_modules=[],
     promotions_spec=[
         {
             "title": "Wochenkiste 15 € statt 19 €",
@@ -22954,9 +22961,11 @@ LITE_PENSION = DemoKit(
     opening_hours_text="Rezeption täglich 8:00–20:00",
     opening_hours={d: ("08:00", "20:00") for d in range(7)},
     menus=_lite_menus(),
-    enable_modules=["promotions", "orders"],
+    enable_modules=["promotions", "jobs"],
+    anfrage_form={"fields": ["date", "guests"]},
     promotions_spec=[
         {
+            "response": "inquire",
             "title": "Last-Minute-Wochenende −25 %",
             "desc": "Zwei Nächte im Doppelzimmer mit Frühstück, Freitag bis Sonntag.",
             "new_price": "149.00",
@@ -22967,6 +22976,7 @@ LITE_PENSION = DemoKit(
             "image": "hotel-room",
         },
         {
+            "response": "inquire",
             "title": "3 Nächte zum Preis von 2",
             "desc": "Unter der Woche: drei Nächte bleiben, zwei bezahlen.",
             "new_price": "178.00",
@@ -22976,6 +22986,7 @@ LITE_PENSION = DemoKit(
             "image": "hotel-bed",
         },
         {
+            "response": "inquire",
             "title": "Frühbucher Sommer −15 %",
             "desc": "Jetzt für Juli und August anfragen und sparen.",
             "new_price": "84.00",
@@ -22985,6 +22996,7 @@ LITE_PENSION = DemoKit(
             "image": "lake-view",
         },
         {
+            "response": "inquire",
             "title": "Einzelzimmer für Geschäftsreisende",
             "desc": "Ruhiges Einzelzimmer mit Schreibtisch und Frühstück.",
             "new_price": "69.00",
@@ -22994,6 +23006,7 @@ LITE_PENSION = DemoKit(
             "image": "hotel-single-room",
         },
         {
+            "response": "inquire",
             "title": "Neu: Wanderpaket Müngstener Brücke",
             "desc": "Zwei Nächte, Lunchpaket und Wanderkarte zur Müngstener Brücke.",
             "new_price": "189.00",
@@ -23003,6 +23016,7 @@ LITE_PENSION = DemoKit(
             "image": "suspension-bridge",
         },
         {
+            "response": "inquire",
             "title": "Neu: Familienzimmer",
             "desc": "Neu renoviert: Familienzimmer für bis zu vier Personen.",
             "new_price": "119.00",
@@ -23060,10 +23074,12 @@ LITE_FRISEUR = DemoKit(
     opening_hours_text="Di–Fr 9:00–18:30 · Sa 8:30–14:00",
     opening_hours={**{d: ("09:00", "18:30") for d in range(1, 5)}, 5: ("08:30", "14:00")},
     menus=_lite_menus(),
-    enable_modules=["orders"],
+    enable_modules=["jobs"],
+    anfrage_form={"fields": ["date"]},
     promotions_spec=[
         {
             "title": "Last-Minute-Termin heute −20 %",
+            "response": "inquire",
             "desc": "Ein Termin ist heute kurzfristig frei geworden: Schnitt zum Sonderpreis. "
             "Einfach anrufen.",
             "new_price": "31.20",
@@ -23076,6 +23092,7 @@ LITE_FRISEUR = DemoKit(
         },
         {
             "title": "Waschen, Schneiden, Föhnen 39 €",
+            "response": "inquire",
             "desc": "Damenschnitt mit Haarwäsche und Föhnfrisur — diese Woche zum Festpreis.",
             "new_price": "39.00",
             "compare_at": "49.00",
@@ -23085,6 +23102,7 @@ LITE_FRISEUR = DemoKit(
         },
         {
             "title": "Herrenschnitt + Bartpflege 29 €",
+            "response": "inquire",
             "desc": "Maschinen- oder Scherenschnitt und Bart in Form gebracht.",
             "new_price": "29.00",
             "compare_at": "36.00",
@@ -23094,6 +23112,7 @@ LITE_FRISEUR = DemoKit(
         },
         {
             "title": "Strähnchen-Woche −15 %",
+            "response": "inquire",
             "desc": "Strähnchen oder Balayage mit Pflegekur — nur diese Woche günstiger.",
             "new_price": "72.00",
             "compare_at": "85.00",
@@ -23103,6 +23122,7 @@ LITE_FRISEUR = DemoKit(
         },
         {
             "title": "Neu: Kopfhautmassage zum Schnitt",
+            "response": "show",
             "desc": "Neu bei uns: zehn Minuten entspannende Kopfhautmassage mit Pflegeöl.",
             "new_price": "8.00",
             "new": True,
@@ -23112,6 +23132,7 @@ LITE_FRISEUR = DemoKit(
         },
         {
             "title": "Brautfrisur mit Probetermin",
+            "response": "inquire",
             "desc": "Hochzeit oder Fest: Frisur nach Wunsch inklusive Probetermin, "
             "bitte zwei Wochen vorher anfragen.",
             "new_price": "89.00",
@@ -23642,6 +23663,11 @@ def apply_kit(tenant, key: str) -> bool:
             fields["price_override"] = Decimal(str(spec["new_price"]))
         if spec.get("compare_at"):
             fields["compare_at_price"] = Decimal(str(spec["compare_at"]))
+        # T-8.2: отклик акции (что делает кнопка) и срок «отложить» в часах.
+        if spec.get("response"):
+            fields["metadata"] = {**fields["metadata"], "response": spec["response"]}
+        if spec.get("hold_hours"):
+            fields["reservation_ttl_hours"] = int(spec["hold_hours"])
         if spec.get("type") == "reservation":
             fields["available_quantity"] = spec.get("available_quantity", 10)
         elif spec.get("limit"):  # P6: лимит кампании обычной акции (новые рельсы)

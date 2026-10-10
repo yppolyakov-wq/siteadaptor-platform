@@ -105,8 +105,15 @@ def _detail_ctx(request, promo, form) -> dict:
         promo.page_style, (_sd or {}).get("promo_detail_style", "") if isinstance(_sd, dict) else ""
     )
 
+    # T-8.2: что делает кнопка акции (заказ / отложить / заявка / только показать).
+    from . import response as promo_response
+
+    tenant = getattr(request, "tenant", None)
+    resp = promo_response.response_for(promo, tenant)
+
     return {
         "promotion": promo,
+        "promo_response": resp,
         "promo_detail_style": detail_style,
         "form": form,
         "waitlist_form": WaitlistForm(),
@@ -120,7 +127,8 @@ def _detail_ctx(request, promo, form) -> dict:
         "ld_offer": offer_ld(promo, url=share_url, image_url=og_image),
         "lowest_30d": lowest_30d,
         "target_card": target_card,
-        "conditions": rules_text.conditions_for(promo),  # DL-16.3 AD2
+        # DL-16.3 AD2; T-8.2: условия резерва — и при отклике «отложить».
+        "conditions": rules_text.conditions_for(promo, reserve=resp == promo_response.RESERVE),
         "related_promos": _attach_lowest_30d(related),
         # Фидбэк 2026-09-03: ссылка «Alle anzeigen» у ленты — только когда на
         # /aktionen/ есть что-то сверх показанного (лента режется на 8).
@@ -2310,7 +2318,8 @@ def voucher_qr(request, code):
 
 def reservation_create(request, pk):
     promo = get_object_or_404(Promotion, pk=pk, status="active")
-    if request.method != "POST":
+    # T-8.2: услугу/номер не откладывают — у них своя воронка записи/брони.
+    if request.method != "POST" or promo.target_kind in ("service", "stay"):
         return redirect("storefront-promotion", pk=pk)
 
     # honeypot — тихо игнорируем ботов (отдаём вид успеха)
@@ -2318,6 +2327,14 @@ def reservation_create(request, pk):
         return redirect("storefront-promotion", pk=pk)
 
     form = PublicReservationForm(request.POST)
+    if form.is_valid() and not (
+        form.cleaned_data.get("email") or (form.cleaned_data.get("phone") or "").strip()
+    ):
+        # T-8.2: без контакта лимит «N pro Kunde» не работает, а бизнесу некого
+        # предупредить, если товар закончился.
+        form.add_error(
+            "email", _("Bitte E-Mail oder Telefon angeben, damit wir Sie erreichen können.")
+        )
     ctx = _detail_ctx(request, promo, form)
     if not form.is_valid():
         return render(request, "storefront/promotion_detail.html", ctx)
@@ -2369,6 +2386,13 @@ def promotion_purchase(request, pk):
     if request.method != "POST" or promo.target_kind in ("service", "stay"):
         return redirect("storefront-promotion", pk=pk)
     if request.POST.get("website"):  # honeypot
+        return redirect("storefront-promotion", pk=pk)
+    from . import response as promo_response
+
+    if not promo_response.can_buy(getattr(request, "tenant", None)):
+        # T-8.2: без модуля заказов подтверждение заказа отдаёт 404 — заказ не
+        # создаём, возвращаем на акцию (там кнопка «отложить» вместо покупки).
+        messages.info(request, _("Diese Aktion können Sie zurücklegen lassen."))
         return redirect("storefront-promotion", pk=pk)
 
     form = PublicReservationForm(request.POST)

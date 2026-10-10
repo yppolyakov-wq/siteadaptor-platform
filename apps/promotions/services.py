@@ -47,18 +47,23 @@ def _unique_reference_code() -> str:
 
 
 def _get_or_create_customer(*, name, email, phone) -> Customer:
+    customer = None
     if email:
         customer = Customer.objects.filter(email__iexact=email).order_by("created_at").first()
-        if customer is not None:
-            # дозаполняем пустые контакты, имя не перетираем
-            updates = []
-            if not customer.phone and phone:
-                customer.phone = phone
-                updates.append("phone")
-            if updates:
-                customer.save(update_fields=[*updates, "updated_at"])
-            return customer
-    return Customer.objects.create(name=name, email=email, phone=phone)
+    elif phone and phone.strip():
+        # T-8.2: «отложить» принимает телефон без почты — иначе каждый повтор создавал
+        # нового клиента и лимит «N pro Kunde» не работал.
+        customer = Customer.objects.filter(phone=phone.strip()).order_by("created_at").first()
+    if customer is not None:
+        # дозаполняем пустые контакты, имя не перетираем
+        updates = []
+        if not customer.phone and phone:
+            customer.phone = phone
+            updates.append("phone")
+        if updates:
+            customer.save(update_fields=[*updates, "updated_at"])
+        return customer
+    return Customer.objects.create(name=name, email=email, phone=(phone or "").strip())
 
 
 @transaction.atomic
@@ -115,13 +120,17 @@ def reserve(promotion, *, name, email="", phone="", quantity=1, note="", source_
 
     initial_status = "confirmed" if promotion.auto_confirm else "pending"
     now = timezone.now()
+    expires_at = now + timedelta(hours=promotion.reservation_ttl_hours)
+    if promotion.ends_at and now < promotion.ends_at < expires_at:
+        # T-8.2: отложенное держится не дольше самой акции.
+        expires_at = promotion.ends_at
     reservation = Reservation.objects.create(
         promotion=promotion,
         customer=customer,
         reference_code=_unique_reference_code(),
         quantity=quantity,
         status=initial_status,
-        expires_at=now + timedelta(hours=promotion.reservation_ttl_hours),
+        expires_at=expires_at,
         confirmed_at=now if initial_status == "confirmed" else None,
         note=note,
         source_channel=(source_channel or "")[:50],
@@ -228,8 +237,18 @@ def confirm(reservation, *, actor=None):
 
 
 def fulfill(reservation, *, actor=None):
-    """confirmed → fulfilled (бронь выдана клиенту)."""
+    """confirmed → fulfilled (бронь выдана клиенту).
+
+    T-8.2: неподтверждённую бронь (pending) сначала подтверждаем — клиент с кодом стоит
+    у кассы, а кнопка «Ausgeben» иначе падала (перехода pending → fulfilled нет).
+    Письмо «подтверждено» в этот момент не шлём: клиент уже получает товар.
+    """
     with transaction.atomic():
+        if reservation.status == "pending":
+            from apps.notifications import prefs
+
+            with prefs.muted(customer=True):
+                reservation = confirm(reservation, actor=actor)
         if reservation.status != "fulfilled":
             reservation.fulfilled_at = timezone.now()
             reservation.save(update_fields=["fulfilled_at", "updated_at"])

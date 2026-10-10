@@ -63,6 +63,36 @@ test_public (порядок CTA/точные href). Двухшаговость (
     <p class="text-sm text-gray-500 mb-4">{% trans "Der Aktionspreis wird bei passenden Daten automatisch angewendet." %}</p>
     <a href="{% url 'storefront-unterkunft-unit' promotion.stay_unit_id %}" class="block text-center w-full text-white rounded-lg px-4 py-3 font-medium hover:opacity-90" style="background: var(--accent);">{% trans "Zimmer ansehen & buchen" %} →</a>
   </div>
+  {% elif promo_response == "reserve" %}
+  {% comment %}T-8.2 «Zurücklegen»: старый движок резерва (срок удержания, код+QR,
+  автоснятие, скан выдачи). Без доставки и способа оплаты — бизнес откладывает
+  товар, клиент платит в магазине.{% endcomment %}
+  <div class="mt-6 bg-white rounded-2xl shadow-sm p-5" data-promo-reserve>
+    <h2 class="font-semibold mb-1">{% trans "Zurücklegen lassen" %}</h2>
+    <p class="text-sm text-gray-500 mb-4">{% trans "Unverbindliche Reservierung — Kauf und Zahlung erfolgen im Geschäft." %}{% if promotion.reservation_ttl_hours %} {% blocktrans count h=promotion.reservation_ttl_hours %}Wir halten es {{ h }} Stunde für Sie bereit.{% plural %}Wir halten es {{ h }} Stunden für Sie bereit.{% endblocktrans %}{% endif %}</p>
+    <form method="post" action="{% url 'storefront-reserve' promotion.pk %}" class="space-y-4">
+      {% csrf_token %}
+      <div style="position:absolute;left:-9999px" aria-hidden="true">{{ form.website }}</div>
+      {{ form.form_token }}
+      {{ form.channel }}
+      {% for field in form %}
+        {% if field.name != 'website' and field.name != 'form_token' and field.name != 'channel' %}
+          <div>
+            <label class="block text-sm font-medium mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {% render_field field class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500" %}
+            {% for err in field.errors %}<p class="text-xs text-red-600 mt-1">{{ err }}</p>{% endfor %}
+          </div>
+        {% endif %}
+      {% endfor %}
+      <p class="text-xs text-gray-500">{% trans "E-Mail oder Telefon genügt — damit wir Sie erreichen können." %}</p>
+      <button type="submit" class="w-full text-white rounded-lg px-4 py-3 font-medium hover:opacity-90 focus:ring-2 focus:ring-gray-400" style="background: var(--accent);">
+        {% trans "Zurücklegen lassen" %}
+      </button>
+    </form>
+  </div>
+  {% elif promo_response == "inquire" or promo_response == "show" %}
+  {% comment %}T-8.2: «Anfragen»/«Nur zeigen» — кнопка заявки или подсказка стоят на
+  самой странице; формы заказа здесь нет (иначе её можно было бы отправить).{% endcomment %}
   {% else %}
   {% comment %}P5: товар/набор/свободная акция — та же форма, но результат =
   СТАНДАРТНЫЙ заказ (склад/канбан/письма штатные), не Reservation.{% endcomment %}

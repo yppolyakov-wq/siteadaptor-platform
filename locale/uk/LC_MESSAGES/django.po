@@ -23229,3 +23229,48 @@ msgstr "Пропозиції: %(name)s, %(city)s"
 
 msgid "Vorschau mit Beispielgeschäften: Die mit «Demo» markierten Angebote sind erfunden und zeigen, wie das Portal funktionieren wird."
 msgstr "Попередній перегляд із прикладами: пропозиції з позначкою «Демо» вигадані й показують, як працюватиме портал."
+
+msgid "Anfragen"
+msgstr "Запитати"
+
+msgid "Bitte E-Mail oder Telefon angeben, damit wir Sie erreichen können."
+msgstr "Вкажіть e-mail або телефон, щоб ми могли з вами зв'язатися."
+
+msgid "Diese Aktion können Sie zurücklegen lassen."
+msgstr "Цю пропозицію можна відкласти для вас."
+
+msgid "E-Mail oder Telefon genügt — damit wir Sie erreichen können."
+msgstr "Достатньо e-mail або телефону — щоб ми могли з вами зв'язатися."
+
+msgid "Kommen Sie einfach vorbei — die Aktion gilt direkt im Geschäft."
+msgstr "Просто приходьте — пропозиція діє прямо в магазині."
+
+msgid "Kostenlos und unverbindlich — bezahlt wird im Geschäft."
+msgstr "Безкоштовно й без зобов'язань — оплата в магазині."
+
+msgid "Nur zeigen"
+msgstr "Лише показати"
+
+msgid "Online kaufen"
+msgstr "Купити онлайн"
+
+msgid "Reaktion der Kundschaft"
+msgstr "Дія покупця"
+
+#, python-format
+msgid "Reserviert bis %(until)s"
+msgstr "Відкладено до %(until)s"
+
+msgid "Was der Button auf der Aktionsseite tut. „Automatisch“: online bestellen, wenn Bestellungen aktiv sind — sonst zurücklegen lassen."
+msgstr "Що робить кнопка на сторінці акції. «Автоматично»: онлайн-замовлення, якщо замовлення увімкнені, — інакше відкласти."
+
+msgid "Zurücklegen lassen"
+msgstr "Відкласти для мене"
+
+#, python-format
+msgid "Wir halten es %(h)s Stunde für Sie bereit."
+msgid_plural "Wir halten es %(h)s Stunden für Sie bereit."
+msgstr[0] "Відкладемо для вас на %(h)s годину."
+msgstr[1] "Відкладемо для вас на %(h)s години."
+msgstr[2] "Відкладемо для вас на %(h)s годин."
+msgstr[3] "Відкладемо для вас на %(h)s години."

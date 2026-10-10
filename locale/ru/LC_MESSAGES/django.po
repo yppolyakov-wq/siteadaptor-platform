@@ -23245,3 +23245,48 @@ msgstr "Предложения: %(name)s, %(city)s"
 
 msgid "Vorschau mit Beispielgeschäften: Die mit «Demo» markierten Angebote sind erfunden und zeigen, wie das Portal funktionieren wird."
 msgstr "Предпросмотр с примерами: предложения с пометкой «Демо» вымышлены и показывают, как будет работать портал."
+
+msgid "Anfragen"
+msgstr "Спросить"
+
+msgid "Bitte E-Mail oder Telefon angeben, damit wir Sie erreichen können."
+msgstr "Укажите e-mail или телефон, чтобы мы могли с вами связаться."
+
+msgid "Diese Aktion können Sie zurücklegen lassen."
+msgstr "Это предложение можно отложить для вас."
+
+msgid "E-Mail oder Telefon genügt — damit wir Sie erreichen können."
+msgstr "Достаточно e-mail или телефона — чтобы мы могли с вами связаться."
+
+msgid "Kommen Sie einfach vorbei — die Aktion gilt direkt im Geschäft."
+msgstr "Просто приходите — предложение действует прямо в магазине."
+
+msgid "Kostenlos und unverbindlich — bezahlt wird im Geschäft."
+msgstr "Бесплатно и без обязательств — оплата в магазине."
+
+msgid "Nur zeigen"
+msgstr "Только показать"
+
+msgid "Online kaufen"
+msgstr "Купить онлайн"
+
+msgid "Reaktion der Kundschaft"
+msgstr "Действие покупателя"
+
+#, python-format
+msgid "Reserviert bis %(until)s"
+msgstr "Отложено до %(until)s"
+
+msgid "Was der Button auf der Aktionsseite tut. „Automatisch“: online bestellen, wenn Bestellungen aktiv sind — sonst zurücklegen lassen."
+msgstr "Что делает кнопка на странице акции. «Автоматически»: онлайн-заказ, если заказы включены, — иначе отложить."
+
+msgid "Zurücklegen lassen"
+msgstr "Отложить для меня"
+
+#, python-format
+msgid "Wir halten es %(h)s Stunde für Sie bereit."
+msgid_plural "Wir halten es %(h)s Stunden für Sie bereit."
+msgstr[0] "Отложим для вас на %(h)s час."
+msgstr[1] "Отложим для вас на %(h)s часа."
+msgstr[2] "Отложим для вас на %(h)s часов."
+msgstr[3] "Отложим для вас на %(h)s часа."

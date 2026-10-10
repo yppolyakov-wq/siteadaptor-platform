@@ -5,6 +5,7 @@
 <p style="margin:0;">{% blocktrans with name=customer.name %}Hallo {{ name }},{% endblocktrans %}</p>
 <p style="margin:8px 0 0;">{% trans "vielen Dank für Ihre Reservierung." %}</p>
 {% include "emails/_reservation_box.html" %}
+{% if reservation.expires_at %}<p style="margin:0 0 8px;font-size:14px;color:#3f3f46;">{% blocktrans with until=reservation.expires_at|date:"d.m.Y H:i" %}Wir halten die Reservierung bis {{ until }} für Sie bereit.{% endblocktrans %}</p>{% endif %}
 <p style="margin:0;font-size:14px;color:#3f3f46;">
   {% if reservation.status == 'pending' %}{% trans "Status: wird vom Geschäft bestätigt." %}{% else %}{% trans "Status: bestätigt." %}{% endif %}
 </p>

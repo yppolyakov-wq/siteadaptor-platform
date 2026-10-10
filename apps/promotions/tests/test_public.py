@@ -90,7 +90,8 @@ def test_reserve_honeypot_silently_ignored():
 @pytest.mark.django_db
 def test_reserve_duplicate_token_blocked():
     promo = PromotionFactory(status="active", available_quantity=5)
-    data = {"name": "Eva", "quantity": "1", "form_token": "dup"}
+    # T-8.2: «отложить» требует e-mail или телефон
+    data = {"name": "Eva", "email": "eva@test.de", "quantity": "1", "form_token": "dup"}
     public_views.reservation_create(
         _req(RequestFactory().post(f"/p/{promo.pk}/reserve/", data)), pk=promo.pk
     )
@@ -107,7 +108,7 @@ def test_reserve_out_of_stock_message():
     req = _req(
         RequestFactory().post(
             f"/p/{promo.pk}/reserve/",
-            {"name": "X", "quantity": "1", "form_token": "t2"},
+            {"name": "X", "email": "x@test.de", "quantity": "1", "form_token": "t2"},
         )
     )
     resp = public_views.reservation_create(req, pk=promo.pk)

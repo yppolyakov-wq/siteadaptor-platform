@@ -40,7 +40,9 @@ def weekday_span(days) -> str:
     return ", ".join(parts)
 
 
-def conditions_for(promo) -> list[dict]:
+def conditions_for(promo, *, reserve: bool = False) -> list[dict]:
+    """Условия акции строками. ``reserve`` — отклик «отложить» (T-8.2): лимит на
+    клиента и срок удержания показываются и у акции, не помеченной типом «резерв»."""
     out: list[dict] = []
     rules = promo.target_rules if isinstance(promo.target_rules, dict) else {}
     days = weekday_span(rules.get("weekdays"))
@@ -50,7 +52,7 @@ def conditions_for(promo) -> list[dict]:
         hours = f"{hf}–{ht} " + _("Uhr")
     if days or hours:
         out.append({"icon": "🕒", "text": " ".join(x for x in (days, hours) if x)})
-    if getattr(promo, "promo_type", "") == "reservation":
+    if reserve or getattr(promo, "promo_type", "") == "reservation":
         if promo.max_per_customer:
             out.append(
                 {"icon": "👤", "text": _("max. %(n)s pro Kunde") % {"n": promo.max_per_customer}}

@@ -4,4 +4,5 @@
 {% trans "Kunde" %}: {{ customer.name }} ({{ customer.email }} {{ customer.phone }})
 {% trans "Menge" %}: {{ reservation.quantity }}
 {% trans "Code" %}: {{ reservation.reference_code }}
-{% trans "Status" %}: {{ reservation.status }}
+{% trans "Status" %}: {% if reservation.status == 'pending' %}{% trans "Reserviert" %}{% else %}{% trans "Bestätigt" %}{% endif %}
+{% if reservation.expires_at %}{% blocktrans with until=reservation.expires_at|date:"d.m.Y H:i" %}Reserviert bis {{ until }}{% endblocktrans %}{% endif %}

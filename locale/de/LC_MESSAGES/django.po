@@ -23052,3 +23052,46 @@ msgstr "Angebote in %(name)s, %(city)s"
 
 msgid "Vorschau mit Beispielgeschäften: Die mit «Demo» markierten Angebote sind erfunden und zeigen, wie das Portal funktionieren wird."
 msgstr "Vorschau mit Beispielgeschäften: Die mit «Demo» markierten Angebote sind erfunden und zeigen, wie das Portal funktionieren wird."
+
+msgid "Anfragen"
+msgstr "Anfragen"
+
+msgid "Bitte E-Mail oder Telefon angeben, damit wir Sie erreichen können."
+msgstr "Bitte E-Mail oder Telefon angeben, damit wir Sie erreichen können."
+
+msgid "Diese Aktion können Sie zurücklegen lassen."
+msgstr "Diese Aktion können Sie zurücklegen lassen."
+
+msgid "E-Mail oder Telefon genügt — damit wir Sie erreichen können."
+msgstr "E-Mail oder Telefon genügt — damit wir Sie erreichen können."
+
+msgid "Kommen Sie einfach vorbei — die Aktion gilt direkt im Geschäft."
+msgstr "Kommen Sie einfach vorbei — die Aktion gilt direkt im Geschäft."
+
+msgid "Kostenlos und unverbindlich — bezahlt wird im Geschäft."
+msgstr "Kostenlos und unverbindlich — bezahlt wird im Geschäft."
+
+msgid "Nur zeigen"
+msgstr "Nur zeigen"
+
+msgid "Online kaufen"
+msgstr "Online kaufen"
+
+msgid "Reaktion der Kundschaft"
+msgstr "Reaktion der Kundschaft"
+
+#, python-format
+msgid "Reserviert bis %(until)s"
+msgstr "Reserviert bis %(until)s"
+
+msgid "Was der Button auf der Aktionsseite tut. „Automatisch“: online bestellen, wenn Bestellungen aktiv sind — sonst zurücklegen lassen."
+msgstr "Was der Button auf der Aktionsseite tut. „Automatisch“: online bestellen, wenn Bestellungen aktiv sind — sonst zurücklegen lassen."
+
+msgid "Zurücklegen lassen"
+msgstr "Zurücklegen lassen"
+
+#, python-format
+msgid "Wir halten es %(h)s Stunde für Sie bereit."
+msgid_plural "Wir halten es %(h)s Stunden für Sie bereit."
+msgstr[0] "Wir halten es %(h)s Stunde für Sie bereit."
+msgstr[1] "Wir halten es %(h)s Stunden für Sie bereit."

@@ -23141,3 +23141,46 @@ msgstr "%(name)s, %(city)s teklifleri"
 
 msgid "Vorschau mit Beispielgeschäften: Die mit «Demo» markierten Angebote sind erfunden und zeigen, wie das Portal funktionieren wird."
 msgstr "Örnek işletmelerle önizleme: «Demo» işaretli teklifler hayalidir ve portalın nasıl çalışacağını gösterir."
+
+msgid "Anfragen"
+msgstr "Sor"
+
+msgid "Bitte E-Mail oder Telefon angeben, damit wir Sie erreichen können."
+msgstr "Size ulaşabilmemiz için lütfen e-posta veya telefon girin."
+
+msgid "Diese Aktion können Sie zurücklegen lassen."
+msgstr "Bu fırsatı sizin için ayırtabilirsiniz."
+
+msgid "E-Mail oder Telefon genügt — damit wir Sie erreichen können."
+msgstr "E-posta veya telefon yeterli — size ulaşabilmemiz için."
+
+msgid "Kommen Sie einfach vorbei — die Aktion gilt direkt im Geschäft."
+msgstr "Uğramanız yeterli — fırsat doğrudan mağazada geçerli."
+
+msgid "Kostenlos und unverbindlich — bezahlt wird im Geschäft."
+msgstr "Ücretsiz ve bağlayıcı değil — ödeme mağazada yapılır."
+
+msgid "Nur zeigen"
+msgstr "Yalnızca göster"
+
+msgid "Online kaufen"
+msgstr "Çevrimiçi satın al"
+
+msgid "Reaktion der Kundschaft"
+msgstr "Müşteri tepkisi"
+
+#, python-format
+msgid "Reserviert bis %(until)s"
+msgstr "%(until)s tarihine kadar ayrıldı"
+
+msgid "Was der Button auf der Aktionsseite tut. „Automatisch“: online bestellen, wenn Bestellungen aktiv sind — sonst zurücklegen lassen."
+msgstr "Fırsat sayfasındaki düğmenin ne yaptığı. „Otomatik“: siparişler etkinse çevrimiçi sipariş — değilse ayırtma."
+
+msgid "Zurücklegen lassen"
+msgstr "Benim için ayır"
+
+#, python-format
+msgid "Wir halten es %(h)s Stunde für Sie bereit."
+msgid_plural "Wir halten es %(h)s Stunden für Sie bereit."
+msgstr[0] "Sizin için %(h)s saat ayırıyoruz."
+msgstr[1] "Sizin için %(h)s saat ayırıyoruz."

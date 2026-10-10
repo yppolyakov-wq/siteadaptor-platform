@@ -162,6 +162,21 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
             ],
             help_text=_("Leer = wie in den Website-Einstellungen eingestellt."),
         )
+        # T-8.2: что делает кнопка акции на витрине (Promotion.metadata["response"],
+        # без миграции). Пусто = автоматически: онлайн-заказ при модуле заказов,
+        # иначе «Zurücklegen».
+        from . import response as promo_response
+
+        self.fields["customer_response"] = forms.ChoiceField(
+            label=_("Reaktion der Kundschaft"),
+            required=False,
+            choices=promo_response.CHOICES,
+            initial=promo_response.chosen(self.instance),
+            help_text=_(
+                "Was der Button auf der Aktionsseite tut. „Automatisch“: online bestellen, "
+                "wenn Bestellungen aktiv sind — sonst zurücklegen lassen."
+            ),
+        )
         self.init_i18n_fields(tenant)  # L3d.5
         # `group` — flat+overlay (плоское значение = ключ фасета `?gruppe=`,
         # переводы = только метка), поэтому НЕ через DynamicI18nFormMixin:
@@ -216,6 +231,14 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
             else:
                 overlay.pop(loc, None)  # пустой перевод → фолбэк на базовую метку
         promo.group_i18n = overlay
+        if "customer_response" in self.data:  # presence-guard: чужие POST-ы не стирают выбор
+            meta = dict(promo.metadata) if isinstance(promo.metadata, dict) else {}
+            value = self.cleaned_data.get("customer_response") or ""
+            if value:
+                meta["response"] = value
+            else:
+                meta.pop("response", None)
+            promo.metadata = meta
         if commit:
             promo.save()
         return promo

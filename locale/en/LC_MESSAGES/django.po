@@ -23014,3 +23014,46 @@ msgstr "Offers in %(name)s, %(city)s"
 
 msgid "Vorschau mit Beispielgeschäften: Die mit «Demo» markierten Angebote sind erfunden und zeigen, wie das Portal funktionieren wird."
 msgstr "Preview with sample businesses: offers marked «Demo» are made up and show how the portal will work."
+
+msgid "Anfragen"
+msgstr "Ask"
+
+msgid "Bitte E-Mail oder Telefon angeben, damit wir Sie erreichen können."
+msgstr "Please enter an email or phone number so we can reach you."
+
+msgid "Diese Aktion können Sie zurücklegen lassen."
+msgstr "You can have this offer put aside for you."
+
+msgid "E-Mail oder Telefon genügt — damit wir Sie erreichen können."
+msgstr "An email or phone number is enough — so we can reach you."
+
+msgid "Kommen Sie einfach vorbei — die Aktion gilt direkt im Geschäft."
+msgstr "Just drop by — the offer applies right in the shop."
+
+msgid "Kostenlos und unverbindlich — bezahlt wird im Geschäft."
+msgstr "Free and non-binding — you pay in the shop."
+
+msgid "Nur zeigen"
+msgstr "Just show"
+
+msgid "Online kaufen"
+msgstr "Buy online"
+
+msgid "Reaktion der Kundschaft"
+msgstr "Customer response"
+
+#, python-format
+msgid "Reserviert bis %(until)s"
+msgstr "Reserved until %(until)s"
+
+msgid "Was der Button auf der Aktionsseite tut. „Automatisch“: online bestellen, wenn Bestellungen aktiv sind — sonst zurücklegen lassen."
+msgstr "What the button on the offer page does. “Automatic”: order online if orders are active — otherwise put aside."
+
+msgid "Zurücklegen lassen"
+msgstr "Put aside for me"
+
+#, python-format
+msgid "Wir halten es %(h)s Stunde für Sie bereit."
+msgid_plural "Wir halten es %(h)s Stunden für Sie bereit."
+msgstr[0] "We'll keep it for you for %(h)s hour."
+msgstr[1] "We'll keep it for you for %(h)s hours."

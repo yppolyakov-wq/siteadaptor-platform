@@ -162,13 +162,23 @@
         <p class="font-semibold">🗓 {% blocktrans with d=promotion.starts_at|date:"D d.m.Y" %}Startet am {{ d }}{% endblocktrans %}</p>
         <p class="mt-0.5 text-indigo-800">{% trans "Vorschau — buchen können Sie ab dem Starttag." %}</p>
       </div>
+      {% elif promo_response == "show" %}
+      {% comment %}T-8.2: отклик «Nur zeigen» — без кнопки; дорогу и контакты даёт
+      карточка «So finden Sie uns» ниже.{% endcomment %}
+      <p class="mt-4 text-sm text-gray-600" data-promo-show>{% trans "Kommen Sie einfach vorbei — die Aktion gilt direkt im Geschäft." %}</p>
+      {% elif promo_response == "inquire" and not promotion.is_sold_out %}
+      {% comment %}T-8.2: отклик «Anfragen» — окно заявки с темой акции (как у позиций каталога, GK-14).{% endcomment %}
+      <button type="button" data-promo-inquire data-quick-url="{% url 'storefront-anfrage-modal' %}?betreff={{ promotion.title_text|urlencode }}"
+              class="mt-4 w-full text-white rounded-xl px-4 py-3 font-semibold shadow-sm hover:opacity-90 focus:ring-2 focus:ring-offset-1 focus:ring-red-400"
+              style="background: var(--accent, #dc2626);">{% trans "Anfragen" %}</button>
+      <p class="mt-2 text-center text-xs text-gray-500">{% trans "Unverbindlich — wir melden uns mit einem Angebot." %}</p>
       {% else %}
       <button type="button" data-modal-open="promo-reserve-modal"
               class="mt-4 w-full text-white rounded-xl px-4 py-3 font-semibold shadow-sm hover:opacity-90 focus:ring-2 focus:ring-offset-1 focus:ring-red-400"
               style="background: var(--accent, #dc2626);">
-        {% if promotion.is_sold_out %}🔔 {% trans "Notify me" %}{% else %}{% trans "Reserve now" %}{% endif %}
+        {% if promotion.is_sold_out %}🔔 {% trans "Notify me" %}{% elif promo_response == "reserve" %}{% trans "Zurücklegen lassen" %}{% else %}{% trans "Reserve now" %}{% endif %}
       </button>
-      <p class="mt-2 text-center text-xs text-gray-500">{% trans "No account needed — reserve in 30 seconds." %}</p>
+      <p class="mt-2 text-center text-xs text-gray-500">{% if promo_response == "reserve" %}{% trans "Kostenlos und unverbindlich — bezahlt wird im Geschäft." %}{% else %}{% trans "No account needed — reserve in 30 seconds." %}{% endif %}</p>
       {% endif %}
     </div>
 
@@ -207,9 +217,9 @@
   </div>
 </section>
 {% endif %}
-{% if promotion.discount_style != 'mystery' and promotion.new_price is not None and not promo_preview %}
+{% if promotion.discount_style != 'mystery' and promotion.new_price is not None and not promo_preview and promo_response != "show" %}
   {% blocktrans asvar buyprice with p=promotion.new_price c=promotion.currency|cursym %}{{ p }} {{ c }}{% endblocktrans %}
-  {% trans "Reserve now" as buylabel %}
+  {% if promo_response == "reserve" %}{% trans "Zurücklegen lassen" as buylabel %}{% elif promo_response == "inquire" %}{% trans "Anfragen" as buylabel %}{% else %}{% trans "Reserve now" as buylabel %}{% endif %}
   {% include "storefront/_detail_buybar.html" with price=buyprice anchor="#angebot" label=buylabel sold_out=promotion.is_sold_out %}
 {% endif %}
 

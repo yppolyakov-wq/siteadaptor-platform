@@ -61,8 +61,11 @@ def test_lite_kit_is_a_business_card_with_offers(key):
     assert tenant.latitude is not None and tenant.longitude is not None
     assert business_card.card_context(tenant)["route_url"].startswith("https://www.google.com/maps")
     assert tenant.is_module_active("promotions")
-    # до T-8.2 кнопка акции создаёт заказ — подтверждение заказа обязано открываться
-    assert tenant.is_module_active("orders")
+    # T-8.2: витрина «Nur Aktionen» онлайн не продаёт — кнопка акции откладывает,
+    # спрашивает или только показывает; заказа (и 404 без модуля заказов) нет.
+    from apps.promotions import response
+
+    assert not response.can_buy(tenant)
 
     promos = Promotion.objects.filter(status="active")
     assert promos.count() >= 6
@@ -74,7 +77,11 @@ def test_lite_kit_is_a_business_card_with_offers(key):
 
     promo = promos.first()
     detail = public_views.promotion_detail(_request(f"/p/{promo.pk}/", tenant), promo.pk)
-    assert "data-business-card" in detail.content.decode()
+    detail_html = detail.content.decode()
+    assert "data-business-card" in detail_html
+    assert f"/p/{promo.pk}/kaufen/" not in detail_html
+    kinds = {response.response_for(p, tenant) for p in promos}
+    assert kinds <= {response.RESERVE, response.INQUIRE, response.SHOW}
 
 
 @pytest.mark.parametrize("key", LITE)
