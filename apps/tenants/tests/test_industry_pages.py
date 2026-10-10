@@ -118,3 +118,17 @@ def test_neutral_modules_are_mixed_in_not_appended():
     assert positions, "нейтральных модулей нет в сетке"
     # Не сгруппированы в хвосте: хотя бы один профильный модуль идёт ПОСЛЕ них.
     assert max(positions) < len(labels) - 1, f"нейтральные съехали в конец: {labels}"
+
+
+def test_public_header_has_mobile_quick_start_bar():
+    body = industries_index(RequestFactory().get("/branchen/")).content.decode()
+    assert "data-quick-start-mobile" in body
+    assert 'href="/aktion-starten/" class="md:hidden' in body
+
+
+def test_mobile_quick_start_bar_is_hidden_on_its_own_page():
+    from django.template.loader import render_to_string
+
+    request = RequestFactory().get("/aktion-starten/")
+    html = render_to_string("tenants/_public_header.html", {"request": request})
+    assert "data-quick-start-mobile" not in html

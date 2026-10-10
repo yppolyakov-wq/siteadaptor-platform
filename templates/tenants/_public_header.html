@@ -18,4 +18,7 @@
       <a href="/registrieren/{% if cta_type %}?type={{ cta_type }}{% endif %}" class="hidden sm:inline-flex bg-indigo-600 text-white rounded-lg px-3.5 py-1.5 text-sm font-medium hover:bg-indigo-700">{% trans "Jetzt starten" %}</a>
     </div>
   </div>
+  {% if request.path != '/aktion-starten/' %}
+  <a href="/aktion-starten/" class="md:hidden block border-t border-indigo-100 bg-indigo-50 text-indigo-700 text-sm font-medium text-center py-2 px-4" data-quick-start-mobile>⚡ {% trans "Aktion in 3 Klicks" %} →</a>
+  {% endif %}
 </header>
