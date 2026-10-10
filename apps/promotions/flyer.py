@@ -82,6 +82,7 @@ def call_to_action(promo, tenant) -> str:
     kind = promo_response.response_for(promo, tenant)
     return {
         promo_response.RESERVE: _("Scannen & zurücklegen lassen"),
+        promo_response.COUPON: _("Scannen & Coupon holen"),
         promo_response.INQUIRE: _("Scannen & anfragen"),
         promo_response.BUY: _("Scannen & bestellen"),
         promo_response.BOOKING: _("Scannen & Termin buchen"),

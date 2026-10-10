@@ -12,7 +12,29 @@
     {% endfor %}
   {% endif %}
 
-  {% if reservation %}
+  {% if coupon %}
+    {% comment %}T-8.3: купон акции — гасится один раз; повтор показывает «уже использован».{% endcomment %}
+    <div class="bg-white rounded-2xl shadow-sm p-6 mt-3" data-redeem-coupon>
+      <div class="flex items-center justify-between">
+        <span class="font-mono text-lg font-bold">🎟 {{ coupon.code }}</span>
+        <span class="px-2 py-0.5 rounded-full text-sm {% if coupon.is_redeemable %}bg-green-100 text-green-800{% else %}bg-gray-100{% endif %}">{% if coupon.is_redeemable %}{% trans "gültig" %}{% elif coupon.max_uses and coupon.used_count >= coupon.max_uses %}{% trans "eingelöst" %}{% else %}{% trans "abgelaufen" %}{% endif %}</span>
+      </div>
+      <dl class="mt-4 text-sm space-y-1">
+        <div class="flex justify-between"><dt class="text-gray-500">{% trans "Offer" %}</dt><dd class="font-medium text-right">{{ coupon.promotion.title_text }}</dd></div>
+        {% if coupon.expires_at %}<div class="flex justify-between"><dt class="text-gray-500">{% trans "Gültig bis" %}</dt><dd>{{ coupon.expires_at|date:"d.m.Y H:i" }}</dd></div>{% endif %}
+        {% if coupon.customer %}<div class="flex justify-between"><dt class="text-gray-500">{% trans "Customer" %}</dt><dd class="text-right">{{ coupon.customer }}</dd></div>{% endif %}
+      </dl>
+      <div class="mt-5">
+        {% if coupon.is_redeemable %}
+          <form method="post" action="{% url 'promotions:redeem-action' coupon.code %}">{% csrf_token %}<input type="hidden" name="action" value="coupon"><button class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Einlösen" %}</button></form>
+        {% elif coupon.max_uses and coupon.used_count >= coupon.max_uses %}
+          <p class="text-sm text-green-700">✓ {% blocktrans with d=coupon.updated_at|date:"d.m.Y H:i" %}Bereits eingelöst am {{ d }}.{% endblocktrans %}</p>
+        {% else %}
+          <p class="text-sm text-gray-400">{% trans "Dieser Coupon ist abgelaufen." %}</p>
+        {% endif %}
+      </div>
+    </div>
+  {% elif reservation %}
     <div class="bg-white rounded-2xl shadow-sm p-6 mt-3">
       <div class="flex items-center justify-between">
         <span class="font-mono text-lg font-bold">{{ reservation.reference_code }}</span>

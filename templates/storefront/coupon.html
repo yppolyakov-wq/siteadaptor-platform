@@ -1,0 +1,37 @@
+{% extends "storefront/_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Ihr Coupon" %}{% endblock %}
+
+{% block content %}
+{% comment %}T-8.3: купон клиента. Код и QR показываются на кассе; QR ведёт на экран
+«Einlösen» кабинета (как у резерва). Статус — действует / уже использован / истёк.{% endcomment %}
+<div class="sf-card bg-white rounded-2xl shadow-sm p-8 text-center max-w-md mx-auto" data-coupon data-coupon-state="{{ state }}">
+  <div class="text-4xl mb-3">🎟</div>
+  <h1 class="text-2xl font-bold mb-1">{% trans "Ihr Coupon" %}</h1>
+  <p class="text-gray-600">{{ promotion.title_text }}</p>
+
+  <div class="mt-6 inline-block rounded-xl border-2 border-dashed border-gray-300 px-6 py-4 {% if state != 'valid' %}opacity-50{% endif %}">
+    <p class="text-xs text-gray-500 uppercase tracking-wide">{% trans "Code" %}</p>
+    <p class="text-3xl font-mono font-bold tracking-wider">{{ coupon.code }}</p>
+  </div>
+
+  {% if state == "valid" %}
+    <div class="mt-5">
+      <img src="{% url 'storefront-coupon-qr' coupon.code %}" width="180" height="180"
+           alt="{% trans 'QR code' %}" class="sf-qr inline-block bg-white p-2 rounded-xl border border-gray-200">
+    </div>
+    <p class="text-sm font-medium text-gray-800 mt-4">{% trans "Zeigen Sie diesen Coupon an der Kasse." %}</p>
+    {% if coupon.expires_at %}
+      <p class="text-sm text-gray-500 mt-1" data-coupon-until>{% blocktrans with until=coupon.expires_at|date:"d.m.Y H:i" %}Gültig bis {{ until }}{% endblocktrans %}</p>
+    {% endif %}
+  {% elif state == "used" %}
+    <p class="text-sm text-green-700 mt-4">✓ {% trans "Dieser Coupon wurde bereits eingelöst." %}</p>
+  {% else %}
+    <p class="text-sm text-gray-500 mt-4">{% trans "Dieser Coupon ist abgelaufen." %}</p>
+  {% endif %}
+
+  {% if promotion %}
+    <a href="{% url 'storefront-promotion' promotion.pk %}" class="inline-block mt-6 text-indigo-600 hover:underline">{% trans "Zur Aktion" %}</a>
+  {% endif %}
+</div>
+{% endblock %}

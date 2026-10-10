@@ -23360,3 +23360,63 @@ msgstr "%(date)s tarihine kadar geçerli"
 
 msgid "Überraschungspreis"
 msgstr "Sürpriz fiyat"
+
+msgid "Alle Coupons sind leider vergeben."
+msgstr "Maalesef tüm kuponlar tükendi."
+
+#, python-format
+msgid "Bereits eingelöst am %(d)s."
+msgstr "%(d)s tarihinde zaten kullanıldı."
+
+msgid "Bitte eine gültige E-Mail-Adresse angeben."
+msgstr "Lütfen geçerli bir e-posta adresi girin."
+
+msgid "Coupon holen"
+msgstr "Kupon al"
+
+msgid "Coupon nicht gefunden."
+msgstr "Kupon bulunamadı."
+
+msgid "Coupon zusätzlich per E-Mail sichern (optional)"
+msgstr "Kuponu ayrıca e-postayla kaydet (isteğe bağlı)"
+
+#, python-format
+msgid "Coupons %(n)s · eingelöst %(m)s"
+msgstr "Kuponlar %(n)s · kullanılan %(m)s"
+
+msgid "Dieser Coupon ist abgelaufen."
+msgstr "Bu kuponun süresi doldu."
+
+msgid "Dieser Coupon ist deaktiviert."
+msgstr "Bu kupon devre dışı."
+
+msgid "Dieser Coupon wurde bereits eingelöst."
+msgstr "Bu kupon zaten kullanıldı."
+
+#, python-format
+msgid "Gültig bis %(until)s"
+msgstr "%(until)s tarihine kadar geçerli"
+
+msgid "Ihr Coupon"
+msgstr "Kuponunuz"
+
+msgid "Kostenlos — den Code zeigen Sie einfach an der Kasse."
+msgstr "Ücretsiz — kodu kasada göstermeniz yeterli."
+
+msgid "Kund:innen holen sich einen Code und zeigen ihn an der Kasse."
+msgstr "Müşteriler bir kod alır ve kasada gösterir."
+
+msgid "Scannen & Coupon holen"
+msgstr "Tara & kupon al"
+
+msgid "Zeigen Sie diesen Coupon an der Kasse."
+msgstr "Bu kuponu kasada gösterin."
+
+msgid "Zur Aktion"
+msgstr "Kampanyaya git"
+
+msgid "eingelöst"
+msgstr "kullanıldı"
+
+msgid "gültig"
+msgstr "geçerli"

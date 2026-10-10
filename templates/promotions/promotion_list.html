@@ -102,7 +102,7 @@
           имя товара в Sortiment); «Edit» в действиях остаётся.{% endcomment %}
           <td class="py-2"><a href="{% url 'promotions:promotion-edit' p.pk %}" class="font-medium hover:text-indigo-700 hover:underline">{{ p }}</a>
             {# T-8.4: просмотры · отложили · выдано — то, что бизнесу важно при продлении #}
-            <span class="block text-[11px] text-gray-400" data-promo-counters>👁 {{ p.views }} · {% trans "zurückgelegt" %} {{ p.n_held }} · {% trans "ausgegeben" %} {{ p.n_handed }}</span>
+            <span class="block text-[11px] text-gray-400" data-promo-counters>👁 {{ p.views }} · {% trans "zurückgelegt" %} {{ p.n_held }} · {% trans "ausgegeben" %} {{ p.n_handed }}{% if p.n_coupons %} · 🎟 {% blocktrans with n=p.n_coupons m=p.n_coupons_used %}Coupons {{ n }} · eingelöst {{ m }}{% endblocktrans %}{% endif %}</span>
           </td>
           <td class="py-2">{{ p.get_promo_type_display }}</td>
           {% comment %}X6-3 (ловушка черновика): вместо сырого кода — подпись, а у

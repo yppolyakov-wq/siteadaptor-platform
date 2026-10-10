@@ -65,6 +65,18 @@ class Voucher(I18nMixin, TimestampedModel):
         related_name="vouchers",
     )
 
+    # T-8.3: купон акции («Coupon holen») — выдан клиенту на странице акции и
+    # гасится ТОЛЬКО на кассе сканером. SET_NULL: код переживает удаление акции.
+    # Скидочных полей у купона нет — скидку описывает сама акция; в онлайн-чекаут
+    # (spend_voucher) купон не попадает.
+    promotion = models.ForeignKey(
+        "promotions.Promotion",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="coupons",
+    )
+
     class Meta:
         ordering = ["-created_at"]
         db_table = "promotions_voucher"

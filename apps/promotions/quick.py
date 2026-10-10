@@ -31,6 +31,7 @@ TERM_CHOICES = [
 # Подписи откликов в ассистенте — короче, чем в полной форме, и с примером.
 RESPONSE_HINTS = {
     promo_response.RESERVE: _("Kund:innen lassen es zurücklegen und holen es bei Ihnen ab."),
+    promo_response.COUPON: _("Kund:innen holen sich einen Code und zeigen ihn an der Kasse."),
     promo_response.SHOW: _("Nur zeigen: Preis, Adresse, Route und Anruf."),
     promo_response.INQUIRE: _("Kund:innen schicken eine Anfrage mit Datum und Wunsch."),
     promo_response.BUY: _("Kund:innen bestellen direkt online."),
@@ -40,7 +41,7 @@ RESPONSE_HINTS = {
 def response_options(tenant) -> list[tuple[str, str, str]]:
     """Выполнимые отклики для этого тенанта: (ключ, подпись, подсказка)."""
     labels = dict(promo_response.CHOICES)
-    keys = [promo_response.RESERVE, promo_response.SHOW]
+    keys = [promo_response.RESERVE, promo_response.COUPON, promo_response.SHOW]
     if promo_response.can_inquire(tenant):
         keys.append(promo_response.INQUIRE)
     if promo_response.can_buy(tenant):

@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import translation
@@ -156,8 +156,14 @@ def promotion_list(request):
             n_held=Count(
                 "reservations",
                 filter=Q(reservations__status__in=["pending", "confirmed", "fulfilled"]),
+                distinct=True,
             ),
-            n_handed=Count("reservations", filter=Q(reservations__status="fulfilled")),
+            n_handed=Count(
+                "reservations", filter=Q(reservations__status="fulfilled"), distinct=True
+            ),
+            # T-8.3: купоны акции — выдано / погашено (distinct: join с резервами)
+            n_coupons=Count("coupons", distinct=True),
+            n_coupons_used=Count("coupons", filter=Q(coupons__used_count__gt=0), distinct=True),
         )
         .all()
     )
@@ -1085,9 +1091,48 @@ def redeem_home(request):
     return render(request, "promotions/redeem.html", {"nav": "redeem"})
 
 
+def _coupon_for(code):
+    """T-8.3: купон акции по коду (`C-…`) — для экрана «Einlösen»."""
+    from apps.loyalty.models import Voucher
+
+    return (
+        Voucher.objects.select_related("promotion")
+        .filter(code=code, promotion__isnull=False)
+        .first()
+    )
+
+
+def _redeem_coupon(request, code) -> None:
+    try:
+        services.redeem_voucher(code)
+        messages.success(request, _("%(code)s: eingelöst ✓") % {"code": code})
+    except services.VoucherError as exc:
+        messages.error(request, _COUPON_ERRORS.get(exc.reason, _COUPON_ERRORS["not_found"]))
+
+
+_COUPON_ERRORS = {
+    "not_found": gettext_lazy("Coupon nicht gefunden."),
+    "inactive": gettext_lazy("Dieser Coupon ist deaktiviert."),
+    "expired": gettext_lazy("Dieser Coupon ist abgelaufen."),
+    "used_up": gettext_lazy("Dieser Coupon wurde bereits eingelöst."),
+}
+
+
 @login_required
 def redeem_detail(request, code):
     code = code.strip().upper()
+    # T-8.3: купон акции гасится тем же экраном, что и резерв.
+    coupon = _coupon_for(code) if code.startswith("C-") else None
+    if coupon is not None:
+        auto = getattr(getattr(request, "tenant", None), "auto_redeem_on_scan", False)
+        if auto and coupon.is_redeemable:
+            _redeem_coupon(request, code)
+            coupon.refresh_from_db()
+        return render(
+            request,
+            "promotions/redeem_detail.html",
+            {"coupon": coupon, "code": code, "nav": "redeem"},
+        )
     res = (
         Reservation.objects.select_related("promotion", "customer")
         .filter(reference_code=code)
@@ -1115,6 +1160,11 @@ def redeem_detail(request, code):
 @login_required
 def redeem_action(request, code):
     code = code.strip().upper()
+    if request.method == "POST" and request.POST.get("action") == "coupon":
+        if _coupon_for(code) is None:
+            raise Http404
+        _redeem_coupon(request, code)
+        return redirect("promotions:redeem-detail", code=code)
     res = get_object_or_404(Reservation, reference_code=code)
     if request.method == "POST":
         action = request.POST.get("action", "")

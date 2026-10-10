@@ -624,6 +624,10 @@ urlpatterns = [
     ),
     path("p/<uuid:pk>/reserve/", public_views.reservation_create, name="storefront-reserve"),
     path("p/<uuid:pk>/waitlist/", public_views.waitlist_join, name="storefront-waitlist"),
+    # T-8.3: «Coupon holen» — выдача, страница купона, QR для кассы.
+    path("p/<uuid:pk>/coupon/", public_views.coupon_create, name="storefront-coupon-create"),
+    path("coupon/<str:code>/", public_views.coupon_page, name="storefront-coupon"),
+    path("coupon/<str:code>/qr.svg", public_views.coupon_qr, name="storefront-coupon-qr"),
     path("p/<uuid:pk>/qr.svg", public_views.promotion_qr, name="storefront-promotion-qr"),
     path("r/<str:code>/", public_views.reservation_confirmation, name="storefront-confirmation"),
     path("r/<str:code>/qr.svg", public_views.reservation_qr, name="storefront-reservation-qr"),

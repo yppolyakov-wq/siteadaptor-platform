@@ -23233,3 +23233,63 @@ msgstr "valid until %(date)s"
 
 msgid "Überraschungspreis"
 msgstr "Surprise price"
+
+msgid "Alle Coupons sind leider vergeben."
+msgstr "All coupons have been claimed, sorry."
+
+#, python-format
+msgid "Bereits eingelöst am %(d)s."
+msgstr "Already redeemed on %(d)s."
+
+msgid "Bitte eine gültige E-Mail-Adresse angeben."
+msgstr "Please enter a valid email address."
+
+msgid "Coupon holen"
+msgstr "Get coupon"
+
+msgid "Coupon nicht gefunden."
+msgstr "Coupon not found."
+
+msgid "Coupon zusätzlich per E-Mail sichern (optional)"
+msgstr "Also save the coupon by email (optional)"
+
+#, python-format
+msgid "Coupons %(n)s · eingelöst %(m)s"
+msgstr "Coupons %(n)s · redeemed %(m)s"
+
+msgid "Dieser Coupon ist abgelaufen."
+msgstr "This coupon has expired."
+
+msgid "Dieser Coupon ist deaktiviert."
+msgstr "This coupon is deactivated."
+
+msgid "Dieser Coupon wurde bereits eingelöst."
+msgstr "This coupon has already been redeemed."
+
+#, python-format
+msgid "Gültig bis %(until)s"
+msgstr "Valid until %(until)s"
+
+msgid "Ihr Coupon"
+msgstr "Your coupon"
+
+msgid "Kostenlos — den Code zeigen Sie einfach an der Kasse."
+msgstr "Free — just show the code at the till."
+
+msgid "Kund:innen holen sich einen Code und zeigen ihn an der Kasse."
+msgstr "Customers get a code and show it at the till."
+
+msgid "Scannen & Coupon holen"
+msgstr "Scan & get a coupon"
+
+msgid "Zeigen Sie diesen Coupon an der Kasse."
+msgstr "Show this coupon at the till."
+
+msgid "Zur Aktion"
+msgstr "To the offer"
+
+msgid "eingelöst"
+msgstr "redeemed"
+
+msgid "gültig"
+msgstr "valid"

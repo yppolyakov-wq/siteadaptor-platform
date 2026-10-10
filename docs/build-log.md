@@ -17131,3 +17131,33 @@ QR и share; горизонтальной прокрутки нет. Стенд 
 Стенд (рендер PDF демо «Feierabendtüte», de/ru): нашёл дефект — путь с UUID не
 переносился и вылезал за край → печатается только адрес сайта (ссылку несёт QR).
 Замки `apps/promotions/tests/test_flyer.py` (14). 15 msgid × 5 каталогов.
+
+## 2026-10-10 — T-8.3 «Coupon holen»: купон акции с погашением на кассе (⚠️ миграция `loyalty/0006`)
+
+Пункт 4 общего плана T-8 (решение владельца Р-2). План — `docs/t8-3-coupon-plan-2026-10-10.md`.
+
+- **Модель:** `Voucher.promotion` (nullable FK, `related_name="coupons"`, SET_NULL; миграция
+  `loyalty/0006`, аддитивная). Купон = Voucher с акцией, код `C-XXXXXX` (тот же генератор,
+  префикс параметром), `max_uses=1`, `expires_at = promotion.ends_at`, без скидочных полей —
+  скидку описывает сама акция.
+- **Онлайн-чекаут купон не принимает:** `spend_voucher` фильтрует `promotion__isnull=True`
+  (код живёт только на кассе; замок).
+- **Выдача** `services.issue_coupon`: только активная акция; лимит `available_quantity`
+  списывается тем же conditional UPDATE (anti-oversell, «Alle Coupons sind leider vergeben»);
+  «1 на человека» — подписанная кука `sa_coupons` (коды, выданные этому браузеру; без
+  трекинга) ИЛИ тот же e-mail/телефон → возвращается уже выданный купон, лимит не трогается.
+- **Отклик** `response.COUPON` («Coupon holen») в реестре T-8.2: кнопка на детали акции →
+  `/p/<uuid>/coupon/` (POST, honeypot, rate-limit, e-mail необязателен) → страница купона
+  `/coupon/<code>/` (код, QR на экран «Einlösen», «Gültig bis», состояния
+  действует/погашен/истёк). Страница купона куку не читает — анонимный кэш цел.
+- **Касса:** `redeem_detail` узнаёт `C-…` (карточка купона + «Einlösen», уважает
+  `auto_redeem_on_scan`), повторное погашение — «Bereits eingelöst am …».
+- **Кабинет:** отклик в форме акции и в ассистенте T-8.4 (у любого тенанта), счётчики в
+  списке «🎟 Coupons N · eingelöst M» (distinct, без N+1), призыв флаера T-8.9 «Scannen &
+  Coupon holen».
+- **Демо:** «Frühstück für zwei» (`ohligser_eck`) и «Schal gratis zum Mantel» (`walder_faden`).
+
+Замки `apps/promotions/tests/test_coupon.py` (11) + демо-замок в `test_lite_demos.py`;
+замок ассистента T-8.4 переписан осознанно (купон — выполнимый отклик всегда). 19 msgid × 5
+каталогов. ⚠️ ops: деплой `loyalty/0006` + `seed_demo_tenants --kit ohligser_eck --recreate`
+и `--kit walder_faden --recreate`.

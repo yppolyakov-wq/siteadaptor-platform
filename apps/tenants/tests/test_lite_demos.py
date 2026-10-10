@@ -81,7 +81,7 @@ def test_lite_kit_is_a_business_card_with_offers(key):
     assert "data-business-card" in detail_html
     assert f"/p/{promo.pk}/kaufen/" not in detail_html
     kinds = {response.response_for(p, tenant) for p in promos}
-    assert kinds <= {response.RESERVE, response.INQUIRE, response.SHOW}
+    assert kinds <= {response.RESERVE, response.COUPON, response.INQUIRE, response.SHOW}
 
 
 @pytest.mark.parametrize("key", LITE)
@@ -111,3 +111,24 @@ def test_lite_offers_are_sorted_urgent_first(key):
     if all(i >= 0 for i in order):
         assert order[0] < order[1]
     assert "Dauerhaft" in aktionen
+
+
+@pytest.mark.parametrize("key", ["ohligser_eck", "walder_faden"])
+def test_cafe_and_fashion_demos_carry_a_coupon_offer(key):
+    """T-8.3: у кафе и мода-лавки по одной акции «Coupon holen» — кнопка видна в демо."""
+    from apps.promotions import response
+
+    kit = demo_kits.KITS[key]
+    tenant = TenantFactory(schema_name="public", slug=f"lite-cp-{key}", name=kit.label)
+    demo_kits.apply_kit(tenant, key)
+    tenant.refresh_from_db()
+    coupons = [
+        p
+        for p in Promotion.objects.filter(status="active")
+        if response.response_for(p, tenant) == response.COUPON
+    ]
+    assert len(coupons) == 1
+    detail = public_views.promotion_detail(
+        _request(f"/p/{coupons[0].pk}/", tenant), coupons[0].pk
+    ).content.decode()
+    assert "data-promo-coupon" in detail

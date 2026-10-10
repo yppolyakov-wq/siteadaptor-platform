@@ -6,6 +6,7 @@ docs/t8-2-zuruecklegen-plan-2026-10-10.md §1).
 - ``buy`` — онлайн-заказ (только если модуль заказов включён и витрина не «Nur Aktionen»);
 - ``reserve`` — «Zurücklegen»: старый движок резерва (срок, код+QR, сканер);
 - ``inquire`` — «Anfragen»: окно заявки с темой акции (нужен модуль заявок);
+- ``coupon`` — «Coupon holen»: личный код + QR, гасится на кассе сканером (T-8.3);
 - ``show`` — без кнопки, только «So finden Sie uns».
 
 Явный выбор владельца живёт в ``Promotion.metadata["response"]``; невыполнимый выбор
@@ -21,11 +22,13 @@ BUY = "buy"
 RESERVE = "reserve"
 INQUIRE = "inquire"
 SHOW = "show"
+COUPON = "coupon"
 
 # Выбор в форме владельца ("" = автоматически).
 CHOICES = [
     ("", _("Automatisch")),
     (RESERVE, _("Zurücklegen lassen")),
+    (COUPON, _("Coupon holen")),
     (INQUIRE, _("Anfragen")),
     (SHOW, _("Nur zeigen")),
     (BUY, _("Online kaufen")),
@@ -73,6 +76,8 @@ def response_for(promo, tenant) -> str:
         return SHOW
     if wanted == RESERVE:
         return RESERVE
+    if wanted == COUPON:
+        return COUPON
     if wanted == INQUIRE and can_inquire(tenant):
         return INQUIRE
     if wanted == BUY and can_buy(tenant):

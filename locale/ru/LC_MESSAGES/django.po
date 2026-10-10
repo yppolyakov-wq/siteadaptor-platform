@@ -23466,3 +23466,63 @@ msgstr "действует до %(date)s"
 
 msgid "Überraschungspreis"
 msgstr "Цена-сюрприз"
+
+msgid "Alle Coupons sind leider vergeben."
+msgstr "Все купоны, к сожалению, уже разобраны."
+
+#, python-format
+msgid "Bereits eingelöst am %(d)s."
+msgstr "Уже погашен %(d)s."
+
+msgid "Bitte eine gültige E-Mail-Adresse angeben."
+msgstr "Укажите корректный адрес e-mail."
+
+msgid "Coupon holen"
+msgstr "Получить купон"
+
+msgid "Coupon nicht gefunden."
+msgstr "Купон не найден."
+
+msgid "Coupon zusätzlich per E-Mail sichern (optional)"
+msgstr "Дополнительно сохранить купон по e-mail (необязательно)"
+
+#, python-format
+msgid "Coupons %(n)s · eingelöst %(m)s"
+msgstr "Купоны %(n)s · погашено %(m)s"
+
+msgid "Dieser Coupon ist abgelaufen."
+msgstr "Срок действия купона истёк."
+
+msgid "Dieser Coupon ist deaktiviert."
+msgstr "Купон отключён."
+
+msgid "Dieser Coupon wurde bereits eingelöst."
+msgstr "Этот купон уже погашен."
+
+#, python-format
+msgid "Gültig bis %(until)s"
+msgstr "Действует до %(until)s"
+
+msgid "Ihr Coupon"
+msgstr "Ваш купон"
+
+msgid "Kostenlos — den Code zeigen Sie einfach an der Kasse."
+msgstr "Бесплатно — просто покажите код на кассе."
+
+msgid "Kund:innen holen sich einen Code und zeigen ihn an der Kasse."
+msgstr "Клиенты получают код и показывают его на кассе."
+
+msgid "Scannen & Coupon holen"
+msgstr "Сканируйте и получите купон"
+
+msgid "Zeigen Sie diesen Coupon an der Kasse."
+msgstr "Покажите этот купон на кассе."
+
+msgid "Zur Aktion"
+msgstr "К акции"
+
+msgid "eingelöst"
+msgstr "погашен"
+
+msgid "gültig"
+msgstr "действует"

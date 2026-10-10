@@ -280,9 +280,9 @@ def expire(reservation, *, actor=None):
 # ---------------------------------------------------------------------------
 
 
-def _unique_voucher_code() -> str:
+def _unique_voucher_code(prefix: str = "V-") -> str:
     for _ in range(10):
-        code = "V-" + "".join(secrets.choice(_ALPHABET) for _ in range(6))
+        code = prefix + "".join(secrets.choice(_ALPHABET) for _ in range(6))
         if not Voucher.objects.filter(code=code).exists():
             return code
     raise RuntimeError("could not generate unique voucher code")
@@ -320,6 +320,62 @@ def generate_vouchers(
             )
         )
     return created
+
+
+# ---------------------------------------------------------------------------
+# T-8.3: купон акции («Coupon holen») — план docs/t8-3-coupon-plan-2026-10-10.md
+# ---------------------------------------------------------------------------
+
+
+class CouponUnavailable(Exception):
+    """Купон не выдан: акция не активна или все купоны розданы."""
+
+
+def find_coupon(promotion, code) -> Voucher | None:
+    code = (code or "").strip().upper()
+    if not code:
+        return None
+    return Voucher.objects.filter(code=code, promotion=promotion).first()
+
+
+def issue_coupon(promotion, *, name="", email="", phone="", existing_code=""):
+    """Выдать купон акции → (voucher, created).
+
+    «1 на человека»: код из куки этого браузера (``existing_code``) или тот же
+    e-mail/телефон возвращают уже выданный купон — лимит не тронут. Лимит акции
+    (``available_quantity``) списывается тем же conditional UPDATE, что резерв.
+    Контакт необязателен; клиент заводится, только если он оставлен."""
+    existing = find_coupon(promotion, existing_code)
+    if existing is not None:
+        return existing, False
+    email = (email or "").strip()
+    phone = (phone or "").strip()
+    customer = None
+    if email or phone:
+        customer = _get_or_create_customer(
+            name=(name or "").strip() or email or phone, email=email, phone=phone
+        )
+        existing = Voucher.objects.filter(promotion=promotion, customer=customer).first()
+        if existing is not None:
+            return existing, False
+    with transaction.atomic():
+        active = Promotion.objects.filter(id=promotion.id, status="active")
+        if promotion.available_quantity is None:
+            if not active.exists():
+                raise CouponUnavailable
+        elif not active.filter(available_quantity__gte=1).update(
+            available_quantity=F("available_quantity") - 1
+        ):
+            raise CouponUnavailable
+        voucher = Voucher.objects.create(
+            code=_unique_voucher_code("C-"),
+            label=(promotion.title_text or "Coupon")[:120],
+            max_uses=1,
+            expires_at=promotion.ends_at,
+            customer=customer,
+            promotion=promotion,
+        )
+    return voucher, True
 
 
 @transaction.atomic
@@ -387,7 +443,9 @@ def spend_voucher(code, base_cents: int):
     (B1.5) списывает остаток частично (кап суммой), обычный промокод —
     used_count += 1 в пределах max_uses."""
     code = (code or "").strip().upper()
-    voucher = Voucher.objects.select_for_update().filter(code=code).first()
+    # T-8.3: купон акции живёт только на кассе — онлайн-чекаут его не видит
+    # (иначе код без скидки «сгорел» бы на любом заказе).
+    voucher = Voucher.objects.select_for_update().filter(code=code, promotion__isnull=True).first()
     if voucher is None:
         raise VoucherError("not_found")
     if not voucher.is_active:

@@ -13,6 +13,7 @@ import segno
 from django.conf import settings
 from django.contrib import messages
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
 from django.db.models import F, Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -2374,6 +2375,134 @@ def reservation_create(request, pk):
         return render(request, "storefront/promotion_detail.html", ctx)
 
     return redirect("storefront-confirmation", code=res.reference_code)
+
+
+# --- T-8.3: «Coupon holen» (план docs/t8-3-coupon-plan-2026-10-10.md) -------------
+
+COUPON_COOKIE = "sa_coupons"
+COUPON_COOKIE_SALT = "t83-coupon"
+COUPON_COOKIE_MAX = 30  # купонов в одной куке (старые вытесняются)
+
+
+def _coupon_codes(request) -> dict:
+    """{promo_id: code} купонов этого браузера — «1 на человека» без аккаунта.
+
+    Подписанная кука хранит только коды уже выданных купонов (никакого трекинга);
+    подделка/мусор → пусто."""
+    import json
+
+    try:
+        raw = request.get_signed_cookie(COUPON_COOKIE, default="{}", salt=COUPON_COOKIE_SALT)
+        data = json.loads(raw)
+    except Exception:  # noqa: BLE001 — битая/подделанная кука: начинаем с чистого листа
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _remember_coupon(response, request, promo, code):
+    import json
+
+    data = _coupon_codes(request)
+    data.pop(str(promo.pk), None)
+    data[str(promo.pk)] = code
+    while len(data) > COUPON_COOKIE_MAX:
+        data.pop(next(iter(data)))
+    response.set_signed_cookie(
+        COUPON_COOKIE,
+        json.dumps(data),
+        salt=COUPON_COOKIE_SALT,
+        max_age=60 * 60 * 24 * 90,
+        httponly=True,
+        samesite="Lax",
+    )
+    return response
+
+
+def coupon_create(request, pk):
+    """T-8.3: выдать купон акции (POST со страницы акции) → страница купона."""
+    from . import response as promo_response
+    from .services import CouponUnavailable, find_coupon, issue_coupon
+
+    promo = get_object_or_404(Promotion, pk=pk, status="active")
+    tenant = getattr(request, "tenant", None)
+    if request.method != "POST" or promo_response.response_for(promo, tenant) != "coupon":
+        return redirect("storefront-promotion", pk=pk)
+    if request.POST.get("website"):  # honeypot — вид успеха без купона
+        return redirect("storefront-promotion", pk=pk)
+
+    existing = _coupon_codes(request).get(str(promo.pk), "")
+    if existing:
+        # повторный заход того же браузера — тот же купон, без лимита и rate-limit
+        found = find_coupon(promo, existing)
+        if found is not None:
+            return redirect("storefront-coupon", code=found.code)
+
+    if ratelimit.hit(
+        "coupon", f"{ratelimit.client_ip(request)}:{pk}", limit=RL_LIMIT, window=RL_WINDOW
+    ):
+        messages.error(request, _("Zu viele Versuche. Bitte später erneut."))
+        return redirect("storefront-promotion", pk=pk)
+
+    email = (request.POST.get("email") or "").strip()[:254]
+    if email:
+        from django.core.validators import validate_email
+
+        try:
+            validate_email(email)
+        except ValidationError:
+            messages.error(request, _("Bitte eine gültige E-Mail-Adresse angeben."))
+            return redirect("storefront-promotion", pk=pk)
+    try:
+        voucher, _created = issue_coupon(
+            promo,
+            name=(request.POST.get("name") or "")[:200],
+            email=email,
+            phone=(request.POST.get("phone") or "")[:40],
+        )
+    except CouponUnavailable:
+        messages.error(request, _("Alle Coupons sind leider vergeben."))
+        return redirect("storefront-promotion", pk=pk)
+    return _remember_coupon(
+        redirect("storefront-coupon", code=voucher.code), request, promo, voucher.code
+    )
+
+
+def coupon_page(request, code):
+    """T-8.3: купон клиента — код, QR для кассы, срок, статус."""
+    if ratelimit.hit(
+        "resv_confirm", ratelimit.client_ip(request), limit=QR_RL_LIMIT, window=RL_WINDOW
+    ):
+        return HttpResponse(status=429)
+    from django.utils import timezone
+
+    voucher = get_object_or_404(
+        Voucher.objects.select_related("promotion"),
+        code=(code or "").strip().upper(),
+        promotion__isnull=False,
+    )
+    now = timezone.now()
+    state = "valid"
+    if voucher.max_uses and voucher.used_count >= voucher.max_uses:
+        state = "used"
+    elif (voucher.expires_at and voucher.expires_at < now) or not voucher.is_active:
+        state = "expired"
+    return render(
+        request,
+        "storefront/coupon.html",
+        {"coupon": voucher, "promotion": voucher.promotion, "state": state},
+    )
+
+
+def coupon_qr(request, code):
+    """QR купона: адрес экрана «Einlösen» кабинета — кассир сканирует штатной камерой."""
+    if _qr_limited(request):
+        return HttpResponse(status=429)
+    code = (code or "").strip().upper()
+    get_object_or_404(Voucher, code=code, promotion__isnull=False)
+    url = request.build_absolute_uri(reverse("promotions:redeem-detail", args=[code]))
+    buf = io.BytesIO()
+    segno.make(url, error="m").save(buf, kind="svg", scale=6, border=2)
+    return HttpResponse(buf.getvalue(), content_type="image/svg+xml")
 
 
 def promotion_purchase(request, pk):

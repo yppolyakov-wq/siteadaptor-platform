@@ -90,7 +90,7 @@ test_public (порядок CTA/точные href). Двухшаговость (
       </button>
     </form>
   </div>
-  {% elif promo_response == "inquire" or promo_response == "show" %}
+  {% elif promo_response == "inquire" or promo_response == "show" or promo_response == "coupon" %}
   {% comment %}T-8.2: «Anfragen»/«Nur zeigen» — кнопка заявки или подсказка стоят на
   самой странице; формы заказа здесь нет (иначе её можно было бы отправить).{% endcomment %}
   {% else %}

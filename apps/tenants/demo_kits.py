@@ -22663,6 +22663,7 @@ LITE_CAFE = DemoKit(
         },
         {
             "title": "Frühstück für zwei",
+            "response": "coupon",
             "desc": "Zwei Frühstücke mit Brötchen, Aufschnitt, Ei und zwei Heißgetränken.",
             "new_price": "19.90",
             "compare_at": "24.80",
@@ -22779,6 +22780,7 @@ LITE_MODE = DemoKit(
         },
         {
             "title": "Schal gratis zum Mantel",
+            "response": "coupon",
             "desc": "Zu jedem Wintermantel ein Wollschal Ihrer Wahl dazu.",
             "ends_in_days": 7,
             "group": "Sale",

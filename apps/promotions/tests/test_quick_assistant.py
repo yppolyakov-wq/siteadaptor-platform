@@ -248,7 +248,8 @@ def test_price_and_percent_together_rejected(user):
 def test_only_feasible_responses_offered(user):
     lite = _tenant("t84-opts", disabled=("orders", "jobs"))
     keys = [k for k, _l, _h in quick.response_options(lite)]
-    assert keys == ["reserve", "show"]  # без заказов и заявок — ни «купить», ни «спросить»
+    # без заказов и заявок — ни «купить», ни «спросить»; купон (T-8.3) — всегда
+    assert keys == ["reserve", "coupon", "show"]
     shop = _tenant("t84-opts2", profile="", disabled=())
     keys = [k for k, _l, _h in quick.response_options(shop)]
     assert keys[0] == "buy" and "inquire" in keys
