@@ -31,3 +31,14 @@ def shortlist(request):
         "shortlist_ids": set(sl.ids(request)),
         "shortlist_count": sl.count(request),
     }
+
+
+def languages(request):
+    """Переключатель языка на страницах каталога города (портал и /entdecken/)."""
+    if getattr(request, "portal", None) is None and not (request.path or "").startswith(
+        "/entdecken"
+    ):
+        return {}
+    from apps.tenants.views import ui_languages
+
+    return {"ui_languages": ui_languages()}

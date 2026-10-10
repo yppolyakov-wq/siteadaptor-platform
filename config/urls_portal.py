@@ -15,6 +15,7 @@ from apps.aggregator import telegram_bot as portal_telegram
 from apps.aggregator import views as aggregator_views
 from apps.core import health
 from apps.core.media_views import serve_media
+from apps.tenants.views import set_public_language
 
 urlpatterns = [
     path("", portal_views.portal_home, name="portal-home"),
@@ -58,6 +59,8 @@ urlpatterns = [
         portal_views.portal_home,
         name="portal-district-facet",
     ),
+    # Переключатель языка (тот же, что на публичном хосте) — до catch-all <facet>.
+    path("sprache/", set_public_language, name="portal-set-language"),
     path("<str:facet>/", portal_views.portal_home, name="portal-facet"),
 ]
 

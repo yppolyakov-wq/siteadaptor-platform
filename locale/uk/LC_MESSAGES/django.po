@@ -24172,3 +24172,6 @@ msgstr "Зіставлення з каталогом міста"
 
 msgid "ohne Zuordnung"
 msgstr "без зіставлення"
+
+msgid "Zu viele Anfragen — bitte kurz warten."
+msgstr "Забагато запитів — зачекайте трохи."

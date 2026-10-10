@@ -24189,3 +24189,6 @@ msgstr "Сопоставление с каталогом города"
 
 msgid "ohne Zuordnung"
 msgstr "без сопоставления"
+
+msgid "Zu viele Anfragen — bitte kurz warten."
+msgstr "Слишком много запросов — подождите немного."

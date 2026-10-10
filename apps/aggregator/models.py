@@ -23,10 +23,17 @@ class ListingQuerySet(models.QuerySet):
         подтверждена) — фильтр по живому состоянию тенанта, без ресинка: правка в
         админке действует сразу. Сироты без тенанта не отбрасываются (их чистит синк).
         """
+        from django.db.models import Q
+        from django.utils import timezone
+
         from .visibility import withheld_schemas
 
-        return self.filter(is_active=True, hidden_at__isnull=True).exclude(
-            tenant_schema__in=withheld_schemas()
+        # Истёкшее не показываем в момент запроса: beat снимает листинг с задержкой
+        # до нескольких минут (а при сбое — дольше), ТЗ 2.0 §8 требует проверки сразу.
+        return (
+            self.filter(is_active=True, hidden_at__isnull=True)
+            .filter(Q(ends_at__isnull=True) | Q(ends_at__gt=timezone.now()))
+            .exclude(tenant_schema__in=withheld_schemas())
         )
 
 

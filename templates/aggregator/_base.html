@@ -20,6 +20,8 @@
   <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-gray-100">
     <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
       <a href="{% url 'aggregator-index' %}" class="text-lg font-bold tracking-tight">siteadaptor</a>
+      <div class="flex items-center gap-3">
+      {% if ui_languages %}<span class="hidden sm:inline-flex">{% include "tenants/_lang_switch.html" %}</span>{% endif %}
       {% comment %}MEN-12: вход в сравнение — только когда что-то отложено (пустая
       «Merkliste» в шапке зашумляла бы каждую страницу).{% endcomment %}
       {% if shortlist_count %}
@@ -27,6 +29,7 @@
       {% else %}
       <span class="text-sm text-gray-500">{% trans "Local offers" %}</span>
       {% endif %}
+      </div>
     </div>
   </header>
 
@@ -35,7 +38,10 @@
   </main>
 
   <footer class="border-t border-gray-100 bg-white">
-    <div class="max-w-5xl mx-auto px-4 py-6 text-xs text-gray-400">© {% now "Y" %} siteadaptor</div>
+    <div class="max-w-5xl mx-auto px-4 py-6 text-xs text-gray-400 flex flex-wrap items-center justify-between gap-3">
+      <span>© {% now "Y" %} siteadaptor</span>
+      {% if ui_languages %}<span class="sm:hidden">{% include "tenants/_lang_switch.html" %}</span>{% endif %}
+    </div>
   </footer>
 </body>
 </html>

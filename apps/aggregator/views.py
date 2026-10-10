@@ -7,6 +7,7 @@
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.core.pagecache import cache_public_page
@@ -323,6 +324,10 @@ def _city_category_choices():
     ]
 
 
+#: Поисковых запросов /entdecken/ на IP в минуту.
+SEARCH_RATE_LIMIT = 60
+
+
 def discover_index(request):
     # P2.7: поиск/фильтры. При q/city/type — страница результатов (cache_public_page
     # кэширует только GET без query, поэтому результаты не кэшируются); иначе —
@@ -361,7 +366,20 @@ def discover_index(request):
     ):
         from urllib.parse import urlencode
 
+        from apps.core import ratelimit
+
         from . import reviews
+
+        # Поиск не кэшируется (страница с параметрами) — ограничиваем частоту на IP,
+        # чтобы перебор запросов не нагружал БД (ТЗ 2.0 §12). Обычный посетитель
+        # до лимита не доходит.
+        if ratelimit.hit(
+            "entdecken-search",
+            ratelimit.client_ip(request),
+            limit=SEARCH_RATE_LIMIT,
+            window=60,
+        ):
+            return HttpResponse(_("Zu viele Anfragen — bitte kurz warten."), status=429)
 
         pool = listings_for(
             city=city or None,

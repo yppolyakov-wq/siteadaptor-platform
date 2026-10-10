@@ -23994,3 +23994,6 @@ msgstr "Zuordnung zum Stadtkatalog"
 
 msgid "ohne Zuordnung"
 msgstr "ohne Zuordnung"
+
+msgid "Zu viele Anfragen — bitte kurz warten."
+msgstr "Zu viele Anfragen — bitte kurz warten."

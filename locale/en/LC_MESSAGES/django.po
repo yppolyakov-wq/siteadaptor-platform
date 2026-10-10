@@ -23954,3 +23954,6 @@ msgstr "Mapping to the city catalogue"
 
 msgid "ohne Zuordnung"
 msgstr "no mapping"
+
+msgid "Zu viele Anfragen — bitte kurz warten."
+msgstr "Too many requests — please wait a moment."

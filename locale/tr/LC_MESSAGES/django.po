@@ -24080,3 +24080,6 @@ msgstr "Şehir kataloğuyla eşleştirme"
 
 msgid "ohne Zuordnung"
 msgstr "eşleştirme yok"
+
+msgid "Zu viele Anfragen — bitte kurz warten."
+msgstr "Çok fazla istek — lütfen biraz bekleyin."

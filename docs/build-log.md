@@ -17284,3 +17284,15 @@ regional, yoga…) — отдельная ось, не подкатегории 
 - Попутно: 3 замка featured переписаны под `?ch=portal` (T-8.6, CI красный был ожидаем).
 - Переводы: 107 msgid × 5 каталогов. Замки: `test_city_categories` (aggregator),
   `test_city_category_fields` (promotions), `test_city_mapping` (catalog), +2 в `test_quick_start`.
+
+## 2026-10-10 — ТЗ «Siteadaptor 2.0»: Phase 0 + T-8.19a быстрые исправления портала (без миграций)
+
+Отчёт EXISTS/PARTIAL/MISSING и минимальный план — `tz-siteadaptor-2-0-phase0-2026-10-10.md`;
+ТЗ вложено в этап 3 общего плана T-8 (`t8-roadmap-2026-10-10.md`: T-8.19a → T-8.11 → T-8.22 →
+T-8.19 → T-8.20/21 → T-8.7 → T-8.8). Решения владельца В1/В2/В4/В5 приняты, В3 (правило
+попадания товаров) — предложение. **T-8.19a:** `AggregatorListing.objects.public()` отсекает
+истёкшее в момент запроса (раньше до снятия beat-задачей акция была видна до ~5 минут);
+поиск `/entdecken/` ограничен 60 запросами в минуту на IP (429); переключатель языка на
+портале и `/entdecken/` (общий партиал, роут `/sprache/` на хосте портала до catch-all
+`<facet>`, контекст-процессор `aggregator.context.languages`; на телефоне — в подвале).
+Замки `test_portal_quickfixes` (4).
