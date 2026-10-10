@@ -24193,3 +24193,13 @@ msgstr "Компанії"
 
 msgid "Was suchen Sie?"
 msgstr "Що ви шукаєте?"
+
+msgid "Hauptkategorie im Stadtkatalog"
+msgstr "Основна категорія в каталозі міста"
+
+msgid ""
+"Unter dieser Rubrik erscheinen Ihr Unternehmen und Ihre Leistungen im "
+"Stadtportal."
+msgstr ""
+"Під цією рубрикою ваша компанія та її послуги з'являються на міському "
+"порталі."

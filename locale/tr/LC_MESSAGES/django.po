@@ -24101,3 +24101,12 @@ msgstr "İşletmeler"
 
 msgid "Was suchen Sie?"
 msgstr "Ne arıyorsunuz?"
+
+msgid "Hauptkategorie im Stadtkatalog"
+msgstr "Şehir kataloğunda ana kategori"
+
+msgid ""
+"Unter dieser Rubrik erscheinen Ihr Unternehmen und Ihre Leistungen im "
+"Stadtportal."
+msgstr ""
+"İşletmeniz ve hizmetleriniz şehir portalında bu başlık altında görünür."

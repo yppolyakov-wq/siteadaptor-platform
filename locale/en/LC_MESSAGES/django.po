@@ -23975,3 +23975,13 @@ msgstr "Businesses"
 
 msgid "Was suchen Sie?"
 msgstr "What are you looking for?"
+
+msgid "Hauptkategorie im Stadtkatalog"
+msgstr "Main category in the city catalogue"
+
+msgid ""
+"Unter dieser Rubrik erscheinen Ihr Unternehmen und Ihre Leistungen im "
+"Stadtportal."
+msgstr ""
+"Your business and your services appear under this heading in the city "
+"portal."

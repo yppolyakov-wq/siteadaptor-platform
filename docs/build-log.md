@@ -17312,3 +17312,20 @@ Stadtkatalog». Портал: лента по умолчанию — предл�
 `?kind=` (только непустые), бейджи вида/Neu/Auf Bestellung/Ausverkauft; «Weitere» теперь несёт
 вид/категорию/признак (раньше вторая страница теряла фильтр T-8.13a). Замки
 `test_city_products` (16).
+
+## 2026-10-10 — T-8.22 «Демо под все 15 разделов каталога Золингена» (⚠️ миграция `tenants/0036`)
+
+План `t8-22-solingen-demo-coverage-plan-2026-10-10.md`. Портал Золингена видел только 7 лёгких
+демо «Nur Aktionen» — товаров в городе не было вовсе, 9 разделов справочника пустовали.
+Добавлены 11 демо-бизнесов Золингена ступени 2–3 (сайт с каталогом/услугами) по пяти
+районам: Klingenwerk (Solinger Messer + Schleifservice), Handy-Doktor Ohligs, Spielkiste
+Gräfrath (+ Bastelnachmittag — раздел Freizeit), Pfotenglück Wald, Rad & Tat, Wohnwerk Burg,
+Feinkost am Markt, Schuhhaus Ohligs, Bergisch Fit, Fotostudio Lichtblick, Elektro Schmitz —
+по 6 позиций с фото-ключом и сопоставленной категорией (`DemoKit.city_categories`), услуги,
+акции, слайдер первого экрана, своё меню. **`Tenant.city_category`** — основная категория
+бизнеса в каталоге города («Hauptkategorie im Stadtkatalog» в «Mein Geschäft»): без неё услуги
+и карточка бизнеса типа «Sonstiges» (фитнес, фотостудия) уходили бы в «Weitere
+Dienstleistungen»; синк: своё у объекта → категория бизнеса → подсказка по типу; смена
+категории пересобирает листинги. Переводы новых демо — 100 % ×4 (~200 строк). Замок
+`test_solingen_coverage` (все 15 разделов есть у бизнесов Золингена; новые киты — полноценные:
+район, координаты, часы, категории) + общие демо-замки (меню, первый экран, полные ряды).

@@ -24015,3 +24015,13 @@ msgstr "Unternehmen"
 
 msgid "Was suchen Sie?"
 msgstr "Was suchen Sie?"
+
+msgid "Hauptkategorie im Stadtkatalog"
+msgstr "Hauptkategorie im Stadtkatalog"
+
+msgid ""
+"Unter dieser Rubrik erscheinen Ihr Unternehmen und Ihre Leistungen im "
+"Stadtportal."
+msgstr ""
+"Unter dieser Rubrik erscheinen Ihr Unternehmen und Ihre Leistungen im "
+"Stadtportal."

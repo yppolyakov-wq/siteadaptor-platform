@@ -377,6 +377,11 @@ class DemoKit:
     # T-8.17: slug района (apps.core.districts) → Tenant.district → чипы/страницы
     # районов городского портала.
     district: str = ""
+    # T-8.22: сопоставление категорий кита с каталогом города («slug спеки» →
+    # слаг `core/city_categories`). Пусто → подсказка по названию (T-8.13b).
+    city_categories: dict = field(default_factory=dict)
+    # T-8.22: основная категория бизнеса в каталоге города (Tenant.city_category).
+    business_city_category: str = ""
 
 
 # Товар: dict {name, price, desc, img(keyword), variants?, allergens?, modifiers?,
@@ -23147,6 +23152,970 @@ LITE_FRISEUR = DemoKit(
     **_LITE_COMMON,
 )
 
+# --- T-8.22: Solingen — по демо-бизнесу на каждый раздел каталога города ----------------
+# План docs/t8-22-solingen-demo-coverage-plan-2026-10-10.md. Ступень 2–3: сайт с каталогом
+# и/или услугами (не «Nur Aktionen»), поэтому товары и услуги выходят в каталог города
+# (T-8.11). Небольшие, но настоящие: позиции с фото, ценой и сопоставленной категорией.
+
+_SOLINGEN_COMMON = {
+    "city": "Solingen",
+    "nav_style": "classic",
+    "promo_count": 2,
+}
+
+
+def _solingen_hours(weekdays=("09:30", "18:30"), saturday=("10:00", "14:00")):
+    hours = {d: weekdays for d in range(5)}
+    if saturday:
+        hours[5] = saturday
+    return hours
+
+
+def _solingen_menus(*targets) -> dict:
+    """Меню кита: свои разделы (catalog/booking/jobs/promotions) + контакт."""
+    labels = {
+        "catalog": "Sortiment",
+        "booking": "Termine",
+        "jobs": "Anfrage",
+        "events": "Veranstaltungen",
+        "promotions": "Angebote",
+    }
+    items = [{"label": labels[t], "type": "archetype", "target": t} for t in targets]
+    items.append({"label": "Kontakt", "type": "anchor", "target": "/#kontakt"})
+    return {"top": {"style": "classic", "sticky": True, "items": items}}
+
+
+def _solingen_heroes(image_kw, title, text, promo_kw, promo_title, promo_text, button, url):
+    """Первый экран: акция недели и сам бизнес — два слайда."""
+    return [
+        {
+            "image_kw": promo_kw,
+            "title": promo_title,
+            "text": promo_text,
+            "button_label": "Zu den Angeboten",
+            "button_url": "/aktionen/",
+        },
+        {
+            "image_kw": image_kw,
+            "title": title,
+            "text": text,
+            "button_label": button,
+            "button_url": url,
+        },
+    ]
+
+
+KLINGENWERK = DemoKit(
+    business_city_category="lokale-produkte",
+    menus=_solingen_menus("catalog", "booking", "promotions"),
+    heroes=_solingen_heroes(
+        "kitchen-knife",
+        "Messer aus der Klingenstadt",
+        "Handgeschliffene Solinger Messer, Scheren und unser Schleifservice.",
+        "knife-sharpening",
+        "Schleifwoche: zweites Messer gratis",
+        "Bringen Sie zwei Messer — das zweite schleifen wir kostenlos.",
+        "Zum Sortiment",
+        "/sortiment/",
+    ),
+    section_layouts={"products": {"preset": "cols3"}},
+    enable_categories_section=True,
+    key="klingenwerk",
+    subdomain="klingenwerk",
+    district="mitte",
+    label="Klingenwerk Solingen",
+    business_type="retail",
+    accent="#334155",
+    hero_image_kw="kitchen-knife",
+    hero_title="Messer aus der Klingenstadt",
+    hero_text="Handgeschliffene Solinger Messer, Scheren und unser Schleifservice.",
+    about_title="Über uns",
+    about_text="Seit drei Generationen schleifen wir in Solingen-Mitte Klingen von Hand. "
+    "Bei uns finden Sie Küchenmesser, Taschenmesser und Scheren — und Ihr altes Messer "
+    "wird wieder scharf.",
+    address="Hauptstraße 41, 42651 Solingen",
+    phone="+49 212 5550701",
+    lat="51.1659000",
+    lng="7.0832000",
+    opening_hours_text="Mo–Fr 9:30–18:30 · Sa 10:00–14:00",
+    opening_hours=_solingen_hours(),
+    categories=[
+        (
+            "Küchenmesser",
+            "kuechenmesser",
+            [
+                _p(
+                    "Kochmesser 20 cm",
+                    "89.00",
+                    "Geschmiedet, Klinge aus rostfreiem Stahl.",
+                    "chef-knife",
+                ),
+                _p(
+                    "Brotmesser mit Wellenschliff",
+                    "54.00",
+                    "Für Kruste und weiche Krume.",
+                    "bread-knife",
+                    badge="neu",
+                ),
+                _p("Santoku 17 cm", "79.00", "Japanische Form, Solinger Schliff.", "santoku-knife"),
+            ],
+        ),
+        (
+            "Taschenmesser & Scheren",
+            "taschenmesser",
+            [
+                _p(
+                    "Taschenmesser Olivenholz",
+                    "39.00",
+                    "Klappmesser mit Griff aus Olivenholz.",
+                    "pocket-knife",
+                ),
+                _p(
+                    "Haushaltsschere 21 cm",
+                    "24.00",
+                    "Rostfrei, für Küche und Werkstatt.",
+                    "scissors",
+                ),
+                _p(
+                    "Geschenkset Messer & Brett",
+                    "119.00",
+                    "Kochmesser mit Eichenbrett im Karton.",
+                    "knife-gift",
+                ),
+            ],
+        ),
+    ],
+    city_categories={"kuechenmesser": "lokale-produkte", "taschenmesser": "handgemachtes"},
+    enable_modules=["booking"],
+    services=[
+        (
+            "Messer schleifen (pro Stück)",
+            15,
+            "6.00",
+            "Von Hand geschliffen, meist am selben Tag fertig.",
+            "knife-sharpening",
+        )
+    ],
+    promotions_spec=[
+        {
+            "title": "Schleifwoche: zweites Messer gratis",
+            "desc": "Bringen Sie zwei Messer — das zweite schleifen wir kostenlos.",
+            "new_price": "6.00",
+            "compare_at": "12.00",
+            "ends_in_days": 7,
+            "image": "knife-sharpening",
+        },
+    ],
+    **_SOLINGEN_COMMON,
+)
+
+HANDY_DOKTOR = DemoKit(
+    business_city_category="smartphones",
+    menus=_solingen_menus("catalog", "booking", "promotions"),
+    heroes=_solingen_heroes(
+        "smartphone-repair",
+        "Handy kaputt? Wir reparieren.",
+        "Display, Akku, Ladebuchse — oft in einer Stunde. Dazu geprüfte Gebrauchtgeräte.",
+        "battery",
+        "Akku-Tausch diese Woche −20 %",
+        "Neuer Akku für Ihr Smartphone — ohne Termin, solange Teile da sind.",
+        "Termin buchen",
+        "/termin/",
+    ),
+    section_layouts={"products": {"preset": "cols3"}},
+    enable_categories_section=True,
+    key="handy_doktor",
+    subdomain="handy-doktor",
+    district="ohligs-aufderhoehe-merscheid",
+    label="Handy-Doktor Ohligs",
+    business_type="retail",
+    accent="#0f766e",
+    hero_image_kw="smartphone-repair",
+    hero_title="Handy kaputt? Wir reparieren.",
+    hero_text="Display, Akku, Ladebuchse — oft in einer Stunde. Dazu geprüfte Gebrauchtgeräte.",
+    about_title="Über uns",
+    about_text="Werkstatt und Laden in Ohligs: Reparaturen für Smartphones und Tablets, "
+    "geprüfte Gebrauchtgeräte mit 12 Monaten Gewährleistung und Zubehör.",
+    address="Düsseldorfer Straße 18, 42697 Solingen",
+    phone="+49 212 5550702",
+    lat="51.1671000",
+    lng="7.0098000",
+    opening_hours_text="Mo–Fr 10:00–19:00 · Sa 10:00–16:00",
+    opening_hours=_solingen_hours(("10:00", "19:00"), ("10:00", "16:00")),
+    categories=[
+        (
+            "Smartphones",
+            "smartphones",
+            [
+                _p(
+                    "iPhone 13, 128 GB (geprüft)",
+                    "429.00",
+                    "Akku über 90 %, 12 Monate Gewährleistung.",
+                    "smartphone",
+                    uvp="599.00",
+                ),
+                _p(
+                    "Galaxy A54, 128 GB (geprüft)",
+                    "239.00",
+                    "Wie neu, mit Ladekabel.",
+                    "android-phone",
+                ),
+            ],
+        ),
+        (
+            "Zubehör",
+            "zubehoer",
+            [
+                _p(
+                    "Panzerglas-Schutzfolie",
+                    "14.90",
+                    "Inklusive Anbringen im Laden.",
+                    "screen-protector",
+                ),
+                _p(
+                    "USB-C Schnellladegerät 30 W",
+                    "24.90",
+                    "Kompakt, für Handy und Tablet.",
+                    "phone-charger",
+                ),
+                _p("Silikonhülle", "12.90", "In vielen Farben vorrätig.", "phone-case"),
+                _p("Bluetooth-Kopfhörer", "39.00", "Bis zu 20 Stunden Akkulaufzeit.", "headphones"),
+            ],
+        ),
+    ],
+    city_categories={"smartphones": "smartphones", "zubehoer": "technik-zubehoer"},
+    enable_modules=["booking"],
+    services=[
+        (
+            "Display-Reparatur",
+            60,
+            "89.00",
+            "Originalqualität, meist in einer Stunde.",
+            "smartphone-repair",
+        ),
+        ("Akku-Tausch", 45, "59.00", "Neuer Akku inklusive Test.", "battery"),
+    ],
+    promotions_spec=[
+        {
+            "title": "Akku-Tausch diese Woche −20 %",
+            "desc": "Neuer Akku für Ihr Smartphone — ohne Termin, solange Teile da sind.",
+            "new_price": "47.00",
+            "compare_at": "59.00",
+            "ends_in_days": 6,
+            "image": "battery",
+        },
+    ],
+    **_SOLINGEN_COMMON,
+)
+
+SPIELKISTE = DemoKit(
+    enable_modules=["events"],
+    events=[("Bastelnachmittag für Kinder", 6, 12, "8")],
+    business_city_category="spielzeug",
+    menus=_solingen_menus("catalog", "events", "promotions"),
+    heroes=_solingen_heroes(
+        "wooden-toys",
+        "Spielzeug, das bleibt",
+        "Holzspielzeug, Bücher und Babybedarf am Gräfrather Markt.",
+        "wooden-train",
+        "Geschenk einpacken gratis + 10 %",
+        "Auf alle Holzspielzeuge bis Samstag — wir packen schön ein.",
+        "Zum Sortiment",
+        "/sortiment/",
+    ),
+    section_layouts={"products": {"preset": "cols3"}},
+    enable_categories_section=True,
+    key="spielkiste",
+    subdomain="spielkiste",
+    district="graefrath",
+    label="Spielkiste Gräfrath",
+    business_type="retail",
+    accent="#db2777",
+    hero_image_kw="wooden-toys",
+    hero_title="Spielzeug, das bleibt",
+    hero_text="Holzspielzeug, Bücher und Babybedarf am Gräfrather Markt.",
+    about_title="Über uns",
+    about_text="Kleiner Spielwarenladen in der Gräfrather Altstadt. Wir führen langlebiges "
+    "Holzspielzeug, Bilderbücher und Erstausstattung — und packen Geschenke gratis ein.",
+    address="In der Freiheit 6, 42653 Solingen",
+    phone="+49 212 5550703",
+    lat="51.2011000",
+    lng="7.0731000",
+    opening_hours_text="Di–Fr 10:00–18:00 · Sa 10:00–14:00",
+    opening_hours={**{d: ("10:00", "18:00") for d in range(1, 5)}, 5: ("10:00", "14:00")},
+    categories=[
+        (
+            "Spielzeug",
+            "spielzeug",
+            [
+                _p(
+                    "Holzeisenbahn Starterset",
+                    "49.00",
+                    "Gleise, Lok und zwei Wagen aus Buche.",
+                    "wooden-train",
+                ),
+                _p(
+                    "Bauklötze 50 Stück",
+                    "34.00",
+                    "Unbehandeltes Holz, ab 1 Jahr.",
+                    "wooden-blocks",
+                    badge="neu",
+                ),
+                _p("Puppenhaus aus Holz", "129.00", "Drei Etagen, mit Möbeln.", "dollhouse"),
+            ],
+        ),
+        (
+            "Babybedarf",
+            "babybedarf",
+            [
+                _p(
+                    "Greifling Regenbogen", "14.00", "Aus Ahorn, speichelfest lackiert.", "baby-toy"
+                ),
+                _p("Spieluhr Mond", "29.00", "Mit Schlaflied, waschbarer Bezug.", "music-box"),
+                _p("Kuscheltier Fuchs", "19.00", "Aus Bio-Baumwolle, 30 cm.", "plush-fox"),
+            ],
+        ),
+    ],
+    city_categories={"spielzeug": "spielzeug", "babybedarf": "babybedarf"},
+    promotions_spec=[
+        {
+            "title": "Geschenk einpacken gratis + 10 %",
+            "desc": "Auf alle Holzspielzeuge bis Samstag — wir packen schön ein.",
+            "percent": 10,
+            "ends_in_days": 5,
+            "image": "wooden-toys",
+        },
+    ],
+    **_SOLINGEN_COMMON,
+)
+
+PFOTENGLUECK = DemoKit(
+    business_city_category="tierzubehoer",
+    menus=_solingen_menus("catalog", "booking", "promotions"),
+    heroes=_solingen_heroes(
+        "dog-shop",
+        "Alles für Hund und Katze",
+        "Futter aus der Region, Zubehör und unser Hundesalon in Wald.",
+        "cat-food",
+        "Futter-Treuetag: 2 + 1 Katzenfutter",
+        "Drei Packungen kaufen, zwei bezahlen — nur diese Woche.",
+        "Zum Sortiment",
+        "/sortiment/",
+    ),
+    section_layouts={"products": {"preset": "cols3"}},
+    enable_categories_section=True,
+    key="pfotenglueck",
+    subdomain="pfotenglueck",
+    district="wald",
+    label="Pfotenglück Wald",
+    business_type="retail",
+    accent="#ca8a04",
+    hero_image_kw="dog-shop",
+    hero_title="Alles für Hund und Katze",
+    hero_text="Futter aus der Region, Zubehör und unser Hundesalon in Wald.",
+    about_title="Über uns",
+    about_text="Fachgeschäft für Tierbedarf in Solingen-Wald: Futter ohne Zusätze, "
+    "Leinen und Spielzeug — und im Hinterhof unser Hundesalon.",
+    address="Stresemannstraße 9, 42719 Solingen",
+    phone="+49 212 5550704",
+    lat="51.1827000",
+    lng="7.0489000",
+    opening_hours_text="Mo–Fr 9:00–18:30 · Sa 9:00–14:00",
+    opening_hours=_solingen_hours(("09:00", "18:30"), ("09:00", "14:00")),
+    categories=[
+        (
+            "Tierfutter",
+            "tierfutter",
+            [
+                _p(
+                    "Hundefutter Rind & Kartoffel 2 kg",
+                    "18.90",
+                    "Getreidefrei, aus Deutschland.",
+                    "dog-food",
+                ),
+                _p(
+                    "Katzenfutter Huhn 6 × 200 g",
+                    "11.40",
+                    "Hoher Fleischanteil, ohne Zucker.",
+                    "cat-food",
+                ),
+            ],
+        ),
+        (
+            "Zubehör",
+            "tierzubehoer",
+            [
+                _p("Lederleine 2 m", "29.00", "Handgenäht, mit Messingkarabiner.", "dog-leash"),
+                _p(
+                    "Kauknochen Büffelhaut 3 Stück",
+                    "8.90",
+                    "Natürlich, lange Beschäftigung.",
+                    "dog-chew",
+                ),
+                _p("Katzenkratzbaum klein", "49.00", "Mit Sisalstamm und Liegemulde.", "cat-tree"),
+                _p(
+                    "Hundebett Cord 80 cm",
+                    "59.00",
+                    "Waschbarer Bezug, rutschfester Boden.",
+                    "dog-bed",
+                ),
+            ],
+        ),
+    ],
+    city_categories={"tierfutter": "tierfutter", "tierzubehoer": "tierzubehoer"},
+    enable_modules=["booking"],
+    services=[
+        (
+            "Hundesalon: Waschen & Schneiden",
+            90,
+            "55.00",
+            "Für kleine und mittlere Hunde.",
+            "dog-grooming",
+        )
+    ],
+    promotions_spec=[
+        {
+            "title": "Futter-Treuetag: 2 + 1 Katzenfutter",
+            "desc": "Drei Packungen kaufen, zwei bezahlen — nur diese Woche.",
+            "new_price": "22.80",
+            "compare_at": "34.20",
+            "ends_in_days": 6,
+            "image": "cat-food",
+        },
+    ],
+    **_SOLINGEN_COMMON,
+)
+
+RAD_UND_TAT = DemoKit(
+    business_city_category="fahrraeder",
+    menus=_solingen_menus("catalog", "booking", "promotions"),
+    heroes=_solingen_heroes(
+        "bicycle-shop",
+        "Räder für die Bergische Region",
+        "E-Bikes, Trekkingräder und Werkstatt — Probefahrt nach Absprache.",
+        "bicycle-repair",
+        "Inspektion zum Saisonstart",
+        "Bremsen, Schaltung und Licht geprüft — bis Monatsende günstiger.",
+        "Zum Sortiment",
+        "/sortiment/",
+    ),
+    section_layouts={"products": {"preset": "cols3"}},
+    enable_categories_section=True,
+    key="rad_und_tat",
+    subdomain="rad-und-tat",
+    district="burg-hoehscheid",
+    label="Rad & Tat Solingen",
+    business_type="retail",
+    accent="#16a34a",
+    hero_image_kw="bicycle-shop",
+    hero_title="Räder für die Bergische Region",
+    hero_text="E-Bikes, Trekkingräder und Werkstatt — Probefahrt nach Absprache.",
+    about_title="Über uns",
+    about_text="Fahrradladen mit Werkstatt in Höhscheid. Wir beraten zu E-Bikes für die "
+    "Solinger Hügel und reparieren alle Marken.",
+    address="Höhscheider Straße 70, 42659 Solingen",
+    phone="+49 212 5550705",
+    lat="51.1531000",
+    lng="7.0752000",
+    opening_hours_text="Mo–Fr 10:00–18:30 · Sa 10:00–15:00",
+    opening_hours=_solingen_hours(("10:00", "18:30"), ("10:00", "15:00")),
+    categories=[
+        (
+            "Fahrräder",
+            "fahrraeder",
+            [
+                _p(
+                    "E-Trekkingrad 500 Wh",
+                    "2499.00",
+                    "Mittelmotor, für Steigungen gemacht.",
+                    "e-bike",
+                    uvp="2899.00",
+                ),
+                _p("Kinderrad 20 Zoll", "349.00", "Leicht, mit Rücktrittbremse.", "kids-bicycle"),
+            ],
+        ),
+        (
+            "Zubehör",
+            "radzubehoer",
+            [
+                _p("Fahrradhelm", "59.00", "Mit LED-Rücklicht, Größe M/L.", "bike-helmet"),
+                _p("Faltschloss", "69.00", "Hohe Sicherheitsstufe, mit Halter.", "bike-lock"),
+                _p(
+                    "Fahrradtasche wasserdicht",
+                    "49.00",
+                    "20 Liter, mit Schnellverschluss.",
+                    "bike-bag",
+                ),
+                _p("LED-Lichtset", "34.00", "Front- und Rücklicht, USB-aufladbar.", "bike-light"),
+            ],
+        ),
+    ],
+    city_categories={"fahrraeder": "fahrraeder", "radzubehoer": "fahrraeder"},
+    enable_modules=["booking"],
+    services=[
+        (
+            "Frühjahrs-Inspektion",
+            60,
+            "69.00",
+            "Bremsen, Schaltung, Licht und Kette.",
+            "bicycle-repair",
+        )
+    ],
+    promotions_spec=[
+        {
+            "title": "Inspektion zum Saisonstart",
+            "desc": "Bremsen, Schaltung und Licht geprüft — bis Monatsende günstiger.",
+            "new_price": "49.00",
+            "compare_at": "69.00",
+            "ends_in_days": 14,
+            "image": "bicycle-repair",
+        },
+    ],
+    **_SOLINGEN_COMMON,
+)
+
+WOHNWERK = DemoKit(
+    business_city_category="dekoration",
+    menus=_solingen_menus("catalog", "promotions"),
+    heroes=_solingen_heroes(
+        "home-decor",
+        "Schönes für Haus und Garten",
+        "Leuchten, Deko und Pflanzen aus unserem Laden unterhalb von Schloss Burg.",
+        "monstera",
+        "Pflanzenwochenende: −15 %",
+        "Alle Zimmer- und Kübelpflanzen am Wochenende günstiger.",
+        "Zum Sortiment",
+        "/sortiment/",
+    ),
+    section_layouts={"products": {"preset": "cols3"}},
+    enable_categories_section=True,
+    key="wohnwerk",
+    subdomain="wohnwerk",
+    district="burg-hoehscheid",
+    label="Wohnwerk Burg",
+    business_type="retail",
+    accent="#9a3412",
+    hero_image_kw="home-decor",
+    hero_title="Schönes für Haus und Garten",
+    hero_text="Leuchten, Deko und Pflanzen aus unserem Laden unterhalb von Schloss Burg.",
+    about_title="Über uns",
+    about_text="Kleiner Wohnladen in Unterburg: ausgesuchte Deko, Leuchten aus Messing "
+    "und Pflanzen aus der Gärtnerei nebenan.",
+    address="Eschbachstraße 4, 42659 Solingen",
+    phone="+49 212 5550706",
+    lat="51.1432000",
+    lng="7.1531000",
+    opening_hours_text="Mi–Fr 11:00–18:00 · Sa–So 11:00–17:00",
+    opening_hours={
+        2: ("11:00", "18:00"),
+        3: ("11:00", "18:00"),
+        4: ("11:00", "18:00"),
+        5: ("11:00", "17:00"),
+        6: ("11:00", "17:00"),
+    },
+    categories=[
+        (
+            "Wohnen & Deko",
+            "deko",
+            [
+                _p(
+                    "Tischleuchte Messing",
+                    "119.00",
+                    "Mit Leinenschirm, warmes Licht.",
+                    "table-lamp",
+                ),
+                _p("Vase Steinzeug", "34.00", "Handgedreht, 25 cm hoch.", "ceramic-vase"),
+                _p("Kissenbezug Leinen", "29.00", "50 × 50 cm, stonewashed.", "linen-cushion"),
+            ],
+        ),
+        (
+            "Pflanzen",
+            "pflanzen",
+            [
+                _p(
+                    "Olivenbaum im Topf",
+                    "79.00",
+                    "Rund 1 m hoch, winterhart bis −5 °C.",
+                    "olive-tree",
+                ),
+                _p("Monstera 60 cm", "39.00", "Pflegeleichte Zimmerpflanze.", "monstera"),
+                _p("Kräutertopf-Set", "14.00", "Basilikum, Thymian und Rosmarin.", "herb-pots"),
+            ],
+        ),
+    ],
+    city_categories={"deko": "dekoration", "pflanzen": "garten-pflanzen"},
+    promotions_spec=[
+        {
+            "title": "Pflanzenwochenende: −15 %",
+            "desc": "Alle Zimmer- und Kübelpflanzen am Wochenende günstiger.",
+            "percent": 15,
+            "ends_in_days": 3,
+            "image": "monstera",
+        },
+    ],
+    **_SOLINGEN_COMMON,
+)
+
+FEINKOST_MARKT = DemoKit(
+    business_city_category="feinkost",
+    menus=_solingen_menus("catalog", "promotions"),
+    heroes=_solingen_heroes(
+        "delicatessen",
+        "Feinkost und Regionales in Mitte",
+        "Käse, Öl, Wein und Gemüse vom Bergischen Hof — frisch am Neumarkt.",
+        "mountain-cheese",
+        "Käse der Woche: Bergkäse −20 %",
+        "Unser Bergischer Bergkäse diese Woche günstiger.",
+        "Zum Sortiment",
+        "/sortiment/",
+    ),
+    section_layouts={"products": {"preset": "cols3"}},
+    enable_categories_section=True,
+    key="feinkost_markt",
+    subdomain="feinkost-am-markt",
+    district="mitte",
+    label="Feinkost am Markt",
+    business_type="grocery",
+    accent="#b91c1c",
+    hero_image_kw="delicatessen",
+    hero_title="Feinkost und Regionales in Mitte",
+    hero_text="Käse, Öl, Wein und Gemüse vom Bergischen Hof — frisch am Neumarkt.",
+    about_title="Über uns",
+    about_text="Feinkostladen am Neumarkt: Käse aus dem Bergischen Land, Olivenöl, Weine "
+    "und Gemüse von Höfen aus der Umgebung.",
+    address="Neumarkt 12, 42651 Solingen",
+    phone="+49 212 5550707",
+    lat="51.1689000",
+    lng="7.0846000",
+    opening_hours_text="Mo–Fr 9:00–19:00 · Sa 8:00–15:00",
+    opening_hours=_solingen_hours(("09:00", "19:00"), ("08:00", "15:00")),
+    categories=[
+        (
+            "Feinkost",
+            "feinkost",
+            [
+                _p(
+                    "Bergischer Bergkäse 250 g",
+                    "6.90",
+                    "18 Monate gereift.",
+                    "mountain-cheese",
+                    vat="7.00",
+                    diets=["vegetarian"],
+                ),
+                _p(
+                    "Olivenöl extra vergine 0,5 l",
+                    "14.90",
+                    "Kaltgepresst, aus Kreta.",
+                    "olive-oil",
+                    vat="7.00",
+                    diets=["vegan"],
+                ),
+            ],
+        ),
+        (
+            "Getränke",
+            "getraenke",
+            [
+                _p(
+                    "Riesling trocken 0,75 l",
+                    "11.50",
+                    "Mosel, frisch und mineralisch.",
+                    "white-wine",
+                ),
+                _p(
+                    "Apfelsaft naturtrüb 1 l",
+                    "3.20",
+                    "Von Streuobstwiesen im Bergischen.",
+                    "apple-juice",
+                    vat="7.00",
+                    diets=["vegan"],
+                ),
+            ],
+        ),
+        (
+            "Obst & Gemüse",
+            "obst-gemuese",
+            [
+                _p(
+                    "Gemüsekiste regional",
+                    "19.90",
+                    "Saisongemüse für zwei Personen.",
+                    "vegetable-box",
+                    vat="7.00",
+                    diets=["vegan"],
+                    badge="neu",
+                ),
+                _p(
+                    "Bio-Äpfel 1 kg",
+                    "3.90",
+                    "Vom Obsthof in Burscheid.",
+                    "apples",
+                    vat="7.00",
+                    diets=["vegan"],
+                ),
+            ],
+        ),
+    ],
+    city_categories={
+        "feinkost": "feinkost",
+        "getraenke": "getraenke",
+        "obst-gemuese": "obst-gemuese",
+    },
+    promotions_spec=[
+        {
+            "title": "Käse der Woche: Bergkäse −20 %",
+            "desc": "Unser Bergischer Bergkäse diese Woche günstiger.",
+            "new_price": "5.50",
+            "compare_at": "6.90",
+            "ends_in_days": 6,
+            "image": "mountain-cheese",
+        },
+    ],
+    **_SOLINGEN_COMMON,
+)
+
+SCHUHHAUS = DemoKit(
+    business_city_category="schuhe",
+    menus=_solingen_menus("catalog", "promotions"),
+    heroes=_solingen_heroes(
+        "shoe-store",
+        "Schuhe für jeden Tag",
+        "Bequeme Schuhe, Taschen und Pflege — mit Beratung in Ohligs.",
+        "chelsea-boots",
+        "Chelsea-Boots zum Saisonstart",
+        "Unsere rahmengenähten Boots bis Samstag reduziert.",
+        "Zum Sortiment",
+        "/sortiment/",
+    ),
+    section_layouts={"products": {"preset": "cols3"}},
+    enable_categories_section=True,
+    key="schuhhaus",
+    subdomain="schuhhaus-ohligs",
+    district="ohligs-aufderhoehe-merscheid",
+    label="Schuhhaus Ohligs",
+    business_type="clothing",
+    accent="#1e3a8a",
+    hero_image_kw="shoe-store",
+    hero_title="Schuhe für jeden Tag",
+    hero_text="Bequeme Schuhe, Taschen und Pflege — mit Beratung in Ohligs.",
+    about_title="Über uns",
+    about_text="Familiengeführtes Schuhhaus in der Ohligser Fußgängerzone. Wir messen "
+    "Ihre Füße und finden den passenden Schuh.",
+    address="Düsseldorfer Straße 55, 42697 Solingen",
+    phone="+49 212 5550708",
+    lat="51.1663000",
+    lng="7.0115000",
+    opening_hours_text="Mo–Fr 9:30–18:30 · Sa 9:30–16:00",
+    opening_hours=_solingen_hours(("09:30", "18:30"), ("09:30", "16:00")),
+    categories=[
+        (
+            "Schuhe",
+            "schuhe",
+            [
+                _p(
+                    "Damen-Sneaker Leder",
+                    "99.00",
+                    "Herausnehmbare Einlage, Weite G.",
+                    "leather-sneaker",
+                ),
+                _p(
+                    "Herren-Chelsea-Boots",
+                    "149.00",
+                    "Rahmengenäht, Gummisohle.",
+                    "chelsea-boots",
+                    uvp="179.00",
+                ),
+                _p("Kinder-Halbschuh", "59.00", "Mit Klettverschluss, Größe 24–35.", "kids-shoes"),
+            ],
+        ),
+        (
+            "Taschen",
+            "taschen",
+            [
+                _p(
+                    "Umhängetasche Leder",
+                    "89.00",
+                    "Cognac, mit verstellbarem Riemen.",
+                    "leather-bag",
+                ),
+                _p("Rucksack Canvas", "69.00", "Mit Laptopfach, 18 Liter.", "canvas-backpack"),
+                _p("Schuhpflege-Set", "24.00", "Creme, Bürste und Imprägnierspray.", "shoe-care"),
+            ],
+        ),
+    ],
+    city_categories={"schuhe": "schuhe", "taschen": "taschen"},
+    promotions_spec=[
+        {
+            "title": "Chelsea-Boots zum Saisonstart",
+            "desc": "Unsere rahmengenähten Boots bis Samstag reduziert.",
+            "new_price": "129.00",
+            "compare_at": "149.00",
+            "ends_in_days": 5,
+            "image": "chelsea-boots",
+        },
+    ],
+    **_SOLINGEN_COMMON,
+)
+
+BERGISCH_FIT = DemoKit(
+    section_layouts={"services": {"preset": "cols3"}},
+    business_city_category="fitness",
+    menus=_solingen_menus("booking", "promotions"),
+    heroes=_solingen_heroes(
+        "yoga-class",
+        "Bewegung in Wald",
+        "Yoga, Rückenfit und Probetraining — kleine Gruppen, feste Trainer.",
+        "yoga-class",
+        "10er-Karte Yoga −15 %",
+        "Zehn Stunden Yoga zum Vorteilspreis — bis Monatsende.",
+        "Termin buchen",
+        "/termin/",
+    ),
+    key="bergisch_fit",
+    subdomain="bergisch-fit",
+    district="wald",
+    label="Bergisch Fit",
+    business_type="other",
+    accent="#0891b2",
+    hero_image_kw="yoga-class",
+    hero_title="Bewegung in Wald",
+    hero_text="Yoga, Rückenfit und Probetraining — kleine Gruppen, feste Trainer.",
+    about_title="Über uns",
+    about_text="Kleines Studio für Yoga und Gesundheitssport in Solingen-Wald. Kurse in "
+    "kleinen Gruppen, auch für Einsteiger.",
+    address="Friedrich-Ebert-Straße 120, 42719 Solingen",
+    phone="+49 212 5550709",
+    lat="51.1849000",
+    lng="7.0452000",
+    opening_hours_text="Mo–Fr 8:00–21:00 · Sa 9:00–13:00",
+    opening_hours=_solingen_hours(("08:00", "21:00"), ("09:00", "13:00")),
+    enable_modules=["booking"],
+    services=[
+        ("Yoga für Einsteiger", 75, "16.00", "Ruhige Stunde für den Anfang.", "yoga-class"),
+        ("Rückenfit", 60, "14.00", "Kräftigung und Mobilisation in der Gruppe.", "back-exercise"),
+        ("Probetraining", 60, "0.00", "Kennenlernen mit Trainer — kostenlos.", "gym-training"),
+    ],
+    promotions_spec=[
+        {
+            "title": "10er-Karte Yoga −15 %",
+            "desc": "Zehn Stunden Yoga zum Vorteilspreis — bis Monatsende.",
+            "new_price": "136.00",
+            "compare_at": "160.00",
+            "ends_in_days": 14,
+            "image": "yoga-class",
+        },
+    ],
+    **_SOLINGEN_COMMON,
+)
+
+LICHTBLICK = DemoKit(
+    section_layouts={"services": {"preset": "cols3"}},
+    business_city_category="fotografie",
+    menus=_solingen_menus("booking", "promotions"),
+    heroes=_solingen_heroes(
+        "photo-studio",
+        "Fotos, die bleiben",
+        "Passfotos sofort, Bewerbungsbilder und Familien-Shootings in Mitte.",
+        "portrait-photo",
+        "Bewerbungsfotos für Schulabgänger",
+        "Mit Schülerausweis 20 % günstiger — bis Ende des Monats.",
+        "Termin buchen",
+        "/termin/",
+    ),
+    key="lichtblick",
+    subdomain="lichtblick",
+    district="mitte",
+    label="Fotostudio Lichtblick",
+    business_type="other",
+    accent="#7c2d12",
+    hero_image_kw="photo-studio",
+    hero_title="Fotos, die bleiben",
+    hero_text="Passfotos sofort, Bewerbungsbilder und Familien-Shootings in Mitte.",
+    about_title="Über uns",
+    about_text="Fotostudio in Solingen-Mitte: biometrische Passfotos zum Mitnehmen, "
+    "Bewerbungsfotos und Shootings für Familien und Firmen.",
+    address="Kölner Straße 22, 42651 Solingen",
+    phone="+49 212 5550710",
+    lat="51.1668000",
+    lng="7.0801000",
+    opening_hours_text="Mo–Fr 10:00–18:00 · Sa 10:00–14:00",
+    opening_hours=_solingen_hours(("10:00", "18:00"), ("10:00", "14:00")),
+    enable_modules=["booking"],
+    services=[
+        (
+            "Biometrische Passfotos",
+            15,
+            "14.90",
+            "Vier Fotos, sofort zum Mitnehmen.",
+            "passport-photo",
+        ),
+        ("Bewerbungsfotos", 45, "69.00", "Drei bearbeitete Bilder digital.", "portrait-photo"),
+        ("Familien-Shooting", 90, "149.00", "Im Studio, zehn Bilder digital.", "family-photo"),
+    ],
+    promotions_spec=[
+        {
+            "title": "Bewerbungsfotos für Schulabgänger",
+            "desc": "Mit Schülerausweis 20 % günstiger — bis Ende des Monats.",
+            "new_price": "55.00",
+            "compare_at": "69.00",
+            "ends_in_days": 14,
+            "image": "portrait-photo",
+        },
+    ],
+    **_SOLINGEN_COMMON,
+)
+
+ELEKTRO_SCHMITZ = DemoKit(
+    business_city_category="elektriker",
+    menus=_solingen_menus("booking", "jobs", "promotions"),
+    heroes=_solingen_heroes(
+        "electrician",
+        "Ihr Elektriker in Gräfrath",
+        "Installation, Reparatur und E-Check — schnell vor Ort in ganz Solingen.",
+        "electrician",
+        "E-Check im Herbst −10 %",
+        "Für Vermieter: E-Check mit Protokoll günstiger bis November.",
+        "Termin buchen",
+        "/termin/",
+    ),
+    key="elektro_schmitz",
+    subdomain="elektro-schmitz",
+    district="graefrath",
+    label="Elektro Schmitz",
+    business_type="handwerker",
+    accent="#ea580c",
+    hero_image_kw="electrician",
+    hero_title="Ihr Elektriker in Gräfrath",
+    hero_text="Installation, Reparatur und E-Check — schnell vor Ort in ganz Solingen.",
+    about_title="Über uns",
+    about_text="Meisterbetrieb für Elektrotechnik in Gräfrath: Installation, Reparatur, "
+    "Wallboxen und E-Check für Vermieter.",
+    address="Wuppertaler Straße 88, 42653 Solingen",
+    phone="+49 212 5550711",
+    lat="51.2034000",
+    lng="7.0812000",
+    opening_hours_text="Mo–Fr 7:30–17:00",
+    opening_hours={d: ("07:30", "17:00") for d in range(5)},
+    enable_modules=["booking", "jobs", "promotions"],
+    anfrage_form={"fields": ["date"]},
+    services=[
+        ("E-Check Wohnung", 90, "149.00", "Prüfprotokoll für Vermieter.", "electrician"),
+        ("Wallbox-Beratung vor Ort", 45, "49.00", "Wird bei Auftrag verrechnet.", "wallbox"),
+    ],
+    promotions_spec=[
+        {
+            "title": "E-Check im Herbst −10 %",
+            "desc": "Für Vermieter: E-Check mit Protokoll günstiger bis November.",
+            "new_price": "134.00",
+            "compare_at": "149.00",
+            "ends_in_days": 21,
+            "image": "electrician",
+        },
+    ],
+    **_SOLINGEN_COMMON,
+)
+
+
 KITS = {
     RESTAURANT.key: RESTAURANT,
     PRANASY.key: PRANASY,
@@ -23176,6 +24145,18 @@ KITS = {
     LITE_HOFLADEN.key: LITE_HOFLADEN,
     LITE_PENSION.key: LITE_PENSION,
     LITE_FRISEUR.key: LITE_FRISEUR,
+    # T-8.22: Solingen — по бизнесу на каждый раздел каталога города.
+    KLINGENWERK.key: KLINGENWERK,
+    HANDY_DOKTOR.key: HANDY_DOKTOR,
+    SPIELKISTE.key: SPIELKISTE,
+    PFOTENGLUECK.key: PFOTENGLUECK,
+    RAD_UND_TAT.key: RAD_UND_TAT,
+    WOHNWERK.key: WOHNWERK,
+    FEINKOST_MARKT.key: FEINKOST_MARKT,
+    SCHUHHAUS.key: SCHUHHAUS,
+    BERGISCH_FIT.key: BERGISCH_FIT,
+    LICHTBLICK.key: LICHTBLICK,
+    ELEKTRO_SCHMITZ.key: ELEKTRO_SCHMITZ,
 }
 
 
@@ -23559,6 +24540,7 @@ def apply_kit(tenant, key: str) -> bool:
             is_active=True,
             parent=parent,
             size_table=kit.size_tables.get(slug, ""),  # M2 Größentabelle
+            city_category=kit.city_categories.get(slug, ""),  # T-8.22
             # Фидбэк 2026-08-07 («категории картинками»): фото категории брали
             # только вручную в кабинете, поэтому у ВСЕХ демо `images` был пуст и
             # витрина откатывалась на текстовые чипы. Ключ фото — slug категории
@@ -24068,6 +25050,9 @@ def apply_kit(tenant, key: str) -> bool:
     if kit.district:  # T-8.17: район в городском портале
         tenant.district = kit.district
         update_fields.append("district")
+    if kit.business_city_category:  # T-8.22: основная категория в каталоге города
+        tenant.city_category = kit.business_city_category
+        update_fields.append("city_category")
     if kit.lat and kit.lng:  # T-8.1: «Route planen», карта, «рядом» на портале
         tenant.latitude = Decimal(kit.lat)
         tenant.longitude = Decimal(kit.lng)

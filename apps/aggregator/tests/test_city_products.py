@@ -228,3 +228,20 @@ def test_entdecken_search_finds_products():
     _listing("product", "Winterjacke")
     html = views.discover_index(RequestFactory().get("/entdecken/?q=winterjacke")).content.decode()
     assert "Winterjacke" in html and 'data-kind-badge="product"' in html
+
+
+def test_business_own_category_beats_type_suggestion():
+    _tenant(business_type="other", city_category="fitness")
+    service = Service.objects.create(name="Yoga", duration_minutes=60, price_cents=1600)
+    tasks.sync_service_listing("public", service.pk)
+    tasks.sync_business_listing("public")
+    assert _row("service", service.pk).city_category == "fitness"
+    assert _row("business", "business").city_category == "fitness"
+
+
+def test_settings_form_offers_city_category():
+    from apps.tenants.forms import BusinessSettingsForm
+
+    tenant = _tenant(business_type="other")
+    field = BusinessSettingsForm(instance=tenant).fields["city_category"]
+    assert field.choices[0][0] == "" and "Automatisch" in str(field.choices[0][1])

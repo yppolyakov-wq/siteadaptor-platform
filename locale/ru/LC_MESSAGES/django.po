@@ -24210,3 +24210,12 @@ msgstr "Компании"
 
 msgid "Was suchen Sie?"
 msgstr "Что вы ищете?"
+
+msgid "Hauptkategorie im Stadtkatalog"
+msgstr "Основная категория в каталоге города"
+
+msgid ""
+"Unter dieser Rubrik erscheinen Ihr Unternehmen und Ihre Leistungen im "
+"Stadtportal."
+msgstr ""
+"Под этой рубрикой ваша компания и её услуги появляются на городском портале."

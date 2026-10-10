@@ -61,18 +61,23 @@ def _product_city_category(promo) -> str:
 def _city_fields(kind: str, tenant, snap: dict | None = None) -> dict:
     """T-8.13a: единая категория и признаки каталога города для листинга.
 
-    Акция — своя категория → категория её товара (T-8.13b) → подсказка по типу бизнеса;
+    Акция — своя категория → категория её товара (T-8.13b) → категория бизнеса
+    (T-8.22) → подсказка по типу;
     номер — Hotels & Pensionen;
     событие — по теме; меню — Catering. Признаки — из данных (свои/диеты/тема).
     """
     from apps.core import city_categories as cc
 
     snap = snap or {}
+    # T-8.22: своя основная категория бизнеса сильнее подсказки по типу.
+    by_type = cc.normalize_category(getattr(tenant, "city_category", "")) or (
+        cc.suggest_for_business_type(getattr(tenant, "business_type", ""))
+    )
     if kind == "promotion":
         cat = (
             cc.normalize_category(snap.get("city_category"))
             or cc.normalize_category(snap.get("product_city_category"))
-            or cc.suggest_for_business_type(getattr(tenant, "business_type", ""))
+            or by_type
         )
         tags = cc.normalize_tags([*snap.get("city_tags", []), *snap.get("product_diets", [])])
     elif kind == "stay":
@@ -84,12 +89,10 @@ def _city_fields(kind: str, tenant, snap: dict | None = None) -> dict:
         tags = cc.normalize_tags([theme])
     elif kind == "product":
         # T-8.11: своя категория товара (сопоставление T-8.13b) → тип бизнеса.
-        cat = cc.normalize_category(snap.get("city_category")) or cc.suggest_for_business_type(
-            getattr(tenant, "business_type", "")
-        )
+        cat = cc.normalize_category(snap.get("city_category")) or by_type
         tags = cc.normalize_tags(snap.get("diets", []))
     elif kind in ("service", "business"):
-        cat, tags = cc.suggest_for_business_type(getattr(tenant, "business_type", "")), []
+        cat, tags = by_type, []
     else:  # menu
         cat, tags = "catering", cc.normalize_tags(snap.get("diets", []))
     return {"city_category": cat, "city_tags": tags}

@@ -102,6 +102,7 @@ class BusinessSettingsForm(forms.ModelForm):
             "auto_redeem_on_scan",
             "owner_digest_enabled",
             "in_city_catalog",
+            "city_category",
             "voucher_max_percent",
             # W9-5: налоговые реквизиты и плоские правовые тексты переехали на
             # экран «Recht & Steuern» (LegalDoc — единственный редактор текстов;
@@ -187,6 +188,21 @@ class BusinessSettingsForm(forms.ModelForm):
         else:
             # Город не в справочнике — поле остаётся в форме скрытым (W0: Save не затирает).
             self.fields["district"].widget = forms.HiddenInput()
+        self._init_city_category()
+
+    def _init_city_category(self):
+        """T-8.22: селект «Hauptkategorie im Stadtkatalog» по разделам справочника."""
+        from apps.core import city_categories as cc
+
+        auto = cc.label(cc.suggest_for_business_type(self.instance.business_type))
+        self.fields["city_category"] = forms.ChoiceField(
+            label=_("Hauptkategorie im Stadtkatalog"),
+            required=False,
+            choices=[("", _("Automatisch: %(cat)s") % {"cat": auto}), *cc.grouped_choices()],
+            help_text=_(
+                "Unter dieser Rubrik erscheinen Ihr Unternehmen und Ihre Leistungen im Stadtportal."
+            ),
+        )
 
     def clean_district(self):
         from apps.core import districts
