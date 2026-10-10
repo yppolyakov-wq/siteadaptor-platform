@@ -44,6 +44,10 @@ def test_demo_kits_anfrage_presets_survive_normalize():
     with_form = {key for key, kit in KITS.items() if kit.anfrage_form}
     assert {"restaurant", "pranasy", "bakery", "butcher"} <= with_form
     for key in with_form:
-        out = siteconfig.normalize({"anfrage": KITS[key].anfrage_form})
-        assert out["anfrage"]["fields"], key
-        assert out["anfrage"]["event_types"], key
+        preset = KITS[key].anfrage_form
+        out = siteconfig.normalize({"anfrage": preset})
+        # всё, что кит задал, переживает normalize (T-8.2: лёгкие демо задают только
+        # дату/гостей — без видов мероприятия, и это законно)
+        assert set(out["anfrage"]["fields"]) == set(preset["fields"]), key
+        if preset.get("event_types"):
+            assert out["anfrage"]["event_types"] == preset["event_types"], key

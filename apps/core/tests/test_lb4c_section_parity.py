@@ -34,6 +34,9 @@ _UUID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 _ISO = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:[+-]\d{2}:\d{2}|Z)?")
 _TIME = re.compile(r"\b\d{2}:\d{2}\b")
 _DATE = re.compile(r"\b\d{2}\.\d{2}\.\d{4}\b")
+# «bis 29.10.» — короткая дата карточки акции. Акции фикстуры живут «сейчас + N дней»,
+# поэтому без маски эталон ломался со сменой календарной даты (не разметки).
+_SHORT_DATE = re.compile(r"\b\d{2}\.\d{2}\.(?!\d)")
 _CSRF = re.compile(r'name="csrfmiddlewaretoken" value="[^"]+"')
 
 
@@ -47,6 +50,7 @@ def _normalize(html: str) -> str:
     html = _UUID.sub("<uuid>", html)
     html = _ISO.sub("<iso>", html)
     html = _DATE.sub("<date>", html)
+    html = _SHORT_DATE.sub("<dm>", html)
     html = _TIME.sub("<time>", html)
     return re.sub(r"\s+", " ", html).strip()
 
@@ -155,5 +159,5 @@ def test_section_markup_matches_the_snapshot_taken_before_lb4c(name):
     if WRITE:
         GOLDEN.mkdir(exist_ok=True)
         path.write_text(html + "\n", encoding="utf-8")
-    expected = path.read_text(encoding="utf-8").strip()
+    expected = _SHORT_DATE.sub("<dm>", path.read_text(encoding="utf-8").strip())
     assert html == expected, f"разметка секции {name} изменилась"
