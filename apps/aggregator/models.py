@@ -14,6 +14,22 @@ from apps.core.models import I18nMixin
 from apps.tenants.models import Tenant
 
 
+class ListingQuerySet(models.QuerySet):
+    def public(self):
+        """T-8.6: то, что видит посетитель каталога города (единственная точка чтения).
+
+        Активные, не скрытые модерацией и не принадлежащие бизнесу, который СЕЙЧАС не
+        может быть в каталоге (приостановлен, выключен, без согласия, почта не
+        подтверждена) — фильтр по живому состоянию тенанта, без ресинка: правка в
+        админке действует сразу. Сироты без тенанта не отбрасываются (их чистит синк).
+        """
+        from .visibility import withheld_schemas
+
+        return self.filter(is_active=True, hidden_at__isnull=True).exclude(
+            tenant_schema__in=withheld_schemas()
+        )
+
+
 class AggregatorListing(I18nMixin, models.Model):
     # Вид листинга (A5/A6): акция / размещение по ночам / событие. Один пул, один
     # шаблон карточки; цена/дата/detail_url наполняются по-разному в sync-задачах.
@@ -90,8 +106,14 @@ class AggregatorListing(I18nMixin, models.Model):
     featured_impressions = models.PositiveIntegerField(default=0)
     featured_clicks = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    # T-8.6: скрыто модерацией (вручную или авто — три жалобы). Синк поле НЕ трогает
+    # (как featured_until), поэтому скрытие переживает правки акции владельцем.
+    hidden_at = models.DateTimeField(null=True, blank=True)
+    hidden_reason = models.CharField(max_length=200, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    objects = ListingQuerySet.as_manager()
 
     class Meta:
         ordering = ["-updated_at"]
@@ -136,10 +158,62 @@ class AggregatorListing(I18nMixin, models.Model):
         return districts.label(self.city, self.district)
 
     @property
+    def portal_url(self) -> str:
+        """T-8.6: ссылка с каталога города на бизнес с атрибуцией `?ch=portal`.
+
+        Витрина кладёт канал в сессию (`_capture_channel`), он доезжает до резерва,
+        купона и счётчика просмотров по каналам. Для JSON-LD/SEO — чистый detail_url."""
+        url = self.detail_url or ""
+        if not url or "ch=" in url:
+            return url
+        return f"{url}{'&' if '?' in url else '?'}ch=portal"
+
+    @property
     def is_featured_now(self) -> bool:
         from django.utils import timezone
 
         return bool(self.featured_until and self.featured_until > timezone.now())
+
+
+class ListingReport(models.Model):
+    """T-8.6 «Melden»: жалоба посетителя на карточку каталога города.
+
+    Постмодерация: жалобы копятся в очереди админки; три открытые жалобы с разных
+    адресов скрывают карточку до решения модератора (`AUTO_HIDE_AT`).
+    """
+
+    AUTO_HIDE_AT = 3
+
+    REASON_WRONG = "wrong"
+    REASON_EXPIRED = "expired"
+    REASON_OFFENSIVE = "offensive"
+    REASON_SPAM = "spam"
+    REASON_OTHER = "other"
+    REASONS = [
+        (REASON_WRONG, _("Falsche Angaben")),
+        (REASON_EXPIRED, _("Angebot gibt es nicht mehr")),
+        (REASON_OFFENSIVE, _("Anstößig oder rechtswidrig")),
+        (REASON_SPAM, _("Spam oder Betrug")),
+        (REASON_OTHER, _("Sonstiges")),
+    ]
+    STATUS_OPEN = "open"
+    STATUS_RESOLVED = "resolved"
+    STATUSES = [(STATUS_OPEN, _("Offen")), (STATUS_RESOLVED, _("Erledigt"))]
+
+    listing = models.ForeignKey(AggregatorListing, on_delete=models.CASCADE, related_name="reports")
+    reason = models.CharField(max_length=20, choices=REASONS)
+    message = models.TextField(blank=True, default="", max_length=1000)
+    # Хэш IP (не сам адрес) — только чтобы считать РАЗНЫЕ голоса для автоскрытия.
+    ip_hash = models.CharField(max_length=64, blank=True, default="")
+    status = models.CharField(max_length=10, choices=STATUSES, default=STATUS_OPEN)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["status", "-created_at"], name="agg_report_queue_idx")]
+
+    def __str__(self):
+        return f"{self.get_reason_display()} — {self.listing}"
 
 
 class AggregatorPortal(I18nMixin, models.Model):

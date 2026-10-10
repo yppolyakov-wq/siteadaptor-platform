@@ -81,6 +81,7 @@ def quick_start(request):
             email=cd["email"],
             promo=promo,
             partner_code=request.session.get("partner_ref", ""),
+            in_city_catalog=cd.get("in_city_catalog", False),
         )
     except IntegrityError:
         # Гонка: адрес заняли между проверкой и сохранением — просим выбрать другой.

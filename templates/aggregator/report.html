@@ -1,0 +1,34 @@
+{% extends base_template %}
+{% load i18n %}
+{% block title %}{% trans "Angebot melden" %}{% endblock %}
+
+{% block content %}
+{% comment %}T-8.6 «Melden»: жалоба на карточку каталога. Постмодерация — модератор
+платформы проверяет; три жалобы с разных адресов временно скрывают карточку.{% endcomment %}
+<div class="max-w-lg mx-auto px-4 py-8" data-report-page>
+  <h1 class="text-xl font-bold">⚑ {% trans "Angebot melden" %}</h1>
+  <p class="mt-1 text-sm text-gray-500">{{ listing.title_text }} · {{ listing.business_name }}</p>
+  {% if sent %}
+    <div class="mt-6 rounded-2xl bg-green-50 text-green-900 p-4 text-sm" data-report-sent>
+      {% trans "Danke! Wir prüfen das Angebot." %}
+    </div>
+  {% else %}
+    {% if error %}<p class="mt-4 rounded-xl bg-red-50 text-red-700 px-3 py-2 text-sm">{{ error }}</p>{% endif %}
+    <form method="post" class="mt-6 space-y-4 bg-white rounded-2xl shadow-sm p-4">
+      {% csrf_token %}
+      <div hidden aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+      <fieldset class="space-y-2">
+        <legend class="text-sm font-medium mb-1">{% trans "Was stimmt nicht?" %}</legend>
+        {% for key, label in reasons %}
+          <label class="flex items-center gap-2 text-sm"><input type="radio" name="reason" value="{{ key }}" required> {{ label }}</label>
+        {% endfor %}
+      </fieldset>
+      <label class="block">
+        <span class="block text-sm font-medium mb-1">{% trans "Hinweis (optional)" %}</span>
+        <textarea name="message" rows="3" maxlength="1000" class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm"></textarea>
+      </label>
+      <button type="submit" class="w-full rounded-xl bg-gray-900 text-white px-4 py-2.5 text-sm font-medium">{% trans "Meldung senden" %}</button>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

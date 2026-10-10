@@ -55,7 +55,7 @@ def map_points(cards) -> list:
                 return reverse("aggregator-featured-click", args=[card.pk])
             except NoReverseMatch:
                 pass
-        return card.detail_url
+        return card.portal_url
 
     return [
         {

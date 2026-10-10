@@ -23734,3 +23734,101 @@ msgstr "до %(n)s · перше — головне фото"
 
 msgid "wird aus dem Namen erstellt"
 msgstr "створюється з назви"
+
+#, python-format
+msgid "%(n)s verborgen."
+msgstr "Приховано: %(n)s."
+
+#, python-format
+msgid "%(n)s wieder sichtbar."
+msgstr "Знову видно: %(n)s."
+
+msgid "Angebot gibt es nicht mehr"
+msgstr "Пропозиції більше немає"
+
+msgid "Angebot melden"
+msgstr "Поскаржитися на пропозицію"
+
+msgid "Anstößig oder rechtswidrig"
+msgstr "Образливо або незаконно"
+
+msgid "Auch im Stadtportal Solingen zeigen"
+msgstr "Показувати й на міському порталі Золінгена"
+
+msgid "Aufrufe"
+msgstr "Перегляди"
+
+#, python-format
+msgid "Automatisch: %(n)s Meldungen"
+msgstr "Автоматично: скарг %(n)s"
+
+msgid "Bitte einen Grund wählen."
+msgstr "Виберіть причину."
+
+msgid "Coupons"
+msgstr "Купони"
+
+msgid "Danke! Wir prüfen das Angebot."
+msgstr "Дякуємо! Ми перевіримо пропозицію."
+
+msgid "Erledigt — Angebot bleibt sichtbar"
+msgstr "Вирішено — пропозиція лишається видимою"
+
+msgid "Erledigt — Angebot verbergen"
+msgstr "Вирішено — приховати пропозицію"
+
+msgid ""
+"Erscheint dort, sobald Sie Ihre E-Mail bestätigt haben. Jederzeit änderbar."
+msgstr "З'явиться там після підтвердження e-mail. Можна змінити будь-коли."
+
+msgid "Falsche Angaben"
+msgstr "Невірні дані"
+
+msgid "Hinweis (optional)"
+msgstr "Коментар (необов'язково)"
+
+msgid ""
+"Ihre aktiven Angebote erscheinen im Stadtportal Ihrer Stadt — erst nachdem "
+"Ihre E-Mail-Adresse bestätigt ist."
+msgstr ""
+"Ваші активні пропозиції з'являються на порталі вашого міста — лише після "
+"підтвердження e-mail."
+
+msgid "Im Stadtportal verbergen"
+msgstr "Приховати на міському порталі"
+
+msgid "Im Stadtportal zeigen"
+msgstr "Показувати на міському порталі"
+
+msgid "Kanal"
+msgstr "Канал"
+
+msgid "Melden"
+msgstr "Поскаржитися"
+
+msgid "Meldung senden"
+msgstr "Надіслати скаргу"
+
+msgid "Moderation"
+msgstr "Модерація"
+
+msgid "Offene Meldungen"
+msgstr "Відкриті скарги"
+
+msgid "Spam oder Betrug"
+msgstr "Спам або шахрайство"
+
+msgid "Verborgen"
+msgstr "Приховано"
+
+msgid "Was stimmt nicht?"
+msgstr "Що не так?"
+
+msgid "Wieder anzeigen (Meldungen erledigt)"
+msgstr "Показати знову (скарги вирішено)"
+
+msgid "Woher kommen Ihre Kund:innen?"
+msgstr "Звідки приходять клієнти?"
+
+msgid "Zurückgelegt"
+msgstr "Відкладено"

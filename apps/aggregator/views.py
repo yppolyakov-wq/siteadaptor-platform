@@ -71,7 +71,7 @@ def listings_for(
     from django.db.models import Q
     from django.utils import timezone
 
-    qs = AggregatorListing.objects.filter(is_active=True)
+    qs = AggregatorListing.objects.public()
     if not include_demo:  # T-8.15: настоящий портал — без демо-бизнесов
         qs = qs.filter(is_demo=False)
     if city:
@@ -122,7 +122,7 @@ def _distinct_event_categories():
     from apps.events import taxonomy
 
     present = set(
-        AggregatorListing.objects.filter(is_active=True)
+        AggregatorListing.objects.public()
         .exclude(category="")
         .values_list("category", flat=True)
         .distinct()
@@ -240,12 +240,12 @@ def featured_click(request, pk):
     from django.db.models import F
     from django.shortcuts import redirect
 
-    listing = AggregatorListing.objects.filter(pk=pk, is_active=True).first()
+    listing = AggregatorListing.objects.public().filter(pk=pk).first()
     if listing is None:
         return redirect("/")  # корень валиден и на /entdecken-домене, и на портале
     if listing.is_featured_now:
         AggregatorListing.objects.filter(pk=pk).update(featured_clicks=F("featured_clicks") + 1)
-    url = listing.detail_url or ""
+    url = listing.portal_url or ""
     if not url.startswith(("http://", "https://", "/")):
         return redirect("/")
     return redirect(url)
@@ -253,7 +253,7 @@ def featured_click(request, pk):
 
 def _distinct_cities():
     return (
-        AggregatorListing.objects.filter(is_active=True)
+        AggregatorListing.objects.public()
         .exclude(city="")
         .values_list("city", flat=True)
         .distinct()
@@ -263,7 +263,7 @@ def _distinct_cities():
 
 def _distinct_types():
     types = (
-        AggregatorListing.objects.filter(is_active=True)
+        AggregatorListing.objects.public()
         .exclude(business_type="")
         .values_list("business_type", flat=True)
         .distinct()
@@ -454,7 +454,7 @@ def city_listing(request, city, business_type=None):
     from .models import AggregatorPortal
 
     other_cities = (
-        AggregatorListing.objects.filter(is_active=True)
+        AggregatorListing.objects.public()
         .exclude(city="")
         .exclude(city__iexact=city)
         .values_list("city", flat=True)
@@ -527,7 +527,7 @@ def sitemap_xml(request):
     """
     from xml.sax.saxutils import escape
 
-    active = AggregatorListing.objects.filter(is_active=True)
+    active = AggregatorListing.objects.public()
     # Публичные страницы платформы: главная (обзор Branchen) + отраслевые + Über uns.
     from apps.tenants import archetype_pages
 

@@ -76,6 +76,8 @@ class Voucher(I18nMixin, TimestampedModel):
         blank=True,
         related_name="coupons",
     )
+    # T-8.6: откуда пришёл получатель купона (portal/flyer/…; пусто — неизвестно).
+    source_channel = models.CharField(max_length=30, blank=True, default="")
 
     class Meta:
         ordering = ["-created_at"]

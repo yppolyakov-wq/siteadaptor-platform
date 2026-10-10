@@ -77,9 +77,9 @@ def account(request):
     if user is None:
         return redirect("portal-login")
     favorites = list(
-        AggregatorListing.objects.filter(favorited_by__user=user, is_active=True).order_by(
-            "-favorited_by__created_at"
-        )
+        AggregatorListing.objects.public()
+        .filter(favorited_by__user=user)
+        .order_by("-favorited_by__created_at")
     )
     from .account_services import reservations_for_email
 
@@ -107,7 +107,7 @@ def favorite_toggle(request):
         listing_pk = int(request.POST.get("listing", ""))
     except (TypeError, ValueError):
         listing_pk = None
-    listing = AggregatorListing.objects.filter(pk=listing_pk, is_active=True).first()
+    listing = AggregatorListing.objects.public().filter(pk=listing_pk).first()
     if listing is not None:
         favorite, created = FavoriteListing.objects.get_or_create(user=user, listing=listing)
         if not created:

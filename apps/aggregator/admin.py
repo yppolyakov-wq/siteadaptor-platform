@@ -8,9 +8,32 @@ Django admin живёт только на public (config/urls_public.py). Вни
 
 from django import forms
 from django.contrib import admin, messages
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from unfold.admin import ModelAdmin
 
-from .models import AggregatorListing, AggregatorPortal, BusinessReview, PortalBot
+from .models import (
+    AggregatorListing,
+    AggregatorPortal,
+    BusinessReview,
+    ListingReport,
+    PortalBot,
+)
+
+
+class HiddenFilter(admin.SimpleListFilter):
+    title = _("Moderation")
+    parameter_name = "verborgen"
+
+    def lookups(self, request, model_admin):
+        return [("ja", _("Verborgen")), ("nein", _("Sichtbar"))]
+
+    def queryset(self, request, queryset):
+        if self.value() == "ja":
+            return queryset.filter(hidden_at__isnull=False)
+        if self.value() == "nein":
+            return queryset.filter(hidden_at__isnull=True)
+        return queryset
 
 
 @admin.register(AggregatorListing)
@@ -21,15 +44,89 @@ class AggregatorListingAdmin(ModelAdmin):
     featured_until синк не трогает.
     """
 
-    list_display = ("business_name", "city", "business_type", "featured_until", "is_active")
+    list_display = (
+        "business_name",
+        "city",
+        "business_type",
+        "featured_until",
+        "is_active",
+        "hidden_at",
+        "open_reports",
+    )
     search_fields = ("business_name", "city", "tenant_slug")
-    list_filter = ("is_active", "business_type")
-    fields = ("business_name", "city", "business_type", "detail_url", "featured_until")
-    readonly_fields = ("business_name", "city", "business_type", "detail_url")
+    list_filter = ("is_active", "business_type", HiddenFilter)
+    fields = (
+        "business_name",
+        "city",
+        "business_type",
+        "detail_url",
+        "featured_until",
+        "hidden_at",
+        "hidden_reason",
+    )
+    readonly_fields = ("business_name", "city", "business_type", "detail_url", "hidden_at")
     ordering = ("-updated_at",)
+    actions = ("hide_listings", "unhide_listings")
 
     def has_add_permission(self, request):
         return False  # листинги создаёт только sync_listing
+
+    @admin.display(description=_("Offene Meldungen"))
+    def open_reports(self, obj):
+        return obj.reports.filter(status=ListingReport.STATUS_OPEN).count()
+
+    @admin.action(description=_("Im Stadtportal verbergen"))
+    def hide_listings(self, request, queryset):
+        n = queryset.filter(hidden_at__isnull=True).update(
+            hidden_at=timezone.now(), hidden_reason=_("Moderation")
+        )
+        messages.success(request, _("%(n)s verborgen.") % {"n": n})
+
+    @admin.action(description=_("Wieder anzeigen (Meldungen erledigt)"))
+    def unhide_listings(self, request, queryset):
+        n = queryset.update(hidden_at=None, hidden_reason="")
+        ListingReport.objects.filter(listing__in=queryset).update(
+            status=ListingReport.STATUS_RESOLVED
+        )
+        messages.success(request, _("%(n)s wieder sichtbar.") % {"n": n})
+
+
+@admin.register(ListingReport)
+class ListingReportAdmin(ModelAdmin):
+    """T-8.6: очередь жалоб «Melden» (постмодерация, автоскрытие при 3 голосах)."""
+
+    list_display = ("created_at", "listing", "reason", "status", "listing_hidden")
+    list_filter = ("status", "reason")
+    search_fields = ("listing__business_name", "message")
+    readonly_fields = ("listing", "reason", "message", "created_at")
+    fields = ("listing", "reason", "message", "status", "created_at")
+    ordering = ("status", "-created_at")
+    actions = ("resolve_keep", "resolve_hide")
+
+    def has_add_permission(self, request):
+        return False
+
+    @admin.display(boolean=True, description=_("Verborgen"))
+    def listing_hidden(self, obj):
+        return obj.listing.hidden_at is not None
+
+    @admin.action(description=_("Erledigt — Angebot bleibt sichtbar"))
+    def resolve_keep(self, request, queryset):
+        ids = list(queryset.values_list("listing_id", flat=True))
+        AggregatorListing.objects.filter(pk__in=ids).update(hidden_at=None, hidden_reason="")
+        ListingReport.objects.filter(listing_id__in=ids).update(
+            status=ListingReport.STATUS_RESOLVED
+        )
+
+    @admin.action(description=_("Erledigt — Angebot verbergen"))
+    def resolve_hide(self, request, queryset):
+        ids = list(queryset.values_list("listing_id", flat=True))
+        AggregatorListing.objects.filter(pk__in=ids, hidden_at__isnull=True).update(
+            hidden_at=timezone.now(), hidden_reason=_("Moderation")
+        )
+        ListingReport.objects.filter(listing_id__in=ids).update(
+            status=ListingReport.STATUS_RESOLVED
+        )
 
 
 @admin.register(BusinessReview)

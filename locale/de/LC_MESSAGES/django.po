@@ -23556,3 +23556,102 @@ msgstr "bis zu %(n)s · das erste ist das Titelbild"
 
 msgid "wird aus dem Namen erstellt"
 msgstr "wird aus dem Namen erstellt"
+
+#, python-format
+msgid "%(n)s verborgen."
+msgstr "%(n)s verborgen."
+
+#, python-format
+msgid "%(n)s wieder sichtbar."
+msgstr "%(n)s wieder sichtbar."
+
+msgid "Angebot gibt es nicht mehr"
+msgstr "Angebot gibt es nicht mehr"
+
+msgid "Angebot melden"
+msgstr "Angebot melden"
+
+msgid "Anstößig oder rechtswidrig"
+msgstr "Anstößig oder rechtswidrig"
+
+msgid "Auch im Stadtportal Solingen zeigen"
+msgstr "Auch im Stadtportal Solingen zeigen"
+
+msgid "Aufrufe"
+msgstr "Aufrufe"
+
+#, python-format
+msgid "Automatisch: %(n)s Meldungen"
+msgstr "Automatisch: %(n)s Meldungen"
+
+msgid "Bitte einen Grund wählen."
+msgstr "Bitte einen Grund wählen."
+
+msgid "Coupons"
+msgstr "Coupons"
+
+msgid "Danke! Wir prüfen das Angebot."
+msgstr "Danke! Wir prüfen das Angebot."
+
+msgid "Erledigt — Angebot bleibt sichtbar"
+msgstr "Erledigt — Angebot bleibt sichtbar"
+
+msgid "Erledigt — Angebot verbergen"
+msgstr "Erledigt — Angebot verbergen"
+
+msgid ""
+"Erscheint dort, sobald Sie Ihre E-Mail bestätigt haben. Jederzeit änderbar."
+msgstr ""
+"Erscheint dort, sobald Sie Ihre E-Mail bestätigt haben. Jederzeit änderbar."
+
+msgid "Falsche Angaben"
+msgstr "Falsche Angaben"
+
+msgid "Hinweis (optional)"
+msgstr "Hinweis (optional)"
+
+msgid ""
+"Ihre aktiven Angebote erscheinen im Stadtportal Ihrer Stadt — erst nachdem "
+"Ihre E-Mail-Adresse bestätigt ist."
+msgstr ""
+"Ihre aktiven Angebote erscheinen im Stadtportal Ihrer Stadt — erst nachdem "
+"Ihre E-Mail-Adresse bestätigt ist."
+
+msgid "Im Stadtportal verbergen"
+msgstr "Im Stadtportal verbergen"
+
+msgid "Im Stadtportal zeigen"
+msgstr "Im Stadtportal zeigen"
+
+msgid "Kanal"
+msgstr "Kanal"
+
+msgid "Melden"
+msgstr "Melden"
+
+msgid "Meldung senden"
+msgstr "Meldung senden"
+
+msgid "Moderation"
+msgstr "Moderation"
+
+msgid "Offene Meldungen"
+msgstr "Offene Meldungen"
+
+msgid "Spam oder Betrug"
+msgstr "Spam oder Betrug"
+
+msgid "Verborgen"
+msgstr "Verborgen"
+
+msgid "Was stimmt nicht?"
+msgstr "Was stimmt nicht?"
+
+msgid "Wieder anzeigen (Meldungen erledigt)"
+msgstr "Wieder anzeigen (Meldungen erledigt)"
+
+msgid "Woher kommen Ihre Kund:innen?"
+msgstr "Woher kommen Ihre Kund:innen?"
+
+msgid "Zurückgelegt"
+msgstr "Zurückgelegt"

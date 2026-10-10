@@ -10,6 +10,7 @@ from django.conf import settings
 from django.urls import path
 
 from apps.aggregator import account_views, portal_views, reviews_views
+from apps.aggregator import reports as aggregator_reports
 from apps.aggregator import telegram_bot as portal_telegram
 from apps.aggregator import views as aggregator_views
 from apps.core import health
@@ -48,6 +49,8 @@ urlpatterns = [
     path("tg/<str:secret>/", portal_telegram.webhook, name="portal-telegram-webhook"),
     # D2.3: клик-счётчик featured (то же имя, что в urls_public) — до catch-all.
     path("klick/<int:pk>/", aggregator_views.featured_click, name="aggregator-featured-click"),
+    # T-8.6 «Melden» (то же имя, что в urls_public) — до catch-all.
+    path("melden/<int:pk>/", aggregator_reports.report_listing, name="aggregator-report"),
     # T-8.17: страницы районов города (до catch-all <facet>).
     path("stadtteil/<slug:district>/", portal_views.portal_home, name="portal-district"),
     path(

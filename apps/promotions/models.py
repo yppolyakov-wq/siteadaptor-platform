@@ -492,6 +492,27 @@ class Promotion(SoftDeleteMixin, I18nMixin):
         return max(0, min(100, round(left / total * 100)))
 
 
+class PromotionChannelView(models.Model):
+    """T-8.6: просмотры страницы акции по каналу (portal/flyer/schaufenster/…, «direkt»).
+
+    Один счётчик на пару (акция, канал); `Promotion.views` остаётся общим итогом.
+    """
+
+    promotion = models.ForeignKey(
+        "promotions.Promotion", on_delete=models.CASCADE, related_name="channel_views"
+    )
+    channel = models.CharField(max_length=30)
+    views = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["promotion", "channel"], name="promo_channel_uniq")
+        ]
+
+    def __str__(self):
+        return f"{self.channel}: {self.views}"
+
+
 class Reservation(TimestampedModel):
     promotion = models.ForeignKey(Promotion, on_delete=models.CASCADE, related_name="reservations")
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name="reservations")

@@ -3,7 +3,7 @@
   {% for l in items %}
     <div class="relative">
     {# D2.3: клик по оплаченной позиции считаем редирект-счётчиком (+rel=sponsored) #}
-    <a href="{% if l.is_featured_now %}{% url 'aggregator-featured-click' l.pk %}{% else %}{{ l.detail_url }}{% endif %}"{% if l.is_featured_now %} rel="sponsored nofollow"{% endif %}
+    <a href="{% if l.is_featured_now %}{% url 'aggregator-featured-click' l.pk %}{% else %}{{ l.portal_url }}{% endif %}"{% if l.is_featured_now %} rel="sponsored nofollow"{% endif %}
        class="group block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
       <div class="relative aspect-square bg-gray-100">
         {% if l.image.url %}
@@ -66,6 +66,8 @@
         {% endif %}
       </div>
     </a>
+    {% url 'aggregator-report' l.pk as report_url %}
+    {% if report_url %}<a href="{{ report_url }}" rel="nofollow" class="block text-right text-[11px] text-gray-400 hover:text-gray-600 mt-1 pr-1" data-report-link>⚑ {% trans "Melden" %}</a>{% endif %}
     {% comment %}MEN-12: «Merken» без аккаунта (сессия) — на главном домене
     /entdecken/, где логина нет; на порталах под логином остаётся персональное
     избранное (сердечко ниже), поэтому кнопки не дублируются.{% endcomment %}

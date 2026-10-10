@@ -21,7 +21,7 @@ def ending_soon(base_qs=None, *, days: int = 3, limit: int = 12) -> list:
     в окне [now, now+days]. Возвращает список (не QuerySet — два вида сливаем).
     """
     if base_qs is None:
-        base_qs = AggregatorListing.objects.filter(is_active=True)
+        base_qs = AggregatorListing.objects.public()
     now = timezone.now()
     soon = now + timedelta(days=days)
 

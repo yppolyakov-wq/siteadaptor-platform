@@ -101,6 +101,7 @@ class BusinessSettingsForm(forms.ModelForm):
             "service_area_note",
             "auto_redeem_on_scan",
             "owner_digest_enabled",
+            "in_city_catalog",
             "voucher_max_percent",
             # W9-5: налоговые реквизиты и плоские правовые тексты переехали на
             # экран «Recht & Steuern» (LegalDoc — единственный редактор текстов;
@@ -125,6 +126,7 @@ class BusinessSettingsForm(forms.ModelForm):
             "whatsapp_number": _("WhatsApp-Nummer"),
             "auto_redeem_on_scan": _("Auto-redeem on scan (logged-in staff)"),
             "owner_digest_enabled": _("Morning digest email"),
+            "in_city_catalog": _("Im Stadtportal zeigen"),
             "voucher_max_percent": _("Max. promo-code share of order (%)"),
         }
         help_texts = {
@@ -150,6 +152,10 @@ class BusinessSettingsForm(forms.ModelForm):
             "owner_digest_enabled": _(
                 "A short morning email: yesterday's revenue, today's bookings and "
                 "what needs your attention."
+            ),
+            "in_city_catalog": _(
+                "Ihre aktiven Angebote erscheinen im Stadtportal Ihrer Stadt — erst nachdem "
+                "Ihre E-Mail-Adresse bestätigt ist."
             ),
             "voucher_max_percent": _(
                 "0 = no limit. Caps discount/promo codes only — sold gift "

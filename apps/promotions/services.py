@@ -338,7 +338,7 @@ def find_coupon(promotion, code) -> Voucher | None:
     return Voucher.objects.filter(code=code, promotion=promotion).first()
 
 
-def issue_coupon(promotion, *, name="", email="", phone="", existing_code=""):
+def issue_coupon(promotion, *, name="", email="", phone="", existing_code="", source_channel=""):
     """Выдать купон акции → (voucher, created).
 
     «1 на человека»: код из куки этого браузера (``existing_code``) или тот же
@@ -374,6 +374,7 @@ def issue_coupon(promotion, *, name="", email="", phone="", existing_code=""):
             expires_at=promotion.ends_at,
             customer=customer,
             promotion=promotion,
+            source_channel=(source_channel or "")[:30],
         )
     return voucher, True
 

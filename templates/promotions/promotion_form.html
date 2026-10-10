@@ -241,6 +241,37 @@
 
     {# Атрибуция: брони по каналам #}
     <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mt-4">
+      {% if channel_funnel %}
+        {% comment %}T-8.6: воронка по каналам — откуда пришли и что сделали
+        (portal = каталог города, flyer = Aushang, direkt = без метки).{% endcomment %}
+        <p class="text-sm font-medium mb-2">{% trans "Woher kommen Ihre Kund:innen?" %}</p>
+        <div class="overflow-x-auto -mx-1" data-channel-funnel>
+          <table class="w-full text-sm min-w-[22rem]">
+            <thead class="text-xs text-gray-500">
+              <tr>
+                <th class="text-left font-medium py-1 px-1">{% trans "Kanal" %}</th>
+                <th class="text-right font-medium py-1 px-1">{% trans "Aufrufe" %}</th>
+                <th class="text-right font-medium py-1 px-1">{% trans "Zurückgelegt" %}</th>
+                <th class="text-right font-medium py-1 px-1">{% trans "Abgeholt" %}</th>
+                <th class="text-right font-medium py-1 px-1">{% trans "Coupons" %}</th>
+                <th class="text-right font-medium py-1 px-1">{% trans "eingelöst" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in channel_funnel %}
+                <tr class="border-t border-gray-100" data-channel-row="{{ r.channel }}">
+                  <td class="py-1.5 px-1">{{ r.channel }}</td>
+                  <td class="py-1.5 px-1 text-right">{{ r.views }}</td>
+                  <td class="py-1.5 px-1 text-right">{{ r.reserved }}</td>
+                  <td class="py-1.5 px-1 text-right">{{ r.handed }}</td>
+                  <td class="py-1.5 px-1 text-right">{{ r.coupons }}</td>
+                  <td class="py-1.5 px-1 text-right">{{ r.redeemed }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
       <p class="text-sm font-medium mb-2">{% trans "Reservations by channel" %}</p>
       {% if channel_stats %}
         <table class="w-full text-sm">
@@ -255,6 +286,7 @@
         </table>
       {% else %}
         <p class="text-xs text-gray-400">{% trans "No reservations yet." %}</p>
+      {% endif %}
       {% endif %}
     </div>
   {% endif %}

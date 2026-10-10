@@ -23516,3 +23516,103 @@ msgstr "up to %(n)s · the first one is the cover"
 
 msgid "wird aus dem Namen erstellt"
 msgstr "created from the name"
+
+#, python-format
+msgid "%(n)s verborgen."
+msgstr "%(n)s hidden."
+
+#, python-format
+msgid "%(n)s wieder sichtbar."
+msgstr "%(n)s visible again."
+
+msgid "Angebot gibt es nicht mehr"
+msgstr "Offer no longer exists"
+
+msgid "Angebot melden"
+msgstr "Report offer"
+
+msgid "Anstößig oder rechtswidrig"
+msgstr "Offensive or illegal"
+
+msgid "Auch im Stadtportal Solingen zeigen"
+msgstr "Also show in the Solingen city portal"
+
+msgid "Aufrufe"
+msgstr "Views"
+
+#, python-format
+msgid "Automatisch: %(n)s Meldungen"
+msgstr "Automatic: %(n)s reports"
+
+msgid "Bitte einen Grund wählen."
+msgstr "Please choose a reason."
+
+msgid "Coupons"
+msgstr "Coupons"
+
+msgid "Danke! Wir prüfen das Angebot."
+msgstr "Thank you! We will check the offer."
+
+msgid "Erledigt — Angebot bleibt sichtbar"
+msgstr "Resolved — offer stays visible"
+
+msgid "Erledigt — Angebot verbergen"
+msgstr "Resolved — hide offer"
+
+msgid ""
+"Erscheint dort, sobald Sie Ihre E-Mail bestätigt haben. Jederzeit änderbar."
+msgstr ""
+"Appears there once you have confirmed your email. You can change this at any"
+" time."
+
+msgid "Falsche Angaben"
+msgstr "Incorrect information"
+
+msgid "Hinweis (optional)"
+msgstr "Note (optional)"
+
+msgid ""
+"Ihre aktiven Angebote erscheinen im Stadtportal Ihrer Stadt — erst nachdem "
+"Ihre E-Mail-Adresse bestätigt ist."
+msgstr ""
+"Your active offers appear in your city's portal — only after your email "
+"address is confirmed."
+
+msgid "Im Stadtportal verbergen"
+msgstr "Hide in the city portal"
+
+msgid "Im Stadtportal zeigen"
+msgstr "Show in the city portal"
+
+msgid "Kanal"
+msgstr "Channel"
+
+msgid "Melden"
+msgstr "Report"
+
+msgid "Meldung senden"
+msgstr "Send report"
+
+msgid "Moderation"
+msgstr "Moderation"
+
+msgid "Offene Meldungen"
+msgstr "Open reports"
+
+msgid "Spam oder Betrug"
+msgstr "Spam or fraud"
+
+msgid "Verborgen"
+msgstr "Hidden"
+
+msgid "Was stimmt nicht?"
+msgstr "What is wrong?"
+
+msgid "Wieder anzeigen (Meldungen erledigt)"
+msgstr "Show again (reports resolved)"
+
+msgid "Woher kommen Ihre Kund:innen?"
+msgstr "Where do your customers come from?"
+
+msgid "Zurückgelegt"
+msgstr "Put aside"

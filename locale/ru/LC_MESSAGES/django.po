@@ -23749,3 +23749,102 @@ msgstr "до %(n)s · первое — главное фото"
 
 msgid "wird aus dem Namen erstellt"
 msgstr "создаётся из названия"
+
+#, python-format
+msgid "%(n)s verborgen."
+msgstr "Скрыто: %(n)s."
+
+#, python-format
+msgid "%(n)s wieder sichtbar."
+msgstr "Снова видно: %(n)s."
+
+msgid "Angebot gibt es nicht mehr"
+msgstr "Предложения больше нет"
+
+msgid "Angebot melden"
+msgstr "Пожаловаться на предложение"
+
+msgid "Anstößig oder rechtswidrig"
+msgstr "Оскорбительно или незаконно"
+
+msgid "Auch im Stadtportal Solingen zeigen"
+msgstr "Показывать и на городском портале Золингена"
+
+msgid "Aufrufe"
+msgstr "Просмотры"
+
+#, python-format
+msgid "Automatisch: %(n)s Meldungen"
+msgstr "Автоматически: жалоб %(n)s"
+
+msgid "Bitte einen Grund wählen."
+msgstr "Выберите причину."
+
+msgid "Coupons"
+msgstr "Купоны"
+
+msgid "Danke! Wir prüfen das Angebot."
+msgstr "Спасибо! Мы проверим предложение."
+
+msgid "Erledigt — Angebot bleibt sichtbar"
+msgstr "Решено — предложение остаётся видимым"
+
+msgid "Erledigt — Angebot verbergen"
+msgstr "Решено — скрыть предложение"
+
+msgid ""
+"Erscheint dort, sobald Sie Ihre E-Mail bestätigt haben. Jederzeit änderbar."
+msgstr ""
+"Появится там после подтверждения e-mail. Можно изменить в любой момент."
+
+msgid "Falsche Angaben"
+msgstr "Неверные данные"
+
+msgid "Hinweis (optional)"
+msgstr "Комментарий (необязательно)"
+
+msgid ""
+"Ihre aktiven Angebote erscheinen im Stadtportal Ihrer Stadt — erst nachdem "
+"Ihre E-Mail-Adresse bestätigt ist."
+msgstr ""
+"Ваши активные предложения появляются на портале вашего города — только после"
+" подтверждения e-mail."
+
+msgid "Im Stadtportal verbergen"
+msgstr "Скрыть на городском портале"
+
+msgid "Im Stadtportal zeigen"
+msgstr "Показывать на городском портале"
+
+msgid "Kanal"
+msgstr "Канал"
+
+msgid "Melden"
+msgstr "Пожаловаться"
+
+msgid "Meldung senden"
+msgstr "Отправить жалобу"
+
+msgid "Moderation"
+msgstr "Модерация"
+
+msgid "Offene Meldungen"
+msgstr "Открытые жалобы"
+
+msgid "Spam oder Betrug"
+msgstr "Спам или мошенничество"
+
+msgid "Verborgen"
+msgstr "Скрыто"
+
+msgid "Was stimmt nicht?"
+msgstr "Что не так?"
+
+msgid "Wieder anzeigen (Meldungen erledigt)"
+msgstr "Показать снова (жалобы решены)"
+
+msgid "Woher kommen Ihre Kund:innen?"
+msgstr "Откуда приходят клиенты?"
+
+msgid "Zurückgelegt"
+msgstr "Отложено"

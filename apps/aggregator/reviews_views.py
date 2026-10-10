@@ -61,9 +61,9 @@ def business_page(request, slug):
             "base_template": "aggregator/portal_base.html" if portal else "aggregator/_base.html",
             "business": business,
             "business_jsonld": business_jsonld,
-            "listings": AggregatorListing.objects.filter(tenant_slug=slug, is_active=True).order_by(
-                "-updated_at"
-            ),
+            "listings": AggregatorListing.objects.public()
+            .filter(tenant_slug=slug)
+            .order_by("-updated_at"),
             "reviews": review_list,
             # G8: «Verifizierter Gast» — у автора есть реальная сделка в бизнесе.
             "verified_emails": reviews.verified_emails(

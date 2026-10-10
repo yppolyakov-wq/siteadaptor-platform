@@ -23641,3 +23641,103 @@ msgstr "en fazla %(n)s · ilki kapak fotoğrafı"
 
 msgid "wird aus dem Namen erstellt"
 msgstr "addan oluşturulur"
+
+#, python-format
+msgid "%(n)s verborgen."
+msgstr "%(n)s gizlendi."
+
+#, python-format
+msgid "%(n)s wieder sichtbar."
+msgstr "%(n)s yeniden görünür."
+
+msgid "Angebot gibt es nicht mehr"
+msgstr "Teklif artık yok"
+
+msgid "Angebot melden"
+msgstr "Teklifi bildir"
+
+msgid "Anstößig oder rechtswidrig"
+msgstr "Rahatsız edici veya yasa dışı"
+
+msgid "Auch im Stadtportal Solingen zeigen"
+msgstr "Solingen şehir portalında da göster"
+
+msgid "Aufrufe"
+msgstr "Görüntülenme"
+
+#, python-format
+msgid "Automatisch: %(n)s Meldungen"
+msgstr "Otomatik: %(n)s bildirim"
+
+msgid "Bitte einen Grund wählen."
+msgstr "Lütfen bir neden seçin."
+
+msgid "Coupons"
+msgstr "Kuponlar"
+
+msgid "Danke! Wir prüfen das Angebot."
+msgstr "Teşekkürler! Teklifi kontrol edeceğiz."
+
+msgid "Erledigt — Angebot bleibt sichtbar"
+msgstr "Çözüldü — teklif görünür kalır"
+
+msgid "Erledigt — Angebot verbergen"
+msgstr "Çözüldü — teklifi gizle"
+
+msgid ""
+"Erscheint dort, sobald Sie Ihre E-Mail bestätigt haben. Jederzeit änderbar."
+msgstr ""
+"E-postanızı onayladıktan sonra orada görünür. İstediğiniz zaman "
+"değiştirebilirsiniz."
+
+msgid "Falsche Angaben"
+msgstr "Yanlış bilgiler"
+
+msgid "Hinweis (optional)"
+msgstr "Not (isteğe bağlı)"
+
+msgid ""
+"Ihre aktiven Angebote erscheinen im Stadtportal Ihrer Stadt — erst nachdem "
+"Ihre E-Mail-Adresse bestätigt ist."
+msgstr ""
+"Aktif teklifleriniz şehrinizin portalında görünür — yalnızca e-posta "
+"adresiniz onaylandıktan sonra."
+
+msgid "Im Stadtportal verbergen"
+msgstr "Şehir portalında gizle"
+
+msgid "Im Stadtportal zeigen"
+msgstr "Şehir portalında göster"
+
+msgid "Kanal"
+msgstr "Kanal"
+
+msgid "Melden"
+msgstr "Bildir"
+
+msgid "Meldung senden"
+msgstr "Bildirimi gönder"
+
+msgid "Moderation"
+msgstr "Moderasyon"
+
+msgid "Offene Meldungen"
+msgstr "Açık bildirimler"
+
+msgid "Spam oder Betrug"
+msgstr "Spam veya dolandırıcılık"
+
+msgid "Verborgen"
+msgstr "Gizli"
+
+msgid "Was stimmt nicht?"
+msgstr "Sorun ne?"
+
+msgid "Wieder anzeigen (Meldungen erledigt)"
+msgstr "Yeniden göster (bildirimler çözüldü)"
+
+msgid "Woher kommen Ihre Kund:innen?"
+msgstr "Müşterileriniz nereden geliyor?"
+
+msgid "Zurückgelegt"
+msgstr "Ayrıldı"

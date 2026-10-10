@@ -2250,6 +2250,9 @@ def promotion_detail(request, pk):
     ch = _capture_channel(request)
     # аналитика: атомарный счётчик просмотров (не блокирует рендер)
     Promotion.objects.filter(pk=promo.pk).update(views=F("views") + 1)
+    from . import channels
+
+    channels.count_view(promo, ch)  # T-8.6: и по каналу (portal/flyer/…/direkt)
     form = PublicReservationForm(initial={"form_token": uuid.uuid4().hex, "channel": ch})
     return render(request, "storefront/promotion_detail.html", _detail_ctx(request, promo, form))
 
@@ -2458,6 +2461,7 @@ def coupon_create(request, pk):
             name=(request.POST.get("name") or "")[:200],
             email=email,
             phone=(request.POST.get("phone") or "")[:40],
+            source_channel=request.session.get("src_ch", ""),
         )
     except CouponUnavailable:
         messages.error(request, _("Alle Coupons sind leider vergeben."))

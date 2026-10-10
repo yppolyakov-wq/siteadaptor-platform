@@ -138,6 +138,9 @@ class QuickStartForm(quick.QuickPromotionForm):
     subdomain = forms.CharField(label=_("Ihre Adresse"), required=False, max_length=80)
     district = forms.ChoiceField(label=_("Stadtteil"), required=False, choices=())
     email = forms.EmailField(label=_("E-Mail"))
+    in_city_catalog = forms.BooleanField(
+        label=_("Auch im Stadtportal Solingen zeigen"), required=False, initial=True
+    )
 
     def __init__(self, *args, **kwargs):
         kwargs.pop("tenant", None)

@@ -54,6 +54,10 @@ class Tenant(TenantMixin):
     # каталог (агрегатор) — только после подтверждения почты. True = ждём клика по
     # ссылке из письма; все upsert-пути агрегатора листинги такого тенанта удаляют.
     email_pending = models.BooleanField(default=False)
+    # T-8.6: согласие владельца «показывать мои предложения в каталоге города».
+    # По умолчанию да (живые бизнесы не выпадают молча); действует вместе с
+    # подтверждённой почтой — решает aggregator.visibility.listable.
+    in_city_catalog = models.BooleanField(default=True)
 
     # Localization
     default_locale = models.CharField(max_length=10, default="de")

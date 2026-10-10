@@ -21,6 +21,7 @@ from apps.core import owner_login
 from apps.core.documents import document_language
 from apps.core.fsm import IllegalTransition
 from apps.loyalty.models import LoyaltyCard, LoyaltyProgram, Voucher
+from apps.promotions import channels as promo_channels
 
 from . import group_styles, limits, services
 from .forms import LoyaltyProgramForm, PromotionForm, VoucherCreateForm
@@ -747,6 +748,7 @@ def promotion_edit(request, pk):
             "actions": _promo_actions(promo),
             "status_label": promo_status_label(promo.status),  # X6-3
             "channel_stats": channel_stats,
+            "channel_funnel": promo_channels.funnel(promo),  # T-8.6
             "preset_channels": preset_channels,
             "waitlist_count": promo.waitlist.count(),
             "stats": _promo_stats(promo),

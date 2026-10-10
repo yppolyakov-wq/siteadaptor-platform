@@ -85,7 +85,7 @@ def listings(request):
     order = _raw(request)
     if not order:
         return []
-    found = {x.pk: x for x in AggregatorListing.objects.filter(pk__in=order, is_active=True)}
+    found = {x.pk: x for x in AggregatorListing.objects.public().filter(pk__in=order)}
     return [found[pk] for pk in order if pk in found]
 
 

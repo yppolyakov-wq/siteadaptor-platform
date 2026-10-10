@@ -16,7 +16,7 @@
         <th class="text-left p-3 text-gray-400 font-medium w-40">{% trans "Angebot" %}</th>
         {% for l in items %}
         <th class="text-left p-3 align-top min-w-[190px]">
-          <a href="{{ l.detail_url }}" class="block font-semibold hover:underline">{{ l.title_text }}</a>
+          <a href="{{ l.portal_url }}" class="block font-semibold hover:underline">{{ l.title_text }}</a>
           {% if l.image.url %}<img src="{{ l.image.url }}" alt="" loading="lazy" class="mt-2 w-full aspect-[4/3] object-cover rounded-lg">{% endif %}
           <form method="post" action="{% url 'aggregator-shortlist-toggle' %}" class="mt-2">
             {% csrf_token %}
@@ -39,7 +39,7 @@
         <th class="p-3"></th>
         {% for l in items %}
         <td class="p-3">
-          <a href="{{ l.detail_url }}" class="inline-block rounded-lg bg-gray-900 text-white px-3 py-2 text-sm font-medium hover:bg-gray-800">{% trans "Zum Angebot" %}</a>
+          <a href="{{ l.portal_url }}" class="inline-block rounded-lg bg-gray-900 text-white px-3 py-2 text-sm font-medium hover:bg-gray-800">{% trans "Zum Angebot" %}</a>
         </td>
         {% endfor %}
       </tr>

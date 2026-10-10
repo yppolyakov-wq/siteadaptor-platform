@@ -51,3 +51,9 @@ class SubscriptionSM(StateMachine):
         elif t.dst == ACTIVE and not instance.is_active:
             instance.is_active = True
             instance.save(update_fields=["is_active", "updated_at"])
+        # T-8.6: каталог города следует статусу — приостановка снимает листинги,
+        # реактивация возвращает (раньше карточки висели на портале и после стопа).
+        if t.dst in (SUSPENDED, ACTIVE):
+            from apps.aggregator.visibility import apply_visibility
+
+            apply_visibility(instance)

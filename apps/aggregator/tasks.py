@@ -6,6 +6,7 @@ public. Дёргается хуком PromotionSM на переходах (activ
 archived → remove). Резистентна к отсутствию акции/тенанта (просто удаляет листинг).
 """
 
+from celery import shared_task
 from django.conf import settings
 from django_tenants.utils import schema_context
 
@@ -68,8 +69,11 @@ def _tenant_base_defaults(tenant) -> dict:
 
 
 def _withheld(tenant) -> bool:
-    """T-8.5 (Р-3): тенант ещё не подтвердил почту — в городской каталог не выкладываем."""
-    return bool(getattr(tenant, "email_pending", False))
+    """Бизнес сейчас не может быть в каталоге города (T-8.5 почта / T-8.6 согласие,
+    приостановка, выключен) — листинг не пишется, существующий удаляется."""
+    from .visibility import listable
+
+    return not listable(tenant)
 
 
 def sync_listing(tenant_schema, promotion_id) -> str:
@@ -511,6 +515,12 @@ def resync_on_event_save(sender, instance, **kwargs):
             dedupe_key=dedupe, tenant_schema=schema, event_id=str(instance.id)
         )
     )
+
+
+@shared_task
+def reconcile_aggregator_schema(tenant_schema):
+    """T-8.6: реконсиляция всех видов листингов одной схемы (после возврата в каталог)."""
+    return reconcile_schema(tenant_schema)
 
 
 def reconcile_schema(tenant_schema) -> int:

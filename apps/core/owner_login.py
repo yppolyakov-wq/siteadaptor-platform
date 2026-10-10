@@ -164,20 +164,19 @@ def send_confirmation(tenant, email: str) -> None:
 
 
 def confirm_tenant_email(tenant) -> bool:
-    """Снять флаг и выложить активные акции. True — флаг был снят этим вызовом."""
+    """Снять флаг и выложить в каталог ВСЁ (акции, номера, события, меню).
+
+    T-8.6: раньше пересинхронизировались только акции — номера/события/меню
+    неподтверждённого бизнеса не появились бы и после подтверждения.
+    → True, если флаг снят этим вызовом.
+    """
     if not tenant.email_pending:
         return False
     tenant.email_pending = False
     tenant.save(update_fields=["email_pending", "updated_at"])
-    from apps.aggregator.tasks import sync_aggregator_listing
-    from apps.promotions.models import Promotion
+    from apps.aggregator.visibility import apply_visibility
 
-    for pk in Promotion.objects.filter(status="active").values_list("pk", flat=True):
-        sync_aggregator_listing.delay(
-            dedupe_key=f"agg:{pk}:confirmed",
-            tenant_schema=tenant.schema_name,
-            promotion_id=str(pk),
-        )
+    apply_visibility(tenant)
     return True
 
 

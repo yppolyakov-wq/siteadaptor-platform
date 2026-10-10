@@ -155,7 +155,16 @@ def schema_exists(schema_name: str) -> bool:
 
 @transaction.atomic
 def start_quick_provisioning(
-    *, business_name, slug, business_type, city, district, email, promo, partner_code=""
+    *,
+    business_name,
+    slug,
+    business_type,
+    city,
+    district,
+    email,
+    promo,
+    partner_code="",
+    in_city_catalog=True,
 ):
     """T-8.5 «Aktion in 3 Klicks»: тенант лёгкой ступени + первая акция в фоне.
 
@@ -173,6 +182,7 @@ def start_quick_provisioning(
     )
     tenant.district = district or ""
     tenant.email_pending = True
+    tenant.in_city_catalog = bool(in_city_catalog)  # T-8.6: согласие на каталог города
     # Бесплатная лёгкая ступень (Р-5) не истекает: без даты конца триала beat её не
     # переводит в trial_expired → suspended, а кабинет не показывает «Trial: N Tage».
     tenant.trial_ends_at = None

@@ -16,7 +16,7 @@ _RESULTS = 3
 
 
 def _active():
-    return AggregatorListing.objects.filter(is_active=True)
+    return AggregatorListing.objects.public()
 
 
 def type_options():

@@ -8,6 +8,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 
+from apps.aggregator import reports as aggregator_reports
 from apps.aggregator import reviews_views as aggregator_reviews_views
 from apps.aggregator import views as aggregator_views
 from apps.billing import views as billing_views
@@ -73,6 +74,8 @@ urlpatterns = [
         aggregator_views.featured_click,
         name="aggregator-featured-click",
     ),
+    # T-8.6 «Melden» (имя дублируется в urls_portal — {% url %} везде).
+    path("entdecken/melden/<int:pk>/", aggregator_reports.report_listing, name="aggregator-report"),
     path("entdecken/<str:city>/", aggregator_views.city_listing, name="aggregator-city"),
     path(
         "entdecken/<str:city>/<str:business_type>/",
