@@ -23418,3 +23418,51 @@ msgstr "или скидка в процентах"
 
 msgid "zurückgelegt"
 msgstr "отложено"
+
+msgid "4 × A6 auf A4"
+msgstr "4 × A6 на листе A4"
+
+msgid "A4 · Schaufenster"
+msgstr "A4 · витрина"
+
+msgid "A6 · Handzettel"
+msgstr "A6 · листовка"
+
+msgid "Aushang drucken"
+msgstr "Распечатать объявление"
+
+msgid "Den Aushang gibt es erst, wenn die Aktion aktiv ist."
+msgstr "Объявление для печати появится, когда акция станет активной."
+
+#, python-format
+msgid "Nur heute bis %(time)s"
+msgstr "Только сегодня до %(time)s"
+
+msgid "Scannen & Termin buchen"
+msgstr "Сканируйте и запишитесь"
+
+msgid "Scannen & anfragen"
+msgstr "Сканируйте и отправьте запрос"
+
+msgid "Scannen & bestellen"
+msgstr "Сканируйте и закажите"
+
+msgid "Scannen & zurücklegen lassen"
+msgstr "Сканируйте и отложите для себя"
+
+msgid "Scannen für alle Details"
+msgstr "Сканируйте — все подробности"
+
+msgid "Solange der Vorrat reicht"
+msgstr "Пока есть в наличии"
+
+#, python-format
+msgid "ab %(date)s"
+msgstr "с %(date)s"
+
+#, python-format
+msgid "gültig bis %(date)s"
+msgstr "действует до %(date)s"
+
+msgid "Überraschungspreis"
+msgstr "Цена-сюрприз"

@@ -23185,3 +23185,51 @@ msgstr "or discount in percent"
 
 msgid "zurückgelegt"
 msgstr "put aside"
+
+msgid "4 × A6 auf A4"
+msgstr "4 × A6 on A4"
+
+msgid "A4 · Schaufenster"
+msgstr "A4 · shop window"
+
+msgid "A6 · Handzettel"
+msgstr "A6 · handout"
+
+msgid "Aushang drucken"
+msgstr "Print a notice"
+
+msgid "Den Aushang gibt es erst, wenn die Aktion aktiv ist."
+msgstr "The printable notice is available once the promotion is active."
+
+#, python-format
+msgid "Nur heute bis %(time)s"
+msgstr "Today only, until %(time)s"
+
+msgid "Scannen & Termin buchen"
+msgstr "Scan & book an appointment"
+
+msgid "Scannen & anfragen"
+msgstr "Scan & send a request"
+
+msgid "Scannen & bestellen"
+msgstr "Scan & order"
+
+msgid "Scannen & zurücklegen lassen"
+msgstr "Scan & have it put aside"
+
+msgid "Scannen für alle Details"
+msgstr "Scan for all details"
+
+msgid "Solange der Vorrat reicht"
+msgstr "While stocks last"
+
+#, python-format
+msgid "ab %(date)s"
+msgstr "from %(date)s"
+
+#, python-format
+msgid "gültig bis %(date)s"
+msgstr "valid until %(date)s"
+
+msgid "Überraschungspreis"
+msgstr "Surprise price"

@@ -23223,3 +23223,51 @@ msgstr "oder Rabatt in Prozent"
 
 msgid "zurückgelegt"
 msgstr "zurückgelegt"
+
+msgid "4 × A6 auf A4"
+msgstr "4 × A6 auf A4"
+
+msgid "A4 · Schaufenster"
+msgstr "A4 · Schaufenster"
+
+msgid "A6 · Handzettel"
+msgstr "A6 · Handzettel"
+
+msgid "Aushang drucken"
+msgstr "Aushang drucken"
+
+msgid "Den Aushang gibt es erst, wenn die Aktion aktiv ist."
+msgstr "Den Aushang gibt es erst, wenn die Aktion aktiv ist."
+
+#, python-format
+msgid "Nur heute bis %(time)s"
+msgstr "Nur heute bis %(time)s"
+
+msgid "Scannen & Termin buchen"
+msgstr "Scannen & Termin buchen"
+
+msgid "Scannen & anfragen"
+msgstr "Scannen & anfragen"
+
+msgid "Scannen & bestellen"
+msgstr "Scannen & bestellen"
+
+msgid "Scannen & zurücklegen lassen"
+msgstr "Scannen & zurücklegen lassen"
+
+msgid "Scannen für alle Details"
+msgstr "Scannen für alle Details"
+
+msgid "Solange der Vorrat reicht"
+msgstr "Solange der Vorrat reicht"
+
+#, python-format
+msgid "ab %(date)s"
+msgstr "ab %(date)s"
+
+#, python-format
+msgid "gültig bis %(date)s"
+msgstr "gültig bis %(date)s"
+
+msgid "Überraschungspreis"
+msgstr "Überraschungspreis"

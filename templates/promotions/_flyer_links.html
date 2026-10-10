@@ -1,0 +1,12 @@
+{% load i18n cabinet %}
+{% comment %}T-8.9: печать флаера акции — три формата + языки документа (I18N-7b).{% endcomment %}
+<div data-flyer-links>
+  <p class="text-sm font-medium mb-2">📄 {% trans "Aushang drucken" %}</p>
+  <div class="grid grid-cols-3 gap-2">
+    <a href="{% url 'promotions:promotion-flyer' promotion.pk %}?format=a4" class="text-center rounded-xl border border-gray-300 px-2 py-2 text-xs hover:bg-gray-50">{% trans "A4 · Schaufenster" %}</a>
+    <a href="{% url 'promotions:promotion-flyer' promotion.pk %}?format=a6" class="text-center rounded-xl border border-gray-300 px-2 py-2 text-xs hover:bg-gray-50">{% trans "A6 · Handzettel" %}</a>
+    <a href="{% url 'promotions:promotion-flyer' promotion.pk %}?format=a6x4" class="text-center rounded-xl border border-gray-300 px-2 py-2 text-xs hover:bg-gray-50">{% trans "4 × A6 auf A4" %}</a>
+  </div>
+  {% url 'promotions:promotion-flyer' promotion.pk as flyer_url %}
+  <div class="mt-2 flex flex-wrap items-center gap-1">{% doc_langs flyer_url %}</div>
+</div>

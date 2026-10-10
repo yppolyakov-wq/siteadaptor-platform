@@ -23312,3 +23312,51 @@ msgstr "veya yüzde indirim"
 
 msgid "zurückgelegt"
 msgstr "ayrıldı"
+
+msgid "4 × A6 auf A4"
+msgstr "A4 üzerinde 4 × A6"
+
+msgid "A4 · Schaufenster"
+msgstr "A4 · vitrin"
+
+msgid "A6 · Handzettel"
+msgstr "A6 · el ilanı"
+
+msgid "Aushang drucken"
+msgstr "Afiş yazdır"
+
+msgid "Den Aushang gibt es erst, wenn die Aktion aktiv ist."
+msgstr "Afiş, kampanya aktif olduğunda kullanılabilir."
+
+#, python-format
+msgid "Nur heute bis %(time)s"
+msgstr "Sadece bugün, saat %(time)s'e kadar"
+
+msgid "Scannen & Termin buchen"
+msgstr "Tara & randevu al"
+
+msgid "Scannen & anfragen"
+msgstr "Tara & talep gönder"
+
+msgid "Scannen & bestellen"
+msgstr "Tara & sipariş ver"
+
+msgid "Scannen & zurücklegen lassen"
+msgstr "Tara & ayırt"
+
+msgid "Scannen für alle Details"
+msgstr "Tüm ayrıntılar için tara"
+
+msgid "Solange der Vorrat reicht"
+msgstr "Stoklarla sınırlı"
+
+#, python-format
+msgid "ab %(date)s"
+msgstr "%(date)s itibarıyla"
+
+#, python-format
+msgid "gültig bis %(date)s"
+msgstr "%(date)s tarihine kadar geçerli"
+
+msgid "Überraschungspreis"
+msgstr "Sürpriz fiyat"

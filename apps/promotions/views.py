@@ -582,6 +582,29 @@ def promotion_create(request):
 
 
 @login_required
+def promotion_flyer(request, pk):
+    """T-8.9: флаер на одну акцию (A4 / A6 / 4×A6) с QR `?ch=flyer` — план
+    docs/t8-9-flyer-plan-2026-10-10.md. Только для активной или запланированной
+    акции: у черновика QR вёл бы на страницу, которой у клиента нет (404)."""
+    from .flyer import FORMATS, build_promo_flyer_pdf
+
+    promo = get_object_or_404(Promotion, pk=pk)
+    if promo.status not in ("active", "scheduled"):
+        messages.error(request, _("Den Aushang gibt es erst, wenn die Aktion aktiv ist."))
+        return redirect("promotions:promotion-edit", pk=promo.pk)
+    fmt = request.GET.get("format", "a4")
+    fmt = fmt if fmt in FORMATS else "a4"
+    tenant = getattr(request, "tenant", None)
+    url = request.build_absolute_uri(reverse("storefront-promotion", args=[promo.pk]))
+    with translation.override(document_language(request)):
+        pdf = build_promo_flyer_pdf(promo, url, fmt=fmt, tenant=tenant)
+    resp = HttpResponse(pdf, content_type="application/pdf")
+    slug = getattr(tenant, "slug", "") or "aktion"
+    resp["Content-Disposition"] = f'attachment; filename="aushang-{slug}-{fmt}.pdf"'
+    return resp
+
+
+@login_required
 def promotion_quick(request):
     """T-8.4: «Schnell-Aktion» — акция с телефона за три шага (план
     docs/t8-4-assistant-plan-2026-10-10.md). ``?von=<pk>`` — «Wiederholen»."""

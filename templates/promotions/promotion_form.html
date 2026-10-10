@@ -200,6 +200,13 @@
     </div>
   {% endif %}
 
+  {# T-8.9: флаер на эту акцию (A4 / A6 / 4×A6) — и для запланированной: её страница уже открыта (Vorschau) #}
+  {% if promotion and promotion.status == 'active' or promotion and promotion.status == 'scheduled' %}
+    <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mt-4">
+      {% include "promotions/_flyer_links.html" %}
+    </div>
+  {% endif %}
+
   {# QR-код акции для печати + QR по каналам (атрибуция) #}
   {% if promotion and promotion.status == 'active' %}
     <div class="bg-white rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] p-4 mt-4">
