@@ -79,9 +79,12 @@
   // языке (вход «In weitere Sprachen übersetzen» с экрана «Fertig»).
   function openFromUrl() {
     var want = new URLSearchParams(window.location.search).get("sprache") || "";
-    if (/^[a-z]{2,3}$/.test(want) && document.querySelector('[data-i18n-pill="' + want + '"]')) {
-      setLoc(want);
-    }
+    if (!/^[a-z]{2,3}$/.test(want)) return;
+    var known = Array.prototype.some.call(
+      document.querySelectorAll("[data-i18n-pill]"),
+      function (b) { return b.getAttribute("data-i18n-pill") === want; }
+    );
+    if (known) setLoc(want);
   }
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", openFromUrl);
