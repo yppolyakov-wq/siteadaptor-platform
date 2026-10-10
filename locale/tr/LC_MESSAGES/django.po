@@ -24083,3 +24083,21 @@ msgstr "eşleştirme yok"
 
 msgid "Zu viele Anfragen — bitte kurz warten."
 msgstr "Çok fazla istek — lütfen biraz bekleyin."
+
+msgid "Auf Bestellung"
+msgstr "Siparişe özel"
+
+msgid "Dienstleistung"
+msgstr "Hizmet"
+
+msgid "Nicht im Stadtkatalog zeigen"
+msgstr "Şehir kataloğunda gösterme"
+
+msgid "Nicht zeigen"
+msgstr "Gösterme"
+
+msgid "Unternehmen"
+msgstr "İşletmeler"
+
+msgid "Was suchen Sie?"
+msgstr "Ne arıyorsunuz?"

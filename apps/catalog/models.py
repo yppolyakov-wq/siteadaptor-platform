@@ -61,6 +61,9 @@ class Category(SoftDeleteMixin, I18nMixin):
     # фиксируем — реестр форм растёт без миграций (прецедент page_style).
     card_style = models.CharField(max_length=16, blank=True, default="")
 
+    # T-8.11: владелец убирает категорию (со всей веткой) из каталога города.
+    hide_in_city = models.BooleanField(default=False)
+
     # T-8.13b: сопоставление со справочником каталога города (core.city_categories).
     # Пусто = как у родителя, у корня — подсказка по названию (catalog/city.py).
     city_category = models.CharField(max_length=40, blank=True, default="")
@@ -244,6 +247,8 @@ class Product(SoftDeleteMixin, I18nMixin):
     # ПОБЕЖДАЕТ общее (решение владельца 2026-09-03); choices — в форме кабинета,
     # чтобы реестр рос без миграций (прецедент variant_style / Category.page_style).
     card_style = models.CharField(max_length=16, blank=True, default="")
+    # T-8.11: владелец не хочет этот товар в каталоге города (сайт — как прежде).
+    hide_in_city = models.BooleanField(default=False)
 
     # Маркетинговый бейдж на витрине (T1): «Tagesgericht», «Neu», «Beliebt».
     # Пусто = без бейджа. is_featured (популярные на главной) — отдельно.

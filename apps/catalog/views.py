@@ -621,9 +621,13 @@ def _save_city_map(request):
     changed = 0
     for cat in Category.objects.filter(pk__in=[i for i in ids if _is_uuid(i)]):
         value = cc.normalize_category(request.POST.get(f"map_{cat.pk}", ""))
-        if value != cat.city_category:
+        # T-8.11: строка несёт и «не в каталоге города» (галочка; строка прислана → снятая
+        # галочка значит «показывать»).
+        hide = bool(request.POST.get(f"hide_{cat.pk}"))
+        if value != cat.city_category or hide != cat.hide_in_city:
             cat.city_category = value
-            cat.save(update_fields=["city_category"])
+            cat.hide_in_city = hide
+            cat.save(update_fields=["city_category", "hide_in_city"])
             changed += 1
     if changed:
         _resync_city_catalog(request)
@@ -682,7 +686,7 @@ def category_edit(request, pk):
     )
     if request.method == "POST" and form.is_valid():
         form.save()
-        if "city_category" in form.changed_data:  # T-8.13b: рубрика города — сразу
+        if {"city_category", "hide_in_city"} & set(form.changed_data):  # T-8.13b/T-8.11
             _resync_city_catalog(request)
         _handle_uploads(request, category, folder="categories")  # FB-6: фото категории
         return redirect("catalog:category-list")

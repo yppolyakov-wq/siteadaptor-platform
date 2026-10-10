@@ -25,6 +25,11 @@ def test_reconcile_syncs_active_and_prunes_stale():
 
     n = tasks.reconcile_schema("public")
 
-    assert n == 2
-    assert AggregatorListing.objects.filter(tenant_schema="public").count() == 2
+    # T-8.11: + карточка самого предприятия (одна на бизнес).
+    assert n == 3
+    assert (
+        AggregatorListing.objects.filter(tenant_schema="public", listing_kind="promotion").count()
+        == 2
+    )
+    assert AggregatorListing.objects.filter(listing_kind="business").count() == 1
     assert not AggregatorListing.objects.filter(promo_uuid=ended.id).exists()

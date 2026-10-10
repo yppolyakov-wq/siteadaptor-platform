@@ -24175,3 +24175,21 @@ msgstr "без зіставлення"
 
 msgid "Zu viele Anfragen — bitte kurz warten."
 msgstr "Забагато запитів — зачекайте трохи."
+
+msgid "Auf Bestellung"
+msgstr "На замовлення"
+
+msgid "Dienstleistung"
+msgstr "Послуга"
+
+msgid "Nicht im Stadtkatalog zeigen"
+msgstr "Не показувати в каталозі міста"
+
+msgid "Nicht zeigen"
+msgstr "Не показувати"
+
+msgid "Unternehmen"
+msgstr "Компанії"
+
+msgid "Was suchen Sie?"
+msgstr "Що ви шукаєте?"

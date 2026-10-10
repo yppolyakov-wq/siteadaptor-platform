@@ -125,13 +125,13 @@ def test_reconcile_covers_all_kinds_and_prunes():
 
     n = tasks.reconcile_schema("public")
 
-    assert n == 3  # 1 акция + 1 размещение + 1 событие
+    assert n == 4  # 1 акция + 1 размещение + 1 событие + карточка предприятия (T-8.11)
     kinds = set(
         AggregatorListing.objects.filter(tenant_schema="public").values_list(
             "listing_kind", flat=True
         )
     )
-    assert kinds == {"promotion", "stay", "event"}
+    assert kinds == {"promotion", "stay", "event", "business"}
     assert not AggregatorListing.objects.filter(title__de="Geist").exists()
 
 
@@ -149,4 +149,4 @@ def test_listings_for_returns_all_kinds_together():
     tasks.reconcile_schema("public")
 
     pool = listings_for(city="Hilden")
-    assert pool.count() == 3
+    assert pool.count() == 4  # + карточка предприятия (T-8.11)

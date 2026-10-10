@@ -23957,3 +23957,21 @@ msgstr "no mapping"
 
 msgid "Zu viele Anfragen — bitte kurz warten."
 msgstr "Too many requests — please wait a moment."
+
+msgid "Auf Bestellung"
+msgstr "Made to order"
+
+msgid "Dienstleistung"
+msgstr "Service"
+
+msgid "Nicht im Stadtkatalog zeigen"
+msgstr "Do not show in the city catalogue"
+
+msgid "Nicht zeigen"
+msgstr "Hide"
+
+msgid "Unternehmen"
+msgstr "Businesses"
+
+msgid "Was suchen Sie?"
+msgstr "What are you looking for?"

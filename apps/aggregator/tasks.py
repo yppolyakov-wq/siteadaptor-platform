@@ -6,6 +6,8 @@ public. Дёргается хуком PromotionSM на переходах (activ
 archived → remove). Резистентна к отсутствию акции/тенанта (просто удаляет листинг).
 """
 
+from decimal import Decimal
+
 from celery import shared_task
 from django.conf import settings
 from django_tenants.utils import schema_context
@@ -80,6 +82,14 @@ def _city_fields(kind: str, tenant, snap: dict | None = None) -> dict:
         default = "touren" if kind == "tour" else "events"
         cat = cc.BY_EVENT_THEME.get(theme, default)
         tags = cc.normalize_tags([theme])
+    elif kind == "product":
+        # T-8.11: своя категория товара (сопоставление T-8.13b) → тип бизнеса.
+        cat = cc.normalize_category(snap.get("city_category")) or cc.suggest_for_business_type(
+            getattr(tenant, "business_type", "")
+        )
+        tags = cc.normalize_tags(snap.get("diets", []))
+    elif kind in ("service", "business"):
+        cat, tags = cc.suggest_for_business_type(getattr(tenant, "business_type", "")), []
     else:  # menu
         cat, tags = "catering", cc.normalize_tags(snap.get("diets", []))
     return {"city_category": cat, "city_tags": tags}
@@ -661,6 +671,9 @@ def reconcile_schema(tenant_schema) -> int:
     ).exclude(source_ref__in=menu_ids).delete()
     total += len(menu_ids)
 
+    # --- T-8.11: товары, услуги и карточка предприятия ---
+    total += _reconcile_city_kinds(tenant_schema, tenant)
+
     return total
 
 
@@ -824,3 +837,360 @@ def refresh_tenant_fields(tenant) -> int:
     events.filter(city__iexact=city).update(district=district)
     events.exclude(city__iexact=city).update(district="")
     return n
+
+
+# --- T-8.11: каталог города = все предложения бизнеса -----------------------------------
+#
+# План — docs/t8-11-city-products-plan-2026-10-10.md. Товар попадает, если карточка годится
+# к показу (активен, есть фото и цена, не скрыт сам и не скрыт веткой категории); услуга —
+# активна и модуль booking включён; предприятие — одна карточка на бизнес. Все три — с теми
+# же правилами видимости бизнеса, что акции (_withheld).
+
+#: Сколько дней товар считается «Neu», если у него нет бейджа «neu».
+NEW_PRODUCT_DAYS = 14
+TENANT_URLCONF = "config.urls_tenant"
+
+
+def _site(tenant) -> str:
+    base = getattr(settings, "TENANT_DOMAIN_BASE", "siteadaptor.de")
+    return f"{_scheme()}://{tenant.slug}.{base}"
+
+
+def _category_hidden(category) -> bool:
+    """Скрыта ли категория или кто-то из её предков (до 10 уровней)."""
+    node, depth = category, 0
+    while node is not None and depth < 10:
+        if getattr(node, "hide_in_city", False) or getattr(node, "deleted_at", None):
+            return True
+        node, depth = node.parent, depth + 1
+    return False
+
+
+def _image_ok(image) -> bool:
+    return isinstance(image, dict) and bool(image.get("url"))
+
+
+def _product_snapshot(product_id):
+    """Снимок товара в ТЕКУЩЕЙ схеме → dict, или None (не годится к показу)."""
+    from datetime import timedelta
+
+    from django.urls import reverse
+    from django.utils import timezone
+
+    from apps.catalog import city
+    from apps.catalog.models import Product
+
+    product = (
+        Product.objects.select_related("category", "category__parent").filter(id=product_id).first()
+    )
+    if product is None or not product.is_active or product.hide_in_city:
+        return None
+    if product.category_id and _category_hidden(product.category):
+        return None
+    image = product.primary_image or {}
+    price = product.price_from
+    if not _image_ok(image) or price is None or price <= 0:
+        return None
+    if product.slug:
+        if product.category_id:
+            path = reverse(
+                "storefront-product-seo",
+                args=[product.category.slug, product.slug],
+                urlconf=TENANT_URLCONF,
+            )
+        else:
+            path = reverse("storefront-product-slug", args=[product.slug], urlconf=TENANT_URLCONF)
+    else:
+        path = reverse("storefront-product", args=[product.pk], urlconf=TENANT_URLCONF)
+    if product.primary_action == "request":
+        availability = "on_request"
+    elif not product.in_stock:
+        availability = "sold_out"
+    else:
+        availability = ""
+    fresh = product.created_at and product.created_at >= timezone.now() - timedelta(
+        days=NEW_PRODUCT_DAYS
+    )
+    savings = product.savings_percent if not product.has_variants else None
+    return {
+        "title": {**(product.name or {})},
+        "teaser": {k: str(v)[:300] for k, v in (product.description or {}).items() if v},
+        "image": image,
+        "currency": product.currency or "EUR",
+        "new_price": price,
+        "old_price": product.list_price if savings else None,
+        "discount_percent": savings,
+        "path": path,
+        "availability": availability,
+        "is_new": product.badge == "neu" or bool(fresh),
+        "diets": list(product.diets or []),
+        "city_category": city.resolve(product.category) if product.category_id else "",
+    }
+
+
+def sync_product_listing(tenant_schema, product_id) -> str:
+    """T-8.11: upsert/remove листинга товара в каталоге города."""
+    from apps.core.storefront_profile import is_aktionen
+    from apps.tenants.models import Tenant
+
+    from .models import AggregatorListing
+
+    with schema_context(tenant_schema):
+        snap = _product_snapshot(product_id)
+    tenant = Tenant.objects.filter(schema_name=tenant_schema).first()
+    key = {
+        "tenant_schema": tenant_schema,
+        "listing_kind": AggregatorListing.KIND_PRODUCT,
+        "source_ref": str(product_id),
+    }
+    # Профиль «Nur Aktionen» выключает каталог на сайте (302 на главную) — карточка
+    # товара вела бы в никуда.
+    if snap is None or tenant is None or _withheld(tenant) or is_aktionen(tenant):
+        AggregatorListing.objects.filter(**key).delete()
+        return "removed"
+    AggregatorListing.objects.update_or_create(
+        **key,
+        defaults={
+            **_tenant_base_defaults(tenant),
+            "promo_uuid": None,
+            "title": snap["title"],
+            "teaser": snap["teaser"],
+            "image": snap["image"],
+            "currency": snap["currency"],
+            "new_price": snap["new_price"],
+            "old_price": snap["old_price"],
+            "discount_percent": snap["discount_percent"],
+            "starts_at": None,
+            "ends_at": None,
+            "detail_url": _site(tenant) + snap["path"],
+            "availability": snap["availability"],
+            "is_new": snap["is_new"],
+            "diets": snap["diets"],
+            "is_surprise": False,
+            **_city_fields("product", tenant, snap),
+            "is_active": True,
+        },
+    )
+    return "upserted"
+
+
+def _service_snapshot(service_id):
+    from django.urls import reverse
+
+    from apps.booking.models import Service
+
+    service = Service.objects.filter(id=service_id).first()
+    if service is None or not service.is_active or service.hide_in_city:
+        return None
+    images = service.images or []
+    image = images[0] if images and _image_ok(images[0]) else {}
+    teaser = service.description_i18n_full
+    return {
+        "title": service.name_i18n_full,
+        "teaser": {k: str(v)[:300] for k, v in (teaser or {}).items() if v},
+        "image": image,
+        "new_price": (
+            (Decimal(service.price_cents) / 100).quantize(Decimal("0.01"))
+            if service.price_cents
+            else None
+        ),
+        "price_per_person": service.pricing_mode == "per_person",
+        "path": reverse("storefront-service-detail", args=[service.pk], urlconf=TENANT_URLCONF),
+    }
+
+
+def sync_service_listing(tenant_schema, service_id) -> str:
+    """T-8.11: upsert/remove листинга услуги в каталоге города."""
+    from apps.tenants.models import Tenant
+
+    from .models import AggregatorListing
+
+    with schema_context(tenant_schema):
+        snap = _service_snapshot(service_id)
+    tenant = Tenant.objects.filter(schema_name=tenant_schema).first()
+    key = {
+        "tenant_schema": tenant_schema,
+        "listing_kind": AggregatorListing.KIND_SERVICE,
+        "source_ref": str(service_id),
+    }
+    if (
+        snap is None
+        or tenant is None
+        or _withheld(tenant)
+        or not tenant.is_module_active("booking")
+    ):
+        AggregatorListing.objects.filter(**key).delete()
+        return "removed"
+    AggregatorListing.objects.update_or_create(
+        **key,
+        defaults={
+            **_tenant_base_defaults(tenant),
+            "promo_uuid": None,
+            "title": snap["title"],
+            "teaser": snap["teaser"],
+            "image": snap["image"] or _logo_image(tenant),
+            "currency": "EUR",
+            "new_price": snap["new_price"],
+            "old_price": None,
+            "discount_percent": None,
+            "starts_at": None,
+            "ends_at": None,
+            "detail_url": _site(tenant) + snap["path"],
+            "price_per_person": snap["price_per_person"],
+            "availability": "",
+            "is_new": False,
+            "is_surprise": False,
+            **_city_fields("service", tenant, snap),
+            "is_active": True,
+        },
+    )
+    return "upserted"
+
+
+def _business_text(tenant) -> dict:
+    """Описание предприятия: «Über uns» витрины, иначе подзаголовок баннера."""
+    config = tenant.site_config or {}
+    text = (config.get("about_text") or config.get("hero_text") or "").strip()
+    return {"de": text[:300]} if text else {}
+
+
+def sync_business_listing(tenant_schema) -> str:
+    """T-8.11: карточка самого предприятия (одна на бизнес)."""
+    from apps.tenants.models import Tenant
+
+    from .models import AggregatorListing
+
+    tenant = Tenant.objects.filter(schema_name=tenant_schema).first()
+    key = {
+        "tenant_schema": tenant_schema,
+        "listing_kind": AggregatorListing.KIND_BUSINESS,
+        "source_ref": "business",
+    }
+    if tenant is None or _withheld(tenant):
+        AggregatorListing.objects.filter(**key).delete()
+        return "removed"
+    hero = (tenant.site_config or {}).get("hero_image") or ""
+    image = {"url": hero} if hero else _logo_image(tenant)
+    AggregatorListing.objects.update_or_create(
+        **key,
+        defaults={
+            **_tenant_base_defaults(tenant),
+            "promo_uuid": None,
+            "title": {"de": tenant.name},
+            "teaser": _business_text(tenant),
+            "image": image,
+            "currency": "EUR",
+            "new_price": None,
+            "old_price": None,
+            "discount_percent": None,
+            "starts_at": None,
+            "ends_at": None,
+            "detail_url": _site(tenant) + "/",
+            "availability": "",
+            "is_new": False,
+            "is_surprise": False,
+            **_city_fields("business", tenant),
+            "is_active": True,
+        },
+    )
+    return "upserted"
+
+
+def _reconcile_city_kinds(tenant_schema, tenant) -> int:
+    """Реконсиляция трёх видов T-8.11 + чистка «сирот». Возвращает число активных."""
+    from .models import AggregatorListing
+
+    total = 0
+    product_ids: list[str] = []
+    service_ids: list[str] = []
+    if tenant is not None and not _withheld(tenant):
+        from apps.catalog.models import Product
+
+        with schema_context(tenant_schema):
+            product_ids = [
+                str(pid)
+                for pid in Product.objects.filter(is_active=True, hide_in_city=False).values_list(
+                    "id", flat=True
+                )
+            ]
+        if tenant.is_module_active("booking"):
+            from apps.booking.models import Service
+
+            with schema_context(tenant_schema):
+                service_ids = [
+                    str(sid)
+                    for sid in Service.objects.filter(
+                        is_active=True, hide_in_city=False
+                    ).values_list("id", flat=True)
+                ]
+    kept_products = [
+        pid for pid in product_ids if sync_product_listing(tenant_schema, pid) == "upserted"
+    ]
+    kept_services = [
+        sid for sid in service_ids if sync_service_listing(tenant_schema, sid) == "upserted"
+    ]
+    for kind, kept in (
+        (AggregatorListing.KIND_PRODUCT, kept_products),
+        (AggregatorListing.KIND_SERVICE, kept_services),
+    ):
+        AggregatorListing.objects.filter(tenant_schema=tenant_schema, listing_kind=kind).exclude(
+            source_ref__in=kept
+        ).delete()
+        total += len(kept)
+    if sync_business_listing(tenant_schema) == "upserted":
+        total += 1
+    return total
+
+
+@idempotent_task()
+def sync_aggregator_product(*, tenant_schema, product_id):
+    return {"result": sync_product_listing(tenant_schema, product_id)}
+
+
+@idempotent_task()
+def sync_aggregator_service(*, tenant_schema, service_id):
+    return {"result": sync_service_listing(tenant_schema, service_id)}
+
+
+def _on_commit_sync(task, dedupe, **kwargs):
+    from django.db import transaction
+
+    transaction.on_commit(lambda: task.delay(dedupe_key=dedupe, **kwargs))
+
+
+def resync_on_product_save(sender, instance, **kwargs):
+    """post_save/post_delete Product: правка → обновить листинг товара."""
+    from django.db import connection
+
+    stamp = instance.updated_at.timestamp() if getattr(instance, "updated_at", None) else 0
+    _on_commit_sync(
+        sync_aggregator_product,
+        f"agg-product:{instance.id}:{stamp}",
+        tenant_schema=connection.schema_name,
+        product_id=str(instance.id),
+    )
+
+
+def resync_on_variant_save(sender, instance, **kwargs):
+    """Вариант меняет цену «ab» и наличие товара → пересинк родителя."""
+    from django.db import connection
+
+    stamp = instance.updated_at.timestamp() if getattr(instance, "updated_at", None) else 0
+    _on_commit_sync(
+        sync_aggregator_product,
+        f"agg-product:{instance.product_id}:v{instance.id}:{stamp}",
+        tenant_schema=connection.schema_name,
+        product_id=str(instance.product_id),
+    )
+
+
+def resync_on_service_save(sender, instance, **kwargs):
+    from django.db import connection
+
+    stamp = instance.updated_at.timestamp() if getattr(instance, "updated_at", None) else 0
+    _on_commit_sync(
+        sync_aggregator_service,
+        f"agg-service:{instance.id}:{stamp}",
+        tenant_schema=connection.schema_name,
+        service_id=str(instance.id),
+    )

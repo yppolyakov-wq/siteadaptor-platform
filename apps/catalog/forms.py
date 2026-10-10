@@ -42,6 +42,7 @@ class CategoryForm(DynamicI18nFormMixin, forms.ModelForm):
             "page_style",
             "card_style",
             "city_category",
+            "hide_in_city",
             "icon",
             "sort_order",
             "is_active",
@@ -55,6 +56,7 @@ class CategoryForm(DynamicI18nFormMixin, forms.ModelForm):
             "icon": _("Symbol"),
             "sort_order": _("Sortierung"),
             "is_active": _("Active"),
+            "hide_in_city": _("Nicht im Stadtkatalog zeigen"),
         }
         help_texts = {
             "size_table": _(
@@ -244,6 +246,7 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             "list_price",
             "is_active",
             "is_featured",
+            "hide_in_city",
             "badge",
             "variant_style",
             "card_style",
@@ -263,6 +266,7 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
             "ingredients": _("Ingredients"),
             "is_active": _("Active"),
             "is_featured": _("Recommended"),
+            "hide_in_city": _("Nicht im Stadtkatalog zeigen"),
             "primary_action": _("Kauf oder Anfrage"),
             # M1 Boutique: Textilkennzeichnung (EU 1007/2011) + Pflegehinweise.
             "material": _("Material / Zusammensetzung"),
@@ -413,6 +417,7 @@ class ProductForm(DynamicI18nFormMixin, forms.ModelForm):
                 "condition_note",
                 "list_price",
                 "is_featured",
+                "hide_in_city",
                 "badge",
                 "card_style",
             ]

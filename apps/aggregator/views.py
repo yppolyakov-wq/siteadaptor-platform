@@ -25,6 +25,10 @@ _KIND_LABELS = [
     (AggregatorListing.KIND_STAY, "Übernachten"),
     (AggregatorListing.KIND_EVENT, "Events"),
     (AggregatorListing.KIND_MENU, "Menüs & Pakete"),  # MEN-5
+    # T-8.11: каталог города = все предложения бизнеса.
+    (AggregatorListing.KIND_PRODUCT, "Produkte"),
+    (AggregatorListing.KIND_SERVICE, "Dienstleistungen"),
+    (AggregatorListing.KIND_BUSINESS, "Unternehmen"),
 ]
 
 
@@ -48,6 +52,7 @@ def listings_for(
     business_type=None,
     q=None,
     kind=None,
+    kinds=None,
     category=None,
     month=None,
     guests=None,
@@ -85,6 +90,8 @@ def listings_for(
         qs = qs.filter(business_type=business_type)
     if kind:
         qs = qs.filter(listing_kind=kind)
+    elif kinds:
+        qs = qs.filter(listing_kind__in=kinds)
     if category:
         qs = qs.filter(category__iexact=category)
     # T-8.13a: единая категория каталога города — раздел (все его категории) или

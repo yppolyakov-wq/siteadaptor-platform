@@ -32,6 +32,13 @@
 </nav>
 {% endif %}
 
+{% if kind_chips %}
+<nav class="mb-3 flex flex-wrap gap-2" aria-label="{% trans "Was suchen Sie?" %}" data-kind-chips>
+  {% for c in kind_chips %}
+    <a href="{{ c.url }}" data-kind-chip="{{ c.key }}" class="px-3.5 py-1.5 rounded-full text-sm font-medium border {% if c.active %}text-white border-transparent{% else %}bg-white border-gray-200 text-gray-700 hover:border-gray-400{% endif %}"{% if c.active %} style="background: var(--portal-color)"{% endif %}>{{ c.label }}</a>
+  {% endfor %}
+</nav>
+{% endif %}
 {% include "aggregator/_category_chips.html" with chips=category_chips %}
 
 {# H8b: поиск по датам на портале отелей #}
@@ -75,7 +82,7 @@
 
 {% if page.has_more %}
 <div class="mt-8 text-center">
-  <a href="?cursor={{ page.next_cursor|urlencode }}"
+  <a href="?{% if page_carry %}{{ page_carry }}&amp;{% endif %}cursor={{ page.next_cursor|urlencode }}"
      class="inline-block px-5 py-2.5 rounded-lg bg-white border border-gray-300 text-sm font-medium hover:border-indigo-400">{% trans "Show more" %}</a>
 </div>
 {% endif %}

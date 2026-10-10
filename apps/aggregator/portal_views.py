@@ -8,15 +8,19 @@ SEO (P2.1c): canonical + CollectionPage/ItemList JSON-LD + sitemap/robots по
 хосту портала (домен из request, без django.contrib.sites — как в Track B5).
 """
 
+from urllib.parse import urlencode
+
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.utils.translation import gettext as _
 
 from apps.core.pagecache import cache_public_page
 from apps.core.pagination import paginate
 from apps.core.seo import collectionpage_ld
 from apps.tenants.models import Tenant
 
+from .models import AggregatorListing
 from .views import listings_for
 
 _BTYPE_LABELS = dict(Tenant.BUSINESS_TYPES)
@@ -141,13 +145,27 @@ def portal_home(request, facet=None, district=None):
     from .views import split_featured
 
     kat, tag = category_facets.selected(request)
-    base_pool = listings_for(
+    # T-8.11: вид — лента предложений по умолчанию (акции/номера/события/меню), товары,
+    # услуги и предприятия — чипами `?kind=` (200 товаров одного магазина не должны
+    # вытеснять акции всех остальных; полная главная с блоками — T-8.19).
+    kind_param = (request.GET.get("kind") or "").strip()
+    kind = kind_param if kind_param in dict(AggregatorListing.KINDS) else ""
+    scope = {"kind": kind} if kind else {"kinds": AggregatorListing.OFFER_KINDS}
+    whole_pool = listings_for(
         city=city,
         business_type=business_type,
         district=district,
         include_demo=portal.show_demo,
     )
-    category_chips = category_facets.chips(base_pool, request.path, kat, tag)
+    kind_chips = _kind_chips(whole_pool, request.path, kind)
+    base_pool = listings_for(
+        city=city,
+        business_type=business_type,
+        district=district,
+        include_demo=portal.show_demo,
+        **scope,
+    )
+    category_chips = category_facets.chips(base_pool, request.path, kat, tag, extra={"kind": kind})
     pool = (
         listings_for(
             city=city,
@@ -156,6 +174,7 @@ def portal_home(request, facet=None, district=None):
             city_category=kat,
             city_tag=tag,
             include_demo=portal.show_demo,
+            **scope,
         )
         if (kat or tag)
         else base_pool
@@ -239,6 +258,12 @@ def portal_home(request, facet=None, district=None):
             "district_label": district_label,
             "district_chips": district_chips,
             "category_chips": category_chips,  # T-8.13a
+            "kind_chips": kind_chips,  # T-8.11
+            # «Weitere» несёт текущие фильтры (вид/категорию/признак), иначе вторая
+            # страница показывала бы неотфильтрованную ленту.
+            "page_carry": urlencode(
+                [(k, v) for k, v in (("kind", kind), ("kat", kat), ("merkmal", tag)) if v]
+            ),
             # T-8.15: портал показывает демо-бизнесы — честная полоса «Vorschau».
             "shows_demo": portal.show_demo and any(getattr(c, "is_demo", False) for c in cards),
             "business_link": True,  # G8b: на порталах звёзды ведут на страницу бизнеса
@@ -283,3 +308,33 @@ def portal_robots_txt(request):
     """robots.txt портала: всё открыто + ссылка на sitemap его хоста."""
     sitemap = request.build_absolute_uri(reverse("portal-sitemap"))
     return HttpResponse(f"User-agent: *\nAllow: /\nSitemap: {sitemap}\n", content_type="text/plain")
+
+
+def _kind_chips(pool, path: str, active: str) -> list[dict]:
+    """T-8.11: «Angebote · Produkte · Dienstleistungen · Unternehmen» — только непустые."""
+    from urllib.parse import urlencode
+
+    from .views import _KIND_LABELS
+
+    present = set(pool.values_list("listing_kind", flat=True).distinct())
+    offers = present & set(AggregatorListing.OFFER_KINDS)
+    groups = [("", _("Angebote"), bool(offers))]
+    for value, label in _KIND_LABELS:
+        if value in (
+            AggregatorListing.KIND_PRODUCT,
+            AggregatorListing.KIND_SERVICE,
+            AggregatorListing.KIND_BUSINESS,
+        ):
+            groups.append((value, _(label), value in present))
+    shown = [(v, label) for v, label, has in groups if has]
+    if len(shown) < 2:  # одна группа — переключать нечего
+        return []
+    return [
+        {
+            "key": v or "offers",
+            "label": label,
+            "url": f"{path}?{urlencode({'kind': v})}" if v else path,
+            "active": v == active,
+        }
+        for v, label in shown
+    ]

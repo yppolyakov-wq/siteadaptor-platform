@@ -23997,3 +23997,21 @@ msgstr "ohne Zuordnung"
 
 msgid "Zu viele Anfragen — bitte kurz warten."
 msgstr "Zu viele Anfragen — bitte kurz warten."
+
+msgid "Auf Bestellung"
+msgstr "Auf Bestellung"
+
+msgid "Dienstleistung"
+msgstr "Dienstleistung"
+
+msgid "Nicht im Stadtkatalog zeigen"
+msgstr "Nicht im Stadtkatalog zeigen"
+
+msgid "Nicht zeigen"
+msgstr "Nicht zeigen"
+
+msgid "Unternehmen"
+msgstr "Unternehmen"
+
+msgid "Was suchen Sie?"
+msgstr "Was suchen Sie?"

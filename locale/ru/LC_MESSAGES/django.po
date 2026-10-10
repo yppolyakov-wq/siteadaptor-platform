@@ -24192,3 +24192,21 @@ msgstr "без сопоставления"
 
 msgid "Zu viele Anfragen — bitte kurz warten."
 msgstr "Слишком много запросов — подождите немного."
+
+msgid "Auf Bestellung"
+msgstr "На заказ"
+
+msgid "Dienstleistung"
+msgstr "Услуга"
+
+msgid "Nicht im Stadtkatalog zeigen"
+msgstr "Не показывать в каталоге города"
+
+msgid "Nicht zeigen"
+msgstr "Не показывать"
+
+msgid "Unternehmen"
+msgstr "Компании"
+
+msgid "Was suchen Sie?"
+msgstr "Что вы ищете?"

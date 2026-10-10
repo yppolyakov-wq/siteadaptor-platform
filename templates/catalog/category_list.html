@@ -66,6 +66,7 @@
             </optgroup>
           {% endfor %}
         </select>
+        <label class="mt-1 sm:mt-0 inline-flex items-center gap-1.5 text-xs text-gray-500 whitespace-nowrap"><input type="checkbox" name="hide_{{ row.cat.pk }}" value="1" {% if row.cat.hide_in_city %}checked{% endif %} data-city-hide> {% trans "Nicht zeigen" %}</label>
       </div>
     {% endfor %}
   </div>

@@ -52,6 +52,9 @@
         {# LS-1: сентинел — presence-guard (чужой клиент формы без чекбокса не сбросит флаг). #}
         <input type="hidden" name="is_video_present" value="1">
         <label class="text-xs text-gray-500"><input type="checkbox" name="is_video" value="1" {% if s.is_video %}checked{% endif %}> 📹 {% trans "Video-Beratung möglich" %}</label>
+        {# T-8.11: услуга вне каталога города (сентинел — как у видео). #}
+        <input type="hidden" name="hide_in_city_present" value="1">
+        <label class="text-xs text-gray-500"><input type="checkbox" name="hide_in_city" value="1" {% if s.hide_in_city %}checked{% endif %}> {% trans "Nicht im Stadtkatalog zeigen" %}</label>
         {# MX-5: режим цены — за бронь или за человека (групповая экскурсия/класс). #}
         <input type="hidden" name="pricing_mode_present" value="1">
         <label class="text-xs text-gray-500">{% trans "Preis gilt" %}

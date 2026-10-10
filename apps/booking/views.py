@@ -766,6 +766,9 @@ def services_view(request, pk=None):
             if request.POST.get("is_video_present"):
                 service.is_video = bool(request.POST.get("is_video"))
                 fields.append("is_video")
+            if request.POST.get("hide_in_city_present"):  # T-8.11
+                service.hide_in_city = bool(request.POST.get("hide_in_city"))
+                fields.append("hide_in_city")
             # MX-5: режим цены — по сентинелу (W0: чужая форма без селекта не трогает).
             if request.POST.get("pricing_mode_present"):
                 service.pricing_mode = (

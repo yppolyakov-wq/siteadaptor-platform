@@ -44,12 +44,25 @@ class AggregatorListing(I18nMixin, models.Model):
     KIND_STAY = "stay"
     KIND_EVENT = "event"
     KIND_MENU = "menu"  # MEN-5: набор меню (кейтеринг/гастро) — Combo
+    # T-8.11: каталог города = все предложения бизнеса, не только акции.
+    KIND_PRODUCT = "product"
+    KIND_SERVICE = "service"
+    KIND_BUSINESS = "business"
     KINDS = [
         (KIND_PROMOTION, _("Promotion")),
         (KIND_STAY, _("Stay")),
         (KIND_EVENT, _("Event")),
         (KIND_MENU, _("Menu")),
+        (KIND_PRODUCT, _("Produkt")),
+        (KIND_SERVICE, _("Dienstleistung")),
+        (KIND_BUSINESS, _("Unternehmen")),
     ]
+    # Виды «предложений» — лента портала по умолчанию (без ?kind=): товары одного
+    # магазина иначе вытеснили бы акции всех остальных.
+    OFFER_KINDS = (KIND_PROMOTION, KIND_STAY, KIND_EVENT, KIND_MENU)
+
+    AVAILABILITY_SOLD_OUT = "sold_out"
+    AVAILABILITY_ON_REQUEST = "on_request"
 
     # --- источник (тенант + объект) ---
     tenant_schema = models.CharField(max_length=63)
@@ -101,6 +114,10 @@ class AggregatorListing(I18nMixin, models.Model):
     # Названия блюд состава — «блюда наружу»: `?q=Rinderfilet` находит карточку
     # набора, не плодя отдельный kind="dish".
     dish_names = models.JSONField(default=list, blank=True)
+
+    # T-8.11: наличие товара («" — есть или не учитывается) и бейдж «Neu».
+    availability = models.CharField(max_length=20, blank=True, default="")
+    is_new = models.BooleanField(default=False)
 
     is_surprise = models.BooleanField(default=False)  # Überraschungstüte (Track B2)
     # Платное продвижение (P2.4a): до этого момента листинг закреплён сверху

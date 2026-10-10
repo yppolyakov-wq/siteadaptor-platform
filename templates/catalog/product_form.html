@@ -142,7 +142,7 @@ main-колонка + правая колонка «Preis & Bestand»/«Kategori
 
     {# Panel: Marketing #}
     <div data-pf-panel="markt" class="space-y-3 pt-2 hidden">
-      {% for field in form %}{% if field.name == 'is_featured' %}
+      {% for field in form %}{% if field.name == 'is_featured' or field.name == 'hide_in_city' %}
         <label class="flex items-center gap-2 text-sm font-medium">{% render_field field %} {{ field.label }}</label>
       {% endif %}{% endfor %}
       {% for field in form %}{% if field.name == 'badge' or field.name == 'variant_style' or field.name == 'card_style' %}{% include "catalog/_pf_field.html" %}{% endif %}{% endfor %}

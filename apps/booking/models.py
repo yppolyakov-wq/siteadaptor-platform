@@ -105,6 +105,8 @@ class Service(I18nMixin, TimestampedModel):
     vat_rate = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal("19.00"))
     deposit_cents = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    # T-8.11: владелец не хочет эту услугу в каталоге города.
+    hide_in_city = models.BooleanField(default=False)
     # LS-1: видео-консультация (v1 = WhatsApp-видео, wa.me-линк в письмах и на
     # детали; НИКАКОЙ записи разговоров — §201 StGB). Бронь — обычным движком.
     is_video = models.BooleanField(default=False)

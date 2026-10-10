@@ -60,3 +60,28 @@ class AggregatorConfig(AppConfig):
             post_delete.connect(
                 resync_on_combo_part_save, sender=model, dispatch_uid=f"agg_resync_combo_{uid}_del"
             )
+
+        # T-8.11: товары/варианты/услуги → листинги каталога города.
+        from apps.booking.models import Service
+        from apps.catalog.models import Product, ProductVariant
+
+        from .tasks import resync_on_product_save, resync_on_service_save, resync_on_variant_save
+
+        post_save.connect(
+            resync_on_product_save, sender=Product, dispatch_uid="agg_resync_product_save"
+        )
+        post_delete.connect(
+            resync_on_product_save, sender=Product, dispatch_uid="agg_resync_product_delete"
+        )
+        post_save.connect(
+            resync_on_variant_save, sender=ProductVariant, dispatch_uid="agg_resync_variant_save"
+        )
+        post_delete.connect(
+            resync_on_variant_save, sender=ProductVariant, dispatch_uid="agg_resync_variant_delete"
+        )
+        post_save.connect(
+            resync_on_service_save, sender=Service, dispatch_uid="agg_resync_service_save"
+        )
+        post_delete.connect(
+            resync_on_service_save, sender=Service, dispatch_uid="agg_resync_service_delete"
+        )
