@@ -124,10 +124,26 @@
         {% for e in form.business_type.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
       </fieldset>
       <label class="block">
-        <span class="block text-sm font-medium mb-1">{{ form.district.label }} · Solingen</span>
+        <span class="block text-sm font-medium mb-1">{{ form.city.label }}</span>
+        <input type="text" name="city" value="{{ form.city.value|default:'' }}" maxlength="100" required list="qs-cities"
+               autocomplete="address-level2" class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" data-qs-city>
+        <datalist id="qs-cities">{% for c in known_cities %}<option value="{{ c }}">{% endfor %}</datalist>
+        {% for e in form.city.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+      </label>
+      {% comment %}T-8.5c: район — после города. Список всех районов реестра сгруппирован
+      по городам; скрипт оставляет районы выбранного города и прячет поле, если у города
+      районов нет. Сервер всё равно сверяет район с городом.{% endcomment %}
+      <label class="block" data-qs-district>
+        <span class="block text-sm font-medium mb-1">{{ form.district.label }} <span class="text-xs font-normal text-gray-500">({% trans "optional" %})</span></span>
         <select name="district" class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base bg-white">
-          {% for value, label in form.fields.district.choices %}
-            <option value="{{ value }}" {% if form.district.value == value %}selected{% endif %}>{{ label }}</option>
+          <option value="">{% trans "— bitte wählen —" %}</option>
+          {% regroup district_options by city as by_city %}
+          {% for group in by_city %}
+            <optgroup label="{{ group.grouper }}">
+              {% for d in group.list %}
+                <option value="{{ d.slug }}" data-city="{{ d.city_key }}" {% if form.district.value == d.slug %}selected{% endif %}>{{ d.name }}</option>
+              {% endfor %}
+            </optgroup>
           {% endfor %}
         </select>
       </label>
@@ -157,7 +173,7 @@
     <li>✓ {% trans "Eigene Seite unter ihr-name.siteadaptor.de" %}</li>
     <li>✓ {% trans "QR-Code und Aushang zum Ausdrucken" %}</li>
     <li>✓ {% trans "Kund:innen lassen zurücklegen oder holen einen Coupon" %}</li>
-    <li>✓ {% trans "Nach Bestätigung der E-Mail auch im Stadtportal Solingen" %}</li>
+    <li>✓ {% trans "Nach Bestätigung der E-Mail auch im Stadtportal Ihrer Stadt" %}</li>
   </ul>
 </main>
 {% include "tenants/_public_footer.html" %}
@@ -255,6 +271,35 @@
     });
   });
   if (slugInput.value) check();
+  // T-8.5c: районы — только выбранного города (ключ города как в districts.city_key).
+  var cityInput = root.querySelector("[data-qs-city]");
+  var districtBox = root.querySelector("[data-qs-district]");
+  var districtSelect = districtBox.querySelector("select");
+  function cityKey(text) {
+    var k = (text || "").trim().toLowerCase()
+      .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
+      .replace(/[\s\/_-]+/g, "-").replace(/^-+|-+$/g, "");
+    return k;
+  }
+  function syncDistricts() {
+    var key = cityKey(cityInput.value);
+    var head = key.split("-")[0];
+    var any = false;
+    districtSelect.querySelectorAll("option[data-city]").forEach(function (o) {
+      var c = o.getAttribute("data-city");
+      var match = c === key || c === head;
+      o.hidden = !match;
+      o.disabled = !match;
+      if (match) any = true;
+      if (!match && o.selected) districtSelect.value = "";
+    });
+    districtSelect.querySelectorAll("optgroup").forEach(function (g) {
+      g.hidden = !g.querySelector("option:not([hidden])");
+    });
+    districtBox.classList.toggle("hidden", !any);
+  }
+  cityInput.addEventListener("input", syncDistricts);
+  syncDistricts();
   // Ошибка во втором шаге (или бизнес уже заполнен) — открываем его.
   var err2 = step2.querySelector(".text-red-600");
   var err1 = step1.querySelector(".text-red-600");

@@ -23848,3 +23848,9 @@ msgstr "Откуда приходят клиенты?"
 
 msgid "Zurückgelegt"
 msgstr "Отложено"
+
+msgid "Auch im Stadtportal Ihrer Stadt zeigen"
+msgstr "Показывать и на портале вашего города"
+
+msgid "Nach Bestätigung der E-Mail auch im Stadtportal Ihrer Stadt"
+msgstr "После подтверждения e-mail — и на портале вашего города"

@@ -23655,3 +23655,9 @@ msgstr "Woher kommen Ihre Kund:innen?"
 
 msgid "Zurückgelegt"
 msgstr "Zurückgelegt"
+
+msgid "Auch im Stadtportal Ihrer Stadt zeigen"
+msgstr "Auch im Stadtportal Ihrer Stadt zeigen"
+
+msgid "Nach Bestätigung der E-Mail auch im Stadtportal Ihrer Stadt"
+msgstr "Nach Bestätigung der E-Mail auch im Stadtportal Ihrer Stadt"

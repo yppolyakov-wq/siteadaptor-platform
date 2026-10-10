@@ -57,6 +57,7 @@ def _post_data(**kw):
         "customer_response": "reserve",
         "business_name": "Bäckerei Müller & Söhne",
         "business_type": "bakery",
+        "city": "Solingen",
         "district": "",
         "email": EMAIL,
         "stamp": _old_stamp(),
@@ -260,14 +261,16 @@ def test_pending_tenant_stays_out_of_city_catalog_until_confirmed(owner):
     assert not AggregatorListing.objects.filter(promo_uuid=promo.pk).exists()
 
     signed = owner_login.confirm_token(tenant, EMAIL)
-    with mock.patch("apps.aggregator.tasks.sync_aggregator_listing.delay") as delay:
-        html = owner_login.owner_confirm_email(
-            _tenant_request("get", "/start/bestaetigen/x/", tenant), signed
-        ).content.decode()
+    # T-8.6: подтверждение выкладывает ВСЮ схему (все виды), а не акции по одной.
+    with mock.patch("django.db.transaction.on_commit", side_effect=lambda f: f()):
+        with mock.patch("apps.aggregator.tasks.reconcile_aggregator_schema.delay") as delay:
+            html = owner_login.owner_confirm_email(
+                _tenant_request("get", "/start/bestaetigen/x/", tenant), signed
+            ).content.decode()
     assert "data-owner-confirmed" in html
     tenant.refresh_from_db()
     assert tenant.email_pending is False
-    assert delay.call_args.kwargs["promotion_id"] == str(promo.pk)
+    delay.assert_called_once_with(tenant.schema_name)
     assert agg_tasks.sync_listing("public", str(promo.pk)) == "upserted"
 
 
@@ -428,3 +431,37 @@ def test_post_with_several_photos_carries_all_to_the_task():
             delete_stored_image(ref)
     finally:
         _drop(tenant)
+
+
+# --- T-8.5c: город, затем район этого города ----------------------------------------
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "city,district,want_city,want_district",
+    [
+        ("solingen", "Ohligs", "Solingen", "ohligs-aufderhoehe-merscheid"),  # алиас + канон
+        ("Wuppertal", "wald", "Wuppertal", ""),  # район чужого города отбрасывается
+        ("  Haan  ", "", "Haan", ""),
+    ],
+)
+def test_city_first_then_district_of_that_city(city, district, want_city, want_district):
+    form = quickstart.QuickStartForm(_post_data(city=city, district=district))
+    assert form.is_valid(), form.errors
+    assert form.cleaned_data["city"] == want_city
+    assert form.cleaned_data["district"] == want_district
+
+
+@pytest.mark.django_db
+def test_city_is_required():
+    form = quickstart.QuickStartForm(_post_data(city=""))
+    assert not form.is_valid() and "city" in form.errors
+
+
+@pytest.mark.django_db
+def test_page_offers_cities_and_districts_grouped_by_city():
+    request = _session(RequestFactory().get("/aktion-starten/"))
+    html = quickstart_views.quick_start(request).content.decode()
+    assert 'name="city"' in html and 'value="Solingen"' in html
+    assert '<option value="Solingen">' in html  # подсказка datalist
+    assert 'data-city="solingen"' in html and "data-qs-district" in html

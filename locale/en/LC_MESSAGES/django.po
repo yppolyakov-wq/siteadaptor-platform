@@ -23616,3 +23616,9 @@ msgstr "Where do your customers come from?"
 
 msgid "Zurückgelegt"
 msgstr "Put aside"
+
+msgid "Auch im Stadtportal Ihrer Stadt zeigen"
+msgstr "Also show in your city's portal"
+
+msgid "Nach Bestätigung der E-Mail auch im Stadtportal Ihrer Stadt"
+msgstr "After confirming your email, also in your city's portal"

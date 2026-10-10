@@ -44,6 +44,9 @@ CITIES: dict[str, tuple[District, ...]] = {
     ),
 }
 
+# Как город пишется для людей (ключ реестра → название).
+CITY_NAMES: dict[str, str] = {"solingen": "Solingen"}
+
 _UMLAUTS = str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"})
 
 
@@ -99,3 +102,19 @@ def suggest(city: str, address: str) -> str:
             if plz in d.plz:
                 return d.slug
     return ""
+
+
+def city_label(city: str) -> str:
+    """Каноническое название города реестра («solingen» → «Solingen») или ""."""
+    key = city_key(city)
+    return CITY_NAMES.get(key, key.title()) if key else ""
+
+
+def all_options() -> list[dict]:
+    """Все районы всех городов реестра — для формы, где город выбирается рядом
+    (T-8.5c): {city_key, city, slug, name}."""
+    return [
+        {"city_key": key, "city": CITY_NAMES.get(key, key.title()), "slug": d.slug, "name": d.name}
+        for key, items in CITIES.items()
+        for d in items
+    ]

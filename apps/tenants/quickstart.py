@@ -136,10 +136,12 @@ class QuickStartForm(quick.QuickPromotionForm):
         label=_("Art des Geschäfts"), choices=(), widget=forms.RadioSelect
     )
     subdomain = forms.CharField(label=_("Ihre Adresse"), required=False, max_length=80)
-    district = forms.ChoiceField(label=_("Stadtteil"), required=False, choices=())
+    city = forms.CharField(label=_("Stadt"), max_length=100, initial=DEFAULT_CITY)
+    # Район зависит от города: свободное значение, проверяется по реестру в clean().
+    district = forms.CharField(label=_("Stadtteil"), required=False, max_length=60)
     email = forms.EmailField(label=_("E-Mail"))
     in_city_catalog = forms.BooleanField(
-        label=_("Auch im Stadtportal Solingen zeigen"), required=False, initial=True
+        label=_("Auch im Stadtportal Ihrer Stadt zeigen"), required=False, initial=True
     )
 
     def __init__(self, *args, **kwargs):
@@ -151,11 +153,23 @@ class QuickStartForm(quick.QuickPromotionForm):
         self.fields["customer_response"].initial = promo_response.RESERVE
         type_labels = dict(Tenant.BUSINESS_TYPES)
         self.fields["business_type"].choices = [(v, type_labels[v]) for v in QUICK_TYPES]
+
+    def clean_city(self):
+        """Известный город — каноническим написанием, иначе как ввели (без лишних пробелов)."""
         from apps.core import districts
 
-        self.fields["district"].choices = [("", _("— bitte wählen —"))] + districts.choices_for(
-            DEFAULT_CITY
+        city = " ".join((self.cleaned_data.get("city") or "").split())
+        return districts.city_label(city) or city
+
+    def clean(self):
+        cleaned = super().clean()
+        from apps.core import districts
+
+        # Район — только из списка ЭТОГО города; чужой/незнакомый молча отбрасываем.
+        cleaned["district"] = districts.normalize(
+            cleaned.get("city") or "", cleaned.get("district") or ""
         )
+        return cleaned
 
     def clean_subdomain(self):
         """Пусто — выберем сами из названия; иначе — ровно то, что хочет владелец."""
@@ -187,3 +201,22 @@ class QuickStartForm(quick.QuickPromotionForm):
         if d.get("until"):
             payload["until"] = d["until"].isoformat()
         return payload
+
+
+def known_cities() -> list[str]:
+    """Подсказки поля «Stadt»: города реестра районов + города действующих порталов."""
+    from apps.aggregator.models import AggregatorPortal
+    from apps.core import districts
+
+    names = set(districts.CITY_NAMES.values())
+    try:
+        names |= {
+            c.strip()
+            for c in AggregatorPortal.objects.filter(is_active=True)
+            .exclude(city="")
+            .values_list("city", flat=True)
+            if c and c.strip()
+        }
+    except Exception:  # noqa: BLE001 — подсказки не роняют страницу
+        pass
+    return sorted(names)

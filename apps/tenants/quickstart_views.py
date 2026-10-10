@@ -33,9 +33,17 @@ def _context(request, form):
         "type_cards": quickstart.type_cards(request),
         "stamp": quickstart.form_stamp(),
         "domain_base": quickstart.domain_base(),
+        "known_cities": quickstart.known_cities(),
+        "district_options": _district_options(),
         "max_photos": MAX_PHOTOS,
         "ui_languages": ui_languages(),
     }
+
+
+def _district_options() -> list[dict]:
+    from apps.core import districts
+
+    return districts.all_options()
 
 
 def quick_start(request):
@@ -76,7 +84,7 @@ def quick_start(request):
             business_name=cd["business_name"].strip(),
             slug=cd.get("subdomain") or quickstart.suggest_slug(cd["business_name"]),
             business_type=cd["business_type"],
-            city=quickstart.DEFAULT_CITY,
+            city=cd["city"],
             district=cd.get("district") or "",
             email=cd["email"],
             promo=promo,

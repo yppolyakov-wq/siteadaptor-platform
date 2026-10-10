@@ -23741,3 +23741,9 @@ msgstr "Müşterileriniz nereden geliyor?"
 
 msgid "Zurückgelegt"
 msgstr "Ayrıldı"
+
+msgid "Auch im Stadtportal Ihrer Stadt zeigen"
+msgstr "Şehrinizin portalında da göster"
+
+msgid "Nach Bestätigung der E-Mail auch im Stadtportal Ihrer Stadt"
+msgstr "E-posta onayından sonra şehrinizin portalında da"
