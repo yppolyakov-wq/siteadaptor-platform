@@ -136,14 +136,29 @@ def portal_home(request, facet=None, district=None):
         else:
             city = facet
 
-    from . import geo
+    # T-8.13a: категория/признак каталога города — параметрами, чипы по НЕфильтрованному пулу.
+    from . import category_facets, geo
     from .views import split_featured
 
-    pool = listings_for(
+    kat, tag = category_facets.selected(request)
+    base_pool = listings_for(
         city=city,
         business_type=business_type,
         district=district,
         include_demo=portal.show_demo,
+    )
+    category_chips = category_facets.chips(base_pool, request.path, kat, tag)
+    pool = (
+        listings_for(
+            city=city,
+            business_type=business_type,
+            district=district,
+            city_category=kat,
+            city_tag=tag,
+            include_demo=portal.show_demo,
+        )
+        if (kat or tag)
+        else base_pool
     )
     near_lat, near_lng = geo.parse_latlng(request)
     if near_lat is not None:  # G8c: «рядом» — ближайшие сверху, без пагинации
@@ -185,7 +200,9 @@ def portal_home(request, facet=None, district=None):
 
     reviews.attach_ratings(cards)  # G8b: звёзды в выдаче
     canonical = request.build_absolute_uri(request.path)
-    heading = " · ".join(str(p) for p in (district_label, facet_label) if p)
+    heading = " · ".join(
+        str(p) for p in (district_label, facet_label, category_chips["label"]) if p
+    )
     page_name = f"{heading} — {portal.title_text}" if heading else portal.title_text
     # Перелинковка сети (P2.2a): ссылки на остальные активные порталы.
     from .models import AggregatorPortal
@@ -221,6 +238,7 @@ def portal_home(request, facet=None, district=None):
             "district": district,
             "district_label": district_label,
             "district_chips": district_chips,
+            "category_chips": category_chips,  # T-8.13a
             # T-8.15: портал показывает демо-бизнесы — честная полоса «Vorschau».
             "shows_demo": portal.show_demo and any(getattr(c, "is_demo", False) for c in cards),
             "business_link": True,  # G8b: на порталах звёзды ведут на страницу бизнеса

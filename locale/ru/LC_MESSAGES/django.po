@@ -23854,3 +23854,338 @@ msgstr "Показывать и на портале вашего города"
 
 msgid "Nach Bestätigung der E-Mail auch im Stadtportal Ihrer Stadt"
 msgstr "После подтверждения e-mail — и на портале вашего города"
+
+msgid "Aktivitäten für Kinder"
+msgstr "Занятия для детей"
+
+msgid "Ausflüge"
+msgstr "Поездки"
+
+msgid "Auto & Mobilität"
+msgstr "Авто и транспорт"
+
+msgid "Automatisch (nach Art des Geschäfts)"
+msgstr "Автоматически (по виду бизнеса)"
+
+msgid "Autoteile"
+msgstr "Автозапчасти"
+
+msgid "Babybedarf"
+msgstr "Товары для малышей"
+
+msgid "Bau & Renovierung"
+msgstr "Строительство и ремонт"
+
+msgid "Beauty & Pflege"
+msgstr "Красота и уход"
+
+msgid "Beleuchtung"
+msgstr "Освещение"
+
+msgid "Beratung"
+msgstr "Консультации"
+
+msgid "Büroservice"
+msgstr "Офисные услуги"
+
+msgid "Cafés"
+msgstr "Кафе"
+
+msgid "Computer & Notebooks"
+msgstr "Компьютеры и ноутбуки"
+
+msgid "Damenmode"
+msgstr "Женская одежда"
+
+msgid ""
+"Damit Leute Ihr Angebot im Stadtportal unter der richtigen Rubrik finden."
+msgstr ""
+"Чтобы люди нашли ваше предложение в нужном разделе городского портала."
+
+msgid "Dekoration"
+msgstr "Декор"
+
+msgid "Dienstleistungen"
+msgstr "Услуги"
+
+msgid "Elektriker"
+msgstr "Электрики"
+
+msgid "Elektronik & Technik"
+msgstr "Электроника и техника"
+
+msgid "Essen & Gastronomie"
+msgstr "Еда и гастрономия"
+
+msgid "Fahrräder"
+msgstr "Велосипеды"
+
+msgid "Familienausflüge"
+msgstr "Семейные прогулки"
+
+msgid "Feinkost & Spezialitäten"
+msgstr "Деликатесы"
+
+msgid "Ferienwohnungen"
+msgstr "Апартаменты для отдыха"
+
+msgid "Fitness"
+msgstr "Фитнес"
+
+msgid "Fleisch & Wurst"
+msgstr "Мясо и колбасы"
+
+msgid "Fotografie"
+msgstr "Фотография"
+
+msgid "Freizeit & Erlebnisse"
+msgstr "Досуг и впечатления"
+
+msgid "Friseur"
+msgstr "Парикмахерская"
+
+msgid "Garten & Pflanzen"
+msgstr "Сад и растения"
+
+msgid "Geschenke"
+msgstr "Подарки"
+
+msgid "Gesundheit & Fitness"
+msgstr "Здоровье и фитнес"
+
+msgid "Gesundheitsprodukte"
+msgstr "Товары для здоровья"
+
+msgid "Getränke"
+msgstr "Напитки"
+
+msgid "Grooming"
+msgstr "Груминг"
+
+msgid "Handgemachtes"
+msgstr "Ручная работа"
+
+msgid "Handwerk & Reparatur"
+msgstr "Ремесло и ремонт"
+
+msgid "Haus & Garten"
+msgstr "Дом и сад"
+
+msgid "Haushaltsgeräte"
+msgstr "Бытовая техника"
+
+msgid "Herrenmode"
+msgstr "Мужская одежда"
+
+msgid "Hotels & Pensionen"
+msgstr "Отели и пансионы"
+
+msgid "IT-Service"
+msgstr "IT-услуги"
+
+msgid "Kategorie im Stadtkatalog"
+msgstr "Категория в каталоге города"
+
+msgid "Kinder & Familie"
+msgstr "Дети и семья"
+
+msgid "Kindermode"
+msgstr "Детская одежда"
+
+msgid "Kino"
+msgstr "Кино"
+
+msgid "Kosmetik"
+msgstr "Косметика"
+
+msgid "Kunst"
+msgstr "Искусство"
+
+msgid "Kunst & Geschenke"
+msgstr "Искусство и подарки"
+
+msgid "Küche"
+msgstr "Кухня"
+
+msgid "Lebensmittel & Getränke"
+msgstr "Продукты и напитки"
+
+msgid "Lebensmittel & Supermarkt"
+msgstr "Продукты и супермаркет"
+
+msgid "Lieferservice"
+msgstr "Доставка еды"
+
+msgid "Lokale Produkte"
+msgstr "Местные товары"
+
+msgid "Massage"
+msgstr "Массаж"
+
+msgid "Merkmale"
+msgstr "Особенности"
+
+msgid "Mittagessen"
+msgstr "Обед"
+
+msgid "Mode & Accessoires"
+msgstr "Мода и аксессуары"
+
+msgid "Montage"
+msgstr "Монтаж"
+
+msgid "Möbel"
+msgstr "Мебель"
+
+msgid "Nur ankreuzen, was wirklich zutrifft (z. B. vegan, regional)."
+msgstr ""
+"Отмечайте только то, что действительно верно (например, веганское, "
+"региональное)."
+
+msgid "Nägel"
+msgstr "Ногти"
+
+msgid "Obst & Gemüse"
+msgstr "Овощи и фрукты"
+
+msgid "Optik"
+msgstr "Оптика"
+
+msgid "Outdoor"
+msgstr "Активный отдых"
+
+msgid "Physiotherapie"
+msgstr "Физиотерапия"
+
+msgid "Reinigung"
+msgstr "Уборка"
+
+msgid "Reisen & Übernachten"
+msgstr "Путешествия и проживание"
+
+msgid "Reparatur"
+msgstr "Ремонт"
+
+msgid "Restaurants"
+msgstr "Рестораны"
+
+msgid "Sanitär"
+msgstr "Сантехника"
+
+msgid "Schmuck"
+msgstr "Украшения"
+
+msgid "Schuhe"
+msgstr "Обувь"
+
+msgid "Smartphones"
+msgstr "Смартфоны"
+
+msgid "Spielzeug"
+msgstr "Игрушки"
+
+msgid "Sport"
+msgstr "Спорт"
+
+msgid "TV & Audio"
+msgstr "ТВ и аудио"
+
+msgid "Takeaway"
+msgstr "Еда навынос"
+
+msgid "Taschen"
+msgstr "Сумки"
+
+msgid "Tierdienstleistungen"
+msgstr "Услуги для животных"
+
+msgid "Tiere & Tierbedarf"
+msgstr "Животные и зоотовары"
+
+msgid "Tierfutter"
+msgstr "Корм для животных"
+
+msgid "Tierzubehör"
+msgstr "Аксессуары для животных"
+
+msgid "Vermietung"
+msgstr "Прокат"
+
+msgid "Weitere Dienstleistungen"
+msgstr "Другие услуги"
+
+msgid "Wellness & Retreats"
+msgstr "Велнес и ретриты"
+
+msgid "Werkstatt & Reparatur"
+msgstr "Автосервис и ремонт"
+
+msgid "Workshops & Kurse"
+msgstr "Мастер-классы и курсы"
+
+msgid "Yoga & Meditation"
+msgstr "Йога и медитация"
+
+msgid "Zubehör"
+msgstr "Аксессуары"
+
+msgid "barrierefrei"
+msgstr "без барьеров"
+
+msgid "bio"
+msgstr "органическое"
+
+msgid "familienfreundlich"
+msgstr "для семей"
+
+msgid "glutenfrei"
+msgstr "без глютена"
+
+msgid "halal"
+msgstr "халяль"
+
+msgid "hundefreundlich"
+msgstr "можно с собакой"
+
+msgid "laktosefrei"
+msgstr "без лактозы"
+
+msgid "nachhaltig"
+msgstr "экологичное"
+
+msgid "regional"
+msgstr "региональное"
+
+msgid "vegan"
+msgstr "веганское"
+
+msgid "vegetarisch"
+msgstr "вегетарианское"
+
+#, python-format
+msgid "Automatisch: %(cat)s"
+msgstr "Автоматически: %(cat)s"
+
+msgid ""
+"Unter dieser Rubrik erscheinen Angebote mit Produkten dieser Kategorie im "
+"Stadtportal. Ihre eigene Navigation bleibt unverändert."
+msgstr ""
+"Под этой рубрикой предложения с товарами этой категории появляются на "
+"городском портале. Ваша собственная навигация не меняется."
+
+msgid ""
+"Unter welcher Rubrik Ihre Angebote im Stadtportal erscheinen. Ihre eigene "
+"Navigation bleibt unverändert."
+msgstr ""
+"Под какой рубрикой ваши предложения появляются на городском портале. Ваша "
+"собственная навигация не меняется."
+
+#, python-format
+msgid "Zuordnung gespeichert (%(n)s geändert)."
+msgstr "Сопоставление сохранено (изменено: %(n)s)."
+
+msgid "Zuordnung zum Stadtkatalog"
+msgstr "Сопоставление с каталогом города"
+
+msgid "ohne Zuordnung"
+msgstr "без сопоставления"

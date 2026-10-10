@@ -283,6 +283,11 @@ class Promotion(SoftDeleteMixin, I18nMixin):
     # Переводим только МЕТКУ группы; ключ фасета (?gruppe=) остаётся плоским
     # значением, иначе ссылки на подраздел разъехались бы между локалями.
     group_i18n = models.JSONField(default=dict, blank=True)
+    # T-8.13a: категория каталога города (слаг `core/city_categories`; пусто =
+    # подсказка по типу бизнеса) и признаки (vegan, regional, …). Рубрика `group` —
+    # своя у бизнеса и в город не уходит; эти два поля — общие для всех.
+    city_category = models.CharField(max_length=40, blank=True, default="")
+    city_tags = models.JSONField(default=list, blank=True)
 
     # Ревью 2026-08-19: подписи статуса жили СЛОВАРЁМ во вьюхе (X6-3), поэтому
     # каждый новый экран печатал сырой код, пока ключ не прокинут руками (так и

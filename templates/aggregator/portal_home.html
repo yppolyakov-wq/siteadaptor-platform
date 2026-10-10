@@ -32,6 +32,8 @@
 </nav>
 {% endif %}
 
+{% include "aggregator/_category_chips.html" with chips=category_chips %}
+
 {# H8b: поиск по датам на портале отелей #}
 {% if hotel_portal %}
 <form method="get" class="bg-white rounded-2xl shadow-sm p-4 md:p-5 mb-6">

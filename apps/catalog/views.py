@@ -565,6 +565,8 @@ def _descendants(category) -> list:
 def category_list(request):
     """SR-4 (канвас Kategorien): плитки с фото — фото и имя кликабельны →
     форма категории; подкатегории — чипами в плитке родителя."""
+    if request.method == "POST" and request.POST.get("action") == "city_map":
+        return _save_city_map(request)
     tree = _category_tree()
     roots, cur = [], None
     for c in tree:
@@ -576,8 +578,77 @@ def category_list(request):
     return render(
         request,
         "catalog/category_list.html",
-        {"nav": "categories", "categories": tree, "roots": roots},
+        {
+            "nav": "categories",
+            "categories": tree,
+            "roots": roots,
+            "city_map": _city_map_rows(tree),  # T-8.13b
+            "city_map_groups": _city_map_groups(),
+        },
     )
+
+
+def _city_map_rows(tree) -> list[dict]:
+    """T-8.13b: строки «своя категория → категория города» (выбор + что выйдет само)."""
+    from apps.core import city_categories as cc
+
+    from . import city
+
+    rows = []
+    for c in tree:
+        auto = city.auto_for(c)
+        rows.append(
+            {
+                "cat": c,
+                "own": cc.normalize_category(c.city_category),
+                "auto_label": cc.label(auto) if auto else _("ohne Zuordnung"),
+            }
+        )
+    return rows
+
+
+def _city_map_groups():
+    from apps.core import city_categories as cc
+
+    return cc.grouped_choices()
+
+
+def _save_city_map(request):
+    """Пишем только присланные строки; чужой id и неизвестный слаг игнорируются."""
+    from apps.core import city_categories as cc
+
+    ids = request.POST.getlist("map_id")
+    changed = 0
+    for cat in Category.objects.filter(pk__in=[i for i in ids if _is_uuid(i)]):
+        value = cc.normalize_category(request.POST.get(f"map_{cat.pk}", ""))
+        if value != cat.city_category:
+            cat.city_category = value
+            cat.save(update_fields=["city_category"])
+            changed += 1
+    if changed:
+        _resync_city_catalog(request)
+    messages.success(request, _("Zuordnung gespeichert (%(n)s geändert).") % {"n": changed})
+    return redirect("catalog:category-list")
+
+
+def _resync_city_catalog(request) -> None:
+    """Акции на товары этих категорий получают новую рубрику города сразу."""
+    from django.db import connection, transaction
+
+    from apps.aggregator.tasks import reconcile_aggregator_schema
+
+    schema = connection.schema_name
+    transaction.on_commit(lambda: reconcile_aggregator_schema.delay(schema))
+
+
+def _is_uuid(value) -> bool:
+    import uuid
+
+    try:
+        uuid.UUID(str(value))
+    except ValueError:
+        return False
+    return True
 
 
 @login_required
@@ -611,6 +682,8 @@ def category_edit(request, pk):
     )
     if request.method == "POST" and form.is_valid():
         form.save()
+        if "city_category" in form.changed_data:  # T-8.13b: рубрика города — сразу
+            _resync_city_catalog(request)
         _handle_uploads(request, category, folder="categories")  # FB-6: фото категории
         return redirect("catalog:category-list")
     return render(

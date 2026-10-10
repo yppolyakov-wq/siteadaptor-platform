@@ -23622,3 +23622,335 @@ msgstr "Also show in your city's portal"
 
 msgid "Nach Bestätigung der E-Mail auch im Stadtportal Ihrer Stadt"
 msgstr "After confirming your email, also in your city's portal"
+
+msgid "Aktivitäten für Kinder"
+msgstr "Activities for kids"
+
+msgid "Ausflüge"
+msgstr "Day trips"
+
+msgid "Auto & Mobilität"
+msgstr "Cars & mobility"
+
+msgid "Automatisch (nach Art des Geschäfts)"
+msgstr "Automatic (by type of business)"
+
+msgid "Autoteile"
+msgstr "Car parts"
+
+msgid "Babybedarf"
+msgstr "Baby supplies"
+
+msgid "Bau & Renovierung"
+msgstr "Construction & renovation"
+
+msgid "Beauty & Pflege"
+msgstr "Beauty & care"
+
+msgid "Beleuchtung"
+msgstr "Lighting"
+
+msgid "Beratung"
+msgstr "Consulting"
+
+msgid "Büroservice"
+msgstr "Office services"
+
+msgid "Cafés"
+msgstr "Cafés"
+
+msgid "Computer & Notebooks"
+msgstr "Computers & laptops"
+
+msgid "Damenmode"
+msgstr "Women's fashion"
+
+msgid ""
+"Damit Leute Ihr Angebot im Stadtportal unter der richtigen Rubrik finden."
+msgstr "So people find your offer under the right heading in the city portal."
+
+msgid "Dekoration"
+msgstr "Decoration"
+
+msgid "Dienstleistungen"
+msgstr "Services"
+
+msgid "Elektriker"
+msgstr "Electricians"
+
+msgid "Elektronik & Technik"
+msgstr "Electronics & tech"
+
+msgid "Essen & Gastronomie"
+msgstr "Food & dining"
+
+msgid "Fahrräder"
+msgstr "Bicycles"
+
+msgid "Familienausflüge"
+msgstr "Family outings"
+
+msgid "Feinkost & Spezialitäten"
+msgstr "Delicatessen & specialities"
+
+msgid "Ferienwohnungen"
+msgstr "Holiday apartments"
+
+msgid "Fitness"
+msgstr "Fitness"
+
+msgid "Fleisch & Wurst"
+msgstr "Meat & sausage"
+
+msgid "Fotografie"
+msgstr "Photography"
+
+msgid "Freizeit & Erlebnisse"
+msgstr "Leisure & experiences"
+
+msgid "Friseur"
+msgstr "Hairdresser"
+
+msgid "Garten & Pflanzen"
+msgstr "Garden & plants"
+
+msgid "Geschenke"
+msgstr "Gifts"
+
+msgid "Gesundheit & Fitness"
+msgstr "Health & fitness"
+
+msgid "Gesundheitsprodukte"
+msgstr "Health products"
+
+msgid "Getränke"
+msgstr "Drinks"
+
+msgid "Grooming"
+msgstr "Pet grooming"
+
+msgid "Handgemachtes"
+msgstr "Handmade"
+
+msgid "Handwerk & Reparatur"
+msgstr "Trades & repairs"
+
+msgid "Haus & Garten"
+msgstr "Home & garden"
+
+msgid "Haushaltsgeräte"
+msgstr "Household appliances"
+
+msgid "Herrenmode"
+msgstr "Men's fashion"
+
+msgid "Hotels & Pensionen"
+msgstr "Hotels & guesthouses"
+
+msgid "IT-Service"
+msgstr "IT services"
+
+msgid "Kategorie im Stadtkatalog"
+msgstr "Category in the city catalogue"
+
+msgid "Kinder & Familie"
+msgstr "Kids & family"
+
+msgid "Kindermode"
+msgstr "Children's fashion"
+
+msgid "Kino"
+msgstr "Cinema"
+
+msgid "Kosmetik"
+msgstr "Cosmetics"
+
+msgid "Kunst"
+msgstr "Art"
+
+msgid "Kunst & Geschenke"
+msgstr "Art & gifts"
+
+msgid "Küche"
+msgstr "Kitchen"
+
+msgid "Lebensmittel & Getränke"
+msgstr "Food & drinks"
+
+msgid "Lebensmittel & Supermarkt"
+msgstr "Groceries & supermarket"
+
+msgid "Lieferservice"
+msgstr "Delivery"
+
+msgid "Lokale Produkte"
+msgstr "Local products"
+
+msgid "Massage"
+msgstr "Massage"
+
+msgid "Merkmale"
+msgstr "Features"
+
+msgid "Mittagessen"
+msgstr "Lunch"
+
+msgid "Mode & Accessoires"
+msgstr "Fashion & accessories"
+
+msgid "Montage"
+msgstr "Assembly & installation"
+
+msgid "Möbel"
+msgstr "Furniture"
+
+msgid "Nur ankreuzen, was wirklich zutrifft (z. B. vegan, regional)."
+msgstr "Only tick what really applies (e.g. vegan, regional)."
+
+msgid "Nägel"
+msgstr "Nails"
+
+msgid "Obst & Gemüse"
+msgstr "Fruit & vegetables"
+
+msgid "Optik"
+msgstr "Opticians"
+
+msgid "Outdoor"
+msgstr "Outdoor"
+
+msgid "Physiotherapie"
+msgstr "Physiotherapy"
+
+msgid "Reinigung"
+msgstr "Cleaning"
+
+msgid "Reisen & Übernachten"
+msgstr "Travel & stays"
+
+msgid "Reparatur"
+msgstr "Repairs"
+
+msgid "Restaurants"
+msgstr "Restaurants"
+
+msgid "Sanitär"
+msgstr "Plumbing"
+
+msgid "Schmuck"
+msgstr "Jewellery"
+
+msgid "Schuhe"
+msgstr "Shoes"
+
+msgid "Smartphones"
+msgstr "Smartphones"
+
+msgid "Spielzeug"
+msgstr "Toys"
+
+msgid "Sport"
+msgstr "Sports"
+
+msgid "TV & Audio"
+msgstr "TV & audio"
+
+msgid "Takeaway"
+msgstr "Takeaway"
+
+msgid "Taschen"
+msgstr "Bags"
+
+msgid "Tierdienstleistungen"
+msgstr "Pet services"
+
+msgid "Tiere & Tierbedarf"
+msgstr "Pets & pet supplies"
+
+msgid "Tierfutter"
+msgstr "Pet food"
+
+msgid "Tierzubehör"
+msgstr "Pet accessories"
+
+msgid "Vermietung"
+msgstr "Rentals"
+
+msgid "Weitere Dienstleistungen"
+msgstr "Other services"
+
+msgid "Wellness & Retreats"
+msgstr "Wellness & retreats"
+
+msgid "Werkstatt & Reparatur"
+msgstr "Garage & repairs"
+
+msgid "Workshops & Kurse"
+msgstr "Workshops & courses"
+
+msgid "Yoga & Meditation"
+msgstr "Yoga & meditation"
+
+msgid "Zubehör"
+msgstr "Accessories"
+
+msgid "barrierefrei"
+msgstr "accessible"
+
+msgid "bio"
+msgstr "organic"
+
+msgid "familienfreundlich"
+msgstr "family-friendly"
+
+msgid "glutenfrei"
+msgstr "gluten-free"
+
+msgid "halal"
+msgstr "halal"
+
+msgid "hundefreundlich"
+msgstr "dog-friendly"
+
+msgid "laktosefrei"
+msgstr "lactose-free"
+
+msgid "nachhaltig"
+msgstr "sustainable"
+
+msgid "regional"
+msgstr "regional"
+
+msgid "vegan"
+msgstr "vegan"
+
+msgid "vegetarisch"
+msgstr "vegetarian"
+
+#, python-format
+msgid "Automatisch: %(cat)s"
+msgstr "Automatic: %(cat)s"
+
+msgid ""
+"Unter dieser Rubrik erscheinen Angebote mit Produkten dieser Kategorie im "
+"Stadtportal. Ihre eigene Navigation bleibt unverändert."
+msgstr ""
+"Offers with products from this category appear under this heading in the "
+"city portal. Your own navigation stays unchanged."
+
+msgid ""
+"Unter welcher Rubrik Ihre Angebote im Stadtportal erscheinen. Ihre eigene "
+"Navigation bleibt unverändert."
+msgstr ""
+"Under which heading your offers appear in the city portal. Your own "
+"navigation stays unchanged."
+
+#, python-format
+msgid "Zuordnung gespeichert (%(n)s geändert)."
+msgstr "Mapping saved (%(n)s changed)."
+
+msgid "Zuordnung zum Stadtkatalog"
+msgstr "Mapping to the city catalogue"
+
+msgid "ohne Zuordnung"
+msgstr "no mapping"

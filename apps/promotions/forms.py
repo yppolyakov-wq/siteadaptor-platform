@@ -177,6 +177,18 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
                 "wenn Bestellungen aktiv sind — sonst zurücklegen lassen."
             ),
         )
+        # T-8.13a: категория каталога города + признаки. Новая акция — подсказка по типу
+        # бизнеса уже выбрана; пусто = подсказка в момент выкладки.
+        from apps.core import city_categories as cc
+
+        from . import city_fields
+
+        # UUID-pk есть и у несохранённой акции — новизну смотрим по _state.adding.
+        is_new = self.instance._state.adding
+        category = "" if is_new else self.instance.city_category
+        if is_new and tenant is not None:
+            category = cc.suggest_for_business_type(getattr(tenant, "business_type", ""))
+        city_fields.add_fields(form=self, category=category, tags=self.instance.city_tags)
         self.init_i18n_fields(tenant)  # L3d.5
         # `group` — flat+overlay (плоское значение = ключ фасета `?gruppe=`,
         # переводы = только метка), поэтому НЕ через DynamicI18nFormMixin:
@@ -231,6 +243,10 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
             else:
                 overlay.pop(loc, None)  # пустой перевод → фолбэк на базовую метку
         promo.group_i18n = overlay
+        if "city_category" in self.data:  # presence-guard: чужие POST-ы не стирают выбор
+            from . import city_fields
+
+            promo.city_category, promo.city_tags = city_fields.cleaned(self)
         if "customer_response" in self.data:  # presence-guard: чужие POST-ы не стирают выбор
             meta = dict(promo.metadata) if isinstance(promo.metadata, dict) else {}
             value = self.cleaned_data.get("customer_response") or ""

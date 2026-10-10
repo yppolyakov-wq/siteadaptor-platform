@@ -108,6 +108,7 @@ docs/t8-4-assistant-plan-2026-10-10.md §2). Без JS все шаги видн�
         </span>
       </label>
       {% endfor %}
+      {% include "promotions/_city_category_fields.html" %}
       <div class="flex flex-wrap gap-2 pt-2">
         <button type="submit" name="publish" value="now" class="flex-1 bg-indigo-600 text-white rounded-xl px-4 py-3 text-base font-semibold hover:bg-indigo-700">{% trans "Veröffentlichen" %}</button>
         <button type="submit" name="publish" value="draft" class="rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">{% trans "Als Entwurf speichern" %}</button>

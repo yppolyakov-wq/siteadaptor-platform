@@ -36,7 +36,53 @@ def _snapshot(promotion_id):
         "starts_at": promo.starts_at,
         "ends_at": promo.ends_at,
         "is_surprise": promo.is_surprise,
+        # T-8.13a: категория/признаки каталога города + диеты товара-цели (данные
+        # товара — честный источник «vegan/bio», подсказка их не выдумывает).
+        "city_category": promo.city_category or "",
+        "city_tags": list(promo.city_tags or []),
+        "product_diets": list(getattr(promo.product, "diets", None) or [])
+        if promo.product_id
+        else [],
+        # T-8.13b: своя категория товара-цели, сопоставленная с категорией города.
+        "product_city_category": _product_city_category(promo),
     }
+
+
+def _product_city_category(promo) -> str:
+    if not promo.product_id or not getattr(promo.product, "category_id", None):
+        return ""
+    from apps.catalog import city
+
+    return city.resolve(promo.product.category)
+
+
+def _city_fields(kind: str, tenant, snap: dict | None = None) -> dict:
+    """T-8.13a: единая категория и признаки каталога города для листинга.
+
+    Акция — своя категория → категория её товара (T-8.13b) → подсказка по типу бизнеса;
+    номер — Hotels & Pensionen;
+    событие — по теме; меню — Catering. Признаки — из данных (свои/диеты/тема).
+    """
+    from apps.core import city_categories as cc
+
+    snap = snap or {}
+    if kind == "promotion":
+        cat = (
+            cc.normalize_category(snap.get("city_category"))
+            or cc.normalize_category(snap.get("product_city_category"))
+            or cc.suggest_for_business_type(getattr(tenant, "business_type", ""))
+        )
+        tags = cc.normalize_tags([*snap.get("city_tags", []), *snap.get("product_diets", [])])
+    elif kind == "stay":
+        cat, tags = "hotels", []
+    elif kind in ("event", "tour"):
+        theme = snap.get("category") or ""
+        default = "touren" if kind == "tour" else "events"
+        cat = cc.BY_EVENT_THEME.get(theme, default)
+        tags = cc.normalize_tags([theme])
+    else:  # menu
+        cat, tags = "catering", cc.normalize_tags(snap.get("diets", []))
+    return {"city_category": cat, "city_tags": tags}
 
 
 def _event_district(tenant, event_city: str) -> str:
@@ -114,6 +160,7 @@ def sync_listing(tenant_schema, promotion_id) -> str:
             "ends_at": snap["ends_at"],
             "detail_url": f"{_scheme()}://{tenant.slug}.{base}/p/{promotion_id}/",
             "is_surprise": snap["is_surprise"],
+            **_city_fields("promotion", tenant, snap),
             "is_active": True,
         },
     )
@@ -184,6 +231,7 @@ def sync_stay_listing(tenant_schema, unit_id) -> str:
             "ends_at": None,
             "detail_url": f"{_scheme()}://{tenant.slug}.{base}/unterkunft/{unit_id}/",
             "is_surprise": False,
+            **_city_fields("stay", tenant),
             "is_active": True,
         },
     )
@@ -291,6 +339,7 @@ def sync_event_group_listing(tenant_schema, group_ref) -> str:
             "ends_at": snap["ends_at"],
             "detail_url": detail,
             "is_surprise": False,
+            **_city_fields("tour" if tour_slug else "event", tenant, snap),
             "is_active": True,
         },
     )
@@ -354,6 +403,7 @@ def sync_event_listing(tenant_schema, event_id) -> str:
             "ends_at": snap["ends_at"],
             "detail_url": f"{_scheme()}://{tenant.slug}.{base}/veranstaltung/{event_id}/",
             "is_surprise": False,
+            **_city_fields("event", tenant, snap),
             "is_active": True,
         },
     )
@@ -707,6 +757,7 @@ def sync_menu_listing(tenant_schema, combo_id) -> str:
             "diets": snap["diets"],
             "dish_names": snap["dish_names"],
             "is_surprise": False,
+            **_city_fields("menu", tenant, snap),
             "is_active": True,
         },
     )

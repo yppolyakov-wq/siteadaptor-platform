@@ -45,6 +45,33 @@
     <span class="text-sm font-medium">{% trans "New category" %}</span>
   </a>
 </div>
+{% if city_map %}
+{% comment %}T-8.13b: свои категории → категории каталога города. Своя навигация сайта
+не меняется; пусто = автоматически (родитель → название).{% endcomment %}
+<form method="post" class="mt-8 bg-white rounded-2xl shadow-sm p-5" data-city-map>
+  {% csrf_token %}
+  <input type="hidden" name="action" value="city_map">
+  <h2 class="text-lg font-semibold">🏙 {% trans "Zuordnung zum Stadtkatalog" %}</h2>
+  <p class="text-sm text-gray-500 mt-1 mb-4">{% trans "Unter welcher Rubrik Ihre Angebote im Stadtportal erscheinen. Ihre eigene Navigation bleibt unverändert." %}</p>
+  <div class="divide-y divide-gray-100">
+    {% for row in city_map %}
+      <div class="py-2 sm:flex sm:items-center sm:gap-4">
+        <input type="hidden" name="map_id" value="{{ row.cat.pk }}">
+        <label for="map-{{ row.cat.pk }}" class="block sm:w-1/3 text-sm font-medium {% if row.cat.level %}pl-4 text-gray-600{% endif %}">{% if row.cat.level %}↳ {% endif %}{{ row.cat }}</label>
+        <select id="map-{{ row.cat.pk }}" name="map_{{ row.cat.pk }}" class="mt-1 sm:mt-0 w-full sm:flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm bg-white" data-city-map-select>
+          <option value="" {% if not row.own %}selected{% endif %}>{% blocktrans with cat=row.auto_label %}Automatisch: {{ cat }}{% endblocktrans %}</option>
+          {% for section_label, items in city_map_groups %}
+            <optgroup label="{{ section_label }}">
+              {% for v, l in items %}<option value="{{ v }}" {% if row.own == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+            </optgroup>
+          {% endfor %}
+        </select>
+      </div>
+    {% endfor %}
+  </div>
+  <button type="submit" class="mt-4 bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Speichern" %}</button>
+</form>
+{% endif %}
 {% else %}
 <div class="text-center text-gray-400 py-16 bg-white rounded-2xl shadow-sm">
   <p class="text-4xl mb-2">🗂</p>

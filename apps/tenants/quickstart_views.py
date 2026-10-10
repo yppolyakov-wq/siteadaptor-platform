@@ -15,7 +15,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 
-from apps.core import ratelimit
+from apps.core import city_categories, ratelimit
 from apps.promotions.quick import MAX_PHOTOS
 
 from . import quickstart
@@ -36,6 +36,7 @@ def _context(request, form):
         "known_cities": quickstart.known_cities(),
         "district_options": _district_options(),
         "max_photos": MAX_PHOTOS,
+        "category_suggestions": dict(city_categories.BY_BUSINESS_TYPE),
         "ui_languages": ui_languages(),
     }
 

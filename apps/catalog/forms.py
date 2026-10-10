@@ -41,6 +41,7 @@ class CategoryForm(DynamicI18nFormMixin, forms.ModelForm):
             "slug",
             "page_style",
             "card_style",
+            "city_category",
             "icon",
             "sort_order",
             "is_active",
@@ -84,6 +85,22 @@ class CategoryForm(DynamicI18nFormMixin, forms.ModelForm):
         ]
         self.fields["card_style"].help_text = _(
             "Gilt für die Produkte dieser Kategorie. Eigene Wahl am Produkt gewinnt."
+        )
+        # T-8.13b: сопоставление со справочником каталога города. Пусто = автоматически
+        # (родитель → название); подпись показывает, что выйдет без своего выбора.
+        from apps.catalog import city
+        from apps.core import city_categories as cc
+
+        auto = city.auto_for(self.instance) if self.instance.pk else ""
+        auto_label = cc.label(auto) if auto else _("ohne Zuordnung")
+        self.fields["city_category"] = forms.ChoiceField(
+            label=_("Kategorie im Stadtkatalog"),
+            required=False,
+            choices=[("", _("Automatisch: %(cat)s") % {"cat": auto_label}), *cc.grouped_choices()],
+            help_text=_(
+                "Unter dieser Rubrik erscheinen Angebote mit Produkten dieser Kategorie "
+                "im Stadtportal. Ihre eigene Navigation bleibt unverändert."
+            ),
         )
         self.init_i18n_fields(tenant)  # L3d.5: динамика + initial всех локалей
 

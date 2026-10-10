@@ -18,6 +18,15 @@
     {% for val, label in kinds %}<option value="{{ val }}" {% if val == kind %}selected{% endif %}>{{ label }}</option>{% endfor %}
   </select>
   {% endif %}
+  {% if city_category_choices %}{# T-8.13a: единая категория каталога города #}
+  <select name="kat" class="rounded-lg border border-gray-300 px-3 py-2 text-sm" data-kat-select>
+    <option value="">{% trans "Alle Kategorien" %}</option>
+    {% for skey, slabel, items in city_category_choices %}
+      <option value="{{ skey }}" {% if skey == kat %}selected{% endif %}>{{ slabel }}</option>
+      {% for ckey, clabel in items %}<option value="{{ ckey }}" {% if ckey == kat %}selected{% endif %}>&nbsp;&nbsp;{{ clabel }}</option>{% endfor %}
+    {% endfor %}
+  </select>
+  {% endif %}
   {% if categories %}{# R2b: направление ретрита (yoga/meditation/…) #}
   <select name="cat" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
     <option value="">{% trans "All directions" %}</option>

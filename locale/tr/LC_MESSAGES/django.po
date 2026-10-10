@@ -23747,3 +23747,336 @@ msgstr "Şehrinizin portalında da göster"
 
 msgid "Nach Bestätigung der E-Mail auch im Stadtportal Ihrer Stadt"
 msgstr "E-posta onayından sonra şehrinizin portalında da"
+
+msgid "Aktivitäten für Kinder"
+msgstr "Çocuk etkinlikleri"
+
+msgid "Ausflüge"
+msgstr "Geziler"
+
+msgid "Auto & Mobilität"
+msgstr "Otomobil & ulaşım"
+
+msgid "Automatisch (nach Art des Geschäfts)"
+msgstr "Otomatik (işletme türüne göre)"
+
+msgid "Autoteile"
+msgstr "Oto yedek parça"
+
+msgid "Babybedarf"
+msgstr "Bebek ürünleri"
+
+msgid "Bau & Renovierung"
+msgstr "İnşaat & tadilat"
+
+msgid "Beauty & Pflege"
+msgstr "Güzellik & bakım"
+
+msgid "Beleuchtung"
+msgstr "Aydınlatma"
+
+msgid "Beratung"
+msgstr "Danışmanlık"
+
+msgid "Büroservice"
+msgstr "Ofis hizmetleri"
+
+msgid "Cafés"
+msgstr "Kafeler"
+
+msgid "Computer & Notebooks"
+msgstr "Bilgisayar & dizüstü"
+
+msgid "Damenmode"
+msgstr "Kadın modası"
+
+msgid ""
+"Damit Leute Ihr Angebot im Stadtportal unter der richtigen Rubrik finden."
+msgstr ""
+"İnsanlar teklifinizi şehir portalında doğru başlık altında bulsun diye."
+
+msgid "Dekoration"
+msgstr "Dekorasyon"
+
+msgid "Dienstleistungen"
+msgstr "Hizmetler"
+
+msgid "Elektriker"
+msgstr "Elektrikçiler"
+
+msgid "Elektronik & Technik"
+msgstr "Elektronik & teknoloji"
+
+msgid "Essen & Gastronomie"
+msgstr "Yeme & içme"
+
+msgid "Fahrräder"
+msgstr "Bisikletler"
+
+msgid "Familienausflüge"
+msgstr "Aile gezileri"
+
+msgid "Feinkost & Spezialitäten"
+msgstr "Şarküteri & spesiyaliteler"
+
+msgid "Ferienwohnungen"
+msgstr "Tatil daireleri"
+
+msgid "Fitness"
+msgstr "Fitness"
+
+msgid "Fleisch & Wurst"
+msgstr "Et & sucuk"
+
+msgid "Fotografie"
+msgstr "Fotoğrafçılık"
+
+msgid "Freizeit & Erlebnisse"
+msgstr "Boş zaman & deneyimler"
+
+msgid "Friseur"
+msgstr "Kuaför"
+
+msgid "Garten & Pflanzen"
+msgstr "Bahçe & bitkiler"
+
+msgid "Geschenke"
+msgstr "Hediyeler"
+
+msgid "Gesundheit & Fitness"
+msgstr "Sağlık & fitness"
+
+msgid "Gesundheitsprodukte"
+msgstr "Sağlık ürünleri"
+
+msgid "Getränke"
+msgstr "İçecekler"
+
+msgid "Grooming"
+msgstr "Evcil hayvan bakımı"
+
+msgid "Handgemachtes"
+msgstr "El yapımı"
+
+msgid "Handwerk & Reparatur"
+msgstr "Zanaat & onarım"
+
+msgid "Haus & Garten"
+msgstr "Ev & bahçe"
+
+msgid "Haushaltsgeräte"
+msgstr "Ev aletleri"
+
+msgid "Herrenmode"
+msgstr "Erkek modası"
+
+msgid "Hotels & Pensionen"
+msgstr "Oteller & pansiyonlar"
+
+msgid "IT-Service"
+msgstr "BT hizmetleri"
+
+msgid "Kategorie im Stadtkatalog"
+msgstr "Şehir kataloğundaki kategori"
+
+msgid "Kinder & Familie"
+msgstr "Çocuk & aile"
+
+msgid "Kindermode"
+msgstr "Çocuk modası"
+
+msgid "Kino"
+msgstr "Sinema"
+
+msgid "Kosmetik"
+msgstr "Kozmetik"
+
+msgid "Kunst"
+msgstr "Sanat"
+
+msgid "Kunst & Geschenke"
+msgstr "Sanat & hediyeler"
+
+msgid "Küche"
+msgstr "Mutfak"
+
+msgid "Lebensmittel & Getränke"
+msgstr "Gıda & içecek"
+
+msgid "Lebensmittel & Supermarkt"
+msgstr "Market & süpermarket"
+
+msgid "Lieferservice"
+msgstr "Paket servis"
+
+msgid "Lokale Produkte"
+msgstr "Yerel ürünler"
+
+msgid "Massage"
+msgstr "Masaj"
+
+msgid "Merkmale"
+msgstr "Özellikler"
+
+msgid "Mittagessen"
+msgstr "Öğle yemeği"
+
+msgid "Mode & Accessoires"
+msgstr "Moda & aksesuar"
+
+msgid "Montage"
+msgstr "Montaj"
+
+msgid "Möbel"
+msgstr "Mobilya"
+
+msgid "Nur ankreuzen, was wirklich zutrifft (z. B. vegan, regional)."
+msgstr "Yalnızca gerçekten geçerli olanı işaretleyin (ör. vegan, yöresel)."
+
+msgid "Nägel"
+msgstr "Tırnak"
+
+msgid "Obst & Gemüse"
+msgstr "Meyve & sebze"
+
+msgid "Optik"
+msgstr "Optik"
+
+msgid "Outdoor"
+msgstr "Açık hava"
+
+msgid "Physiotherapie"
+msgstr "Fizyoterapi"
+
+msgid "Reinigung"
+msgstr "Temizlik"
+
+msgid "Reisen & Übernachten"
+msgstr "Seyahat & konaklama"
+
+msgid "Reparatur"
+msgstr "Onarım"
+
+msgid "Restaurants"
+msgstr "Restoranlar"
+
+msgid "Sanitär"
+msgstr "Sıhhi tesisat"
+
+msgid "Schmuck"
+msgstr "Takı"
+
+msgid "Schuhe"
+msgstr "Ayakkabı"
+
+msgid "Smartphones"
+msgstr "Akıllı telefonlar"
+
+msgid "Spielzeug"
+msgstr "Oyuncak"
+
+msgid "Sport"
+msgstr "Spor"
+
+msgid "TV & Audio"
+msgstr "TV & ses"
+
+msgid "Takeaway"
+msgstr "Paket yemek"
+
+msgid "Taschen"
+msgstr "Çantalar"
+
+msgid "Tierdienstleistungen"
+msgstr "Evcil hayvan hizmetleri"
+
+msgid "Tiere & Tierbedarf"
+msgstr "Evcil hayvan & malzemeleri"
+
+msgid "Tierfutter"
+msgstr "Evcil hayvan maması"
+
+msgid "Tierzubehör"
+msgstr "Evcil hayvan aksesuarları"
+
+msgid "Vermietung"
+msgstr "Kiralama"
+
+msgid "Weitere Dienstleistungen"
+msgstr "Diğer hizmetler"
+
+msgid "Wellness & Retreats"
+msgstr "Wellness & inziva"
+
+msgid "Werkstatt & Reparatur"
+msgstr "Oto servis & onarım"
+
+msgid "Workshops & Kurse"
+msgstr "Atölyeler & kurslar"
+
+msgid "Yoga & Meditation"
+msgstr "Yoga & meditasyon"
+
+msgid "Zubehör"
+msgstr "Aksesuarlar"
+
+msgid "barrierefrei"
+msgstr "engelsiz"
+
+msgid "bio"
+msgstr "organik"
+
+msgid "familienfreundlich"
+msgstr "aile dostu"
+
+msgid "glutenfrei"
+msgstr "glutensiz"
+
+msgid "halal"
+msgstr "helal"
+
+msgid "hundefreundlich"
+msgstr "köpek dostu"
+
+msgid "laktosefrei"
+msgstr "laktozsuz"
+
+msgid "nachhaltig"
+msgstr "sürdürülebilir"
+
+msgid "regional"
+msgstr "yöresel"
+
+msgid "vegan"
+msgstr "vegan"
+
+msgid "vegetarisch"
+msgstr "vejetaryen"
+
+#, python-format
+msgid "Automatisch: %(cat)s"
+msgstr "Otomatik: %(cat)s"
+
+msgid ""
+"Unter dieser Rubrik erscheinen Angebote mit Produkten dieser Kategorie im "
+"Stadtportal. Ihre eigene Navigation bleibt unverändert."
+msgstr ""
+"Bu kategorideki ürünlere ait teklifler şehir portalında bu başlık altında "
+"görünür. Kendi menünüz değişmez."
+
+msgid ""
+"Unter welcher Rubrik Ihre Angebote im Stadtportal erscheinen. Ihre eigene "
+"Navigation bleibt unverändert."
+msgstr ""
+"Tekliflerinizin şehir portalında hangi başlık altında görüneceği. Kendi "
+"menünüz değişmez."
+
+#, python-format
+msgid "Zuordnung gespeichert (%(n)s geändert)."
+msgstr "Eşleştirme kaydedildi (%(n)s değişti)."
+
+msgid "Zuordnung zum Stadtkatalog"
+msgstr "Şehir kataloğuyla eşleştirme"
+
+msgid "ohne Zuordnung"
+msgstr "eşleştirme yok"

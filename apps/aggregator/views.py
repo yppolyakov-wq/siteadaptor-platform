@@ -55,6 +55,8 @@ def listings_for(
     price_from=None,
     price_to=None,
     district=None,
+    city_category=None,
+    city_tag=None,
     include_demo=True,
 ):
     """Активные листинги по фильтру. Переиспользуется порталами Phase 2.
@@ -84,6 +86,19 @@ def listings_for(
         qs = qs.filter(listing_kind=kind)
     if category:
         qs = qs.filter(category__iexact=category)
+    # T-8.13a: единая категория каталога города — раздел (все его категории) или
+    # категория; признак (vegan/regional/…). Неизвестное значение фильтр не включает.
+    if city_category:
+        from apps.core import city_categories
+
+        keys = city_categories.keys_for_filter(city_category)
+        if keys:
+            qs = qs.filter(city_category__in=keys)
+    if city_tag:
+        from apps.core import city_categories
+
+        if city_categories.normalize_tags([city_tag]):
+            qs = qs.filter(city_tags__contains=[city_tag])
     if month and "-" in month:
         year, mon = month.split("-", 1)
         if year.isdigit() and mon.isdigit():
@@ -294,6 +309,20 @@ def platform_finder(request):
     return render(request, "aggregator/finder.html", state)
 
 
+def _city_category_choices():
+    """T-8.13a: селект «Kategorie» на /entdecken/ — разделы и категории справочника."""
+    from apps.core import city_categories as cc
+
+    return [
+        (
+            s.key,
+            f"{s.icon} {s.label}",
+            [(c.key, str(c.label)) for c in cc.CATEGORIES if c.section == s.key],
+        )
+        for s in cc.SECTIONS
+    ]
+
+
 def discover_index(request):
     # P2.7: поиск/фильтры. При q/city/type — страница результатов (cache_public_page
     # кэширует только GET без query, поэтому результаты не кэшируются); иначе —
@@ -312,8 +341,13 @@ def discover_index(request):
     preis_bis = (request.GET.get("preis_bis") or "").strip()
     if kind not in dict(AggregatorListing.KINDS):
         kind = ""
+    from . import category_facets  # T-8.13a: единые категории и признаки
+
+    kat, tag = category_facets.selected(request)
     if (
-        q
+        kat
+        or tag
+        or q
         or city
         or btype
         or kind
@@ -341,7 +375,36 @@ def discover_index(request):
             diet=diet or None,
             price_from=preis_von or None,
             price_to=preis_bis or None,
+            city_category=kat or None,
+            city_tag=tag or None,
         )
+        keep = {
+            "q": q,
+            "city": city,
+            "type": btype,
+            "kind": kind,
+            "cat": cat,
+            "month": month,
+            "gaeste": guests,
+            "anlass": anlass,
+            "diet": diet,
+            "preis_von": preis_von,
+            "preis_bis": preis_bis,
+        }
+        chips_base = listings_for(
+            city=city or None,
+            business_type=btype or None,
+            q=q or None,
+            kind=kind or None,
+            category=cat or None,
+            month=month or None,
+            guests=guests or None,
+            event_type=anlass or None,
+            diet=diet or None,
+            price_from=preis_von or None,
+            price_to=preis_bis or None,
+        )
+        category_chips = category_facets.chips(chips_base, request.path, kat, tag, extra=keep)
         cursor = request.GET.get("cursor")
         featured, rest = split_featured(pool, first_page=not cursor)
         page = paginate(rest, order_field="created_at", limit=24, cursor=cursor)
@@ -362,6 +425,8 @@ def discover_index(request):
                     ("diet", diet),
                     ("preis_von", preis_von),
                     ("preis_bis", preis_bis),
+                    ("kat", kat),
+                    ("merkmal", tag),
                 )
                 if v
             ]
@@ -385,6 +450,9 @@ def discover_index(request):
                 "cities": _distinct_cities(),
                 "types": _distinct_types(),
                 "categories": _distinct_event_categories(),
+                "category_chips": category_chips,  # T-8.13a
+                "kat": kat,
+                "city_category_choices": _city_category_choices(),
                 "cards": cards,
                 "page": page,
                 "base_qs": base_qs,
@@ -402,6 +470,7 @@ def discover_index(request):
             "cities": _distinct_cities(),
             "types": _distinct_types(),
             "categories": _distinct_event_categories(),
+            "city_category_choices": _city_category_choices(),
             "kinds": _KIND_LABELS,
             "ending_soon": ending,
         },

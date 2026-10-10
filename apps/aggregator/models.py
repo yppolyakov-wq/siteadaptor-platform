@@ -57,6 +57,10 @@ class AggregatorListing(I18nMixin, models.Model):
     # R2b: направление/тема для event-листингов (yoga/meditation/…; пусто у
     # promotion/stay). Фильтр «по каталогам/направлениям» в агрегаторе.
     category = models.CharField(max_length=30, blank=True)
+    # T-8.13a: ЕДИНАЯ категория каталога города (слаг `core/city_categories`) и
+    # признаки — у всех видов листинга. `category` выше остаётся темой события.
+    city_category = models.CharField(max_length=40, blank=True, default="", db_index=True)
+    city_tags = models.JSONField(default=list, blank=True)
     listing_kind = models.CharField(max_length=20, choices=KINDS, default=KIND_PROMOTION)
     # str(pk) объекта-источника: promo_uuid / StayUnit.pk / Event.pk. Единый ключ
     # листинга вместе с (tenant_schema, listing_kind).

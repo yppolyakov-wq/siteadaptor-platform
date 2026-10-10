@@ -61,6 +61,10 @@ class Category(SoftDeleteMixin, I18nMixin):
     # фиксируем — реестр форм растёт без миграций (прецедент page_style).
     card_style = models.CharField(max_length=16, blank=True, default="")
 
+    # T-8.13b: сопоставление со справочником каталога города (core.city_categories).
+    # Пусто = как у родителя, у корня — подсказка по названию (catalog/city.py).
+    city_category = models.CharField(max_length=40, blank=True, default="")
+
     class Meta:
         verbose_name_plural = "Categories"
         ordering = ["sort_order", "slug"]

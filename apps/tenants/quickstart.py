@@ -193,6 +193,10 @@ class QuickStartForm(quick.QuickPromotionForm):
             "term": d["term"],
             "customer_response": d["customer_response"],
         }
+        if d.get("city_category"):
+            payload["city_category"] = d["city_category"]
+        if d.get("city_tags"):
+            payload["city_tags"] = list(d["city_tags"])
         for key in ("new_price", "old_price"):
             if d.get(key) is not None:
                 payload[key] = str(d[key])

@@ -23,6 +23,7 @@ from apps.aggregator import tasks as agg_tasks
 from apps.aggregator.models import AggregatorListing
 from apps.core import owner_login
 from apps.core.models import Membership
+from apps.promotions import quick
 from apps.promotions.models import Promotion
 from apps.tenants import quickstart, quickstart_views, tasks
 from apps.tenants.models import Domain, Tenant
@@ -465,3 +466,30 @@ def test_page_offers_cities_and_districts_grouped_by_city():
     assert 'name="city"' in html and 'value="Solingen"' in html
     assert '<option value="Solingen">' in html  # подсказка datalist
     assert 'data-city="solingen"' in html and "data-qs-district" in html
+
+
+# --- T-8.13a: категория каталога города -------------------------------------------------
+
+
+@pytest.mark.django_db
+def test_category_and_tags_travel_in_promo_payload():
+    form = quickstart.QuickStartForm(
+        _post_data(city_category="kunst", city_tags=["regional", "zzz"])
+    )
+    assert not form.is_valid() and "city_tags" in form.errors  # неизвестный признак
+    form = quickstart.QuickStartForm(_post_data(city_category="kunst", city_tags=["regional"]))
+    assert form.is_valid(), form.errors
+    payload = form.promo_payload()
+    assert payload["city_category"] == "kunst" and payload["city_tags"] == ["regional"]
+    built = quick.QuickPromotionForm(data=payload, tenant=None)
+    assert built.is_valid(), built.errors
+    promo = built.build()
+    assert (promo.city_category, promo.city_tags) == ("kunst", ["regional"])
+
+
+@pytest.mark.django_db
+def test_page_offers_category_select_with_type_suggestions():
+    request = _session(RequestFactory().get("/aktion-starten/"))
+    html = quickstart_views.quick_start(request).content.decode()
+    assert "data-city-category-select" in html and 'id="qs-cat-suggest"' in html
+    assert '"bakery": "brot-backwaren"' in html

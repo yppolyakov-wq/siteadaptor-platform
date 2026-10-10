@@ -23661,3 +23661,336 @@ msgstr "Auch im Stadtportal Ihrer Stadt zeigen"
 
 msgid "Nach Bestätigung der E-Mail auch im Stadtportal Ihrer Stadt"
 msgstr "Nach Bestätigung der E-Mail auch im Stadtportal Ihrer Stadt"
+
+msgid "Aktivitäten für Kinder"
+msgstr "Aktivitäten für Kinder"
+
+msgid "Ausflüge"
+msgstr "Ausflüge"
+
+msgid "Auto & Mobilität"
+msgstr "Auto & Mobilität"
+
+msgid "Automatisch (nach Art des Geschäfts)"
+msgstr "Automatisch (nach Art des Geschäfts)"
+
+msgid "Autoteile"
+msgstr "Autoteile"
+
+msgid "Babybedarf"
+msgstr "Babybedarf"
+
+msgid "Bau & Renovierung"
+msgstr "Bau & Renovierung"
+
+msgid "Beauty & Pflege"
+msgstr "Beauty & Pflege"
+
+msgid "Beleuchtung"
+msgstr "Beleuchtung"
+
+msgid "Beratung"
+msgstr "Beratung"
+
+msgid "Büroservice"
+msgstr "Büroservice"
+
+msgid "Cafés"
+msgstr "Cafés"
+
+msgid "Computer & Notebooks"
+msgstr "Computer & Notebooks"
+
+msgid "Damenmode"
+msgstr "Damenmode"
+
+msgid ""
+"Damit Leute Ihr Angebot im Stadtportal unter der richtigen Rubrik finden."
+msgstr ""
+"Damit Leute Ihr Angebot im Stadtportal unter der richtigen Rubrik finden."
+
+msgid "Dekoration"
+msgstr "Dekoration"
+
+msgid "Dienstleistungen"
+msgstr "Dienstleistungen"
+
+msgid "Elektriker"
+msgstr "Elektriker"
+
+msgid "Elektronik & Technik"
+msgstr "Elektronik & Technik"
+
+msgid "Essen & Gastronomie"
+msgstr "Essen & Gastronomie"
+
+msgid "Fahrräder"
+msgstr "Fahrräder"
+
+msgid "Familienausflüge"
+msgstr "Familienausflüge"
+
+msgid "Feinkost & Spezialitäten"
+msgstr "Feinkost & Spezialitäten"
+
+msgid "Ferienwohnungen"
+msgstr "Ferienwohnungen"
+
+msgid "Fitness"
+msgstr "Fitness"
+
+msgid "Fleisch & Wurst"
+msgstr "Fleisch & Wurst"
+
+msgid "Fotografie"
+msgstr "Fotografie"
+
+msgid "Freizeit & Erlebnisse"
+msgstr "Freizeit & Erlebnisse"
+
+msgid "Friseur"
+msgstr "Friseur"
+
+msgid "Garten & Pflanzen"
+msgstr "Garten & Pflanzen"
+
+msgid "Geschenke"
+msgstr "Geschenke"
+
+msgid "Gesundheit & Fitness"
+msgstr "Gesundheit & Fitness"
+
+msgid "Gesundheitsprodukte"
+msgstr "Gesundheitsprodukte"
+
+msgid "Getränke"
+msgstr "Getränke"
+
+msgid "Grooming"
+msgstr "Grooming"
+
+msgid "Handgemachtes"
+msgstr "Handgemachtes"
+
+msgid "Handwerk & Reparatur"
+msgstr "Handwerk & Reparatur"
+
+msgid "Haus & Garten"
+msgstr "Haus & Garten"
+
+msgid "Haushaltsgeräte"
+msgstr "Haushaltsgeräte"
+
+msgid "Herrenmode"
+msgstr "Herrenmode"
+
+msgid "Hotels & Pensionen"
+msgstr "Hotels & Pensionen"
+
+msgid "IT-Service"
+msgstr "IT-Service"
+
+msgid "Kategorie im Stadtkatalog"
+msgstr "Kategorie im Stadtkatalog"
+
+msgid "Kinder & Familie"
+msgstr "Kinder & Familie"
+
+msgid "Kindermode"
+msgstr "Kindermode"
+
+msgid "Kino"
+msgstr "Kino"
+
+msgid "Kosmetik"
+msgstr "Kosmetik"
+
+msgid "Kunst"
+msgstr "Kunst"
+
+msgid "Kunst & Geschenke"
+msgstr "Kunst & Geschenke"
+
+msgid "Küche"
+msgstr "Küche"
+
+msgid "Lebensmittel & Getränke"
+msgstr "Lebensmittel & Getränke"
+
+msgid "Lebensmittel & Supermarkt"
+msgstr "Lebensmittel & Supermarkt"
+
+msgid "Lieferservice"
+msgstr "Lieferservice"
+
+msgid "Lokale Produkte"
+msgstr "Lokale Produkte"
+
+msgid "Massage"
+msgstr "Massage"
+
+msgid "Merkmale"
+msgstr "Merkmale"
+
+msgid "Mittagessen"
+msgstr "Mittagessen"
+
+msgid "Mode & Accessoires"
+msgstr "Mode & Accessoires"
+
+msgid "Montage"
+msgstr "Montage"
+
+msgid "Möbel"
+msgstr "Möbel"
+
+msgid "Nur ankreuzen, was wirklich zutrifft (z. B. vegan, regional)."
+msgstr "Nur ankreuzen, was wirklich zutrifft (z. B. vegan, regional)."
+
+msgid "Nägel"
+msgstr "Nägel"
+
+msgid "Obst & Gemüse"
+msgstr "Obst & Gemüse"
+
+msgid "Optik"
+msgstr "Optik"
+
+msgid "Outdoor"
+msgstr "Outdoor"
+
+msgid "Physiotherapie"
+msgstr "Physiotherapie"
+
+msgid "Reinigung"
+msgstr "Reinigung"
+
+msgid "Reisen & Übernachten"
+msgstr "Reisen & Übernachten"
+
+msgid "Reparatur"
+msgstr "Reparatur"
+
+msgid "Restaurants"
+msgstr "Restaurants"
+
+msgid "Sanitär"
+msgstr "Sanitär"
+
+msgid "Schmuck"
+msgstr "Schmuck"
+
+msgid "Schuhe"
+msgstr "Schuhe"
+
+msgid "Smartphones"
+msgstr "Smartphones"
+
+msgid "Spielzeug"
+msgstr "Spielzeug"
+
+msgid "Sport"
+msgstr "Sport"
+
+msgid "TV & Audio"
+msgstr "TV & Audio"
+
+msgid "Takeaway"
+msgstr "Takeaway"
+
+msgid "Taschen"
+msgstr "Taschen"
+
+msgid "Tierdienstleistungen"
+msgstr "Tierdienstleistungen"
+
+msgid "Tiere & Tierbedarf"
+msgstr "Tiere & Tierbedarf"
+
+msgid "Tierfutter"
+msgstr "Tierfutter"
+
+msgid "Tierzubehör"
+msgstr "Tierzubehör"
+
+msgid "Vermietung"
+msgstr "Vermietung"
+
+msgid "Weitere Dienstleistungen"
+msgstr "Weitere Dienstleistungen"
+
+msgid "Wellness & Retreats"
+msgstr "Wellness & Retreats"
+
+msgid "Werkstatt & Reparatur"
+msgstr "Werkstatt & Reparatur"
+
+msgid "Workshops & Kurse"
+msgstr "Workshops & Kurse"
+
+msgid "Yoga & Meditation"
+msgstr "Yoga & Meditation"
+
+msgid "Zubehör"
+msgstr "Zubehör"
+
+msgid "barrierefrei"
+msgstr "barrierefrei"
+
+msgid "bio"
+msgstr "bio"
+
+msgid "familienfreundlich"
+msgstr "familienfreundlich"
+
+msgid "glutenfrei"
+msgstr "glutenfrei"
+
+msgid "halal"
+msgstr "halal"
+
+msgid "hundefreundlich"
+msgstr "hundefreundlich"
+
+msgid "laktosefrei"
+msgstr "laktosefrei"
+
+msgid "nachhaltig"
+msgstr "nachhaltig"
+
+msgid "regional"
+msgstr "regional"
+
+msgid "vegan"
+msgstr "vegan"
+
+msgid "vegetarisch"
+msgstr "vegetarisch"
+
+#, python-format
+msgid "Automatisch: %(cat)s"
+msgstr "Automatisch: %(cat)s"
+
+msgid ""
+"Unter dieser Rubrik erscheinen Angebote mit Produkten dieser Kategorie im "
+"Stadtportal. Ihre eigene Navigation bleibt unverändert."
+msgstr ""
+"Unter dieser Rubrik erscheinen Angebote mit Produkten dieser Kategorie im "
+"Stadtportal. Ihre eigene Navigation bleibt unverändert."
+
+msgid ""
+"Unter welcher Rubrik Ihre Angebote im Stadtportal erscheinen. Ihre eigene "
+"Navigation bleibt unverändert."
+msgstr ""
+"Unter welcher Rubrik Ihre Angebote im Stadtportal erscheinen. Ihre eigene "
+"Navigation bleibt unverändert."
+
+#, python-format
+msgid "Zuordnung gespeichert (%(n)s geändert)."
+msgstr "Zuordnung gespeichert (%(n)s geändert)."
+
+msgid "Zuordnung zum Stadtkatalog"
+msgstr "Zuordnung zum Stadtkatalog"
+
+msgid "ohne Zuordnung"
+msgstr "ohne Zuordnung"

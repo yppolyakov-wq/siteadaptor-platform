@@ -61,7 +61,7 @@ main-колонка (языки/название/описание/фото) + п
     <aside class="space-y-4 mt-4 lg:mt-0">
       <div class="bg-white p-5 rounded-2xl shadow-[0_6px_18px_rgba(22,24,29,0.05)] space-y-3">
         <p class="text-sm font-semibold">🗂 {% trans "Struktur" %}</p>
-        {% for field in form %}{% if field.name == 'parent' or field.name == 'slug' %}
+        {% for field in form %}{% if field.name == 'parent' or field.name == 'slug' or field.name == 'city_category' %}
           <div>
             <label class="block text-xs font-medium text-gray-500 mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
             {% render_field field class="w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-indigo-400 focus:outline-none" %}

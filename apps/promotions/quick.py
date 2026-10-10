@@ -159,6 +159,15 @@ class QuickPromotionForm(forms.Form):
             (k, label) for k, label, _h in self.response_options
         ]
         self.fields["customer_response"].initial = default_response(tenant)
+        from apps.core import city_categories as cc
+
+        from . import city_fields
+
+        # T-8.13a: одной строкой, подсказка по типу бизнеса уже выбрана.
+        suggestion = (
+            cc.suggest_for_business_type(getattr(tenant, "business_type", "")) if tenant else ""
+        )
+        city_fields.add_fields(self, category=suggestion)
 
     def clean(self):
         cleaned = super().clean()
@@ -181,6 +190,9 @@ class QuickPromotionForm(forms.Form):
 
         data = self.cleaned_data
         meta = {"response": data["customer_response"]} if data.get("customer_response") else {}
+        from . import city_fields
+
+        city_category, city_tags = city_fields.cleaned(self)
         return Promotion(
             title={settings.LANGUAGE_CODE: data["title"].strip()},
             description=(
@@ -196,6 +208,8 @@ class QuickPromotionForm(forms.Form):
             starts_at=timezone.now(),
             ends_at=term_end(data["term"], self.tenant, until=data.get("until")),
             group=(data.get("group") or "").strip(),
+            city_category=city_category,
+            city_tags=city_tags,
             metadata=meta,
         )
 
@@ -217,6 +231,8 @@ def initial_from(promo) -> dict:
         "percent": promo.discount_percent if promo.price_override is None else None,
         "quantity": None,
         "group": promo.group,
+        "city_category": promo.city_category,
+        "city_tags": list(promo.city_tags or []),
         "term": TERM_WEEK,
     }
     if promo.available_quantity:
@@ -226,7 +242,7 @@ def initial_from(promo) -> dict:
         initial["customer_response"] = chosen
     if promo.images:
         initial["photo_from"] = promo.pk
-    return {k: v for k, v in initial.items() if v not in (None, "")}
+    return {k: v for k, v in initial.items() if v not in (None, "", [])}
 
 
 def copy_images(source) -> list[dict]:

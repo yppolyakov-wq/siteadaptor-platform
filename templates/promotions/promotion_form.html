@@ -83,6 +83,7 @@
           {% for opt in form.promo_type_options %}<option value="{{ opt }}"></option>{% endfor %}
         </datalist>
       {% endif %}
+      {% include "promotions/_city_category_fields.html" %}
       {% comment %}Переводы МЕТКИ группы: ключ фасета остаётся плоским значением поля
       выше, поэтому переводы живут отдельным свёрнутым блоком (как у услуг/номеров),
       а не во вкладках языка (там full-JSON title/description).{% endcomment %}

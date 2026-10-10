@@ -23838,3 +23838,337 @@ msgstr "Показувати й на порталі вашого міста"
 
 msgid "Nach Bestätigung der E-Mail auch im Stadtportal Ihrer Stadt"
 msgstr "Після підтвердження e-mail — і на порталі вашого міста"
+
+msgid "Aktivitäten für Kinder"
+msgstr "Заняття для дітей"
+
+msgid "Ausflüge"
+msgstr "Поїздки"
+
+msgid "Auto & Mobilität"
+msgstr "Авто й транспорт"
+
+msgid "Automatisch (nach Art des Geschäfts)"
+msgstr "Автоматично (за видом бізнесу)"
+
+msgid "Autoteile"
+msgstr "Автозапчастини"
+
+msgid "Babybedarf"
+msgstr "Товари для малюків"
+
+msgid "Bau & Renovierung"
+msgstr "Будівництво й ремонт"
+
+msgid "Beauty & Pflege"
+msgstr "Краса й догляд"
+
+msgid "Beleuchtung"
+msgstr "Освітлення"
+
+msgid "Beratung"
+msgstr "Консультації"
+
+msgid "Büroservice"
+msgstr "Офісні послуги"
+
+msgid "Cafés"
+msgstr "Кафе"
+
+msgid "Computer & Notebooks"
+msgstr "Комп'ютери й ноутбуки"
+
+msgid "Damenmode"
+msgstr "Жіночий одяг"
+
+msgid ""
+"Damit Leute Ihr Angebot im Stadtportal unter der richtigen Rubrik finden."
+msgstr ""
+"Щоб люди знайшли вашу пропозицію в потрібному розділі міського порталу."
+
+msgid "Dekoration"
+msgstr "Декор"
+
+msgid "Dienstleistungen"
+msgstr "Послуги"
+
+msgid "Elektriker"
+msgstr "Електрики"
+
+msgid "Elektronik & Technik"
+msgstr "Електроніка й техніка"
+
+msgid "Essen & Gastronomie"
+msgstr "Їжа й гастрономія"
+
+msgid "Fahrräder"
+msgstr "Велосипеди"
+
+msgid "Familienausflüge"
+msgstr "Сімейні прогулянки"
+
+msgid "Feinkost & Spezialitäten"
+msgstr "Делікатеси"
+
+msgid "Ferienwohnungen"
+msgstr "Апартаменти для відпочинку"
+
+msgid "Fitness"
+msgstr "Фітнес"
+
+msgid "Fleisch & Wurst"
+msgstr "М'ясо й ковбаси"
+
+msgid "Fotografie"
+msgstr "Фотографія"
+
+msgid "Freizeit & Erlebnisse"
+msgstr "Дозвілля й враження"
+
+msgid "Friseur"
+msgstr "Перукарня"
+
+msgid "Garten & Pflanzen"
+msgstr "Сад і рослини"
+
+msgid "Geschenke"
+msgstr "Подарунки"
+
+msgid "Gesundheit & Fitness"
+msgstr "Здоров'я й фітнес"
+
+msgid "Gesundheitsprodukte"
+msgstr "Товари для здоров'я"
+
+msgid "Getränke"
+msgstr "Напої"
+
+msgid "Grooming"
+msgstr "Грумінг"
+
+msgid "Handgemachtes"
+msgstr "Ручна робота"
+
+msgid "Handwerk & Reparatur"
+msgstr "Ремесло й ремонт"
+
+msgid "Haus & Garten"
+msgstr "Дім і сад"
+
+msgid "Haushaltsgeräte"
+msgstr "Побутова техніка"
+
+msgid "Herrenmode"
+msgstr "Чоловічий одяг"
+
+msgid "Hotels & Pensionen"
+msgstr "Готелі й пансіони"
+
+msgid "IT-Service"
+msgstr "IT-послуги"
+
+msgid "Kategorie im Stadtkatalog"
+msgstr "Категорія в каталозі міста"
+
+msgid "Kinder & Familie"
+msgstr "Діти й родина"
+
+msgid "Kindermode"
+msgstr "Дитячий одяг"
+
+msgid "Kino"
+msgstr "Кіно"
+
+msgid "Kosmetik"
+msgstr "Косметика"
+
+msgid "Kunst"
+msgstr "Мистецтво"
+
+msgid "Kunst & Geschenke"
+msgstr "Мистецтво й подарунки"
+
+msgid "Küche"
+msgstr "Кухня"
+
+msgid "Lebensmittel & Getränke"
+msgstr "Продукти й напої"
+
+msgid "Lebensmittel & Supermarkt"
+msgstr "Продукти й супермаркет"
+
+msgid "Lieferservice"
+msgstr "Доставка їжі"
+
+msgid "Lokale Produkte"
+msgstr "Місцеві товари"
+
+msgid "Massage"
+msgstr "Масаж"
+
+msgid "Merkmale"
+msgstr "Особливості"
+
+msgid "Mittagessen"
+msgstr "Обід"
+
+msgid "Mode & Accessoires"
+msgstr "Мода й аксесуари"
+
+msgid "Montage"
+msgstr "Монтаж"
+
+msgid "Möbel"
+msgstr "Меблі"
+
+msgid "Nur ankreuzen, was wirklich zutrifft (z. B. vegan, regional)."
+msgstr ""
+"Позначайте лише те, що справді так (наприклад, веганське, регіональне)."
+
+msgid "Nägel"
+msgstr "Нігті"
+
+msgid "Obst & Gemüse"
+msgstr "Овочі й фрукти"
+
+msgid "Optik"
+msgstr "Оптика"
+
+msgid "Outdoor"
+msgstr "Активний відпочинок"
+
+msgid "Physiotherapie"
+msgstr "Фізіотерапія"
+
+msgid "Reinigung"
+msgstr "Прибирання"
+
+msgid "Reisen & Übernachten"
+msgstr "Подорожі й проживання"
+
+msgid "Reparatur"
+msgstr "Ремонт"
+
+msgid "Restaurants"
+msgstr "Ресторани"
+
+msgid "Sanitär"
+msgstr "Сантехніка"
+
+msgid "Schmuck"
+msgstr "Прикраси"
+
+msgid "Schuhe"
+msgstr "Взуття"
+
+msgid "Smartphones"
+msgstr "Смартфони"
+
+msgid "Spielzeug"
+msgstr "Іграшки"
+
+msgid "Sport"
+msgstr "Спорт"
+
+msgid "TV & Audio"
+msgstr "ТБ і аудіо"
+
+msgid "Takeaway"
+msgstr "Їжа на винос"
+
+msgid "Taschen"
+msgstr "Сумки"
+
+msgid "Tierdienstleistungen"
+msgstr "Послуги для тварин"
+
+msgid "Tiere & Tierbedarf"
+msgstr "Тварини й зоотовари"
+
+msgid "Tierfutter"
+msgstr "Корм для тварин"
+
+msgid "Tierzubehör"
+msgstr "Аксесуари для тварин"
+
+msgid "Vermietung"
+msgstr "Прокат"
+
+msgid "Weitere Dienstleistungen"
+msgstr "Інші послуги"
+
+msgid "Wellness & Retreats"
+msgstr "Велнес і ретрити"
+
+msgid "Werkstatt & Reparatur"
+msgstr "Автосервіс і ремонт"
+
+msgid "Workshops & Kurse"
+msgstr "Майстер-класи й курси"
+
+msgid "Yoga & Meditation"
+msgstr "Йога й медитація"
+
+msgid "Zubehör"
+msgstr "Аксесуари"
+
+msgid "barrierefrei"
+msgstr "без бар'єрів"
+
+msgid "bio"
+msgstr "органічне"
+
+msgid "familienfreundlich"
+msgstr "для родин"
+
+msgid "glutenfrei"
+msgstr "без глютену"
+
+msgid "halal"
+msgstr "халяль"
+
+msgid "hundefreundlich"
+msgstr "можна з собакою"
+
+msgid "laktosefrei"
+msgstr "без лактози"
+
+msgid "nachhaltig"
+msgstr "екологічне"
+
+msgid "regional"
+msgstr "регіональне"
+
+msgid "vegan"
+msgstr "веганське"
+
+msgid "vegetarisch"
+msgstr "вегетаріанське"
+
+#, python-format
+msgid "Automatisch: %(cat)s"
+msgstr "Автоматично: %(cat)s"
+
+msgid ""
+"Unter dieser Rubrik erscheinen Angebote mit Produkten dieser Kategorie im "
+"Stadtportal. Ihre eigene Navigation bleibt unverändert."
+msgstr ""
+"Під цією рубрикою пропозиції з товарами цієї категорії з'являються на "
+"міському порталі. Ваша власна навігація не змінюється."
+
+msgid ""
+"Unter welcher Rubrik Ihre Angebote im Stadtportal erscheinen. Ihre eigene "
+"Navigation bleibt unverändert."
+msgstr ""
+"Під якою рубрикою ваші пропозиції з'являються на міському порталі. Ваша "
+"власна навігація не змінюється."
+
+#, python-format
+msgid "Zuordnung gespeichert (%(n)s geändert)."
+msgstr "Зіставлення збережено (змінено: %(n)s)."
+
+msgid "Zuordnung zum Stadtkatalog"
+msgstr "Зіставлення з каталогом міста"
+
+msgid "ohne Zuordnung"
+msgstr "без зіставлення"

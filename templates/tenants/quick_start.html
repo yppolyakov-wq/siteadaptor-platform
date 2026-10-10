@@ -123,6 +123,7 @@
         </div>
         {% for e in form.business_type.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
       </fieldset>
+      {% include "promotions/_city_category_fields.html" %}
       <label class="block">
         <span class="block text-sm font-medium mb-1">{{ form.city.label }}</span>
         <input type="text" name="city" value="{{ form.city.value|default:'' }}" maxlength="100" required list="qs-cities"
@@ -178,6 +179,7 @@
 </main>
 {% include "tenants/_public_footer.html" %}
 
+{{ category_suggestions|json_script:"qs-cat-suggest" }}
 <script>
 (function () {
   var root = document.querySelector("[data-quick-start]");
@@ -212,6 +214,16 @@
   });
   back.addEventListener("click", function () { show(1); });
   root.addEventListener("change", function (e) { if (e.target.name === "term") syncDate(); });
+  // T-8.13a: тип бизнеса подсказывает категорию каталога города, пока владелец её не трогал.
+  var catSelect = root.querySelector("[data-city-category-select]");
+  var catSuggest = JSON.parse(document.getElementById("qs-cat-suggest").textContent);
+  var catTouched = !!(catSelect && catSelect.value);
+  if (catSelect) catSelect.addEventListener("change", function () { catTouched = true; });
+  root.addEventListener("change", function (e) {
+    if (e.target.name === "business_type" && catSelect && !catTouched && catSuggest[e.target.value]) {
+      catSelect.value = catSuggest[e.target.value];
+    }
+  });
   syncDate();
   // T-8.5b: адрес — предложение из названия + живая проверка «свободен?». Сервер при
   // отправке проверяет ещё раз (гонка → понятная ошибка), здесь — только подсказка.
