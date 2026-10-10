@@ -16,6 +16,7 @@ from apps.core import health
 from apps.core.media_views import serve_media
 from apps.partners import views as partners_views
 from apps.publishing import views as publishing_views
+from apps.tenants import quickstart_views
 from apps.tenants.views import (
     BusinessSignupView,
     about_page,
@@ -102,6 +103,9 @@ urlpatterns = [
     # владельца). Корень (2026-07-13, решение владельца) — обзор Branchen; корень
     # продолжает ловить партнёрский ?ref (исторические ссылки).
     path("registrieren/", BusinessSignupView.as_view(), name="business-signup"),
+    # T-8.5 «Aktion in 3 Klicks»: регистрация + первая акция одной страницей.
+    path("aktion-starten/", quickstart_views.quick_start, name="quick-start"),
+    path("aktion-starten/<slug:slug>/", quickstart_views.quick_waiting, name="quick-start-waiting"),
     # AB5.1: double-opt-in — тенант создаётся только после клика по ссылке из письма.
     path("registrieren/bestaetigen/<str:token>/", signup_confirm, name="business-signup-confirm"),
     path("registrieren/erneut-senden/", signup_resend, name="business-signup-resend"),

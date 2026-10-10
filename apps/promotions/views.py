@@ -17,6 +17,7 @@ from django.utils.translation import gettext_lazy
 from django.views.decorators.http import require_POST
 
 from apps.catalog.images import delete_stored_image, save_product_image
+from apps.core import owner_login
 from apps.core.documents import document_language
 from apps.core.fsm import IllegalTransition
 from apps.loyalty.models import LoyaltyCard, LoyaltyProgram, Voucher
@@ -211,6 +212,7 @@ def promotion_list(request):
             "limit_usage": limits.usage(getattr(request, "tenant", None)),
             "contact_email": limits.contact_email(),
             "repeatable": REPEATABLE_STATUSES,
+            **owner_login.pending_context(request),  # T-8.5: «E-Mail bestätigen»
             "featured_enabled": featured_enabled,
             "nav": "promotions",
             # VF-20b: перекрёстный вход в Кампании (соседняя задача — «разослать
@@ -695,6 +697,7 @@ def promotion_quick_done(request, pk):
             "limit_text": limits.limit_message(limit) if limit else "",
             "contact_email": limits.contact_email(),
             "nav": "promotions",
+            **owner_login.pending_context(request),  # T-8.5
         },
     )
 

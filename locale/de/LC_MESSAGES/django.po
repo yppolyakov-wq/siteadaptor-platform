@@ -23331,3 +23331,174 @@ msgstr "eingelöst"
 
 msgid "gültig"
 msgstr "gültig"
+
+msgid "Aktion in 3 Klicks"
+msgstr "Aktion in 3 Klicks"
+
+msgid "Aktion in 3 Klicks starten"
+msgstr "Aktion in 3 Klicks starten"
+
+msgid "Anmelden"
+msgstr "Anmelden"
+
+msgid "Bestätigungslink wurde erneut gesendet."
+msgstr "Bestätigungslink wurde erneut gesendet."
+
+#, python-format
+msgid "Bitte bestätigen Sie Ihre E-Mail — %(name)s"
+msgstr "Bitte bestätigen Sie Ihre E-Mail — %(name)s"
+
+msgid "Bitte prüfen Sie Ihre Angaben und senden Sie erneut."
+msgstr "Bitte prüfen Sie Ihre Angaben und senden Sie erneut."
+
+msgid "Danke! Ihre Aktionen erscheinen jetzt auch im Stadtportal."
+msgstr "Danke! Ihre Aktionen erscheinen jetzt auch im Stadtportal."
+
+msgid "Das dauert etwa eine Minute. Die Seite lädt von selbst weiter."
+msgstr "Das dauert etwa eine Minute. Die Seite lädt von selbst weiter."
+
+msgid "Dieser Anmeldelink ist ungültig oder abgelaufen."
+msgstr "Dieser Anmeldelink ist ungültig oder abgelaufen."
+
+msgid "Dieser Bestätigungslink ist ungültig oder abgelaufen."
+msgstr "Dieser Bestätigungslink ist ungültig oder abgelaufen."
+
+msgid "E-Mail bestätigt"
+msgstr "E-Mail bestätigt"
+
+msgid "Eigene Seite unter ihr-name.siteadaptor.de"
+msgstr "Eigene Seite unter ihr-name.siteadaptor.de"
+
+msgid ""
+"Eigene Seite, QR-Code und Aushang — sofort online. Kostenlos, ohne Passwort."
+msgstr ""
+"Eigene Seite, QR-Code und Aushang — sofort online. Kostenlos, ohne Passwort."
+
+msgid "Erneut senden"
+msgstr "Erneut senden"
+
+#, python-format
+msgid "Ihr Anmeldelink — %(name)s"
+msgstr "Ihr Anmeldelink — %(name)s"
+
+msgid "Ihr Geschäft"
+msgstr "Ihr Geschäft"
+
+msgid "Ihre Aktion geht online…"
+msgstr "Ihre Aktion geht online…"
+
+msgid "Ihre Aktion in 3 Klicks"
+msgstr "Ihre Aktion in 3 Klicks"
+
+msgid ""
+"Ihre Aktion in 3 Klicks online — mit eigener Seite, QR-Code und Aushang. "
+"Kostenlos, ohne Passwort."
+msgstr ""
+"Ihre Aktion in 3 Klicks online — mit eigener Seite, QR-Code und Aushang. "
+"Kostenlos, ohne Passwort."
+
+msgid "Jetzt bestätigen"
+msgstr "Jetzt bestätigen"
+
+msgid "Kein Passwort nötig — Sie melden sich per Link aus der E-Mail an."
+msgstr "Kein Passwort nötig — Sie melden sich per Link aus der E-Mail an."
+
+msgid "Kostenlos, ohne Passwort — in einer Minute online."
+msgstr "Kostenlos, ohne Passwort — in einer Minute online."
+
+msgid "Kund:innen lassen zurücklegen oder holen einen Coupon"
+msgstr "Kund:innen lassen zurücklegen oder holen einen Coupon"
+
+msgid "Link senden"
+msgstr "Link senden"
+
+msgid "Login-Link per E-Mail"
+msgstr "Login-Link per E-Mail"
+
+msgid "Mit Passwort anmelden"
+msgstr "Mit Passwort anmelden"
+
+msgid ""
+"Mit dem Veröffentlichen akzeptieren Sie unsere AGB und die "
+"Datenschutzhinweise."
+msgstr ""
+"Mit dem Veröffentlichen akzeptieren Sie unsere AGB und die "
+"Datenschutzhinweise."
+
+msgid "Nach Bestätigung der E-Mail auch im Stadtportal Solingen"
+msgstr "Nach Bestätigung der E-Mail auch im Stadtportal Solingen"
+
+msgid "Name Ihres Geschäfts"
+msgstr "Name Ihres Geschäfts"
+
+msgid "Neuen Link anfordern"
+msgstr "Neuen Link anfordern"
+
+msgid "QR-Code und Aushang zum Ausdrucken"
+msgstr "QR-Code und Aushang zum Ausdrucken"
+
+msgid ""
+"Wenn die Adresse zu einem Konto gehört, ist der Link unterwegs. Er ist 15 "
+"Minuten gültig."
+msgstr ""
+"Wenn die Adresse zu einem Konto gehört, ist der Link unterwegs. Er ist 15 "
+"Minuten gültig."
+
+msgid "Wer sind Sie?"
+msgstr "Wer sind Sie?"
+
+#, python-format
+msgid ""
+"Wir haben einen Link an %(email)s geschickt. Danach erscheinen Ihre Aktionen"
+" auch im Stadtportal."
+msgstr ""
+"Wir haben einen Link an %(email)s geschickt. Danach erscheinen Ihre Aktionen"
+" auch im Stadtportal."
+
+msgid "Zu meinen Aktionen"
+msgstr "Zu meinen Aktionen"
+
+msgid "oder Rabatt"
+msgstr "oder Rabatt"
+
+msgid "z. B. Feierabendtüte für 5 €"
+msgstr "z. B. Feierabendtüte für 5 €"
+
+msgid "— bitte wählen —"
+msgstr "— bitte wählen —"
+
+#, python-format
+msgid ""
+"Hallo,\n"
+"\n"
+"hier ist Ihr Link zur Anmeldung (15 Minuten gültig):\n"
+"%(url)s\n"
+"\n"
+"Falls Sie das nicht angefordert haben, ignorieren Sie diese E-Mail."
+msgstr ""
+"Hallo,\n"
+"\n"
+"hier ist Ihr Link zur Anmeldung (15 Minuten gültig):\n"
+"%(url)s\n"
+"\n"
+"Falls Sie das nicht angefordert haben, ignorieren Sie diese E-Mail."
+
+#, python-format
+msgid ""
+"Hallo,\n"
+"\n"
+"Ihre Aktion ist online: %(site)s\n"
+"\n"
+"Bitte bestätigen Sie Ihre E-Mail-Adresse — dann erscheinen Ihre Aktionen auch im Stadtportal:\n"
+"%(url)s\n"
+"\n"
+"Ihr siteadaptor-Team"
+msgstr ""
+"Hallo,\n"
+"\n"
+"Ihre Aktion ist online: %(site)s\n"
+"\n"
+"Bitte bestätigen Sie Ihre E-Mail-Adresse — dann erscheinen Ihre Aktionen auch im Stadtportal:\n"
+"%(url)s\n"
+"\n"
+"Ihr siteadaptor-Team"

@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Aktion in 3 Klicks" %} · SiteAdaptor{% endblock %}
+{% block extra_head %}<meta name="description" content="{% trans 'Ihre Aktion in 3 Klicks online — mit eigener Seite, QR-Code und Aushang. Kostenlos, ohne Passwort.' %}">{% endblock %}
+
+{% block body %}
+{% include "tenants/_public_header.html" %}
+{% comment %}T-8.5 «Aktion in 3 Klicks» (план docs/t8-5-quick-start-plan-2026-10-10.md):
+клик 1 «Weiter», клик 2 «Veröffentlichen», клик 3 «Teilen» на экране «Fertig» поддомена.
+Без JS оба шага видны подряд — форма работает целиком; скрипт показывает по одному.{% endcomment %}
+<main class="max-w-lg mx-auto px-4 pt-8 pb-16" data-quick-start>
+  <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 text-center">⚡ {% trans "Ihre Aktion in 3 Klicks" %}</h1>
+  <p class="mt-2 text-center text-gray-500">{% trans "Eigene Seite, QR-Code und Aushang — sofort online. Kostenlos, ohne Passwort." %}</p>
+
+  <ol class="mt-6 grid grid-cols-3 gap-2 text-xs text-center" data-quick-dots aria-hidden="true">
+    <li><span class="block h-1.5 rounded-full bg-indigo-600 mb-1" data-dot="1"></span>{% trans "Angebot" %}</li>
+    <li><span class="block h-1.5 rounded-full bg-gray-200 mb-1" data-dot="2"></span>{% trans "Ihr Geschäft" %}</li>
+    <li><span class="block h-1.5 rounded-full bg-gray-200 mb-1" data-dot="3"></span>{% trans "Teilen" %}</li>
+  </ol>
+
+  {% if form.non_field_errors %}
+    <div class="mt-4 rounded-xl px-4 py-2 text-sm bg-red-50 text-red-700" data-quick-error>{{ form.non_field_errors|join:" " }}</div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" class="mt-4" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="stamp" value="{{ stamp }}">
+    <div hidden aria-hidden="true">
+      <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+    </div>
+
+    <section class="bg-white rounded-2xl shadow-sm p-4 space-y-4" data-qs-step="1">
+      <h2 class="font-semibold text-gray-900">1 · {% trans "Was bieten Sie an?" %}</h2>
+      <label class="block">
+        <span class="block text-sm font-medium mb-1">📷 {{ form.photo.label }}</span>
+        <input type="file" name="photo" accept="image/*" capture="environment" class="block w-full text-sm">
+        {% for e in form.photo.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+      </label>
+      <label class="block">
+        <span class="block text-sm font-medium mb-1">{% trans "Was gibt es?" %}</span>
+        <input type="text" name="title" value="{{ form.title.value|default:'' }}" maxlength="200" required
+               placeholder="{% trans 'z. B. Feierabendtüte für 5 €' %}"
+               class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" autocomplete="off">
+        {% for e in form.title.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+      </label>
+      <div class="grid grid-cols-3 gap-2">
+        <label class="block">
+          <span class="block text-xs font-medium mb-1">{{ form.new_price.label }}</span>
+          <input type="number" name="new_price" value="{{ form.new_price.value|default_if_none:''|stringformat:'s' }}" step="0.01" min="0" inputmode="decimal"
+                 class="w-full rounded-xl border border-gray-300 px-2 py-2.5 text-base">
+        </label>
+        <label class="block">
+          <span class="block text-xs font-medium mb-1">{{ form.old_price.label }}</span>
+          <input type="number" name="old_price" value="{{ form.old_price.value|default_if_none:''|stringformat:'s' }}" step="0.01" min="0" inputmode="decimal"
+                 class="w-full rounded-xl border border-gray-300 px-2 py-2.5 text-base">
+        </label>
+        <label class="block">
+          <span class="block text-xs font-medium mb-1">{% trans "oder Rabatt" %} %</span>
+          <input type="number" name="percent" value="{{ form.percent.value|default_if_none:'' }}" min="1" max="99" inputmode="numeric"
+                 class="w-full rounded-xl border border-gray-300 px-2 py-2.5 text-base">
+        </label>
+      </div>
+      {% for f in form %}{% if f.name == "new_price" or f.name == "old_price" or f.name == "percent" %}{% for e in f.errors %}<span class="block text-xs text-red-600">{{ e }}</span>{% endfor %}{% endif %}{% endfor %}
+      <fieldset>
+        <legend class="block text-sm font-medium mb-2">{{ form.term.label }}</legend>
+        <div class="flex flex-wrap gap-2">
+          {% for key, label in form.fields.term.choices %}
+          <label class="cursor-pointer">
+            <input type="radio" name="term" value="{{ key }}" class="peer sr-only" {% if form.term.value|stringformat:'s' == key %}checked{% endif %}>
+            <span class="inline-block rounded-full border border-gray-300 px-3 py-1.5 text-sm peer-checked:bg-indigo-600 peer-checked:border-indigo-600 peer-checked:text-white">{{ label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        <label class="mt-2" data-qs-date>
+          <span class="block text-xs text-gray-500 mb-1">{{ form.until.label }}</span>
+          <input type="date" name="until" value="{{ form.until.value|default_if_none:''|stringformat:'s' }}" class="rounded-xl border border-gray-300 px-3 py-2 text-sm">
+          {% for e in form.until.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend class="block text-sm font-medium mb-2">{{ form.customer_response.label }}</legend>
+        <div class="space-y-2">
+          {% for key, label, hint in form.response_options %}
+          <label class="flex items-start gap-3 rounded-xl border border-gray-200 p-3 cursor-pointer has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50" data-qs-response="{{ key }}">
+            <input type="radio" name="customer_response" value="{{ key }}" class="mt-1" {% if form.customer_response.value|stringformat:'s' == key %}checked{% endif %}>
+            <span>
+              <span class="block text-sm font-medium">{{ label }}</span>
+              <span class="block text-xs text-gray-500">{{ hint }}</span>
+            </span>
+          </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+      <button type="button" class="w-full bg-indigo-600 text-white rounded-xl px-4 py-3 text-base font-semibold hover:bg-indigo-700 hidden" data-qs-next>{% trans "Weiter" %} →</button>
+    </section>
+
+    <section class="bg-white rounded-2xl shadow-sm p-4 space-y-4 mt-3" data-qs-step="2">
+      <h2 class="font-semibold text-gray-900">2 · {% trans "Wer sind Sie?" %}</h2>
+      <label class="block">
+        <span class="block text-sm font-medium mb-1">{{ form.business_name.label }}</span>
+        <input type="text" name="business_name" value="{{ form.business_name.value|default:'' }}" maxlength="200" required
+               class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" autocomplete="organization">
+        {% for e in form.business_name.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+      </label>
+      <fieldset>
+        <legend class="block text-sm font-medium mb-2">{{ form.business_type.label }}</legend>
+        <div class="grid grid-cols-2 gap-2">
+          {% for c in type_cards %}
+          <label class="flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2 cursor-pointer has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50" data-qs-type="{{ c.value }}">
+            <input type="radio" name="business_type" value="{{ c.value }}" class="sr-only" {% if form.business_type.value == c.value %}checked{% endif %}>
+            <span class="text-xl" aria-hidden="true">{{ c.icon }}</span>
+            <span class="text-sm leading-tight">{{ c.label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        {% for e in form.business_type.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+      </fieldset>
+      <label class="block">
+        <span class="block text-sm font-medium mb-1">{{ form.district.label }} · Solingen</span>
+        <select name="district" class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base bg-white">
+          {% for value, label in form.fields.district.choices %}
+            <option value="{{ value }}" {% if form.district.value == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="block">
+        <span class="block text-sm font-medium mb-1">{{ form.email.label }}</span>
+        <input type="email" name="email" value="{{ form.email.value|default:'' }}" required inputmode="email" autocomplete="email"
+               class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base">
+        <span class="block text-xs text-gray-500 mt-1">{% trans "Kein Passwort nötig — Sie melden sich per Link aus der E-Mail an." %}</span>
+        {% for e in form.email.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+      </label>
+      <button type="submit" class="w-full bg-indigo-600 text-white rounded-xl px-4 py-3 text-base font-semibold hover:bg-indigo-700" data-qs-publish>🚀 {% trans "Veröffentlichen" %}</button>
+      <p class="text-xs text-gray-500 text-center">
+        {% trans "Mit dem Veröffentlichen akzeptieren Sie unsere AGB und die Datenschutzhinweise." %}
+        <a href="/agb/" class="underline">{% trans "AGB" %}</a> · <a href="/datenschutz/" class="underline">{% trans "Datenschutz" %}</a>
+      </p>
+      <button type="button" class="w-full text-sm text-gray-500 hidden" data-qs-back>← {% trans "Zurück" %}</button>
+    </section>
+  </form>
+
+  <ul class="mt-8 space-y-2 text-sm text-gray-600">
+    <li>✓ {% trans "Eigene Seite unter ihr-name.siteadaptor.de" %}</li>
+    <li>✓ {% trans "QR-Code und Aushang zum Ausdrucken" %}</li>
+    <li>✓ {% trans "Kund:innen lassen zurücklegen oder holen einen Coupon" %}</li>
+    <li>✓ {% trans "Nach Bestätigung der E-Mail auch im Stadtportal Solingen" %}</li>
+  </ul>
+</main>
+{% include "tenants/_public_footer.html" %}
+
+<script>
+(function () {
+  var root = document.querySelector("[data-quick-start]");
+  if (!root) return;
+  var step1 = root.querySelector('[data-qs-step="1"]');
+  var step2 = root.querySelector('[data-qs-step="2"]');
+  var next = root.querySelector("[data-qs-next]");
+  var back = root.querySelector("[data-qs-back]");
+  var date = root.querySelector("[data-qs-date]");
+  function dots(n) {
+    root.querySelectorAll("[data-dot]").forEach(function (d) {
+      d.classList.toggle("bg-indigo-600", +d.dataset.dot <= n);
+      d.classList.toggle("bg-gray-200", +d.dataset.dot > n);
+    });
+  }
+  function show(n) {
+    step1.hidden = n !== 1;
+    step2.hidden = n !== 2;
+    dots(n);
+    window.scrollTo(0, 0);
+  }
+  function syncDate() {
+    var checked = root.querySelector('input[name="term"]:checked');
+    date.classList.toggle("hidden", !(checked && checked.value === "date"));
+  }
+  next.classList.remove("hidden");
+  back.classList.remove("hidden");
+  next.addEventListener("click", function () {
+    var title = root.querySelector('input[name="title"]');
+    if (!title.value.trim()) { title.focus(); title.reportValidity(); return; }
+    show(2);
+  });
+  back.addEventListener("click", function () { show(1); });
+  root.addEventListener("change", function (e) { if (e.target.name === "term") syncDate(); });
+  syncDate();
+  // Ошибка во втором шаге (или бизнес уже заполнен) — открываем его.
+  var err2 = step2.querySelector(".text-red-600");
+  var err1 = step1.querySelector(".text-red-600");
+  show(err2 && !err1 ? 2 : 1);
+})();
+</script>
+{% endblock %}

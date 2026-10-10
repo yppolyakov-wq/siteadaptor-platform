@@ -23,9 +23,14 @@ def _base_domain() -> str:
     return getattr(settings, "TENANT_DOMAIN_BASE", "siteadaptor.de")
 
 
-def login_url_for(tenant) -> str:
+def site_url_for(tenant) -> str:
+    """Корень поддомена тенанта (без завершающего слэша)."""
     scheme = "http" if getattr(settings, "DEBUG", False) else "https"
-    return f"{scheme}://{tenant.slug}.{_base_domain()}/accounts/login/"
+    return f"{scheme}://{tenant.slug}.{_base_domain()}"
+
+
+def login_url_for(tenant) -> str:
+    return f"{site_url_for(tenant)}/accounts/login/"
 
 
 def _resolve_partner(code: str):
@@ -146,3 +151,40 @@ def create_business(*, business_name, slug, business_type, city, email, password
 def schema_exists(schema_name: str) -> bool:
     with schema_context("public"):
         return Tenant.objects.filter(schema_name=schema_name).exists()
+
+
+@transaction.atomic
+def start_quick_provisioning(
+    *, business_name, slug, business_type, city, district, email, promo, partner_code=""
+):
+    """T-8.5 «Aktion in 3 Klicks»: тенант лёгкой ступени + первая акция в фоне.
+
+    Отличия от обычной регистрации: витрина «Nur Aktionen», владелец без пароля (вход
+    ссылкой), ``email_pending`` — в городской каталог только после подтверждения почты
+    (Р-3). ``promo`` — данные формы акции (JSON-сериализуемые) + фото ``images``.
+    """
+    tenant = _new_tenant(
+        business_name=business_name,
+        slug=slug,
+        business_type=business_type,
+        city=city,
+        email=email,
+        partner_code=partner_code,
+    )
+    tenant.district = district or ""
+    tenant.email_pending = True
+    # Бесплатная лёгкая ступень (Р-5) не истекает: без даты конца триала beat её не
+    # переводит в trial_expired → suspended, а кабинет не показывает «Trial: N Tage».
+    tenant.trial_ends_at = None
+    tenant.site_config = {"profile": "aktionen"}
+    tenant.provisioning_status = Tenant.PROVISIONING_PENDING
+    tenant.auto_create_schema = False
+    tenant.save()
+
+    base = _base_domain()
+    Domain.objects.create(domain=f"{slug}.{base.split(':')[0]}", tenant=tenant, is_primary=True)
+
+    from .tasks import provision_quick
+
+    transaction.on_commit(lambda: provision_quick.delay(str(tenant.pk), email, promo))
+    return tenant

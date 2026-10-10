@@ -23526,3 +23526,172 @@ msgstr "погашен"
 
 msgid "gültig"
 msgstr "действует"
+
+msgid "Aktion in 3 Klicks"
+msgstr "Акция в 3 клика"
+
+msgid "Aktion in 3 Klicks starten"
+msgstr "Запустить акцию в 3 клика"
+
+msgid "Anmelden"
+msgstr "Войти"
+
+msgid "Bestätigungslink wurde erneut gesendet."
+msgstr "Ссылка для подтверждения отправлена повторно."
+
+#, python-format
+msgid "Bitte bestätigen Sie Ihre E-Mail — %(name)s"
+msgstr "Подтвердите e-mail — %(name)s"
+
+msgid "Bitte prüfen Sie Ihre Angaben und senden Sie erneut."
+msgstr "Проверьте данные и отправьте ещё раз."
+
+msgid "Danke! Ihre Aktionen erscheinen jetzt auch im Stadtportal."
+msgstr "Спасибо! Теперь ваши акции видны и на городском портале."
+
+msgid "Das dauert etwa eine Minute. Die Seite lädt von selbst weiter."
+msgstr "Это займёт около минуты. Страница продолжит сама."
+
+msgid "Dieser Anmeldelink ist ungültig oder abgelaufen."
+msgstr "Ссылка для входа недействительна или устарела."
+
+msgid "Dieser Bestätigungslink ist ungültig oder abgelaufen."
+msgstr "Ссылка подтверждения недействительна или устарела."
+
+msgid "E-Mail bestätigt"
+msgstr "E-mail подтверждён"
+
+msgid "Eigene Seite unter ihr-name.siteadaptor.de"
+msgstr "Своя страница по адресу ваше-имя.siteadaptor.de"
+
+msgid ""
+"Eigene Seite, QR-Code und Aushang — sofort online. Kostenlos, ohne Passwort."
+msgstr ""
+"Своя страница, QR-код и листовка — сразу онлайн. Бесплатно, без пароля."
+
+msgid "Erneut senden"
+msgstr "Отправить ещё раз"
+
+#, python-format
+msgid "Ihr Anmeldelink — %(name)s"
+msgstr "Ваша ссылка для входа — %(name)s"
+
+msgid "Ihr Geschäft"
+msgstr "Ваш бизнес"
+
+msgid "Ihre Aktion geht online…"
+msgstr "Ваша акция публикуется…"
+
+msgid "Ihre Aktion in 3 Klicks"
+msgstr "Ваша акция в 3 клика"
+
+msgid ""
+"Ihre Aktion in 3 Klicks online — mit eigener Seite, QR-Code und Aushang. "
+"Kostenlos, ohne Passwort."
+msgstr ""
+"Ваша акция онлайн в 3 клика — со своей страницей, QR-кодом и листовкой. "
+"Бесплатно, без пароля."
+
+msgid "Jetzt bestätigen"
+msgstr "Подтвердить сейчас"
+
+msgid "Kein Passwort nötig — Sie melden sich per Link aus der E-Mail an."
+msgstr "Пароль не нужен — вход по ссылке из письма."
+
+msgid "Kostenlos, ohne Passwort — in einer Minute online."
+msgstr "Бесплатно, без пароля — онлайн за минуту."
+
+msgid "Kund:innen lassen zurücklegen oder holen einen Coupon"
+msgstr "Клиенты откладывают товар или получают купон"
+
+msgid "Link senden"
+msgstr "Отправить ссылку"
+
+msgid "Login-Link per E-Mail"
+msgstr "Ссылка для входа по e-mail"
+
+msgid "Mit Passwort anmelden"
+msgstr "Войти с паролем"
+
+msgid ""
+"Mit dem Veröffentlichen akzeptieren Sie unsere AGB und die "
+"Datenschutzhinweise."
+msgstr ""
+"Публикуя, вы принимаете наши условия и положение о конфиденциальности."
+
+msgid "Nach Bestätigung der E-Mail auch im Stadtportal Solingen"
+msgstr "После подтверждения e-mail — и на городском портале Золингена"
+
+msgid "Name Ihres Geschäfts"
+msgstr "Название вашего бизнеса"
+
+msgid "Neuen Link anfordern"
+msgstr "Запросить новую ссылку"
+
+msgid "QR-Code und Aushang zum Ausdrucken"
+msgstr "QR-код и листовка для печати"
+
+msgid ""
+"Wenn die Adresse zu einem Konto gehört, ist der Link unterwegs. Er ist 15 "
+"Minuten gültig."
+msgstr ""
+"Если адрес принадлежит аккаунту, ссылка уже в пути. Она действует 15 минут."
+
+msgid "Wer sind Sie?"
+msgstr "Кто вы?"
+
+#, python-format
+msgid ""
+"Wir haben einen Link an %(email)s geschickt. Danach erscheinen Ihre Aktionen"
+" auch im Stadtportal."
+msgstr ""
+"Мы отправили ссылку на %(email)s. После подтверждения акции появятся и на "
+"городском портале."
+
+msgid "Zu meinen Aktionen"
+msgstr "К моим акциям"
+
+msgid "oder Rabatt"
+msgstr "или скидка"
+
+msgid "z. B. Feierabendtüte für 5 €"
+msgstr "напр. пакет «под закрытие» за 5 €"
+
+msgid "— bitte wählen —"
+msgstr "— выберите —"
+
+#, python-format
+msgid ""
+"Hallo,\n"
+"\n"
+"hier ist Ihr Link zur Anmeldung (15 Minuten gültig):\n"
+"%(url)s\n"
+"\n"
+"Falls Sie das nicht angefordert haben, ignorieren Sie diese E-Mail."
+msgstr ""
+"Здравствуйте,\n"
+"\n"
+"вот ваша ссылка для входа (действует 15 минут):\n"
+"%(url)s\n"
+"\n"
+"Если вы её не запрашивали, просто проигнорируйте это письмо."
+
+#, python-format
+msgid ""
+"Hallo,\n"
+"\n"
+"Ihre Aktion ist online: %(site)s\n"
+"\n"
+"Bitte bestätigen Sie Ihre E-Mail-Adresse — dann erscheinen Ihre Aktionen auch im Stadtportal:\n"
+"%(url)s\n"
+"\n"
+"Ihr siteadaptor-Team"
+msgstr ""
+"Здравствуйте,\n"
+"\n"
+"ваша акция онлайн: %(site)s\n"
+"\n"
+"Подтвердите адрес e-mail — тогда ваши акции появятся и на городском портале:\n"
+"%(url)s\n"
+"\n"
+"Ваша команда siteadaptor"

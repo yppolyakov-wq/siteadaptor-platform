@@ -43,7 +43,7 @@ def _send_ready_email(tenant, email):
     )
 
 
-def provision(tenant_id, email, password_hash) -> str:
+def provision(tenant_id, email, password_hash, *, notify=True) -> str:
     """Чистая логика: создать схему + владельца, проставить статус. → статус."""
     tenant = Tenant.objects.get(pk=tenant_id)
     if tenant.provisioning_status == Tenant.PROVISIONING_READY:
@@ -69,13 +69,74 @@ def provision(tenant_id, email, password_hash) -> str:
         tenant.provisioning_status = Tenant.PROVISIONING_FAILED
         tenant.save(update_fields=["provisioning_status", "updated_at"])
         raise
-    _send_ready_email(tenant, email)
+    if notify:
+        _send_ready_email(tenant, email)
     return Tenant.PROVISIONING_READY
 
 
 @shared_task
 def provision_business(tenant_id, email, password_hash):
     return provision(tenant_id, email, password_hash)
+
+
+def provision_quick_logic(tenant_id, email, promo) -> int | None:
+    """T-8.5: схема + владелец без пароля + первая акция → pk акции.
+
+    Идемпотентно: при повторе (ретрай брокера) вторая акция не создаётся — берётся уже
+    существующая. Акция строится той же формой, что ассистент T-8.4.
+    """
+    from django.contrib.auth.hashers import make_password
+
+    tenant = Tenant.objects.get(pk=tenant_id)
+    first_run = tenant.provisioning_status != Tenant.PROVISIONING_READY
+    provision(tenant_id, email, make_password(None), notify=False)
+    tenant.refresh_from_db()
+    with tenant_context(tenant):
+        from apps.promotions import limits, quick
+        from apps.promotions.models import Promotion
+        from apps.tenants import onboarding
+
+        promo_obj = Promotion.objects.order_by("created_at").first()
+        if promo_obj is None:
+            form = quick.QuickPromotionForm(data=promo, tenant=tenant)
+            if not form.is_valid():
+                return None
+            promo_obj = form.build()
+            promo_obj.images = list(promo.get("images") or [])
+            promo_obj.save()
+            try:
+                limits.activate(promo_obj, tenant)
+            except limits.ActivationLimit:
+                pass
+        onboarding.mark_complete(tenant)
+    if first_run:
+        from apps.core import owner_login
+
+        try:
+            owner_login.send_confirmation(tenant, email)
+        except Exception:  # noqa: BLE001 — письмо не условие готовности; его можно
+            pass  # отправить повторно из кабинета («Erneut senden»)
+    return promo_obj.pk
+
+
+@shared_task
+def provision_quick(tenant_id, email, promo):
+    from django.core.cache import cache
+
+    try:
+        pk = provision_quick_logic(tenant_id, email, promo)
+    except Exception:
+        # Схема готова, а акция не собралась — владелец всё равно входит (в ассистент),
+        # страница ожидания не крутится вечно. Схема не готова — она покажет ошибку.
+        if Tenant.objects.filter(
+            pk=tenant_id, provisioning_status=Tenant.PROVISIONING_READY
+        ).exists():
+            cache.set(f"quick_promo:{tenant_id}", "none", 24 * 3600)
+        raise
+    # Страница ожидания ждёт этот ключ; "none" — акцию собрать не удалось, владелец
+    # попадает в ассистент и создаёт её там (страница не крутится вечно).
+    cache.set(f"quick_promo:{tenant_id}", str(pk) if pk else "none", 24 * 3600)
+    return str(pk) if pk else None
 
 
 @shared_task

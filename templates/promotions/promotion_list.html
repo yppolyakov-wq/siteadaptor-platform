@@ -31,6 +31,7 @@
   </div>
 </div>
 
+{% include "promotions/_email_pending.html" %}
 {% if limit_usage %}
   <p class="mb-3 text-sm {% if limit_usage.full %}text-amber-800 bg-amber-50 rounded-lg px-4 py-2{% else %}text-gray-500{% endif %}" data-limit-usage>
     {% blocktrans with used=limit_usage.used limit=limit_usage.limit %}{{ used }} von {{ limit }} Aktionen aktiv{% endblocktrans %}

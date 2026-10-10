@@ -23420,3 +23420,170 @@ msgstr "kullanıldı"
 
 msgid "gültig"
 msgstr "geçerli"
+
+msgid "Aktion in 3 Klicks"
+msgstr "3 tıkla kampanya"
+
+msgid "Aktion in 3 Klicks starten"
+msgstr "3 tıkla kampanya başlat"
+
+msgid "Anmelden"
+msgstr "Giriş yap"
+
+msgid "Bestätigungslink wurde erneut gesendet."
+msgstr "Onay bağlantısı tekrar gönderildi."
+
+#, python-format
+msgid "Bitte bestätigen Sie Ihre E-Mail — %(name)s"
+msgstr "Lütfen e-postanızı onaylayın — %(name)s"
+
+msgid "Bitte prüfen Sie Ihre Angaben und senden Sie erneut."
+msgstr "Lütfen bilgilerinizi kontrol edip tekrar gönderin."
+
+msgid "Danke! Ihre Aktionen erscheinen jetzt auch im Stadtportal."
+msgstr "Teşekkürler! Kampanyalarınız artık şehir portalında da görünüyor."
+
+msgid "Das dauert etwa eine Minute. Die Seite lädt von selbst weiter."
+msgstr "Bu yaklaşık bir dakika sürer. Sayfa kendiliğinden devam eder."
+
+msgid "Dieser Anmeldelink ist ungültig oder abgelaufen."
+msgstr "Bu giriş bağlantısı geçersiz veya süresi dolmuş."
+
+msgid "Dieser Bestätigungslink ist ungültig oder abgelaufen."
+msgstr "Bu onay bağlantısı geçersiz veya süresi dolmuş."
+
+msgid "E-Mail bestätigt"
+msgstr "E-posta onaylandı"
+
+msgid "Eigene Seite unter ihr-name.siteadaptor.de"
+msgstr "isminiz.siteadaptor.de adresinde kendi sayfanız"
+
+msgid ""
+"Eigene Seite, QR-Code und Aushang — sofort online. Kostenlos, ohne Passwort."
+msgstr ""
+"Kendi sayfanız, QR kodu ve el ilanı — hemen yayında. Ücretsiz, şifresiz."
+
+msgid "Erneut senden"
+msgstr "Tekrar gönder"
+
+#, python-format
+msgid "Ihr Anmeldelink — %(name)s"
+msgstr "Giriş bağlantınız — %(name)s"
+
+msgid "Ihr Geschäft"
+msgstr "İşletmeniz"
+
+msgid "Ihre Aktion geht online…"
+msgstr "Kampanyanız yayına giriyor…"
+
+msgid "Ihre Aktion in 3 Klicks"
+msgstr "3 tıkla kampanyanız"
+
+msgid ""
+"Ihre Aktion in 3 Klicks online — mit eigener Seite, QR-Code und Aushang. "
+"Kostenlos, ohne Passwort."
+msgstr ""
+"3 tıkla kampanyanız yayında — kendi sayfası, QR kodu ve el ilanıyla. "
+"Ücretsiz, şifresiz."
+
+msgid "Jetzt bestätigen"
+msgstr "Şimdi onayla"
+
+msgid "Kein Passwort nötig — Sie melden sich per Link aus der E-Mail an."
+msgstr "Şifre gerekmez — e-postadaki bağlantıyla giriş yaparsınız."
+
+msgid "Kostenlos, ohne Passwort — in einer Minute online."
+msgstr "Ücretsiz, şifresiz — bir dakikada yayında."
+
+msgid "Kund:innen lassen zurücklegen oder holen einen Coupon"
+msgstr "Müşteriler ürün ayırtır veya kupon alır"
+
+msgid "Link senden"
+msgstr "Bağlantı gönder"
+
+msgid "Login-Link per E-Mail"
+msgstr "E-postayla giriş bağlantısı"
+
+msgid "Mit Passwort anmelden"
+msgstr "Şifreyle giriş yap"
+
+msgid ""
+"Mit dem Veröffentlichen akzeptieren Sie unsere AGB und die "
+"Datenschutzhinweise."
+msgstr "Yayınlayarak şartlarımızı ve gizlilik bildirimini kabul edersiniz."
+
+msgid "Nach Bestätigung der E-Mail auch im Stadtportal Solingen"
+msgstr "E-posta onayından sonra Solingen şehir portalında da"
+
+msgid "Name Ihres Geschäfts"
+msgstr "İşletmenizin adı"
+
+msgid "Neuen Link anfordern"
+msgstr "Yeni bağlantı iste"
+
+msgid "QR-Code und Aushang zum Ausdrucken"
+msgstr "Yazdırmak için QR kodu ve el ilanı"
+
+msgid ""
+"Wenn die Adresse zu einem Konto gehört, ist der Link unterwegs. Er ist 15 "
+"Minuten gültig."
+msgstr "Adres bir hesaba aitse bağlantı yolda. 15 dakika geçerlidir."
+
+msgid "Wer sind Sie?"
+msgstr "Siz kimsiniz?"
+
+#, python-format
+msgid ""
+"Wir haben einen Link an %(email)s geschickt. Danach erscheinen Ihre Aktionen"
+" auch im Stadtportal."
+msgstr ""
+"%(email)s adresine bir bağlantı gönderdik. Ardından kampanyalarınız şehir "
+"portalında da görünür."
+
+msgid "Zu meinen Aktionen"
+msgstr "Kampanyalarıma git"
+
+msgid "oder Rabatt"
+msgstr "veya indirim"
+
+msgid "z. B. Feierabendtüte für 5 €"
+msgstr "ör. 5 €'ya gün sonu paketi"
+
+msgid "— bitte wählen —"
+msgstr "— lütfen seçin —"
+
+#, python-format
+msgid ""
+"Hallo,\n"
+"\n"
+"hier ist Ihr Link zur Anmeldung (15 Minuten gültig):\n"
+"%(url)s\n"
+"\n"
+"Falls Sie das nicht angefordert haben, ignorieren Sie diese E-Mail."
+msgstr ""
+"Merhaba,\n"
+"\n"
+"giriş bağlantınız (15 dakika geçerli):\n"
+"%(url)s\n"
+"\n"
+"Bunu siz istemediyseniz bu e-postayı yok sayın."
+
+#, python-format
+msgid ""
+"Hallo,\n"
+"\n"
+"Ihre Aktion ist online: %(site)s\n"
+"\n"
+"Bitte bestätigen Sie Ihre E-Mail-Adresse — dann erscheinen Ihre Aktionen auch im Stadtportal:\n"
+"%(url)s\n"
+"\n"
+"Ihr siteadaptor-Team"
+msgstr ""
+"Merhaba,\n"
+"\n"
+"kampanyanız yayında: %(site)s\n"
+"\n"
+"Lütfen e-posta adresinizi onaylayın — ardından kampanyalarınız şehir portalında da görünür:\n"
+"%(url)s\n"
+"\n"
+"siteadaptor ekibiniz"

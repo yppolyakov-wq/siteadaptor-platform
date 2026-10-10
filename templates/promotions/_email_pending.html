@@ -1,0 +1,17 @@
+{% load i18n %}
+{% comment %}T-8.5 (Р-3): до подтверждения почты акции живут только на своём поддомене;
+в Stadtportal — после клика по ссылке из письма. Контекст — owner_login.pending_context.{% endcomment %}
+{% if email_pending %}
+<div class="mb-3 rounded-2xl bg-amber-50 text-amber-900 px-4 py-3 text-sm" data-email-pending>
+  <p class="font-medium">✉️ {% trans "Bitte E-Mail bestätigen" %}</p>
+  <p class="mt-0.5">{% blocktrans with email=email_pending_to %}Wir haben einen Link an {{ email }} geschickt. Danach erscheinen Ihre Aktionen auch im Stadtportal.{% endblocktrans %}</p>
+  <div class="mt-2 flex flex-wrap items-center gap-3">
+    <form method="post" action="{% url 'owner-confirm-resend' %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <button type="submit" class="underline">{% trans "Erneut senden" %}</button>
+    </form>
+    {% if email_pending_direct %}<a href="{{ email_pending_direct }}" class="underline" data-email-pending-direct>{% trans "Jetzt bestätigen" %}</a>{% endif %}
+  </div>
+</div>
+{% endif %}

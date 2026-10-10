@@ -67,6 +67,11 @@ def _tenant_base_defaults(tenant) -> dict:
     }
 
 
+def _withheld(tenant) -> bool:
+    """T-8.5 (Р-3): тенант ещё не подтвердил почту — в городской каталог не выкладываем."""
+    return bool(getattr(tenant, "email_pending", False))
+
+
 def sync_listing(tenant_schema, promotion_id) -> str:
     """Чистая логика (вызывается из задачи и тестов): upsert/remove листинга."""
     from apps.tenants.models import Tenant
@@ -84,7 +89,7 @@ def sync_listing(tenant_schema, promotion_id) -> str:
     }
 
     # Нет акции/тенанта или акция неактивна → листинга в агрегаторе быть не должно.
-    if snap is None or tenant is None or snap["status"] != "active":
+    if snap is None or tenant is None or _withheld(tenant) or snap["status"] != "active":
         AggregatorListing.objects.filter(**key).delete()
         return "removed"
 
@@ -155,7 +160,7 @@ def sync_stay_listing(tenant_schema, unit_id) -> str:
         "source_ref": str(unit_id),
     }
     # Юнит исчез/выключен, нет тенанта или модуль stays неактивен → нет листинга.
-    if snap is None or tenant is None or not tenant.is_module_active("stays"):
+    if snap is None or tenant is None or _withheld(tenant) or not tenant.is_module_active("stays"):
         AggregatorListing.objects.filter(**key).delete()
         return "removed"
 
@@ -254,7 +259,7 @@ def sync_event_group_listing(tenant_schema, group_ref) -> str:
                 tour_title = nearest.tour.title
         snap = _event_snapshot(nearest_id) if nearest_id else None
 
-    if snap is None or tenant is None or not tenant.is_module_active("events"):
+    if snap is None or tenant is None or _withheld(tenant) or not tenant.is_module_active("events"):
         AggregatorListing.objects.filter(**key).delete()
         return "removed"
     base = getattr(settings, "TENANT_DOMAIN_BASE", "siteadaptor.de")
@@ -320,7 +325,7 @@ def sync_event_listing(tenant_schema, event_id) -> str:
         "listing_kind": AggregatorListing.KIND_EVENT,
         "source_ref": str(event_id),
     }
-    if snap is None or tenant is None or not tenant.is_module_active("events"):
+    if snap is None or tenant is None or _withheld(tenant) or not tenant.is_module_active("events"):
         AggregatorListing.objects.filter(**key).delete()
         return "removed"
 
@@ -661,7 +666,12 @@ def sync_menu_listing(tenant_schema, combo_id) -> str:
         "source_ref": str(combo_id),
     }
     # Набор исчез/выключен, нет тенанта или каталог недоступен → нет листинга.
-    if snap is None or tenant is None or not tenant.is_module_active("catalog"):
+    if (
+        snap is None
+        or tenant is None
+        or _withheld(tenant)
+        or not tenant.is_module_active("catalog")
+    ):
         AggregatorListing.objects.filter(**key).delete()
         return "removed"
 

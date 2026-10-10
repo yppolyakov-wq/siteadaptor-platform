@@ -1,0 +1,24 @@
+{% extends "account/base_auth.html" %}
+{% load i18n %}
+{% block title %}{% trans "Login-Link per E-Mail" %}{% endblock %}
+{% block auth_title %}{% trans "Login-Link per E-Mail" %}{% endblock %}
+
+{% block auth_content %}
+{% comment %}T-8.5: вход без пароля. Ответ одинаковый для любого адреса — по нему нельзя
+узнать, зарегистрирован ли e-mail.{% endcomment %}
+{% if sent %}
+  <p class="text-sm text-gray-600" data-owner-link-sent>{% trans "Wenn die Adresse zu einem Konto gehört, ist der Link unterwegs. Er ist 15 Minuten gültig." %}</p>
+{% else %}
+  <form method="post" class="space-y-4">
+    {% csrf_token %}
+    <label class="block">
+      <span class="block text-sm font-medium mb-1">{% trans "E-Mail" %}</span>
+      <input type="email" name="email" required autocomplete="email" class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+    </label>
+    <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg py-2.5 font-medium hover:bg-indigo-700">{% trans "Link senden" %}</button>
+  </form>
+{% endif %}
+<div class="mt-4 text-sm text-center">
+  <a href="{% url 'account_login' %}" class="text-indigo-600 hover:underline">{% trans "Mit Passwort anmelden" %}</a>
+</div>
+{% endblock %}

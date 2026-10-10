@@ -1,0 +1,20 @@
+{% extends "account/base_auth.html" %}
+{% load i18n %}
+{% block title %}{% trans "Anmelden" %}{% endblock %}
+{% block auth_title %}{% trans "Anmelden" %}{% endblock %}
+
+{% block auth_content %}
+{% comment %}T-8.5: одноразовый вход. GET токен не расходует (почтовые сканеры открывают
+ссылки), POST — расходует и логинит; скрипт жмёт кнопку сам.{% endcomment %}
+{% if invalid %}
+  <p class="text-sm text-gray-600">{% trans "Dieser Anmeldelink ist ungültig oder abgelaufen." %}</p>
+  <a href="{% url 'owner-login-link' %}" class="inline-block mt-3 text-sm font-medium text-indigo-600 hover:underline">{% trans "Neuen Link anfordern" %} →</a>
+{% else %}
+  <form method="post" data-owner-start>
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <button type="submit" class="w-full bg-indigo-600 text-white rounded-lg py-2.5 font-medium hover:bg-indigo-700">{% trans "Jetzt anmelden" %}</button>
+  </form>
+  <script>document.querySelector("[data-owner-start]").submit();</script>
+{% endif %}
+{% endblock %}

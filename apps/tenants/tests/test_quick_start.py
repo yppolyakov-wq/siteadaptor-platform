@@ -1,0 +1,344 @@
+"""T-8.5 «Aktion in 3 Klicks»: регистрация + первая акция одной страницей.
+
+План — docs/t8-5-quick-start-plan-2026-10-10.md §2.
+"""
+
+import re
+from importlib import import_module
+from unittest import mock
+
+import pytest
+from django.conf import settings as dj_settings
+from django.contrib.auth import get_user_model
+from django.contrib.messages.middleware import MessageMiddleware
+from django.core import mail, signing
+from django.core.cache import cache
+from django.db import connection
+from django.http import Http404
+from django.test import RequestFactory
+from django.utils import timezone
+from django_tenants.utils import tenant_context
+
+from apps.aggregator import tasks as agg_tasks
+from apps.aggregator.models import AggregatorListing
+from apps.core import owner_login
+from apps.core.models import Membership
+from apps.promotions.models import Promotion
+from apps.tenants import quickstart, quickstart_views, tasks
+from apps.tenants.models import Domain, Tenant
+from apps.tenants.tests.factories import TenantFactory
+
+EMAIL = "inhaber@krume.test"
+
+
+@pytest.fixture(autouse=True)
+def _clean_cache():
+    cache.clear()
+    yield
+    cache.clear()
+
+
+def _session(request):
+    request.session = import_module(dj_settings.SESSION_ENGINE).SessionStore()
+    MessageMiddleware(lambda r: None).process_request(request)
+    return request
+
+
+def _old_stamp(seconds=30):
+    return signing.dumps(timezone.now().timestamp() - seconds, salt=quickstart.FORM_STAMP_SALT)
+
+
+def _post_data(**kw):
+    data = {
+        "title": "Feierabendtüte",
+        "new_price": "5",
+        "old_price": "12",
+        "term": "today",
+        "customer_response": "reserve",
+        "business_name": "Bäckerei Müller & Söhne",
+        "business_type": "bakery",
+        "district": "",
+        "email": EMAIL,
+        "stamp": _old_stamp(),
+    }
+    data.update(kw)
+    return data
+
+
+def _post(data, ip="10.85.0.1"):
+    request = _session(RequestFactory().post("/aktion-starten/", data))
+    request.META["REMOTE_ADDR"] = ip
+    return request
+
+
+def _drop(tenant):
+    Domain.objects.filter(tenant=tenant).delete()
+    Tenant.objects.filter(pk=tenant.pk).delete()
+
+
+# --- поддомен -----------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+def test_slug_from_name_transliterates_and_stays_free():
+    assert quickstart.suggest_slug("Bäckerei Müller & Söhne") == "baeckerei-mueller-soehne"
+    assert quickstart.suggest_slug("Straße 7") == "strasse-7"
+    assert quickstart.suggest_slug("") == "aktion"
+    assert quickstart.suggest_slug("Admin") == "admin-2"  # резерв
+    assert quickstart.suggest_slug("24/7 Kiosk") == "aktion-247-kiosk"
+    long = quickstart.suggest_slug("Sehr " * 30)
+    assert len(long) <= quickstart.SLUG_MAX and not long.endswith("-")
+    TenantFactory(schema_name="krume", slug="krume")
+    assert quickstart.suggest_slug("Krume") == "krume-2"
+
+
+# --- страница -----------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+def test_page_has_both_steps_in_dom_and_no_password():
+    request = _session(RequestFactory().get("/aktion-starten/"))
+    html = quickstart_views.quick_start(request).content.decode()
+    assert 'data-qs-step="1"' in html and 'data-qs-step="2"' in html
+    assert 'capture="environment"' in html
+    assert 'name="business_name"' in html and 'name="email"' in html
+    assert "password" not in html and 'name="slug"' not in html
+    for key in ("reserve", "coupon", "show"):
+        assert f'data-qs-response="{key}"' in html
+    assert 'data-qs-response="buy"' not in html
+
+
+@pytest.mark.django_db
+def test_post_creates_lite_tenant_and_hands_off_token():
+    with mock.patch("apps.tenants.tasks.provision_quick.delay"):
+        response = quickstart_views.quick_start(request := _post(_post_data(district="wald")))
+    tenant = Tenant.objects.get(slug="baeckerei-mueller-soehne")
+    try:
+        assert response.status_code == 302
+        assert response.url == f"/aktion-starten/{tenant.slug}/"
+        assert tenant.site_config.get("profile") == "aktionen"
+        assert tenant.email_pending is True
+        assert tenant.district == "wald" and tenant.city == "Solingen"
+        assert tenant.owner_email == EMAIL
+        assert tenant.trial_ends_at is None  # бесплатная ступень не истекает (Р-5)
+        assert Domain.objects.filter(tenant=tenant, is_primary=True).exists()
+        entry = request.session[quickstart_views.SESSION_KEY][tenant.slug]
+        assert entry["title"] == "Feierabendtüte"
+        assert owner_login.peek_token(tenant.schema_name, entry["token"]) == {"email": EMAIL}
+    finally:
+        _drop(tenant)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "data",
+    [
+        {"website": "spam.example"},  # honeypot
+        {"stamp": ""},  # без метки времени
+        {"stamp": "x"},  # подделка
+    ],
+)
+def test_bots_create_nothing(data):
+    stamp_now = signing.dumps(timezone.now().timestamp(), salt=quickstart.FORM_STAMP_SALT)
+    for payload in (_post_data(**data), _post_data(stamp=stamp_now)):
+        with mock.patch("apps.tenants.tasks.provision_quick.delay"):
+            response = quickstart_views.quick_start(_post(payload))
+        assert response.status_code == 200
+    assert not Tenant.objects.filter(slug__startswith="baeckerei").exists()
+
+
+@pytest.mark.django_db
+def test_invalid_form_returns_errors_without_tenant():
+    with mock.patch("apps.tenants.tasks.provision_quick.delay"):
+        html = quickstart_views.quick_start(_post(_post_data(email="kein-mail", title=""))).content
+    assert b"text-red-600" in html
+    assert not Tenant.objects.filter(slug__startswith="baeckerei").exists()
+
+
+# --- ожидание -----------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+def test_waiting_redirects_with_token_only_when_promo_is_ready():
+    with mock.patch("apps.tenants.tasks.provision_quick.delay"):
+        quickstart_views.quick_start(request := _post(_post_data()))
+    tenant = Tenant.objects.get(slug="baeckerei-mueller-soehne")
+    try:
+        get = _session(RequestFactory().get(f"/aktion-starten/{tenant.slug}/"))
+        get.session = request.session
+        html = quickstart_views.quick_waiting(get, slug=tenant.slug).content.decode()
+        assert 'http-equiv="refresh"' in html and "Feierabendtüte" in html
+
+        Tenant.objects.filter(pk=tenant.pk).update(provisioning_status=Tenant.PROVISIONING_READY)
+        assert quickstart_views.quick_waiting(get, slug=tenant.slug).status_code == 200
+
+        cache.set(f"quick_promo:{tenant.pk}", "abc", 60)
+        response = quickstart_views.quick_waiting(get, slug=tenant.slug)
+        token = request.session[quickstart_views.SESSION_KEY][tenant.slug]["token"]
+        assert response.status_code == 302
+        assert "baeckerei-mueller-soehne." in response.url
+        assert f"/start/{token}/?next=%2Fpromotions%2Fabc%2Ffertig%2F" in response.url
+
+        stranger = _session(RequestFactory().get(f"/aktion-starten/{tenant.slug}/"))
+        response = quickstart_views.quick_waiting(stranger, slug=tenant.slug)
+        assert response.url.endswith("/accounts/login/")  # чужой браузер — обычный вход
+    finally:
+        _drop(tenant)
+
+
+# --- вход без пароля ----------------------------------------------------------------
+
+
+@pytest.fixture
+def owner(db):
+    tenant = TenantFactory(schema_name="public", slug="krume", name="Krume")
+    user = get_user_model().objects.create_user(username=EMAIL, email=EMAIL)
+    user.set_unusable_password()
+    user.save()
+    Membership.objects.create(user=user, role=Membership.ROLE_OWNER)
+    return tenant, user
+
+
+def _tenant_request(method, path, tenant, data=None):
+    rf = RequestFactory()
+    request = rf.post(path, data or {}) if method == "post" else rf.get(path)
+    _session(request)
+    request.tenant = tenant
+    request.user = mock.Mock(is_authenticated=False)
+    return request
+
+
+def test_owner_start_get_does_not_consume_post_logs_in(owner):
+    tenant, user = owner
+    token = owner_login.issue_token(connection.schema_name, EMAIL)
+    html = owner_login.owner_start(
+        _tenant_request("get", f"/start/{token}/?next=/promotions/x/fertig/", tenant), token
+    ).content.decode()
+    assert "data-owner-start" in html and 'value="/promotions/x/fertig/"' in html
+    assert owner_login.peek_token(connection.schema_name, token)  # GET не расходует
+
+    post = _tenant_request("post", f"/start/{token}/", tenant, {"next": "//evil.example/"})
+    response = owner_login.owner_start(post, token)
+    assert response.status_code == 302 and response.url == "/promotions/"
+    assert post.session["_auth_user_id"] == str(user.pk)
+    with pytest.raises(Http404):  # одноразовый
+        owner_login.owner_start(_tenant_request("post", "/start/x/", tenant), token)
+
+
+def test_owner_start_refuses_unknown_or_foreign_token(owner):
+    tenant, _user = owner
+    response = owner_login.owner_start(_tenant_request("get", "/start/nope/", tenant), "nope")
+    assert response.status_code == 404
+    foreign = owner_login.issue_token("andere_schema", EMAIL)
+    with pytest.raises(Http404):
+        owner_login.owner_start(_tenant_request("post", "/start/f/", tenant), foreign)
+
+
+def test_login_link_answer_is_the_same_for_any_address(owner):
+    tenant, _user = owner
+    known = owner_login.owner_link_request(
+        _tenant_request("post", "/anmelden/link/", tenant, {"email": EMAIL})
+    ).content.decode()
+    assert len(mail.outbox) == 1 and "/start/" in mail.outbox[0].body
+    unknown = owner_login.owner_link_request(
+        _tenant_request("post", "/anmelden/link/", tenant, {"email": "fremd@x.test"})
+    ).content.decode()
+    assert len(mail.outbox) == 1
+    strip = re.compile(r"csrfmiddlewaretoken\" value=\"[^\"]+\"")
+    assert strip.sub("", known) == strip.sub("", unknown)
+
+
+# --- Р-3: каталог после подтверждения ----------------------------------------------
+
+
+def test_pending_tenant_stays_out_of_city_catalog_until_confirmed(owner):
+    tenant, _user = owner
+    Tenant.objects.filter(pk=tenant.pk).update(email_pending=True)
+    tenant.refresh_from_db()
+    promo = Promotion.objects.create(status="active", title={"de": "Brötchen"})
+    assert agg_tasks.sync_listing("public", str(promo.pk)) == "removed"
+    assert not AggregatorListing.objects.filter(promo_uuid=promo.pk).exists()
+
+    signed = owner_login.confirm_token(tenant, EMAIL)
+    with mock.patch("apps.aggregator.tasks.sync_aggregator_listing.delay") as delay:
+        html = owner_login.owner_confirm_email(
+            _tenant_request("get", "/start/bestaetigen/x/", tenant), signed
+        ).content.decode()
+    assert "data-owner-confirmed" in html
+    tenant.refresh_from_db()
+    assert tenant.email_pending is False
+    assert delay.call_args.kwargs["promotion_id"] == str(promo.pk)
+    assert agg_tasks.sync_listing("public", str(promo.pk)) == "upserted"
+
+
+def test_confirm_link_is_bound_to_its_tenant(owner):
+    tenant, _user = owner
+    signed = signing.dumps({"t": "fremd", "e": EMAIL}, salt=owner_login.CONFIRM_SALT)
+    response = owner_login.owner_confirm_email(
+        _tenant_request("get", "/start/bestaetigen/x/", tenant), signed
+    )
+    assert response.status_code == 404
+
+
+# --- фоновое создание (настоящая схема) ---------------------------------------------
+
+
+@pytest.mark.django_db(transaction=True)
+def test_provision_quick_builds_owner_promo_and_skips_wizard():
+    from apps.tenants.services import start_quick_provisioning
+
+    promo = {
+        "title": "Feierabendtüte",
+        "new_price": "5",
+        "old_price": "12",
+        "term": "today",
+        "customer_response": "coupon",
+        "images": [],
+    }
+    with mock.patch("apps.tenants.tasks.provision_quick.delay"):
+        tenant = start_quick_provisioning(
+            business_name="Krume Schnell",
+            slug="krume-schnell",
+            business_type="bakery",
+            city="Solingen",
+            district="",
+            email=EMAIL,
+            promo=promo,
+        )
+    try:
+        with mock.patch("apps.aggregator.tasks.sync_aggregator_listing.delay"):
+            pk = tasks.provision_quick_logic(tenant.pk, EMAIL, promo)
+            again = tasks.provision_quick_logic(tenant.pk, EMAIL, promo)
+        assert pk and again == pk
+        tenant.refresh_from_db()
+        assert tenant.provisioning_status == Tenant.PROVISIONING_READY
+        assert tenant.site_config["onboarding"]["completed"] is True
+        with tenant_context(tenant):
+            owner = get_user_model().objects.get(username=EMAIL)
+            assert not owner.has_usable_password()
+            assert Membership.objects.get(user=owner).role == Membership.ROLE_OWNER
+            promos = list(Promotion.objects.all())
+            assert len(promos) == 1 and promos[0].status == "active"
+            assert promos[0].metadata.get("response") == "coupon"
+        confirm = [m for m in mail.outbox if "bestätigen" in m.subject]
+        assert len(confirm) == 1 and "/start/bestaetigen/" in confirm[0].body
+        assert not [m for m in mail.outbox if "bereit" in m.subject]
+    finally:
+        with connection.cursor() as cur:
+            cur.execute(f'DROP SCHEMA IF EXISTS "{tenant.schema_name}" CASCADE')
+        _drop(tenant)
+
+
+def test_links_build_from_celery_public_urlconf(owner, settings):
+    """Стенд: письмо подтверждения уходит из Celery, где urlconf публичный."""
+    tenant, _user = owner
+    settings.ROOT_URLCONF = "config.urls_public"
+    from django.urls import clear_url_caches
+
+    clear_url_caches()
+    try:
+        assert "/start/bestaetigen/" in owner_login.confirm_url(tenant, EMAIL)
+        owner_login.send_login_link(tenant, EMAIL)
+        assert "/start/" in mail.outbox[-1].body
+    finally:
+        clear_url_caches()

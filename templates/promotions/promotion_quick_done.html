@@ -6,6 +6,7 @@
 {% comment %}T-8.4: экран «Fertig» ассистента — ссылка, QR, «поделиться». У черновика
 (лимит бесплатной ступени или «Als Entwurf») — почему и что дальше.{% endcomment %}
 <div class="max-w-lg mx-auto space-y-3" data-quick-done>
+  {% include "promotions/_email_pending.html" %}
   {% if active %}
     <div class="bg-white rounded-2xl shadow-sm p-5 text-center">
       <p class="text-3xl mb-1">🎉</p>

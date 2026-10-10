@@ -50,6 +50,10 @@ class Tenant(TenantMixin):
     # T-8.15: демо-бизнес (засеян seed_demo_tenants). Его листинги не попадают в
     # настоящие порталы (AggregatorPortal.show_demo=False) и помечены «Demo».
     is_demo = models.BooleanField(default=False)
+    # T-8.5 (Р-3): «Aktion in 3 Klicks» публикует сразу на поддомене, а в городской
+    # каталог (агрегатор) — только после подтверждения почты. True = ждём клика по
+    # ссылке из письма; все upsert-пути агрегатора листинги такого тенанта удаляют.
+    email_pending = models.BooleanField(default=False)
 
     # Localization
     default_locale = models.CharField(max_length=10, default="de")

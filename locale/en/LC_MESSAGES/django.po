@@ -23293,3 +23293,172 @@ msgstr "redeemed"
 
 msgid "gültig"
 msgstr "valid"
+
+msgid "Aktion in 3 Klicks"
+msgstr "Offer in 3 clicks"
+
+msgid "Aktion in 3 Klicks starten"
+msgstr "Start an offer in 3 clicks"
+
+msgid "Anmelden"
+msgstr "Sign in"
+
+msgid "Bestätigungslink wurde erneut gesendet."
+msgstr "Confirmation link sent again."
+
+#, python-format
+msgid "Bitte bestätigen Sie Ihre E-Mail — %(name)s"
+msgstr "Please confirm your email — %(name)s"
+
+msgid "Bitte prüfen Sie Ihre Angaben und senden Sie erneut."
+msgstr "Please check your details and send again."
+
+msgid "Danke! Ihre Aktionen erscheinen jetzt auch im Stadtportal."
+msgstr "Thank you! Your offers now also appear in the city portal."
+
+msgid "Das dauert etwa eine Minute. Die Seite lädt von selbst weiter."
+msgstr "This takes about a minute. The page continues on its own."
+
+msgid "Dieser Anmeldelink ist ungültig oder abgelaufen."
+msgstr "This sign-in link is invalid or has expired."
+
+msgid "Dieser Bestätigungslink ist ungültig oder abgelaufen."
+msgstr "This confirmation link is invalid or has expired."
+
+msgid "E-Mail bestätigt"
+msgstr "Email confirmed"
+
+msgid "Eigene Seite unter ihr-name.siteadaptor.de"
+msgstr "Your own page at your-name.siteadaptor.de"
+
+msgid ""
+"Eigene Seite, QR-Code und Aushang — sofort online. Kostenlos, ohne Passwort."
+msgstr ""
+"Your own page, QR code and flyer — online right away. Free, no password."
+
+msgid "Erneut senden"
+msgstr "Send again"
+
+#, python-format
+msgid "Ihr Anmeldelink — %(name)s"
+msgstr "Your sign-in link — %(name)s"
+
+msgid "Ihr Geschäft"
+msgstr "Your business"
+
+msgid "Ihre Aktion geht online…"
+msgstr "Your offer is going online…"
+
+msgid "Ihre Aktion in 3 Klicks"
+msgstr "Your offer in 3 clicks"
+
+msgid ""
+"Ihre Aktion in 3 Klicks online — mit eigener Seite, QR-Code und Aushang. "
+"Kostenlos, ohne Passwort."
+msgstr ""
+"Your offer online in 3 clicks — with its own page, QR code and flyer. Free, "
+"no password."
+
+msgid "Jetzt bestätigen"
+msgstr "Confirm now"
+
+msgid "Kein Passwort nötig — Sie melden sich per Link aus der E-Mail an."
+msgstr "No password needed — you sign in with a link from the email."
+
+msgid "Kostenlos, ohne Passwort — in einer Minute online."
+msgstr "Free, no password — online in a minute."
+
+msgid "Kund:innen lassen zurücklegen oder holen einen Coupon"
+msgstr "Customers have items put aside or get a coupon"
+
+msgid "Link senden"
+msgstr "Send link"
+
+msgid "Login-Link per E-Mail"
+msgstr "Sign-in link by email"
+
+msgid "Mit Passwort anmelden"
+msgstr "Sign in with password"
+
+msgid ""
+"Mit dem Veröffentlichen akzeptieren Sie unsere AGB und die "
+"Datenschutzhinweise."
+msgstr "By publishing you accept our terms and the privacy notice."
+
+msgid "Nach Bestätigung der E-Mail auch im Stadtportal Solingen"
+msgstr "After confirming your email, also in the Solingen city portal"
+
+msgid "Name Ihres Geschäfts"
+msgstr "Name of your business"
+
+msgid "Neuen Link anfordern"
+msgstr "Request a new link"
+
+msgid "QR-Code und Aushang zum Ausdrucken"
+msgstr "QR code and flyer to print"
+
+msgid ""
+"Wenn die Adresse zu einem Konto gehört, ist der Link unterwegs. Er ist 15 "
+"Minuten gültig."
+msgstr ""
+"If the address belongs to an account, the link is on its way. It is valid "
+"for 15 minutes."
+
+msgid "Wer sind Sie?"
+msgstr "Who are you?"
+
+#, python-format
+msgid ""
+"Wir haben einen Link an %(email)s geschickt. Danach erscheinen Ihre Aktionen"
+" auch im Stadtportal."
+msgstr ""
+"We sent a link to %(email)s. After that, your offers also appear in the city"
+" portal."
+
+msgid "Zu meinen Aktionen"
+msgstr "To my offers"
+
+msgid "oder Rabatt"
+msgstr "or discount"
+
+msgid "z. B. Feierabendtüte für 5 €"
+msgstr "e.g. end-of-day bag for €5"
+
+msgid "— bitte wählen —"
+msgstr "— please choose —"
+
+#, python-format
+msgid ""
+"Hallo,\n"
+"\n"
+"hier ist Ihr Link zur Anmeldung (15 Minuten gültig):\n"
+"%(url)s\n"
+"\n"
+"Falls Sie das nicht angefordert haben, ignorieren Sie diese E-Mail."
+msgstr ""
+"Hello,\n"
+"\n"
+"here is your sign-in link (valid for 15 minutes):\n"
+"%(url)s\n"
+"\n"
+"If you did not request this, please ignore this email."
+
+#, python-format
+msgid ""
+"Hallo,\n"
+"\n"
+"Ihre Aktion ist online: %(site)s\n"
+"\n"
+"Bitte bestätigen Sie Ihre E-Mail-Adresse — dann erscheinen Ihre Aktionen auch im Stadtportal:\n"
+"%(url)s\n"
+"\n"
+"Ihr siteadaptor-Team"
+msgstr ""
+"Hello,\n"
+"\n"
+"your offer is online: %(site)s\n"
+"\n"
+"Please confirm your email address — then your offers will also appear in the city portal:\n"
+"%(url)s\n"
+"\n"
+"Your siteadaptor team"

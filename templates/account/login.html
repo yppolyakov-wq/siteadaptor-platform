@@ -23,5 +23,10 @@
 </form>
 <div class="mt-4 text-sm text-center">
   <a href="{% url 'account_reset_password' %}" class="text-indigo-600 hover:underline">{% trans "Forgot password?" %}</a>
+  {% url 'owner-login-link' as owner_link_url %}
+  {% if owner_link_url %}
+    <span class="text-gray-300 mx-1">·</span>
+    <a href="{{ owner_link_url }}" class="text-indigo-600 hover:underline" data-owner-link>{% trans "Login-Link per E-Mail" %}</a>
+  {% endif %}
 </div>
 {% endblock %}

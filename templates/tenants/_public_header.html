@@ -11,6 +11,7 @@
     <nav class="flex items-center gap-4 text-sm text-gray-600">
       <a href="/" class="hover:text-gray-900{% if request.path == '/' or request.path == '/branchen/' %} text-indigo-700 font-medium{% endif %}">{% trans "Branchen" %}</a>
       <a href="/ueber-uns/" class="hover:text-gray-900{% if request.path == '/ueber-uns/' %} text-indigo-700 font-medium{% endif %}">{% trans "Über uns" %}</a>
+      <a href="/aktion-starten/" class="hidden md:inline hover:text-gray-900 whitespace-nowrap{% if request.path == '/aktion-starten/' %} text-indigo-700 font-medium{% endif %}" data-quick-start-link>⚡ {% trans "Aktion in 3 Klicks" %}</a>
     </nav>
     <div class="ml-auto flex items-center gap-3">
       {% include "tenants/_lang_switch.html" %}

@@ -12,7 +12,7 @@ from apps.billing import views as billing_views
 from apps.booking import public_views as booking_public
 from apps.collections import public_views as collections_public
 from apps.community import views as community_views
-from apps.core import health
+from apps.core import health, owner_login
 from apps.core.demo_switch import demo_design_switch
 from apps.core.design_page import design_view
 from apps.core.media_views import serve_media
@@ -131,6 +131,17 @@ urlpatterns = [
     # W9-10: «Team & Zugriff» (owner-only через middleware) + публичное принятие инвайта.
     path("dashboard/settings/team/", team_view, name="team"),
     path("team/beitreten/<str:token>/", team_join, name="team-join"),
+    # T-8.5: вход владельца без пароля + подтверждение почты «Aktion in 3 Klicks».
+    path(
+        "start/bestaetigen/<str:signed>/",
+        owner_login.owner_confirm_email,
+        name="owner-confirm-email",
+    ),
+    path(
+        "start/bestaetigung-senden/", owner_login.owner_confirm_resend, name="owner-confirm-resend"
+    ),
+    path("start/<str:token>/", owner_login.owner_start, name="owner-start"),
+    path("anmelden/link/", owner_login.owner_link_request, name="owner-login-link"),
     path("dashboard/extras/", extras_view, name="extras"),
     # Конструктор витрины v1 (Track C2).
     path("dashboard/site/", site_view, name="site"),
