@@ -23680,3 +23680,57 @@ msgstr ""
 "%(url)s\n"
 "\n"
 "Ваша команда siteadaptor"
+
+msgid "Aus der Galerie"
+msgstr "З галереї"
+
+msgid "Bitte eine Adresse eingeben."
+msgstr "Введіть адресу."
+
+msgid "Bitte mit einem Buchstaben beginnen; nur a–z, 0–9 und Bindestriche."
+msgstr "Почніть з літери; лише a–z, 0–9 і дефіси."
+
+msgid "Die Fotos werden übernommen — oder neue aufnehmen."
+msgstr "Фото буде перенесено — або зробіть нові."
+
+msgid "Diese Adresse ist schon vergeben."
+msgstr "Ця адреса вже зайнята."
+
+msgid "Foto aufnehmen"
+msgstr "Зробити фото"
+
+msgid "Fotos"
+msgstr "Фото"
+
+msgid "Frei"
+msgstr "Вільна"
+
+#, python-format
+msgid "Höchstens %(n)s Fotos."
+msgstr "Не більше %(n)s фото."
+
+msgid "Ihre Adresse"
+msgstr "Ваша адреса"
+
+msgid "In weitere Sprachen übersetzen"
+msgstr "Перекласти іншими мовами"
+
+msgid "Leer lassen — dann wählen wir eine freie Adresse aus dem Namen."
+msgstr "Залиште порожнім — ми підберемо вільну адресу за назвою."
+
+#, python-format
+msgid "Mindestens %(n)s Zeichen."
+msgstr "Не менше %(n)s символів."
+
+msgid "Ohne Übersetzung sehen Gäste den deutschen Text."
+msgstr "Без перекладу відвідувачі бачать німецький текст."
+
+msgid "Stattdessen nehmen"
+msgstr "Взяти натомість"
+
+#, python-format
+msgid "bis zu %(n)s · das erste ist das Titelbild"
+msgstr "до %(n)s · перше — головне фото"
+
+msgid "wird aus dem Namen erstellt"
+msgstr "створюється з назви"

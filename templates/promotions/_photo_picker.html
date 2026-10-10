@@ -1,0 +1,83 @@
+{% load i18n %}
+{% comment %}T-8.5b: несколько фото акции (ассистент T-8.4 и «Aktion in 3 Klicks»). Две кнопки —
+камера (каждый снимок ДОБАВЛЯЕТСЯ: скрипт подставляет новое пустое поле) и галерея (сразу
+несколько). Все поля называются photo — сервер берёт список. Первое фото — главное.
+Без JS видны оба поля и форма работает.{% endcomment %}
+<div data-photo-picker data-max="{{ max_photos }}">
+  <span class="block text-sm font-medium mb-1">📷 {% trans "Fotos" %}
+    <span class="text-xs font-normal text-gray-500">{% blocktrans with n=max_photos %}bis zu {{ n }} · das erste ist das Titelbild{% endblocktrans %}</span>
+  </span>
+  {% if source_images %}
+    <div class="mb-2 flex flex-wrap gap-2" data-source-photo>
+      {% for img in source_images %}<img src="{{ img.url }}" alt="" class="w-16 h-16 object-cover rounded-xl">{% endfor %}
+    </div>
+    <span class="block text-xs text-gray-500 mb-2">{% trans "Die Fotos werden übernommen — oder neue aufnehmen." %}</span>
+  {% endif %}
+  <div class="flex flex-wrap gap-2" data-photo-buttons>
+    <label class="cursor-pointer inline-flex items-center gap-1 rounded-xl border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50" data-photo-camera>
+      📷 {% trans "Foto aufnehmen" %}
+      <input type="file" name="photo" accept="image/*" capture="environment" class="block text-xs" data-photo-input>
+    </label>
+    <label class="cursor-pointer inline-flex items-center gap-1 rounded-xl border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50">
+      🖼 {% trans "Aus der Galerie" %}
+      <input type="file" name="photo" accept="image/*" multiple class="block text-xs" data-photo-input>
+    </label>
+  </div>
+  <div class="hidden" data-photo-store></div>
+  <div class="mt-2 flex flex-wrap gap-2" data-photo-previews></div>
+  <p class="mt-1 text-xs text-amber-700 hidden" data-photo-too-many>{% blocktrans with n=max_photos %}Höchstens {{ n }} Fotos.{% endblocktrans %}</p>
+  {% for e in errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+</div>
+<script>
+(function () {
+  var root = document.currentScript.previousElementSibling;
+  if (!root || !root.matches("[data-photo-picker]")) return;
+  var max = +root.dataset.max || 6;
+  var store = root.querySelector("[data-photo-store]");
+  var previews = root.querySelector("[data-photo-previews]");
+  var tooMany = root.querySelector("[data-photo-too-many]");
+  // Поля прячем визуально только при JS — без JS остаются обычные инпуты.
+  root.querySelectorAll("[data-photo-input]").forEach(function (i) { i.classList.add("sr-only"); });
+  function render() {
+    previews.innerHTML = "";
+    var count = 0;
+    root.querySelectorAll("[data-photo-input]").forEach(function (input) {
+      Array.prototype.forEach.call(input.files || [], function (file) {
+        count += 1;
+        var wrap = document.createElement("span");
+        wrap.className = "relative inline-block";
+        var img = document.createElement("img");
+        img.src = URL.createObjectURL(file);
+        img.alt = "";
+        img.className = "w-16 h-16 object-cover rounded-xl" + (count === 1 ? " ring-2 ring-indigo-500" : "");
+        var x = document.createElement("button");
+        x.type = "button";
+        x.textContent = "✕";
+        x.setAttribute("aria-label", "{% trans 'Entfernen' %}");
+        x.className = "absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gray-900 text-white text-xs leading-5";
+        x.addEventListener("click", function () {
+          if (input.parentNode === store) { input.remove(); } else { input.value = ""; }
+          render();
+        });
+        wrap.appendChild(img);
+        wrap.appendChild(x);
+        previews.appendChild(wrap);
+      });
+    });
+    tooMany.classList.toggle("hidden", count <= max);
+  }
+  root.addEventListener("change", function (e) {
+    var input = e.target;
+    if (!input.matches("[data-photo-input]")) return;
+    // Снимок камерой: заполненное поле уходит в хранилище, на его место — пустое,
+    // чтобы следующий снимок добавился, а не заменил предыдущий.
+    if (input.hasAttribute("capture") && input.files && input.files.length) {
+      var fresh = input.cloneNode(false);
+      fresh.value = "";
+      input.parentNode.replaceChild(fresh, input);
+      store.appendChild(input);
+    }
+    render();
+  });
+})();
+</script>

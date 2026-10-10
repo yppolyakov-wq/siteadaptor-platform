@@ -47,19 +47,58 @@ QUICK_RESPONSES = (promo_response.RESERVE, promo_response.COUPON, promo_response
 _UMLAUTS = str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"})
 
 
+SLUG_MIN = 3
+# Заняты собственными путями страницы /aktion-starten/<…>/.
+_QUICK_RESERVED = {"adresse"}
+# Поддомен = имя схемы Postgres (дефисы → подчёркивания): начинается с буквы.
+_SLUG_SHAPE = re.compile(r"^[a-z][a-z0-9-]*[a-z0-9]$")
+
+
+def domain_base() -> str:
+    """Хост платформы без порта: «siteadaptor.de»."""
+    from django.conf import settings
+
+    return getattr(settings, "TENANT_DOMAIN_BASE", "siteadaptor.de").split(":")[0]
+
+
+def _host(slug: str) -> str:
+    return f"{slug}.{domain_base()}"
+
+
 def _slug_taken(slug: str) -> bool:
+    from .models import Domain
+
     return (
         slug in _RESERVED_SLUGS
+        or slug in _QUICK_RESERVED
         or Tenant.objects.filter(slug=slug).exists()
         or Tenant.objects.filter(schema_name=slug.replace("-", "_")).exists()
+        # Порталы городов и демо живут на своих Domain без тенанта-однофамильца.
+        or Domain.objects.filter(domain=_host(slug)).exists()
     )
+
+
+def normalize_slug(text: str) -> str:
+    """Что человек ввёл → вид поддомена: «Bäckerei Müller» → baeckerei-mueller."""
+    base = slugify((text or "").lower().translate(_UMLAUTS))
+    return re.sub(r"-{2,}", "-", base)[:SLUG_MAX].strip("-")
+
+
+def slug_problem(slug: str) -> str:
+    """Почему поддомен нельзя взять ("" — можно)."""
+    if len(slug) < SLUG_MIN:
+        return str(_("Mindestens %(n)s Zeichen.") % {"n": SLUG_MIN})
+    if not _SLUG_SHAPE.match(slug):
+        return str(_("Bitte mit einem Buchstaben beginnen; nur a–z, 0–9 und Bindestriche."))
+    if _slug_taken(slug):
+        return str(_("Diese Adresse ist schon vergeben."))
+    return ""
 
 
 def suggest_slug(name: str) -> str:
     """Свободный поддомен из названия: «Bäckerei Müller & Söhne» → baeckerei-mueller-soehne."""
-    base = slugify((name or "").lower().translate(_UMLAUTS))
-    base = re.sub(r"-{2,}", "-", base)[:SLUG_MAX].strip("-")
-    if not base or base[0].isdigit():
+    base = normalize_slug(name)
+    if len(base) < SLUG_MIN or not base[0].isalpha():
         base = f"aktion-{base}".strip("-")[:SLUG_MAX]
     candidate, n = base, 1
     while _slug_taken(candidate):
@@ -96,6 +135,7 @@ class QuickStartForm(quick.QuickPromotionForm):
     business_type = forms.ChoiceField(
         label=_("Art des Geschäfts"), choices=(), widget=forms.RadioSelect
     )
+    subdomain = forms.CharField(label=_("Ihre Adresse"), required=False, max_length=80)
     district = forms.ChoiceField(label=_("Stadtteil"), required=False, choices=())
     email = forms.EmailField(label=_("E-Mail"))
 
@@ -113,6 +153,16 @@ class QuickStartForm(quick.QuickPromotionForm):
         self.fields["district"].choices = [("", _("— bitte wählen —"))] + districts.choices_for(
             DEFAULT_CITY
         )
+
+    def clean_subdomain(self):
+        """Пусто — выберем сами из названия; иначе — ровно то, что хочет владелец."""
+        slug = normalize_slug(self.cleaned_data.get("subdomain") or "")
+        if not slug:
+            return ""
+        problem = slug_problem(slug)
+        if problem:
+            raise forms.ValidationError(problem)
+        return slug
 
     def clean_email(self):
         return (self.cleaned_data.get("email") or "").strip().lower()

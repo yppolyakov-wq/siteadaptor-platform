@@ -81,6 +81,47 @@ def term_end(term: str, tenant, *, until=None, now=None) -> datetime | None:
     return _end_of_day(today + timedelta(days=7))
 
 
+MAX_PHOTOS = 6
+
+
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+
+class MultiplePhotoField(forms.FileField):
+    """Несколько фото одним полем (T-8.5b): ``cleaned_data`` — список файлов."""
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", MultipleFileInput())
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        files = data if isinstance(data, (list, tuple)) else [data]
+        files = [f for f in files if f]
+        if len(files) > MAX_PHOTOS:
+            raise forms.ValidationError(
+                _("Höchstens %(n)s Fotos.") % {"n": MAX_PHOTOS}, code="too_many"
+            )
+        return [super(MultiplePhotoField, self).clean(f, initial) for f in files]
+
+
+def save_photos(files) -> list[dict]:
+    """Сохранить фото по порядку (первое — главное). Ошибка одного — откат всех."""
+    from apps.catalog.images import delete_stored_image, save_product_image
+
+    saved: list[dict] = []
+    try:
+        for i, upload in enumerate(files or []):
+            saved.append(
+                save_product_image(upload, is_primary=(i == 0), sort_order=i, folder="promotions")
+            )
+    except Exception:
+        for ref in saved:
+            delete_stored_image(ref)
+        raise
+    return saved
+
+
 class QuickPromotionForm(forms.Form):
     title = forms.CharField(label=_("Was bieten Sie an?"), max_length=200)
     description = forms.CharField(
@@ -88,7 +129,7 @@ class QuickPromotionForm(forms.Form):
         required=False,
         widget=forms.Textarea(attrs={"rows": 2}),
     )
-    photo = forms.FileField(label=_("Foto"), required=False)
+    photo = MultiplePhotoField(label=_("Fotos"), required=False)
     # Фото прошлой акции при «Wiederholen» (копия файла, а не общая ссылка).
     photo_from = forms.UUIDField(required=False, widget=forms.HiddenInput)
     new_price = forms.DecimalField(
@@ -188,20 +229,38 @@ def initial_from(promo) -> dict:
     return {k: v for k, v in initial.items() if v not in (None, "")}
 
 
-def copy_primary_image(source) -> dict | None:
-    """Копия главного фото акции отдельным файлом (удаление у одной не трогает другую)."""
+def copy_images(source) -> list[dict]:
+    """Копии ВСЕХ фото акции отдельными файлами (удаление у одной не трогает другую).
+
+    Порядок прежний, главное — первое; битый/пропавший файл пропускается."""
     from django.core.files.base import ContentFile
     from django.core.files.storage import default_storage
 
     from apps.catalog.images import save_product_image
 
-    img = source.primary_image if source is not None else None
-    path = (img or {}).get("path")
-    if not path:
-        return None
-    try:
-        with default_storage.open(path, "rb") as fh:
-            content = ContentFile(fh.read(), name=path.rsplit("/", 1)[-1])
-        return save_product_image(content, is_primary=True, folder="promotions")
-    except Exception:  # noqa: BLE001 — нет файла/битый — акция без своего фото
-        return None
+    if source is None:
+        return []
+    images = sorted(
+        (i for i in (source.images or []) if isinstance(i, dict) and i.get("path")),
+        key=lambda i: (not i.get("is_primary"), i.get("sort_order", 0)),
+    )
+    copies: list[dict] = []
+    for img in images:
+        path = img["path"]
+        try:
+            with default_storage.open(path, "rb") as fh:
+                content = ContentFile(fh.read(), name=path.rsplit("/", 1)[-1])
+            copies.append(
+                save_product_image(
+                    content, is_primary=not copies, sort_order=len(copies), folder="promotions"
+                )
+            )
+        except Exception:  # noqa: BLE001 — нет файла/битый — без этого фото
+            continue
+    return copies
+
+
+def copy_primary_image(source) -> dict | None:
+    """Совместимость: первая из копий (главное фото)."""
+    copies = copy_images(source)
+    return copies[0] if copies else None

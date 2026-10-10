@@ -321,3 +321,60 @@ def test_done_screen_for_active_has_link_qr_and_share(user):
     ).content.decode()
     assert f"/p/{promo.pk}/qr.svg" in body
     assert "data-copy-link" in body and "wa.me" in body
+
+
+# --- T-8.5b: несколько фото, переводы, «Bearbeiten» ---------------------------------
+
+
+def test_several_photos_first_is_title_and_too_many_refused(user):
+    from apps.promotions import quick
+
+    tenant = _tenant("t85b-photos")
+    resp = _post(
+        {"title": "Drei Fotos", "new_price": "3"},
+        user,
+        tenant,
+        files={"photo": [_png(), _png(), _png()]},
+    )
+    assert resp.status_code == 302
+    promo = Promotion.objects.get()
+    assert len(promo.images) == 3
+    assert [i["is_primary"] for i in promo.images] == [True, False, False]
+    assert [i["sort_order"] for i in promo.images] == [0, 1, 2]
+    for ref in promo.images:
+        delete_stored_image(ref)
+
+    many = [_png() for _ in range(quick.MAX_PHOTOS + 1)]
+    resp = _post({"title": "Zu viele", "new_price": "3"}, user, tenant, files={"photo": many})
+    assert resp.status_code == 200 and Promotion.objects.count() == 1
+
+
+def test_repeat_copies_all_photos(user):
+    from apps.catalog.images import save_product_image
+
+    tenant = _tenant("t85b-rep")
+    refs = [
+        save_product_image(_png(), is_primary=(i == 0), sort_order=i, folder="promotions")
+        for i in range(2)
+    ]
+    old = PromotionFactory(status="ended", title={"de": "Zwei"}, images=refs)
+    _post({"title": "Zwei", "new_price": "2", "photo_from": str(old.pk)}, user, tenant)
+    new = Promotion.objects.exclude(pk=old.pk).get()
+    assert len(new.images) == 2 and new.images[0]["is_primary"]
+    assert {i["path"] for i in new.images}.isdisjoint({r["path"] for r in refs})
+    for ref in [*refs, *new.images]:
+        delete_stored_image(ref)
+
+
+def test_done_screen_offers_edit_and_translation_links(user):
+    tenant = _tenant("t85b-done")
+    tenant.enabled_locales = ["de", "en", "ru"]
+    tenant.save(update_fields=["enabled_locales"])
+    promo = PromotionFactory(status="active", title={"de": "Brot"})
+    body = views.promotion_quick_done(
+        _attach(RequestFactory().get(f"/promotions/{promo.pk}/fertig/"), user, tenant), pk=promo.pk
+    ).content.decode()
+    assert "data-quick-edit" in body and f"/promotions/{promo.pk}/edit/" in body
+    assert f"/promotions/{promo.pk}/edit/?sprache=en" in body
+    assert f"/promotions/{promo.pk}/edit/?sprache=ru" in body
+    assert 'data-translate-link="de"' not in body  # базовый язык не переводится

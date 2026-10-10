@@ -23502,3 +23502,57 @@ msgstr ""
 "%(url)s\n"
 "\n"
 "Ihr siteadaptor-Team"
+
+msgid "Aus der Galerie"
+msgstr "Aus der Galerie"
+
+msgid "Bitte eine Adresse eingeben."
+msgstr "Bitte eine Adresse eingeben."
+
+msgid "Bitte mit einem Buchstaben beginnen; nur a–z, 0–9 und Bindestriche."
+msgstr "Bitte mit einem Buchstaben beginnen; nur a–z, 0–9 und Bindestriche."
+
+msgid "Die Fotos werden übernommen — oder neue aufnehmen."
+msgstr "Die Fotos werden übernommen — oder neue aufnehmen."
+
+msgid "Diese Adresse ist schon vergeben."
+msgstr "Diese Adresse ist schon vergeben."
+
+msgid "Foto aufnehmen"
+msgstr "Foto aufnehmen"
+
+msgid "Fotos"
+msgstr "Fotos"
+
+msgid "Frei"
+msgstr "Frei"
+
+#, python-format
+msgid "Höchstens %(n)s Fotos."
+msgstr "Höchstens %(n)s Fotos."
+
+msgid "Ihre Adresse"
+msgstr "Ihre Adresse"
+
+msgid "In weitere Sprachen übersetzen"
+msgstr "In weitere Sprachen übersetzen"
+
+msgid "Leer lassen — dann wählen wir eine freie Adresse aus dem Namen."
+msgstr "Leer lassen — dann wählen wir eine freie Adresse aus dem Namen."
+
+#, python-format
+msgid "Mindestens %(n)s Zeichen."
+msgstr "Mindestens %(n)s Zeichen."
+
+msgid "Ohne Übersetzung sehen Gäste den deutschen Text."
+msgstr "Ohne Übersetzung sehen Gäste den deutschen Text."
+
+msgid "Stattdessen nehmen"
+msgstr "Stattdessen nehmen"
+
+#, python-format
+msgid "bis zu %(n)s · das erste ist das Titelbild"
+msgstr "bis zu %(n)s · das erste ist das Titelbild"
+
+msgid "wird aus dem Namen erstellt"
+msgstr "wird aus dem Namen erstellt"

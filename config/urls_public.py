@@ -105,6 +105,7 @@ urlpatterns = [
     path("registrieren/", BusinessSignupView.as_view(), name="business-signup"),
     # T-8.5 «Aktion in 3 Klicks»: регистрация + первая акция одной страницей.
     path("aktion-starten/", quickstart_views.quick_start, name="quick-start"),
+    path("aktion-starten/adresse/", quickstart_views.slug_check, name="quick-start-slug"),
     path("aktion-starten/<slug:slug>/", quickstart_views.quick_waiting, name="quick-start-waiting"),
     # AB5.1: double-opt-in — тенант создаётся только после клика по ссылке из письма.
     path("registrieren/bestaetigen/<str:token>/", signup_confirm, name="business-signup-confirm"),

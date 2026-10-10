@@ -75,6 +75,19 @@
       el.classList.toggle("hidden", hides.indexOf(t) !== -1);
     });
   }
+  // T-8.5b: прямая ссылка на перевод — «?sprache=en» открывает форму сразу в этом
+  // языке (вход «In weitere Sprachen übersetzen» с экрана «Fertig»).
+  function openFromUrl() {
+    var want = new URLSearchParams(window.location.search).get("sprache") || "";
+    if (/^[a-z]{2,3}$/.test(want) && document.querySelector('[data-i18n-pill="' + want + '"]')) {
+      setLoc(want);
+    }
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", openFromUrl);
+  } else {
+    openFromUrl();
+  }
   document.addEventListener("click", function (e) {
     var pill = e.target.closest("[data-i18n-pill]");
     if (pill) { setLoc(pill.getAttribute("data-i18n-pill")); return; }

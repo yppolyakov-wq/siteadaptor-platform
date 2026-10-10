@@ -104,6 +104,12 @@ def provision_quick_logic(tenant_id, email, promo) -> int | None:
             promo_obj = form.build()
             promo_obj.images = list(promo.get("images") or [])
             promo_obj.save()
+            # Фото сохранены на публичном хосте, где медиатеки бизнеса нет — вносим
+            # их в неё здесь, в схеме тенанта (CM-4, fail-safe).
+            from apps.catalog.images import _register_asset
+
+            for ref in promo_obj.images:
+                _register_asset(ref, "promotions")
             try:
                 limits.activate(promo_obj, tenant)
             except limits.ActivationLimit:

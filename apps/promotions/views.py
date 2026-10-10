@@ -634,18 +634,18 @@ def promotion_quick(request):
     )
     if request.method == "POST" and form.is_valid():
         promo = form.build()
-        upload = form.cleaned_data.get("photo")
-        image = None
-        if upload:
+        uploads = form.cleaned_data.get("photo") or []
+        images: list[dict] = []
+        if uploads:
             try:
-                image = save_product_image(upload, is_primary=True, folder="promotions")
+                images = quick.save_photos(uploads)
             except ValidationError as exc:
                 form.add_error("photo", "; ".join(exc.messages))
         elif source is not None:
-            image = quick.copy_primary_image(source)
+            images = quick.copy_images(source)
         if not form.errors:
-            if image:
-                promo.images = [image]
+            if images:
+                promo.images = images
             promo.save()
             if request.POST.get("publish") != "draft":
                 try:
@@ -653,14 +653,15 @@ def promotion_quick(request):
                 except limits.ActivationLimit:
                     pass  # остаётся черновиком — экран «Fertig» объясняет почему
             return redirect("promotions:promotion-quick-done", pk=promo.pk)
-        if image:
-            delete_stored_image(image)  # форма вернулась с ошибкой — файл не сироту
+        for ref in images:
+            delete_stored_image(ref)  # форма вернулась с ошибкой — файлы не сироты
     return render(
         request,
         "promotions/promotion_quick.html",
         {
             "form": form,
             "source": source,
+            "max_photos": quick.MAX_PHOTOS,
             "title_suggestions": [
                 str(p["initial"].get("title_de", ""))
                 for p in presets_for(getattr(tenant, "business_type", "") or "")
@@ -671,6 +672,18 @@ def promotion_quick(request):
             "nav": "promotions",
         },
     )
+
+
+def _translate_locales(tenant) -> list[tuple[str, str]]:
+    """Языки витрины, кроме базового: куда переводить текст акции (T-8.5b)."""
+    from django.conf import settings as dj_settings
+
+    names = dict(dj_settings.LANGUAGES)
+    try:
+        locales = list(tenant.active_locales) if tenant is not None else []
+    except Exception:  # noqa: BLE001 — стаб тенанта
+        locales = []
+    return [(c, names.get(c, c)) for c in locales if c != dj_settings.LANGUAGE_CODE]
 
 
 @login_required
@@ -697,6 +710,7 @@ def promotion_quick_done(request, pk):
             "limit_text": limits.limit_message(limit) if limit else "",
             "contact_email": limits.contact_email(),
             "nav": "promotions",
+            "translate_locales": _translate_locales(tenant),
             **owner_login.pending_context(request),  # T-8.5
         },
     )

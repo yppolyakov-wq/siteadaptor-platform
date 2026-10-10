@@ -342,3 +342,89 @@ def test_links_build_from_celery_public_urlconf(owner, settings):
         assert "/start/" in mail.outbox[-1].body
     finally:
         clear_url_caches()
+
+
+# --- T-8.5b: свой адрес + проверка, несколько фото ----------------------------------
+
+
+@pytest.mark.django_db
+def test_slug_helpers_normalize_and_refuse():
+    assert quickstart.normalize_slug("  Meine Bäckerei!! ") == "meine-baeckerei"
+    assert quickstart.slug_problem("ab")  # коротко
+    assert quickstart.slug_problem("7-tage")  # схема Postgres начинается с буквы
+    assert quickstart.slug_problem("admin")  # резерв
+    assert quickstart.slug_problem("adresse")  # путь самой страницы
+    assert quickstart.slug_problem("meine-baeckerei") == ""
+    TenantFactory(schema_name="belegt", slug="belegt")
+    assert quickstart.slug_problem("belegt")
+
+
+@pytest.mark.django_db
+def test_slug_taken_by_portal_domain():
+    """Портал города живёт на своём Domain: «solingen» нельзя отдать бизнесу."""
+    public = TenantFactory(schema_name="portal_x", slug="portal-x")
+    Domain.objects.create(domain=f"solingen.{quickstart.domain_base()}", tenant=public)
+    assert quickstart.slug_problem("solingen")
+    assert quickstart.suggest_slug("Solingen") == "solingen-2"
+
+
+@pytest.mark.django_db
+def test_chosen_subdomain_is_used_and_taken_one_is_refused():
+    with mock.patch("apps.tenants.tasks.provision_quick.delay"):
+        quickstart_views.quick_start(_post(_post_data(subdomain="Krume Hilden")))
+    tenant = Tenant.objects.get(slug="krume-hilden")
+    try:
+        with mock.patch("apps.tenants.tasks.provision_quick.delay"):
+            resp = quickstart_views.quick_start(
+                _post(_post_data(subdomain="krume-hilden"), ip="10.85.0.9")
+            )
+        assert resp.status_code == 200 and b"schon vergeben" in resp.content
+        assert Tenant.objects.filter(slug__startswith="krume-hilden").count() == 1
+    finally:
+        _drop(tenant)
+
+
+@pytest.mark.django_db
+def test_slug_check_endpoint():
+    import json
+
+    def ask(**params):
+        request = RequestFactory().get("/aktion-starten/adresse/", params)
+        request.META["REMOTE_ADDR"] = "10.85.1.1"
+        return json.loads(quickstart_views.slug_check(request).content)
+
+    assert ask(name="Café Rosé") == {"slug": "cafe-rose", "ok": True, "message": ""}
+    free = ask(slug="Mein Laden")
+    assert free["slug"] == "mein-laden" and free["ok"] is True
+    TenantFactory(schema_name="mein_laden", slug="mein-laden")
+    taken = ask(slug="mein-laden")
+    assert taken["ok"] is False and taken["message"] and taken["suggestion"] == "mein-laden-2"
+
+
+@pytest.mark.django_db
+def test_post_with_several_photos_carries_all_to_the_task():
+    from io import BytesIO
+
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from PIL import Image
+
+    from apps.catalog.images import delete_stored_image
+
+    def png():
+        buf = BytesIO()
+        Image.new("RGB", (8, 8), "blue").save(buf, "PNG")
+        return SimpleUploadedFile("p.png", buf.getvalue(), content_type="image/png")
+
+    data = _post_data()
+    data["photo"] = [png(), png()]
+    with mock.patch("apps.tenants.tasks.provision_quick.delay") as delay:
+        with mock.patch("django.db.transaction.on_commit", side_effect=lambda f: f()):
+            quickstart_views.quick_start(_post(data))
+    tenant = Tenant.objects.get(slug="baeckerei-mueller-soehne")
+    try:
+        images = delay.call_args.args[2]["images"]
+        assert len(images) == 2 and images[0]["is_primary"] and not images[1]["is_primary"]
+        for ref in images:
+            delete_stored_image(ref)
+    finally:
+        _drop(tenant)

@@ -23587,3 +23587,57 @@ msgstr ""
 "%(url)s\n"
 "\n"
 "siteadaptor ekibiniz"
+
+msgid "Aus der Galerie"
+msgstr "Galeriden"
+
+msgid "Bitte eine Adresse eingeben."
+msgstr "Lütfen bir adres girin."
+
+msgid "Bitte mit einem Buchstaben beginnen; nur a–z, 0–9 und Bindestriche."
+msgstr "Lütfen bir harfle başlayın; yalnızca a–z, 0–9 ve tire."
+
+msgid "Die Fotos werden übernommen — oder neue aufnehmen."
+msgstr "Fotoğraflar aktarılır — ya da yenilerini çekin."
+
+msgid "Diese Adresse ist schon vergeben."
+msgstr "Bu adres zaten alınmış."
+
+msgid "Foto aufnehmen"
+msgstr "Fotoğraf çek"
+
+msgid "Fotos"
+msgstr "Fotoğraflar"
+
+msgid "Frei"
+msgstr "Uygun"
+
+#, python-format
+msgid "Höchstens %(n)s Fotos."
+msgstr "En fazla %(n)s fotoğraf."
+
+msgid "Ihre Adresse"
+msgstr "Adresiniz"
+
+msgid "In weitere Sprachen übersetzen"
+msgstr "Diğer dillere çevir"
+
+msgid "Leer lassen — dann wählen wir eine freie Adresse aus dem Namen."
+msgstr "Boş bırakın — addan uygun bir adres seçeriz."
+
+#, python-format
+msgid "Mindestens %(n)s Zeichen."
+msgstr "En az %(n)s karakter."
+
+msgid "Ohne Übersetzung sehen Gäste den deutschen Text."
+msgstr "Çeviri olmadan ziyaretçiler Almanca metni görür."
+
+msgid "Stattdessen nehmen"
+msgstr "Bunun yerine al"
+
+#, python-format
+msgid "bis zu %(n)s · das erste ist das Titelbild"
+msgstr "en fazla %(n)s · ilki kapak fotoğrafı"
+
+msgid "wird aus dem Namen erstellt"
+msgstr "addan oluşturulur"

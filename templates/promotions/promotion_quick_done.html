@@ -42,9 +42,23 @@
     </div>
   {% endif %}
 
+  {% if translate_locales %}
+    {% comment %}T-8.5b: ассистент и «Aktion in 3 Klicks» пишут текст на базовом языке;
+    переводы — в обычной форме акции, ссылка открывает её сразу на нужном языке.{% endcomment %}
+    <div class="bg-white rounded-2xl shadow-sm p-4 text-sm" data-quick-translate>
+      <p class="font-medium">🌐 {% trans "In weitere Sprachen übersetzen" %}</p>
+      <p class="text-xs text-gray-500 mt-0.5">{% trans "Ohne Übersetzung sehen Gäste den deutschen Text." %}</p>
+      <div class="mt-2 flex flex-wrap gap-2">
+        {% for code, label in translate_locales %}
+          <a href="{% url 'promotions:promotion-edit' promotion.pk %}?sprache={{ code }}" class="rounded-full border border-gray-300 px-3 py-1 text-xs hover:bg-gray-50" data-translate-link="{{ code }}">{{ label }}</a>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
   <div class="flex flex-wrap gap-2">
     <a href="{% url 'promotions:promotion-quick' %}" class="w-full text-center rounded-xl bg-indigo-600 text-white px-4 py-3 text-sm font-medium">＋ {% trans "Noch eine Aktion" %}</a>
-    <a href="{% url 'promotions:promotion-edit' promotion.pk %}" class="flex-1 text-center rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-700">{% trans "Alle Felder" %}</a>
+    <a href="{% url 'promotions:promotion-edit' promotion.pk %}" class="flex-1 text-center rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-700" data-quick-edit>✏️ {% trans "Bearbeiten" %}</a>
     <a href="{% url 'promotions:promotion-list' %}" class="flex-1 text-center rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-700">{% trans "Meine Aktionen" %}</a>
   </div>
 </div>

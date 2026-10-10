@@ -31,11 +31,7 @@
 
     <section class="bg-white rounded-2xl shadow-sm p-4 space-y-4" data-qs-step="1">
       <h2 class="font-semibold text-gray-900">1 · {% trans "Was bieten Sie an?" %}</h2>
-      <label class="block">
-        <span class="block text-sm font-medium mb-1">📷 {{ form.photo.label }}</span>
-        <input type="file" name="photo" accept="image/*" capture="environment" class="block w-full text-sm">
-        {% for e in form.photo.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
-      </label>
+      {% include "promotions/_photo_picker.html" with errors=form.photo.errors %}
       <label class="block">
         <span class="block text-sm font-medium mb-1">{% trans "Was gibt es?" %}</span>
         <input type="text" name="title" value="{{ form.title.value|default:'' }}" maxlength="200" required
@@ -102,6 +98,18 @@
                class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" autocomplete="organization">
         {% for e in form.business_name.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
       </label>
+      <div data-qs-slug>
+        <label class="block text-sm font-medium mb-1" for="qs-subdomain">{{ form.subdomain.label }}</label>
+        <div class="flex items-stretch rounded-xl border border-gray-300 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500">
+          <input type="text" id="qs-subdomain" name="subdomain" value="{{ form.subdomain.value|default:'' }}" maxlength="80"
+                 autocapitalize="none" autocomplete="off" spellcheck="false" inputmode="url"
+                 placeholder="{% trans 'wird aus dem Namen erstellt' %}"
+                 class="min-w-0 flex-1 px-3 py-2.5 text-base outline-none" data-qs-slug-input>
+          <span class="shrink-0 bg-gray-50 px-2 py-2.5 text-sm text-gray-500 border-l border-gray-200">.{{ domain_base }}</span>
+        </div>
+        <p class="mt-1 text-xs text-gray-500" data-qs-slug-status aria-live="polite">{% trans "Leer lassen — dann wählen wir eine freie Adresse aus dem Namen." %}</p>
+        {% for e in form.subdomain.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+      </div>
       <fieldset>
         <legend class="block text-sm font-medium mb-2">{{ form.business_type.label }}</legend>
         <div class="grid grid-cols-2 gap-2">
@@ -183,6 +191,64 @@
   back.addEventListener("click", function () { show(1); });
   root.addEventListener("change", function (e) { if (e.target.name === "term") syncDate(); });
   syncDate();
+  // T-8.5b: адрес — предложение из названия + живая проверка «свободен?». Сервер при
+  // отправке проверяет ещё раз (гонка → понятная ошибка), здесь — только подсказка.
+  var slugInput = root.querySelector("[data-qs-slug-input]");
+  var slugStatus = root.querySelector("[data-qs-slug-status]");
+  var nameInput = root.querySelector('input[name="business_name"]');
+  var slugTouched = !!slugInput.value;
+  var slugTimer = null;
+  var slugCtrl = null;
+  var T_FREE = "{% trans 'Frei' %}";
+  var T_TAKE = "{% trans 'Stattdessen nehmen' %}";
+  function slugAsk(params, onData) {
+    if (slugCtrl) slugCtrl.abort();
+    slugCtrl = window.AbortController ? new AbortController() : null;
+    fetch("/aktion-starten/adresse/?" + new URLSearchParams(params), slugCtrl ? { signal: slugCtrl.signal } : {})
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d) onData(d); })
+      .catch(function () {});
+  }
+  function showSlug(d) {
+    slugStatus.textContent = "";
+    if (d.ok) {
+      slugStatus.className = "mt-1 text-xs text-green-700";
+      slugStatus.textContent = "✓ " + T_FREE + ": " + d.slug + ".{{ domain_base }}";
+      return;
+    }
+    slugStatus.className = "mt-1 text-xs text-red-600";
+    slugStatus.textContent = "✗ " + (d.message || "");
+    if (d.suggestion) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "ml-2 underline text-indigo-700";
+      b.textContent = T_TAKE + ": " + d.suggestion;
+      b.addEventListener("click", function () {
+        slugInput.value = d.suggestion; slugTouched = true; check();
+      });
+      slugStatus.appendChild(b);
+    }
+  }
+  function check() {
+    if (!slugInput.value.trim()) return;
+    slugAsk({ slug: slugInput.value }, showSlug);
+  }
+  function later(fn) { clearTimeout(slugTimer); slugTimer = setTimeout(fn, 350); }
+  slugInput.addEventListener("input", function () {
+    slugTouched = !!slugInput.value.trim();
+    later(check);
+  });
+  nameInput.addEventListener("input", function () {
+    if (slugTouched || !nameInput.value.trim()) return;
+    later(function () {
+      slugAsk({ name: nameInput.value }, function (d) {
+        if (slugTouched || !d.slug) return;
+        slugInput.value = d.slug;
+        showSlug(d);
+      });
+    });
+  });
+  if (slugInput.value) check();
   // Ошибка во втором шаге (или бизнес уже заполнен) — открываем его.
   var err2 = step2.querySelector(".text-red-600");
   var err1 = step1.querySelector(".text-red-600");

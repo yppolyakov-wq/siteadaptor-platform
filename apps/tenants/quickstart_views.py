@@ -10,10 +10,13 @@ from urllib.parse import urlencode
 
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 
 from apps.core import ratelimit
+from apps.promotions.quick import MAX_PHOTOS
 
 from . import quickstart
 from .models import Tenant
@@ -29,6 +32,8 @@ def _context(request, form):
         "form": form,
         "type_cards": quickstart.type_cards(request),
         "stamp": quickstart.form_stamp(),
+        "domain_base": quickstart.domain_base(),
+        "max_photos": MAX_PHOTOS,
         "ui_languages": ui_languages(),
     }
 
@@ -56,26 +61,33 @@ def quick_start(request):
 
     cd = form.cleaned_data
     promo = form.promo_payload()
-    upload = cd.get("photo")
-    if upload:
-        from apps.catalog.images import save_product_image
+    uploads = cd.get("photo") or []
+    if uploads:
+        from apps.promotions.quick import save_photos
 
         try:
-            promo["images"] = [save_product_image(upload, is_primary=True, folder="promotions")]
+            promo["images"] = save_photos(uploads)
         except ValidationError as exc:
             form.add_error("photo", "; ".join(exc.messages))
             return render(request, "tenants/quick_start.html", _context(request, form))
 
-    tenant = start_quick_provisioning(
-        business_name=cd["business_name"].strip(),
-        slug=quickstart.suggest_slug(cd["business_name"]),
-        business_type=cd["business_type"],
-        city=quickstart.DEFAULT_CITY,
-        district=cd.get("district") or "",
-        email=cd["email"],
-        promo=promo,
-        partner_code=request.session.pop("partner_ref", ""),
-    )
+    try:
+        tenant = start_quick_provisioning(
+            business_name=cd["business_name"].strip(),
+            slug=cd.get("subdomain") or quickstart.suggest_slug(cd["business_name"]),
+            business_type=cd["business_type"],
+            city=quickstart.DEFAULT_CITY,
+            district=cd.get("district") or "",
+            email=cd["email"],
+            promo=promo,
+            partner_code=request.session.get("partner_ref", ""),
+        )
+    except IntegrityError:
+        # Гонка: адрес заняли между проверкой и сохранением — просим выбрать другой.
+        _drop_photos(promo)
+        form.add_error("subdomain", _("Diese Adresse ist schon vergeben."))
+        return render(request, "tenants/quick_start.html", _context(request, form))
+    request.session.pop("partner_ref", None)
     from apps.core import owner_login
 
     handoff = dict(request.session.get(SESSION_KEY) or {})
@@ -87,6 +99,36 @@ def quick_start(request):
     request.session[SESSION_KEY] = handoff
     # Литеральный путь: страницы платформы рендерятся и под tenant-urlconf (тесты).
     return redirect(f"/aktion-starten/{tenant.slug}/")
+
+
+def _drop_photos(promo: dict) -> None:
+    from apps.catalog.images import delete_stored_image
+
+    for ref in promo.get("images") or []:
+        delete_stored_image(ref)
+
+
+def slug_check(request):
+    """Живая проверка адреса для формы: {slug, ok, message}.
+
+    ``?slug=`` — что ввёл человек (нормализуется так же, как на сервере при отправке);
+    пусто + ``?name=`` — предложить свободный адрес из названия.
+    """
+    if ratelimit.hit("quick-slug", ratelimit.client_ip(request), limit=120, window=3600):
+        return JsonResponse({"slug": "", "ok": False, "message": ""}, status=429)
+    raw = (request.GET.get("slug") or "").strip()
+    if not raw:
+        name = (request.GET.get("name") or "").strip()
+        slug = quickstart.suggest_slug(name) if name else ""
+        return JsonResponse({"slug": slug, "ok": bool(slug), "message": ""})
+    slug = quickstart.normalize_slug(raw)
+    problem = quickstart.slug_problem(slug) if slug else str(_("Bitte eine Adresse eingeben."))
+    suggestion = ""
+    if problem and slug:
+        suggestion = quickstart.suggest_slug(slug)
+    return JsonResponse(
+        {"slug": slug, "ok": not problem, "message": problem, "suggestion": suggestion}
+    )
 
 
 def _target(request, tenant) -> str | None:
