@@ -3,6 +3,7 @@
 План — docs/t8-5-quick-start-plan-2026-10-10.md §2.
 """
 
+import json
 import re
 from importlib import import_module
 from unittest import mock
@@ -493,3 +494,44 @@ def test_page_offers_category_select_with_type_suggestions():
     html = quickstart_views.quick_start(request).content.decode()
     assert "data-city-category-select" in html and 'id="qs-cat-suggest"' in html
     assert '"bakery": "brot-backwaren"' in html
+
+
+@pytest.mark.django_db
+def test_waiting_polls_quietly_and_never_spins_forever():
+    """Фидбэк 2026-10-10: страница ожидания перезагружалась каждые 3 с и могла
+    крутиться вечно (ключ акции потерян / задача пропала)."""
+    with mock.patch("apps.tenants.tasks.provision_quick.delay"):
+        quickstart_views.quick_start(request := _post(_post_data()))
+    tenant = Tenant.objects.get(slug="baeckerei-mueller-soehne")
+    try:
+        get = _session(RequestFactory().get(f"/aktion-starten/{tenant.slug}/"))
+        get.session = request.session
+        html = quickstart_views.quick_waiting(get, slug=tenant.slug).content.decode()
+        assert "?poll=1" in html and "<noscript>" in html  # тихий опрос, без мигания
+
+        poll = _session(RequestFactory().get(f"/aktion-starten/{tenant.slug}/", {"poll": "1"}))
+        poll.session = request.session
+        data = json.loads(quickstart_views.quick_waiting(poll, slug=tenant.slug).content)
+        assert data == {"redirect": "", "stop": False}
+
+        # схема готова, ключ акции пропал — через несколько минут ведём в список акций
+        old = timezone.now() - 2 * quickstart_views.READY_GRACE
+        Tenant.objects.filter(pk=tenant.pk).update(
+            provisioning_status=Tenant.PROVISIONING_READY, created_at=old
+        )
+        data = json.loads(quickstart_views.quick_waiting(poll, slug=tenant.slug).content)
+        assert "next=%2Fpromotions%2F" in data["redirect"]
+
+        # задача пропала: PENDING слишком долго — честное сообщение, опрос стоп
+        stale = timezone.now() - 2 * quickstart_views.STALE_AFTER
+        Tenant.objects.filter(pk=tenant.pk).update(
+            provisioning_status=Tenant.PROVISIONING_PENDING, created_at=stale
+        )
+        assert (
+            json.loads(quickstart_views.quick_waiting(poll, slug=tenant.slug).content)["stop"]
+            is True
+        )
+        html = quickstart_views.quick_waiting(get, slug=tenant.slug).content.decode()
+        assert "?poll=1" not in html and "noscript" not in html
+    finally:
+        _drop(tenant)

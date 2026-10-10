@@ -139,6 +139,8 @@ def test_ending_soon_is_two_column_grid_of_wide_cards():
         Promotion.objects.create(
             title={"de": f"Bald {i}"}, status="active", ends_at=soon, discount_percent=30
         )
+    # полоса нужна, только когда под ней есть ещё что-то (фидбэк 2026-10-10)
+    Promotion.objects.create(title={"de": "Lang"}, status="active", discount_percent=30)
     html = _get(public_views.promotion_list, "/aktionen/", tenant)
     m = re.search(
         r'<div class="grid grid-cols-1 sm:grid-cols-2 gap-4" data-ending-grid>(.*?)\n      </div>',

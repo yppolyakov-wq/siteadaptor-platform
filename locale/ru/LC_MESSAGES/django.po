@@ -24219,3 +24219,17 @@ msgid ""
 "Stadtportal."
 msgstr ""
 "Под этой рубрикой ваша компания и её услуги появляются на городском портале."
+
+msgid "Das dauert länger als gewohnt"
+msgstr "Это занимает больше времени, чем обычно"
+
+#, python-format
+msgid ""
+"Die Einrichtung von „%(name)s“ dauert länger als gewohnt. Bitte laden Sie "
+"die Seite in ein paar Minuten neu oder schreiben Sie uns."
+msgstr ""
+"Настройка «%(name)s» занимает больше времени, чем обычно. Обновите страницу "
+"через несколько минут или напишите нам."
+
+msgid "Das dauert etwa eine Minute. Es geht automatisch weiter."
+msgstr "Это займёт около минуты. Дальше всё произойдёт автоматически."

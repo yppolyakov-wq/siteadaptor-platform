@@ -192,3 +192,15 @@ def test_active_system_chip_stays_offered_so_it_can_be_switched_off():
     _promo("Läuft lange", discount_percent=20, ends_at=timezone.now() + timedelta(days=30))
     body = _body(t, {"endet": "heute"})
     assert "Endet heute" in body or "Ends today" in body
+
+
+def test_ending_soon_strip_does_not_repeat_the_whole_list():
+    """Фидбэк 2026-10-10 (скриншот): у быстрого магазина с одной акцией полоса
+    «Endet bald» и список под ней показывали её дважды — как две одинаковые акции."""
+    t = _tenant("pf-dup")
+    maus = _promo("Maus", ends_at=timezone.now() + timedelta(days=1))
+    body = _body(t)
+    assert "data-ending-soon" not in body
+    assert body.count(f'href="/p/{maus.pk}/"') == 1
+    _promo("Normal")
+    assert "data-ending-soon" in _body(t)  # под полосой есть ещё что-то

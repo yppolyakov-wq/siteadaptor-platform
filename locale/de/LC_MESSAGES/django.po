@@ -24025,3 +24025,17 @@ msgid ""
 msgstr ""
 "Unter dieser Rubrik erscheinen Ihr Unternehmen und Ihre Leistungen im "
 "Stadtportal."
+
+msgid "Das dauert länger als gewohnt"
+msgstr "Das dauert länger als gewohnt"
+
+#, python-format
+msgid ""
+"Die Einrichtung von „%(name)s“ dauert länger als gewohnt. Bitte laden Sie "
+"die Seite in ein paar Minuten neu oder schreiben Sie uns."
+msgstr ""
+"Die Einrichtung von „%(name)s“ dauert länger als gewohnt. Bitte laden Sie "
+"die Seite in ein paar Minuten neu oder schreiben Sie uns."
+
+msgid "Das dauert etwa eine Minute. Es geht automatisch weiter."
+msgstr "Das dauert etwa eine Minute. Es geht automatisch weiter."

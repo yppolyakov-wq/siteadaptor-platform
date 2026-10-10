@@ -3,7 +3,7 @@
 {% block title %}{% if failed %}{% trans "Something went wrong" %}{% else %}{% trans "Ihre Aktion geht online…" %}{% endif %}{% endblock %}
 
 {% block extra_head %}
-  {% if not failed %}<meta http-equiv="refresh" content="3">{% endif %}
+  {% if not failed and not stale %}<noscript><meta http-equiv="refresh" content="5"></noscript>{% endif %}
 {% endblock %}
 
 {% block body %}
@@ -11,7 +11,10 @@
 схема и акция готовы, вьюха уводит на поддомен с одноразовым входом.{% endcomment %}
 <div class="min-h-screen flex items-center justify-center px-4" data-quick-waiting>
   <div class="max-w-md w-full bg-white rounded-2xl shadow-sm p-8 text-center">
-    {% if failed %}
+    {% if stale %}
+      <h1 class="text-2xl font-bold mb-2">{% trans "Das dauert länger als gewohnt" %} ⏳</h1>
+      <p class="text-gray-600">{% blocktrans with name=tenant.name %}Die Einrichtung von „{{ name }}“ dauert länger als gewohnt. Bitte laden Sie die Seite in ein paar Minuten neu oder schreiben Sie uns.{% endblocktrans %}</p>
+    {% elif failed %}
       <h1 class="text-2xl font-bold mb-2">{% trans "Something went wrong" %} 😕</h1>
       <p class="text-gray-600">{% blocktrans with name=tenant.name %}We couldn't finish setting up "{{ name }}". We're on it — please try again later or contact us.{% endblocktrans %}</p>
     {% else %}
@@ -22,9 +25,28 @@
       <p class="text-sm text-gray-500 mb-5">{{ tenant.name }}</p>
       <div class="mx-auto mb-4 h-10 w-10 rounded-full border-4 border-indigo-100 border-t-indigo-600 animate-spin" aria-hidden="true"></div>
       <h1 class="text-xl font-bold mb-2">{% trans "Ihre Aktion geht online…" %}</h1>
-      <p class="text-gray-600 text-sm">{% trans "Das dauert etwa eine Minute. Die Seite lädt von selbst weiter." %}</p>
+      <p class="text-gray-600 text-sm">{% trans "Das dauert etwa eine Minute. Es geht automatisch weiter." %}</p>
       <p class="mt-4 text-xs text-gray-400">🌐 {{ tenant.slug }}.siteadaptor.de</p>
     {% endif %}
   </div>
 </div>
+{% if not failed and not stale %}
+<script>
+(function () {
+  // Тихий опрос статуса вместо перезагрузки страницы: картинка и спиннер не мигают.
+  var url = window.location.pathname + "?poll=1";
+  function tick() {
+    fetch(url, {credentials: "same-origin", headers: {"Accept": "application/json"}})
+      .then(function (r) { return r.ok ? r.json() : {}; })
+      .then(function (d) {
+        if (d.redirect) { window.location.href = d.redirect; return; }
+        if (d.stop) { window.location.reload(); return; }
+        setTimeout(tick, 3000);
+      })
+      .catch(function () { setTimeout(tick, 5000); });
+  }
+  setTimeout(tick, 3000);
+})();
+</script>
+{% endif %}
 {% endblock %}

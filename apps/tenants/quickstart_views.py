@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
 from urllib.parse import urlencode
 
 from django.core.cache import cache
@@ -13,6 +14,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.core import city_categories, ratelimit
@@ -22,6 +24,10 @@ from . import quickstart
 from .models import Tenant
 from .services import login_url_for, site_url_for, start_quick_provisioning
 
+# Ожидание: схема готова, а ключ акции пропал — через READY_GRACE ведём в список
+# акций; PENDING дольше STALE_AFTER — задача потеряна, круг не крутим вечно.
+READY_GRACE = timedelta(minutes=3)
+STALE_AFTER = timedelta(minutes=15)
 SESSION_KEY = "quick_handoff"  # {slug: {"token": ..., "title": ..., "price": ...}}
 
 
@@ -147,24 +153,42 @@ def _target(request, tenant) -> str | None:
         return None
     done = cache.get(f"quick_promo:{tenant.pk}")
     if done is None:
-        return None  # схема есть, акция ещё создаётся
+        # Схема есть, акция ещё создаётся. Ключ мог и потеряться (истёк, рестарт
+        # Redis, задача зависла на письме) — тогда не ждать вечно: через несколько
+        # минут ведём в список акций, там всё уже видно.
+        if timezone.now() - tenant.created_at < READY_GRACE:
+            return None
+        done = "list"
     entry = (request.session.get(SESSION_KEY) or {}).get(tenant.slug)
     if not entry:
         return login_url_for(tenant)  # другой браузер — обычный вход
-    next_url = f"/promotions/{done}/fertig/" if done != "none" else "/promotions/schnell/"
+    if done == "list":
+        next_url = "/promotions/"
+    elif done == "none":
+        next_url = "/promotions/schnell/"
+    else:
+        next_url = f"/promotions/{done}/fertig/"
     return f"{site_url_for(tenant)}/start/{entry['token']}/?{urlencode({'next': next_url})}"
 
 
 def quick_waiting(request, slug):
+    """Ожидание провижининга. Страница опрашивает статус fetch'ем (``?poll=1``) —
+    без видимой перезагрузки; meta refresh только как запасной путь без JS.
+    Висящее «PENDING» дольше STALE_AFTER — честное сообщение вместо вечного круга."""
     tenant = get_object_or_404(Tenant, slug=slug)
     failed = tenant.provisioning_status == Tenant.PROVISIONING_FAILED
-    if not failed:
-        target = _target(request, tenant)
-        if target:
-            return redirect(target)
+    stale = (
+        tenant.provisioning_status == Tenant.PROVISIONING_PENDING
+        and timezone.now() - tenant.created_at > STALE_AFTER
+    )
+    target = None if failed or stale else _target(request, tenant)
+    if request.GET.get("poll"):
+        return JsonResponse({"redirect": target or "", "stop": failed or stale})
+    if target:
+        return redirect(target)
     entry = (request.session.get(SESSION_KEY) or {}).get(tenant.slug) or {}
     return render(
         request,
         "tenants/quick_waiting.html",
-        {"tenant": tenant, "failed": failed, "preview": entry},
+        {"tenant": tenant, "failed": failed, "stale": stale, "preview": entry},
     )

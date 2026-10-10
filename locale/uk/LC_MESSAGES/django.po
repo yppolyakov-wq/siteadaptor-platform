@@ -24203,3 +24203,17 @@ msgid ""
 msgstr ""
 "Під цією рубрикою ваша компанія та її послуги з'являються на міському "
 "порталі."
+
+msgid "Das dauert länger als gewohnt"
+msgstr "Це триває довше, ніж зазвичай"
+
+#, python-format
+msgid ""
+"Die Einrichtung von „%(name)s“ dauert länger als gewohnt. Bitte laden Sie "
+"die Seite in ein paar Minuten neu oder schreiben Sie uns."
+msgstr ""
+"Налаштування «%(name)s» триває довше, ніж зазвичай. Оновіть сторінку за "
+"кілька хвилин або напишіть нам."
+
+msgid "Das dauert etwa eine Minute. Es geht automatisch weiter."
+msgstr "Це займе близько хвилини. Далі все відбудеться автоматично."

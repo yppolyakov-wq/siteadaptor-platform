@@ -24110,3 +24110,17 @@ msgid ""
 "Stadtportal."
 msgstr ""
 "İşletmeniz ve hizmetleriniz şehir portalında bu başlık altında görünür."
+
+msgid "Das dauert länger als gewohnt"
+msgstr "Bu her zamankinden uzun sürüyor"
+
+#, python-format
+msgid ""
+"Die Einrichtung von „%(name)s“ dauert länger als gewohnt. Bitte laden Sie "
+"die Seite in ein paar Minuten neu oder schreiben Sie uns."
+msgstr ""
+"„%(name)s“ kurulumu her zamankinden uzun sürüyor. Lütfen birkaç dakika sonra"
+" sayfayı yenileyin veya bize yazın."
+
+msgid "Das dauert etwa eine Minute. Es geht automatisch weiter."
+msgstr "Bu yaklaşık bir dakika sürer. Otomatik olarak devam eder."

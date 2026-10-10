@@ -23985,3 +23985,17 @@ msgid ""
 msgstr ""
 "Your business and your services appear under this heading in the city "
 "portal."
+
+msgid "Das dauert länger als gewohnt"
+msgstr "This is taking longer than usual"
+
+#, python-format
+msgid ""
+"Die Einrichtung von „%(name)s“ dauert länger als gewohnt. Bitte laden Sie "
+"die Seite in ein paar Minuten neu oder schreiben Sie uns."
+msgstr ""
+"Setting up “%(name)s” is taking longer than usual. Please reload the page in"
+" a few minutes or write to us."
+
+msgid "Das dauert etwa eine Minute. Es geht automatisch weiter."
+msgstr "This takes about a minute. It continues automatically."
