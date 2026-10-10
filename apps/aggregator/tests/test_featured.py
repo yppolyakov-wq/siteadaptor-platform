@@ -121,7 +121,7 @@ def test_map_points_carry_featured_flag_and_click_url():
     plain = _listing(latitude=51.0, longitude=7.0)
     feat = _listing(featured_hours=24, latitude=51.2, longitude=7.1)
     pts = {p["featured"]: p for p in geo.map_points([plain, feat])}
-    assert pts[False]["url"] == plain.detail_url
+    assert pts[False]["url"] == plain.portal_url  # T-8.6: ?ch=portal
     assert pts[True]["url"] == f"/entdecken/klick/{feat.pk}/"  # клик через счётчик
 
 
@@ -139,7 +139,7 @@ def test_impressions_counted_on_first_page_only():
 def test_featured_click_counts_and_redirects():
     feat = _listing(featured_hours=24)
     resp = views.featured_click(RequestFactory().get("/entdecken/klick/x/"), feat.pk)
-    assert resp.status_code == 302 and resp["Location"] == feat.detail_url
+    assert resp.status_code == 302 and resp["Location"] == feat.portal_url
     feat.refresh_from_db()
     assert feat.featured_clicks == 1
 
@@ -147,7 +147,7 @@ def test_featured_click_counts_and_redirects():
 def test_click_after_expiry_redirects_without_count():
     stale = _listing(featured_hours=-1)
     resp = views.featured_click(RequestFactory().get("/entdecken/klick/x/"), stale.pk)
-    assert resp.status_code == 302 and resp["Location"] == stale.detail_url
+    assert resp.status_code == 302 and resp["Location"] == stale.portal_url
     stale.refresh_from_db()
     assert stale.featured_clicks == 0
 
