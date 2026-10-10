@@ -23184,3 +23184,131 @@ msgid "Wir halten es %(h)s Stunde für Sie bereit."
 msgid_plural "Wir halten es %(h)s Stunden für Sie bereit."
 msgstr[0] "Sizin için %(h)s saat ayırıyoruz."
 msgstr[1] "Sizin için %(h)s saat ayırıyoruz."
+
+#, python-format
+msgid "%(used)s von %(limit)s Aktionen aktiv"
+msgstr "%(limit)s kampanyadan %(used)s tanesi aktif"
+
+msgid "7 Tage"
+msgstr "7 gün"
+
+msgid "Aktion wiederholen"
+msgstr "Kampanyayı tekrarla"
+
+msgid "Aktionspreis €"
+msgstr "Kampanya fiyatı €"
+
+msgid "Alle Felder"
+msgstr "Tüm alanlar"
+
+msgid "Als Entwurf gespeichert"
+msgstr "Taslak olarak kaydedildi"
+
+msgid "Als Entwurf speichern"
+msgstr "Taslak olarak kaydet"
+
+msgid "Bis"
+msgstr "Bitiş"
+
+msgid "Bitte ein Datum wählen."
+msgstr "Lütfen bir tarih seçin."
+
+msgid "Bitte entweder einen Preis oder einen Rabatt angeben."
+msgstr "Lütfen ya bir fiyat ya da bir indirim girin."
+
+msgid "Das Datum liegt in der Vergangenheit."
+msgstr "Tarih geçmişte."
+
+msgid "Das Foto wird übernommen — oder ein neues aufnehmen."
+msgstr "Fotoğraf yeniden kullanılır — ya da yeni bir tane çekin."
+
+msgid "Der alte Preis muss höher sein als der Aktionspreis."
+msgstr "Eski fiyat kampanya fiyatından yüksek olmalıdır."
+
+msgid "Dieses Wochenende"
+msgstr "Bu hafta sonu"
+
+msgid "Eigenes Datum"
+msgstr "Kendi tarihiniz"
+
+msgid "Heute bis Ladenschluss"
+msgstr "Bugün kapanışa kadar"
+
+msgid "Ihre Aktion ist online"
+msgstr "Kampanyanız yayında"
+
+msgid "Kopieren"
+msgstr "Kopyala"
+
+msgid "Kund:innen bestellen direkt online."
+msgstr "Müşteriler doğrudan online sipariş verir."
+
+msgid "Kund:innen lassen es zurücklegen und holen es bei Ihnen ab."
+msgstr "Müşteriler ayırtır ve sizden teslim alır."
+
+msgid "Kund:innen schicken eine Anfrage mit Datum und Wunsch."
+msgstr "Müşteriler tarih ve isteklerini içeren bir talep gönderir."
+
+msgid "Kurz beschreiben (optional)"
+msgstr "Kısa açıklama (isteğe bağlı)"
+
+msgid "Mehr Aktionen? Schreiben Sie uns"
+msgstr "Daha fazla kampanya mı? Bize yazın"
+
+msgid "Meine Aktionen"
+msgstr "Kampanyalarım"
+
+#, python-format
+msgid "Mit dem kostenlosen Start sind bis zu %(n)s Aktionen gleichzeitig aktiv. Mehr Aktionen? Schreiben Sie uns: %(contact)s"
+msgstr "Ücretsiz başlangıçta aynı anda en fazla %(n)s kampanya aktif olabilir. Daha fazla kampanya mı? Bize yazın: %(contact)s"
+
+msgid "Neue Aktion"
+msgstr "Yeni kampanya"
+
+msgid "Neue Aktion wird als Entwurf gespeichert."
+msgstr "Yeni kampanya taslak olarak kaydedilir."
+
+msgid "Noch eine Aktion"
+msgstr "Bir kampanya daha"
+
+msgid "Nur zeigen: Preis, Adresse, Route und Anruf."
+msgstr "Sadece göster: fiyat, adres, yol tarifi ve arama."
+
+msgid "Oder beenden Sie eine laufende Aktion — dann können Sie diese aktivieren."
+msgstr "Ya da devam eden bir kampanyayı bitirin — sonra bunu etkinleştirebilirsiniz."
+
+msgid "Preis und Dauer"
+msgstr "Fiyat ve süre"
+
+msgid "Statt €"
+msgstr "Yerine €"
+
+msgid "Stückzahl (optional)"
+msgstr "Adet (isteğe bağlı)"
+
+msgid "Veröffentlichen"
+msgstr "Yayınla"
+
+msgid "Was bieten Sie an?"
+msgstr "Ne sunuyorsunuz?"
+
+msgid "Was gibt es?"
+msgstr "Ne var?"
+
+msgid "Was tun Kund:innen?"
+msgstr "Müşteriler ne yapar?"
+
+msgid "Wie lange?"
+msgstr "Ne kadar süre?"
+
+msgid "Wiederholen"
+msgstr "Tekrarla"
+
+msgid "ausgegeben"
+msgstr "teslim edildi"
+
+msgid "oder Rabatt in Prozent"
+msgstr "veya yüzde indirim"
+
+msgid "zurückgelegt"
+msgstr "ayrıldı"

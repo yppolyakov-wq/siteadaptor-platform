@@ -17,6 +17,9 @@ urlpatterns = [
     path("typen/", views.promo_type_list, name="promo-type-list"),
     path("typen/speichern/", views.promo_type_save, name="promo-type-save"),
     path("new/", views.promotion_create, name="promotion-create"),
+    # T-8.4: «Schnell-Aktion» — ассистент с телефона + экран «Fertig».
+    path("schnell/", views.promotion_quick, name="promotion-quick"),
+    path("<uuid:pk>/fertig/", views.promotion_quick_done, name="promotion-quick-done"),
     path("<uuid:pk>/edit/", views.promotion_edit, name="promotion-edit"),
     path("<uuid:pk>/transition/", views.promotion_transition, name="promotion-transition"),
     # Платное продвижение акции в агрегаторе (P2.4b): страница + Stripe-Checkout.

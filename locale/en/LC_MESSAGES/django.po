@@ -23057,3 +23057,131 @@ msgid "Wir halten es %(h)s Stunde für Sie bereit."
 msgid_plural "Wir halten es %(h)s Stunden für Sie bereit."
 msgstr[0] "We'll keep it for you for %(h)s hour."
 msgstr[1] "We'll keep it for you for %(h)s hours."
+
+#, python-format
+msgid "%(used)s von %(limit)s Aktionen aktiv"
+msgstr "%(used)s of %(limit)s promotions active"
+
+msgid "7 Tage"
+msgstr "7 days"
+
+msgid "Aktion wiederholen"
+msgstr "Repeat promotion"
+
+msgid "Aktionspreis €"
+msgstr "Promotion price €"
+
+msgid "Alle Felder"
+msgstr "All fields"
+
+msgid "Als Entwurf gespeichert"
+msgstr "Saved as draft"
+
+msgid "Als Entwurf speichern"
+msgstr "Save as draft"
+
+msgid "Bis"
+msgstr "Until"
+
+msgid "Bitte ein Datum wählen."
+msgstr "Please choose a date."
+
+msgid "Bitte entweder einen Preis oder einen Rabatt angeben."
+msgstr "Please enter either a price or a discount."
+
+msgid "Das Datum liegt in der Vergangenheit."
+msgstr "The date is in the past."
+
+msgid "Das Foto wird übernommen — oder ein neues aufnehmen."
+msgstr "The photo is reused — or take a new one."
+
+msgid "Der alte Preis muss höher sein als der Aktionspreis."
+msgstr "The old price must be higher than the promotion price."
+
+msgid "Dieses Wochenende"
+msgstr "This weekend"
+
+msgid "Eigenes Datum"
+msgstr "Own date"
+
+msgid "Heute bis Ladenschluss"
+msgstr "Today until closing"
+
+msgid "Ihre Aktion ist online"
+msgstr "Your promotion is online"
+
+msgid "Kopieren"
+msgstr "Copy"
+
+msgid "Kund:innen bestellen direkt online."
+msgstr "Customers order directly online."
+
+msgid "Kund:innen lassen es zurücklegen und holen es bei Ihnen ab."
+msgstr "Customers have it put aside and pick it up at your shop."
+
+msgid "Kund:innen schicken eine Anfrage mit Datum und Wunsch."
+msgstr "Customers send a request with date and wishes."
+
+msgid "Kurz beschreiben (optional)"
+msgstr "Short description (optional)"
+
+msgid "Mehr Aktionen? Schreiben Sie uns"
+msgstr "More promotions? Write to us"
+
+msgid "Meine Aktionen"
+msgstr "My promotions"
+
+#, python-format
+msgid "Mit dem kostenlosen Start sind bis zu %(n)s Aktionen gleichzeitig aktiv. Mehr Aktionen? Schreiben Sie uns: %(contact)s"
+msgstr "With the free start, up to %(n)s promotions can be active at the same time. More promotions? Write to us: %(contact)s"
+
+msgid "Neue Aktion"
+msgstr "New promotion"
+
+msgid "Neue Aktion wird als Entwurf gespeichert."
+msgstr "A new promotion is saved as a draft."
+
+msgid "Noch eine Aktion"
+msgstr "Another promotion"
+
+msgid "Nur zeigen: Preis, Adresse, Route und Anruf."
+msgstr "Just show: price, address, route and call."
+
+msgid "Oder beenden Sie eine laufende Aktion — dann können Sie diese aktivieren."
+msgstr "Or end a running promotion — then you can activate this one."
+
+msgid "Preis und Dauer"
+msgstr "Price and duration"
+
+msgid "Statt €"
+msgstr "Instead of €"
+
+msgid "Stückzahl (optional)"
+msgstr "Quantity (optional)"
+
+msgid "Veröffentlichen"
+msgstr "Publish"
+
+msgid "Was bieten Sie an?"
+msgstr "What are you offering?"
+
+msgid "Was gibt es?"
+msgstr "What is it?"
+
+msgid "Was tun Kund:innen?"
+msgstr "What do customers do?"
+
+msgid "Wie lange?"
+msgstr "How long?"
+
+msgid "Wiederholen"
+msgstr "Repeat"
+
+msgid "ausgegeben"
+msgstr "handed out"
+
+msgid "oder Rabatt in Prozent"
+msgstr "or discount in percent"
+
+msgid "zurückgelegt"
+msgstr "put aside"

@@ -1,0 +1,173 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Neue Aktion" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}T-8.4: «Schnell-Aktion» — три шага на телефоне (план
+docs/t8-4-assistant-plan-2026-10-10.md §2). Без JS все шаги видны подряд и форма
+работает; скрипт внизу показывает по одному шагу с «Weiter/Zurück».{% endcomment %}
+<div class="max-w-lg mx-auto" data-quick-assistant>
+  <div class="flex items-center justify-between gap-3 mb-3">
+    <h1 class="text-xl font-bold">{% if source %}↻ {% trans "Aktion wiederholen" %}{% else %}⚡ {% trans "Neue Aktion" %}{% endif %}</h1>
+    <a href="{% url 'promotions:promotion-create' %}" class="text-xs text-gray-500 hover:underline">{% trans "Alle Felder" %} →</a>
+  </div>
+
+  {% if limit_usage %}
+    <p class="mb-3 text-xs {% if limit_usage.full %}text-amber-700{% else %}text-gray-500{% endif %}" data-limit-usage>
+      {% blocktrans with used=limit_usage.used limit=limit_usage.limit %}{{ used }} von {{ limit }} Aktionen aktiv{% endblocktrans %}
+      {% if limit_usage.full %} · {% trans "Neue Aktion wird als Entwurf gespeichert." %} <a href="mailto:{{ contact_email }}" class="underline">{% trans "Mehr Aktionen? Schreiben Sie uns" %}</a>{% endif %}
+    </p>
+  {% endif %}
+
+  <ol class="flex gap-2 mb-4 text-xs" data-quick-steps aria-hidden="true">
+    <li class="flex-1 h-1.5 rounded-full bg-indigo-600" data-step-dot="1"></li>
+    <li class="flex-1 h-1.5 rounded-full bg-gray-200" data-step-dot="2"></li>
+    <li class="flex-1 h-1.5 rounded-full bg-gray-200" data-step-dot="3"></li>
+  </ol>
+
+  {% if form.non_field_errors %}
+    <div class="mb-3 rounded-lg px-4 py-2 text-sm bg-red-50 text-red-700">{{ form.non_field_errors|join:" " }}</div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    {{ form.group }}
+    {{ form.photo_from }}
+
+    <section class="bg-white rounded-2xl shadow-sm p-4 mb-3 space-y-4" data-quick-step="1">
+      <h2 class="text-sm font-semibold text-gray-500">1 · {% trans "Was gibt es?" %}</h2>
+      <label class="block">
+        <span class="block text-sm font-medium mb-1">{{ form.photo.label }}</span>
+        {% if source and source.primary_image %}
+          <img src="{{ source.primary_image.url }}" alt="" class="mb-2 w-24 h-24 object-cover rounded-xl" data-source-photo>
+          <span class="block text-xs text-gray-500 mb-1">{% trans "Das Foto wird übernommen — oder ein neues aufnehmen." %}</span>
+        {% endif %}
+        <input type="file" name="photo" accept="image/*" capture="environment" class="block w-full text-sm">
+        {% for e in form.photo.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+      </label>
+      <label class="block">
+        <span class="block text-sm font-medium mb-1">{{ form.title.label }}</span>
+        <input type="text" name="title" value="{{ form.title.value|default:'' }}" maxlength="200" required list="quick-title-options"
+               class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base" autocomplete="off">
+        {% if title_suggestions %}
+          <datalist id="quick-title-options">{% for t in title_suggestions %}<option value="{{ t }}">{% endfor %}</datalist>
+        {% endif %}
+        {% for e in form.title.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+      </label>
+      <label class="block">
+        <span class="block text-sm font-medium mb-1">{{ form.description.label }}</span>
+        <textarea name="description" rows="2" class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm">{{ form.description.value|default:'' }}</textarea>
+      </label>
+    </section>
+
+    <section class="bg-white rounded-2xl shadow-sm p-4 mb-3 space-y-4" data-quick-step="2">
+      <h2 class="text-sm font-semibold text-gray-500">2 · {% trans "Preis und Dauer" %}</h2>
+      <div class="grid grid-cols-2 gap-3">
+        <label class="block">
+          <span class="block text-sm font-medium mb-1">{{ form.new_price.label }}</span>
+          <input type="number" name="new_price" value="{{ form.new_price.value|default_if_none:''|stringformat:'s' }}" step="0.01" min="0" inputmode="decimal"
+                 class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base">
+          {% for e in form.new_price.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+        </label>
+        <label class="block">
+          <span class="block text-sm font-medium mb-1">{{ form.old_price.label }}</span>
+          <input type="number" name="old_price" value="{{ form.old_price.value|default_if_none:''|stringformat:'s' }}" step="0.01" min="0" inputmode="decimal"
+                 class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-base">
+          {% for e in form.old_price.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+        </label>
+      </div>
+      <label class="block">
+        <span class="block text-sm font-medium mb-1">{{ form.percent.label }}</span>
+        <input type="number" name="percent" value="{{ form.percent.value|default_if_none:'' }}" min="1" max="99" inputmode="numeric"
+               class="w-28 rounded-xl border border-gray-300 px-3 py-2.5 text-base">
+        {% for e in form.percent.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+      </label>
+      <fieldset>
+        <legend class="block text-sm font-medium mb-2">{{ form.term.label }}</legend>
+        <div class="flex flex-wrap gap-2" data-term-chips>
+          {% for key, label in form.fields.term.choices %}
+          <label class="cursor-pointer">
+            <input type="radio" name="term" value="{{ key }}" class="peer sr-only" {% if form.term.value|stringformat:'s' == key %}checked{% endif %}>
+            <span class="inline-block rounded-full border border-gray-300 px-3 py-1.5 text-sm peer-checked:bg-indigo-600 peer-checked:border-indigo-600 peer-checked:text-white">{{ label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        <label class="block mt-2" data-term-date>
+          <span class="block text-xs text-gray-500 mb-1">{{ form.until.label }}</span>
+          <input type="date" name="until" value="{{ form.until.value|default_if_none:''|stringformat:'s' }}" class="rounded-xl border border-gray-300 px-3 py-2 text-sm">
+          {% for e in form.until.errors %}<span class="block text-xs text-red-600 mt-1">{{ e }}</span>{% endfor %}
+        </label>
+      </fieldset>
+      <label class="block">
+        <span class="block text-sm font-medium mb-1">{{ form.quantity.label }}</span>
+        <input type="number" name="quantity" value="{{ form.quantity.value|default_if_none:'' }}" min="1" inputmode="numeric"
+               class="w-28 rounded-xl border border-gray-300 px-3 py-2.5 text-base">
+      </label>
+    </section>
+
+    <section class="bg-white rounded-2xl shadow-sm p-4 mb-3 space-y-3" data-quick-step="3">
+      <h2 class="text-sm font-semibold text-gray-500">3 · {{ form.customer_response.label }}</h2>
+      {% for key, label, hint in form.response_options %}
+      <label class="flex items-start gap-3 rounded-xl border border-gray-200 p-3 cursor-pointer has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50" data-response-option="{{ key }}">
+        <input type="radio" name="customer_response" value="{{ key }}" class="mt-1" {% if form.customer_response.value|stringformat:'s' == key %}checked{% endif %}>
+        <span>
+          <span class="block text-sm font-medium">{{ label }}</span>
+          <span class="block text-xs text-gray-500">{{ hint }}</span>
+        </span>
+      </label>
+      {% endfor %}
+      <div class="flex flex-wrap gap-2 pt-2">
+        <button type="submit" name="publish" value="now" class="flex-1 bg-indigo-600 text-white rounded-xl px-4 py-3 text-base font-semibold hover:bg-indigo-700">{% trans "Veröffentlichen" %}</button>
+        <button type="submit" name="publish" value="draft" class="rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">{% trans "Als Entwurf speichern" %}</button>
+      </div>
+    </section>
+
+    <div class="flex justify-between gap-2 hidden" data-quick-nav>
+      <button type="button" class="rounded-xl border border-gray-300 px-4 py-2.5 text-sm" data-quick-back>← {% trans "Zurück" %}</button>
+      <button type="button" class="rounded-xl bg-gray-900 text-white px-5 py-2.5 text-sm font-medium" data-quick-next>{% trans "Weiter" %} →</button>
+    </div>
+  </form>
+</div>
+
+<script>
+(function () {
+  var root = document.querySelector("[data-quick-assistant]");
+  if (!root) return;
+  var steps = root.querySelectorAll("[data-quick-step]");
+  var nav = root.querySelector("[data-quick-nav]");
+  var back = root.querySelector("[data-quick-back]");
+  var next = root.querySelector("[data-quick-next]");
+  var dates = root.querySelector("[data-term-date]");
+  // Шаг с ошибкой открывается первым (серверная валидация вернула форму).
+  var current = 1;
+  steps.forEach(function (s) {
+    if (s.querySelector(".text-red-600") && current === 1) current = +s.dataset.quickStep;
+  });
+  function show(n) {
+    current = n;
+    steps.forEach(function (s) { s.hidden = +s.dataset.quickStep !== n; });
+    root.querySelectorAll("[data-step-dot]").forEach(function (d) {
+      d.className = d.className.replace(/bg-(indigo-600|gray-200)/, +d.dataset.stepDot <= n ? "bg-indigo-600" : "bg-gray-200");
+    });
+    nav.classList.remove("hidden");
+    back.style.visibility = n > 1 ? "visible" : "hidden";
+    next.style.display = n < steps.length ? "" : "none";
+    window.scrollTo({ top: 0 });
+  }
+  function syncDate() {
+    var picked = root.querySelector('input[name="term"]:checked');
+    // классом, а не атрибутом hidden: `block` у label перебивает атрибут
+    if (dates) dates.classList.toggle("hidden", !(picked && picked.value === "date"));
+  }
+  next.addEventListener("click", function () {
+    var title = root.querySelector('input[name="title"]');
+    if (current === 1 && title && !title.value.trim()) { title.focus(); title.reportValidity && title.reportValidity(); return; }
+    show(Math.min(current + 1, steps.length));
+  });
+  back.addEventListener("click", function () { show(Math.max(current - 1, 1)); });
+  root.addEventListener("change", function (e) { if (e.target.name === "term") syncDate(); });
+  syncDate();
+  show(current);
+})();
+</script>
+{% endblock %}

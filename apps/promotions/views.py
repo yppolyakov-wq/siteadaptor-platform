@@ -21,7 +21,7 @@ from apps.core.documents import document_language
 from apps.core.fsm import IllegalTransition
 from apps.loyalty.models import LoyaltyCard, LoyaltyProgram, Voucher
 
-from . import group_styles, services
+from . import group_styles, limits, services
 from .forms import LoyaltyProgramForm, PromotionForm, VoucherCreateForm
 from .models import Customer, Promotion, Reservation
 from .poster import build_shop_poster_pdf
@@ -30,6 +30,8 @@ from .state_machine import PromotionSM
 
 PROMO_STATUSES = ["draft", "scheduled", "active", "paused", "ended", "archived"]
 RESERVATION_STATUSES = ["pending", "confirmed", "fulfilled", "cancelled", "expired"]
+# T-8.4: «↻ Wiederholen» — у прошлых акций (то же предложение, новый срок).
+REPEATABLE_STATUSES = ("ended", "archived", "paused")
 
 
 def _bump_storefront(request):
@@ -147,7 +149,18 @@ def _handle_promo_uploads(request, promo) -> None:
 
 @login_required
 def promotion_list(request):
-    promos = Promotion.objects.select_related("product").all()
+    # T-8.4: счётчики под акцией — отложили · выдано (одним annotate, без N+1).
+    promos = (
+        Promotion.objects.select_related("product")
+        .annotate(
+            n_held=Count(
+                "reservations",
+                filter=Q(reservations__status__in=["pending", "confirmed", "fulfilled"]),
+            ),
+            n_handed=Count("reservations", filter=Q(reservations__status="fulfilled")),
+        )
+        .all()
+    )
     status = request.GET.get("status", "")
     if status:
         promos = promos.filter(status=status)
@@ -188,6 +201,10 @@ def promotion_list(request):
             # X6-3: фильтр показывал сырые коды статусов — даём подписи.
             "statuses": [(st, promo_status_label(st)) for st in PROMO_STATUSES],
             "status": status,
+            # T-8.4: «3 von 5 aktiv» — только на бесплатной лёгкой ступени (Р-5).
+            "limit_usage": limits.usage(getattr(request, "tenant", None)),
+            "contact_email": limits.contact_email(),
+            "repeatable": REPEATABLE_STATUSES,
             "featured_enabled": featured_enabled,
             "nav": "promotions",
             # VF-20b: перекрёстный вход в Кампании (соседняя задача — «разослать
@@ -565,6 +582,95 @@ def promotion_create(request):
 
 
 @login_required
+def promotion_quick(request):
+    """T-8.4: «Schnell-Aktion» — акция с телефона за три шага (план
+    docs/t8-4-assistant-plan-2026-10-10.md). ``?von=<pk>`` — «Wiederholen»."""
+    from . import quick
+
+    tenant = getattr(request, "tenant", None)
+    source = None
+    initial = {}
+    src_pk = request.GET.get("von") if request.method == "GET" else request.POST.get("photo_from")
+    if src_pk:
+        try:
+            source = Promotion.objects.filter(pk=src_pk).first()
+        except (ValueError, ValidationError):
+            source = None
+    if request.method == "GET" and source is not None:
+        initial = quick.initial_from(source)
+    form = quick.QuickPromotionForm(
+        request.POST or None, request.FILES or None, initial=initial or None, tenant=tenant
+    )
+    if request.method == "POST" and form.is_valid():
+        promo = form.build()
+        upload = form.cleaned_data.get("photo")
+        image = None
+        if upload:
+            try:
+                image = save_product_image(upload, is_primary=True, folder="promotions")
+            except ValidationError as exc:
+                form.add_error("photo", "; ".join(exc.messages))
+        elif source is not None:
+            image = quick.copy_primary_image(source)
+        if not form.errors:
+            if image:
+                promo.images = [image]
+            promo.save()
+            if request.POST.get("publish") != "draft":
+                try:
+                    limits.activate(promo, tenant, actor=request.user)
+                except limits.ActivationLimit:
+                    pass  # остаётся черновиком — экран «Fertig» объясняет почему
+            return redirect("promotions:promotion-quick-done", pk=promo.pk)
+        if image:
+            delete_stored_image(image)  # форма вернулась с ошибкой — файл не сироту
+    return render(
+        request,
+        "promotions/promotion_quick.html",
+        {
+            "form": form,
+            "source": source,
+            "title_suggestions": [
+                str(p["initial"].get("title_de", ""))
+                for p in presets_for(getattr(tenant, "business_type", "") or "")
+                if p["initial"].get("title_de")
+            ],
+            "limit_usage": limits.usage(tenant),
+            "contact_email": limits.contact_email(),
+            "nav": "promotions",
+        },
+    )
+
+
+@login_required
+def promotion_quick_done(request, pk):
+    """T-8.4: экран «Fertig» — ссылка, QR и «поделиться»; у черновика — почему."""
+    from apps.core.share_links import share_targets
+
+    promo = get_object_or_404(Promotion, pk=pk)
+    tenant = getattr(request, "tenant", None)
+    url = request.build_absolute_uri(reverse("storefront-promotion", args=[promo.pk]))
+    active = promo.status == "active"
+    limit = limits.active_limit(tenant)
+    return render(
+        request,
+        "promotions/promotion_quick_done.html",
+        {
+            "promotion": promo,
+            "active": active,
+            "promo_url": url,
+            "share": share_targets(promo.title_text, url) if active else [],
+            "limit_blocked": (not active)
+            and limit is not None
+            and not limits.can_activate(promo, tenant),
+            "limit_text": limits.limit_message(limit) if limit else "",
+            "contact_email": limits.contact_email(),
+            "nav": "promotions",
+        },
+    )
+
+
+@login_required
 def promotion_edit(request, pk):
     promo = get_object_or_404(Promotion, pk=pk)
     form = PromotionForm(
@@ -840,8 +946,14 @@ def promotion_transition(request, pk):
     if request.method == "POST":
         target = request.POST.get("target", "")
         try:
-            PromotionSM().apply(promo, target, actor=request.user)
+            if target == "active":
+                # T-8.4 (Р-5): бесплатная лёгкая ступень — не больше N активных.
+                limits.activate(promo, getattr(request, "tenant", None), actor=request.user)
+            else:
+                PromotionSM().apply(promo, target, actor=request.user)
             messages.success(request, _("Status: %(target)s") % {"target": target})
+        except limits.ActivationLimit as exc:
+            messages.error(request, limits.limit_message(exc.limit))
         except IllegalTransition:
             messages.error(
                 request, _("Transition to %(target)s is not allowed.") % {"target": target}

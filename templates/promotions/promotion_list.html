@@ -22,11 +22,21 @@
         <a href="{% url 'promotions:shop-poster' %}?ziel=veranstaltung" target="_blank" rel="noopener" class="block px-3 py-1.5 hover:bg-gray-50">{% trans "Events" %}</a>
       </div>
     </details>
-    <a href="{% url 'promotions:promotion-create' %}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700">
-      + {% trans "New promotion" %}
+    {% comment %}T-8.4: «＋» ведёт в ассистент (три шага с телефона); полная форма
+    остаётся рядом («Alle Felder»).{% endcomment %}
+    <a href="{% url 'promotions:promotion-create' %}" class="border border-gray-300 text-gray-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50">{% trans "Alle Felder" %}</a>
+    <a href="{% url 'promotions:promotion-quick' %}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700" data-quick-new>
+      ＋ {% trans "Neue Aktion" %}
     </a>
   </div>
 </div>
+
+{% if limit_usage %}
+  <p class="mb-3 text-sm {% if limit_usage.full %}text-amber-800 bg-amber-50 rounded-lg px-4 py-2{% else %}text-gray-500{% endif %}" data-limit-usage>
+    {% blocktrans with used=limit_usage.used limit=limit_usage.limit %}{{ used }} von {{ limit }} Aktionen aktiv{% endblocktrans %}
+    {% if limit_usage.full %} · <a href="mailto:{{ contact_email }}" class="underline">{% trans "Mehr Aktionen? Schreiben Sie uns" %}</a>{% endif %}
+  </p>
+{% endif %}
 
 {% if messages %}
   {% for m in messages %}
@@ -90,7 +100,10 @@
         <tr class="border-b last:border-0">
           {% comment %}VF-21 (фидбэк 2026-08-25): название — ссылка в форму (как
           имя товара в Sortiment); «Edit» в действиях остаётся.{% endcomment %}
-          <td class="py-2"><a href="{% url 'promotions:promotion-edit' p.pk %}" class="font-medium hover:text-indigo-700 hover:underline">{{ p }}</a></td>
+          <td class="py-2"><a href="{% url 'promotions:promotion-edit' p.pk %}" class="font-medium hover:text-indigo-700 hover:underline">{{ p }}</a>
+            {# T-8.4: просмотры · отложили · выдано — то, что бизнесу важно при продлении #}
+            <span class="block text-[11px] text-gray-400" data-promo-counters>👁 {{ p.views }} · {% trans "zurückgelegt" %} {{ p.n_held }} · {% trans "ausgegeben" %} {{ p.n_handed }}</span>
+          </td>
           <td class="py-2">{{ p.get_promo_type_display }}</td>
           {% comment %}X6-3 (ловушка черновика): вместо сырого кода — подпись, а у
           неактивной акции честный бейдж «клиенты её не видят».{% endcomment %}
@@ -111,6 +124,9 @@
                 {% if p.is_featured_agg %}★ {% trans "until" %} {{ p.featured_until_agg|date:"d.m." }}{% else %}★ {% trans "Feature" %}{% endif %}
               </a>
             {% endif %}
+            {% if p.status in repeatable %}
+              <a href="{% url 'promotions:promotion-quick' %}?von={{ p.pk }}" class="mr-2 text-gray-600 hover:underline" data-repeat>↻ {% trans "Wiederholen" %}</a>
+            {% endif %}
             <a href="{% url 'promotions:promotion-edit' p.pk %}" class="text-indigo-600 hover:underline">{% trans "Edit" %}</a>
           </td>
         </tr>
@@ -121,4 +137,7 @@
   </table>
   </div>
 </div>
+{# T-8.4: мобильная «＋» над таб-баром (паттерн R3 Verkäufe) — в ассистент #}
+<a href="{% url 'promotions:promotion-quick' %}" aria-label="{% trans 'Neue Aktion' %}"
+   class="sm:hidden fixed right-4 bottom-24 z-30 w-14 h-14 rounded-full bg-indigo-600 text-white text-2xl leading-none flex items-center justify-center shadow-[0_10px_24px_rgba(79,70,229,0.35)] hover:bg-indigo-700" data-quick-fab>＋</a>
 {% endblock %}

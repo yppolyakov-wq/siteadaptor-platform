@@ -23095,3 +23095,131 @@ msgid "Wir halten es %(h)s Stunde für Sie bereit."
 msgid_plural "Wir halten es %(h)s Stunden für Sie bereit."
 msgstr[0] "Wir halten es %(h)s Stunde für Sie bereit."
 msgstr[1] "Wir halten es %(h)s Stunden für Sie bereit."
+
+#, python-format
+msgid "%(used)s von %(limit)s Aktionen aktiv"
+msgstr "%(used)s von %(limit)s Aktionen aktiv"
+
+msgid "7 Tage"
+msgstr "7 Tage"
+
+msgid "Aktion wiederholen"
+msgstr "Aktion wiederholen"
+
+msgid "Aktionspreis €"
+msgstr "Aktionspreis €"
+
+msgid "Alle Felder"
+msgstr "Alle Felder"
+
+msgid "Als Entwurf gespeichert"
+msgstr "Als Entwurf gespeichert"
+
+msgid "Als Entwurf speichern"
+msgstr "Als Entwurf speichern"
+
+msgid "Bis"
+msgstr "Bis"
+
+msgid "Bitte ein Datum wählen."
+msgstr "Bitte ein Datum wählen."
+
+msgid "Bitte entweder einen Preis oder einen Rabatt angeben."
+msgstr "Bitte entweder einen Preis oder einen Rabatt angeben."
+
+msgid "Das Datum liegt in der Vergangenheit."
+msgstr "Das Datum liegt in der Vergangenheit."
+
+msgid "Das Foto wird übernommen — oder ein neues aufnehmen."
+msgstr "Das Foto wird übernommen — oder ein neues aufnehmen."
+
+msgid "Der alte Preis muss höher sein als der Aktionspreis."
+msgstr "Der alte Preis muss höher sein als der Aktionspreis."
+
+msgid "Dieses Wochenende"
+msgstr "Dieses Wochenende"
+
+msgid "Eigenes Datum"
+msgstr "Eigenes Datum"
+
+msgid "Heute bis Ladenschluss"
+msgstr "Heute bis Ladenschluss"
+
+msgid "Ihre Aktion ist online"
+msgstr "Ihre Aktion ist online"
+
+msgid "Kopieren"
+msgstr "Kopieren"
+
+msgid "Kund:innen bestellen direkt online."
+msgstr "Kund:innen bestellen direkt online."
+
+msgid "Kund:innen lassen es zurücklegen und holen es bei Ihnen ab."
+msgstr "Kund:innen lassen es zurücklegen und holen es bei Ihnen ab."
+
+msgid "Kund:innen schicken eine Anfrage mit Datum und Wunsch."
+msgstr "Kund:innen schicken eine Anfrage mit Datum und Wunsch."
+
+msgid "Kurz beschreiben (optional)"
+msgstr "Kurz beschreiben (optional)"
+
+msgid "Mehr Aktionen? Schreiben Sie uns"
+msgstr "Mehr Aktionen? Schreiben Sie uns"
+
+msgid "Meine Aktionen"
+msgstr "Meine Aktionen"
+
+#, python-format
+msgid "Mit dem kostenlosen Start sind bis zu %(n)s Aktionen gleichzeitig aktiv. Mehr Aktionen? Schreiben Sie uns: %(contact)s"
+msgstr "Mit dem kostenlosen Start sind bis zu %(n)s Aktionen gleichzeitig aktiv. Mehr Aktionen? Schreiben Sie uns: %(contact)s"
+
+msgid "Neue Aktion"
+msgstr "Neue Aktion"
+
+msgid "Neue Aktion wird als Entwurf gespeichert."
+msgstr "Neue Aktion wird als Entwurf gespeichert."
+
+msgid "Noch eine Aktion"
+msgstr "Noch eine Aktion"
+
+msgid "Nur zeigen: Preis, Adresse, Route und Anruf."
+msgstr "Nur zeigen: Preis, Adresse, Route und Anruf."
+
+msgid "Oder beenden Sie eine laufende Aktion — dann können Sie diese aktivieren."
+msgstr "Oder beenden Sie eine laufende Aktion — dann können Sie diese aktivieren."
+
+msgid "Preis und Dauer"
+msgstr "Preis und Dauer"
+
+msgid "Statt €"
+msgstr "Statt €"
+
+msgid "Stückzahl (optional)"
+msgstr "Stückzahl (optional)"
+
+msgid "Veröffentlichen"
+msgstr "Veröffentlichen"
+
+msgid "Was bieten Sie an?"
+msgstr "Was bieten Sie an?"
+
+msgid "Was gibt es?"
+msgstr "Was gibt es?"
+
+msgid "Was tun Kund:innen?"
+msgstr "Was tun Kund:innen?"
+
+msgid "Wie lange?"
+msgstr "Wie lange?"
+
+msgid "Wiederholen"
+msgstr "Wiederholen"
+
+msgid "ausgegeben"
+msgstr "ausgegeben"
+
+msgid "oder Rabatt in Prozent"
+msgstr "oder Rabatt in Prozent"
+
+msgid "zurückgelegt"
+msgstr "zurückgelegt"

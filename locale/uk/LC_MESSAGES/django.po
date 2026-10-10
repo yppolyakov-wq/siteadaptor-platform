@@ -23274,3 +23274,131 @@ msgstr[0] "Відкладемо для вас на %(h)s годину."
 msgstr[1] "Відкладемо для вас на %(h)s години."
 msgstr[2] "Відкладемо для вас на %(h)s годин."
 msgstr[3] "Відкладемо для вас на %(h)s години."
+
+#, python-format
+msgid "%(used)s von %(limit)s Aktionen aktiv"
+msgstr "Активно %(used)s з %(limit)s акцій"
+
+msgid "7 Tage"
+msgstr "7 днів"
+
+msgid "Aktion wiederholen"
+msgstr "Повторити акцію"
+
+msgid "Aktionspreis €"
+msgstr "Ціна за акцією, €"
+
+msgid "Alle Felder"
+msgstr "Усі поля"
+
+msgid "Als Entwurf gespeichert"
+msgstr "Збережено як чернетку"
+
+msgid "Als Entwurf speichern"
+msgstr "Зберегти як чернетку"
+
+msgid "Bis"
+msgstr "До"
+
+msgid "Bitte ein Datum wählen."
+msgstr "Оберіть дату."
+
+msgid "Bitte entweder einen Preis oder einen Rabatt angeben."
+msgstr "Вкажіть або ціну, або знижку."
+
+msgid "Das Datum liegt in der Vergangenheit."
+msgstr "Ця дата вже минула."
+
+msgid "Das Foto wird übernommen — oder ein neues aufnehmen."
+msgstr "Фото буде перенесено — або зробіть нове."
+
+msgid "Der alte Preis muss höher sein als der Aktionspreis."
+msgstr "Стара ціна має бути вищою за ціну за акцією."
+
+msgid "Dieses Wochenende"
+msgstr "Ці вихідні"
+
+msgid "Eigenes Datum"
+msgstr "Своя дата"
+
+msgid "Heute bis Ladenschluss"
+msgstr "Сьогодні до закриття"
+
+msgid "Ihre Aktion ist online"
+msgstr "Вашу акцію опубліковано"
+
+msgid "Kopieren"
+msgstr "Копіювати"
+
+msgid "Kund:innen bestellen direkt online."
+msgstr "Покупці замовляють прямо онлайн."
+
+msgid "Kund:innen lassen es zurücklegen und holen es bei Ihnen ab."
+msgstr "Покупці відкладають товар і забирають його у вас."
+
+msgid "Kund:innen schicken eine Anfrage mit Datum und Wunsch."
+msgstr "Покупці надсилають запит із датою та побажаннями."
+
+msgid "Kurz beschreiben (optional)"
+msgstr "Коротко опишіть (необов’язково)"
+
+msgid "Mehr Aktionen? Schreiben Sie uns"
+msgstr "Потрібно більше акцій? Напишіть нам"
+
+msgid "Meine Aktionen"
+msgstr "Мої акції"
+
+#, python-format
+msgid "Mit dem kostenlosen Start sind bis zu %(n)s Aktionen gleichzeitig aktiv. Mehr Aktionen? Schreiben Sie uns: %(contact)s"
+msgstr "У безкоштовному старті одночасно активні до %(n)s акцій. Потрібно більше? Напишіть нам: %(contact)s"
+
+msgid "Neue Aktion"
+msgstr "Нова акція"
+
+msgid "Neue Aktion wird als Entwurf gespeichert."
+msgstr "Нова акція збережеться як чернетка."
+
+msgid "Noch eine Aktion"
+msgstr "Ще одна акція"
+
+msgid "Nur zeigen: Preis, Adresse, Route und Anruf."
+msgstr "Лише показати: ціна, адреса, маршрут і дзвінок."
+
+msgid "Oder beenden Sie eine laufende Aktion — dann können Sie diese aktivieren."
+msgstr "Або завершіть одну з поточних акцій — тоді цю можна буде увімкнути."
+
+msgid "Preis und Dauer"
+msgstr "Ціна і термін"
+
+msgid "Statt €"
+msgstr "Замість, €"
+
+msgid "Stückzahl (optional)"
+msgstr "Кількість (необов’язково)"
+
+msgid "Veröffentlichen"
+msgstr "Опублікувати"
+
+msgid "Was bieten Sie an?"
+msgstr "Що ви пропонуєте?"
+
+msgid "Was gibt es?"
+msgstr "Що пропонуєте?"
+
+msgid "Was tun Kund:innen?"
+msgstr "Що роблять покупці?"
+
+msgid "Wie lange?"
+msgstr "Як довго?"
+
+msgid "Wiederholen"
+msgstr "Повторити"
+
+msgid "ausgegeben"
+msgstr "видано"
+
+msgid "oder Rabatt in Prozent"
+msgstr "або знижка у відсотках"
+
+msgid "zurückgelegt"
+msgstr "відкладено"

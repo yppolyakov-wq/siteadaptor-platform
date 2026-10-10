@@ -17076,3 +17076,36 @@ Diese Woche → Länger → Dauerhaft); замок `test_lite_offers_are_sorted_
 (дописаны текстом — сохранение через polib переформатировало бы все каталоги).
 ⚠️ ops: `seed_demo_tenants --recreate` для шести лёгких китов (klingenbrot ohligser_eck
 walder_faden wupperhof brueckenblick graefrather_markt).
+
+## 2026-10-10 — T-8.4 «Schnell-Aktion» + лимит 5 активных акций (без миграций)
+
+Пункт 2 общего плана T-8. План — `docs/t8-4-assistant-plan-2026-10-10.md`.
+
+- **Лимит (Р-5)** — `apps/promotions/limits.py`, одна точка истины для трёх путей активации:
+  кнопка перехода в кабинете, ассистент и beat расписания. Действует только на бесплатной
+  лёгкой ступени: витрина «Nur Aktionen», подписка не `active`, тенант не демо — платные
+  тенанты, полная платформа и демо-витрины лимита не получают. Проверка только при переходе в
+  `active` (черновиков и запланированных — сколько угодно). Beat сначала завершает истёкшие
+  (освобождают место), запланированная при полном лимите остаётся запланированной и включится
+  сама. Сообщение «Mit dem kostenlosen Start sind bis zu 5 Aktionen gleichzeitig aktiv. Mehr
+  Aktionen? Schreiben Sie uns: …» — контакт `PLATFORM_CONTACT_EMAIL` (env), лимит
+  `LITE_FREE_ACTIVE_PROMOS` (env, 5). Счётчик «N von 5 Aktionen aktiv» — в списке и ассистенте.
+- **Ассистент** `/promotions/schnell/` (`apps/promotions/quick.py`): три шага на телефоне
+  (с JS по одному, без JS — все подряд): фото с камеры + заголовок с подсказками пресетов
+  архетипа · цена/старая цена или «−N %», срок чипами («Heute bis Ladenschluss» по часам
+  работы, без часов — конец дня; «Dieses Wochenende»; «7 Tage»; «Eigenes Datum»), Stückzahl ·
+  только выполнимые отклики T-8.2. «Veröffentlichen» / «Als Entwurf speichern». Создаётся
+  обычная `Promotion` — дальше её ведёт всё существующее.
+- **Экран «Fertig»**: ссылка + «Kopieren», QR, WhatsApp/Telegram/Facebook/E-Mail; у черновика —
+  объяснение лимита с контактом или «Jetzt aktivieren».
+- **Список акций**: «＋ Neue Aktion» → ассистент (полная форма — «Alle Felder»), мобильная
+  плавающая «＋», «↻ Wiederholen» у прошлых акций (фото переносится КОПИЕЙ файла — удаление
+  у одной не трогает другую), счётчики «👁 · zurückgelegt · ausgegeben» одним annotate.
+  Палитра Ctrl+K: «Neue Aktion» (X7).
+
+Стенд Playwright (390 px): «＋» → шаг 1 (пустой заголовок не пускает дальше) → цена/срок →
+отклики «Zurücklegen · Nur zeigen · Anfragen» (без «купить» у лёгкой витрины) → «Fertig» с
+QR и share; горизонтальной прокрутки нет. Стенд нашёл дефект: поле даты было видно всегда —
+`block` у label перебивает атрибут `hidden` → переключение классом. Лимит проверен на стенде
+(временно снят флаг демо): акция сохраняется черновиком с сообщением и контактом. Замки:
+`apps/promotions/tests/test_quick_assistant.py` (16). 42 msgid × 5 каталогов (дописаны текстом).

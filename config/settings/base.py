@@ -523,6 +523,10 @@ elif EMAIL_HOST:
 else:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@platform.local")
+# T-8.4 (Р-5): бесплатная лёгкая ступень («Nur Aktionen» без подписки) держит не
+# больше N активных акций одновременно; на N+1 — «Mehr Aktionen? Schreiben Sie uns».
+LITE_FREE_ACTIVE_PROMOS = env.int("LITE_FREE_ACTIVE_PROMOS", default=5)
+PLATFORM_CONTACT_EMAIL = env("PLATFORM_CONTACT_EMAIL", default="kontakt@siteadaptor.de")
 
 # ---------------------------------------------------------------------------
 # Stripe (dj-stripe)

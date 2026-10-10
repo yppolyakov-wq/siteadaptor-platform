@@ -53,22 +53,30 @@ def expire_due_reservations(now=None) -> int:
 def roll_due_promotions(now=None) -> dict:
     """scheduled→active по starts_at, active→ended по ends_at (в текущей схеме)."""
     now = now or timezone.now()
+    from . import limits
+
     sm = PromotionSM()
     activated = ended = 0
 
+    # Сначала завершаем истёкшие: они освобождают места лимита бесплатной ступени.
+    for promo in Promotion.objects.filter(status="active", ends_at__isnull=False, ends_at__lte=now):
+        sm.apply(promo, "ended")
+        ended += 1
+
+    tenant = limits.tenant_for_current_schema()
     for promo in Promotion.objects.filter(
         status="scheduled", starts_at__isnull=False, starts_at__lte=now
-    ):
+    ).order_by("starts_at"):
         # если окно уже целиком в прошлом — не активируем (нет перехода
         # scheduled→ended; такую акцию владелец завершит/архивирует вручную)
         if promo.ends_at and promo.ends_at <= now:
             continue
+        # T-8.4 (Р-5): при полном лимите акция остаётся запланированной и включится
+        # на следующем проходе, когда место освободится.
+        if not limits.can_activate(promo, tenant):
+            continue
         sm.apply(promo, "active")
         activated += 1
-
-    for promo in Promotion.objects.filter(status="active", ends_at__isnull=False, ends_at__lte=now):
-        sm.apply(promo, "ended")
-        ended += 1
 
     return {"activated": activated, "ended": ended}
 

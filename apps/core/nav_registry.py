@@ -497,6 +497,17 @@ ENTRIES: tuple[NavEntry, ...] = (
         True,
         search="gruppen rubriken typen mystery vorbestellung",
     ),
+    # T-8.4: ассистент «Schnell-Aktion» — вход из палитры (основной вход — «＋»
+    # в списке акций и мобильная плавающая кнопка).
+    _e(
+        "marketing",
+        "promotions:promotion-quick",
+        _("Neue Aktion"),
+        "promotions",
+        "promotions",
+        search="schnell handy foto neu wiederholen",
+        palette_only=True,
+    ),
     _e(
         "marketing",
         "reviews:list",
