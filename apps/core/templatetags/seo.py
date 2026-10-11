@@ -264,3 +264,68 @@ def localbusiness_jsonld(context):
     if not payload:
         return ""
     return mark_safe(f'<script type="application/ld+json">{payload}</script>')
+
+
+@register.simple_tag(takes_context=True)
+def canonical_link(context):
+    """T-8.25: canonical витрины — ОСНОВНОЙ адрес (свой домен, иначе поддомен) + путь.
+
+    Без query: фильтры/сорт/язык не плодят «разные» страницы для поисковика.
+    """
+    from django.utils.html import escape
+
+    request = context.get("request")
+    tenant = getattr(request, "tenant", None) if request is not None else None
+    if tenant is None or getattr(tenant, "schema_name", "public") == "public":
+        return ""
+    from apps.tenants.hosts import public_base_url
+
+    href = public_base_url(tenant) + request.path
+    return mark_safe(f'<link rel="canonical" href="{escape(href)}">')
+
+
+@register.simple_tag(takes_context=True)
+def city_portal_link(context):
+    """T-8.25: взаимная ссылка «Auch im Stadtportal <Stadt>» в подвале витрины.
+
+    Только у бизнеса, который сейчас в каталоге города, и только если портал его города
+    есть (демо-бизнес — только на портале с показом демо). Кэш на тенанта — подвал
+    рисуется на каждой странице. {"url", "city"} или None.
+    """
+    from django.core.cache import cache
+
+    request = context.get("request")
+    tenant = getattr(request, "tenant", None) if request is not None else None
+    if tenant is None or getattr(tenant, "schema_name", "public") == "public":
+        return None
+    from apps.aggregator.visibility import listable
+
+    if not listable(tenant) or not (getattr(tenant, "city", "") or "").strip():
+        return None
+    key = f"t825:city_portal:{tenant.pk}"
+    try:
+        cached = cache.get(key)
+    except Exception:  # noqa: BLE001
+        cached = None
+    if cached is None:
+        cached = ""
+        try:
+            from apps.aggregator.models import AggregatorPortal
+
+            portal = AggregatorPortal.objects.filter(
+                kind=AggregatorPortal.KIND_CITY, city__iexact=tenant.city.strip(), is_active=True
+            ).first()
+            if portal is not None and (portal.show_demo or not getattr(tenant, "is_demo", False)):
+                cached = portal.host
+        except Exception:  # noqa: BLE001 — подвал не падает из-за портала
+            cached = ""
+        try:
+            cache.set(key, cached, 300)
+        except Exception:  # noqa: BLE001
+            pass
+    if not cached:
+        return None
+    from django.conf import settings
+
+    scheme = "http" if getattr(settings, "DEBUG", False) else "https"
+    return {"url": f"{scheme}://{cached}/", "city": tenant.city.strip()}

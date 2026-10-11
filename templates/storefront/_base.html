@@ -23,6 +23,7 @@
   <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
   <title>{% block title %}{% if seo_meta.title %}{{ seo_meta.title }}{% else %}{{ request.tenant.name|default:"Shop" }}{% endif %}{% endblock %}</title>
   <meta name="description" content="{% block meta_description %}{% if seo_meta.description %}{{ seo_meta.description }}{% else %}{{ request.tenant.name|default:'' }}{% endif %}{% endblock %}">
+  {% block canonical %}{% canonical_link %}{% endblock %}
   {% block og %}{% endblock %}
   {% localbusiness_jsonld %}
   {% block structured_data %}{% endblock %}
@@ -318,6 +319,7 @@
         <a href="{% url 'storefront-newsletter' %}" class="hover:underline">{% trans "Newsletter" %}</a>
         {% house_rules_present as hr %}{% if hr %}<a href="{% url 'storefront-hausordnung' %}" class="hover:underline">{% trans "House rules" %}</a>{% endif %}
         {% gift_link_active as gift_on %}{% if gift_on %}<a href="{% url 'storefront-gutschein' %}" class="hover:underline">🎁 {% trans "Gift voucher" %}</a>{% endif %}
+        {% city_portal_link as cp %}{% if cp %}<a href="{{ cp.url }}" class="hover:underline" data-city-portal-link>🏙 {% blocktrans with city=cp.city %}Auch im Stadtportal {{ city }}{% endblocktrans %}</a>{% endif %}
       </div>
     </div>
   </footer>

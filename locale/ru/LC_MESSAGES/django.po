@@ -24291,3 +24291,7 @@ msgstr "Выдача и купоны"
 #, python-format
 msgid "%(n)s offen"
 msgstr "%(n)s ожидают"
+
+#, python-format
+msgid "Auch im Stadtportal %(city)s"
+msgstr "Также на городском портале %(city)s"

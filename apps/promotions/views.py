@@ -244,6 +244,17 @@ def promotion_list(request):
     )
 
 
+def _public_url(request, path: str) -> str:
+    """T-8.25: ссылка наружу (QR, флаер, плакат, «Fertig») — на ОСНОВНОЙ адрес витрины:
+    свой домен, если подтверждён; иначе текущий хост (поддомен)."""
+    from apps.tenants.hosts import primary_custom_domain, public_base_url
+
+    tenant = getattr(request, "tenant", None)
+    if tenant is not None and primary_custom_domain(tenant):
+        return public_base_url(tenant) + path
+    return request.build_absolute_uri(path)
+
+
 def _lite(request) -> bool:
     from apps.core import lite_cabinet
 
@@ -535,7 +546,7 @@ def shop_poster_pdf(request):
     url_name, module, headline, subline = _POSTER_TARGETS[ziel]
     if module and (tenant is None or not tenant.is_module_active(module)):
         ziel, (url_name, module, headline, subline) = "home", _POSTER_TARGETS["home"]
-    target_url = request.build_absolute_uri(reverse(url_name))
+    target_url = _public_url(request, reverse(url_name))  # T-8.25: основной адрес
     # I18N-7b: постер печатает владелец — язык кабинета или явный `?lang=`
     # (напр. турецкий постер для турецкого квартала).
     with translation.override(document_language(request)):
@@ -618,7 +629,7 @@ def promotion_flyer(request, pk):
     fmt = request.GET.get("format", "a4")
     fmt = fmt if fmt in FORMATS else "a4"
     tenant = getattr(request, "tenant", None)
-    url = request.build_absolute_uri(reverse("storefront-promotion", args=[promo.pk]))
+    url = _public_url(request, reverse("storefront-promotion", args=[promo.pk]))
     with translation.override(document_language(request)):
         pdf = build_promo_flyer_pdf(promo, url, fmt=fmt, tenant=tenant)
     resp = HttpResponse(pdf, content_type="application/pdf")
@@ -716,7 +727,7 @@ def promotion_quick_done(request, pk):
 
     promo = get_object_or_404(Promotion, pk=pk)
     tenant = getattr(request, "tenant", None)
-    url = request.build_absolute_uri(reverse("storefront-promotion", args=[promo.pk]))
+    url = _public_url(request, reverse("storefront-promotion", args=[promo.pk]))
     active = promo.status == "active"
     limit = limits.active_limit(tenant)
     return render(

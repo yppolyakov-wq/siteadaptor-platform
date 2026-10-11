@@ -24097,3 +24097,7 @@ msgstr "Abholung & Coupons"
 #, python-format
 msgid "%(n)s offen"
 msgstr "%(n)s offen"
+
+#, python-format
+msgid "Auch im Stadtportal %(city)s"
+msgstr "Auch im Stadtportal %(city)s"

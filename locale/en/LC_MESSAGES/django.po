@@ -24057,3 +24057,7 @@ msgstr "Pickup & coupons"
 #, python-format
 msgid "%(n)s offen"
 msgstr "%(n)s open"
+
+#, python-format
+msgid "Auch im Stadtportal %(city)s"
+msgstr "Also on the %(city)s city portal"

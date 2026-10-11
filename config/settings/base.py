@@ -162,6 +162,8 @@ MIDDLEWARE = [
     # HIGH-10: сессия привязана к схеме логина — кука из чужой схемы сбрасывается
     # (защита от pk-коллизии auth_user при расширении SESSION_COOKIE_DOMAIN).
     "apps.core.middleware.SessionSchemaGuardMiddleware",
+    # T-8.25: свой домен — основной адрес; анонимную витрину с поддомена 301 туда.
+    "apps.tenants.middleware.PrimaryDomainRedirectMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     # Гейтинг подписки: suspended/trial_expired → кабинет read-only (Sprint 5).

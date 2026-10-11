@@ -45,3 +45,67 @@ def clear_known_hosts(**_kwargs) -> None:
         cache.delete(_CACHE_KEY)
     except Exception:  # noqa: BLE001
         pass
+
+
+def _custom_key(tenant_id) -> str:
+    return f"tenants:primary_custom:{tenant_id}"
+
+
+def primary_custom_domain(tenant) -> str:
+    """T-8.25: свой домен бизнеса — самый ранний АКТИВНЫЙ (A-запись подтверждена); иначе "".
+
+    Кэш на тенанта (витрина спрашивает на каждом запросе); сброс — сигналом `Domain`
+    (подтверждение/удаление своего домена создаёт/удаляет строку Domain).
+    """
+    if tenant is None or not getattr(tenant, "pk", None):
+        return ""
+    key = _custom_key(tenant.pk)
+    try:
+        cached = cache.get(key)
+    except Exception:  # noqa: BLE001
+        cached = None
+    if cached is not None:
+        return cached
+    try:
+        from .models import CustomDomain
+
+        row = (
+            CustomDomain.objects.filter(tenant=tenant, status=CustomDomain.ACTIVE)
+            .order_by("verified_at", "created_at")
+            .values_list("domain", flat=True)
+            .first()
+        )
+    except Exception:  # noqa: BLE001 — нет таблицы/БД: основной адрес = поддомен
+        return ""
+    value = row or ""
+    try:
+        cache.set(key, value, _CACHE_TTL)
+    except Exception:  # noqa: BLE001
+        pass
+    return value
+
+
+def clear_primary_custom(sender=None, instance=None, **_kwargs) -> None:
+    """Сигнал-обработчик: сменился Domain → основной адрес тенанта пересчитать."""
+    tenant_id = getattr(instance, "tenant_id", None)
+    if tenant_id:
+        try:
+            cache.delete(_custom_key(tenant_id))
+        except Exception:  # noqa: BLE001
+            pass
+
+
+def public_base_url(tenant) -> str:
+    """T-8.25: ОСНОВНОЙ адрес витрины без «/» в конце — свой домен, иначе поддомен.
+
+    Сюда ведут ссылки наружу: каталог города, QR, флаеры, «Teilen», canonical витрины.
+    Кабинет и вход остаются на поддомене (`services.site_url_for`): сессия привязана к хосту.
+    """
+    from django.conf import settings
+
+    scheme = "http" if getattr(settings, "DEBUG", False) else "https"
+    custom = primary_custom_domain(tenant)
+    if custom:
+        return f"{scheme}://{custom}"
+    base = getattr(settings, "TENANT_DOMAIN_BASE", "siteadaptor.de")
+    return f"{scheme}://{tenant.slug}.{base}"

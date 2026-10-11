@@ -24182,3 +24182,7 @@ msgstr "Teslim & kuponlar"
 #, python-format
 msgid "%(n)s offen"
 msgstr "%(n)s açık"
+
+#, python-format
+msgid "Auch im Stadtportal %(city)s"
+msgstr "%(city)s şehir portalında da"

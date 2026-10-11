@@ -156,7 +156,6 @@ def sync_listing(tenant_schema, promotion_id) -> str:
         AggregatorListing.objects.filter(**key).delete()
         return "removed"
 
-    base = getattr(settings, "TENANT_DOMAIN_BASE", "siteadaptor.de")
     AggregatorListing.objects.update_or_create(
         **key,
         defaults={
@@ -171,7 +170,7 @@ def sync_listing(tenant_schema, promotion_id) -> str:
             "discount_percent": snap["discount_percent"],
             "starts_at": snap["starts_at"],
             "ends_at": snap["ends_at"],
-            "detail_url": f"{_scheme()}://{tenant.slug}.{base}/p/{promotion_id}/",
+            "detail_url": f"{_site(tenant)}/p/{promotion_id}/",
             "is_surprise": snap["is_surprise"],
             **_city_fields("promotion", tenant, snap),
             "is_active": True,
@@ -228,7 +227,6 @@ def sync_stay_listing(tenant_schema, unit_id) -> str:
         AggregatorListing.objects.filter(**key).delete()
         return "removed"
 
-    base = getattr(settings, "TENANT_DOMAIN_BASE", "siteadaptor.de")
     AggregatorListing.objects.update_or_create(
         **key,
         defaults={
@@ -242,7 +240,7 @@ def sync_stay_listing(tenant_schema, unit_id) -> str:
             "discount_percent": None,
             "starts_at": None,
             "ends_at": None,
-            "detail_url": f"{_scheme()}://{tenant.slug}.{base}/unterkunft/{unit_id}/",
+            "detail_url": f"{_site(tenant)}/unterkunft/{unit_id}/",
             "is_surprise": False,
             **_city_fields("stay", tenant),
             "is_active": True,
@@ -327,11 +325,10 @@ def sync_event_group_listing(tenant_schema, group_ref) -> str:
     if snap is None or tenant is None or _withheld(tenant) or not tenant.is_module_active("events"):
         AggregatorListing.objects.filter(**key).delete()
         return "removed"
-    base = getattr(settings, "TENANT_DOMAIN_BASE", "siteadaptor.de")
     detail = (
-        f"{_scheme()}://{tenant.slug}.{base}/tour/{tour_slug}/"
+        f"{_site(tenant)}/tour/{tour_slug}/"
         if tour_slug
-        else f"{_scheme()}://{tenant.slug}.{base}/veranstaltung/{nearest_id}/"
+        else f"{_site(tenant)}/veranstaltung/{nearest_id}/"
     )
     AggregatorListing.objects.update_or_create(
         **key,
@@ -395,7 +392,6 @@ def sync_event_listing(tenant_schema, event_id) -> str:
         AggregatorListing.objects.filter(**key).delete()
         return "removed"
 
-    base = getattr(settings, "TENANT_DOMAIN_BASE", "siteadaptor.de")
     AggregatorListing.objects.update_or_create(
         **key,
         defaults={
@@ -414,7 +410,7 @@ def sync_event_listing(tenant_schema, event_id) -> str:
             "discount_percent": None,
             "starts_at": snap["starts_at"],
             "ends_at": snap["ends_at"],
-            "detail_url": f"{_scheme()}://{tenant.slug}.{base}/veranstaltung/{event_id}/",
+            "detail_url": f"{_site(tenant)}/veranstaltung/{event_id}/",
             "is_surprise": False,
             **_city_fields("event", tenant, snap),
             "is_active": True,
@@ -751,7 +747,6 @@ def sync_menu_listing(tenant_schema, combo_id) -> str:
         AggregatorListing.objects.filter(**key).delete()
         return "removed"
 
-    base = getattr(settings, "TENANT_DOMAIN_BASE", "siteadaptor.de")
     AggregatorListing.objects.update_or_create(
         **key,
         defaults={
@@ -766,7 +761,7 @@ def sync_menu_listing(tenant_schema, combo_id) -> str:
             "discount_percent": None,
             "starts_at": None,
             "ends_at": None,
-            "detail_url": f"{_scheme()}://{tenant.slug}.{base}/kombi/{combo_id}/",
+            "detail_url": f"{_site(tenant)}/kombi/{combo_id}/",
             "price_per_person": snap["price_per_person"],
             "min_persons": snap["min_persons"],
             "event_types": snap["event_types"],
@@ -855,8 +850,10 @@ TENANT_URLCONF = "config.urls_tenant"
 
 
 def _site(tenant) -> str:
-    base = getattr(settings, "TENANT_DOMAIN_BASE", "siteadaptor.de")
-    return f"{_scheme()}://{tenant.slug}.{base}"
+    """T-8.25: основной адрес витрины — свой домен, если подтверждён, иначе поддомен."""
+    from apps.tenants.hosts import public_base_url
+
+    return public_base_url(tenant)
 
 
 def _category_hidden(category) -> bool:

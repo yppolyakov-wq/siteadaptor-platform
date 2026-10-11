@@ -115,7 +115,9 @@ def lite_share(request):
     from apps.core.share_links import share_targets
 
     tenant = request.tenant
-    url = request.build_absolute_uri("/")
+    from apps.promotions.views import _public_url
+
+    url = _public_url(request, "/")  # T-8.25: основной адрес (свой домен)
     return render(
         request,
         "tenant/lite_share.html",

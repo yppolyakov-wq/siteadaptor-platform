@@ -24275,3 +24275,7 @@ msgstr "Видача й купони"
 #, python-format
 msgid "%(n)s offen"
 msgstr "%(n)s очікують"
+
+#, python-format
+msgid "Auch im Stadtportal %(city)s"
+msgstr "Також на міському порталі %(city)s"
