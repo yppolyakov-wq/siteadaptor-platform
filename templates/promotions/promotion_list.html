@@ -100,9 +100,9 @@
   </div>
   {% comment %}T-8.23c: лёгкий кабинет — карточки вместо таблицы (телефон первым):
   фото, цена, срок, статус, счётчики и три действия.{% endcomment %}
-  <div class="grid gap-3 sm:grid-cols-2" data-lite-promo-cards>
+  <div class="grid grid-cols-1 gap-3 sm:grid-cols-2" data-lite-promo-cards>
     {% for p in promotions %}
-      <article class="flex gap-3 rounded-xl border border-gray-200 p-3" data-lite-promo-card>
+      <article class="min-w-0 flex gap-3 rounded-xl border border-gray-200 p-3" data-lite-promo-card>
         {% with img=p.primary_image %}
           {% if img %}<img src="{{ img.url }}" alt="" class="w-20 h-20 shrink-0 rounded-lg object-cover">{% else %}<div class="w-20 h-20 shrink-0 rounded-lg bg-gray-100 flex items-center justify-center text-2xl">🏷</div>{% endif %}
         {% endwith %}
