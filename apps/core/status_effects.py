@@ -183,6 +183,10 @@ def restore_stock_for(kind: str, instance, src_role: str | None = None) -> None:
         Promotion.objects.filter(id=instance.promotion_id, available_quantity__isnull=False).update(
             available_quantity=F("available_quantity") + instance.quantity
         )
+        # T-8.23f: свой статус с ролью «отменено» возвращает и остаток товара.
+        from apps.promotions.services import release_product_stock
+
+        release_product_stock(instance)
         promo = Promotion.objects.filter(id=instance.promotion_id).first()
         if promo is not None:
             notify_waitlist_available(promo)

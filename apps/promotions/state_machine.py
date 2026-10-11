@@ -78,6 +78,10 @@ class ReservationSM(StateMachine):
             Promotion.objects.filter(
                 id=instance.promotion_id, available_quantity__isnull=False
             ).update(available_quantity=F("available_quantity") + instance.quantity)
+            # T-8.23f: и удержанный остаток товара (если учёт склада включён).
+            from .services import release_product_stock
+
+            release_product_stock(instance)
 
             # Лист ожидания: место освободилось → одно письмо на запись (S6.4).
             from .services import notify_waitlist_available

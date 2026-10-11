@@ -105,6 +105,22 @@ def reserve(promotion, *, name, email="", phone="", quantity=1, note="", source_
         if active_qty + quantity > promotion.max_per_customer:
             raise ReservationLimitReached()
 
+    with transaction.atomic():
+        reservation = _reserve_locked(
+            promotion,
+            customer=customer,
+            quantity=quantity,
+            note=note,
+            source_channel=source_channel,
+        )
+    # письмо клиенту/владельцу — после коммита транзакции
+    enqueue_reservation_email(reservation, "created")
+    return reservation
+
+
+def _reserve_locked(promotion, *, customer, quantity, note, source_channel):
+    """Счётчик акции + (T-8.23f) склад товара + бронь — одной транзакцией: нехватка
+    на складе откатывает и списание лимита акции."""
     # атомарное условное списание остатка
     if promotion.available_quantity is not None:
         rows = Promotion.objects.filter(
@@ -135,9 +151,84 @@ def reserve(promotion, *, name, email="", phone="", quantity=1, note="", source_
         note=note,
         source_channel=(source_channel or "")[:50],
     )
-    # письмо клиенту/владельцу — после коммита транзакции
-    enqueue_reservation_email(reservation, "created")
+    hold_product_stock(reservation)
     return reservation
+
+
+def _stock_target(promotion):
+    """T-8.23f: товар акции, у которого ведётся остаток (без вариантов), иначе None.
+
+    Решение владельца S2 (2026-10-11): при включённом учёте склада резерв ограничен
+    складом. Товар с вариантами — резерв не знает варианта, склад не трогаем.
+    """
+    product = getattr(promotion, "product", None)
+    if product is None or product.stock_quantity is None or product.has_variants:
+        return None
+    return product
+
+
+def hold_product_stock(reservation) -> None:
+    """Держим остаток товара под резерв (в транзакции резерва). Нехватка → OutOfStock.
+
+    Списываем СРАЗУ при резерве, а не при выдаче: иначе двое отложили бы последнюю
+    штуку. Выдача на кассе склад больше не трогает; отмена/истечение — возврат.
+    """
+    from apps.catalog.models import Product
+
+    target = _stock_target(reservation.promotion)
+    if target is None:
+        return
+    row = Product.objects.select_for_update().get(pk=target.pk)
+    if row.stock_quantity is None:
+        return
+    if row.stock_quantity < reservation.quantity:
+        raise OutOfStock()
+    row.stock_quantity -= reservation.quantity
+    row.save(update_fields=["stock_quantity", "updated_at"])
+    from apps.inventory.services import consume_fefo, has_lots, record_movement
+
+    record_movement(
+        product=row,
+        kind="sale",
+        delta=-reservation.quantity,
+        source="reservation",
+        source_ref=str(reservation.pk),
+        note=reservation.reference_code,
+    )
+    if has_lots(row, None):
+        consume_fefo(row, None, qty=reservation.quantity)
+
+
+def release_product_stock(reservation) -> None:
+    """Вернуть удержанный остаток (отмена/истечение). Ровно один раз: возврат пишется
+    в леджер идемпотентно, счётчик растёт только если движение действительно создано
+    и было удержание (sale-движение этого резерва)."""
+    from django.db.models import F
+
+    from apps.catalog.models import Product
+    from apps.inventory.models import StockMovement
+    from apps.inventory.services import has_lots, record_movement, restore_fefo
+
+    ref = str(reservation.pk)
+    held = StockMovement.objects.filter(source="reservation", source_ref=ref, kind="sale").first()
+    if held is None:
+        return
+    with transaction.atomic():
+        moved = record_movement(
+            product=held.product,
+            kind="return",
+            delta=-held.delta,
+            source="reservation",
+            source_ref=ref,
+            note=reservation.reference_code,
+        )
+        if moved is None:
+            return  # уже вернули
+        Product.objects.filter(pk=held.product_id, stock_quantity__isnull=False).update(
+            stock_quantity=F("stock_quantity") - held.delta
+        )
+        if has_lots(held.product, None):
+            restore_fefo(held.product, None, qty=-held.delta)
 
 
 @transaction.atomic
