@@ -23999,3 +23999,18 @@ msgstr ""
 
 msgid "Das dauert etwa eine Minute. Es geht automatisch weiter."
 msgstr "This takes about a minute. It continues automatically."
+
+msgid "Straße und Hausnummer"
+msgstr "Street and house number"
+
+msgid "PLZ"
+msgstr "Postcode"
+
+msgid "Bitte eine gültige Postleitzahl eingeben."
+msgstr "Please enter a valid postcode."
+
+msgid "Bitte eine gültige Telefonnummer eingeben."
+msgstr "Please enter a valid phone number."
+
+msgid "Damit Kunden wissen, wann sie kommen können: Öffnungszeiten ergänzen"
+msgstr "So customers know when to come: add your opening hours"

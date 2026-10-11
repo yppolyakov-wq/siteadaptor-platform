@@ -56,6 +56,11 @@
     </div>
   {% endif %}
 
+  {% if missing_hours %}
+    <a href="{% url 'settings' %}#sec-zeiten" class="block rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 mb-4" data-missing-hours>
+      🕒 {% trans "Damit Kunden wissen, wann sie kommen können: Öffnungszeiten ergänzen" %} →
+    </a>
+  {% endif %}
   <div class="flex flex-wrap gap-2">
     <a href="{% url 'promotions:promotion-quick' %}" class="w-full text-center rounded-xl bg-indigo-600 text-white px-4 py-3 text-sm font-medium">＋ {% trans "Noch eine Aktion" %}</a>
     <a href="{% url 'promotions:promotion-edit' promotion.pk %}" class="flex-1 text-center rounded-xl border border-gray-300 px-4 py-2.5 text-sm text-gray-700" data-quick-edit>✏️ {% trans "Bearbeiten" %}</a>

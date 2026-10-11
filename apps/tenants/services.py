@@ -153,6 +153,9 @@ def schema_exists(schema_name: str) -> bool:
         return Tenant.objects.filter(schema_name=schema_name).exists()
 
 
+QUICK_REQUIRED_MODULES = ("promotions", "publishing")
+
+
 @transaction.atomic
 def start_quick_provisioning(
     *,
@@ -163,6 +166,8 @@ def start_quick_provisioning(
     district,
     email,
     promo,
+    address="",
+    phone="",
     partner_code="",
     in_city_catalog=True,
 ):
@@ -181,6 +186,13 @@ def start_quick_provisioning(
         partner_code=partner_code,
     )
     tenant.district = district or ""
+    tenant.address = address or ""  # T-8.23b: карточка «So finden Sie uns» сразу полная
+    tenant.contact_phone = (phone or "")[:30]
+    # T-8.23a: акции — суть лёгкой ступени; пресет вертикали их не выключает (у отеля
+    # promotions лишь «suited», и после быстрого старта /promotions/ отдавал 404).
+    tenant.disabled_modules = [
+        m for m in tenant.disabled_modules or [] if m not in QUICK_REQUIRED_MODULES
+    ]
     tenant.email_pending = True
     tenant.in_city_catalog = bool(in_city_catalog)  # T-8.6: согласие на каталог города
     # Бесплатная лёгкая ступень (Р-5) не истекает: без даты конца триала beat её не

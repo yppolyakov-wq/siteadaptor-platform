@@ -17346,3 +17346,16 @@ Dienstleistungen»; синк: своё у объекта → категория 
   отеля после быстрого старта 404 на акциях (модуль выключен пресетом), ассистент не умеет
   товар, Merkmale общие на все разделы, страницы предложения в портале нет. Вопросы Q1–Q5.
 
+
+## 2026-10-11 — T-8.23a/b: акции у отеля после быстрого старта + обязательные адрес и телефон (без миграций)
+
+- **T-8.23a:** пресет вертикали выключал модуль акций у отеля (`promotions` у hotel только
+  «suited») → после «Aktion in 3 Klicks» `/promotions/…` отдавал 404. Быстрый старт больше не
+  выключает `promotions`/`publishing` (`services.QUICK_REQUIRED_MODULES`). Уже созданные лёгкие
+  магазины чинит команда конвертации T-8.23d.
+- **T-8.23b:** «Aktion in 3 Klicks» спрашивает обязательно «Straße und Hausnummer», «PLZ»
+  (4–5 цифр, DACH) и «Telefon» → `Tenant.address` («Straße 1, 42651 Solingen», формат китов) и
+  `contact_phone`; карточка «So finden Sie uns» у первой акции сразу полная. На «Fertig» —
+  подсказка «Öffnungszeiten ergänzen» → `Mein Geschäft#sec-zeiten`, пока часов нет.
+  Замки: `test_address_and_phone_are_required_and_land_on_the_tenant`,
+  `test_done_screen_asks_for_opening_hours_until_they_are_set`. План — `t8-23-…` §5.

@@ -139,6 +139,11 @@ class QuickStartForm(quick.QuickPromotionForm):
     city = forms.CharField(label=_("Stadt"), max_length=100, initial=DEFAULT_CITY)
     # Район зависит от города: свободное значение, проверяется по реестру в clean().
     district = forms.CharField(label=_("Stadtteil"), required=False, max_length=60)
+    # T-8.23b: адрес и телефон обязательны (решение владельца 2026-10-11) — иначе карточка
+    # «So finden Sie uns» у свежей акции пустая, а клиент не знает, куда идти.
+    street = forms.CharField(label=_("Straße und Hausnummer"), max_length=150)
+    postcode = forms.CharField(label=_("PLZ"), max_length=10)
+    phone = forms.CharField(label=_("Telefon"), max_length=30)
     email = forms.EmailField(label=_("E-Mail"))
     in_city_catalog = forms.BooleanField(
         label=_("Auch im Stadtportal Ihrer Stadt zeigen"), required=False, initial=True
@@ -180,6 +185,27 @@ class QuickStartForm(quick.QuickPromotionForm):
         if problem:
             raise forms.ValidationError(problem)
         return slug
+
+    def clean_street(self):
+        return " ".join((self.cleaned_data.get("street") or "").split())
+
+    def clean_postcode(self):
+        """DACH: 4 (AT/CH) или 5 (DE) цифр."""
+        plz = (self.cleaned_data.get("postcode") or "").strip()
+        if not re.fullmatch(r"\d{4,5}", plz):
+            raise forms.ValidationError(_("Bitte eine gültige Postleitzahl eingeben."))
+        return plz
+
+    def clean_phone(self):
+        phone = " ".join((self.cleaned_data.get("phone") or "").split())
+        if not re.fullmatch(r"[0-9+()/\- ]+", phone) or len(re.sub(r"\D", "", phone)) < 6:
+            raise forms.ValidationError(_("Bitte eine gültige Telefonnummer eingeben."))
+        return phone
+
+    def address_line(self) -> str:
+        """«Straße 1, 42651 Solingen» — формат адреса тенанта (как у демо-китов)."""
+        d = self.cleaned_data
+        return f"{d['street']}, {d['postcode']} {d['city']}".strip()
 
     def clean_email(self):
         return (self.cleaned_data.get("email") or "").strip().lower()

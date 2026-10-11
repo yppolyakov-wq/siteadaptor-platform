@@ -24039,3 +24039,18 @@ msgstr ""
 
 msgid "Das dauert etwa eine Minute. Es geht automatisch weiter."
 msgstr "Das dauert etwa eine Minute. Es geht automatisch weiter."
+
+msgid "Straße und Hausnummer"
+msgstr "Straße und Hausnummer"
+
+msgid "PLZ"
+msgstr "PLZ"
+
+msgid "Bitte eine gültige Postleitzahl eingeben."
+msgstr "Bitte eine gültige Postleitzahl eingeben."
+
+msgid "Bitte eine gültige Telefonnummer eingeben."
+msgstr "Bitte eine gültige Telefonnummer eingeben."
+
+msgid "Damit Kunden wissen, wann sie kommen können: Öffnungszeiten ergänzen"
+msgstr "Damit Kunden wissen, wann sie kommen können: Öffnungszeiten ergänzen"

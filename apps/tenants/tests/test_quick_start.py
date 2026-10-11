@@ -61,6 +61,9 @@ def _post_data(**kw):
         "business_type": "bakery",
         "city": "Solingen",
         "district": "",
+        "street": "Kölner Straße 64",
+        "postcode": "42651",
+        "phone": "0212 123456",
         "email": EMAIL,
         "stamp": _old_stamp(),
     }
@@ -533,5 +536,27 @@ def test_waiting_polls_quietly_and_never_spins_forever():
         )
         html = quickstart_views.quick_waiting(get, slug=tenant.slug).content.decode()
         assert "?poll=1" not in html and "noscript" not in html
+    finally:
+        _drop(tenant)
+
+
+@pytest.mark.django_db
+def test_address_and_phone_are_required_and_land_on_the_tenant():
+    """T-8.23b: без адреса/телефона карточка «So finden Sie uns» пустая — поля обязательны."""
+    for missing in ("street", "postcode", "phone"):
+        form = quickstart.QuickStartForm(data=_post_data(**{missing: ""}))
+        assert not form.is_valid() and missing in form.errors, missing
+    bad = quickstart.QuickStartForm(data=_post_data(postcode="ABC", phone="ruf an"))
+    assert not bad.is_valid() and {"postcode", "phone"} <= set(bad.errors)
+
+    with mock.patch("apps.tenants.tasks.provision_quick.delay"):
+        quickstart_views.quick_start(_post(_post_data(business_type="hotel")))
+    tenant = Tenant.objects.get(slug="baeckerei-mueller-soehne")
+    try:
+        assert tenant.address == "Kölner Straße 64, 42651 Solingen"
+        assert tenant.contact_phone == "0212 123456"
+        # T-8.23a: у отеля акции не выключены пресетом (иначе 404 на /promotions/)
+        assert "promotions" not in tenant.disabled_modules
+        assert "publishing" not in tenant.disabled_modules
     finally:
         _drop(tenant)

@@ -712,6 +712,9 @@ def promotion_quick_done(request, pk):
             "contact_email": limits.contact_email(),
             "nav": "promotions",
             "translate_locales": _translate_locales(tenant),
+            # T-8.23b: адрес/телефон спрошены при старте, часов работы ещё нет — подсказка.
+            "missing_hours": tenant is not None
+            and not (tenant.opening_hours_structured or (tenant.opening_hours or "").strip()),
             **owner_login.pending_context(request),  # T-8.5
         },
     )

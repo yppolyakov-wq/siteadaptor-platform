@@ -94,6 +94,8 @@ def quick_start(request):
             city=cd["city"],
             district=cd.get("district") or "",
             email=cd["email"],
+            address=form.address_line(),
+            phone=cd["phone"],
             promo=promo,
             partner_code=request.session.get("partner_ref", ""),
             in_city_catalog=cd.get("in_city_catalog", False),

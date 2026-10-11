@@ -24233,3 +24233,18 @@ msgstr ""
 
 msgid "Das dauert etwa eine Minute. Es geht automatisch weiter."
 msgstr "Это займёт около минуты. Дальше всё произойдёт автоматически."
+
+msgid "Straße und Hausnummer"
+msgstr "Улица и номер дома"
+
+msgid "PLZ"
+msgstr "Индекс"
+
+msgid "Bitte eine gültige Postleitzahl eingeben."
+msgstr "Введите правильный почтовый индекс."
+
+msgid "Bitte eine gültige Telefonnummer eingeben."
+msgstr "Введите правильный номер телефона."
+
+msgid "Damit Kunden wissen, wann sie kommen können: Öffnungszeiten ergänzen"
+msgstr "Чтобы клиенты знали, когда приходить: добавьте часы работы"

@@ -24217,3 +24217,18 @@ msgstr ""
 
 msgid "Das dauert etwa eine Minute. Es geht automatisch weiter."
 msgstr "Це займе близько хвилини. Далі все відбудеться автоматично."
+
+msgid "Straße und Hausnummer"
+msgstr "Вулиця й номер будинку"
+
+msgid "PLZ"
+msgstr "Індекс"
+
+msgid "Bitte eine gültige Postleitzahl eingeben."
+msgstr "Введіть правильний поштовий індекс."
+
+msgid "Bitte eine gültige Telefonnummer eingeben."
+msgstr "Введіть правильний номер телефону."
+
+msgid "Damit Kunden wissen, wann sie kommen können: Öffnungszeiten ergänzen"
+msgstr "Щоб клієнти знали, коли приходити: додайте години роботи"

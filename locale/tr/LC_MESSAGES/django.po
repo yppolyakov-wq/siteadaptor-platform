@@ -24124,3 +24124,18 @@ msgstr ""
 
 msgid "Das dauert etwa eine Minute. Es geht automatisch weiter."
 msgstr "Bu yaklaşık bir dakika sürer. Otomatik olarak devam eder."
+
+msgid "Straße und Hausnummer"
+msgstr "Sokak ve bina no."
+
+msgid "PLZ"
+msgstr "Posta kodu"
+
+msgid "Bitte eine gültige Postleitzahl eingeben."
+msgstr "Lütfen geçerli bir posta kodu girin."
+
+msgid "Bitte eine gültige Telefonnummer eingeben."
+msgstr "Lütfen geçerli bir telefon numarası girin."
+
+msgid "Damit Kunden wissen, wann sie kommen können: Öffnungszeiten ergänzen"
+msgstr "Müşteriler ne zaman geleceğini bilsin: çalışma saatlerini ekleyin"

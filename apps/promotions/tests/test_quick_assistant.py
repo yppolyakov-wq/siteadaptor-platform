@@ -378,3 +378,18 @@ def test_done_screen_offers_edit_and_translation_links(user):
     assert f"/promotions/{promo.pk}/edit/?sprache=en" in body
     assert f"/promotions/{promo.pk}/edit/?sprache=ru" in body
     assert 'data-translate-link="de"' not in body  # базовый язык не переводится
+
+
+def test_done_screen_asks_for_opening_hours_until_they_are_set(user):
+    """T-8.23b: без часов работы — подсказка «Öffnungszeiten ergänzen» на «Fertig»."""
+    tenant = _tenant("t823-hours")
+    promo = PromotionFactory(status="active", title={"de": "Brot"})
+
+    def body():
+        req = _attach(RequestFactory().get(f"/promotions/{promo.pk}/fertig/"), user, tenant)
+        return views.promotion_quick_done(req, pk=promo.pk).content.decode()
+
+    assert "data-missing-hours" in body() and "#sec-zeiten" in body()
+    tenant.opening_hours = "Mo–Fr 7–18 Uhr"
+    tenant.save(update_fields=["opening_hours"])
+    assert "data-missing-hours" not in body()
