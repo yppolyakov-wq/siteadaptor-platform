@@ -1,0 +1,37 @@
+{% extends "tenant/_base_dashboard.html" %}
+{% load i18n %}
+{% block dash_title %}{% trans "Teilen" %}{% endblock %}
+
+{% block dash_content %}
+{% comment %}T-8.23c: «Teilen» лёгкого кабинета — адрес сайта, QR, мессенджеры, плакат.{% endcomment %}
+<div class="max-w-lg mx-auto space-y-3" data-lite-share>
+  <h1 class="text-xl font-bold">🔗 {% trans "Teilen" %}</h1>
+  <section class="bg-white rounded-2xl shadow-sm p-4">
+    <p class="text-sm font-medium mb-2">{% trans "Ihre Seite mit allen Aktionen" %}</p>
+    <div class="flex gap-2">
+      <input type="text" readonly value="{{ site_url }}" class="flex-1 min-w-0 rounded-xl border border-gray-300 px-3 py-2.5 text-sm bg-gray-50" data-share-url>
+      <button type="button" class="rounded-xl border border-gray-300 px-3 py-2.5 text-sm" data-copy>{% trans "Kopieren" %}</button>
+    </div>
+    <div class="mt-4 mx-auto w-48 [&>svg]:w-full [&>svg]:h-auto" data-share-qr>{{ qr_svg|safe }}</div>
+  </section>
+  <section class="bg-white rounded-2xl shadow-sm p-4">
+    <p class="text-sm font-medium mb-2">{% trans "Weitersagen" %}</p>
+    <div class="grid grid-cols-2 gap-2">
+      {% for t in share %}
+        <a href="{{ t.url }}" target="_blank" rel="noopener" class="rounded-xl border border-gray-300 px-3 py-2.5 text-sm text-center" data-share-target="{{ t.key }}">{{ t.icon }} {{ t.label }}</a>
+      {% endfor %}
+    </div>
+  </section>
+  <a href="{% url 'promotions:shop-poster' %}" class="block rounded-2xl bg-white shadow-sm p-4 text-sm font-medium" data-share-poster>🖨 {% trans "Plakat für Ihr Schaufenster (PDF)" %} →</a>
+</div>
+<script>
+document.addEventListener("click", function (e) {
+  var b = e.target.closest("[data-copy]");
+  if (!b) return;
+  var input = document.querySelector("[data-share-url]");
+  if (navigator.clipboard) navigator.clipboard.writeText(input.value);
+  else { input.select(); document.execCommand("copy"); }
+  b.textContent = "✓";
+});
+</script>
+{% endblock %}

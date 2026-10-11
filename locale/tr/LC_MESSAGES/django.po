@@ -24151,3 +24151,24 @@ msgstr "Yeni kategori"
 
 msgid "Neues Produkt aus diesen Angaben"
 msgstr "Bu bilgilerden yeni ürün"
+
+msgid "Bitte die Adresse angeben."
+msgstr "Lütfen adresi girin."
+
+msgid "So finden Kundinnen und Kunden Sie — auf jeder Aktion."
+msgstr "Müşteriler sizi böyle bulur — her kampanyada."
+
+msgid "Alle Einstellungen"
+msgstr "Tüm ayarlar"
+
+msgid "Ihre Seite mit allen Aktionen"
+msgstr "Tüm kampanyalarınızın sayfası"
+
+msgid "Weitersagen"
+msgstr "Paylaşın"
+
+msgid "Plakat für Ihr Schaufenster (PDF)"
+msgstr "Vitrininiz için poster (PDF)"
+
+msgid "bis"
+msgstr "son"

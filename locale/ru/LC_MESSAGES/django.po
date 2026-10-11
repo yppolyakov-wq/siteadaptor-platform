@@ -24260,3 +24260,24 @@ msgstr "Новая категория"
 
 msgid "Neues Produkt aus diesen Angaben"
 msgstr "Новый товар из этих данных"
+
+msgid "Bitte die Adresse angeben."
+msgstr "Укажите адрес."
+
+msgid "So finden Kundinnen und Kunden Sie — auf jeder Aktion."
+msgstr "Так клиенты найдут вас — в каждой акции."
+
+msgid "Alle Einstellungen"
+msgstr "Все настройки"
+
+msgid "Ihre Seite mit allen Aktionen"
+msgstr "Ваша страница со всеми акциями"
+
+msgid "Weitersagen"
+msgstr "Рассказать другим"
+
+msgid "Plakat für Ihr Schaufenster (PDF)"
+msgstr "Плакат для витрины (PDF)"
+
+msgid "bis"
+msgstr "до"

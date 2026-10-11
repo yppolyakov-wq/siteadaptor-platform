@@ -590,7 +590,11 @@ def sidebar_nav(tenant, user=None) -> list[dict]:
     Recht) не показываем, мидлварь W9-10 всё равно отдала бы 403 (прежде этот
     гейт жил только в снесённом теге hub_tabs и в палитре). Fail-open: без
     user/при ошибке ролей показываем всё — доступ держит middleware."""
-    from apps.core import nav_registry
+    from apps.core import lite_cabinet, nav_registry
+
+    # T-8.23c: лёгкий кабинет «Nur Aktionen» — 4 плоских пункта вместо якорей W8.
+    if lite_cabinet.is_lite(tenant):
+        return lite_cabinet.sidebar_items()
 
     owner_hidden = frozenset()
     if user is not None:

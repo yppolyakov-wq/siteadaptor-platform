@@ -17380,3 +17380,15 @@ NULL), количество — «Stückzahl» акции. «−N % auf alles» 
 `--kit a b` / `--kit a,b`, `--group solingen|lite|solingen-shops|showcase|food|shop|services|travel|all`
 (состав групп — по полям кита, новый кит попадает сам), `--list`; ошибка одного кита не
 останавливает пачку, в конце сводка. Замки `test_seed_groups.py`.
+
+## 2026-10-11 — T-8.23c «Лёгкий кабинет» для магазинов «Nur Aktionen» (без миграций)
+
+План `t8-23-…` §8. `apps/core/lite_cabinet.py`: при режиме «Nur Aktionen» `modules.sidebar_nav`
+отдаёт 4 плоских пункта — Aktionen · Produkte · Geschäft · Teilen (реестр якорей W8 под
+мораторием X7 не тронут; мобильный таб-бар = те же 4, иконки `ic-nav-settings/site` в спрайт);
+`/dashboard/` → список акций. Новые экраны: **Geschäft** `/dashboard/geschaeft/` (название,
+адрес, телефон, WhatsApp, часы по дням; запись только своих полей + синк листингов) и
+**Teilen** `/dashboard/teilen/` (адрес сайта с копированием, QR сайта, мессенджеры, плакат).
+Список акций в лёгком режиме — карточки (фото, цена/«statt», «noch N», статус, «bis», счётчики,
+Teilen/↻/Bearbeiten), настройки вида витрины и дубли кнопок скрыты. Полный кабинет по прямым
+адресам доступен. Замки `test_lite_cabinet.py` (5); новые экраны в EXPECTED_UNLISTED X7.3.

@@ -12,7 +12,7 @@ from apps.billing import views as billing_views
 from apps.booking import public_views as booking_public
 from apps.collections import public_views as collections_public
 from apps.community import views as community_views
-from apps.core import health, owner_login
+from apps.core import health, lite_cabinet, owner_login
 from apps.core.demo_switch import demo_design_switch
 from apps.core.design_page import design_view
 from apps.core.media_views import serve_media
@@ -105,6 +105,9 @@ urlpatterns = [
     # ссылки, а строковые префиксы в middleware приходилось поддерживать вручную.
     path("dashboard/setup/", setup_view, name="setup"),
     path("dashboard/settings/", settings_view, name="settings"),
+    # T-8.23c: лёгкий кабинет «Nur Aktionen»
+    path("dashboard/geschaeft/", lite_cabinet.lite_business, name="lite-business"),
+    path("dashboard/teilen/", lite_cabinet.lite_share, name="lite-share"),
     # UD4-2: кабинет «Benachrichtigungen» — каналы email/Telegram per-событие.
     path(
         "dashboard/settings/notifications/",

@@ -24026,3 +24026,24 @@ msgstr "New category"
 
 msgid "Neues Produkt aus diesen Angaben"
 msgstr "New product from these details"
+
+msgid "Bitte die Adresse angeben."
+msgstr "Please enter the address."
+
+msgid "So finden Kundinnen und Kunden Sie — auf jeder Aktion."
+msgstr "This is how customers find you — on every promotion."
+
+msgid "Alle Einstellungen"
+msgstr "All settings"
+
+msgid "Ihre Seite mit allen Aktionen"
+msgstr "Your page with all promotions"
+
+msgid "Weitersagen"
+msgstr "Spread the word"
+
+msgid "Plakat für Ihr Schaufenster (PDF)"
+msgstr "Poster for your shop window (PDF)"
+
+msgid "bis"
+msgstr "until"

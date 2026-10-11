@@ -24066,3 +24066,24 @@ msgstr "Neue Kategorie"
 
 msgid "Neues Produkt aus diesen Angaben"
 msgstr "Neues Produkt aus diesen Angaben"
+
+msgid "Bitte die Adresse angeben."
+msgstr "Bitte die Adresse angeben."
+
+msgid "So finden Kundinnen und Kunden Sie — auf jeder Aktion."
+msgstr "So finden Kundinnen und Kunden Sie — auf jeder Aktion."
+
+msgid "Alle Einstellungen"
+msgstr "Alle Einstellungen"
+
+msgid "Ihre Seite mit allen Aktionen"
+msgstr "Ihre Seite mit allen Aktionen"
+
+msgid "Weitersagen"
+msgstr "Weitersagen"
+
+msgid "Plakat für Ihr Schaufenster (PDF)"
+msgstr "Plakat für Ihr Schaufenster (PDF)"
+
+msgid "bis"
+msgstr "bis"

@@ -24244,3 +24244,24 @@ msgstr "Нова категорія"
 
 msgid "Neues Produkt aus diesen Angaben"
 msgstr "Новий товар із цих даних"
+
+msgid "Bitte die Adresse angeben."
+msgstr "Вкажіть адресу."
+
+msgid "So finden Kundinnen und Kunden Sie — auf jeder Aktion."
+msgstr "Так клієнти знайдуть вас — у кожній акції."
+
+msgid "Alle Einstellungen"
+msgstr "Усі налаштування"
+
+msgid "Ihre Seite mit allen Aktionen"
+msgstr "Ваша сторінка з усіма акціями"
+
+msgid "Weitersagen"
+msgstr "Розповісти іншим"
+
+msgid "Plakat für Ihr Schaufenster (PDF)"
+msgstr "Плакат для вітрини (PDF)"
+
+msgid "bis"
+msgstr "до"

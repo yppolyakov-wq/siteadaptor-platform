@@ -8,6 +8,7 @@
   <div class="flex items-center gap-2">
     {% comment %}VF-20b (решение владельца 2026-08-25 «рядом, но не объединять»):
     соседняя задача — разослать персональные коды; экраны остаются раздельными.{% endcomment %}
+    {% if not lite %}
     {% if campaigns_active %}
       <a href="{% url 'promotions:coupon-campaigns' %}" class="border border-gray-300 text-gray-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50">🎟 {% trans "Kampagnen" %}</a>
     {% endif %}
@@ -25,6 +26,7 @@
     {% comment %}T-8.4: «＋» ведёт в ассистент (три шага с телефона); полная форма
     остаётся рядом («Alle Felder»).{% endcomment %}
     <a href="{% url 'promotions:promotion-create' %}" class="border border-gray-300 text-gray-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50">{% trans "Alle Felder" %}</a>
+    {% endif %}
     <a href="{% url 'promotions:promotion-quick' %}" class="bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700" data-quick-new>
       ＋ {% trans "Neue Aktion" %}
     </a>
@@ -55,6 +57,7 @@
       {% endfor %}
     </select>
   </form>
+  {% if not lite %}
   {% comment %}DL-13 C3: как гл. страница /aktionen/ группирует акции — тематические
   группы владельца (как было) или Prospekt «по времени» (Endet heute/diese Woche…).
   Targeted-write ключа promo_grouping; сборка Retro ставит «по времени» сама.{% endcomment %}
@@ -82,7 +85,42 @@
   <p class="w-full mt-2 text-sm">
     <a href="{% url 'promotions:promo-type-list' %}" class="text-gray-600 hover:underline">{% trans "Aktionstypen und ihre Darstellung" %} →</a>
   </p>
+  {% endif %}
   </div>
+
+  {% if lite %}
+  {% comment %}T-8.23c: лёгкий кабинет — карточки вместо таблицы (телефон первым):
+  фото, цена, срок, статус, счётчики и три действия.{% endcomment %}
+  <div class="grid gap-3 sm:grid-cols-2" data-lite-promo-cards>
+    {% for p in promotions %}
+      <article class="flex gap-3 rounded-xl border border-gray-200 p-3" data-lite-promo-card>
+        {% with img=p.primary_image %}
+          {% if img %}<img src="{{ img.url }}" alt="" class="w-20 h-20 shrink-0 rounded-lg object-cover">{% else %}<div class="w-20 h-20 shrink-0 rounded-lg bg-gray-100 flex items-center justify-center text-2xl">🏷</div>{% endif %}
+        {% endwith %}
+        <div class="min-w-0 flex-1">
+          <a href="{% url 'promotions:promotion-edit' p.pk %}" class="block font-medium truncate hover:text-indigo-700">{{ p }}</a>
+          <p class="text-sm">
+            {% if p.new_price is not None %}<span class="font-semibold">{{ p.new_price|floatformat:2 }} €</span>{% endif %}
+            {% if p.has_discount %}<span class="ml-1 text-gray-400 line-through">{{ p.old_price|floatformat:2 }} €</span>{% endif %}
+            {% if p.available_quantity is not None %}<span class="ml-1 text-xs text-gray-500">· {% blocktrans with n=p.available_quantity %}noch {{ n }}{% endblocktrans %}</span>{% endif %}
+          </p>
+          <p class="text-xs mt-0.5">
+            <span class="px-1.5 py-0.5 rounded-full {% if p.status == 'active' %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-700{% endif %}">{{ p.status_label }}</span>
+            {% if p.ends_at %}<span class="ml-1 text-gray-500">{% trans "bis" %} {{ p.ends_at|date:"d.m. H:i" }}</span>{% endif %}
+          </p>
+          <p class="text-[11px] text-gray-400 mt-0.5" data-promo-counters>👁 {{ p.views }} · {% trans "zurückgelegt" %} {{ p.n_held }} · {% trans "ausgegeben" %} {{ p.n_handed }}</p>
+          <div class="mt-2 flex flex-wrap gap-2 text-xs">
+            {% if p.status == 'active' %}<a href="{% url 'promotions:promotion-quick-done' p.pk %}" class="rounded-full border border-gray-300 px-2.5 py-1">📣 {% trans "Teilen" %}</a>{% endif %}
+            {% if p.status in repeatable %}<a href="{% url 'promotions:promotion-quick' %}?von={{ p.pk }}" class="rounded-full border border-gray-300 px-2.5 py-1" data-repeat>↻ {% trans "Wiederholen" %}</a>{% endif %}
+            <a href="{% url 'promotions:promotion-edit' p.pk %}" class="rounded-full border border-gray-300 px-2.5 py-1">✏️ {% trans "Bearbeiten" %}</a>
+          </div>
+        </div>
+      </article>
+    {% empty %}
+      <p class="py-6 text-center text-gray-400 sm:col-span-2">{% trans "No promotions yet." %}</p>
+    {% endfor %}
+  </div>
+  {% else %}
 
   <div class="-mx-4 px-4 overflow-x-auto sm:mx-0 sm:px-0">
   <table class="w-full text-sm min-w-[640px]">
@@ -137,6 +175,7 @@
     </tbody>
   </table>
   </div>
+  {% endif %}
 </div>
 {# T-8.4: мобильная «＋» над таб-баром (паттерн R3 Verkäufe) — в ассистент #}
 <a href="{% url 'promotions:promotion-quick' %}" aria-label="{% trans 'Neue Aktion' %}"

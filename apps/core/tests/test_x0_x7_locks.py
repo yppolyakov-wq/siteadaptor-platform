@@ -57,6 +57,9 @@ def test_sidebar_anchor_composition_is_frozen():
 # [OK] — самостоятельный хром (мастер) или служебные JSON.
 EXPECTED_UNLISTED = frozenset(
     {
+        # [OK] T-8.23c: экраны лёгкого кабинета — вход из ЕГО меню (lite_cabinet.LITE_NAV)
+        "lite-business",
+        "lite-share",
         # [POST] приёмники и action-роуты
         "billing-checkout",
         "billing-payments-callback",

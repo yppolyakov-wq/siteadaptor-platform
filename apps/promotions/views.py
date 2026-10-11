@@ -232,8 +232,16 @@ def promotion_list(request):
             # DL-21.2: шаблон обзорной страницы /aktionen/.
             "promo_page_style": _promo_page_style(request),
             "promo_page_styles": group_styles.PROMO_PAGE_STYLES,
+            # T-8.23c: лёгкий кабинет — карточки вместо таблицы, без настроек витрины.
+            "lite": _lite(request),
         },
     )
+
+
+def _lite(request) -> bool:
+    from apps.core import lite_cabinet
+
+    return lite_cabinet.is_lite(getattr(request, "tenant", None))
 
 
 def _promo_grouping(request) -> str:
