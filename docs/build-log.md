@@ -17374,3 +17374,9 @@ NULL), количество — «Stückzahl» акции. «−N % auf alles» 
 товар + акция, заодно включает модуль акций (T-8.23a). 4 старых замка фото переписаны на
 `gallery_images` (фото теперь у товара) осознанно. ⚠️ ops: после деплоя
 `python manage.py convert_lite_promotions` → `--apply`.
+
+## 2026-10-11 — seed_demo_tenants: несколько китов и группы одной командой (без миграций)
+
+`--kit a b` / `--kit a,b`, `--group solingen|lite|solingen-shops|showcase|food|shop|services|travel|all`
+(состав групп — по полям кита, новый кит попадает сам), `--list`; ошибка одного кита не
+останавливает пачку, в конце сводка. Замки `test_seed_groups.py`.

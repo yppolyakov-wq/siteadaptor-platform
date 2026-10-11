@@ -19,6 +19,17 @@
     python manage.py seed_demo_tenants --recreate      # пересоздать
     python manage.py seed_demo_tenants --delete        # удалить демо-тенанты
 
+Несколько китов и группы (2026-10-11) — одной командой:
+
+    python manage.py seed_demo_tenants --list                       # киты и группы
+    python manage.py seed_demo_tenants --kit hotel friseur cafe     # или через запятую
+    python manage.py seed_demo_tenants --group solingen --recreate  # все демо Золингена
+    python manage.py seed_demo_tenants --group all --recreate       # пересоздать всё
+
+Группы — KIT_GROUPS ниже (solingen, lite, solingen-shops, showcase, food, shop, services,
+travel, all). Без ``--recreate`` существующие демо пропускаются (создаются недостающие).
+Ошибка одного кита не останавливает остальные — в конце сводка.
+
 Поддомен = kit.subdomain или «<kit>-demo». Долго (миграции схемы на тенант
 ~1 мин). Демо одноразовы — удаляются дропом схемы.
 """
@@ -29,81 +40,170 @@ from django_tenants.utils import schema_context
 from apps.tenants import demo_kits, services
 from apps.tenants.models import Domain, Tenant
 
-DEMO_PASSWORD = "demo-12345678"  # витрина публична; логин владельца — для показа кабинета
+DEMO_PASSWORD = "demo-12345678"
+
+_FOOD = {"bakery", "butcher", "cafe", "catering", "restaurant", "grocery"}
+_SHOP = {"retail", "clothing", "online_shop"}
+_SERVICES = {"friseur", "handwerker", "werkstatt", "other"}
+_TRAVEL = {"hotel", "events", "tour_operator"}
+
+# Группы китов: имя → (описание, условие). Состав считается по полям кита, поэтому
+# новый кит сам попадает в свои группы.
+KIT_GROUPS = {
+    "all": ("все киты", lambda k: True),
+    "solingen": ("все демо Золингена (портал города)", lambda k: k.city == "Solingen"),
+    "lite": ("демо «Nur Aktionen»", lambda k: k.profile == "aktionen"),
+    "solingen-shops": (
+        "Золинген с товарами/услугами (T-8.22)",
+        lambda k: k.city == "Solingen" and k.profile != "aktionen",
+    ),
+    "showcase": ("отраслевые демо (кроме Золингена)", lambda k: k.city != "Solingen"),
+    "food": ("еда и гастрономия", lambda k: k.business_type in _FOOD),
+    "shop": ("торговля и мода", lambda k: k.business_type in _SHOP),
+    "services": ("услуги и ремесло", lambda k: k.business_type in _SERVICES),
+    "travel": ("отель, события и туры", lambda k: k.business_type in _TRAVEL),
+}
+
+
+def kits_for_group(name: str) -> list[str]:
+    _label, cond = KIT_GROUPS[name]
+    return [key for key, kit in demo_kits.KITS.items() if cond(kit)]
+
+
+def _split(values) -> list[str]:
+    """«a b», «a,b», «a, b» — одинаково."""
+    if isinstance(values, str):  # call_command(kit="hotel") — строка, не список
+        values = [values]
+    out: list[str] = []
+    for v in values or []:
+        out += [x for x in str(v).replace(",", " ").split() if x]
+    return out  # витрина публична; логин владельца — для показа кабинета
 
 
 class Command(BaseCommand):
     help = "Создать/обновить отдельные демо-тенанты по китам (apps.tenants.demo_kits)."
 
     def add_arguments(self, parser):
-        parser.add_argument("--kit", help="ключ одного кита (иначе все)")
+        parser.add_argument(
+            "--kit", nargs="+", help="один или несколько китов (пробел или запятая)"
+        )
+        parser.add_argument(
+            "--group",
+            nargs="+",
+            help=f"группы китов: {', '.join(KIT_GROUPS)}",
+        )
+        parser.add_argument("--list", action="store_true", help="показать киты и группы")
         parser.add_argument("--recreate", action="store_true", help="пересоздать существующие")
         parser.add_argument("--delete", action="store_true", help="удалить демо-тенанты китов")
 
-    def handle(self, *args, **options):
-        keys = [options["kit"]] if options.get("kit") else list(demo_kits.KITS)
-        for key in keys:
-            if key not in demo_kits.KITS:
-                # Заметное предупреждение: при запуске в Docker частая причина —
-                # контейнер на старом образе (нужен ./scripts/deploy.sh single
-                # для пересборки) ИЛИ опечатка в ключе. Не теряем среди логов.
-                available = ", ".join(demo_kits.KITS)
+    def _keys(self, options) -> list[str]:
+        keys = _split(options.get("kit"))
+        for group in _split(options.get("group")):
+            if group not in KIT_GROUPS:
                 self.stderr.write(
                     self.style.ERROR(
-                        f"\n  ✗ Unbekannter Kit: «{key}» — wird übersprungen.\n"
-                        f"    Verfügbare Kits: {available}\n"
-                        f"    Fehlt Ihr Kit? Der Container läuft evtl. auf einem alten "
-                        f"Image — erst neu bauen:\n"
-                        f"      ./scripts/deploy.sh single   "
-                        f"(git pull + docker compose build + up -d)\n"
+                        f"  ✗ неизвестная группа: «{group}». Есть: {', '.join(KIT_GROUPS)}"
                     )
                 )
                 continue
-            slug = demo_kits.KITS[key].subdomain or f"{key}-demo"
-            existing = Tenant.objects.filter(slug=slug).first()
+            keys += kits_for_group(group)
+        if not options.get("kit") and not options.get("group"):
+            keys = list(demo_kits.KITS)
+        return list(dict.fromkeys(keys))  # порядок первого упоминания, без повторов
 
-            if options["delete"]:
-                self._drop(existing, slug)
-                continue
-            if existing and options["recreate"]:
-                self._drop(existing, slug)
-                existing = None
-            if existing:
-                self.stdout.write(f"{slug}: уже есть — пропуск (--recreate для пересоздания)")
-                continue
+    def _print_list(self):
+        for name, (label, _cond) in KIT_GROUPS.items():
+            keys = kits_for_group(name)
+            self.stdout.write(f"{name:15} {len(keys):3}  {label}")
+            if name != "all":
+                self.stdout.write(f"{'':20}{' '.join(keys)}")
 
-            kit = demo_kits.KITS[key]
-            tenant, login_url = services.create_business(
-                business_name=kit.label,
-                slug=slug,
-                business_type=kit.business_type,
-                city="Hilden",
-                email=f"{slug}@example.de",
-                password=DEMO_PASSWORD,
-            )
-            with schema_context(tenant.schema_name):
-                demo_kits.apply_kit(tenant, key)
-            # Материализовать листинги в общий пул агрегатора (акции/номера/события).
-            from apps.aggregator.tasks import reconcile_schema
-
-            reconcile_schema(tenant.schema_name)
-            # H8a: для отеля — вертикальный портал-поиск «Hotelsuche» (свой агрегатор
-            # на архетип) поверх KIND_STAY + kind=vertical.
-            if key == "hotel":
-                self._ensure_hotel_portal()
-            # T-8.18: лёгкие демо «Nur Aktionen» — городской портал на нашем субдомене
-            # (превью для партнёров: show_demo=True, полоса «Vorschau» на портале).
-            kit = demo_kits.KITS[key]
-            if kit.profile == "aktionen" and kit.city:
-                self._ensure_city_portal(kit.city)
-            host = (
-                Domain.objects.filter(tenant=tenant, is_primary=True)
-                .values_list("domain", flat=True)
-                .first()
-            )
+    def handle(self, *args, **options):
+        if options.get("list"):
+            self._print_list()
+            return
+        keys = self._keys(options)
+        done, failed = [], []
+        total = len(keys)
+        for n, key in enumerate(keys, 1):
+            if total > 1:
+                self.stdout.write(f"[{n}/{total}] {key}")
+            try:
+                if self._seed_one(key, options):
+                    done.append(key)
+            except Exception as exc:  # noqa: BLE001 — один кит не останавливает пачку
+                failed.append(key)
+                self.stderr.write(self.style.ERROR(f"  ✗ {key}: {exc}"))
+        if total > 1:
             self.stdout.write(
-                self.style.SUCCESS(f"{slug}: создан → https://{host}/  (login: {login_url})")
+                self.style.SUCCESS(f"Готово: {len(done)} из {total}")
+                + (self.style.ERROR(f" · ошибки: {', '.join(failed)}") if failed else "")
             )
+
+    def _seed_one(self, key, options) -> bool:
+        """Один кит. True — что-то сделано (создан/удалён), False — пропущен."""
+        if key not in demo_kits.KITS:
+            # Заметное предупреждение: при запуске в Docker частая причина —
+            # контейнер на старом образе (нужен ./scripts/deploy.sh single
+            # для пересборки) ИЛИ опечатка в ключе. Не теряем среди логов.
+            available = ", ".join(demo_kits.KITS)
+            self.stderr.write(
+                self.style.ERROR(
+                    f"\n  ✗ Unbekannter Kit: «{key}» — wird übersprungen.\n"
+                    f"    Verfügbare Kits: {available}\n"
+                    f"    Fehlt Ihr Kit? Der Container läuft evtl. auf einem alten "
+                    f"Image — erst neu bauen:\n"
+                    f"      ./scripts/deploy.sh single   "
+                    f"(git pull + docker compose build + up -d)\n"
+                )
+            )
+            return False
+        slug = demo_kits.KITS[key].subdomain or f"{key}-demo"
+        existing = Tenant.objects.filter(slug=slug).first()
+
+        if options["delete"]:
+            self._drop(existing, slug)
+            return True
+        if existing and options["recreate"]:
+            self._drop(existing, slug)
+            existing = None
+        if existing:
+            self.stdout.write(f"{slug}: уже есть — пропуск (--recreate для пересоздания)")
+            return False
+
+        kit = demo_kits.KITS[key]
+        tenant, login_url = services.create_business(
+            business_name=kit.label,
+            slug=slug,
+            business_type=kit.business_type,
+            city="Hilden",
+            email=f"{slug}@example.de",
+            password=DEMO_PASSWORD,
+        )
+        with schema_context(tenant.schema_name):
+            demo_kits.apply_kit(tenant, key)
+        # Материализовать листинги в общий пул агрегатора (акции/номера/события).
+        from apps.aggregator.tasks import reconcile_schema
+
+        reconcile_schema(tenant.schema_name)
+        # H8a: для отеля — вертикальный портал-поиск «Hotelsuche» (свой агрегатор
+        # на архетип) поверх KIND_STAY + kind=vertical.
+        if key == "hotel":
+            self._ensure_hotel_portal()
+        # T-8.18: лёгкие демо «Nur Aktionen» — городской портал на нашем субдомене
+        # (превью для партнёров: show_demo=True, полоса «Vorschau» на портале).
+        kit = demo_kits.KITS[key]
+        if kit.profile == "aktionen" and kit.city:
+            self._ensure_city_portal(kit.city)
+        host = (
+            Domain.objects.filter(tenant=tenant, is_primary=True)
+            .values_list("domain", flat=True)
+            .first()
+        )
+        self.stdout.write(
+            self.style.SUCCESS(f"{slug}: создан → https://{host}/  (login: {login_url})")
+        )
+        return True
 
     def _ensure_hotel_portal(self):
         """H8a: вертикальный hotel-портал на ``hotels.<base>`` (идемпотентно).
