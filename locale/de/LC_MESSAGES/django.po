@@ -24101,3 +24101,12 @@ msgstr "%(n)s offen"
 #, python-format
 msgid "Auch im Stadtportal %(city)s"
 msgstr "Auch im Stadtportal %(city)s"
+
+msgid "handgemacht"
+msgstr "handgemacht"
+
+msgid "gebraucht & refurbished"
+msgstr "gebraucht & refurbished"
+
+msgid "Service vor Ort"
+msgstr "Service vor Ort"

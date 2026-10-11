@@ -146,7 +146,57 @@ TAGS: tuple[tuple[str, object], ...] = (
     ("yoga", _("Yoga")),
     ("meditation", _("Meditation")),
     ("ayurveda", _("Ayurveda")),
+    # T-8.23e (решение владельца 2026-10-11): специфичные признаки торговли и услуг.
+    ("handgemacht", _("handgemacht")),
+    ("gebraucht", _("gebraucht & refurbished")),
+    ("vor-ort-service", _("Service vor Ort")),
 )
+
+# T-8.23e: какие признаки уместны в разделе (черновик владельца 2026-10-11). В форме
+# показываются только они; сервер отбрасывает чужие; портал строит чипы признаков внутри
+# выбранного раздела. Хранимые слаги не меняются — миграций нет.
+_DIETS = ("vegan", "vegetarisch", "bio", "glutenfrei", "laktosefrei", "halal")
+TAGS_BY_SECTION: dict[str, tuple[str, ...]] = {
+    "lebensmittel-getraenke": (*_DIETS, "regional", "nachhaltig"),
+    "essen-gastronomie": (
+        *_DIETS,
+        "regional",
+        "familienfreundlich",
+        "barrierefrei",
+        "hundefreundlich",
+    ),
+    "gesundheit-fitness": ("yoga", "meditation", "ayurveda", "vegan", "bio", "barrierefrei"),
+    "freizeit-erlebnisse": (
+        "familienfreundlich",
+        "barrierefrei",
+        "hundefreundlich",
+        "yoga",
+        "meditation",
+    ),
+    "kinder-familie": (
+        "familienfreundlich",
+        "barrierefrei",
+        "handgemacht",
+        "gebraucht",
+        "nachhaltig",
+    ),
+    "beauty-pflege": ("vegan", "bio", "nachhaltig", "barrierefrei"),
+    "tiere": ("bio", "regional", "nachhaltig", "hundefreundlich"),
+    "kunst-geschenke": ("handgemacht", "regional", "nachhaltig"),
+    "mode-accessoires": ("nachhaltig", "gebraucht", "handgemacht", "regional"),
+    "elektronik-technik": ("gebraucht", "vor-ort-service", "nachhaltig"),
+    "haus-garten": ("regional", "nachhaltig", "gebraucht", "handgemacht"),
+    "auto-mobilitaet": ("gebraucht", "vor-ort-service", "nachhaltig"),
+    "handwerk-reparatur": ("vor-ort-service", "regional", "nachhaltig"),
+    "dienstleistungen": ("vor-ort-service", "barrierefrei", "regional"),
+    "reisen-uebernachten": (
+        "familienfreundlich",
+        "barrierefrei",
+        "hundefreundlich",
+        "bio",
+        "nachhaltig",
+    ),
+}
 
 _SECTION = {s.key: s for s in SECTIONS}
 _CATEGORY = {c.key: c for c in CATEGORIES}
@@ -234,6 +284,27 @@ def grouped_choices() -> list[tuple[str, list[tuple[str, str]]]]:
         (f"{s.icon} {s.label}", [(c.key, str(c.label)) for c in CATEGORIES if c.section == s.key])
         for s in SECTIONS
     ]
+
+
+def tags_for(key: str) -> list[str]:
+    """T-8.23e: признаки категории/раздела в порядке справочника; пусто/неизвестно — все."""
+    item = _CATEGORY.get(key)
+    section_key = item.section if item else (key if key in _SECTION else "")
+    if not section_key:
+        return [k for k, _label in TAGS]
+    allowed = set(TAGS_BY_SECTION.get(section_key, ()))
+    return [k for k, _label in TAGS if k in allowed]
+
+
+def allowed_tags(values, key: str) -> list[str]:
+    """Признаки, уместные для категории/раздела (порядок справочника)."""
+    allowed = set(tags_for(key))
+    return [t for t in normalize_tags(values) if t in allowed]
+
+
+def tag_map() -> dict[str, list[str]]:
+    """{категория: [признаки]} — для фильтра чипов в форме (JSON на клиент)."""
+    return {c.key: tags_for(c.key) for c in CATEGORIES}
 
 
 def tag_choices() -> list[tuple[str, str]]:

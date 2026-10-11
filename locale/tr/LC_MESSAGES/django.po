@@ -24186,3 +24186,12 @@ msgstr "%(n)s açık"
 #, python-format
 msgid "Auch im Stadtportal %(city)s"
 msgstr "%(city)s şehir portalında da"
+
+msgid "handgemacht"
+msgstr "el yapımı"
+
+msgid "gebraucht & refurbished"
+msgstr "ikinci el & yenilenmiş"
+
+msgid "Service vor Ort"
+msgstr "Yerinde servis"

@@ -201,3 +201,14 @@ def test_discover_search_filters_by_tag_and_keeps_params():
     ).content.decode()
     assert "Vegane Torte" in html and "Mettbrötchen" not in html
     assert "data-category-chips" in html and "city=Solingen" in html
+
+
+def test_tag_chips_follow_the_open_section():
+    """T-8.23e: в разделе «Mode» нет чипа «vegan», даже если vegan есть у булочной."""
+    _listing(city_category="damenmode", city_tags=["nachhaltig"])
+    _listing(city_category="brot-backwaren", city_tags=["vegan"])
+    qs = AggregatorListing.objects.all()
+    keys = lambda chips: [t["key"] for t in chips["tags"]]  # noqa: E731
+    assert set(keys(category_facets.chips(qs, "/", "", ""))) == {"vegan", "nachhaltig"}
+    assert keys(category_facets.chips(qs, "/", "mode-accessoires", "")) == ["nachhaltig"]
+    assert keys(category_facets.chips(qs, "/", "brot-backwaren", "")) == ["vegan"]

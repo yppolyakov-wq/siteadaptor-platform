@@ -95,7 +95,8 @@ def _city_fields(kind: str, tenant, snap: dict | None = None) -> dict:
         cat, tags = by_type, []
     else:  # menu
         cat, tags = "catering", cc.normalize_tags(snap.get("diets", []))
-    return {"city_category": cat, "city_tags": tags}
+    # T-8.23e: признаки — только уместные для раздела категории (как в форме).
+    return {"city_category": cat, "city_tags": cc.allowed_tags(tags, cat)}
 
 
 def _event_district(tenant, event_city: str) -> str:

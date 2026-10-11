@@ -244,6 +244,7 @@
   root.addEventListener("change", function (e) {
     if (e.target.name === "business_type" && catSelect && !catTouched && catSuggest[e.target.value]) {
       catSelect.value = catSuggest[e.target.value];
+      if (window.cityTagSync) window.cityTagSync();  // T-8.23e: признаки раздела
     }
   });
   syncDate();

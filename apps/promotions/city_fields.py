@@ -37,10 +37,12 @@ def add_fields(form, *, category: str = "", tags=None) -> None:
     form.fields["city_category"] = category_field(category)
     form.fields["city_tags"] = tags_field(tags)
     form.city_category_groups = cc.grouped_choices()  # для <optgroup> в партиале
+    form.city_tag_map = cc.tag_map()  # T-8.23e: признаки по категории (фильтр чипов)
 
 
 def cleaned(form) -> tuple[str, list[str]]:
+    """Категория и признаки; T-8.23e: признаки чужого раздела отбрасываются
+    («Automatisch» — без категории — оставляет все известные)."""
     data = getattr(form, "cleaned_data", {}) or {}
-    return cc.normalize_category(data.get("city_category")), cc.normalize_tags(
-        data.get("city_tags")
-    )
+    category = cc.normalize_category(data.get("city_category"))
+    return category, cc.allowed_tags(data.get("city_tags"), category)

@@ -24279,3 +24279,12 @@ msgstr "%(n)s очікують"
 #, python-format
 msgid "Auch im Stadtportal %(city)s"
 msgstr "Також на міському порталі %(city)s"
+
+msgid "handgemacht"
+msgstr "ручна робота"
+
+msgid "gebraucht & refurbished"
+msgstr "вживане й відновлене"
+
+msgid "Service vor Ort"
+msgstr "Виїзд на місце"

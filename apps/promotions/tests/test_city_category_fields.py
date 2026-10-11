@@ -4,6 +4,7 @@
 """
 
 import pytest
+from django import forms
 from django.test import RequestFactory
 
 from apps.promotions import quick, views
@@ -73,3 +74,17 @@ def test_repeat_carries_category_and_tags():
     old = PromotionFactory(status="ended", city_category="getraenke", city_tags=["bio"])
     initial = quick.initial_from(old)
     assert initial["city_category"] == "getraenke" and initial["city_tags"] == ["bio"]
+
+
+def test_form_drops_tags_of_another_section_and_ships_tag_map():
+    """T-8.23e: «vegan» у Mode отбрасывается; карта признаков уходит в шаблон."""
+    from apps.promotions import city_fields
+
+    class F(forms.Form):
+        pass
+
+    form = F(data={"city_category": "damenmode", "city_tags": ["vegan", "nachhaltig"]})
+    city_fields.add_fields(form)
+    assert form.is_valid()
+    assert city_fields.cleaned(form) == ("damenmode", ["nachhaltig"])
+    assert "vegan" not in form.city_tag_map["damenmode"]

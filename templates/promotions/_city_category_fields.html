@@ -29,4 +29,30 @@
     </div>
     <span class="block text-xs text-gray-500 mt-2">{{ form.city_tags.help_text }}</span>
   </details>
+  {{ form.city_tag_map|json_script:"city-tag-map" }}
 </div>
+<script>
+(function () {
+  // T-8.23e: показываем только признаки выбранной категории; «Automatisch» — все.
+  // Скрытый признак снимается — сервер всё равно отбросит чужой.
+  var mapEl = document.getElementById("city-tag-map");
+  if (!mapEl) return;
+  var map = JSON.parse(mapEl.textContent || "{}");
+  function sync() {
+    var sel = document.querySelector("[data-city-category-select]");
+    if (!sel) return;
+    var allowed = map[sel.value];
+    document.querySelectorAll("[data-city-tag]").forEach(function (el) {
+      var ok = !allowed || allowed.indexOf(el.dataset.cityTag) !== -1;
+      el.classList.toggle("hidden", !ok);
+      if (!ok) { var box = el.querySelector("input"); if (box) box.checked = false; }
+    });
+  }
+  document.addEventListener("change", function (e) {
+    if (e.target.matches && e.target.matches("[data-city-category-select]")) sync();
+  });
+  window.cityTagSync = sync;
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", sync);
+  else sync();
+})();
+</script>

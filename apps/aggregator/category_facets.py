@@ -61,9 +61,17 @@ def chips(base_qs, path: str, kat: str, tag: str, extra: dict | None = None) -> 
         for c in cc.CATEGORIES
         if c.section == open_section and c.key in present
     ]
+    # T-8.23e: признаки — только внутри выбранного раздела/категории и только уместные
+    # для него (у «Mode» нет «vegan»). Активный признак не прячем — его надо снять.
+    tag_qs = base_qs
+    keys = cc.keys_for_filter(kat)
+    if keys:
+        tag_qs = base_qs.filter(city_category__in=keys)
+    allowed = set(cc.tags_for(kat))
     found: set[str] = set()
-    for tags in base_qs.values_list("city_tags", flat=True)[:_TAG_SCAN_LIMIT]:
+    for tags in tag_qs.values_list("city_tags", flat=True)[:_TAG_SCAN_LIMIT]:
         found.update(tags or [])
+    found = (found & allowed) | ({tag} if tag else set())
     tag_chips = [
         {
             "key": key,

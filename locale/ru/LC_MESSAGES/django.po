@@ -24295,3 +24295,12 @@ msgstr "%(n)s ожидают"
 #, python-format
 msgid "Auch im Stadtportal %(city)s"
 msgstr "Также на городском портале %(city)s"
+
+msgid "handgemacht"
+msgstr "ручная работа"
+
+msgid "gebraucht & refurbished"
+msgstr "б/у и восстановленное"
+
+msgid "Service vor Ort"
+msgstr "Выезд на место"
