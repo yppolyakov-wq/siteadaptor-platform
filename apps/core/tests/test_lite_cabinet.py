@@ -105,3 +105,17 @@ def test_promotion_list_cards_in_lite_table_otherwise(user):
         _req("get", "/promotions/", user, _tenant("lc-list2", lite=False))
     ).content.decode()
     assert "<table" in full and "data-lite-promo-card" not in full
+
+
+def test_lite_list_shows_open_reservations_and_scanner(user):
+    """Продавец видит отложенное прямо на экране акций (вопрос владельца 2026-10-11)."""
+    from apps.promotions import services
+
+    promo = PromotionFactory(status="active", title={"de": "Brot"}, available_quantity=5)
+    services.reserve(promo, name="Anna", email="anna@test.de")
+    body = promo_views.promotion_list(
+        _req("get", "/promotions/", user, _tenant("lc-res"))
+    ).content.decode()
+    assert "data-lite-reservations" in body and "1 offen" in body
+    assert "/promotions/redeem/" in body
+    assert f"/promotions/reservations/?promotion={promo.pk}" in body

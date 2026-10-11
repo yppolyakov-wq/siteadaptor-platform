@@ -24281,3 +24281,13 @@ msgstr "Плакат для витрины (PDF)"
 
 msgid "bis"
 msgstr "до"
+
+msgid "Code scannen"
+msgstr "Сканировать код"
+
+msgid "Abholung & Coupons"
+msgstr "Выдача и купоны"
+
+#, python-format
+msgid "%(n)s offen"
+msgstr "%(n)s ожидают"

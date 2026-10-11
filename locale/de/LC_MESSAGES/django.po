@@ -24087,3 +24087,13 @@ msgstr "Plakat für Ihr Schaufenster (PDF)"
 
 msgid "bis"
 msgstr "bis"
+
+msgid "Code scannen"
+msgstr "Code scannen"
+
+msgid "Abholung & Coupons"
+msgstr "Abholung & Coupons"
+
+#, python-format
+msgid "%(n)s offen"
+msgstr "%(n)s offen"

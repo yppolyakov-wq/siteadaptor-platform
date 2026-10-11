@@ -24172,3 +24172,13 @@ msgstr "Vitrininiz için poster (PDF)"
 
 msgid "bis"
 msgstr "son"
+
+msgid "Code scannen"
+msgstr "Kodu tara"
+
+msgid "Abholung & Coupons"
+msgstr "Teslim & kuponlar"
+
+#, python-format
+msgid "%(n)s offen"
+msgstr "%(n)s açık"

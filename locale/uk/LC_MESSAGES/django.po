@@ -24265,3 +24265,13 @@ msgstr "Плакат для вітрини (PDF)"
 
 msgid "bis"
 msgstr "до"
+
+msgid "Code scannen"
+msgstr "Сканувати код"
+
+msgid "Abholung & Coupons"
+msgstr "Видача й купони"
+
+#, python-format
+msgid "%(n)s offen"
+msgstr "%(n)s очікують"

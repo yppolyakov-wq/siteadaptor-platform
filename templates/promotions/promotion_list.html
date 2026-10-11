@@ -89,6 +89,15 @@
   </div>
 
   {% if lite %}
+  {% comment %}T-8.23c: резервы и выдача — главное после акции: вход прямо здесь.{% endcomment %}
+  <div class="grid grid-cols-2 gap-2 mb-3" data-lite-reservations>
+    <a href="{% url 'promotions:reservation-list' %}?status=pending" class="rounded-xl border px-3 py-3 text-sm font-medium {% if open_reservations %}border-amber-300 bg-amber-50 text-amber-900{% else %}border-gray-200 text-gray-700{% endif %}">
+      📦 {% trans "Zurückgelegt" %}<span class="block text-xs font-normal">{% blocktrans with n=open_reservations %}{{ n }} offen{% endblocktrans %}</span>
+    </a>
+    <a href="{% url 'promotions:redeem' %}" class="rounded-xl border border-gray-200 px-3 py-3 text-sm font-medium text-gray-700" data-lite-redeem>
+      📷 {% trans "Code scannen" %}<span class="block text-xs font-normal text-gray-500">{% trans "Abholung & Coupons" %}</span>
+    </a>
+  </div>
   {% comment %}T-8.23c: лёгкий кабинет — карточки вместо таблицы (телефон первым):
   фото, цена, срок, статус, счётчики и три действия.{% endcomment %}
   <div class="grid gap-3 sm:grid-cols-2" data-lite-promo-cards>
@@ -108,7 +117,7 @@
             <span class="px-1.5 py-0.5 rounded-full {% if p.status == 'active' %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-700{% endif %}">{{ p.status_label }}</span>
             {% if p.ends_at %}<span class="ml-1 text-gray-500">{% trans "bis" %} {{ p.ends_at|date:"d.m. H:i" }}</span>{% endif %}
           </p>
-          <p class="text-[11px] text-gray-400 mt-0.5" data-promo-counters>👁 {{ p.views }} · {% trans "zurückgelegt" %} {{ p.n_held }} · {% trans "ausgegeben" %} {{ p.n_handed }}</p>
+          <p class="text-[11px] text-gray-400 mt-0.5" data-promo-counters>👁 {{ p.views }} · <a href="{% url 'promotions:reservation-list' %}?promotion={{ p.pk }}" class="underline">{% trans "zurückgelegt" %} {{ p.n_held }}</a> · {% trans "ausgegeben" %} {{ p.n_handed }}</p>
           <div class="mt-2 flex flex-wrap gap-2 text-xs">
             {% if p.status == 'active' %}<a href="{% url 'promotions:promotion-quick-done' p.pk %}" class="rounded-full border border-gray-300 px-2.5 py-1">📣 {% trans "Teilen" %}</a>{% endif %}
             {% if p.status in repeatable %}<a href="{% url 'promotions:promotion-quick' %}?von={{ p.pk }}" class="rounded-full border border-gray-300 px-2.5 py-1" data-repeat>↻ {% trans "Wiederholen" %}</a>{% endif %}

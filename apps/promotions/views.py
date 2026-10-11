@@ -234,6 +234,12 @@ def promotion_list(request):
             "promo_page_styles": group_styles.PROMO_PAGE_STYLES,
             # T-8.23c: лёгкий кабинет — карточки вместо таблицы, без настроек витрины.
             "lite": _lite(request),
+            # T-8.23c: открытые резервы — продавец видит их прямо на экране акций.
+            "open_reservations": (
+                Reservation.objects.filter(status__in=("pending", "confirmed")).count()
+                if _lite(request)
+                else 0
+            ),
         },
     )
 

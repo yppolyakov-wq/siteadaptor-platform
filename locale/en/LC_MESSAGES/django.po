@@ -24047,3 +24047,13 @@ msgstr "Poster for your shop window (PDF)"
 
 msgid "bis"
 msgstr "until"
+
+msgid "Code scannen"
+msgstr "Scan code"
+
+msgid "Abholung & Coupons"
+msgstr "Pickup & coupons"
+
+#, python-format
+msgid "%(n)s offen"
+msgstr "%(n)s open"
