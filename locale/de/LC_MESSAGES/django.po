@@ -24054,3 +24054,15 @@ msgstr "Bitte eine gültige Telefonnummer eingeben."
 
 msgid "Damit Kunden wissen, wann sie kommen können: Öffnungszeiten ergänzen"
 msgstr "Damit Kunden wissen, wann sie kommen können: Öffnungszeiten ergänzen"
+
+msgid "Für welches Produkt?"
+msgstr "Für welches Produkt?"
+
+msgid "Artikelnummer (optional)"
+msgstr "Artikelnummer (optional)"
+
+msgid "Neue Kategorie"
+msgstr "Neue Kategorie"
+
+msgid "Neues Produkt aus diesen Angaben"
+msgstr "Neues Produkt aus diesen Angaben"

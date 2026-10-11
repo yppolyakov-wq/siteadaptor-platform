@@ -57,7 +57,7 @@
       {% endif %}
     </span>
     <span class="w-16 text-left sm:text-right shrink-0">
-      {% if it.promo_param and promotions_active %}<a href="{% url 'promotions:promotion-create' %}?{{ it.promo_param }}={{ it.pk }}" class="text-xs font-medium text-amber-600 hover:underline">% {% trans "Aktion" %}</a>{% endif %}
+      {% if it.promo_param and promotions_active %}<a href="{% if it.promo_param == 'product' %}{% url 'promotions:promotion-quick' %}{% else %}{% url 'promotions:promotion-create' %}{% endif %}?{{ it.promo_param }}={{ it.pk }}" class="text-xs font-medium text-amber-600 hover:underline">% {% trans "Aktion" %}</a>{% endif %}
     </span>
   </div>
   {% endfor %}

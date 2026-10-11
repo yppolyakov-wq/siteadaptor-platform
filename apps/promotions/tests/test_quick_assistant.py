@@ -208,8 +208,8 @@ def test_assistant_publishes_promotion_with_photo_price_term_response(user):
     assert promo.available_quantity == 8
     assert promo.metadata["response"] == "reserve"
     assert promo.ends_at > timezone.now() + timedelta(days=6)
-    assert promo.images and promo.images[0]["is_primary"]
-    delete_stored_image(promo.images[0])
+    assert promo.gallery_images and promo.gallery_images[0]["is_primary"]
+    delete_stored_image(promo.gallery_images[0])
 
 
 def test_assistant_draft_button_does_not_activate(user):
@@ -293,11 +293,11 @@ def test_repeat_prefills_and_copies_photo_as_own_file(user):
         tenant,
     )
     new = Promotion.objects.exclude(pk=old.pk).get()
-    assert new.images and new.images[0]["path"] != ref["path"]
+    assert new.gallery_images and new.gallery_images[0]["path"] != ref["path"]
     # удаление фото у старой акции не трогает новую
     delete_stored_image(ref)
-    assert default_storage.exists(new.images[0]["path"])
-    delete_stored_image(new.images[0])
+    assert default_storage.exists(new.gallery_images[0]["path"])
+    delete_stored_image(new.gallery_images[0])
 
 
 def test_list_shows_quick_entry_repeat_and_counters(user):
@@ -338,10 +338,10 @@ def test_several_photos_first_is_title_and_too_many_refused(user):
     )
     assert resp.status_code == 302
     promo = Promotion.objects.get()
-    assert len(promo.images) == 3
-    assert [i["is_primary"] for i in promo.images] == [True, False, False]
-    assert [i["sort_order"] for i in promo.images] == [0, 1, 2]
-    for ref in promo.images:
+    assert len(promo.gallery_images) == 3
+    assert [i["is_primary"] for i in promo.gallery_images] == [True, False, False]
+    assert [i["sort_order"] for i in promo.gallery_images] == [0, 1, 2]
+    for ref in promo.gallery_images:
         delete_stored_image(ref)
 
     many = [_png() for _ in range(quick.MAX_PHOTOS + 1)]
@@ -360,9 +360,9 @@ def test_repeat_copies_all_photos(user):
     old = PromotionFactory(status="ended", title={"de": "Zwei"}, images=refs)
     _post({"title": "Zwei", "new_price": "2", "photo_from": str(old.pk)}, user, tenant)
     new = Promotion.objects.exclude(pk=old.pk).get()
-    assert len(new.images) == 2 and new.images[0]["is_primary"]
-    assert {i["path"] for i in new.images}.isdisjoint({r["path"] for r in refs})
-    for ref in [*refs, *new.images]:
+    assert len(new.gallery_images) == 2 and new.gallery_images[0]["is_primary"]
+    assert {i["path"] for i in new.gallery_images}.isdisjoint({r["path"] for r in refs})
+    for ref in [*refs, *new.gallery_images]:
         delete_stored_image(ref)
 
 
@@ -393,3 +393,110 @@ def test_done_screen_asks_for_opening_hours_until_they_are_set(user):
     tenant.opening_hours = "Mo–Fr 7–18 Uhr"
     tenant.save(update_fields=["opening_hours"])
     assert "data-missing-hours" not in body()
+
+
+# --- T-8.23d: акция всегда от товара ------------------------------------------------
+
+
+def test_quick_promo_creates_product_from_the_same_data(user):
+    from decimal import Decimal
+
+    from apps.catalog.models import Category
+
+    tenant = _tenant("t823d-new")
+    resp = _post(
+        {
+            "title": "Bauernbrot 1 kg",
+            "new_price": "3",
+            "old_price": "4.50",
+            "quantity": "5",
+            "sku": "BR-01",
+            "category": "__new",
+            "new_category": "Brot",
+        },
+        user,
+        tenant,
+        files={"photo": _png()},
+    )
+    assert resp.status_code == 302
+    promo = Promotion.objects.get(title__de="Bauernbrot 1 kg")
+    product = promo.product
+    assert product is not None and product.name_text == "Bauernbrot 1 kg"
+    assert product.base_price == Decimal("4.50") and product.sku == "BR-01"
+    assert product.category == Category.objects.get(slug__startswith="brot")
+    assert product.stock_quantity is None  # S1: остатки не ведутся, штуки — в акции
+    assert promo.available_quantity == 5
+    # фото переехали в товар; витрина акции берёт их и цену «statt» у товара
+    assert promo.images == [] and len(product.images) == 1
+    assert promo.primary_image == product.primary_image
+    assert promo.old_price == Decimal("4.50") and promo.new_price == Decimal("3")
+    for ref in product.images:
+        delete_stored_image(ref)
+
+
+def test_quick_promo_for_existing_product_links_it(user):
+    from apps.catalog.tests.factories import ProductFactory
+
+    tenant = _tenant("t823d-old")
+    product = ProductFactory(base_price="10")
+    _post({"title": "Wochenknaller", "new_price": "7", "product": str(product.pk)}, user, tenant)
+    promo = Promotion.objects.get(title__de="Wochenknaller")
+    assert promo.product_id == product.pk
+    from apps.catalog.models import Product
+
+    assert Product.objects.count() == 1  # нового товара нет
+    assert str(promo.old_price) == "10.00"  # «statt» — цена товара
+
+
+def test_percent_only_promo_stays_without_product(user):
+    tenant = _tenant("t823d-pct")
+    _post({"title": "20 % auf alles", "percent": "20"}, user, tenant)
+    assert Promotion.objects.get(title__de="20 % auf alles").product_id is None
+
+
+def test_aktion_from_product_opens_short_assistant_prefilled(user):
+    from apps.catalog.tests.factories import ProductFactory
+
+    tenant = _tenant("t823d-pre")
+    product = ProductFactory(name={"de": "Kaffee 500 g"}, base_price="8.90")
+    req = _attach(
+        RequestFactory().get("/promotions/schnell/", {"product": product.pk}), user, tenant
+    )
+    body = views.promotion_quick(req).content.decode()
+    assert 'value="Kaffee 500 g"' in body
+    assert f'<option value="{product.pk}" selected' in body
+    assert 'value="8.90"' in body
+
+
+def test_convert_lite_promotions_turns_free_promos_into_products(monkeypatch):
+    """S3: свободные акции лёгких магазинов → товар + акция; модуль акций включается."""
+    import contextlib
+
+    from django.core.management import call_command
+
+    from apps.promotions.management.commands import convert_lite_promotions as cmd
+
+    monkeypatch.setattr(cmd, "tenant_context", lambda t: contextlib.nullcontext())
+    tenant = _tenant("t823s3", disabled=("orders", "promotions"))
+    free = PromotionFactory(
+        title={"de": "Maus"}, price_override="10", compare_at_price="50", images=[]
+    )
+    pct = PromotionFactory(title={"de": "20 %"}, price_override=None, compare_at_price=None)
+
+    call_command("convert_lite_promotions")  # пробный прогон ничего не меняет
+    free.refresh_from_db()
+    assert free.product_id is None
+
+    call_command("convert_lite_promotions", "--apply")
+    free.refresh_from_db()
+    pct.refresh_from_db()
+    assert free.product is not None and free.product.name_text == "Maus"
+    assert str(free.product.base_price) == "50.00"
+    assert pct.product_id is None  # без цены товар не создать
+    tenant.refresh_from_db()
+    assert "promotions" not in tenant.disabled_modules
+
+    call_command("convert_lite_promotions", "--apply")  # повтор — без дублей
+    from apps.catalog.models import Product
+
+    assert Product.objects.count() == 1

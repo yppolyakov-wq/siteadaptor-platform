@@ -102,14 +102,15 @@ def provision_quick_logic(tenant_id, email, promo) -> int | None:
             if not form.is_valid():
                 return None
             promo_obj = form.build()
-            promo_obj.images = list(promo.get("images") or [])
+            images = list(promo.get("images") or [])
+            quick.attach_product(form, promo_obj, images)  # T-8.23d: акция от товара
             promo_obj.save()
             # Фото сохранены на публичном хосте, где медиатеки бизнеса нет — вносим
             # их в неё здесь, в схеме тенанта (CM-4, fail-safe).
             from apps.catalog.images import _register_asset
 
-            for ref in promo_obj.images:
-                _register_asset(ref, "promotions")
+            for ref in images:
+                _register_asset(ref, "products" if promo_obj.product_id else "promotions")
             try:
                 limits.activate(promo_obj, tenant)
             except limits.ActivationLimit:

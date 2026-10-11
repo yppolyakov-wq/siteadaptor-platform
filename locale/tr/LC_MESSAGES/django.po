@@ -24139,3 +24139,15 @@ msgstr "Lütfen geçerli bir telefon numarası girin."
 
 msgid "Damit Kunden wissen, wann sie kommen können: Öffnungszeiten ergänzen"
 msgstr "Müşteriler ne zaman geleceğini bilsin: çalışma saatlerini ekleyin"
+
+msgid "Für welches Produkt?"
+msgstr "Hangi ürün için?"
+
+msgid "Artikelnummer (optional)"
+msgstr "Ürün numarası (isteğe bağlı)"
+
+msgid "Neue Kategorie"
+msgstr "Yeni kategori"
+
+msgid "Neues Produkt aus diesen Angaben"
+msgstr "Bu bilgilerden yeni ürün"

@@ -24014,3 +24014,15 @@ msgstr "Please enter a valid phone number."
 
 msgid "Damit Kunden wissen, wann sie kommen können: Öffnungszeiten ergänzen"
 msgstr "So customers know when to come: add your opening hours"
+
+msgid "Für welches Produkt?"
+msgstr "For which product?"
+
+msgid "Artikelnummer (optional)"
+msgstr "Item number (optional)"
+
+msgid "Neue Kategorie"
+msgstr "New category"
+
+msgid "Neues Produkt aus diesen Angaben"
+msgstr "New product from these details"

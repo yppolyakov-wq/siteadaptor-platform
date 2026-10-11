@@ -150,10 +150,27 @@ class QuickPromotionForm(forms.Form):
     quantity = forms.IntegerField(label=_("Stückzahl (optional)"), required=False, min_value=1)
     customer_response = forms.ChoiceField(label=_("Was tun Kund:innen?"), widget=forms.RadioSelect)
     group = forms.CharField(required=False, max_length=50, widget=forms.HiddenInput)
+    # T-8.23d: товар — основа акции. Пусто = новый товар из этих же данных.
+    product = forms.ModelChoiceField(label=_("Für welches Produkt?"), queryset=None, required=False)
+    sku = forms.CharField(label=_("Artikelnummer (optional)"), required=False, max_length=100)
+    category = forms.ModelChoiceField(label=_("Kategorie"), queryset=None, required=False)
+    new_category = forms.CharField(label=_("Neue Kategorie"), required=False, max_length=100)
 
     def __init__(self, *args, tenant=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.tenant = tenant
+        from apps.catalog.models import Category, Product
+
+        # Выборки ленивые: на публичном хосте («Aktion in 3 Klicks») каталога ещё нет,
+        # поля там не рисуются и не запрашиваются.
+        self.fields["product"].queryset = Product.objects.filter(is_active=True).order_by(
+            "-created_at"
+        )
+        self.fields["category"].queryset = Category.objects.filter(is_active=True)
+        # «＋ Neue Kategorie» в селекте — не pk: имя приходит отдельным полем.
+        if self.is_bound and self.data.get("category") == "__new":
+            self.data = self.data.copy()
+            self.data["category"] = ""
         self.response_options = response_options(tenant)
         self.fields["customer_response"].choices = [
             (k, label) for k, label, _h in self.response_options
@@ -214,6 +231,49 @@ class QuickPromotionForm(forms.Form):
         )
 
 
+def attach_product(form, promo, images: list[dict]) -> None:
+    """T-8.23d: акция всегда от товара (решение владельца 2026-10-11).
+
+    Выбран товар — привязка, фото ассистента остаются у акции. Не выбран — товар
+    создаётся из тех же данных: название, описание, цена «statt» (иначе акционная),
+    артикул, категория; фото переходят в товар (у акции пусто — витрина берёт фото и
+    старую цену у товара, файлы не копируются). Остатки не ведутся (S1). Без цены вовсе
+    («−20 % auf alles») товар честно не создать — акция остаётся свободной.
+    """
+    from apps.catalog.models import Category, Product
+
+    data = form.cleaned_data
+    product = data.get("product")
+    if product is not None:
+        promo.product = product
+        promo.images = images
+        return
+    regular = data.get("old_price")
+    if regular is None:
+        regular = data.get("new_price")
+    if regular is None:
+        promo.images = images
+        return
+    category = data.get("category")
+    new_cat = (data.get("new_category") or "").strip()
+    if new_cat:
+        from apps.catalog.slugs import unique_slug
+
+        category = Category.objects.create(
+            name={settings.LANGUAGE_CODE: new_cat},
+            slug=unique_slug(Category, new_cat, fallback="kategorie"),
+        )
+    promo.product = Product.objects.create(
+        name=dict(promo.title or {}),
+        description=dict(promo.description or {}),
+        base_price=regular,
+        sku=(data.get("sku") or "").strip(),
+        category=category,
+        images=images,
+    )
+    promo.images = []
+
+
 def _base_text(value) -> str:
     """Базовый текст i18n-поля (тот, что ассистент и пишет)."""
     return (value or {}).get(settings.LANGUAGE_CODE, "") if isinstance(value, dict) else ""
@@ -242,7 +302,19 @@ def initial_from(promo) -> dict:
         initial["customer_response"] = chosen
     if promo.images:
         initial["photo_from"] = promo.pk
+    if promo.product_id:
+        initial["product"] = promo.product_id  # T-8.23d: «Wiederholen» — тот же товар
     return {k: v for k, v in initial.items() if v not in (None, "", [])}
+
+
+def initial_for_product(product) -> dict:
+    """T-8.23d: «% Aktion» с карточки товара — товар выбран, заголовок и «statt» из него."""
+    return {
+        "product": product.pk,
+        "title": _base_text(product.name) or str(product),
+        "old_price": product.base_price,
+        "term": TERM_WEEK,
+    }
 
 
 def copy_images(source) -> list[dict]:

@@ -630,6 +630,15 @@ def promotion_quick(request):
             source = None
     if request.method == "GET" and source is not None:
         initial = quick.initial_from(source)
+    elif request.method == "GET" and request.GET.get("product"):
+        from apps.catalog.models import Product
+
+        try:
+            product = Product.objects.filter(pk=request.GET["product"], is_active=True).first()
+        except (ValueError, ValidationError):
+            product = None
+        if product is not None:
+            initial = quick.initial_for_product(product)
     form = quick.QuickPromotionForm(
         request.POST or None, request.FILES or None, initial=initial or None, tenant=tenant
     )
@@ -645,8 +654,7 @@ def promotion_quick(request):
         elif source is not None:
             images = quick.copy_images(source)
         if not form.errors:
-            if images:
-                promo.images = images
+            quick.attach_product(form, promo, images)  # T-8.23d: акция от товара
             promo.save()
             if request.POST.get("publish") != "draft":
                 try:

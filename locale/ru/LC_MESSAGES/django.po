@@ -24248,3 +24248,15 @@ msgstr "Введите правильный номер телефона."
 
 msgid "Damit Kunden wissen, wann sie kommen können: Öffnungszeiten ergänzen"
 msgstr "Чтобы клиенты знали, когда приходить: добавьте часы работы"
+
+msgid "Für welches Produkt?"
+msgstr "Для какого товара?"
+
+msgid "Artikelnummer (optional)"
+msgstr "Артикул (необязательно)"
+
+msgid "Neue Kategorie"
+msgstr "Новая категория"
+
+msgid "Neues Produkt aus diesen Angaben"
+msgstr "Новый товар из этих данных"

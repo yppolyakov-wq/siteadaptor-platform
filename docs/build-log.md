@@ -17359,3 +17359,18 @@ Dienstleistungen»; синк: своё у объекта → категория 
   подсказка «Öffnungszeiten ergänzen» → `Mein Geschäft#sec-zeiten`, пока часов нет.
   Замки: `test_address_and_phone_are_required_and_land_on_the_tenant`,
   `test_done_screen_asks_for_opening_hours_until_they_are_set`. План — `t8-23-…` §5.
+
+## 2026-10-11 — T-8.23d «Акция всегда от товара» + конвертация S3 (без миграций)
+
+Решения владельца S1–S3 (план `t8-23-…` §5–6). `quick.attach_product` — одна точка для
+ассистента «Schnell-Aktion» и «Aktion in 3 Klicks»: выбран свой товар → привязка; нет →
+товар создаётся из тех же данных (название, описание, цена «statt», иначе акционная;
+артикул; категория или «＋ Neue Kategorie»), фото переезжают в товар — у акции пусто, витрина
+берёт фото и старую цену у товара (без копий файлов). Остатки не ведутся (`stock_quantity`
+NULL), количество — «Stückzahl» акции. «−N % auf alles» без цены остаётся свободной.
+Ассистент: «Für welches Produkt?» + артикул/категория; «% Aktion» у товара в «Sortiment» →
+короткий ассистент с товаром, заголовком и «statt»; «Wiederholen» переносит товар. Команда
+`convert_lite_promotions` (dry-run → `--apply`): свободные акции магазинов «Nur Aktionen» →
+товар + акция, заодно включает модуль акций (T-8.23a). 4 старых замка фото переписаны на
+`gallery_images` (фото теперь у товара) осознанно. ⚠️ ops: после деплоя
+`python manage.py convert_lite_promotions` → `--apply`.
