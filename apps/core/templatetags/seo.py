@@ -289,11 +289,9 @@ def city_portal_link(context):
     """T-8.25: взаимная ссылка «Auch im Stadtportal <Stadt>» в подвале витрины.
 
     Только у бизнеса, который сейчас в каталоге города, и только если портал его города
-    есть (демо-бизнес — только на портале с показом демо). Кэш на тенанта — подвал
+    есть (демо-бизнес — только на портале с показом демо). Запоминается на запрос — подвал
     рисуется на каждой странице. {"url", "city"} или None.
     """
-    from django.core.cache import cache
-
     request = context.get("request")
     tenant = getattr(request, "tenant", None) if request is not None else None
     if tenant is None or getattr(tenant, "schema_name", "public") == "public":
@@ -302,11 +300,7 @@ def city_portal_link(context):
 
     if not listable(tenant) or not (getattr(tenant, "city", "") or "").strip():
         return None
-    key = f"t825:city_portal:{tenant.pk}"
-    try:
-        cached = cache.get(key)
-    except Exception:  # noqa: BLE001
-        cached = None
+    cached = getattr(tenant, "_t825_city_portal", None)  # на один запрос
     if cached is None:
         cached = ""
         try:
@@ -320,7 +314,7 @@ def city_portal_link(context):
         except Exception:  # noqa: BLE001 — подвал не падает из-за портала
             cached = ""
         try:
-            cache.set(key, cached, 300)
+            tenant._t825_city_portal = cached
         except Exception:  # noqa: BLE001
             pass
     if not cached:

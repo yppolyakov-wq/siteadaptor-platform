@@ -47,25 +47,18 @@ def clear_known_hosts(**_kwargs) -> None:
         pass
 
 
-def _custom_key(tenant_id) -> str:
-    return f"tenants:primary_custom:{tenant_id}"
-
-
 def primary_custom_domain(tenant) -> str:
     """T-8.25: свой домен бизнеса — самый ранний АКТИВНЫЙ (A-запись подтверждена); иначе "".
 
-    Кэш на тенанта (витрина спрашивает на каждом запросе); сброс — сигналом `Domain`
-    (подтверждение/удаление своего домена создаёт/удаляет строку Domain).
+    Запоминается на объекте тенанта — то есть на один запрос (django-tenants грузит тенанта
+    заново на каждый запрос): витрина, редирект и canonical делят один запрос к БД, а
+    свежеподтверждённый домен действует со следующего запроса без сброса кэшей.
     """
     if tenant is None or not getattr(tenant, "pk", None):
         return ""
-    key = _custom_key(tenant.pk)
-    try:
-        cached = cache.get(key)
-    except Exception:  # noqa: BLE001
-        cached = None
-    if cached is not None:
-        return cached
+    memo = getattr(tenant, "_t825_primary_custom", None)
+    if memo is not None:
+        return memo
     try:
         from .models import CustomDomain
 
@@ -79,20 +72,10 @@ def primary_custom_domain(tenant) -> str:
         return ""
     value = row or ""
     try:
-        cache.set(key, value, _CACHE_TTL)
-    except Exception:  # noqa: BLE001
+        tenant._t825_primary_custom = value
+    except Exception:  # noqa: BLE001 — стаб без атрибутов
         pass
     return value
-
-
-def clear_primary_custom(sender=None, instance=None, **_kwargs) -> None:
-    """Сигнал-обработчик: сменился Domain → основной адрес тенанта пересчитать."""
-    tenant_id = getattr(instance, "tenant_id", None)
-    if tenant_id:
-        try:
-            cache.delete(_custom_key(tenant_id))
-        except Exception:  # noqa: BLE001
-            pass
 
 
 def public_base_url(tenant) -> str:

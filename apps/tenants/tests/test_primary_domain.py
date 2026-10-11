@@ -65,12 +65,15 @@ def test_no_redirect_for_cabinet_login_preview_post_owner_or_without_domain():
 
 
 @override_settings(TENANT_DOMAIN_BASE="siteadaptor.de", DEBUG=False)
-def test_public_base_url_and_cache_reset_on_domain_change():
+def test_public_base_url_follows_domain_on_next_request():
+    from apps.tenants.models import Tenant
+
     t = _tenant()
     assert hosts.public_base_url(t) == "https://www.baecker-test.de"
-    Domain.objects.filter(domain="www.baecker-test.de").delete()  # сигнал сбрасывает кэш
+    Domain.objects.filter(domain="www.baecker-test.de").delete()
     CustomDomain.objects.filter(tenant=t).delete()
-    assert hosts.public_base_url(t) == "https://baecker.siteadaptor.de"
+    fresh = Tenant.objects.get(pk=t.pk)  # следующий запрос — новый объект тенанта
+    assert hosts.public_base_url(fresh) == "https://baecker.siteadaptor.de"
 
 
 @override_settings(TENANT_DOMAIN_BASE="siteadaptor.de", DEBUG=False)
@@ -102,7 +105,6 @@ def test_footer_links_city_portal_only_for_listed_business():
     req.tenant = t
     tpl = Template("{% load seo %}{% city_portal_link as cp %}{{ cp.url }}")
     assert tpl.render(Context({"request": req})) == "https://solingen.siteadaptor.de/"
-    cache.clear()
     t.in_city_catalog = False
     t.save()
     assert tpl.render(Context({"request": req})) == ""

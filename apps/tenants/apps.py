@@ -11,19 +11,12 @@ class TenantsConfig(AppConfig):
         # Domain, чтобы свежедобавленный/подтверждённый домен трастился сразу.
         from django.db.models.signals import post_delete, post_save
 
-        from .hosts import clear_known_hosts, clear_primary_custom
+        from .hosts import clear_known_hosts
         from .models import Domain, Tenant
 
         post_save.connect(clear_known_hosts, sender=Domain, dispatch_uid="tenants_known_hosts_save")
         post_delete.connect(
             clear_known_hosts, sender=Domain, dispatch_uid="tenants_known_hosts_delete"
-        )
-        # T-8.25: основной адрес (свой домен) кэширован на тенанта — тот же триггер.
-        post_save.connect(
-            clear_primary_custom, sender=Domain, dispatch_uid="tenants_primary_custom_save"
-        )
-        post_delete.connect(
-            clear_primary_custom, sender=Domain, dispatch_uid="tenants_primary_custom_delete"
         )
         # SE-5a: при публикации (сохранении site_config) сбрасываем кэш витрины тенанта.
         # Срабатывает только когда save() передал site_config в update_fields — т.е. на
