@@ -52,6 +52,8 @@ urlpatterns = [
     path("klick/<int:pk>/", aggregator_views.featured_click, name="aggregator-featured-click"),
     # T-8.6 «Melden» (то же имя, что в urls_public) — до catch-all.
     path("melden/<int:pk>/", aggregator_reports.report_listing, name="aggregator-report"),
+    # T-8.24: страница предложения внутри портала (то же имя, что в urls_public).
+    path("angebot/<int:pk>/", aggregator_views.offer_page, name="aggregator-offer"),
     # T-8.17: страницы районов города (до catch-all <facet>).
     path("stadtteil/<slug:district>/", portal_views.portal_home, name="portal-district"),
     path(

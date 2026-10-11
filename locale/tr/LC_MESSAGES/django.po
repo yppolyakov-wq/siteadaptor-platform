@@ -24195,3 +24195,18 @@ msgstr "ikinci el & yenilenmiş"
 
 msgid "Service vor Ort"
 msgstr "Yerinde servis"
+
+#, python-format
+msgid "Mehr von %(name)s"
+msgstr "%(name)s işletmesinden daha fazlası"
+
+#, python-format
+msgid "Zum Angebot bei %(name)s →"
+msgstr "%(name)s teklifine git →"
+
+#, python-format
+msgid "bis %(d)s"
+msgstr "%(d)s tarihine kadar"
+
+msgid "Ähnliches in der Nähe"
+msgstr "Yakındaki benzerleri"

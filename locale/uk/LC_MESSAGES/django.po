@@ -24288,3 +24288,18 @@ msgstr "вживане й відновлене"
 
 msgid "Service vor Ort"
 msgstr "Виїзд на місце"
+
+#, python-format
+msgid "Mehr von %(name)s"
+msgstr "Ще від %(name)s"
+
+#, python-format
+msgid "Zum Angebot bei %(name)s →"
+msgstr "До пропозиції в %(name)s →"
+
+#, python-format
+msgid "bis %(d)s"
+msgstr "до %(d)s"
+
+msgid "Ähnliches in der Nähe"
+msgstr "Схоже поруч"

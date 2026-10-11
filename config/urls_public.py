@@ -75,6 +75,8 @@ urlpatterns = [
         name="aggregator-featured-click",
     ),
     # T-8.6 «Melden» (имя дублируется в urls_portal — {% url %} везде).
+    # T-8.24: страница предложения (до catch-all <city>).
+    path("entdecken/angebot/<int:pk>/", aggregator_views.offer_page, name="aggregator-offer"),
     path("entdecken/melden/<int:pk>/", aggregator_reports.report_listing, name="aggregator-report"),
     path("entdecken/<str:city>/", aggregator_views.city_listing, name="aggregator-city"),
     path(

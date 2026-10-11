@@ -24110,3 +24110,18 @@ msgstr "gebraucht & refurbished"
 
 msgid "Service vor Ort"
 msgstr "Service vor Ort"
+
+#, python-format
+msgid "Mehr von %(name)s"
+msgstr "Mehr von %(name)s"
+
+#, python-format
+msgid "Zum Angebot bei %(name)s →"
+msgstr "Zum Angebot bei %(name)s →"
+
+#, python-format
+msgid "bis %(d)s"
+msgstr "bis %(d)s"
+
+msgid "Ähnliches in der Nähe"
+msgstr "Ähnliches in der Nähe"

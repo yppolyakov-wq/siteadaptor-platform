@@ -3,7 +3,10 @@
   {% for l in items %}
     <div class="relative">
     {# D2.3: клик по оплаченной позиции считаем редирект-счётчиком (+rel=sponsored) #}
-    <a href="{% if l.is_featured_now %}{% url 'aggregator-featured-click' l.pk %}{% else %}{{ l.portal_url }}{% endif %}"{% if l.is_featured_now %} rel="sponsored nofollow"{% endif %}
+    {% comment %}T-8.24: обычная карточка ведёт на страницу предложения внутри портала
+    (фолбэк — сайт бизнеса, если роута нет); оплаченная — счётчиком на сайт бизнеса.{% endcomment %}
+    {% url 'aggregator-offer' l.pk as offer_url %}
+    <a href="{% if l.is_featured_now %}{% url 'aggregator-featured-click' l.pk %}{% else %}{{ offer_url|default:l.portal_url }}{% endif %}"{% if l.is_featured_now %} rel="sponsored nofollow"{% endif %}
        class="group block bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
       <div class="relative aspect-square bg-gray-100">
         {% if l.image.url %}

@@ -24304,3 +24304,18 @@ msgstr "б/у и восстановленное"
 
 msgid "Service vor Ort"
 msgstr "Выезд на место"
+
+#, python-format
+msgid "Mehr von %(name)s"
+msgstr "Ещё от %(name)s"
+
+#, python-format
+msgid "Zum Angebot bei %(name)s →"
+msgstr "К предложению в %(name)s →"
+
+#, python-format
+msgid "bis %(d)s"
+msgstr "до %(d)s"
+
+msgid "Ähnliches in der Nähe"
+msgstr "Похожее рядом"

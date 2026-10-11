@@ -229,5 +229,7 @@ def test_cards_link_with_channel_and_report():
     TenantFactory(schema_name="biz_k", slug="biz-k")
     listing = _listing("biz_k")
     html = render_to_string("aggregator/_cards.html", {"items": [listing]})
-    assert "?ch=portal" in html
+    # T-8.24: карточка ведёт на страницу предложения в портале; атрибуция `?ch=portal`
+    # переехала на её кнопку «Zum Angebot» (test_offer_page).
+    assert f'href="/entdecken/angebot/{listing.pk}/"' in html
     assert "data-report-link" in html

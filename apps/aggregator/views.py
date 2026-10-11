@@ -683,3 +683,93 @@ def shortlist_compare(request):
             "shortlist_ids": set(shortlist.ids(request)),
         },
     )
+
+
+def _offer_in_scope(listing, portal) -> bool:
+    """T-8.24: предложение открывается порталом только в его границах (как лента)."""
+    if portal is None:
+        return True
+    if listing.is_demo and not portal.show_demo:
+        return False
+    if portal.city and (listing.city or "").lower() != portal.city.lower():
+        return False
+    return not (portal.business_type and listing.business_type != portal.business_type)
+
+
+def _offer_pool(portal):
+    return listings_for(
+        city=portal.city if portal else None,
+        business_type=portal.business_type if portal else None,
+        include_demo=portal.show_demo if portal else True,
+    )
+
+
+@cache_public_page
+def offer_page(request, pk):
+    """T-8.24: страница одного предложения внутри портала (план t8-24-portal-offer-page-plan).
+
+    Стратегия А: canonical — страница бизнеса (detail_url), портал входит в выдачу
+    страницами-списками. Житель видит предложение, другие предложения бизнеса и похожие
+    рядом, а на сайт бизнеса уходит кнопкой с атрибуцией `?ch=portal`.
+    """
+    from django.http import Http404
+
+    from .reviews import attach_ratings
+
+    portal = getattr(request, "portal", None)
+    listing = AggregatorListing.objects.public().filter(pk=pk).first()
+    if listing is None or not _offer_in_scope(listing, portal):
+        raise Http404
+    pool = _offer_pool(portal).exclude(pk=listing.pk)
+    more = list(pool.filter(tenant_schema=listing.tenant_schema).order_by("-updated_at")[:4])
+    similar_qs = pool.exclude(tenant_schema=listing.tenant_schema)
+    if listing.district:
+        near = similar_qs.filter(district=listing.district)
+        if near.exists():
+            similar_qs = near
+    if listing.city_category:
+        same = similar_qs.filter(city_category=listing.city_category)
+        similar_qs = same if same.exists() else similar_qs.filter(listing_kind=listing.listing_kind)
+    else:
+        similar_qs = similar_qs.filter(listing_kind=listing.listing_kind)
+    similar = list(similar_qs.order_by("-updated_at")[:4])
+    attach_ratings([listing, *more, *similar])
+    _attach_open_status([listing, *more, *similar])
+
+    ld = {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": listing.title_text,
+        "url": listing.detail_url,
+    }
+    if listing.teaser_text:
+        ld["description"] = listing.teaser_text
+    if (listing.image or {}).get("url"):
+        ld["image"] = request.build_absolute_uri(listing.image["url"])
+    if listing.new_price is not None:
+        offer = {
+            "@type": "Offer",
+            "price": f"{listing.new_price:.2f}",
+            "priceCurrency": listing.currency or "EUR",
+            "url": listing.detail_url,
+            "seller": {"@type": "LocalBusiness", "name": listing.business_name},
+        }
+        if listing.ends_at:
+            offer["priceValidUntil"] = listing.ends_at.date().isoformat()
+        ld["offers"] = offer
+    from apps.core.seo import _dumps
+
+    return render(
+        request,
+        "aggregator/offer.html",
+        {
+            "portal": portal,
+            "base_template": "aggregator/portal_base.html" if portal else "aggregator/_base.html",
+            "listing": listing,
+            "more": more,
+            "similar": similar,
+            # Стратегия А: основная страница — у бизнеса; портал — промежуточный шаг.
+            "canonical": listing.detail_url,
+            "offer_jsonld": _dumps(ld),
+        },
+    )
