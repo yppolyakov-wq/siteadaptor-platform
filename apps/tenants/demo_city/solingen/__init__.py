@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from . import elektronik, essen, haus, lebensmittel, mode, tiere
+from . import beauty, elektronik, essen, gesundheit, haus, lebensmittel, mode, tiere
 
-SECTIONS = (lebensmittel, essen, mode, elektronik, haus, tiere)
+SECTIONS = (lebensmittel, essen, mode, elektronik, haus, beauty, gesundheit, tiere)
 BUSINESSES = tuple(b for mod in SECTIONS for b in mod.BUSINESSES)
