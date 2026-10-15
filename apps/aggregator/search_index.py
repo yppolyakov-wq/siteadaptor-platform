@@ -82,7 +82,8 @@ def _parts(listing) -> list[tuple[str, str, str]]:
     for code, _name in settings.LANGUAGES:
         if title.get(code):
             parts.append((ts_config(code), str(title[code]), "A"))
-            parts.append(("simple", str(title[code]), "A"))
+            if ts_config(code) != "simple":  # у uk/pl simple уже есть — без дубля
+                parts.append(("simple", str(title[code]), "A"))
         if teaser.get(code):
             parts.append((ts_config(code), str(teaser[code]), "C"))
     parts += [

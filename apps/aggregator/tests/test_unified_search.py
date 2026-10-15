@@ -510,3 +510,15 @@ def test_save_writes_listing_and_index_together():
             listing.save()
     listing.refresh_from_db()
     assert listing.title == {"de": "Messer"}
+
+
+def test_migration_rollback_keeps_pg_trgm_extension():
+    """database-reviewer: откат 0023 не удаляет расширение — оно могло быть чужим."""
+    from importlib import import_module
+
+    from django.db import migrations
+
+    mod = import_module("apps.aggregator.migrations.0023_t8_20_search")
+    sql_ops = [op for op in mod.Migration.operations if isinstance(op, migrations.RunSQL)]
+    assert sql_ops and "pg_trgm" in sql_ops[0].sql
+    assert sql_ops[0].reverse_sql == migrations.RunSQL.noop

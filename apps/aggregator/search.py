@@ -128,17 +128,22 @@ def _trigram_pks(qs, q: str) -> list[int]:
     folded = " ".join(fold(t) for t in tokenize(q) if len(t) >= SUBSTRING_MIN)
     if not folded:
         return []
-    with connection.cursor() as cur:
-        cur.execute(
-            "SELECT set_config('pg_trgm.word_similarity_threshold', %s, false)",
-            [str(_cfg("trigram_threshold"))],
+    from django.db import transaction
+
+    # Порог — SET LOCAL внутри транзакции: иначе он остаётся на соединении
+    # (CONN_MAX_AGE) и достаётся чужому коду с pg_trgm (ревью database-reviewer).
+    with transaction.atomic():
+        with connection.cursor() as cur:
+            cur.execute(
+                "SELECT set_config('pg_trgm.word_similarity_threshold', %s, true)",
+                [str(_cfg("trigram_threshold"))],
+            )
+        return list(
+            qs.filter(search_text__trigram_word_similar=folded)
+            .annotate(similarity=TrigramWordSimilarity(folded, "search_text"))
+            .order_by("-similarity", "-created_at", "-pk")
+            .values_list("pk", flat=True)[: _cfg("max_results")]
         )
-    return list(
-        qs.filter(search_text__trigram_word_similar=folded)
-        .annotate(similarity=TrigramWordSimilarity(folded, "search_text"))
-        .order_by("-similarity", "-created_at", "-pk")
-        .values_list("pk", flat=True)[: _cfg("max_results")]
-    )
 
 
 def _weights() -> list[float]:
