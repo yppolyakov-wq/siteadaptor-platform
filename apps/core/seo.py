@@ -51,7 +51,30 @@ def _dumps(data: dict) -> str:
 def localbusiness_ld(
     tenant, *, url: str, aggregate_rating=None, price_range="", image="", schema_type=""
 ) -> str:
-    """JSON-LD LocalBusiness из полей тенанта (или '' если тенанта нет).
+    """JSON-LD LocalBusiness из полей тенанта как строка (или '' если тенанта нет).
+
+    Тонкая обёртка над `localbusiness_data` — тот же словарь нужен и как вложенный
+    `seller`/`provider` в JSON-LD каталога города (T-8.8)."""
+    if tenant is None:
+        return ""
+    return _dumps(
+        localbusiness_data(
+            tenant,
+            url=url,
+            aggregate_rating=aggregate_rating,
+            price_range=price_range,
+            image=image,
+            schema_type=schema_type,
+        )
+    )
+
+
+def localbusiness_data(
+    tenant, *, url: str, aggregate_rating=None, price_range="", image="", schema_type=""
+) -> dict:
+    """Словарь LocalBusiness из ПУБЛИЧНЫХ полей тенанта (адрес, public_phone, гео,
+    часы, лого, сайт/соцсети). Только публичное: e-mail владельца и contact_email
+    сюда не попадают — словарь уезжает в разметку и в машинные ответы.
 
     aggregate_rating (G8): (avg, count) — добавляет schema.org AggregateRating
     (звёзды в Google-сниппете). None/нулевой count — не добавляем.
@@ -59,7 +82,7 @@ def localbusiness_ld(
     schema_type (A9): явный тип schema.org (напр. «AutoRepair» для Kfz-Werkstatt),
     иначе выводится из business_type (фолбэк LocalBusiness)."""
     if tenant is None:
-        return ""
+        return {}
     data = {
         "@context": "https://schema.org",
         "@type": schema_type
@@ -135,7 +158,7 @@ def localbusiness_ld(
                 "bestRating": "5",
                 "worstRating": "1",
             }
-    return _dumps(data)
+    return data
 
 
 def offer_ld(promo, *, url: str, image_url: str = "") -> str:

@@ -26,6 +26,10 @@ urlpatterns = [
     # SEO портала (P2.1c): sitemap/robots по хосту портала.
     path("sitemap.xml", portal_views.portal_sitemap_xml, name="portal-sitemap"),
     path("robots.txt", portal_views.portal_robots_txt, name="portal-robots"),
+    # T-8.8: машиночитаемость — открытый фид (JSON Feed/Atom) + llms.txt портала.
+    path("feed.json", portal_views.portal_feed_json, name="portal-feed-json"),
+    path("feed.xml", portal_views.portal_feed_atom, name="portal-feed-atom"),
+    path("llms.txt", portal_views.portal_llms_txt, name="portal-llms"),
     # Клиентский аккаунт (P2.3a): magic-link вход. Тоже до <facet>.
     path("konto/", account_views.account, name="portal-account"),
     path("konto/login/", account_views.login_view, name="portal-login"),

@@ -507,33 +507,137 @@ def _render_home(request, portal):
     )
 
 
-def portal_sitemap_xml(request):
-    """Sitemap портала: корень + страницы уточнения по свободной оси."""
-    from xml.sax.saxutils import escape
+SITEMAP_MAX_URLS = 45_000
 
-    portal = getattr(request, "portal", None)
-    if portal is None:
-        raise Http404
-    urls = [request.build_absolute_uri(reverse("portal-home"))]
+
+def _sitemap_urls(request, portal) -> list[tuple[str, object]]:
+    """T-8.8: (loc, lastmod|None) портала — корень + фасеты + районы + страницы бизнесов.
+
+    Предложения `/angebot/<pk>/` НЕ входят (Р-1 A: их canonical указывает на бизнес —
+    URL в sitemap с чужим canonical даёт в Search Console «Alternate page with proper
+    canonical»). Query-URL (`?kat=`) тоже не входят. Кап + warning при обрезке;
+    sitemap-index — когда упрёмся (roadmap §Отложено)."""
+    from django.db.models import Max
+
+    pool = listings_for(
+        city=portal.city or None,
+        business_type=portal.business_type or None,
+        include_demo=portal.show_demo,
+    )
+    abs_ = request.build_absolute_uri
+    urls: list[tuple[str, object]] = [
+        (abs_(reverse("portal-home")), pool.aggregate(m=Max("updated_at"))["m"])
+    ]
     _, facets = _facet_choices(portal)
-    urls += [request.build_absolute_uri(reverse("portal-facet", args=[v])) for v, _label in facets]
+    urls += [(abs_(reverse("portal-facet", args=[v])), None) for v, _label in facets]
     urls += [
-        request.build_absolute_uri(reverse("portal-district", args=[slug]))
+        (abs_(reverse("portal-district", args=[slug])), None)
         for slug, _name in _district_choices(portal)
     ]
-    body = "".join(f"<url><loc>{escape(u)}</loc></url>" for u in urls)
+    businesses = (
+        pool.exclude(tenant_slug="")
+        .values("tenant_slug")
+        .annotate(m=Max("updated_at"))
+        .order_by("tenant_slug")
+    )
+    urls += [
+        (abs_(reverse("portal-business", args=[row["tenant_slug"]])), row["m"])
+        for row in businesses
+    ]
+    if len(urls) > SITEMAP_MAX_URLS:
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "portal sitemap truncated: %s urls on %s", len(urls), portal.host
+        )
+        urls = urls[:SITEMAP_MAX_URLS]
+    return urls
+
+
+def render_sitemap(urls) -> HttpResponse:
+    from xml.sax.saxutils import escape
+
+    parts = []
+    for loc, lastmod in urls:
+        tail = f"<lastmod>{lastmod.date().isoformat()}</lastmod>" if lastmod else ""
+        parts.append(f"<url><loc>{escape(loc)}</loc>{tail}</url>")
     xml = (
         '<?xml version="1.0" encoding="UTF-8"?>'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-        f"{body}</urlset>"
+        f"{''.join(parts)}</urlset>"
     )
     return HttpResponse(xml, content_type="application/xml")
 
 
+@cache_public_page
+def portal_sitemap_xml(request):
+    """Sitemap портала: корень + уточнения + районы + страницы бизнесов (T-8.8)."""
+    portal = getattr(request, "portal", None)
+    if portal is None:
+        raise Http404
+    return render_sitemap(_sitemap_urls(request, portal))
+
+
+#: T-8.8 (Р-6): технические GET-пути портала — не для индексации. AI-краулеры открыты.
+PORTAL_DISALLOW = ("/klick/", "/melden/", "/konto/", "/tg/", "/sprache/")
+
+
+@cache_public_page
 def portal_robots_txt(request):
-    """robots.txt портала: всё открыто + ссылка на sitemap его хоста."""
+    """robots.txt портала: всё открыто, кроме технических путей + sitemap хоста."""
     sitemap = request.build_absolute_uri(reverse("portal-sitemap"))
-    return HttpResponse(f"User-agent: *\nAllow: /\nSitemap: {sitemap}\n", content_type="text/plain")
+    lines = ["User-agent: *", "Allow: /"]
+    lines += [f"Disallow: {p}" for p in PORTAL_DISALLOW]
+    lines += [f"Sitemap: {sitemap}", ""]
+    return HttpResponse("\n".join(lines), content_type="text/plain")
+
+
+def _feed(request, fmt: str):
+    from . import open_feed
+
+    portal = getattr(request, "portal", None)
+    if portal is None:
+        raise Http404
+    return open_feed.render_feed(
+        request,
+        fmt=fmt,
+        title=portal.title_text,
+        home_url=request.build_absolute_uri(reverse("portal-home")),
+        city=portal.city or "",
+        business_type=portal.business_type or "",
+        include_demo=portal.show_demo,
+    )
+
+
+def _machine(fn):
+    from apps.core.machine_http import machine_resource
+
+    return machine_resource(cache_public_page(fn))
+
+
+@_machine
+def portal_feed_json(request):
+    """T-8.8: открытый JSON Feed 1.1 портала (`?kind/kat/merkmal/stadtteil/limit/cursor`)."""
+    return _feed(request, "json")
+
+
+@_machine
+def portal_feed_atom(request):
+    """T-8.8: тот же набор элементов в Atom 1.0."""
+    return _feed(request, "atom")
+
+
+@cache_public_page
+def portal_llms_txt(request):
+    """T-8.8: llms.txt портала — карта каталога для AI-ассистентов."""
+    from . import llms
+
+    portal = getattr(request, "portal", None)
+    if portal is None:
+        raise Http404
+    return HttpResponse(
+        llms.build_portal(request, portal), content_type="text/plain; charset=utf-8"
+    )
 
 
 def _kind_chips(pool, path: str, active: str) -> list[dict]:

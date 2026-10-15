@@ -26,15 +26,19 @@ def _snapshot(promotion_id):
     promo = Promotion.objects.filter(id=promotion_id).first()
     if promo is None:
         return None
+    # T-8.8 (прецедент SF-1.4 на витрине): mystery прячет цену до раскрытия — в снимок
+    # каталога города она не попадает вовсе, иначе карточка портала, страница
+    # предложения, JSON-LD и открытый фид выдавали бы «секрет» всем агентам.
+    mystery = getattr(promo, "discount_style", "") == "mystery"
     return {
         "status": promo.status,
         "title": promo.title or {},
         "teaser": promo.description or {},
         "image": promo.primary_image or {},
         "currency": promo.currency,
-        "old_price": promo.old_price,
-        "new_price": promo.new_price,
-        "discount_percent": promo.discount_percent_display,
+        "old_price": None if mystery else promo.old_price,
+        "new_price": None if mystery else promo.new_price,
+        "discount_percent": None if mystery else promo.discount_percent_display,
         "starts_at": promo.starts_at,
         "ends_at": promo.ends_at,
         "is_surprise": promo.is_surprise,

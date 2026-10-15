@@ -4,6 +4,8 @@
 (seam для мульти-доменных порталов Phase 2 P2.1). Курсорная пагинация (apps.core).
 """
 
+import logging
+
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -16,6 +18,8 @@ from apps.core.seo import itemlist_ld
 from apps.tenants.models import Tenant
 
 from .models import AggregatorListing
+
+logger = logging.getLogger(__name__)
 
 _BTYPE_LABELS = dict(Tenant.BUSINESS_TYPES)
 
@@ -634,47 +638,94 @@ def city_listing(request, city, business_type=None):
     return response
 
 
+@cache_public_page
 def sitemap_xml(request):
-    """Sitemap агрегатора (Track B5): /entdecken + города + город/тип.
+    """Sitemap основного домена (Track B5): платформа + /entdecken + города + город/тип.
 
     Карточки ведут на витрины тенантов (у каждой свой sitemap) — здесь только
-    публичные посадочные страницы основного домена.
+    публичные посадочные страницы основного домена. T-8.8: `<lastmod>` у корня
+    /entdecken/ и городов, кэш, кап (как у портала).
     """
-    from xml.sax.saxutils import escape
+    from django.db.models import Max
 
-    active = AggregatorListing.objects.public()
-    # Публичные страницы платформы: главная (обзор Branchen) + отраслевые + Über uns.
     from apps.tenants import archetype_pages
 
-    urls = [request.build_absolute_uri("/")]
-    urls += [request.build_absolute_uri(f"/branchen/{s}/") for s in archetype_pages.SLUGS]
-    urls += [request.build_absolute_uri("/ueber-uns/")]
-    urls += [request.build_absolute_uri(reverse("aggregator-index"))]
+    from .portal_views import SITEMAP_MAX_URLS, render_sitemap
+
+    active = AggregatorListing.objects.public()
+    abs_ = request.build_absolute_uri
+    urls: list[tuple[str, object]] = [(abs_("/"), None)]
+    urls += [(abs_(f"/branchen/{s}/"), None) for s in archetype_pages.SLUGS]
+    urls += [(abs_("/ueber-uns/"), None)]
+    urls += [(abs_(reverse("aggregator-index")), active.aggregate(m=Max("updated_at"))["m"])]
+    cities = active.exclude(city="").values("city").annotate(m=Max("updated_at")).order_by("city")
+    urls += [(abs_(reverse("aggregator-city", args=[row["city"]])), row["m"]) for row in cities]
     urls += [
-        request.build_absolute_uri(reverse("aggregator-city", args=[c]))
-        for c in active.exclude(city="").values_list("city", flat=True).distinct().order_by("city")
-    ]
-    urls += [
-        request.build_absolute_uri(reverse("aggregator-city-type", args=[c, bt]))
+        (abs_(reverse("aggregator-city-type", args=[c, bt])), None)
         for c, bt in active.exclude(city="")
         .exclude(business_type="")
         .values_list("city", "business_type")
         .distinct()
         .order_by("city", "business_type")
     ]
-    body = "".join(f"<url><loc>{escape(u)}</loc></url>" for u in urls)
-    xml = (
-        '<?xml version="1.0" encoding="UTF-8"?>'
-        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-        f"{body}</urlset>"
-    )
-    return HttpResponse(xml, content_type="application/xml")
+    if len(urls) > SITEMAP_MAX_URLS:
+        logger.warning("platform sitemap truncated: %s urls", len(urls))
+        urls = urls[:SITEMAP_MAX_URLS]
+    return render_sitemap(urls)
 
 
+#: T-8.8 (Р-6): технические GET-пути основного домена — не для индексации.
+PLATFORM_DISALLOW = ("/entdecken/klick/", "/entdecken/melden/", "/entdecken/merkliste/")
+
+
+@cache_public_page
 def robots_txt(request):
-    """robots.txt основного домена: всё открыто + ссылка на sitemap агрегатора."""
+    """robots.txt основного домена: всё открыто, кроме технических путей + sitemap."""
     sitemap = request.build_absolute_uri(reverse("aggregator-sitemap"))
-    return HttpResponse(f"User-agent: *\nAllow: /\nSitemap: {sitemap}\n", content_type="text/plain")
+    lines = ["User-agent: *", "Allow: /"]
+    lines += [f"Disallow: {p}" for p in PLATFORM_DISALLOW]
+    lines += [f"Sitemap: {sitemap}", ""]
+    return HttpResponse("\n".join(lines), content_type="text/plain")
+
+
+def _discover_feed(request, fmt: str):
+    """T-8.8 (Р-5): фид основного домена — `?city=` сужает, иначе общий пул; демо никогда."""
+    from . import open_feed
+
+    city = (request.GET.get("city") or "").strip()[:100]
+    return open_feed.render_feed(
+        request,
+        fmt=fmt,
+        title=f"siteadaptor · {city}" if city else "siteadaptor",
+        home_url=request.build_absolute_uri(reverse("aggregator-index")),
+        city=city,
+        business_type="",
+        include_demo=False,
+    )
+
+
+def _machine(fn):
+    from apps.core.machine_http import machine_resource
+
+    return machine_resource(cache_public_page(fn))
+
+
+@_machine
+def discover_feed_json(request):
+    return _discover_feed(request, "json")
+
+
+@_machine
+def discover_feed_atom(request):
+    return _discover_feed(request, "atom")
+
+
+@cache_public_page
+def llms_txt(request):
+    """T-8.8: llms.txt основного домена — платформа, /entdecken/, фид, порталы."""
+    from . import llms
+
+    return HttpResponse(llms.build_platform(request), content_type="text/plain; charset=utf-8")
 
 
 @require_POST
@@ -757,27 +808,14 @@ def offer_page(request, pk):
     attach_ratings([listing, *more, *similar])
     _attach_open_status([listing, *more, *similar])
 
-    ld = {
-        "@context": "https://schema.org",
-        "@type": "Product",
-        "name": listing.title_text,
-        "url": listing.detail_url,
-    }
-    if listing.teaser_text:
-        ld["description"] = listing.teaser_text
-    if (listing.image or {}).get("url"):
-        ld["image"] = request.build_absolute_uri(listing.image["url"])
-    if listing.new_price is not None:
-        offer = {
-            "@type": "Offer",
-            "price": f"{listing.new_price:.2f}",
-            "priceCurrency": listing.currency or "EUR",
-            "url": listing.detail_url,
-            "seller": {"@type": "LocalBusiness", "name": listing.business_name},
-        }
-        if listing.ends_at:
-            offer["priceValidUntil"] = listing.ends_at.date().isoformat()
-        ld["offers"] = offer
+    # T-8.8: тип по виду листинга, продавец — полный LocalBusiness из публичных полей
+    # тенанта (+1 запрос; страница кэшируется). Сирота без тенанта → фолбэк.
+    from apps.tenants.models import Tenant
+
+    from .structured import listing_ld
+
+    tenant = Tenant.objects.filter(schema_name=listing.tenant_schema).first()
+    ld = listing_ld(listing, request=request, tenant=tenant)
     from apps.core.seo import _dumps
 
     return render(

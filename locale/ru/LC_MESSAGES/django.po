@@ -22795,8 +22795,11 @@ msgid "Endet heute — Leiste"
 msgstr "Заканчиваются сегодня — лента"
 
 #: templates/storefront/sections/_block_list.html
-msgid "Hier erscheint die Liste — sobald etwas zu den Einstellungen des Blocks passt."
-msgstr "Здесь появится список — как только что-то подойдёт под настройки блока."
+msgid ""
+"Hier erscheint die Liste — sobald etwas zu den Einstellungen des Blocks "
+"passt."
+msgstr ""
+"Здесь появится список — как только что-то подойдёт под настройки блока."
 
 #: templates/tenant/_cb_row.html
 msgid "Mindestrabatt"
@@ -22899,8 +22902,12 @@ msgid "Hauptliste"
 msgstr "Основной список"
 
 #: templates/tenant/_cb_row.html
-msgid "Blöcke davor stehen über der Liste, danach unter ihr. Wie die Liste aussieht, stellen Sie oben bei dieser Seite ein."
-msgstr "Блоки перед ним стоят над списком, после него — под ним. Как выглядит сам список, настраивается выше для этой страницы."
+msgid ""
+"Blöcke davor stehen über der Liste, danach unter ihr. Wie die Liste "
+"aussieht, stellen Sie oben bei dieser Seite ein."
+msgstr ""
+"Блоки перед ним стоят над списком, после него — под ним. Как выглядит сам "
+"список, настраивается выше для этой страницы."
 
 #: templates/tenant/site_home.html
 msgid "Block über der Liste einfügen"
@@ -22976,8 +22983,11 @@ msgstr "%(n)s из 5 звёзд"
 msgid "Als eigenen Block kopieren"
 msgstr "Скопировать отдельным блоком"
 
-msgid "Ein zweiter Liste-Block mit derselben Auswahl — zum Beispiel für eine andere Kategorie."
-msgstr "Второй блок «Список» с той же выборкой — например, для другой категории."
+msgid ""
+"Ein zweiter Liste-Block mit derselben Auswahl — zum Beispiel für eine andere"
+" Kategorie."
+msgstr ""
+"Второй блок «Список» с той же выборкой — например, для другой категории."
 
 #, python-format
 msgid "Wie die Website (%(c)s)"
@@ -23073,8 +23083,12 @@ msgstr "Перевозчик"
 msgid "Inspected by"
 msgstr "Проверил(а)"
 
-msgid "We hereby give notice under § 377 HGB of the following defects in the delivery referred to above."
-msgstr "Настоящим в соответствии с § 377 HGB заявляем о следующих недостатках указанной выше поставки."
+msgid ""
+"We hereby give notice under § 377 HGB of the following defects in the "
+"delivery referred to above."
+msgstr ""
+"Настоящим в соответствии с § 377 HGB заявляем о следующих недостатках "
+"указанной выше поставки."
 
 msgid "Type of defect"
 msgstr "Вид дефекта"
@@ -23082,12 +23096,15 @@ msgstr "Вид дефекта"
 msgid "Requested remedy"
 msgstr "Требуемое решение"
 
-
 msgid "Inspection result"
 msgstr "Результат проверки"
 
-msgid "We reserve all rights arising from the defective delivery. Please confirm receipt of this notice."
-msgstr "Мы оставляем за собой все права, вытекающие из поставки с недостатками. Просим подтвердить получение настоящего уведомления."
+msgid ""
+"We reserve all rights arising from the defective delivery. Please confirm "
+"receipt of this notice."
+msgstr ""
+"Мы оставляем за собой все права, вытекающие из поставки с недостатками. "
+"Просим подтвердить получение настоящего уведомления."
 
 msgid "Place, date"
 msgstr "Место, дата"
@@ -23134,7 +23151,8 @@ msgstr "закрыта"
 msgid "Angezeigt am %(d)s"
 msgstr "Заявлено %(d)s"
 
-msgid "Noch nicht an den Lieferanten gemeldet — Rüge unverzüglich (§ 377 HGB)."
+msgid ""
+"Noch nicht an den Lieferanten gemeldet — Rüge unverzüglich (§ 377 HGB)."
 msgstr "Ещё не заявлено поставщику — заявить незамедлительно (§ 377 HGB)."
 
 msgid "PDF"
@@ -23192,8 +23210,12 @@ msgid "Guten Tag %(name)s,"
 msgstr "Здравствуйте, %(name)s!"
 
 #, python-format
-msgid "anbei erhalten Sie unsere Mängelanzeige %(ref)s zur Lieferung aus Bestellung %(order)s (§ 377 HGB)."
-msgstr "во вложении — наша рекламация %(ref)s по поставке из заказа %(order)s (§ 377 HGB)."
+msgid ""
+"anbei erhalten Sie unsere Mängelanzeige %(ref)s zur Lieferung aus Bestellung"
+" %(order)s (§ 377 HGB)."
+msgstr ""
+"во вложении — наша рекламация %(ref)s по поставке из заказа %(order)s (§ 377"
+" HGB)."
 
 msgid "Bitte bestätigen Sie den Eingang und teilen Sie uns Ihre Lösung mit."
 msgstr "Просим подтвердить получение и сообщить ваше решение."
@@ -23224,8 +23246,12 @@ msgid "Nur Aktionen — ohne Shop"
 msgstr "Только акции — без магазина"
 
 #: T-8.1c
-msgid "Visitenkarte mit Angeboten, Öffnungszeiten und Route — in Minuten online, ganz ohne Sortiment und Warenkorb."
-msgstr "Визитка с акциями, часами работы и маршрутом — онлайн за минуты, без каталога и корзины."
+msgid ""
+"Visitenkarte mit Angeboten, Öffnungszeiten und Route — in Minuten online, "
+"ganz ohne Sortiment und Warenkorb."
+msgstr ""
+"Визитка с акциями, часами работы и маршрутом — онлайн за минуты, без "
+"каталога и корзины."
 
 msgid "Stadtteil"
 msgstr "Район"
@@ -23237,14 +23263,19 @@ msgid "Demo"
 msgstr "Демо"
 
 msgid "Ihr Stadtteil im Stadtportal: Kundschaft filtert Angebote danach."
-msgstr "Ваш район на городском портале: покупатели фильтруют по нему предложения."
+msgstr ""
+"Ваш район на городском портале: покупатели фильтруют по нему предложения."
 
 #, python-format
 msgid "Angebote in %(name)s, %(city)s"
 msgstr "Предложения: %(name)s, %(city)s"
 
-msgid "Vorschau mit Beispielgeschäften: Die mit «Demo» markierten Angebote sind erfunden und zeigen, wie das Portal funktionieren wird."
-msgstr "Предпросмотр с примерами: предложения с пометкой «Демо» вымышлены и показывают, как будет работать портал."
+msgid ""
+"Vorschau mit Beispielgeschäften: Die mit «Demo» markierten Angebote sind "
+"erfunden und zeigen, wie das Portal funktionieren wird."
+msgstr ""
+"Предпросмотр с примерами: предложения с пометкой «Демо» вымышлены и "
+"показывают, как будет работать портал."
 
 msgid "Anfragen"
 msgstr "Спросить"
@@ -23277,8 +23308,12 @@ msgstr "Действие покупателя"
 msgid "Reserviert bis %(until)s"
 msgstr "Отложено до %(until)s"
 
-msgid "Was der Button auf der Aktionsseite tut. „Automatisch“: online bestellen, wenn Bestellungen aktiv sind — sonst zurücklegen lassen."
-msgstr "Что делает кнопка на странице акции. «Автоматически»: онлайн-заказ, если заказы включены, — иначе отложить."
+msgid ""
+"Was der Button auf der Aktionsseite tut. „Automatisch“: online bestellen, "
+"wenn Bestellungen aktiv sind — sonst zurücklegen lassen."
+msgstr ""
+"Что делает кнопка на странице акции. «Автоматически»: онлайн-заказ, если "
+"заказы включены, — иначе отложить."
 
 msgid "Zurücklegen lassen"
 msgstr "Отложить для меня"
@@ -23365,8 +23400,12 @@ msgid "Meine Aktionen"
 msgstr "Мои акции"
 
 #, python-format
-msgid "Mit dem kostenlosen Start sind bis zu %(n)s Aktionen gleichzeitig aktiv. Mehr Aktionen? Schreiben Sie uns: %(contact)s"
-msgstr "В бесплатном старте одновременно активны до %(n)s акций. Нужно больше? Напишите нам: %(contact)s"
+msgid ""
+"Mit dem kostenlosen Start sind bis zu %(n)s Aktionen gleichzeitig aktiv. "
+"Mehr Aktionen? Schreiben Sie uns: %(contact)s"
+msgstr ""
+"В бесплатном старте одновременно активны до %(n)s акций. Нужно больше? "
+"Напишите нам: %(contact)s"
 
 msgid "Neue Aktion"
 msgstr "Новая акция"
@@ -23380,7 +23419,8 @@ msgstr "Ещё одна акция"
 msgid "Nur zeigen: Preis, Adresse, Route und Anruf."
 msgstr "Только показать: цена, адрес, маршрут и звонок."
 
-msgid "Oder beenden Sie eine laufende Aktion — dann können Sie diese aktivieren."
+msgid ""
+"Oder beenden Sie eine laufende Aktion — dann können Sie diese aktivieren."
 msgstr "Или завершите одну из идущих акций — тогда эту можно будет включить."
 
 msgid "Preis und Dauer"
@@ -24503,3 +24543,74 @@ msgstr "Полнотекстовый"
 #. T-8.21
 msgid "Ähnliche Schreibweise"
 msgstr "Похожее написание"
+
+msgid "Aktuelle Angebote lokaler Anbieter"
+msgstr "Актуальные предложения местных предприятий"
+
+msgid ""
+"Aktuelle Angebote lokaler Anbieter — offener Feed für Verzeichnisse und "
+"Assistenten."
+msgstr ""
+"Актуальные предложения местных предприятий — открытый фид для справочников и"
+" ассистентов."
+
+msgid ""
+"Angebotsseite: `/angebot/<id>/` mit JSON-LD "
+"(Product/Service/Event/HotelRoom/LocalBusiness)."
+msgstr ""
+"Страница предложения: `/angebot/<id>/` с JSON-LD "
+"(Product/Service/Event/HotelRoom/LocalBusiness)."
+
+msgid "Auf der Hauptdomain zusätzlich `?city=` (Stadt)."
+msgstr "На основном домене дополнительно `?city=` (город)."
+
+msgid "Daten für Assistenten"
+msgstr "Данные для ассистентов"
+
+msgid "Einstieg"
+msgstr "Вход"
+
+msgid ""
+"Filter: `?kind=` (promotion|product|service|event|stay|menu|business), "
+"`?kat=` (Rubrik), `?merkmal=` (Merkmal), `?stadtteil=`, `?limit=` (max. "
+"100), `cursor` aus `next_url`."
+msgstr ""
+"Фильтры: `?kind=` (promotion|product|service|event|stay|menu|business), "
+"`?kat=` (раздел), `?merkmal=` (признак), `?stadtteil=`, `?limit=` (макс. "
+"100), `cursor` из `next_url`."
+
+msgid ""
+"Keine Online-Zahlung über das Portal: Reservieren, Coupon oder Anfrage "
+"direkt beim Anbieter (Link in jedem Eintrag)."
+msgstr ""
+"Онлайн-оплаты через портал нет: отложить, купон или запрос — напрямую у "
+"предприятия (ссылка в каждой записи)."
+
+msgid ""
+"Lokale Angebote, Produkte und Dienstleistungen kleiner Betriebe — pro Stadt "
+"ein Portal, ein gemeinsamer Datenbestand."
+msgstr ""
+"Местные предложения, товары и услуги малого бизнеса — по порталу на город, "
+"общая база данных."
+
+msgid "Portale"
+msgstr "Порталы"
+
+msgid ""
+"Preise und Verfügbarkeit ohne Gewähr — maßgeblich ist die Seite des "
+"Anbieters."
+msgstr ""
+"Цены и наличие без гарантии — определяющей является страница предприятия."
+
+msgid "Rubriken"
+msgstr "Разделы"
+
+#, python-format
+msgid "Stadt: %(city)s"
+msgstr "Город: %(city)s"
+
+msgid ""
+"Werbliche Einträge sind im Feed als `sponsored` markiert und werden in der "
+"Reihenfolge nicht bevorzugt."
+msgstr ""
+"Рекламные записи помечены в фиде как `sponsored` и в порядке не поднимаются."

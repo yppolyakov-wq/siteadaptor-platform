@@ -15,6 +15,9 @@
   {% if portal.logo_url %}<meta property="og:image" content="{{ portal.logo_url }}">{% endif %}
   <meta name="twitter:card" content="summary">
   {% block structured_data %}{% endblock %}
+  {# T-8.8: открытый фид каталога — discoverability для агрегаторов/ассистентов. #}
+  <link rel="alternate" type="application/feed+json" title="{{ portal.title_text }} · JSON Feed" href="{% url 'portal-feed-json' %}">
+  <link rel="alternate" type="application/atom+xml" title="{{ portal.title_text }} · Atom" href="{% url 'portal-feed-atom' %}">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <style>:root { --portal-color: {{ portal.primary_color|default:"#111827" }}; }</style>
 </head>
@@ -44,6 +47,11 @@
   <footer class="border-t border-gray-100 bg-white">
     <div class="max-w-5xl mx-auto px-4 py-6 text-xs text-gray-400 flex flex-wrap items-center justify-between gap-3">
       <span>© {% now "Y" %} {{ portal.title_text }} · siteadaptor</span>
+      {# T-8.8: Impressum/Datenschutz платформы (DDG §5) — страницы живут на основном домене. #}
+      <span class="flex items-center gap-3">
+        {% if platform_legal.impressum %}<a href="{{ platform_legal.impressum }}" class="hover:text-gray-600">{% trans "Impressum" %}</a>{% endif %}
+        {% if platform_legal.datenschutz %}<a href="{{ platform_legal.datenschutz }}" class="hover:text-gray-600">{% trans "Datenschutz" %}</a>{% endif %}
+      </span>
       {% if ui_languages %}<span class="sm:hidden">{% include "tenants/_lang_switch.html" %}</span>{% endif %}
     </div>
   </footer>

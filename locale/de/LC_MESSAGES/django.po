@@ -22602,8 +22602,12 @@ msgid "Endet heute — Leiste"
 msgstr "Endet heute — Leiste"
 
 #: templates/storefront/sections/_block_list.html
-msgid "Hier erscheint die Liste — sobald etwas zu den Einstellungen des Blocks passt."
-msgstr "Hier erscheint die Liste — sobald etwas zu den Einstellungen des Blocks passt."
+msgid ""
+"Hier erscheint die Liste — sobald etwas zu den Einstellungen des Blocks "
+"passt."
+msgstr ""
+"Hier erscheint die Liste — sobald etwas zu den Einstellungen des Blocks "
+"passt."
 
 #: templates/tenant/_cb_row.html
 msgid "Mindestrabatt"
@@ -22706,8 +22710,12 @@ msgid "Hauptliste"
 msgstr "Hauptliste"
 
 #: templates/tenant/_cb_row.html
-msgid "Blöcke davor stehen über der Liste, danach unter ihr. Wie die Liste aussieht, stellen Sie oben bei dieser Seite ein."
-msgstr "Blöcke davor stehen über der Liste, danach unter ihr. Wie die Liste aussieht, stellen Sie oben bei dieser Seite ein."
+msgid ""
+"Blöcke davor stehen über der Liste, danach unter ihr. Wie die Liste "
+"aussieht, stellen Sie oben bei dieser Seite ein."
+msgstr ""
+"Blöcke davor stehen über der Liste, danach unter ihr. Wie die Liste "
+"aussieht, stellen Sie oben bei dieser Seite ein."
 
 #: templates/tenant/site_home.html
 msgid "Block über der Liste einfügen"
@@ -22783,8 +22791,12 @@ msgstr "%(n)s von 5 Sternen"
 msgid "Als eigenen Block kopieren"
 msgstr "Als eigenen Block kopieren"
 
-msgid "Ein zweiter Liste-Block mit derselben Auswahl — zum Beispiel für eine andere Kategorie."
-msgstr "Ein zweiter Liste-Block mit derselben Auswahl — zum Beispiel für eine andere Kategorie."
+msgid ""
+"Ein zweiter Liste-Block mit derselben Auswahl — zum Beispiel für eine andere"
+" Kategorie."
+msgstr ""
+"Ein zweiter Liste-Block mit derselben Auswahl — zum Beispiel für eine andere"
+" Kategorie."
 
 #, python-format
 msgid "Wie die Website (%(c)s)"
@@ -22880,8 +22892,12 @@ msgstr "Frachtführer"
 msgid "Inspected by"
 msgstr "Geprüft von"
 
-msgid "We hereby give notice under § 377 HGB of the following defects in the delivery referred to above."
-msgstr "Hiermit zeigen wir gemäß § 377 HGB folgende Mängel der oben genannten Lieferung an."
+msgid ""
+"We hereby give notice under § 377 HGB of the following defects in the "
+"delivery referred to above."
+msgstr ""
+"Hiermit zeigen wir gemäß § 377 HGB folgende Mängel der oben genannten "
+"Lieferung an."
 
 msgid "Type of defect"
 msgstr "Art des Mangels"
@@ -22889,12 +22905,15 @@ msgstr "Art des Mangels"
 msgid "Requested remedy"
 msgstr "Gewünschte Lösung"
 
-
 msgid "Inspection result"
 msgstr "Prüfergebnis"
 
-msgid "We reserve all rights arising from the defective delivery. Please confirm receipt of this notice."
-msgstr "Wir behalten uns sämtliche Rechte aus der mangelhaften Lieferung vor. Bitte bestätigen Sie den Eingang dieser Anzeige."
+msgid ""
+"We reserve all rights arising from the defective delivery. Please confirm "
+"receipt of this notice."
+msgstr ""
+"Wir behalten uns sämtliche Rechte aus der mangelhaften Lieferung vor. Bitte "
+"bestätigen Sie den Eingang dieser Anzeige."
 
 msgid "Place, date"
 msgstr "Ort, Datum"
@@ -22941,7 +22960,8 @@ msgstr ""
 msgid "Angezeigt am %(d)s"
 msgstr ""
 
-msgid "Noch nicht an den Lieferanten gemeldet — Rüge unverzüglich (§ 377 HGB)."
+msgid ""
+"Noch nicht an den Lieferanten gemeldet — Rüge unverzüglich (§ 377 HGB)."
 msgstr ""
 
 msgid "PDF"
@@ -22999,7 +23019,9 @@ msgid "Guten Tag %(name)s,"
 msgstr ""
 
 #, python-format
-msgid "anbei erhalten Sie unsere Mängelanzeige %(ref)s zur Lieferung aus Bestellung %(order)s (§ 377 HGB)."
+msgid ""
+"anbei erhalten Sie unsere Mängelanzeige %(ref)s zur Lieferung aus Bestellung"
+" %(order)s (§ 377 HGB)."
 msgstr ""
 
 msgid "Bitte bestätigen Sie den Eingang und teilen Sie uns Ihre Lösung mit."
@@ -23031,8 +23053,12 @@ msgid "Nur Aktionen — ohne Shop"
 msgstr "Nur Aktionen — ohne Shop"
 
 #: T-8.1c
-msgid "Visitenkarte mit Angeboten, Öffnungszeiten und Route — in Minuten online, ganz ohne Sortiment und Warenkorb."
-msgstr "Visitenkarte mit Angeboten, Öffnungszeiten und Route — in Minuten online, ganz ohne Sortiment und Warenkorb."
+msgid ""
+"Visitenkarte mit Angeboten, Öffnungszeiten und Route — in Minuten online, "
+"ganz ohne Sortiment und Warenkorb."
+msgstr ""
+"Visitenkarte mit Angeboten, Öffnungszeiten und Route — in Minuten online, "
+"ganz ohne Sortiment und Warenkorb."
 
 msgid "Stadtteil"
 msgstr "Stadtteil"
@@ -23050,8 +23076,12 @@ msgstr "Ihr Stadtteil im Stadtportal: Kundschaft filtert Angebote danach."
 msgid "Angebote in %(name)s, %(city)s"
 msgstr "Angebote in %(name)s, %(city)s"
 
-msgid "Vorschau mit Beispielgeschäften: Die mit «Demo» markierten Angebote sind erfunden und zeigen, wie das Portal funktionieren wird."
-msgstr "Vorschau mit Beispielgeschäften: Die mit «Demo» markierten Angebote sind erfunden und zeigen, wie das Portal funktionieren wird."
+msgid ""
+"Vorschau mit Beispielgeschäften: Die mit «Demo» markierten Angebote sind "
+"erfunden und zeigen, wie das Portal funktionieren wird."
+msgstr ""
+"Vorschau mit Beispielgeschäften: Die mit «Demo» markierten Angebote sind "
+"erfunden und zeigen, wie das Portal funktionieren wird."
 
 msgid "Anfragen"
 msgstr "Anfragen"
@@ -23084,8 +23114,12 @@ msgstr "Reaktion der Kundschaft"
 msgid "Reserviert bis %(until)s"
 msgstr "Reserviert bis %(until)s"
 
-msgid "Was der Button auf der Aktionsseite tut. „Automatisch“: online bestellen, wenn Bestellungen aktiv sind — sonst zurücklegen lassen."
-msgstr "Was der Button auf der Aktionsseite tut. „Automatisch“: online bestellen, wenn Bestellungen aktiv sind — sonst zurücklegen lassen."
+msgid ""
+"Was der Button auf der Aktionsseite tut. „Automatisch“: online bestellen, "
+"wenn Bestellungen aktiv sind — sonst zurücklegen lassen."
+msgstr ""
+"Was der Button auf der Aktionsseite tut. „Automatisch“: online bestellen, "
+"wenn Bestellungen aktiv sind — sonst zurücklegen lassen."
 
 msgid "Zurücklegen lassen"
 msgstr "Zurücklegen lassen"
@@ -23170,8 +23204,12 @@ msgid "Meine Aktionen"
 msgstr "Meine Aktionen"
 
 #, python-format
-msgid "Mit dem kostenlosen Start sind bis zu %(n)s Aktionen gleichzeitig aktiv. Mehr Aktionen? Schreiben Sie uns: %(contact)s"
-msgstr "Mit dem kostenlosen Start sind bis zu %(n)s Aktionen gleichzeitig aktiv. Mehr Aktionen? Schreiben Sie uns: %(contact)s"
+msgid ""
+"Mit dem kostenlosen Start sind bis zu %(n)s Aktionen gleichzeitig aktiv. "
+"Mehr Aktionen? Schreiben Sie uns: %(contact)s"
+msgstr ""
+"Mit dem kostenlosen Start sind bis zu %(n)s Aktionen gleichzeitig aktiv. "
+"Mehr Aktionen? Schreiben Sie uns: %(contact)s"
 
 msgid "Neue Aktion"
 msgstr "Neue Aktion"
@@ -23185,8 +23223,10 @@ msgstr "Noch eine Aktion"
 msgid "Nur zeigen: Preis, Adresse, Route und Anruf."
 msgstr "Nur zeigen: Preis, Adresse, Route und Anruf."
 
-msgid "Oder beenden Sie eine laufende Aktion — dann können Sie diese aktivieren."
-msgstr "Oder beenden Sie eine laufende Aktion — dann können Sie diese aktivieren."
+msgid ""
+"Oder beenden Sie eine laufende Aktion — dann können Sie diese aktivieren."
+msgstr ""
+"Oder beenden Sie eine laufende Aktion — dann können Sie diese aktivieren."
 
 msgid "Preis und Dauer"
 msgstr "Preis und Dauer"
@@ -24309,3 +24349,76 @@ msgstr "Volltext"
 #. T-8.21
 msgid "Ähnliche Schreibweise"
 msgstr "Ähnliche Schreibweise"
+
+msgid "Aktuelle Angebote lokaler Anbieter"
+msgstr "Aktuelle Angebote lokaler Anbieter"
+
+msgid ""
+"Aktuelle Angebote lokaler Anbieter — offener Feed für Verzeichnisse und "
+"Assistenten."
+msgstr ""
+"Aktuelle Angebote lokaler Anbieter — offener Feed für Verzeichnisse und "
+"Assistenten."
+
+msgid ""
+"Angebotsseite: `/angebot/<id>/` mit JSON-LD "
+"(Product/Service/Event/HotelRoom/LocalBusiness)."
+msgstr ""
+"Angebotsseite: `/angebot/<id>/` mit JSON-LD "
+"(Product/Service/Event/HotelRoom/LocalBusiness)."
+
+msgid "Auf der Hauptdomain zusätzlich `?city=` (Stadt)."
+msgstr "Auf der Hauptdomain zusätzlich `?city=` (Stadt)."
+
+msgid "Daten für Assistenten"
+msgstr "Daten für Assistenten"
+
+msgid "Einstieg"
+msgstr "Einstieg"
+
+msgid ""
+"Filter: `?kind=` (promotion|product|service|event|stay|menu|business), "
+"`?kat=` (Rubrik), `?merkmal=` (Merkmal), `?stadtteil=`, `?limit=` (max. "
+"100), `cursor` aus `next_url`."
+msgstr ""
+"Filter: `?kind=` (promotion|product|service|event|stay|menu|business), "
+"`?kat=` (Rubrik), `?merkmal=` (Merkmal), `?stadtteil=`, `?limit=` (max. "
+"100), `cursor` aus `next_url`."
+
+msgid ""
+"Keine Online-Zahlung über das Portal: Reservieren, Coupon oder Anfrage "
+"direkt beim Anbieter (Link in jedem Eintrag)."
+msgstr ""
+"Keine Online-Zahlung über das Portal: Reservieren, Coupon oder Anfrage "
+"direkt beim Anbieter (Link in jedem Eintrag)."
+
+msgid ""
+"Lokale Angebote, Produkte und Dienstleistungen kleiner Betriebe — pro Stadt "
+"ein Portal, ein gemeinsamer Datenbestand."
+msgstr ""
+"Lokale Angebote, Produkte und Dienstleistungen kleiner Betriebe — pro Stadt "
+"ein Portal, ein gemeinsamer Datenbestand."
+
+msgid "Portale"
+msgstr "Portale"
+
+msgid ""
+"Preise und Verfügbarkeit ohne Gewähr — maßgeblich ist die Seite des "
+"Anbieters."
+msgstr ""
+"Preise und Verfügbarkeit ohne Gewähr — maßgeblich ist die Seite des "
+"Anbieters."
+
+msgid "Rubriken"
+msgstr "Rubriken"
+
+#, python-format
+msgid "Stadt: %(city)s"
+msgstr "Stadt: %(city)s"
+
+msgid ""
+"Werbliche Einträge sind im Feed als `sponsored` markiert und werden in der "
+"Reihenfolge nicht bevorzugt."
+msgstr ""
+"Werbliche Einträge sind im Feed als `sponsored` markiert und werden in der "
+"Reihenfolge nicht bevorzugt."

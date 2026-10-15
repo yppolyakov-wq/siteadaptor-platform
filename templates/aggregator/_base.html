@@ -14,6 +14,9 @@
   {% if canonical %}<meta property="og:url" content="{{ canonical }}">{% endif %}
   <meta name="twitter:card" content="summary">
   {% block structured_data %}{% endblock %}
+  {# T-8.8: открытый фид каталога — discoverability для агрегаторов/ассистентов. #}
+  <link rel="alternate" type="application/feed+json" title="siteadaptor · JSON Feed" href="{% url 'aggregator-feed-json' %}">
+  <link rel="alternate" type="application/atom+xml" title="siteadaptor · Atom" href="{% url 'aggregator-feed-atom' %}">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased flex flex-col">
@@ -40,6 +43,10 @@
   <footer class="border-t border-gray-100 bg-white">
     <div class="max-w-5xl mx-auto px-4 py-6 text-xs text-gray-400 flex flex-wrap items-center justify-between gap-3">
       <span>© {% now "Y" %} siteadaptor</span>
+      <span class="flex items-center gap-3">
+        <a href="{% url 'platform-impressum' %}" class="hover:text-gray-600">{% trans "Impressum" %}</a>
+        <a href="{% url 'platform-datenschutz' %}" class="hover:text-gray-600">{% trans "Datenschutz" %}</a>
+      </span>
       {% if ui_languages %}<span class="sm:hidden">{% include "tenants/_lang_switch.html" %}</span>{% endif %}
     </div>
   </footer>

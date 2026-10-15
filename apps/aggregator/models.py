@@ -225,16 +225,21 @@ class AggregatorListing(I18nMixin, models.Model):
 
         return districts.label(self.city, self.district)
 
-    @property
-    def portal_url(self) -> str:
-        """T-8.6: ссылка с каталога города на бизнес с атрибуцией `?ch=portal`.
+    def with_channel(self, ch: str) -> str:
+        """T-8.8: ссылка на сайт бизнеса с атрибуцией канала `?ch=<ch>`.
 
         Витрина кладёт канал в сессию (`_capture_channel`), он доезжает до резерва,
-        купона и счётчика просмотров по каналам. Для JSON-LD/SEO — чистый detail_url."""
+        купона и счётчика просмотров по каналам. Уже заданный канал не дублируем.
+        Для JSON-LD/SEO — чистый detail_url."""
         url = self.detail_url or ""
         if not url or "ch=" in url:
             return url
-        return f"{url}{'&' if '?' in url else '?'}ch=portal"
+        return f"{url}{'&' if '?' in url else '?'}ch={ch}"
+
+    @property
+    def portal_url(self) -> str:
+        """T-8.6: ссылка с каталога города на бизнес с атрибуцией `?ch=portal`."""
+        return self.with_channel("portal")
 
     @property
     def is_featured_now(self) -> bool:

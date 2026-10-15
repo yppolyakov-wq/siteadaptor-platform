@@ -214,6 +214,7 @@ TEMPLATES = [
                 "apps.aggregator.context.portal_user",
                 "apps.aggregator.context.shortlist",  # MEN-12: отложенное/сравнение
                 "apps.aggregator.context.languages",  # переключатель языка портала
+                "apps.aggregator.context.platform_legal",  # T-8.8: Impressum/Datenschutz
                 # SEO-1: title/description витрины из движка мета-заготовок.
                 "apps.core.context_processors.seo",
             ],

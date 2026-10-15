@@ -103,7 +103,9 @@ def test_sitemap_lists_home_and_facets():
     assert f"http://{_HOST}/butcher/" in body
     assert "cafe" not in body
     assert "grocery" not in body
-    assert body.count("<url>") == 3  # корень + 2 типа
+    # T-8.8: + страница бизнеса (один tenant_slug «x» у всех листингов) с lastmod.
+    assert body.count("<url>") == 4  # корень + 2 типа + 1 бизнес
+    assert f"http://{_HOST}/unternehmen/x/" in body
 
 
 @override_settings(ROOT_URLCONF="config.urls_portal")
@@ -111,7 +113,7 @@ def test_combo_portal_sitemap_has_only_home():
     p = _portal(host="baeckerei-muenchen.siteadaptor.de", kind="combo", business_type="bakery")
     _listing(business_type="bakery")
     body = portal_views.portal_sitemap_xml(_get(p, "/sitemap.xml")).content.decode()
-    assert body.count("<url>") == 1
+    assert body.count("<url>") == 2  # корень + страница бизнеса (T-8.8)
 
 
 @override_settings(ROOT_URLCONF="config.urls_portal")

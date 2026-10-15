@@ -77,6 +77,9 @@ urlpatterns = [
     # T-8.6 «Melden» (имя дублируется в urls_portal — {% url %} везде).
     # T-8.24: страница предложения (до catch-all <city>).
     path("entdecken/angebot/<int:pk>/", aggregator_views.offer_page, name="aggregator-offer"),
+    # T-8.8: открытый фид основного домена (`?city=`) — до catch-all <city>.
+    path("entdecken/feed.json", aggregator_views.discover_feed_json, name="aggregator-feed-json"),
+    path("entdecken/feed.xml", aggregator_views.discover_feed_atom, name="aggregator-feed-atom"),
     path("entdecken/melden/<int:pk>/", aggregator_reports.report_listing, name="aggregator-report"),
     path("entdecken/<str:city>/", aggregator_views.city_listing, name="aggregator-city"),
     path(
@@ -94,6 +97,8 @@ urlpatterns = [
     # Local SEO (Track B5): sitemap + robots основного домена.
     path("sitemap.xml", aggregator_views.sitemap_xml, name="aggregator-sitemap"),
     path("robots.txt", aggregator_views.robots_txt, name="aggregator-robots"),
+    # T-8.8: llms.txt платформы (порталы, /entdecken/, фид).
+    path("llms.txt", aggregator_views.llms_txt, name="aggregator-llms"),
     # Переключатель языка публичных страниц (регистрация и пр.) — 5 языков хрома.
     path("sprache/", set_public_language, name="public-set-language"),
     # Branchen-Landingpages: обзор + страница на каждый архетип (возможности/функционал).

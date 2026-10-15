@@ -22691,7 +22691,9 @@ msgid "Endet heute — Leiste"
 msgstr "Bugün bitiyor — şerit"
 
 #: templates/storefront/sections/_block_list.html
-msgid "Hier erscheint die Liste — sobald etwas zu den Einstellungen des Blocks passt."
+msgid ""
+"Hier erscheint die Liste — sobald etwas zu den Einstellungen des Blocks "
+"passt."
 msgstr "Blok ayarlarına uyan bir şey olduğunda liste burada görünür."
 
 #: templates/tenant/_cb_row.html
@@ -22795,8 +22797,12 @@ msgid "Hauptliste"
 msgstr "Ana liste"
 
 #: templates/tenant/_cb_row.html
-msgid "Blöcke davor stehen über der Liste, danach unter ihr. Wie die Liste aussieht, stellen Sie oben bei dieser Seite ein."
-msgstr "Öncesindeki bloklar listenin üstünde, sonrasındakiler altında görünür. Listenin görünümünü yukarıda bu sayfa için ayarlarsınız."
+msgid ""
+"Blöcke davor stehen über der Liste, danach unter ihr. Wie die Liste "
+"aussieht, stellen Sie oben bei dieser Seite ein."
+msgstr ""
+"Öncesindeki bloklar listenin üstünde, sonrasındakiler altında görünür. "
+"Listenin görünümünü yukarıda bu sayfa için ayarlarsınız."
 
 #: templates/tenant/site_home.html
 msgid "Block über der Liste einfügen"
@@ -22872,8 +22878,11 @@ msgstr "5 üzerinden %(n)s yıldız"
 msgid "Als eigenen Block kopieren"
 msgstr "Ayrı blok olarak kopyala"
 
-msgid "Ein zweiter Liste-Block mit derselben Auswahl — zum Beispiel für eine andere Kategorie."
-msgstr "Aynı seçime sahip ikinci bir liste bloğu — örneğin başka bir kategori için."
+msgid ""
+"Ein zweiter Liste-Block mit derselben Auswahl — zum Beispiel für eine andere"
+" Kategorie."
+msgstr ""
+"Aynı seçime sahip ikinci bir liste bloğu — örneğin başka bir kategori için."
 
 #, python-format
 msgid "Wie die Website (%(c)s)"
@@ -22969,8 +22978,12 @@ msgstr "Taşıyıcı"
 msgid "Inspected by"
 msgstr "Kontrol eden"
 
-msgid "We hereby give notice under § 377 HGB of the following defects in the delivery referred to above."
-msgstr "İşbu yazı ile § 377 HGB uyarınca yukarıda belirtilen teslimattaki aşağıdaki ayıpları bildiririz."
+msgid ""
+"We hereby give notice under § 377 HGB of the following defects in the "
+"delivery referred to above."
+msgstr ""
+"İşbu yazı ile § 377 HGB uyarınca yukarıda belirtilen teslimattaki aşağıdaki "
+"ayıpları bildiririz."
 
 msgid "Type of defect"
 msgstr "Ayıp türü"
@@ -22978,12 +22991,15 @@ msgstr "Ayıp türü"
 msgid "Requested remedy"
 msgstr "Talep edilen çözüm"
 
-
 msgid "Inspection result"
 msgstr "Kontrol sonucu"
 
-msgid "We reserve all rights arising from the defective delivery. Please confirm receipt of this notice."
-msgstr "Ayıplı teslimattan doğan tüm haklarımız saklıdır. Lütfen bu bildirimin alındığını teyit ediniz."
+msgid ""
+"We reserve all rights arising from the defective delivery. Please confirm "
+"receipt of this notice."
+msgstr ""
+"Ayıplı teslimattan doğan tüm haklarımız saklıdır. Lütfen bu bildirimin "
+"alındığını teyit ediniz."
 
 msgid "Place, date"
 msgstr "Yer, tarih"
@@ -23030,7 +23046,8 @@ msgstr "çözüldü"
 msgid "Angezeigt am %(d)s"
 msgstr "%(d)s tarihinde bildirildi"
 
-msgid "Noch nicht an den Lieferanten gemeldet — Rüge unverzüglich (§ 377 HGB)."
+msgid ""
+"Noch nicht an den Lieferanten gemeldet — Rüge unverzüglich (§ 377 HGB)."
 msgstr "Henüz tedarikçiye bildirilmedi — gecikmeksizin bildirin (§ 377 HGB)."
 
 msgid "PDF"
@@ -23088,8 +23105,12 @@ msgid "Guten Tag %(name)s,"
 msgstr "Merhaba %(name)s,"
 
 #, python-format
-msgid "anbei erhalten Sie unsere Mängelanzeige %(ref)s zur Lieferung aus Bestellung %(order)s (§ 377 HGB)."
-msgstr "%(order)s siparişinden gelen teslimata ilişkin %(ref)s numaralı ayıp bildirimimiz ektedir (§ 377 HGB)."
+msgid ""
+"anbei erhalten Sie unsere Mängelanzeige %(ref)s zur Lieferung aus Bestellung"
+" %(order)s (§ 377 HGB)."
+msgstr ""
+"%(order)s siparişinden gelen teslimata ilişkin %(ref)s numaralı ayıp "
+"bildirimimiz ektedir (§ 377 HGB)."
 
 msgid "Bitte bestätigen Sie den Eingang und teilen Sie uns Ihre Lösung mit."
 msgstr "Lütfen alındığını teyit edin ve çözüm önerinizi bize bildirin."
@@ -23120,8 +23141,12 @@ msgid "Nur Aktionen — ohne Shop"
 msgstr "Sadece kampanyalar — mağazasız"
 
 #: T-8.1c
-msgid "Visitenkarte mit Angeboten, Öffnungszeiten und Route — in Minuten online, ganz ohne Sortiment und Warenkorb."
-msgstr "Kampanyalar, çalışma saatleri ve yol tarifiyle kartvizit — dakikalar içinde yayında, ürün kataloğu ve sepet olmadan."
+msgid ""
+"Visitenkarte mit Angeboten, Öffnungszeiten und Route — in Minuten online, "
+"ganz ohne Sortiment und Warenkorb."
+msgstr ""
+"Kampanyalar, çalışma saatleri ve yol tarifiyle kartvizit — dakikalar içinde "
+"yayında, ürün kataloğu ve sepet olmadan."
 
 msgid "Stadtteil"
 msgstr "Semt"
@@ -23133,14 +23158,19 @@ msgid "Demo"
 msgstr "Demo"
 
 msgid "Ihr Stadtteil im Stadtportal: Kundschaft filtert Angebote danach."
-msgstr "Şehir portalındaki semtiniz: müşteriler teklifleri buna göre filtreler."
+msgstr ""
+"Şehir portalındaki semtiniz: müşteriler teklifleri buna göre filtreler."
 
 #, python-format
 msgid "Angebote in %(name)s, %(city)s"
 msgstr "%(name)s, %(city)s teklifleri"
 
-msgid "Vorschau mit Beispielgeschäften: Die mit «Demo» markierten Angebote sind erfunden und zeigen, wie das Portal funktionieren wird."
-msgstr "Örnek işletmelerle önizleme: «Demo» işaretli teklifler hayalidir ve portalın nasıl çalışacağını gösterir."
+msgid ""
+"Vorschau mit Beispielgeschäften: Die mit «Demo» markierten Angebote sind "
+"erfunden und zeigen, wie das Portal funktionieren wird."
+msgstr ""
+"Örnek işletmelerle önizleme: «Demo» işaretli teklifler hayalidir ve portalın"
+" nasıl çalışacağını gösterir."
 
 msgid "Anfragen"
 msgstr "Sor"
@@ -23173,8 +23203,12 @@ msgstr "Müşteri tepkisi"
 msgid "Reserviert bis %(until)s"
 msgstr "%(until)s tarihine kadar ayrıldı"
 
-msgid "Was der Button auf der Aktionsseite tut. „Automatisch“: online bestellen, wenn Bestellungen aktiv sind — sonst zurücklegen lassen."
-msgstr "Fırsat sayfasındaki düğmenin ne yaptığı. „Otomatik“: siparişler etkinse çevrimiçi sipariş — değilse ayırtma."
+msgid ""
+"Was der Button auf der Aktionsseite tut. „Automatisch“: online bestellen, "
+"wenn Bestellungen aktiv sind — sonst zurücklegen lassen."
+msgstr ""
+"Fırsat sayfasındaki düğmenin ne yaptığı. „Otomatik“: siparişler etkinse "
+"çevrimiçi sipariş — değilse ayırtma."
 
 msgid "Zurücklegen lassen"
 msgstr "Benim için ayır"
@@ -23259,8 +23293,12 @@ msgid "Meine Aktionen"
 msgstr "Kampanyalarım"
 
 #, python-format
-msgid "Mit dem kostenlosen Start sind bis zu %(n)s Aktionen gleichzeitig aktiv. Mehr Aktionen? Schreiben Sie uns: %(contact)s"
-msgstr "Ücretsiz başlangıçta aynı anda en fazla %(n)s kampanya aktif olabilir. Daha fazla kampanya mı? Bize yazın: %(contact)s"
+msgid ""
+"Mit dem kostenlosen Start sind bis zu %(n)s Aktionen gleichzeitig aktiv. "
+"Mehr Aktionen? Schreiben Sie uns: %(contact)s"
+msgstr ""
+"Ücretsiz başlangıçta aynı anda en fazla %(n)s kampanya aktif olabilir. Daha "
+"fazla kampanya mı? Bize yazın: %(contact)s"
 
 msgid "Neue Aktion"
 msgstr "Yeni kampanya"
@@ -23274,8 +23312,10 @@ msgstr "Bir kampanya daha"
 msgid "Nur zeigen: Preis, Adresse, Route und Anruf."
 msgstr "Sadece göster: fiyat, adres, yol tarifi ve arama."
 
-msgid "Oder beenden Sie eine laufende Aktion — dann können Sie diese aktivieren."
-msgstr "Ya da devam eden bir kampanyayı bitirin — sonra bunu etkinleştirebilirsiniz."
+msgid ""
+"Oder beenden Sie eine laufende Aktion — dann können Sie diese aktivieren."
+msgstr ""
+"Ya da devam eden bir kampanyayı bitirin — sonra bunu etkinleştirebilirsiniz."
 
 msgid "Preis und Dauer"
 msgstr "Fiyat ve süre"
@@ -24394,3 +24434,75 @@ msgstr "Tam metin"
 #. T-8.21
 msgid "Ähnliche Schreibweise"
 msgstr "Benzer yazım"
+
+msgid "Aktuelle Angebote lokaler Anbieter"
+msgstr "Yerel sağlayıcıların güncel teklifleri"
+
+msgid ""
+"Aktuelle Angebote lokaler Anbieter — offener Feed für Verzeichnisse und "
+"Assistenten."
+msgstr ""
+"Yerel sağlayıcıların güncel teklifleri — dizinler ve asistanlar için açık "
+"akış."
+
+msgid ""
+"Angebotsseite: `/angebot/<id>/` mit JSON-LD "
+"(Product/Service/Event/HotelRoom/LocalBusiness)."
+msgstr ""
+"Teklif sayfası: JSON-LD içeren `/angebot/<id>/` "
+"(Product/Service/Event/HotelRoom/LocalBusiness)."
+
+msgid "Auf der Hauptdomain zusätzlich `?city=` (Stadt)."
+msgstr "Ana alan adında ayrıca `?city=` (şehir)."
+
+msgid "Daten für Assistenten"
+msgstr "Asistanlar için veriler"
+
+msgid "Einstieg"
+msgstr "Başlangıç"
+
+msgid ""
+"Filter: `?kind=` (promotion|product|service|event|stay|menu|business), "
+"`?kat=` (Rubrik), `?merkmal=` (Merkmal), `?stadtteil=`, `?limit=` (max. "
+"100), `cursor` aus `next_url`."
+msgstr ""
+"Filtreler: `?kind=` (promotion|product|service|event|stay|menu|business), "
+"`?kat=` (bölüm), `?merkmal=` (özellik), `?stadtteil=`, `?limit=` (en fazla "
+"100), `next_url` içindeki `cursor`."
+
+msgid ""
+"Keine Online-Zahlung über das Portal: Reservieren, Coupon oder Anfrage "
+"direkt beim Anbieter (Link in jedem Eintrag)."
+msgstr ""
+"Portal üzerinden çevrimiçi ödeme yok: rezervasyon, kupon veya talep doğrudan"
+" sağlayıcıda (her kayıtta bağlantı)."
+
+msgid ""
+"Lokale Angebote, Produkte und Dienstleistungen kleiner Betriebe — pro Stadt "
+"ein Portal, ein gemeinsamer Datenbestand."
+msgstr ""
+"Küçük işletmelerin yerel teklifleri, ürünleri ve hizmetleri — her şehir için"
+" bir portal, ortak bir veri havuzu."
+
+msgid "Portale"
+msgstr "Portallar"
+
+msgid ""
+"Preise und Verfügbarkeit ohne Gewähr — maßgeblich ist die Seite des "
+"Anbieters."
+msgstr ""
+"Fiyatlar ve stok durumu garanti edilmez — sağlayıcının sayfası esastır."
+
+msgid "Rubriken"
+msgstr "Bölümler"
+
+#, python-format
+msgid "Stadt: %(city)s"
+msgstr "Şehir: %(city)s"
+
+msgid ""
+"Werbliche Einträge sind im Feed als `sponsored` markiert und werden in der "
+"Reihenfolge nicht bevorzugt."
+msgstr ""
+"Reklam kayıtları akışta `sponsored` olarak işaretlenir ve sıralamada öne "
+"çıkarılmaz."

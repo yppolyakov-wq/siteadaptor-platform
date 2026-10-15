@@ -42,3 +42,13 @@ def languages(request):
     from apps.tenants.views import ui_languages
 
     return {"ui_languages": ui_languages()}
+
+
+def platform_legal(request):
+    """T-8.8: Impressum/Datenschutz платформы в подвале портального хоста (DDG §5) —
+    страницы живут на основном домене, портал на своём хосте их не имеет."""
+    if getattr(request, "portal", None) is None:
+        return {}
+    from .platform_links import legal_links
+
+    return {"platform_legal": legal_links()}
