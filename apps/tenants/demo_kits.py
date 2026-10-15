@@ -23180,6 +23180,7 @@ def _solingen_menus(*targets) -> dict:
     labels = {
         "catalog": "Sortiment",
         "booking": "Termine",
+        "stays": "Zimmer",
         "jobs": "Anfrage",
         "events": "Veranstaltungen",
         "promotions": "Angebote",

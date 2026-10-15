@@ -67,7 +67,7 @@ def _city_fields(kind: str, tenant, snap: dict | None = None) -> dict:
 
     Акция — своя категория → категория её товара (T-8.13b) → категория бизнеса
     (T-8.22) → подсказка по типу;
-    номер — Hotels & Pensionen;
+    номер — категория бизнеса из раздела «Reisen & Übernachten», иначе Hotels & Pensionen;
     событие — по теме; меню — Catering. Признаки — из данных (свои/диеты/тема).
     """
     from apps.core import city_categories as cc
@@ -85,7 +85,11 @@ def _city_fields(kind: str, tenant, snap: dict | None = None) -> dict:
         )
         tags = cc.normalize_tags([*snap.get("city_tags", []), *snap.get("product_diets", [])])
     elif kind == "stay":
-        cat, tags = "hotels", []
+        # DCC Р-3: категория номера — основная категория бизнеса, если она из раздела
+        # «Reisen & Übernachten» (Ferienwohnungen), иначе Hotels & Pensionen.
+        by_cat = cc.category(by_type)
+        cat = by_type if by_cat and by_cat.section == "reisen-uebernachten" else "hotels"
+        tags = []
     elif kind in ("event", "tour"):
         theme = snap.get("category") or ""
         default = "touren" if kind == "tour" else "events"

@@ -12,7 +12,7 @@ from apps.tenants.tests.factories import TenantFactory
 
 pytestmark = pytest.mark.django_db
 
-CITY_SAMPLE = ("sg_trattoria_lumetto", "sg_wuschelkopf")
+CITY_SAMPLE = ("sg_trattoria_lumetto", "sg_wuschelkopf", "sg_fachwerkblick")
 
 
 @pytest.mark.parametrize("key", CITY_SAMPLE)
