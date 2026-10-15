@@ -46,6 +46,7 @@ FEED_PARAMS = frozenset(
         "verfuegbar",
         "offen",
         "sort",
+        "umkreis",
     }
 )
 SEARCH_MAX = 100
@@ -264,13 +265,10 @@ def section_tiles(present: dict, path: str) -> list[dict]:
 
 
 def _order(key: str, now=None) -> list:
-    if key == "urgent":  # срочное первым (О-4), затем сильная скидка
-        return [
-            F("ends_at").asc(nulls_last=True),
-            F("discount_percent").desc(nulls_last=True),
-            "-created_at",
-            "-pk",
-        ]
+    if key == "urgent":  # срочное первым (О-4) — тот же порядок, что сорт «Endet bald»
+        from .search import ORDERINGS
+
+        return list(ORDERINGS["endet"])
     if key == "regional_first":
         return [
             Case(
@@ -295,7 +293,9 @@ def _order(key: str, now=None) -> list:
     if key == "daily_rotation":  # честно ко всем бизнесам, стабильно в пределах дня/кэша
         salt = Value(timezone.localdate().isoformat(), output_field=CharField())
         return [MD5(Concat(Cast("id", CharField()), salt, output_field=CharField())), "pk"]
-    return ["-created_at", "-pk"]
+    from .search import ORDERINGS
+
+    return list(ORDERINGS["neu"])
 
 
 def featured(base_qs, *, count_impressions: bool = True) -> list:

@@ -34,5 +34,10 @@
     {% for val, label in categories %}<option value="{{ val }}" {% if val == cat %}selected{% endif %}>{{ label }}</option>{% endfor %}
   </select>
   {% endif %}
+  {% if sorts %}{# T-8.7 Р-6: сортировка выдачи #}
+  <select name="sort" data-sort-select class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+    {% for val, label in sorts %}<option value="{{ val }}" {% if val == sort %}selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+  {% endif %}
   <button class="rounded-lg bg-indigo-600 text-white px-4 py-2 text-sm font-medium hover:bg-indigo-700">{% trans "Search" %}</button>
 </form>

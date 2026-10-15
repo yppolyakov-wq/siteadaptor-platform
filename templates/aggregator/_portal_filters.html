@@ -26,11 +26,20 @@
       </select>
     </label>
     <label class="text-sm">{% trans "Sortierung" %}
-      <select name="sort" class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-2 py-2">
-        <option value="">{% trans "Relevanz" %}</option>
-        <option value="neu"{% if panel.filters.sort == "neu" %} selected{% endif %}>{% trans "Neueste" %}</option>
+      <select name="sort" data-sort-select class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-2 py-2">
+        {% for key, label in panel.sorts %}<option value="{{ key }}"{% if panel.filters.sort == key %} selected{% endif %}>{{ label }}</option>{% endfor %}
       </select>
     </label>
+    {% if panel.has_point %}{# T-8.7 Р-5: радиус — только при известной точке #}
+    <label class="text-sm">{% trans "Umkreis" %}
+      <select name="umkreis" data-radius-select class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-2 py-2">
+        <option value="">{% trans "Egal" %}</option>
+        {% for km in panel.radius_choices %}<option value="{{ km }}"{% if panel.filters.radius_km == km %} selected{% endif %}>{{ km }} km</option>{% endfor %}
+      </select>
+    </label>
+    {% else %}
+    <p class="text-xs text-gray-400 self-center">📍 {% trans "Standort nutzen, um nach Nähe zu sortieren oder einen Umkreis zu wählen." %}</p>
+    {% endif %}
     <label class="text-sm flex items-center gap-2"><input type="checkbox" name="verfuegbar" value="1"{% if panel.filters.available %} checked{% endif %}> {% trans "Nur verfügbar" %}</label>
     <label class="text-sm flex items-center gap-2"><input type="checkbox" name="offen" value="1"{% if panel.filters.open_now %} checked{% endif %}> {% trans "Jetzt geöffnet" %}</label>
     <div class="col-span-2 sm:col-span-3 flex items-center gap-3">

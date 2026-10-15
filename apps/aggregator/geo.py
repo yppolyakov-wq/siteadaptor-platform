@@ -42,6 +42,60 @@ def nearest(qs, lat, lng, limit=50) -> list:
     return out[:limit]
 
 
+RADIUS_CHOICES = (1, 2, 5, 10, 25)  # км, T-8.7 «im Umkreis» (Р-5: радиус — только фильтр)
+RADIUS_CANDIDATE_CAP = 2000
+
+
+def parse_radius(raw) -> int | None:
+    """`?umkreis=` из RADIUS_CHOICES или None (мусор/отсутствие)."""
+    try:
+        value = int(str(raw or "").strip())
+    except (TypeError, ValueError):
+        return None
+    return value if value in RADIUS_CHOICES else None
+
+
+def bbox(lat: float, lng: float, km: float) -> tuple[float, float, float, float]:
+    """(lat_min, lat_max, lng_min, lng_max) — грубый прямоугольник вокруг точки."""
+    dlat = km / 111.0
+    dlng = km / max(111.0 * math.cos(math.radians(lat)), 1e-6)
+    return lat - dlat, lat + dlat, lng - dlng, lng + dlng
+
+
+def within_radius(qs, lat: float, lng: float, km: int):
+    """Листинги в радиусе: bounding-box в SQL, точная проверка haversine в Python,
+    результат — тот же QuerySet через `pk__in` (пагинация и сортировки целы).
+    Бизнес без координат в радиус не попадает (честно)."""
+    lat_min, lat_max, lng_min, lng_max = bbox(lat, lng, km)
+    candidates = (
+        qs.order_by()
+        .filter(
+            latitude__gte=lat_min,
+            latitude__lte=lat_max,
+            longitude__gte=lng_min,
+            longitude__lte=lng_max,
+        )
+        .values_list("pk", "latitude", "longitude")[:RADIUS_CANDIDATE_CAP]
+    )
+    keep = [
+        pk
+        for pk, plat, plng in candidates
+        if haversine_km(lat, lng, float(plat), float(plng)) <= km
+    ]
+    return qs.filter(pk__in=keep)
+
+
+def carry(lat, lng, radius_km=None) -> list[tuple[str, str]]:
+    """Параметры точки для ссылок (НЕ в search.carry: координаты не должны попадать в
+    журнал поиска T-8.21). Округление до 3 знаков (~100 м) — точнее не нужно."""
+    if lat is None or lng is None:
+        return []
+    out = [("lat", f"{lat:.3f}"), ("lng", f"{lng:.3f}")]
+    if radius_km:
+        out.append(("umkreis", str(radius_km)))
+    return out
+
+
 def map_points(cards) -> list:
     """[{lat, lng, title, url, featured}] для маркеров карты (только карточки с
     координатами). featured — оплаченная позиция: попап обязан нести пометку

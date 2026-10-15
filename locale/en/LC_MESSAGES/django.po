@@ -24537,3 +24537,20 @@ msgid "Neues bei %(portal_name)s: 1 Abonnement"
 msgid_plural "Neues bei %(portal_name)s: %(n)s Abonnements"
 msgstr[0] "What’s new at %(portal_name)s: 1 subscription"
 msgstr[1] "What’s new at %(portal_name)s: %(n)s subscriptions"
+
+msgid "Endet bald"
+msgstr "Ending soon"
+
+msgid "In der Nähe"
+msgstr "Nearby"
+
+msgid ""
+"Standort nutzen, um nach Nähe zu sortieren oder einen Umkreis zu wählen."
+msgstr "Use your location to sort by distance or choose a radius."
+
+msgid "Umkreis"
+msgstr "Radius"
+
+#, python-format
+msgid "≤ %(km)s km"
+msgstr "≤ %(km)s km"

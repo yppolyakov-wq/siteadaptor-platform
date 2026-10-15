@@ -356,9 +356,12 @@ def discover_index(request):
     # T-8.20: фильтры единого поиска (общие с порталом).
     from dataclasses import replace
 
-    from . import search
+    from . import geo, search
 
-    filters = search.parse_filters(request, city=city)
+    near_lat, near_lng = geo.parse_latlng(request)
+    point = (near_lat, near_lng) if near_lat is not None else None
+    filters = search.parse_filters(request, city=city, point=point)
+    geo_carry = geo.carry(near_lat, near_lng)
     if (
         filters.active
         or filters.sort
@@ -422,6 +425,7 @@ def discover_index(request):
                 "anlass": anlass,
                 "diet": diet,
             },
+            point=point,
         )
         pool = outcome.qs
         keep = {
@@ -442,21 +446,29 @@ def discover_index(request):
         ).qs
         # T-8.20: фильтры единого поиска не теряются при клике по чипу категории.
         keep.update({k: v for k, v in search.carry("", filters) if k not in ("kat", "merkmal")})
+        keep.update(dict(geo_carry))
         category_chips = category_facets.chips(
             chips_base.order_by(), request.path, kat, tag, extra=keep
         )
-        featured, rest = split_featured(pool, first_page=not cursor)
-        if outcome.ranked:  # T-8.20: релевантность — offset-курсор того же вида
-            from django.conf import settings
-
-            from apps.core.pagination import paginate_ranked
-
-            page = paginate_ranked(
-                rest, limit=24, cursor=cursor, max_results=settings.AGGREGATOR_SEARCH["max_results"]
-            )
+        if point is not None and filters.sort == "naehe":  # T-8.7: «рядом» — без пагинации
+            cards = geo.nearest(pool, near_lat, near_lng)
+            page = None
         else:
-            page = paginate(rest, order_field="created_at", limit=24, cursor=cursor)
-        cards = featured + page.items
+            featured, rest = split_featured(pool, first_page=not cursor)
+            if outcome.ranked:  # T-8.20: релевантность/OFFSET_SORTS — offset-курсор того же вида
+                from django.conf import settings
+
+                from apps.core.pagination import paginate_ranked
+
+                page = paginate_ranked(
+                    rest,
+                    limit=24,
+                    cursor=cursor,
+                    max_results=settings.AGGREGATOR_SEARCH["max_results"],
+                )
+            else:
+                page = paginate(rest, order_field="created_at", limit=24, cursor=cursor)
+            cards = featured + page.items
         reviews.attach_ratings(cards)  # G8b: звёзды в выдаче
         base_qs = urlencode(
             [
@@ -475,6 +487,7 @@ def discover_index(request):
                 if v
             ]
             + search.carry("", filters)
+            + geo_carry
         )
         return render(
             request,
@@ -504,8 +517,16 @@ def discover_index(request):
                 # T-8.20: форма поиска переносит фильтры единого поиска (hidden).
                 "search_hidden": [
                     (k, v)
-                    for k, v in search.carry("", filters)
-                    if k != "kat"  # у категории своё поле формы
+                    for k, v in search.carry("", filters) + geo_carry
+                    if k not in ("kat", "sort")  # у категории и сорта свои поля формы
+                ],
+                # T-8.7 Р-6: сорт в форме; «In der Nähe» — только при точке.
+                "sort": filters.sort,
+                "sorts": [("", _("Relevanz") if q else _("Standard"))]
+                + [
+                    (k, label)
+                    for k, label in search.SORT_LABELS.items()
+                    if k != "naehe" or point is not None
                 ],
                 "canonical": request.build_absolute_uri(request.path),
             },

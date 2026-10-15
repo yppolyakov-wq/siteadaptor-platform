@@ -19,6 +19,7 @@
         var u = new URL(window.location.href);
         u.searchParams.set("lat", pos.coords.latitude.toFixed(5));
         u.searchParams.set("lng", pos.coords.longitude.toFixed(5));
+        u.searchParams.set("sort", "naehe");
         u.searchParams.delete("cursor");
         window.location.href = u.toString();
       });

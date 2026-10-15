@@ -24582,3 +24582,21 @@ msgid "Neues bei %(portal_name)s: 1 Abonnement"
 msgid_plural "Neues bei %(portal_name)s: %(n)s Abonnements"
 msgstr[0] "Neues bei %(portal_name)s: 1 Abonnement"
 msgstr[1] "Neues bei %(portal_name)s: %(n)s Abonnements"
+
+msgid "Endet bald"
+msgstr "Endet bald"
+
+msgid "In der Nähe"
+msgstr "In der Nähe"
+
+msgid ""
+"Standort nutzen, um nach Nähe zu sortieren oder einen Umkreis zu wählen."
+msgstr ""
+"Standort nutzen, um nach Nähe zu sortieren oder einen Umkreis zu wählen."
+
+msgid "Umkreis"
+msgstr "Umkreis"
+
+#, python-format
+msgid "≤ %(km)s km"
+msgstr "≤ %(km)s km"

@@ -24772,3 +24772,21 @@ msgstr[0] "Новое на %(portal_name)s: %(n)s подписка"
 msgstr[1] "Новое на %(portal_name)s: %(n)s подписки"
 msgstr[2] "Новое на %(portal_name)s: %(n)s подписок"
 msgstr[3] "Новое на %(portal_name)s: %(n)s подписок"
+
+msgid "Endet bald"
+msgstr "Скоро закончится"
+
+msgid "In der Nähe"
+msgstr "Рядом"
+
+msgid ""
+"Standort nutzen, um nach Nähe zu sortieren oder einen Umkreis zu wählen."
+msgstr ""
+"Разрешите геолокацию, чтобы сортировать по расстоянию или выбрать радиус."
+
+msgid "Umkreis"
+msgstr "Радиус"
+
+#, python-format
+msgid "≤ %(km)s km"
+msgstr "≤ %(km)s км"

@@ -173,7 +173,9 @@ def portal_home(request, facet=None, district=None):
 
     # T-8.19/T-8.20: поиск и фильтры — ограничение частоты до любых выборок (как /entdecken/).
     q = home.search_query(request)
-    filters = search_engine.parse_filters(request, city=city or "")
+    near_lat, near_lng = geo.parse_latlng(request)
+    point = (near_lat, near_lng) if near_lat is not None else None
+    filters = search_engine.parse_filters(request, city=city or "", point=point)
     if district:  # путь /stadtteil/<slug>/ сильнее параметра
         filters = replace(filters, district="")
     if q or filters.active:
@@ -206,10 +208,16 @@ def portal_home(request, facet=None, district=None):
         replace(filters, kats=(), tags=()),
         surface="portal",
         track=False,
+        point=point,
     )
     whole_pool = broad.qs
     # Параметры поиска/фильтров (кроме категорий) — в ссылках вкладок, чипов и формы.
-    carry = [(k, v) for k, v in search_engine.carry(q, filters) if k not in ("kat", "merkmal")]
+    # T-8.7: координаты посетителя едут в ссылках отдельно (geo.carry), НЕ в search.carry —
+    # иначе они попали бы в журнал поиска T-8.21.
+    geo_carry = geo.carry(near_lat, near_lng)
+    carry = [
+        (k, v) for k, v in search_engine.carry(q, filters) if k not in ("kat", "merkmal")
+    ] + geo_carry
     city_home = home.has_home(portal)
     if city_home:  # T-8.19: вкладки главной вместо чипов видов
         kind_chips = []
@@ -245,8 +253,9 @@ def portal_home(request, facet=None, district=None):
             "type": business_type or "",
         },
     )
-    near_lat, near_lng = geo.parse_latlng(request)
-    if near_lat is not None:  # G8c: «рядом» — ближайшие сверху, без пагинации
+    # G8c/T-8.7: «рядом» — ближайшие сверху, без пагинации; точка без явного сорта =
+    # «Nähe» (обратная совместимость кнопки «📍 Near me»), явный сорт с точкой — обычная лента.
+    if point is not None and filters.sort in ("", "naehe"):
         cards = geo.nearest(pool, near_lat, near_lng)
         page = None
     else:
@@ -353,10 +362,11 @@ def portal_home(request, facet=None, district=None):
                     ("neu", "1" if scope.new_only else ""),
                 ]
                 + search_engine.carry("", filters)
+                + geo_carry
                 if v
             ],
             # T-8.20: блок фильтров и пилюли активных фильтров (только у городского портала).
-            "filter_panel": _filter_panel(request, portal, filters, q, scope, district)
+            "filter_panel": _filter_panel(request, portal, filters, q, scope, district, point)
             if city_home
             else None,
             # «Weitere» несёт текущие фильтры (вид/категорию/признак), иначе вторая
@@ -368,11 +378,12 @@ def portal_home(request, facet=None, district=None):
                     if v
                 ]
                 + search_engine.carry(q, filters)
+                + geo_carry
             ),
             # T-8.15: портал показывает демо-бизнесы — честная полоса «Vorschau».
             "shows_demo": portal.show_demo and any(getattr(c, "is_demo", False) for c in cards),
             "business_link": True,  # G8b: на порталах звёзды ведут на страницу бизнеса
-            "near_active": near_lat is not None,  # G8c
+            "near_active": point is not None and filters.sort in ("", "naehe"),  # G8c
             "map_points": geo.map_points(cards),
             "canonical": canonical,
             "other_portals": other_portals,
@@ -386,14 +397,16 @@ def portal_home(request, facet=None, district=None):
     )
 
 
-def _filter_panel(request, portal, filters, q: str, scope, district) -> dict:
+def _filter_panel(request, portal, filters, q: str, scope, district, point=None) -> dict:
     """T-8.20: блок фильтров ленты (без JS) и пилюли активных фильтров с ✕."""
+    from . import geo
     from . import search as search_engine
 
     keep = [("kind", scope.kind_key)] if scope.kind_key else []
     if scope.new_only:
         keep.append(("neu", "1"))
-    params = keep + search_engine.carry(q, filters)
+    geo_carry = geo.carry(*point) if point is not None else []
+    params = keep + search_engine.carry(q, filters) + geo_carry
 
     def without(*names: str, value: str = "") -> str:
         rest = [(k, v) for k, v in params if not (k in names and (not value or v == value))]
@@ -431,16 +444,29 @@ def _filter_panel(request, portal, filters, q: str, scope, district) -> dict:
         pills.append({"label": _("Nur verfügbar"), "url": without("verfuegbar")})
     if filters.open_now:
         pills.append({"label": _("Jetzt geöffnet"), "url": without("offen")})
+    if filters.radius_km:  # T-8.7 Р-5
+        pills.append(
+            {"label": _("≤ %(km)s km") % {"km": filters.radius_km}, "url": without("umkreis")}
+        )
     hidden = [
         (k, v)
-        for k, v in keep + search_engine.carry(q, filters)
-        if k in ("kind", "neu", "q", "kat", "merkmal")
+        for k, v in keep + search_engine.carry(q, filters) + geo_carry
+        if k in ("kind", "neu", "q", "kat", "merkmal", "lat", "lng")
+    ]
+    # T-8.7 Р-6: «Relevanz» только при q; «In der Nähe» и радиус — только при точке.
+    sorts = [("", _("Relevanz") if q else _("Standard"))] + [
+        (k, label)
+        for k, label in search_engine.SORT_LABELS.items()
+        if k != "naehe" or point is not None
     ]
     return {
         "filters": filters,
         "districts": [] if district else _district_choices(portal),
         "hidden": hidden,
         "pills": pills,
+        "sorts": sorts,
+        "has_point": point is not None,
+        "radius_choices": geo.RADIUS_CHOICES,
         "reset_url": without(*search_engine.FILTER_PARAMS),
         "open": filters.active or bool(filters.sort),
     }

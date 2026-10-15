@@ -24663,3 +24663,21 @@ msgid "Neues bei %(portal_name)s: 1 Abonnement"
 msgid_plural "Neues bei %(portal_name)s: %(n)s Abonnements"
 msgstr[0] "%(portal_name)s’de yenilikler: 1 abonelik"
 msgstr[1] "%(portal_name)s’de yenilikler: %(n)s abonelik"
+
+msgid "Endet bald"
+msgstr "Yakında bitiyor"
+
+msgid "In der Nähe"
+msgstr "Yakınımda"
+
+msgid ""
+"Standort nutzen, um nach Nähe zu sortieren oder einen Umkreis zu wählen."
+msgstr ""
+"Mesafeye göre sıralamak veya bir yarıçap seçmek için konumunuzu kullanın."
+
+msgid "Umkreis"
+msgstr "Yarıçap"
+
+#, python-format
+msgid "≤ %(km)s km"
+msgstr "≤ %(km)s km"

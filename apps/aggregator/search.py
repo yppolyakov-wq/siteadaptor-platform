@@ -19,6 +19,7 @@ from django.conf import settings
 from django.contrib.postgres.search import SearchQuery, SearchRank, TrigramWordSimilarity
 from django.db.models import Case, F, IntegerField, Q, Value, When
 from django.utils import timezone, translation
+from django.utils.translation import gettext_lazy as _
 
 from . import search_synonyms
 from .models import AggregatorListing as L
@@ -164,7 +165,8 @@ class SearchFilters:
     date: str = ""  # heute | wochenende | YYYY-MM-DD (Р-О1: только события и акции)
     available: bool = False  # ?verfuegbar=1
     open_now: bool = False  # ?offen=1
-    sort: str = ""  # "" (релевантность) | "neu"
+    sort: str = ""  # "" (релевантность / новые) | SORTS (T-8.7 Р-6)
+    radius_km: int | None = None  # ?umkreis= (T-8.7 Р-5) — действует только при точке
 
     @property
     def active(self) -> bool:
@@ -177,19 +179,79 @@ class SearchFilters:
             or self.date
             or self.available
             or self.open_now
+            or self.radius_km is not None
         )
 
 
-FILTER_PARAMS = ("stadtteil", "preis_von", "preis_bis", "datum", "verfuegbar", "offen", "sort")
+FILTER_PARAMS = (
+    "stadtteil",
+    "preis_von",
+    "preis_bis",
+    "datum",
+    "verfuegbar",
+    "offen",
+    "sort",
+    "umkreis",
+)
+
+# T-8.7 Р-6: сортировки обеих поверхностей. "" = релевантность при q, иначе новые.
+SORTS = ("", "neu", "endet", "offen", "naehe")
+# Без q эти сорта идут offset-курсором (paginate_ranked): keyset по nullable ends_at
+# и по вычисляемому Case ломается.
+OFFSET_SORTS = ("endet", "offen")
+SORT_LABELS = {
+    "neu": _("Neueste"),
+    "endet": _("Endet bald"),
+    "offen": _("Jetzt geöffnet"),
+    "naehe": _("In der Nähe"),
+}
+# Единственный источник порядков: блоки главной (portal_home_blocks) берут отсюда же.
+ORDERINGS = {
+    "neu": ["-created_at", "-pk"],
+    "endet": [  # срочное первым (О-4), затем сильная скидка
+        F("ends_at").asc(nulls_last=True),
+        F("discount_percent").desc(nulls_last=True),
+        "-created_at",
+        "-pk",
+    ],
+}
 
 
-def parse_filters(request, *, city: str = "") -> SearchFilters:
+def order_for(sort: str, qs) -> list:
+    """Порядок для явного сорта. `offen` — открытые сейчас первыми (закрытые остаются)."""
+    if sort == "offen":
+        from .views import _open_now_schemas
+
+        schemas = set(qs.order_by().values_list("tenant_schema", flat=True).distinct())
+        open_set = _open_now_schemas(schemas) if schemas else set()
+        return [
+            Case(
+                When(tenant_schema__in=open_set, then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField(),
+            ),
+            "-created_at",
+            "-pk",
+        ]
+    return list(ORDERINGS.get(sort) or ORDERINGS["neu"])
+
+
+def parse_filters(request, *, city: str = "", point=None) -> SearchFilters:
+    """``point`` — (lat, lng) посетителя: без неё сорт «Nähe» и радиус сбрасываются
+    (обещание без исполнения — класс STU-9)."""
     from apps.core import city_categories as cc
     from apps.core import districts
 
+    from . import geo
     from .views import _money
 
     get = request.GET
+    sort = (get.get("sort") or "").strip()
+    if sort not in SORTS:
+        sort = ""
+    if point is None and sort == "naehe":
+        sort = ""
+    radius_km = geo.parse_radius(get.get("umkreis")) if point is not None else None
     kats = tuple(dict.fromkeys(k for k in get.getlist("kat") if cc.keys_for_filter(k)))
     tags = tuple(dict.fromkeys(t for t in get.getlist("merkmal") if cc.normalize_tags([t])))
     raw_district = (get.get("stadtteil") or "").strip()
@@ -210,7 +272,8 @@ def parse_filters(request, *, city: str = "") -> SearchFilters:
         date=date,
         available=get.get("verfuegbar") == "1",
         open_now=get.get("offen") == "1",
-        sort="neu" if get.get("sort") == "neu" else "",
+        sort=sort,
+        radius_km=radius_km,
     )
 
 
@@ -243,7 +306,11 @@ def date_window(value: str, *, now=None) -> tuple[datetime, datetime] | None:
     return begin, begin + timedelta(days=days)
 
 
-def apply_filters(qs, f: SearchFilters, *, now=None):
+def apply_filters(qs, f: SearchFilters, *, now=None, point=None):
+    if f.radius_km and point is not None:  # T-8.7 Р-5: радиус — только при точке
+        from . import geo
+
+        qs = geo.within_radius(qs, point[0], point[1], f.radius_km)
     if f.kats:
         from apps.core import city_categories as cc
 
@@ -290,6 +357,7 @@ def carry(q: str, f: SearchFilters) -> list[tuple[str, str]]:
         ("verfuegbar", "1" if f.available else ""),
         ("offen", "1" if f.open_now else ""),
         ("sort", f.sort),
+        ("umkreis", str(f.radius_km) if f.radius_km else ""),
     ):
         if value:
             out.append((key, value))
@@ -304,7 +372,7 @@ class SearchOutcome:
     qs: object  # QuerySet: отфильтрованный и упорядоченный пул (featured — отдельно)
     mode: str  # none | fts | trigram | empty
     query: str
-    ranked: bool  # True → paginate_ranked; False → прежний keyset по created_at
+    ranked: bool  # True → paginate_ranked (ранг или OFFSET_SORTS); False → keyset по created_at
     filters: SearchFilters = field(default_factory=SearchFilters)
     lang: str = ""
 
@@ -320,20 +388,26 @@ def execute(
     city: str = "",
     portal_host: str = "",
     extra: dict | None = None,
+    point=None,
 ) -> SearchOutcome:
     """Единственная точка поиска обеих поверхностей (портал, /entdecken/).
 
-    ``city``/``portal_host`` — только для журнала T-8.21 (примитивы, не request)."""
+    ``city``/``portal_host`` — только для журнала T-8.21 (примитивы, не request).
+    ``point`` — (lat, lng) для радиуса; сорт «naehe» порядок не задаёт (geo.nearest)."""
     filters = filters or SearchFilters()
     lang = lang or translation.get_language() or "de"
     q = (q or "").strip()[:SEARCH_MAX]
-    qs = apply_filters(base_qs, filters)
+    qs = apply_filters(base_qs, filters, point=point)
     words = _words(q, lang) if q else []
     if not words:
         mode = "empty" if q else "none"
         if q:  # одни спецсимволы/стоп-слова — честно ничего, а не вся лента
             qs = qs.none()
-        outcome = SearchOutcome(qs, mode, q, ranked=False, filters=filters, lang=lang)
+        ranked = False
+        if filters.sort in OFFSET_SORTS:  # T-8.7: «Endet bald»/«Jetzt geöffnet» — offset-курсор
+            qs = qs.order_by(*order_for(filters.sort, qs))
+            ranked = True
+        outcome = SearchOutcome(qs, mode, q, ranked=ranked, filters=filters, lang=lang)
     else:
         query = build_query(q, lang=lang)
         fts = _match_words(qs, words)
@@ -351,7 +425,10 @@ def execute(
             qs = qs.filter(pk__in=pks).annotate(similarity_pos=position)
             mode = "trigram"
             order = ["similarity_pos", "-created_at", "-pk"]
-        qs = qs.order_by(*(["-created_at", "-pk"] if filters.sort == "neu" else order))
+        # T-8.7: явный сорт (кроме «Nähe») перекрывает ранг релевантности.
+        if filters.sort in ("neu", "endet", "offen"):
+            order = order_for(filters.sort, qs)
+        qs = qs.order_by(*order)
         outcome = SearchOutcome(qs, mode, q, ranked=True, filters=filters, lang=lang)
     if track:
         record(outcome, surface=surface, city=city, portal_host=portal_host, extra=extra)
