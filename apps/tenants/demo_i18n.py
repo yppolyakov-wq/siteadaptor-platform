@@ -91,6 +91,9 @@ PROPER_NAMES = frozenset(
         "Bergisches Land",
         "Espresso Klingenstadt, 250 g",
         "Sencha Nebel, 100 g",
+        "Pizza Funghi",
+        "Pizza Vegana",
+        "Penne Arrabbiata",
     }
 )
 
