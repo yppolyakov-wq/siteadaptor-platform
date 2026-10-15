@@ -291,3 +291,17 @@ MCP-приложение (T-8.10f), подписка на запрос (T-8.10d)
 - `templates/aggregator/portal_base.html:8-14`, `templates/aggregator/_base.html:8-14` — `rel=alternate`
 - новые модули: `apps/aggregator/structured.py`, `open_feed.py`, `llms.py`, `platform_links.py`
 - новый тест: `apps/aggregator/tests/test_machine_readable.py`; правка `test_offer_page.py`
+
+---
+
+## 8. Решения владельца (2026-10-15)
+
+- **Р-1 → A.** Стратегия А остаётся: canonical страницы предложения указывает на бизнес,
+  предложения в sitemap портала не кладём (короткоживущие URL, портал не конкурирует с сайтами
+  бизнесов; машинам хватает фида/JSON-LD/llms.txt). Переход на self-canonical — после пилота,
+  если понадобится.
+- **Лицензия фида** (черновик, показать юристу перед пилотом): «Daten der jeweiligen Anbieter.
+  Nutzung in Verzeichnissen, Suchdiensten und Assistenten mit Quellenangabe und Link erlaubt.
+  Keine Vervielfältigung des gesamten Datenbestands. Preise und Verfügbarkeit ohne Gewähr.»
+- **Impressum/Datenschutz на портале — в этом батче** (инкремент e): строка подвала
+  `portal_base.html` со ссылками на платформенные страницы (`platform_links.platform_url`).
