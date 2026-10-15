@@ -17447,9 +17447,10 @@ refurbished»), `vor-ort-service` («Service vor Ort»). Форма (полна�
 атрибуция переехала на кнопку страницы. План `t8-24-portal-offer-page-plan-2026-10-11.md`.
 
 **2026-10-15 — подключение Everything Claude Code (ECC) к проекту (без кода приложения).**
-Плагин `ecc@ecc` (маркетплейс `affaan-m/ECC`) включён в `.claude/settings.json` проекта —
-подхватывается автоматически в каждой сессии, вкл. облачные; хуки ECC в профиле `minimal`
-(без gateguard/config-protection/format-typecheck на Stop), `ECC_SESSION_START_CONTEXT=off`.
-Правила `rules/common` + `rules/python` (коммит ECC `b92f181`) — копией в `.claude/rules/ecc/`
-с LICENSE; расхождения с проектом (black/isort, conventional commits, `gh`, 80 % coverage,
-FastAPI) сняты `.claude/rules/project-overrides.md`. Собственные хуки проекта не тронуты.
+Сначала ECC был включён плагином в `.claude/settings.json`, но облачные сессии плагины не
+загружают («Plugins sind in dieser Umgebung nicht verfügbar», подтверждено документацией) —
+плагин снят, `settings.json` вернулся к прежнему виду. Вместо этого — копия набора под Django
+(решение владельца): правила `common`+`python`, 9 агентов, 8 скиллов (ECC `b92f181`, MIT).
+JS-ориентированные `build-error-resolver`/`refactor-cleaner` не взяты; расхождения с проектом
+(black/isort, conventional commits, `gh`, 80 % coverage, pip/Poetry, опасные шаги миграций,
+«агент на каждую правку») сняты `.claude/rules/project-overrides.md`. Хуки проекта не тронуты.

@@ -3416,10 +3416,10 @@ Python 3.12, менеджер uv.
   состав якорей сайдбара ЗАМОРОЖЕН замком (мораторий владельца).
 - Замечания «на будущее»/отложенные решения — сразу в `docs/roadmap-next-sprints.md`
   §«Отложено / заметки на будущее» (чтобы не терять между сессиями).
-- **Everything Claude Code (ECC)** подключён на уровне проекта (2026-10-15): плагин `ecc@ecc`
-  в `.claude/settings.json` (хуки `ECC_HOOK_PROFILE=minimal`, без SessionStart-контекста ECC),
-  правила `common`+`python` скопированы в `.claude/rules/ecc/`. При расхождении с проектом
-  действуют `.claude/rules/project-overrides.md` и этот файл. Обновление правил — `ecc/README.md`.
+- **Everything Claude Code (ECC)** — копией в репозитории (2026-10-15): правила `common`+`python`
+  в `.claude/rules/ecc/`, 9 агентов в `.claude/agents/`, 8 скиллов в `.claude/skills/` (набор под
+  Django). Плагином НЕ подключаем — облачные сессии плагины не загружают. При расхождении с
+  проектом действуют `.claude/rules/project-overrides.md` и этот файл; состав — `rules/ecc/README.md`.
 - Локальные службы для фолбэка: `bash scripts/dev-services.sh` (Postgres + Redis +
   роль/БД). Автоматически — SessionStart-хук (`.claude/hooks/session-start.sh`).
 
