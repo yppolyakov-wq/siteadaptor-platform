@@ -236,6 +236,13 @@ def portal_home(request, facet=None, district=None):
         city=city or "",
         portal_host=portal.host,
         first_page=not request.GET.get("cursor"),  # листание выдачи — не новый поиск
+        # Область выборки — в ключ журнала: вкладка/«Neu»/район из пути/тип бизнеса.
+        extra={
+            "kind": kind,
+            "neu": "1" if scope.new_only else "",
+            "stadtteil": district or "",
+            "type": business_type or "",
+        },
     )
     near_lat, near_lng = geo.parse_latlng(request)
     if near_lat is not None:  # G8c: «рядом» — ближайшие сверху, без пагинации

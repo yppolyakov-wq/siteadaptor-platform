@@ -105,11 +105,7 @@ class Migration(migrations.Migration):
                 "verbose_name": "Suchanfrage (Stadtkatalog)",
                 "verbose_name_plural": "Suchanfragen (Stadtkatalog)",
                 "ordering": ["-day", "-searches"],
-                "indexes": [
-                    models.Index(
-                        fields=["-day", "-zero_results"], name="agg_searchlog_zero_idx"
-                    )
-                ],
+                "indexes": [models.Index(fields=["-day"], name="agg_searchlog_day_idx")],
                 "constraints": [
                     models.UniqueConstraint(
                         fields=(
@@ -125,5 +121,11 @@ class Migration(migrations.Migration):
                     )
                 ],
             },
+        ),
+        # Горячие строки «сегодня» обновляются на каждый поиск: запас на странице даёт
+        # HOT-апдейты вместо раздувания трёх индексов (ревью database-reviewer).
+        migrations.RunSQL(
+            "ALTER TABLE aggregator_searchquerylog SET (fillfactor = 85)",
+            reverse_sql="ALTER TABLE aggregator_searchquerylog RESET (fillfactor)",
         ),
     ]

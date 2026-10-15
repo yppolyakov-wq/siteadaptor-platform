@@ -340,7 +340,9 @@ class SearchQueryLog(models.Model):
                 name="agg_searchlog_uniq",
             )
         ]
-        indexes = [models.Index(fields=["-day", "-zero_results"], name="agg_searchlog_zero_idx")]
+        # Индекс только по дню: purge и сортировка админки; второй колонки (zero_results)
+        # нет осознанно — она меняется в каждом «ничего не найдено» и ломала бы HOT-апдейты.
+        indexes = [models.Index(fields=["-day"], name="agg_searchlog_day_idx")]
 
     def __str__(self):
         return f"{self.day} «{self.query_norm}» ×{self.searches}"

@@ -319,6 +319,7 @@ def execute(
     track: bool = True,
     city: str = "",
     portal_host: str = "",
+    extra: dict | None = None,
 ) -> SearchOutcome:
     """Единственная точка поиска обеих поверхностей (портал, /entdecken/).
 
@@ -353,7 +354,7 @@ def execute(
         qs = qs.order_by(*(["-created_at", "-pk"] if filters.sort == "neu" else order))
         outcome = SearchOutcome(qs, mode, q, ranked=True, filters=filters, lang=lang)
     if track:
-        record(outcome, surface=surface, city=city, portal_host=portal_host)
+        record(outcome, surface=surface, city=city, portal_host=portal_host, extra=extra)
     return outcome
 
 
@@ -364,6 +365,7 @@ def record(
     city: str = "",
     portal_host: str = "",
     first_page: bool = True,
+    extra: dict | None = None,
 ) -> None:
     """Шов T-8.21: журнал запросов и «ничего не найдено» (только для платформы).
 
@@ -382,4 +384,5 @@ def record(
         portal_host=portal_host,
         lang=outcome.lang,
         first_page=first_page,
+        extra=extra,
     )

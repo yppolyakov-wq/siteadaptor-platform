@@ -261,6 +261,8 @@ AGGREGATOR_SEARCH = {
 AGGREGATOR_SEARCH_LOG = {
     "enabled": env.bool("SEARCH_LOG_ENABLED", default=True),
     "retention_days": env.int("SEARCH_LOG_RETENTION_DAYS", default=180),
+    # Одиночные запросы (searches == 1) — раньше: в них вероятнее имя/адрес (DSGVO-минимизация).
+    "retention_days_single": env.int("SEARCH_LOG_RETENTION_DAYS_SINGLE", default=30),
     "min_len": 2,
 }
 

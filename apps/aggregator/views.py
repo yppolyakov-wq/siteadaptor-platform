@@ -401,7 +401,22 @@ def discover_index(request):
         )
         cursor = request.GET.get("cursor")
         outcome = search.execute(
-            pool_base, q, filters, surface="entdecken", city=city, track=not cursor
+            pool_base,
+            q,
+            filters,
+            surface="entdecken",
+            city=city,
+            track=not cursor,
+            # Параметры, сужающие пул ДО поиска, — в ключ журнала (иначе счётчики врут).
+            extra={
+                "type": btype,
+                "kind": kind,
+                "cat": cat,
+                "month": month,
+                "gaeste": guests,
+                "anlass": anlass,
+                "diet": diet,
+            },
         )
         pool = outcome.qs
         keep = {

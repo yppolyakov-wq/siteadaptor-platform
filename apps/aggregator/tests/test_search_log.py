@@ -88,7 +88,7 @@ def test_portal_search_writes_row():
     _portal_search(q="Messer")
     row = SearchQueryLog.objects.get()
     assert row.surface == "portal" and row.portal_host == "solingen.siteadaptor.de"
-    assert row.city == "solingen" and row.query_norm == "messer"
+    assert row.city == "Solingen" and row.query_norm == "messer"  # город — из реестра
     assert row.searches == 1 and row.last_mode == "fts" and row.last_results == 1
     assert row.day == timezone.localdate()
 
@@ -97,7 +97,7 @@ def test_entdecken_search_writes_row():
     _listing("Messer Santoku")
     _entdecken(q="Messer", city="Solingen")
     row = SearchQueryLog.objects.get()
-    assert row.surface == "entdecken" and row.portal_host == "" and row.city == "solingen"
+    assert row.surface == "entdecken" and row.portal_host == "" and row.city == "Solingen"
 
 
 def test_filters_only_search_is_logged():
@@ -178,7 +178,7 @@ def test_normalize_query():
         ("mail an max@example.de bitte", "mail an ‹email› bitte"),
         ("ruf 0171 2345678 an", "ruf ‹nummer› an"),
         ("tel +49 212 123456", "tel ‹nummer›"),
-        ("DE89 3704 0044 0532 0130 00", "‹iban› 00"),  # хвост вне маски IBAN — две цифры
+        ("DE89 3704 0044 0532 0130 00", "‹iban›"),
         ("brot in 42651 solingen", "brot in 42651 solingen"),
         ("kaffee 2,50 €", "kaffee 2,50 €"),
     ],
@@ -283,7 +283,7 @@ def test_filters_key_price_rounded():
     _portal_search(q="Pizza", preis_von="2.49")
     _portal_search(q="Pizza", preis_von="2,50")
     row = SearchQueryLog.objects.get()
-    assert row.searches == 2 and row.filters_key == "preis_von=2"
+    assert row.searches == 2 and row.filters_key.endswith("preis_von=2")
 
 
 # --- retention ----------------------------------------------------------------------------
@@ -299,9 +299,11 @@ def test_purge_respects_retention():
     today = timezone.localdate()
     old = _row(today - timedelta(days=181))
     edge = _row(today - timedelta(days=180))
+    kept = _row(today - timedelta(days=180), searches=3)  # популярная — живёт весь срок
     fresh = _row(today)
-    assert tasks.purge_search_log() == 1
-    assert set(SearchQueryLog.objects.values_list("pk", flat=True)) == {edge.pk, fresh.pk}
+    assert tasks.purge_search_log() == 2  # old по retention + edge как одиночная (30 дней)
+    assert set(SearchQueryLog.objects.values_list("pk", flat=True)) == {kept.pk, fresh.pk}
+    assert edge.pk
     assert not SearchQueryLog.objects.filter(pk=old.pk).exists()
 
 
@@ -370,3 +372,99 @@ def test_result_filter_shows_only_never_found():
     assert list(f.queryset(None, SearchQueryLog.objects.all()).values_list("pk", flat=True)) == [
         never.pk
     ]
+
+
+# --- находки ревью (security / django / database) --------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "raw, expected",
+    [
+        ("DE89 3704 0044 0532 0130 00", "‹iban›"),
+        ("nl91 abna 0417 1643 00", "‹iban›"),  # после casefold тоже
+        ("Max@localhost", "‹email›"),
+        ("(0212) 123456", "‹nummer›"),
+        ("+49 (0) 212 99 88 77", "‹nummer›"),
+        ("12.34.56.78.90", "‹nummer›"),
+        ("Brot in 42651", "brot in 42651"),
+    ],
+)
+def test_normalize_query_scrubs_real_path(raw, expected):
+    """IBAN в нижнем регистре, e-mail без точки, телефон со скобками — через normalize."""
+    assert search_log.normalize_query(raw) == expected
+
+
+def test_control_chars_do_not_reach_db(caplog):
+    _listing("Messer")
+    with caplog.at_level("WARNING"):
+        resp = _portal_search(q="Mes\x00ser")
+    assert resp.status_code == 200
+    assert SearchQueryLog.objects.get().query_norm == "mes ser"
+    assert not [r for r in caplog.records if "search log" in r.getMessage()]
+
+
+def test_log_failure_message_has_no_query(caplog):
+    _listing("Messer")
+    with mock.patch.object(search_log, "_log", side_effect=DatabaseError("boom Messer")):
+        with caplog.at_level("WARNING"):
+            _portal_search(q="GeheimerName")
+    msgs = [r.getMessage() for r in caplog.records if "search log" in r.getMessage()]
+    assert msgs and "GeheimerName" not in "".join(msgs) and "DatabaseError" in msgs[0]
+
+
+def test_free_text_city_on_entdecken_is_not_stored():
+    _listing("Messer")
+    _entdecken(q="Messer", city="Anna Müller Hauptstr 5")
+    assert SearchQueryLog.objects.get().city == ""
+    _entdecken(q="Messer", city="solingen")
+    assert SearchQueryLog.objects.get(city="Solingen").searches == 1
+
+
+def test_tab_and_district_scope_are_part_of_the_key():
+    """«brot» на вкладке «Angebote» (0) и на «Alle» (найдено) — разные строки."""
+    _listing("Brot", kind="product")
+    _portal_search(q="Brot", kind="angebote")
+    _portal_search(q="Brot", kind="alle")
+    rows = {r.filters_key: r for r in SearchQueryLog.objects.all()}
+    assert rows["kind=angebote"].zero_results == 1 and rows["kind=alle"].zero_results == 0
+    with override_settings(ROOT_URLCONF="config.urls_portal"):
+        req = _req("/stadtteil/graefrath/", ip="10.23.1.1", q="Brot")
+        req.portal = _portal()
+        portal_views.portal_home(req, district="graefrath")
+    assert SearchQueryLog.objects.filter(filters_key__contains="stadtteil=graefrath").exists()
+
+
+def test_entdecken_prefilters_are_part_of_the_key():
+    _listing("Brot", business_type="bakery")
+    _entdecken(q="Brot", city="Solingen", type="bakery")
+    _entdecken(q="Brot", city="Solingen", type="butcher")
+    keys = sorted(SearchQueryLog.objects.values_list("filters_key", flat=True))
+    assert keys == ["type=bakery", "type=butcher"]
+
+
+def test_short_query_with_filter_logs_the_filter():
+    _listing("Pizza", district="graefrath")
+    _portal_search(q="p", stadtteil="graefrath")
+    row = SearchQueryLog.objects.get()
+    assert row.query_norm == "" and "stadtteil=graefrath" in row.filters_key
+
+
+def test_single_searches_are_purged_earlier():
+    today = timezone.localdate()
+    single = _row(today - timedelta(days=31), searches=1)
+    popular = _row(today - timedelta(days=31), searches=5)
+    tasks.purge_search_log()
+    assert not SearchQueryLog.objects.filter(pk=single.pk).exists()
+    assert SearchQueryLog.objects.filter(pk=popular.pk).exists()
+
+
+def test_csv_safe_covers_pipe_and_percent():
+    assert _csv_safe("|cmd") == "'|cmd" and _csv_safe("%x") == "'%x"
+
+
+def test_count_runs_inside_savepoint():
+    """Сбой подсчёта не отравляет внешнюю транзакцию (django-reviewer LOW)."""
+    _listing("Messer")
+    with mock.patch.object(search_log, "_count_capped", side_effect=DatabaseError("x")):
+        assert _portal_search(q="Messer").status_code == 200
+    assert AggregatorListing.objects.count() == 1

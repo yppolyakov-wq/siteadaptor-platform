@@ -7,6 +7,7 @@ Django admin живёт только на public (config/urls_public.py). Вни
 """
 
 import csv
+from datetime import timedelta
 
 from django import forms
 from django.contrib import admin, messages
@@ -143,7 +144,7 @@ class SearchPeriodFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() in ("7", "30", "90"):
-            since = timezone.localdate() - timezone.timedelta(days=int(self.value()))
+            since = timezone.localdate() - timedelta(days=int(self.value()))
             return queryset.filter(day__gte=since)
         return queryset
 
@@ -172,7 +173,7 @@ class SearchResultFilter(admin.SimpleListFilter):
 def _csv_safe(value) -> str:
     """Защита от CSV-инъекции: запрос вводит посетитель, а файл откроют в Excel."""
     text = str(value if value is not None else "")
-    return "'" + text if text[:1] in ("=", "+", "-", "@", "\t", "\r") else text
+    return "'" + text if text[:1] in ("=", "+", "-", "@", "|", "%", "\t", "\r") else text
 
 
 def _csv_response(filename: str, header: list, rows) -> HttpResponse:
