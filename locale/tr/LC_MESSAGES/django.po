@@ -24306,3 +24306,91 @@ msgstr "%(p)s € ve üzeri"
 #, python-format
 msgid "bis %(p)s €"
 msgstr "%(p)s €'ya kadar"
+
+#. T-8.21
+msgid "30 Tage"
+msgstr "30 gün"
+
+#. T-8.21
+msgid "90 Tage"
+msgstr "90 gün"
+
+#. T-8.21
+msgid "CSV exportieren"
+msgstr "CSV olarak dışa aktar"
+
+#. T-8.21
+msgid "CSV: Top-Suchen zusammengefasst"
+msgstr "CSV: en çok arananlar (özet)"
+
+#. T-8.21
+msgid "Entdecken"
+msgstr "Keşfet"
+
+#. T-8.21
+msgid "Immer ohne Treffer"
+msgstr "Hiç sonuç yok"
+
+#. T-8.21
+msgid "Leere Anfrage"
+msgstr "Boş sorgu"
+
+#. T-8.21
+msgid "Modus"
+msgstr "Mod"
+
+#. T-8.21
+msgid "Nichts gefunden"
+msgstr "Hiçbir şey bulunamadı"
+
+#. T-8.21
+msgid "Nur Filter"
+msgstr "Yalnızca filtre"
+
+#. T-8.21
+msgid "Nur Tippfehler-Treffer"
+msgstr "Yalnızca yazım hatası eşleşmesi"
+
+#. T-8.21
+msgid "Oberfläche"
+msgstr "Yüzey"
+
+#. T-8.21
+msgid "Ohne Treffer"
+msgstr "Sonuçsuz"
+
+#. T-8.21
+msgid "Portal"
+msgstr "Portal"
+
+#. T-8.21
+msgid "Stadtportal"
+msgstr "Şehir portalı"
+
+#. T-8.21
+msgid "Suchanfrage (Stadtkatalog)"
+msgstr "Arama sorgusu (şehir kataloğu)"
+
+#. T-8.21
+msgid "Suchanfragen (Stadtkatalog)"
+msgstr "Arama sorguları (şehir kataloğu)"
+
+#. T-8.21
+msgid "Suchbegriff"
+msgstr "Arama terimi"
+
+#. T-8.21
+msgid "Treffer"
+msgstr "Sonuçlar"
+
+#. T-8.21
+msgid "Treffer (zuletzt)"
+msgstr "Sonuçlar (son)"
+
+#. T-8.21
+msgid "Volltext"
+msgstr "Tam metin"
+
+#. T-8.21
+msgid "Ähnliche Schreibweise"
+msgstr "Benzer yazım"

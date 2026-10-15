@@ -1198,3 +1198,11 @@ def resync_on_service_save(sender, instance, **kwargs):
         tenant_schema=connection.schema_name,
         service_id=str(instance.id),
     )
+
+
+@idempotent_task()
+def purge_search_log():
+    """Beat (раз в сутки): удалить агрегаты журнала поиска старше retention (T-8.21)."""
+    from . import search_log
+
+    return search_log.purge()

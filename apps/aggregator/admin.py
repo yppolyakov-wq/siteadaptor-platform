@@ -6,8 +6,12 @@ Django admin живёт только на public (config/urls_public.py). Вни
 админку строку Domain нужно добавить вручную (см. docs/portal-setup.md).
 """
 
+import csv
+
 from django import forms
 from django.contrib import admin, messages
+from django.db.models import F, Sum
+from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from unfold.admin import ModelAdmin
@@ -18,6 +22,7 @@ from .models import (
     BusinessReview,
     ListingReport,
     PortalBot,
+    SearchQueryLog,
 )
 
 
@@ -126,6 +131,149 @@ class ListingReportAdmin(ModelAdmin):
         )
         ListingReport.objects.filter(listing_id__in=ids).update(
             status=ListingReport.STATUS_RESOLVED
+        )
+
+
+class SearchPeriodFilter(admin.SimpleListFilter):
+    title = _("Zeitraum")
+    parameter_name = "zeitraum"
+
+    def lookups(self, request, model_admin):
+        return [("7", _("7 Tage")), ("30", _("30 Tage")), ("90", _("90 Tage"))]
+
+    def queryset(self, request, queryset):
+        if self.value() in ("7", "30", "90"):
+            since = timezone.localdate() - timezone.timedelta(days=int(self.value()))
+            return queryset.filter(day__gte=since)
+        return queryset
+
+
+class SearchResultFilter(admin.SimpleListFilter):
+    title = _("Treffer")
+    parameter_name = "treffer"
+
+    def lookups(self, request, model_admin):
+        return [
+            ("ohne", _("Nichts gefunden")),
+            ("nie", _("Immer ohne Treffer")),
+            ("tippfehler", _("Nur Tippfehler-Treffer")),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == "ohne":
+            return queryset.filter(zero_results__gt=0)
+        if self.value() == "nie":
+            return queryset.filter(zero_results=F("searches"))
+        if self.value() == "tippfehler":
+            return queryset.filter(trigram_hits__gt=0)
+        return queryset
+
+
+def _csv_safe(value) -> str:
+    """Защита от CSV-инъекции: запрос вводит посетитель, а файл откроют в Excel."""
+    text = str(value if value is not None else "")
+    return "'" + text if text[:1] in ("=", "+", "-", "@", "\t", "\r") else text
+
+
+def _csv_response(filename: str, header: list, rows) -> HttpResponse:
+    response = HttpResponse(content_type="text/csv; charset=utf-8")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    response.write("\ufeff")  # BOM — Excel читает UTF-8
+    writer = csv.writer(response, delimiter=";")
+    writer.writerow(header)
+    for row in rows:
+        writer.writerow([_csv_safe(v) for v in row])
+    return response
+
+
+@admin.register(SearchQueryLog)
+class SearchQueryLogAdmin(ModelAdmin):
+    """T-8.21: журнал поиска каталога города — только платформе (суперпользователь).
+
+    Агрегат по дням без персональных данных; «Nichts gefunden» и «Nur Tippfehler-Treffer»
+    — кандидаты в словарь синонимов (`search_synonyms.py`, правится коммитом).
+    """
+
+    list_display = (
+        "day",
+        "query_norm",
+        "surface",
+        "city",
+        "portal_host",
+        "lang",
+        "searches",
+        "zero_results",
+        "trigram_hits",
+        "last_mode",
+        "last_results",
+    )
+    list_filter = (SearchPeriodFilter, SearchResultFilter, "surface", "city", "lang", "last_mode")
+    date_hierarchy = "day"
+    search_fields = ("query_norm",)
+    ordering = ("-day", "-searches")
+    actions = ("export_csv", "export_csv_grouped")
+
+    def has_module_permission(self, request):
+        return bool(request.user.is_superuser)
+
+    def has_view_permission(self, request, obj=None):
+        return bool(request.user.is_superuser)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return bool(request.user.is_superuser)
+
+    @admin.action(description=_("CSV exportieren"))
+    def export_csv(self, request, queryset):
+        fields = (
+            "day",
+            "surface",
+            "portal_host",
+            "city",
+            "lang",
+            "query_norm",
+            "filters_key",
+            "searches",
+            "zero_results",
+            "trigram_hits",
+            "last_mode",
+            "last_results",
+        )
+        return _csv_response(
+            "suchanfragen.csv", list(fields), queryset.values_list(*fields).order_by("-day")
+        )
+
+    @admin.action(description=_("CSV: Top-Suchen zusammengefasst"))
+    def export_csv_grouped(self, request, queryset):
+        rows = (
+            queryset.order_by()
+            .values("query_norm", "city", "surface")
+            .annotate(
+                searches=Sum("searches"),
+                zero_results=Sum("zero_results"),
+                trigram_hits=Sum("trigram_hits"),
+            )
+            .order_by("-searches")
+        )
+        return _csv_response(
+            "top-suchen.csv",
+            ["query_norm", "city", "surface", "searches", "zero_results", "trigram_hits"],
+            (
+                (
+                    r["query_norm"],
+                    r["city"],
+                    r["surface"],
+                    r["searches"],
+                    r["zero_results"],
+                    r["trigram_hits"],
+                )
+                for r in rows
+            ),
         )
 
 

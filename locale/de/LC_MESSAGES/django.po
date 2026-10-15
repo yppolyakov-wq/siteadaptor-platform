@@ -24221,3 +24221,91 @@ msgstr "ab %(p)s €"
 #, python-format
 msgid "bis %(p)s €"
 msgstr "bis %(p)s €"
+
+#. T-8.21
+msgid "30 Tage"
+msgstr "30 Tage"
+
+#. T-8.21
+msgid "90 Tage"
+msgstr "90 Tage"
+
+#. T-8.21
+msgid "CSV exportieren"
+msgstr "CSV exportieren"
+
+#. T-8.21
+msgid "CSV: Top-Suchen zusammengefasst"
+msgstr "CSV: Top-Suchen zusammengefasst"
+
+#. T-8.21
+msgid "Entdecken"
+msgstr "Entdecken"
+
+#. T-8.21
+msgid "Immer ohne Treffer"
+msgstr "Immer ohne Treffer"
+
+#. T-8.21
+msgid "Leere Anfrage"
+msgstr "Leere Anfrage"
+
+#. T-8.21
+msgid "Modus"
+msgstr "Modus"
+
+#. T-8.21
+msgid "Nichts gefunden"
+msgstr "Nichts gefunden"
+
+#. T-8.21
+msgid "Nur Filter"
+msgstr "Nur Filter"
+
+#. T-8.21
+msgid "Nur Tippfehler-Treffer"
+msgstr "Nur Tippfehler-Treffer"
+
+#. T-8.21
+msgid "Oberfläche"
+msgstr "Oberfläche"
+
+#. T-8.21
+msgid "Ohne Treffer"
+msgstr "Ohne Treffer"
+
+#. T-8.21
+msgid "Portal"
+msgstr "Portal"
+
+#. T-8.21
+msgid "Stadtportal"
+msgstr "Stadtportal"
+
+#. T-8.21
+msgid "Suchanfrage (Stadtkatalog)"
+msgstr "Suchanfrage (Stadtkatalog)"
+
+#. T-8.21
+msgid "Suchanfragen (Stadtkatalog)"
+msgstr "Suchanfragen (Stadtkatalog)"
+
+#. T-8.21
+msgid "Suchbegriff"
+msgstr "Suchbegriff"
+
+#. T-8.21
+msgid "Treffer"
+msgstr "Treffer"
+
+#. T-8.21
+msgid "Treffer (zuletzt)"
+msgstr "Treffer (zuletzt)"
+
+#. T-8.21
+msgid "Volltext"
+msgstr "Volltext"
+
+#. T-8.21
+msgid "Ähnliche Schreibweise"
+msgstr "Ähnliche Schreibweise"

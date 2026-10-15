@@ -24415,3 +24415,91 @@ msgstr "от %(p)s €"
 #, python-format
 msgid "bis %(p)s €"
 msgstr "до %(p)s €"
+
+#. T-8.21
+msgid "30 Tage"
+msgstr "30 дней"
+
+#. T-8.21
+msgid "90 Tage"
+msgstr "90 дней"
+
+#. T-8.21
+msgid "CSV exportieren"
+msgstr "Экспорт в CSV"
+
+#. T-8.21
+msgid "CSV: Top-Suchen zusammengefasst"
+msgstr "CSV: топ запросов, сводно"
+
+#. T-8.21
+msgid "Entdecken"
+msgstr "Обзор (Entdecken)"
+
+#. T-8.21
+msgid "Immer ohne Treffer"
+msgstr "Всегда без результатов"
+
+#. T-8.21
+msgid "Leere Anfrage"
+msgstr "Пустой запрос"
+
+#. T-8.21
+msgid "Modus"
+msgstr "Режим"
+
+#. T-8.21
+msgid "Nichts gefunden"
+msgstr "Ничего не найдено"
+
+#. T-8.21
+msgid "Nur Filter"
+msgstr "Только фильтры"
+
+#. T-8.21
+msgid "Nur Tippfehler-Treffer"
+msgstr "Только по опечаткам"
+
+#. T-8.21
+msgid "Oberfläche"
+msgstr "Поверхность"
+
+#. T-8.21
+msgid "Ohne Treffer"
+msgstr "Без результатов"
+
+#. T-8.21
+msgid "Portal"
+msgstr "Портал"
+
+#. T-8.21
+msgid "Stadtportal"
+msgstr "Городской портал"
+
+#. T-8.21
+msgid "Suchanfrage (Stadtkatalog)"
+msgstr "Поисковый запрос (каталог города)"
+
+#. T-8.21
+msgid "Suchanfragen (Stadtkatalog)"
+msgstr "Поисковые запросы (каталог города)"
+
+#. T-8.21
+msgid "Suchbegriff"
+msgstr "Поисковая фраза"
+
+#. T-8.21
+msgid "Treffer"
+msgstr "Результаты"
+
+#. T-8.21
+msgid "Treffer (zuletzt)"
+msgstr "Результаты (последний раз)"
+
+#. T-8.21
+msgid "Volltext"
+msgstr "Полнотекстовый"
+
+#. T-8.21
+msgid "Ähnliche Schreibweise"
+msgstr "Похожее написание"

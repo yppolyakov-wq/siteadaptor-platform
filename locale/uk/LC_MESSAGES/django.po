@@ -24399,3 +24399,91 @@ msgstr "від %(p)s €"
 #, python-format
 msgid "bis %(p)s €"
 msgstr "до %(p)s €"
+
+#. T-8.21
+msgid "30 Tage"
+msgstr "30 днів"
+
+#. T-8.21
+msgid "90 Tage"
+msgstr "90 днів"
+
+#. T-8.21
+msgid "CSV exportieren"
+msgstr "Експорт у CSV"
+
+#. T-8.21
+msgid "CSV: Top-Suchen zusammengefasst"
+msgstr "CSV: топ запитів, зведено"
+
+#. T-8.21
+msgid "Entdecken"
+msgstr "Огляд (Entdecken)"
+
+#. T-8.21
+msgid "Immer ohne Treffer"
+msgstr "Завжди без результатів"
+
+#. T-8.21
+msgid "Leere Anfrage"
+msgstr "Порожній запит"
+
+#. T-8.21
+msgid "Modus"
+msgstr "Режим"
+
+#. T-8.21
+msgid "Nichts gefunden"
+msgstr "Нічого не знайдено"
+
+#. T-8.21
+msgid "Nur Filter"
+msgstr "Лише фільтри"
+
+#. T-8.21
+msgid "Nur Tippfehler-Treffer"
+msgstr "Лише за одруками"
+
+#. T-8.21
+msgid "Oberfläche"
+msgstr "Поверхня"
+
+#. T-8.21
+msgid "Ohne Treffer"
+msgstr "Без результатів"
+
+#. T-8.21
+msgid "Portal"
+msgstr "Портал"
+
+#. T-8.21
+msgid "Stadtportal"
+msgstr "Міський портал"
+
+#. T-8.21
+msgid "Suchanfrage (Stadtkatalog)"
+msgstr "Пошуковий запит (каталог міста)"
+
+#. T-8.21
+msgid "Suchanfragen (Stadtkatalog)"
+msgstr "Пошукові запити (каталог міста)"
+
+#. T-8.21
+msgid "Suchbegriff"
+msgstr "Пошукова фраза"
+
+#. T-8.21
+msgid "Treffer"
+msgstr "Результати"
+
+#. T-8.21
+msgid "Treffer (zuletzt)"
+msgstr "Результати (востаннє)"
+
+#. T-8.21
+msgid "Volltext"
+msgstr "Повнотекстовий"
+
+#. T-8.21
+msgid "Ähnliche Schreibweise"
+msgstr "Схоже написання"
