@@ -313,6 +313,7 @@ clothing/restaurant/cafe/retail/tour_operator/hotel).
 ## P2.2 SEO и контент порталов
 - [x] Sitemaps, мета, **schema.org** — закрыто ранее (Track B5 + P2.1c). hreflang (DE/EN)
   сознательно не делаем, пока язык в cookie, а не в URL (см. §Отложено).
+
 - [x] SSR-листинги (были) + кэш (P2.2b: `apps/core/pagecache.py`, TTL 120с); canonical
   (P2.1c порталы + P2.2a городские страницы); OpenGraph (P2.2a); перелинковка
   город↔портал↔сеть порталов (P2.2a). _(✅ в `main`, a573b35+75ba11d, CI runs 64/65
@@ -452,6 +453,8 @@ c) история броней (email-связка с Customer) → d) наст�
    (Places API) · B5/E-8 SMS · LLM-ключ для CM-5/A2 · A5/C3/AB-план — уже в anti-bitrix-плане.
 
 ## Отложено / заметки на будущее
+
+- **T-8.7 «Folgen» — хвосты (2026-10-15):** bounce-обработка писем (Resend webhook → снять подписки адреса); Telegram-канал подписки (`channel` — шов, Р-7); «Folgen» на разделе/районе на `/entdecken/` (нужна привязка города из реестра); ротация `follow_token` по расписанию; Р-П9b колокольчик на плитках разделов (решено «нет»).
 
 - **T-8.8 хвосты (2026-10-15):** sitemap-index портала — когда упрёмся в кап 45 000 URL;
   `/llms-full.txt` — не делаем (полный список отдаёт фид); StrikethroughPrice в JSON-LD — только
