@@ -17537,3 +17537,37 @@ NUL в запросе → шторм WARNING (управляющие симво�
 данные МИНИМИЗИРОВАНЫ, не анонимны (имя в строке поиска регулярки не ловят) — отсюда ранняя
 чистка одиночных. ⚠️ Владельцу: в Datenschutzerklärung платформы — строка про анонимную
 статистику поисковых запросов. 46 тестов `test_search_log.py`; 22 msgid × 5 каталогов.
+
+- **2026-10-15 — T-8.8 «Машиночитаемость каталога города» ✅ ЦЕЛИКОМ (без миграций;
+  план `t8-8-machine-readable-plan-2026-10-15.md`, решения владельца §8: Р-1 A, лицензия
+  фида, Impressum/Datenschutz в этом батче).** Разведка планера нашла действующий дефект:
+  **цена mystery-акции утекала в каталог города** (снимок `tasks._snapshot` копировал цены
+  без проверки стиля; фикс SF-1.4 закрывал только витрину тенанта) — закрыт в снимке, ⚠️ ops
+  `sync_aggregator` после деплоя. Сделано: **JSON-LD страницы предложения по виду**
+  (`aggregator/structured.py`: Product/Service/Event/HotelRoom/LocalBusiness, availability
+  SoldOut/MadeToOrder/InStock, `priceValidUntil` локальной датой, seller = полный LocalBusiness
+  из ПУБЛИЧНЫХ полей через новый `core.seo.localbusiness_data` — `localbusiness_ld` стал
+  обёрткой, паритет замком; old_price в JSON-LD не отдаём — §11 PAngV; mystery без Offer) ·
+  **sitemap** портала += страницы бизнесов с `lastmod`, кэш, кап 45 000; предложения не входят
+  (их canonical — бизнес) · **robots** Disallow технических путей, AI-краулеры открыты ·
+  **открытый фид** (`aggregator/open_feed.py`): JSON Feed 1.1 `/feed.json` + Atom `/feed.xml`
+  на портале и `/entdecken/feed.json|xml?city=` на основном домене; фильтры
+  kind/kat/merkmal/stadtteil/limit≤100 + курсор, порядок по новизне (featured не поднимается,
+  UWG §5a, но `sponsored`), `external_url` с `?ch=feed` (`AggregatorListing.with_channel`),
+  расширение `_siteadaptor` + лицензия в шапке, демо никогда на настоящем портале/основном
+  домене, ETag/304 через `core/machine_http.machine_resource` СНАРУЖИ `cache_public_page`,
+  свой scope лимита `open-feed` · **llms.txt** портала и платформы (`aggregator/llms.py`:
+  только непустые разделы/районы, блок «Daten für Assistenten», правила) · **подвал портала**
+  Impressum/Datenschutz платформы (`platform_links` + context-processor `platform_legal`).
+  **Ревью django-reviewer + security-reviewer (10 находок, все закрыты):** мусорный `?cursor=`
+  давал 500 — `paginate` валидирует содержимое через `field.to_python` (общий фикс) ·
+  `Meta.ordering` ломал `DISTINCT` в llms (`order_by()` перед `distinct()`) · 304 без
+  Cache-Control (патч ДО условного шага) · id элемента зависел от хоста → tag-URI на
+  `TENANT_DOMAIN_BASE` · sitemap/robots/llms с мусорным `?x=` обходили кэш → `static_resource`
+  (query игнорируется) · демо-города в sitemap платформы · `?city=` эхом в title фида
+  (prompt-injection для ассистентов) → только известный город · `with_channel` через
+  `urlsplit` · XML-недопустимые символы в Atom · слаг вне `<slug:>` ронял sitemap.
+  Замки: `test_machine_readable.py` (47), 2 замка sitemap переписаны осознанно (+страница
+  бизнеса). 14 msgid × 5 каталогов. **Открыто владельцу (L2 security):** фид отдаёт
+  `old_price`/`discount_percent` как сырые данные бизнеса (по плану), а JSON-LD их прячет —
+  сверить с юристом вместе с лицензией.
