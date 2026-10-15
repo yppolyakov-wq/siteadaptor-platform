@@ -34,4 +34,10 @@ class Migration(migrations.Migration):
                 fields=["search_vector"], name="agg_search_vector_gin"
             ),
         ),
+        migrations.AddIndex(
+            model_name="aggregatorlisting",
+            index=django.contrib.postgres.indexes.GinIndex(
+                fields=["search_text"], name="agg_search_text_trgm", opclasses=["gin_trgm_ops"]
+            ),
+        ),
     ]

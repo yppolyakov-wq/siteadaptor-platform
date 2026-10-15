@@ -17478,3 +17478,31 @@ Trinken · Freizeit · Lokale Unternehmen · Neu (≤6 карточек, лим�
 `portal-feed` 120/мин на некэшируемые рендеры + показы считаются только на чистом корне.
 Не сделано (осознанно): h2 у заголовков карточек внутри h2 блока (общий `_cards.html`), trigram-
 индекс для поиска — T-8.20. 38 тестов `test_portal_discover.py`; 10 msgid × 5 каталогов.
+
+
+## 2026-10-15 — T-8.20 «Единый поиск каталога города» (⚠️ миграции `aggregator/0023` + `0024`)
+
+План — агент planner, `docs/t8-20-unified-search-plan-2026-10-15.md` (решения владельца Р-О1…Р-О3
+в конце). Портал и `/entdecken/` ищут одной функцией `apps/aggregator/search.py::execute`.
+**Индекс** (`search_index.py`): хранимый `search_vector` (GIN) с весами A заголовок всех языков ·
+B бизнес/блюда · C тизер/категории/признаки · D город/район (подписи из Python-реестров — вектор
+собирается в Python одним параметризованным UPDATE) + свёрнутый `search_text` (ä→a…) с trigram-
+индексом; обновление в `AggregatorListing.save()` (одна транзакция с записью) и
+`refresh_tenant_fields`; пересборка — `manage.py rebuild_search_index`; `django.contrib.postgres`
+в SHARED_APPS, `pg_trgm` — `TrigramExtension` в 0023. **Сопоставление:** стемминг по языку
+(german + simple + язык посетителя), стоп-слова выбрасываются, синонимы словарём
+(`search_synonyms.py`, ~60 групп), слово от 4 букв ищется ещё и как часть слова («brot» →
+«Roggenbrot», LIKE по trigram-индексу), опечатки (`%>` word_similarity ≥ 0,3) — только если точный
+поиск пуст; веса — `settings.AGGREGATOR_SEARCH`; в tsquery только буквы/цифры, бюджет 40
+подзапросов. **Фильтры:** `?kat=` (несколько, ИЛИ), `?merkmal=` (И), `?stadtteil=`,
+`?preis_von/bis=`, `?datum=heute|wochenende` (только события и акции), `?verfuegbar=1`, `?offen=1`,
+`?sort=neu`; блок фильтров без JS + пилюли ✕ на портале, форма `/entdecken/` переносит фильтры.
+Ранжированная выдача — `core/pagination.paginate_ranked` (курсор прежнего вида, глубина 240).
+Платные позиции на ранг не влияют (UWG §5a). Шов `search.record` — для журнала T-8.21.
+**Ревью перед мержем** (django-reviewer + security-reviewer): исправлены стоп-слова, ломавшие
+запрос («Brot in Solingen» → 0), составные слова, seq scan опечаток (теперь индекс и один проход),
+500 на `?preis_von=NaN` и на курсоре с огромным числом/чужого вида, размер tsquery, перенос
+фильтров на `/entdecken/` и «Neu» в форме портала, атомарность записи листинга с индексом.
+Не сделано (осознанно): `refresh_tenant_fields` — по UPDATE на листинг синхронно из кабинета
+(пилотные объёмы); лимит частоты не покрывает `?kind=`/`cursor` без поиска (как раньше).
+52 теста `test_unified_search.py`; 12 msgid × 5 каталогов.

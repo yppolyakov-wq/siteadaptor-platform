@@ -17,7 +17,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.postgres.search import SearchQuery, SearchRank, TrigramWordSimilarity
-from django.db.models import F, Q
+from django.db.models import Case, F, IntegerField, Q, Value, When
 from django.utils import timezone, translation
 
 from . import search_synonyms
@@ -33,38 +33,112 @@ def _cfg(key: str):
     return settings.AGGREGATOR_SEARCH[key]
 
 
+SEARCH_MAX = 100  # символов запроса
+TOKEN_MAX = 30  # символов слова
+TERMS_MAX = 40  # подзапросов tsquery на весь поиск (слова × синонимы × конфигурации)
+SUBSTRING_MIN = 4  # слово от 4 букв ищется ещё и как часть слова («brot» → «Roggenbrot»)
+_STOP_CACHE: dict[tuple[str, str], bool] = {}
+
+
 def tokenize(q: str) -> list[str]:
     """Слова запроса: только буквы и цифры, нижний регистр, не больше max_tokens."""
-    q = (q or "").replace("-", "")  # «E-Bike» → «ebike» (как в словаре синонимов)
-    return _TOKEN.findall(q.lower())[: _cfg("max_tokens")]
+    q = (q or "")[:SEARCH_MAX].replace("-", "")  # «E-Bike» → «ebike» (как в синонимах)
+    return [t[:TOKEN_MAX] for t in _TOKEN.findall(q.lower())][: _cfg("max_tokens")]
 
 
-def build_query(q: str, *, lang: str = "de") -> SearchQuery | None:
-    """И между словами; ИЛИ по синонимам × конфигурациям (german, simple, язык посетителя)."""
-    tokens = tokenize(q)
-    if not tokens:
-        return None
+def _drop_stopwords(tokens: list[str], lang: str) -> list[str]:
+    """Убрать «in», «und», «der», «the»: стемминг их выбрасывает, а «simple»-часть
+    требовала бы буквального слова — «Brot in Solingen» не находил бы ничего.
+    Один запрос на новые слова, результат кэшируется в процессе (детерминирован)."""
+    configs = list(dict.fromkeys(("german", "english", ts_config(lang))))
+    key = ",".join(configs)
+    unknown = [t for t in dict.fromkeys(tokens) if (key, t) not in _STOP_CACHE]
+    if unknown:
+        from django.db import connection
+
+        checks = " OR ".join("numnode(to_tsquery(%s::regconfig, t)) = 0" for _c in configs)
+        with connection.cursor() as cur:
+            cur.execute(
+                f"SELECT t, ({checks}) FROM unnest(%s::text[]) AS t",  # noqa: S608
+                [*configs, unknown],
+            )
+            rows = dict(cur.fetchall())
+        if len(_STOP_CACHE) > 5000:
+            _STOP_CACHE.clear()
+        for t in unknown:
+            _STOP_CACHE[(key, t)] = bool(rows.get(t))
+    return [t for t in tokens if not _STOP_CACHE[(key, t)]]
+
+
+def _words(q: str, lang: str) -> list[tuple[str, SearchQuery]]:
+    """[(слово, tsquery слова)]: ИЛИ по синонимам × конфигурациям (german, simple, язык
+    посетителя); у последнего слова — ещё и префикс. Бюджет — TERMS_MAX подзапросов."""
+    tokens = _drop_stopwords(tokenize(q), lang)
     configs = list(dict.fromkeys(("german", "simple", ts_config(lang))))
-    query = None
+    budget = TERMS_MAX
+    out = []
     for i, token in enumerate(tokens):
         prefix = i == len(tokens) - 1 and len(token) >= _cfg("prefix_min_len")
-        variants = dict.fromkeys([*search_synonyms.expand(token), fold(token)])
         word = None
-        for variant in variants:
+        for variant in dict.fromkeys([token, fold(token), *search_synonyms.expand(token)]):
+            if word is not None and budget < len(configs):
+                break  # само слово — всегда; синонимы — пока хватает бюджета
             raw = f"{variant}:*" if prefix else variant
             for cfg in configs:
                 part = SearchQuery(raw, search_type="raw", config=cfg)
                 word = part if word is None else word | part
+                budget -= 1
+        out.append((token, word))
+    return out
+
+
+def build_query(q: str, *, lang: str = "de") -> SearchQuery | None:
+    """И между словами (для ранга)."""
+    query = None
+    for _token, word in _words(q, lang):
         query = word if query is None else query & word
     return query
 
 
+def _match_words(qs, words):
+    """Каждое слово — по индексу ИЛИ (от 4 букв) как часть слова (составные немецкие
+    слова: «brot» находит «Roggenbrot»; LIKE идёт по trigram-индексу search_text)."""
+    for token, word in words:
+        cond = Q(search_vector=word)
+        if len(token) >= SUBSTRING_MIN:
+            cond |= Q(search_text__contains=fold(token))
+        qs = qs.filter(cond)
+    return qs
+
+
 def match(qs, q: str, *, lang: str | None = None):
-    """Только полнотекстовое сопоставление, без ранга — для ``listings_for(q=)``."""
-    query = build_query(q, lang=lang or translation.get_language() or "de")
-    if query is None:
-        return qs
-    return qs.filter(search_vector=query)
+    """Сопоставление без ранга — для ``listings_for(q=)`` (то же правило, что execute)."""
+    words = _words(q, lang or translation.get_language() or "de")
+    if not words:
+        return qs if not tokenize(q) else qs.none()
+    return _match_words(qs, words)
+
+
+def _trigram_pks(qs, q: str) -> list[int]:
+    """Опечатки: похожее написание по trigram-индексу (оператор %>) — один проход,
+    дальше выдача фильтруется по готовому списку. Слова короче 4 букв не участвуют
+    (иначе «der» находил бы всё подряд)."""
+    from django.db import connection
+
+    folded = " ".join(fold(t) for t in tokenize(q) if len(t) >= SUBSTRING_MIN)
+    if not folded:
+        return []
+    with connection.cursor() as cur:
+        cur.execute(
+            "SELECT set_config('pg_trgm.word_similarity_threshold', %s, false)",
+            [str(_cfg("trigram_threshold"))],
+        )
+    return list(
+        qs.filter(search_text__trigram_word_similar=folded)
+        .annotate(similarity=TrigramWordSimilarity(folded, "search_text"))
+        .order_by("-similarity", "-created_at", "-pk")
+        .values_list("pk", flat=True)[: _cfg("max_results")]
+    )
 
 
 def _weights() -> list[float]:
@@ -241,31 +315,32 @@ def execute(
     """Единственная точка поиска обеих поверхностей (портал, /entdecken/)."""
     filters = filters or SearchFilters()
     lang = lang or translation.get_language() or "de"
-    q = (q or "").strip()
+    q = (q or "").strip()[:SEARCH_MAX]
     qs = apply_filters(base_qs, filters)
-    query = build_query(q, lang=lang) if q else None
-    if query is None:
+    words = _words(q, lang) if q else []
+    if not words:
         mode = "empty" if q else "none"
-        if q:  # одни спецсимволы — честно ничего, а не вся лента
+        if q:  # одни спецсимволы/стоп-слова — честно ничего, а не вся лента
             qs = qs.none()
         outcome = SearchOutcome(qs, mode, q, ranked=False, filters=filters)
     else:
-        fts = qs.filter(search_vector=query)
+        query = build_query(q, lang=lang)
+        fts = _match_words(qs, words)
         if fts.exists():
             qs = fts.annotate(rank=SearchRank(F("search_vector"), query, weights=_weights()))
             mode = "fts"
+            order = ["-rank", "-created_at", "-pk"]
         else:
-            folded = fold(" ".join(tokenize(q)))
-            qs = qs.annotate(similarity=TrigramWordSimilarity(folded, "search_text")).filter(
-                similarity__gte=_cfg("trigram_threshold")
+            pks = _trigram_pks(qs, q) or [0]  # [0] — пустой список без пустого CASE
+            position = Case(
+                *[When(pk=pk, then=Value(i)) for i, pk in enumerate(pks)],
+                default=Value(len(pks)),
+                output_field=IntegerField(),
             )
+            qs = qs.filter(pk__in=pks).annotate(similarity_pos=position)
             mode = "trigram"
-        if filters.sort == "neu":
-            qs = qs.order_by("-created_at", "-pk")
-        elif mode == "fts":
-            qs = qs.order_by("-rank", "-created_at", "-pk")
-        else:
-            qs = qs.order_by("-similarity", "-created_at", "-pk")
+            order = ["similarity_pos", "-created_at", "-pk"]
+        qs = qs.order_by(*(["-created_at", "-pk"] if filters.sort == "neu" else order))
         outcome = SearchOutcome(qs, mode, q, ranked=True, filters=filters)
     if track:
         record(outcome, surface=surface)

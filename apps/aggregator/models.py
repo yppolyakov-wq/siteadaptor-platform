@@ -182,6 +182,10 @@ class AggregatorListing(I18nMixin, models.Model):
             models.Index(fields=["listing_kind", "is_active"], name="agg_kind_active_idx"),
             models.Index(fields=["category", "is_active"], name="agg_category_active_idx"),
             GinIndex(fields=["search_vector"], name="agg_search_vector_gin"),
+            # T-8.20: «часть слова» (LIKE) и опечатки (%>) — по trigram-индексу.
+            GinIndex(
+                fields=["search_text"], name="agg_search_text_trgm", opclasses=["gin_trgm_ops"]
+            ),
         ]
 
     def __str__(self):
@@ -192,12 +196,17 @@ class AggregatorListing(I18nMixin, models.Model):
         # str(promo_uuid); выводим автоматически, если задан только legacy-uuid.
         if not self.source_ref and self.promo_uuid:
             self.source_ref = str(self.promo_uuid)
-        super().save(*args, **kwargs)
-        # T-8.20: индекс поиска — после каждой записи индексируемых полей. Массовые
-        # .update() этих полей обязаны звать search_index.refresh (refresh_tenant_fields).
+        # T-8.20: индекс поиска — после каждой записи индексируемых полей, в той же
+        # транзакции (сбой не оставит листинг без вектора). Массовые .update() этих полей
+        # обязаны звать search_index.refresh (refresh_tenant_fields).
+        from django.db import router, transaction
+
+        using = kwargs.get("using") or router.db_for_write(type(self), instance=self)
         fields = kwargs.get("update_fields")
-        if fields is None or set(fields) & search_index.INDEXED_FIELDS:
-            search_index.refresh_listing(self)
+        with transaction.atomic(using=using):
+            super().save(*args, **kwargs)
+            if fields is None or set(fields) & search_index.INDEXED_FIELDS:
+                search_index.refresh_listing(self, using=using)
 
     @property
     def title_text(self) -> str:

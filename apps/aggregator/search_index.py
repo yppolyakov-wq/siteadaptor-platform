@@ -10,7 +10,7 @@
 from __future__ import annotations
 
 from django.conf import settings
-from django.db import connection
+from django.db import DEFAULT_DB_ALIAS, connections
 from django.utils import translation
 
 # Конфигурации стемминга Postgres по локали; uk/pl и прочие — без стемминга ("simple").
@@ -102,8 +102,9 @@ def search_text(listing) -> str:
     return fold(" ".join([*(str(v) for v in title.values() if v), listing.business_name, dishes]))
 
 
-def refresh_listing(listing) -> None:
+def refresh_listing(listing, *, using: str = DEFAULT_DB_ALIAS) -> None:
     """Один UPDATE: вектор + свёрнутый текст для одного листинга."""
+    connection = connections[using]
     parts = _parts(listing)
     table = connection.ops.quote_name(type(listing)._meta.db_table)
     if parts:

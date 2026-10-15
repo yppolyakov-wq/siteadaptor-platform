@@ -35,9 +35,14 @@ def paginate(
     sign = "-" if descending else ""
     qs = qs.order_by(f"{sign}{order_field}", f"{sign}pk")
 
+    c = None
     if cursor:
-        c = _decode(cursor)
-        last_val, last_pk = c["v"], c["pk"]
+        try:
+            c = _decode(cursor)
+            last_val, last_pk = c["v"], c["pk"]
+        except (ValueError, TypeError, KeyError, AttributeError):
+            c = None  # битый/чужой курсор (offset-вид T-8.20) — первая страница
+    if c is not None:
         lookup = "lt" if descending else "gt"
         qs = qs.filter(
             models.Q(**{f"{order_field}__{lookup}": last_val})
@@ -68,8 +73,9 @@ def paginate_ranked(
     offset = 0
     if cursor:
         try:
-            offset = int(_decode(cursor).get("o", 0))
-        except (ValueError, TypeError, AttributeError):
+            raw = _decode(cursor).get("o", 0)
+            offset = raw if isinstance(raw, int) else 0
+        except (ValueError, TypeError, AttributeError, OverflowError):
             offset = 0
     offset = max(0, min(offset, max_results))
     end = min(offset + limit, max_results)

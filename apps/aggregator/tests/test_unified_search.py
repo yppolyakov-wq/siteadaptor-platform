@@ -410,3 +410,103 @@ def test_rebuild_command():
     AggregatorListing.objects.filter(pk=listing.pk).update(search_vector=None, search_text="")
     call_command("rebuild_search_index")
     assert "messer" in _vector(listing.pk)
+
+
+# --- находки ревью (django-reviewer / security-reviewer) -------------------------------------
+
+
+@pytest.mark.parametrize("q", ["Brot in Solingen", "brot und", "the Brot", "Haarschnitt bei"])
+def test_stopwords_do_not_break_the_query(q):
+    """H1: «in», «und», «the», «bei» не требуют буквального слова — точный поиск, не опечатки."""
+    _listing("Frisches Brot")
+    _listing("Haarschnitt Herren")
+    out, titles = _found(q)
+    assert out.mode == "fts" and titles
+
+
+def test_only_stopwords_find_nothing():
+    _listing("Frisches Brot des Tages")
+    out, titles = _found("der die das")
+    assert out.mode == "empty" and titles == []
+
+
+def test_compound_words_found_by_part():
+    """M2: «brot» находит «Roggenbrot» (как раньше подстрокой)."""
+    _listing("Roggenbrot")
+    _listing("Mischbrot Aktion")
+    _listing("Brötchen")
+    titles = set(_found("brot")[1])
+    assert {"Roggenbrot", "Mischbrot Aktion", "Brötchen"} <= titles
+    assert views.listings_for(q="brot").count() == 3
+
+
+def test_short_typo_tokens_do_not_flood_results():
+    _listing("Frisches Brot")
+    out, titles = _found("xq")
+    assert titles == []
+
+
+@pytest.mark.parametrize("value", ["NaN", "Infinity", "-Infinity", "1e999999", "sNaN", "abc"])
+def test_garbage_price_is_ignored_not_500(value):
+    """S1: цена из URL — только конечное число в разумных пределах."""
+    assert views._money(value) is None
+    _listing("Pizza", new_price=Decimal("5"))
+    assert _found("", _filters(preis_von=value))[1] == ["Pizza"]
+
+
+@pytest.mark.parametrize("payload", [{"o": 1e308 * 10}, {"o": "x"}, {"o": [1]}, {"v": 1}])
+def test_garbage_cursor_is_first_page(payload):
+    """M1/M5: курсор с огромным/чужим содержимым — первая страница, не 500."""
+    import base64
+    import json
+
+    from apps.core.pagination import paginate, paginate_ranked
+
+    raw = json.dumps(payload).replace("Infinity", "1e999")
+    cursor = base64.urlsafe_b64encode(raw.encode()).decode()
+    _listing("Messer")
+    qs = views.listings_for()
+    assert len(paginate_ranked(qs, limit=5, cursor=cursor).items) == 1
+    assert len(paginate(qs, order_field="created_at", limit=5, cursor=cursor).items) == 1
+
+
+def test_query_size_is_bounded():
+    """S3: длина запроса, слова и число подзапросов tsquery ограничены."""
+    q = " ".join(["handy smartphone fahrrad friseur"] * 20) + " " + "x" * 500
+    tokens = search.tokenize(q)
+    assert len(tokens) <= 8 and all(len(t) <= search.TOKEN_MAX for t in tokens)
+    words = search._words(q, "de")
+    sql = str(views.listings_for().filter(search_vector=search.build_query(q)).query)
+    assert len(words) <= 8 and sql.count("to_tsquery") <= search.TERMS_MAX + 3 * 8
+
+
+@pytest.mark.urls("config.urls_public")
+def test_entdecken_form_and_chips_keep_filters():
+    """M3: на /entdecken/ форма и чипы не теряют фильтры единого поиска."""
+    _listing("Pizza", city_category="restaurants", district="graefrath")
+    html = views.discover_index(
+        _req("/entdecken/", q="Pizza", city="Solingen", stadtteil="graefrath", offen="1")
+    ).content.decode()
+    form = html.split('action="/entdecken/"', 1)[1].split("</form>", 1)[0]
+    assert 'name="stadtteil" value="graefrath"' in form and 'name="offen" value="1"' in form
+
+
+@pytest.mark.urls("config.urls_portal")
+def test_portal_search_form_keeps_neu():
+    _listing("Messer", is_new=True, kind="product")
+    req = _req(kind="alle", neu="1")
+    req.portal = _portal()
+    html = portal_views.portal_home(req).content.decode()
+    form = html.split("data-portal-search", 1)[1].split("</form>", 1)[0]
+    assert 'name="neu" value="1"' in form
+
+
+def test_save_writes_listing_and_index_together():
+    """L1: запись листинга и индекса — одна транзакция (сбой индекса откатывает запись)."""
+    listing = _listing("Messer")
+    listing.title = {"de": "Schere"}
+    with mock.patch("apps.aggregator.search_index.refresh_listing", side_effect=RuntimeError):
+        with pytest.raises(RuntimeError):
+            listing.save()
+    listing.refresh_from_db()
+    assert listing.title == {"de": "Messer"}

@@ -10,6 +10,7 @@ SEO (P2.1c): canonical + CollectionPage/ItemList JSON-LD + sitemap/robots по
 
 from urllib.parse import urlencode
 
+from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -213,14 +214,14 @@ def portal_home(request, facet=None, district=None):
         kind_chips = []
         portal_tabs = home.tabs(home.presence(whole_pool), kind, request.path, carry=carry)
     else:
-        kind_chips = _kind_chips(whole_pool, request.path, kind)
+        kind_chips = _kind_chips(whole_pool.order_by(), request.path, kind)
         portal_tabs = []
     base_pool = home.apply_scope(
         whole_pool.filter(listing_kind__in=kinds),
         home.FeedScope(new_only=scope.new_only),
     )
     category_chips = category_facets.chips(
-        base_pool,
+        base_pool.order_by(),  # без ранга: чипам нужен только состав
         request.path,
         kat,
         tag,
@@ -241,7 +242,9 @@ def portal_home(request, facet=None, district=None):
         cursor = request.GET.get("cursor")
         featured, rest = split_featured(pool, first_page=not cursor)
         if broad.ranked:  # T-8.20: релевантность — offset-курсор того же вида
-            page = paginate_ranked(rest, limit=24, cursor=cursor)
+            page = paginate_ranked(
+                rest, limit=24, cursor=cursor, max_results=settings.AGGREGATOR_SEARCH["max_results"]
+            )
         else:
             page = paginate(rest, order_field="created_at", limit=24, cursor=cursor)
         cards = featured + page.items  # продвинутые — сверху первой страницы (P2.4a)
@@ -323,7 +326,10 @@ def portal_home(request, facet=None, district=None):
             # T-8.20: новый запрос не сбрасывает вкладку и фильтры.
             "search_hidden": [
                 (k, v)
-                for k, v in [("kind", scope.kind_key if scope.kind_key != "alle" else "")]
+                for k, v in [
+                    ("kind", scope.kind_key if scope.kind_key != "alle" else ""),
+                    ("neu", "1" if scope.new_only else ""),
+                ]
                 + search_engine.carry("", filters)
                 if v
             ],
@@ -389,14 +395,14 @@ def _filter_panel(request, portal, filters, q: str, scope, district) -> dict:
                 "url": without("stadtteil"),
             }
         )
+    from django.utils.formats import number_format
+
     if filters.price_from is not None:
-        pills.append(
-            {"label": _("ab %(p)s €") % {"p": filters.price_from}, "url": without("preis_von")}
-        )
+        price = number_format(filters.price_from, 2)
+        pills.append({"label": _("ab %(p)s €") % {"p": price}, "url": without("preis_von")})
     if filters.price_to is not None:
-        pills.append(
-            {"label": _("bis %(p)s €") % {"p": filters.price_to}, "url": without("preis_bis")}
-        )
+        price = number_format(filters.price_to, 2)
+        pills.append({"label": _("bis %(p)s €") % {"p": price}, "url": without("preis_bis")})
     if filters.date:
         pills.append({"label": labels.get(filters.date, filters.date), "url": without("datum")})
     if filters.available:

@@ -1,5 +1,6 @@
 {% load i18n %}{# P2.7: поиск + фильтры выдачи агрегатора. GET → discover_index. #}
 <form method="get" action="{% url 'aggregator-index' %}" class="mb-6 flex flex-wrap gap-2 items-end">
+  {% for k, v in search_hidden %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
   <div class="flex-1 min-w-[12rem]">
     <input name="q" value="{{ q|default:'' }}" placeholder="{% trans 'Search offers, shops…' %}"
            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">

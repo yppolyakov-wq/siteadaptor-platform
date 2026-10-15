@@ -43,7 +43,10 @@ def _money(raw):
         value = Decimal(raw)
     except (InvalidOperation, ValueError):
         return None
-    return value if value >= 0 else None
+    # T-8.20: NaN/Infinity/1e999 из URL → не цена (иначе 500 на сравнении/в БД).
+    if not value.is_finite() or value < 0 or value >= 10**8:
+        return None
+    return value
 
 
 def listings_for(
@@ -414,13 +417,21 @@ def discover_index(request):
         chips_base = search.execute(
             pool_base, q, replace(filters, kats=(), tags=()), surface="entdecken", track=False
         ).qs
-        category_chips = category_facets.chips(chips_base, request.path, kat, tag, extra=keep)
+        # T-8.20: фильтры единого поиска не теряются при клике по чипу категории.
+        keep.update({k: v for k, v in search.carry("", filters) if k not in ("kat", "merkmal")})
+        category_chips = category_facets.chips(
+            chips_base.order_by(), request.path, kat, tag, extra=keep
+        )
         cursor = request.GET.get("cursor")
         featured, rest = split_featured(pool, first_page=not cursor)
         if outcome.ranked:  # T-8.20: релевантность — offset-курсор того же вида
+            from django.conf import settings
+
             from apps.core.pagination import paginate_ranked
 
-            page = paginate_ranked(rest, limit=24, cursor=cursor)
+            page = paginate_ranked(
+                rest, limit=24, cursor=cursor, max_results=settings.AGGREGATOR_SEARCH["max_results"]
+            )
         else:
             page = paginate(rest, order_field="created_at", limit=24, cursor=cursor)
         cards = featured + page.items
@@ -468,6 +479,12 @@ def discover_index(request):
                 "cards": cards,
                 "page": page,
                 "base_qs": base_qs,
+                # T-8.20: форма поиска переносит фильтры единого поиска (hidden).
+                "search_hidden": [
+                    (k, v)
+                    for k, v in search.carry("", filters)
+                    if k != "kat"  # у категории своё поле формы
+                ],
                 "canonical": request.build_absolute_uri(request.path),
             },
         )
