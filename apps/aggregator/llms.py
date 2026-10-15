@@ -21,7 +21,9 @@ from .platform_links import legal_links
 
 def _sections_present(pool) -> list:
     """Разделы справочника, в которых есть хотя бы одно предложение (1 запрос)."""
-    present = set(pool.exclude(city_category="").values_list("city_category", flat=True).distinct())
+    present = set(
+        pool.exclude(city_category="").order_by().values_list("city_category", flat=True).distinct()
+    )
     out = []
     for section in cc.SECTIONS:
         if any(c.key in present for c in cc.CATEGORIES if c.section == section.key):
@@ -33,7 +35,7 @@ def _districts_present(pool, city: str) -> list[tuple[str, str]]:
     known = districts.choices_for(city)
     if not known:
         return []
-    used = set(pool.exclude(district="").values_list("district", flat=True).distinct())
+    used = set(pool.exclude(district="").order_by().values_list("district", flat=True).distinct())
     return [(slug, name) for slug, name in known if slug in used]
 
 
@@ -127,6 +129,7 @@ def build_portal(request, portal) -> str:
 def build_platform(request) -> str:
     """Основной домен: описание платформы, /entdecken/, фид, активные порталы (≤12)."""
     abs_ = request.build_absolute_uri
+    entdecken = _("Entdecken")
     lines = [
         "# siteadaptor",
         "",
@@ -136,7 +139,7 @@ def build_platform(request) -> str:
         ),
         "",
         "## " + _("Einstieg"),
-        f"- [{_('Entdecken')}]({abs_(reverse('aggregator-index'))})",
+        f"- [{entdecken}]({abs_(reverse('aggregator-index'))})",
         "",
     ]
     portals = list(AggregatorPortal.objects.filter(is_active=True).order_by("host")[:12])

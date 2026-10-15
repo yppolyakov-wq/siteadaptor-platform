@@ -12,6 +12,7 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.core.machine_http import static_resource
 from apps.core.pagecache import cache_public_page
 from apps.core.pagination import paginate
 from apps.core.seo import itemlist_ld
@@ -638,7 +639,7 @@ def city_listing(request, city, business_type=None):
     return response
 
 
-@cache_public_page
+@static_resource
 def sitemap_xml(request):
     """Sitemap основного домена (Track B5): платформа + /entdecken + города + город/тип.
 
@@ -652,7 +653,8 @@ def sitemap_xml(request):
 
     from .portal_views import SITEMAP_MAX_URLS, render_sitemap
 
-    active = AggregatorListing.objects.public()
+    # T-8.8: демо в sitemap не входят (фид того же домена их не отдаёт — согласовано).
+    active = AggregatorListing.objects.public().filter(is_demo=False)
     abs_ = request.build_absolute_uri
     urls: list[tuple[str, object]] = [(abs_("/"), None)]
     urls += [(abs_(f"/branchen/{s}/"), None) for s in archetype_pages.SLUGS]
@@ -678,7 +680,7 @@ def sitemap_xml(request):
 PLATFORM_DISALLOW = ("/entdecken/klick/", "/entdecken/melden/", "/entdecken/merkliste/")
 
 
-@cache_public_page
+@static_resource
 def robots_txt(request):
     """robots.txt основного домена: всё открыто, кроме технических путей + sitemap."""
     sitemap = request.build_absolute_uri(reverse("aggregator-sitemap"))
@@ -693,6 +695,10 @@ def _discover_feed(request, fmt: str):
     from . import open_feed
 
     city = (request.GET.get("city") or "").strip()[:100]
+    # Эхо в title/meta только для ГОРОДА ИЗ КАТАЛОГА — иначе ссылка несла бы чужой
+    # текст в заголовок, который читают ассистенты (prompt-injection через `?city=`).
+    if city and not AggregatorListing.objects.public().filter(city__iexact=city).exists():
+        city = ""
     return open_feed.render_feed(
         request,
         fmt=fmt,
@@ -720,7 +726,7 @@ def discover_feed_atom(request):
     return _discover_feed(request, "atom")
 
 
-@cache_public_page
+@static_resource
 def llms_txt(request):
     """T-8.8: llms.txt основного домена — платформа, /entdecken/, фид, порталы."""
     from . import llms

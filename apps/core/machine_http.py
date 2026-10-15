@@ -16,15 +16,35 @@ from django.utils.decorators import decorator_from_middleware
 
 
 def machine_resource(view):
-    conditional = decorator_from_middleware(ConditionalGetMiddleware)(view)
-
     @wraps(view)
-    def wrapped(request, *args, **kwargs):
-        response = conditional(request, *args, **kwargs)
+    def with_cache_control(request, *args, **kwargs):
+        response = view(request, *args, **kwargs)
         if response.status_code == 200:
             patch_cache_control(
                 response, public=True, max_age=getattr(settings, "PUBLIC_PAGE_CACHE_TTL", 0)
             )
         return response
+
+    # Cache-Control ставится ДО условного шага: ответ 304 строится из заголовков 200
+    # и обязан повторять их (RFC 9110 §15.4.5).
+    return decorator_from_middleware(ConditionalGetMiddleware)(with_cache_control)
+
+
+def static_resource(view):
+    """sitemap/robots/llms: содержимое не зависит от query → мусорный `?x=` не должен
+    обходить кэш публичных страниц (иначе анонимный cache-bust = бесплатная нагрузка
+    на БД). Запрос с параметрами обслуживается как запрос БЕЗ них."""
+    from django.http import QueryDict
+
+    from .pagecache import cache_public_page
+
+    cached = cache_public_page(view)
+
+    @wraps(view)
+    def wrapped(request, *args, **kwargs):
+        if request.GET:
+            request.GET = QueryDict("", mutable=False)
+            request.META["QUERY_STRING"] = ""
+        return cached(request, *args, **kwargs)
 
     return wrapped

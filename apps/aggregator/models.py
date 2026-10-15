@@ -231,10 +231,17 @@ class AggregatorListing(I18nMixin, models.Model):
         Витрина кладёт канал в сессию (`_capture_channel`), он доезжает до резерва,
         купона и счётчика просмотров по каналам. Уже заданный канал не дублируем.
         Для JSON-LD/SEO — чистый detail_url."""
+        from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+
         url = self.detail_url or ""
-        if not url or "ch=" in url:
+        if not url:
             return url
-        return f"{url}{'&' if '?' in url else '?'}ch={ch}"
+        parts = urlsplit(url)
+        query = parse_qsl(parts.query, keep_blank_values=True)
+        if any(k == "ch" for k, _v in query):
+            return url
+        query.append(("ch", ch))
+        return urlunsplit(parts._replace(query=urlencode(query)))
 
     @property
     def portal_url(self) -> str:

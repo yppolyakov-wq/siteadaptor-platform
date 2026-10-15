@@ -13,9 +13,10 @@ from urllib.parse import urlencode
 from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 
+from apps.core.machine_http import static_resource
 from apps.core.pagecache import cache_public_page
 from apps.core.pagination import paginate
 from apps.core.seo import collectionpage_ld
@@ -538,12 +539,13 @@ def _sitemap_urls(request, portal) -> list[tuple[str, object]]:
         pool.exclude(tenant_slug="")
         .values("tenant_slug")
         .annotate(m=Max("updated_at"))
-        .order_by("tenant_slug")
+        .order_by("tenant_slug")[:SITEMAP_MAX_URLS]
     )
-    urls += [
-        (abs_(reverse("portal-business", args=[row["tenant_slug"]])), row["m"])
-        for row in businesses
-    ]
+    for row in businesses:
+        try:  # старый слаг вне `<slug:>` не должен ронять весь sitemap
+            urls.append((abs_(reverse("portal-business", args=[row["tenant_slug"]])), row["m"]))
+        except NoReverseMatch:
+            continue
     if len(urls) > SITEMAP_MAX_URLS:
         import logging
 
@@ -569,7 +571,7 @@ def render_sitemap(urls) -> HttpResponse:
     return HttpResponse(xml, content_type="application/xml")
 
 
-@cache_public_page
+@static_resource
 def portal_sitemap_xml(request):
     """Sitemap портала: корень + уточнения + районы + страницы бизнесов (T-8.8)."""
     portal = getattr(request, "portal", None)
@@ -582,7 +584,7 @@ def portal_sitemap_xml(request):
 PORTAL_DISALLOW = ("/klick/", "/melden/", "/konto/", "/tg/", "/sprache/")
 
 
-@cache_public_page
+@static_resource
 def portal_robots_txt(request):
     """robots.txt портала: всё открыто, кроме технических путей + sitemap хоста."""
     sitemap = request.build_absolute_uri(reverse("portal-sitemap"))
@@ -627,7 +629,7 @@ def portal_feed_atom(request):
     return _feed(request, "atom")
 
 
-@cache_public_page
+@static_resource
 def portal_llms_txt(request):
     """T-8.8: llms.txt портала — карта каталога для AI-ассистентов."""
     from . import llms

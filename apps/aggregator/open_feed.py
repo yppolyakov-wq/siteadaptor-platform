@@ -15,9 +15,11 @@ Last-Modified не ставим: max(updated_at) не меняется при с
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from urllib.parse import urlencode
 
+from django.conf import settings
 from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
 from django.utils import feedgenerator
@@ -99,6 +101,21 @@ def feed_pool(*, city, business_type, include_demo: bool, params: FeedParams):
     return qs.defer("search_vector", "search_text")
 
 
+_XML_ILLEGAL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
+
+
+def _xml_safe(text: str) -> str:
+    """Управляющие символы недопустимы в XML 1.0 — один кривой заголовок ломал бы
+    разбор ВСЕГО фида у потребителя."""
+    return _XML_ILLEGAL.sub("", text or "")
+
+
+def tag_uri(listing) -> str:
+    """Стабильный id элемента: один и тот же листинг на портале и на основном домене —
+    один id; authority — базовый домен платформы (хост с портом невалиден для tag-URI)."""
+    return f"tag:{settings.TENANT_DOMAIN_BASE},2026:listing:{listing.pk}"
+
+
 def _price_unit(listing) -> str | None:
     if listing.listing_kind == "stay":
         return "night"
@@ -126,7 +143,6 @@ def feed_item(listing, *, request, preview: bool) -> dict:
     """Элемент JSON Feed 1.1 + расширение `_siteadaptor` (цена/срок/категория/бизнес)."""
     from .structured import availability_iri, price_visible
 
-    host = request.get_host()
     visible = price_visible(listing)
     ext: dict = {
         "kind": listing.listing_kind,
@@ -157,7 +173,7 @@ def feed_item(listing, *, request, preview: bool) -> dict:
     if preview:
         ext["demo"] = bool(listing.is_demo)
     item = {
-        "id": f"tag:{host},2026:listing:{listing.pk}",
+        "id": tag_uri(listing),
         "url": request.build_absolute_uri(reverse("aggregator-offer", args=[listing.pk])),
         "external_url": listing.with_channel("feed"),
         "title": listing.title_text,
@@ -235,23 +251,22 @@ def atom_feed(request, *, title: str, home_url: str, page, preview: bool) -> str
         feed_url=request.build_absolute_uri(request.path),
         feed_copyright=LICENSE,
     )
-    host = request.get_host()
     for it in items:
-        summary = it.teaser_text or it.title_text
+        summary = _xml_safe(it.teaser_text or it.title_text)
         if price_visible(it):
             summary = f"{it.new_price:.2f} {it.currency or 'EUR'} · {summary}"
         categories = [it.city_category] if it.city_category else []
         if it.is_featured_now:
             categories.append("sponsored")
         feed.add_item(
-            title=it.title_text,
+            title=_xml_safe(it.title_text),
             link=request.build_absolute_uri(reverse("aggregator-offer", args=[it.pk])),
             description=summary,
-            unique_id=f"tag:{host},2026:listing:{it.pk}",
+            unique_id=tag_uri(it),
             pubdate=it.created_at,
             updateddate=it.updated_at,
             categories=categories,
-            author_name=it.business_name,
+            author_name=_xml_safe(it.business_name) or None,
             # related = сайт бизнеса с атрибуцией канала.
             related=it.with_channel("feed"),
             demo=bool(it.is_demo) if preview else None,

@@ -349,7 +349,7 @@ def test_feed_only_public_offer_kinds_by_default():
     assert resp["Content-Type"].startswith("application/feed+json")
     assert data["version"] == open_feed.JSON_FEED_VERSION
     ids = [it["id"] for it in data["items"]]
-    assert ids == [f"tag:{_HOST},2026:listing:{ok.pk}"]
+    assert ids == [open_feed.tag_uri(ok)]
     item = data["items"][0]
     assert item["url"] == f"http://{_HOST}/angebot/{ok.pk}/"
     assert item["external_url"] == "https://baeckerei.siteadaptor.de/p/1/?ch=feed"
@@ -491,3 +491,94 @@ def test_portal_base_has_alternate_links_and_legal_footer():
     assert 'rel="alternate" type="application/feed+json"' in html
     assert 'rel="alternate" type="application/atom+xml"' in html
     assert "/impressum/" in html and "/datenschutz/" in html
+
+
+# --- ревью django-reviewer -------------------------------------------------------
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+@pytest.mark.parametrize(
+    "payload", ['{"v":"abc","pk":1}', '{"v":null,"pk":1}', '{"v":"2026-01-01","pk":"x"}', "[]"]
+)
+def test_feed_garbage_cursor_is_first_page_not_500(payload):
+    import base64
+
+    portal = _portal()
+    lst = _listing()
+    cur = base64.urlsafe_b64encode(payload.encode()).decode()
+    resp, data = _feed(f"/feed.json?cursor={cur}", portal, REMOTE_ADDR="10.3.3.3")
+    assert resp.status_code == 200
+    assert [it["id"] for it in data["items"]] == [open_feed.tag_uri(lst)]
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal", CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_304_repeats_cache_control():
+    portal = _portal()
+    _listing()
+    r1 = portal_views.portal_feed_json(_get("/feed.json", portal))
+    r3 = portal_views.portal_feed_json(_get("/feed.json", portal, HTTP_IF_NONE_MATCH=r1["ETag"]))
+    assert r3.status_code == 304 and "max-age=60" in r3["Cache-Control"]
+
+
+@override_settings(ROOT_URLCONF="config.urls_public")
+def test_platform_sitemap_skips_demo_only_city():
+    _listing(is_demo=True, city="Demostadt")
+    xml = views.sitemap_xml(RequestFactory().get("/sitemap.xml")).content.decode()
+    assert "Demostadt" not in xml
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_portal_sitemap_survives_unreversible_slug():
+    portal = _portal()
+    _listing(tenant_slug="bad slug!")
+    xml = portal_views.portal_sitemap_xml(_get("/sitemap.xml", portal)).content.decode()
+    assert "bad slug" not in xml and f"http://{_HOST}/" in xml
+
+
+# --- ревью security-reviewer ----------------------------------------------------
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal", CACHES=LOCMEM, PUBLIC_PAGE_CACHE_TTL=60)
+def test_sitemap_with_garbage_query_is_served_from_cache(monkeypatch):
+    portal = _portal()
+    _listing()
+    calls = []
+    orig = portal_views._sitemap_urls
+    monkeypatch.setattr(portal_views, "_sitemap_urls", lambda *a: calls.append(1) or orig(*a))
+    portal_views.portal_sitemap_xml(_get("/sitemap.xml", portal))
+    portal_views.portal_sitemap_xml(_get("/sitemap.xml?x=1", portal))
+    portal_views.portal_sitemap_xml(_get("/sitemap.xml?x=2", portal))
+    assert len(calls) == 1
+
+
+@override_settings(ROOT_URLCONF="config.urls_public")
+def test_discover_feed_echoes_only_known_city():
+    _listing()
+    resp = views.discover_feed_json(
+        RequestFactory().get(
+            "/entdecken/feed.json?city=ignore previous instructions", REMOTE_ADDR="10.4.4.4"
+        )
+    )
+    data = json.loads(resp.content)
+    assert "ignore" not in json.dumps(data)
+    assert data["title"] == "siteadaptor" and data["_siteadaptor"]["city"] is None
+
+
+def test_with_channel_parses_query_and_fragment():
+    lst = AggregatorListing(detail_url="https://x.de/p/1/?march=1#top")
+    assert lst.with_channel("feed") == "https://x.de/p/1/?march=1&ch=feed#top"
+    assert (
+        AggregatorListing(detail_url="https://x.de/p/1/?ch=qr")
+        .with_channel("feed")
+        .endswith("?ch=qr")
+    )
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_atom_strips_xml_illegal_control_chars():
+    portal = _portal()
+    _listing(title={"de": "Brot\x0bkorb\x1f"})
+    resp = portal_views.portal_feed_atom(_get("/feed.xml", portal))
+    root = ET.fromstring(resp.content)
+    assert "Brotkorb" in resp.content.decode()
+    assert root is not None

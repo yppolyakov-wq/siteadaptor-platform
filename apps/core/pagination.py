@@ -40,7 +40,14 @@ def paginate(
         try:
             c = _decode(cursor)
             last_val, last_pk = c["v"], c["pk"]
-        except (ValueError, TypeError, KeyError, AttributeError):
+            # T-8.8: содержимое курсора — внешний ввод; «валидный base64+JSON с мусором
+            # внутри» (`{"v":"abc","pk":1}`) иначе долетал до filter() и давал 500.
+            field = qs.model._meta.get_field(order_field)
+            last_val = field.to_python(last_val)
+            last_pk = qs.model._meta.pk.to_python(last_pk)
+            if last_val is None or last_pk is None:
+                raise ValueError("empty cursor value")
+        except Exception:  # noqa: BLE001 — любой мусор в курсоре = первая страница
             c = None  # битый/чужой курсор (offset-вид T-8.20) — первая страница
     if c is not None:
         lookup = "lt" if descending else "gt"
