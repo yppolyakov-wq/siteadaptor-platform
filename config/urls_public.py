@@ -8,6 +8,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 
+from apps.aggregator import follow_views as aggregator_follow_views
 from apps.aggregator import reports as aggregator_reports
 from apps.aggregator import reviews_views as aggregator_reviews_views
 from apps.aggregator import views as aggregator_views
@@ -81,18 +82,36 @@ urlpatterns = [
     path("entdecken/feed.json", aggregator_views.discover_feed_json, name="aggregator-feed-json"),
     path("entdecken/feed.xml", aggregator_views.discover_feed_atom, name="aggregator-feed-atom"),
     path("entdecken/melden/<int:pk>/", aggregator_reports.report_listing, name="aggregator-report"),
-    path("entdecken/<str:city>/", aggregator_views.city_listing, name="aggregator-city"),
-    path(
-        "entdecken/<str:city>/<str:business_type>/",
-        aggregator_views.city_listing,
-        name="aggregator-city-type",
-    ),
-    # A8/E-2: страница бизнеса (отзывы read-only) и на главном домене — тот же
+    # A8/E-2 (T-8.7: перенесено ВЫШЕ catch-all <city>/<business_type> — иначе
+    # «unternehmen» резолвился как город): страница бизнеса (отзывы read-only) и на главном домене — тот же
     # name, что на портальных хостах, чтобы {% url 'portal-business' %} работал везде.
     path(
         "entdecken/unternehmen/<slug:slug>/",
         aggregator_reviews_views.business_page,
         name="portal-business",
+    ),
+    # T-8.7 «Folgen» на основном домене (имена общие с urls_portal).
+    path("entdecken/folgen/", aggregator_follow_views.follow_page, name="aggregator-follow"),
+    path(
+        "entdecken/folgen/bestaetigen/<str:token>/",
+        aggregator_follow_views.follow_confirm,
+        name="aggregator-follow-confirm",
+    ),
+    path(
+        "entdecken/folgen/verwalten/<str:token>/",
+        aggregator_follow_views.follow_manage,
+        name="aggregator-follow-manage",
+    ),
+    path(
+        "entdecken/folgen/abmelden/<str:token>/",
+        aggregator_follow_views.follow_unsubscribe,
+        name="aggregator-follow-unsubscribe",
+    ),
+    path("entdecken/<str:city>/", aggregator_views.city_listing, name="aggregator-city"),
+    path(
+        "entdecken/<str:city>/<str:business_type>/",
+        aggregator_views.city_listing,
+        name="aggregator-city-type",
     ),
     # Local SEO (Track B5): sitemap + robots основного домена.
     path("sitemap.xml", aggregator_views.sitemap_xml, name="aggregator-sitemap"),

@@ -1,0 +1,29 @@
+{% load i18n %}{% comment %}T-8.7: строки подписок — общие для /konto/ и страницы управления по токену. Ожидает rows=[{sub,label,frequencies}], action_url.{% endcomment %}
+{% if rows %}
+<ul class="mt-4 divide-y divide-gray-100 rounded-2xl bg-white border border-gray-200" data-follow-rows>
+  {% for r in rows %}
+  <li class="flex flex-wrap items-center gap-3 px-4 py-3" data-follow-row="{{ r.sub.target_kind }}:{{ r.sub.target_key }}">
+    <span class="flex-1 text-sm font-medium min-w-[10rem]">{{ r.label }}</span>
+    <form method="post" action="{{ action_url }}" class="flex items-center gap-2">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="frequency">
+      <input type="hidden" name="sub" value="{{ r.sub.token }}">
+      {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+      <select name="frequency" class="rounded-lg border border-gray-300 bg-white px-2 py-1 text-sm" onchange="this.form.requestSubmit()">
+        {% for key, label in r.frequencies %}<option value="{{ key }}"{% if r.sub.frequency == key %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+      <noscript><button type="submit" class="text-xs underline">{% trans "Speichern" %}</button></noscript>
+    </form>
+    <form method="post" action="{{ action_url }}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="remove">
+      <input type="hidden" name="sub" value="{{ r.sub.token }}">
+      {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+      <button type="submit" class="text-sm text-gray-400 hover:text-red-600" aria-label="{% trans "Nicht mehr folgen" %}">✕</button>
+    </form>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="mt-4 text-sm text-gray-400">{% trans "Sie folgen noch niemandem. Tippen Sie auf „Folgen“ bei einem Unternehmen, Bereich oder Stadtteil." %}</p>
+{% endif %}

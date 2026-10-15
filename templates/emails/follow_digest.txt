@@ -1,0 +1,14 @@
+{% load i18n %}{% autoescape off %}{% trans "Guten Tag," %}
+
+{% trans "das gibt es Neues bei Ihren Abonnements:" %}
+{% for s in sections %}
+== {{ s.title }} =={% for item in s.items %}
+- {{ item.title_text }}{% if item.business_name and s.sub.target_kind != "business" %} · {{ item.business_name }}{% endif %}{% if item.new_price %} · {{ item.new_price }} €{% endif %}
+  {{ item.digest_url }}{% endfor %}
+{% if s.total > s.items|length %}{% blocktrans with n=s.total %}Alle anzeigen ({{ n }}){% endblocktrans %}: {{ s.more_url }}{% else %}{% trans "Alle anzeigen" %}: {{ s.more_url }}{% endif %}
+{% trans "Nicht mehr folgen" %}: {{ s.unsubscribe_url }}
+{% endfor %}
+--
+{% trans "Abonnements verwalten" %}: {{ manage_url }}
+{% trans "Alle Abonnements beenden" %}: {{ unsubscribe_url }}
+{% endautoescape %}

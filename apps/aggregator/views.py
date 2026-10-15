@@ -677,7 +677,12 @@ def sitemap_xml(request):
 
 
 #: T-8.8 (Р-6): технические GET-пути основного домена — не для индексации.
-PLATFORM_DISALLOW = ("/entdecken/klick/", "/entdecken/melden/", "/entdecken/merkliste/")
+PLATFORM_DISALLOW = (
+    "/entdecken/klick/",
+    "/entdecken/melden/",
+    "/entdecken/merkliste/",
+    "/entdecken/folgen/",
+)
 
 
 @static_resource

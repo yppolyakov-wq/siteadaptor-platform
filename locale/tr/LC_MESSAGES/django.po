@@ -24506,3 +24506,160 @@ msgid ""
 msgstr ""
 "Reklam kayıtları akışta `sponsored` olarak işaretlenir ve sıralamada öne "
 "çıkarılmaz."
+
+#, python-format
+msgid "%(kind)s: %(name)s"
+msgstr "%(kind)s: %(name)s"
+
+msgid "Abgemeldet"
+msgstr "Abonelik iptal edildi"
+
+msgid "Abmelden"
+msgstr "Abonelikten çık"
+
+msgid "Abonnement bestätigen"
+msgstr "Aboneliği onayla"
+
+msgid "Abonnements verwalten"
+msgstr "Abonelikleri yönet"
+
+msgid "Alle Abonnements beenden?"
+msgstr "Tüm abonelikler sonlandırılsın mı?"
+
+#, python-format
+msgid "Alle anzeigen (%(n)s)"
+msgstr "Tümünü göster (%(n)s)"
+
+msgid "Allen nicht mehr folgen"
+msgstr "Tümünü takipten çık"
+
+msgid "Bestätigungslink senden"
+msgstr "Onay bağlantısı gönder"
+
+msgid "Bitte Posteingang prüfen"
+msgstr "Lütfen gelen kutunuzu kontrol edin"
+
+msgid "Bitte bestätigen Sie Ihr Abonnement"
+msgstr "Lütfen aboneliğinizi onaylayın"
+
+msgid "Bitte fordern Sie einen neuen Bestätigungslink an."
+msgstr "Lütfen yeni bir onay bağlantısı isteyin."
+
+msgid "Dieses Abonnement wurde beendet."
+msgstr "Bu abonelik sonlandırıldı."
+
+msgid ""
+"Falls die Adresse gültig ist, haben wir einen Bestätigungslink gesendet. Er "
+"ist 7 Tage gültig."
+msgstr "Adres geçerliyse bir onay bağlantısı gönderdik. 7 gün geçerlidir."
+
+msgid "Folgen"
+msgstr "Takip et"
+
+msgid "Ich folge"
+msgstr "Takip ettiklerim"
+
+msgid "Ja, ich möchte folgen"
+msgstr "Evet, takip etmek istiyorum"
+
+msgid "Link ungültig oder abgelaufen"
+msgstr "Bağlantı geçersiz veya süresi dolmuş"
+
+msgid "Meine Abonnements"
+msgstr "Aboneliklerim"
+
+msgid ""
+"Neue Aktionen in diesem Bereich — als E-Mail-Übersicht. Keine Werbung "
+"Dritter."
+msgstr ""
+"Bu bölümdeki yeni kampanyalar — e-posta özeti olarak. Üçüncü taraf reklamı "
+"yok."
+
+msgid ""
+"Neue Aktionen, Produkte und Termine dieses Unternehmens — als E-Mail-"
+"Übersicht."
+msgstr ""
+"Bu işletmenin yeni kampanyaları, ürünleri ve tarihleri — e-posta özeti "
+"olarak."
+
+msgid ""
+"Neuigkeiten von Unternehmen, Bereichen und Stadtteilen als E-Mail-Übersicht "
+"— unabhängig von den Werbe-E-Mails der Unternehmen oben."
+msgstr ""
+"İşletmelerden, bölümlerden ve semtlerden haberler e-posta özeti olarak — "
+"yukarıdaki işletme reklam e-postalarından bağımsız."
+
+msgid "Nicht mehr folgen"
+msgstr "Takipten çık"
+
+msgid "Nichts passiert, bis Sie den Knopf drücken."
+msgstr "Düğmeye basana kadar hiçbir şey olmaz."
+
+msgid "Sie erhalten keine Übersichten mehr."
+msgstr "Artık özet almayacaksınız."
+
+msgid "Sie folgen"
+msgstr "Takip ediyorsunuz"
+
+msgid "Sie folgen bereits."
+msgstr "Zaten takip ediyorsunuz."
+
+msgid "Sie folgen jetzt"
+msgstr "Artık takip ediyorsunuz"
+
+msgid ""
+"Sie folgen noch niemandem. Tippen Sie auf „Folgen“ bei einem Unternehmen, "
+"Bereich oder Stadtteil."
+msgstr ""
+"Henüz kimseyi takip etmiyorsunuz. Bir işletmede, bölümde veya semtte “Takip "
+"et”e dokunun."
+
+msgid ""
+"Sobald es Neues gibt, bekommen Sie eine Übersicht per E-Mail. Jede E-Mail "
+"enthält einen Abmeldelink."
+msgstr ""
+"Yeni bir şey olduğunda e-posta ile özet alırsınız. Her e-postada abonelikten"
+" çıkma bağlantısı bulunur."
+
+msgid "Sofort"
+msgstr "Hemen"
+
+msgid "Täglich um 8 Uhr oder montags — nur, wenn es etwas Neues gibt."
+msgstr "Her gün saat 8’de veya pazartesileri — yalnızca yeni bir şey varsa."
+
+msgid "Verwalten"
+msgstr "Yönet"
+
+msgid "Wie oft?"
+msgstr "Ne sıklıkla?"
+
+msgid ""
+"Wir senden Ihnen einen Bestätigungslink. Erst nach dem Klick ist das "
+"Abonnement aktiv (Double-Opt-In). Abmeldung jederzeit mit einem Klick in "
+"jeder E-Mail."
+msgstr ""
+"Size bir onay bağlantısı göndereceğiz. Abonelik ancak tıkladıktan sonra "
+"etkinleşir (çift onay). Her e-postada tek tıkla abonelikten çıkabilirsiniz."
+
+msgid "das gibt es Neues bei Ihren Abonnements:"
+msgstr "aboneliklerinizdeki yenilikler:"
+
+#, python-format
+msgid ""
+"Guten Tag,\n"
+"\n"
+"mit diesem Link bestätigen Sie, dass Sie Neuigkeiten erhalten möchten: %(url)s\n"
+"\n"
+"Der Link ist 7 Tage gültig. Falls Sie nichts abonniert haben, ignorieren Sie diese E-Mail — es wird nichts gespeichert."
+msgstr ""
+"Merhaba,\n"
+"\n"
+"bu bağlantıyla haber almak istediğinizi onaylıyorsunuz: %(url)s\n"
+"\n"
+"Bağlantı 7 gün geçerlidir. Abone olmadıysanız bu e-postayı yok sayın — hiçbir şey kaydedilmez."
+
+#, python-format
+msgid "Neues bei %(portal_name)s: 1 Abonnement"
+msgid_plural "Neues bei %(portal_name)s: %(n)s Abonnements"
+msgstr[0] "%(portal_name)s’de yenilikler: 1 abonelik"
+msgstr[1] "%(portal_name)s’de yenilikler: %(n)s abonelik"

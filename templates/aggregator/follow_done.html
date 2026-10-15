@@ -1,0 +1,11 @@
+{% extends base_template %}
+{% load i18n %}
+{% block title %}{% trans "Sie folgen jetzt" %}{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto bg-white rounded-2xl shadow-sm p-6 md:p-8 text-center" data-follow-done>
+  <div class="text-4xl mb-3">🔔</div>
+  <h1 class="text-2xl font-bold mb-2">{% trans "Sie folgen jetzt" %}: {{ target.label }}</h1>
+  <p class="text-sm text-gray-500">{% trans "Sobald es Neues gibt, bekommen Sie eine Übersicht per E-Mail. Jede E-Mail enthält einen Abmeldelink." %}</p>
+  <a href="{% if home_url %}{{ home_url }}{% else %}{{ back_url }}{% endif %}" class="mt-4 inline-block text-sm text-gray-500 hover:underline">← {% trans "Zurück" %}</a>
+</div>
+{% endblock %}

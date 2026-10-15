@@ -24378,3 +24378,162 @@ msgid ""
 msgstr ""
 "Advertising entries are marked `sponsored` in the feed and are not ranked "
 "higher."
+
+#, python-format
+msgid "%(kind)s: %(name)s"
+msgstr "%(kind)s: %(name)s"
+
+msgid "Abgemeldet"
+msgstr "Unsubscribed"
+
+msgid "Abmelden"
+msgstr "Unsubscribe"
+
+msgid "Abonnement bestätigen"
+msgstr "Confirm subscription"
+
+msgid "Abonnements verwalten"
+msgstr "Manage subscriptions"
+
+msgid "Alle Abonnements beenden?"
+msgstr "End all subscriptions?"
+
+#, python-format
+msgid "Alle anzeigen (%(n)s)"
+msgstr "View all (%(n)s)"
+
+msgid "Allen nicht mehr folgen"
+msgstr "Unfollow all"
+
+msgid "Bestätigungslink senden"
+msgstr "Send confirmation link"
+
+msgid "Bitte Posteingang prüfen"
+msgstr "Please check your inbox"
+
+msgid "Bitte bestätigen Sie Ihr Abonnement"
+msgstr "Please confirm your subscription"
+
+msgid "Bitte fordern Sie einen neuen Bestätigungslink an."
+msgstr "Please request a new confirmation link."
+
+msgid "Dieses Abonnement wurde beendet."
+msgstr "This subscription has been ended."
+
+msgid ""
+"Falls die Adresse gültig ist, haben wir einen Bestätigungslink gesendet. Er "
+"ist 7 Tage gültig."
+msgstr ""
+"If the address is valid, we have sent a confirmation link. It is valid for 7"
+" days."
+
+msgid "Folgen"
+msgstr "Follow"
+
+msgid "Ich folge"
+msgstr "Following"
+
+msgid "Ja, ich möchte folgen"
+msgstr "Yes, I want to follow"
+
+msgid "Link ungültig oder abgelaufen"
+msgstr "Link invalid or expired"
+
+msgid "Meine Abonnements"
+msgstr "My subscriptions"
+
+msgid ""
+"Neue Aktionen in diesem Bereich — als E-Mail-Übersicht. Keine Werbung "
+"Dritter."
+msgstr ""
+"New offers in this section — as an e-mail digest. No third-party "
+"advertising."
+
+msgid ""
+"Neue Aktionen, Produkte und Termine dieses Unternehmens — als E-Mail-"
+"Übersicht."
+msgstr ""
+"New offers, products and dates from this business — as an e-mail digest."
+
+msgid ""
+"Neuigkeiten von Unternehmen, Bereichen und Stadtteilen als E-Mail-Übersicht "
+"— unabhängig von den Werbe-E-Mails der Unternehmen oben."
+msgstr ""
+"News from businesses, sections and districts as an e-mail digest — "
+"independent of the businesses' marketing e-mails above."
+
+msgid "Nicht mehr folgen"
+msgstr "Unfollow"
+
+msgid "Nichts passiert, bis Sie den Knopf drücken."
+msgstr "Nothing happens until you press the button."
+
+msgid "Sie erhalten keine Übersichten mehr."
+msgstr "You will no longer receive digests."
+
+msgid "Sie folgen"
+msgstr "Following"
+
+msgid "Sie folgen bereits."
+msgstr "You are already following."
+
+msgid "Sie folgen jetzt"
+msgstr "You are now following"
+
+msgid ""
+"Sie folgen noch niemandem. Tippen Sie auf „Folgen“ bei einem Unternehmen, "
+"Bereich oder Stadtteil."
+msgstr ""
+"You are not following anyone yet. Tap “Follow” on a business, section or "
+"district."
+
+msgid ""
+"Sobald es Neues gibt, bekommen Sie eine Übersicht per E-Mail. Jede E-Mail "
+"enthält einen Abmeldelink."
+msgstr ""
+"As soon as there is news, you will get a digest by e-mail. Every e-mail "
+"contains an unsubscribe link."
+
+msgid "Sofort"
+msgstr "Instantly"
+
+msgid "Täglich um 8 Uhr oder montags — nur, wenn es etwas Neues gibt."
+msgstr "Daily at 8 am or on Mondays — only when there is something new."
+
+msgid "Verwalten"
+msgstr "Manage"
+
+msgid "Wie oft?"
+msgstr "How often?"
+
+msgid ""
+"Wir senden Ihnen einen Bestätigungslink. Erst nach dem Klick ist das "
+"Abonnement aktiv (Double-Opt-In). Abmeldung jederzeit mit einem Klick in "
+"jeder E-Mail."
+msgstr ""
+"We will send you a confirmation link. The subscription becomes active only "
+"after you click it (double opt-in). Unsubscribe any time with one click in "
+"every e-mail."
+
+msgid "das gibt es Neues bei Ihren Abonnements:"
+msgstr "here is what’s new in your subscriptions:"
+
+#, python-format
+msgid ""
+"Guten Tag,\n"
+"\n"
+"mit diesem Link bestätigen Sie, dass Sie Neuigkeiten erhalten möchten: %(url)s\n"
+"\n"
+"Der Link ist 7 Tage gültig. Falls Sie nichts abonniert haben, ignorieren Sie diese E-Mail — es wird nichts gespeichert."
+msgstr ""
+"Hello,\n"
+"\n"
+"with this link you confirm that you want to receive news: %(url)s\n"
+"\n"
+"The link is valid for 7 days. If you did not subscribe, ignore this e-mail — nothing will be stored."
+
+#, python-format
+msgid "Neues bei %(portal_name)s: 1 Abonnement"
+msgid_plural "Neues bei %(portal_name)s: %(n)s Abonnements"
+msgstr[0] "What’s new at %(portal_name)s: 1 subscription"
+msgstr[1] "What’s new at %(portal_name)s: %(n)s subscriptions"

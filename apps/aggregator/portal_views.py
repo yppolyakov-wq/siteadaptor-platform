@@ -312,11 +312,22 @@ def portal_home(request, facet=None, district=None):
         if user
         else set()
     )
+    # T-8.7: «Folgen» на странице раздела (?kat=) и района — ссылка, не форма (кэш P0-1).
+    follow_target = None
+    if city_home:
+        from . import follow
+
+        if district:
+            follow_target = follow.parse_target({"stadtteil": district}, portal=portal)
+        elif len(filters.kats) == 1:
+            follow_target = follow.parse_target({"bereich": filters.kats[0]}, portal=portal)
     return render(
         request,
         "aggregator/portal_home.html",
         {
             "portal": portal,
+            "follow_target": follow_target,
+            "following": follow.is_following(user, follow_target) if follow_target else False,
             "page": page,
             "cards": cards,
             "hotel_portal": hotel_portal,  # H8b: показать форму поиска по датам
@@ -581,7 +592,7 @@ def portal_sitemap_xml(request):
 
 
 #: T-8.8 (Р-6): технические GET-пути портала — не для индексации. AI-краулеры открыты.
-PORTAL_DISALLOW = ("/klick/", "/melden/", "/konto/", "/tg/", "/sprache/")
+PORTAL_DISALLOW = ("/klick/", "/melden/", "/konto/", "/tg/", "/sprache/", "/folgen/")
 
 
 @static_resource

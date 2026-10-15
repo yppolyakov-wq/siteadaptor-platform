@@ -1,0 +1,42 @@
+{% extends base_template %}
+{% load i18n %}
+{% block title %}{% trans "Folgen" %}: {{ target.label }}{% endblock %}
+{% block content %}
+<div class="max-w-lg mx-auto px-4 py-8" data-follow-page>
+  <a href="{{ back_url }}" class="text-sm text-gray-500 hover:underline">← {% trans "Zurück" %}</a>
+  <h1 class="mt-2 text-xl font-bold">🔔 {% trans "Folgen" %}: {{ target.label }}</h1>
+  <p class="mt-1 text-sm text-gray-500">
+    {% if target.kind == "business" %}{% trans "Neue Aktionen, Produkte und Termine dieses Unternehmens — als E-Mail-Übersicht." %}{% else %}{% trans "Neue Aktionen in diesem Bereich — als E-Mail-Übersicht. Keine Werbung Dritter." %}{% endif %}
+  </p>
+  {% if following %}
+    <div class="mt-6 rounded-2xl bg-green-50 text-green-900 p-4 text-sm">✓ {% trans "Sie folgen bereits." %} <a href="{% url 'portal-account' %}#folgen" class="underline">{% trans "Verwalten" %}</a></div>
+  {% else %}
+  <form method="post" class="mt-6 space-y-4">
+    {% csrf_token %}
+    <input type="hidden" name="stamp" value="{{ form.stamp.value|default:'' }}">
+    <div class="hidden" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+    {% if not user %}
+    <label class="block text-sm font-medium">{% trans "E-Mail" %}
+      <input type="email" name="email" required autocomplete="email" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2">
+    </label>
+    {% else %}
+    <p class="text-sm text-gray-600">{{ user.email }}</p>
+    {% endif %}
+    <fieldset>
+      <legend class="text-sm font-medium">{% trans "Wie oft?" %}</legend>
+      <div class="mt-1 flex flex-wrap gap-2">
+        {% for key, label in frequencies %}
+        <label class="inline-flex items-center gap-1.5 rounded-full border border-gray-300 px-3 py-1.5 text-sm"><input type="radio" name="frequency" value="{{ key }}"{% if key == "daily" %} checked{% endif %}> {{ label }}</label>
+        {% endfor %}
+      </div>
+      <p class="mt-1 text-xs text-gray-500">{% trans "Täglich um 8 Uhr oder montags — nur, wenn es etwas Neues gibt." %}</p>
+    </fieldset>
+    <button type="submit" class="rounded-lg px-4 py-2 text-sm font-medium text-white" style="background: var(--portal-color, #4f46e5)">{% if user %}{% trans "Folgen" %}{% else %}{% trans "Bestätigungslink senden" %}{% endif %}</button>
+    {% if not user %}
+    <p class="text-xs text-gray-500">{% trans "Wir senden Ihnen einen Bestätigungslink. Erst nach dem Klick ist das Abonnement aktiv (Double-Opt-In). Abmeldung jederzeit mit einem Klick in jeder E-Mail." %}
+      {% if platform_legal.datenschutz %}<a href="{{ platform_legal.datenschutz }}" class="underline">{% trans "Datenschutz" %}</a>{% endif %}</p>
+    {% endif %}
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

@@ -181,6 +181,8 @@ class AggregatorListing(I18nMixin, models.Model):
             models.Index(fields=["business_type", "city"], name="agg_btype_city_idx"),
             models.Index(fields=["listing_kind", "is_active"], name="agg_kind_active_idx"),
             models.Index(fields=["category", "is_active"], name="agg_category_active_idx"),
+            # T-8.7: новинки одного бизнеса для подписок «Folgen».
+            models.Index(fields=["tenant_schema", "created_at"], name="agg_schema_created_idx"),
             GinIndex(fields=["search_vector"], name="agg_search_vector_gin"),
             # T-8.20: «часть слова» (LIKE) и опечатки (%>) — по trigram-индексу.
             GinIndex(
@@ -470,6 +472,10 @@ class PortalUser(models.Model):
     # apply_marketing_opt_out. Транзакционные письма (бронь) идут всегда.
     marketing_opt_out = models.BooleanField(default=False)
     last_login_at = models.DateTimeField(null=True, blank=True)
+    # T-8.7: язык писем портала (сводка «Folgen»); пусто → de. Язык ТЕНАНТА тут неверен.
+    locale = models.CharField(max_length=10, blank=True, default="")
+    # T-8.7: случайный токен управления всеми подписками (ссылка из письма без входа).
+    follow_token = models.CharField(max_length=64, unique=True, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -501,6 +507,99 @@ class FavoriteListing(models.Model):
 
     def __str__(self):
         return f"{self.user.email} → {self.listing_id}"
+
+
+class FollowSubscription(models.Model):
+    """T-8.7 «Folgen»: подписка жителя на бизнес / раздел справочника / район (SHARED).
+
+    Строка появляется ТОЛЬКО после подтверждения (Double-Opt-In, UWG §7): до клика по
+    ссылке из письма состояние живёт в подписанном токене, в БД ничего нет.
+    `confirmed_at` + `source_host` — доказательство согласия (Art. 7 DSGVO).
+    Не путать с биллинговой подпиской тенанта (`apps.billing`).
+    """
+
+    TARGET_BUSINESS = "business"
+    TARGET_SECTION = "section"
+    TARGET_DISTRICT = "district"
+    TARGETS = [
+        (TARGET_BUSINESS, _("Unternehmen")),
+        (TARGET_SECTION, _("Bereich")),
+        (TARGET_DISTRICT, _("Stadtteil")),
+    ]
+    FREQ_DAILY = "daily"
+    FREQ_WEEKLY = "weekly"
+    FREQ_INSTANT = "instant"
+    FREQUENCIES = [
+        (FREQ_DAILY, _("Täglich")),
+        (FREQ_WEEKLY, _("Wöchentlich")),
+        (FREQ_INSTANT, _("Sofort")),
+    ]
+    CHANNEL_EMAIL = "email"
+    CHANNEL_TELEGRAM = "telegram"  # Р-7: шов, канал не реализован
+    CHANNELS = [(CHANNEL_EMAIL, "E-Mail"), (CHANNEL_TELEGRAM, "Telegram")]
+
+    user = models.ForeignKey(PortalUser, on_delete=models.CASCADE, related_name="follows")
+    target_kind = models.CharField(max_length=20, choices=TARGETS)
+    # schema_name бизнеса | ключ раздела city_categories | slug района
+    target_key = models.CharField(max_length=100)
+    # Город области раздела/района (districts.city_label); у бизнеса пусто.
+    city = models.CharField(max_length=100, blank=True, default="")
+    portal = models.ForeignKey(
+        AggregatorPortal, on_delete=models.SET_NULL, null=True, blank=True, related_name="follows"
+    )
+    frequency = models.CharField(max_length=10, choices=FREQUENCIES, default=FREQ_DAILY)
+    channel = models.CharField(max_length=10, choices=CHANNELS, default=CHANNEL_EMAIL)
+    # Отписка от ЭТОЙ подписки одной ссылкой из письма.
+    token = models.CharField(max_length=64, unique=True)
+    confirmed_at = models.DateTimeField()
+    source_host = models.CharField(max_length=253, blank=True, default="")
+    last_sent_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "target_kind", "target_key", "city", "channel"],
+                name="follow_uniq",
+            ),
+            # «Sofort» — только у бизнеса (Р-3): раздел/район — всегда сводкой.
+            models.CheckConstraint(
+                condition=~models.Q(frequency="instant") | models.Q(target_kind="business"),
+                name="follow_instant_business_only",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["frequency", "channel"], name="follow_freq_idx"),
+            models.Index(fields=["target_kind", "target_key"], name="follow_target_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.user_id} → {self.target_kind}:{self.target_key}"
+
+
+class FollowDigest(models.Model):
+    """T-8.7: отправленная сводка (дедуп периода + ключи показанных элементов).
+
+    Строка вставляется ДО отправки: unique(user, period_key) — второй прогон того же
+    часа выходит по IntegrityError. `item_keys` («schema|kind|ref») закрывают повтор
+    после пересоздания листинга синком. Чистится beat'ом через retention.
+    """
+
+    user = models.ForeignKey(PortalUser, on_delete=models.CASCADE, related_name="follow_digests")
+    period_key = models.CharField(max_length=40)  # "d:2026-10-16" | "i:2026-10-16T08:15"
+    item_keys = models.JSONField(default=list, blank=True)
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["user", "period_key"], name="follow_digest_uniq"),
+        ]
+        indexes = [models.Index(fields=["sent_at"], name="follow_digest_sent_idx")]
+
+    def __str__(self):
+        return f"{self.user_id}:{self.period_key}"
 
 
 class BusinessReview(models.Model):

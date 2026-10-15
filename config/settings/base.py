@@ -257,6 +257,15 @@ AGGREGATOR_SEARCH = {
     "prefix_min_len": 3,  # последнее слово — ещё и как начало слова («brot» → «Brötchen»)
     "max_results": 240,  # 10 страниц по 24
 }
+# T-8.7 «Folgen»: подписки жителей портала и сводки (docs/t8-7-folgen-plan-2026-10-15.md).
+AGGREGATOR_FOLLOW = {
+    "daily_hour": 8,  # местное время (TIME_ZONE); beat раз в час, письмо — в первый прогон после
+    "items_per_follow": 5,
+    "quiet_hours": (21, 7),  # мгновенные письма копятся ночью
+    "doi_ttl_days": 7,
+    "digest_retention_days": 90,
+    "recent_sent_days": 30,  # уже показанный источник не повторяется (синк пересоздаёт строки)
+}
 # T-8.21: журнал поиска каталога города — агрегат по дням, без персональных данных,
 # только для платформы (админка public). Чистка — beat `purge-search-log`.
 AGGREGATOR_SEARCH_LOG = {
@@ -483,6 +492,20 @@ CELERY_BEAT_SCHEDULE = {
     "purge-search-log": {
         "task": "apps.aggregator.tasks.purge_search_log",
         "schedule": 86400.0,  # раз в сутки — журнал поиска старше SEARCH_LOG_RETENTION_DAYS (T-8.21)
+    },
+    # T-8.7 «Folgen»: сводки жителям портала — раз в час с гейтом 08:00 внутри (как
+    # owner-digests), мгновенные — раз в 15 минут (тихие часы внутри), чистка — раз в сутки.
+    "send-follow-digests": {
+        "task": "apps.aggregator.tasks.send_follow_digests",
+        "schedule": 3600.0,
+    },
+    "send-follow-instant": {
+        "task": "apps.aggregator.tasks.send_follow_instant",
+        "schedule": 900.0,
+    },
+    "purge-follow-digests": {
+        "task": "apps.aggregator.tasks.purge_follow_digests",
+        "schedule": 86400.0,
     },
     "purge-expired-documents": {
         "task": "apps.documents.tasks.purge_expired_documents",

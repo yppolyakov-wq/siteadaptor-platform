@@ -1,0 +1,25 @@
+{% extends "emails/base_email.html" %}
+{% load i18n %}
+{% block content %}
+<p style="margin:0 0 16px;">{% trans "Guten Tag," %}</p>
+<p style="margin:0 0 20px;">{% trans "das gibt es Neues bei Ihren Abonnements:" %}</p>
+{% for s in sections %}
+<h2 style="margin:24px 0 8px;font-size:17px;">{{ s.title }}</h2>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+  {% for item in s.items %}
+  <tr>
+    <td style="padding:8px 0;border-top:1px solid #f4f4f5;">
+      <a href="{{ item.digest_url }}" style="color:#18181b;font-weight:600;text-decoration:none;">{{ item.title_text }}</a>
+      <div style="font-size:13px;color:#71717a;">{% if s.sub.target_kind != "business" %}{{ item.business_name }}{% endif %}{% if item.new_price %} · {{ item.new_price }} €{% endif %}</div>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+<p style="margin:8px 0 0;font-size:14px;">
+  <a href="{{ s.more_url }}" style="color:#4f46e5;">{% if s.total > s.items|length %}{% blocktrans with n=s.total %}Alle anzeigen ({{ n }}){% endblocktrans %}{% else %}{% trans "Alle anzeigen" %}{% endif %} →</a>
+  <span style="color:#d4d4d8;"> · </span>
+  <a href="{{ s.unsubscribe_url }}" style="color:#a1a1aa;">{% trans "Nicht mehr folgen" %}</a>
+</p>
+{% endfor %}
+<p style="margin:32px 0 0;font-size:12px;color:#a1a1aa;"><a href="{{ manage_url }}" style="color:#a1a1aa;">{% trans "Abonnements verwalten" %}</a></p>
+{% endblock %}

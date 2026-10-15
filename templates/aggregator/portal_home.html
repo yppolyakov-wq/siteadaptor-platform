@@ -7,9 +7,12 @@
 {% block content %}
 <div class="mb-6">
   {% if facet or district %}<a href="{% url 'portal-home' %}" class="text-sm text-gray-500 hover:underline">← {{ portal.title_text }}</a>{% endif %}
-  <h1 class="text-2xl md:text-3xl font-bold mt-1">
-    {% if heading %}{{ heading }}{% else %}{{ portal.title_text }}{% endif %}
-  </h1>
+  <div class="flex flex-wrap items-center gap-3 mt-1">
+    <h1 class="text-2xl md:text-3xl font-bold">
+      {% if heading %}{{ heading }}{% else %}{{ portal.title_text }}{% endif %}
+    </h1>
+    {% include "aggregator/_follow_button.html" with next_url=request.get_full_path %}
+  </div>
   {% if district_label %}<p class="mt-1 text-gray-500">{% blocktrans with name=district_label city=portal.city %}Angebote in {{ name }}, {{ city }}{% endblocktrans %}</p>{% endif %}
   {% if not facet and not district and portal.intro_text %}<p class="mt-2 text-gray-500 max-w-2xl">{{ portal.intro_text }}</p>{% endif %}
 </div>

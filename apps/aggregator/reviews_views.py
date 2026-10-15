@@ -53,11 +53,16 @@ def business_page(request, slug):
             tenant_schema=business.schema_name, status=BusinessReview.STATUS_PUBLISHED
         ).select_related("author")
     )
+    from . import follow
+
+    follow_target = follow.business_target(business)  # T-8.7: None у демо/скрытых
     return render(
         request,
         "aggregator/portal_business.html",
         {
             "portal": portal,
+            "follow_target": follow_target,
+            "following": follow.is_following(user, follow_target) if follow_target else False,
             "base_template": "aggregator/portal_base.html" if portal else "aggregator/_base.html",
             "business": business,
             "business_jsonld": business_jsonld,

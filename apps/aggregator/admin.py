@@ -21,8 +21,10 @@ from .models import (
     AggregatorListing,
     AggregatorPortal,
     BusinessReview,
+    FollowSubscription,
     ListingReport,
     PortalBot,
+    PortalUser,
     SearchQueryLog,
 )
 
@@ -298,6 +300,70 @@ class BusinessReviewAdmin(ModelAdmin):
         from .reviews import recompute_rating
 
         recompute_rating(obj.tenant_schema)
+
+
+@admin.register(PortalUser)
+class PortalUserAdmin(ModelAdmin):
+    """T-8.7: житель портала — поиск по e-mail, удаление по запросу (DSGVO):
+    каскадом уходят подписки «Folgen», сводки, избранное."""
+
+    list_display = (
+        "email",
+        "is_active",
+        "locale",
+        "marketing_opt_out",
+        "last_login_at",
+        "created_at",
+    )
+    search_fields = ("email",)
+    list_filter = ("is_active", "marketing_opt_out", "locale")
+    readonly_fields = ("email", "follow_token", "last_login_at", "created_at", "updated_at")
+    ordering = ("-created_at",)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_module_permission(self, request):
+        return bool(request.user.is_superuser)
+
+
+@admin.register(FollowSubscription)
+class FollowSubscriptionAdmin(ModelAdmin):
+    """T-8.7: подписки «Folgen» (только чтение/удаление — доказательство согласия)."""
+
+    list_display = (
+        "user",
+        "target_kind",
+        "target_key",
+        "city",
+        "frequency",
+        "channel",
+        "confirmed_at",
+        "last_sent_at",
+    )
+    search_fields = ("user__email", "target_key")
+    list_filter = ("target_kind", "frequency", "channel")
+    readonly_fields = (
+        "user",
+        "target_kind",
+        "target_key",
+        "city",
+        "portal",
+        "channel",
+        "token",
+        "confirmed_at",
+        "source_host",
+        "last_sent_at",
+        "created_at",
+        "updated_at",
+    )
+    ordering = ("-created_at",)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_module_permission(self, request):
+        return bool(request.user.is_superuser)
 
 
 @admin.register(AggregatorPortal)

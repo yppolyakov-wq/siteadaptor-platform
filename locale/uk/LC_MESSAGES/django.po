@@ -24596,3 +24596,162 @@ msgid ""
 "Reihenfolge nicht bevorzugt."
 msgstr ""
 "Рекламні записи позначені у фіді як `sponsored` і в порядку не підіймаються."
+
+#, python-format
+msgid "%(kind)s: %(name)s"
+msgstr "%(kind)s: %(name)s"
+
+msgid "Abgemeldet"
+msgstr "Ви відписані"
+
+msgid "Abmelden"
+msgstr "Відписатися"
+
+msgid "Abonnement bestätigen"
+msgstr "Підтвердити підписку"
+
+msgid "Abonnements verwalten"
+msgstr "Керувати підписками"
+
+msgid "Alle Abonnements beenden?"
+msgstr "Скасувати всі підписки?"
+
+#, python-format
+msgid "Alle anzeigen (%(n)s)"
+msgstr "Показати всі (%(n)s)"
+
+msgid "Allen nicht mehr folgen"
+msgstr "Відписатися від усього"
+
+msgid "Bestätigungslink senden"
+msgstr "Надіслати посилання для підтвердження"
+
+msgid "Bitte Posteingang prüfen"
+msgstr "Перевірте пошту"
+
+msgid "Bitte bestätigen Sie Ihr Abonnement"
+msgstr "Підтвердьте підписку"
+
+msgid "Bitte fordern Sie einen neuen Bestätigungslink an."
+msgstr "Запросіть нове посилання для підтвердження."
+
+msgid "Dieses Abonnement wurde beendet."
+msgstr "Цю підписку скасовано."
+
+msgid ""
+"Falls die Adresse gültig ist, haben wir einen Bestätigungslink gesendet. Er "
+"ist 7 Tage gültig."
+msgstr ""
+"Якщо адреса існує, ми надіслали посилання для підтвердження. Воно дійсне 7 "
+"днів."
+
+msgid "Folgen"
+msgstr "Підписатися"
+
+msgid "Ich folge"
+msgstr "Мої підписки"
+
+msgid "Ja, ich möchte folgen"
+msgstr "Так, підписатися"
+
+msgid "Link ungültig oder abgelaufen"
+msgstr "Посилання недійсне або застаріло"
+
+msgid "Meine Abonnements"
+msgstr "Мої підписки"
+
+msgid ""
+"Neue Aktionen in diesem Bereich — als E-Mail-Übersicht. Keine Werbung "
+"Dritter."
+msgstr ""
+"Нові акції в цьому розділі — зведенням на пошту. Без сторонньої реклами."
+
+msgid ""
+"Neue Aktionen, Produkte und Termine dieses Unternehmens — als E-Mail-"
+"Übersicht."
+msgstr "Нові акції, товари та події цього бізнесу — зведенням на пошту."
+
+msgid ""
+"Neuigkeiten von Unternehmen, Bereichen und Stadtteilen als E-Mail-Übersicht "
+"— unabhängig von den Werbe-E-Mails der Unternehmen oben."
+msgstr ""
+"Новини бізнесів, розділів і районів зведенням на пошту — незалежно від "
+"рекламних листів бізнесів вище."
+
+msgid "Nicht mehr folgen"
+msgstr "Відписатися"
+
+msgid "Nichts passiert, bis Sie den Knopf drücken."
+msgstr "Нічого не станеться, доки ви не натиснете кнопку."
+
+msgid "Sie erhalten keine Übersichten mehr."
+msgstr "Ви більше не отримуватимете зведення."
+
+msgid "Sie folgen"
+msgstr "Ви підписані"
+
+msgid "Sie folgen bereits."
+msgstr "Ви вже підписані."
+
+msgid "Sie folgen jetzt"
+msgstr "Ви підписалися"
+
+msgid ""
+"Sie folgen noch niemandem. Tippen Sie auf „Folgen“ bei einem Unternehmen, "
+"Bereich oder Stadtteil."
+msgstr ""
+"Ви поки ні на що не підписані. Натисніть «Підписатися» біля бізнесу, розділу"
+" або району."
+
+msgid ""
+"Sobald es Neues gibt, bekommen Sie eine Übersicht per E-Mail. Jede E-Mail "
+"enthält einen Abmeldelink."
+msgstr ""
+"Щойно з’явиться нове, ви отримаєте зведення на пошту. У кожному листі є "
+"посилання для відписки."
+
+msgid "Sofort"
+msgstr "Одразу"
+
+msgid "Täglich um 8 Uhr oder montags — nur, wenn es etwas Neues gibt."
+msgstr "Щодня о 8:00 або по понеділках — лише якщо є щось нове."
+
+msgid "Verwalten"
+msgstr "Керувати"
+
+msgid "Wie oft?"
+msgstr "Як часто?"
+
+msgid ""
+"Wir senden Ihnen einen Bestätigungslink. Erst nach dem Klick ist das "
+"Abonnement aktiv (Double-Opt-In). Abmeldung jederzeit mit einem Klick in "
+"jeder E-Mail."
+msgstr ""
+"Ми надішлемо вам посилання для підтвердження. Підписка активується лише "
+"після кліку (Double-Opt-In). Відписатися можна одним кліком у будь-якому "
+"листі."
+
+msgid "das gibt es Neues bei Ihren Abonnements:"
+msgstr "ось що нового за вашими підписками:"
+
+#, python-format
+msgid ""
+"Guten Tag,\n"
+"\n"
+"mit diesem Link bestätigen Sie, dass Sie Neuigkeiten erhalten möchten: %(url)s\n"
+"\n"
+"Der Link ist 7 Tage gültig. Falls Sie nichts abonniert haben, ignorieren Sie diese E-Mail — es wird nichts gespeichert."
+msgstr ""
+"Вітаємо,\n"
+"\n"
+"цим посиланням ви підтверджуєте, що хочете отримувати новини: %(url)s\n"
+"\n"
+"Посилання дійсне 7 днів. Якщо ви нічого не оформлювали, просто проігноруйте лист — нічого не зберігається."
+
+#, python-format
+msgid "Neues bei %(portal_name)s: 1 Abonnement"
+msgid_plural "Neues bei %(portal_name)s: %(n)s Abonnements"
+msgstr[0] "Нове на %(portal_name)s: %(n)s підписка"
+msgstr[1] "Нове на %(portal_name)s: %(n)s підписки"
+msgstr[2] "Нове на %(portal_name)s: %(n)s підписок"
+msgstr[3] "Нове на %(portal_name)s: %(n)s підписок"

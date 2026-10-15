@@ -9,7 +9,7 @@
 from django.conf import settings
 from django.urls import path
 
-from apps.aggregator import account_views, portal_views, reviews_views
+from apps.aggregator import account_views, follow_views, portal_views, reviews_views
 from apps.aggregator import reports as aggregator_reports
 from apps.aggregator import telegram_bot as portal_telegram
 from apps.aggregator import views as aggregator_views
@@ -43,6 +43,22 @@ urlpatterns = [
         account_views.notifications_toggle,
         name="portal-notifications-toggle",
     ),
+    # T-8.7 «Folgen»: подписки жителя (имена общие с urls_public — {% url %} везде).
+    path("folgen/", follow_views.follow_page, name="aggregator-follow"),
+    path(
+        "folgen/bestaetigen/<str:token>/",
+        follow_views.follow_confirm,
+        name="aggregator-follow-confirm",
+    ),
+    path(
+        "folgen/verwalten/<str:token>/", follow_views.follow_manage, name="aggregator-follow-manage"
+    ),
+    path(
+        "folgen/abmelden/<str:token>/",
+        follow_views.follow_unsubscribe,
+        name="aggregator-follow-unsubscribe",
+    ),
+    path("konto/folgen/", follow_views.follow_toggle, name="aggregator-follow-toggle"),
     # Страница бизнеса + отзывы (G8a). До <facet>: 2-сегментный путь, не коллизит.
     path("unternehmen/<slug:slug>/", reviews_views.business_page, name="portal-business"),
     path(

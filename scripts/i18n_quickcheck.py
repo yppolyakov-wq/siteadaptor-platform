@@ -16,6 +16,7 @@ X4: сканирование .py добавлено после того, как 
 
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 import sys
@@ -152,7 +153,7 @@ def main(argv: list[str]) -> int:
         return 0
     for loc, gap in missing.items():
         print(f"{loc}: нет в .po — {len(gap)}")
-        for s in gap[:20]:
+        for s in gap[: (len(gap) if os.environ.get("I18N_ALL") else 20)]:
             print(f"    {s}")
     return 1
 

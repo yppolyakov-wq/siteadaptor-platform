@@ -1210,3 +1210,67 @@ def purge_search_log():
     from . import search_log
 
     return search_log.purge()
+
+
+# --- T-8.7 «Folgen»: сводки жителям портала ------------------------------------------------
+
+
+@idempotent_task()
+def send_follow_digests():
+    """Beat раз в час: дневные/недельные сводки (гейт 08:00 местного времени внутри)."""
+    from . import follow_digest
+
+    return {"queued": follow_digest.run_daily()}
+
+
+@idempotent_task()
+def send_follow_digest_user(*, user_id):
+    """Сводка одному жителю (fan-out из send_follow_digests; dedupe_key = user+период)."""
+    from . import follow_digest
+    from .models import PortalUser
+
+    user = PortalUser.objects.filter(pk=user_id).first()
+    if user is None:
+        return {"sent": False}
+    return {"sent": follow_digest.digest_for_user(user)}
+
+
+@idempotent_task()
+def send_follow_instant():
+    """Beat раз в 15 минут: мгновенные подписки на бизнес (тихие часы внутри)."""
+    from . import follow_digest
+
+    return {"sent": follow_digest.run_instant()}
+
+
+@idempotent_task()
+def send_follow_confirm_email(*, email, url, locale):
+    """Письмо Double-Opt-In подписки «Folgen» (UWG §7) — без рекламы, на языке жителя."""
+    from django.conf import settings
+    from django.core.mail import send_mail
+    from django.utils import translation
+    from django.utils.translation import gettext as _
+
+    with translation.override(locale or "de"):
+        subject = _("Bitte bestätigen Sie Ihr Abonnement")
+        body = _(
+            "Guten Tag,\n\n"
+            "mit diesem Link bestätigen Sie, dass Sie Neuigkeiten erhalten möchten: %(url)s\n\n"
+            "Der Link ist 7 Tage gültig. Falls Sie nichts abonniert haben, "
+            "ignorieren Sie diese E-Mail — es wird nichts gespeichert."
+        ) % {"url": url}
+    send_mail(
+        subject=subject,
+        message=body,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[email],
+    )
+    return {"sent": email}
+
+
+@idempotent_task()
+def purge_follow_digests():
+    """Beat раз в сутки: отправленные сводки старше retention (DSGVO-минимизация)."""
+    from . import follow_digest
+
+    return follow_digest.purge()

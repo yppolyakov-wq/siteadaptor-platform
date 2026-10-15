@@ -81,8 +81,21 @@ def account(request):
         .filter(favorited_by__user=user)
         .order_by("-favorited_by__created_at")
     )
+    from . import follow
     from .account_services import reservations_for_email
 
+    follow_rows = [
+        {
+            "sub": sub,
+            "label": follow.describe(sub),
+            "frequencies": [
+                (k, label)
+                for k, label in sub.FREQUENCIES
+                if k != sub.FREQ_INSTANT or follow.target_from_follow(sub).allows_instant
+            ],
+        }
+        for sub in follow.user_follows(user)
+    ]
     return render(
         request,
         "aggregator/portal_account.html",
@@ -92,6 +105,7 @@ def account(request):
             "favorites": favorites,
             "fav_ids": {listing.pk for listing in favorites},
             "reservations": reservations_for_email(user.email),
+            "follow_rows": follow_rows,  # T-8.7
         },
     )
 
