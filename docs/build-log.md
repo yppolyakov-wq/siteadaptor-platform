@@ -17445,3 +17445,11 @@ refurbished»), `vor-ort-service` («Service vor Ort»). Форма (полна�
 ленты ведут на страницу предложения, оплаченные — по-прежнему счётчиком на сайт бизнеса.
 Замки `test_offer_page.py` (6); замок T-8.6 «карточка несёт ?ch=portal» переписан осознанно —
 атрибуция переехала на кнопку страницы. План `t8-24-portal-offer-page-plan-2026-10-11.md`.
+
+**2026-10-15 — подключение Everything Claude Code (ECC) к проекту (без кода приложения).**
+Плагин `ecc@ecc` (маркетплейс `affaan-m/ECC`) включён в `.claude/settings.json` проекта —
+подхватывается автоматически в каждой сессии, вкл. облачные; хуки ECC в профиле `minimal`
+(без gateguard/config-protection/format-typecheck на Stop), `ECC_SESSION_START_CONTEXT=off`.
+Правила `rules/common` + `rules/python` (коммит ECC `b92f181`) — копией в `.claude/rules/ecc/`
+с LICENSE; расхождения с проектом (black/isort, conventional commits, `gh`, 80 % coverage,
+FastAPI) сняты `.claude/rules/project-overrides.md`. Собственные хуки проекта не тронуты.
