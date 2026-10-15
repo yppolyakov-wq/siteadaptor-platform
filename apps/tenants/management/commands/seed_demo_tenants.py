@@ -62,7 +62,26 @@ KIT_GROUPS = {
     "shop": ("торговля и мода", lambda k: k.business_type in _SHOP),
     "services": ("услуги и ремесло", lambda k: k.business_type in _SERVICES),
     "travel": ("отель, события и туры", lambda k: k.business_type in _TRAVEL),
+    # DCC (2026-10-15): киты, собранные генератором demo_city, и по разделам справочника.
+    "solingen-dcc": ("Золинген, волна DCC (demo_city)", lambda k: k.origin == "city:solingen"),
 }
+
+
+def _dcc_section_groups() -> dict:
+    """`sg:<раздел>` → киты DCC этого раздела (ленивая сборка — реестр разделов из demo_city)."""
+    from apps.tenants.demo_city.solingen import SECTIONS
+
+    out = {}
+    for mod in SECTIONS:
+        keys = {b.key for b in mod.BUSINESSES}
+        out[f"sg:{mod.SECTION}"] = (
+            f"DCC: раздел {mod.SECTION}",
+            lambda k, keys=keys: k.key in keys,
+        )
+    return out
+
+
+KIT_GROUPS.update(_dcc_section_groups())
 
 
 def kits_for_group(name: str) -> list[str]:
@@ -193,7 +212,11 @@ class Command(BaseCommand):
         # T-8.18: лёгкие демо «Nur Aktionen» — городской портал на нашем субдомене
         # (превью для партнёров: show_demo=True, полоса «Vorschau» на портале).
         kit = demo_kits.KITS[key]
-        if kit.profile == "aktionen" and kit.city:
+        # DCC: портал города — для ЛЮБОГО кита города из реестра районов (раньше только
+        # лёгкие: `--group solingen-dcc` на чистом сервере остался бы без портала).
+        from apps.core import districts
+
+        if kit.city and districts.city_key(kit.city):
             self._ensure_city_portal(kit.city)
         host = (
             Domain.objects.filter(tenant=tenant, is_primary=True)

@@ -20,6 +20,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from apps.core import card_forms
+from apps.core import city_categories as cc
 
 from . import siteconfig
 
@@ -382,6 +383,9 @@ class DemoKit:
     city_categories: dict = field(default_factory=dict)
     # T-8.22: основная категория бизнеса в каталоге города (Tenant.city_category).
     business_city_category: str = ""
+    # DCC (2026-10-15): происхождение кита — "" у рукописных, "city:solingen" у собранных
+    # генератором `demo_city` (группы сидера, выборочные тесты).
+    origin: str = ""
 
 
 # Товар: dict {name, price, desc, img(keyword), variants?, allergens?, modifiers?,
@@ -24160,6 +24164,17 @@ KITS = {
 }
 
 
+def _city_kits() -> dict:
+    """DCC: киты, собранные из компактных спек `demo_city` (импорт здесь, в конце
+    модуля, — все имена выше уже определены, цикл импорта безопасен)."""
+    from .demo_city import city_kits
+
+    return city_kits()
+
+
+KITS.update(_city_kits())
+
+
 #: Бюджет ширины строки меню в пикселях. Контейнер шапки — `max-w-7xl`, и на меню
 #: приходится ~788 px на широком экране (замер 1280/1440/1920), но на 1024 px
 #: остаётся заметно меньше. Берём с запасом, чтобы `fitNav` не уводил хвост в
@@ -24637,6 +24652,14 @@ def apply_kit(tenant, key: str) -> bool:
         }
         if spec.get("percent"):
             fields["discount_percent"] = spec["percent"]
+        # DCC: категория/признаки акции в каталоге города (T-8.13a) — из спеки кита;
+        # без них признаки regional/handgemacht/… у демо были невыразимы.
+        if spec.get("city_category"):
+            fields["city_category"] = cc.normalize_category(spec["city_category"])
+        if spec.get("city_tags"):
+            fields["city_tags"] = cc.allowed_tags(
+                spec["city_tags"], fields.get("city_category") or ""
+            ) or cc.normalize_tags(spec["city_tags"])
         # UE2-2: стиль вывода скидки (showcase 7 стилей на aktionsmarkt).
         if spec.get("discount_style"):
             fields["discount_style"] = spec["discount_style"]

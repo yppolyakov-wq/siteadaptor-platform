@@ -93,7 +93,8 @@ SKIP_FILES = (
     # и файловый режим хука ругался на них при любой правке настроек.
     "config/settings/base.py",
 )
-SKIP_DIR_PARTS = ("/migrations/", "/tests/", "/node_modules/", "/.venv/")
+# DCC: спеки демо-бизнесов города — контент, переводится словарями demo_i18n_*.
+SKIP_DIR_PARTS = ("/migrations/", "/tests/", "/node_modules/", "/.venv/", "/demo_city/")
 
 TPL_ATTR = re.compile(r'\b(placeholder|title|aria-label|alt)="([^"{}]{3,160})"')
 TPL_TEXT = re.compile(r">\s*([^<>{}\n]{3,160}?)\s*<")

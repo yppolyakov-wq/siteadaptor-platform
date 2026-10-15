@@ -78,6 +78,19 @@ PROPER_NAMES = frozenset(
         "Jiri",
         "Phaplu",
         "Ringmo",
+        # DCC (Trattoria Lumetto): итальянские названия блюд — одинаковы на всех языках.
+        "Bruschetta al Pomodoro",
+        "Pizza Verdure",
+        "Gnocchi al Pesto",
+        "Risotto ai Funghi",
+        "Saltimbocca alla Romana",
+        "Panna Cotta",
+        # DCC: топонимы Золингена/Бергского края — на en/tr пишутся так же.
+        "Solingen",
+        "Solingen-Gräfrath",
+        "Bergisches Land",
+        "Espresso Klingenstadt, 250 g",
+        "Sencha Nebel, 100 g",
     }
 )
 

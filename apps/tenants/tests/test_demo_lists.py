@@ -13,6 +13,7 @@ import pytest
 from apps.core import list_blocks
 from apps.tenants import demo_kits, siteconfig
 from apps.tenants.tests.factories import TenantFactory
+from apps.tenants.tests.test_city_sample_seed import CITY_SAMPLE
 
 pytestmark = pytest.mark.django_db
 
@@ -37,7 +38,12 @@ def _list_rows(cfg):
     return out
 
 
-@pytest.mark.parametrize("key", sorted(demo_kits.KITS))
+# DCC: киты, собранные генератором (origin), сеются только образцами — иначе +80 вызовов
+# apply_kit в CI; полнота волны держится статическими замками test_city_specs.
+LIST_KITS = sorted(k for k, kit in demo_kits.KITS.items() if not kit.origin) + list(CITY_SAMPLE)
+
+
+@pytest.mark.parametrize("key", LIST_KITS)
 def test_every_list_of_the_kit_shows_something(key):
     tenant = TenantFactory(slug=f"lists-{key}", name="Lists")
     assert demo_kits.apply_kit(tenant, key) is True
