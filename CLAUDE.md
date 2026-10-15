@@ -3601,6 +3601,13 @@ build-log; планы — `hotel-growth-plan.md` / `hotel-channel-manager-plan.m
 (ключи/Price 39 €/Connect/webhook — `billing-stripe-setup.md`), инфра (отдельный
 Postgres, бэкапы, `SECRETS_ENCRYPTION_KEY`, SENTRY_DSN, RESEND_API_KEY), право DACH
 (AVV — `dsgvo-review.md`, прогон k6 — `scripts/load/README.md`).
+**⚠️ ВАЖНО (2026-10-15, T-8.20): при переезде на внешний/managed Postgres роль БД обязана
+иметь право `CREATE EXTENSION` (миграция `aggregator/0023` ставит `pg_trgm`; в проде сегодня
+это проходит только потому, что роль образа — суперпользователь). Без этого права
+`migrate` остановится на первой же миграции с расширением. У managed-провайдеров
+достаточно роли-владельца БД (`pg_trgm` — trusted с PG13); проверять ДО миграции:
+`SELECT * FROM pg_available_extensions WHERE name='pg_trgm'` + пробный
+`CREATE EXTENSION IF NOT EXISTS pg_trgm` на пустой копии.**
 
 **Stage 2/3 (после M20+архетипы):** P2.8 PWA/push/Wallet, M21 импорт Shopify/Woo,
 M23c платная реклама; затем Stage 3 (склад-леджер, маркетплейс-корзина, закупки,
@@ -3621,4 +3628,5 @@ Double-Opt-In по UWG §7 до маркетинговых рассылок, б�
 - Репозиторий: `yppolyakov-wq/siteadaptor-platform` (старый аккаунт adaptor2024
   приостановлен по ToS; история/ветки перенесены).
 - Перед боевым запуском: настроить Resend, вынести Postgres на отдельный сервер,
-  перегенерировать секреты.
+  перегенерировать секреты. **⚠️ При выносе Postgres — роль с правом `CREATE EXTENSION`
+  (нужен `pg_trgm` для поиска T-8.20; см. §7 Stage 0).**
