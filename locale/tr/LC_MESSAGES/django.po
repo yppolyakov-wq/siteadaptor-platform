@@ -24210,3 +24210,48 @@ msgstr "%(d)s tarihine kadar"
 
 msgid "Ähnliches in der Nähe"
 msgstr "Yakındaki benzerleri"
+
+#. T-8.19
+#, python-format
+msgid "Entdecke %(city)s"
+msgstr "%(city)s'i keşfet"
+
+#. T-8.19
+#, python-format
+msgid "Angebote, Produkte, Dienstleistungen und Unternehmen aus %(city)s"
+msgstr "%(city)s'den kampanyalar, ürünler, hizmetler ve işletmeler"
+
+#. T-8.19
+#, python-format
+msgid "Was suchen Sie in %(city)s?"
+msgstr "%(city)s'de ne arıyorsunuz?"
+
+#. T-8.19
+#, python-format
+msgid "Noch keine Angebote in %(city)s"
+msgstr "%(city)s'de henüz teklif yok"
+
+#. T-8.19
+msgid "Anzeigen"
+msgstr "Reklamlar"
+
+#. T-8.19
+msgid "Bereiche entdecken"
+msgstr "Kategorileri keşfet"
+
+#. T-8.19
+msgid "Essen & Trinken"
+msgstr "Yeme & içme"
+
+#. T-8.19
+msgid "Freizeit"
+msgstr "Boş zaman"
+
+#. T-8.19
+msgid "Lokale Unternehmen"
+msgstr "Yerel işletmeler"
+
+#. T-8.19
+#, python-format
+msgid "Produkte aus %(city)s"
+msgstr "%(city)s'den ürünler"

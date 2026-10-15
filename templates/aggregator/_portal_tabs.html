@@ -1,0 +1,9 @@
+{% load i18n %}{# T-8.19: вкладки видов — только с данными (portal_home_blocks.tabs). #}
+{% if tabs %}
+<nav data-portal-tabs aria-label="{% trans "Was suchen Sie?" %}" class="mb-6 flex gap-2 overflow-x-auto pb-1">
+  {% for t in tabs %}
+    <a href="{{ t.url }}" data-portal-tab="{{ t.key }}"{% if t.active %} aria-current="page"{% endif %}
+       class="shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium border {% if t.active %}text-white border-transparent{% else %}bg-white border-gray-200 text-gray-700 hover:border-gray-400{% endif %}"{% if t.active %} style="background: var(--portal-color)"{% endif %}>{{ t.label }}</a>
+  {% endfor %}
+</nav>
+{% endif %}

@@ -21,7 +21,7 @@ from apps.core.seo import collectionpage_ld
 from apps.tenants.models import Tenant
 
 from .models import AggregatorListing
-from .views import listings_for
+from .views import SEARCH_RATE_LIMIT, listings_for
 
 _BTYPE_LABELS = dict(Tenant.BUSINESS_TYPES)
 
@@ -117,6 +117,10 @@ def portal_home(request, facet=None, district=None):
     portal = getattr(request, "portal", None)
     if portal is None:  # urlconf портала без резолва хоста (прямой вызов)
         raise Http404
+    from . import portal_home_blocks
+
+    if portal_home_blocks.is_home_request(portal, facet, district, request):
+        return _render_home(request, portal)  # T-8.19: «Entdecke <город>»
     city = portal.city or None
     business_type = portal.business_type or None
     district_label = None
@@ -142,42 +146,55 @@ def portal_home(request, facet=None, district=None):
 
     # T-8.13a: категория/признак каталога города — параметрами, чипы по НЕфильтрованному пулу.
     from . import category_facets, geo
+    from . import portal_home_blocks as home
     from .views import split_featured
 
-    kat, tag = category_facets.selected(request)
-    # T-8.11: вид — лента предложений по умолчанию (акции/номера/события/меню), товары,
-    # услуги и предприятия — чипами `?kind=` (200 товаров одного магазина не должны
-    # вытеснять акции всех остальных; полная главная с блоками — T-8.19).
-    kind_param = (request.GET.get("kind") or "").strip()
-    kind = kind_param if kind_param in dict(AggregatorListing.KINDS) else ""
-    scope = {"kind": kind} if kind else {"kinds": AggregatorListing.OFFER_KINDS}
+    # T-8.19: строка поиска главной — ограничение частоты до любых выборок (как /entdecken/).
+    q = home.search_query(request)
+    if q:
+        from apps.core import ratelimit
+
+        if ratelimit.hit(
+            "portal-search",
+            ratelimit.client_ip(request),
+            limit=SEARCH_RATE_LIMIT,
+            window=60,
+        ):
+            return HttpResponse(_("Zu viele Anfragen — bitte kurz warten."), status=429)
+    scope = home.parse_scope(request)
+    kat, tag = scope.kat, scope.tag
+    # T-8.11/T-8.19: вид — лента предложений по умолчанию (акции/номера/события/меню);
+    # вкладки `?kind=` — группы (alle/angebote) или один вид. Поиск без вида — по всем
+    # видам: «Brot» обязан находить товары.
+    kind = scope.kind_key or ("alle" if q else "")
+    kinds = home.kinds_for(kind) or AggregatorListing.OFFER_KINDS
     whole_pool = listings_for(
         city=city,
         business_type=business_type,
         district=district,
+        q=q or None,
         include_demo=portal.show_demo,
     )
-    kind_chips = _kind_chips(whole_pool, request.path, kind)
-    base_pool = listings_for(
-        city=city,
-        business_type=business_type,
-        district=district,
-        include_demo=portal.show_demo,
-        **scope,
+    city_home = home.has_home(portal)
+    if city_home:  # T-8.19: вкладки главной вместо чипов видов
+        kind_chips = []
+        portal_tabs = home.tabs(home.presence(whole_pool), kind, request.path, q=q)
+    else:
+        kind_chips = _kind_chips(whole_pool, request.path, kind)
+        portal_tabs = []
+    base_pool = home.apply_scope(
+        whole_pool.filter(listing_kind__in=kinds),
+        home.FeedScope(new_only=scope.new_only),
     )
-    category_chips = category_facets.chips(base_pool, request.path, kat, tag, extra={"kind": kind})
+    category_chips = category_facets.chips(
+        base_pool,
+        request.path,
+        kat,
+        tag,
+        extra={"kind": scope.kind_key, "neu": "1" if scope.new_only else "", "q": q},
+    )
     pool = (
-        listings_for(
-            city=city,
-            business_type=business_type,
-            district=district,
-            city_category=kat,
-            city_tag=tag,
-            include_demo=portal.show_demo,
-            **scope,
-        )
-        if (kat or tag)
-        else base_pool
+        home.apply_scope(base_pool, home.FeedScope(kat=kat, tag=tag)) if (kat or tag) else base_pool
     )
     near_lat, near_lng = geo.parse_latlng(request)
     if near_lat is not None:  # G8c: «рядом» — ближайшие сверху, без пагинации
@@ -259,10 +276,22 @@ def portal_home(request, facet=None, district=None):
             "district_chips": district_chips,
             "category_chips": category_chips,  # T-8.13a
             "kind_chips": kind_chips,  # T-8.11
+            "portal_tabs": portal_tabs,  # T-8.19
+            "search_q": q,
             # «Weitere» несёт текущие фильтры (вид/категорию/признак), иначе вторая
             # страница показывала бы неотфильтрованную ленту.
             "page_carry": urlencode(
-                [(k, v) for k, v in (("kind", kind), ("kat", kat), ("merkmal", tag)) if v]
+                [
+                    (k, v)
+                    for k, v in (
+                        ("kind", scope.kind_key),
+                        ("kat", kat),
+                        ("merkmal", tag),
+                        ("neu", "1" if scope.new_only else ""),
+                        ("q", q),
+                    )
+                    if v
+                ]
             ),
             # T-8.15: портал показывает демо-бизнесы — честная полоса «Vorschau».
             "shows_demo": portal.show_demo and any(getattr(c, "is_demo", False) for c in cards),
@@ -274,6 +303,76 @@ def portal_home(request, facet=None, district=None):
             "fav_ids": fav_ids,
             "ld_collection": collectionpage_ld(
                 name=page_name,
+                url=canonical,
+                items=[(it.title_text, it.detail_url) for it in cards],
+            ),
+        },
+    )
+
+
+def _other_portals(request, portal) -> list[tuple[str, str]]:
+    from .models import AggregatorPortal
+
+    return [
+        (f"{request.scheme}://{p.host}/", p.title_text)
+        for p in AggregatorPortal.objects.filter(is_active=True).exclude(pk=portal.pk)[:12]
+    ]
+
+
+def _fav_ids(request) -> set:
+    from . import auth
+    from .models import FavoriteListing
+
+    user = auth.current_portal_user(request)
+    if not user:
+        return set()
+    return set(FavoriteListing.objects.filter(user=user).values_list("listing_id", flat=True))
+
+
+def _render_home(request, portal):
+    """T-8.19: «Entdecke <город>» — поиск, вкладки, плитки разделов, «Anzeigen», блоки.
+
+    Число запросов не зависит от объёма данных: presence (1), featured (≤2), блоки (по 1),
+    рейтинги (1), районы, «Branche», другие порталы. Корень без query кэшируется.
+    """
+    from . import portal_home_blocks as home
+    from . import reviews
+
+    base = listings_for(city=portal.city, include_demo=portal.show_demo)
+    present = home.presence(base)
+    featured = home.featured(base) if present["total"] else []
+    blocks = (
+        home.home_blocks(
+            base,
+            city=portal.city,
+            path=request.path,
+            exclude_pks={item.pk for item in featured},
+        )
+        if present["total"]
+        else []
+    )
+    cards = featured + [item for b in blocks for item in b["items"]]
+    reviews.attach_ratings(cards)
+    _axis, facets = _facet_choices(portal)
+    canonical = request.build_absolute_uri(request.path)
+    return render(
+        request,
+        "aggregator/portal_discover.html",
+        {
+            "portal": portal,
+            "portal_tabs": home.tabs(present, "alle", request.path),
+            "tiles": home.section_tiles(present, request.path),
+            "featured": featured,
+            "blocks": blocks,
+            "facets": facets,
+            "district_chips": _district_choices(portal),
+            "shows_demo": portal.show_demo and any(getattr(c, "is_demo", False) for c in cards),
+            "business_link": True,
+            "canonical": canonical,
+            "other_portals": _other_portals(request, portal),
+            "fav_ids": _fav_ids(request),
+            "ld_collection": collectionpage_ld(
+                name=portal.title_text,
                 url=canonical,
                 items=[(it.title_text, it.detail_url) for it in cards],
             ),

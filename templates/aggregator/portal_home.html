@@ -32,6 +32,8 @@
 </nav>
 {% endif %}
 
+{% include "aggregator/_portal_search.html" %}
+{% include "aggregator/_portal_tabs.html" with tabs=portal_tabs %}
 {% if kind_chips %}
 <nav class="mb-3 flex flex-wrap gap-2" aria-label="{% trans "Was suchen Sie?" %}" data-kind-chips>
   {% for c in kind_chips %}

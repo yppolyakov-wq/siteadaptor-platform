@@ -1,0 +1,15 @@
+{% load i18n %}{# T-8.19: плитки разделов справочника — только непустые. #}
+{% if tiles %}
+<section data-section-tiles class="mb-10" aria-labelledby="home-tiles">
+  <h2 id="home-tiles" class="text-lg font-semibold mb-3">{% trans "Bereiche entdecken" %}</h2>
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+    {% for t in tiles %}
+      <a href="{{ t.url }}" data-section-tile="{{ t.key }}" class="flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-3 py-2.5 hover:border-gray-400">
+        <span aria-hidden="true" class="text-xl">{{ t.icon }}</span>
+        <span class="min-w-0 flex-1 text-sm font-medium leading-tight">{{ t.label }}</span>
+        <span class="text-xs text-gray-400">{{ t.count }}</span>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

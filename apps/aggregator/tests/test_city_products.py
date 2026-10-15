@@ -211,11 +211,17 @@ def test_portal_feed_stays_offers_and_kind_chips_switch():
     )
     _listing("promotion", "Herbstrabatt")
     _listing("product", "Winterjacke", availability="sold_out")
+    # T-8.19: корень — главная с блоками; распроданное на главной не продвигаем,
+    # лента предложений — вкладка «Angebote», переключение видов — вкладки.
     req = RequestFactory().get("/")
     req.portal = portal
     html = portal_views.portal_home(req).content.decode()
     assert "Herbstrabatt" in html and "Winterjacke" not in html
-    assert 'data-kind-chip="product"' in html
+    assert 'data-portal-tab="product"' in html
+    req = RequestFactory().get("/?kind=angebote")
+    req.portal = portal
+    html = portal_views.portal_home(req).content.decode()
+    assert "Herbstrabatt" in html and "Winterjacke" not in html
     req = RequestFactory().get("/?kind=product")
     req.portal = portal
     html = portal_views.portal_home(req).content.decode()

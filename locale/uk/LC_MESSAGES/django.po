@@ -24303,3 +24303,48 @@ msgstr "до %(d)s"
 
 msgid "Ähnliches in der Nähe"
 msgstr "Схоже поруч"
+
+#. T-8.19
+#, python-format
+msgid "Entdecke %(city)s"
+msgstr "Відкрийте %(city)s"
+
+#. T-8.19
+#, python-format
+msgid "Angebote, Produkte, Dienstleistungen und Unternehmen aus %(city)s"
+msgstr "Акції, товари, послуги та компанії з міста %(city)s"
+
+#. T-8.19
+#, python-format
+msgid "Was suchen Sie in %(city)s?"
+msgstr "Що ви шукаєте в місті %(city)s?"
+
+#. T-8.19
+#, python-format
+msgid "Noch keine Angebote in %(city)s"
+msgstr "У місті %(city)s поки немає пропозицій"
+
+#. T-8.19
+msgid "Anzeigen"
+msgstr "Реклама"
+
+#. T-8.19
+msgid "Bereiche entdecken"
+msgstr "Розділи"
+
+#. T-8.19
+msgid "Essen & Trinken"
+msgstr "Їжа та напої"
+
+#. T-8.19
+msgid "Freizeit"
+msgstr "Дозвілля"
+
+#. T-8.19
+msgid "Lokale Unternehmen"
+msgstr "Місцеві компанії"
+
+#. T-8.19
+#, python-format
+msgid "Produkte aus %(city)s"
+msgstr "Товари з міста %(city)s"

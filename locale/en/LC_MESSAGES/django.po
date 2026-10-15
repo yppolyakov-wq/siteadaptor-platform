@@ -24085,3 +24085,48 @@ msgstr "until %(d)s"
 
 msgid "Ähnliches in der Nähe"
 msgstr "Similar nearby"
+
+#. T-8.19
+#, python-format
+msgid "Entdecke %(city)s"
+msgstr "Discover %(city)s"
+
+#. T-8.19
+#, python-format
+msgid "Angebote, Produkte, Dienstleistungen und Unternehmen aus %(city)s"
+msgstr "Offers, products, services and businesses from %(city)s"
+
+#. T-8.19
+#, python-format
+msgid "Was suchen Sie in %(city)s?"
+msgstr "What are you looking for in %(city)s?"
+
+#. T-8.19
+#, python-format
+msgid "Noch keine Angebote in %(city)s"
+msgstr "No offers in %(city)s yet"
+
+#. T-8.19
+msgid "Anzeigen"
+msgstr "Advertisements"
+
+#. T-8.19
+msgid "Bereiche entdecken"
+msgstr "Explore categories"
+
+#. T-8.19
+msgid "Essen & Trinken"
+msgstr "Food & drink"
+
+#. T-8.19
+msgid "Freizeit"
+msgstr "Leisure"
+
+#. T-8.19
+msgid "Lokale Unternehmen"
+msgstr "Local businesses"
+
+#. T-8.19
+#, python-format
+msgid "Produkte aus %(city)s"
+msgstr "Products from %(city)s"

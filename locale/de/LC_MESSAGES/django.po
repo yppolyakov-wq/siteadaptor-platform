@@ -24125,3 +24125,48 @@ msgstr "bis %(d)s"
 
 msgid "Ähnliches in der Nähe"
 msgstr "Ähnliches in der Nähe"
+
+#. T-8.19
+#, python-format
+msgid "Entdecke %(city)s"
+msgstr "Entdecke %(city)s"
+
+#. T-8.19
+#, python-format
+msgid "Angebote, Produkte, Dienstleistungen und Unternehmen aus %(city)s"
+msgstr "Angebote, Produkte, Dienstleistungen und Unternehmen aus %(city)s"
+
+#. T-8.19
+#, python-format
+msgid "Was suchen Sie in %(city)s?"
+msgstr "Was suchen Sie in %(city)s?"
+
+#. T-8.19
+#, python-format
+msgid "Noch keine Angebote in %(city)s"
+msgstr "Noch keine Angebote in %(city)s"
+
+#. T-8.19
+msgid "Anzeigen"
+msgstr "Anzeigen"
+
+#. T-8.19
+msgid "Bereiche entdecken"
+msgstr "Bereiche entdecken"
+
+#. T-8.19
+msgid "Essen & Trinken"
+msgstr "Essen & Trinken"
+
+#. T-8.19
+msgid "Freizeit"
+msgstr "Freizeit"
+
+#. T-8.19
+msgid "Lokale Unternehmen"
+msgstr "Lokale Unternehmen"
+
+#. T-8.19
+#, python-format
+msgid "Produkte aus %(city)s"
+msgstr "Produkte aus %(city)s"
