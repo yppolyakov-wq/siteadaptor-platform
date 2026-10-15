@@ -95,6 +95,9 @@ PROPER_NAMES = frozenset(
         "Pizza Vegana",
         "Penne Arrabbiata",
         "Affogato 3,90 €",
+        "SSD 1 TB NVMe",
+        "Monitor 27″ IPS",
+        "Smartwatch refurbished",
     }
 )
 
