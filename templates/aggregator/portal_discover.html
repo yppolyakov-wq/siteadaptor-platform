@@ -30,7 +30,7 @@
 {% for b in blocks %}
   {% include "aggregator/_home_block.html" with block=b %}
 {% empty %}
-  {% if not featured %}<p data-home-empty class="text-gray-400">{% blocktrans with city=portal.city %}Noch keine Angebote in {{ city }}{% endblocktrans %}</p>{% endif %}
+  {% if pool_empty %}<p data-home-empty class="text-gray-400">{% blocktrans with city=portal.city %}Noch keine Angebote in {{ city }}{% endblocktrans %}</p>{% endif %}
 {% endfor %}
 
 {% if district_chips %}

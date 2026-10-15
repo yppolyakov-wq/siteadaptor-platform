@@ -25,6 +25,9 @@ from .views import SEARCH_RATE_LIMIT, listings_for
 
 _BTYPE_LABELS = dict(Tenant.BUSINESS_TYPES)
 
+#: Некэшируемых рендеров портала (запросы с параметрами) на IP в минуту.
+FEED_RATE_LIMIT = 120
+
 
 def _free_axis(portal) -> str | None:
     """Свободная ось уточнения портала: 'business_type' | 'city' | None (combo)."""
@@ -119,6 +122,18 @@ def portal_home(request, facet=None, district=None):
         raise Http404
     from . import portal_home_blocks
 
+    # Запрос с параметрами идёт мимо кэша публичных страниц и рендерит выборки заново —
+    # общий лимит частоты на IP (мусорный `?x=` не должен бесплатно грузить БД).
+    if request.GET:
+        from apps.core import ratelimit
+
+        if ratelimit.hit(
+            "portal-feed",
+            ratelimit.client_ip(request),
+            limit=FEED_RATE_LIMIT,
+            window=60,
+        ):
+            return HttpResponse(_("Zu viele Anfragen — bitte kurz warten."), status=429)
     if portal_home_blocks.is_home_request(portal, facet, district, request):
         return _render_home(request, portal)  # T-8.19: «Entdecke <город>»
     city = portal.city or None
@@ -278,6 +293,7 @@ def portal_home(request, facet=None, district=None):
             "kind_chips": kind_chips,  # T-8.11
             "portal_tabs": portal_tabs,  # T-8.19
             "search_q": q,
+            "search_kind": scope.kind_key,
             # «Weitere» несёт текущие фильтры (вид/категорию/признак), иначе вторая
             # страница показывала бы неотфильтрованную ленту.
             "page_carry": urlencode(
@@ -340,7 +356,9 @@ def _render_home(request, portal):
 
     base = listings_for(city=portal.city, include_demo=portal.show_demo)
     present = home.presence(base)
-    featured = home.featured(base) if present["total"] else []
+    # Показы платных позиций считаем только на «чистом» корне (кэшируемый рендер):
+    # иначе боты с `?x=<мусор>` накручивали бы метрику, которую видят владельцы.
+    featured = home.featured(base, count_impressions=not request.GET) if present["total"] else []
     blocks = (
         home.home_blocks(
             base,
@@ -361,6 +379,7 @@ def _render_home(request, portal):
         {
             "portal": portal,
             "portal_tabs": home.tabs(present, "alle", request.path),
+            "pool_empty": not present["total"],
             "tiles": home.section_tiles(present, request.path),
             "featured": featured,
             "blocks": blocks,

@@ -96,17 +96,9 @@ def listings_for(
         qs = qs.filter(category__iexact=category)
     # T-8.13a: единая категория каталога города — раздел (все его категории) или
     # категория; признак (vegan/regional/…). Неизвестное значение фильтр не включает.
-    if city_category:
-        from apps.core import city_categories
+    from .models import apply_city_filters
 
-        keys = city_categories.keys_for_filter(city_category)
-        if keys:
-            qs = qs.filter(city_category__in=keys)
-    if city_tag:
-        from apps.core import city_categories
-
-        if city_categories.normalize_tags([city_tag]):
-            qs = qs.filter(city_tags__contains=[city_tag])
+    qs = apply_city_filters(qs, city_category, city_tag)
     if month and "-" in month:
         year, mon = month.split("-", 1)
         if year.isdigit() and mon.isdigit():
@@ -231,7 +223,7 @@ def _attach_open_status(cards):
     return cards
 
 
-def split_featured(qs, *, first_page: bool, limit: int = 6):
+def split_featured(qs, *, first_page: bool, limit: int = 6, count_impressions: bool = True):
     """(featured, остальная лента) — платное продвижение (P2.4a).
 
     Featured закреплены сверху ПЕРВОЙ страницы выдачи (с бейджем) и исключены
@@ -243,7 +235,7 @@ def split_featured(qs, *, first_page: bool, limit: int = 6):
     featured_qs = qs.filter(featured_until__gt=timezone.now()).order_by("featured_until", "pk")
     featured = list(featured_qs[:limit]) if first_page else []
     rest = qs.exclude(pk__in=featured_qs.values_list("pk", flat=True))
-    if featured:
+    if featured and count_impressions:
         # D2.3: показ featured-блока = импрессия (F-инкремент, без гонок).
         from django.db.models import F
 

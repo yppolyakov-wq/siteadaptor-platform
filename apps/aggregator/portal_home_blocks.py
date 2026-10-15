@@ -12,19 +12,19 @@ from dataclasses import dataclass
 from datetime import timedelta
 from urllib.parse import urlencode
 
-from django.db.models import Case, CharField, Count, F, IntegerField, Q, Value, When
-from django.db.models.functions import MD5, Cast, Concat
+from django.db.models import Case, CharField, Count, F, IntegerField, Q, Value, When, Window
+from django.db.models.functions import MD5, Cast, Concat, RowNumber
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import city_categories as cc
 
 from .models import AggregatorListing as L
+from .models import apply_city_filters
 from .tasks import NEW_PRODUCT_DAYS
 
 NEW_DAYS = NEW_PRODUCT_DAYS  # «Neu» = свежий листинг или бейдж «neu» товара
 BLOCK_LIMIT = 6  # полные ряды при сетке 2/3 колонки (урок DL-11)
-OVERFETCH = 4  # запас под лимит «карточек на бизнес» и дедупликацию между блоками
 FEATURED_LIMIT = 3
 # Параметры, превращающие корень портала в ленту. Посторонние (?ch=, ?utm_*) — нет:
 # ссылка из соцсети обязана открыть главную.
@@ -80,7 +80,6 @@ BLOCKS: tuple[Block, ...] = (
         _("Aktuelle Angebote"),
         FeedScope(kind_key="angebote"),
         "urgent",
-        exclude_kinds=(L.KIND_STAY,),
     ),
     Block(
         "produkte",
@@ -164,12 +163,7 @@ def apply_scope(qs, scope: FeedScope, *, now=None):
     kinds = kinds_for(scope.kind_key)
     if kinds is not None:
         qs = qs.filter(listing_kind__in=kinds)
-    if scope.kat:
-        keys = cc.keys_for_filter(scope.kat)
-        if keys:
-            qs = qs.filter(city_category__in=keys)
-    if scope.tag and cc.normalize_tags([scope.tag]):
-        qs = qs.filter(city_tags__contains=[scope.tag])
+    qs = apply_city_filters(qs, scope.kat, scope.tag)
     if scope.new_only:
         since = (now or timezone.now()) - timedelta(days=NEW_DAYS)
         qs = qs.filter(Q(is_new=True) | Q(created_at__gte=since))
@@ -184,7 +178,7 @@ def is_home_request(portal, facet, district, request) -> bool:
         and not portal.business_type
         and facet is None
         and district is None
-        and not (set(request.GET) & FEED_PARAMS)
+        and not any((request.GET.get(key) or "").strip() for key in FEED_PARAMS)
     )
 
 
@@ -246,7 +240,7 @@ def section_tiles(present: dict, path: str) -> list[dict]:
     ]
 
 
-def _order(key: str) -> list:
+def _order(key: str, now=None) -> list:
     if key == "urgent":  # срочное первым (О-4), затем сильная скидка
         return [
             F("ends_at").asc(nulls_last=True),
@@ -265,20 +259,42 @@ def _order(key: str) -> list:
             "-pk",
         ]
     if key == "upcoming":
-        return [F("starts_at").asc(nulls_last=True), "-created_at", "-pk"]
+        return [
+            Case(
+                When(starts_at__gte=now or timezone.now(), then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField(),
+            ),
+            F("starts_at").asc(nulls_last=True),
+            "-created_at",
+            "-pk",
+        ]
     if key == "daily_rotation":  # честно ко всем бизнесам, стабильно в пределах дня/кэша
         salt = Value(timezone.localdate().isoformat(), output_field=CharField())
         return [MD5(Concat(Cast("id", CharField()), salt, output_field=CharField())), "pk"]
     return ["-created_at", "-pk"]
 
 
-def featured(base_qs) -> list:
+def featured(base_qs, *, count_impressions: bool = True) -> list:
     """Полоса «Anzeigen» (UWG §5a): платные позиции отдельно от органических блоков."""
     from .views import split_featured
 
     pool = base_qs.filter(listing_kind__in=(*GROUPS["angebote"], L.KIND_PRODUCT, L.KIND_SERVICE))
-    items, _rest = split_featured(pool, first_page=True, limit=FEATURED_LIMIT)
+    items, _rest = split_featured(
+        pool, first_page=True, limit=FEATURED_LIMIT, count_impressions=count_impressions
+    )
     return items
+
+
+def _as_expressions(order: list) -> list:
+    """Строки order_by → выражения (Window.order_by не принимает «-поле»)."""
+    out = []
+    for term in order:
+        if isinstance(term, str):
+            out.append(F(term[1:]).desc() if term.startswith("-") else F(term).asc())
+        else:
+            out.append(term)
+    return out
 
 
 def home_blocks(base_qs, *, city: str, path: str, exclude_pks=(), now=None) -> list[dict]:
@@ -293,15 +309,15 @@ def home_blocks(base_qs, *, city: str, path: str, exclude_pks=(), now=None) -> l
             qs = qs.exclude(availability=L.AVAILABILITY_SOLD_OUT)
         if seen:
             qs = qs.exclude(pk__in=seen)
-        items, per_business = [], {}
-        for item in qs.order_by(*_order(block.order))[: BLOCK_LIMIT * OVERFETCH]:
-            used = per_business.get(item.tenant_schema, 0)
-            if used >= block.per_business:
-                continue
-            per_business[item.tenant_schema] = used + 1
-            items.append(item)
-            if len(items) >= BLOCK_LIMIT:
-                break
+        order = _order(block.order, now)
+        ranked = qs.annotate(
+            business_rank=Window(
+                RowNumber(),
+                partition_by=[F("tenant_schema")],
+                order_by=_as_expressions(order),
+            )
+        ).filter(business_rank__lte=block.per_business)
+        items = list(ranked.order_by(*order)[:BLOCK_LIMIT])
         if not items:
             continue
         seen.update(item.pk for item in items)

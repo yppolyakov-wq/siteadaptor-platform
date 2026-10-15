@@ -367,3 +367,88 @@ def test_ld_lists_block_cards():
     html = _html(_portal())
     assert '"@type": "CollectionPage"' in html or '"CollectionPage"' in html
     assert "Messer" in html.split("application/ld+json", 1)[1]
+
+
+# --- находки ревью (django-reviewer / security-reviewer) --------------------------------
+
+
+def test_one_big_business_does_not_starve_a_block():
+    """M1: лимит на бизнес — в SQL; 30 свежих товаров одного магазина не съедают блок."""
+    for i in range(5):
+        _listing("product", f"Andere {i}")
+    AggregatorListing.objects.update(created_at=timezone.now() - timedelta(days=3))
+    for i in range(30):
+        _listing("product", f"Masse {i}", schema="big")
+    blocks = {
+        b["key"]: b["items"]
+        for b in home.home_blocks(listings_for(city="Solingen"), city="Solingen", path="/")
+    }
+    produkte = blocks["produkte"]
+    assert len(produkte) == home.BLOCK_LIMIT
+    assert sum(1 for i in produkte if i.tenant_schema == "big") == 2
+
+
+def test_freizeit_puts_upcoming_before_running_promotions():
+    """M2: акция с началом в прошлом не вытесняет ближайшее событие."""
+    _listing(
+        "promotion",
+        "Laufende Aktion",
+        city_category="sport",
+        starts_at=timezone.now() - timedelta(days=7),
+    )
+    _listing("event", "Morgen", city_category="sport", starts_at=timezone.now() + timedelta(days=1))
+    base = listings_for(city="Solingen")
+    order = home._order("upcoming")
+    titles = [
+        i.title["de"] for i in home.apply_scope(base, home.FeedScope(kat="sport")).order_by(*order)
+    ]
+    assert titles == ["Morgen", "Laufende Aktion"]
+
+
+def test_stays_only_city_is_not_reported_empty():
+    """L1: номера попадают в «Aktuelle Angebote»; «Noch keine…» — только при пустом пуле."""
+    _listing("stay", "Doppelzimmer", city_category="hotels")
+    AggregatorListing.objects.update(created_at=timezone.now() - timedelta(days=30))
+    html = _html(_portal())
+    assert _blocks(html) == ["angebote"] and "data-home-empty" not in html
+
+
+@pytest.mark.parametrize("params", [{"q": ""}, {"kind": ""}, {"q": "  "}])
+def test_empty_feed_params_keep_home(params):
+    """L2: пустая форма поиска не уводит с главной на ленту."""
+    _listing("promotion", "Herbstrabatt")
+    assert "data-portal-home" in _html(_portal(), **params)
+
+
+def test_search_from_a_tab_keeps_the_tab():
+    """L3: поиск из вкладки «Produkte» ищет в товарах, а не во всём."""
+    _listing("product", "Messer")
+    _listing("promotion", "Herbstrabatt")
+    html = _html(_portal(), kind="product")
+    form = html.split("data-portal-search", 1)[1].split("</form>", 1)[0]
+    assert 'name="kind" value="product"' in form
+
+
+def test_junk_query_does_not_count_featured_impressions():
+    """Security: `/?x=<мусор>` идёт мимо кэша — показы платных позиций не накручиваем."""
+    paid = _listing("promotion", "Bezahlt", featured_until=timezone.now() + timedelta(days=3))
+    portal = _portal()
+    for i in range(3):
+        portal_views.portal_home(_get(portal, x=str(i)))
+    paid.refresh_from_db()
+    assert paid.featured_impressions == 0
+    portal_views.portal_home(_get(portal))
+    paid.refresh_from_db()
+    assert paid.featured_impressions == 1
+
+
+def test_uncached_renders_are_rate_limited():
+    """Security: любой запрос с параметрами (мимо кэша) — под общим лимитом на IP."""
+    from apps.core import ratelimit
+
+    portal = _portal()
+    ip = "10.7.7.7"
+    for _i in range(portal_views.FEED_RATE_LIMIT):
+        ratelimit.hit("portal-feed", ip, limit=10_000, window=60)
+    assert portal_views.portal_home(_get(portal, ip=ip, x="1")).status_code == 429
+    assert portal_views.portal_home(_get(portal, ip=ip)).status_code == 200  # чистый корень

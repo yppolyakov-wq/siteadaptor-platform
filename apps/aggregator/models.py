@@ -14,6 +14,23 @@ from apps.core.models import I18nMixin
 from apps.tenants.models import Tenant
 
 
+def apply_city_filters(qs, city_category=None, city_tag=None):
+    """T-8.13a: единая категория каталога города (раздел или категория) и признак.
+
+    Одна реализация для ленты (`views.listings_for`) и главной портала (T-8.19).
+    Неизвестное значение фильтр не включает.
+    """
+    from apps.core import city_categories
+
+    if city_category:
+        keys = city_categories.keys_for_filter(city_category)
+        if keys:
+            qs = qs.filter(city_category__in=keys)
+    if city_tag and city_categories.normalize_tags([city_tag]):
+        qs = qs.filter(city_tags__contains=[city_tag])
+    return qs
+
+
 class ListingQuerySet(models.QuerySet):
     def public(self):
         """T-8.6: то, что видит посетитель каталога города (единственная точка чтения).

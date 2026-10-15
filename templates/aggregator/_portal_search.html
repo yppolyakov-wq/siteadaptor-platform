@@ -1,5 +1,6 @@
 {% load i18n %}{# T-8.19: строка поиска портала — GET на корень (T-8.20 заменит только бэкенд). #}
 <form method="get" action="{% url 'portal-home' %}" role="search" data-portal-search class="mb-4 flex gap-2">
+  {% if search_kind and search_kind != "alle" %}<input type="hidden" name="kind" value="{{ search_kind }}">{% endif %}
   <label for="portal-q" class="sr-only">{% trans "Suchen" %}</label>
   <input id="portal-q" type="search" name="q" value="{{ search_q|default:'' }}" maxlength="100"
          placeholder="{% blocktrans with city=portal.city %}Was suchen Sie in {{ city }}?{% endblocktrans %}"
