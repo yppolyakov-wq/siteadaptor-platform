@@ -1237,10 +1237,21 @@ def send_follow_digest_user(*, user_id):
 
 @idempotent_task()
 def send_follow_instant():
-    """Beat раз в 15 минут: мгновенные подписки на бизнес (тихие часы внутри)."""
+    """Beat раз в 15 минут: мгновенные подписки на бизнес (тихие часы внутри, fan-out)."""
     from . import follow_digest
 
-    return {"sent": follow_digest.run_instant()}
+    return {"queued": follow_digest.run_instant()}
+
+
+@idempotent_task()
+def send_follow_instant_user(*, user_id):
+    from . import follow_digest
+    from .models import PortalUser
+
+    user = PortalUser.objects.filter(pk=user_id).first()
+    if user is None:
+        return {"sent": False}
+    return {"sent": follow_digest.instant_for_user(user)}
 
 
 @idempotent_task()

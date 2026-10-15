@@ -24790,3 +24790,6 @@ msgstr "Радиус"
 #, python-format
 msgid "≤ %(km)s km"
 msgstr "≤ %(km)s км"
+
+msgid "Alle Abonnements beenden"
+msgstr "Отменить все подписки"

@@ -571,7 +571,8 @@ class FollowSubscription(models.Model):
             ),
         ]
         indexes = [
-            models.Index(fields=["frequency", "channel"], name="follow_freq_idx"),
+            # Кто следит за бизнесом/разделом (instant-рассылка, админка). Индекс по
+            # frequency/channel не заводим: 6 значений — планировщик его не возьмёт.
             models.Index(fields=["target_kind", "target_key"], name="follow_target_idx"),
         ]
 

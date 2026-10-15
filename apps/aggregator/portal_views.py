@@ -176,6 +176,8 @@ def portal_home(request, facet=None, district=None):
     near_lat, near_lng = geo.parse_latlng(request)
     point = (near_lat, near_lng) if near_lat is not None else None
     filters = search_engine.parse_filters(request, city=city or "", point=point)
+    if point is not None and not filters.sort:  # кнопка «📍 Near me» без sort = «Nähe»
+        filters = replace(filters, sort="naehe")
     if district:  # путь /stadtteil/<slug>/ сильнее параметра
         filters = replace(filters, district="")
     if q or filters.active:

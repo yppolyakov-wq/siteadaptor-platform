@@ -9,8 +9,8 @@
   {% for item in s.items %}
   <tr>
     <td style="padding:8px 0;border-top:1px solid #f4f4f5;">
-      <a href="{{ item.digest_url }}" style="color:#18181b;font-weight:600;text-decoration:none;">{{ item.title_text }}</a>
-      <div style="font-size:13px;color:#71717a;">{% if s.sub.target_kind != "business" %}{{ item.business_name }}{% endif %}{% if item.new_price %} · {{ item.new_price }} €{% endif %}</div>
+      <a href="{{ item.digest_url }}" style="color:#18181b;font-weight:600;text-decoration:none;">{{ item.digest_title }}</a>
+      <div style="font-size:13px;color:#71717a;">{% if s.sub.target_kind != "business" %}{{ item.digest_business }}{% endif %}{% if item.new_price %} · {{ item.new_price }} €{% endif %}</div>
     </td>
   </tr>
   {% endfor %}

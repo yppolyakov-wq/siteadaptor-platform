@@ -174,9 +174,12 @@ def _new_token() -> str:
 
 
 def ensure_follow_token(user: PortalUser) -> str:
+    """Токен управления; conditional UPDATE — две гонки не перезапишут уже отправленный."""
     if not user.follow_token:
-        user.follow_token = _new_token()
-        user.save(update_fields=["follow_token", "updated_at"])
+        PortalUser.objects.filter(pk=user.pk, follow_token__isnull=True).update(
+            follow_token=_new_token()
+        )
+        user.refresh_from_db(fields=["follow_token"])
     return user.follow_token
 
 
@@ -301,7 +304,9 @@ def unsubscribe(sub: FollowSubscription) -> None:
 
 def unsubscribe_all(user: PortalUser) -> int:
     count, _ = FollowSubscription.objects.filter(user=user).delete()
-    forget_if_empty(user)
+    if not forget_if_empty(user):  # житель остаётся — старая ссылка управления гаснет
+        user.follow_token = None
+        user.save(update_fields=["follow_token", "updated_at"])
     return int(count)
 
 
@@ -340,7 +345,12 @@ def items_for(sub: FollowSubscription, *, since, now=None):
     from .views import listings_for
 
     if sub.target_kind == FollowSubscription.TARGET_BUSINESS:
-        qs = listings_for(include_demo=False).filter(tenant_schema=sub.target_key)
+        # Все виды предложений бизнеса (Р-2), но не его собственная карточка «Unternehmen».
+        qs = (
+            listings_for(include_demo=False)
+            .filter(tenant_schema=sub.target_key)
+            .exclude(listing_kind=AggregatorListing.KIND_BUSINESS)
+        )
     elif sub.target_kind == FollowSubscription.TARGET_SECTION:
         qs = listings_for(
             city=sub.city,

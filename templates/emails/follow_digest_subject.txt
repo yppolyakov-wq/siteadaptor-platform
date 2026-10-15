@@ -1,1 +1,1 @@
-{% load i18n %}{% blocktrans count n=sections|length %}Neues bei {{ portal_name }}: 1 Abonnement{% plural %}Neues bei {{ portal_name }}: {{ n }} Abonnements{% endblocktrans %}
+{% load i18n %}{% autoescape off %}{% blocktrans count n=sections|length %}Neues bei {{ portal_name }}: 1 Abonnement{% plural %}Neues bei {{ portal_name }}: {{ n }} Abonnements{% endblocktrans %}{% endautoescape %}

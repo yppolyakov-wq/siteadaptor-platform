@@ -207,7 +207,8 @@ def test_filters_one_by_one():
     _listing("Jacke", kind="product", city_category="damenmode", availability="sold_out")
     _listing("Vegan Bio", city_tags=["vegan", "bio"])
     _listing("Nur vegan", city_tags=["vegan"])
-    _listing("Konzert heute", kind="event", starts_at=now + timedelta(hours=1))
+    # +1 минута, не +1 час: час пересекал бы полночь и ронял тест вечером
+    _listing("Konzert heute", kind="event", starts_at=now + timedelta(minutes=1))
     _listing("Konzert später", kind="event", starts_at=now + timedelta(days=30))
     _listing("Zimmer", kind="stay")
     assert set(_found("", _filters(kat=["essen-gastronomie", "brot-backwaren"]))[1]) == {

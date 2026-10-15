@@ -27,13 +27,24 @@ def parse_latlng(request):
         return None, None
     if not (-90 <= lat <= 90 and -180 <= lng <= 180):
         return None, None
-    return lat, lng
+    # T-8.7: округление до ~100 м — точнее не нужно, а произвольная точность раздувала бы
+    # ключи кэша/журналы уникальными координатами.
+    return round(lat, 3), round(lng, 3)
+
+
+NEAREST_CAP = 3000
 
 
 def nearest(qs, lat, lng, limit=50) -> list:
     """Листинги с координатами, отсортированные по дистанции (ближайшие сверху)."""
     out = []
-    for listing in qs.exclude(latitude__isnull=True).exclude(longitude__isnull=True):
+    # Кап кандидатов: «рядом» по всей стране на /entdecken/ не должен тащить весь пул в Python.
+    candidates = (
+        qs.exclude(latitude__isnull=True)
+        .exclude(longitude__isnull=True)
+        .order_by("-pk")[:NEAREST_CAP]
+    )
+    for listing in candidates:
         listing.distance_km = round(
             haversine_km(lat, lng, float(listing.latitude), float(listing.longitude)), 1
         )
@@ -68,7 +79,7 @@ def within_radius(qs, lat: float, lng: float, km: int):
     Бизнес без координат в радиус не попадает (честно)."""
     lat_min, lat_max, lng_min, lng_max = bbox(lat, lng, km)
     candidates = (
-        qs.order_by()
+        qs.order_by("pk")  # детерминированный срез при превышении капа
         .filter(
             latitude__gte=lat_min,
             latitude__lte=lat_max,

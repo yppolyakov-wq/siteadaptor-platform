@@ -11,7 +11,10 @@
 
 from __future__ import annotations
 
+import hashlib
+
 from django import forms
+from django.core.cache import cache
 from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -25,11 +28,13 @@ from apps.core import ratelimit
 from apps.tenants import quickstart
 
 from . import auth, follow
-from .models import FollowSubscription
+from .models import FollowSubscription, PortalUser
 
 IP_RL = (10, 600)
 EMAIL_RL = (3, 3600)
 EMAIL_RL_DAY = (10, 86400)
+GLOBAL_RL = (300, 3600)  # писем DOI в час на всю платформу — потолок e-mail-бомбинга
+STAMP_TTL = 24 * 3600
 
 
 class FollowForm(forms.Form):
@@ -41,6 +46,15 @@ class FollowForm(forms.Form):
     )
     website = forms.CharField(required=False)  # honeypot
     stamp = forms.CharField(required=False, widget=forms.HiddenInput)
+
+
+def _stamp_fresh(stamp: str) -> bool:
+    """Метка формы одноразовая: повтор POST с той же меткой письма не шлёт."""
+    key = f"follow_stamp:{hashlib.sha256((stamp or '').encode()).hexdigest()}"
+    try:
+        return bool(cache.add(key, "1", STAMP_TTL))
+    except Exception:  # noqa: BLE001 — кэш недоступен: fail-open, лимиты ниже держат
+        return True
 
 
 def _base_template(portal) -> str:
@@ -98,13 +112,18 @@ def follow_page(request):
             form.is_valid()
             and not form.cleaned_data["website"]
             and not quickstart.too_fast(form.cleaned_data["stamp"])
+            and _stamp_fresh(form.cleaned_data["stamp"])
             and not ratelimit.hit("follow_ip", ip, limit=IP_RL[0], window=IP_RL[1])
         ):
             email = form.cleaned_data["email"].lower()
-            over = ratelimit.hit(
-                "follow_email", email, limit=EMAIL_RL[0], window=EMAIL_RL[1]
-            ) | ratelimit.hit(
-                "follow_email_day", email, limit=EMAIL_RL_DAY[0], window=EMAIL_RL_DAY[1]
+            # В ключах лимита — хэш, не адрес (e-mail не должен лежать в Redis открыто).
+            ident = hashlib.sha256(email.encode()).hexdigest()
+            over = (
+                ratelimit.hit("follow_email", ident, limit=EMAIL_RL[0], window=EMAIL_RL[1])
+                | ratelimit.hit(
+                    "follow_email_day", ident, limit=EMAIL_RL_DAY[0], window=EMAIL_RL_DAY[1]
+                )
+                | ratelimit.hit("follow_global", "all", limit=GLOBAL_RL[0], window=GLOBAL_RL[1])
             )
             if not over:
                 from .tasks import send_follow_confirm_email
@@ -117,8 +136,6 @@ def follow_page(request):
                     portal=portal,
                     locale=locale,
                 )
-                import hashlib
-
                 send_follow_confirm_email.delay(
                     dedupe_key=f"follow-doi:{hashlib.sha256(token.encode()).hexdigest()}",
                     email=email,
@@ -180,6 +197,16 @@ def follow_manage(request, token):
         if sub is not None and sub.user_id == user.pk:
             if action == "remove":
                 follow.unsubscribe(sub)
+                # Последняя подписка неявного жителя удаляет и его самого — редирект на
+                # страницу управления дал бы 404; показываем «отписаны».
+                if not PortalUser.objects.filter(pk=user.pk).exists():
+                    return _token_response(
+                        render(
+                            request,
+                            "aggregator/follow_unsubscribed.html",
+                            {**context, "all": False},
+                        )
+                    )
             elif action == "frequency":
                 follow.set_frequency(sub, request.POST.get("frequency", ""))
         elif action == "remove_all":

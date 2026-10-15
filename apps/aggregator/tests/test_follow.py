@@ -598,20 +598,25 @@ def test_run_daily_fans_out_only_due_users(monkeypatch):
     assert follow_digest.run_daily(now=_at(7)) == 0
     assert follow_digest.run_daily(now=_at(8)) == 1
     assert queued[0]["user_id"] == user.pk
-    assert queued[0]["dedupe_key"] == f"follow:{user.pk}:d:2026-10-21"
+    assert queued[0]["dedupe_key"] == f"follow:{user.pk}:d:2026-10-21:8"
 
 
-def test_instant_batches_per_user_and_respects_quiet_hours():
+def test_instant_batches_per_user_and_respects_quiet_hours(monkeypatch):
+    queued = []
+    monkeypatch.setattr(tasks.send_follow_instant_user, "delay", lambda **kw: queued.append(kw))
     portal, tenant, user, sub = _setup_follow(frequency="instant")
     _listing(tenant, title={"de": "I1"})
     _listing(tenant, title={"de": "I2"})
     assert follow_digest.run_instant(now=_at(22, 30)) == 0
     assert follow_digest.run_instant(now=_at(6, 30)) == 0
-    assert follow_digest.run_instant(now=_at(12, 7)) == 1
+    assert follow_digest.run_instant(now=_at(12, 7)) == 1  # fan-out: один житель
+    assert queued[0]["user_id"] == user.pk
+    assert follow_digest.instant_for_user(user, now=_at(12, 7)) is True
     assert len(mail.outbox) == 1
     assert "I1" in mail.outbox[0].body and "I2" in mail.outbox[0].body
     assert FollowDigest.objects.get(user=user).period_key == "i:2026-10-21T12:00"
-    assert follow_digest.run_instant(now=_at(12, 20)) == 0  # ничего нового
+    assert follow_digest.instant_for_user(user, now=_at(12, 20)) is False  # ничего нового
+    assert follow_digest.instant_for_user(user, now=_at(22, 20)) is False  # тихие часы
 
 
 def test_digest_rendered_in_user_locale():
@@ -722,3 +727,55 @@ def test_platform_robots_disallow_folgen():
 
     resp = views.robots_txt(RequestFactory().get("/robots.txt"))
     assert b"Disallow: /entdecken/folgen/" in resp.content
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_manage_remove_last_follow_of_implicit_user_shows_unsubscribed_not_404():
+    portal, tenant, user, sub = _setup_follow()
+    token = follow.ensure_follow_token(user)
+    resp = follow_views.follow_manage(
+        _req("post", f"/folgen/verwalten/{token}/", {"action": "remove", "sub": sub.token}, portal),
+        token,
+    )
+    assert resp.status_code == 200 and b"data-follow-unsubscribed" in resp.content
+    assert not PortalUser.objects.filter(pk=user.pk).exists()
+
+
+def test_digest_sanitizes_tenant_text_and_drops_bad_links():
+    portal, tenant, user, sub = _setup_follow()
+    _listing(
+        tenant,
+        title={"de": "Angebot\nhttps://evil.test/login\nZeile"},
+        detail_url="https://x.test/p/",
+    )
+    _listing(tenant, title={"de": "Kaputt"}, detail_url="javascript:alert(1)")
+    digest = follow_digest.build_digest(user, [sub], now=_at(9))
+    titles = [i.digest_title for i in digest.sections[0].items]
+    assert titles == ["Angebot https://evil.test/login Zeile"]
+    _subject, text, _html = follow_digest.render(digest)
+    assert "\nhttps://evil.test/login" not in text
+
+
+def test_business_digest_excludes_business_card_itself():
+    portal, tenant, user, sub = _setup_follow()
+    _listing(tenant, listing_kind=AggregatorListing.KIND_BUSINESS, title={"de": "Karte"})
+    assert follow_digest.build_digest(user, [sub], now=_at(9)) is None
+
+
+def test_stamp_is_single_use(monkeypatch):
+    sent = []
+    monkeypatch.setattr(tasks.send_follow_confirm_email, "delay", lambda **kw: sent.append(kw))
+    portal = _portal()
+    tenant = _tenant()
+    stamp = _stamp()
+    with override_settings(ROOT_URLCONF="config.urls_portal"):
+        for _ in range(2):
+            follow_views.follow_page(
+                _req(
+                    "post",
+                    f"/folgen/?unternehmen={tenant.slug}",
+                    {"email": _email(), "frequency": "daily", "stamp": stamp},
+                    portal=portal,
+                )
+            )
+    assert len(sent) == 1

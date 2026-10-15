@@ -10,19 +10,23 @@
   окна «Neu»); ключи источника, уже показанные за `recent_sent_days`, не повторяются —
   синк пересоздаёт строку листинга при паузе/реактивации акции.
 * Расписание «час + гейт»: beat раз в час, письмо уходит в первый прогон после 08:00
-  местного времени; пропущенный час не теряет письмо (в отличие от crontab).
+  местного времени, в который есть что показать; пропущенный час не теряет письмо (в
+  отличие от crontab). Житель без новинок остаётся кандидатом до конца дня — осознанно:
+  новинка в 10:00 уйдёт в 11:00, а не завтра; цена — лёгкие выборки раз в час.
 * Featured в письме не отмечается и не продвигается — порядок по новизне (UWG §5a).
 """
 
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.db import IntegrityError, transaction
+from django.db.models import Exists, OuterRef
 from django.template.loader import render_to_string
 from django.utils import timezone, translation
 
@@ -34,7 +38,8 @@ log = logging.getLogger(__name__)
 ITEMS_PER_FOLLOW = 5
 MAX_FOLLOWS_PER_MAIL = 20
 MAX_ITEM_KEYS = 200
-RECENT_SENT_DAYS = 30
+RECENT_SENT_DAYS = 15  # ≥ NEW_DAYS: глубже since_for не заглядывает
+OVERFETCH = 50  # строк на подписку: отсеять уже показанное без LIMIT «по числу seen»
 DAILY_HOUR = 8
 QUIET_HOURS = (21, 7)  # мгновенные письма копятся с 21:00 до 07:00
 INSTANT_SLOT_MINUTES = 15
@@ -122,6 +127,27 @@ class Digest:
         return keys[:MAX_ITEM_KEYS]
 
 
+_CTRL = re.compile(r"[\x00-\x1f\x7f\u2028\u2029]+")
+TITLE_MAX = 120
+
+
+def _clean_line(value) -> str:
+    """Текст бизнеса в письме платформы — одной строкой, без управляющих символов
+    (иначе владелец тенанта дописал бы в plain-text письмо свои строки и ссылки)."""
+    return " ".join(_CTRL.sub(" ", str(value or "")).split())[:TITLE_MAX]
+
+
+def _prepare(item) -> bool:
+    """Поля для письма; False — элемент без годной http(s)-ссылки не показываем."""
+    url = item.with_channel("digest")
+    if not url.lower().startswith(("https://", "http://")):
+        return False
+    item.digest_url = url
+    item.digest_title = _clean_line(item.title_text)
+    item.digest_business = _clean_line(item.business_name)
+    return True
+
+
 def recently_sent_keys(user: PortalUser, now=None) -> set[str]:
     """Ключи источников, уже показанных жителю за окно — ОДИН запрос."""
     now = now or timezone.now()
@@ -144,14 +170,12 @@ def build_digest(user: PortalUser, subs: list[FollowSubscription], *, now=None) 
     for sub in subs[:MAX_FOLLOWS_PER_MAIL]:
         since = follow.since_for(sub, now)
         qs = follow.items_for(sub, since=since, now=now)
-        fresh = [
-            item for item in qs[: per_follow * 4 + len(seen)] if follow.item_key(item) not in seen
-        ]
+        window = list(qs[:OVERFETCH])  # одна выборка на подписку
+        fresh = [item for item in window if follow.item_key(item) not in seen and _prepare(item)]
         if not fresh:
             continue
-        for item in fresh:
-            item.digest_url = item.with_channel("digest")
-        total = qs.count() - (len(qs[: per_follow * 4 + len(seen)]) - len(fresh))
+        # Точное «Alle anzeigen (N)» — только если окно срезано; иначе N = число свежих.
+        total = qs.count() - (len(window) - len(fresh)) if len(window) == OVERFETCH else len(fresh)
         digest.sections.append(
             Section(
                 sub=sub,
@@ -182,7 +206,8 @@ def render(digest: Digest, *, locale: str = "") -> tuple[str, str, str]:
         "unsubscribe_url": digest.unsubscribe_all_url,
     }
     with translation.override(locale):
-        subject = render_to_string("emails/follow_digest_subject.txt", ctx).strip()
+        # Тема — одной строкой: перевод строки в названии портала дал бы BadHeaderError.
+        subject = " ".join(render_to_string("emails/follow_digest_subject.txt", ctx).split())
         text = render_to_string("emails/follow_digest.txt", ctx)
         html = render_to_string("emails/follow_digest.html", ctx)
     return subject, text, html
@@ -191,11 +216,13 @@ def render(digest: Digest, *, locale: str = "") -> tuple[str, str, str]:
 def send(digest: Digest, *, period_key: str, now=None) -> bool:
     """Отправить сводку ровно один раз за период (Р-П8)."""
     now = now or timezone.now()
+    # Заявка на период — ДО отправки (unique = второй прогон выходит); ключи элементов —
+    # ПОСЛЕ успешной отправки: иначе жёсткий сбой между insert и send пометил бы их
+    # «показанными», и житель не увидел бы их до конца окна дедупа. Остаточный риск v1:
+    # сбой процесса между insert и send пропускает письмо этого периода (не элементы).
     try:
         with transaction.atomic():
-            row = FollowDigest.objects.create(
-                user=digest.user, period_key=period_key, item_keys=digest.item_keys
-            )
+            row = FollowDigest.objects.create(user=digest.user, period_key=period_key, item_keys=[])
     except IntegrityError:
         return False
     subject, text, html = render(digest)
@@ -216,6 +243,7 @@ def send(digest: Digest, *, period_key: str, now=None) -> bool:
         log.exception("follow digest send failed user=%s", digest.user.pk)
         FollowDigest.objects.filter(pk=row.pk).delete()
         raise
+    FollowDigest.objects.filter(pk=row.pk).update(item_keys=digest.item_keys)
     FollowSubscription.objects.filter(pk__in=[s.sub.pk for s in digest.sections]).update(
         last_sent_at=now, updated_at=now
     )
@@ -258,14 +286,18 @@ def daily_candidates(now=None):
     """Жители, которым сегодня ещё не писали и у кого есть e-mail-подписки сводкой."""
     now = now or timezone.now()
     period = period_key_daily(now)
+    subs = FollowSubscription.objects.filter(
+        user=OuterRef("pk"),
+        channel=FollowSubscription.CHANNEL_EMAIL,
+        frequency__in=(FollowSubscription.FREQ_DAILY, FollowSubscription.FREQ_WEEKLY),
+    )
+    done = FollowDigest.objects.filter(user=OuterRef("pk"), period_key=period)
+    # Exists вместо JOIN+DISTINCT: оба подзапроса идут по индексам (FK; unique user+period).
     return (
-        PortalUser.objects.filter(
-            is_active=True,
-            follows__channel=FollowSubscription.CHANNEL_EMAIL,
-            follows__frequency__in=(FollowSubscription.FREQ_DAILY, FollowSubscription.FREQ_WEEKLY),
-        )
-        .exclude(follow_digests__period_key=period)
-        .distinct()
+        PortalUser.objects.filter(is_active=True)
+        .filter(Exists(subs))
+        .exclude(Exists(done))
+        .order_by()
     )
 
 
@@ -277,9 +309,15 @@ def run_daily(now=None) -> int:
     from .tasks import send_follow_digest_user
 
     period = period_key_daily(now)
+    hour = _local(now).hour
     queued = 0
     for user_id in daily_candidates(now).values_list("pk", flat=True):
-        send_follow_digest_user.delay(dedupe_key=f"follow:{user_id}:{period}", user_id=user_id)
+        # Ключ дедупа — на ЧАС, не на день: lock_timeout idempotent_task = интервалу beat,
+        # и дневной ключ то пропускал бы, то пускал следующий прогон по джиттеру; после
+        # сбоя отправки следующий час повторяет попытку, период держит unique-строка.
+        send_follow_digest_user.delay(
+            dedupe_key=f"follow:{user_id}:{period}:{hour}", user_id=user_id
+        )
         queued += 1
     return queued
 
@@ -298,23 +336,29 @@ def instant_for_user(user: PortalUser, *, now=None) -> bool:
     return send(digest, period_key=period_key_instant(now), now=now)
 
 
+def instant_candidates():
+    subs = FollowSubscription.objects.filter(
+        user=OuterRef("pk"),
+        channel=FollowSubscription.CHANNEL_EMAIL,
+        frequency=FollowSubscription.FREQ_INSTANT,
+    )
+    return PortalUser.objects.filter(is_active=True).filter(Exists(subs)).order_by()
+
+
 def run_instant(now=None) -> int:
+    """Beat раз в 15 минут: по жителю — отдельная задача (как run_daily), чтобы обход
+    не перерастал интервал beat; повторный прогон того же слота гасит unique-строка."""
     now = now or timezone.now()
     if in_quiet_hours(now):
         return 0
-    sent = 0
-    users = PortalUser.objects.filter(
-        is_active=True,
-        follows__channel=FollowSubscription.CHANNEL_EMAIL,
-        follows__frequency=FollowSubscription.FREQ_INSTANT,
-    ).distinct()
-    for user in users:
-        try:
-            if instant_for_user(user, now=now):
-                sent += 1
-        except Exception:  # noqa: BLE001 — один житель не валит обход
-            log.exception("follow instant failed user=%s", user.pk)
-    return sent
+    from .tasks import send_follow_instant_user
+
+    slot = period_key_instant(now)
+    queued = 0
+    for user_id in instant_candidates().values_list("pk", flat=True):
+        send_follow_instant_user.delay(dedupe_key=f"follow-i:{user_id}:{slot}", user_id=user_id)
+        queued += 1
+    return queued
 
 
 def purge(now=None) -> int:

@@ -24681,3 +24681,6 @@ msgstr "Yarıçap"
 #, python-format
 msgid "≤ %(km)s km"
 msgstr "≤ %(km)s km"
+
+msgid "Alle Abonnements beenden"
+msgstr "Tüm abonelikleri sonlandır"
