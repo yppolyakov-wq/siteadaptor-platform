@@ -284,6 +284,68 @@ class ListingReport(models.Model):
         return f"{self.get_reason_display()} — {self.listing}"
 
 
+class SearchQueryLog(models.Model):
+    """T-8.21: журнал поиска каталога города — АГРЕГАТ «день × запрос × город × поверхность».
+
+    Без персональных данных: ни IP, ни пользователя, ни сессии, ни времени внутри дня
+    (план Р-2; замок `test_model_has_no_personal_fields`). Только для платформы (админка
+    public, суперпользователь). Пишет `search_log.log()`, чистит beat `purge_search_log`.
+    """
+
+    SURFACE_PORTAL = "portal"
+    SURFACE_ENTDECKEN = "entdecken"
+    SURFACES = [(SURFACE_PORTAL, _("Stadtportal")), (SURFACE_ENTDECKEN, _("Entdecken"))]
+    MODES = [
+        ("none", _("Nur Filter")),
+        ("fts", _("Volltext")),
+        ("trigram", _("Ähnliche Schreibweise")),
+        ("empty", _("Leere Anfrage")),
+    ]
+
+    day = models.DateField(verbose_name=_("Tag"))
+    surface = models.CharField(max_length=12, choices=SURFACES, verbose_name=_("Oberfläche"))
+    # Строка, не FK: NULL в unique-ключе ломал бы агрегацию, а история переживает портал.
+    portal_host = models.CharField(max_length=253, blank=True, default="", verbose_name=_("Portal"))
+    city = models.CharField(max_length=100, blank=True, default="", verbose_name=_("Stadt"))
+    lang = models.CharField(max_length=8, blank=True, default="", verbose_name=_("Sprache"))
+    query_norm = models.CharField(
+        max_length=100, blank=True, default="", verbose_name=_("Suchbegriff")
+    )
+    filters_key = models.CharField(max_length=255, blank=True, default="")
+    filters = models.JSONField(default=dict, blank=True, verbose_name=_("Filter"))
+    searches = models.PositiveIntegerField(default=0, verbose_name=_("Suchen"))
+    zero_results = models.PositiveIntegerField(default=0, verbose_name=_("Ohne Treffer"))
+    # Нашлось только по похожему написанию — кандидат в словарь синонимов.
+    trigram_hits = models.PositiveIntegerField(default=0, verbose_name=_("Nur Tippfehler-Treffer"))
+    last_mode = models.CharField(
+        max_length=10, choices=MODES, default="none", verbose_name=_("Modus")
+    )
+    last_results = models.PositiveIntegerField(default=0, verbose_name=_("Treffer (zuletzt)"))
+
+    class Meta:
+        verbose_name = _("Suchanfrage (Stadtkatalog)")
+        verbose_name_plural = _("Suchanfragen (Stadtkatalog)")
+        ordering = ["-day", "-searches"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "day",
+                    "surface",
+                    "portal_host",
+                    "city",
+                    "lang",
+                    "query_norm",
+                    "filters_key",
+                ],
+                name="agg_searchlog_uniq",
+            )
+        ]
+        indexes = [models.Index(fields=["-day", "-zero_results"], name="agg_searchlog_zero_idx")]
+
+    def __str__(self):
+        return f"{self.day} «{self.query_norm}» ×{self.searches}"
+
+
 class AggregatorPortal(I18nMixin, models.Model):
     """Брендированный мульти-доменный портал над пулом AggregatorListing (P2.1).
 

@@ -339,6 +339,8 @@ def test_record_seam_called_once_per_search():
         portal_views.portal_home(req)
     assert rec.call_count == 1
     assert rec.call_args.kwargs["surface"] == "portal"
+    assert rec.call_args.kwargs["portal_host"] == "solingen.siteadaptor.de"
+    assert rec.call_args.kwargs["city"] == "Solingen"
     assert rec.call_args.args[0].mode == "fts"
 
 
@@ -361,7 +363,8 @@ def test_query_count_does_not_grow(django_assert_max_num_queries):
         _listing(f"Messer {i}", city_category="kunst")
     req = _req(q="Messer", stadtteil="graefrath", sort="neu")
     req.portal = portal
-    with django_assert_max_num_queries(20) as ctx:
+    # T-8.21: +2 на журнал поиска (подсчёт с потолком + UPDATE/INSERT агрегата).
+    with django_assert_max_num_queries(22) as ctx:
         portal_views.portal_home(req)
     small = len(ctx.captured_queries)
     for i in range(30):

@@ -231,8 +231,11 @@ def portal_home(request, facet=None, district=None):
         base_pool, search_engine.SearchFilters(kats=filters.kats, tags=filters.tags)
     )
     search_engine.record(
-        search_engine.SearchOutcome(pool, broad.mode, q, broad.ranked, filters),
+        search_engine.SearchOutcome(pool, broad.mode, q, broad.ranked, filters, lang=broad.lang),
         surface="portal",
+        city=city or "",
+        portal_host=portal.host,
+        first_page=not request.GET.get("cursor"),  # листание выдачи — не новый поиск
     )
     near_lat, near_lng = geo.parse_latlng(request)
     if near_lat is not None:  # G8c: «рядом» — ближайшие сверху, без пагинации

@@ -399,7 +399,10 @@ def discover_index(request):
             event_type=anlass or None,
             diet=diet or None,
         )
-        outcome = search.execute(pool_base, q, filters, surface="entdecken")
+        cursor = request.GET.get("cursor")
+        outcome = search.execute(
+            pool_base, q, filters, surface="entdecken", city=city, track=not cursor
+        )
         pool = outcome.qs
         keep = {
             "q": q,
@@ -422,7 +425,6 @@ def discover_index(request):
         category_chips = category_facets.chips(
             chips_base.order_by(), request.path, kat, tag, extra=keep
         )
-        cursor = request.GET.get("cursor")
         featured, rest = split_featured(pool, first_page=not cursor)
         if outcome.ranked:  # T-8.20: релевантность — offset-курсор того же вида
             from django.conf import settings

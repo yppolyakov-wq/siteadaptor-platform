@@ -306,6 +306,7 @@ class SearchOutcome:
     query: str
     ranked: bool  # True → paginate_ranked; False → прежний keyset по created_at
     filters: SearchFilters = field(default_factory=SearchFilters)
+    lang: str = ""
 
 
 def execute(
@@ -316,8 +317,12 @@ def execute(
     surface: str,
     lang: str = "",
     track: bool = True,
+    city: str = "",
+    portal_host: str = "",
 ) -> SearchOutcome:
-    """Единственная точка поиска обеих поверхностей (портал, /entdecken/)."""
+    """Единственная точка поиска обеих поверхностей (портал, /entdecken/).
+
+    ``city``/``portal_host`` — только для журнала T-8.21 (примитивы, не request)."""
     filters = filters or SearchFilters()
     lang = lang or translation.get_language() or "de"
     q = (q or "").strip()[:SEARCH_MAX]
@@ -327,7 +332,7 @@ def execute(
         mode = "empty" if q else "none"
         if q:  # одни спецсимволы/стоп-слова — честно ничего, а не вся лента
             qs = qs.none()
-        outcome = SearchOutcome(qs, mode, q, ranked=False, filters=filters)
+        outcome = SearchOutcome(qs, mode, q, ranked=False, filters=filters, lang=lang)
     else:
         query = build_query(q, lang=lang)
         fts = _match_words(qs, words)
@@ -346,18 +351,35 @@ def execute(
             mode = "trigram"
             order = ["similarity_pos", "-created_at", "-pk"]
         qs = qs.order_by(*(["-created_at", "-pk"] if filters.sort == "neu" else order))
-        outcome = SearchOutcome(qs, mode, q, ranked=True, filters=filters)
+        outcome = SearchOutcome(qs, mode, q, ranked=True, filters=filters, lang=lang)
     if track:
-        record(outcome, surface=surface)
+        record(outcome, surface=surface, city=city, portal_host=portal_host)
     return outcome
 
 
-def record(outcome: SearchOutcome, *, surface: str) -> None:
+def record(
+    outcome: SearchOutcome,
+    *,
+    surface: str,
+    city: str = "",
+    portal_host: str = "",
+    first_page: bool = True,
+) -> None:
     """Шов T-8.21: журнал запросов и «ничего не найдено» (только для платформы).
 
     Вызывается ровно один раз на запрос с поиском или фильтром (поверхность, которая
-    сужает выдачу после `execute(record=False)`, зовёт его сама). Пока ничего не пишет.
+    сужает выдачу после `execute(track=False)`, зовёт его сама). Параметра ``request``
+    здесь нет намеренно — журнал не получает ничего персонального (замок в тестах).
     """
     if not (outcome.query or outcome.filters.active):
         return
-    return None
+    from . import search_log
+
+    search_log.log(
+        outcome,
+        surface=surface,
+        city=city,
+        portal_host=portal_host,
+        lang=outcome.lang,
+        first_page=first_page,
+    )

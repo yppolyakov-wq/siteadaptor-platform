@@ -256,6 +256,13 @@ AGGREGATOR_SEARCH = {
     "prefix_min_len": 3,  # последнее слово — ещё и как начало слова («brot» → «Brötchen»)
     "max_results": 240,  # 10 страниц по 24
 }
+# T-8.21: журнал поиска каталога города — агрегат по дням, без персональных данных,
+# только для платформы (админка public). Чистка — beat `purge-search-log`.
+AGGREGATOR_SEARCH_LOG = {
+    "enabled": env.bool("SEARCH_LOG_ENABLED", default=True),
+    "retention_days": env.int("SEARCH_LOG_RETENTION_DAYS", default=180),
+    "min_len": 2,
+}
 
 # T1-c (FB-12): django-rosetta — веб-редактор переводов .po (на /rosetta/, public-схема).
 # ⚠️ Правит .po НА ДИСКЕ; в проде ФС эфемерна (образ) → изменения теряются на деплое,
@@ -469,6 +476,10 @@ CELERY_BEAT_SCHEDULE = {
     "purge-old-registrations": {
         "task": "apps.stays.tasks.purge_old_registrations",
         "schedule": 86400.0,  # раз в сутки — удаление Meldescheine >1 года (G6/DSGVO)
+    },
+    "purge-search-log": {
+        "task": "apps.aggregator.tasks.purge_search_log",
+        "schedule": 86400.0,  # раз в сутки — журнал поиска старше SEARCH_LOG_RETENTION_DAYS (T-8.21)
     },
     "purge-expired-documents": {
         "task": "apps.documents.tasks.purge_expired_documents",
