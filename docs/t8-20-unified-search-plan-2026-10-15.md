@@ -393,3 +393,8 @@ def refresh(qs, *, batch: int | None = None) -> int
   - `config/settings/base.py` (`SHARED_APPS` + `AGGREGATOR_SEARCH`);
   - `templates/aggregator/_portal_search.html`, `search.html`;
   - `locale/*/LC_MESSAGES/django.po`.
+
+## Решения владельца (2026-10-15)
+- Р-О1: `?datum=` — только виды с датами (события, акции). ✅
+- Р-О2: несколько `?merkmal=` — И (сужение); разделы `?kat=` — ИЛИ. ✅
+- Р-О3: стартовый словарь синонимов составляет исполнитель (≈40 групп по 15 разделам). ✅

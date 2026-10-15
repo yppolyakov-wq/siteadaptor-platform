@@ -7,11 +7,15 @@
 (AggregatorPortal).
 """
 
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVectorField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import I18nMixin
 from apps.tenants.models import Tenant
+
+from . import search_index
 
 
 def apply_city_filters(qs, city_category=None, city_tag=None):
@@ -150,6 +154,10 @@ class AggregatorListing(I18nMixin, models.Model):
     # по всем оплаченным окнам — владелец видит суммарный эффект.
     featured_impressions = models.PositiveIntegerField(default=0)
     featured_clicks = models.PositiveIntegerField(default=0)
+    # T-8.20: поисковый индекс (apps/aggregator/search_index.py) — вектор с весами A–D
+    # и свёрнутый текст для поиска опечаток. Пишутся только индексатором (save()).
+    search_vector = SearchVectorField(null=True, editable=False)
+    search_text = models.TextField(default="", blank=True, editable=False)
     is_active = models.BooleanField(default=True)
     # T-8.6: скрыто модерацией (вручную или авто — три жалобы). Синк поле НЕ трогает
     # (как featured_until), поэтому скрытие переживает правки акции владельцем.
@@ -173,6 +181,7 @@ class AggregatorListing(I18nMixin, models.Model):
             models.Index(fields=["business_type", "city"], name="agg_btype_city_idx"),
             models.Index(fields=["listing_kind", "is_active"], name="agg_kind_active_idx"),
             models.Index(fields=["category", "is_active"], name="agg_category_active_idx"),
+            GinIndex(fields=["search_vector"], name="agg_search_vector_gin"),
         ]
 
     def __str__(self):
@@ -184,6 +193,11 @@ class AggregatorListing(I18nMixin, models.Model):
         if not self.source_ref and self.promo_uuid:
             self.source_ref = str(self.promo_uuid)
         super().save(*args, **kwargs)
+        # T-8.20: индекс поиска — после каждой записи индексируемых полей. Массовые
+        # .update() этих полей обязаны звать search_index.refresh (refresh_tenant_fields).
+        fields = kwargs.get("update_fields")
+        if fields is None or set(fields) & search_index.INDEXED_FIELDS:
+            search_index.refresh_listing(self)
 
     @property
     def title_text(self) -> str:

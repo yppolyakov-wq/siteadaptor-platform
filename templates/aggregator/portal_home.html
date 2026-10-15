@@ -34,6 +34,8 @@
 
 {% include "aggregator/_portal_search.html" %}
 {% include "aggregator/_portal_tabs.html" with tabs=portal_tabs %}
+{% include "aggregator/_portal_filters.html" with panel=filter_panel %}
+{% if search_q and search_mode == "trigram" %}<p data-search-fuzzy class="mb-4 text-sm text-gray-500">{% blocktrans with q=search_q %}Keine genauen Treffer für „{{ q }}“ — ähnliche Ergebnisse:{% endblocktrans %}</p>{% endif %}
 {% if kind_chips %}
 <nav class="mb-3 flex flex-wrap gap-2" aria-label="{% trans "Was suchen Sie?" %}" data-kind-chips>
   {% for c in kind_chips %}

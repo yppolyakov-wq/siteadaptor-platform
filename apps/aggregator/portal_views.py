@@ -160,13 +160,21 @@ def portal_home(request, facet=None, district=None):
             city = facet
 
     # T-8.13a: категория/признак каталога города — параметрами, чипы по НЕфильтрованному пулу.
+    from dataclasses import replace
+
+    from apps.core.pagination import paginate_ranked
+
     from . import category_facets, geo
     from . import portal_home_blocks as home
+    from . import search as search_engine
     from .views import split_featured
 
-    # T-8.19: строка поиска главной — ограничение частоты до любых выборок (как /entdecken/).
+    # T-8.19/T-8.20: поиск и фильтры — ограничение частоты до любых выборок (как /entdecken/).
     q = home.search_query(request)
-    if q:
+    filters = search_engine.parse_filters(request, city=city or "")
+    if district:  # путь /stadtteil/<slug>/ сильнее параметра
+        filters = replace(filters, district="")
+    if q or filters.active:
         from apps.core import ratelimit
 
         if ratelimit.hit(
@@ -183,17 +191,27 @@ def portal_home(request, facet=None, district=None):
     # видам: «Brot» обязан находить товары.
     kind = scope.kind_key or ("alle" if q else "")
     kinds = home.kinds_for(kind) or AggregatorListing.OFFER_KINDS
-    whole_pool = listings_for(
-        city=city,
-        business_type=business_type,
-        district=district,
-        q=q or None,
-        include_demo=portal.show_demo,
+    # T-8.20: единый поиск — режим (полнотекст/опечатки) решается ОДИН раз по пулу без
+    # вида и категорий; от него же вкладки, чипы и выдача (иначе вкладка «0», а лента нашла).
+    broad = search_engine.execute(
+        listings_for(
+            city=city,
+            business_type=business_type,
+            district=district,
+            include_demo=portal.show_demo,
+        ),
+        q,
+        replace(filters, kats=(), tags=()),
+        surface="portal",
+        track=False,
     )
+    whole_pool = broad.qs
+    # Параметры поиска/фильтров (кроме категорий) — в ссылках вкладок, чипов и формы.
+    carry = [(k, v) for k, v in search_engine.carry(q, filters) if k not in ("kat", "merkmal")]
     city_home = home.has_home(portal)
     if city_home:  # T-8.19: вкладки главной вместо чипов видов
         kind_chips = []
-        portal_tabs = home.tabs(home.presence(whole_pool), kind, request.path, q=q)
+        portal_tabs = home.tabs(home.presence(whole_pool), kind, request.path, carry=carry)
     else:
         kind_chips = _kind_chips(whole_pool, request.path, kind)
         portal_tabs = []
@@ -206,10 +224,14 @@ def portal_home(request, facet=None, district=None):
         request.path,
         kat,
         tag,
-        extra={"kind": scope.kind_key, "neu": "1" if scope.new_only else "", "q": q},
+        extra={"kind": scope.kind_key, "neu": "1" if scope.new_only else "", **dict(carry)},
     )
-    pool = (
-        home.apply_scope(base_pool, home.FeedScope(kat=kat, tag=tag)) if (kat or tag) else base_pool
+    pool = search_engine.apply_filters(
+        base_pool, search_engine.SearchFilters(kats=filters.kats, tags=filters.tags)
+    )
+    search_engine.record(
+        search_engine.SearchOutcome(pool, broad.mode, q, broad.ranked, filters),
+        surface="portal",
     )
     near_lat, near_lng = geo.parse_latlng(request)
     if near_lat is not None:  # G8c: «рядом» — ближайшие сверху, без пагинации
@@ -218,7 +240,10 @@ def portal_home(request, facet=None, district=None):
     else:
         cursor = request.GET.get("cursor")
         featured, rest = split_featured(pool, first_page=not cursor)
-        page = paginate(rest, order_field="created_at", limit=24, cursor=cursor)
+        if broad.ranked:  # T-8.20: релевантность — offset-курсор того же вида
+            page = paginate_ranked(rest, limit=24, cursor=cursor)
+        else:
+            page = paginate(rest, order_field="created_at", limit=24, cursor=cursor)
         cards = featured + page.items  # продвинутые — сверху первой страницы (P2.4a)
     # H8a: вертикальный hotel-портал — карточка на отель (а не на каждый номер).
     hotel_portal = (portal.business_type or business_type) == "hotel"
@@ -294,20 +319,27 @@ def portal_home(request, facet=None, district=None):
             "portal_tabs": portal_tabs,  # T-8.19
             "search_q": q,
             "search_kind": scope.kind_key,
+            "search_mode": broad.mode,
+            # T-8.20: новый запрос не сбрасывает вкладку и фильтры.
+            "search_hidden": [
+                (k, v)
+                for k, v in [("kind", scope.kind_key if scope.kind_key != "alle" else "")]
+                + search_engine.carry("", filters)
+                if v
+            ],
+            # T-8.20: блок фильтров и пилюли активных фильтров (только у городского портала).
+            "filter_panel": _filter_panel(request, portal, filters, q, scope, district)
+            if city_home
+            else None,
             # «Weitere» несёт текущие фильтры (вид/категорию/признак), иначе вторая
             # страница показывала бы неотфильтрованную ленту.
             "page_carry": urlencode(
                 [
                     (k, v)
-                    for k, v in (
-                        ("kind", scope.kind_key),
-                        ("kat", kat),
-                        ("merkmal", tag),
-                        ("neu", "1" if scope.new_only else ""),
-                        ("q", q),
-                    )
+                    for k, v in (("kind", scope.kind_key), ("neu", "1" if scope.new_only else ""))
                     if v
                 ]
+                + search_engine.carry(q, filters)
             ),
             # T-8.15: портал показывает демо-бизнесы — честная полоса «Vorschau».
             "shows_demo": portal.show_demo and any(getattr(c, "is_demo", False) for c in cards),
@@ -324,6 +356,66 @@ def portal_home(request, facet=None, district=None):
             ),
         },
     )
+
+
+def _filter_panel(request, portal, filters, q: str, scope, district) -> dict:
+    """T-8.20: блок фильтров ленты (без JS) и пилюли активных фильтров с ✕."""
+    from . import search as search_engine
+
+    keep = [("kind", scope.kind_key)] if scope.kind_key else []
+    if scope.new_only:
+        keep.append(("neu", "1"))
+    params = keep + search_engine.carry(q, filters)
+
+    def without(*names: str, value: str = "") -> str:
+        rest = [(k, v) for k, v in params if not (k in names and (not value or v == value))]
+        return f"{request.path}?{urlencode(rest)}" if rest else request.path
+
+    from apps.core import city_categories as cc
+
+    labels = {
+        "heute": _("Heute"),
+        "wochenende": _("Am Wochenende"),
+    }
+    pills = []
+    for kat in filters.kats if len(filters.kats) > 1 else ():
+        pills.append({"label": cc.label(kat), "url": without("kat", value=kat)})
+    if filters.district:
+        from apps.core import districts
+
+        pills.append(
+            {
+                "label": districts.label(portal.city, filters.district) or filters.district,
+                "url": without("stadtteil"),
+            }
+        )
+    if filters.price_from is not None:
+        pills.append(
+            {"label": _("ab %(p)s €") % {"p": filters.price_from}, "url": without("preis_von")}
+        )
+    if filters.price_to is not None:
+        pills.append(
+            {"label": _("bis %(p)s €") % {"p": filters.price_to}, "url": without("preis_bis")}
+        )
+    if filters.date:
+        pills.append({"label": labels.get(filters.date, filters.date), "url": without("datum")})
+    if filters.available:
+        pills.append({"label": _("Nur verfügbar"), "url": without("verfuegbar")})
+    if filters.open_now:
+        pills.append({"label": _("Jetzt geöffnet"), "url": without("offen")})
+    hidden = [
+        (k, v)
+        for k, v in keep + search_engine.carry(q, filters)
+        if k in ("kind", "neu", "q", "kat", "merkmal")
+    ]
+    return {
+        "filters": filters,
+        "districts": [] if district else _district_choices(portal),
+        "hidden": hidden,
+        "pills": pills,
+        "reset_url": without(*search_engine.FILTER_PARAMS),
+        "open": filters.active or bool(filters.sort),
+    }
 
 
 def _other_portals(request, portal) -> list[tuple[str, str]]:

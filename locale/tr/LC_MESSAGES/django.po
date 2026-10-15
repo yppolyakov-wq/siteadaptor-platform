@@ -24255,3 +24255,54 @@ msgstr "Yerel işletmeler"
 #, python-format
 msgid "Produkte aus %(city)s"
 msgstr "%(city)s'den ürünler"
+
+#. T-8.20
+msgid "Am Wochenende"
+msgstr "Hafta sonu"
+
+#. T-8.20
+msgid "Filter entfernen"
+msgstr "Filtreyi kaldır"
+
+#. T-8.20
+msgid "Jederzeit"
+msgstr "Her zaman"
+
+#. T-8.20
+#, python-format
+msgid "Keine genauen Treffer für „%(q)s“ — ähnliche Ergebnisse:"
+msgstr "“%(q)s” için tam eşleşme yok — benzer sonuçlar:"
+
+#. T-8.20
+msgid "Neueste"
+msgstr "En yeni"
+
+#. T-8.20
+msgid "Nur verfügbar"
+msgstr "Yalnızca mevcut olanlar"
+
+#. T-8.20
+msgid "Preis ab"
+msgstr "Fiyat (en az)"
+
+#. T-8.20
+msgid "Preis bis"
+msgstr "Fiyat (en çok)"
+
+#. T-8.20
+msgid "Relevanz"
+msgstr "Alaka düzeyi"
+
+#. T-8.20
+msgid "Zurücksetzen"
+msgstr "Sıfırla"
+
+#. T-8.20
+#, python-format
+msgid "ab %(p)s €"
+msgstr "%(p)s € ve üzeri"
+
+#. T-8.20
+#, python-format
+msgid "bis %(p)s €"
+msgstr "%(p)s €'ya kadar"

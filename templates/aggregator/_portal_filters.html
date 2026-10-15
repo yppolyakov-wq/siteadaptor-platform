@@ -1,0 +1,47 @@
+{% load i18n %}{# T-8.20: фильтры ленты портала — без JS (details + GET), пилюли активных фильтров с ✕. #}
+{% if panel %}
+<details data-portal-filters class="mb-4 rounded-xl bg-white border border-gray-200"{% if panel.open %} open{% endif %}>
+  <summary class="cursor-pointer select-none px-4 py-2.5 text-sm font-medium">{% trans "Filter" %}</summary>
+  <form method="get" action="{{ request.path }}" class="px-4 pb-4 grid grid-cols-2 sm:grid-cols-3 gap-3 items-end">
+    {% for k, v in panel.hidden %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+    {% if panel.districts %}
+    <label class="text-sm">{% trans "Stadtteil" %}
+      <select name="stadtteil" class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-2 py-2">
+        <option value="">{% trans "Alle" %}</option>
+        {% for slug, name in panel.districts %}<option value="{{ slug }}"{% if panel.filters.district == slug %} selected{% endif %}>{{ name }}</option>{% endfor %}
+      </select>
+    </label>
+    {% endif %}
+    <label class="text-sm">{% trans "Preis ab" %}
+      <input type="text" inputmode="decimal" name="preis_von" value="{{ panel.filters.price_from|default_if_none:'' }}" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-2">
+    </label>
+    <label class="text-sm">{% trans "Preis bis" %}
+      <input type="text" inputmode="decimal" name="preis_bis" value="{{ panel.filters.price_to|default_if_none:'' }}" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-2">
+    </label>
+    <label class="text-sm">{% trans "Wann" %}
+      <select name="datum" class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-2 py-2">
+        <option value="">{% trans "Jederzeit" %}</option>
+        <option value="heute"{% if panel.filters.date == "heute" %} selected{% endif %}>{% trans "Heute" %}</option>
+        <option value="wochenende"{% if panel.filters.date == "wochenende" %} selected{% endif %}>{% trans "Am Wochenende" %}</option>
+      </select>
+    </label>
+    <label class="text-sm">{% trans "Sortierung" %}
+      <select name="sort" class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-2 py-2">
+        <option value="">{% trans "Relevanz" %}</option>
+        <option value="neu"{% if panel.filters.sort == "neu" %} selected{% endif %}>{% trans "Neueste" %}</option>
+      </select>
+    </label>
+    <label class="text-sm flex items-center gap-2"><input type="checkbox" name="verfuegbar" value="1"{% if panel.filters.available %} checked{% endif %}> {% trans "Nur verfügbar" %}</label>
+    <label class="text-sm flex items-center gap-2"><input type="checkbox" name="offen" value="1"{% if panel.filters.open_now %} checked{% endif %}> {% trans "Jetzt geöffnet" %}</label>
+    <div class="col-span-2 sm:col-span-3 flex items-center gap-3">
+      <button type="submit" class="rounded-lg px-4 py-2 text-sm font-medium text-white" style="background: var(--portal-color)">{% trans "Anwenden" %}</button>
+      {% if panel.open %}<a href="{{ panel.reset_url }}" class="text-sm text-gray-500 hover:underline">{% trans "Zurücksetzen" %}</a>{% endif %}
+    </div>
+  </form>
+</details>
+{% if panel.pills %}
+<div data-filter-pills class="mb-4 flex flex-wrap gap-2">
+  {% for p in panel.pills %}<a href="{{ p.url }}" class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-gray-900 text-white">{{ p.label }} <span aria-hidden="true">✕</span><span class="sr-only">{% trans "Filter entfernen" %}</span></a>{% endfor %}
+</div>
+{% endif %}
+{% endif %}

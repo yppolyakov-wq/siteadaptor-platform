@@ -28,7 +28,26 @@ BLOCK_LIMIT = 6  # полные ряды при сетке 2/3 колонки (�
 FEATURED_LIMIT = 3
 # Параметры, превращающие корень портала в ленту. Посторонние (?ch=, ?utm_*) — нет:
 # ссылка из соцсети обязана открыть главную.
-FEED_PARAMS = frozenset({"kind", "kat", "merkmal", "q", "neu", "cursor", "lat", "lng"})
+FEED_PARAMS = frozenset(
+    {
+        "kind",
+        "kat",
+        "merkmal",
+        "q",
+        "neu",
+        "cursor",
+        "lat",
+        "lng",
+        # T-8.20: фильтры единого поиска (search.FILTER_PARAMS)
+        "stadtteil",
+        "preis_von",
+        "preis_bis",
+        "datum",
+        "verfuegbar",
+        "offen",
+        "sort",
+    }
+)
 SEARCH_MAX = 100
 
 ALL_KINDS = tuple(k for k, _label in L.KINDS)
@@ -141,6 +160,10 @@ def parse_scope(request) -> FeedScope:
     if kinds_for(kind_key) is None:
         kind_key = ""
     kat, tag = category_facets.selected(request)
+    if len(request.GET.getlist("kat")) > 1:  # T-8.20: несколько разделов — не чип-область
+        kat = ""
+    if len(request.GET.getlist("merkmal")) > 1:
+        tag = ""
     return FeedScope(kind_key=kind_key, kat=kat, tag=tag, new_only=request.GET.get("neu") == "1")
 
 
@@ -205,19 +228,19 @@ def presence(base_qs) -> dict:
     return {"kinds": kinds, "sections": sections, "total": sum(kinds.values())}
 
 
-def tabs(present: dict, active_key: str, path: str, *, q: str = "") -> list[dict]:
-    """Вкладки — только с данными; «Alle» = главная (при поиске — лента по всем видам)."""
+def tabs(present: dict, active_key: str, path: str, *, carry=()) -> list[dict]:
+    """Вкладки — только с данными; «Alle» = главная (при поиске/фильтрах — лента по всем
+    видам). ``carry`` — параметры поиска и фильтров, которые вкладка не сбрасывает."""
     kinds = present["kinds"]
     shown = [t for t in TABS if any(kinds.get(k) for k in t.kinds)]
     if len([t for t in shown if t.key != "alle"]) < 2:  # «Alle» = единственная группа
         return []
     out = []
     for t in shown:
-        if t.key == "alle" and not q:
+        if t.key == "alle" and not carry:
             url = path
         else:
-            params = [("kind", t.key)] + ([("q", q)] if q else [])
-            url = f"{path}?{urlencode(params)}"
+            url = f"{path}?{urlencode([('kind', t.key), *carry])}"
         active = t.key == active_key or (
             t.key == "angebote" and active_key in (L.KIND_PROMOTION, L.KIND_MENU, L.KIND_STAY)
         )

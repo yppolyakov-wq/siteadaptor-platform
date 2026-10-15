@@ -56,6 +56,30 @@ def paginate(
     return Page(items=items, next_cursor=next_cursor, has_more=has_more)
 
 
+def paginate_ranked(
+    qs, *, limit: int = 20, cursor: str | None = None, max_results: int = 240
+) -> Page:
+    """Offset-пагинация уже упорядоченной выдачи (T-8.20: сортировка по релевантности).
+
+    Курсор того же вида (`cursor=`), шаблоны не меняются; курсор чужого формата (keyset
+    `{"v","pk"}`) — первая страница. Глубина ограничена `max_results`.
+    """
+    limit = max(1, min(limit, 100))
+    offset = 0
+    if cursor:
+        try:
+            offset = int(_decode(cursor).get("o", 0))
+        except (ValueError, TypeError, AttributeError):
+            offset = 0
+    offset = max(0, min(offset, max_results))
+    end = min(offset + limit, max_results)
+    rows = list(qs[offset : end + 1]) if end > offset else []
+    items = rows[: end - offset]
+    has_more = len(rows) > len(items) and end < max_results
+    next_cursor = _encode({"o": end}) if has_more else None
+    return Page(items=items, next_cursor=next_cursor, has_more=has_more)
+
+
 @dataclass
 class ListPage:
     """Постраничный срез ГОТОВОГО списка (STU-18f).

@@ -24364,3 +24364,54 @@ msgstr "Местные компании"
 #, python-format
 msgid "Produkte aus %(city)s"
 msgstr "Товары из города %(city)s"
+
+#. T-8.20
+msgid "Am Wochenende"
+msgstr "На выходных"
+
+#. T-8.20
+msgid "Filter entfernen"
+msgstr "Убрать фильтр"
+
+#. T-8.20
+msgid "Jederzeit"
+msgstr "В любое время"
+
+#. T-8.20
+#, python-format
+msgid "Keine genauen Treffer für „%(q)s“ — ähnliche Ergebnisse:"
+msgstr "Точных совпадений по «%(q)s» нет — похожие результаты:"
+
+#. T-8.20
+msgid "Neueste"
+msgstr "Сначала новые"
+
+#. T-8.20
+msgid "Nur verfügbar"
+msgstr "Только в наличии"
+
+#. T-8.20
+msgid "Preis ab"
+msgstr "Цена от"
+
+#. T-8.20
+msgid "Preis bis"
+msgstr "Цена до"
+
+#. T-8.20
+msgid "Relevanz"
+msgstr "По релевантности"
+
+#. T-8.20
+msgid "Zurücksetzen"
+msgstr "Сбросить"
+
+#. T-8.20
+#, python-format
+msgid "ab %(p)s €"
+msgstr "от %(p)s €"
+
+#. T-8.20
+#, python-format
+msgid "bis %(p)s €"
+msgstr "до %(p)s €"

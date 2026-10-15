@@ -76,7 +76,6 @@ def listings_for(
     Прошедшие события (event со starts_at в прошлом) скрываем всегда — sync
     удаляет их по правке, но дата может «истечь» без события-триггера.
     """
-    from django.db.models import Q
     from django.utils import timezone
 
     qs = AggregatorListing.objects.public()
@@ -120,13 +119,11 @@ def listings_for(
     if hi is not None:
         qs = qs.filter(new_price__lte=hi)
     if q:
-        qs = qs.filter(
-            Q(business_name__icontains=q)
-            | Q(title__icontains=q)
-            | Q(city__icontains=q)
-            # MEN-5 «блюда наружу»: `?q=Rinderfilet` находит карточку набора.
-            | Q(dish_names__icontains=q)
-        )
+        # T-8.20: полнотекст по индексу (заголовки всех языков, бизнес, блюда — MEN-5
+        # «блюда наружу», категории, район, город) — то же правило, что у search.execute.
+        from . import search
+
+        qs = search.match(qs, q)
     # Истёкшие события вон (у прочих видов starts_at либо null, либо окно акции).
     qs = qs.exclude(listing_kind=AggregatorListing.KIND_EVENT, starts_at__lt=timezone.now())
     return qs
@@ -348,8 +345,16 @@ def discover_index(request):
     from . import category_facets  # T-8.13a: единые категории и признаки
 
     kat, tag = category_facets.selected(request)
+    # T-8.20: фильтры единого поиска (общие с порталом).
+    from dataclasses import replace
+
+    from . import search
+
+    filters = search.parse_filters(request, city=city)
     if (
-        kat
+        filters.active
+        or filters.sort
+        or kat
         or tag
         or q
         or city
@@ -380,21 +385,19 @@ def discover_index(request):
         ):
             return HttpResponse(_("Zu viele Anfragen — bitte kurz warten."), status=429)
 
-        pool = listings_for(
+        # T-8.20: единый поиск — тот же движок и те же фильтры, что на портале города.
+        pool_base = listings_for(
             city=city or None,
             business_type=btype or None,
-            q=q or None,
             kind=kind or None,
             category=cat or None,
             month=month or None,
             guests=guests or None,
             event_type=anlass or None,
             diet=diet or None,
-            price_from=preis_von or None,
-            price_to=preis_bis or None,
-            city_category=kat or None,
-            city_tag=tag or None,
         )
+        outcome = search.execute(pool_base, q, filters, surface="entdecken")
+        pool = outcome.qs
         keep = {
             "q": q,
             "city": city,
@@ -408,23 +411,18 @@ def discover_index(request):
             "preis_von": preis_von,
             "preis_bis": preis_bis,
         }
-        chips_base = listings_for(
-            city=city or None,
-            business_type=btype or None,
-            q=q or None,
-            kind=kind or None,
-            category=cat or None,
-            month=month or None,
-            guests=guests or None,
-            event_type=anlass or None,
-            diet=diet or None,
-            price_from=preis_von or None,
-            price_to=preis_bis or None,
-        )
+        chips_base = search.execute(
+            pool_base, q, replace(filters, kats=(), tags=()), surface="entdecken", track=False
+        ).qs
         category_chips = category_facets.chips(chips_base, request.path, kat, tag, extra=keep)
         cursor = request.GET.get("cursor")
         featured, rest = split_featured(pool, first_page=not cursor)
-        page = paginate(rest, order_field="created_at", limit=24, cursor=cursor)
+        if outcome.ranked:  # T-8.20: релевантность — offset-курсор того же вида
+            from apps.core.pagination import paginate_ranked
+
+            page = paginate_ranked(rest, limit=24, cursor=cursor)
+        else:
+            page = paginate(rest, order_field="created_at", limit=24, cursor=cursor)
         cards = featured + page.items
         reviews.attach_ratings(cards)  # G8b: звёзды в выдаче
         base_qs = urlencode(
@@ -440,13 +438,10 @@ def discover_index(request):
                     ("gaeste", guests),
                     ("anlass", anlass),
                     ("diet", diet),
-                    ("preis_von", preis_von),
-                    ("preis_bis", preis_bis),
-                    ("kat", kat),
-                    ("merkmal", tag),
                 )
                 if v
             ]
+            + search.carry("", filters)
         )
         return render(
             request,

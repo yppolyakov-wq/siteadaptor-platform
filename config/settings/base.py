@@ -26,6 +26,7 @@ SHARED_APPS = [
     "unfold",  # должен быть до admin
     "django.contrib.admin",
     "django.contrib.sites",
+    "django.contrib.postgres",  # T-8.20: полнотекст + pg_trgm (лукапы search/trigram)
     # Third-party shared
     "allauth",
     "allauth.account",
@@ -244,6 +245,17 @@ LANGUAGES = [
     ("pt", "Português"),
 ]
 USE_I18N = True
+
+# T-8.20: единый поиск каталога города (apps/aggregator/search.py). Веса меток вектора
+# A (заголовок) · B (бизнес, блюда) · C (тизер, категории, признаки) · D (город, район)
+# применяются в момент запроса — менять без переиндексации.
+AGGREGATOR_SEARCH = {
+    "weights": {"A": 1.0, "B": 0.6, "C": 0.3, "D": 0.1},
+    "trigram_threshold": 0.3,  # word_similarity: «mesesr»/«messer» = 0.43
+    "max_tokens": 8,
+    "prefix_min_len": 3,  # последнее слово — ещё и как начало слова («brot» → «Brötchen»)
+    "max_results": 240,  # 10 страниц по 24
+}
 
 # T1-c (FB-12): django-rosetta — веб-редактор переводов .po (на /rosetta/, public-схема).
 # ⚠️ Правит .po НА ДИСКЕ; в проде ФС эфемерна (образ) → изменения теряются на деплое,

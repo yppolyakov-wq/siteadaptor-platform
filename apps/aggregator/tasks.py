@@ -835,6 +835,9 @@ def refresh_tenant_fields(tenant) -> int:
     qs.exclude(listing_kind=AggregatorListing.KIND_EVENT).update(city=city, district=district)
     events.filter(city__iexact=city).update(district=district)
     events.exclude(city__iexact=city).update(district="")
+    from . import search_index  # T-8.20: имя/город/район — в индексе поиска
+
+    search_index.refresh(qs)
     return n
 
 
