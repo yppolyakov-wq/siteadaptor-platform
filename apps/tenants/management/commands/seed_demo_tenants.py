@@ -185,8 +185,15 @@ class Command(BaseCommand):
         from concurrent.futures import ThreadPoolExecutor, as_completed
 
         flags = [f for f in ("--recreate", "--delete") if options.get(f.lstrip("-"))]
+        self.stdout.write(
+            f"Параллельно (--jobs {jobs}): {len(keys)} китов. Каждый кит — миграция своей "
+            f"схемы (1–3 мин), вывод кита печатается по его завершении."
+        )
+        self.stdout.flush()
 
         def run(key):
+            self.stdout.write(f"[{key}] старт…")
+            self.stdout.flush()
             proc = subprocess.run(  # noqa: S603 — argv фиксирован, без shell
                 [sys.executable, sys.argv[0], "seed_demo_tenants", "--kit", key, *flags],
                 capture_output=True,
@@ -207,6 +214,7 @@ class Command(BaseCommand):
                 ok = code == 0 and "✗" not in (out or "") + (err or "")
                 (done if ok else failed).append(key)
                 self.stdout.write(f"[{n}/{len(keys)}] {key}: {'ok' if ok else 'ошибка'}")
+                self.stdout.flush()
         return done, failed
 
     def _seed_one(self, key, options) -> bool:
