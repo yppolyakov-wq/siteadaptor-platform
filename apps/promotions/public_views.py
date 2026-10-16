@@ -22,7 +22,6 @@ from django.utils.translation import gettext as _
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from apps.catalog.combos import combo_labels
-from apps.catalog.price_history import lowest_price_30d
 from apps.catalog.views import FOOD_BUSINESS_TYPES as _FOOD_TYPES
 from apps.core import grid_filler, ratelimit
 from apps.core.models import resolve_overlay
@@ -68,9 +67,8 @@ def _detail_ctx(request, promo, form) -> dict:
     share_url = _abs_promo_url(request, promo.pk)
     # §11 PAngV (M1 Boutique): у зачёркнутой Sale-цены — низшая цена товара за
     # 30 дней (PriceLog). Нет привязанного товара/данных → None, строка молчит.
-    lowest_30d = None
-    if promo.has_discount and promo.product_id:
-        lowest_30d = lowest_price_30d(promo.product)
+    # SF-7: тот же расчёт, что и цена сравнения (окно до СТАРТА акции + прошлые акции).
+    lowest_30d = promo.lowest_30d_display
     # DL-16.3 (AD1): цель акции — карточкой «Gilt für» (mystery — нет: раскрыла бы товар).
     target_card = None
     if promo.target_kind and promo.discount_style != "mystery":
@@ -155,13 +153,11 @@ def _attach_lowest_30d(promos) -> list:
     Батч по товарам-носителям (bulk, без N+1); вешает `p.lowest_30d` только
     там, где карточка реально анонсирует снижение (has_discount + товар).
     Материализует queryset — карточные поверхности не пагинируются."""
-    from apps.catalog.price_history import lowest_price_30d_bulk
+    from . import reference_price
 
-    promos = list(promos)
-    ids = [p.product_id for p in promos if p.product_id and p.has_discount]
-    lows = lowest_price_30d_bulk(ids) if ids else {}
+    promos = reference_price.attach(list(promos))
     for p in promos:
-        p.lowest_30d = lows.get(p.product_id) if p.has_discount else None
+        p.lowest_30d = p.lowest_30d_display
     return promos
 
 
@@ -2075,9 +2071,7 @@ def product_detail(request, pk=None, pslug=None, cslug=None):
             # SF-3 (§11 PAngV): референс низшей цены — и под rose-тизером акции
             # (зачёркнутая цена в баннере тоже «Bekanntgabe» снижения).
             "target_promo_lowest": (
-                lowest_price_30d(product)
-                if target_promo is not None and target_promo.has_discount
-                else None
+                target_promo.lowest_30d_display if target_promo is not None else None
             ),
             # UA2-1 (U-A): единый контракт продаваемой сущности в контексте детали
             # (шов для buy-box UA3 / секций UA4 / JSON-LD UA4-4b).

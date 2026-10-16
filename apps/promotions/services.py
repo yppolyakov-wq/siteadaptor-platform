@@ -314,7 +314,12 @@ def purchase(
                 [{"promo": str(promotion.pk), "label": "Aktion"}],
                 None,
                 # SH-22: обе цены известны здесь — снимок листовой и кампании.
-                {"list_price": promotion.old_price, "promotion": promotion},
+                {
+                    # SF-7: «Listenpreis» в заказе = объявленная цена сравнения;
+                    # снижение не объявлено — разницу не выдумываем.
+                    "list_price": promotion.old_price if promotion.has_discount else None,
+                    "promotion": promotion,
+                },
             )
         ],
     )

@@ -111,6 +111,7 @@
           <p class="text-sm">
             {% if p.new_price is not None %}<span class="font-semibold">{{ p.new_price|floatformat:2 }} €</span>{% endif %}
             {% if p.has_discount %}<span class="ml-1 text-gray-400 line-through">{{ p.old_price|floatformat:2 }} €</span>{% endif %}
+            {% if p.reference_capped %}<span class="block text-xs text-amber-700" title="{% trans "§ 11 PAngV: a price reduction may only be advertised against the lowest price of the last 30 days before the promotion." %}">{% blocktrans with price=p.old_price|floatformat:2 %}Comparison price limited to {{ price }} € (lowest price of the last 30 days){% endblocktrans %}</span>{% endif %}
             {% if p.available_quantity is not None %}<span class="ml-1 text-xs text-gray-500">· {% blocktrans with n=p.available_quantity %}noch {{ n }}{% endblocktrans %}</span>{% endif %}
           </p>
           <p class="text-xs mt-0.5">

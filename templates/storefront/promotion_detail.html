@@ -85,7 +85,7 @@
         <p class="text-3xl md:text-4xl font-extrabold {% if promotion.has_discount %}text-red-600{% endif %} leading-none" data-price-edit data-edit-model="promotion" data-price-field="price_override" data-edit-pk="{{ promotion.pk }}" data-price="{{ promotion.new_price }}">{% if eff == "ab" %}<span class="text-base font-normal text-gray-400 align-middle">{% trans "from" %}</span> {% endif %}{{ promotion.new_price }} {% if promotion.currency == 'EUR' %}€{% else %}{{ promotion.currency|cursym }}{% endif %}</p>
         {% if promotion.has_discount and eff != "festpreis" and eff != "ab" %}
         <div class="mt-1.5 flex items-center gap-2">
-          <span class="text-gray-400 line-through" data-price-edit data-edit-model="promotion" data-price-field="compare_at_price" data-edit-pk="{{ promotion.pk }}" data-price="{{ promotion.old_price }}">{{ promotion.old_price }} {% if promotion.currency == 'EUR' %}€{% else %}{{ promotion.currency|cursym }}{% endif %}</span>
+          <span class="text-gray-400 line-through" data-price-edit data-edit-model="promotion" data-price-field="compare_at_price" data-edit-pk="{{ promotion.pk }}" data-price="{{ promotion.regular_price }}">{{ promotion.old_price }} {% if promotion.currency == 'EUR' %}€{% else %}{{ promotion.currency|cursym }}{% endif %}</span>
           {% if eff == "badge" and promotion.discount_amount %}
             <span data-price-badge class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">−{{ promotion.discount_amount }} €</span>
           {% elif promotion.discount_percent_display and eff != "strikethrough" %}

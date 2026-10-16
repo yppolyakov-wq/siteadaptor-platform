@@ -11,7 +11,7 @@
     <div class="pt-2.5{% if storefront_quick_add and p.in_stock %} pr-12{% endif %}">
       {% if p.category %}<p class="text-[10px] uppercase tracking-[0.14em] text-gray-400 truncate">{{ p.category }}</p>{% endif %}
       <h3 class="mt-0.5 text-sm leading-snug truncate" data-edit-model="product" data-edit-pk="{{ p.pk }}" data-edit-field="name">{{ p }}</h3>
-      <p class="mt-1 text-sm">{% if p.has_variants %}<span class="text-xs text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% elif p.promo_price %}<span class="font-semibold text-red-600">{{ p.promo_price }}</span> <span class="text-xs text-gray-400 line-through">{{ p.base_price }}</span>{% else %}<span data-price-edit data-edit-pk="{{ p.pk }}" data-price="{{ p.base_price }}">{{ p.base_price }}</span>{% endif %} {{ p.currency|cursym }}</p>
+      <p class="mt-1 text-sm">{% if p.has_variants %}<span class="text-xs text-gray-400">{% trans "from" %}</span> {{ p.price_from|default:p.base_price }}{% elif p.promo_price %}<span class="font-semibold text-red-600">{{ p.promo_price }}</span>{% if p.promo_old %} <span class="text-xs text-gray-400 line-through">{{ p.promo_old }}</span>{% endif %}{% else %}<span data-price-edit data-edit-pk="{{ p.pk }}" data-price="{{ p.base_price }}">{{ p.base_price }}</span>{% endif %} {{ p.currency|cursym }}</p>
       {% if p.promo_price and p.promo_lowest is not None %}
         <p class="mt-0.5 text-[10px] leading-tight {{ pangv_cls|default:'text-gray-400' }}">{% blocktrans with p=p.promo_lowest %}Lowest price in the last 30 days: {{ p }} €{% endblocktrans %}</p>
       {% endif %}

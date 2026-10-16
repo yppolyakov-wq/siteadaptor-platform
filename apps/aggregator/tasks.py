@@ -39,7 +39,8 @@ def _snapshot(promotion_id):
         "teaser": promo.description or {},
         "image": promo.primary_image or {},
         "currency": promo.currency,
-        "old_price": None if mystery else promo.old_price,
+        # SF-7: цена сравнения — только если снижение законно объявить (§11 PAngV).
+        "old_price": None if mystery or not promo.has_discount else promo.old_price,
         "new_price": None if mystery else promo.new_price,
         "discount_percent": None if mystery else promo.discount_percent_display,
         "starts_at": promo.starts_at,

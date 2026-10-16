@@ -65,8 +65,8 @@ UE1: badge_pos_class — переопределение позиции бейд�
   {% elif promo.new_price is not None %}
     {% if eff_style == "ab" %}<span class="text-sm font-normal text-gray-400">{% trans "from" %}</span> {% endif %}
     <span class="text-xl md:text-2xl font-extrabold {% if promo.has_discount and eff_style != 'festpreis' %}text-red-600{% endif %}" data-price-edit data-edit-model="promotion" data-price-field="price_override" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.new_price }}">{{ promo.new_price }} {% if promo.currency == 'EUR' %}€{% else %}{{ promo.currency|cursym }}{% endif %}</span>
-    {% if promo.strikethrough_old_price and eff_style != "festpreis" and eff_style != "ab" %}
-      <span class="text-sm text-gray-400" data-price-edit data-edit-model="promotion" data-price-field="compare_at_price" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.old_price }}">{% blocktrans with p=promo.old_price %}statt {{ p }} €{% endblocktrans %}</span>
+    {% if promo.strikethrough_old_price and promo.has_discount and eff_style != "festpreis" and eff_style != "ab" %}
+      <span class="text-sm text-gray-400" data-price-edit data-edit-model="promotion" data-price-field="compare_at_price" data-edit-pk="{{ promo.pk }}" data-price="{{ promo.regular_price }}">{% blocktrans with p=promo.old_price %}statt {{ p }} €{% endblocktrans %}</span>
     {% endif %}
   {% elif promo.discount_percent_display %}
     {# Процент-акция без цен (цель — категория/свободная): крупным остаётся сам процент. #}

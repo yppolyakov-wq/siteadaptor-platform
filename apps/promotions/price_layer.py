@@ -141,28 +141,29 @@ def attach_promos(products, *, with_lowest=True):
     Один запрос акций + один батч PriceLog; без акций — ноль лишних запросов."""
     products = list(products)
     pmap = product_promo_map([p.pk for p in products])
-    lows = {}
     if with_lowest and pmap:
-        from apps.catalog.price_history import lowest_price_30d_bulk
+        # SF-7: цена сравнения (30 дней до старта + прошлые акции) — батчем на страницу.
+        from . import reference_price
 
-        lows = lowest_price_30d_bulk(list(pmap.keys()))
+        reference_price.attach(list(pmap.values()))
     for p in products:
         promo = pmap.get(p.pk)
         p.promo = promo
         p.promo_price = None if getattr(p, "has_variants", False) else promo_line_price(promo, p)
-        pct = promo.discount_percent_display if promo else None
+        # SF-7 (§11 PAngV): объявлять снижение — только от цены сравнения. Акция,
+        # чья цена не ниже минимума 30 дней, продаёт по своей цене, но без
+        # зачёркнутой цены, процента и «Sie sparen».
+        announce = bool(promo and p.promo_price is not None and promo.has_discount)
+        pct = promo.discount_percent_display if announce else None
         # festpreis без процента раньше вырождался в одинокий «%» — человеческая
         # подпись честнее (находка сверки Sparfuchs-ТЗ).
         p.promo_badge = f"−{pct} %" if pct else (_("Aktion") if promo else "")
-        p.promo_lowest = lows.get(p.pk) if promo else None
+        p.promo_old = promo.old_price if announce else None
+        p.promo_lowest = promo.lowest_30d_display if announce and with_lowest else None
         # DL-19: выгода в евро — формам «Regal»/«Deal-Kachel» она нужна строкой
         # («Sie sparen 0,50 €»); в шаблоне вычесть нельзя, а второй запрос ради
         # этого не нужен — обе цены уже здесь.
-        p.promo_savings = (
-            (p.base_price - p.promo_price)
-            if p.promo_price is not None and p.base_price is not None
-            else None
-        )
+        p.promo_savings = (p.promo_old - p.promo_price) if p.promo_old is not None else None
     return products
 
 
@@ -175,7 +176,7 @@ def promo_for_product(product):
         return None
     best = None
     for promo in Promotion.objects.filter(product=product, status="active"):
-        if not promo.has_discount:
+        if not promo.lowers_price:
             continue
         if best is None or promo.new_price < best.new_price:
             best = promo
@@ -186,8 +187,10 @@ def product_promo_map(product_ids):
     """P6: bulk-версия для карточек листинга — {product_id: Promotion} одним
     запросом (без N+1 на странице каталога)."""
     out = {}
-    for promo in Promotion.objects.filter(product_id__in=list(product_ids), status="active"):
-        if not promo.has_discount:
+    for promo in Promotion.objects.filter(
+        product_id__in=list(product_ids), status="active"
+    ).select_related("product"):
+        if not promo.lowers_price:
             continue
         cur = out.get(promo.product_id)
         if cur is None or promo.new_price < cur.new_price:

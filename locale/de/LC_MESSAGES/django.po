@@ -24619,3 +24619,10 @@ msgid ""
 msgstr ""
 "Intern = Test-/Teamregistrierung: erscheint nie im Stadtkatalog. Zustimmung "
 "und E-Mail-Status setzt sonst der Betrieb selbst."
+
+msgid "§ 11 PAngV: a price reduction may only be advertised against the lowest price of the last 30 days before the promotion."
+msgstr "§ 11 PAngV: Eine Preisermäßigung darf nur gegenüber dem niedrigsten Preis der letzten 30 Tage vor der Aktion beworben werden."
+
+#, python-format
+msgid "Comparison price limited to %(price)s € (lowest price of the last 30 days)"
+msgstr "Vergleichspreis auf %(price)s € begrenzt (niedrigster Preis der letzten 30 Tage)"
