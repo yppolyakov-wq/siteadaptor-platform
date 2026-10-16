@@ -24,6 +24,7 @@
     python manage.py seed_demo_tenants --list                       # киты и группы
     python manage.py seed_demo_tenants --kit hotel friseur cafe     # или через запятую
     python manage.py seed_demo_tenants --group solingen --recreate  # все демо Золингена
+    python manage.py seed_demo_tenants --group solingen-dcc --jobs 3   # волна DCC, 3 параллельно
     python manage.py seed_demo_tenants --group all --recreate       # пересоздать всё
 
 Группы — KIT_GROUPS ниже (solingen, lite, solingen-shops, showcase, food, shop, services,
@@ -114,6 +115,13 @@ class Command(BaseCommand):
         parser.add_argument("--list", action="store_true", help="показать киты и группы")
         parser.add_argument("--recreate", action="store_true", help="пересоздать существующие")
         parser.add_argument("--delete", action="store_true", help="удалить демо-тенанты китов")
+        parser.add_argument(
+            "--jobs",
+            type=int,
+            default=1,
+            help="DCC: параллельно N китов (каждый — отдельный подпроцесс manage.py; "
+            "свои соединения с БД). 1 = последовательно, как раньше.",
+        )
 
     def _keys(self, options) -> list[str]:
         keys = _split(options.get("kit"))
@@ -144,6 +152,14 @@ class Command(BaseCommand):
         keys = self._keys(options)
         done, failed = [], []
         total = len(keys)
+        jobs = max(1, int(options.get("jobs") or 1))
+        if jobs > 1 and total > 1:
+            done, failed = self._seed_parallel(keys, options, jobs)
+            self.stdout.write(
+                self.style.SUCCESS(f"Готово: {len(done)} из {total}")
+                + (self.style.ERROR(f" · ошибки: {', '.join(failed)}") if failed else "")
+            )
+            return
         for n, key in enumerate(keys, 1):
             if total > 1:
                 self.stdout.write(f"[{n}/{total}] {key}")
@@ -158,6 +174,40 @@ class Command(BaseCommand):
                 self.style.SUCCESS(f"Готово: {len(done)} из {total}")
                 + (self.style.ERROR(f" · ошибки: {', '.join(failed)}") if failed else "")
             )
+
+    def _seed_parallel(self, keys, options, jobs):
+        """DCC §5.2: по подпроцессу `manage.py seed_demo_tenants --kit X` на кит (не fork —
+        у Django/psycopg свои соединения в каждом процессе); вывод с префиксом кита по
+        завершении подпроцесса, общая сводка — в родителе. Порталы городов заводит
+        каждый подпроцесс сам (идемпотентно, get_or_create)."""
+        import subprocess
+        import sys
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        flags = [f for f in ("--recreate", "--delete") if options.get(f.lstrip("-"))]
+
+        def run(key):
+            proc = subprocess.run(  # noqa: S603 — argv фиксирован, без shell
+                [sys.executable, sys.argv[0], "seed_demo_tenants", "--kit", key, *flags],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            return key, proc.returncode, proc.stdout, proc.stderr
+
+        done, failed = [], []
+        with ThreadPoolExecutor(max_workers=jobs) as pool:
+            futures = [pool.submit(run, key) for key in keys]
+            for n, fut in enumerate(as_completed(futures), 1):
+                key, code, out, err = fut.result()
+                for line in (out or "").splitlines():
+                    self.stdout.write(f"[{key}] {line}")
+                for line in (err or "").splitlines():
+                    self.stderr.write(f"[{key}] {line}")
+                ok = code == 0 and "✗" not in (out or "") + (err or "")
+                (done if ok else failed).append(key)
+                self.stdout.write(f"[{n}/{len(keys)}] {key}: {'ok' if ok else 'ошибка'}")
+        return done, failed
 
     def _seed_one(self, key, options) -> bool:
         """Один кит. True — что-то сделано (создан/удалён), False — пропущен."""
