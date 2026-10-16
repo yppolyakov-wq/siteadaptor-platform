@@ -9,12 +9,21 @@
 
 Окно 30 с + `countdown` на ширину окна (прецедент `resync_on_category_save`): задача
 стартует, когда все правки окна закоммичены, всплеск отмен даёт ОДИН синк на объект.
+
+Две тонкости (ревью перед мержем):
+- окно считается В МОМЕНТ КОММИТА, а не правки: иначе длинная транзакция, начатая в
+  конце окна и закоммиченная после старта первой задачи, теряла обновление до ночной
+  сверки (её задача упиралась в тот же lock и пропускалась);
+- дедуп ещё и ПРИ ПОСТАНОВКЕ (`cache.add` на ширину окна): lock `idempotent_task`
+  берётся при исполнении, а брокер иначе получал бы по сообщению на каждую строку
+  заказа/билет. Кэш недоступен → ставим (fail-open, как сам lock).
 """
 
 from __future__ import annotations
 
 import time
 
+from django.core.cache import cache
 from django.db import connection, transaction
 
 SYNC_BUCKET = 30  # с
@@ -24,15 +33,28 @@ def _bucket() -> int:
     return int(time.time() // SYNC_BUCKET)
 
 
+def _first_in_window(dedupe: str) -> bool:
+    try:
+        return bool(cache.add(f"enq:{dedupe}", 1, SYNC_BUCKET + 5))
+    except Exception:  # noqa: BLE001 — кэш недоступен: ставим задачу, lock тоже fail-open
+        return True
+
+
 def _enqueue(task, prefix: str, ident, **kwargs) -> None:
-    schema = connection.schema_name
-    dedupe = f"{prefix}:{schema}:{ident}:{_bucket()}"
-    transaction.on_commit(
-        lambda: task.apply_async(
+    schema = (
+        connection.schema_name
+    )  # читаем сейчас: к моменту коммита соединение может сменить схему
+
+    def send():
+        dedupe = f"{prefix}:{schema}:{ident}:{_bucket()}"  # окно коммита
+        if not _first_in_window(dedupe):
+            return
+        task.apply_async(
             kwargs={"dedupe_key": dedupe, "tenant_schema": schema, **kwargs},
             countdown=SYNC_BUCKET,
         )
-    )
+
+    transaction.on_commit(send)
 
 
 def touch_products(product_ids) -> None:

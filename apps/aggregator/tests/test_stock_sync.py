@@ -36,6 +36,10 @@ def _product(**kw):
 
 @pytest.fixture
 def enqueued(monkeypatch):
+    """Перехват постановки + приватный LocMem для дедупа окна (xdist делит один Redis)."""
+    from django.core.cache.backends.locmem import LocMemCache
+
+    monkeypatch.setattr(stock_sync, "cache", LocMemCache(f"enq-{id(monkeypatch)}", {}))
     calls = []
     monkeypatch.setattr(
         tasks.sync_aggregator_product,
@@ -45,16 +49,27 @@ def enqueued(monkeypatch):
     return calls
 
 
+class _Clock:
+    def __init__(self, t=1_000_000.0):
+        self.t = t
+
+    def __call__(self):
+        return self.t
+
+
 def test_order_cancel_mass_update_enqueues_product_sync(
     enqueued, django_capture_on_commit_callbacks
 ):
     _tenant()
     product = _product(stock_quantity=3)
-    with django_capture_on_commit_callbacks(execute=True):
-        order = order_services.create_order(items=[(product, 2)], name="K")
-    enqueued.clear()
-    with django_capture_on_commit_callbacks(execute=True):
-        OrderSM().apply(order, "cancelled")  # _restore_stock = .update(F + qty)
+    clock = _Clock()
+    with mock.patch("apps.aggregator.stock_sync.time.time", clock):
+        with django_capture_on_commit_callbacks(execute=True):
+            order = order_services.create_order(items=[(product, 2)], name="K")
+        enqueued.clear()
+        clock.t += 60  # следующее окно — иначе дедуп постановки честно схлопнул бы
+        with django_capture_on_commit_callbacks(execute=True):
+            OrderSM().apply(order, "cancelled")  # _restore_stock = .update(F + qty)
     assert enqueued, "возврат остатка через .update() не поставил синк товара"
     kwargs, countdown = enqueued[-1]
     assert kwargs["product_id"] == str(product.pk) and kwargs["tenant_schema"] == "public"
@@ -71,8 +86,40 @@ def test_burst_in_one_window_coalesces_to_one_key(enqueued, django_capture_on_co
                 record_movement(
                     product=product, delta=-1, kind=StockMovement.KIND_SALE, source=f"t{i}"
                 )
-    keys = {k["dedupe_key"] for k, _ in enqueued}
-    assert len(enqueued) == 5 and len(keys) == 1  # idempotent_task выполнит один синк
+    # дедуп ПРИ ПОСТАНОВКЕ: брокер получает одно сообщение на объект за окно
+    assert len(enqueued) == 1
+
+
+def test_window_is_taken_at_commit_not_at_touch(enqueued, django_capture_on_commit_callbacks):
+    """Ревью: правка в конце окна N, коммит в окне N+1 → ключ N+1 (иначе первая задача
+    окна N уже отработала, а эта упёрлась бы в её lock и пропала до ночной сверки)."""
+    _tenant()
+    product = _product(stock_quantity=10)
+    clock = _Clock(t=1_000_029.9)
+    bucket_touch = int(clock.t // stock_sync.SYNC_BUCKET)
+    with mock.patch("apps.aggregator.stock_sync.time.time", clock):
+        with django_capture_on_commit_callbacks(execute=False) as callbacks:
+            record_movement(product=product, delta=-1, kind=StockMovement.KIND_SALE, source="x")
+        clock.t = (bucket_touch + 1) * stock_sync.SYNC_BUCKET + 0.5  # коммит в следующем окне
+        for cb in callbacks:
+            cb()
+    assert enqueued[0][0]["dedupe_key"].endswith(f":{bucket_touch + 1}")
+
+
+def test_upsert_skips_write_when_snapshot_unchanged():
+    """database-reviewer: ночная сверка не должна сдвигать updated_at неизменённых строк."""
+    _tenant()
+    product = _product(stock_quantity=4)
+    assert tasks.sync_product_listing("public", product.pk) == "upserted"
+    row = AggregatorListing.objects.get(listing_kind="product", source_ref=str(product.pk))
+    stamp = row.updated_at
+    assert tasks.sync_product_listing("public", product.pk) == "upserted"  # контракт прежний
+    row.refresh_from_db()
+    assert row.updated_at == stamp  # но записи не было
+    Product.objects.filter(pk=product.pk).update(stock_quantity=0)
+    tasks.sync_product_listing("public", product.pk)
+    row.refresh_from_db()
+    assert row.availability == "sold_out" and row.updated_at > stamp
 
 
 def test_transfer_between_locations_does_not_enqueue(enqueued, django_capture_on_commit_callbacks):

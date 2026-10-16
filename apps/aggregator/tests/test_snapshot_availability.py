@@ -72,6 +72,33 @@ def test_event_sold_out_by_capacity():
     assert _event_row(event).availability == "sold_out"
 
 
+def test_group_with_many_departures_is_not_truncated():
+    """Ревью: срез [:50] давал бы ложное «Ausverkauft» длинной серии."""
+    _tenant()
+    tour = Tour.objects.create(title="Täglich", slug="taeglich", is_published=True)
+    for i in range(55):
+        _ticket(_event(tour=tour, capacity=1, starts_at=timezone.now() + timedelta(days=i + 1)))
+    free = _event(tour=tour, capacity=1, starts_at=timezone.now() + timedelta(days=90))
+    tasks.sync_event_listing("public", str(free.id))
+    row = AggregatorListing.objects.get(listing_kind="event", source_ref=f"tour:{tour.pk}")
+    assert row.availability == ""
+
+
+def test_reconcile_syncs_group_once_per_ref(monkeypatch):
+    """database-reviewer: K заездов → один синк группы, не K."""
+    _tenant()
+    tour = Tour.objects.create(title="Serie", slug="serie", is_published=True)
+    for i in range(4):
+        _event(tour=tour, starts_at=timezone.now() + timedelta(days=i + 1))
+    calls = []
+    real = tasks.sync_event_group_listing
+    monkeypatch.setattr(
+        tasks, "sync_event_group_listing", lambda s, r: calls.append(r) or real(s, r)
+    )
+    tasks.reconcile_schema("public")
+    assert calls == [f"tour:{tour.pk}"]
+
+
 def test_group_listing_sold_out_only_if_all_future_departures_sold_out():
     _tenant()
     tour = Tour.objects.create(title="Manali–Leh", slug="manali-leh", is_published=True)
@@ -99,6 +126,9 @@ def test_claim_and_return_units_enqueue_promotion_sync(
         "apply_async",
         lambda kwargs=None, countdown=None, **kw: calls.append((kwargs, countdown)),
     )
+    from apps.aggregator import stock_sync
+
+    monkeypatch.setattr(stock_sync, "_first_in_window", lambda d: True)
     promo = PromotionFactory(status="active", available_quantity=2)
     with django_capture_on_commit_callbacks(execute=True):
         price_layer.claim_units(promo, 1)
@@ -107,9 +137,14 @@ def test_claim_and_return_units_enqueue_promotion_sync(
     assert all(c == 30 for _, c in calls)
 
 
-def test_ticket_save_enqueues_event_sync(monkeypatch, django_capture_on_commit_callbacks):
+def test_ticket_save_and_delete_enqueue_event_sync(monkeypatch, django_capture_on_commit_callbacks):
+    from unittest import mock
+
+    from apps.aggregator import stock_sync
+
     _tenant()
     calls = []
+    monkeypatch.setattr(stock_sync, "_first_in_window", lambda d: True)
     monkeypatch.setattr(
         tasks.sync_aggregator_event,
         "apply_async",
@@ -117,8 +152,15 @@ def test_ticket_save_enqueues_event_sync(monkeypatch, django_capture_on_commit_c
     )
     event = _event(capacity=5)
     with django_capture_on_commit_callbacks(execute=True):
-        _ticket(event)
-    assert calls and calls[-1]["event_id"] == str(event.id)
+        ticket = _ticket(event)
+    assert [c["event_id"] for c in calls] == [str(event.id)]
+    with django_capture_on_commit_callbacks(execute=True):
+        ticket.delete()
+    assert [c["event_id"] for c in calls] == [str(event.id)] * 2
+    with mock.patch.object(stock_sync, "_first_in_window", return_value=False):
+        with django_capture_on_commit_callbacks(execute=True):
+            _ticket(event)
+    assert len(calls) == 2  # повтор в окне брокеру не уходит
 
 
 def test_sold_out_constant_matches_model():

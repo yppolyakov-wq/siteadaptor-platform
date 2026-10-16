@@ -145,6 +145,22 @@ def _tenant_base_defaults(tenant) -> dict:
     }
 
 
+def _upsert_listing(key: dict, defaults: dict) -> bool:
+    """Единственная точка записи снимка (T-8.26 п.3, database-reviewer).
+
+    Если строка есть и КАЖДОЕ поле уже равно новому значению — не пишем вовсе: иначе
+    ночная сверка переписывала бы весь снимок, сдвигая `updated_at` (lastmod sitemap, даты
+    фида, порядок «новые») и плодя мёртвые кортежи с перестройкой GIN-индексов поиска.
+    Возвращает True, если запись создана или изменена."""
+    from .models import AggregatorListing
+
+    obj = AggregatorListing.objects.filter(**key).first()
+    if obj is not None and all(getattr(obj, f) == v for f, v in defaults.items()):
+        return False
+    AggregatorListing.objects.update_or_create(**key, defaults=defaults)
+    return True
+
+
 def _withheld(tenant) -> bool:
     """Бизнес сейчас не может быть в каталоге города (T-8.5 почта / T-8.6 согласие,
     приостановка, выключен) — листинг не пишется, существующий удаляется."""
@@ -174,9 +190,9 @@ def sync_listing(tenant_schema, promotion_id) -> str:
         AggregatorListing.objects.filter(**key).delete()
         return "removed"
 
-    AggregatorListing.objects.update_or_create(
-        **key,
-        defaults={
+    _upsert_listing(
+        key,
+        {
             **_tenant_base_defaults(tenant),
             "promo_uuid": promotion_id,
             "title": snap["title"],
@@ -246,9 +262,9 @@ def sync_stay_listing(tenant_schema, unit_id) -> str:
         AggregatorListing.objects.filter(**key).delete()
         return "removed"
 
-    AggregatorListing.objects.update_or_create(
-        **key,
-        defaults={
+    _upsert_listing(
+        key,
+        {
             **_tenant_base_defaults(tenant),
             "promo_uuid": None,
             "title": snap["title"],
@@ -335,7 +351,7 @@ def sync_event_group_listing(tenant_schema, group_ref) -> str:
         kind_val, _, ident = group_ref.partition(":")
         qs = Event.objects.filter(status=Event.STATUS_PUBLISHED, starts_at__gte=tz.now())
         qs = qs.filter(tour_id=ident) if kind_val == "tour" else qs.filter(series_id=ident)
-        nearest = qs.order_by("starts_at").first()
+        nearest = qs.select_related("tour").order_by("starts_at").first()
         if nearest is not None:
             nearest_id = str(nearest.id)
             if kind_val == "tour" and nearest.tour_id:
@@ -345,10 +361,11 @@ def sync_event_group_listing(tenant_schema, group_ref) -> str:
         if snap is not None:
             # T-8.26 п.3: группа распродана, только если распроданы ВСЕ будущие заезды —
             # ближайший без мест при свободных следующих не делает тур «Ausverkauft».
-            departures = list(qs.order_by("starts_at")[:50])
+            # Без среза: `all()` останавливается на первом свободном заезде, а срез
+            # давал бы ложное «Ausverkauft» у ежедневной серии длиннее среза.
             snap["availability"] = (
                 AVAILABILITY_SOLD_OUT
-                if departures and all(e.is_sold_out for e in departures)
+                if all(e.is_sold_out for e in qs.order_by("starts_at").iterator(chunk_size=50))
                 else ""
             )
 
@@ -360,9 +377,9 @@ def sync_event_group_listing(tenant_schema, group_ref) -> str:
         if tour_slug
         else f"{_site(tenant)}/veranstaltung/{nearest_id}/"
     )
-    AggregatorListing.objects.update_or_create(
-        **key,
-        defaults={
+    _upsert_listing(
+        key,
+        {
             **_tenant_base_defaults(tenant),
             "city": snap["city"] or _tenant_base_defaults(tenant)["city"],
             # T-8.17: выездное событие в другом городе — район бизнеса к нему не относится
@@ -423,9 +440,9 @@ def sync_event_listing(tenant_schema, event_id) -> str:
         AggregatorListing.objects.filter(**key).delete()
         return "removed"
 
-    AggregatorListing.objects.update_or_create(
-        **key,
-        defaults={
+    _upsert_listing(
+        key,
+        {
             **_tenant_base_defaults(tenant),
             # город события точнее города бизнеса (выездной/филиал) — если задан
             "city": snap["city"] or _tenant_base_defaults(tenant)["city"],
@@ -614,9 +631,15 @@ def reconcile_aggregator_schema(tenant_schema):
     return reconcile_schema(tenant_schema)
 
 
-@idempotent_task()
+# Потолок разброса ночной сверки: ETA-задачи Redis-брокера переотдаются после
+# visibility_timeout (по умолчанию 1 ч) — дальше этого откладывать нельзя.
+NIGHTLY_MAX_COUNTDOWN = 3300
+
+
+@idempotent_task(lock_timeout=86400)
 def reconcile_aggregator_schema_job(*, tenant_schema):
-    """Та же полная реконсиляция, но с dedupe_key (ночная сверка T-8.26 п.3)."""
+    """Та же полная реконсиляция, но с dedupe_key на СУТКИ (ночная сверка T-8.26 п.3):
+    рестарт beat (interval-расписание стреляет при старте) не гоняет все схемы заново."""
     return {"result": reconcile_schema(tenant_schema)}
 
 
@@ -646,7 +669,7 @@ def reconcile_aggregator_nightly():
     for i, schema in enumerate(schemas):
         reconcile_aggregator_schema_job.apply_async(
             kwargs={"dedupe_key": f"agg-nightly:{schema}:{today}", "tenant_schema": schema},
-            countdown=i * spread,
+            countdown=min(i * spread, NIGHTLY_MAX_COUNTDOWN),
         )
         n += 1
     return {"queued": n}
@@ -702,7 +725,7 @@ def reconcile_schema(tenant_schema) -> int:
     # --- события (events) — опубликованные будущие, если модуль активен ---
     # 6c: событие группы (tour/series) живёт ГРУППОВОЙ записью — в allowed идёт
     # ref группы, per-event строки групповых чистятся exclude'ом.
-    event_ids, event_refs = [], []
+    event_refs = []
     if tenant is not None and tenant.is_module_active("events"):
         from django.utils import timezone
 
@@ -714,10 +737,14 @@ def reconcile_schema(tenant_schema) -> int:
                     status=Event.STATUS_PUBLISHED, starts_at__gte=timezone.now()
                 ).only("id", "tour_id", "series_id")
             )
-            event_ids = [str(e.id) for e in rows]
             event_refs = list(dict.fromkeys(_event_group_ref(e) or str(e.id) for e in rows))
-        for event_id in event_ids:
-            sync_event_listing(tenant_schema, event_id)
+        # T-8.26 п.3 (database-reviewer): группу синкаем ОДИН раз по ref, а не K раз
+        # по каждому заезду (каждый per-event вызов делегировал бы группе заново).
+        for ref in event_refs:
+            if ref.startswith(("tour:", "series:")):
+                sync_event_group_listing(tenant_schema, ref)
+            else:
+                sync_event_listing(tenant_schema, ref)
     AggregatorListing.objects.filter(
         tenant_schema=tenant_schema, listing_kind=AggregatorListing.KIND_EVENT
     ).exclude(source_ref__in=event_refs).delete()
@@ -817,9 +844,9 @@ def sync_menu_listing(tenant_schema, combo_id) -> str:
         AggregatorListing.objects.filter(**key).delete()
         return "removed"
 
-    AggregatorListing.objects.update_or_create(
-        **key,
-        defaults={
+    _upsert_listing(
+        key,
+        {
             **_tenant_base_defaults(tenant),
             "promo_uuid": None,
             "title": snap["title"],
@@ -1025,9 +1052,9 @@ def sync_product_listing(tenant_schema, product_id) -> str:
     if snap is None or tenant is None or _withheld(tenant) or is_aktionen(tenant):
         AggregatorListing.objects.filter(**key).delete()
         return "removed"
-    AggregatorListing.objects.update_or_create(
-        **key,
-        defaults={
+    _upsert_listing(
+        key,
+        {
             **_tenant_base_defaults(tenant),
             "promo_uuid": None,
             "title": snap["title"],
@@ -1098,9 +1125,9 @@ def sync_service_listing(tenant_schema, service_id) -> str:
     ):
         AggregatorListing.objects.filter(**key).delete()
         return "removed"
-    AggregatorListing.objects.update_or_create(
-        **key,
-        defaults={
+    _upsert_listing(
+        key,
+        {
             **_tenant_base_defaults(tenant),
             "promo_uuid": None,
             "title": snap["title"],
@@ -1148,9 +1175,9 @@ def sync_business_listing(tenant_schema) -> str:
         return "removed"
     hero = (tenant.site_config or {}).get("hero_image") or ""
     image = {"url": hero} if hero else _logo_image(tenant)
-    AggregatorListing.objects.update_or_create(
-        **key,
-        defaults={
+    _upsert_listing(
+        key,
+        {
             **_tenant_base_defaults(tenant),
             "promo_uuid": None,
             "title": {"de": tenant.name},
@@ -1288,14 +1315,20 @@ def resync_on_category_save(sender, instance, created=False, update_fields=None,
     if update_fields is not None and not (set(update_fields) & _CATEGORY_VISIBILITY_FIELDS):
         return
     schema = connection.schema_name
-    bucket = int(time.time() // _CATEGORY_RECONCILE_BUCKET)
-    dedupe = f"agg-category-reconcile:{schema}:{bucket}"
-    transaction.on_commit(
-        lambda: reconcile_city_catalog.apply_async(
-            kwargs={"dedupe_key": dedupe, "tenant_schema": schema},
+
+    def send():
+        # окно — В МОМЕНТ КОММИТА (тот же класс дефекта, что у stock_sync: длинная
+        # транзакция из конца окна иначе теряла бы правку до ночной сверки)
+        bucket = int(time.time() // _CATEGORY_RECONCILE_BUCKET)
+        reconcile_city_catalog.apply_async(
+            kwargs={
+                "dedupe_key": f"agg-category-reconcile:{schema}:{bucket}",
+                "tenant_schema": schema,
+            },
             countdown=_CATEGORY_RECONCILE_BUCKET,
         )
-    )
+
+    transaction.on_commit(send)
 
 
 def resync_on_variant_save(sender, instance, **kwargs):

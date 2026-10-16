@@ -19,10 +19,22 @@ def test_beat_entry_exists():
     assert entry["schedule"] == 86400.0
 
 
+def test_nightly_job_lock_lasts_a_day_and_countdown_is_capped():
+    from apps.core import jobs
+
+    assert tasks.NIGHTLY_MAX_COUNTDOWN < 3600  # visibility_timeout Redis-брокера
+    run = tasks.reconcile_aggregator_schema_job.run
+    closure = dict(
+        zip(run.__code__.co_freevars, (c.cell_contents for c in run.__closure__), strict=True)
+    )
+    assert closure["lock_timeout"] == 86400 > jobs.DEFAULT_LOCK_TIMEOUT
+
+
 def test_fans_out_one_task_per_tenant_with_spread(monkeypatch):
     TenantFactory(schema_name="public", slug="plat")
     a = TenantFactory(slug="a-biz")
     b = TenantFactory(slug="b-biz")
+    off = TenantFactory(slug="off-biz", is_active=False)
     calls = []
     monkeypatch.setattr(
         tasks.reconcile_aggregator_schema_job,
@@ -33,6 +45,7 @@ def test_fans_out_one_task_per_tenant_with_spread(monkeypatch):
     tasks.reconcile_aggregator_nightly()
     schemas = [k["tenant_schema"] for k, _ in calls]
     assert "public" not in schemas and {a.schema_name, b.schema_name} <= set(schemas)
+    assert off.schema_name not in schemas
     assert [c for _, c in calls] == [i * 20 for i in range(len(calls))]
     assert all(k["dedupe_key"].startswith(f"agg-nightly:{k['tenant_schema']}:") for k, _ in calls)
 
