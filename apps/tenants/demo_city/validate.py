@@ -17,6 +17,9 @@ _HOST = re.compile(r"^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$")
 FOOD_TYPES = {"bakery", "butcher", "grocery", "restaurant", "cafe", "catering"}
 # 7 % НДС без LMIV — печатное (книги/альбомы), живые растения, корм для животных
 # (Futtermittelrecht); всё остальное с 7 % считаем едой для людей.
+# Допустимые единицы спеки: builder.product_unit приводит их к Product.unit.
+_UNITS = frozenset({"", "g", "kg", "ml", "l", "100g", "100ml"})
+
 _NON_FOOD_7 = (
     "buch",
     "bildband",
@@ -102,6 +105,8 @@ def validate(biz: Biz, *, section: str = "") -> list[str]:
                 errs.append(f"{it.name}: еда без аллергенов/состава (LMIV)")
             if it.unit and not it.content:
                 errs.append(f"{it.name}: unit без content (PAngV)")
+            if it.unit not in _UNITS:
+                errs.append(f"{it.name}: unit {it.unit!r} не из {sorted(_UNITS)} (Product.unit)")
     for o in biz.offers:
         p, w = _money(o.price) if o.price else None, _money(o.was) if o.was else None
         if o.price and (p is None or p <= 0):

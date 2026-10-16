@@ -53,6 +53,9 @@ def test_builder_invariants(key):
     for cat in kit.categories:
         for p in cat[2]:
             assert p["sku"] and not p["sku"].startswith("SG_"), p["sku"]
+            # Product.unit — varchar(4) с choices g/kg/ml/l: «100g» спеки обязан
+            # прийти в кит уже пересчитанным (на проде два кита упали на INSERT).
+            assert p["unit"] in {"", "g", "kg", "ml", "l"}, (p["name"], p["unit"])
     for spec in kit.promotions_spec:
         assert ("ends_in_days" in spec) or spec.get("no_end") or spec.get("ends_today")
 

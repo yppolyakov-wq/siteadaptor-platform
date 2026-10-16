@@ -6,6 +6,8 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
+
 from apps.core import districts
 
 from .spec import Biz, Ev, Offer
@@ -137,6 +139,29 @@ def plz_for(district: str) -> str:
 
 def subdomain_for(key: str) -> str:
     return "sg-" + key.removeprefix("sg_").replace("_", "-")
+
+
+# PAngV-единица в спеке пишется «как на ценнике» («100g», «100ml»), а
+# `Product.unit` хранит ТОЛЬКО g/kg/ml/l (varchar(4), choices) и количество в
+# этой единице. Поэтому «100g» × content 0.6 → unit "g", content 60.
+_UNIT_SCALE = {
+    "100g": ("g", 100),
+    "100ml": ("ml", 100),
+    "g": ("g", 1),
+    "kg": ("kg", 1),
+    "ml": ("ml", 1),
+    "l": ("l", 1),
+    "": ("", 1),
+}
+
+
+def product_unit(unit: str, content: str) -> tuple[str, str]:
+    """Нормализует пару (unit, content) спеки к полям модели Product."""
+    base, scale = _UNIT_SCALE[unit]
+    if not content or scale == 1:
+        return base, content
+    qty = Decimal(content) * scale
+    return base, str(qty.quantize(Decimal(1)) if qty == qty.to_integral() else qty.normalize())
 
 
 def _sku(biz_key: str, shelf_i: int, item_i: int) -> str:
@@ -333,6 +358,7 @@ def build_kit(biz: Biz):
         items = []
         for ii, it in enumerate(shelf.items):
             photo = it.photo if isinstance(it.photo, str) else ",".join(it.photo)
+            unit, content = product_unit(it.unit, it.content)
             items.append(
                 _p(
                     it.name,
@@ -342,8 +368,8 @@ def build_kit(biz: Biz):
                     allergens=list(it.allergens),
                     diets=list(it.diets),
                     badge=it.badge,
-                    unit=it.unit,
-                    content=it.content,
+                    unit=unit,
+                    content=content,
                     stock=it.stock,
                     sku=it.sku or _sku(biz.key, si, ii),
                     vat=it.vat,
