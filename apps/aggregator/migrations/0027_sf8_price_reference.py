@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             name="price_reference",
             field=models.CharField(
                 blank=True,
-                choices=[("", ""), ("uvp", "UVP"), ("lowest30", "Niedrigster Preis 30 Tage")],
+                choices=[("", ""), ("uvp", "UVP"), ("lowest30", "Lowest price in the last 30 days")],
                 default="",
                 max_length=10,
             ),

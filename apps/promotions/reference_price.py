@@ -54,7 +54,9 @@ def is_perishable(promo) -> bool:
     """Флаг владельца «schnell verderblich / kurze Haltbarkeit» (metadata, без миграции)
     — действует только при включённом исключении."""
     meta = promo.metadata if isinstance(getattr(promo, "metadata", None), dict) else {}
-    return bool(meta.get("perishable")) and exemption_enabled()
+    # Только Waren (товар/набор): у услуги/номера/свободной акции флаг инертен — иначе
+    # подпись «wegen kurzer Haltbarkeit» была бы ложным публичным заявлением (UWG).
+    return bool(meta.get("perishable")) and _is_goods(promo) and exemption_enabled()
 
 
 def attach(promos) -> list:

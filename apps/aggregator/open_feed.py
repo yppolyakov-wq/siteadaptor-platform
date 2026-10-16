@@ -150,7 +150,11 @@ def feed_item(listing, *, request, preview: bool) -> dict:
         "old_price": f"{listing.old_price:.2f}" if visible and listing.old_price else None,
         "discount_percent": listing.discount_percent if visible else None,
         # SF-8a: референс old_price — "uvp" | "lowest30" | null (как на витрине).
-        "price_reference": (listing.price_reference or None) if visible else None,
+        "price_reference": (
+            listing.price_reference
+            if visible and listing.price_reference in ("uvp", "lowest30")
+            else None
+        ),
         "currency": listing.currency or "EUR",
         "price_unit": _price_unit(listing) if visible else None,
         "valid_from": listing.starts_at.isoformat() if listing.starts_at else None,

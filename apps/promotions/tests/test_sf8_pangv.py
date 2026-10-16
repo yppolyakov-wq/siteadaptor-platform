@@ -291,3 +291,15 @@ def test_demo_surprise_bags_carry_perishable_flag():
     # exclude по отсутствующему JSON-ключу = NULL-семантика → сверяем в Python.
     others = Promotion.objects.filter(is_surprise=False)
     assert others.exists() and not any(p.is_perishable for p in others)
+
+
+def test_flag_is_inert_on_non_goods():
+    """Security-ревью M1: у услуги/свободной акции флаг не действует и подписи нет."""
+    free = _promo(
+        None,
+        compare_at_price=Decimal("5.00"),
+        price_override=Decimal("4.00"),
+        metadata={"perishable": True},
+    )
+    assert free.is_perishable is False
+    assert free.old_price == Decimal("5.00")  # поведение свободной акции прежнее
