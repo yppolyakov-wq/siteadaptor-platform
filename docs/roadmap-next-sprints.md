@@ -871,3 +871,5 @@ bottom_nav = {
   `public()` (`city, -updated_at` при `is_active, hidden_at IS NULL`) — после EXPLAIN на >50k
   строк, кэш `withheld_schemas` на запрос/30 с. Сейчас ~20 запросов на товар за ночь — терпимо.
 
+
+- (2026-10-16, T-8.26) Кандидат на флак: `aggregator/tests/test_follow.py::test_one_mail_per_day_for_daily_plus_weekly_and_instant_excluded` — один раз упал локально (в т.ч. в изоляции на коде до 5c), на повторе и в CI #2718/#2720 зелёный; `confirmed_at` считается от реального `timezone.now()` при замороженном `now=_at(9)` (2026-10-21) — при повторе на CI заморозить и его.
