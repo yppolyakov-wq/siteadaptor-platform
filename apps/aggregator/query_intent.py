@@ -68,7 +68,7 @@ _RE_WEEKDAY = re.compile(
     r"\b(?:am\s+)?(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonnabend|sonntag)\b", re.I
 )
 _RE_SIZE = re.compile(
-    r"\b(?:größe|groesse|grösse|gr\.?)\s*(xxs|xs|s|m|l|xl|xxl|xxxl|\d{2,3})\b", re.I
+    r"\b(?:größe|groesse|grösse|gr\.?)\s*(xxs|xs|s|m|l|xl|xxl|xxxl|[0-9]{2,3})\b", re.I
 )
 # районы: голые многозначные слова («Wald», «Burg», «Mitte») одним словом не трогаем
 _AMBIGUOUS = frozenset({"wald", "burg", "mitte"})
@@ -241,17 +241,7 @@ def parse(q: str, *, city: str = "", today: date | None = None, roh=frozenset())
     m = _RE_SIZE.search(text)
     if m:
         size = m.group(1).upper()
-        phrase = text[m.start() : m.end()].strip()
-        chips.append(
-            Chip(
-                KEY_SIZE,
-                _("Größe %(s)s — Größenfilter noch nicht verfügbar") % {"s": size},
-                phrase,
-                _cut(q_without_track[0], _find(q_without_track[0], phrase)),
-                size,
-            )
-        )
-        text = _cut(text, m.span())
+        take(KEY_SIZE, _("Größe %(s)s") % {"s": size}, size, m.span(), size=size)
 
     if ROH_ORT not in roh:
         found = _district(text, city)
@@ -307,6 +297,8 @@ def apply(intent: Intent, explicit):
             continue
         if c.key == KEY_DISTRICT and "district" in overridden:
             continue
+        if c.key == KEY_SIZE and "size" in overridden:
+            continue
         chips.append(c)
     return intent.rest_q, eff, tuple(chips)
 
@@ -319,7 +311,5 @@ def _is_set(value) -> bool:
 
 def auto_keys(chips) -> str:
     """Для журнала поиска: какие фильтры выведены из текста («datum,preis»)."""
-    names = sorted(
-        {"preis" if c.key.startswith("preis") else c.key for c in chips if c.key != KEY_SIZE}
-    )
+    names = sorted({"preis" if c.key.startswith("preis") else c.key for c in chips})
     return ",".join(names)

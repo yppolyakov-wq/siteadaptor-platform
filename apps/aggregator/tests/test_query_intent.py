@@ -71,10 +71,13 @@ def test_roh_ort_keeps_district_word_as_text():
     assert it.delta == {} and "wald" in it.rest_q.lower()
 
 
-def test_size_phrase_is_stripped_but_not_filtered_yet():
+def test_size_phrase_becomes_size_filter():
+    # 5c: размер — настоящий фильтр (раньше — пилюля «noch nicht verfügbar» без delta)
     it = _p("Damenjacke Größe M")
-    assert it.rest_q == "Damenjacke" and it.delta == {}
+    assert it.rest_q == "Damenjacke" and it.delta == {"size": "M"}
     assert [c.key for c in it.chips] == ["groesse"] and "M" in it.chips[0].label
+    assert "noch nicht" not in it.chips[0].label
+    assert _p("Schuhe Gr. 42").delta == {"size": "42"}
 
 
 def test_tag_word_is_hint_not_filter():

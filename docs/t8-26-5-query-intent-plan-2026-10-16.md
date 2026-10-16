@@ -85,3 +85,50 @@ Friseur) — замки п.4 зовут `execute()` напрямую и оста
 - **database:** без индексов; бюджет TERMS_MAX мягкий (до ~60 термов), per-row `to_tsquery` в
   SearchRank — существующее, смотреть при регрессе латентности; `city_tags` без GIN — `.exists()`
   по уже суженному пулу приемлем. Отложено: жёсткий кэп бюджета, rank по top-N.
+
+## 5c — размеры/цвета вариантов в каталоге города + фильтр «Größe» (миграция `aggregator/0027`)
+
+Решение владельца: «да, 5c с миграцией делай». Замки написаны ДО кода
+(`apps/aggregator/tests/test_variant_terms.py`, 5 красных → зелёные).
+
+- **Хранение:** `AggregatorListing.variant_terms` (JSONField, `default=list`, аддитивная
+  миграция `0027_t8_26_variant_terms`, DDL без перезаписи строк — JSON default на уровне
+  Django, не БД). Только у `kind=product`; прочие виды — пустой список.
+- **Снимок товара** (`tasks._variant_terms`): размеры (`UPPER`) и цвета АКТИВНЫХ вариантов,
+  без дублей, порядок по pk, до 40 термов, каждый ≤ 40 символов. Метка варианта («M · Blau»)
+  не берётся — составная, оси уже разложены. Пишется в `sync_product_listing` (хуки
+  сохранения/реконсиляция T-8.11 подхватывают сами — новое поле едет в тех же defaults).
+- **Индекс:** `INDEXED_FIELDS` += поле; вектор — конфиг `simple`, вес C (названия цветов
+  не стеммим — «Koralle» ≠ «Korall»); `search_text` += термы (фолбэк опечаток п.4 их
+  видит); `refresh().only(...)` += поле.
+- **Фильтр:** `SearchFilters.size` ← `?groesse=` (whitelist `XXS…XXXL|\d{2,3}`, UPPER;
+  мусор → «»), `carry` несёт `("groesse", X)`, панель портала — пилюля «Größe X» и hidden
+  `groesse` (смена района в форме не теряет размер); `apply_filters`:
+  `listing_kind=product AND variant_terms @> [X]`.
+- **Намерение:** `_RE_SIZE` → `delta={"size": X}` через `take()`; пилюля «Größe X»
+  (чип `groesse`), явный `?groesse=` сильнее вывода (как у прочих ключей); журнал `auto`
+  теперь считает `groesse` (раньше исключался, потому что фильтра не было).
+- **Ops после деплоя:** `python manage.py sync_aggregator` (термы попадают в снимок
+  только при пересборке листинга) → `python manage.py rebuild_search_index`.
+
+### Ревью 5c перед мержем (django · security · database)
+
+- **HIGH (django-reviewer) — подтверждено и расширено:** явный `?groesse=M` без `q` на портале
+  (а) открывал ГЛАВНУЮ блоками — `groesse` не попал в копию `FEED_PARAMS`, фильтр молча терялся;
+  (б) а в ленте упирался бы в `OFFER_KINDS` (без товаров) → пусто. Фикс: `FEED_PARAMS` =
+  явный список ∪ `search.FILTER_PARAMS` (копия реестра больше не может отстать — замок
+  `test_feed_params_cover_every_search_filter`), размер расширяет вид до «alle». Замок
+  `test_portal_bare_groesse_without_q_returns_products` писался ДО правки (красный).
+- **MEDIUM (django) `/entdecken/` без пилюли размера** — там пилюль нет ни у одного явного
+  фильтра (район/«offen»/цена идут hidden'ами формы), `groesse` едет в `search_hidden` через
+  `carry`; добавлять одну пилюлю из девяти — непоследовательно, оставлено как у соседей.
+- **LOW (security) `\d` ловит не-ASCII цифры** → `[0-9]` + `re.ASCII` + `fullmatch` в обоих
+  регексах; замок на арабские цифры.
+- **LOW (database/django) старые строки с `[]` до ресинка** → в ops-шаг добавлен
+  `sync_aggregator` (ночная сверка тоже заполнит). GIN-индекс на `variant_terms` — не нужен
+  при текущем объёме (фильтр идёт по уже суженному пулу); порог ~100k строк, тогда partial
+  GIN `WHERE listing_kind='product'`.
+- Проверено ревьюерами: `@>` параметризован; raw SQL `refresh_listing` — только `%s`;
+  `variant_terms` нигде не рендерится; `INDEXED_FIELDS`/`refresh().only` содержат поле; хуки
+  `ProductVariant` post_save/post_delete → `sync_aggregator_product`; миграция — fast-default
+  без перезаписи таблицы.

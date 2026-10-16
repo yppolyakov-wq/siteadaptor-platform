@@ -17761,3 +17761,12 @@ Solingen-Wald» давал 18 мусорных — токенизатор кле
 фильтр; «heute geöffnet» = `?offen=1`; «Kinderaktivitäten am Wochenende» = `?q=Kinder&datum=
 wochenende`; «Friseur in Solingen-Wald» → район; «Vegetarisches Mittagessen» → подсказка
 признака; «Größe M» → честная пилюля до 5c. Замки: 24 юнит + 12 интеграционных; 7 msgid × 5.
+
+## 2026-10-16 — T-8.26 п.5c: размеры/цвета вариантов в снимке каталога города + фильтр «Größe» (⚠️ `aggregator/0027`)
+Отмашка «5c с миграцией делай». `AggregatorListing.variant_terms` (JSON, аддитивная миграция,
+только товары) ← размеры (UPPER) и цвета активных вариантов (≤40, без дублей); индекс `simple`/C +
+`search_text` → «Koralle» находится полнотекстом и фолбэком опечаток; `SearchFilters.size`
+(`?groesse=`, whitelist, `variant_terms @> [X]` + только `kind=product`), пилюля и hidden в панели
+портала; «Größe M» в запросе — настоящий фильтр с пилюлей (вместо «noch nicht verfügbar»),
+явный GET сильнее. Замки `test_variant_terms` (5) ДО кода; 1 msgid × 5. Ревью django · security ·
+database — см. план §5c. ⚠️ ops: деплой → `sync_aggregator` → `rebuild_search_index`.

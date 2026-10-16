@@ -974,6 +974,20 @@ def _image_ok(image) -> bool:
     return isinstance(image, dict) and bool(image.get("url"))
 
 
+VARIANT_TERMS_MAX = 40
+
+
+def _variant_terms(product) -> list[str]:
+    """T-8.26 п.5c: размеры (UPPER) и цвета АКТИВНЫХ вариантов, без дублей, до 40.
+    Метка варианта («M · Blau») не берётся — она составная и уже разложена на оси."""
+    terms: dict[str, None] = {}
+    for size, color in product.active_variants.order_by("pk").values_list("size", "color"):
+        for term in ((size or "").strip().upper(), (color or "").strip()):
+            if term:
+                terms.setdefault(term[:40], None)
+    return list(terms)[:VARIANT_TERMS_MAX]
+
+
 def _product_snapshot(product_id):
     """Снимок товара в ТЕКУЩЕЙ схеме → dict, или None (не годится к показу)."""
     from datetime import timedelta
@@ -1017,6 +1031,7 @@ def _product_snapshot(product_id):
     )
     savings = product.savings_percent if not product.has_variants else None
     return {
+        "variant_terms": _variant_terms(product),
         "title": {**(product.name or {})},
         "teaser": {k: str(v)[:300] for k, v in (product.description or {}).items() if v},
         "image": image,
@@ -1070,6 +1085,7 @@ def sync_product_listing(tenant_schema, product_id) -> str:
             "availability": snap["availability"],
             "is_new": snap["is_new"],
             "diets": snap["diets"],
+            "variant_terms": snap["variant_terms"],
             "is_surprise": False,
             **_city_fields("product", tenant, snap),
             "is_active": True,

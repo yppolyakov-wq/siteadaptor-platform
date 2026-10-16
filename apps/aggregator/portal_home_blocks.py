@@ -21,6 +21,7 @@ from apps.core import city_categories as cc
 
 from .models import AggregatorListing as L
 from .models import apply_city_filters
+from .search import FILTER_PARAMS
 from .tasks import NEW_PRODUCT_DAYS
 
 NEW_DAYS = NEW_PRODUCT_DAYS  # «Neu» = свежий листинг или бейдж «neu» товара
@@ -38,16 +39,10 @@ FEED_PARAMS = frozenset(
         "cursor",
         "lat",
         "lng",
-        # T-8.20: фильтры единого поиска (search.FILTER_PARAMS)
-        "stadtteil",
-        "preis_von",
-        "preis_bis",
-        "datum",
-        "verfuegbar",
-        "offen",
-        "sort",
-        "umkreis",
     }
+    # T-8.20: фильтры единого поиска — ИЗ реестра, не копией (T-8.26 п.5c: `groesse`
+    # в копию не попал → `?groesse=M` открывал главную блоками и молча терял фильтр).
+    | frozenset(FILTER_PARAMS)
 )
 SEARCH_MAX = 100
 

@@ -110,3 +110,41 @@ def test_portal_damenjacke_groesse_m_end_to_end(isolated_ratelimit):
     html = portal_views.portal_home(req).content.decode()
     assert "Damenjacke Alpin" in html and "Damenjacke Nord" not in html
     assert 'data-intent-chip="groesse"' in html
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_portal_bare_groesse_without_q_returns_products(isolated_ratelimit):
+    # Ревью 5c: (а) `groesse` не был параметром ленты → корень с ?groesse= рисовал главную
+    # блоками и молча терял фильтр; (б) без q вид по умолчанию = OFFER_KINDS (без товаров)
+    # → пустая выдача. Размер есть только у товаров — он сам задаёт охват.
+    _tenant()
+    m = _product("Regenjacke")
+    ProductVariant.objects.create(product=m, label="M", size="M")
+    tasks.sync_product_listing("public", m.pk)
+    portal = AggregatorPortal.objects.create(
+        host="solingen.siteadaptor.de",
+        kind="city",
+        city="Solingen",
+        title={"de": "S"},
+        is_active=True,
+    )
+    req = RequestFactory().get("/", {"groesse": "M"}, REMOTE_ADDR="10.6.6.7")
+    req.portal = portal
+    html = portal_views.portal_home(req).content.decode()
+    assert "Regenjacke" in html
+    assert (
+        'name="groesse" value="M"' in html
+    )  # hidden в форме фильтров — смена района не теряет размер
+
+
+def test_size_whitelist_is_ascii_only():
+    # Ревью 5c (LOW): `\d` ловит и не-ASCII цифры — такие значения в индексе не живут
+    req = RequestFactory().get("/", {"groesse": "٤٢"})
+    assert search.parse_filters(req, city="Solingen").size == ""
+
+
+def test_feed_params_cover_every_search_filter():
+    # класс «копия реестра отстала»: любой фильтр поиска обязан превращать корень в ленту
+    from apps.aggregator import portal_home_blocks
+
+    assert set(search.FILTER_PARAMS) <= set(portal_home_blocks.FEED_PARAMS)

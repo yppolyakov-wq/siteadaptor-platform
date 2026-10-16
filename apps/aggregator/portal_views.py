@@ -202,7 +202,9 @@ def portal_home(request, facet=None, district=None):
     # видам: «Brot» обязан находить товары.
     # T-8.26 п.4 (Р-6): вход в раздел/признак без вида — все виды: ровно то, что
     # посчитала плитка раздела (иначе «10 на плитке, 1 в выдаче»).
-    kind = scope.kind_key or ("alle" if (q or filters.kats or filters.tags) else "")
+    # T-8.26 п.5c: размер есть только у товаров — явный ?groesse= без q иначе упёрся бы
+    # в ленту предложений (OFFER_KINDS без товара) и дал пустую выдачу.
+    kind = scope.kind_key or ("alle" if (q or filters.kats or filters.tags or filters.size) else "")
     kinds = home.kinds_for(kind) or AggregatorListing.OFFER_KINDS
     # T-8.20: единый поиск — режим (полнотекст/опечатки) решается ОДИН раз по пулу без
     # вида и категорий; от него же вкладки, чипы и выдача (иначе вкладка «0», а лента нашла).
@@ -528,6 +530,8 @@ def _filter_panel(request, portal, filters, q: str, scope, district, point=None)
         pills.append({"label": _("Nur verfügbar"), "url": without("verfuegbar")})
     if filters.open_now:
         pills.append({"label": _("Jetzt geöffnet"), "url": without("offen")})
+    if filters.size:  # T-8.26 п.5c
+        pills.append({"label": _("Größe %(s)s") % {"s": filters.size}, "url": without("groesse")})
     if filters.radius_km:  # T-8.7 Р-5
         pills.append(
             {"label": _("≤ %(km)s km") % {"km": filters.radius_km}, "url": without("umkreis")}
@@ -535,7 +539,7 @@ def _filter_panel(request, portal, filters, q: str, scope, district, point=None)
     hidden = [
         (k, v)
         for k, v in keep + search_engine.carry(q, filters) + geo_carry
-        if k in ("kind", "neu", "q", "kat", "merkmal", "lat", "lng")
+        if k in ("kind", "neu", "q", "kat", "merkmal", "lat", "lng", "groesse")
     ]
     # T-8.7 Р-6: «Relevanz» только при q; «In der Nähe» и радиус — только при точке.
     sorts = [("", _("Relevanz") if q else _("Standard"))] + [

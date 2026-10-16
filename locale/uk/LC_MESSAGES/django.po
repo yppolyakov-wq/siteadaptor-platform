@@ -24809,3 +24809,8 @@ msgstr "%(a)s – %(b)s €"
 
 msgid "Erkannt:"
 msgstr "Розпізнано:"
+
+#: apps/aggregator/query_intent.py
+#, python-format
+msgid "Größe %(s)s"
+msgstr "Розмір %(s)s"

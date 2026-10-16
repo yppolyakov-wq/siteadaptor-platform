@@ -24718,3 +24718,8 @@ msgstr "%(a)s – %(b)s €"
 
 msgid "Erkannt:"
 msgstr "Algılandı:"
+
+#: apps/aggregator/query_intent.py
+#, python-format
+msgid "Größe %(s)s"
+msgstr "Beden %(s)s"

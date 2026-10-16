@@ -244,6 +244,7 @@ class SearchFilters:
     open_now: bool = False  # ?offen=1
     sort: str = ""  # "" (релевантность / новые) | SORTS (T-8.7 Р-6)
     radius_km: int | None = None  # ?umkreis= (T-8.7 Р-5) — действует только при точке
+    size: str = ""  # ?groesse=M (T-8.26 п.5c) — только товары с таким размером варианта
 
     @property
     def active(self) -> bool:
@@ -257,6 +258,7 @@ class SearchFilters:
             or self.available
             or self.open_now
             or self.radius_km is not None
+            or self.size
         )
 
 
@@ -269,7 +271,11 @@ FILTER_PARAMS = (
     "offen",
     "sort",
     "umkreis",
+    "groesse",
 )
+
+# T-8.26 п.5c: допустимые размеры фильтра — буквенные и числовые (38, 104), как в _RE_SIZE.
+_RE_FILTER_SIZE = re.compile(r"(?:XXS|XS|S|M|L|XL|XXL|XXXL|[0-9]{2,3})", re.ASCII)
 
 # T-8.7 Р-6: сортировки обеих поверхностей. "" = релевантность при q, иначе новые.
 SORTS = ("", "neu", "endet", "offen", "naehe")
@@ -340,6 +346,9 @@ def parse_filters(request, *, city: str = "", point=None) -> SearchFilters:
     date = (get.get("datum") or "").strip()
     if date not in ("heute", "wochenende") and _parse_day(date) is None:
         date = ""
+    size = (get.get("groesse") or "").strip().upper()
+    if not _RE_FILTER_SIZE.fullmatch(size):
+        size = ""
     return SearchFilters(
         kats=kats,
         tags=tags,
@@ -351,6 +360,7 @@ def parse_filters(request, *, city: str = "", point=None) -> SearchFilters:
         open_now=get.get("offen") == "1",
         sort=sort,
         radius_km=radius_km,
+        size=size,
     )
 
 
@@ -411,6 +421,8 @@ def apply_filters(qs, f: SearchFilters, *, now=None, point=None):
             )
     if f.available:
         qs = qs.exclude(availability=L.AVAILABILITY_SOLD_OUT)
+    if f.size:  # T-8.26 п.5c: размер есть только у товаров — прочие виды отпадают
+        qs = qs.filter(listing_kind=L.KIND_PRODUCT, variant_terms__contains=[f.size])
     if f.open_now:
         from .views import _open_now_schemas
 
@@ -452,6 +464,7 @@ def carry(q: str, f: SearchFilters) -> list[tuple[str, str]]:
         ("offen", "1" if f.open_now else ""),
         ("sort", f.sort),
         ("umkreis", str(f.radius_km) if f.radius_km else ""),
+        ("groesse", f.size),
     ):
         if value:
             out.append((key, value))
