@@ -443,7 +443,7 @@ def test_junk_query_does_not_count_featured_impressions():
     assert paid.featured_impressions == 1
 
 
-def test_uncached_renders_are_rate_limited():
+def test_uncached_renders_are_rate_limited(isolated_ratelimit):
     """Security: любой запрос с параметрами (мимо кэша) — под общим лимитом на IP."""
     from apps.core import ratelimit
 
