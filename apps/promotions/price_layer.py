@@ -141,8 +141,9 @@ def attach_promos(products, *, with_lowest=True):
     Один запрос акций + один батч PriceLog; без акций — ноль лишних запросов."""
     products = list(products)
     pmap = product_promo_map([p.pk for p in products])
-    if with_lowest and pmap:
-        # SF-7: цена сравнения (30 дней до старта + прошлые акции) — батчем на страницу.
+    if pmap:
+        # SF-7: цена сравнения (30 дней до старта + прошлые акции) — батчем на
+        # страницу; нужна и без `with_lowest` — `has_discount` читает её всегда.
         from . import reference_price
 
         reference_price.attach(list(pmap.values()))

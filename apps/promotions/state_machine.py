@@ -24,6 +24,15 @@ class PromotionSM(StateMachine):
     ]
 
     def on_transition(self, instance, t, **kw):
+        # SF-7 (§11 PAngV): момент снижения цены = реальный старт. Черновик без
+        # расписания получает `starts_at` при активации — иначе окно 30-дневного
+        # минимума считалось бы от `created_at` и не видело бы повышения цены
+        # между созданием черновика и запуском (ревью 2026-10-16, H1).
+        if t.dst == "active" and t.src == "draft" and instance.starts_at is None:
+            from django.utils import timezone
+
+            instance.starts_at = timezone.now()
+            instance.save(update_fields=["starts_at"])
         # Авто-публикация в локальный агрегатор: active → upsert листинга,
         # ended/paused/archived → удаление. Через очередь; схема — из текущего
         # соединения (акция живёт в TENANT-схеме). Сам upsert/remove решает задача.

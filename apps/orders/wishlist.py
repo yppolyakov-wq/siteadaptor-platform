@@ -100,13 +100,16 @@ def promotions(request):
     qs = Promotion.objects.filter(
         pk__in=order, status__in=("active", "ended", "paused", "archived")
     ).select_related("product")
-    found = {str(p.pk): p for p in qs}
+    from apps.promotions.reference_price import attach
+
+    found = {str(p.pk): p for p in attach(list(qs))}  # SF-7: цена сравнения батчем
     out = []
     for pk in order:
         p = found.get(pk)
         if p is None:
             continue
         p.wish_ended = p.status != "active"
+        p.lowest_30d = p.lowest_30d_display
         out.append(p)
     return out
 

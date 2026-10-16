@@ -35,6 +35,14 @@ def apply_target(items, target: str):
     return items.filter(**{f"{field}__isnull": False}) if field else items
 
 
+def _with_reference(items) -> list:
+    """SF-7: процент считается от цены сравнения (история + прошлые акции) —
+    батчем на весь список, иначе `_pct` делал бы до 3 запросов на акцию."""
+    from .reference_price import attach
+
+    return attach(list(items))
+
+
 def _pct(promo) -> int:
     return int(promo.discount_percent_display or 0)
 
@@ -89,6 +97,7 @@ class PromoFacets(FacetProvider):
                 end = local + timedelta(days=7)
             items = items.filter(ends_at__gt=now, ends_at__lte=end)
         if sel["rabatt"]:
+            items = _with_reference(items)
             items = [p for p in items if _pct(p) >= sel["rabatt"]]
         return items
 
@@ -104,6 +113,11 @@ class PromoFacets(FacetProvider):
                 q, flat_fields=("group",), json_fields=("title", "description", "group_i18n")
             )
         )
+
+    def sort(self, items, key):
+        if (key or self.default_sort) == "rabatt":
+            items = _with_reference(items)
+        return super().sort(items, key)
 
     def sort_keys(self) -> dict:
         # только callables: после «−N %+» items может быть списком — единый

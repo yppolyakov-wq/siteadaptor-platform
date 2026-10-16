@@ -28,8 +28,10 @@ from django.db.models import Q
 from django.utils import timezone
 
 WINDOW_DAYS = 30
-# Черновик никогда не был виден покупателю — его цена «применённой» не считается.
-_NEVER_LIVE = ("draft",)
+# Черновик и запланированная никогда не были видны покупателю — их цена
+# «применённой» не считается. Мягко удалённые — считаются (`all_objects`):
+# удаление прошлой дешёвой акции не должно поднимать цену сравнения.
+_NEVER_LIVE = ("draft", "scheduled")
 
 
 def start_of(promo):
@@ -90,7 +92,7 @@ def attach(promos) -> list:
     if combo_ids:
         target_q |= Q(combo_id__in=combo_ids)
     others = list(
-        Promotion.objects.filter(target_q)
+        Promotion.all_objects.filter(target_q)
         .exclude(status__in=_NEVER_LIVE)
         .filter(Q(ends_at__isnull=True) | Q(ends_at__gt=lo))
         .select_related("product", "combo")

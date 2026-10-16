@@ -169,3 +169,48 @@ def test_services_are_not_capped():
     )
     assert promo.old_price == Decimal("30.00")
     assert promo.discount_percent_display == 20
+
+
+def test_manual_activation_stamps_starts_at_so_window_sees_price_raise():
+    """Ревью H1: черновик без расписания → окно считается от АКТИВАЦИИ, не от
+    создания — повышение цены между ними попадает в минимум."""
+    from apps.promotions.state_machine import PromotionSM
+
+    p = _product("8.00")
+    promo = _promo(p, status="draft", starts_at=None, discount_percent=20)
+    Promotion.objects.filter(pk=promo.pk).update(created_at=timezone.now() - timedelta(days=40))
+    _raise(p, "10.00", days_ago=2)
+    promo = Promotion.objects.get(pk=promo.pk)
+    PromotionSM().apply(promo, "active")
+    assert promo.starts_at is not None
+    assert promo.old_price == Decimal("8.00")
+    assert promo.has_discount is False
+
+
+def test_soft_deleted_past_promo_still_counts():
+    """Ревью M2: удаление прошлой дешёвой акции не поднимает цену сравнения."""
+    p = _product("10.00")
+    old = _promo(
+        p,
+        status="ended",
+        price_override=Decimal("6.00"),
+        starts_at=timezone.now() - timedelta(days=10),
+        ends_at=timezone.now() - timedelta(days=3),
+    )
+    old.delete()  # soft
+    promo = _promo(p, price_override=Decimal("7.00"))
+    assert promo.old_price == Decimal("6.00")
+
+
+def test_facet_rabatt_filter_is_batched(django_assert_max_num_queries):
+    """Ревью H2: фильтр «−N %+» и сорт по скидке не делают запросов на акцию."""
+    from apps.promotions.facets import PromoFacets
+
+    for i in range(6):
+        _promo(_product("10.00"), discount_percent=10 * (i + 1))
+    qs = Promotion.objects.filter(status="active").select_related("product")
+    fx = PromoFacets()
+    with django_assert_max_num_queries(4):
+        items = fx.apply(qs, {"rabatt": "30"})
+        items = fx.sort(items, "rabatt")
+    assert [x.discount_percent_display for x in items] == [60, 50, 40, 30]
