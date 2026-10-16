@@ -263,6 +263,10 @@ def purchase(
     `_restore_promo_limits` возвращает лимит при отмене/возврате заказа.
     Цели v1: product и «свободная» акция (без цели — строка без склада);
     service/stay идут своими рельсами (P3/P4)."""
+    if promotion.price_condition:
+        # В2: условная акция онлайн не продаётся — гард в сервисе, не только во вьюхе
+        # (будущие каналы: бот, MCP).
+        raise ValueError("conditional promotion is not sold online")
     if quantity < 1:
         raise ValueError("quantity must be >= 1")
     # (1) лимит кампании (None = без лимита; но акция обязана быть active)

@@ -151,6 +151,11 @@ def test_kaufen_rejects_conditional_promo():
     req = RequestFactory().post(
         f"/p/{promo.pk}/kaufen/", {"name": "A", "email": "a@b.de", "quantity": 2}
     )
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
     req.tenant = TenantFactory.build(business_type="restaurant")
     resp = public_views.promotion_purchase(req, pk=promo.pk)
     assert resp.status_code == 302
@@ -262,3 +267,61 @@ def test_form_rejects_incomplete_condition():
     )
     assert not form.is_valid()
     assert "price_condition_kind" in form.errors
+
+
+# --- django-ревью ----------------------------------------------------------------
+
+
+def test_purchase_service_refuses_conditional():
+    from apps.promotions import services
+
+    promo = _promo(_product())
+    with pytest.raises(ValueError):
+        services.purchase(promo, quantity=2, name="A", email="a@b.de")
+
+
+def test_detail_page_shows_condition_pill():
+    from django.contrib.messages.middleware import MessageMiddleware
+    from django.contrib.sessions.middleware import SessionMiddleware
+
+    from apps.promotions import public_views
+
+    promo = _promo(_product())
+    req = RequestFactory().get(f"/p/{promo.pk}/")
+    SessionMiddleware(lambda r: None).process_request(req)
+    MessageMiddleware(lambda r: None).process_request(req)
+    req.tenant = TenantFactory.build(business_type="restaurant")
+    with translation.override("de"):
+        body = public_views.promotion_detail(req, pk=promo.pk).content.decode()
+    assert "data-price-condition" in body and "2. Stück −50 %" in body
+    assert "4,50" not in body and "4.50" not in body
+
+
+def test_form_keeps_note_translations_and_checks_range():
+    tenant = TenantFactory(schema_name="public", slug="v2n", business_type="optiker")
+    promo = _promo(
+        _product(),
+        cond={"kind": "other", "note": {"de": "beim Kauf einer Brille", "en": "with glasses"}},
+    )
+    form = PromotionForm(
+        _form_data(
+            price_condition_present="1",
+            price_condition_kind="other",
+            price_condition_note="beim Kauf einer Brille",
+        ),
+        instance=promo,
+        tenant=tenant,
+    )
+    assert form.is_valid(), form.errors
+    assert form.save().metadata["price_condition"]["note"]["en"] == "with glasses"
+
+    form = PromotionForm(
+        _form_data(
+            price_condition_present="1",
+            price_condition_kind="nth",
+            price_condition_n="11",
+            discount_percent="50",
+        ),
+        tenant=tenant,
+    )
+    assert not form.is_valid() and "price_condition_n" in form.errors

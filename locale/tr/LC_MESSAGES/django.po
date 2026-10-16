@@ -24886,3 +24886,6 @@ msgstr "Fiyat yalnızca şu koşulla: %(c)s"
 
 msgid "Überraschungspreis und Bedingung passen nicht zusammen."
 msgstr "Sürpriz fiyat ile koşul birlikte kullanılamaz."
+
+msgid "Höchstens %(max)s Stück."
+msgstr "En fazla %(max)s adet."

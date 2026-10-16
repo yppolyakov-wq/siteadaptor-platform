@@ -38,7 +38,7 @@ CHOICES = [
     (OTHER, _("Andere Bedingung")),
 ]
 
-_N_RANGE = {NTH: (2, 10), X_FOR_Y: (2, 10), MIN_QTY: (2, 99)}
+N_RANGE = {NTH: (2, 10), X_FOR_Y: (2, 10), MIN_QTY: (2, 99)}
 
 
 def _int(value):
@@ -72,7 +72,7 @@ def normalize(raw) -> dict | None:
     if kind == OTHER:
         return {"kind": OTHER, "n": None, "pay": None, "note": note} if note else None
     n = _int(raw.get("n"))
-    low, high = _N_RANGE[kind]
+    low, high = N_RANGE[kind]
     if n is None or not low <= n <= high:
         return None
     pay = None

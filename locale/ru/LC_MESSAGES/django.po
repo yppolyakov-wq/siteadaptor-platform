@@ -25000,3 +25000,6 @@ msgstr "Цена действует только: %(c)s"
 
 msgid "Überraschungspreis und Bedingung passen nicht zusammen."
 msgstr "Цену-сюрприз нельзя совмещать с условием."
+
+msgid "Höchstens %(max)s Stück."
+msgstr "Не больше %(max)s шт."

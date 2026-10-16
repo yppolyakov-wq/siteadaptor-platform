@@ -24981,3 +24981,6 @@ msgstr "Ціна діє лише: %(c)s"
 
 msgid "Überraschungspreis und Bedingung passen nicht zusammen."
 msgstr "Ціну-сюрприз не можна поєднувати з умовою."
+
+msgid "Höchstens %(max)s Stück."
+msgstr "Не більше %(max)s шт."

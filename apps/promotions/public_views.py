@@ -2527,6 +2527,7 @@ def promotion_purchase(request, pk):
 
     if promo.price_condition:
         # В2: условная акция онлайн не продаётся (подменённый POST тоже).
+        messages.info(request, _("Diese Aktion können Sie zurücklegen lassen."))
         return redirect("storefront-promotion", pk=pk)
     if not promo_response.can_buy(getattr(request, "tenant", None)):
         # T-8.2: без модуля заказов подтверждение заказа отдаёт 404 — заказ не

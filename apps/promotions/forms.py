@@ -294,11 +294,23 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
         if "price_condition_present" not in self.data or not kind:
             return
         note = (cleaned.get("price_condition_note") or "").strip()
+        # Заметка правится в базовом языке; переводы других языков сохраняются.
+        prev = pc.of(self.instance) or {}
+        notes = dict(prev.get("note") or {})
+        if note:
+            notes[settings.LANGUAGE_CODE] = note
+        else:
+            notes = {}
+        n = cleaned.get("price_condition_n")
+        high = pc.N_RANGE.get(kind, (2, 99))[1]
+        if n is not None and n > high:
+            self.add_error("price_condition_n", _("Höchstens %(max)s Stück.") % {"max": high})
+            return
         raw = {
             "kind": kind,
-            "n": cleaned.get("price_condition_n"),
+            "n": n,
             "pay": cleaned.get("price_condition_pay"),
-            "note": {settings.LANGUAGE_CODE: note} if note else {},
+            "note": notes,
         }
         cond = pc.normalize(raw)
         if cond is None:

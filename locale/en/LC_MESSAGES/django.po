@@ -24759,3 +24759,6 @@ msgstr "Price applies only: %(c)s"
 
 msgid "Überraschungspreis und Bedingung passen nicht zusammen."
 msgstr "A surprise price and a condition cannot be combined."
+
+msgid "Höchstens %(max)s Stück."
+msgstr "At most %(max)s items."

@@ -257,6 +257,8 @@ def purchase_service(
 
     if promotion.service_id is None:
         raise ValueError("promotion has no service target")
+    if promotion.price_condition:
+        raise ValueError("conditional promotion is not sold online")  # В2
     if not rules_match(promotion.target_rules, start, resource.pk):
         raise OutOfStock()  # вне окна акции — по промо-цене не продаём
     price = promotion.new_price

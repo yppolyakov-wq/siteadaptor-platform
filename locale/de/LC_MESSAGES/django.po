@@ -24805,3 +24805,6 @@ msgstr "Preis gilt nur: %(c)s"
 
 msgid "Überraschungspreis und Bedingung passen nicht zusammen."
 msgstr "Überraschungspreis und Bedingung passen nicht zusammen."
+
+msgid "Höchstens %(max)s Stück."
+msgstr "Höchstens %(max)s Stück."

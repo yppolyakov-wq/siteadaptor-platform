@@ -83,6 +83,10 @@
         <div class="text-2xl md:text-3xl">{% include "storefront/_discount_display.html" with promo=promotion part="price" %}</div>
       {% elif promotion.new_price is not None %}
         <p class="text-3xl md:text-4xl font-extrabold {% if promotion.has_discount %}text-red-600{% endif %} leading-none" data-price-edit data-edit-model="promotion" data-price-field="price_override" data-edit-pk="{{ promotion.pk }}" data-price="{{ promotion.new_price }}">{% if eff == "ab" %}<span class="text-base font-normal text-gray-400 align-middle">{% trans "from" %}</span> {% endif %}{{ promotion.new_price }} {% if promotion.currency == 'EUR' %}€{% else %}{{ promotion.currency|cursym }}{% endif %}</p>
+        {% if promotion.price_condition_label %}
+        {% comment %}В2: условие цены — оффер вместо «−N %» (цена выше — обычная за штуку).{% endcomment %}
+        <div class="mt-1.5"><span data-price-badge data-price-condition class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ promotion.price_condition_label }}</span></div>
+        {% endif %}
         {% if promotion.has_discount and eff != "festpreis" and eff != "ab" %}
         <div class="mt-1.5 flex items-center gap-2">
           <span class="text-gray-400 line-through" data-price-edit data-edit-model="promotion" data-price-field="compare_at_price" data-edit-pk="{{ promotion.pk }}" data-price="{{ promotion.regular_price }}">{{ promotion.old_price }} {% if promotion.currency == 'EUR' %}€{% else %}{{ promotion.currency|cursym }}{% endif %}</span>
