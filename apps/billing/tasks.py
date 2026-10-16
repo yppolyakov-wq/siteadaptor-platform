@@ -60,7 +60,7 @@ def roll_subscription_lifecycle(now=None) -> dict:
 def send_trial_reminder(*, tenant_id, days_left):
     """Письмо-напоминание владельцу об окончании триала."""
     tenant = Tenant.objects.filter(id=tenant_id).first()
-    if tenant is None or not tenant.owner_email:
+    if tenant is None or not tenant.owner_email or tenant.is_demo:  # В1: демо без писем
         return {"skipped": True}
     from django.utils import translation
     from django.utils.translation import gettext as _

@@ -26,6 +26,15 @@ def deliver(notification_id) -> str:
 
     sm = NotificationSM()
     notification.attempts += 1
+    from apps.core import demo_mode
+
+    if demo_mode.current_is_demo():
+        # В1: из демо-бизнеса ничего не уходит (ни покупателю, ни владельцу, ни в
+        # Telegram). Строка остаётся следом в журнале.
+        notification.last_error = "demo tenant: not sent"
+        notification.save(update_fields=["attempts", "last_error", "updated_at"])
+        sm.apply(notification, FAILED)
+        return "demo"
     try:
         adapters.send(notification)
     except Exception as exc:  # noqa: BLE001 — ошибку доставки фиксируем в last_error

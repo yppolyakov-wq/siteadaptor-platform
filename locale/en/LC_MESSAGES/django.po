@@ -24693,3 +24693,12 @@ msgstr "From %(firm)s"
 
 msgid "Alle Angebote von %(firm)s"
 msgstr "All offers from %(firm)s"
+
+msgid "Demo-Geschäft — Bestellungen sind nicht echt."
+msgstr "Demo shop — orders are not real."
+
+msgid "Bitte keine echten Daten eingeben. In der Demo werden keine E-Mails verschickt und es wird nichts bezahlt."
+msgstr "Please do not enter real data. The demo sends no e-mails and nothing is paid."
+
+msgid "Online-Zahlung ist im Demo-Geschäft ausgeschaltet."
+msgstr "Online payment is switched off in the demo shop."

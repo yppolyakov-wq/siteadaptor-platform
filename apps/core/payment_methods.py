@@ -64,8 +64,11 @@ def _stripe_ready(tenant) -> bool:
 
 
 def invoice_enabled(tenant) -> bool:
-    """Счёт юрлицу включён у бизнеса (Р-1: счёт выпускается автоматически)."""
-    return bool(getattr(tenant, "invoice_b2b_enabled", False))
+    """Счёт юрлицу включён у бизнеса (Р-1: счёт выпускается автоматически).
+    В1: в демо счетов не выпускаем."""
+    from . import demo_mode
+
+    return bool(getattr(tenant, "invoice_b2b_enabled", False)) and not demo_mode.is_demo(tenant)
 
 
 def available(tenant, kind: str = "order", *, customer_type: str = PRIVATE) -> list[str]:
@@ -78,6 +81,10 @@ def available(tenant, kind: str = "order", *, customer_type: str = PRIVATE) -> l
     * счёт — только фирме и только при `invoice_b2b_enabled` (Р-3);
     * оплата на месте — всегда (последний, как раньше).
     """
+    from . import demo_mode
+
+    if demo_mode.is_demo(tenant):  # В1: в демо деньги не принимаем — только «на месте»
+        return [ON_SITE]
     methods: list[str] = []
     if kind == "order":
         stripe_ok = _stripe_ready(tenant) and getattr(tenant, "orders_prepay", False)

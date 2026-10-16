@@ -242,6 +242,17 @@ class Tenant(TenantMixin):
     auto_create_schema = True
     auto_drop_schema = False  # для безопасности — не удалять автоматически
 
+    def save(self, *args, **kwargs):
+        # В1: демо-бизнес никогда не принимает онлайн-оплату — инвариант модели, а не
+        # двадцать проверок `payments_enabled` по чекаутам (вебхук Connect и онбординг
+        # пишут поле через update_fields — правило действует и там).
+        if self.is_demo and self.payments_enabled:
+            self.payments_enabled = False
+            fields = kwargs.get("update_fields")
+            if fields is not None and "payments_enabled" not in fields:
+                kwargs["update_fields"] = [*fields, "payments_enabled"]
+        super().save(*args, **kwargs)
+
     class Meta:
         indexes = [
             # Агрегатор: подбор активных арендаторов по городу.

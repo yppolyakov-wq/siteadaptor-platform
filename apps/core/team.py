@@ -155,6 +155,10 @@ def _change_role(request, m, role):
 def _send_invite_mail(request, link):
     """Письмо-приглашение (fail-safe: console-бэкенд/сбой не валит флоу —
     ссылка в любом случае показывается владельцу)."""
+    from . import demo_mode
+
+    if demo_mode.is_demo(getattr(request, "tenant", None)):
+        return  # В1: из демо-кабинета приглашения не уходят (ссылка — на экране)
     try:
         from django.core.mail import send_mail
 
