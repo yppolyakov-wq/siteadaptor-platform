@@ -106,7 +106,7 @@ def _form_data(**extra):
 
 
 def test_cabinet_form_sets_and_clears_flag_with_sentinel():
-    tenant = TenantFactory(schema_name="public", slug="sf8f")
+    tenant = TenantFactory(schema_name="public", slug="sf8f", business_type="bakery")
     form = PromotionForm(_form_data(perishable_present="1", perishable="on"), tenant=tenant)
     assert form.is_valid(), form.errors
     promo = form.save()
@@ -131,7 +131,7 @@ def test_cabinet_form_without_sentinel_keeps_flag():
 
 @override_settings(PANGV_PERISHABLE_EXEMPTION=False)
 def test_cabinet_form_hides_checkbox_when_switched_off():
-    tenant = TenantFactory(schema_name="public", slug="sf8h")
+    tenant = TenantFactory(schema_name="public", slug="sf8h", business_type="bakery")
     assert "perishable" not in PromotionForm(tenant=tenant).fields
 
 
@@ -161,7 +161,9 @@ def test_quick_form_builds_flag_and_repeat_carries_it():
 
 
 def _city_tenant():
-    return TenantFactory(schema_name="public", slug="sf8c", name="Brot & Co", city="Solingen")
+    return TenantFactory(
+        schema_name="public", slug="sf8c", name="Brot & Co", city="Solingen", business_type="bakery"
+    )
 
 
 def test_product_snapshot_marks_uvp_reference():
@@ -283,7 +285,8 @@ def test_demo_surprise_bags_carry_perishable_flag():
     """Демо-носитель SF-8b: Überraschungstüte (остатки дня) сеется с исключением Abs. 4."""
     from apps.tenants import demo_kits
 
-    tenant = TenantFactory(schema_name="public", slug="sf8d", name="Markt", business_type="shop")
+    # В6: исключение — только еда; кит aktionsmarkt = grocery.
+    tenant = TenantFactory(schema_name="public", slug="sf8d", name="Markt", business_type="grocery")
     assert demo_kits.apply_kit(tenant, "aktionsmarkt") is True
     bags = Promotion.objects.filter(is_surprise=True)
     assert bags.exists()
@@ -306,3 +309,41 @@ def test_flag_is_inert_on_non_goods():
     )
     assert free.is_perishable is False
     assert free.old_price == Decimal("5.00")  # поведение свободной акции прежнее
+
+
+# --- В6: исключение § 11 Abs. 4 — только у бизнесов с продуктами питания ------------
+
+
+def test_cabinet_form_offers_checkbox_only_to_food_types():
+    clothing = TenantFactory.build(business_type="clothing")
+    assert "perishable" not in PromotionForm(tenant=clothing).fields
+    bakery = TenantFactory.build(business_type="bakery")
+    assert "perishable" in PromotionForm(tenant=bakery).fields
+
+
+def test_quick_form_ignores_flag_for_non_food():
+    from apps.promotions import quick
+
+    tenant = TenantFactory(schema_name="public", slug="sf8v3", business_type="clothing")
+    form = quick.QuickPromotionForm(
+        {
+            "title": "Sommerkleid",
+            "new_price": "20.00",
+            "old_price": "40.00",
+            "term": "week",
+            "customer_response": "reserve",
+            "perishable": "on",
+        },
+        tenant=tenant,
+    )
+    assert "perishable" not in form.fields
+    assert form.is_valid(), form.errors
+    assert "perishable" not in form.build().metadata
+
+
+def test_stored_flag_is_inert_for_non_food_tenant():
+    """Флаг, оставшийся у бизнеса не из еды (сменил тип), исключения не даёт."""
+    TenantFactory(schema_name="public", slug="sf8v4", business_type="clothing")
+    promo = _mondpreis_promo(perishable=True)
+    assert promo.is_perishable is False
+    assert promo.old_price == Decimal("8.00")  # 30-дневный кап действует

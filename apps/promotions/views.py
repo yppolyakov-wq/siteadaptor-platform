@@ -700,7 +700,9 @@ def promotion_quick(request):
             "form": form,
             "source": source,
             "max_photos": quick.MAX_PHOTOS,
-            "perishable_enabled": reference_price.exemption_enabled(),  # SF-8b
+            # SF-8b + В6: только у бизнесов с продуктами питания.
+            "perishable_enabled": reference_price.exemption_enabled()
+            and reference_price.food_allowed(tenant),
             "title_suggestions": [
                 str(p["initial"].get("title_de", ""))
                 for p in presets_for(getattr(tenant, "business_type", "") or "")

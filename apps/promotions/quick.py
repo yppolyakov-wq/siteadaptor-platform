@@ -163,6 +163,11 @@ class QuickPromotionForm(forms.Form):
     def __init__(self, *args, tenant=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.tenant = tenant
+        from . import reference_price
+
+        # В6: исключение § 11 Abs. 4 — только у бизнесов с продуктами питания.
+        if not (reference_price.exemption_enabled() and reference_price.food_allowed(tenant)):
+            self.fields.pop("perishable", None)
         from apps.catalog.models import Category, Product
 
         # Выборки ленивые: на публичном хосте («Aktion in 3 Klicks») каталога ещё нет,
@@ -207,12 +212,12 @@ class QuickPromotionForm(forms.Form):
 
     def build(self):
         """Несохранённая ``Promotion`` из ввода (без фото и без статуса)."""
-        from . import city_fields, reference_price
+        from . import city_fields
         from .models import Promotion
 
         data = self.cleaned_data
         meta = {"response": data["customer_response"]} if data.get("customer_response") else {}
-        if data.get("perishable") and reference_price.exemption_enabled():
+        if data.get("perishable") and "perishable" in self.fields:
             meta["perishable"] = True
 
         city_category, city_tags = city_fields.cleaned(self)

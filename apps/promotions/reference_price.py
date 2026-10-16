@@ -50,13 +50,47 @@ def exemption_enabled() -> bool:
     return bool(getattr(settings, "PANGV_PERISHABLE_EXEMPTION", True))
 
 
+def food_allowed(tenant) -> bool:
+    """В6: исключение § 11 Abs. 4 — только у бизнесов с продуктами питания
+    (FOOD_BUSINESS_TYPES — единый источник гастро-типов). Нет тенанта — нет поля."""
+    from apps.core.archetypes import FOOD_BUSINESS_TYPES
+
+    return getattr(tenant, "business_type", "") in FOOD_BUSINESS_TYPES
+
+
+def _current_tenant_food():
+    """Тип текущего бизнеса: в запросе — `connection.tenant` (без запроса), в Celery
+    (`schema_context` даёт FakeTenant без полей) — один SELECT по схеме. None, если
+    бизнес не найден (тогда флаг не гасим: новые флаги и так ставит только UI-гейт)."""
+    from django.db import connection
+
+    tenant = getattr(connection, "tenant", None)
+    if getattr(tenant, "business_type", None) is not None:
+        return food_allowed(tenant)
+    from apps.tenants.models import Tenant
+
+    schema = getattr(connection, "schema_name", "") or ""
+    btype = Tenant.objects.filter(schema_name=schema).values_list("business_type", flat=True)
+    btype = btype.first()
+    if btype is None:
+        return None
+    from apps.core.archetypes import FOOD_BUSINESS_TYPES
+
+    return btype in FOOD_BUSINESS_TYPES
+
+
 def is_perishable(promo) -> bool:
     """Флаг владельца «schnell verderblich / kurze Haltbarkeit» (metadata, без миграции)
     — действует только при включённом исключении."""
     meta = promo.metadata if isinstance(getattr(promo, "metadata", None), dict) else {}
     # Только Waren (товар/набор): у услуги/номера/свободной акции флаг инертен — иначе
     # подпись «wegen kurzer Haltbarkeit» была бы ложным публичным заявлением (UWG).
-    return bool(meta.get("perishable")) and _is_goods(promo) and exemption_enabled()
+    if not (meta.get("perishable") and _is_goods(promo) and exemption_enabled()):
+        return False
+    # В6: флаг, оставшийся у бизнеса не из еды (сменил тип), исключения не даёт.
+    if not hasattr(promo, "_food_ok"):
+        promo._food_ok = _current_tenant_food() is not False
+    return promo._food_ok
 
 
 def attach(promos) -> list:

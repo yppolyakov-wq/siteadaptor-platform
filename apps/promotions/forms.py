@@ -181,7 +181,7 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
         # при выключенном исключении (settings) поля в форме нет вовсе.
         from . import reference_price
 
-        if reference_price.exemption_enabled():
+        if reference_price.exemption_enabled() and reference_price.food_allowed(tenant):
             self.fields["perishable"] = forms.BooleanField(
                 label=_("Schnell verderblich / kurze Haltbarkeit"),
                 required=False,
