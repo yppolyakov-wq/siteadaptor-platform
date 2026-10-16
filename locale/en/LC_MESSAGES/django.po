@@ -24699,3 +24699,60 @@ msgstr "Demo shop"
 
 msgid "dies ist ein Beispiel-Shop zum Ausprobieren."
 msgstr "this is a sample shop to try things out."
+
+msgid "Keine Bedingung"
+msgstr "No condition"
+
+msgid "Jedes n-te Stück reduziert"
+msgstr "Every n-th item reduced"
+
+msgid "n Stück zum Preis von m"
+msgstr "n items for the price of m"
+
+msgid "Ab einer Stückzahl"
+msgstr "From a minimum quantity"
+
+msgid "Andere Bedingung"
+msgstr "Other condition"
+
+msgid "%(n)s. Stück −%(p)s %%"
+msgstr "item no. %(n)s −%(p)s %%"
+
+msgid "%(n)s. Stück reduziert"
+msgstr "item no. %(n)s reduced"
+
+msgid "%(n)s für %(pay)s"
+msgstr "%(n)s for %(pay)s"
+
+msgid "ab %(n)s Stück −%(p)s %%"
+msgstr "from %(n)s items −%(p)s %%"
+
+msgid "ab %(n)s Stück"
+msgstr "from %(n)s items"
+
+msgid "Preis gilt nur unter Bedingung"
+msgstr "Price applies only under a condition"
+
+msgid "Zum Beispiel „zweite Pizza zum halben Preis“: der Stückpreis bleibt normal, die Aktion zeigt die Bedingung statt eines falschen Stückpreises. Online-Kauf ist dann nicht möglich."
+msgstr "For example “second pizza at half price”: the unit price stays normal, the deal shows the condition instead of a misleading unit price. Online purchase is then not available."
+
+msgid "Stückzahl (n)"
+msgstr "Quantity (n)"
+
+msgid "Bezahlt werden (m)"
+msgstr "Paid items (m)"
+
+msgid "Hinweis zur Bedingung"
+msgstr "Note on the condition"
+
+msgid "Bedingung unvollständig: Stückzahl (und bei „n für m“ den Preis in Stück) oder einen Hinweis angeben."
+msgstr "Condition incomplete: enter the quantity (and for “n for m” the number of paid items) or a note."
+
+msgid "Für diese Bedingung bitte den Rabatt in Prozent angeben."
+msgstr "For this condition, please enter the discount in percent."
+
+msgid "Mit einer Bedingung gilt kein fester Aktionspreis — bitte leer lassen."
+msgstr "With a condition there is no fixed deal price — please leave empty."
+
+msgid "Preis gilt nur: %(c)s"
+msgstr "Price applies only: %(c)s"

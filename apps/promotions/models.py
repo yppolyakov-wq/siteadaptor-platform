@@ -391,9 +391,26 @@ class Promotion(SoftDeleteMixin, I18nMixin):
         return regular is not None and self.old_price is not None and self.old_price < regular
 
     @property
+    def price_condition(self) -> dict | None:
+        """В2: условие цены («2. Stück −50 %», «2 für 1», «ab 3 Stück»). Пока оно
+        есть, акция НЕ меняет цену штуки — см. `apps/core/price_conditions.py`."""
+        from apps.core import price_conditions
+
+        return price_conditions.of(self)
+
+    @property
+    def price_condition_label(self) -> str:
+        from apps.core import price_conditions
+
+        return price_conditions.label(self.price_condition, self.discount_percent)
+
+    @property
     def new_price(self):
-        """Новая цена: price_override, иначе обычная цена со скидкой %, иначе обычная."""
+        """Новая цена: price_override, иначе обычная цена со скидкой %, иначе обычная.
+        В2: при условии цены — обычная цена (скидка действует не на каждую штуку)."""
         regular = self.regular_price
+        if self.price_condition:
+            return regular
         if self.price_override is not None:
             return self._dec(self.price_override)
         if self.discount_percent and regular is not None:
@@ -438,6 +455,8 @@ class Promotion(SoftDeleteMixin, I18nMixin):
         Введённый владельцем процент показывается как есть, только пока цена
         сравнения равна обычной; урезанная — процент пересчитывается. Акция без
         цены вовсе («−20 % auf alles») — процент владельца, как прежде."""
+        if self.price_condition:
+            return None  # В2: «2. −50 %» — не «−50 % на всё»
         if self.discount_percent and self.regular_price is None:
             return int(self.discount_percent)
         if not self.has_discount:

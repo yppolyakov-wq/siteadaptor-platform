@@ -80,6 +80,10 @@ def response_for(promo, tenant) -> str:
         return COUPON
     if wanted == INQUIRE and can_inquire(tenant):
         return INQUIRE
+    if getattr(promo, "price_condition", None):
+        # В2: условие («2. Stück −50 %») онлайн-заказ не исполнит — цена штуки
+        # обычная, скидка за n-ю штуку применяется на месте.
+        return INQUIRE if wanted == BUY and can_inquire(tenant) else RESERVE
     if wanted == BUY and can_buy(tenant):
         return BUY
     return BUY if can_buy(tenant) else RESERVE

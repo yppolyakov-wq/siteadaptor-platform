@@ -24940,3 +24940,60 @@ msgstr "Демо-магазин"
 
 msgid "dies ist ein Beispiel-Shop zum Ausprobieren."
 msgstr "это пример магазина, чтобы всё попробовать."
+
+msgid "Keine Bedingung"
+msgstr "Без условия"
+
+msgid "Jedes n-te Stück reduziert"
+msgstr "Скидка на каждую n-ю штуку"
+
+msgid "n Stück zum Preis von m"
+msgstr "n штук по цене m"
+
+msgid "Ab einer Stückzahl"
+msgstr "От определённого количества"
+
+msgid "Andere Bedingung"
+msgstr "Другое условие"
+
+msgid "%(n)s. Stück −%(p)s %%"
+msgstr "%(n)s-я штука −%(p)s %%"
+
+msgid "%(n)s. Stück reduziert"
+msgstr "%(n)s-я штука со скидкой"
+
+msgid "%(n)s für %(pay)s"
+msgstr "%(n)s по цене %(pay)s"
+
+msgid "ab %(n)s Stück −%(p)s %%"
+msgstr "от %(n)s шт. −%(p)s %%"
+
+msgid "ab %(n)s Stück"
+msgstr "от %(n)s шт."
+
+msgid "Preis gilt nur unter Bedingung"
+msgstr "Цена действует только при условии"
+
+msgid "Zum Beispiel „zweite Pizza zum halben Preis“: der Stückpreis bleibt normal, die Aktion zeigt die Bedingung statt eines falschen Stückpreises. Online-Kauf ist dann nicht möglich."
+msgstr "Например, «вторая пицца за полцены»: цена за штуку остаётся обычной, акция показывает условие вместо неверной цены за штуку. Онлайн-покупка в этом случае недоступна."
+
+msgid "Stückzahl (n)"
+msgstr "Количество (n)"
+
+msgid "Bezahlt werden (m)"
+msgstr "Оплачивается штук (m)"
+
+msgid "Hinweis zur Bedingung"
+msgstr "Пояснение к условию"
+
+msgid "Bedingung unvollständig: Stückzahl (und bei „n für m“ den Preis in Stück) oder einen Hinweis angeben."
+msgstr "Условие неполное: укажите количество (а для «n по цене m» — сколько штук оплачивается) или пояснение."
+
+msgid "Für diese Bedingung bitte den Rabatt in Prozent angeben."
+msgstr "Для этого условия укажите скидку в процентах."
+
+msgid "Mit einer Bedingung gilt kein fester Aktionspreis — bitte leer lassen."
+msgstr "При условии фиксированной акционной цены нет — оставьте поле пустым."
+
+msgid "Preis gilt nur: %(c)s"
+msgstr "Цена действует только: %(c)s"

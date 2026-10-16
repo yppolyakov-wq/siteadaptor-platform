@@ -24745,3 +24745,60 @@ msgstr "Demo-Geschäft"
 
 msgid "dies ist ein Beispiel-Shop zum Ausprobieren."
 msgstr "dies ist ein Beispiel-Shop zum Ausprobieren."
+
+msgid "Keine Bedingung"
+msgstr "Keine Bedingung"
+
+msgid "Jedes n-te Stück reduziert"
+msgstr "Jedes n-te Stück reduziert"
+
+msgid "n Stück zum Preis von m"
+msgstr "n Stück zum Preis von m"
+
+msgid "Ab einer Stückzahl"
+msgstr "Ab einer Stückzahl"
+
+msgid "Andere Bedingung"
+msgstr "Andere Bedingung"
+
+msgid "%(n)s. Stück −%(p)s %%"
+msgstr "%(n)s. Stück −%(p)s %%"
+
+msgid "%(n)s. Stück reduziert"
+msgstr "%(n)s. Stück reduziert"
+
+msgid "%(n)s für %(pay)s"
+msgstr "%(n)s für %(pay)s"
+
+msgid "ab %(n)s Stück −%(p)s %%"
+msgstr "ab %(n)s Stück −%(p)s %%"
+
+msgid "ab %(n)s Stück"
+msgstr "ab %(n)s Stück"
+
+msgid "Preis gilt nur unter Bedingung"
+msgstr "Preis gilt nur unter Bedingung"
+
+msgid "Zum Beispiel „zweite Pizza zum halben Preis“: der Stückpreis bleibt normal, die Aktion zeigt die Bedingung statt eines falschen Stückpreises. Online-Kauf ist dann nicht möglich."
+msgstr "Zum Beispiel „zweite Pizza zum halben Preis“: der Stückpreis bleibt normal, die Aktion zeigt die Bedingung statt eines falschen Stückpreises. Online-Kauf ist dann nicht möglich."
+
+msgid "Stückzahl (n)"
+msgstr "Stückzahl (n)"
+
+msgid "Bezahlt werden (m)"
+msgstr "Bezahlt werden (m)"
+
+msgid "Hinweis zur Bedingung"
+msgstr "Hinweis zur Bedingung"
+
+msgid "Bedingung unvollständig: Stückzahl (und bei „n für m“ den Preis in Stück) oder einen Hinweis angeben."
+msgstr "Bedingung unvollständig: Stückzahl (und bei „n für m“ den Preis in Stück) oder einen Hinweis angeben."
+
+msgid "Für diese Bedingung bitte den Rabatt in Prozent angeben."
+msgstr "Für diese Bedingung bitte den Rabatt in Prozent angeben."
+
+msgid "Mit einer Bedingung gilt kein fester Aktionspreis — bitte leer lassen."
+msgstr "Mit einer Bedingung gilt kein fester Aktionspreis — bitte leer lassen."
+
+msgid "Preis gilt nur: %(c)s"
+msgstr "Preis gilt nur: %(c)s"

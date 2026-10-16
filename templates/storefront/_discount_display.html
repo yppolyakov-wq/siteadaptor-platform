@@ -18,6 +18,9 @@ UE1: badge_pos_class — переопределение позиции бейд�
   «−X €»); badge/strikethrough/festpreis/ab → «−X €» (акцент этих стилей — цена «statt»; фолбэк
   «−N %», если сумма невычислима); mystery → ничего (SF-1.4). Разметка байт-в-байт прежняя.{% endcomment %}
   {% if eff_style == "mystery" %}
+  {% elif promo.price_condition_label %}
+    {% comment %}В2: условие цены — подпись условия вместо «−N %» (скидка не на каждую штуку).{% endcomment %}
+    <span class="absolute {% if size == 'lg' %}{% firstof badge_pos_class 'top-4 left-4' %}{% else %}{% firstof badge_pos_class 'top-3 left-3' %}{% endif %} bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow" data-price-condition>{{ promo.price_condition_label }}</span>
   {% elif eff_style == "badge" or eff_style == "strikethrough" or eff_style == "festpreis" or eff_style == "ab" %}
     {% if promo.discount_amount %}
       {% if size == "lg" %}<span class="absolute {% firstof badge_pos_class 'top-4 left-4' %} bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% else %}<span class="absolute {% firstof badge_pos_class 'top-3 left-3' %} bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">−{{ promo.discount_amount }} €</span>{% endif %}

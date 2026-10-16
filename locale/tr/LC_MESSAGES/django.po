@@ -24826,3 +24826,60 @@ msgstr "Demo mağaza"
 
 msgid "dies ist ein Beispiel-Shop zum Ausprobieren."
 msgstr "bu, denemeniz için örnek bir mağazadır."
+
+msgid "Keine Bedingung"
+msgstr "Koşul yok"
+
+msgid "Jedes n-te Stück reduziert"
+msgstr "Her n'inci ürün indirimli"
+
+msgid "n Stück zum Preis von m"
+msgstr "m fiyatına n adet"
+
+msgid "Ab einer Stückzahl"
+msgstr "Belirli bir adetten itibaren"
+
+msgid "Andere Bedingung"
+msgstr "Başka koşul"
+
+msgid "%(n)s. Stück −%(p)s %%"
+msgstr "%(n)s. ürün −%%%(p)s"
+
+msgid "%(n)s. Stück reduziert"
+msgstr "%(n)s. ürün indirimli"
+
+msgid "%(n)s für %(pay)s"
+msgstr "%(pay)s fiyatına %(n)s"
+
+msgid "ab %(n)s Stück −%(p)s %%"
+msgstr "%(n)s adetten itibaren −%%%(p)s"
+
+msgid "ab %(n)s Stück"
+msgstr "%(n)s adetten itibaren"
+
+msgid "Preis gilt nur unter Bedingung"
+msgstr "Fiyat yalnızca bir koşulla geçerli"
+
+msgid "Zum Beispiel „zweite Pizza zum halben Preis“: der Stückpreis bleibt normal, die Aktion zeigt die Bedingung statt eines falschen Stückpreises. Online-Kauf ist dann nicht möglich."
+msgstr "Örneğin “ikinci pizza yarı fiyatına”: birim fiyat normal kalır, kampanya yanıltıcı bir birim fiyat yerine koşulu gösterir. Bu durumda çevrimiçi satın alma mümkün değildir."
+
+msgid "Stückzahl (n)"
+msgstr "Adet (n)"
+
+msgid "Bezahlt werden (m)"
+msgstr "Ödenen adet (m)"
+
+msgid "Hinweis zur Bedingung"
+msgstr "Koşul hakkında not"
+
+msgid "Bedingung unvollständig: Stückzahl (und bei „n für m“ den Preis in Stück) oder einen Hinweis angeben."
+msgstr "Koşul eksik: adedi (“m fiyatına n” için ödenen adedi) veya bir not girin."
+
+msgid "Für diese Bedingung bitte den Rabatt in Prozent angeben."
+msgstr "Bu koşul için lütfen indirimi yüzde olarak girin."
+
+msgid "Mit einer Bedingung gilt kein fester Aktionspreis — bitte leer lassen."
+msgstr "Koşul varken sabit kampanya fiyatı geçerli değildir — lütfen boş bırakın."
+
+msgid "Preis gilt nur: %(c)s"
+msgstr "Fiyat yalnızca şu koşulla: %(c)s"

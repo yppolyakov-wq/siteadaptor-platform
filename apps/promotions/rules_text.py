@@ -44,6 +44,9 @@ def conditions_for(promo, *, reserve: bool = False) -> list[dict]:
     """Условия акции строками. ``reserve`` — отклик «отложить» (T-8.2): лимит на
     клиента и срок удержания показываются и у акции, не помеченной типом «резерв»."""
     out: list[dict] = []
+    cond = getattr(promo, "price_condition_label", "")
+    if cond:  # В2: условие цены — первой строкой («Preis gilt nur …»)
+        out.append({"icon": "🏷", "text": _("Preis gilt nur: %(c)s") % {"c": cond}})
     rules = promo.target_rules if isinstance(promo.target_rules, dict) else {}
     days = weekday_span(rules.get("weekdays"))
     hf, ht = rules.get("hour_from"), rules.get("hour_to")

@@ -207,7 +207,7 @@ def service_promos(service):
     return [
         p
         for p in Promotion.objects.filter(service=service, status="active")
-        if p.new_price is not None
+        if p.new_price is not None and not p.price_condition
     ]
 
 
@@ -223,6 +223,8 @@ def promo_for_service(service, start, resource_id=None, promos=None):
         promos = Promotion.objects.filter(service=service, status="active")
     best = None
     for promo in promos:
+        if promo.price_condition:
+            continue  # В2: условие не применяется к одиночной записи
         if not rules_match(promo.target_rules, start, resource_id):
             continue
         price = promo.new_price
@@ -285,6 +287,8 @@ def stay_promo(unit, arrival=None):
         return None
     best = None
     for promo in Promotion.objects.filter(stay_unit=unit, status="active"):
+        if promo.price_condition:
+            continue  # В2: условие не применяется ко всей брони
         percent = promo.discount_percent or 0
         if not percent:
             continue

@@ -6,6 +6,7 @@ JSONField. Статус акции через форму не меняется �
 """
 
 from django import forms
+from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 from apps.catalog.models import Product
@@ -194,6 +195,41 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
                     "angewendet."
                 ),
             )
+        # В2: условие цены («2. Stück −50 %»): metadata["price_condition"], без миграции.
+        from apps.core import price_conditions as pc
+
+        cond = pc.of(self.instance) or {}
+        self.fields["price_condition_kind"] = forms.ChoiceField(
+            label=_("Preis gilt nur unter Bedingung"),
+            required=False,
+            choices=pc.CHOICES,
+            initial=cond.get("kind", ""),
+            help_text=_(
+                "Zum Beispiel „zweite Pizza zum halben Preis“: der Stückpreis bleibt normal, die Aktion "
+                "zeigt die Bedingung statt eines falschen Stückpreises. Online-Kauf ist "
+                "dann nicht möglich."
+            ),
+        )
+        self.fields["price_condition_n"] = forms.IntegerField(
+            label=_("Stückzahl (n)"),
+            required=False,
+            min_value=2,
+            max_value=99,
+            initial=cond.get("n"),
+        )
+        self.fields["price_condition_pay"] = forms.IntegerField(
+            label=_("Bezahlt werden (m)"),
+            required=False,
+            min_value=1,
+            max_value=9,
+            initial=cond.get("pay"),
+        )
+        self.fields["price_condition_note"] = forms.CharField(
+            label=_("Hinweis zur Bedingung"),
+            required=False,
+            max_length=pc.NOTE_MAX,
+            initial=(cond.get("note") or {}).get(settings.LANGUAGE_CODE, ""),
+        )
         # T-8.13a: категория каталога города + признаки. Новая акция — подсказка по типу
         # бизнеса уже выбрана; пусто = подсказка в момент выкладки.
         from apps.core import city_categories as cc
@@ -246,7 +282,44 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
         starts, ends = cleaned.get("starts_at"), cleaned.get("ends_at")
         if starts and ends and ends <= starts:
             self.add_error("ends_at", _("End must be after start."))
+        self._clean_price_condition(cleaned)
         return cleaned
+
+    def _clean_price_condition(self, cleaned):
+        """В2: условие собирается и проверяется одной функцией с витриной."""
+        from apps.core import price_conditions as pc
+
+        self._price_condition = None
+        kind = cleaned.get("price_condition_kind") or ""
+        if "price_condition_present" not in self.data or not kind:
+            return
+        note = (cleaned.get("price_condition_note") or "").strip()
+        raw = {
+            "kind": kind,
+            "n": cleaned.get("price_condition_n"),
+            "pay": cleaned.get("price_condition_pay"),
+            "note": {settings.LANGUAGE_CODE: note} if note else {},
+        }
+        cond = pc.normalize(raw)
+        if cond is None:
+            self.add_error(
+                "price_condition_kind",
+                _(
+                    "Bedingung unvollständig: Stückzahl (und bei „n für m“ den Preis in Stück) "
+                    "oder einen Hinweis angeben."
+                ),
+            )
+            return
+        if kind in pc.PERCENT_KINDS and not cleaned.get("discount_percent"):
+            self.add_error(
+                "discount_percent", _("Für diese Bedingung bitte den Rabatt in Prozent angeben.")
+            )
+        if cleaned.get("price_override") is not None:
+            self.add_error(
+                "price_override",
+                _("Mit einer Bedingung gilt kein fester Aktionspreis — bitte leer lassen."),
+            )
+        self._price_condition = cond
 
     def save(self, commit=True):
         promo = super().save(commit=False)
@@ -271,6 +344,15 @@ class PromotionForm(DynamicI18nFormMixin, forms.ModelForm):
                 meta["response"] = value
             else:
                 meta.pop("response", None)
+            promo.metadata = meta
+        # В2: сентинел `price_condition_present` — чужой POST условие не стирает (W0).
+        if "price_condition_present" in self.data:
+            meta = dict(promo.metadata) if isinstance(promo.metadata, dict) else {}
+            cond = getattr(self, "_price_condition", None)
+            if cond:
+                meta["price_condition"] = cond
+            else:
+                meta.pop("price_condition", None)
             promo.metadata = meta
         # SF-8b: сентинел `perishable_present` — снятый чекбокс браузер не шлёт (W0),
         # поэтому чужой POST без него флаг не стирает.

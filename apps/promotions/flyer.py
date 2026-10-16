@@ -44,6 +44,16 @@ def price_lines(promo) -> dict:
     """Блок цены для печати. Mystery цену НЕ раскрывает (как витрина, замки SF-1)."""
     if getattr(promo, "discount_style", "") == "mystery":
         return {"main": _("Überraschungspreis"), "old": "", "badge": "", "unit": ""}
+    cond = promo.price_condition_label
+    if cond:
+        # В2: на флаере — подпись условия, цена штуки обычная.
+        new = promo.new_price
+        return {
+            "main": _money(new) if new is not None else cond,
+            "old": "",
+            "badge": cond if new is not None else "",
+            "unit": "",
+        }
     pct = promo.discount_percent_display
     badge = f"−{pct} %" if pct else ""
     new = promo.new_price

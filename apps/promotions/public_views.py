@@ -2525,6 +2525,9 @@ def promotion_purchase(request, pk):
         return redirect("storefront-promotion", pk=pk)
     from . import response as promo_response
 
+    if promo.price_condition:
+        # В2: условная акция онлайн не продаётся (подменённый POST тоже).
+        return redirect("storefront-promotion", pk=pk)
     if not promo_response.can_buy(getattr(request, "tenant", None)):
         # T-8.2: без модуля заказов подтверждение заказа отдаёт 404 — заказ не
         # создаём, возвращаем на акцию (там кнопка «отложить» вместо покупки).
