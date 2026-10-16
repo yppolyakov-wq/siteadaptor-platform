@@ -22,10 +22,17 @@ GROUPS: tuple[tuple[str, ...], ...] = (
     ("feinkost", "delikatessen", "spezialitäten"),
     ("supermarkt", "lebensmittel"),
     # Essen & Gastronomie
-    ("restaurant", "gaststätte"),
+    ("restaurant", "gaststätte", "lokal", "gasthaus"),
     ("café", "cafe", "kaffeehaus"),
     ("frühstück", "brunch"),
-    ("mittagessen", "mittagstisch", "lunch"),
+    ("mittagessen", "mittagstisch", "lunch", "mittag", "mittagsmenü"),
+    ("vegetarisch", "vegetarische", "veggie", "vegetarian", "fleischlos"),
+    ("vegan", "pflanzlich", "plantbased"),
+    ("eis", "eisdiele", "gelato"),
+    ("sushi", "japanisch"),
+    ("burger", "hamburger"),
+    ("bäcker", "bäckerei", "backstube"),
+    ("wochenmarkt", "markt", "hofladen"),
     ("pizza", "pizzeria"),
     ("döner", "kebab"),
     ("lieferung", "lieferservice", "liefern"),
@@ -33,12 +40,17 @@ GROUPS: tuple[tuple[str, ...], ...] = (
     # Mode & Accessoires
     ("kleidung", "mode", "bekleidung", "klamotten"),
     ("schuhe", "sneaker", "stiefel"),
-    ("jacke", "mantel"),
+    ("jacke", "mantel", "parka", "anorak"),  # «winterjacke» — через split_compound
+    ("hose", "jeans"),
+    ("kleid", "kleider"),
+    ("damen", "frauen"),
+    ("herren", "männer"),
     ("tasche", "rucksack", "handtasche"),
     # Elektronik & Technik
     ("handy", "smartphone", "mobiltelefon", "iphone"),
     ("laptop", "notebook", "computer", "pc"),
     ("reparatur", "reparieren", "werkstatt"),
+    ("handyreparatur", "displayreparatur"),
     ("kopfhörer", "headset"),
     # Haus & Garten
     ("möbel", "einrichtung"),
@@ -59,7 +71,8 @@ GROUPS: tuple[tuple[str, ...], ...] = (
     ("kino", "film"),
     # Kinder & Familie
     ("spielzeug", "spielwaren", "spiele"),
-    ("kinder", "kids", "familie"),
+    ("kinder", "kids", "familie", "kind", "kinderprogramm"),
+    ("aktivität", "aktivitäten", "freizeit", "ausflugsziel"),
     # Auto & Mobilität
     ("fahrrad", "rad", "velo", "ebike", "pedelec"),
     ("auto", "pkw", "kfz", "wagen"),
@@ -93,3 +106,110 @@ for _group in GROUPS:
 def expand(token: str) -> tuple[str, ...]:
     """Слово → вся его группа синонимов (вкл. само слово); вне словаря — само слово."""
     return _INDEX.get(token, (token,))
+
+
+# T-8.26 п.5b (Р-6): составные немецкие слова — ЗАКРЫТЫЙ словарь «голов» и модификаторов.
+# «Winterjacke» → ещё и «jacke», «Kinderaktivitäten» → «kinder» + «aktivitäten». Авто-
+# разрезания нет: без словаря «Nachtisch» дал бы «Tisch». Внутри слова — ИЛИ, между
+# словами — И; ранг держит точное первым (вес A у заголовка).
+HEADS: frozenset[str] = frozenset(
+    {
+        "jacke",
+        "hose",
+        "schuhe",
+        "kleid",
+        "hemd",
+        "mantel",
+        "tasche",
+        "schal",
+        "mütze",
+        "kurs",
+        "kurse",
+        "workshop",
+        "brot",
+        "kuchen",
+        "torte",
+        "salat",
+        "suppe",
+        "pizza",
+        "menü",
+        "reparatur",
+        "schnitt",
+        "massage",
+        "führung",
+        "tour",
+        "touren",
+        "aktivität",
+        "aktivitäten",
+        "spiel",
+        "spiele",
+        "zeug",
+        "rad",
+        "lampe",
+        "möbel",
+        "wein",
+        "bier",
+        "käse",
+        "wurst",
+        "fleisch",
+        "gemüse",
+        "obst",
+        "pflege",
+        "studio",
+        "service",
+        "verleih",
+        "vermietung",
+        "beratung",
+        "training",
+        "unterricht",
+    }
+)
+MODIFIERS: frozenset[str] = frozenset(
+    {
+        "kinder",
+        "damen",
+        "herren",
+        "winter",
+        "sommer",
+        "herbst",
+        "frühjahr",
+        "bio",
+        "vegan",
+        "familien",
+        "baby",
+        "hand",
+        "vollkorn",
+        "weihnachts",
+        "oster",
+        "regen",
+        "wander",
+        "sport",
+        "outdoor",
+        "hochzeits",
+        "geburtstags",
+    }
+)
+# ложные головы — в HEADS их нет ПО ПОСТРОЕНИЮ; замок держит список
+HEAD_STOPLIST: frozenset[str] = frozenset(
+    {"tisch", "haus", "stadt", "land", "zeit", "platz", "markt"}
+)
+COMPOUND_MIN = 8  # букв в слове, с которого ищем голову/модификатор
+PART_MIN = 3  # минимальный остаток, чтобы разрез считался осмысленным
+
+
+def split_compound(token: str) -> tuple[str, ...]:
+    """Части составного слова по словарю: (модификатор?, голова?) или ()."""
+    token = (token or "").lower()
+    if len(token) < COMPOUND_MIN or token in _INDEX:
+        return ()
+    parts: list[str] = []
+    for mod in sorted(MODIFIERS, key=len, reverse=True):
+        if token.startswith(mod) and len(token) - len(mod) >= PART_MIN:
+            parts.append(mod)
+            break
+    for head in sorted(HEADS, key=len, reverse=True):
+        if len(head) >= 4 and token.endswith(head) and len(token) - len(head) >= PART_MIN:
+            if head not in HEAD_STOPLIST:
+                parts.append(head)
+            break
+    return tuple(parts)

@@ -85,7 +85,13 @@ def _words(q: str, lang: str) -> list[tuple[str, SearchQuery]]:
     for i, token in enumerate(tokens):
         prefix = i == len(tokens) - 1 and len(token) >= _cfg("prefix_min_len")
         word = None
-        for variant in dict.fromkeys([token, fold(token), *search_synonyms.expand(token)]):
+        # T-8.26 п.5b: части составного слова («winterjacke» → «winter», «jacke») и их
+        # синонимы — ветки ИЛИ того же слова, ПОСЛЕ самого слова (ранг: точное первым).
+        parts = search_synonyms.split_compound(token)
+        variants = [token, fold(token), *search_synonyms.expand(token)]
+        for part in parts:
+            variants += [part, *search_synonyms.expand(part)]
+        for variant in dict.fromkeys(variants):
             if word is not None and budget < len(configs):
                 break  # само слово — всегда; синонимы — пока хватает бюджета
             raw = f"{variant}:*" if prefix else variant
@@ -112,6 +118,9 @@ def _match_words(qs, words):
         cond = Q(search_vector=word)
         if len(token) >= SUBSTRING_MIN:
             cond |= Q(search_text__contains=fold(token))
+        for part in search_synonyms.split_compound(token):  # T-8.26 п.5b: голова как часть слова
+            if len(part) >= SUBSTRING_MIN:
+                cond |= Q(search_text__contains=fold(part))
         qs = qs.filter(cond)
     return qs
 

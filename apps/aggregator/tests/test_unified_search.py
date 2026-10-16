@@ -676,3 +676,59 @@ def test_entdecken_intent_chips_and_journal_raw_query(isolated_ratelimit):
     row = SearchQueryLog.objects.get()
     assert row.query_norm == "jacke unter 100 euro"  # сырой запрос жителя
     assert "auto" in row.filters and "preis" in str(row.filters["auto"])
+
+
+# --- T-8.26 п.5b: составные слова (закрытый словарь голов) + синонимы --------------------
+
+
+def test_compound_finds_head_and_ranks_exact_first():
+    _listing("Jacke Basic", kind="product")
+    _listing("Winterjacke Alpin", kind="product")
+    out, titles = _found("Winterjacke", city="Solingen")
+    assert out.mode == "fts" and titles[0] == "Winterjacke Alpin" and "Jacke Basic" in titles
+
+
+def test_modifier_prefix_is_an_or_branch_of_the_same_word():
+    _listing("Kinder Basteln")
+    _listing("Aktivitäten für alle")
+    _, titles = _found("Kinderaktivitäten", city="Solingen")
+    assert set(titles) == {"Kinder Basteln", "Aktivitäten für alle"}
+
+
+def test_heads_stoplist_nachtisch_is_not_tisch():
+    assert "tisch" not in search_synonyms.HEADS and "haus" not in search_synonyms.HEADS
+    _listing("Tisch aus Eiche", kind="product")
+    out, titles = _found("Nachtisch", city="Solingen")
+    # точного совпадения нет (голова «tisch» не раскрывается); если что-то и находится,
+    # то только фолбэком опечаток — и подписано «ähnliche», а не как точный результат
+    assert out.mode != "fts"
+
+
+def test_split_compound_rules():
+    sc = search_synonyms.split_compound
+    assert sc("winterjacke") == ("winter", "jacke")
+    assert sc("kinderaktivitäten") == ("kinder", "aktivitäten")
+    assert sc("jacke") == ()  # короткое / само в словаре
+    assert sc("zahnbürste") == ()  # неизвестная голова и модификатор
+    assert sc("nachtisch") == ()  # стоп-лист
+    assert sc("bioladen") == ("bio",)  # только модификатор, остаток ≥ 3
+
+
+def test_new_synonym_groups():
+    _listing("Vegetarische Bowl")
+    _, titles = _found("veggie", city="Solingen")
+    assert titles == ["Vegetarische Bowl"]
+    _listing("Jeans Slim", kind="product")
+    _, titles = _found("Hose", city="Solingen")
+    assert "Jeans Slim" in titles
+
+
+@override_settings(ROOT_URLCONF="config.urls_portal")
+def test_kinderaktivitaeten_am_wochenende_equals_manual(isolated_ratelimit):
+    soon = timezone.now() + timedelta(days=1)
+    _listing("Kinder Zirkus", kind="event", starts_at=soon, ends_at=soon + timedelta(hours=2))
+    _listing("Kinder Theater", kind="event", starts_at=soon + timedelta(days=30))
+    with mock.patch("apps.aggregator.search.timezone.now", return_value=soon - timedelta(days=1)):
+        by_text = _titles(_portal_html("Kinderaktivitäten am Wochenende"))
+        by_param = _titles(_portal_html("Kinder", datum="wochenende"))
+    assert by_text == by_param
